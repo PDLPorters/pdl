@@ -18,7 +18,7 @@ if ($@ ne ""){
 }
 
 END{
-    warn "\n\n*The next major version of PDL (v2.2) will require Perl v5.6.0 or later!*\n".
+    warn "\n\n*The next major version of PDL (v2.3) will require Perl v5.6.0 or later!*\n".
 	"*Upgrade your perl now for maximum PDL fun in the future!*\n\n" 
 	    unless $perl_560;
 }

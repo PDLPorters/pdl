@@ -1,3 +1,6 @@
+John Cerney (20/12/00)
+    - Minor changes to Makefile.PL and Reduce.pm for compatibility with
+      perl 5.005
 John Cerney (6/12/00)
     - Added new curve fitting routine: Linfit. Finds
       a linear-combination of specified functions

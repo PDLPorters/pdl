@@ -112,7 +112,8 @@ sub PDL::reduce ($$;$) {
     barf "dimension out of bounds" if $dim <0 || $dim >= $n;
     $pdl = $pdl->mv($dim,0);
   }
-  return $pdl->${\$reduce{$op}};
+  my $method = $reduce{$op};
+  return $pdl->$method();
 }
 
 =head2 canreduce
