@@ -696,17 +696,20 @@ sub wheader {     # Local utility routine of wfits()
       } else {
          printf FITS "%-8s= ", substr($k,0,8);
 
+	 my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ? $hdr{COMMENT}{$k} : undef;
+
+
          if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
-         my $cl=60-((exists($hdr{COMMENT}{$k})) ? 2 : 0);
+         my $cl=60-($com ? 2 : 0);
          my $end=' ' x $cl;
-         $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
+         $end =' /'. $com if($com);
          printf FITS "%20s%-50s", substr($hdrk,0,20),
          substr($end, 0, 50);
         } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
           # Logical flags ?
           printf FITS "%20s", $hdrk;
           my $end=' ' x 50;
-          $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
+          $end =' /'.$com if($com);
           printf FITS "%-50s", $end;
         } else {
 	  # Handle strings, truncating as necessary
@@ -718,11 +721,11 @@ sub wheader {     # Local utility routine of wfits()
 	  $st =~ s/\'/\'\'/g;
 	  
 	  my $sl=length($st)+2;
-	  my $cl=70-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
+	  my $cl=70-$sl-($com ? 2 : 0);
 	  print FITS "'$st'";
 	  
-	  if (exists($hdr{COMMENT}{$k}) && defined($hdr{COMMENT}{$k})) {
-	    printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
+	  if (defined $com) {
+	    printf FITS " /%-$ {cl}s", substr($com, 0, $cl);
 	  } else {
 	    printf FITS "%-$ {cl}s", ' ' x $cl;
 	  }
