@@ -551,7 +551,10 @@ sub search {
   $sort = 0 unless defined $sort;
   my $hash = $this->ensuredb;
   my @match = ();
+
+  print "pattern=`$pattern'\n";
   $pattern = $this->checkregex($pattern);
+  print "pattern=`$pattern'\n";
   while (my ($key,$val) = each %$hash) {
     for (@$fields) {
       if (($_ eq 'Name' && $key =~ /$pattern/) ||
@@ -573,13 +576,14 @@ sub search {
 # where the pairs of '/' can be replaced by any other pair of matching
 # characters
 # if the expression doesn't start with 'm' followed by a nonalphanumeric
-# character return as is
+# character,  return as-is
 sub checkregex {
   my ($this,$regex) = @_;
   return "(?i)$regex" unless $regex =~ /^m[^a-z,A-Z,0-9]/;
   my $sep = substr($regex,1,1);
   substr($regex,0,2) = '';
-  $sep = '\\'.$sep; # quote separator just in case
+  $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator 
+  print "sep: `$sep'\n";
   my ($pattern,$mod) = split($sep,$regex,2);
   barf "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
   $pattern = "(?$mod)$pattern" if $mod;

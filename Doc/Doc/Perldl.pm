@@ -186,7 +186,8 @@ sub aproposover {
     die "Usage: aproposover \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
-    return $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+    @out = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+    
 }
 
 sub apropos  {
@@ -196,16 +197,29 @@ sub apropos  {
     printmatch aproposover $func;
 }
 
+=head2 PDL::Doc::Perldl::finddoc
+
+=for ref 
+
+Internal interface to the PDL documentation searcher
+
+=cut
+
 sub finddoc  {
     die 'Usage: doc $topic' unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $topic = shift;
 
     # See if it matches a PDL function name
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
+    print "topic: $topic\n";
+    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
+    my @match = $PDL::onlinedoc->search("m/^(PDL::)?".$t2."\$/",['Name']);
+
+    push(@match,find_autodoc($topic));
+
 
     die "Unable to find PDL docs on $topic\n"
-	if $#match == -1;
+	unless(@match);
 
     # print out the matches
     # - do not like this solution when have multiple matches
@@ -216,8 +230,21 @@ sub finddoc  {
 	system("pod2text $m->[1]{File} | $PDL::Doc::pager");
     } else {
 	my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
-	print $out "=head1 Module\n\n",$m->[1]{Module}, "\n\n";
-	$PDL::onlinedoc->funcdocs($m->[0],$out);
+
+	if(defined $m->[1]{CustomFile}) {
+
+	    my $parser= new PDL::Pod::Parser;
+	    print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
+	    $parser->parse_from_file($m->[1]{CustomFile},$out);
+	    print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+
+	} else {
+
+	    print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
+	    $PDL::onlinedoc->funcdocs($m->[0],$out);
+
+	}
+
     }
     if ( $#match > -1 ) {
 	print "\nFound other matches for $topic:\n";
@@ -226,6 +253,40 @@ sub finddoc  {
 	}
     }
 }
+
+
+=head2 find_autodoc
+
+=for ref
+
+Internal helper routine that finds and returns documentation in the autoloader
+path, if it exists.  You feed in a topic and it searches for the file
+"${topic}.pdl".  If that exists, then the filename gets returned in a 
+match structure appropriate for the rest of finddoc.
+
+=cut
+
+sub find_autodoc {
+    my $topic = shift;
+    $topic =~ s/\(\)$//;
+    my @out;
+
+    return unless(@main::PDLLIB);
+    @main::PDLLIB_EXPANDED = PDL::AutoLoader::expand_path(@main::PDLLIB)
+	unless(@main::PDLLIB_EXPANDED);
+    
+    for my $dir(@main::PDLLIB_EXPANDED) {
+ 	my $file = $dir . "/" . "$topic";
+	$file .= ".pdl" unless $file =~ m/\.pdl$/;
+	push(@out,[$topic,{CustomFile => $file, Module => "file $file"}])
+	    if(-e $file);
+    }
+    @out;
+}
+
+
+
+=cut
 
 =head2 usage
 
@@ -286,8 +347,8 @@ prints signature of PDL function
  sig 'func'
 
 The signature is the normal dimensionality of the
-functions arguments. Calling with different dimensions
-causes 'threading' - see C<PDL::PP> for more details.
+function's arguments.  Calling with different dimensions
+doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
 
 =for example
 
@@ -334,6 +395,7 @@ print documentation about a PDL function or module or show a PDL manual
 In the case of multiple matches, the first command found is printed out,
 and the remaining commands listed, along with the names of their modules.
 
+
 =for usage
 
  Usage: help 'func'
@@ -366,16 +428,16 @@ sub help {
 
 The following four commands support online help in the perldl shell:
 
-  help            -- print this text
-  help 'thing'    -- print the docs on 'thing' (can be function/module/manual)
-  help $a         -- print information about $a (if it's a piddle)
-  help vars       -- print information about all current piddles
-  apropos 'word'  -- search for keywords/function names in the list of
-                     documented PDL functions
-  ?		  -- alias for 'help'
-  ??		  -- alias for 'apropos'
-  usage           -- print usage information for a given PDL function
-  sig             -- print signature of PDL function
+ help           -- print this text
+ help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
+ help $a        -- print information about $a (if it's a piddle)
+ help vars      -- print information about all current piddles
+ apropos 'word' -- search for keywords/function names in the list of
+                   documented PDL functions
+ ?              -- alias for 'help'
+ ??             -- alias for 'apropos'
+ usage          -- print usage information for a given PDL function
+ sig            -- print signature of PDL function
 EOH
 
 print "  badinfo         -- information on the support for bad values\n"
