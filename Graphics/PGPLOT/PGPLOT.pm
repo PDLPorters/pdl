@@ -342,12 +342,6 @@ aspect ratio preservation, and 1:1 pixel mapping are available.
 (1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
 for, eg, movie display; but it's not recommended for final output as 
 it's not device-independent.)
-There are several options related to scaling.  By default, the image
-is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
-aspect ratio preservation, and 1:1 pixel mapping are available.  
-(1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
-for, eg, movie display; but it's not recommended for final output as 
-it's not device-independent.)
 
 Options recognised:
 
@@ -364,22 +358,27 @@ Options recognised:
              the image aspect ratio to be preserved.  (the image is
              scaled to avoid cropping, unless you specify scaling 
              manually).  Larger numbers yield "landscape mode" pixels.
-      PITCH -Sets the number of image pixels per screen unit, in the Y
-             direction.  The X direction is determined by PIX, which defaults
-             to 1 if PITCH is specified and PIX is not.  PITCH causes UNIT
-             to default to "inches" so that it's easy to say 100dpi by
-             specifying {PITCH=>100}.  Larger numbers yield higher resolution
-             (hence smaller appearing) images.
+     PITCH - Sets the number of image pixels per screen unit, in the Y
+             direction.  The X direction is determined by PIX, which 
+             defaults to 1 if PITCH is specified and PIX is not.  PITCH 
+             causes UNIT to default to "inches" so that it's easy to say 
+             100dpi by specifying {PITCH=>100}.  Larger numbers yield 
+             higher resolution (hence smaller appearing) images.
       UNIT - Sets the screen unit used for scaling.  Must be one of the
              PGPLOT supported units (inch, mm, pixel, normalized).  You
              can refer to them by name or by number.  Defaults to pixels
              if not specified.
-   
-      SCALE -Syntactic sugar for the reciprocal of PITCH.  Makes the
+     SCALE - Syntactic sugar for the reciprocal of PITCH.  Makes the
              UNIT default to "pixels" so you can say "{SCALE=>1}"
              to see your image in device pixels.   Larger SCALEs lead
              to larger appearing images.
- 
+
+The following standard options influence this command:
+
+ AXIS, BORDER, JUSTIFY
+
+=for example
+
    To see an image with maximum size in the current window, but square
    pixels, say:
          imag $a,{PIX=>1}
@@ -392,10 +391,6 @@ Options recognised:
          imag $a,{PITCH=>100}
    To display an image with 100 micron pixels, say:
          imag $a,{PITCH=>10,UNIT=>'mm'}
- 
-The following standard options influence this command:
-
- AXIS, BORDER, JUSTIFY
 
 =head2 im
 

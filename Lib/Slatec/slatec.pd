@@ -759,7 +759,7 @@ monotonicity (data still valid).
 
 =item *
 
--1 if C<nelem($x) < 2>.
+-1 if C<nelem($x) E<lt> 2>.
 
 =item *
 
@@ -821,18 +821,18 @@ The allowed magnitudes for C<ic(0)> are:
 =item *
 
 3 to use the 3-point difference formula for C<d(0)>.
-(Reverts to the default b.c. if C<n < 3>)
+(Reverts to the default b.c. if C<n E<lt> 3>)
 
 =item *
 
 4 to use the 4-point difference formula for C<d(0)>.
-(Reverts to the default b.c. if C<n < 4>)
+(Reverts to the default b.c. if C<n E<lt> 4>)
 
 =item *
 
 5 to set C<d(0)> so that the second derivative is 
 continuous at C<x(1)>.
-(Reverts to the default b.c. if C<n < 4>) 
+(Reverts to the default b.c. if C<n E<lt> 4>) 
 
 =back
 
@@ -849,7 +849,7 @@ points. If C<$mflag E<gt> 0>, then the interpolant at swich points
 is forced to not deviate from the data by more than C<$mflag*dfloc>, 
 where C<dfloc> is the maximum of the change of C<$f> on this interval
 and its two immediate neighbours.
-If C<$mflag < 0>, no such control is to be imposed.            
+If C<$mflag E<lt> 0>, no such control is to be imposed.            
 
 The piddle C<$wk> is only needed for work space. However, I could
 not get it to work as a temporary variable, so you must supply
@@ -865,12 +865,12 @@ Error status returned by C<$ierr>:
 
 =item *
 
-1 if C<ic(0) < 0> and C<d(0)> had to be adjusted for
+1 if C<ic(0) E<lt> 0> and C<d(0)> had to be adjusted for
 monotonicity.
 
 =item *
 
-2 if C<ic(1) < 0> and C<d(n-1)> had to be adjusted
+2 if C<ic(1) E<lt> 0> and C<d(n-1)> had to be adjusted
 for monotonicity.
 
 =item * 
@@ -879,7 +879,7 @@ for monotonicity.
 
 =item *
 
--1 if C<n < 2>.
+-1 if C<n E<lt> 2>.
 
 =item *
 
@@ -899,7 +899,7 @@ for monotonicity.
 
 =item *
 
--7 if C<nwk < 2*(n-1)>.
+-7 if C<nwk E<lt> 2*(n-1)>.
 
 =back
 ',
@@ -951,12 +951,12 @@ continuous at C<x(1)>.
 =item *
 
 3 to use the 3-point difference formula for C<d(0)>.
-(Reverts to the default b.c. if N.LT.3 .)
+(Reverts to the default b.c. if C<n E<lt> 3>.)
 
 =item *
 
 4 to use the 4-point difference formula for C<d(0)>.
-(Reverts to the default b.c. if N.LT.4 .)                 
+(Reverts to the default b.c. if C<n E<lt> 4>.)                 
 
 =back
 
@@ -979,7 +979,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1  if C<nelem($x) < 2>.
+-1  if C<nelem($x) E<lt> 2>.
 
 =item *
 
@@ -987,11 +987,11 @@ Error status returned by C<$ierr>:
 
 =item *
 
--4  if C<ic(0) < 0> or C<ic(0) E<gt> 4>.
+-4  if C<ic(0) E<lt> 0> or C<ic(0) E<gt> 4>.
 
 =item *
 
--5  if C<ic(1) < 0> or C<ic(1) E<gt> 4>.
+-5  if C<ic(1) E<lt> 0> or C<ic(1) E<gt> 4>.
 
 =item *
 
@@ -999,7 +999,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--7  if C<nwk < 2*n>.
+-7  if C<nwk E<lt> 2*n>.
 
 =item *
 
@@ -1046,7 +1046,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--1 if C<nelem($x) < 2>
+-1 if C<nelem($x) E<lt> 2>
 
 =item *
 
@@ -1054,7 +1054,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--4 if C<nelem($xe) < 1>.
+-4 if C<nelem($xe) E<lt> 1>.
 
 =item *
 
@@ -1100,7 +1100,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--1 if C<nelem($x) < 2>
+-1 if C<nelem($x) E<lt> 2>
 
 =item *
 
@@ -1108,7 +1108,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 
 =item *
 
--4 if C<nelem($xe) < 1>.
+-4 if C<nelem($xe) E<lt> 1>.
 
 =back
 ',
@@ -1161,7 +1161,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1 if C<nelem($x) < 2>
+-1 if C<nelem($x) E<lt> 2>
 
 =item *
 
@@ -1211,7 +1211,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1 if C<nelem($x) < 2>.
+-1 if C<nelem($x) E<lt> 2>.
 
 =item *
 
@@ -1291,7 +1291,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--1 if C<n < 2>.
+-1 if C<n E<lt> 2>.
 
 =item *
 
@@ -1358,7 +1358,7 @@ C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
 
 =item *
 
-<0 - Assume the C<nknots> and C<t> were set in a previous call.
+E<lt>0 - Assume the C<nknots> and C<t> were set in a previous call.
 
 =back
 
@@ -1390,7 +1390,7 @@ Error status returned by C<$ierr>:
 
 =item *
 
--5 if C<knotyp < 0> and C<nknots != 2*n + 4>.
+-5 if C<knotyp E<lt> 0> and C<nknots != 2*n + 4>.
 
 =back
 ',
