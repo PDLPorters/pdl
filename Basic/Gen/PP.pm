@@ -836,8 +836,9 @@ sub coerce_types {
 # Not yet optimal.
 sub find_datatype {
     my($parnames,$parobjs,$ignore,$newstab,$gentypes) = @_;
-    
-    my $str = "\$PRIV(__datatype) = 0;";
+
+    my $dtype = "\$PRIV(__datatype)";
+    my $str = "$dtype = 0;";
     
     foreach ( @$parnames ) {
 	my $po = $parobjs->{$_};
@@ -847,17 +848,14 @@ sub find_datatype {
 	$str .= "!(($_->state & PDL_NOMYDIMS) &&
 		       $_->trans == NULL) && "
 			   if $po->{FlagCreat};
-	$str .= "\$PRIV(__datatype) < $_->datatype) {
-		 	\$PRIV(__datatype) = $_->datatype;
+	$str .= "$dtype < $_->datatype) {
+		 	$dtype = $_->datatype;
 		    }\n";
     } # foreach: @$parnames
     
-    $str .= join '', map {
-	"if(\$PRIV(__datatype) == PDL_$_) {}
-	 else "
-	 }(@$gentypes);
+    $str .= join '', map { "if($dtype == PDL_$_) {}\nelse " }(@$gentypes);
 
-    return $str .= "\$PRIV(__datatype) = PDL_$gentypes->[-1];";
+    return $str .= "$dtype = PDL_$gentypes->[-1];\n";
 } # sub: find_datatype()
 
 sub make_incsizes {
@@ -902,103 +900,126 @@ sub make_parnames {
 }
 
 sub make_redodims_thread {
-	my($pnames,$pobjs,$dobjs,$dpars,$pcode) = @_;
-	my $str; my $npdls = @$pnames;
-
-	my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $#$pnames );
-	$str .= "int __creating[$npdls];\n";
-	$str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
-	foreach ( 0 .. $#$pnames ) {
-	    $str .= "__creating[$_] = ";
-	    if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
-		$str .= "PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n";
-	    } else {
-		$str .= "0;\n";
-	    }
-	} # foreach: 0 .. $#$pnames
+    my($pnames,$pobjs,$dobjs,$dpars,$pcode) = @_;
+    my $str; my $npdls = @$pnames;
+    
+    my $nn = $#$pnames;
+    my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
+    $str .= "int __creating[$npdls];\n";
+    $str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
+    
+    # if FlagCreat is NOT true, then we set __creating[] to 0
+    # and we can use this knowledge below, and in hdrcheck()
+    foreach ( 0 .. $nn ) {
+	$str .= "__creating[$_] = ";
+	if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
+	    $str .= "PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n";
+	} else {
+	    $str .= "0;\n";
+	}
+    } # foreach: 0 .. $nn
 
 # - null != [0]
 #	$str .= join '',map {"if((!__creating[$_]) && \$PRIV(pdls[$_])-> ndims == 1 && \$PRIV(pdls[$_])->dims[0] == 0)
 #				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
 #					"} (0..$#$pnames);
-	$str .= join '',map {"if((!__creating[$_]) && ($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)
-				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
-					"} (0..$#$pnames);
-	$str .= " {\n$pcode\n}\n";
-	$str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
+    
+    foreach ( 0 .. $nn ) {
+	my $po = $pobjs->{$pnames->[$_]};
+	$str .= "if(";
+	$str .= "(!__creating[$_]) && " if $po->{FlagCreat};
+	$str .= "($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)\n" .
+	    "   \$CROAK(\"CANNOT CREATE PARAMETER $po->{Name}\");\n";
+    }
+
+#	$str .= join '',map {"if((!__creating[$_]) && ($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)
+#				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
+#					"} (0..$#$pnames);
+
+    $str .= " {\n$pcode\n}\n";
+    $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
 		 PDL->initthreadstruct(2,\$PRIV(pdls),
 			__realdims,__creating,$npdls,
                       &__einfo,&(\$PRIV(__pdlthread)),
                         \$PRIV(vtable->per_pdl_flags));
 		}\n";
-	$str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
-	$str .= hdrcheck($pnames,$pobjs);
-	$str .= join '',map {$pobjs->{$pnames->[$_]}->
-				get_incsets("\$PRIV(pdls[$_])")} 0..$#$pnames;
-	return $str;
-}
+    $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
+    $str .= hdrcheck($pnames,$pobjs);
+    $str .= join '',map {$pobjs->{$pnames->[$_]}->
+			     get_incsets($privname[$_])} 0..$nn;
+    return $str;
+
+} # sub: make_redodims_thread()
 
 sub hdrcheck {
   my ($pnames,$pobjs) = @_;
-  my @names = map { "\$PRIV(pdls[$_])" } 0..$#$pnames;
-  my $str = '';
-  $str .= "{ int i=0; void *hdrp = NULL;\n";
-  $str .= join '',map {
-                  "if (!hdrp && !__creating[i++] && $_\->hdrsv && ($_\->state & PDL_HDRCPY))
-                       hdrp = $_\->hdrsv;\n" } @names;
+
+#  $str .= "{ int i=0; void *hdrp = NULL;\n";
+#  $str .= join '',map {
+#                  "if (!hdrp && !__creating[i++] && $_\->hdrsv && ($_\->state & PDL_HDRCPY))
+#                       hdrp = $_\->hdrsv;\n" } @names;
+
+  my $nn = $#$pnames;
+  my @names = map { "\$PRIV(pdls[$_])" } 0..$nn;
+
+  # from make_redodims_thread() we know that __creating[] == 0 unless
+  # ...{FlagCreat} is true
+  #
+  my $str = "{ void *hdrp = NULL;\n";
+  foreach ( 0 .. $nn ) {
+      $str .= "   if (!hdrp && ";
+      $str .= "!__creating[$_] && " if $pobjs->{$pnames->[$_]}{FlagCreat};
+      $str .= "$names[$_]\->hdrsv && ($names[_]\->state & PDL_HDRCPY))\n" .
+	  "      hdrp = $names[$_]\->hdrsv;\n";
+  }
   $str .= "if (hdrp) {\n";
-  foreach ( 0 .. $#names ) {
+  foreach ( 0 .. $nn ) {
       if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
-	  $str .= "if ( $names[$_]\->hdrsv != hdrp )
-                      $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n"
-		      }
+	  $str .= "   if ( $names[$_]\->hdrsv != hdrp )\n" .
+	      "      $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n";
+      }
   }
   $str .= "}}\n";
-  $str;
-}
+  return $str;
+
+} # sub: hdrcheck()
 
 sub def_vtable {
-	my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
-		$pnames,$pobjs,$affine_ok,$foofname) = @_;
-	my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
-	my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
-	my $npdls = scalar @$pnames;
-	"static char ${vname}_flags[] =
+    my($vname,$sname,$rdname,$rfname,$wfname,$cpfname,$ffname,
+       $pnames,$pobjs,$affine_ok,$foofname) = @_;
+    my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
+    my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
+    my $npdls = scalar @$pnames;
+    return "static char ${vname}_flags[] =
 	 	{ ".
-	 	(join",",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
-				0 : $aff} 0..$npdls-1).
-			"};
+		    (join",",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
+				      0 : $aff} 0..$npdls-1).
+					  "};
 	 pdl_transvtable $vname = {
 		0,0, $nparents, $npdls, ${vname}_flags,
 		$rdname, $rfname, $wfname,
 		$ffname,NULL,NULL,$cpfname,NULL,
 		sizeof($sname),\"$vname\",
 		$foofname
-	 };"
+	 };";
 }
 
 sub sort_pnobjs {
-	my($pnames,$pobjs) = @_;
-	my (@nn);
-	for(@$pnames) {
-		if(!($pobjs->{$_}{FlagW})) { push @nn,$_; }
-	}
-	for(@$pnames) {
-		if(($pobjs->{$_}{FlagW})) { push @nn,$_; }
-	}
-	my $no = 0;
-	for(@nn) {
-		$pobjs->{$_}{Number} = $no++;
-	}
-	return (\@nn,$pobjs);
+    my($pnames,$pobjs) = @_;
+    my (@nn);
+    for(@$pnames) { push ( @nn, $_ ) unless $pobjs->{$_}{FlagW}; }
+    for(@$pnames) { push ( @nn, $_ ) if $pobjs->{$_}{FlagW}; }
+    my $no = 0;
+    for(@nn) { $pobjs->{$_}{Number} = $no++; }
+    return (\@nn,$pobjs);
 }
 
 sub mkfhdrinfo {
-	my($name,$sname) = @_;
-	return {
-		Name => $name,
-		StructName => $sname,
-	};
+    my($name,$sname) = @_;
+    return {
+	Name => $name,
+	StructName => $sname,
+    };
 }
 
 # XXX __privtrans explicit :(
@@ -1034,13 +1055,13 @@ sub wrap_vfn {
 } # sub: wrap_vfn()
 
 sub makesettrans {
-	my($pnames,$pobjs,$symtab) = @_;
-	my $trans = $symtab->get_symname(_PDL_ThisTrans);
-	my $no=0;
-	(join '',map {
-		"$trans->pdls[".($no++)."] = $_;\n"
+    my($pnames,$pobjs,$symtab) = @_;
+    my $trans = $symtab->get_symname(_PDL_ThisTrans);
+    my $no=0;
+    return (join '',map {
+	"$trans->pdls[".($no++)."] = $_;\n"
 	} @$pnames).
-	"PDL->make_trans_mutual((pdl_trans *)$trans);\n"
+	    "PDL->make_trans_mutual((pdl_trans *)$trans);\n";
 }
 
 sub identity2priv {
@@ -1350,29 +1371,29 @@ sub ParObjs_DimObjs {
 }
 
 sub OtherPars_nft {
-	my($otherpars,$dimobjs) = @_;
-	my(@names,%types,$type);
-	# support 'int ndim => n;' syntax
-	for (nospacesplit ';',$otherpars) {
-		if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
-		   my ($ctype,$dim) = ($1,$2);
-		   $ctype =~ s/(\S+)\s+$/$1/; # get rid of trailing ws
-		   print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-		   $type = new C::Type(undef,$ctype);
-		   croak "can't set unknown dimension"
-			unless defined($dimobjs->{$dim});
-		   $dimobjs->{$dim}->set_from($type);
-		} elsif(/^\s*pdl\s+\*\s*(\w+)$/) {
-			# It is a piddle -> make it a controlling one.
-			die("Not supported yet");
-		} else {
-		   $type = new C::Type(undef,$_);
-		}
-		my $name = $type->protoname;
-		push @names,$name;
-		$types{$name} = $type;
+    my($otherpars,$dimobjs) = @_;
+    my(@names,%types,$type);
+    # support 'int ndim => n;' syntax
+    for (nospacesplit ';',$otherpars) {
+	if (/^\s*([^=]+)\s*=>\s*(\S+)\s*$/) {
+	    my ($ctype,$dim) = ($1,$2);
+	    $ctype =~ s/(\S+)\s+$/$1/; # get rid of trailing ws
+	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
+	    $type = new C::Type(undef,$ctype);
+	    croak "can't set unknown dimension"
+		unless defined($dimobjs->{$dim});
+	    $dimobjs->{$dim}->set_from($type);
+	} elsif(/^\s*pdl\s+\*\s*(\w+)$/) {
+	    # It is a piddle -> make it a controlling one.
+	    die("Not supported yet");
+	} else {
+	    $type = new C::Type(undef,$_);
 	}
-	return (\@names,\%types);
+	my $name = $type->protoname;
+	push @names,$name;
+	$types{$name} = $type;
+    }
+    return (\@names,\%types);
 }
 
 sub NXArgs {
@@ -1391,21 +1412,21 @@ sub XSHdr {
 }
 
 sub indent($$) {
-  my ($text,$ind) = @_;
-  $text =~ s/^(.*)$/$ind$1/mg;
-  return $text;
+    my ($text,$ind) = @_;
+    $text =~ s/^(.*)$/$ind$1/mg;
+    return $text;
 }
 
 # This subroutine generates the XS code needed to call the perl 'initialize'
 # routine in order to create new output PDLs
 sub callPerlInit {
-  my $names = shift; # names of variables to initialize
-  my $ci    = shift; # current indenting
-  my $callcopy = $#_ > -1 ? shift : 0;
-  my $ret = '';
+    my $names = shift; # names of variables to initialize
+    my $ci    = shift; # current indenting
+    my $callcopy = $#_ > -1 ? shift : 0;
+    my $ret = '';
   
-  foreach my $name (@$names) {
-    unless ($callcopy) { $ret .= << "EOC"}
+    foreach my $name (@$names) {
+	unless ($callcopy) { $ret .= << "EOC"}
 
 if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
    $name\_SV = sv_newmortal();
@@ -1425,7 +1446,7 @@ if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
 
 EOC
 
-  else { $ret .= << "EOD" }
+    else { $ret .= << "EOD" }
 
 if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
    $name\_SV = sv_newmortal();
@@ -1448,10 +1469,11 @@ if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
 }
 EOD
 
-  }
+  } # doreach: $name
 
   return indent($ret,$ci);
-}
+
+} #sub callPerlInit()
 
     
   
