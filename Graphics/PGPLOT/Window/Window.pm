@@ -1913,7 +1913,6 @@ release_and_barf() instead of barf() from within this module.
 =cut
 
 my %sig_log;
-my @sig_log;
 my %sig_handlers;
 my $sig_nest = 0;
 
@@ -1929,32 +1928,39 @@ sub signal_catcher {
   }
 
   # Print message if debugging is on or on multiple INT signals
-  print STDERR "PDL::Graphics::PGPLOT::Window: Caught signal '$sig'\n" if($PDL::debug || ($sig_log{$sig} && ($sig eq 'INT')));
-
-  &release_signals if($sig_log{$sig}>2 && ($sig eq 'INT'));
-
-  push(@sig_log,$sig);
-  $sig_log{$sig}++;
+  if($PDL::debug || ($sig_log{$sig} && ($sig eq 'INT'))) {
+    if($sig_log{$sig}==1) {
+      print STDERR "PDL::Graphics::PGPLOT: deferred $sig for PGPLOT; one more aborts operation\n";
+    } else {
+      print STDERR "PDL::Graphics::PGPLOT: deferred $sig signal for PGPLOT operation (l=$sig_nest)\n" 
+      }
+  }
+  
+  # Handle multiple INT signals (user pressing ^C a bunch)
+  if(($sig_log{$sig}>1) && ($sig eq 'INT')) {
+    print STDERR "Aborting PGPLOT operation".($PDL::debug ? " (may mess up future PGPLOT commands)\n" : "\n");
+    $sig_nest = 1;
+    &release_signals ;
+  }
+  else {
+    $sig_log{$sig}++;
+  }
 }  
 
 sub catch_signals {
   my(@sigs) = ('INT','__DIE__');
 
-  @sig_log = (); 
-
   local($_);
-  print "\@sigs is ".join(",",@sigs)."; catching " if($PDL::debug>1);
-  foreach $_(@sigs) {
-    next if ($SIG{$_} == \&signal_catcher);
-    print $_ if($PDL::debug>1);
-    $sig_handlers{$_}=$SIG{$_};
-    $SIG{$_}=\&signal_catcher;
+
+  if($sig_nest == 0) {
+    foreach $_(@sigs) {
+      next if ($SIG{$_} == \&signal_catcher);
+      $sig_handlers{$_}=$SIG{$_};
+      $SIG{$_}=\&signal_catcher;
+    }
   }
 
   $sig_nest++; # Keep track of nested calls.
-  print "(sig_nest=$sig_nest)\nsignal handlers on ",join(",",sort keys %SIG),"\n" if($PDL::debug>1);
-
-  
 }
 
 sub release_signals {
@@ -1962,7 +1968,6 @@ sub release_signals {
 
   $sig_nest-- if($sig_nest > 0);
   print "release_signals: sig_nest=$sig_nest\n" if($PDL::debug>1);
-
   return if($sig_nest > 0);
 
   # restore original handlers
@@ -1972,10 +1977,12 @@ sub release_signals {
   }
 
   # release signals
-  foreach $_(@sig_log) {
-    $sig_log{$_}=0;
+  foreach $_(keys %sig_log) {
+    next unless $sig_log{$_};
+    delete $sig_log{$_};
     kill $_,$$;
   }
+
 }
 
 sub release_and_barf {

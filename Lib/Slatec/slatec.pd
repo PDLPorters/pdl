@@ -457,10 +457,11 @@ sub PDL::eigsys {
 
 sub PDL::matinv {
 	my($m) = @_;
-	my(@dims) =$m->getndims;
+	my(@dims) = $m->dims;
 
 	# Keep from dumping core (FORTRAN does no error checking)
-	return undef unless( @dims == 2 && $dims[0] == $dims[1] );
+	barf("matinv requires a 2-D square matrix")
+		unless( @dims == 2 && $dims[0] == $dims[1] );
   
 	$m = $m->copy(); # Make sure we don't overwrite :(
 	gefa($m,(my $ipvt=null),(my $info=null));
