@@ -1,3 +1,5 @@
+CS  - fix PP.pm: bug #564937 (needed a check for sv_isobject(...) )
+    - make sure pp_done is called automatically if user forgets!
 CS  - applied Diab's patch #559860: improve trylink, Math/Makefile.PL
     - applied Diab's patch #559885: overload 'eq'
     - Inline::Pdlpp: fix join-bug, add MakePdlppInstallable to allow
