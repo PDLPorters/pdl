@@ -304,6 +304,7 @@ Known_problems
 Lib/CallExt/CallExt.pm
 Lib/CallExt/CallExt.xs
 Lib/CallExt/Makefile.PL
+Lib/DiskCache.pm
 Lib/FFT/Makefile.PL
 Lib/FFT/fft.pd
 Lib/FFT/fftn.c
