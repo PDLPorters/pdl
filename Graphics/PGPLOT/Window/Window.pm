@@ -3946,59 +3946,59 @@ fits_imag and fits_cont, but may come in handy for other methods.
 =cut
 
 sub _FITS_tr {
-  my ($pane) = shift;
-  my ($pdl) = shift;
-  my $hdr = (ref $pdl eq 'HASH') ? $pdl : $pdl->hdr();
+  my $pane = shift;
+  my $pdl = shift;
+
+  # Can either be sent a piddle or a hash reference for the header
+  # information
+  #
+  my $isapdl = UNIVERSAL::isa($pdl,'PDL');
+  my $hdr = $isapdl ? $pdl->hdr() : $pdl->hdr;
     
   print STDERR 
     "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
     unless (scalar(keys %$hdr) || (!$PDL::debug));
 
-  my($ic);
-  my($isapdl) = UNIVERSAL::isa($pdl,'PDL');
+  my ( $cdelt1, $cpix1, $cval1, $n1 );
+  my ( $cdelt2, $cpix2, $cval2, $n2 );
+  my $angle;
 
   {
-    no warnings; # don't complain about missing fields in fits headers
-    $ic = [ (   ($hdr->{CDELT1} || 1.0) *	 
-		    (  ($isapdl ? $pdl->dim(0) : $hdr->{NAXIS1} )  /  2.0 
-		       -   
-		       ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
-		       + 
-		       1 
-		       ) 
-		    +
-		    ( $hdr->{CRVAL1} )
-		    )
-		,
-		(   ($hdr->{CDELT2} || 1.0) * 
-		    (  ($isapdl ? $pdl->dim(1) : $hdr->{NAXIS2} )  / 2.0
-		       - 
-		       ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
-		       +
-		       1
-		       )
-		    +
-		    ( $hdr->{CRVAL2} )
-		    )
-		];
-  }
-  my(@dims);
-  if($isapdl) {
-    @dims = $pdl->dims;
-  } else {
-    for my $i(1..$hdr->{NAXIS}) {
-      push(@dims,$hdr->{"NAXIS$i"});
-    }
-  }
+    # don't complain about missing fields in fits headers
+    no warnings;
 
-  transform($pane,
-	    {ImageDimensions=>[@dims],
-	     Angle=>($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180,
-	     Pixinc=> [($hdr->{CDELT1} || 1.0), ($hdr->{CDELT2} || 1.0)],
-	     ImageCenter=>$ic
-	     }
-	    );
-}
+    if ( $isapdl ) {
+	( $n1, $n2 ) = $pdl->dims;
+    } else {
+	$n1 = $hdr->{NAXIS1};
+	$n2 = $hdr->{NAXIS2};
+    }
+
+    $cdelt1 = $hdr->{CDELT1} || 1.0;
+    $cpix1  = $hdr->{CRPIX1} || 1;
+    $cval1  = $hdr->{CRVAL1} || 0.0; # should we die rather than default to 0?
+
+    $cdelt2 = $hdr->{CDELT2} || 1.0;
+    $cpix2  = $hdr->{CRPIX2} || 1;
+    $cval2  = $hdr->{CRVAL2} || 0.0; # should we die rather than default to 0?
+
+    $angle  = ($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180;
+
+  } # no warnings;
+
+  my $ic = [
+	    ( $cdelt1 * ( $n1/2.0 - $cpix1 + 1 ) + $cval1 ),
+	    ( $cdelt2 * ( $n2/2.0 - $cpix2 + 1 ) + $cval2 )
+	    ];
+
+  return transform( $pane, {
+      ImageDimensions => [ $n1, $n2 ],
+      Angle  => $angle,
+      Pixinc => [ $cdelt1, $cdelt2 ],
+      ImageCenter => $ic
+      } );
+
+} # sub: _FITS_tr
   
 
 sub label_axes {
@@ -5688,7 +5688,6 @@ sub _fits_foo {
   my $cmd = shift;
   my ($in,$opt_in) = _extract_hash(@_);
   my ($pdl,@rest) = @$in;
-
 
   $opt_in = {} unless defined($opt_in);
 
