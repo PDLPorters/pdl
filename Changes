@@ -1,3 +1,4 @@
+CS  - explicitly load PDL::Core in PP boot section
 CED (26-Jun-02)
 	PDL::Graphics::PGPLOT::Window::line() autoranging avoids infinity
 CED (25-Jun-02)
