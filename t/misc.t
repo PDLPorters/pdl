@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..28\n";
+print "1..33\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -18,6 +18,12 @@ sub ok {
         print "ok $no\n" ;
 }
 
+sub approx {
+        my($a,$b) = @_;
+        my $c = abs($a-$b);
+        my $d = max($c);
+        $d < 0.0001;
+}
 
 require File::Spec;
 $fs = 'File::Spec';
@@ -188,5 +194,35 @@ $b->rasc($file);
 ok( abs($b->sum - 5.13147) < .01 );
 
 unlink $file;
+
+#######################################################
+# Tests of rcols() options: 29 to 33
+#   EXCLUDE/INCLUDE/LINES/DEFTYPE/TYPES
+
+open(OUT, ">$file") || die "Can not open $file for writing\n";
+print OUT <<EOD;
+1 2
+# comment line
+3 4
+-5 6
+7 8
+EOD
+close(OUT);
+
+($a,$b) = rcols $file,0,1;
+ok(  $a->nelem==4 && sum($a)==6 && sum($b)==20 );  # test: 29
+
+($a,$b) = rcols $file,0,1, { INCLUDE => '/^-/' };
+ok( $a->nelem==1 && $a->at(0)==-5 && $b->at(0)==6 );  # test: 30
+
+($a,$b) = rcols $file,0,1, { LINES => '-2:0' };
+ok( $a->nelem==3 && approx($a,pdl(-5,3,1)) && approx($b,pdl(6,4,2)) ); # test: 31
+
+use PDL::Types;
+($a,$b) = rcols $file, { DEFTYPE => long };
+ok( $a->nelem==4 && $a->get_datatype==$PDL_L && $b->get_datatype==$PDL_L ); # test: 32
+
+($a,$b) = rcols $file, { TYPES => [ ushort ] };
+ok( $a->nelem==4 && $a->get_datatype==$PDL_US && $b->get_datatype==$PDL_D ); # test: 33
 
 1;

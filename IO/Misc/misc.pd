@@ -121,7 +121,6 @@ sub PDL::rfits {
    }
    $pdl->setdims([@dims]);
 
-
    my $dref = $pdl->get_dataref();
 
    print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
@@ -384,21 +383,51 @@ sub wheader {     # Local utility routine of wfits()
 
 # ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
 # - needs a proper extend function rather than this nasty recreation
+# - changed to ensure input/output piddles have the same type
 
 sub ext1D {
    my ($a,$n) = @_;
-   my $b = zeroes($a->getdim(0)+$n);  # New pdl
-   my $bb = $b->slice("0:".($a->getdim(0)-1));
-   $bb .= $a;
-   $_[0] = $b;
+   my $nold   = $a->getdim(0);
+   my $b      = zeroes($a->type,$nold+$n);  # New pdl
+   my $bb     = $b->slice("0:".($nold-1));
+   $bb       .= $a;
+   $_[0]      = $b;
 1;}
+
+# taken outside of rcols() to avoid clutter
+sub _handle_types ($$$) {
+    my $ncols = shift;
+    my $deftype = shift;
+    my $types = shift;
+
+    barf "Unknown PDL type given for DEFTYPE.\n"
+	unless ref($deftype) eq "PDL::Type";
+
+    my @cols = ref($types) eq "ARRAY" ? @$types : ();
+	
+    if ( $#cols > -1 ) {
+  	# truncate if required
+  	$#cols = $ncols if $#cols > $ncols;
+	
+  	# check input values are sensible
+  	for ( 0 .. $#cols ) {
+  	    barf "Unknown value '$cols[$_]' in TYPES array.\n" 
+  		unless ref($cols[$_]) eq "PDL::Type";
+  	}
+    }
+
+    # fill in any missing columns
+    for ( ($#cols+1) .. $ncols ) { push @cols, $deftype; }
+
+    return @cols;
+} # sub: _handle_types
 
 =head2 rcols()
 
 =for ref
 
-Read ASCII whitespaced cols from file into piddles efficiently
-(also see rgrep()).
+Read ASCII whitespaced cols from a file into piddles and perl arrays
+(also see L</rgrep()>).
 
 There are two calling conventions - the old version, where
 a pattern can be specified after the filename/handle, and the new
@@ -407,25 +436,38 @@ reference can be given as either the second or last argument.
 
 The default behaviour is to ignore lines beginning with a # character
 and lines that only consist of whitespace. Options exist to only read
-from lines that match, or do not match, supplied patterns.
+from lines that match, or do not match, supplied patterns, and
+to set the types of the created piddles.
+
+Can take file name or *HANDLE, and if no columns are specified, 
+all are assumed. For the allowed types, see
+L<PDL::Core/Datatype_conversions>.
 
 Options:
 
-  EXCLUDE or IGNORE
-     - ignore lines matching this pattern (default '/^#/').
-  INCLUDE or KEEP
-     - only use lines which match this pattern (default '').
-  LINES   
-     - which line numbers to use. Line numbers start at 0 and the syntax 
-       is 'a:b:c' to use every c'th matching line between a and b
-       (default '').
-  PERLCOLS
-     - an array of column numbers which are to be read into perl arrays
-       rather than piddles. References to these arrays are returned after
-       the requested piddles.
+EXCLUDE or IGNORE
+- ignore lines matching this pattern (default B<'/^#/'>).
 
-Can take file name or *HANDLE, and if no columns are specified, 
-all are assumed. 
+INCLUDE or KEEP
+- only use lines which match this pattern (default B<''>).
+
+LINES   
+- which line numbers to use. Line numbers start at 0 and the syntax 
+is 'a:b:c' to use every c'th matching line between a and b
+(default B<''>).
+
+DEFTYPE
+- default data type for stored data (default B<double>).
+
+TYPES
+- reference to an array of data types, one element for each column 
+to be read in.
+Any missing columns use the DEFTYPE value (default B<[]>).
+
+PERLCOLS
+- an array of column numbers which are to be read into perl arrays
+rather than piddles. References to these arrays are returned after
+the requested piddles (default B<undef>).
 
 =for usage
 
@@ -440,17 +482,19 @@ e.g.,
 
 =for example
 
-  $x         = PDL->rcols 'file1';
-  ($x,$y)    = rcols *STDOUT;
+  $x      = PDL->rcols 'file1';
+  ($x,$y) = rcols *STDOUT;
 
   # read in lines containing the string foo, where the first
   # example also ignores lines that with a # character.
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/' };
-  ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/', EXCLUDE => '' };
+  ($x,$y,$z) = rcols 'file2', 0,4,5, 
+                 { INCLUDE => '/foo/', EXCLUDE => '' };
 
-  # ignore the first 27 lines of the file
-  ($x,$y) = rcols 'file3', { LINES => '27:-1' }
-  ($x,$y) = rcols 'file3', { LINES => '27:' }
+  # ignore the first 27 lines of the file, reading in as ushort's
+  ($x,$y) = rcols 'file3', { LINES => '27:-1', DEFTYPE => ushort };
+  ($x,$y) = rcols 'file3', 
+              { LINES => '27:', TYPES => [ ushort, ushort ] };
 
   # read in the first column as a perl array and the next two as piddles
   ($x,$y,$name) = rcols 'file4', 1, 2, { PERLCOLS => [ 0 ] };
@@ -464,11 +508,12 @@ Notes:
 use $PDL::IO::Misc::colsep to specify an alternate
 separator.
 
-3. To remove a particular check set its value to ''.
-
-4. For PDL-2.003, the meaning of the 'c' value in the LINES option has
+3. For PDL-2.003, the meaning of the 'c' value in the LINES option has
 changed: it now only counts matching lines rather than all lines as in
-previous versions of PDL.
+previous versions of PDL. 
+
+4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
+when read in, then the whole array reversed.
 
 =cut
 
@@ -491,6 +536,8 @@ sub PDL::rcols {
        EXCLUDE => '/^#/',
        INCLUDE => '',
        LINES => '',
+       DEFTYPE => double,
+       TYPES   => [],
        PERLCOLS => undef
        } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
@@ -517,12 +564,8 @@ sub PDL::rcols {
    }
 
    # which columns are to be read into piddles and which into perl arrays?
-   my @perl_cols;
-   if ( $$options{PERLCOLS} ) {
-       @perl_cols = @{ $$options{PERLCOLS} };
-   } else {
-       @perl_cols = ();
-   }
+   my @perl_cols = ();
+   @perl_cols = @{ $$options{PERLCOLS} } if $$options{PERLCOLS};
    my ( @pdl_cols )  = @_;
 
    # work out which line numbers are required
@@ -602,10 +645,24 @@ sub PDL::rcols {
        # using all the columns if the user doesn't specify anything
        if ( $index == 0 ) {
          @pdl_cols = ( 0 .. $#v ) if $#pdl_cols < 0;
+
+	 # sort out the types of the piddles
+	 my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
+	 if ( $PDL::verbose ) { # dbg aid
+	     print "Reading data into piddles of type: [ ";
+	     foreach my $t ( @types ) {
+		 # not sure this is the official way of doing it
+		 my $name = $PDL::Types::typehash{$PDL::Types::names[$t->[0]]}->{ctype};
+		 $name =~ s/PDL_//;
+		 print "$name ";
+	     }
+	     print "]\n";
+	 }
+
          $k = 0;
-         for (0..$#pdl_cols) { $ret[$_] = $class->zeroes(double,1); $k++; }
+         for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
          for (@perl_cols)    { $ret[$k++] = []; }
-	   $line_store = $class->zeroes(long,1); # only need to store integers
+	 $line_store = $class->zeroes(long,1); # only need to store integers
        }
 
        # if necessary, extend PDL in buffered manner
@@ -698,11 +755,19 @@ Write ASCII whitespaced cols into file from piddles efficiently.
 
 If no columns are specified all are assumed.
 Will optionally only process lines matching a pattern.
-Can take file name or *HANDLE, e.g.
+Can take file name or *HANDLE, and
+if no file/filehandle is given defaults to STDOUT.
+
+Options:
+
+HEADER
+- prints this string before the data. If the string
+is not terminated by a newline, one is added
+(default B<''>).
 
 =for usage
 
- Usage: wcols $piddle1, $piddle2,..., *HANDLE|"outfile";
+ Usage: wcols $piddle1, $piddle2,..., *HANDLE|"outfile", [\%options];
 
 e.g.,
 
@@ -716,24 +781,35 @@ e.g.,
   wcols "%10.3f", $a,$b; # Formatted
   wcols "%10.3f %10.5g", $a,$b; # Individual column formatting
 
+  wcols $a,$b, { HEADER => "#   a   b" };
+
 Note: columns are separated by whitespace by default,
 use $PDL::IO::Misc::colsep to specify an alternate
 separator.
-
-If no file/filehandle is given defaults to STDOUT
 
 =cut
 
 *wcols = \&PDL::wcols;
 
 sub PDL::wcols {
-   barf 'Usage: wcols(@[$format_string], vectors,*HANDLE|"filename")' if @_<1;
+   barf 'Usage: wcols(@[$format_string], vectors,*HANDLE|"filename", [\%options])' if @_<1;
 
    my ($format_string, $step, $fh);
    if (ref(\$_[0]) eq "SCALAR") {
        $step = $format_string = shift; # 1st arg not piddle
        $step =~ s/(%%|[^%])//g;  # use step to count number of format items
        $step = length ($step);
+   }
+   # if last argument is a reference to a hash, parse the options
+   my $header;
+   if ( ref( $_[-1] ) eq "HASH" ) {
+       my $opt = pop;
+       foreach my $key ( keys %$opt ) {
+	   if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
+	   else {
+	       print "Warning: rcols does not understand option <$key>.\n"; 
+	   }
+       }
    }
    my $file = $_[-1];
    my $file_opened;
@@ -761,6 +837,10 @@ sub PDL::wcols {
    for (@p) {
       barf "wcols: 1d args must have same number of elements\n"
          if $_->nelem != $n or $_->getndims!=1;
+   }
+   if ( defined $header ) {
+       $header .= "\n" unless $header =~ m/\n$/;
+       print $fh $header;
    }
    my $i;
    for ($i=0; $i<$n; $i++) {
