@@ -208,15 +208,10 @@ Graphics/PGPLOT/PGPLOT.xs
 Graphics/PGPLOT/typemap
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
-Graphics/TriD/OpenGL/OpenGL.m
-Graphics/TriD/OpenGL/OpenGL.pm
-Graphics/TriD/OpenGL/OpenGL.vf
-Graphics/TriD/OpenGL/OpenGL.xs
-Graphics/TriD/OpenGL/X.h
+Graphics/TriD/OpenGL/opengl.pd
+Graphics/TriD/OpenGL/test.pl
 Graphics/TriD/OpenGL/examples/clip
-Graphics/TriD/OpenGL/generate.p
 Graphics/TriD/OpenGL/hints/solaris_2.pl
-Graphics/TriD/OpenGL/typemap
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/README
