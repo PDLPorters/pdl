@@ -47,6 +47,10 @@ act q|
     # contain the location of the file)
     $m51 = rfits "$m51path/m51.fits";
 
+    # we use a floating-point version in some of the demos 
+    # to highlight the interpolation schemes
+    $m51_float = $m51->float;
+
 |;
 
 act q|
@@ -95,21 +99,21 @@ act q|
 
 act q|
     # display the original and transformed images
-    $win->panel(4);
-    $win->imag( $m51, $just ); # will appear in panel 1
+    $win->panel(4); # this is so imag() appears in panel 1
+    $win->imag( $m51, $just );
     $win->label_axes("","","M51");
 
     # Shrink m51 by a factor of 3; origin is at scientific origin.
-    $win->imag( $t->map($m51), $just );
+    $win->imag( $t->map($m51_float), $just );
     $win->label_axes("","","M51 shrunk by 3");
 
     # Grow m51 by a factor of 3; origin is still at sci. origin.
-    $win->imag( $t->unmap($m51), $just );
+    $win->imag( $t->unmap($m51_float), $just );
     $win->label_axes("","","M51 grown by 3 (slow)");
 
     # Grow m51 by a factor of 3; use sampling instead of bilinear interp.
     #  (much faster!)
-    $win->imag( $t->unmap($m51,{method=>"sample"}) );
+    $win->imag( $t->unmap($m51_float,{method=>"sample"}) );
     $win->label_axes("","","M51 grown by 3 (fast)");
 
 |;
@@ -145,16 +149,18 @@ act q|
     $win->label_axes("","","M51");
 
     # Stretched
-    $win->imag( $ts->compose($tu)->unmap($m51) );
+    $win->imag( $ts->compose($tu)->unmap($m51_float) );
     $win->label_axes("\\\\gh","r","M51");
 
     # Conformal
     $win->panel(3);
-    $win->imag( $ts_c->compose($tu_c)->unmap($m51) );
+    $win->imag( $ts_c->compose($tu_c)->unmap($m51_float) );
     $win->label_axes("\\\\gh","r","M51 (conformal)");
+
+    $win->close();
 
 |;
 
+} 
 
-
-} 1;
+1;
