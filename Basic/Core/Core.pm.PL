@@ -1595,8 +1595,10 @@ sub PDL::nslice {
 	  # and keep resulting dim fully in slice
 	  $_ = 'X'; 
 	}
-      } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+      } elsif ($_->nelem > 0) # only if piddle is not empty
+        { $_ = $_->flat->at(0) } # reduce this one-element piddle
                                       # to a scalar for 'slice'
+        else { return $_->copy } # $_ is empty, return empty copy
     }
     $i++;
   }
