@@ -1,0 +1,467 @@
+
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::FFT - FFTs for PDL
+
+=head1 DESCRIPTION
+
+FFTs for PDL.  These work for arrays of any dimension, although ones
+with small prime factors are likely to be the quickest.
+
+Each routine works `inplace'.
+
+=head1 SYNOPSIS
+
+        use PDL::FFT qw/:Func/;
+
+	fft($real,$imag);
+	ifft($real,$imag);
+	realfft($real);
+	realifft($real);
+
+	fftnd($real,$imag);
+	ifftnd($real,$imag);
+
+	$kernel = kernctr($image,$smallk);
+	fftconvolve($image,$kernel);
+
+=head1 FUNCTIONS
+
+=cut
+
+EOD
+
+pp_addhdr('
+int fftn (int ndim, const int dims[], double Re[], double Im[],
+	    int iSign, double scaling);
+int fftnf (int ndim, const int dims[], float Re[], float Im[],
+	    int iSign, float scaling);
+void fft_free();
+');
+pp_addxs('','
+
+int
+fft_free()
+   CODE:
+     fft_free();
+     RETVAL = 1;
+   OUTPUT:
+     RETVAL
+');
+pp_def('fft',
+	Pars => '[o,nc]real(n); [o,nc]imag(n);',
+	GenericTypes => [F,D],
+	Code => '$TFD(fftnf,fftn)
+	  ($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
+	Doc=>'Complex FFT of the "real" and "imag" arrays [inplace]'
+);
+
+pp_def('ifft',
+	Pars => '[o,nc]real(n); [o,nc]imag(n);',
+	GenericTypes => [F,D],
+	Code => '$TFD(fftnf,fftn)
+	  ($SIZE(n), NULL , $P(real),$P(imag), -1, -1.);',
+	Doc=>'Complex Inverse FFT of the "real" and "imag" arrays [inplace]'
+);
+
+pp_add_exported('',"fftnd ifftnd fftconvolve realfft realifft kernctr");
+
+pp_addpm(<<'EOD');
+
+use Carp;
+use PDL::Core qw/:Func/;
+use PDL::Basic qw/:Func/;
+use PDL::Types;
+
+END {
+  # tidying up required after using fftn
+  print "Freeing FFT space\n" if $PDL::verbose;
+  PDL::fft_free();
+}
+
+sub todouble {
+    my ($arg) = @_;
+    $arg = $arg->double if $arg->get_datatype != $PDL_D;
+    $_[0] = $arg;
+1;}
+
+=head2 realfft()
+
+=for ref
+
+FFT of real function [inplace].
+
+The real part of the transform ends up in the first half of the array
+and the imaginary part of the transform ends up in the second half of
+the array.
+
+=for usage
+
+	realfft($real);
+
+=cut
+
+*realfft = \&PDL::realfft;
+
+sub PDL::realfft {
+    barf("Usage: realfft(real(*)") if $#_ != 0;
+    my ($a) = @_;
+# FIX: could eliminate $b
+    my ($b) = 0*$a;
+    fft($a,$b);
+    my ($n) = int((($a->dims)[0]-1)/2); my($t);
+    ($t=$a->slice("-$n:-1")) .= $b->slice("1:$n");
+    undef;
+}
+
+=head2 realifft()
+
+=for ref
+
+Inverse of realfft routine [inplace].
+
+=for usage
+
+	realifft($real);
+
+=cut
+
+*realifft = \&PDL::realifft;
+
+sub PDL::realifft {
+    barf("Usage: realifft(xfm(*)") if $#_ != 0;
+    my ($a) = @_;
+    my ($n) = int((($a->dims)[0]-1)/2); my($t);
+# FIX: could eliminate $b
+    my ($b) = 0*$a;
+    ($t=$b->slice("1:$n")) .= $a->slice("-$n:-1");
+    ($t=$a->slice("-$n:-1")) .= $a->slice("$n:1");
+    ($t=$b->slice("-$n:-1")) .= -$b->slice("$n:1");
+    ifft($a,$b);
+# Sanity check -- shouldn't happen
+    carp "Bad inverse transform in realifft" if max($b) > 1e-6*max($a);
+    undef;
+}
+
+=head2 fftnd()
+
+=for ref
+
+N-dimensional FFT (inplace)
+
+=for example
+
+	fftnd($real,$imag);
+
+=cut
+
+*fftnd = \&PDL::fftnd;
+
+sub PDL::fftnd {
+    barf "Must have real and imaginary parts for fftnd" if $#_ != 1;
+    my ($r,$i) = @_;
+    my ($n) = $r->getndims;
+    barf "Dimensions of real and imag must be the same for fft"
+        if ($n != $i->getndims);
+    $n--;
+    todouble($r);
+    todouble($i);
+    # need the copy in case $r and $i point to same memory
+    $i = $i->copy;
+    foreach (0..$n) {
+      fft($r,$i);
+      $r = $r->mv(0,$n);
+      $i = $i->mv(0,$n);
+    }
+    $_[0] = $r; $_[1] = $i;
+    undef;
+}
+
+=head2 ifftnd()
+
+=for ref
+
+N-dimensional inverse FFT
+
+=for example
+
+	ifftnd($real,$imag);
+
+=cut
+
+*ifftnd = \&PDL::ifftnd;
+
+sub PDL::ifftnd {
+    barf "Must have real and imaginary parts for ifftnd" if $#_ != 1;
+    my ($r,$i) = @_;
+    my ($n) = $r->getndims;
+    barf "Dimensions of real and imag must be the same for ifft"
+        if ($n != $i->getndims);
+    todouble($r);
+    todouble($i);
+    # need the copy in case $r and $i point to same memory
+    $i = $i->copy;
+    $n--;
+    foreach (0..$n) {
+      ifft($r,$i);
+      $r = $r->mv(0,$n);
+      $i = $i->mv(0,$n);
+    }
+    $_[0] = $r; $_[1] = $i;
+    undef;
+}
+
+EOD
+
+# This version uses the fft routines' internal row/column swapping.
+# Doing this instead through PDL seems quicker at the moment.
+
+if (0) {
+pp_def('fftnd',
+	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
+	GenericTypes => [F,D],
+        PMCode => '
+
+sub PDL::fftnd{
+    barf("Usage: fftnd(real(*), imag(*)") if $#_ != 1;
+    my($a,$b) = @_;
+    my(@dimsa) = $a->dims;
+    my(@dimsb) = $b->dims;
+    my($dimsa) = long \@dimsa;
+    foreach(@dimsa) {
+	barf "Real and imaginary arrays must have same dimensions"
+	  if ($_ != shift @dimsb);
+    }
+    &PDL::_fftnd_int($dimsa, $a->clump(-1), $b->clump(-1));
+}
+
+',
+	Code => ' int *dima, ns=$SIZE(n), j;
+	dima = (int *) malloc(ns*sizeof(int));
+	if (!dima)
+	   barf("fftnd: Out of memory for dimension array");
+	for (j=0;j<ns;j++)
+	  dima[j] = $dims(n=>j);
+	$TFD(fftnf,fftn)(ns, dima, $P(real),$P(imag), 1, 1.);
+	free(dima);
+',
+	Doc=>'N-dimensional FFT [inplace].'
+);
+
+pp_def('ifftnd',
+	Pars => 'int dims(n); [o,nc]real(m); [o,nc]imag(m);',
+	GenericTypes => [F,D],
+        PMCode => '
+
+sub PDL::ifftnd{
+    barf("Usage: ifftnd(real(*), imag(*)") if $#_ != 1;
+    my($a,$b) = @_;
+    my(@dimsa) = $a->dims;
+    my(@dimsb) = $b->dims;
+    my($dimsa) = long \@dimsa;
+    foreach(@dimsa) {
+	barf "Real and imaginary arrays must have same dimensions"
+	  if ($_ != shift @dimsb);
+    }
+    &PDL::_ifftnd_int($dimsa, $a->clump(-1), $b->clump(-1));
+}
+
+',
+	Code => ' int *dima, ns=$SIZE(n), j;
+	dima = (int *) malloc(ns*sizeof(int));
+	if (!dima)
+	   barf("ifftnd: Out of memory for dimension array");
+	for (j=0;j<ns;j++)
+	  dima[j] = $dims(n=>j);
+	$TFD(fftnf,fftn)(ns, dima, $P(real),$P(imag), -1, -1.);
+	free(dima);
+',
+	Doc=>'N-dimensional inverse FFT [inplace].'
+);
+}
+
+pp_addpm(<<'EOD');
+
+=head2 fftconvolve(), kernctr()
+
+=for ref
+
+N-dimensional convolution, auxiliary routine to generate `centred' kernel
+
+=for usage
+
+	$kernel = kernctr($image,$smallk);
+	fftconvolve($image,$kernel);
+
+fftconvolve works inplace, and returns an error array in kernel as an
+accuracy check -- all the values in it should be negligible.
+
+The sizes of the image and the kernel must be the same.  kernctr
+centres a small kernel to emulate the behaviour of the direct
+convolution routines.
+
+The speed cross-over between using straight convolution (conv2d) and
+these fft routines is for kernel sizes roughly 7x7.
+
+=cut
+
+*fftconvolve = \&PDL::fftconvolve;
+
+sub PDL::fftconvolve {
+    barf "Must have image & kernel for fftconvolve" if $#_ != 1;
+    my ($hr, $hi) = @_;
+    my ($n) = $hr->getndims;
+    todouble($hr);
+    todouble($hi);
+    # need the copy in case $r and $i point to same memory
+    $hi = $hi->copy;
+    $hr = $hr->copy;
+    fftnd($hr,$hi);
+    convmath($hr->clump(-1),$hi->clump(-1));
+    my ($str1, $str2, $tmp, $i);
+    chop($str1 = '-1:1,' x $n);
+    chop($str2 = '1:-1,' x $n);
+
+# FIX: do these inplace -- cuts the arithmetic by a factor 2 as well.
+
+    ($tmp = $hr->slice($str2)) += $hr->slice($str1)->copy;
+    ($tmp = $hi->slice($str2)) -= $hi->slice($str1)->copy;
+    for ($i = 0; $i<$n; $i++) {
+	chop ($str1 = ('(0),' x $i).'-1:1,'.('(0),'x($n-$i-1)));
+	chop ($str2 = ('(0),' x $i).'1:-1,'.('(0),'x($n-$i-1)));
+	($tmp = $hr->slice($str2)) += $hr->slice($str1)->copy;
+        ($tmp = $hi->slice($str2)) -= $hi->slice($str1)->copy;
+    }
+    $hr->clump(-1)->set(0,$hr->clump(-1)->at(0)*2);
+    $hi->clump(-1)->set(0,0.);
+    ifftnd($hr,$hi);
+    $_[0] = $hr; $_[1] = $hi;
+    ($hr,$hi);
+}
+
+*kernctr = \&PDL::kernctr;
+
+sub PDL::kernctr {
+    # `centre' the kernel, to match kernel & image sizes and
+    # emulate convolve/conv2d.  FIX: implement with phase shifts
+    # in fftconvolve, with option tag
+    barf "Must have image & kernel for kernctr" if $#_ != 1;
+    my ($imag, $kern) = @_;
+    my (@ni) = $imag->dims;
+    my (@nk) = $kern->dims;
+    barf "Kernel and image must have same number of dims" if $#ni != $#nk;
+    my ($newk) = zeroes(double,@ni);
+    my ($k,$n,$d,$i,@stri,@strk,@b);
+    for ($i=0; $i <= $#ni; $i++) {
+	$k = $nk[$i];
+	$n = $ni[$i];
+	barf "Kernel must be smaller than image in all dims" if ($n < $k);
+	$d = int(($k-1)/2);
+        $stri[$i][0] = "0:$d,";
+        $strk[$i][0] = (-$d-1).":-1,";
+        $stri[$i][1] = ($d-$k+1).':-1,';
+        $strk[$i][1] = '0:'.($k-$d-2).',';
+    }
+    # kernel is split between the 2^n corners of the cube
+    my ($nchunk) = 2 << $#ni;
+    for ($i=0; $i < $nchunk; $i++) {
+	my ($stri,$strk);
+	for ($n=0, $b=$i; $n <= $#ni; $n++, $b >>= 1) {
+	  $stri .= $stri[$n][$b & 1];
+	  $strk .= $strk[$n][$b & 1];
+	}
+	chop ($stri); chop ($strk);
+	($t = $newk->slice($stri)) .= $kern->slice($strk);
+    }
+    $newk;
+}
+
+=cut
+
+EOD
+
+# convmath does local part of the maths necessary to handle a,b which
+# result from FFT of image & kernel in parallel.
+
+pp_def('convmath',
+	Pars => '[o,nc]a(m); [o,nc]b(m);',
+	Code => '
+	$GENERIC() t1, t2;
+	loop(m) %{
+	   t1 = $a();
+           t2 = $b();
+	   $a() = t1*t2/2;
+	   $b() = (t2*t2-t1*t1)/4;
+        %}
+',
+	Doc => 'Internal routine doing maths for convolution'
+);
+
+pp_def('cmul',
+	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
+	Code => '
+	$GENERIC() ar, ai, br, bi;
+	   ar = $ar();
+	   ai = $ai();
+	   br = $br();
+	   bi = $bi();
+	   $cr() = ar*br-ai*bi;
+	   $ci() = ar*bi+ai*br;
+',
+	Doc => 'Complex multiplication'
+);
+pp_def('cdiv',
+	Pars => 'ar(); ai(); br(); bi(); [o]cr(); [o]ci();',
+	Code => '
+	$GENERIC() ar, ai, br, bi, tt, dn;
+	   ar = $ar();
+	   ai = $ai();
+	   br = $br();
+	   bi = $bi();
+	   if (fabs(br) > fabs(bi)) {
+	     tt = bi/br;
+	     dn = br + tt*bi;
+	     $cr() = (ar+tt*ai)/dn;
+	     $ci() = (ai-tt*ar)/dn;
+	   } else {
+	     tt = br/bi;
+	     dn = br*tt + bi;
+	     $cr() = (ar*tt+ai)/dn;
+	     $ci() = (ai*tt-ar)/dn;
+           }
+',
+	Doc => 'Complex division'
+);
+
+pp_addpm(<<'ENDPM');
+
+1; # OK
+
+ENDPM
+
+pp_addpm(<<'EOD');
+
+=head1 BUGS
+
+Where the source is marked `FIX', could re-implement using phase-shift
+factors on the transforms and some real-space bookkeeping, to save
+some temporary space and redundant transforms.
+
+=head1 AUTHOR
+
+This file copyright (C) 1997, 1998 R.J.R. Williams
+(rjrw@ast.leeds.ac.uk), Karl Glazebrook (kgb@aaoepp.aao.gov.au),
+Tuomas J. Lukka, (lukka@husc.harvard.edu).  All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+
+=cut
+
+EOD
+
+pp_done();
+

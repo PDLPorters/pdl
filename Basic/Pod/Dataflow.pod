@@ -1,0 +1,261 @@
+=head1 NAME
+
+PDL::Dataflow -- description of the dataflow philosophy
+
+=head1 SYNOPSIS
+
+	perldl> $a = zeroes(10);
+	perldl> $b = $a->slice("2:4:2");
+	perldl> $b ++;
+	perldl> print $a;
+	[0 0 1 0 1 0 0 0 0 0]
+
+
+=head1 WARNING
+
+Dataflow is very experimental. Many features of it are disabled
+for 2.0, particularly families for one-directional
+dataflow. If you wish to use one-directional dataflow for
+something, please contact the author first and we'll work out
+how to make it functional again.
+
+Two-directional dataflow (which implements ->slice() etc.)
+is fully functional, however. Just about any function which
+returns some subset of the values in some piddle will make a binding
+so that
+
+	$a = some piddle
+	$b = $a->slice("some parts");
+	$b->set(3,3,10);
+
+also changes the corresponding element in $a. $b has become effectively
+a window to some subelements of $a. You can also define your own routines
+that do different types of subsets. If you don't want $b to be a window
+to $a, you must do
+
+	$b = $a->slice("some parts")->copy;
+
+The copying turns off all dataflow between the two piddles.
+
+The difficulties with one-directional
+dataflow are related to sequences like
+
+	$b = $a + 1;
+	$b ++;
+
+where there are several possible outcomes and the semantics get a little
+murky.
+
+=head1 DESCRIPTION
+
+Dataflow is new to PDL2.0. The basic philosophy
+behind dataflow is that
+
+	> $a = pdl 2,3,4;
+	> $b = $a * 2;
+	> print $b
+	[2 3 4]
+	> $a->set(0,5);
+	> print $b;
+	[10 3 4]
+
+should work. It doesn't. It was considered that doing this
+might be too confusing for novices and occasional users of the language.
+Therefore, you need to explicitly turn on dataflow, so
+
+	> $a = pdl 2,3,4;
+	> $a->doflow();
+	> $b = $a * 2;
+	...
+
+produces the (un)expected result. The rest of this documents
+explains various features and details of the dataflow implementation.
+
+=head1 Lazy evaluation
+
+When you calculate something like the above
+
+	> $a = pdl 2,3,4;
+	> $a->doflow();
+	> $b = $a * 2;
+
+nothing will have been calculated at this point. Even the memory for
+the contents of $b has not been allocated. Only the command
+
+	> print $b
+
+will actually cause $b to be calculated. This is important to bear
+in mind when doing performance measurements and benchmarks as well
+as when tracking errors.
+
+There is an explanation for this behaviour: it may save cycles
+but more importantly, imagine the following:
+
+	> $a = pdl 2,3,4;
+	> $b = pdl 5,6,7;
+	> $c = $a + $b;
+	...
+	> $a->resize(4);
+	> $b->resize(4);
+	> print $c;
+
+Now, if $c were evaluated between the two resizes, an error condition
+of incompatible sizes would occur.
+
+What happens in the current version is that resizing $a raises
+a flag in $c: "PDL_PARENTDIMSCHANGED" and $b just raises the same flag
+again. When $c is next evaluated, the flags are checked and it is found
+that a recalculation is needed.
+
+Of course, lazy evaluation can sometimes make debugging more painful
+because errors may occur somewhere where you'd not expect them.
+A better stack trace for errors is in the works for PDL, probably
+so that you can toggle a switch $PDL::traceevals and get a good trace
+of where the error actually was.
+
+=head1 Families
+
+This is one of the more intricate concepts of one-directional dataflow.
+Consider the following code ($a and $b are pdls that have dataflow enabled):
+
+	$c = $a + $b;
+	$e = $c + 1;
+	$d = $c->diagonal();
+	$d ++;
+	$f = $c + 1;
+
+What should $e and $f contain now? What about when $a is changed
+and a recalculation is triggered.
+
+In order to make dataflow work like you'd expect, a rather strange
+concept must be introduced: families. Let us make a diagram:
+
+	a   b
+	 \ /
+	  c
+	 /|
+	/ |
+       e  d
+
+This is what PDL actually has in memory after the first three lines.
+When $d is changed, we want $c to change but we don't want $e to change
+because it already is on the graph. It may not be clear now why you don't
+want it to change but if there were 40 lines of code between the 2nd
+and 4th lines, you would. So we need to make a copy of $c and $d:
+
+	a   b
+	 \ /
+	  c' . . . c
+	 /|        |\
+	/ |        | \
+       e  d' . . . d  f
+
+Notice that we primed the original c and d, because they do not correspond
+to the objects in $c and $d any more. Also, notice the dotted lines
+between the two objects: when $a is changed and this diagram is re-evaluated,
+$c really does get the value of c' with the diagonal incremented.
+
+To generalize on the above, whenever a piddle is mutated i.e.
+when its actual *value* is forcibly changed (not just the reference:
+
+	$d = $d + 1
+
+would produce a completely different result ($c and $d would not be bound
+any more whereas
+
+	$d .= $d + 1
+
+would yield the same as $d++), a "family" consisting of all other piddles
+joined to the mutated piddle by a two-way transformation is created
+and all those are copied.
+
+All slices or transformations that simply select a subset of the original
+pdl are two-way. Matrix inverse should be. No arithmetic
+operators are.
+
+=head1 Sources
+
+What you were told in the previous section is not quite true:
+the behaviour described is not *always* what you want. Sometimes you
+would probably like to have a data "source":
+
+	$a = pdl 2,3,4; $b = pdl 5,6,7;
+	$c = $a + $b;
+	line($c);
+
+Now, if you know that $a is going to change and that you want
+its children to change with it, you can declare it into a data source
+(XXX unimplemented in current version):
+
+	$a->datasource(1);
+
+After this, $a++ or $a .= something will not create a new family
+but will alter $a and cut its relation with its previous parents.
+All its children will follow its current value.
+
+So if $c in the previous section had been declared as a source,
+$e and $f would remain equal.
+
+=head1 Binding
+
+A dataflow mechanism would not be very useful without the ability
+to bind events onto changed data. Therefore, we provide such a mechanism:
+
+	> $a = pdl 2,3,4
+	> $b = $a + 1;
+	> $c = $b * 2;
+	> $c->bind( sub { print "A now: $a, C now: $c\n" } )
+	> PDL::dowhenidle();
+	A now: [2,3,4], C now: [6 8 10]
+	> $a->set(0,1);
+	> $a->set(1,1);
+	> PDL::dowhenidle();
+	A now: [1,1,4], C now: [4 4 10]
+
+Notice how the callbacks only get called during PDL::dowhenidle.
+An easy way to interface this to Perl event loop mechanisms
+(such as Tk) is being planned.
+
+There are many kinds of uses for this feature: self-updating graphs,
+for instance.
+
+Bla bla bla XXX more explanation
+
+=head1 Limitations
+
+Dataflow as such is a fairly limited addition on top of Perl.
+To get a more refined addition, the internals of perl need to be
+hacked a little. A true implementation would enable flow of everything,
+including
+
+=over 12
+
+=item data
+
+=item data size
+
+=item datatype
+
+=item operations
+
+=back
+
+At the moment we only have the first two (hey, 50% in a couple of months
+is not bad ;) but even this is useful by itself. However, especially
+the last one is desirable since it would add the possibility
+of flowing closures from place to place and would make many things
+more flexible.
+
+To get the rest working, the internals of dataflow probably need to
+be changed to be a more general framework.
+
+Additionally, it would be nice to be able to flow data in time,
+lucid-like (so you could easily define all kinds of signal processing
+things).
+
+=head1 AUTHOR
+
+Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu).
+Redistribution in the same form is allowed provided that the copyright
+notice stays intact but reprinting requires
+a permission from the author.

@@ -1,0 +1,816 @@
+pp_addpm({At=>Top},<<'EOD');
+
+=head1 NAME
+
+PDL::IO::Misc - misc IO routines for PDL
+
+=head1 DESCRIPTION
+
+A mixture of basic I/O functionality
+
+=head1 SYNOPSIS
+
+ use PDL::IO::Misc;
+
+=head1 FUNCTIONS
+
+=cut
+
+EOD
+
+pp_add_exported('',"rfits wfits rcols wcols rgrep rdsa");
+
+############################## PM CODE ########################################
+
+
+pp_addpm(<<'EOD');
+
+use PDL::Core;
+use PDL::Types;
+use Carp;
+
+=head2 rfits()
+
+=for ref
+
+Simple piddle FITS reader.
+
+=for example
+
+     $pdl = rfits('file.fits');
+
+Suffix magic:
+
+     $pdl = rfits('file.fits.gz'); # Automatically uncompress via gunzip pipe
+     $pdl = rfits('file.fits.Z');  # Automatically uncompress via uncompress pipe
+
+FITS Headers stored in piddle and can be retrived with $a->gethdr
+
+=cut
+
+sub rfits {PDL->rfits(@_)}
+
+sub PDL::rfits {
+   my $class = shift;
+   barf 'Usage: $a = rfits($file); $a = PDL->rfits("...")' if $#_!=0;
+   my $file = shift; my $pdl  = $class->new;
+   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero);
+
+   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
+   $file = "uncompress -c $file |" if $file =~ /\.Z$/;
+
+   open(FITS, $file) || barf "FITS file $file not found";
+   binmode FITS;
+   $nbytes = 0; # Number of bytes read so far
+   $line = "";
+
+   my $foo={};       # To go in pdl
+   $$foo{"BSCALE"}=1;
+   $$foo{"BZERO"}=0;
+
+   while( !eof(FITS)) {
+      read(FITS,$line,80);
+      barf "file $file is not in FITS-format:\n$line\n"
+                  if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
+      $nbytes += 80;
+
+      $name = (split(' ',substr($line,0,8)))[0]; $rest=substr($line,8);
+      $$foo{$name} = "";
+      $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) *$| ;
+      $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) +/.*$| ;
+      $$foo{$name}=$1 if $rest =~ m|^= '(.*)' *$| ;
+      $$foo{$name}=$1 if $rest =~ m|^= '(.*)' +/.*$| ;
+      last if $name eq "END";
+   }
+   $nbytes %= 2880;
+   my $bar; read(FITS,$bar, 2880-$nbytes) if $nbytes!=0; # Skip to end of card
+
+   # Setup piddle structure
+
+   $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
+   $pdl->set_datatype($PDL_S)    if $$foo{"BITPIX"} ==  16;
+   $pdl->set_datatype($PDL_L)    if $$foo{"BITPIX"} ==  32;
+   $pdl->set_datatype($PDL_F)    if $$foo{"BITPIX"} == -32;
+   $pdl->set_datatype($PDL_D)    if $$foo{"BITPIX"} == -64;
+
+   my @dims; # Store the dimenions 1..N, compute total number of pixels
+   $size = 1;  $i=1;
+   while(defined( $$foo{"NAXIS$i"} )) {
+     $size = $size*$$foo{"NAXIS$i"};
+     push @dims, $$foo{"NAXIS$i"} ; $i++;
+   }
+   $pdl->setdims([@dims]);
+
+
+   my $dref = $pdl->get_dataref();
+
+   print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
+         if $PDL::verbose;
+
+   # Slurp the FITS binary data
+
+   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , "bytes\n" if
+   $PDL::verbose;
+
+   read( FITS, $$dref, $size*PDL::Core::howbig($pdl->get_datatype) );
+
+   close(FITS);
+   $pdl->upd_data();
+
+   if (!isbigendian() ) { # Need to byte swap on little endian machines
+      bswap2($pdl) if $pdl->get_datatype == $PDL_S;
+      bswap4($pdl) if $pdl->get_datatype == $PDL_L || $pdl->get_datatype ==
+      $PDL_F;
+      bswap8($pdl) if $pdl->get_datatype == $PDL_D;
+   }
+
+   $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
+   print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
+   $bscale = 1 if $bscale eq "";
+   $bzero  = 0 if $bzero  eq "";
+   $pdl = $pdl*$bscale if $bscale != 1; # NOT *= and += for good reasons
+   $pdl = $pdl+$bzero  if $bzero  != 0;
+
+   # Header
+
+   $pdl->sethdr($foo);
+
+   return $pdl;
+}
+
+=head2 wfits()
+
+=for ref
+
+Simple piddle FITS writer
+
+=for example
+
+  wfits $pdl, 'filename.fits', [$BITPIX];
+  $pdl->wfits('foo.fits',-32);
+
+Suffix magic:
+
+  wfits $pdl, 'filename.fits.gz'; # Automatically compress through pipe to gzip
+  wfits $pdl, 'filename.fits.Z';  # Automatically compress through pipe to compress
+
+$BITPIX is optional and coerces the output format.
+
+=cut
+
+*wfits = \&PDL::wfits;
+
+sub PDL::wfits { # Write a PDL to a FITS format file
+
+   barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
+
+   my ($pdl,$file,$BITPIX) = @_;
+   my ($k, $buff, $off, $ndims, $sz);
+   local($nbytes, %hdr);
+
+   if ($file =~ /\.gz$/) {            # Handle compression
+      $file = "|gzip -9 > $file";
+   }
+   elsif ($file =~ /\.Z$/) {
+      $file = "|compress > $file";
+   }
+   else{
+      $file = ">$file";
+   }
+
+   # Figure output type
+
+   $BITPIX = "" unless defined $BITPIX;
+   if ($BITPIX eq "") {
+      $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
+      $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
+      $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
+      $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
+      $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
+   }
+   my $convert = sub { return $_[0] };# Default - do nothing
+   $convert = sub {byte($_[0])}   if $BITPIX ==   8;
+   $convert = sub {short($_[0])}  if $BITPIX ==  16;
+   $convert = sub {long($_[0])}   if $BITPIX ==  32;
+   $convert = sub {float($_[0])}  if $BITPIX == -32;
+   $convert = sub {double($_[0])} if $BITPIX == -64;
+
+   # Automatically figure output scaling
+
+   $bzero = 0; $bscale = 1;
+   if ($BITPIX>0) {
+      my $min = $pdl->min;
+      my $max = $pdl->max;
+      my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
+      ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
+      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
+
+      if ($min<$dmin || $max>$dmax) {
+         $bzero = $min;
+         $max -= $bzero;
+         $bscale = $max/$dmax if $max>$dmax;
+       }
+       print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
+   }
+
+   open(FITS, "$file") || barf "Unable to create FITS file $file\n";
+   binmode FITS;
+   printf FITS "%-80s", "SIMPLE  =                    T ";
+
+   $nbytes = 80; # Number of bytes written so far
+
+   # Write FITS header
+
+   %hdr = ();
+   my $h = $pdl->gethdr;
+   if (defined($h)) {
+      for (keys %$h) { $hdr{$_} = $$h{$_} } # Copy
+   }
+
+   delete $hdr{SIMPLE}; delete $hdr{'END'};
+
+   $hdr{BITPIX} =  $BITPIX;
+   $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
+   wheader('BITPIX');
+
+   $ndims = $pdl->getndims; # Dimensions of data array
+   $hdr{NAXIS}  = $ndims;
+   wheader('NAXIS');
+   for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
+   for $k (1..$ndims) { wheader("NAXIS$k") }
+
+   if ($bscale != 1 || $bzero  != 0) {
+      $hdr{BSCALE} =  $bscale;
+      $hdr{BZERO}  =  $bzero;
+      wheader('BSCALE');
+      wheader('BZERO');
+   }
+   wheader('BUNIT');
+   for $k (sort keys %hdr) { wheader($k) }
+   printf FITS "%-80s", "END"; $nbytes += 80;
+   $nbytes %= 2880;
+   print FITS " "x(2880-$nbytes) if $nbytes != 0; # Fill up HDU
+
+   # Decide how to byte swap - note does not quite work yet. Needs hack
+   # to IO.xs
+
+   my $bswap = sub {};     # Null routine
+   if ( !isbigendian() ) { # Need to set a byte swap routine
+      $bswap = \&bswap2 if $BITPIX==16;
+      $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
+      $bswap = \&bswap8 if $BITPIX==-64;
+   }
+
+   # Write FITS data
+
+   my $p1d = $pdl->clump(-1); # Data as 1D stream
+
+   $off = 0;
+   $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
+
+   $nbytes = $p1d->getdim(0) * $sz;
+
+   # Transfer data in blocks (because might need to byte swap)
+   # Buffer is also type converted on the fly
+
+   my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
+   my $tmp;
+
+   while ($nbytes - $off > $BUFFSZ) {
+
+      # Data to be transferred
+
+      $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
+                         -$bzero)/$bscale );
+      &$bswap($buff); print  FITS ${$buff->get_dataref};
+      $off += $BUFFSZ;
+   }
+   $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
+   &$bswap($buff); print  FITS ${$buff->get_dataref};
+   print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
+
+   close(FITS);
+
+1;}
+
+sub wheader {     # Local utility routine of wfits()
+   my $k = shift;
+
+   # Check that we are dealing with a scalar value in the header
+   # Need to make sure that the header does not include PDLs or
+   # other structures. Return unless $hdr{$k} is a scalar
+   return unless not ref($hdr{$k});
+
+   if ($hdr{$k} eq "") {
+      printf FITS "%-80s", substr($k,0,8);
+   }
+   else{
+      printf FITS "%-8s= ", substr($k,0,8);
+      if ($hdr{$k} =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
+         printf FITS "%-70s", substr($hdr{$k},0,70);
+      }
+     else {
+         printf FITS "%-70s", "'".substr($hdr{$k},0,68)."'";
+      }
+   }
+   $nbytes += 80; delete $hdr{$k};
+1;}
+
+# ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
+# - needs a proper extend function rather than this nasty recreation
+
+sub ext1D {
+   my ($a,$n) = @_;
+   my $b = zeroes($a->getdim(0)+$n);  # New pdl
+   my $bb = $b->slice("0:".($a->getdim(0)-1));
+   $bb .= $a;
+   $_[0] = $b;
+1;}
+
+=head2 rcols()
+
+=for ref
+
+Read ASCII whitespaced cols from file into piddles efficiently.
+
+If no columns are specified all are assumed
+Will optionally only process lines matching a pattern.
+Can take file name or *HANDLE, e.g.
+
+=for usage
+
+ Usage: ($x,$y,...) = rcols(*HANDLE|"filename", ["/pattern/",$col1, $col2,] ...)
+
+e.g.,
+
+=for example
+
+  ($x,$y)    = rcols 'file1'
+  ($x,$y)    = rcols *STDOUT
+  ($x,$y,$z) = rcols 'file2', "/foo/",3,4
+  $x = PDL->rcols 'file1';
+
+Notes:
+
+1. Currently quotes are required on the pattern.
+
+2. Columns are separated by whitespace by default,
+use $PDL::IO::Misc::colsep to specify an alternate
+separator.
+
+=cut
+
+$colsep = " "; # Default column separator
+
+sub rcols{PDL->rcols(@_)}
+
+sub PDL::rcols {
+   my $class = shift;
+   barf 'Usage ($x,$y,...) = rcols(*HANDLE|"filename", ["/pattern/",$col1, $col2,] ...)' if $#_<0;
+
+   my $is_handle = ref(\$_[0]) eq "GLOB";
+   my $fh = $is_handle ? $_[0] : "FILE";
+   open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
+   shift;
+
+   my $pattern="";
+   if (defined($_[0]) && $_[0] =~ m|^/.*/$|) { # Is a pattern
+      $pattern = shift;
+      substr($pattern,0,1)=""; substr($pattern,-1,1)="";  # Removes //s
+   }
+
+   my @cols = @_;
+   my (@ret,@v,$k); my ($m,$n)=(-1,0); # Count/PDL size
+
+   while(<$fh>) {
+
+      if ($pattern eq "") {
+           next if /^#/;    # Only skip comments
+      }
+      else{
+           next unless /$pattern/;
+      }
+
+      @v = $colsep eq ' ' ? split(' ') : split($colsep) ; $m++;  # Count got
+      if ($m==0) {
+          @cols = (0..$#v) if $#cols<0; # Use number of cols in first line
+          for (0..$#cols) {
+              $ret[$_] = double($class->new([0])); # Create PDLs
+          }
+      }
+      if ($n<$m) {
+          for (0..$#cols) {
+              ext1D( $ret[$_], 10000 ) # Extend PDL in buffered manner
+          }
+          $n += 10000;
+      }
+      $k=0; for(@cols) { set $ret[$k++], $m, 1*$v[$_] } # Set values - '1*' is
+   }                                                    # split() bug workaround
+
+   close($fh) unless $is_handle;
+   for (@ret) { $_ = $_->slice("0:$m")->copy; }; # Truncate
+   wantarray ? return(@ret) : return $ret[0];
+}
+
+
+=head2 wcols()
+
+=for ref
+
+Write ASCII whitespaced cols into file from piddles efficiently.
+
+If no columns are specified all are assumed
+Will optionally only process lines matching a pattern.
+Can take file name or *HANDLE, e.g.
+
+=for usage
+
+ Usage: wcols $piddle1, $piddle2,..., *HANDLE|"outfile";
+
+e.g.,
+
+=for example
+
+  wcols $x, $y+2, 'foo.dat';
+  wcols $x, $y+2, *STDERR;
+  wcols $x, $y+2, '|wc';
+  wcols $a,$b,$c; # Orthogonal version of 'print $a,$b,$c' :-)
+
+  wcols "%10.3f", $a,$b; # Formatted
+  wcols "%10.3f %10.5g", $a,$b; # Individual column formatting
+
+Note: columns are separated by whitespace by default,
+use $PDL::IO::Misc::colsep to specify an alternate
+separator.
+
+If no file/filehandle is given defaults to STDOUT
+
+=cut
+
+*wcols = \&PDL::wcols;
+
+sub PDL::wcols {
+   barf 'Usage: wcols(@[$format_string], vectors,*HANDLE|"filename")' if @_<1;
+
+   my ($format_string, $step, $fh);
+   if (ref(\$_[0]) eq "SCALAR") {
+       $step = $format_string = shift; # 1st arg not piddle
+       $step =~ s/(%%|[^%])//g;  # use step to count number of format items
+       $step = length ($step);
+   }
+   my $file = $_[-1];
+   my $file_opened;
+   if (ref(\$file) eq "GLOB") {  # file handle passed directly
+       $fh = $file; pop;
+   }
+   else{
+       if (ref(\$file) eq "SCALAR") {  # Must be a file name
+          $fh = "FILE";
+         if (!$is_handle) {
+            $file = ">$file" unless $file =~ /^\|/ or $file =~ /^\>/;
+             open $fh, $file or barf "File $file can not be opened for writing\n";
+         }
+          pop;
+	  $file_opened = 1;
+       }
+       else{  # Not a filehandle or filename, assume something else
+              # (probably piddle) and send to STDOUT
+          $fh = *STDOUT;
+       }
+   }
+
+   my @p = @_;
+   my $n = $p[0]->nelem;
+   for (@p) {
+      barf "wcols: 1d args must have same number of elements\n"
+         if $_->nelem != $n or $_->getndims!=1;
+   }
+   my $i;
+   for ($i=0; $i<$n; $i++) {
+       if ($format_string) {
+	   my @d;
+	   for (@p) {
+	       push @d,$_->at($i);
+	       if (@d == $step) {
+		   printf $fh $format_string,@d;
+		   printf $fh $colsep;
+		   $#d = -1;
+	       }
+	   }
+	   if (@d && !$i) {
+	       my $str;
+	       if ($#p>0) {
+		   $str = ($#p+1).' columns don\'t';
+	       } else {
+		   $str = '1 column doesn\'t';
+	       }
+	       $str .= " fit in $step column format ".
+	       '(even repeated) -- discarding surplus';
+	       carp $str;
+	       # printf $fh $format_string,@d;
+	       # printf $fh $colsep;
+	   }
+       } else {
+	   for (@p) {
+	       print $fh $_->at($i),$colsep;
+	   }
+       }
+       print $fh "\n";
+   }
+   close($fh) if $file_opened;
+   return 1;
+}
+
+
+
+=head2 rgrep()
+
+=for ref
+
+Read columns into piddles using full regexp pattern matching.
+
+Usage
+
+=for usage
+
+ ($x,$y,...) = rgrep(sub, *HANDLE|"filename")
+
+e.g.
+
+=for example
+
+ ($a,$b) = rgrep {/Foo (.*) Bar (.*) Mumble/} $file;
+
+i.e. the vectors C<$a> and C<$b> get the progressive values
+of C<$1>, C<$2> etc.
+
+=cut
+
+  sub rgrep (&@) {
+     barf 'Usage ($x,$y,...) = rgrep(sub, *HANDLE|"filename")'
+         if $#_!=1;
+
+     my (@ret,@v,$nret); my ($m,$n)=(-1,0); # Count/PDL size
+     my $pattern = shift;
+
+     my $is_handle = ref(\$_[0]) eq "GLOB";
+     my $fh = $is_handle ? $_[0] : "FILE";
+     open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
+
+     if (ref($pattern) ne "CODE") {
+         die "Got a ".ref($pattern)." for rgrep?!";
+     }
+
+     while(<$fh>) {
+         next unless @v = &$pattern;
+
+         $m++;  # Count got
+         if ($m==0) {
+	   $nret = $#v;   # Last index of values to return
+	   for (0..$nret) {
+	       $ret[$_] = double(pdl([0])); # Create PDLs
+	   }
+       } else { # perhaps should only carp once...
+           carp "Non-rectangular rgrep" if $nret != $#v;
+       }
+       if ($n<$m) {
+	   for (0..$nret) {
+	       ext1D( $ret[$_], 10000 ); # Extend PDL in buffered manner
+	   }
+	   $n += 10000;
+      }
+       for(0..$nret) { set $ret[$_], $m, 1*$v[$_] } # Set values - '1*' is
+   }                                                      # ensures numeric
+   close($fh) unless $is_handle;
+   for (@ret) { $_ = $_->slice("0:$m")->copy; }; # Truncate
+   wantarray ? return(@ret) : return $ret[0];
+}
+
+
+=head2 rdsa()
+
+=for ref
+
+Read a FIGARO/NDF format file.
+
+Requires non-PDL DSA module. Contact Frossie (frossie@jach.hawaii.edu)
+Usage:
+
+=for usage
+
+ ([$xaxis],$data) = rdsa($file)
+
+=for example
+
+ $a = rdsa 'file.sdf'
+
+Not yet tested with PDL-1.9X versions
+
+=cut
+
+sub rdsa{PDL->rdsa(@_)}
+
+sub PDL::rdsa {
+    my $class = shift;
+    barf 'Usage: ([$xaxis],$data) = rdsa($file)' if $#_!=0;
+    my $file = shift; my $pdl = $class->new; my $xpdl;
+    eval 'use DSA' unless $dsa_loaded++;
+    barf 'Cannot use DSA library' if $@ ne "";
+
+    $status = 0;
+
+    # Most of this stuff stolen from Frossie:
+
+    dsa_open($status);
+    dsa_named_input('IMAGE',$file,$status);
+    goto skip if $status != 0;
+
+    dsa_get_range('IMAGE',$vmin,$vmax,$status);
+    dsa_data_size('IMAGE',5, $data_ndims, \@data_dims, $data_elements, $status);
+    dsa_map_data('IMAGE','READ','FLOAT',$data_address,$data_slot,$status);
+
+    @data_dims = @data_dims[0..$data_ndims-1];
+    print "Dims of $file = @data_dims\n" if $PDL::verbose;
+    $pdl->set_datatype($PDL_F);
+    $pdl->setdims([@data_dims]);
+    my $dref = $pdl->get_dataref;
+    mem2string($data_address,4*$data_elements,$$dref);
+    $pdl->upd_data();
+
+    if (wantarray) { # Map X axis values
+      dsa_axis_size('IMAGE',1,5, $axis_ndims, \@axis_dims,
+                    $axis_elements, $status);
+      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',$axis_address,
+                    $axis_slot,$status);
+      @axis_dims = @axis_dims[0..$axis_ndims-1];
+      $xpdl = $class->new;
+      $xpdl->set_datatype($PDL_F);
+      $xpdl->setdims([@axis_dims]);
+      my $xref = $xpdl->get_dataref;
+      mem2string($axis_address,4*$axis_elements,$$xref);
+      $xpdl->upd_data();
+    }
+
+    skip: dsa_close($status);
+
+    barf("rdsa: obtained DSA error") if $status != 0;
+
+    return ($xpdl,$pdl);
+}
+
+
+################################ XS CODE ######################################
+EOD
+
+sub defpdl {
+	pp_def(
+		$_[0],
+		Pars => $_[1],
+		OtherPars => $_[2],
+		Code => $_[3],
+		Doc  => $_[4],
+	);
+}
+
+pp_addpm(<<'EOD');
+
+=head2 isbigendian()
+
+=for ref
+
+Determine endianness of machine - returns 0 or 1 accordingly
+
+=cut
+EOD
+
+pp_addxs('','
+
+int
+isbigendian()
+   CODE:
+     unsigned short i;
+     PDL_Byte *b;
+
+     i = 42; b = (PDL_Byte*) (void*) &i;
+
+     if (*b == 42)
+        RETVAL = 0;
+     else if (*(b+1) == 42)
+        RETVAL = 1;
+     else
+         barf("Impossible - machine is neither big nor little endian!!\n");
+     OUTPUT:
+       RETVAL
+');
+
+pp_addpm("*isbigendian = \\&PDL::isbigendian;\n");
+pp_add_exported("", "isbigendian");
+
+#pp_addpm(<<'EOD');
+
+#=item bswap2( [o]x() )
+
+#Swaps pairs of bytes in argument x()
+
+#=cut
+#EOD
+
+defpdl(
+	'bswap2',
+	'[o]x(); ',
+	'',
+	'
+      int i;
+      PDL_Short *aa; PDL_Short bb;
+      PDL_Byte *a,*b;
+
+      int n = sizeof($x()) / sizeof(PDL_Short);
+      aa = (PDL_Short*) &$x();
+
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a = *(b+1);  *(a+1) = *b;
+     }',
+     "Swaps pairs of bytes in argument x()"
+);
+
+
+#pp_addpm(<<'EOD');
+#
+#=item bswap4( [o]x() )
+
+#Swaps quads of bytes in argument x()
+
+#=cut
+#EOD
+
+defpdl(
+	'bswap4',
+	'[o]x(); ',
+	'',
+	'
+      int i;
+      PDL_Long *aa; PDL_Long bb;
+      PDL_Byte *a,*b;
+
+      int n = sizeof($x()) / sizeof(PDL_Long);
+      aa = (PDL_Long*) &$x();
+
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a = *(b+3);  *(a+1) = *(b+2);  *(a+2) = *(b+1); *(a+3) = *b;
+     }',
+     "Swaps quads of bytes in argument x()"
+);
+
+
+#pp_addpm(<<'EOD');
+
+#=item bswap8( [o]x() )
+
+#Swaps octets of bytes in argument x()
+
+#=cut
+#EOD
+
+defpdl(
+	'bswap8',
+	'[o]x(); ',
+	'',
+	'
+      int i;
+      PDL_Double *aa; PDL_Double bb;
+      PDL_Byte *a,*b;
+
+      int n = sizeof($x()) / sizeof(PDL_Double);
+      aa = (PDL_Double*) &$x();
+
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a     = *(b+7);  *(a+1) = *(b+6);  *(a+2) = *(b+5); *(a+3) = *(b+4);
+         *(a+4) = *(b+3);  *(a+5) = *(b+2);  *(a+6) = *(b+1); *(a+7) = *b;
+     }',
+     "Swaps octets of bytes in argument x()"
+);
+
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) Karl Glazebrook 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+
+=cut
+
+EOD
+
+pp_done();

@@ -1,0 +1,3 @@
+extern int spodi_(real *a, integer *lda, integer *n, real *det, integer *job);
+/*:ref: sscal_ 14 4 4 6 6 4 */
+/*:ref: saxpy_ 14 6 4 6 6 4 6 4 */

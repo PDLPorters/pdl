@@ -1,0 +1,6 @@
+extern int rfftb1_(integer *n, real *c__, real *ch, real *wa, integer *ifac);
+/*:ref: radb4_ 14 7 4 4 6 6 6 6 6 */
+/*:ref: radb2_ 14 5 4 4 6 6 6 */
+/*:ref: radb3_ 14 6 4 4 6 6 6 6 */
+/*:ref: radb5_ 14 8 4 4 6 6 6 6 6 6 */
+/*:ref: radbg_ 14 10 4 4 4 4 6 6 6 6 6 6 */

@@ -1,0 +1,136 @@
+pp_addpm({At=>Top},<<'EOD');
+
+=head1 NAME
+
+PDL::Ops - Fundamental mathematical operators
+
+=head1 DESCRIPTION
+
+This module provides the functions used by PDL to
+overload the basic mathematical operators (C<+ - / *>
+etc.) and functions (C<sin sqrt> etc.)
+
+You probably don't need to know about this
+and the interface may well
+change so the documentation ends here.
+
+=head1 SYNOPSIS
+
+none
+
+=cut
+
+EOD
+# REPLACE FOLLOWING BY USE
+# when using not in this package.
+#
+# Parts from old mkpdlbasicops.p, rest Copyright (C) Tuomas J. Lukka 1996, 1997
+
+# Phase 1: generate lists of
+#	[operator_name, how_to_apply]
+
+@biops1  = map {[$_,"\$c() = \$a() $_ \$b()"]} qw( + * - / );
+@biops2  = map {[$_,"\$c() = \$a() $_ \$b()"]} qw( > < <= >= == != );
+@biops3  = map {[$_,"\$c() = (PDL_Long) \$a() $_ (PDL_Long) \$b()"]}qw( << >> | & ^ );
+
+@ufuncs1 = map {[$_,"\$b() = ($_(\$a()))"]} qw( sqrt abs );
+@ufuncs1f = map {[$_,"\$b() = ($_(\$a()))"]} qw( sin cos );
+@ufuncs2 = map {[$_,"\$b() = ($_((PDL_Long)\$a()))"]} qw( ! ~ NOTHING );
+@ufuncs2f = map {[$_,"\$b() = ($_((PDL_Long)\$a()))"]} qw( log exp );
+@bifuncs = map {[$_,"\$c() = ($_(\$a(),\$b()))"]}
+	qw( pow atan2 MODULO SPACESHIP );
+
+sub nofloat { # Decide which ops can't be done on floats/doubles
+    	my $op = shift;
+	my (@bitops) = qw( << >> | & ^ ~ );
+    	for (@bitops) { return 1 if $_ eq $op }
+	return 0;
+}
+
+sub remove_float_casts { # Remove casts in certain cases
+  my $op=shift;
+  my $code = $op->[1];
+  $code =~ s/\(PDL_Long\)//g unless nofloat($op->[0]);
+  return $code;
+}
+
+sub remove_all_casts { # Remove casts in all cases
+  my $op=shift;
+  my $code = $op->[1];
+  $code =~ s/\(PDL_Long\)//g;
+  return $code;
+}
+
+# Fudge ABS function for unsigned types to get
+# rid of the stupid compiler warning
+
+sub absfudge{
+   my $s = shift;
+   $s =~ s/abs/\$TBSUL(NOTHING,abs,NOTHING,abs)/;
+   return $s;
+}
+
+pp_addhdr('
+#include <math.h>
+
+#define MODULO(X,N)     ( (X) - (N)*((int)((X)/(N))) )
+#define SPACESHIP(A,B)  ( ((A)<(B)) ? -1 : ((A)!=(B)) )
+#define abs(A)          ( (A)>=0 ? (A) : -(A) )
+#define NOTHING
+');
+
+# First, map all the types
+
+$arg3str = 'a(); b(); [o]c();';
+$arg2str = 'a(); [o]b();';
+
+my $ind = 0;
+for $optype ([biop1,\@biops1,$arg3str,undef],
+     [biop2,\@biops2,$arg3str,undef],
+     [biop3,\@biops3,$arg3str,undef],
+     [bifunc1,\@bifuncs,$arg3str,undef],
+     [ufunc1,\@ufuncs1,$arg2str,undef],
+     [ufunc1f,\@ufuncs1f,$arg2str,[F,D]],
+     [ufunc2,\@ufuncs2,$arg2str,undef],
+     [ufunc2f,\@ufuncs2f,$arg2str,[F,D]],
+     ) { $ind ++;
+pp_def("my_$optype->[0]",
+	($optype->[3] ? (GenericTypes => $optype->[3]) : ()),
+	Pars => $optype->[2],
+	OtherPars => "char* pdl_op",
+Code => "if(0) {".
+	  (join '',map {qq^
+     } else if(!strcmp(\$COMP(pdl_op),"$_->[0]")) {
+		  types(FD) %{
+		      threadloop %{
+			  ^.remove_float_casts($_).qq^;
+                      %}
+		  %}
+		  types(BSUL) %{
+		      threadloop %{
+			  ^.absfudge(remove_all_casts($_)).qq^;
+                      %}
+		   %}
+             ^
+# Close the type loop.
+# End the enclosing "if".
+		} @{$optype->[1]}).
+	q|}; /* printf("OMYBIOP, '%s'\n",pdl_op); */ |,
+	Doc  => 'internal',
+);
+}
+
+
+pp_addpm({At=>Bot},<<'EOPM');
+
+=head1 AUTHOR
+
+Tuomas J. Lukka (lukka@fas.harvard.edu) and Karl Glazebrook
+(kgb@aaoepp.aao.gov.au).
+
+=cut
+
+EOPM
+
+pp_done();
+

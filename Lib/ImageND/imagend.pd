@@ -1,0 +1,362 @@
+
+pp_addpm({At=>Top},<<'EOD');
+
+=head1 NAME
+
+PDL::ImageND - useful image processing routines which work in N-dimensions
+
+=head1 DESCRIPTION
+
+In some cases (though not as many as one would like) it
+is possible to write general routines that operate on
+N-dimensional objects.
+
+An example in this module is a N-Dim convolution algorithm
+I made up one day - it works but the boundary condtions
+are a bit funny.
+
+=head1 SYNOPSIS
+
+ use PDL::ImageND;
+
+=cut
+
+EOD
+
+# N-dim utilities
+
+pp_addhdr('
+
+/* Compute offset of (x,y,z,...) position in row-major list */
+
+PDL_Long ndim_get_offset(PDL_Long* pos, PDL_Long* dims, PDL_Long ndims) {
+   PDL_Long i;
+   PDL_Long result,size;
+   size = 1;
+   result = 0;
+   for (i=0; i<ndims; i++) {
+       if (i>0)
+          size = size*dims[i-1];
+       result = result + pos[i]*size;
+   }
+   return result;
+}
+
+/* Increrement a position pointer array by one row */
+
+void ndim_row_plusplus ( PDL_Long* pos, PDL_Long* dims, PDL_Long ndims ) {
+
+    PDL_Long i, noescape;
+
+    i=1; noescape=1;
+
+    while(noescape) {
+
+       (pos[i])++;
+
+       if (pos[i]==dims[i]) { /* Carry */
+          if (i>=(ndims)-1)  {
+             noescape = 0; /* Exit */
+          }else{
+             pos[i]=0;
+             i++;
+          }
+       }else{
+          noescape = 0;    /* Exit */
+       }
+    }
+}
+
+');
+
+pp_add_exported('',"ninterpol");
+
+pp_addpm(<<'EOD');
+
+use Carp;
+
+EOD
+
+pp_def('convolve',Doc=><<'EOD',
+=head2 convolve
+
+=for ref
+
+N-dimensional convolution algorithm.
+
+=for usage
+
+$new = convolve $a, $kernel
+
+Convolve an array with a kernel, both of
+which are N-dimensional.
+
+Note because of the algorithm used (writing N-dim routines is not easy on the
+brain!) the boundary conditions are a bit strange. They wrap, but up to the
+NEXT row/column/cube-slice/etc. If this is a problem consider using
+zero-padding or something.
+
+=cut
+EOD
+        Pars => 'a(m); b(n); int adims(p); int bdims(q); [o]c(m);',
+        PMCode => '
+
+# Custom Perl wrapper
+
+sub PDL::convolve{
+    my($a,$b,$c) = @_;
+    barf("Usage: convolve(a(*), b(*), [o]c(*)") if $#_<1 || $#_>2;
+    $c = PDL->null if $#_<2;
+    &PDL::_convolve_int( $a->clump(-1), $b->clump(-1),
+       long([$a->dims]), long([$b->dims]),
+       ($c->getndims>1? $c->clump(-1) : $c)
+     );
+     $c->setdims([$a->dims]);
+     return $c;
+}
+
+',
+        Code => '
+
+   PDL_Long *dimsa = $P(adims);
+   PDL_Long *dimsb = $P(bdims);
+   PDL_Long andims = $SIZE(p);
+   PDL_Long bndims = $SIZE(q);
+   PDL_Long anvals = $SIZE(m);
+   PDL_Long bnvals = $SIZE(n);
+   PDL_Long *pos,*off;
+   double cc;
+
+   PDL_Long i,i2,j,k,n,offcen,cen,ncen,nrow;
+
+   if (andims != bndims)
+      barf("Arguments do not have the same dimensionality");
+   for(i=0; i<andims; i++)
+         if (dimsb[i]>dimsa[i])
+             barf("Second argument must be smaller in all dimensions that first"
+);
+
+   pos = (PDL_Long*) malloc( andims * sizeof(PDL_Long) ); /* Init pos[] */
+   if (pos==NULL)
+      barf("Out of Memory\n");
+   for (i=0; i<andims; i++) /* Zero */
+       pos[i]=0;
+
+   /* Find middle pixel in b */
+   i=0; nrow = dimsb[0];
+   while(i<bnvals) {
+      for (j=0; j<nrow; j++) { /* For each row */
+           pos[0]=j;
+
+           for(k=0;k<bndims;k++) {       /* Is centre? */
+               if (pos[k] != dimsb[k]/2)
+                   goto getout_$GENERIC();
+           }
+           ncen = i;
+getout_$GENERIC():    i++;
+      }
+      pos[0]=0;
+      ndim_row_plusplus( pos, dimsb, bndims );
+   }
+
+   for (i=0; i<andims; i++) /* Zero */
+       pos[i]=0;
+
+   /* Initialise offset array to handle the relative coords efficiently */
+
+   off = (PDL_Long*) malloc(bnvals*sizeof(PDL_Long)); /* Offset array */
+   if (off==NULL)
+      barf("Out of Memory\n");
+
+   i=0;
+   while(i<bnvals) {
+      n = ndim_get_offset(pos, dimsa, andims); /* Start of row in A */
+      for (j=0; j<nrow; j++) { /* Fill row */
+           off[i] = n+j;
+           if (i==ncen)
+              offcen = off[i]; /* Offset to middle */
+           i++;
+      }
+      ndim_row_plusplus( pos, dimsa, andims );
+   }
+
+   for(i=0;i<bnvals;i++)    /* Subtract center offset */
+       off[i]=offcen-off[i];
+
+   /* Now convolve the data */
+
+    for(i=0; i<anvals; i++) {
+        cc = 0;
+        for(j=0; j<bnvals; j++) {
+            i2 = (i+off[j]+anvals) % anvals ;
+            cc += $a( m=> i2 ) * $b(n=>j) ;
+        }
+        $c(m=>i) = cc;
+     }
+     free(pos); free(off);
+
+');
+
+pp_addpm(<<'EOD');
+
+=head2 ninterpol()
+
+=for ref
+
+N-dimensional interpolation routine
+
+=for sig
+
+ Signature: ninterpol(point(),data(n),[o]value())
+
+=for usage
+
+      $value = ninterpol($point, $data);
+
+C<ninterpol> uses C<interpol> to find a linearly interpolated value in
+N dimensions, assuming the data is spread on a uniform grid.  To use
+an arbitrary grid distribution, need to find the grid-space point from
+the indexing scheme, then call C<ninterpol> -- this is far from
+trivial (and ill-defined in general).
+
+=cut
+
+*ninterpol = \&PDL::ninterpol;
+
+sub PDL::ninterpol {
+    use PDL::Math 'floor';
+    use PDL::Primitive 'interpol';
+    print 'Usage: $a = ninterpolate($point(s), $data);' if $#_ != 1;
+    my ($p, $y) = @_;
+    my ($ip) = floor($p);
+    # isolate relevant N-cube
+    $y = $y->slice(join (',',map($_.':'.($_+1),list $ip)));
+    for (list ($p-$ip)) { $y = interpol($_,$y->xvals,$y); }
+    $y;
+}
+
+EOD
+
+pp_def('rebin',Doc=><<'EOD',
+=head2 rebin
+
+=for ref
+
+N-dimensional rebinning algorithm
+
+=for usage
+
+$new = rebin $a, $dim1, $dim2,..;.
+$new = rebin $a, $template;
+$new = rebin $a, $template, {Norm => 1};
+
+Rebin an N-dimensional array to newly specified dimensions.
+Specifying `Norm' keeps the sum constant, otherwise the intensities
+are kept constant.  If more template dimensions are given than for the
+input pdl, these dimensions are created; if less, the final dimensions
+are maintained as they were.
+
+So if C<$a> is a 10 x 10 pdl, then C<rebin($a,15)> is a 15 x 10 pdl,
+while C<rebin($a,15,16,17)> is a 15 x 16 x 17 pdl (where the values
+along the final dimension are all identical).
+
+=cut
+EOD
+        Pars => 'a(m); [o]b(n);',
+        OtherPars => 'int ns => n',
+        PMCode => '
+
+# Custom Perl wrapper
+
+sub PDL::rebin {
+    my($a) = shift;
+    my($opts) = ref $_[-1] eq "HASH" ? pop : {};
+    my(@idims) = $a->dims;
+    my(@odims) = ref $_[0] ? $_[0]->dims : @_;
+    my($i,$b);
+    foreach $i (0..$#odims) {
+      if ($i > $#idims) {  # Just dummy extra dimensions
+          $a = $a->dummy($i,$odims[$i]);
+          next;
+      # rebin_int can cope with all cases, but code
+      # 1->n and n->1 separately for speed
+      } elsif ($odims[$i] != $idims[$i]) {       # If something changes
+         if (!($odims[$i] % $idims[$i])) {      # Cells map 1 -> n
+               my ($r) = $odims[$i]/$idims[$i];
+               $b = $a->mv($i,0)->dummy(0,$r)->clump(2);
+         } elsif (!($idims[$i] % $odims[$i])) { # Cells map n -> 1
+               my ($r) = $idims[$i]/$odims[$i];
+               $a = $a->mv($i,0);
+               # -> copy so won\'t corrupt input PDL
+               $b = $a->slice("0:-1:$r")->copy;
+               foreach (1..$r-1) {
+                  $b += $a->slice("$_:-1:$r");
+               }
+               $b /= $r;
+         } else {                               # Cells map n -> m
+             &PDL::_rebin_int($a->mv($i,0), $b = null, $odims[$i]);
+         }
+         $a = $b->mv(0,$i);
+      }
+    }
+    if (exists $opts->{Norm} and $opts->{Norm}) {
+      my ($norm) = 1;
+      for $i (0..$#odims) {
+         if ($i > $#idims) {
+              $norm /= $odims[$i];
+         } else {
+              $norm *= $idims[$i]/$odims[$i];
+         }
+      }
+      return $a * $norm;
+    } else {
+      # Explicit copy so i) can\'t corrupt input PDL through this link
+      #                 ii) don\'t waste space on invisible elements
+      return $a -> copy;
+    }
+}
+',
+        Code => '
+        int ms = $SIZE(m);
+        int nv = $PRIV(ns);
+      int i;
+      double u, d;
+      $GENERIC(a) av;
+         threadloop %{
+          i = 0;
+          d = -1;
+          loop (n) %{ $b() = 0; %}
+          loop (m) %{
+              av = $a();
+              u = nv*((m+1.)/ms)-1;
+              while (i <= u) {
+                 $b(n => i) +=  (i-d)*av;
+                 d = i;
+                 i++;
+              }
+              if (i < nv) $b(n => i) +=  (u-d)*av;
+              d = u;
+          %}
+      %}
+');
+
+
+pp_addpm({At=>Bot},<<'EOD');
+
+
+=head1 AUTHORS
+
+Copyright (C) Karl Glazebrook 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+
+=cut
+
+EOD
+
+pp_done();
+

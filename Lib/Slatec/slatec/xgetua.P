@@ -1,0 +1,2 @@
+extern int xgetua_(integer *iunita, integer *n);
+/*:ref: j4save_ 4 3 4 4 12 */

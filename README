@@ -1,50 +1,86 @@
+WARNING: There is absolutely no warranty for this software
+package. See the file COPYING for details.
 
-This is version 1.11 of PDL
----------------------------
+This is a beta version working up to 2.0 of PerlDL.
+-----------------------------------------------------
 
-It demonsrates basic data processing functionality but has no where
-near the features I would like to eventually put in it. The current
-docs are in file PDL.pod.
 
-Comments are welcome - so are volunteers to write code! Please contact
-me (kgb@aaoepp.aao.gov.au) or mailing list perldl@jach.hawaii.edu
-(subscription address:  perldl-request@jach.hawaii.edu) with ideas and
-suggestions.
+Blurb
+-----
 
-Karl Glazebrook, Anglo-Australian Observatory. 24/Feb/1997.
+The perlDL project aims to turn perl into an efficient numerical language for
+scientific computing. The PDL module gives standard perl the ability to
+COMPACTLY store and SPEEDILY manipulate the large N-dimensional data sets which
+are the bread and butter of scientific computing. e.g. C<$a=$b+$c> can add two
+2048x2048 images in only a fraction of a second.
 
-Requirements.
--------------
+The aim is to provide tons of useful functionality for
+scientific and numeric analysis.
 
-perl5.003 or later. (Probably OK with 5.002 but I can not test.)
 
-PGPLOT v2.0 (or higher) module must be installed and working to 
-access PGPLOT graphics.
+Installation
+------------
 
-saoimage or ximtool must be installed to display images with
-these programs.
+Please read the file INSTALL for information on how to configure
+and install.
 
-ReadLines/ReadKey modules must be installed for command line
-editing and recall in 'perldl' shell.
+Once you have built PDL and either installed it or done 'make doctest',
+try
 
-Building and Installation
---------------------------
+	perl -Mblib perldl
 
-Should be simply a matter of:
+to get the interactive pdl shell. In this shell, 'help' gives you
+access to PDL documentation for each function separately and
+'demo' gives you some basic examples of what you can do.
 
-; perl Makefile.PL
-; make
-; make test
-; make install
 
-License
--------
+Notes
+-----
 
-PDL is distributed under the same licensing conditions (GPL or Artistic)
-as Perl itself.
+Directory structure:
 
-The authors thank Pat Seitzer and the IRAF group of the National Optical
-Astronomy Observatories for permission to include their image of M51 (m51.fits)
-as a demonstration image. Redistribution of the image is prohibited without
-their permission.
+Basic/	   - The stuff that PDL would be no use without
+Lib/	   - The stuff that PDL would still be useful without but
+	     which makes PDL even more useful
+Graphics/  - The stuff that PDL needs to make pictures
+IO/	   - The stuff that PDL needs to write and read strange files
+
+The new organization makes it possible in the future to make "PDL-Lite"
+(just the Basic/ directory) if that seems necessary.
+
+This distribution has parts at different levels of
+completion - usually they are marked in the docs but here is
+a brief rundown of what is good and what is something you need
+to know what you're doing to use:
+
+Basic/  	should be fairly stable.
+Graphics/PG 	works, should be stable
+Graphics/TriD	works, but some of the interfaces might still change.
+Lib/Opt/Simplex	works
+Lib/PCA.pm, ICA.pm, PCARout, DataPresenter
+		These are alpha stage. Don't use if you don't know
+		what you're doing
+Lib/Slatec
+		Should in principle work but porting is difficult.
+		If you can't compile it, remove it from Lib/Makefile.PL
+IO/Misc		Stable, expected to work
+IO/FastRaw	seems to work & be stable.
+
+Comments are welcome - so are volunteers to write code! Please contact the
+developers mailing list perldl@jach.hawaii.edu (subscription address: 
+perldl-request@jach.hawaii.edu) with ideas and suggestions.
+
+	Tuomas J. Lukka (lukka@fas.harvard.edu)
+        Karl Glazebrook (kgb@aaoepp.aao.gov.au)
+	
+
+Acknowledgement
+---------------
+
+m51.fits is included as a demonstration by kind permission of IRAF
+group at the National Optical and Astronomical Observatories, in particular
+Pat Schweitzer, who retain ownership.
+
+
+
 

@@ -1,0 +1,137 @@
+tridgallery depends on m51.fits
+
+                 perlDL TODO list
+                 ================
+
+   'This world, where much is to be done and little to be known.' 
+      - Samuel Johnson. Prayers and Meditations. Against inquisitive 
+                        and perplexing Thoughts.
+
+   Karl Glazebrook, AAO, 2/Oct/1996. [kgb@aaoepp.aao.gov.au]
+
+SuperHyperCritical:
+----
+# * foo(zeroes(float,3))) and foo is defined only for byte doesn't work.
+??? Doesn't it?o
+
+* Dependencies on pdl.h everywhere
+
+Reorganize Demos/TriD.
+
+* Transcendential functions should always return at least floats
+
+Missing Features:
+-----------------
+ - [xvyz]rvals now act like zeroes - but they now act like
+    constructos so $derived->xvals does not give you what
+    you expect. Need to think about this some more.
+
+* qsortind
+
+* PDL::IO::Pic should barf when converter not available
+
+"#" = should work now.
+
+**** Quick: SV * must be allowed for OtherPars.
+
+Building:
+--------
+
+TidBits
+----
+* clean Dev.pm (perl is clever enough to know if it's in the build tree
+  or outside)
+* more complete PDL::Type class, so that you can say
+   byte->val   --> $PDL_B
+   byte->enum  --> PDL_B
+   byte->ctype --> PDL_Byte , etc; would be useful for PP and PDL
+
+
+
+Tidbits
+----
+
+* PThread: if multithreading is turned on on a pdl after it has
+  been incorporated into a transformation, there will probably
+  be trouble worth of a coredump at some point. Watch out.
+
+* PP: fix phys pointers!!
+
+* PP: OtherTypes
+
+* PP: Input pars => dims (generalize "where")
+
+* clean .pd -> .c files
+
+* ->setdims followed by ->set_datatype crashes
+
+* PDL::Trans objects, getting parents, etc.
+
+* Perl-level threading, use subs with indices etc.
+
+
+Critical
+----
+
+* document ->thread & no null. Document limitations and undefined
+  things about the trans system.
+
+* Make PDL::PP and other documentation up to date.
+
+* DProf doesn't work with pdl for some reason.. check.
+
+Reorganization
+------
+
+* Remove the 'pdl' prefix from PDL/Core/*.c
+ 
+System
+------
+
+* local $epsilon used for 
+
+* Dataflow + persistence
+
+* ***************** COMPLEX NUMBERS ******************
+
+* Improve pdl_whichdatatype and PDL::PP so we don't need to do
+  stupid interconversions.
+
+* Clean up pdl_converttype and SvPDLV: we could do with a lot less
+  pdl_mallocs.
+
+IO
+---
+
+* DSA writer/header handling
+
+Functions
+----------
+
+* sort ($x,$y,$z...) - 1D only
+   -along some dimensions, by some rules.
+
+* Grow list -> (N+1) Dim
+
+* Matrix inverse (via following:)
+
+* linear system solver
+
+* SVD algorithm
+
+* Interpolation - 2D and 3D
+
+Graphics
+--------
+
+* Improve 3D
+
+* Nd plots
+
+FFT
+--------
+
+* Fix FFT test number 2.(Commented out for now) Robin Williams notes:
+	...this appears to be an
+	oddity with PP's promotion of byte data for GenericTypes => [F,D]
+	routines.

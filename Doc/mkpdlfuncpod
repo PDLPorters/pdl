@@ -1,0 +1,42 @@
+use PDL::Doc;
+
+# a very simple script to generate a huge manpage of all documented
+# PDL functions
+# mainly to demonstrate what we can do with the new doc format
+
+print << 'EOD';
+
+=head1 NAME
+
+pdlfunc - Functions in the PDL distribution
+
+=head1 DESCRIPTION
+
+This is a listing of all documented functions in the PDL distribution.
+
+=head2 Alphabetical Listing of PDL Functions
+
+=over 8
+
+EOD
+
+$onldc = new PDL::Doc ('/tmp/pdlhash.dbtxt');
+@match = $onldc->search('.*',['Name'],1);
+for (@match) {
+	$sh = new StrHandle;
+	$onldc->funcdocs($_->[0],$sh);
+	$txt = $sh->text;
+	$txt =~ s/=head2/=item/;
+	$txt =~ s/^=cut\s*$//mg;
+	$txt =~ s/^=for.*$//mg;
+	$txt =~ s/^=back.*$//mg;
+	$txt .= "\nModule: $_->[1]->{Module}\n\n";
+	print $txt;
+}
+
+print <<'EOD';
+
+=back
+
+EOD
+

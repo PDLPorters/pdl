@@ -1,0 +1,573 @@
+# REPLACE FOLLOWING BY
+#
+# use PDL::PP qw/PDL::Experiment PDL::Experiment Experiment/;
+#
+# when using not in this package.
+
+pp_add_exported('',"rpnm wpnm");
+
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::IO::Pnm -- pnm format I/O for PDL
+
+=head1 SYNOPSIS
+
+  use PDL::IO::Pnm;
+  $im = wpnm $pdl, $file, $format[, $raw];
+  rpnm $stack->slice(':,:,:,(0)'),"PDL.ppm";
+
+=head1 DESCRIPTION
+
+=head2 pnm I/O for PDL.
+
+=cut
+
+use PDL::Core qw/howbig convert/;
+use PDL::Types;
+use PDL::Basic;  # for max/min
+use Carp;
+
+# return the upper limit of data values an integer PDL data type
+# can hold
+sub dmax {
+    my $type = shift;
+    my $sz = 8*howbig($type);
+    $sz-- if ($type == $PDL_S || $type == $PDL_L);  # signed types
+    return ((1 << $sz)-1);
+}
+
+# output any errors that have accumulated
+sub show_err {
+  my $file = shift;
+  if (-s "$file") {
+    open(INPUT,$file) or barf "Can't open error file";
+    while (<INPUT>) {
+      print STDERR "converter: $_";
+    }
+  }
+  close INPUT;
+  unlink $file;
+}
+
+# barf after showing any accumulated errors
+sub rbarf {
+  show_err(shift);
+  barf @_;
+}
+# carp after showing any accumulated errors
+sub rcarp {
+  show_err(shift);
+  carp @_;
+}
+
+sub gettmpfile {
+    # in the future an os indep. way
+    # are there already VMS or Windows NT/95 users ?
+  my $tmpdir = '/tmp';
+  for ('TMP','TEMP','TMPDIR') {
+     $tmpdir  = $ENV{$_} if defined $ENV{$_};
+  }
+  $tmpdir =~ s|/$||;  # chop off a trailing '/'
+  barf "can't locate a temp dir" unless -d $tmpdir;
+  return "$tmpdir/.errors$$";
+}
+
+# public interface
+
+=head1 FUNCTIONS
+
+
+=head2 rpnm
+
+=for ref
+
+Read a pnm (portable bitmap/pixmap, pbm/ppm) file into a piddle.
+
+Reads a file in pnm format (ascii or raw) into a pdl (magic numbers P1-P6).
+Based on the input format it returns pdls with arrays of size (width,height)
+if binary or grey value data (pbm and pgm) or (3,width,height) if rgb
+data (ppm). This also means for a palette image that the distinction between
+an image and its lookup table is lost which can be a problem in cases (but can
+hardly be avoided when using netpbm/pbmplus).  Datatype is dependent
+on the maximum grey/color-component value (for raw and binary formats
+always PDL_B). rpnm tries to read chopped files by zero padding the
+missing data (well it currently doesn't, it barfs; I'll probably fix it
+when it becomes a problem for me ;). You can also read directly into an
+existing pdl that has to have the right size(!). This can come in handy
+when you want to read a sequence of images into a datacube.
+
+For details about the formats see appropriate manpages that come with the
+netpbm/pbmplus packages.
+
+=for usage
+
+    $im = rpnm $file;
+
+=for example
+
+  $stack = zeroes(byte,3,500,300,4);
+  rpnm $stack->slice(':,:,:,(0)'),"PDL.ppm";
+
+reads an rgb image (that had better be of size (500,300)) into the
+first plane of a 3D RGB datacube (=4D pdl datacube). You can also do
+inplace transpose/inversion that way.
+
+=cut
+
+sub rpnm {PDL->rpnm(@_)}
+sub PDL::rpnm {
+    barf 'Usage: $im = rpnm($file) or $im = $pdl->rpnm($file)'
+       if $#_<0 || $#_>2;
+    my ($pdl,$file,$maybe) = @_;
+
+
+    if (ref($file)) { # $file is really a pdl in this case
+	$pdl = $file;
+	$file = $maybe;
+    } else {
+        $pdl = $pdl->initialize;
+    }
+
+    my $efile = gettmpfile();
+    # catch STDERR
+    open(SAVEERR, ">&STDERR");
+    open(STDERR, ">$efile") || barf "Can't redirect stderr";
+    open(PNM, $file) or rbarf $efile,"Can't open pnm file";
+    binmode PNM;
+    # redirection now in effect for child
+    close(STDERR);
+    open(STDERR, ">&SAVEERR");
+
+    read(PNM,(my $magic),2);
+    rbarf $efile, "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
+    print "reading pnm file with magic $magic\n" if $PDL::debug>1;
+
+    my ($isrgb,$israw,$params) = (0,0,3);
+    $israw = 1 if $magic =~ /P[4-6]/;
+    $isrgb = 1 if $magic =~ /P[3,6]/;
+    if ($magic =~ /P[1,4]/) {  # PBM data
+	$params = 2;
+	$dims[2] = 1; }
+
+    # get the header information
+    my ($line, $pgot, @dims) = ("",0,0,0,0);
+    while (($pgot<$params) && ($line=<PNM>)) {
+	next if $line =~ /^#/;       # a comment
+	next if $line =~ /^\s*$/;    # just white space
+	while ($line !~ /^\s*$/ && $pgot < $params) {
+	    if ($line =~ /\s*(\S+)(.*)$/) {
+		$dims[$pgot++] = $1; $line = $2; }
+	    else {
+		rbarf $efile, "no valid header info in pnm";}
+	}
+    }
+
+    my $type = $PDL_B;
+    if (!$israw) {
+TYPES:	{  my $pdlt;
+	   foreach $pdlt ($PDL_B,$PDL_US,$PDL_L){
+	     if ($dims[2] <= dmax($pdlt))
+	       { $type = $pdlt;
+	         last TYPES;
+	       }
+	   }
+	   rbarf $efile, "rraw: data from ascii pnm file out of range";
+        }
+    }
+
+    # the file ended prematurely
+    rbarf $efile, "no valid header info in pnm" if $pgot < $params;
+    rbarf $efile,
+        "Dimensions must be > 0" if ($dims[0] <= 0) || ($dims[1] <= 0);
+
+    my @Dims = @dims[0,1];
+    $Dims[0] *= 3 if $isrgb;
+    if ($pdl->getndims==1 && $pdl->getdim(0)==0 && $isrgb) { #input pdl is null
+	local $PDL::debug = 0; # shut up
+	$pdl = $pdl->zeroes(PDL::Type->new($type),3,@dims[0,1]);
+    }
+    my $npdl = $isrgb ? $pdl->clump(2) : $pdl;
+    if ($israw) {
+       pnminraw (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
+	 $magic eq "P4", 'PDL::IO::Pnm::PNM');
+    } else {
+       my $form = $1 if $magic =~ /P([1-3])/;
+       pnminascii (convert(pdl(0),$type), $npdl, $Dims[0], $Dims[1],
+	$form, 'PDL::IO::Pnm::PNM');
+    }
+    print("loaded pnm file, $dims[0]x$dims[1], gmax: $dims[2]",
+	   $isrgb ? ", RGB data":"", $israw ? ", raw" : " ASCII"," data\n")
+	if $PDL::debug;
+    unlink($efile);
+    return $pdl;
+}
+
+
+=head2 wpnm
+
+=for ref
+
+Write a pnm (portable bitmap/pixmap, pbm/ppm) file into a file.
+
+Writes data in a pdl into pnm format (ascii or raw) (magic numbers P1-P6).
+The $format is required (normally produced by B<wpic>) and routine just
+checks if data is compatible with that format. All conversions should
+already have been done. If possible, usage of B<wpic> is preferred. Currently
+RAW format is chosen if compliant with range of input data. Explicit control
+of ASCII/RAW is possible through the optional $raw argument. If RAW is
+set to zero it will enforce ASCII mode. Enforcing RAW is
+somewhat meaningless as the routine will always try to write RAW
+format if the data range allows (but maybe it should reduce to a RAW
+supported type when RAW == 'RAW'?). For details about the formats
+consult appropriate manpages that come with the netpbm/pbmplus
+packages.
+
+=for usage
+
+    $im = wpnm $pdl, $file, $format[, $raw];
+
+=cut
+
+*wpnm = \&PDL::wpnm;
+sub PDL::wpnm {
+    barf ('Usage: wpnm($pdl,$filename,$format[,$raw]) ' .
+	   'or $pdl->wpnm($filename,$format[,$raw])') if $#_ < 2;
+    my ($pdl,$file,$type,$raw) = @_;
+    my ($israw,$max,$isrgb,$magic) = (0,255,0,"");
+
+    barf "wpnm: unknown format '$type'" if $type !~ /P[P,G,B]M/;
+
+    # check the data
+    my @Dims = $pdl->dims;
+    barf "wpnm: exspecting 3D (3,w,h) input"
+	if ($type =~ /PPM/) && (($#Dims != 2) || ($Dims[0] != 3));
+    barf "wpnm: exspecting 2D (w,h) input"
+	if ($type =~ /P[G,B]M/) && ($#Dims != 1);
+    barf "wpnm: user should convert float and double data to appropriate type"
+	if ($pdl->get_datatype == $PDL_F) || ($pdl->get_datatype == $PDL_D);
+    barf "wpnm: exspecting prescaled data"
+	if ($pdl->get_datatype != $PDL_B) && ($pdl->get_datatype != $PDL_US) &&
+	    ($pdl->min < 0);
+
+    # check for raw format
+    $israw = 1 if (($pdl->get_datatype == $PDL_B) || (($max =$pdl->max) < 256)
+	|| ($type =~ /PBM/));
+    $israw = 0 if (defined($raw) && !$raw);
+
+
+    $magic = $israw ? "P4" : "P1" if $type =~ /PBM/;
+    $magic = $israw ? "P5" : "P2" if $type =~ /PGM/;
+    $magic = $israw ? "P6" : "P3" if $type =~ /PPM/;
+    $isrgb = 1 if $magic =~ /P[3,6]/;
+
+    # catch STDERR and sigpipe
+    my $efile = gettmpfile();
+    local $SIG{"PIPE"} = sub { show_err($efile);
+			       die "Bad write to pipe $? $!"; };
+
+    my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
+    open(SAVEERR, ">&STDERR");
+    open(STDERR, ">$efile") || barf "Can't redirect stderr";
+    open(PNM, $pref . $file) or barf "Can't open pnm file";
+    binmode PNM;
+    close(STDERR);
+    open(STDERR, ">&SAVEERR");
+
+    print "writing ". ($israw ? "raw" : "ascii") .
+      "format with magic $magic\n" if $PDL::debug;
+    # write header
+    print PNM "$magic\n";
+    print PNM "$Dims[-2] $Dims[-1]\n";
+    print PNM ($max < 255 ? "255\n": "$max\n") unless $type =~ /PBM/;
+
+
+    # if rgb clump first two dims together
+    my $out = ($isrgb ? $pdl->slice(':,:,-1:0')->clump(2)
+		 : $pdl->slice(':,-1:0'));
+    pnmout($out,$israw,$type eq "PBM",'PDL::IO::Pnm::PNM');
+
+
+    # check if our child returned an error (in case of a pipe)
+    if (!(close PNM)) {
+      show_err($efile);
+      barf "wpnm: child (pbmconverter) returned error";
+    }
+    unlink($efile);
+}
+
+
+
+;# Exit with OK status
+
+1;
+
+=head1 BUGS
+
+The stderr of the converters is redirected to a file. The filename is
+currently generated in a probably non-portable way. A method that avoids
+a file (and is portable) would be prefered.
+
+C<rpnm> currently relies on the fact that the header is separated
+from the image data by a newline. This is not required by the p[bgp]m
+formats (in fact any whitespace is allowed) but most of the pnm
+writers seem to comply with that. Truncated files are currently
+treated ungracefully (C<rpnm> just barfs).
+
+=head1 AUTHOR
+
+Copyright (C) 1996,1997 Christian Soeller <csoelle@sghms.ac.uk>
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+
+=cut
+############################## END PM CODE ################################
+EOD
+
+
+pp_def('pnminraw',
+	Pars => 'type(); byte+ [o] im(m,n)',
+	OtherPars => 'int ms => m; int ns => n;
+			int isbin; char* fd',
+	GenericTypes => [B],
+	Code => 'int ms, ns, i,j,k,bit,llen;
+		 PerlIO *fp;
+		 IO *io;
+		 PDL_Byte *buf, *bp;
+
+		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
+		 if (!io || !(fp = IoIFP(io)))
+			barf("Can\'t figure out FP");
+		 ms = $SIZE(m); ns = $SIZE(n);
+		 llen = ($COMP(isbin) ? (ms+7) / 8 : ms);
+		 /* allocate a buffer of length llen */
+		 if ((buf = (PDL_Byte*) PDL->malloc(llen*sizeof(PDL_Byte)))
+		      == NULL)
+			barf("Error getting mem for line buffer");
+		 threadloop %{  /* with top to bottom inversion */
+			for (i=ns-1; i>= 0; i--) {
+			   if (PerlIO_read(fp,buf,llen) != llen)
+				barf("Error reading pnm file");
+			   if ($COMP(isbin))  /* unpack buffer */
+				for (j=0,bp=buf,bit=0; j<ms; j++, bit++) {
+					bit &= 7;
+					if (!bit) k= *bp++;
+					/* here we do the inversion */
+					$im(n=>i,m=>j) = (k&0x80) ? 0 : 1;
+					k = k << 1;
+      				}
+			   else {
+				bp = buf;
+				loop(m) %{
+					$im(n=>i,m=>m) = *bp++;
+				%}
+			   }
+			}
+		 %}', Doc => '
+
+=for ref
+
+Read in a raw pnm file.
+
+read a raw pnm file. The C<type> argument is only there to
+determine the type of the operation when creating C<im> or trigger
+the appropriate type conversion (maybe we want a byte+ here so that
+C<im> follows I<strictly> the type of C<type>).
+
+=cut
+'
+
+);
+
+pp_addhdr(<<'EOH');
+#define SWALLOWLINE(fp) while ((s = PerlIO_getc(fp)) != '\n' && s != EOF)
+#define PBM 1
+#define PGM 2
+#define PPM 3
+
+int getint(PerlIO *fp, PDL_Long *ip);
+
+/* process one input line from an ascii pnm file
+ * and store data into a pdl data component
+ * returns number of elements read
+ * returns -1 if garbage was encountered
+ */
+
+/* get the next number from the input string
+ * return values:  len : number of characters read
+ *                 0 : end of string or skip rest of string because comment
+ *                -1 : found garbage
+ */
+#define    TRAILING_WHITESPACE_CHECK(s) \
+   if (s!=' ' && s!='\t' && s!='\r' && s!='\n' && s!=',')  return -1
+int getint(PerlIO *fp, PDL_Long *ip)
+{
+  PDL_Long i = 0;
+  int nread = 0;
+  int s = PerlIO_getc(fp);
+
+  if (s == EOF) return 0;
+  while (1) {
+    if (s == EOF)
+      return 0;   /* signal end of line */
+    if (s == '#')
+      SWALLOWLINE(fp);
+    if (s >='0' && s <='9') break;
+    if (s!=' ' && s!='\t' && s!='\r' && s!='\n' && s!=',')
+      return -1;  /* garbage */
+    s = PerlIO_getc(fp); /* else skip whitespace */
+  }
+  /* parse number */
+  while (1) {
+    i = (i*10) + (s - '0');
+    nread++;
+    if ((s = PerlIO_getc(fp)) == EOF) break; /* we could loose that */
+    if (s<'0' || s>'9') break;
+  }
+  *ip = i;
+  TRAILING_WHITESPACE_CHECK(s);
+  return nread;
+}
+
+EOH
+
+pp_def( 'pnminascii',
+	Pars => 'type(); byte+ [o] im(m,n)',
+	OtherPars => 'int ms => m; int ns => n;
+			int format; char* fd',
+	GenericTypes => [B,U,S,L],
+	Code => q?
+		 int ms, ns, s, i;
+		 PerlIO *fp;
+		 IO *io;
+
+		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
+		 if (!io || !(fp = IoIFP(io)))
+			barf("Can\'t figure out FP");
+		 ms = $SIZE(m); ns = $SIZE(n);
+
+		 switch ($COMP(format)) {
+		 case PBM:
+		   threadloop %{  /* with top to bottom inversion */
+			for (i=ns-1; i>= 0; i--) {
+			loop(m) %{
+			    while ((s = PerlIO_getc(fp)) != EOF) {
+			      switch (s) {
+			       case '#': /* comment, skip rest of line */
+				SWALLOWLINE(fp);
+				break;
+			       case '0':
+			       case '1':
+				/* invert on the fly */
+				$im(n=>i,m=>m) = 1 - (s - '0');
+				goto $TBUSL(B,U,S,L)next;
+				break;
+			       case ' ':
+			       case '\t':
+			       case '\r':
+			       case '\n':
+			       case ',':
+				/* skip whitespace */
+				break;
+			       default:	/* garbage */
+				barf("found garbage, aborting"); /* for now */
+				break;
+			      }
+			    }
+			  $TBUSL(B,U,S,L)next: ;
+			%}
+			}
+		  %}
+		  break;
+		case PGM:
+		case PPM:
+		   threadloop %{  /* with top to bottom inversion */
+			PDL_Long j;
+			for (i=ns-1; i>= 0; i--) {
+			  loop(m) %{
+			    if (getint(fp,&j) <= 0)
+		  		barf("found garbage, aborting"); /* for now */
+			    $im(n=>i,m=>m) = j;
+			  %}
+			}
+		   %}
+		   break;
+		default:
+		   barf("unknown PNM format");
+		   break;
+		} /* end switch */
+		?, Doc => '
+=for ref
+
+Read in an ascii pnm file.
+
+=cut
+'
+);
+
+
+# write a line of data supporting threading !
+pp_def(	'pnmout',
+	Pars => 'a(m);',
+	OtherPars => "int israw; int isbin; char *fd",
+	GenericTypes => [B,U,S,L],
+	Code => 'PerlIO *fp;
+		 IO *io;
+
+		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
+		 if (!io || !(fp = IoIFP(io)))
+			barf("Can\'t figure out FP");
+
+		 if ($COMP(israw)) {
+		    if ($COMP(isbin)) {
+		    	threadloop %{
+			  int k=0, bit=0;
+			  loop(m) %{
+			    k = (k << 1) | ($a() < 1);
+			    bit++;
+	  			if (bit==8) {
+				  PerlIO_putc(fp,k);
+				  bit = k = 0;
+			        }
+		 	  %}
+			  if (bit) {
+			    k = k << (8-bit);
+			    PerlIO_putc(fp,k);
+			  }
+		       %}
+		    } else {
+		      int len = $SIZE(m);
+		      threadloop %{
+		 	if (PerlIO_write(fp,$P(a),len) != len)
+				barf("Error writing pnm file");
+		      %}
+		    }
+		 } else {
+		    int len=0;
+		    threadloop %{
+			loop(m) %{
+				PerlIO_printf(fp,"%3d ",$COMP(isbin) ?
+					($a() < 1) :$a());
+				len +=4;
+				if (len>58) { PerlIO_printf(fp,"\n"); len=0; }
+		 	%}
+                 	if (len<=58)
+                     		PerlIO_printf(fp,"\n");
+		    %}
+		}
+', Doc => '
+=for ref
+
+Write a line of pnm data.
+
+This function is implemented this way so that threading works
+naturally.
+
+=cut
+');
+
+pp_done();

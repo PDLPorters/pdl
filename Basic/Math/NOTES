@@ -1,0 +1,28 @@
+
+Notes
+-----
+
+- added linalg.shar
+
+TJL 5/1/98
+
+Cephes lib config
+-----------------
+
+I leave the default as -DUNK (mconf.h). This is
+OK as all it means is that the important constants are in
+floating point format rather than binary hex.
+The only advantage of the latter is that it is exact, however
+we prefer portability to exactly the same numbers at the
+epsilon level. (After all PDL also uses system routines).
+
+We can ignore the comments about BIGENDIAN - it is not used
+in any of the .c files we have taken from cephes, **AT LEAST
+SO FAR**.
+
+The PP code includes protos.h whether or not the system
+routines are used. Since the prototypes for system
+and cephes versions should be the same this is not a big
+deal.
+
+KGB 28/11/97

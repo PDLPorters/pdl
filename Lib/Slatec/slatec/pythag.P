@@ -1,0 +1,1 @@
+extern E_f pythag_(real *a, real *b);

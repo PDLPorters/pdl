@@ -1,0 +1,99 @@
+=head1 NAME
+
+PDL::Intro - Introduction to the Perl Data Language
+
+Version 2.0 alpha
+
+"Why is it that we entertain the belief that for every purpose odd
+numbers are the most effectual?" - Pliny the Elder.
+
+I<Karl Glazebrook, AAO, 28/11/1996. [kgb@aaoepp.aao.gov.au]>
+
+
+=head1 DESCRIPTION
+
+Perl is an extremely good and versatile scripting language, well suited to
+beginners and allows rapid prototyping. However until recently it did not
+support data structures which allowed it to do fast number crunching.
+
+However with the development of Perl v5, Perl acquired 'Objects'. To put
+it simply users can define their own special data types, and write
+custom routines to manipulate them either in low level languages (C and
+Fortran) or in Perl itself.
+
+This has been fully exploited by the PerlDL developers. The 'PDL' module is a
+complete Object-Oriented extension to Perl (although you don't have to know
+what an object is to use it) which allows large N-dimensional data sets, such
+as large images, spectra, time series, etc to be stored  B<efficiently> and
+manipulated B<en masse>.  For example  with the PDL module we can write the
+perl code C<$a=$b+$c>, where $b and $c are large datasets (e.g. 2048x2048
+images), and get the result in only a fraction of a second.
+
+PDL variables (or 'piddles' as they have come to be known)
+support a wide range of fundamental data types - arrays can be bytes,
+short integers (signed or unsigned), long integers, floats or
+double precision floats. And because of the Object-Oriented nature
+of PDL new customised datatypes can be derived from them.
+
+As well as the PDL modules, that can be used by normal perl programs, PerlDL
+comes with a command line perl shell, called 'perldl', which supports command
+line editing. In combination with the various PDL graphics modules this allows
+data to be easily played with and visualised.
+
+=head1 SYNOPSIS
+
+This manual page provides a general introduction to the underlying
+philosophy of PDL and practical examples on how to use it. For details,
+see:
+
+=over 4
+
+=item L<PDL::Intro>
+
+This document
+
+=item L<PDL::Impatient>
+
+Quick summary - PDL for the impatient
+
+=item L<PDL::Philosophy>
+
+Why another matrix language?
+
+=item L<PDL::Indexing>
+
+An introduction to using smart indices in PDL.
+
+=item L<PDL::Slice>
+
+A reference guide to the same.
+
+=item L<PDL::PP>
+
+A utility for generating extension in C language for use with PDL easily.
+
+=item L<PDL::FAQ>
+
+The Frequently Asked Questions list for PDL.
+
+=item L<PDL::Tips>
+
+Small tips and tricks for writing idiomatic PDL code.
+
+=item L<PDL::Internals>
+
+How does it all work?
+
+=item L<PDL::Dataflow>
+
+Tuomas has been too lazy to document this yet.
+
+=back
+
+=head1 AUTHOR
+
+Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
+(lukka@husc.harvard.edu) and Christian Soeller (csoelle@sghms.ac.uk) 1997.
+Commercial reproduction of this documentation in a different format is forbidden.
+
+=cut

@@ -1,0 +1,1 @@
+extern int xercnt_(char *librar, char *subrou, char *messg, integer *nerr, integer *level, integer *kontrl, ftnlen librar_len, ftnlen subrou_len, ftnlen messg_len);

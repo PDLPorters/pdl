@@ -1,0 +1,1202 @@
+pp_addpm({At => Top},<< 'EOD');
+
+=head1 NAME
+
+PDL::Slices -- Stupid index tricks
+
+=head1 SYNOPSIS
+
+  use PDL;
+  $a = ones(3,3);
+  $b = $a->slice('-1:0,(1)');
+  $c = $a->dummy(2);
+
+
+=head1 DESCRIPTION
+
+This package provides many of the powerful PerlDL core index
+manipulation routines. These routines are usually two-way
+so you can get a unit matrix by
+
+	$a = zeroes(1000,1000);
+	$a->diagonal(0,1) ++;
+
+which is usually fairly efficient. See L<PDL::Indexing> and
+L<PDL::Tips> for more examples.
+
+These functions are usually two-way:
+
+	$b = $a->slice("1:3");
+	$b += 5;   		# $a is changed!
+
+If you want to force a copy and no "flow" backwards, you need
+
+	$b = $a->slice("1:3")->copy;
+	$b += 5;		# $a is not changed.
+
+alternatively, you can use
+
+	$b = $a->slice("1:3")->sever;
+
+which doesn't copy the struct but beware that after
+
+	$b = $a->slice("1:3");
+	$c = $b->sever;
+
+the variables $b and $c point to the same object but with ->copy
+they do not.
+
+The fact that there is this kind of flow makes PDL a very
+powerful language in many ways: since you can alter the original
+data by altering some easier-to-use representation of it, many things are
+much easier to accomplish, just like making the above unit matrix.
+
+=cut
+
+EOD
+
+# $::PP_VERBOSE=1;
+
+pp_add_boot("  PDL->readdata_affine = pdl_readdata_affineinternal;
+	      PDL->writebackdata_affine = pdl_writebackdata_affineinternal;
+");
+
+pp_def(
+	'affineinternal',
+	AffinePriv => 1,
+	DefaultFlow => 1,
+	P2Child => 1,
+	ReadDataFuncName => "pdl_readdata_affineinternal",
+	WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
+	MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
+	RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
+	EquivCPOffsCode => '
+		int i; int poffs=$PRIV(offs); int nd;
+		for(i=0; i<$CHILD_P(nvals); i++) {
+			$EQUIVCPOFFS(i,poffs);
+			for(nd=0; nd<$CHILD_P(ndims); nd++) {
+				poffs += $PRIV(incs[nd]);
+				if(nd<$CHILD_P(ndims)-1 &&
+				   (i+1)%$CHILD_P(dimincs[nd+1]) ||
+				   nd == $CHILD_P(ndims)-1)
+					break;
+				poffs -= $PRIV(incs[nd]) *
+					$CHILD_P(dims[nd]);
+			}
+		}
+	',
+	Doc => 'internal',
+);
+
+pp_def(
+	'identity',
+	P2Child => 1,
+	DefaultFlow => 1,
+	OtherPars => '',
+	Reversible => 1,
+	Dims => '$COPYDIMS();',
+	ParentInds => '$COPYINDS();',
+	Identity => 1,
+	Doc => 'internal',
+);
+
+$doc = <<'EOD';
+=for ref
+
+These functions provide rudimentary index indirection.
+
+=for example
+
+	c = a(ind());
+	c = a(ind1(),ind2());
+
+It would be useful to have a more complete function for this
+at some point, or at least a perl wrapper, that allows
+
+	$c = $a->islice("1:2",$ind1,"3:4",$ind2");
+
+with many dimensions.
+
+This function is two-way, i.e. after
+
+        $c = $a->index(pdl[0,5,8]);
+        $c .= pdl [0,2,4];
+
+the changes in $c will flow back to $a.
+
+=cut
+EOD
+
+pp_def(
+	'index',
+	DefaultFlow => 1,
+	Reversible => 1,	
+	Pars => 'a(n); int ind(); [oca] c();',
+	Code => 'register int foo = $ind(); if(foo<0 || foo>=$SIZE(n))
+		{barf("PDL::index: invalid index");}
+	        $c() = $a(n => foo);',
+	BackCode => 'int foo = $ind(); if(foo<0 || foo>=$SIZE(n))
+		{barf("PDL::index: invalid index");}
+	        $a(n => foo) = $c();',
+	Doc => $doc,
+);
+
+pp_def(
+	'index2d',
+	DefaultFlow => 1,
+	Reversible => 1,	
+	Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
+	Code => 'register int fooa,foob;
+		fooa = $inda(); if(fooa<0 || fooa>=$SIZE(na))
+			{barf("PDL::index: invalid index 1");}
+		foob = $indb(); if(foob<0 || foob>=$SIZE(nb))
+			{barf("PDL::index: invalid index 2");}
+	        $c() = $a(na => fooa, nb => foob);',
+	BackCode => 'register int fooa,foob;
+		fooa = $inda(); if(fooa<0 || fooa>=$SIZE(na))
+			{barf("PDL::index: invalid index 1");}
+		foob = $indb(); if(foob<0 || foob>=$SIZE(nb))
+			{barf("PDL::index: invalid index 2");}
+	        $a(na => fooa, nb => foob) = $c();',
+	Doc => $doc,
+);
+
+
+# this one can convert vaffine piddles without(!) physicalising them
+# maybe it can replace 'converttypei' in the future?
+pp_def('flowconvert',
+	DefaultFlow => 1,
+	Reversible => 1,	
+	Pars => 'PARENT(); [oca]CHILD()',
+	OtherPars => 'int totype;',
+	Reversible => 1,
+	# Forced types
+	FTypes => {CHILD => '$COMP(totype)'},
+	Code => '$CHILD() = $PARENT();',
+	BackCode => '$PARENT() = $CHILD();',
+	Doc => 'internal',
+);
+
+
+pp_def(
+	'converttypei',
+	DefaultFlow => 1,
+	GlobalNew => 'converttypei_new',
+	OtherPars => 'int totype;',
+	P2Child => 1,
+	Identity => 1,
+	Reversible => 1,
+# Forced types
+	FTypes => {CHILD => '$COMP(totype)'},
+	Doc => 'internal',
+);
+
+
+
+# XXX Make clump work with optional parameter!
+if(0) {
+# Special-case
+pp_def(
+	'clump',
+	DefaultFlow => 1,
+	OtherPars => 'int n',
+	P2Child => 1,
+	Priv => 'int nnew; int nrem;',
+	RedoDims => 'int i; int d1;
+		if($COMP(n) > $PARENT(ndims)) {
+			$CROAK("Too many dimensions %d to clump from %d",
+				$COMP(n),$PARENT(ndims));
+		}
+		 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+		 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
+		 $SETNDIMS($PRIV(nnew));
+		 d1=1;
+		 for(i=0; i<$PRIV(nrem); i++) {
+		 	d1 *= $PARENT(dims[i]);
+		 }
+		 $CHILD(dims[0]) = d1;
+		 for(; i<$PARENT(ndims); i++) {
+		 	$CHILD(dims[i-$PRIV(nrem)+1]) = $PARENT(dims[i]);
+		 }
+		 $SETDIMS();
+		 $SETDELTATHREADIDS(1-$COMP(nrem));
+		 ',
+	EquivCPOffsCode => '
+		int i;
+		for(i=0; i<$CHILD_P(nvals); i++) {
+			$EQUIVCPOFFS(i,i);
+		}
+		',
+	Reversible => 1,
+);
+} else {
+
+# Affine! Make sure vaffine chaining understands to stop in the right
+# place.
+pp_def(
+	'clump',
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	OtherPars => 'int n',
+	RedoDims => 'int i; int d1;
+		int nrem; int nnew;
+		if($COMP(n) > $PARENT(ndims)) {
+			$SETNDIMS(0);  /* fix to make sure we do not get problems later */
+			$PRIV(offs) = 0;
+			$SETDIMS();
+			$CROAK("Too many dimensions %d to clump from %d",
+				$COMP(n),$PARENT(ndims));
+		}
+		 nrem = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+		 nnew = $PARENT(ndims) - nrem + 1;
+		 $SETNDIMS(nnew);
+		 $DOPRIVDIMS();
+		 $PRIV(offs) = 0;
+		 d1=1;
+		 for(i=0; i<nrem; i++) {
+		 	d1 *= $PARENT(dims[i]);
+		 }
+		 $CHILD(dims[0]) = d1;
+		 $PRIV(incs[0]) = 1;
+		 for(; i<$PARENT(ndims); i++) {
+		 	$CHILD(dims[i-nrem+1]) = $PARENT(dims[i]);
+			$PRIV(incs[i-nrem+1]) = $PARENT(dimincs[i]);
+		 }
+		 $SETDIMS();
+		 $SETDELTATHREADIDS(1-nrem);
+		 ',
+	Doc => <<'EOD',
+
+=for ref
+
+"clumps" the first n dimensions into one large dimension
+
+If, for example,  $a has dimensions (5,3,4) then after
+
+=for example
+
+	$b = $a->clump(2);   # Clump 2 first dimensions
+
+the variable $b will have dimensions (15,4)
+and the element $b->at(7,3) refers to the element $a->at(1,2,3).
+
+=cut
+EOD
+);
+}
+
+pp_def(
+	'xchg',
+	OtherPars => 'int n1; int n2;',
+	DefaultFlow => 1,
+	Reversible => 1,
+	P2Child => 1,
+	XCHGOnly => 1,
+	EquivDimCheck => 'if($COMP(n1) >= $PARENT(threadids[0]) ||
+			     $COMP(n2) >= $PARENT(threadids[0]))
+		barf("One of params %d, %d too large: %d",
+			$COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
+	EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
+	EquivCDimExpr => '(($PDIM == $COMP(n1)) ? $COMP(n2) : ($PDIM == $COMP(n2)) ? $COMP(n1) : $PDIM)',
+	Doc => <<'EOD',
+=for ref
+
+exchange two dimensions
+
+The command
+
+=for example
+
+	$b = $a->xchg(2,3);
+
+creates $b to be like $a except that the dimensions 2 and 3
+are exchanged with each other i.e.
+
+	$b->at(5,3,2,8) == $a->at(5,3,8,2)
+
+=cut
+EOD
+);
+
+pp_def(
+	'mv',
+	OtherPars => 'int n1; int n2;',
+	DefaultFlow => 1,
+	Reversible => 1,
+	P2Child => 1,
+	XCHGOnly => 1,
+	EquivDimCheck => 'if($COMP(n1) >= $PARENT(ndims) ||
+			     $COMP(n2) >= $PARENT(ndims))
+		barf("One of params %d, %d too large: %d",
+			$COMP(n1),$COMP(n2),$PARENT(ndims));',
+	EquivPDimExpr => '(($COMP(n1) < $COMP(n2)) ?
+	(($CDIM < $COMP(n1) || $CDIM > $COMP(n2)) ?
+		$CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM+1))
+	: (($COMP(n2) < $COMP(n1)) ?
+		(($CDIM > $COMP(n1) || $CDIM < $COMP(n2)) ?
+			$CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM-1))
+		: $CDIM))',
+	EquivCDimExpr => '(($COMP(n2) < $COMP(n1)) ?
+	(($PDIM < $COMP(n2) || $PDIM > $COMP(n1)) ?
+		$PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM+1))
+	: (($COMP(n1) < $COMP(n2)) ?
+		(($PDIM > $COMP(n2) || $PDIM < $COMP(n1)) ?
+			$PDIM : (($PDIM == $COMP(n1)) ? $COMP(n2) : $PDIM-1))
+		: $PDIM))',
+	Doc => << 'EOD',
+=for ref
+
+move a dimension to another position
+
+The command
+
+=for example
+
+	$b = $a->mv(4,1);
+
+creates $b to be like $a except that the dimension 4 is moved to the
+place 1:
+
+	$b->at(1,2,3,4,5,6) == $a->at(1,5,2,3,4,6);
+
+The other dimensions are moved accordingly.
+
+=cut
+EOD
+);
+
+pp_def(
+	'oneslice',
+	Doc => <<'EOD',
+=for ref
+
+experimental function - not for public use
+
+=for example
+
+  $a = oneslice();
+
+This is not for public use currently. See the source if you have to.
+This function can be used to accomplish run-time changing of
+transformations i.e. changing the size of some piddle at run-time.
+
+However, the mechanism is not yet finalized and this is just a demonstration.
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	OtherPars => 'int nth; int from; int step; int nsteps;',
+	AffinePriv => 1,
+	RedoDims => '
+		int nth = $PRIV(nth);
+		int from = $PRIV(from);
+		int step = $PRIV(step);
+		int nsteps = $PRIV(nsteps);
+		int i;
+		printf("ONESLICE_REDODIMS %d %d %d %d\n",nth,from,step,nsteps);
+		if(nth >= $PARENT(ndims)) {
+			die("Oneslice: too large nthdim");
+		}
+		if(from + step * (nsteps-1) >= $PARENT(dims[nth])) {
+			die("Oneslice: too many, too large steps");
+		}
+		if(from < 0 || step < 0) {
+			die("Oneslice: can only support positive from & step");
+		}
+		$PRIV(offs) = 0;
+		$SETNDIMS($PARENT(ndims));
+		$DOPRIVDIMS();
+		for(i=0; i<$PARENT(ndims); i++) {
+			$CHILD(dims)[i] = $PARENT(dims)[i];
+			$PRIV(incs)[i] = $PARENT(dimincs)[i];
+		}
+		$CHILD(dims)[nth] = nsteps;
+		$PRIV(incs)[nth] *= step;
+		$PRIV(offs) += from * $PARENT(dimincs)[nth];
+		$SETDELTATHREADIDS(0);
+		$SETDIMS();
+	',
+	FooCode => # This is why we have this stupid function
+	'	$COMP(from) = i1;
+		$COMP(step) = i2;
+		$COMP(nsteps) = i3;
+		printf("ONESLICE_FOOFUNC %d %d %d %d\n",
+		    $COMP(nth),$COMP(from),$COMP(step),$COMP(nsteps));
+	',
+);
+
+
+pp_def(
+	'slice',
+	Doc => << 'EOD',
+=for ref
+
+Returns a rectangular slice of the original piddle
+
+=for example
+
+  $a->slice('1:3'); #  return the second to fourth elements of $a
+
+The argument string is a comma-separated list of what to do
+for each dimension. The current formats include
+the following (a,b and c are integers):
+
+=over 8
+
+=item ":"
+
+takes the whole dimension intact.
+
+=item ""
+
+(nothing) is a synonym for ":"
+(This means that C<$a-E<gt>slice(':,3')> is equal to $a-E<gt>slice(',3')).
+
+=item "n"
+
+slices only this value out of the corresponding dimension
+
+=item "(n)"
+
+means the same as "n" by itself except that the resulting
+dimension of length one is deleted (so if $a has dims (3,4,5) then
+C<$a-E<gt>slice(':,(2),:')> has dimensions (3,5) whereas
+$a-E<gt>slice(':,2,:') has dimensions (3,1,5)).
+
+=item "a:b"
+
+slices the range I<a> to I<b> inclusive out of the dimension
+
+=item "a:b:c"
+
+slices the range I<a> to I<b>, with step c (i.e. 3:7:2 gives the indices
+(3,5,7)). This may be confusing to Matlab users but several other
+packages already use this syntax.
+
+=item "*"
+
+inserts an extra dimension of width 1 and
+
+=item "*a"
+
+inserts an extra (dummy) dimension of width I<a>.
+
+=back
+
+An extension is planned for a later stage allowing
+$a->slice('(=1),(=1|5:8),3:6(=1),4:6') to express a multidimensional
+diagonal of $a.
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	OtherPars => 'char* str',
+	Comp => 'int nnew; int nthintact; int intactnew; int ndum;
+	         int corresp[$COMP(intactnew)]; int start[$COMP(intactnew)];
+		 int inc[$COMP(intactnew)]; int end[$COMP(intactnew)];
+		 int nolddims;
+		 int whichold[$COMP(nolddims)]; int oldind[$COMP(nolddims)];
+		 ',
+	AffinePriv => 1,
+	MakeComp => q~
+		int i;
+		int nthnew; int nthold; int nthreal;
+		int dumsize;
+		char *s; char *ns;
+		int nums[3]; int nthnum;
+		$COMP(nnew)=0;
+		$COMP(ndum)=0;
+		$COMP(nolddims) = 0;
+		if(str[0] == '(')
+			$COMP(nolddims)++;
+		else if (str[0] == '*')
+			$COMP(ndum)++;
+		else
+			$COMP(nnew)++;
+		for(i=0; str[i]; i++)
+			if(str[i] == ',') {
+				if(str[i+1] == '(')
+					$COMP(nolddims)++;
+				else if(str[i+1] == '*')
+					$COMP(ndum)++;
+				else
+					$COMP(nnew)++;
+			}
+		$COMP(nthintact) = $COMP(nolddims) + $COMP(nnew);
+		$COMP(intactnew) = $COMP(nnew)+$COMP(ndum);
+		$DOCOMPDIMS();
+		nthnew=0; nthold=0; i=0; nthreal=0;
+		s=str-1;
+		do {
+			s++;
+			if(isdigit(*s) || *s == '-') {
+				nthnew++; nthreal++;
+				$COMP(inc[nthnew-1]) = 1;
+				$COMP(corresp[nthnew-1]) = nthreal-1;
+				$COMP(start[nthnew-1]) = strtol(s,&s,10);
+				if(*s != ':') {
+					$COMP(end[nthnew-1]) =
+						$COMP(start[nthnew-1]);
+					goto outlab;
+				}
+				s++;
+				if(!isdigit(*s) && !(*s == '-')) {
+					barf("Invalid slice str ind1 '%s': '%s'",str,s);
+				}
+				$COMP(end[nthnew-1]) = strtol(s,&s,10);
+				if(*s != ':') {goto outlab;}
+				s++;
+				if(!isdigit(*s) && !(*s == '-')) {
+					barf("Invalid slice str ind2 '%s': '%s'",str,s);
+				}
+				$COMP(inc[nthnew-1]) = strtol(s,&s,10);
+			} else switch(*s) {
+			case ':':
+				s++;
+				/* FALLTHRU */
+			case ',': case '\0':  /* In these cases, no inc s */
+				$COMP(start[nthnew]) = 0;
+				$COMP(end[nthnew]) = -1;
+				$COMP(inc[nthnew]) = 1;
+				$COMP(corresp[nthnew]) = nthreal;
+				nthnew++; nthreal++;
+				break;
+			case '(':
+				s++;
+				$COMP(oldind[nthold]) = strtol(s,&s,10);
+				$COMP(whichold[nthold]) = nthreal;
+				nthold++; nthreal++;
+				if(*s != ')') {
+					barf("Sliceoblit must end with ')': '%s': '%s'",str,s);
+				}
+				s++;
+				break;
+			case '*':
+				s++;
+				if(isdigit(*s)) {
+					dumsize = strtol(s,&s,10);
+				} else {dumsize = 1;}
+				$COMP(corresp[nthnew]) = -1;
+				$COMP(start[nthnew]) = 0;
+				$COMP(end[nthnew]) = dumsize-1;
+				$COMP(inc[nthnew]) = 1;
+				nthnew++;
+				break;
+			}
+		   outlab:
+			if(*s != ',' && *s != '\0') {
+				barf("Invalid slice str '%s': '%s'",str,s);
+			}
+		} while(*s);
+		$SETREVERSIBLE(1); /* XXX Only if incs>0, no dummies */
+		~,
+	RedoDims => '
+		int i; int start; int end; int inc;
+		if ($COMP(nthintact) > $PARENT(ndims)) {
+		        $SETNDIMS(0); /* dirty fix */
+			$PRIV(offs) = 0;
+			$SETDIMS();
+			$CROAK("Too many dims in slice"); }
+		$SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
+		$DOPRIVDIMS();
+		$PRIV(offs) = 0;
+		for(i=0; i<$COMP(intactnew); i++) {
+			int parentdim = $COMP(corresp[i]);
+			start = $COMP(start[i]); end = $COMP(end[i]);
+			inc = $COMP(inc[i]);
+			if(parentdim!=-1) {
+				if(-start > $PARENT(dims[parentdim]) ||
+				   -end > $PARENT(dims[parentdim])) {
+					barf("Negative slice cannot start or end above limit");
+                                }
+				if(start < 0)
+					start = $PARENT(dims[parentdim]) + start;
+				if(end < 0)
+					end = $PARENT(dims[parentdim]) + end;
+				if(start >= $PARENT(dims[parentdim]) ||
+				   end >= $PARENT(dims[parentdim])) {
+					barf("Slice cannot start or end above limit");
+				}
+				if((end-start)*inc < 0)
+					inc = -inc;
+				$PRIV(incs[i]) = $PARENT(dimincs[parentdim]) * inc;
+				$PRIV(offs) += start * $PARENT(dimincs[parentdim]);
+			} else {
+				$PRIV(incs[i]) = 0;
+			}
+			$CHILD(dims[i]) = ((int)((end-start)/inc))+1;
+		}
+		for(i=$COMP(nthintact); i<$PARENT(ndims); i++) {
+			int cdim = i - $COMP(nthintact) + $COMP(intactnew);
+			$PRIV(incs[cdim]) = $PARENT(dimincs[i]);
+			$CHILD(dims[cdim]) = $PARENT(dims[i]);
+		}
+		for(i=0; i<$COMP(nolddims); i++) {
+			int oi = $COMP(oldind[i]);
+			int wo = $COMP(whichold[i]);
+			if(oi < 0)
+				oi += $PARENT(dims[wo]);
+			if( oi >= $PARENT(dims[wo]) )
+				$CROAK("Cannot obliterate dimension after end");
+			$PRIV(offs) += $PARENT(dimincs[wo])
+					* oi;
+		}
+	/*
+		for(i=0; i<$CHILD(ndims)-$PRIV(nnew); i++) {
+			$CHILD(dims[i+$COMP(intactnew)]) =
+				$PARENT(dims[i+$COMP(nthintact)]);
+			$PRIV(incs[i+$COMP(intactnew)]) =
+				$PARENT(dimincs[i+$COMP(nthintact)]);
+		}
+	*/
+		$SETDIMS();
+	',
+);
+
+pp_addpm(<<'EOD'
+
+=head2 using
+
+=for ref
+
+Returns array of column numbers requested
+
+=for usage
+
+ line $pdl->using(1,2);
+
+ Plot line of column 1 of $pdl vs. column 2
+
+=for example
+
+ perldl> $pdl = rcols("file");
+
+ perldl> line $pdl->using(1,2);
+
+=cut
+
+*using = \&PDL::using;
+sub PDL::using {
+  my ($x,@ind)=@_;
+  @ind = list $ind[0] if (ref $ind[0] eq 'PDL');
+  foreach (@ind) {
+    $_ = $x->slice("($_)");
+  }
+  @ind;
+}
+
+EOD
+);
+
+pp_add_exported('', 'using');
+
+pp_addhdr(<<END
+static int cmp_pdll(const void *a_,const void *b_) {
+	PDL_Long *a = (PDL_Long *)a_; PDL_Long *b=(PDL_Long *)b_;
+	if(*a>*b) return 1;
+	else if(*a==*b) return 0;
+	else return -1;
+}
+END
+);
+	
+
+pp_def( 'affine',
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	GlobalNew => 'affine_new',
+	OtherPars => 'int offspar; SV *dimlist; SV *inclist;',
+	Comp => 'int nd; PDL_Long offset; PDL_Long sdims[$COMP(nd)];
+		PDL_Long sincs[$COMP(nd)];',
+	MakeComp => '
+		int i,n2;
+		PDL_Long *tmpi;
+		PDL_Long *tmpd = PDL->packdims(dimlist,&($COMP(nd)));
+		tmpi = PDL->packdims(inclist,&n2);		
+		if ($COMP(nd) < 0) {
+		      $CROAK("Affine: can not have negative no of dims");
+		}
+		if ($COMP(nd) != n2)
+		      $CROAK("Affine: number of incs does not match dims");
+		$DOCOMPDIMS();
+		$COMP(offset) = offspar;
+		for (i=0; i<$COMP(nd); i++) {
+			$COMP(sdims)[i] = tmpd[i];
+			$COMP(sincs)[i] = tmpi[i];
+		}
+		',
+	RedoDims => '
+		int i;
+		$SETNDIMS($COMP(nd));
+		$DOPRIVDIMS();
+		$PRIV(offs) = $COMP(offset);
+		for (i=0;i<$CHILD(ndims);i++) {
+			$PRIV(incs)[i] = $COMP(sincs)[i];
+			$CHILD(dims)[i] = $COMP(sdims)[i];
+		}
+		$SETDIMS();
+		',
+	Doc => 'internal',
+);
+
+pp_def(
+	'diagonalI',
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	OtherPars => 'SV *list',
+	Comp => 'int nwhichdims; PDL_Long whichdims[$COMP(nwhichdims)];',
+	MakeComp => '
+		int i,j;
+		PDL_Long *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+		if($COMP(nwhichdims) < 1) {
+			$CROAK("Diagonal: must have at least 1 dimension");
+		}
+		$DOCOMPDIMS();
+		for(i=0; i<$COMP(nwhichdims); i++)
+			$COMP(whichdims)[i] = tmp[i];
+		qsort($COMP(whichdims), $COMP(nwhichdims), sizeof(PDL_Long),
+			cmp_pdll);
+	',
+	RedoDims => '
+		int nthp,nthc,nthd; int cd = $COMP(whichdims[0]);
+		$SETNDIMS($PARENT(ndims)-$COMP(nwhichdims)+1);
+		$DOPRIVDIMS();
+		$PRIV(offs) = 0;
+		if ($COMP(whichdims)[$COMP(nwhichdims)-1] >= $PARENT(ndims) ||
+			$COMP(whichdims)[0] < 0)
+			$CROAK("Diagonal: dim out of range");
+		nthd=0; nthc=0;
+		for(nthp=0; nthp<$PARENT(ndims); nthp++)
+			if (nthd < $COMP(nwhichdims) &&
+			    nthp == $COMP(whichdims)[nthd]) {
+				if (!nthd++) {
+					$CHILD(dims)[cd] = $PARENT(dims)[cd];
+					nthc++;
+					$PRIV(incs)[cd] = 0;
+				}
+				if (nthd && $COMP(whichdims)[nthd] ==
+				    $COMP(whichdims)[nthd-1])
+				       $CROAK("Diagonal: dims must be unique");
+				if($CHILD(dims)[cd] !=
+				    $PARENT(dims)[nthp]) {
+					$CROAK("Different dims %d and %d",
+						$CHILD(dims)[cd],
+						$PARENT(dims)[nthp]);
+				}
+				$PRIV(incs)[cd] += $PARENT(dimincs)[nthp];
+			} else {
+				$PRIV(incs)[nthc] = $PARENT(dimincs)[nthp];
+				$CHILD(dims)[nthc] = $PARENT(dims)[nthp];
+				nthc++;
+			}
+		$SETDIMS();
+	',
+	Doc => << 'EOD',
+=for ref
+
+Returns the multidimensional diagonal over the specified dimensions.
+
+The diagonal is placed at the first (by number) dimension that is
+diagonalized.
+The other diagonalized dimensions are removed. So if $a has dimensions
+(5,3,5,4,6,5) then after
+
+=for example
+
+	$b = $a->diagonal(0,2,5);
+
+the piddle $b has dimensions (5,3,4,6) and $b->at(2,1,0,1) refers
+to $a->at(2,1,2,0,1,2).
+
+NOTE: diagonal doesn't handle threadids correctly. XXX FIX
+
+=cut
+EOD
+);
+
+pp_def(
+	'lags',
+	Doc => <<'EOD',
+=for ref
+
+Returns a piddle of lags to parent.
+
+I.e. if $a contains
+
+       [0,1,2,3,4,5,6,7]
+
+then
+
+=for example
+
+	$b = $a->lags(0,2,2);
+
+ is a (5,2) matrix
+
+       [2,3,4,5,6,7]
+       [0,1,2,3,4,5]
+
+This order of returned indices is kept because the function is
+called "lags" i.e. the nth lag is n steps behind the original.
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1, # XXX Not really
+	AffinePriv => 1,
+	OtherPars => 'int nthdim; int step; int n;',
+	RedoDims => '
+		int i;
+		$PRIV(offs) = 0;
+		$SETNDIMS($PARENT(ndims)+1);
+		$DOPRIVDIMS();
+		for(i=0; i<$PRIV(nthdim); i++) {
+			$CHILD(dims)[i] = $PARENT(dims)[i];
+			$PRIV(incs)[i] = $PARENT(dimincs)[i];
+		}
+		$CHILD(dims)[i] = $PARENT(dims)[i] - $COMP(step) * ($COMP(n)-1);
+		$CHILD(dims)[i+1] = $COMP(n);
+		$PRIV(incs)[i] = ($PARENT(dimincs)[i]);
+		$PRIV(incs)[i+1] = - $PARENT(dimincs)[i] * $COMP(step);
+                $PRIV(offs) += ($CHILD(dims)[i+1] - 1) * (-$PRIV(incs)[i+1]);
+		i++;
+		for(; i<$PARENT(ndims); i++) {
+			$CHILD(dims)[i+1] = $PARENT(dims)[i];
+			$PRIV(incs)[i+1] = $PARENT(dimincs)[i];
+		}
+		$SETDIMS();
+	'
+);
+
+pp_def(
+	'splitdim',
+	Doc => <<'EOD',
+=for ref
+
+Splits a dimension in the parent piddle (opposite of C<clump>)
+
+After
+
+=for example
+
+	$b = $a->splitdim(2,3);
+
+the expression
+
+	$b->at(6,4,x,y,3,6) == $a->at(6,4,x+3*y)
+
+is always true (x has to be less than 3).
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1, # XXX Not really
+	OtherPars => 'int nthdim; int nsp;',
+	AffinePriv => 1,
+	RedoDims => '
+		int i = $PRIV(nthdim);
+		int nsp = $COMP(nsp);
+		if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
+		if(nsp > $PARENT(dims[i])) {
+			die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
+				nsp, $PARENT(dims[i]));
+		}
+		$PRIV(offs) = 0;
+		$SETNDIMS($PARENT(ndims)+1);
+		$DOPRIVDIMS();
+		for(i=0; i<$PRIV(nthdim); i++) {
+			$CHILD(dims)[i] = $PARENT(dims)[i];
+			$PRIV(incs)[i] = $PARENT(dimincs)[i];
+		}
+		$CHILD(dims)[i] = $COMP(nsp);
+		$CHILD(dims)[i+1] = $PARENT(dims)[i] / $COMP(nsp);
+		$PRIV(incs)[i] = $PARENT(dimincs)[i];
+		$PRIV(incs)[i+1] = $PARENT(dimincs)[i] * $COMP(nsp);
+		i++;
+		for(; i<$PARENT(ndims); i++) {
+			$CHILD(dims)[i+1] = $PARENT(dims)[i];
+			$PRIV(incs)[i+1] = $PARENT(dimincs)[i];
+		}
+		$SETDIMS();
+	',
+);
+
+pp_def('rotate',
+	Doc => <<'EOD',
+=for ref
+
+Shift vector elements along with wrap. Flows data back&forth.
+
+EOD
+ 	Pars=>'x(n); int shift(); [oca]y(n)',
+        DefaultFlow => 1,
+        Reversible => 1,
+        Code=>'
+        int i,j;
+        int n_size = $SIZE(n);
+        j = ($shift()) % n_size;
+        if (j < 0)
+                j += n_size;
+        for(i=0; i<n_size; i++,j++) {
+            if (j == n_size)
+               j = 0;
+            $y(n=>j) = $x(n=>i);
+        }',
+        BackCode=>'
+        int i,j;
+        int n_size = $SIZE(n);
+        j = ($shift()) % n_size;
+        if (j < 0)
+                j += n_size;
+        for(i=0; i<n_size; i++,j++) {
+            if (j == n_size)
+               j = 0;
+            $x(n=>i) = $y(n=>j);
+        }
+        '
+);
+
+# This is a bit tricky. Hope I haven't missed any cases.
+
+pp_def(
+	'threadI',
+	Doc => <<'EOD',
+=for ref
+
+internal
+
+Put some dimensions to a threadid.
+
+=for example
+
+	$b = $a->threadI(0,1,5); # thread over dims 1,5 in id 1
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	OtherPars => 'int id; SV *list',
+	Comp => 'int id; int nwhichdims; PDL_Long whichdims[$COMP(nwhichdims)];
+			int nrealwhichdims; ',
+	MakeComp => '
+		int i,j;
+		PDL_Long *tmp= PDL->packdims(list,&($COMP(nwhichdims)));
+		$DOCOMPDIMS();
+		for(i=0; i<$COMP(nwhichdims); i++)
+			$COMP(whichdims)[i] = tmp[i];
+		$COMP(nrealwhichdims) = 0;
+		for(i=0; i<$COMP(nwhichdims); i++) {
+			for(j=i+1; j<$COMP(nwhichdims); j++)
+				if($COMP(whichdims[i]) == $COMP(whichdims[j]) &&
+				   $COMP(whichdims[i]) != -1) {
+				$CROAK("Thread: duplicate arg %d %d %d",
+					i,j,$COMP(whichdims[i]));
+			}
+			if($COMP(whichdims)[i] != -1) {
+				$COMP(nrealwhichdims) ++;
+			}
+		}
+		$COMP(id) = id;
+		',
+	RedoDims => '
+		int nthc,i,j,flag;
+		$SETNDIMS($PARENT(ndims));
+		$DOPRIVDIMS();
+		$PRIV(offs) = 0;
+		nthc=0;
+		for(i=0; i<$PARENT(ndims); i++) {
+			flag=0;
+			if($PARENT(nthreadids) > $COMP(id) &&
+			   i == $PARENT(threadids[$COMP(id)])) {
+			   nthc += $COMP(nwhichdims);
+			}
+			for(j=0; j<$COMP(nwhichdims); j++) {
+				if($COMP(whichdims[j] == i)) {flag=1; break;}
+			}
+			if(flag) {
+				continue;
+			}
+			$CHILD(dims[nthc]) = $PARENT(dims[i]);
+			$PRIV(incs[nthc]) = $PARENT(dimincs[i]);
+			nthc++;
+		}
+		for(i=0; i<$COMP(nwhichdims); i++) {
+			int cdim,pdim;
+			cdim = i +
+			 ($PARENT(nthreadids) > $COMP(id) ?
+			  $PARENT(threadids[$COMP(id)]) : $PARENT(ndims))
+			  - $COMP(nrealwhichdims);
+			pdim = $COMP(whichdims[i]);
+			if(pdim == -1) {
+				$CHILD(dims[cdim]) = 1;
+				$PRIV(incs[cdim]) = 0;
+			} else {
+				$CHILD(dims[cdim]) = $PARENT(dims[pdim]);
+				$PRIV(incs[cdim]) = $PARENT(dimincs[pdim]);
+			}
+		}
+		$SETDIMS();
+		PDL->reallocthreadids($CHILD_PTR(),
+			($PARENT(nthreadids)<=$COMP(id) ?
+				$COMP(id)+1 : $PARENT(nthreadids)));
+		for(i=0; i<$CHILD(nthreadids); i++) {
+			$CHILD(threadids[i]) =
+			 ($PARENT(nthreadids) > i ?
+			  $PARENT(threadids[i]) : $PARENT(ndims)) +
+			 (i <= $COMP(id) ? - $COMP(nrealwhichdims) :
+			  $COMP(nwhichdims) - $COMP(nrealwhichdims));
+		}
+		$CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
+		',
+);
+
+
+# we don't really need this one since it can be achieved with
+# a ->threadI(-1,[])
+pp_def('identvaff',
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	RedoDims => '
+		int i;
+		$SETNDIMS($PARENT(ndims));
+		$DOPRIVDIMS();
+		$PRIV(offs) = 0;
+		for(i=0; i<$PARENT(ndims); i++) {
+			$CHILD(dims[i]) = $PARENT(dims[i]);
+			$PRIV(incs[i]) = $PARENT(dimincs[i]);
+		}
+		$SETDIMS();
+		$SETDELTATHREADIDS(0);
+		$CHILD(threadids[$CHILD(nthreadids)]) = $CHILD(ndims);
+		',
+	Doc => <<'EOD',
+=for ref
+
+A vaffine identity transformation (includes thread_id copying).
+
+Mainly for internal use.
+
+=cut
+EOD
+);
+
+
+pp_def(
+	'unthread',
+	Doc => <<'EOD',
+=for ref
+
+All threaded dimensions are made real again.
+
+See L<XXX> for details and examples.
+
+=cut
+EOD
+	P2Child => 1,
+	DefaultFlow => 1,
+	Reversible => 1,
+	AffinePriv => 1,
+	OtherPars => 'int atind;',
+	RedoDims => '
+		int i;
+		$SETNDIMS($PARENT(ndims));
+		$DOPRIVDIMS();
+		$PRIV(offs) = 0;
+		for(i=0; i<$PARENT(ndims); i++) {
+			int corc;
+			if(i<$COMP(atind)) {
+				corc = i;
+			} else if(i < $PARENT(threadids[0])) {
+				corc = i + $PARENT(ndims)-$PARENT(threadids[0]);
+			} else {
+				corc = i - $PARENT(threadids[0]) + $COMP(atind);
+			}
+			$CHILD(dims[corc]) = $PARENT(dims[i]);
+			$PRIV(incs[corc]) = $PARENT(dimincs[i]);
+		}
+		$SETDIMS();
+	',
+);
+
+
+pp_addpm({At => Bot},<< 'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+
+=cut
+
+EOD
+
+pp_done();
+__DATA__
+
+# A very useful transformation for e.g. axis values: hexagonal
+# arrays can be made like this.
+
+if(0) {
+deftrans(
+	Name => 'repeat',
+	Pars => 'int whichind, int howmany',
+	MakeComp => '
+		$COMP(howmany) = howmany;
+		$COMP(whichind) = whichind;
+		$SETREVERSIBLE($COMP(howmany)==1);
+		',
+	Dims => '
+		$SETNDIMS($PARENT(ndims));
+		LOOPDIMS %{
+			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
+		%}
+		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
+		$SETDIMS();
+		',
+	ParentInds =>
+		'$COPYINDS();
+		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
+	Print => 'printf("REPEAT: %d, %d\n",
+			$COMP(whichind), $COMP(howmany));'
+);
+}
+
+# Parent's first index is value of indices.
+
+if(0) {
+deftrans(
+	Name => 'indexed',
+	Pars => 'pdl* indices',
+	Dims => '
+		$SETNDIMS($COMP(indices)->ndims);
+		LOOPDIMS %{
+			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
+		%}
+		',
+	ParentInds =>
+		'$COPYINDS();
+		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
+);
+}
+
+

@@ -1,0 +1,301 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+	PDL::Graphics::OpenGLQ - quick routines to plot lots of stuff from piddles.
+
+=head1 SYNOPSIS
+
+	only for internal use - see source
+
+=head1 DESCRIPTION
+
+only for internal use - see source
+
+=head1 AUTHOR
+
+Copyright (C) 1997,1998 Tuomas J. Lukka.  
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL 
+distribution. If this file is separated from the PDL distribution, 
+the copyright notice should be included in the file.
+
+
+=cut
+EOD
+
+pp_addhdr('
+#include <GL/gl.h>
+#include <GL/glu.h>
+#include <GL/glx.h>
+
+#include "../OpenGL/OpenGL.m"
+D_OPENGL;
+');
+
+pp_add_boot('
+	I_OPENGL;
+');
+
+
+@internal = (Doc => 'internal');
+
+pp_def(
+	'line_3x_3c',
+	GenericTypes => [F,D],
+	Pars => 'coords(tri=3,n); colors(tri,n);',
+	Code => '
+		glBegin(GL_LINE_STRIP);
+		loop(n) %{
+			glColor3f(
+				$colors(tri => 0), 
+				$colors(tri => 1),
+				$colors(tri => 2)
+			);
+			glVertex3f(
+				$coords(tri => 0), 
+				$coords(tri => 1),
+				$coords(tri => 2)
+			);
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+sub TRI {return "$_[0]$_[1](tri => 0),
+		 $_[0]$_[1](tri => 1),
+		 $_[0]$_[1](tri => 2)"}
+sub COLOR{ "
+			glColor3f(
+				".  TRI('$colors',$_[0])
+				."
+			);
+	" };
+sub ADCOLOR{ "
+			{
+			GLfloat ad[4];
+			".(join '',map {"ad[$_] = \$colors$_[0](tri => $_);"} 0..2).
+			"ad[4] = 1.0;
+			glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,
+				ad);
+			}
+	" };
+sub VERTEX{ "
+			glVertex3f(
+				".  TRI('$coords',$_[0])
+				."
+			);
+" };
+sub NORMAL{ "
+			glNormal3f(
+				".  TRI('$norm',$_[0])
+				."
+			);
+	" };
+sub RPOS{ "
+			glRasterPos3f(
+				".  TRI('$coords',$_[0])
+				."
+			);
+	" };
+
+pp_def('gl_points',
+	GenericTypes => [F,D],
+	Pars => 'coords(tri=3); colors(tri);',
+	Code => '
+		glBegin(GL_POINTS);
+		threadloop %{'.COLOR().VERTEX().'
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+pp_def(
+	'gl_lines',
+	GenericTypes => [F,D],
+	Pars => 'coords(tri,x);colors(tri,x);',
+	Code => '
+		glBegin(GL_LINE_STRIP);
+		loop(x) %{ '.COLOR().VERTEX().'
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+pp_def(
+ 	'gl_texts',
+ 	GenericTypes => [F,D],
+ 	Pars => 'coords(tri,x); ',
+	OtherPars => 'int base; SV *arr',
+	Code => '
+		SV *sv = $COMP(arr);
+		AV *arr;
+		if(!(SvROK(sv) && SvTYPE(SvRV(sv))==SVt_PVAV)) {
+			barf("gl_texts requires an array ref");
+		}
+		arr = (AV *)SvRV(sv);
+
+		glPushAttrib(GL_LIST_BIT);
+		glListBase($COMP(base));
+
+		loop(x) %{
+			SV *elem = *(av_fetch(arr, x, 0));
+			if(elem) {
+				char *str = SvPV(elem,na);
+				'.RPOS().'
+				glCallLists(strlen(str),GL_UNSIGNED_BYTE,
+					(GLubyte*)str);
+			}
+		%}
+
+		glPopAttrib();
+	',
+	@internal
+);
+
+for $m (
+{Suf => '_mat',
+ Func => \&ADCOLOR},
+{Suf => '',
+ Func => \&COLOR},
+) {
+for(
+{Name => 'gl_triangles',
+ NormalCode => ''},
+{Name => 'gl_triangles_n',
+ NormalCode => '
+	tmp1[0] = $coordsb(tri => 0) - $coordsa(tri => 0);
+	tmp1[1] = $coordsb(tri => 1) - $coordsa(tri => 1);
+	tmp1[2] = $coordsb(tri => 2) - $coordsa(tri => 2);
+	tmp2[0] = $coordsc(tri => 0) - $coordsa(tri => 0);
+	tmp2[1] = $coordsc(tri => 1) - $coordsa(tri => 1);
+	tmp2[2] = $coordsc(tri => 2) - $coordsa(tri => 2);
+	glNormal3f(
+		tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2],
+	      -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]),
+		tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1]
+	);
+ '
+},
+{Name => 'gl_triangles_wn',
+ NormalArgs => 'norma(tri); normb(tri); normc(tri);',
+ (map {("NormalCode".($_ eq 'A'?'':$_),NORMAL(lc $_))} (A..C)),
+}) {
+# This may be suboptimal but should still be fast enough..
+# We only do triangles with this.
+pp_def(
+	$_->{Name}.$m->{Suf},
+	GenericTypes => [F,D],
+	Pars => 'coordsa(tri=3); coordsb(tri);
+		 coordsc(tri);'.
+		 $_->{NormalArgs}.
+		 'colorsa(tri); colorsb(tri);
+		 colorsc(tri);
+		 ',
+	Code => '
+		float tmp1[3]; float tmp2[3];
+		glBegin(GL_TRIANGLES);
+		threadloop %{'.
+			$_->{NormalCode}
+			.&{$m->{Func}}("a").VERTEX("a").
+			$_->{NormalCodeB}
+	  		.&{$m->{Func}}("b").VERTEX("b").
+			$_->{NormalCodeC}
+			.&{$m->{Func}}("c").VERTEX("c").'
+		%}
+		glEnd();
+		',
+		@internal
+);
+}
+}
+
+pp_def('gl_arrows',
+	Pars => 'coords(tri=3,n); int indsa(); int indsb();',
+	OtherPars => 'float headlen; float width;',
+	Code => '
+		float hl = $COMP(headlen);
+		float w = $COMP(width);
+		float tmp2[3]; tmp2[0] = 0.000001; tmp2[1] = -0.0001; tmp2[2] = 1;
+		glBegin(GL_LINES);
+		threadloop %{
+			int a = $indsa();
+			int b = $indsb();
+			float tmp1[3]; 
+			float norm[3];
+			float norm2[3];
+			float normlen,origlen,norm2len;
+			tmp1[0] = $coords(tri => 0, n => a) -
+				  $coords(tri => 0, n => b);
+			tmp1[1] = $coords(tri => 1, n => a) -
+				  $coords(tri => 1, n => b);
+			tmp1[2] = $coords(tri => 2, n => a) -
+				  $coords(tri => 2, n => b);
+		
+			norm[0] = tmp1[1]*tmp2[2] - tmp2[1]*tmp1[2];
+			norm[1] = -(tmp1[0]*tmp2[2] - tmp2[0]*tmp1[2]);
+			norm[2] = tmp1[0]*tmp2[1] - tmp2[0]*tmp1[1];
+
+			norm2[0] = tmp1[1]*norm[2] - norm[1]*tmp1[2];
+			norm2[1] = -(tmp1[0]*norm[2] - norm[0]*tmp1[2]);
+			norm2[2] = tmp1[0]*norm[1] - norm[0]*tmp1[1];
+
+			normlen = sqrt(norm[0] * norm[0] +
+				norm[1] * norm[1] + norm[2] * norm[2]);
+			norm2len = sqrt(norm2[0] * norm2[0] +
+				norm2[1] * norm2[1] + norm2[2] * norm2[2]);
+			origlen = sqrt(tmp1[0] * tmp1[0] +
+				tmp1[1] * tmp1[1] + tmp1[2] * tmp1[2]);
+			norm[0] *= w/normlen;
+			norm[1] *= w/normlen;
+			norm[2] *= w/normlen;
+			norm2[0] *= w/norm2len;
+			norm2[1] *= w/norm2len;
+			norm2[2] *= w/norm2len;
+			tmp1[0] /= origlen;
+			tmp1[1] /= origlen;
+			tmp1[2] /= origlen;
+			glVertex3d( $coords(tri => 0, n => a) ,
+				    $coords(tri => 1, n => a) ,
+				    $coords(tri => 2, n => a) );
+			glVertex3d( $coords(tri => 0, n => b) ,
+				    $coords(tri => 1, n => b) ,
+				    $coords(tri => 2, n => b) );
+			if(w!=0) {
+			glVertex3d( $coords(tri => 0, n => b) ,
+				    $coords(tri => 1, n => b) ,
+				    $coords(tri => 2, n => b) );
+			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] + norm[0],
+				    $coords(tri => 1, n => b) + hl*tmp1[1] + norm[1],
+				    $coords(tri => 2, n => b) + hl*tmp1[2] + norm[2]);
+			glVertex3d( $coords(tri => 0, n => b) ,
+				    $coords(tri => 1, n => b) ,
+				    $coords(tri => 2, n => b) );
+			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] - norm[0],
+				    $coords(tri => 1, n => b) + hl*tmp1[1] - norm[1],
+				    $coords(tri => 2, n => b) + hl*tmp1[2] - norm[2]);
+			glVertex3d( $coords(tri => 0, n => b) ,
+				    $coords(tri => 1, n => b) ,
+				    $coords(tri => 2, n => b) );
+			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] + norm2[0],
+				    $coords(tri => 1, n => b) + hl*tmp1[1] + norm2[1],
+				    $coords(tri => 2, n => b) + hl*tmp1[2] + norm2[2]);
+			glVertex3d( $coords(tri => 0, n => b) ,
+				    $coords(tri => 1, n => b) ,
+				    $coords(tri => 2, n => b) );
+			glVertex3d( $coords(tri => 0, n => b) + hl*tmp1[0] - norm2[0],
+				    $coords(tri => 1, n => b) + hl*tmp1[1] - norm2[1],
+				    $coords(tri => 2, n => b) + hl*tmp1[2] - norm2[2]);
+			}
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+pp_done();
+
+

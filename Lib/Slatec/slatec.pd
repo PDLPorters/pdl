@@ -1,0 +1,329 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::Slatec -- PDL interface to the slatec numerical programming library
+
+=head1 DESCRIPTION
+
+This module serves the dual purpose of showing how to interface
+PDL to an external library and providing various functions to 
+interface to the slatec library. In due time, reasonable 
+perl functions will be provided to take advantage of all 
+the library but currently we only have
+
+=head1 SYNOPSIS
+
+ use PDL::Slatec;
+
+=head1 FUNCTIONS
+
+=head2 eigsys
+
+=for ref
+
+Eigenvalues and eigenvectors of a real positive definite symmetric matrix.
+
+=for usage
+
+($eigvals,$eigvecs) = eigsys($mat)
+
+Note: this function should be extended to calculate only eigenvalues if called in
+scalar context!
+
+=head2 matinv
+
+=for ref
+
+Inverse of a square matrix
+
+=for usage
+
+ ($inv) = matinv($mat)
+
+
+Using this library requires a fortran compiler. The source for the routines
+is provided for convenience.
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka. 
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL 
+distribution. If this file is separated from the PDL distribution, 
+the copyright notice should be included in the file.
+
+
+
+=cut
+EOD
+
+# for MDim, ld[str] is interpreted as "leading dimension of ..."
+
+# Making the BAD BAD BAD assumption that PDL_Long == int 
+# in fortran. BAD BAD BAD XXX (I'm going to regret this)
+
+%ftypes = (S => F, D => D);
+
+sub firstpar {
+	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from $_[0]";
+	$1
+}
+
+# whether or not to append undercores
+
+$uscore = (-e "f77_underscore" ? "_" : ""); 
+
+sub defslatec {
+	my($pname,$fnames,$argstr) = @_;
+	my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
+	my @args2 = map {
+		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
+		  ((?:\[[^]]*\])?)\s* 	# Options
+		  ([a-zA-Z]+)\s*      	# Par name
+		  ((?:\([^)]*\))?)\s*$	# Dims
+		 /x or die("Invalid slatec par $_");
+		[$1,$2,$3,$4]} @args;
+	my @ppars = map {
+		if($_->[0] =~ /^M?Dim$/) {
+			()
+		} else {
+		($_->[0] eq "Mat" and join '',@{$_}[1,2,3]) or
+		($_->[0] eq "IntFlag" and "int ".join '',@{$_}[1,2,3]) or
+		die "Invalid ppars ",(join ',',@$_),"\n";
+		}
+		} @args2;
+	my @talts = map {defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";
+			 [$ftypes{$_},$fnames->{$_}]}
+			 	keys %$fnames;
+	my $func = "\$T".(join '',map {$_->[0]} @talts) . "(" . 
+	  (join ',',map {$_->[1].$uscore} @talts).")";
+
+	my %lds = map {
+		($_->[0] eq "Mat" and $_->[3] ne "()") ? 
+			("ld".$_->[2] =>
+			 "&\$PRIV(__".firstpar($_->[3])."_size)")
+		: ()} @args2;
+
+	my @funcpars =map {(($_->[0] eq "Mat" or
+	  		     $_->[0] eq "IntFlag") and "\$P($_->[2])") or
+			   ($_->[0] eq "Dim" and "&\$PRIV(__$_->[2]_size)") or
+			   ($_->[0] eq "MDim" and $lds{$_->[2]}) or
+			   die "Invalid args2";
+			}  @args2;
+
+	print "Pars: ",(join ';',@ppars),"\n";
+
+
+	pp_def($pname,
+		Pars => (join ';',@ppars),
+		OtherPars => '',
+		Code => (join '',@ifincode) . "\n " .
+			$func . "  (". (join ',',@funcpars) . ");\n"
+			. (join '',@ifoutcode),
+		GenericTypes => [map {$_->[0]} @talts],
+	);
+}
+
+pp_addhdr('
+#include "SlatecProtos.h"
+
+void MAIN__ () {                                                                
+   /* Cheat to define MAIN__ symbol */                                          
+   croak("This should never happen");                                           
+}                                                                               
+   
+');
+
+
+pp_add_exported('',"eigsys matinv fft fftb");
+
+pp_addpm(<<'END');
+
+use PDL::Core;
+use PDL::Basic;
+use PDL::Primitive;
+
+# Note: handles only real symmetric positive-definite.
+
+*eigsys = \&PDL::eigsys;
+
+sub PDL::eigsys {
+	my($h) = @_;
+	$h = float($h);
+	rs($h, 
+		(my $eigval=PDL->null),
+		(long (pdl (1))),(my $eigmat=PDL->null),
+		(my $fvone = PDL->null),(my $fvtwo = PDL->null),
+		(my $errflag=PDL->null)
+	);
+#	print $covar,$eigval,$eigmat,$fvone,$fvtwo,$errflag;
+	if(sum($errflag) > 0) {
+		barf("Non-positive-definite matrix given to eigsys: $h\n");
+	}
+	return ($eigval,$eigmat);
+}
+
+*matinv = \&PDL::matinv;
+
+sub PDL::matinv {
+	my($m) = @_;
+	$m = $m->copy(); # Make sure we don't overwrite :(
+	gefa($m,(my $ipvt=null),(my $info=null));
+	if(sum($info) > 0) {
+		barf("Uninvertible matrix given to inv: $m\n");
+	}
+	gedi($m,$ipvt,(pdl 0,0),(null),(long( pdl (1))));
+	$m;
+}
+
+sub prepfft {
+	my($n) = @_;
+	my $tmp = PDL->zeroes(float(),$n*3+15);
+	$n = pdl $n;
+	ezffti($n,$tmp);
+	return $tmp;
+}
+
+*fft = \&PDL::fft;
+sub PDL::fft {
+	my($v) = @_;
+	my $ws = prepfft($v->getdim(0));
+	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null), 
+		  (my $b = PDL->null), $ws);
+	return ($az,$a,$b);
+}
+
+sub rfft {
+	my($az,$a,$b) = @_;
+	my $ws = prepfft($a->getdim(0));
+	$v = $a->copy();
+	ezfftb($v,$az,$a,$b,$ws);
+	return $v;
+}
+
+END
+
+defslatec(
+	'svdc',{S => 'ssvdc'},
+	'Mat 		x	(n,p);
+	 MDim 		ldx;
+	 Dim 		n;
+	 Dim 		p;
+	 Mat 	[o]	s	(p);
+	 Mat 	[o]	e	(p);
+	 Mat 	[o] 	u	(n,p);
+	 MDim 		ldu;
+	 Mat 	[o] 	v	(p,p);
+	 MDim 		ldv;
+	 Mat 	[o] 	work	(n);
+	 IntFlag   	job	();
+	 IntFlag [o]	info	();
+	'
+);
+
+defslatec(
+	'poco',{S => spoco, D => dpoco},
+	'Mat		a	(n,n);
+	 MDim		lda;
+	 Dim		n;
+	 Mat 		rcond	();
+	 Mat	[o]	z	(n);
+	 IntFlag [o]	info	();
+	'
+);
+
+defslatec(
+	'geco',{S => sgeco, D => dgeco},
+	'Mat		a	(n,n);
+	 MDim		lda;
+	 Dim		n;
+	 IntFlag [o]	ipvt	(n);
+	 Mat	 [o]	rcond	();
+	 Mat	 [o]	z	(n);
+	'
+);
+
+defslatec(
+	'gefa',{S => sgefa, D => dgefa},
+	'Mat		a	(n,n);
+	 MDim		lda;
+	 Dim		n;
+	 IntFlag [o]	ipvt	(n);
+	 IntFlag [o]	info	();
+	'
+);
+
+# XXX Ensure two == 2!!
+defslatec(
+	'podi',{S => spodi, D => dpodi},
+	'Mat		a	(n,n);
+	 MDim		lda;
+	 Dim		n;
+	 Mat	[o]	det	(two);
+	 IntFlag	job	();
+	'
+);
+
+defslatec(
+	'gedi',{S => sgedi, D => dgedi},
+	'Mat		a	(n,n);
+	 MDim		lda;
+	 Dim		n;
+	 IntFlag [o]	ipvt	(n);
+	 Mat	 [o]	det	(two);
+	 Mat	 [o]	work	(n);
+	 IntFlag	job	();
+	'
+);
+	
+
+defslatec(
+	'rs', {S => rsfoo},
+	'MDim		lda;
+	 Dim		n;
+	 Mat		a	(n,n);
+	 Mat	[o]	w	(n);
+	 IntFlag	matz	();
+	 Mat	[o]	z	(n,n);
+	 Mat	[t]	fvone	(n);
+	 Mat	[t]	fvtwo	(n);
+	 IntFlag [o]	ierr	();
+	'
+);
+
+# XXX wsave : at least 3n+15
+defslatec(
+	'ezffti', {S => ezffti},
+	'IntFlag	n	();
+	 Mat [o]	wsave(foo);
+	'
+);
+
+# XXX Correct for azero, a and b
+defslatec(
+	'ezfftf', {S => ezfftf},
+	'Dim		n;
+	 Mat		r(n);
+	 Mat [o]	azero();
+	 Mat [o]	a(n);
+	 Mat [o]	b(n);
+	 Mat 		wsave(foo);
+	'
+);
+
+defslatec(
+	'ezfftb', {S => ezfftb},
+	'Dim		n;
+	 Mat  [o]	r(n);
+	 Mat  		azero();
+	 Mat		a(n);
+	 Mat 		b(n);
+	 Mat 		wsave(foo);
+	'
+);
+
+
+pp_done();
+
+

@@ -1,0 +1,6 @@
+Just say "perl Makefile.PL" and run time.pl to obtain timing data
+for your machine.
+
+You can edit Bench.pm for different parameters / running times if
+your machine is very slow or very fast.
+

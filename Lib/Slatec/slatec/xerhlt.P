@@ -1,0 +1,1 @@
+extern int xerhlt_(char *messg, ftnlen messg_len);

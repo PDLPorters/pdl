@@ -1,0 +1,287 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::Math - extended mathematical operations for PDL
+
+=head1 SYNOPSIS
+
+ use PDL::Math;
+
+ use PDL::Graphics::TriD;
+ imag3d [SURF2D,bessj0(rvals(zeroes(50,50))/2)];
+
+=head1 DESCRIPTION
+
+This module extends PDL with more advanced mathematical
+functions than provided and standard Perl.
+
+
+Note all the functions have one input pdl, and one output,  unless otherwise
+stated.
+
+The functions are usually available from the system
+maths library, however if they are not (determined
+when PDL is compiled) a version from the Cephes math
+library is used.
+
+=cut
+EOD
+
+# Internal doc util
+
+my %doco;
+sub doco {
+  my @funcs = @_;
+  my $doc = pop @funcs;
+  for (@funcs) { $doco{$_} = $doc }
+}
+
+doco (qw/acos asin atan tan/,
+'Complete the standard trigonometric functions.');
+
+doco (qw/cosh sinh tanh acosh asinh atanh/,
+'The standard hyperbolic functions.');
+
+doco (qw/ceil floor rint/,
+'Round to integral values in floating-point format');
+
+doco( 'pow',"Synonym for `**'");
+
+doco ('erf',"The error function");
+doco ('erfc',"The complement of the error function");
+doco ('erfi',"The inverse of the error function");
+
+doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
+
+=for ref
+
+Standard Bessel Functions
+
+=cut
+EOD
+
+$doco{'bessjn'} .= <<'EOD';
+=pod
+This has a second integer
+argument which gives the order of the function require.
+=cut
+EOD
+
+$doco{'bessyn'} .= <<'EOD';
+=pod
+This has a second integer
+argument which gives the order of the function require.
+=cut
+EOD
+
+if ($^O !~ /win32/i) {  # doesn't seem to be in the MS VC lib
+doco( 'lgamma' ,<<'EOD');
+=for ref
+
+log gamma function
+
+This returns 2 piddles -- the first set gives the log(gamma) values,
+while the second set, of integer values, gives the sign of the gamma
+function.  This is useful for determining factorials, amongst other
+things.
+
+=cut
+EOD
+
+}
+
+pp_addhdr('
+#include <math.h>
+#include "protos.h"
+');
+
+# Standard `-lm'
+my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
+my (@ufuncs1g) = qw(ceil floor rint); # Any type
+my (@bifuncs1) = qw(pow); # Any type
+
+# Extended `-lm'
+my (@ufuncs2) = qw(acosh asinh atanh erf erfc);  # F,D only
+my (@besufuncs) = qw(j0 j1 y0 y1); # "
+my (@besbifuncs) = qw(jn yn); # "
+# Need igamma, ibeta, and a fall-back implementation of the above
+
+foreach $func (@ufuncs1) {
+pp_def($func,
+	GenericTypes => [F,D],
+	Pars => 'a(); [o]b();',
+	Doc => $doco{$func},
+	Code => '
+		$b() = '.$func.'($a());
+');
+}
+
+foreach $func (@ufuncs1g) {
+pp_def($func,
+	Pars => 'a(); [o]b();',
+	Doc => $doco{$func},
+	Code => '
+		$b() = '.$func.'($a());
+');
+}
+
+foreach $func (@bifuncs1) {
+pp_def($func,
+	Pars => 'a(); b(); [o]c();',
+	Doc => $doco{$func},
+	Code => '
+		$c() = '.$func.'($a(),$b());
+');
+}
+
+# Functions provided by extended -lm
+foreach $func (@ufuncs2) {
+pp_def($func,
+	GenericTypes => [F,D],
+	Pars => 'a(); [o]b();',
+	Doc => $doco{$func},
+	Code => '
+		$b() = '.$func.'($a());
+');
+}
+foreach $func (@besufuncs) {
+pp_def("bess$func",
+	GenericTypes => [F,D],
+	Pars => 'a(); [o]b();',
+	Doc => $doco{"bess$func"},
+	Code => '
+		$b() = '.$func.'($a());
+');
+}
+foreach $func (@besbifuncs) {
+pp_def("bess$func",
+	GenericTypes => [F,D],
+	Pars => 'a(); int n(); [o]b();',
+	Doc => $doco{"bess$func"},
+	Code => '
+		$b() = '.$func.'($n(),$a());
+');
+}
+if ($^O !~ /win32/i) {
+pp_def("lgamma",
+	Pars => 'a(); [o]b(); int[o]s()',
+	Doc => $doco{"lgamma"},
+	Code => '
+		extern int signgam;
+		$b() = lgamma($a());
+		$s() = signgam;
+');
+}
+
+pp_def('badmask',
+      Pars => 'a(); b(); [o]c();',
+      Doc => 'Clears all infs and nans in a to the corresponding value in b',
+      Code => '
+              $c() = finite($a()) ? $a() : $b();
+');
+
+# Extra functions from cephes
+pp_def("erfi",
+	GenericTypes => [F,D],
+	Pars => 'a(); [o]b()',
+	Doc => $doco{"erfi"},
+	Code => '
+		extern double ndtri(double);
+		$b() = ndtri((double)$a());
+');
+
+# XXX The next two really need driver routines...
+
+pp_def("eigens",
+	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
+	GenericTypes => [D],
+	Code => '
+		extern void eigens( double *A, double *RR, double *E, int N );
+		register int sn = $SIZE(n);
+		if($SIZE(m) != (sn * (sn + 1))/2) {
+			barf("Wrong sized args for eigens");
+		}
+		eigens($P(a), $P(ev), $P(e), sn);
+',
+	Doc => '
+=for ref
+
+Eigenvalues and -vectors of a matrix in lower triangular form
+
+XXX Hard interface
+
+',);
+
+# XXX Destroys a!!!
+# To use the new a again, must store both a and ips.
+pp_def("simq",
+	Pars => '[phys]a(n,n); [phys]b(n); [o,phys]x(n); int [o,phys]ips(n)',
+	OtherPars => 'int flag;',
+	GenericTypes => [D],
+	Code => '
+		extern int simq( double *A, double *B, double *X,
+			int n, int flag, int *IPS );
+		simq($P(a),$P(b),$P(x),$SIZE(n),$COMP(flag),$P(ips));
+', Doc => '
+=for ref
+
+Solution of simultaneous linear equations.
+
+(XXX hard interface)
+
+');
+
+pp_def("squaretotri",
+	Pars => 'a(n,n); b(m)',
+	Code => '
+		register int na=0, nb=0, ns = $SIZE(n);
+		if($SIZE(m) != (ns * (ns+1))/2) {
+			barf("Wrong sized args for squaretotri");
+		}
+		loop(m) %{
+			$b() = $a(n0 => na, n1 => nb);
+			na++; if(na > nb) {na = 0; nb ++;}
+		%}
+	',
+	Doc => '
+=for ref
+
+Convert a symmetric square matrix to triangular vector storage
+
+=cut
+',
+);
+
+pp_addpm({At=>Bot},<<'EOD');
+
+sub eigen_c {
+	my($mat) = @_;
+	my $s = $mat->getdim(0);
+	my $z = zeroes($s * ($s+1) / 2);
+	my $ev = zeroes($s);
+	squaretotri($mat,$z);
+	my $k = 0 * $mat;
+	PDL::eigens($z, $k, $ev);
+	return ($ev, $k);
+}
+
+=head1 BUGS
+
+Hasn't been tested on all platforms to ensure Cephes
+versions are picked up automatically and used correctly.
+
+=head1 AUTHOR
+
+Copyright (C) R.J.R. Williams 1997 (rjrw@ast.leeds.ac.uk), Karl Glazebrook
+(kgb@aaoepp.aao.gov.au) and Tuomas J. Lukka (Tuomas.Lukka@helsinki.fi).
+
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+
+=cut
+EOD
+pp_done();

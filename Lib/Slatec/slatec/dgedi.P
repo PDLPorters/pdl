@@ -1,0 +1,4 @@
+extern int dgedi_(doublereal *a, integer *lda, integer *n, integer *ipvt, doublereal *det, doublereal *work, integer *job);
+/*:ref: dscal_ 14 4 4 7 7 4 */
+/*:ref: daxpy_ 14 6 4 7 7 4 7 4 */
+/*:ref: dswap_ 14 5 4 7 4 7 4 */
