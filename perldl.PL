@@ -442,13 +442,11 @@ sub count_tags {
 
     return undef unless($s =~ m/[^\s]/);
     
-    # Anything but a delimiter ('q' is a string begin delimiter in perl,
-    # meaning we have to do a little shenanigan to treat things like 
-    # "quest" and "arquebus" properly.)
+    # [Ignore quotelike operators: they cause more trouble than they're worth!]
+
     our($prefix,$delim,%closers);
     unless(defined $prefix) {
-	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | ([^\s](q|tr|m)) | ((q|tr|m)($|\w)) )* /x;
-	$delim = '{[(`\'"q)]}';
+	$delim = '{[(`\'")]}';
 	%closers = ('{'=>'}','['=>']','('=>')');
     }
 
@@ -457,10 +455,13 @@ sub count_tags {
     # The whitespace works around a short-string bug in extract_bracketed.
     my $a;
     my @result;
+    $s =~ s/^\s*\#.*$//mg);  # Eliminate comment lines before extract.
+
     eval { @result = 
 	       Text::Balanced::extract_bracketed("{".$s, $delim, $prefix);
 	   $a = $@;
        };
+
     print "a = $a\nreturn = '",join("','",@result),"'\n" 
 	if($PERLDL::debug);
 
@@ -576,7 +577,9 @@ sub process_input {
   }
   
   if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
-      system(substr($_,1)); # Shell escape
+      my @lines = split /\n/;
+      system(substr(shift @lines,1)); # Shell escape
+      $_ = join("\n",@lines);
       next;
   } else {
       # Send code to pre-processor filters if defined

@@ -744,10 +744,10 @@ optimization happens:
 
 If the header is a tied array or a blessed hash ref with an associated
 method called C<copy>, then that ->copy method is called.  Otherwise, all
-elements of the hash are explicitly copied, resulting in a "first-level" 
-copy of the header: actual scalars are physically copied, but if elements
-of the header are refs to something else, those something elses aren not 
-copied.
+elements of the hash are explicitly copied.  References are recursively
+deep copied.
+
+This routine seems to leak memory.
 
 =cut
 
@@ -825,14 +825,17 @@ sub PDL::_deep_hdr_copy {
     for $z(@$val) {
       push(@a,(ref $z) ? PDL::_deep_hdr_copy($z) : $z);
     }
+    return \@a;
   }
   
   if(ref $val eq 'SCALAR') {
-    return $$val;
+    my $a = $$val;
+    return \$a;
   }
   
   if(ref $val eq 'REF') {
-    return PDL::_deep_hdr_copy($$val);
+    my $a = PDL::_deep_hdr_copy($$val);
+    return \$a;
   }
   
   # Special case for PDLs avoids potential nasty header recursion...
