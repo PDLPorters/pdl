@@ -1,0 +1,1 @@
+extern int dpcoef(integer *l, doublereal *c, doublereal *tc, doublereal *a);
