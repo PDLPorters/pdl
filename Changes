@@ -1,3 +1,7 @@
+CED 12-29-03
+   - PLPlot Makefile.PL prints more informative messages during configure
+   - Added crash test to t/plplot.t
+   - 'yes'/'no' -> 1/0 conversion added to bottom of perldl.conf
 DJB 12-23-03
    - fix small bug in PDL::Graphics::PGPLOT::Window::initenv() revealed
      by perl 5.8.2 and test 11 of t/pgplot.t (Use of uninitialized value...)

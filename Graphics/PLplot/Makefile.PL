@@ -16,15 +16,17 @@ PDL::Core::Dev->import();
 # 
 ## Search for plplot library and include file
 #
+print "\nChecking PDL::Graphics::PLplot...\n";
 
 unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 
 my $libname = "libplplotd.so";
 my $incname = "plplot.h";
 
-print "PDL_CONFIG{WITH_PLPLOT is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
+print "\tPDL_CONFIG{WITH_PLPLOT} is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
 my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT})) ? 0 : 1;
-print "found_plolot is $found_plplot\n";
+print "found_plplot is $found_plplot\n";
+
 unless ($found_plplot) {
   buildDummy ("User requested no PLplot interface!");
   return if (caller); exit;
@@ -104,7 +106,7 @@ foreach my $l (
 	       ) {
   if (trylink( '', '#include <plplot.h>', 'plinit();', "$l $plplot_include_path")) {
     $libs = $l;
-    print "Succeeded linking PLplot with $libs\n";
+    print "\tSucceeded linking PLplot with $libs\n";
     last;
   } 
 }
@@ -121,7 +123,7 @@ main () {  plsmem (0, 0, NULL); }
 EOC
 };
 if ($@) {
-  print "plsmem function not available, no in-memory plotting available!\n";
+  print "\tplsmem function not available, no in-memory plotting available!\n";
   open (OPT, ">>OPTIONS!");
   print OPT "NOMEM!\n";
   close OPT;
@@ -134,12 +136,12 @@ main () {  plpoly3 (0, NULL, NULL, NULL, NULL); }
 EOC
 };
 if ($@) {
-  print "plpoly3 needs 6 arguments => version 5.2.0 or later!\n";
+  print "\tplpoly3 needs 6 arguments => version 5.2.0 or later!\n";
   open (OPT, ">>OPTIONS!");
   print OPT "PLPOLY3 = 6\n";
   close OPT;
 } else {
-  print "plpoly3 needs 5 arguments => version 5.1.1 or earlier!\n";
+  print "\tplpoly3 needs 5 arguments => version 5.1.1 or earlier!\n";
   open (OPT, ">>OPTIONS!");
   print OPT "PLPOLY3 = 5\n";
   close OPT;

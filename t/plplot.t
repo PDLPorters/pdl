@@ -12,7 +12,7 @@ use Test::More;
 BEGIN{
   eval " use PDL::Graphics::PLplot; ";
   unless ($@){
-    plan tests => 24;
+    plan tests => 25;
   }
   else {
     plan tests => 1;
@@ -29,7 +29,6 @@ BEGIN{
 
 # Use xfig driver because it should always be installed.
 
-
 # redirect STDERR to purge silly 'opened *.xfig' messages
 
 require IO::File;
@@ -43,6 +42,37 @@ local *IN;
 open(STDERR,">&IN") or warn "couldn't redirect stdder";
 
 my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
+
+
+### 
+# Initial test to work around font file brain damage:  for some kinds of 
+# PLplot errors, control never returns to us.  FMH.
+#   --CED
+###
+if($pid = fork()) {
+	waitpid($pid,0);
+} else {
+	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>"/tmp/foo$$.xfig");
+	exit(0);
+}
+
+ok( ($not_ok = $?)==0 , "PLplot crash test"  );
+unlink "/tmp/foo$pid.xfig";
+
+if($not_ok) {
+	printf SAVEERR <<EOERR ;
+
+************************************************************************
+* PLplot failed the crash test: it appears to crash its owner process. *
+* This is probably due to a misconfiguration of the PLplot libraries.  *
+* Next we'll try creating a test window from which will probably dump  *
+* some (hopefully helpful) error messages and then die.                *
+************************************************************************
+
+EOERR
+
+	open(STDERR,">&SAVEERR");
+}
 
 $pl = PDL::Graphics::PLplot->new (DEV => "xfig",
 				     FILE => "test2.xfig",
