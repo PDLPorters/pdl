@@ -374,6 +374,17 @@ sub current {
   }
 }
 
+=item clear_current
+
+This routine clears the 'state' of the C<PDL::Options> object so that
+the next call to current will return an empty list
+
+=cut
+
+sub clear_current {
+  my $self = shift;
+  @{$self->{CurrKeys}}=();
+}
 
 
 # Method to set the 'mini' state of the object
