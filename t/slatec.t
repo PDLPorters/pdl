@@ -21,10 +21,10 @@ sub approx {
 	$d < 0.001;
 }
 
-print "1..4\n";
+print "1..6\n";
 unless ($loaded) {
 	#print STDERR "PDL::Slatec not installed. All tests are skipped.\n";
-	for (1..4) {
+	for (1..6) {
 		print "ok $_ # Skipped: PDL::Slatec not availalbe.\n";
 	}
 	exit;
@@ -53,3 +53,11 @@ print $inv;
 print $uni;
 
 ok(4,approx($uni,pdl[1,0],[0,1]));
+
+$det = $mat->det;
+$det->dump;;
+$deti = $inv->det;
+$deti->dump;;
+
+ok(5,approx($det,-2));
+ok(6,approx($deti,-0.5));

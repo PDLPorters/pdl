@@ -1,5 +1,8 @@
 (!!! = possible source of incompatibilities)
 
+CS
+	- added function 'det' to PDL::Slatec -> calculate determinant
+
 Doug Burke
         - Graphics::LUT - added several intensity ramps, instead of just
           using a linear scale.

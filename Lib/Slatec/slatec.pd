@@ -178,6 +178,19 @@ sub PDL::matinv {
 	$m;
 }
 
+*det = \&PDL::det;
+sub PDL::det {
+	my($m) = @_;
+	$m = $m->copy(); # Make sure we don't overwrite :(
+	gefa($m,(my $ipvt=null),(my $info=null));
+	if(sum($info) > 0) {
+		barf("Uninvertible matrix given to inv: $m\n");
+	}
+	gedi($m,$ipvt,(my $det=null),(null),(long( pdl (10))));
+	return $det->slice('(0)')*10**$det->slice('(1)');
+}
+
+
 sub prepfft {
 	my($n) = @_;
 	my $tmp = PDL->zeroes(float(),$n*3+15);
@@ -267,7 +280,7 @@ defslatec(
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
-	 Mat	[o]	det	(two);
+	 Mat	[o]	det	(two=2);
 	 IntFlag	job	();
 	',
 	{Doc => 'Compute the determinant and inverse of a certain real
@@ -281,7 +294,7 @@ defslatec(
 	 MDim		lda;
 	 Dim		n;
 	 IntFlag [o]	ipvt	(n);
-	 Mat	 [o]	det	(two);
+	 Mat	 [o]	det	(two=2);
 	 Mat	 [o]	work	(n);
 	 IntFlag	job	();
 	',
