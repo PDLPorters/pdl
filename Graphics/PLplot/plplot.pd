@@ -2169,91 +2169,125 @@ pp_def ('plstyl',
          Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
        );
 
+
 # Plot contours
 
-# Identity transformation
 
-pp_def ('pltr0',
-        Pars => 'double x(); double y(); double [o] tx(); double [o] ty()',
-        GenericTypes => [D],
-        OtherPars => 'SV* pltr_data;',
-        Doc => 'Mimics the pltr0 function of the PLplot C API.
-                It implements an identity transformation.',
-        Code => '
-          double tx, ty;
-
-          pltr0 ($x(), $y(), &tx, &ty, NULL);
-
-          $tx() = tx;
-          $ty() = ty;'
-        );
-
-# Linear interpolation from singly dimensioned coord arrays
-
-pp_def ('pltr1',
-        Pars => 'double x(); double y(); grid(n); '
-                . 'double [o] tx(); double [o] ty()',
-        GenericTypes => [D],
-        Doc => 'Mimics the pltr1 function of the PLplot C API, implementing '
-	       . 'a linear interpolation.  The grid argument is equivalent '
-	       . 'to the PLcGrid type of the C API.  It is a pdl vector of '
-	       . 'length (nx + ny + 1) containing a concatenation of the x '
-	       . 'and y interpolation vectors.   The first element of grid '
-	       . 'contains the length nx of the x vector.',
-        Code => '
-          PLcGrid grid;
-          double tx, ty;
-
-          grid.xg = $P(grid) + 1;
-          grid.nx = $grid(n => 0);
-
-          grid.yg = $P(grid) + grid.nx + 1;
-          grid.ny = $SIZE(n) - grid.nx - 1;
-
-          pltr1 ($x(), $y(), &tx, &ty, (PLPointer) &grid);
-
-          $tx() = tx;
-          $ty() = ty;'
-        );
-
+# pltr0: Identity transformation
+# pltr1: Linear interpolation from singly dimensioned coord arrays
 # Linear interpolation from doubly dimensioned coord arrays
 
-pp_def ('pltr2',
-        Pars => 'double x(); double y(); grid(nx,ny,m); '
-                . 'double [o] tx(); double [o] ty()',
+for my $func ('pltr0', 'pltr1', 'pltr2') {
+
+  pp_addxs (<<"EOC");
+void
+$func (x, y, grid)
+  double x
+  double y
+  int grid
+PPCODE:
+  PLFLT tx, ty;
+
+  $func (x, y, &tx, &ty, 0);
+
+  EXTEND (SP, 2);
+  PUSHs (sv_2mortal (newSVnv ((double) tx)));
+  PUSHs (sv_2mortal (newSVnv ((double) ty)));
+EOC
+
+  pp_add_exported ($func);
+}
+
+
+# Allocates a PLcGrid object for use in pltr1
+
+pp_def ('plAllocGrid',
+        Pars => 'double xg(nx); double yg(ny); int [o] grid()',
         GenericTypes => [D],
         Doc => 'FIXME: documentation here!',
         Code => '
-          PLcGrid2 grid;
-          int i, j, size_x, size_y;
-          double tx, ty;
+          PLcGrid *grid;
+          int i, nx, ny;
 
-          if ($SIZE(m) != 2)
-            croak ("pltr2: third argument must be a [nx,ny,2] piddle");
+          nx = $SIZE(nx);
+          ny = $SIZE(ny);
 
-          size_x = $SIZE(nx);
-          size_y = $SIZE(ny);
+          grid = (PLcGrid*) malloc (sizeof (PLcGrid));
+          grid->xg = (PLFLT*) calloc (nx, sizeof (PLFLT));
+          grid->yg = (PLFLT*) calloc (ny, sizeof (PLFLT));
+          grid->nx = nx;
+          grid->ny = ny;
 
-          plAlloc2dGrid (&grid.xg, size_x, size_y);
-          plAlloc2dGrid (&grid.yg, size_x, size_y);
+          for (i = 0; i < nx; i++)
+            grid->xg[i] = $xg(nx => i);
 
-          for (i = 0; i < size_x; i++)
-            for (j = 0; j < size_y; j++) {
-              grid.xg[i][j] = $grid(nx => i, ny => j, m => 0);
-              grid.yg[i][j] = $grid(nx => i, ny => j, m => 1);
+          for (i = 0; i < ny; i++)
+            grid->yg[i] = $yg(ny => i);
+
+          $grid() = (I32) grid;'
+        );
+
+
+# Free a PLcGrid object
+
+pp_addxs (<<"EOC");
+void
+plFreeGrid (pg)
+  int pg
+PPCODE:
+  PLcGrid* grid = (PLcGrid*) pg;
+  free (pg->xg);
+  free (pg->yg);
+  free (pg);
+EOC
+
+pp_add_exported (plFreeGrid);
+
+
+# Allocates a PLcGrid2 object for use in pltr2
+
+pp_def ('plAlloc2dGrid',
+        Pars => 'double xg(nx,ny); double yg(nx,ny); int [o] grid()',
+        GenericTypes => [D],
+        Doc => 'FIXME: documentation here!',
+        Code => '
+          PLcGrid2 *grid;
+          int i, j, nx, ny;
+
+          nx = $SIZE(nx);
+          ny = $SIZE(ny);
+
+          grid = (PLcGrid2*) malloc (sizeof (PLcGrid2));
+          plAlloc2dGrid (&(grid->xg), nx, ny);
+          plAlloc2dGrid (&(grid->yg), nx, ny);
+
+          for (i = 0; i < nx; i++)
+            for (j = 0; j < ny; j++) {
+              grid->xg[i][j] = $xg(nx => i, ny => j);
+              grid->yg[i][j] = $yg(nx => i, ny => j);
             }
 
-          grid.nx = size_x;
-          grid.ny = size_y;
+          grid->nx = nx;
+          grid->ny = ny;
 
-          pltr2 ($x(), $y(), &tx, &ty, (PLPointer) &grid);
-
-          $tx() = tx;
-          $ty() = ty;
-
-          plFree2dGrid (grid.xg, size_x, size_y);
-          plFree2dGrid (grid.yg, size_x, size_y);'
+          $grid() = (I32) grid;'
         );
+
+
+# Free a PLcGrid2 object
+
+pp_addxs (<<"EOC");
+void
+plFree2dGrid (pg)
+  int pg
+PPCODE:
+  PLcGrid2* grid = (PLcGrid2*) pg;
+  plFree2dGrid (pg->xg);
+  plFree2dGrid (pg->yg);
+  free (pg);
+EOC
+
+pp_add_exported (plFree2dGrid);
 
 pp_addhdr (<<'EOH');
 
@@ -2739,6 +2773,7 @@ plGetCursor ()
 PPCODE:
   PLGraphicsIn gin;
   if (plGetCursor (&gin)) {
+    EXTEND (SP, 24);
     PUSHs (sv_2mortal (newSVpv ("type", 0)));
     PUSHs (sv_2mortal (newSViv ((IV) gin.type)));
     PUSHs (sv_2mortal (newSVpv ("state", 0)));
@@ -2926,6 +2961,49 @@ pp_def ('plgriddata',
 
            plFree2dGrid (zg, size_x, size_y);
          '
+        );
+
+
+# Vector field plots
+
+pp_def ('plvect',
+         GenericTypes => [D],
+         Pars => 'u(nx,ny); v(nx,ny); scale();',
+         OtherPars => 'SV* pltr; SV* pltr_data;',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** u;
+           PLFLT** v;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&u, size_x, size_y);
+           plAlloc2dGrid (&v, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++) {
+               u[i][j] = $u(nx => i, ny => j);
+               v[i][j] = $v(nx => i, ny => j);
+             }
+
+           pltr_subroutine = $COMP(pltr);
+	   check_sub_pointer (pltr_subroutine,
+	     "plvect: pltr must be either 0 or a subroutine pointer");
+
+           plvect (u, v, size_x, size_y, $scale(),
+             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
+             (PLPointer) $COMP(pltr_data));
+
+           plFree2dGrid (u, size_x, size_y);
+           plFree2dGrid (v, size_x, size_y);'
+        );
+
+pp_def ('plsvect',
+         Pars => 'arrowx(npts); arrowy(npts); int fill()',
+         GenericTypes => [D],
+         Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
         );
 
 
