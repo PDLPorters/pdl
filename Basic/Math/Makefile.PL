@@ -32,14 +32,36 @@ my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
 my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
 if ($^O eq 'solaris' or $^O eq 'sunos') {
-    # try to guess where is sunmath
-    my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
-    for my $d (@d) {
-       if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
-           $libs = "-L$d -lsunmath $libs";
-           last;
-       }
-    }
+   # try to guess where sunmath is
+   my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
+   my $ok = 0;
+   for my $d (@d) {
+      if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
+          $libs = "-lsunmath $libs";
+	  $ok = 1;
+          last;
+      }
+   }
+   if (!$ok) {
+      print "libsunmath not found in LD_LIBRARY_PATH: looking elsewhere\n";
+      for my $d ('/opt/SUNWspro/lib') {
+         if (-e "$d/libsunmath.so") {
+            $libs = "-R$d -L$d -lsunmath $libs";
+             $ok = 1;
+             last;
+         } 
+         if (-e "$d/libsunmath.a") {
+            $libs = "-L$d -lsunmath $libs";
+            $ok = 1;
+            last;
+         } 
+      }
+   }
+   if (!$ok) {
+      print "Couldn't find sunmath library in standard places\n\n";
+      print "If you can find libsunmath.a or libsunmath.so\n";
+      print "please let us know at pdl-porters\@jach.hawaii.edu\n\n";
+   }
 }
 
 # Test for absence of unary functions
