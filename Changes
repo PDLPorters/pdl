@@ -1,3 +1,5 @@
+CED (15 May 02)
+    - Added Astro::FITS::Header recognition to PDL::IO::Dumper.
 CED (14 May 02)
     - Removed NiceSlicing from RandVar and Dumper (they use slice only now)
 CED (from the distant past)
