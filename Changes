@@ -1,3 +1,9 @@
+CED 25-Feb-04
+   - Further changes to PDL::IO::FITS:
+	* More cleanup of header handling code
+	* Split out image-reading code into its own XTENSION handler
+		[part of transition to more modular FITS handling]
+	* No test cases yet.
 DJB 24-Feb-04
    - 'use strict' fix for PDL::IO::FITS::rfits (when reading a binary table)
      (needs test cases added to t/fits.t)

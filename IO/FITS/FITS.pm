@@ -238,134 +238,150 @@ sub PDL::rfits {
   
   open(FITS, $file) || barf "FITS file $file not found";
   binmode FITS;
-  $nbytes = 0; # Number of bytes read so far
+
   my @extensions;  # This accumulates the list in list context...
   my $currentext=0;
   my $pdl;
 
- list:do {                     # Runs over extensions, in list context
-   my $ext_type;      # Gets the type of XTENSION if one is detected.
+ hdu:{do {                     # Runs over extensions, in list context
+   my $ext_type = 'IMAGE';     # Gets the type of XTENSION if one is detected.
    my $foo={};       # To go in pdl
    my @history=();
    my @cards = ();
    
-   
    $pdl = $class->new;
+ 
+
+   # If $opt->{data} is false, then the reading routines leave the
+   # file alone, so the file pointer is left at the end of the last
+   # header.  Skip over the unread data to the next extension...
    
-   
- head:while( !eof(FITS)) {     # This while() runs over header lines only
-   
-   
-   read(FITS,$line,80);
-   barf "file $file is not in FITS-format:\n$line\n"
-     if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
-   
+   if( wantarray and !$opt->{data} and @extensions) {
+       while( read(FITS,$line,80) && ($line !~ /^XTENSION=/) && !eof(FITS) ) {
+	   read(FITS,$line,2880-80);
+       };
+       
+       return @extensions 
+	   if(eof(FITS));
+
+   } else {
+       my $ct = read(FITS,$line,80);
+       barf "file $file is not in FITS-format:\n$line\n"
+	   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
+       last hdu if(eof(FITS) || !$ct);
+   }
+
+   $nbytes = 80; # Number of bytes read from this extension (1 line so far)
+ 
    if($line =~ /^XTENSION= \'(\w+)\s*\'/) {
      $ext_type = $1;
+   } elsif( @extensions ) {
+
+     print "Warning: expected XTENSION, found '$line'.  Exiting.\n"
+       if($PDL::verbose);
+     last hdu;
    }
-   
-   $nbytes += 80;
+
    push(@cards,$line)  if($PDL::Astro_FITS_Header);
    
    #
-   # If we're in scalar context, skip to the desired extension
+   # If we are in scalar context, skip to the desired extension
    # number.  [This implementation is really slow since we have
    # to read the whole file.  Someone Really Ought To rework it to
    # read individual headers and skip forward an extension at a
-   # a time with seek() calls.  
+   # a time with seek() calls. ]
    #     --CD
    #
-   
+ 
    if(!wantarray and $currentext != $extnum) {
-   skipper: while(1) {
-     # Move to next record
-     read(FITS,$line,2880-80);
-     barf "Unexpected end of FITS file\n" if eof(FITS);
-     # Read start of next record
-     read(FITS,$line,80);
-     barf "Unexpected end of FITS file\n" if eof(FITS);
-     # Check if we have found the new extension
-     # if not move on
-     $currentext++ if  $line =~ /^XTENSION/;
-     if ($currentext == $extnum) {
-       barf "Bad FITS extension $currentext doesn't start with 'XTENSION'\n"
-	 unless ( $line =~ /^XTENSION= \'(\w+)\s*\'/ );
-       $ext_type = $1;
-       last skipper;
-     }   
-   }
+
+    skipper: while(1) {
+      # Move to next record
+      $nbytes += read(FITS,$line,2880-80);
+      barf "Unexpected end of FITS file\n" if eof(FITS);
+      # Read start of next record
+      $nbytes += read(FITS,$line,80);
+      barf "Unexpected end of FITS file\n" if eof(FITS);
+      # Check if we have found the new extension
+      # if not move on
+
+      $currentext++ if  $line =~ /^XTENSION\= \'(\w+)\s*\'/;
+      if ($currentext == $extnum) {
+	$ext_type = $1;
+	last skipper;
+      }
+    }
    } # End of skipping to desired extension
-   
-   
-   $name = (split(' ',substr($line,0,8)))[0]; 
-   $rest = substr($line,8);
    
    #
    # Snarf up the found header, and parse it if Astro::FITS::Header
-   # doesn't exist.
+   # does not exist.
    # 
-   
-   if(!($PDL::Astro_FITS_Header)) { 
-     # (No FITS header library -- do legacy parsing)
-     
-     # skip if the first eight characters are ' '
-     # - as seen in headers from the DSS at STScI
-     next if substr($line,0,8) eq " " x 8;
-     
-     $name = (split(' ',substr($line,0,8)))[0]; 
-     $rest = substr($line,8);
-     
-     if ($name =~ m/^HISTORY/) {
-       push @history, $rest;
-     } else {
-       $$foo{$name} = "";
-       
-       $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
-       $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
-       $$foo{COMMENT}{$name} = $3 if defined($3);
-     }
-   } # End of legacy parsing
-   
-   last head if ((defined $name) && $name eq "END");
-   
- }
-   
-   # Clean up HISTORY card
-   # (This line only runs if KGB parsing has happened)
-   $$foo{"HISTORY"} = \@history if $#history >= 0;
-   
-   # Step to end of header block in file
-   my $skip = 2879 - ($nbytes-1)%2880;
-   read(FITS, my $dummy, $skip) if $skip; 
-   $nbytes += $skip;
-   
-   
-   # Do header parsing and tying if Astro::FITS::Header is enabled
-   if($PDL::Astro_FITS_Header) {
+
+   if($PDL::Astro_FITS_Header) { 
+
+     ## Astro::FITS::Header parsing.  Snarf lines to the END card,
+     ## and pass them to Astro::FITS::Header.
+
+     do {
+       $nbytes += read(FITS, $line, 80);
+       push(@cards,$line);
+     } while(!eof(FITS) && $line !~ m/^END/);
+
+     $nbytes += read(FITS,my $dummy, 2879 - ($nbytes-1)%2880);
+
      my($hdr) = new Astro::FITS::Header(Cards => \@cards);
      my(%hdrhash);
      tie %hdrhash,"Astro::FITS::Header",$hdr;
      $foo = \%hdrhash;
-   }
    
+   } else {
+     
+     ## Legacy (straight header-to-hash-ref) parsing.  
+     ## Deprecated but preserved.
+     
+     hdr_legacy: do {
+       # skip if the first eight characters are ' '
+       # - as seen in headers from the DSS at STScI
+       next if substr($line,0,8) eq " " x 8;
+       
+       $name = (split(' ',substr($line,0,8)))[0]; 
+
+       $rest = substr($line,8);
+       
+       if ($name =~ m/^HISTORY/) {
+	 push @history, $rest;
+       } else {
+	 $$foo{$name} = "";
+	 
+	 $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
+	 $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
+	 $$foo{COMMENT}{$name} = $3 if defined($3);
+       }
+       last hdr_legacy if ((defined $name) && $name eq "END");
+       $nbytes += read(FITS, $line, 80);
+     } while(!eof(FITS));
+
+     # Clean up HISTORY card
+     $$foo{"HISTORY"} = \@history if $#history >= 0;
+   
+     # Step to end of header block in file
+     my $skip = 2879 - ($nbytes-1)%2880;
+     read(FITS, my $dummy, $skip) if $skip; 
+     $nbytes += $skip;
+
+   } # End of legacy header parsing
+ 
+
+
    if( ! $opt->{data} ) {
      $pdl = $foo;
    } else {
      
-     # Switch based on extension type -- default is IMAGE.
+     # Switch based on extension type to do the dirty work of reading
+     # the data.  Handlers are listed in the _Extension patch-panel.
      
-     #
-     # Check if we're reading an XTENSION block.  If so, then jump
-     # into the appropriate sub in the FITS_Extension patch table.  
-     # Otherwise, just carry on and read the image. 
-     #
-     
-     if ($ext_type && !defined($PDL::IO::FITS::_Extension->{$ext_type})) {
-       
-       print STDERR "rfits: Ignoring unknown extension $ext_type...";
-       $pdl = undef;
-       
-     } elsif($ext_type && ref $PDL::IO::FITS::_Extension->{$ext_type} ) {
+     if (ref $PDL::IO::FITS::_Extension->{$ext_type} ) {
        
        # Pass $pdl into the extension reader for easier use -- but
        # it just gets overwritten (and disappears) if ignored.
@@ -373,139 +389,30 @@ sub PDL::rfits {
        $pdl = &{$PDL::IO::FITS::_Extension->{$ext_type}}($foo,$opt,$pdl);
        
      } else {
+
+       print STDERR "rfits: Ignoring unknown extension '$ext_type'...\n"
+	 if($PDL::verbose || $PDL::debug);
        
-       #
-       # This is the default code -- if the current block is NOT 
-       # an XTENSION, or if it is an XTENSION of type IMAGE, then 
-       # we read it.  Other types of XTENSION should either have
-       # code refs in $FITS_Extension that point to the correct
-       # reader, or else should have caused an error to be thrown 
-       # in the header-reading part.
-       #
-       
-       # Setup piddle structure
-       
-       $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
-       $pdl->set_datatype($PDL_S)    if $$foo{"BITPIX"} ==  16;
-       $pdl->set_datatype($PDL_L)    if $$foo{"BITPIX"} ==  32;
-       $pdl->set_datatype($PDL_F)    if $$foo{"BITPIX"} == -32;
-       $pdl->set_datatype($PDL_D)    if $$foo{"BITPIX"} == -64;
-       
-       my @dims; # Store the dimenions 1..N, compute total number of pixels
-       $size = 1;  $i=1;
-       while(defined( $$foo{"NAXIS$i"} )) {
-	 $size *= $$foo{"NAXIS$i"};
-	 push @dims, $$foo{"NAXIS$i"} ; $i++;
-       }
-       $pdl->setdims([@dims]);
-       
-       my $dref = $pdl->get_dataref();
-       
-       print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
-	 if $PDL::verbose;
-       
-       # Slurp the FITS binary data
-       
-       print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" 
-	 if $PDL::verbose;
-       
-       # Read the data and pad to the next HDU
-       my $rdct = $size * PDL::Core::howbig($pdl->get_datatype);
-       read( FITS, $$dref, $rdct );
-       read( FITS, my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
-       $pdl->upd_data();
-       
-       
-       
-       if (!isbigendian() ) { # Need to byte swap on little endian machines
-	 bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-	 bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
-	   $pdl->get_datatype == $PDL_F;
-	 bswap8($pdl) if $pdl->get_datatype == $PDL_D;
-       }
-       
-       if($opt->{bscale}) {
-	 if ( $PDL::Bad::Status ) {
-	   # do we have bad values? - needs to be done before BSCALE/BZERO
-	   # (at least for integers)
-	   #
-	   if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
-	     # integer, so bad value == BLANK keyword
-	     my $blank = $foo->{BLANK};
-	     # do we have to do any conversion?
-	     if ( $blank == $pdl->badvalue() ) {
-	       $pdl->badflag(1);
-	     } else {
-	       # we change all BLANK values to the current bad value
-	       # (would not be needed with a per-piddle bad value)
-	       $pdl->inplace->setvaltobad( $blank );
-	     }
-	   } elsif ( $foo->{BITPIX} < 0 ) {
-	     # bad values are stored as NaN's in FITS
-	     # let setnanbad decide if we need to change anything
-	     $pdl->inplace->setnantobad();
-	   }
-	   print "FITS file may contain bad values.\n"
-	     if $pdl->badflag() and $PDL::verbose;
-	 } # if: PDL::Bad::Status
-	 
-	 $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
-	 print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-	 $bscale = 1 if (!defined($bscale) || $bscale eq "");
-	 $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
-	 
-	 # Be clever and work out the final datatype before eating
-	 # memory
-	 #
-	 # ensure we pick an element that is not equal to the bad value
-	 # (is this OTT?)
-	 my $tmp;
-	 if ( $pdl->badflag() == 0 ) {
-	   $tmp = $pdl->flat()->slice("0:0");
-	 } elsif ( $pdl->ngood > 0 ) {
-	   my $index = which( $pdl->flat()->isbad() == 0 )->at(0);
-	   $tmp = $pdl->flat()->slice("${index}:${index}");
-	 } else {
-	   # all bad, so ignore the type conversion and return
-	   # -- too lazy to include this check in the code below,
-	   #    so just copy the header clean up stuff
-	   print "All elements are bad.\n" if $PDL::verbose;
-	   
-	   delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-	 }  #end of BSCALE section (whew!)
-	 
-	 
-	 $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element
-	 $tmp = $tmp+$bzero  if $bzero  != 0;
-	 
-	 $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
-	 
-	 $pdl *= $bscale if $bscale != 1;
-	 $pdl += $bzero  if $bzero  != 0;
-	 
-	 delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-       }
-       
-       # Header
-       
-       $pdl->sethdr($foo);
-       $pdl->hdrcpy(1);
-     } #  End of image-reading code (default non-extension code)
-     
-     #
-     # Note -- $pdl isn't necessarily a PDL if this block was an XTENSION!
-     # But it's definitely a scalar or ref, so we can just return it.
-     #
-     push(@extensions,$pdl)  if(wantarray);
+       $pdl = undef;
+
+     }
    }
+
+   #
+   # Note -- $pdl isn't necessarily a PDL.  It's only a $pdl if
+   # the extension was an IMAGE.
+   #
+   push(@extensions,$pdl) if(wantarray);
    $currentext++;
- } while( wantarray && !eof(FITS) );
+ 
+  } while( wantarray && !eof(FITS) );}  # Repeat if we are in list context
+   
+ close FITS;
   
-  close FITS;
-  
-  return @extensions if(wantarray);
-  $pdl;
+ return @extensions if(wantarray);
+ return $pdl;
 }
+
 
 sub rfits { PDL->rfits(@_); }
 
@@ -524,9 +431,135 @@ sub rfitshdr {
 # 
 
 $PDL::IO::FITS::_Extension = {
-  IMAGE    => 1
+      IMAGE    => \&_rfits_image
     , BINTABLE => \&_rfits_bintable
   };
+
+
+       
+##############################
+#
+# IMAGE extension -- this is also the default reader.
+
+sub _rfits_image() {
+  print "Reading IMAGE data...\n" if($PDL::verbose);
+  my($foo) = shift;  # $foo contains the pre-read header
+  my($opt) = shift;  # $opt contains the option hash
+  my($pdl) = shift;  # $pdl contains a pre-blessed virgin PDL
+
+  # Setup piddle structure
+  
+  $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
+  $pdl->set_datatype($PDL_S)    if $$foo{"BITPIX"} ==  16;
+  $pdl->set_datatype($PDL_L)    if $$foo{"BITPIX"} ==  32;
+  $pdl->set_datatype($PDL_F)    if $$foo{"BITPIX"} == -32;
+  $pdl->set_datatype($PDL_D)    if $$foo{"BITPIX"} == -64;
+  
+  my @dims; # Store the dimenions 1..N, compute total number of pixels
+  $size = 1;  $i=1;
+  while(defined( $$foo{"NAXIS$i"} )) {
+    $size *= $$foo{"NAXIS$i"};
+    push @dims, $$foo{"NAXIS$i"} ; $i++;
+  }
+  $pdl->setdims([@dims]);
+  
+  my $dref = $pdl->get_dataref();
+  
+  print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
+    if $PDL::verbose;
+  
+  # Slurp the FITS binary data
+  
+  print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" 
+    if $PDL::verbose;
+  
+  # Read the data and pad to the next HDU
+  my $rdct = $size * PDL::Core::howbig($pdl->get_datatype);
+  read( FITS, $$dref, $rdct );
+  read( FITS, my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
+  $pdl->upd_data();
+  
+  
+  
+  if (!isbigendian() ) { # Need to byte swap on little endian machines
+    bswap2($pdl) if $pdl->get_datatype == $PDL_S;
+    bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
+      $pdl->get_datatype == $PDL_F;
+    bswap8($pdl) if $pdl->get_datatype == $PDL_D;
+  }
+  
+  if($opt->{bscale}) {
+    if ( $PDL::Bad::Status ) {
+      # do we have bad values? - needs to be done before BSCALE/BZERO
+      # (at least for integers)
+      #
+      if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
+	# integer, so bad value == BLANK keyword
+	my $blank = $foo->{BLANK};
+	# do we have to do any conversion?
+	if ( $blank == $pdl->badvalue() ) {
+	  $pdl->badflag(1);
+	} else {
+	  # we change all BLANK values to the current bad value
+	  # (would not be needed with a per-piddle bad value)
+	  $pdl->inplace->setvaltobad( $blank );
+	}
+      } elsif ( $foo->{BITPIX} < 0 ) {
+	# bad values are stored as NaN's in FITS
+	# let setnanbad decide if we need to change anything
+	$pdl->inplace->setnantobad();
+      }
+      print "FITS file may contain bad values.\n"
+	if $pdl->badflag() and $PDL::verbose;
+    } # if: PDL::Bad::Status
+    
+    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
+    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
+    $bscale = 1 if (!defined($bscale) || $bscale eq "");
+    $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
+    
+    # Be clever and work out the final datatype before eating
+    # memory
+    #
+    # ensure we pick an element that is not equal to the bad value
+    # (is this OTT?)
+    my $tmp;
+    if ( $pdl->badflag() == 0 ) {
+      $tmp = $pdl->flat()->slice("0:0");
+    } elsif ( $pdl->ngood > 0 ) {
+      my $index = which( $pdl->flat()->isbad() == 0 )->at(0);
+      $tmp = $pdl->flat()->slice("${index}:${index}");
+    } else {
+      # all bad, so ignore the type conversion and return
+      # -- too lazy to include this check in the code below,
+      #    so just copy the header clean up stuff
+      print "All elements are bad.\n" if $PDL::verbose;
+      
+      delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+    }  #end of BSCALE section (whew!)
+    
+    
+    $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element
+    $tmp = $tmp+$bzero  if $bzero  != 0;
+    
+    $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
+    
+    $pdl *= $bscale if $bscale != 1;
+    $pdl += $bzero  if $bzero  != 0;
+    
+    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+  }
+  
+  # Header
+  
+  $pdl->sethdr($foo);
+  $pdl->hdrcpy(1);
+
+  return $pdl;
+} 
+
+
+
 
 
 ##########
@@ -762,8 +795,11 @@ sub _rfits_bintable {
   my ($rawtable, $n);
   $n = $hdr->{NAXIS1} * $hdr->{NAXIS2} + $hdr->{PCOUNT};
   $n = ($n-1)+2880 - (($n-1) % 2880);
+  print "Reading $n bytes of table data....\n"
+    if($PDL::verbose);
   read(FITS, $rawtable, $n);
-  
+
+  $TMP::foo = $rawtable;
   ### Frobnicate the rows, one at a time.
   for my $row(0..$hdr->{NAXIS2}-1) {
     my $prelen = length($rawtable);
