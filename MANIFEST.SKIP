@@ -121,3 +121,5 @@ so_locations
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
 ^Graphics/PGPLOT/PGPLOT.c
+^perldl.pod
+^pdldoc.pod

@@ -639,12 +639,18 @@ sub scan {
   my @namelines = split("\n",$outfile->{Text});
   my ($name,$does);
   for (@namelines) {
-     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/){
+     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
        $name = $1; $does = $3;
+     }
+     if (/^\s*([a-z]+) (-+) (.*)/) { # lowercase shell script name
+       $name = $1; $does = $3;
+       ($name,$does) = (undef,undef) unless $does =~ /shell/i;
      }
    }
    $does = 'Hmmm ????' if $does =~ /^\s*$/;
-   my $type = ($file =~ /\.pod$/ ? 'Manual:' : 'Module:');
+   my $type = ($file =~ /\.pod$/ ? 
+	       ($does =~ /shell/i ? 'Script:' : 'Manual:')
+	       : 'Module:');
    $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
    return $n;
 }

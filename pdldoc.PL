@@ -89,7 +89,7 @@ B<pdldoc> [B<-a>] [B<-h>] [B<-s>] [B<-u>] <text>
 
 The aim of B<pdldoc> is to provide the same functionality
 as the C<apropos>, C<help>, C<sig>, and C<usage> commands 
-available in the L<perldl|perldl> shell.
+available in the L<perldl|PDL::perldl> shell.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
 

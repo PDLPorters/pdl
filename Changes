@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (6/9/00)
+    - added Christian's changes to online documentation to support scripts
+      (eg see Index.pod or Index.html)
 Jim Edwards (5/19/2000) TriD (cvs brance trid_experimental) (merged 6/7/00)
         - several changes in TriD including a new Tk widget, 
           see the file PDL/Graphics/TriD/README  

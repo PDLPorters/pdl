@@ -14,7 +14,7 @@ END{
   warn "\n\n*The next version of PDL will require Perl v5.005 or later!*\n".
     "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
 }
-
+ 
 $seen_pdlconf = 0;
 
 # Scan ARGV for config file argument
@@ -81,16 +81,20 @@ close VERSIONFILE;
 
 use ExtUtils::MakeMaker;
 
+my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
+  qw/perldl pdldoc/;
+
 WriteMakefile(
 
  'PREREQ_PM' => { 'ExtUtils::F77' => 1.10, 'File::Spec' => 0.6 },
  'NAME' => 'PDL',
  'VERSION_FROM' => 'Basic/Core/Version.pm',
  'EXE_FILES' => ['perldl', 'pdldoc'],
+ 'PM' => { @podpms }, # so that the script docs are picked up
 # 'OPTIMIZE'  => '-g',		  # If you want to debug, uncomment this.
  'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
  'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
- 'clean' => {'FILES' => 'perldl pdldoc pdldoc.db tbyte.tif tmp0 tmp0.hdr tushort.tif MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'},
+ 'clean' => {'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod tbyte.tif tmp0 tmp0.hdr tushort.tif MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'},
  'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
 );
 
@@ -135,6 +139,12 @@ doc_perl_install ::
 	@echo "doc_perl_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
 	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
+
+perldl.pod : perldl
+	podselect perldl > perldl.pod
+
+pdldoc.pod : pdldoc
+	podselect pdldoc > pdldoc.pod
 
 ';
 if( $] < 5.005 ){  # for perl5.004, docs go into INSTALLSITELIB

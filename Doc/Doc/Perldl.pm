@@ -196,7 +196,7 @@ sub finddoc  {
 	my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
 	if (@match) {
 	   my $Ref = $match[0]->[1]->{Ref};
-	   if ( $Ref =~ /^Module: / || $Ref =~ /^Manual: /) {
+	   if ( $Ref =~ /^(Module|Manual|Script): / ) {
 	       system("pod2text $match[0]->[1]->{File} | $PDL::Doc::pager");
 	       return;
 	   }
@@ -334,9 +334,10 @@ sub help {
 	  $topic->px('This variable is');
       } else {
 	  $topic = 'PDL::Doc::Perldl' if $topic =~ /^\s*help\s*$/i;
-	  if ($topic =~ /^\s*perldl\s*$/i) {
-	      system("pod2text $0 | $PDL::Doc::pager\n");
-	  } elsif ($topic =~ /^\s*vars\s*$/i) {
+#	  if ($topic =~ /^\s*perldl\s*$/i) {
+#	      system("pod2text $0 | $PDL::Doc::pager\n");
+#	  } elsif ($topic =~ /^\s*vars\s*$/i) {
+	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
 	  } else {
 	      finddoc($topic);
