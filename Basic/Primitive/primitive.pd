@@ -736,6 +736,147 @@ The formula is
 have its bad flag set if the output contains any bad data.',
        );
 
+
+
+pp_def('statsover',
+	HandleBad => 1,
+	Pars => 'a(n); w(n); int+ [o]avg(); int+ [o]rms(); int+ [o]min(); int+ [o]max(); int+ [o]adev()',
+	Code => 
+	'$GENERIC(avg) tmp = 0;
+         $GENERIC(rms) tmp1 = 0;         
+         $GENERIC(adev) tmp2 = 0;
+         $GENERIC(rms) diff = 0;
+         $GENERIC(min) curmin, curmax;
+	 $GENERIC(w) norm = 0;
+	 loop(n) %{ 
+            tmp += $a()*$w();
+            norm += $w();
+            if (!n) { curmin = $a(); curmax = $a();}
+            if ($a() < curmin) { 
+                curmin = $a(); 
+             } else if ($a() > curmax) {
+                curmax = $a();
+             } 
+         %}
+	 $avg() = tmp / norm;
+         $min() = curmin;
+         $max() = curmax;
+         /* Calculate the RMS using the corrected two-pass algorithm */
+         tmp = 0; 
+	 loop(n) %{
+            diff = ($a()*$w() - $avg());
+            tmp += diff*diff;
+            tmp1 += diff;
+            tmp2 += abs(diff);
+         %}
+         $rms() = sqrt ( (tmp - tmp1*tmp1/norm)/((norm - ($GENERIC(rms)) 1)) );
+         $adev() = sqrt( tmp2/ norm );',
+	BadCode => 
+	'$GENERIC(avg) tmp = 0;
+         $GENERIC(rms) tmp1 = 0;         
+         $GENERIC(adev) tmp2 = 0;
+         $GENERIC(rms) diff = 0;
+         $GENERIC(min) curmin, curmax;
+	 $GENERIC(w) norm = 0;
+	 long cnt = 0;
+         int flag = 0;
+         loop(n) %{ 
+             if ($ISGOOD(a()) ) {
+	      tmp += $a()*$w();
+              norm += $w();
+ 	      if (!flag) { curmin = $a(); curmax = $a(); flag=1; }               
+              if ($a() < curmin) { 
+                curmin = $a(); 
+              } else if ($a() > curmax) {
+                curmax = $a();
+              }
+            } 
+         %}
+         if ( cnt ) { 
+           $avg() = tmp / norm;
+           $min() = curmin;
+           $max() = curmax;
+           tmp = 0; 
+           loop(n) %{
+              if ($ISGOOD(a())) { 
+                 diff = ($a()*$w() - $avg());
+                 tmp += diff*diff;
+                 tmp1 += diff;
+                 tmp2 += abs(diff);
+              }
+           %}
+           $rms() = sqrt ( (tmp - tmp1*tmp1/norm)/( (norm - ($GENERIC(rms)) 1)));
+           $adev() = sqrt ( tmp2 / norm);
+         } else       { 
+           $SETBAD(avg()); 
+           $SETBAD(rms());
+           $SETBAD(adev());
+           $SETBAD(min());
+           $SETBAD(max());
+         }',
+      PMCode => '
+
+sub PDL::statsover {
+   barf(\'Usage: ($mean,[$rms, $median, $min, $max, $adev]) = statsover($data,[$weights])\') if $#_>1;
+   my ($data, $weights) = @_;
+   $weights = $data->ones() if !defined($weights);
+   
+   my $median = $data->medover();
+   my $mean = PDL->nullcreate($data);
+   my $rms = PDL->nullcreate($data);
+   my $min = PDL->nullcreate($data);
+   my $max = PDL->nullcreate($data);
+   my $adev = PDL->nullcreate($data);
+   &PDL::_statsover_int($data, $weights, $mean, $rms, $min, $max, $adev);
+
+   return $mean unless wantarray;
+   return ($mean, $rms, $median, $min, $max, $adev);
+}
+
+',
+      Doc => 
+'
+=for ref 
+
+Calculate useful statistics over a dimension of a piddle
+
+=for usage
+
+  ($mean, $rms, $median, $min, $max, $adev) = statover($piddle, $weights);
+
+This utility function calculates various useful
+quantities of a piddle. These are the mean:
+
+  MEAN = sum (x)/ N
+
+with C<N> being the number of elements in x, the root mean
+square deviation from the mean, RMS, given as,
+
+  RMS = sqrt(sum( (x-mean(x))^2 )/(N-1));
+
+Note the use of C<N-1> which for almost all cases should be
+the right normalisation factor. The routine also returns 
+the median, minimum and maximum of the piddle as well as
+the mean absolute deviation, defined as:
+
+  ADEV = sqrt(sum( abs(x-mean(x)) )/N)
+
+note here that we use the mean and not the median. This could
+possibly be changed in future versions of the code. Bad values
+are simply ignored in the calculation and if all data are
+bad the results will also be bad.
+
+This operator is a projection operator so the calculation
+will take place over the final dimension. Thus if the input 
+is N-dimensional each returned value will be N-1 dimensional, 
+to calculate the statistics for the entire piddle either
+use C<clump(-1)> directly on the piddle or call C<stats>.
+
+
+'
+
+);
+
 pp_add_exported('','stats');
 pp_addpm(<<'EOD');
 
