@@ -1,3 +1,5 @@
+CS  17-Mar-04
+   - Basic.pm: add (x|y|z)logvals
 CED 16-Mar-04
    - IO::Pnm::Pic.pm: added wim() and rim() for more uniform RGB handling.
    - Doc::Perldl.pm: help module now gracefully handles multiple matches, 
