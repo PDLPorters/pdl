@@ -286,6 +286,12 @@ higher-dimensional source:
    ]
   ]
 
+WARNING: To save time, no boundary checking is done!  Indices outside
+the boundaries of the original array are handled, er, poorly -- you can
+get anything from the wrong element (wrapped) to a slice-out-of-bounds
+error if you're out of bounds.  L<indexBDb|indexNDb> does boundary 
+checking.
+
 The natural counterpart to indexND is L<whichND|whichND>, which generates
 appropriate lists of coordinates for indexND.  See also
 L<indexNDb|indexNDb>, which handles boundary conditions gracefully, and
@@ -317,23 +323,27 @@ sub PDL::indexND {
   my(@extra_dims) = splice(@source_dims,$idim0);
 
   ##########
-  # Check bounds
-  my($clipped_ipdl) = $ipdl->clip( 0, PDL::pdl('PDL',@source_dims) - 1);
-
-  barf "indexND: Index out of range" if(($clipped_ipdl != $ipdl)->sum);
+  # Don't check bounds -- too slow!
+  # my($clipped_ipdl) = $ipdl->clip( 0, PDL::pdl('PDL',@source_dims) - 1);
+  # barf "indexND: Index out of range" if(($clipped_ipdl != $ipdl)->sum);
 
   ##########
   # Generate multipliers to flatten the original pdl
   my($mult) = ones($idim0);
   my($i);
   for $i(0..($idim0-2)) {
-    $mult->slice($i+1) .= $mult->at($i) * $source_dims[$i];
+    $mult->index($i+1) .= $mult->index($i) * $source_dims[$i];
   }
 
   ########## 
-  # Make the slice (notice explicit call to nslice because preprocessor
-  # doesn't work in the module), and then reshape it to the desired output
-  # dimension.
+  # Make the slice, using index (where we can, because it's fast) or 
+  # dice (where we have to because there are extra dimensions in the source), 
+  # and then reshape it to the desired output dimension.  
+  if(scalar(@extra_dims)==0) {
+    return ($pdl -> flat -> index( ($ipdl * $mult)->sumover->flat )
+	      -> reshape(@idims)
+	  );
+  }
   return ($pdl -> clump($idim0) -> dice( ($ipdl * $mult)->sumover->flat )
 	      -> reshape((@idims,@extra_dims))
 	  );
@@ -376,6 +386,10 @@ in the original array, it returns a I<copy> of the data rather than an
 ordinary slice-by-reference, so you can't flow values back to the
 original array.
 
+=item forbid
+
+missing values cause an "out of bounds" barf.
+
 =back
 
 C<indexNDb> is different than C<indexND> only because it includes
@@ -397,14 +411,24 @@ sub PDL::indexNDb{
   }
   
   my($ind);
+
   if($method =~ m/ext/i || $method =~ m/trunc/i) { # extend or truncate
+
     $ind = $index->clip(0,$index_limits - 1);
 
   } elsif ($method =~ m/per/i) { # periodic
 
    $ind = $index % $index_limits;
 
+  } elsif ($method =~ m/for/i) { # forbid
+
+    $ind = $index->clip(zeroes($index_limits),$index_limits);
+    if(sum($ind != $index)) {
+      barf "Index out of bounds in indexNDb\n";
+    }
+
   } else { # default (extend)
+
     $ind = $index->clip(0,$index_limits - 1);
     
     print "indexNDb: unrecognized method '$method'; using default (extend).\n"

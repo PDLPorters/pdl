@@ -1,3 +1,8 @@
+CED (16-Aug-02)
+    - indexND: runs faster; doesn't check boundaries at all
+    - indexNDb: includes "forbid" boundary condition (which barfs on violation)
+    - interpND: skips trivial cases for bilinear interpolation (factor-of-2
+	speedup for each dimension that is indexed by an integer)
 CED (15-Aug-02)
     - PGPLOT::Window fixes:
 	- ticks default to outside for images; inside for everyone else

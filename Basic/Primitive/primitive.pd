@@ -1653,17 +1653,21 @@ sub PDL::interpND {
 		   );
     my($i);
     $out = zeroes($index->slice("(0)"));
-
+    
     for ($i=0;$i<$offsets->dim(0);$i++){
-
-      $out +=  ( ($alpha->indexND(cat($offsets->slice("($i)"),
-				      PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
-				  ))->sever->prodover 
-		 * $source->indexNDb($intind + $offsets->slice("($i)")
-				     , $boundary)
-		 );
+      my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),
+				 PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
+				    ))->sever->prodover ;
+      
+      if( ($coeff==0)->and ) {
+	print "interpND: Skip case $i of ".$offsets->dim(0)."\n" 
+	  if($PDL::debug);
+	next;
+      }
+      $out += $coeff * $source->indexNDb($intind + $offsets->slice("($i)")
+					 , $boundary);
     }
-
+    
     return $out;
 
   }  else {
