@@ -778,10 +778,10 @@ pp_def('statsover',
          $GENERIC(rms) diff = 0;
          $GENERIC(min) curmin, curmax;
 	 $GENERIC(w) norm = 0;
-	 long cnt = 0;
          int flag = 0;
-         loop(n) %{ 
-             if ($ISGOOD(a()) ) {
+         loop(n) %{
+             /* perhaps should check w() for bad values too ? */
+             if ( $ISGOOD(a()) ) {
 	      tmp += $a()*$w();
               norm += $w();
  	      if (!flag) { curmin = $a(); curmax = $a(); flag=1; }               
@@ -792,7 +792,8 @@ pp_def('statsover',
               }
             } 
          %}
-         if ( cnt ) { 
+         /* have at least one valid point if flag == 1 */
+         if ( flag ) { 
            $avg() = tmp / norm;
            $min() = curmin;
            $max() = curmax;
@@ -862,9 +863,7 @@ the mean absolute deviation, defined as:
   ADEV = sqrt(sum( abs(x-mean(x)) )/N)
 
 note here that we use the mean and not the median. This could
-possibly be changed in future versions of the code. Bad values
-are simply ignored in the calculation and if all data are
-bad the results will also be bad.
+possibly be changed in future versions of the code. 
 
 This operator is a projection operator so the calculation
 will take place over the final dimension. Thus if the input 
@@ -873,8 +872,12 @@ to calculate the statistics for the entire piddle either
 use C<clump(-1)> directly on the piddle or call C<stats>.
 
 
+',
+     BadDoc =>
 '
-
+Bad values are simply ignored in the calculation and if all data are
+bad the results will also be bad.
+',
 );
 
 pp_add_exported('','stats');
