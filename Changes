@@ -1,3 +1,4 @@
+2.2
 John Cerney (20/12/00)
     - Minor changes to Makefile.PL and Reduce.pm for compatibility with
       perl 5.005
