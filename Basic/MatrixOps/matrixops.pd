@@ -499,7 +499,7 @@ pp_def("eigens",
 =for ref
 
 Eigenvalues and -vectors of a symmetric square matrix.  If passed
-an asymmetric matrix, the routine will warn and symmetrize it.
+an asymmetric matrix, the routine will warn and symmetrize it.  
 
 It\'s threadable, so if $a is 3x3x100, it\'s treated as 100 separate 3x3
 matrices, and both $ev and $e get extra dimensions accordingly.
@@ -507,6 +507,15 @@ matrices, and both $ev and $e get extra dimensions accordingly.
 If called in scalar context it hands back only the eigenvalues.  Ultimately,
 it should switch to a faster algorithm in this case (as discarding the 
 eigenvectors is wasteful).
+
+The eigenvectors are returned in ROWS of the returned PDL rather than
+in columns.  That makes it slightly easier to access individual eigenvectors,
+since the 0th dim of the output PDL runs across the eigenvectors and the 
+1st dim runs across their components.
+
+	($ev,$e) = eigens $a;  # Make eigenvector matrix
+	$vector = $ev->($n);   # Select nth eigenvector as a column-vector
+	$vector = $ev->(($n)); # Select nth eigenvector as a row-vector
 
 =for usage
 
