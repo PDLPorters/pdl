@@ -1,4 +1,5 @@
 CED 21-Nov-2003
+   - Fixed bug 755563 (I hope) in the OpenGL configuration
    - Fixed bug 793195; some random doc improvements for  Image2D and Transform.
 DH  21-Nov-2003
    - Upgraded PLplot interface for plplot-5.2.1 and perl 5.8.2.  Improved

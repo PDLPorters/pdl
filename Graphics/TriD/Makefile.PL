@@ -23,15 +23,28 @@ if ($^O =~ /win32/i) {
         if( defined $PDL_CONFIG{OPENGL_LIBS} ); 
 
     
+    my $lib = ""; # Gets the first lib found...
+    my @patterns = ("GL.a","GL.so","MesaGL.a","MesaGL.so");
+
     foreach $dir (@check_dirs) {
 	last if $gl_build;
 	$h = "${dir}/lib";
-	# if statement a bit OTT?
-	if ( -e "${h}GL.a" or -e "${h}GL.so" or -e "${h}MesaGL.a" or -e "${h}MesaGL.so" ) {
+	
+	map { $lib = "${h}$_" if -e "${h}$_"; } @patterns;
+	
+	if( $lib ) {
 	    $gl_dir   = $dir;
 	    $gl_build = 1;
+	    
+	    ## Check for Mesa GLAPI hassles --CED 21-Nov-2003
+	    unless( defined $PDL_CONFIG{OPENGL_DEFINE} ) {
+		$PDL_CONFIG{OPENGL_DEFINE} = '-DGLAPI=extern'
+		    if `strings $lib | grep mesa | head -1`;
+	    }
 	}
     }
+    
+    
     $gl_msg = "skipping build of TriD::OpenGL(Q) modules - unable to find libs"
 	unless $gl_build;
 } # if: OS == win32
