@@ -113,6 +113,13 @@ act q|
     $b = 2 * $a;
     print( "Bad flag (b) == ", $b->badflag(), "\n\n" );
 
+|;
+
+act q|
+
+    # the badflag is also included in the state info of
+    # piddle
+    #
     $c = pdl(2,3); # just a piddle without the badflag set
 
     print "   Type   Dimension        State          Mem\n";
@@ -134,7 +141,6 @@ act q|
     $c = $a + $b;
     print "so a + b =       $c\n\n";
 
-
 |;
 
 act q|
@@ -148,6 +154,10 @@ act q|
     print "or to remove the bad values\n";
     $a->inplace->replacebad(23);
     print "a = $a and \$a->badflag == ", $a->badflag, "\n\n";
+
+|;
+
+act q|
 
     print "We can even label certain values as bad!\n";
     $a = sequence(3,3);

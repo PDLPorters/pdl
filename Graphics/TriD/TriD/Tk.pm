@@ -154,13 +154,6 @@ sub GLinit{
 
     $self->{GLwin} = PDL::Graphics::TriD::get_current_window($options);
 
-
-    $self->{GLwin}->clear_viewports();
-
-    $self->{Viewport}[0]=$self->{GLwin}->new_viewport(0,0, $self->width, $self->height);
-
-    $self->{Viewport}[0]->clear_objects();
-
     $self->{GLwin}->reshape($self->width,$self->height);
 
 #
@@ -213,12 +206,15 @@ sub AUTOLOAD {
   my $sub = $AUTOLOAD;
   # get subroutine name
 
-  print "In AutoLoad $self $sub\n";
+#  print "In AutoLoad $self $sub\n";
   if(defined($self->{GLwin})){
     $sub =~ s/.*:://;
     return($self->{GLwin}->$sub(@args));
   }
 }
+
+
+
 
 =head2 buttonmotion
 
@@ -235,16 +231,24 @@ sub buttonmotion{
 
   $but--;
 
-  return unless defined $self->{GLwin}{EHandler}{Buttons}[$but];
-
-  $self->{GLwin}{EHandler}{Buttons}[$but]->mouse_moved($self->{GLwin}{EHandler}{X},
-							$self->{GLwin}{EHandler}{Y},
-							$x,$y);
-  $self->{GLwin}{EHandler}{X} = $x;
-  $self->{GLwin}{EHandler}{Y} = $y;
+  foreach my $vp (@{$self->viewports()}){
+#    use Data::Dumper;        
+#    my $out = Dumper($vp);
+#    print "$out\n";
+#    exit;
+    next unless $vp->{Active};
+	 next unless defined $vp->{EHandler}{Buttons}[$but];
+	 $vp->{EHandler}{Buttons}[$but]->mouse_moved($vp->{EHandler}{X},
+																$vp->{EHandler}{Y},
+																$x,$y);
+	 $vp->{EHandler}{X} = $x;
+	 $vp->{EHandler}{Y} = $y;
+  }
   
   $self->refresh();
 }
+
+
 
 
 =head1 Author

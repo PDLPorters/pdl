@@ -57,7 +57,7 @@ EOH
 	   OtherPars => 'int swap',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => 
 	   "\$c() = \$a() $op \$b();",
 	   BadCode =>
@@ -117,7 +117,7 @@ EOH
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
-	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => 
 	   "\$c() = $func(\$a(),\$b());",
 	   BadCode =>
@@ -164,7 +164,7 @@ sub ufunc {
 	   Pars => 'a(); [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
-	   Inplace => [ 'a', 'b' ],
+	   Inplace => 1,
 	   Code => 
 	   "\$b() = $func(\$a());",
 	   BadCode =>
@@ -205,6 +205,7 @@ biop('mult','*',0,'multiply two piddles');
 # all those need swapping
 biop('minus','-',1,'subtract two piddles');
 biop('divide','/',1,'divide two piddles');
+
 ## note: divide should perhaps trap division by zero as well
 
 ## comparison ops

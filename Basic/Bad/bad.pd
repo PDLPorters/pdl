@@ -50,11 +50,11 @@ so it does not contain any bad-value support code.
 
  Bad value support in PDL is turned off.
 
-$author
-
 =head1 BUGS
 
 None - it does nothing perfectly!
+
+$author
 
 =cut
 
@@ -116,11 +116,11 @@ use PDL::Primitive;
 ## Footer
 pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
 
-$author
-
 =head1 BUGS
 
 Loads, I'm sure.
+
+$author
 
 =cut
 
@@ -192,8 +192,7 @@ A return value of 1 does not guarantee the presence of
 bad data in a piddle; all it does is say that we need to 
 I<check> for the presence of such beasties. To actually 
 find out if there are any bad values, use the 
-L<nbad|nbad> method (after ensuring that C<badflag>
-is set!).
+L<check_badstatus|/check_badstatus> method.
 
 =for bad
 
@@ -232,7 +231,7 @@ a given type.
 This routine operates the same as L<badvalue|/badvalue>, 
 except you can not change the values.
 
-It is also has an awful name.
+It also has an I<awful> name.
 
 =for example
 
@@ -393,6 +392,7 @@ sub isdocs {
 Is a value $name?
 
 Returns a 1 if the value is $name, 0 otherwise.
+Also see L<isfinite|PDL::Math/isfinite>.
 
 =for example
 
@@ -536,7 +536,6 @@ EOD
 #
 # something strange is going in with inplace here...
 #
-
 pp_def(
     'setbadif',
     HandleBad => 1,
@@ -612,7 +611,8 @@ pp_def(
 
 Replace any bad values by a (non-bad) value. 
 
-Can be done inplace.
+Can be done inplace. Also see
+L<badmask|PDL::Math/badmask>.
 
 =for example
 

@@ -4,6 +4,9 @@ use strict;
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
+# should we use the finite() routine in libm ?
+# (is the Windows version _finite() ?)
+#
 pp_addhdr(<<'EOD');
 #define IsNaN(x) (x != x)
 
@@ -793,22 +796,13 @@ pp_def(
 Quicksort a vector and return index of elements in ascending order.
 
 =for example
-<
+
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
 
 '
        ); # pp_def: qsorti
 
-
-sub defpdl {
-    my %hash = (Pars => $_[1],
-		OtherPars => $_[2],
-		Code => $_[3]);
-    $hash{Doc} = $_[4] if $#_>3;
-    
-    pp_def($_[0],%hash);
-}
 
 pp_def( 'axisvalues',
 	Pars => '[o,nc]a(n)',
@@ -1082,7 +1076,7 @@ closures at some point.
        ); # pp_def inner2t()
 
 
-# I don't the the old behaviour is correct in the presence of NaN's -
+# I don't think the old behaviour is correct in the presence of NaN's -
 # surely it will set the min/max values to NaN in this case?
 #
 # I have kept in the check for when Bad value support is not being compiled
@@ -1118,7 +1112,12 @@ for my $which (
 	    Doc => projectdocs($name,$name),
 	    BadDoc => 
 'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output piddle.',
+otherwise the bad flag is cleared for the output piddle.
+
+Note that C<NaNs> are considered to be valid values;
+see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
+for ways of maskng NaNs.
+',
 	    );
 
     pp_def( 
@@ -1718,7 +1717,6 @@ but is useful on its own occasionally.
 
 =cut
 
-
 *one2nd = \&PDL::one2nd;
 sub PDL::one2nd {
   barf "Usage: one2nd $array $indices\n" if $#_ != 1;
@@ -1732,7 +1730,6 @@ sub PDL::one2nd {
   }
   return @index;
 }
-
 
 EOD
 
@@ -1954,25 +1951,28 @@ for(
     )
 {
 pp_def($_->{Name},
-	Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
-		# set outdim by Par!
-	OtherPars => 'double step; double min; int msize => m',
-	Code => 'register int j;
-		 register int maxj = $SIZE(m)-1;
-		 register double min  = $COMP(min);
-		 register double step = $COMP(step);
-		 threadloop %{
-			 loop(m) %{ $hist() = 0; %}
-		 %}
-		 threadloop %{
-		 	loop(n) %{
-				j = (int) (($in()-min)/step);
-				if (j<0) j=0;
-				if (j > maxj) j = maxj;
-				($hist(m => j))'.$_->{HistOp}.';
-			%}
-		 %}
-	',
+       Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
+       # set outdim by Par!
+       OtherPars => 'double step; double min; int msize => m',
+       HandleBad => 1,
+       Code => 
+       'register int j;
+	register int maxj = $SIZE(m)-1;
+	register double min  = $COMP(min);
+	register double step = $COMP(step);
+	threadloop %{
+	   loop(m) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{
+              if ( $ISGOOD(in()) ) {
+	         j = (int) (($in()-min)/step);
+	         if (j<0) j=0;
+	         if (j > maxj) j = maxj;
+	         ($hist(m => j))'.$_->{HistOp}.';
+              }
+	   %}
+	%}',
 Doc=><<"EOD");
 
 =for ref

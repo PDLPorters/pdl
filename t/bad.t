@@ -11,7 +11,8 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 56;
+#	plan tests => 56, todo => [ 42 ];  
+	plan tests => 58;   # prefer it if it fails, as a reminder
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -179,6 +180,7 @@ ok( PDL::Core::string( $a->isbad ),
 ## setbadif does not want to work inplace...
 $a = sequence(3,3);
 $a->inplace->setbadif( $a % 2 );
+#$a = $a->setbadif( $a % 2 );              # for when not bothered about inplace
 ok( PDL::Core::string( $a->clump(-1) ), 
     "[0 BAD 2 BAD 4 BAD 6 BAD 8]" );   #
 
@@ -290,3 +292,20 @@ $a->inplace->power($b,0);
 print $a;
 print "$c\n";
 ok( PDL::Core::string($c), "[27 BAD BAD]" );  #
+
+# test histogram (using hist)
+$a = pdl( qw/1 2 3 4 5 4 3 2 2 1/ );
+$a->set(1,$a->badvalue);
+$a->badflag(1);
+$b = hist $a, 0, 6, 1;
+print "values:    $a\n";
+print "histogram: $b\n";
+ok( PDL::Core::string($b), "[0 2 2 2 2 1]" ); # 
+
+#$b = $a->isfinite;
+#print "isfinite(A): datatype = [",$b->get_datatype,"]\n";
+
+$a->inplace->isfinite;
+#print "A: datatype = [",$a->get_datatype,"]\n";
+ok( PDL::Core::string($a), "[1 0 1 1 1 1 1 1 1 1]" ); # 
+#print "A: datatype = [",$a->get_datatype,"]\n";

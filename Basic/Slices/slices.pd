@@ -38,7 +38,7 @@ alternatively, you can use
 
  $b = $a->slice("1:3")->sever;
 
-which doesn't copy the struct but beware that after
+which does not copy the struct but beware that after
 
  $b = $a->slice("1:3");
  $c = $b->sever;
@@ -57,6 +57,21 @@ use PDL::Core ':Internal';
 
 EOD
 
+pp_addpm({At => 'Bot'},<< 'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+EOD
+
 # $::PP_VERBOSE=1;
 
 pp_add_boot(
@@ -64,12 +79,8 @@ pp_add_boot(
 "     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
 );
 
-## XXX Commenting out 'Dims => ' and 'ParentInds =>' lines since
-#      I can't find any rules that use them in PP.pm
-#      (two of the three pp_def() routines that use them
-#      are enclosed in if (0) { } ...)
-#
-# Doug Burke (07/14/00)
+## Several routines use the 'Dims' and 'ParentInds'
+## rules - these currently do nothing
 
 pp_def(
        'affineinternal',
@@ -105,8 +116,8 @@ pp_def(
 	DefaultFlow => 1,
 	OtherPars => '',
 	Reversible => 1,
-##	Dims => '$COPYDIMS();',
-##	ParentInds => '$COPYINDS();',
+	Dims => '$COPYDIMS();',
+	ParentInds => '$COPYINDS();',
 	Identity => 1,
 	Doc => 'internal',
 );
@@ -152,7 +163,6 @@ my $index_init_bad =
 pp_def(
        'index',
        HandleBad => 1,
-       UseBadforNaN => 1,
        DefaultFlow => 1,
        Reversible => 1,	
        Pars => 'a(n); int ind(); [oca] c();',
@@ -166,7 +176,7 @@ pp_def(
        $index_init_bad . ' $a(n => foo) = $c();',
        Doc => $doc,
        BadDoc =>
-       'index halts if any of the index values are bad.',
+       'index barfs if any of the index values are bad.',
        );
 
 my $index2d_init_good =
@@ -193,7 +203,6 @@ my $index2d_init_bad =
 pp_def(
        'index2d',
        HandleBad => 1,
-       UseBadforNaN => 1,
        DefaultFlow => 1,
        Reversible => 1,	
        Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
@@ -207,7 +216,7 @@ pp_def(
        $index2d_init_bad . '$a(na => fooa, nb => foob) = $c();',
        Doc => $doc,
        BadDoc =>
-       'index2d halts if either of the index values are bad.',
+       'index2d barfs if either of the index values are bad.',
 );
 
 pp_def(
@@ -304,7 +313,6 @@ EOD
 #
 pp_def('flowconvert',
        HandleBad => 1,
-       UseBadforNaN => 1,
        DefaultFlow => 1,
        Reversible => 1,	
        Pars => 'PARENT(); [oca]CHILD()',
@@ -635,7 +643,6 @@ place 1, so:
 
 The other dimensions are moved accordingly.
 Negative dimension indices count from the end.
-=cut
 EOD
 );
 
@@ -656,7 +663,6 @@ transformations i.e. changing the size of some piddle at run-time.
 
 However, the mechanism is not yet finalized and this is just a demonstration.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1022,7 +1028,6 @@ pp_def( 'affine',
 		}
 		$SETDIMS();
 		',
-#	Doc => 'internal',
 	Doc => undef,
 );
 
@@ -1100,7 +1105,6 @@ to C<$a-E<gt>at(2,1,2,0,1,2)>.
 
 NOTE: diagonal doesn't handle threadids correctly. XXX FIX
 
-=cut
 EOD
 );
 
@@ -1129,7 +1133,6 @@ is a (5,2) matrix
 This order of returned indices is kept because the function is
 called "lags" i.e. the nth lag is n steps behind the original.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1178,7 +1181,6 @@ the expression
 
 is always true (C<x> has to be less than 3).
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1263,7 +1265,6 @@ Put some dimensions to a threadid.
 
  $b = $a->threadI(0,1,5); # thread over dims 1,5 in id 1
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1374,7 +1375,6 @@ A vaffine identity transformation (includes thread_id copying).
 
 Mainly for internal use.
 
-=cut
 EOD
 );
 
@@ -1388,7 +1388,6 @@ All threaded dimensions are made real again.
 
 See [TBD Doc] for details and examples.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1560,18 +1559,6 @@ sub PDL::dice_axis {
 }  
 *dice_axis = \&PDL::dice_axis;
 
-=head1 AUTHOR
-
-Copyright (C) 1997 Tuomas J. Lukka.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
 EOD
 pp_add_exported('', 'dice_axis');
 
@@ -1590,17 +1577,17 @@ deftrans(
 		$COMP(whichind) = whichind;
 		$SETREVERSIBLE($COMP(howmany)==1);
 		',
-#	Dims => '
-#		$SETNDIMS($PARENT(ndims));
-#		LOOPDIMS %{
-#			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
-#		%}
-#		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
-#		$SETDIMS();
-#		',
-#	ParentInds =>
-#		'$COPYINDS();
-#		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
+	Dims => '
+		$SETNDIMS($PARENT(ndims));
+		LOOPDIMS %{
+			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
+		%}
+		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
+		$SETDIMS();
+		',
+	ParentInds =>
+		'$COPYINDS();
+		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
 	Print => 'printf("REPEAT: %d, %d\n",
 			$COMP(whichind), $COMP(howmany));'
 );
@@ -1612,15 +1599,15 @@ if(0) {
 deftrans(
 	Name => 'indexed',
 	Pars => 'pdl* indices',
-#	Dims => '
-#		$SETNDIMS($COMP(indices)->ndims);
-#		LOOPDIMS %{
-#			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
-#		%}
-#		',
-#	ParentInds =>
-#		'$COPYINDS();
-#		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
+	Dims => '
+		$SETNDIMS($COMP(indices)->ndims);
+		LOOPDIMS %{
+			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
+		%}
+		',
+	ParentInds =>
+		'$COPYINDS();
+		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
 );
 }
 

@@ -139,6 +139,7 @@ foreach $func (@ufuncs1) {
 	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
 	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
@@ -150,6 +151,7 @@ foreach $func (@ufuncs1g) {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
 	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
@@ -174,6 +176,7 @@ foreach $func (@ufuncs2) {
 	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
 	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
@@ -187,6 +190,7 @@ foreach $func (@besufuncs) {
 	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
 	   Doc => $doco{$fname},
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
@@ -228,12 +232,41 @@ if ($^O !~ /win32/i) {
 
 pp_def(
        'badmask',
-       HandleBad => 0,
-       BadDoc => 'This needs some thinking about before conversion.',
+       HandleBad => 1,
        Pars => 'a(); b(); [o]c();',
-       Doc => 'Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>',
-       Code => '$c() = finite($a()) ? $a() : $b();',
+       Code => 
+       '$c() = finite($a()) ? $a() : $b();',
+       BadCode => 
+       '$c() = ( finite($a()) && $ISGOOD(a()) ) ? $a() : $b();',
+       CopyBadStatusCode => '', # output should be good
+       Doc => 
+       'Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>',
+       BadDoc => 
+       'If bad values are present, these are also cleared.',
        );
+
+# ummm, what happens to the type here 
+# when done in place....
+pp_def(
+       'isfinite',
+       Pars => 'a(); int [o]mask();',
+       Inplace => [ 'a', 'mask' ],
+       HandleBad => 1,
+       Code => 
+       '$mask() = finite((double) $a()) != 0;',
+       BadCode => 
+       '$mask() = finite((double) $a()) != 0 && $ISGOOD($a());',
+       CopyBadStatusCode => 
+       'if ( a == mask && $ISPDLSTATEBAD(a) )
+           PDL->propogate_badflag( mask, 0 );  /* propogate badflag if inplace AND its changed */
+        $SETPDLSTATEGOOD(mask);          /* always make sure the output is "good" */
+       ',
+       Doc => 
+'Sets C<$mask> true if C<$a> is either a C<NaN> or C<inf> (either positive or negative).',
+       BadDoc =>
+'Returns true if an element is bad, as well as C<NaN> or C<inf>.',
+       );
+
 
 # Extra functions from cephes
 pp_def(
@@ -242,6 +275,7 @@ pp_def(
        NoBadifNaN => 1,
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
+       Inplace => 1,
        Doc => $doco{"erfi"},
        Code => 
        'extern double ndtri(double), SQRTH;
@@ -258,6 +292,7 @@ pp_def(
        NoBadifNaN => 1,
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
+       Inplace => 1,
        Doc => $doco{"ndtri"},
        Code => 
        'extern double ndtri(double);

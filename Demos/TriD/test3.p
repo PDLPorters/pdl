@@ -4,12 +4,16 @@ use Carp;
 $SIG{__DIE__} = sub {die Carp::longmess(@_);};
 
 use PDL;
+
+#$PDL::Graphics::TriD::verbose=1;
+
 use PDL::Graphics::TriD;
+
 use PDL::Graphics::TriD::Image;
 use PDL::IO::Pic;
 use PDL::Graphics::TriD::GoBoard;
 
-$PDL::Graphics::TriD::verbose=0;
+
 
 # Calculate some random function
 

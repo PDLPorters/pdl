@@ -301,6 +301,8 @@ sub register_proto {
 }
 
 sub set_vrml {
+  print "set_vrml ",ref($_[0]),"\n";
+
   $_[0]->{Scene} = $_[1];
 }
 

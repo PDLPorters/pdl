@@ -727,10 +727,6 @@ This approach means that there is virtually no overhead when
 bad values are not present (ie the L<badflag|PDL::Bad/badflag> routine
 returns 0).
 
-There are also C<BadBackCode> and C<BadRedoDimsCode>, to go
-with the C<BackCode> and C<RedoDimsCode> options, although they
-have not been used yet.
-
 The BadCode section can use the same macros and looping constructs
 as the Code section. 
 However, it wouldn't be much use without the following additional
@@ -1411,6 +1407,20 @@ index manipulation and dataflow capabilities of PDL.
 
 Also, there are a lot of dirty issues with virtual piddles and
 vaffines which we shall entirely skip here.
+
+=head2 Slices and bad values
+
+Slice operations need to be able to handle bad values (if support
+is compiled into PDL). The easiest thing to do is look at
+F<Basic/Slices/slices.pd> to see how this works. 
+
+Along with C<BadCode>, there are also the C<BadBackCode> and 
+C<BadRedoDimsCode> keys for C<pp_def>. However, any
+C<EquivCPOffsCode> should I<not> need changing, since 
+any changes are absorbed into the definition of the
+C<$EQUIVCPOFFS()> macro.
+
+There are no guarantees that this is the best way to do it!
 
 =head1 Makefiles for PP files
 

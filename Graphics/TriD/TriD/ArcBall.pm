@@ -11,11 +11,11 @@
 
 package PDL::Graphics::TriD::QuaterController;
 use base qw(PDL::Graphics::TriD::ButtonControl);
-use fields qw /Inv Quat W H SC/;
+use fields qw /Inv Quat/;
 
 sub new {
   my($type,$win,$inv,$quat) = @_;
-  my $this = $type->SUPER::new();
+  my $this = $type->SUPER::new($win);
   
 
   $this->{Inv} = $inv;
@@ -23,19 +23,6 @@ sub new {
 			new PDL::Graphics::TriD::Quaternion(1,0,0,0));
   $win->add_resizecommand(sub {$this->set_wh(@_)});
   return $this;
-}
-
-sub set_wh {
-	my($this,$w,$h) = @_;
-	print "ARCSETWH: $w,$h\n" if $PDL::Graphics::TriD::verbose;
-	$this->{W} = $w; $this->{H} = $h;
-        $w = 0 unless defined $w;
-        $h = 0 unless defined $h;
-	if($w > $h) {
-		$this->{SC} = $h/2;
-	} else {
-		$this->{SC} = $w/2;
-	}
 }
 
 sub xy2qua {
@@ -48,18 +35,26 @@ sub xy2qua {
 
 sub mouse_moved {
 	my($this,$x0,$y0,$x1,$y1) = @_;
+
 #	print "ARCBALL: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n";
 # Convert both to quaternions.
+
 	my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
+
 #	print "ARCBALLQ: ",(join ', ',@$qua0),"     ",(join ', ',@$qua1),"\n";
+
 	my $arc = $qua1->multiply($qua0->invert());
+
 #	my $arc = $qua0->invert()->multiply($qua1);
+
 	if($this->{Inv}) {
 		$arc->invert_rotation_this();
 	}
 	$this->{Quat}->set($arc->multiply($this->{Quat}));
-#	print "ARCBALLQ: ",(join ', ',@$arc),"     ",(join ', ',@{$this->{Quat}}),"\n";
-#	$this->{Quat}->set($this->{Quat}->multiply($arc));
+
+	#	print "ARCBALLQ: ",(join ', ',@$arc),"     ",(join ', ',@{$this->{Quat}}),"\n";
+	#	$this->{Quat}->set($this->{Quat}->multiply($arc));
+	1;  # signals a refresh
 }
 
 #

@@ -251,7 +251,6 @@ sub PDL::nullcreate{
         return ref($arg) ? $arg->null : $type->null ;
 }
 
-
 =head2 nelem
 
 =for ref
@@ -323,7 +322,7 @@ alternate piddle constructor - ensures arg is a piddle
 
 The difference between L<pdl()|/pdl> and C<topdl()> is that the
 latter will just 'fall through' if the argument is
-already a piddle. It will return a reference and NOT
+already a piddle. It will return a reference and I<NOT>
 a new copy.
 
 This is particulary useful if you are writing a function
@@ -444,15 +443,13 @@ sub topdl {PDL->topdl(@_)}
 				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
 
 		'bool'  => sub { return 0 if $_[0]->isnull;
-				 unless ($_[0]->nelem == 1) {
-				   croak("multielement piddle in conditional expression")}
+				 croak("multielement piddle in conditional expression")
+				     unless $_[0]->nelem == 1;
 				 $_[0]->clump(-1)->at(0); },
 		"\"\""  =>  \&PDL::Core::string   );
 }
 
-sub rswap {
-	if($_[2]) { return  @_[1,0] } else { return @_[0,1] }
-}
+sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
 
 sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
 
@@ -1036,7 +1033,7 @@ Dataflow status
 
 !NO!SUBS!
 if ( $bvalflag ) {
-   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad/missing data)\n";
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad data)\n";
 } else {
    print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
 }
@@ -1059,20 +1056,21 @@ Calculated memory consumption of this piddle's data area
 =cut
 
 sub PDL::info {
-  my ($this,$str) = @_;
-  $str = "%C: %T %D" unless defined $str;
-  return ref($this)."->null" if PDL::Core::dimstr($this)
-    =~ /D \[0\]/;
-  my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
-  my @args = ();
-  my $nstr = '';
-  for my $form (@hash) {
-    if ($form =~ s/^%([-,0-9]*[.]?[0-9]*)(\w)$/%$1s/)
-      { barf "unknown format specifier $2" unless defined $info{$2};
-	push @args, &{$info{$2}->{Sub}}($this) }
-    $nstr .= $form;
-  }
-  return sprintf $nstr, @args;
+    my ($this,$str) = @_;
+    $str = "%C: %T %D" unless defined $str;
+    return ref($this)."->null" 
+	if PDL::Core::dimstr($this) =~ /D \[0\]/;
+    my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
+    my @args = ();
+    my $nstr = '';
+    for my $form (@hash) {
+	if ($form =~ s/^%([-,0-9]*[.]?[0-9]*)(\w)$/%$1s/) {
+	    barf "unknown format specifier $2" unless defined $info{$2};
+	    push @args, &{$info{$2}->{Sub}}($this);
+	}
+	$nstr .= $form;
+    }
+    return sprintf $nstr, @args;
 }
 
 =head2 mslice
@@ -1164,28 +1162,6 @@ operate array element by array element like C<log10>).
 sub PDL::inplace {
     my $pdl = PDL->topdl(shift); $pdl->set_inplace(1); return $pdl;
 }
-
-=head2 hdrcpy
-
-=for ref
-
-switch on/off/examine automatic header copying
-
-=for example
-
- print "hdrs will be copied" if $a->hdrcpy;
- $a->hdrcpy(1);       # switch on hdr copying
- $b = $a->sumover;    # and $b will inherit $a's hdr
- $a->hdrcpy(0);       # and now make $a non-infectious again
-
-Normally, the optional header of a piddle is not copied
-automatically in pdl operations. Switching on the hdrcpy
-flag using the C<hdrcpy> method will enable automatic hdr
-copying. Note that copying is B<by reference> for efficiency
-reasons. C<hdrcpy> without an argument just returns the
-current setting of the flag.
-
-=cut
 
 # Copy if not inplace
 
@@ -1565,9 +1541,7 @@ A convenience function for use with the piddle constructors, e.g.
 
 =cut
 
-sub PDL::type {
-  return PDL::Type->new($_[0]->get_datatype);
-}
+sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 ##################### Printing ####################
 
@@ -2190,10 +2164,6 @@ print OUT <<'!NO!SUBS!';
     return $ret;
 }
 
-
-1;# Exit with OK status
-
-
 ########## Docs for functions in Core.xs ##################
 # Pod docs for functions that are imported from Core.xs and are
 #  not documented elsewhere. Currently this is not a complete
@@ -2271,10 +2241,29 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
+=head2 hdrcpy
+
+=for ref
+
+switch on/off/examine automatic header copying
+
+=for example
+
+ print "hdrs will be copied" if $a->hdrcpy;
+ $a->hdrcpy(1);       # switch on hdr copying
+ $b = $a->sumover;    # and $b will inherit $a's hdr
+ $a->hdrcpy(0);       # and now make $a non-infectious again
+
+Normally, the optional header of a piddle is not copied
+automatically in pdl operations. Switching on the hdrcpy
+flag using the C<hdrcpy> method will enable automatic hdr
+copying. Note that copying is B<by reference> for efficiency
+reasons. C<hdrcpy> without an argument just returns the
+current setting of the flag.
 
 =cut
 
-1;
+1;# Exit with OK status
 
 !NO!SUBS!
 

@@ -31,7 +31,10 @@ $win = PDL::Graphics::TriD::get_current_window();
 $win->clear_objects();
 $win->add_object($a);
 $win->add_object($b);
-# $win->twiddle();
+
+#$PDL::Graphics::TriD::verbose=1;
+#$win->twiddle();
+#exit;
 
 $nx = zeroes(3,20);
 $nc = zeroes(3,20);
@@ -43,7 +46,7 @@ use PDL::Graphics::OpenGL;
 # glShadeModel (&GL_FLAT);
 glShadeModel (&GL_SMOOTH);
 
-$lb = PDL::Graphics::OpenGL::glpRasterFont("5x8",0,255);
+$lb = $win->glpRasterFont("5x8",0,255);
 print "LIST: $lb\n";
 
 $win->add_object(new TOBJ());

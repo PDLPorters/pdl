@@ -1,7 +1,10 @@
 --------------------------------------------------------------------------------
 
-Doug Burke (08/10/00)
+Doug Burke (08/10/00-08/11/00)
    - added some text to PDL::PP documentation about writing 'bad' code
+   - minor clean up of documentation and output from 'badinfo' command
+   - math.pd: added isfinite(), converted badmask to handle bad values
+   - histogram/whistogram (primitive.pd) converted
 Doug Burke (08/02/00-08/03/00)
    - added more to the demo
    - brought up to date with changes on main branch (see Changes)

@@ -409,7 +409,8 @@ sub badinfo {
 	my $info = $hash->{Bad};
 
 	if ( defined $info ) {
-	    print "$info\n";
+	    my $out = new IO::File "| pod2text | $PDL::Doc::pager";
+	    print $out "=head1 Bad value support for $name\n\n$info\n";
 	} else {
 	    print "\n  No information on bad-value support found for $func\n";
 	}
