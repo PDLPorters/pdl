@@ -130,7 +130,7 @@ act q|
 
     print "No bad values:   $a\n";
     # set the middle value bad
-    set($a,1,$a->badvalue());
+    $a->setbadat(1);
 
     # now print out
     print "Some bad values: $a\n";
@@ -149,7 +149,7 @@ act q|
     print "It is easy to find whether a value is good: ", isgood($a), "\n\n";
 
     print "or to remove the bad values\n";
-    $a->inplace->replacebad(23);
+    $a->inplace->setbadtoval(23);
     print "a = $a and \$a->badflag == ", $a->badflag, "\n\n";
 
 |;
@@ -173,7 +173,7 @@ act q|
     $b = $a->slice("(1),:");
     print "b = $b\tbadflag = ", $b->badflag, "\n";
 
-    $a->inplace->replacebad(3);
+    $a->inplace->setbadtoval(3);
     print "b = $b\tbadflag = ", $b->badflag, "\n\n";
 
 |;

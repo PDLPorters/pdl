@@ -85,7 +85,7 @@ comment q|
     Astronomical Observatories.
 
     It also serves to demonstrate that you often don't need to change
-    your code to handle bad values, as the routines 'do it' for you.
+    your code to handle bad values, as the routines may 'do it' for you.
     
 |;
 
