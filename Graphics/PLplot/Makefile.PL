@@ -13,8 +13,10 @@ use vars qw /$plplotvers/; # version of plplot used
 unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 
 my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && $PDL_CONFIG{WITH_PLPLOT} == 0) ? 0 : 1;
-print "User requested no PLplot interface!\n" if ($found_plplot == 0);
-
+unless ($found_plplot) {
+  buildDummy ("User requested no PLplot interface!");
+  return if (caller); exit;
+}
 foreach my $libdir (
                     '/usr/local/plplot/lib',
 		    '/usr/local/lib',
@@ -27,13 +29,8 @@ foreach my $libdir (
 		    ) {
 
   if (-e "$libdir/libplplotd.so") {
-    my $link = readlink("$libdir/libplplotd.so");
-    ($plplotvers) = ($link =~ /libplplotd\.so\.(.*)$/);
-    open (OPT, ">>OPTIONS!");
-    print OPT "PLPLOT VERSION = $plplotvers\n";
-    close OPT;
     $plplot_lib_path = $libdir;
-    $ENV{LD_LIBRARY_PATH} .= $libdir;
+    $ENV{LD_LIBRARY_PATH} .= ":$libdir";
     last;
   }
 
@@ -41,8 +38,8 @@ foreach my $libdir (
 }
 
 unless (defined ($plplot_lib_path)) {
-  print "          Cannot find plplot library (libplplotd.so), skipping PDL::Graphics::PLplot\n";
-  $found_plplot = 0;
+  buildDummy ("Cannot find plplot library (libplplotd.so), skipping PDL::Graphics::PLplot\n");
+  return if (caller); exit;
 }
 
 foreach my $incdir (
@@ -71,12 +68,12 @@ foreach my $incdir (
 }
 
 unless (defined ($plplot_include_path)) {
-  print "          Cannot find plplot header file, plplot.h, skipping PDL::Graphics::PLplot\n";
-  $found_plplot = 0;
+  buildDummy ("Cannot find plplot header file, plplot.h, skipping PDL::Graphics::PLplot\n");
+  return if (caller); exit;
 }
 
 # Test that PLplot was compiled --with-double (IE, a PLFLT is a double)
-my $size = compileAndRun ("$plplot_include_path", <<'EOC');
+my $size = compileAndRun ("$plplot_include_path", 1, <<'EOC');
 #include <plplot.h>
 main () {  printf  ("%d", sizeof (PLFLT)); }
 EOC
@@ -86,18 +83,7 @@ unless ($size == 8) {
   $found_plplot = 0;
 } 
 
-# Test if PLplot has plsmem, for in memory plotting
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", <<'EOC'); 
-#include <plplot.h>
-main () {  plsmem (0, 0, NULL); }
-EOC
-};
-if ($@) {
-  print "plsmem function not available, no in-memory plotting available!\n";
-  open (OPT, ">>OPTIONS!");
-  print OPT "NOMEM!\n";
-  close OPT;
-}
+
 
 # Try linking with library.  New if blocks should be added if necessary
 my $libs;
@@ -114,41 +100,63 @@ foreach my $l (
 }
 
 unless (defined($libs)) {
-
-  print "Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n";
-  $found_plplot = 0;
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  return if (caller); exit;
 }
+
+# Test if PLplot has plsmem, for in memory plotting
+eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+#include <plplot.h>
+main () {  plsmem (0, 0, NULL); }
+EOC
+};
+if ($@) {
+  print "plsmem function not available, no in-memory plotting available!\n";
+  open (OPT, ">>OPTIONS!");
+  print OPT "NOMEM!\n";
+  close OPT;
+}
+
+# Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)
+eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+#include <plplot.h>
+main () {  plpoly3 (0, NULL, NULL, NULL, NULL); }
+EOC
+};
+if ($@) {
+  print "plpoly3 needs 6 arguments => version 5.2.0 or later!\n";
+  open (OPT, ">>OPTIONS!");
+  print OPT "PLPOLY3 = 6\n";
+  close OPT;
+} else {
+  print "plpoly3 needs 5 arguments => version 5.1.1 or earlier!\n";
+  open (OPT, ">>OPTIONS!");
+  print OPT "PLPOLY3 = 5\n";
+  close OPT;
+}  
 
 $VERSION = '0.19';
 
-unless ($found_plplot) {
-  my $msg = "\n      Not building PDL::Graphics::PLplot\n";
-  warn $msg . "\n";
-  $msg =~ s/\n//g;
-  write_dummy_make( $msg );
-  $PDL_CONFIG{WITH_PLPLOT} = 0;
-} else {
+$PDL_CONFIG{WITH_PLPLOT} = 1;
+$package = ["plplot.pd",PLplot,PDL::Graphics::PLplot];
+WriteMakefile(
+	      'NAME'  	     => 'PDL::Graphics::PLplot',
+	      'CCFLAGS'      => "-g",
+	      'VERSION_FROM' => 'Makefile.PL',
+	      'TYPEMAPS'     => [&PDL_TYPEMAP()],
+	      'OBJECT'       => 'PLplot.o ',
+	      'PM'           => { 'PLplot.pm'   => '$(INST_LIBDIR)/PLplot.pm' },
+	      'INC'          => &PDL_INCLUDE()." $plplot_include_path", 
+	      'LIBS'         => [$libs],  
+	      'clean'        => {'FILES'  => 
+				   'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'},
+	      );
 
-  $PDL_CONFIG{WITH_PLPLOT} = 1;
-  $package = ["plplot.pd",PLplot,PDL::Graphics::PLplot];
-  WriteMakefile(
-		'NAME'  	     => 'PDL::Graphics::PLplot',
-		'CCFLAGS'      => "-g",
-		'VERSION_FROM' => 'Makefile.PL',
-		'TYPEMAPS'     => [&PDL_TYPEMAP()],
-		'OBJECT'       => 'PLplot.o ',
-		'PM'           => { 'PLplot.pm'   => '$(INST_LIBDIR)/PLplot.pm' },
-		'INC'          => &PDL_INCLUDE()." $plplot_include_path", 
-		'LIBS'         => [$libs],  
-		'clean'        => {'FILES'  => 
-				     'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'},
-		);
-  
-  sub MY::postamble { pdlpp_postamble($package); }	
-}
+sub MY::postamble { pdlpp_postamble($package); }	
 
 sub compileAndRun {
   my $flags = shift;
+  my $run   = shift;
   my $code  = shift;
   
   open (OUT, ">temp.c");
@@ -160,12 +168,21 @@ sub compileAndRun {
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
   system "$cc $ccflags $flags temp.c -o temp > /dev/null 2>&1";
   die "Cannot compile test program: $code" unless (-e 'temp');
+  return unless ($run);
+
   my $res = `./temp`;
   unlink ('./temp', './temp.c');
   return $res;
 }
 
-
+sub buildDummy {
+  my $msg = shift;
+  $msg .= "\n      Not building PDL::Graphics::PLplot\n";
+  warn $msg . "\n";
+  $msg =~ s/\n//g;
+  write_dummy_make( $msg );
+  $PDL_CONFIG{WITH_PLPLOT} = 0;
+}
 
 
 
