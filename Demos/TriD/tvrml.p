@@ -38,4 +38,5 @@ $win = PDL::Graphics::TriD::get_current_window();
  $win->add_object(new PDL::Graphics::TriD::Logo);
 $win->display('netscape');
 
+$win->twiddle();
 

@@ -47,11 +47,17 @@ Tk::Widget->Construct('Tk');
 
 sub Populate {
   my($TriD, $args) = @_;
+
+  $args->{-height}=600 unless defined $args->{-height};
+  $args->{-width}=600 unless defined $args->{-width};
+
   $TriD->SUPER::Populate($args);
   $TriD->bind("<Configure>", [ \&GLinit ]);
   print "Populate complete\n" if($PDL::Graphics::TriD::Tk::verbose);
-  $TriD->parent->bind("<Expose>",sub{print "Here is an MW Expose\n"; $TriD->refresh()});
-  $TriD->bind("<Expose>",sub{print "Here is an Trid Expose\n"; $TriD->refresh()});
+  $TriD->parent->bind("<Expose>",sub{print "Here is an MW Expose\n" 
+				       if($PDL::Graphics::TriD::Tk::verbose); 
+				     $TriD->refresh()});
+#  $TriD->bind("<Expose>",sub{print "Here is an Trid Expose\n"; $TriD->refresh()});
 }
 
 

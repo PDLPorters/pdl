@@ -1,32 +1,8 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (5/23/00,5/24/00)
-    - corrected faulty t/interp.t and t/interp_slatec.t scripts
-    - minor doc changes to Indexing.pod, image2d.pd, fft.pd & NDF.pm
-    - added FRAME option to iis (Graphics::IIS)
-CS      - hopefully the PDL::Filter modules will work now
-                a proper test should be added
-Doug Burke (5/22/00)
-    - Graphics::IIS - now works with new PP code + minor doc changes
-    - Func - changed gradient() to work as described + added PDL::Func::
-      to method names in the documentation so they do not get picked up
-      by perldl's help (eg 'help set')
-    - \s to \\s in getfuncdocs() to avoid warning in Doc/Doc.pm
-John Cerney (5/21/00)
-    - Minor Changes to Basic/Gen/PP.pm to fix error reporting, and
-      to get rid of some warning messages when run with the -w 
-      switch
-Doug Burke (5/19/00)
-        - Amalgated Interpolate & Interpolate::Slatec into PDL::Func (found
-          in Lib/). I've left the old files in the distribution, although they're
-          no longer made/installed, in case anyone wants to do a better job.
-        - minor doc changes to Image2D
-zowie   - Changed PGPLOT::im to PGPLOT::imag1 (1:1 aspect ratio shortcut).
-	  Avoids conflict with the imaginary-component sub by the same name.
-
-CS	- fix for sever mem-leak -> ultimate source seems to be
-		a problem in destroytransform on un-physvaffined
-		piddle -- needs proper tracking down!!!!
-	- more types for Otherpars (PP.pm)
+Jim Edwards (5/19/2000) TriD (cvs brance trid_experimental)
+        - several changes in TriD including a new Tk widget, 
+          see the file PDL/Graphics/TriD/README  
+        - added TkTriD demo to perldl.PL
 Doug Burke
         - added PDL::Interpolate and PDL::Interpolate::Slatec which provide
           a (hopefully) simple, OO interface to interpolation methods
@@ -1598,5 +1574,3 @@ Bug fixen
 New PDL::PP
 
 The perldl shell now aborts on <EOF>, q and Q.
-
-
