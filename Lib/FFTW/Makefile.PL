@@ -137,29 +137,10 @@ skip:
 
 	if ($msg ne "" && $forcebuild==0) {
 
-		warn $msg."\n";
-		open(OUT,">Makefile");
-		print OUT "fred:\n";
-		print OUT "\t\@echo \n";
-		  my $emsg = substr($msg, 1);	# Get rid of leading \n
-		  $emsg =~ s/\n+$//;			# Remove final \n(s)
-		  $emsg =~ s/"//g;	
-		  $emsg =~ s/\n/"\n\t\@echo "/g;		# Echo other lines
-		print OUT "\t\@echo \"$emsg\"\n";
-		print OUT "\t\@echo \n";
-		print OUT "\nall: fred\n";
-		print OUT "\ntest: fred\n";
-		print OUT <<EOT;
-
-clean ::
-	-mv Makefile Makefile.old
-
-realclean ::
-	rm -rf Makefile Makefile.old
-
-EOT
-	      close(OUT);
-	      $donot = 1;
+	    warn $msg . "\n";
+	    $msg =~ s/\n//g;
+	    write_dummy_make( $msg );
+	    $donot = 1;
 	} else {
 		print "\n   Building PDL::FFTW. Turn off WITH_FFTW if there are any problems\n\n";
 	}

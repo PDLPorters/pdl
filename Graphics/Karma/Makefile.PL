@@ -60,22 +60,11 @@ BEGIN {
      $PDL_CONFIG{WITH_KARMA} = 1;
   }
   else{
-    print "\n      Not building PDL::Graphics::Karma, turn on WITH_KARMA if this is incorrect\n\n";
-    open(OUT,">Makefile");
-    print OUT "fred:\n";
-    print OUT "\t\@echo \n";
-    print OUT "\t\@echo \"      \" Not building PDL::Graphics::Karma, turn on WITH_KARMA if this is incorrect\n";
-    print OUT "\t\@echo \n";
-    print OUT "\nall: fred\n";
-    print OUT "\ntest: fred\n";
-    print OUT "\nclean: fred
-	-mv Makefile Makefile.old
-
-realclean :
-	rm -rf Makefile Makefile.old
-\n";
-    close(OUT);
-    $PDL_CONFIG{WITH_KARMA} = 0;
+      my $msg = "\n      Not building PDL::Graphics::Karma, turn on WITH_KARMA if this is incorrect\n";
+      warn $msg . "\n";
+      $msg =~ s/\n//g;
+      write_dummy_make( $msg );
+      $PDL_CONFIG{WITH_KARMA} = 0;
   }
 
 
