@@ -140,7 +140,7 @@ if ($trail) {
 
 WriteMakefile(
  %hash,
- VERSION => "0.11",
+ VERSION => '0.11',  # This is overridden by VERSION_FROM in %hash
 );
 
 sub MY::postamble {

@@ -1,8 +1,5 @@
 pp_addpm({At=>Top},<<'EOD');
 
-use vars qw/ $VERSION /;
-$VERSION = '0.11';
-
 =head1 NAME
 
 PDL::Slatec - PDL interface to the slatec numerical programming library
