@@ -598,8 +598,11 @@ if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
   
 PDL->make_physdims(ind_pdl);
 
-if(ind_pdl->nvals == 0)
-    { $CROAK("Cannot use the empty PDL as an index in range"); }
+
+/*
+ * if(ind_pdl->nvals == 0)
+ *  { $CROAK("Cannot use the empty PDL as an index in range"); }
+ */
 
 /***
  * Ensure that the index is a long.  If there's no loss of information,
