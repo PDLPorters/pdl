@@ -684,7 +684,7 @@ sub map {
   # to the output range, and pick a FITS header that fits the output
   # coordinates into the given template.
   unless((ref $out eq 'HASH' && $out->{NAXIS}) ||
-	 (defined $out->gethdr && $out->hdr->{NAXIS}) !!
+	 (defined $out->gethdr && $out->hdr->{NAXIS}) ||
 	 $nofits) {
       print "generating output FITS header..." if($PDL::debug);
       my $samp_ratio = 100;
@@ -786,9 +786,7 @@ sub map {
   if(!$integrate) {
     print "dd=@dd\n";
     my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
-    print "assigning out (out dims are ",join(",",$out->dims),"\n";
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
-    print "a dims are ",join(",",$a->dims),"\n";
     $out .= $a;
     return $out;
   }
