@@ -217,13 +217,13 @@ Graphics/LUT/tables/stairs8.fits
 Graphics/LUT/tables/stairs9.fits
 Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
-Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
-Graphics/PGPLOT/Window/typemap
+Graphics/PGPLOT/PGPLOTOptions.pm
+Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
-Graphics/PGPLOT/Window/Makefile.PL
+Graphics/PGPLOT/Window/typemap
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/README
@@ -306,9 +306,9 @@ Lib/Fit/Gaussian/Makefile.PL
 Lib/Fit/Gaussian/gauss.c
 Lib/Fit/Gaussian/gaussian.pd
 Lib/Fit/LM.pm
+Lib/Fit/Linfit.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
-Lib/Fit/Linfit.pm
 Lib/Func.pm
 Lib/GSL/Makefile.PL
 Lib/GSL/README
@@ -618,8 +618,8 @@ t/imagend.t
 t/imagergb.t
 t/interp.t
 t/interp_slatec.t
-t/lut.t
 t/linfit.t
+t/lut.t
 t/lvalue.t
 t/magic.t
 t/matmult.t
@@ -656,3 +656,7 @@ t/thread_def.t
 t/trig.t
 t/vaffine.t
 t/xvals.t
+win32/PDL.ppd
+win32/Readme
+win32/install.ppm
+win32/makeppm.pl

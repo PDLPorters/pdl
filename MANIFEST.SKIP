@@ -111,6 +111,11 @@ Lib/PCA/PCA*
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/OpenGLQ/blib
 ^Graphics/TriD/Rout/Rout\.*
+^Graphics/PGPLOT/Window/Window.c
+^Graphics/TriD/OpenGL/OpenGL.pm
+^Graphics/TriD/OpenGL/OpenGL.xs
+^Graphics/TriD/OpenGL/ppcode.out
+^Graphics/TriD/OpenGL/typemap
 ^Basic/Test/Tests\..*
 ^Graphics/IIS/IIS\..*
 ^Image2D/Image2D\..*
