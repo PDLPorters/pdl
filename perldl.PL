@@ -160,6 +160,7 @@ print join(', ',@enabled)," enabled\n" if @enabled > 0;
 my($term);
 if ( $readlines ){
     $term = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
+    $PERLDL::TERM = $term;
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
         if(${$term->Features}{tkRunning}) {
@@ -539,6 +540,12 @@ current time into the prompt.
 $HOME
 
 The user's home directory
+
+$PERLDL::TERM
+
+This is the Term::ReadLine object associated with the perldl
+shell. This can be used by routines called from perldl if your
+command is interactive.
 
 =item 4.
 

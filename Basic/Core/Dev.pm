@@ -31,6 +31,7 @@ use IO::File;
 
 @EXPORT = qw( isbigendian genpp %PDL_DATATYPES 
 	     PDL_INCLUDE PDL_TYPEMAP
+	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
@@ -49,6 +50,35 @@ sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
 
 sub PDL_INST_INCLUDE {&PDL_INCLUDE}
 sub PDL_INST_TYPEMAP {&PDL_TYPEMAP}
+
+sub PDL_AUTO_INCLUDE {
+  my ($symname) = @_;
+  $symname ||= 'PDL';
+  return << "EOR";
+#include <pdlcore.h>
+static Core* $symname; /* Structure holds core C functions */
+static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+EOR
+}
+
+sub PDL_BOOT {
+  my ($symname) = @_;
+  $symname ||= 'PDL';
+  return << "EOR";
+
+   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+#ifndef aTHX_
+#define aTHX_
+#endif
+   if (CoreSV==NULL)
+     Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
+   $symname = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   if ($symname->Version != PDL_CORE_VERSION)
+     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+
+EOR
+}
 
 # Data types to C types mapping
 # get the map from Types.pm
@@ -288,9 +318,11 @@ q~
 # Return library locations
 
 # whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
+use Cwd qw/abs_path/;
 sub whereami_any {
-	&whereami(1) or &whereami_inst(1) or
+	my $dir = &whereami(1) or &whereami_inst(1) or
           die "Unable to determine ANY directory path to PDL::Core::Dev module\n";
+	return abs_path($dir);
 }
 
 sub whereami {

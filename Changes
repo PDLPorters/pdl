@@ -1,3 +1,9 @@
+CS  - Tim's TERM patch
+    - Stefan's Matrix patch
+    - added PDL::API manpage
+    - PDL::Core::Dev helper functions for work with
+      Inline
+    - pictests only for internal PNM format
 DJB (23/Oct/01)
     - changes to bad.pd in order to clean up build slightly (for 
       instance we longer need to create pdlapi.c from pdlapi.c.PL)
