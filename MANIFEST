@@ -348,6 +348,7 @@ Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
 Lib/RandVar.pm
+Lib/RandVar/Makefile.PL
 Lib/RandVar/Sobol.pm
 Lib/RandVar/Histogram.pm
 Lib/Slatec/Makefile.PL
