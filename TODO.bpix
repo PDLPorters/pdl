@@ -1,6 +1,33 @@
 
 Some suggestions:
 
+.) $pdl->baddata() should update all the children of this piddle
+   as well. Unsure what to do with parents, since:
+     $b = $a->slice(); 
+     $b->baddata(0)
+   doesn't mean that $a shouldn't have it's badvalue cleared.
+   however, after
+     $b->baddata(1)
+   it's sensible to assume that the parents now get flagged as
+   containing bad values.
+
+   PERHAPS you can only clear the bad value flag if you are NOT
+   a child of another piddle, whereas if you set the flag then all
+   children AND parents should be set as well?
+
+.) add several more macros (unfortunately the names are reaching the
+   length of the code they replace...)
+     $ISSTATEBAD(a)      -> 'a->state & PDL_BADVAL'
+     $SETSTATEBAD(a)     -> 'a->state |= PDL_BADVAL'
+     $SETSTATEGOOD(a)    -> 'a->state &= ~PDL_BADVAL'
+
+     $ISPDLSTATEBAD(a)   -> '$PDL(a)->state & PDL_BADVAL'
+     $SETPDLSTATEBAD(a)  -> '$PDL(a)->state |= PDL_BADVAL'
+     $SETPDLSTATEGOOD(a) -> '$PDL(a)->state &= ~PDL_BADVAL'
+
+   - you could make the top macros accept $PDL(a), but the () cause 
+     a bit of a pain to process
+
 .) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).

@@ -224,7 +224,13 @@ my $PDL_OK = ($@ eq "");
 if ($PDL_OK) {
    require PDL::Version if not defined $PDL::Version::VERSION;
    print "Type 'demo' for online demos\n";
-   print "Loaded PDL v$PDL::Version::VERSION\n";
+   use PDL::Config;  # for some reason this doesn't pick up the blib version?
+   my $badflag = $PDL::Config{WITH_BADVAL};
+   if ( defined($badflag) and $badflag ) {
+      print "Loaded PDL v$PDL::Version::VERSION (supports bad values)\n";
+   } else {
+      print "Loaded PDL v$PDL::Version::VERSION\n";
+   }
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";

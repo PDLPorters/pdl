@@ -3,6 +3,9 @@
 Doug Burke (07/11/00)
    - fixed test 7. Added a quick overview section to README.bpix. 
    - added $PPISBAD, $PPISGOOD, and $PPSETBAD macros - see IMPLEMENTATION.bpix
+   - changed internal access to bad value data (see badvalue subs in bad.pd)
+     to ensure that '$a = byte->badvalue * ones(byte,3,4)' returns a piddle
+     of type byte.
 Doug Burke (07/11/00)
    - tried using flags field in trans structure rather than adding a
      new element (ie bvalflag). didn't really work - see 

@@ -230,75 +230,65 @@ It is also has an awful name.
 use PDL::Types;
 my $ntypes = $#PDL::Types::names;
 
-my $cases = "    switch ( type ) {\n";
-my $default_cases = "    switch ( type ) {\n";
-
+    my $str;
 foreach my $i ( 0 .. $ntypes ) {
     my $type = new PDL::Type $i;
     my $ctype = $type->ctype;
-    
+    my $realctype = $type->realctype;
     my $storage = "PDL->bvals._$ctype";
 
-    $cases .= 
-"  case $i:
-     if ( items > 1 ) { $storage = (".$type->realctype().") val; }
-     RETVAL = $storage;
-   break;
-";
-
-    $default_cases .= 
-"  case $i:
-     RETVAL = PDL->bvals.default_$ctype;
-   break;
-";
-}
-
-$cases .= "  default:\n    barf(\"badvalue: type must be between 0 and $ntypes inclusive.\");    } /* end of switch */\n";
-$default_cases .= "  default:\n    barf(\"badvalue: type must be between 0 and $ntypes inclusive.\");    } /* end of switch */\n";
-
-pp_addxs( <<"!WITH!SUBS!");
-$xshdr
-
-double
-_badvalue_int(type,val=0)
-    int type
+    $str .= 
+"
+$realctype
+_badvalue_int${i}(val=0)
     double val
   CODE:
-$cases
+    if ( items > 0 ) { $storage = ($realctype) val; }
+    RETVAL = $storage;
   OUTPUT:
     RETVAL
-
-double
-_default_badvalue_int(type)
-    int type
+    
+$realctype
+_default_badvalue_int${i}()
   CODE:
-$default_cases
+    RETVAL = PDL->bvals.default_$ctype;
   OUTPUT:
     RETVAL
+    
+";
 
-!WITH!SUBS!
+} # foreach: $i = 0 .. $ntypes
+
+pp_addxs( "\n$xshdr\n\n$str\n" );
 
 pp_addpm(<<'!NO!SUBS!');
 
 # add a new method to PDL::Type
 {
     package PDL::Type;
+
+    no strict 'refs';
     sub badvalue { 
 	my ( $self, $val ) = @_;
+	my $name = "PDL::_badvalue_int" . $self->enum();
 	if ( defined $val ) {
-	    return PDL::_badvalue_int( $self->enum, $val );
+	    return &{$name}( $val );
 	} else {
-	    return PDL::_badvalue_int( $self->enum );
+	    return &{$name}();
 	}
     }
 
     sub orig_badvalue { 
 	my $self = shift;
-	return PDL::_default_badvalue_int( $self->enum );
+	my $name = "PDL::_default_badvalue_int" . $self->enum();
+	return &{$name}();
     }
+
 }
 	    
 sub PDL::badvalue {
+    no strict 'refs';
+
     my ( $self, $val ) = @_;
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
@@ -309,14 +299,19 @@ sub PDL::badvalue {
         # assume it's a number
         $num = $self;
     }
+
+    my $name = "PDL::_badvalue_int$num";
     if ( defined $val ) {
-	return PDL::_badvalue_int( $num, $val );
+	return &{$name}( $val );
     } else {
-	return PDL::_badvalue_int( $num );
+	return &{$name}();
     }
+
 } # sub: badvalue()
 
 sub PDL::orig_badvalue {
+    no strict 'refs';
+
     my $self = shift;
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
@@ -327,7 +322,9 @@ sub PDL::orig_badvalue {
         # assume it's a number
         $num = $self;
     }
-    return PDL::_default_badvalue_int( $num );
+
+    my $name = "PDL::_default_badvalue_int$num";
+    return &${name}();
 
 } # sub: orig_badvalue()
 

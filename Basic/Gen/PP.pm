@@ -817,7 +817,7 @@ use Carp;
 sub translate {
     my($pars,$tbl) = @_;
     my $rule;
-    no strict; # using strings as subroutine references
+    no strict 'refs'; # using strings as subroutine references
   RULE: for $rule(@$tbl) {
 # Are all prerequisites there;
       my @args;
