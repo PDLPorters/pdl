@@ -1291,6 +1291,10 @@ Sticks $a, $b, and all following arguments together using a combination
 of xchg() and append().  All other dimensions must be compatible in the 
 threading sense.  
 
+Glue is permissive, in the sense that every PDL is treated as having an
+infinite number of trivial dimensions of order 1 -- so C<$a->glue(3,$b)>
+works, even if $a and $b are only one dimensional.
+
 C<glue> is implemented in pdl, and should probably be updated (one day) to a 
 pure PP function.
 
@@ -1302,7 +1306,7 @@ sub PDL::glue{
     if($dim - $a->dim(0) > 100) {
 	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
     }
-    while($dim > $a->ndims) {
+    while($dim >= $a->ndims) {
 	$a = $a->dummy(-1,1);
     }
     $a = $a->xchg(0,$dim);

@@ -1,3 +1,8 @@
+CED 29-Feb-04
+   PDL::IO::FITS
+     - Some more refinements to rfits (see docs).
+     - wfits now allows write of binary tables.
+   primitive.pd: fix to glue() makes it properly permissive with dims.
 CED 25-Feb-04
    - Further changes to PDL::IO::FITS:
 	* More cleanup of header handling code
