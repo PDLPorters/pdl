@@ -84,14 +84,24 @@ If the option
    HandleBad => 1
 is given, then the readdata code automatically creates a variable called
 <pdl name>_badval, which contains the badvalue for that piddle (see
-get_xsdatapdecl() in PP/PdlParObjs.pm). After Tuomas' suggestion, 3 macros
+get_xsdatapdecl() in PP/PdlParObjs.pm). After Tuomas' suggestion, macros
 have been set up to provide easy access:
 
   '$ISBAD($a(n=>1))'  expands to '$a(n=>1) == a_badval'
   '$ISGOOD($a())'                '$a()     != a_badval'
   '$SETBAD($bob())'              '$bob()    = bob_badval'
 
-(well, the $a(...) is expanded as well). This means that you can change
+(well, the $a(...) is expanded as well). The following have been
+introduced, since they are used in the default EquivCPOffsCode -
+see the $EQUIVCPOFFS_BAD() 'macro' in that rule and it's expansion
+in the CODE rule. They may need playing around with to improve
+their use.
+
+  '$PPISBAD(CHILD,[i])           'CHILD_physdatap[i] == CHILD_badval'
+  '$PPISGOOD(CHILD,[i])          'CHILD_physdatap[i] != CHILD_badval'
+  '$PPSETBAD(CHILD,[i])          'CHILD_physdatap[i] = CHILD_badval'
+
+This means that you can change
    Code => '$a() = $b() + $c();'
 to
    BadCode => 'if ( $ISBAD($b()) || $ISBAD($c()) ) { 
@@ -107,13 +117,10 @@ leaving Code as it is. PP::PDLCode will then create a loop something like
    }
 it's probably easier to just look at the .xs file to see what goes on.
 
-I haven't provided macros for more complicated cases - such as would be
-useful in the EQUIVCPOFFS_BAD macro (see EquivCPOffsCode and Code rules
-in PP.pm).
-
 NOTE: the above relies on horrible hacking of PDL::PP::Code and
-PDL::PP::ComplexThreadLoop, since I couldn't see a way, using the current 
-scheme, to get a loop like the above. If you can, please implement!
+PDL::PP::ComplexThreadLoop (eg PP/PDLCode.pm), since I couldn't see a way, 
+using the current system, to get a loop like the above. If you can, 
+please implement!
 
 Similar to BadCode, there's BadBackCode, and BadRedoDimsCode, although
 these haven't been used yet.
@@ -124,7 +131,7 @@ I'm doing here!
 
 Please note that the current design is based on my failure to understand
 what the xxx_redodims(), xxx_copy(), xxx_free() functions that are 
-created by PP do. 
+created by PP do. (ie I haven't changed them)
 
 There's (to my mind at least!) issues about how to handle comparison
 operators - see TODO.bpix and the comments near zcover() in primitive.pd.

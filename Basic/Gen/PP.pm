@@ -353,12 +353,6 @@ $PDL::PP::deftbl =
  				"pdimexpr2priv"],
  [[RedoDims],		[Identity,FHdrInfo],	"identity2priv"],
 
-    # EQUIVCPOFFS_BAD requires that PARENT_badval and CHILD_badval are set up somewhere
-    # which is handled by PDL::PP::PdlParObj->get_xsdatapdecl()
-    #
-    # - this would be much clearer/upwardly-compatible if I could use a macro
-    #   ie $ISBAD(), but we can't nest macros [I think].
-    #
  [[EquivCPOffsCode],	[BadFlag,Identity],	
     sub {
 	my $bflag = $_[0] || 0;
@@ -388,28 +382,16 @@ $PDL::PP::deftbl =
  [[Code],	[BadFlag,EquivCPOffsCode],	
     sub { my ( $badflag, $ret ) = @_; $badflag ||= 0;
 	  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-	  $ret =~ s/\$EQUIVCPOFFS_BAD\(([^()]+),([^()]+)\)/if(\$PP(PARENT)[$2] == PARENT_badval) { \$PP(CHILD)[$1] = CHILD_badval; } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g if $badflag;
+	  $ret =~ s/\$EQUIVCPOFFS_BAD\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g if $badflag;
 	  return $ret;
       }],
-
-# [[Code],	[EquivCPOffsCode],	
-#    sub {my($ret) = @_;
-#	 $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-#	 return $ret;
-#     }],
 
  [[BackCode],	[BadFlag,EquivCPOffsCode],	
     sub { my ( $badflag, $ret ) = @_; $badflag ||= 0;
 	  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-	  $ret =~ s/\$EQUIVCPOFFS_BAD\(([^()]+),([^()]+)\)/if(\$PP(CHILD)[$1] == CHILD_badval) { \$PP(PARENT)[$2] = PARENT_badval; } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g if $badflag;
+	  $ret =~ s/\$EQUIVCPOFFS_BAD\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g if $badflag;
 	  return $ret;
       }],
-
-# [[BackCode],	[EquivCPOffsCode],	
-#    sub {my($ret) = @_;
-#	 $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-#	 return $ret;
-#     }],
 
  [[Affine_Ok],	[EquivCPOffsCode],	sub {0}],
  [[Affine_Ok],	[],			sub {1}],
@@ -448,8 +430,10 @@ $PDL::PP::deftbl =
 
  [[HaveThreading],	[],	sub {1}],
 
-# the docs
+# the docs - should include HandleBad to flag bad-value aware (and non-aware)
+# functions
  [[PdlDoc],             [Name,_Pars,OtherPars,Doc],  "GenDocs"],
+
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
 #

@@ -1,7 +1,8 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/11/00)
-   - fixed test 7. Added a quick overview section to README.bpix.
+   - fixed test 7. Added a quick overview section to README.bpix. 
+   - added $PPISBAD, $PPISGOOD, and $PPSETBAD macros - see IMPLEMENTATION.bpix
 Doug Burke (07/11/00)
    - tried using flags field in trans structure rather than adding a
      new element (ie bvalflag). didn't really work - see 
