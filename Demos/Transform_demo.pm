@@ -13,6 +13,8 @@ sub act($);
 sub output;
 
 sub run {
+  local($PDL::debug) = 0;
+  local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
@@ -46,18 +48,11 @@ act q|
     # read in the image ($m51path has been set up by this demo to
     # contain the location of the file)
     $m51 = rfits "$m51path/m51.fits";
-
+  
     # we use a floating-point version in some of the demos 
     # to highlight the interpolation schemes
-    $m51_float = $m51->float;
-
-|;
-
-act q|
-
-    # read the pixel transformation info from the FITS header
-    $tf = t_fits($m51);
-    print $tf, "\n";
+    $m51_fl = $m51->float;
+    $m51_fl->sethdr($m51->gethdr)
 
 |;
 
@@ -70,6 +65,7 @@ act q|
 |;
 
 act q|
+    # Resampling with ->map and no FITS interpretation works in pixel space
 
     # display the original and transformed images
     $opt = { nx=>2, ny=>2, Charsize=>2 };
@@ -79,22 +75,29 @@ act q|
     $win->label_axes("","","M51");
 
     # Shrink m51 by a factor of 3; origin is at lower left
-    $win->imag( $ts->unmap($m51), $just );
+    # (the "nofits" makes the resampling happen in pixel coordinate space)
+
+    $win->imag( $ts->unmap($m51, {nofits=>1}), $just );
     $win->label_axes("","","M51 shrunk by 3");
 
     # Grow m51 by a factor of 3; origin still at lower left.
-    $win->imag( $ts->map($m51), $just );
+
+    $win->imag( $ts->map($m51, {nofits=>1}), $just );
     $win->label_axes("","","M51 grown by 3");
 
 |;
 
 act q|
+    # To demonstrate working in scientific space, we can wrap the 
+    # simple scale in the FITS pixel-to-scientific transformation:
 
-    # Move the transform into FITS scientific space;
-    #   $t gets ($tf^-1 o $ts o $tf).
-    $t = $ts->wrap($tf);
-    print $t, "\n";
+    # set up the transform between scientific and pixel coordinates
+    $tf = t_fits( $m51 );
+    print $tf,"\n";
 
+    # Make $ts happen in scientific coords:
+    $t = t_wrap($ts,$tf);
+    print $t,"\n";
 |;
 
 act q|
@@ -104,18 +107,17 @@ act q|
     $win->label_axes("","","M51");
 
     # Shrink m51 by a factor of 3; origin is at scientific origin.
-    $win->imag( $t->unmap($m51_float), $just );
+    $win->imag( $t->unmap($m51_fl,{nofits=>1}), $just );
     $win->label_axes("","","M51 shrunk by 3");
 
     # Grow m51 by a factor of 3; origin is still at sci. origin.
-    $win->imag( $t->map($m51_float), $just );
-    $win->label_axes("","","M51 grown by 3 (slow)");
+    $win->imag( $t->map($m51_fl,{nofits=>1}), $just );
+    $win->label_axes("","","M51 grown by 3 (interpolated)");
 
     # Grow m51 by a factor of 3; use sampling instead of bilinear interp.
     #  (much faster!)
-    $win->imag( $t->map($m51_float,{method=>"sample"}) );
-    $win->label_axes("","","M51 grown by 3 (fast)");
-
+    $win->imag( $t->map($m51_fl,{nofits=>1, method=>"sample"}) , $just );
+    $win->label_axes("","","M51 grown by 3 (sampled)");
 |;
 
 act q|
@@ -145,22 +147,73 @@ act q|
 act q|
 
     # Original image
-    $win->imag( $m51 );
+    $win->imag( $m51, $just );
     $win->label_axes("","","M51");
 
     # Stretched
-    $win->imag( $ts->compose($tu)->map($m51_float) );
-    $win->label_axes("\\\\gh","r","M51");
+    $win->imag( $ts->compose($tu)->map($m51_fl, [360,256],{nofits=>1}) );
+    $win->label_axes("\\\\gh (degrees)","r (pixels)","M51 radial (linear)");
 
     # Conformal
     $win->panel(3);
-    $win->imag( $ts_c->compose($tu_c)->map($m51_float) );
-    $win->label_axes("\\\\gh","r","M51 (conformal)");
-
-    $win->close();
+    $win->imag( $ts_c->compose($tu_c)->map($m51_fl, [360,360],{nofits=>1}));
+    $win->label_axes("\\\\gh (degrees)","r (log pixels)","M51 radial (conformal)");
 
 |;
 
+act q|
+    #####################
+    # Wrapping transformations allows you to work in a convenient
+    # space for what you want to do.  Here, we can use a simple
+    # skew matrix to find (and remove) logarithmic spiral structures in 
+    # the galaxy.  The "unspiraled" images shift the spiral arms into 
+    # approximate straight lines.
+
+    $sp = 3.14159;  # Skew by 3.14159 
+  
+    # Skew matrix
+    $t_skew = t_linear(pre => [$sp * 130, 0] , matrix => pdl([1,0],[-$sp,1]));
+    
+    # When put into conformal radial space, the skew turns into 3.14159 
+    # radians per scale height.
+    $t_untwist = t_wrap($t_skew, $tu_c);
+
+    # Press enter to see the result of these transforms...
+|;
+
+act q|
+    ##############################
+    # Note that you can use ->map and ->unmap as either PDL methods
+    # or transform methods; what to do is clear from context.
+
+    # Original image
+    $win->imag($m51,$just);
+    $win->label_axes("","","M51");
+
+    # Skewed
+    $win->imag( $m51_fl->map( $t_skew, {nofits=>1}), $just);
+    $win->label_axes("","","M51 skewed by \\\\gp in spatial coords");
+
+    # Untwisted -- show that m51 has a half-twist per scale height
+    $win->imag( $m51_fl->map( $t_untwist, {nofits=>1}),$just);
+    $win->label_axes("","","M51 unspiraled (\\\\gp / r\\\\ds\\\\u)");
+
+    # Untwisted -- the jacobean method uses variable spatial filtering 
+    # to eliminate spatial artifacts, at significant computational cost
+    # (This may take some time to complete).
+    $win->imag( $m51_fl->map( $t_untwist, {nofits=>1, m=>jacobean}),$just);
+    $win->label_axes("","","M51 unspiraled (\\\\gp / r\\\\ds\\\\u; antialiased)");
+|;
+
+act q|
+    ##############################
+    # This concludes the PDL::Transform demo.
+    #
+    # You can use transforms both to resample image data and to transform
+    # vectors.  How to do that, along with many useful projection transforms,
+    # is demonstrated in the "Cartography" demo.
+    #
+|;
 } 
 
 1;

@@ -847,7 +847,7 @@ sub map {
       ### Pedal to the metal -- accumulate input values and scale by their
       ### appropriate filter value.
       print "grabbing data..." if($PDL::debug);
-      print "(bound=$bound)";
+
       my($input) = $reduced->range(
 			      $coords_in         #(pix-list,coord,rgn-list)
 			        ->(:,:,(0))        #(pix-list,coord)

@@ -1,8 +1,13 @@
+CED (28-Jan-2003)
+    - Added fits_vect method to Window
+    - Improved Transform demo (whizzy despiraling demo at end)
+    - Fixed MANIFEST.
 CED (27-Jan-2003)
     - Rearranged Lib/Transform to be more like the rest of the source tree.
     - Several bug fixes in Transform code
     - Improvements to ->map() method
     - Added truncation to ->range operator
+    - Switched ->indexND to use ->range (for better data flow)
     - Added EQUIVCPTRUNC macro to PP, for permissive slicing operators 
 	(like ->range) that can extend out-of-bounds.
 CED (20-Jan-2003)

@@ -1612,6 +1612,17 @@ The following standard options influence this command:
  $b=rvals(11,11,{Centre=>[0,0]});
  vect $a, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
+=head2 fits_vect
+
+=for ref
+
+Display a pair of 2-D piddles as vectors, with FITS header interpretation
+
+=for usage
+
+ Usage: fits_vect ($a, $b, [$scale, $pos, $transform, $misval] )
+
+C<fits_vect> is to L<vect|/vect> as L<fits_imag|/fits_imag> is to L<imag|imag>.
 
 =head2 transform
 
@@ -5254,10 +5265,8 @@ sub imag1 {
 # by fits_imag and fits_cont.
 #
 sub _fits_foo {
-  my($pane) = shift;
-  my($cmd) = shift;
-  my($pdl) = shift;
-  my($opt_in) = shift;
+  my($in,$opt_in) = _extract_hash(@_);
+  my($pane,$cmd,$pdl,@rest) = @$in;
 
   $opt_in = {} unless defined($opt_in);
 
@@ -5301,8 +5310,8 @@ sub _fits_foo {
 
   $opt2{pix}=1.0 
     if( (!defined($opt2{Pix})) && ($hdr->{CTYPE1} eq $hdr->{CTYPE2}));
-
-  eval '$pane->'.$cmd.'($pdl,\%opt2);';
+  my($o2) = \$opt2;
+  eval '$pane->'.$cmd.'($pdl,@rest,$o2);';
 
   $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
 		    $opt->{YTitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
@@ -5324,6 +5333,11 @@ sub fits_rgbi {
 sub fits_cont {
   my($self) = shift;
   _fits_foo($self,'cont',@_);
+}
+
+sub fits_vect {
+  my($self) = shift;
+  _fits_vect($self,'vect',@_);
 }
 
 # Load a colour table using pgctab()
