@@ -1,5 +1,12 @@
+CED 16-Jan-2005
+   - pdlcore.c.PL: Following Alexey Tourbin's awesome research,
+   removed a segfault problem when foreign blessed objects are pdlified.
+   Now, SvPDLV croaks if a foreign blessed object is detected
+   (avoiding a segfault); but stay tuned: there might be a better
+   answer in this case.
 CED 13-Jan-2005
-   - transform.pd: remove typo introduced in removal of C double types 
+   - transform.pd: remove typo introduced in removal of C double types
+   (thanks, Henning!)
 CED 09-Jan-2005
    - Core.pm.PL: Restored original barf behavior: reports error where
      it occured in user code, not within PDL.

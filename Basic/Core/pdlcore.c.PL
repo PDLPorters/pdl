@@ -225,8 +225,6 @@ pdl* SvPDLV ( SV* sv ) {
 
       ret = pdl_new();  /* Scratch pdl */
 
-/*       ret->sv = (void*) sv; !! */
-
 /* Scratch hash for the pdl :( - slow but safest. */
 
 	/* handle undefined values */		       
@@ -277,7 +275,7 @@ print OUT <<'!NO!SUBS!';
        pdl_makescratchhash(ret,data,datatype);
 
        return ret;
-   }
+   } /* End of scalar case */
 
 #undef FOODEB
 #ifdef FOODEB
@@ -348,15 +346,24 @@ print OUT <<'!NO!SUBS!';
 	printf("SvRV2: %d\n",SvRV(sv));
 	printf("SvTYPE2: %d\n",SvTYPE(SvRV(sv)));
 #endif
-   }
+    }
 
-
-   if (SvTYPE(SvRV(sv)) != SVt_PVMG)
-      croak("Error - argument is not a recognised data structure");
+    if (SvTYPE(SvRV(sv)) != SVt_PVMG) 
+      croak("Error - tried to use an unknown data structure as a PDL");
+    else if( !( sv_derived_from( sv, "PDL") ) )
+      croak("Error - tried to use an unknown Perl object type as a PDL");
 
    sv2 = (SV*) SvRV(sv);
 
-#ifdef FOIJFSOEFJSEOFJSOEIJFOISJFEFSF
+
+/* The below "CRUFTY" code is, I believe, intended to make (e.g.)
+ * "$a = $b" copy the underlying PDL for $b, rather than simply
+ * generating a reference to the same PDL.  It is commented out because
+ * dataflow is the current default (you have to ask for a copy explicitly,
+ * if you want one).
+ *   --CED 16-Jan-2005
+ */
+#ifdef OLD_CRUFTY_CODE_FOR_ASSIGNMENT_AVOIDANCE
    /* Now, do magic: check if there are more than this one ref
       to this internal sv. If there are, we've been "="'ed
       (assigned) elsewhere and therefore must copy to keep
@@ -372,13 +379,12 @@ print OUT <<'!NO!SUBS!';
 	SetSV_PDL(sv,pnew);
 	ret = pnew;
    } else {
-#else
 	   ret = INT2PTR(pdl *,SvIV(sv2));
-#endif
-#ifdef FOOOOOOOO
    }
+#else
+    ret = INT2PTR(pdl *, SvIV(sv2));
 #endif
-
+   
    if(ret->magicno != PDL_MAGICNO) {
    	croak("Fatal error: argument is probably not a piddle, or\
  magic no overwritten. You're in trouble, guv: %d %d %d\n",sv2,ret,ret->magicno);

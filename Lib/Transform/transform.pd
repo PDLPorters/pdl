@@ -1588,7 +1588,7 @@ sub map {
 
 
   ### The first argument is a dummy to set $GENERIC.
-  $idx = PDL_Double($idx) unless($idx->type == PDL_Double);
+  $idx = double($idx) unless($idx->type == double);
   &PDL::_map_int( $in2->flat->index(0), 
 	$in2, $o2, $idx, 
 	$bound, $method, $big, $blur, $svmin, $flux );
