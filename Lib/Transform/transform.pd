@@ -1453,7 +1453,7 @@ sub map {
       }
       $out->hdr->{"NAXIS"} = $nd;
       $out->hdr->{"SIMPLE"} = 'T';
-      $out->hdr->{"COMMENT"} = "Header written by PDL::Transform::Cartography::map";
+      $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
     }
   
   $out->hdrcpy(1);
