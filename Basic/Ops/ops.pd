@@ -55,6 +55,7 @@ EOH
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  c = a;  /* discard output value, leak? */
+				  PDL->SetSV_PDL(c_SV,c);
 				}',
 	pp_def($name,
 		Pars => 'a(); b(); [o]c();',
@@ -102,6 +103,7 @@ EOH
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  c = a;  /* discard output value, leak? */
+				  PDL->SetSV_PDL(c_SV,c);
 				}';
 	my $ovcall;
 	# is this one to be used as a function or operator ?
@@ -144,6 +146,7 @@ sub ufunc {
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  b = a;  /* discard output value, leak? */
+				  PDL->SetSV_PDL(b_SV,b);
 				}',
 		%extra,
 		Doc => << "EOD");

@@ -15,7 +15,7 @@ sub approx {
 	return $d < 0.01;
 }
 
-print "1..32\n";
+print "1..33\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -115,3 +115,5 @@ $a->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
 ok(31, approx $a, pdl 2);
 $warning_shutup = $warning_shutup = sqrt $a->inplace;
 ok(32, approx $a, pdl($sq2));
+$a = pdl 4;
+ok(33, approx 2, sqrt($a->inplace));

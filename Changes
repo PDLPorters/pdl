@@ -1,4 +1,5 @@
 (!!! = possible source of incompatibilities)
+CS	- ops.pd: fix inplace problem (reported by Tim Conrow)
 Doug Burke (07/27/00)
     - some minor changes to PP.pm & PDLCode.pm (no longer generates
       'THISISxxx' macros in xs code unless they're required.
