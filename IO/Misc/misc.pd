@@ -1173,6 +1173,86 @@ endread:
   return nread;
 }
 
+int getdouble(PerlIO *fp, PDL_Double *fz)
+{
+  PDL_Double f = 0;
+  int nread = 0;
+  int i, s = PerlIO_getc(fp);
+  int afterp = 0, aftere=0;
+  int expo = 0;
+  PDL_Double sig = 1.0, esig = 1.0;
+  PDL_Double div = 1.0;
+
+  if (s == EOF) return 0;
+  while (1) {
+    if (s == EOF)
+      return 0;   /* signal end of line */
+    if (s == '#')
+      SWALLOWLINE(fp);
+    if ((s >='0' && s <='9') || s =='.' || s == 'e' || s == 'E' 
+        || s == '+' || s == '-') break; 
+    if (s!=' ' && s!='\t' && s!='\r' && s!='\n' && s!=',')
+      return -1;  /* garbage */      
+    s = PerlIO_getc(fp); /* else skip whitespace */
+  }
+  /* parse number */
+  while (1) {
+    switch (s) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      if (aftere)
+        expo = (expo*10) + (s - '0');
+      else if (afterp) {
+        div /= 10.0;
+        f += div*(s - '0');
+      } else
+        f = (f*10) + (s - '0');
+      break;
+    case '+':
+      /* ignore */
+      break;
+    case '-':
+      if (aftere)
+        esig = -1;
+      else
+        sig = -1;
+      break;
+    case 'e':
+    case 'E':
+      if (aftere)
+        return -1;
+      aftere = 1;
+      break;
+    case '.':
+      if (afterp || aftere)
+        return -1;
+      afterp = 1;
+      break;
+    default:
+      goto endread;
+      break;
+    }
+    nread++;
+    s = PerlIO_getc(fp);
+  }
+endread:
+  f *= sig;
+  for (i=0;i<expo; i++)
+    f *= (esig > 0 ? 10.0 : 0.1);
+
+  *fz = f;
+  TRAILING_WHITESPACE_CHECK(s);
+  return nread;
+}
+
 EOH
 
 pp_add_exported('', 'rasc rcube');
@@ -1193,7 +1273,8 @@ nonexistent).
       Where:
   	filename is the name of the ASCII file to read
 	$noElements is the optional number of elements in the file to read.
-	     (If not present, all of the file will be read to fill up $pdl)
+	    (If not present, all of the file will be read to fill up $pdl).
+	$pdl can be of type float or double for more precision.
 
 =for example
 
@@ -1283,7 +1364,7 @@ EOPM
 pp_def('_rasc',
        Pars => '[o] nums(n)',
        OtherPars => 'int num => n; char* fd',
-       GenericTypes => [F],
+       GenericTypes => [F,D],
        Code => q@ 
                  int ns, i;
                  PerlIO *fp;
@@ -1295,7 +1376,7 @@ pp_def('_rasc',
                  ns = $SIZE(n);
                  threadloop %{
                    for (i=0;i<ns; i++) {
-                       if (getfloat(fp, &($nums(n=>i))) <= 0)
+                       if ($TFD(getfloat,getdouble)(fp, &($nums(n=>i))) <= 0)
                               break;
                    }
                  %}
