@@ -44,7 +44,7 @@ ok(7,$lu->flat->at(-1)==0);
 
 ### Check inversion -- this also checks lu_backsub
 
-$a1 = inv($a,$opt={s=>1,lu=>undef});
+$a1 = inv($a,$opt={s=>1,lu=>\@a});
 $identity = zeroes(3,3); $identity->diagonal(0,1)++;
 
 ok(8,defined $a1);
@@ -53,7 +53,7 @@ ok(10,near(matmult($a1,$a),$identity));
 
 ### Check attempted inversion of a singular matrix
 $b2=undef; # avoid warning from compiler
-eval '$b2 = inv($b,$opt={s=>1})';
+eval '$b2 = inv($b,{s=>1})';
 ok(11,!$@);
 ok(12,!defined $b2);
 

@@ -32,6 +32,7 @@ pp_addhdr('
 }
 
 use strict;
+use PDL::NiceSlice;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -93,7 +94,7 @@ explicitly include the trailing 'x1' dimension in order to get the expected
 results when you thread over multiple row vectors.
 
 When threading over matrices, it's very easy to get confused about 
-which dimension goes where. It's useful to include comments with 
+which dimension goes where. It is useful to include comments with 
 every expression, explaining what you think each dimension means:
 
 	$a = xvals(360)*3.14159/180;        # (angle)
@@ -103,7 +104,7 @@ every expression, explaining what you think each dimension means:
 =head1 NOTES
 
 This is intended as a general-purpose linear algebra package.  
-If there's something you want that isn't here, please add and document it!
+If there is something you want that is not here, please add and document it!
 
 =head1 TO DO
 
@@ -206,10 +207,10 @@ exists).  The code is inplace-aware, so you can get back the inverse
 in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
 
-C<inv> uses lu_decomp by default; that's a numerically stable (pivoting)
+C<inv> uses lu_decomp by default; that is a numerically stable (pivoting)
 LU decomposition method.  If you ask it to thread then a numerically
-unstable (non-pivoting) method is used instead, so don't thread 
-over largish or near-singular matrices unless you don't care about the anwer.
+unstable (non-pivoting) method is used instead, so avoid thread ing
+over largish or near-singular matrices unless precision is not important.
 
 
 OPTIONS:
@@ -219,7 +220,7 @@ OPTIONS:
 =item * s
 
 Boolean value indicating whether to complain if the matrix is singular.  If
-this is false, singular matrices cause inverse to barf.  If it's true, then 
+this is false, singular matrices cause inverse to barf.  If it is true, then 
 singular matrices cause inverse to return undef.
 
 =item * lu (I/O)
@@ -228,7 +229,7 @@ This value contains a list ref with the LU decomposition, permutation,
 and parity values for $a.  If you do not mention the key, or if the
 value is undef, then inverse calls lu_decomp.  If the key exists with
 an undef value, then the output of lu_decomp is stashed here (unless
-the matrix is singular).  If the value exists, then it's assumed to
+the matrix is singular).  If the value exists, then it is assumed to
 hold the lu decomposition.
 
 =item * det (Output)
@@ -246,6 +247,7 @@ sub inv {
   my $opt = shift;
   $opt = {} unless defined($opt);
 
+
   barf "inverse needs a square PDL as a matrix\n" 
     unless(UNIVERSAL::isa($a,'PDL') &&
 	   $a->dims >= 2 &&
@@ -254,22 +256,23 @@ sub inv {
 
   my ($lu,$perm,$par);
   if(exists($opt->{lu}) &&
-     ref $opt->{lu} eq 'ARRAY') {
-    ($lu,$perm,$par) = @{$opt->{lu}};
+     ref $opt->{lu} eq 'ARRAY' &&
+     ref $opt->{lu}->[0] eq 'PDL') {
+	    ($lu,$perm,$par) = @{$opt->{lu}};
   } else {
     ($lu,$perm,$par) = lu_decomp($a);
-    $opt->{lu} = [$lu,$perm,$par]
-      if exists($opt->{lu});
+    @{$opt->{lu}} = ($lu,$perm,$par)
+     if(ref $opt->{lu} eq 'ARRAY');
   }
 
-  my $det = (defined $lu) ? $lu->diagonal(0,1)->prodover * $par : 0;
+  my $det = (defined $lu) ? $lu->diagonal(0,1)->prodover * $par : pdl(0);
   $opt->{det} = $det
     if exists($opt->{det});
 
   unless($det->nelem > 1 || $det) {
     return undef 
       if $opt->{s};
-    barf("inverse: got a singular matrix or LU decomposition\n");
+    barf("PDL::inv: got a singular matrix or LU decomposition\n");
   }
 
   my $out = lu_backsub($lu,$perm,$par,identity($a))->xchg(0,1)->sever;
@@ -328,7 +331,7 @@ OPTIONS:
 Provides a cache for the LU decomposition of the matrix.  If you 
 provide the key but leave the value undefined, then the LU decomposition
 goes in here; if you put an LU decomposition here, it will be used and
-the matrix won't be decomposed again.
+the matrix will not be decomposed again.
 
 =back
 
@@ -421,21 +424,21 @@ sub determinant {
   }
   
   my($i);
-  my($sum) = zeroes($a->slice("(0),(0)")); 
+  my($sum) = zeroes($a->((0),(0)));
 
   # Do middle submatrices
   for $i(1..$n-2) {
-    my $el = $a->slice("($i),(0)");
+    my $el = $a->(($i),(0));
     next if( ($el==0)->all );  # Optimize away unnecessary recursion
 
     $sum += $el * (1-2*($i%2)) * 
-      determinant(        $a->slice("0:".($i-1).",1:-1") ->
-		   append($a->slice(($i+1).":-1,1:-1")));
+      determinant(        $a->(0:$i-1,1:-1)->
+		   append($a->($i+1:-1,1:-1)));
   }
 
   # Do beginning and end submatrices
-  $sum += $a->slice("(0),(0)")  * determinant($a->slice("1:-1,1:-1"));
-  $sum -= $a->slice("(-1),(0)") * determinant($a->slice("0:-2,1:-1")) * (1 - 2*($n % 2));
+  $sum += $a->((0),(0))  * determinant($a->(1:-1,1:-1));
+  $sum -= $a->((-1),(0)) * determinant($a->(0:-2,1:-1)) * (1 - 2*($n % 2));
   
   return $sum;
 }
@@ -452,11 +455,11 @@ pp_def("eigens",
 	GenericTypes => ['D'],
 	Code => '
 		extern void eigens( double *A, double *RR, double *E, int N );
-		register int sn = $SIZE(n);
-		if($SIZE(m) != (sn * (sn + 1))/2) {
+		register int sn = $SIZE (n);
+		if($SIZE (m) != (sn * (sn + 1))/2) {
 			barf("Wrong sized args for eigens");
 		}
-		eigens($P(a), $P(ev), $P(e), sn);
+		eigens($P (a), $P (ev), $P (e), sn);
 ',
       PMCode =>'
    sub PDL::eigens {
@@ -521,28 +524,28 @@ pp_def(
        GenericTypes => ['D'],
        Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
-              int sm = $SIZE(m), sn = $SIZE(n), i;
+              int sm = $SIZE (m), sn = $SIZE (n), i;
               double *w, *t, zv;
               t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
               loop (m) %{
                 loop(n) %{
-                  *t++ = $a();
+                  *t++ = $a ();
                 %}
               %}
-              SVD(w, $P(z), sm, sn);
+              SVD(w, $P (z), sm, sn);
               t = w;
               loop (n) %{
-                zv = sqrt($z());
-                $z() = zv;
+                zv = sqrt($z ());
+                $z () = zv;
               %}
               loop (m) %{
                 loop (n) %{
-                  $u() = *t++/$z();
+                  $u () = *t++/$z ();
                 %}
               %}
               loop (n) %{
                 for (i=0;i<sn;i++) {
-                  $v(n0=>i, n1=>n) = *t++;
+                  $v (n0=>i, n1=>n) = *t++;
                 }
               %}
               free(w);
@@ -676,7 +679,7 @@ sub lu_decomp {
        $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));
 
-  if(($in->ndims > 2) && !( (pdl($in->dims)->slice("2:-1") < 2)->all )  ) {
+  if(($in->ndims > 2) && !( (pdl($in->dims)->(2:-1) < 2)->all )  ) {
     warn('lu_decomp: calling lu_decomp2 for threadability') 
       if($PDL::debug);
     return lu_decomp2($in,$permute,$parity,$sing_ok);
@@ -727,8 +730,8 @@ sub lu_decomp {
       if($klim > 0) {
 	$klim--;
 	my($el) = $out->index2d($col,$row);
-	$el -= ( $out->slice("($col),0:$klim") *
-		 $out->slice("0:$klim,($row)") )->sum;
+	$el -= ( $out->(($col),0:$klim) *
+		 $out->(0:$klim,($row)) )->sum;
       }
 
     }
@@ -737,7 +740,7 @@ sub lu_decomp {
     
     if($col < $n1) {
       # Find the maximum value in the rest of the row
-      my $sl = $out->slice("($col),$col:$n1");
+      my $sl = $out->(($col),$col:$n1);
       my $wh = $sl->maximum_ind;
       my $big = $sl->index($wh)->sever;
       
@@ -745,8 +748,8 @@ sub lu_decomp {
       if($wh != 0) {  # Permute rows to place maximum element on diagonal.
 	my $whc = $wh+$col;
 	
-	my $sl1 = $out->slice(":,($whc)");
-	my $sl2 = $out->slice(":,($col)");
+	my $sl1 = $out->(:,($whc));
+	my $sl2 = $out->(:,($col));
 	$tmprow .= $sl1;  $sl1 .= $sl2;  $sl2 .= $tmprow;
 	
 	$sl1 = $permute->index($whc);
@@ -761,7 +764,7 @@ sub lu_decomp {
 	if(abs($big) < $TINY);
       
       # Divide by the diagonal element (which is now the largest element)
-      $out->slice("($col),".($col+1).":$n1") /= $big;
+      $out->(($col),$col+1:$n1) /= $big;
     } # end of pivoting part
   } # end of column loop
 
@@ -867,8 +870,8 @@ sub lu_decomp2 {
 	$klim--;
 	my($el) = $out->index2d($col,$row);
 
-	$el -= ( $out->slice("($col),0:$klim") *
-		 $out->slice("0:$klim,($row)") )->sumover;
+	$el -= ( $out->(($col),0:$klim) *
+		 $out->(0:$klim,($row)) )->sumover;
       }
 
     }
@@ -876,7 +879,7 @@ sub lu_decomp2 {
     # Figure a_ij, with no pivoting
     if($col < $n1) {
       # Divide the rest of the column by the diagonal element 
-      $out->slice("($col),".($col+1).":$n1") /= $diagonal->index($col)->dummy(0,$n1-$col);
+      $out->(($col),$col+1:$n1) /= $diagonal->index($col)->dummy(0,$n1-$col);
     }
 
   } # end of column loop
@@ -916,20 +919,20 @@ Solve A X = B for matrix A, by back substitution into A's LU decomposition.
 
 Given the LU decomposition of a square matrix (from L<lu_decomp|lu_decomp>),
 lu_backsub does back substitution into the matrix to solve C<A X = B> for 
-given vector C<B>.  It's separated from the lu_decomp method so that you can
+given vector C<B>.  It is separated from the lu_decomp method so that you can
 call the cheap lu_backsub multiple times and not have to do the expensive
 LU decomposition more than once.  
 
 lu_backsub acts on single vectors and threads in the usual way, which
 means that it treats C<$b> as the I<transpose> of the input.  If you
 want to process a matrix, you must hand in the I<transpose> of the
-matrix, and then transpose the output when you get it back.  That's
+matrix, and then transpose the output when you get it back.  That is
 because PDLs are indexed by (col,row), and matrices are (row,column)
 by convention, so a 1-D PDL corresponds to a row vector, not a column
 vector.
 
 If C<$lu> is dense and you have more than a few points to solve for,
-it's probably cheaper to find C<A^-1> with L<inverse|inverse>, and
+it is probably cheaper to find C<A^-1> with L<inverse|inverse>, and
 just multiply C<X = A^-1 B>.)  In fact, L<inverse|inverse> works by
 calling lu_backsub with the identity matrix.
 
@@ -976,8 +979,11 @@ sub lu_backsub {
 
   # Make sure threading over lu happens OK...
 
-  while($out->ndims < $lu->ndims) {
-    $out = $out->dummy(-1,$lu->dim($out->ndims));
+  if($out->ndims < $lu->ndims) {
+    do {
+      $out = $out->dummy(-1,$lu->dim($out->ndims));
+    } while($out->ndims < $lu->ndims);
+    $out = $out->sever;
   }
 
   ## Do forward substitution into L
@@ -985,8 +991,8 @@ sub lu_backsub {
 
   for $row(1..$n1) {
     $r1 = $row-1;
-    $out->index($row) -= ($lu->slice("0:$r1,$row") * 
-		       $out->slice("0:$r1")
+    $out->index($row) -= ($lu->(0:$r1,$row) * 
+		       $out->(0:$r1)
 		       )->sumover;
   }
 
@@ -996,8 +1002,8 @@ sub lu_backsub {
 
   for ($row=$n1; $row>0; $row--) {
     $r1 = $row-1;
-    $out->index($r1) -= ($lu->slice("$row:$n1,$r1") * 
-			$out->slice("$row:$n1")
+    $out->index($r1) -= ($lu->($row:$n1,$r1) * 
+			$out->($row:$n1)
 			)->sumover;
     $out->index($r1) /= $ludiag->index($r1);
   }
@@ -1022,7 +1028,7 @@ pp_def("simq",
 	Code => '
 		extern int simq( double *A, double *B, double *X,
 			int n, int flag, int *IPS );
-		simq($P(a),$P(b),$P(x),$SIZE(n),$COMP(flag),$P(ips));
+		simq($P (a),$P (b),$P (x),$SIZE (n),$COMP (flag),$P (ips));
 ',
       Doc => '
 =for ref
@@ -1060,17 +1066,17 @@ less opaque interface.
 pp_def("squaretotri",
 	Pars => 'a(n,n); b(m)',
 	Code => '
-             register int mna=0, nb=0, ns = $SIZE(n);
+             register int mna=0, nb=0, ns = $SIZE (n);
             #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
             dXSARGS;
              #endif
 
-	    if($SIZE(m) != (ns * (ns+1))/2) {
+	    if($SIZE (m) != (ns * (ns+1))/2) {
 	       barf("Wrong sized args for squaretotri");
 	    }
             threadloop %{
 		loop(m) %{
-                       $b() = $a(n0 => mna, n1 => nb);
+                       $b () = $a (n0 => mna, n1 => nb);
                       mna++; if(mna > nb) {mna = 0; nb ++;}
 		%}
              %}

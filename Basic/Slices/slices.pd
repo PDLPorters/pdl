@@ -487,28 +487,27 @@ Extract selected chunks from a source piddle, with boundary conditions
 
 =for example
 
-	$out = $source->range($indices,[$size,[$boundary]])
+	$out = $source->range($index,[$size,[$boundary]])
 
-Returns a rectangular slice of the original piddle, indexed by the index
-piddle.
+Returns elements or rectangular slices of the original piddle, indexed by 
+C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is 
+a piddle whose first dimension has order up to N.  Each row of C<$index> is 
+treated as coordinates of a single value or slice from C<$source>, specifying 
+the location(s) to extract.  
 
-C<$source> is an N-dimensional piddle, and C<$indices> is a 2-dimensional
-NxM-piddle, specifying M separate ranges to extract into the single
-return piddle.  
+C<$index> and C<$size> can be piddles or array refs such as you would
+feed to the piddle constructor.
 
-C<$size> may be either undef, a scalar, or an N-piddle, and it specifies the
-dimensions of the output array.  If an element of C<$size> is zero, then a
-single sample is taken in the corresponding dimension, and that dimension
-is omitted from the output -- so setting, e.g., C<$size = pdl(2,0)> yields
-a collection of 2-piddles, while C<$size=pdl(2,1)> yields a collection of
-2x1-piddles.  Same data, different dim list.
+You can extract single elements or N-D rectangular ranges from C<$source>,
+by setting C<$size>.  If C<$size> is undef or zero, then you get a single
+sample for each row of C<$index>.  This behavior is similar to 
+L<indexNDb|indexNDb>, which is in fact implemented as a call to L<range|range>.
 
-If you pass in a scalar C<$size>, then it is expanded to the size of the
-index dimension.
-
-If you omit C<$size> entirely, it is treated exactly the same as passing
-in C<0>, which is to say you get similar behavior to L<indexNDb|indexNDb>.
-(which is in fact implemented as call to C<range>).  
+If C<$size> is positive then you get a range of values from C<$source> at 
+each location, and the output has an extra dimension allocated for it.  
+C<$size> can be a scalar, in which case it applies to all dimensions, or an 
+N-vector, in which case each element is applied independently to the 
+corresponding dimension in C<$source>.
 
 $boundary is a single number or string, indicating the type of boundary
 conditions to use when ranges reach the edge of $source:
@@ -540,21 +539,27 @@ duplicating the $source piddle throughout dimension space.
 
 =back
 
-Dimensions of $source are threaded over -- ie if $source has N+K dimensions
-then the $out gets K extra dimensions, each of which runs over the full
-size of the corresponding dimension in $source.
+The output threads over both C<$index> and C<$source>.  Because implicit 
+threading can happen in a couple of ways, a little thought is needed.  The
+returned dimension list is stacked up like this:
 
-C<range> does full threading over the index.  Because implicit
-threading can happen in two ways, a little thought is needed.
-The returned dimension list is stacked up like so:
+   (index thread dims), (index dims (size)), (source thread dims)
 
-	(index thread dims),(index dims (size)),(source excess thread dims)
+The first few dims of the output correspond to the extra dims of
+C<$index> (beyond the 0 dim). They allow you to pick out individual
+ranges from a large, threaded collection.
 
-Note that each of the sets of dims can be allocated or not depending
-on context, so you have to be careful about how you thread.  In
-particular, if C<$index> has only 1 dimension, then there are no index
-thread dims at all.  If C<$index> has 3 dimensions, then it is
-collapsed to 2 index thread dims by the lookup operation.
+The middle few dims of the output correspond to the size dims
+specified in C<$size>, and contain the range of values that is extracted
+at each location in C<$source>.  Every nonzero element of C<$size> is copied to
+the dimension list here, so that if you feed in (for example) C<$size
+= (2,0,1)> you get an index dim list of C<(2,1)>.
+
+The last few dims of the output correspond to extra dims of C<$source> beyond
+the number of dims indexed by C<$index>.  These dims act like ordinary 
+thread dims, because adding more dims to C<$source> just tacks extra dims
+on the end of the output.  Each source thread dim ranges over the entire
+corresponding dim of C<$source>.
 
 B<Dataflow>: Dataflow is bidirectional.
 
@@ -564,53 +569,62 @@ ranges out of a small matrix.  The first few examples show extraction
 and selection of individual chunks.  The last example shows
 how to mark loci in the original matrix (using dataflow).
 
-    perldl> $src = 10*xvals(10,5)+yvals(10,5)
-    perldl> print $src->range(pdl(2,3))    # Cut out a single element
-    23
-    perldl> print $src->range(pdl(2,3),1)  # Cut out a single 1x1 block
-    [
-     [23]
-    ]
-    perldl> print $src->range(pdl(2,3), pdl(2,1)) # Cut a 2x1 chunk
-    [
-     [23 33]
-    ]
-    perldl> print $src->range(pdl([[2,3]]),pdl(2,1)) # Trivial list of 1 chunk
-    [
-     [
-      [23]
-      [33]
-     ]
-    ]
-    perldl> print $src->range(pdl([2,3],[0,1]), pdl(2,1)) # two 2x1 chunks
-    [
-     [
-      [23  1]
-      [33 11]
-     ]
-    ]
-    perldl> print $src->range(pdl([2,3],[0,1]),pdl(2,1))->((0)) # 0th chunk
-    [
-     [23 33]
-    ]
+ perldl> $src = 10*xvals(10,5)+yvals(10,5)
+ perldl> print $src->range([2,3])    # Cut out a single element
+ 23
+ perldl> print $src->range([2,3],1)  # Cut out a single 1x1 block
+ [
+  [23]
+ ]
+ perldl> print $src->range([2,3], [2,1]) # Cut a 2x1 chunk
+ [
+  [23 33]
+ ]
+ perldl> print $src->range([[2,3]],[2,1]) # Trivial list of 1 chunk
+ [
+  [
+   [23]
+   [33]
+  ]
+ ]
+ perldl> print $src->range([[2,3],[0,1]], [2,1])   # two 2x1 chunks
+ [
+  [
+   [23  1]
+   [33 11]
+  ]
+ ]
+ perldl> # A 2x2 collection of 2x1 chunks
+ perldl> print $src->range([[[1,1],[2,2]],[[2,3],[0,1]]],[2,1])
+ [
+  [
+   [
+    [11 22]
+    [23  1]
+   ]
+   [
+    [21 32]
+    [33 11]
+   ]
+  ]
+ ]
+ perldl> $src = xvals(5,3)*10+yvals(5,3)
+ perldl> print $src->range(3,1)  /* Thread over y dimension in $src */
+ [
+  [30]
+  [31]
+  [32]
+ ]
 
-    perldl> $src = xvals(5,3)*10+yvals(5,3)
-    perldl> print $src->range(3,1)  /* Thread over y dimension in $src */
-    [
-     [30]
-     [31]
-     [32]
-    ]
-   
-    perldl> $src = zeroes(5,4);
-    perldl> $src->range(pdl([2,3],[0,1]),pdl(2,1)) .= xvals(2,2,1) + 1
-    perldl> print $src
-    [
-     [0 0 0 0 0]
-     [2 2 0 0 0]
-     [0 0 0 0 0]
-     [0 0 1 1 0]
-    ]
+ perldl> $src = zeroes(5,4);
+ perldl> $src->range(pdl([2,3],[0,1]),pdl(2,1)) .= xvals(2,2,1) + 1
+ perldl> print $src
+ [
+  [0 0 0 0 0]
+  [2 2 0 0 0]
+  [0 0 0 0 0]
+  [0 0 1 1 0]
+ ]
 
 B<CAVEAT>: It's quite possible to select multiple ranges that
 intersect.  In that case, modifying the ranges doesn't have a
@@ -626,7 +640,7 @@ The reason is that if two photons land in the same bin, then that bin
 doesn't get incremented twice.  (That may get fixed in a later version...)
 
 B<Efficiency>: Because C<range> isn't an affine transformation (it
-involves lookup into a single list of N-D indices), it is somewhat
+involves lookup into a list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
 is somewhat slower than for affine transformations (which don't have
 to copy data around).  Thus, if you have a few very large (order of
@@ -848,6 +862,9 @@ EOD-MakeComp
 
   /* Check index compatibility with parent. */
   if(stdim < 0) {
+    $CHILD(ndims) = 0;
+    $SETNDIMS(0);
+    $SETDIMS();
     barf("range: parent has too few dims (permissive ranging not yet allowed)");
   }
 
@@ -909,8 +926,11 @@ EOD-RedoDims
   for(; k < $PARENT_P(ndims); k++) 
      *(sp++) = $PARENT_P(dims[k]);
 
+
+  /* Loop over all the ranges in the index list */
   for(item=0; item<$COMP(nitems); item++) {
-    /* initialize in-range iterator */
+
+    /* initialize in-range iterator to loop within each range */
     for(ip = iter, k=0; k<$PARENT_P(ndims); k++) 
       *(ip++) = 0;
     
@@ -920,9 +940,10 @@ EOD-RedoDims
       long k2;
 
 
+      /* Collect and boundary-check the current N-D coords */
       for(k=0; k < $COMP(rdim); k++){
- 	long ck = coords[k] = iter[k] + 
-	                      $COMP(corners[ item * $COMP(rdim) + k  ]) ;
+ 	long ck = iter[k] + 
+	          $COMP(corners[ item * $COMP(rdim) + k  ]) ;
  	if(ck < 0 || ck >= $PARENT_P(dims[k])) {
  	  switch($COMP(boundary)) {
  	  case 0: /* no boundary breakage allowed */
@@ -932,23 +953,23 @@ EOD-RedoDims
  	    barf("truncation not allowed yet in range\n");
  	    break;
  	  case 2: /* extension -- crop */
- 	    coords[k] = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
+ 	    ck = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
  	    break;
  	  case 3: /* periodic -- mod it */
- 	    coords[k] %= $PARENT_P(dims[k]);
- 	    if(coords[k] < 0)   /* Fix mod breakage in C */
- 	      coords[k] += $PARENT_P(dims[k]);
+ 	    ck %= $PARENT_P(dims[k]);
+ 	    if(ck < 0)   /* Fix mod breakage in C */
+ 	      ck += $PARENT_P(dims[k]);
  	    break;
  	  default:
  	    barf("Unknown boundary condition in range -- bug alert!");
  	    break;
  	  }
  	}
+	coords[k] = ck;
       }
 
+      /* Find offsets into the child and parent arrays, from the N-D coords */
       coff = $CHILD_P(dimincs[0]) * item;
-
-      /* Find offsets into the child and parent arrays */
       for(k2 = $COMP(itdim), poff = k = 0; 
 	  k < $COMP(rdim); 
 	  k++) { 
@@ -962,6 +983,7 @@ EOD-RedoDims
 	long poff1 = poff;
 	long coff1 = coff;
 	
+	/* Accumulate the offset due to source threading */
 	for(k2 = $COMP(itdim) + $COMP(ntsize), k = $COMP(rdim); 
 	    k<$PARENT_P(ndims); 
 	    k++) {
@@ -969,19 +991,22 @@ EOD-RedoDims
 	  coff1 += iter[k] * $CHILD_P(dimincs[k2++]);
 	}
 
+	/* Finally -- make the copy */
 	$EQUIVCPOFFS(coff1,poff1);
 
+	/* Increment the source thread iterator */
 	for( k=$COMP(rdim); 
 	     k < $PARENT_P(ndims) && (++(iter[k]) >= $PARENT_P(dims[k])); 
 	     k++)
 	  iter[k] = 0;
       } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
 
+      /* Increment the in-range iterator */
       for(k = 0;
 	  k < $COMP(rdim) && (++(iter[k]) >= $COMP(sizes[k]));
 	  k++)
 	iter[k] = 0;
-    } while(k < $COMP(rdim)); /* end of main iterator */
+    } while(k < $COMP(rdim)); /* end of main iteration */
   } /* end of item do loop */
 
 }

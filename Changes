@@ -1,3 +1,7 @@
+CED (05-Dec-2002)
+    - Numerous fixes to PDL::Transform
+    - Minor tweak to MatrixOps
+    - Some cosmetic improvements to InterpND (better option control)
 CED (03-Dec-2002)
     - Completely rewrote range code -- it's more elegant, faster, and
 	more general now.

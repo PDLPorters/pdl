@@ -1599,8 +1599,20 @@ Allowable options:
 
 =item method 
 
-Values are 'linear' and 'sample' (for now). (default linear for floating
-point types; sample for integer types)
+Values can be:
+
+=over 3 
+
+=item * l, linear, Linear (default for floating point source types)
+
+The values are N-linearly interpolated.
+
+=item * s, sample, Sample (default for integer source types)
+
+The nearest value is taken. Pixels are regarded as centered on their
+respective integer coordinates (no offset from the linear case).
+
+=back
 
 =item bound  
 
@@ -1627,21 +1639,21 @@ sub PDL::interpND {
 
   my($opt) = (defined $options) ? $options : {};
 
-  my($method)   = $opt->{method} || $opt->{Method};
+  my($method)   = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
   if(!defined $method) {
 	$method = ($source->type <= zeroes(long,1)->type) ? 
 	   	   'sample' : 
 	           'linear';
   }
 
-  my($boundary) = $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
+  my($boundary) = $opt->{b} || $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
   my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
 
-  if($method =~ m/samp/) {
+  if($method =~ m/^s(am(p(le)?)?)?/i) {
     return $source->indexNDb(PDL::Math::floor($index+0.5),$boundary);
   }
 
-  elsif ($method =~ m/linear/) {
+  elsif ($method =~ m/^l(in(ear)?)?/i) {
     # Generate a table of offsets to look up
     my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),1<<$index->dim(0)))
 	           / 2 ** (PDL::Basic::xvals($index->dim(0))))
