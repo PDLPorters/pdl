@@ -317,7 +317,7 @@ pp_def('contour_segments_internal',
 		int ds, ms, ns;
 		float dist;
       float a_int[3];
-      int i, j, m1, n1, mr, ml, p, found,p1;
+      int i, j, m1, n1, mr, ml, p, found, p1, a;
    
 		ds = $SIZE(d);
 		ms = $SIZE(m);
@@ -335,19 +335,21 @@ pp_def('contour_segments_internal',
                   if(n<ns-1){	
 							n1=n+1;
 
-							/* alternate prefered direction of intersection to avoid sweeping effect */
-			            if((n+m)%2){
-   		            	ml=m;	
-      		         	mr=m1;
-							}else{
-								ml=m1;
-								mr=m;
-               		}	
 							/* printf("found %d %d %d\n",found,ml,mr); */
 							found=0;
 
-							if(($data() < $c() && $data(m=>m1) >= $c()) ||
+							if((a=($data() < $c() && $data(m=>m1) >= $c())) ||
 								($data() >= $c() && $data(m=>m1) < $c())){
+
+								/* circle the high if there is a choice of direction */
+				            if(a==0){
+   			            	ml=m;	
+      			         	mr=m1;
+								}else{
+									ml=m1;
+									mr=m;
+               			}	
+
 							/* found an x intersect */
 
 								dist = ($c()-$data())/($data(m=>m1)-$data());
