@@ -29,45 +29,7 @@ entirely in PDL.
 
 ### Kludge for backwards compatibility with older scripts
 ### This should be deleted at some point later than 21-Nov-2003.
-### Contains parts that have to happen at the top (BEGIN) and that have to
-### happen after PP is done munging (after the BEGIN block).
-###
-### This defines (and exports) stubroutines that use MatrixOps on-demand 
-### and transmute themselves into the desired routines (by directly
-### assigning code pointers).  Unfortunately, by run-time we don't have
-### a way of knowing which package we're exporting to (that's determined
-### when we're compiled), so the stubroutines also have to pretend they're
-### the desired routines so that legacy code will at least work.
-###
-### yuck.
-###     --CED 21-Nov-2002
-
-our %legacy;
-BEGIN {
-  $a = eval "PDL::MatrixOps::identity(2)";
-  if($@) {
-	## PDL::MatrixOps has not been loaded...
-	%legacy = ('svd'=>'(;@)','eigens'=>'','simq'=>'(;@)');
-	for my $foo(keys %legacy) {
-		eval "sub PDL::Math::$foo$legacy{$foo} {
-			my \@args = \@_; 
-			our \$once;
-			if(!\$once) {
-				print STDERR '$foo has been moved from PDL::Math to PDL::MatrixOps.\nI am automatically using PDL::MatrixOps for backwards compatibilty.\nPlease modify your script to use PDL::MatrixOps before invoking $foo.\n\n'; 
-				eval 'use PDL::MatrixOps;'; 
-				*PDL::Math::$foo = \\\&PDL::MatrixOps::$foo; # remove message.
-				\$once = 1;
-	                }
-	                PDL::MatrixOps::$foo(\@args);
-	  	     }";
-	}
-  }
-  else {
-	%legacy = ();
-  }
-}
-push(@EXPORT_OK,keys %legacy);
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+BEGIN {use PDL::MatrixOps;}
 
 EOD
 
@@ -428,5 +390,6 @@ distribution. If this file is separated from the PDL distribution,
 the PDL copyright notice should be included in the file.
 
 =cut
+
 EOD
 pp_done();

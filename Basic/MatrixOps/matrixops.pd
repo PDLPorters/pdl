@@ -112,23 +112,14 @@ If there's something you want that isn't here, please add and document it!
 =item * Link into GSL?
 
 =back
-
 =cut
 
-BEGIN{
-use Exporter ();
-
-package PDL::Math::MatrixOps;
-
-@ISA = ('PDL','Exporter');
-
-use PDL;
 use Carp;
-}
 
 use strict;
 
 EOD
+
 
 ######################################################################
 
@@ -1116,6 +1107,7 @@ itself.  If this file is separated from the PDL distribution, then the
 PDL copyright notice should be included in this file.
 
 =cut
+
 EOD
 
 pp_done();
