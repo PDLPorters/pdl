@@ -1,4 +1,7 @@
-pp_addpm({At=>Top},<<'EOD');
+
+use strict;
+
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::Math - extended mathematical operations and special functions
@@ -59,21 +62,11 @@ doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
 
 The standard Bessel Functions
 
-=cut
 EOD
 
 $doco{'bessjn'} .= <<'EOD';
-=pod
 This has a second integer
 argument which gives the order of the function required.
-=cut
-EOD
-
-$doco{'bessyn'} .= <<'EOD';
-=pod
-This has a second integer
-argument which gives the order of the function required.
-=cut
 EOD
 
 if ($^O !~ /win32/i) {  # doesn't seem to be in the MS VC lib
@@ -87,10 +80,9 @@ while the second set, of integer values, gives the sign of the gamma
 function.  This is useful for determining factorials, amongst other
 things.
 
-=cut
 EOD
 
-}
+} # if: $^O !~ win32
 
 pp_addhdr('
 #include <math.h>
@@ -123,103 +115,157 @@ my (@besufuncs) = qw(j0 j1 y0 y1); # "
 my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
+sub code_ufunc    { return '$b() = ' . $_[0] . '($a());'; }
+sub badcode_ufunc { 
+    my $name = $_[0];
+    return 'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = ' . $name . '($a()); }'; 
+}
+
+sub code_bifunc { 
+    my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
+    return "\$b() = $name(\$$a(),\$$b());"; 
+}
+sub badcode_bifunc { 
+    my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
+    return 'if ( $ISBAD('.$a.'()) || $ISBAD('.$b.'()) ) { $SETBAD(b()); } else { ' .
+	"\$b() = $name(\$$a(),\$$b()); }"; 
+}
+
+my $func;
+
 foreach $func (@ufuncs1) {
-pp_def($func,
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    pp_def($func,
+	   HandleBad => 1,
+	   GenericTypes => ['F','D'],
+	   Pars => 'a(); [o]b();',
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   BadCode => badcode_ufunc($func),
+	   );
 }
 
 foreach $func (@ufuncs1g) {
-pp_def($func,
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    pp_def($func,
+	   HandleBad => 1,
+	   Pars => 'a(); [o]b();',
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   BadCode => badcode_ufunc($func),
+	   );
 }
 
 foreach $func (@bifuncs1) {
-pp_def($func,
-	Pars => 'a(); b(); [o]c();',
-	Doc => $doco{$func},
-	Code => '
-		$c() = '.$func.'($a(),$b());
-');
+    pp_def($func,
+	   HandleBad => 1,
+	   Pars => 'a(); b(); [o]c();',
+	   Doc => $doco{$func},
+	   Code => code_bifunc($func),
+	   BadCode => badcode_bifunc($func),
+	   );
 }
 
 # Functions provided by extended -lm
 foreach $func (@ufuncs2) {
-pp_def($func,
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
-}
-foreach $func (@besufuncs) {
-pp_def("bess$func",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{"bess$func"},
-	Code => '
-		$b() = '.$func.'($a());
-');
-}
-foreach $func (@besbifuncs) {
-pp_def("bess$func",
-	GenericTypes => [F,D],
-	Pars => 'a(); int n(); [o]b();',
-	Doc => $doco{"bess$func"},
-	Code => '
-		$b() = '.$func.'($n(),$a());
-');
-}
-if ($^O !~ /win32/i) {
-pp_def("lgamma",
-	Pars => 'a(); [o]b(); int[o]s()',
-	Doc => $doco{"lgamma"},
-	Code => '
-		extern int signgam;
-		$b() = lgamma($a());
-		$s() = signgam;
-');
+    pp_def($func,
+	   HandleBad => 1,
+	   GenericTypes => ['F','D'],
+	   Pars => 'a(); [o]b();',
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   BadCode => badcode_ufunc($func),
+	   );
 }
 
-pp_def('badmask',
-      Pars => 'a(); b(); [o]c();',
-      Doc => 'Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>',
-      Code => '
-              $c() = finite($a()) ? $a() : $b();
-');
+foreach $func (@besufuncs) {
+    my $fname = "bess$func";
+    pp_def($fname,
+	   HandleBad => 1,
+	   GenericTypes => ['F','D'],
+	   Pars => 'a(); [o]b();',
+	   Doc => $doco{$fname},
+	   Code => code_ufunc($func),
+	   BadCode => badcode_ufunc($func),
+	   );
+}
+
+foreach $func (@besbifuncs) {
+    my $fname = "bess$func";
+    pp_def($fname,
+	   HandleBad => 1,
+	   GenericTypes => ['F','D'],
+	   Pars => 'a(); int n(); [o]b();',
+	   Doc => $doco{$fname},
+	   Code => code_bifunc($func,'n','a'),
+	   BadCode => badcode_bifunc($func,'n','a'),
+	   );
+}
+
+if ($^O !~ /win32/i) {
+    pp_def("lgamma",
+	   HandleBad => 1,
+	   Pars => 'a(); [o]b(); int[o]s()',
+	   Doc => $doco{"lgamma"},
+	   Code =>
+	   'extern int signgam;
+	    $b() = lgamma($a());
+	    $s() = signgam;',
+	   BadCode => 
+	   'extern int signgam;
+            if ( $ISBAD(a()) ) {
+               $SETBAD(b()); $SETBAD(s());
+            } else {
+               $b() = lgamma($a());
+               $s() = signgam;
+            }',
+	   );
+} # if: os !~ win32
+
+pp_def(
+       'badmask',
+       HandleBad => 0,
+       BadDoc => 'This needs some thinking about before conversion.',
+       Pars => 'a(); b(); [o]c();',
+       Doc => 'Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>',
+       Code => '$c() = finite($a()) ? $a() : $b();',
+       );
 
 # Extra functions from cephes
-pp_def("erfi",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b()',
-	Doc => $doco{"erfi"},
-	Code => '
-		extern double ndtri(double), SQRTH;
-		$b() = SQRTH*ndtri((1+(double)$a())/2);
-');
+pp_def(
+       "erfi",
+       HandleBad => 1,
+       GenericTypes => ['F','D'],
+       Pars => 'a(); [o]b()',
+       Doc => $doco{"erfi"},
+       Code => 
+       'extern double ndtri(double), SQRTH;
+	$b() = SQRTH*ndtri((1+(double)$a())/2);',
+       BadCode => 
+       'extern double ndtri(double), SQRTH;
+        if ( $ISBAD(a()) ) { $SETBAD(b()); }
+        else { $b() = SQRTH*ndtri((1+(double)$a())/2); }',
+       );
 
-pp_def("ndtri",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b()',
-	Doc => $doco{"ndtri"},
-	Code => '
-		extern double ndtri(double);
-		$b() = ndtri((double)$a());
-');
+pp_def(
+       "ndtri",
+       HandleBad => 1,
+       GenericTypes => ['F','D'],
+       Pars => 'a(); [o]b()',
+       Doc => $doco{"ndtri"},
+       Code => 
+       'extern double ndtri(double);
+	$b() = ndtri((double)$a());',
+       BadCode => 
+       'extern double ndtri(double);
+        if ( $ISBAD(a()) ) { $SETBAD(b()); }
+	else { $b() = ndtri((double)$a()); }',
+       );
 
-pp_def("svd",
-      Pars => 'a(n,m); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
-      GenericTypes => [D],
-      Code => '
+pp_def(
+       "svd",
+       HandleBad => 0,
+       Pars => 'a(n,m); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
+       GenericTypes => ['D'],
+       Code => '
               extern void SVD( double *W, double *Z, int nRow, int nCol );
               int sm = $SIZE(m), sn = $SIZE(n), i;
               double *w, *t, zv;
@@ -262,8 +308,9 @@ Singular value decomposition of array.
 # XXX The next two really need driver routines...
 
 pp_def("eigens",
+       HandleBad => 0,
 	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
-	GenericTypes => [D],
+	GenericTypes => ['D'],
 	Code => '
 		extern void eigens( double *A, double *RR, double *E, int N );
 		register int sn = $SIZE(n);
@@ -309,9 +356,10 @@ an asymmetric matrix, the routine will warn and symmetrize it.
 # XXX Destroys a!!!
 # To use the new a again, must store both a and ips.
 pp_def("simq",
+       HandleBad => 0,
 	Pars => '[phys]a(n,n); [phys]b(n); [o,phys]x(n); int [o,phys]ips(n)',
 	OtherPars => 'int flag;',
-	GenericTypes => [D],
+	GenericTypes => ['D'],
 	Code => '
 		extern int simq( double *A, double *B, double *X,
 			int n, int flag, int *IPS );
@@ -339,6 +387,11 @@ required).
 
 ');
 
+# this doesn't need to be changed to support bad values
+# I could put 'HandleBad => 1', but it would just cause an
+# unnescessary increase (admittedly small) in the amount of 
+# code
+#
 pp_def("squaretotri",
 	Pars => 'a(n,n); b(m)',
 	Code => '
@@ -366,7 +419,7 @@ Convert a symmetric square matrix to triangular vector storage
 ',
 );
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 sub eigen_c {
 	my($mat) = @_;

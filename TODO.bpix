@@ -15,6 +15,9 @@ Problems:
 .) $pdl->badvalue(23) should change the bad value in $pdl to 23
    (as well as changing the default bad value, which it does)
 
+.) decide how to implement the comparison operators in ops.pd -
+   eg see test 42 in t/bad.t
+
 Suggestions/To do:
 ================
 

@@ -12,7 +12,7 @@ BEGIN {
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
 #	plan tests => 24, todo => [11,17];
-	plan tests => 41;
+	plan tests => 46;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -179,5 +179,30 @@ my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
     );  # 41
+
+# pointer to needed work comparison ops in ops.pd
+$a = pdl( 2, 4, double->badvalue );
+$a->badflag(1);
+$b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
+print "Not decided whether this failure is actually not what we want...\n";
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 44
+
+# quick look at math.pd
+use PDL::Math;
+
+$a = pdl(0.5,double->badvalue,0);
+$a->badflag(1);
+$b = bessj0($a);
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 43
+
+$a = pdl(double->badvalue,0.8);
+$a->badflag(1);
+$b = bessjn($a,3);  # thread over n()
+ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 44
+ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 45
+
+$a = pdl( 0.01, 0.0 );
+$a->badflag(1);
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 46
 
 # need to test primitive's minmaximum
