@@ -576,6 +576,7 @@ t/lut.t
 t/magic.t
 t/matmult.t
 t/misc.t
+t/ndf.t
 t/ones.t
 t/ops.t
 t/pdlchar.t
