@@ -34,13 +34,13 @@ back to (theta,phi).  This is equivalent to working from the
 equidistant cylindrical (or L<t_caree|"plate caree">) projection, if
 you are a cartography wonk.
 
-The projected coordinates are in units of body radii, so that
-multiplying the output by the scale of the map yields physical units
-that are correct wherever the scale is correct for that projection.
-For example, areas should be correct everywhere in the authalic
-projections; and linear scales are correct along meridians in the
-equidistant projections and along the standard parallels in all the
-projections.
+The projected coordinates are generally in units of body radii
+(radians), so that multiplying the output by the scale of the map
+yields physical units that are correct wherever the scale is correct
+for that projection.  For example, areas should be correct everywhere
+in the authalic projections; and linear scales are correct along
+meridians in the equidistant projections and along the standard
+parallels in all the projections.
 
 The transformations that are authalic (equal-area), conformal
 (equal-angle), azimuthal (circularly symmetric), or perspective (true
@@ -93,12 +93,12 @@ Cartographic transformations are useful for interpretation of
 scientific images, as all cameras produce projections of the celestial
 sphere onto the focal plane of the camera.  A simple (single-element)
 optical system with a planar focal plane generates
-L<t_gnomonic|gnomonic> images -- that is to say, gnomonic projections
+L<gnomonic|t_gnomonic> images -- that is to say, gnomonic projections
 of a portion of the celestial sphere near the paraxial direction.
 This is the projection that most consumer grade cameras produce.
 
 Wide-angle optical systems are often tuned to produce
-L<t_az_equi|"equidistant azimuthal"> projections of a portion of the
+L<"equidistant azimuthal"|t_az_equi> projections of a portion of the
 celestial sphere, which has the advantage that you can put an entire
 celestial hemisphere on a finite region in the focal plane.  If you
 want to interpret wide-angle celestial images then you should pick the
@@ -108,8 +108,8 @@ are equivalent for small fields of view.
 Because many solar-system objects are spherical,
 PDL::Transform::Cartography includes perspective projections for
 producing maps of spherical bodies from perspective views.  Those
-projections are C<t_vertical|t_vertical> and
-C<t_perspective|t_perspective>.  They map between (lat,lon) on the
+projections are C<"t_vertical"|t_vertical> and
+C<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
 spherical body and equidistant azimuthal focal plane coordinates at
 the camera, so that (e.g.) fisheye aerial views of Earth are
 supported.
@@ -177,8 +177,8 @@ This parameter is a synonym for the roll angle, above.
 
 This is the value that missing points get.  Mainly useful for the
 inverse transforms.  (This should work fine if set to BAD, if you have
-bad-value support compiled in).  The default nan is represented as
-asin(1.2).
+bad-value support compiled in).  The default nan is calculated at load time
+with asin(1.2).
 
 =back
 
@@ -187,7 +187,7 @@ asin(1.2).
 Draw a Mercator map of the world on-screen:
 
    $w = pgwin(xs);
-   $w->lines(t_mercator()->apply(earth_coast())->clean_lines());
+   $w->lines(earth_coast->apply(t_mercator)->clean_lines);
 
 Here, C<earth_coast()> returns a 3xn piddle containing (lon, lat, pen) 
 values for the included world coastal outline; C<t_mercator> converts
@@ -197,8 +197,8 @@ lines that cross the 180th meridian.
 Draw a Mercator map of the world, with lon/lat at 10 degree intervals:
 
    $w = pgwin(xs)
-   $a = earth_coast()->glue(1,scalar(graticule(10,1)));
-   $w->lines(clean_lines(t_mercator()->apply()));
+   $a = earth_coast()->glue(1,graticule(10,1));
+   $w->lines($a->apply(t_mercator)->clean_lines);
 
 This works just the same as the first example, except that a map graticule
 has been applied with interline spacing of 10 degrees lon/lat and 
@@ -207,12 +207,11 @@ and each parallel contains 361 points).
 
 =head1 NOTES
 
-Currently angular conversions are extremely simpleminded.  Everything that
-uses angles independently understands degree-to-radian conversions.  That is
-really stoopid but quick to code.  Something like Math::Convert::Units should
-be used instead.  You can find all the angular conversions by doing a global
-search for "/^d/i", which is the regexp that I have used to recognize 
-the string 'degrees'.
+Currently angular conversions are rather simpleminded.  A list of
+common conversions is present in the main constructor, which inserts a
+conversion constant to radians into the {params} field of the new
+transform.  Something like Math::Convert::Units should be used instead
+to generate the conversion constant. 
 
 A cleaner higher-level interface is probably needed (see the examples);
 for example, earth_coast could return a graticule if asked.
@@ -223,7 +222,11 @@ class that interprets the origin options and sets up the basic
 machinery of the Transform.  The conic projections have their
 own subclass, PDL::Transform::Conic, that interprets the standard
 parallels.  Since the cylindrical and azimuthal projections are pretty
-simple, they are direct subclasses of ::Cartography.
+simple, they are not subclassed.
+
+The perl 5.6.1 compiler is quite slow at adding new classes to the
+structure, so it does not makes sense to subclass new transformations
+merely for the sake of pedantry.
 
 =head1 AUTHOR
 
@@ -240,9 +243,8 @@ subdirectory of the PDL source distribution.
 
 =head1 FUNCTIONS
 
-Here are some auxiliary functions that are exported by the module.  They 
-are not transformations in themselves but are useful for cartographic
-applications.
+The module exports both transform constructors ('t_<foo>') and some
+auxiliary functions (no leading 't_').
 
 =cut
 
@@ -270,18 +272,11 @@ use Carp;
 *PDL::Transform::Cartography::_opt = \&PDL::Transform::_opt;
 use overload '""' => \&_strval;
 
-our $PI = 3.14159265358979328462643383279502;
-our $DEG2RAD = $PI/180;
-our $RAD2DEG = 180/$PI;
-our $E = exp(1);
-
-
 use strict;
 
 our $PI = $PDL::Transform::PI;
 our $DEG2RAD = $PDL::Transform::DEG2RAD;
 our $RAD2DEG = $PDL::Transform::RAD2DEG;
-our $E = $PDL::Transform::E;
 
 sub _strval {
   my($me) = shift;
@@ -363,7 +358,7 @@ sub graticule {
 
 =for ref
 
-(Cartography): PDL constructor - coastline map of Earth
+(Cartography) PDL constructor - coastline map of Earth
 
 Loads the PDL::Transform::Cartography:Earth package and returns a
 coastline map based on the 1987 CIA World Coastline database (see
@@ -391,7 +386,7 @@ sub earth_coast {
 
 =for ref
 
-(Cartography): PDL method - remove projection irregularities
+(Cartography) PDL method - remove projection irregularities
 
 C<clean_lines> massages vector data to remove jumps due to singularities
 in the transform.
@@ -575,7 +570,7 @@ sub PDL::Transform::Cartography::_finish {
 
 =for ref
 
-(Cartography) 3-D globe projection (conf; auth)
+(Cartography) 3-D globe projection (conformal; authalic)
 
 This is similar to the inverse of L<t_spherical|t_spherical>, but the
 inverse transform projects 3-D coordinates onto the unit sphere,
@@ -877,7 +872,7 @@ sub t_orthographic {
 
 =for ref
 
-(Cartograph) Plate Caree projection (cylindrical; equidistant)
+(Cartography) Plate Caree projection (cylindrical; equidistant)
 
 This is the simple Plate Caree projection -- also called a "lat/lon plot".
 The horizontal axis is theta; the vertical axis is phi.  This is a no-op
@@ -971,7 +966,7 @@ sub t_sin_lat {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
 
-	$out->(0:1) *= $DEG2RAD if($o->{u} =~ m/^d/i);
+	$out->(0:1) *= $me->{params}->{conv};
 	$out->((1)) .= sin($out->((1))) / $o->{stretch};
 	$out->((0)) *= $o->{stretch};
 	$out;
@@ -982,7 +977,7 @@ sub t_sin_lat {
 	my($out) = $d->is_inplace ? $d : $d->copy;
 	$out->((1)) .= asin($out->((1)) * $o->{stretch});
 	$out->((0)) /= $o->{stretch};
-	$out->(0:1) *= $DEG2RAD if($o->{u} =~ m/^d/i);
+	$out->(0:1) /= $me->{params}->{conv};
 	$out;
     };
 
@@ -1028,7 +1023,7 @@ list ref or piddle.
 =item s, std, Standard (default 0)
 
 This is the parallel at which the map has correct scale.  The scale
-is also correct at the parallel of oppoite sign.  
+is also correct at the parallel of opposite sign.  
 
 =back
 
@@ -1049,7 +1044,7 @@ sub t_mercator {
 		   undef);
     if(defined($p->{c})) {
 	$p->{c} = pdl($p->{c});
-	$p->{c} *= $DEG2RAD if($p->{u} =~ m/^d/i);
+	$p->{c} *= $p->{conv};
     } else {
 	$p->{c} = pdl($DEG2RAD * 75);
     }
@@ -1374,10 +1369,11 @@ in fact this is implemented by a call to t_mercator.
 =item c, clip, Clip (default [-75,75])
 
 Because the transform is conformal, the distant pole is displaced to
-infinity.  Many applications require a clipping boundary.  The value is
-in whatever angular unit you set with the standard 'unit' option.  For
-consistency with L<t_mercator>, clipping works the same way even though
-in most cases only one pole needs it.  Set this to 0 for no clipping at all.
+infinity.  Many applications require a clipping boundary.  The value
+is in whatever angular unit you set with the standard 'unit' option.
+For consistency with L<t_mercator|t_mercator>, clipping works the same
+way even though in most cases only one pole needs it.  Set this to 0
+for no clipping at all.
 
 =back
 
