@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+zowie   - Changed PGPLOT::im to PGPLOT::imag1 (1:1 aspect ratio shortcut).
+	  Avoids conflict with the imaginary-component sub by the same name.
+
 CS	- fix for sever mem-leak -> ultimate source seems to be
 		a problem in destroytransform on un-physvaffined
 		piddle -- needs proper tracking down!!!!
@@ -1574,3 +1577,5 @@ Bug fixen
 New PDL::PP
 
 The perldl shell now aborts on <EOF>, q and Q.
+
+

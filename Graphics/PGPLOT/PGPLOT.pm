@@ -696,7 +696,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag im ctab ctab_info hi2d poly vect CtoF77coords
+	      imag imag1 ctab ctab_info hi2d poly vect CtoF77coords
 );
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
@@ -1351,7 +1351,7 @@ sub points {
 
 # display an image using pgimag()/pggray() as appropriate
 
-sub im {
+sub imag1 {
   ($in,$opt)=_extract_hash(@_);
   barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#in>3;
   $opt->{'PIX'}=1 unless defined $opt{'PIX'};
