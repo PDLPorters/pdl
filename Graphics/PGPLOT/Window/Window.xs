@@ -42,6 +42,11 @@
 /* Replace: 0 */
 #endif
 
+/* Ifdefs used here for aTHX_ for compilation under perl 5.005 */
+#ifndef aTHX_
+#define aTHX_
+#endif
+
 struct PGPLOT_function_handle {
    I32 binversion;
    void (*cpgmove) (float x, float y);
@@ -84,6 +89,7 @@ pggapline(n,msgval,xpts,ypts)
     }
 
 
+
 void
 pgcolorpnts(n,x,y,z,sym)
   int	n
@@ -102,6 +108,7 @@ pgcolorpnts(n,x,y,z,sym)
 	char msg[128];
         sprintf (msg, "This function requires PGPLOT with a structure version at least %d.\nPlease upgrade your PGPLOT package.", 
                        PGPLOT_structure_version);
+		       
         Perl_croak(aTHX_ msg);
       }
 
