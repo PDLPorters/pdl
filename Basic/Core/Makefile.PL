@@ -88,22 +88,26 @@ print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 # Ouch .... there should be a better fix than this ??
-if($Config{make} eq 'dmake') { # Win32
-  # Place Types.pm and Dev.pm where Core.xs.PL can find them. 
-  # This relies upon '.' being in @INC. If there's an existing PDL
-  # installation, then Types.pm and Dev.pm from that existing
-  # installation will probably be found (and used) first.
-  if(system "mkdir PDL"){warn "Failed to create PDL folder"};
-  if(system "mkdir PDL\\Core") {warn "Failed to create PDL/Core folder"};
-  if(system "copy Types.pm PDL\\Types.pm") {die "Failed to copy Types.pm"}
-  if(system "copy Dev.pm PDL\\Core\\Dev.pm") {die "Failed to copy Dev.pm"}
-  if(system "perl Core.xs.PL") {die "Failed to extract Core.xs"}
-  if(system "perl pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
-  if(system "perl pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
- 
-  # Remove the 2 files and directories now that Core.xs, pdlcore.c and pdlconv.c
+# dmake (Win32) apparently doesn't know it should extract Core.xs,
+# pdlcore.c and pdlconv.c - so we'll do it now.
+
+if($Config{make} eq 'dmake') {
+
+  # First - place Types.pm and Dev.pm where they can be found.
+  if(system "mkdir tempo"){warn "Failed to create tempo folder in Basic/Core/"};
+  if(system "mkdir tempo\\PDL") {warn "Failed to create tempo/PDL/ folder in Basic/Core/"};
+  if(system "mkdir tempo\\PDL\\Core") {warn "Failed to create tempo/PDL/Core/ folder in Basic/Core"};
+  if(system "copy Types.pm tempo\\PDL\\Types.pm") {die "Failed to copy Types.pm"}
+  if(system "copy Dev.pm tempo\\PDL\\Core\\Dev.pm") {die "Failed to copy Dev.pm"}
+
+  # Now extract the 3 problem files
+  if(system "perl -Mlib=tempo Core.xs.PL") {die "Failed to extract Core.xs"}
+  if(system "perl -Mlib=tempo pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
+  if(system "perl -Mlib=tempo pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
+
+  # Remove the 2 files and folders now that Core.xs, pdlcore.c and pdlconv.c
   # have been extracted.
-  system("rmdir /S /Q PDL");
+  system "rmdir /S /Q tempo";
   }
 
 use ExtUtils::MakeMaker;
@@ -149,8 +153,8 @@ sub MY::xs_o {
     if($Config{make} eq 'nmake') {
       return'
 .xs$(OBJ_EXT):
-        $(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
-        $(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
 '
       }
     else {
