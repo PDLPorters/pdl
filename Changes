@@ -1,3 +1,8 @@
+JC  22-Jul-2003
+   - Fixed bug in polar to re-im conversion routine (Cp2r) in 
+     PDL::Complex. Added test case in complex.t to check that
+     re-im to polar conversion followed by polar to re-im ends
+     up with the same value we started with.
 CED 12-Jul-2003
    - interpND: added cubic and FFT interpolation schemes.
 CED 5-Jul-2003

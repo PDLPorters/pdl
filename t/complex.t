@@ -32,3 +32,9 @@ ok($testNo++,tapprox($a->real,-$ref));
 $ar = $a->real;
 $ar++;
 ok($testNo++,tapprox($a->real, -$ref+1));
+
+# Check that converting from re/im to mag/ang and
+#  back we get the same thing
+$a = cplx($ref);
+my $b = $a->Cr2p()->Cp2r();
+ok($testNo++, tapprox($a-$b, 0));

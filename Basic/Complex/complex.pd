@@ -313,8 +313,8 @@ pp_def 'Cp2r',
           double s, c;
 
           SINCOS (a, s, c);
-          $p(m=>0) = s * m;
-          $p(m=>1) = c * m;
+          $p(m=>0) = c * m;
+          $p(m=>1) = s * m;
        !
 ;
 
