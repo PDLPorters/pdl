@@ -268,7 +268,6 @@ if ($PDL_OK) {
       eval << 'EOD'; # Fallback eval routine - proper one defined in PDL::Core
 
 sub eval_and_report {
-   $@ = '';  # Forget previous errors.
    my $__code = shift; # Can be code ref or string
    my $__string;
    $__string = (ref $__code eq "CODE") ? '&$__code()' : $__code;
@@ -397,13 +396,13 @@ sub process_input {
 
 $|=1;
 while(1) {
-  eval 'process_input()';
+  eval {process_input()};
   if ($@) {
     if ($@ =~ /Ctrl-C detected/) {
       print "Ctrl-C detected\n";
       next;
     } else {
-      print "Unknown error, exiting\n";
+      print "Unknown error: $@\n exiting...\n";
       last;
     }
   }
@@ -414,7 +413,7 @@ while(1) {
 
 sub eval_and_report {
   my $__code = shift; # Can be code ref or string
-
+  $@ = ""; # clear $@ since we might not execute the eval below
   my $__coderef = (ref $__code eq "CODE") ? $__code : eval <<"EOD";
 
 sub {
