@@ -1,3 +1,10 @@
+SIS 28-Feb-2005
+   At last - a fix for the MakeMaker bug affecting dmake (Win32). No
+   longer any need for the ugly hack that enabled PDL to be built with
+   dmake. Deleted one line of code from the top level Makefile.PL.
+   Deleted several lines from Basic/Core/Makefile.PL and added a sub
+   MY::processPL and a sub MY::postamble for dmake. Fix supplied
+   by Steve Hay.
 DJB 23-Feb-2005 (EST)
    t/pgplot.t now uses $PGPLOT_DEV to set the output device, falling
    back to "/xw", rather than forcing "/xw".
