@@ -71,7 +71,13 @@ WriteMakefile(%hash);
 
 sub MY::postamble {
   my $amb = pdlpp_postamble_int(@::pack);
-  $amb =~ s/pm_to_blib$/pm_to_blib \.\.\/\.\.\/\.\.\/perldl.conf/m;
+#
+# Perls GetOpt::Long routine needs to have a space after the option name
+#
+  $PDL_CONFIG{OPENGL_INC} =~ s/-I(\S)/-I $1/g;
+  $PDL_CONFIG{OPENGL_DEFINE} =~ s/-D(\S)/-D $1/g;
+
+  $amb =~ s/opengl.pd\s*$/opengl.pd $PDL_CONFIG{OPENGL_INC} $PDL_CONFIG{OPENGL_DEFINE}\n/m;
   $amb;
 }  # Add genpp rule
 

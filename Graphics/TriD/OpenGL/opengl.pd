@@ -1,4 +1,5 @@
 # This program looks at the OpenGL installation as defined in perldl.conf
+# when the Makefile is built.
 # and builds the perl pdl interface based on the information found therein
 # It preprocesses the include files with the cpp to try to get the prototypes
 # as they are defined for the machine architecture.  Bits of this code can be 
@@ -6,11 +7,15 @@
 #
 # Jim Edwards 7/18/2000
 #
+use Getopt::Long;
 use strict;
 use warnings;
 use Config;
-use vars qw/%PDL_CONFIG/;
-require '../../../perldl.conf';
+
+
+my (@incs,@defines);
+GetOptions("I=s@" => \@incs,
+			  "D=s@" => \@defines );
 #
 my @funcs = qw|gl.h glx.h glu.h|;
 my @types = qw|X.h gl.h glx.h glu.h glxtokens.h|;
@@ -25,11 +30,20 @@ my @oosubs; # holds subroutine prototypes for oo interface
 my %dontfuncs;
 for(@dontfuncs) {$dontfuncs{$_} = 1}
 
-my $path="/usr/include";
-if(defined $PDL_CONFIG{OPENGL_INC} && $PDL_CONFIG{OPENGL_INC} =~ /\w/){
-  $path = $PDL_CONFIG{OPENGL_INC};
-  $path =~ s/^\s*-I//;
+my(@path);
+foreach(@incs){
+  if(-d "$_"){
+	 push(@path,$	_);
+  }else{
+	 die "ERROR: directory $_ not found, fix perldl.conf and rerun perl Makefile.PL";
+  }
 }
+foreach(@defines){
+  $_ = "-D$_";
+}
+
+
+push(@path,"/usr/include");
 
 my %consts; # filled by sub getconsts
 my @subnames;  # filled by sub getfuncs
@@ -54,21 +68,35 @@ select TYPEMAP;
 foreach my $file (@types){
   my @file;
   if($file=~/^gl/){
-	 if(-e "$path/GL/$file"){
-		&getconsts("$path/GL/$file");
-		@file = &cpp("$path/GL/$file");
-	 }else{
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/GL/$file"){
+		  &getconsts("$path/GL/$file");
+		  @file = &cpp("$path/GL/$file");
+		  $found=1;
+		  last;
+		}
+	 }
+	 unless($found){
 		print STDERR "WARNING: could not find file $file in $0 (may be okay)\n";
 	 }
   }elsif($file=~/^X/){
-    if(-e "$path/X11/$file"){
-		&getconsts("$path/X11/$file");
-		@file = &cpp("$path/X11/$file");
-	 }elsif(-e "/usr/include/X11/$file"){
-		&getconsts("/usr/include/X11/$file");
-		@file = &cpp("/usr/include/X11/$file");
-	 }else{
-		die "Could not find $file";
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/X11/$file"){
+		  &getconsts("$path/X11/$file");
+		  @file = &cpp("$path/X11/$file");
+		  $found=1;
+		  last;
+		}elsif(-e "/usr/include/X11/$file"){
+		  &getconsts("/usr/include/X11/$file");
+		  @file = &cpp("/usr/include/X11/$file");
+		  $found=1;
+		  last;
+		}
+	 }
+	 unless($found){
+		die "ERROR: Could not find $file in @path";
 	 }
   }
   print STDERR "Calling gettypes for $file ",$#file,"\n" if($verbose);
@@ -112,9 +140,15 @@ $ppcode .= "\n');\n\n";
 foreach my $file (@funcs){
   my @file;
   if($file=~/^gl/){
-	 if(-e "$path/GL/$file"){
-		@file = cpp("$path/GL/$file");
-	 }else{
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/GL/$file"){
+		  @file = cpp("$path/GL/$file");
+		  $found=1;
+        last;
+		}
+	 }
+	 unless($found){
 		print STDERR "WARNING: could not find file $file in $0 (may be okay)\n";
 	 }
   }
@@ -158,7 +192,7 @@ sub cpp {
 #
 # Put together a preprocessor command  
 #
-  my $com="$Config{cpprun} -P $PDL_CONFIG{OPENGL_DEFINE}";
+  my $com="$Config{cpprun} -P @defines";
   foreach(split ' ', $Config{cppflags}){
 	 $com .= " $_" if(/-D/);
   }
