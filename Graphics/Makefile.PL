@@ -31,12 +31,25 @@ if( defined($t) and $t == 0 ) {
 #     VERSION_FROM => '../Basic/Core/Version.pm',
 #     DIR => [@subdirs]
 #);
+my @pm_names = qw (Graphics2D.pm);
+my %pm = map { $h = '$(INST_LIBDIR)/';
+	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
+	       ( $_, $h . $_ );
+	   } ( @pm_names);
+my %man3pods = map { $h = '$(INST_MAN3DIR)/';
+		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
+		     ( $_, $h . substr($_,0,length($_)-3) . '.$(MAN3EXT)' ); 
+		 } @pm_names;
+
+
 WriteMakefile(
-        'NAME' => 'PDL',
-        VERSION_FROM => '../Basic/Core/Version.pm',
-        DIR => [@subdirs],
-        LIB => ['-lm'],
-);
+	      'NAME' => 'PDL',
+	      VERSION_FROM => '../Basic/Core/Version.pm',
+	      'PM'       => \%pm,
+	      'MAN3PODS' => \%man3pods,
+	      DIR => [@subdirs],
+	      LIB => ['-lm'],
+	     );
 
 sub guessogllibs{
   my $libs=shift;
