@@ -1,5 +1,8 @@
 
 Doug Burke (07/10/00)
+   - Three macros have been added to make writing pp code a LOT easier:
+       $ISBAD, $ISGOOD, and $SETBAD. See IMPLEMENTATION.bpix
+     Thanks to Tuomas for the suggestion.
    - bad values are now stored in a C structure, rather than a perl array
      This seems okay on Solaris but not Linux ...
    - isbad() and isgood() implemented as pp code rather than

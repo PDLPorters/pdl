@@ -134,10 +134,10 @@ pp_def(
        '$GENERIC(b) tmp = 0;
         register int flag = 0;
 	loop(n) %{ 
-           if ( $a() != a_badval ) { tmp += $a(); flag = 1; }
+           if ( $ISGOOD($a()) ) { tmp += $a(); flag = 1; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; }',
+        else { $SETBAD($b()); }',
        Docs => projectdocs('sum','sumover',''),
        );
 
@@ -172,12 +172,12 @@ pp_def(
         register int flag = 0;
         loop(n) %{
 fprintf(stderr, "in loop %d flag = %d\n", n, flag );
-           if ( $a() != a_badval ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
+           if ( $ISGOOD($a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
         %}
 fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp );
 /* for some reason, even though flag == 1, b is getting set to the bad value (see above) */
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; $PDL(b)->state |= PDL_BADVAL; }',
+        else { $SETBAD($b()); $PDL(b)->state |= PDL_BADVAL; }',
        CopyBadStatusCode => '',
        Doc => projectdocs('!= 0','zcover',''),
        );
@@ -195,10 +195,10 @@ pp_def(
        '$GENERIC(b) tmp = 1;
         register int flag = 0;
         loop(n) %{ 
-           if ( $a() != a_badval ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
+           if ( $ISGOOD($a()) ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; }',
+        else { $SETBAD($b()); }',
        Doc => projectdocs('and','andover','')
 );
 
@@ -215,10 +215,10 @@ pp_def(
        '$GENERIC(b) tmp = ~ 0 ;
         register int flag = 0;
         loop(n) %{ 
-           if ( $a() != a_badval ) { tmp &= $a(); flag = 1; if (!tmp) break; }
+           if ( $ISGOOD($a()) ) { tmp &= $a(); flag = 1; if (!tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; }',
+        else { $SETBAD($b()); }',
        Doc => projectdocs('bitwise and','bandover','')
        );
 
@@ -235,10 +235,10 @@ pp_def(
        '$GENERIC(b) tmp = 0;
         register int flag = 0;
         loop(n) %{ 
-           if ( $a() != a_badval ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
+           if ( $ISGOOD($a()) ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; }',
+        else { $SETBAD($b()); }',
        Doc => projectdocs('or','orover','')
        );
 
@@ -255,10 +255,10 @@ pp_def(
        '$GENERIC(b) tmp = 0;
         register int flag = 0;
         loop(n) %{ 
-           if ( $a() != a_badval ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
+           if ( $ISGOOD($a()) ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $b() = b_badval; }',
+        else { $SETBAD($b()); }',
        Doc => projectdocs('bitwise or','borover','')
        );
 

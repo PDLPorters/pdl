@@ -475,6 +475,51 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 
 ###########################
 #
+# Encapsulate a check on whether a value is good or bad
+
+package PDL::PP::BadAccess;  # handles both checking (good/bad) and setting (bad)
+use Carp;
+
+sub new { 
+    my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "do not understand this! (BadAccess in PDL::PP::PDLCode.pm)\n" 
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$opcode, $pdl_name, $inds], $type;
+}
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $opcode = $this->[0];
+    my $name   = $this->[1];
+    my $inds   = $this->[2];
+
+    print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
+
+    my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
+    my $op    = $ops{$opcode};
+    die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
+	unless defined $op;
+
+    my $obj  = $parent->{ParObjs}{$name};
+    die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
+	unless defined( $obj );
+
+    my $lhs = $obj->do_access($inds,$context);
+    my $rhs = "${name}_badval";
+
+    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
+    return "$lhs $op $rhs";
+}
+
+
+###########################
+#
 # Encapsulate a Pointeraccess
 
 package PDL::PP::PointerAccess;
@@ -707,7 +752,8 @@ sub separate_code {
     while($_) {
 	# Parse next statement
 	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$[a-zA-Z_]+\s*\([^)]*\)     # $a(...): access
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+	        |\$[a-zA-Z_]+\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
 		|\btypes\s*\([^)]+\)\s*%{  # types(..) %{
 		|\bthreadloop\s*%{         # threadloop %{
@@ -736,6 +782,8 @@ sub separate_code {
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 		$threadloops ++;
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
 		push @{$stack[-1]},new PDL::PP::Access($control,$this);
 	    } elsif($control =~ /^%}/) {

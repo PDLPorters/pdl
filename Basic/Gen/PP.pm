@@ -355,6 +355,10 @@ $PDL::PP::deftbl =
 
     # EQUIVCPOFFS_BAD requires that PARENT_badval and CHILD_badval are set up somewhere
     # which is handled by PDL::PP::PdlParObj->get_xsdatapdecl()
+    #
+    # - this would be much clearer/upwardly-compatible if I could use a macro
+    #   ie $ISBAD(), but we can't nest macros [I think].
+    #
  [[EquivCPOffsCode],	[BadFlag,Identity],	
     sub {
 	my $bflag = $_[0] || 0;
@@ -1239,17 +1243,17 @@ sub dosubst {
 #	print "DOSUBST on ",Dumper($src),"\n";
 	my $ret = (ref $src ? $src->[0] : $src);
 	my %syms = (
-		((ref $src) ? %{$src->[1]} : ()),
-		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
-					"->$_[0]"},
-		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
-		NAME => sub {return $name},
-		MODULE => sub {return $::PDLMOD},
-	SETREVERSIBLE => sub {
-	    return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
-		"   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
-		},
-	);
+		    ((ref $src) ? %{$src->[1]} : ()),
+		    PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
+				     "->$_[0]"},
+		    CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
+		    NAME => sub {return $name},
+		    MODULE => sub {return $::PDLMOD},
+		    SETREVERSIBLE => sub {
+			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
+			    "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
+			    },
+		    );
 	while(
 		$ret =~ s/\$(\w+)\(([^()]*)\)/
 			(defined $syms{$1} or

@@ -1,19 +1,6 @@
 
 Some suggestions:
 
-1) From: "Tuomas J. Lukka" <lukka@iki.fi>
-
->    BadCode => 'if ( $b() == b_badval || $c() == c_badval ) { 
-
-Having to write the variable name twice is error-prone.
-How about $BAD($b()) or something like that?
-
-So we need two macros: 
-  $BAD($b())   which expands to '$b() == b_badval'
-  $GOOD($b())                   '$b() != b_badval'
-
-or can we not have nested macro definitions?
-
 2) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).

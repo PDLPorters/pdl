@@ -269,15 +269,15 @@ pp_def('flowconvert',
        Code => 
        '$CHILD() = $PARENT();',
        BadCode => 
-       'if ( $PARENT() == PARENT_badval ) { 
-           $CHILD() = CHILD_badval; 
+       'if ( $ISBAD($PARENT()) ) { 
+           $SETBAD($CHILD());
         } else {
            $CHILD() = $PARENT();
         }',
        BackCode => '$PARENT() = $CHILD();',
        BadBackCode => 
-       'if ( $CHILD() == CHILD_badval ) { 
-           $PARENT() = PARENT_badval; 
+       'if ( $ISBAD($CHILD()) ) { 
+           $SETBAD($PARENT());
         } else {
            $PARENT() = $CHILD();
         }',

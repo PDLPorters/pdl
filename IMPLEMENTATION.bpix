@@ -73,17 +73,22 @@ and isbadover/isgoodover in bad.pd.
 (there's a problem with zcover but I don't think it's to do with this since it
 also affects other routines such as ngoodover/nbadover in Basic/Bad/bad.pd). 
 
-* NOTE * we need to add the $BAD() and $GOOD() macros - see TODO.bpix -
-to make the following a lot easier/less error prone.
 If the option
    HandleBad => 1
 is given, then the readdata code automatically creates a variable called
 <pdl name>_badval, which contains the badvalue for that piddle (see
-get_xsdatapdecl() in PP/PdlParObjs.pm). This means that you can change
+get_xsdatapdecl() in PP/PdlParObjs.pm). Thanks to Tuomas' suggestion, 3 
+macros have been set up to provide easy access:
+
+  '$ISBAD($a(n=>1))'  expands to '$a(n=>1) == a_badval'
+  '$ISGOOD($a())'                '$a()     != a_badval'
+  '$SETBAD($bob())'              '$bob()    = bob_badval'
+
+(well, the $a(...) is expanded as well). This means that you can change
    Code => '$a() = $b() + $c();'
 to
-   BadCode => 'if ( $b() == b_badval || $c() == c_badval ) { 
-                 $a() = a_badval; 
+   BadCode => 'if ( $ISBAD($b()) || $ISBAD($c()) ) { 
+                 $SETBAD($a()); 
                } else {
                  $a() = $b() + $c();
                }'
@@ -94,6 +99,10 @@ leaving Code as it is. PP::PDLCode will then create a loop something like
         threadloop over Code
    }
 it's probably easier to just look at the .xs file to see what goes on.
+
+I haven't provided macros for more complicated cases - such as would be
+useful in the EQUIVCPOFFS_BAD macro (see EquivCPOffsCode and Code rules
+in PP.pm).
 
 NOTE: the above relies on horrible hacking of PDL::PP::Code and
 PDL::PP::ComplexThreadLoop, since I couldn't see a way, using the current 
