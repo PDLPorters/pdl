@@ -540,8 +540,6 @@ sub PDL::new {
    return $new;
 }
 
-# Call pdl_null XS function, bless it and return.
-sub PDL::initialize { bless &PDL::pdl_null(), (ref $_[0] ? ref $_[0]: $_[0]) }
 
 =head2 PDL::copy
 

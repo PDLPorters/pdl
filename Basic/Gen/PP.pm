@@ -367,6 +367,7 @@ $PDL::PP::deftbl =
 # 	PMCode],   [P2Child,Name],
 # 		"ParentChildPars"],
 # the new rule makes no PMCode anymore, all handled in XS now
+
  [[USParNames,USParObjs,FOOFOONoConversion,HaveThreading,NewXSName],
    [P2Child,Name],
  		"NewParentChildPars"],
@@ -393,9 +394,6 @@ $PDL::PP::deftbl =
  [[NewXSArgs],		[USParNames,USParObjs,OtherParNames,OtherParTypes],
  						"NXArgs"],
 
- # This entry generates a null PMCode entry unless HASP2Child is set.
- # (which disallows PMCode generation in the next step) D. Hunt 4/13/00
-# [[PMCode],             [HASP2Child],           sub { if ($_[0]) { return "DO NOT SET!!" } else { return undef; } }],
  # now we do not autogenerate PMCode any longer, so the rule after this
  # one could really go
  [[PMCode],             [],           sub { return undef; }],
@@ -406,11 +404,13 @@ $PDL::PP::deftbl =
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- [[VarArgsXSHdr],	[Name,NewXSArgs,USParObjs,OtherParTypes,HASP2Child,PMCode,_GlobalNew],  "VarArgsXSHdr"],
+ [[VarArgsXSHdr],	[Name,NewXSArgs,USParObjs,OtherParTypes,HASP2Child,PMCode,_GlobalNew],  "VarArgsXSHdr", 
+  "Rule to generate XS header for variable argument lists"],
 
  ## Added new line for returning (or not returning) variables.  D. Hunt 4/7/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- [[VarArgsXSReturn],	[NewXSArgs,USParObjs,_GlobalNew],         "VarArgsXSReturn"],
+ [[VarArgsXSReturn],	[NewXSArgs,USParObjs,_GlobalNew],         "VarArgsXSReturn",
+  "Rule to generate XS trailer for returning output variables"],
 
  [[NewXSHdr],		[NewXSName,NewXSArgs],	"XSHdr"],
  [[NewXSCHdrs],		[NewXSName,NewXSArgs,GlobalNew],	"XSCHdrs"],
@@ -571,7 +571,8 @@ $PDL::PP::deftbl =
 			 NewXSClearThread,
 			 NewXSSetTrans,
                          VarArgsXSReturn,
-			 ],	"mkVarArgsxscat"],
+			 ],	"mkVarArgsxscat",
+ "Rule to print out XS code when variable argument list XS processing is enabled"],
 
  # This rule will fail if the preceding rule succeeds 
  # D. Hunt 4/11/00
@@ -583,7 +584,9 @@ $PDL::PP::deftbl =
 			 NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
 			 NewXSClearThread,
 			 NewXSSetTrans,
-			 ],	"mkxscat"],
+			 ],	"mkxscat",
+ "Rule to print out XS code when variable argument list XS processing is disabled"],
+
  [[StructDecl],		[ParNames,ParObjs, CompiledRepr,
                          PrivateRepr,StructName],
 			 			"mkstruct"],
@@ -689,6 +692,8 @@ sub translate {
 # Are all prerequisites there;
 		my @args;
 #		print "Trying rule ",Dumper($rule) if $::PP_VERBOSE;
+
+		print "$rule->[3]\n" if ($::PP_VERBOSE && (@$rule == 3));
 
 		# If any of the rule[0]s exist, don't apply rule
 		for(@{$rule->[0]}) {
@@ -1319,6 +1324,36 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
+# This subroutine generates the XS code needed to call the perl 'initialize'
+# routine in order to create new output PDLs
+sub callPerlInit {
+  my $names = shift; # names of variables to initialize
+  my $ci    = shift; # current indenting
+  
+  my $ret = '';
+  
+  foreach my $name (@$names) {
+    $ret .= "
+
+
+$ci\PUSHMARK(SP);
+$ci\XPUSHs(sv_2mortal(newSVpv(objname, 0))); 
+$ci\PUTBACK;
+$ci\perl_call_method(\"initialize\", G_SCALAR);
+$ci\SPAGAIN;                                                
+${ci}$name\_SV = POPs; 
+${ci}$name = PDL->SvPDLV($name\_SV);
+
+
+";
+  }
+
+  return $ret;
+}
+
+    
+  
+
 # This subroutine does limited input typemap conversion.
 # Given a variable name (to set), its type, and the source
 # for the variable, returns the correct input typemap entry.
@@ -1381,7 +1416,7 @@ sub VarArgsXSHdr {
 
   # remember, othervars *are* input vars
   my $nout   = (grep { $_ } values %out);
-  my $noutca   = (grep { $_ } values %outca);
+  my $noutca = (grep { $_ } values %outca);
   my $nother = (grep { $_ } values %other);
   my $ntmp   = (grep { $_ } values %tmp);
   my $ntot   = @args;
@@ -1392,6 +1427,14 @@ sub VarArgsXSHdr {
   my $usageargs = join (",", @args);
   
   my $ci = '    ';  # Current indenting
+
+  # Generate declarations for SV * variables corresponding to pdl * output variables.
+  # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
+  # is needed for each output and output create always argument
+  my $svdecls = join ("\n", map { "$ci\SV *$_\_SV;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
+
+  my @create = ();  # The names of variables which need to be created by calling 
+                    # the 'initialize' perl routine from the correct package.
   
   # clause for reading in all variables
   my $clause1 = ''; my $cnt = 0;
@@ -1399,11 +1442,14 @@ sub VarArgsXSHdr {
     if ($other{$args[$i]}) {  # other par
       $clause1 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n"; $cnt++;
     } elsif ($outca{$args[$i]}) {
-      $clause1 .= "$ci$args[$i] = PDL->null();\n"; # always create
+      push (@create, $args[$i]);
     } else {
       $clause1 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n"; $cnt++;
     }
   }
+
+  # Add code for creating output variables via call to 'initialize' perl routine
+  $clause1 .= callPerlInit (\@create, $ci); @create = ();
 
   # clause for reading in input and output vars and creating temps
   my $clause2;
@@ -1423,13 +1469,19 @@ sub VarArgsXSHdr {
 	$cnt++;
       } elsif ($tmp{$args[$i]} || $outca{$args[$i]}) {
 	# a temporary or always create variable
-	$clause2 .= "$ci$args[$i] = PDL->null();\n";
+	push (@create, $args[$i]);
       } else { # an input or output variable 
 	$clause2 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
 	$cnt++;
       }
     }
+
+    # Add code for creating output variables via call to 'initialize' perl routine
+    $clause2 .= callPerlInit (\@create, $ci); @create = ();
+
     $clause2 .= "}\n";
+
+
   }
 
   
@@ -1441,12 +1493,15 @@ sub VarArgsXSHdr {
       $clause3 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
       $cnt++;
     } elsif ($out{$args[$i]} || $tmp{$args[$i]} || $outca{$args[$i]}) {
-      $clause3 .= "$ci$args[$i] = PDL->null();\n";
+      push (@create, $args[$i]);
     } else {
       $clause3 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
       $cnt++;
     }
   }
+
+  # Add code for creating output variables via call to 'initialize' perl routine
+  $clause3 .= callPerlInit (\@create, $ci); @create = ();
 
   return<<END;
 
@@ -1454,8 +1509,9 @@ sub VarArgsXSHdr {
 void
 $name(...)
  PREINIT:
-  HV  *bless_stash;
-  int nreturn;
+  char *objname = "PDL";
+  int   nreturn;
+$svdecls
 $pars
 
  PPCODE:
@@ -1464,9 +1520,7 @@ $pars
   /* Check if you can get a package name for this input value.  It can be either a PDL (SVt_PVMG) or 
      a hash which is a derived PDL subclass (SVt_PVHV) */
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
-    bless_stash = SvSTASH(SvRV(ST(0)));  /* The package to bless output vars into is taken from the first input var */
-  } else {
-    bless_stash = 0;
+    objname = HvNAME(SvSTASH(SvRV(ST(0))));  /* The package to bless output vars into is taken from the first input var */
   }
   if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */
     nreturn = $noutca;
@@ -1508,11 +1562,7 @@ sub VarArgsXSReturn {
 
 	my $clause1 = '';
 	for (my $i=0;$i<@outs;$i++) { 
-	  $clause1 .= "$ci\ST($i) = sv_newmortal();
-$ci\PDL->SetSV_PDL(ST($i),$outs[$i]);
-$ci\if (bless_stash) ST($i) = sv_bless(ST($i), bless_stash);
-
-";
+	  $clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
 	}
   
 return <<"END"
