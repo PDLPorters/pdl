@@ -1941,6 +1941,7 @@ sub _print_to_fits ($$$) {
 
     sub add_hdr_item ($$$$;$) {
 	my ( $hdr, $key, $value, $type, $comment ) = @_;
+	$type = uc($type) if defined  $type;
 	my $item = Astro::FITS::Header::Item->new( Keyword=>$key,
 						   Value=>$value,
 						   Type=>$type );
@@ -1973,11 +1974,8 @@ sub _wfits_table ($$$) {
   # Copy the prepared fields into the extension header.
   tie my %newhdr,'Astro::FITS::Header',my $h = Astro::FITS::Header->new;
   
-  my $n=0;
-  my $hf = sub { $h->replace( $n++, new Astro::FITS::Header::Item(Keyword=>shift(), Value=>shift(), Type=>shift(), Comment=>shift())); };
-  
   reset_hdr_ctr();
-  add_hdr_item $h, "XTENSION", ($tbl eq 'ascii'?"TABLE":"BINTABLE"), undef, "from perl hash";
+  add_hdr_item $h, "XTENSION", ($tbl eq 'ascii'?"TABLE":"BINTABLE"), 'string', "from perl hash";
   add_hdr_item $h, "BITPIX", $hdr->{BITPIX}, 'int';
   add_hdr_item $h, "NAXIS", 2, 'int';
   add_hdr_item $h, "NAXIS1", $hdr->{NAXIS1}, 'int', 'Bytes per row';
@@ -1985,7 +1983,7 @@ sub _wfits_table ($$$) {
   add_hdr_item $h, "PCOUNT", 0, 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
   add_hdr_item $h, "GCOUNT", 1, 'int';
   add_hdr_item $h, "TFIELDS", $hdr->{TFIELDS},'int';
-  add_hdr_item $h, "HDUNAME", "'TABLE'", 'string';
+  add_hdr_item $h, "HDUNAME", "TABLE", 'string';
 
   for my $field( sort fits_field_cmp keys %$hdr ) {
     next if( defined $newhdr{$field} or $field =~ m/^end|simple|xtension$/i);
@@ -2023,7 +2021,7 @@ sub _wfits_nullhdu ($) {
     "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
   add_hdr_item $h, "COMMENT", "", "comment",
     "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
-  add_hdr_item $h, "HDUNAME", "'PRIMARY'", 'string';
+  add_hdr_item $h, "HDUNAME", "PRIMARY", 'string';
   add_hdr_item $h, "END", undef, 'undef'; 
   
   my $hdr = join("",$h->cards);

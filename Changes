@@ -1,3 +1,8 @@
+DJB 21-Oct-04
+   - clean up of code to fix remaining validation errors reported by fverify
+     (the Type value passed to Astro::FITS::Header::Item must be in upper
+     case to get correct format for each card). Not 100% convinced caught all
+     cases.
 DJB 20-Oct-04
    - PDL::IO::FITS::wfits updates for table writing: BITPIX must be the second
      card (or else fverify from FTOOLS throws a wobbly); fixed writing a
