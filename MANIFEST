@@ -345,6 +345,13 @@ Lib/Fit/Linfit.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
 Lib/Func.pm
+Lib/GSL/DIFF/FUNC.c
+Lib/GSL/DIFF/Makefile.PL
+Lib/GSL/DIFF/gsl_diff.pd
+Lib/GSL/INTERP/Makefile.PL
+Lib/GSL/INTERP/gsl_interp.pd
+Lib/GSL/INTERP/gslerr.h
+Lib/GSL/INTERP/typemap
 Lib/GSL/Makefile.PL
 Lib/GSL/RNG/Makefile.PL
 Lib/GSL/RNG/README
@@ -544,10 +551,10 @@ Lib/Slatec/slatec/xerprn.f
 Lib/Slatec/slatec/xersve.f
 Lib/Slatec/slatec/xgetua.f
 Lib/Transform/Cartography/Cartography.pm
+Lib/Transform/Cartography/Makefile.PL
+Lib/Transform/Cartography/earth_coast.vec.fits
 Lib/Transform/Cartography/earth_day.jpg
 Lib/Transform/Cartography/earth_night.jpg
-Lib/Transform/Cartography/earth_coast.vec.fits
-Lib/Transform/Cartography/Makefile.PL
 Lib/Transform/Makefile.PL
 Lib/Transform/Transform.pm
 MANIFEST
@@ -602,6 +609,8 @@ t/foo.t
 t/func.pdl
 t/func.t
 t/gauss.t
+t/gsl_diff.t
+t/gsl_interp.t
 t/gsl_rng.t
 t/gsl_sf.t
 t/hdrs.t

@@ -102,7 +102,10 @@ pdlexamples\.c$
 ^Lib/Fit/Gaussian/Gaussian\.xs
 ^Lib/CallExt/CallExt\.c$
 ^Lib/Opt/Golden
-^Lib/GSL/.*\.c$
+^Lib/GSL/RNG/.*\.c$
+^Lib/GSL/SF/.*\.c$
+^Lib/GSL/INTERP/.*\.c$
+^Lib/GSL/DIFF/D.*\.c$
 ^Lib/GSL/.*\.pm$
 ^Lib/GSL/.*\.xs$
 ^Lib/FFTW/typespec
