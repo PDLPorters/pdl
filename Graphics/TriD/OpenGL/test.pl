@@ -2,6 +2,11 @@
 use FileHandle;
 use strict;
 use warnings;
+use Carp;
+
+$SIG{__DIE__} = sub {print Carp::longmess(@_); 
+							die;};
+
 
 STDOUT->autoflush(1);
 STDERR->autoflush(1);
@@ -20,17 +25,16 @@ $opt->{height} = 90;
 foreach(0..$numwins-1){
   $opt->{x} = ($numwins % 10) *100;
   $opt->{y} = int($numwins / 10) *100;
+
   my $win=new PDL::Graphics::OpenGL::OO($opt);
   push @windows, $win;
-
-
-
 }
+
 my $angle=0;
 
 use Data::Dumper;
-#my $out = Dumper($windows[0]);
-#print "$out\n";
+my $out = Dumper($windows[0]);
+print "$out\n";
 
 
 

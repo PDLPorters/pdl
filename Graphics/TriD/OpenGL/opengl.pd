@@ -235,19 +235,21 @@ sub gettypes {
     if($line =~ /typedef/) {
       my $cnt=0;
       foreach my $k (@tkeys) {
-	if($line =~ /typedef\s+$k\s+(\w+)\s*\;/){
-	  print "$1\t\tT_$t{$k}\n" ;
-	}elsif($line =~ /typedef\s+signed\s+$k\s+(\w+)\s*\;/){
-	  print "$1\t\tT_$t{$k}\n" ;
-	}elsif($line =~ /typedef\s+unsigned\s+$k\s+(\w+)\s*\;/){
-	  print "$1\t\tT_U_$t{$k}\n" ;
-	}else{
-	  $cnt++;
-	}
-      }
+		  if($line =~ /typedef\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+signed\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+unsigned\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_U_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+\w+\s+\(\s*\*\s*(\w+)\s*\)\s*\(.*\)\;/){
+			 print "$1\t\tT_PTR\n" ;	
+		  }else{
+			 $cnt++;
+		  }
+		}
       if($cnt > $#tkeys){
-	$line =~ /typedef\s+(.*)\s+(\w+)\s*\;/;
-	print STDERR "typedef Not Found >$line<$1<$2\n" if($verbose);
+		  $line =~ /typedef\s+(.*)\s+(\w+)\s*\;/;
+		  print STDERR "typedef Not Found >$line<$1<$2\n" if($verbose);
       }
     }
   }
