@@ -776,14 +776,14 @@ BOOT:
    PDL.SvPDLV      = SvPDLV;
    PDL.SetSV_PDL   = SetSV_PDL;
    PDL.create      = pdl_create;
-   PDL.new         = pdl_external_new;
+   PDL.pdlnew      = pdl_external_new;
    PDL.tmp         = pdl_external_tmp;
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
-   PDL.smalloc      = pdl_malloc;
+   PDL.smalloc     = pdl_malloc;
    PDL.howbig      = pdl_howbig;
    PDL.packdims    = pdl_packdims;
    PDL.unpackdims  = pdl_unpackdims;
