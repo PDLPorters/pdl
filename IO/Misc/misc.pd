@@ -1290,12 +1290,13 @@ nonexistent).
 
 sub rasc {PDL->rasc(@_)}
 sub PDL::rasc {
+  use IO::File;
   my ($pdl, $file, $num) = @_;
   $num = -1 unless defined $num;
-  open(FILE, "<$file") || barf "Can't open $file";
-  $pdl->_rasc($num,'PDL::IO::Misc::FILE');
-  close FILE;
-  return $pdl;
+  my $fi = new IO::File "<$file" || barf "Can't open $file";
+  $pdl->_rasc(my $ierr=null,$num,$fi);
+  close $fi;
+  return all $ierr > 0;
 }
 
 # ----------------------------------------------------------
@@ -1362,23 +1363,27 @@ EOPM
 # in the future this function should return a state indicating an error
 # if appropriate
 pp_def('_rasc',
-       Pars => '[o] nums(n)',
-       OtherPars => 'int num => n; char* fd',
+       Pars => '[o] nums(n); int [o] ierr(n)',
+       OtherPars => 'int num => n; SV* fd',
        GenericTypes => [F,D],
        Code => q@ 
-                 int ns, i;
+                 int ns, i, j;
                  PerlIO *fp;
                  IO *io;
 
-                 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
+                 /* io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO)); */
+		 io = sv_2io($COMP(fd));
                  if (!io || !(fp = IoIFP(io)))
                         croak("Can\'t figure out FP");
                  ns = $SIZE(n);
                  threadloop %{
                    for (i=0;i<ns; i++) {
-                       if ($TFD(getfloat,getdouble)(fp, &($nums(n=>i))) <= 0)
+                       if (($ierr(n=>i) =
+			   $TFD(getfloat,getdouble)(fp, &($nums(n=>i)))) <= 0)
                               break;
                    }
+		   for (j=i+1; j<ns; j++)
+			$ierr(n=>j) = $ierr(n=>i); /* inherit error flags */
                  %}
                 @,
 #	Doc => 'Internal Function used by rasc. '
