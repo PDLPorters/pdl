@@ -58,7 +58,7 @@ perldl or the '-b' option to pdlsoc. This facility is currently a 'proof of
 concept' (or, more realistically, a quick hack) so expect it to be rough 
 around the edges.
 
-Each piddle contains a flag - accessible via $pdl->badvalue - to say whether
+Each piddle contains a flag - accessible via $pdl->badflag - to say whether
 there's bad data present: 
 
   If false/0, which means there's no bad data here, the code supplied by the 
@@ -73,10 +73,39 @@ there's bad data present:
   the presence of bad values.
 
 If you create a piddle, it will have its bad-value flag set to 0. To change 
-this, use $pdl->badvalue($new_bad_status), where $new_bad_status can be 0 or 1.
+this, use $pdl->badflag($new_bad_status), where $new_bad_status can be 0 or 1.
 When a routine creates a piddle, it's bad-value flag will depend on the input
 piddles: unless over-ridden (see the CopyBadStatusCode option to pp_def), the 
 bad-value flag will be set true if any of the input piddles contain bad values.
+
+NOTE: propogation of the badflag
+
+ If you change the badflag of a piddle, this change is propogated to all
+ the *children* of a piddle, so
+   $a = zeroes(20,30);
+   $b = $a->slice('0:10,0:10');
+   $c = $b->slice(',(2)');
+   print ">>c: ", $c->badflag, "\n";
+   >>c: 0
+   $a->badflag(1);
+   print ">>c: ", $c->badflag, "\n";
+   >>c: 1
+
+ *No* change is made to the parents of a piddle, so
+   print ">>a: ", $a->badflag, "\n";
+   >>a: 1
+   $c->badflag(0);
+   print ">>a: ", $a->badflag, "\n";
+   >>a: 1
+
+ I think that:
+   a) the badflag can ONLY be cleared IF a piddle has NO parents,
+      and that this change will propogate to all the children of that
+      piddle
+   b) $a->badflag(1) should propogate the badflag to BOTH parents and
+      children.
+
+ This wouldn't be hard to implement. Does it make sense though?
 
 Currently, there is one bad value for each datatype. This may well change to
 allow a per-piddle bad value, since it shouldn't affect the code speed, but 
@@ -89,6 +118,9 @@ shouldn't affect the following (indeed it will solve one problem).
 
  To get the current bad value, use the badvalue() method - it has the same
  syntax as orig_badvalue().
+
+ There's also badvalue_as_pdl(), which returns the bad value in a 0D piddle
+ with badflag set to 1. This function may go away...
 
  To change the current bad value, supply the new number to badvalue - eg
    $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 

@@ -33,7 +33,7 @@ children/grandchildren/etc of a piddle if its state changes (see
 propogate_badflag in Bad/bad.pd). It's not clear what to do with parents: I can 
 see the reason for propogating a 'set badflag' request to parents, but I think 
 a child should NOT be able to clear the badflag of a parent. 
-  Suggestions welcome.
+ *** SEE the discussion of this in README.bpix ***
 
 The pdl_trans structure has been extended to include an integer value,
 bvalflag, which acts as a switch to tell the code whether to handle bad values

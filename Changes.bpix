@@ -1,11 +1,13 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/13/00)
+   - added discussion to README.bpix about setting/propogation of badflag
+     and to TODO.bpix about need for something like '$a = setbadif($a < 20)'
    - renamed baddata() to badflag(), added check_badstatus() routine to bad.pd
    - added badvalue_as_pdl() [returns a bad value in a 0D piddle with the
      bad flag set]. After writing it I realised I really wanted something
      like '$a += badwhere($a < 20)' instead - see TODO.bpix
-   - chenged zcover's documentation from '!=' to '==', since it's a check
+   - changed zcover's documentation from '!=' to '==', since it's a check
      for zeroes (or that's how the code works and zcheck is documentated)
    - it *looks* like I've fixed zcover (somehow; partly due to changing my
      definition of success!)
