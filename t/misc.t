@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..33\n";
+print "1..36\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -224,5 +224,11 @@ ok( $a->nelem==4 && $a->get_datatype==$PDL_L && $b->get_datatype==$PDL_L ); # te
 
 ($a,$b) = rcols $file, { TYPES => [ ushort ] };
 ok( $a->nelem==4 && $a->get_datatype==$PDL_US && $b->get_datatype==$PDL_D ); # test: 33
+
+ok( UNIVERSAL::isa($PDL::IO::Misc::deftype,"PDL::Type") ); # test: 34
+ok( $PDL::IO::Misc::deftype->[0] == double->[0] ); # test: 35
+
+$PDL::IO::Misc::deftype = byte;
+ok( $PDL::IO::Misc::deftype->[0] == byte->[0] ); # test: 36
 
 1;

@@ -457,7 +457,8 @@ is 'a:b:c' to use every c'th matching line between a and b
 (default B<''>).
 
 DEFTYPE
-- default data type for stored data (default B<double>).
+- default data type for stored data (if not specified, use the type 
+stored in C<$PDL::IO::Misc::deftype>, which starts off as B<double>).
 
 TYPES
 - reference to an array of data types, one element for each column 
@@ -505,7 +506,7 @@ Notes:
 1. Quotes are required on patterns.
 
 2. Columns are separated by whitespace by default,
-use $PDL::IO::Misc::colsep to specify an alternate
+use C<$PDL::IO::Misc::colsep> to specify an alternate
 separator.
 
 3. For PDL-2.003, the meaning of the 'c' value in the LINES option has
@@ -517,7 +518,15 @@ when read in, then the whole array reversed.
 
 =cut
 
-$colsep = " "; # Default column separator
+$colsep = " ";      # Default column separator
+$deftype = double;  # Default type for piddles
+
+# NOTE: XXX
+#  need to look at the line-selection code. For instance, if want
+#   lines => '-1:0:3', 
+#  read in all lines, reverse, then apply the step
+#  -> fix point 4 above
+# 
 
 sub rcols{PDL->rcols(@_)}
 
@@ -536,7 +545,7 @@ sub PDL::rcols {
        EXCLUDE => '/^#/',
        INCLUDE => '',
        LINES => '',
-       DEFTYPE => double,
+       DEFTYPE => $deftype,
        TYPES   => [],
        PERLCOLS => undef
        } );
