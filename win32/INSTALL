@@ -5,18 +5,31 @@ It's not (yet) as straightforward as it ought to be - but it's not all
 that difficult, either. If it's too much, then you can fall back on the
 binary windows version provided at http://pdl.perl.org .
 
+First up there's a MakeMaker bug to deal with. Open up your
+perl\lib\ExtUtils\MM_Win32.pm and find the subroutine 'sub xs_o'.
+It needs to read as follows:
+
+sub xs_o {
+return
+    '
+.xs$(OBJ_EXT):
+	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+	';
+}
+
 
 To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
 ----------------------------------------------------------------------
 
-1) If you want Slatec, install ExtUtils::F77, amending F77.pm according
-   to instructions given in 'F77.pm Corrections' (below).
-
-2) Make sure you have MinGW.
+1) Make sure you have MinGW.
    You can get MinGW from http://www.mingw.org. Simplest way to install
    is to download the latest MinGW '.exe' from the Download page, and
    then run the downloaded executable to install MinGW into the location
    of your choice.
+
+2) If you want Slatec, install ExtUtils::F77, amending F77.pm according
+   to instructions given in 'F77.pm Corrections' (below).
 
 3) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
 
@@ -36,7 +49,7 @@ To Build with MSVC compiler (MSVC-built perl only)
 --------------------------------------------------
 
  The capability of building Slatec with f2c and associated
- libraries libi77.lib and libf77.lib  probably still exists.
+ libraries libi77.lib and libf77.lib probably still exists.
  If you want to use f2c you need to edit win32/win32f77.pl to
  reflect the location of f2c, the libs and the include file f2c.h.
  You'll also need to run:
@@ -47,11 +60,11 @@ To Build with MSVC compiler (MSVC-built perl only)
  However, the instructions that follow assume that Slatec support is
  being provided by MinGW's fortran compiler (g77.exe):
 
-1) If you want Slatec, install ExtUtils::F77, amending F77.pm according
-   to instructions given in 'F77.pm Corrections' (below).
-   For Slatec you also need to install MinGW - this is for the g77.exe fortran
-   compiler and libs. (See the preceding section for the link to MinGW.) If
-   you're not interested in Slatec, then there's no need to install either
+1) If you want Slatec you need to install MinGW - this is for the g77.exe fortran
+   compiler and libs. (See the preceding section for the link to MinGW.)
+   You also need to install ExtUtils::F77, amending F77.pm according
+   to the instructions given in 'F77.pm Corrections' (below).
+   If you're not interested in Slatec, then there's no need to install either
    ExtUtils::F77 or MinGW.
 
 2) 'cd' to the top level PDL source directory and run, in succession:
