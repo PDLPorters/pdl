@@ -1,5 +1,20 @@
+Release notes for PDL 2.1 -------------------------------
 
-Release notes for PDL 2.005
+Major Changes:
+  - Speed Increase. Most PDL functions are now done totally
+    in C-code, without any perl wrapper functions as was done
+    with previous versions. The speedup will be most noticeable
+    for operations on many small PDL arrays.
+  - Mem Leaks Fixed.
+  - Added a consistent, Object-Oriented interface to the 
+    various interpolate functions in PDL. (PDL::Func, 
+    See Lib/Func.pm).
+    
+See the Changes file for a detailed list of changes.
+
+
+
+Release notes for PDL 2.005 -----------------------------
 
 A bugfix release to fix 2.004 problems with PGPLOT changes
 and perl 5.6.0.
