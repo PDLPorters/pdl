@@ -1183,7 +1183,7 @@ sub whash {
   if (defined $hash) {
     %header = %$hash;
   } else {
-    %header = {};
+    %header = ();
   }
 
 
