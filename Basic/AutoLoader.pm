@@ -184,6 +184,7 @@ sub AUTOLOAD {
 
 EOD
 
+$toeval = 'use PDL::NiceSlice;'.$toeval if($PDL::NiceSlice::VERSION);
 eval $toeval;
 
 }
