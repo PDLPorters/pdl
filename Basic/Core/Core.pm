@@ -2,7 +2,6 @@
 
 PDL::Core - fundamental PDL functionality
 
-
 =head1 DESCRIPTION
 
 Methods and functions for type conversions, PDL creation,
@@ -182,14 +181,15 @@ Returns a 'null' piddle.
 =for usage
 
    $x = PDL->nullcreate($arg)
-   
-This is an routine used by many of the threading primitives (i.e. sumover, minimum,
-etc.) to generate a null piddle for the function's output that will behave properly
-for derived (or subclassed) PDL objects. 
+
+This is an routine used by many of the threading primitives
+(i.e. sumover, minimum, etc.) to generate a null piddle for the
+function's output that will behave properly for derived (or
+subclassed) PDL objects.
 
 For the above usage:
-If $arg is a PDL, or a derived PDL, then $arg->null is returned. 
-If $arg is a scalar (i.e. a zero-dimensional PDL) then $PDL->null 
+If $arg is a PDL, or a derived PDL, then $arg-E<gt>null is returned. 
+If $arg is a scalar (i.e. a zero-dimensional PDL) then $PDL-E<gt>null 
 is returned.
 
 =for example
@@ -421,18 +421,6 @@ sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
 
 ##################### Data type/conversion stuff ########################
 
-
-=head2 dims
-
-=for ref
-
-Returns the dimensions of a piddle as a perl list
-
-=for usage
-
-  ($m,$n) = dims $piddle;
-
-=cut
 
 # XXX Optimize!
 
@@ -1408,7 +1396,7 @@ datatype.
 
 When called with a numeric or list / listref argument they construct
 a new piddle. This is a convenience to avoid having to be
-long-winded and say <$x = long(pdl(42))>
+long-winded and say E<lt>$x = long(pdl(42))E<gt>
 
 Thus one can say:
 

@@ -428,7 +428,7 @@ Generates a piddle with index values
 allaxisvals() produces an array with axis values along each dimension,
 adding an extra dimension at the start.
 
-allaxisvals($piddle)->slice("($nth)") will produce the same result
+allaxisvals($piddle)-E<gt>slice("($nth)") will produce the same result
 as axisvals($piddle,$nth) (although with extra work and not inplace).
 
 It's useful when all the values will be required, as in the example

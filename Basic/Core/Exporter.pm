@@ -2,7 +2,6 @@
 
 PDL::Exporter - PDL export control
 
-
 =head1 DESCRIPTION
 
 Implements the standard conventions for

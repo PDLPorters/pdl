@@ -1,6 +1,6 @@
 =head1 NAME
 
-  PDL::Dbg -- functions to support debugging of PDL scripts
+PDL::Dbg - functions to support debugging of PDL scripts
 
 =head1 SYNOPSIS
 
@@ -18,6 +18,7 @@ you're doing rapid prototyping of new PDL code, let's say inside the
 perldl shell.
 
 =cut
+
 #' fool emacs
 
 package PDL::Dbg;

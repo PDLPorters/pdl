@@ -50,6 +50,7 @@ PDL::Types - define fundamental PDL Datatypes
 Internal module - holds all the PDL Type info
 
 =cut
+
 ### Generated from Types.pm.PL automatically - do not modify! ###
 
 package PDL::Types;
