@@ -1408,7 +1408,7 @@ Various forms of usage,
  perldl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
-See also L<new_from_specification|new_from_specification>
+See also L<new_from_specification|/pdl::new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -1436,7 +1436,7 @@ construct a one filled piddle
 
  see zeroes() and add one
 
-See also L<new_from_specification|new_from_specification>
+See also L<new_from_specification|/pdl::new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
