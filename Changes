@@ -2,6 +2,7 @@
 Doug Burke (5/25/00)
     - added 'pdldoc' shell command to provide access to PDL documentation
       without having to start up perldl
+    - cosmetic changes to output of usage + minor doc change to PDL::Basic
 John Cerney 5/25/00)
     - Modified PP.pm to call $arg1->copy for subclassed
       objects in some simple cases, otherwise call

@@ -133,25 +133,40 @@ etc. see L<zeroes|PDL::Core/zeroes>.
   ]
  ]
 
-=head2 xlinvals, ylinvals, zlinvals
+=head2 xlinvals
 
 =for ref
 
-X,Y or Z axis values between endpoints 
-(see L<xvals|/xvals>, L<yvals|/yvals>,
-L<zvals|/zvals>).
+X axis values between endpoints (see L<xvals|/xvals>).
 
 =for usage
 
  $a = zeroes(100,100);
  $x = $a->xlinvals(0.5,1.5);
  $y = $a->ylinvals(-2,-1);
- $z = f($x,$y);            # calculate Z for X between 0.5 and 1.5 and
- 			   # Y between -2 and -1.
+ # calculate Z for X between 0.5 and 1.5 and
+ # Y between -2 and -1.
+ $z = f($x,$y);            
 
 C<xlinvals>, C<ylinvals> and C<zlinvals> return a piddle with the same shape
 as their first argument and linearly scaled values between the two other
 arguments along the given axis.
+
+=head2 ylinvals
+
+=for ref
+
+Y axis values between endpoints (see L<yvals|/yvals>).
+
+See L<xlinvals|/xlinvals> for more information.
+
+=head2 zlinvals
+
+=for ref
+
+Z axis values between endpoints (see L<zvals|/zvals>).
+
+See L<xlinvals|/xlinvals> for more information.
 
 =cut
 
@@ -188,14 +203,14 @@ sub PDL::xlinvals {
 
 sub PDL::ylinvals {
 	my $dim = $_[0]->getdim(1);
-	barf "Must have at least two elements in dimension for xlinvals"
+	barf "Must have at least two elements in dimension for ylinvals"
 		if $dim <= 1;
 	return $_[0]->yvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
 }
 
 sub PDL::zlinvals {
 	my $dim = $_[0]->getdim(2);
-	barf "Must have at least two elements in dimension for xlinvals"
+	barf "Must have at least two elements in dimension for zlinvals"
 		if $dim <= 1;
 	return $_[0]->zvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
 }
@@ -331,7 +346,7 @@ so now
 
  distance($a, $centre, \&euclid);
 
-will emulate rvals, while '\&l1' and '\&linfty' will generate other
+will emulate rvals, while C<\&l1> and C<\&linfty> will generate other
 well-known norms. 
 
 =cut

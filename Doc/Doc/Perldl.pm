@@ -87,48 +87,62 @@ sub screen_width() {
 #
 sub printmatch {
     my @match = @_;
-    unless (@match) {
-	print "no match\n\n";
+    if (@match) {
+	foreach my $t ( format_ref( @_ ) ) { print $t; }
     } else {
-	# XXX this is NASTY
-	my $width = screen_width()-17;
-	if ( $Pod::Text::VERSION < 2 ) {
-	    $Pod::Text::indent = 0;
-	    $Pod::Text::SCREEN = $width;
-	    local $^W = 0;
-	    for my $m (@match) { 
-		$_ = $m->[1]->{Ref} || "[No reference available]";
-	      Pod::Text::prepare_for_output(); # adds a '\n' to $_
-		$_ = Pod::Text::fill $_; # try and get `nice' wrapping 
-		s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
-		s/\n/\n                /g;
-		my $name = $m->[0];
-		if ( length($name) > 15 ) { 
-		    printf "%s ...\n                %s\n", $name, $_; 
-		} else {
-		    printf "%-15s %s\n", $name, $_; 
-		}
+	print "no match\n\n";
+    }
+} # sub: print_match()
+
+# return a string containing a formated version of the Ref string
+# for the given matches
+#
+sub format_ref {
+    my @match = @_;
+    my @text = ();
+
+    # XXX this is NASTY
+    my $width = screen_width()-17;
+    if ( $Pod::Text::VERSION < 2 ) {
+	$Pod::Text::indent = 0;
+	$Pod::Text::SCREEN = $width;
+	local $^W = 0;
+	for my $m (@match) { 
+	    $_ = $m->[1]->{Ref} || "[No reference available]";
+	  Pod::Text::prepare_for_output(); # adds a '\n' to $_
+	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
+	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
+	    s/\n/\n                /g;
+	    my $name = $m->[0];
+	    if ( length($name) > 15 ) { 
+	        push @text, sprintf "%s ...\n                %s\n", $name, $_; 
+	    } else {
+		push @text, sprintf "%-15s %s\n", $name, $_; 
 	    }
-	} else {
-	    my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
+	}
+    } else {
+	my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
+	
+	for my $m (@match) { 
+	    my $ref = $m->[1]->{Ref} || "[No reference available]";
+	    $ref = $parser->interpolate( $ref );
+	    $ref = $parser->reformat( $ref );
+	    
+	    # remove last new lines (so substitution doesn't append spaces at end of text)
+	    $ref =~ s/\n*$//; 
+	    $ref =~ s/\n/\n                /g;
 
-	    for my $m (@match) { 
-		my $ref = $m->[1]->{Ref} || "[No reference available]";
-		$ref = $parser->interpolate( $ref );
-		$ref = $parser->reformat( $ref );
-
-		$ref =~ s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
-		$ref =~ s/\n/\n                /g;
-		my $name = $m->[0];
-		if ( length($name) > 15 ) { 
-		    printf "%s ...\n                %s\n", $name, $ref; 
-		} else {
-		    printf "%-15s %s\n", $name, $ref; 
-		}
+	    my $name = $m->[0];
+	    if ( length($name) > 15 ) { 
+		push @text, sprintf "%s ...\n                %s\n", $name, $ref; 
+	    } else {
+		push @text, sprintf "%-15s %s\n", $name, $ref; 
 	    }
 	}
     }
-} # sub: printmatch()
+    return wantarray ? @text : $text[0];
+
+} # sub: format_ref()
 
 =head2 apropos
 
@@ -226,18 +240,19 @@ sub usage_string{
     my $func = shift;
     my $str = "";
     my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
-    unless (@match) { print "\n  no match\n" } else {
-     my ($name,$hash) = @{$match[0]};
-     $str .= sprintf "\n%-15s %s \n".(' 'x16)."(Module %s)\n\n", $name,
-    	    $hash->{'Ref'}, $hash->{'Module'};
-     die "No usage info found for $func\n"
-    	if !defined $hash->{Example} && !defined $hash->{Sig} &&
-    	    !defined $hash->{Usage};
-     $str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
-     for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
-    	$str .= "  $_->[1]:\n\n".&allindent($hash->{$_->[0]},10)."\n\n"
-    	  if defined $hash->{$_->[0]};
-     }
+    unless (@match) { print "\n  no match\n" } 
+    else {
+	$str .= "\n" . format_ref( $match[0] );
+	my ($name,$hash) = @{$match[0]};
+	$str .= sprintf ( (' 'x16)."(Module %s)\n\n", $hash->{Module} );
+	die "No usage info found for $func\n"
+	    if !defined $hash->{Example} && !defined $hash->{Sig} &&
+		!defined $hash->{Usage};
+	$str .= "  Signature: $name($hash->{Sig})\n\n" if defined $hash->{Sig};
+	for (['Usage','Usage'],['Opt','Options'],['Example','Example']) {
+	    $str .= "  $_->[1]:\n\n".&allindent($hash->{$_->[0]},10)."\n\n"
+		if defined $hash->{$_->[0]};
+	}
     }
     return $str;
 }
