@@ -20,11 +20,11 @@ module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
 ASCII Table support is planned, as are the HEASARC bintable extensions that
-are recommended in the 1999 FITS standard. 
+are recommended in the 1999 FITS standard.
 
 Table support is based on hashes and named columns, rather than the
 less convenient (but slightly more congruent) technique of perl lists
-of numbered columns. 
+of numbered columns.
 
 The principle interface routines are C<rfits> and C<wfits>, for
 reading and writing respectively.  FITS headers are returned as perl
@@ -171,7 +171,7 @@ C<< <keyword>_COMMENT> >>.  All HISTORY cards in the header are
 collected into a single multiline string stored in the C<HISTORY> key.
 All COMMENT cards are similarly collected under the C<COMMENT> key.
 
-BSCALE/BZERO
+=head3 BSCALE/BZERO
 
 If the BSCALE and/or BZERO keywords are set, they are applied to the
 image before it is returned.  The returned PDL is promoted as
@@ -179,7 +179,7 @@ necessary to contain the multiplied values, and the BSCALE and BZERO
 keywords are deleted from the header for clarity.  If you don't want
 this type of processing, set 'bscale=>0' in the options hash.
 
-EXTENSIONS
+=head3 EXTENSIONS
 
 Sometimes a FITS file contains only extensions and a stub header in
 the first header/data unit ("primary HDU").  In scalar context, you
@@ -187,16 +187,19 @@ normally only get back the primary HDU -- but in this special case,
 you get back the first extension HDU.  You can force a read of the
 primary HDU by adding a '[0]' suffix to the file name.
 
-BINTABLE EXTENSIONS
+=head3 BINTABLE EXTENSIONS
 
-Binary tables are handled.  
+Binary tables are handled. Currently only the following PDL
+datatypes are supported: byte, short, ushort, long, float, and
+double. At present ushort() data is written as a long rather than
+as a short with TSCAL/ZERO; this may change.
 
 The return value for a binary table is a hash ref containing the names
 of the columns in the table (in UPPER CASE as per the FITS standard).
 Each element of the hash contains a PDL (for numerical values) or a
 perl list (for string values).  The PDL's 0th dimension runs across
 rows; the 1st dimension runs across the repeat index within the row
-(for rows with more than one value).  
+(for rows with more than one value).
 
 Thus, if your table contains a column named C<FOO> with type C<5D>,
 the expression
@@ -2057,13 +2060,20 @@ sub _wfits_nullhdu ($) {
   add_hdr_item $h, "EXTEND", "T", 'logical', "File contains extensions";
   add_hdr_item $h, "COMMENT", "", "comment",
     "  File written by perl (PDL::IO::FITS::wfits)";
-  add_hdr_item $h, "COMMENT", "", "comment",
-    "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
-  add_hdr_item $h, "COMMENT", "", "comment",
-    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
+  #
+  # The following seems to cause a problem so removing for now (I don't
+  # believe it is required, but may be useful for people who aren't
+  # FITS connoisseurs). It could also be down to a version issue in
+  # Astro::FITS::Header since it worked on linux with a newer version
+  # than on Solaris with an older version of the header module)
+  #
+  ##  add_hdr_item $h, "COMMENT", "", "comment",
+  ##    "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
+  ##  add_hdr_item $h, "COMMENT", "", "comment",
+  ##    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
   add_hdr_item $h, "HDUNAME", "PRIMARY", 'string';
-  add_hdr_item $h, "END", undef, 'undef'; 
-  
+  add_hdr_item $h, "END", undef, 'undef';
+
   my $hdr = join("",$h->cards);
   _print_to_fits( $fh, $hdr, " " );
 }

@@ -1,3 +1,6 @@
+DJB 28-Oct-04
+   - removed some header comments which caused problems with (presumably older)
+     versions of Astro::FITS::Header (for PDL::IO::FITS::wfits)
 DJB 27-Oct-04
    - fixed wfits() to write out ushort columns as Int4 (J) format
      (ideally we should write out as Int4 (I) and use TSCALE/ZERO).
