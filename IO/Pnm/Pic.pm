@@ -96,7 +96,7 @@ sub init_converter_table {
   # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
   # jpegtopnm.
 
-  my $jpeg_conv;
+  my $jpeg_conv='';
 
   {
       my @path = split(/:/,$ENV{PATH});
