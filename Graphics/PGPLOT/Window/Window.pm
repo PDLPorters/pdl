@@ -1594,7 +1594,8 @@ sub new {
 	      'Device'	      => $opt->{Device}		  || $DEV,
 	      'CurrentPanel'  => 0,
 	      '_env_options'  => undef,
-	      'State'         => undef
+	      'State'         => undef,
+	      'Recording'     => $opt->{Recording}        || 1
 	     };
 
   if (defined($self->{Options})) {
@@ -1605,7 +1606,8 @@ sub new {
   bless $self, ref($type) || $type;
 
   $self->_open_new_window($opt);
-  $self->_turn_on_recording();
+  # This weird setup is required to create the object.
+  $self->turn_on_recording() if $self->{Recording};
 
   return $self;
 
@@ -1869,6 +1871,7 @@ sub _advance_panel {
   if ($new_panel > ($self->{NX}*$self->{NY})) {
     # We are at the end of the page..
     $new_panel = 1;
+    $self->clear_state();
     pgpage();
 #    $self->{_env_set}=[];
   }
@@ -1957,23 +1960,24 @@ sub replay {
 }
 
 
-sub _clear_state {
+sub clear_state {
   my $self = shift;
   print "Clearing state!\n" if $DEBUGSTATE;
   $self->{State}->clear();
 }
 
-sub _turn_off_recording {
+sub turn_off_recording {
   my $self=shift;
-  $self->_clear_state();
+  # Turning off does _NOT_ clear the state at the moment!
+   $self->{Recording} =0;
   print "Turning off state!\n" if $DEBUGSTATE;
-  $self->{State}=undef;
 }
-sub _turn_on_recording {
+sub turn_on_recording {
   my $self=shift;
   # Previous calls are not recorded of course..
   print "Turning on state!\n" if $DEBUGSTATE;
-  $self->{State}=PDL::Graphics::State->new();
+  $self->{Recording} = 1;
+  $self->{State}=PDL::Graphics::State->new() unless defined($self->{State});
 }
 
 sub _add_to_state {
@@ -1982,10 +1986,10 @@ sub _add_to_state {
   # We only add if recording has been turned on.
   print "Adding to state ! $func, $arg, $opt\n" if $DEBUGSTATE;
   print "State = ".$self->{State}."\n" if $DEBUGSTATE;
-  $self->{State}->add($func, $arg, $opt) if defined($self->{State});
+  $self->{State}->add($func, $arg, $opt) if $self->{Recording};
 }
 
-sub retrive_state {
+sub retrieve_state {
   my $self=shift;
   my $state_copy = $self->{State}->copy();
   print "Retriving state!\n" if $DEBUGSTATE;
@@ -2005,7 +2009,7 @@ sub close {
       pgclos();
   }
   $self->{ID}=undef;
-  $self->_clear_state();
+  $self->clear_state();
 }
 
 =head2 options
@@ -2212,6 +2216,7 @@ EOD
     }
 
     $self->focus();
+    # What should I do with the state here????
     pgeras();
     $self->_add_to_state(\&erase, [], $u_opt);
     # Remove hold.
@@ -2579,7 +2584,9 @@ sub initenv{
   if (defined($o->{Erase}) && $o->{Erase}) {
     if ($self->{NX}*$self->{NY} > 1) {
       pgeras();
+      $self->clear_state(); # Added to deal with new pages.
     } else {
+      $self->clear_state(); # Added to deal with new pages.
       pgpage();
     }
   }
@@ -3324,7 +3331,6 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $line_options=$self->{PlotOptions}->extend({Missing => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&line, $in, $opt);
     $opt = {} if !defined($opt);
 
     barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
@@ -3367,6 +3373,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       pgline($n, $x->get_dataref, $y->get_dataref);
     }
     $self->_restore_status();
+    $self->_add_to_state(\&line, $in, $opt);
+
     1;
   }
 }
@@ -3379,7 +3387,6 @@ sub arrow {
   my $self = shift;
 
   my ($in, $opt)=_extract_hash(@_);
-  $self->_add_to_state(\&arrow, $in, $opt);
   $opt = {} if !defined($opt);
 
   barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
@@ -3396,6 +3403,7 @@ sub arrow {
   $self->_standard_options_parser($u_opt);
   pgarro($x1, $y1, $x2, $y2);
   $self->_restore_status();
+  $self->_add_to_state(\&arrow, $in, $opt);
 
 }
 
@@ -3411,7 +3419,6 @@ sub arrow {
       $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&points, $in, $opt);
     $opt = {} if !defined($opt);
     barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $y, $sym)=@$in;
@@ -3461,6 +3468,7 @@ sub arrow {
     pgline($n, $x->get_dataref, $y->get_dataref) if $o->{PlotLine}>0;
 
     $self->_restore_status();
+    $self->_add_to_state(\&points, $in, $opt);
     1;
   }
 }
@@ -3505,7 +3513,6 @@ sub arrow {
 	}
 
 	my ( $in, $opt ) = _extract_hash(@_);
-	$self->_add_to_state(\&draw_wedge, $in, $opt);
 	$opt = {} unless defined($opt);
 	barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
@@ -3553,6 +3560,7 @@ sub arrow {
 
 	# restore character colour & size before returning
 	$self->_restore_status();
+	$self->_add_to_state(\&draw_wedge, $in, $opt);
 
 	1;
     } # sub: draw_wedge()
@@ -3575,7 +3583,6 @@ sub arrow {
   sub imag1 {
     my $self = shift;
     my ($in,$opt)=_extract_hash(@_);
-    $self->_add_to_state(\&imag1, $in, $opt);
 
     if (!defined($im_options)) {
       $im_options = $self->{PlotOptions}->extend({
@@ -3599,6 +3606,7 @@ sub arrow {
     # Note that passing $u_opt is ok here since the two routines accept the
     # same options!
     $self->imag (@$in,$u_opt);
+    # This is not added to the state, because the imag command does that
   }
 
   sub imag {
@@ -3618,7 +3626,6 @@ sub arrow {
     }
 
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&imag, $in, $opt);
     # Let us parse the options if any.
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
@@ -3715,8 +3722,10 @@ sub arrow {
 	my $wo = $self->{Options}->options($opt);
 	print "Axis colour set to $$wo{AxisColour}\n";
 	if ($self->{NX}*$self->{NY} > 1) {
+	  $self->clear_state();
 	  pgeras();
 	} else {
+	  $self->clear_state();
 	  pgpage();
 	}
 	pgsci($wo->{AxisColour});
@@ -3772,7 +3781,9 @@ sub arrow {
 	$self->release() unless $hflag;
     }
 
+    $self->_add_to_state(\&imag, $in, $opt);
     1;
+
   } # sub: imag()
 
 }
@@ -3799,7 +3810,6 @@ sub arrow {
   sub ctab {
     my $self = shift;
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&ctab, $in, $opt);
 
     # No arguments -- print list of tables
     if (scalar(@$in) == 0) {
@@ -3878,6 +3888,8 @@ EOD
 	      brightness => $brightness,
 	      contrast => $contrast
 	    };			# Loaded
+    $self->_add_to_state(\&ctab, $in, $opt);
+
     1;
   }
 
@@ -3907,7 +3919,6 @@ EOD
 					      });
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&hi2d, $in, $opt);
     $opt = {} if !defined($opt);
 
     barf 'Usage: hi2d ( $image, [$x, $ioff, $bias] [, $options] )' if $#$in<0 || $#$in>3;
@@ -3942,6 +3953,7 @@ EOD
 	   $bias, 1, $work->get_dataref);
 
     $self->_restore_status();
+    $self->_add_to_state(\&hi2d, $in, $opt);
     1;
   }
 }
@@ -3951,7 +3963,6 @@ EOD
 sub poly {
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
-  $self->_add_to_state(\&poly, $in, $opt);
   barf 'Usage: poly ( $x, $y [, $options] )' if $#$in<0 || $#$in>2;
   my($x,$y) = @$in;
   $self->_checkarg($x,1);
@@ -3969,6 +3980,7 @@ sub poly {
   my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
+  $self->_add_to_state(\&poly, $in, $opt);
   1;
 }
 
@@ -4002,6 +4014,7 @@ sub poly {
     $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
+    $self->_add_to_state(\&circle, $in, $opt);
   }
 }
 
@@ -4028,7 +4041,6 @@ sub poly {
       $ell_options->synonyms({Angle => 'Theta'});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&ellipse, $in, $opt);
     my ($x, $y, $a, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
@@ -4053,7 +4065,12 @@ sub poly {
     $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+
+    $self->_add_to_state(\&ellipse, $in, $opt);
+    # Now turn off recording so we don't get this one twice..
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 
@@ -4076,7 +4093,6 @@ sub poly {
       $rect_opt->warnonmissing(0);
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&rectangle, $in, $opt);
     $opt={} if !defined($opt);
     my ($xc, $yc, $xside, $yside, $angle)=@$in;
     my $o=$rect_opt->options($opt);
@@ -4122,7 +4138,11 @@ sub poly {
     my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+    $self->_add_to_state(\&rectangle, $in, $opt);
+    # Turn off recording temporarily.
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 }
@@ -4144,7 +4164,6 @@ sub poly {
       $vect_options->add_synonym({Pos => 'Position'});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&vect, $in, $opt);
     barf 'Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
     my ($a, $b, $scale, $pos, $tr, $misval) = @$in;
     $self->_checkarg($a,2); $self->_checkarg($b,2);
@@ -4180,6 +4199,7 @@ sub poly {
     pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
+    $self->_add_to_state(\&vect, $in, $opt);
     1;
   }
 }
@@ -4210,7 +4230,6 @@ sub poly {
 
     # Extract the options hash and separate it from the other input
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&text, $in, $opt);
     $opt = {} if !defined($opt);
     barf 'Usage: text ($text, $x, $y, [,$opt])' if 
       (!defined($opt) && $#$in < 2) || ($#$in > 3) || ($#$in < 0);
@@ -4236,6 +4255,7 @@ sub poly {
 	   $o->{Text});
 #
     $self->_restore_status();
+    $self->_add_to_state(\&text, $in, $opt);
 
     1;
   }
@@ -4263,7 +4283,6 @@ sub poly {
       $legend_options->synonyms({ VSpace => 'VertSpace' });
     }
     my ($in, $opt)=_extract_hash(@_);
-    $self->_add_to_state(\&legend, $in, $opt);
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($legend_options, $opt);
 
@@ -4427,6 +4446,7 @@ sub poly {
 
 
     $self->_restore_status();
+    $self->_add_to_state(\&legend, $in, $opt);
   }
 
 }
@@ -4474,7 +4494,6 @@ sub poly {
     }
 
     my ($opt)=@_;
-    $self->_add_to_state(\&cursor, [], $opt);
 
     $opt = {} unless defined($opt);
     my $place_cursor=1; # Since X&Y might be uninitialised.
@@ -4529,6 +4548,7 @@ sub poly {
     my $istat = pgband($o->{Type}, $place_cursor, $o->{XRef},
 		       $o->{YRef}, $x, $y, $ch);
 
+    $self->_add_to_state(\&cursor, [], $opt);
     return ($x, $y, $ch, $o->{XRef}, $o->{YRef});
 
   }

@@ -156,7 +156,8 @@ use vars qw (@ISA @EXPORT);
 	      imag imag1 draw_wedge ctab ctab_info hi2d poly vect CtoF77coords
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
-	      tpoints tline
+	      tpoints tline retrieve_state replay turn_off_recording
+	      turn_on_recording clear_state
 	    );
 
 *rel = *release;		# Alias
@@ -483,6 +484,48 @@ sub label_axes {
   return if !defined($CW);
   $CW->label_axes(@_);
 }
+
+sub turn_on_recording {
+  if (!defined($CW)) {
+    warn "You can only turn on recording when you have a device open!\n";
+    return;
+  }
+  $CW->turn_on_recording();
+}
+
+sub turn_off_recording {
+  if (!defined($CW)) {
+    warn "You can only turn off recording when you have a device open!\n";
+    return;
+  }
+  $CW->turn_off_recording();
+}
+
+sub retrieve_state {
+  if (!defined($CW)) {
+    warn "You can only retrieve the state when a device is open\n";
+    return;
+  }
+  $CW->retrieve_state();
+}
+
+
+sub replay {
+  if (!defined($CW)) {
+    warn "You can only replay plotting commands when a device is open!\n";
+    return;
+  }
+  $CW->replay(@_);
+}
+
+sub clear_state {
+  if (!defined($CW)) {
+    warn "You can only clear the state when a device is open\n";
+    return;
+  }
+  $CW->clear_state();
+}
+
 
 sub env {
   dev() if !defined($CW);
