@@ -1,0 +1,219 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::TRIG - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+
+#include "../gslerr.h"
+
+');
+
+pp_def('gsl_sf_sin',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_sin_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Sin(x) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_cos',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_cos_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Cos(x) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_hypot',
+       GenericTypes => [D],
+       Pars=>'double x(); double xx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hypot_e,($x(),$xx(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Hypot(x,xx) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_complex_sin',
+       GenericTypes => [D],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_sin_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err; 
+$y() = ri.val;
+$ye() = ri.err; 
+',
+       Doc =>'Sin(z) for complex z'
+      );
+
+pp_def('gsl_sf_complex_cos',
+       GenericTypes => [D],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_cos_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err; 
+$y() = ri.val;
+$ye() = ri.err; 
+',
+       Doc =>'Cos(z) for complex z'
+      );
+
+pp_def('gsl_sf_complex_logsin',
+       GenericTypes => [D],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_complex_logsin_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err; 
+$y() = ri.val;
+$ye() = ri.err; 
+',
+       Doc =>'Log(Sin(z)) for complex z'
+      );
+
+pp_def('gsl_sf_lnsinh',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnsinh_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Log(Sinh(x)) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_lncosh',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lncosh_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Log(Cos(x)) with GSL semantics.'
+      );
+
+pp_def('gsl_sf_polar_to_rect',
+       GenericTypes => [D],
+       Pars=>'double r(); double t(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_polar_to_rect,($r(),$t(),&r,&ri))
+$x() = r.val;
+$xe() = r.err; 
+$y() = ri.val;
+$ye() = ri.err; 
+',
+       Doc =>'Convert polar to rectlinear coordinates.'
+      );
+
+pp_def('gsl_sf_rect_to_polar',
+       GenericTypes => [D],
+       Pars=>'double x(); double y(); double [o]r(); double [o]t(); double [o]re(); double [o]te()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_rect_to_polar,($x(),$y(),&r,&ri))
+$r() = r.val;
+$re() = r.err; 
+$t() = ri.val;
+$te() = ri.err; 
+',
+       Doc =>'Convert rectlinear to polar coordinates. return argument in range [-pi, pi].'
+      );
+
+pp_def('gsl_sf_angle_restrict_symm',
+       GenericTypes => [D],
+       Pars=>'double [o]y();',
+       Code =>'
+GSLERR(gsl_sf_angle_restrict_symm_e,($P(y)))
+',
+       Doc =>'Force an angle to lie in the range (-pi,pi].'
+      );
+
+pp_def('gsl_sf_angle_restrict_pos',
+       GenericTypes => [D],
+       Pars=>'double [o]y();',
+       Code =>'
+GSLERR(gsl_sf_angle_restrict_pos_e,($P(y)))
+',
+       Doc =>'Force an angle to lie in the range [0,2 pi).'
+      );
+
+pp_def('gsl_sf_sin_err',
+       GenericTypes => [D],
+       Pars=>'double x(); double dx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_sin_err_e,($x(),$dx(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Sin(x) for quantity with an associated error.'
+      );
+
+pp_def('gsl_sf_cos_err',
+       GenericTypes => [D],
+       Pars=>'double x(); double dx(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_cos_err_e,($x(),$dx(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Cos(x) for quantity with an associated error.'
+      );
+
+
+pp_addpm({At=>Bot},<<'EOD');
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

@@ -94,7 +94,7 @@ sub whereami_any {
 }
 
 sub whereami {
-   for $dir (@INC,qw|. .. ../.. ../../..|) {
+   for $dir (@INC,qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/Basic' : $dir)
 	if -e "$dir/Basic/Core/Dev.pm";
    }
@@ -104,7 +104,7 @@ sub whereami {
 }
 
 sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
+   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/PDL' : $dir)
 	if -e "$dir/PDL/Core/Dev.pm";
    }

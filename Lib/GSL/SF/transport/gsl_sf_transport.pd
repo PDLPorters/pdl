@@ -1,0 +1,93 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::PSI - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+
+Transport function:
+  J(n,x) := Integral[ t^n e^t /(e^t - 1)^2, {t,0,x}]
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+
+#include "../gslerr.h"
+
+');
+
+pp_def('gsl_sf_transport_2',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'J(2,x)'
+      );
+
+pp_def('gsl_sf_transport_3',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_3_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'J(3,x)'
+      );
+
+pp_def('gsl_sf_transport_4',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_4_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'J(4,x)'
+      );
+
+pp_def('gsl_sf_transport_5',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_transport_5_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'J(5,x)'
+      );
+
+pp_addpm({At=>Bot},<<'EOD');
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

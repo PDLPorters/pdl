@@ -1,0 +1,362 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::BESSEL - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+#include "../gslerr.h"
+');
+
+pp_def('gsl_sf_bessel_Jn',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Jn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Bessel Function J_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_J_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Jn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Bessel Functions J_{s}(x) to J_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Yn',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Yn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'IrRegular Bessel Function Y_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_Y_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Yn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Bessel Functions Y_{s}(x) to Y_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_In',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_In_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Modified Bessel Function I_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_I_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_In_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Modified Bessel Functions I_{s}(x) to I_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_In_scaled',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_In_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled Regular Modified Bessel Function exp(-|x|) I_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_I_scaled_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_In_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled Regular Modified Bessel Functions exp(-|x|) I_{s}(x) to exp(-|x|) I_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Kn',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Kn_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'IrRegular Modified Bessel Function K_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_K_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Kn_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of IrRegular Modified Bessel Functions K_{s}(x) to K_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Kn_scaled',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Kn_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled IrRegular Modified Bessel Function exp(-|x|) K_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_K_scaled_array',
+       GenericTypes => [D],
+       OtherPars =>'int s; int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_Kn_scaled_array,($COMP(s),$COMP(s)+$COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled IrRegular Modified Bessel Functions exp(-|x|) K_{s}(x) to exp(-|x|) K_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_jl',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_jl_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Sphericl Bessel Function J_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_j_array',
+       GenericTypes => [D],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_jl_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Spherical Regular Bessel Functions J_{0}(x) to J_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_yl',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_yl_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'IrRegular Spherical Bessel Function y_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_y_array',
+       GenericTypes => [D],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_yl_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Regular Spherical Bessel Functions y_{0}(x) to y_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_il_scaled',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_il_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled Regular Modified Spherical Bessel Function exp(-|x|) i_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_i_scaled_array',
+       GenericTypes => [D],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_il_scaled_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled Regular Modified Spherical Bessel Functions exp(-|x|) i_{0}(x) to exp(-|x|) i_{n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_kl_scaled',
+       GenericTypes => [D],
+       OtherPars =>'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_kl_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled IrRegular Modified Spherical Bessel Function exp(-|x|) k_n(x).'
+      );
+
+pp_def('gsl_sf_bessel_k_scaled_array',
+       GenericTypes => [D],
+       OtherPars =>'int n=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_bessel_kl_scaled_array,($COMP(n)-1,$x(),$P(y)))
+',
+       Doc =>'Array of Scaled IrRegular Modified Spherical Bessel Functions exp(-|x|) k_{s}(x) to exp(-|x|) k_{s+n-1}(x).'
+      );
+
+pp_def('gsl_sf_bessel_Jnu',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Jnu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Cylindrical Bessel Function J_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Ynu',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Ynu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'IrRegular Cylindrical Bessel Function J_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Inu_scaled',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Inu_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled Modified Cylindrical Bessel Function exp(-|x|) I_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Inu',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Inu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Modified Cylindrical Bessel Function I_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Knu_scaled',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Knu_scaled_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Scaled Modified Cylindrical Bessel Function exp(-|x|) K_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_Knu',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_Knu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Modified Cylindrical Bessel Function K_nu(x).'
+      );
+
+pp_def('gsl_sf_bessel_lnKnu',
+       GenericTypes => [D],
+       OtherPars =>'double n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_bessel_lnKnu_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Logarithm of Modified Cylindrical Bessel Function K_nu(x).'
+      );
+
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

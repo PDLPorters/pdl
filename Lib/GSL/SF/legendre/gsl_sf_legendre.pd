@@ -1,0 +1,223 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::LEGENDRE - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+#include "../gslerr.h"
+');
+
+pp_def('gsl_sf_legendre_Pl',
+       GenericTypes => [D],
+       OtherPars =>'int l',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Pl_e,($COMP(l),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'P_l(x)'
+      );
+
+pp_def('gsl_sf_legendre_Pl_array',
+       GenericTypes => [D],
+       OtherPars =>'int l=>num',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_Pl_array,($COMP(l)-1,$x(),$P(y)))
+',
+       Doc =>'P_l(x) from 0 to n-1.'
+      );
+
+pp_def('gsl_sf_legendre_Ql',
+       GenericTypes => [D],
+       OtherPars =>'int l',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Ql_e,($COMP(l),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Q_l(x)'
+      );
+
+pp_def('gsl_sf_legendre_Plm',
+       GenericTypes => [D],
+       OtherPars =>'int l; int m',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_Plm_e,($COMP(l),$COMP(m),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'P_lm(x)'
+      );
+
+pp_def('gsl_sf_legendre_Plm_array',
+       GenericTypes => [D],
+       OtherPars =>'int l=>num; int m',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_Plm_array,($COMP(l)-2+$COMP(m),$COMP(m),$x(),$P(y)))
+',
+       Doc =>'P_lm(x) for l from 0 to n-2+m.'
+      );
+
+pp_def('gsl_sf_legendre_sphPlm',
+       GenericTypes => [D],
+       OtherPars =>'int l; int m',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_sphPlm_e,($COMP(l),$COMP(m),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'P_lm(x), normalized properly for use in spherical harmonics'
+      );
+
+pp_def('gsl_sf_legendre_sphPlm_array',
+       GenericTypes => [D],
+       OtherPars =>'int n=>num; int m',
+       Pars=>'double x(); double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_sphPlm_array,($COMP(n)-2+$COMP(m),$COMP(m),$x(),$P(y)))
+',
+       Doc =>'P_lm(x), normalized properly for use in spherical harmonics for l from 0 to n-2+m.'
+      );
+
+pp_def('gsl_sf_conicalP_half',
+       GenericTypes => [D],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_half_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Irregular Spherical Conical Function P^{1/2}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_mhalf',
+       GenericTypes => [D],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_mhalf_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Spherical Conical Function P^{-1/2}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_0',
+       GenericTypes => [D],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_0_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Conical Function P^{0}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_1',
+       GenericTypes => [D],
+       OtherPars =>'double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_1_e,($COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Conical Function P^{1}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_sph_reg',
+       GenericTypes => [D],
+       OtherPars =>'int l; double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_sph_reg_e,($COMP(l),$COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Spherical Conical Function P^{-1/2-l}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_conicalP_cyl_reg_e',
+       GenericTypes => [D],
+       OtherPars =>'int m; double lambda',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_conicalP_cyl_reg_e,($COMP(m),$COMP(lambda),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regular Cylindrical Conical Function P^{-m}_{-1/2 + I lambda}(x)'
+      );
+
+pp_def('gsl_sf_legendre_H3d',
+       GenericTypes => [D],
+       OtherPars =>'int l; double lambda; double eta',
+       Pars=>'double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_legendre_H3d_e,($COMP(l),$COMP(lambda),$COMP(eta),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'lth radial eigenfunction of the Laplacian on the 3-dimensional hyperbolic space.'
+      );
+
+pp_def('gsl_sf_legendre_H3d_array',
+       GenericTypes => [D],
+       OtherPars =>'int l=>num; double lambda; double eta',
+       Pars=>'double [o]y(num)',
+       Code =>'
+GSLERR(gsl_sf_legendre_H3d_array,($COMP(l)-1,$COMP(lambda),$COMP(eta),$P(y)))
+',
+       Doc =>'Array of H3d(ell), for l from 0 to n-1.'
+      );
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

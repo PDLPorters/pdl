@@ -1173,7 +1173,7 @@ void
 DESTROY(sv)
   SV * sv
  CODE:
-  gsl_rng *rng = INT2PTR(gsl_rng *, SvIV((SV*)SvRV(sv)));
+  gsl_rng *rng = (gsl_rng *) SvIV((SV*)SvRV(sv));
   /* fprintf(stderr,"Freeing %d\n",rng); */
   gsl_rng_free((gsl_rng *) rng);
 

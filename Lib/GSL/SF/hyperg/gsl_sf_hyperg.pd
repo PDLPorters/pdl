@@ -1,0 +1,145 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::HYPERG - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+#include "../gslerr.h"
+');
+
+pp_def('gsl_sf_hyperg_0F1',
+       GenericTypes => [D],
+       OtherPars =>'double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_0F1_e,($COMP(c), $x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'/* Hypergeometric function related to Bessel functions 0F1[c,x] = Gamma[c]    x^(1/2(1-c)) I_{c-1}(2 Sqrt[x]) Gamma[c] (-x)^(1/2(1-c)) J_{c-1}(2 Sqrt[-x])'
+      );
+
+pp_def('gsl_sf_hyperg_1F1',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_1F1_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. 1F1[a,b,x] = M(a,b,x)'
+      );
+
+pp_def('gsl_sf_hyperg_U',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_U_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. U(a,b,x)'
+      );
+
+pp_def('gsl_sf_hyperg_2F1',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Confluent hypergeometric function  for integer parameters. 2F1[a,b,c,x]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_conj',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_conj_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Gauss hypergeometric function 2F1[aR + I aI, aR - I aI, c, x]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_renorm',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_renorm_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Renormalized Gauss hypergeometric function 2F1[a,b,c,x] / Gamma[c]'
+      );
+
+pp_def('gsl_sf_hyperg_2F1_conj_renorm',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b; double c',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F1_conj_renorm_e,($COMP(a),$COMP(b), $COMP(c),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Renormalized Gauss hypergeometric function 2F1[aR + I aI, aR - I aI, c, x] / Gamma[c]'
+      );
+
+pp_def('gsl_sf_hyperg_2F0',
+       GenericTypes => [D],
+       OtherPars =>'double a; double b',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hyperg_2F0_e,($COMP(a),$COMP(b), $x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Mysterious hypergeometric function. The series representation is a divergent hypergeometric series. However, for x < 0 we have 2F0(a,b,x) = (-1/x)^a U(a,1+a-b,-1/x)'
+      );
+
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

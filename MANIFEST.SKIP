@@ -1,6 +1,8 @@
 MANIFEST\.old
 ~$
 \.BAK$
+\.patch$
+\.out$
 ^\.exists
 ^_Inline
 ^[.]Inline
