@@ -715,7 +715,7 @@ sub PDL::rcols {
    barf 'Usage ($x,$y,...) = rcols( *HANDLE|"filename", ["/pattern/" or \%options], $col1, $col2, ..., [ \%options] )' 
        if $#_<0;
 
-   my $is_handle = ref(\$_[0]) eq "GLOB";
+   my $is_handle = defined fileno $_[0] ? 1 : 0;
    my $fh = $is_handle ? $_[0] : "FILE";
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
@@ -1013,7 +1013,8 @@ sub PDL::wcols {
    }
    my $file = $_[-1];
    my $file_opened;
-   if (ref(\$file) eq "GLOB") {  # file handle passed directly
+   my $is_handle = defined fileno($file) ? 1 : 0;
+   if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
    else{
@@ -1184,7 +1185,7 @@ of C<$1>, C<$2> etc.
      my (@ret,@v,$nret); my ($m,$n)=(-1,0); # Count/PDL size
      my $pattern = shift;
 
-     my $is_handle = ref(\$_[0]) eq "GLOB";
+     my $is_handle = defined fileno $_[0] ? 1 : 0;
      my $fh = $is_handle ? $_[0] : "FILE";
      open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
 
@@ -1498,9 +1499,10 @@ nonexistent).
 
 =for usage
 
-  $pdl->rasc("filename" [,$noElements]);
+  $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
       Where:
-  	filename is the name of the ASCII file to read
+  	filename is the name of the ASCII file to read or
+          open file handle
 	$noElements is the optional number of elements in the file to read.
 	    (If not present, all of the file will be read to fill up $pdl).
 	$pdl can be of type float or double for more precision.
@@ -1514,7 +1516,6 @@ nonexistent).
   $imm = zeroes(float,20,2);
   $imm->rasc('test.num');
 
-
 =cut
 
 sub rasc {PDL->rasc(@_)}
@@ -1522,9 +1523,15 @@ sub PDL::rasc {
   use IO::File;
   my ($pdl, $file, $num) = @_;
   $num = -1 unless defined $num;
-  my $fi = new IO::File "<$file" || barf "Can't open $file";
+  my $fi = $file;
+  my $is_openhandle = defined fileno $fi ? 1 : 0;
+  unless ($is_openhandle) {
+    barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
+       if !defined $file || ref $file;
+    $fi = new IO::File "<$file" || barf "Can't open $file";
+  }
   $pdl->_rasc(my $ierr=null,$num,$fi);
-  close $fi;
+  close $fi unless $is_openhandle;
   return all $ierr > 0;
 }
 

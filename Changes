@@ -1,3 +1,8 @@
+CS  - INSTALL & DEPENDENCIES update (bug #488867)
+    - FlexRaw: read/write from open file handles (by Dov Grobgeld)
+    - IO::Misc: fix filehandle code for rcols etc.
+                add file handle awareness to rasc
+    - slices.pd: improve 'index' error message
 CS  - remove the defunct t/quat.t
     - fix PDL::GSL to work with libgsl 1.X
 CS  - fix for #474736 (sym with points), needed that feature

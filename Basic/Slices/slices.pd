@@ -152,12 +152,14 @@ EOD
 my $index_init_good = 
        'register int foo = $ind(); 
         if( foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
+	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+                foo,$SIZE(n)-1);
         }';
 my $index_init_bad = 
        'register int foo = $ind(); 
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
+	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+                foo,$SIZE(n)-1);
         }';
 
 pp_def(
@@ -183,11 +185,13 @@ my $index2d_init_good =
        'register int fooa,foob;
 	fooa = $inda(); 
         if( fooa<0 || fooa>=$SIZE(na) ) {
-           barf("PDL::index: invalid index 1");
+           barf("PDL::index: invalid x-index %d (valid range 0..%d)",
+                fooa,$SIZE(na)-1);
         }
 	foob = $indb(); 
         if( foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
+	   barf("PDL::index: invalid y-index %d (valid range 0..%d)",
+                foob,$SIZE(nb)-1);
         }';
 my $index2d_init_bad =
        'register int fooa,foob;
