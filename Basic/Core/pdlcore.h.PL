@@ -121,7 +121,7 @@ for my $in ( keys %PDL_DATATYPES ) {
 
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
   print OUT <<"!WITH!SUBS!";
-void pdl_setav_$type(PDL_$type* pdata, AV* av,
+long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	PDL_Long* pdims, PDL_Long ndims, int level);
 !WITH!SUBS!
 }
