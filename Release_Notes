@@ -1,7 +1,13 @@
+Release notes for PDL 2.3.2 ------------------------------
+
+A pure bugfix release to fix compilation problems with gimp-perl
+(part of the gimp distribution). The following notes from
+2.3 and 2.3.1 still apply:
+
 Release notes for PDL 2.3.1 ------------------------------
 
 A bugfix release to fix some compilation problems seen with
-2.3. The following notes from 2.004 still apply:
+2.3. The following notes from 2.3 still apply:
 
 Release notes for PDL 2.3 -------------------------------
  

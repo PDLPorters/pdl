@@ -1,7 +1,9 @@
+CS  - folded PDL-2_3-gimp-fix branch into main trunk
+    - typos
 DJB (09 May 02)
     - removed *.P files from Lib/Slatec/slatec/ (no longer needed)
 CS  - fix wcols bug #541847
-    - remove $Config{libs} from callext_cc to make callect work on
+    - remove $Config{libs} from callext_cc to make callext work on
 	recent debian systems
 	**** possible source of incompatibility ******
     - dumper.t: test only if uuencode/decode present
@@ -57,6 +59,11 @@ CS  - fix for #474736 (sym with points), needed that feature
     - applied symsize patch #474853
 CS  - fix for Dev.pm: load PDL::Types only once
     - stop PDL::IO::Pic warning by default
+2.3.2
+CS  - change pdlcore.h.PL so that gimp-perl compiles
+      again
+    - Changes to Release_Notes, PDL.pm associated
+      with making release 2.3.2
 2.3.1
 John Cerney (11/21/01)
     - Changes to Release_Notes, PDL.pm associated

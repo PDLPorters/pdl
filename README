@@ -1,6 +1,10 @@
 ++ WARNING: There is absolutely no warranty for this software ++
 ++ package. See the file COPYING for details.                 ++
 
++ Note: PDL-2.3.2 is a pure bugfix release that fixes a compilation
++ problem with gimp-perl (part of the gimp distribution)
++ It introduces *no* other features or fixes against 2.3.1
+
 Important reading
 -----------------
 
