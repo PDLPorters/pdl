@@ -42,6 +42,8 @@ The list of currently availably commands:
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
  cursor     -  Interactively read cursor positions.
+ circle     -  Draw a circle
+ ellipse    -  Draw an ellipse.
 
 Device manipulation commands:
 
@@ -159,7 +161,7 @@ use vars qw (@ISA @EXPORT);
 @EXPORT = qw( dev hold release rel env bin cont errb line points
 	      imag imag1 ctab ctab_info hi2d poly vect CtoF77coords
 	      new_window focus_window window_list close_window
-	      label_axes text legend cursor
+	      label_axes text legend cursor circle ellipse
 	    );
 
 *rel = *release;		# Alias
@@ -557,6 +559,16 @@ sub cursor {
 sub legend {
   barf 'Open a plot window first!' if !defined($CW);
   $CW->legend(@_);
+}
+
+sub circle {
+  dev(@_) if !defined($CW);
+  $CW->circle(@_);
+}
+
+sub ellipse {
+  dev(@_) if !defined($CW);
+  $CW->ellipse(@_);
 }
 
 

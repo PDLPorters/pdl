@@ -44,6 +44,8 @@ The list of currently availably methods:
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
  cursor     -  Interactively read cursor positions.
+ circle     -  Draw a circle
+ ellipse    -  Draw an ellipse.
 
 Device manipulation commands:
 
@@ -115,7 +117,8 @@ subsequent plotting without going via the PGPLOT commands.
 
 This is implemented such that the plotting settings (such as line width,
 line style etc.) are affected only for that plot, any global changes made,
-say, with C<pgslw()> are preserved.
+say, with C<pgslw()> are preserved. Some modifications apply when using
+the OO interface, see below.
 
 =head2 Alphabetical listing of standard options
 
@@ -301,6 +304,74 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
  $opt = {LINEWIDTH => 10}; # A rather fat line
 
 =back
+
+=head1 OBJECT-ORIENTED INTERFACE
+
+This section will briefly describe how the PDL::Graphics::PGPLOT::Window
+package can be used in an object-oriented (OO) approach and what the
+advantages of this would be. We will start with the latter
+
+=over
+
+=item Multiple windows.
+
+For the common user it is probably most interesting to use the OO interface
+when handling several open devices at the same time. If you have one
+variable for each plot device it is easier to distribute commands to the
+right device at the right time. This is the angle we will take in the rest
+of this description.
+
+=item Coding and abstraction
+
+At a more fundamental level it is desirable to approach a situation where
+it is possible to have a generic plotting interface which gives access
+to several plotting libraries, much as PGPLOT gives access to different
+output devices. Thus in such a hypothetical package one would say:
+
+  my $win1 = Graphics::new('PGPLOT', {Device => '/xs'});
+  my $win2 = Graphics::new('gnuplot', {Background => 'Gray'};
+
+From a more practical point of of view such abstraction also comes in
+handy when you write a large program package and you do not want to import
+routines nilly-willy in which case an OO approach with method calls is a
+lot cleaner.
+
+
+=back
+
+Anyway, enough philosophizing, let us get down to Earth and give some
+examples of the use of OO PGPLOT. As an example we will take Odd (which
+happens to be a common Norwegian name) who is monitoring the birth of
+rabbits in O'Fib-o-nachy's farm (alternatively he can of course be
+monitoring processes or do something entirely different). Odd wants the
+user to be able to monitor both the birth rates and accumulated number
+of rabbits and the spatial distribution of the births. Since these are
+logically different he chooses to have two windows open:
+
+  $rate_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
+              Aspect => 1, WindowWidth => 5, NXPanel => 2});
+
+  $area_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
+              Aspect => 1, WindowWidth => 5});
+
+See the documentation for L<new> below for a full overview of the
+options you can pass to the constructor.
+
+Next, Odd wants to create plotting areas for subsequent plots and maybe
+show the expected theoretical trends
+
+  $rate_win->env(0, 10, 0, 1000, {XTitle => 'Days', YTitle => '#Rabbits'});
+  $rate_win->env(0, 10, 0, 100, {Xtitle=>'Days', Ytitle => 'Rabbits/day'});
+
+  $area_win->env(0, 1, 0, 1, {XTitle => 'Km', Ytitle => 'Km'});
+  # And theoretical prediction.
+  $rate_win->line(sequence(10), fibonacci(10), {Panel => [1, 1]});
+
+That is basically it. The commands should automatically focus the relevant
+window. Due to the limitations of PGPLOT this might however lead you to
+plot in the wrong panel... The package tries to be smart and do this
+correctly, but might get it wrong at times.
+
 
 =head1 FUNCTIONS
 
@@ -727,6 +798,7 @@ $WindowOptions->warnonmissing(0);
 
 
 my $PREVIOUS_DEVICE = undef;
+my $PI = 4*atan2(1,1);
 
 
 =head2 new
@@ -2413,7 +2485,155 @@ sub poly {
   1;
 }
 
+# Plot a circle using pgcirc
 
+=head2 circle
+
+=for ref
+
+Plot a circle on the display using the fill setting.
+
+=for usage
+
+ Usage: circle($x, $y, $radius [, $opt]);
+
+All arguments can alternatively be given in the options hash using the
+following options:
+
+=over
+
+=item XCenter and YCenter
+
+The position of the center of the circle
+
+=item Radius
+
+The radius of the circle.
+
+
+=back
+
+
+=cut
+
+
+
+{
+  my $circle_options = undef;
+
+  sub circle {
+    my $self = shift;
+    if (!defined($circle_options)) {
+      $circle_options = $GeneralOptions->extend({Radius => undef,
+						 XCenter => undef,
+						 YCenter => undef});
+    }
+    my ($in, $opt)=$self->_extract_hash(@_);
+    my ($x, $y, $radius)=@$in;
+
+    my $o = $circle_options->options($opt);
+    $o->{XCenter}=$x if defined($x);
+    $o->{YCenter}=$y if defined($y);
+    $o->{Radius} = $radius if defined($radius);
+
+    $self->_save_status();
+    $self->_standard_options_parser($o);
+    pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
+    $self->_restore_status();
+  }
+}
+
+# Plot an ellipse using poly.
+
+
+=head2 ellipse
+
+=for ref
+
+Plot an ellipse, optionally using fill style.
+
+=for usage
+
+ Usage: ellipse($x, $y, $a, $b, $theta [, $opt]);
+
+All arguments can alternatively be given in the options hash using the
+following options:
+
+=over
+
+=item A
+
+The major axis of the ellipse - this must be defined or C<$a> must be given.
+
+=item B
+
+The minor axis, like A this is required.
+
+=item Theta
+
+The orientation of the ellipse - defaults to 0.0
+
+=item XCenter and YCenter
+
+The coordinates of the center of the ellipse. These must be specified or
+C<$x> and C<$y> must be given.
+
+=item NPoints
+
+The number of points used to draw the ellipse. This defaults to 100 and
+might need changing in the case of very large ellipses.
+
+
+=back
+
+
+=cut
+
+
+
+{
+  my $ell_options = undef;
+
+  sub ellipse {
+    my $self = shift;
+    if (!defined($ell_options)) {
+      $ell_options = $GeneralOptions->extend({
+					      A=>undef,
+					      B=>undef,
+					      Theta => 0.0,
+					      XCenter => undef,
+					      YCenter => undef,
+					      NPoints => 100
+					    });
+    }
+    my ($in, $opt)=$self->_extract_hash(@_);
+    my ($x, $y, $a, $b, $theta)=@$in;
+
+    my $o = $ell_options->options($opt);
+    $o->{XCenter}=$x if defined($x);
+    $o->{YCenter}=$y if defined($y);
+    $o->{A} = $a if defined($a);
+    $o->{B} = $b if defined($b);
+    $o->{Theta}=$theta if defined($theta);
+
+    if (!defined($o->{A}) || !defined($o->{B}) || !defined($o->{XCenter})
+       || !defined($o->{YCenter})) {
+      barf "The major and minor axis and the center coordinates must be given!";
+    }
+
+    my $t = 2*$PI*sequence($o->{Npoints})/($o->{Npoints}-1);
+    my ($xtmp, $ytmp) = ($o->{A}*cos($t), $o->{B}*sin($t));
+
+    # Rotate the ellipse and shift it.
+    my ($costheta, $sintheta)=(cos($o->{Theta}), sin($o->{Theta}));
+    my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
+    my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
+
+    $self->poly($x, $y, $opt);
+
+  }
+
+}
 # display a vector map of 2 images using pgvect()
 
 {
