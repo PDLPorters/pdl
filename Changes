@@ -1,3 +1,6 @@
+CED 19-May-2003
+   - Fixed FlexRaw to use binmode() on file handles.  Also fixed flexraw.t
+ 	to use binmode() in its byte-swapper.
 CS 170503
    - Makefile.PL cleanup + restrict tests when vital modules missing
 CS 140503

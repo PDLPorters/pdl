@@ -111,16 +111,16 @@ The reading of compressed data is switched on automatically if the
 filename requested ends in .gz or .Z, or if the originally specified
 filename does not exist, but one of these compressed forms does.
 
-If writeflex and readflex are given a reference to a file handle
-as a first parameter instead of a filename, then the data is read
-or written to the open filehandle. This gives an easy way to read
-an arbitrary slice in a big data volume as in the following example:
-
+If writeflex and readflex are given a reference to a file handle as a
+first parameter instead of a filename, then the data is read or
+written to the open filehandle. This gives an easy way to read an
+arbitrary slice in a big data volume, as in the following example:
 
 	use PDL;
 	use PDL::IO::FastRaw;
 
         open(DATA, "raw3d.dat");
+        binmode(DATA);
 
         # assume we know the data size from an external source
         ($width, $height, $data_size) = (256,256, 4);
@@ -129,6 +129,12 @@ an arbitrary slice in a big data volume as in the following example:
         # Seek to slice
         seek(DATA, $width*$height*$data_size * $slice_num, 0);
         $pdl = readflex \*DATA, [{Dims=>[$width, $height], Type=>'long'}];
+
+WARNING: In later versions of perl (5.8 and up) you must be sure that your file
+is in "raw" mode (see the perlfunc man page entry for "binmode", for
+details).  Both readflex and writeflex automagically switch the file
+to raw mode for you -- but in code like the snipped above, you could
+end up seeking the wrong byte if you forget to make the binmode() call.
 
 Mapflex memory maps, rather than reads, the data files.  Its interface
 is similar to `readflex'.  Extra options specify if the data is to be
@@ -367,6 +373,7 @@ sub readflex {
     # Test if $name is a file handle
     if (defined fileno($name)) {
 	$d = $name;
+	binmode($d); 
     }
     else {
     if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
@@ -617,6 +624,7 @@ sub writeflex {
     # Test if $name is a file handle
     if (defined fileno($name)) {
 	$d = $name;
+	binmode $d;
     }
     else {
 	barf $usage if ref $name;
