@@ -1,3 +1,6 @@
+CED 17-Mar-04
+   - Transform:  added match() convenience routine
+   - Demos:  added a rotating-coordinate-system demo to "demo transform"
 DJB 17-Mar-04
    - Updated PLplot build so that it works on OS-X, and will automatically
      pick up the library if installed via FINK [currently only in unstable]

@@ -4507,8 +4507,10 @@ sub env {
 	    else {
 		$xref_wrld = $yref_wrld = $ic;
 	    }
+
 	    $xref_pix = ($x_pix - 1)/2;
 	    $yref_pix = ($y_pix - 1)/2;
+
 	}
 	elsif ( defined $o->{RefPos} ) {
 	    my $aref = $o->{RefPos};
@@ -5689,7 +5691,7 @@ sub arrow {
 	$tr = float [0,1,0, 0,0,1];
     }
     $tr = $self->CtoF77coords($tr);
-    print "tr=$tr\n";
+
 
     &catch_signals;
     

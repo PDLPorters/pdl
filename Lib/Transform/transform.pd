@@ -994,11 +994,25 @@ pp_def('map',
 
 	Doc=><<'==EOD_map_doc==',
 
+=head2 PDL::match
+
+=for usage
+	
+  $b = $a->match($c);
+
+=for ref
+
+Resample a scientific image to the same coordinate system as another.
+
+The example above is syntactic sugar for 
+
+ $b = $a->map(t_identity, $c, ...);
+
+it resamples the input PDL with the identity transformation in
+scientific coordinates, and matches the pixel coordinate system to
+$c's FITS header.
+
 =head2 map
-
-=for sig
-
-  Signature: (data(); PDL::Transform a; template(); \%opt)
 
 =for usage
 
@@ -1273,6 +1287,11 @@ Maybe that someone is you.
 
 use PDL::NiceSlice;
 
+sub PDL::match {
+  t_identity()->map(@_);
+}
+    
+
 *PDL::map = \&map;
 sub map {
   my($me) = shift;
@@ -1350,8 +1369,7 @@ sub map {
   # Autoscale by transforming a subset of the input points' coordinates
   # to the output range, and pick a FITS header that fits the output
   # coordinates into the given template.
-  unless((defined $out->gethdr && $out->hdr->{NAXIS}) ||
-	 $nofits) {
+  unless((defined $out->gethdr && $out->hdr->{NAXIS})  or  $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
 
       $out->sethdr($in->hdr_copy) # Copy extraneous fields...
@@ -1452,6 +1470,7 @@ sub map {
 				     || "");
       }
       $out->hdr->{"NAXIS"} = $nd;
+
       $out->hdr->{"SIMPLE"} = 'T';
       $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
     }
@@ -1464,6 +1483,7 @@ sub map {
 
   $me = !(t_fits($out,{ignore_rgb=>1})) x $me
     unless($nofits);
+
 
   ##############################
   ## Figure out the interpND options
@@ -2569,7 +2589,7 @@ sub t_fits {
     #
     # CPi_j + CDELTi formalism
     # If CPi_j arent present, and N=2, then try using CROTA or
-    # CROTA1 to generate a rotation matrix instea.  
+    # CROTA2 to generate a rotation matrix instea.  
     #
   
     my($cdm) = PDL->zeroes($n,$n);
@@ -2589,13 +2609,19 @@ sub t_fits {
       print "PDL::Transform::FITS: Detected CPi_j matrix: \n",$cpm,"\n"
 	if($PDL::Transform::debug && @hgrab);
 
-    } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} ) ) {
+    } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} || defined $hdr->{CROTA2}) ) {
 
-      my $cr = $hdr->{CROTA};
+	## CROTA is deprecated; CROTA1 was used for a while but is unofficial; 
+	## CROTA2 is encouraged instead.
+      my $cr;
+      $cr = $hdr->{CROTA2} unless defined $cr;		
+      $cr = $hdr->{CROTA} unless defined $cr;
       $cr = $hdr->{CROTA1} unless defined $cr;
 
       $cr *= $DEG2RAD;
-      $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
+	# Rotation matrix rotates clockwise to get from sci to pixel coords
+	# (image has been rotated ccw, according to FITS standard)
+      $cpm .= pdl( [cos($cr), -sin($cr)],[sin($cr),cos($cr)] );
 
     }
       
@@ -2603,7 +2629,7 @@ sub t_fits {
       $cd->(($i-1)) .= $hdr->{"CDELT$i"};
     }
     
-    $matrix = $cdm x $cpm
+    $matrix = $cdm x $cpm;
   }
 
   my($i1) = 0;
