@@ -1,5 +1,9 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke
+        - fixed apropos command to work with perl 5.6.0
+        - t/poly.t failed on solaris 2.7 with new PP code. Changed check
+          from < 200 to < 210.
 Doug Hunt (4/26/2000)
         - Merged fast-xswrapper branch back to main PDL tree.
         - Left Ops thus:
