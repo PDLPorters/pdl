@@ -227,7 +227,7 @@ Returns a 'null' piddle.
 
  $x = null;
 
-C<null()> has a special meaning to L<PDL::PP|PDL::PP/>. It is used to
+C<null()> has a special meaning to L<PDL::PP|PDL::PP>. It is used to
 flag a special kind of empty piddle, which can grow to
 appropriate dimensions to store a result (as opposed to
 storing a result in an existing piddle).
@@ -463,9 +463,9 @@ need to call L<upd_data|upd_data> afterward, to make sure that the
 piddle points to the new location of the underlying perl variable.
 
 You shouldn't mess with the SV unless you've called
-L<make_physical|make_physical> or something similar.  You definitely
+L<make_physical|/make_physical> or something similar.  You definitely
 don't want to do anything to the SV to truncate or deallocate the
-string, unless you correspondingly call L<reshape|reshape> to make the
+string, unless you correspondingly call L<reshape|/reshape> to make the
 PDL match its new data dimension.
 
 You definitely don't want to use get_dataref unless you know what you
@@ -1517,7 +1517,7 @@ sub PDL::approx {
 
 =for ref
 
-Convenience interface to L<slice|/PDL::Slice/slice>, 
+Convenience interface to L<slice|PDL::Slice/slice>, 
 allowing easier inclusion of dimensions in perl code.
 
 =for usage
@@ -1550,8 +1550,8 @@ sub PDL::mslice {
 
 =for ref
 
-Internally used interface to L<slice|/PDL::Slice/slice>
-and L<dice|/PDL::Slice/dice> that is the runtime part of
+Internally used interface to L<slice|PDL::Slice/slice>
+and L<dice|PDL::Slice/dice> that is the runtime part of
 the L<PDL::NiceSlice|PDL::NiceSlice> implementation.
 
 =for usage
@@ -1695,7 +1695,7 @@ Test the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0)
 
-Provides access to the L<inplace:inplace> hint flag, within the perl millieu. 
+Provides access to the L<inplace|/inplace> hint flag, within the perl millieu. 
 That way functions you write can be inplace aware... If given an
 argument the inplace flag will be set or unset depending on the value
 at the same time. Can be used for shortcut tests that delete the
@@ -1714,8 +1714,8 @@ Set the in-place flag on a piddle
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0);
 
-Provides access to the L<inplace:inplace> hint flag, within the perl millieu.
-Useful mainly for turning it OFF, as L<inplace:inplace> turns it ON more
+Provides access to the L<inplace|/inplace> hint flag, within the perl millieu.
+Useful mainly for turning it OFF, as L<inplace|/inplace> turns it ON more
 conveniently.
 
 =head2 new_or_inplace
@@ -1883,7 +1883,7 @@ Various forms of usage,
  perldl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
-See also L<new_from_specification|/pdl::new_from_specification>
+See also L<new_from_specification|/new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -1911,7 +1911,7 @@ construct a one filled piddle
 
  see zeroes() and add one
 
-See also L<new_from_specification|/pdl::new_from_specification>
+See also L<new_from_specification|/new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -2850,6 +2850,7 @@ sub str2D{
 # Pod docs for functions that are imported from Core.xs and are
 #  not documented elsewhere. Currently this is not a complete
 #  list. There are others.
+
 =head2 gethdr
 
 =for ref
@@ -3014,8 +3015,8 @@ copying. Note that an actual deep copy gets made, which is
 somewhat inefficient -- plan accordingly.
 
 Most PDLs have the C<hdrcpy> flag cleared by default; however, some
-routines (notably L<rfits|rfits>) set it by default where that makes
-more sense.
+routines (notably L<rfits|PDL::IO::FITS/rfits>) set it by default
+where that makes more sense.
 
 The C<hdrcpy> flag is viral: if you set it for a PDL, then derived
 PDLs will get copies of the header and will also have their C<hdrcpy>

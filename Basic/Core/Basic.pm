@@ -229,7 +229,8 @@ $indices = ndcoords($pdl)
 $indices = ndcoords(@dimlist)
 
 Returns an enumerated list of coordinates suitable for use in 
-L<indexND|indexND> or L<range|range>:  you feed in a dimension list
+L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: 
+you feed in a dimension list
 and get out a piddle whose 0th dimension runs over dimension index
 and whose 1st through Nth dimensions are the dimensions given in the 
 input.  If you feed in a piddle instead of a perl list, then the 
