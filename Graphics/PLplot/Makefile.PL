@@ -26,9 +26,8 @@ unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 my $libname = "libplplotd." . $Config{"so"};
 my $incname = "plplot.h";
 
-print "\tPDL_CONFIG{WITH_PLPLOT} is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
 my $found_plplot =
-    (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT}))
+    (defined($PDL::Config{WITH_PLPLOT}) && (!$PDL::Config{WITH_PLPLOT}))
     ? 0 : 1;
 print "found_plplot is $found_plplot\n";
 
@@ -44,7 +43,7 @@ foreach my $libdir (
 		    '/opt/lib',
 		    '/ops/tools/lib',
                     '/sw/lib/',    # default FINK installation
-		    $PDL_CONFIG{WHERE_PLPLOT_LIBS},
+		    $PDL::Config{WHERE_PLPLOT_LIBS},
 		                  # Add new library paths here!!
 		    ) {
 
@@ -73,7 +72,7 @@ foreach my $incdir (
 		    '/ops/tools/include/plplot',
 		    '/ops/tools/include',
                     '/sw/include/plplot/',    # default FINK installation
-		    $PDL_CONFIG{WHERE_PLPLOT_INCLUDE},
+		    $PDL::Config{WHERE_PLPLOT_INCLUDE},
 		                  # Add new header paths here!!
 		    ) {
 
@@ -154,7 +153,7 @@ if ($@) {
   close OPT;
 }  
 
-$PDL_CONFIG{WITH_PLPLOT} = 1;
+$PDL::Config{WITH_PLPLOT} = 1;
 
 #
 ## new way to get writemakefile args...
@@ -220,5 +219,5 @@ sub buildDummy {
   warn $msg . "\n";
   $msg =~ s/\n//g;
   write_dummy_make( $msg );
-  $PDL_CONFIG{WITH_PLPLOT} = 0;
+  $PDL::Config{WITH_PLPLOT} = 0;
 }

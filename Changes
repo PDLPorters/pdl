@@ -1,3 +1,6 @@
+CED 29-Jul-04
+   - Fixed Makefile.PL for PLPlot, to pay attention to $PDL::Config hash
+	(was checking $PDL_CONFIG instead).  Ditto plplot.t
 DJB 29-Jul-04
    - added tests to t/core.t for $PDL::undefval fix (bug#886263 fixed
      by Craig) and cleaned up the test to use Test::More (was Test).
