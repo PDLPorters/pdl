@@ -8,7 +8,7 @@ $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
 $ntests = 27;
-print "1..$netsts\n";
+print "1..$ntests\n";
 BEGIN{
 	$|=1;
 	use PDL::Config;

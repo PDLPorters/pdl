@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (07/27/00)
+    - some minor changes to PP.pm & PDLCode.pm (no longer generates
+      'THISISxxx' macros in xs code unless they're required.
 CS	- PP: don't use copy method when HASP2Child
 	- Makefile.PL: no .3 manpages
 CS	- Core: pdl.h dependencies

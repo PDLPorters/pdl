@@ -34,6 +34,7 @@ sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
 		ParNames => $parnames,
 		ParObjs => $parobjs,
 		Gencurtype => [], # stack to hold GenType in generic loops
+		types => 0,  # hack for PDL::PP::Types/GenericLoop
 	},$type;
 	$_ = "{".
 	   (join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}})).
@@ -212,48 +213,72 @@ sub mypostlude { my($this,$parent,$context) = @_;
 ###########################
 #
 # Encapsulate a generic type loop
-
+#
+# we use the value of $parent->{types} [set by a PDL::PP::Types object]
+# to determine whether to define/undefine the THISISxxx macros
+# (makes the xs code easier to read)
+#
 package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
 
 # Types: BSULFD,
-sub new { my($type,$types,$name,$varnames,$whattype) = @_;
-	bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
-		$whattype],$type;
+sub new { 
+    my($type,$types,$name,$varnames,$whattype) = @_;
+    bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
+	   $whattype],$type;
 }
 
 sub myoffs {4}
 
+sub myprelude { 
+    my($this,$parent,$context) = @_;
+    push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
+    
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = join '',
+	map { 
+	    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n" 
+	    }
+	(qw/B S U L F D/);
+    }
 
-sub myprelude { my($this,$parent,$context) = @_;
-	push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
-	"/* Start generic loop */\n".
-	(join '',map{
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
-	}(qw/B S U L F D/)).
+    return "/* Start generic loop */\n$thisis_loop\n" .
 	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
 }
 
-sub myitem { my($this,$parent,$nth) = @_;
+sub myitem { 
+    my($this,$parent,$nth) = @_;
 #	print "GENERICITEM\n";
-	my $item = $this->[0]->[$nth];
-	if(!$item) {return "";}
-	$parent->{Gencurtype}->[-1] = $item->[1];
-	"\t} break; case $item->[0]: {\n".
-	(join '',map {
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
-	}(qw/B S U L F D/)).
-	"#undef THISIS$this->[1]_$item->[3]\n#define THISIS$this->[1]_$item->[3](a) a\n".
-	(join '',map{
+    my $item = $this->[0]->[$nth];
+    if(!$item) {return "";}
+    $parent->{Gencurtype}->[-1] = $item->[1];
+
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = (
+			join '',
+			map {
+			    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
+			}
+			(qw/B S U L F D/) 
+			) . 
+			    "#undef THISIS$this->[1]_$item->[3]\n" . 
+				"#define THISIS$this->[1]_$item->[3](a) a\n";
+    }
+	
+    return "\t} break; case $item->[0]: {\n".
+	$thisis_loop . 
+	    (join '',map{
 		# print "DAPAT: '$_'\n";
 		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
-	} (@{$this->[2]})) ;
+	    } (@{$this->[2]})) ;
 }
 
-sub mypostlude { my($this,$parent,$context) = @_;
-	pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
-	"\tbreak;}
-	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
+sub mypostlude { 
+    my($this,$parent,$context) = @_;
+    pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
+    "\tbreak;}\n\tdefault:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
 
 
@@ -359,21 +384,29 @@ sub mypostlude {my($this,$parent,$context) = @_;
 ###########################
 #
 # Encapsulate a types() switch
-
+#
+# horrible hack:
+#  set $parent->{types} if we create this object so that
+#  PDL::PP::GenericLoop knows to define the THISIS ... macros
+#
 package PDL::PP::Types;
 use Carp;
 @PDL::PP::Types::ISA = "PDL::PP::Block";
 
-sub new { my($type,$ts) = @_;
-	$ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
-	bless [$ts],$type; }
-sub myoffs { return 1; }
-sub myprelude {my($this,$parent,$context) = @_;
-	"\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+sub new { 
+    my($type,$ts,$parent) = @_;
+    $ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
+    $parent->{types} = 1; # hack for PDL::PP::GenericLoop
+    bless [$ts],$type; 
 }
-
-sub mypostlude {my($this,$parent,$context) = @_;
-	"\n#endif\n"
+sub myoffs { return 1; }
+sub myprelude {
+    my($this,$parent,$context) = @_;
+    return "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+}
+sub mypostlude {
+    my($this,$parent,$context) = @_;
+    return "\n#endif\n";
 }
 
 

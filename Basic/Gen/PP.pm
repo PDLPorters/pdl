@@ -26,6 +26,8 @@ use Carp;
 # number of types (used in find_datatype)
 my $ntypes = $#PDL::Types::names;
 
+use strict;
+
 sub import {
 	my ($mod,$modname, $packname, $prefix) = @_;
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
@@ -260,12 +262,12 @@ sub pp_def {
 	if(!$obj->{FreeFunc}) {
 		croak("Cannot free this obj!\n");
 	}
-	PDL::PP->printxsc(join "\n\n",@$obj{StructDecl,RedoDimsFunc,
-		CopyFunc,
-		ReadDataFunc,WriteBackDataFunc,
-		FreeFunc,
-		FooFunc,
-		VTableDef,NewXSInPrelude,
+	PDL::PP->printxsc(join "\n\n",@$obj{'StructDecl','RedoDimsFunc',
+		'CopyFunc',
+		'ReadDataFunc','WriteBackDataFunc',
+		'FreeFunc',
+		'FooFunc',
+		'VTableDef','NewXSInPrelude',
 		}
 		);
 	PDL::PP->printxs($$obj{NewXSCode});
@@ -300,6 +302,9 @@ use PDL::PP::SymTab;
 use PDL::PP::PDLCode;
 
 $|=1;
+
+# don't bother with strictness here, as it would mean to much to change
+no strict;
 
 $PDL::PP::deftbl =
 [
@@ -675,6 +680,9 @@ $PDL::PP::deftbl =
 		 ParNames,ParObjs,Affine_Ok,FoofName],	"def_vtable"],
 ];
 
+# back to strictness
+use strict;
+
 sub GenDocs {
   my ($name,$pars,$otherpars,$doc) = @_;
 
@@ -730,6 +738,7 @@ use Carp;
 sub translate {
 	my($pars,$tbl) = @_;
 	my $rule;
+	no strict 'refs'; # using strings as subroutine references
 	RULE: for $rule(@$tbl) {
 # Are all prerequisites there;
 		my @args;
@@ -760,7 +769,7 @@ sub translate {
 		}
 #		print "Applying rule $rule->[2]\n",Dumper($rule);
 		print "Applying rule $rule->[2]\n" if $::PP_VERBOSE;
-		@res = &{$rule->[2]}(@args);
+		my @res = &{$rule->[2]}(@args);
 		print "Setting " if $::PP_VERBOSE;
 		for(@{$rule->[0]}) {
 			if(exists $pars->{$_}) {
@@ -777,6 +786,7 @@ sub translate {
 	}
 #	print Dumper($pars);
 	print "GOING OUT!\n" if $::PP_VERBOSE;
+	use strict; # a bit pointless ?
 	return $pars;
 }
 
@@ -1092,7 +1102,7 @@ sub wrap_vfn {
 
 sub makesettrans {
     my($pnames,$pobjs,$symtab) = @_;
-    my $trans = $symtab->get_symname(_PDL_ThisTrans);
+    my $trans = $symtab->get_symname('_PDL_ThisTrans');
     my $no=0;
     return (join '',map {
 	"$trans->pdls[".($no++)."] = $_;\n"
@@ -1146,10 +1156,10 @@ sub dousualsubsts {
 sub dosubst {
 	my($src,$symtab,$name) = @_;
 #	print "DOSUBST on ",Dumper($src),"\n";
-	$ret = (ref $src ? $src->[0] : $src);
+	my $ret = (ref $src ? $src->[0] : $src);
 	my %syms = (
 		((ref $src) ? %{$src->[1]} : ()),
-		PRIV => sub {return "".$symtab->get_symname(_PDL_ThisTrans).
+		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
 					"->$_[0]"},
 		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
 		NAME => sub {return $name},
@@ -1198,7 +1208,7 @@ sub subst_makecomp {
 	return [$mc,{
 		@::std_childparent,
 		($cn ?
-			((DO.$which.DIMS) => sub {return join '',
+			(('DO'.$which.'DIMS') => sub {return join '',
 				map{$$co{$_}->need_malloc ?
 				    $$co{$_}->get_malloc('$PRIV('.$_.')') :
 				    ()} @$cn}) :
@@ -1280,6 +1290,7 @@ sub NT2Copies__ {
 
 sub NT2Free__ {
 	my($opts,$onames,$otypes) = @_; my $decl;
+	my $dopts = {};
 	if($opts->{ToPtrs}) {
 		$dopts->{VarArrays2Ptrs} = 1;
 	}
@@ -1292,7 +1303,7 @@ sub NT2Free__ {
 
 sub CopyOtherPars {
 	my($onames,$otypes,$symtab) = @_; my $repr;
-	my $sname = $symtab->get_symname(_PDL_ThisTrans);
+	my $sname = $symtab->get_symname('_PDL_ThisTrans');
 	for(@$onames) {
 		$repr .= $otypes->{$_}->get_copy("$_","$sname->$_");
 	}
@@ -1334,7 +1345,7 @@ sub mkVarArgsxscat {
 sub CopyPDLPars {
 if(0) {
 	my($pnames,$symtab) = @_;
-	my $tt = $symtab->get_symname(_PDL_ThisTrans);
+	my $tt = $symtab->get_symname('_PDL_ThisTrans');
 	my $str; my $no=0;
 	for(@$pnames) {
 		$str .= "$tt->pdls[$no] = ".$_.";\n";
@@ -1365,7 +1376,7 @@ sub defvtablename {return "pdl_$_[0]_vtable"}
 
 sub MkPrivStructInit {
 	my($symtab,$vtable,$affflag) = @_;
-	my $sname = $symtab->get_symname(_PDL_ThisTrans);
+	my $sname = $symtab->get_symname('_PDL_ThisTrans');
 	return "$sname = malloc(sizeof(*$sname));
 		PDL_TR_SETMAGIC($sname);
 		$sname->flags = $affflag;
