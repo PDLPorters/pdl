@@ -207,10 +207,12 @@ double pdl_at( void* x, int datatype, int* pos, int* dims, int ndims) {
     int i;
     double result;
 
+    if (ndims==0 && pos[0]>0)
+          croak("at: requested element out of piddle range");
     for(i=0; i<ndims; i++) { /* Check */
 
        if(pos[i]<0 || pos[i]>=dims[i])
-          croak("Position out of range");
+          croak("at: requested element out of piddle range");
     }
    
    i = pdl_get_offset(pos, dims, ndims);
@@ -231,10 +233,13 @@ void pdl_set( void* x, int datatype, int* pos, int* dims, int ndims, double valu
 
     int i;
 
+    if (ndims==0 && pos[0]>0)
+          croak("set: requested element out of piddle range");
+
     for(i=0; i<ndims; i++) { /* Check */
 
        if(pos[i]<0 || pos[i]>=dims[i])
-          croak("Position out of range");
+          croak("set: requested element out of piddle range");
     }
    
    i = pdl_get_offset(pos, dims, ndims);

@@ -20,9 +20,11 @@ BEGIN {$io_loaded = 0}
 local $^W=0;  # Do it this way to suppress spurious warnings
 eval << 'EOD';
 sub AUTOLOAD {
-   bootstrap PDL::Io unless $io_loaded;
-   $io_loaded = 1;
-   print "IO loaded\n" if $PDL::verbose;
+   unless($io_loaded) {
+      bootstrap PDL::Io;
+      print "IO loaded\n" if $PDL::verbose;
+      $io_loaded = 1;
+   }
    $SelfLoader::AUTOLOAD = $AUTOLOAD;
    goto &SelfLoader::AUTOLOAD;
 }
@@ -271,8 +273,12 @@ sub rfits { # Read a FITS format file and return a PDL
    $line = "";
 
    $$pdl{Hdr} = {};  # Read the FITS ASCII header into $pdl{Hdr}
-   while() {
-      read(FITS,$line,80); $nbytes = ($nbytes+80)%2880;
+   while( !eof(FITS)) {
+      read(FITS,$line,80);
+      croak "file $file is not in FITS-format:\n$line\n"
+                  if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
+      $nbytes += 80;
+
       $name = (split(' ',substr($line,0,8)))[0]; $rest=substr($line,8);
       $$pdl{Hdr}{$name} = "";
       $$pdl{Hdr}{$name}=$1 if $rest =~ m|^= +(.*\S) *$| ;
@@ -289,6 +295,7 @@ sub rfits { # Read a FITS format file and return a PDL
      push @{$$pdl{Dims}}, $$pdl{Hdr}{"NAXIS$i"} ; $i++;
    }
 
+   $nbytes %= 2880;
    read(FITS,$$pdl{Data},2880-$nbytes) if $nbytes!=0;  # Skip to end of card
 
    $$pdl{Datatype} = $PDL_B    if $$pdl{Hdr}{"BITPIX"} ==   8;

@@ -9,7 +9,7 @@
 /* Retrieve cached pdl value from $$x{PDL} */
 
 pdl* pdl_getcache( HV* hash ) {
-   int address=0;
+   long address=0; /* previously int */ 
    SV** foo;
 
    if (hv_exists(hash, "PDL", strlen("PDL"))) {
@@ -36,7 +36,10 @@ pdl* pdl_fillcache( HV* hash ) {
 
    if (thepdl == NULL ) { /* Doesn't exist so create out of the void */
       thepdl = pdl_new();
-      hv_store(hash, "PDL", strlen("PDL"), newSViv((I32) thepdl), 0);
+
+/*    hv_store(hash, "PDL", strlen("PDL"), newSViv((I32) thepdl),0);
+      */
+			hv_store(hash, "PDL", strlen("PDL"), newSViv((IV)thepdl),0); 
    }
 
    /* Transfer data items to return value */

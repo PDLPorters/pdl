@@ -3,12 +3,12 @@
 
 =head2 PDL - Perl Data Language extension module
 
-Version 1.03 alpha
+Version 1.10 release
 
 "Why is it that we entertain the belief that for every purpose odd
 numbers are the most effectual?" - Pliny the Elder.
 
-I<Karl Glazebrook, AAO, 28/11/1996. [kgb@aaoepp.aao.gov.au]>
+I<Karl Glazebrook, AAO, 16/Feb/1997. [kgb@aaoepp.aao.gov.au]>
 
 
 =head1 DESCRIPTION
@@ -21,6 +21,11 @@ add two 2048x2048 images in only a fraction of a second.
 It is hoped to eventually provide tons of useful functionality for
 scientific and numeric analysis.
 
+The Perl Data Language project has a home page at
+http://www.aao.gov.au/local/www/kgb/perldl. Here can be found, a
+Frequently Asked Questions Lists, contact information for the C<perldl>
+mailing list, information about on-going development and many other
+things.
 
 =head2 Introduction
 
@@ -406,7 +411,7 @@ in file "pdl.h" which is included in the perlDL distribution and has no
 perl dependencies.  It is trivial to cast the data array (pdl.data) to
 (float), (double) etc. and pass to any other C routine.
 
-This is all demonstrated in the files "testcallext.*" in the perlDL
+This is all demonstrated in the files "democallext.*" in the perlDL
 distribution.
 
 Note: This is only intended as a quick and dirty prototyping interface
@@ -416,60 +421,12 @@ along the lines of the example PDL::Examples.
 
 =head2 perldl shell
 
-The perl script C<perldl> provides a simple command line - if the latest
-Readlines/ReadKey modules have beeen installed C<perldl> detects this
-and enables command line recall and editing.
+The program 'C<perldl>' (written in perl) provides a simple command line for
+interactive use of PDL. See L<perldl> for further information about
+it's features.
 
-e.g.:
-
-   % perldl
-   ReadLines enabled
-   perldl> $a = rfits "foo.fits"
-   BITPIX =  -32  size = 88504 pixels 
-   Reading  354016 bytes
-   BSCALE =  &&  BZERO = 
-   
-   perldl> imag log($a+400)
-   Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
-
-You can also run it from the perl debugger (C<perl -MPDL -d -e 1>)
-if you want.
-
-Miscellaneous shell features:
-
-=over 4
-
-=item 1. 
-
-The command C<perldl -oo> starts perldl in Object-Oriented mode. It does 
-C<use PDL::OO> instead of C<use PDL>.
-
-=item 2. 
-
-The shell aliases C<p> to be a convenient short form of C<print>, e.g.
-
-   perldl> p ones 5,3
-    
-   [
-    [1 1 1 1 1]
-    [1 1 1 1 1]
-    [1 1 1 1 1]
-   ]
-
-=item 3. 
-
-The files C<~/.perldlrc> and C<local.perldlrc> (in the current
-directory) are sourced if found. This allows the user to have global
-and local PDL code for startup.
-
-=item 4. 
-
-Any line starting with the C<#> character is treated as a shell
-escape. This character is configurable by setting the perl variable
-$PERLDL_ESCAPE. This could, for example, be set in C<~/.perldlrc>.
-
-
-=back
+You can also use PDL from the standard perl debugger (e.g. by
+typing C<perl -MPDL -d -e 1>) if you want.
 
 =head2 Overload operators
 
@@ -538,8 +495,20 @@ which understood about the gaps between the J H and K bands!
 
 =head2 Memory usage and references
 
+
+A PDL variable such as $x is implemented as a 'perl reference'. You can
+think of it as pointer to a big block of memory holding the data and
+housekeeping information. Saying $y=$x makes $y point to the same thing
+as $x, i.e. IT DOES NOT COPY THE data. Rather you now have two names
+($x and $y) for the same piece of data. To force an explicit data copy
+say:
+
+   $b = pdl $a; # Real copy
+
+though this is rarely needed in practice.
+
 Messing around with really huge data arrays may require some care.
-perlDL provides some facilities to let you perform operations on big
+PDL provides some facilities to let you perform operations on big
 arrays without generating extra copies though this does require a bit
 more thought are care from the programmer.
 
@@ -562,15 +531,17 @@ If $a is a big image (e.g. occupying 10MB) and I say:
 then the total malloc()'d memory usage grows to 20MB. This is because
 the expression "$a+1" creates a temporary copy of $a to hold the
 result, then $a is assigned a reference to that. It is obviously done
-this way so "$c=$a+1" works as expected.
+this way so "$c=$a+1" works as expected. (Note the old memory is reclaimed
+for further use but one feature of UNIX dynamic memory allocation via malloc()
+is that the memory malloced by a process can never get smaller.)
 
-Also if one says:
+Now if one says:
 
    $b = $a;     # $b and $a now point to same data
    $a = $a + 1;
 
 Then $b and $a end up being different, as one naively expects,
-because a new reference is created and $a is assigned to it.
+because a new reference is created to the result and $a is assigned to it.
 
 However if $a was a huge memory hog (e.g. a 3D volume) creating a copy
 of it may not be a good thing. One can avoid this memory overhead in
@@ -581,10 +552,7 @@ the above example by saying:
 The operations C<++,+=,--,-=>, etc. all call a special "in-place"
 version of the arithmetic subroutine. This means no more memory is
 needed - the downside of this is that if $b=$a then $b is also
-incremented. To force a copy explicitly:
-
-   $b = pdl $a; # Real copy
-
+incremented. 
 
 =item 2.
 
@@ -663,7 +631,7 @@ just falls through - which is obviosuly the desired behaviour. The
 routine is not of course necessary in normal user defined functions
 which do not care about internals.
 
-If you have changed with the guts you ********MUST******** 
+If you have changed the guts you ********MUST******** 
 call the method C<$pdl->flush()> to update the C cache from the
 new perl values otherwise PDL will get very confused (Mnemonic: 'flush
 the piddle after a fiddle').
@@ -706,6 +674,9 @@ Defined in PDL::Core
  hist         - histogram of data 
  stats        - return mean + standard deviation
  transpose    - matrix transpose
+ qsort*       - Quick sort piddle
+ median       - median of piddle
+ oddmedian    - lower odd median of piddle
 
 Defined in PDL::Examples
 
@@ -737,4 +708,6 @@ For convenience (the ->meth syntax looks more appropriate) some
 pdl routines are defined as methods:
 
 $pdl->flush    -  Update C cache from perl values
+$pdl->copy     -  Copy a PDL
+PDL->new       -  Make a new PDL
 

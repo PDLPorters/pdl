@@ -18,9 +18,8 @@ sub PDL_TYPEMAP { whereami().'/PDL/Core/typemap.pdl' };
 # Data types to C types mapping
 
 %PDL_DATATYPES = ( 'PDL_B'  => 'unsigned char',  'PDL_S' => 'short',  
-                   'PDL_US' => 'unsigned short', 'PDL_L' => 'long', 
+                   'PDL_US' => 'unsigned short', 'PDL_L' => 'PDL_Long', 
                    'PDL_F'  => 'float', 'PDL_D' => 'double'); 
-
 
 # non-blocking IO configuration
 

@@ -53,3 +53,5 @@ Makefile.PL
 PDL.pod
 perldl.PL
 MANIFEST
+democallext.p
+democallext.c

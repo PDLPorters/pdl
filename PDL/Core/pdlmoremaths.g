@@ -192,3 +192,34 @@ void pdl_transpose(pdl*y, pdl* x) {
 }
      
 
+/* Quick sort */
+
+void pdl_qsort(void* x, int a, int b, int datatype) {
+
+   int i,j;
+
+   GENERICLOOP(datatype)
+
+   generic *xx = (generic*)x;
+   generic t, median;
+
+   i = a; j = b;
+   median = xx[(i+j) / 2];
+   do {
+      while (xx[i] < median)
+         i++;
+      while (median < xx[j])
+         j--;
+      if (i <= j) {
+         t = xx[i]; xx[i] = xx[j]; xx[j] = t;
+         i++; j--;
+      }
+   } while (i <= j);
+
+   if (a < j)
+      pdl_qsort(x,a,j,datatype);
+   if (i < b)
+      pdl_qsort(x,i,b,datatype);
+
+    ENDGENERICLOOP
+}

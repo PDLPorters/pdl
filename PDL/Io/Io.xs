@@ -68,9 +68,9 @@ bswap4(x)
    pdl*	x;
    CODE:
       int i;
-      long *aa = (long*) x->data; long bb;
+      PDL_Long *aa = (PDL_Long*) x->data; PDL_Long bb;
       unsigned char *a,*b;
-      int n = x->nvals * PDL->howbig(x->datatype) / sizeof(long);
+      int n = x->nvals * PDL->howbig(x->datatype) / sizeof(PDL_Long);
       for(i=0;i<n; i++) {
          bb = aa[i]; a = (unsigned char*) (void*) (aa+i);  
          b = (unsigned char*) &bb;

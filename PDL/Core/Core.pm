@@ -3,15 +3,16 @@
 
 package PDL::Core;
 
-$PDL::VERSION = "1.03p1";
+$PDL::VERSION = "1.10";
 
 # Functions exportable in this part of the module
 
 @EXPORT_OK = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_F $PDL_D howbig nelem dims
 	      pdl topdl null byte short ushort long float double
-	      convert log10 inplace zeroes ones sequence min max sum list
-	      listindices sec ins set at axisvals xvals yvals zvals rvals
-	      callext convolve hist stats reshape transpose);
+	      convert log10 inplace zeroes ones sequence min max sum
+	      list listindices sec ins set at axisvals xvals yvals
+	      zvals rvals callext convolve hist stats reshape transpose
+	      qsort median oddmedian);
 
 @EXPORT_STATIC = qw( pdl topdl null zeroes ones sequence );
 
@@ -26,7 +27,8 @@ $PDL::verbose      = 0;        # Whether or not functions waffle
 $PDL::name         = "PDL";    # what to call PDL objects
 $PDL::use_commas   = 0;        # Whether to insert commas when printing arrays
 $PDL::floatformat  = "%7g";    # Default print format for long numbers 
-$PDL::doubleformat = "%10.8g"; 
+$PDL::doubleformat = "%10.8lg"; 
+$PDL::longformat = "%8ld"; 
 
 ####################### Overloaded operators #######################
 
@@ -371,6 +373,21 @@ sub rvals { # Return radial distance from center in N-dims
     return sqrt($y);
 }
 
+# Standard median
+
+sub median { 
+   my $t = qsort(shift); reshape($t, nelem($t));
+   my $n = nelem($t)-1;
+   return $n%2==0 ?  at($t,$n/2) : 0.5*(at($t, $n/2) + at($t, $n/2+1));
+}
+
+# Lower odd median
+
+sub oddmedian { 
+   my $t = qsort(shift); reshape($t, nelem($t));
+   return at($t,(nelem($t)-1)/2);
+}
+
 
 ####################### Call external #########################
 
@@ -489,19 +506,21 @@ sub str1D {
     croak "Not 1D" if scalar(@{$$self{Dims}})!=1;
     my @x = unpack($pack[$$self{Datatype}], $$self{Data} );
     my ($ret,$dformat,$t);
-    $ret = "[";
     $dformat = $PDL::floatformat  if $$self{Datatype} == $PDL_F;
     $dformat = $PDL::doubleformat if $$self{Datatype} == $PDL_D;
+    $dformat = $PDL::longformat if $$self{Datatype} == $PDL_L;
+    $ret = "[";
+
     for $t (@x) {
         if ($format) {
-	  $t = sprintf $format,$t;
+	   $t = sprintf $format,$t;
 	}
 	else{ # Default 
-           if ($dformat && length($t)>7) { # Try smaller
-             $t = sprintf $dformat,$t;
+	   if ($dformat && length($t)>7) { # Try smaller
+	      $t = sprintf $dformat,$t;
 	   }
 	}
-       $ret .= $t.$sep;
+	$ret .= $t.$sep;
     }
     chop $ret; $ret.="]";
     return $ret;
@@ -621,3 +640,7 @@ sub export_fail {
 ;# Exit with OK status
 
 1;
+
+
+
+

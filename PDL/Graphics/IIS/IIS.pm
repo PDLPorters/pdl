@@ -18,9 +18,9 @@ local $^W=0;  # Do it this way to suppress spurious warnings
 eval << 'EOD';
 sub AUTOLOAD {
    unless ($iis_loaded) {
-      bootstrap PDL::Graphics::IIS unless $iis_loaded;
-      $iis_loaded = 1;
+      bootstrap PDL::Graphics::IIS;
       print "Graphics::IIS loaded\n" if $PDL::verbose;
+      $iis_loaded = 1;
    }
    $SelfLoader::AUTOLOAD = $AUTOLOAD;
    goto &SelfLoader::AUTOLOAD;
@@ -74,13 +74,21 @@ sub iiscirc {
 
 sub saoimage {  # Start SAOimage
    fbconfig($stdimage) if $stdimage ne $last_stdimage;
-   system "saoimage -idev $fifo -odev $fifi &" ;
-1;}
+   if( !($pid = fork)) {	# error or child
+      exec("saoimage", -idev => $fifo, -odev => $fifi, @_) if defined $pid;
+      die "Can't start saoimage: $!\n";
+   }
+   return $pid;
+}
 
 sub ximtool {  # Start Ximtool
    fbconfig($stdimage) if $stdimage ne $last_stdimage;
-   system "ximtool -xrm 'ximtool*input_fifo: $fifi' -xrm 'ximtool*output_fifo: $fifo' &";
-1;}
+   if( !($pid = fork)) {	# error or child
+      exec("ximtool", -xrm => "ximtool*input_fifo: $fifi", -xrm => "ximtool*output_fifo: $fifo", @_) if defined $pid;
+      die "Can't start ximtool: $!\n";
+   }
+   return $pid;
+}
 
 
 ################ Private routines #################
@@ -156,10 +164,23 @@ sub findfifo {
    }
    print "Using FIFO devices in:  $fifi\n".
          "                   out: $fifo\n" if $PDL::verbose;
-   for ($fifi, $fifo) {
-      if (!-e $_) {
-         print "File $_ does not exist - try and create now? "; my $ans = <STDIN>;
-         system "/usr/etc/mknod $_ p" if $ans =~ /^y/i;
+   for $pipe ($fifi, $fifo) {
+      if (!-p $pipe) {
+         print "FIFO $pipe does not exist - try and create now? "; my $ans = <STDIN>;
+         system "/usr/etc/mknod $pipe p" if $ans =~ /^y/i;
+
+         if ($ans =~ /^y/i) {
+            unlink $pipe if -e $pipe;
+            my $path = $ENV{PATH};
+            $ENV{PATH} .= ":/etc:/usr/etc";
+
+            # Note system return value is backwards - hence 'and'
+
+            if ( system('mknod', $pipe, 'p') and system('mkfifo',$pipe) ) { 
+                die "Failed to create named pipe $pipe\n";
+            }
+            $ENV{PATH} = $path;
+         }
       }
    }
 1;}

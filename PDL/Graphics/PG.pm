@@ -301,9 +301,10 @@ sub imag {
     initenv( -0.5,$nx-0.5, -0.5, $ny-0.5  ) unless $hold;
     print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
-    pgqcir($i1, $i2); # Colour range - if too small use pggray dither algorithm
-    if ($i2-$i1<16) {
-       pggray( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, $max, $min, \$$tr{Data});
+    pgqcir($i1, $i2);          # Colour range - if too small use pggray dither algorithm
+    pgqinf('TYPE',$dev,$len);  # Device (/ps buggy - force pggray)
+    if ($i2-$i1<16 || $dev =~ /^v?ps$/i) {
+       pggray( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, $min, $max, \$$tr{Data});
     }
     else{
        ctab(Grey) unless $CTAB; # Start with grey
@@ -382,7 +383,7 @@ sub hi2d {
     }
     $ioff = 1 unless defined $ioff;
     $bias = 5*max($image)/$ny unless defined $bias;
-    $work = float(mkzero($nx));
+    $work = float(zeroes($nx));
         
     initenv( 0 ,2*($nx-1), 0, 10*max($image)  ) unless $hold;
     pghi2d(\$$image{Data}, $nx, $ny, 1,$nx,1,$ny, \$$x{Data}, $ioff, 

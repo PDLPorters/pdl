@@ -11,6 +11,7 @@
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+
 /* Return a integer or numeric scalar as approroate */
 
 #define SET_RETVAL_NV x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
@@ -58,11 +59,11 @@ dump(pdlsv)
        if (x == NULL)
           printf("[Cache empty]\n");
        else{
-          printf("Cache found at address %d\n", x); 
-          printf("x.data = %d\n",  x->data);
+          printf("Cache found at address %p\n", x); 
+          printf("x.data = %p\n",  x->data);
           printf("x.datatype = %d\n",  x->datatype);
           printf("x.nvals = %d\n", x->nvals);
-          printf("x.dims = %d\n", x->dims);
+          printf("x.dims = %p\n", x->dims);
           printf("x.ndims = %d\n", x->ndims);
           printf("Dims = ");
           for(j=0; j<x->ndims; j++)
@@ -86,6 +87,7 @@ biop(a,b,reverse,op)
    char *	op
    CODE:
     pdl* c; 
+
     RETVAL = pdl_copy(a,""); /* Init value to return */
     c = SvPDLV(RETVAL);         /* Map */
 
@@ -96,7 +98,7 @@ biop(a,b,reverse,op)
        pdl_swap(&a,&b);
 
     pdl_biop(op, c->data, a->data, b->data, a->nvals, b->nvals, a->datatype); 
-    
+
     OUTPUT:
      RETVAL
 
@@ -109,6 +111,7 @@ biop2(a,b,reverse,op)
    Logical	reverse
    char *	op
    CODE:
+
     pdl_converttype(&b, a->datatype, TMP);   /* Ensure data types equal */
     pdl_biop(op, a->data, a->data, b->data, a->nvals, b->nvals, a->datatype); 
     /* Note OUTPUT is automatically OK as return value is ST(0) (immortal) */
@@ -208,6 +211,17 @@ sum(x)
    OUTPUT:
      RETVAL
 
+SV *
+qsort(x)
+   pdl*	x
+   CODE:
+     pdl* y;
+     RETVAL = pdl_copy(x,""); /* Init value to return */ 
+     y = SvPDLV(RETVAL);      /* Map */
+     pdl_qsort(y->data, 0, y->nvals-1, y->datatype);
+    OUTPUT:
+     RETVAL
+
 # Subsection function
 
 SV *
@@ -224,7 +238,7 @@ sec_c(x,section)
 
      section = pdl_packdims( ST(1), &nsecs);
      if (section == NULL || nsecs != 2*(x->ndims))
-        croak("Invalid subsection specified");
+        croak("sec: Requested subsection is out of bounds of piddle");
 
      size = pdl_validate_section( section, x->dims, x->ndims );
      pdl_grow ( y, size );   /* To new size */
@@ -252,11 +266,11 @@ insertin_c(y,x,postion)
      int npos;
 
      if (y->ndims < x->ndims)
-        croak("Cannot insert higher into lower dimension");    
+        croak("ins: cannot insert higher into lower dimension");    
 
      pos = pdl_packdims( ST(2), &npos);
      if (pos == NULL || npos != y->ndims) 
-        croak("Invalid insertion position specified");
+        croak("ins: Requested insertion position is out of piddle bounds");
 
      pdl_converttype(&x, y->datatype, TMP); /* Ensure same type */
 
@@ -274,10 +288,14 @@ at_c(x,position)
    CODE:
     int npos;
     double result;
+    int dim_ok;
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x->ndims) 
-       croak("Invalid position");
+    dim_ok = x->ndims==npos;
+    if (npos==1 && x->ndims==0)
+       dim_ok = 1;
+    if (pos == NULL || !dim_ok) 
+       croak("at: Dimensions mismatch between variable and requested coordinates");
 
     result = pdl_at( x->data, x->datatype, pos, x->dims, x->ndims);
 
@@ -294,10 +312,14 @@ set_c(x,position,value)
    CODE:
     int npos;
     double result;
+    int dim_ok;
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x->ndims) 
-       croak("Invalid position");
+    dim_ok = x->ndims==npos;
+    if (npos==1 && x->ndims==0)
+       dim_ok = 1;
+    if (pos == NULL || !dim_ok) 
+       croak("set: Dimensions mismatch between variable and requested coordinates");
 
     pdl_set( x->data, x->datatype, pos, x->dims, x->ndims, value);
 
@@ -312,7 +334,7 @@ axisvals(x,axis)
      RETVAL = pdl_copy(x,""); /* Init value to return */ 
      y = SvPDLV(RETVAL);      /* Map */
      if (axis>=y->ndims) 
-        croak("Data has not enough dimensions for axis=%d",axis);
+        croak("axisvals: piddle has not enough dimensions for request axis=%d",axis);
      pdl_axisvals(y, axis);
     OUTPUT:
      RETVAL
@@ -429,6 +451,7 @@ BOOT:
    PDL.howbig      = pdl_howbig;
    PDL.packdims    = pdl_packdims;
    PDL.unpackdims  = pdl_unpackdims;
+   PDL.setdims     = pdl_setdims;
    PDL.grow        = pdl_grow;
 
    /* 

@@ -41,16 +41,67 @@ print OUT <<'!NO!SUBS!';
 
 =head1 DESCRIPTION
 
-perldl provides a simple shell for interactive use of PDL.
-perl/PDL commands can simply be typed in - and edited if
-you have appropriate version of the ReadLines and ReadKeys
+The program 'perldl' is a simple shell (written in perl) for
+interactive use of PDL.  perl/PDL commands can simply be typed in - and
+edited if you have appropriate version of the ReadLines and ReadKeys
 modules installed.
+
+e.g.:
+
+   % perldl
+   ReadLines enabled
+   perldl> $a = rfits "foo.fits"
+   BITPIX =  -32  size = 88504 pixels 
+   Reading  354016 bytes
+   BSCALE =  &&  BZERO = 
+   
+   perldl> imag log($a+400)
+   Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
+
+
+Miscellaneous shell features:
+
+=over 4
+
+=item 1. 
+
+The command C<perldl -oo> starts perldl in Object-Oriented mode. It does 
+a 'C<use PDL::OO>' instead of 'C<use PDL>'. Whether this is a good idea
+remains to be determined. :-)
+
+=item 2. 
+
+The shell aliases C<p> to be a convenient short form of C<print>, e.g.
+
+   perldl> p ones 5,3
+    
+   [
+    [1 1 1 1 1]
+    [1 1 1 1 1]
+    [1 1 1 1 1]
+   ]
+
+=item 3. 
+
+The files C<~/.perldlrc> and C<local.perldlrc> (in the current
+directory) are sourced if found. This allows the user to have global
+and local PDL code for startup.
+
+=item 4. 
+
+Any line starting with the C<#> character is treated as a shell
+escape. This character is configurable by setting the perl variable
+$PERLDL_ESCAPE. This could, for example, be set in C<~/.perldlrc>.
+
+
+=back
+
 
 =cut
 
 unshift @INC, "./blib"; 
 print <<'EOD';
-perlDL shell v1.03
+perlDL shell v1.10
 EOD
 
 $PERLDL_ESCAPE = '#'; # Default shell escape
@@ -116,6 +167,7 @@ restart:
      }
      $,=$sep; #Restore 
 
+     exit() unless defined($_);
      next if /^\s*$/; # Blank line - do nothing
 
      if (substr($_,0,1) eq substr($PERLDL_ESCAPE,0,1)) { 
@@ -156,3 +208,8 @@ sub p { print(@_); }
 sub x { exit(); }
 
 !NO!SUBS!
+
+close OUT or die "Can't close $file: $!";
+chmod 0755, $file or die "Can't reset permissions for $file: $!\n";
+exec("$Config{'eunicefix'} $file") if $Config{'eunicefix'} ne ':';
+

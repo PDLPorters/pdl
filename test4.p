@@ -11,7 +11,7 @@ $PDL::verbose=1;
 
 # Overload ops for this object
 
-%OVERLOAD = ('+' => \&add, "\"\"" =>  \&stringify);
+use overload '+' => \&add, "\"\"" =>  \&stringify;
 
 sub new {
     my ($class, $value) = @_;

@@ -1,8 +1,14 @@
+#if defined(__alpha) || (defined(_MIPS_SZLONG) && _MIPS_SZLONG == 64)
+#define PDL_Long int
+#else
+#define PDL_Long long
+#endif
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 
-#define TMP  0        /* Flags */
+        /* Flags */
+#define TMP  0
 #define PERM 1
 
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
@@ -86,6 +92,7 @@ double pdl_sum(void*x, int n, int datatype);
 void pdl_convolve (pdl* c, pdl* a, pdl* b); /* Real space convolution */
 void pdl_hist (pdl* c, pdl* a, double min, double step) ; /* Histogram of data */
 void pdl_matrixmult( pdl *c, pdl* a, pdl* b);  /* Matrix multiplication */
+void pdl_qsort(void* x, int a, int b, int datatype);
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
@@ -99,8 +106,15 @@ struct Core {
     int*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
     void   (*unpackdims)  ( SV* sv, int *dims,    /* Unpack */
                             int ndims );
-    void   (*grow)        ( pdl* a, int newsize); /* Change pdl 'Data' size */
+    void   (*grow)        ( pdl* a,  int newsize); /* Change pdl 'Data' size */
+    void   (*setdims)     ( pdl* it, int* dims, int ndims, int* incs);
 };
 
 typedef struct Core Core;
+
+
+
+
+
+
 

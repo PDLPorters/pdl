@@ -8,24 +8,25 @@
 int pdl_howbig (int datatype) {
     switch (datatype) {
     case PDL_B:
-      return 1;
+      return  sizeof(unsigned char);
     case PDL_S:
-      return 2;
+      return sizeof(short); 
     case PDL_US:
-      return 2;
+      return sizeof(unsigned short);
     case PDL_L:
-      return 4;
+      return sizeof(PDL_Long); 
     case PDL_F:
-      return 4;
+      return sizeof(float); 
     case PDL_D:
-      return 8;
+      return  sizeof(double);
     default:
       croak("Unknown datatype code = %d",datatype);
     }
+		return -1;									/* Suppresses warning */
 }
 
 /* 
-  "Convert" a perl SV into a pdl (alright more like a mapping as
+  "convert" a perl SV into a pdl (alright more like a mapping as
    the data block isn't actually copied)  - scalars are automatically
    converted
 */
@@ -59,7 +60,7 @@ pdl* SvPDLV ( SV* sv ) {
    }
        
    if (SvTYPE(SvRV(sv)) != SVt_PVHV)
-      croak("Error - argument is not a recognised data structure"); 
+      croak("Error - automatic conversion of argument type to piddle is not supported"); 
 
    hash = (HV*) SvRV(sv); 
 

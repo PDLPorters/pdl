@@ -19,6 +19,10 @@ sub nofloat { # Decide which ops can't be done on floats/doubles
     return 0;
 }
 
+# "Functions" not to cast to double.
+
+%nocast=(); for (qw(MODULO SPACESHIP abs ! ~)) {$nocast{$_}=1};
+
 ############################ pdl_biop #################################
 
 ##### HEADER ######
@@ -75,7 +79,7 @@ EOD
 
     $type = $PDL_DATATYPES{$i}; ($cast1,$cast2,$cast3 ) = ("","","") ;
 
-    ($cast1,$cast2,$cast3 ) = ("($type)","(long)","(long)") 
+    ($cast1,$cast2,$cast3 ) = ("($type)","(PDL_Long)","(PDL_Long)") 
                 if nofloat($op) && ($i eq "PDL_F" || $i eq "PDL_D");
 
      print <<EOT;
@@ -168,6 +172,10 @@ EOD
     for $i (keys %PDL_DATATYPES) {
 
     $type = $PDL_DATATYPES{$i};
+
+    $cast2 = "";
+    $cast2 = "(double)"   if !nofloat($func) && !$nocast{$func};
+
     print <<EOT;
 
      case $i:
@@ -180,16 +188,16 @@ EOD
    
          if (n2==1) 
             while(i--) {
-               *cc--  = ($type) $func(*aa, *bb); aa--;
+               *cc--  = ($type) $func($cast2 *aa, $cast2 *bb); aa--;
             }
    
          else if (n1==1) 
             while(i--) {
-               *cc--  = ($type) $func(*aa, *bb); bb--;
+               *cc--  = ($type) $func($cast2 *aa, $cast2 *bb); bb--;
             }
          else
             while(i--) {
-                *cc-- = ($type) $func(*aa, *bb); aa--; bb--;
+                *cc-- = ($type) $func($cast2 *aa, $cast2 *bb); aa--; bb--;
             }
         }
 
@@ -255,7 +263,8 @@ EOD
 
     $type = $PDL_DATATYPES{$i};  ($cast1,$cast2) = ("","") ;
     $cast1 = "($type)";
-    $cast2 = "(long)" if nofloat($func) && ($i eq "PDL_F" || $i eq "PDL_D");
+    $cast2 = "(PDL_Long)" if  nofloat($func) && ($i eq "PDL_F" || $i eq "PDL_D");
+    $cast2 = "(double)"   if !nofloat($func) && !$nocast{$func};
 
     print <<EOT;
 
