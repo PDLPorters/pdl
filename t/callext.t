@@ -12,7 +12,6 @@ use PDL::Core ':Internal'; # For topdl()
 use Config;
 use File::Spec;
 
-
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub tapprox {

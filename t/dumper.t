@@ -7,7 +7,23 @@ sub ok {
         print "ok $no\n" ;
 }
 
+sub inpath {
+  my ($prog) = @_;
+  my $pathsep = $^O =~ /win32/i ? ';' : ':';
+  my $exe = $^O =~ /win32/i ? '.exe' : '';
+  for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
+  return 0;
+}
+
+$hasuuencode = inpath('uuencode') && inpath('uudecode');
 print "1..16\n";
+
+unless ($hasuuencode) {
+	for (1..16) {
+		print "ok $_ # Skipped: uuencode/decode not available\n";
+	}
+	exit;
+}
 
 ########### First test the load...
 eval "use PDL::IO::Dumper;";

@@ -1013,7 +1013,8 @@ sub PDL::wcols {
    }
    my $file = $_[-1];
    my $file_opened;
-   my $is_handle = defined fileno($file) ? 1 : 0;
+   my $is_handle = !UNIVERSAL::isa($file,'PDL') && defined fileno($file) ? 1 
+	: 0;
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }

@@ -199,9 +199,10 @@ sub callext_cc {
 	# Setup the LD command. Do not want the env var on Windows
 	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
 
+	my $libs = '';
 	$ld_cmd .=
 		join(' ', map { $Config{$_} } qw(ld lddlflags)) .
-		" $Config{libs} $ldflags $o$ld_obj $cc_obj";
+		" $libs $ldflags $o$ld_obj $cc_obj";
 	my $cmd = "$cc_cmd; $ld_cmd";
 	print $cmd,"\n";
 

@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..37\n";
+print "1..38\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -237,5 +237,8 @@ $PDL::IO::Misc::deftype = short;
 ok( $a->get_datatype == short->[0] ); # test: 36
 
 unlink $file;
+
+eval { wcols $a, $b };
+ok(!$@);
 
 1;
