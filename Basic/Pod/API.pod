@@ -260,7 +260,7 @@ their way around the Perl API here is the code:
  #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
 

@@ -78,7 +78,7 @@ sub PDL_BOOT {
 #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
-   $symname = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if ($symname->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
 

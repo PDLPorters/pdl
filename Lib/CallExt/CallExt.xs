@@ -26,7 +26,7 @@ _callext_int(...)
 	pdl *t;
         int i;
 
-        symref = (int(*)(int, pdlsimple**)) SvIV(ST(0));
+        symref = (int(*)(int, pdlsimple**)) INT2PTR(void*,SvIV(ST(0)));
 
         New( 42, x, npdl, pdlsimple* ); /* Ptr array */
         for(i=0; i<npdl; i++) {
