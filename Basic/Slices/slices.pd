@@ -1197,7 +1197,11 @@ pp_def(
 				$COMP(n),$PARENT(ndims));
 #endif
 		}
-		 nrem = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
+		 nrem = ($COMP(n)< 0 ? $PARENT(threadids[0]) + 1 + ($COMP(n)) : $COMP(n));
+	         if(nrem < 0) {
+			$CROAK("Too many dimensions %d to leave behind when clumping from %d",-$COMP(n),$PARENT(ndims));
+		 }
+
 		 nnew = $PARENT(ndims) - nrem + 1;
 		 $SETNDIMS(nnew);
 		 $DOPRIVDIMS();

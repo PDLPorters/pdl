@@ -756,11 +756,11 @@ sub map {
 	$osize = $omax - $omin;
 
       } else {
-	  print "foo\n";
+
 	my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
-	print "samps=$samps\n";
+
 	my $coords = ndcoords(($samps + 1)->list); 
-	print "coords=$coords\n";
+
 	$coords -= 0.5;
 	
 	my $t;
@@ -799,8 +799,6 @@ sub map {
 
 	$omin = $oc2->minimum;
 	$omax = $oc2->maximum;
-	print "omin=$omin; omax=$omax\n";
-	print "coords=$coords\n";
 
 	$osize = $omax - $omin;
 	$osize->where($osize == 0) .= 1.0;

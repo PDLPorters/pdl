@@ -965,7 +965,11 @@ and the element C<$b-E<gt>at(7,3)> refers to the element
 C<$a-E<gt>at(1,2,3)>.
 
 Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
-is provided as a convenient alias.
+is provided as a convenient alias.  
+
+Clumping with a negative dimension in general leaves that many
+dimensions behind -- e.g. clump(-2) clumps all of the first few
+dimensions into a single one, leaving a 2-D piddle.
 
 If C<clump> is called with an index list with more than one element
 it is treated as a list of dimensions that should be clumped together

@@ -1,3 +1,5 @@
+CED 29-Jun-2003
+   - slices.pd: clump allows "-n" to mean "keep n dimensions".
 CED 28-Jun-2003
    - Transform.pm: fix autoranging of map()
    - primitive.pd: fix negative-index case in linear interpolation 
