@@ -1,3 +1,9 @@
+CED (12-Aug-02)
+    - Minor speed increase to InterpND (still needs work!)
+    - PGPLOT::Window::(imag1|imag|fits_imag) now does pixel scaling correctly
+	(I hope) -- substituded pgqvp (viewport dims) for pgqvsz (window dims)
+    - Axes now default to having tick marks outside the box instead of inside 
+	the box.  That prevents scrozzling by images.
 CED (9-Aug-02)
     - Signal-deferral mechanism for PDL::Graphics::PGPLOT::Window should
 	avoid many pgplot-related weirdnesses

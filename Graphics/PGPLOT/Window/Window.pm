@@ -2171,15 +2171,10 @@ sub _setup_window {
                          # What a kludge -- get window width in both pixels
                          # and inches to figure out the scaling factor for
                          # pgpap (which requires inches).
-                         #
-                         # Currently this is probably Not What You Want 
-                         # because it doesn't account for the margins
-                         # around the plot region.  That will happen RSN.
-                         # --CED
     my($x0,$x1,$y0,$y1);
-    pgqvsz(3,$x0,$x1,$y0,$y1);
+    pgqvp(3,$x0,$x1,$y0,$y1);
     my($pixwidth) = $x1 - $x0;
-    pgqvsz(1,$x0,$x1,$y0,$y1);
+    pgqvp(1,$x0,$x1,$y0,$y1);
     my($inwidth) = $x1 - $x0;
     my($pixperinch) = $pixwidth / $inwidth;
     $width /= $pixperinch;
@@ -4612,7 +4607,8 @@ sub arrow {
 	  ## Set scaling parameters automagically.
 
 	  # Get size of viewport, in inches
-	  pgqvsz(1,$x0,$x1,$y0,$y1);
+	  # (pgqvp gives active plotting area, not the whole window)
+	  pgqvp(1,$x0,$x1,$y0,$y1);
 	  
 	  print "x0=$x0, x1=$x1, y0=$y0, y1=$y1\n" if $PDL::verbose;
 
@@ -4643,8 +4639,8 @@ sub arrow {
 #	pgsvp(0,1,0,1) ## (This is how to use the whole window.)
 
 	## Set the window to the correct number of pixels for the
-	## viewport size and the specified $pitch.
-	pgqvsz($unit,$x0,$x1,$y0,$y1);
+	## viewport size and the specified $pitch. (viz. pgqvsz)
+	pgqvp($unit,$x0,$x1,$y0,$y1);
 
 	my($xr2) = ($x1-$x0) / 2.0 * float($pitch);
 	my($yr2) = ($y1-$y0) / 2.0 * float($pitch) / float($pix);
@@ -4657,12 +4653,13 @@ sub arrow {
 			$im_yctr - $yr2,
 			$im_yctr + $yr2);
 	pgswin(@pgswin);
+
 	$self->_set_env_options(@pgswin,$self->{Options}->options($opt));
 
 	$self->_set_colour($col);
       } else {
 	## print "no PIX defined...\n";
-	$self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
+	  $self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
       }
     }				# if ! hold
 
@@ -4767,6 +4764,12 @@ sub fits_imag {
   my($unit)= $pdl->gethdr->{BUNIT} || "";
   my($rangestr) = " ($min to $max $unit) ";
 
+  # Clear the plot area, even if graphics are held
+  my($wx1,$wx2,$wy1,$wy2);
+  if($pane->held()) {
+      $pane->rectangle(0.5*($wx1+$wx2),0.5*($wy1,$wy2),$wx2-$wx1,$wy2-$wy1,{Color=>0});
+  }
+
   if($hdr->{CTYPE1} eq $hdr->{CTYPE2}) {
     $pane->imag1($pdl,\%opt2);
   } else {
@@ -4776,6 +4779,7 @@ sub fits_imag {
 		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
 		    $opt->{title} . $rangestr,$opt
 		    );
+
 }
 
 

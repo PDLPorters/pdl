@@ -1633,7 +1633,7 @@ sub PDL::interpND {
     # Generate a table of offsets to look up
     my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),2 ** $index->dim(0))) 
 		      / 2**(PDL::Basic::xvals($index->dim(0))))
-		     ->xchg(0,1) 
+		     ->xchg(0,1)->sever
 		     )
                    % 2;
 
@@ -1641,13 +1641,15 @@ sub PDL::interpND {
     #   0   - 0 or 1                    (coeff. for below or above)
     #   1   - index dimension           (0th dim of index) 
     #   ... - echo of $index extra dims 
+    my($intind) = PDL::Math::floor($index);
+
     my($alpha) = ( cat(1 - $index + PDL::Math::floor($index),
-		       $index - PDL::Math::floor($index)
+		       $index - $intind
 		       )
 		   ->reorder(
 			     $index->getndims,
 			     PDL::Basic::xvals($index->getndims)->list
-			     )
+			     )->sever
 		   );
     my($i);
     $out = zeroes($index->slice("(0)"));
@@ -1656,8 +1658,8 @@ sub PDL::interpND {
 
       $out +=  ( ($alpha->indexND(cat($offsets->slice("($i)"),
 				      PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
-				  ))->prodover 
-		 * $source->indexNDb(PDL::Math::floor($index) + $offsets->slice("($i)")
+				  ))->sever->prodover 
+		 * $source->indexNDb($intind + $offsets->slice("($i)")
 				     , $boundary)
 		 );
     }
