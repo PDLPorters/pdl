@@ -1,4 +1,5 @@
 use PDL::Doc;
+use PDL::Doc::Perldl;
 
 # a very simple script to generate a huge manpage of all documented
 # PDL functions
@@ -20,7 +21,7 @@ This is a listing of all documented functions in the PDL distribution.
 
 EOD
 
-$onldc = new PDL::Doc ('/tmp/pdlhash.dbtxt');
+$onldc = $PDL::onlinedoc; # new PDL::Doc ('/tmp/pdlhash.dbtxt');
 @match = $onldc->search('.*',['Name'],1);
 for (@match) {
 	$sh = new StrHandle;

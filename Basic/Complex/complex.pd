@@ -1,6 +1,6 @@
-$VERSION = 0.6;
+$VERSION = 0.7;
 
-# pp_setversion $VERSION;
+# pp_setversion $VERSION;  # haven't worked out why it breaks my system (CS)
 pp_beginwrap; # required for overload to work
 
 pp_addpm {At => Top}, <<'EOD';
@@ -128,8 +128,8 @@ error.
 Now plot the imaginary part, the real part and the magnitude of the sine
 into the same diagram:
 
-   perldl> line Cim sin $sin; hold
-   perldl> line Cre sin $sin
+   perldl> line im sin $sin; hold
+   perldl> line re sin $sin
    perldl> line abs sin $sin
 
 Sorry, but I didn't yet try to reproduce the diagram in this
@@ -225,23 +225,26 @@ pp_addpm <<'EOP';
 Cast a real-valued piddle to the complex datatype. The first dimension of
 the piddle must be of size 2. After this the usual (complex) arithmetic
 operators are applied to this pdl, rather than the normal elementwise pdl
-operators.
+operators.  Dataflow to the complex parent works. Use C<sever> on the result
+if you don't want this.
+
 
 =head2 real cplx-valued-pdl
 
 Cast a complex vlaued pdl back to the "normal" pdl datatype. Afterwards
-the normal elementwise pdl operators are used in operations.
+the normal elementwise pdl operators are used in operations. Dataflow
+to the real parent works. Use C<sever> on the result if you don't want this.
 
 =cut
 
 sub cplx($) {
-   bless $_[0]->copy;
+   bless $_[0]->slice('');
 }
 
 *PDL::cplx = \&cplx;
 
 sub real($) {
-   bless $_[0]->sever, 'PDL';
+   bless $_[0]->slice(''), 'PDL';
 }
 
 EOP
@@ -579,7 +582,7 @@ Return the complex C<atan()>.
 
 sub Catan($) {
    my $z = shift;
-   Cmul pdl(0, 0.5), Clog Cdiv i+$z, i-$z;
+   Cmul pdl(0, 0.5), Clog Cdiv PDL::Complex::i+$z, PDL::Complex::i-$z;
 }
 
 EOD
@@ -733,9 +736,8 @@ pp_addpm <<'EOD';
 =head2 re cplx, im cplx
 
 Return the real or imaginary part of the complex number(s) given. These
-are indexing operators, so data flow works. NOTE: These two functions do
-_NOT_ work on the complex datatype as you would expect! Best to avoid them
-or cast the result back to "real". NOTE AGAIN: Maybe it works now as expected
+are slicing operators, so data flow works. The real and imaginary parts
+are returned as piddles (ref eq PDL).
 
 =cut
 
@@ -829,7 +831,10 @@ use overload
 
 =head1 AUTHOR
 
-Marc Lehmann <pcg@goof.com>. 
+Copyright (C) 2000 Marc Lehmann <pcg@goof.com>. 
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation as described
+in the file COPYING in the PDL distribution.
 
 =head1 SEE ALSO
 

@@ -705,7 +705,10 @@ sub funcdocs_fromfile {
   barf "can't open file $file" unless $in;
   barf "can't open output handle" unless $out;
   getfuncdocs($func,$in,$out);
-  print $out "Docs from $file\n\n";
+
+  if (ref $out eq 'GLOB') {
+  	print $out "Docs from $file\n\n"; } else {
+	$out->print("Docs from $file\n\n"); }
 }
 
 sub extrdoc {

@@ -158,6 +158,34 @@ act q|
 
 |;
 
+act q|
+  #
+  # the latest feature of PDL are complex numbers
+  # so let's play with a simple example
+  #
+  
+
+  use PDL::Complex;
+  $z50 = zeroes(50);
+  $c = $z50->xlinvals(0,7)+i*$z50->xlinvals(2,4);
+  line im sin $c; hold;      # the imaginary part
+  line re sin $c;            # real
+  line abs sin $c; release;  # and the modulus
+  
+|;
+
+act q|
+  #
+  # more complex numbers
+  #
+  
+  use PDL::Complex;
+  $c =  zeroes(300)->xlinvals(0,12)+i*zeroes(300)->xlinvals(2,10);
+  $sin = sin $c;
+  line $sin->im, $sin->re;   # look at the result in the complex plane
+  
+|;
+
 }
 
 1;
