@@ -4,7 +4,7 @@
 # to both
 # 
 package PDL::Graphics::TriD::Window;
-
+use PDL::Graphics::TriD::ViewPort;
 use Data::Dumper;
 use strict;
 
@@ -60,6 +60,7 @@ sub new_viewport {
 	 use PDL::Graphics::TriD::ArcBall;
 	 use PDL::Graphics::TriD::SimpleScaler;
 	 use PDL::Graphics::TriD::Control3D;
+    use PDL::Graphics::TriD::GL;  
 
 	 my $ev = $options->{EHandler};
 	 $ev = new PDL::Graphics::TriD::EventHandler($vp) unless defined($ev);
@@ -129,26 +130,59 @@ sub viewports {
   return $this->{_ViewPorts};
 }
 
+sub _vp_num_fromref {
+  my ($this,$vp) = @_;
+
+  if(! defined $vp){  
+	 $vp = $this->{_CurrentViewPort};
+  }elsif(ref($vp)){
+	 my $cnt=0;
+	 foreach(@{$this->{_ViewPorts}}){
+		last if($vp == $_);
+		$cnt++;
+	 }
+	 $vp = $cnt;
+  }
+  return $vp;
+}
+
+
+sub delete_viewport {
+  my($this, $vp) = @_;
+  my $cnt;
+  if(($cnt=$#{$this->{_ViewPorts}})<= 0){
+	 print "WARNING: Cannot delete final viewport - request ignored\n";
+	 return;
+  }
+  $vp = $this->_vp_num_fromref($vp);
+
+  $this->{_ViewPorts}[$vp]->DESTROY();
+  
+  splice(@{$this->{_ViewPorts}},$vp,1);
+  
+  if($vp == $cnt){
+	 $this->current_viewport($vp-1);
+  }
+}
+
+
+
+
+
+sub clear_viewports {
+  my($this) = @_;
+  foreach(@{$this->{_ViewPorts}}){
+	 $_->clear_objects();
+  }
+}
 
 sub clear_viewport {
-	my($this, $vp) = @_;
-   my $cnt;
-	if(($cnt=$#{$this->{_ViewPorts}})<= 0){
-	  print "WARNING: Cannot delete final viewport - request ignored\n";
+  my($this, $vp) = @_;
+  my $cnt;
 
-	}else{
-	  if(ref($vp)){
-		 for(0 .. $cnt){
-			if($vp == $this->{_ViewPorts}[$_]){
-			  $vp = $_;
-			  last;
-			}
-		 }
-	  }
-	  $this->{_ViewPorts}[$vp]->clear();
-	  splice(@{$this->{_ViewPorts}},$vp,1);
-     $this->{_CurrentViewPort}= $cnt-1 if($this->{_CurrentViewPort} > $cnt-1);
-	}
+  $vp = $this->_vp_num_fromref($vp);
+  $this->{_ViewPorts}[$vp]->clear_objects();
+
 }
 
 sub set_eventhandler {

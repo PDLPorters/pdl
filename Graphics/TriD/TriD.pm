@@ -664,10 +664,8 @@ sub PDL::imagrgb {
 	my $win = PDL::Graphics::TriD::get_current_window();
 	my $imag = new PDL::Graphics::TriD::Image(@data);
 
-#	$win->clear_viewports();
-#
-#	my $vp1 = $win->new_viewport(0,0,$win->get_size());
-#	$vp1->add_object($imag);
+	$win->clear_viewports();
+
 	$win->current_viewport()->add_object($imag);
 	$win->twiddle();
 }
@@ -726,33 +724,35 @@ sub PDL::grabpic3d {
 
 $PDL::Graphics::TriD::hold_on = 0;
 
-sub PDL::hold3d {$PDL::Graphics::TriD::hold_on =
-			(!defined $_[0] ? 1 : $_[0]);}
+sub PDL::hold3d {$PDL::Graphics::TriD::hold_on =(!defined $_[0] ? 1 : $_[0]);}
 sub PDL::release3d {$PDL::Graphics::TriD::hold_on = 0;}
+
 *hold3d=\&PDL::hold3d;
 *release3d=\&PDL::release3d;
 
 sub get_new_graph {
 	my $win = PDL::Graphics::TriD::get_current_window();
-	my $g = get_current_graph();
+
+	my $g = get_current_graph($win);
+
 	if(!$PDL::Graphics::TriD::hold_on) {
 		$g->clear_data();
+		$win->clear_viewport();
 	}
 	$g->default_axes();
 
-#	$win->clear_viewports();
-
-	$win->clear_objects();
 	$win->add_object($g);
 	return $g;
 }
 
 sub get_current_graph {
-	my $g = $PDL::Graphics::TriD::curgraph;
+   my $win = shift;
+	my $g = $win->current_viewport()->graph();
+
 	if(!defined $g) {
 		$g = new PDL::Graphics::TriD::Graph();
 		$g->default_axes();
-		$PDL::Graphics::TriD::curgraph = $g;
+		$win->current_viewport()->graph($g);
 	}
 	return $g;
 }

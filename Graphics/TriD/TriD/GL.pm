@@ -529,11 +529,21 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 #
 
 sub PDL::Graphics::TriD::Image::togl {
-	$_[0]->gdraw();
+#  glDisable(&GL_LIGHTING);
+#
+# A special construct which always faces the display and takes the entire window
+#  
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(0,1,0,1);
+  &PDL::Graphics::TriD::Image::togl_graph;
 }
 
 sub PDL::Graphics::TriD::Image::togl_graph {
-	&PDL::Graphics::TriD::Image::togl;
+	$_[0]->gdraw();
 }
 
 
@@ -569,7 +579,6 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	);
 	if(!defined $vert) {$vert = $this->{Points}}
 	for(0..3) {
-#	for([0,0],[$xd/$txd,0],[$xd/$txd,$yd/$tyd],[0,$yd/$tyd]) {
 		glTexCoord2f(@{$texvert[$_]});
 		glVertex3f($vert->slice(":,($_)")->list);
 	}

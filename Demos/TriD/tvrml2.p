@@ -1,4 +1,8 @@
 BEGIN { $PDL::Graphics::TriD::device = "VRML"; }
+BEGIN{
+  PDL::Graphics::VRMLNode->import();
+  PDL::Graphics::VRMLProto->import();
+}
 use PDL::Graphics::TriD;
 use PDL::LiteF;
 use Carp;
@@ -37,28 +41,24 @@ require PDL::Graphics::VRML::Protos;
 PDL::Graphics::VRML::Protos->import();
 
 
-$win->{VRMLTop}->register_proto(PDL::Graphics::VRML::Protos::PDLBlockText10());
+#$win->{VRMLTop}->register_proto(PDL::Graphics::VRML::Protos::PDLBlockText10());
+
+
+#$win->{VRMLTop}->uses('PDLBlockText10');
+
+
+
+#$win->current_viewport()->add_object(new PDL::Graphics::TriD::VRMLObject(
+#																	  vrn(Transform,
+#																			translation => '0 0 -1',
+#																			children =>
+#																			[new PDL::Graphics::VRMLNode('PDLBlockText10')
+#																			]
+#																		  )
+#																	 ));
+
+
+
 
 $win->display('netscape');
 exit;
-
-$win->{VRMLTop}->uses('PDLBlockText10');
-
-
-BEGIN{
-  PDL::Graphics::VRMLNode->import();
-  PDL::Graphics::VRMLProto->import();
-}
-
-$win->current_viewport()->add_object(new PDL::Graphics::TriD::VRMLObject(
-																	  vrn(Transform,
-																			translation => '0 0 -1',
-																			children =>
-																			[new PDL::Graphics::VRMLNode('PDLBlockText10')
-																			]
-																		  )
-																	 ));
-
-
-
-

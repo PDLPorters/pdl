@@ -53,8 +53,9 @@ actnw q|
 
 use PDL; use PDL::Graphics::TriD;
 $s=150;$a=zeroes $s,$s;$r=$a->xlinvals(-1.5,0.5);$i=$a->ylinvals(-1,1);
-$t=$r;$u=$i;for(0..12){$q=$r**2-$i**2+$t;$h=2*$r*$i+$u;($r,$i)=map{$_->
-clip(-5,5)}($q,$h);}imagrgb[($r**2+$i**2)>2.0];
+$t=$r;$u=$i;
+for(0..12){$q=$r**2-$i**2+$t;$h=2*$r*$i+$u;($r,$i)=map{$_->clip(-5,5)}($q,$h);}
+imagrgb[($r**2+$i**2)>2.0];
 
 # [press 'q' in the graphics window when done]
 |;
@@ -85,7 +86,7 @@ $a=zeroes 300,300;$r=$a->xlinvals(-1.5,
 |;
 }
 
-
+if(0){
 actnw q|
 # Torus... (barrel) [Tjl]
 
@@ -132,24 +133,24 @@ imagrgb[$d]; $s=conv2d($d,$k)/8; $r = $s->float->random;
 $e = ($s>$r); $d .= $e; }while(!twiddle3d)
 
 ~;
+}
 
-actnw q~
+actnw q|
 # Volume rendering [Robin Williams]
-
-use PDL; use PDL::Graphics::TriD;
+use PDL; use PDL::Graphics::TriD; keeptwiddling3d();
 $b=zeroes(50,50,50);$b=sin(0.3*$b->rvals)*cos(0.3*$b->xvals);$c=0;
 $a=byte($b>$c);foreach(1,2,4){$t=($a->slice("0:-2")<<$_);$t+=$a->slice("1:-1");
 $a = $t->mv(0,2);} points3d [whichND(($a != 0) & ($a != 255))];
+|;
 
-~;
-
-actnw q~
+actnw q|
 # Lucy deconvolution (AJ 79, 745) [Robin Williams (=> TriD by Tjl)]
 use PDL; use PDL::Graphics::TriD; nokeeptwiddling3d();
 sub smth {use PDL::Image2D; conv2d($_[0],exp(-(rvals ones(3,3))**2));}
 $a=rfits("m51.fits")->float; $c=$d=avg($a)+0*$a;
 while(max $c>1.1) {$c=smth($a/smth($d));$d*=$c;imagrgb[$d/850];}
-~;
+|;
+
 
 # use PDL; use PDL::Image2D; use PDL::Graphics::TriD;nokeeptwiddling3d;
 # $d=byte(random(zeroes(90,90))>0.5);do{$k=byte [[1,1,1],[1,0,1],[1,1,1]];
@@ -158,11 +159,10 @@ while(max $c>1.1) {$c=smth($a/smth($d));$d*=$c;imagrgb[$d/850];}
 
 actnw q~
 # Fractal mountain range [Tuomas Lukka]
-use PDL;use PDL::Image2D;use PDL::Graphics::TriD;$k=ones(5,5) / 25;
+use PDL;use PDL::Image2D;use PDL::Graphics::TriD; keeptwiddling3d(); $k=ones(5,5) / 25;
 $a=5;$b=ones(1,1)/2;for(1..7){$c=$b->dummy(0,2)->clump(2)->xchg(0,1)->
 dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$a*$c->random;$a/=3;
 $b=conv2d($c,$k); imag3d[$b],{Lines => 0}; }
-
 ~;
 
 comment q|
