@@ -612,7 +612,7 @@ sub new {
     $me->{params}->{conv} = my $conv = _uconv($unit);
     $me->{params}->{u} = $unit;
 
-    $me->{itype} = ['latitude','longitude'];
+    $me->{itype} = ['longitude','latitude'];
     $me->{iunit} = [$me->{params}->{u},$me->{params}->{u}];
 
     $me->{params}->{o} = $or * $conv;
