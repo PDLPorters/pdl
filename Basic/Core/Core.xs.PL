@@ -90,7 +90,7 @@ print OUT <<'!NO!SUBS!';
 
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
-#define SET_RETVAL_NV x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
+#define SET_RETVAL_NV(x) x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
 
 Core PDL; /* Struct holding pointers to shared C routines */
 
@@ -565,6 +565,29 @@ set_debugging(i)
 	RETVAL
 
 
+SV *
+sclr_c(it)
+   pdl* it
+   CODE:
+	PDL_Long nullp = 0;
+	PDL_Long dummyd = 1;
+	PDL_Long dummyi = 1;
+	double result;
+
+        /* get the first element of a piddle and return as
+         * Perl double scalar (NV)
+         */
+        pdl_make_physvaffine( it );
+	if (it->nvals < 1)
+           barf("piddle must have at least one element");
+	/* offs = PDL_REPROFFS(it); */
+        /* result = pdl_get_offs(PDL_REPRP(it),offs); */
+        result=pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
+        &dummyi, PDL_REPROFFS(it),1);
+        SET_RETVAL_NV(it) ;
+
+    OUTPUT:
+        RETVAL
 
 
 SV *
@@ -595,7 +618,7 @@ at_c(x,position)
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
 
-    SET_RETVAL_NV ;
+    SET_RETVAL_NV(x) ;
 
     OUTPUT:
      RETVAL
