@@ -3,11 +3,15 @@
 
 use PDL::LiteF;
 use strict;
+$PDL::verbose = 1;
 my $loaded;
 
 # Check that we can load the module
 BEGIN {
-  eval " use PDL::IO::NDF; ";
+  # Kluge loading to force NDF module to be loaded now.
+  # This is required since currently the PDL::IO::NDF module
+  # only loads the NDF module when required.
+  eval " use PDL::IO::NDF; use NDF";
   $loaded = ( $@ ? 0 : 1 );
 }
 
@@ -31,7 +35,7 @@ sub ok {
 print "1..$plan\n";
 unless ($loaded) {
   for (1..$plan) {
-    print "ok $_ # Skipped: PDL::IO::NDF not available.\n";
+    print "ok $_ # Skipped: PDL::IO::NDF requires the NDF module.\n";
   }
   exit;
 }
