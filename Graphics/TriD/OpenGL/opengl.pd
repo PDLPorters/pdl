@@ -58,7 +58,6 @@ my @oosubs; # holds subroutine prototypes for oo interface
 my %dontfuncs;
 for(@dontfuncs) {$dontfuncs{$_} = 1}
 
-
 my(@path);
 foreach(@incs){
   if(-d "$_"){
@@ -71,8 +70,16 @@ foreach(@defines){
   $_ = "-D$_";
 }
 
-
-push(@path,"/usr/include");
+# The '/usr/X11R6/include' path is where GL/glx.h etc are found
+# on my OS-X 10.3 machine. It seems to me that the Makefile.PL's should
+# have set the paths up by now, rather than having the logic in the *pd
+# file; I think the whole build of the TriD stuff needs reworking...
+#
+# Doug
+#
+push @path, "/usr/include";
+push @path, "/usr/X11R6/include"
+    if $^O eq "darwin";
 
 my %consts; # filled by sub getconsts
 my @subnames;  # filled by sub getfuncs

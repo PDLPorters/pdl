@@ -18,6 +18,12 @@ if( defined($t) and $t == 0 ) {
 	  $PDL::Config{OPENGL_DEFINE} .= ' -DGL_GLEXT_LEGACY';
       }
       $PDL::Config{WITH_3D} = 1;
+
+      # hack for OS-X
+      if ($^O eq "darwin" and not defined $PDL::Config{OPENGL_INC}) {
+	  $PDL::Config{OPENGL_INC} = "-I/usr/X11R6/include";
+      }
+
       print "\n    Success using $PDL::Config{OPENGL_LIBS} $PDL::Config{OPENGL_DEFINE}\n\n";
   } else {
       warn "\n     COULD NOT link OpenGL \n".
