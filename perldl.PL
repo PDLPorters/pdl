@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.32';
+$VERSION = '1.33';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -51,6 +51,8 @@ print "perlDL shell v$VERSION
 # Useful shell variables
 
 $PERLDL::ESCAPE = '#'; 		# Default shell escape
+$PERLDL::MULTI = 1;             # Enable multi-lines by default
+$PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::PROMPT = "perldl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
@@ -211,6 +213,11 @@ unless ($@) {
   trans; # switch on by default
   push @enabled, "NiceSlice";
 }
+
+eval "use Text::Balanced";
+my $multi_ok = ($@ eq "");
+$PERLDL::MULTI = 0 unless($multi_ok);
+push @enabled,"MultiLines" if $multi_ok;
 
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
@@ -411,65 +418,170 @@ EOW
   $preproc_warned = 1; # warn only once
 }
 
+
+
+#
+# count_tags: Return a string containing (in order) the open brackets
+# and strings in the string that is passed in.
+#
+sub count_tags {
+    my $s = shift;
+
+    $s =~ s/\.*//g; # Ignore all escaped characters
+
+    return undef unless($s =~ m/\w/);
+    
+    # Anything but a delimiter (' q' is a string begin delimiter in perl!)
+    # (This misses pattern matches but hey you can't have everything)...
+    our($prefix,$delim,%closers);
+    unless(defined $prefix) {
+	$prefix = qr/([^\{\}\[\]\(\)\'\"\`(\sq)])*/;
+	$delim = '{[(<`><\'><"><q>';
+	%closers = ('{'=>'}','['=>']','('=>')');
+    }
+
+    # Run Text::Balanced on the string with a '{' in front of it, to 
+    # make sure that all quoted strings are "embedded" in the outermose "{".
+    my $a;
+
+    eval { @result = 
+	       Text::Balanced::extract_bracketed("{".$s, $delim, $prefix);
+	   $a = $@;
+       };
+    
+
+    if($a =~ m/^Did not find/) {
+	# No quotes -- this should never happen and is a syntax error.
+	print STDERR "[Error in parsing: this should never happen!]\n" 
+	    if($PDL::debug);
+	return undef;
+    }
+    elsif($a =~ m/^Unmatched emb\w+ quote \((.)\), de\w+ at offset (\d+)/) {
+	# Embedded quote: try to close it and reparse.
+	$a = $1;
+	return count_tags($s.$1) . $a;
+    }
+    elsif($a =~ m/^Mismatched closing bracket/) {
+	# This is an error condition - return false and let perl parse it
+	return undef;
+    }
+    elsif($a =~ m/^Unmatched opening bracket\(s\)\: \{\.\.(.\.\.)+/) {
+	$a = $1;
+	$a=~ s/\.\.//g;
+	return count_tags($s.$closers{$a}) . $a; 
+    }
+    elsif($a =~ m/^Unmatched opening bracket\(s\)\: \{\.\.\,/) {
+	# Should have exactly one unmatched opening bracket.
+	return undef;
+    } 
+    elsif(!$a) {
+	return undef;
+    }
+
+    print STDERR "Unknown error message '$a' from parser...\n"
+	if($PDL::debug);
+    return undef;
+}
+
+
+
+#
+# process_input -- this is the central grab-some-input-and-execute it loop.
+# 
 sub process_input { 
-  { local $, = "";
-	     if ($readlines) {
-		if (ref $PERLDL::PROMPT) {
-		     $_ = $term->readline(&$PERLDL::PROMPT);
-		} else {
-		     $_ = $term->readline($PERLDL::PROMPT);
-		  }
-	      }else{
-		  if (ref $PERLDL::PROMPT) {
-		    print &$PERLDL::PROMPT;
-		  } else {
-		    print $PERLDL::PROMPT;
-		  }
-		  $_ = <>;
+  my $lines;
+
+
+  if($PERLDL::MULTI && !$multi_ok) {
+      $PERLDL::MULTI = 0;
+      print STDERR "WARNING: Text::Balanced not present; disabling multi-line parsing.\n";
+  }
+  
+  # The {} around the do let us get out with 'last' in the EOF case.
+ multiline: { 
+     my $cont;
+     $lines = "";
+
+     
+     do {
+	 local $, = "";
+
+	 my $prompt = $cont ? "..$cont".(" "x(5-length($cont)))."> " : 
+	     ((ref $PERLDL::PROMPT) ? &$PERLDL::PROMPT : $PERLDL::PROMPT);
+
+	 if ($readlines) {
+	     $_ = $term->readline($prompt);
+	 }else{
+	     print $prompt;
+	     $_ = <>;
+	 }
+	 
+	 if(!defined $_) {
+	     if($cont) {
+		 if( $PERLDL::NO_EOF > 1 && -t STDIN ) {
+		     print STDERR "\nEOF ignored.  (Close delimiters to end block. \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
+		 } else {
+		     last multiline;
+		 }
+	     } else {
+		 if($PERLDL::NO_EOF && -t STDIN ) {
+		     print STDERR "EOF ignored. ('q' or 'exit' to quit.  \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
+		 } else {
+		     exit 0;
+		 }
 	     }
-     }
+	 }
+	 
+	 $lines .= "\n" if($cont); # Make multi-line strings work right.
+	 $lines .= $_;
+	 
+     } while( $PERLDL::MULTI && ($cont = count_tags($lines)) );
 
-     # Execute the list of auto-code
+ } 
+  
+  $_ = $lines;
 
-     for my $c (@PERLDL::AUTO) {
-        my $mess = eval_and_report($c);
-	warn $mess if $mess;
-     }
-
-     if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x' || lc $_ eq 'quit') {exit};
-     next if /^\s*$/; # Blank line - do nothing
-
-     s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
-     s/^\s*\?\s*/help /; # Make lone '?' = 'help'
-
-     if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
-        @t = split;
-        foreach (@t) { s/^["']+//; s/['"]+$//; };
-	$t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));
-	$_ = join(' ',@t);
-     }
-
-     if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
-        system(substr($_,1)); # Shell escape
-        next;
-      } else {
-        # Send code to pre-processor filters if defined
-        for my $filter (@PERLDL::PREPROCESS) {
+  # Execute the list of auto-code
+  
+  for my $c (@PERLDL::AUTO) {
+      my $mess = eval_and_report($c);
+      warn $mess if $mess;
+  }
+  
+  if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x' || lc $_ eq 'quit') {exit};
+  next if /^\s*$/; # Blank line - do nothing
+  
+  s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
+  s/^\s*\?\s*/help /; # Make lone '?' = 'help'
+  
+  if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
+      @t = split;
+      foreach (@t) { s/^["']+//; s/['"]+$//; };
+      $t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));
+      $_ = join(' ',@t);
+  }
+  
+  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
+      system(substr($_,1)); # Shell escape
+      next;
+  } else {
+      # Send code to pre-processor filters if defined
+      for my $filter (@PERLDL::PREPROCESS) {
           $_ = $filter->($_);
-        }
-        # honor the deprecated interface for now
-        if (defined $PERLDL::PREPROCESS && 
-              ref($PERLDL::PREPROCESS) eq 'CODE') {
+      }
+      # honor the deprecated interface for now
+      if (defined $PERLDL::PREPROCESS && 
+	  ref($PERLDL::PREPROCESS) eq 'CODE') {
           preproc_oldwarn() unless $preproc_warned;
           $_ = &$PERLDL::PREPROCESS($_);
-        }
-
-	startpage;
-	my $mess = eval_and_report($_);
-        warn $mess if $mess;
-	endpage;
-     }
-     print "\n";
+      }
+      
+      startpage;
+      my $mess = eval_and_report($_);
+      warn $mess if $mess;
+      endpage;
+  }
+  print "\n";
 }
 
 # check for old usage of PERLDL::PREPROCESS
@@ -723,6 +835,27 @@ $PERLDL::PROMPT - default value 'perldl> '
 Enough said  But can also be set to a subroutine reference, e.g.
 $PERLDL::PROMPT = sub {join(':',(gmtime)[2,1,0]).'> '} puts the
 current time into the prompt.
+
+=item *
+
+$PERLDL::MULTI - default value 1
+
+If this is set to a true value, then perldl will parse multi-line 
+perl blocks: your input will not be executed until you finish a line
+with no outstanding group operators (such as quotes, blocks, parenthesis, or 
+brackets) still active.  Continuation lines have a different prompt that
+shows you what delimiters are still active.
+
+=item *
+
+$PERLDL::NO_EOF - default value 0
+
+Protects against accidental use of "^D" from the terminal.  If this is
+set to a true value, then you can't accidentally exit perldl by typing
+"^D".  If you set it to a value larger than 1 (and PERLDL::MULTI is
+set), then you can't use "^D" to exit multiline commands either.  If
+you're piping commands in from a file or pipe, this variable has no
+effect.
 
 =item *
 

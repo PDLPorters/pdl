@@ -1,3 +1,6 @@
+CED (15-March-2003)
+    - perldl: Added multi-line string processing (using Text::Balanced) 
+	and EOF protection to the shell.
 CED (14-March-2003)
     - Obscure bugfixes and improvements to Lib::Transform
     - t/pgplot.t Avoid a perl bug (setting an alarm from inside
