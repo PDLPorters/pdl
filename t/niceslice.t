@@ -143,4 +143,5 @@ ok(!$@ and $a eq '1234');
 $a = pdl(5,3,2);
 my $method = 'dim';
 eval translate_and_show '$c = $a->$method(0)';
-ok(!$@ && $c == 0);
+print "c: $c\n";
+ok(!$@ && $c == $a->dim(0));

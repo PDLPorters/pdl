@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.99;
+$PDL::NiceSlice::VERSION = 0.991;
 $PDL::NiceSlice::debug = 0;
 
 require PDL::Version; # get PDL version number
@@ -217,8 +217,9 @@ sub findslice {
 
     if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s ||
       # foreach statement: Don't translate
-	$prefix =~ m/->\s*$/s)
-      # method invocation via string
+	$prefix =~ m/->\s*\$\w+$/s) # e.g. $a->$method(args)
+      # method invocation via string, don't translate either
+    {
       $processed .= "$prefix".$found;
     } else {      # statement is a real slice and not a foreach
 

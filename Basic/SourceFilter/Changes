@@ -1,3 +1,6 @@
+0.991
+ - don't translate method invocation via string, e.g.
+     $a->$method(0)
 0.99
  - allow more than one modifier
  - fix modifier parsing
@@ -7,7 +10,7 @@
 0.96
  - splitprotected interface similar to split's
 0.95
- - squeeze modifier
+ - squeeze modifier (;-)
 0.91
  - leave 'for(each)? (my|our) $y(0,1) {}' alone
 0.9

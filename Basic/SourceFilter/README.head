@@ -10,4 +10,6 @@ Build the module in the usual way:
   make test
   make install
 
+The module is still somewhat experimental but is rapidly
+stabilizing and now distributed with the PDL distribution.
 
