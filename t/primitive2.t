@@ -19,7 +19,7 @@ sub approx {
 
 
 ###### Testing Begins #########
-print "1..17\n";  
+print "1..18\n";  
 
 
 use PDL::LiteF;
@@ -85,4 +85,9 @@ ok($testNo++, approx($im->lclip(5)->sum,176) );
 
 ok($testNo++, approx($im->clip(5,7)->sum,140) );
 
-
+# indadd Test:
+$a = pdl( 1,2,3);
+$ind = pdl( 1,4,6);
+$sum = zeroes(10);
+indadd($a,$ind, $sum);
+ok($testNo++, approx($sum->sum,6) );

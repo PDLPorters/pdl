@@ -1679,7 +1679,42 @@ EOD
         %}
 ');
 
+pp_def('indadd',
+       Pars => 'a(); int ind(); [o] sum(m)',
+       Code => 'register int foo = $ind();
+                if(foo<0 || foo>=$SIZE(m))
+                  {barf("PDL::indadd: invalid index");}
+                $sum(m => foo) += $a();',
+       Doc=>'
+=for ref
 
+Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:
+
+ sum(ind) += a
+
+=for example
+
+Simple Example:
+
+  $a = 2;
+  $ind = 3;
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum
+  #Result: ( 2 added to element 3 of $sum)
+  # [0 0 0 2 0 0 0 0 0 0]
+
+Threaded Example:
+
+  $a = pdl( 1,2,3);
+  $ind = pdl( 1,4,6);
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum."\n";
+  #Result: ( 1, 2, and 3 added to elements 1,4,6 $sum)
+  # [0 1 0 0 2 0 3 0 0 0]
+=cut
+');
 
 pp_addpm({At=>Bot},<<'EOD');
 

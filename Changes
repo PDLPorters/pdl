@@ -1,5 +1,9 @@
 (!!! = possible source of incompatibilities)
 2.004
+John Cerney (3/15/00)
+	- Added Christian Pellegrin's bilinear and image scaling patch.
+          with cleaned up docs and test cases.
+	- Update Version to 2.004
 Doug Hunt (3/8/00)
         - Added 'use PDL::Graphics::PGPLOT' to Demos/PGPLOT_demo.pm.  Now it works.
           This bug was introduced in my 3/2 and 3/3/00 changes.

@@ -341,6 +341,81 @@ sub PDL::rebin {
 ');
 
 
+pp_addpm(<<'EOD');
+
+=head2 circ_mean_p
+
+=for ref
+
+Calculates the circular mean of an n-dim image and returns
+the projection. Optionally takes the center to be used.
+
+=for usage
+
+   $cmean=circ_mean_p($im);
+   $cmean=circ_mean_p($im,{Center => [10,10]});
+
+=cut
+
+
+sub circ_mean_p {
+ my ($a,$opt) = @_;
+ my ($rad,$sum,$norm);
+
+ if (defined $opt) {
+   $rad = long PDL::rvals($a,$opt);
+ }
+ else {
+   $rad = long rvals $a;
+ }
+ $sum = zeroes($rad->max+1);
+ PDL::indadd $a->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ $norm = zeroes($rad->max+1);
+ PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
+ $sum /= $norm;
+ return $sum;
+}
+
+=head2 circ_mean
+
+=for ref
+
+Smooths an image by applying circular mean.
+Optionally takes the center to be used.
+
+=for usage
+
+   circ_mean($im);
+   circ_mean($im,{Center => [10,10]});
+
+=cut
+
+sub circ_mean {
+ my ($a,$opt) = @_;
+ my ($rad,$sum,$norm,$a1);
+
+ if (defined $opt) {
+   $rad = long PDL::rvals($a,$opt);
+ }
+ else {
+   $rad = long rvals $a;
+ }
+ $sum = zeroes($rad->max+1);
+ PDL::indadd $a->clump(-1), $rad->clump(-1), $sum; # this does the real work
+ $norm = zeroes($rad->max+1);
+ PDL::indadd pdl(1), $rad->clump(-1), $norm;       # equivalent to get norm
+ $sum /= $norm;
+ $a1 = $a->clump(-1);
+ $a1 .= $sum->index($rad->clump(-1));
+
+ return $a;
+}
+
+EOD
+
+pp_add_exported('','circ_mean');
+pp_add_exported('','circ_mean_p');
+
 pp_addpm({At=>Bot},<<'EOD');
 
 
