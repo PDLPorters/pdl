@@ -484,7 +484,7 @@ sub whatis {
 
 $PDL::Doc::Perldl::max_strlen = 55;
 $PDL::Doc::Perldl::max_arraylen = 10;
-$PDL::Doc::Perldl::max_keylen = 10;
+$PDL::Doc::Perldl::max_keylen = 8;
 $PDL::Doc::Perldl::array_indent=5;
 $PDL::Doc::Perldl::hash_indent=3;
 
