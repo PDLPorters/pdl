@@ -1965,6 +1965,7 @@ sub t_radial {
   $me->{params}->{u} = _opt($o,['u','unit','Unit']);
   ### Replace this kludge with a units call
   $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $RAD2DEG : 1.0;
+  print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::debug);
   
   $me->{name} = "radial (direct)";
   

@@ -98,7 +98,7 @@ of a portion of the celestial sphere near the paraxial direction.
 This is the projection that most consumer grade cameras produce.
 
 Wide-angle optical systems are often tuned to produce
-L<"equidistant azimuthal"|t_az_equi> projections of a portion of the
+L<"equidistant azimuthal"|t_az_eqd> projections of a portion of the
 celestial sphere, which has the advantage that you can put an entire
 celestial hemisphere on a finite region in the focal plane.  If you
 want to interpret wide-angle celestial images then you should pick the
@@ -110,9 +110,7 @@ PDL::Transform::Cartography includes perspective projections for
 producing maps of spherical bodies from perspective views.  Those
 projections are C<"t_vertical"|t_vertical> and
 C<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
-spherical body and equidistant azimuthal focal plane coordinates at
-the camera, so that (e.g.) fisheye aerial views of Earth are
-supported.
+spherical body and planar projected coordinates at the viewpoint.
 
 If you want to use the perspective transformations to interpret wide-angle
 views of Earth or other spheres from close up, you must consider whether
@@ -121,13 +119,14 @@ your camera is a "fisheye" (equidistant azimuthal) lens or a normal
 of view).  You can tell which you have by examining the distortion around the
 outer edges of the image:  are objects stretched radially (gnomonic; simple
 lens) or tangentially (equidistant azimuthal; fisheye lens)?  To interpret a 
-perspective aerial view from a simple wide-angle lens, you need to use the
-compound transform:
+perspective aerial view from a simple wide-angle lens, you can use the 
+normal perspective transform, but to interpret a fisheye lens (which uses
+the equidistant azimuthal projection) you need to use the compound transform:
 
-    ( t_gnomonic x !t_az_equi x t_perspective(out=>angle,<options>) )
+    ( t_az_eqd x !t_gnomonic x t_perspective(out=>angle,<options>) )
 
-which will map (lon,lat) on the Earth to focal plane parameters in
-your camera.
+which will map (lon,lat) on the Earth to focal plane angular parameters in
+your fisheye-lens camera.
 
 =head1 TRANSVERSE & OBLIQUE PROJECTIONS; STANDARD OPTIONS
 
@@ -254,7 +253,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_vertical);
+  @EXPORT_OK = qw(graticule earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -472,6 +471,32 @@ sub clean_lines {
 ######################################################################
 
 ###
+# Units parser
+# Get unit, return conversion factor to radii, or undef if no match found.
+#
+sub _uconv{
+  ###
+  # Replace this with a more general units resolver call!
+  ###
+  local($_) = shift;
+  my($silent) =shift;
+  my($a) = 
+    ( m/^deg/i    ? $DEG2RAD :
+      m/^arcmin/i ? $DEG2RAD / 60 :
+      m/^arcsec/i ? $DEG2RAD / 3600 :
+      m/^hour/i   ? $DEG2RAD * 15 :    # Right ascension
+      m/^min/i    ? $DEG2RAD * 15/60 : # Right ascension
+      m/^microrad/i ? 1e-6 :
+      m/^millirad/i ? 1e-3 :
+      m/^rad(ian)?s?$/i ? 1.0 :
+      undef
+      );
+  print STDERR "Cartography: unrecognized unit '$_'\n"    
+    if( (!defined $a) && !$silent && ($PDL::debug || $PDL::verbose));
+  $a;
+}
+
+###
 #
 # Cartography general constructor -- called by the individual map
 # constructors.  Not underscored because it's certainly OK to call from
@@ -481,6 +506,8 @@ sub clean_lines {
 # Transform -- fastidious subclass constructors will want to delete it before 
 # returning.
 #
+
+
 sub _new{new('PDL::Transform::Cartography',@_);} # not exported
 sub new {
     my($class) = shift;
@@ -511,20 +538,7 @@ sub new {
     my $roll = pdl(_opt($o,['r','roll','Roll','p','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
 
-    ###
-    # Replace this with a units resolver call!
-    ###
-    local($_) = $unit;
-    $me->{params}->{conv} = my $conv = 
-	( m/^deg/i    ? $DEG2RAD :
-	  m/^arcmin/i ? $DEG2RAD / 60 :
-	  m/^arcsec/i ? $DEG2RAD / 3600 :
-	  m/^hour/i   ? $DEG2RAD * 15 :    # Right ascension
-	  m/^min/i    ? $DEG2RAD * 15/60 : # Right ascension
-	  m/^microrad/i ? 1e-6 :
-	  m/^millirad/i ? 1e-3 :
-	  1.0
-	  );
+    $me->{params}->{conv} = my $conv = _uconv($unit);
     $me->{params}->{u} = $unit;
 
 
@@ -551,7 +565,7 @@ sub PDL::Transform::Cartography::_finish {
     my($me) = shift;
     ( ( ($me->{params}->{o}->(0) != 0) || 
 	($me->{params}->{o}->(1) != 0) ||
-	($me->{params}->{r} != 0) 
+	($me->{params}->{roll} != 0) 
 	)
       ?
       t_compose($me,t_rot_sphere($me->{options}))
@@ -559,6 +573,7 @@ sub PDL::Transform::Cartography::_finish {
       $me
      );
 }
+
 
 ######################################################################
 
@@ -655,12 +670,13 @@ sub t_unit_sphere {
     my($d,$o) = @_;
 	
     my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
+    my($r) = sqrt(($d->(0:2)*$d->(0:2))->sumover);
     my(@dims) = $d->dims;
     $dims[0]--;
     my($out) = zeroes(@dims);
     
     $out->((0)) .= atan2($d1,$d0);
-    $out->((1)) .= asin($d2/$o->{r});
+    $out->((1)) .= asin($d2/$r);
 
     if($d->dim(0) > 3) {
 	$out->(2:-1) .= $d->(3:-1);
@@ -709,25 +725,31 @@ OPTIONS
 
 =cut
 
+# helper routine for making the rotation matrix
+sub _rotmat {
+  my($th,$ph,$r) = @_;
+  
+  pdl( [ cos($th) ,  -sin($th),    0  ],   # apply theta
+       [ sin($th) ,   cos($th),    0  ],
+       [  0,          0,           1  ] )
+    x
+    pdl( [ cos($ph),    0,  -sin($ph)  ], # apply phi
+	 [ 0,           1,    0       ],
+	 [ sin($ph),   0,  cos($ph)  ] )
+    x
+    pdl( [ 1,         0 ,       0      ], # apply roll last
+	 [ 0,    cos($r),   -sin($r)   ], 
+	 [ 0,    sin($r),    cos($r)   ])
+    ;
+}
+
 sub t_rot_sphere {
     my($me) = _new(@_,'Spherical rotation');
 
     my($th,$ph) = $me->{params}->{o}->list;
     my($r) = $me->{params}->{roll}->at(0);
 
-    my($rotmat) = (
-		   pdl( [ cos($th) ,  -sin($th),    0  ],   # apply theta
-			[ sin($th) ,   cos($th),    0  ],
-			[  0,          0,           1  ] )
-		   x
-		   pdl( [ cos($ph),    0,  -sin($ph)  ], # apply phi
-			[ 0,           1,    0       ],
-			[ sin($ph),   0,  cos($ph)  ] )
-		   x
-		   pdl( [ 1,         0 ,       0      ], # apply roll last
-			[ 0,    cos($r),   -sin($r)   ], 
-			[ 0,    sin($r),    cos($r)   ])
-		   );
+    my($rotmat) = _rotmat($th,$ph,$r);
 
     return t_wrap( t_linear(m=>$rotmat, d=>3), t_unit_sphere());
 }
@@ -1577,7 +1599,7 @@ hemisphere but avoids the hugely distorted part near the horizon.
 sub t_gnomonic {
     my($me) = _new(@_,"Gnomonic Projection");
     
-    $me->{params}->{k0} = 1.0;
+    $me->{params}->{k0} = 1.0;  # Useful for standard parallel (TBD: add one)
 
     $me->{params}->{c} = pdl(_opt($me->{options},
 			      ['c','clip','Clip'],
@@ -1599,10 +1621,13 @@ sub t_gnomonic {
 
 	$out->((0)) .= $k * $cph * sin($th);
 	$out->((1)) .= $k * sin($ph);
-	
-	$out->((0))->where($k > $cl0 | $k < 0) .= $o->{bad};
-	$out->((1))->where($k > $cl0 | $k < 0) .= $o->{bad};
-	
+
+	my $idx = which($k > $cl0  | ($k < 0));
+	if($idx->nelem) {
+	  $out->((0))->($idx) .= $o->{bad};
+	  $out->((1))->($idx) .= $o->{bad};
+	}
+
 	$out;
     };
 
@@ -1618,21 +1643,198 @@ sub t_gnomonic {
 	
 	$out->((0)) .= atan2($x * sin($c), $rho * cos($c));
 	$out->((1)) .= asin($y * sin($c) / $rho);
-	
+	my($idx) = which($rho==0);
+	$out->(0:1,$idx) .= 0
+	  if($idx->nelem);
+
 	$out->(0:1) /= $o->{conv};
 	$out;
     };
 
     $me->_finish;
 }
-     
+
+######################################################################
+
+=head2 t_az_eqd
+
+=for usage
+
+  $t = t_az_eqd(<options>);
+
+=for ref 
+
+(Cartography) Azimuthal equidistant projection (az.; equi.)
+
+Basic azimuthal projection preserving length along radial lines from
+the origin (meridians, in the original polar aspect).  Hence, both
+azimuth and distance are correct for journeys beginning at the origin.
+
+Applied to the celestial sphere, this is the projection made by
+fisheye lenses; it is also the projection into which C<t_vertical>
+puts perspective views.
+
+The projected plane scale is normally taken to be planetary radii;
+this is useful for cartographers but not so useful for scientific
+observers.  Setting the 't=>1' option causes the output scale to shift
+to camera angular coordinates (the angular unit is determined by the
+standard 'Units' option; default is degrees).
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+=item c, clip, Clip (default 180 degrees)
+
+The largest angle relative to the origin.  Default is the whole sphere.
+
+=back
+
+=cut
+
+sub t_az_eqd {
+  my($me) = _new(@_,"Equidistant Azimuthal Projection");
+
+  $me->{params}->{c} = pdl(_opt($me->{options},
+				['c','clip','Clip'],
+				180) * $me->{params}->{conv});
+
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    
+    my($ph) = $d->((1)) * $o->{conv};
+    my($th) = $d->((0)) * $o->{conv};
+
+    my $cos_c = cos($ph) * cos($th);
+    my $c = acos($cos_c);
+    my $k = $c / sin($c);
+    $k->where($c==0) .= 1;
+    
+    my($x,$y) = ($out->((0)), $out->((1)));
+
+    $x .= $k * cos($ph) * sin($th);
+    $y .= $k * sin($ph);
+
+    my($idx) = which($c > $o->{c});
+    if($idx->nelem) {
+      $x->($idx) .= $o->{bad};
+      $y->($idx) .= $o->{bad};
+    }
+
+    $out;
+  };
+
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($x) = $d->((0));
+    my($y) = $d->((1));
+
+    my $rho = sqrt(($d->(0:1)*$d->(0:1))->sumover);
+    # Order is important -- ((0)) overwrites $x if is_inplace!
+    $out->((0)) .= atan2( $x * sin($rho), $rho * cos $rho );
+    $out->((1)) .= asin( $y * sin($rho) / $rho );
+
+    my($idx) = which($rho == 0);
+    if($idx->nelem) {
+      $out->((0))->($idx) .= 0;
+      $out->((1))->($idx) .= 0;
+    }
+
+    $out->(0:1) /= $o->{conv};
+
+    $out;
+  };
+
+  $me->_finish;
+}
+
+
+######################################################################
+
+=head2 t_az_eqa
+
+=for usage
+
+  $t = t_az_eqa(<options>);
+
+=for ref
+
+(Cartography) Azimuthal equal-area projection (az.; auth.)
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+=item c, clip, Clip (default 180 degrees)
+
+The largest angle relative to the origin.  Default is the whole sphere.
+
+=back
+
+=cut
+
+sub t_az_eqa {
+  my($me) = _new(@_,"Equal-Area Azimuthal Projection");
+  
+  $me->{params}->{c} = pdl(_opt($me->{options},
+				['c','clip','Clip'],
+				180) * $me->{params}->{conv});
+
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    
+    my($ph) = $d->((1)) * $o->{conv};
+    my($th) = $d->((0)) * $o->{conv};
+				
+    my($c) = acos(cos($ph) * cos($th));
+    my($rho) = 2 * sin($c/2);
+    my($k) = 1.0/cos($c/2);
+
+    my($x,$y) = ($out->((0)),$out->((1)));
+    $x .= $k * cos($ph) * sin($th);
+    $y .= $k * sin($ph);
+
+    my($idx) = which($c > $o->{c});
+    if($idx->nelem) {
+      $x->($idx) .= $o->{bad};
+      $y->($idx) .= $o->{bad};
+    }
+
+    $out;
+  };
+
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+
+    my($x,$y) = ($d->((0)),$d->((1)));
+    my($ph,$th) = ($out->((0)),$out->((1)));
+    my($rho) = sqrt($x*$x + $y*$y);
+    my($c) = 2 * asin($rho/2);
+
+    $ph .= asin($d->((1)) * sin($c) / $rho);
+    $th .= atan2($x * sin($c),$rho * cos($c));
+
+    $out;
+  };
+
+  $me->_finish;
+}
+
 ######################################################################
 
 =head2 t_vertical
 
 =for usage
 
-    Rt = t_vertical(<options>);
+    $t = t_vertical(<options>);
 
 =for ref
 
@@ -1641,9 +1843,7 @@ sub t_gnomonic {
 Vertical perspective projection is a generalization of L<t_gnomonic|gnomonic>
 and L<t_stereographic|stereographic> projection, and a special case of 
 L<t_perspective|perspective> projection.  It is a projection from the 
-sphere onto a focal sphere (that is to say, equidistant azimuthal projection
-at the camera).
-
+sphere onto a focal plane at the camera location.
 
 OPTIONS
 
@@ -1660,43 +1860,75 @@ The hemisphere to keep in the projection (see L<PDL::Transform::Cartography>).
 The altitude of the focal plane above the center of the sphere.  The default
 places the point of view one radius above the surface.
 
+=item t, telescope, Telescope, cam, Camera (default '')
+
+If this is set, then the central scale is in telescope or camera 
+angular units rather than in planetary radii.  The angular units are 
+parsed as with the normal 'u' option for the lon/lat specification.
+If you specify a non-string value (such as 1) then you get telescope-frame
+radians, suitable for working on with other transformations.
+
+=item f, fish, fisheye (default '')
+
+If this is set then the output is in azimuthal equidistant coordinates
+instead of in tangent-plane coordinates.  This is a convenience function
+for '(t_az_eqd) x !(t_gnomonic) x (t_vertical)'.
+
 =back
 
 =cut
 
 sub t_vertical {
     my($me) = _new(@_,'Vertical Perspective');
+    my $p = $me->{params};
     
     my $m= _opt($me->{options},
 		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
 		1);
+
     if($m=~m/^b/i) {
-	$me->{params}->{m} = 0;
+	$p->{m} = 0;
     } elsif($m=~m/^n/i) {
-	$me->{params}->{m} = 1;
+	$p->{m} = 1;
     } elsif($m=~m/^f/i) {
-	$me->{params}->{m} = 2;
+	$p->{m} = 2;
     } else {
-	$me->{params}->{m} = $m;
+	$p->{m} = $m;
     }
 
-    $me->{params}->{r0} = _opt($me->{options},
-			       ['r0','R0','radius','Radius',
-				'd','dist','distance','Distance'],
-			       2.0
-			       );
+    $p->{r0} = _opt($me->{options},
+		    ['r0','R0','radius','Radius',
+		     'd','dist','distance','Distance'],
+		    2.0
+		    );
     
-    if($me->{params}->{r0} == 0) {
-	print "t_vertical: r0 = 0; using t_gnomonic instead\n"
-	    if($PDL::verbose);
-	return t_gnomonic($me->{options});
+    if($p->{r0} == 0) {
+      print "t_vertical: r0 = 0; using t_gnomonic instead\n"
+	if($PDL::verbose);
+      return t_gnomonic($me->{options});
     }
-
-    if($me->{params}->{r0} == 1) {
-	print "t_vertical: r0 = 1; using t_stereographic instead\n"
-	    if($PDL::verbose);
-	return t_stereographic($me->{options});
+    
+    if($p->{r0} == 1) {
+      print "t_vertical: r0 = 1; using t_stereographic instead\n"
+	if($PDL::verbose);
+      return t_stereographic($me->{options});
     }
+    
+    
+    $p->{t} = _opt($me->{options},
+		   ['t','tele','telescope','Telescope',
+		    'cam','camera','Camera'],
+		   undef);
+    
+    $p->{f} = _opt($me->{options},
+		   ['f','fish','fisheye','Fisheye'],
+		   undef);
+    
+    $p->{t} = 'rad'
+      if($p->{f} && !defined($p->{t}));
+      
+    $p->{tconv} = _uconv($p->{t},1) || _uconv('rad')
+      if(defined $p->{t});
 
     $me->{func} = sub {
 	my($d,$o) = @_;
@@ -1711,9 +1943,24 @@ sub t_vertical {
 	my($k) = (($o->{r0} - 1) / 
 		  ($o->{r0} - $cos_c));
 
-	$out->((0)) .= $k * $cph * sin($th);
-	$out->((1)) .= $k * sin($ph);
+	# If it's a telescope perspective, figure the apparent size
+	# of the globe and scale accordingly.
+	if($o->{t}) {
+	  my($theta) = asin(1/$o->{r0});
+	}
 	
+	$out->(0:1) /= ($o->{r0} - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
+  	  if($o->{t});
+
+
+
+	$out->((0)) .= $cph * sin($th);
+	$out->((1)) .= sin($ph);
+
+	# Handle singularity at the origin
+	$k->where(($out->((0)) == 0) & ($out->((1)) == 0)) .= 0;
+	$out->(0:1) *= $k->dummy(0,2);
+
 	if($o->{m}) {
 	    my $idx;
 	    $idx = which($cos_c < 1.0/$o->{r0})
@@ -1724,7 +1971,8 @@ sub t_vertical {
 	    $out->(0:1,$idx) .= $o->{bad}
 	      if(defined $idx && ref $idx eq 'PDL' && $idx->nelem);
 	}
-	    
+
+
 	$out;
     };
 
@@ -1734,6 +1982,9 @@ sub t_vertical {
 	
 	# Reverse the hemisphere if the mask is set to 'far'
 	my($P) = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
+
+	$out->(0:1) *= ($P - 1.0) * ($o->{f} ? 1.0 : $o->{tconv})
+     	    if($o->{t});
 
 	my($rho) = sqrt(sumover($d->(0:1) * $d->(0:1)));
 	my($sin_c) = ( (  $P - sqrt( 1 - ($rho*$rho * ($P+1)/($P-1)) ) ) /
@@ -1755,8 +2006,234 @@ sub t_vertical {
     };
 	      
 
-    $me->_finish;
-}
+    # Compose on both front and back as necessary.
+    return t_compose( t_scale(1.0/$p->{tconv}), 
+		      t_az_eqd, 
+		      t_gnomonic->inverse, 
+		      $me->_finish )
+      if($p->{f}); 
 
+    $me->_finish;
+  }
+
+######################################################################
+
+=head2 t_perspective
+
+=for usage
+
+    $t = t_perspective(<options>);
+
+=for ref
+
+(Cartography) Arbitrary perspective projection 
+
+Perspective projection onto a focal plane from an arbitrary location
+within or without the sphere, with an arbitary central look direction,
+and with correction for magnification within the optical system.
+
+In the forward direction, t_perspective generates perspective views of
+a sphere given (lon/lat) mapping or vector information.  In the reverse
+direction, t_perspective produces (lon/lat) maps from aerial or distant
+photographs of spherical objects.
+
+[EXAMPLES SHOULD GO HERE]
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+The 'origin' field specifies the sub-camera point on the sphere. 
+
+The 'roll' option is the roll angle about the sub-camera point, for
+consistency with the other projectons.
+
+=item p, pointing, Pointing (default (0,0,0))
+
+The pointing direction, in (vert. offset, horiz. offset, roll) of the camera
+relative to the center of the sphere.  This is a spherical coordinate
+system with the origin pointing directly at the sphere.  The camera
+roll angle is relative to (N=up) in the pre-rolled coordinate system
+set by the standard origin.  
+
+=item c, cam, camera, Camera (default undef) 
+
+Alternate way of specifying the camera pointing, using a spherical
+coordinate system with the south pole at the nadir -- this is useful
+for aerial photographs and such, where the point of view is near the
+surface of the sphere.  You specify (azimuth from N, altitude from
+horizontal, roll from vertical=up).  If you specify pointing by this
+method, it overrides the 'pointing' option, above.
+
+=item r0, R0, radius, d, dist, distance [default 2.0] 
+
+The altitude of the point of view above the center of the sphere.
+The default places the point of view 1 radius aboove the surface.
+
+=item iu, im_unit, image_unit, Image_Unit (default 'degrees')
+
+This is the angular units in which the viewing camera is calibrated
+at the center of the image.
+
+=item mag, magnification, Magnification (default 1.0)
+
+This is the magnification factor applied to the optics -- it affects the
+output because it is applied to radial angles from the optic axis, before
+the focal-plane tangent operation.  1.0 yields the view from a simple
+optical system; higher values are telescopic, while lower values are 
+wide-angle (fisheye).  Higher magnification leads to higher angles within
+the optical system, and more tangent-plane distortion at the edges of the
+image.  The focal-plane angular values do not scale with 'mag': it is assumed
+to be compensated by the (implicit) focal length.
+
+=item m, mask, Mask, h, hemisphere, Hemisphere [default 'near']
+
+'hemisphere' is by analogy to other cartography methods although the two 
+regions to be selected are not really hemispheres.
+
+=item f, fov, field_of_view, Field_Of_View [default 179.95]
+
+The field of view of the telescope -- sets the crop radius for t_gnomonic.
+
+=back 3
+
+=cut
+
+sub t_perspective {
+    my($me) = _new(@_,'Focal-Plane Perspective');
+    my $p = $me->{params};
+    
+    my $m= _opt($me->{options},
+		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
+		1);
+
+    if($m=~m/^b/i) {
+	$p->{m} = 0;
+    } elsif($m=~m/^n/i) {
+	$p->{m} = 1;
+    } elsif($m=~m/^f/i) {
+	$p->{m} = 2;
+    } else {
+	$p->{m} = $m;
+    }
+
+    $p->{r0} = _opt($me->{options},
+		    ['r0','R0','radius','Radius',
+		     'd','dist','distance','Distance'],
+		    2.0
+		    );
+    
+    $p->{iu} = _opt($me->{options},
+		   ['i','iu','image_unit','Image_Unit'],
+		   'deg');
+    
+    $p->{tconv} = _uconv($p->{iu});
+
+    $p->{mag} = _opt($me->{options},
+		     ['mag','magnification','Magnification'],
+		     1.0);
+
+    # Regular pointing vector -- make sure there are exactly 3 elements
+    $p->{p} = (pdl(_opt($me->{options},
+			['p','pointing','Pointing'],
+			[0,0,0])
+		   )
+	       * $p->{tconv}
+	       )->append(zeroes(3))->(0:2);
+    $p->{pmat} = _rotmat($p->{p}->list);
+  
+    # Funky camera pointing vector
+    $p->{c} = _opt($me->{options},
+		   ['c','cam','camera','Camera'],
+		   undef
+		   );
+    if(defined($p->{c})) {
+      $p->{c} = (pdl($p->{c}) * $p->{tconv})->append(zeroes(3))->(0:2);
+      $p->{pmat} = pdl([0,0,-1],[0,1,0],[1,0,0]) x _rotmat($p->{c}->list);
+    }
+
+    $p->{f} = _opt($me->{options},
+		   ['f','fov','field_of_view','Field_of_View'],
+		   pdl(34)) * $p->{tconv};
+    
+    ### This is the actual transform;
+    ### the func and inv we define just call it.
+    ### (Kept separate for ease of filtering...)
+    $p->{pre} = 
+      t_compose( t_scale(1.0/$p->{mag}/$p->{tconv},d=>2),
+		 ( ($p->{mag} != 1.0) ? 
+		     ( t_gnomonic(u=>'radian',c=>$p->{f}),
+		       t_az_eqd(u=>'radian')->inverse,
+		       t_scale($p->{mag},d=>2),
+		       t_az_eqd(u=>'radian'),
+		       ) 
+		   :
+		   ( t_gnomonic(u=>'radian',c=>$p->{f}) )
+		   ),
+		 t_unit_sphere(u=>'radian')->inverse,
+		 t_linear(m=>$p->{pmat},d=>3),
+		 t_linear(m=>matmult(pdl([1,0,0],[0,-1,0],[0,0,1]),
+				     _rotmat($PI-$p->{o}->at(0),
+				     -$p->{o}->at(1),
+				     $p->{roll}->at(0)
+				     )
+				     ),
+			  post=>pdl($p->{r0},0,0),
+			  d=>3
+			  ),
+		 t_unit_sphere(u=>'radian')
+		 );
+
+    $p->{post} = t_compose( t_gnomonic(u=>'radian',c=>$PI/2*0.999),
+			    t_scale(1.0/$p->{mag}/$p->{tconv},d=>2)
+			    );
+
+    # func just does the hemispheric selection; all else is done externally.
+    $me->{func} = sub {
+	my($d,$o) = @_;
+	if($o->{r0} < 1) {
+	  print "t_perspective: not clipping for r<1 (to be implemented)\n";
+	  return $d;
+	}
+
+	my($dc) = $d->is_inplace ? $d : $d->copy;
+	$dc->(0:1) *= $o->{conv};
+
+	# Great circle distance to origin (or its cosine anyway)
+	my($cos_c) = ( sin($o->{o}->((1))) * sin($dc->((1)))
+		      +
+		       cos($o->{o}->((1))) * cos($dc->((1))) * 
+		          cos($dc->((0)) - $o->{o}->((0)))
+		     );
+	my($thresh) = (1.0/$o->{r0});
+
+	my($idx);
+	if($o->{m}==1) {
+	  $idx = which($cos_c < $thresh);
+	} elsif($o->{m}==2) {
+	  $idx = which($cos_c > $thresh);
+	}
+	else {
+	  $idx = null;
+	}
+
+	my $out = $o->{pre}->apply($dc);
+
+	$out->(0:1,$idx) .= $o->{bad} 
+	  if($idx->nelem);
+
+	$out;
+    };
+
+    $me->{inv} = sub {
+	my($d,$o) = @_;
+
+	$d->invert($o->{post})->invert($o->{pre});
+    };
+	      
+    $me;
+  }
 
 1;
