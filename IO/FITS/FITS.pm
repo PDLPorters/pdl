@@ -1154,10 +1154,10 @@ As an example, the following
 
 will create a binary FITS table called F<table1.fits> which
 contains two columns called C<COLA> and C<COLB>. The order
-of the columns is controlled by setting the C<TFORMn>
+of the columns is controlled by setting the C<TTYPEn>
 keywords in the header array, so 
 
-  $h = { 'TFORM1'=>'Y', 'TFORM2'=>'X' };
+  $h = { 'TTYPE1'=>'Y', 'TTYPE2'=>'X' };
   wfits { 'X'=>$a, 'Y'=>$b, hdr=>$h }, "table2.fits";
 
 creates F<table2.fits> where the first column is
@@ -1594,7 +1594,7 @@ fits_field_cmp
 
 Sorting comparison routine that makes proper sense of the digits at the end
 of some FITS header fields.  Sort your hash keys using "fits_field_cmp" and 
-you will get (e.g.) your "TFORM" fields in the correct order even if there
+you will get (e.g.) your "TTYPE" fields in the correct order even if there
 are 140 of them.
 
 This is a standard kludgey perl comparison sub -- it uses the magical

@@ -1,3 +1,6 @@
+DJB 9-Mar-2005
+   Fixed dumn mistake in wfits docs I made; it is TTYPE<n> and not
+   TFORM<n> that are used to specify the order of columns in FITS tables!
 CED 9-Mar-2005
    pdl.h, pdlapi.c: Added guardrails to the dependency-loop
    detector.  (1) error message is now more explanatory. 
