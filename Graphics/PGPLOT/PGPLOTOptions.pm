@@ -145,7 +145,7 @@ my %options = (
 	       HardFont => 2,
 	       HardAxisColour => 1,
 	       HardColour => 1,
-	       Axis => 'BCNST',
+	       Axis => 'BCNST', # see kludge in Window::imag if you change this
 	       AspectRatio => undef,
 	       WindowWidth => undef,
 	       WindowXSize => undef,
@@ -155,7 +155,12 @@ my %options = (
 	       WindowName => '',
 	       NXPanel => 1,
 	       NYPanel => 1,
-	       Justify => 0,
+	       Justify => 0,   # Justification of boxes & axes
+               Scale=> undef,  # device pixels per data pixel
+               Pitch=> undef,  # Horizontal data pixels per <unit>
+               Unit => undef,  # Unit for pitch 
+               Pix => undef,   # Pixel aspect ratio
+ 	       Align => undef, # Alignment of viewport within plot area
 	       Border => 0,
 	       CharSize => 1,
 	       Symbol => 17,
@@ -174,7 +179,7 @@ my %options = (
 	       Hatch => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
 	       XTitle => '',
 	       YTitle => '',
-	       Title => ''
+	       Title => '',
 	      );
 
 
@@ -209,7 +214,12 @@ sub default_options {
 	    NYPanel     => $options{NYPanel}, # Ditto.
 	    TightLabels => undef,
 	    TitleSize   => 1.0,
-	    Justify     => $options{Justify},
+	    Justify     => $options{Justify}, # Justification of boxes & axes
+	    Scale       => $options{Justify}, # device pixels per data pixel
+	    Pitch       => $options{Pitch},   # Horizontal data pixels per unit
+	    Unit        => $options{Unit},    # PGPLOT unit for pitch
+	    Pix         => $options{Pix},     # Pixel aspect ratio
+	    Align       => $options{Align},   # Alignment of vp in plot area
 	    Border      => $options{Border},
 	    CharSize    => $options{CharSize}, # Character size for annotation
 	    Erase       => 0,
@@ -231,7 +241,15 @@ sub default_options {
 	   Fill	       => $options{Fill},	 # Solid fill
 	   ITF	       => $options{ITF},	 # Linear ITF
 	   Axis	       => $options{Axis},	 # Standard axis-type
+
 	   Transform   => $options{Transform},   # The transform used for plots.
+           Justify     => $options{Justify}, # Justification of boxes & axes
+	   Scale       => $options{Justify}, # device pixels per data pixel
+	   Pitch       => $options{Pitch},   # Horizontal data pixels per unit
+	   Unit        => $options{Unit},    # PGPLOT unit for pitch
+	   Pix         => $options{Pix},     # Pixel aspect ratio
+	   Align       => $options{Align},   # Alignment of vp in plot area
+
 	   LineWidth   => $options{LineWidth},
 	   TightLabels => $options{TightLabels},
 	   TitleSize   => $options{TitleSize},

@@ -1,3 +1,16 @@
+CED (09-Dec-2002)
+    Fixes to Windows.pm:
+	- all Pix/Scale/Pitch parsing is now in initenv() (so, e.g., 
+	  those options work on ->line and ->points).
+	- initenv() knows about self->held for more convenient wrapping
+	    (and fixing of the old doesn't-switch-windows-when-held bug)
+	- _fits_foo implements generic fits_<foo> processing for easier
+	  addition of fits stuff.
+        - fits transformations are in _fits_tr
+	- image range finding is in _fits_xyvals
+	- justify works in a generalized way.  Justify=>1 works like you
+	  expect, but Justify=><r> also sets the pixel aspect ratio, 
+	  for more juicy flavor.
 CED (06-Dec-2002)
     - Minor fix to range documentation
     - Shut up warnings in Window.pm sig handler and fix fits_imag (bug #649630)
