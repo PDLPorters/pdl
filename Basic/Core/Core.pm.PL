@@ -654,7 +654,7 @@ sub PDL::new {
 }
 
 
-=head2 PDL::copy
+=head2 copy
 
 =for ref
 
@@ -1195,19 +1195,40 @@ sometimes run by names such as I<alias> or I<smart reference>.
 Typical functions that return such piddles are C<slice>, C<xchg>,
 C<index>, etc. Sometimes, however, you would like to separate the
 I<virtual piddle> from its parent's data and just give it a life of
-its own. This is simply achieved by using C<sever>. For example,
+its own (so that manipulation of its data doesn't change the parent).
+This is simply achieved by using C<sever>. For example,
 
 =for example
 
    $a = $pdl->index(pdl(0,3,7))->sever;
    $a++;       # important: $pdl is not modified!
 
-In this regard it acts similar to C<copy>. However, in general
-performance is better with C<sever> and secondly, C<sever> doesn't
-lead to futile copying when used on piddles that already have their own data.
+In many (but not all) circumstances it acts therefore similar to 
+L<copy|PDL::Core/copy>.
+However, in general performance is better with C<sever> and secondly,
+C<sever> doesn't lead to futile copying when used on piddles that
+already have their own data. On the other hand, if you really want to make
+sure to work on a copy of a piddle use L<copy|PDL::Core/copy>.
 
    $a = zeroes(20);
    $a->sever;   # NOOP since $a is already its own boss!
+
+Again note: C<sever> I<is not> the same as L<copy|PDL::Core/copy>!
+For example,
+
+   $a = zeroes(1); # $a does not have a parent, i.e. it is not a slice etc
+   $b = $a->sever; # $b is now pointing to the same piddle as $a
+   $b++;
+   print $a;
+ [1]
+
+but
+
+   $a = zeroes(1);
+   $b = $a->copy; # $b is now pointing to a new piddle
+   $b++;
+   print $a;
+ [0]
 
 
 =head2 PDL::info
