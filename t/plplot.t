@@ -201,7 +201,7 @@ plvpor(0.1,0.85,0.1,0.9);
 plwind (0, 10, 0, 100);
 plcol0(1);
 plbox (0, 0, 0, 0, 'BCNST', 'BCNST');
-plpoin(10, $x, $y, 2);
+plpoin($x, $y, 2);
 plvpor(0.86,0.90,0.1,0.9);
 plwind (0, 10, 0, 100);
 plbox (0, 0, 0, 0, '', 'TM');
