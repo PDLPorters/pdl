@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Lib::RandVar::Histogram
+PDL::RandVar::Histogram
 
 =head1 VERSION
 
@@ -8,8 +8,8 @@ PDL::Lib::RandVar::Histogram
 
 =head1 SYNOPSIS
 
-  use PDL::Lib::RandVar::Histogram
-  $m = new PDL::Lib::RandVar::Histogram($dist);
+  use PDL::RandVar::Histogram
+  $m = new PDL::RandVar::Histogram($dist);
 
 =head1 DESCRIPTION
 
@@ -50,19 +50,16 @@ Runs a little slow -- hooking into the gnu package might work better.
 
 =cut
 
+BEGIN {
+package PDL::RandVar::Histogram;
+$VERSION = 1.0;
+@ISA = ('PDL::RandVar');
+}
 
-use RandVar;
-
-package PDL::Lib::RandVar::Histogram;
 use PDL;
 use PDL::NiceSlice;
 use Carp;
 
-BEGIN {
-package PDL::Lib::RandVar::Histogram;
-$VERSION = 1.0;
-@ISA = ('RandVar');
-}
 
 use strict;
 
@@ -77,11 +74,11 @@ Construct a new histogram-distribution random variable
 
 =for sig
 
-  Signature: (See PDL::PDL::Lib::RandVar::new)
+  Signature: (See PDL::PDL::RandVar::new)
 
 =for usage
  
-  $a = new PDL::Lib::RandVar::Histogram(<size>,<opt>);
+  $a = new PDL::RandVar::Histogram(<size>,<opt>);
 
 =for opt
 
@@ -95,12 +92,12 @@ A number to use as the seed.
 
 =for example
 
-  $a = new PDL::Lib::RandVar::Histogram($dist);
+  $a = new PDL::RandVar::Histogram($dist);
   $xy = sample $a;
 
 =cut
 
-sub PDL::Lib::RandVar::Histogram::new {
+sub PDL::RandVar::Histogram::new {
   my($opt);
     for(my $i=0;$i<@_;$i++) {
     if(ref $_[$i] eq 'HASH') {
@@ -110,11 +107,11 @@ sub PDL::Lib::RandVar::Histogram::new {
   }
   my($type,$dist) = @_;
 
-  my($me) = &PDL::Lib::RandVar::new($type,$opt);
+  my($me) = &PDL::RandVar::new($type,$opt);
 
   my($test) = eval '$dist->isa("PDL")';
   if($@ || !$test) {
-    croak('PDL::Lib::RandVar::Histogram::new needs a PDL histogram argument\n');
+    croak('PDL::RandVar::Histogram::new needs a PDL histogram argument\n');
   }
 
 
@@ -126,7 +123,7 @@ sub PDL::Lib::RandVar::Histogram::new {
   ## (slooow -- this could probably be made into a built-in...)
 
   my($i);
-  my($acc);
+  my($acc) = pdl(0);
 
   for $i(0..$n - 1){
     my($bd) = $boundaries->(($i));
@@ -145,7 +142,7 @@ sub PDL::Lib::RandVar::Histogram::new {
 }
 
 
-sub PDL::Lib::RandVar::Histogram::sample() {
+sub PDL::RandVar::Histogram::sample() {
   my($me,$n,$out) = @_;
 
   $n=1 unless(defined $n);
@@ -174,7 +171,7 @@ sub PDL::Lib::RandVar::Histogram::sample() {
   my($bits);
   for($bits = 0; ($sst >>= 1); $bits++) {}
   my($sstart) = pdl(1 << $bits);
-  print "start=$start; sstart=$sstart\n";
+#  print "start=$start; sstart=$sstart\n";
   
   for $j(0..$n-1) {
     my($r) = rand () * $me->{max};

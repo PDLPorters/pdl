@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Lib::RandVar::Sobol -- Sobol subrandom sequences
+PDL::RandVar::Sobol -- Sobol subrandom sequences
 
 =head1 VERSION
 
@@ -8,8 +8,8 @@ PDL::Lib::RandVar::Sobol -- Sobol subrandom sequences
 
 =head1 SYNOPSIS
 
-  use PDL::Lib::RandVar::Sobol;
-  $m = new PDL::Lib::RandVar::Sobol
+  use PDL::RandVar::Sobol;
+  $m = new PDL::RandVar::Sobol
 
 =head1 DESCRIPTION
 
@@ -52,17 +52,16 @@ the Wrong way to do it.
 =cut
 
 
-use PDL::Lib::RandVar;
-
-package PDL::Lib::RandVar::Sobol;
+@ISA = ('PDL::RandVar');
+package PDL::RandVar::Sobol;
 use PDL;
 use PDL::NiceSlice;
 use Carp;
 
 BEGIN {
-package PDL::Lib::RandVar::Sobol;
+package PDL::RandVar::Sobol;
 $VERSION = 0.1;
-@ISA = ('PDL::Lib::RandVar');
+@ISA = ('PDL::RandVar');
   @polydim = 
   ( undef  #spacer to make the loop work better
     ,[0]                  #1
@@ -118,11 +117,11 @@ Construct a new Sobol subrandom variable
 
 =for sig
 
-  Signature: (See PDL::Lib::RandVar::new)
+  Signature: (See PDL::RandVar::new)
 
 =for usage
  
-  $a = new PDL::Lib::RandVar::Sobol(<size>,<opt>);
+  $a = new PDL::RandVar::Sobol(<size>,<opt>);
 
 =for opt
 
@@ -136,12 +135,12 @@ Construct a new Sobol subrandom variable
 
 =for example
 
-  $a = new PDL::Lib::RandVar::Sobol(2,{range=>pdl([$xmin,$xmax],[$ymin,$ymax])});
+  $a = new PDL::RandVar::Sobol(2,{range=>pdl([$xmin,$xmax],[$ymin,$ymax])});
   $xy = sample $a;
 
 =cut
 
-sub PDL::Lib::RandVar::Sobol::new {
+sub PDL::RandVar::Sobol::new {
   my($opt);
     for(my $i=0;$i<@_;$i++) {
     if(ref $_[$i] eq 'HASH') {
@@ -150,12 +149,12 @@ sub PDL::Lib::RandVar::Sobol::new {
     }
   }
   my($type,$size) = @_;
-  my($me) = &PDL::Lib::RandVar::new(@_);
+  my($me) = &PDL::RandVar::new(@_);
 
   my($dim) = $size || $opt->{dim} || 1;
 
-  if($dim > $PDL::Lib::RandVar::Sobol::MAXDIM) {
-    croak "PDL::Lib::RandVar::Sobol currently doesn't support more than $PDL::Lib::RandVar::Sobol::MAXDIM simultaneous dimensions (asked for $dim).\n";
+  if($dim > $PDL::RandVar::Sobol::MAXDIM) {
+    croak "PDL::RandVar::Sobol currently doesn't support more than $PDL::RandVar::Sobol::MAXDIM simultaneous dimensions (asked for $dim).\n";
   }
 
 
@@ -165,20 +164,20 @@ sub PDL::Lib::RandVar::Sobol::new {
   $me->{dim} = $dim;
   $me->{in} = 0;
   $me->{ix} = zeroes($dim);
-  $me->{iv} = zeroes($PDL::Lib::RandVar::Sobol::MAXBIT,$dim);
-  $me->{fac} = 1.0 / (2<<$PDL::Lib::RandVar::Sobol::MAXBIT);
-  $me->{poly} = [@PDL::Lib::RandVar::Sobol::poly[0..$dim-1]];  ##
-  $me->{mdeg} = [@PDL::Lib::RandVar::Sobol::mdeg[0..$dim-1]];  ##
+  $me->{iv} = zeroes($PDL::RandVar::Sobol::MAXBIT,$dim);
+  $me->{fac} = 1.0 / (2<<$PDL::RandVar::Sobol::MAXBIT);
+  $me->{poly} = [@PDL::RandVar::Sobol::poly[0..$dim-1]];  ##
+  $me->{mdeg} = [@PDL::RandVar::Sobol::mdeg[0..$dim-1]];  ##
 
   my($j,$k,$l,$i);
   for($k=0;$k<$me->{dim};$k++) {
     # Copy initial values from the class variable into this value
-    $me->{iv}->(0:$#{$PDL::Lib::RandVar::Sobol::iv[$k]}, $k) .=  ##
-      pdl($PDL::Lib::RandVar::Sobol::iv[$k])                               ##
-	<< (($PDL::Lib::RandVar::Sobol::MAXBIT - xvals(scalar(@{$PDL::Lib::RandVar::Sobol::iv[$k]})))); ##
+    $me->{iv}->(0:$#{$PDL::RandVar::Sobol::iv[$k]}, $k) .=  ##
+      pdl($PDL::RandVar::Sobol::iv[$k])                               ##
+	<< (($PDL::RandVar::Sobol::MAXBIT - xvals(scalar(@{$PDL::RandVar::Sobol::iv[$k]})))); ##
     
     # Iterate to get MAXBITS values in iv
-    for ($j=$me->{mdeg}->[$k]; $j < $PDL::Lib::RandVar::Sobol::MAXBIT; $j++) {
+    for ($j=$me->{mdeg}->[$k]; $j < $PDL::RandVar::Sobol::MAXBIT; $j++) {
 
       my($ipp) = $me->{poly}[$k]; 
 
@@ -202,7 +201,7 @@ sub PDL::Lib::RandVar::Sobol::new {
 }
 
 
-sub PDL::Lib::RandVar::Sobol::sample() {
+sub PDL::RandVar::Sobol::sample() {
   my($me,$n,$out) = @_;
 
   $n=1 unless(defined $n);
@@ -217,9 +216,9 @@ sub PDL::Lib::RandVar::Sobol::sample() {
   for($i=0;$i<$n;$i++) {
     my($im) = ($me->{in})++;
 
-    for($j=0;($im & 1) && $j<$PDL::Lib::RandVar::Sobol::MAXBIT;$j++) {$im >>= 1;}
-    croak("Randomness overflow in PDL::Lib::RandVar::Sobol::sample\n")
-      if($j>=$PDL::Lib::RandVar::Sobol::MAXBIT);
+    for($j=0;($im & 1) && $j<$PDL::RandVar::Sobol::MAXBIT;$j++) {$im >>= 1;}
+    croak("Randomness overflow in PDL::RandVar::Sobol::sample\n")
+      if($j>=$PDL::RandVar::Sobol::MAXBIT);
     
     # XOR with appropriate direction variable
     $o->(:,($i)) .= ($me->{ix} ^= $me->{iv}->(($j),:));
