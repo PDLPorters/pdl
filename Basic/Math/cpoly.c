@@ -1,4 +1,6 @@
 /* Translated from F77 to C, rjrw 10/04/2000 */
+/* replaced 'bool' by 'boolvar' to get it to compile on my 
+   linux machine, DJB Aug 02 2000 */
 
 /* algorithm 419 collected algorithms from acm.
    algorithm appeared in comm. acm, vol. 15, no. 02, p. 097. */
@@ -16,7 +18,7 @@ static void noshft(int l1);
 static int fxshft(int l2, double *zr, double *zi);
 static int vrshft(int l3, double *zr, double *zi);
 static int calct(void);
-static void nexth(int bool);
+static void nexth(int boolvar);
 static void polyev(int nn, double sr, double si, double pr[], double pi[],
 	    double qr[], double qi[], double *pvr, double *pvi);
 static double errev(int nn, double qr[], double qi[], double ms, double mp);
@@ -363,7 +365,7 @@ static int fxshft(int l2, double *zr, double *zi)
      */
 {
   double otr,oti,svsr,svsi;
-  int conv,test,pasd,bool;
+  int conv,test,pasd,boolvar;
   int i,j,n = nn-1;
 
   /* Evaluate p at s */
@@ -372,7 +374,7 @@ static int fxshft(int l2, double *zr, double *zi)
   pasd = FALSE;
 
   /* Calculate first t = -p(s)/h(s) */
-  bool = calct();
+  boolvar = calct();
 
   /* Main loop for one second stage step */
   for (j=0;j<l2;j++) {
@@ -380,14 +382,14 @@ static int fxshft(int l2, double *zr, double *zi)
     oti = ti;
 
     /* Compute next h polynomial and new t */
-    nexth(bool);
-    bool = calct();
+    nexth(boolvar);
+    boolvar = calct();
     *zr = sr+tr;
     *zi = si+ti;
 
     /* Test for convergence unless stage 3 has failed once or 
        this is the last h polynomial */
-    if (!bool && test && j != l2) {
+    if (!boolvar && test && j != l2) {
       if (cmod(tr-otr,ti-oti) < .5*cmod(*zr,*zi)) {
 	if (pasd) {
 
@@ -414,7 +416,7 @@ static int fxshft(int l2, double *zr, double *zi)
 	  sr = svsr;
 	  si = svsi;
 	  polyev(nn,sr,si,pr,pi,qpr,qpi,&pvr,&pvi);
-	  bool = calct();
+	  boolvar = calct();
 	} else {
 	  pasd = TRUE;
 	}
@@ -439,7 +441,7 @@ static int vrshft(int l3, double *zr, double *zi)
      */
 {
   double mp,ms,omp,relstp,r1,r2,tp;
-  int i,j,conv,b,bool;
+  int i,j,conv,b,boolvar;
 
   conv = FALSE;
   b = FALSE;
@@ -477,8 +479,8 @@ static int vrshft(int l3, double *zr, double *zi)
 	  sr = r2;
 	  polyev(nn,sr,si,pr,pi,qpr,qpi,&pvr,&pvi);
 	  for (j=0;j<5;j++) {
-	    bool = calct();
-	    nexth(bool);
+	    boolvar = calct();
+	    nexth(boolvar);
 	  }
 	  omp = infin;
 	} else {
@@ -493,10 +495,10 @@ static int vrshft(int l3, double *zr, double *zi)
     }
 
     /* Calculate next iterate. */
-    bool = calct();
-    nexth(bool);
-    bool = calct();
-    if (!bool) {
+    boolvar = calct();
+    nexth(boolvar);
+    boolvar = calct();
+    if (!boolvar) {
       relstp = cmod(tr,ti)/cmod(sr,si);
       sr += tr;
       si += ti;
@@ -511,29 +513,29 @@ static int calct(void)
      */
 {
   double  hvr,hvi;
-  int n = nn-1, bool;
+  int n = nn-1, boolvar;
 
   /* Evaluate h(s) */
   polyev(n,sr,si,hr,hi,qhr,qhi,&hvr,&hvi);
-  bool = (cmod(hvr,hvi) <= are*10.0*cmod(hr[n-1],hi[n-1]));
-  if (!bool) {
+  boolvar = (cmod(hvr,hvi) <= are*10.0*cmod(hr[n-1],hi[n-1]));
+  if (!boolvar) {
     cdivid(-pvr,-pvi,hvr,hvi,&tr,&ti);
   } else {
     tr = 0.0;
     ti = 0.0;
   }
-  return bool;
+  return boolvar;
 }
 
-static void nexth(int bool) 
+static void nexth(int boolvar) 
   /* Calculates the next shifted h polynomial
-     bool   -  TRUE if h(s) is essentially zero 
+     boolvar   -  TRUE if h(s) is essentially zero 
   */
 {
   double t1,t2;
   int j,n = nn-1;
 
-  if (!bool) {
+  if (!boolvar) {
     for (j=1;j<n;j++) {
       t1 = qhr[j-1];
       t2 = qhi[j-1];

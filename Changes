@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (08/02/00)
+    - 'bool' to 'boolvar' in cpoly.c to get it to compile under Linux
+    - added 'Inplace' rule to PP.pm to flag a routine as inplace (see ops.pd)
+    - minor improvement to PP output if $::PP_VERBOSE is set
 CS	- ops.pd: fix inplace problem (reported by Tim Conrow)
 Doug Burke (07/27/00)
     - some minor changes to PP.pm & PDLCode.pm (no longer generates

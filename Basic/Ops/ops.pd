@@ -37,11 +37,11 @@ sub protect_chars {
 
 # simple binary operators
 sub biop {
-	my ($name,$op,$swap,$doc,%extra) = @_;
-	my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
-	$op = $op->[0] if ref $op eq 'ARRAY';
-	if ($swap) {
-	  $extra{HdrCode} = << 'EOH';
+    my ($name,$op,$swap,$doc,%extra) = @_;
+    my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
+    $op = $op->[0] if ref $op eq 'ARRAY';
+    if ($swap) {
+	$extra{HdrCode} = << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -49,20 +49,14 @@ sub biop {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				  PDL->SetSV_PDL(c_SV,c);
-				}',
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = \$a() $op \$b();",
-		%extra,
-		Doc => << "EOD");
+    }
+    pp_def($name,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Code => "\$c() = \$a() $op \$b();",
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -79,17 +73,17 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: biop
 
 #simple binary functions
 sub bifunc {
-	my ($name,$func,$swap,$doc,%extra) = @_;
-	my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
-	my $isop=0; if ($funcov =~ s/^op//) { $isop = 1}
-	my $funcovp = protect_chars $funcov;
-	$func = $func->[0] if ref $func eq 'ARRAY';
-	if ($swap) {
-	  $extra{HdrCode} .= << 'EOH';
+    my ($name,$func,$swap,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $isop=0; if ($funcov =~ s/^op//) { $isop = 1}
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+    if ($swap) {
+	$extra{HdrCode} .= << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -97,24 +91,18 @@ sub bifunc {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				  PDL->SetSV_PDL(c_SV,c);
-				}';
-	my $ovcall;
-	# is this one to be used as a function or operator ?
-	if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"}
-	else { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"}
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = $func(\$a(),\$b());",
-		%extra,
-		Doc => << "EOD");
+    }
+    my $ovcall;
+    # is this one to be used as a function or operator ?
+    if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"}
+    else { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"}
+    pp_def($name,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Code => "\$c() = $func(\$a(),\$b());",
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -131,25 +119,20 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: bifunc
 
 # simple unary functions and operators
 sub ufunc {
-	my ($name,$func,$doc,%extra) = @_;
-	my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
-	my $funcovp = protect_chars $funcov;
-	$func = $func->[0] if ref $func eq 'ARRAY';
-	pp_def($name,
-		Pars => 'a(); [o]b()',
-		Code => "\$b() = $func(\$a());",
-		HdrCode => 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  b = a;  /* discard output value, leak? */
-				  PDL->SetSV_PDL(b_SV,b);
-				}',
-		%extra,
-		Doc => << "EOD");
+    my ($name,$func,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+    pp_def($name,
+	   Pars => 'a(); [o]b()',
+	   Code => "\$b() = $func(\$a());",
+	   Inplace => [ 'a', 'b' ],
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -162,7 +145,7 @@ $doc
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the unary C<$funcovp> operator/function.
 EOD
-}
+} # sub: ufunc
 
 
 ## arithmetic ops
