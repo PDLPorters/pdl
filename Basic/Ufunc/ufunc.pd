@@ -228,21 +228,22 @@ foreach my $func ( keys %over ) {
 
 %over = 
     (
-     zcover   => { txt => '== 0', init => 1, alltypes => 1,
-		   op => 'tmp = tmp && $a() == 0;', check => '!tmp' },
-     andover  => { txt => 'and', init => 1, 
-		   op => 'tmp = tmp && $a();', check => '!tmp' },
-     bandover => { txt => 'bitwise and', init => '~0', 
+     zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
+		   op => 'tmp &= ($a() == 0);', check => '!tmp' },
+     andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1, 
+		   op => 'tmp &=  ($a() != 0);', check => '!tmp' },
+     bandover => { def=>'$GENERIC(b) tmp', txt => 'bitwise and', init => '~0', 
 		   op => 'tmp &= $a();', check => '!tmp' },
-     orover   => { txt => 'or', init => 0, 
-		   op => 'tmp = tmp || $a();', check => 'tmp' },
-     borover  => { txt => 'bitwise or', init => 0, 
-		   op => 'tmp |= $a();', check => '!~tmp' },
+     orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1, 
+		   op => 'tmp |= ($a() != 0);', check => 'tmp' },
+     borover  => { def=>'$GENERIC(b) tmp', txt => 'bitwise or', init => 0, 
+		   op => 'tmp |= $a() ;', check => '!~tmp' },
 
      );
 
 foreach my $func ( keys %over ) {
 
+    my $def   = $over{$func}{def};
     my $txt   = $over{$func}{txt};
     my $init  = $over{$func}{init};
     my $op    = $over{$func}{op};
@@ -259,11 +260,12 @@ foreach my $func ( keys %over ) {
 	   %extra,
 	   Pars => 'a(n); int+ [o]b();',
 	   Code =>
-	   '$GENERIC(b) tmp = ' . $init . ';
+	   $def . '=' . $init . ';
             loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
             $b() = tmp;',
 	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
+	   'char tmp = ' . $init . ';
+	    $GENERIC(b) gtmp = '. $init . ';
             int flag = 0;
             loop(n) %{
                if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }

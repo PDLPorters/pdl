@@ -2,6 +2,10 @@ CED 07-Dec-2003
    - ufunc.pd: average() and daverage() return 0 when given an empty piddle
 	in a non-bad-value environment.  [One might argue that this should be
 	nan; I'm open to changing it...]
+   - ufunc.pd: andover, orover, etc. no longer convert arguments to 
+	integer types before performing the operation.  bandover and borover
+	work as before, since bitwise and makes no sense on floating-point
+	types.
 CED 05-Dec-2003
    - Clean up axis labeling code in imag(); should eliminate spurious
 	doubled titles.
