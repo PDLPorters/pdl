@@ -656,12 +656,13 @@ sub scan {
      }
      if (/^\s*([a-z]+) (-+) (.*)/) { # lowercase shell script name
        $name = $1; $does = $3;
-       ($name,$does) = (undef,undef) unless $does =~ /shell/i;
+       ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
      }
    }
    $does = 'Hmmm ????' if $does =~ /^\s*$/;
    my $type = ($file =~ /\.pod$/ ? 
-	       ($does =~ /shell/i ? 'Script:' : 'Manual:')
+	       ($does =~ /shell|script/i && $name =~ /^[a-z]+$/) ? 'Script:' 
+	       : 'Manual:'
 	       : 'Module:');
    $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
    return $n;

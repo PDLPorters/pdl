@@ -42,6 +42,7 @@ Basic/Gen/PP/SymTab.pm
 Basic/Gen/PP/Var.pm
 Basic/Gen/PP/XS.pm
 Basic/Gen/PP/dump.pp
+Basic/Gen/pptemplate.PL
 Basic/Lite.pm
 Basic/LiteF.pm
 Basic/Lvalue.pm
@@ -95,6 +96,13 @@ Basic/Primitive/primitive.pd
 Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
+Basic/SourceFilter/MANIFEST
+Basic/SourceFilter/Makefile.PL
+Basic/SourceFilter/README
+Basic/SourceFilter/README.head
+Basic/SourceFilter/SFilter.pm
+Basic/SourceFilter/local.perldlrc
+Basic/SourceFilter/test.pl
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
@@ -646,6 +654,7 @@ t/quat.t
 t/reduce.t
 t/refs.t
 t/scope.t
+t/sfilter.t
 t/slatec.t
 t/slice.t
 t/subclass.t

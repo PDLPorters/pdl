@@ -1,3 +1,6 @@
+CS  - Basic/SourceFilter (see also L<PDL::SFilter>)
+    - generate PP templates with pptemplate
+    - PP: pp_boundscheck (see PP.pm)
 CS  - PP.pm: remove first '$this' arg from pp_add_exported!
     - LM.pm: fix implementation bug; still not sure if it works properly
              need more tests!

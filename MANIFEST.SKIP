@@ -1,3 +1,4 @@
+MANIFEST\.old
 ~$
 \.BAK$
 ^\.exists
@@ -56,6 +57,7 @@ pdlexamples\.c$
 ^Basic/Core/Core\.xs$
 ^Basic/Core/pdlapi\.c$
 ^Basic/Core/pdlcore\.[ch]$
+^Basic/Gen/pptemplate$
 ^Basic/Ops/Ops\.c$
 ^Basic/Ops/Ops\.xs$
 ^Basic/Ops/Ops\.pm$

@@ -1,0 +1,46 @@
+# some useful functions to experiment with
+# the new PDL source filter within the perldl shell
+
+# report switches translation reporting on/off
+# trans and notrans switch source filtering on/off
+
+$PERLDL::report = 0;
+sub report {
+  my $ret = $PERLDL::report;
+  $PERLDL::report = $_[0] if $#_ > -1;
+  return $ret;
+}
+
+use PDL::SFilter;
+my $preproc = sub { my ($txt) = @_;
+	my $new = PDL::SFilter::perldlpp $txt;
+	print STDERR "processed $new\n" if report && $new ne $txt;
+	return $new;
+};
+
+sub trans { $PERLDL::PREPROCESS  = $preproc }
+sub notrans { $PERLDL::PREPROCESS  = undef }
+trans; # switch on by default
+
+if ($PDL::Version::VERSION < 2.2) {
+# called for colon-less args	
+# preserves parens if present	
+  {
+    package PDL;
+    sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
+    sub mslice {
+      my($pdl) = shift;
+      my $slstr = join ',',(map {
+	!ref $_ && $_ eq "X" ? ":" :
+	  ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+	    "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
+	      !ref $_ ? intpars $_ :
+		die "INVALID SLICE OBJECT ".ref $_
+	      } @_);
+      # print STDERR "slicestr: $slstr\n";
+      return $pdl->slice($slstr);
+    }
+  }
+}
+
+1;

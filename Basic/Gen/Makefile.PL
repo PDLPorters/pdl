@@ -10,7 +10,8 @@ WriteMakefile(NAME => "PDL::PP",
 	 map {($_ => '$(INST_LIBDIR)/'.$_)}
 	 	<*.pm>, <PP/*.pm>, 'PP/Dump.pm'
 	},
-	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp"}
+	'EXE_FILES' => ['pptemplate'],
+	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate"}
 );
 
 sub MY::postamble {

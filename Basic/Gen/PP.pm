@@ -14,7 +14,8 @@ use Exporter;
 
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
-		      pp_core_importList pp_beginwrap pp_setversion pp_addbegin/;
+		      pp_core_importList pp_beginwrap pp_setversion
+                      pp_addbegin pp_boundscheck /;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
@@ -49,6 +50,20 @@ sub import {
 				# importing barf only.
 	@_=("PDL::PP");
 	goto &Exporter::import;
+}
+
+
+# query/set boungschecking
+# if on the generated XS code will have optional boundschecking
+# that can be turned on/off at runtime(!) using
+#   __PACKAGE__::set_boundscheck(arg); # arg should be 0/1
+# if off code is speed optimized and no runtime boundschecking
+# can be performed
+# ON by default
+sub pp_boundscheck {
+  my $ret = $PP::boundscheck;
+  $PP::boundscheck = $_[0] if $#_ > -1;
+  return $ret;
 }
 
 sub pp_beginwrap {
