@@ -54,6 +54,8 @@ ok(8,(ref $a->{d} eq 'PDL') && ($a->{d}->nelem == 16)
 eval '$s = sdump({e=>xvals(25,25)});';
 ok(9,!$@);
 
+print $s,"\n";
+
 $a = eval $s;
 ok(10,!$@);
 print $@ if($@);

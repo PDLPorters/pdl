@@ -1,3 +1,6 @@
+CS 17/03/03
+    - Core.pm.PL: fix topdl method (closes bug #681015)
+    - gsl_integ.pd: fix for compliance with gcc
 AJ  (17-March-2003)
     - Added PDL::GSL::INTEG
 CED (15-March-2003)

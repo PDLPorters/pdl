@@ -539,10 +539,10 @@ pp_add_exported('','gslinteg_qng gslinteg_qag gslinteg_qags gslinteg_qagp
  		    gslinteg_qaws gslinteg_qawo gslinteg_qawf');
 
 pp_addhdr('
-#include<math.h>
-#include<gsl/gsl_math.h>
-#include<gsl/gsl_integration.h>
-#include<gsl/gsl_errno.h>
+#include <math.h>
+#include <gsl/gsl_math.h>
+#include <gsl/gsl_integration.h>
+#include <gsl/gsl_errno.h>
 
 #include "FUNC.c"
 
@@ -609,13 +609,13 @@ pp_def('qag_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qag(&F,$a(),$b(),$epsabs(),$epsrel(),(size_t) $limit(),$key(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w); }
 ');  
 
 pp_addpm('
@@ -641,13 +641,13 @@ pp_def('qags_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qags(&F,$a(),$b(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -672,13 +672,13 @@ pp_def('qagp_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagp(&F,$P(pts),(size_t) $SIZE(l),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -703,13 +703,13 @@ pp_def('qagi_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagi(&F,$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -735,13 +735,13 @@ pp_def('qagiu_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagiu(&F,$a(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -767,13 +767,13 @@ pp_def('qagil_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qagil(&F,$b(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -798,13 +798,13 @@ pp_def('qawc_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_workspace *w;
+{gsl_integration_workspace *w;
 ext_funname = $COMP(funcion);
 F.function = &FUNC;
 F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qawc(&F,$a(),$b(),$c(),$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
-gsl_integration_workspace_free(w);
+gsl_integration_workspace_free(w);}
 ');  
 
 pp_addpm('
@@ -830,7 +830,7 @@ pp_def('qaws_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_qaws_table * qtab;
+{gsl_integration_qaws_table * qtab;
 gsl_integration_workspace *w;
 
 qtab = gsl_integration_qaws_table_alloc($alpha(),$beta(),$mu(),$nu());
@@ -841,7 +841,7 @@ F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qaws(&F,$a(),$b(),qtab,$epsabs(),$epsrel(),(size_t) $limit(),w,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-gsl_integration_qaws_table_free(qtab);
+gsl_integration_qaws_table_free(qtab);}
 ');  
 
 pp_addpm('
@@ -874,7 +874,7 @@ pp_def('qawo_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_qawo_table * qtab;
+{gsl_integration_qawo_table * qtab;
 gsl_integration_workspace *w;
 enum gsl_integration_qawo_enum T;
 
@@ -889,7 +889,7 @@ F.params = 0;
 w = gsl_integration_workspace_alloc((size_t) $n());
 $ierr() = gsl_integration_qawo(&F,$a(),$epsabs(),$epsrel(),(size_t) $limit(),w,qtab,$P(result),$P(abserr));
 gsl_integration_workspace_free(w);
-gsl_integration_qawo_table_free(qtab);
+gsl_integration_qawo_table_free(qtab);}
 ');  
 
 pp_addpm('
@@ -921,7 +921,7 @@ pp_def('qawf_meat',
 gsl_error_handler_t * old_handler;
 if ($warn() == 1) { old_handler = gsl_set_error_handler(&my_handler); }
 else { gsl_set_error_handler_off ();}
-gsl_integration_qawo_table * qtab;
+{gsl_integration_qawo_table * qtab;
 gsl_integration_workspace *w;
 gsl_integration_workspace *cw;
 enum gsl_integration_qawo_enum T;
@@ -942,7 +942,7 @@ $ierr() = gsl_integration_qawf(&F,$a(),$epsabs(),(size_t) $limit(),w,cw,qtab,$P(
 
 gsl_integration_workspace_free(w);
 gsl_integration_workspace_free(cw);
-gsl_integration_qawo_table_free(qtab);
+gsl_integration_qawo_table_free(qtab);}
 ');  
 
 

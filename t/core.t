@@ -7,7 +7,7 @@ use strict;
 use Test;
 
 
-plan tests => 10;
+plan tests => 12;
 
 use PDL::LiteF;
 $| = 1;
@@ -53,3 +53,9 @@ $c++; # check dataflow
 print "a: $a\nb: $b\nc: $c\n";
 ok all $b == $c; # should flow back to b
 ok all $a == 2;
+
+
+# test topdl
+
+ok UNIVERSAL::isa(PDL->topdl(1),'PDL');
+ok UNIVERSAL::isa(PDL->topdl([1,2,3]),'PDL');

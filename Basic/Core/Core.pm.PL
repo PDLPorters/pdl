@@ -1414,6 +1414,7 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		      : int $_[0] }
 sub PDL::nslice {
   my($pdl) = shift;
+  my $h = $pdl->hdrcpy() ? $pdl->hdr : undef;
   my @args = @_;
   my ($i,$noslice) = (0,0);
   for (@args) {
@@ -1434,17 +1435,20 @@ sub PDL::nslice {
                                       # to a scalar for 'slice'
     }
     $i++;
-  }  
-  return $pdl if $noslice;
-  # print STDERR 'processed arglist: ',join(',',@args);
-  my $slstr = join ',',(map {
+  }
+  unless ($noslice) {
+   # print STDERR 'processed arglist: ',join(',',@args);
+   my $slstr = join ',',(map {
     !ref $_ && $_ eq "X" ? ":" :
       ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
 	"("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
 	  _intpar $_
 	} @args);
-  # print STDERR "slicestr: $slstr\n";
-  return $pdl->slice($slstr);
+   # print STDERR "slicestr: $slstr\n";
+   $pdl = $pdl->slice($slstr);
+  }
+  $pdl->sethdr($h) if $h;
+  return $pdl;
 }
 
 # Utility to determine if argument is blessed object
@@ -1458,7 +1462,8 @@ sub blessed {
 
 sub PDL::topdl {
     return $_[1] if blessed($_[1]); # Fall through
-    return $_[0]->new($_[1]) if ref(\$_[1]) eq "SCALAR";
+    return $_[0]->new($_[1]) if ref(\$_[1]) eq  'SCALAR' or
+           ref($_[1]) eq 'ARRAY';
     barf("Can not convert a ".ref($_[1])." to a ".$_[0]);
 0;}
 

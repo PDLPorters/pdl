@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 40,
+	plan tests => 41,
 	# todo => [37..40],
     } else {
 	plan tests => 1;
@@ -190,3 +190,15 @@ foreach  my $b # a random comment thrown in
 EOT
 
 ok(!$@ and $a eq '1234');
+
+# test for correct header propagation
+$a = ones(10,10);
+my $h = {NAXIS=>2,
+	 NAXIS1=>100,
+	 NAXIS=>100,
+	 COMMENT=>"Sample FITS-style header"};
+$a->sethdr($h);
+$a->hdrcpy(1);
+eval translate_and_show '$b = $a(1:2,pdl(0,2));';
+
+ok (!$@ and $b->gethdr() == $h);

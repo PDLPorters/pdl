@@ -25,7 +25,7 @@ my $alfa = 2.6;
 
 my ($res,$abserr,$neval,$ierr) = gslinteg_qng(\&f1,0,1,0,1e-9);
 ok(abs($res - 0.0771604938270651) < 1e-6);
-my ($res,$abserr,$neval,$ierr) = gslinteg_qng(\&f1,0,1,0,1e-9,{Warn => 'y'});
+($res,$abserr,$neval,$ierr) = gslinteg_qng(\&f1,0,1,0,1e-9,{Warn => 'y'});
 ok(abs($res - 0.0771604938270651) < 1e-6);
 
 ($res,$abserr,$ierr) = gslinteg_qag(\&f1,0,1,0,1e-10,1000,1);
