@@ -225,7 +225,7 @@ Return the number of elements in a piddle
 
 =for ref
 
-Return piddle dimensions a a perl list
+Return piddle dimensions as a perl list
 
 =for usage
 
@@ -249,6 +249,21 @@ Returns the number of dimensions in a piddle
 =for example
 
  perldl> p zeroes(10,3,22)->getndims
+ 3
+
+=head2 PDL::getdim
+
+=for ref
+
+Returns the size of the given dimension.
+
+=for usage
+
+ $dim0 = $piddle->getdim(0);
+
+=for example
+
+ perldl> p zeroes(10,3,22)->getdim(1)
  3
 
 =head2 topdl
