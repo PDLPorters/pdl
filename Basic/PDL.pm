@@ -26,7 +26,7 @@ if start-up time becomes an issue.
 
 
 # set the version: 
-$PDL::VERSION = '2.1';
+$PDL::VERSION = '2.1.1';
 
 # Main loader of standard PDL package
 
