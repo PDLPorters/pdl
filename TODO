@@ -9,6 +9,8 @@ CURRENT PRIORITIES:
   and the old PDL::Interpolate/PDL::Interpolate::Slatec modules which are
   included in the distribution but are not installed)
 - make more routines 'bad value' aware
+- tests for new features of at, set, getdim
+- tests for PDL::Matrix
 
 OLDER STUFF (still valid?):
 

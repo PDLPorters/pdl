@@ -1,3 +1,25 @@
+=head1 NAME
+
+PDL::Core::Dev - PDL development module
+
+=head1 DESCRIPTION
+
+This module encapsulates most of the stuff useful for
+PDL development and is often used from within Makefile.PL's.
+
+=head1 SYNOPSIS
+
+   use PDL::Core::Dev;
+   if ($^O =~ /win32/i) {
+    warn "Win32 systems not yet supported. Will not build PDL::IO::Browser";
+    write_dummy_make(unsupported('PDL::XXX','win32'));
+    return;
+   }
+
+=head1 FUNCTIONS
+
+=cut   
+
 # Stuff used in development/install environment of PDL Makefile.PL's
 # - not part of PDL itself.
 
@@ -12,7 +34,7 @@ use IO::File;
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
-                unsupported getcyglib
+                unsupported getcyglib trylink
 		 );
 
 # Installation locations
@@ -386,6 +408,134 @@ my $lp = `gcc -print-file-name=lib$lib.a`;
 $lp =~ s|/[^/]+$||;
 $lp =~ s|^([a-z,A-Z]):|//$1|g;
 return "-L$lp -l$lib";
+}
+
+=head2 trylink
+
+=for ref
+
+a perl configure clone
+
+=for example
+
+  if (trylink 'libGL', '', 'char glBegin(); glBegin();', '-lGL') {
+    $libs = '-lGLU -lGL';
+    $have_GL = 1;
+  } else {
+    $have_GL = 0;
+  }
+  $maybe = 
+    trylink 'libwhatever', $inc, $body, $libs, {MakeMaker=>1, Hide=>0};
+
+Try to link some C-code making up the body of a function
+with a given set of library specifiers
+
+return 1 if successful, 0 otherwise
+
+=for usage
+
+   trylink $infomsg, $include, $progbody, $libs [,{OPTIONS}];
+
+Takes 4 + 1 optional argument.
+
+=over 5
+
+=item *
+
+an informational message to print (can be empty)
+
+=item *
+
+any commands to be included at the top of the generated C program
+(typically something like C<#include "mylib.h">)
+
+=item *
+
+the body of the program (in function main)
+
+=item *
+
+library flags to use for linking. Preprocessing
+by MakeMaker should be performed as needed (see options and example).
+
+=item OPTIONS
+
+=over
+
+=item 2
+
+=item MakeMaker
+
+Preprocess library in the way MakeMaker does things. This is
+advisable to ensure that your code will actually work after the link
+specs have been processed by MakeMaker.
+
+=item Hide
+
+Controls of linking output etc is hidden from the user or not.
+On by default.
+
+=back
+
+=back
+
+=cut
+
+
+sub trylink {
+  my $opt = ref $_[$#_] eq 'HASH' ? pop : {};
+  my ($txt,$inc,$body,$libs) = @_;
+
+  require File::Spec;
+  my $fs = 'File::Spec';
+  sub cdir { return $fs->catdir(@_)}
+  sub cfile { return $fs->catfile(@_)}
+  use Config;
+
+  # check if MakeMaker should be used to preprocess the libs
+  my $mmprocess = exists $opt->{MakeMaker} && $opt->{MakeMaker};
+  my $hide = exists $opt->{Hide} ? $opt->{Hide} : 1;
+
+  if ($mmprocess) {
+      require ExtUtils::MakeMaker;
+      require ExtUtils::Liblist;
+      my $self = new ExtUtils::MakeMaker {DIR =>  [],'NAME' => 'NONE'};
+      my @libs = ExtUtils::Liblist::ext($self, $libs, 0);
+      print "processed LIBS: $libs[0]\n" unless $hide;
+      $libs = $libs[0]; # replace by preprocessed libs
+  }
+
+  print "     Trying $txt...\n     " unless $txt =~ /^\s*$/;
+
+  my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1'; 
+  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
+  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
+            defined $ENV{TMP} ? $ENV{TMP} :
+                           cdir($fs->rootdir,$td);
+
+  my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
+  open FILE,">$tc" or die "couldn't open testfile for writing";
+  my $prog = <<"EOF";
+$inc
+
+int main(void) {
+$body
+
+return 0;
+
+}
+
+EOF
+
+  print FILE $prog;
+  close FILE;
+  # print "test prog:\n$prog\n";
+  print "$Config{cc} -o $te $tc $libs $HIDE ...\n" unless $hide;
+  my $success = (system("$Config{cc} -o $te $tc $libs $HIDE") == 0) && 
+    -e $te ? 1 : 0;
+  unlink "$te","$tc";
+  print $success ? "\t\tYES\n" : "\t\tNO\n" unless $txt =~ /^\s*$/;
+  return $success;
 }
 
 1; # Return OK

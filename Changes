@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+CS
+	- moved trylink to Dev.pm (L<PDL::Core::Dev>)
+	- modified Graphics/Makefile.PL accordingly
 Doug Burke
     - cleaned up endian support. Threw out my check_endian stuff since perl
       already knows - there's a isbigendian fn in Dev.pm (eg see 
@@ -7,7 +10,7 @@ Doug Burke
       to setbadtoval() (perhaps should keep it as an alias?)
       setnantobad doesn't work (yet) if $PDL::Bad::UseNaN == 1
 CS
-	- added Matrix.pm (suggestion by Stefan Heuel)
+	- added Matrix.pm (suggestion by Stephan Heuel)
 	- Core.xs.PL: getdim, at and set now support the 'infinite dim'
 	  piddle behaviour discussed on pdl-porters
 	- perldl: $bflag incorrect due to low 'and' precendence
