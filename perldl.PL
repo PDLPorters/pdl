@@ -97,7 +97,7 @@ while(defined($_ = shift @ARGV)) {
                 eval "require $m";
                 warn, next if $@;
                 if ($way eq 'M') {
-                $m->import(@im);
+                	$m->import(@im);
                 } else {
                         $m->unimport(@im);
                 }
@@ -224,7 +224,13 @@ my $PDL_OK = ($@ eq "");
 if ($PDL_OK) {
    require PDL::Version if not defined $PDL::Version::VERSION;
    print "Type 'demo' for online demos\n";
-   print "Loaded PDL v$PDL::Version::VERSION\n";
+   eval "use PDL::Bad;";
+   my $bflag = defined($PDL::Bad::Status) and $PDL::Bad::Status;
+   if ( $bflag ) {
+      print "Loaded PDL v$PDL::Version::VERSION (supports bad values)\n";
+   } else {
+      print "Loaded PDL v$PDL::Version::VERSION\n";
+   }
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";
@@ -268,6 +274,8 @@ my %demos =
      '3dgal' => 'PDL::Demos::TriDGallery',
      'tk3d' => 'PDL::Demos::TkTriD_demo',
      'pgplot' => 'PDL::Demos::PGPLOT_demo',
+     'bad' => 'PDL::Demos::BAD_demo',
+     'bad2' => 'PDL::Demos::BAD2_demo',
      );
 
 sub demo {
@@ -275,15 +283,18 @@ sub demo {
     if(/^$/) {
 	print <<EOD;
 Use:
-	demo pdl	# general demo
-	demo 3d		# 3d demo (requires TriD compiled with OpenGL or Mesa)
-			# as well as an X display properly set up.
-	demo 3d2	# 3d demo, second part. This is very memory-heavy, make
-			# your window fairly small.
-	demo 3dgal      # the 3D gallery: generate interesting images with
-	                # *very* concise PDL scripts
-        demo Tk3d       # Requires the perl Tk module
-	demo pgplot	# Requires the PGPLOT package
+   demo pdl     # general demo
+   demo 3d      # 3d demo (requires TriD compiled with OpenGL or Mesa)
+                # as well as an X display properly set up.
+   demo 3d2     # 3d demo, second part. This is very memory-heavy, make
+                # your window fairly small.
+   demo 3dgal   # the 3D gallery: generate interesting images with
+                # *very* concise PDL scripts
+   demo Tk3d    # Requires the perl Tk module
+   demo pgplot  # Requires the PGPLOT package
+   demo bad     # Requires bad value support
+   demo bad2    # Requires bad value support and PGPLOT
+
 EOD
     return;
     } # if: /^$/
@@ -338,7 +349,7 @@ restart:
      s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
      s/^\s*\?\s*/help /; # Make lone '?' = 'help'
 
-     if (/^\s*(help|usage|apropos|sig|demo)\s+/) { # Allow help foo (no quotes)
+     if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
         @t = split;
         foreach (@t) { s/^["']+//; s/['"]+$//; };
 	$t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));

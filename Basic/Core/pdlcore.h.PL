@@ -3,6 +3,11 @@
 use Config;
 use File::Basename qw(&basename &dirname);
 
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
 # have to mention them as if they were shell variables, not
@@ -20,7 +25,11 @@ $file =~ s/\.pl$//
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
 
-print "Extracting $file\n";
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {		     
+    print "Extracting $file (NO bad value support)\n";
+}
 chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
@@ -30,6 +39,7 @@ print OUT <<"!WITH!SUBS!";
 
 /*
  * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
+ * bad value support = $bvalflag
  */
 
 !WITH!SUBS!
@@ -192,18 +202,6 @@ void  pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, /* Set valu
                 PDL_Long *incs, PDL_Long offs, int ndims, double value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
-/* pdlstats.c */
-
-double pdl_min(void*x, int n, int datatype);
-double pdl_max(void*x, int n, int datatype);
-double pdl_sum(void*x, int n, int datatype);
-
-/* pdlmoremaths.c */
-
-void pdl_convolve (pdl* c, pdl* a, pdl* b); /* Real space convolution */
-void pdl_hist (pdl* c, pdl* a, double min, double step) ; /* Histogram of data */
-void pdl_matrixmult( pdl *c, pdl* a, pdl* b);  /* Matrix multiplication */
-
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
 #define PDL_CORE_VERSION 1
@@ -292,6 +290,16 @@ for (keys %PDL::Types::typehash) {
    print OUT "void (*qsort_ind_${ppsym}) (${ctype} *xx, int *ix, int a, int b );\n";
 }
 
+# storage space for bad values
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+
+  badvals bvals;  /* store the default bad values */
+  void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+!NO!SUBS!
+    } # if: $bvalflag
+
 print OUT <<'!NO!SUBS!';
 
 };
@@ -301,3 +309,4 @@ typedef struct Core Core;
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
 !NO!SUBS!
+

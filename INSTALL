@@ -6,7 +6,7 @@ To install PDL on your machine, first check that you have a high
 enough version of Perl. 5.005 is adaquete for most of PDL, however the
 OpenGL and TriD packages now require 5.6.0, if you need to upgrade get
 at least this version.
-
+                                                                                
 The file DEPENDENCIES summarizes the dependencies of various
 PDL modules on libraries/other packages. The location of
 some of these files needs to be specified in the file perldl.conf.
@@ -17,8 +17,6 @@ perldl.conf
 Edit the file perldl.conf in the current directory to specify
 configuration options for building PDL. This file is
 self-documenting.
-
-
 
 Note: If you are happy with your perldl.conf you can keep the file
 handy for future reference. Place it in ~/.perldl.conf where
@@ -88,7 +86,7 @@ library on your platform, e.g.
 	   '-L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/mesa -lGL'.
 	 ' -lGLU -lXext -lX11',
 
-You may also need to pass some flags to cpp, see the README in the 
+You may also need to pass some flags to cpp, see the README in the
 PDL/Graphics/TriD/OpenGL directory for details.
 
       OPENGL_DEFINE => '-DGL_GLEXT_LEGACY',
@@ -102,7 +100,7 @@ etc...
 
 Q: Compilation of TriD complains about undefined functions or somesuch.
 
-A: Please see the file Graphics/TriD/OpenGL/README.  If that doesn't help 
+A: Please see the file Graphics/TriD/OpenGL/README.  If that doesn't help
    please report this problem to pdl-porters@jach.hawaii.edu, include the
    appropriate platform and GL version information.
 

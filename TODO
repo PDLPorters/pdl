@@ -8,6 +8,7 @@ CURRENT PRIORITIES:
 - sort out interface to different interpolation codes (PDL::Func
   and the old PDL::Interpolate/PDL::Interpolate::Slatec modules which are
   included in the distribution but are not installed)
+- make more routines 'bad value' aware
 
 OLDER STUFF (still valid?):
 
@@ -55,8 +56,6 @@ TidBits
 * clean Dev.pm (perl is clever enough to know if it's in the build tree
   or outside)
 
-* Does Basic/Core/Makefile.PL really need to add a rule for compiling
-  pdlsections.g if $^O =~ /^MSWin/? Doesn't Dev.pm already handle this?
 
 Tidbits
 ----

@@ -4,6 +4,9 @@
 #require '../Core/Dev.pm';
 PDL::Core::Dev->import();
 
+use Config;
+use IO::File;
+
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
 my $pthread_define  = '-DPDL_PTHREAD';
@@ -12,14 +15,14 @@ my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
 my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
   $PDL_CONFIG{MALLOCDBG}->{include} : '';
 
-print "Trying to figure out POSIX threads support ...\n";
-
 open HFILE, ">mymalloc.p" or die "couldn't open mymalloc.p";
 print HFILE defined $PDL_CONFIG{MALLOCDBG}->{define} ?
   "\$mymalloc = <<'EOM';\n$PDL_CONFIG{MALLOCDBG}->{define}\nEOM\n" :
    "\$mymalloc = '';\n";
 print HFILE "1;\n";
 close HFILE;
+
+print "Trying to figure out POSIX threads support ...\n";
 
 if(-e $pthread_include) {
 	print "\tSaw pthread.h. Fine.\n";
@@ -44,28 +47,49 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 	print "\tNope, your perl was not linked against pthread library\n";
 	print "\tYou need to include -lpthread in your perl libs configuration\n";
 	$pthread_library = '';
-}
+    }
 
 $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_library;
 
 {
-my $conf = $PDL_CONFIG{WITH_POSIX_THREADS};
+    my $conf = $PDL_CONFIG{WITH_POSIX_THREADS};
 
-if ((!defined($conf) or $conf)
-	 and $pthread_include and $pthread_library) {
+    if ((!defined($conf) or $conf)
+	and $pthread_include and $pthread_library) {
 	print "\t==> Will build PDL with POSIX thread support. Gifts to TJL :-)\n";
 	$PDL_CONFIG{WITH_POSIX_THREADS} = 1;
-} elsif($conf) {
+    } elsif($conf) {
 	print "\t==> I couldn't find pthread support. However, you have
 \t    turned on the forcing option in PDL_CONFIG so I guess I gotta do it\n";
-} else {
+    } else {
 	print "\t==> PDL will be built without POSIX thread support.\n";
 	print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
-	print "\t==> Enabling perl threads will not help!\n";
+	print "\t==> Enabling perl threads will not help!\n";                   
 	$pthread_define = '';
 	$PDL_CONFIG{WITH_POSIX_THREADS} = 0;
+    }
 }
-}
+
+print "Trying to figure out endian-ness of machine...";
+
+# compile check_endian.c
+my $efile = 'check_endian';
+my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
+my $COMP = "$Config{cc} -o $efile ${efile}.c $HIDE";
+die "ERROR: unable to compile ${efile}.c"
+    if system( $COMP );
+chomp( my $is_big_endian = `$efile` );
+die "ERROR: unknown return value ($is_big_endian) from $efile"
+    unless $is_big_endian =~ /^(0|1|-1)$/;
+unlink $efile;
+die "ERROR: unknown endian type ($efile returned -1)"
+    if $is_big_endian eq "-1";
+
+my $fh = new IO::File ">isbigendian.p" 
+    or die "Unable to write to isbigendian.p";
+print $fh "\$isbigendian = $is_big_endian;\n1;\n";
+$fh->close;
+print " It is " . ($is_big_endian ? "big" : "little") . " endian\n";
 
 use ExtUtils::MakeMaker;
 WriteMakefile(
@@ -73,7 +97,7 @@ WriteMakefile(
  'VERSION_FROM' => 'Version.pm',
  'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) pdlfamily$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT)  pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
+                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
   		(map {($_,'$(INST_LIBDIR)/'.$_)} (
 			qw/Core.pm Basic.pm Version.pm Types.pm
@@ -87,29 +111,27 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
-		   'pdl.h pdlsimple.h Types.pm Version.pm'},
+                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
+                   'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
+		   'pdl.h pdlsimple.h pdlcore.h '.
+		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm ' .
+		   'mymalloc.p isbigendian.p '
+		   },
  'INC'          => "$mallocinc",
 );
 
 # Extra targets to build
-#
-# surely Dev.pm should handle the OS requirements when ?
-# processing generic (ie .g) code
-#
 
 sub MY::postamble {
 PDL::Core::Dev::postamble().
-'
+"
 # Bits of C code we generate from special perl scripts
 #
-# do not need to specify how to create pdl.h as that is already in Makefile
-pdl.h:: mymalloc.p
+# don't need to specify how to create pdl.h as that's done automatically
+pdl.h:: pdl.h.PL mymalloc.p
+#\t\$(PERL) pdl.h.PL
 
-'.($^O =~ /MSWin/ ? q|
+".($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c

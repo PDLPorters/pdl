@@ -1,3 +1,45 @@
+#
+# Create Core.pm
+# - needed since we allow bad pixel handling to be switched off
+#
+
+use strict;
+
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+use vars qw( %PDL_CONFIG );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+        if ($Config{'osname'} eq 'VMS' or
+            $Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {		     
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+
+print OUT <<"!WITH!SUBS!";
+
+# This file is automatically created by Core.pm.PL
+# - bad value support = $bvalflag
+
+!WITH!SUBS!
+
+print OUT <<'!NO!SUBS!';
+
 =head1 NAME
 
 PDL::Core - fundamental PDL functionality
@@ -29,13 +71,13 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT = qw( pdl null barf ); # Only stuff always exported!
 
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
-   long float double convert log10 inplace zeroes ones list listindices
+   long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
    dummy mslice);
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
-    long float double convert log10 inplace zeroes ones list listindices
+    long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
     diagonal dummy mslice/],
    Internal=>[qw/howbig threadids topdl/]
@@ -63,7 +105,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 
 ################ Exportable functions of the Core ######################
 
-*howbig       = \&PDL::howbig;	  *log10	= \&PDL::log10;
+*howbig       = \&PDL::howbig;	  
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
@@ -72,7 +114,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *short        = \&PDL::short;	  *flows	= \&PDL::flows;
 *ushort       = \&PDL::ushort;	
 *long	      = \&PDL::long;	
-*float        = \&PDL::float;	  *cutmask	 = \&PDL::cutmask;
+*float        = \&PDL::float;	  
 *double       = \&PDL::double;	  *thread_define = \&PDL::thread_define;
 *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
 *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
@@ -83,6 +125,9 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *isempty      = \&PDL::isempty;
 
 sub barf;
+
+##################################################################
+##################################################################
 
 =head2 pdl
 
@@ -206,7 +251,6 @@ sub PDL::nullcreate{
         return ref($arg) ? $arg->null : $type->null ;
 }
 
-
 =head2 nelem
 
 =for ref
@@ -278,7 +322,7 @@ alternate piddle constructor - ensures arg is a piddle
 
 The difference between L<pdl()|/pdl> and C<topdl()> is that the
 latter will just 'fall through' if the argument is
-already a piddle. It will return a reference and NOT
+already a piddle. It will return a reference and I<NOT>
 a new copy.
 
 This is particulary useful if you are writing a function
@@ -377,8 +421,8 @@ sub topdl {PDL->topdl(@_)}
 		"!"     => sub { PDL::not  ($_[0]); },
 		"~"     => sub { PDL::bitnot ($_[0]); },
 
-		"log"   => sub { PDL::log  ($_[0]); },
-		"exp"   => sub { PDL::exp  ($_[0]); },
+		"log"   => sub { PDL::log   ($_[0]); },
+		"exp"   => sub { PDL::exp   ($_[0]); },
 
 	        "**"    => \&PDL::power,          # in1, in2, swap if true
 
@@ -399,17 +443,22 @@ sub topdl {PDL->topdl(@_)}
 				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
 
 		'bool'  => sub { return 0 if $_[0]->isnull;
-				 unless ($_[0]->nelem == 1) {
-				   croak("multielement piddle in conditional expression")}
+				 croak("multielement piddle in conditional expression")
+				     unless $_[0]->nelem == 1;
 				 $_[0]->clump(-1)->at(0); },
 		"\"\""  =>  \&PDL::Core::string   );
 }
 
-sub rswap {
-	if($_[2]) { return  @_[1,0] } else { return @_[0,1] }
-}
+sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
 
-sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
+# log10() is defined in ops.pd, so $pdl->log10() will use that.
+# we leave this here so that log10() will work on normal perl variables 
+# (ie return a perl variable rather than a 0D piddle)
+sub ::log10 { 
+    my $x = shift; 
+    return $x->log10() if UNIVERSAL::isa($x,"PDL");
+    return log($x) / log(10); 
+};
 
 ##################### Data type/conversion stuff ########################
 
@@ -901,6 +950,9 @@ my %info = (
 				 !$_[0]->allocated; # apparently can be both?
 			       $state .= '-' if $state eq '';   # lazy eval
 			       $state .= 'C' if $_[0]->anychgd;
+!NO!SUBS!
+    print OUT "	       \$state .= 'B' if \$_[0]->badflag;\n" if $bvalflag;
+    print OUT <<'!NO!SUBS!';
 			       $state;
 			     },
 		 },
@@ -986,7 +1038,13 @@ Dataflow status
 
 =item S
 
-Some internal flags (P=physical,V=Vaffine,C=changed)
+!NO!SUBS!
+if ( $bvalflag ) {
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad data)\n";
+} else {
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
+}
+print OUT <<'!NO!SUBS!';
 
 =item C
 
@@ -1005,20 +1063,21 @@ Calculated memory consumption of this piddle's data area
 =cut
 
 sub PDL::info {
-  my ($this,$str) = @_;
-  $str = "%C: %T %D" unless defined $str;
-  return ref($this)."->null" if PDL::Core::dimstr($this)
-    =~ /D \[0\]/;
-  my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
-  my @args = ();
-  my $nstr = '';
-  for my $form (@hash) {
-    if ($form =~ s/^%([-,0-9]*[.]?[0-9]*)(\w)$/%$1s/)
-      { barf "unknown format specifier $2" unless defined $info{$2};
-	push @args, &{$info{$2}->{Sub}}($this) }
-    $nstr .= $form;
-  }
-  return sprintf $nstr, @args;
+    my ($this,$str) = @_;
+    $str = "%C: %T %D" unless defined $str;
+    return ref($this)."->null" 
+	if PDL::Core::dimstr($this) =~ /D \[0\]/;
+    my @hash = split /(%[-,0-9]*[.]?[0-9]*\w)/, $str;
+    my @args = ();
+    my $nstr = '';
+    for my $form (@hash) {
+	if ($form =~ s/^%([-,0-9]*[.]?[0-9]*)(\w)$/%$1s/) {
+	    barf "unknown format specifier $2" unless defined $info{$2};
+	    push @args, &{$info{$2}->{Sub}}($this);
+	}
+	$nstr .= $form;
+    }
+    return sprintf $nstr, @args;
 }
 
 =head2 mslice
@@ -1110,28 +1169,6 @@ operate array element by array element like C<log10>).
 sub PDL::inplace {
     my $pdl = PDL->topdl(shift); $pdl->set_inplace(1); return $pdl;
 }
-
-=head2 hdrcpy
-
-=for ref
-
-switch on/off/examine automatic header copying
-
-=for example
-
- print "hdrs will be copied" if $a->hdrcpy;
- $a->hdrcpy(1);       # switch on hdr copying
- $b = $a->sumover;    # and $b will inherit $a's hdr
- $a->hdrcpy(0);       # and now make $a non-infectious again
-
-Normally, the optional header of a piddle is not copied
-automatically in pdl operations. Switching on the hdrcpy
-flag using the C<hdrcpy> method will enable automatic hdr
-copying. Note that copying is B<by reference> for efficiency
-reasons. C<hdrcpy> without an argument just returns the
-current setting of the flag.
-
-=cut
 
 # Copy if not inplace
 
@@ -1356,7 +1393,7 @@ sub PDL::convert {
   barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
-  $type = $type->[0] if ref($type) eq 'PDL::Type';
+  $type = $type->enum if ref($type) eq 'PDL::Type';
   return $pdl if $pdl->get_datatype == $type;
   my $conv = $pdl->flowconvert($type)->sever;
   return $conv;
@@ -1469,34 +1506,33 @@ for(
 		}');
 }
 
-
 {
     package PDL::Type;
     sub new {
-	my($type,$val) = @_;
-	if("PDL::Type" eq ref $val) {return bless [@$val],$type}
-	if(ref $val and $val->isa(PDL)) {
-	    if($val->getndims != 0) {
-	      PDL::Core::barf("Can't make a type out of non-scalar " . 
-			      "piddle $val!");
-	    }
-	    $val = $val->at;
-	}
-      PDL::Core::barf("Can't make a type out of non-scalar $val!".
-		      (ref $val)."!") if ref $val;
-	return bless [$val],$type;
+        my($type,$val) = @_;
+        if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
+        if(ref $val and $val->isa(PDL)) {
+            if($val->getndims != 0) {
+              PDL::Core::barf("Can't make a type out of non-scalar piddle $val!");
+            }
+            $val = $val->at;
+        }
+      PDL::Core::barf("Can't make a type out of non-scalar $val!".(ref $val)."!") if ref $val;
+        return bless [$val],$type;
     }
  
 sub enum   { return $_[0]->[0]; }
 sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
-foreach my $name ( qw( ctype ppsym realctype ) ) {
-    eval "sub $name { " . 'return $PDL::Types::typehash{$_[0]->symbol}->{' . $
-	name . '}; }';
-}
-sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }
+!NO!SUBS!
 
-} # package: PDL::Type
+    foreach my $name ( qw( ctype ppsym realctype ) ) {
+	print OUT "sub $name { return \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }\n";
+    }
 
+print OUT <<'!NO!SUBS!';
+sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }                      
+
+} # package: PDL::Type                                                          
 
 =head2 type
 
@@ -1512,9 +1548,7 @@ A convenience function for use with the piddle constructors, e.g.
 
 =cut
 
-sub PDL::type {
-  return PDL::Type->new($_[0]->get_datatype);
-}
+sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 ##################### Printing ####################
 
@@ -1533,8 +1567,23 @@ sub string {
     	return "TOO LONG TO PRINT";
     }
     if ($ndims==0) {
-       my @x = $self->at();
-       return ($format ? sprintf($format, $x[0]) : "$x[0]");
+!NO!SUBS!
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	if ( $self->badflag() and $self->isbad() ) {
+	    return "BAD";
+	} else {
+	    my @x = $self->at();
+	    return ($format ? sprintf($format, $x[0]) : "$x[0]");
+	}
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+	 my @x = $self->at();
+	 return ($format ? sprintf($format, $x[0]) : "$x[0]");
+!NO!SUBS!
+} # if: $bvalflag
+print OUT <<'!NO!SUBS!';
     }
     return "Null" if $self->isnull;
     return "Empty" if $self->isempty; # Empty piddle
@@ -1571,6 +1620,18 @@ occasionally useful and is provied for backwards compatibility.
    # Do something on each value...
  }
 
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT<<'!NO!SUBS!';
+=for bad
+
+list converts any bad values into the string 'BAD'.
+
+!NO!SUBS!
+}
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 # No threading, just the ordinary dims.
@@ -1948,19 +2009,42 @@ sub str1D {
     my $x = listref_c($self);
     my ($ret,$dformat,$t);
     $ret = "[";
-    $dformat = $PDL::floatformat  if $self->get_datatype() == $PDL_F;
-    $dformat = $PDL::doubleformat if $self->get_datatype() == $PDL_D;
+    my $dtype = $self->get_datatype();
+    $dformat = $PDL::floatformat  if $dtype == $PDL_F;
+    $dformat = $PDL::doubleformat if $dtype == $PDL_D;
+!NO!SUBS!
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+    my $badflag = $self->badflag();
     for $t (@$x) {
-        if ($format) {
+	if ( $badflag and $t eq "BAD" ) {
+	    # do nothing
+        } elsif ($format) {
 	  $t = sprintf $format,$t;
-	}
-	else{ # Default
-           if ($dformat && length($t)>7) { # Try smaller
-             $t = sprintf $dformat,$t;
-	   }
+	} else{ # Default
+	    if ($dformat && length($t)>7) { # Try smaller
+		$t = sprintf $dformat,$t;
+	    }
 	}
        $ret .= $t.$sep;
     }
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+    for $t (@$x) {
+        if ($format) {
+	  $t = sprintf $format,$t;
+	} else{ # Default
+	    if ($dformat && length($t)>7) { # Try smaller
+		$t = sprintf $dformat,$t;
+	    }
+	}
+       $ret .= $t.$sep;
+    }
+!NO!SUBS!
+} # if: $bvalflag
+
+    print OUT <<'!NO!SUBS!';
     chop $ret; $ret.="]";
     return $ret;
 }
@@ -1975,65 +2059,127 @@ sub str2D{
     my $x = listref_c($self);
     my ($i, $f, $t, $len, $ret);
 
-    my $findmax = 1;
-    if (!defined $format || $format eq "") { # Format not given? -
-                                             # find max length of default
-       $len=0;
-       for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
-       $format = "%".$len."s";
+    my $dtype = $self->get_datatype();
+!NO!SUBS!
 
-       if ($len>7) { # Too long? - perhaps try smaller format
-          if ($self->get_datatype() == $PDL_F) {
-	    $format = $PDL::floatformat
-	  } elsif ($self->get_datatype() == $PDL_D) {
-	    $format = $PDL::doubleformat
-	  } else {
-	     # Stick with default
-	     $findmax = 0;
-	  }
-       }
-       else {
-          # Default ok
-	  $findmax = 0;
-       }
+    if ( $bvalflag ) { print OUT 
+'    my $badflag = $self->badflag();
+';
+}
+    print OUT <<'!NO!SUBS!';
+
+    my $findmax = 1;
+    if (!defined $format || $format eq "") { 
+	# Format not given? - find max length of default
+	$len=0;
+
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	if ( $badflag ) {
+	    for (@$x) { 
+		if ( $_ eq "BAD" ) { $i = 3; } 
+		else               { $i = length($_); }
+		$len = $i>$len ? $i : $len;
+	    } 
+	} else {
+	    for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
+	}
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+	for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
+!NO!SUBS!
+} # if: $bvalflag
+
+	print OUT <<'!NO!SUBS!';
+	$format = "%".$len."s";
+	
+	if ($len>7) { # Too long? - perhaps try smaller format
+	    if ($dtype == $PDL_F) {
+		$format = $PDL::floatformat;
+	    } elsif ($dtype == $PDL_D) {
+		$format = $PDL::doubleformat;
+	    } else {
+		# Stick with default
+		$findmax = 0;
+	    }
+	}
+	else {
+	    # Default ok
+	    $findmax = 0;
+	}
     }
 
     if($findmax) {
-	    # Find max length of strings in final format
-	    $len=0;
+	# Find max length of strings in final format
+	$len=0;
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	if ( $badflag ) {
 	    for (@$x) {
-	       $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+		if ( $_ eq "BAD" ) { $i = 3; }
+		else               { $i = length(sprintf $format,$_); }
+		$len = $i>$len ? $i : $len;
 	    }
-    }
+	} else {
+	    for (@$x) {
+		$i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+	    }
+	}
+!NO!SUBS!
+} else {
+    print OUT <<'!NO!SUBS!';
+	for (@$x) {
+	    $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+	}
+!NO!SUBS!
+} # if: $bvalflag
+	
+    print OUT <<'!NO!SUBS!';
+    } # if: $findmax
 
     $ret = "\n" . " "x$level . "[\n";
-    { my $level = $level+1;
-      $ret .= " "x$level ."[";
-      for ($i=0; $i<=$#$x; $i++) {
-          $f = sprintf $format,$$x[$i];
-          $t = $len-length($f); $f = " "x$t .$f if $t>0;
-          $ret .= $f;
-	  if (($i+1)%$dims[0]) {
-	     $ret.=$sep;
-          }
-	  else{ # End of output line
-	     $ret.="]";
-	     if ($i==$#$x) { # very last number
-	        $ret.="\n";
-	     }
-	     else{
-	        $ret.= $sep2."\n" . " "x$level ."[";
-	     }
-	  }
-       }
+    { 
+	my $level = $level+1;
+	$ret .= " "x$level ."[";
+	for ($i=0; $i<=$#$x; $i++) {
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	    if ( $badflag and $$x[$i] eq "BAD" ) {
+		$f = "BAD";
+	    } else {
+		$f = sprintf $format,$$x[$i];
+	    }
+!NO!SUBS!
+} else {
+    print OUT <<'!NO!SUBS!';
+            $f = sprintf $format,$$x[$i];
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+	    $t = $len-length($f); $f = " "x$t .$f if $t>0;
+	    $ret .= $f;
+	    if (($i+1)%$dims[0]) {
+		$ret.=$sep;
+	    }
+	    else{ # End of output line
+		$ret.="]";
+		if ($i==$#$x) { # very last number
+		    $ret.="\n";
+		}
+		else{
+		    $ret.= $sep2."\n" . " "x$level ."[";
+		}
+	    }
+	}
     }
     $ret .= " "x$level."]\n";
     return $ret;
 }
-
-
-1;# Exit with OK status
-
 
 ########## Docs for functions in Core.xs ##################
 # Pod docs for functions that are imported from Core.xs and are
@@ -2101,6 +2247,26 @@ The C<sethdr> function must be given a hash reference.
 For further information on the header, see L<gethdr|/gethdr> and
 L<hdrcpy|/hdrcpy>.
 
+=head2 hdrcpy
+
+=for ref
+
+switch on/off/examine automatic header copying
+
+=for example
+
+ print "hdrs will be copied" if $a->hdrcpy;
+ $a->hdrcpy(1);       # switch on hdr copying
+ $b = $a->sumover;    # and $b will inherit $a's hdr
+ $a->hdrcpy(0);       # and now make $a non-infectious again
+
+Normally, the optional header of a piddle is not copied
+automatically in pdl operations. Switching on the hdrcpy
+flag using the C<hdrcpy> method will enable automatic hdr
+copying. Note that copying is B<by reference> for efficiency
+reasons. C<hdrcpy> without an argument just returns the
+current setting of the flag.
+
 =head1 AUTHOR
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
@@ -2112,8 +2278,9 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
-
 =cut
 
+1;# Exit with OK status
 
-1;
+!NO!SUBS!
+

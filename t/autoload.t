@@ -1,21 +1,25 @@
+# -*-perl-*-
 
 # Test PDL::AutoLoader
+
+use strict;
+use Test;
+
+BEGIN {
+#    plan tests => 1, todo => [1];
+    plan tests => 1;
+}
 
 use PDL::LiteF;
 use PDL::AutoLoader;
 
-print "1..1\n";
+use vars qw( @PDLLIB );
 
-@PDLLIB = ("t/");
+@PDLLIB = ("t/"); # this means you have to run the test from ../t
 
-$x = long(2 + ones(2,2));
+my $x = long(2 + ones(2,2));
 
-$y = func($x);
+my $y = func($x);
 
-if (sum($y) == 4*29) {
-   print "ok 1\n";
-}
-else{
-   print "not ok 1\n";
-}
+ok( sum($y), 4*29 );
 

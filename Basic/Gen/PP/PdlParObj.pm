@@ -1,11 +1,21 @@
 ##############################################
+
+##############################################
+
 package PDL::PP::PdlParObj;
+
 use Carp;
 use SelfLoader;
 use PDL::Core;
 use PDL::Types;
 
 @ISA = qw/ SelfLoader /;
+
+# check for bad value support
+#
+use PDL::Config;
+#my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+$usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 # need some mods in Types and Core for that
 # for (byte,short,ushort,long,float,double) {
@@ -42,9 +52,13 @@ for (['Byte',$PDL_B],
 
 __DATA__
 
+# need for $badflag is due to hacked get_xsdatapdecl() 
+# - this should disappear when (if?) things are done sensibly
+#
 sub new {
-	my($type,$string,$number) = @_;
-	my $this = bless {Number => $number},$type;
+	my($type,$string,$number,$badflag) = @_;
+	$badflag ||= 0;
+	my $this = bless {Number => $number, BadFlag => $badflag},$type;
 # Parse the parameter string
 	$string =~
 		/^
@@ -176,10 +190,10 @@ sub ctype {
 
 # return the enum type for a parobj; it'd better be typed
 sub cenum {
-  my $this = shift;
-  croak "cenum: unknownn type"
-    unless defined($PDL::PP::PdlParObj::Typemap{$this->{Type}});
-  return $PDL::PP::PdlParObj::Typemap{$this->{Type}}->{Cenum};
+    my $this = shift;
+    croak "cenum: unknown type [" . $this->{Type} . "]"
+	unless defined($PDL::PP::PdlParObj::Typemap{$this->{Type}});
+    return $PDL::PP::PdlParObj::Typemap{$this->{Type}}->{Cenum};
 }
 
 sub get_nname{ my($this) = @_;
@@ -193,7 +207,7 @@ sub get_nnflag { my($this) = @_;
 
 # XXX There might be weird backprop-of-changed stuff for [phys].
 #
-# Have changed code to assume that, if(!$this->{FlagCreat}) 
+# Have changed code to assume that, if(!$this->{FlagCreat})
 # then __creating[] will == 0
 #  -- see make_redodims_thread() in ../PP.pm
 #
@@ -386,16 +400,35 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))");
 }
 
-sub get_xsdatapdecl { my($this,$genlooptype,$asgnonly) = @_;
-	my $type; my $pdl = $this->get_nname; my $flag = $this->get_nnflag;
-		      my $name = $this->{Name};
-	$type = $this->ctype($genlooptype) if defined $genlooptype;
-	my $declini = ($asgnonly ? "" : "\t$type *");
-	my $cast = ($type ? "($type *)" : "");
+# XXX hacked to create a variable containing the bad value for 
+# this piddle. 
+# This is a HACK (Doug Burke 07/08/00)
+# XXX
+#
+sub get_xsdatapdecl { 
+    my($this,$genlooptype,$asgnonly) = @_;
+    my $type; 
+    my $pdl = $this->get_nname; 
+    my $flag = $this->get_nnflag;
+    my $name = $this->{Name};
+    $type = $this->ctype($genlooptype) if defined $genlooptype;
+    my $declini = ($asgnonly ? "" : "\t$type *");
+    my $cast = ($type ? "($type *)" : "");
 # ThreadLoop does this for us.
 #	return "$declini ${name}_datap = ($cast((${_})->data)) + (${_})->offs;\n";
-	return "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));
-		$declini ${name}_physdatap = ($cast($pdl->data));
-	\n";
+    
+    my $str = "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));\n" .
+	"$declini ${name}_physdatap = ($cast($pdl->data));\n";
+
+    # assuming we always need this 
+    # - may not be true - eg if $asgnonly ??
+    # - not needed for floating point types when using NaN as bad values
+    if ( $this->{BadFlag} and $type and 
+	 ( $usenan == 0 or $type !~ /^PDL_(Float|Double)$/ ) ) {
+	my $cname = $type; $cname =~ s/^PDL_//;
+	$str .= "\t$type   ${name}_badval = PDL->bvals.$cname;\n";
+    }	
+
+    return "$str\n";
 }
 

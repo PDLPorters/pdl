@@ -1,13 +1,27 @@
 (!!! = possible source of incompatibilities)
+Doug Burke 
+    - Bad value support integrated into the main branch. Set WITH_BADVAL to 1 in
+      perldl.conf to use. See Basic/BadValues.pod for more information and try
+      the two demos (demo bad, bad2).
+      Many of the internals have been tweaked (eg many more files are created at
+      compile time in Basic/Core - including Dev.pm; m51.fits is now installed 
+      for the bad2 demo ...)
+    - Basic/Core now contains isbigendian.p - this is created at compile time.
+      IO::Misc::isbigendian uses this.
+    - IO::NDF now saves byte piddles as "_UBYTE", rather than "_BYTE", NDFs
+    - log10 is now in Ops (using C-library version), although a version is
+      left in Core.pm.PL so that log10(2.3) returns a perl scalar, not a 0D piddle
+    - removed 1-argument form of where() since been deprecated long enough
+Jim Edwards
+    - swcols added to IO::Misc - like wcols but to a string, not a file
 Jim Edwards (08/25/00)
-    - minor bugfix in TriD contour3d 
+    - minor bugfix in TriD contour3d
     - added Labels to TriD contour3d options
 Doug Burke (08/12/00-08/13/00; 08/17/00)
     - minor bugfix to Graphics/Karma/Makefile.PL
     - made qsort and qsort_ind C routines in primitive.pd available to all
       modules via the PDL Core structure (pdlcore.h is now created by pdlcore.h.PL)
-    - updated image2d.pd to use primitive's qsort rather than its own and
-      fixed a bug in patch2d
+      and updated image2d.pd to use this (+ bug fix to patch2d)
     - added double precision versions of sum, sumover, cumusumover (same for prod)
       and average (eg dsum, daverage). Added prodover routine
       Changed stats to use this (+ changed PDL::Tests to avoid name clashes)
@@ -16,17 +30,17 @@ Doug Burke (08/12/00-08/13/00; 08/17/00)
     - marked several functions in math.pd as inplace (needs documenting)
     - fixed rndf() so that can use rndf('../bob')
 Jim Edwards (08/08/00)
-    - Major changes to the TriD code (requires perl 5.6.0)
+    - Major changes to the TriD code (requires perl 5.6.0)                      
 Doug Burke (08/02/00)
     - 'bool' to 'boolvar' in cpoly.c to get it to compile under Linux
     - added 'Inplace' rule to PP.pm to flag a routine as inplace (see ops.pd)
     - minor improvement to PP output if $::PP_VERBOSE is set
-CS	- ops.pd: fix inplace problem (reported by Tim Conrow)
+CS      - ops.pd: fix inplace problem (reported by Tim Conrow)
 Doug Burke (07/27/00)
     - some minor changes to PP.pm & PDLCode.pm (no longer generates
       'THISISxxx' macros in xs code unless they're required.
 CS	- PP: don't use copy method when HASP2Child
-	- Makefile.PL: no .3 manpages
+	- Makefile.PL: no .3 manpages                                           
 CS	- Core: pdl.h dependencies
 	- pdlapi.c: comments and debugging
 	- ops.pd: docs fixes
@@ -36,17 +50,7 @@ CS	- Core: pdl.h dependencies
 	- CallExt/Makefile.PL: malloc debugging support
 	- fftw.pd: doc fixes, exports and convolution
 	- slatec: error handler now calls croak (instead of being fatal)
-	- VRML: fix problem with prototype registration
-Doug Burke (7/12/00,7/13/00)
-    - changed zcover's documentation from '!=' to '==' since it returns
-      true if all elements == 0.
-    - removed unused memory allocation code in pdl_*_vaffine() routines in
-      pdlconv.c.PL
-    - added a few notes to DEVELOPMENT on how (not) to create a CVS branch 
-    - added a quick section on accessing children/parents of a piddle
-      to Internals.pod
-Xavier Calbet (7/10/00)
-    - rasc can now handle doubles as well as floats
+        - VRML: fix problem with prototype registration
 Doug Burke (7/02/00 - 7/9/00)
     - stopped some excess code generation & improve legibility of some code
       in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm

@@ -202,7 +202,8 @@ void pdl_insertin( char*y, int* ydims, int nydims,
 
 /* Return value at position (x,y,z...) */
 
-double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, PDL_Long *incs, PDL_Long offset, int ndims) {
+double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, 
+	PDL_Long *incs, PDL_Long offset, int ndims) {
 
     int i;
     double result;

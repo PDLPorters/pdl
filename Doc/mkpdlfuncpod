@@ -37,6 +37,7 @@ sub nofunc {
 	{ print STDERR "skipping $func\n"; return 1 } else { return 0 }
 }
 
+
 # a very simple script to generate a huge manpage of all documented
 # PDL functions
 # mainly to demonstrate what we can do with the new doc format

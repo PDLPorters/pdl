@@ -76,7 +76,7 @@ sub new{
     undef $colors;
   }
 
-  $colors = PDL::Graphics::TriD::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
+  $colors = PDL::Graphics::Trid::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
 
   my $this = $type->SUPER::new($points,$colors,$options);
 
@@ -163,7 +163,7 @@ sub get_valid_options{
 			 ContourMax=>  undef, 
 			 ContourVals=> pdl->null,
 			 UseDefcols=>1,
-          Labels=> undef,
+	                 Labels=> undef,
 			 Font=>$PDL::Graphics::TriD::GL::fontbase}
 }
 

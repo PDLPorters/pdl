@@ -161,10 +161,6 @@ The threading is encapsulated in the structure C<pdlthread.h>.
 
 =head2 Accessing children and parents of a piddle
 
-NOTE: in the main CVS branch, only F<pdlapi.h> exists. You will
-have to get the bad-value support branch to look at the other
-files. However, the description below is still valid.
-
 The file F<Basic/Core/pdlapi.h.PL> contains useful routines for
 manipulating the pdl structure (it's probably easier to read
 F<Basic/Core/pdlapi.h> once you've performed a build of PDL).
@@ -239,9 +235,11 @@ C<i = ...nparents - 1>.
 Once we have the pointer to the child piddle, we can do what we want to 
 it; here we change the value of the C<state> variable, but the details
 are unimportant).
-What I<is> important is that we call C<propogate_badflag> on this
+What B<is> important is that we call C<propogate_badflag> on this
 piddle, to ensure we loop through its children. This recursion
 ensures we get to all the I<offspring> of a particular piddle.
+
+B<THE FOLLOWING NEEDS TO BE CHECKED>.
 
 Access to I<parents> is similar, with the C<for> loop replaced by:
 

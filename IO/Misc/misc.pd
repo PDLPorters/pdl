@@ -1,4 +1,14 @@
-pp_addpm({At=>Top},<<'EOD');
+
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
+# and endian-ness of machine
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, 
+			     "Basic", "Core", "isbigendian.p" );
+
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -16,12 +26,26 @@ A mixture of basic I/O functionality
 
 EOD
 
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) Karl Glazebrook 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+EOD
+
 pp_add_exported('',"rfits wfits rcols wcols swcols rgrep rdsa");
 
 ############################## PM CODE ########################################
 
-
-pp_addpm(<<'EOD');
+pp_addpm(<<'!NO!SUBS!');
 
 use PDL::Primitive;
 use PDL::Types;
@@ -59,6 +83,24 @@ the header retrieved with $a->gethdr.
 History entries in the header are stored as $$h{HISTORY}, which is an
 anonymous array for each HISTORY entry in the header.
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+=for bad
+
+If a FITS file contains the C<BLANK> keyword, the piddle
+will have its bad flag set, and those elements which equal the
+C<BLANK> value will be set bad.
+I<This is probably broken>.
+
+Note that currently L<wfits|/wfits> does I<not> write out the
+C<BLANK> keyword/convert to NaN's.
+
+!NO!SUBS!
+} # if: $bvalflag
+
+pp_addpm(<<'!NO!SUBS!');
 =cut
 
 sub rfits {PDL->rfits(@_)}
@@ -89,11 +131,11 @@ sub PDL::rfits {
 
       # skip if the first eight characters are ' '
       # - as seen in headers from the DSS at STScI
-      next if substr($line,0,8) eq "        ";
+      next if substr($line,0,8) eq " " x 8;
 
       $name = (split(' ',substr($line,0,8)))[0]; 
       $rest = substr($line,8);
-      
+
       if ($name =~ m/^HISTORY/) {
          push @history, $rest;
       } else {
@@ -168,11 +210,41 @@ sub PDL::rfits {
 
    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
 
-   delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-
    # Header
-
    $pdl->sethdr($foo);
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+   # do we have bad values?
+   #
+   # the integer-handling is wrong, because we need to check
+   # for the bad value BEFORE scaling
+   # and the floating point case is just ugly
+   #
+   if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
+       # integer, and bad value == BLANK keyword
+       my $blank = $foo->{BLANK};
+       # do we have to do any conversion?
+       if ( $blank == $pdl->badvalue() ) {
+	   $pdl->badflag(1);
+       } else {
+	   $pdl = $pdl->setbadif( $pdl == $blank );
+       }
+       print "FITS file may contain bad values.\n" if $PDL::verbose;
+   } else {
+      # bad values are stored as NaN's
+      # - this is NASTY
+      $pdl->inplace->badmask( $pdl->badvalue );
+      $pdl->badflag(1) if any( $pdl == $pdl->badvalue );
+   }
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'EOD');
 
    return $pdl;
 }
@@ -197,6 +269,19 @@ Suffix magic:
 
 $BITPIX is optional and coerces the output format.
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+=for bad
+
+Note that currently L<wfits|/wfits> does I<not> write out the
+C<BLANK> keyword.
+
+!NO!SUBS!
+} # if: $bvalflag
+
+pp_addpm(<<'!NO!SUBS!');
 =cut
 
 *wfits = \&PDL::wfits;
@@ -827,7 +912,7 @@ sub PDL::wcols {
        foreach my $key ( keys %$opt ) {
 	   if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
 	   else {
-	       print "Warning: rcols does not understand option <$key>.\n"; 
+	       print "Warning: wcols does not understand option <$key>.\n"; 
 	   }
        }
    }
@@ -932,7 +1017,7 @@ sub PDL::swcols{
   my @p = @_;
   my $n = $p[0]->nelem;
   for (@p) {
-	 barf "scols: 1d args must have same number of elements\n"
+	 barf "swcols: 1d args must have same number of elements\n"
 		if $_->nelem != $n or $_->getndims!=1;
   }
 
@@ -1105,9 +1190,22 @@ sub PDL::rdsa {
     return ($xpdl,$pdl);
 }
 
+=head2 isbigendian()
+
+=for ref
+
+Determine endianness of machine - returns 0 or 1 accordingly
+
+=cut
+
+EOD
+
+# $isbigendian is set up in isbigendian.p in Basic/Core/
+# (created at compile time)
+pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL::isbigendian;\n");
+pp_add_exported("", "isbigendian");
 
 ################################ XS CODE ######################################
-EOD
 
 sub defpdl {
 	pp_def(
@@ -1118,43 +1216,6 @@ sub defpdl {
 		Doc  => $_[4],
 	);
 }
-
-pp_addpm(<<'EOD');
-
-=head2 isbigendian()
-
-=for ref
-
-Determine endianness of machine - returns 0 or 1 accordingly
-
-=cut
-EOD
-
-pp_addxs('','
-
-MODULE = PDL::IO::Misc PACKAGE = PDL
-
-int
-isbigendian()
-   CODE:
-     unsigned short i;
-     PDL_Byte *b;
-
-     i = 42; b = (PDL_Byte*) (void*) &i;
-
-     if (*b == 42)
-        RETVAL = 0;
-     else if (*(b+1) == 42)
-        RETVAL = 1;
-     else
-         barf("Impossible - machine is neither big nor little endian!!\n");
-     OUTPUT:
-       RETVAL
-');
-
-pp_addpm("*isbigendian = \\&PDL::isbigendian;\n");
-pp_add_exported("", "isbigendian");
-
 
 ###### Read ASCII Function ##########
 pp_addhdr(<<'EOH');
@@ -1551,23 +1612,6 @@ defpdl(
      }',
      "Swaps octets of bytes in argument x()"
 );
-
-
-pp_addpm({At=>Bot},<<'EOD');
-
-=head1 AUTHOR
-
-Copyright (C) Karl Glazebrook 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
-EOD
 
 pp_done();
 

@@ -4,6 +4,11 @@ require 'Core/Dev.pm'; PDL::Core::Dev->import();
 use ExtUtils::MakeMaker;
 # # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # # the contents of the Makefile that is written.
+#
+# NOTE:
+#   we hijack m51.fits from the parent directory and 
+#   install that into the demos directory
+#
 WriteMakefile(
      'NAME'	=> 'PDL::Demos',
      'VERSION_FROM' => '../Basic/Core/Version.pm',
@@ -14,6 +19,9 @@ WriteMakefile(
                     'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',
 		    'TkTriD_demo.pm'	=> '$(INST_LIBDIR)/Demos/TkTriD_demo.pm',
 		    'PGPLOT_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_demo.pm',
+                    'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
+                    'BAD2_demo.pm'      => '$(INST_LIBDIR)/Demos/BAD2_demo.pm',
+                    '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
 		   }
 );
 

@@ -10,7 +10,7 @@ disable building of some modules in the distrib if required.
 
 MODULE          DEPENDS ON                  COMMENT
 
-PDL (all)	perl 5.004_01		you need at least this version
+PDL (all)	perl 5.005		you need at least this version
 					of perl to succeed.
 
 perldl (shell)  Term::ReadLine    	perl provides a stub but if you
@@ -18,14 +18,9 @@ perldl (shell)  Term::ReadLine    	perl provides a stub but if you
 					(Term::ReadLine or
 					Term::ReadLine::Gnu)
 
-PDL::Graphics::OpenGL
 PDL::Graphics::TriD
-                Require Perl version 5.6.0 or higher.
-                Require OpenGL implementation. For free implementation
-                try Mesa at http://www.mesa3d.org.  Mesa is now in CVS at 
-                http://sourceforge.net !
-                The Tk interface requires Perl::Tk from CPAN
-                This module does not run under Windows.
+                Requires OpenGL implementation. For free implementation
+                check out Mesa at http://www.ssec.wisc.edu/~brianp/Mesa.html
 
                                         Required. Module won't build
                                         without libraries. To disable

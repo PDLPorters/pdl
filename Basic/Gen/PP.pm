@@ -21,10 +21,13 @@ $::PP_VERBOSE    = 0;
 
 use Carp;
 
-# use strict qw/vars refs/;
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
-# number of types (used in find_datatype)
 my $ntypes = $#PDL::Types::names;
+
+# use strict qw/vars refs/;
 
 use strict;
 
@@ -308,13 +311,48 @@ no strict;
 
 $PDL::PP::deftbl =
 [
+    # used as a flag for many of the routines
+    # ie should we bother with bad values for this routine?
+    # 1     - yes, 
+    # 0     - no, maybe issue a warning 
+    # undef - we're not compiling with bad value support
+    # 
+ [[BadFlag], [_HandleBad], 
+           sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }],
+
  [[CopyName],	[],	sub {"__copy"}],
  [[DefaultFlow], [],	sub {0}],
  [[DefaultFlowCodeNS] ,[DefaultFlow],
  	sub {$_[0]?'$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;':"/* No flow: $_[0] */"}],
 
 # no docs by default
- [[Doc],        [],     sub {"\n=for ref\n\ninfo not available\n"}],
+    [[Doc],        [],     sub {"\n=for ref\n\ninfo not available\n"}],
+    
+# try and automate the docs 
+# could be really clever and include the sig to see about
+# input/output params, for instance
+#
+    [[BadDoc],   [BadFlag,Name,_CopyBadStatusCode], 
+          sub { return undef unless $bvalflag;  
+		my ( $bf, $name, $code ) = @_;
+		my $str;
+		if ( ! defined($bf) ) {
+		    $str = "$name does not process bad values.\n";
+		} elsif ( $bf ) {
+		    $str = "$name does handle bad values.\n";
+		} else {
+		    $str = "$name ignores the bad-value flag of the input piddles.\n";
+		}
+		if ( ! defined($code) ) {
+		    $str .= "It will set the bad-value flag of all output piddles if " .
+			"the flag is set for any of the input piddles.\n";
+		} elsif (  $code eq '' ) {
+		    $str .= "The output piddles will NOT have their bad-value flag set.\n";
+		} else {
+		    $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
+		}
+	    }],
+ 
 # no p2child by default
  [ [HASP2Child],   [P2Child],   sub {return $_[0] != 0}],
  [ [HASP2Child],   [],     sub {0}],
@@ -341,29 +379,26 @@ $PDL::PP::deftbl =
  				"pdimexpr2priv"],
  [[RedoDims],		[Identity,FHdrInfo],	"identity2priv"],
 
- [[EquivCPOffsCode],	[Identity],	sub {'
- 	int i;
-	for(i=0; i<$CHILD_P(nvals); i++)  {
-		$EQUIVCPOFFS(i,i);
-	}
- 	'}],
+ # NOTE: we use the same bit of code for all-good and bad data -
+ #  see the Code rule
+ [[EquivCPOffsCode],	[Identity],	"equivcpoffscode",
+    "something to do with dataflow between CHILD & PARENT, I think."],
 
- [[Code],	[EquivCPOffsCode],	sub {my($ret) = @_;
-		  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-		  $ret;
-		  }],
- [[BackCode],	[EquivCPOffsCode],	sub {my($ret) = @_;
-		  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-		  $ret;
-		  }],
+ [[Code],	[EquivCPOffsCode,BadFlag],   "CodefromEquivCPOffsCode",
+    "create Code from EquivCPOffsCode"],
+
+ [[BackCode],	[EquivCPOffsCode,BadFlag],   "BackCodefromEquivCPOffsCode",
+    "create BackCode from EquivCPOffsCode"],
+
  [[Affine_Ok],	[EquivCPOffsCode],	sub {0}],
  [[Affine_Ok],	[],			sub {1}],
 
  [[ReadDataFuncName],	[AffinePriv],	sub {NULL}],
  [[WriteBackDataFuncName],	[AffinePriv],	sub {NULL}],
 
- [[BootStruct],	[AffinePriv,VTableName], sub {"$_[1].readdata = PDL->readdata_affine;
- 					$_[1].writebackdata = PDL->writebackdata_affine;"}],
+ [[BootStruct],	[AffinePriv,VTableName], 
+    sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
+	     "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}],
 
  [[ReadDataFuncName],	[Name],	sub {"pdl_$_[0]_readdata"}],
  [[CopyFuncName],	[Name],	sub {"pdl_$_[0]_copy"}],
@@ -384,7 +419,7 @@ $PDL::PP::deftbl =
 # the new rule makes no PMCode anymore, all handled in XS now
 
  [[USParNames,USParObjs,FOOFOONoConversion,HaveThreading,NewXSName],
-   [P2Child,Name],
+   [P2Child,Name,BadFlag],
  		"NewParentChildPars"],
  [[NewXSName],	[Name],	sub {"_$_[0]_int"}],
 
@@ -393,33 +428,39 @@ $PDL::PP::deftbl =
  [[HaveThreading],	[],	sub {1}],
 
 # the docs
- [[PdlDoc],             [Name,_Pars,OtherPars,Doc],  "GenDocs"],
+ [[PdlDoc],             [Name,_Pars,OtherPars,Doc,_BadDoc],  "GenDocs"],
+
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
- [[USParNames,USParObjs,DimmedPars], 	[Pars], 		"Pars_nft"],
+#
+# XXX
+# - the need for BadFlag is due to hacked get_xsdatapdecl()
+#   in PP/PdlParObj and because the PdlParObjs are created by
+#   PDL::PP::Signature (Doug Burke 07/08/00)
+ [[USParNames,USParObjs,DimmedPars], 	[Pars,BadFlag], 		"Pars_nft"],
  [[DimObjs],		[USParNames,USParObjs],	"ParObjs_DimObjs"],
  
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
- [[CallCopy], [DimObjs, USParNames, USParObjs, Name, HASP2Child], 
+ [[CallCopy], [DimObjs, USParNames, USParObjs, Name, HASP2Child],             
  	sub{ 
-		my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
-		return 0 if $hasp2c;
-		my $noDimmedArgs = scalar(keys %$dimObj);		
-		my $noArgs = scalar(@$USParNames);		
-		if( $noDimmedArgs == 0 && $noArgs == 2  ){   # Check for 2-arg functgion with 0-dim signatures
-			# Check to see if output arg is _not_ explicitly typed:
-			my $arg2 = $USParNames->[1];
-			my $ParObj = $USParObjs->{$arg2};
-			if( $ParObj->ctype('generic') eq 'generic'){
-				# print "Calling Copy for function '$Name'\n";
-				return 1;
-			}
+	    my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
+	    return 0 if $hasp2c;
+
+	    my $noDimmedArgs = scalar(keys %$dimObj);		
+	    my $noArgs = scalar(@$USParNames);		
+	    if( $noDimmedArgs == 0 and $noArgs == 2  ){   # Check for 2-arg functgion with 0-dim signatures
+		# Check to see if output arg is _not_ explicitly typed:
+		my $arg2 = $USParNames->[1];
+		my $ParObj = $USParObjs->{$arg2};
+		if( $ParObj->ctype('generic') eq 'generic'){
+		    # print "Calling Copy for function '$Name'\n";
+		    return 1;
 		}
-		return 0;
 	    }
-		],
+	    return 0;
+	}],
 
 
 # "Other pars", the parameters which are usually not pdls.
@@ -442,7 +483,7 @@ $PDL::PP::deftbl =
 
  [[NewXSSymTab],	[DefSyms,NewXSArgs],	"AddArgsyms"],
 
- [[InplaceCode],        [NewXSArgs,USParObjs,_Inplace],           "InplaceCode",
+ [[InplaceCode],        [Name,NewXSArgs,USParObjs,_Inplace],           "InplaceCode",
   'Insert code (just after HdrCode) to ensure the routine can be done inplace'],
  [[HdrCode],            [],           sub { return '' },
   'Code that will be inserted at the end of the autogenerated
@@ -455,6 +496,7 @@ $PDL::PP::deftbl =
 # 	new PDL::PP::Code(@_,1,1)},  
 #   'makes the parsed representation from the supplied processing code, L<HdrCode>'],
 #  [[HdrParsedCodeSubst],  [HdrParsedCode,NewXSSymTab,Name], "dousualsubsts"],
+
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
@@ -463,19 +505,28 @@ $PDL::PP::deftbl =
    _GlobalNew,_CallCopy],
   "VarArgsXSHdr", 'creates xs code to process arguments on stack based on supplied
    Pars argument to pp_def; GlobalNew has implications how/if this is done'],
+
  ## Added new line for returning (or not returning) variables.  D. Hunt 4/7/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- [[VarArgsXSReturn],	[NewXSArgs,USParObjs,_GlobalNew],         "VarArgsXSReturn",
-  "Rule to generate XS trailer for returning output variables"],
+ [[VarArgsXSReturn],	[NewXSArgs,USParObjs,_GlobalNew],         
+    "VarArgsXSReturn",
+    "Rule to generate XS trailer for returning output variables"],
 
  [[NewXSHdr],		[NewXSName,NewXSArgs],	"XSHdr"],
  [[NewXSCHdrs],		[NewXSName,NewXSArgs,GlobalNew],	"XSCHdrs"],
  [[NewXSLocals],	[NewXSSymTab],		"Sym2Loc"],
  [[IsAffineFlag],	[],	sub {return "0"}],
- [[NewXSStructInit0],	[NewXSSymTab,
- 			 VTableName,
-			 IsAffineFlag,
-			 ],		"MkPrivStructInit"],
+
+    # need special cases for
+    # a) bad values
+    # b) bad values + GlobalNew
+    # c) bad values + PMCode
+    # - perhaps I should have separate rules (but b and c produce the
+    #   same output...)
+    #
+ [[NewXSStructInit0], [NewXSSymTab,VTableName,IsAffineFlag],  
+    "MkPrivStructInit", "Rule to create and initialise the private trans structure"],
+
  [[NewXSMakeNow],	[ParNames,NewXSSymTab],	"MakeNows"],
  [[IgnoreTypesOf],	[FTypes],	sub {return {map {($_,1)} keys %{$_[0]}}}],
  [[IgnoreTypesOf],	[],	sub {{}}],
@@ -503,10 +554,10 @@ $PDL::PP::deftbl =
  [[NewXSStructInit1],	[ParNames,NewXSSymTab],	"CopyPDLPars"],
  [[NewXSSetTrans],	[ParNames,ParObjs,NewXSSymTab],	"makesettrans"],
 
- [["ParsedCode"],	[Code,ParNames,ParObjs,DimObjs,GenericTypes,
+ [["ParsedCode"],	[Code,_BadCode,ParNames,ParObjs,DimObjs,GenericTypes,
  			 ExtraGenericLoops,HaveThreading],
  				sub {new PDL::PP::Code(@_)}],
- [["ParsedBackCode"],	[BackCode,ParNames,ParObjs,DimObjs,GenericTypes,
+ [["ParsedBackCode"],	[BackCode,_BadBackCode,ParNames,ParObjs,DimObjs,GenericTypes,
  			 ExtraGenericLoops,HaveThreading],
  				sub {new PDL::PP::Code(@_)}],
 
@@ -549,7 +600,7 @@ $PDL::PP::deftbl =
  [[RedoDimsCode],       [],      sub {"/* none */"},
   'Code that can be inserted to set the size of output piddles
    dynamically based on input piddles; is parsed'],
- [[RedoDimsParsedCode], [RedoDimsCode,ParNames,ParObjs,DimObjs,
+ [[RedoDimsParsedCode], [RedoDimsCode,_BadRedoDimsCode,ParNames,ParObjs,DimObjs,
                          GenericTypes,ExtraGenericLoops,HaveThreading],
  				sub { return "/* no RedoDimsCode */"
 					if $_[0] =~ m|^/[*] none [*]/$|;
@@ -608,32 +659,61 @@ $PDL::PP::deftbl =
  [[NewXSCoerceMustSubs], [NewXSCoerceMustSub1,NewXSSymTab,Name],	"dosubst"],
  [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}],
 
+ [[NewXSFindBadStatusNS], 
+    [BadFlag,_FindBadStatusCode,NewXSArgs,USParObjs,OtherParTypes,NewXSSymTab,Name], 
+    "findbadstatus",
+    "Rule to find the bad value status of the input piddles"],
+
+    # this can be removed once the default bad values are stored in a C structure
+    # (rather than as a perl array in PDL::Types)
+    # which it now is, hence the comments (DJB 07/10/00)
+    # - left around in case we move to per-piddle bad values
+# [[NewXSCopyBadValues], [BadFlag,NewXSSymTab], 
+#    "copybadvalues",
+#    "Rule to copy the default bad values into the trnas structure"],
+
+ [[NewXSCopyBadStatusNS], [BadFlag,_CopyBadStatusCode,NewXSArgs,USParObjs,NewXSSymTab], 
+    "copybadstatus",
+    "Rule to copy the bad value status to the output piddles"],
+
+ # expand macros in ...BadStatusCode
+ [[NewXSFindBadStatus], [NewXSFindBadStatusNS,NewXSSymTab,Name], "dousualsubsts"],
+ [[NewXSCopyBadStatus], [NewXSCopyBadStatusNS,NewXSSymTab,Name], "dousualsubsts"],
+
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
- [[NewXSCode,BootSetNewXS,NewXSInPrelude
-  ],		[_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
- 			 NewXSMakeNow, NewXSFindDatatype,NewXSTypeCoerce,
-			 NewXSStructInit1,
-			 NewXSStructInit2,
-			 NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
-			 NewXSClearThread,
-			 NewXSSetTrans,
-                         VarArgsXSReturn,
-			 ],	"mkVarArgsxscat",
- "Rule to print out XS code when variable argument list XS processing is enabled"],
+ [[NewXSCode,BootSetNewXS,NewXSInPrelude],
+    [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
+     NewXSFindBadStatus,
+#     NewXSCopyBadValues,
+     NewXSMakeNow, 
+     NewXSFindDatatype,NewXSTypeCoerce,
+     NewXSStructInit1,
+     NewXSStructInit2,
+     NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
+     NewXSClearThread,
+     NewXSSetTrans,
+     NewXSCopyBadStatus,
+     VarArgsXSReturn,
+     ],	"mkVarArgsxscat",
+    "Rule to print out XS code when variable argument list XS processing is enabled"],
 
  # This rule will fail if the preceding rule succeeds 
  # D. Hunt 4/11/00
- [[NewXSCode,BootSetNewXS,NewXSInPrelude
-  ],		[_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
- 			 NewXSMakeNow, NewXSFindDatatype,NewXSTypeCoerce,
-			 NewXSStructInit1,
-			 NewXSStructInit2,
-			 NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
-			 NewXSClearThread,
-			 NewXSSetTrans,
-			 ],	"mkxscat",
- "Rule to print out XS code when variable argument list XS processing is disabled"],
+ [[NewXSCode,BootSetNewXS,NewXSInPrelude],
+    [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
+     NewXSFindBadStatus,
+#     NewXSCopyBadValues,
+     NewXSMakeNow, 
+     NewXSFindDatatype,NewXSTypeCoerce,
+     NewXSStructInit1,
+     NewXSStructInit2,
+     NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
+     NewXSClearThread,
+     NewXSSetTrans,
+     NewXSCopyBadStatus,
+     ],	"mkxscat",
+    "Rule to print out XS code when variable argument list XS processing is disabled"],
 
  [[StructDecl],		[ParNames,ParObjs, CompiledRepr,
                          PrivateRepr,StructName],
@@ -686,11 +766,15 @@ $PDL::PP::deftbl =
 use strict;
 
 sub GenDocs {
-  my ($name,$pars,$otherpars,$doc) = @_;
+  my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
 
   # Allow explcit non-doc using Doc=>undef
 
   return '' if $doc eq '' && (!defined $doc) && $doc==undef;
+  return '' if $doc =~ /^\s*internal\s*$/i;
+
+  # remove any 'bad' documentation if we're not compiling support
+  $baddoc = undef unless $bvalflag;
 
   # If the doc string is one line let's have to for the
   # reference card information as well
@@ -698,7 +782,6 @@ sub GenDocs {
                 #  'implicit split to @_ is deprecated' messages
   $doc = "=for ref\n\n".$doc if( scalar(@splitRes = split("\n", $doc)) <= 1);
 
-  return '' if $doc =~ /^\s*internal\s*$/i;
   $::DOCUMENTED++;
   $pars = "P(); C()" unless $pars;
   $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
@@ -706,6 +789,10 @@ sub GenDocs {
   my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
 
   $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
+  if ( defined $baddoc ) {
+      $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
+      $baddoc = "=for bad\n\n$baddoc";
+  }
 
   return << "EOD";
 
@@ -716,6 +803,8 @@ sub GenDocs {
   Signature: ($sig)
 
 $doc
+
+$baddoc
 
 =cut
 
@@ -756,10 +845,10 @@ sub translate {
 	  if(exists $pars->{$_}) {
 	      print "Not applying rule $rule_id, resexist\n"
 		  if $::PP_VERBOSE;
-	      next RULE;
-	  }
+	      next RULE
+	      }
       }
-      
+
       # Unless all rule[1]s exist, don't apply rule
       # except if a rule is prefixed by '_'
       for(@{$rule->[1]}) {
@@ -768,11 +857,11 @@ sub translate {
 	      $foo =~ s/^_//;
 	  } elsif(!exists $pars->{$_}) {
 	      print "Component $_ not found for $rule_id, next rule\n" if $::PP_VERBOSE;
-	      next RULE;
-	  }
+	      next RULE
+	      }
 	  push @args, $pars->{$foo};
       }
-#		print "Applying rule $rule_id\n",Dumper($rule);
+#		print "Applying rule $rule->[2]\n",Dumper($rule);
       print "Applying rule $rule_id\n" if $::PP_VERBOSE;
       my @res = &{$rule->[2]}(@args);
       print "Setting " if $::PP_VERBOSE;
@@ -819,20 +908,20 @@ sub make_newcoerce {
 # PARENT; CHILD parameters, so we can just take the
 # datatype to be that of PARENT (which is set up by
 # find_datatype()). Little bit complicated because
-# we need to set CHILD's datatype under certain 
+# we need to set CHILD's datatype under certain
 # circumstances
 #
 sub coerce_types {
     my($parnames,$parobjs,$ignore,$newstab,$hasp2child) = @_;
 
-    # mainly will be [oca]CHILD();
+    # assume [oca]CHILD();, although there might be an ignore
     if ( $hasp2child ) {
 	my $child = $$parnames[1];
 	return "" if $ignore->{$child};
-
-	die "ERROR: coerce_types expected $child to be [oca]\n"
+	
+	die "ERROR: expected $child to be [oca]\n"
 	    unless $parobjs->{$child}{FlagCreateAlways};
-
+	
 	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
     }
 
@@ -882,14 +971,14 @@ sub find_datatype {
     my $dtype = "\$PRIV(__datatype)";
 
     # TODO XXX
-    #  check can probably be removed, but left in since I don't know
+    #  the check can probably be removed, but left in since I don't know
     #  what I'm doing (DJB)
-    die "ERROR: gentypes != $ntypes with p2child\n" 
+    die "ERROR: gentypes != $ntypes with p2child\n"
 	if $hasp2child and $#$gentypes != $ntypes;
-
+    
     return "$dtype = $$parnames[0]\->datatype;\n"
 	if $hasp2child;
-
+    
     my $str = "$dtype = 0;";
     foreach ( @$parnames ) {
 	my $po = $parobjs->{$_};
@@ -961,6 +1050,8 @@ sub make_redodims_thread {
     
     # if FlagCreat is NOT true, then we set __creating[] to 0
     # and we can use this knowledge below, and in hdrcheck()
+    # and in PP/PdlParObj (get_xsnormdimchecks())
+    #
     foreach ( 0 .. $nn ) {
 	$str .= "__creating[$_] = ";
 	if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
@@ -969,11 +1060,6 @@ sub make_redodims_thread {
 	    $str .= "0;\n";
 	}
     } # foreach: 0 .. $nn
-
-# - null != [0]
-#	$str .= join '',map {"if((!__creating[$_]) && \$PRIV(pdls[$_])-> ndims == 1 && \$PRIV(pdls[$_])->dims[0] == 0)
-#				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
-#					"} (0..$#$pnames);
     
     foreach ( 0 .. $nn ) {
 	my $po = $pobjs->{$pnames->[$_]};
@@ -982,10 +1068,6 @@ sub make_redodims_thread {
 	$str .= "($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)\n" .
 	    "   \$CROAK(\"CANNOT CREATE PARAMETER $po->{Name}\");\n";
     }
-
-#	$str .= join '',map {"if((!__creating[$_]) && ($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)
-#				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
-#					"} (0..$#$pnames);
 
     $str .= " {\n$pcode\n}\n";
     $str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
@@ -1004,11 +1086,6 @@ sub make_redodims_thread {
 
 sub hdrcheck {
   my ($pnames,$pobjs) = @_;
-
-#  $str .= "{ int i=0; void *hdrp = NULL;\n";
-#  $str .= join '',map {
-#                  "if (!hdrp && !__creating[i++] && $_\->hdrsv && ($_\->state & PDL_HDRCPY))
-#                       hdrp = $_\->hdrsv;\n" } @names;
 
   my $nn = $#$pnames;
   my @names = map { "\$PRIV(pdls[$_])" } 0..$nn;
@@ -1163,15 +1240,23 @@ sub dosubst {
 #	print "DOSUBST on ",Dumper($src),"\n";
 	my $ret = (ref $src ? $src->[0] : $src);
 	my %syms = (
-		((ref $src) ? %{$src->[1]} : ()),
-		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
-					"->$_[0]"},
-		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
-		NAME => sub {return $name},
-		MODULE => sub {return $::PDLMOD},
-	SETREVERSIBLE => sub {"if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;
-				else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;"},
-	);
+		    ((ref $src) ? %{$src->[1]} : ()),
+		    PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
+				     "->$_[0]"},
+		    CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
+		    NAME => sub {return $name},
+		    MODULE => sub {return $::PDLMOD},
+
+		    SETPDLSTATEBAD  => sub { return "$_[0]\->state |= PDL_BADVAL"; },
+		    SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
+		    ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
+		    ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
+
+		    SETREVERSIBLE => sub {
+			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
+			    "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
+			    },
+		    );
 	while(
 		$ret =~ s/\$(\w+)\(([^()]*)\)/
 			(defined $syms{$1} or
@@ -1225,16 +1310,26 @@ sub subst_makecomp {
 	];
 }
 
+# XXX
+# - the need for BadFlag is due to hacked get_xsdatapdecl()
+#   in PP/PdlParObj and because the PdlParObjs are created by
+#   PDL::PP::Signature (Doug Burke 07/08/00)
 sub NewParentChildPars {
-	my($p2child,$name) = @_;
-	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_NN");
+    my($p2child,$name,$badflag) = @_;
+    return (Pars_nft("PARENT(); [oca]CHILD();",$badflag),0,"${name}_NN");
 }
 
-# doesn't seem to be used anymore
+# XXX
+# - the need for BadFlag is due to hacked get_xsdatapdecl()
+#   in PP/PdlParObj and because the PdlParObjs are created by
+#   PDL::PP::Signature (Doug Burke 07/08/00)
+#
+# however, it looks like this isn't being used anymore,
+# so commenting out.
 #
 #sub ParentChildPars {
-#	my($p2child,$name) = @_;
-#	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_XX",
+#	my($p2child,$name,$badflag) = @_;
+#	return (Pars_nft("PARENT(); [oca]CHILD();",$badflag),0,"${name}_XX",
 #	"
 #	*$name = \\&PDL::$name;
 #	sub PDL::$name {
@@ -1269,41 +1364,38 @@ sub NT2Free_p {&NT2Free__({ToPtrs=>1},@_);}
 sub NT2Decls {&NT2Decls__({},@_);}
 
 sub NT2Decls__ {
-	my($opts,$onames,$otypes) = @_; my $decl;
-	my $dopts = {};
-	if($opts->{ToPtrs}) {
-		$dopts->{VarArrays2Ptrs} = 1;
-	}
-	for(@$onames) {
-		$decl .= $otypes->{$_}->get_decl($_,$dopts).";";
-	}
-	$decl
+    my($opts,$onames,$otypes) = @_; 
+    my $decl;
+    my $dopts = {};
+    $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
+    for(@$onames) {
+	$decl .= $otypes->{$_}->get_decl($_,$dopts).";";
+    }
+    return $decl;
 }
 
 sub NT2Copies__ {
-	my($opts,$onames,$otypes,$copyname) = @_; my $decl;
-	my $dopts = {};
-	if($opts->{ToPtrs}) {
-		$dopts->{VarArrays2Ptrs} = 1;
-	}
-	for(@$onames) {
-		$decl .= $otypes->{$_}->get_copy("\$PRIV($_)","$copyname->$_",
-			$dopts).";";
-	}
-	$decl
+    my($opts,$onames,$otypes,$copyname) = @_; 
+    my $decl;
+    my $dopts = {};
+    $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
+    for(@$onames) {
+	$decl .= $otypes->{$_}->get_copy("\$PRIV($_)","$copyname->$_",
+					 $dopts).";";
+    }
+    return $decl;
 }
 
 sub NT2Free__ {
-	my($opts,$onames,$otypes) = @_; my $decl;
-	my $dopts = {};
-	if($opts->{ToPtrs}) {
-		$dopts->{VarArrays2Ptrs} = 1;
-	}
-	for(@$onames) {
-		$decl .= $otypes->{$_}->get_free("\$PRIV($_)",
-			$dopts).";";
-	}
-	$decl
+    my($opts,$onames,$otypes) = @_; 
+    my $decl;
+    my $dopts = {};
+    $dopts->{VarArrays2Ptrs} = 1 if $opts->{ToPtrs};
+    for(@$onames) {
+	$decl .= $otypes->{$_}->get_free("\$PRIV($_)",
+					 $dopts).";";
+    }
+    return $decl;
 }
 
 sub CopyOtherPars {
@@ -1364,36 +1456,36 @@ if(0) {
 sub direct {return @_;}
 
 sub MakeNows {
-	my($pnames, $symtab) = @_;
-	my $str;
-	for(@$pnames) {
-		$str .= "$_ = PDL->make_now($_);\n";
-	}
-	$str;
+    my($pnames, $symtab) = @_;
+    my $str = "\n";
+    for(@$pnames) { $str .= "$_ = PDL->make_now($_);\n"; }
+    return $str;
 }
 
-sub Sym2Loc {
-	return $_[0]->decl_locals();
-}
+sub Sym2Loc { return $_[0]->decl_locals(); }
 
 sub defstructname {return "pdl_$_[0]_struct"}
 sub defvtablename {return "pdl_$_[0]_vtable"}
 
 sub MkPrivStructInit {
-	my($symtab,$vtable,$affflag) = @_;
-	my $sname = $symtab->get_symname('_PDL_ThisTrans');
-	return "$sname = malloc(sizeof(*$sname));
-		PDL_TR_SETMAGIC($sname);
-		$sname->flags = $affflag;
-		$sname->__ddone = 0;
-		$sname->vtable = &$vtable;
-		$sname->freeproc = PDL->trans_mallocfreeproc;";
-}
+    my( $symtab, $vtable, $affflag ) = @_;
+    my $sname = $symtab->get_symname('_PDL_ThisTrans');
+
+    my $ci = '   ';
+    return
+	"\n${ci}$sname = malloc(sizeof(*$sname));\n" .
+	"${ci}PDL_TR_SETMAGIC($sname);\n" .
+	"${ci}$sname->flags = $affflag;\n" .
+	"${ci}$sname->__ddone = 0;\n" .
+	"${ci}$sname->vtable = &$vtable;\n" .
+	"${ci}$sname->freeproc = PDL->trans_mallocfreeproc;\n";
+
+} # sub: MkPrivStructInit()
 
 sub MkDefSyms {
-	return new SymTab(
-		_PDL_ThisTrans => ["__privtrans",new C::Type(undef,"$_[0] *foo")],
-	);
+    return new SymTab(
+		      _PDL_ThisTrans => ["__privtrans",new C::Type(undef,"$_[0] *foo")],
+		      );
 }
 
 sub AddArgsyms {
@@ -1408,9 +1500,14 @@ sub AddArgsyms {
 sub nospacesplit {map {/^\s*$/?():$_} split $_[0],$_[1]}
 
 # Pars -> ParNames, Parobjs
+#
+# XXX
+# - the need for BadFlag is due to hacked get_xsdatapdecl()
+#   in PP/PdlParObj and because the PdlParObjs are created by
+#   PDL::PP::Signature (Doug Burke 07/08/00)
 sub Pars_nft {
-	my($str) = @_;
-	my $sig = new PDL::PP::Signature($str);
+	my($str,$badflag) = @_;
+	my $sig = new PDL::PP::Signature($str,$badflag);
 	return ($sig->names,$sig->objs,1);
 }
 
@@ -1570,6 +1667,7 @@ sub typemap {
 # This subroutine is called when no 'otherpars' exist.
 # This writes an XS header which handles variable argument lists, 
 # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
+#
 sub VarArgsXSHdr {
   my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,
      $hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
@@ -1580,8 +1678,10 @@ sub VarArgsXSHdr {
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
-  return undef if $globalnew; # don't generate a HDR if globalnew is set
-                              # globalnew implies internal usage, not XS
+
+  # don't generate a HDR if globalnew is set
+  # globalnew implies internal usage, not XS
+  return undef if $globalnew; 
 
   my $ci = '  ';  # current indenting
   my $pars = join "\n",map {$ci.$_->[1]->get_decl($_->[0]).";"} @$xsargs;
@@ -1625,15 +1725,16 @@ sub VarArgsXSHdr {
   # clause for reading in all variables
   my $clause1 = ''; my $cnt = 0;
   foreach my $i ( 0 .. $#args ) {
-    if ($other{$args[$i]}) {  # other par
-      $clause1 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n"; 
-      $cnt++;
-    } elsif ($outca{$args[$i]}) {
-      push (@create, $args[$i]);
-    } else {
-      $clause1 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n"; 
-      $cnt++;
-    }
+      my $x = $args[$i];
+      if ($other{$x}) {  # other par
+	  $clause1 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n"; 
+	  $cnt++;
+      } elsif ($outca{$x}) {
+	  push (@create, $x);
+      } else {
+	  $clause1 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n"; 
+	  $cnt++;
+      }
   }
 
   # Add code for creating output variables via call to 'initialize' perl routine
@@ -1643,49 +1744,47 @@ sub VarArgsXSHdr {
   my $clause2;
   # skip this clause if there are no temps
   if ($nmaxonstack == $ninout) {  
-    $clause2 = '';
+      $clause2 = '';
   } else {
-    $clause2 = "
-  else if (items == $ninout) { /* all but temps on stack, read in output and create temps */
-    nreturn = $noutca;
-";
+      $clause2 = "\n  else if (items == $ninout) { /* all but temps on stack, read in output, create temps */" .
+	  "    nreturn = $noutca;\n";
 
-    $cnt = 0;
-    foreach my $i ( 0 .. $#args ) {
-      if ($other{$args[$i]}) {
-	$clause2 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
-	$cnt++;
-      } elsif ($tmp{$args[$i]} || $outca{$args[$i]}) {
-	# a temporary or always create variable
-	push (@create, $args[$i]);
-      } else { # an input or output variable 
-	$clause2 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
-	$cnt++;
+      $cnt = 0;
+      foreach my $i ( 0 .. $#args ) {
+	  my $x = $args[$i];
+	  if ($other{$x}) {
+	      $clause2 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
+	      $cnt++;
+	  } elsif ($tmp{$x} || $outca{$x}) {
+	      # a temporary or always create variable
+	      push (@create, $x);
+	  } else { # an input or output variable 
+	      $clause2 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+	      $cnt++;
+	  }
       }
-    }
-
-    # Add code for creating output variables via call to 'initialize' perl routine
-    $clause2 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
-
-    $clause2 .= "}\n";
-
+      
+      # Add code for creating output variables via call to 'initialize' perl routine
+      $clause2 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
+      
+      $clause2 .= "}\n";
 
   }
-
   
   # clause for reading in input and creating output and temp vars
   my $clause3 = '';
   $cnt = 0;
   foreach my $i ( 0 .. $#args ) {
-    if ($other{$args[$i]}) {
-      $clause3 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
-      $cnt++;
-    } elsif ($out{$args[$i]} || $tmp{$args[$i]} || $outca{$args[$i]}) {
-      push (@create, $args[$i]);
-    } else {
-      $clause3 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
-      $cnt++;
-    }
+      my $x = $args[$i];
+      if ($other{$x}) {
+	  $clause3 .= "$ci$x = " . typemap($x, $$optypes{$x}, "ST($cnt)") . ";\n";
+	  $cnt++;
+      } elsif ($out{$x} || $tmp{$x} || $outca{$x}) {
+	  push (@create, $x);
+      } else {
+	  $clause3 .= "$ci$x = PDL->SvPDLV(ST($cnt));\n";
+	  $cnt++;
+      }
   }
 
   # Add code for creating output variables via call to 'initialize' perl routine
@@ -1739,26 +1838,29 @@ END
 # This subroutine produces the code which returns output variables
 # or leaves them as modified input variables.  D. Hunt 4/10/00
 sub VarArgsXSReturn {
-	my($xsargs, $parobjs, $globalnew) = @_;
-        return undef if $globalnew; # don't generate a HDR if globalnew is set
-                              # globalnew implies internal usage, not XS
+    my($xsargs, $parobjs, $globalnew ) = @_;
 
-	# names of output variables    (in calling order)
-	my @outs;
+    # don't generate a HDR if globalnew is set
+    # globalnew implies internal usage, not XS
+    return undef if $globalnew; 
 
-	# beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
-	# this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
-	# does not exist!!
-	foreach my $arg (@$xsargs) {
-	  push (@outs, $arg->[0]) if (exists ($$parobjs{$arg->[0]}) && exists ($$parobjs{$arg->[0]}{FlagOut}));
-	}
+    # names of output variables    (in calling order)
+    my @outs;
 
-	my $ci = '  ';  # Current indenting
+    # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
+    # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
+    # does not exist!!
+    foreach my $arg (@$xsargs) {
+	my $x = $arg->[0];
+	push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
+    }
 
-	my $clause1 = '';
-	for (my $i=0;$i<@outs;$i++) { 
-	  $clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
-	}
+    my $ci = '  ';  # Current indenting
+    
+    my $clause1 = '';
+    foreach my $i ( 0 .. $#outs ) {
+	$clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
+    }
   
 return <<"END"
 if (nreturn) {
@@ -1770,8 +1872,7 @@ $clause1
 }
 END
 
-}
-
+} # sub: VarArgsXSReturn()
 
 
 sub XSCHdrs {
@@ -1782,6 +1883,196 @@ sub XSCHdrs {
 		"PDL->$gname = $name;"];
 }
 
+# abstract the access to the bad value status
+# - means we can easily change the representation without too 
+#   many changes
+#
+# it's also used in one place in PP/PDLCode.pm
+# -- there it's hard-coded
+#
+sub set_badflag {
+    my $sname = shift;
+    return "\$PRIV(bvalflag) = 1;\n";
+#    return "$sname\->bvalflag = 1;\n";
+##    return "$sname\->flags |= PDL_ITRANS_HAVE_BADVAL;\n";
+}
+
+sub clear_badflag {
+    my $sname = shift;
+    return "\$PRIV(bvalflag) = 0;\n";
+#    return "$sname\->bvalflag = 0;\n";
+##    return "$sname\->flags &= ~PDL_ITRANS_HAVE_BADVAL;\n";
+}
+
+sub get_badflag {
+    my $sname = shift;
+    return "\$PRIV(bvalflag)";
+#    return "$sname\->bvalflag";
+##    return "($sname\->flags & PDL_ITRANS_HAVE_BADVAL)";
+}
+
+sub get_badflag_priv {
+    return '$PRIV(bvalflag)';
+##    return '($PRIV(flags) & PDL_ITRANS_HAVE_BADVAL)';
+}    
+
+# abstract the access to the bad value status of a piddle
+# - means we can easily change the representation without too 
+#   many changes
+#
+sub set_badstate {
+    my $pdl = shift;
+    return "\$SETPDLSTATEBAD($pdl)";
+#    return "${pdl}->state |= PDL_BADVAL";
+}
+
+sub clear_badstate {
+    my $pdl = shift;
+    return "\$SETPDLSTATEGOOD($pdl)";
+#    return "${pdl}->state &= ~PDL_BADVAL";
+}
+
+sub get_badstate {
+    my $pdl = shift;
+    return "\$ISPDLSTATEBAD($pdl)";
+#    return "((${pdl}->state & PDL_BADVAL) > 0)";
+}
+
+# checks the input piddles to see if the routine
+# is being any data containing bad values
+#
+# if FindBadStatusCode is set, use it,
+# otherwise create the code automatically.
+#
+# - in the automatic code creation, 
+# if $badflag is 0, rather than being undefined, then
+# we issue a warning if any piddles contain bad values
+# (and set the bvalflag to 0)
+#
+# XXX it looks like output piddles are included in the
+# check. I *think* this is just wasted code, but I'm
+# not sure.
+#
+sub findbadstatus {
+    my ( $badflag, $badcode, $xsargs, $parobjs, $optypes, $symtab, $name ) = @_;
+    return '' unless $bvalflag;
+
+    return $badcode if defined $badcode;
+
+    my $sname = $symtab->get_symname('_PDL_ThisTrans');
+
+    my @args   = map { $_->[0] } @$xsargs;
+    my %out    = map { 
+	$_ => 
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut}) 
+		&& !exists($$parobjs{$_}{FlagCreateAlways})
+	    } @args;
+    my %outca = map { 
+	$_ => 
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagOut}) 
+		&& exists($$parobjs{$_}{FlagCreateAlways})
+	    } @args;
+    my %tmp    = map { 
+	$_ => 
+	    exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp}) 
+	    } @args;
+    my %other  = map { $_ => exists($$optypes{$_}) } @args;
+
+    my $clear_bad = clear_badflag();
+    my $set_bad   = set_badflag();
+    my $get_bad   = get_badflag();
+
+    my $str = $clear_bad;
+    my $add = 0;
+
+    # set bvalflag if any input variable is bad
+    foreach my $i ( 0 .. $#args ) {
+	my $x = $args[$i];
+	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
+	    my $state_is_bad = get_badstate($args[$i]);
+	    if ( $add ) {
+		# access to state information should be encapsulated
+		$str .= "  if ( !($get_bad) && $state_is_bad ) $set_bad";
+	    } else {
+		$str .= "  if ( $state_is_bad ) $set_bad";
+		$add = 1;
+	    }
+	}
+    } # foreach: my $i
+
+    if ( defined($badflag) and $badflag == 0 ) {
+	$str .= 
+"  if ( $get_bad ) {
+      printf(\"WARNING: routine does not handle bad values.\\n\");
+      $clear_bad
+  }\n";
+	print "\nNOTE: $name does not handle bad values.\n\n"; ## DBG
+    } # if: $badflag
+
+    return $str;
+
+} # sub: findbadstatus
+
+
+# copies over the bad value state to the output piddles
+#
+# if CopyBadStatusCode is set, use it,
+# otherwise create the code automatically.
+#
+# note: this is executed before the trans_mutual call
+# is made, since the state may be changed by the
+# Code section
+#
+sub copybadstatus {
+    my ( $badflag, $badcode, $xsargs, $parobjs, $symtab ) = @_;
+##    return '' unless $bvalflag or $badflag == 0;
+    return '' unless $bvalflag;
+
+    return $badcode if defined $badcode;
+
+    # names of output variables    (in calling order)
+    my @outs;
+
+    # beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
+    # this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
+    # does not exist!!
+    foreach my $arg (@$xsargs) {
+	my $x = $arg->[0];
+	push (@outs, $x) if (exists ($$parobjs{$x}) and exists ($$parobjs{$x}{FlagOut}));
+    }
+    
+    my $sname = $symtab->get_symname('_PDL_ThisTrans');
+
+    my $str = '';
+
+#    $str = "if ( " . get_badflag($sname) . " ) {\n";
+    $str = "if ( " . get_badflag() . " ) {\n";
+    foreach my $arg ( @outs ) {
+	$str .= "  " . set_badstate($arg) . ";\n";
+    }
+    $str .= "}\n";
+
+    return $str;
+
+} # sub: copybadstatus()
+
+# something to do with copying values between parent and children
+#
+# we can NOT assume that PARENT and CHILD have the same type,
+# hence the version for bad code
+#
+# NOTE: we use the same code for 'good' and 'bad' cases - it's
+# just that when we use it for 'bad' data, we have to change the
+# definition of the EQUIVCPOFFS macro - see the Code rule
+#
+sub equivcpoffscode {
+    return  
+	'int i;
+         for(i=0; i<$CHILD_P(nvals); i++)  {
+            $EQUIVCPOFFS(i,i);
+         }';
+
+} # sub: equivcpoffscode()
 
 # insert code, after the autogenerated xs argument processing code
 # produced by VarArgsXSHdr and AFTER any in HdrCode
@@ -1799,7 +2090,7 @@ sub XSCHdrs {
 #     input piddle is a(), output pidle is 'b'
 #
 sub InplaceCode {
-    my ( $xsargs, $parobjs, $arg ) = @_;
+    my ( $ppname, $xsargs, $parobjs, $arg ) = @_;
     return '' unless defined $arg;
 
     # find input and output piddles
@@ -1832,12 +2123,12 @@ sub InplaceCode {
 	return '' unless $arg;
 	# use default values
     } else {
-	die "ERROR: Inplace rule must be sent either an array ref or a scalar.\n";
+	die "ERROR: Inplace rule [$ppname] must be sent either an array ref or a scalar.\n";
     }
 
-    die "ERROR: Inplace does not know name of input piddle\n" 
+    die "ERROR: Inplace [$ppname] does not know name of input piddle\n" 
 	unless defined $in;
-    die "ERROR: Inplace does not know name of output piddle\n" 
+    die "ERROR: Inplace [$ppname] does not know name of output piddle\n" 
 	unless defined $out;
 
     my $instate = $in . "->state";
@@ -1849,6 +2140,76 @@ sub InplaceCode {
           }",
 
 } # sub: InplaceCode
+
+# If there is an EquivCPOffsCOde and:
+#    no bad-value support ==> use that
+#    bad value support ==> write a bit of code that does
+#      if ( $PRIV(bvalflag) ) { bad-EquivCPOffsCode }
+#      else                   { good-EquivCPOffsCode }
+#
+#  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that 
+#  do) use 'loop %{' or 'threadloop %{', we can't rely on
+#  PDLCode to automatically write code like above, hence the
+#  explicit definition here.
+#
+#  Note: I *assume* that bad-Equiv..Code == good-Equiv..Code *EXCEPT*
+#        that we re-define the meaning of the $EQUIVCPOFFS macro to
+#        check for bad values when copying things over.
+#        This means having to write less code.
+#
+# Since PARENT & CHILD need NOT be the same type we cannot just copy
+# values from one to the other - we have to check for the presence
+# of bad values, hence the expansion for the $bad code
+#
+# sent [EquivCPOffsCode,BadFlag]
+#
+sub CodefromEquivCPOffsCode {
+    my $good  = shift;
+    my $bflag = shift;
+
+    my $bad = $good;
+
+    # parse 'good' code
+    $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
+
+    my $str = $good;
+
+    if ( defined $bflag and $bflag ) {
+	# parse 'bad' code
+	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+
+	$str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+    }
+
+    return $str;
+
+} # sub: CodefromEquivCPOffsCode
+
+# this just reverses PARENT & CHILD in the expansion of
+# the $EQUIVCPOFFS macro (ie compared to CodefromEquivCPOffsCode)
+#
+sub BackCodefromEquivCPOffsCode {
+    my $good = shift;
+    my $bflag = shift;
+
+    my $bad  = $good;
+
+    # parse 'good' code
+    $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
+
+    my $str = $good;
+
+    if ( defined $bflag and $bflag ) {
+	# parse 'bad' code
+	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
+
+	$str = 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+    }
+
+    return $str;
+
+} # sub: BackCodefromEquivCPOffsCode
+
 
 # Make the pm code to massage the arguments if not given enough.
 # This function is troublesome because perl5.004_0[0123]
