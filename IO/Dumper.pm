@@ -248,8 +248,10 @@ sub PDL::IO::Dumper::frestore {
   }
 
   my($file) = join("",<$fh>);
-  eval $file;
+  
   $fh->close;
+
+  return eval $file;
 }
 
 ######################################################################
