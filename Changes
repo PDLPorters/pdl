@@ -1,3 +1,6 @@
+DJB 14-01-04
+   - moved FITS-header messages from IO/Misc/Makefile.PL to
+     IO/FITS/Makefile.PL since rfits/wfits are no longer in IO/Misc
 DJB 13-01-04
    - t/dumper.t now passes on OS-X (10.3.2); needed to add '-s' option to
      uudecode call otherwise the directory name was being ignored.
