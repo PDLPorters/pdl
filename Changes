@@ -1,3 +1,6 @@
+CED 4-Mar-04
+   Minor fixes to PDL::Transform - slightly better handling of hanning and
+	gaussian cases; tweaks to documentation.
 CED 1-Mar-04
    Minor fixes to PDL::IO::FITS
 CED 29-Feb-04

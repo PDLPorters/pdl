@@ -782,7 +782,7 @@ pp_def('map',
    double wgt;
 
    /* Prefrobnicate the transformation matrix  */
-   psize = (long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min))+1;
+   psize = (long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min) + 0.5 )+1;
    if(psize <= big) {
      /* 
       * Use the prefrobnicated matrix to generate a local linearization 
@@ -851,7 +851,7 @@ pp_def('map',
                }
                break;
              default:
-               barf("Unknown bounary condition in map -- bug alert!");
+               barf("Unknown boundary condition in map -- bug alert!");
                break;
            }
          }
@@ -936,7 +936,7 @@ pp_def('map',
        /* Advance input accumulation loop */
        for(i=0; 
              (i < ndims) &&
-             (++(ivec[i]) >= psize);
+             (++(ivec[i]) > psize);
            i++) {
           ivec[i] = -psize;
        }
@@ -1171,10 +1171,10 @@ this is only accurate for magnification.
 =item * f, fft
 
 Pixel values are interpolated using the term coefficients of the
-Fourier transform of the original data.  This prevents aliasing in the
-case where the image is distorted or shrunk, but often yields
-undesired "ringing" for expansion of normal images.  Best suited to
-studying images with repetitive or wavelike features.
+Fourier transform of the original data.  This is the most appropriate
+technique for some kinds of data, but can yield undesired "ringing" for
+expansion of normal images.  Best suited to studying images with
+repetitive or wavelike features.
 
 =item * h, hanning
 
@@ -1196,7 +1196,7 @@ introducing the fewest artifacts into a properly sampled data set.
 =item blur, Blur (default = 1.0) 
 
 This value scales the input-space footprint of each output pixel in
-the gaussign and hanning methods. It's retained for historical
+the gaussian and hanning methods. It's retained for historical
 reasons.  Larger values yield blurrier images; values significantly
 smaller than unity cause aliasing.
 
@@ -1464,7 +1464,7 @@ sub map {
 
   $me = !(t_fits($out,{ignore_rgb=>1})) x $me
     unless($nofits);
-  
+
   ##############################
   ## Figure out the interpND options
   my $method = _opt($opt,['m','method','Method']);
