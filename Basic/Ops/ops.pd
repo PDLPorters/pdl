@@ -75,7 +75,7 @@ EOH
     my $badcode = '$ISBAD(a()) || $ISBAD(b())';
     if ( exists $extra{Exception} ) {
 #	$badcode .= " || $extra{Exception}";
-	print "Warning: ignored exception for $name\n";
+#	print "Warning: ignored exception for $name\n";
 	delete $exists{Exception};
     }
 
@@ -189,7 +189,7 @@ sub ufunc {
     my $badcode = '$ISBAD(a())';
     if ( exists $extra{Exception} ) {
 #	$badcode .= " || $extra{Exception}";
-	print "Warning: ignored exception for $name\n";
+#	print "Warning: ignored exception for $name\n";
 	delete $exists{Exception};
     }
 

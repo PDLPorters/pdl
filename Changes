@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (09/05/00)
+    - minor clean-up to the build process. Now creates Basic/Core/badsupport.p
+      in top-level Makefile.PL for when PDL::Config hasn't been created - fixes
+      setting BADVAL options in ~/perldl.conf
 Doug Burke 
     - Bad value support integrated into the main branch. Set WITH_BADVAL to 1 in
       perldl.conf to use. See Basic/BadValues.pod for more information and try

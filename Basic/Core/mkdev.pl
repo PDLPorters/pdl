@@ -5,11 +5,14 @@
 #   other Makefile.PL's
 #
 
-# check for bad value support
 use File::Spec;
-require File::Spec->catfile( File::Spec->curdir, "perldl.conf" );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
 
+# check for bad value support
+use vars qw( $bvalflag $usenan ); 
+require File::Spec->catfile( "Basic", "Core", "badsupport.p" );
+
+# note: ths is run from the top-level makefile,
+# hence the need for Basic/Core
 my $file = File::Spec->catfile( "Basic", "Core", "Dev.pm" );
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";

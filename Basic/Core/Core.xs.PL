@@ -9,11 +9,8 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-use vars qw( %PDL_CONFIG );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
-my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
+use vars qw( $bvalflag $usenan );
+require "badsupport.p";
 
 # are we big or little endian?
 use vars qw( $isbigendian );

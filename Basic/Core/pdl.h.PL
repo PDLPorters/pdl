@@ -7,10 +7,8 @@ require "pdl_hfiles.p";
 require "mymalloc.p";
 
 # check for bad value support
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
-my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
+use vars qw( $bvalflag $usenan );
+require "badsupport.p";
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';

@@ -8,10 +8,8 @@ use Config;
 use File::Basename qw(&basename &dirname);
  
 # check for bad value support
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-use vars qw( %PDL_CONFIG );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+use vars qw( $bvalflag $usenan );
+require "badsupport.p";
 
 require 'Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES %PDL_DATATYPES_BADVAL );

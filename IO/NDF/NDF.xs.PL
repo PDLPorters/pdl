@@ -14,10 +14,9 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
+use vars qw( $bvalflag $usenan );
 use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-use vars qw( %PDL_CONFIG );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
  
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.

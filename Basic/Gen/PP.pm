@@ -1,4 +1,4 @@
- #####################################################################
+#####################################################################
 #####################################################################
 ##
 ##
@@ -2006,7 +2006,7 @@ sub findbadstatus {
       printf(\"WARNING: routine does not handle bad values.\\n\");
       $clear_bad
   }\n";
-	print "\nNOTE: $name does not handle bad values.\n\n"; ## DBG
+	print "\nNOTE: $name does not handle bad values.\n\n" if $::PP_VERBOSE;
     } # if: $badflag
 
     return $str;

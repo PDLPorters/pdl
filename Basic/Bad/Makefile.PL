@@ -2,19 +2,19 @@
 # Makefile.PL for PDL::Bad module.
 
 # we create a Bad.pm whatever the value of
-# WITH_CONFIG - it's just the contents that will be
+# PDL_CONFIG - it's just the contents that will be
 # different...
 #
 use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
-# print a banner to the screen
+# bad value support?
+use vars qw( $bvalflag $usenan );
 use File::Spec;
-require File::Spec->catfile( File::Spec->curdir, "perldl.conf" );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
-my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
+require File::Spec->catfile( File::Spec->updir, "Core", "badsupport.p" );
 
+# print a banner to the screen
 print "\n\t";
 if ( $bvalflag ) {
     print "Congratulations - building PDL with bad value support (WITH_BADVAL=1)";

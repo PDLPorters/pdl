@@ -5,8 +5,6 @@ use Config;
 use File::Basename qw(&basename &dirname);
 use IO::File;
 
-use vars qw( %PDL_CONFIG );
-
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
 # have to mention them as if they were shell variables, not
@@ -26,10 +24,8 @@ unlink $file if -f $file;
 my $fh = new IO::File "> $file" or die "Can't create $file: $!";
 
 # check for bad value support
-use File::Spec;
-require "perldl.conf";
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;                                   
-
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;                                   
 my $usage_info;
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";

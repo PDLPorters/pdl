@@ -1,12 +1,12 @@
 # -*-perl-*-
 
+use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+use vars qw( $bvalflag $usenan );
+require "badsupport.p";
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -44,7 +44,7 @@ print OUT <<"!WITH!SUBS!";
 
 !WITH!SUBS!
 
-print OUT <<"!NO!SUBS!";
+print OUT <<'!NO!SUBS!';
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "ppport.h"

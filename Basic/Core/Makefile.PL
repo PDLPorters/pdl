@@ -91,6 +91,8 @@ print $fh "\$isbigendian = $is_big_endian;\n1;\n";
 $fh->close;
 print " It is " . ($is_big_endian ? "big" : "little") . " endian\n";
 
+# badsupport.p is made by the top-level Makefile, but placed
+# into Basic/Core, so we clean it up here
 use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
@@ -115,7 +117,7 @@ WriteMakefile(
                    'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm ' .
-		   'mymalloc.p isbigendian.p '
+		   'mymalloc.p isbigendian.p badsupport.p'
 		   },
  'INC'          => "$mallocinc",
 );
