@@ -1,3 +1,4 @@
+CS  - PDLCode.pm: fix bug #441586: PDL::PP cant handle pars with numerals
 CS  - primitive.pd: fix random funcs so that they work with Perl's srand
       * does it work on pre-5.6 perls? *
     - update Lvalue documentation

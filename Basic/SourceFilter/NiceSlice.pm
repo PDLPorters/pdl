@@ -247,7 +247,7 @@ during installation automatically. Using the cpan installation shell
 installation should be as easy as this:
 
    $ perl -MCPAN -e shell
-   cpan> i PDL::NiceSlice
+   cpan> install PDL::NiceSlice
 
 =head1 The new slicing syntax
 
