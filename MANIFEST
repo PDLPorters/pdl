@@ -611,6 +611,7 @@ t/matmult.t
 t/misc.t
 t/ndf.t
 t/ones.t
+t/opengl.t
 t/ops.t
 t/pdlchar.t
 t/physical.t

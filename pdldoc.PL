@@ -24,8 +24,10 @@ unlink $file if -f $file;
 my $fh = new IO::File "> $file" or die "Can't create $file: $!";
 
 # check for bad value support
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;                                   
+use vars qw( $bvalflag );
+use File::Spec;
+require File::Spec->catfile( "Basic", "Core", "badsupport.p" );
+
 my $usage_info;
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
