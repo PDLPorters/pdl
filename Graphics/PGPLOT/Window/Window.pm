@@ -5572,6 +5572,21 @@ sub imag1 {
 # rgbi - Plot an image with 3 color planes
 
 sub rgbi {
+  unless($PGPLOT::RGB_OK) {
+    print STDERR "PGPLOT rgbi called, but RGB support is not present. Using grayscale instead.\n";
+    my $me = shift;
+    my $in = shift;
+    my $in2;
+
+    if($in->dim(0)==3 && $in->dim(1)>3 && $in->dim(2)>3) {
+      $in2 = $in->sumover;
+    } else {
+      $in2 = $in->mv(2,0)->sumover;
+    }
+    my @a = @_;
+    return _imag($me,\&pgimag,2,$in2,@a);
+  }
+
   release_and_barf("rgbi: RGB-enabled PGPLOT is not present\n")
     unless($PGPLOT::RGB_OK);
 
