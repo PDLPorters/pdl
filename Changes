@@ -1,3 +1,6 @@
+CED 04-Nov-2003
+   - Removed null tests from trans code in PP.pm - to enable better handling
+	of null piddles.  (fixes bug 779312, I hope)
 CED 16-Oct-2003
    - Added whatis() function to perldl
 CED 15-Oct-2003
