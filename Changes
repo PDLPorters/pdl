@@ -1,3 +1,5 @@
+CED 1-Feb-2005
+   Fixed minor bug in convolveND with kernel threading
 CED 18-Jan-2005
    pdlcore.c.PL: fixed a pointer arithmetic issue that was causing
    trouble under Windows.  Thanks, Sisyphus!
