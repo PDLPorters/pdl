@@ -390,10 +390,11 @@ under development and views on the interface are welcome.
 The functionality is somewhat detached from the plotting functions
 described below so I will discuss them and their use here.
 
-In general there is nothing you need to do to keep the module recording
-your every move, recording is on by default. To turn it off when you
-create a new device you can set the C<Recording> option to false (C<undef>,
-or 0 for instance).
+Recording is off by default. To turn it on when you create a new
+device you can set the C<Recording> option to true, or you can set
+the C<$PDL::Graphics::PGPLOT::RECORDING> variable to 1. I recommend doing the
+latter in your C<.perldlrc> file at least since you will often have use
+for recording in the perldl script.
 
 =head2 Use of recording
 
@@ -404,7 +405,7 @@ with it. In the dreary old world you needed to go back and execute all
 commands manually, but with this wonderful new contraption, the recorder,
 you can just replay your commands:
 
-  dev '/xs'
+  dev '/xs', {Recording => 1}
   $x = sequence(10)
   line $x, $x**2, {Linestyle => 'Dashed'}
   $s = retrieve_state() # Get the current tape out of the recorder.
@@ -423,6 +424,7 @@ using the C<turn_on_recording> and C<turn_off_recording> respectively.
 Likewise you can clear the state using the C<clear_state> command.
 
   $w=PDL::Graphics::PGPLOT::Window->new({Device => '/xs'})
+  $w->turn_on_recording;
   $x=sequence(10); $y=$x*$x
   $w->line($x, $y)
   $w->turn_off_recording
@@ -490,9 +492,7 @@ but since this is exactly where the recording is most useful the best
 advice is just to be careful and call clear on state variables.
 
 If you are working with scripts and use large images for instance I would
-instead recommend that you turn off recording if you do not need it:
-
-   dev '/xs', {Recording => 0};
+instead recommend that you do not turn on recording unless you need it.
 
 =back
 
@@ -1634,6 +1634,7 @@ require DynaLoader;
 @ISA = qw( Exporter SelfLoader DynaLoader );
 
 bootstrap PDL::Graphics::PGPLOT::Window;
+$PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 
 
 #
@@ -1661,7 +1662,6 @@ $WindowOptions->warnonmissing(0);
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
-
 
 sub new {
 
@@ -1715,7 +1715,7 @@ sub new {
 	      'CurrentPanel'  => 0,
 	      '_env_options'  => undef,
 	      'State'         => undef,
-	      'Recording'     => $opt->{Recording}        || 1
+	      'Recording'     => $opt->{Recording}        || $PDL::Graphics::PGPLOT::RECORDING,
 	     };
 
   if (defined($self->{Options})) {
@@ -1727,7 +1727,9 @@ sub new {
 
   $self->_open_new_window($opt);
   # This weird setup is required to create the object.
-  $self->turn_on_recording() if $self->{Recording};
+
+  # We always have to create a state variable to avoid undefined errors.
+  $self->{State}=PDL::Graphics::State->new();
 
   return $self;
 
@@ -2073,6 +2075,16 @@ sub replay {
   }
 
   my @list = $state->get();
+
+
+  if ($#list < 0) {
+    # If there are no commands, then the user might have forgotten to
+    # turn on recording, let us remind him/her
+
+    warn "Replaying an empty state - did you turn on recording?\n";
+    print "Hint: Put PDL::Graphics::PGPLOT::Window::RECORDING=1 in your .perldlrc file\n"
+  }
+
   foreach my $arg (@list) {
     my ($command, $arg, $opt)=@$arg;
     &$command($self, @$arg, $opt);
