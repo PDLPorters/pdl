@@ -23,20 +23,34 @@ transformations.  It embodies functions mapping R^N -> R^M, both with
 and without inverses.  Provision exists for parametrizing functions,
 and for composing them.  You can use this part of the Transform
 object to keep track of arbitrary functions mapping R^N -> R^M
-with or without inverses.
+with or without inverses.  
 
 Transform also includes image mapping methods that use interpND.  You
 define a coordinate transform using a Transform object, then apply
 that to a PDL that contains an image.  The output is a remapped,
-resampled image.  In keeping with standard practice, but somewhat
-counterintuitively, the transform is used to map coordinates FROM the
-destination dataspace (or image plane) TO the source dataspace; thus,
-to convert a solar image from perspective to heliospheric lat/lon
-coordinates, you need to apply a deprojection transform.
+resampled image.   Eventually, the resampled image will have an updated
+FITS header that corresponds to what coordinates it's in.
+
+In keeping with standard practice, but somewhat counterintuitively,
+the transform is used to map coordinates FROM the destination
+dataspace (or image plane) TO the source dataspace; thus, to convert a
+solar image from perspective to heliospheric lat/lon coordinates, you
+need to apply a deprojection transform.  Since transforms AND their 
+inverses are stored, this just means you can define the forward
+transform, provided that you remember to use L<unmap|Transform::unmap> instead
+of L<map|Transform::map>.
 
 You can define and compose several transformations, then apply them
 all at once to an image.  The image is interpolated only once, when
 all the composed transformations are applied.
+
+For terseness and convenience, most of the constructors are exported
+into the current package with the name C<t_<transform>>, so the following
+(for example) are synonyms:
+
+  $t = new PDL::Transform::Radial();  # Long way
+
+  $t = t_radial();                    # Short way
 
 =head1 EXAMPLE
 
@@ -47,9 +61,9 @@ to be interpolated).  Here are some examples of transforms in
 action:
 
    use PDL::Transform;
-   $a = rfits('m51.fits');  # Substitute path if necessary!
-   $tf = new PDL::Transform::FITS($a);           # FITS pixel transform
-   $ts = new PDL::Transform::Linear({Scale=>3}); # Scaling transform
+   $a = rfits('m51.fits');   # Substitute path if necessary!
+   $tf = t_fits($a);         # FITS pixel transform
+   $ts = t_linear(Scale=>3); # Scaling transform
 
    $w = pgwin(xs);
    $w->imag($a);
@@ -63,8 +77,8 @@ action:
    $w->imag($c);
 
    ## Move the transform into FITS scientific space;
-   ## maybe a convenience method is needed for this.
-   $t = $tf->inverse -> compose($ts) -> compose($tf);
+   ## $t gets ($tf^-1 o $ts o $tf).
+   $t = $ts->wrap($tf);
 
    ## Shrink m51 by a factor of 3; origin is at scientific origin.
    $d = $t->map($a);
@@ -155,7 +169,7 @@ method for it.  Just define the sub "stringify" in the subclass package.
 It should call SUPER::stringify to generate the first line (though
 the PDL::Transform::Composition bends this rule by tweaking the 
 top-level line), then output (indented) additional lines as necessary to 
-embody the transformation.
+fully describe the transformation.
 
 =head1 NOTES
 
@@ -165,43 +179,40 @@ Currently, it just assumes that the coordinates are correct for (e.g.)
 FITS scientific-to-pixel transformations.
 
 Composition works OK but should be done in a more sophisticated way
-so that, e.g., linear transformations can be combined at the matrix level
+so that, e.g., linear transformations are combined at the matrix level
 instead of just strung together pixel-to-pixel.
 
 Linear transformations should be handled with heterogeneous Hershey matrices,
 rather than matrix-multiply-and-add operations.  
 
-Nonlinear transformations are coming soon.
-
-=head2 HISTORY
-
-=over 3
-
-=item * 0.5 - initial upload to CVS
-
-=item * 0.6 - Converted to use PDL::MatrixOps instead of PDL::Slatec
-
-=back
-
+Until full Jacobean tracking is in place, transforms that shrink the 
+image (or a part of it -- see L<t_radial|t_radial>) will lose information
+because they sample the input image sparsely.
 
 =head1 METHODS
 
 =cut
-
 use PDL::MatrixOps;
 
 package PDL::Transform;
 use overload '""' => \&_strval;
 
+$VERSION = "0.7";
 
-$VERSION = "0.6";
+BEGIN {
+   use Exporter ();
+   @ISA = ( Exporter );
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose);
+   @EXPORT = @EXPORT_OK;
+   %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
+}
 
-use strict;
-use Carp;
 use PDL;
 use PDL::MatrixOps;
 
-eval { use PDL::Slatec };
+use Carp;
+
+use strict;
 
 #### little helper kludge parses a list of synonyms
 
@@ -243,7 +254,7 @@ sub stringify {
 
 ######################################################################
 
-=head2 apply
+=head2 PDL::Transform::apply
 
 =for sig
 
@@ -277,7 +288,7 @@ sub apply {
 
 ######################################################################
 
-=head2 invert
+=head2 PDL::Transform::invert
 
 =for usage
 
@@ -301,7 +312,9 @@ sub invert {
 
 ######################################################################
 
-=head2 inverse
+=head2 t_inverse 
+
+=head2 PDL::Transform::inverse
 
 =for usage 
 
@@ -320,6 +333,8 @@ they both point to the original parameters hash.  That turns out to be
 useful.
 
 =cut
+
+*t_inverse = \&inverse;
 
 sub inverse {
   my($me) = shift;
@@ -349,19 +364,24 @@ sub inverse {
   
 ######################################################################
 
-=head2 compose
+=head2 t_compose 
+
+=head2 PDL::Transform::compose
 
 =for usage
 
-  $f_o_g = $f->compose($g);
+  $f_o_g = $f->compose($g[,$h,$i,...]);
 
 =for ref 
 
-Function composition: f(g(x))
+Function composition: f(g(x)), f(g(h(x))), ...
 
-This is accomplished by inserting a splicing code ref into the C<func> 
-and C<inv> slots.  It will be replaced with something slightly more 
-sophisticated, eventually -- this one certainly works OK.
+This is accomplished by inserting a splicing code ref into the C<func>
+and C<inv> slots.  It combines multiple compositions into a single
+list of transforms to be executed in orer.  If one of the functions is
+itself a composition, it is interpolated into the list rather than left
+intact.  Ultimately, linear transformations may also be combined within
+the list.
 
 =cut
 
@@ -375,27 +395,42 @@ sub PDL::Transform::Composition::stringify {
   $out;
 }
 
+*t_compose = \&compose;
+
 sub compose {
-  my($f) = shift;
-  my($g) = shift;
-
-  Carp::croak("compose: undefined f or g\n") unless(defined $f and defined $g);
-  
+  local($_);
+  my(@funcs) = @_;
   my($me) = PDL::Transform->new;
-  $me->{name} = $f->{name} . " o " . $g->{name};
 
+  # No inputs case: return the identity function
+  return $me
+    if(!@funcs);
+
+  $me->{name} = "";
+  my($f);
   my(@clist);
-  if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
-    push(@clist,@{$f->{params}->{clist}});
-  } else {
-    push(@clist,$f);
+
+  for $f(@funcs) {
+    if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
+      if($f->{is_inverse}) {
+	for(reverse(@{$f->{params}->{clist}})) {
+	  push(@clist,$_->inverse);
+	  $me->{name} .= " o inverse ( ".$_->{name}." )";
+	}
+      } else {
+	for(@{$f->{params}->{clist}}) {
+	  push(@clist,$_);
+	  $me->{name} = " o ".$_->{name};
+	}
+      }
+    } else {  # Not a composition -- just push the transform onto the list.
+      push(@clist,$f);
+      $me->{name} .= " o ".$f->{name};
+    }
   }
 
-  if(UNIVERSAL::isa($g,"PDL::Transform::Composition")) {
-    push(@clist,@{$g->{params}->{clist}});
-  } else {
-    push(@clist,$g);
-  }
+  $me->{name}=~ s/^ o //;
+
   $me->{params}->{clist} = \@clist;
 
   $me->{func} = sub {
@@ -421,7 +456,7 @@ sub compose {
 
 ######################################################################
 
-=head2 wrap
+=head2 PDL::Transform::wrap
 
 =for usage
 
@@ -431,7 +466,7 @@ sub compose {
 
 Shift a transform into a different space by 'wrapping' it with a second.
 
-This is just a convenience function for two L<compose|compose> calls.
+This is just a convenience function for two L<compose|Transform::compose> calls.
 It's useful to make a single transformation happen in some other space.
 For example, to shift the origin of rotation, do this:
 
@@ -447,12 +482,12 @@ sub wrap {
   my($f) = shift;
   my($g) = shift;
   
-  return $g->inverse->compose($f)->compose($g);
+  return $g->inverse->compose($f,$g);
 }
 
 ######################################################################
 
-=head2 map
+=head2 PDL::Transform::map
 
 =for sig
 
@@ -471,10 +506,9 @@ coordinates for interpolation from the $input array.  NOTE that this is
 somewhat counterintuitive at first; but it's the correct way to do 
 image distortion.
 
-If $input and/or $template have FITS headers, then by default they are
-applied to the transformation, so that $t applies to the scientific
-coordinates and not to pixel coordinates.  You can override that behavior,
-forcing pixel coordinates, with the C<nofits> option.
+The output has the same data type as the input.  This is a feature,
+but it can lead to `strange' banding behaviors if you use interpolation
+on an integer input variable.
 
 <template> can be one of:
 
@@ -511,7 +545,7 @@ OPTIONS:
 The options hash is sent directly to L<interpND|interpND>, so you can
 change the interpolation behavior (currently bilinear by default).  In
 particular, setting "method=>sample" will speed up the operation by a factor
-of 2-3.
+of 2-3.  
 
 Some options that are unused by L<interpND|interpND> are used here: "nofits" is
 a flag that will prevent interpretation of FITS headers in the template
@@ -598,7 +632,7 @@ sub map {
   
 ######################################################################
 
-=head2 unmap
+=head2 PDL::Transform::unmap
 
 =for sig
 
@@ -644,6 +678,8 @@ but it would be a real pain to put each one in its own .pm file.
 
 ######################################################################
 
+=head2 t_identity
+
 =head2 new PDL::Transform
 
 =for usage
@@ -661,6 +697,8 @@ constructors.  It takes no parameters and returns the identity transform.
 
 sub _identity { return shift; }
 
+sub t_identity { new PDL::Transform(@_) };
+
 sub new {
   my($class) = shift;
   my $me = {name=>'identity', 
@@ -675,6 +713,8 @@ sub new {
 }
   
 ######################################################################
+
+=head2 t_lookup 
 
 =head2 new PDL::Transform::Lookup
 
@@ -720,27 +760,27 @@ The lookup index scaling is: out = lookup[ (scale * data) + offset ].
 There is no inverse transform -- that's too hard and sometimes
 impossible, so the inverse transform just croaks.
 
-Options are:
+Options are listed below; there are several synonyms for each.
 
 =over 3
 
-=item Scale, scale, s
+=item s, scale, Scale
 
 (default 1.0) Specifies the linear amount of scaling to be done before 
 lookup.  You can feed in a scalar or an N-vector; other values may cause
 trouble.
 
-=item Offset, offset, o
+=item o, offset, Offset
 
 (default 0.0) Specifies the linear amount of offset before lookup.  
 This is only a scalar, because it's intended to let you switch to 
 corner-centered coordinates if you want to (just feed in o=-0.25).
 
-=item Boundary, boundary, bound, b
+=item b, bound, boundary, Boundary
 
 Boundary condition to be fed to L<interpND|interpND>
 
-=item Method, method, m
+=item m, method, Method
 
 Interpolation method to be fed to L<interpND|interpND>
 
@@ -748,6 +788,8 @@ Interpolation method to be fed to L<interpND|interpND>
 
 =cut
 @PDL::Transform::Lookup::ISA = ('PDL::Transform');
+
+sub t_lookup {new PDL::Transform::Lookup(@_);}
 
 sub PDL::Transform::Lookup::new {
   my($class) = shift;
@@ -820,6 +862,8 @@ sub PDL::Transform::Lookup::new {
 
 ######################################################################
 
+=head2 t_linear
+
 =head2 new PDL::Transform::Linear
   
 =for usage
@@ -837,7 +881,7 @@ The inverse transform is automagically generated, provided that it
 actually exists (the transform matrix is invertible).  Otherwise, the
 inverse transform just croaks.
 
-The options you can pass in are:
+The options you can usefully pass in are:
 
 =over 3
 
@@ -913,6 +957,8 @@ you're on your way.
 
 @PDL::Transform::Linear::ISA = ('PDL::Transform');
 
+sub t_linear { new PDL::Transform::Linear(@_); }
+
 sub PDL::Transform::Linear::new {
   my($class) = shift;
   my($o) = $_[0];
@@ -933,12 +979,12 @@ sub PDL::Transform::Linear::new {
   $me->{params}->{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
 
   $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
+  $me->{params}->{rot} = pdl(0) unless defined($me->{params}->{rot});
+
   print "me->{params}->{rot} = ".$me->{params}->{rot}."\n";
 
   my $o_dims = _opt($o,['dims','Dims']);
   my $scale  = _opt($o,['s','scale','Scale']);
-  
-  
   
   # Figure out the number of dimensions to transform, and, 
   # if necessary, generate a new matrix.
@@ -968,7 +1014,7 @@ sub PDL::Transform::Linear::new {
     } elsif(defined($o_dims)) {
       $me->{idim} = $me->{odim} = $o_dims;
     } else {
-      print "PDL::Transform::Linear: assuming 2-D transform (set dims option to change)\n";
+      print "PDL::Transform::Linear: assuming 2-D transform (set dims option to change)\n" if($PDL::debug);
       $me->{idim} = $me->{odim} = 2;
     }
     
@@ -980,11 +1026,15 @@ sub PDL::Transform::Linear::new {
   my $rot = $me->{params}->{rot};
   if(defined($rot)) {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
-    my $subrot = sub { my($d,$angle,$m)=@_;
+    my $subrot = sub { 
+                       my($d,$angle,$m)=@_;
 		       my($subm) = $m->dice($d,$d);
+
+		       $angle = $angle->at(0)
+			 if(UNIVERSAL::isa($angle,'PDL'));
+
 		       my($a) = $angle*3.1415926535897932384626/180;
 		       $subm .= matmult(pdl([cos($a),sin($a)],[-sin($a),cos($a)]),$subm);
-		       print "\n";
 		     };
     
     if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
@@ -1080,6 +1130,8 @@ sub PDL::Transform::Linear::stringify {
 
 ######################################################################
 
+=head2 t_fits
+
 =head2 new PDL::Transform::FITS
 
 =for usage
@@ -1109,6 +1161,8 @@ standard outlined in Greisen & Calabata 2002 (A&A in press; find it at
 =cut
 
 @PDL::Transform::FITS::ISA = ('PDL::Transform::Linear');
+
+sub t_fits { new PDL::Transform::FITS(@_); }
 
 sub PDL::Transform::FITS::new {
   my($class) = shift;
@@ -1185,7 +1239,7 @@ sub PDL::Transform::FITS::new {
     print "PDL::Transform::FITS:  CDELT diagonal is $cd\n"
       if($PDL::debug);
     
-    $matrix = PDL::Slatec::matmult($cdm,$cpm);
+    $matrix = matmult($cdm,$cpm);
   }
 
   my($i1) = 0;
@@ -1208,6 +1262,8 @@ sub PDL::Transform::FITS::new {
 
 
 ######################################################################
+
+=head2 t_code 
 
 =head2 new PDL::Transform::Code 
 
@@ -1232,8 +1288,20 @@ Options that are accepted are:
 
 =item p,params
 
-The parameteter hash that will be passed back to your code (defaults to the
+The parameter hash that will be passed back to your code (defaults to the
 empty hash).
+
+=item j, jac, jacobian, Jacobian
+
+A code ref that returns the Jacobian of the transform (optional; it'll
+be calculated by multiple calls to func and/or by inverting ij if you
+need it and don't specify it).
+
+=item ij, j2, inv_jac, inv_jacobian, inverse_jacobian, Inverse_Jacobian
+
+A code ref that returns the Jacobian of the inverse transform
+(optional; it'll be calculated by multiple calls to inv and/or by
+inverting j2 if you need it and don't specify it).
 
 =item n,name
 
@@ -1249,6 +1317,161 @@ OK but doesn't return a code ref, then it's re-evaluated with "sub {
 
 Note that code callbacks like this can be used to do really weird
 things and generate equally weird results -- caveat scriptor!
+
+=cut
+
+@PDL::Transform::Code::ISA = ('PDL::Transform');
+
+sub t_code {new PDL::Transform::Code(@_);}
+
+sub PDL::Transform::Code {
+  my($class, $func, $inv, $o) = @_;
+  if(ref $inv eq 'HASH') {
+    $o = $inv;
+    $inv = undef;
+  }
+
+  my($me) = PDL::Transform::new($class);
+  $me->{name} = _opt($o,['n','name','Name']) || "code";
+  $me->{func} = $func;
+  $me->{inv} = $inv;
+  $me->{params} = _opt($o,['p','params','Params']) || {};
+  $me->{jacobian} = _opt($o,['j','jac','jacobian','Jacobian']);
+  $me->{inv_jacobian}= _opt($o,['ij','j2','inv_jac','inv_jacobian','inverse_jacobian','Inverse_Jacobian']);
+  $me;
+}
+
+######################################################################
+
+=head2 t_radial 
+
+=head2 new PDL::Transform::Radial
+
+=for usage
+
+  $f = new PDL::Transform::Radial(<options>);
+
+=for ref
+
+Convert to radial coordinates.  (2-D; with inverse)
+
+Converts Cartesian to radial (theta,r) coordinates.  You can choose
+direct or conformal conversion.  Direct conversion preserves radial
+distance from the origin; conformal conversion preserves local angles,
+so that each small-enough part of the image only appears to be scaled
+and rotated, not stretched.  Conformal conversion puts the radius on a
+logarithmic scale, so that scaling of the original image plane is
+equivalent to a simple offset of the transformed image plane.
+
+OPTIONS:
+
+=over 3
+
+=item d, direct, Direct 
+
+Generate (theta,r) coordinates out (this is the default); incompatible
+with Conformal.  Theta is in radians, and the radial coordinate is 
+in the units of distance in the input plane.
+
+=item r0, c, conformal, Conformal
+
+This is a floating-point value generates (theta, ln(r/r0)) coordinates
+out; you set the value of r0.  Theta is in radians, and the radial
+coordinate varies by 1 for each e-folding of the r0-scaled distance
+from the input origin.
+
+=item o, origin, Origin
+
+This is the origin of the expansion.
+
+=back
+
+EXAMPLES
+
+These examples do transformations back into the same size image as they
+started from; by suitable use of the "transform" option to 
+L<unmap|unmap> you can send them to any size array you like.
+
+Examine radial structure in M51:
+Here, we scale the output to stretch 2*pi radians out to the
+full image width in the horizontal direction, and to stretch 1 radius out
+to a diameter in the vertical direction.
+
+  $a = rfits('m51.fits');
+  $ts = t_linear(s => pdl(250/2.0/3.14159, 2)); # Scale to fill orig. image
+  $tu = t_radial(o => pdl(130,130));            # Expand around galactic core
+  $b = $ts->compose($tu)->unmap($a);            
+
+Examine radial structure in M51 (conformal):
+Here, we scale the output to stretch 2*pi radians out to the full image width
+in the horizontal direction, and scale the vertical direction by the exact
+same amount to preserve conformality of the operation.  Notice that 
+each piece of the image looks "natural" -- only scaled and not stretched.
+
+  $a = rfits('m51.fits')
+  $ts = t_linear(s=> 250/2.0/3.14159);    # Note scalar (heh) scale.
+  $tu = t_radial(o=>pdl(130,130), r0=>5); # 5 pix. radius -> bottom of image
+  $b = $ts->compose($tu)->unmap($a);
+
+
+=cut
+
+@PDL::Transform::Radial::ISA = ('PDL::Transform');
+
+sub t_radial { new PDL::Transform::Radial(@_); }
+
+sub PDL::Transform::Radial::new {
+  my($class) = shift;
+  my($o) = $_[0];
+  if(ref $o ne 'HASH') {
+    $o = { @_ };
+  }
+
+  my($me) = PDL::Transform::new($class);
+
+  $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
+  $me->{params}->{origin} = pdl(0,0) 
+    unless defined($me->{params}->{origin});
+
+  $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
+
+  $me->{name} = "radial (direct)";
+  
+  $me->{func} = sub {
+    my($data,$o) = @_;
+    my($d) = $data - $o->{origin};
+    my($d0) = $d->index(0);
+    my($d1) = $d->index(1);
+
+    my $out = atan2($d1->dummy(0,1), $d0->dummy(0,1));
+
+    if(defined $o->{r0}) {
+      return append($out,log( sqrt($d1*$d1+$d0*$d0)->dummy(0,1) / $o->{r0} ));
+    }
+
+    return   append($out,    sqrt($d1*$d1+$d0*$d0)->dummy(0,1) );
+  };
+  
+  $me->{inv} = sub {
+    my($data,$o) = @_;
+    my($d0) = $data->index(0);
+    my($d1) = $data->index(1);
+    my $out;
+
+    if(defined $o->{r0}) {
+      $out = ($o->{r0} * exp($d1))->dummy(0,2) *
+	     append( cos($d0)->dummy(0,1), sin($d0)->dummy(0,1) );	     
+    } else {
+      $out = $d1->dummy(0,2) * 
+	     append( cos($d0)->dummy(0,1), sin($d0)->dummy(0,1) );
+    }
+
+    $out += $o->{origin};
+  };
+  
+  
+  $me;
+}
 
 =head1 AUTHOR
 

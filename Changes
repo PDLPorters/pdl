@@ -1,3 +1,6 @@
+CED (11-Nov-2002)
+    - Transform.pm updates - conformal radial expansion, better 
+	documentation, better composition, several minor bug fixes
 CS  - NiceSlice.pm v0.99: fix modifier parsing + allow several modifiers
 CED (7-Nov-2002)
     - Several updates to Transform.pm -- wrap() method, rot option to Linear,
