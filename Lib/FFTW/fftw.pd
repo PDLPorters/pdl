@@ -4,13 +4,13 @@ require 'typespec';
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
 
-PDL::FFTW - Core PDL interface to Fastes Fourier Transform in the West v2.x
+PDL::FFTW - Core PDL interface to the Fastest Fourier Transform in the West v2.x
 
 =head1 DESCRIPTION
 
-This is a mean to interface PDL with the FFTW library. It's similar to the standard FFT routine but
-it's usually faster and has support for real transforms. It works well for the type of PDLs for
-which was compiled (otherwise it must do conversions).
+This is a means to interface PDL with the FFTW library. It's similar to the standard FFT routine but
+it's usually faster and has support for real transforms. It works well for the types of PDLs for
+which was the library was compiled (otherwise it must do conversions).
 
 =head1 SYNOPSIS
 
@@ -36,13 +36,13 @@ which was compiled (otherwise it must do conversions).
 
 Please refer to the FFTW documentation for a better understanting of these functions.
 
-Note that complex numbers are rapresented as a leading 2-element piddle dimension.
+Note that complex numbers are represented as a leading 2-element piddle dimension.
 
 =head2 load_wisdom()
 
 =for ref
 
-Loads the wisdom from a file from better FFTW performance. The wisdom
+Loads the wisdom from a file for better FFTW performance. The wisdom
 is automatically saved when the program ends.
 
 =for usage
