@@ -1,3 +1,4 @@
+CS  - Xrange, Yrange for PGPLOT, fix tline and tpoints
 CS  - niceslice docs, class methods for PDL::Options,
       perldl: enable niceslicing at startup (if available)
       Lvalue: add sever method

@@ -327,6 +327,16 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
 
  $opt = {LINEWIDTH => 10}; # A rather fat line
 
+=item plotting range
+
+Explicitly set the plot range in x and y. X-range and Y-range are set
+separately via the aptly named options C<Xrange> and C<Yrange>. If omitted
+PGPLOT selects appropriate defaults (minimum and maximum of the data range
+in general). These options are ignored if the window is on hold.
+
+  line $x, $y, {xr => [0,5]}; # y-range uses default
+  line $x, $y, {Xrange => [0,5], Yrange => [-1,3]}; # fully specified range
+
 =back
 
 =head1 OBJECT-ORIENTED INTERFACE
@@ -3141,7 +3151,12 @@ sub env {
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($data);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -3532,6 +3547,10 @@ EOD
 	$xmin = min( $x - $t[2] ); $xmax = max( $x + $t[3] );
 	$ymin = min( $y - $t[4] ); $ymax = max( $y + $t[5] );
       }
+      ($xmin,$xmax) = @{$o->{Xrange}} if ref $o->{Xrange} eq 'ARRAY';
+      ($ymin,$ymax) = @{$o->{Yrange}} if ref $o->{Yrange} eq 'ARRAY';
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -3578,6 +3597,7 @@ EOD
 # that you may :)
 #
 
+my $line_options = undef;
 sub tline {
 
   my $self = shift;
@@ -3587,7 +3607,9 @@ sub tline {
 
   barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
   my ($x, $y)=@$in;
-
+  if (!defined($line_options)) {
+    $line_options=$self->{PlotOptions}->extend({Missing => undef});
+  }
 
   if ($#$in==0) {
     $y = $x; $x = $y->xvals();
@@ -3598,17 +3620,40 @@ sub tline {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tline($x, $y, $y->yvals, $self, $o);
+  unless ( $self->held() ) {
+    my ($o, $u_opt) = $self->_parse_options($line_options,$opt);
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    
+    my ($ymin, $ymax, $xmin, $xmax);
+    # Make sure the missing value is used as the min or max value
+    if (defined $o->{Missing} ) {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	minmax($y);
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	minmax($x);
+    }
+    if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+    if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->hold; # we hold for the duration of the threaded plot
+  }
+  _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
 
 }
 
 
-PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
+PDL::thread_define('_tline(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
-    $self->line($x, $y, $opt->[$ind->at(0)]);
-    $self->hold();
+    # use Data::Dumper;
+    # print Dumper $opt->[$ind->at(0)];
+    $self->line($x, $y,$opt->[$ind->at(0)] || {}); #
 });
 
 
@@ -3618,6 +3663,7 @@ PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
 # that you may :)
 #
 
+my $points_options = undef;
 sub tpoints {
 
   my $self = shift;
@@ -3638,17 +3684,41 @@ sub tpoints {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tpoints($x, $y, $y->yvals, $self, $o);
+  unless ( $self->held() ) {
+    if (!defined($points_options)) {
+      $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
+    }
+    my ($o, $u_opt) = $self->_parse_options($points_options,$opt);
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    
+    my ($ymin, $ymax, $xmin, $xmax);
+    # Make sure the missing value is used as the min or max value
+    if (defined $o->{Missing} ) {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	minmax($y);
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	minmax($x);
+    }
+    if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+    if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->hold; # we hold for the duration of the threaded plot
+  }
+  _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
 
 }
 
 
-PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
+PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
-    $self->points($x, $y, $opt->[$ind->at(0)]);
-    $self->hold();
+    $self->points($x, $y, $opt->[$ind->at(0)] || {});
 });
 
 
@@ -3699,13 +3769,18 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       # Make sure the missing value is used as the min or max value
       my ($ymin, $ymax, $xmin, $xmax);
       if (defined $o->{Missing} ) {
-	($ymin, $ymax)=minmax($y->where($y != $o->{Missing}));
-	($xmin, $xmax)=minmax($x->where($x != $o->{Missing}));
+	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	  @{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
       } else {
-	($ymin, $ymax)=minmax($y);
-	($xmin, $xmax)=minmax($x);
+	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	  minmax($y);
+	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	  minmax($x);
       }
-
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
     $self->_save_status();
@@ -3797,7 +3872,12 @@ sub arrow {
     # Save some time for large datasets.
     #
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($y);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -4329,7 +4409,12 @@ sub poly {
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
   unless ( $self->held() ) {
-    my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($y);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
     $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
   }
 

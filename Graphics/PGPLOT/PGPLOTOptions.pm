@@ -152,6 +152,8 @@ my %options = (
 	       ITF => 0,
 	       Transform => undef,
 	       LineWidth => 1,
+	       Xrange => undef,
+	       Yrange => undef,
 	       Arrow => {FS => 1, Angle => 45.0, Vent => 0.3,
 			   ArrowSize => undef},
 	       Hatch => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
@@ -212,6 +214,8 @@ sub default_options {
 	   Axis	       => $options{Axis},	 # Standard axis-type
 	   Transform   => $options{Transform},   # The transform used for plots.
 	   LineWidth   => $options{LineWidth},
+	   Xrange      => $options{Xrange},
+	   Yrange      => $options{Yrange},
 	   BackgroundColour => $options{BackgroundColour},
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.
