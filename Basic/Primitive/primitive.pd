@@ -147,7 +147,7 @@ foreach my $func ( keys %over ) {
 	     $b() = tmp;',
 	    BadCode => 
 	    '$GENERIC(b) tmp = ' . $init . ';
-             register int flag = 0;
+             int flag = 0;
 	     loop(n) %{ 
                 if ( $ISGOOD($a()) ) { tmp ' . $op . ' $a(); flag = 1; }
              %}
@@ -228,6 +228,10 @@ pp_def(
 # p zcover($xa)
 # [BAD BAD]           # BAD
 #
+
+# note: should be able to wrap these up like I've done for
+# sum/prod over, since they're essentially the same algorithm.
+#
 pp_def(
        'zcover',
        HandleBad => 1,
@@ -238,7 +242,7 @@ pp_def(
        $b() = tmp;',
        BadCode => 
        '$GENERIC(b) tmp = 1;
-        register int flag = 0;
+        int flag = 0;
         loop(n) %{
 /*** fprintf(stderr, "in loop %d flag = %d\n", n, flag ); ***/
            if ( $ISGOOD($a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
@@ -262,7 +266,7 @@ pp_def(
         $b() = tmp;',
        BadCode =>
        '$GENERIC(b) tmp = 1;
-        register int flag = 0;
+        int flag = 0;
         loop(n) %{ 
            if ( $ISGOOD($a()) ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
         %}
@@ -282,7 +286,7 @@ pp_def(
         $b() = tmp;',
        BadCode => 
        '$GENERIC(b) tmp = ~ 0 ;
-        register int flag = 0;
+        int flag = 0;
         loop(n) %{ 
            if ( $ISGOOD($a()) ) { tmp &= $a(); flag = 1; if (!tmp) break; }
         %}
@@ -302,7 +306,7 @@ pp_def(
         $b() = tmp;',
        BadCode =>
        '$GENERIC(b) tmp = 0;
-        register int flag = 0;
+        int flag = 0;
         loop(n) %{ 
            if ( $ISGOOD($a()) ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
         %}
@@ -322,7 +326,7 @@ pp_def(
         $b() = tmp;',
        BadCode => 
        '$GENERIC(b) tmp = 0;
-        register int flag = 0;
+        int flag = 0;
         loop(n) %{ 
            if ( $ISGOOD($a()) ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
         %}
@@ -394,6 +398,14 @@ is the natural (and correct) choice for binned data, of course.
 
 # Internal utility sorting routine for median/qsort routines.
 
+# QUS: 
+#  how to re-write these to handle bad values?
+#  probably easiest to have a bad-value aware version
+#  as well as the original one.
+#  (one quick way would be to create a new copy of the
+#  piddle with all the bad values removed - however, that's
+#  rather wasteful of memory).
+#
 for (keys %PDL::Types::typehash) {
    $ctype = $PDL::Types::typehash{$_}{ctype};
    $ppsym = $PDL::Types::typehash{$_}{ppsym};
@@ -458,6 +470,7 @@ for (keys %PDL::Types::typehash) {
 }
 
 pp_def('medover',
+       HandleBad => 0,  # this is more a flag to get someone to update this
         Pars => 'a(n); [o]b(); [t]tmp(n);',
 	Doc => projectdocs('median','medover',''),
         Code => '
@@ -477,6 +490,7 @@ pp_def('medover',
 ');
 
 pp_def('oddmedover',
+       HandleBad => 0,  # this is more a flag to get someone to update this
         Pars => 'a(n); [o]b(); [t]tmp(n);',
 	Doc => projectdocs('oddmedian','oddmedover','
 
@@ -615,7 +629,10 @@ pp_add_exported('', 'minmax');
 #pp_add_exported('', 'minmax_ind');
 
 
-pp_def('qsort',
+# this should move all bad values to the end of the array
+#
+pp_def(
+    'qsort',
         Pars => 'a(n); [o]b(n);',
         Code => '
            int nn;
@@ -635,7 +652,6 @@ Quicksort a vector into ascending order.
 
 =cut
 ');
-
 
 pp_def('qsorti',
         Pars => 'a(n); int [o]indx(n);',
@@ -681,27 +697,50 @@ and alters its argument.
 );
 
 
-defpdl(
-	'inner',
-	'a(n); b(n); [o]c(); ', '',
-	'double tmp = 0;
-	 loop(n) %{ tmp += $a() * $b(); %}
-	 $c() = tmp;','
+pp_def( 
+    'inner',
+    HandleBad => 1,
+    Pars => 'a(n); b(n); [o]c();', 
+    Code => 
+    'double tmp = 0;
+     loop(n) %{ tmp += $a() * $b(); %}
+     $c() = tmp;',
+    BadCode => 
+    'double tmp = 0;
+     int flag = 0;
+     loop(n) %{ 
+        if ( $ISGOOD($a()) && $ISGOOD($b()) ) { tmp += $a() * $b(); flag = 1; }
+     %}
+     if ( flag ) { $c() = tmp; }
+     else        { $SETBAD($c()); $PDL(c)->state |= PDL_BADVAL; }',
+    CopyBadStatusCode => '',
+    Doc => '
 =for ref
 
 Inner product over one dimension
 
  c = sum_i a_i * b_i
 
-');
+'); # pp_def( inner )
 
 
-
-defpdl(
-	'outer',
-	'a(n); b(m); [o]c(n,m); ', '',
-	'loop(n,m) %{ $c() = $a() * $b(); %}',
-	<<'EOD'
+pp_def( 
+    'outer',
+    HandleBad => 1,
+    Pars => 'a(n); b(m); [o]c(n,m);',
+    Code => 
+    'loop(n,m) %{ 
+       $c() = $a() * $b(); 
+     %}',
+    BadCode => 
+    'loop(n,m) %{ 
+       if ( $ISBAD($a()) || $ISBAD($b()) ) {
+          $SETBAD($c());
+       } else {
+          $c() = $a() * $b(); 
+       }
+     %}',
+    Doc => '
 =for ref
 
 outer product over one dimension
@@ -710,9 +749,7 @@ Naturally, it is possible to achieve the effects of outer
 product simply by threading over the "C<*>"
 operator but this function is provided for convenience.
 
-=cut
-EOD
-);
+'); # pp_def( outer )
 
 
 pp_addpm(<<'EOD');
@@ -747,6 +784,7 @@ EOD
 
 pp_add_exported('', 'matmult');
 
+# XXX these need converting
 
 defpdl(
 	'innerwt',
