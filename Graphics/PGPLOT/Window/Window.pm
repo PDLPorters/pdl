@@ -837,6 +837,13 @@ The following standard options influence this command:
 
  AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
+The ColorValues option allows one to plot XYZ data with the
+Z axis mapped to a color value.  For example:
+
+ use PDL::Graphics::LUT;
+ ctab(lut_data('idl5')); # set up color palette to 'idl5' 
+ points ($x, $y, {ColorValues => $z});
+
 =for example
 
  $y = sequence(10)**2+random(10);
@@ -3099,14 +3106,22 @@ sub arrow {
     $self->_save_status();
     $self->_standard_options_parser($o);
 
+    if (exists($opt->{ColorValues})) {
+      my $sym = $o->{Symbol} || 0;
+      my $z   = $opt->{ColorValues};
+      $self->_checkarg($z,1);    # make sure this is a float PDL
+      pgcolorpnts($n, $x->get_dataref, $y->get_dataref, $z->get_dataref, $sym);
+    } else {
 
-    # Set symbol if specified in the options hash.
-    ## $sym ||= $o->{Symbol};
-    $sym = $o->{Symbol} unless defined $sym;
+      # Set symbol if specified in the options hash.
+      ## $sym ||= $o->{Symbol};
+      $sym = $o->{Symbol} unless defined $sym;
+      
+      $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
+      
+      pgpnts($n, $x->get_dataref, $y->get_dataref, $sym->get_dataref, $ns);
 
-    $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
-
-    pgpnts($n, $x->get_dataref, $y->get_dataref, $sym->get_dataref, $ns);
+    }
 
     #
     # Sometimes you would like to plot a line through the points straight
