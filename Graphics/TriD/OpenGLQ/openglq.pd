@@ -117,6 +117,19 @@ pp_def(
 	GenericTypes => [F,D],
 	Pars => 'coords(tri,x);colors(tri,x);',
 	Code => '
+		glBegin(GL_LINES);
+		loop(x) %{ '.COLOR().VERTEX().'
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+pp_def(
+	'gl_line_strip',
+	GenericTypes => [F,D],
+	Pars => 'coords(tri,x);colors(tri,x);',
+	Code => '
 		glBegin(GL_LINE_STRIP);
 		loop(x) %{ '.COLOR().VERTEX().'
 		%}
@@ -221,7 +234,7 @@ pp_def('gl_arrows',
 		float hl = $COMP(headlen);
 		float w = $COMP(width);
 		float tmp2[3]; tmp2[0] = 0.000001; tmp2[1] = -0.0001; tmp2[2] = 1;
-		glBegin(GL_LINES);
+ 		glBegin(GL_LINES);
 		threadloop %{
 			int a = $indsa();
 			int b = $indsb();

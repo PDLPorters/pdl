@@ -28,7 +28,6 @@ the copyright notice should be included in the file.
 
 
 =cut
-
 package PDL::Graphics::TriD::Labels;
 use PDL::Graphics::OpenGL;
 use PDL::Graphics::OpenGLQ;
@@ -36,15 +35,14 @@ use PDL::Graphics::OpenGLQ;
 
 sub gdraw {
 	my($this,$points) = @_;
-	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 	glDisable(&GL_LIGHTING);
 	glColor3d(1,1,1);
-	PDL::Graphics::OpenGLQ::gl_texts($points,$fontbase,$this->{Options}{Strings});
+	PDL::Graphics::OpenGLQ::gl_texts($points,$this->{Options}{Font},$this->{Options}{Strings});
 	glEnable(&GL_LIGHTING);
 }
 
 sub get_valid_options {
-	return {UseDefcols => 0,Strings => []}
+  return {UseDefcols => 0, Font=>$PDL::Graphics::TriD::GL::fontbase, Strings => [] }
 }
 
 package PDL::Graphics::TriD::MathGraph;

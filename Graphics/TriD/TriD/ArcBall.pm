@@ -62,6 +62,8 @@ sub normxy2qua {
 package PDL::Graphics::TriD::QuaterController;
 
 # use PDL::Quaternion;
+use PDL::Graphics::TriD::ButtonControl;
+@ISA = qw(PDL::Graphics::TriD::ButtonControl);
 
 sub new {my($type,$win,$inv,$quat) = @_;
 	my $this = {
@@ -79,6 +81,8 @@ sub set_wh {
 	my($this,$w,$h) = @_;
 	print "ARCSETWH: $w,$h\n" if $PDL::Graphics::TriD::verbose;
 	$this->{W} = $w; $this->{H} = $h;
+        $w = 0 unless defined $w;
+        $h = 0 unless defined $h;
 	if($w > $h) {
 		$this->{SC} = $h/2;
 	} else {
@@ -109,7 +113,5 @@ sub mouse_moved {
 #	print "ARCBALLQ: ",(join ', ',@$arc),"     ",(join ', ',@{$this->{Quat}}),"\n";
 #	$this->{Quat}->set($this->{Quat}->multiply($arc));
 }
-
-
 
 1;

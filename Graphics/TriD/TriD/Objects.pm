@@ -1,4 +1,3 @@
-
 # GObjects can be either stand-alone or in Graphs, scaled properly.
 # All the points used by the object must be in the member {Points}.
 # I guess we can afford to force data to be copied (X,Y,Z) -> (Points)...
@@ -41,6 +40,16 @@ sub check_options {
 	$this->{Options} = \%newopts;
 }
 
+
+sub set_colors {
+  my($this,$colors) = @_;
+  if(ref($colors) eq "ARRAY"){
+    $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
+  }
+  $this->{Colors}=$colors;
+  $this->data_changed;
+}
+
 sub get_valid_options {
 	return {UseDefcols => 0};
 }
@@ -81,6 +90,17 @@ package PDL::Graphics::TriD::Lines;
 sub cdummies { return $_[1]->dummy(1); }
 
 sub r_type { return "SURF2D";}
+
+sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
+
+package PDL::Graphics::TriD::LineStrip;
+@ISA=qw/PDL::Graphics::TriD::GObject/;
+
+sub cdummies { return $_[1]->dummy(1); }
+
+sub r_type { return "SURF2D";}
+
+sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
 
 package PDL::Graphics::TriD::GObject_Lattice;
 @ISA=qw/PDL::Graphics::TriD::GObject/;

@@ -420,10 +420,18 @@ an object like
 
 	$a = new PDL::Graphics::TriD::Scale($x,$y,$z);
 
+=head2 PDL::Graphics::TriD::LineStrip
+
+This is just a line or a set of lines. The arguments are 3 1-or-more-D
+piddles which describe the vertices of a continuous line and an 
+optional color piddle (which is 1-D also and simply
+defines the color between red and blue. This will probably change).
+
 =head2 PDL::Graphics::TriD::Lines
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-piddles and an optional color piddle (which is 1-D also and simply
+piddles where each contiguous pair of vertices describe a line segment 
+and an optional color piddle (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
 =head2 PDL::Graphics::TriD::Image
@@ -505,12 +513,13 @@ BEGIN {
 		(/^GL$/  and $dv="PDL::Graphics::TriD::GL") or
 		(/^GLpic$/  and $dv="PDL::Graphics::TriD::GL" and $PDL::Graphics::TriD::offline=1) or
 		(/^VRML$/  and $dv="PDL::Graphics::TriD::VRML" and $PDL::Graphics::TriD::offline=1) or
-		(die "Invalid PDL 3D device '$_' specified!");
+		(barf "Invalid PDL 3D device '$_' specified!");
 	}
 	my $mod = $dv;
 	$mod =~ s|::|//|g;
 	require "$mod.pm";
 	$dv->import;
+        my $verbose;
 }
 
 use PDL::Exporter;
@@ -530,13 +539,13 @@ sub realcoords {
 	my($type,$c) = @_;
 	if(ref $c ne "ARRAY") {
 		if($c->getdim(0) != 3) {
-			die "If one piddle given for coordinate, must be (3,...) or have default interpretation";
+			barf "If one piddle given for coordinate, must be (3,...) or have default interpretation";
 		}
 		return $c ;
 	}
 	if(!ref $c->[0]) {$type = shift @$c}
 	if($#$c < 0 || $#$c>2) {
-		die "Must have 1..3 array members for coordinates";
+		barf "Must have 1..3 array members for coordinates";
 	}
 	if($#$c == 0 and $type =~ /^SURF2D$/) {
 		# surf2d -> this is z axis
@@ -555,7 +564,13 @@ sub realcoords {
 	}
 	# XXX
 	if($#$c != 2) {
-		die("Must have 3 coordinates if no interpretation (here '$type')");
+		barf("Must have 3 coordinates if no interpretation (here '$type')");
+	}
+	# allow a constant (either pdl or not) to be introduced in one dimension
+        foreach(0..2){  
+	  if(ref($c->[$_]) ne "PDL" or $c->[$_]->nelem==1){
+	    $c->[$_] = $c->[$_]*(PDL->ones($c->[($_+1)%3]->dims));
+	  }
 	}
 	my $g = PDL->null;
 	&PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
@@ -596,7 +611,7 @@ sub PDL::twiddle3d {
 sub graph_object {
 	my($obj) = @_;
 	if(!defined $obj or !ref $obj) {
-		die("Invalid object to TriD::graph_object");
+		barf("Invalid object to TriD::graph_object");
 	}
 	my $g = get_new_graph();
 	my $name = $g->add_dataseries($obj);
@@ -636,7 +651,7 @@ sub PDL::imagrgb {
 # Call: line3d([$x,$y,$z],[$color]);
 *line3d=\&PDL::line3d;
 sub PDL::line3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::Lines(@_));
+	&graph_object(new PDL::Graphics::TriD::LineStrip(@_));
 }
 
 # XXX Should enable different positioning...
@@ -717,7 +732,7 @@ sub get_current_window {
 		if(!$PDL::Graphics::TriD::create_window_sub) {
 			barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 		}
-		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub();
+		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub(@_);
 		if ($win->{Window}->{Interactive}) {
        		  require PDL::Graphics::TriD::ArcBall;
 		  require PDL::Graphics::TriD::SimpleScaler;
@@ -725,6 +740,8 @@ sub get_current_window {
    		  $win->{EventHandler} = new PDL::Graphics::TriD::EventHandler();
 		  $win->{Window}->set_eventhandler($win->{EventHandler});
 		  $win->{Control} = new PDL::Graphics::TriD::SimpleController();
+		  $win->{Window}->set_transformer($win->{Control});
+
 		  $win->{ArcBall1} = new PDL::Graphics::TriD::ArcCone(
 			$win->{Window}, 0,
 			$win->{Control}{WRotation});
@@ -733,7 +750,6 @@ sub get_current_window {
 			\$win->{Control}{CDistance});
 		  $win->{EventHandler}->set_button(0,$win->{ArcBall1});
 		  $win->{EventHandler}->set_button(2,$win->{Scaler});
-		  $win->{Window}->set_transformer($win->{Control});
 		}
 		$win->{Window}->set_material(new PDL::Graphics::TriD::Material);
 		$PDL::Graphics::TriD::current_window = $win->{Window};
@@ -816,6 +832,18 @@ sub clear_objects {
 	$this->{ValidList} = 0;
 }
 
+
+sub delete_object {
+  my($this,$object) = @_;
+  return unless(defined $object && defined $this->{Objects});
+  for(0..$#{$this->{Objects}}){
+    if($object == $this->{Objects}[$_]){
+      splice(@{$this->{Objects}},$_,1);
+      redo;
+    }
+  }
+}
+
 # XXXXXXXXX sub {} makes all these objects and this window immortal!
 sub add_object {
 	my($this,$object) = @_;
@@ -880,7 +908,7 @@ sub i_keep_list {return 1} # For object.
 sub new {
 	my($type) = @_;
 	my $this = bless {},$type;
-	# print "CREATE VP $this\n";
+#        print "CREATE VP $this\n";
 	return $this;
 }
 
@@ -928,7 +956,7 @@ sub add_transformation {
 
 
 package PDL::Graphics::TriD::Window;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+@ISA = qw/PDL::Graphics::TriD::ViewPort/;
 
 =head1 BUGS
 
