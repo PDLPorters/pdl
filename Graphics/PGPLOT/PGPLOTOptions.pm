@@ -92,9 +92,10 @@ instance. It defaults to 1.
 
 The position of the plot in normalised coordinates.
 
-=item NoErase
+=item Erase
 
-Allows plotting multiple panels on one plot, normally used with 'PlotPosition'.
+Explicitly erase the plotting surface, normally required when making new
+plots with PlotPosition.
 
 =back
 
@@ -149,7 +150,7 @@ sub default_options {
 	    Justify     => 0,
 	    Border      => 0,
 	    CharSize    => 1,     # Character size for annotation
-	    NoErase     => 0,
+	    Erase       => 0,
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
 
