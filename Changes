@@ -2,6 +2,7 @@ CED (19-Aug-02)
     - Window.pm spinlock includes special release_and_barf to unlock signals.
 	(the Right Answer is to fix barf() to throw a __DIE__ signal;
 	but that opens other cans of worms.)
+    - documentation for some of the inplace-flag handlers
 CED (16-Aug-02)
     - indexND: runs faster; doesn't check boundaries at all
     - indexNDb: includes "forbid" boundary condition (which barfs on violation)

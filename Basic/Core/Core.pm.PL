@@ -1415,6 +1415,7 @@ sub alltopdl {
     return $_[0]->new($_[1]);
 0;}
 
+
 =head2 inplace
 
 =for ref
@@ -1456,6 +1457,45 @@ sub PDL::inplace {
 }
 
 # Copy if not inplace
+
+
+=head2 is_inplace
+
+=for ref
+
+Test the in-place flag on a piddle
+
+=for usage
+
+  $out = ($in->is_inplace) ? $in : zeroes($in);
+  $in->set_inplace(0)
+
+Provides access to the L<inplace:inplace> hint flag, within the perl millieu. 
+That way functions you write can be inplace aware...
+
+=head2 set_inplace
+
+=for ref
+
+Set the in-place flag on a piddle
+
+=for usage
+  
+  $out = ($in->is_inplace) ? $in : zeroes($in);
+  $in->set_inplace(0);
+
+Provides access to the L<inplace:inplace> hint flag, within the perl millieu.
+Useful mainly for turning it OFF, as L<inplace:inplace> turns it ON more
+conveniently.
+
+=head2 new_or_inplace
+
+=for ref
+
+Return back either the argument pdl or a copy of it depending on whether
+it be flagged in-place or no.  Handy for building inplace-aware functions.
+
+=cut
 
 sub new_or_inplace {
 	my $pdl = shift;
