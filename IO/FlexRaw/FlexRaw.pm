@@ -43,7 +43,7 @@ the header file (`banana.hdr') could look like
 
 The data can then be input using
 
-	$a = readflex('banana')[1];
+	$a = (readflex('banana'))[1];
 
 The format of the hdr file is an extension of that used by FastRaw.
 Comment lines (starting with #) are allowed, as are descriptive names
