@@ -4,9 +4,8 @@ PDL::Fit::Polynomial - routines for fitting with polynomials
 
 =head1 DESCRIPTION
 
-
 This module contains routines for doing simple
-polynomical fits to data
+polynomial fits to data
 
 =head1 SYNOPSIS
 
@@ -128,6 +127,10 @@ sub PDL::fitpoly1d {
 =head1 BUGS
 
 May not work too well for data with large dynamic range.
+
+=head1 SEE ALSO
+
+L<PDL::Slatec/"polyfit">
 
 =head1 AUTHOR
 
