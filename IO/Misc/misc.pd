@@ -51,6 +51,8 @@ use PDL::Types;
 use PDL::Options;
 use PDL::Bad;
 use Carp;
+use Symbol qw/ gensym /;
+use strict;
 
 =head2 rfits()
 
@@ -216,7 +218,6 @@ sub PDL::rfits {
              push @history, $rest;
           } else {
              $$foo{$name} = "";
-             undef $comment;
 
              $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
  	     $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
@@ -395,14 +396,15 @@ BEGIN {
     ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
 }
 
+# Until we do a rewrite these have to be file global since they
+# are used by the wheader routine
+my (%hdr, $nbytes);
 
 sub PDL::wfits { # Write a PDL to a FITS format file
-   use strict;
    barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
 
    my ($pdl,$file,$BITPIX) = @_;
    my ($k, $buff, $off, $ndims, $sz);
-   my ($nbytes);
 
    if ($file =~ /\.gz$/) {            # Handle compression
       $file = "|gzip -9 > $file";
@@ -556,7 +558,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      
      # Write FITS header
      
-     my %hdr = ();
+     %hdr = ();
      if (defined($h)) {
        for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
      }
@@ -864,6 +866,8 @@ when read in, then the whole array reversed.
 
 =cut
 
+use vars qw/ $colsep $deftype /;
+
 $colsep = " ";      # Default column separator
 $deftype = double;  # Default type for piddles
 
@@ -885,7 +889,7 @@ sub PDL::rcols {
        if $#_<0;
 
    my $is_handle = defined fileno $_[0] ? 1 : 0;
-   my $fh = $is_handle ? $_[0] : "FILE";
+   my $fh = $is_handle ? $_[0] : gensym;
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
 
@@ -1189,7 +1193,7 @@ sub PDL::wcols {
    }
    else{
        if (ref(\$file) eq "SCALAR") {  # Must be a file name
-          $fh = "FILE";
+          $fh = gensym;
          if (!$is_handle) {
             $file = ">$file" unless $file =~ /^\|/ or $file =~ /^\>/;
              open $fh, $file or barf "File $file can not be opened for writing\n";
@@ -1356,7 +1360,7 @@ of C<$1>, C<$2> etc.
      my $pattern = shift;
 
      my $is_handle = defined fileno $_[0] ? 1 : 0;
-     my $fh = $is_handle ? $_[0] : "FILE";
+     my $fh = $is_handle ? $_[0] : gensym;
      open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
 
      if (ref($pattern) ne "CODE") {
@@ -1412,6 +1416,7 @@ Not yet tested with PDL-1.9X versions
 
 sub rdsa{PDL->rdsa(@_)}
 
+use vars qw/ $dsa_loaded /;
 sub PDL::rdsa {
     my $class = shift;
     barf 'Usage: ([$xaxis],$data) = rdsa($file)' if $#_!=0;
@@ -1419,7 +1424,7 @@ sub PDL::rdsa {
     eval 'use DSA' unless $dsa_loaded++;
     barf 'Cannot use DSA library' if $@ ne "";
 
-    $status = 0;
+    my $status = 0;
 
     # Most of this stuff stolen from Frossie:
 
@@ -1427,9 +1432,12 @@ sub PDL::rdsa {
     dsa_named_input('IMAGE',$file,$status);
     goto skip if $status != 0;
 
-    dsa_get_range('IMAGE',$vmin,$vmax,$status);
-    dsa_data_size('IMAGE',5, $data_ndims, \@data_dims, $data_elements, $status);
-    dsa_map_data('IMAGE','READ','FLOAT',$data_address,$data_slot,$status);
+    dsa_get_range('IMAGE',my $vmin,my $vmax,$status);
+    my @data_dims;
+    dsa_data_size('IMAGE',5, my $data_ndims, \@data_dims, my $data_elements, 
+                  $status);
+    dsa_map_data('IMAGE','READ','FLOAT',my $data_address,my $data_slot,
+                 $status);
 
     @data_dims = @data_dims[0..$data_ndims-1];
     print "Dims of $file = @data_dims\n" if $PDL::verbose;
@@ -1440,10 +1448,11 @@ sub PDL::rdsa {
     $pdl->upd_data();
 
     if (wantarray) { # Map X axis values
-      dsa_axis_size('IMAGE',1,5, $axis_ndims, \@axis_dims,
-                    $axis_elements, $status);
-      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',$axis_address,
-                    $axis_slot,$status);
+      my @axis_dims;
+      dsa_axis_size('IMAGE',1,5, my $axis_ndims, \@axis_dims,
+                    my $axis_elements, $status);
+      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',my $axis_address,
+                    my $axis_slot,$status);
       @axis_dims = @axis_dims[0..$axis_ndims-1];
       $xpdl = $class->new;
       $xpdl->set_datatype($PDL_F);
