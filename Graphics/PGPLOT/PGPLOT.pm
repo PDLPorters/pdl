@@ -361,6 +361,12 @@ Options recognised:
 
 Plot vector as connected points
 
+If the 'MISSING' option is specified, those points in the $y vector
+which are equal to the MISSING value are not plotted, but are skipped
+over.  This allows one to quickly draw multiple lines with one call to
+'line', for example to draw coastlines for maps.
+
+
 =for usage
 
  Usage: line ( [$x,] $y, [$opt] )
@@ -368,7 +374,7 @@ Plot vector as connected points
  Options recognised:
 
     The following standard options influence this command:
-    AXIS, BORDER, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH, MISSING
 
 =for example
 
@@ -634,10 +640,15 @@ use PDL::Types;
 use SelfLoader;
 use Exporter;
 use PDL::Dbg;
+use PGPLOT;
 
 use vars qw($AXISCOLOUR $SYMBOL $ERRTERM $HARD_LW $HARD_CH $HARD_FONT);
 
-@ISA = qw( Exporter SelfLoader );
+require DynaLoader;
+
+@ISA = qw( Exporter SelfLoader DynaLoader );
+
+bootstrap PDL::Graphics::PGPLOT;
 
 *rel = *release; # Alias
 *image = *imag;
@@ -648,7 +659,7 @@ use vars qw($AXISCOLOUR $SYMBOL $ERRTERM $HARD_LW $HARD_CH $HARD_FONT);
 
 $AXISCOLOUR = 3;   # Axis colour
 $SYMBOL     = 17;  # Plot symbol for points
-$COLOUR           = 5;   # Colour for plots
+$COLOUR     = 5;   # Colour for plots
 $ERRTERM    = 1;   # Size of error bar terminators
 $HARD_LW    = 4;   # Line width for hardcopy devices
 $HARD_CH    = 1.4; # Character height for hardcopy devices
@@ -701,30 +712,6 @@ END { # Destructor to close plot when perl exits
      }
 }
 
-# Load PGPLOT only on demand
-
-local $^W=0;  # Do it this way to suppress spurious warnings
-eval << 'EOD';
-sub AUTOLOAD {
-   eval << 'EOC' unless $pgplot_loaded;
-   use PGPLOT; $pgplot_loaded=1;   # For me
-   my $i=0; my $pkg;
-   do { $pkg = (caller($i++))[0]; } until $pkg ne "PDL::Graphics::PGPLOT";
-   eval "{ package $pkg; use PGPLOT; }";  # For caller
-   print "Loaded PGPLOT\n" if $PDL::verbose;
-EOC
-   barf "Need PGPLOT v2.0 or higher" if $PGPLOT::VERSION<2;
-   $SelfLoader::AUTOLOAD = $AUTOLOAD;
-   goto &SelfLoader::AUTOLOAD;
-}
-EOD
-
-1;# Exit with OK status
-
-
-__DATA__
-
-# SelfLoaded functions
 
 ############ Local functions #################
 
@@ -1214,12 +1201,29 @@ sub line {
   }
 
   unless ( $hold ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-      initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+
+    # Make sure the missing value is used as the min or max value
+    my ($ymin, $ymax, $xmin, $xmax);
+    if (exists $$opt{MISSING}) {
+      ($ymin, $ymax)=minmax($y->where($y != $$opt{MISSING}));
+      ($xmin, $xmax)=minmax($x->where($x != $$opt{MISSING}));
+    } else {
+      ($ymin, $ymax)=minmax($y);
+      ($xmin, $xmax)=minmax($x); 
+    }
+
+    initenv( $xmin, $xmax, $ymin, $ymax, $opt );
   }
   save_status();
   standard_options_parser($opt);
-  pgline($n, $x->get_dataref, $y->get_dataref);
+
+  # If there is a missing value specified, use pggapline
+  # to break the line around missing values.
+  if (exists $$opt{MISSING}) {
+    pggapline ($n, $$opt{MISSING}, $x->get_dataref, $y->get_dataref);
+  } else {
+    pgline($n, $x->get_dataref, $y->get_dataref);
+  }
   restore_status();
 1;}
 

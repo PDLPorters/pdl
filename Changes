@@ -1,6 +1,14 @@
 (!!! = possible source of incompatibilities)
 2.004
 
+Doug Hunt (3/2/00)
+        - Updated Graphics/IO/PGPLOT, adding a typemap and a PGPLOT.xs file.
+          This change added capability to PDL::Graphics::PGPLOT::line, allowing
+          one to use the 'MISSING' option.  When this option is specified, 'line'
+          will draw many disconnected polylines (delimited by the value specified
+          as 'MISSING') instead of just one.  This is useful in drawing maps with
+          line.
+
 Marc Lehmann
 	- Patch to Basic/Core/Dev.pm fix Parallel build bug. (Ref PDL-Porters Messages
 	  dated 1/8/00 and 1/5/00.)
