@@ -2030,7 +2030,9 @@ by PDL::Core
 
 =cut
 
-sub barf { die barf_msg(@_) };
+# sub barf { die barf_msg(@_) };
+use Carp;
+sub barf { croak @_ };
 
 # This sub is called by Perl barf() and pdl_barf in pdlcore.c
 

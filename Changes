@@ -1,3 +1,10 @@
+CS  - fix mem leak patch so that core struct version croaking works
+    * NOTE: recent patches will require recompilation of any external
+    *       modules that use PDL::PP; PDL will tell you when using such
+    *       modules *
+    - barf is now really only an alias for croak; this is a test if we
+      can live with the original croak; we should be able to!
+    - update COPYING for the 21st century ;)
 John Cerney (4/3/01)
     - Modified Makefile.PL in Graphics to add '-lm' to the libs.
       This fixes a 'Can't locate auto/PDL/Graphics/OpenGL/glpcOpenWin.al'
