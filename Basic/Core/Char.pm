@@ -12,9 +12,9 @@ PDL::Char -- PDL subclass which allows reading and writing of fixed-length chara
  use PDL;
  use PDL::Char;
 
- my $pchar = PDL::Char->new [['abc', 'def', 'ghi'],['jkl' 'mno' 'pqr']];
+ my $pchar = PDL::Char->new( [['abc', 'def', 'ghi'],['jkl', 'mno', 'pqr']] );
  
- $pchar->setstr(0,1,'foo');
+ $pchar->setstr(1,0,'foo');
  
  print $pchar; # 'string' bound to "", perl stringify function
  # Prints:
@@ -23,7 +23,7 @@ PDL::Char -- PDL subclass which allows reading and writing of fixed-length chara
  #  ['jkl' 'mno' 'pqr']
  # ]
 
- print $pchar->atstr(0,2);
+ print $pchar->atstr(2,0);
  # Prints:
  # ghi
 
@@ -49,14 +49,14 @@ Function to create a byte PDL from a string, list of strings, list of list of st
 =for usage
 
  # create a new PDL::Char from a perl array of strings
- $strpdl = PDL::Char->new ['abc', 'def', 'ghi'];  
+ $strpdl = PDL::Char->new( ['abc', 'def', 'ghi'] );  
 
  # Convert a PDL of type 'byte' to a PDL::Char
  $strpdl1 = PDL::Char->new (sequence (byte, 4, 5)+99);
 
 =for example
 
- $pdlchar3d = PDL::Char->new [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']]; 
+ $pdlchar3d = PDL::Char->new([['abc','def','ghi'],['jkl', 'mno', 'pqr']]); 
 
 =cut
 
@@ -126,7 +126,7 @@ Function to print a character PDL (created by 'char') in a pretty format.
 
 =for usage
 
- $char = PDL::Char->new [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']];
+ $char = PDL::Char->new( [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']] );
  print $char; # 'string' bound to "", perl stringify function
  # Prints:
  # [
@@ -178,7 +178,7 @@ dimension of the PDL.  It will be truncated if it is longer.
 
 =for usage
 
- $char = PDL::Char->new [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']];
+ $char = PDL::Char->new( [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']] );
  $char->setstr(0,1, 'foobar');
  print $char; # 'string' bound to "", perl stringify function
  # Prints:
@@ -186,7 +186,7 @@ dimension of the PDL.  It will be truncated if it is longer.
  #  ['abc' 'def' 'ghi']
  #  ['foo' 'mno' 'pqr']
  # ]
- $char->setstr(1,2, 'f');
+ $char->setstr(2,1, 'f');
  print $char; # 'string' bound to "", perl stringify function
  # Prints:
  # [
@@ -221,7 +221,7 @@ string is the implied first dimension.
 
 =for usage
 
- $char = PDL::Char->new [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']];
+ $char = PDL::Char->new( [['abc', 'def', 'ghi'], ['jkl', 'mno', 'pqr']] );
  print $char->atstr(0,1);
  # Prints:
  # jkl

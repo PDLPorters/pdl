@@ -62,8 +62,8 @@ WriteMakefile(
                    'pdlconv$(OBJ_EXT)  pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
   		(map {($_,'$(INST_LIBDIR)/'.$_)} (
-			qw/Core.pm Basic.pm Version.pm Types.pm Char.pm
-						  Dbg.pm Exporter.pm Config.pm/
+			qw/Core.pm Basic.pm Version.pm Types.pm
+						  Dbg.pm Exporter.pm Config.pm Char.pm/
 		)),
   		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
 			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h

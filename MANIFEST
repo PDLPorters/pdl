@@ -7,6 +7,7 @@ Basic/Core/Core.xs
 Basic/Core/Char.pm
 Basic/Core/Dbg.pm
 Basic/Core/Dev.pm
+Basic/Core/Char.pm
 Basic/Core/Exporter.pm
 Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
@@ -479,6 +480,7 @@ t/matmult.t
 t/misc.t
 t/ones.t
 t/ops.t
+t/pdlchar.t
 t/physical.t
 t/picnorgb.pl
 t/picnorgb.t
