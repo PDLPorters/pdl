@@ -502,62 +502,19 @@ result PDL will change the parent.
 =cut
 
 sub PDL::reorder {
-
 	my ($pdl,@newDimOrder) = @_;
 	
 	my $arrayMax = $#newDimOrder;
   
 	#Error Checking:
-	my $ndims = $pdl->getndims;
-
-	if( $ndims != scalar(@newDimOrder) ){
+	if( $pdl->getndims != scalar(@newDimOrder) ){
 		my $errString = "PDL::reoderDims: Number of elements (".scalar(@newDimOrder).") in newDimOrder array doesn't\n";
 		$errString .= "match the number of dims in the supplied PDL ($ndims)\n";
 		barf($errString);
 	}
-
-
-	# Find a set of xchg operations that can be used to reorder the dimensions:
-	my $temp;  # temp variable used in exchanging
-	my @scratchOrder = (0..$#newDimOrder); # scratchPad of new dim order as we are building the xchg ops
-	my %scratchLookup;   # Lookup of dim position (in @scratchorder) vs dim number. Updated every time
-				#  @scratchorder is changed
-	@scratchLookup{@scratchOrder} = (0..$#scratchOrder);
-
-        my @operationStack;  # xchange operations to be built
-        my $i = 0;
-        my ($from,$to);  # from/to values for building individual exchanges
-        for ($i=0; $i<$arrayMax; $i++) {
-		if($scratchOrder[$i] > $arrayMax or $scratchOrder[$i] < 0){
-			$pdl->barf("Error in reorder: Element $scratchOrder[$i] of newDimOrder array not a valid index (out of bounds).\n");
-			return;
-		}
-
-        	if( $scratchOrder[$i] != $newDimOrder[$i] ){
-        		$from = $i;
-        		$to = $scratchLookup{ $newDimOrder[$i] } ; # find where the desired dim is in the current dim order.
-                        $temp = $scratchOrder[$from];
-			$scratchOrder[$from] = $scratchOrder[$to];
-			$scratchOrder[$to] = $temp;
-        		push @operationStack, [$from,$to];
-
-			# Update scratch Lookup:
-			@scratchLookup{@scratchOrder} = (0..$#scratchOrder);
-        	}
-        }
-
-	# xchange operations built, now do them:
-	my $outPDL = $pdl;
-	my $operation;
-	foreach $operation(@operationStack){
-		$outPDL = $outPDL->xchg(@$operation);
-	}
-
-	return $outPDL;
-
+	# a quicker way to do the reorder
+	return $pdl->thread(@newDimOrder)->unthread(0);
 }
-
-
 
 EOD
 
@@ -804,11 +761,13 @@ EOD
 				s++;
 				/* FALLTHRU */
 			case ',': case '\0':  /* In these cases, no inc s */
-				$COMP(start[nthnew]) = 0;
-				$COMP(end[nthnew]) = -1;
-				$COMP(inc[nthnew]) = 1;
-				$COMP(corresp[nthnew]) = nthreal;
-				nthnew++; nthreal++;
+				if ($COMP(intactnew) > 0) {
+				  $COMP(start[nthnew]) = 0;
+				  $COMP(end[nthnew]) = -1;
+				  $COMP(inc[nthnew]) = 1;
+				  $COMP(corresp[nthnew]) = nthreal;
+				  nthnew++; nthreal++;
+				}
 				break;
 			case '(':
 				s++;
