@@ -4182,17 +4182,23 @@ sub arrow {
       } else {
 	# Scale the image correctly even with rotation by calculating the new
 	# corner points
-	$self->initenv(($tr->slice("0:2")*pdl[
-					      [1, 0.5, 0.5],
-					      [1, 0.5, $nx+0.5],
-					      [1, $nx+0.5, 0.5],
-					      [1, $nx+0.5, $nx+0.5]])->sumover->minmax,
-		       ($tr->slice("3:5")*pdl[
-					      [1, 0.5, 0.5],
-					      [1, 0.5, $ny+0.5],
-					      [1, $ny+0.5, 0.5],
-					      [1, $ny+0.5, $ny+0.5]])->sumover->minmax,
-		       $opt);
+	# - we respect the sense of the input axis by swapping the min/max
+	#   values if the pixel size is negative (DJB 01/10/15)
+        #
+        my @xvals = ($tr->slice("0:2")*pdl[
+					   [1, 0.5, 0.5],
+					   [1, 0.5, $nx+0.5],
+					   [1, $nx+0.5, 0.5],
+					   [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
+        my @yvals = ($tr->slice("3:5")*pdl[
+					   [1, 0.5, 0.5],
+					   [1, 0.5, $ny+0.5],
+					   [1, $ny+0.5, 0.5],
+					   [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
+        if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
+        if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
+
+	$self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
       }
     }				# if ! hold
 
@@ -4484,6 +4490,7 @@ sub poly {
       $ell_options->synonyms({Angle => 'Theta'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $opt = {} unless defined $opt;
     my ($x, $y, $a, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);

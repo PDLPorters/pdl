@@ -1,3 +1,7 @@
+DJB (15/Oct/01)
+    - minor fix to ellipse (no longer requires options array) and to
+      imag (will correctly handle transforms for axes with "-ve" pixel 
+      size, such as RA in Astronomy)
 CS  - Xrange, Yrange for PGPLOT, fix tline and tpoints
 CS  - niceslice docs, class methods for PDL::Options,
       perldl: enable niceslicing at startup (if available)
