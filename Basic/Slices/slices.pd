@@ -697,6 +697,10 @@ EOD
 );
 
 
+pp_addhdr << 'EOH';
+#define sign(x) ( (x) < 0 ? -1 : 1)
+EOH
+
 # I think the quotes in the =item ":" lines
 # confuse the perldoc stuff
 #
@@ -897,7 +901,7 @@ EOD
 				   end >= $PARENT(dims[parentdim])) {
 					barf("Slice cannot start or end above limit");
 				}
-				if((end-start)*inc < 0)
+				if(sign(end-start)*sign(inc) < 0)
 					inc = -inc;
 				$PRIV(incs[i]) = $PARENT(dimincs[parentdim]) * inc;
 				$PRIV(offs) += start * $PARENT(dimincs[parentdim]);
@@ -905,6 +909,8 @@ EOD
 				$PRIV(incs[i]) = 0;
 			}
 			$CHILD(dims[i]) = ((int)((end-start)/inc))+1;
+                        if ($CHILD(dims[i]) <= 0)
+                           barf("slice internal error: computed slice dimension must be positive");
 		}
 		for(i=$COMP(nthintact); i<$PARENT(ndims); i++) {
 			int cdim = i - $COMP(nthintact) + $COMP(intactnew);
