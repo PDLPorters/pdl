@@ -3279,10 +3279,14 @@ sub _standard_options_parser {
     my $arrowsize = $o->{CharSize}; # Default to the character size..
     if (ref($o->{Arrow}) eq 'HASH') {
       while (my ($var, $value)=each %{$o->{Arrow}}) {
+        # options are FS, ANGLE, VENT, SIZE
+	# but SIZE may be ARROWSIZE [see ../PGPLOTOptions.pm] 
 	$fs=$value if $var =~ m/^F/i;
-	$angle=$value if $var =~ m/^A/i;
 	$vent=$value if $var =~ m/^V/i;
-	$arrowsize=$value if $var =~ m/^S/i;
+	$angle=$value if $var =~ m/^AN/i;
+        # not sure about how correct this is, but it stops 'use of undefined'
+        # variable (for $angle) in pgsah() call below
+	$arrowsize=$value if $var =~ m/^S/i or $var =~ m/^AR/i;
       }
     } else {
       $fs=$o->{Arrow}[0] if defined $o->{Arrow}[0];
