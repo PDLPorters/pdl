@@ -288,7 +288,7 @@ sub finddoc  {
       for my $m ( @match ) {
 	printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
       }
-      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}[\$n]'. \n\n=head1 Displaying item 1:\n\n=head1 --------------------------------------\n\n=cut\n\n";
+      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=head1 Displaying item 1:\n\n=head1 --------------------------------------\n\n=cut\n\n";
     }
     
     my $m = shift @match;
