@@ -1,4 +1,12 @@
-DJB (10/Apr/01)
+John Cerney (4/11/01)
+    - Modified t/opengl.t to turn-off the PERL_DL_NONLAZY env variable
+      when running this test. Due to some inconsistencies in the opengl
+      headers (gl.h, glu.h) and what functions are actually in the opengl
+      libs, PDL's OpenGL.so sometimes (When using Mesa 3.3 for instance)
+      gets built with interfaces to functions that aren't there. Setting
+      PDL_DL_NONLAZY=0 prevents the test case from failing in these
+      cases.
+ DJB (10/Apr/01)
     - hacked Core/Dev.pm to work with perl 5.6.1 (ExtUtils::Liblist has
       changed although its documentation has not)
 CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test
