@@ -663,7 +663,10 @@ sub new {
                          $p->{x},$p->{y},$p->{width},$p->{height},
 										  $p->{parent},$p->{mask},
 										  @{$p->{attributes}});
-
+	
+	if(ref($href) ne 'HASH'){
+	  die "Could not create OpenGL window";
+   }
 #  psuedo-hash style see note above  
 #  no strict 'refs';
 #  my $self = bless [ \%%{"$class\::FIELDS"}], $class;
