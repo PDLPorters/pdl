@@ -1,3 +1,6 @@
+DJB (10/Apr/01)
+    - hacked Core/Dev.pm to work with perl 5.6.1 (ExtUtils::Liblist has
+      changed although its documentation has not)
 CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test
 CS  - fix mem leak patch so that core struct version croaking works
     * NOTE: recent patches will require recompilation of any external
