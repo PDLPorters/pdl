@@ -3,7 +3,7 @@
 
 package PDL::Core;
 
-$PDL::VERSION = "1.03";
+$PDL::VERSION = "1.03p1";
 
 # Functions exportable in this part of the module
 

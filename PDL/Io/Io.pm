@@ -35,10 +35,10 @@ __DATA__
 # SelfLoaded code
 
 sub ext1D { # Internal routine to extend 1D PDL array by size $n
-            # Note it assumes caller will ->flush at end.
    my ($a,$n) = @_;
    $$a{Data} .= "\0"x($n*howbig($$a{Datatype}));
    $$a{Dims} = [$$a{Dims}[0]+$n];
+   $a->flush;
 1;}
 
 # Read ASCII cols from file into PDL variables efficiently
@@ -74,7 +74,7 @@ sub rcols {
       if ($m==0) { 
           @cols = (0..$#v) if $#cols<0; # Use number of cols in first line
           for (0..$#cols) {
-              $ret[$_] = double($class->new()); # Create PDLs
+              $ret[$_] = double($class->new([0])); # Create PDLs
           }
       }
       if ($n<$m) {
@@ -121,7 +121,7 @@ sub rgrep  {
       if ($m==0) { 
           $nret = $k-2;   # Last index of values to return
           for (0..$nret) {
-              $ret[$_] = double($class->new()); # Create PDLs
+              $ret[$_] = double($class->new([0])); # Create PDLs
           }
       }
       if ($n<$m) {
