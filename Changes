@@ -1,3 +1,5 @@
+AJ  (12-March-2003)
+    - Minor changes to PDL::GSL::INTERP
 Doug Hunt (3-Mar-2003)
     - Added PLplot interface to PDL/Graphics area.  This
       had been a separate CPAN module (PDL-Graphics-PLplot)
