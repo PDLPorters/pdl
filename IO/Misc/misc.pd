@@ -67,9 +67,10 @@ Suffix magic:
   # Automatically uncompress via gunzip pipe
   $pdl = rfits('file.fits.gz');
   # Automatically uncompress via uncompress pipe 
-  $pdl = rfits('file.fits.Z'); 
-   
+  $pdl = rfits('file.fits.Z');  
+
   $pdl = rfits('file.fits[2]'); # Read HDU extension #2
+  $pdl = rfits('file.fits.gz[3]'); # Read HDU extension #3
 
 The default is to read the primary HDU. One can read other
 HDU's by using the [n] syntax, the second one is [1]. This works
@@ -137,16 +138,12 @@ sub PDL::rfits {
    $$foo{"BZERO"}=0;
    my @history=();
    my $currentext=0;
-   
    while( !eof(FITS)) {
-   
-      # Read first 80 bytes
       read(FITS,$line,80);
-      
       barf "file $file is not in FITS-format:\n$line\n"
                   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
       $nbytes += 80;
-      	             
+
       # Now skip to required extension
       
       if ($currentext != $extnum) {
@@ -168,7 +165,7 @@ sub PDL::rfits {
 	    }   
 	  }
       }	 
- 
+
       # skip if the first eight characters are ' '
       # - as seen in headers from the DSS at STScI
       next if substr($line,0,8) eq " " x 8;
