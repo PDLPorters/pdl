@@ -1386,9 +1386,9 @@ code) explictly specify C<Doc=>undef>.
 
 =over 7
 
-=item $arr()
+=item $I<variablename_from_sig>()
 
-access a pdl (by name) that was specified in the signature
+access a pdl (by its name) that was specified in the signature
 
 =item $COMP(x)
 
@@ -1417,6 +1417,10 @@ a physical pointer access to pdl C<a>; mainly for internal use
 
 expansion alternatives according to runtime type of operation,
 where XXX is some string that is matched by /[BSULFD+]/.
+
+=item $PDL(a)
+
+return a pointer to the pdl data structure (pdl *) of piddle C<a>
 
 =back
 
@@ -1459,6 +1463,25 @@ It needs to be rethought a little as well as deconvoluted and
 modularized some more (e.g. all the NS things).
 
 After the rewrite, this can happen a little by little, though.
+
+=head2 Undocumented functions
+
+The following functions have been added since this manual
+was written and are as yet undocumented
+
+=over 5
+
+=item pp_export_nothing
+
+=item pp_core_importList
+
+=item pp_beginwrap
+
+=item pp_setversion
+
+=item pp_addbegin
+
+=back
 
 =head1 AUTHOR
 

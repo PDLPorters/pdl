@@ -1,4 +1,6 @@
 Basic/AutoLoader.pm
+Basic/Complex/Makefile.PL
+Basic/Complex/complex.pd
 Basic/Core/Basic.pm
 Basic/Core/Core.pm
 Basic/Core/Core.xs
@@ -450,6 +452,7 @@ t/bool.t
 t/callext.c
 t/callext.t
 t/clump.t
+t/complex.t
 t/conv.t
 t/croak.t
 t/erfi.t
@@ -463,6 +466,7 @@ t/foo.t
 t/func.pdl
 t/gauss.t
 t/gsl_rng.t
+t/hdrs.t
 t/hist.t
 t/howbig.t
 t/ica.t

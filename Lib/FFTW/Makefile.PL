@@ -204,6 +204,7 @@ close F;
 @pack = (["fftw.pd",FFTW,PDL::FFTW]);
 %hash = pdlpp_stdargs_int(@::pack);
 $hash{INC} .= " -I".join(' -I',@FFTW_inc_locations);
+$hash{clean}->{FILES} .= ' typespec';
 push @{$hash{LIBS}},"-lm -L".join(" -L",@FFTW_lib_locations)." $lib";
 WriteMakefile(%hash);
 

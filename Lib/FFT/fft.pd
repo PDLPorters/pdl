@@ -77,7 +77,7 @@ use PDL::Types;
 END {
   # tidying up required after using fftn
   print "Freeing FFT space\n" if $PDL::verbose;
-  PDL::fft_free();
+  fft_free();
 }
 
 sub todouble {

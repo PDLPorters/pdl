@@ -101,6 +101,8 @@ print OUT <<'!NO!SUBS!';
 
 #define PDL_OPT_ANY_OK			(PDL_OPT_VAFFTRANSOK)
 
+#define PDL_HDRCPY				0x0200
+
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
 		&& (pdl)->trans == (pdl_trans *)(wtrans))
 
