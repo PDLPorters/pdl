@@ -4620,7 +4620,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	    return;
 	}
 	my($mask) = (isfinite $vals);
-	$mask &= ($vals != missing) if(defined $missing);
+	$mask &= ($vals != $missing) if(defined $missing);
 	$mask->(1:-1) &= (($pp->(0:-2) != 0) | ($pp->(1:-1) != 0));
 	my($a,$b) = minmax(where($vals,$mask));
 	$min .= $a;
