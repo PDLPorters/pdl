@@ -1,0 +1,1 @@
+extern E_f chfie_(real *x1, real *x2, real *f1, real *f2, real *d1, real *d2, real *a, real *b);

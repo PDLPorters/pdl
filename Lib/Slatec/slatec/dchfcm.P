@@ -1,0 +1,2 @@
+extern integer dchfcm_(doublereal *d1, doublereal *d2, doublereal *delta);
+/*:ref: d1mach_ 7 1 4 */

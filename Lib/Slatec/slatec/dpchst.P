@@ -1,0 +1,1 @@
+extern doublereal dpchst_(doublereal *arg1, doublereal *arg2);

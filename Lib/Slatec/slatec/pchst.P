@@ -1,0 +1,1 @@
+extern E_f pchst_(real *arg1, real *arg2);

@@ -1,0 +1,2 @@
+extern integer chfcm_(real *d1, real *d2, real *delta);
+/*:ref: r1mach_ 6 1 4 */

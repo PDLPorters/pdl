@@ -1,0 +1,3 @@
+extern int dpchcs_(doublereal *switch__, integer *n, doublereal *h, doublereal *slope, doublereal *d, integer *incfd, integer *ierr);
+/*:ref: dpchst_ 7 2 7 7 */
+/*:ref: dpchsw_ 14 7 7 4 7 7 7 7 4 */

@@ -1,0 +1,4 @@
+extern doublereal dpchia_(integer *n, doublereal *x, doublereal *f, doublereal *d, integer *incfd, logical *skip, doublereal *a, doublereal *b, integer *ierr);
+/*:ref: dchfie_ 7 8 7 7 7 7 7 7 7 7 */
+/*:ref: dpchid_ 7 9 4 7 7 7 4 12 4 4 4 */
+/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -1,0 +1,3 @@
+extern int dpchsw_(doublereal *dfmax, integer *iextrm, doublereal *d1, doublereal *d2, doublereal *h, doublereal *slope, integer *ierr);
+/*:ref: d1mach_ 7 1 4 */
+/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -1,0 +1,3 @@
+extern int pchcs_(real *switch__, integer *n, real *h, real *slope, real *d, integer *incfd, integer *ierr);
+/*:ref: pchst_ 6 2 6 6 */
+/*:ref: pchsw_ 14 7 6 4 6 6 6 6 4 */

@@ -1,0 +1,2 @@
+extern E_f pchid_(integer *n, real *x, real *f, real *d, integer *incfd, logical *skip, integer *ia, integer *ib, integer *ierr);
+/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */
