@@ -622,6 +622,7 @@ t/ones.t
 t/opengl.t
 t/ops.t
 t/pdlchar.t
+t/pgplot.t
 t/physical.t
 t/picnorgb.pl
 t/picnorgb.t

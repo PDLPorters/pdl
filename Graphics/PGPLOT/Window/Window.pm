@@ -323,9 +323,49 @@ For another example of hatching, see L</poly>.
 
 =item justify
 
-A boolean value which, if true, causes both axes to drawn
-to the same scale; see
-the PGPLOT C<pgenv()> command for more information.
+If C<justify> is set true, then the plot axes are shrunk to fit
+the plot or image and it specifies the aspect ratio of pixel
+coordinates in the plot or image.  Setting justify=>1 will
+produce a correct-aspect-ratio, shrink-wrapped image or plot;
+setting justify=>0.5 will do the same thing but with a short and
+fat plot.  The difference between C<justify> and C<pix> is that 
+C<pix> does not affect the shape of the axes themselves.
+
+=item pix
+
+Sets the pixel aspect ratio height/width.  The height is adjusted
+to the correct ratio, while maintaining any otherwise-set pitch or scale
+in the horizontal direction.  Larger numbers yield tall, skinny pixels;
+smaller numbers yield short, fat pixels.
+
+=item scale
+
+Sets the number of output display pixels per data pixel.  You can set
+the C<unit> (see below) to change this to number of PGPLOT units
+(inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
+as it is not device-independent; but it does come in handy for quick
+work on digital displays, where aliasing might otherwise interfere
+with image interpretation.  For example, C<scale=>1> displays 
+images at their native resolution.
+
+=item pitch
+
+Sets the number of data pixels per inch on the output device.
+You can set the C<unit> (see below) to change this to any other
+PGPLOT unit (millimeters, pixels, etc.).   Pitch is device independent,
+so an image should appear exactly the same size (e.g. C<Pitch=>100>
+is 100 dpi) regardless of output device.
+
+=item align
+
+If C<pix> is set, then images and plots are not stretched to fill the plot
+area.  the C<align> string tells how to align them within the available
+area.  'L' and 'R' shove the plot against the left and right edges,
+respectively; 'B' and 'T' shove the plot against the bottom and top
+edges.  The default is to center the image.  e.g. 'BL' puts the image
+on the bottom left corner, while 'CT' centers the image horizontally
+while placing it at the top of the available plot area.  This defaults
+to 'BT' for non-justified images, to 'CC' for justified images.
 
 =item linestyle
 
@@ -935,49 +975,13 @@ Options recognised:
 
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
-       PIX - Sets the image pixel aspect ratio.  By default, imag
-             stretches the image pixels so that the final image aspect
-             ratio fits the viewport exactly.  Setting PIX=>1 causes
-             the image aspect ratio to be preserved.  (the image is
-             scaled to avoid cropping, unless you specify scaling 
-             manually).  Larger numbers yield "portrait mode" pixels
-             to match the C<Aspect> standard parameter in the PGPLOT
-             constructor.  PIX overrides the boolean C<Justify> standard 
-             PGPLOT option; but C<Justify=>1> acts the same as 
-             C<PIX=>1>.
-
-     PITCH - Sets the number of image pixels per screen unit, in the X
-             direction.  The Y direction is determined by PIX, which 
-             defaults to 1 if PITCH is specified and PIX is not.  PITCH 
-             causes UNIT to default to "inches" so that it is easy to say 
-             100dpi by specifying {PITCH=>100}.  Larger numbers yield 
-             higher resolution (hence smaller appearing) images.
-
-      UNIT - Sets the screen unit used for scaling.  Must be one of the
-             PGPLOT supported units (inch, mm, pixel, normalized).  You
-             can refer to them by name or by number.  Defaults to pixels
-             if not specified.
-
-     SCALE - Syntactic sugar for the reciprocal of PITCH.  Makes the
-             UNIT default to "pixels" so you can say "{SCALE=>1}"
-             to see your image in device pixels.   Larger SCALEs lead
-             to larger appearing images.
-
  DrawWedge - set to 1 to draw a colour bar (default is 0)
 
      Wedge - see the draw_wedge() routine
 
-     ALIGN - How to align the image in the box.  Two-character string
-             with "L","R", or "C" in the first character and 
-             "T", "B", or "C" in the second character.  This should
-             probably be implemented in a more general way but works
-             for now.  Default is "BL".  This doesn't make sense unless
-             you're manually messing with the scaling anyhow, because 
-             if you're not, then the image is scaled to exactly fit the box.
-
 The following standard options influence this command:
 
- AXIS, BORDER, JUSTIFY
+ AXIS, BORDER, JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 =for example
 
@@ -1151,7 +1155,8 @@ C<line>, for example to draw coastlines for maps.
 
 The following standard options influence this command:
 
- AXIS, BORDER, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH, MISSING
+ AXIS, BORDER, COLO(U)R, LINESTYLE, LINEWIDTH, MISSING,
+ JUSTIFY, SCALE, PITCH, PIX, ALIGN
 
 =for example
 
@@ -1184,7 +1189,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+ AXIS, BORDER, CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH,
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 C<SymbolSize> allows to adjust the symbol size, it defaults to CharSize.
 
@@ -1224,7 +1230,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+ AXIS, BORDER, CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH,
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 =for example
 
@@ -1265,7 +1272,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+ AXIS, BORDER, COLOUR, LINESTYLE, LINEWIDTH,
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 =for example
 
@@ -1314,7 +1322,7 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, JUSTIFY
+ AXIS, BORDER, JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 Note that meddling with the C<ioffset> and C<bias> often will require you to
 change the default plot range somewhat. It is also worth noting that if
@@ -1365,8 +1373,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE,
- LINEWIDTH
+ AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, LINESTYLE,  LINEWIDTH
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 =for example
 
@@ -1520,8 +1528,8 @@ Options recognised:
 
 The following standard options influence this command:
 
- ARROW, ARROWSIZE, AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, 
- LINESTYLE, LINEWIDTH
+ ARROW, ARROWSIZE, AXIS, BORDER, CHARSIZE, COLOUR, 
+ LINESTYLE, LINEWIDTH, 
 
 =for example
 
@@ -1937,7 +1945,7 @@ sub signal_catcher {
   }
   
   # Handle multiple INT signals (user pressing ^C a bunch)
-  if(($sig_log{$sig}>1) && ($sig eq 'INT')) {
+  if(defined($sig_log{$sig}) && ($sig_log{$sig}>1) && ($sig eq 'INT')) {
     print STDERR "Aborting PGPLOT operation".($PDL::debug ? " (may mess up future PGPLOT commands)\n" : "\n");
     $sig_nest = 1;
     &release_signals ;
@@ -3457,7 +3465,7 @@ sub initenv{
       
       ($wy0,$wy1) = 
 	(m/B/i) ? ( $oy0, $oy0 + ($ymax - $ymin) * $pix / $pitch * $wys ) :
-	(m/T/i) ? ( $oy1 -  ($ymax - $ymin) / * $pix / $pitch * $wys, $oy1 ) :
+	(m/T/i) ? ( $oy1 -  ($ymax - $ymin) * $pix / $pitch * $wys, $oy1 ) :
               (0.5 * ( $oy0 + $oy1 -  ($ymax - $ymin) * $pix * $wys / $pitch ),
 	       0.5 * ( $oy0 + $oy1 +  ($ymax - $ymin) * $pix * $wys / $pitch ));
       
@@ -3484,7 +3492,7 @@ sub initenv{
       
       ($yy0,$yy1) = 
 	(m/B/i) ? ($ymin, $ymin+($y1-$y0)*$pitch/$pix) :
-	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymin) :
+	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
 
@@ -3622,29 +3630,31 @@ sub _FITS_tr {
     "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
     unless (scalar(keys %$hdr) || (!$PDL::debug));
 
-  my($ic) = [ (   ($hdr->{CDELT1} || 1.0) *	 
-		  (  ($hdr->{NAXIS1} || $pdl->getdim(0) )  /  2.0 
-		     -   
-		     ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
-		     + 
-		     1 
-		   ) 
-		  +
-		  ( $hdr->{CRVAL1} )
-	      )
-	      ,
-	      (   ($hdr->{CDELT2} || 1.0) * 
-		  (  ($hdr->{NAXIS2} || $pdl->getdim(1) )  / 2.0
-		     - 
-		     ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
-		     +
-		     1
-		  )
-		  +
-		  ( $hdr->{CRVAL2} )
-	      )
-	      ];
-  
+  {
+    no warnings; # don't complain about missing fields in fits headers
+    my($ic) = [ (   ($hdr->{CDELT1} || 1.0) *	 
+		    (  ($hdr->{NAXIS1} || $pdl->getdim(0) )  /  2.0 
+		       -   
+		       ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
+		       + 
+		       1 
+		       ) 
+		    +
+		    ( $hdr->{CRVAL1} )
+		    )
+		,
+		(   ($hdr->{CDELT2} || 1.0) * 
+		    (  ($hdr->{NAXIS2} || $pdl->getdim(1) )  / 2.0
+		       - 
+		       ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
+		       +
+		       1
+		       )
+		    +
+		    ( $hdr->{CRVAL2} )
+		    )
+		];
+  }
   my(@dims);
   if(UNIVERSAL::isa($pdl,'PDL')) {
     @dims = $pdl->dims;
@@ -4080,13 +4090,6 @@ sub env {
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($cont_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
-
-    # Total kludge to get default axis values right without screwing up 
-    # everyone else.  See also the similar kludge at the top of cont.
-    # The "BCINST" puts the tick marks *outside* the plot instead of inside
-    # it, so that you don't scribble on the image itself.
-    $o->{Axis} = 'BCINST'
-      unless (defined($u_opt->{Axis}) || ($o->{Axis} ne 'BCNST'));
 
     $self->_standard_options_parser($u_opt);
     my ($labelcolour);
@@ -4848,6 +4851,7 @@ sub arrow {
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
   
+    
     if (defined($tr)) {
 	$self->_checkarg($tr,1);
 	release_and_barf '$transform incorrect' if nelem($tr)!=6;
@@ -4936,7 +4940,7 @@ sub _fits_foo {
   my($hdr) = $pdl->gethdr();
 
   %opt2 = %{$u_opt}; # copy options
-  $opt2->{Transform} = _FITS_tr($pane,$pdl);
+  $opt2{Transform} = _FITS_tr($pane,$pdl);
 
   local($_);
   foreach $_(keys %opt2){

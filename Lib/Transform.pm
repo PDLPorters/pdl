@@ -455,9 +455,7 @@ transformed ellipses.  In particular, the computational efficiency
 scales inversely as the ratio between the largest and smallest
 eigenvalues, so the ellipses are not allowed to get too eccentric.  The
 maximum eccentricity is given in the C<eccentricity> option, and 
-
-
-
+defaults to 10.0.
 
 
 NOTES:

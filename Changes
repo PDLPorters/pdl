@@ -1,3 +1,7 @@
+CED (10-Dec-2002)
+    - Minor fixes to Windows.pm
+    - First cut at pgplot.t -- test suite for pgplot windowing stuff.
+    - Fixed up some Transform documentation.
 CED (09-Dec-2002)
     Fixes to Windows.pm:
 	- all Pix/Scale/Pitch parsing is now in initenv() (so, e.g., 
