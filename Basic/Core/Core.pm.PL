@@ -1663,8 +1663,40 @@ The data elements are preserved, obviously they will wrap
 differently and get truncated if the new array is shorter.
 If the new array is longer it will be zero-padded.
 
-Note: an explicit copy is forced - this is the only way
-(for now) of stopping a crash if C<$x> is a slice.
+***Potential incompatibility with earlier versions of PDL****
+If the list of C<NEWDIMS> is empty C<reshape> will just drop
+all dimensions of size 1 (preserving the number of elements):
+
+  $a = sequence(3,4,5);
+  $b = $a(1,3);
+  $b->reshape();
+  print $b->info;
+ PDL: Double D [5]
+
+Dimensions of size 1 will also be dropped if C<reshape> is
+invoked with the argument -1:
+
+  $b = $a->reshape(-1);
+
+As opposed to C<reshape> without arguments, C<reshape(-1)>
+preserves dataflow:
+
+  $a = ones(2,1,2);
+  $b = $a(0)->reshape(-1);
+  $b++;
+  print $a;
+ [
+  [
+   [2 1]
+  ]
+  [
+   [2 1]
+  ]
+ ]
+
+Note: an explicit copy of slices is generally forced - this is the
+only way (for now) of stopping a crash if C<$x> is a slice.
+Important: Physical piddles are changed inplace!
 
 =for example
 
@@ -1683,9 +1715,15 @@ Note: an explicit copy is forced - this is the only way
 
 *reshape = \&PDL::reshape;
 sub PDL::reshape{
+  if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
+    return $_[0]->slice(join(',',map {$_ == 1 ? '(0)' : ''} $_[0]->dims));
+  }
   my $pdl = pdl($_[0]);
   my $nelem = $pdl->nelem;
-  $pdl->setdims([@_[1..$#_]]);
+  my @dims = @_[1..$#_];
+  for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
+  @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
+  $pdl->setdims([@dims]);
   $pdl->upd_data;
   if ($pdl->nelem > $nelem) {
      my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
@@ -1708,8 +1746,7 @@ flatten a piddle (alias for C<$pdl->clump(-1)>)
 Useful method to make a 1D piddle from an
 arbitrarily sized input piddle. Data flows
 back and forth as usual with slicing routines.
-Falls through if argument already 1D, 0D args are
-promoted to 1D.
+Falls through if argument already E<lt>= 1D.
 
 =cut
 
