@@ -1,3 +1,6 @@
+DJB (27/Feb/01)
+    - addressed PDL::Func bugs/doc issues as reported by 
+      Halldór Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments
