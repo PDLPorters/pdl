@@ -17,7 +17,7 @@ use vars qw( %PDL_DATATYPES );
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
 use vars qw( $pdl_core_version );
-$pdl_core_version = 4;
+$pdl_core_version = 5;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -336,6 +336,9 @@ print OUT <<'!NO!SUBS!';
 
   badvals bvals;  /* store the default bad values */
   void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+  void (*children_changesoon)(pdl *it, int what);
+  void (*changed)(pdl *it, int what, int recursing);
+  void (*vaffinechanged)(pdl *it, int what);
 
 };
 

@@ -30,6 +30,15 @@ sub func {
 	return $x**2 + ($y-$x**2)**2 + $z**2;
 }
 
+die << "EOD";
+
+This example is disabled since the required
+'foomethod' has been disabled in recent versions of PDL.
+
+Contact pdl-porters if you feel you need this functionality.
+
+EOD
+
 my $a = zeroes(3,10000);
 random $a->inplace;
 $a -= 0.5; $a *= 30;

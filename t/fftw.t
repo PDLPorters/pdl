@@ -6,7 +6,7 @@ BEGIN {
         eval "use PDL::FFTW;";
         $loaded = ($@ ? 0 : 1);
 	if ($loaded) {
-	  plan tests => 9, todo => [9];
+	  plan tests => 9;
         } else {
 	  plan tests => 1;
 	  print "ok 1 # Skipped: PDL::FFTW not available\n";

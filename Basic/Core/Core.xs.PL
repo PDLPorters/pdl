@@ -399,7 +399,7 @@ my %flags =
       vaffine => { FLAG => "OPT_VAFFTRANSOK" },
       anychgd => { FLAG => "ANYCHANGED" },
       dimschgd => { FLAG => "PARENTDIMSCHANGED" },
-
+      tracedebug => { FLAG => "TRACEDEBUG", set => 1},
      );
 
 #if ( $bvalflag ) { $flags{baddata} = { set => 1, FLAG => "BADVAL" }; }
@@ -858,6 +858,9 @@ BOOT:
    PDL.pdl_barf      = pdl_barf;
    PDL.allocdata     = pdl_allocdata;
    PDL.safe_indterm  = pdl_safe_indterm;
+   PDL.children_changesoon = pdl_children_changesoon;
+   PDL.changed       = pdl_changed;
+   PDL.vaffinechanged = pdl_vaffinechanged;
 
 !NO!SUBS!
 

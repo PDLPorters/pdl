@@ -886,7 +886,12 @@ PDL_inplace_rfftwnd_one_real_to_complex(plan, in)
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
   if (in->datatype != PDL_MYTYPE) {barf("Bad Type");}
+  PDL->children_changesoon(in, PDL_PARENTDATACHANGED);
   rfftwnd_one_real_to_complex( (rfftwnd_plan) plan, (fftw_real *) in->data, NULL);
+  /* this call is crucial to propagate changes back if slices are given as arguments
+   * Note: must not used vaffinechanged (!) since any slice has physical data
+   */
+  PDL->changed( in , PDL_PARENTDATACHANGED , 0 );
 ');
 
 pp_addxs('','
@@ -899,8 +904,12 @@ PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
   if (in->datatype != PDL_MYTYPE) {barf("Bad type");} 
+  PDL->children_changesoon(in, PDL_PARENTDATACHANGED);
   rfftwnd_one_complex_to_real( (rfftwnd_plan) plan, (fftw_complex *) in->data, NULL);
-
+  /* this call is crucial to propagate changes back if slices are given as arguments
+   * Note: must not used vaffinechanged (!) since any slice has physical data
+   */
+  PDL->changed( in , PDL_PARENTDATACHANGED , 0 );
 
 ');
 
@@ -978,7 +987,12 @@ PDL_inplace_fftwnd_one(plan, in)
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
   if (in->datatype != PDL_MYTYPE) {barf("Only float please");} 
+  PDL->children_changesoon(in, PDL_PARENTDATACHANGED);
   fftwnd_one( (fftwnd_plan) plan, (fftw_complex *) in->data, NULL);
+  /* this call is crucial to propagate changes back if slices are given as arguments
+   * Note: must not used vaffinechanged (!) since any slice has physical data
+   */
+  PDL->changed( in , PDL_PARENTDATACHANGED , 0 );
 ');
 
 ### wisdom stuff

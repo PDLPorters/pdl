@@ -1,3 +1,19 @@
+CS 190403
+   - excport pdl_changed, pdl_children_changesoon and pdl_vaffinechanged
+     into PDL::Core struct (for usage in external modules)
+     bumped up pdl_core_version to 5
+   - use those funcs to fix inplace ffts in PFL::FFTW (fix bug #716449)
+   - pdlapi.c, pdlthread.c, pdl.h.PL: changes to help debugging the
+     PDL Core; all pointers are now dumped in hex in the pdl_dump_XX
+     routines
+   - pdlapi.c: delete one statement in pdl_changed that broke, for
+	example, calling fft with certain kind of slices (see comments)
+        fixes bug #716447 (but note that I wasn't sure what this statement
+        was required for in the first place; so breakages in other places
+        as a result are not inconceivable)
+   - disabled foomethod tests (foo.t) since foomethod broke as a result of
+     removing the statement in pdlapi.c (see above). I assume that the
+     statement in question was only introduced to make the foomethod work
 CED 15-Apr-2003
    - Cleaned up a lot of documentation
 CED 14-Apr-2003

@@ -1,6 +1,6 @@
 use Test;
 
-BEGIN { plan tests => 21; }
+BEGIN { plan tests => 23; }
 
 use PDL::LiteF;
 use PDL::Tests;
@@ -69,3 +69,18 @@ ok( tapprox($a,sequence(10)) );
   ok( 1 );  # if we get here at all that is alright
   ok( tapprox($a,$b) );
 }
+
+
+# test the bug alluded to in the comments in
+# pdl_changed (pdlapi.c)
+# used to segfault
+$xx=ones(float,3,4);
+$sl1 = $xx->slice('(0)');
+$sl11 = $sl1->slice('');
+$sl2 = $xx->slice('(1)');
+$sl22 = $sl2->slice('');
+
+test_fooflow2 $sl11, $sl22;
+
+ok(all $xx->slice('(0)') == 599);
+ok(all $xx->slice('(1)') == 699);
