@@ -5,3 +5,5 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
      'NAME'	=> 'PDL::GSL',
 );
+
+sub MY::postamble {}
