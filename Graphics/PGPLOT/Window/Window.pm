@@ -1851,6 +1851,9 @@ sub signal_catcher {
 
   # Print message if debugging is on or on multiple INT signals
   print STDERR "PDL::Graphics::PGPLOT::Window: Caught signal '$sig'\n" if($PDL::debug || ($sig_log{$sig} && ($sig eq 'INT')));
+
+  release_signals() if($sig_log{$sig}>2 && ($sig eq 'INT'));
+
   push(@sig_log,$sig);
   $sig_log{$sig}++;
 }  
