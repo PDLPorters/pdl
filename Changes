@@ -3,8 +3,10 @@ CED (16-Aug-02)
     - indexNDb: includes "forbid" boundary condition (which barfs on violation)
     - interpND: skips trivial cases for bilinear interpolation (factor-of-2
 	speedup for each dimension that is indexed by an integer)
-    - Window.pm: ->imag labels axes automatically, if you pass in label
-	fields as options.
+    - Window.pm: 
+	* ->imag labels axes, if you pass in label fields as options.
+        * isolated initenv() viewport setup, so imag() can use it in pix code
+	           
 CED (15-Aug-02)
     - PGPLOT::Window fixes:
 	- ticks default to outside for images; inside for everyone else

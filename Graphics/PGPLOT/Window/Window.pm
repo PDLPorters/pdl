@@ -3206,6 +3206,32 @@ sub _standard_options_parser {
 }
 
 
+=head2 _SetupViewport
+
+Set up the plotting viewport in the current PGPLOT window, using the
+options hash.  Needed in both initenv() and imag(), _SetupViewport
+is isolated in its own sub to enforce consistency of behavior.
+
+=cut
+
+
+sub _SetupViewport {
+  my($o) = shift;
+  &catch_signals;
+
+  if (!defined($o->{PlotPosition}) || $o->{PlotPosition} eq 'Default') {
+    # Set standard viewport
+    pgvstd();
+  } else {
+    barf "The PlotPosition must be given as an array reference!" unless
+      ref($o->{PlotPosition}) eq 'ARRAY';
+    my ($x1, $x2, $y1, $y2)=@{$o->{PlotPosition}};
+    pgsvp ($x1, $x2, $y1, $y2);
+  }
+  
+  &release_signals;
+}
+
 
 # initenv( $xmin, $xmax, $ymin, $ymax, $just, $axis )
 # initenv( $xmin, $xmax, $ymin, $ymax, $just )
@@ -3319,15 +3345,12 @@ sub initenv{
     }
   }
 
-  if (!defined($o->{PlotPosition}) || $o->{PlotPosition} eq 'Default') {
-    # Set standard viewport
-    pgvstd();
-  } else {
-    barf "The PlotPosition must be given as an array reference!" unless
-      ref($o->{PlotPosition}) eq 'ARRAY';
-    my ($x1, $x2, $y1, $y2)=@{$o->{PlotPosition}};
-    pgsvp ($x1, $x2, $y1, $y2);
-  }
+  #
+  # Set up the viewport location within the PGPLOT output window.
+  # This is isolated so that ->imag and other kludges can access
+  # it.
+  #
+  _SetupViewport($o);
 
   # This behaviour is taken from the PGPLOT manual.
   if ($o->{Justify} == 1) {
@@ -4595,10 +4618,8 @@ sub arrow {
       # Set axis defaults -- this overrides the ('BCNST') default in 
       # PGPLOTOptions.pm, but only for images!
       #
-      print "\$o->{Axis} = '$o->{Axis}'\n";
       $o = $self->{Options}->options({Axis=>'BCINST'})
 	unless($u_opt->{Axis});
-      print "\$o->{Axis} = '$o->{Axis}'\n";
       
       #########
       # Parse out scaling options - this is pretty long because
@@ -4622,8 +4643,7 @@ sub arrow {
 
       $pix = $o->{'Justify'} if ($o->{'Justify'});
       $pix = $u_opt->{'PIX'} if defined $u_opt->{'PIX'};
-      print "u_opt keys are: '".join("', '",keys %$u_opt)."'\n";
-      print "pix=$pix\n";
+
       ##############################
       ## Figure out how big the image is in data space.  This
       ## is the coordinate system that the $tr matrix translates pixels
@@ -4660,10 +4680,16 @@ sub arrow {
       my(@env_range) = (@xvals[0..1],@yvals[0..1]);
       
       if ( $pix ) {
-	# Get size of plotting window in screen units
+
+
+	##############################
+	# Set up the viewport so we can calibrate its size in display
+	# space and compare to data space.  
+	_SetupViewport($o);
+	
+	# Get size of viewport in screen units
 	my ( $x0,$x1,$y0,$y1 );
-	$unit = 1 unless defined($unit);
-	pgqvp($unit,$x0,$x1,$y0,$y1);
+	pgqvp(1,$x0,$x1,$y0,$y1);
 
 	##############################
 	# pix is always defined if pitch is defined, but not vice
@@ -4671,13 +4697,13 @@ sub arrow {
 	$pitch = max(pdl( $xrange / ($x1-$x0) ,
 			  $yrange / ($y1-$y0) * $pix  ))
 	  unless defined($pitch);
-	
+
 	##############################
-	# Work out the boundaries of the window in data space,
+	# Work out the boundaries of the viewport in data space,
 	# given the pitch and requested pixel aspect ratio.
 	# This is complicated by the need to handle the ALIGN option.
 	local($_) = $u_opt->{Align};
-	print "Alignment string='$_'\n";
+
 	if( m/L/i ) {
 	  @env_range[0..1] = ($xvals[0], $xvals[0] + ($x1-$x0)*$pitch);
 	} elsif( m/R/i ) {
@@ -4695,7 +4721,7 @@ sub arrow {
 	  @env_range[2..3]=(0.5*($yvals[0]+$yvals[1] - ($y1-$y0)*$pitch/$pix),
 			    0.5*($yvals[0]+$yvals[1] + ($y1-$y0)*$pitch/$pix));
 	}
-	print "env_range=",join(",",@env_range),"\n";
+
       } # if defined $pix
 
 
