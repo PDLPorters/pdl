@@ -7,7 +7,7 @@ binary windows version provided at http://pdl.perl.org .
 
 First up there's a MakeMaker bug to deal with. Open up your
 perl\lib\ExtUtils\MM_Win32.pm and find the subroutine 'sub xs_o'.
-It needs to read as follows:
+If you're going to be using nmake it needs to read as follows:
 
 sub xs_o {
 return
@@ -16,6 +16,12 @@ return
 	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
 	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
 	';
+}
+
+If you're using dmake then it needs to be:
+
+sub xs_o {
+    return '';
 }
 
 
