@@ -1,24 +1,19 @@
 
-# Test routine for PDL::IO::Fits module
+# Test routine for PDL::IO::FITS module
 
 use strict;
 
 use PDL::LiteF;
-use PDL::IO::FITS;
 
 use PDL::Core ':Internal'; # For howbig()
 use PDL::Config;
 
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test;
-BEGIN { plan tests => 23; }
+use Test::More tests => 53;
 
-sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
-        my $d = max($c);
-        $d < 0.0001;
+BEGIN {
+      use_ok( "PDL::IO::FITS" );
 }
 
 require File::Spec;
@@ -42,17 +37,75 @@ wfits($t, $file);
 print "#file is $file\n";
 my $t2 = rfits $file;
 
-ok( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
+is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
     "r/wfits: slice check" );
 
 my $h = $t2->gethdr;
-ok( $$h{'FOO'} eq "foo" && $$h{'BAR'} == 42, 1,
+ok( $$h{'FOO'} eq "foo" && $$h{'BAR'} == 42,
     "header check on FOO/BAR" );
 
-ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123', 1,
+ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
     "header check on NUM/NUMSTR" );
 
 unlink $file;
+
+########### Rudimentary table tests ################
+
+sub compare_piddles ($$$) {
+    my $orig  = shift;
+    my $new   = shift;
+    my $label = shift;
+
+    is( $new->type->symbol, $orig->type->symbol, "$label has the correct type" );
+    is( $new->nelem, $orig->nelem, "  and the right number of elements" );
+    is( $new->ndims, $orig->ndims, "  and the right number of dimensions" );
+
+    my $flag;
+    if ( $orig->type() < float() ) {
+	$flag = all( $new == $orig );
+    } else {
+	$flag = all( approx( $orig, $new ) );
+    }
+    ok( $flag, "  and all the values agree" );
+}
+
+my $a = long( 1, 4, 9, 32 );
+my $b = double( 2.3, 4.3, -999.0, 42 );
+my $table = { COLA => $a, COLB => $b };
+wfits $table, $file;
+
+my $table2 = rfits $file;
+unlink $file;
+
+ok( defined $table2, "Read of table returned something" );
+is( ref($table2), "HASH", "which is a hash reference" );
+is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
+
+ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" );
+is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );
+is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );
+is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );
+is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );
+
+compare_piddles $a, $$table2{COLA}, "COLA";
+compare_piddles $b, $$table2{COLB}, "COLB";
+
+$table = { BAR => $a, FOO => $b,
+	   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
+$table2 = {};
+
+wfits $table, $file;
+$table2 = rfits $file;
+
+ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
+    "Read in the second binary table" );
+is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );
+is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );
+is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
+is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );
+
+compare_piddles $a, $$table2{BAR}, "BAR";
+compare_piddles $b, $$table2{FOO}, "FOO";
 
 ########### Check if r/wfits bugs are fixed ################
 
@@ -76,7 +129,7 @@ unlink $file;
                   print "\tq:", unpack("c" x ($q->nelem*howbig($q->get_datatype)), ${$q->get_dataref}),"\n";
 		}
             }
-	    ok($flag,1,"hash reference - type check: " . &$cref );
+	    ok($flag,"hash reference - type check: " . &$cref );
         }
     }
     unlink 'x.fits';
@@ -106,7 +159,7 @@ unlink $file;
 	     print "\tq:", unpack("c" x abs($i/8*$q->nelem), ${$q->get_dataref}),"\n";
            }
         }
-	ok($flag,1,"piddle - bitpix=$i" );
+	ok($flag,"piddle - bitpix=$i" );
     }
     }
     unlink 'x.fits';

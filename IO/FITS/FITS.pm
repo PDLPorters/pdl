@@ -38,7 +38,7 @@ documentation for details.
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook and Craig DeForest, 1997-2004.
+Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2004.
 There is no warranty.  You are allowed to redistribute and/or modify
 this software under certain conditions.  For details, see the file
 COPYING in the PDL distribution.  If this file is separated from the 
@@ -47,6 +47,7 @@ PDL distribution, the copyright notice should be pasted into in this file.
 =head1 FUNCTIONS
 
 =cut
+
 use strict;
 BEGIN {
 
@@ -85,6 +86,11 @@ use strict;
 }
 
 package PDL::IO::FITS;
+
+## declare subroutines 
+
+sub _wfits_nullhdu ($);
+sub _wfits_table ($$$);
 
 =head2 rfits()
 
@@ -134,7 +140,7 @@ this causes it to be returned as a hash ref directly.)
 
 =item hdrcpy (default=0)
 
-Determines whether the L<hdrcpy:PDL::hdrcpy> flag is set in the returned
+Determines whether the L<hdrcpy|PDL::Core/hdrcpy> flag is set in the returned
 PDL.  Setting the flag will cause an explicit deep copy of the header whenever
 you use the returned PDL in an arithmetic or slicing operation.  That is useful
 in many circumstances but also causes a hit in speed.  
@@ -161,7 +167,7 @@ Astro::FITS::Header is installed.
 If Astro::FITS::Header is not installed, then a built-in legacy parser
 is used to generate the header hash.  Keyword-associated comments in
 the headers are stored under the hash key
-C<E<lt>keywordE<gt>_COMMENT>.  All HISTORY cards in the header are
+C<< <keyword>_COMMENT> >>.  All HISTORY cards in the header are
 collected into a single multiline string stored in the C<HISTORY> key.
 All COMMENT cards are similarly collected under the C<COMMENT> key.
 
@@ -277,8 +283,9 @@ sub PDL::rfits {
   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
   $file = "uncompress -c $file |" if $file =~ /\.Z$/;
   
-  open(FITS, $file) || barf "FITS file $file not found";
-  binmode FITS;
+  my $fh = IO::File->new( $file )
+      or barf "FITS file $file not found";
+  binmode $fh;
 
   my @extensions;  # This accumulates the list in list context...
   my $currentext=0;
@@ -298,18 +305,18 @@ sub PDL::rfits {
    # header.  Skip over the unread data to the next extension...
    
    if( wantarray and !$opt->{data} and @extensions) {
-       while( read(FITS,$line,80) && ($line !~ /^XTENSION=/) && !eof(FITS) ) {
-	   read(FITS,$line,2880-80);
+       while( $fh->read($line,80) && ($line !~ /^XTENSION=/) && !$fh->eof() ) {
+	   $fh->read($line,2880-80);
        };
        
        return @extensions 
-	   if(eof(FITS));
+	   if($fh->eof());
 
    } else {
-       my $ct = read(FITS,$line,80);
+       my $ct = $fh->read($line,80);
        barf "file $file is not in FITS-format:\n$line\n"
 	   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
-       last hdu if(eof(FITS) || !$ct);
+       last hdu if($fh->eof() || !$ct);
    }
 
    $nbytes = 80; # Number of bytes read from this extension (1 line so far)
@@ -338,11 +345,11 @@ sub PDL::rfits {
 
     skipper: while(1) {
       # Move to next record
-      $nbytes += read(FITS,$line,2880-80);
-      barf "Unexpected end of FITS file\n" if eof(FITS);
+      $nbytes += $fh->read($line,2880-80);
+      barf "Unexpected end of FITS file\n" if $fh->eof();
       # Read start of next record
-      $nbytes += read(FITS,$line,80);
-      barf "Unexpected end of FITS file\n" if eof(FITS);
+      $nbytes += $fh->read($line,80);
+      barf "Unexpected end of FITS file\n" if $fh->eof();
       # Check if we have found the new extension
       # if not move on
 
@@ -365,13 +372,13 @@ sub PDL::rfits {
      ## and pass them to Astro::FITS::Header.
 
      do {
-       $nbytes += read(FITS, $line, 80);
+       $nbytes += $fh->read($line, 80);
        push(@cards,$line);
-     } while(!eof(FITS) && $line !~ m/^END/);
+     } while(!$fh->eof() && $line !~ m/^END/);
 
-     $nbytes += read(FITS,my $dummy, 2879 - ($nbytes-1)%2880);
+     $nbytes += $fh->read(my $dummy, 2879 - ($nbytes-1)%2880);
 
-     my($hdr) = new Astro::FITS::Header(Cards => \@cards);
+     my($hdr) = Astro::FITS::Header->new(Cards => \@cards);
      my(%hdrhash);
      tie %hdrhash,"Astro::FITS::Header",$hdr;
      $foo = \%hdrhash;
@@ -400,15 +407,15 @@ sub PDL::rfits {
 	 $$foo{COMMENT}{$name} = $3 if defined($3);
        }
        last hdr_legacy if ((defined $name) && $name eq "END");
-       $nbytes += read(FITS, $line, 80);
-     } while(!eof(FITS)); }
+       $nbytes += $fh->read($line, 80);
+     } while(!$fh->eof()); }
 
      # Clean up HISTORY card
      $$foo{"HISTORY"} = \@history if $#history >= 0;
    
      # Step to end of header block in file
      my $skip = 2879 - ($nbytes-1)%2880;
-     read(FITS, my $dummy, $skip) if $skip; 
+     $fh->read(my $dummy, $skip) if $skip; 
      $nbytes += $skip;
 
    } # End of legacy header parsing
@@ -451,7 +458,7 @@ sub PDL::rfits {
        # Pass $pdl into the extension reader for easier use -- but
        # it just gets overwritten (and disappears) if ignored.
        
-       $pdl = &{$PDL::IO::FITS::_Extension->{$ext_type}}($foo,$opt,$pdl);
+       $pdl = &{$PDL::IO::FITS::_Extension->{$ext_type}}($fh,$foo,$opt,$pdl);
        
      } else {
 
@@ -470,9 +477,9 @@ sub PDL::rfits {
    push(@extensions,$pdl) if(wantarray);
    $currentext++;
  
-  } while( wantarray && !eof(FITS) );}  # Repeat if we are in list context
+  } while( wantarray && !$fh->eof() );}  # Repeat if we are in list context
    
- close FITS;
+ $fh->close;
   
  return @extensions if(wantarray);
  return $pdl;
@@ -506,11 +513,12 @@ $PDL::IO::FITS::_Extension = {
 #
 # IMAGE extension -- this is also the default reader.
 
-sub _rfits_image() {
+sub _rfits_image($$$$) {
   print "Reading IMAGE data...\n" if($PDL::verbose);
-  my($foo) = shift;  # $foo contains the pre-read header
-  my($opt) = shift;  # $opt contains the option hash
-  my($pdl) = shift;  # $pdl contains a pre-blessed virgin PDL
+  my $fh  = shift; # file handle to read from
+  my $foo = shift;  # $foo contains the pre-read header
+  my $opt = shift;  # $opt contains the option hash
+  my $pdl = shift;  # $pdl contains a pre-blessed virgin PDL
 
   # Setup piddle structure
   
@@ -545,13 +553,12 @@ sub _rfits_image() {
   
   # Read the data and pad to the next HDU
   my $rdct = $size * PDL::Core::howbig($pdl->get_datatype);
-  read( FITS, $$dref, $rdct );
-  read( FITS, my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
+  $fh->read( $$dref, $rdct );
+  $fh->read( my $dummy, 2880 - (($rdct-1) % 2880) - 1 );
   $pdl->upd_data();
 
-  
-  
-  if (!isbigendian() ) { # Need to byte swap on little endian machines
+  if (!isbigendian() ) {
+    # Need to byte swap on little endian machines
     bswap2($pdl) if $pdl->get_datatype == $PDL_S;
     bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
       $pdl->get_datatype == $PDL_F;
@@ -630,10 +637,6 @@ sub _rfits_image() {
 
   return $pdl;
 } 
-
-
-
-
 
 ##########
 # 
@@ -772,7 +775,8 @@ sub _fncomplx { # complex-number finisher-upper
 # header.
 # 
 
-sub _rfits_bintable {
+sub _rfits_bintable ($$$$) {
+  my $fh  = shift;
   my $hdr = shift;
   my $opt = shift;
   ##shift;  ### (ignore $pdl argument)
@@ -867,14 +871,13 @@ sub _rfits_bintable {
        . ".  Giving up.  (Set \$PDL::debug for more detailed info)\n"
     if($rowlen != $hdr->{NAXIS1});
   
-  
   ### Snarf up the whole extension, and pad to 2880 bytes...
   my ($rawtable, $n);
   $n = $hdr->{NAXIS1} * $hdr->{NAXIS2} + $hdr->{PCOUNT};
   $n = ($n-1)+2880 - (($n-1) % 2880);
   print "Reading $n bytes of table data....\n"
     if($PDL::verbose);
-  read(FITS, $rawtable, $n);
+  $fh->read($rawtable, $n);
 
   ### Frobnicate the rows, one at a time.
   for my $row(0..$hdr->{NAXIS2}-1) {
@@ -1032,8 +1035,6 @@ sub _rfits_bintable {
   return $tbl;
 }
 
-
-
 =head2 wfits()
 
 =for ref
@@ -1142,14 +1143,14 @@ C<PCOUNT>, C<GCOUNT>, C<NAXIS>, and C<NAXISn> keywords are ignored:
 their values are calculated based on the hash that you supply.  Any
 other fields are passed into the final FITS header verbatim.
 
-=item multi-value handling
+=item * multi-value handling
 
 If you feed in a perl list rather than a PDL or a hash, then 
 each element is written out as a separate HDU in the FITS file.  
 Each element of the list must be a PDL or a hash. [This is not implemented
 yet but should be soon!]
 
-=item DEVEL NOTES
+=item * DEVEL NOTES
 
 ASCII tables are not yet handled but should be.
 
@@ -1180,7 +1181,79 @@ BEGIN {
 # are used by the wheader routine
 my (%hdr, $nbytes);
 
-sub PDL::wfits { # Write a PDL to a FITS format file
+# Local utility routine of wfits()
+sub wheader ($$) {
+    my $fh = shift;
+    my $k = shift;
+  
+    if ($k =~ m/HISTORY/) {
+	return unless ref($hdr{$k}) eq 'ARRAY';
+	foreach my $line (@{$hdr{$k}}) {
+	    $fh->printf( "HISTORY %-72s", substr($line,0,72) );
+	    $nbytes += 80;
+	}
+	delete $hdr{$k};
+    } else {
+	# Check that we are dealing with a scalar value in the header
+	# Need to make sure that the header does not include PDLs or
+	# other structures. Return unless $hdr{$k} is a scalar.
+	my($hdrk) = $hdr{$k};
+    
+	if(ref $hdrk eq 'ARRAY') {
+	    $hdrk = join("\n",@$hdrk);
+	}
+    
+	return unless not ref($hdrk);
+    
+	if ($hdrk eq "") {
+	    $fh->printf( "%-80s", substr($k,0,8) );
+	} else {
+	    $fh->printf( "%-8s= ", substr($k,0,8) );
+      
+	    my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ?
+		$hdr{COMMENT}{$k} : undef;
+      
+	    if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
+		my $cl=60-($com ? 2 : 0);
+		my $end=' ' x $cl;
+		$end =' /'. $com if($com);
+		$fh->printf( "%20s%-50s", substr($hdrk,0,20),
+			     substr($end, 0, 50) );
+             } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
+		 # Logical flags ?
+		 $fh->printf( "%20s", $hdrk );
+		 my $end=' ' x 50;
+		 $end =' /'.$com if($com);
+		 $fh->printf( "%-50s", $end );
+	     } else {
+		 # Handle strings, truncating as necessary
+		 # (doesn't do multicard strings like Astro::FITS::Header does)
+        
+		 # Convert single quotes to doubled single quotes 
+		 # (per FITS standard)
+		 my($st) = $hdrk;
+		 $st =~ s/\'/\'\'/g;
+        
+		 my $sl=length($st)+2;
+		 my $cl=70-$sl-($com ? 2 : 0);
+		 $fh->print( "'$st'" );
+        
+		 if (defined $com) {
+		     $fh->printf( " /%-$ {cl}s", substr($com, 0, $cl) );
+		 } else {
+		     $fh->printf( "%-$ {cl}s", ' ' x $cl );
+		 }
+	     }
+	}
+	$nbytes += 80; delete $hdr{$k};
+    }
+    delete $hdr{COMMENT}{$k} if ref $hdr{COMMENT} eq 'HASH';
+    1;
+}
+
+# Write a PDL to a FITS format file
+#
+sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
   
   my ($pdl,$file,$BITPIX) = @_;
@@ -1199,14 +1272,17 @@ sub PDL::wfits { # Write a PDL to a FITS format file
   #### Figure output type
 
   unless( UNIVERSAL::isa($pdl,'PDL') ) {
-      if(ref $pdl eq 'HASH') {
-	open (FITS,"$file") || barf "Couldn't open $file\n";
-
-	_wfits_nullhdu();
-
-        _wfits_table($pdl, ($pdl->{tbl} =~ m/^a/i ? 'ascii' : 'binary'));
-
-	close FITS;
+      my $ref = ref($pdl) || "";
+      if($ref eq 'HASH') {
+	  my $fh = IO::File->new( $file )
+	      or barf "Could not open $file\n";
+	  _wfits_nullhdu($fh);
+	  # default to binary table if none specified
+	  my $table_type = exists $pdl->{tbl} ?
+	      ($pdl->{tbl} =~ m/^a/i ? 'ascii' : 'binary') :
+	      "binary";
+	  _wfits_table($fh,$pdl,$table_type);
+	  $fh->close;
 	return;
       } else {
 	  barf('wfits: multiple extensions not yet supported\n')
@@ -1250,8 +1326,9 @@ sub PDL::wfits { # Write a PDL to a FITS format file
   
   
   ## Open file & prepare to write binary info
-  open(FITS, "$file") || barf "Unable to create FITS file $file\n";
-  binmode FITS;
+  my $fh = IO::File->new( $file )
+      or barf "Unable to create FITS file $file\n";
+  binmode $fh;
   
   ##############################
   ## Check header and prepare to write it out
@@ -1280,7 +1357,6 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     # and register it as a LOGICAL rather than a string
     $a[0]->type('LOGICAL');
     
-    
     #
     # Use tied interface to set all the keywords.  Note that this
     # preserves existing per-line comments, only changing the values.
@@ -1301,9 +1377,9 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     $h->{BSCALE} = $bscale if($bscale != 1);
     $h->{BZERO}  = $bzero  if($bzero  != 0);
     
-    
     if ( $pdl->badflag() ) {
-      if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $h->{BLANK} = $a->badvalue(); }
+      if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0));
+			   $h->{BLANK} = $a->badvalue(); }
       else               { delete $h->{BLANK}; }
     }
     
@@ -1348,14 +1424,14 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     # Make sure the last card is an END
     #
     $hdr->insert(scalar($hdr->cards),
-                 new Astro::FITS::Header::Item(Keyword=>'END'));
+                 Astro::FITS::Header::Item->new(Keyword=>'END'));
     
     #
     # Write out all the cards, and note how many bytes for later padding.
     #
     my $s = join("",$hdr->cards);
     
-    print FITS $s;
+    $fh->print( $s );
     $nbytes = length $s;
   } else {
     ##
@@ -1363,7 +1439,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     ## comment, for debugging!)
     ##
     
-    printf FITS "%-80s", "SIMPLE  =                    T / PDL::IO::FITS::wfits (http://pdl.perl.org)";
+    $fh->printf( "%-80s", "SIMPLE  =                    T / PDL::IO::FITS::wfits (http://pdl.perl.org)" );
     
     $nbytes = 80; # Number of bytes written so far
     
@@ -1378,21 +1454,21 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     
     $hdr{BITPIX} =  $BITPIX;
     $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-    wheader('BITPIX');
+    wheader($fh, 'BITPIX');
     
     $ndims = $pdl->getndims; # Dimensions of data array
     $hdr{NAXIS}  = $ndims;
-    wheader('NAXIS');
+    wheader($fh, 'NAXIS');
     for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-    for $k (1..$ndims) { wheader("NAXIS$k") }
+    for $k (1..$ndims) { wheader($fh,"NAXIS$k") }
     
     if ($bscale != 1 || $bzero  != 0) {
       $hdr{BSCALE} =  $bscale;
       $hdr{BZERO}  =  $bzero;
-      wheader('BSCALE');
-      wheader('BZERO');
+      wheader($fh,'BSCALE');
+      wheader($fh,'BZERO');
     }
-    wheader('BUNIT');
+    wheader($fh,'BUNIT');
     
     # IF badflag is set
     #   and BITPIX > 0 - ensure the header contains the BLANK keyword
@@ -1404,17 +1480,19 @@ sub PDL::wfits { # Write a PDL to a FITS format file
     }
     
     for $k (sort fits_field_cmp keys %hdr) { 
-      wheader($k) unless $k =~ m/HISTORY/}
-    wheader('HISTORY'); # Make sure that HISTORY entries come last.
-    printf FITS "%-80s", "END"; $nbytes += 80;
+	wheader($fh,$k) unless $k =~ m/HISTORY/;
+    }
+    wheader($fh, 'HISTORY'); # Make sure that HISTORY entries come last.
+    $fh->printf( "%-80s", "END" );
+    $nbytes += 80;
   }
-  
   
   #
   # Pad the header to a legal value and write the rest of the FITS file.
   #
   $nbytes %= 2880;
-  print FITS " "x(2880-$nbytes) if $nbytes != 0; # Fill up HDU
+  $fh->print( " "x(2880-$nbytes) )
+      if $nbytes != 0; # Fill up HDU
   
   # Decide how to byte swap - note does not quite work yet. Needs hack
   # to IO.xs
@@ -1461,8 +1539,9 @@ sub PDL::wfits { # Write a PDL to a FITS format file
       $buff->inplace->setbadtonan();
     }
     
-    &$bswap($buff); print FITS ${$buff->get_dataref};
-  $off += $BUFFSZ;
+    &$bswap($buff);
+    $fh->print( ${$buff->get_dataref} );
+    $off += $BUFFSZ;
 }
 $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
 
@@ -1470,78 +1549,13 @@ if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
   $buff->inplace->setbadtonan();
 }
 
-&$bswap($buff); print  FITS ${$buff->get_dataref};
-print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
-
-close(FITS);
-
-1;}
-
-sub wheader {     # Local utility routine of wfits()
-  my $k = shift;
-  
-  if ($k =~ m/HISTORY/) {
-    return unless ref($hdr{$k}) eq 'ARRAY';
-    foreach my $line (@{$hdr{$k}}) {
-      printf FITS "HISTORY %-72s", substr($line,0,72);
-      $nbytes += 80;
-    }
-    delete $hdr{$k};
-  } else {
-    # Check that we are dealing with a scalar value in the header
-    # Need to make sure that the header does not include PDLs or
-    # other structures. Return unless $hdr{$k} is a scalar.
-    my($hdrk) = $hdr{$k};
-    
-    if(ref $hdrk eq 'ARRAY') {
-      $hdrk = join("\n",@$hdrk);
-    }
-    
-    return unless not ref($hdrk);
-    
-    if ($hdrk eq "") {
-      printf FITS "%-80s", substr($k,0,8);
-    } else {
-      printf FITS "%-8s= ", substr($k,0,8);
-      
-      my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ? $hdr{COMMENT}{$k} : undef;
-      
-      
-      if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
-        my $cl=60-($com ? 2 : 0);
-        my $end=' ' x $cl;
-        $end =' /'. $com if($com);
-        printf FITS "%20s%-50s", substr($hdrk,0,20),
-        substr($end, 0, 50);
-      } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
-        # Logical flags ?
-        printf FITS "%20s", $hdrk;
-        my $end=' ' x 50;
-        $end =' /'.$com if($com);
-        printf FITS "%-50s", $end;
-      } else {
-        # Handle strings, truncating as necessary
-        # (doesn't do multicard strings like Astro::FITS::Header does)
-        
-        # Convert single quotes to doubled single quotes 
-        # (per FITS standard)
-        my($st) = $hdrk;
-        $st =~ s/\'/\'\'/g;
-        
-        my $sl=length($st)+2;
-        my $cl=70-$sl-($com ? 2 : 0);
-        print FITS "'$st'";
-        
-        if (defined $com) {
-          printf FITS " /%-$ {cl}s", substr($com, 0, $cl);
-        } else {
-          printf FITS "%-$ {cl}s", ' ' x $cl;
-        }
-      }
-    }
-    $nbytes += 80; delete $hdr{$k};
-  }
-  delete $hdr{COMMENT}{$k} if(ref $hdr{COMMENT} eq 'HASH');
+  &$bswap($buff);
+  $fh->print( ${$buff->get_dataref} );
+  # Fill HDU and close
+  # note that for the data space the fill character is \0 not " "
+  #
+  $fh->print( "\0"x(($BUFFSZ - $buff->getdim(0) * $sz)%2880) );
+  $fh->close();
   1;
 }
 
@@ -1713,6 +1727,9 @@ sub _prep_table {
   }
 
 
+  # The first element of colnames is ignored (since FITS starts
+  # count at 1)
+  #
   my @colnames;  # Names by number
   my %colnums;   # Numbers by name
 
@@ -1748,8 +1765,8 @@ sub _prep_table {
 
   ### Allocate all other table columns in alphabetical order...
   my $i = 0;
-  for (@colkeys) {
-    my $name = $namesbykey{$_};
+  for my $k (@colkeys) {
+    my $name = $namesbykey{$k};
 
     unless($colnums{$name}) {
       while($colnames[++$i]) { }
@@ -1761,8 +1778,9 @@ sub _prep_table {
   print "Assertion failed:  i ($i) != colnums ($cols)\n"
     if($PDL::debug && $i != $cols);
 
-  print "colnames is : ",join(",",@colnames)
-    if($PDL::debug);
+  print "colnames: " .
+      join(",", map { $colnames[$_]; } (1..$cols) ) ."\n"
+	  if($PDL::debug);
 
   ######## 
   # OK, now the columns are allocated -- spew out a header.
@@ -1866,6 +1884,7 @@ sub _prep_table {
 
 	 ## This would go faster if moved outside the loop but I'm too
 	 ## lazy to do it Right just now.  Perhaps after it actually works.
+	 ##
 	 if(!isbigendian()) {
 	   bswap2($tmp) if($tmp->get_datatype == $PDL_S);
 	   bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
@@ -1880,7 +1899,7 @@ sub _prep_table {
 	   ( $#$a == 0 ? $a->[0] : $a->[$r] )  # Thread arrays as needed
 	   : $a;
 	 
-	 $tmp .= " " x ($field_len[$c] - length $tmp);
+	 $tmp .= " " x ($field_len[$c] - length($tmp));
        }
        
        # Now $tmp contains the bytes to be written out...
@@ -1889,18 +1908,45 @@ sub _prep_table {
       $table .= $row;
     }
 
-  if( (length $table) != $rowlen * $cols ) {
-    print "Warning: Table length is ".(length $table)."; expected ".($rowlen*$cols)."\n";
-  }
+    my $table_size = $rowlen * $rows;
+    if( (length $table) != $table_size ) {
+	print "Warning: Table length is ".(length $table)."; expected $table_size\n";
+    }
 
-  return ($hdr,$table);
+    return ($hdr,$table);
       
-
   } elsif($tbl eq 'ascii') {
     barf "ASCII tables not yet supported...\n";
   } else {
     barf "unknown table type '$tbl' -- giving up.";
   }
+}
+
+# the header fill value can be blanks, but the data fill value must
+# be zeroes in non-ASCII tables
+#
+sub _print_to_fits ($$$) {
+    my $fh = shift;
+    my $data = shift;
+    my $blank = shift;
+
+    my $len = ((length $data) - 1) % 2880 + 1;
+    $fh->print( $data . ($blank x (2880-$len)) );
+}
+  
+{
+    my $ctr = 0;
+
+    sub reset_hdr_ctr() { $ctr = 0; }
+
+    sub add_hdr_item ($$$$;$) {
+	my ( $hdr, $key, $value, $type, $comment ) = @_;
+	my $item = Astro::FITS::Header::Item->new( Keyword=>$key,
+						   Value=>$value,
+						   Type=>$type );
+	$item->comment( $comment ) if defined $comment;
+	$hdr->replace( $ctr++, $item );
+    };
 }
 
 ##############################
@@ -1910,29 +1956,36 @@ sub _prep_table {
 # Most of the work of creating the extension header, and all of
 # the work of creating the table, is handled by _prep_table().
 #
-
-sub _wfits_table {
+# NOTE:
+#   can not think of a sensible name for the extension so calling
+#   it TABLE for now
+#
+sub _wfits_table ($$$) {
+  my $fh = shift;
   my $hash = shift;
   my $tbl = shift;
   
-  my ($hdr,$table) = _prep_table($hash,$tbl,0);
-
   barf "FITS BINTABLES are not supported without the Astro::FITS::Header module.\nGet it from www.cpan.org.\n"
     unless($PDL::Astro_FITS_Header);
 
+  my ($hdr,$table) = _prep_table($hash,$tbl,0);
+
   # Copy the prepared fields into the extension header.
-  tie my %newhdr,'Astro::FITS::Header',my $h = new Astro::FITS::Header;
+  tie my %newhdr,'Astro::FITS::Header',my $h = Astro::FITS::Header->new;
   
   my $n=0;
   my $hf = sub { $h->replace( $n++, new Astro::FITS::Header::Item(Keyword=>shift(), Value=>shift(), Type=>shift(), Comment=>shift())); };
   
-  &$hf("XTENSION", ($tbl eq 'ascii'?"TABLE":"BINTABLE"), undef, "from perl hash");
-  &$hf("NAXIS",2,'int');
-  &$hf("NAXIS1",$hdr->{NAXIS1},'int','Bytes per row');
-  &$hf("NAXIS2",$hdr->{NAXIS2},'int','Number of rows');
-  &$hf("PCOUNT",0,'int',($tbl eq 'ascii' ? undef : "No heap") );
-  &$hf("GCOUNT",1,'int');
-  &$hf("TFIELDS",$hdr->{TFIELDS},'int');
+  reset_hdr_ctr();
+  add_hdr_item $h, "XTENSION", ($tbl eq 'ascii'?"TABLE":"BINTABLE"), undef, "from perl hash";
+  add_hdr_item $h, "BITPIX", $hdr->{BITPIX}, 'int';
+  add_hdr_item $h, "NAXIS", 2, 'int';
+  add_hdr_item $h, "NAXIS1", $hdr->{NAXIS1}, 'int', 'Bytes per row';
+  add_hdr_item $h, "NAXIS2", $hdr->{NAXIS2}, 'int', 'Number of rows';
+  add_hdr_item $h, "PCOUNT", 0, 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
+  add_hdr_item $h, "GCOUNT", 1, 'int';
+  add_hdr_item $h, "TFIELDS", $hdr->{TFIELDS},'int';
+  add_hdr_item $h, "HDUNAME", "'TABLE'", 'string';
 
   for my $field( sort fits_field_cmp keys %$hdr ) {
     next if( defined $newhdr{$field} or $field =~ m/^end|simple|xtension$/i);
@@ -1942,44 +1995,40 @@ sub _wfits_table {
 		    'logical' : 
 		    undef ## 'string' seems to have a bug - 'undef' works OK
 		    ));
-		   
-    &$hf($field, $hdr->{$field}, $type,	 $hdr->{"${field}_COMMENT"} );
+
+    add_hdr_item $h, $field, $hdr->{$field}, $type, $hdr->{"${field}_COMMENT"};
   }
-   
-  &$hf("END",undef,'undef');
+
+  add_hdr_item $h, "END", undef, 'undef';
 
   $hdr = join("",$h->cards);
-    
-  my $len = ((length $hdr) - 1) % 2880 + 1;
-  $hdr .= " "x(2880-$len);
-  print FITS $hdr;
-  
-  $len = ((length $table) - 1) % 2880 + 1;
-  print FITS $table." "x(2880-$len); 
+  _print_to_fits( $fh, $hdr, " " );
+  _print_to_fits( $fh, $table, "\0" ); # use " " if it is an ASCII table
 }
 
-sub _wfits_nullhdu {
+sub _wfits_nullhdu ($) {
+  my $fh = shift;
   barf "Astro::FITS::Header is required.\nGet it from www.cpan.org.\n"
     unless($PDL::Astro_FITS_Header);
-  my $h = new Astro::FITS::Header;
+  my $h = Astro::FITS::Header->new();
 
-  my $n=0;
-  my $hf = sub { $h->replace( $n++, new Astro::FITS::Header::Item(Keyword=>shift(), Value=>shift(), Type=>shift(), Comment=>shift())); };
-  
-  &$hf("SIMPLE","T",'logical',"Null HDU (no data, only extensions)");
-  &$hf("NAXIS",0,'int');
-  &$hf("EXTEND","T",'logical',"File contains extensions");
-  &$hf("COMMENT","File written by perl/PDL wfits",'comment');
-  &$hf("END",undef,'undef');
+  reset_hdr_ctr();
+  add_hdr_item $h, "SIMPLE", "T", 'logical', "Null HDU (no data, only extensions)";
+  add_hdr_item $h, "BITPIX", -32, 'int', "Needed to make fverify happy";
+  add_hdr_item $h, "NAXIS", 0, 'int';
+  add_hdr_item $h, "EXTEND", "T", 'logical', "File contains extensions";
+  add_hdr_item $h, "COMMENT", "", "comment",
+    "  File written by perl (PDL::IO::FITS::wfits)";
+  add_hdr_item $h, "COMMENT", "", "comment",
+    "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
+  add_hdr_item $h, "COMMENT", "", "comment",
+    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
+  add_hdr_item $h, "HDUNAME", "'PRIMARY'", 'string';
+  add_hdr_item $h, "END", undef, 'undef'; 
   
   my $hdr = join("",$h->cards);
-  my $len = ((length $hdr)-1)%2880 + 1;
-  $hdr .= " "x(2880-$len);
-  print FITS $hdr;
+  _print_to_fits( $fh, $hdr, " " );
 }
     
-  
-
-
 1;
 

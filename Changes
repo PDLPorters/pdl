@@ -1,3 +1,13 @@
+DJB 20-Oct-04
+   - PDL::IO::FITS::wfits updates for table writing: BITPIX must be the second
+     card (or else fverify from FTOOLS throws a wobbly); fixed writing a
+     comment card (caused messages under use strict/-w); the data area is
+     now filled with \0 rather than " " (both tables and images).
+     Note that fverify still complains that the keywords are not written
+     out correctly (the comments do not start in column #32 I think).
+     Removed the use of the FITS file handle from the whole module (now uses
+     IO::File throughout).
+     Added some very basic table tests to t/fits.t.
 CED 15-Oct-04
    - fix a few oddball cases in permissive constructor
 CS  07-Oct-04
@@ -13,7 +23,7 @@ CED 17-Sep-04
    - removed "$temp" magic variable from perldl -- now it's only available in 
      the "PERLDL" package.  (assigning to $temp crashed perldl; this fixes that.)
 CS 15-Sep-04
-   - complex.pd: applied Vanuxem GrÂÂ©gory's patch and added some tests;
+   - complex.pd: applied Vanuxem Gr‚©gory's patch and added some tests;
                  should close bug 1010164
 CED 15-Sep-04
    - primitive.pd: Fix to statsover
@@ -1163,7 +1173,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldBBÂŽBBBÂŽBBBÂŽsr Olafsson and Vince McIntyre (bug #233484)
+      HalldBBŽBBBŽBBBŽsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments
