@@ -3146,6 +3146,8 @@ sub initenv{
   #    line log10($a), $b, { AXIS => 'LOGX' };
   # DJB 06/26/02
   ##pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
+
+  # restore settings
   $self->_set_colour($col);
   pgsch($chsz);
 
@@ -3165,8 +3167,6 @@ sub _set_env_options {
 
 sub redraw_axes {
   my $self = shift;
-  my $col;
-  pgqci($col);
   my $o;
   if (defined($self->{_env_options})) {
     # Use the previous settings for the plot box.
@@ -3175,8 +3175,10 @@ sub redraw_axes {
   } else {
     $o=$self->{Options}->defaults();
   }
+  my $col;
+  pgqci($col);
   $self->_set_colour($o->{AxisColour});
-  my ($chsz);
+  my $chsz;
   pgqch($chsz);
   pgsch($o->{CharSize});
   my $axval = $o->{Axis};	# Using the last for this window...
@@ -5019,7 +5021,7 @@ sub poly {
     }
 
     my($old_lw);
-    pgqls($old_lw);
+    pgqlw($old_lw);
     pgslw($o->{TextWidth} || 1);
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
@@ -5188,6 +5190,10 @@ sub poly {
     # step size in y
     my $ystep = $o->{Height} / $n_lines;
 
+    # store current settings
+    my ( $col, $lw, $ls );
+    pgqci($col); pgqls($ls); pgqlw($lw);
+
     foreach (my $i=0; $i<=$#$text; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
@@ -5199,10 +5205,8 @@ sub poly {
 					LineWidth => $linewidth->[$i],
 					Colour => $color->[$i]
 				      });
-      my $col; pgqci($col);
+
       $self->_set_colour($t_o->{Colour}) if defined($color->[$i]);
-      my ($lw, $ls);
-      pgqls($ls); pgqlw($lw);
 
       # Use the following to get the lines/symbols centered on the
       # text.
@@ -5220,10 +5224,12 @@ sub poly {
 	pgslw($t_o->{LineWidth}) if defined($linewidth->[$i]);
 	pgline(2, [$xstart, $xend], [$yline, $yline]);
       }
-      $self->_set_colour($col); # Reset colour after each line so that the text comes
-      # in a sensible colour
-      pgsls($ls); # And line style
-      pgslw($lw); # And line width
+
+      # reset colour, line style & width after each line
+      $self->_set_colour($col);
+      pgsls($ls);
+      pgslw($lw);
+
       $ypos -= $ystep;
     }
 
