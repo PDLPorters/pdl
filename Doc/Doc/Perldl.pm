@@ -9,6 +9,8 @@ access the PDL documentation of database, for use
 from the I<perldl> shell and the I<pdldoc> command-line
 program.
 
+Currently, multiple matches are not handled very well.
+
 =head1 SYNOPSIS
 
  use PDL::Doc::Perldl; # Load all documenation functions
@@ -195,26 +197,34 @@ sub apropos  {
 }
 
 sub finddoc  {
-	die 'Usage: doc $topic' unless $#_>-1;
-	die "no online doc database" unless defined $PDL::onlinedoc;
-	my $topic = shift;
+    die 'Usage: doc $topic' unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $topic = shift;
 
-	# See if it matches a PDL function name
+    # See if it matches a PDL function name
+    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
 
-	my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
-	if (@match) {
-	   my $Ref = $match[0]->[1]->{Ref};
-	   if ( $Ref =~ /^(Module|Manual|Script): / ) {
-	       system("pod2text $match[0]->[1]->{File} | $PDL::Doc::pager");
-	       return;
-	   }
-	   my $out = new IO::File "| pod2text | $PDL::Doc::pager";
-	   print $out "=head1 Module\n\n",$match[0]->[1]->{Module}, "\n\n";
-	   $PDL::onlinedoc->funcdocs($match[0]->[0],$out);
+    die "Unable to find PDL docs on $topic\n"
+	if $#match == -1;
+
+    # print out the matches
+    # - do not like this solution when have multiple matches
+    #   but looping through each match didn't seem right either
+    my $m = shift @match;
+    my $Ref = $m->[1]{Ref};
+    if ( $Ref =~ /^(Module|Manual|Script): / ) {
+	system("pod2text $m->[1]{File} | $PDL::Doc::pager");
+    } else {
+	my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
+	print $out "=head1 Module\n\n",$m->[1]{Module}, "\n\n";
+	$PDL::onlinedoc->funcdocs($m->[0],$out);
+    }
+    if ( $#match > -1 ) {
+	print "\nFound other matches for $topic:\n";
+	foreach my $m ( @match ) {
+	    printf "  %-30s in %s\n", $m->[0], $m->[1]{Module};
 	}
-	else {
-	  die "Unable to find PDL docs on $topic\n";
-	}
+    }
 }
 
 =head2 usage
@@ -320,6 +330,9 @@ sub allindent {
 =for ref
 
 print documentation about a PDL function or module or show a PDL manual
+
+In the case of multiple matches, the first command found is printed out,
+and the remaining commands listed, along with the names of their modules.
 
 =for usage
 
