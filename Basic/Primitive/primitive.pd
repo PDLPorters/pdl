@@ -607,7 +607,7 @@ lexicographcally.
 
 sub PDL::uniqvec {
   my($pdl) = shift;
-  return $pdl if($pdl->nelem == 0 | $pdl->ndims <2 );
+  return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 );
 
   my $srt = $pdl->mv(0,-1)->
 	clump($pdl->ndims - 1)->

@@ -7,30 +7,19 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN{
   eval " use PDL::Graphics::PLplot; ";
   unless ($@){
-    plan tests => 23;
-    print "ok 1\n";
+    plan tests => 24;
   }
   else {
     plan tests => 1;
-    print "ok 1 # Skipped: PDL::Graphics::PLplot not installed\n";
+    ok (1, "PDL::Graphics::PLplot not installed");
     exit;
   }
 }
-
-sub testok ($$) {
-  my $bool = shift;
-  my $n    = shift;
-  if ($bool) {
-    print "ok $n\n";
-  } else {    print "not ok $n\n";
-  }
-}
-
 
 ######################### End of black magic.
 
@@ -40,41 +29,45 @@ sub testok ($$) {
 
 # Use xfig driver because it should always be installed.
 
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig",
+my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
+
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig",
 				     FILE => "test2.xfig",
 				     BACKGROUND => [255,255,255]);
-my $x  = sequence(10);
-my $y  = $x**2;
+isa_ok( $pl, "PDL::Graphics::PLplot" ) or die;
+
+$x  = sequence(10);
+$y  = $x**2;
 $pl->xyplot($x, $y,
 	    BOX => [-5,10,0,200],
 	    PLOTTYPE => 'LINE');
 $pl->close;
-testok -s "test2.xfig" > 0, 2;
+ok (-s "test2.xfig" > 0, "Simple line plot");
 
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test3.xfig", 
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test3.xfig", 
 				       BACKGROUND => 'WHITE');
 $pl->xyplot($x, $y, PLOTTYPE => 'POINTS', COLOR => 'BLUEVIOLET', SYMBOL => 1, SYMBOLSIZE => 4);
 $pl->close;
-testok -s "test3.xfig" > 0, 3;
+ok (-s "test3.xfig" > 0, "Symbol plot");
 
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test4.xfig", FRAMECOLOR => 'BLUE');
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test4.xfig", FRAMECOLOR => 'BLUE');
 $pl->xyplot($x, $y, PLOTTYPE => 'LINEPOINTS', COLOR => [50,230,30]);
 $pl->close;
-testok -s "test4.xfig" > 0, 4;
+ok (-s "test4.xfig" > 0, "Lines and symbols");
 
-my $y = sequence(30)+1;
+$y = sequence(30)+1;
 my $m = (50* (exp(1/$y**2) - 1) * random (30,20))->xchg(0,1);
 my ($mean, $rms) = statsover($m);
 my $x1 = $mean + $rms;
 my $x2 = $mean - $rms;
 my $n  = 500 - exp($y/5);
 
-#my $pl = PDL::Graphics::PLplot->new (DEV => "xwin", FILE => "trillian.cosmic.ucar.edu:0");
+#$pl = PDL::Graphics::PLplot->new (DEV => "xwin", FILE => "trillian.cosmic.ucar.edu:0");
 
 # Setting text to 1 like this does not work.  text is hard coded in ps.c ;(
-#my $pl = PDL::Graphics::PLplot->new (DEV => "psc", FILE => "test5.ps", OPTS => {'text' => '1'});
+#$pl = PDL::Graphics::PLplot->new (DEV => "psc", FILE => "test5.ps", OPTS => {'text' => '1'});
 
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test5.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test5.xfig");
 $pl->xyplot($x1,   $y, COLOR => 'GREEN',
 	               BOX   => [($mean - $rms)->minmax, $y->minmax],
 	               XBOX  => 'bnst', # bottom line, bottom numbers, ticks, subticks
@@ -94,46 +87,46 @@ $pl->text("Count", COLOR => 'PINK',
                                                         # center of string, middle of axis
 
 $pl->close;
-testok -s "test5.xfig" > 0, 5;
+ok (-s "test5.xfig" > 0, "Sample layer statistics plot");
 
 # test of setting page size.
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig",
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig",
 				       FILE => "test6.xfig",
 				       PAGESIZE => [50,80]);
-my $x  = sequence(10);
-my $y  = $x**2;
+$x  = sequence(10);
+$y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE');
 $pl->close;
-testok -s "test6.xfig" > 0, 6;
+ok (-s "test6.xfig" > 0, "Setting pagesize");
 
 # test of lines with gaps (plgapline)
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig",
-				       FILE => "test7.xfig");
-my $x  = sequence(10);
-my $y  = $x**2;
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig",
+				  FILE => "test7.xfig");
+$x  = sequence(10);
+$y  = $x**2;
 $x->inplace->setbadat(5); # insert gap
 $y->inplace->setbadat(5); # insert gap
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE');
 $pl->close;
-testok -s "test7.xfig" > 0, 7;
+ok (-s "test7.xfig" > 0, "Line plot with gaps (plgapline)");
 
 # test of setting JUSTify = 1
-my $pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test8.xfig");
-my $x  = sequence(10);
-my $y  = $x**2;
+$pl = PDL::Graphics::PLplot->new (DEV => "xfig", FILE => "test8.xfig");
+$x  = sequence(10);
+$y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINEPOINTS', JUST => 1);
 $pl->close;
-testok -s "test8.xfig" > 0, 8;
+ok (-s "test8.xfig" > 0, "Setting JUSTify = 1");
 
-my $pl = PDL::Graphics::PLplot->new (DEV  => 'xfig', FILE => "test9.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV  => 'xfig', FILE => "test9.xfig");
 
 $pl->text("Test string outside of window", TEXTPOSITION => ['T', 1, 0, 0]);
 $pl->text("Test string inside window",     TEXTPOSITION => [0, 0, 0.5, 0.5, 0]);
 $pl->close;
-testok -s "test9.xfig" > 0, 9;
+ok (-s "test9.xfig" > 0, "Printing text inside and outside of plot window");
 
 # test rainbow point plotting with color key
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
 
 my $pi = atan2(1,1)*4;
 my $a  = (sequence(20)/20) * 2 * $pi;
@@ -144,7 +137,7 @@ $pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLO
 $pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 $pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
 $pl->close;
-testok -s "test10.xfig" > 0, 10;
+ok (-s "test10.xfig" > 0, "Colored symbol plot with key");
 
 # Test plot and color key (low level interface)
 plsdev ("xfig");
@@ -167,9 +160,9 @@ for (my $i=0;$i<10;$i++) {
   plcol1($i/10);
   plfill (4, PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
 }
-plend();
+plend1();
 
-testok -s "test11.xfig" > 0, 11;
+ok (-s "test11.xfig" > 0, "Colored symbol plot with key, via low level interface");
 
 # Test shade plotting (low level interface)
 plsdev ("xfig");
@@ -183,8 +176,8 @@ plpsty(0);
 
 my $nx = 35;
 my $ny = 46;
-my $x = (sequence($nx) - ($nx/2))/($nx/2);
-my $y = (sequence($ny) - ($ny/2))/(($ny/2) - 1.0);
+$x = (sequence($nx) - ($nx/2))/($nx/2);
+$y = (sequence($ny) - ($ny/2))/(($ny/2) - 1.0);
 my $xv = $x->dummy(0, $y->nelem);
 my $yv = $y->dummy(1, $x->nelem);
 my $z = -sin(7*$xv) * cos (7*$yv) + $xv**2 - $yv**2;
@@ -199,16 +192,16 @@ my $ymap = ((sequence($ny)*(2/($ny-1))) + -1);
 plshades($z, -1, 1, -1, 1,
          $clevel, $fill_width,
          $cont_color, $cont_width, 1, $xmap, $ymap);
-plend();
+plend1();
 
-testok -s "test12.xfig" > 0, 12;
+ok (-s "test12.xfig" > 0, "3D color plot, low level interface");
 
 # test shade plots with higher level interface. 
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test13.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test13.xfig");
 $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW'); 
 $pl->colorkey ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 $pl->close;
-testok -s "test13.xfig" > 0, 13;
+ok (-s "test13.xfig" > 0, "3D color plot, high level interface");
 
 # Test histogram plotting (low level interface)
 plsdev ("xfig");
@@ -217,24 +210,24 @@ plspage (0,0, 600,600, 0,0);
 plinit();
 pladv (0);
 plvpor(0.1, 0.9, 0.1, 0.9); 
-my $x = random(100)*100;
-my ($min, $max) = $x->minmax;
-my $nbins = 15;
-my $oldwin = 1; # dont call plenv
+$x = random(100)*100;
+($min, $max) = $x->minmax;
+$nbins = 15;
+$oldwin = 1; # dont call plenv
 
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
 plhist (100, $x, $min, $max, $nbins, $oldwin);
-plend();
+plend1();
 
-testok -s "test14.xfig" > 0, 14;
+ok (-s "test14.xfig" > 0, "Histogram plotting, low level interface");
 
 # test histograms with higher level interface. 
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test15.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test15.xfig");
 $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100]); 
 $pl->close;
-testok -s "test15.xfig" > 0, 15;
+ok (-s "test15.xfig" > 0, "Histogram plotting, high level interface");
 
 # Test multiple plots per page (low level interface)
 plsdev ("xfig");
@@ -244,54 +237,54 @@ plssub (1,2);
 plinit();
 pladv (1);
 plvpor(0.1, 0.9, 0.1, 0.9); 
-my $x = random(100)*100;
-my ($min, $max) = $x->minmax;
-my $nbins = 15;
-my $oldwin = 1; # dont call plenv
+$x = random(100)*100;
+($min, $max) = $x->minmax;
+$nbins = 15;
+$oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 plhist (100, $x, $min, $max, $nbins, $oldwin);
 
 pladv (2);
 plvpor(0.1, 0.9, 0.1, 0.9); 
-my $x = random(200)*100;
-my ($min, $max) = $x->minmax;
-my $nbins = 15;
-my $oldwin = 1; # dont call plenv
+$x = random(200)*100;
+($min, $max) = $x->minmax;
+$nbins = 15;
+$oldwin = 1; # dont call plenv
 
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
 plhist (100, $x, $min, $max, $nbins, $oldwin);
 
-plend();
+plend1();
 
-testok -s "test16.xfig" > 0, 16;
+ok (-s "test16.xfig" > 0, "Multiple plots per page, low level interface");
 
 # test multiple pages per plot (high level interface)
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test17.xfig", SUBPAGES => [1,2]);
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test17.xfig", SUBPAGES => [1,2]);
 $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100]); 
 $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100], SUBPAGE => 2); 
 $pl->close;
-testok -s "test17.xfig" > 0, 17;
+ok (-s "test17.xfig" > 0, "Multiple plots per page, high level interface");
 
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test18.xfig");
-my $x  = sequence(10);
-my $y  = $x**2;
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test18.xfig");
+$x  = sequence(10);
+$y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE', LINESTYLE => 2);
 $pl->close;
-testok -s "test18.xfig" > 0, 18;
+ok (-s "test18.xfig" > 0, "Setting LINESTYLE");
 
 # test setting plot orientation
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test19.xfig", ORIENTATION => 1);
-my $x  = sequence(10);
-my $y  = $x**2;
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test19.xfig", ORIENTATION => 1);
+$x  = sequence(10);
+$y  = $x**2;
 $pl->xyplot($x, $y, PLOTTYPE => 'LINE', LINESTYLE => 2);
 $pl->close;
-testok -s "test19.xfig" > 0, 19;
+ok (-s "test19.xfig" > 0, "Setting plot orientation");
 
 # test symbol plotting
-my $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test20.xfig");
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test20.xfig");
 $pl->setparm (BOX => [0,200,0,200]);
 for (my $x=0;$x<20;$x++) {
   for (my $y=0;$y<20;$y++) {
@@ -301,10 +294,10 @@ for (my $x=0;$x<20;$x++) {
   }
 }
 $pl->close;
-testok -s "test20.xfig" > 0, 20;
+ok (-s "test20.xfig" > 0, "Symbol plotting");
 
 # test label plotting in multiple subpage plots
-my $pl = PDL::Graphics::PLplot->new(DEV => 'xfig', 
+$pl = PDL::Graphics::PLplot->new(DEV => 'xfig', 
 				      FILE => "test21.xfig", 
 				      PAGESIZE => [500,900],
 				      SUBPAGES => [1,6]);
@@ -325,19 +318,29 @@ for my $i (0..5) {
 }
 
 $pl->close;
-testok -s "test21.xfig" > 0, 21;
+ok (-s "test21.xfig" > 0, "Multiple subpages");
 
 # test bar graphs
-my $pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test22.xfig");
+$pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test22.xfig");
 $pl->bargraph([map { sprintf ("2002.%03d", $_) } (1..100)], 100*random(100), COLOR => 'BLUE');
 $pl->close;
-testok -s "test22.xfig" > 0, 22;
+ok (-s "test22.xfig" > 0, "Bar graph");
 
-my $pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test23.xfig");
+$pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test23.xfig");
 my @labels = ((map { sprintf ("2001.%03d", $_) } (240..365)), (map { sprintf ("2002.%03d", $_) } (1..100)));
 $pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN');
 $pl->close;
-testok -s "test23.xfig" > 0, 23;
+ok (-s "test23.xfig" > 0, "Bar graph part 2");
+
+$pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test24.xfig");
+$x  = sequence(10);
+$y  = $x**2;
+$pl->xyplot($x, $y, PLOTTYPE => 'LINE', XERRORBAR => ones(10)*0.5, XTICK => 2,  NXSUB => 5, 
+                                        YERRORBAR => $y*0.1,       YTICK => 20, NYSUB => 10,
+                                        MINTICKSIZE => 2, MAJTICKSIZE => 3);
+$pl->close;
+ok (-s "test24.xfig" > 0, "Setting error bars and tick size");
+
 unlink glob ("test*.xfig");
 
 

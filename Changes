@@ -1,3 +1,7 @@
+DH  21-Nov-2003
+   - Upgraded PLplot interface for plplot-5.2.1 and perl 5.8.2.  Improved
+     test suite.  Also fixed two small bugs which give warnings during
+     'make test' under perl 5.8.2:  One in primitive.pd and the other in misc.pd.
 CED 19-Nov-2003
    - Several minor fixes and improvements to rfits().  Notably, it now
 	works in array context, pulling all extensions and returning as list.
@@ -866,7 +870,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldÂŽÂÂŽÂÂŽór Olafsson and Vince McIntyre (bug #233484)
+      HalldBŽBBŽBBŽsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

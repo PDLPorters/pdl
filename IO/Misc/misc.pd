@@ -487,10 +487,13 @@ sub PDL::rcols {
    $line_end   = $line_num + 1 + $index_end   if $index_end   < 0;
 
    my $indices;
-   if ( $line_rev ) {
-       $indices = which( $line_store >= $line_end & $line_store <= $line_start )->slice('-1:0');
-   } else {
-       $indices = which( $line_store >= $line_start & $line_store <= $line_end );
+
+   { no warnings 'precedence';	
+     if ( $line_rev ) {
+         $indices = which( $line_store >= $line_end & $line_store <= $line_start )->slice('-1:0');
+     } else {
+         $indices = which( $line_store >= $line_start & $line_store <= $line_end );
+     }
    }
 
    # truncate the piddles
