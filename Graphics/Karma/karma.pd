@@ -277,7 +277,7 @@ ENDOFPM
 
 # Add all the karma app startup commands
 
-for $app (qw(kview koords  kpvslice  krenzo  kshell xray kslice_3d)) {
+for $app (qw(kvis kview koords  kpvslice  krenzo  kshell xray kslice_3d)) {
 
    pp_add_exported('',$app);
 
@@ -303,7 +303,7 @@ $app([OPTIONS])
 sub $app {  # Start $app
    if( !(\$pid = fork)) {	# error or child
       exec("$app", \@_) if defined \$pid;
-      die "Can't start kview: \$!\n";
+      die "Can't start $app: \$!\n";
    }
    \$LASTAPP = "$app";
    return \$pid;
