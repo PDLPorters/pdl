@@ -2301,6 +2301,13 @@ sub initenv{
   my ($in, $u_opt)=_extract_hash(@_);
   my ($xmin, $xmax, $ymin, $ymax, $just, $axis)=@$in;
 
+  # If the user specifies $just or $axis these values will
+  # override any options given. This actually changes the behaviour
+  # of the previous initenv() function when $just and/or $axis was
+  # specified in conjunction with an options hash.
+  $u_opt->{Justify} = $just if defined($just);
+  $u_opt->{Axis} = "$axis" if defined($axis);
+
 
   # Now parse the input options.
   $u_opt={} unless defined($u_opt);
@@ -2316,12 +2323,6 @@ sub initenv{
   pgsch($o->{CharSize});
 
 
-  # If the user specifies $just or $axis these values will
-  # override any options given. This actually changes the behaviour
-  # of the previous initenv() function when $just and/or $axis was
-  # specified in conjunction with an options hash.
-  $o->{Justify} = $just if defined($just);
-  $o->{Axis} = $axis if defined($axis);
 
   if (ref($o->{Border}) eq 'HASH' || $o->{Border} != 0) {
     my $type  = "REL";
