@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/13/00)
+   - added $PDL::Bad::Status variable to PDL::Bad - 1 for support, 0 for
+     no support (boo, hiss)
    - added discussion to README.bpix about setting/propogation of badflag
      and to TODO.bpix about need for something like '$a = setbadif($a < 20)'
    - renamed baddata() to badflag(), added check_badstatus() routine to bad.pd

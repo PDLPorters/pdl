@@ -97,7 +97,7 @@ while(defined($_ = shift @ARGV)) {
                 eval "require $m";
                 warn, next if $@;
                 if ($way eq 'M') {
-                $m->import(@im);
+                	$m->import(@im);
                 } else {
                         $m->unimport(@im);
                 }
@@ -224,9 +224,9 @@ my $PDL_OK = ($@ eq "");
 if ($PDL_OK) {
    require PDL::Version if not defined $PDL::Version::VERSION;
    print "Type 'demo' for online demos\n";
-   use PDL::Config;  # for some reason this doesn't pick up the blib version?
-   my $badflag = $PDL::Config{WITH_BADVAL};
-   if ( defined($badflag) and $badflag ) {
+   eval "use PDL::Bad;";
+   my $bflag = defined($PDL::Bad::Status) and $PDL::Bad::Status;
+   if ( $bflag ) {
       print "Loaded PDL v$PDL::Version::VERSION (supports bad values)\n";
    } else {
       print "Loaded PDL v$PDL::Version::VERSION\n";

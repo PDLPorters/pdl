@@ -44,17 +44,22 @@ so it does not contain any bad-value support code.
 
 =head1 SYNOPSIS
 
-none
+ use PDL::Bad;
+ print "\nBad value support in PDL is turned " . 
+     $PDL::Bad::Status ? "on" : "off" . ".\n";
+
+ Bad value support in PDL is turned off.
 
 $author
 
 =head1 BUGS
 
-None.
+None - it does nothing perfectly!
 
 =cut
 
-# do nothing
+# really should be a constant
+$PDL::Bad::Support = 0;
 
 !WITH!SUBS!
 
@@ -81,9 +86,18 @@ you can enter the wonderful world of bad values.
 
 =head1 SYNOPSIS
 
-Errrr
+ use PDL::Bad;
+ print "\nBad value support in PDL is turned " . 
+     $PDL::Bad::Status ? "on" : "off" . ".\n";
+
+ Bad value support in PDL is turned on.
+
+ and some other things
 
 =cut
+
+# really should be a constant
+$PDL::Bad::Status = 1;
 
 use strict;
 
