@@ -309,6 +309,8 @@ Lib/GSL/typemap
 Lib/Gaussian.pm
 Lib/Image2D/Makefile.PL
 Lib/Image2D/image2d.pd
+Lib/Image2D/resample.c
+Lib/Image2D/resample.h
 Lib/Image2D/rotate.c
 Lib/ImageND/Makefile.PL
 Lib/ImageND/imagend.pd

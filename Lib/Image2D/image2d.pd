@@ -17,8 +17,11 @@ of anywhere else to put them
 
 =cut
 
-use PDL::Ufunc;  # ensure qsort routine available
+use PDL;  # ensure qsort routine available
+use PDL::Math;
 use Carp;
+
+use strict;
 
 EOD
 
@@ -27,7 +30,9 @@ pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHORS
 
 Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
-(rjrw@ast.leeds.ac.uk) and Tim Jeness (timj@jach.hawaii.edu).
+(rjrw@ast.leeds.ac.uk), Tim Jeness (timj@jach.hawaii.edu),
+and Doug Burke (burke@ifa.hawaii.edu).
+
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -136,7 +141,7 @@ pp_def('conv2d', Doc=><<'EOD',
 2D convolution of an array with a kernel (smoothing)
 
 For large kernels, using a FFT routine,
-such as L<PDL::FFT::fftconvolve()|PDL::FFT/fftconvolve>,
+such as L<fftconvolve()|PDL::FFT/fftconvolve> in C<PDL::FFT>,
 will be quicker.
 
 =for usage
@@ -1062,5 +1067,641 @@ else if(ox < ix && oy >= iy) {
 }
 else barf("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
   ');
+
+# functions to make handling 2D polynomial mappings a bit easier
+#
+pp_add_exported('', 'fitwarp2d applywarp2d');
+
+pp_addpm( '
+
+=head2 fitwarp2d
+
+=for ref
+
+Find the best-fit 2D polynomial to describe
+a coordinate transformation.
+
+=for usage
+
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, $nf )
+
+Given a set of points in the output plane (C<$u,$v>), find
+the best-fit (using singular-value decomposition) 2D polynomial 
+to describe the mapping back to the image plane (C<$x,$y>).
+The order of the fit is controlled by the C<$nf> parameter
+(the maximum power of the polynomial is C<$nf - 1>),
+and there must be at least C<$nf*$nf> points for the fit to proceed.
+
+The returned piddles (C<$px> and C<$py>) have a dimension of 
+C<$nfit> by C<$nfit>: a discussion of their format can be found 
+in the documentation of the L<warp2d|/warp2d> routine.
+
+The transformation is returned for the reverse direction (ie
+output to input image) since that is what is required for the
+L<warp2d|/warp2d> routine.
+
+=for example
+
+  # points in original image
+  $x = pdl( 0,   0, 100, 100 );
+  $y = pdl( 0, 100, 100,   0 );
+  # get warped to these positions
+  $u = pdl( 10,  5, 85, 90 );
+  $v = pdl( 15, 90, 80, 20 );
+  # so the reverse transformation is:
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2 );
+  print "px = ${px}py = $py";
+  px = 
+  [
+   [   -13.658261     1.2395295]
+   [  0.081593681 0.00026040536]
+  ]
+  py = 
+  [
+   [  -18.532182  -0.16752745]
+   [   1.3054989 0.0041664858]
+  ]
+
+=head2 applywarp2d
+
+=for ref
+
+Transform a set of points using a 2-D polynomial mapping
+
+=for usage
+
+  ( $x, $y ) = applywarp2d( $px, $py, $u, $v )
+
+Convert a set of points (stored in 1D piddles C<$u,$v>)
+to C<$x,$y> using the 2-D polynomial with coefficients stored in C<$px>
+and C<$py>.  See L<warp2d|/warp2d> and L<fitwarp2d|/fitwarp2d>
+for more information on the format of C<$px> and C<$py>.
+
+=cut
+
+# use SVD to fit data. Assuming no errors.
+sub _svd ($$) {
+    my $basis = shift;
+    my $y     = shift;
+
+    my $svd_thresh = 1.0e-5;  # should be configurable
+
+    # if we had errors for these points, would normalise the
+    # basis functions, and the output array, by these errors here
+
+    # perform the SVD
+    my ( $svd_u, $svd_w, $svd_v ) = svd( $basis );
+
+    # remove any singular values
+    $svd_w *= ( $svd_w >= ($svd_w->max * $svd_thresh ) );
+
+    # perform the back substitution
+    #
+    my $tmp = $y x $svd_u;
+    if ( $PDL::Bad::Status ) {
+	$tmp /= $svd_w->setvaltobad(0.0);
+	$tmp->inplace->setbadtoval(0.0);
+    } else {
+	# not checked
+	my $mask = ($svd_w == 0.0);
+	$tmp /= ( $svd_w + $mask );
+	$tmp *= ( 1 - $mask );
+    }
+
+    my $ans = sumover( $svd_v * $tmp );
+
+    return $ans;
+
+} # sub: _svd()
+
+
+sub PDL::fitwarp2d {
+    croak "Usage: (\$px,\$py) = fitwarp2d(x(m);y(m);u(m);v(m);\$nf;)"
+	if $#_ != 4;
+
+    my $x  = shift;
+    my $y  = shift;
+    my $u  = shift;
+    my $v  = shift;
+    my $nf = shift;
+
+    # safety check
+    my $npts = $x->nelem;
+    croak "fitwarp2d: x, y, u, and v must be the same size (and 1D)"
+	unless $npts == $y->nelem and $npts == $u->nelem and $npts == $v->nelem
+	    and $x->getndims == 1 and $y->getndims == 1 and $u->getndims == 1 and $v->getndims == 1;
+
+    my $nf2 = $nf * $nf;
+    croak "fitwarp2d: number of points must be >= \$nf^2"
+	unless $npts >= $nf2;
+
+    # create the basis functions for the SVD fitting
+    my $basis = zeroes( $nf2, $npts );
+    my $k = 0;
+    foreach my $i ( 0 .. ($nf - 1) ) {
+	my $tmp_v = $v**$i;
+	foreach my $j ( 0 .. ($nf - 1) ) {
+	    my $tmp = $basis->slice("($k),:");
+	    $tmp .= $u**$j * $tmp_v;
+	    $k++;
+	}
+    }
+
+    my $px = _svd( $basis, $x );
+    my $py = _svd( $basis, $y );
+
+    return ( $px->reshape($nf,$nf), $py->reshape($nf,$nf) );
+
+} # sub: fitwarp2d
+
+*fitwarp2d = \&PDL::fitwarp2d;
+
+sub PDL::applywarp2d {
+    # checks
+    croak "Usage: (\$x,\$y) = applywarp2d(px(nf,nf);py(nf,nf);u(m);v(m);)"
+	if $#_ != 3;
+
+    my $px = shift;
+    my $py = shift;
+    my $u  = shift;
+    my $v  = shift;
+    my $npts = $u->nelem;
+
+    # safety check
+    croak "applywarp2d: u and v must be the same size (and 1D)"
+	unless $npts == $u->nelem and $npts == $v->nelem 
+	    and $u->getndims == 1 and $v->getndims == 1;
+
+    my $nf  = $px->getdim(0);
+    my $nf2 = $nf * $nf;
+
+    my $mat = zeroes( $u->type, $nf2, $npts );
+    my $k = 0;
+    for my $i ( 0 .. ($nf - 1) ) {
+        my $tmp_v = $v**$i;
+	for my $j ( 0 .. ($nf - 1) ) {
+	    my $tmp = $mat->slice("($k),");
+	    $tmp .= $tmp_v * $u**$j;
+	    $k++;
+	}
+    }
+    
+    my $x = reshape( $mat x $px->clump(-1)->transpose(), $npts );
+    my $y = reshape( $mat x $py->clump(-1)->transpose(), $npts );
+    return ( $x, $y );
+
+} # sub: applywarp2d
+
+*applywarp2d = \&PDL::applywarp2d;
+
+' );
+
+## resampling routines taken from v3.6-0 of the Eclipse package
+##   http://www.eso.org/eclipse by Nicolas Devillard
+##
+
+pp_addhdr( '#include "resample.h"' . "\n" );
+
+# pod for warp2d
+# and support routine
+#
+pp_addpm( <<'EOD');
+
+=head2 warp2d
+
+=for sig
+
+  Signature: (img(m,n); double px(np,np); double py(np,np); [o] warp(m,n); { options })
+
+=for ref
+
+Warp a 2D image given a polynomial describing the I<reverse> mapping.
+
+=for usage
+
+  $out = warp2d( $img, $px, $py, { options } );
+
+Apply the polynomial transformation encoded in the C<$px> and
+C<$py> piddles to warp the input image C<$img> into the output
+image C<$out>.  
+
+C<$px> and C<$py> are C<np> by C<np> element piddles which describe
+a polynomial mapping (of order C<np-1>) 
+from the I<output> C<(u,v)> image to the I<input> C<(x,y)> image:
+
+  x = sum(i=0,np-1) sum(j=0,np-1) px(i,j) * u^i * v^j
+  y = sum(i=0,np-1) sum(j=0,np-1) py(i,j) * u^i * v^j
+
+The L<fitwarp2d|/fitwarp2d> and L<applywarp2d|/applywarp2d> routines
+may come in handy.  
+
+At each point C<x,y>, the closest 16 pixel values are combined
+with an interpolation kernel to calculate the value at C<u,v>.
+The interpolation is therefore done in the image, rather than
+Fourier, domain.
+By default, a C<tanh> kernel is used, but this can be changed
+using the C<KERNEL> option discussed below
+(the choice of kernel depends on the frequency content of the input image).
+
+The routine is based on the C<warping> command from the version 3.6-0 
+of the Eclipse data-reduction package - see http://www.eso.org/eclipse/ - and
+for further details on image resampling see
+Wolberg, G., "Digital Image Warping", 1990, IEEE Computer
+Society Press (ISBN 0-8186-8944-7).  It is
+similar to the C<poly_2d> routine in IDL, but please
+note that the polynomials are stored using the transpose of those
+in IDL:
+
+  # PDL
+  $u = pdl( 1,   1, 100, 100 );
+  $v = pdl( 1, 100, 100,   1 );
+  $x = 1.2 * $u;
+  $y = 1.4 * $v;
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2 );
+  print "px = $px py = $py";
+  px = 
+  [
+   [-4.8398785e-16            1.2]
+   [ 9.7767931e-17 -9.7220324e-18]
+  ]
+  py = 
+  [
+   [-2.0816682e-17 -2.5532961e-17]
+   [           1.4 -6.5168597e-18]
+  ]
+  #
+  # to apply the transormation
+  $wrp = warp2d( $img, $px, $py );
+
+  ; IDL
+  u = [ 1, 1, 100, 100 ]
+  v = [ 1, 100, 100, 1 ]
+  x = 1.2 * u
+  y = 1.4 * v
+  polywarp,x,y,u,v,1,px,py
+  print,'px = '
+  print, px
+  -2.88992e-08  7.33788e-16
+       1.20000  6.93889e-18
+  print,'py = '
+  print, py
+  -2.40827e-08      1.40000
+   7.49401e-16  8.48388e-18
+  ;
+  ; to apply the transformation
+  wrp = poly_2d( img, px, py, missing = 0 )
+
+Currently the output image is the same size as the input one,
+which means data will be lost if the transformation reduces
+the pixel scale.
+
+=for example
+
+  $img = rvals(byte,501,501);
+  imag $img, { JUSTIFY => 1 };
+  # 
+  # use a not-particularly-obvious transformation:
+  #   x = -10 + 0.5 * $u - 0.1 * $v 
+  #   y = -20 + $v - 0.002 * $u * $v
+  #
+  $px  = pdl( [ -10, 0.5 ], [ -0.1, 0 ] );
+  $py  = pdl( [ -20, 0 ], [ 1, 0.002 ] );
+  $wrp = warp2d( $img, $px, $py );
+  #
+  # see the warped image
+  imag $warp, { JUSTIFY => 1 };
+
+=for options
+
+The options are:
+
+  KERNEL - default value is tanh
+  NOVAL  - default value is 0
+
+C<KERNEL> is used to specify which interpolation kernel to use
+(to see what these kernels look like, use the 
+L<warp2d_kernel|/warp2d_kernel> routine).
+The options are:
+
+=over 4
+
+=item tanh
+
+Hyperbolic tangent: the approximation of an ideal box filter by the
+product of symmetric tanh functions.
+
+=item sinc
+
+For a correctly sampled signal, the ideal filter in the fourier domain is a rectangle,
+which produces a C<sinc> interpolation kernel in the spatial domain:
+
+  sinc(x) = sin(pi * x) / (pi * x)
+
+However, it is not ideal for the C<4x4> pixel region used here.
+
+=item sinc2
+
+This is the square of the sinc function.
+
+=item lanczos
+
+Although defined differently to the C<tanh> kernel, the result is very
+similar in the spatial domain.  The Lanczos function is defined as
+
+  L(x) = sinc(x) * sinc(x/2)  if abs(x) < 2
+       = 0                       otherwise
+
+=item hann
+
+This kernel is derived from the following function:
+
+  H(x) = a + (1-a) * cos(2*pi*x/(N-1))  if abs(x) < 0.5*(N-1)
+       = 0                                 otherwise
+
+with C<a = 0.5> and N currently equal to 2001.
+
+=item hamming
+
+This kernel uses the same C<H(x)> as the Hann filter, but with
+C<a = 0.54>.
+
+=back
+
+C<NOVAL> gives the value used to indicate that a pixel in the
+output image does not map onto one in the input image.
+
+=cut
+
+# support routine
+{ 
+    my %warp2d = map { ($_,1) } qw( tanh sinc sinc2 lanczos hamming hann );
+ 
+    # note: convert to lower case
+    sub _check_kernel ($$) {
+	my $kernel = lc shift;
+	my $code   = shift;
+	barf "Unknown kernel $kernel sent to $code\n" . 
+	    "\tmust be one of [" . join(',',keys %warp2d) . "]\n"
+		unless exists $warp2d{$kernel};
+	return $kernel;
+    }
+}
+
+EOD
+
+pp_def(
+    'warp2d',
+    Doc=> undef,
+    HandleBad => 0,
+    Pars => 'img(m,n); double px(np,np); double py(np,np); [o] warp(m,n);',
+    OtherPars => 'char *kernel_type; double noval;',
+    GenericTypes => [ 'F', 'D' ],
+        PMCode => '
+        
+sub PDL::warp2d {
+    my $opts = PDL::Options->new( { KERNEL => "tanh", NOVAL => 0 } );
+    $opts->options( pop(@_) ) if ref($_[$#_]) eq "HASH";
+
+    die "Usage: warp2d( in(m,n), px(np,np); py(np,np); [o] out(m,n), {Options} )"
+	if $#_<2 || $#_>3;
+    my $img = shift;
+    my $px  = shift;
+    my $py  = shift;
+    my $out = $#_ == -1 ? PDL->null() : shift;
+
+    # safety checks
+    my $copt   = $opts->current();
+    my $kernel = _check_kernel( $$copt{KERNEL}, "warp2d" );
+
+    &PDL::_warp2d_int( $img, $px, $py, $out, $kernel, $$copt{NOVAL} );
+    return $out;
+}
+
+',
+    Code => '
+
+    int         	i, j, k ;
+    int         	ncoeff, lx_out, ly_out ;
+    int         	lx_3, ly_3 ;
+    double       	cur ;
+    double       	neighbors[16] ;
+    double       	rsc[8], 
+					sumrs ;
+    double       	x, y ;
+    int     		px, py ;
+    int         	tabx, taby ;
+    double              *kernel, *poly ;
+    int		      	da[16], db[16] ;
+
+    /* Generate default interpolation kernel */
+    kernel = generate_interpolation_kernel( $COMP(kernel_type) ) ;
+    if (kernel == NULL) {
+      croak( "Ran out of memory building kernel\n" );
+    }
+
+    /* Compute sizes  */
+    ncoeff = $SIZE(np);
+    lx_out = $SIZE(m);   /* is this right? */
+    ly_out = $SIZE(n);
+    lx_3 = lx_out - 3;
+    ly_3 = ly_out - 3;
+    
+    /* Pre compute leaps for 16 closest neighbors positions */
+    da[0]  = -1;  db[0]  = -1;
+    da[1]  =  0;  db[1]  = -1;
+    da[2]  =  1;  db[2]  = -1;
+    da[3]  =  2;  db[3]  = -1;
+
+    da[4]  = -1;  db[4]  =  0;
+    da[5]  =  0;  db[5]  =  0;
+    da[6]  =  1;  db[6]  =  0;
+    da[7]  =  2;  db[7]  =  0;
+		      
+    da[8]  = -1;  db[8]  =  1;
+    da[9]  =  0;  db[9]  =  1;
+    da[10] =  1;  db[10] =  1;
+    da[11] =  2;  db[11] =  1;
+		      
+    da[12] = -1;  db[12] =  2;
+    da[13] =  0;  db[13] =  2;
+    da[14] =  1;  db[14] =  2;
+    da[15] =  2;  db[15] =  2;
+
+    /* allocate memory for polynomial */
+    poly = malloc( ncoeff * sizeof(double) );
+    if ( poly == NULL ) {
+      croak( "Ran out of memory\n" );
+    }
+    poly[0] = 1.0;
+
+    /* Loop over the output image */
+    threadloop %{
+	loop(n) %{
+
+	    /* fill in poly array */
+	    for ( k = 1; k < ncoeff; k++ ) {
+		poly[k] = (double) n * poly[k-1];
+            }
+
+	    loop(m) %{
+
+		/* Compute the original source for this pixel   */
+                x = poly2d_compute( ncoeff, $P(px), (double) m, poly );
+                y = poly2d_compute( ncoeff, $P(py), (double) m, poly );
+
+		/* Which is the closest integer positioned neighbor? */
+		px = (int)x ;
+		py = (int)y ;
+
+		if ((px < 1) || (px > lx_3) || (py < 1) || (py > ly_3))
+		    $warp() = ($GENERIC()) $COMP(noval);
+		else {
+
+		    /* Now feed the positions for the closest 16 neighbors  */
+		    for (k=0 ; k<16 ; k++) {
+			i = px + da[k]; j = py + db[k]; 
+			neighbors[k] = (double) $img( m => i, n => j );
+		    }
+
+		    /* Which tabulated value index shall we use?    */
+		    tabx = (x - (double)px) * (double)(TABSPERPIX) ; 
+		    taby = (y - (double)py) * (double)(TABSPERPIX) ; 
+
+		    /* Compute resampling coefficients  */
+		    /* rsc[0..3] in x, rsc[4..7] in y   */
+	
+		    rsc[0] = kernel[TABSPERPIX + tabx] ;
+		    rsc[1] = kernel[tabx] ;
+		    rsc[2] = kernel[TABSPERPIX - tabx] ;
+		    rsc[3] = kernel[2 * TABSPERPIX - tabx] ;
+		    rsc[4] = kernel[TABSPERPIX + taby] ;
+		    rsc[5] = kernel[taby] ;
+		    rsc[6] = kernel[TABSPERPIX - taby] ;
+		    rsc[7] = kernel[2 * TABSPERPIX - taby] ;
+	
+		    sumrs = (rsc[0]+rsc[1]+rsc[2]+rsc[3]) *
+			(rsc[4]+rsc[5]+rsc[6]+rsc[7]) ;
+
+		    /* Compute interpolated pixel now   */
+		    cur =   rsc[4] * (  rsc[0]*neighbors[0] +
+					rsc[1]*neighbors[1] +
+					rsc[2]*neighbors[2] +
+					rsc[3]*neighbors[3] ) +
+			    rsc[5] * (  rsc[0]*neighbors[4] +
+					rsc[1]*neighbors[5] +
+					rsc[2]*neighbors[6] +
+					rsc[3]*neighbors[7] ) +
+			    rsc[6] * (  rsc[0]*neighbors[8] +
+					rsc[1]*neighbors[9] +
+					rsc[2]*neighbors[10] +
+					rsc[3]*neighbors[11] ) +
+			    rsc[7] * (  rsc[0]*neighbors[12] +
+					rsc[1]*neighbors[13] +
+					rsc[2]*neighbors[14] +
+					rsc[3]*neighbors[15] ) ; 
+
+		    /* Copy the value to the output image */
+		    $warp() = ($GENERIC()) (cur/sumrs);
+
+		} /* if: edge or interior */
+
+	    %}   /* loop(m) */
+	 %}   /* loop(n) */
+    %}        /* threadloop */
+
+    free(poly);
+    free(kernel) ;
+
+',
+    ); # pp_def: warp2d
+
+pp_addxs( '
+
+int
+_get_kernel_size()
+  PROTOTYPE:
+  CODE:
+    RETVAL = KERNEL_SAMPLES;
+  OUTPUT:
+    RETVAL
+
+');
+
+pp_add_exported('', 'warp2d_kernel');
+pp_addpm( '
+
+=head2 warp2d_kernel
+
+=for ref
+
+Return the specified kernel, as used by L<warp2d|/warp2d>
+
+=for usage
+
+  ( $x, $k ) = warp2d_kernel( $name )
+
+The valid values for C<$name> are the same as the C<KERNEL> option
+of L<warp2d|/warp2d>.
+
+=for example
+
+  line warp2d_kernel( "hamming" );
+
+=cut
+
+'); # pp_addpm
+
+# this is not very clever
+#
+pp_def( 'warp2d_kernel',
+    Doc => undef,
+    HandleBad => 0,
+    PMCode => '
+
+sub PDL::warp2d_kernel ($) {
+    my $kernel = _check_kernel( shift, "warp2d_kernel" );
+
+    my $nelem = _get_kernel_size();
+    my $x     = zeroes( $nelem );
+    my $k     = zeroes( $nelem );
+
+    &PDL::_warp2d_kernel_int( $x, $k, $kernel );
+    return ( $x, $k );
+
+#    return _get_kernel( $kernel );
+}
+*warp2d_kernel = \&PDL::warp2d_kernel;
+
+',
+     Pars => '[o] x(n); [o] k(n);',
+     OtherPars => 'char *name;',
+     GenericTypes => [ 'D' ],
+     Code => '
+
+    double     *kernel, xx;
+
+    if ( $SIZE(n) != KERNEL_SAMPLES ) {
+	croak( "Internal error in warp2d_kernel - mismatch in kernel size\n" );
+    }
+
+    kernel = generate_interpolation_kernel($COMP(name));
+    if ( kernel == NULL ) {
+	croak( "unable to allocate memory for kernel" );
+    }
+
+    /* fill in piddles */
+    xx = 0.0;
+    threadloop %{
+	loop (n) %{
+	    $x() = xx;
+	    $k() = kernel[n];
+	    xx += 1.0 / (double) TABSPERPIX;
+	%}
+    %}
+
+    /* free the kernel */
+    free( kernel );
+
+'); # pp_addpm
 
 pp_done();
