@@ -160,6 +160,7 @@ ok( $a->ngood, 6 );          # 25
 
 $a = byte( [255,255], [0,255], [0,0] );
 $a->badflag(1);
+
 ok( PDL::Core::string($a->nbadover),  "[2 1 0]" );  # 
 ok( PDL::Core::string($a->ngoodover), "[0 1 2]" );  # 
 
@@ -194,9 +195,9 @@ $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
-ok( tapprox( $s[0], 61.9375 ) );       # 
-ok( tapprox( $s[1], 26.7312 ) );       # 
-ok( $s[2], 66.5 );                       # 
+ok( tapprox( $s[0], 61.9375 ) );       # 36
+ok( tapprox( $s[1], 27.6079 ) );       # 37
+ok( $s[2], 66.5 );                       # 38
 ok( $s[3], 22 );                         # 
 ok( $s[4], 98 );                         # 40
 
@@ -398,7 +399,8 @@ ok( PDL::Core::string( $a->clump(-1) ),
     "[0 BAD 2 3 0 BAD 2 3 0 BAD]" );   #
 
 # test r/wfits
-use PDL::IO::Misc;
+use PDL::IO::FITS;
+
 $a = sequence(10)->setbadat(0);
 print "Writing to fits: $a  type = (", $a->get_datatype, ")\n";
 $a->wfits($fname);

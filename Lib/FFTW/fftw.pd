@@ -530,7 +530,10 @@ Assumes real input!
 *PDL::fftwconv = \&fftconv;
 sub fftwconv {
   my ($a,$b) = @_;
-  my ($ca,$cb) = (fftw($a->dummy(0,2)), fftw($b->dummy(0,2)));
+  my ($ca,$cb) = (PDL->zeroes(2,$a->dims),PDL->zeroes(2,$b->dims));
+  $ca->slice('(0)') .= $a;
+  $cb->slice('(0)') .= $b;
+  nfftw($ca); nfftw($cb);
   my $cmul = Cmul($ca,$cb);
   infftw $cmul;  # transfer back inplace
   # and return real part only

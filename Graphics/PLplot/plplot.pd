@@ -184,6 +184,25 @@ Set the line width for plotting.  Values range from 1 to a device dependent maxi
 Set the line style for plotting.  Pre-defined line styles use values 1 to 8, one being
 a solid line, 2-8 being various dashed patterns.
 
+=head2 MAJTICKSIZE
+
+Set the length of major ticks as a fraction of the default setting.
+One (default) means leave these ticks the normal size.
+
+=head2 MINTICKSIZE
+
+Set the length of minor ticks (and error bar terminals) as a fraction of the default setting.
+One (default) means leave these ticks the normal size.
+
+=head2 NXSUB
+
+The number of minor tick marks between each major tick mark on the X axis.
+Specify zero (default) to let PLplot compute this automatically.
+
+=head2 NYSUB
+
+The number of minor tick marks between each major tick mark on the Y axis.
+Specify zero (default) to let PLplot compute this automatically.
 
 =head2 PALETTE
 
@@ -323,19 +342,40 @@ $pl->xyplot($x2, $y, XBOX => 'cmst', # top line, top numbers, ticks, subticks
 	             YBOX => 'cst',  # right line, ticks, subticks
 	             BOX => [$x2->minmax, $y->minmax]);
 
+=head2 XERRORBAR
+
+Used only for xyplot.  Draws horizontal error bars at all points ($x, $y) in the plot.
+Specify a PDL containing the same number of points as $x and $y
+which specifies the width of the error bar, which will be centered at ($x, $y).
+
+=head2 XLAB
+
+Specify a label for the X axis.
+
+=head2 XTICK
+
+Interval (in graph units/world coordinates) between major x axis tick marks.
+Specify zero (default) to allow PLplot to compute this automatically.
 
 =head2 YBOX
 
 Specify how to label the Y axis of the plot as a string of option letters.
 See XBOX.
 
+=head2 YERRORBAR
+
+Used only for xyplot.  Draws vertical error bars at all points ($x, $y) in the plot.
+Specify a PDL containing the same number of points as $x and $y
+which specifies the width of the error bar, which will be centered at ($x, $y).
+
 =head2 YLAB
 
 Specify a label for the Y axis.
 
-=head2 XLAB
+=head2 YTICK
 
-Specify a label for the X axis.
+Interval (in graph units/world coordinates) between major y axis tick marks.
+Specify zero (default) to allow PLplot to compute this automatically.
 
 =head1 FUNCTIONS
 
@@ -710,6 +750,38 @@ use vars qw(%_constants %_actions);
      $self->{LINESTYLE} = $sty;
    },
 
+   MAJTICKSIZE  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "MAJTICKSIZE must be greater than or equal to zero"
+       unless ($val >= 0);
+     plsmaj (0, $val);
+   },
+
+   MINTICKSIZE  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "MINTICKSIZE must be greater than or equal to zero"
+       unless ($val >= 0);
+     plsmin (0, $val);
+   },
+
+   NXSUB  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "NXSUB must be an integer greater than or equal to zero"
+       unless ($val >= 0 and int($val) == $val);
+     $self->{NXSUB} = $val;
+   },
+
+   NYSUB  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "NYSUB must be an integer greater than or equal to zero"
+       unless ($val >= 0 and int($val) == $val);
+     $self->{NYSUB} = $val;
+   },
+
    # set driver options, example for ps driver, {text => 1} is accepted
    OPTS => sub {
      my $self = shift;
@@ -748,7 +820,7 @@ use vars qw(%_constants %_actions);
      my $self = shift;
      my $pal  = shift;
 
-     my %legal = (RAINBOW => 1, GREYSCALE => 1);
+     my %legal = (RAINBOW => 1, GREYSCALE => 1, GREENRED => 1);
      if ($legal{$pal}) {
        $self->{PALETTE} = $pal;
        plscmap1n (128);  # set map 1 to 128 colors (should work for devices with 256 colors)
@@ -756,6 +828,8 @@ use vars qw(%_constants %_actions);
 	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,300), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0));
        } elsif ($pal eq 'GREYSCALE') {
 	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0), PDL->new(0,1), PDL->new(0,0), PDL->new(0));
+       } elsif ($pal eq 'GREENRED') {
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(120,0), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
        }
      } else {
        die "Illegal palette name.  Legal names are: " . join (" ", keys %legal);
@@ -883,6 +957,14 @@ use vars qw(%_constants %_actions);
      $self->{XLAB} = $text;
    },
 
+   XTICK  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "XTICK must be greater than or equal to zero"
+       unless ($val >= 0);
+     $self->{XTICK} = $val;
+   },
+
    YBOX       =>
      # set Y axis label options.  See pod for definitions.
      sub { 
@@ -900,6 +982,14 @@ use vars qw(%_constants %_actions);
      my $self = shift;
      my $text = shift;
      $self->{YLAB} = $text;
+   },
+
+   YTICK  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "YTICK must be greater than or equal to zero"
+       unless ($val >= 0);
+     $self->{YTICK} = $val;
    },
 
 );
@@ -1025,7 +1115,8 @@ sub new {
 		 FRAMECOLOR => 'BLACK');
 
   # set defaults, allow input options to override
-  my %opts = (COLOR      => 'BLACK',
+  my %opts = (
+	      COLOR      => 'BLACK',
 	      XBOX       => 'BCNST',
 	      YBOX       => 'BCNST',
 	      JUST       => 0,
@@ -1034,7 +1125,12 @@ sub new {
 	      SUBPAGE    => 0,
 	      PAGESIZE   => [600, 500],
 	      LINESTYLE  => 1,
+	      NXSUB      => 0,
+	      NYSUB      => 0,
 	      ORIENTATION=> 0,
+	      XTICK      => 0,
+	      YTICK      => 0,
+	      CHARSIZE   => 1,
 	      @_);
 
 
@@ -1085,6 +1181,12 @@ sub xyplot {
   my $z = $opts{COLORMAP};
   delete ($opts{COLORMAP});
 
+  # handle ERRORBAR options
+  my $xeb = $opts{XERRORBAR};
+  my $yeb = $opts{YERRORBAR};
+  delete ($opts{XERRORBAR});
+  delete ($opts{YERRORBAR});
+
   # apply options
   $self->setparm(%opts);
 
@@ -1100,7 +1202,8 @@ sub xyplot {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox (0, 0, 0, 0, $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   # set the color according to the color specified in the object
   # (we don't do this as an option, because then the frame might
@@ -1133,6 +1236,17 @@ sub xyplot {
     } else {
       plsym ($x->nelem, $x, $y, $c);
     }
+  }
+
+  # Plot error bars, if requested
+  if (defined($xeb)) {
+    # horizontal (X) error bars
+    plerrx ($x->nelem, $x - $xeb/2, $x + $xeb/2, $y);
+  }
+
+  if (defined($yeb)) {
+    # vertical (Y) error bars
+    plerry ($y->nelem, $x, $y - $yeb/2, $y + $yeb/2);
   }
 
 }
@@ -1225,7 +1339,8 @@ sub shadeplot {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox (0, 0, 0, 0, $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   my ($min, $max) = $z->minmax;
   my $clevel = ((PDL->sequence($nsteps)*(($max - $min)/($nsteps-1))) + $min);
@@ -1270,7 +1385,8 @@ sub histogram {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox (0, 0, 0, 0, $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   # set line style for plot only (not box)
   pllsty ($self->{LINESTYLE});
@@ -1308,7 +1424,8 @@ sub bargraph {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox (0, 0, 0, 0, 'bc', $self->{YBOX}); # !!! note out of order call
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+	 'bc', $self->{YBOX}); # !!! note out of order call
 
   # plot labels
   plschr   (0, $self->{CHARSIZE} * 0.7); # use smaller characters
@@ -1359,13 +1476,6 @@ sub close {
   my $self = shift;
   plend1 ();
   return;
-}
-
-# Close a plot when the object passes out of scope
-sub DESTROY {
-  my $self = shift;
-  # print "Destroying $self\n";
-  $self->close;
 }
 EOD
 

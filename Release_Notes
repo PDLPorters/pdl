@@ -1,6 +1,32 @@
+Release notes for PDL 2.4.1 -------------------------------
+
+General Notes:
+
+     - mainly a bugfix and polishing release
+
+Summary of Changes:
+
+     - Fixed warnings with perl 5.8.2
+
+     - Replace original m51.fits with freely distributable image
+
+     - Upgrade PLplot interface for plplot-5.2.1 and perl 5.8.2
+
+     - Improvement to documentation of autoloaded routines
+
+     - Added more universal `whatis' function to perldl
+
+     - Numerous small fixes/additions to docs/functions
+
+     - Improved handling of empty piddles
+
+     - Fixed most reported bugs
+
+
 Release notes for PDL 2.4.0 -------------------------------
 
 General Notes:
+
      - Perl 5.6.0 or later is now required, along with the modules
        Filter and Text::Balanced.
 

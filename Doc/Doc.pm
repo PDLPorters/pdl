@@ -551,11 +551,13 @@ sub search {
   $sort = 0 unless defined $sort;
   my $hash = $this->ensuredb;
   my @match = ();
+
   $pattern = $this->checkregex($pattern);
+
   while (my ($key,$val) = each %$hash) {
     for (@$fields) {
-      if (($_ eq 'Name' && $key =~ /$pattern/) ||
-	  (defined $val->{$_} && $val->{$_} =~ /$pattern/)) {
+      if (($_ eq 'Name' && $key =~ /$pattern/i) ||
+	  (defined $val->{$_} && $val->{$_} =~ /$pattern/i)) {
 	$val = $hash->{$val->{Crossref}}
 	  if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
 	push @match, [$key,$val];
@@ -573,13 +575,14 @@ sub search {
 # where the pairs of '/' can be replaced by any other pair of matching
 # characters
 # if the expression doesn't start with 'm' followed by a nonalphanumeric
-# character return as is
+# character,  return as-is
 sub checkregex {
   my ($this,$regex) = @_;
   return "(?i)$regex" unless $regex =~ /^m[^a-z,A-Z,0-9]/;
   my $sep = substr($regex,1,1);
   substr($regex,0,2) = '';
-  $sep = '\\'.$sep; # quote separator just in case
+  $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator 
+
   my ($pattern,$mod) = split($sep,$regex,2);
   barf "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
   $pattern = "(?$mod)$pattern" if $mod;

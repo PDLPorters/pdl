@@ -3,6 +3,7 @@
 
 use PDL::LiteF;
 use PDL::IO::Misc;
+use PDL::IO::FITS;
 
 use PDL::Core ':Internal'; # For howbig()
 
@@ -143,7 +144,7 @@ ok(sum($a)==768 && sum($b)==50331648);
         $p->wfits('x.fits',$i);
         $q = PDL->rfits('x.fits');
         @s = $q->stats;
-        if ($s[0] == 1.5 and $s[1] == 0.5) {
+        if ($s[0] == 1.5 and $s[1] < 0.7072 and $s[1]>0.577) {
            ok(1);
         } else {
            print "\tBITPIX=$i, nelem=", $p->nelem, "\n";

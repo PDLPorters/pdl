@@ -8,3 +8,13 @@ Revision history for Perl extension PDL::Graphics::PLPLOT
 
 0.19  1/31/2003 First version integrated into the PDL distribution.  Includes
       Support for 'mem' driver for in-memory plotting on top of RGB images.
+
+0.20  7/16/2003 Broke package apart from main PDL distribution to allow separate development.
+      Now package should work either as part of PDL distro (with plplot.t moved to PDL/t directory)
+      or independently (with plplot.t in PDL-Graphics-PLplot/t directory).
+      Added controls for tick size, tick spacing and error bars.
+
+0.21  11/21/2003 Fixed test suite to use Test::More, updated to work with plplot-5.2.1.
+      Back-ported to main PDL distro.
+
+

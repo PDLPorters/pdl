@@ -2,7 +2,7 @@
 PDL::Core::Dev->import();
 
 # do we build PDL::IO::Browser ?
-my @dirs = qw( FastRaw Misc FlexRaw Pnm NDF Storable );
+my @dirs = qw( FastRaw Misc FlexRaw Pnm NDF Storable FITS );
 my $build_browser = $PDL_CONFIG{WITH_IO_BROWSER} || 0;
 if ( $build_browser ) {
     # PDL::IO::Browser isn't (yet?) supported for win32 systems

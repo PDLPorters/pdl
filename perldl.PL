@@ -443,7 +443,7 @@ sub count_tags {
     # "quest" and "arquebus" properly.)
     our($prefix,$delim,%closers);
     unless(defined $prefix) {
-	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | (\wq) | (q($|\w)) )* /x;
+	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | ([^\s](q|tr|m)) | ((q|tr|m)($|\w)) )* /x;
 	$delim = '{[(`\'"q)]}';
 	%closers = ('{'=>'}','['=>']','('=>')');
     }
@@ -579,6 +579,7 @@ sub process_input {
       for my $filter (@PERLDL::PREPROCESS) {
           $_ = $filter->($_);
       }
+
       # honor the deprecated interface for now
       if (defined $PERLDL::PREPROCESS && 
 	  ref($PERLDL::PREPROCESS) eq 'CODE') {

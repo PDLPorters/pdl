@@ -2,6 +2,12 @@
 
 use ExtUtils::MakeMaker;
 use Config;
+
+# use PDL::Core::Dev;  # needed for stand-alone version of package.
+                       # Need to comment out
+                       # for package included in PDL distro.
+PDL::Core::Dev->import();
+
 use vars qw /$plplotvers/; # version of plplot used
 
 # Pick up development utilities
@@ -137,7 +143,7 @@ if ($@) {
   close OPT;
 }  
 
-$VERSION = '0.19';
+$VERSION = '0.21';
 
 $PDL_CONFIG{WITH_PLPLOT} = 1;
 $package = ["plplot.pd",PLplot,PDL::Graphics::PLplot];

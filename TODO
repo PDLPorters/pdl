@@ -2,6 +2,10 @@ CURRENT PRIORITIES:
 
 # = done
 
+- add GLOBALLIBS modifier to perldl.conf and
+  PDLWriteMakefile routine to Dev.pm that will
+  honour it. Then change WriteMakfile calls in
+  all Makefile>PLs in the dist into PDLWriteMakefile
 - better docs -> doc roadmap
    'sever' additional docs
 - fix some of the inaccuracies in PDL::Internals
@@ -16,6 +20,8 @@ CURRENT PRIORITIES:
 # - more Inline::Pdlpp docs
 - AutoLoader import hash => can wait
 
+- Overarching graphics object -- would be nice to have high level 
+	functionality in PLPLOT.
 
 lower priorities
 
@@ -27,12 +33,24 @@ lower priorities
   included in the distribution but are not installed)
 - make more routines 'bad value' aware
 - tests for new features of at, set, getdim
-- tests for PDL::Matrix
-
-
+# - tests for PDL::Matrix
 # implement the new NiceSlice ideas (trailing modifiers, '/' diag,
 		'<-> xchg', etc)
 # PDL::PP::Inline !!!
+
+
+CED notes
+- Fix t_perspective: R0/B parameters unfairly demand non-piddles.
+- Non-inplacify t_perspective, t_radial, and/or t_az_eqd
+- Add arithmetic (and scalar arithmetic) to PDL::Transform
+- Fixes to PGPLOT::Window
+	- Duplicate titles in pixel drivers; e.g. 
+		$w=pgwin("foo.gif/gif"); $w->imag(rvals(10,10),{Title=>"Foo"});
+	- LineWidth sets both line width of plot and of titles.  Ick.
+
+
+
+
 
 OLDER STUFF (still valid?):
 

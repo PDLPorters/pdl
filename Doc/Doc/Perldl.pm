@@ -9,11 +9,20 @@ access the PDL documentation of database, for use
 from the I<perldl> shell and the I<pdldoc> command-line
 program.
 
+Autoload files are also matched, via a search of the PDLLIB autoloader
+tree.  That behavior can be switched off with the variable 
+C<$PERLDL::STRICT_DOCS> (true: don't search autoload tree; false: search
+the autoload tree.)
+
 Currently, multiple matches are not handled very well.
 
 =head1 SYNOPSIS
 
  use PDL::Doc::Perldl; # Load all documenation functions
+
+=head1 BUGS
+
+The description contains the misleading word "simple". 
 
 =head1 FUNCTIONS
 
@@ -27,7 +36,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw( apropos aproposover usage help sig badinfo );
+@EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
 use IO::File;
@@ -114,7 +123,11 @@ sub format_ref {
 	$Pod::Text::SCREEN = $width;
 	local $^W = 0;
 	for my $m (@match) { 
-	    $_ = $m->[1]->{Ref} || "[No reference available]";
+	    $_ = $m->[1]{Ref} || 
+		( (defined $m->[1]{CustomFile})
+		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+		  : "[No reference available]"
+		  );
 	  Pod::Text::prepare_for_output(); # adds a '\n' to $_
 	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
 	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
@@ -130,7 +143,12 @@ sub format_ref {
 	my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
 	
 	for my $m (@match) { 
-	    my $ref = $m->[1]->{Ref} || "[No reference available]";
+	    my $ref = $m->[1]{Ref} || 
+		( (defined $m->[1]{CustomFile})
+		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+		  : "[No reference available]"
+		  );
+
 	    $ref = $parser->interpolate( $ref );
 	    $ref = $parser->reformat( $ref );
 	    
@@ -186,7 +204,9 @@ sub aproposover {
     die "Usage: aproposover \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
-    return $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+    $func =~ s:\/:\\\/:g;
+    search_docs("m/$func/",['Name','Ref','Module'],1);
+    
 }
 
 sub apropos  {
@@ -196,16 +216,53 @@ sub apropos  {
     printmatch aproposover $func;
 }
 
+=head2 PDL::Doc::Perldl::search_docs
+
+=for ref
+
+Internal routine to search docs database and autoload files
+
+=cut
+
+sub search_docs {
+    my ($func,$types,$sortflag,$exact) = @_;
+    my @match;
+
+    @match = $PDL::onlinedoc->search($func,$types,$sortflag);
+    push(@match,find_autodoc( $func, $exact ) );
+    
+    @match;
+}
+
+
+
+=head2 PDL::Doc::Perldl::finddoc
+
+=for ref 
+
+Internal interface to the PDL documentation searcher
+
+=cut
+
 sub finddoc  {
     die 'Usage: doc $topic' unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $topic = shift;
 
     # See if it matches a PDL function name
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
 
-    die "Unable to find PDL docs on $topic\n"
-	if $#match == -1;
+    (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
+
+    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
+
+
+    unless(@match) {
+      
+      print "Unable to find PDL docs on '$topic' -- using whatis instead...\n\n";
+      whatis($topic);
+      return;
+
+    }
 
     # print out the matches
     # - do not like this solution when have multiple matches
@@ -216,8 +273,21 @@ sub finddoc  {
 	system("pod2text $m->[1]{File} | $PDL::Doc::pager");
     } else {
 	my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
-	print $out "=head1 Module\n\n",$m->[1]{Module}, "\n\n";
-	$PDL::onlinedoc->funcdocs($m->[0],$out);
+
+	if(defined $m->[1]{CustomFile}) {
+
+	    my $parser= new PDL::Pod::Parser;
+	    print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
+	    $parser->parse_from_file($m->[1]{CustomFile},$out);
+	    print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+
+	} else {
+
+	    print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
+	    $PDL::onlinedoc->funcdocs($m->[0],$out);
+
+	}
+
     }
     if ( $#match > -1 ) {
 	print "\nFound other matches for $topic:\n";
@@ -226,6 +296,72 @@ sub finddoc  {
 	}
     }
 }
+
+
+=head2 find_autodoc
+
+=for ref
+
+Internal helper routine that finds and returns documentation in the autoloader
+path, if it exists.  You feed in a topic and it searches for the file
+"${topic}.pdl".  If that exists, then the filename gets returned in a 
+match structure appropriate for the rest of finddoc.
+
+=cut
+
+# Yuck.  Sorry.  At least it works.  -CED
+
+sub find_autodoc {
+    my $topic = shift;
+    my $exact = shift;
+    my $matcher;
+    # Fix up regexps and exact matches for the special case of 
+    # searching the autoload dirs...
+    if($exact) {
+	$topic =~ s/\(\)$//;  # "func()" -> "func"
+	$topic .= ".pdl" unless $topic =~ m/\.pdl$/;
+    } else {
+
+	$topic =~ s:([^\$])(.)$:$1\.\*\$$2:; # Include explicit ".*$" at end of
+	                                   # vague matches -- so that we can
+	                                   # make it a ".*\.pdl$" below.
+
+	$topic =~ s:\$(.)$:\.pdl\$$1:; # Force ".pdl" at end of file match
+
+	$matcher = eval "sub { ${topic}i && \$\_ };";  # Avoid multiple compiles
+    }
+
+    my @out;
+
+    return unless(@main::PDLLIB);
+    @main::PDLLIB_EXPANDED = PDL::AutoLoader::expand_path(@main::PDLLIB)
+	unless(@main::PDLLIB_EXPANDED);
+    
+    for my $dir(@main::PDLLIB_EXPANDED) {
+	if($exact) {
+	    my $file = $dir . "/" . "$topic";
+	    push(@out,
+	          [$file, {CustomFile => "$file", Module => "file '$file'"}]
+		 )
+		if(-e $file);
+	} else {
+	    opendir(FOO,$dir) || next;
+	    my @dir = readdir(FOO);
+	    closedir(FOO);
+	    for my $file( grep( &$matcher, @dir ) ) {
+		push(@out,
+		     [$file, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
+		     );
+	    }
+
+	}
+    }
+    @out;
+}
+
+
+
+=cut
 
 =head2 usage
 
@@ -257,7 +393,8 @@ sub usage {
 sub usage_string{
     my $func = shift;
     my $str = "";
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
+
     unless (@match) { print "\n  no match\n" } 
     else {
 	$str .= "\n" . format_ref( $match[0] );
@@ -286,8 +423,8 @@ prints signature of PDL function
  sig 'func'
 
 The signature is the normal dimensionality of the
-functions arguments. Calling with different dimensions
-causes 'threading' - see C<PDL::PP> for more details.
+function's arguments.  Calling with different dimensions
+doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
 
 =for example
 
@@ -301,7 +438,7 @@ sub sig {
 	die "Usage: sig \$funcname\n" unless $#_>-1;
 	die "no online doc database" unless defined $PDL::onlinedoc;
 	my $func = shift;
-	my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+	my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
 	unless (@match) { print "\n  no match\n" } else {
          my ($name,$hash) = @{$match[0]};
 	 die "No signature info found for $func\n"
@@ -325,6 +462,112 @@ sub allindent {
 }
 
 
+=head2 whatis
+
+=for ref
+
+Describe a perl and/or PDL variable or expression.  Useful for
+determining the type of an expression, identifying the keys in a hash
+or a data structure, or examining WTF an unknown object is.
+
+=for usage
+
+ Usage: whatis $var
+        whatis <expression>
+
+=cut
+
+sub whatis {
+  my $topic;
+
+  if(@_ > 1) {
+    whatis_r('',0,[@_]);
+  } else {
+    whatis_r('',0,shift);
+  }
+}
+
+$PDL::Doc::Perldl::max_strlen = 55;
+$PDL::Doc::Perldl::max_arraylen = 1;
+$PDL::Doc::Perldl::max_keylen = 8;
+$PDL::Doc::Perldl::array_indent=5;
+$PDL::Doc::Perldl::hash_indent=3;
+
+sub whatis_r {
+  my $prefix = shift;
+  my $indent = shift;
+  my $a = shift;
+  
+  unless(defined $a) {
+    print $prefix,"<undef>\n";
+    return;
+  }
+
+  unless(ref $a) {
+    print "${prefix}'".
+      substr($a,0,$PDL::Doc::Perldl::max_strlen).
+      "'".((length $a > $PDL::Doc::Perldl::max_strlen) && '...').
+      "\n";
+    return;
+  }
+
+  if(ref $a eq 'ARRAY') {
+    print "${prefix}Array (".scalar(@$a)." elements):\n";
+
+    my($el);
+    for $el(0..$#$a) {
+      my $pre = sprintf("%s  %2d: "," "x$indent,$el);
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $a->[$el]);
+      last if($el == $PDL::Doc::Perldl::max_arraylen);
+    } 
+    printf "%s   ... \n"," " x $indent
+      if($#$a > $PDL::Doc::Perldl::max_arraylen);
+
+    return;
+  }
+      
+  if(ref $a eq 'HASH') {
+    print "${prefix}Hash (".scalar(keys %$a)." elements)\n";
+    my $key;
+    for $key(sort keys %$a) {
+      my $pre = " " x $indent .
+	        " $key: " . 
+		(" "x($PDL::Doc::Perldl::max_keylen - length($key))) ;
+
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::hash_indent, $a->{$key});
+    }
+    return;
+  }
+
+  if(ref $a eq 'CODE') {
+    print "${prefix}Perl CODE ref\n";
+    return;
+  }
+
+  if(ref $a eq 'SCALAR' | ref $a eq 'REF') {
+    whatis_r($prefix." Ref -> ",$indent+8,$$a);
+    return;
+  }
+
+  if(UNIVERSAL::can($a,'px')) {
+    my $b;
+    local $PDL::debug = 1;
+
+    $b = ( (UNIVERSAL::isa($a,'PDL') && $a->nelem < 5 && $a->ndims < 2)
+	   ? 
+	   ": $a" :
+	   ": *****"
+	   );
+
+    $a->px($prefix.(ref $a)." %7T (%D) ".$b);
+
+  } else {
+
+    print "${prefix}Object: ".ref($a)."\n";
+
+  }
+}
+
 =head2 help
 
 =for ref
@@ -333,6 +576,7 @@ print documentation about a PDL function or module or show a PDL manual
 
 In the case of multiple matches, the first command found is printed out,
 and the remaining commands listed, along with the names of their modules.
+
 
 =for usage
 
@@ -346,6 +590,16 @@ and the remaining commands listed, along with the names of their modules.
 
 =cut
 
+sub help_url {
+    local $_;
+    foreach(@INC) {
+	my $a = "$_/PDL/HtmlDocs/PDL/Index.html";
+	if(-e $a) {
+	    return "file://$a";
+	}
+    }
+}
+
 sub help {
   if ($#_>-1) {
       require PDL::Dbg;
@@ -357,6 +611,28 @@ sub help {
 	  $topic = 'PDL::Doc::Perldl' if $topic =~ /^\s*help\s*$/i;
 	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
+	  } elsif($topic =~ /^\s*url\s*/i) {
+	      my $a = help_url();
+	      if($a) {
+		  print $a;
+	      } else {
+		  print "Hmmm. Curious: I couldn't find the HTML docs anywhere in \@INC...\n";
+	      }
+	  } elsif($topic =~ /^\s*www(:([^\s]+))?\s*/i) {
+	      my $browser;
+	      my $url = help_url();
+	      if($2) {
+		  $browser = $2;
+	      } elsif($ENV{PERLDL_WWW}) {
+		  $browser = $ENV{PERLDL_WWW};
+	      } else {
+		  $browser = 'mozilla';
+	      }
+	      chomp($browser = `which $browser`);
+	      if(-e $browser && -x $browser) {
+		  print "Spawning \"$browser $url\"...\n";
+		  `$browser $url`;
+	      }
 	  } else {
 	      finddoc($topic);
 	  }
@@ -364,18 +640,19 @@ sub help {
   } else {
 	print <<'EOH';
 
-The following four commands support online help in the perldl shell:
+The following commands support online help in the perldl shell:
 
-  help            -- print this text
-  help 'thing'    -- print the docs on 'thing' (can be function/module/manual)
-  help $a         -- print information about $a (if it's a piddle)
-  help vars       -- print information about all current piddles
-  apropos 'word'  -- search for keywords/function names in the list of
-                     documented PDL functions
-  ?		  -- alias for 'help'
-  ??		  -- alias for 'apropos'
-  usage           -- print usage information for a given PDL function
-  sig             -- print signature of PDL function
+ help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
+ help vars      -- print information about all current piddles
+ help url       -- locate the HTML version of the documentation
+ help www       -- View docs with default web browser (set by env: PERLDL_WWW)
+
+ whatis <expr>  -- Describe the type and structure of an expression or piddle.
+ apropos 'word' -- search for keywords/function names 
+ usage          -- print usage information for a given PDL function
+ sig            -- print signature of PDL function
+
+ ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
 EOH
 
 print "  badinfo         -- information on the support for bad values\n"
@@ -383,8 +660,7 @@ print "  badinfo         -- information on the support for bad values\n"
 
 print <<'EOH';
 
-  Quick start:
-
+Quick start:
   apropos 'manual:' -- Find all the manual documents
   apropos 'module:' -- Quick summary of all PDL modules
   help 'help'       -- details about PDL help system
@@ -421,7 +697,7 @@ sub badinfo {
 
     die "no online doc database" unless defined $PDL::onlinedoc;
 
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
     if ( @match ) {
 	my ($name,$hash) = @{$match[0]};
 	my $info = $hash->{Bad};

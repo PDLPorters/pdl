@@ -9,14 +9,15 @@ PDL::FFT - FFTs for PDL
 FFTs for PDL.  These work for arrays of any dimension, although ones
 with small prime factors are likely to be the quickest.
 
-Each routine works `inplace'.
+For historical reasons, these routines work in-place and do not recognize
+the in-place flag.  That should be fixed.
 
 =head1 SYNOPSIS
 
         use PDL::FFT qw/:Func/;
 
-	fft($real,$imag);
-	ifft($real,$imag);
+	fft($real, $imag);
+	ifft($real, $imag);
 	realfft($real);
 	realifft($real);
 
@@ -297,7 +298,7 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-N-dimensional convolution
+N-dimensional convolution with periodic boundaries (FFT method)
 
 =for usage
 
@@ -306,6 +307,9 @@ N-dimensional convolution
 
 fftconvolve works inplace, and returns an error array in kernel as an
 accuracy check -- all the values in it should be negligible.
+
+See also L<PDL::ImageND::convolveND|PDL::ImageND/convolveND>, which 
+performs speed-optimized convolution with a variety of boundary conditions.
 
 The sizes of the image and the kernel must be the same.
 L<kernctr|PDL::ImageND/kernctr> centres a small kernel to emulate the

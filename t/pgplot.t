@@ -126,6 +126,6 @@ t_ok(12,! m/n/i);
  print("ok 12 # Skipped: interactive tests since env var PDL_INT not set\n");
 }
 
-$w->close;
+eval '$w->close';
 
 

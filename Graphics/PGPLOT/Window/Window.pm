@@ -29,49 +29,51 @@ to the section on OO-interface below to see how to convert the usage
 information below to OO usage (it is totally trivial).
 
 PDL::Graphics::PGPLOT::Window is an interface to the PGPLOT graphical
-libraries.
+libraries.  It currently supports PGPLOT-5.2 and PGPLOT-5.2-cd2.  The
+-cd2 version includes RGB output and anti-aliasing.
 
-
-The list of currently availably methods:
- imag       -  Display an image (uses pgimag()/pggray() as appropriate)
+High-level plotting commands:
+ imag       -  Display an image (uses pgimag/pggray/pgrgbi as appropriate)
+ fits_imag  -  Display a FITS image in scientific coordinates
+ cont       -  Display image as contour map
+ fits_cont  -  Display a FITS image in scientific coordinates as a contour map
+ vect       -  Display 2 images as a vector field
+ fits_vect  -  Display 2 FITS images in sci. coordinates as a vector field
  ctab       -  Load an image colour table
  ctab_info  -  Get information about currently loaded colour table
  line       -  Plot vector as connected points
+ tline      -  Plot a collection of vectors as lines
+ lines      -  Plot a polyline, multicolor vector [threadable]
  points     -  Plot vector as points
+ tpoints    -  Plot a collection of vectors as points [threadable]
  errb       -  Plot error bars
- cont       -  Display image as contour map
  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
- poly       -  Draw a polygon
- vect       -  Display 2 images as a vector field
- text       -  Write text in the plot area
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
+
+Low-level plotting commands:
+ arrow      -  Draw an arrow
+ poly       -  Draw a polygon
+ rectangle  -  Draw a rectangle
+ text       -  Write text in the plot area
  cursor     -  Interactively read cursor positions.
  circle     -  Draw a circle
  ellipse    -  Draw an ellipse.
 
 Device manipulation commands:
-
- new          -  Construct a new output device 
- pgwin        -  Exported hook to new()
- close        -  Close a PGPLOT output device.
- focus        -  Set focus to the given device. This should normally be
-                 done behind the scenes.
- hold         -  Hold current plot window range - allows overlays etc.
- release      -  Release back to autoscaling of new plot window for each
-                 command.
- held         -  Returns true if the graphics is held on the current
-                 device.
- env          -  Define a plot window, put on 'hold'.
- panel        -  Move to a specified plot panel when several panels are
-                 defined.
- erase        -  Erase the current window (or panel).
-
- options      -  Get the options set for the present output device.
- id           -  The ID for the device.
- device       -  The device type.
- name         -  The window name.
+ new           -  Construct a new output device 
+ pgwin         -  Exported hook to new()
+ close         -  Close a PGPLOT output device.
+ hold          -  Hold current plot window range - allows overlays etc.
+ release       -  Release back to freshly autoscaling for each command.
+ held          -  Indicates whether the current window is held.
+ focus         -  Set focus to the given device. 
+ erase         -  Erase the current window (or panel).
+ options       -  Get the options set for the present output device.
+ id            -  The ID for the device.
+ device        -  The device type.
+ name          -  The window name.
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
@@ -164,6 +166,17 @@ options use a different name:
 
 =over 4
 
+=item align
+
+If C<pix> is set, then images and plots are not stretched to fill the plot
+area.  the C<align> string tells how to align them within the available
+area.  'L' and 'R' shove the plot against the left and right edges,
+respectively; 'B' and 'T' shove the plot against the bottom and top
+edges.  The default is to center the image.  e.g. 'BL' puts the image
+on the bottom left corner, while 'CT' centers the image horizontally
+while placing it at the top of the available plot area.  This defaults
+to 'BT' for non-justified images, to 'CC' for justified images.
+
 =item arrow
 
 This options allows you to set the arrow shape, and optionally size for
@@ -216,7 +229,31 @@ You can specify them by name or by number:
  LOGY   (20) draw box and label Y-axis logarithmically
  LOGXY  (30) draw box and label both axes logarithmically
 
-If you set the option to an array ref, then you can specify the
+When using logarithmic axes (C<LOGX>, C<LOGY> and C<LOGXY>) you normally
+need to log the data yourself, e.g.
+
+  line $x->log10, $y, {axis=>'LOGX'};
+
+For your convenience you can put PDL::Graphics::PGPLOT into
+autolog mode. In this mode a call to C<line> or C<points>
+will log the data for you and you can pass in the unmodified
+data, e.g.
+
+  autolog(1); # enable automatic logarithm calculation
+  line $x, $y, {axis=>'LOGX'}; # automatically displays logged x data
+
+You can use the function interface to enable autologging:
+
+  autolog(1);
+
+or use it with a window reference (mode switching on a per window basis)
+
+  $win->autolog(1);
+
+C<autolog> without arguments returns the current autolog setting (0=off,
+1=on).
+
+If you set the C<AXIS> option to an array ref, then you can specify the
 box/axis options separately for the horizontal (ordinate; X
 coordinate; 0th element) and vertical (abscissa; Y coordinate; 1st element))
 axes.  Each element of the array ref should contain a PGPLOT format string.
@@ -382,42 +419,6 @@ setting justify=>0.5 will do the same thing but with a short and
 fat plot.  The difference between C<justify> and C<pix> is that 
 C<pix> does not affect the shape of the axes themselves.
 
-=item pix
-
-Sets the pixel aspect ratio height/width.  The height is adjusted
-to the correct ratio, while maintaining any otherwise-set pitch or scale
-in the horizontal direction.  Larger numbers yield tall, skinny pixels;
-smaller numbers yield short, fat pixels.
-
-=item scale
-
-Sets the number of output display pixels per data pixel.  You can set
-the C<unit> (see below) to change this to number of PGPLOT units
-(inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
-as it is not device-independent; but it does come in handy for quick
-work on digital displays, where aliasing might otherwise interfere
-with image interpretation.  For example, C<scale=>1> displays 
-images at their native resolution.
-
-=item pitch
-
-Sets the number of data pixels per inch on the output device.
-You can set the C<unit> (see below) to change this to any other
-PGPLOT unit (millimeters, pixels, etc.).   Pitch is device independent,
-so an image should appear exactly the same size (e.g. C<Pitch=>100>
-is 100 dpi) regardless of output device.
-
-=item align
-
-If C<pix> is set, then images and plots are not stretched to fill the plot
-area.  the C<align> string tells how to align them within the available
-area.  'L' and 'R' shove the plot against the left and right edges,
-respectively; 'B' and 'T' shove the plot against the bottom and top
-edges.  The default is to center the image.  e.g. 'BL' puts the image
-on the bottom left corner, while 'CT' centers the image horizontally
-while placing it at the top of the available plot area.  This defaults
-to 'BT' for non-justified images, to 'CC' for justified images.
-
 =item linestyle
 
 Set the line style. This can either be specified as a number following
@@ -444,6 +445,31 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
  $opt = {LINEWIDTH => 10}; # A rather fat line
 
 The HardLW option should be used if you are plotting to a hardcopy device.
+
+=item pitch
+
+Sets the number of data pixels per inch on the output device.
+You can set the C<unit> (see below) to change this to any other
+PGPLOT unit (millimeters, pixels, etc.).   Pitch is device independent,
+so an image should appear exactly the same size (e.g. C<Pitch=>100>
+is 100 dpi) regardless of output device.
+
+=item pix
+
+Sets the pixel aspect ratio height/width.  The height is adjusted
+to the correct ratio, while maintaining any otherwise-set pitch or scale
+in the horizontal direction.  Larger numbers yield tall, skinny pixels;
+smaller numbers yield short, fat pixels.
+
+=item scale
+
+Sets the number of output display pixels per data pixel.  You can set
+the C<unit> (see below) to change this to number of PGPLOT units
+(inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
+as it is not device-independent; but it does come in handy for quick
+work on digital displays, where aliasing might otherwise interfere
+with image interpretation.  For example, C<scale=>1> displays 
+images at their native resolution.
 
 =item Panel
 
@@ -543,7 +569,6 @@ That is basically it. The commands should automatically focus the relevant
 window. Due to the limitations of PGPLOT this might however lead you to
 plot in the wrong panel... The package tries to be smart and do this
 correctly, but might get it wrong at times.
-
 
 =head1 STATE and RECORDING
 
@@ -1007,10 +1032,9 @@ treated as an RGB true-color image via L<rgbi|rgbi>.
 
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
-aspect ratio preservation, and 1:1 pixel mapping are available.
-(1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
-for, eg, movie display; but it's not recommended for final output as
-it's not device-independent.)
+aspect ratio preservation, and 1:1 pixel mapping are available.  (1:1
+pixel mapping is useful for avoiding display artifacts, but it's not
+recommended for final output as it's not device-independent.)
 
 Here's an additional complication: the "pixel" stuff refers not
 (necessarily) to normal image pixels, but rather to I<transformed>
@@ -1257,6 +1281,12 @@ available number of colors can change depending on the output device.
 
 See also L<imag|imag> for a description of how to use only part of the
 color table for a particular image.
+
+=head2 ctab_info
+
+=for ref
+
+Return information about the currently loaded color table
 
 =head2 line
 
@@ -1538,6 +1568,21 @@ Example:
   arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
+
+=head2 rect
+
+=for ref
+
+Draw a non-rotated rectangle
+
+Usage: rect ( $x1, $x2, $y1, $y2 )
+
+Options recognised:
+
+The following standard options influence this command:
+
+ AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, LINESTYLE,  LINEWIDTH
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
 
 =head2 poly
 
@@ -2250,7 +2295,7 @@ sub autolog {
     $ret = $class->{Autolog} || $AUTOLOG;
     $class->{Autolog} = shift if @_ > 0;
   } else {
-    my $ret = $AUTOLOG;
+    $ret = $AUTOLOG;
     $AUTOLOG = shift if @_ > 0;
   }
   return $ret;
@@ -2595,8 +2640,9 @@ sub _set_defaults {		# Set up defaults
 
 =head2 _status
 
-This routine checks the status of the window. It returns OPEN if the window
-is open and CLOSED if it is closed.
+This routine checks PGPLOT's status for the window. It returns OPEN if
+the window is open and CLOSED if it is closed.  (Windows can be closed
+but still exist).
 
 =cut
 
@@ -3359,7 +3405,7 @@ should be ok,  as that routine returns a rather sensible error-message.
 	my $index = $work_ci;
 	if ($#colvals == 3) {
 	  # This is a situation where the first element is interpreted
-	  # as a PGPLOT colour index, otherwise we'll use our own
+	  # as a PGPLOT colour index, otherwise we will use our own
 	  # strategy to step through indices.
 	  ($index, $r, $g, $b)=@colvals;
 	} else {
@@ -3632,6 +3678,7 @@ sub initenv{
       release_and_barf "The PlotPosition must be given as an array reference!" unless
 	ref($o->{PlotPosition}) eq 'ARRAY';
       my ($x0, $x1, $y0, $y1)=@{$o->{PlotPosition}};
+      print "pgsvp($wx0,$wx1,$wy0,$wy1);\n" if($PDL::Graphics::PGPLOT::debug);
       pgsvp ($x0, $x1, $y0, $y1);
     }
     
@@ -3667,9 +3714,15 @@ sub initenv{
     
     ###
     # Figure out the stretched pitch, if it isn't set.
-    $pitch = max(pdl( ($xmax-$xmin) / ($x1-$x0),
-		      ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0)))
-      unless defined ($pitch);
+    # Tricky -- we want the pitch with the highest absolute value, but
+    # to preserve the sign.
+    unless(defined $pitch) {
+	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
+		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
+	my $ap = abs($p);
+	$pitch = $p->at($ap->maximum_ind);
+    }
+
     
     
     $pix = ($y1 - $y0) / ($ymax - $ymin) * $pitch 
@@ -3700,26 +3753,26 @@ sub initenv{
       local($_) = $o->{Align} || "CC";
       my($wx0,$wx1,$wy0,$wy1);
       
+      my($xrange) = abs(($xmax-$xmin) * $wxs / $pitch );
       ($wx0,$wx1) = 
-	(m/L/i) ? ( $ox0, $ox0  +  ($xmax - $xmin) / $pitch * $wxs ) :
-	(m/R/i) ? ( $ox1  -  ($xmax - $xmin) / $pitch * $wxs, $ox1 ) :
-	      (0.5 * ( $ox0 + $ox1  -  ($xmax - $xmin) / $pitch * $wxs ),
-	       0.5 * ( $ox0 + $ox1  +  ($xmax - $xmin) / $pitch * $wxs ));
-      
+	(m/L/i) ? ( $ox0, $ox0  +  $xrange ) :
+	(m/R/i) ? ( $ox1  -  $xrange ) :
+	  (0.5 * ( $ox0 + $ox1 - $xrange ), 0.5 * ( $ox0 + $ox1 + $xrange ));
+
+      my($yrange) = abs(($ymax-$ymin) * $wys * $pix / $pitch );
       ($wy0,$wy1) = 
-	(m/B/i) ? ( $oy0, $oy0 + ($ymax - $ymin) * $pix / $pitch * $wys ) :
-	(m/T/i) ? ( $oy1 -  ($ymax - $ymin) * $pix / $pitch * $wys, $oy1 ) :
-              (0.5 * ( $oy0 + $oy1 -  ($ymax - $ymin) * $pix * $wys / $pitch ),
-	       0.5 * ( $oy0 + $oy1 +  ($ymax - $ymin) * $pix * $wys / $pitch ));
-      
-      pgsvp($wx0,$wx1,$wy0,$wy1);
-      print "calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
+	(m/B/i) ? ( $oy0, $oy0 + $yrange ) :
+	(m/T/i) ? ( $oy1 - $yrange, $oy1 ) :
+           (0.5 * ( $oy0 + $oy1 - $yrange ), 0.5 * ( $oy0 + $oy1 + $yrange ));
+
+      pgsvp(minmax(pdl($wx0,$wx1)),minmax(pdl($wy0,$wy1)));
+
       pgswin($xmin,$xmax,$ymin,$ymax);
       
-    } else {
+    } elsif($pix && $pitch) {
       
       ##########
-      # Non-justify case.  
+      # Non-justify case with specified pitch and pixel aspect.  
       
       my($xx0,$xx1,$yy0,$yy1); # These get the final data coords
       
@@ -3733,18 +3786,22 @@ sub initenv{
 	(m/R/i) ? ($xmax-($x1-$x0)*$pitch, $xmax) : 
 	      (0.5*($xmin+$xmax - ($x1-$x0)*$pitch),
 	       0.5*($xmin+$xmax + ($x1-$x0)*$pitch));
-      
+
       ($yy0,$yy1) = 
 	(m/B/i) ? ($ymin, $ymin+($y1-$y0)*$pitch/$pix) :
 	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
 
-      print "non-j: calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
       pgswin($xx0, $xx1, $yy0, $yy1);
       
-    }
-    
+  } else {
+      ###
+      # Simplest case -- just do what the user originally said.
+      #
+      pgswin($xmin,$xmax,$ymin,$ymax);
+
+  }
     
     if (ref($o->{Axis}) eq 'ARRAY') {
       print "found array ref axis option...\n" if($PDL::Graphics::PGPLOT::debug);
@@ -3754,7 +3811,8 @@ sub initenv{
     }
     
     $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
-    $self->label_axes($u_opt);
+    $self->label_axes($u_opt->{XTitle}, $u_opt->{YTitle}, $u_opt->{Title},
+		      $u_opt);
     
     # restore settings
     $self->_set_colour($col);
@@ -3882,7 +3940,7 @@ sub _image_xyrange {
 =head2 _FITS_tr
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
-scientific coordinates to scientific coordinates.   Used by 
+pixel coordinates to scientific coordinates.   Used by 
 fits_imag and fits_cont, but may come in handy for other methods.
 
 =cut
@@ -5082,6 +5140,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    # take logs if we are in autolog mode and axis option indicates logs
     ($x,$y) = $self->checklog($x,$y) if $self->autolog;
 
     # If there is a missing value specified, use pggapline
@@ -5186,6 +5245,9 @@ sub arrow {
     }
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
+
+    # take logs if we are in autolog mode and axis option indicates logs
+    ($x,$y) = $self->checklog($x,$y) if $self->autolog;
 
     if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
        pgsch($opt->{SymbolSize});
@@ -5404,34 +5466,23 @@ sub arrow {
     $min = $u_opt->{Min} if exists($u_opt->{Min});
     $max = $u_opt->{Max} if exists($u_opt->{Max});
 
-    if ( exists($u_opt->{Range}) ) {
-      release_and_barf ( "Range option must be an array ref if specified.\n")
-	if( $u_opt->{Range} ne 'ARRAY' );
-      $min = $u_opt->{Range}->[0];
-      $max = $u_opt->{Range}->[1];
-    }
-
-    if ( exists($u_opt->{CRange}) ) {
-      release_and_barf( "CRange option must be an array ref if specified.\n")
-	if( ref $u_opt->{CRange} ne 'ARRAY' );
-      $cmin = $u_opt->{CRange}->[0];
-      $cmax = $u_opt->{CRange}->[1];
-    }
-
-    if ( exists($u_opt->{XRange}) ) {
-      release_and_barf( "XRange option must be an array ref if specified.\n")
-	if( ref $u_opt->{XRange} ne 'ARRAY' );
-    }
-
-    if ( exists($u_opt->{YRange}) ) {
-      release_and_barf( "YRange option must be an array ref if specified.\n")
-	if( ref $u_opt->{YRange} ne 'ARRAY' );
-    }
-
-    $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
-
     # Check on ITF value hardcoded in.
+    $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
     release_and_barf ( "illegal ITF value `$val'") if $itf > 2 || $itf < 0;
+
+    ## Option checker thunk gets defined only on first run-through.
+    our $checker = sub {
+      my($name,$opt,$min,$max) = @_;
+      return unless exists($opt->{$name});
+      release_and_barf("$name option must be an array ref if specified.\n")
+	if( ref ($opt->{$name}) ne 'ARRAY' );
+      ($$min,$$max) = @{$opt->{$name}} if defined($min);
+    } unless(defined $checker);
+  
+    &$checker("Range",  $u_opt,  \$min,  \$max);
+    &$checker("CRange", $u_opt, \$cmin, \$cmax);
+    &$checker("XRange", $u_opt);
+    &$checker("YRange", $u_opt);
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
@@ -5450,17 +5501,22 @@ sub arrow {
 
     $self->initenv( _image_xyrange($tr,$nx,$ny,$o), $o );
 
-    if (!$self->held()) {
-      # Label axes if necessary
-      if(defined ($u_opt->{Title} || 
-		  $u_opt->{XTitle} || 
-		  $u_opt->{YTitle})) {
-	$self->label_axes($u_opt->{XTitle},
-			  $u_opt->{YTitle},
-			  $u_opt->{Title},
-			  $u_opt);
-      }
-    } 
+
+    #
+    # Commented out, CED, 5-Dec-2003 -- 
+    # this is handled by redraw_axes, at the bottom.
+    #
+    #if (!$self->held()) {
+    #  # Label axes if necessary
+    #  if(defined ($u_opt->{Title} || 
+    #		  $u_opt->{XTitle} || 
+    #		  $u_opt->{YTitle})) {
+    #	$self->label_axes($u_opt->{XTitle},
+    #			  $u_opt->{YTitle},
+    #			  $u_opt->{Title},
+    #			  $u_opt);
+    #  }
+    # } 
 
     pgsitf( $itf );
     my ($i1, $i2);
@@ -5918,6 +5974,45 @@ EOD
   }
 }
 
+# Plot a rectangle with pgrect()
+sub rect {
+  my $self = shift;
+  my ($in, $opt)=_extract_hash(@_);
+  release_and_barf 'Usage: rect ( $x1, $x2, $y1, $y2 [, $options] )' if( $#$in<0 || $#$in>3);
+  my($x1,$x2,$y1,$y2) = @$in;
+  $self->_checkarg($x1,1);
+  $self->_checkarg($x2,1);
+  $self->_checkarg($y1,1);
+  $self->_checkarg($y2,1);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, ($opt || {}));
+  $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+  &catch_signals;
+
+  unless ( $self->held() ) {
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : minmax(pdl($x1->at(0),$x2->at(0)));
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : minmax(pdl($y1->at(0),$y2->at(0)));
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
+
+  $self->_save_status();
+  $self->_standard_options_parser($u_opt);
+  my $n = nelem($x);
+  pgrect($x1, $x2, $y1, $y2);
+  $self->_restore_status();
+  $self->_add_to_state(\&poly, $in, $opt);
+
+  &release_signals;
+
+  1;
+}
+
+
+
 # Plot a polygon with pgpoly()
 
 sub poly {
@@ -6244,8 +6339,8 @@ sub poly {
 
     # Added support for different background colours..
     # 2/10/01 JB - To avoid -w noise we use a reg-exp..
-    if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
-      # Do this unless a negative integer..
+
+    if ($o->{BackgroundColour} !~ m/^-\d+$/) {
       $self->_set_colour($o->{BackgroundColour}, 1);
     }
 
@@ -6264,6 +6359,8 @@ sub poly {
 	pgqlw($old_lw);
 	pgslw($o->{TextWidth});
     }
+
+    my $old_bg;
 
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
@@ -6341,14 +6438,11 @@ sub poly {
 
     $self->_save_status();
 
-#    print "Setting character size to: ".$u_opt->{CharSize}."\n"
-#      if defined $u_opt->{CharSize};
     $self->_standard_options_parser($u_opt); # Set font, charsize, colour etc.
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
     pgqch(my $chsz);
-#    print "I found a character size of $chsz\n";
 
     ## Now, set the background colour of the text before getting further.
     ## Added 2/10/01 - JB - test as a regexp to avoid -w noise.
@@ -6414,7 +6508,7 @@ sub poly {
 	my $t_height = $o->{Height}/$vfactor/$n_lines/$dy; # XXX is $vfactor==(1+VertSpace) correct?
 
 	$t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
-#	print "For text = $t the optimal size is $t_chsz ($t_width, $t_height)\n";
+
 	$required_charsize = $t_chsz if $t_chsz < $required_charsize;
 
 	pgsch($required_charsize*$chsz); # Since we measured relative to $chsz
@@ -6459,11 +6553,10 @@ sub poly {
       my $ymid = 0.5 * ($$ybox[2] + $$ybox[0]);
 
       if (defined($myopt{symbol}[$i])) {
-#	print "I will be using symbol $$o{Symbol}\n";
+
 	pgpt(1, $xmid, $ymid, $t_o->{Symbol});
 
       } else {
-#	print "I will be drawing a line with colour $$o{Colour} and style $$o{LineStyle}\n";
 	pgsls($t_o->{LineStyle}) if defined $myopt{linestyle}[$i];
 	pgslw($t_o->{LineWidth}) if defined $myopt{linewidth}[$i];
 	pgline(2, [$xstart, $xend], [$ymid, $ymid]);

@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = '0.99.2';
+$PDL::NiceSlice::VERSION = '1.0.1';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
@@ -75,7 +75,10 @@ eval << 'EOH';
 EOH
 
 # mark as lvalue sub if 5.6.x and above
-eval 'sub PDL::nslice : lvalue;' if ($^V and $^V ge v5.6.0);
+ eval {
+  no strict;
+  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V > 5.006000);
+ }
 }
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
@@ -224,7 +227,10 @@ sub findslice {
 	$prefix =~ m/->\s*\$\w+$/s) # e.g. $a->$method(args)
       # method invocation via string, don't translate either
     {
-      $processed .= "$prefix".$found;
+	# note: even though we reject this one we need to call
+        #       findslice on $found in case
+	#       it contains slice expressions
+      $processed .= "$prefix".findslice($found);
     } else {      # statement is a real slice and not a foreach
 
       my ($call,$pre,$post,$arg);
@@ -401,13 +407,14 @@ Slicing is a basic, extremely common operation, and PDL's
 L<slice|PDL::Slices/slice> method would be cumbersome to use in many
 cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
-L<perlfilter|the perlfilter man page>).  NiceSlice adds no new functionality, only convenient
+L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient
 syntax.
 
 NiceSlice is loaded automatically in the perldl shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
-your standalone scripts, you can use the L<slice> method in those scripts,
+your standalone scripts, you can use the L<slice|PDL::Slices/slice>
+method in those scripts,
 rather than the more compact NiceSlice constructs.
 
 =head1 Use in scripts and C<perldl> shell

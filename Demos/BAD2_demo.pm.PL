@@ -2,16 +2,16 @@
 # Create BAD2_demo.pm
 # - requires both bad-value support and PGPLOT
 #
- 
+
 use strict;
- 
+
 use Config;
 use File::Basename qw(&basename &dirname);
- 
+
 # check for bad value support
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
- 
+
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
@@ -21,14 +21,14 @@ $file =~ s/\.pl$//
         if ($Config{'osname'} eq 'VMS' or
             $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
- 
+
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
 } else {
     print "Extracting $file (NO bad value support)\n";
 }
 chmod 0644, $file;
- 
+
 print OUT <<'!NO!SUBS!';
 #
 # Created by BAD2_demo.pm.PL
@@ -56,7 +56,7 @@ sub run {
 comment q|
 
     Your version of PDL has been compiled without support for bad
-    values, hence this demo doesn't do anything.
+    values, hence this demo cannot do anything.
 
 |;
 
@@ -81,17 +81,17 @@ barf "Unable to find directory ${m51path} within the perl libraries.\n"
 comment q|
     This demo is just a bit of eye-candy to show bad values in action,
     and requires PGPLOT support in PDL. It makes use of the image of
-    m51 kindly provided by the IRAF group at the National Optical and 
-    Astronomical Observatories.
+    M51 kindly provided by the Hubble Heritage group at the
+    Space Telescope Science Institute.
 
     It also serves to demonstrate that you often don't need to change
     your code to handle bad values, as the routines may 'do it' for you.
-    
+
 |;
 
 act q|
 
-    # read in the image ($m51path has been set up by this demo to 
+    # read in the image ($m51path has been set up by this demo to
     # contain the location of the file)
     $m51 = rfits "$m51path/m51.fits";
 
@@ -99,12 +99,15 @@ act q|
     $just = { JUSTIFY => 1 };
     imag $m51, $just;
 
+    # These are used to create the next image
+    ( $nx, $ny ) = $m51->dims;
+    $centre = [ $nx/2, $ny/2 ];
 |;
 
 act q|
 
-    # now, let's mask out the central 30 pixels and display it
-    $masked = $m51->setbadif( $m51->rvals({CENTRE=>[128,128]}) < 30 );
+    # now, let's mask out the central 40 pixels and display it
+    $masked = $m51->setbadif( $m51->rvals({CENTRE=>$centre}) < 40 );
 
     # since imag auto-scales the output, the bad values are not displayed
     imag $masked, $just;
@@ -120,10 +123,10 @@ act q|
 
     # let's filter it a little bit
     use PDL::Image2D;
-    $nb = 9;
+    $nb = 15;
     $filtered = med2d $masked, ones($nb,$nb), { Boundary => 'Truncate' };
 
-    # this is a model of the diffuse component of m51
+    # this is a model of the diffuse component of M51
     imag $filtered, $just;
 
 |;

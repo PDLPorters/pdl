@@ -48,6 +48,7 @@ start-up modules.
    use PDL::Math;
    use PDL::Version;
    use PDL::IO::Misc;
+   use PDL::IO::FITS;
    use PDL::IO::Pic;
    use PDL::Lvalue;
 
@@ -55,7 +56,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.0'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.4.1rc1'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
@@ -81,7 +82,8 @@ use PDL::Lvalue;
 
 # Load these for TPJ compatibility
 
-use PDL::IO::Misc;          # Misc IO (Ascii/FITS)
+use PDL::IO::Misc;          # Misc IO (Ascii)
+use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
 
 EOD

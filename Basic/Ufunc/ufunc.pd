@@ -228,21 +228,22 @@ foreach my $func ( keys %over ) {
 
 %over = 
     (
-     zcover   => { txt => '== 0', init => 1, alltypes => 1,
-		   op => 'tmp = tmp && $a() == 0;', check => '!tmp' },
-     andover  => { txt => 'and', init => 1, 
-		   op => 'tmp = tmp && $a();', check => '!tmp' },
-     bandover => { txt => 'bitwise and', init => '~0', 
+     zcover   => { def=>'char tmp', txt => '== 0', init => 1, alltypes => 1,
+		   op => 'tmp &= ($a() == 0);', check => '!tmp' },
+     andover  => { def=>'char tmp', txt => 'and', init => 1, alltypes => 1, 
+		   op => 'tmp &=  ($a() != 0);', check => '!tmp' },
+     bandover => { def=>'$GENERIC(b) tmp', txt => 'bitwise and', init => '~0', 
 		   op => 'tmp &= $a();', check => '!tmp' },
-     orover   => { txt => 'or', init => 0, 
-		   op => 'tmp = tmp || $a();', check => 'tmp' },
-     borover  => { txt => 'bitwise or', init => 0, 
-		   op => 'tmp |= $a();', check => '!~tmp' },
+     orover   => { def=>'char tmp', txt => 'or', init => 0, alltypes => 1, 
+		   op => 'tmp |= ($a() != 0);', check => 'tmp' },
+     borover  => { def=>'$GENERIC(b) tmp', txt => 'bitwise or', init => 0, 
+		   op => 'tmp |= $a() ;', check => '!~tmp' },
 
      );
 
 foreach my $func ( keys %over ) {
 
+    my $def   = $over{$func}{def};
     my $txt   = $over{$func}{txt};
     my $init  = $over{$func}{init};
     my $op    = $over{$func}{op};
@@ -259,11 +260,12 @@ foreach my $func ( keys %over ) {
 	   %extra,
 	   Pars => 'a(n); int+ [o]b();',
 	   Code =>
-	   '$GENERIC(b) tmp = ' . $init . ';
+	   $def . '=' . $init . ';
             loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
             $b() = tmp;',
 	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
+	   'char tmp = ' . $init . ';
+	    $GENERIC(b) gtmp = '. $init . ';
             int flag = 0;
             loop(n) %{
                if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }
@@ -345,8 +347,18 @@ pp_def(
 	Pars => 'a(n); int+ [o]b();',
 	Code => 
 	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
+	if($SIZE(n)) {
+	   loop(n) %{ tmp += $a(); %} ; 
+   	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
+        }
+          else { $GENERIC(b) foo = 0.25; 
+	         if(foo == 0) {  /* Cheesy check for floating-pointiness */
+	             $b() = 0;   /* Integer - set to 0 */
+	          } else {
+	             $b() = sqrt(-1);  /* Cheesy NaN -- CED */
+		 }
+	        }',
+
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
          long cnt = 0;
@@ -365,9 +377,11 @@ pp_def(
 	Pars => 'a(n); double [o]b();',
 	Code => 
 	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp / cnt;',
+	if($SIZE(n)) {
+	 loop(n) %{ tmp += $a(); %}
+	 $b() = tmp / $SIZE(n); 
+	}
+	  else { $b() = 0; }',
 	BadCode => 
 	'double tmp = 0;
          long cnt = 0;
@@ -381,7 +395,7 @@ pp_def(
 "precision." ),
 	);
 
-# Internal utility sorting routine for median/qsort routines.
+# Internal utility sorting routine for median/qsort/qsortvec routines.
 #
 # note: we export them to the PDL Core structure for use in
 #       other modules (eg Image2D)
@@ -393,7 +407,7 @@ for (keys %PDL::Types::typehash) {
     pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
 		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
 
-    pp_addhdr("
+    pp_addhdr(<<"FOO"
 
       void pdl_qsort_$ppsym($ctype* xx, int a, int b) {
 
@@ -449,7 +463,62 @@ for (keys %PDL::Types::typehash) {
 
       }
 
-   ");
+
+	/*******
+         * qsortvec helper routines
+	 *   --CED 21-Aug-2003
+	 */
+
+	/* Compare a vector in lexicographic order, returning the
+	 *  equivalent of "<=>". 
+ 	 */
+      char pdl_cmpvec_$ppsym($ctype *a, $ctype *b, int n) {
+	int i;
+	for(i=0; i<n; a++,b++,i++) {
+	 if( *a < *b ) return -1;
+	 if( *a > *b ) return 1;
+	}
+	return 0;
+     }	
+	
+      void pdl_qsortvec_$ppsym($ctype *xx, int n, int a, int b) {
+		
+	int i,j;
+	$ctype t, *median;
+	i = a; 
+	j = b;
+
+	median = &xx[n*((i+j)/2)];
+
+	do {
+	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), median, n )  <  0 ) 
+		i++;
+	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), median, n )  >  0 ) 
+		j--;
+	  if(i<=j) {
+		int k;
+		$ctype *aa = &xx[n*i];
+	        $ctype *bb = &xx[n*j];
+		for( k=0; k<n; aa++,bb++,k++ ) {
+		  $ctype z;
+		  z = *aa;
+		  *aa = *bb;
+		  *bb = z;	
+		}
+	        i++; 
+		j--;
+	  }
+	} while (i <= j);
+	
+	if (a < j)
+	  pdl_qsortvec_$ppsym( xx, n, a, j );
+	if (i < b)
+	  pdl_qsortvec_$ppsym( xx, n, i, b );
+	
+      }
+
+FOO
+   );
 }
 
 # when copying the data over to the temporary array,
@@ -462,6 +531,14 @@ sub generic_qsort {
     return '$TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
              pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
 }
+
+sub generic_qsortvec {
+    my $pdl = shift;
+    my $ndim = shift;
+    return '$TBSULQFD(pdl_qsortvec_B,pdl_qsortvec_S,pdl_qsortvec_U,
+             pdl_qsortvec_L,pdl_qsortvec_Q,pdl_qsortvec_F,pdl_qsortvec_D) ($P(' . $pdl . '), '. $ndim.', 0, nn);';
+}
+
 
 # should use threadloop ?
 #
@@ -936,6 +1013,51 @@ Quicksort a vector and return index of elements in ascending order.
 
 '
        ); # pp_def: qsorti
+
+
+
+# move all bad values to the end of the array
+#
+pp_def(
+    'qsortvec',
+    HandleBad => 1,
+    Pars => 'a(n,m); [o]b(n,m);',
+    Code => 
+    'int nn;
+     int nd;
+     loop(n,m) %{ $b() = $a(); %}
+     nn = ($COMP(__m_size))-1;
+     nd = $COMP(__n_size);
+    ' . generic_qsortvec('b','nd'),
+    Doc => '
+=for ref
+
+Sort a list of vectors lexicographically.
+
+The 0th dimension of the source piddle is dimension in the vector;
+the 1st dimension is list order.  Higher dimensions are threaded over.
+
+=for example
+
+ print qsortvec pdl([[1,2],[0,500],[2,3],[4,2],[3,4],[3,5]]);
+ [
+  [  0 500]
+  [  1   2]
+  [  2   3]
+  [  3   4]
+  [  3   5]
+  [  4   2]
+ ]
+ 
+
+',
+    BadDoc =>
+'
+Vectors with bad components should be moved to the end of the array:
+',
+    ); # pp_def qsort
+
+
 
 
 # I don't think the old behaviour is correct in the presence of NaN's -

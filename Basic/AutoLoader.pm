@@ -132,6 +132,7 @@ $PDLLIB_CT = 0;
 
 push @PERLDL::AUTO, \&PDL::AutoLoader::reloader;
 
+
 sub AUTOLOAD {
     local @INC = @INC;
     $AUTOLOAD =~ /::([^:]*)$/;
@@ -146,26 +147,12 @@ sub AUTOLOAD {
    # for most things but doesn't catch new directories in expanded
    # directory trees.  It seems like an OK compromise between never 
    # catching anything and always thrashing through the directories.
+    if($PDLLIB_CT != scalar(@PDLLIB)) {
+	@PDLLIB_EXPANDED = PDL::AutoLoader::expand_path(@PDLLIB);
+	$PDLLIB_CT = scalar(@PDLLIB);
+    }
 
-   if($PDLLIB_CT != scalar(@PDLLIB)) {
-     print "Expanding directories from ".join(':',@PDLLIB)."...\n"
-       if($PDL::verbose);
-     local $_;
-     $PDLLIB_CT = scalar(@PDLLIB);
-     foreach $_(@PDLLIB) {
-       # Expand ~{name} and ~ conventions
-       s/^(\+?)~([a-zA-Z0-9]*)// && 
-        ($_ = $1.((getpwnam($2 || getlogin))[7]).$_ );
-       
-       # If there's a leading '+', include all subdirs too.
-       push(@PDLLIB_EXPANDED,
-           s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
-           );
-     }
-   }
-
-
-    print "Loading $func.pdl...\n" if $PDL::verbose;
+    print "Loading $func.pdl ..." if $PDL::verbose;
     my $file;
 
     my $s = "PDL AutoLoader:  Undefined subroutine $func() cannot be autoloaded.\n";
@@ -174,6 +161,8 @@ sub AUTOLOAD {
         $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
 	  
+	  print "found $file\n" if $PDL::verbose;
+
 	  &PDL::AutoLoader::autoloader_do($file);
 	  
 	  
@@ -244,6 +233,40 @@ sub PDL::AutoLoader::expand_dir {
     push(@list,&PDL::AutoLoader::expand_dir($d));
   }
   return @list;
+}
+
+
+=head2 PDL::AutoLoader::expand_path
+
+=for ref 
+
+Expand a compactified path into a dir list
+
+You supply a pathlist and leading '+' and '~' characters get expanded into
+full directories.  Normally you don't want to use this -- it's internal to the
+autoloader -- but some utilities, like the online documentation searcher, need
+to be able to use it.
+
+=cut
+
+sub PDL::AutoLoader::expand_path {
+    my @PDLLIB = @_;
+    my @PDLLIB_EXPANDED;
+    
+    print "Expanding directories from ".join(':',@PDLLIB)."...\n"
+	if($PDL::verbose);
+    local $_;
+    foreach $_(@PDLLIB) {
+	# Expand ~{name} and ~ conventions
+	s/^(\+?)~([a-zA-Z0-9]*)// && 
+	    ($_ = $1.((getpwnam($2 || getlogin))[7]).$_ );
+	
+	# If there's a leading '+', include all subdirs too.
+	push(@PDLLIB_EXPANDED,
+	     s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
+	     );
+    }
+    @PDLLIB_EXPANDED;
 }
 
 

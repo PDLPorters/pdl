@@ -3,12 +3,13 @@
 # 
 # Craig DeForest, 17-Dec-2002
 # 
-
+$| = 1;
+print "Initializing...\n";
 use PDL;
 use PDL::NiceSlice;
 
 # Snarf the file and build a separate piddle for each polyline
-print "Interpreting map file...";
+print "Interpreting map file...\n";
 
 open(MAP,"<earth.txt");
 $nelem = 0;
@@ -16,14 +17,19 @@ while(<MAP>) {
   next if(m/^\#/ || m/^\s*$/);
   s/^\s+//;
   ($x,$y,$z,$color) = split /\s+/;
-  if($color==0) {
+  if($color==0 and $#a > 1) {
+    push(@a,$a[0]);
+    my $c = $a[1]->[3];
+    print $c;
+    ($a[-1])->[3] = $c;
+    $nelem++;
     push(@mainlist,pdl(@a)); undef @a;
   }
   push(@a,[$x,$y,$z,$color ? $color-1:0]);
   $nelem++;
 }
-shift @mainlist; # get rid of null first item
 
+print "Breaking up elements...\n";
 $elements = zeroes(4,$nelem);
 $pos = 0;
 foreach $z(@mainlist) {
@@ -53,5 +59,5 @@ use PDL::Graphics::PGPLOT::Window;
 $w = pgwin(dev=>'/xs',size=>[10,10]);
 $w->lines($lonlat,$p,{Title=>'Lat/Lon map of world coastlines',XTitle=>'East Longitude',YTitle=>'North Latitude',Axis=>2});
 
-
+wfits($lonlat->glue(0,$p->dummy(0,1)),'earth_coast.vec.fits');
 1;

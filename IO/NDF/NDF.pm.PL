@@ -71,6 +71,9 @@ N-dimensional data structures as PDLs.
 This module adds the ability to read and write Starlink N-dimensional data
 files as N-dimensional PDLs.
 
+You must have the Starlink NDF library installed to use it.  The library
+is distributed under the GPL and is available from "http://www.starlink.ac.uk".
+
 =head1 FUNCTIONS
 
 =cut

@@ -133,6 +133,7 @@ use PDL::Basic;
 use PDL::Types;
 use PDL::Slices;
 use PDL::IO::Misc;
+use PDL::IO::FITS;
 
 # should be careful that $suffix is a valid length on non-Unix systems
 $suffix = ".fits";

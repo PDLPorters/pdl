@@ -3,9 +3,9 @@
   free software; you can redistribute it and/or modify it under the same
   terms as Perl itself.
 
-  m51.fits is included as a demonstration by kind permission of IRAF
-  group at the National Optical and Astronomical Observatories, in particular
-  Pat Seitzer, who retain ownership.
+  The demonstration image m51.fits is derived from the Hubble Heritage
+  project archival images; its creation was funded in part by a grant
+  from NASA.  The image is in the public domain.
 
   Inline documentation in any module files (pod format) and documentation
   files (.pod files) in this distribution are additionally protected by

@@ -17,7 +17,7 @@ sub run {
   local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
 
 comment q|
 
@@ -149,6 +149,9 @@ lat/lon coordinates or reprojected to make other projections.
 
 Be sure to view "demo transform" if you haven't already.
 |;
+
+$w->close;
+undef $w;
 
 }
 

@@ -246,7 +246,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -288,7 +288,9 @@ sub _strval {
 (Cartography) PDL constructor - generate a lat/lon grid.
 
 Returns a grid of meridians and parallels as a list of vectors suitable
-for sending to L<PDL::Graphics::PGPLOT::Window::lines|/lines> for plotting.
+for sending to
+L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
+for plotting.
 The grid is in degrees in (theta, phi) coordinates -- this is (E lon, N lat) 
 for terrestrial grids or (RA, dec) for celestial ones.  You must then 
 transform the graticule in the same way that you transform the map.
@@ -299,12 +301,15 @@ You can attach the graticule to a vector map using the syntax:
 
 In array context you get back a 2-element list containing a piddle of
 the (theta,phi) pairs and a piddle of the pen values (1 or 0) suitable for
-calling L<PDL::Graphics::PGPLOT::Window::lines|/lines>.  In scalar context
+calling
+L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>.
+In scalar context
 the two elements are combined into a single piddle.
 
 The pen values associated with the graticule are negative, which will
-cause L<PDL::Graphics::PGPLOT::Window::lines|/lines> to plot them as
-hairlines.
+cause
+L<PDL::Graphics::PGPLOT::Window::lines|PDL::Graphics::PGPLOT::Window/lines>
+to plot them as hairlines.
 
 =cut
 
@@ -361,9 +366,10 @@ sub graticule {
 Returns a vector coastline map based on the 1987 CIA World Coastline
 database (see author information).  The vector coastline data are in
 plate caree format so they can be converted to other projections via
-the L<apply|/apply> method and cartographic transforms,
+the L<apply|PDL::Transform/apply> method and cartographic transforms,
 and are suitable for plotting with the
-L<lines|/lines> method in the PGPLOT 
+L<lines|PDL::Graphics::PGPLOT::Window/lines>
+method in the PGPLOT
 output library:  the first dimension is (X,Y,pen) with breaks having 
 a pen value of 0 and hairlines having negative pen values.  The second 
 dimension threads over all the points in the data set.  
@@ -402,10 +408,10 @@ sub earth_coast {
 (Cartography) PDL constructor - RGB pixel map of Earth 
 
 Returns an RGB image of Earth based on data from the MODIS instrument
-on the NASA EOS/Terra satellite.  (You can get a full-resolution 
-image from http://earthobservatory.nasa.gov/Newsroom/BlueMarble/).
+on the NASA EOS/Terra satellite.  (You can get a full-resolution
+image from L<http://earthobservatory.nasa.gov/Newsroom/BlueMarble/>).
 The image is a plate caree map, so you can convert it to other
-projections via the L<map|/map> method and cartographic
+projections via the L<map|PDL::Transform/map> method and cartographic
 transforms.
 
 This is just a quick-and-dirty way of loading the earth-image files that
@@ -462,7 +468,8 @@ C<clean_lines> massages vector data to remove jumps due to singularities
 in the transform.
 
 In the first (scalar) form, C<$line_pen> contains both (X,Y) points and pen 
-values suitable to be fed to L<lines|/lines>;
+values suitable to be fed to
+L<lines|PDL::Graphics::PGPLOT::Window/lines>:
 in the second (list) form, C<$lines> contains the (X,Y) points and C<$pen>
 contains the pen values.  
 
@@ -551,6 +558,7 @@ sub _uconv{
   ###
   local($_) = shift;
   my($silent) =shift;
+
   my($a) = 
     ( m/^deg/i    ? $DEG2RAD :
       m/^arcmin/i ? $DEG2RAD / 60 :
@@ -560,6 +568,11 @@ sub _uconv{
       m/^microrad/i ? 1e-6 :
       m/^millirad/i ? 1e-3 :
       m/^rad(ian)?s?$/i ? 1.0 :
+      m/^meter/ ? 1.0/6371000 :                # Assuming Earth cartography!
+      m/^kilometer/ ? 1.0/6371 :
+      m/^km/ ? 1.0/6371 :
+      m/^Mm/ ? 1.0/6.371 :
+      m/^mile/  ? 1.0/(637100000/2.54/12/5280) :
       undef
       );
   print STDERR "Cartography: unrecognized unit '$_'\n"    
@@ -579,7 +592,7 @@ sub _uconv{
 #
 
 
-sub _new{new('PDL::Transform::Cartography',@_);} # not exported
+sub _new { new('PDL::Transform::Cartography',@_); } # not exported
 sub new {
     my($class) = shift;
     my($name) = pop;
@@ -612,8 +625,23 @@ sub new {
     $me->{params}->{conv} = my $conv = _uconv($unit);
     $me->{params}->{u} = $unit;
 
-    $me->{itype} = ['latitude','longitude'];
+    $me->{itype} = ['longitude','latitude'];
     $me->{iunit} = [$me->{params}->{u},$me->{params}->{u}];
+
+    my($ou) = _opt($o,['ou','ounit','OutputUnit'],undef);
+    $me->{params}->{ou} = $ou;
+    if(defined $ou) {
+      if(!(ref $ou)) {
+	$me->{params}->{oconv} = _uconv($ou);
+      } else {
+	my @oconv;
+	map {push(@oconv,_uconv($_))} @$ou;
+	$me->{params}->{oconv} = pdl(@oconv);
+      }
+    } else {
+      $me->{params}->{oconv} = undef;
+    }
+    $me->{ounit} = $me->{params}->{ou};
 
     $me->{params}->{o} = $or * $conv;
     $me->{params}->{roll} = $roll * $conv;
@@ -665,7 +693,9 @@ sub PDL::Transform::Cartography::_finish {
 
 (Cartography) 3-D globe projection (conformal; authalic)
 
-This is similar to the inverse of L<t_spherical|/t_spherical>, but the
+This is similar to the inverse of
+L<t_spherical|PDL::Transform/t_spherical>,
+but the
 inverse transform projects 3-D coordinates onto the unit sphere,
 yielding only a 2-D (lon/lat) output.  Similarly, the forward
 transform deprojects 2-D (lon/lat) coordinates onto the surface of a
@@ -688,7 +718,9 @@ pen value) are propagated.
 There is no oblique transform for t_unit_sphere, largely because 
 it's so easy to rotate the output using t_linear once it's out into 
 Cartesian space.  In fact, the other projections implement oblique
-transforms by L<wrapping|/t_wrap> L<t_linear|/t_linear> with
+transforms by
+L<wrapping|PDL::Transform/t_wrap>
+L<t_linear|PDL::Transform/t_linear> with
 L<t_unit_sphere|/t_unit_sphere>.
 
 OPTIONS:
@@ -704,7 +736,7 @@ coordinates are in units of "body radii".
 =back
 
 =cut
-    
+
 sub t_unit_sphere {
   my($me) = _new(@_,'Unit Sphere Projection'); 
   $me->{odim} = 3;
@@ -1112,10 +1144,10 @@ sub t_mercator {
 
     if($p->{std} == 0) {
       $me->{otype} = ['longitude','tan latitude'];
-      $me->{ounit} = ['radians',' '];
+      $me->{ounit} = ['radians',' '] unless(defined $me->{ounit});
     } else {
       $me->{otype} = ['proj. longitude','proj. tan latitude'];
-      $me->{ounit} = ['radians',' '];
+      $me->{ounit} = ['radians',' '] unless(defined $me->{ounit});
     }
 
     $p->{stretch} = cos($p->{std});
@@ -1132,6 +1164,7 @@ sub t_mercator {
 	    unless($o->{c}->[0] == $o->{c}->[1]);
 
 	$out->(0:1) *= $o->{stretch};
+	$out->(0:1) /= $o->{oconv} if(defined $o->{oconv});
 			    
 	$out;
     };
@@ -1140,6 +1173,7 @@ sub t_mercator {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace? $d : $d->copy;
 
+	$out->(0:1) *= $o->{oconv} if defined($o->{oconv});
 	$out->(0:1) /= $o->{stretch};
 	$out->((1)) .= (atan(exp($out->((1)))) - $PI/4)*2;
 	$out->(0:1) /= $o->{conv};
@@ -1149,6 +1183,126 @@ sub t_mercator {
 
     $me->_finish;
 }    
+
+######################################################################
+
+=head2 t_utm
+
+=for usage
+
+  $t = t_utm(<zone>,<options>);
+
+=for ref
+
+(Cartography) Universal Transverse Mercator projection (cylindrical)
+
+This is the internationally used UTM projection, with 2 subzones 
+(North/South).  The UTM zones are parametrized individually, so if you
+want a Zone 30 map you should use C<t_utm(30)>.  By default you get
+the northern subzone, so that locations in the southern hemisphere get 
+negative Y coordinates.  If you select the southern subzone (with the 
+"subzone=>-1" option), you get offset southern UTM coordinates.  
+
+The 20-subzone military system is not yet supported.  If/when it is
+implemented, you will be able to enter "subzone=>[a-t]" to select a N/S
+subzone.
+
+Note that UTM is really a family of transverse Mercator projections
+with different central meridia.  Each zone properly extends for six
+degrees of longitude on either side of its appropriate central meridian,
+with Zone 1 being centered at -177 degrees longitude (177 west).
+Properly speaking, the zones only extend from 80 degrees south to 84 degrees
+north; but this implementation lets you go all the way to 90 degrees.
+The default UTM coordinates are meters.  The origin for each zone is
+on the equator, at an easting of -500,000 meters.
+
+The standard UTM projection has a slight reduction in scale at the
+prime meridian of each zone: the transverse Mercator projection's
+standard "parallels" are 180km e/w of the central meridian.  However,
+many Europeans prefer the "Gauss-Kruger" system, which is virtually
+identical to UTM but with a normal tangent Mercator (standard parallel
+on the prime meridian).  To get this behavior, set "gk=>1".
+
+Like the rest of the PDL::Transform::Cartography package, t_utm uses a
+spherical datum rather than the "official" ellipsoidal datums for the
+UTM system.
+
+This implementation was derived from the rather nice description by 
+Denis J. Dean, located on the web at:
+http://www.cnr.colostate.edu/class_info/nr502/lg3/datums_coordinates/utm.html
+
+OPTIONS
+
+=over 3
+
+=item STANDARD OPTIONS 
+
+(No positional options -- Origin and Roll are ignored) 
+
+=item ou, ounit, OutputUnit (default 'meters')
+
+(This is likely to become a standard option in a future release) The
+unit of the output map.  By default, this is 'meters' for UTM, but you
+may specify 'deg' or 'km' or even (heaven help us) 'miles' if you
+prefer.
+
+=item sz, subzone, SubZone (default 1)
+
+Set this to -1 for the southern hemisphere subzone.  Ultimately you
+should be able to set it to a letter to get the corresponding military
+subzone, but that's too much effort for now.
+
+=item gk, gausskruger (default 0)
+
+Set this to 1 to get the (European-style) tangent-plane Mercator with
+standard parallel on the prime meridian.  The default of 0 places the
+standard parallels 180km east/west of the prime meridian, yielding better 
+average scale across the zone.  Setting gk=>1 makes the scale exactly 1.0
+at the central meridian, and >1.0 everywhere else on the projection. 
+The difference in scale is about 0.3%.
+
+=back
+
+=cut
+
+sub t_utm {
+  my $zone = (int(shift)-1) % 60 + 1;
+  my($a) = _new(@_,"UTM-$zone");
+  my $opt = $a->{options};
+
+  ## Make sure that there is a conversion (default is 'meters')
+  $a->{ounit} = ['meter','meter'] unless defined($a->{ounit});
+  $a->{ounit} = [$a->{ounit},$a->{ounit}] unless ref($a->{ounit});
+  $a->{params}->{oconv} = _uconv($a->{ounit}->[0]);
+
+  ## Define our zone and NS offset 
+  my $subzone = _opt($opt,['sz', 'subzone', 'SubZone'],1);
+  my $offset = zeroes(2);
+  $offset->(0) .= 5e5*(2*$PI/40e6)/$a->{params}->{oconv};
+  $offset->(1) .= ($subzone < 0) ? $PI/2/$a->{params}->{oconv} : 0;
+
+  my $merid = ($zone * 6) - 183;
+
+  my $gk = _opt($opt,['gk','gausskruger'],0);
+  
+  my($me) = t_compose(t_linear(post=>$offset,
+			       rot=>-90
+			       ),
+
+		      t_mercator(o=>[$merid,0], 
+				 r=>90, 
+				 ou=>$a->{ounit}, 
+				 s=>$gk ? 0 : ($RAD2DEG * (180/6371))
+				)
+		      );
+
+
+  my $s = ($zone < 0) ? "S Hemisphere " : "";
+  $me->{otype} = ["UTM-$zone Easting","${s}Northing"];
+  $me->{ounit} = $a->{ounit};
+
+  return $me;
+}
 
 ######################################################################
 
@@ -1430,7 +1584,7 @@ sub t_conic {
 =head2 t_albers
 
 =for usage
-    
+
     $t = t_albers(<options>)
 
 =for ref
@@ -1539,7 +1693,7 @@ sub t_albers  {
 =head2 t_lambert
 
 =for usage
-    
+
     $t = t_lambert(<options>);
 
 =for ref
@@ -2033,7 +2187,7 @@ sub t_az_eqa {
 
 ######################################################################
 
-=head2 t_aitoff 
+=head2 t_aitoff
 
 =head2 t_hammer
 
@@ -2052,6 +2206,8 @@ OPTIONS
 =over 3
 
 =item STANDARD POSITIONAL OPTIONS
+
+=back
 
 =cut
 
@@ -2463,8 +2619,6 @@ Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
 is just an expensive modified-gnomonic projection).
 
   $t = t_perspective(r0=>0,fov=>10,mag=>5,o=>[88.79,7.41])
-  
-
 
 =cut
 

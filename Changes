@@ -1,3 +1,128 @@
+CS  12-19-03
+   - small release notes change
+   - t/primitive.t: test empty piddle handling
+CED 12-16-03
+   - ufunc.pd: average() returns 0 when given an integer empty piddle
+	and nan when given a floating-point empty piddle (unless badvals
+	are compiled, in which case you get BAD back).
+   - Fixed broken vector coastline (when did that happen?)
+   - Minor documentation fix to NDF.pm.PL
+CS  12-16-03
+   - t/plplot.t: redirect stderr to get rid of silly messages
+   - update Release_Notes
+CED 12-15-03
+   - primitive.pd: change statsover to use population standard deviation for
+     rms term -- solves bug #852359
+   - transform.pd: changed call to nan("") to sqrt(-1) for cross-system	
+	compatibility (Slowlaris has no nan() call)
+   - Fixed typo in FITS.pm; shut up precedence complaints from t/func.t and
+	slatec.t
+   - Shut up v-strings warning in NiceSlice.pm
+   - Numerous other warnings from perl 5.8.2 suppressed.
+CS  12-12-03
+   - Lvalue.pm: change v-strings to backwards compatible version numbers
+CED 09-Dec-2003
+   - m51.fits: Replaced non-free NOAO image with free Hubble Heritage image
+CS  08-Dec-2003
+   - Core.pm.PL: fix nslice to handle empty piddles
+CED 07-Dec-2003
+   - ufunc.pd: average() and daverage() return 0 when given an empty piddle
+	in a non-bad-value environment.  [One might argue that this should be
+	nan; I'm open to changing it...]
+   - ufunc.pd: andover, orover, etc. no longer convert arguments to 
+	integer types before performing the operation.  bandover and borover
+	work as before, since bitwise and makes no sense on floating-point
+	types.
+CED 05-Dec-2003
+   - Clean up axis labeling code in imag(); should eliminate spurious
+	doubled titles.
+CS  04-Dec-2003
+   - add code to Makefile.PL that tries to detect
+     broken redhat installations
+CS  03-Dec-2003
+   - PGPLOT::Graphics::Window: activate autolog for the 'points'
+     command and add some brief docs about autologging (see docs
+     for AXIS option)
+CED 25-Nov-2003
+   - Fixed eigens; eigenvectors are now in the columns of the output 
+	eigenvector matrix, rather than in the rows.
+CED 21-Nov-2003
+   - Fixed bug 755563 (I hope) in the OpenGL configuration
+   - Fixed bug 793195; some random doc improvements for  Image2D and Transform.
+DH  21-Nov-2003
+   - Upgraded PLplot interface for plplot-5.2.1 and perl 5.8.2.  Improved
+     test suite.  Also fixed two small bugs which give warnings during
+     'make test' under perl 5.8.2:  One in primitive.pd and the other in misc.pd.
+CED 19-Nov-2003
+   - Several minor fixes and improvements to rfits().  Notably, it now
+	works in array context, pulling all extensions and returning as list.
+CED 17-Nov-2003
+   - Split FITS IO into its own module.
+CS  13-Nov-2003
+   - GSL version check (>= 1.3) in Lib/GSL/Makefile.PL
+     related to bug 806229 which might be caused by a version
+	mismatch(?)
+CED 11-Nov-2003
+   - Added FITS BINTABLE reading to PDL::IO::Misc.
+CED 04-Nov-2003
+   - Updated Matrix.pm 
+   - Removed null tests from trans code in PP.pm - to enable better handling
+	of null piddles.  (fixes bug 779312, I hope)
+CED 16-Oct-2003
+   - Added whatis() function to perldl
+CED 15-Oct-2003
+   - Added PDL::IO::IDL.
+CED 15-Sep-2003
+   - Added easier access to local web documentation ("help www").
+   - Help searches are case-insensitive.
+CED 01-Sep-2003
+   - Moved Transform.pm to PP; wrote C version of map() algorithm.
+   - Revamped Window.pm documentation a bit.
+   - Fixed bg bug in text().
+CED 23-Aug-2003
+   - Added uniqvec() to primitive.pd
+CED 22-Aug-2003
+   - Added 'mirror' boundary condition to range()
+   - Added qsortvec() to ufunc -- lexicographically sort a bunch of vectors.
+CED 8-Aug-2003
+   - DiskCache now accepts a "bless" option that blesses the tied array
+	into the PDL::DiskCache class for easier access to the "sync" and
+	"purge" methods.
+   - Some fixes to Transform.
+CED 5-Aug-2003
+   - Several minor fixes (bugs 777000, 783104, and 772492)
+CED 27-Jul-2003
+   - Minor fix to Transform.pm (t_quadratic)
+CED 26-Jul-2003
+   - Fixed test for complex.t
+   - Fixed documentation for primitive.t
+CED 24-Jul-2003
+   - Online documentation works for autoload files
+   - Fixed regexp bug in searcher (special characters broke searching, as 
+     in "? /tmp/foo")
+JC  22-Jul-2003
+   - Fixed bug in polar to re-im conversion routine (Cp2r) in 
+     PDL::Complex. Added test case in complex.t to check that
+     re-im to polar conversion followed by polar to re-im ends
+     up with the same value we started with.
+CED 12-Jul-2003
+   - interpND: added cubic and FFT interpolation schemes.
+CED 5-Jul-2003
+   - imagend.pd: convolveND is ready to roll: fixed off-by-1 errors, 
+	added tests and documentation.  
+CED 3-Jul-2003
+   - imagend.pd: add optimized "convolveND".  Still needs a bit of offset-by-1
+	work, but runs 3x faster than convolve() for direct convolution.
+CED 29-Jun-2003
+   - slices.pd: clump allows "-n" to mean "keep n dimensions".
+CED 28-Jun-2003
+   - Transform.pm: fix autoranging of map()
+   - primitive.pd: fix negative-index case in linear interpolation 
+	(floor is required to prevent round *up* for negative indices)
+CS
+   - fix NiceSlice foreach bug; v to 1.0.0
+   - fix fftwconv
+2.4.0 released
 CED 22-May-2003
    - Better fallbacks for RGB images if PGPLOT-RGB support isn't installed
          (Window.pm)
@@ -796,7 +921,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      Halld���r Olafsson and Vince McIntyre (bug #233484)
+      HalldBBBBBsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

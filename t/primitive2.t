@@ -49,7 +49,7 @@ ok($testNo++, ($im x $im)->sum == 3429 );
 my @statsRes = $im->stats;
 
 ok($testNo++, tapprox($statsRes[0],5.36) );
-ok($testNo++, tapprox($statsRes[1],4.4621) );
+ok($testNo++, tapprox($statsRes[1],4.554) );
 ok($testNo++, tapprox($statsRes[2],3) );
 ok($testNo++, tapprox($statsRes[3],1) );
 ok($testNo++, tapprox($statsRes[4],13) );

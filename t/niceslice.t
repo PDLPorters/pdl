@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 41,
+	plan tests => 43,
 	# todo => [37..40],
     } else {
 	plan tests => 1;
@@ -143,6 +143,10 @@ $a = ''; # foreach and whitespace
 eval translate_and_show 'foreach  my $b (1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');
 
+$a = ''; my $t = ones 10; # foreach and imbedded expression
+eval translate_and_show 'foreach my $type ( $t(0)->list ) { $a .= $type }';
+ok(!$@ and $a eq '1');
+
 # block method access translation
 
 $a = pdl(5,3,2);
@@ -205,3 +209,9 @@ eval translate_and_show '$b = $a(1:2,pdl(0,2));';
 # with quasi-deep copying.  --CED 11-Apr-2003
 #   ok (!$@ and $b->gethdr() == $h);
 ok(!$@ and join("",%{$b->gethdr}) eq join("",%{$h}));
+
+$a = ones(10);
+my $i = which $a < 0;
+my $ai;
+eval translate_and_show '$ai = $a($i);';
+ok(isempty $ai );

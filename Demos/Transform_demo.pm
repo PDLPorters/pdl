@@ -17,7 +17,7 @@ sub run {
   local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
 
 # try and find m51.fits
 $d = File::Spec->catdir( "PDL", "Demos" );
@@ -33,9 +33,8 @@ comment q|
     This demo illustrates the PDL::Transform module.
 
     It requires PGPLOT support in PDL and makes use of the image of
-    m51 kindly provided by the IRAF group at the National Optical and
-    Astronomical Observatories.
-
+    M51 kindly provided by the Hubble Heritage group at the 
+    Space Telescope Science Institute.
 
 |;
 
@@ -256,6 +255,9 @@ comment q|
  as well as other planets &c.
 
 |;
+
+  $win->close;
+  undef $win;
 } 
 
 1;

@@ -15,7 +15,7 @@ PDL::IO::Misc - misc IO routines for PDL
 
 =head1 DESCRIPTION
 
-A mixture of basic I/O functionality
+Some basic I/O functionality: FITS, tables, byte-swapping
 
 =head1 SYNOPSIS
 
@@ -29,7 +29,7 @@ pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook 1997.
+Copyright (C) Karl Glazebrook 1997 and Craig DeForest 2001, 2003.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -40,7 +40,7 @@ the copyright notice should be included in the file.
 
 EOD
 
-pp_add_exported('',"rfits wfits rcols wcols swcols rgrep rdsa");
+pp_add_exported('',"rcols wcols swcols rgrep rdsa");
 
 ############################## PM CODE ########################################
 
@@ -54,706 +54,74 @@ use Carp;
 use Symbol qw/ gensym /;
 use strict;
 
-=head2 rfits()
-
-=for ref
-
-Simple piddle FITS reader.
-
-=for example
-
-  $pdl = rfits('file.fits');
-
-Suffix magic:
-
-  # Automatically uncompress via gunzip pipe
-  $pdl = rfits('file.fits.gz');
-  # Automatically uncompress via uncompress pipe
-  $pdl = rfits('file.fits.Z');
-
-  $pdl = rfits('file.fits[2]'); # Read HDU extension #2
-  $pdl = rfits('file.fits.gz[3]'); # Read HDU extension #3
-
-The default is to read the primary HDU. One can read other
-HDU's by using the [n] syntax, the second one is [1]. This works
-as long as they are IMAGE extensions - this module does not
-do FITS tables!
-
-FITS Headers are stored in the piddle and can be retrived with
-$a->gethdr.  The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set
-so that the header is copied to new piddles.
-
-This header is a reference to a hash where the hash keys are the
-keywords in the FITS header.  If you have the "Astro::FITS::Header"
-module installed, the header is actually a tied-hash to a FITS header
-object.  The tied-hash interface is designed so that it emulates the 
-legacy PDL support: keyword/value pairs are accessed as with an ordinary 
-hash.  But for more precise control of the FITS header you can access
-the underlying Astro::FITS::Header object using the perl "tied" builtin
-(see L<Astro::FITS::Header> for details).
-
-Keywords are converted to I<uppercase>; this is part of the FITS
-standard; but access is case-insensitive on the perl side, provided
-that Astro::FITS::Header is intalled.
-
-Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where 
-C<$h> is the header retrieved with C<$a-E<gt>gethdr>.
-History entries in the header are stored as C<$$h{HISTORY}>, which is an
-anonymous array for each HISTORY entry in the header.
-
 !NO!SUBS!
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-=for bad
+defpdl(
+        'bswap2',
+        'x(); ',
+        '',
+        '
+      int i;
+      PDL_Short *aa; PDL_Short bb;
+      PDL_Byte *a,*b;
 
-If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>, 
-the piddle will have its bad flag set, and those elements which equal the
-C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
-converted to bad (if necessary).
+      int n = sizeof($x()) / sizeof(PDL_Short);
+      aa = (PDL_Short*) &$x();
 
-!NO!SUBS!
-} # if: $bvalflag
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a = *(b+1);  *(a+1) = *b;
+     }',
+     "Swaps pairs of bytes in argument x()"
+);
 
-#'
+
+defpdl(
+        'bswap4',
+        'x(); ',
+        '',
+        '
+      int i;
+      PDL_Long *aa; PDL_Long bb;
+      PDL_Byte *a,*b;
+
+      int n = sizeof($x()) / sizeof(PDL_Long);
+      aa = (PDL_Long*) &$x();
+
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a = *(b+3);  *(a+1) = *(b+2);  *(a+2) = *(b+1); *(a+3) = *b;
+     }',
+     "Swaps quads of bytes in argument x()"
+);
+
+
+defpdl(
+        'bswap8',
+        'x(); ',
+        '',
+        '
+      int i;
+      PDL_Double *aa; PDL_Double bb;
+      PDL_Byte *a,*b;
+
+      int n = sizeof($x()) / sizeof(PDL_Double);
+      aa = (PDL_Double*) &$x();
+
+      for(i=0;i<n; i++) {
+         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
+         b = (PDL_Byte*) &bb;
+         *a     = *(b+7);  *(a+1) = *(b+6);  *(a+2) = *(b+5); *(a+3) = *(b+4);
+         *(a+4) = *(b+3);  *(a+5) = *(b+2);  *(a+6) = *(b+1); *(a+7) = *b;
+     }',
+     "Swaps octets of bytes in argument x()"
+);
+
 
 pp_addpm(<<'!NO!SUBS!');
-=cut
 
-sub rfits {PDL->rfits(@_)}
-
-##############################
-#
-# Check if there's Astro::FITS::Header support, and set flag.
-# Kludgy but it only has to run once, on first load.  --CED
-#
-BEGIN {
-	eval "use Astro::FITS::Header;";
-	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
-	if($PDL::Astro_FITS_Header) {
-	  my($a) = $Astro::FITS::Header::VERSION;
-	  $a =~ s/[^0-9\.].*//;
-	  $PDL::Astro_FITS_Header = 0 if($a < 1.12);
-	}
-}
-##############################
-
-
-sub PDL::rfits {
-   my $class = shift;
-   barf 'Usage: $a = rfits($file); $a = PDL->rfits("...")' if $#_!=0;
-   my $file = shift; my $pdl  = $class->new;
-   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero);
-   my $extnum;
-   
-   if ($file =~ s/\[(\d+)\]$//) {
-      $extnum = $1;
-   }else{
-      $extnum = 0;
-   }
-
-   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
-   $file = "uncompress -c $file |" if $file =~ /\.Z$/;
-
-   open(FITS, $file) || barf "FITS file $file not found";
-   binmode FITS;
-   $nbytes = 0; # Number of bytes read so far
-   $line = "";
-
-  #
-  # Switch here:  in case of legacy support, use the parser written
-  # by KGB; otherwise, if Astro::FITS::Header exists, use that and 
-  # put a tied hash into the returned piddle's header.  (CED)
-  # 
-   my $foo={};       # To go in pdl
-   $$foo{"BSCALE"}=1;
-   $$foo{"BZERO"}=0;
-   my @history=();
-   my $currentext=0;
-
-   my @cards = ();
-   while( !eof(FITS)) {
-      read(FITS,$line,80);
-      barf "file $file is not in FITS-format:\n$line\n"
-                  if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
-      $nbytes += 80;
-
-      push(@cards,$line)  if($PDL::Astro_FITS_Header);
-
-      # Now skip to required extension
-      if ($currentext != $extnum) {
-          while(1) {
-      	    # Move to next record
-       	    read(FITS,$line,2880-80);
-   	    barf "Unexpected end of FITS file\n" if eof(FITS);
-   	    # Read start of next record
-         	    read(FITS,$line,80);
-   	    barf "Unexpected end of FITS file\n" if eof(FITS);
-   	    # Check if we have found the new extension
-   	    # if not move on
-   	    $currentext++ if  $line =~ /^XTENSION/;
-   	    if ($currentext == $extnum) {
-   	       print "Found extension $currentext \n" if $PDL::verbose;
-   	       $line =~ /^XTENSION= \'(\w+)\s*\'/;
-   	       barf "Can not handle $1 extensions\n" unless $1 eq "IMAGE";
-   	       last;
-   	    }   
-   	  }
-        }
-
-        $name = (split(' ',substr($line,0,8)))[0]; 
-        $rest = substr($line,8);
-
-	if(!($PDL::Astro_FITS_Header)) { 
-	  # (No FITS header library -- do legacy parsing)
-	     
-          # skip if the first eight characters are ' '
-          # - as seen in headers from the DSS at STScI
-          next if substr($line,0,8) eq " " x 8;
-   
-          $name = (split(' ',substr($line,0,8)))[0]; 
-          $rest = substr($line,8);
- 
-          if ($name =~ m/^HISTORY/) {
-             push @history, $rest;
-          } else {
-             $$foo{$name} = "";
-
-             $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
- 	     $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
-             $$foo{COMMENT}{$name} = $3 if defined($3);
-          }
-	} # End of legacy parsing
-
-        last if ((defined $name) && $name && $name eq "END");
-
-   }
- 
-
-   # (This line only runs if KGB parsing has happened)
-   $$foo{"HISTORY"} = \@history if $#history >= 0;
-
-   # Step to end of header block in file
-   $nbytes %= 2880;
-   my $bar; read(FITS,$bar, 2880-$nbytes) if $nbytes!=0; # Skip to end of card
-
-   # Do header parsing and tying if Astro::FITS::Header is enabled
-   if($PDL::Astro_FITS_Header) {
-	my($hdr) = new Astro::FITS::Header(Cards => \@cards);
-	my(%hdrhash);
-	tie %hdrhash,"Astro::FITS::Header",$hdr;
-	$foo = \%hdrhash;
-   }
-   
-   # Setup piddle structure
-
-   $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
-   $pdl->set_datatype($PDL_S)    if $$foo{"BITPIX"} ==  16;
-   $pdl->set_datatype($PDL_L)    if $$foo{"BITPIX"} ==  32;
-   $pdl->set_datatype($PDL_F)    if $$foo{"BITPIX"} == -32;
-   $pdl->set_datatype($PDL_D)    if $$foo{"BITPIX"} == -64;
-
-   my @dims; # Store the dimenions 1..N, compute total number of pixels
-   $size = 1;  $i=1;
-   while(defined( $$foo{"NAXIS$i"} )) {
-     $size *= $$foo{"NAXIS$i"};
-     push @dims, $$foo{"NAXIS$i"} ; $i++;
-   }
-   $pdl->setdims([@dims]);
-
-   my $dref = $pdl->get_dataref();
-
-   print "BITPIX = ",$$foo{"BITPIX"}," size = $size pixels \n"
-         if $PDL::verbose;
-
-   # Slurp the FITS binary data
-
-   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" 
-	if $PDL::verbose;
-
-   read( FITS, $$dref, $size*PDL::Core::howbig($pdl->get_datatype) );
-
-   close(FITS);
-   $pdl->upd_data();
-
-   if (!isbigendian() ) { # Need to byte swap on little endian machines
-      bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-      bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
-	  $pdl->get_datatype == $PDL_F;
-      bswap8($pdl) if $pdl->get_datatype == $PDL_D;
-   }
-
-   if ( $PDL::Bad::Status ) {
-       # do we have bad values? - needs to be done before BSCALE/BZERO
-       # (at least for integers)
-       #
-       if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
-	   # integer, so bad value == BLANK keyword
-	   my $blank = $foo->{BLANK};
-	   # do we have to do any conversion?
-	   if ( $blank == $pdl->badvalue() ) {
-	       $pdl->badflag(1);
-	   } else {
-	       # we change all BLANK values to the current bad value
-	       # (would not be needed with a per-piddle bad value)
-	       $pdl->inplace->setvaltobad( $blank );
-	   }
-       } elsif ( $foo->{BITPIX} < 0 ) {
-	   # bad values are stored as NaN's in FITS
-	   # let setnanbad decide if we need to change anything
-	   $pdl->inplace->setnantobad();
-       }
-       print "FITS file may contain bad values.\n"
-	   if $pdl->badflag() and $PDL::verbose;
-   } # if: PDL::Bad::Status
-
-   $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
-   print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-   $bscale = 1 if (!defined($bscale) || $bscale eq "");
-   $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
-
-   # Be clever and work out the final datatype before eating
-   # memory
-   #
-   # ensure we pick an element that is not equal to the bad value
-   # (is this OTT?)
-   my $tmp;
-   if ( $pdl->badflag() == 0 ) {
-       $tmp = $pdl->flat()->slice("0:0");
-   } elsif ( $pdl->ngood > 0 ) {
-       my $index = which( $pdl->flat()->isbad() == 0 )->at(0);
-       $tmp = $pdl->flat()->slice("${index}:${index}");
-   } else {
-       # all bad, so ignore the type conversion and return
-       # -- too lazy to include this check in the code below,
-       #    so just copy the header clean up stuff
-       print "All elements are bad.\n" if $PDL::verbose;
-       
-       delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-       $pdl->sethdr($foo);
-       $pdl->hdrcpy(1);
-       return $pdl;
-   }
-
-   $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element of $pdl
-   $tmp = $tmp+$bzero  if $bzero  != 0;
-
-   $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
-
-   $pdl *= $bscale if $bscale != 1;
-   $pdl += $bzero  if $bzero  != 0;
-
-   delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-
-   # Header
-
-   $pdl->sethdr($foo);
-   $pdl->hdrcpy(1);
-
-   return $pdl;
-}
-
-=head2 wfits()
-
-=for ref
-
-Piddle FITS writer
-
-=for example
-
-  wfits $pdl, 'filename.fits', [$BITPIX];
-  $pdl->wfits('foo.fits',-32);
-
-Suffix magic:
-
-  # Automatically compress through pipe to gzip
-  wfits $pdl, 'filename.fits.gz';
-  # Automatically compress through pipe to compress 
-  wfits $pdl, 'filename.fits.Z';  
-
-$BITPIX is optional and coerces the output format.
-
-Header handling:
- 
-If C<$pdl> has a FITS header attached to it (actually, any hash that
-contains a SIMPLE=>T keyword), then that FITS header is written out to the
-file.  The image dimension tags are adjusted to the actual dataset.
-If there's a mismatch between the dimensions of the data and the 
-dimensions in the FITS header, then the header gets corrected and a 
-warning is printed.
-
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-=for bad
-
-For integer types (ie C<BITPIX E<gt> 0>), the C<BLANK> keyword is set
-to the bad value.  For floating-point types, the bad value is
-converted to NaN (if necessary) before writing.
-
-!NO!SUBS!
-} # if: $bvalflag
-
-pp_addpm(<<'!NO!SUBS!');
-=cut
-
-*wfits = \&PDL::wfits;
-
-BEGIN {
-  @PDL::IO::Misc::wfits_keyword_order = 
-    ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
-}
-
-# Until we do a rewrite these have to be file global since they
-# are used by the wheader routine
-my (%hdr, $nbytes);
-
-sub PDL::wfits { # Write a PDL to a FITS format file
-   barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
-
-   my ($pdl,$file,$BITPIX) = @_;
-   my ($k, $buff, $off, $ndims, $sz);
-
-   if ($file =~ /\.gz$/) {            # Handle compression
-      $file = "|gzip -9 > $file";
-   }
-   elsif ($file =~ /\.Z$/) {
-      $file = "|compress > $file";
-   }
-   else{
-      $file = ">$file";
-   }
-
-   # Figure output type
-
-   $BITPIX = "" unless defined $BITPIX;
-   if ($BITPIX eq "") {
-      $BITPIX =   8 if $pdl->get_datatype == $PDL_B;
-      $BITPIX =  16 if $pdl->get_datatype == $PDL_S || $pdl->get_datatype == $PDL_US;
-      $BITPIX =  32 if $pdl->get_datatype == $PDL_L;
-      $BITPIX = -32 if $pdl->get_datatype == $PDL_F;
-      $BITPIX = -64 if $pdl->get_datatype == $PDL_D;
-   }
-   my $convert = sub { return $_[0] };# Default - do nothing
-   $convert = sub {byte($_[0])}   if $BITPIX ==   8;
-   $convert = sub {short($_[0])}  if $BITPIX ==  16;
-   $convert = sub {long($_[0])}   if $BITPIX ==  32;
-   $convert = sub {float($_[0])}  if $BITPIX == -32;
-   $convert = sub {double($_[0])} if $BITPIX == -64;
-
-   # Automatically figure output scaling
-
-   my $bzero = 0; my $bscale = 1;
-   if ($BITPIX>0) {
-      my $min = $pdl->min;
-      my $max = $pdl->max;
-      my ($dmin,$dmax) = (0, 2**8-1)     if $BITPIX == 8;
-      ($dmin,$dmax) = (-2**15, 2**15-1)  if $BITPIX == 16;
-      ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
-
-      if ($min<$dmin || $max>$dmax) {
-         $bzero = $min - $dmin;
-         $max -= $bzero;
-         $bscale = $max/$dmax if $max>$dmax;
-       }
-       print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-   }
-
-   
-   ## Open file & prepare to write binary info
-   open(FITS, "$file") || barf "Unable to create FITS file $file\n";
-   binmode FITS;
-
-   ##############################
-   ## Check header and prepare to write it out
-
-   my($h) = $pdl->gethdr();
-   if(defined($h) && 
-      ( (defined (tied %$h)) && 
-        (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
-      ){
-     my $k;
-
-     ##n############################
-     ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
-     ## direct hash handler below, so I've more or less just copied and
-     ## pasted with some translation.  --CED
-     ##
-     my $hdr = tied %$h;
-
-     #
-     # Put advertising comment in the SIMPLE field
-     #n
-     $h->{SIMPLE} = 'T';
-     my(@a) = $hdr->itembyname('SIMPLE');
-     $a[0]->comment('Created with PDL (http://pdl.perl.org)');
-
-     # and register it as a LOGICAL rather than a string
-     $a[0]->type('LOGICAL');
-
-     
-     #
-     # Use tied interface to set all the keywords.  Note that this
-     # preserves existing per-line comments, only changing the values.
-     #
-     $h->{BITPIX} = $BITPIX;
-     $h->{NAXIS} = $pdl->getndims;
-     my $correction = 0;
-     for $k(1..$h->{NAXIS}) { 
-	$correction |= (exists $h->{"NAXIS$k"} and 
-	                $h->{"NAXIS$k"} != $pdl->dim($k-1)
-	               );
-	$h->{"NAXIS$k"} = $pdl->getdim($k-1); 
-     }
-     carp("Warning: wfits corrected dimensions of FITS header") 
-	if($correction);
-
-     $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
-     $h->{BSCALE} = $bscale if($bscale != 1);
-     $h->{BZERO}  = $bzero  if($bzero  != 0);
-
- 
-    if ( $pdl->badflag() ) {
-       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $h->{BLANK} = $a->badvalue(); }
-       else               { delete $h->{BLANK}; }
-     }
-     
-     #
-     # Use object interface to sort the lines. This is complicated by
-     # the need for an arbitrary number of NAXIS<n> lines in the middle
-     # of the sorting.  Keywords with a trailing '1' in the sorted-order
-     # list get looped over.
-     my($kk) = 0; 
-     for $k(0..$#PDL::IO::Misc::wfits_keyword_order) {
-       my($kn) = 0;
-       
-       my @index;
-       do {            # Loop over numericised keywords (e.g. NAXIS1)
-	 
- 	 my $kw = $PDL::IO::Misc::wfits_keyword_order[$k]; # $kw get keyword
- 	 $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
- 	 @index = $hdr->index($kw);
-	 
-	 if(defined $index[0]) {
-	     $hdr->insert($kk, $hdr->remove($index[0])) 
-	       unless ($index[0] == $kk) ;
-	     $kk++;
-	 }
-       } while((defined $index[0]) && $kn);
-     }
-
-     #
-     # Delete the END card if necessary (for later addition at the end)
-     #
-     $hdr->removebyname('END');
-
-     #
-     # Make sure that the HISTORY lines all come at the end
-     # 
-     my @hindex = $hdr->index('HISTORY');
-     for $k(0..$#hindex) {
-       $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
-     }
-
-     #
-     # Make sure the last card is an END
-     #
-     $hdr->insert(scalar($hdr->cards),
-	new Astro::FITS::Header::Item(Keyword=>'END'));
-     
-     #
-     # Write out all the cards, and note how many bytes for later padding.
-     #
-     my $s = join("",$hdr->cards);
-
-     print FITS $s;
-     $nbytes = length $s;
-   } else {
-     #
-     # Legacy emitter (note different advertisement in the SIMPLE
-     # comment, for debugging!)
-     #
-   
-     printf FITS "%-80s", "SIMPLE  =                    T / PDL::IO::Misc::wfits (http://pdl.perl.org)";
-     
-     $nbytes = 80; # Number of bytes written so far
-     
-     # Write FITS header
-     
-     %hdr = ();
-     if (defined($h)) {
-       for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
-     }
-     
-     delete $hdr{SIMPLE}; delete $hdr{'END'};
-     
-     $hdr{BITPIX} =  $BITPIX;
-     $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-     wheader('BITPIX');
-     
-     $ndims = $pdl->getndims; # Dimensions of data array
-     $hdr{NAXIS}  = $ndims;
-     wheader('NAXIS');
-     for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-     for $k (1..$ndims) { wheader("NAXIS$k") }
-     
-     if ($bscale != 1 || $bzero  != 0) {
-       $hdr{BSCALE} =  $bscale;
-       $hdr{BZERO}  =  $bzero;
-       wheader('BSCALE');
-       wheader('BZERO');
-     }
-     wheader('BUNIT');
-     
-     # IF badflag is set
-     #   and BITPIX > 0 - ensure the header contains the BLANK keyword
-     #                    (make sure it's for the correct type)
-     #   otherwise      - make sure the BLANK keyword is removed
-     if ( $pdl->badflag() ) {
-       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
-       else               { delete $hdr{BLANK}; }
-     }
-     
-     for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
-     wheader('HISTORY'); # Make sure that HISTORY entries come last.
-     printf FITS "%-80s", "END"; $nbytes += 80;
-   }
-
-
-   #
-   # Pad the header to a legal value and write the rest of the FITS file.
-   #
-   $nbytes %= 2880;
-   print FITS " "x(2880-$nbytes) if $nbytes != 0; # Fill up HDU
-
-   # Decide how to byte swap - note does not quite work yet. Needs hack
-   # to IO.xs
-
-   my $bswap = sub {};     # Null routine
-   if ( !isbigendian() ) { # Need to set a byte swap routine
-      $bswap = \&bswap2 if $BITPIX==16;
-      $bswap = \&bswap4 if $BITPIX==32 || $BITPIX==-32;
-      $bswap = \&bswap8 if $BITPIX==-64;
-   }
-
-   # Write FITS data
-
-   my $p1d = $pdl->clump(-1); # Data as 1D stream
-
-   $off = 0;
-   $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
-
-   $nbytes = $p1d->getdim(0) * $sz;
-
-   # Transfer data in blocks (because might need to byte swap)
-   # Buffer is also type converted on the fly
-
-   my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
-   my $tmp;
-
-   if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-       # just print up a message - conversion is actually done in the loop
-       print "Converting PDL bad value to NaN\n" if $PDL::verbose;
-   }
-
-   while ($nbytes - $off > $BUFFSZ) {
-
-       # Data to be transferred
-
-       $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
-			   -$bzero)/$bscale );
-
-       # if there are bad values present, and output type is floating-point,
-       # convert the bad values to NaN's.  We can ignore integer types, since
-       # we have set the BLANK keyword
-       #
-       if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-	   $buff->inplace->setbadtonan();
-       }
-
-       &$bswap($buff); print FITS ${$buff->get_dataref};
-       $off += $BUFFSZ;
-   }
-   $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
-
-   if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-       $buff->inplace->setbadtonan();
-   }
-
-   &$bswap($buff); print  FITS ${$buff->get_dataref};
-   print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
-
-   close(FITS);
-
-1;}
-
-sub wheader {     # Local utility routine of wfits()
-   my $k = shift;
-
-   if ($k =~ m/HISTORY/) {
-      return unless ref($hdr{$k}) eq 'ARRAY';
-      foreach my $line (@{$hdr{$k}}) {
-         printf FITS "HISTORY %-72s", substr($line,0,72);
-       $nbytes += 80;
-      }
-      delete $hdr{$k};
-   } else {
-      # Check that we are dealing with a scalar value in the header
-      # Need to make sure that the header does not include PDLs or
-      # other structures. Return unless $hdr{$k} is a scalar.
-     my($hdrk) = $hdr{$k};
-
-     if(ref $hdrk eq 'ARRAY') {
-       $hdrk = join("\n",@$hdrk);
-     }
-
-      return unless not ref($hdrk);
-
-      if ($hdrk eq "") {
-         printf FITS "%-80s", substr($k,0,8);
-      } else {
-         printf FITS "%-8s= ", substr($k,0,8);
-
-	 my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ? $hdr{COMMENT}{$k} : undef;
-
-
-         if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
-         my $cl=60-($com ? 2 : 0);
-         my $end=' ' x $cl;
-         $end =' /'. $com if($com);
-         printf FITS "%20s%-50s", substr($hdrk,0,20),
-         substr($end, 0, 50);
-        } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
-          # Logical flags ?
-          printf FITS "%20s", $hdrk;
-          my $end=' ' x 50;
-          $end =' /'.$com if($com);
-          printf FITS "%-50s", $end;
-        } else {
-	  # Handle strings, truncating as necessary
-	  # (doesn't do multicard strings like Astro::FITS::Header does)
-	  
-	  # Convert single quotes to doubled single quotes 
-	  # (per FITS standard)
-	  my($st) = $hdrk;
-	  $st =~ s/\'/\'\'/g;
-	  
-	  my $sl=length($st)+2;
-	  my $cl=70-$sl-($com ? 2 : 0);
-	  print FITS "'$st'";
-	  
-	  if (defined $com) {
-	    printf FITS " /%-$ {cl}s", substr($com, 0, $cl);
-	  } else {
-	    printf FITS "%-$ {cl}s", ' ' x $cl;
-	  }
-	}
-       }
-      $nbytes += 80; delete $hdr{$k};
-    }
-   delete $hdr{COMMENT}{$k} if(ref $hdr{COMMENT} eq 'HASH');
-1;}
 
 # ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
 # - needs a proper extend function rather than this nasty recreation
@@ -775,19 +143,19 @@ sub _handle_types ($$$) {
     my $types = shift;
 
     barf "Unknown PDL type given for DEFTYPE.\n"
-	unless ref($deftype) eq "PDL::Type";
+        unless ref($deftype) eq "PDL::Type";
 
     my @cols = ref($types) eq "ARRAY" ? @$types : ();
-	
+        
     if ( $#cols > -1 ) {
-  	# truncate if required
-  	$#cols = $ncols if $#cols > $ncols;
-	
-  	# check input values are sensible
-  	for ( 0 .. $#cols ) {
-  	    barf "Unknown value '$cols[$_]' in TYPES array.\n" 
-  		unless ref($cols[$_]) eq "PDL::Type";
-  	}
+        # truncate if required
+        $#cols = $ncols if $#cols > $ncols;
+        
+        # check input values are sensible
+        for ( 0 .. $#cols ) {
+            barf "Unknown value '$cols[$_]' in TYPES array.\n" 
+                unless ref($cols[$_]) eq "PDL::Type";
+        }
     }
 
     # fill in any missing columns
@@ -848,9 +216,9 @@ the requested piddles (default B<undef>).
 
   Usage:
     ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, 
-			 $col1, $col2, ... )
+                         $col1, $col2, ... )
     ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., 
-			 { EXCLUDE => '/^!/' } )
+                         { EXCLUDE => '/^!/' } )
     ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
  
 e.g.,
@@ -961,11 +329,11 @@ sub PDL::rcols {
    my ( $a, $b, $c );
    if ( $$options{LINES} ne '' ) {
        if ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*$/ ) {
-	   $a = $1; $b = $2;
+           $a = $1; $b = $2;
        } elsif ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*:\s*([+]?\d*)\s*$/ ) {
-	   $a = $1; $b = $2; $c = $3;
+           $a = $1; $b = $2; $c = $3;
        } else {
-	   barf "rcols() - unable to parse LINES option.\n";
+           barf "rcols() - unable to parse LINES option.\n";
        }
    }
 
@@ -1037,27 +405,27 @@ sub PDL::rcols {
        if ( $index == 0 ) {
          @pdl_cols = ( 0 .. $#v ) if $#pdl_cols < 0;
 
-	 # sort out the types of the piddles
-	 my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
-	 if ( $PDL::verbose ) { # dbg aid
-	     print "Reading data into piddles of type: [ ";
-	     foreach my $t ( @types ) {
-		 print $t->shortctype() . " ";
-	     }
-	     print "]\n";
-	 }
-	 
+         # sort out the types of the piddles
+         my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
+         if ( $PDL::verbose ) { # dbg aid
+             print "Reading data into piddles of type: [ ";
+             foreach my $t ( @types ) {
+                 print $t->shortctype() . " ";
+             }
+             print "]\n";
+         }
+         
          $k = 0;
          for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
          for (@perl_cols)    { $ret[$k++] = []; }
-	 $line_store = $class->zeroes(long,1); # only need to store integers
+         $line_store = $class->zeroes(long,1); # only need to store integers
        }
 
        # if necessary, extend PDL in buffered manner
        if ( $pdlsize < $index ) {
          for (0..$#pdl_cols) { ext1D( $ret[$_], $extend ); }
-	   ext1D( $line_store, $extend );
-	   $pdlsize += $extend;
+           ext1D( $line_store, $extend );
+           $pdlsize += $extend;
        }
 
        # Set values - '1*' is split() bug workaround
@@ -1081,9 +449,9 @@ sub PDL::rcols {
        if ( wantarray ) {
          foreach ( 0 .. $#pdl_cols ) { $ret[$_] = PDL->null; }
          for ( ($#pdl_cols+1) .. ($#pdl_cols+1+$#perl_cols) ) { $ret[$_] = []; }
-	   return ( @ret );
+           return ( @ret );
        } else { 
-	   return PDL->null;
+           return PDL->null;
        }
    }
 
@@ -1093,8 +461,8 @@ sub PDL::rcols {
    if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
        for ( 0 .. $#pdl_cols ) { $ret[$_] = $ret[$_]->slice("0:${index}"); };
        if ( $PDL::verbose ) {
-	   if ( $#pdl_cols != -1 ) { print "Read in ", $ret[0]->nelem, " elements.\n"; }
-	   else                    { print "Read in ", $#{ $ret[0] }, " elements.\n"; }
+           if ( $#pdl_cols != -1 ) { print "Read in ", $ret[0]->nelem, " elements.\n"; }
+           else                    { print "Read in ", $#{ $ret[0] }, " elements.\n"; }
        }
        wantarray ? return(@ret) : return $ret[0];
    }
@@ -1106,23 +474,26 @@ sub PDL::rcols {
    # work out the min/max line numbers required
    if ( $line_rev ) {
        if ( defined($line_start) and defined($line_end) ) {
-	   my $dummy = $line_start;
-	   $line_start = $line_end;
-	   $line_end = $dummy;
+           my $dummy = $line_start;
+           $line_start = $line_end;
+           $line_end = $dummy;
        } elsif ( defined($line_start) ) {
-	   $line_end = $line_start;
+           $line_end = $line_start;
        } else {
-	   $line_start = $line_end; 
+           $line_start = $line_end; 
        }
    }
    $line_start = $line_num + 1 + $index_start if $index_start < 0;
    $line_end   = $line_num + 1 + $index_end   if $index_end   < 0;
 
    my $indices;
-   if ( $line_rev ) {
-       $indices = which( $line_store >= $line_end & $line_store <= $line_start )->slice('-1:0');
-   } else {
-       $indices = which( $line_store >= $line_start & $line_store <= $line_end );
+
+   { no warnings 'precedence';	
+     if ( $line_rev ) {
+         $indices = which( $line_store >= $line_end & $line_store <= $line_start )->slice('-1:0');
+     } else {
+         $indices = which( $line_store >= $line_start & $line_store <= $line_end );
+     }
    }
 
    # truncate the piddles
@@ -1204,16 +575,16 @@ sub PDL::wcols {
    if ( ref( $_[-1] ) eq "HASH" ) {
        my $opt = pop;
        foreach my $key ( keys %$opt ) {
-	   if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
-	   else {
-	       print "Warning: wcols does not understand option <$key>.\n"; 
-	   }
+           if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
+           else {
+               print "Warning: wcols does not understand option <$key>.\n"; 
+           }
        }
    }
    my $file = $_[-1];
    my $file_opened;
    my $is_handle = !UNIVERSAL::isa($file,'PDL') && defined fileno($file) ? 1 
-	: 0;
+        : 0;
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
@@ -1225,7 +596,7 @@ sub PDL::wcols {
              open $fh, $file or barf "File $file can not be opened for writing\n";
          }
           pop;
-	  $file_opened = 1;
+          $file_opened = 1;
        }
        else{  # Not a filehandle or filename, assume something else
               # (probably piddle) and send to STDOUT
@@ -1246,32 +617,32 @@ sub PDL::wcols {
    my $i;
    for ($i=0; $i<$n; $i++) {
        if ($format_string) {
-	   my @d;
-	   for (@p) {
-	       push @d,$_->at($i);
-	       if (@d == $step) {
-		   printf $fh $format_string,@d;
-		   printf $fh $colsep;
-		   $#d = -1;
-	       }
-	   }
-	   if (@d && !$i) {
-	       my $str;
-	       if ($#p>0) {
-		   $str = ($#p+1).' columns don\'t';
-	       } else {
-		   $str = '1 column doesn\'t';
-	       }
-	       $str .= " fit in $step column format ".
-	       '(even repeated) -- discarding surplus';
-	       carp $str;
-	       # printf $fh $format_string,@d;
-	       # printf $fh $colsep;
-	   }
+           my @d;
+           for (@p) {
+               push @d,$_->at($i);
+               if (@d == $step) {
+                   printf $fh $format_string,@d;
+                   printf $fh $colsep;
+                   $#d = -1;
+               }
+           }
+           if (@d && !$i) {
+               my $str;
+               if ($#p>0) {
+                   $str = ($#p+1).' columns don\'t';
+               } else {
+                   $str = '1 column doesn\'t';
+               }
+               $str .= " fit in $step column format ".
+               '(even repeated) -- discarding surplus';
+               carp $str;
+               # printf $fh $format_string,@d;
+               # printf $fh $colsep;
+           }
        } else {
-	   for (@p) {
-	       print $fh $_->at($i),$colsep;
-	   }
+           for (@p) {
+               print $fh $_->at($i),$colsep;
+           }
        }
        print $fh "\n";
    }
@@ -1309,47 +680,47 @@ sub PDL::swcols{
   my @outlist;
 
   if (ref(\$_[0]) eq "SCALAR") {
-	 $step = $format_string = shift; # 1st arg not piddle
-	 $step =~ s/(%%|[^%])//g;  # use step to count number of format items
-	 $step = length ($step);
+         $step = $format_string = shift; # 1st arg not piddle
+         $step =~ s/(%%|[^%])//g;  # use step to count number of format items
+         $step = length ($step);
   }
   
   my @p = @_;
   my $n = $p[0]->nelem;
   for (@p) {
-	 barf "swcols: 1d args must have same number of elements\n"
-		if $_->nelem != $n or $_->getndims!=1;
+         barf "swcols: 1d args must have same number of elements\n"
+                if $_->nelem != $n or $_->getndims!=1;
   }
 
   my $i;
   for ($i=0; $i<$n; $i++) {
-	 if ($format_string) {
-	   my @d;
-	   for (@p) {
-		  push @d,$_->at($i);
-		  if (@d == $step) {
-			 push @outlist,sprintf $format_string,@d;
-			 $#d = -1;
-		  }
-	   }
-	   if (@d && !$i) {
-		  my $str;
-		  if ($#p>0) {
-			 $str = ($#p+1).' columns don\'t';
-		  } else {
-			 $str = '1 column doesn\'t';
-		  }
-		  $str .= " fit in $step column format ".
-	       '(even repeated) -- discarding surplus';
-		  carp $str;
-		  # printf $fh $format_string,@d;
-		  # printf $fh $colsep;
-	   }
-	 } else {
-	   for (@p) {
-		  push @outlist,sprintf $_->at($i),$colsep;
-	   }
-	 }
+         if ($format_string) {
+           my @d;
+           for (@p) {
+                  push @d,$_->at($i);
+                  if (@d == $step) {
+                         push @outlist,sprintf $format_string,@d;
+                         $#d = -1;
+                  }
+           }
+           if (@d && !$i) {
+                  my $str;
+                  if ($#p>0) {
+                         $str = ($#p+1).' columns don\'t';
+                  } else {
+                         $str = '1 column doesn\'t';
+                  }
+                  $str .= " fit in $step column format ".
+               '(even repeated) -- discarding surplus';
+                  carp $str;
+                  # printf $fh $format_string,@d;
+                  # printf $fh $colsep;
+           }
+         } else {
+           for (@p) {
+                  push @outlist,sprintf $_->at($i),$colsep;
+           }
+         }
   }
   wantarray ? return @outlist: return \@outlist;
 }
@@ -1398,18 +769,18 @@ of C<$1>, C<$2> etc.
 
          $m++;  # Count got
          if ($m==0) {
-	   $nret = $#v;   # Last index of values to return
-	   for (0..$nret) {
-	       $ret[$_] = double(pdl([0])); # Create PDLs
-	   }
+           $nret = $#v;   # Last index of values to return
+           for (0..$nret) {
+               $ret[$_] = double(pdl([0])); # Create PDLs
+           }
        } else { # perhaps should only carp once...
            carp "Non-rectangular rgrep" if $nret != $#v;
        }
        if ($n<$m) {
-	   for (0..$nret) {
-	       ext1D( $ret[$_], 10000 ); # Extend PDL in buffered manner
-	   }
-	   $n += 10000;
+           for (0..$nret) {
+               ext1D( $ret[$_], 10000 ); # Extend PDL in buffered manner
+           }
+           $n += 10000;
       }
        for(0..$nret) { set $ret[$_], $m, 1*$v[$_] } # Set values - '1*' is
    }                                                      # ensures numeric
@@ -1512,13 +883,13 @@ pp_add_exported("", "isbigendian");
 ################################ XS CODE ######################################
 
 sub defpdl {
-	pp_def(
-		$_[0],
-		Pars => $_[1],
-		OtherPars => $_[2],
-		Code => $_[3],
-		Doc  => $_[4],
-	);
+        pp_def(
+                $_[0],
+                Pars => $_[1],
+                OtherPars => $_[2],
+                Code => $_[3],
+                Doc  => $_[4],
+        );
 }
 
 ###### Read ASCII Function ##########
@@ -1706,11 +1077,11 @@ nonexistent).
 
   $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
       Where:
-  	filename is the name of the ASCII file to read or
+        filename is the name of the ASCII file to read or
           open file handle
-	$noElements is the optional number of elements in the file to read.
-	    (If not present, all of the file will be read to fill up $pdl).
-	$pdl can be of type float or double for more precision.
+        $noElements is the optional number of elements in the file to read.
+            (If not present, all of the file will be read to fill up $pdl).
+        $pdl can be of type float or double for more precision.
 
 =for example
 
@@ -1813,115 +1184,25 @@ pp_def('_rasc',
                  IO *io;
 
                  /* io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO)); */
-		 io = sv_2io($COMP(fd));
+                 io = sv_2io($COMP(fd));
                  if (!io || !(fp = IoIFP(io)))
                         croak("Can\'t figure out FP");
                  ns = $SIZE(n);
                  threadloop %{
                    for (i=0;i<ns; i++) {
                        if (($ierr(n=>i) =
-			   $TFD(getfloat,getdouble)(fp, &($nums(n=>i)))) <= 0)
+                           $TFD(getfloat,getdouble)(fp, &($nums(n=>i)))) <= 0)
                               break;
                    }
-		   for (j=i+1; j<ns; j++)
-			$ierr(n=>j) = $ierr(n=>i); /* inherit error flags */
+                   for (j=i+1; j<ns; j++)
+                        $ierr(n=>j) = $ierr(n=>i); /* inherit error flags */
                  %}
                 @,
-#	Doc => 'Internal Function used by rasc. '
-	Doc => undef,
+#       Doc => 'Internal Function used by rasc. '
+        Doc => undef,
 );
 
 
-
-#pp_addpm(<<'EOD');
-
-#=item bswap2( [o]x() )
-
-#Swaps pairs of bytes in argument x()
-
-#=cut
-#EOD
-
-defpdl(
-	'bswap2',
-	'x(); ',
-	'',
-	'
-      int i;
-      PDL_Short *aa; PDL_Short bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Short);
-      aa = (PDL_Short*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a = *(b+1);  *(a+1) = *b;
-     }',
-     "Swaps pairs of bytes in argument x()"
-);
-
-
-#pp_addpm(<<'EOD');
-#
-#=item bswap4( [o]x() )
-
-#Swaps quads of bytes in argument x()
-
-#=cut
-#EOD
-
-defpdl(
-	'bswap4',
-	'x(); ',
-	'',
-	'
-      int i;
-      PDL_Long *aa; PDL_Long bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Long);
-      aa = (PDL_Long*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a = *(b+3);  *(a+1) = *(b+2);  *(a+2) = *(b+1); *(a+3) = *b;
-     }',
-     "Swaps quads of bytes in argument x()"
-);
-
-
-#pp_addpm(<<'EOD');
-
-#=item bswap8( [o]x() )
-
-#Swaps octets of bytes in argument x()
-
-#=cut
-#EOD
-
-defpdl(
-	'bswap8',
-	'x(); ',
-	'',
-	'
-      int i;
-      PDL_Double *aa; PDL_Double bb;
-      PDL_Byte *a,*b;
-
-      int n = sizeof($x()) / sizeof(PDL_Double);
-      aa = (PDL_Double*) &$x();
-
-      for(i=0;i<n; i++) {
-         bb = aa[i]; a = (PDL_Byte*) (void*) (aa+i);
-         b = (PDL_Byte*) &bb;
-         *a     = *(b+7);  *(a+1) = *(b+6);  *(a+2) = *(b+5); *(a+3) = *(b+4);
-         *(a+4) = *(b+3);  *(a+5) = *(b+2);  *(a+6) = *(b+1); *(a+7) = *b;
-     }',
-     "Swaps octets of bytes in argument x()"
-);
 
 pp_done();
 

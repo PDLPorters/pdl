@@ -10,7 +10,7 @@ PDL::Image2D - Miscellaneous 2D image processing functions
 =head1 DESCRIPTION
 
 Miscellaneous 2D image processing functions - for want
-of anywhere else to put them
+of anywhere else to put them.  
 
 =head1 SYNOPSIS
 
@@ -1207,6 +1207,10 @@ newly created image
 
   ($newcols,$newrows) = rotnewsz $oldn, $oldm, $angle;
 
+L<PDL::Transform|PDL::Transform> offers a more general interface to 
+distortions, including rotation, with various types of sampling; but 
+rot2d is faster.
+
 EOD
 );
 
@@ -1216,7 +1220,7 @@ pp_def('bilin2d',
     Doc=><<'EOD',
 =for ref
 
-Bilineary maps the first piddle in the second. The
+Bilinearly maps the first piddle in the second. The
 interpolated values are actually added to the second
 piddle which is supposed to be larger than the first one.
 
@@ -1256,12 +1260,18 @@ EOD
 
 pp_def('rescale2d',
        HandleBad => 0,
-    Pars => 'I(n,m); O(q,p)',
+    Pars => 'I(m,n); O(p,q)',
     Doc=><<'EOD',
 =for ref
 
 The first piddle is rescaled to the dimensions of the second
-(expandind or meaning values as needed) and then added to it.
+(expanding or meaning values as needed) and then added to it in place.
+Nothing useful is returned.
+
+If you want photometric accuracy or automatic FITS header metadata
+tracking, consider using L<PDL::Transform::map|PDL::Transform/map>
+instead: it does these things, at some speed penalty compared to 
+rescale2d.
 
 EOD
 ,
@@ -1269,8 +1279,8 @@ EOD
 int ix,iy,ox,oy,i,j,lx,ly,cx,cy,xx,yy,num;
 double kx,ky,temp;
 
-ix = $SIZE(n);   
-iy = $SIZE(m);   
+ix = $SIZE(m);   
+iy = $SIZE(n);   
 ox = $SIZE(p);   
 oy = $SIZE(q);   
 
@@ -1287,7 +1297,7 @@ if(ox >= ix && oy >= iy) {
 	for(xx=lx;xx<=cx;xx++)
 	  for(yy=ly;yy<=cy;yy++) {
 /*	    fprintf(stderr,"i: %d, j: %d, xx: %d, yy: %d\n",i,j,xx,yy); */
-	    $O(p=>xx,q=>yy) += $I(n=>j,m=>i);
+	    $O(p=>xx,q=>yy) += $I(m=>i,n=>j);
 	  }
 	ly = cy + 1;
       }

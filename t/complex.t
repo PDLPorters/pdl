@@ -16,7 +16,7 @@ sub tapprox {
 }
 
 # more tests required; anybody?
-print "1..5\n";
+print "1..6\n";
 $testNo = 1;
 
 $ref = pdl([[-2,1],[-3,1]]);
@@ -32,3 +32,9 @@ ok($testNo++,tapprox($a->real,-$ref));
 $ar = $a->real;
 $ar++;
 ok($testNo++,tapprox($a->real, -$ref+1));
+
+# Check that converting from re/im to mag/ang and
+#  back we get the same thing
+$a = cplx($ref);
+my $b = $a->Cr2p()->Cp2r();
+ok($testNo++, tapprox($a-$b, 0));

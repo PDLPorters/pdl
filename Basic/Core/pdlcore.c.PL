@@ -59,16 +59,34 @@ FOO
 ;
 }
 
-print OUT <<'!NO!SUBS!'
+my $finite_inc;
+foreach my $inc ( qw/ math.h ieeefp.h / )
+{
+    if ( trylink ("finite: $inc", "#include <$inc>", 'finite(3.2);', '' ) ) {
+	$finite_inc = $inc;
+	last;
+    } 
+}
+
+if ( defined $finite_inc )
+{
+    print OUT "#include <$finite_inc>\n";
+}
+else
+{
+    print OUT <<'!NO!SUBS!'
 
 #ifndef finite
 #ifdef isfinite
 #define finite isfinite
 #else
-#define finite(a) (((a) * 0) != (0))
+#define finite(a) (((a) * 0) == (0))
 #endif
 #endif
+!NO!SUBS!
+}
 
+print OUT <<'!NO!SUBS!'
 static SV *getref_pdl(pdl *it) {
 	SV *newref;
 	if(!it->sv) {

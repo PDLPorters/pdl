@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 16;
+plan tests => 19;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -83,9 +83,11 @@ ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==
 
 ##############################
 # Simple test case for interpND...
+my $index;
+my $z;
 $a = xvals(10,10)+yvals(10,10)*10;
-my($index) = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
-my($z) = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
+$index = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
+$z = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
 eval '$b = $a->interpND($index);';
 ok(!$@);
 ok(sum($b != $z) == 0);
@@ -101,3 +103,12 @@ ok(!$@);
 ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
                    [[0,1],[0,1],[0,0],[1,1],[1,1],[1,1]])));
 
+
+# test new empty piddle handling
+$a = which ones(4) > 2;
+$b = $a->long;
+$c = $a->double;
+
+ok(isempty $a);
+ok($b->avg == 0);
+ok(! any isfinite $c->average);

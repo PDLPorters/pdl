@@ -1,3 +1,5 @@
+pp_addpm({At=>'Top'},<<'======EOD======');
+
 =head1 NAME
 
 PDL::Transform - Image transformations and N-D functions
@@ -35,7 +37,7 @@ accepts a PDL whose 0th dimension is coordinate index (all other
 dimensions are threaded over) and transforms the vectors into the new
 coordinate system.  
 
-Transform also includes image resampling, via the L<map|/map> method,
+Transform also includes image resampling, via the L<map|/map> method.
 You define a coordinate transform using a Transform object, then use
 it to remap an image PDL.  The output is a remapped, resampled image.
 
@@ -96,7 +98,7 @@ at first.  Here are some examples of transforms in action:
 
 =item '!'
 
-The bang operator is a unary inversion operator.  It binds exactly as
+The bang is a unary inversion operator.  It binds exactly as
 tightly as the normal bang operator.
 
 =item 'x' 
@@ -114,6 +116,7 @@ f^-1 o g o f, or f^-1(g(f(x))).
 
 By analogy to numeric powers, you can apply an operator a positive 
 integer number of times with the ** operator:
+
   $f->compose($f)->compose($f)  # long way
   $f**3                         # short way
 
@@ -215,11 +218,9 @@ it just assumes that the coordinates are correct for (e.g.)  FITS
 scientific-to-pixel transformations.
 
 Composition works OK but should probably be done in a more
-sophisticated way so that, linear transformations are combined at the
-matrix level instead of just strung together pixel-to-pixel.
-
-Linear transformations should probably be handled with heterogeneous
-Hershey matrices, rather than matrix-multiply-and-add operations.
+sophisticated way so that, for example, linear transformations are
+combined at the matrix level instead of just strung together
+pixel-to-pixel.
 
 =head1 FUNCTIONS
 
@@ -233,21 +234,27 @@ are both Transform methods and PDL methods.
 
 =cut
 
+======EOD======
+
+
+pp_addpm({At=>'Bot'},<<'======EOD======');
+
+=head1 AUTHOR
+
+Copyright 2002, 2003 Craig DeForest.  There is no warranty.  You are allowed
+to redistribute this software under certain conditions.  For details,
+see the file COPYING in the PDL distribution.  If this file is
+separated from the PDL distribution, the copyright notice should be
+included in the file.
+
+=cut
+
 package PDL::Transform;
+use Carp;
 use overload '""' => \&_strval;
 use overload 'x' => \&_compose_op;
 use overload '**' => \&_pow_op;
 use overload '!'  => \&t_inverse;
-
-$VERSION = "1.0";
-
-BEGIN {
-   use Exporter ();
-   @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_offset t_shift t_pincushion t_spherical );
-   @EXPORT = @EXPORT_OK;
-   %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
-}
 
 use PDL;
 use PDL::MatrixOps;
@@ -258,9 +265,6 @@ our $DEG2RAD = $PI / 180;
 our $RAD2DEG = 180/$PI;
 our $E  = exp(1);
 
-use Carp;
-
-use strict;
 
 #### little helper kludge parses a list of synonyms
 sub _opt {
@@ -301,9 +305,10 @@ sub stringify {
   $out .= "inv ". ((defined ($me->{inv})) ? "ok" : "missing").".\n";
 }
 
+======EOD======
 
-######################################################################
-#
+pp_add_exported('apply');
+pp_addpm(<<'======EOD_apply======');
 
 =head2 apply
 
@@ -320,13 +325,15 @@ sub stringify {
 
 Apply a transformation to some input coordinates.
 
-In the example, C<$t> is a PDL::Transform and C<$data> is a piddle to
+In the example, C<$t> is a PDL::Transform and C<$data> is a PDL to
 be interpreted as a collection of N-vectors (with index in the 0th 
-dimension).  The output is a similar but transformed piddle.
+dimension).  The output is a similar but transformed PDL.
 
 For convenience, this is both a PDL method and a Transform method.
 
 =cut
+
+use Carp;
 
 *PDL::apply = \&apply;
 sub apply {
@@ -349,7 +356,10 @@ sub apply {
 
 }
 
-######################################################################
+======EOD_apply======
+
+pp_add_exported('invert');
+pp_addpm(<<'======EOD_invert======');
 
 =head2 invert
 
@@ -392,9 +402,597 @@ sub invert {
       croak("invert requires a PDL and a PDL::Transform (did you want 'inverse' instead?)\n");
   }
 }
-  
 
-######################################################################
+======EOD_invert======
+
+pp_addhdr(<<'==EOD_map_auxiliary==');
+
+
+/* 
+ * Singular-value decomposition code is borrowed from 
+ * MatrixOps -- cut-and-pasted here because of linker trouble.
+ * It's used by the auxiliary matrix manipulation code, below.
+ *
+ */
+
+void pdl_xform_svd(double *W, double *Z, int nRow, int nCol)
+{
+  int i, j, k, EstColRank, RotCount, SweepCount, slimit;
+  double eps, e2, tol, vt, p, h2, x0, y0, q, r, c0, s0, c2, d1, d2;
+  eps = 1e-6;
+  slimit = nCol/4;
+  if (slimit < 6.0)
+    slimit = 6;
+  SweepCount = 0;
+  e2 = 10.0*nRow*eps*eps;
+  tol = eps*.1;
+  EstColRank = nCol;
+  for (i=0; i<nCol; i++) {
+    for (j=0; j<nCol; j++) {
+      W[nCol*(nRow+i)+j] = 0.0;
+    }
+    W[nCol*(nRow+i)+i] = 1.0;  /* rjrw 7/7/99: moved this line out of j loop */
+  }
+  RotCount = EstColRank*(EstColRank-1)/2;
+  while (RotCount != 0 && SweepCount <= slimit)
+    {
+      RotCount = EstColRank*(EstColRank-1)/2;
+      SweepCount++;
+      for (j=0; j<EstColRank-1; j++)
+        {
+          for (k=j+1; k<EstColRank; k++)
+            {
+              p = q = r = 0.0;
+              for (i=0; i<nRow; i++)
+                {
+                  x0 = W[nCol*i+j]; y0 = W[nCol*i+k];
+                  p += x0*y0; q += x0*x0; r += y0*y0;
+                }
+              Z[j] = q; Z[k] = r;
+              if (q >= r)
+                {
+                  if (q<=e2*Z[0] || fabs(p)<=tol*q) RotCount--;
+                  else
+                    {
+                      p /= q; r = 1 - r/q; vt = sqrt(4*p*p+r*r);
+                      c0 = sqrt(fabs(.5*(1+r/vt))); s0 = p/(vt*c0);
+                      for (i=0; i<nRow+nCol; i++)
+                        {
+                          d1 = W[nCol*i+j]; d2 = W[nCol*i+k];
+                          W[nCol*i+j] = d1*c0+d2*s0; W[nCol*i+k] = -d1*s0+d2*c0;
+                        }
+                    }
+                }
+              else
+                {
+                  p /= r; q = q/r-1; vt = sqrt(4*p*p+q*q);
+                  s0 = sqrt(fabs(.5*(1-q/vt)));
+                  if (p<0) s0 = -s0;
+                  c0 = p/(vt*s0);
+                  for (i=0; i<nRow+nCol; i++)
+                    {
+                      d1 = W[nCol*i+j]; d2 = W[nCol*i+k];
+                      W[nCol*i+j] = d1*c0+d2*s0; W[nCol*i+k] = -d1*s0+d2*c0;
+                    }
+                }
+            }
+        }
+      while (EstColRank>=3 && Z[(EstColRank-1)]<=Z[0]*tol+tol*tol)
+        EstColRank--;
+    }
+}
+
+
+/* 
+ * PDL_xform_aux: 
+ *  This handles the matrix manipulation part of the Jacobian filtered
+ *  mapping code.  It's separate from the main code because it's 
+ *  independent of the data type of the original arrays.
+ *
+ *Given a pre-allocated workspace  and 
+ * an integer set of coordinates, generate the discrete Jacobian 
+ * from the map, pad the singular values, and return the inverse
+ * Jacobian, the largest singular value of the Jacobian itself, and
+ * the determinant of the original Jacobian.  Boundary values use the 
+ * asymmetric discrete Jacobian; others use the symmetric discrete Jacobian.
+ *
+ * The map and workspace must be of type PDL_D.  If the dimensionality is 
+ * d, then the workspace must have at least 3*n^2+n elements.  The 
+ * inverse of the padded Jacobian is returned in the first n^2 elements.
+ * The determinant of the original Jacobian gets stuffed into the n^2 
+ * element of the workspace. The largest padded singular value is returned.  
+ *
+ */
+
+double PDL_xform_aux ( pdl *map, long *coords, double *tmp, double sv_min) {
+  short ndims;
+  long i, j, k;
+  long offset;
+  double det;
+  double *jptr;
+  double *svptr;
+  double *aptr,*bptr;
+  double max_sv = 0.0;
+
+  ndims = map->ndims-1;
+	
+  /****** Accumulate the Jacobian */
+  /* Accumulate the offset into the map array */
+  for( i=offset=0; i<ndims; i++) 
+    offset += coords[i] * map->dimincs[i+1];
+
+  jptr = tmp + ndims*ndims;
+
+  for( i=0; i<ndims; i++) {                    /* Loop over offset direction */
+    char bot = (coords[i] <=0);
+    char top = (coords[i] >= map->dims[i+1]-1);
+    char symmetric = !(bot || top);
+    double *ohi,*olo;
+    long diff = map->dimincs[i+1];
+    ohi = ((double *)map->data) + ( offset + ( top ? 0 : diff ));
+    olo = ((double *)map->data) + ( offset - ( bot ? 0 : diff ));
+    
+    for( j=0; j<ndims; j++) {                 /* Loop over dimension */
+       double jel =   *ohi - *olo;
+
+       ohi += map->dimincs[0];
+       olo += map->dimincs[0];
+
+       if(symmetric)      
+         jel /= 2;
+       *(jptr++) = jel;
+    }
+  }
+
+  /****** Singular-value decompose the Jacobian 
+   * The svd routine produces the squares of the singular values,
+   * and requires normalization for one of the rotation matrices. 
+   */
+
+  jptr =   tmp + ndims*ndims;
+  svptr = tmp + 3*ndims*ndims;
+  pdl_xform_svd(jptr,svptr,ndims,ndims);
+
+  aptr = svptr;
+  for (i=0;i<ndims;i++,aptr++)
+    *aptr = sqrt(*aptr);
+
+
+  /* fix-up matrices here */
+  bptr = jptr;
+  for(i=0; i<ndims;i++) {
+    aptr = svptr;
+    for(j=0;j<ndims;j++)
+     *(bptr++) /= *(aptr++);
+  }
+
+  /****** Store the determinant, and pad the singular values as necessary.*/
+  aptr = svptr;
+  det = 1.0;
+  for(i=0;i<ndims;i++) {
+    det *= *aptr;
+    if(*aptr < sv_min)
+      *aptr = sv_min;
+    if(*aptr > max_sv )
+	max_sv = *aptr;
+    aptr++;
+  }
+ 
+  /****** Generate the inverse matrix */
+  /* Multiply B-transpose times 1/S times A-transpose. */
+  /* since S is diagonal we just divide by the appropriate element. */
+  /* */
+  aptr = tmp  + ndims*ndims;
+  bptr = aptr + ndims*ndims;
+  jptr=  tmp;
+
+  for(i=0;i<ndims;i++) {
+    for(j=0;j<ndims;j++) {
+	*jptr = 0;
+
+	for(k=0;k<ndims;k++) 
+	  *jptr += aptr[j*ndims + k] * bptr[k*ndims + i] / *svptr; 
+
+	jptr++;
+    }
+    svptr++;
+  }
+
+ *jptr = det; 
+  return max_sv;
+}
+
+==EOD_map_auxiliary==
+
+pp_add_exported('map');
+pp_def('map',
+	Pars=>'k0()',  # Dummy to set type (should match the type of "in").
+	OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
+	            SV *big; SV *blur; SV *sv_min; SV *flux',
+	Code=><<'==EOD_map_c_code==',
+/*
+ * Pixel interpolation & averaging code
+ * 
+ * Calls a common coordinate-transformation block (see following hdr)
+ * that isn't dependent on the type of the input variable.
+ *
+ * The inputs are SVs to avoid hassling with threadloops; threading 
+ * is handled internally.  To simplify the threading business, any 
+ * thread dimensions should all be collapsed to a single one by the
+ * perl front-end.
+ *
+ */
+
+ short ndims;           /* Number of dimensions we're working in    */
+ double *tmp;           /* Workspace for prefrobnication            */
+ long  *ovec;           /* output pixel loop vector                 */
+ long  *ivec;           /* input pixel loop vector                  */
+ long  *ibvec;          /* input pixel base offset vector           */
+ double *dvec;          /* Residual vector for linearization        */
+ double *tvec;          /* Temporary floating-point vector          */
+ double *acc;           /* Threaded accumulator                     */
+ char   *bounds;        /* Boundary condition packed string         */
+ char   method;         /* Method identifier (gets one of 'h','g')  */
+ long   big;            /* Max size of input footprint for each pix */
+ double blur;           /* Scaling of filter                        */
+ double sv_min;         /* minimum singular value                   */
+ char flux;             /* Flag to indicate flux conservation       */
+ double *map_ptr;
+ long i, j;
+ $GENERIC() badval = sqrt(-1);
+
+ pdl *in  = PDL->SvPDLV($COMP(in));
+ pdl *out = PDL->SvPDLV($COMP(out));
+ pdl *map = PDL->SvPDLV($COMP(map));
+
+ PDL->make_physical(in);
+ PDL->make_physical(out);
+ PDL->make_physical(map);
+
+ ndims = map->ndims -1;
+
+  /***************************************************************************/
+  /**  Check that the dimensionalities are consistent.  This is             **/
+  /**  allegedly done already in the perl part, but shouldn't cost more     **/
+  /**  than a few hundred clock cycles -- cheap at twice the price.         **/
+  /**                                                                       **/
+  /**/ if(map->ndims != out->ndims)                                        /**/
+  /**/  barf("Bug in map: index dims aren't consistent\n");                /**/
+  /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
+  /**/   static char buf[100];                                             /**/
+  /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
+  /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
+  /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
+  /**/     barf(buf);                                                      /**/
+  /**/   }                                                                 /**/
+  /**/ }                                                                   /**/
+  /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
+  /**/   barf("Bug in map - index vec - input mismatch\n");                /**/
+  /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
+  /**/   barf("Bug in map:  thread dimension error\n");                    /**/
+  /***************************************************************************/
+
+ /* 
+  * Allocate all our dynamic workspaces at once...
+ /* */
+ ovec = (long *)(PDL->smalloc(
+	          	        sizeof(long)   * 3 * ndims
+                              + sizeof(double) * (3*ndims*ndims + 3*ndims)
+                              + sizeof(double) * in->dims[ndims] 
+                              + sizeof(char) * ndims
+		             )
+		);
+ ivec =            &(ovec[ndims]); 
+ ibvec =           &(ivec[ndims]);
+ dvec = (double *)(&(ibvec[ndims]));
+ tvec =            &(dvec[ndims]);
+ acc  =            &(tvec[ndims]);
+ tmp  =            &(acc[in->dims[ndims]]);
+ bounds = (char *)(&(tmp [3*ndims*ndims+ndims]));
+
+
+/***
+ * Fill in the boundary condition array
+ * (cut-and-pasted from the range() code...)
+ */
+ {
+  char *bstr;
+  STRLEN blen;
+  bstr = SvPV($COMP(boundary),blen);
+
+  if(blen == 0) {
+    /* If no boundary is specified then every dim gets truncated */
+    int i;
+    for (i=0;i<ndims;i++) 
+      bounds[i] = 1;
+  } else {
+    int i;
+    for(i=0;i<ndims;i++) {
+      switch(bstr[i < blen ? i : blen-1 ]) {
+      case '0': case 'f': case 'F':               /* forbid */
+	bounds[i] = 0;
+	break;
+      case '1': case 't': case 'T':               /* truncate */
+	bounds[i] = 1;
+	break;
+      case '2': case 'e': case 'E':               /* extend */
+	bounds[i] = 2;
+	break;
+      case '3': case 'p': case 'P':               /* periodic */
+	bounds[i] = 3;
+	break;
+      case '4': case 'm': case 'M':               /* mirror */
+	bounds[i] = 4;
+	break;
+      default:
+	{
+	  char buf[BUFSIZ];
+	  sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
+	  barf(buf);
+	}
+	break;
+      }
+    }
+  }
+ }  
+
+/***
+ * Parse out the 'method', 'big', 'blur', and 'sv_min' arguments
+ */
+ {
+  char *mstr;
+  STRLEN mlen;
+  mstr = SvPV($COMP(method),mlen);
+
+  if(mlen==0) 
+	method = 'h';
+  else switch(*mstr) {
+	case 'h': case 'H': 
+		method = 'h'; break;
+        case 'g': case 'G': 
+	case 'j': case 'J': 
+		method = 'g'; break;
+        default: 
+	   {
+            char err[80];
+            sprintf(err,"Bug in map: unknown method '%c'",*mstr);
+	    barf(err);
+           }
+           break;
+	}
+ }
+ big    = labs((long)   (SvNV($COMP(big)))); 
+ blur   = fabs((double) (SvNV($COMP(blur))));
+ sv_min = fabs((double) (SvNV($COMP(sv_min))));
+ flux   = (SvNV($COMP(flux)) != 0);
+
+ /* End of initialization */
+ /*************************************************************/
+ /* Start of Real Work */
+ 	
+ /* Initialize coordinate vector and map offset
+  */
+ for(i=0;i<ndims;i++)
+	ovec[i] = 0;
+ map_ptr = (double *)(map->data);
+
+ /* Main pixel loop */
+ do {
+   long psize;
+   double wgt;
+
+   /* Prefrobnicate the transformation matrix  */
+   psize = (long)(blur * PDL_xform_aux(map, ovec, tmp, sv_min))+1;
+   if(psize <= big) {
+     /* 
+      * Use the prefrobnicated matrix to generate a local linearization 
+      * dvec gets the delta; ibvec gets the base. 
+      */
+     {
+       double *mp = map_ptr;
+       for (i=0;i<ndims;i++) {
+  	dvec[i]  = *mp - ( ibvec[i] = (long)(*mp + 0.5));   /* assignment */
+  	mp += map->dimincs[0];
+       }
+     }
+  
+     /* 
+      * Initialize input delta vector
+      */
+     for(i=0;i<ndims;i++)
+  	ivec[i] = - psize;
+  
+     /* 
+      * Initialize accumulators
+      */
+     {
+       double *ac = acc;
+       for(i=0; i < in->dims[ndims]; i++)
+  	*(ac++) = 0.0;
+     }
+     wgt = 1.0e-9;  /* negligible but nonzero */
+    
+     do {  /* Input accumulation loop */
+       int bound_ok = 1;
+       long i_off = 0;
+  
+       /* Find the offset for the current input point, applying boundaries */
+  
+       for(i=0; i<ndims && bound_ok; i++) {
+         j = ivec[i] + ibvec[i];
+         if(j < 0 || j >= in->dims[i]) {
+           switch(bounds[i]) {
+             case 0: /* no breakage allowed */
+               barf("index out-of-bounds in map");
+               break;
+             case 1: /* truncation */
+               bound_ok = 0;
+               break;
+             case 2: /* extension -- crop */
+               if(j<0)
+                 j = 0;
+               else if(j>= in->dims[i])
+                 j = in->dims[i] - 1;
+               break;
+             case 3: /* periodic -- mod it */
+               j %= in->dims[i];
+               if(j<0)
+                 j += in->dims[i];
+               break;
+             case 4: /* mirror -- reflect off the edges */
+               j += in->dims[i];
+               j %= (in->dims[i] * 2);
+               if(j < 0) 
+                 j += in->dims[i] * 2;
+               j -= in->dims[i];
+               if(j < 0) {
+                 j *= -1;
+                 j -= 1;
+               }
+               break;
+             default:
+               barf("Unknown bounary condition in map -- bug alert!");
+               break;
+           }
+         }
+         i_off += in->dimincs[i] * j;
+       }
+  
+        if(bound_ok) {
+         double alpha = 1.0;
+         double *ap = tvec;
+         double *bp = dvec;
+         double *cp;
+         long *ip   = ivec;
+  
+         for(i=0; i<ndims; i++)
+           *(ap++) = *(ip++) - *(bp++);
+       
+       /* Calculate the linearization-transformed point, and 
+        * infer a weighting from it.  Use the per-dimension Hanning 
+        * window or a radial Gaussian.
+        */
+         cp = tmp;
+        
+         switch(method) {
+            double dd;
+  
+  	case 'h':
+  	       for(i=0; i<ndims; i++) {
+  	         dd = 0;
+  	         ap = tvec;
+  	         for(j=0;j<ndims; j++)
+  	             dd += *(ap++) * *(cp++);
+  	         dd = fabs(dd) / blur;
+  	         if( dd > 1 ) {
+  	             alpha = 0;
+  	             i = ndims;
+  	         } else 
+  	             alpha *= (0.5 + 0.5 * cos( dd * 3.1415926536 ));            
+  	       }
+   	      break;
+  	case 'g':
+                {double sum = 0;
+  
+  	       for(i=0; i<ndims; i++) {
+  	         dd = 0;
+  	         ap = tvec;
+  	          for(j=0;j<ndims; j++)
+  	             dd += *(ap++) * *(cp++);
+  	          dd /= blur;
+  	 	  sum += dd * dd;
+  		  if(sum > 4)  /* 2 pixels -- four half-widths */
+  		    i = ndims;
+  	       }
+  	       
+   	       if(sum > 4)	
+  		  alpha = 0;
+  	       else
+  		  alpha = exp(-sum * 1.386294); /* Gaussian, rt(2)-pix HWHM */
+  	     }
+   	      break;
+  	 default: 
+  	     {
+                 char buf[80];
+                  sprintf(buf,"This can't happen: method='%c'",method);
+  	        barf(buf);
+  	     }
+  	}
+  
+  
+        /* We've got the weighting, now accumulate the values as needed... */
+         wgt += alpha;
+       
+         { 
+          double *ac = acc;
+          $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
+          for( i=0; i < out->dims[ndims]; i++ ) {
+               *(ac++) += *dat * alpha;
+               dat += in->dimincs[ndims];
+          }
+         }
+       } /* end of bound_ok check */
+       
+       /* Advance input accumulation loop */
+       for(i=0; 
+             (i < ndims) &&
+             (++(ivec[i]) >= psize);
+           i++) {
+          ivec[i] = -psize;
+       }
+     } while(i<ndims);
+     
+     {
+       double *ac = acc;
+       $GENERIC() *dat = out->data;
+       
+       for(i=0;i<ndims;i++) 
+         dat += out->dimincs[i] * ovec[i];
+
+       if(flux) {       
+	  double det = tmp[ndims*ndims];
+          for(i=0; i < out->dims[ndims]; i++) {
+            *dat = *(ac++) / wgt * det;
+            dat += out->dimincs[ndims];
+	  }
+       } else {
+	  for(i=0; i < out->dims[ndims]; i++) {
+           *dat = *(ac++) / wgt;
+           dat += out->dimincs[ndims];
+          }
+       }
+     }
+
+     /* End of code for normal pixels */
+   } else {       
+     /* The pixel was ludicrously huge -- just set this pixel to nan */
+     $GENERIC() *dat = out->data;
+      for(i=0;i<ndims;i++)
+	dat += out->dimincs[i] * ovec[i];
+      for(i=0;i<out->dims[ndims];i++) {
+	*dat = badval;          /* Should handle bad values too -- not yet */
+        dat += out->dimincs[ndims];
+      }
+   }
+
+   /* Increment the pixel counter */
+   {
+     long *aptr = ovec;
+     for(i=0;
+	     (i<ndims) &&
+             (map_ptr += map->dimincs[i+1]) &&  /* Funky pre-test increment */
+ 	     (++(ovec[i]) >= out->dims[i]);     /* Actual carry test */
+	 i++) {
+	ovec[i] = 0;
+	map_ptr -= out->dims[i] * map->dimincs[i+1];
+     }
+    }
+  } while(i<ndims);
+
+
+==EOD_map_c_code==
+
+	Doc=><<'==EOD_map_doc==',
 
 =head2 map
 
@@ -404,9 +1002,8 @@ sub invert {
 
 =for usage
 
-  $output = $input->map($transform,[<template>],[<options>]);
-  $output = $transform->map($input,[<template>],[<options>]);
-
+  $b = $a->map($xform,[<template>],[\%opt]); # Distort $a with tranform $xform
+  $b = $a->map(t_identity,[$pdl],[\%opt]); # rescale $a to match $pdl's dims.
 
 =for ref
 
@@ -438,6 +1035,11 @@ autoscaled: C<map> transforms a few vectors in the forward direction
 to generate a mapping that will put most of the data on the image
 plane, for most transformations.  The calculated mapping gets stuck in the
 output's FITS header.
+
+Autoscaling is especially useful for rescaling images -- if you specify
+the identity transform and allow autoscaling, you duplicate the 
+functionality of L<rescale2d|PDL::Image2D/rescale2d>, but with more 
+options for interpolation.
 
 You can operate in pixel space, and avoid autoscaling of the output,
 by setting the C<nofits> option (see below).
@@ -536,13 +1138,16 @@ This parameter overrides C<irange>, if both are specified.
 
 =item m, method, Method
 
-This option controls the interpolation method to be used.  Interpolation
-greatly affects both speed and quality of output.  Possible options, in order
-from fastest to slowest, are:
+This option controls the interpolation method to be used.
+Interpolation greatly affects both speed and quality of output.  For
+most cases the option is directly passed to
+L<interpND|PDL::Primitive/interpND> for interpolation.  Possible
+options, in order from fastest to slowest, are:
 
 =over 3
-  
-=item * s, sample (default for integers)
+
+
+=item * s, sample (default for ints)
 
 Pixel values in the output plane are sampled from the closest data value
 in the input plane.  This is very fast but not very accurate for either 
@@ -551,58 +1156,88 @@ of integer type.
 
 =item * l, linear (default for floats)
 
-Pixel values are linearly interpolated from the closst data value in the 
+Pixel values are linearly interpolated from the closest data value in the 
 input plane.  This is reasonably fast but only accurate for magnification.
 Decimation (shrinking) of the image causes aliasing and loss of photometry
 as features fall between the samples.  It is the default for floating-point
 templates.
 
-=item * j, jacobian
+=item * c, cubic
 
-Pixel values are filtered through a spatially-variable filter tuned to the
-computed Jacobian of the transformation.  This is the mathematically
-correct way to deform images and yields very good results -- but 
-at a cost.  It runs perhaps 10 times slower than linear interpolation.
-See the notes on Jacobian tracking, below.
+Pixel values are interpolated using an N-cubic scheme from a 4-pixel
+N-cube around each coordinate value.  As with linear interpolation,
+this is only accurate for magnification.
+
+=item * f, fft
+
+Pixel values are interpolated using the term coefficients of the
+Fourier transform of the original data.  This prevents aliasing in the
+case where the image is distorted or shrunk, but often yields
+undesired "ringing" for expansion of normal images.  Best suited to
+studying images with repetitive or wavelike features.
+
+=item * h, hanning
+
+Pixel values are filtered through a spatially-variable filter tuned to
+the computed Jacobian of the transformation, with hanning-window
+(cosine) pixel rolloff in each dimension.  This prevents aliasing in the
+case where the image is distorted or shrunk, but allows small amounts
+of aliasing at pixel edges wherever the image is enlarged.
+
+=item * g, gaussian, j, jacobian
+
+Pixel values are filtered through a spatially-variable filter tuned to
+the computed Jacobian of the transformation, with radial Gaussian
+rolloff.  This is the most accurate resampling method, in the sense of
+introducing the fewest artifacts into a properly sampled data set.
 
 =back
 
-=item e, ecc, eccentricity, Eccentricity (default=4)
+=item blur, Blur (default = 1.0) 
 
-This is the maximum eccentricity that is allowed for the local ellipse of
-transformation in the Jacobian method of interpolation.  Lower numbers
-yield better memory efficiency and speed, at a cost of some blurring in the
-case of pathological transformations (that stretch much more in one direction
-than others). 
+This value scales the input-space footprint of each output pixel in
+the gaussign and hanning methods. It's retained for historical
+reasons.  Larger values yield blurrier images; values significantly
+smaller than unity cause aliasing.
 
-=item blur, Blur
+=item sv, SV (default = 1.0)
 
-This is the half-radius of the Gaussian filter used for the "jacobian"
-method, in units of output pixels.  It defaults to 0.4 pixel, which gives
-a good compromise between blurring (big filters) and aliasing (small filters).
+This value lets you set the lower limit of the transformation's
+singular values in the hanning and gaussian methods, limiting the
+minimum radius of influence associated with each output pixel.  Large
+numbers yield smoother interpolation in magnified parts of the image
+but don't affect reduced parts of the image.
 
-=item big, Big
+=item big, Big (default = 0.2)
 
 This is the largest allowable input spot size which may be mapped to a
-single output pixel by the "jacobian" method, in units of input
-pixels.  The default is 0.2 x the largest dimension of the input
-array.  If you need accurate photometery and your transform is really
-pathological, you can make this larger.
+single output pixel by the hanning and gaussian methods, in units of
+the largest non-thread input dimension.  (i.e. the default won't let
+you reduce the original image to less than 5 pixels across).  This places
+a limit on how long the processing can take for pathological transformations.
+Smaller numbers keep the code from hanging for a long time; larger numbers
+provide for photometric accuracy in more pathological cases.  Numbers larer
+than 1.0 are silly, because they allow the entire input array to be compressed
+into a region smaller than a single pixel.
+
+Wherever an output pixel would require averaging over an area that is too 
+big in input space, it instead gets NaN or the equivalent (bad values are
+not yet supported).
 
 =item p, phot, photometry, Photometry
 
 This lets you set the style of photometric conversion to be used in the 
-"jacobian" method.  You may choose:
+hanning or gaussian methods.  You may choose:
 
 =over 3
 
-=item * s, surf, surface, Surface
+=item * 0, s, surf, surface, Surface (default)
 
 (this is the default): surface brightness is preserved over the transformation,
 so features maintain their original intensity.  This is what the sampling
 and interpolation methods do.
 
-=item * f, flux, Flux
+=item * 1, f, flux, Flux
 
 Total flux is preserved over the transformation, so that the brightness
 integral over image regions is preserved.  Parts of the image that are
@@ -612,45 +1247,31 @@ shrunk wind up brighter; parts that are enlarged end up fainter.
 
 =back
 
-JACOBIAN TRACKING:
+VARIABLE FILTERING:
 
-This method of interpolation gives photometrically accurate resampling
-of the input data for arbitrary transformations.  The Jacobian of the
-reverse transformation is the matrix C<J_ij = d X_i / d x_j>, where i
-and j are index variables, the X_i are the input-plane coordinates,
-and the x_j are the output-plane coordinates.  At each pixel, the code
-generates a linear approximation to the transformation using the local
-discrete Jacobian.  The output pixels are treated as circles of radius
-1.0, and transformed via the linear approximation to ellipses in the
-input plane.  The singular values of the Jacobian are padded to a
-minimum of 1.4 pixels, ensuring that the transformed ellipses are fat
-enough to encounter at least one sample point in the input plane.
+The 'hanning' and 'gaussian' methods of interpolation give
+photometrically accurate resampling of the input data for arbitrary
+transformations.  At each pixel, the code generates a linear
+approximation to the input transformation, and uses that linearization
+to estimate the "footprint" of the output pixel in the input space.  
+The output value is a weighted average of the appropriate input spaces.  
 
-To avoid numerical runaway, there are some limitations on the reverse-
-transformed ellipses.  In particular, the computational efficiency
-scales inversely as the ratio between the largest and smallest
-eigenvalues, so the ellipses are not allowed to get too eccentric.  The
-maximum eccentricity is given in the C<eccentricity> option, and 
-defaults to 4.0.
-
-A caveat about Jacobian remapping is that it assumes the
-transformation is continuous.  Transformations that contain
-discontinuities will give incorrect results near the discontinuity.
-In particular, the 180th meridian isn't handled well in lat/lon
-mapping transformations (see L<PDL::Transform::Cartography>) -- pixels
-along the 180th meridian get the average value of everything along the
-parallel occupied by the pixel.  This flaw is inherent in the assumptions
-that underly creating a Jacobian matrix.  Maybe someone will write code to 
-work around it.  Maybe that someone is you.
-
-
-NOTES:
-
-Jacobian tracking can be a memory hog, especially if the
-transformation includes very large regions outside of the original
-input plane.  Some sort of memory guard needs to be put in place.
+A caveat about these methods is that they assume the transformation is
+continuous.  Transformations that contain discontinuities will give
+incorrect results near the discontinuity.  In particular, the 180th
+meridian isn't handled well in lat/lon mapping transformations (see
+L<PDL::Transform::Cartography>) -- pixels along the 180th meridian get
+the average value of everything along the parallel occupied by the
+pixel.  This flaw is inherent in the assumptions that underly creating
+a Jacobian matrix.  Maybe someone will write code to work around it.
+Maybe that someone is you.
 
 =cut
+
+==EOD_map_doc==
+	PMCode => <<'==EOD_map_perlcode=='
+
+use PDL::NiceSlice;
 
 *PDL::map = \&map;
 sub map {
@@ -676,8 +1297,6 @@ sub map {
 
   $tmp = [$in->dims]  unless(defined($tmp));
 
-
-  
   # Generate an appropriate output piddle for values to go in
   my($out);
   my(@odims);
@@ -709,8 +1328,7 @@ sub map {
     push(@odims, splice(@idims,scalar(@odims)));
   }
 
-  $out = zeroes(@odims);
-
+  $out = PDL::new_from_specification('PDL',$in->type,@odims);
   $out->sethdr($ohdr) if defined($ohdr);
 
   ##############################
@@ -735,6 +1353,10 @@ sub map {
   unless((defined $out->gethdr && $out->hdr->{NAXIS}) ||
 	 $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
+
+      $out->sethdr($in->hdr_copy) # Copy extraneous fields...
+	if(defined $in->hdr);
+
       my $samp_ratio = 300;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
@@ -756,7 +1378,11 @@ sub map {
 	$osize = $omax - $omin;
 
       } else {
-	my $coords = ndcoords(($samp_ratio + 1) x $nd); # 'x' = perl repeat
+
+	my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
+
+	my $coords = ndcoords(($samps + 1)->list); 
+
 	$coords -= 0.5;
 	
 	my $t;
@@ -772,11 +1398,11 @@ sub map {
 	    unless ( (($irange->dim(1)) == $nd ) 
 		     && $irange->ndims == 2);
 
-	  $coords *= ($irange->((1)) - $irange->((0))) / $samp_ratio;
+	  $coords *= ($irange->((1)) - $irange->((0))) / $samps;
 	  $coords += $irange->((0));
 	  $t = $me;
 	} else {
-	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samp_ratio;
+	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
 	  $t = $f_tr;
 	}
 
@@ -811,9 +1437,9 @@ sub map {
 
       my $d;
       for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1+($out->dim($d-1))/2;
+	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1))/2 ;
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
-	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2;
+	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
 	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ? 
 				      $me->{otype}->[$d-1] : "") 
@@ -842,255 +1468,110 @@ sub map {
   ##############################
   ## Figure out the interpND options
   my $method = _opt($opt,['m','method','Method']);
-  my $integrate = ($method =~ m/^j$/i || $method=~m/^j(ac(ob[ie]an)?)?$/i);
   my $bound = _opt($opt,['b','bound','boundary','Boundary'],'t');
 
+
   ##############################
-  ## Non-Jacobian code:
+  ## Rubber meets the road: calculate the inverse transformed points.
+  my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->double + 0.5);
+
+
+
+  ##############################
+  ## Integrate ?  (Jacobian, Gaussian, Hanning)  
+  my $integrate = ($method =~ m/^[jghJGH]/);
+
+  ##############################
+  ## Sampling code:
   ## just transform and interpolate. 
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
-    my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
+
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
     $out->(:) .= $a; # trivial slice prevents header overwrite...
     return $out;
   }
 
-
   ##############################
-  ##############################
-  ### Jacobian / integration code:
-  ### Find the local Jacobian, then use a warped filter to 
-  ### grab the values of all points within the N-cube defined 
-  ### by the largest eigenvalue.  Keep track of the filter 
-  ### weighting and scale it to match the original determinant of the 
-  ### Jacobian.
+  ## Anti-aliasing code:
+  ## Condition the input and call the pixelwise C interpolator.
+  ##
 
-  my($i,$j);
-  
-  ###############
-  ### Interpret integration-specific options...
-  my($ecc) = _opt($opt,['e','ecc','eccentricity','Eccentricity'],4.0);
-  
-  my $blur  = _opt($opt,['blur','Blur']) || 0.4;
-  
-  my $flux = scalar((_opt($opt,['p','phot','photometry','Photometry'])) =~
-		    m/[fF](lux)?/);
-  
-  
-  $out = $out * 1.0; # force float;
-  
-  ###############
-  ### Enumerate & warp the coordinates of all pixel corners, average
-  ### them to get the pixel centers, and difference them columnwise to 
-  ### get the jacobian's rows.    
-  my $center;
-  my $ijac;
-  my $jdet;
-  my $sizes;
+  barf("PDL::Transform::map: Too many dims in transformation\n")
+	if($in->ndims < $idx->ndims-1);
 
-  { # block to contain temporary variables
-
-    ##############################
-    ### Generate the Jacobian everywhere, by enumerating all the 
-    ### transformed coordinates and subtracting offset versions of them
-
-    my $indices = $me->invert(
-    (float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd) - 0.5)		            )
-      ->
-      reshape($nd,(PDL->pdl(@sizes[0..$nd-1])+1)->list);
-
-    my $jr = $indices->mv(0,-1)->range(ndcoords( (2+zeroes($nd))->list ),
-				       pdl(@sizes[0..$nd-1]));   #0..n, s1..sn, index
-
-    $center = $jr->clump($nd)->sumover->clump($nd) / (2.0 ** $nd);
-    
-    my $jac = PDL->zeroes($nd,$nd,pdl(@sizes[0..$nd-1])->prod); # (col, row, list)
-
-
-    for my $k(0..$nd-1) {
-      my $jrx = $jr->xchg($k,0);
-      my $a = (( $jrx->((1)) - $jrx->((0)) )    # 0..n (-k), s1..sn, ind
-		       -> clump($nd-1)          # list, s1..sn, ind
-		       -> sumover               # s1..sn, ind
-		       -> clump($nd)            # list, ind
-		       -> xchg(0,1)             # ind, list
-		       ) / (2.0 ** ($nd - 1));  # (normalize)
-      $jac->(($k)) .= $a
-    }
-
-    $jdet = $jac->det;
-    
-    ###############
-    ### Singular-value decompose the Jacobian and fatten it to ensure 
-    ### at least one intersection with the grid.  Then save the size
-    ### of the enclosing N-cube, for use down below. 
-    ###
-    ### smin gets the maximum of itself, unity, and the largest 
-    ### singular value divided by the largest acceptable aspect ratio.
-    my ($r1, $s, $r2) = svd $jac;
-    
-    $jac = undef; # free up jacobian memory
-    $s .= $s->cat( $s->maximum->dummy(0,$nd)/($ecc+1),
-		   ones($s) * sqrt($nd)
-		   )
-      ->mv(-1,0)
-      ->maximum;
-    
-    $r2 *= $s->dummy(1,$nd);  # cheap mult; dummy keeps threading right
-    $sizes = $s->maximum * ($blur / 0.5);
-
-    $ijac = ($r2 x $r1)->inv; # calculate regularized inverse jacobian
-
-  } # free up all those temporaries 
-  
-  ###############
-  ### Loop over increasing size of the input region for each pixel, 
-  ### doubling the size each time until the very largest pixels are 
-  ### handled.  The largest pixel we can handle is the size of the 
-  ### input dataset!
-  ###
-  ### The sampling is done not on the original image (necessarily) but
-  ### rather on a reduced version of the original image.  The amount of
-  ### reduction is determined by the pixel size divided by the maximum
-  ### allowed eccentricity.
-  my $size;
-  my $last_size=0;
-  my $outf = $out->flat;
-  my $maxdim = (PDL->pdl($in->dims))->max;
-  my $reduced = $in * 1.0; # force floating-point
-  my $reduction = 1;
-  
-  for($size=4; $size < $maxdim*2; $size *= 2){
-    $size = $maxdim	if($size > $maxdim);
-    
-    print "size=$size; " if($PDL::Transform::debug);
-    
-    my($pixels) = ($size < $maxdim) ? 
-      which(($sizes >= $last_size/2.0) & ($sizes < $size/2.0)) :
-      which($sizes >= $last_size/2.0);
-    
-    print "found ",$pixels->nelem," points..." if($PDL::Transform::debug);
-    next if($pixels->nelem == 0);
-    
-    ###############
-    ### Figure out if we ought to reduce and, if so, do it.
-    my($reduce) = (PDL->pdl($size / ($ecc + 1)))->floor;
-    if($reduce > 2) {
-      $reduce = 2 ** ( ($reduce->log / (PDL->pdl(2))->log ) ->floor );
-    }
-    
-    if($reduce > $reduction) {
-      # Scale down the dimensions that we're actually operating on
-      my @rdims = $in->dims;
-      my @rd = ( pdl( splice(@rdims,0,$nd) ) / $reduce ) ->ceil -> list;
-      unshift(@rdims,@rd);
-
-      # Enumerate the coordinates and grab the range for each pixel, then
-      # sum over them
-      my $r2dex = ndcoords(@rd) * $reduce / $reduction;
-      my $r2 = $reduced->range($r2dex,$reduce/$reduction,'t')
-	->clump($nd..$nd*2-1)
-	->mv($nd,0)
-	->sumover;
-      $reduction = $reduce;
-      $reduced = $r2;
-    }
-    print "  [ reduction = $reduction ]  \n" if($PDL::Transform::debug);
-    
-    ###############
-    ### Enumerate a cube of coordinate offsets of the current size in
-    ### input space.  It is float not double, to save space.
-    print "enumerating $nd-cube, side $size..." if($PDL::Transform::debug);
-    my($coords_in) = float(ndcoords((zeroes($nd)+$size/$reduction)->list));
-    
-    ###############
-    ### Duplicate the coordinate cube for each pixel. 
-    print "duplicating ",$pixels->nelem," times..." if($PDL::Transform::debug);
-    $coords_in = $coords_in->                    # (coord,<dims>)
-      mv(0,-1)->                      # (<dims>,coord)
-      clump($nd)->                    # (rgn-list,coord)
-      xchg(0,1)->                     # (coord,rgn-list)
-      dummy(0,$pixels->nelem)->       # (pix-list,coord,rgn-list)
-      sever;
-    
-    ###############
-    ### Offset to get an array of indices into the input.
-    print "offsetting..." if($PDL::Transform::debug);
-    
-    my($points) = $center->range($pixels->dummy(0,1)); # (pix-list, coord)
-    $coords_in += ($points->floor -  0.5*$size)/$reduction + 1;     
-    # (pix-list, coord, rgn-list)
-    
-    ###############
-    ### Calculate the offsets (in output space) of each center from 
-    ### the appropriate pixel center, and convert to r^2;
-    ###
-    ### The intermediate variable ijac_p could be eliminated...
-    print "calculating offsets..." if($PDL::Transform::debug);
-    my $ijac_p = ( $ijac->                          # (col, row, list)
-		   mv(2,0)->                        # (list, col, row)
-		   range($pixels->dummy(0,1))->     # (pix-list, col, row)
-		   mv(0,-1));                       # (col, row, pix-list)
-    print " . " if($PDL::Transform::debug);
-    
-    my $offsets = ($ijac_p x                        # (col, row, pix-list)
-		   ($coords_in-$points/$reduction)->#(pixlist,coord,rgn-list)
-		   xchg(0,1)->dummy(0,1)  # (null,coord,pix-list,rgn-list)
-		   )	->((0));               # (coord,pixlist,rgn-list)
-    print " . "if($pdl::debug);
-    
-    $offsets *= $offsets; # (coord, pixlist, rgn-list)
-    
-    ###############
-    ### Calculate filter weighting values.  Since we scale at the 
-    ### end to match either 1.0 or the original jacobian, we don't
-    ### bother to scale the weighting function here -- but we do accumulate
-    ### the filter weighting total into f_norm.
-    
-    print "calculating filter values..." if($PDL::Transform::debug);
-    my $filt = $offsets->sumover->xchg(0,1);  # (rgn-list,pix-list) R^2
-    $offsets = undef;    # free up memory    
-    $filt *= - $reduction * $reduction / $blur / $blur;
-    $filt->inplace->exp;               # make Gaussian. (rgn-list, pix-list)
-    my $f_norm = $filt->sumover;       # (pix-list)
-    
-    ###############
-    ### Pedal to the metal -- accumulate input values and scale by their
-    ### appropriate filter value.
-    print "grabbing data..." if($PDL::Transform::debug);
-
-    my $input = $reduced->range(
-				  $coords_in         #(pix-list,coord,rgn-list)
-				  ->(:,:,(0))        #(pix-list,coord)
-				  ->xchg(0,1)          #(coord,pix-list)
-				  ,
-				  $size/$reduction,$bound  # (pix-list,<dims>)
-				  )
-                  ->sever
-		  ->mv(0,$nd)                     # (<dims>,pix-list)
-		  ->clump($nd);                   # (rgn-list,pix-list)
-
-    $input *= $filt;  # (rgn-list, pix-list)
-
-    ### Stick the summed, filtered output back into the output array!
-    ### Whew!  
-    
-    if($flux) {
-      my $p_jdet = $jdet->indexND($pixels->dummy(0,1));
-      $out->clump($nd)->range($pixels->dummy(0,1)) .=
-	($input->sumover * $p_jdet / $f_norm / ($reduction ** $nd));
-    } else {
-      $out->clump($nd)->range($pixels->dummy(0,1)) .= 
-	double($input->sumover / $f_norm / ($reduction ** $nd));  # (pix-list)
-    }
-    
-    print "ok\n" if($PDL::Transform::debug);
-    $last_size = $size;
+  ####################
+  ## Condition the threading -- pixelwise interpolator only threads 
+  ## in 1 dimension, so squish all thread dimensions into 1, if necessary
+  my @iddims = $idx->dims;
+  if($in->ndims == $#iddims) {
+	$in2 = $in->dummy(-1,1);
+  } else {
+	$in2 = ( $in 
+	        ->reorder($nd..$in->ndims-1, 0..$nd-1)	
+		->clump($in->ndims - $nd)
+		->mv(0,-1)
+	       );
   }
-  $out;
-}  
+
+  ####################
+  # Allocate the output array
+  my $o2 = PDL->new_from_specification($in2->type, 
+				    @iddims[1..$#iddims], 
+	 			    $in2->dim(-1)
+				   );
+
+  ####################
+  # Pack boundary string if necessary
+  if(defined $bound) {
+    if(ref $bound eq 'ARRAY') {
+      my ($s,$el);
+      foreach $el(@$bound) {
+	barf "Illegal boundary value '$el' in range"
+  	  unless( $el =~ m/^([0123fFtTeEpPmM])/ );
+	$s .= $1;
+      }
+      $bound = $s;
+    }
+    elsif($bound !~ m/^[0123ftepx]+$/  && $bound =~ m/^([0123ftepx])/i ) {
+      $bound = $1;
+    }
+  }
+
+  ####################
+  # Get the blur and minimum-sv values
+  my $blur  =  _opt($opt,['blur','Blur'],1.0);
+  my $svmin =  _opt($opt,['sv','SV'],1.0);
+  my $big   =  _opt($opt,['big','Big'],1.0);
+  my $flux  =  _opt($opt,['p','phot','photometry'],0);
+  my @idims = $in->dims;
+
+  $flux = ($flux =~ m/^[1fF]/);
+  $big = $big * max(pdl(@idims[0..$nd])) / 2;
+  $blur = $blur->at(0) if(ref $blur);
+  $svmin =  $svmin->at(0)  if(ref $svmin);
   
+
+
+  ### The first argument is a dummy to set $GENERIC.
+  $idx = double($idx) unless($idx->type == double);
+  &PDL::_map_int( $in2->flat->index(0), 
+	$in2, $o2, $idx, 
+	$bound, $method, $big, $blur, $svmin, $flux );
+
+  my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
+  $out->(:) .= $o2->reshape(@rdims);
+ 
+}  
+
+==EOD_map_perlcode==
+
+);
+
+
+pp_add_exported('unmap');  
+pp_addpm(<<'======EOD_unmap======');
+
 ######################################################################
 
 =head2 PDL::Transform::unmap
@@ -1129,7 +1610,10 @@ sub unmap {
   return $me->inverse->map($data,@params);
 }
 
-######################################################################
+======EOD_unmap======
+
+pp_add_exported('t_inverse');
+pp_addpm(<<'======EOD_t_inverse======');
 
 =head2 t_inverse 
 
@@ -1189,9 +1673,11 @@ sub inverse {
   bless $out,(ref $me);
   return $out;
 }
-  
-  
-######################################################################
+
+======EOD_t_inverse======
+
+pp_add_exported('t_compose');
+pp_addpm(<<'======EOD_t_compose======');
 
 =head2 t_compose 
 
@@ -1303,7 +1789,11 @@ sub compose {
   return bless($me,'PDL::Transform::Composition');
 }
 
-######################################################################
+======EOD_t_compose======
+
+
+pp_add_exported('t_wrap');
+pp_addpm(<<'======EOD_t_wrap======');
 
 =head2 t_wrap
 
@@ -1372,7 +1862,11 @@ sub _pow_op {
     t_compose(@l);
 }
 
-######################################################################
+======EOD_t_wrap======
+
+
+pp_add_exported('t_identity');
+pp_addpm(<<'======EOD_t_identity======');
 
 =head2 t_identity
 
@@ -1405,10 +1899,14 @@ sub new {
   
   return bless $me,$class;
 }
-  
-######################################################################
 
-=head2 t_lookup 
+======EOD_t_identity======
+
+  
+pp_add_exported('t_lookup');
+pp_addpm(<<'======EOD_t_lookup======');
+
+=head2 t_lookup
 
 =for usage
 
@@ -1544,7 +2042,7 @@ sub t_lookup {
      my($data,$p,$table_name) = @_;
 
     if($data->dim(0) > $me->{idim}) {
-      croak("Too many dims (".$data->dim(0).") for your table (".$me->{idim}.")\n");
+      barf("Too many dims (".$data->dim(0).") for your table (".$me->{idim}.")\n");
     };
 
     $data = pdl($data) 
@@ -1586,7 +2084,10 @@ sub t_lookup {
   return $me;
 }
 
-######################################################################
+======EOD_t_lookup======
+
+pp_add_exported('t_linear');
+pp_addpm(<<'======EOD_t_linear======');
 
 =head2 t_linear
 
@@ -1892,9 +2393,11 @@ sub PDL::Transform::Linear::stringify {
   $out;
 }
 
+======EOD_t_linear======
 
-######################################################################
-########## Convenience interfaces to Linear...
+
+pp_add_exported('t_scale');
+pp_addpm(<<'======EOD_t_scale======');
 
 =head2 t_scale
 
@@ -1919,9 +2422,10 @@ sub t_scale {
     t_linear(Scale=>$scale,$b,@_);
 }
 
+======EOD_t_scale======
 
-##########
-##########
+pp_add_exported('t_offset ');
+pp_addpm(<<'======EOD_t_offset ======');
 
 =head2 t_offset 
 
@@ -1947,8 +2451,10 @@ sub t_offset {
     t_linear(pre=>$pre,$b,@_);
 }
 
-##########
-##########
+======EOD_t_offset ======
+
+pp_add_exported('t_rot');
+pp_addpm(<<'======EOD_t_rot======');
 
 =head2 t_rot
 
@@ -1975,8 +2481,12 @@ sub t_rotate    {
     t_linear(rot=>$rot,$b,@_);
 }
 
+======EOD_t_rot======
 
-######################################################################
+
+
+pp_add_exported('t_fits');
+pp_addpm(<<'======EOD_t_fits======');
 
 =head2 t_fits
 
@@ -2128,10 +2638,14 @@ sub t_fits {
   return $me;
 }
 
+======EOD_t_fits======
+
+
   
 
 
-######################################################################
+pp_add_exported('t_code ');
+pp_addpm(<<'======EOD_t_code ======');
 
 =head2 t_code 
 
@@ -2224,7 +2738,13 @@ sub t_code {
   $me;
 }
 
-######################################################################
+======EOD_t_code ======
+
+
+
+pp_add_exported('t_cylindrical');
+pp_add_exported('t_radial');
+pp_addpm(<<'======EOD_t_cylindrical======');
 
 =head2 t_cylindrical
 
@@ -2355,10 +2875,10 @@ sub t_radial {
 
       my($data,$o) = @_;
 
-      my($out) = ($data->is_inplace) ? $data : zeroes($data);
+      my($out) = ($data->new_or_inplace);
 
-      my($d) = $data->copy - $o->{origin};
-
+      my($d) = $data->copy;
+      $d->(0:1) -= $o->{origin};
 
       my($d0) = $d->((0));
       my($d1) = $d->((1));
@@ -2369,7 +2889,7 @@ sub t_radial {
       $out->((1)) .= (defined $o->{r0}) ?
 	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
 	      sqrt($d1*$d1 + $d0*$d0);
-      
+
       $out;
   };
 
@@ -2396,7 +2916,10 @@ sub t_radial {
   $me;
 }
 
-######################################################################
+======EOD_t_cylindrical======
+
+pp_add_exported('t_quadratic');
+pp_addpm(<<'======EOD_t_quadratic======');
 
 =head2 t_quadratic
 
@@ -2429,22 +2952,28 @@ OPTIONS
 
 =item o,origin,Origin
 
-The origin of the pincushion.
+The origin of the pincushion. (default is the, er, origin).
 
 =item l,l0,length,Length,r0
 
 The fundamental scale of the transformation -- the radius that remains
-unchanged.
+unchanged.  (default=1)
 
 =item s,str,strength,Strength
 
-The relative strength of the pincushion.
+The relative strength of the pincushion. (default = 0.1)
+
+=item d, dim, dims, Dims
+
+The number of dimensions to quadratically scale (default is the 
+dimensionality of your input vectors)
+
 
 =back
 
 =cut
 
-sub t_pincushion { 
+sub t_quadratic { 
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
@@ -2452,46 +2981,50 @@ sub t_pincushion {
     }
     my($me) = PDL::Transform::new($class);
     
-    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0,0));
+    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
-
-    $me->{name} = "pincushion";
+    $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims']);
+    $me->{name} = "quadratic";
     
     $me->{func} = sub {
 	my($data,$o) = @_;
-	my($d) = $data->copy - $o->{origin};
+	my($dd) = $data->copy - $o->{origin};
+	my($d) =  (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
 	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
 	$d /= (abs($o->{str}) + 1);
 	$d += $o->{origin};
 	if($data->is_inplace) {
-	    $data .= $d;
+	    $data .= $dd;
 	    return $data;
 	}
-	$d;
+	$dd;
     };
     
     $me->{inv} = sub {
 	my($data,$opt) = @_;
-	my($d) = $data->copy ;
+	my($dd) = $data->copy ;
+	my($d) = (defined $opt->{dim}) ? $dd->(0:($opt->{dim}-1)) : $dd;
 	my($o) = $opt->{origin};
 	my($s) = $opt->{str};
 	my($l) = $opt->{l0};
 
-	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($data-$o) * (1+abs($s))))
-	    / 2 / $s * $l) * (1 - 2*($data < $o));
-	$d += $o->{origin};
+	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
+	    / 2 / $s * $l) * (1 - 2*($d < $o));
+	$d += $o;
 	if($data->is_inplace) {
-	    $data .= $d;
+	    $data .= $dd;
 	    return $data;
 	}
-	$d;
+	$dd;
     };
     $me;
 }
 
+======EOD_t_quadratic======
 
-######################################################################
+pp_add_exported('t_spherical');
+pp_addpm(<<'======EOD_t_spherical======');
 
 =head2 t_spherical
 
@@ -2625,13 +3158,6 @@ sub t_spherical {
     $me;
   }
 
+======EOD_t_spherical======
 
-=head1 AUTHOR
-
-Copyright 2002 Craig DeForest.  This module may be modified and
-distributed under the same terms as PDL itself.  The module comes
-with NO WARRANTY.
-
-=cut
-
-  1;
+pp_done();

@@ -62,15 +62,15 @@ sub subs {
   my ($type,$func) = @_;
   if (defined $func) {
     $func =~ s/^.*:://;
-    return ($^V and $^V ge v5.6.0) && scalar grep {$_ eq $func} @funcs;
+    return ($^V and $^V >= 5.006007) && scalar grep {$_ eq $func} @funcs;
   } else {
-    return ($^V and $^V ge v5.6.0) ? @funcs : ();
+    return ($^V and $^V >= 5.006007) ? @funcs : ();
   }
 }
 
 # print "defining lvalue subs:\n$prots\n";
 
-eval << "EOV" if ($^V and $^V ge v5.6.0);
+eval << "EOV" if ($^V and $^V >= 5.006007);
 {package PDL;
 $prots
 }

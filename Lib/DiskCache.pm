@@ -1,19 +1,23 @@
 =head1 NAME
 
-PDL::DiskCache -- simple caching object for tieing lists of data
+PDL::DiskCache -- Non-memory-resident array object
 
 =head1 SYNOPSIS
 
 NON-OO:
+
    use PDL::DiskCache;
    tie @a,'PDL::DiskCache', \@files, \%options;
    imag $a[3];
 
 OO:
+
    use PDL::DiskCache;
    $a = diskcache(\@files,\%options);
    imag $a->[3];
+
 or
+
    use PDL::DiskCache;
    $a = new PDL::DiskCache(\@files,\%options);
    imag $a->[4];
@@ -33,23 +37,28 @@ below for details)
 
 =head1 DESCRIPTION
 
-PDL::DiskCache stores one dimension of a data set on disk, caching some of them
-in memory.  It's useful for operations where you have to look at a large
-collection of files one or a few at a time.  
+A PDL::DiskCache object is a perl L<"tied array"|perltie> that is useful
+for operations where you have to look at a large collection of PDLs  one
+or a few at a time (such as tracking features through an image sequence).  
+You can write prototype code that uses a perl list of a few PDLs, then 
+scale up to to millions of PDLs simply by handing the prototype code
+a DiskCache tied array instead of a native perl array.  The individual
+PDLs are stored on disk and a few of them are swapped into memory on a
+FIFO basis.  You can set whether the data are read-only or writeable.
 
-PDL::DiskCache connects to FITS files by default but can connect to any
-sort of file at all -- the read/write routines are the only place
-where it examines the underlying data.  To use PDL::DiskCache with other
-sorts of data, subclass it or, for ease of quick-and-dirty use, you
-can pass in the read and write routines in the options hash.
+By default, PDL::DiskCache uses FITS files to represent the PDLs, but
+you can use any sort of file at all -- the read/write routines are the
+only place where it examines the underlying data, and you can specify 
+the routines to use at construction time (or, of course, subclass 
+PDL::DiskCache).
 
 Items are swapped out on a FIFO basis, so if you have 10 slots
 and an expression with 10 items in it then you're OK (but you probably
 want more slots than that); but if you use more items in an expression than
 there are slots, thrashing will occur!
 
-The OO interface is preferred, since you then have access to all the methods
-and not just the normal array-access methods.
+The hash ref interface is kept for historical reasons; you can access
+the sync() and purge() method calls directly from the returned array ref.
 
 =head1 Shortcomings & caveats
 
@@ -59,7 +68,9 @@ these things going at once on the same files.
 Since this is a tied array, things like Dumper traverse it transparently.
 That is sort-of good but also sort-of dangerous.  You wouldn't want to
 PDL::Dumper::sdump() a large PDL::DiskCache, for example -- that would defeat
-the purpose of using a PDL::DiskCache in the first place...
+the purpose of using a PDL::DiskCache in the first place.
+
+
 
 =head1 Author, license, no warranty
 
@@ -81,7 +92,7 @@ This package comes with NO WARRANTY.
 
 ######################################################################
 # Package initialization
-$PDL::DiskCache::VERSION = 1.0;
+$PDL::DiskCache::VERSION = 1.1;
  
 use strict;
 use Carp;
@@ -114,6 +125,10 @@ sub PDL::DiskCache::new {
   my($a)=[];
 
   my($b) = tie @{$a},$class,$f,$opt;
+  if($opt->{bless}) {
+    $a = bless($a,$class);
+  }
+
   if(wantarray) {
     return ($a,bless($b,$class));
   } else {
@@ -125,7 +140,9 @@ sub PDL::DiskCache::new {
 
 =head2 TIEARRAY
 
-Tied-array constructor.  
+=for ref 
+
+Tied-array constructor; invoked by perl during object construction.
 
 =over 3
 
@@ -153,6 +170,12 @@ rfits: $object = rfits(filename).
 write (default \&wfits): A function ref pointing to code that will
 write list objects to disk.  The function must have the same syntax as
 wfits: func(object,filename).
+
+bless (default 0): If set to a nonzero value, then the array ref gets
+blessed into the DiskCache class for for easier access to the "purge"
+and "sync" methods.  This means that you can say C<$a->sync> instead
+of the more complex C<(%{tied @$a})->sync>, but C<ref $a> will return
+"PDL::DiskCache" instead of "ARRAY", which could break some code.
 
 verbose (default 0): Get chatty.
 
@@ -199,6 +222,8 @@ and must be written to disk.
 
 sub PDL::DiskCache::purge {
   my($me,$n) = @_,1;
+  $me = (tied @{$me}) if("$me" =~ m/^PDL\:\:DiskCache\=ARRAY/);
+
   $n = $me->{mem} if($n<0);
   
   print "purging $n items..." if($me->{opt}->{verbose});
@@ -233,15 +258,9 @@ sub PDL::DiskCache::purge {
   print "...done with purge.\n" if($me->{opt}->{verbose});
 }
 
-=head2 FETCH
-
-Fetching routine.  (Does it have to be an lvalue?)
-
-=cut
-
 sub PDL::DiskCache::FETCH {
   my($me,$i) = @_;
-  
+
   if($i < 0 || $i >= $me->{n}) {
     carp("PDL::DiskCache: Element $i is outside range of 0-",$me->{n}-1,"\n");
     return undef;
@@ -280,7 +299,7 @@ sub PDL::DiskCache::FETCH {
 
 sub PDL::DiskCache::STORE {
   my($me, $i, $val) = @_;
-  
+
   if( $me->{slot}->[$i] ) {
     print "Storing index $i, in cache\n" if($me->{opt}->{verbose});
     return $me->{cache}->[$me->{slot}->[$i]] = $val;
@@ -306,11 +325,13 @@ sub PDL::DiskCache::STORE {
  
 sub PDL::DiskCache::FETCHSIZE { 
   my($me) = shift;
+
   $me->{n};
 }
 
 sub PDL::DiskCache::STORESIZE { 
   my($me,$newsize) = @_;
+
   if($newsize > $me->{n}) {
     croak("PDL::DiskCache:  Can't augment array size (yet)!\n");
   }
@@ -345,7 +366,8 @@ this is a not-too-slow (but safe) no-op.
 
 sub PDL::DiskCache::sync {
   my($me) = shift;
-  
+  $me = (tied @{$me}) if("$me" =~ m/^PDL\:\:DiskCache\=ARRAY/);
+
   print "PDL::DiskCache::sync\n" if($me->{opt}->{verbose});
   
   if($me->{rw}) {
@@ -366,8 +388,10 @@ sub PDL::DiskCache::sync {
 
 =head2 DESTROY
 
-Synchronize the cache out to disk if it's an rw cache, before allowing
-it to be broken down by the destructor crew.
+This is the perl hook for object destruction.  It just makes a call to
+"sync", to flush the cache out to disk.  Destructor calls from perl don't
+happen at a guaranteed time, so be sure to call "sync" if you need to 
+ensure that the files get flushed out, e.g. to use 'em somewhere else.
 
 =cut
 
@@ -375,7 +399,6 @@ sub PDL::DiskCache::DESTROY {
   my($me) = shift;
 
   $me->sync;
-
 }
 
 # return true
