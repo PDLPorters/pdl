@@ -1,7 +1,7 @@
 DJB (09 Apr 02)
     - added 'use PDL::Math' to PDL.pm (but not Lite/LiteF versions)
     (22 Apr 02)
-    - added Kaj Wilk's patch to use pgtbox in PGPLOT/Window.pm (#538831)
+    - added Kaj Wiik's patch to use pgtbox in PGPLOT/Window.pm (#538831)
       -- this needs documentation!
 JB  (07 Apr 02)
     - Moved $CTAB to become part of the $self object in PGPLOT/Window.pm 
