@@ -37,9 +37,13 @@ GNU Scientific Library.
 =for ref
 
 This functions serves as an interface to the three differentiation 
-functions present in GSL: central, backward, forward. It returns
-both the derivative and an absolute error estimate. The default
-method is 'central', others can be specified by passing an option.
+functions present in GSL: gsl_diff_central, gsl_diff_backward and 
+gsl_diff_forward. To compute the derivative, the central method uses 
+values greater and smaller than the point at which the derivative is 
+to be evaluated, while backward and forward use only values smaller 
+and greater respectively. gsldiff() returns both the derivative 
+and an absolute error estimate. The default  method is 'central', 
+others can be specified by passing an option.
 
 Please check the GSL documentation for more information.
 
@@ -57,14 +61,14 @@ Example:
   ($d,$abserr) = gsldiff(\&myf,3.3);
 
   #same as above with method set explicitly
-  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'central'}
+  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'central'});
 
   #using backward & forward methods
-  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'backward'}
-  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'forward'}
+  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'backward'});
+  ($d,$abserr) = gsldiff(\&myf,3.3,{Method => 'forward'});
 
   sub myf{
-    my $x = @_[0];
+    my ($x) = @_;
     return exp($x);
   }
 
