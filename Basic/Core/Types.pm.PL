@@ -22,6 +22,10 @@ sub typeofPDLi64 {
     die "Can not find an integer 64 bit type";
 }
 
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!
 #
@@ -401,8 +405,36 @@ The actual C type used to store this type.
 
 The value returned by C<ctype> without the 'PDL_' prefix.
 
+!NO!SUBS!
+
+my $d1 = $bvalflag ?
+  "Returns the value used to indicate a missing (or bad) element for the given data type. " .
+  "See the L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details."
+:
+  "Since PDL was compiled without support for 'bad' values, this routine returns undef.";
+
+my $d2 = $bvalflag ?
+  "Returns the original value used to represent bad values for a given type. " .
+  "See the L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details."
+:
+  "Since PDL was compiled without support for 'bad' values, this routine returns undef.";
+
+print OUT qq{
+=item badvalue
+
+$d1
+
+=item orig_badvalue
+
+$d2
+
+=back
+
 =cut
 
+};
+
+print OUT <<'!NO!SUBS!';
 {
     package PDL::Type;
     sub new {
@@ -438,7 +470,41 @@ sub $name {
 EOS
 }
 
+## add the code for returning the bad value for a particular
+## type. Up to (and including) 2.3.4, this code was actually in
+## Basic/Bad/bad.pd.
+##
+
+if ( $bvalflag ) {
+    print OUT <<'!NO!SUBS!';
+
+no strict 'refs';
+sub badvalue {
+  my ( $self, $val ) = @_;
+  my $name = "PDL::_badvalue_int" . $self->enum();
+  if ( defined $val ) { return &{$name}( $val )->sclr; }
+  else                { return &{$name}()->sclr; }
+}
+
+sub orig_badvalue {
+  my $self = shift;
+  my $name = "PDL::_default_badvalue_int" . $self->enum();
+  return &{$name}()->sclr;
+}
+use strict 'refs';
+
+!NO!SUBS!
+
+} else {
+    print OUT qq{
+sub badvalue { return undef; }
+sub orig_badvalue { return undef; }
+};
+
+} # if: $bvalflag
+
 print OUT <<'!NO!SUBS!';
+
 sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }
 
 # make life a bit easier
@@ -452,7 +518,6 @@ use overload (
 } # package: PDL::Type
 # Return
 1;
-
 
 __END__
 
@@ -565,7 +630,6 @@ has a mode to check for type macros requiring updating. Do something like
 
 from the PDL root directory I<after> updating F<Types.pm.PL> to check
 for such places.
-
 
 =cut
 

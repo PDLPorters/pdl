@@ -1,3 +1,7 @@
+DJB 02-Apr-2003
+   - moved code from Basic/Bad/bad.pd to Basic/Core/Types.pm.PL: should
+     never really have been adding to the PDL::Type namespace from a
+     different module! (no change to the user)
 CED 30-Mar-2003
    - range now allows using the empty piddle as an index; the resulting
 	range is the empty piddle.
@@ -714,7 +718,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldÂŽÂÂŽÂŽór Olafsson and Vince McIntyre (bug #233484)
+      HalldÂŽÂÂŽÂÂŽór Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments
