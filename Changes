@@ -1,3 +1,6 @@
+DJB (23/Aug/01)
+    - you no longer need to surround options by {} for
+      PDL::Graphics::PGPLOT::Window->new()
 JB  - Added a recording feature to the PGPLOT interface.
 CS  - NiceSlice doc update
 JB  (14/Aug/01)

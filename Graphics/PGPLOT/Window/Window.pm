@@ -5,7 +5,7 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
 =head1 SYNOPSIS
 
  perldl> use PDL::Graphics::PGPLOT::Window
- perldl> $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs'});
+ perldl> $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
  perldl> $a = pdl [1..100]
  perldl> $b = sqrt($a)
  perldl> $win->line($b)
@@ -354,11 +354,11 @@ user to be able to monitor both the birth rates and accumulated number
 of rabbits and the spatial distribution of the births. Since these are
 logically different he chooses to have two windows open:
 
-  $rate_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
-              Aspect => 1, WindowWidth => 5, NXPanel => 2});
+  $rate_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
+              Aspect => 1, WindowWidth => 5, NXPanel => 2);
 
-  $area_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
-              Aspect => 1, WindowWidth => 5});
+  $area_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
+              Aspect => 1, WindowWidth => 5);
 
 See the documentation for L<new> below for a full overview of the
 options you can pass to the constructor.
@@ -423,15 +423,15 @@ Like any self-respecting recorder you can turn the recorder on and off
 using the C<turn_on_recording> and C<turn_off_recording> respectively.
 Likewise you can clear the state using the C<clear_state> command.
 
-  $w=PDL::Graphics::PGPLOT::Window->new({Device => '/xs'})
+  $w=PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
   $w->turn_on_recording;
-  $x=sequence(10); $y=$x*$x
-  $w->line($x, $y)
-  $w->turn_off_recording
-  $w->line($y, $x)
-  $w->turn_on_recording
-  $w->line($x, $y*$x)
-  $state = $w->retrieve_state()
+  $x=sequence(10); $y=$x*$x;
+  $w->line($x, $y);
+  $w->turn_off_recording;
+  $w->line($y, $x);
+  $w->turn_on_recording;
+  $w->line($x, $y*$x);
+  $state = $w->retrieve_state();
 
 We can then replay C<$state> and get a parabola and a cubic plot.
 
@@ -531,9 +531,18 @@ Constructor for PGPLOT object/device/plot window.
 =for usage
 
 Usage: PDL::Graphics::PGPLOT::Window->new($opt);
+Usage: PDL::Graphics::PGPLOT::Window->new($option=>$value,...);
 
-C<$opt> is a reference to a hash with options for the new device. The options
-recognised are the following:
+Options to new() can either be specified via a reference to a hash
+
+  $win = PDL::Graphics::PGPLOT::Window->new({Dev=>'/xserve',ny=>2});
+
+or directly, as an array
+
+  # NOTE: no more {} !
+  $win = PDL::Graphics::PGPLOT::Window->new(Dev=>'/xserve',ny=>2);
+
+The following lists the recognised options:
 
 =over
 
@@ -592,8 +601,8 @@ Thus the following call will set up a window where the default axis colour
 will be yellow and where plot lines normally have red colour and dashed
 linestyle.
 
-  $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs',
-          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed'});
+  $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs',
+          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed');
 
 
 =head2 close
@@ -1375,7 +1384,7 @@ options list.
 Example:
 
    $im = rvals(100, 100);
-   $w = PDL::Graphics::PGPLOT::Window->new({Device => '/xs'});
+   $w = PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
    $t = $w->transform(dims($im), {ImageCenter => 0,  Pixinc => 5});
    $w->imag($im, {Transform => $t});
 
@@ -1666,9 +1675,14 @@ my $PREVIOUS_ENV = undef;
 sub new {
 
   my $type = shift;
-  my $u_opt = shift;
 
-  $u_opt={} unless defined($u_opt);
+  # options are either given in a hash reference, or as a list
+  # (which is converted to a hash reference to make the code easier)
+  my $u_opt;
+  if ( ref($_[0]) eq "HASH" ) { $u_opt = shift; }
+  else                        { $u_opt = { @_ }; }
+#  $u_opt={} unless defined($u_opt);
+
   my $opt = $WindowOptions->options($u_opt);
   $WindowOptions->full_options(0);
   my $user_options = $WindowOptions->current();
