@@ -1,3 +1,5 @@
+CED 13-Jan-2005
+   - transform.pd: remove typo introduced in removal of C double types 
 CED 09-Jan-2005
    - Core.pm.PL: Restored original barf behavior: reports error where
      it occured in user code, not within PDL.

@@ -1507,7 +1507,7 @@ sub map {
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
   my $ndc = PDL::Basic::ndcoords(@dd);
-  my $idx = $me->invert($ndc->PDL_Double + 0.5);
+  my $idx = $me->invert($ndc->double + 0.5);
 
   barf "map: Transformation had no inverse\n" unless defined($idx);
 	
