@@ -93,9 +93,8 @@ The dimensions of this pdl. Remember to physicalize the pdl before using.
 =item dimincs
 
 As an optimization, an increment for each dimension is stored here.
-In contrast to previous alpha versions, these are required to correspond
-exactly do dims. If you want to optimize for affine transformations,
-use the trans or vtrans.
+These are required to correspond exactly to dims. 
+If you want to optimize for affine transformations, use the trans or vtrans.
 
 =item threadids, nthreadids
 
@@ -160,9 +159,100 @@ This is bound to change pretty soon.
 The file C<pdlthread.c> handles most of the threading matters.
 The threading is encapsulated in the structure C<pdlthread.h>.
 
+=head2 Accessing children and parents of a piddle
+
+The file F<Basic/Core/pdlapi.h.PL> contains useful routines for
+manipulating the pdl structure (it's probably easier to read
+F<Basic/Core/pdlapi.h> once you've performed a build of PDL).
+
+An example of processing the children of a piddle is provided
+by the C<baddata> method of PDL::Bad (only available if you
+have comiled PDL with the C<WITH_BADVAL> option set to 1,
+but still useful as an example!). 
+
+Consider the following situation:
+
+ perldl> $a = rvals(7,7,Centre=>[3,4]);
+ perldl> $b = $a->slice('2:4,3:5');
+ perldl> ? vars
+ PDL variables in package main::
+
+ Name         Type   Dimension       Flow  State          Mem
+ ----------------------------------------------------------------
+ $a           Double D [7,7]                P            0.38Kb 
+ $b           Double D [3,3]                VC           0.00Kb 
+
+Now, if I suddenly decide that C<$a> should be flagged as possibly
+containing bad values, using
+
+ perldl> $a->baddata(1)
+
+then I want the state of C<$b> - it's I<child> - to be changed as
+well, so that I get a 'B' in the I<State> field:
+
+ perldl> ? vars                    
+ PDL variables in package main::
+
+ Name         Type   Dimension       Flow  State          Mem
+ ----------------------------------------------------------------
+ $a           Double D [7,7]                PB           0.38Kb 
+ $b           Double D [3,3]                VCB          0.00Kb 
+
+This bit of magic is performed by the C<propogate_badflag> function,
+which is listed below:
+
+ /* newval = 1 means set flag, 0 means clear it */
+ /* thanks to Christian Soeller for this */
+
+ void propogate_badflag( pdl *it, int newval ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls;
+	     i++ ) {
+	    pdl *child = trans->pdls[i];
+
+	    if ( newval ) child->state |=  PDL_BADVAL;
+            else          child->state &= ~PDL_BADVAL;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badflag( child, newval );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+ } /* propogate_badflag */
+
+Given a piddle (C<pdl *it>), the routine loops through each 
+C<pdl_trans> structure, where access to this structure is provided by the 
+C<PDL_CHILDLOOP_THISCHILD> macro.
+The I<children> of the piddle are stored in the C<pdls> array, after the
+I<parents>, hence the loop from C<i = ...nparents> to 
+C<i = ...nparents - 1>.
+Once we have the pointer to the child piddle, we can do what we want to 
+it; here we change the value of the C<state> variable, but the details
+are unimportant).
+What B<is> important is that we call C<propogate_badflag> on this
+piddle, to ensure we loop through its children. This recursion
+ensures we get to all the I<offspring> of a particular piddle.
+
+B<THE FOLLOWING NEEDS TO BE CHECKED>.
+
+Access to I<parents> is similar, with the C<for> loop replaced by:
+
+	for( i = 0;
+	     i < trans->vtable->nparents;
+	     i++ ) {
+
+
 =head1 AUTHOR
 
-Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu).
+Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu),
+2000 Doug Burke (burke@ifa.hawaii.edu).
+
 Redistribution in the same form is allowed but reprinting requires
 a permission from the author.
 

@@ -61,7 +61,7 @@ sub copy {
 package main;
 
 ###### Testing Begins #########
-print "1..1\n";   
+print "1..8\n";   
 
 my $testNo = 1;
 
@@ -79,11 +79,17 @@ $im = new PDL::Derived [
 #  Set 'someThingElse' Data Member to 24. (from 42)
 $im->{someThingElse} = 24;
 
-# Test to see if sqrt function (a simple case function
+# Test to see if simple functions (a functions
 #    with signature sqrt a(), [o]b() ) copies subclassed object correctly.
-$w = sqrt($im); 
+my @simpleFuncs = (qw/ 
+bitnot sqrt abs sin cos not exp log10 /);
 
-ok($testNo++, $w->{someThingElse} == 24 ); 
+foreach my $op( @simpleFuncs){
+	
+	$w = $im->$op(); 
+
+	ok($testNo++, $w->{someThingElse} == 24 ); 
+}
 
 
 

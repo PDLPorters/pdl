@@ -1,4 +1,4 @@
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -10,6 +10,9 @@ This module provides the functions used by PDL to
 overload the basic mathematical operators (C<+ - / *>
 etc.) and functions (C<sin sqrt> etc.)
 
+It also includes the function C<log10>, which should
+be a perl function so that we can overload it!
+
 =head1 SYNOPSIS
 
 none
@@ -17,6 +20,21 @@ none
 =cut
 
 EOD
+
+pp_addpm({At=>'Bot'},<<'EOPM');
+
+=head1 AUTHOR
+
+Tuomas J. Lukka (lukka@fas.harvard.edu),
+Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
+Doug Hunt (dhunt@ucar.edu), 
+Christian Soeller (c.soeller@auckland.ac.nz),
+and Doug Burke (burke@ifa.hawaii.edu).
+
+=cut
+
+EOPM
+
 pp_addhdr('
 #include <math.h>
 
@@ -26,14 +44,24 @@ pp_addhdr('
 #define NOTHING
 ');
 
+sub protect_chars {
+  my ($txt) = @_;
+  $txt =~ s/>/E;gt#/g;
+  $txt =~ s/</E;lt#/g;
+  $txt =~ s/;/</g;
+  $txt =~ s/#/>/g;
+  return $txt;
+}
+
 # simple binary operators
+
 sub biop {
-	my ($name,$op,$swap,$doc,%extra) = @_;
-	my $optxt = $op;
-	if ($optxt =~ s/>/E<gt>/) {} else
-	{ $optxt =~ s/</E<lt>/}
-	if ($swap) {
-	  $extra{HdrCode} = << 'EOH';
+    my ($name,$op,$swap,$doc,%extra) = @_;
+    my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
+    $op = $op->[0] if ref $op eq 'ARRAY';
+
+    if ($swap) {
+	$extra{HdrCode} = << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -41,19 +69,37 @@ sub biop {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}',
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = \$a() $op \$b();",
-		%extra,
-		Doc => << "EOD");
+    }
+
+    # handle exceptions
+    my $badcode = '$ISBAD(a()) || $ISBAD(b())';
+    if ( exists $extra{Exception} ) {
+#	$badcode .= " || $extra{Exception}";
+#	print "Warning: ignored exception for $name\n";
+	delete $exists{Exception};
+    }
+
+    pp_def($name,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   HandleBad => 1,
+	   NoBadifNaN => 1,
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
+	   Code => 
+	   "\$c() = \$a() $op \$b();",
+	   BadCode =>
+	   'if ( ' . $badcode . ' )
+	       $SETBAD(c());
+	    else' . "\n  \$c() = \$a() $op \$b();\n",
+	   CopyBadStatusCode =>
+	   'if ( $PRIV(bvalflag) ) {
+               if ( a == c && $ISPDLSTATEGOOD(a) ) {
+                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+               }
+               $SETPDLSTATEBAD(c);
+            }',
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -70,13 +116,17 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: biop()
 
 #simple binary functions
 sub bifunc {
-	my ($name,$func,$swap,$doc,%extra) = @_;
-	if ($swap) {
-	  $extra{HdrCode} .= << 'EOH';
+    my ($name,$func,$swap,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $isop=0; if ($funcov =~ s/^op//) { $isop = 1; }
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+    if ($swap) {
+	$extra{HdrCode} .= << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -84,20 +134,32 @@ sub bifunc {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}';
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = $func(\$a(),\$b());",
-		%extra,
-		%extra,
-		Doc => << "EOD");
+    }
+    my $ovcall;
+    # is this one to be used as a function or operator ?
+    if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
+    else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
+    pp_def($name,
+	   HandleBad => 1,
+	   NoBadifNaN => 1,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
+	   Code => 
+	   "\$c() = $func(\$a(),\$b());",
+	   BadCode =>
+	   'if ( $ISBAD(a()) || $ISBAD(b()) )
+	       $SETBAD(c());
+	    else' . "\n  \$c() = $func(\$a(),\$b());\n",
+	   CopyBadStatusCode =>
+	   'if ( $PRIV(bvalflag) ) {
+               if ( a == c && $ISPDLSTATEGOOD(a) ) {
+                  PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
+               }
+               $SETPDLSTATEBAD(c);
+            }',
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -105,44 +167,82 @@ $doc
 =for example
 
    \$c = \$a->$name(\$b,0); # explicit function call
-   \$c = $name \$a, \$b;    # overloaded use
-   \$a->inplace(\$b,0);     # modify \$a inplace
+   $ovcall
+   \$a->inplace->$name(\$b,0);     # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the binary C<$func> function.
+This function is used to overload the binary C<$funcovp> function.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: bifunc()
 
 # simple unary functions and operators
 sub ufunc {
-	my ($name,$func,$doc,%extra) = @_;
-	pp_def($name,
-		Pars => 'a(); [o]b()',
-		Code => "\$b() = $func(\$a());",
-		HdrCode => 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  b = a;  /* discard output value, leak? */
-				}',
-		%extra,
-		Doc => << "EOD");
+    my ($name,$func,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+
+    # handle exceptions
+    my $badcode = '$ISBAD(a())';
+    if ( exists $extra{Exception} ) {
+#	$badcode .= " || $extra{Exception}";
+#	print "Warning: ignored exception for $name\n";
+	delete $exists{Exception};
+    }
+
+    # do not have to worry about propogation of the badflag when
+    # inplace since only input piddle is a, hence its badflag
+    # won't change
+    # UNLESS an exception occurs...
+    pp_def($name,
+	   Pars => 'a(); [o]b()',
+	   HandleBad => 1,
+	   NoBadifNaN => 1,
+	   Inplace => 1,
+	   Code => 
+	   "\$b() = $func(\$a());",
+	   BadCode =>
+	   'if ( ' . $badcode . ' )
+	      $SETBAD(b());
+	   else' . "\n  \$b() = $func(\$a());\n",
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
 
 =for example
 
-   \$b = $func \$a;
-   \$a->inplace->$func;  # modify \$a inplace
+   \$b = $funcov \$a;
+   \$a->inplace->$name;  # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the unary C<$func> operator/function.
+This function is used to overload the unary C<$funcovp> operator/function.
 EOD
-}
+} # sub: ufunc()
 
+######################################################################
+
+# we trap some illegal operations here -- see the Exception option
+# note, for the ufunc()'s, the checks do not work too well
+#    for unsigned integer types (ie < 0)
+#
+# XXX needs thinking about 
+#    - have to integrate into Code section as well (so
+#      12/pdl(2,4,0,3) is trapped and flagged bad)
+#      --> complicated
+#    - perhaps could use type %{ %} ?
+#
+# ==> currently have commented out the exception code, since
+#     want to see if can use NaN/Inf for bad values
+#     (would solve many problems for F,D types)
+#
+# there is an issue over how we handle comparison operators
+# - see Primitive/primitive.pd/zcover() for more discussion
+#
 
 ## arithmetic ops
 # no swap
@@ -151,7 +251,9 @@ biop('mult','*',0,'multiply two piddles');
 
 # all those need swapping
 biop('minus','-',1,'subtract two piddles');
-biop('divide','/',1,'divide two piddles');
+biop('divide','/',1,'divide two piddles', Exception => '$b() == 0' );
+
+## note: divide should perhaps trap division by zero as well
 
 ## comparison ops
 # need swapping
@@ -160,8 +262,8 @@ biop('lt','<',1,'the binary E<lt> (less than) operation');
 biop('le','<=',1,'the binary E<lt>= (less equal) operation');
 biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
 # no swap required
-biop('eq','==',0,'binary I<equal to> operation (==)');
-biop('ne','!=',0,'binary I<not equal to> operation (!=)');
+biop('eq','==',0,'binary I<equal to> operation (C<==>)');
+biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
 
 ## bit ops
 # those need to be limited to the right types
@@ -176,33 +278,75 @@ biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
-bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
-bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
+bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
+bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc('sqrt','sqrt','elementwise square root');
-ufunc('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
+ufunc('sqrt','sqrt','elementwise square root', Exception => '$a() < 0' );
+ufunc('abs',['ABS','abs'],'elementwise absolute value',GenericTypes => [D,F,S,L]);
 ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation');
-ufunc('log','log','the natural logarithm',GenericTypes => [D]);
 ufunc('exp','exp','the exponential function',GenericTypes => [D]);
-
-pp_addpm({At=>Bot},<<'EOPM');
-
-=head1 AUTHOR
-
-Tuomas J. Lukka (lukka@fas.harvard.edu),
-Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
-Doug Hunt (dhunt@ucar.edu), and 
-Christian Soeller (c.soeller@auckland.ac.nz).
-
-=cut
-
-EOPM
+ufunc('log','log','the natural logarithm',GenericTypes => [D], 
+      Exception => '$a() <= 0' );
 
 pp_export_nothing(); 
+
+# make log10() work on scalars (returning scalars)
+# as well as piddles
+ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D], 
+      Exception => '$a() <= 0',
+      PMCode => 
+'
+sub PDL::log10 { 
+    my $x = shift; 
+    if ( ! UNIVERSAL::isa($x,"PDL") ) { return log($x) / log(10); }
+    my $y;
+    if ( $x->is_inplace ) { $x->set_inplace(0); $y = $x; }
+    elsif( ref($x) eq "PDL"){
+    	#PDL Objects, use nullcreate:
+	$y = PDL->nullcreate($x);
+    }else{
+    	#PDL-Derived Object, use copy: (Consistent with
+	#  Auto-creation docs in Objects.pod)
+	$y = $x->copy;
+    }
+    &PDL::_log10_int( $x, $y );
+    return $y;
+};
+'
+);
+
+# note: the extra code that adding 'HandleBad => 1' creates is
+# unneeded here. Things could be made clever enough to work this out,
+# but it's very low priority.
+# It does add doc information though, and lets people know it's been
+# looked at for bad value support
+#
+# argh - using NaN/Inf for float/double bad values screws this up
+# (Something's gone wrong: nan cannot be converted by whichdatatype_double at ...
+# in a call to PDL::Primitive::assgn)
+# - unfortunately uncommenting BadCode/HandleBad doesn't help.
+# ---- NOTE: Not sure this is still a problem DJB 11/17/00
+#  
+# Can't this be handled in Core.pm when '.=' is overloaded ?
+#
+pp_def(
+       'assgn',
+#       HandleBad => 1,
+       Pars => 'a(); [o]b();',
+       Code =>
+       '$b() = $a();',
+#       BadCode =>
+#       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
+       Doc =>
+'Plain numerical assignment. This is used to implement the ".=" operator',
+); # pp_def assgn
+
+#pp_export_nothing(); 
+
 pp_done();
 

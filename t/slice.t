@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..33\n";
+print "1..35\n";
 
 if(1) {
 
@@ -214,25 +214,31 @@ ok(28, $@ =~ /Negative slice cannot start or end above limit/);
 # Test of dice and dice_axis
 $a = sequence(10,4);
 ok(29, approx( $a->dice([1,2],[0,3])->sum , pdl(66) ) );
+ok(30, approx $a->dice([0,1],'X')->sum, pdl(124));
 
 # Test of Reorder:
 $a = sequence(5,3,2);
 @newDimOrder = (2,1,0);
 $b = $a->reorder(@newDimOrder);
 
-ok(30, approx($b->average->average->sum , pdl(72.5) ) );
+ok(31, approx($b->average->average->sum , pdl(72.5) ) );
 
 $a = zeroes(3,4);
 $b = $a->dummy(-1,2);
-ok(31,join(',',$b->dims) eq '3,4,2');
+ok(32,join(',',$b->dims) eq '3,4,2');
 
 $a = pdl(2);
 print "a\n";
 $b = $a->slice('');
-ok(32,approx $a, $b);
+ok(33,approx $a, $b);
 
 $a = pdl[1,1,1,3,3,4,4,1,1,2];
 $b = null;
 $c = null;
 rle($a,$b,$c);
-ok(33,approx $a, rld($b,$c));
+ok(34,approx $a, rld($b,$c));
+
+$a = zeroes(3,3);
+$b = $a->splitdim(3,3);
+eval '$b->make_physdims';
+ok(35,$@ =~ /^Splitdim: nthdim/);

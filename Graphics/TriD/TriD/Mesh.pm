@@ -40,7 +40,7 @@ sub new {
 	};
 	PDL::Primitive::axisvalues($this->{Vertices}->slice('(0),:,:'));
 	PDL::Primitive::axisvalues($this->{Vertices}->slice('(1),:,:')->xchg(0,1));
-	PDL::Primitive::assgn($this->{Data},$this->{Vertices}->slice('(2),:,:'));
+	PDL::Ops::assgn($this->{Data},$this->{Vertices}->slice('(2),:,:'));
 	bless $this,$type;
 }
 

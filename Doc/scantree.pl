@@ -38,6 +38,7 @@ print STDERR "saving...\n";
 $onldc->savedb();
 @mods = $onldc->search('module:',['Ref'],1);
 @mans = $onldc->search('manual:',['Ref'],1);
+@scripts = $onldc->search('script:',['Ref'],1);
 $outdir = "$dir/PDL";
 # ($outdir = $INC{'PDL.pm'}) =~ s/\.pm$//i;
 open POD, ">$outdir/Index.pod"
@@ -71,6 +72,24 @@ print POD << 'EOPOD';
 
 =back
 
+=head1 PDL scripts
+
+EOPOD
+
+#print POD "=over ",$#mods+1,"\n\n";
+print POD "=over 4\n\n";
+for (@scripts) {
+  my $ref = $_->[1]->{Ref};
+  $ref =~ s/Script:/L<$_->[0]|PDL::$_->[0]> -/;
+##  print POD "=item L<$_->[0]>\n\n$ref\n\n";
+#  print POD "=item $_->[0]\n\n$ref\n\n";
+  print POD "=item *\n\n$ref\n\n";
+}
+
+print POD << 'EOPOD';
+
+=back
+
 =head1 PDL modules
 
 EOPOD
@@ -79,6 +98,7 @@ EOPOD
 print POD "=over 4\n\n";
 for (@mods) {
   my $ref = $_->[1]->{Ref};
+  next unless $_->[0] =~ /^PDL/;
   if( $_->[0] eq 'PDL'){ # special case needed to find the main PDL.pm file.
 	  $ref =~ s/Module:/L<PDL::PDL|PDL::PDL> -/;
 ##	  print POD "=item L<PDL::PDL>\n\n$ref\n\n";

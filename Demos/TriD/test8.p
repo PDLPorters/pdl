@@ -43,7 +43,7 @@ my $win = PDL::Graphics::TriD::get_current_window();
 my $g = PDL::Graphics::TriD::get_current_graph();
 $fcc = [$followcs,pdl(0.2),$followcs];
 PDL::Graphics::TriD::Rout::combcoords(@$fcc,(my $fccs = PDL->null));
-my $line = new PDL::Graphics::TriD::Lines($follows->px,$fccs->px);
+my $line = new PDL::Graphics::TriD::LineStrip($follows->px,$fccs->px);
 
 # $win->add_object($line);
 

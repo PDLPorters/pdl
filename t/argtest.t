@@ -22,7 +22,7 @@ print "1..1\n";
 
 $b=pdl([1,2,3])->long;
 $a=[1,2,3];
-eval 'PDL::Primitive::sumover($a,$b)';
+eval 'PDL::Ufunc::sumover($a,$b)';
 
 print "EXPECT ERROR NEXT:\n-----\n";
 print $@;

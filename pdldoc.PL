@@ -1,3 +1,6 @@
+
+use strict;
+
 use Config;
 use File::Basename qw(&basename &dirname);
 use IO::File;
@@ -12,6 +15,7 @@ use IO::File;
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
     if ($^O eq 'VMS' or $^O eq 'os2');  # "case-forgiving"
@@ -19,7 +23,19 @@ $file =~ s/\.pl$//
 unlink $file if -f $file;
 my $fh = new IO::File "> $file" or die "Can't create $file: $!";
 
-print "Extracting $file (with variable substitutions)\n";
+# check for bad value support
+use vars qw( $bvalflag );
+use File::Spec;
+require File::Spec->catfile( "Basic", "Core", "badsupport.p" );
+
+my $usage_info;
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+    $usage_info = "[-a] [-b] [-h] [-s] [-u] <string>";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+    $usage_info = "[-a] [-h] [-s] [-u] <string>";
+}                                                                               
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
@@ -41,18 +57,38 @@ use PDL::Doc::Perldl;
 use File::Basename;
 
 use vars qw( $VERSION );
-$VERSION = '0.1';
+$VERSION = '0.2';
 
-my %options = ( a => \&apropos, h => \&help, s => \&sig, u => \&usage );
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
+my %options = 
+    ( a => \&apropos, 
+!NO!SUBS!
+
+      print $fh '      b => \&badinfo,' . "\n" if $bvalflag;
+
+print $fh <<'!NO!SUBS!';
+      h => \&help, s => \&sig, u => \&usage );
 
 my $name = basename( $0 );
 my $usage = <<"EOH";
-Usage: $name [-a] [-h] [-s] [-u] <string>
+!NO!SUBS!
+
+    print $fh "Usage: \$name $usage_info\n";
+
+print $fh <<'!NO!SUBS!';
 
 This program provides command-line access to the PDL documentation.
 If no flag is specified, -h is assumed.
 
   -a (apropos) searches the documentation for the string
+!NO!SUBS!
+
+print $fh "  -b (badinfo) does the function support bad values?\n" 
+    if $bvalflag;
+    
+print $fh <<'!NO!SUBS!';
   -h (help)    prints the help for the function/module/document
   -s (sig)     prints the signature of the function
   -u (usage)   gives usage information on the function
@@ -83,13 +119,30 @@ pdldoc - shell interface to PDL documentation
 
 B<pdldoc> <text>
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print $fh <<'!NO!SUBS!';
+B<pdldoc> [B<-a>] [B<-b>] [B<-h>] [B<-s>] [B<-u>] <text>
+!NO!SUBS!
+} else {
+	print $fh <<'!NO!SUBS!';
 B<pdldoc> [B<-a>] [B<-h>] [B<-s>] [B<-u>] <text>
+!NO!SUBS!
+}
+
+print $fh <<'!NO!SUBS!';
 
 =head1 DESCRIPTION
 
 The aim of B<pdldoc> is to provide the same functionality
-as the C<apropos>, C<help>, C<sig>, and C<usage> commands 
-available in the L<perldl|perldl> shell.
+as the C<apropos>, C<help>, C<sig>, 
+!NO!SUBS!
+
+    print $fh "C<badinfo>, \n" if $bvalflag;
+
+print $fh <<'!NO!SUBS!';
+and C<usage> commands available in the L<perldl|PDL::perldl> shell.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
 
@@ -106,6 +159,16 @@ This is the default option.
 
 Regex search PDL documentation database.
 
+!NO!SUBS!
+
+print $fh <<'!NO!SUBS!' if $bvalflag;
+=item B<-b> badinfo
+
+Information on the support for bad values provided by the function.
+
+!NO!SUBS!
+
+print $fh <<'!NO!SUBS!';
 =item B<-s> sig
 
 prints signature of PDL function.
@@ -118,7 +181,7 @@ Prints usage information for a PDL function.
 
 =head1 VERSION
 
-This is pdldoc v0.1.
+This is pdldoc v0.2.
 
 =head1 AUTHOR
 

@@ -343,7 +343,7 @@ sub defslatec {
     );
 } # sub: defslatec()
 
-pp_addhdr('
+pp_addhdr(qq|
 #include "SlatecProtos.h"
 
 void MAIN__ () {                                                                
@@ -351,7 +351,11 @@ void MAIN__ () {
    croak("This should never happen");                                           
 }                                                                               
    
-');
+void slatecbarf$uscore() {
+   croak("slatec called halt");
+}
+
+|);
 
 pp_add_exported('',"eigsys matinv fft fftb polyfit polycoef polyvalue");
 
@@ -360,6 +364,7 @@ pp_addpm(<<'END');
 use PDL::Core;
 use PDL::Basic;
 use PDL::Primitive;
+use PDL::Ufunc;
 use strict;
 
 # Note: handles only real symmetric positive-definite.

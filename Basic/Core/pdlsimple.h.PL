@@ -15,6 +15,7 @@ require "pdl_hfiles.p";
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or

@@ -73,6 +73,8 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #endif
 
 /* Now include system-specific stuff */
+
+/* Look for system quiet_nan function */
 #if defined __sun && ! defined __GNUC__
 #include <sunmath.h>
 #include <ieeefp.h>
@@ -86,6 +88,9 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #ifndef NANARG
 #define NANARG
 #endif
+
+/* Redefine nan so PDL doesn't die when we see one.
+   OK, nasty, but means the C-code is still as in the original */
 #define nan() quiet_nan(NANARG)
 
 /* Constant definitions for math error conditions */

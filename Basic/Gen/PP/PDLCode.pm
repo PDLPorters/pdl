@@ -2,128 +2,147 @@
 # of the PDL::PP code.
 #
 # This is what makes the nice loops go around etc.
-use strict;
+#
 
 package PDL::PP::Code;
 use Carp;
 
+use strict;
+
+# check for bad value support
+#
+use PDL::Config;
+#use vars qw ( $bvalflag $usenan );
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
+
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
+# we define the method separate_code() at the end of this
+# file, so that it can call the constructors from the classes
+# defined in this file. ugly...
+
 # Do the appropriate substitutions in the code.
-sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
-	    $extrageneric,$havethreading, $dont_add_thrloop, $nogeneric_loop) = @_;
+sub new { 
+    my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
+       $extrageneric,$havethreading, 
+       $dont_add_thrloop, $nogeneric_loop) = @_;
 
-         # C++ style comments
-         #
-         # This regexp isn't perfect because it doesn't cope with
-         # literal string constants.
-         #
-         $code =~ s,//.*?\n,,g;
+    # simple way of handling bad code check
+    $badcode = undef unless $bvalflag;
+    my $handlebad = defined($badcode);
 
-	if($::PP_VERBOSE) {
-		if($dont_add_thrloop) {
-			print "DONT_ADD_THRLOOP!\n";
-		}
-		print "EXTRAGEN: $extrageneric ",%$extrageneric,"\n";
-		print "ParNAMES: ",(join ',',@$parnames),"\n";
-		print "GENTYPES: ", @$generictypes, "\n";
+    # C++ style comments
+    #
+    # This regexp isn't perfect because it doesn't cope with
+    # literal string constants.
+    #
+    $code =~ s,//.*?\n,,g;
+
+    if($::PP_VERBOSE) {
+	if($dont_add_thrloop) {
+	    print "DONT_ADD_THRLOOP!\n";
 	}
-	my $sizeprivs = {};
-	my($this) = bless {
-		IndObjs => $indobjs,
-		ParNames => $parnames,
-		ParObjs => $parobjs,
-		Gencurtype => [], # stack to hold GenType in generic loops
-	},$type;
-	$_ = "{".
-	   (join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}})).
-	    "$code}";
-# First, separate the code into an array of C fragments (strings),
-# variable references (strings starting with $) and
-# loops (array references, 1. item = variable.
-	my $coderef = new PDL::PP::Block;
-	my @stack = ($coderef);
-	my $control;
-	my $threadloops = 0;
-	while($_) {
-# Parse next statement
-		s/^(.*?) # First, some noise is allowed. This may be bad.
-		   ( \$[a-zA-Z_]+\s*\([^)]*\)   # $a(...): access
-		    |\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
-		    |\btypes\s*\([^)]+\)\s*%{  # types(..) %{
-		    |\bthreadloop\s*%{        # threadloop %{
-		    |%}                     # %}
-		    |$)//xs
-			or confess("Invalid program $_");
-		$control = $2;
-# Store the user code.
-# Some day we shall parse everything.
-		push @{$stack[-1]},$1;
-# Then, our control.
-		if($control) {
-			if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
-				my $ob = new PDL::PP::Loop([split ',',$1],
-					$sizeprivs,$this);
-				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
-				my $ob = new PDL::PP::Types($1);
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^threadloop\s*%{/) {
-				my $ob = new PDL::PP::ThreadLoop();
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-				$threadloops ++;
-			} elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
-				push @{$stack[-1]},new PDL::PP::Access($control,$this);
-			} elsif($control =~ /^%}/) {
-				pop @stack;
-			} else {
-				confess("Invalid control: $control\n");
-			}
-		} else {
-			print("No \$2!\n") if $::PP_VERBOSE;
-		}
+	print "EXTRAGEN: $extrageneric ",%$extrageneric,"\n";
+	print "ParNAMES: ",(join ',',@$parnames),"\n";
+	print "GENTYPES: ", @$generictypes, "\n";
+	print "HandleBad: $handlebad\n";
+    }
+    my $this = bless {
+	IndObjs => $indobjs,
+	ParNames => $parnames,
+	ParObjs => $parobjs,
+	Gencurtype => [], # stack to hold GenType in generic loops
+	types => 0,  # hack for PDL::PP::Types/GenericLoop
+	pars => {},  # hack for PDL::PP::NaNSupport/GenericLoop
+    }, $type;
+    
+    my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
+
+    # First, separate the code into an array of C fragments (strings),
+    # variable references (strings starting with $) and
+    # loops (array references, 1. item = variable.
+    #
+    my ( $threadloops, $coderef, $sizeprivs ) = 
+	$this->separate_code( "{$inccode\n$code\n}" );
+
+    # Now, if there is no explicit threadlooping in the code,
+    # enclose everything into it.
+    if(!$threadloops && !$dont_add_thrloop && $havethreading) {
+	print "Adding threadloop...\n" if $::PP_VERBOSE;
+	my $nc = $coderef;
+	$coderef = new PDL::PP::ThreadLoop();
+	push @{$coderef},$nc;
+    }
+
+    # repeat for the bad code, then stick good and bad into
+    # a BadSwitch object which creates the necessary
+    # 'if (bad) { badcode } else { goodcode }' code
+    #
+    # NOTE: amalgamate sizeprivs from good and bad code
+    #
+    if ( $handlebad ) {
+	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
+	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) = 
+	    $this->separate_code( "{$inccode\n$badcode\n}" );
+
+	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
+	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
+	    my $nc = $bad_coderef;
+	    $bad_coderef = new PDL::PP::ThreadLoop();
+	    push @{$bad_coderef},$nc;
 	}
-	print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-# Now, if there is no explicit threadlooping in the code,
-# enclose everything into it.
-	if(!$threadloops && !$dont_add_thrloop && $havethreading) {
-		print "Adding threadloop...\n" if $::PP_VERBOSE;
-		my $nc = $coderef;
-		$coderef = new PDL::PP::ThreadLoop();
-		push @{$coderef},$nc;
+
+	my $good_coderef = $coderef;
+	$coderef = new PDL::PP::BadSwitch( $good_coderef, $bad_coderef );
+
+	# amalgamate sizeprivs from Code/BadCode segments
+	# (sizeprivs is a simple hash, with each element 
+	# containing a string - see PDL::PP::Loop)
+	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
+	    my $str = $$sizeprivs{$bad_key}; 
+	    if ( defined $str ) {
+		die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
+		    unless $str eq $bad_str;
+	    }
+	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
 	}
-# Enclose it all in a genericloop.
-	unless ($nogeneric_loop) {
-# XXX Make genericloop understand denied pointers;...
-		my $nc = $coderef;
-		$coderef = new PDL::PP::GenericLoop($generictypes,"",
-			[grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
-		push @{$coderef},$nc;
-	}
-# Do we have extra generic loops?
-# If we do, first reverse the hash:
-	my %glh;
-	for(keys %$extrageneric) {
-		push @{$glh{$extrageneric->{$_}}},$_;
-	}
-	my $no = 0;
-	for(keys %glh) {
-		my $nc = $coderef;
-		$coderef = new PDL::PP::GenericLoop($generictypes,$no++,
-							$glh{$_},$_);
-		push @$coderef,$nc;
-	}
-# Then, in this form, put it together what we want the code to actually do.
-	print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-	$this->{Code} = "{".(join '',values %$sizeprivs).
-	  $coderef->get_str($this,[])
-	  ."}";
-	$this->{Code};
-}
+
+    } # if: $handlebad
+
+    print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+
+    # Enclose it all in a genericloop.
+    unless ($nogeneric_loop) {
+	# XXX Make genericloop understand denied pointers;...
+	my $nc = $coderef;
+	$coderef = new PDL::PP::GenericLoop($generictypes,"",
+	      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
+	push @{$coderef},$nc;
+    }
+
+    # Do we have extra generic loops?
+    # If we do, first reverse the hash:
+    my %glh;
+    for(keys %$extrageneric) {
+	push @{$glh{$extrageneric->{$_}}},$_;
+    }
+    my $no = 0;
+    for(keys %glh) {
+	my $nc = $coderef;
+	$coderef = new PDL::PP::GenericLoop($generictypes,$no++,
+					    $glh{$_},$_);
+	push @$coderef,$nc;
+    }
+
+    # Then, in this form, put it together what we want the code to actually do.
+    print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+    $this->{Code} = "{".(join '',values %$sizeprivs).
+       $coderef->get_str($this,[])
+       ."}";
+    $this->{Code};
+
+} # new()
 
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
@@ -158,19 +177,58 @@ sub myoffs { return 0; }
 sub myprelude {}
 sub myitem {return "";}
 sub mypostlude {}
-sub get_str {my ($this,$parent,$context) = @_;
-   my $str = $this->myprelude($parent,$context);
-   my $it; my $nth=0;
-   MYLOOP: while(1) {
-    $it = $this->myitem($parent,$nth);
-    if($nth && !$it) {last MYLOOP}
-    $str .= $it;
-    $str .= (join '',map {ref $_ ? $_->get_str($parent,$context) : $_}
-	@{$this}[$this->myoffs()..$#{$this}]);
-    $nth ++;
-   }
-   $str .= $this->mypostlude($parent,$context);
-   $str;
+
+sub get_str {
+    my ($this,$parent,$context) = @_;
+    my $str = $this->myprelude($parent,$context);
+    $str .= $this->get_str_int($parent,$context);
+    $str .= $this->mypostlude($parent,$context);
+    return $str;
+}
+
+sub get_str_int {
+    my ( $this, $parent, $context ) = @_;
+
+    my $nth=0;
+    my $str = "";
+  MYLOOP: while(1) {
+      my $it = $this->myitem($parent,$nth);
+      last MYLOOP if $nth and !$it;
+      $str .= $it;
+      $str .= (join '',map {ref $_ ? $_->get_str($parent,$context) : $_}
+	       @{$this}[$this->myoffs()..$#{$this}]);
+      $nth++;
+  }
+    return $str;
+} # get_str_int()
+
+###########################
+#
+# Deal with bad code
+# - ie create something like
+#   if ( badflag ) { badcode } else { goodcode }
+#
+package PDL::PP::BadSwitch;
+@PDL::PP::BadSwitch::ISA = "PDL::PP::Block";
+
+sub new { 
+    my($type,$good,$bad) = @_;
+    return bless [$good,$bad], $type;
+}
+
+sub get_str {
+    my ($this,$parent,$context) = @_;
+
+    my $good = $this->[0];
+    my $bad  = $this->[1];
+
+    my $str = "if ( \$PRIV(bvalflag) ) { /*** do 'bad' Code ***/\n";
+    $str .= $bad->get_str($parent,$context);
+    $str .= "} else { /*** else do 'good' Code ***/\n";
+    $str .= $good->get_str($parent,$context);
+    $str .= "}\n";
+
+    return $str;
 }
 
 ###########################
@@ -212,47 +270,91 @@ sub mypostlude { my($this,$parent,$context) = @_;
 ###########################
 #
 # Encapsulate a generic type loop
-
+#
+# we use the value of $parent->{types} [set by a PDL::PP::Types object]
+# to determine whether to define/undefine the THISISxxx macros
+# (makes the xs code easier to read)
+#
 package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
 
 # Types: BSULFD,
-sub new { my($type,$types,$name,$varnames,$whattype) = @_;
-	bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
-		$whattype],$type;
+sub new { 
+    my($type,$types,$name,$varnames,$whattype) = @_;
+    bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
+	   $whattype],$type;
 }
 
 sub myoffs {4}
 
+sub myprelude { 
+    my($this,$parent,$context) = @_;
+    push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
 
-sub myprelude { my($this,$parent,$context) = @_;
-	push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
-	"/* Start generic loop */\n".
-	(join '',map{
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
-	}(qw/B S U L F D/)).
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) {
+	my ( @test ) = keys %{$parent->{pars}};
+	die "ERROR: need to rethink NaNSupport in GenericLoop\n"
+	    if $#test != -1;
+	$parent->{pars} = {};
+    }
+
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = join '',
+	map { 
+	    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n" 
+	    }
+	(qw/B S U L F D/);
+    }
+
+    return "/* Start generic loop */\n$thisis_loop\n" .
 	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
 }
 
-sub myitem { my($this,$parent,$nth) = @_;
+sub myitem { 
+    my($this,$parent,$nth) = @_;
 #	print "GENERICITEM\n";
-	my $item = $this->[0]->[$nth];
-	if(!$item) {return "";}
-	$parent->{Gencurtype}->[-1] = $item->[1];
-	"\t} break; case $item->[0]: {\n".
-	(join '',map {
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
-	}(qw/B S U L F D/)).
-	"#undef THISIS$this->[1]_$item->[3]\n#define THISIS$this->[1]_$item->[3](a) a\n".
-	(join '',map{
+    my $item = $this->[0]->[$nth];
+    if(!$item) {return "";}
+    $parent->{Gencurtype}->[-1] = $item->[1];
+
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) {
+	foreach my $parname ( @{$this->[2]} ) {
+	    $parent->{pars}{$parname} = $item->[1];
+	}
+    }
+
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = (
+			join '',
+			map {
+			    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
+			}
+			(qw/B S U L F D/) 
+			) . 
+			    "#undef THISIS$this->[1]_$item->[3]\n" . 
+				"#define THISIS$this->[1]_$item->[3](a) a\n";
+    }
+	
+    return "\t} break; case $item->[0]: {\n".
+	$thisis_loop . 
+	    (join '',map{
 		# print "DAPAT: '$_'\n";
 		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
-	} (@{$this->[2]})) ;
+	    } (@{$this->[2]})) ;
 }
 
-sub mypostlude { my($this,$parent,$context) = @_;
-	pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
-	"\tbreak;}
+sub mypostlude { 
+    my($this,$parent,$context) = @_;
+    pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
+
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) { $parent->{pars} = {}; }
+    
+    return "\tbreak;}
 	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
 
@@ -307,9 +409,11 @@ use Carp;
 
 sub new { my($type) = @_; bless [],$type; }
 sub myoffs { return 0; }
-sub myprelude {my($this,$parent,$context) = @_;
- my $no; my $no2=-1; my $no3=-1;
- my ($ord,$pdls) = $parent->get_pdls();
+sub myprelude {
+    my($this,$parent,$context) = @_;
+    my $no; my $no2=-1; my $no3=-1;
+    my ($ord,$pdls) = $parent->get_pdls();
+
 '	/* THREADLOOPBEGIN */
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__tr)) return;
@@ -354,22 +458,27 @@ sub mypostlude {my($this,$parent,$context) = @_;
  '
 }
 
-
-
 ###########################
 #
 # Encapsulate a types() switch
-
+#
+# horrible hack:
+#  set $parent->{types} if we create this object so that
+#  PDL::PP::GenericLoop knows to define the THISIS ... macros
+#
 package PDL::PP::Types;
 use Carp;
 @PDL::PP::Types::ISA = "PDL::PP::Block";
 
-sub new { my($type,$ts) = @_;
-	$ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
-	bless [$ts],$type; }
+sub new { 
+    my($type,$ts,$parent) = @_;
+    $ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
+    $parent->{types} = 1; # hack for PDL::PP::GenericLoop
+    bless [$ts],$type; }
 sub myoffs { return 1; }
-sub myprelude {my($this,$parent,$context) = @_;
-	"\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+sub myprelude {
+    my($this,$parent,$context) = @_;
+    return "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
@@ -414,6 +523,352 @@ sub get_str { my($this,$parent,$context) = @_;
 package PDL::PP::OtherAccess;
 sub new { my($type,$pdl,$inds) = @_; bless [$pdl,$inds],$type; }
 sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
+
+
+###########################
+#
+# used by BadAccess code to know when to use NaN support
+# - the output depends on the value of the
+#   BADVAL_USENAN option in perldl.conf
+#   == 1 then we use NaN's
+#      0             PDL.bvals.Float/Double
+#
+# note the *horrible hack* for piddles whose type have been 
+# specified using the FType option - see GenericLoop. 
+# There MUST be a better way than this...
+#
+package PDL::PP::NaNSupport;
+
+# need to be lower-case because of FlagTyped stuff
+my %use_nan =
+    ( byte => 0, short => 0, ushort => 0, long => 0,
+      int => 0,  # necessary for fixed-type piddles (or something)
+      float => $usenan, 
+      double => $usenan 
+      );
+
+my %set_nan = 
+    (
+     float  => 'PDL->bvals.Float',  PDL_Float  => 'PDL->bvals.Float',
+     double => 'PDL->bvals.Double', PDL_Double => 'PDL->bvals.Double',
+     );
+
+sub use_nan ($) {
+    my $type = shift;
+
+    $type =~ s/^PDL_//;
+    $type = lc $type;
+    die "ERROR: Unknown type [$type] used in a 'Bad' macro."
+	unless exists $use_nan{$type};
+    return $use_nan{$type};
+}
+
+sub convert ($$$$$) {
+    my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
+
+    my $type = $parent->{Gencurtype}[-1];
+    die "ERROR: unable to find type info for $opcode access"
+	unless defined $type;
+
+    # note: gentype may not be sensible because the
+    # actual piddle could have a 'fixed' type
+    die "ERROR: unable to find piddle $name in parent!"
+	unless exists $parent->{ParObjs}{$name};
+    my $pobj = $parent->{ParObjs}{$name};
+
+    # based on code from from PdlParObj::ctype()
+    # - want to handle FlagTplus case
+    # - may not be correct
+    # - extended to include hack to GenericLoop 
+    #
+    if ( exists $parent->{pars}{$name} ) {
+	$type = $parent->{pars}{$name};
+	print "#DBG: hacked <$name> to type <$type>\n" if $::PP_VERBOSE;
+    } elsif ( exists $pobj->{FlagTyped} and $pobj->{FlagTyped} ) {
+	$type = $pobj->{Type};
+
+	# this should use Dev.pm - fortunately only worried about double/float here
+	# XXX - do I really know what I'm doing ?
+	if ( $pobj->{FlagTplus} ) {
+	    my $gtype = $parent->{Gencurtype}[-1];
+	    if ( $gtype eq "PDL_Double" ) {
+		$type = $gtype if $type ne "double";
+	    } elsif ( $gtype eq "PDL_Float" ) {
+		$type = $gtype if $type !~ /^(float|double)$/;  # note: ignore doubles
+	    }
+	}
+    }
+	
+    if ( use_nan($type) ) {
+	if ( $opcode eq "SETBAD" ) {
+#	    $rhs = "(0.0/0.0)";
+	    $rhs = $set_nan{$type};
+	} else {
+	    $rhs = "0";
+	    $lhs = "finite($lhs)";
+	}
+    }
+    
+    return ( $lhs, $rhs );
+}
+
+###########################
+#
+# Encapsulate a check on whether a value is good or bad
+# handles both checking (good/bad) and setting (bad)
+#
+# Integer types (BSUL) + floating point when no NaN (FD)
+#   $ISBAD($a(n))  -> $a(n) == a_badval
+#   $ISGOOD($a())     $a()  != a_badval
+#   $SETBAD($a())     $a()   = a_badval
+#
+# floating point with NaN
+#   $ISBAD($a(n))  -> finite($a(n)) == 0
+#   $ISGOOD($a())     finite($a())  != 0
+#   $SETBAD($a())     $a()           = PDL->bvals.Float (or .Double)
+#
+# I've also got it so that the $ on the pdl name is not
+# necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
+# amount of line noise. This is actually done by the regexp
+# in the separate_code() sub at the end of the file.
+#
+# note: 
+#   we also expand out $a(n) etc as well here
+#
+# To do:
+#   need to allow use of F,D without NaN
+#
+
+package PDL::PP::BadAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
+	"  unknown piddle <$pdl_name($inds)>\n"
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    return bless [$opcode, $pdl_name, $inds], $type;
+}
+
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $opcode = $this->[0];
+    my $name   = $this->[1];
+    my $inds   = $this->[2];
+
+    print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
+
+    my $op = $ops{$opcode};
+    die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
+	unless defined $op;
+
+    my $obj = $parent->{ParObjs}{$name};
+    die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
+	unless defined( $obj );
+
+    my $lhs = $obj->do_access($inds,$context);
+    my $rhs = "${name}_badval";
+
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+
+    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
+    return "$lhs $op $rhs";
+}
+
+
+###########################
+#
+# Encapsulate a check on whether a value is good or bad
+# handles both checking (good/bad) and setting (bad)
+#
+# Integer types (BSUL) + floating point when no NaN (FD)
+#   $ISBADVAR(foo,a)  -> foo == a_badval
+#   $ISGOODVAR(foo,a)    foo != a_badval
+#   $SETBADVAR(foo,a)    foo  = a_badval
+#
+# floating point with NaN
+#   $ISBADVAR(foo,a)  -> finite(foo) == 0
+#   $ISGOODVAR(foo,a)    finite(foo) != 0
+#   $SETBADVAR(foo,a)    foo          = PDL->bvals.Float (or .Double)
+#
+
+package PDL::PP::BadVarAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $opcode, $var_name, $pdl_name, $parent ) = @_;
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
+	"  unknown piddle <$pdl_name>\n"
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$opcode, $var_name, $pdl_name], $type;
+}
+
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $opcode   = $this->[0];
+    my $var_name = $this->[1];
+    my $pdl_name = $this->[2];
+
+    print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$pdl_name]\n" if $::PP_VERBOSE;
+
+    my $op = $ops{$opcode};
+    die "ERROR: unknown check <$opcode> sent to PDL::PP::BadVarAccess\n"
+	unless defined $op;
+
+    my $obj = $parent->{ParObjs}{$pdl_name};
+    die "ERROR: something screwy in PDL::PP::BadVarAccess (PP/PDLCode.pm)\n"
+	unless defined( $obj );
+
+    my $lhs = $var_name;
+    my $rhs = "${pdl_name}_badval";
+
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $pdl_name, $lhs, $rhs, $opcode );
+
+    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
+    return "$lhs $op $rhs";
+}
+
+
+###########################
+#
+# Encapsulate a check on whether a value is good or bad using PP
+# handles both checking (good/bad) and setting (bad)
+
+# this is only an initial attempt - it will, almost certainly,
+# need more work as more code is converted to handle bad values
+#
+# currently it can only handle cases like
+#  $PPISBAD(PARENT,[i])  -> PARENT_physdatap[i] == PARENT_badval
+#  etc
+#
+# if we use NaN's, then
+#  $PPISBAD(PARENT,[i])   -> finite(PARENT_physdatap[i]) == 0
+#  $PPISGOOD(PARENT,[i])  -> finite(PARENT_physdatap[i]) != 0
+#  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = PDL->bvals.Float (or .Double)
+#
+
+package PDL::PP::PPBadAccess; 
+use Carp;
+
+sub new { 
+    my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
+
+    $opcode =~ s/^PP//;
+    bless [$opcode, $pdl_name, $inds], $type;
+}
+
+# PP is stripped in new()
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $opcode = $this->[0];
+    my $name   = $this->[1];
+    my $inds   = $this->[2];
+
+    print "PDL::PP::PPBadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
+
+    my $op = $ops{$opcode};
+    die "\nERROR: unknown check <$opcode> sent to PDL::PP::PPBadAccess\n"
+	unless defined $op;
+
+    my $obj = $parent->{ParObjs}{$name};
+    die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PPBadAccess\n"
+	unless defined $obj;
+
+    my $lhs = $obj->do_physpointeraccess() . "$inds";
+    my $rhs = "${name}_badval";
+
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+
+    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
+    return "$lhs $op $rhs";
+}
+
+
+###########################
+#
+# Encapsulate a check on whether the state flag of a piddle
+# is set/change this state
+#
+# $PDLSTATEISBAD(a)    ->  ($PDL(a)->state & PDL_BADVAL) > 0
+# $PDLSTATEISGOOD(a)   ->  ($PDL(a)->state & PDL_BADVAL) == 0
+# 
+# $PDLSTATESETBAD(a)   ->  ($PDL(a)->state |= PDL_BADVAL)
+# $PDLSTATESETGOOD(a)  ->  ($PDL(a)->state &= ~PDL_BADVAL)
+# 
+
+package PDL::PP::PDLStateBadAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
+
+    # $op  is one of: IS SET
+    # $val is one of: GOOD BAD
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "\nIt looks like you have tried a \$PDLSTATE${op}${val}() macro on an\n" .
+	"  unknown piddle <$pdl_name>\n"
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$op, $val, $pdl_name], $type;
+}
+
+my %ops  = ( 
+	     IS  => { GOOD => '== 0', BAD => '> 0' },
+	     SET => { GOOD => '&= ~', BAD => '|= ' },
+	     );
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $op   = $this->[0];
+    my $val  = $this->[1];
+    my $name = $this->[2];
+
+    print "PDL::PP::PDLStateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
+
+    my $opcode = $ops{$op}{$val};
+    my $type = $op . $val;
+    die "ERROR: unknown check <$type> sent to PDL::PP::PDLStateBadAccess\n"
+	unless defined $opcode;
+
+    my $obj = $parent->{ParObjs}{$name};
+    die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PDLStateBadAccess\n"
+	unless defined $obj;
+
+    my $state = $obj->do_pdlaccess() . "->state";
+
+    my $str;
+    if ( $op eq 'IS' ) {
+	$str = "($state & PDL_BADVAL) $opcode";
+    } elsif ( $op eq 'SET' ) {
+	$str = "$state ${opcode}PDL_BADVAL";
+    }
+
+    print "DBG:  [$str]\n" if $::PP_VERBOSE;
+    return $str;
+}
 
 
 ###########################
@@ -622,3 +1077,100 @@ sub xxx_get_generictypes { my($this) = @_;
 		["F","PDL_Float",$PDL_F],
 		["D","PDL_Double",$PDL_D])];
 }
+
+
+package PDL::PP::Code;
+
+# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
+#
+# umm, can't call classes defined later on in code ...
+# hence moved to end of file
+# (rather ugly...)
+#
+# separates the code into an array of C fragments (strings),
+# variable references (strings starting with $) and
+# loops (array references, 1. item = variable.
+#
+sub separate_code {
+    my ( $this, $code ) = @_;
+
+    my $coderef = new PDL::PP::Block;
+ 
+    my @stack = ($coderef);
+    my $threadloops = 0;
+    my $sizeprivs = {};
+
+    $_ = $code;
+##    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
+    while($_) {
+	# Parse next statement
+	
+	# I'm not convinced that having the checks twice is a good thing,
+	# since it makes it easy (for me at least) to forget to update one
+	# of them
+
+	s/^(.*?) # First, some noise is allowed. This may be bad.
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
+                |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
+	        |\$[a-zA-Z_]+\s*\([^)]*\)  # $a(...): access
+		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
+		|\btypes\s*\([^)]+\)\s*%{  # types(..) %{
+		|\bthreadloop\s*%{         # threadloop %{
+		|%}                        # %}
+		|$)//xs
+		    or confess("Invalid program $_");
+	my $control = $2;
+	# Store the user code.
+	# Some day we shall parse everything.
+	push @{$stack[-1]},$1;
+
+if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
+
+	# Then, our control.
+	if($control) {
+	    if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
+		my $ob = new PDL::PP::Loop([split ',',$1],
+					   $sizeprivs,$this);
+		print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
+		my $ob = new PDL::PP::Types($1,$this);
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^threadloop\s*%{/) {
+		my $ob = new PDL::PP::ThreadLoop();
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+		$threadloops ++;
+	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
+#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
+		push @{$stack[-1]},new PDL::PP::Access($control,$this);
+	    } elsif($control =~ /^%}/) {
+	        pop @stack;
+	    } else {
+		confess("Invalid control: $control\n");
+	    }
+	} else {
+	    print("No \$2!\n") if $::PP_VERBOSE;
+	}
+    } # while: $_
+
+    return ( $threadloops, $coderef, $sizeprivs );
+
+} # sub: separate_code()
+
+
+# return true
+1;

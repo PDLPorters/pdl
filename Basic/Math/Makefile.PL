@@ -5,6 +5,7 @@
 # any external PDL module.
 
 use ExtUtils::MakeMaker;
+use File::Basename;
 use Config;
 
 require File::Spec;
@@ -12,16 +13,44 @@ $fs = 'File::Spec';
 sub cdir { return $fs->catdir(@_)}
 sub cfile { return $fs->catfile(@_)}
 
+sub is_sys_func {
+  my ( $comp, $file, $code ) = @_;
+    open FILE,">$file";
+    print FILE <<"EOF";
+#include <stdio.h>
+#include "mconf.h"
+main() {printf("%lg",$code); exit(0); }
+EOF
+ close FILE;
+ return ! system( $comp );
+}
+
 PDL::Core::Dev->import();
 
 # Files for each routine (.c assumed)
 
-%source = qw( acosh acosh asinh asinh atanh atanh
-             	 erf ndtr erfc ndtr j0 j0 j1 j1 jn jn
-                 y0 j0 y1 j1 yn yn erfi ndtri ndtri ndtri
-		 blas blas eigens eigens simq simq rint rint
-               nan quiet_nan infinity infinity svd svd
-	       );
+%source = qw( acosh acosh
+	      asinh asinh
+	      atanh atanh
+	      erf ndtr
+	      erfc ndtr
+	      j0 j0
+	      j1 j1
+	      jn jn
+	      y0 j0
+	      y1 j1
+	      yn yn
+	      erfi ndtri
+	      ndtri ndtri
+	      blas blas
+	      eigens eigens
+	      simq simq
+	      rint rint
+	      nan quiet_nan
+	      infinity infinity
+	      svd svd
+	      polyroots cpoly
+	    );
 @keys = sort keys %source;
 %included = ();
 
@@ -32,14 +61,48 @@ my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
 my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
 if ($^O eq 'solaris' or $^O eq 'sunos') {
-    # try to guess where is sunmath
-    my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
-    for my $d (@d) {
-       if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
-           $libs = "-L$d -lsunmath $libs";
-           last;
-       }
-    }
+   # try to guess where sunmath is
+   my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
+   my $ok = 0;
+   for my $d (@d) {
+      if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
+          $libs = "-lsunmath $libs";
+	  $ok = 1;
+          last;
+      }
+   }
+   if (!$ok) {
+      print "libsunmath not found in LD_LIBRARY_PATH: looking elsewhere\n";
+
+      # get root directory of compiler; may be off of there
+      my @dirs = ();
+      foreach my $p ( split(':', $ENV{'PATH'} ) )
+      {
+	next unless -e "$p/$Config{cc}";
+	push @dirs, dirname($p) . '/lib';
+	last;
+      }
+
+      push @dirs, '/opt/SUNWspro/lib'; # default location if all else fails
+      for my $d ( @dirs ) {
+         if (-e "$d/libsunmath.so") {
+            $libs = "-R$d -L$d -lsunmath $libs";
+             $ok = 1;
+             last;
+         } 
+         if (-e "$d/libsunmath.a") {
+            $libs = "-L$d -lsunmath $libs";
+            $ok = 1;
+            last;
+         } 
+      }
+   }
+
+   if (!$ok) {
+      print "Couldn't find sunmath library in standard places\n\n";
+      print "If you can find libsunmath.a or libsunmath.so\n";
+      print "please let us know at pdl-porters\@jach.hawaii.edu\n\n";
+   }
 }
 
 # Test for absence of unary functions
@@ -57,42 +120,20 @@ $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
 my $testfile = "pdl$$";
 my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
 my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
+my $COMP = "$Config{cc} -I$dir -o $te $tc $libs $HIDE";
 
 foreach (@sfuncs) {
-    open FILE,">$tc";
-    print FILE <<"EOF";
-#include <stdio.h>
-#include "mconf.h"
-main() {printf("%lg",$_()); exit(0); }
-EOF
-    close FILE;
-    $source{$_} = 'system' if
-      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE") == 0;
+    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_()" );
 }
 
 foreach (@ufuncs2) {
-    open FILE,">$tc";
-    print FILE <<"EOF";
-#include <stdio.h>
-#include "mconf.h"
-main() {printf("%lg",$_(1.)); exit(0); }
-EOF
-    close FILE;
-    $source{$_} = 'system' if
-      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE") == 0;
+    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_(1.)" );
 }
 
 # Test for absence of besfuncs
 
 foreach (@besufuncs) {
-    open FILE,">$tc";
-    print FILE <<"EOF";
-#include <stdio.h>
-#include "mconf.h"
-main() {printf("%lg\\n",$_(1.)); exit(0); }
-EOF
-    close FILE;
-    if (system("$Config{cc} -I$dir -o $te $tc $libs $HIDE") == 0) {
+    if ( is_sys_func( $COMP, $tc, "$_(1.)" ) ) {
         $source{$_} = 'system';
         next if $_ ne 'y0';
 # Need to test for buggy glibc
@@ -114,15 +155,7 @@ EOF
 
 foreach (@besbifuncs) {
     next if ! exists $source{$_};     # May have been deleted in buggy case
-    open FILE,">$tc";
-    print FILE <<"EOF";
-#include <stdio.h>
-#include "mconf.h"
-main() {printf("%lg",$_(1,1.)); exit(0); }
-EOF
-    close FILE;
-    $source{$_} = 'system' if
-      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE") == 0;
+    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_(1,1.)" );
 }
 unlink "$te","$tc";
 
@@ -151,7 +184,7 @@ foreach $func (@keys) {
 # Add support routines
 $hash{OBJECT} .= " const\$(OBJ_EXT) mtherr\$(OBJ_EXT) polevl\$(OBJ_EXT)";
 
-$hash{LIBS} = [$libs];
+$hash{LIBS}->[0] .= " $libs";
 WriteMakefile(%hash);
 
 sub MY::postamble {

@@ -1,15 +1,20 @@
+# TODO:
+# threading? change to pp_defs
+# docs improvement
+# use PDL::Complex?
 
 require 'typespec';
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
-PDL::FFTW - Core PDL interface to the Fastest Fourier Transform in the West v2.x
+PDL::FFTW - PDL interface to the Fastest Fourier Transform in the West v2.x
 
 =head1 DESCRIPTION
 
-This is a means to interface PDL with the FFTW library. It's similar to the standard FFT routine but
-it's usually faster and has support for real transforms. It works well for the types of PDLs for
+This is a means to interface PDL with the FFTW library. It's similar to
+the standard FFT routine but it's usually faster and has support for
+real transforms. It works well for the types of PDLs for
 which was the library was compiled (otherwise it must do conversions).
 
 =head1 SYNOPSIS
@@ -32,247 +37,133 @@ which was the library was compiled (otherwise it must do conversions).
     real_pdl = Cmod(a_cplx_pdl); 
     real_pdl = Cmod2(a_cplx_pdl); 
 
-=head1 FUNCTIONS
+=head1 FFTW documentation
 
-Please refer to the FFTW documentation for a better understanting of these functions.
+Please refer to the FFTW documentation for a better understanding of
+these functions.
 
-Note that complex numbers are represented as a leading 2-element piddle dimension.
+Note that complex numbers are represented as piddles with leading
+dimension size 2 (real/imaginary pairs).
 
-=head2 load_wisdom()
+=cut
+EOD
+
+pp_addpm(<<'EOD');
+
+=head2 load_wisdom
 
 =for ref
 
-Loads the wisdom from a file for better FFTW performance. The wisdom
-is automatically saved when the program ends.
+Loads the wisdom from a file for better FFTW performance.
+
+The wisdom
+is automatically saved when the program ends. It will be automagically
+called when the variable C<$PDL::FFT::wisdom> is set to a file name.
+For example, the following is a useful idiom to have in your F<.perldlrc>
+file:
+
+  $PDL::FFT::wisdom = "$ENV{HOME}/.fftwisdom"; # save fftw wisdom in this file
+
+Explicit usage:
 
 =for usage
 
-load_wisdom($fname);
+  load_wisdom($fname);
 
-=head2 fftw()
+=head2 fftw
 
 =for ref 
 
-Complex FFT.
+calculate the complex FFT of a real piddle (complex input, complex output)
 
 =for usage
 
-$pdl_cplx = fftw $pdl_real;
+   $pdl_cplx = fftw $pdl_cplx;
 
-=head2 ifftw()
+=head2 ifftw
 
 =for ref 
 
-Complex IFFT.
+Complex inverse FFT (complex input, complex output).
 
 =for usage
 
-$pdl_cplx = fftw $pdl_cplx;
+   $pdl_cplx = ifftw $pdl_cplx;
 
-=head2 nfftw()
+=head2 nfftw
 
 =for ref 
 
-Complex inplace FFT.
+Complex inplace FFT (complex input, complex output).
 
 =for usage
 
-$pdl_cplx = nfftw $pdl_cplx;
+   $pdl_cplx = nfftw $pdl_cplx;
 
-=head2 infftw()
+=head2 infftw
 
 =for ref 
 
-Complex inplace IFFT.
+Complex inplace inverse FFT (complex input, complex output).
 
 =for usage
 
-$pdl_cplx = infftw $pdl_cplx;
+   $pdl_cplx = infftw $pdl_cplx;
 
-=head2 rfftw()
+=head2 rfftw
 
 =for ref 
 
-Real FFT. For an input piddle of dimesnsions (n1,n2,...) the 
-output is (2,(n1/2)+1,n2,...). 
+Real FFT. For an input piddle of dimensions [n1,n2,...] the 
+output is [2,(n1/2)+1,n2,...] (real input, complex output).
 
 =for usage
 
-$pdl_cplx = fftw $pdl_real;
+  $pdl_cplx = fftw $pdl_real;
 
-=head2 irfftw()
+=head2 irfftw
 
 =for ref 
 
-Real IFFT. Have a look at rfftw to understand the format. USE
-ONLY an even n1!
+Real inverse FFT. Have a look at rfftw to understand the format. USE
+ONLY an even n1! (complex input, real output)
 
 =for usage
 
-$pdl_real = fftw $pdl_cplx;
+  $pdl_real = ifftw $pdl_cplx;
 
-=head2 nrfftw()
+=head2 nrfftw
 
 =for ref 
 
 Real inplace FFT. If you want a transformation on a piddle
-with dimensions (n1,n2,....) you MUST put it a piddle
-with dimensions (2*(n1/2+1),n2,...).
+with dimensions [n1,n2,....] you MUST pass in a piddle
+with dimensions [2*(n1/2+1),n2,...] (real input, complex output).
+
+Use with care due to dimension restrictions mentioned below.
+For details check the html docs that come with the fftw library.
 
 =for usage
 
-$pdl_cplx = nrfftw $pdl_real;
+  $pdl_cplx = nrfftw $pdl_real;
 
-=head2 inrfftw()
+=head2 inrfftw
 
 =for ref 
 
-Real inplace IFFT. Have a look at nrfftw to understand the format. USE
-ONLY an even n1!
+Real inplace inverse FFT. Have a look at nrfftw to understand the format. USE
+ONLY an even first dimension size! (complex input, real output)
 
 =for usage
 
-$pdl_real = infftw $pdl_cplx;
-
-=head2 Cmul()
-
-=for ref
-
-Complex multiplication.
-
-=for usage
-
-$out_pdl_cplx = Cmul($a_pdl_cplx,$b_pdl_cplx);
-
-=head2 Cbmul()
-
-=for ref
-
-Complex inplace multiplication.
-
-=for usage
-
-Cbmul($a_pdl_cplx,$b_pdl_cplx);
-
-=head2 Cdiv()
-
-=for ref
-
-Complex division.
-
-=for usage
-
-$out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_cplx);
-
-=head2 Cbdiv()
-
-=for ref
-
-Complex inplace division.
-
-=for usage
-
-Cbdiv($a_pdl_cplx,$b_pdl_cplx);
-
-=head2 Cscale()
-
-=for ref
-
-Complex scale.
-
-=for usage
-
-$out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_real);
-
-=head2 Cbscale()
-
-=for ref
-
-Complex inplace scale.
-
-=for usage
-
-Cbscale($a_pdl_cplx,$b_pdl_real);
-
-=head2 Cconj()
-
-=for ref
-
-Complex conjugate.
-
-=for usage
-
-$out_pdl_cplx = Cconj($a_pdl_cplx);
-
-=head2 Cbconj()
-
-=for ref
-
-Complex inplace conjugate.
-
-=for usage
-
-Cbconj($a_pdl_cplx);
-
-=head2 Cexp()
-
-=for ref
-
-Complex exponentation.
-
-=for usage
-
-$out_pdl_cplx = Cexp($a_pdl_cplx);
-
-=head2 Cbexp()
-
-=for ref
-
-Complex inplace exponentation.
-
-=for usage
-
-Cbexp($a_pdl_cplx);
-
-=head2 Cmod()
-
-=for ref
-
-Returns module of a complex module.
-
-=for usage
-
-$out_pdl_real = Cmod($a_pdl_cplx);
-
-=head2 Cmod2()
-
-=for ref
-
-Returns squared module of a complex module.
-
-=for usage
-
-$out_pdl_real = Cmod2($a_pdl_cplx);
-
-=head2 Carg()
-
-=for ref
-
-Returns argument of a complex module.
-
-=for usage
-
-$out_pdl_real = Carg($a_pdl_cplx);
-
+  $pdl_real = infftw $pdl_cplx;
 
 =cut
-
 
 EOD
 
 
 pp_addpm('
-
 
 use PDL;
 use strict;
@@ -288,24 +179,23 @@ $wisdom_loaded = 0;
 
 $PDL::FFTW::COMPILED_TYPE = "'.$fftwtype.'";
 
-
 sub load_wisdom {
-  ($wisdom_fname) = @_;
-  my ($wisdom, $ok);
-
-  if (!$wisdom_loaded) {
-  $wisdom_loaded = 1;
-  if (!open(TMPFILE,$wisdom_fname)) {
-    print STDERR "Warning: couldn\'t find wisdom file\n";
-    return;
-  }
-  $wisdom = <TMPFILE>;
-  close(TMPFILE);
-  $ok = PDL_fftw_import_wisdom_from_string($wisdom);
-  if (!$ok) {
-    print STDERR "Warning: couldn\'t import wisdom\n";
-  }
-  }
+    $wisdom_fname = shift;
+    
+    if (!$wisdom_loaded) {
+	my ($wisdom, $ok);
+	$wisdom_loaded = 1;
+	if (!open(TMPFILE,$wisdom_fname)) {
+	    print STDERR "Warning: couldn\'t find wisdom file\n";
+	    return;
+	}
+	$wisdom = <TMPFILE>;
+	close(TMPFILE);
+	$ok = PDL_fftw_import_wisdom_from_string($wisdom);
+	if (!$ok) {
+	    print STDERR "Warning: couldn\'t import wisdom\n";
+	}
+    }
 }
 
 sub save_wisdom {
@@ -337,8 +227,13 @@ sub END {
   save_wisdom();
 }
 
-# real fftw
+if (defined $PDL::FFT::wisdom) {
+    load_wisdom($PDL::FFT::wisdom);
+    print "loading wisdom from $PDL::FFT::wisdom\n" if $PDL::debug;
+}
 
+# real fftw
+*PDL::rfftw = \&rfftw;
 sub rfftw {
   my $in = PDL::Core::topdl(shift);
   my @dims = $in->dims;
@@ -371,6 +266,7 @@ sub rfftw {
 
 # this assumes even last input dimension!
 
+*PDL::irfftw = \&irfftw;
 sub irfftw {
   my $in = PDL::Core::topdl(shift);
   my @dims = $in->dims;
@@ -407,6 +303,7 @@ sub irfftw {
 
 # real inplace fftw
 
+*PDL::nrfftw = \&nrfftw;
 sub nrfftw {
   my ($in)=@_;
   my @dims = $in->dims;
@@ -436,6 +333,7 @@ sub nrfftw {
 
 # this assumes even last input dimension!
 
+*PDL::inrfftw = \&inrfftw;
 sub inrfftw {
   my ($in)=@_;
   my @dims = $in->dims;
@@ -469,6 +367,7 @@ sub inrfftw {
 
 # complex fftw
 
+*PDL::fftw = \&fftw;
 sub fftw {
   my $in = PDL::Core::topdl(shift);
   my @dims = $in->dims;
@@ -501,6 +400,7 @@ sub fftw {
   return $out;
 }
 
+*PDL::ifftw = \&ifftw;
 sub ifftw {
   my $in = PDL::Core::topdl(shift);
   my @dims = $in->dims;
@@ -535,6 +435,7 @@ sub ifftw {
 
 # complex inplace fftw
 
+*PDL::nfftw = \&nfftw;
 sub nfftw {
   my ($in)=@_;
   my @dims = $in->dims;
@@ -561,6 +462,7 @@ sub nfftw {
   return $in;
 }
 
+*PDL::infftw = \&infftw;
 sub infftw {
   my ($in)=@_;
   my @dims = $in->dims;
@@ -568,7 +470,7 @@ sub infftw {
   my ($out,$name,$i);
 
   if ($datatype != $in->get_datatype) {
-	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . ' !");
+	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . q| !");
   } 
   $i = shift @dims;
   if ($i != 2) {
@@ -584,11 +486,60 @@ sub infftw {
   }
   $in->make_physical;
   PDL_inplace_fftwnd_one($plan_cache{$name},$in);
-  return $out;
+  return $in;
 }
-  
-');
 
+=head2 rfftwconv
+
+=for ref
+
+ND convolution using real ffts from the FFTW library
+
+=for example
+
+  $conv = rfftwconv $im, kernctr $k;
+
+=cut
+
+*PDL::rfftwconv = \&rfftconv;
+sub rfftwconv {
+  my ($a,$b) = @_;
+  my ($ca,$cb) = (rfftw($a), rfftw($b));
+  my $cmul = Cmul($ca,$cb);
+  my $ret = irfftw($cmul);
+  my $mul = 1; for (0..$a->getndims-1) {$mul *= $a->getdim($_)}
+  $ret /= $mul;
+  return $ret;
+}
+
+=head2 fftwconv
+
+=for ref
+
+ND convolution using complex ffts from the FFTW library
+
+Assumes real input!
+
+=for example
+
+  $conv = fftwconv $im, kernctr $k;
+
+=cut
+
+*PDL::fftwconv = \&fftconv;
+sub fftwconv {
+  my ($a,$b) = @_;
+  my ($ca,$cb) = (fftw($a->dummy(0,2)), fftw($b->dummy(0,2)));
+  my $cmul = Cmul($ca,$cb);
+  infftw $cmul;  # transfer back inplace
+  # and return real part only
+  my $ret = $cmul->slice('(0)')->sever;
+  my $mul = 1; for (0..$a->getndims-1) {$mul *= $a->getdim($_)}
+  $ret /= $mul;
+  return $ret;
+}
+
+|);
 
 pp_def('Cmul',
        Pars => 'a(n); b(n); [o]c(n);',
@@ -598,7 +549,17 @@ threadloop %{
 $c(n => 0)= $a(n => 0)*$b(n => 0) - $a(n => 1)*$b(n => 1);
 $c(n => 1)= $a(n => 0)*$b(n => 1) + $a(n => 1)*$b(n => 0);
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex multiplication
+
+=for usage
+
+   $out_pdl_cplx = Cmul($a_pdl_cplx,$b_pdl_cplx);
+
+EOD
       );
 
 pp_def('Cscale',
@@ -609,7 +570,16 @@ threadloop %{
 $c(n => 0)= $a(n => 0)*$b();
 $c(n => 1)= $a(n => 1)*$b();
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex by real multiplation.
+
+=for usage
+
+  Cscale($a_pdl_cplx,$b_pdl_real);
+EOD
       );
 
 pp_def('Cdiv',
@@ -624,7 +594,17 @@ divi = $b(n => 0)*$b(n => 0) + $b(n => 1)*$b(n => 1);
 $c(n => 0)= ( $a(n => 0)*$b(n => 0) + $a(n => 1)*$b(n => 1) ) / divi;
 $c(n => 1)= ( $a(n => 1)*$b(n => 0) - $a(n => 0)*$b(n => 1) ) / divi;
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex division.
+
+=for usage
+
+  $out_pdl_cplx = Cdiv($a_pdl_cplx,$b_pdl_cplx);
+
+EOD
       );
 
 pp_def('Cbmul',
@@ -639,7 +619,16 @@ tmp1 = $a(n => 1);
 $a(n => 0)= tmp * $b(n => 0) - tmp1 * $b(n => 1);
 $a(n => 1)= tmp * $b(n => 1) + tmp1 * $b(n => 0);
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex inplace multiplication.
+
+=for usage
+
+   Cbmul($a_pdl_cplx,$b_pdl_cplx);
+EOD
       );
 
 pp_def('Cbscale',
@@ -652,7 +641,16 @@ threadloop %{
 $a(n => 0) *= $b();
 $a(n => 1) *= $b();
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex inplace multiplaction by real.
+
+=for usage
+
+   Cbscale($a_pdl_cplx,$b_pdl_real);
+EOD
       );
 
 pp_def('Cconj',
@@ -663,7 +661,16 @@ threadloop %{
 $c(n => 0)= $a(n => 0);
 $c(n => 1)= -$a(n => 1);
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex conjugate.
+
+=for usage
+
+   $out_pdl_cplx = Cconj($a_pdl_cplx);
+EOD
       );
 
 pp_def('Cbconj',
@@ -673,7 +680,16 @@ if ($SIZE(n)!=2) barf("This function works only on complex\n");
 threadloop %{
 $a(n => 1)= -$a(n => 1);
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex inplace conjugate.
+
+=for usage
+
+   Cbconj($a_pdl_cplx);
+EOD
       );
 
 pp_def('Cexp',
@@ -684,19 +700,17 @@ threadloop %{
 $c(n => 0)= exp($a(n => 0)) * cos($a(n => 1));
 $c(n => 1)= exp($a(n => 0)) * sin($a(n => 1));
 %}
-'
-      );
+',
+	Doc => <<'EOD',
+=for ref
 
-#pp_def('Cexpi',
-#       Pars => 'a(); [o]c(n);',
-#       Code => '
-#$SIZE(n)=2;
-#threadloop %{
-#$c(n => 0)= cos($a());
-#$c(n => 1)= sin($a());
-#%}
-#'
-#      );
+Complex exponentation.
+
+=for usage
+
+   $out_pdl_cplx = Cexp($a_pdl_cplx);
+EOD
+      );
 
 pp_def('Cbexp',
        Pars => 'a(n);',
@@ -709,7 +723,16 @@ double im = $a(n => 1);
 $a(n => 0)= exp(re) * cos(im);
 $a(n => 1)= exp(re) * sin(im);
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Complex inplace exponentation.
+
+=for usage
+
+   $out_pdl_cplx = Cexp($a_pdl_cplx);
+EOD
       );
 
 pp_def('Cmod',
@@ -719,7 +742,16 @@ if ($SIZE(n)!=2) barf("This function works only on complex\n");
 threadloop %{
 $c()= sqrt ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+modulus of a complex piddle.
+
+=for usage
+
+  $out_pdl_real = Cmod($a_pdl_cplx);
+EOD
       );
 
 pp_def('Carg',
@@ -729,7 +761,16 @@ if ($SIZE(n)!=2) barf("This function works only on complex\n");
 threadloop %{
 $c()= atan2($a(n=>1),$a(n=>0));
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+argument of a complex number.
+
+=for usage
+
+   $out_pdl_real = Carg($a_pdl_cplx);
+EOD
       );
 
 pp_def('Cmod2',
@@ -739,7 +780,16 @@ if ($SIZE(n)!=2) barf("This function works only on complex\n");
 threadloop %{
 $c()= ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
 %}
-'
+',
+	Doc => <<'EOD',
+=for ref
+
+Returns squared modulus of a complex number.
+
+=for usage
+
+   $out_pdl_real = Cmod2($a_pdl_cplx);
+EOD
       );
 
 
@@ -954,6 +1004,23 @@ PDL_fftw_export_wisdom_to_string ()
 ');
 
 
-pp_add_exported('','PDL_rfftwnd_create_plan PDL_rfftwnd_one_real_to_complex PDL_rfftwnd_one_complex_to_real load_wisdom save_wisdom rfftw PDL_fftw_export_wisdom_to_string PDL_fftw_import_wisdom_from_string irfftw PDL_inplace_fftwnd_one PDL_fftwnd_one PDL_fftwnd_create_plan fftw ifftw nfftw infftw nrfftw inrfftw PDL_inplace_rfftwnd_one_real_to_complex PDL_inplace_rfftwnd_one_complex_to_real');
+pp_add_exported('','load_wisdom save_wisdom rfftw irfftw fftw ifftw
+nfftw infftw nrfftw inrfftw fftwconv rfftwconv');
+
+# I don't see a point in exporting these (CS)
+# 'PDL_rfftwnd_create_plan PDL_rfftwnd_one_real_to_complex PDL_rfftwnd_one_complex_to_real PDL_fftw_export_wisdom_to_string PDL_fftw_import_wisdom_from_string PDL_inplace_fftwnd_one PDL_fftwnd_one PDL_fftwnd_create_plan PDL_inplace_rfftwnd_one_real_to_complex PDL_inplace_rfftwnd_one_complex_to_real';
+
+pp_addpm({At => 'Bot'},<< 'EOD');
+=head1 AUTHOR
+
+Copyright (C) 1999 Christian Pellegrin, 2000 Christian Soeller.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+EOD
 
 pp_done();

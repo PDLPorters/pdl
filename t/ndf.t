@@ -1,3 +1,4 @@
+# -*-perl-*-
 # Test of the NDF I/O system
 # Requires that the NDF module is available.
 

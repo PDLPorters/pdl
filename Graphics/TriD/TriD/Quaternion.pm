@@ -12,7 +12,13 @@ package PDL::Graphics::TriD::Quaternion;
 
 sub new {
 	my($type,$c,$x,$y,$z) = @_;
-	my $this = bless [$c,$x,$y,$z],$type;
+	my $this;
+
+   if(ref($type)){
+	  $this = $type;
+	}else{
+	  $this = bless [$c,$x,$y,$z],$type;
+	}
 	return $this;
 }
 

@@ -1,3 +1,41 @@
+# -*-perl-*-
+
+use strict;
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# version 2 is for versions after PDL 2.1.1
+use vars qw( $pdl_core_version );
+$pdl_core_version = 2;  
+
+# List explicitly here the variables you want Configure to
+# generate.  Metaconfig only looks for shell variables, so you
+# have to mention them as if they were shell variables, not
+# %Config entries.  Thus you write
+#  $startperl
+# to ensure Configure will look for $Config{startperl}.
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+	if ($Config{'osname'} eq 'VMS' or
+	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
+
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
+chmod 0644, $file;
+
+# In this section, perl variables will be expanded during extraction.
+# You can use $Config{...} to use Configure variables.
+
+
+print OUT <<'!NO!SUBS!';
+/*
+ * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
+ */
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -11,6 +49,12 @@
 #include "pdl.h"
 #include "pdlthread.h"
 #include "pdlmagic.h"
+
+!NO!SUBS!
+
+    print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
+
+print OUT <<'!NO!SUBS!';
 
 #define PDL_TMP  0        /* Flags */
 #define PDL_PERM 1
@@ -156,21 +200,7 @@ void  pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, /* Set valu
                 PDL_Long *incs, PDL_Long offs, int ndims, double value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
-/* pdlstats.c */
-
-double pdl_min(void*x, int n, int datatype);
-double pdl_max(void*x, int n, int datatype);
-double pdl_sum(void*x, int n, int datatype);
-
-/* pdlmoremaths.c */
-
-void pdl_convolve (pdl* c, pdl* a, pdl* b); /* Real space convolution */
-void pdl_hist (pdl* c, pdl* a, double min, double step) ; /* Histogram of data */
-void pdl_matrixmult( pdl *c, pdl* a, pdl* b);  /* Matrix multiplication */
-
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
-
-#define PDL_CORE_VERSION 1
 
 struct Core {
     I32    Version;
@@ -184,7 +214,7 @@ struct Core {
     SV*    (*copy)        ( pdl*, char* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
-    void*  (*malloc)      ( int );
+    void*  (*smalloc)      ( int );
     int    (*howbig)      ( int );
     PDL_Long*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Long* dims, int ndims );
@@ -207,7 +237,6 @@ void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,int j,int *dims,
 				int temp);
 void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, int param), int param); /* Automagic destructor */
-  
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);
@@ -239,10 +268,35 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*allocdata) (pdl *it);
   PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+
+!NO!SUBS!
+
+# set up the qsort routines
+
+    # fortunately it looks like Types.pm.PL is processed before this
+    # file
+    require "Types.pm";  # ie PDL::Types
+
+for (keys %PDL::Types::typehash) {
+   my $ctype = $PDL::Types::typehash{$_}{ctype};
+   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+
+   print OUT "void (*qsort_${ppsym}) (${ctype} *xx, int a, int b );\n";
+   print OUT "void (*qsort_ind_${ppsym}) (${ctype} *xx, int *ix, int a, int b );\n";
+}
+
+# storage space for bad values
+
+print OUT <<'!NO!SUBS!';
+
+  badvals bvals;  /* store the default bad values */
+  void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+
 };
 
 typedef struct Core Core;
 
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
+!NO!SUBS!
 

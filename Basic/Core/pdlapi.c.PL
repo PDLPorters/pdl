@@ -1,6 +1,43 @@
+#
+# Create pdlapi.c
+# - needed since we allow bad pixel handling to be switched off
+#
+ 
+use strict;
+ 
+use Config;
+use File::Basename qw(&basename &dirname);
+ 
+# check for bad value support
+use vars qw( $bvalflag $usenan );
+require "badsupport.p";
 
-/* pdlapi.c - functions for manipulating pdl structs */
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//                                                              
+    if ($Config{'osname'} eq 'VMS' or
+	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+ 
+print OUT <<"!WITH!SUBS!";
+ 
+/* pdlapi.c - generated automatically by pdlapi.c.PL */
+/*          - functions for manipulating pdl structs */
+/*          - bad value support = $bvalflag */
 
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
 
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
@@ -417,16 +454,41 @@ void pdl_dump_flags(int flags, int nspac)
 {
 	int i;
 	int len, found, sz;
-	int flagval[14] = {PDL_ALLOCATED,PDL_PARENTDATACHANGED,
-			 PDL_PARENTDIMSCHANGED,PDL_PARENTREPRCHANGED,
-			 PDL_DATAFLOW_F,PDL_DATAFLOW_B,PDL_NOMYDIMS,
-			 PDL_OPT_VAFFTRANSOK,PDL_INPLACE,PDL_DESTROYING,
-			 PDL_DONTTOUCHDATA, PDL_MYDIMS_TRANS, PDL_HDRCPY, 0};
-	char *flagchar[13] = {"ALLOCATED","PARENTDATACHANGED",
-			 "PARENTDIMSCHANGED","PARENTREPRCHANGED",
-			 "DATAFLOW_F","DATAFLOW_B","NOMYDIMS",
-			 "OPT_VAFFTRANSOK","INPLACE","DESTROYING",
-			 "DONTTOUCHDATA","MYDIMS_TRANS", "HDRCPY"};
+!NO!SUBS!
+
+    if ( $bvalflag ) { print OUT "	int flagval[15] = {\n"; }
+    else             { print OUT "	int flagval[14] = {\n"; }
+
+    print OUT <<'!NO!SUBS!';
+	    PDL_ALLOCATED,PDL_PARENTDATACHANGED,
+	    PDL_PARENTDIMSCHANGED,PDL_PARENTREPRCHANGED,
+	    PDL_DATAFLOW_F,PDL_DATAFLOW_B,PDL_NOMYDIMS,
+	    PDL_OPT_VAFFTRANSOK,PDL_INPLACE,PDL_DESTROYING,
+	    PDL_DONTTOUCHDATA, PDL_MYDIMS_TRANS, PDL_HDRCPY, 
+!NO!SUBS!
+
+    if ( $bvalflag ) { print OUT "	    PDL_BADVAL,\n"; }
+
+    print OUT <<'!NO!SUBS!';
+		0};
+
+!NO!SUBS!
+
+    if ( $bvalflag ) { print OUT "	char *flagchar[14] = {\n"; }
+    else             { print OUT "	char *flagchar[13] = {\n"; }
+
+    print OUT <<'!NO!SUBS!';
+	    "ALLOCATED","PARENTDATACHANGED",
+	    "PARENTDIMSCHANGED","PARENTREPRCHANGED",
+	    "DATAFLOW_F","DATAFLOW_B","NOMYDIMS",
+	    "OPT_VAFFTRANSOK","INPLACE","DESTROYING",
+	    "DONTTOUCHDATA","MYDIMS_TRANS", "HDRCPY"
+!NO!SUBS!
+
+    if ( $bvalflag ) { print OUT '	    ,"BADVAL"' . "\n"; }
+
+    print OUT <<'!NO!SUBS!';
+	};
 	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
 
@@ -689,10 +751,18 @@ void pdl_make_physdims(pdl *it) {
 	  return;
 	}
 	it->state &= ~(PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED);
+	/* the fact that a PARENTXXXCHANGED flag is set seems
+	   to imply that this pdl has an associated trans ? */
 	for(i=0; i<it->trans->vtable->nparents; i++) {
 		pdl_make_physdims(it->trans->pdls[i]);
 	}
+	/* doesn't this mean that all children of this trans have
+	   now their dims set and accordingly all those flags should
+	   be reset? Otherwise redodims will be called for them again? */
+	PDLDEBUG_f(printf("Make_physdims: calling redodims %d on %d\n",
+			  it->trans,it));
 	it->trans->vtable->redodims(it->trans);
+	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
 		it->state &= ~PDL_ALLOCATED;
 	}
@@ -831,7 +901,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++)
 		pdl_set_trans_parenttrans(trans->pdls[i],trans,i);
-	  if(!(trans->flags&PDL_ITRANS_REVERSIBLE))
+	  if(!(trans->flags & PDL_ITRANS_REVERSIBLE))
 		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 	  	if(trans->pdls[i]->state & PDL_NOMYDIMS) {
@@ -840,7 +910,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		}
 	  }
   }
-
 
 #ifdef FOO
 /* If we are not flowing, we must disappear */
@@ -851,7 +920,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 
   PDLDEBUG_f(printf("make_trans_mutual_exit %d\n",trans));
 
-}
+} /* pdl_make_trans_mutual() */
 
 
 pdl *pdl_make_now(pdl *it) {
@@ -1105,7 +1174,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
-	if(flag & PDL_PARENTDIMSCHANGED) {
+	if(flag & PDL_PARENTDIMSCHANGED) {  /* redodims called here... */
 		trans->vtable->redodims(trans);
 	}
 	for(j=0; j<trans->vtable->npdls; j++) {
@@ -1115,7 +1184,11 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	if(flag & PDL_PARENTDATACHANGED | flag & PDL_PARENTDIMSCHANGED) {
 		int i;
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-			/* Assuming affine = p2child */
+		  /* Attention: this assumes affine = p2child */
+		  /* need to signal that redodims has already been called */
+		  /* is it correct to also unset PDL_PARENTREPRCHANGED? */
+		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
+						  PDL_PARENTREPRCHANGED);
 			pdl_make_physvaffine(trans->pdls[1]);
 			pdl_readdata_vaffine(trans->pdls[1]);
 		} else {
@@ -1150,6 +1223,9 @@ void pdl__ensure_transdims(pdl_trans *trans)
    We shall ignore this problem for now and hope it goes away ;)
    (XXX FIX ME) */
 /* XXX Two next routines are memleaks */
+/* somehow this transform will call (implicitly) redodims twice on
+   an unvaffined pdl; leads to memleak if redodims allocates stuff
+   that is only freed in later call to freefunc */
 void pdl_destroytransform(pdl_trans *trans,int ensure)
 {
 	int j;
@@ -1285,6 +1361,16 @@ void pdl_vafftrans_free(pdl *it)
  * We need to do careful testing for clump-type things.
  */
 
+/* pdl_make_physvaffine can be called on *any* pdl -- vaffine or not --
+   it will call make_physical as needed on those
+   this function is the right one to call in any case if you want to
+   make only those physical (i.e. allocating their own data, etc) which
+   have to be and leave those vaffine with updated dims, etc, that do
+   have an appropriate transformation of which they are a child
+
+   should probably have been called make_physcareful to point out what
+   it really does
+*/
 void pdl_make_physvaffine(pdl *it)
 {
 	pdl_trans *t;
@@ -1422,3 +1508,5 @@ void pdl_vafftrans_alloc(pdl *it)
 }
 
 #endif
+
+!NO!SUBS!

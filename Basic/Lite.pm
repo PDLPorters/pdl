@@ -22,8 +22,10 @@ use method syntax, viz:
    use PDL::Core '';
    use PDL::Ops '';
    use PDL::Primitive '';
+   use PDL::Ufunc '';
    use PDL::Basic '';
    use PDL::Slices '';
+   use PDL::Bad '';
    use PDL::Version;
 
 =cut
@@ -35,8 +37,10 @@ use method syntax, viz:
 use PDL::Core '';
 use PDL::Ops '';
 use PDL::Primitive '';
+use PDL::Ufunc '';
 use PDL::Basic '';
 use PDL::Slices '';
+use PDL::Bad '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
 
 $PDL::Lite::VERSION = $PDL::Version::VERSION;

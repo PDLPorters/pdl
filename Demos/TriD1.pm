@@ -71,7 +71,7 @@ actnw q|
 |;
 
 actnw q|
-	points3d [$x,$y,$z], [$r,$g,$b];  # Draw colored points
+	points3d [$x,$y,$z], [$r,$g,$b], {PointSize=>4};  # Draw colored points
 |;
 
 actnw q|

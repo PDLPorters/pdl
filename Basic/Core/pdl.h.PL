@@ -1,10 +1,14 @@
-#!/usr/local/bin/perl
+# -*-perl-*-
 
 use Config;
 use File::Basename qw(&basename &dirname);
 
 require "pdl_hfiles.p";
 require "mymalloc.p";
+
+# how many variable types (ie PDL_Byte, ...) are there?
+require 'Types.pm';
+my $ntypes = $#PDL::Types::names;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -16,13 +20,15 @@ require "mymalloc.p";
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
 
-print "Extracting $file (with variable substitutions)\n";
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
+chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
@@ -51,6 +57,20 @@ $PDL_DATATYPES
 
 $mymalloc
 !GROK!THIS!
+
+# set up the badvalues structure
+# - for binary compatability, this is created whatever the
+#   value of $bvalflag and $usenan
+print OUT "typedef struct badvals {\n";
+foreach my $i ( reverse(0 .. $ntypes) ) {
+    my $name = $PDL::Types::names[$i];
+    my $realctype = $PDL::Types::typehash{$name}->{realctype};
+    my $cname     = $PDL::Types::typehash{$name}->{ctype};
+    $cname =~ s/^PDL_//;
+    print OUT "   $realctype $cname;\n";
+    print OUT "   $realctype default_$cname;\n";
+}
+print OUT "} badvals;\n";
 
 print OUT <<'!NO!SUBS!';
 
@@ -104,6 +124,8 @@ print OUT <<'!NO!SUBS!';
 #define PDL_OPT_ANY_OK			(PDL_OPT_VAFFTRANSOK)
 
 #define PDL_HDRCPY				0x0200
+
+#define PDL_BADVAL                              0x0400
 
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
 		&& (pdl)->trans == (pdl_trans *)(wtrans))
@@ -197,6 +219,7 @@ typedef struct pdl_transvtable {
 	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
 					(means whether malloced or not) */ \
         pdl *pdls[np]; /* The pdls involved in the transformation */ \
+        int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
 	int __datatype
 
 #define PDL_TR_MAGICNO 0x91827364

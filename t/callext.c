@@ -16,6 +16,18 @@
 
 #include <stdio.h>
 #include <math.h>
+
+/* For WindowsNT you have to make sure that the relevant routine
+   is exported by the dll otherwise it will not be loadable even if it
+   can be linked. In this example we use the __declspec declaration.
+   The same effect can be achieved with .def files although currently
+   CallExt.pm does not know to use them */
+#ifdef WIN32
+#define DLLEXPORT __declspec(dllexport)
+#else
+#define DLLEXPORT
+#endif
+
 #include "pdlsimple.h"
 
 /* This is the action routine */
@@ -33,7 +45,7 @@ void loglog_doit( float *x, float *y, int nvals) {
    arguments and *args is an array of pdl structures
 */
 
-int loglog_ext(int nargs, pdlsimple **args) {
+DLLEXPORT int loglog_ext(int nargs, pdlsimple **args) {
 
    pdlsimple* x;
    pdlsimple* y;

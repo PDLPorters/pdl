@@ -42,6 +42,7 @@ use PDL::Pod::Parser;
 	  'Sig'     => 'Signature',
 	  'Opt'     => 'Options',
 	  'Usage'   => 'Usage',
+          'Bad'     => 'Bad value support',  
 	 );
 
 sub new {
@@ -97,7 +98,7 @@ sub command {
 
 sub check_for_mode {
   my ($this,$txt,$sep) = @_;
-  if ($txt =~ /^(sig|example|ref|opt|usage|body)/i) {
+  if ($txt =~ /^(sig|example|ref|opt|usage|bad|body)/i) {
     $this->{Parmode} = ucfirst lc $1;
     print "switched now to '$1' mode\n" if $this->{VERBOSE};
     print "\n\t$Title{$this->{Parmode}}\n"
@@ -285,12 +286,20 @@ gives examples of typical usage for the current function:
          $_->wpic($name[0],{CONVERTER => 'ppmtogif'})
        }
 
+=item Bad
+
+provides information on how the function handles bad values (if
+C<$PDL:Config{WITH_BADVAL}> is set to 1). The intention is to
+have this information automatically created for pp-compiled
+functions, although it can be over-ridden.
+
 =back
 
 The PDL podparser is implemented as a simple state machine. Any of
 the above C<=for> statements switches the podparser into a state
 where the following paragraph is accepted as information for the
-respective field (C<Ref>, C<Usage>, C<Opt> or C<Example>). Only the text up to
+respective field (C<Ref>, C<Usage>, C<Opt>, C<Example> or C<Bad>). 
+Only the text up to
 the end of the current paragraph is accepted, for example:
 
   =for example
@@ -388,7 +397,10 @@ has been introduced into the definition of C<pp_def> (see again L<PDL::PP>)
 which will take care that name and signature of the so defined function
 are documented in this way (for examples of this usage see, for example,
 the PDL::Slices module, especially F<slices.pd> and the resulting
-F<Slices.pm>).
+F<Slices.pm>). Similarly, the 'BadDoc' field provides a means of
+specifying information on how the routine handles the presence of
+bad values: this will be autpmatically created if 
+C<BadDoc> is not supplied, or set to C<undef>.
 
 Furthermore, the documentation for each function should contain
 at least one of the I<Usage> or I<Examples> fields. Depending on the
@@ -639,12 +651,18 @@ sub scan {
   my @namelines = split("\n",$outfile->{Text});
   my ($name,$does);
   for (@namelines) {
-     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/){
+     if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
        $name = $1; $does = $3;
+     }
+     if (/^\s*([a-z]+) (-+) (.*)/) { # lowercase shell script name
+       $name = $1; $does = $3;
+       ($name,$does) = (undef,undef) unless $does =~ /shell/i;
      }
    }
    $does = 'Hmmm ????' if $does =~ /^\s*$/;
-   my $type = ($file =~ /\.pod$/ ? 'Manual:' : 'Module:');
+   my $type = ($file =~ /\.pod$/ ? 
+	       ($does =~ /shell/i ? 'Script:' : 'Manual:')
+	       : 'Module:');
    $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
    return $n;
 }

@@ -1,25 +1,25 @@
-
 package PDL::Graphics::TriD::Graph;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
 use PDL::LiteF; # XXX F needed?
 
-sub new {
-	my($type) = @_;
-	bless {},$type;
-}
+use fields qw(Data DataBind UnBound DefaultAxes Axis );
+
 
 sub add_dataseries {
-	my($this,$data,$name) = @_;
-	if(!defined $name) {
-		$name = "Data0";
-		while(defined $this->{Data}{$name}) {$name++;}
-	}
-	$this->{Data}{$name} = $data;
-	$this->{DataBind}{$name} = [];
-	$this->add_object($data);
-	$this->changed();
-	$this->{UnBound}{$name} = 1;
-	return $name;
+  my($this,$data,$name) = @_;
+  if(!defined $name) {
+    $name = "Data0";
+    while(defined $this->{Data}{$name}) {$name++;}
+  }
+
+  $this->{Data}{$name} = $data;
+  $this->{DataBind}{$name} = [];
+  $this->{UnBound}{$name} = 1;
+
+  $this->add_object($data);
+  $this->changed();
+  
+  return $name;
 }
 
 sub bind_data {
@@ -49,7 +49,7 @@ sub scalethings {
 		$this->bind_default($_);
 	}
 	for(values %{$this->{Axis}}) {
-		$_->init_scale();
+	  $_->init_scale() ;
 	}
 	my ($k,$v);
 	while(($k,$v) = each %{$this->{DataBind}}) {
@@ -67,7 +67,10 @@ sub scalethings {
 sub get_points {
 	my($this,$name) = @_;
 # 	print Dumper($this->{Axis});
+
 	my $d = $this->{Data}{$name}->get_points();
+
+
 	my @ddims = $d->dims; shift @ddims;
 	my $p = PDL->zeroes(&PDL::float(),3,@ddims);
 	my $pnew;
@@ -82,7 +85,8 @@ sub get_points {
 
 sub clear_data {
 	my($this) = @_;
-	$this->{Data} = {}; $this->{DataBind} = {};
+	$this->{Data} = {};
+	$this->{DataBind} = {};
 	$this->{UnBound} = {};
 	$this->changed();
 }
@@ -169,3 +173,244 @@ sub transform {
 	return $point;
 }
 
+
+#
+# projects from the sphere to a cylinder
+# 
+
+package PDL::Graphics::TriD::CylindricalEquidistantAxes;
+use PDL::Core '';
+
+
+sub new {
+	my($type) = @_; 
+	bless {Names => [LON,LAT,Pressure]},$type;
+}
+
+sub init_scale {
+	my($this) = @_;
+	$this->{Scale} = [];
+}
+
+
+sub add_scale {
+  my($this,$data,$inds) = @_;
+  my $i = 0;
+  for(@$inds) {
+    my $d = $data->slice("($_)");
+    my $max = $d->max;
+    my $min = $d->min;
+
+
+
+    if($i==1){
+      if($max > 89.9999 or $min < -89.9999){
+	barf "Error in Latitude $max $min\n";
+
+      }
+    }
+    elsif($i==2){
+      $max = 1012.5 if($max<1012.5);
+      $min = 100 if($min>100);
+    }
+
+    if(!defined $this->{Scale}[$i]) {
+      $this->{Scale}[$i] = [$min,$max];
+    } else {
+      if($min < $this->{Scale}[$i][0]) {
+	$this->{Scale}[$i][0] = $min;
+      }
+      if($max > $this->{Scale}[$i][1]) {
+	$this->{Scale}[$i][1] = $max;
+      }
+    }
+    $i++;
+  }
+  
+#  $this->{Center} = [$this->{Scale}[0][0]+($this->{Scale}[0][1]-$this->{Scale}[0][0])/2,
+#		     $this->{Scale}[1][0]+($this->{Scale}[1][1]-$this->{Scale}[1][0])/2];
+#
+# Should make the projection center an option
+#
+  $this->{Center} = [$this->{Scale}[0][0]+($this->{Scale}[0][1]-$this->{Scale}[0][0])/2,
+		     0];
+}
+
+sub finish_scale {
+  my($this) = @_;
+  my @dist;
+  # Normalize the smallest differences away.
+  for(@{$this->{Scale}}) {
+    if(abs($_->[0] - $_->[1]) < 0.000001) {
+      $_->[1] = $_->[0] + 1;
+    } 
+    push(@dist,$_->[1]-$_->[0]);
+  }
+  # for the z coordiniate reverse the min and max values
+  my $max = $this->{Scale}[2][0];
+  if($max < $this->{Scale}[2][1]){
+    $this->{Scale}[2][0] = $this->{Scale}[2][1];
+    $this->{Scale}[2][1] = $max;
+  }
+
+# Normalize longitude and latitude scale
+  
+  if($dist[1] > $dist[0]){
+    $this->{Scale}[0][0] -= ($dist[1]-$dist[0])/2;
+    $this->{Scale}[0][1] += ($dist[1]-$dist[0])/2;
+  }elsif($dist[0] > $dist[1] && $dist[0]<90){
+    $this->{Scale}[1][0] -= ($dist[0]-$dist[1])/2;
+    $this->{Scale}[1][1] += ($dist[0]-$dist[1])/2;
+  }elsif($dist[0] > $dist[1]){
+    $this->{Scale}[1][0] -= (90-$dist[1])/2;
+    $this->{Scale}[1][1] += (90-$dist[1])/2;
+  }    
+      
+
+}
+
+sub transform {
+  my($this,$point,$data,$inds) = @_;
+  my $i = 0;
+
+  if($#$inds!=2){
+    barf("Wrong number of arguments to transform $this\n");
+    exit;
+  }
+  my $pio180 = 0.017453292;
+
+  (my $tmp1 = $point->slice("(0)")) +=
+    0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
+      ($this->{Scale}[0][1] - $this->{Scale}[0][0])
+	*cos($data->slice("($inds->[1])")*$pio180);
+  (my $tmp2 = $point->slice("(1)")) +=
+    0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
+      ($this->{Scale}[1][1] - $this->{Scale}[1][0]);
+
+  (my $tmp3 = $point->slice("(2)")) .=
+    log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
+  return $point;
+}
+
+
+package PDL::Graphics::TriD::PolarStereoAxes;
+use PDL::Core '';
+
+
+sub new {
+	my($type) = @_; 
+	bless {Names => [LONGITUDE,LATITUDE,HEIGHT]},$type;
+}
+
+sub init_scale {
+	my($this) = @_;
+	$this->{Scale} = [];
+}
+
+
+sub add_scale {
+  my($this,$data,$inds) = @_;
+  my $i = 0;
+
+  for(@$inds) {
+    my $d = $data->slice("($_)");
+    my $max = $d->max;
+    my $min = $d->min;
+
+    if($i==1){
+      if($max > 89.9999 or $min < -89.9999){
+	barf "Error in Latitude $max $min\n";
+
+      }
+    }
+    elsif($i==2){
+      $max = 1012.5 if($max<1012.5);
+      $min = 100 if($min>100);
+    }
+
+    if(!defined $this->{Scale}[$i]) {
+      $this->{Scale}[$i] = [$min,$max];
+    } else {
+      if($min < $this->{Scale}[$i][0]) {
+	$this->{Scale}[$i][0] = $min;
+      }
+      if($max > $this->{Scale}[$i][1]) {
+	$this->{Scale}[$i][1] = $max;
+      }
+    }
+    $i++;
+  }
+  
+  $this->{Center} = [$this->{Scale}[0][0]+($this->{Scale}[0][1]-$this->{Scale}[0][0])/2,
+		     $this->{Scale}[1][0]+($this->{Scale}[1][1]-$this->{Scale}[1][0])/2];
+}
+
+sub finish_scale {
+  my($this) = @_;
+  my @dist;
+  # Normalize the smallest differences away.
+  for(@{$this->{Scale}}) {
+    if(abs($_->[0] - $_->[1]) < 0.000001) {
+      $_->[1] = $_->[0] + 1;
+    } 
+    push(@dist,$_->[1]-$_->[0]);
+  }
+  # for the z coordiniate reverse the min and max values
+  my $max = $this->{Scale}[2][0];
+  if($max < $this->{Scale}[2][1]){
+    $this->{Scale}[2][0] = $this->{Scale}[2][1];
+    $this->{Scale}[2][1] = $max;
+  }
+
+# Normalize longitude and latitude scale
+  
+  if($dist[1] > $dist[0]){
+    $this->{Scale}[0][0] -= ($dist[1]-$dist[0])/2;
+    $this->{Scale}[0][1] += ($dist[1]-$dist[0])/2;
+  }elsif($dist[0] > $dist[1] && $dist[0]<90){
+    $this->{Scale}[1][0] -= ($dist[0]-$dist[1])/2;
+    $this->{Scale}[1][1] += ($dist[0]-$dist[1])/2;
+  }elsif($dist[0] > $dist[1]){
+    $this->{Scale}[1][0] -= (90-$dist[1])/2;
+    $this->{Scale}[1][1] += (90-$dist[1])/2;
+  }    
+      
+
+}
+
+sub transform {
+  my($this,$point,$data,$inds) = @_;
+  my $i = 0;
+
+  if($#$inds!=2){
+    barf("Wrong number of arguments to transform $this\n");
+    exit;
+  }
+  my $pio180 = 0.017453292;
+
+  (my $tmp1 = $point->slice("(0)")) +=
+    0.5+($data->slice("($inds->[0])")-$this->{Center}[0]) /
+      ($this->{Scale}[0][1] - $this->{Scale}[0][0])
+	*cos($data->slice("($inds->[1])")*$pio180);
+  (my $tmp2 = $point->slice("(1)")) +=
+    0.5+($data->slice("($inds->[1])")-$this->{Center}[1]) /
+      ($this->{Scale}[1][1] - $this->{Scale}[1][0])
+	*cos($data->slice("($inds->[1])")*$pio180);
+
+
+# Longitude transformation
+#  (my $tmp = $point->slice("(0)")) =
+#    ($this->{Center}[0]-$point->slice("(0)"))*cos($data->slice("(1)"));
+
+# Latitude transformation
+#  (my $tmp = $point->slice("(1)")) =
+#    ($this->{Center}[1]-$data->slice("(1)"))*cos($data->slice("(1)"));
+# Vertical transformation
+#  -7.2*log($data->slice("(2)")/1012.5
+
+  (my $tmp3 = $point->slice("(2)")) .=
+    log($data->slice("($inds->[2])")/1012.5)/log($this->{Scale}[2][1]/1012.5);
+
+  return $point;
+}
+1;

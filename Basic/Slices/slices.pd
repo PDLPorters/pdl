@@ -1,4 +1,4 @@
-pp_addpm({At => Top},<< 'EOD');
+pp_addpm({At => 'Top'},<< 'EOD');
 
 =head1 NAME
 
@@ -38,7 +38,7 @@ alternatively, you can use
 
  $b = $a->slice("1:3")->sever;
 
-which doesn't copy the struct but beware that after
+which does not copy the struct but beware that after
 
  $b = $a->slice("1:3");
  $c = $b->sever;
@@ -57,22 +57,42 @@ use PDL::Core ':Internal';
 
 EOD
 
+pp_addpm({At => 'Bot'},<< 'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+EOD
+
 # $::PP_VERBOSE=1;
 
-pp_add_boot("  PDL->readdata_affine = pdl_readdata_affineinternal;
-	      PDL->writebackdata_affine = pdl_writebackdata_affineinternal;
-");
+pp_add_boot(
+"  PDL->readdata_affine = pdl_readdata_affineinternal;\n" . 
+"     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
+);
+
+## Several routines use the 'Dims' and 'ParentInds'
+## rules - these currently do nothing
 
 pp_def(
-	'affineinternal',
-	AffinePriv => 1,
-	DefaultFlow => 1,
-	P2Child => 1,
-	ReadDataFuncName => "pdl_readdata_affineinternal",
-	WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
-	MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
-	RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
-	EquivCPOffsCode => '
+       'affineinternal',
+       HandleBad => 1,
+       AffinePriv => 1,
+       DefaultFlow => 1,
+       P2Child => 1,
+       ReadDataFuncName => "pdl_readdata_affineinternal",
+       WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
+       MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
+       RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
+       EquivCPOffsCode => '
 		int i; int poffs=$PRIV(offs); int nd;
 		for(i=0; i<$CHILD_P(nvals); i++) {
 			$EQUIVCPOFFS(i,poffs);
@@ -85,13 +105,13 @@ pp_def(
 				poffs -= $PRIV(incs[nd]) *
 					$CHILD_P(dims[nd]);
 			}
-		}
-	',
-	Doc => 'internal',
+                }',
+       Doc => undef,    # 'internal',
 );
 
 pp_def(
 	'identity',
+        HandleBad => 1,
 	P2Child => 1,
 	DefaultFlow => 1,
 	OtherPars => '',
@@ -115,7 +135,7 @@ These functions provide rudimentary index indirection.
 It would be useful to have a more complete function for this
 at some point, or at least a perl wrapper, that allows
 
- $c = $a->islice("1:2",$ind1,"3:4",$ind2");
+ $c = $a->islice("1:2",$ind1,"3:4",$ind2);
 
 with many dimensions.
 
@@ -129,38 +149,74 @@ the changes in C<$c> will flow back to C<$a>.
 =cut
 EOD
 
-pp_def(
-	'index',
-	DefaultFlow => 1,
-	Reversible => 1,	
-	Pars => 'a(n); int ind(); [oca] c();',
-	Code => 'register int foo = $ind(); if(foo<0 || foo>=$SIZE(n))
-		{barf("PDL::index: invalid index");}
-	        $c() = $a(n => foo);',
-	BackCode => 'int foo = $ind(); if(foo<0 || foo>=$SIZE(n))
-		{barf("PDL::index: invalid index");}
-	        $a(n => foo) = $c();',
-	Doc => $doc,
-);
+my $index_init_good = 
+       'register int foo = $ind(); 
+        if( foo<0 || foo>=$SIZE(n) ) {
+	   barf("PDL::index: invalid index");
+        }';
+my $index_init_bad = 
+       'register int foo = $ind(); 
+        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
+	   barf("PDL::index: invalid index");
+        }';
 
 pp_def(
-	'index2d',
-	DefaultFlow => 1,
-	Reversible => 1,	
-	Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
-	Code => 'register int fooa,foob;
-		fooa = $inda(); if(fooa<0 || fooa>=$SIZE(na))
-			{barf("PDL::index: invalid index 1");}
-		foob = $indb(); if(foob<0 || foob>=$SIZE(nb))
-			{barf("PDL::index: invalid index 2");}
-	        $c() = $a(na => fooa, nb => foob);',
-	BackCode => 'register int fooa,foob;
-		fooa = $inda(); if(fooa<0 || fooa>=$SIZE(na))
-			{barf("PDL::index: invalid index 1");}
-		foob = $indb(); if(foob<0 || foob>=$SIZE(nb))
-			{barf("PDL::index: invalid index 2");}
-	        $a(na => fooa, nb => foob) = $c();',
-	Doc => $doc,
+       'index',
+       HandleBad => 1,
+       DefaultFlow => 1,
+       Reversible => 1,	
+       Pars => 'a(n); int ind(); [oca] c();',
+       Code => 
+       $index_init_good . ' $c() = $a(n => foo);',
+       BadCode => 
+       $index_init_bad . ' $c() = $a(n => foo);',
+       BackCode => 
+       $index_init_good . ' $a(n => foo) = $c();',
+       BadBackCode => 
+       $index_init_bad . ' $a(n => foo) = $c();',
+       Doc => $doc,
+       BadDoc =>
+       'index barfs if any of the index values are bad.',
+       );
+
+my $index2d_init_good =
+       'register int fooa,foob;
+	fooa = $inda(); 
+        if( fooa<0 || fooa>=$SIZE(na) ) {
+           barf("PDL::index: invalid index 1");
+        }
+	foob = $indb(); 
+        if( foob<0 || foob>=$SIZE(nb) ) {
+	   barf("PDL::index: invalid index 2");
+        }';
+my $index2d_init_bad =
+       'register int fooa,foob;
+	fooa = $inda(); 
+        if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
+           barf("PDL::index: invalid index 1");
+        }
+	foob = $indb(); 
+        if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
+	   barf("PDL::index: invalid index 2");
+        }';
+
+pp_def(
+       'index2d',
+       HandleBad => 1,
+       DefaultFlow => 1,
+       Reversible => 1,	
+       Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
+       Code => 
+       $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
+       BadCode => 
+       $index2d_init_bad . '$c() = $a(na => fooa, nb => foob);',
+       BackCode => 
+       $index2d_init_good . ' $a(na => fooa, nb => foob) = $c();',
+       BadBackCode => 
+       $index2d_init_bad . '$a(na => fooa, nb => foob) = $c();',
+       Doc => $doc,
+       BadDoc =>
+       'index2d barfs if either of the index values are bad.',
 );
 
 pp_def(
@@ -252,22 +308,40 @@ EOD
 
 # this one can convert vaffine piddles without(!) physicalising them
 # maybe it can replace 'converttypei' in the future?
+#
+# XXX do not know whether the HandleBad stuff will work here
+#
 pp_def('flowconvert',
-	DefaultFlow => 1,
-	Reversible => 1,	
-	Pars => 'PARENT(); [oca]CHILD()',
-	OtherPars => 'int totype;',
-	Reversible => 1,
-	# Forced types
-	FTypes => {CHILD => '$COMP(totype)'},
-	Code => '$CHILD() = $PARENT();',
-	BackCode => '$PARENT() = $CHILD();',
-	Doc => 'internal',
+       HandleBad => 1,
+       DefaultFlow => 1,
+       Reversible => 1,	
+       Pars => 'PARENT(); [oca]CHILD()',
+       OtherPars => 'int totype;',
+       Reversible => 1,
+       # Forced types
+       FTypes => {CHILD => '$COMP(totype)'},
+       Code => 
+       '$CHILD() = $PARENT();',
+       BadCode => 
+       'if ( $ISBAD(PARENT()) ) { 
+           $SETBAD(CHILD());
+        } else {
+           $CHILD() = $PARENT();
+        }',
+       BackCode => '$PARENT() = $CHILD();',
+       BadBackCode => 
+       'if ( $ISBAD(CHILD()) ) { 
+           $SETBAD(PARENT());
+        } else {
+           $PARENT() = $CHILD();
+        }',
+       Doc => 'internal',
 );
 
 
 pp_def(
 	'converttypei',
+        HandleBad => 1,
 	DefaultFlow => 1,
 	GlobalNew => 'converttypei_new',
 	OtherPars => 'int totype;',
@@ -370,6 +444,9 @@ If, for example, C<$a> has dimensions C<(5,3,4)> then after
 the variable C<$b> will have dimensions C<(15,4)>
 and the element C<$b-E<gt>at(7,3)> refers to the element 
 C<$a-E<gt>at(1,2,3)>.
+
+Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
+is provided as an alias for this functionality.
 
 =cut
 EOD
@@ -569,7 +646,6 @@ place 1, so:
 
 The other dimensions are moved accordingly.
 Negative dimension indices count from the end.
-=cut
 EOD
 );
 
@@ -590,7 +666,6 @@ transformations i.e. changing the size of some piddle at run-time.
 
 However, the mechanism is not yet finalized and this is just a demonstration.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -956,7 +1031,7 @@ pp_def( 'affine',
 		}
 		$SETDIMS();
 		',
-	Doc => 'internal',
+	Doc => undef,
 );
 
 pp_def(
@@ -1033,7 +1108,6 @@ to C<$a-E<gt>at(2,1,2,0,1,2)>.
 
 NOTE: diagonal doesn't handle threadids correctly. XXX FIX
 
-=cut
 EOD
 );
 
@@ -1062,7 +1136,6 @@ is a (5,2) matrix
 This order of returned indices is kept because the function is
 called "lags" i.e. the nth lag is n steps behind the original.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1111,7 +1184,6 @@ the expression
 
 is always true (C<x> has to be less than 3).
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1119,9 +1191,13 @@ EOD
 	OtherPars => 'int nthdim; int nsp;',
 	AffinePriv => 1,
 	RedoDims => '
-		int i = $PRIV(nthdim);
+		int i = $COMP(nthdim);
 		int nsp = $COMP(nsp);
 		if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
+		if(i <0 || i >= $PARENT(ndims)) {
+			die("Splitdim: nthdim (%d) must not be negative or greater or equal to number of dims (%d)\n",
+				i, $PARENT(ndims));
+		}
 		if(nsp > $PARENT(dims[i])) {
 			die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
 				nsp, $PARENT(dims[i]));
@@ -1196,7 +1272,6 @@ Put some dimensions to a threadid.
 
  $b = $a->threadI(0,1,5); # thread over dims 1,5 in id 1
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1307,7 +1382,6 @@ A vaffine identity transformation (includes thread_id copying).
 
 Mainly for internal use.
 
-=cut
 EOD
 );
 
@@ -1321,7 +1395,6 @@ All threaded dimensions are made real again.
 
 See [TBD Doc] for details and examples.
 
-=cut
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1350,8 +1423,8 @@ EOD
 );
 
 
-pp_add_exported('', 'dice');
-pp_addpm({At => Bot},<< 'EOD');
+pp_add_exported('', 'dice dice_axis');
+pp_addpm(<<'EOD');
 
 =head2 dice
 
@@ -1381,6 +1454,10 @@ The arguments to dice are arrays (or 1D PDLs) for each dimension
 in the PDL. These arrays are used as indexes to which rows/columns/cubes,etc
 to dice-out (or extract) from the C<$data> PDL. 
 
+Use C<X> to select all indices along a given dimension (compare also
+L<mslice|PDL::Core/mslice>). As usual (in slicing methods) trailing
+dimensions can be omitted implying C<X>'es for those.
+
 =for example 
 
  perldl> $a = sequence(10,4)
@@ -1396,9 +1473,21 @@ to dice-out (or extract) from the C<$data> PDL.
   [ 1  2]
   [31 32]
  ]
+ perldl> p $a->dice(X,[0,3])
+ [
+  [ 0  1  2  3  4  5  6  7  8  9]
+  [30 31 32 33 34 35 36 37 38 39]
+ ]
+ perldl> p $a->dice([0,2,5])
+ [
+  [ 0  2  5]
+  [10 12 15]
+  [20 22 25]
+  [30 32 35]
+ ]
 
 As this is an index function, any modifications to the
-slice change the parent.
+slice change the parent (use the C<.=> operator).
 
 =cut
 
@@ -1407,11 +1496,12 @@ sub PDL::dice {
 	my $self = shift;
 	my @dim_indexes = @_;  # array of dimension indexes
 	
-	#Check that the number of dim indexes = number of dimensions in the PDL
+	# Check that the number of dim indexes <=
+	#    number of dimensions in the PDL
 	my $no_indexes = scalar(@dim_indexes);
 	my $noDims = $self->getndims;
 	barf("PDL::dice: Number of index arrays ($no_indexes) not equal to the dimensions of the PDL ($noDims")
-			 if $no_indexes != $noDims;
+			 if $no_indexes > $noDims;
 	my $index;
 	my $pdlIndex;
 	my $outputPDL=$self;
@@ -1420,7 +1510,8 @@ sub PDL::dice {
 	# Go thru each index array and dice the input PDL:
 	foreach $index(@dim_indexes){
 
-		$outputPDL = $outputPDL->dice_axis($indexNo,$index);
+		$outputPDL = $outputPDL->dice_axis($indexNo,$index)
+			unless !ref $index && $index eq 'X';
 
 		$indexNo++;
 	}
@@ -1493,20 +1584,7 @@ sub PDL::dice_axis {
 }  
 *dice_axis = \&PDL::dice_axis;
 
-=head1 AUTHOR
-
-Copyright (C) 1997 Tuomas J. Lukka.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
 EOD
-pp_add_exported('', 'dice_axis');
 
 pp_done();
 __DATA__

@@ -7,10 +7,9 @@ $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
-print "1..26\n";
+$ntests = 27;
+print "1..$ntests\n";
 BEGIN{
-	$ntests = 26;
-
 	$|=1;
 	use PDL::Config;
 	$compiler_available = $PDL::Config{WITH_SLATEC};
@@ -463,13 +462,32 @@ foreach (@req) {
 }
 ok($testno++,$ok);
 @a = readflex('tmprawdata', $hdr);
-unlink 'tmprawdata';
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
     $ok &&= approx($_,shift @a);
 }
 ok($testno++,$ok);
+unlink 'tmprawdata';
+
+$#a = -1;
+foreach (@req) {
+	push @a,$_->dummy(0,10);
+}
+$hdr = writeflex('tmprawdata',@a);
+$hdr = [ {Type => 'byte',   NDims => 1, Dims => 10},
+	 {Type => 'short',  NDims => 1, Dims => 10},
+	 {Type => 'long',   NDims => 1, Dims => 10},
+	 {Type => 'float',  NDims => 1, Dims => 10},
+	 {Type => 'double', NDims => 1, Dims => 10} ];
+@a = readflex('tmprawdata', $hdr);
+$ok = 1;
+foreach (@req) {
+    # print "$_ vs ",@a[0],"\n";
+    $ok &&= approx($_,slice(shift @a,"(0)"));
+}
+ok($testno++,$ok);
+unlink 'tmprawdata';
 
 # Writing multidimensional data
 map {$_ = $_->dummy(0,10)} @req;

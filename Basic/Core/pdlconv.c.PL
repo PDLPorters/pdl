@@ -1,97 +1,116 @@
-#!/usr/local/bin/perl
+#
+# Create pdlconv.c 
+# - for many different datatypes
 
-# Perl utility to generate pdlconv.c automatically
-# for many different datatypes
-
+use strict;
+ 
+use Config;
+use File::Basename qw(&basename &dirname);
+ 
 require 'Dev.pm'; PDL::Core::Dev->import;
+use vars qw( %PDL_DATATYPES );
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//                                                              
+    if ($Config{'osname'} eq 'VMS' or
+	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+ 
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
+chmod 0644, $file;
 
 # $date = `date`; chop $date;
 
 ##### HEADER ######
-
-print <<EOD;
-
-
+ 
+print OUT <<"!WITH!SUBS!";
+ 
 /***************************************************************
 
-   pdlconv.c
+    pdlconv.c
+    automatically created by pdlconv.c.PL
 
 ****************************************************************/
+
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
 
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-EOD
+!NO!SUBS!
 
-for([readdata_vaffine, "*ap = *pp"],
-    [writebackdata_vaffine, "*pp = *ap"]) {
+# these 2 routines shouldn't need to be changed to handle
+# bad values, since all they do is copy data from
+# one piddle to another of the same type
+# (assuming no per-piddle bad values)
+#
 
-print <<EOD;
+for(['readdata_vaffine', "*ap = *pp"],
+    ['writebackdata_vaffine', "*pp = *ap"]) {
+
+print OUT <<"!WITH!SUBS!";
 
 void pdl_$_->[0](pdl *a) {
-	PDL_Long *inds ;
 	int i,j;
 	int intype = a->datatype;
 	if(!PDL_VAFFOK(a)) {
-		die("Pdl_make_phys_from_vaffine without vaffine");
-	}
-	inds = malloc(sizeof(PDL_Long) * a->ndims);
-	for(i=0; i<a->ndims; i++) {
-		inds[i] = 0;
+		die("pdl_$_ without vaffine");
 	}
 	PDL_ENSURE_ALLOCATED(a);
 	if(0) {
 
-EOD
+!WITH!SUBS!
 
 ##### Generate code for each data type #####
 
-for $in ( keys %PDL_DATATYPES ) {
+for my $in ( keys %PDL_DATATYPES ) {
 
-    $intype = $PDL_DATATYPES{$in};
-    print <<EOD;
+    my $intype = $PDL_DATATYPES{$in};
+    print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in)  {
-       { $intype *ap = ($intype *) a->data;
-       	 $intype *pp = ($intype *) a->vafftrans->from->data;
-	 pp += a->vafftrans->offs;
-       	 for(i=0; i<a->nvals; i++) {
-	 	$_->[1];
-		for(j=0; j<a->ndims; j++) {
-			pp += a->vafftrans->incs[j];
-			if((j < a->ndims - 1 &&
-			   (i+1) % a->dimincs[j+1]) ||
-			   j == a->ndims - 1)
-			      break;
-			pp -= a->vafftrans->incs[j] *
-				a->dims[j];
-		}
-		ap ++;
-	 }
-       }
+	$intype *ap = ($intype *) a->data;
+	$intype *pp = ($intype *) a->vafftrans->from->data;
+	pp += a->vafftrans->offs;
+	for(i=0; i<a->nvals; i++) {
+	    $_->[1];
+	    for(j=0; j<a->ndims; j++) {
+		pp += a->vafftrans->incs[j];
+		if((j < a->ndims - 1 &&
+		    (i+1) % a->dimincs[j+1]) ||
+		   j == a->ndims - 1)
+		    break;
+		pp -= a->vafftrans->incs[j] *
+		    a->dims[j];
+	    }
+	    ap ++;
+	}
 
-EOD
+!WITH!SUBS!
 
 } #### End of perl loop ####
 
-print <<'EOD';
+print OUT <<'!NO!SUBS!';
 
 	}
 
-	free(inds);
+/***	free(inds); ***/
 }
 
-EOD
+!NO!SUBS!
 
 } # End of outer perl loop
 
-print <<'EOD';
-
-
+print OUT <<'!NO!SUBS!';
 
 /* Various conversion utilities for pdl data types */
-
 
 /* Swap pdls */
 
@@ -102,6 +121,11 @@ void pdl_swap(pdl** a, pdl** b) {
 
 /* Change the type of all the data in a pdl struct, either changing the
    original perl structure or making a temporary copy  */
+
+/* 
+ * it seems this does not have to be aware of bad values
+ * (at least in the current scheme)
+ */
 
 void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     pdl* a=*aa;  /* Point to cache */
@@ -115,12 +139,10 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     dXSARGS;
 #endif
 
-
     PDLDEBUG_f(printf("pdl_converttype %d, %d, %d, %d\n", a, a->datatype,
     	targtype, changePerl);)
 
     intype = a->datatype;
-
     if (intype == targtype)
        return;
 
@@ -144,13 +166,13 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
     }else{
 
+       die("Sorry, temporary type casting is not allowed now");
+
        b = a->data;          /* Ptr to old data */
        a = pdl_tmp();        /* Brand new scratch pdl */
 /*       pdl_clone(*aa,  a);  */ /* Copy old pdl entries */
        a->data     = pdl_malloc(nbytes); /* Space for changed data */
        *aa = a;              /* Change passed value to new address */
-
-       die("Sorry, temporary type casting is not allowed now");
     }
 
     /* Do the conversion */
@@ -158,16 +180,19 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     if (0) {
         /* Nothing */
 
-EOD
+!NO!SUBS!
 
 ##### Generate code for each pair of data types #####
 
-for $in ( keys %PDL_DATATYPES ) { for $targ ( keys %PDL_DATATYPES ) {
+for my $in ( keys %PDL_DATATYPES ) { 
+    for my $targ ( keys %PDL_DATATYPES ) {
 
     next if $in eq $targ; # Skip duplicates
 
-    $intype = $PDL_DATATYPES{$in}; $targtype = $PDL_DATATYPES{$targ};
-    print <<EOD;
+    my $intype   = $PDL_DATATYPES{$in}; 
+    my $targtype = $PDL_DATATYPES{$targ};
+
+    print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in && targtype == $targ)  {
        { $intype *bb = ($intype *) b;
@@ -176,15 +201,15 @@ for $in ( keys %PDL_DATATYPES ) { for $targ ( keys %PDL_DATATYPES ) {
          aa += i-1; bb += i-1;
          while (i--)
                 *aa-- = ($targtype) *bb--;
-       }
+       }                                                                        
 
-EOD
+!WITH!SUBS!
 
 }} #### End of perl loop ####
 
 #### Trailer ####
 
-print <<'EOD';
+print OUT <<'!NO!SUBS!';
 
     } else {
       croak("Don't know how to convert datatype %d to %d", intype, targtype);
@@ -296,5 +321,5 @@ void ** pdl_twod( pdl* x ) {
    return (void**) p;
 }
 
+!NO!SUBS!
 
-EOD

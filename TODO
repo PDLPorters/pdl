@@ -8,6 +8,9 @@ CURRENT PRIORITIES:
 - sort out interface to different interpolation codes (PDL::Func
   and the old PDL::Interpolate/PDL::Interpolate::Slatec modules which are
   included in the distribution but are not installed)
+- make more routines 'bad value' aware
+- tests for new features of at, set, getdim
+- tests for PDL::Matrix
 
 OLDER STUFF (still valid?):
 
@@ -54,11 +57,6 @@ TidBits
 ----
 * clean Dev.pm (perl is clever enough to know if it's in the build tree
   or outside)
-* more complete PDL::Type class, so that you can say
-   byte->val   --> $PDL_B
-   byte->enum  --> PDL_B
-   byte->ctype --> PDL_Byte , etc; would be useful for PP and PDL
-
 
 
 Tidbits

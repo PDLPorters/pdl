@@ -1,23 +1,70 @@
-package PDL::IO::NDF;
+# -*-perl-*-
+#
+# The contents depend on whether we have bad-value support in PDL.
+# (there's only a small amount of code that uses bad values)
+#
+# - this is called by Makefile.PL to ensure the file exists 
+#   when the makefile is written
+#
  
+use strict;
+
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# check for bad value support
+use vars qw( $bvalflag $usenan );
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
+ 
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+        if ($Config{'osname'} eq 'VMS' or
+            $Config{'osname'} eq 'OS2');  # "case-forgiving"
+
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+}
+
+open OUT,">$file" or die "Can't create $file: $!";
+chmod 0644, $file;
+
+#########################################################
+
+print OUT <<"!WITH!SUBS!";
+ 
+# This file is automatically created by NDF.pm.PL
+# - bad value support = $bvalflag
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
+
+package PDL::IO::NDF;
+
 =head1 NAME
 
 PDL::IO::NDF - PDL Module for reading and writing Starlink
-                 N-dimensional data structures as PDLs.
+N-dimensional data structures as PDLs.
 
 =head1 SYNOPSIS
 
-  use PDL::IO::NDF;
+ use PDL::IO::NDF;
 
-  $a = PDL->rndf($file);
+ $a = PDL->rndf($file);
 
-  $a = rndf('test_image');
-  $a = rndf('test_image', 1);
+ $a = rndf('test_image');
+ $a = rndf('test_image', 1);
 
-  $a->wndf($file);
-  wndf($a, 'out_image');
+ $a->wndf($file);
+ wndf($a, 'out_image');
 
-  propndfx($a, 'template', 'out_image');
+ propndfx($a, 'template', 'out_image');
 
 =head1 DESCRIPTION
 
@@ -27,7 +74,6 @@ files as N-dimensional PDLs.
 =head1 FUNCTIONS
 
 =cut
-
 
 @EXPORT_OK = qw/rndf wndf/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -45,7 +91,7 @@ use vars qw/%pdltypes %startypes $ndf_loaded $VERSION $EXTNAME/;
 $VERSION = '1.02';
 
 # Set PDL -> Starlink data types
-%pdltypes = ("$PDL_B"  => "_BYTE",
+%pdltypes = ("$PDL_B"  => "_UBYTE",     # was "_BYTE"
 	     "$PDL_S"  => "_WORD",
 	     "$PDL_US" => "_UWORD",
 	     "$PDL_L"  => "_INTEGER",
@@ -63,11 +109,63 @@ $VERSION = '1.02';
 	      "_DOUBLE"  =>$PDL_D
 	     );
 
-
 # This is the name I use in the PDL header hash that contains the
 # NDF extensions so that they can be recreated
 
 $EXTNAME = 'NDF_EXT';
+
+# load NDF library
+sub _init_NDF {
+    return if $ndf_loaded++; # a bit pointless increasing each time?
+    eval 'use NDF';
+    croak 'Cannot use NDF library' if $@ ne "";
+}
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+
+use PDL::Bad;
+
+# internal functions for checking bad values
+
+my $starbad = 0;  # flag
+
+use vars qw( @starbad );
+
+sub _init_starbad {
+    return if $starbad;
+    _init_NDF();  # just to be safe
+    @starbad = eval 
+          "( &NDF::VAL__BADUB,
+	     &NDF::VAL__BADW,
+	     &NDF::VAL__BADUW,
+	     &NDF::VAL__BADI,
+	     &NDF::VAL__BADF,
+	     &NDF::VAL__BADD );
+";
+    croak 'Unable to initialise bad values from NDF library' if $@ ne "";
+    $starbad = 1;
+}
+
+sub starlink_bad_value ($) { 
+    _init_starbad();
+    return $starbad[$_[0]]; 
+}
+
+# given a piddle, check if the Starlink bad value matches
+# the bad value used for this type
+sub compare_bad_values ($) { 
+    _init_starbad();
+    return ($starbad[$_[0]] == badvalue($_[0])); 
+}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 
 =head2 rndf()
 
@@ -77,40 +175,63 @@ Reads a piddle from a NDF format data file.
 
 =for example
 
-     $pdl = rndf('file.sdf');
-     $pdl = rndf('file.sdf',1);
+ $pdl = rndf('file.sdf');
+ $pdl = rndf('file.sdf',1);
 
 The '.sdf' suffix is optional. The optional second argument turns off
 automatic quality masking and returns a quality array as well.
+
+BUG? C<rndf('bob.sdf',1)> calls ndf_sqmf(1,...), which means that
+the quality array is turned into bad pixels - ie the I<opposite> of
+above. Or am I confused?
 
 Header information and NDF Extensions are stored in the piddle as a hash
 which can be retreived with the C<$pdl-E<gt>gethdr> command.
 Array extensions are stored in the header as follows:
 
-     $a - the base DATA_ARRAY
+ $a - the base DATA_ARRAY
 
 If C<$hdr = $a-E<gt>gethdr>;
 
 then:
 
-      %{$hdr}        contains all the FITS headers plus:
-      $$hdr{Error}   contains the Error/Variance PDL
-      $$hdr{Quality} The quality byte array (if reqeusted)
-      @{$$hdr{Axis}} Is an array of piddles containing the information
-                     for axis 0, 1, etc.
-      $$hdr{NDF_EXT} Contains all the NDF extensions
-      $$hdr{Hist}    Contains the history information
-      $$hdr{NDF_EXT}{_TYPES} - Data types for non-PDL NDF extensions so that
-                           wndf can reconstruct a NDF.
+ %{$hdr}        contains all the FITS headers plus:
+ $$hdr{Error}   contains the Error/Variance PDL
+ $$hdr{Quality} The quality byte array (if reqeusted)
+ @{$$hdr{Axis}} Is an array of piddles containing the information
+                for axis 0, 1, etc.
+ $$hdr{NDF_EXT} Contains all the NDF extensions
+ $$hdr{Hist}    Contains the history information
+ $$hdr{NDF_EXT}{_TYPES}
+                Data types for non-PDL NDF extensions so that
+                wndf can reconstruct a NDF.
 
 All extension information is stored in the header hash array.
 Extension structures are preserved in hashes, so that the PROJ_PARS
 component of the IRAS.ASTROMETRY extension is stored in
-$$hdr{NDF_EXT}{IRAS}{ASTROMETRY}{'PROJ_PARS'}. All array structures are
+C<$$hdr{NDF_EXT}{IRAS}{ASTROMETRY}{'PROJ_PARS'}>. All array structures are
 stored as arrays in the Hdr: numeric arrays are stored as PDLs,
 logical and character arrays are stored as plain Perl arrays. FITS
 arrays are a special case and are expanded as scalars into the header.
 
+PDL does not have a signed byte datatype, so any '_BYTE' data
+is read into a C<byte> (unsigned) piddle and a warning is printed
+to C<STDOUT>.
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+=for bad
+
+If the starlink bad flag is set, then the bad flag on the output
+piddle is also set.  Starlink bad values are converted to the
+current bad value used by the piddle type (if they are different).
+
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 =cut
 
 # This is one form of the new command
@@ -125,23 +246,27 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   barf 'Usage: $a = rndf($file,[$nomask]); $a = PDL->rndf(...) '
     if ($#_!=0 && $#_!=1);
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   # Setup the Header Hash
   my $header = {};
 
   # Read in the filename
   # And setup the new PDL
-  my $file = shift; my $pdl = $class->new;
+  my $file = shift; 
+  my $pdl = $class->new;
   my $nomask = shift if $#_ > -1;
 
   my ($infile, $status, $indf, $entry, @info, $value);
 
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
-
   # Strip trailing .sdf if one is present
-  # File is the first thing before a .
+  # remove the trailing extension names
+  # (anything after a `.' UNLESS it's part of a directory
+  # name, hence the check for ^/)
   $file =~ s/\.sdf$//;
-  $infile = (split(/\./,$file))[0];
+  $infile = $file;
+  $infile =~ s!\.[^/]*$!!;
 
   # If file is not there
   croak "Cannot find $infile.sdf" unless -e "$infile.sdf";
@@ -157,12 +282,14 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   ndf_find(&NDF::DAT__ROOT, $file, $indf, $status);
 
   # unset automatic quality masking if $nomask is defined
+  # I think the logic here is wrong (ie 0 and 1 should be swapped)
   $nomask = 0 unless (defined $nomask);
   $nomask = 1 if $nomask != 0;
   ndf_sqmf($nomask, $indf, $status);
 
   # Read the data array (need to pass the header as well)
-  rdata($indf, $pdl, $nomask, $header, $class, $status);
+  my $badflag;
+  ( $status, $badflag ) = rdata($indf, $pdl, $nomask, $header, $class, $status);
 
   # Read the axes
   raxes($indf, $pdl, $header, $class, $status);
@@ -198,9 +325,21 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   # Put the header into the main pdl
   $pdl->sethdr($header);
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+  # set the bad flag if it was set in the input file
+  print "Bad flag status is: $badflag\n" if $PDL::verbose;
+  $pdl->badflag(1) if $badflag;
+
+!NO!SUBS!
+
+} # if; $bvalflag
+
+  print OUT <<'!NO!SUBS!';
   return $pdl;
 }
-
 
 =head2 wndf()
 
@@ -226,7 +365,7 @@ Header information is written to corresponding NDF extensions.
 NDF extensions can also be created in the {NDF} hash by using a key
 containing '.', ie {NDF}{'IRAS.DATA'} would write the information to
 an IRAS.DATA extension in the NDF. rndf stores this as
-$$hdr{NDF}{IRAS}{DATA} and the two systems are interchangeable.
+C<$$hdr{NDF}{IRAS}{DATA}> and the two systems are interchangeable.
 
 rndf stores type information in {NDF}{'_TYPES'} and below so that
 wndf can reconstruct the data type of non-PDL extensions. If no
@@ -235,6 +374,19 @@ double on a best guess basis.  Any perl arrays are written as CHAR
 array extensions (on the assumption that numeric arrays will exist as
 PDLs).
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+=for bad
+
+The bad flag is written to the file, if set. 
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 # This is one form of the new command
@@ -248,12 +400,13 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
 
   barf 'Usage: wndf($pdl,$file)' if $#_!=1;
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   my ($indf, $place, $status, $outndf);
   my (@lbnd, @ubnd);
 
   my ($pdl, $outfile) = @_;
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
 
   # Check that we are dealing with a PDL
   croak 'Argument is not a PDL variable' unless $pdl->isa('PDL');
@@ -309,7 +462,6 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
   return 1;
 }
 
-
 =head2 propndfx()
 
 Routine to write a PDL to an NDF by copying the extension information
@@ -329,11 +481,12 @@ sub PDL::propndfx {  # Write a PDL to a NDF format file
 
   barf 'Usage: propndfx($pdl, $infile, $outfile)' if $#_!=2;
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   my ($indf, $in_place, $status, $outplace, $outndf);
 
   my ($pdl, $infile, $outfile) = @_;
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
 
   # Set status
   $status = &NDF::SAI__OK;
@@ -384,7 +537,6 @@ sub PDL::propndfx {  # Write a PDL to a NDF format file
   return 1;
 }
 
-
 =head1 NOTES
 
 The perl NDF module must be available. This is available from the 
@@ -409,7 +561,6 @@ L<NDF> for information on the NDF module.
 =cut
 
 
-
 #######################################################################
 
 # These are the generic routines used by the rndf command
@@ -417,10 +568,18 @@ L<NDF> for information on the NDF module.
 #  RDATA
 #    Read Data, Quality and Variance
 
+# returns ( $status, $badflag ), where $badflag is:
+#
+#   1 - the piddle may contain bad data
+#   0 - the piddle contains no bad data
+#
+# This reports starlink's bad-data flag (ie it's valid
+# even in bad value support is not available in PDL)
+#
 sub rdata {
   my ($indf, $pdl, $nomask, $header, $class, $status) = @_;
 
-  return $status if $status != &NDF::SAI__OK;
+  return ( $status, undef ) if $status != &NDF::SAI__OK;
 
   my ($maxdims, $ndim, @dim, @comps, $dcomp, $tcomp, $exist);
   my ($type, $data_pntr, $el, $temppdl, $nbytes, $badbit, $dref);
@@ -443,6 +602,8 @@ sub rdata {
   #    D A T A  +  V  A  R  I  A  N  C  E  +  Q U A L I T Y          #
   ####################################################################
 
+  my $badflag = 0;
+
   @comps = ('Data','Error');
   push(@comps, 'Quality') if $nomask;
 
@@ -461,9 +622,17 @@ sub rdata {
       # Map the data array
       ndf_map($indf, $dcomp, $type, 'READ', $data_pntr, $el, $status);
 
+      # Check the bad-data status of this component
+      my $this_badflag = 0;
+      ndf_bad($indf, $dcomp, 0, $this_badflag, $status );
+
       if ($status == &NDF::SAI__OK) {
 
 	print "Reading $dcomp array...\n" if $PDL::verbose;
+
+	# combine the bad data flag with the "global" one for
+	# the file
+	$badflag |= ($this_badflag != 0);
 
 	# Create a temporary PDL to deal with separate components
 	if ($dcomp eq 'Data') {
@@ -479,6 +648,10 @@ sub rdata {
 	$temppdl->setdims([@dim]);
 	$dref = $temppdl->get_dataref;
 
+	# warning about data loss
+	if ( $type eq "_BYTE" ) {
+	    print "Warning: NDF type (signed byte) converted to PDL's unsigned byte.\n";
+	}
 
 	# How many bytes in this data type?
 	$type =~ s/^_|^_U//;
@@ -497,6 +670,24 @@ sub rdata {
 	  $temppdl->sethdr($qhdr);
 	}
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	# if badflag is true, convert any STARLINK bad values
+	# to PDL values
+	if ( $badflag and 
+	     !compare_bad_values($temppdl->get_datatype) ) {
+	    my $star_bad = starlink_bad_value($temppdl->get_datatype);
+	    print "Converting from STARLINK bad value ($star_bad)...\n" if $PDL::verbose;
+	    $temppdl->inplace->setvaltobad( $star_bad );
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 	# Flush and Clear temporary PDL
 	$temppdl->upd_data();
 	undef $temppdl;
@@ -507,7 +698,7 @@ sub rdata {
   }
   err_flush($status) if $status != &NDF::SAI__OK;
 
-  return $status;
+  return ( $status, $badflag );
 }
 
 
@@ -948,6 +1139,29 @@ sub wdata {
         # Total number of bytes
         $nbytes *= $p1d->getdim(0);
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	# if badflag is true, convert any PDL bad values to STARLINK ones 
+	# note: we have to create a copy of the data to ensure that the
+	# bad data value of the original piddle does not get changed. 
+	# per-piddle bad values would obviate the need for this.
+	if ( $temppdl->badflag() ) {
+	    print "Setting bad flag for component $dcomp ...\n" if $PDL::verbose;
+	    ndf_sbad( 1, $outndf, $dcomp, $status );
+	    if ( !compare_bad_values($temppdl->get_datatype) ) {
+		my $star_bad = starlink_bad_value($temppdl->get_datatype);
+		print "Converting from PDL to STARLINK bad value ($star_bad)...\n" if $PDL::verbose;
+		$temppdl = $temppdl->setbadtoval( $star_bad ); # do NOT do inplace
+	    }
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
         # Copy to disk
         string2mem(${$temppdl->get_dataref}, $nbytes, $pntr);
 
@@ -1401,6 +1615,7 @@ sub mkstruct {
 
 }
 
-
-
+# end of module
 1;
+
+!NO!SUBS!

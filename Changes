@@ -1,6 +1,216 @@
-(!!! = possible source of incompatibilities)
+2.2
+John Cerney (20/12/00)
+    - Minor changes to Makefile.PL and Reduce.pm for compatibility with
+      perl 5.005
+John Cerney (6/12/00)
+    - Added new curve fitting routine: Linfit. Finds
+      a linear-combination of specified functions
+      that best fits data. (Similar to Polynomial.pm)
+Marc Lehmann (5/!2/00)
+    - Don't add artificial newlines in PdlParObj.pm, you never know what the
+      surrounding code might look like. Makes PDL compile with perl-5.7 again.
+John Cerney (5/12/00)
+    - Updated log10 in ops.pd to have consistent
+      copy behavior for subclassed objects as discussed
+      in Objects.pod.
+    - Expanded the tests in t/subclass4.t to test for log10
+      and other simple functions.
+      
+CS  - added some features to dice
+Doug Burke 
+    - rcols(): do not read an extra line with LINES option (Frank Samuelson)
+    - added draw_wedge() (& DrawWedge option to imag()) to PGPLOT 
+CS  -  fix call of Perl_croak in pdlthread.c for threading perls (reported
+       by Diab Jerius)
+Doug Burke (03/11/00)
+    - removed $_ from shorttype method: fixes $_->info() bug 
+    - perldl/pdldoc now list other matches to a help query (not wonderful)
+    - fixed 0.5 pixel shift in imag()
+CS  -  fix bug in splitdim (didn't check nthdim) that can lead to coredumps
+    -  Dev.pm: malloc debugging support
+    -  Core.pm.PL: flat as clump(-1) alias
+		   bug in mslice: cast indices to int added
+Jarle Brinchmann (22/10/00)
+    - Further bug fixes to PGPLOT added (courtesy of Kaj Wiik). Also a
+      convenience function to calculate transforms (transform, courtesy
+      of Kaj Wiik).
+    - Examples/tests for the PGPLOT interface added in Example/PGPLOT
+Jarle Brinchmann (21/10/00)
+    - Considerable re-write of PGPLOT. This now uses PDL::Option to 
+      set options. There is also now a OO interface 
+      PDL::Graphics::PGPLOT::Window which PDL::Graphics::PGPLOT now uses.
+   
+    - New functionality includes:
+
+      - Interactive cursors (cursor)
+      - Text on plots       (text)
+      - Legends             (legend)
+      - Circles, Rectangles, Ellipses
+      - Multiple plot windows, oone can jump from panel to panel when
+        the window is divided in several.
+      - More control over options - see PDL::Graphics::PGPLOTOptions for
+        details.
+    This is not tested under Windows - and possibly not all functions work
+    as they used to..
+Doug Burke (18/10/00)
+    - added warp2d (+ supporting fns) to PDL::Image2D. This allows
+      images to be resampled using 2D polynomials as basis functions.
+    - (19/10/00) bug fixes & clean up of documentation for above
+    - rfits() now sets hdrcpy flag of piddle (so that the FITS header is 
+      copied to new piddles).
+Doug Burke
+    - moved PDL::Type object from PDL::Core to PDL::Types. This shouldn't
+      affect most people.
+CS
+    - split primitive.pd into primitive.pd and ufunc stuff (ufunc.pd)
+    - changed loaders to reflect this split (PDL.pm, Lite.pm, LiteF.pm)
+    - moved 'assgn' to PDL::Ops (since it's primarily used for
+      overloading '.=')
+    - added conv1d to primitive.pd -> this one was dropped
+      from the dist at some stage but it makes sense to have it
+    - Pic.pm: print conversion message only when debugging
+    - fixed a problem with TriD: APIENTRY not defined when
+            processing glu.h (since include files are ignored)
+    - added sever docs
+    - a reduce function for PDL (Reduce.pm)
+    - percentile projections patch applied to primitive.pd
+    - fix some thread_define problems
+Doug Burke
+    - improved support for bad values in r/wfits and r/wndf
+    - added setbadtonan() to PDL::Bad.
+    - moved log10() entirely over to Basic/Ops/ops.pd (so it's no longer
+      defined in PDL::Core. 
+CS
+	- moved trylink to Dev.pm (L<PDL::Core::Dev>)
+	- modified Graphics/Makefile.PL accordingly
+Doug Burke
+    - cleaned up endian support. Threw out my check_endian stuff since perl
+      already knows - there's a isbigendian fn in Dev.pm (eg see 
+      IO/Misc/misc.pd)
+    - added setvaltobad() and setnantobad() to PDL::Bad, renamed replacebad()
+      to setbadtoval() (perhaps should keep it as an alias?)
+      setnantobad doesn't work (yet) if $PDL::Bad::UseNaN == 1
+CS
+	- added Matrix.pm (suggestion by Stephan Heuel)
+	- Core.xs.PL: getdim, at and set now support the 'infinite dim'
+	  piddle behaviour discussed on pdl-porters
+	- perldl: $bflag incorrect due to low 'and' precendence
+	- PDL.pm: the version was still far behind ;-(
+	- Basic.pm: PDL->null breaks inheritance
+	- Core.pm.PL: allow <2D piddles as arguments in creating functions
+		(not yet reflected in the docs). Another step on the way
+		to improve the balancing act between scalar and 1D piddles
+		and normal perl scalars
+	- Core.xs.PL, pdlcore.h.PL: PDL.malloc -> PDL.smalloc renamed
+	- Core/Makefile.PL: endian stuff only when WITH_BADVAL (reduce
+	  likelihood of build problems); don't assume that '.' is in the
+	  PATH (good distributions like DEBIAN avoid that ;)
+	- Doc/Perldl.pm: new (undocumented) aproposover function -- do
+		your own thing with returned matches
+	- karma.pd: PDL->malloc -> PDL->smalloc
+
+Doug Burke (09/06/00-09/07/00)
+    - Core and pdl_trans structure are now the same, whatever the choice of 
+      WITH_BADVAL and BADVAL_USENAN. The version number of the core has been
+      bumped to 2 (removing the need for Christian's recent patch) since this
+      is binary incompatible with PDL 2.1.1
+    - clean up of build process - both because of above change and also to
+      stop problems when switching between WITH_BADVAL = 1 and 0.
+    - exported several routines in PDL::Bad
+Jim Edwards
+    - improved OpenGL detection during 'perl Makefile.PL'
+Doug Burke (09/05/00)
+    - minor clean-up to the build process. Now creates Basic/Core/badsupport.p
+      in top-level Makefile.PL for when PDL::Config hasn't been created - fixes
+      setting BADVAL options in ~/perldl.conf
+Doug Burke 
+    - Bad value support integrated into the main branch. Set WITH_BADVAL to 1 in
+      perldl.conf to use. See Basic/BadValues.pod for more information and try
+      the two demos (demo bad, bad2).
+      Many of the internals have been tweaked (eg many more files are created at
+      compile time in Basic/Core - including Dev.pm; m51.fits is now installed 
+      for the bad2 demo ...)
+    - Basic/Core now contains isbigendian.p - this is created at compile time.
+      IO::Misc::isbigendian uses this.
+    - IO::NDF now saves byte piddles as "_UBYTE", rather than "_BYTE", NDFs
+    - log10 is now in Ops (using C-library version), although a version is
+      left in Core.pm.PL so that log10(2.3) returns a perl scalar, not a 0D piddle
+    - removed 1-argument form of where() since been deprecated long enough
+Jim Edwards
+    - swcols added to IO::Misc - like wcols but to a string, not a file
+Jim Edwards (08/25/00)
+    - minor bugfix in TriD contour3d
+    - added Labels to TriD contour3d options
+Doug Burke (08/12/00-08/13/00; 08/17/00)
+    - minor bugfix to Graphics/Karma/Makefile.PL
+    - made qsort and qsort_ind C routines in primitive.pd available to all
+      modules via the PDL Core structure (pdlcore.h is now created by pdlcore.h.PL)
+      and updated image2d.pd to use this (+ bug fix to patch2d)
+    - added double precision versions of sum, sumover, cumusumover (same for prod)
+      and average (eg dsum, daverage). Added prodover routine
+      Changed stats to use this (+ changed PDL::Tests to avoid name clashes)
+    - revamped Types.pm.PL
+    - made Inplace option for pp_def a bit more sensible
+    - marked several functions in math.pd as inplace (needs documenting)
+    - fixed rndf() so that can use rndf('../bob')
+Jim Edwards (08/08/00)
+    - Major changes to the TriD code (requires perl 5.6.0)                      
+Doug Burke (08/02/00)
+    - 'bool' to 'boolvar' in cpoly.c to get it to compile under Linux
+    - added 'Inplace' rule to PP.pm to flag a routine as inplace (see ops.pd)
+    - minor improvement to PP output if $::PP_VERBOSE is set
+CS      - ops.pd: fix inplace problem (reported by Tim Conrow)
+Doug Burke (07/27/00)
+    - some minor changes to PP.pm & PDLCode.pm (no longer generates
+      'THISISxxx' macros in xs code unless they're required.
+CS	- PP: don't use copy method when HASP2Child
+	- Makefile.PL: no .3 manpages                                           
+CS	- Core: pdl.h dependencies
+	- pdlapi.c: comments and debugging
+	- ops.pd: docs fixes
+	- PGPLtw.pd: doc fOT_demo: choose /GW on MSwin32
+	- mkpdlfuncpod: some experimentation
+	- Karma/Makefile.PL: malloc debugging support
+	- CallExt/Makefile.PL: malloc debugging support
+	- fftw.pd: doc fixes, exports and convolution
+	- slatec: error handler now calls croak (instead of being fatal)
+        - VRML: fix problem with prototype registration
+Doug Burke (7/02/00 - 7/9/00)
+    - stopped some excess code generation & improve legibility of some code
+      in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm
+    - minor doc cleanup in Graphics/TriD/Rout/rout.pd (lack of head3 in pod)
+    - added a test to t/hdrs.t to pick up a bug I'd introduced
+    - replaced Basic/Core/mkpdlconv.p by Basic/Core/pdlconv.c.PL, removed
+      mention of pdlbasicops in Basic/Core/Makefile.PL
+Tim Jenness (6/30/00)
+    - PDL::CallExt now works on WinNT with VC++
+Doug Burke (6/29/00)
+    - added methods to PDL::Type - enum, symbol, ctype, ppsym, realctype
+      and shortctype - which provide access to information in PDL::Types 
+      eg print byte->ctype prints "PDL_Byte". 
+      Changed info in Core and rcols in IO/Misc to use these methods.
+      Currently un-documented.
+Tim Jenness (6/28/00)
+    - miscellaneous patches for Win32 support
+         Make Callext.pm and callext.t more generic
+         Lib/Image2D check for presence of rint()
+         Add ABSTRACT and AUTHOR to top level Makefile.PL
+    - conv.t now uses the Test module
+Doug Burke (6/21/00; 6/22/00)
+    - mkhtmldoc.pl should now handle links to scripts in Index.pod for 
+      perl < 5.6.0. Removed link hacking for perl >= 5.6.0.
 2.1.1
-CS  - fix Perl_croak calls when 'usethreads=y'
+CS  - fix Perl_croak problem with 'usethreading'
+Doug Burke (6/15/00)
+    - hand-rolled podselect (podsel) created if perl version earlier than
+      5.6.0
+Doug Burke (6/9/00)
+    - added Christian's changes to online documentation to support scripts
+      (eg see Index.pod or Index.html)
+Jim Edwards (5/19/2000) TriD (cvs brance trid_experimental) (merged 6/7/00)
+        - several changes in TriD including a new Tk widget, 
+          see the file PDL/Graphics/TriD/README  
+        - added TkTriD demo to perldl.PL
 2.1
 Marc Lehmann (6/7/00)
     - enable sincos optimization only for glibc >= 2.1

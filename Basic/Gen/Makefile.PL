@@ -3,6 +3,7 @@ BEGIN{if ($^O =~ /MSWin/) {
   require File::DosGlob;
   File::DosGlob->import('glob');}
 }
+
 use ExtUtils::MakeMaker;
 WriteMakefile(NAME => "PDL::PP",
 	PM => {

@@ -249,7 +249,7 @@ sub PDL::hist {
     $min = $pdl->min() unless defined $min;
     $max = $pdl->max() unless defined $max;
     my $ntype = $pdl->get_datatype;
-    if (!defined $step) {
+    unless (defined $step) {
 	my $defbins = 100 < $pdl->nelem ? 100 : $pdl->nelem;
 	$step = ($max-$min)/$defbins;
 	$step = int($step) > 0 ? int($step) : 1 if $ntype < $PDL_F;
@@ -370,8 +370,7 @@ sub PDL::rvals { # Return radial distance from given point and offset
 	 $tmp -= $offset; $tmp *= $tmp;
          $r += $tmp;
     }
-    my $nothing = sqrt $r->inplace;
-    return $r;
+    return $r->inplace->sqrt;
 }
 
 =head2 axisvals
@@ -506,7 +505,7 @@ transpose rows and columns.
 
  $b = transpose($a); $b = ~$a;
 
-Also bound to the C<~> unary operator.
+Also bound to the C<~> unary operator in PDL::Matrix.
 
 =for example
 
@@ -531,9 +530,7 @@ sub PDL::transpose {
 # 1-Dim: add dummy
 		return pdl $this->dummy(0);
 	}
-	my $tmp = PDL->null;
-	$tmp .= $this->xchg(0,1);
-	return $tmp;
+	return $this->xchg(0,1)->sever;
 }
 
 1;

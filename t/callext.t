@@ -2,32 +2,34 @@
 
 # Example of how to use callext() - also see callext.c
 
+use strict;
+use Test;
+BEGIN { plan tests => 1 }
 use PDL;
 use PDL::CallExt;
 
 use PDL::Core ':Internal'; # For topdl()
+use Config;
+use File::Spec;
 
-print "1..1\n";
 
-kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
+kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub approx {
         my($a,$b) = @_;
-        $c = abs($a-$b);
-        $d = max($c);
+        my $c = abs($a-$b);
+        my $d = max($c);
         $d < 0.01;
 }
 
+# Create the filenames
+my $cfile = File::Spec->catfile('t', 'callext.c');
+my $inc   = File::Spec->catdir('Basic', 'Core');
+my $out   = File::Spec->catfile('t', 'callext.'.$Config{dlext});
+
 # Compile the code
 
-callext_cc("t/callext.c", "-IBasic/Core", '', "t/callext.so");
+callext_cc($cfile, "-I$inc", '', $out);
 
 my $y = sequence(5,4)+2;  # Create PDL
 my $x = $y*20+100;        # Another
@@ -37,7 +39,7 @@ my $correct = log(float($x))/log(float($y));
 
 print "Try = $try\n";
 print "Correct = $correct\n";
-ok( 1, approx($try, $correct) );
+ok( approx($try, $correct) );
 
 # Return log $x to base $y using callext() routine -
 # perl wrapper makes this nice and easy to use.
@@ -62,7 +64,8 @@ sub loglog {
    print "X = $x\n";
    print "Y = $y\n";
 
-   callext("t/callext.so", "loglog_ext", $ret, $y);
+   my $ldfile = 
+   callext($out, "loglog_ext", $ret, $y);
 
    return $ret;
 }

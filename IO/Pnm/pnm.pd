@@ -355,7 +355,7 @@ pp_def('pnminraw',
 		 ms = $SIZE(m); ns = $SIZE(n);
 		 llen = ($COMP(isbin) ? (ms+7) / 8 : ms);
 		 /* allocate a buffer of length llen */
-		 if ((buf = (PDL_Byte*) PDL->malloc(llen*sizeof(PDL_Byte)))
+		 if ((buf = (PDL_Byte*) malloc(llen*sizeof(PDL_Byte)))
 		      == NULL)
 			barf("Error getting mem for line buffer");
 		 threadloop %{  /* with top to bottom inversion */

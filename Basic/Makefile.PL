@@ -13,7 +13,8 @@ if ($^O =~ /win32/i) {
 # # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # # the contents of the Makefile that is written.
 
-my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm );
+my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm
+		    Matrix.pm Reduce.pm);
 
 my %pm = map { $h = '$(INST_LIBDIR)/'; 
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
@@ -30,8 +31,8 @@ WriteMakefile(
 	      'VERSION_FROM' => 'Core/Version.pm',
 	      'PM'       => \%pm,
 	      'MAN3PODS' => \%man3pods,
-     'DIR'      => ['Pod','Gen','Core','Ops','Primitive','Slices',
-		    'Test','Math','Complex'],
+     'DIR'      => ['Pod','Gen','Core','Bad','Ops','Ufunc','Primitive',
+		    'Slices','Test','Math','Complex'],
 );
 
 

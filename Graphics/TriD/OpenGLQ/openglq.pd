@@ -29,13 +29,13 @@ pp_addhdr('
 #include <GL/glu.h>
 #include <GL/glx.h>
 
-#include "../OpenGL/OpenGL.m"
-D_OPENGL;
+/* #include "../OpenGL/OpenGL.m" */
+/* D_OPENGL; */
 ');
 
-pp_add_boot('
-	I_OPENGL;
-');
+#pp_add_boot('
+#	I_OPENGL;
+#');
 
 
 @internal = (Doc => 'internal');
@@ -76,7 +76,7 @@ sub ADCOLOR{ "
 			{
 			GLfloat ad[4];
 			".(join '',map {"ad[$_] = \$colors$_[0](tri => $_);"} 0..2).
-			"ad[4] = 1.0;
+			"ad[3] = 1.0;
 			glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,
 				ad);
 			}
@@ -114,6 +114,19 @@ pp_def('gl_points',
 
 pp_def(
 	'gl_lines',
+	GenericTypes => [F,D],
+	Pars => 'coords(tri,x);colors(tri,x);',
+	Code => '
+		glBegin(GL_LINES);
+		loop(x) %{ '.COLOR().VERTEX().'
+		%}
+		glEnd();
+	',
+	@internal
+);
+
+pp_def(
+	'gl_line_strip',
 	GenericTypes => [F,D],
 	Pars => 'coords(tri,x);colors(tri,x);',
 	Code => '
@@ -221,7 +234,7 @@ pp_def('gl_arrows',
 		float hl = $COMP(headlen);
 		float w = $COMP(width);
 		float tmp2[3]; tmp2[0] = 0.000001; tmp2[1] = -0.0001; tmp2[2] = 1;
-		glBegin(GL_LINES);
+ 		glBegin(GL_LINES);
 		threadloop %{
 			int a = $indsa();
 			int b = $indsb();

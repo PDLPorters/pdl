@@ -10,7 +10,7 @@ sub output;
 sub run {
 
 $ENV{PGPLOT_XW_WIDTH}=0.3;
-$ENV{PGPLOT_DEV}="/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
 
 comment q|
     Welcome to this tour of the PDL's PGPLOT interface.
@@ -41,7 +41,7 @@ act q|
     # The size of the window can be specified
     $ENV{PGPLOT_XW_WIDTH}=0.3;
     # You can set your device explicitly
-    dev('/XSERVE');
+    dev($^O =~ /MSWin32/ ? '/GW' : '/XSERVE');
 |;
 
 act q|

@@ -1,4 +1,13 @@
-pp_addpm({At=>Top},<<'EOD');
+
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
+# and endian-ness of machine
+require PDL::Core::Dev;
+my $isbigendian = PDL::Core::Dev::isbigendian();
+
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -16,16 +25,31 @@ A mixture of basic I/O functionality
 
 EOD
 
-pp_add_exported('',"rfits wfits rcols wcols rgrep rdsa");
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) Karl Glazebrook 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+EOD
+
+pp_add_exported('',"rfits wfits rcols wcols swcols rgrep rdsa");
 
 ############################## PM CODE ########################################
 
-
-pp_addpm(<<'EOD');
+pp_addpm(<<'!NO!SUBS!');
 
 use PDL::Primitive;
 use PDL::Types;
 use PDL::Options;
+use PDL::Bad;
 use Carp;
 
 =head2 rfits()
@@ -45,20 +69,49 @@ Suffix magic:
   # Automatically uncompress via uncompress pipe 
   $pdl = rfits('file.fits.Z');  
 
+  $pdl = rfits('file.fits[2]'); # Read HDU extension #2
+  $pdl = rfits('file.fits.gz[3]'); # Read HDU extension #3
+
+The default is to read the primary HDU. One can read other
+HDU's by using the [n] syntax, the second one is [1]. This works
+as long as they are IMAGE extensions - this module does not
+do FITS tables!
+
 FITS Headers stored in piddle and can be retrived with $a->gethdr.
+The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
+header is copied to new piddles.
 
 This header is a reference to a hash where the hash keys are the 
 keywords in the FITS header. It is important to note that for strings, 
 the surrounding quotes are kept to ensure that strings that look like
 numbers are kept as strings. This is also of importance if you create 
 your own header information and you want the value to be printed out 
-as a string.
+as a string. Each record (comprising keyword, value, and
+any comment string) must fit within 80 characters; any value that
+is too long is truncated (silently).
 
-Comments in headers are stored as $$h{COMMENT}{<Keyword>} where $h is
-the header retrieved with $a->gethdr.
-History entries in the header are stored as $$h{HISTORY}, which is an
+Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where C<$h> is
+the header retrieved with C<$a-E<gt>gethdr>.
+History entries in the header are stored as C<$$h{HISTORY}>, which is an
 anonymous array for each HISTORY entry in the header.
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+=for bad
+
+If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>, 
+the piddle will have its bad flag set, and those elements which equal the
+C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
+converted to bad (if necessary).
+
+!NO!SUBS!
+} # if: $bvalflag
+
+#'
+
+pp_addpm(<<'!NO!SUBS!');
 =cut
 
 sub rfits {PDL->rfits(@_)}
@@ -68,6 +121,13 @@ sub PDL::rfits {
    barf 'Usage: $a = rfits($file); $a = PDL->rfits("...")' if $#_!=0;
    my $file = shift; my $pdl  = $class->new;
    my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero);
+   my $extnum;
+   
+   if ($file =~ s/\[(\d+)\]$//) {
+      $extnum = $1;
+   }else{
+      $extnum = 0;
+   }
 
    $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
    $file = "uncompress -c $file |" if $file =~ /\.Z$/;
@@ -81,19 +141,42 @@ sub PDL::rfits {
    $$foo{"BSCALE"}=1;
    $$foo{"BZERO"}=0;
    my @history=();
+   my $currentext=0;
    while( !eof(FITS)) {
       read(FITS,$line,80);
       barf "file $file is not in FITS-format:\n$line\n"
                   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
       $nbytes += 80;
 
+      # Now skip to required extension
+      
+      if ($currentext != $extnum) {
+          while(1) {
+      	    # Move to next record
+      	    read(FITS,$line,2880-80);
+	    barf "Unexpected end of FITS file\n" if eof(FITS);
+	    # Read start of next record
+      	    read(FITS,$line,80);
+	    barf "Unexpected end of FITS file\n" if eof(FITS);
+	    # Check if we have found the new extension
+	    # if not move on
+	    $currentext++ if  $line =~ /^XTENSION/;
+	    if ($currentext == $extnum) {
+	       print "Found extension $currentext \n" if $PDL::verbose;
+	       $line =~ /^XTENSION= \'(\w+)\s*\'/;
+	       barf "Can not handle $1 extensions\n" unless $1 eq "IMAGE";
+	       last;
+	    }   
+	  }
+      }	 
+
       # skip if the first eight characters are ' '
       # - as seen in headers from the DSS at STScI
-      next if substr($line,0,8) eq "        ";
+      next if substr($line,0,8) eq " " x 8;
 
       $name = (split(' ',substr($line,0,8)))[0]; 
       $rest = substr($line,8);
-      
+
       if ($name =~ m/^HISTORY/) {
          push @history, $rest;
       } else {
@@ -144,10 +227,42 @@ sub PDL::rfits {
 
    if (!isbigendian() ) { # Need to byte swap on little endian machines
       bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-      bswap4($pdl) if $pdl->get_datatype == $PDL_L || $pdl->get_datatype ==
-      $PDL_F;
+      bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
+	  $pdl->get_datatype == $PDL_F;
       bswap8($pdl) if $pdl->get_datatype == $PDL_D;
    }
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+   # do we have bad values? - needs to be done before BSCALE/BZERO
+   # (at least for integers)
+   #
+   if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
+       # integer, so bad value == BLANK keyword
+       my $blank = $foo->{BLANK};
+       # do we have to do any conversion?
+       if ( $blank == $pdl->badvalue() ) {
+	   $pdl->badflag(1);
+       } else {
+	   # we change all BLANK values to the current bad value
+	   # (would not be needed with a per-piddle bad value)
+	   $pdl->inplace->setvaltobad( $blank );
+       }
+   } elsif ( $foo->{BITPIX} < 0 ) {
+       # bad values are stored as NaN's in FITS
+       # let setnanbad decide if we need to change anything
+       $pdl->inplace->setnantobad();
+   }
+   print "FITS file may contain bad values.\n" 
+       if $pdl->badflag() and $PDL::verbose;
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
 
    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
@@ -156,8 +271,29 @@ sub PDL::rfits {
    
    # Be clever and work out the final datatype before eating
    # memory
-   
-   my $tmp = $pdl->clump(-1)->slice("0:0");
+
+!NO!SUBS!
+
+   if ( ! $bvalflag ) {
+       pp_addpm( '   my $tmp = $pdl->clump(-1)->slice("0:0");' . "\n" );
+   } else {
+       pp_addpm(<<'!NO!SUBS!');
+   # have to be careful about the first element begin bad
+   my $tmp;
+   if ( $pdl->badflag() == 0 ) {
+      $tmp = $pdl->clump(-1)->slice("0:0");
+   } else { 
+      # this loop assumes there's at least one good pixel - too lazy to fix
+      my $index = 0;
+      while ( $pdl->clump(-1)->slice("${index}:${index}")->isbad() ) { $index++; }
+      $tmp = $pdl->clump(-1)->slice("${index}:${index}");
+   }
+
+!NO!SUBS!
+} 
+
+pp_addpm(<<'!NO!SUBS!');
+
    $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element of $pdl
    $tmp = $tmp+$bzero  if $bzero  != 0;
   
@@ -168,11 +304,9 @@ sub PDL::rfits {
 
    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
 
-   delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-
    # Header
-
    $pdl->sethdr($foo);
+   $pdl->hdrcpy(1);
 
    return $pdl;
 }
@@ -197,6 +331,20 @@ Suffix magic:
 
 $BITPIX is optional and coerces the output format.
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+=for bad
+
+For integer types (ie C<BITPIX E<gt> 0>), the C<BLANK> keyword is set
+to the bad value.  For floating-point types, the bad value is
+converted to NaN (if necessary) before writing.
+
+!NO!SUBS!
+} # if: $bvalflag
+
+pp_addpm(<<'!NO!SUBS!');
 =cut
 
 *wfits = \&PDL::wfits;
@@ -287,6 +435,27 @@ sub PDL::wfits { # Write a PDL to a FITS format file
       wheader('BZERO');
    }
    wheader('BUNIT');
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+    # IF badflag is set
+    #   and BITPIX > 0 - ensure the header contains the BLANK keyword
+    #                    (make sure it's for the correct type)
+    #   otherwise      - make sure the BLANK keyword is removed
+    if ( $pdl->badflag() ) {
+       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
+       else               { delete $HDR{BLANK}; }
+    }
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
    for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
    wheader('HISTORY'); # Make sure that HISTORY entries come last.
    printf FITS "%-80s", "END"; $nbytes += 80;
@@ -318,16 +487,62 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
    my $tmp;
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	    # just print up a message - conversion is actually done in the loop
+	    print "Converting PDL bad value to NaN\n" if $PDL::verbose;
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
    while ($nbytes - $off > $BUFFSZ) {
 
       # Data to be transferred
 
       $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
                          -$bzero)/$bscale );
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+	# if there are bad values present, and output type is floating-point,
+	# convert the bad values to NaN's.  We can ignore integer types, since
+	# we have set the BLANK keyword
+	#
+	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	    $buff->inplace->setbadtonan();
+	}
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
       &$bswap($buff); print  FITS ${$buff->get_dataref};
       $off += $BUFFSZ;
    }
    $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+    if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+       $buff->inplace->setbadtonan();
+    }
+!NO!SUBS!
+
+} # if: $bvalflag
+	pp_addpm(<<'!NO!SUBS!');
    &$bswap($buff); print  FITS ${$buff->get_dataref};
    print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
 
@@ -533,6 +748,9 @@ $deftype = double;  # Default type for piddles
 #  read in all lines, reverse, then apply the step
 #  -> fix point 4 above
 # 
+# perhaps should just simplify the LINES option - ie remove
+# support for reversed arrays?
+#
 
 sub rcols{PDL->rcols(@_)}
 
@@ -646,6 +864,9 @@ sub PDL::rcols {
        # check for line_ctr before or after the pattern matching
        # Prior to PDL 2.003 the line checks were done BEFORE the
        # pattern matching
+       #
+       # need this first check, even with it almost repeated at end of loop,
+       # incase the pattern matching excludes $line_num == $line_end, say
        last if     defined($line_end)   and $line_num > $line_end;
        next if     defined($line_start) and $line_num < $line_start;
        next if     $$options{EXCLUDE} ne '' and /$$options{EXCLUDE}/;
@@ -666,14 +887,11 @@ sub PDL::rcols {
 	 if ( $PDL::verbose ) { # dbg aid
 	     print "Reading data into piddles of type: [ ";
 	     foreach my $t ( @types ) {
-		 # not sure this is the official way of doing it
-		 my $name = $PDL::Types::typehash{$PDL::Types::names[$t->[0]]}->{ctype};
-		 $name =~ s/PDL_//;
-		 print "$name ";
+		 print $t->shortctype() . " ";
 	     }
 	     print "]\n";
 	 }
-
+	 
          $k = 0;
          for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
          for (@perl_cols)    { $ret[$k++] = []; }
@@ -695,6 +913,9 @@ sub PDL::rcols {
 
        # store the line number
        $line_store->set( $index, $line_num );
+
+       # Thanks to Frank Samuelson for this
+       last if defined($line_end) and $line_num == $line_end;
    }
 
    close($fh) unless $is_handle;
@@ -830,7 +1051,7 @@ sub PDL::wcols {
        foreach my $key ( keys %$opt ) {
 	   if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
 	   else {
-	       print "Warning: rcols does not understand option <$key>.\n"; 
+	       print "Warning: wcols does not understand option <$key>.\n"; 
 	   }
        }
    }
@@ -901,6 +1122,76 @@ sub PDL::wcols {
    return 1;
 }
 
+=head2 swcols()
+
+=for ref
+
+Takes an (optional) format specifier of the printf sort and a list
+of 1d piddles and returns a perl array or reference to an array where
+each element of the array is the string generated by printing the
+corresponding element of the piddle(s) using the format specified, if
+no format is specified it uses the default print format.
+
+=for usage
+
+ Usage: @str = swcols format, pdl1,pdl2,pdl3,...;
+  or
+        $str = swcols format, pdl1,pdl2,pdl3,...;
+
+=cut
+
+*swcols = \&PDL::swcols;
+
+sub PDL::swcols{
+  my ($format_string,$step);
+
+  my @outlist;
+
+  if (ref(\$_[0]) eq "SCALAR") {
+	 $step = $format_string = shift; # 1st arg not piddle
+	 $step =~ s/(%%|[^%])//g;  # use step to count number of format items
+	 $step = length ($step);
+  }
+  
+  my @p = @_;
+  my $n = $p[0]->nelem;
+  for (@p) {
+	 barf "swcols: 1d args must have same number of elements\n"
+		if $_->nelem != $n or $_->getndims!=1;
+  }
+
+  my $i;
+  for ($i=0; $i<$n; $i++) {
+	 if ($format_string) {
+	   my @d;
+	   for (@p) {
+		  push @d,$_->at($i);
+		  if (@d == $step) {
+			 push @outlist,sprintf $format_string,@d;
+			 $#d = -1;
+		  }
+	   }
+	   if (@d && !$i) {
+		  my $str;
+		  if ($#p>0) {
+			 $str = ($#p+1).' columns don\'t';
+		  } else {
+			 $str = '1 column doesn\'t';
+		  }
+		  $str .= " fit in $step column format ".
+	       '(even repeated) -- discarding surplus';
+		  carp $str;
+		  # printf $fh $format_string,@d;
+		  # printf $fh $colsep;
+	   }
+	 } else {
+	   for (@p) {
+		  push @outlist,sprintf $_->at($i),$colsep;
+	   }
+	 }
+  }
+  wantarray ? return @outlist: return \@outlist;
+}
 
 
 =head2 rgrep()
@@ -1038,9 +1329,21 @@ sub PDL::rdsa {
     return ($xpdl,$pdl);
 }
 
+=head2 isbigendian()
+
+=for ref
+
+Determine endianness of machine - returns 0 or 1 accordingly
+
+=cut
+
+!NO!SUBS!
+
+# $isbigendian is set up at top of file
+pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL::isbigendian;\n");
+pp_add_exported("", "isbigendian");
 
 ################################ XS CODE ######################################
-EOD
 
 sub defpdl {
 	pp_def(
@@ -1051,43 +1354,6 @@ sub defpdl {
 		Doc  => $_[4],
 	);
 }
-
-pp_addpm(<<'EOD');
-
-=head2 isbigendian()
-
-=for ref
-
-Determine endianness of machine - returns 0 or 1 accordingly
-
-=cut
-EOD
-
-pp_addxs('','
-
-MODULE = PDL::IO::Misc PACKAGE = PDL
-
-int
-isbigendian()
-   CODE:
-     unsigned short i;
-     PDL_Byte *b;
-
-     i = 42; b = (PDL_Byte*) (void*) &i;
-
-     if (*b == 42)
-        RETVAL = 0;
-     else if (*(b+1) == 42)
-        RETVAL = 1;
-     else
-         barf("Impossible - machine is neither big nor little endian!!\n");
-     OUTPUT:
-       RETVAL
-');
-
-pp_addpm("*isbigendian = \\&PDL::isbigendian;\n");
-pp_add_exported("", "isbigendian");
-
 
 ###### Read ASCII Function ##########
 pp_addhdr(<<'EOH');
@@ -1105,6 +1371,86 @@ int getfloat(PerlIO *fp, PDL_Float *fz)
   int expo = 0;
   PDL_Float sig = 1.0, esig = 1.0;
   PDL_Float div = 1.0;
+
+  if (s == EOF) return 0;
+  while (1) {
+    if (s == EOF)
+      return 0;   /* signal end of line */
+    if (s == '#')
+      SWALLOWLINE(fp);
+    if ((s >='0' && s <='9') || s =='.' || s == 'e' || s == 'E' 
+        || s == '+' || s == '-') break; 
+    if (s!=' ' && s!='\t' && s!='\r' && s!='\n' && s!=',')
+      return -1;  /* garbage */      
+    s = PerlIO_getc(fp); /* else skip whitespace */
+  }
+  /* parse number */
+  while (1) {
+    switch (s) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      if (aftere)
+        expo = (expo*10) + (s - '0');
+      else if (afterp) {
+        div /= 10.0;
+        f += div*(s - '0');
+      } else
+        f = (f*10) + (s - '0');
+      break;
+    case '+':
+      /* ignore */
+      break;
+    case '-':
+      if (aftere)
+        esig = -1;
+      else
+        sig = -1;
+      break;
+    case 'e':
+    case 'E':
+      if (aftere)
+        return -1;
+      aftere = 1;
+      break;
+    case '.':
+      if (afterp || aftere)
+        return -1;
+      afterp = 1;
+      break;
+    default:
+      goto endread;
+      break;
+    }
+    nread++;
+    s = PerlIO_getc(fp);
+  }
+endread:
+  f *= sig;
+  for (i=0;i<expo; i++)
+    f *= (esig > 0 ? 10.0 : 0.1);
+
+  *fz = f;
+  TRAILING_WHITESPACE_CHECK(s);
+  return nread;
+}
+
+int getdouble(PerlIO *fp, PDL_Double *fz)
+{
+  PDL_Double f = 0;
+  int nread = 0;
+  int i, s = PerlIO_getc(fp);
+  int afterp = 0, aftere=0;
+  int expo = 0;
+  PDL_Double sig = 1.0, esig = 1.0;
+  PDL_Double div = 1.0;
 
   if (s == EOF) return 0;
   while (1) {
@@ -1196,7 +1542,8 @@ nonexistent).
       Where:
   	filename is the name of the ASCII file to read
 	$noElements is the optional number of elements in the file to read.
-	     (If not present, all of the file will be read to fill up $pdl)
+	    (If not present, all of the file will be read to fill up $pdl).
+	$pdl can be of type float or double for more precision.
 
 =for example
 
@@ -1212,12 +1559,13 @@ nonexistent).
 
 sub rasc {PDL->rasc(@_)}
 sub PDL::rasc {
+  use IO::File;
   my ($pdl, $file, $num) = @_;
   $num = -1 unless defined $num;
-  open(FILE, "<$file") || barf "Can't open $file";
-  $pdl->_rasc($num,'PDL::IO::Misc::FILE');
-  close FILE;
-  return $pdl;
+  my $fi = new IO::File "<$file" || barf "Can't open $file";
+  $pdl->_rasc(my $ierr=null,$num,$fi);
+  close $fi;
+  return all $ierr > 0;
 }
 
 # ----------------------------------------------------------
@@ -1284,23 +1632,27 @@ EOPM
 # in the future this function should return a state indicating an error
 # if appropriate
 pp_def('_rasc',
-       Pars => '[o] nums(n)',
-       OtherPars => 'int num => n; char* fd',
-       GenericTypes => [F],
+       Pars => '[o] nums(n); int [o] ierr(n)',
+       OtherPars => 'int num => n; SV* fd',
+       GenericTypes => [F,D],
        Code => q@ 
-                 int ns, i;
+                 int ns, i, j;
                  PerlIO *fp;
                  IO *io;
 
-                 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
+                 /* io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO)); */
+		 io = sv_2io($COMP(fd));
                  if (!io || !(fp = IoIFP(io)))
                         croak("Can\'t figure out FP");
                  ns = $SIZE(n);
                  threadloop %{
                    for (i=0;i<ns; i++) {
-                       if (getfloat(fp, &($nums(n=>i))) <= 0)
+                       if (($ierr(n=>i) =
+			   $TFD(getfloat,getdouble)(fp, &($nums(n=>i)))) <= 0)
                               break;
                    }
+		   for (j=i+1; j<ns; j++)
+			$ierr(n=>j) = $ierr(n=>i); /* inherit error flags */
                  %}
                 @,
 #	Doc => 'Internal Function used by rasc. '
@@ -1398,23 +1750,6 @@ defpdl(
      }',
      "Swaps octets of bytes in argument x()"
 );
-
-
-pp_addpm({At=>Bot},<<'EOD');
-
-=head1 AUTHOR
-
-Copyright (C) Karl Glazebrook 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
-EOD
 
 pp_done();
 

@@ -21,9 +21,14 @@ use SelfLoader;
 
 @ISA = qw/ SelfLoader /;
 
+# we pass on $bvalflag to the PdlParObj's created by parse
+# (a hack for PdlParObj::get_xsdatapdecl() which should
+# disappear when (if?) things are done sensibly)
+#
 sub new {
-  my ($type,$str) = @_;
-  my ($namep,$objp) = parse($str);
+  my ($type,$str,$bvalflag) = @_;
+  $bvalflag ||= 0;
+  my ($namep,$objp) = parse($str,$bvalflag);
   return bless {Names => $namep, Objects => $objp},$type;
 }
 
@@ -62,12 +67,12 @@ sub objs {
 
 # Pars -> ParNames, Parobjs
 sub parse {
-	my($str) = @_;
+	my($str,$bvalflag) = @_;
 	my @entries = nospacesplit ';',$str;
 	my $number = 0;
 	my %objs; my @names; my $obj;
 	for (@entries) {
-		$obj = PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER");
+		$obj = PDL::PP::PdlParObj->new($_,"PDL_UNDEF_NUMBER",$bvalflag);
 		push @names,$obj->name;
 		$objs{$obj->name} = $obj;
 	}
@@ -111,6 +116,9 @@ sub checkdims {
   my $n = @{$this->{Names}};
   croak "not enough pdls to match signature" unless $#_ >= $n-1;
   my @pdls = @_[0..$n-1];
+  if ($PDL::debug) { print "args: ".
+		     join(' ,',map { "[".join(',',$_->dims)."]," } @pdls)
+		       . "\n"}
   my $i = 0;
   my @creating = map $this->{Objects}->{$_}->perldimcheck($pdls[$i++]),
          @{$this->{Names}};

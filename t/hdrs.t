@@ -17,7 +17,7 @@ sub hdrcmp {
   return $ah == $bh;
 }
 
-print "1..6\n";
+print "1..8\n";
 
 $a = zeroes(20);
 $a->hdrcpy(1);
@@ -32,14 +32,19 @@ print "b: ",$b->gethdr(),"\n";
 ok(2, defined($b->gethdr));
 ok(3,hdrcmp($a,$b));
 
+$b = ones(20) + $a;
+print "b: ",$b->gethdr(),"\n";
+ok(4, defined($b->gethdr));
+ok(5,hdrcmp($a,$b));
+
 $c = $a->slice('0:5');
 print "c: ",$c->gethdr(),"\n";
-ok(4,hdrcmp($a,$c));
+ok(6,hdrcmp($a,$c));
 
 $d = $a->copy;
 print "d: ",$d->gethdr(),"\n";
-ok(5,hdrcmp($a,$d));
+ok(7,hdrcmp($a,$d));
 
 $a->hdrcpy(0);
-ok(6,!defined($a->slice('3')->gethdr));
+ok(8,!defined($a->slice('3')->gethdr));
 

@@ -30,7 +30,7 @@ $y += grandom($y)*100;
 
 #points $x,$y;
 
-$yfit = fitpoly1d $x,$y,4;
+$yfit = fitpoly1d($x,$y,4);
 
 #hold; line $x, $yfit;
 

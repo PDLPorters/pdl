@@ -50,6 +50,8 @@ sub mkdir_p ($$$) {
 # doesn't seem to be able to handle
 # L<PDL::PDL|PDL::PDL> correctly
 #
+# (not necessary for perl 5.6.0)
+#
 sub hack_html ($) {
     my $infile = shift;
     my $outfile = "${infile}.n";
@@ -65,6 +67,9 @@ sub hack_html ($) {
 	s{PDL/([^|]+)\|PDL/\1}{PDL/$1}g;
 	# fix the text of the link
 	s{PDL::([^|]+)\|PDL::\1}{PDL::$1}g;
+	# now fix any links for scripts
+	s{/([^|]+)\|PDL/\1}{/PDL/$1}g;
+	s{([^|]+)\|PDL::\1}{$1}g;
 	print $ofh $_;
     }
     $ifh->close;
@@ -184,7 +189,7 @@ $sub = sub {
 	     "--infile=$file",
 	     "--outfile=$outfile",
 	     "--verbose");
-    hack_html( $outfile );
+    hack_html( $outfile ) if $] < 5.006;
     
     chdir $File::Find::dir; # don't confuse File::Find
 };

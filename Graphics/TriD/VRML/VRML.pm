@@ -285,7 +285,7 @@ sub new {
 				    'info' => $info);
   $this->{NaviInfo} = new PDL::Graphics::VRMLNode('NavigationInfo',
 			'type' => '["EXAMINE", "ANY"]');
-  $this->{Protos} = [];
+  $this->{Protos} = {};
   $this->{Uses} = {};
   $this->{Scene} = undef;
   return $this;
@@ -301,6 +301,8 @@ sub register_proto {
 }
 
 sub set_vrml {
+  print "set_vrml ",ref($_[0]),"\n";
+
   $_[0]->{Scene} = $_[1];
 }
 
@@ -318,8 +320,9 @@ sub ensure_protos {
 }
 
 sub add_proto {
-  my $this = shift;
-  push @{$this->{Protos}},@_;
+  my ($this,$proto) = @_;
+  $this->{Protos}->{$proto->{Name}} = $proto
+    unless exists $this->{Protos}->{$proto->{Name}};
   return $this;
 }
 
@@ -332,7 +335,7 @@ sub print {
   print VRML "$this->{Header}\n";
   print VRML $this->{Info}->to_text;
   print VRML $this->{NaviInfo}->to_text;
-  for (@{$this->{Protos}}) { print VRML $_->to_text }
+  for (keys %{$this->{Protos}}) { print VRML $this->{Protos}->{$_}->to_text }
   barf "no scene hierarchy" unless defined $this->{Scene};
   print VRML $this->{Scene}->to_text;
   close VRML if $#_ > -1;

@@ -24,6 +24,10 @@ $a = rfits("m51.fits");
 $b = $a->copy;
 $c = $b->zeroes; fft($b,$c); ifft($b,$c);
 ok (1,approx($c,0));
+
+print "\n",$c->info("Type: %T Dim: %-15D State: %S"),"\n";
+print "Max: ",$c->max,"\n";
+print "Min: ",$c->min,"\n";
    
 # The second test fails at the moment: this appears to be an
 # oddity with PP's promotion of byte data for GenericTypes => [F,D]

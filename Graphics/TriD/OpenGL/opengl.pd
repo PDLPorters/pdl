@@ -1,0 +1,879 @@
+# This program looks at the OpenGL installation as defined in perldl.conf
+# when the Makefile is built.
+# and builds the perl pdl interface based on the information found therein
+# It preprocesses the include files with the cpp to try to get the prototypes
+# as they are defined for the machine architecture.  Bits of this code can be 
+# traced back to OpenGL-0.4, Tk, and many others who came before.
+#
+# Jim Edwards 7/18/2000
+#
+use Getopt::Long;
+use strict;
+
+use Config;
+
+
+my (@incs,@defines);
+GetOptions("I=s@" => \@incs,
+			  "D=s@" => \@defines );
+#
+my @funcs = qw|gl.h glx.h glu.h|;
+my @types = qw|X.h gl.h glx.h glu.h glxtokens.h|;
+my $verbose;
+my $pmdocs;
+#
+# These are prototypes which for one reason or another (hopefully documented 
+# further below) we dont want to generate.
+#
+my @dontfuncs;
+my @oosubs; # holds subroutine prototypes for oo interface
+
+
+
+my %dontfuncs;
+for(@dontfuncs) {$dontfuncs{$_} = 1}
+
+my(@path);
+foreach(@incs){
+  if(-d "$_"){
+	 push(@path,$_);
+  }else{
+	 die "ERROR: directory $_ not found, fix perldl.conf and rerun perl Makefile.PL";
+  }
+}
+foreach(@defines){
+  $_ = "-D$_";
+}
+
+
+push(@path,"/usr/include");
+
+my %consts; # filled by sub getconsts
+my @subnames;  # filled by sub getfuncs
+
+my %t=(
+       'int'    => 'INT',
+       'float'  => 'FLOAT',
+       'double' => 'DOUBLE',
+       'short'  => 'SHORT',
+       'long'   => 'LONG',
+       'char'   => 'CHAR',
+       'XID'    => 'U_LONG',
+       'GLenum'    => 'U_LONG',
+       'void *' => 'PTR',
+       'GLXFBConfig' => 'PTR',
+       'Display *' => 'PTR',
+       'Bool'    => 'U_CHAR'
+      );
+
+open(TYPEMAP,">typemap") or die "Can not write typemap\n";;
+select TYPEMAP;
+
+foreach my $file (@types){
+  my @file;
+  if($file=~/^gl/){
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/GL/$file"){
+		  &getconsts("$path/GL/$file");
+		  @file = &cpp("$path/GL/$file");
+		  $found=1;
+		  last;
+		}
+	 }
+	 unless($found){
+		print STDERR "WARNING: could not find file $file in $0 (may be okay)\n";
+	 }
+  }elsif($file=~/^X/){
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/X11/$file"){
+		  &getconsts("$path/X11/$file");
+		  @file = &cpp("$path/X11/$file");
+		  $found=1;
+		  last;
+		}elsif(-e "/usr/include/X11/$file"){
+		  &getconsts("/usr/include/X11/$file");
+		  @file = &cpp("/usr/include/X11/$file");
+		  $found=1;
+		  last;
+		}
+	 }
+	 unless($found){
+		die "ERROR: Could not find $file in @path";
+	 }
+  }
+  print STDERR "Calling gettypes for $file ",$#file,"\n" if($verbose);
+  gettypes(@file);
+  print "GLXContext T_PTR\n";
+  print "GLXFBConfigSGIX T_PTR\n";
+
+}
+
+while ( my ($key, $val) = each %t ) {
+  print "$key T_$val\n" 
+};
+close TYPEMAP;
+select STDOUT;
+
+pp_addhdr('
+#include <X11/X.h>
+#include <GL/gl.h>
+#include <GL/glx.h>
+#include <GL/glu.h>
+#include <stdio.h>
+
+#define NUM_ARG 6
+static int debug=0;
+static int default_attributes[] = { GLX_RGBA, /*GLX_DOUBLEBUFFER,*/  None };
+
+static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
+    return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
+}
+
+');
+
+
+#
+# generate the xs code
+#
+my $ppcode = "pp_addxs('','\n";
+$ppcode .= glpcopenwindow();
+$ppcode .= "\n');\n\n";
+
+foreach my $file (@funcs){
+  my @file;
+  if($file=~/^gl/){
+	 my $found;
+	 foreach my $path (@path){
+		if(-e "$path/GL/$file"){
+		  @file = cpp("$path/GL/$file");
+		  $found=1;
+        last;
+		}
+	 }
+	 unless($found){
+		print STDERR "WARNING: could not find file $file in $0 (may be okay)\n";
+	 }
+  }
+  $ppcode .= getfuncs(@file);
+}
+
+
+
+$ppcode .= pmstuff(@oosubs);
+
+$ppcode .= exports(\%consts);
+#
+# print the code out so that we can refer to this
+# file in the case of any errors
+#
+$ppcode .= "pp_addpm(<<'EODOCS');\n";
+$ppcode .= "\n=head2 OpenGL Interface Functions\n\n";
+$ppcode .= "=for ref\n\nThe following is a list of OpenGL functions for which an interface was created.  Please refer to the OpenGL documentation for descriptions.\n\n";
+$ppcode .= $pmdocs;
+$ppcode .= "=cut\n\nEODOCS\n";
+
+$ppcode .= "pp_done();";
+open(F,">ppcode.out");
+print F $ppcode;
+close(F);
+
+eval $ppcode;
+
+
+
+sub cpp {
+  my ($file) = @_;
+
+  print STDERR "Running cpp on $file\n"if($verbose);
+  open(FILE,"$file") || die "Could not open file $file";
+  my @file = <FILE>;
+  close(FILE);
+
+  my $nfile = $file;
+  $nfile =~ s/.*\//tmp_/;
+
+  open(TFILE,">$nfile")  || die "Could not write $nfile";
+  foreach(@file){
+	 next if(/^\s*\#include\s+/);  # this is dangerous
+		# as a consequence APIENTRY is undefined and glu routines are ignored
+	 print TFILE $_;
+  }
+  close(TFILE);
+#
+# Put together a preprocessor command  
+#
+  my $com="$Config{cpprun} -P @defines";
+  foreach(split ' ', $Config{cppflags}){
+	 $com .= " $_" if(/-D/);
+  }
+  $com .= " -D_LANGUAGE_C -DAPIENTRY=''";  # forces prototypes of SGI GL 
+
+  open(FILE,"$com $nfile |") || die "cant open $com $nfile|\n";
+  @file = <FILE>;
+  close(FILE);
+  if ($verbose) {
+	use File::Basename;
+	my $out = basename($file).".cpp";
+	open FI, ">$out" ||
+	     die "can't open temp output file $out";
+	print "outputting to $out...\n";
+	print FI "/* command: $com */\n";
+	print FI join('',@file);
+	close FI;
+  }
+  return @file;
+
+}
+
+sub gettypes {
+  my(@file) = @_;
+  my @tkeys = keys(%t);
+
+  foreach my $line (@file) {
+    if($line =~ /typedef/) {
+      my $cnt=0;
+      foreach my $k (@tkeys) {
+		  if($line =~ /typedef\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+signed\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+unsigned\s+$k\s+(\w+)\s*\;/){
+			 print "$1\t\tT_U_$t{$k}\n" ;
+		  }elsif($line =~ /typedef\s+\w+\s+\(\s*\*\s*(\w+)\s*\)\s*\(.*\)\;/){
+			 print "$1\t\tT_PTR\n" ;	
+		  }else{
+			 $cnt++;
+		  }
+		}
+      if($cnt > $#tkeys){
+		  $line =~ /typedef\s+(.*)\s+(\w+)\s*\;/;
+		  print STDERR "typedef Not Found >$line<$1<$2\n" if($verbose);
+      }
+    }
+  }
+}
+
+
+sub getfuncs {
+  my(@file) = @_;
+
+  my $outstr;
+  my $str = join ' ',@file;
+  #  while($str =~ /extern\s+(\S[^\;]*)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
+  #  my @vfuncs;
+  while($str =~ /extern\s+(\w+)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
+	 my $rt=$1;
+	 my $name=$2;
+	 my $args=$3;
+	 #    $rt =~ s/^\s*const\s+//;
+	 if($dontfuncs{$name}) { next }
+    
+    if($args =~ /GLvoid\s*\*\s*\*/) { next }
+
+	 push @subnames,$name;
+	 print "Gen: $rt $name $args\n" if $verbose;
+	 #    push @vfuncs,"$rt,$name,V_$name,($args)";
+	 #
+	 # Ignore Display * when looking for pointers
+	 #
+	 if($args =~ /Display/ || 
+		 $args =~ /GLXDrawable/ || 
+		 $args =~ /GLXContext/){
+		push @oosubs,[$rt,$name,$args];
+	 }
+
+
+    my $targs = $args;
+	 $targs =~ s/Display\s*\*/long/g;
+	 my $exists_pointer = ($targs =~ /\*/);
+
+	 my @args = split(/\,/,$args);
+	 @args=() if (($args =~ /^\s*void\s*$/) || ($args =~ /^\s*$/));
+
+    $pmdocs .= "=for ref \n\n$name\n\n";
+
+	 $outstr .= "pp_addxs('','\n";
+	 $outstr .= "$rt\n";
+	 $outstr .= "$name(";
+
+	 my $i=0;
+	 foreach my $a (@args) {
+
+		$outstr .= "," if($i);
+
+		$a =~ s/^\s*(.*\S)\s*$/$1/g;
+
+		$a =~ s/const\s+(\w+)\s+(\w+)\s*\[[^\]]*\]/$1_star $2/;
+
+
+		unless($a =~ s/^\s*Display\s*\*(\w+)/Display * $1/){
+		  $a =~ s/(\w+)\s+(\w+)\s*\[[^\]]*\]/$1_star $2/;	
+	 
+		  $a =~ s/const\s+(.*\S)\s*\*\s*(.*)/$1_star $2/;
+	 
+		  $a =~ s/(.*\S)\s*\*\s*(.*)/$1_star $2/;
+		}
+
+		$a =~ s/const\s+//;
+		$a =~ s/^\s*(\w+)\s*$/$1 arg$i/;
+		
+		$a =~ /(.*)\s+(\w+)$/;
+		
+		$outstr .= "$2";
+
+		$i++;
+	 }
+
+	 $outstr .= ")\n";
+
+	 foreach my $a (@args) {
+		$a =~ /(.*)\s+(\w+)\s*$/;
+		my $t=$1;
+		my $n=$2;
+		$t =~ s/.*_star/char \*/;
+		
+		$outstr .= "\t$t\t$n\n";
+		
+	 }
+	 if($exists_pointer){
+		$outstr .=  "\tCODE:\n";
+		$outstr .=  "\t{\n";
+      $outstr .=  "\t\tunsigned int err;\n";
+		$outstr .=  "\t\t$name(";
+		my $i=0;
+		foreach my $a (@args) {
+		  $outstr .=  "," if($i);
+		  $a =~ /(.*)\s+(\w+)\s*$/;
+		  my $t=$1;
+		  my $n=$2;
+		  #        print "HERE $t<>$n<\n";
+		  if($t =~ /^(.*)_star/) {
+			 $outstr .=  "($1 *)";
+		  }
+		  $outstr .=  $n;
+		  $i++;
+		}
+		$outstr .=  ");\n";
+
+      $outstr .= "\t\tif(debug) while((err = glGetError()) != GL_NO_ERROR){\n";
+      $outstr .= "\t\t\tprintf(\"ERROR issued in GL $name %s\\n\", gluErrorString(err));}\n";
+		$outstr .=  "\t}\n";
+    }
+
+	 $outstr .=  "\n');\n\n";
+  }
+
+  return $outstr;
+}
+
+sub glpcopenwindow{
+# just print this out verbatim to the xs
+return sprintf <<'EOXS';
+
+HV *
+glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
+	int	x
+	int	y
+	int	w
+	int	h
+	int	pw
+	long	event_mask
+	CODE:
+	{
+       Display *dpy;
+       Window win;
+       GLXContext ctx;
+		 XVisualInfo *vi;
+		 XSetWindowAttributes swa;
+	    XEvent event;
+		 Colormap cmap;
+	    Window pwin=(Window)pw;
+	    int *attributes = default_attributes;
+       unsigned int err;
+
+       RETVAL = newHV();
+	    if(items>NUM_ARG){
+	        int i;
+	        attributes = (int *)malloc((items-NUM_ARG+1)* sizeof(int));
+			  if(attributes==NULL){
+				 return;
+			  }
+
+	        for(i=NUM_ARG;i<items;i++) {
+	            attributes[i-NUM_ARG]=SvIV(ST(i));
+	        }
+	        attributes[items-NUM_ARG]=None;
+	    }
+       if(debug){
+         int i;	
+         for(i=0;attributes[i] != None; i++){
+		    	printf("att=%%d %%d\n",i,attributes[i]);
+         }
+       }       
+
+	    /* get a connection */
+	    dpy = XOpenDisplay(NULL);
+   
+
+	    if (dpy==NULL){
+	      printf("ERROR: failed to get an X connection\n");
+  			return;
+		 }else if(debug){
+			printf("Display open %%x\n",dpy);
+       }		
+	    /* get an appropriate visual */
+	    vi = glXChooseVisual(dpy, DefaultScreen(dpy),attributes);
+	    if(!vi) {
+	      printf("ERROR: failed to get an X visual\n");
+			return;
+		 }else if(debug){
+			printf("Visual open %%x\n",vi);
+       }		
+
+	    /* create a GLX context */
+	    ctx = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+
+
+	
+
+	    if(!ctx) {
+	      printf("ERROR: failed to get an X Context\n");
+			return;
+		 }else if(debug){
+			printf("Context Created %%x\n",ctx);
+       }		
+	
+	    /* create a color map */
+	    cmap = XCreateColormap(dpy, RootWindow(dpy, vi->screen),
+				   vi->visual, AllocNone);
+	
+	    /* create a window */
+	    swa.colormap = cmap;
+	    swa.border_pixel = 0;
+	    swa.event_mask = event_mask;
+
+	    if(!pwin){
+			pwin=RootWindow(dpy, vi->screen);
+	      if(debug) printf("Using root as parent window 0x%%x\n",pwin);
+		 }
+	    if(x>=0) {
+			win = XCreateWindow(dpy, pwin, x, y, w, h, 0, vi->depth, InputOutput, vi->visual,  CWBackPixel | CWBorderPixel|CWColormap|CWEventMask, &swa);
+
+         if(debug) printf("win = 0x%%x\n",win);
+			if(!win) {
+			  return;
+			}
+			
+			XMapWindow(dpy, win);
+			if(event_mask & StructureNotifyMask) {
+			  XIfEvent(dpy, &event, WaitForNotify, (char*)win);
+			}
+		 }
+	    /* connect the context to the window */
+	    if(!glXMakeCurrent(dpy, win, ctx)) {
+			return;
+		 }
+       if(debug)
+         printf("Display=0x%%x Window=0x%%x Context=0x%%x\n",dpy,win,ctx);
+
+       hv_store(RETVAL, "Display", strlen("Display"), newSViv((IV) dpy),0);
+       hv_store(RETVAL, "Window", strlen("Window"), newSViv((IV) win),0);
+       hv_store(RETVAL, "Context", strlen("Context"),   newSViv((IV) ctx),0);
+
+       hv_store(RETVAL, "GL_Version",strlen("GL_Version"), 
+               newSVpv((char *) glGetString(GL_VERSION),0),0);
+       hv_store(RETVAL, "GL_Vendor",strlen("GL_Vendor"), 
+               newSVpv((char *) glGetString(GL_VENDOR),0),0);
+       hv_store(RETVAL, "GL_Renderer",strlen("GL_Renderer"), 
+               newSVpv((char *) glGetString(GL_RENDERER),0),0);
+
+
+ 	    /* clear the buffer */
+	    glClearColor(0,0,0,1);
+       while((err = glGetError()) != GL_NO_ERROR){
+         printf("ERROR issued in GL %%s\n", gluErrorString(err));
+       }
+
+	}
+	OUTPUT:
+	RETVAL
+
+int
+glpRasterFont(name,base,number,d)
+	char *name
+	int base
+	int number
+	Display *d
+	CODE:
+	{
+		XFontStruct *fi;
+		int lb;
+		fi = XLoadQueryFont(d,name);
+		if(fi == NULL) {
+			die("No font %s found",name);
+		}
+		lb = glGenLists(number);
+		if(lb == 0) {
+			die("No display lists left for font %s (need %d)",name,number);
+		}
+		glXUseXFont(fi->fid, base, number, lb);
+		RETVAL=lb;
+	}
+	OUTPUT:
+	RETVAL
+
+void
+glpSetDebug(flag)
+	int flag
+	CODE:
+	{
+	debug=flag;
+	}
+
+void
+glpPrintString(base,str)
+	int base
+	char *str
+	CODE:
+	{
+		glPushAttrib(GL_LIST_BIT);
+		glListBase(base);
+		glCallLists(strlen(str),GL_UNSIGNED_BYTE,(GLubyte*)str);
+		glPopAttrib();
+	}
+
+int
+XPending(d)
+	Display *	d
+
+int
+XResizeWindow(d, w, x, y)
+	Display *	d
+	Window	w
+	int      x
+	int      y
+
+void
+glpXNextEvent(d)
+	void *	d
+	PPCODE:
+	{
+		XEvent event;
+		char buf[10];
+		KeySym ks;
+		XNextEvent(d,&event);
+		switch(event.type) {
+			case ConfigureNotify:
+				EXTEND(sp,3);
+				PUSHs(sv_2mortal(newSViv(event.type)));
+				PUSHs(sv_2mortal(newSViv(event.xconfigure.width)));
+				PUSHs(sv_2mortal(newSViv(event.xconfigure.height)));				
+				break;
+			case KeyPress:
+			case KeyRelease:
+				EXTEND(sp,2);
+				PUSHs(sv_2mortal(newSViv(event.type)));
+				XLookupString(&event.xkey,buf,sizeof(buf),&ks,0);
+				buf[0]=(char)ks;buf[1]=\'\0\';
+				PUSHs(sv_2mortal(newSVpv(buf,1)));
+				break;
+			case ButtonPress:
+			case ButtonRelease:
+				EXTEND(sp,7);
+				PUSHs(sv_2mortal(newSViv(event.type)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.button)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.x)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.y)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.x_root)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.y_root)));
+				PUSHs(sv_2mortal(newSViv(event.xbutton.state)));
+				break;
+			case MotionNotify:
+				EXTEND(sp,4);
+				PUSHs(sv_2mortal(newSViv(event.type)));
+				PUSHs(sv_2mortal(newSViv(event.xmotion.state)));
+				PUSHs(sv_2mortal(newSViv(event.xmotion.x)));
+				PUSHs(sv_2mortal(newSViv(event.xmotion.y)));
+				break;
+			case Expose:
+			default:
+				EXTEND(sp,1);
+				PUSHs(sv_2mortal(newSViv(event.type)));
+				break;
+		}
+	}
+
+EOXS
+
+}
+
+sub pmstuff {
+  my(@oosubs) = @_;
+  my $outstr;
+  $outstr .=  "pp_addpm(<<'CONSTANTS');\n";
+  foreach(sort keys %consts){
+	 my $val = $consts{$_};
+	 $val =~ s/\(int\)//;
+	 $val =~ s/^(\D+)$/\'$1\'/;
+	 $val = $consts{$val} if(defined $consts{$val});
+	 $val =~ s/(\d)L/$1/;
+	 $outstr .=  "sub $_ () {$val}\n";
+  }
+  $outstr .=  "CONSTANTS\n";
+
+  $outstr .=  sprintf <<'END';
+pp_addpm(<<'EOD');
+=head1 NAME
+
+PDL::Graphics::OpenGL -- a PDL interface to the OpenGL graphics library.
+PDL::Graphics::OpenGLOO - an Object Oriented interface to the interface.
+
+=head1 DESCRIPTION
+
+This package implements an interface to various OpenGL or OpenGL
+emulator libraries.  Most of the interface is generated at PDL compile
+time by the script opengl.pd which runs the c preprocessor on various
+OpenGL include files to determine the correct C prototypes for each
+configuration.  The object oriented interface defines an Object which
+contains the Display, Window and Context properties of the defined
+OpenGL device.  Any OpenGL function called from the OO interface will
+recieve these fields from the object, they should not be passed explicitly.
+
+This package is primarily intended for internal use by the
+PDL::Graphics::TriD package, but should also be usable in its own right.
+
+=head1 FUNCTIONS
+
+=cut
+
+package PDL::Graphics::OpenGL::OO;
+use PDL::Options;
+use strict;
+my $debug;
+#
+# This is a list of all the fields of the opengl object and one could create a 
+# psuedo hash style object but I want to use multiple inheritence with Tk...
+#
+#use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
+
+=head2 new($class,$options)
+
+Returns a new OpenGL object with attributes specified in the options
+field.  These attributes are:
+=for ref
+  x,y - the position of the upper left corner of the window (0,0)
+  width,height - the width and height of the window in pixels (500,500)
+  parent - the parent under which the new window should be opened (root)
+  mask - the user interface mask (StructureNotifyMask)
+  attributes - attributes to pass to glXChooseVisual
+
+=cut
+
+sub new {
+  my($class_or_hash,$options) = @_;
+
+  my $isref = ref($class_or_hash);  
+  my $p;
+#  PDL::Graphics::OpenGL::glpSetDebug(1);
+
+  if($isref and defined $class_or_hash->{Options}){
+    $p = $class_or_hash->{Options};
+  }else{
+    my $opt = new PDL::Options(default_options());
+    $opt->incremental(1);
+    $opt->options($options) if(defined $options);
+    $p = $opt->options;
+  }
+
+  my $self =  PDL::Graphics::OpenGL::glpcOpenWindow(
+                         $p->{x},$p->{y},$p->{width},$p->{height},
+										  $p->{parent},$p->{mask},
+										  @{$p->{attributes}});
+
+	if(ref($self) ne 'HASH'){
+	  die "Could not create OpenGL window";
+   }
+
+#  psuedo-hash style see note above  
+#  no strict 'refs';
+#  my $self = bless [ \%%{"$class\::FIELDS"}], $class;
+#
+  $self->{Options} = $p;
+  if($isref){
+     if(defined($class_or_hash->{Options})){
+       return bless $self,ref($class_or_hash);
+     }else{
+       foreach(keys %%$self){
+         $class_or_hash->{$_} = $self->{$_};
+       }
+       return $class_or_hash;
+     }
+  }
+  bless $self,$class_or_hash;
+}
+
+=head2 default_options
+
+default options for object oriented methods
+
+=cut
+#'
+sub default_options{
+  	{'x'     => 0,
+	 'y'     => 0,
+	 'width' => 500,
+	 'height'=> 500,
+	 'parent'=> 0,
+	 'mask'  => &PDL::Graphics::OpenGL::StructureNotifyMask,
+	 'attributes'=> [&PDL::Graphics::OpenGL::GLX_RGBA,
+                    &PDL::Graphics::OpenGL::GLX_RED_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_GREEN_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_BLUE_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_DOUBLEBUFFER
+                   ]
+	 }	
+}
+	 
+=head2 XPending()
+
+OO interface to XPending
+
+=cut
+
+sub XPending {
+	my($self) = @_;
+   PDL::Graphics::OpenGL::XPending($self->{Display});
+}
+
+=head2 XResizeWindow(x,y)
+
+OO interface to XResizeWindow
+
+=cut
+
+sub XResizeWindow {
+  my($self,$x,$y) = @_;
+  PDL::Graphics::OpenGL::XResizeWindow($self->{Display},$self->{Window},$x,$y);
+}
+
+=head2 glpXNextEvent()
+
+OO interface to glpXNextEvent
+
+=cut
+
+
+sub glpXNextEvent {
+	my($self) = @_;
+   PDL::Graphics::OpenGL::glpXNextEvent($self->{Display});
+}
+
+=head2 glpRasterFont()
+
+OO interface to the glpRasterFont function
+
+=cut
+
+sub glpRasterFont{
+	my($this,@args) = @_;
+   PDL::Graphics::OpenGL::glpRasterFont($args[0],$args[1],$args[2],$this->{Display});
+}
+
+
+=head2 AUTOLOAD
+
+If the function is not prototyped in OO we assume there is
+no explicit mention of the three identifying parameters (Display, Window, Context)
+and try to load the OpenGL function.
+
+=cut
+
+sub AUTOLOAD {
+  my($self,@args) = @_;
+  use vars qw($AUTOLOAD);
+  my $sub = $AUTOLOAD; 
+  return if($sub =~ /DESTROY/);
+  $sub =~ s/.*:://;
+  $sub = "PDL::Graphics::OpenGL::$sub";
+  if(defined $debug){
+    print "In AUTOLOAD: $sub at ",__FILE__," line ",__LINE__,".\n";
+  }
+  no strict 'refs';
+  return(&{$sub}(@args));
+}
+
+
+
+
+END
+  
+  foreach(@oosubs){
+	 my($rt,$name,$args) = @$_;
+
+
+    $outstr .= "\n=head2 $name\n\n";
+    $outstr .= "OO interface to the $name function\n\n=cut\n\n";
+	 
+	 $outstr .= "sub $name {\n";
+	 $outstr .= "\tmy(\$this,\@args) = \@_;\n";
+	 
+	 $outstr .= "\t&PDL::Graphics::OpenGL::$name(";
+
+	 my @args = split(/\,/,$args);
+	 my $argcnt=0;
+    my $i=0;
+	 foreach(@args){
+		$outstr .= "," if($i++);
+		if(/^\s*Display\s+\*/){
+		  $outstr .= "\$this->{Display}";
+		}elsif(/^\s*GLXDrawable\s/){
+		  $outstr .= "\$this->{Window}";
+		}elsif(/^\s*GLXContext\s/){
+		  $outstr .= "\$this->{Context}";
+		}else{
+		  $outstr .= "\$args[$argcnt]";
+		  $argcnt++;
+		}
+	 }
+	 $outstr .= ");\n}\n";
+  }
+  $outstr .= "\nEOD\n";
+
+  return $outstr;
+}
+
+sub getconsts {
+  my ($file) = @_;
+
+  print STDERR "Getting constants from file $file\n" if($verbose);
+
+  open(FILE,$file) || die "cant open $file\n";
+  my @file = <FILE>;
+  close(FILE);
+  foreach my $line (@file) {
+	 if($line =~ /^\#define\s+(\w+)\s+(\S+)\s*/) {
+		$consts{$1} = $2;
+	 } elsif($line =~ /^\s*(\w+)\s*=\s*(\S+)\s*,\s*/) {
+		# Assume it's inside an enum.
+		$consts{$1} = $2;
+	 }
+  }
+}
+
+
+sub exports{
+  my($consts) = @_;
+
+  my $outstr="pp_add_exported('','\n";
+  foreach (sort keys %$consts){
+	 $outstr .= "\t\t$_\n";
+  }
+  foreach (sort @subnames){
+	 $outstr .= "\t\t$_\n";
+  }
+  $outstr .= "');\n";
+  return $outstr;
+}
+

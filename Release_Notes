@@ -1,9 +1,40 @@
-Release notes for PDL 2.1.1 -------------------------------
+Release notes for PDL 2.2 -------------------------------
 
-A quick bugfix release to ensure PDL works with
-perl 'usethreads=y'.
+Major Changes:
 
-Still valid are the release notes for PDL 2.1 -------------
+  - 'Bad' Value Support added. With this option compiled-in, certain
+     values in a PDL can be designated as 'Bad' (i.e. missing, empty, 
+     etc). With this designation, most PDL functions will properly 
+     ignore the 'Bad' values. See PDL::BadValues for details.
+     
+  - PGPLOT interface rewritten. New Features:
+      - Interactive cursors (cursor)
+      - Text on plots       (text)
+      - Legends             (legend)
+      - Circles, Rectangles, Ellipses
+      - Multiple plot windows, one can jump from panel to panel when
+        the window is divided in several.
+      - More control over options - see PDL::Graphics::PGPLOTOptions for
+        details.
+      - New Examples in Example/PGPLOT.
+
+   - Major updates to the Tri-D Code. Now requires perl 5.6 for TriD.
+    
+   - 'Reduce' function added. This provides a consistent interface to the
+     projection routines (sumover, average, etc). See PDL::Reduce.
+     
+   - Improved OpenGL detection during 'perl Makefile.PL
+
+   - pdldoc command added. This allows you to look up PDL 
+     documentation similar to the perldoc command. 
+     
+   - Perl 5.6 is now recommended for PDL 2.2. It will still work 
+     with perl 5.005, but some of the extra libs won't be compiled
+     ( like Graphics/TriD).
+  
+Many other changes. See the Changes file for a detailed list of changes.
+
+Release notes for PDL 2.1 -------------------------------
 
 Major Changes:
   - Speed Increase. Most PDL functions are now done totally

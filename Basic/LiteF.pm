@@ -16,8 +16,10 @@ smaller see the L<PDL::Lite|PDL::Lite> module.
    use PDL::Core;
    use PDL::Ops;
    use PDL::Primitive;
+   use PDL::Ufunc;
    use PDL::Basic;
    use PDL::Slices;
+   use PDL::Bad;
    use PDL::Version;
 
 =cut
@@ -39,8 +41,10 @@ package $pkg;
 use PDL::Core;
 use PDL::Ops;
 use PDL::Primitive;
+use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
+use PDL::Bad;
 
 EOD
 

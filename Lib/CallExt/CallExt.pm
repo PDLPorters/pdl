@@ -9,6 +9,7 @@ use Config;
 use PDL::Core;
 use PDL::Exporter;
 use DynaLoader;
+use Carp;
 @ISA    = qw( PDL::Exporter DynaLoader );
 
 bootstrap PDL::CallExt;
@@ -178,17 +179,38 @@ sub callext_cc {
 	my @args = @_>0 ? @_ : @ARGV;
 	my ($src, $ccflags, $ldflags, $output) = @args;
 	my $cc_obj;
-	($cc_obj = $src) =~ s/\.c$/.o/;
+	($cc_obj = $src) =~ s/\.c$/$Config{_o}/;
 	my $ld_obj = $output;
-	($ld_obj = $cc_obj) =~ s/\.o$/.$Config{dlext}/ unless defined $output;
+	($ld_obj = $cc_obj) =~ s/\.o$/\.$Config{dlext}/ unless defined $output;
+
+	# Output flags for compiler depend on os.
+	# -o on unix or /Fo" " on WindowsNT
+	# Need a start and end string
+	my $do = ( $^O =~ /MSWin/i ? '/Fo"' : '-o ');
+	my $eo = ( $^O =~ /MSWin/i ? '"' : '' );
+
+	# Compiler command
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
-		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src -o $cc_obj";
-	my $ld_cmd = 'LD_RUN_PATH="" '.
+		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src $do$cc_obj$eo";
+
+	# The linker output flag is -o on unix and -out: on Windows
+	my $o = ( $^O =~ /MSWin/i ? '-out:' : '-o ');
+
+	# Setup the LD command. Do not want the env var on Windows
+	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
+
+	$ld_cmd .=
 		join(' ', map { $Config{$_} } qw(ld lddlflags)) .
-		" $ldflags -o $ld_obj $cc_obj";
+		" $Config{libs} $ldflags $o$ld_obj $cc_obj";
 	my $cmd = "$cc_cmd; $ld_cmd";
 	print $cmd,"\n";
-	system $cmd;
+
+	# Run the command in two steps so that we can check status
+	# of each and also so that we dont have to rely on ';' command
+	# separator
+	system $cc_cmd and croak "Error compiling $src";
+	system $ld_cmd and croak "Error linking $cc_obj";
+	return 1;
 }
 
 =head1 AUTHORS

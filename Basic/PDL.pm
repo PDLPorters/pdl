@@ -17,8 +17,10 @@ if start-up time becomes an issue.
    use PDL::Core;
    use PDL::Ops;
    use PDL::Primitive;
+   use PDL::Ufunc;
    use PDL::Basic;
    use PDL::Slices;
+   use PDL::Bad;
    use PDL::Version;
    use PDL::IO::Misc;
 
@@ -26,7 +28,7 @@ if start-up time becomes an issue.
 
 
 # set the version: 
-$PDL::VERSION = '2.1.1';
+$PDL::VERSION = '2.2'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
@@ -42,8 +44,10 @@ package $pkg;
 use PDL::Core;
 use PDL::Ops;
 use PDL::Primitive;
+use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
+use PDL::Bad;
 
 # Load these for TPJ compatibility
 

@@ -6,7 +6,10 @@ PDL::Doc::Perldl - commands for accessing PDL doc database from 'perldl' shell
 
 This module provides a simple set of functions to
 access the PDL documentation of database, for use
-from the 'perldl' shell.
+from the I<perldl> shell and the I<pdldoc> command-line
+program.
+
+Currently, multiple matches are not handled very well.
 
 =head1 SYNOPSIS
 
@@ -24,7 +27,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw( apropos usage help sig );
+@EXPORT = qw( apropos aproposover usage help sig badinfo );
 
 use PDL::Doc;
 use IO::File;
@@ -32,6 +35,9 @@ use Pod::Text;
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = new PDL::Doc (FindStdFile());
+
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
 # pod commands are stripped from the ref string before printing.
 # How we do this depends on the version of Pod::Text installed.
@@ -79,7 +85,7 @@ sub screen_width() {
        || (($ENV{TERMCAP} =~ /co#(\d+)/) and $1)
        || ($^O ne 'MSWin32' and $^O ne 'dos' and 
 	   (`stty -a 2>/dev/null` =~ /columns\s*=?\s*(\d+)/) and $1)
-       || 72;                                                                   
+       || 72;
 }
 
 # the $^W assignment stops Pod::Text::fill() from 
@@ -156,7 +162,6 @@ Regex search PDL documentation database
 
 =for example
 
-
  perldl> apropos 'pic'
  rpic            Read images in many formats with automatic format detection.
  rpiccan         Test which image formats can be read/written
@@ -177,36 +182,49 @@ with the C<help> function
 
 =cut
 
+sub aproposover {
+    die "Usage: aproposover \$funcname\n" unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $func = shift;
+    return $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+}
+
 sub apropos  {
     die "Usage: apropos \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
-    my @match = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
-    printmatch @match;
+    printmatch aproposover $func;
 }
 
-
 sub finddoc  {
-	die 'Usage: doc $topic' unless $#_>-1;
-	die "no online doc database" unless defined $PDL::onlinedoc;
-	my $topic = shift;
+    die 'Usage: doc $topic' unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $topic = shift;
 
-	# See if it matches a PDL function name
+    # See if it matches a PDL function name
+    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
 
-	my @match = $PDL::onlinedoc->search("m/^(PDL::)?$topic\$/",['Name']);
-	if (@match) {
-	   my $Ref = $match[0]->[1]->{Ref};
-	   if ( $Ref =~ /^Module: / || $Ref =~ /^Manual: /) {
-	       system("pod2text $match[0]->[1]->{File} | $PDL::Doc::pager");
-	       return;
-	   }
-	   my $out = new IO::File "| pod2text | $PDL::Doc::pager";
-	   print $out "=head1 Module\n\n",$match[0]->[1]->{Module}, "\n\n";
-	   $PDL::onlinedoc->funcdocs($match[0]->[0],$out);
+    die "Unable to find PDL docs on $topic\n"
+	if $#match == -1;
+
+    # print out the matches
+    # - do not like this solution when have multiple matches
+    #   but looping through each match didn't seem right either
+    my $m = shift @match;
+    my $Ref = $m->[1]{Ref};
+    if ( $Ref =~ /^(Module|Manual|Script): / ) {
+	system("pod2text $m->[1]{File} | $PDL::Doc::pager");
+    } else {
+	my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
+	print $out "=head1 Module\n\n",$m->[1]{Module}, "\n\n";
+	$PDL::onlinedoc->funcdocs($m->[0],$out);
+    }
+    if ( $#match > -1 ) {
+	print "\nFound other matches for $topic:\n";
+	foreach my $m ( @match ) {
+	    printf "  %-30s in %s\n", $m->[0], $m->[1]{Module};
 	}
-	else {
-	  die "Unable to find PDL docs on $topic\n";
-	}
+    }
 }
 
 =head2 usage
@@ -313,6 +331,9 @@ sub allindent {
 
 print documentation about a PDL function or module or show a PDL manual
 
+In the case of multiple matches, the first command found is printed out,
+and the remaining commands listed, along with the names of their modules.
+
 =for usage
 
  Usage: help 'func'
@@ -334,9 +355,7 @@ sub help {
 	  $topic->px('This variable is');
       } else {
 	  $topic = 'PDL::Doc::Perldl' if $topic =~ /^\s*help\s*$/i;
-	  if ($topic =~ /^\s*perldl\s*$/i) {
-	      system("pod2text $0 | $PDL::Doc::pager\n");
-	  } elsif ($topic =~ /^\s*vars\s*$/i) {
+	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
 	  } else {
 	      finddoc($topic);
@@ -357,6 +376,12 @@ The following four commands support online help in the perldl shell:
   ??		  -- alias for 'apropos'
   usage           -- print usage information for a given PDL function
   sig             -- print signature of PDL function
+EOH
+
+print "  badinfo         -- information on the support for bad values\n"
+   if $bvalflag;
+
+print <<'EOH';
 
   Quick start:
 
@@ -368,5 +393,48 @@ The following four commands support online help in the perldl shell:
 EOH
   }
 }
+
+=head2 badinfo
+
+=for ref
+
+provides information on the bad-value support of a function
+
+And has a horrible name.
+
+=for usage
+
+ badinfo 'func'
+
+=cut
+
+# need to get this to format the output - want a format_bad()
+# subroutine that's like - but much simpler - than format_ref()
+#
+sub badinfo {
+    my $func = shift;
+    die "Usage: badinfo \$funcname\n" unless defined $func;
+
+    die "PDL has not been compiled with support for bad values.\n" .
+	"Recompile with WITH_BADVAL set to 1 in config file!.\n"
+	    unless $bvalflag;
+
+    die "no online doc database" unless defined $PDL::onlinedoc;
+
+    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    if ( @match ) {
+	my ($name,$hash) = @{$match[0]};
+	my $info = $hash->{Bad};
+
+	if ( defined $info ) {
+	    my $out = new IO::File "| pod2text | $PDL::Doc::pager";
+	    print $out "=head1 Bad value support for $name\n\n$info\n";
+	} else {
+	    print "\n  No information on bad-value support found for $func\n";
+	}
+    } else {
+	print "\n  no match\n";
+    }
+} # sub: badinfo()
 
 1; # OK

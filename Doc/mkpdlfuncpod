@@ -1,6 +1,43 @@
 use PDL::Doc;
 use PDL::Doc::Perldl;
 
+# @dontmod = qw/ PDL::Graphics::TriD::Tk /;
+%Category = (
+	     IO => '^PDL::IO',
+	     Graphics => '^PDL::Graphics',
+	     Core => '^PDL::Core|
+                      ^PDL::Primitive|
+                      ^PDL::Slices|
+                      ^PDL::Math|
+                      ^PDL::Basic',
+	     Lib => '^PDL::Image
+                     |^PDL::Slatec
+		     |^PDL::FFT
+                     |^PDL::Filter
+                     |^PDL::Fit
+                     |^PDL::Gaussian
+                     |^PDL::GSL',
+	     Dev => '^PDL::Types
+                    |^PDL::Dbg
+                    |^PDL::Options
+                    |^PDL::Autoloader
+                    |^PDL::Callext
+                    |^PDL::Doc::Perldl',
+	     Derived => '^PDL::Complex
+                        |^PDL::Char
+                        |^PDL::Func',
+	     );
+
+sub nofunc {
+  my ($func,$hash) = @_;
+  if ($func =~ /AUTOLOAD
+	       |MainLoop
+	       /xs ||
+      $hash->{Ref} =~ /^internal$/) 
+	{ print STDERR "skipping $func\n"; return 1 } else { return 0 }
+}
+
+
 # a very simple script to generate a huge manpage of all documented
 # PDL functions
 # mainly to demonstrate what we can do with the new doc format
@@ -22,16 +59,29 @@ This is a listing of all documented functions in the PDL distribution.
 EOD
 
 $onldc = $PDL::onlinedoc; # new PDL::Doc ('/tmp/pdlhash.dbtxt');
+$db = $onldc->ensuredb;
+while (my ($key,$val) = each %$db) {
+  my $strip = $key;
+  $strip =~ s/PDL.*::(.*)$/$1/;
+  $val->{Stripped} = $strip;
+}
+
 @match = $onldc->search('.*',['Name'],1);
+@match = sort {lc $a->[1]->{Stripped} cmp lc $b->[1]->{Stripped}} @match;
+
 for (@match) {
+	next if $_->[1]->{Ref} =~ /(Module|Manual):/ ||
+	nofunc $_->[1]->{Stripped}, $_->[1];
 	$sh = new StrHandle;
+	print STDERR "function $_->[0] ($_->[1]->{Stripped})\n";
 	$onldc->funcdocs($_->[0],$sh);
+	$mod = "\n\nModule: $_->[1]->{Module}\n\n";
+	$stripped = $_->[1]->{Stripped};
 	$txt = $sh->text;
-	$txt =~ s/=head2/=item/;
+	$txt =~ s/=head2 (.*)$/=item $stripped$mod/mg;
 	$txt =~ s/^=cut\s*$//mg;
 	$txt =~ s/^=for.*$//mg;
-	$txt =~ s/^=back.*$//mg;
-	$txt .= "\nModule: $_->[1]->{Module}\n\n";
+	$txt =~ s/Docs from .*$//mg;
 	print $txt;
 }
 
