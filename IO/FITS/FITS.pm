@@ -281,6 +281,10 @@ sub PDL::rfits {
   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero, $extnum);
 
   $nbytes = 0;
+
+  # Modification 02/04/2005 - JB. Earlier version stripped the extension
+  # indicator which cancelled the check for empty primary data array at the end.
+  my $explicit_extension = ($file =~ m/\[\d+\]$/ ? 1 : 0);
   $extnum = ( ($file =~ s/\[(\d+)\]$//) ? $1 : 0 );
   
   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
@@ -433,7 +437,7 @@ sub PDL::rfits {
    if( !(defined $foo->{XTENSION})  # Primary header
        and $foo->{NAXIS} == 0       # No data
        and !wantarray               # Scalar context
-       and $file !~ m/\[\d+\]$/     # No HDU specifier
+       and !$explicit_extension     # No HDU specifier
        ) {
      print "rfits: Skipping null primary HDU (use [0] to force read of primary)...\n" 
        if($PDL::verbose);
