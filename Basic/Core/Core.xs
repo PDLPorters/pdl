@@ -154,6 +154,22 @@ iscontig(x)
     RETVAL
 
 int
+hdrcpy(x)
+	pdl *x
+	CODE:
+	RETVAL = ((x->state & PDL_HDRCPY) > 0);
+	OUTPUT:
+	RETVAL
+
+void
+set_hdrcpy(x,val)
+	pdl *x
+	int val
+	CODE:
+	    setflag(x->state,PDL_HDRCPY,val);
+
+
+int
 fflows(self)
 	pdl *self
 	CODE:

@@ -27,7 +27,7 @@ issue.
 
 
 # set the version: 
-$PDL::VERSION = '2.003';
+$PDL::VERSION = '2.003e_hdr';
 
 # Main loader of standard PDL package
 

@@ -17,23 +17,28 @@ sub hdrcmp {
   return $ah == $bh;
 }
 
-print "1..3\n";
+print "1..5\n";
 
 $a = zeroes(20);
+$a->set_hdrcpy(1);
+$a->dump;
 $a->sethdr( {Field1=>'arg1',
 	     Field2=>'arg2'});
 print "a: ",$a->gethdr(),"\n";
 
 $b = $a+1;
 print "b: ",$b->gethdr(),"\n";
-ok(1,hdrcmp($a,$b));
+ok(1, defined($b->gethdr));
+ok(2,hdrcmp($a,$b));
 
 $c = $a->slice('0:5');
 print "c: ",$c->gethdr(),"\n";
-ok(2,hdrcmp($a,$c));
+ok(3,hdrcmp($a,$c));
 
 $d = $a->copy;
 print "d: ",$d->gethdr(),"\n";
-ok(3,hdrcmp($a,$d));
+ok(4,hdrcmp($a,$d));
 
+$a->set_hdrcpy(0);
+ok(5,!defined($a->slice('3')->gethdr));
 

@@ -13,7 +13,7 @@ use Exporter;
 @ISA = qw(Exporter);
 
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot pp_add_exported pp_addxs pp_add_isa pp_export_nothing
-		  pp_core_importList	/;
+		  pp_core_importList pp_beginwrap pp_setversion	/;
 
 $PP::boundscheck = 1;
 
@@ -29,6 +29,9 @@ sub import {
 	$::PDLPMROUT="";
  	for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
 	$::PDLPMISA="PDL::Exporter DynaLoader";
+	@::PDL_IFBEGINWRAP = ('','');
+	$::PDLVERSIONSET = '';
+	$::PDLMODVERSION = undef;
 	$::DOCUMENTED = 0;
 	$::PDLCOREIMPORT = "";  #import list from core, defaults to everything, i.e. use Core
 				#  could be set to () for importing nothing from core. or qw/ barf / for
@@ -37,6 +40,15 @@ sub import {
 	goto &Exporter::import;
 }
 
+sub pp_beginwrap {
+	@::PDL_IFBEGINWRAP = ('BEGIN {','}');
+}
+
+sub pp_setversion {
+	my ($ver) = @_;
+	$::PDLMODVERSION = '$VERSION';
+	$::PDLVERSIONSET = "\$$::PDLPACK\::VERSION = $ver;";
+}
 
 sub pp_addhdr {
 	my ($hdr) = @_;
@@ -190,11 +202,13 @@ use PDL::Core$::PDLCOREIMPORT;
 use PDL::Exporter;
 use DynaLoader;
 
-BEGIN {
+
+$::PDL_IFBEGINWRAP[0]
+   $::PDLVERSIONSET
    \@ISA    = qw( $::PDLPMISA );
-    push \@PDL::Core::PP, __PACKAGE__;
-    bootstrap $::PDLMOD;
-}
+   push \@PDL::Core::PP, __PACKAGE__;
+   bootstrap $::PDLMOD $::PDLMODVERSION;
+$::PDL_IFBEGINWRAP[-1]
 
 $::PDLPM{Top}
 
@@ -799,7 +813,7 @@ sub hdrcheck {
   my $str = '';
   $str .= "{ int i=0; void *hdrp = NULL;\n";
   $str .= join '',map {
-                  "if (!hdrp && !__creating[i++] && $_\->hdrsv)
+                  "if (!hdrp && !__creating[i++] && $_\->hdrsv && ($_\->state & PDL_HDRCPY))
                        hdrp = $_\->hdrsv;\n" } @names;
   $str .= "if (hdrp) {\n";
   $str .= join '',map {
@@ -862,7 +876,7 @@ sub wrap_vfn {
 	my $sname = $hdrinfo->{StructName};
 	my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
 	my $hdrcheck = $name eq "redodims" ?
-	  'if (__tr->pdls[0]->hdrsv)
+	  'if (__tr->pdls[0]->hdrsv && (__tr->pdls[0]->state & PDL_HDRCPY))
 		  __tr->pdls[1]->hdrsv = (void*)
 		      newRV((SV*) SvRV((SV*)__tr->pdls[0]->hdrsv));' :
 			'';
