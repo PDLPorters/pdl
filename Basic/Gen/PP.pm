@@ -397,10 +397,10 @@ $PDL::PP::deftbl =
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
- [[CallCopy], [DimObjs, USParNames, USParObjs, Name], 
+ [[CallCopy], [DimObjs, USParNames, USParObjs, Name, HASP2Child], 
  	sub{ 
-		my ($dimObj, $USParNames, $USParObjs, $Name) = @_;
-
+		my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
+		return 0 if $hasp2c;
 		my $noDimmedArgs = scalar(keys %$dimObj);		
 		my $noArgs = scalar(@$USParNames);		
 		if( $noDimmedArgs == 0 && $noArgs == 2  ){   # Check for 2-arg functgion with 0-dim signatures

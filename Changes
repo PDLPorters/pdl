@@ -1,4 +1,6 @@
 (!!! = possible source of incompatibilities)
+CS	- PP: don't use copy method when HASP2Child
+	- Makefile.PL: no .3 manpages
 CS	- Core: pdl.h dependencies
 	- pdlapi.c: comments and debugging
 	- ops.pd: docs fixes
