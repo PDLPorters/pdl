@@ -679,6 +679,7 @@ sub map {
   my @dd = @sizes;
   splice @dd,$nd; # Cut out dimensions after the end
 
+  ##############################
   # If necessary, generate an appropriate FITS header for the output.
   my $nofits = _opt($opt, ['nf','nofits','NoFITS','p','pix','pixel','Pixel']);
   my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
@@ -756,7 +757,7 @@ sub map {
 	$osize = $omax - $omin;
 	$osize->where($osize == 0) .= 1.0;
       }
-      
+
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);
 
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
@@ -796,7 +797,7 @@ sub map {
 
   $me = !(t_fits($out,{ignore_rgb=>1})) x $me
     unless($nofits);
-
+  
   ##############################
   ## Figure out the interpND options
   my $method = _opt($opt,['m','method','Method']);
@@ -805,11 +806,12 @@ sub map {
 
   ##############################
   ## Non-Jacobian code:
-  ## just transform and interpolate.
+  ## just transform and interpolate. 
+  ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
     my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
-    $out .= $a;
+    $out->(:) .= $a; # trivial slice prevents header overwrite...
     return $out;
   }
 

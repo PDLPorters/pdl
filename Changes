@@ -1,3 +1,6 @@
+CED 8-Apr-2003
+   - Minor fix to Transform::map: if you supply a destination FITS header it
+	replaces the original FITS header in the remapped output.
 CS  Dev.pm: apply Michael Schwern's fix for ExtUtils::LibList
     Makefile.PL, Types.pm.PL: fix race where Types.pm.PL tries to use
         PDL::Config before it is written

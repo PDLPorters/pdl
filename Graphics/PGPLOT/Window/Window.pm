@@ -3703,6 +3703,7 @@ sub initenv{
 	       0.5 * ( $oy0 + $oy1 +  ($ymax - $ymin) * $pix * $wys / $pitch ));
       
       pgsvp($wx0,$wx1,$wy0,$wy1);
+      print "calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
       pgswin($xmin,$xmax,$ymin,$ymax);
       
     } else {
@@ -3729,12 +3730,14 @@ sub initenv{
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
 
+      print "non-j: calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
       pgswin($xx0, $xx1, $yy0, $yy1);
       
     }
     
     
     if (ref($o->{Axis}) eq 'ARRAY') {
+      print "found array ref axis option...\n" if($PDL::Graphics::PGPLOT::debug);
       pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
       pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
