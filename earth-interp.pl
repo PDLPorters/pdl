@@ -28,7 +28,9 @@ $elements = zeroes(4,$nelem);
 $pos = 0;
 foreach $z(@mainlist) {
   $n = $z->dim(1);
-  $elements->(:,$pos:$pos+$n-1) .= $z;
+  $elements->(0:2,$pos:$pos+$n-1) .= $z->(0:2);
+  $elements->((3),$pos:$pos+$n-2) .= $z->((3),1:-1);
+  $elements->((3),$pos+n-1) .= 0;
   $pos += $n;
 }
 

@@ -176,18 +176,12 @@ rather than matrix-multiply-and-add operations.
 =head1 METHODS
 
 =cut
-use PDL::MatrixOps;
-use PDL::NiceSlice;
 
-our $PI = 3.1415926535897932384626;
-our $DEG2RAD = $PI / 180;
-our $RAD2DEG = 180/$PI;
-our $E  = exp(1);
 
 package PDL::Transform;
 use overload '""' => \&_strval;
 
-$VERSION = "0.7";
+$VERSION = "0.8";
 
 BEGIN {
    use Exporter ();
@@ -199,6 +193,12 @@ BEGIN {
 
 use PDL;
 use PDL::MatrixOps;
+use PDL::NiceSlice;
+
+our $PI = 3.1415926535897932384626;
+our $DEG2RAD = $PI / 180;
+our $RAD2DEG = 180/$PI;
+our $E  = exp(1);
 
 use Carp;
 
@@ -593,14 +593,14 @@ sub map {
      
       $jdet = $jac->det;
 
-    ###############
-    ### Singular-value decompose the Jacobian and fatten it to ensure 
-    ### at least one intersection with the grid.  Then save the size
-    ### of the enclosing N-cube, for use down below. 
-    ### This is in a block to get rid of the temporary variables.
-    ###
-    ### smin gets the maximum of itself, unity, and the largest 
-    ### singular value divided by the largest acceptable aspect ratio.
+      ###############
+      ### Singular-value decompose the Jacobian and fatten it to ensure 
+      ### at least one intersection with the grid.  Then save the size
+      ### of the enclosing N-cube, for use down below. 
+      ### This is in a block to get rid of the temporary variables.
+      ###
+      ### smin gets the maximum of itself, unity, and the largest 
+      ### singular value divided by the largest acceptable aspect ratio.
       my ($r1, $s, $r2) = svd $jac;
 
       $jac = undef; # free up jacobian memory
@@ -619,9 +619,10 @@ sub map {
     } # free up all those temporaries 
 
     ###############
-    ### Loop over increasing size, doubling the size each time until
-    ### the very largest pixels are handled.  The largest pixel we
-    ### can handle is the size of the input dataset!
+    ### Loop over increasing size of the input region for each pixel, 
+    ### doubling the size each time until the very largest pixels are 
+    ### handled.  The largest pixel we can handle is the size of the 
+    ### input dataset!
     ###
     ### The sampling is done not on the original image (necessarily) but
     ### rather on a reduced version of the original image.  The amount of
@@ -663,7 +664,7 @@ sub map {
 	$reduction = $reduce;
 	$reduced = $r2;
       }
-      print "  [ reduction = $reduction ]  \n";
+      print "  [ reduction = $reduction ]  \n" if($PDL::debug);
 
       ###############
       ### Enumerate a cube of coordinate offsets of the current size in
@@ -675,7 +676,7 @@ sub map {
       ### Duplicate the coordinate cube for each pixel. 
       print "duplicating ",$pixels->nelem," times..." if($PDL::debug);
       $coords_in = $coords_in->                    # (coord,<dims>)
-		   reorder(1..$nd,0)->             # (<dims>,coord)
+		   mv(0,-1)->                      # (<dims>,coord)
 		   clump($nd)->                    # (rgn-list,coord)
 		   xchg(0,1)->                     # (coord,rgn-list)
 		   dummy(0,$pixels->nelem)->       # (pix-list,coord,rgn-list)
@@ -696,9 +697,9 @@ sub map {
       ### The intermediate variable ijac_p could be eliminated...
       print "calculating offsets..." if($PDL::debug);
       my $ijac_p = ( $ijac->                          # (col, row, list)
-		     reorder(2,0,1)->                 # (list, col, row)
+		     mv(2,0)->                        # (list, col, row)
 		     range($pixels->dummy(0,1))->     # (pix-list, col, row)
-		     reorder(1,2,0) );                # (col, row, pix-list)
+		     mv(0,-1));                       # (col, row, pix-list)
       print " . " if($PDL::debug);
 
       my $offsets = ($ijac_p x                        # (col, row, pix-list)
@@ -733,7 +734,7 @@ sub map {
 			        ->xchg(0,1)          #(coord,pix-list)
 			      ,
 			      $size/$reduction,$bound)->  # (pix-list,<dims>)
-		      reorder(1..$nd,0)->          # (<dims>,pix-list)
+		      mv(0,-1)->                   # (<dims>,pix-list)
 		      clump($nd)                   # (rgn-list,pix-list)
 		      ->sever;
       print "filt dims = (",join(",",$filt->dims),"); input dims = (",join(",",$input->dims),")\n";
@@ -1285,7 +1286,7 @@ The vector to be added to the data after it gets multiplied by the matrix
 (equivalent of CRPIX-1 in FITS, if youre converting from scientific to pixel 
 units).
 
-=item dims, Dims
+=item d, dim, dims, Dims
 
 Most of the time it is obvious how many dimensions you want to deal
 with: if you supply a matrix, it defines the transformation; if you
@@ -1333,7 +1334,7 @@ sub PDL::Transform::Linear::new {
   $me->{params}->{rot} = 0 unless defined($me->{params}->{rot});
   $me->{params}->{rot} = pdl($me->{params}->{rot});
 
-  my $o_dims = _opt($o,['dims','Dims']);
+  my $o_dims = _opt($o,['d','dim','dims','Dims']);
   $o_dims = pdl($o_dims)
     if defined($o_dims);
   
@@ -1383,26 +1384,28 @@ sub PDL::Transform::Linear::new {
     # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
     my $subrot = sub { 
                        my($d,$angle,$m)=@_;
-		       my($subm) = $m->dice($d,$d);
+		       my($i) = identity($m->dim(0));
+		       my($subm) = $i->dice($d,$d);
 
 		       $angle = $angle->at(0)
 			 if(UNIVERSAL::isa($angle,'PDL'));
 
 		       my($a) = $angle * $DEG2RAD;
-		       $subm x= pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
+		       $subm .= $subm x pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
+		       $m .= $m x $i;
 		     };
     
     if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
       if($rot->ndims == 2) {
 	$me->{params}->{matrix} x= $rot;
       } elsif($rot->nelem == 3) {
-	my $rm = zeroes(3,3);
-	$rm->diagonal(0,1)++;
-	
+	my $rm = identity(3);
+
 	&$subrot(pdl(0,1),$rot->at(2),$rm);
 	&$subrot(pdl(2,0),$rot->at(1),$rm);
 	&$subrot(pdl(1,2),$rot->at(0),$rm);
-	$me->{params}->{matrix} x= $rm;
+
+	$me->{params}->{matrix} .= $me->{params}->{matrix} x $rm;
       } else {
 	barf("PDL::Transform::Linear: Got a strange rot option -- giving up.\n");
       }
@@ -1808,9 +1811,13 @@ distance from the input origin.  The logarithmic scaling is useful for
 viewing both large and small things at the same time, and for keeping 
 shapes of small things preserved in the image.
 
-=item o, origin, Origin
+=item o, origin, Origin [default (0,0,0)]
 
 This is the origin of the expansion.  Pass in a PDL or an array ref.
+
+=item u, unit, Unit [default 'radians']
+
+This is the angular unit to be used for the azimuth.  
 
 =back
 
@@ -1866,6 +1873,10 @@ sub PDL::Transform::Radial::new {
   
   $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
   $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+
+  $me->{params}->{u} = _opt($o,['u','unit','Unit']);
+  ### Replace this kludge with a units call
+  $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $RAD2DEG : 1.0;
   
   $me->{name} = "radial (direct)";
   
@@ -1882,7 +1893,7 @@ sub PDL::Transform::Radial::new {
       my($d1) = $d->((1));
 
       # (mod operator on atan2 puts everything in the interval [0,2*PI).)
-      $out->((0)) .= atan2(-$d1,$d0) % (2*$PI);
+      $out->((0)) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
 
       $out->((1)) .= (defined $o->{r0}) ?
 	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
@@ -1899,7 +1910,9 @@ sub PDL::Transform::Radial::new {
 	  ($d->((0))->copy, $d->((1))->copy->dummy(0,2), $d) :
 	  ($d->((0)),       $d->((1))->dummy(0,2),       $d->copy)
 	  );
-      
+
+    $d0 /= $me->{params}->{angunit};
+
     my($os) = $out->(0:1);
     $os .= append(cos($d0)->dummy(0,1),-sin($d0)->dummy(0,1));
     $os *= defined $o->{r0}  ?  ($o->{r0} * exp($d1))  :  $d1;
@@ -2062,6 +2075,9 @@ Spherical acts like a hypercylindrical transform in four (or higher)
 dimensions.  Also as with L<t_radial|Radial>, you must manually specify
 the origin if you want to use more dimensions than 3.
 
+To deal with latitude & longitude on the surface of a sphere (rather than
+full 3-D coordinates), see L<t_unitsphere|t_unitsphere>.
+
 OPTIONS:
 
 =over 3
@@ -2131,7 +2147,7 @@ sub PDL::Transform::Spherical::new {
 	$out->((2)) .= asin($d2 / $out->((0)));
 
 
-	$out->(1:2) *= $o->{angunit}
+	$out->(1:2) /= $o->{angunit}
 	  if(defined $o->{angunit});
 	
 	$out;

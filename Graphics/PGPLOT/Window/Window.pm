@@ -4529,7 +4529,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     
     if(@$in == 3) {
       release_and_barf "lines: inconsistent array refs in \$x,\$y,\$p call\n"
-	if(!((ref $in->[0] eq 'ARRAY') ^ (ref $in->[1] eq 'ARRAY')));
+	if((ref $in->[0] eq 'ARRAY') ^ (ref $in->[1] eq 'ARRAY'));
       
       ($x,$y) =   (ref $in->[0] eq 'ARRAY') ? 
 	($in->[0],$in->[1]) : ([$in->[0]],[$in->[1]]);
@@ -4561,14 +4561,14 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       }
     }
     
-    elsif(@$in == 1) { # $xy,(omitted $p) case 
+    elsif(@$in == 1) { # $xyp or $xy,(omitted $p) case 
       my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
       
       foreach $_(@$a) {
 	push(@$x,$_->((0)));
 	push(@$y,$_->((1)));
+	push(@$p, ($_->dim(0) >= 3) ? $_->((2)) : 1);
       }
-      $p = [1];
     }
     
     else {
@@ -4658,16 +4658,16 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	  my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
 	  my $x0 = float $xx->($pos:$top);
 	  my $y0 = float $yy->($pos:$top);
-	  
+
 	  $self->_set_colour($pv * (defined $o->{Colour} ? $o->{Colour} : 1));
 
 	  ($x0,$y0) = $self->checklog($x0,$y0) if $self->autolog;
 	  
 	  if(defined($miss)) {
 	    my $mpt = defined $miss ? $miss->($pos:$top) : undef;
-	    pggapline($rl,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
+	    pggapline($x0->nelem,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
 	  } else {
-	    pgline($rl,$x0->get_dataref,$y0->get_dataref);
+	    pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref);
 	  }
 	  
 	  $self->hold();
@@ -4682,7 +4682,6 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_add_to_state(\&lines,$in,$opt);
 
     $self->release() unless($held);
-
     &release_signals;
     1;
   }

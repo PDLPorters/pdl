@@ -1,3 +1,7 @@
+CED (19-Dec-2002)
+    - window.pm: Fixed off-by-one bug in ->lines
+    - Transform.pm: Fixed some stuff in t_linear
+    - Added Lib/Transform/Projection.pm
 CED (17-Dec-2002)
     - Minor fixes to Transform.pm
     - Added "lines" to Window.pm
