@@ -1,3 +1,7 @@
+CED (from the distant past)
+    - Added PDL::IO::Dumper, which provides deep data structure storage
+	and retrieval in armored-ASCII format.  Requires Data::Dumper 
+	(from CPAN), FITSIO (also from CPAN), and uuencode(1). 
 CED (13 May 02)
     - Modified legacy rfits/wfits support to handle strings more cleanly
 	(more like Astro::FITS::Header)
