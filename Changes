@@ -1,4 +1,5 @@
 (!!! = possible source of incompatibilities)
+CS  - fix Perl_croak problem with 'usethreading'
 Doug Burke (6/15/00)
     - hand-rolled podselect (podsel) created if perl version earler than
       5.6.0

@@ -192,8 +192,11 @@ $::PDLXS
 BOOT:
    /* Get pointer to structure of core shared C routines */
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+#ifndef aTHX_
+#define aTHX_
+#endif
    if (CoreSV==NULL)
-     Perl_croak("This module requires use of PDL::Core first");
+     Perl_croak(aTHX_ "This module requires use of PDL::Core first");
    PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
      croak("$::PDLMOD needs to be recompiled against the newly installed PDL");
