@@ -296,7 +296,7 @@ sub PDL::IO::Dumper::stringify_PDL{
   my($dmp_elt);
 
   if(defined $PDL::IO::Dumper::stringify_formats{$t}) {
-    $dmp_elt = eval "\sub { sprintf '$PDL::IO::Dumper::stringify_formats{$t}',shift }";
+    $dmp_elt = eval "sub { sprintf '$PDL::IO::Dumper::stringify_formats{$t}',shift }";
   } else {
     if(!$PDL::IO::Dumper::stringify_warned) {
       cluck("PDL::IO::Dumper:  Warning, stringifying a '$t' PDL using default method\n\t(Will be silent after this)\n");
@@ -423,7 +423,7 @@ string.  You shouldn't call this unless you know what you're doing.
 
 sub PDL::IO::Dumper::find_PDLs {
   local($_);
-  my($out);
+  my($out)="";
   my($sp) = shift;
 
   findpdl:foreach $_(@_) {
