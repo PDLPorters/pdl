@@ -344,7 +344,8 @@ Engine for L<range|/range>
 =for example
 
 Same calling convention as L<range|/range>, but you must supply all
-parameters.  
+parameters.  C<rangeb> is marginally faster as it makes a direct PP call,
+avoiding the perl argument-parsing step. 
 
 =cut
 
@@ -367,7 +368,12 @@ the location(s) to extract.
 B<INPUTS>
 
 C<$index> and C<$size> can be piddles or array refs such as you would
-feed to L<zeroes|/zeroes> and its ilk.
+feed to L<zeroes|/zeroes> and its ilk.  If C<$index>'s 0th dimension
+has order higher than the number of dimensions in C<$source>, then
+C<$source> is treated as though it had trivial dummy dimensions of
+order 1, up to the required size to be indexed by C<$index> -- so if
+your source array is 1-D and your index array is a list of 3-vectors, 
+you get two dummy dimensions of order 1 on the end of your source array.
 
 You can extract single elements or N-D rectangular ranges from C<$source>,
 by setting C<$size>.  If C<$size> is undef or zero, then you get a single
@@ -380,8 +386,8 @@ C<$size> can be a scalar, in which case it applies to all dimensions, or an
 N-vector, in which case each element is applied independently to the 
 corresponding dimension in C<$source>.  See below for details.
 
-$boundary is a number, string, or list ref indicating the type of 
-boundary conditions to use when ranges reach the edge of $source.  If you
+C<$boundary> is a number, string, or list ref indicating the type of 
+boundary conditions to use when ranges reach the edge of C<$source>.  If you
 specify no boundary conditions the default is to forbid boundary violations
 on all axes.  If you specify exactly one boundary condition, it applies to 
 all axes.  If you specify more (as elements of a list ref, or as a packed
@@ -446,7 +452,7 @@ The middle few dims of the output correspond to the size dims
 specified in C<$size>, and contain the range of values that is extracted
 at each location in C<$source>.  Every nonzero element of C<$size> is copied to
 the dimension list here, so that if you feed in (for example) C<$size
-= (2,0,1)> you get an index dim list of C<(2,1)>.
+= [2,0,1]> you get an index dim list of C<(2,1)>.
 
 The last few dims of the output correspond to extra dims of C<$source> beyond
 the number of dims indexed by C<$index>.  These dims act like ordinary 
@@ -1483,7 +1489,13 @@ pp_def(
 	Doc => << 'EOD',
 =for ref
 
-Returns a rectangular slice of the original piddle
+Extract a rectangular slice of a piddle, from a string specifier.
+
+C<slice> was the original Swiss-army-knife PDL indexing routine, but is
+largely superseded by the L<NiceSlice|/PDL::NiceSlice> source prefilter
+and its associated L<nslice|/nslice> method.  It is still used as the
+basic underlying slicing engine for L<nslice|/nslice>, and is especially
+useful in particular niche applications.
 
 =for example
 

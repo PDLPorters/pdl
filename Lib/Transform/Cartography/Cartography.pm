@@ -160,7 +160,7 @@ component of the origin, and in fact overrides it.
 The "P" (or position) angle of the body -- used for extraterrestrial maps.
 This parameter is a synonym for the roll angle, above.
 
-=item b, bad, Bad, missing, Missing [default nan]
+=item bad, Bad, missing, Missing [default nan]
 
 This is the value that missing points get.  Mainly useful for the
 inverse transforms.  (This should work fine if set to BAD, if you have
@@ -246,7 +246,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -2033,6 +2033,8 @@ sub t_az_eqa {
 
 ######################################################################
 
+=head2 t_aitoff 
+
 =head2 t_hammer
 
 =for ref
@@ -2052,6 +2054,8 @@ OPTIONS
 =item STANDARD POSITIONAL OPTIONS
 
 =cut
+
+*t_aitoff = \&t_hammer;
 
 sub t_hammer {
   my($me) = _new(@_,"Hammer/Aitoff Projection");
@@ -2114,7 +2118,7 @@ sub t_hammer {
 Vertical perspective projection is a generalization of L<gnomonic|/t_gnomonic>
 and L<stereographic|/t_stereographic> projection, and a special case of 
 L<perspective|/t_perspective> projection.  It is a projection from the 
-sphere onto a focal plane at the camera location.
+sphere onto a focal plane at the camera location.  
 
 OPTIONS
 
@@ -2334,6 +2338,9 @@ refractive telescope is roughly twice its physical length divided by
 its focal length.  Simple optical sytems with a single optic have
 magnification = 1.  Fisheye lenses have magnification < 1.
 
+This transformation was derived by direct geometrical calculation
+rather than being translated from Voxland & Snyder.
+
 OPTIONS
 
 =over 3
@@ -2352,7 +2359,8 @@ The pointing direction, in (horiz. offset, vert. offset, roll) of the
 camera relative to the center of the sphere.  This is a spherical
 coordinate system with the origin pointing directly at the sphere and
 the pole pointing north in the pre-rolled coordinate system set by the
-standard origin.
+standard origin.  It's most useful for space-based images taken some distance
+from the body in question (e.g. images of other planets or the Sun).
 
 Be careful not to confuse 'p' (pointing) with 'P' (P angle, a standard
 synonym for roll).
@@ -2365,7 +2373,9 @@ coordinate system with poles at the zenith (positive) and nadir
 the point of view is near the surface of the sphere.  You specify
 (azimuth from N, altitude from horizontal, roll from vertical=up).  If
 you specify pointing by this method, it overrides the 'pointing'
-option, above.
+option, above.  This coordinate system is most useful for aerial photography
+or low-orbit work, where the nadir is not necessarily the most interesting
+part of the scene.
 
 =item r0, R0, radius, d, dist, distance [default 2.0] 
 
@@ -2390,7 +2400,6 @@ amount of tangent-plane distortion within the telescope.
 telescopic, while lower values are wide-angle (fisheye).  Higher 
 magnification leads to higher angles within the optical system, and more 
 tangent-plane distortion at the edges of the image.  
-
 The magnification is applied to the incident angles themselves, rather than
 to their tangents (simple two-element telescopes magnify tan(theta) rather
 than theta itself); this is appropriate because wide-field optics more
@@ -2414,7 +2423,6 @@ horizontal 'radius' and vertical 'radius' set separately.
 
 =back
 
-
 EXAMPLES
 
 Model a camera looking at the Sun through a 10x telescope from Earth
@@ -2432,20 +2440,11 @@ latitude:
 	     CRPIX1=>3601,CRPIX2=>1801,            # Center of map
 	     CRVAL1=>0,CRVAL2=>0                   # (lon,lat) of center 
 	     };
-  
-  # Set up camera transformation
+
+  # Set up the perspective transformation, and apply it.
   $t = t_perspective(r0=>229,fov=>0.5,mag=>10,P=>30,B=>-7);
+  $map = $im->map( $t , $maphdr );
 
-  # Use the compound transform to generate a pixel map, and set the header
-  $map = $im->map( !(t_fits($maphdr)) x $t x (t_fits($im->hdr)) );
-  $map->sethdr($maphdr);
-
-Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
-(since the telescope is looking at the Celestial sphere, r is 0 and this
-is just an expensive modified-gnomonic projection).
-
-  $t = t_perspective(r0=>0,fov=>10,mag=>5,o=>[88.79,7.41])
-  
 Draw an aerial-view map of the Chesapeake Bay, as seen from a sounding
 rocket at an altitude of 100km, looking NNE from ~200km south of
 Washington (the radius of Earth is 6378 km; Washington D.C. is at
@@ -2458,6 +2457,14 @@ roughly 77W,38N).  Superimpose a linear coastline map on a photographic map.
   $w->hold;
   $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees'});
   $w->release;
+
+Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
+(since the telescope is looking at the Celestial sphere, r is 0 and this
+is just an expensive modified-gnomonic projection).
+
+  $t = t_perspective(r0=>0,fov=>10,mag=>5,o=>[88.79,7.41])
+  
+
 
 =cut
 

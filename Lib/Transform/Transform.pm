@@ -508,17 +508,17 @@ This parameter overrides C<irange>, if both are specified.
 This option controls the interpolation method to be used.  Interpolation
 greatly affects both speed and quality of output.  Possible options, in order
 from fastest to slowest, are:
-  
-=over 3
 
-=item s, sample (default for integers)
+=over 3
+  
+=item * s, sample (default for integers)
 
 Pixel values in the output plane are sampled from the closest data value
 in the input plane.  This is very fast but not very accurate for either 
 magnification or decimation (shrinking).  It is the default for templates
 of integer type.
 
-=item l, linear (default for floats)
+=item * l, linear (default for floats)
 
 Pixel values are linearly interpolated from the closst data value in the 
 input plane.  This is reasonably fast but only accurate for magnification.
@@ -526,13 +526,15 @@ Decimation (shrinking) of the image causes aliasing and loss of photometry
 as features fall between the samples.  It is the default for floating-point
 templates.
 
-=item j, jacobian
+=item * j, jacobian
 
 Pixel values are filtered through a spatially-variable filter tuned to the
 computed Jacobian of the transformation.  This is the mathematically
 correct way to deform images and yields very good results -- but 
 at a cost.  It runs perhaps 10 times slower than linear interpolation.
 See the notes on Jacobian tracking, below.
+
+=back
 
 =item e, ecc, eccentricity, Eccentricity (default=4)
 

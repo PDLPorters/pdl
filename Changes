@@ -1,3 +1,5 @@
+CED 15-Apr-2003
+   - Cleaned up a lot of documentation
 CED 14-Apr-2003
    - By request, headers are now deep-copied recursively.
    - Removed a debugging printf in PP.pm
