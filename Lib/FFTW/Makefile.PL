@@ -98,37 +98,40 @@ BEGIN {
 	$donot = 1;
 	$wanted_not_found = 0;
 	
-	if ($found_float ne 'none') {
-	  if ($want_double!=1) {
-	    $include = $found_float;
-	    $msn .= "Building single version\n";
-	    $pdltype = 'PDL_F'; 
-	    $lib = $single_lib;
-	    $rinclude = $single_rinclude;
-	    $out = '$fftwtype=\'float\'';
-	    $donot = 0;
-	  }
-	  else {$wanted_not_found=1;}
-	}
-	elsif ($found_double ne 'none') {
-	  if ($want_float!=1) {
-	    $include = $found_double;
-	    $msn .= "Building double version\n";
-	    $pdltype = 'PDL_D'; 
-	    $lib = $double_lib;
-	    $rinclude = $double_rinclude;
-	    $out = '$fftwtype=\'double\'';
-	    $donot = 0;
-	  }
-	  else {$wanted_not_found=1;}
-	}
-	else {
-	  $donot=1;
-	  $msg .= "\n Skipping build of PDL::FFTW.\n";
-	  if ($wanted_not_found) {  $msg .= "Didn't find wanted version!\n";}
-	}
+        # want float, found float
+        if ($found_float ne 'none' && $want_float ) {
+            $include = $found_float;
+            print "Building single version\n";
+            $pdltype = 'PDL_F'; 
+            $lib = $single_lib;
+            $rinclude = $single_rinclude;
+            $out = '$fftwtype=\'float\'';
+            $donot = 0;
+        }
+
+        # want double, found double
+        elsif ($found_double ne 'none' && $want_double ) {
+            $include = $found_double;
+            print "Building double version\n";
+            $pdltype = 'PDL_D'; 
+            $lib = $double_lib;
+            $rinclude = $double_rinclude;
+            $out = '$fftwtype=\'double\'';
+            $donot = 0;
+        }
 
 
+        if ( $donot )   {
+
+          $msg .= "\n Skipping build of PDL::FFTW.\n";
+
+          # maybe we found something, but it wasn't what was wanted...
+          if ( $found_double ne 'none' )
+            { $msg .= "Found double version, wanted float!\n" }
+
+          if ( $found_float ne 'none' )
+            { $msg .= "Found float version, wanted double!\n" }
+        }
 
 skip:
 
