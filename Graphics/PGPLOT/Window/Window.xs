@@ -54,7 +54,7 @@ static I32 PGPLOT_structure_version = 20000302;  /* The date the PGPLOT structur
 static PGPLOT_function_handle  *myhandle;
 SV *ptr;
 
-MODULE = PDL::Graphics::PGPLOT     PACKAGE = PDL::Graphics::PGPLOT 
+MODULE = PDL::Graphics::PGPLOT::Window     PACKAGE = PDL::Graphics::PGPLOT::Window 
 
 void
 pggapline(n,msgval,xpts,ypts)
