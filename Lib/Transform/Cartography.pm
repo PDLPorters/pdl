@@ -44,8 +44,8 @@ parallels in all the projections.
 
 The transformations that are authalic (equal-area), conformal
 (equal-angle), azimuthal (circularly symmetric), or perspective (true
-perspective on a focal plane from some viewpoint) are marked.  These
-categories are mutually exclusive for all but the L<t_unit_sphere|unit
+perspective on a focal plane from some viewpoint) are marked.  The first
+two categories are mutually exclusive for all but the L<t_unit_sphere|unit
 sphere> 3-D projection.
 
 Extra dimensions tacked on to each point to be transformed are, in
@@ -109,8 +109,8 @@ there's no such thing as a free lunch!
 Because many solar-system objects are spherical,
 PDL::Transform::Cartography includes perspective projections for
 producing maps of spherical bodies from perspective views.  Those
-projections are C<"t_vertical"|t_vertical> and
-C<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
+projections are L<"t_vertical"|t_vertical> and
+L<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
 spherical body and planar projected coordinates at the viewpoint.  
 L<"t_vertical"|t_vertical> is the vertical perspective projection 
 given by Snyder, but L<"t_perspective"|t_perspective> is a fully
@@ -2136,7 +2136,7 @@ Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
 (since the telescope is looking at the Celestial sphere, r is 0 and this
 is just an expensive modified-gnomonic projection).
 
-  $t = t_perspective(r0=>0,fov=>10,mag=>30,o=>[88.79,7.41])
+  $t = t_perspective(r0=>0,fov=>10,mag=>5,o=>[88.79,7.41])
   
 Draw an aerial-view map of the Chesapeake Bay, as seen from a sounding
 rocket at an altitude of 100km, looking NNE from ~200km south of
@@ -2145,9 +2145,9 @@ roughly 77W,38N).  This one is pretty wasteful since it uses the
 global coastline map and chucks everything but a tiny subset.
 
   $a = graticule(1,0.1)->glue(1,earth_coast());
-  $t = t_perspective(r0=>6478/6378.0,fov=>30,cam=>[22.5,-20],o=>[-77,36])
+  $t = t_perspective(r0=>6478/6378.0,fov=>60,cam=>[22.5,-20],o=>[-77,36])
   $w = pgwin(size=>[10,6],J=>1);
-  $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees');
+  $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees'});
 
 =cut
 
