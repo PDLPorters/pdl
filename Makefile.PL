@@ -7,35 +7,13 @@ $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 BEGIN{
   eval "use 5.6.0";
   die "\nPDL requires Perl v5.6.0 or later\n\n" if $@ ne "";
-  my @hasnt = ();
+  @hasnt = ();
   my @test = (['Filter::Util::Call','Filter'],
 	      ['Text::Balanced','Text::Balanced'],
 	     );
   for my $mod (@test) {
     eval "use $mod->[0]";
     push @hasnt, $mod->[1] if $@;
-  }
-  if (@hasnt) {
-    print << 'EOP';
-
-************************************************************
-Your installation won't be functional since it lacks
-certain modules. As a result the vital PDL::NiceSlice
-module will not work.
-
-Please install the following module(s) [available from CPAN]
-
-EOP
-
-    for (@hasnt) { print "\t$_\n" }
-
-
-    print << 'EOP';
-
-************************************************************
-EOP
-
-    exit;
   }
 } # end BEGIN
 
@@ -361,3 +339,27 @@ sub MY::test {
 	return join("\n", @new,"\n");
 }
 
+END {
+    if (@hasnt) {
+      print << 'EOP';
+
+********************************************************
+* IMPORTANT: Your installation will not work since it  *
+* lacks critical modules.                              *
+* ALL TESTS WILL FAIL UNLESS YOU IMMEDIATELY           *
+* INSTALL THE FOLLOWING MODULES [available from CPAN]: *
+*
+EOP
+
+    for (@hasnt) { print "*\t$_\n" }
+
+
+    print << 'EOP';
+*                                                      *
+********************************************************
+
+EOP
+
+  }
+
+}
