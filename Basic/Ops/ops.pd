@@ -42,6 +42,7 @@ sub biop {
   }
 EOH
         }
+	# quick and dirty solution to get ->inplace do its job
 	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
@@ -59,11 +60,15 @@ $doc
 
 =for example
 
-   \$c = $name \$a, \$b;
-   \$c = \$a $op \$b;
+   \$c = $name \$a, \$b, 0;     # explicit call with trailing 0
+   \$c = \$a $op \$b;           # overloaded call
+   \$a->inplace->$name(\$b,0);  # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the binary C<$optxt> operator.
+Note that when calling this function explicitly you need to supply
+a third argument that should generally be zero (see first example).
+This restriction is expected to go away in future releases.
 EOD
 }
 
@@ -80,6 +85,7 @@ sub bifunc {
   }
 EOH
         }
+	# quick and dirty solution to get ->inplace do its job
 	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
@@ -98,10 +104,15 @@ $doc
 
 =for example
 
-   \$c = $name \$a, \$b;
+   \$c = \$a->$name(\$b,0); # explicit function call
+   \$c = $name \$a, \$b;    # overloaded use
+   \$a->inplace(\$b,0);     # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the binary C<$func> function.
+Note that when calling this function explicitly you need to supply
+a third argument that should generally be zero (see first example).
+This restriction is expected to go away in future releases.
 EOD
 }
 
@@ -125,6 +136,7 @@ $doc
 =for example
 
    \$b = $func \$a;
+   \$a->inplace->$func;  # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the unary C<$func> operator/function.

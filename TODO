@@ -1,4 +1,11 @@
--- update the TODO list
+CURRENT PRIORITIES:
+
+- get rid of barf!
+- get rid of 'swap' parameter when calling bifuncs explicitly
+- lvalue stuff for perl 5.6
+- overhaul core interfaces, move drepecated interfaces into own module
+
+OLDER STUFF (still valid?):
 
 Change?: tridgallery depends on m51.fits
 
@@ -10,6 +17,8 @@ Change?: tridgallery depends on m51.fits
                         and perplexing Thoughts.
 
    Karl Glazebrook, AAO, 2/Oct/1996. [kgb@aaoepp.aao.gov.au]
+
+-- update the TODO list
 
 SuperHyperCritical:
 ----

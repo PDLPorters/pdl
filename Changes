@@ -1,5 +1,8 @@
 (!!! = possible source of incompatibilities)
-
+CS	- correct PDL::Ops docs
+	- fix problem in pdl_croak_param (pdlthread.c) due to changes
+		in Perl_mess in perl 5.6
+	- update TODO
 zowie   - Autoloader update (handles '+' for entire dir trees)
 	- Graphics::PGPLOT::imag update (includes options for image scaling)
 	- perldl update (minor fix to avoid null code ref bug in PDL::myeval)

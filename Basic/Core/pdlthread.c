@@ -359,6 +359,8 @@ calc_offs:
 	return stopdim+1;
 }
 
+/* prototype, defined in pdlcore.c */
+char *pdl_mess(const char *pat, va_list *args);
 void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 {
 	va_list args;
@@ -366,8 +368,11 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 	static char mesgbuf[200];
       static char argsbuf[256], *argb;
       int i, k, l;
+      SV *msv;
+
 	va_start(args,pat);
-	message = mess(pat,&args);
+	/* was Perl_mess before; Perl_mess has changed between 5.00X and 5.6 */
+	message = pdl_mess(pat,&args);  /* barf dependence !!!! */
 	/* Now, croak() overwrites this string. make a copy */
 	strcpy(mesgbuf,message); message = mesgbuf;
 	va_end(args);
@@ -396,8 +401,18 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
                 }
               }
               *--argb = '\0';
+/* this needs to be sorted: barf stuff ?? */
+#ifdef croak
+#define tcroak croak
+#define croak Perl_croak
+#endif
               croak("PDL: %s(%s): Parameter '%s'\n%s\n",
                     info->funcname,argsbuf,name,message);
+#ifdef tcroak
+#undef croak
+#define croak tcroak
+#undef tcroak
+#endif
 	}
 }
 
