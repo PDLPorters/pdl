@@ -346,6 +346,9 @@ Lib/Makefile.PL
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
+Lib/RandVar.pm
+Lib/RandVar/Sobol.pm
+Lib/RandVar/Histogram.pm
 Lib/Slatec/Makefile.PL
 Lib/Slatec/slatec.pd
 Lib/Slatec/slatec/chfcm.P
@@ -658,6 +661,7 @@ t/pptest.t
 t/primitive.t
 t/primitive2.t
 t/pthread.t
+t/randvar.t
 t/reduce.t
 t/refs.t
 t/scope.t
