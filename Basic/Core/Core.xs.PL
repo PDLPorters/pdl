@@ -1132,12 +1132,24 @@ sethdr(p,h)
 	SV *h
 	CODE:
 	HV* hash;
-		if(p->hdrsv == NULL) {
-		      p->hdrsv = (void*) newSViv(0);
-		}
-		if (!SvROK(h) || SvTYPE(SvRV(h)) != SVt_PVHV)
+		if(p->hdrsv == NULL) {             
+		      p->hdrsv =  &PL_sv_undef; /*(void*) newSViv(0);*/
+		} 
+
+		/* Throw an error if we're not either undef or hash */
+                if ( (h != &PL_sv_undef && h != NULL) && 
+		     ( !SvROK(h) || SvTYPE(SvRV(h)) != SVt_PVHV )
+		   ) 
 		      croak("Not a HASH reference");		
-		p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
+
+		/* Clear the old header */
+		SvREFCNT_dec(p->hdrsv);
+
+		/* Put the new header (or undef) in place */
+		if(h == &PL_sv_undef || h == NULL)
+		   p->hdrsv = NULL;
+		else  
+		   p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
 SV *
 gethdr(p)
