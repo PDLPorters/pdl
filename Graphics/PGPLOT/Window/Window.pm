@@ -223,6 +223,23 @@ the default colour map):
   5 - CYAN     6 - MAGENTA   7 - YELLOW   8 - ORANGE  14 - DARKGRAY
  16 - LIGHTGRAY
 
+However there is a much more flexible mechanism to deal with colour.
+The colour can be set as a 3 or 4 element anonymous array (or piddle)
+which gives the RGB colours. If the array has four elements the first
+element is taken to be the colour index to change. For normal work you
+might want to simply use a 3 element array with R, G and B values and
+let the package deal with the details. The R,G and B values go from 0
+to 1.
+
+In addition the package will also try to interpret non-recognised
+colour names using the default X11 lookup table, normally using the
+C<rgb.txt> that came with PGPLOT.
+
+For more details on the handling of colour it is best that the user
+consults the PGPLOT documentation. Further details on the handling of
+colour can be found in the documentation for the internal routine
+L<_set_colour|/_set_colour>.
+
 =item filltype
 
 Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
@@ -1936,7 +1953,7 @@ sub _setup_window {
   my ($hcopy, $len);
   my $wo = $self->{PlotOptions}->defaults();
 
-  pgsci($wo->{Colour});
+  $self->_set_colour($wo->{Colour});
   pgask(0);
 
 }
@@ -2571,6 +2588,111 @@ sub _retrieve {
 # Options parser #
 ##################
 
+
+
+=head2 _set_colour
+
+This is an internal routine that encapsulates all the nastiness of
+setting colours depending on the different PGPLOT colour models (although
+HLS is not supported).
+
+The routine works in the following way:
+
+=over 8
+
+=item At initialisation of the plot device the work colour index is set
+to 16. The work index is the index the routine will modify unless the
+user has specified something else.
+
+=item The routine should be used after standard interpretation and synonym
+matching has been used. So if the colour is given as input is an integer
+that colour index is used.
+
+=item If the colour is a reference the routine checks whether it is an
+C<ARRAY> or a C<PDL> reference. If it is not an error message is given.
+If it is a C<PDL> reference it will be converted to an array ref.
+
+=item If the array has four elements the first element is interpreted
+as the colour index to modify and this overrules the setting for the
+work index used internally. Otherwise the work index is used and incremented
+until the maximum number of colours for the output device is reached
+(as indicated by C<pgqcol>). Should you wish to change that you need
+to read the PGPLOT documentation - it is somewhat device dependent.
+
+=item When the array has been recognised the R,G and B colours of the
+user-set index or work index is set using the C<pgscr> command and we
+are finished.
+
+=item If the input colour instead is a string we try to set the colour
+using the PGPLOT routine C<pgscrn> with no other error-checking. This
+should be ok,  as that routine returns a rather sensible error-message.
+
+=back
+
+=cut
+
+{
+  my $work_ci = 16;
+
+  sub _set_colour {
+    my $self = shift;
+    my ($col) = @_;
+
+    # The colour index to use for user changes.
+    # This is increased until the max of the colour map.
+    # I don't know if this can change, but let's not take any
+    # chances.
+    my ($min_col, $max_col);
+    pgqcol($min_col, $max_col);
+
+    #
+    # Extended treatment of colours - added 2/10/01 JB.
+    #
+    if (ref($col)) {
+      if ((ref($col) eq 'PDL') or (ref($col) eq 'ARRAY')) {
+	my @colvals = (ref($col) eq 'PDL' ? list($col) : @{$col});
+	my ($r, $g, $b)=@colvals;
+	my $index = $work_ci;
+	if ($#colvals == 3) {
+	  # This is a situation where the first element is interpreted
+	  # as a PGPLOT colour index, otherwise we'll use our own
+	  # strategy to step through indices.
+	  ($index, $r, $g, $b)=@colvals;
+	} else {
+  	  $work_ci += 1;
+	  # NB this does not work on devices with < 16 colours.
+	  $work_ci = 16 if $work_ci > $max_ci;
+	}
+	pgscr($index, $r, $g, $b);
+	pgsci($index);
+      } else {
+	warn "The colour option must be a number, string, array or PDL!\n";
+      }
+    } else {
+      # Now check if this is a name that could be recognised by pgscrn.
+      # To simplify the logic we first check if $col is a digit.
+      if ($col =~ m/^\s*\d+\s*$/) { 
+	pgsci($col);
+      } else {
+	#
+	# Ok, we either have an untranslated colour name or something
+	# bogus - let PGPLOT deal with that!
+	#
+	my $ier;
+	pgscrn($work_ci, $col, $ier);
+	pgsci($work_ci);
+	$work_ci += 1;
+	# NB this does not work on devices with < 16 colours.
+	$work_ci = 16 if $work_ci > $max_ci;
+      }
+    }
+
+
+  }
+
+}
+
+
 =head2 _standard_options_parser
 
 This internal routine is the default routine for parsing options. This
@@ -2585,16 +2707,13 @@ sub _standard_options_parser {
   my $self=shift;
   my ($o)=@_;
 
-#  print "Standard options parser: Font set to: $$o{Font}\n";
-
   #
   # The input hash has to contain the options _set by the user_
   #
-  pgsci($o->{Colour})	  if exists($o->{Colour});
+  $self->_set_colour($o->{Colour}) if (exists($o->{Colour}));
   pgsls($o->{LineStyle})  if exists($o->{LineStyle});
   pgslw($o->{LineWidth})  if exists($o->{LineWidth});
   pgscf($o->{Font})	  if exists($o->{Font});
-#  print "The character size is $$o{CharSize}\n";
   pgsch($o->{CharSize})	  if exists($o->{CharSize});
   pgsfs($o->{Fill})	  if exists($o->{Fill});
 #  pgsch($o->{ArrowSize})  if exists($o->{ArrowSize});
@@ -2703,7 +2822,7 @@ sub initenv{
   # Save current colour and set the axis colours
   my ($col);
   pgqci($col);
-  pgsci($o->{AxisColour});
+  $self->_set_colour($o->{AxisColour});
   # Save current font size and set the axis character size.
   my ($chsz);
   pgqch($chsz);
@@ -2791,7 +2910,7 @@ sub initenv{
   $self->label_axes($u_opt);
 
   #  pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
-  pgsci($col);
+  $self->_set_colour($col);
   pgsch($chsz);
 
 #  $self->{_env_set}[$self->{CurrentPanel}]=1;
@@ -2820,7 +2939,7 @@ sub redraw_axes {
   } else {
     $o=$self->{Options}->defaults();
   }
-  pgsci($o->{AxisColour});
+  $self->_set_colour($o->{AxisColour});
   my ($chsz);
   pgqch($chsz);
   pgsch($o->{CharSize});
@@ -2833,7 +2952,7 @@ sub redraw_axes {
       pgbox($axval,0,0,$axval,0,0);
     }
   }
-  pgsci($col);
+  $self->_set_colour($col);
   pgsch($chsz);
 
   $self->_add_to_state(\&redraw_axes);
@@ -3298,14 +3417,14 @@ sub env {
 
       my $dum;
       pgqci($dum);
-      pgsci($labelcolour);
+      $self->_set_colour($labelcolour);
       foreach $label (@{$labels}) {
 	pgconl( $image->get_dataref, $nx,$ny,1,$nx,1,$ny,
 		$contours->slice("($count)"),
 		$tr->get_dataref, $label, $intval, $minint);
 	$count++;
       }
-      pgsci($dum);
+      $self->_set_colour($dum);
     } elsif (defined($labels)) {
       #
       #  We must have had the wrong number of labels
@@ -3753,7 +3872,7 @@ sub arrow {
 	$self->_save_status();
 
 	# we use the colour/size of the axes here
-	pgsci($wo->{AxisColour});
+	$self->_set_colour($wo->{AxisColour});
 	pgsch($wo->{CharSize});
 
 	# draw the wedge
@@ -3930,7 +4049,7 @@ sub arrow {
 	  $self->clear_state();
 	  pgpage();
 	}
-	pgsci($wo->{AxisColour});
+	$self->_set_colour($wo->{AxisColour});
 	pgvstd;			## Change this to use the margins for display!
 
 	## Set the window to the correct number of pixels for the
@@ -3942,7 +4061,7 @@ sub arrow {
 				 ($y1-$y0)*$pitch, 
 				 $self->{Options}->options($opt));
 #	$self->{_env_set}[$self->{CurrentPanel}]=1;
-	pgsci($col);
+	$self->_set_colour($col);
       } else {
 	# Scale the image correctly even with rotation by calculating the new
 	# corner points
@@ -4623,7 +4742,7 @@ sub poly {
 					Colour => $color->[$i]
 				      });
       my $col; pgqci($col);
-      pgsci($t_o->{Colour}) if defined($color->[$i]);
+      $self->_set_colour($t_o->{Colour}) if defined($color->[$i]);
       my ($lw, $ls);
       pgqls($ls); pgqlw($lw);
 
@@ -4643,7 +4762,7 @@ sub poly {
 	pgslw($t_o->{LineWidth}) if defined($linewidth->[$i]);
 	pgline(2, [$xstart, $xend], [$yline, $yline]);
       }
-      pgsci($col); # Reset colour after each line so that the text comes
+      $self->_set_colour($col); # Reset colour after each line so that the text comes
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
