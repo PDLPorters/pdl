@@ -619,6 +619,7 @@ t/slice.t
 t/subclass.t
 t/subclass2.t
 t/subclass3.t
+t/subclass4.t
 t/thread.t
 t/thread_def.t
 t/trig.t
