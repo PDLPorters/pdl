@@ -87,29 +87,6 @@ print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
 # into Basic/Core, so we clean it up here
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
-# Ouch .... there should be a better fix than this ??
-# dmake (Win32) apparently doesn't know it should extract Core.xs,
-# pdlcore.c and pdlconv.c - so we'll do it now.
-
-if($Config{make} eq 'dmake') {
-
-  # First - place Types.pm and Dev.pm where they can be found.
-  if(system "mkdir tempo"){warn "Failed to create tempo folder in Basic/Core/"};
-  if(system "mkdir tempo\\PDL") {warn "Failed to create tempo/PDL/ folder in Basic/Core/"};
-  if(system "mkdir tempo\\PDL\\Core") {warn "Failed to create tempo/PDL/Core/ folder in Basic/Core"};
-  if(system "copy Types.pm tempo\\PDL\\Types.pm") {die "Failed to copy Types.pm"}
-  if(system "copy Dev.pm tempo\\PDL\\Core\\Dev.pm") {die "Failed to copy Dev.pm"}
-
-  # Now extract the 3 problem files
-  if(system "perl -Mlib=tempo Core.xs.PL") {die "Failed to extract Core.xs"}
-  if(system "perl -Mlib=tempo pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
-  if(system "perl -Mlib=tempo pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
-
-  # Remove the 2 files and folders now that Core.xs, pdlcore.c and pdlconv.c
-  # have been extracted.
-  system "rmdir /S /Q tempo";
-  }
-
 use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
@@ -164,8 +141,63 @@ sub MY::xs_o {
       }
 }
 
+sub MY::processPL {
+    if($Config{make} eq 'dmake') {
+    my($self) = shift;
+    return "" unless $self->{PL_FILES};
+    my(@m, $plfile);
+    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+        my $list = ref($self->{PL_FILES}->{$plfile})
+                ? $self->{PL_FILES}->{$plfile}
+                : [$self->{PL_FILES}->{$plfile}];
+        my $target;
+        foreach $target (@$list) {
+        push @m, "
+all :: $target
+	\$(NOECHO) \$(NOOP)
+
+$target :
+	\$(PERLRUNINST) $plfile $target
+";
+        }
+    }
+    join "", @m;
+    }
+   else {
+    package MY;
+    my $self = shift;
+    return $self->SUPER::processPL;
+    }
+}
 
 sub MY::postamble {
+
+if($Config{make} eq 'dmake') { return
+
+PDL::Core::Dev::postamble().
+"
+
+Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
+. make_from_PL('Core.pm')
+."
+
+pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+. make_from_PL( 'pdl.h' )
+."
+
+pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
+. make_from_PL( 'pdlsimple.h' )
+."
+
+pdlcore.h:: pdlcore.h.PL Types.pm\n"
+. make_from_PL( 'pdlcore.h' )
+.
+q|
+
+pdlsections.c: pdlsections.g Types.pm
+       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
+|;
+}else { return
 PDL::Core::Dev::postamble().
 "
 # Bits of C code we generate from special perl scripts
@@ -203,8 +235,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 ($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g Types.pm
-       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
+	$(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 | : '');
 }
-
-
+}
