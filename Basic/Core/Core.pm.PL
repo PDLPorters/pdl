@@ -947,7 +947,7 @@ my %info = (
 			       $state .= '-' if $state eq '';   # lazy eval
 			       $state .= 'C' if $_[0]->anychgd;
 !NO!SUBS!
-    print OUT "	       \$state .= 'B' if \$_[0]->baddata;\n" if $bvalflag;
+    print OUT "	       \$state .= 'B' if \$_[0]->badflag;\n" if $bvalflag;
     print OUT <<'!NO!SUBS!';
 			       $state;
 			     },
@@ -1589,7 +1589,7 @@ sub string {
 !NO!SUBS!
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
-	if ( $self->baddata() and $self->isbad() ) {
+	if ( $self->badflag() and $self->isbad() ) {
 	    return "BAD";
 	} else {
 	    my @x = $self->at();
@@ -2022,7 +2022,7 @@ sub str1D {
 !NO!SUBS!
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
-    my $badflag = $self->baddata();
+    my $badflag = $self->badflag();
     my $badval  = $self->badvalue();
     for $t (@$x) {
 	if ( $badflag and $t == $badval ) {
@@ -2071,7 +2071,7 @@ sub str2D{
 !NO!SUBS!
 
     if ( $bvalflag ) { print OUT 
-'    my $badflag = $self->baddata();
+'    my $badflag = $self->badflag();
     my $badval  = $self->badvalue();
 ';
 }

@@ -4,22 +4,6 @@ Problems:
 
 .) get the tests fixed
 
-.) '$i = ($i < 20) * double->badvalue + $i'  when $i is not bad does
-   NOT set $i bad. Even worse, there are no longer any bad values 
-   (apart from those elements where $i == 0).
-   This is because double->badvalue returns a scalar,
-   NOT a 0-D piddle. We could make badvalue return a piddle,
-   but I don't like the supprt of these beasts in PDL. Perhaps
-   we need a new method, something like badvalue_as_pdl(), which returns
-   a 0-D piddle?
-
-   This shouldn't occur if we use NaN's.
-
-.) Trying to make zcover() (primitive.pd) work with bad values (if all
-   values are bad, return bad, otherwise ignore the bad values). For
-   some reason it doesn't work properly -- see primitive.pd for details.
-   Something similar with nbadover/ngoodover (see t/bad,t).
-
 .) t/picnorgb.t fails on linux (perl 5.005_03, gcc), okay on 
    solaris (perl 5.6.0, cc).
    Does it mean I've screwed up the internals somewhere?
@@ -35,6 +19,12 @@ Suggestions/To do:
 ================
 
 .) 'bad-ify' the rest of the code...
+
+.) we need something like 'badwhere($a < 20)' which returns a 
+   piddle in which those elements which pass the condition are
+   set bad, otherwise 0 (and has it's bad flag set). This 
+   would allow you to replace values less than 20 with the bad value 
+   by '$a += badwhere($a < 20)'
 
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix

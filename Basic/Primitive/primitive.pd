@@ -209,26 +209,6 @@ pp_def(
 	Docs => projectdocs( 'average', 'average', '' ),
 	);
 
-
-# zcover doesn't work()
-# 
-# $xa = 255 * ones(byte,3,2)
-# $xa->baddata(1)
-# p zcover($xa)
-# [BAD BAD]           # GOOD
-# set($xa,1,1,1)
-# set($xa,2,1,1)
-# p $xa
-# 
-# [
-#  [BAD BAD BAD]
-#  [BAD   1   1]
-# ]
-#
-# p zcover($xa)
-# [BAD BAD]           # BAD
-#
-
 # note: should be able to wrap these up like I've done for
 # sum/prod over, since they're essentially the same algorithm.
 #
@@ -252,7 +232,11 @@ pp_def(
         if ( flag ) { $b() = tmp; }
         else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
        CopyBadStatusCode => '',
-       Doc => projectdocs('!= 0','zcover',''),
+       Doc => projectdocs('== 0','zcover',''), # used to be '!= 0' which is wrong
+       BadDoc => 
+'If C<a()> contains only bad data (and its bad flag is set), 
+C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
+as it will not contain any bad values.',
        );
 
 pp_def(
@@ -686,21 +670,61 @@ Quicksort a vector into ascending order.
 
  print qsort random(10);
 
-=cut
-');
+',
+    BadDoc =>
+'
+Bad values are moved to the end of the array:
 
-pp_def('qsorti',
-        Pars => 'a(n); int [o]indx(n);',
-        Code => '
-           int nn;
-          int i=0;
-           nn = $COMP(__n_size)-1;
-          loop(n) %{ $indx() = i++; %}
-           $TBSULFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
-             pdl_qsort_ind_L,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
-            0, nn);
+ perldl> p $b
+ [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
+ perldl> p qsort($b)
+ [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
+',
+    ); # pp_def qsort
 
-', Doc=>'
+sub generic_qsort_ind {
+    return '$TBSULFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
+            pdl_qsort_ind_L,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
+            0, nn);';
+}
+
+# XXX this does not fully work - see t/bad.t
+#     it could require a bit of a rethink of the algorithm...
+#
+pp_def(
+       'qsorti',
+       HandleBad => 1,
+       Pars => 'a(n); int [o]indx(n);',
+       Code => 
+       'int nn = $COMP(__n_size)-1;
+        int i=0;
+        loop(n) %{ 
+           $indx() = i++; 
+        %}
+       ' . generic_qsort_ind(),
+       BadCode =>
+       'register int nn = 0, nb = $SIZE(n) - 1;
+        loop(n) %{ 
+           if ( $ISGOOD(a()) ) { $indx(n=>nn) = nn; nn++; } /* play safe since nn used > 1 */ 
+           else                { $indx(n=>nb) = nn; nb--; }
+        %}
+        if ( nn != 0 ) {
+           nn -= 1;
+        ' . generic_qsort_ind() . ' }',
+       BadDoc => 
+'It should I<move> all the bad elements to the end of the array.
+Currently it does not:
+
+ perldl> p $b
+ [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
+ perldl> p $b->index( qsorti($b) )
+ [BAD BAD 22 25 32 41 42 47 59 74 76 76 79 96 96 98 BAD 25 96 BAD]
+
+Whilst the elements are in order, I think it would be better if
+all the bad values were lumped at the end of the array - eg
+L<qsort|/qsort>.
+',
+       Doc => '
 =for ref
 
 Quicksort a vector and return index of elements in ascending order.
@@ -710,8 +734,7 @@ Quicksort a vector and return index of elements in ascending order.
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
 
-=cut
-');
+    '); # pp_def( qsorti
 
 
 defpdl(
@@ -757,7 +780,12 @@ Inner product over one dimension
 
  c = sum_i a_i * b_i
 
-'); # pp_def( inner )
+',
+       BadDoc => 
+'If C<a() * b()> contains only bad data,
+C<c()> is set bad. Otherwise C<c()> will have its bad flag cleared,
+as it will not contain any bad values.',
+	); # pp_def( inner )
 
 
 pp_def( 
@@ -961,6 +989,9 @@ for $which (
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => projectdocs($name,$name),
+	    BadDoc => 
+'Output is set bad if all elements of the input are bad,
+otherwise the bad flag is cleared for the output piddle.',
 	    );
 
     pp_def( 
@@ -986,6 +1017,9 @@ for $which (
              else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
 	    CopyBadStatusCode => '',
 	    Doc => "Like $name but returns the index rather than the value",
+	    BadDoc => 
+'Output is set bad if all elements of the input are bad,
+otherwise the bad flag is cleared for the output piddle.',
 	    );
 
     pp_def( 
@@ -1241,16 +1275,26 @@ EOD
 
 pp_add_exported('','grandom');
 
-defpdl(
-	'assgn',
-	'a(); [o]b();',
-	'',
-	'$b() = $a();',
-'Plain numerical assignment. This is used to implement the ".=" operator'
-);
+# note: the extra code that adding 'HandleBad => 1' creates is
+# unneeded here. Things could be made clever enough to work this out,
+# but it's very low priority.
+# It does add doc information though, and lets people know it's been
+# looked at for bad value support
+#
+pp_def(
+       'assgn',
+#       HandleBad => 1,
+       Pars => 'a(); [o]b();',
+       Code =>
+       '$b() = $a();',
+       Doc =>
+'Plain numerical assignment. This is used to implement the ".=" operator',
+); # pp_def assgn
 
 # The last x is ignored...
 pp_def('vsearch',
+       HandleBad => 0,
+       BadDoc => 'needs major (?) work to handles bad values',
 	Pars => 'i(); x(n); int [o]ip()',
 	GenericTypes => [F,D], # too restrictive ?
 	Code => 'int carp=0;
@@ -1308,6 +1352,8 @@ cumulative probabilities from absolute probabilities.
 EOD
 
 pp_def('interpolate',
+       HandleBad => 0,
+       BadDoc => 'needs major (?) work to handles bad values',
 	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
 	GenericTypes => [F,D], # too restrictive ?
 	Code => '

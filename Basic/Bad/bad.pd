@@ -64,9 +64,9 @@ None.
 
 } # unless: $bvalflag
 
-########################################################3
+#########################################################
 
-pp_add_exported( '', 'baddata badvalue orig_badvalue' );
+pp_add_exported( '', 'badflag badvalue orig_badvalue badvalue_as_pdl' );
 
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
 
@@ -90,14 +90,6 @@ use strict;
 use PDL::Types;
 use PDL::Primitive;
 
-############################################################
-############################################################
-##							    
-## XXX BADVAL XXX					    
-##							    
-## these are left over from a previous attempt. 	    
-## need re-doing - or at least thinking about		    
-##							    
 ############################################################
 ############################################################
 
@@ -145,7 +137,7 @@ if ( child == it ) barf("ERROR in propogate_badflag (Basic/Bad/bad.pd): child ==
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
 # 
-# we want baddata() to avoid unnecessary calls to propogate_badflag(), 
+# we want badflag() to avoid unnecessary calls to propogate_badflag(), 
 # since it has to recurse through all the children of a piddle
 #
 
@@ -153,7 +145,7 @@ pp_addxs( <<"!WITH!SUBS!");
 $xshdr
 
 int
-baddata(x,newval=0)
+badflag(x,newval=0)
     pdl *x
     int newval
   CODE:
@@ -179,14 +171,24 @@ pp_addpm(<<'!NO!SUBS!');
 ############################################################
 ############################################################
 
-*baddata       = \&PDL::baddata;
-*badvalue      = \&PDL::badvalue;
-*orig_badvalue = \&PDL::orig_badvalue;
+*badflag         = \&PDL::badflag;
+*badvalue        = \&PDL::badvalue;
+*orig_badvalue   = \&PDL::orig_badvalue;
+*badvalue_as_pdl = \&PDL::badvalue_as_pdl;
 
 ############################################################
 ############################################################
 
-=head2 baddata
+*baddata = \&PDL::baddata;
+
+sub PDL::baddata {
+    die "WARNING: baddata has been removed - use badflag instead.\n";
+}
+
+############################################################
+############################################################
+
+=head2 badflag
 
 =for ref
 
@@ -194,14 +196,19 @@ switch on/off/examine bad data flag
 
 =for example
 
-  if ( $a->baddata() ) { 
+  if ( $a->badflag() ) { 
     print "Data may contain bad values.\n"; 
   }
-  $a->baddata(1);      # set bad data flag
+  $a->badflag(1);      # set bad data flag
   $a /= $b;            # b may contain zeroes
-  $a->baddata(0);      # unset bad data flag
+  $a->badflag(0);      # unset bad data flag
 
-Bibble.
+A return value of 1 does not guarantee the presence of
+bad data in a piddle; all it does is say that we need to 
+checkl for the presence of such beasties. To actually 
+find out if there are any bad values, use the 
+L<nbad|nbad> method (after ensuring that C<badflag>
+is set!).
 
 =cut
 
@@ -227,7 +234,8 @@ TODO: when called via a piddle - eg C<$pdl->badvalue(23)> -
 then it should change not only the default bad value for that type, but
 change the value stored in the piddle as well.
 
-=cut
+Also see the L<badvalue_as_pdl|/badvalue_as_pdl> method
+- please heed the warnings in its description!
 
 =head2 orig_badvalue
 
@@ -248,7 +256,61 @@ It is also has an awful name.
    print "The original bad data value for ushort is: ", 
       $a->orig_badvalue(), "\n";
 
+=head2 badvalue_as_pdl
+
+=for ref
+
+as for L<badvalue|/badvalue>, but returning a 0D piddle
+which has its bad flag set.
+See the example as this DOES NOT WORK.
+
+=for example
+
+ #########################################
+ #########################################
+ ##
+ ## WARNING: this is wrong, since 
+ ##  ($a < 20) * $a->badvalue_as_pdl is
+ ##  bad for ALL elements
+ ##  when what I want some way of saying
+ ##  badwhere($a < 20)....
+ ##
+ $a = random(20,30) * 100;
+ $a += ($a < 20) * $a->badvalue_as_pdl;
+ print $a->badflag, "\n";
+ 1
+ # now try with badvalue
+ $a = random(20,30) * 100;
+ $a += ($a < 20) * $a->badvalue;
+ print $a->badflag, "\n";
+ 0  # since $a->badvalue is just a number
+
+EXPECT THIS FUNCTION TO CHANGE/DISAPPEAR...
+
+=head2 check_badstatus
+
+=for ref
+
+clear the bad-value flag of a piddle if it does not
+contain any bad values
+
+Given a piddle whose bad flag is set, check whether it 
+actually contains any bad values and, if not, clear the flag.
+It returns the final state of the bad-value flag.
+
+=for example
+
+ print "State of bad flag == ", $pdl->check_badstatus;
+
 =cut
+
+*check_badstatus = \&PDL::check_badstatus;
+
+sub PDL::check_badstatus {
+    my $pdl = shift;
+    $pdl->badflag(0) if $pdl->badflag and $pdl->nbad == 0;
+    return $pdl->badflag;
+} # sub: check_badstatus()
 
 !NO!SUBS!
 
@@ -309,7 +371,16 @@ pp_addpm(<<'!NO!SUBS!');
 	return &{$name}();
     }
 
-}
+    # ugly
+    sub badvalue_as_pdl { 
+	my $self = shift;
+	my $name = "PDL::_badvalue_int" . $self->enum();
+	my $pdl  = PDL->pdl( $self, &{$name}() );
+	$pdl->badflag(1);
+	return $pdl;
+    }
+
+} # end of package PDL::Type
 	    
 sub PDL::badvalue {
     no strict 'refs';
@@ -353,6 +424,30 @@ sub PDL::orig_badvalue {
 
 } # sub: orig_badvalue()
 
+sub PDL::badvalue_as_pdl {
+    no strict 'refs';
+
+    my $self = shift;
+    my $num;
+    my $type;
+    if ( UNIVERSAL::isa($self,"PDL") ) {
+	$num = $self->get_datatype;
+    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
+	$num = $self->enum;
+	$type = $self;
+    } else {
+        # assume it's a number
+        $num = $self;
+    }
+    $type = new PDL::Type($num) unless defined $type;
+
+    my $name = "PDL::_badvalue_int$num";
+    my $pdl = pdl( $type, &{$name}() );
+    $pdl->badflag(1);
+    return $pdl;
+
+} # sub: badvalue_as_pdl()
+
 ############################################################
 ############################################################
 
@@ -373,7 +468,7 @@ Returns a 1 if the value is $name, 0 otherwise.
 =for example
 
  \$a = pdl(1,2,3);
- \$a->baddata(1);
+ \$a->badflag(1);
  set(\$a,1,\$a->badvalue);
  \$b = is$name(\$a);
  print \$b, \"\\n\";
