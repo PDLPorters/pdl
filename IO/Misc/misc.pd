@@ -86,11 +86,13 @@ keywords in the FITS header. It is important to note that for strings,
 the surrounding quotes are kept to ensure that strings that look like
 numbers are kept as strings. This is also of importance if you create 
 your own header information and you want the value to be printed out 
-as a string.
+as a string. Each record (comprising keyword, value, and
+any comment string) must fit within 80 characters; any value that
+is too long is truncated (silently).
 
-Comments in headers are stored as $$h{COMMENT}{<Keyword>} where $h is
-the header retrieved with $a->gethdr.
-History entries in the header are stored as $$h{HISTORY}, which is an
+Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where C<$h> is
+the header retrieved with C<$a-E<gt>gethdr>.
+History entries in the header are stored as C<$$h{HISTORY}>, which is an
 anonymous array for each HISTORY entry in the header.
 
 !NO!SUBS!
