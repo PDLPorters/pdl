@@ -6,6 +6,11 @@ Doug Burke
         - internal changes to Graphics::LUT - now stores data in external
           FITS files rather than within the module to improve speed and 
           reduce use of disk-space. 
+        - first attempt at improving installation of OpenGL stuff
+        - Graphics/IIS/iis.pd: minor change (re Christian's PP changes)
+        - Graphics/PGPLOT/PGPLOT.pm: add CENTRE option [bin()], doc update
+        - minor code cleanup for IO/NDF/NDF.pm and IO/Misc/misc.pd
+        - added docs for sethdr to Basic/Core/Core.pm
 
 Marc Lehmann
 	- small changes to complex.pd: remove bogus Cneg, streamline docs.
