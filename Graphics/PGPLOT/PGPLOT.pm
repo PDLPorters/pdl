@@ -688,6 +688,7 @@ the copyright notice should be included in the file.
 
 =cut
 
+#'
 
 # Graphics functions for the PDL module, this module
 # requires the PGPLOT module be previously installed.
@@ -703,6 +704,7 @@ package PDL::Graphics::PGPLOT;
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
 use PDL::Basic;
+use PDL::Ufunc;
 use PDL::Primitive;
 use PDL::Types;
 use SelfLoader;
