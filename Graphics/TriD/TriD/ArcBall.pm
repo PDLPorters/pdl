@@ -10,12 +10,14 @@
 # This needs a faster implementation (?)
 
 package PDL::Graphics::TriD::QuaterController;
+use base qw(PDL::Graphics::TriD::ButtonControl);
 use fields qw /Inv Quat W H SC/;
-#use base qw(PDL::Graphics::TriD::ButtonControl);
 
 sub new {
   my($type,$win,$inv,$quat) = @_;
-  my $this = bless [\%{"$type\::FIELDS"}], $type;
+  my $this = $type->SUPER::new();
+  
+
   $this->{Inv} = $inv;
   $this->{Quat} = (defined($quat) ? $quat :
 			new PDL::Graphics::TriD::Quaternion(1,0,0,0));

@@ -5,9 +5,8 @@ use PDL::Graphics::TriD::Rout;
 use PDL::Graphics::TriD::Labels;
 use Data::Dumper;
 
-use base qw/PDL::Graphics::TriD::Graph/;
-use fields qw/ContourMin ContourMax ContourInt ContourVals 
-             _MaxDistance/;
+use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/ContourSegCnt _MaxDistance Labels LabelStrings/;
 
 sub new{
   my($type,$data,$points,$colors,$options) = @_;
@@ -26,9 +25,19 @@ sub new{
     $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
   }
 
-  my $grid = PDL::Graphics::TriD::realcoords('SURF2D',$points);
+#  my $grid = PDL::Graphics::TriD::realcoords('SURF2D',$points);
 
-  my $this = $type->SUPER::new();
+  my $this = $type->SUPER::new($points,$colors,$options);
+
+#  my $out = Dumper($this);
+#  print $out;
+#  exit;
+
+  
+  my $grid = $this->{Points};
+    
+
+  $this->{ContourSegCnt} = [];
 
   my $zval;
 
@@ -47,13 +56,13 @@ sub new{
   my $fac=1;
   my $plane;
 
-  if(defined $options->{Surface}){
-      my $surf =  $options->{Surface};
-      foreach(keys %{$options->{Surface}}){
+  if(defined $this->{Options}{Surface}){
+      my $surf =  $this->{Options}{Surface};
+      foreach(keys %{$this->{Options}{Surface}}){
 	  if(defined $zval){
 	      barf "Only one of XY XZ YZ surfaces allowed";
 	  }
-	  $zval=$options->{Surface}{$_};
+	  $zval=$this->{Options}{Surface}{$_};
 	  $plane=$_;
       }
       if($plane eq "XZ"){
@@ -67,58 +76,52 @@ sub new{
   }
 
 
-  if(defined $options->{ContourInt}){
-    $this->{ContourInt} = $options->{ContourInt};
-  }
-
-  if(defined $options->{ContourMin}){
-    $this->{ContourMin} = $options->{ContourMin};
-  }else{
+  unless(defined $this->{Options}{ContourMin}){
     while($fac*($max-$min)<10){
       $fac*=10;
     }
     if(int($fac*$min) == $fac*$min){
-      $this->{ContourMin} = $min;
+      $this->{Options}{ContourMin} = $min;
     }else{      
-      $this->{ContourMin} = int($fac*$min+1)/$fac;
-      print "ContourMin =  ",$this->{ContourMin},"\n";
+      $this->{Options}{ContourMin} = int($fac*$min+1)/$fac;
+      print "ContourMin =  ",$this->{Options}{ContourMin},"\n"
+		  if($PDL::Graphics::TriD::verbose);
     }
   }
-  if(defined $options->{ContourMax}){
-    $this->{ContourMax} = $options->{ContourMax};
-  }else{
-    if(defined $this->{ContourInt}){
-      $this->{ContourMax} = $this->{ContourMin};
-      while($this->{ContourMax}+$this->{ContourInt} < $max){
-	$this->{ContourMax}= $this->{ContourMax}+$this->{ContourInt};
+  unless(defined $this->{Options}{ContourMax}){
+    if(defined $this->{Options}{ContourInt}){
+      $this->{Options}{ContourMax} = $this->{Options}{ContourMin};
+      while($this->{Options}{ContourMax}+$this->{Options}{ContourInt} < $max){
+	$this->{Options}{ContourMax}= $this->{Options}{ContourMax}+$this->{Options}{ContourInt};
       }
     }else{
       if(int($fac*$max) == $fac*$max){
-	$this->{ContourMax} = $max;
+	$this->{Options}{ContourMax} = $max;
       }else{
-	$this->{ContourMax} = (int($fac*$max)-1)/$fac;
-      print "ContourMax =  ",$this->{ContourMax},"\n";
+	$this->{Options}{ContourMax} = (int($fac*$max)-1)/$fac;
+      print "ContourMax =  ",$this->{Options}{ContourMax},"\n"
+		  if($PDL::Graphics::TriD::verbose);
       }
     }
   }
-  unless(defined $this->{ContourInt}){
-    $this->{ContourInt} = int($fac*($this->{ContourMax}-$this->{ContourMin}))/(10*$fac);
-    print "ContourInt =  ",$this->{ContourInt},"\n";
+  unless(defined $this->{Options}{ContourInt}){
+    $this->{Options}{ContourInt} = int($fac*($this->{Options}{ContourMax}-$this->{Options}{ContourMin}))/(10*$fac);
+    print "ContourInt =  ",$this->{Options}{ContourInt},"\n"
+		if($PDL::Graphics::TriD::verbose);
   }
 #
 # The user could also name cvals
 #
   my $cvals;
-  if(defined $options->{ContourVals}){
-    $cvals = $options->{ContourVals};
+  if( !defined($this->{Options}{ContourVals}) || $this->{Options}{ContourVals}->isempty){
+    $cvals=zeroes(int(($this->{Options}{ContourMax}-$this->{Options}{ContourMin})/$this->{Options}{ContourInt}+1));
+    $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});  
   }else{
-    $cvals=zeroes(int(($this->{ContourMax}-$this->{ContourMin})/$this->{ContourInt}+1));
-    $cvals = $cvals->xlinvals($this->{ContourMin},$this->{ContourMax});  
-    print $cvals;
+    $cvals = $this->{Options}{ContourVals};
   }
-  $this->{ContourVals} = $cvals;
+  $this->{Options}{ContourVals} = $cvals;
 
-  
+  print "Cvals = $cvals\n" if($PDL::Graphics::TriD::verbose);  
   
   my ($i,$j,$i1,$j1);
 #  $i1=$dims[0]-2;
@@ -130,17 +133,16 @@ sub new{
 
   $this->{_MaxDistance} = vdistance($grid->slice(":,0:-3:2,0:-3:2"),
 			 	   $grid->slice(":,1:-2:2,1:-2:2"))->max;
+  $this->contour_segments($cvals,$data,$grid);
 
-  my $mpts = &PDL::Graphics::TriD::Rout::contour_segments($cvals,$data,$grid);
-
-  for($i=0;$i<$cvals->nelem;$i++){
-    my $cval = sprintf("%-6.6g",$cvals->slice("($i)"));
+#  for($i=0;$i<$cvals->nelem;$i++){
+#    my $cval = sprintf("%-6.6g",$cvals->slice("($i)"));
 #    print "cval = $cval, \n";
-
-    $this->add_dataseries(new PDL::Graphics::TriD::Lines($mpts->[$i]
-				      ,$colors),"_CONTOUR_$cval")
-      unless($mpts->[$i]->isempty);
-  } 
+#
+#    $this->add_dataseries(new PDL::Graphics::TriD::Lines(
+#				      ,$colors),"_CONTOUR_$cval")
+#      unless($mpts->[$i]->isempty);
+#  } 
 
   return $this;
 }      
@@ -183,14 +185,19 @@ sub addlabels{
   my $strlist;
   my $lp=pdl->null;
 
-  foreach(sort keys %{$self->{Data}}){
-    next if($cnt++ % $labelint);
-    next unless(/^_CONTOUR_(.*)$/);
-    my $val = $1;
+  my $pcnt = 0;
+  my $cnt;
 
-    my $lp1 = $self->{Data}{$_}->get_points();
+  for(my $i=0; $i<= $#{$self->{ContourSegCnt}}; $i++){
+    next unless defined $self->{ContourSegCnt}[$i];
+    $cnt = $self->{ContourSegCnt}[$i];
+    my $val = $self->{Options}{ContourVals}->slice("($i)");
+    next if($i % $labelint);
+
+    my $lp1 = $self->{Points}->slice(":,$pcnt:$cnt");
     my $lp2 = $lp1->slice(":,1:-1:2");  
-    $lp1=$lp1->slice(":,0:-1:2");
+	 $lp1=$lp1->slice(":,0:-2:2");
+    $pcnt = $cnt+1 ;
 #
 # normalized length of line
 #
@@ -204,16 +211,16 @@ sub addlabels{
 
 
     $dis = $dis->append($dis->append($dis))->clump(2);
-
+    next unless($dis->orover);
 
     $lp2 = ($lp1+($lp2-$lp1)*0.5);
 
-#    print "clump 2 ",$lp2->info,$lp2,$dis->info,$dis,"\n";
+    print "clump 2 ",$lp2->info,$lp2,$dis->info,$dis,"\n";
  
 
     $lp2=$lp2->clump(2)->where($dis);
 
-#    print "clump out\n";
+    print "clump out\n";
 
     next if($lp2->isempty);
 
@@ -225,15 +232,13 @@ sub addlabels{
     }
 
   }
-
-
-  my $l = new PDL::Graphics::TriD::Labels($lp->reshape(3,$lp->nelem/3),
-					  {Strings=>$strlist
-					   ,Font=>$font});
-
-  $self->add_dataseries($l,"Labels");
-
-  $self->scalethings;
+  if($lp->nelem>0){
+	 $self->{Points} = $self->{Points}->xchg(0,1)
+		->append($lp->reshape(3,$lp->nelem/3)->xchg(0,1))->xchg(0,1);
+	 $self->{Labels} = [$cnt+1,$cnt+$lp->nelem/3];
+	 $self->{LabelStrings} = $strlist;
+	 $self->{Options}{Font}=$font;
+  }
 
 }
 
@@ -252,12 +257,13 @@ sub vdistance{
 
 
 sub get_valid_options{
-    return{ ContourInt => 0, 
-	    ContourMin => 0, 
-	    ContourMax=> 0, 
-	    ContourVals=> 0,
+    return{ ContourInt => undef, 
+	    ContourMin => undef, 
+	    ContourMax=>  undef, 
+	    ContourVals=> pdl->null,
             Surface=>{XY=>0},
-	    UseDefcols=>1}
+	    UseDefcols=>1,
+	    Font=>$PDL::Graphics::TriD::GL::fontbase}
 }
 
 sub get_attribute{
@@ -272,26 +278,20 @@ sub get_attribute{
 sub set_colortable{
   my($self,$table) = @_;
   
-  my $min = $self->{ContourMin};
-  my $max = $self->{ContourMax};  
-  my $int = $self->{ContourInt};
+  my $min = $self->{Options}{ContourMin};
+  my $max = $self->{Options}{ContourMax};  
+  my $int = $self->{Options}{ContourInt};
   my $ncolors=($max-$min)/$int+1;  
 
-     
   my $colors= &$table($ncolors);
+
   if($colors->getdim(0)!=3){
     $colors->reshape(3,$colors->nelem/3);
   }
+  print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if($PDL::Graphics::TriD::verbose);
+ 
+  $self->{Colors} = $colors;
 
-#  print "nc =",$ncolors," nelem = ",$colors->info,"\n";
-
-  for(my $i=0;$i<$ncolors;$i++){
-    $self->{Objects}[$i]->set_colors($colors->slice(":,$i"));
-  }
-
-#  use Data::Dumper;
-#  my $out = Dumper($self);
-#  print $out;
 }
   
 sub coldhot_colortable{

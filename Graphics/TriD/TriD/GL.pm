@@ -359,6 +359,34 @@ sub PDL::Graphics::TriD::Lines::gdraw {
 	glEnable(&GL_LIGHTING);
 }
 
+sub PDL::Graphics::TriD::Contours::gdraw {
+  my($this,$points) = @_;
+  glDisable(&GL_LIGHTING);
+  my $pcnt=0;
+  my $i=0;
+  foreach(@{$this->{ContourSegCnt}}){
+	 my $colors;
+	 if($this->{Colors}->getndims==2){
+		$colors = $this->{Colors}->slice(":,($i)");
+	 }else{
+		$colors =  $this->{Colors};
+	 }
+	 next unless(defined $_);
+	 PDL::gl_lines($points->slice(":,$pcnt:$_"),$colors);
+    $i++;
+	 $pcnt=$_+1;
+  }
+  if(defined $this->{Labels}){
+	 glColor3d(1,1,1);
+	 my $seg = sprintf(":,%d:%d",$this->{Labels}[0],$this->{Labels}[1]);
+	 PDL::Graphics::OpenGLQ::gl_texts($points->slice($seg),
+												 $this->{Options}{Font}
+												 ,$this->{LabelStrings});
+  }
+  
+  glEnable(&GL_LIGHTING);
+}
+
 sub PDL::Graphics::TriD::SLattice::gdraw {
 	my($this,$points) = @_;
 	glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);

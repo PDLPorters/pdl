@@ -6,7 +6,7 @@ use PDL::Graphics::TriD::GL;
 use Tk;
 use PDL::Graphics::TriD::Tk;
 use strict;
-my ($TriDW,$graph,$cgraph); # declare the graph object in main, defined in initialize
+my ($TriDW,$graph); # declare the graph object in main, defined in initialize
 my $e_button;
 
 PDL::Demos::Routines->import();
@@ -187,10 +187,17 @@ sub Contourdemos{
   $demo=$bh unless(ref($bh));
  
   return unless defined $TriDW->{GLwin};
-
-  $TriDW->{GLwin}->delete_object($cgraph) if(defined $cgraph);
-
-  undef $cgraph;
+  if(! $demo){
+    # Remove the configure binding
+    $e_button->bind("<Configure>","");
+    # define the graph object
+    $graph = new PDL::Graphics::TriD::Graph();
+    $graph->default_axes();
+    $demo="3DColor";
+  }
+  $graph->delete_data("Contours2DB&W");
+  $graph->delete_data("Contours2DColor");
+  $graph->delete_data("Contours3DColor");
 
   if($demo ne "Off"){
     my $data;
@@ -201,22 +208,25 @@ sub Contourdemos{
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
    
     if($demo eq "2DB&W"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
+      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
+		$data->addlabels(2,0.25);
     }elsif($demo eq "2DColor"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
-      $cgraph->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
+      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
+      $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
+		$data->addlabels(2,0.25);
     }elsif($demo eq "3DColor"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,$z]);
-      $cgraph->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
+      $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,$z]);
+      $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
+		$data->addlabels(2,1);
     }
-  }
-  if(defined $cgraph){
-    $cgraph->default_axes();
-    $cgraph->addlabels(2,0.25);
 
-    $cgraph->scalethings();
-    $TriDW->{GLwin}->add_object($cgraph);
+    $graph->add_dataseries($data,"Contours$demo");
   }
+  $graph->scalethings();
+  $TriDW->{GLwin}->delete_object($graph);
+    
+  $TriDW->{GLwin}->add_object($graph);
+
   $TriDW->refresh();
 }
 
