@@ -493,7 +493,8 @@ $PDL::PP::deftbl =
  [[PrivNames,PrivObjs],	[Priv],			"OtherPars_nft"],
  [[PrivateRepr],	[PrivNames,PrivObjs],	"NT2Decls_p"],
  [[PrivCopyCode],	[PrivNames,PrivObjs,CopyName], "NT2Copies_p"],
- [[PrivFreeCode],	[PrivNames,PrivObjs], "NT2Free_p"],
+# avoid clash with freecode above?
+ [[NTPrivFreeCode],	[PrivNames,PrivObjs], "NT2Free_p"],
 
  [[IsReversibleCodeNS],	[Reversible],	"ToIsReversible"],
  [[IsReversibleCode],	[IsReversibleCodeNS,NewXSSymTab,Name], "dousualsubsts"],
@@ -518,11 +519,12 @@ $PDL::PP::deftbl =
 			}
 			return (pdl_trans*)__copy;"}],
 
- [[FreeCodeNS],	[PrivFreeCode,CompFreeCode],	sub {"
+ [[FreeCodeNS],	[PrivFreeCode,CompFreeCode,NTPrivFreeCode],	sub {"
 			PDL_TR_CLRMAGIC(__privtrans);
 			$_[1]
 			if(__privtrans->__ddone) {
 				$_[0]
+				$_[2]
 			}
 			"}],
 

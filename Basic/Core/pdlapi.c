@@ -1313,7 +1313,8 @@ void pdl_make_physvaffine(pdl *it)
 	}
 	PDL_ENSURE_VAFFTRANS(it);
 	incsleft = malloc(sizeof(*incsleft)*it->ndims);
-	for(i=0; i<it->ndims; i++) {
+        PDLDEBUG_f(printf("vaff_malloc: got %d\n",incsleft));
+        for(i=0; i<it->ndims; i++) {
 		it->vafftrans->incs[i] = it->dimincs[i];
 	}
 
@@ -1399,7 +1400,8 @@ void pdl_make_physvaffine(pdl *it)
 	pdl_make_physical(current);
 
   mkphys_vaff_end:
-       free(incsleft);
+       PDLDEBUG_f(printf("vaff_malloc: %d\n",incsleft));
+       if (incsleft != NULL) free(incsleft);
 	PDLDEBUG_f(printf("Make_physvaffine_exit %d\n",it));
 
 }

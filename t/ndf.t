@@ -56,7 +56,7 @@ $pdl->wndf( $ndffile );
 
 # Set up an END block to remove the file
 END {
-  unlink $ndffile if -e $ndffile;
+  unlink $ndffile if defined $ndffile and -e $ndffile;
 }
 
 # Now read it back in

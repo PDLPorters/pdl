@@ -588,10 +588,10 @@ void
 pdl_make_physical(self)
 	pdl *self;
 
-
 void
 pdl_make_physvaffine(self)
-       pdl *self;
+	pdl *self;
+
 
 void
 pdl_make_physdims(self)

@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+CS
+	- applied vaffine leak fix to main branch
+	- new polyfill function (image2d.pd)
+	- some (unfinished) preparations for easier leak debugging, see perldl.conf
 Doug Burke
         - Added PCHIP routines tp PDL::Slatec (interpolation,
           differentiation, and integration of functions).

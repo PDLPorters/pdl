@@ -7,8 +7,19 @@ PDL::Core::Dev->import();
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
 my $pthread_define  = '-DPDL_PTHREAD';
+my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
+  $PDL_CONFIG{MALLOCDBG}->{libs} : '';
+my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
+  $PDL_CONFIG{MALLOCDBG}->{include} : '';
 
 print "Trying to figure out POSIX threads support ...\n";
+
+open HFILE, ">mymalloc.p" or die "couldn't open mymalloc.p";
+print HFILE defined $PDL_CONFIG{MALLOCDBG}->{define} ?
+  "\$mymalloc = <<'EOM';\n$PDL_CONFIG{MALLOCDBG}->{define}\nEOM\n" :
+   "\$mymalloc = '';\n";
+print HFILE "1;\n";
+close HFILE;
 
 if(-e $pthread_include) {
 	print "\tSaw pthread.h. Fine.\n";
@@ -71,13 +82,14 @@ WriteMakefile(
 		)),
 		},
  'DEFINE' 	=> $pthread_define,
- 'LIBS'         => [$pthread_library],
+ 'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
                    'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
 		   'pdl.h pdlsimple.h Types.pm Version.pm'},
+ 'INC'          => "$mallocinc",
 );
 
 # Extra targets to build

@@ -10,8 +10,9 @@ PDL::Core::Dev->import();
 
 @pack = (["slices.pd",Slices,PDL::Slices]);
 
+%hash =pdlpp_stdargs_int(@::pack);
 WriteMakefile(
- pdlpp_stdargs_int(@::pack)
+%hash
 );
 
 sub MY::postamble {

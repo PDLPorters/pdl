@@ -4,6 +4,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 require "pdl_hfiles.p";
+require "mymalloc.p";
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -48,6 +49,7 @@ typedef struct pdl pdl;
 
 $PDL_DATATYPES
 
+$mymalloc
 !GROK!THIS!
 
 print OUT <<'!NO!SUBS!';

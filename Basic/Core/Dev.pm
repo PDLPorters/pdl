@@ -44,6 +44,11 @@ if($@) {
 }
 PDL::Types->import();
 
+my $inc = defined $::PDL_CONFIG{MALLOCDBG}->{include} ?
+  "$::PDL_CONFIG{MALLOCDBG}->{include}" : '';
+my $libs = defined $::PDL_CONFIG{MALLOCDBG}->{libs} ?
+  "$::PDL_CONFIG{MALLOCDBG}->{libs}" : '';
+
 %PDL_DATATYPES = ();
 foreach $key (keys %PDL::Types::typehash) {
   $PDL_DATATYPES{$PDL::Types::typehash{$key}->{'sym'}} =
@@ -314,8 +319,8 @@ sub pdlpp_stdargs_int {
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INCLUDE(),
-	 'LIBS'         => [''],
+	 'INC'          => &PDL_INCLUDE()." $inc",
+	 'LIBS'         => ["$libs "],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
@@ -330,8 +335,8 @@ sub pdlpp_stdargs {
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INST_INCLUDE(),
-	 'LIBS'         => [''],
+	 'INC'          => &PDL_INST_INCLUDE()." $inc",
+	 'LIBS'         => ["$libs "],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
