@@ -14,6 +14,7 @@ if( defined($t) and $t == 0 ) {
   if(defined $PDL_CONFIG{OPENGL_LIBS}){
     print "\n    Success using $PDL_CONFIG{OPENGL_LIBS}\n\n";
 	 unshift @subdirs,"TriD";
+	 $PDL_CONFIG{WITH_3D}=1;
   }else{
 	 warn "\n     COULD NOT link OpenGL \n".
 		"    Not building OpenGL and TriD options!\n\n";
@@ -163,6 +164,7 @@ sub guessogllibs{
 		  libs($libs)) {
 		return $libs;
 	 }else{
+      undef $libs;
 		warn "     User specified OpenGL configuration $libs did not work"
 		  ."\n     trying to guess...\n\n";
 	 }
