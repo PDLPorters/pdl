@@ -15,7 +15,7 @@ sub approx {
 	return $d < 0.01;
 }
 
-print "1..26\n";
+print "1..30\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -99,4 +99,10 @@ ok(25, approx(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1)));
 # atan2
 ok (26, approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1)));
 
+$a = sequence (3,4);
+$b = sequence (3,4) + 1;
 
+ok (27, approx($a->or2($b,0), $a | $b));
+ok (28, approx($a->and2($b,0), $a & $b));
+ok (29, approx($b->minus($a,0), $b - $a));
+ok (30, approx($b - $a, ones(3,4)));

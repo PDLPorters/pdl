@@ -1,4 +1,11 @@
 (!!! = possible source of incompatibilities)
+
+Doug Hunt (4/26/2000)
+        - Merged fast-xswrapper branch back to main PDL tree.
+        - Left Ops thus:
+          All ops are are overloaded to call XS as directly as possible, but
+          the direct call of ops such as : $a->plus($b, 0) requires the '0' argument
+          which tells the XS routine 'plus' not to swap the arguments.
 CS
 	- slight ops.pd changes
 	- match prototypes with original ones in complex.pd

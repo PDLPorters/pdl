@@ -140,8 +140,8 @@ biop('ne','!=',0,'binary I<not equal to> operation (!=)');
 my $T = [B,U,S,L]; # the sensible types here
 biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
 biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop('orop','|',0,'binary I<or> of two piddles',GenericTypes => $T);
-biop('andop','&',0,'binary I<and> of two piddles',GenericTypes => $T);
+biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
+biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
 biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 
 # really an ufunc
@@ -166,9 +166,10 @@ pp_addpm({At=>Bot},<<'EOPM');
 
 =head1 AUTHOR
 
-Doug Hunt (dhunt@ucar.edu), Tuomas J. Lukka (lukka@fas.harvard.edu),
-Karl Glazebrook (kgb@aaoepp.aao.gov.au) and Christian Soeller
-(c.soeller@auckland.ac.nz).
+Tuomas J. Lukka (lukka@fas.harvard.edu),
+Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
+Doug Hunt (dhunt@ucar.edu), and 
+Christian Soeller (c.soeller@auckland.ac.nz).
 
 =cut
 

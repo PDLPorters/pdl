@@ -348,8 +348,8 @@ sub topdl {PDL->topdl(@_)}
 		
 		"<<"    => \&PDL::shiftleft,  # in1, in2, swap if true
 		">>"    => \&PDL::shiftright, # in1, in2, swap if true
-		"|"     => \&PDL::orop,       # in1, in2
-		"&"     => \&PDL::andop,      # in1, in2
+		"|"     => \&PDL::or2,        # in1, in2
+		"&"     => \&PDL::and2,       # in1, in2
 		"^"     => \&PDL::xor,        # in1, in2
 		
 		"<<="   => sub { PDL::shiftleft ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
