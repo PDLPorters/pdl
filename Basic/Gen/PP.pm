@@ -1342,6 +1342,7 @@ $ci\PUTBACK;
 $ci\perl_call_method(\"initialize\", G_SCALAR);
 $ci\SPAGAIN;                                                
 ${ci}$name\_SV = POPs; 
+$ci\PUTBACK;
 ${ci}$name = PDL->SvPDLV($name\_SV);
 
 
@@ -1426,7 +1427,7 @@ sub VarArgsXSHdr {
   my $nallout = $nout + $noutca;
   my $usageargs = join (",", @args);
   
-  my $ci = '    ';  # Current indenting
+  my $ci = '  ';  # Current indenting
 
   # Generate declarations for SV * variables corresponding to pdl * output variables.
   # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
@@ -1436,6 +1437,8 @@ sub VarArgsXSHdr {
   my @create = ();  # The names of variables which need to be created by calling 
                     # the 'initialize' perl routine from the correct package.
   
+  my $ci = '    ';  # Current indenting
+
   # clause for reading in all variables
   my $clause1 = ''; my $cnt = 0;
   for (my $i=0;$i<@args;$i++) { 
