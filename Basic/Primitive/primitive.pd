@@ -2042,16 +2042,25 @@ EOD
 	 )
 {
     pp_def($_->{Name},
+	   HandleBad => 1,
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
 	   PMCode => $_->{PMCode},
 	   Code => $_->{Variables} .
-                 'loop(n) %{
-			if ($mask()) {
+                 'loop(n) %{ 
+		       if($mask()) {
 				$inds(m => dm) = n;
 				dm++;
 			}'.$_->{Elseclause} . "\n".
 		' %}',
+	   BadCode => $_->{Variables} .
+                 'loop(n) %{ 		
+			if ( $mask() && $mask() != mask_badval ) {
+				$inds(m => dm) = n;
+				dm++;
+			}'.$_->{Elseclause} . "\n".
+		' %}',
+
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
@@ -2067,11 +2076,21 @@ EOD
 		if (dpdl->ndims != 1)
 		  barf("dimflag currently works only with 1D pdls");
 
+'.
+($bvalflag ? '
+		if(dpdl->state & PDL_BADVAL)
+		  for (i=0; i<dpdl->dims[0]; i++) {
+	 	 	$GENERIC() foo = *(m_datap+inc*i+offs);
+	 	        if(foo && foo != mask_badval) sum++;
+		}
+	        else
+':'').'
 		for (i=0; i<dpdl->dims[0]; i++) {
-		       if ( *(m_datap+inc*i+offs)) sum++;
+ 	 		$GENERIC() foo = *(m_datap+inc*i+offs);
+	 	                if(foo) sum++;
 		}
 
-		'.$_->{Autosize} . '
+                '. $_->{Autosize} . '
 		/* printf("RedoDimsCode: setting dim m to %ld\n",sum); */'
 	   );
 }
