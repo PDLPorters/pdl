@@ -47,7 +47,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     SV*   bar;
     HV*   hash;
     int   nbytes;
-    int   len;
+    STRLEN   len;
     int   diffsize;
 
     intype = a->datatype;
@@ -212,7 +212,7 @@ void pdl_grow (pdl* a, int newsize) {
    HV* hash;
    int nbytes;
    int ncurr;
-   int len;
+   STRLEN len;
 
    nbytes = newsize * pdl_howbig(a->datatype);
    ncurr  = SvCUR( (SV*)a->sv );

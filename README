@@ -1,6 +1,6 @@
 
-This is version 1.00 of perlDL.
--------------------------------
+This is version 1.03 of PDL
+---------------------------
 
 It demonsrates basic data processing functionality but has no where
 near the features I would like to eventually put in it. The current
@@ -18,7 +18,7 @@ Requirements.
 
 perl5.003 or later. (Probably OK with 5.002 but I can not test.)
 
-PGPLOT module must be installed to access PGPLOT graphics.
+PGPLOT v2.01 (or higher) module must be installed to access PGPLOT graphics.
 
 saoimage or ximtool must be installed to display images with
 these programs.

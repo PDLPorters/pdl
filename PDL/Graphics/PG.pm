@@ -24,8 +24,6 @@ $HARD_LW    = 4;   # Line width for hardcopy devices
 $HARD_CH    = 1.4; # Character height for hardcopy devices
 $HARD_FONT  = 2;   # Font for hardcopy devices
 
-
-
 # Standard colour tables (args to ctab())
 
 %CTAB = ();
@@ -60,6 +58,7 @@ sub AUTOLOAD {
    eval "{ package $pkg; use PGPLOT; }";  # For caller
    print "Loaded PGPLOT\n" if $PDL::verbose;
 EOC
+   croak "Need PGPLOT v2.0 or higher" if $PGPLOT::VERSION<2; 
    $SelfLoader::AUTOLOAD = $AUTOLOAD;
    goto &SelfLoader::AUTOLOAD;
 }
@@ -176,7 +175,7 @@ sub bin {
     }
 
     initenv( min($x), max($x), 0, max($data) ) unless $hold;
-    PGPLOT::pgbin_r($n, $$x{Data}, $$data{Data}, 1);
+    pgbin($n, \$$x{Data}, \$$data{Data}, 1);
 1;}
 
 # display a contour map of an image using pgconb()
@@ -204,11 +203,11 @@ sub cont {
            max($contours), " in ",nelem($contours)," steps\n" if $PDL::verbose;
     
     if (defined($misval)) {
-       PGPLOT::pgconb_r( $$image{Data}, $nx,$ny,1,$nx,1,$ny, $$contours{Data}, 
-                         nelem($contours), $$tr{Data}, $misval);
+       pgconb( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, \$$contours{Data}, 
+                         nelem($contours), \$$tr{Data}, $misval);
     }else{
-       PGPLOT::pgcons_r( $$image{Data}, $nx,$ny,1,$nx,1,$ny, $$contours{Data}, 
-                         nelem($contours), $$tr{Data});
+       pgcons( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, \$$contours{Data}, 
+                         nelem($contours), \$$tr{Data});
     }
 1;}
 
@@ -230,15 +229,15 @@ EOD
     my $x = $#t==1 ? float(sequence($n)) : $t[0];
     my $y = $#t==1 ? $t[0] : $t[1];
     initenv( min($x), max($x), min($y), max($y) ) unless $hold;
-    PGPLOT::pgerrb_r(6,$n,$$x{Data},$$y{Data},$t[1]{Data},$ERRTERM) if $#t==1;
-    PGPLOT::pgerrb_r(6,$n,$$x{Data},$$y{Data},$t[2]{Data},$ERRTERM) if $#t==2;
-    PGPLOT::pgerrb_r(5,$n,$$x{Data},$$y{Data},$t[2]{Data},$ERRTERM) if $#t==3;
-    PGPLOT::pgerrb_r(6,$n,$$x{Data},$$y{Data},$t[3]{Data},$ERRTERM) if $#t==3;
+    pgerrb(6,$n,\$$x{Data},\$$y{Data},\$t[1]{Data},$ERRTERM) if $#t==1;
+    pgerrb(6,$n,\$$x{Data},\$$y{Data},\$t[2]{Data},$ERRTERM) if $#t==2;
+    pgerrb(5,$n,\$$x{Data},\$$y{Data},\$t[2]{Data},$ERRTERM) if $#t==3;
+    pgerrb(6,$n,\$$x{Data},\$$y{Data},\$t[3]{Data},$ERRTERM) if $#t==3;
     if ($#t==5) {
-       PGPLOT::pgerrb_r(1,$n,$$x{Data},$$y{Data},$t[3]{Data},$ERRTERM);
-       PGPLOT::pgerrb_r(2,$n,$$x{Data},$$y{Data},$t[5]{Data},$ERRTERM);
-       PGPLOT::pgerrb_r(3,$n,$$x{Data},$$y{Data},$t[2]{Data},$ERRTERM);
-       PGPLOT::pgerrb_r(4,$n,$$x{Data},$$y{Data},$t[4]{Data},$ERRTERM);
+       pgerrb(1,$n,\$$x{Data},\$$y{Data},\$t[3]{Data},$ERRTERM);
+       pgerrb(2,$n,\$$x{Data},\$$y{Data},\$t[5]{Data},$ERRTERM);
+       pgerrb(3,$n,\$$x{Data},\$$y{Data},\$t[2]{Data},$ERRTERM);
+       pgerrb(4,$n,\$$x{Data},\$$y{Data},\$t[4]{Data},$ERRTERM);
     }
 1;}
 
@@ -258,7 +257,7 @@ sub line {
     }
 
     initenv( min($x), max($x), min($y), max($y) ) unless $hold;
-    PGPLOT::pgline_r($n, $$x{Data}, $$y{Data});
+    pgline($n, \$$x{Data}, \$$y{Data});
 1;}
 
 # Plot points with pgpnts()
@@ -278,7 +277,7 @@ sub points {
     checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym); 
 
     initenv( min($x), max($x), min($y), max($y) ) unless $hold;
-    PGPLOT::pgpnts_r($n, $$x{Data}, $$y{Data}, $$sym{Data}, $ns);
+    pgpnts($n, \$$x{Data}, \$$y{Data}, \$$sym{Data}, $ns);
 1;}
 
 # display an image using pgimag()/pggray() as appropriate
@@ -304,11 +303,11 @@ sub imag {
 
     pgqcir($i1, $i2); # Colour range - if too small use pggray dither algorithm
     if ($i2-$i1<16) {
-       PGPLOT::pggray_r( $$image{Data}, $nx,$ny,1,$nx,1,$ny, $max, $min, $$tr{Data});
+       pggray( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, $max, $min, \$$tr{Data});
     }
     else{
        ctab(Grey) unless $CTAB; # Start with grey
-       PGPLOT::pgimag_r( $$image{Data}, $nx,$ny,1,$nx,1,$ny, $min, $max, $$tr{Data});
+       pgimag( \$$image{Data}, $nx,$ny,1,$nx,1,$ny, $min, $max, \$$tr{Data});
     }
     redraw_axes unless $hold; # Redraw box
 1;}
@@ -362,7 +361,7 @@ EOD
     $contrast   = 1   unless defined $contrast;
     $brightness = 0.5 unless defined $brightness;
     initdev();
-    PGPLOT::pgctab_r( $$levels{Data}, $$red{Data}, $$green{Data}, $$blue{Data},
+    pgctab( \$$levels{Data}, \$$red{Data}, \$$green{Data}, \$$blue{Data},
                       $n, $contrast, $brightness );
     $CTAB = 1; # Loaded
 1;}
@@ -386,8 +385,8 @@ sub hi2d {
     $work = float(mkzero($nx));
         
     initenv( 0 ,2*($nx-1), 0, 10*max($image)  ) unless $hold;
-    PGPLOT::pghi2d_r($$image{Data}, $nx, $ny, 1,$nx,1,$ny, $$x{Data}, $ioff, 
-                     $bias, 1, $$work{Data});
+    pghi2d(\$$image{Data}, $nx, $ny, 1,$nx,1,$ny, \$$x{Data}, $ioff, 
+                     $bias, 1, \$$work{Data});
 1;}
 
 
@@ -400,7 +399,7 @@ sub poly {
     checkarg($y,1);
     my $n = nelem($x);
     initenv( min($x), max($x), min($y), max($y) ) unless $hold;
-    PGPLOT::pgpoly_r($n, $$x{Data}, $$y{Data});
+    pgpoly($n, \$$x{Data}, \$$y{Data});
 1;}
 
 
@@ -428,10 +427,11 @@ sub vect {
     initenv( 0, $nx-1, 0, $ny-1  ) unless $hold;
     print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
     
-    PGPLOT::pgvect_r( $$a{Data}, $$b{Data}, $nx,$ny,1,$nx,1,$ny, $scale, $pos, 
-                      $$tr{Data}, $misval);
+    pgvect( \$$a{Data}, \$$b{Data}, $nx,$ny,1,$nx,1,$ny, $scale, $pos, 
+                        \$$tr{Data}, $misval);
 1;}
 
 
 1;# Exit with OK status
+
 
