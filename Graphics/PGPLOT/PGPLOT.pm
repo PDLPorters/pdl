@@ -123,7 +123,6 @@ window instead of its ID, making interactive use somewhat more intuitive.
 
 =back
 
-
 =for example
 
 To open a X-window output that will stay on screen:
@@ -134,11 +133,6 @@ To open two windows, one small and square, one large and wide:
 
   $win1 = dev('/xs', {Aspect => 1, WindowWidth => 4});
   $win2 = dev('/xs', {Aspect => 0.5, WindowWidth => 10});
-
-
-
-=back
-
 
 =cut
 
