@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (6/21/00)
+    - mkhtmldoc.pl should now handle links to scripts in Index.pod for 
+      perl < 5.6.0. Removed link hacking for perl >= 5.6.0.
 CS  - fix Perl_croak problem with 'usethreading'
 Doug Burke (6/15/00)
     - hand-rolled podselect (podsel) created if perl version earler than
