@@ -580,14 +580,28 @@ EOD
 pp_def(
 	'range',
 	Doc => <<'EOD',
-=head2 range
-
 =for ref
 
+Extract selected loci from a source piddle.
+
+=for example
+
+	$out = $source->range($indices,$size)
+
 Returns a rectangular slice of the original piddle, indexed by another piddle.
-Does single-list threading over the index.  Because implicit threading can
-happen in two ways, a little thought is needed.  Threaded dimensions are
-stacked up like so:
+
+$source is an N-dimensional piddle, and $indices is a 2-dimensional
+NxM-piddle, specifying M separate ranges to extract into the single
+return piddle.  (You may omit the second dimension if M=1).  $size may
+be either a scalar or an N-piddle, and it specifies the dimensions of
+the output array.
+
+Dimensions of $source are threaded over -- ie if $source has N+K dimensions
+then the $out gets K extra dimensions.
+
+C<range> does single-list threading over the index.  Because implicit
+threading can happen in two ways, a little thought is needed.
+The returned dimension list is stacked up like so:
 
 	(list thread dim),(index dims (size)),(implicit thread dims)
 
@@ -595,11 +609,18 @@ Note that the list thread dim is always allocated, even if you only want one
 range.  That's to avoid confusion between the list thread dim and possible
 implicit thread dims at the end of the dimension list.
 
+C<range> keeps bidirectional dataflow open even when the reverse transform
+isn't 1-1 -- that is to say, when different ranges intersect one another.
+In such cases, the value of the elements at the intersections is 
+nondeterministic; it is selected from the possible values depending on 
+index position within the individual ranges.
+
 Because range isn't an affine transformation (it involves lookup into
-a single list of N-D indices), keeping dataflow open is somewhat slow
--- about as slow as index() or indexND, because it involves sloshing
-all of the data around in memory.  If you don't want the capability of
-threading, indexND-style, then you might want to use L<slice|slice> or
+a single list of N-D indices), it is somewhat memory-inefficient for
+long lists of ranges, and keeping dataflow open is somewhat slower
+than for affine transformations (which don't have to copy data
+around).  If you don't want the capability of threading,
+L<indexND|indexND>-style, then you might want to use L<slice|slice> or
 L<mslice|mslice> instead; since they use affine transformations the
 data stay where they were.
 

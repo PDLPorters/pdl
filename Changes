@@ -1,3 +1,5 @@
+CED (26-Aug-02)
+    - slices.pd: added range (PP implementation)
 CED (20-Aug-02)
     - slices.pd: added rangeND (first-cut implementation)
 CED (19-Aug-02)
