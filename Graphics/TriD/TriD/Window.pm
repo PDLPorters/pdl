@@ -213,6 +213,15 @@ sub AUTOLOAD {
 # to all of the defined ViewPorts
 
   $sub =~ s/.*:://;
+
+  print "AUTOLOAD: $sub at ",__FILE__," line ", __LINE__  ,".\n" 
+	 if($PDL::Graphics::TriD::verbose);
+
+  if($sub =~ /^gl/ && defined  $self->{_GLObject}){
+	 return  $self->{_GLObject}->$sub(@args);
+  }
+
+
   for(@{$self->{_ViewPorts}}) {
     next unless defined $_;
 	 $_->$sub(@args);

@@ -508,15 +508,15 @@ use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
   twiddle3d grabpic3d tridsettings/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
+#use strict;
 use PDL::Graphics::TriD::Object;
 use PDL::Graphics::TriD::Window;
 use PDL::Graphics::TriD::ViewPort;
 use PDL::Graphics::TriD::Graph;
 use PDL::Graphics::TriD::Quaternion;
-use  PDL::Graphics::TriD::Objects;
+use PDL::Graphics::TriD::Objects;
 use PDL::Graphics::TriD::Rout;
 
-#use strict;
 
 # Then, see which display method are we using:
 
@@ -524,6 +524,7 @@ BEGIN {
 	my $dev;
 	$dev ||= $::PDL::Graphics::TriD::device; # First, take it from this variable.
 	$dev ||= $::ENV{PDL_3D_DEVICE};
+
 	if(!defined $dev) {
 #		warn "Default PDL 3D device is GL (OpenGL):
 #Set PDL_3D_DEVICE=GL in your environment in order not to see this warning.
@@ -542,6 +543,8 @@ BEGIN {
 	}
 	my $mod = $dv;
 	$mod =~ s|::|//|g;
+	print "dev = $dev mod=$mod\n" if($verbose);
+ 
 	require "$mod.pm";
 	$dv->import;
         my $verbose;

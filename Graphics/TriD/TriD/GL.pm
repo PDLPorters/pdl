@@ -93,46 +93,6 @@ sub PDL::Graphics::TriD::Object::togl {
 }
 
 
-# XXX Aspect handling.
-sub PDL::Graphics::TriD::ViewPort::togl_vp::OLD {
-  my($this,$win,$rec) = @_;
-  my $aspect = $win->{Aspect};
-  my ($foo,$x0,$y0,$x1,$y1) = @$rec;
-  print "VPTOGL - shouldn't be here\n" ;#if($PDL::Graphics::TriD::verbose);
-  my $w = $win->{W}; 
-  my $h = $win->{H};
-  my $x = $win->{X0}; 
-  my $y = $win->{Y0};
-  $x = 0 unless(defined $x);
-  $y = 0 unless(defined $y);
-
-  print "VPTO: $w,$h,$x,$y,$x0,$x1,$y0,$y1\n" if($PDL::Graphics::TriD::verbose);
-  my @vp = ($w * $x0 + $x,$h * $y0 + $y,$w * ($x1-$x0) + $x,$h * ($y1-$y0) + $y);
-  $this->{W} = $vp[2]-$vp[0];
-  $this->{H} = $vp[3]-$vp[1];
-  $this->{X0} = $vp[0];
-  $this->{Y0} = $vp[1];
-  print "VPTO2: $vp[0] $vp[1] $vp[2] $vp[3]\n" if($PDL::Graphics::TriD::verbose);
-
-  glViewport(@vp);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0,1,0,1,-1,1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  $this->gl_call_list();
-  if($this->{ViewPorts}) {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    #		print "DOVP\n" if($PDL::Graphics::TriD::verbose);
-    for(@{$this->{ViewPorts}}) {
-      $_->[0]->togl_vp($this,$_);
-    }
-  }
-}
-
 sub PDL::Graphics::TriD::BoundingBox::togl { 
   my($this) = @_;
   $this = $this->{Box};
@@ -141,12 +101,12 @@ sub PDL::Graphics::TriD::BoundingBox::togl {
   glBegin(&GL_LINES);
   for([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
 		[3,1,2],[3,1,5],[3,4,5],[3,4,2]) {
-	 glVertex3d(@{$this}[@$_]);
+	 &glVertex3d(@{$this}[@$_]);
   }
   glEnd();
   glBegin(&GL_LINE_STRIP);
   for([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]) {
-	 glVertex3d(@{$this}[@$_]);
+	 &glVertex3d(@{$this}[@$_]);
   }
   glEnd();
   glEnable(&GL_LIGHTING);
@@ -246,7 +206,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my $dim;
 	for $dim (0..2) {
 		glVertex3f(0,0,0);
-		glVertex3f(map {$_==$dim} 0..2);
+		&glVertex3f(map {$_==$dim} 0..2);
 	}
 	glEnd();
 	for $dim (0..2) {
@@ -262,12 +222,12 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nadd = ($s->[1]-$s->[0])/$ndiv;
 		my $nc = $s->[0];
 		for(0..$ndiv) {
-			glRasterPos3f(@coords);
+			&glRasterPos3f(@coords);
 			PDL::Graphics::OpenGL::glpPrintString($fontbase,
 				sprintf("%.3f",$nc));
 			glBegin(&GL_LINES);
-			glVertex3f(@coords0);
-			glVertex3f(@coords);
+			&glVertex3f(@coords0);
+			&glVertex3f(@coords);
 			glEnd();
 #			print "PUT: $nc\n";
 			$coords[$dim] += $radd;
@@ -275,7 +235,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 			$nc += $nadd;
 		}
 		$coords0[$dim] = 1.1;
-		glRasterPos3f(@coords0);
+		&glRasterPos3f(@coords0);
 		PDL::Graphics::OpenGL::glpPrintString($fontbase,
 			$this->{Names}[$dim]);
 	}
@@ -292,7 +252,7 @@ sub PDL::Graphics::TriD::Quaternion::togl {
     # die "Unnormalized Quaternion!\n";
     $this->normalize_this();
   } 
-  glRotatef(2*acos($this->[0])/3.14*180, @{$this}[1..3]);
+  &glRotatef(2*acos($this->[0])/3.14*180, @{$this}[1..3]);
 }
 
 ##################################
@@ -579,8 +539,8 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	);
 	if(!defined $vert) {$vert = $this->{Points}}
 	for(0..3) {
-		glTexCoord2f(@{$texvert[$_]});
-		glVertex3f($vert->slice(":,($_)")->list);
+		&glTexCoord2f(@{$texvert[$_]});
+		&glVertex3f($vert->slice(":,($_)")->list);
 	}
 	glEnd();
 	glEnable(&GL_LIGHTING);
@@ -594,7 +554,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 	glTranslatef(0,0,-$this->{CDistance});
 
 	$this->{WRotation}->togl();
-	glTranslatef(map {-$_} @{$this->{WOrigin}});
+	&glTranslatef(map {-$_} @{$this->{WOrigin}});
 }
 
 
@@ -606,7 +566,7 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 package PDL::Graphics::TriD::Window;
 use PDL::Graphics::OpenGL;
 use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/Ev Width Height Interactive 
+use fields qw/Ev Width Height Interactive _GLObject 
               _ViewPorts _CurrentViewPort /;
 
 sub i_keep_list {return 1} # For Object, so I will be notified of changes.
@@ -615,10 +575,10 @@ use strict;
 sub gdriver {
   my($this, $options) = @_;
 
-  if(defined $PDL::Graphics::TriD::GL::Window::instance){
-	 return $PDL::Graphics::TriD::GL::Window::instance;
+  if(defined $this->{_GLObject}){
+	 print "WARNING: Graphics Driver already defined for this window \n";
+	 return;
   }
-
   my @db = &GLX_DOUBLEBUFFER;
 
   if($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
@@ -639,10 +599,12 @@ sub gdriver {
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
   
-  glpOpenWindow(%$options);
+  $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
+
+#glpOpenWindow(%$options);
   
   glClearColor(0,0,0,1);
-  my $lb = PDL::Graphics::OpenGL::glpRasterFont(
+  my $lb =  $this->{_GLObject}->glpRasterFont(
 						($ENV{PDL_3D_FONT} or "5x8"),0,256);
   $PDL::Graphics::TriD::GL::fontbase = $lb;
   #	glDisable(&GL_DITHER);
@@ -674,7 +636,6 @@ sub gdriver {
   if($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
   }
-  $PDL::Graphics::TriD::GL::Window::instance=$this;
   
   return 1;  # Interactive Window
 }
@@ -722,26 +683,20 @@ sub twiddle {
 	 return;
   }
   if($getout and $dontshow) {
-	 if(!&XPending()) {return}
+	 if(!$this->{_GLObject}->XPending()) {return}
   }
   if(!defined $getout) {
 	 $getout = not $PDL::Graphics::TriD::keeptwiddling;
   }
   
   $this->display();
-  my $hap = 0;
-  my $gotev = 0;
  TWIDLOOP: while(1) {
 	 #		print "EVENT!\n";
-	 $gotev=0;
-	 if(&XPending() or !$getout) {
-		@e = &glpXNextEvent();
-		#		  @e = &glpXPeekEvent();
-		#		  if ($PDL::Graphics::TriD::verbose){
-		#		    foreach(@e){
-		#		      print "EVENT $_\n" ;
-		#		    }
-		#		  }
+	 my $hap = 0;
+	 my $gotev = 0;
+
+	 if($this->{_GLObject}->XPending() or !$getout) {
+		@e = $this->{_GLObject}->glpXNextEvent();
 		$gotev=1;
 	 }
 	 if(@e){
@@ -772,13 +727,14 @@ sub twiddle {
 		#			print "HANDLING $this->{EHandler}\n";
 		foreach my $vp (@{$this->{_ViewPorts}}) {
 		  if(defined($vp->{EHandler})) {
-			 $vp->{EHandler}->event(@e);
+			 $hap += $vp->{EHandler}->event(@e);
 		  }
 		}
-		$hap=1;
 	 }
-	 if(!&XPending()) {
-		if($hap) {$this->display();}
+	 if(! $this->{_GLObject}->XPending()) {
+		if($hap) {
+		  $this->display();
+		}
 		if($getout) {last TWIDLOOP}
 	 }
 	 undef @e;
@@ -836,7 +792,7 @@ sub display {
 
   }
 
-  glXSwapBuffers();
+  $this->{_GLObject}->glXSwapBuffers();
 #  $this->{Angle}+= 3;
 }
 
@@ -851,6 +807,7 @@ sub read_picture {
 		${$res->get_dataref});
 	return $res;
 }
+
 
 package PDL::Graphics::TriD::EventHandler;
 use PDL::Graphics::OpenGL qw/MotionNotify ButtonPress ButtonRelease 
@@ -872,20 +829,22 @@ sub new {
 sub event {
   my($this,$type,@args) = @_;
 
-  print "EH: ",ref($this)," $type\n" if($PDL::Graphics::TriD::verbose);
-
+  #  print "EH: ",ref($this)," $type\n" if($PDL::Graphics::TriD::verbose);
+  my $retval;
   if($type == &MotionNotify) {
-	 #		print "MOTION\n";
 	 my $but = -1;
+  
   SWITCH: { 
-		$but = 0, last SWITCH if ($args[0] & (&Button1Mask));
-		$but = 1, last SWITCH if ($args[0] & (&Button2Mask));
-		$but = 2, last SWITCH if ($args[0] & (&Button3Mask));
+		$but = 0, last SWITCH if ($args[0] & (Button1Mask));
+		$but = 1, last SWITCH if ($args[0] & (Button2Mask));
+		$but = 2, last SWITCH if ($args[0] & (Button3Mask));
 		goto NOBUT;
 	 }
+
+#	 print "MOTION $but $args[0]\n";
 	 if($this->{Buttons}[$but]) {
 		if($this->{VP}->{Active}){
-		  $this->{Buttons}[$but]->mouse_moved(
+		  $retval = $this->{Buttons}[$but]->mouse_moved(
 														  $this->{X},$this->{Y},
 														  $args[1],$args[2]);
 		}
@@ -893,17 +852,18 @@ sub event {
 	 $this->{X} = $args[1]; $this->{Y} = $args[2];
   NOBUT:
   } elsif($type == &ButtonPress) {
-	 #		print "BUTTONPRESS\n";
 	 my $but = $args[0]-1;
+#	 print "BUTTONPRESS $but\n";
 	 $this->{X} = $args[1]; $this->{Y} = $args[2];
-	 $this->{Buttons}[$but]->ButtonPress($args[1],$args[2]) 
+	 $retval = $this->{Buttons}[$but]->ButtonPress($args[1],$args[2]) 
 		if($this->{Buttons}[$but]);
   } elsif($type == &ButtonRelease) {
-	 #		print "BUTTONRELEASE\n";
 	 my $but = $args[0]-1;
-	 $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2]) 
+#	 print "BUTTONRELEASE $but\n";
+	 $retval = $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2]) 
 		if($this->{Buttons}[$but]);
   }
+  $retval;
 }
 
 sub set_button {
