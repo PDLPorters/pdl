@@ -140,7 +140,7 @@ sub PDL::simplex {
 	my $ssize = $initsize->min*2;
 	&{$logsub}($simp,$vals,$ssize)
 		if $logsub;
-	while($maxiter-- and $ssize > $minsize) {
+	while($maxiter-- and max(PDL->topdl($ssize)) > $minsize ) {
 		my $valsn = $vals;
 		if($t) {
 			my $noise = $vals->copy();
