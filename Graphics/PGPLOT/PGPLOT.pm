@@ -648,7 +648,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag image ctab ctab_info hi2d poly vect pgend
+	      imag image ctab ctab_info hi2d poly vect pgflush
 	      CtoF77coords
 );
 

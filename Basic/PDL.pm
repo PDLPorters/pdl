@@ -21,7 +21,6 @@ issue.
    use PDL::Slices;
    use PDL::Version;
    use PDL::IO::Misc;
-   use PDL::Graphics::PGPLOT;
 
 =cut
 

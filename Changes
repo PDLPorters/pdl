@@ -1,6 +1,11 @@
 (!!! = possible source of incompatibilities)
 2.004
 
+Doug Hunt (3/3/00)
+        - Removed PDL::Graphics::PGPLOT from PDL.pm.  This had been causing
+          troubles due to the previous change which took away autoloading
+          in PGPLOT.  
+
 Doug Hunt (3/2/00)
         - Updated Graphics/IO/PGPLOT, adding a typemap and a PGPLOT.xs file.
           This change added capability to PDL::Graphics::PGPLOT::line, allowing
