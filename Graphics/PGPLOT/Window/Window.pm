@@ -2985,16 +2985,16 @@ sub initenv{
   if ($o->{Justify} == 1) {
     pgwnad($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
-      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+      pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
-      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+      pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   } else {
     pgswin($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
-      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+      pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
-      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+      pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   }
   $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
@@ -3038,9 +3038,9 @@ sub redraw_axes {
   $axval = 0 unless defined $axval; # safety check
   unless ( $self->{Hold} ) {
     if ( ref($axval) ) {
-      pgbox($$axval[0],0,0,$$axval[1],0,0);
+      pgtbox($$axval[0],0,0,$$axval[1],0,0);
     } else {
-      pgbox($axval,0,0,$axval,0,0);
+      pgtbox($axval,0,0,$axval,0,0);
     }
   }
   $self->_set_colour($col);
