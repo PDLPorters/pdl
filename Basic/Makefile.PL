@@ -12,19 +12,28 @@ if ($^O =~ /win32/i) {
 
 # # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # # the contents of the Makefile that is written.
+
+my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm );
+
+my %pm = map { $h = '$(INST_LIBDIR)/'; 
+	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
+	       ( $_, $h . $_ ); 
+	   } ( @pm_names, $defstartup );
+
+my %man3pods = map { $h = '$(INST_MAN3DIR)/';
+		     $h .= 'PDL::' if $_ !~ /PDL.pm$/;
+		     ( $_, $h . substr($_,0,length($_)-3) . '.$(MAN3EXT)' ); 
+		 } @pm_names;
+
 WriteMakefile(
-     'NAME'	=> 'PDL',
-     'VERSION_FROM' => 'Core/Version.pm',
-     'PM'       => {'PDL.pm'     => '$(INST_LIBDIR)/PDL.pm',
-                    'Lite.pm'    => '$(INST_LIBDIR)/PDL/Lite.pm',
-                    'LiteF.pm'    => '$(INST_LIBDIR)/PDL/LiteF.pm',
-                    'AutoLoader.pm'    => '$(INST_LIBDIR)/PDL/AutoLoader.pm',
-                    'Options.pm'  => '$(INST_LIBDIR)/PDL/Options.pm',
-                    $defstartup => '$(INST_LIBDIR)/PDL/'.$defstartup},
-     'MAN3PODS' => {'AutoLoader.pm' => '$(INST_MAN3DIR)/PDL::AutoLoader.$(MAN3EXT)'},
+	      'NAME'	=> 'PDL',
+	      'VERSION_FROM' => 'Core/Version.pm',
+	      'PM'       => \%pm,
+	      'MAN3PODS' => \%man3pods,
      'DIR'      => ['Pod','Gen','Core','Ops','Primitive','Slices',
 		    'Test','Math','Complex'],
 );
+
 
 # For the lazy people
 sub MY::postamble {
