@@ -156,6 +156,51 @@ variable).
 
    > cvs update -r make-cup-of-tea_experimental 
 
-As I haven't yet closed a branch, I can't tell you how! The online CVS
-documentation (eg http://cvsbook.red-bean.com/cvsbook.html) is pretty
-good.
+4) Make changes to this branch as normal (CVS knows that you are in
+   a branch, so 'cvs update' will now only merge in updates made to this
+   branch.).
+
+5) When it comes time to merge your changes back into the main branch,
+   check out a copy of PDL and merge in the updates:
+
+   > cvs co -d PDL.merged PDL
+   > cd PDL.merged
+   > cvs update -j make-cup-of-tea_experimental
+
+   If you are lucky (or you manually went along and merged in the
+   main-branch updates to your branch as they were made) then you
+   do not have to do anything else. In this case the output when the
+   merges are made will look something like:
+
+     RCS file: /cvsroot/pdl/PDL/t/misc.t,v
+     retrieving revision 1.12
+     retrieving revision 1.12.2.1
+     Merging differences between 1.12 and 1.12.2.1 into misc.t
+
+   However, in the real world you are likely to find out that there are
+   conflicts in the merge, in which case you will see something like:
+
+     RCS file: /cvsroot/pdl/PDL/Makefile.PL,v
+     retrieving revision 1.44
+     retrieving revision 1.44.2.1
+     Merging differences between 1.44 and 1.44.2.1 into Makefile.PL
+     rcsmerge: warning: conflicts during merge
+
+   The file in question will then contain text within "<<<<<" and ">>>>>"
+   markers (I forget how many of them there are), separated by a line
+   of "=====" which indicate the conflicting parts of the file. The
+   main-branch version of the file is stored as .#<filename> for easy
+   comparison (or you could do a 'cvs diff').
+
+   These differences should be resolved and then the changes commited to
+   the main branch [CVS will either not allow you to merge - or will
+   complain about it, depending on the version - if there are any of these
+   lines left in the text].
+
+   > cvs commit -m "Merged in make-cup-of-tea branch"
+   > cvs tag make-cup-of-tea_experimental_merge1
+
+   The reason for tagging the main branch after the merge is to make
+   it easier to merge back any new changes made to the branch (if they
+   occur). The CVS manual contains more details on this.
+  
