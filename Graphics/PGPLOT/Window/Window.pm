@@ -6185,9 +6185,12 @@ sub poly {
 						 TextShift => 0.1,
 						 VertSpace => 0
 						     });
-      $legend_options->synonyms({ VSpace => 'VertSpace' });
-      $legend_options->synonyms({ Fraction => 'TextFraction' });
-      $legend_options->add_synonym({Bg => 'BackgroundColour'});
+      # should this be synonyms() or add_synonym() ? DJB 09 Apr 03
+      $legend_options->add_synonym({
+				    VSpace => 'VertSpace',
+				    Fraction => 'TextFraction',
+				    Bg => 'BackgroundColour',
+				   });
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -6198,14 +6201,12 @@ sub poly {
     # parsed by the standard options parsers so we deal with these
     # here - we translate the linestyles, symbols and colours below
     #
-    my $linestyle=$u_opt->{LineStyle}; delete $u_opt->{LineStyle};
-    $linestyle=[$linestyle] if !ref($linestyle) eq 'ARRAY';
-    my $linewidth=$u_opt->{LineWidth}; delete $u_opt->{LineWidth};
-    $linewidth=[$linewidth] if !ref($linewidth) eq 'ARRAY';
-    my $color = $u_opt->{Colour}; delete $u_opt->{Colour};
-    $color=[$color] if !ref($color) eq 'ARRAY';
-    my $symbol = $u_opt->{Symbol}; delete $u_opt->{Symbol};
-    $symbol=[$symbol] if !ref($symbol) eq 'ARRAY';
+    my %myopt;
+    foreach my $optname ( qw( LineStyle LineWidth Colour Symbol ) ) {
+	my $tmp = $u_opt->{$optname};
+	$myopt{lc($optname)} = ref($tmp) eq "ARRAY" ? $tmp : [$tmp];
+	delete $u_opt->{$optname};
+    }
 
     my ($text, $x, $y, $width)=@$in;
     $o->{Text} = $text if defined($text);
@@ -6214,7 +6215,10 @@ sub poly {
     $o->{Width} = $width if defined($width);
 
     # We could keep accessing $o but this is more succint.
+    # [In the following we want to deal with an array of text.]
     $text = $o->{Text};
+    $text = [$text] unless ref($text) eq 'ARRAY';
+    my $n_lines = $#$text+1;
 
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
       release_and_barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
@@ -6230,11 +6234,8 @@ sub poly {
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
-    my $chsz; pgqch($chsz);
-
+    pgqch(my $chsz);
 #    print "I found a character size of $chsz\n";
-    # In the following we want to deal with an array of text.
-    $text = [$text] unless ref($text) eq 'ARRAY';
 
     ## Now, set the background colour of the text before getting further.
     ## Added 2/10/01 - JB - test as a regexp to avoid -w noise.
@@ -6248,13 +6249,13 @@ sub poly {
     # minimum required (since text in PGPLOT cannot have variable width
     # and height.
     # Get the window size.
-    my ($xmin, $xmax, $ymax, $ymin);
-    pgqwin($xmin, $xmax, $ymin, $ymax);
+    pgqwin( my $xmin, my $xmax, my $ymin, my $ymax );
 
     # note: VertSpace is assumed to be a scalar
-    my $vspace = $o->{VertSpace};
+    my $vfactor = 1.0 + $o->{VertSpace};
 
     my $required_charsize=$chsz*9000;
+
     if ($o->{Width} eq 'Automatic' && $o->{Height} eq 'Automatic') {
       # Ok - we just continue with the given character size.
       $required_charsize = $chsz;
@@ -6265,21 +6266,17 @@ sub poly {
       my $t_height = -1; # And very low
       foreach my $t (@$text) {
 	# Find the bounding box of left-justified text
-	my ($xbox, $ybox);
-	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
-	if (($$xbox[2]-$$xbox[0]) > $t_width) {
-	  # This is now the longest line.
-	  $t_width = $$xbox[2]-$$xbox[0];
-	}
-	if (($$ybox[2]-$$ybox[0]) > $t_height) {
-	  $t_height = $$ybox[2]-$$ybox[0];
-	}
+	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, my $xbox, my $ybox);
+	my $dx = $$xbox[2] - $$xbox[0];
+	my $dy = $$ybox[2] - $$ybox[0];
+	$t_width  = $dx if $dx > $t_width;
+	$t_height = $dy if $dy > $t_height;
       }
 
       $o->{Width} = $t_width/$o->{TextFraction};
       # we include an optional vspace (which is given as a fraction of the
       # height of a line)
-      $o->{Height} = $t_height*(1+$vspace)*($#$text+1); # The height of all lines..
+      $o->{Height} = $t_height*$vfactor*$n_lines; # The height of all lines..
     } else {
       # We have some constraint on the size.
       my ($win_width, $win_height)=($xmax-$xmin, $ymax-$ymin);
@@ -6289,19 +6286,19 @@ sub poly {
       # plot window - thus ensuring not too large a text size should the
       # user have done something stupid, but still large enough to
       # detect an error.
-      $o->{Width}=2*$win_width/$o->{TextFraction} if $o->{Width} eq 'Automatic';
-      $o->{Height}=2*$win_height if $o->{Height} eq 'Automatic';
+      $o->{Width}  = 2*$win_width/$o->{TextFraction} if $o->{Width} eq 'Automatic';
+      $o->{Height} = 2*$win_height if $o->{Height} eq 'Automatic';
 
-      my $n_lines = $#$text+1; # The number of lines.
       foreach my $t (@$text) {
 	# Find the bounding box of left-justified text
-	my ($xbox, $ybox);
-	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
+	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, my $xbox, my $ybox);
+	my $dx = $$xbox[2] - $$xbox[0];
+	my $dy = $$ybox[2] - $$ybox[0];
 
 	# Find what charactersize is required to fit the height
 	# (accounting for vspace) or fraction*width:
-	my $t_width= $o->{TextFraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
-	my $t_height = $o->{Height}/(1+$vspace)/$n_lines/($$ybox[2]-$$ybox[0]); # XXX is (1+$vspace) correct
+	my $t_width  = $o->{TextFraction}*$o->{Width}/$dx;
+	my $t_height = $o->{Height}/$vfactor/$n_lines/$dy; # XXX is $vfactor==(1+VertSpace) correct?
 
 	$t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
 #	print "For text = $t the optimal size is $t_chsz ($t_width, $t_height)\n";
@@ -6319,45 +6316,44 @@ sub poly {
     my ($xpos, $ypos) = ($o->{XPos}, $o->{YPos});
     my ($xstart, $xend)=($o->{XPos}+$o->{TextFraction}*$o->{Width}+
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
-
-    my $n_lines=$#$text+1;
+    my $xmid = 0.5 * ($xstart + $xend);
 
     # step size in y
     my $ystep = $o->{Height} / $n_lines;
 
     # store current settings
-    my ( $col, $lw, $ls );
-    pgqci($col); pgqls($ls); pgqlw($lw);
+    pgqci(my $col);
+    pgqls(my $ls);
+    pgqlw(my $lw);
 
-    foreach (my $i=0; $i<=$#$text; $i++) {
+    foreach (my $i=0; $i<$n_lines; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
       # we need to create a temporary PDL::Options object here to do the
       # parsing..
       my $t_o = $self->{PlotOptions}->options({
-					Symbol => $symbol->[$i],
-					LineStyle => $linestyle->[$i],
-					LineWidth => $linewidth->[$i],
-					Colour => $color->[$i]
+					Symbol => $myopt{symbol}[$i],
+					LineStyle => $myopt{linestyle}[$i],
+					LineWidth => $myopt{linewidth}[$i],
+					Colour => $myopt{colour}[$i],
 				      });
 
-      $self->_set_colour($t_o->{Colour}) if defined($color->[$i]);
+      $self->_set_colour($t_o->{Colour}) if defined($myopt{colour}[$i]);
 
       # Use the following to get the lines/symbols centered on the
       # text.
-      my ($xbox, $ybox);
-      pgqtxt($xpos, $ypos, 0.0, 0.0, $text->[$i], $xbox, $ybox);
-      if (defined($$symbol[$i])) {
-#	print "I will be using symbol $$o{Symbol}\n";
-	my ($xsym, $ysym)=(0.5*($xstart+$xend), 0.5*($$ybox[2]+$$ybox[0]));
+      pgqtxt($xpos, $ypos, 0.0, 0.0, $text->[$i], my $xbox, my $ybox);
+      my $ymid = 0.5 * ($$ybox[2] + $$ybox[0]);
 
-	pgpt(1, $xsym, $ysym, $t_o->{Symbol});
+      if (defined($myopt{symbol}[$i])) {
+#	print "I will be using symbol $$o{Symbol}\n";
+	pgpt(1, $xmid, $ymid, $t_o->{Symbol});
+
       } else {
 #	print "I will be drawing a line with colour $$o{Colour} and style $$o{LineStyle}\n";
-	my $yline=0.5*($$ybox[2]+$$ybox[0]);
-	pgsls($t_o->{LineStyle}) if defined($linestyle->[$i]);
-	pgslw($t_o->{LineWidth}) if defined($linewidth->[$i]);
-	pgline(2, [$xstart, $xend], [$yline, $yline]);
+	pgsls($t_o->{LineStyle}) if defined $myopt{linestyle}[$i];
+	pgslw($t_o->{LineWidth}) if defined $myopt{linewidth}[$i];
+	pgline(2, [$xstart, $xend], [$ymid, $ymid]);
       }
 
       # reset colour, line style & width after each line

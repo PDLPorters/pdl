@@ -1,3 +1,6 @@
+DJB 09-Apr-2003
+   - Fixed PDL::Graphics::PGPLOT::Window::legend to correctly handle
+     synonyms (confusion between PDL::Option's synonyms()/add_synonym())
 CED 8-Apr-2003
    - Minor fix to Transform::map: if you supply a destination FITS header it
 	replaces the original FITS header in the remapped output.
