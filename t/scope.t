@@ -2,7 +2,7 @@
 # Also see that PDL loaders get the correct symbols.
 
 
-print "1..12\n";
+print "1..10\n";
 
 sub ok {
 	my $no = shift ;
@@ -54,9 +54,7 @@ package F;
 use PDL::LiteF;
 ::ok(6,(bless {},F)->can("zeroes"));
 
-::ok(7,(bless {},A)->can("imag"));
-::ok(8,(bless {},B)->can("imag"));
-::ok(9,!((bless {},C)->can("imag")));
-::ok(10,!((bless {},D)->can("imag")));
-::ok(11,!((bless {},E)->can("imag")));
-::ok(12,!((bless {},F)->can("imag")));
+::ok(7,!((bless {},C)->can("imag")));
+::ok(8,!((bless {},D)->can("imag")));
+::ok(9,!((bless {},E)->can("imag")));
+::ok(10,!((bless {},F)->can("imag")));

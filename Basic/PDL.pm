@@ -49,7 +49,6 @@ use PDL::Slices;
 # Load these for TPJ compatibility
 
 use PDL::IO::Misc;          # Misc IO (Ascii/FITS)
-use PDL::Graphics::PGPLOT;  # PGPLOT graphics
 
 EOD
 

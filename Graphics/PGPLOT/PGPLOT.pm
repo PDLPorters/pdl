@@ -604,6 +604,25 @@ TRANSFORM - The pixel-to-world coordinate transform vector
  $b=rvals(11,11,{Centre=>[0,0]});
  vect $a, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
+=head2 pgflush
+
+=for ref
+
+Close plot, write contents to file.  This done in an END block when 
+perl shuts down, but it is sometimes useful to be able to do this
+manually.  This is the case when using a persistent perl interpreter
+such as mod_perl for web development.  This function just calls pgend().
+
+=for usage
+
+   Usage: pgflush()
+
+=for example
+
+ line ...
+ points ...
+ pgflush() 
+
 =head1 AUTHOR
 
 Karl Glazebrook [kgb@aaoepp.aao.gov.au] modified by Jarle Brinchmann
@@ -629,7 +648,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag image ctab ctab_info hi2d poly vect
+	      imag image ctab ctab_info hi2d poly vect pgend
 	      CtoF77coords
 );
 
@@ -702,14 +721,10 @@ $DEV  = "?" if !defined($DEV) || $DEV eq ""; # Safe default
       10 => [ 'BCLNST', 'BCNST' ], 20 => [ 'BCNST', 'BCLNST' ], 
       30 => [ 'BCLNST', 'BCLNST' ] );
 
-BEGIN { $pgplot_loaded = 0 }
-
 END { # Destructor to close plot when perl exits
-     if ($pgplot_loaded) {
-        my ($state,$len);
-        pgqinf('STATE',$state,$len);
-        pgend() if $state eq "OPEN";
-     }
+  my ($state,$len);
+  pgqinf('STATE',$state,$len);
+  pgend() if $state eq "OPEN";
 }
 
 
@@ -1526,6 +1541,12 @@ sub vect {
 	  $tr->get_dataref, $misval);
   restore_status();
   1;}
+
+sub pgflush {
+  pgend();
+  1;
+}
+  
 
 1;# Exit with OK status
 

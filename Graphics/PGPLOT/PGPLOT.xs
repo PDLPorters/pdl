@@ -9,15 +9,17 @@
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "XSUB.h"     /* XSUB include */
-/*  #include "cpgplot.h" */ /* CPGPLOT prototypes */ 
 
 struct PGPLOT_function_handle {
+   I32 binversion;
    void (*cpgmove) (float x, float y);
    void (*cpgdraw) (float x, float y);
 };
 
+
 typedef struct PGPLOT_function_handle PGPLOT_function_handle;
 
+static I32 PGPLOT_structure_version = 20000302;  /* The date the PGPLOT structure changed */
 static PGPLOT_function_handle  *myhandle;
 SV *ptr;
 
@@ -54,4 +56,9 @@ BOOT:
 	if (ptr==NULL)
 	  Perl_croak("This module requires use of PGPLOT first");
 	myhandle = (PGPLOT_function_handle*) SvIV( ptr );  
+
+	/* If the structure read from the PGPLOT module is too old */
+	if (myhandle->binversion < PGPLOT_structure_version)
+          Perl_croak("This module requires PGPLOT with a newer structure version");
+
 
