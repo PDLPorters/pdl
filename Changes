@@ -1,3 +1,8 @@
+John Cerney (4/3/01)
+    - Modified Makefile.PL in Graphics to add '-lm' to the libs.
+      This fixes a 'Can't locate auto/PDL/Graphics/OpenGL/glpcOpenWin.al'
+      error in make test during opengl.t for some platforms.
+      Shouldn't hurt otherwise.
 CS
     - make_physvaffine is now a member of the core struct
     - pdl_get is now vaffine aware (must be preceded by call to make_physvaffine)
