@@ -1503,6 +1503,7 @@ use PDL::Ufunc;
 use PDL::Primitive;
 use PDL::Types;
 use PDL::Options;
+use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use SelfLoader;
 use Exporter;
@@ -1540,6 +1541,7 @@ $WindowOptions->warnonmissing(0);
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
+
 
 sub new {
 
@@ -1591,7 +1593,8 @@ sub new {
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
 	      'CurrentPanel'  => 0,
-	      '_env_options'  => undef
+	      '_env_options'  => undef,
+	      'State'         => undef
 	     };
 
   if (defined($self->{Options})) {
@@ -1602,7 +1605,7 @@ sub new {
   bless $self, ref($type) || $type;
 
   $self->_open_new_window($opt);
-
+  $self->_turn_on_recording();
 
   return $self;
 
@@ -1933,6 +1936,61 @@ sub _thread_options {
   return \@hashes;
 }
 
+############################
+# Replay related functions #
+############################
+
+my $DEBUGSTATE = 1;
+sub replay {
+  my $self = shift;
+  my $state = shift || $self->{State};
+
+  if (!defined($state)) {
+    die "A state object must be defined to play back commands!\n";
+  }
+
+  my @list = $state->get();
+  foreach my $arg (@list) {
+    my ($command, $arg, $opt)=@$arg;
+    &$command($self, @$arg, $opt);
+  }
+}
+
+
+sub _clear_state {
+  my $self = shift;
+  print "Clearing state!\n" if $DEBUGSTATE;
+  $self->{State}->clear();
+}
+
+sub _turn_off_recording {
+  my $self=shift;
+  $self->_clear_state();
+  print "Turning off state!\n" if $DEBUGSTATE;
+  $self->{State}=undef;
+}
+sub _turn_on_recording {
+  my $self=shift;
+  # Previous calls are not recorded of course..
+  print "Turning on state!\n" if $DEBUGSTATE;
+  $self->{State}=PDL::Graphics::State->new();
+}
+
+sub _add_to_state {
+  my $self=shift;
+  my ($func, $arg, $opt)=@_;
+  # We only add if recording has been turned on.
+  print "Adding to state ! $func, $arg, $opt\n" if $DEBUGSTATE;
+  print "State = ".$self->{State}."\n" if $DEBUGSTATE;
+  $self->{State}->add($func, $arg, $opt) if defined($self->{State});
+}
+
+sub retrive_state {
+  my $self=shift;
+  my $state_copy = $self->{State}->copy();
+  print "Retriving state!\n" if $DEBUGSTATE;
+  return $state_copy;
+}
 
 #####################################
 # Window related "public" routines. #
@@ -1947,6 +2005,7 @@ sub close {
       pgclos();
   }
   $self->{ID}=undef;
+  $self->_clear_state();
 }
 
 =head2 options
@@ -2014,6 +2073,7 @@ sub focus {
 sub hold {
   my $self=shift;
   $self->{Hold}=1;
+  $self->_add_to_state(\&hold);
   return $self->{Hold};
 }
 
@@ -2021,6 +2081,7 @@ sub hold {
 sub release {
   my $self=shift;
   $self->{Hold}=0;
+  $self->_add_to_state(\&release);
   return $self->{Hold};
 }
 
@@ -2124,6 +2185,7 @@ EOD
   # We do not subtract 1 from X because we would need to add it again to
   # have a 1-offset numbering scheme.
   $self->{CurrentPanel} = ($ypos-1)*$self->{NX}+($xpos);
+  $self->_add_to_state(\&panel, $xpos, $ypos);
   pgpanl($xpos, $ypos);
 
 
@@ -2151,6 +2213,7 @@ EOD
 
     $self->focus();
     pgeras();
+    $self->_add_to_state(\&erase, [], $u_opt);
     # Remove hold.
     $self->{Hold}=0;
   }
@@ -2305,6 +2368,7 @@ sub _store {
 
     # store data
     $self->{_horrible_storage_space}{$name} = $object;
+
 
 } # sub: _store()
 
@@ -2594,6 +2658,10 @@ sub redraw_axes {
   }
   pgsci($col);
   pgsch($chsz);
+
+  $self->_add_to_state(\&redraw_axes);
+
+
 }
 
 
@@ -2601,6 +2669,11 @@ sub label_axes {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  # :STATE RELATED:
+  # THIS WILL PROBABLY NOT WORK as label_axes can be called both by
+  # the user directly and by env... Let's see.
+  $self->_add_to_state(\&label_axes, $in, $opt);
+
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
@@ -2620,6 +2693,8 @@ sub label_axes {
   $o->{YTitle}=$ytitle if defined($ytitle);
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
   $self->_restore_status;
+
+
 }
 
 
@@ -2651,6 +2726,7 @@ sub env {
   $self->release() if $self->held();
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&env, $in, $opt);
   $opt = {} if !defined($opt);
   my $o = $self->{PlotOptions}->options($opt);
 
@@ -2685,6 +2761,8 @@ sub env {
   }
   $self->initenv( @args );
   $self->hold();
+
+
   1;
 }
 
@@ -2701,6 +2779,9 @@ sub env {
       $bin_options->add_synonym({Center => 'Centre'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
+
     barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
@@ -2909,6 +2990,8 @@ sub env {
     }
 
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&cont, $in, $opt);
+
     barf 'Usage: cont ( $image, %options )' if $#$in<0;
 
     # Parse input
@@ -3069,6 +3152,8 @@ EOD
       $errb_options->add_synonym({Terminator => 'Term'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
     $opt = {} if !defined($opt);
     barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
  Usage: errb ( $y, $yerrors [, $options] )
@@ -3156,6 +3241,7 @@ sub tline {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tline, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
@@ -3195,6 +3281,7 @@ sub tpoints {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tpoints, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
@@ -3237,6 +3324,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $line_options=$self->{PlotOptions}->extend({Missing => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&line, $in, $opt);
     $opt = {} if !defined($opt);
 
     barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
@@ -3291,6 +3379,7 @@ sub arrow {
   my $self = shift;
 
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&arrow, $in, $opt);
   $opt = {} if !defined($opt);
 
   barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
@@ -3322,6 +3411,7 @@ sub arrow {
       $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&points, $in, $opt);
     $opt = {} if !defined($opt);
     barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $y, $sym)=@$in;
@@ -3415,6 +3505,7 @@ sub arrow {
 	}
 
 	my ( $in, $opt ) = _extract_hash(@_);
+	$self->_add_to_state(\&draw_wedge, $in, $opt);
 	$opt = {} unless defined($opt);
 	barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
@@ -3484,6 +3575,7 @@ sub arrow {
   sub imag1 {
     my $self = shift;
     my ($in,$opt)=_extract_hash(@_);
+    $self->_add_to_state(\&imag1, $in, $opt);
 
     if (!defined($im_options)) {
       $im_options = $self->{PlotOptions}->extend({
@@ -3526,6 +3618,7 @@ sub arrow {
     }
 
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&imag, $in, $opt);
     # Let us parse the options if any.
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
@@ -3706,6 +3799,7 @@ sub arrow {
   sub ctab {
     my $self = shift;
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&ctab, $in, $opt);
 
     # No arguments -- print list of tables
     if (scalar(@$in) == 0) {
@@ -3813,6 +3907,7 @@ EOD
 					      });
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&hi2d, $in, $opt);
     $opt = {} if !defined($opt);
 
     barf 'Usage: hi2d ( $image, [$x, $ioff, $bias] [, $options] )' if $#$in<0 || $#$in>3;
@@ -3856,6 +3951,7 @@ EOD
 sub poly {
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&poly, $in, $opt);
   barf 'Usage: poly ( $x, $y [, $options] )' if $#$in<0 || $#$in>2;
   my($x,$y) = @$in;
   $self->_checkarg($x,1);
@@ -3932,6 +4028,7 @@ sub poly {
       $ell_options->synonyms({Angle => 'Theta'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&ellipse, $in, $opt);
     my ($x, $y, $a, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
@@ -3979,6 +4076,7 @@ sub poly {
       $rect_opt->warnonmissing(0);
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&rectangle, $in, $opt);
     $opt={} if !defined($opt);
     my ($xc, $yc, $xside, $yside, $angle)=@$in;
     my $o=$rect_opt->options($opt);
@@ -4046,6 +4144,7 @@ sub poly {
       $vect_options->add_synonym({Pos => 'Position'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&vect, $in, $opt);
     barf 'Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
     my ($a, $b, $scale, $pos, $tr, $misval) = @$in;
     $self->_checkarg($a,2); $self->_checkarg($b,2);
@@ -4111,6 +4210,7 @@ sub poly {
 
     # Extract the options hash and separate it from the other input
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&text, $in, $opt);
     $opt = {} if !defined($opt);
     barf 'Usage: text ($text, $x, $y, [,$opt])' if 
       (!defined($opt) && $#$in < 2) || ($#$in > 3) || ($#$in < 0);
@@ -4163,6 +4263,7 @@ sub poly {
       $legend_options->synonyms({ VSpace => 'VertSpace' });
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&legend, $in, $opt);
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($legend_options, $opt);
 
@@ -4373,6 +4474,8 @@ sub poly {
     }
 
     my ($opt)=@_;
+    $self->_add_to_state(\&cursor, [], $opt);
+
     $opt = {} unless defined($opt);
     my $place_cursor=1; # Since X&Y might be uninitialised.
     my $o = $cursor_options->options($opt);
