@@ -229,7 +229,31 @@ You can specify them by name or by number:
  LOGY   (20) draw box and label Y-axis logarithmically
  LOGXY  (30) draw box and label both axes logarithmically
 
-If you set the option to an array ref, then you can specify the
+When using logarithmic axes (C<LOGX>, C<LOGY> and C<LOGXY>) you normally
+need to log the data yourself, e.g.
+
+  line $x->log10, $y, {axis=>'LOGX'};
+
+For your convenience you can put PDL::Graphics::PGPLOT into
+autolog mode. In this mode a call to C<line> or C<points>
+will log the data for you and you can pass in the unmodified
+data, e.g.
+
+  autolog(1); # enable automatic logarithm calculation
+  line $x, $y, {axis=>'LOGX'}; # automatically displays logged x data
+
+You can use the function interface to enable autologging:
+
+  autolog(1);
+
+or use it with a window reference (mode switching on a per window basis)
+
+  $win->autolog(1);
+
+C<autolog> without arguments returns the current autolog setting (0=off,
+1=on).
+
+If you set the C<AXIS> option to an array ref, then you can specify the
 box/axis options separately for the horizontal (ordinate; X
 coordinate; 0th element) and vertical (abscissa; Y coordinate; 1st element))
 axes.  Each element of the array ref should contain a PGPLOT format string.
@@ -2281,8 +2305,8 @@ sub checklog {
   my ($self,$x,$y) = @_;
   $x = $x->log10->float if defined $x && $self->autolog && $self->{Logx};
   $y = $y->log10->float if defined $y && $self->autolog && $self->{Logy};
-  print STDERR "Logx: ",$self->{Logx},"\n";
-  print STDERR "Logy: ",$self->{Logy},"\n";
+  # print STDERR "Logx: ",$self->{Logx},"\n";
+  # print STDERR "Logy: ",$self->{Logy},"\n";
   return ($x,$y);
 }
 
@@ -5116,6 +5140,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    # take logs if we are in autolog mode and axis option indicates logs
     ($x,$y) = $self->checklog($x,$y) if $self->autolog;
 
     # If there is a missing value specified, use pggapline
@@ -5220,6 +5245,9 @@ sub arrow {
     }
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
+
+    # take logs if we are in autolog mode and axis option indicates logs
+    ($x,$y) = $self->checklog($x,$y) if $self->autolog;
 
     if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
        pgsch($opt->{SymbolSize});

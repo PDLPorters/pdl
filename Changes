@@ -1,3 +1,7 @@
+CS  03-Dec-2003
+   - PGPLOT::Graphics::Window: activate autolog for the 'points'
+     command and add some brief docs about autologging (see docs
+     for AXIS option)
 CED 25-Nov-2003
    - Fixed eigens; eigenvectors are now in the columns of the output 
 	eigenvector matrix, rather than in the rows.
