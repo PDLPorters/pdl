@@ -161,8 +161,8 @@ sub PDL::RandVar::Sobol::new {
   my($j,$k,$l,$i);
   for($k=0;$k<$me->{dim};$k++) {
     # Copy initial values from the class variable into this value
-    $me->{iv}->slice(sprintf("0:%d,%d",$#{$PDL::RandVar::Sobol::iv[$k]},$k)) .= 
-      pdl($PDL::RandVar::Sobol::iv[$k])                               ##
+    my($fmh) = $me->{iv}->slice(sprintf("0:%d,%d",$#{$PDL::RandVar::Sobol::iv[$k]},$k));
+    $fmh .=      pdl($PDL::RandVar::Sobol::iv[$k])                               ##
 	<< (($PDL::RandVar::Sobol::MAXBIT - xvals(scalar(@{$PDL::RandVar::Sobol::iv[$k]})))); ##
     
     # Iterate to get MAXBITS values in iv
@@ -181,7 +181,8 @@ sub PDL::RandVar::Sobol::new {
 	$ipp >>= 1;
       }
 
-      $me->{iv}->slice("$j,$k").=$i;
+      my($fmsh) =  $me->{iv}->slice("$j,$k");
+      $fmsh .= $i;
     }
 
   } # end of cross-dimension initialization loop 
