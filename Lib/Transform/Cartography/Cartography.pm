@@ -1219,6 +1219,11 @@ north; but this implementation lets you go all the way to 90 degrees.
 The default UTM coordinates are meters.  The origin for each zone is
 on the equator, at an easting of -500,000 meters.
 
+The default output units are meters, assuming that you are wanting a
+map of the Earth.  This will break for bodies other than Earth (which
+have different radii and hence different conversions between lat/lon
+angle and meters).
+
 The standard UTM projection has a slight reduction in scale at the
 prime meridian of each zone: the transverse Mercator projection's
 standard "parallels" are 180km e/w of the central meridian.  However,

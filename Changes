@@ -1,3 +1,7 @@
+CED 15-Jul-04
+   - Modified flexraw.t test to not overrun 80-column card images
+     for reasonably sized file names (it will still break if fed a file
+     name that is unreasonable).
 CED 07-Jul-04
    - Modified Pic.pm to look for alternate JPEG converters where
    appropriate.  This allows use of netpbm instead of pbmplus.
