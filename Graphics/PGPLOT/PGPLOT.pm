@@ -747,7 +747,7 @@ sub initenv{ # Default box
     my ($col); initdev(); pgqci($col); pgsci($AXISCOLOUR);
     my @opts = @_;
     if ( $#opts == 4 ) { push @opts, 0; }
-    @opts[5] = _match_axis( @opts[5] );
+    $opts[5] = _match_axis( $opts[5] );
     pgenv(@opts); 
     pgsci($col);
     @last = (@opts);
