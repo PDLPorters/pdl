@@ -111,12 +111,14 @@ pp_addhdr('
 
 pp_addpm('
 sub gsldiff{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Method => \'central\'}; }
   die \'Usage: gsldiff(function_ref, x, {Options} )\'
       if $#_<1 || $#_>2;
   my ($f,$x) = @_;  
-  my $res, $abserr;
-  if(($$opt{Method}=~/cent/i) || (!defined($$opt{Method}))){
+  my ($res,$abserr);
+  if($$opt{Method}=~/cent/i){
    ($res,$abserr) = PDL::GSL::DIFF::diff_central($x,$f);
   }
   elsif($$opt{Method}=~/back/i){
