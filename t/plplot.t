@@ -16,12 +16,11 @@ BEGIN{
 #  eval " use PDL::Graphics::PLplot; ";
 #  unless ($@){
     plan tests => 27;
-    eval "use PDL::Graphics::PLplot;";
-    ok(1,!$@);
+    use_ok( "PDL::Graphics::PLplot" );
   }
   else {
     plan tests => 1;
-    ok (1, "PDL::Graphics::PLplot not installed");
+    pass ("PDL::Graphics::PLplot not installed");
     exit;
   }
 }
