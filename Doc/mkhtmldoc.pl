@@ -67,8 +67,8 @@ sub hack_html ($) {
 	s{PDL/([^|]+)\|PDL/\1}{PDL/$1}g;
 	# fix the text of the link
 	s{PDL::([^|]+)\|PDL::\1}{PDL::$1}g;
-	# now fix any ones for scripts
-	s{/([^|]+)\|PDL/\1}{PDL/$1}g;
+	# now fix any links for scripts
+	s{/([^|]+)\|PDL/\1}{/PDL/$1}g;
 	s{([^|]+)\|PDL::\1}{$1}g;
 	print $ofh $_;
     }
