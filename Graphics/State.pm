@@ -24,11 +24,11 @@ call to C<line> of the form
 
 the call to C<add> would be like
 
-  $state->add(\&line, [$x, $y], $opt);
+  $state->add(\&line, 'line', [$x, $y], $opt);
 
 which is stored internally as:
 
-  [\&line, [$x, $y], $opt]
+  [\&line, 'line', [$x, $y], $opt]
 
 The state can later be extracted using C<get> which returns the state
 object which is an array of anonymous arrays like the one above where
@@ -85,10 +85,10 @@ sub add {
   # The command is a reference to the subroutine, the data is an
   # anonymous array containing the data passed to the routine and
   # opt is the options hash PASSED TO THE ROUTINE..
-  my ($command, $data, $opt) = @_;
+  my ($command, $command_name, $data, $opt) = @_;
 
   # Compact and not user-friendly storage.
-  push @{$self->{Commands}}, [$command, $data, $opt];
+  push @{$self->{Commands}}, [$command, $command_name, $data, $opt];
 
 #  return $#{$self->{Commands}}+1;
 }
@@ -116,7 +116,8 @@ sub show {
   my $self = shift;
   my $count=0;
   foreach my $arg (@{$self->{Commands}}) {
-    print "$count - Func=$$arg[0]\n";
+    print "$count - Func=$$arg[1]\n";
+    $count++;
   }
 
 }
