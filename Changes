@@ -1,4 +1,6 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (5/31/00)
+    - more minor doc patches
 John Cerney (5/26/00)
     - Applied patch to fix reflect options in conv2d (image2D
       function) not being symmetric. Ref sourceforge Patches 100287,

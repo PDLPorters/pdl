@@ -20,9 +20,9 @@ comment q|
     not designed to give a full tour of PGPLOT, you are advised to see
     the routines provided with pgperl for that.
 
-    The PGPLOT module is included by default when you use PDL. However
-    if you want even better control of your plots you might want to
-    include the PGPLOT module specifically:
+    The PDL::Graphics::PGPLOT module provides a high-level interface
+    to PGPLOT. However if you want even better control of your plots 
+    you might want to include the PGPLOT module specifically:
 
        use PGPLOT;
 
@@ -36,6 +36,8 @@ comment q|
 |;
 
 act q|
+    # ensure the module is loaded (required for PDL versions >= 2.004)
+    use PDL::Graphics::PGPLOT;
     # The size of the window can be specified
     $ENV{PGPLOT_XW_WIDTH}=0.3;
     # You can set your device explicitly

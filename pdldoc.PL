@@ -46,7 +46,18 @@ $VERSION = '0.1';
 my %options = ( a => \&apropos, h => \&help, s => \&sig, u => \&usage );
 
 my $name = basename( $0 );
-my $usage = "Usage: $name [-a] [-h] [-s] [-u] <string>\n";
+my $usage = <<"EOH";
+Usage: $name [-a] [-h] [-s] [-u] <string>
+
+This program provides command-line access to the PDL documentation.
+If no flag is specified, -h is assumed.
+
+  -a (apropos) searches the documentation for the string
+  -h (help)    prints the help for the function/module/document
+  -s (sig)     prints the signature of the function
+  -u (usage)   gives usage information on the function
+
+EOH
 
 my $oflag = $#ARGV > -1 ? substr($ARGV[0],0,1) eq "-" : 0;
 die $usage unless ($#ARGV == 0 and not $oflag) or ($#ARGV == 1 and $oflag);

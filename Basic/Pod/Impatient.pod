@@ -39,6 +39,20 @@ comes with a command line perl shell, called 'perldl', which supports command
 line editing. In combination with the various PDL graphics modules this allows
 data to be easily played with and visualised.
 
+=head2 Help
+
+PDL contains extensive documentation, available both within the
+I<perldl> shell and from the command line, using the C<pdldoc> program.
+For further information try either of:
+
+ perldl> help help
+ $ pdldoc
+
+HTML copies of the documentation should also be available. 
+To find their location, try the following:
+
+ perldl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+
 =head2 Perl Datatypes and how PDL extends them
 
 The fundamental perl data structures are scalar variables, e.g. C<$x>,

@@ -2,13 +2,12 @@
 
 PDL::Intro - Introduction to the Perl Data Language
 
-Version 2.0 alpha
+Version 2.0 
 
 "Why is it that we entertain the belief that for every purpose odd
 numbers are the most effectual?" - Pliny the Elder.
 
-I<Karl Glazebrook, AAO, 28/11/1996. [kgb@aaoepp.aao.gov.au]>
-
+I<Karl Glazebrook [karlglazebrook@yahoo.com]>
 
 =head1 DESCRIPTION
 
@@ -26,7 +25,7 @@ complete Object-Oriented extension to Perl (although you don't have to know
 what an object is to use it) which allows large N-dimensional data sets, such
 as large images, spectra, time series, etc to be stored  B<efficiently> and
 manipulated B<en masse>.  For example  with the PDL module we can write the
-perl code C<$a=$b+$c>, where $b and $c are large datasets (e.g. 2048x2048
+perl code C<$a=$b+$c>, where C<$b> and C<$c> are large datasets (e.g. 2048x2048
 images), and get the result in only a fraction of a second.
 
 PDL variables (or 'piddles' as they have come to be known)
@@ -36,7 +35,7 @@ double precision floats. And because of the Object-Oriented nature
 of PDL new customised datatypes can be derived from them.
 
 As well as the PDL modules, that can be used by normal perl programs, PerlDL
-comes with a command line perl shell, called 'perldl', which supports command
+comes with a command line perl shell, called I<perldl>, which supports command
 line editing. In combination with the various PDL graphics modules this allows
 data to be easily played with and visualised.
 
@@ -92,8 +91,8 @@ Tuomas has been too lazy to document this yet.
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
-(lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 1997.
+Copyright (C) Karl Glazebrook (karlglazebrook@yahoo.com), Tuomas J. Lukka,
+(lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 1997 to 2000.
 Commercial reproduction of this documentation in a different format is forbidden.
 
 =cut
