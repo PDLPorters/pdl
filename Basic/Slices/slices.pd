@@ -674,7 +674,7 @@ EOD
 			$COMP(nolddims)++;
 		else if (str[0] == '*')
 			$COMP(ndum)++;
-		else
+		else if (str[0] != '\0') /* handle empty string */
 			$COMP(nnew)++;
 		for(i=0; str[i]; i++)
 			if(str[i] == ',') {
