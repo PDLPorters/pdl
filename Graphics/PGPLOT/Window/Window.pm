@@ -1393,6 +1393,8 @@ Usage:
  errb ( $x, $y, $xerrors, $yerrors, [$opt] )
  errb ( $x, $y, $xloerr, $xhierr, $yloerr, $yhierr, [$opt])
 
+Any of the error bar parameters may be C<undef> to omit those error bars.
+
 Options recognised:
 
    TERM - Length of terminals in multiples of the default length
@@ -1409,6 +1411,13 @@ The following standard options influence this command:
  $y = sequence(10)**2+random(10);
  $sigma=0.5*sqrt($y);
  errb $y, $sigma, {COLOUR => RED, SYMBOL => 18};
+
+ # plot X bars only
+ errb( $x, $y, $xerrors, undef );
+
+ # plot negative going bars only
+ errb( $x, $y, $xloerr, undef, $yloerr, undef );
+
 
 =head2 cont
 
@@ -4490,48 +4499,107 @@ EOD
     &catch_signals;
 
     $opt = {} if !defined($opt);
-    release_and_barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
- Usage: errb ( $y, $yerrors [, $options] )
-	errb ( $x, $y, $yerrors [, $options] )
-	errb ( $x, $y, $xerrors, $yerrors [, $options])
-	errb ( $x, $y, $xloerr, $xhierr, $yloerr, $yhierr [, $options])
+
+    release_and_barf <<'EOD' if @$in==0 || @$in==1 || @$in > 7;
+ Usage: $w-> errb ( $y, $yerrors [, $options] )
+	$w-> errb ( $x, $y, $yerrors [, $options] )
+	$w-> errb ( $x, $y, $xerrors, $yerrors [, $options])
+	$w-> errb ( $x, $y, $xloerr, $xhierr, $yloerr, $yhierr [, $options])
 EOD
 
     my @t=@$in;
-    my $i=0; my $n;
-    for (@t) {
-      $self->_checkarg($_, 1);
-      $n = nelem($_) if $i++ == 0;
-      release_and_barf "Args must have same size" if nelem($_)!=$n;
-    }
-    my $x = $#t==1 ? float(sequence($n)) : $t[0];
-    my $y = $#t==1 ? $t[0] : $t[1];
+    my $n;
 
+    # it's possible the user slipped in undefs as the data position.
+    # that's illegal and won't be caught in next loop
+    barf "Must specify data position" 
+      if ! defined $t[0] || ( @t > 2 && ! defined $t[1] );
+
+    # loop over input data; skip undefined values, as they are
+    # used to flag missing error bars.  all data should have the
+    # same dims as the first piddle.
+    for ( my $i = 0 ; $i < @t ; $i++ )
+      {
+	next if ! defined $t[$i];
+	
+	$self->_checkarg($t[$i], 1);
+	
+	$n = nelem($t[$i]) if $i == 0;
+	barf "Args must have same size" if nelem($t[$i]) != $n;
+      }
+    
+    my $x = @t < 3 ? float(sequence($n)) : shift @t;
+    my $y = shift @t;
+    
+    # store data in a hash to automate operations
+    my %d;
+    $d{x}{data} = $x;
+    $d{y}{data} = $y;
+    
+    ( $d{y}{err} ) = @t if @t == 1;
+    ( $d{x}{err}, $d{y}{err} ) = @t if @t == 2;
+    ( $d{x}{loerr}, $d{x}{hierr}, 
+      $d{y}{loerr}, $d{y}{hierr} ) = @t if @t == 4;
+    
     my ($o, $u_opt) = $self->_parse_options($errb_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless( $self->held() ) {
       # Allow for the error bars
       my ( $xmin, $xmax, $ymin, $ymax );
 
-      if ($#t==1) {
-	($xmin,$xmax) = $x->minmax($x);
-	$ymin = min( $y - $t[1] ); $ymax = max( $y + $t[1] );
-      } elsif ($#t==2) {
-	($xmin, $xmax ) = $x->minmax($x);
-	$ymin = min( $y - $t[2] ); $ymax = max( $y + $t[2] );
-      } elsif ($#t==3) {
-	$xmin = min( $x - $t[2] ); $xmax = max( $x + $t[2] );
-	$ymin = min( $y - $t[3] ); $ymax = max( $y + $t[3] );
-      } elsif ($#t==5) {
-	$xmin = min( $x - $t[2] ); $xmax = max( $x + $t[3] );
-	$ymin = min( $y - $t[4] ); $ymax = max( $y + $t[5] );
-      }
-      ($xmin,$xmax) = @{$o->{XRange}} if ref $o->{XRange} eq 'ARRAY';
-      ($ymin,$ymax) = @{$o->{YRange}} if ref $o->{YRange} eq 'ARRAY';
-      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
-      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-      $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+      # loop over the axes to calculate plot limits
+      for my $ax ( qw( x y ) )
+	{
+	  $axis = $d{$ax};
+	  $range = uc $ax . 'range';
+	  
+	  # user may have specified range limits already; pull them in
+	  ($axis->{min},$axis->{max}) = @{$o->{$range}} 
+ 	  if ref $o->{$range} eq 'ARRAY';
+	  
+	  # skip if user specified range limits
+	  unless ( exists $axis->{min} )
+	    {
+	      my ( $min, $max );
+	      
+	      # symmetric error bars
+	      if ( defined $axis->{err} )
+		{
+		  $min = min( $axis->{data} - $axis->{err} );
+		  $max = max( $axis->{data} + $axis->{err} );
+		}
+	      
+	      # assymetric error bars
+	      else
+		{
+		  # lo error bar specified
+		  if ( defined $axis->{loerr} )
+		    {
+		      $min = min( $axis->{data} - $axis->{loerr} );
+		    }
+		  
+		  # hi error bar specified
+		  if ( defined $axis->{hierr} )
+		    {
+		      $max = max( $axis->{data} + $axis->{hierr} );
+		    }
+		}	  
+	      
+	      # handle the case where there is no error bar.
+	      $min = $axis->{data}->min unless defined $min;
+	      $max = $axis->{data}->max unless defined $max;
+	      
+	      # default range for infinitesimal data range
+	      if ($min == $max) { $min -= 0.5; $max += 0.5; }
+	      
+	      $axis->{min} = $min;
+	      $axis->{max} = $max;
+	    }
+	}
+ 
+       $self->initenv( $d{x}{min}, $d{x}{max}, $d{y}{min}, $d{y}{max}, $opt );
     }
+
     $self->_save_status();
     # Let us parse the options if any.
 
@@ -4546,19 +4614,42 @@ EOD
 
     # Parse other standard options.
     $self->_standard_options_parser($u_opt);
-    if ($#t==1) {
-      pgerrb(6,$n,$x->get_dataref,$y->get_dataref,$t[1]->get_dataref,$term);
-    } elsif ($#t==2) {
-      pgerrb(6,$n,$x->get_dataref,$y->get_dataref,$t[2]->get_dataref,$term);
-    } elsif ($#t==3) {
-      pgerrb(5,$n,$x->get_dataref,$y->get_dataref,$t[2]->get_dataref,$term);
-      pgerrb(6,$n,$x->get_dataref,$y->get_dataref,$t[3]->get_dataref,$term);
-    } elsif ($#t==5) {
-      pgerrb(1,$n,$x->get_dataref,$y->get_dataref,$t[3]->get_dataref,$term);
-      pgerrb(2,$n,$x->get_dataref,$y->get_dataref,$t[5]->get_dataref,$term);
-      pgerrb(3,$n,$x->get_dataref,$y->get_dataref,$t[2]->get_dataref,$term);
-      pgerrb(4,$n,$x->get_dataref,$y->get_dataref,$t[4]->get_dataref,$term);
+
+    # map our combination of errors onto pgerrb's DIR parameter. note that
+    # DIR(Y) = DIR(X) + 1 for similar error bar configurations
+    $d{x}{dir} = 0;
+    $d{y}{dir} = 1;
+
+    # loop over axes, plotting the appropriate error bars
+    for my $axis ( $d{x}, $d{y} )
+    {
+      my $dir = $axis->{dir};
+
+      # symmetric error bars
+      if ( defined $axis->{err} )
+      {
+	pgerrb(5 + $dir, $n, $x->get_dataref, $y->get_dataref,
+	       $axis->{err}->get_dataref,$term);
+      }
+
+      # assymetric error bars
+      else
+      {
+	if ( defined $axis->{hierr} )
+	{
+	  pgerrb(1 + $dir, $n, $x->get_dataref, $y->get_dataref,
+		 $axis->{hierr}->get_dataref,$term);
+	}
+
+	if ( defined $axis->{loerr} )
+	{
+	  pgerrb(3 + $dir, $n, $x->get_dataref, $y->get_dataref,
+		 $axis->{loerr}->get_dataref,$term);
+	}
+
+      }
     }
+
     if ($plot_points) {
        if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
            pgsch($opt->{SymbolSize});

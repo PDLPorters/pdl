@@ -158,7 +158,8 @@ use vars qw (@ISA @EXPORT);
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
 	      tpoints tline retrieve_state replay turn_off_recording
-	      turn_on_recording clear_state autolog
+	      turn_on_recording clear_state autolog get_current_window
+              transform
 	    );
 
 *rel = *release;		# Alias
