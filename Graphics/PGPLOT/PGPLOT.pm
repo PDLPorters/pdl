@@ -299,12 +299,18 @@ Define a plot window, and put graphics on 'hold'
 =for usage
 
   Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
+         env $xmin, $xmax, $ymin, $ymax, [$options];
 
 C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
 C<$justify> is a boolean value (default is 0);
 if true the axes scales will be the same (see L</justify>).
 C<$axis> describes how the axes should be drawn (see
 L</axis>) and defaults to 0.
+
+If the second form is used, $justify and $axis can be set in the options
+hash, for example:
+
+  env 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', CHARSIZE => 0.7};
 
 =head2 imag
 
@@ -777,9 +783,10 @@ sub initdev{  # Ensure a device is open
 sub initenv{ # Default box
     my ($col); initdev(); pgqci($col); pgsci($AXISCOLOUR);
     my @opts = @_; 
+    my $hashref = undef;
     if ( ref($opts[4]) eq "HASH" ) {
 	# parse options
-	my $hashref = $opts[4];
+	$hashref = $opts[4];
 
 	$opts[5] = 0; # axis
 	$opts[4] = 0; # justify
@@ -819,6 +826,10 @@ sub initenv{ # Default box
     my $axopt = $opts[5];
     $opts[5] = $_axis{ uc($axopt) };
     barf "Unknown axis option '$axopt'." unless defined($opts[5]);
+
+    # Apply any other options
+    standard_options_parser($hashref) if ($hashref);
+
     pgenv(@opts); 
     pgsci($col);
     @last = (@opts);
@@ -984,12 +995,15 @@ sub release { $hold=0; print "Graphics RELEASED\n" if $PDL::verbose;};
 # set the envelope for plots and put auto-axes on hold
 
 sub env {
-    barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis] )'
+    barf "Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis] )
+                 env ( $xmin, $xmax, $ymin, $ymax, [$opts] )"
        if ($#_==-1 && !defined(@last)) || ($#_>=0 && $#_<=2) || $#_>5;
     my(@args);
     @args = $#_==-1 ? @last : @_;         # No args - use previous
-    $args[4] = 0 unless defined $args[4]; # $just
-    $args[5] = 0 unless defined $args[5]; # $axis
+    unless ( defined($args[4]) && ref($args[4]) eq "HASH" ) {
+      $args[4] = 0 unless defined $args[4]; # $just
+      $args[5] = 0 unless defined $args[5]; # $axis
+    }
     initdev();
     initenv( @args );
     hold;

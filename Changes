@@ -1,5 +1,10 @@
 (!!! = possible source of incompatibilities)
 2.004
+Doug Hunt (3/8/00)
+        - Added the ability to specify options in PDL::Graphics::PGPLOT::env.
+          This allows one to change the font and size of the axis labels as 
+          well as the color of the axis.
+
 John Cerney (3/5/00)
 	- Modified Basic/Complex/Complex.pd to not generate warning messages
           when re-defining the PDL overloaded operator subs.
