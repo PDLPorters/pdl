@@ -110,9 +110,14 @@ package to simplify the options parsing):
  <Check the number of input parameters>
  <deal with $arg>
  checkarg($x, 3); # For a hypothetical 3D routine.
+ &catch_signals;
  ...
  pgcube($n, $x->get_dataref);
+ &release_signals;
  1;
+
+(the catch_signals/release_signals pair prevent problems with the perl-PGPLOT
+interface if the user hits c-C during an operation).
 
 =head2 Setting options
 
@@ -1800,6 +1805,96 @@ require DynaLoader;
 bootstrap PDL::Graphics::PGPLOT::Window;
 $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 
+####
+# Helper routines to handle signal avoidance:
+# cpgplot doesn't take well to being interrupted, so we mask out INT
+# signals during most of the routines.  But we do want to handle 
+# those INTs, so we need a handler that marks 'em.
+#
+# You call catch_signals with no arguments.  INT and __DIE__ signals
+# are sent to the signal_catcher, and released (if any are caught) in
+# the order they occured, by release_signals.  
+#
+# To avoid problems with nested catch_signals() and release_signals() calls,
+# a variable keeps track of balancing the two.  No signals are actually
+# released until you undo all of 'em.
+#
+# catch_signals always catches the __DIE__ pseudosignal, so if you 
+# confess() or barf() or die() or whatever, all the signal handlers get
+# restored.
+#
+# The mechanism is a little over-powered for what we need -- but, hey,
+# if you want to defer any other signal you can simply add it to the 
+# list in catch_signals.  
+#
+# Don't try to parse arguments with catch_signals unless you first do a 
+# global search-and-replace "&catch_signals;"->"&catch_signals()".
+#
+#  --CED 9-Aug-2002
+####
+
+my %sig_log;
+my @sig_log;
+my %sig_handlers;
+my $sig_nest = 0;
+
+sub signal_catcher {
+  my($sig) = shift;
+
+  if($sig eq '__DIE__') {
+    return unless defined $^S;  # Don't do anything during parsing of an eval
+    $sig_nest = 1;              # Unwrap all nests when dying
+    release_signals();
+    &{$SIG{__DIE__}}($sig) if defined($SIG{__DIE__});
+    return;
+  }
+
+  # Print message if debugging is on or on multiple INT signals
+  print STDERR "PDL::Graphics::PGPLOT::Window: Caught signal '$sig'\n" if($PDL::debug || ($sig_log{$sig} && ($sig eq 'INT')));
+  push(@sig_log,$sig);
+  $sig_log{$sig}++;
+}  
+
+sub catch_signals {
+  my(@sigs) = ('INT','__DIE__');
+
+  @sig_log = (); 
+
+  local($_);
+  print "\@sigs is ".join(",",@sigs)."; catching " if($PDL::debug>1);
+  foreach $_(@sigs) {
+    next if ($SIG{$_} == \&signal_catcher);
+    print $_ if($PDL::debug>1);
+    $sig_handlers{$_}=$SIG{$_};
+    $SIG{$_}=\&signal_catcher;
+  }
+
+  $sig_nest++; # Keep track of nested calls.
+  print "(sig_nest=$sig_nest)\nsignal handlers on ",join(",",sort keys %SIG),"\n" if($PDL::debug>1);
+
+  
+}
+
+sub release_signals {
+  local($_);
+
+  $sig_nest-- if($sig_nest > 0);
+  print "release_signals: sig_nest=$sig_nest\n" if($PDL::debug>1);
+
+  return if($sig_nest > 0);
+
+  # restore original handlers
+  foreach $_(keys %sig_handlers) {
+    $SIG{$_}=$sig_handlers{$_};
+    delete $sig_handlers{$_};
+  }
+
+  # release signals
+  foreach $_(@sig_log) {
+    $sig_log{$_}=0;
+    kill $_,$$;
+  }
+}
 
 #
 # Note: Here the general and window creation specific options are read in
@@ -1856,7 +1951,6 @@ sub pgwin{
 }
   
 sub new {
-
   my $type = shift;
 
   # Set the default options!
@@ -1886,6 +1980,7 @@ sub new {
   }
   $PREVIOUS_DEVICE = $dev;
 
+  &catch_signals;
 
   my $this_opt = PDL::Options->new($opt);
   my $t=$WindowOptions->translation();
@@ -1936,6 +2031,7 @@ sub new {
   # We always have to create a state variable to avoid undefined errors.
   $self->{State}=PDL::Graphics::State->new();
 
+  &release_signals;
   return $self;
 
 }
@@ -1946,6 +2042,7 @@ sub new {
 # Thanks to Doug Burke for pointing this out.
 #
 sub DESTROY {
+
   my $self=shift;
 
   $self->close() unless !defined($self->{ID});
@@ -1961,9 +2058,10 @@ to something easily remembered if it has not been set before.
 =cut
 
 sub _open_new_window {
-
   my $self = shift;
+  my(@parameters) = @_;
 
+  &catch_signals;
   my $window_nr = pgopen($self->{Device});
   if ($window_nr < 0) {
     barf("Opening new window (pgopen) failed: $window_nr\n");
@@ -1971,8 +2069,9 @@ sub _open_new_window {
   $self->{ID} = $window_nr;
   $self->{Name} = "Window$window_nr" if $self->{Name} eq "";
 
-  $self->_setup_window(@_);
+  $self->_setup_window(@parameters);
 
+  &release_signals;
 }
 
 
@@ -2025,6 +2124,8 @@ sub _setup_window {
     $opt = {$opt,@_};
   }
 
+  &catch_signals;
+
   my $unit = _parse_unit($opt->{Unit}) || 1;
 
   my $aspect = $opt->{AspectRatio};
@@ -2053,7 +2154,6 @@ sub _setup_window {
 					]}($aspect,$width,$height);
   $self->{AspectRatio} = $aspect;
   $self->{WindowWidth} = $width;
-  ##print "unit=$unit\n";
 
   #
   # PGPLOT seems not to include full unit support in (e.g.) the pgpap 
@@ -2071,7 +2171,7 @@ sub _setup_window {
                          #
                          # Currently this is probably Not What You Want 
                          # because it doesn't account for the margins
-                         # around the plot region.  That will happen soon.
+                         # around the plot region.  That will happen RSN.
                          # --CED
     my($x0,$x1,$y0,$y1);
     pgqvsz(3,$x0,$x1,$y0,$y1);
@@ -2142,7 +2242,8 @@ sub _setup_window {
   my $wo = $self->{PlotOptions}->defaults();
   $self->_set_colour($wo->{Colour});
   pgask(0);
-
+  
+  &release_signals;
 }
 
 sub _set_defaults {		# Set up defaults
@@ -2165,11 +2266,14 @@ is open and CLOSED if it is closed.
 
 sub _status {
 
+  &catch_signals;
+
   my $self=shift;
   $self->focus();
   my ($state, $len);
   pgqinf('STATE',$state,$len);
 
+  &release_signals;
   return $state;
 
 }
@@ -2189,16 +2293,19 @@ we do not call C<open_new_window> )
 =cut
 
 sub _reopen {
-
+  my @parameters = @_;
   my $self = shift;
+
+  &catch_signals;
   my $window_nr = pgopen($self->{Device});
   if ($window_nr < 0) {
     barf("Opening new window (pgopen) failed: $window_nr\n");
   }
   $self->{ID} = $window_nr;
 
-  $self->_setup_window(@_);
+  $self->_setup_window(@parameters);
 
+  &release_signals;
 }
 
 
@@ -2211,6 +2318,8 @@ note that when you advance one panel the hold value will be changed.
 =cut
 
 sub _advance_panel {
+  &catch_signals;
+
   my $self = shift;
 
   my $new_panel = $self->{CurrentPanel}+1;
@@ -2227,7 +2336,8 @@ sub _advance_panel {
     $self->{Hold}=0;
     print "Graphic released (panel move)\n" if $PDL::verbose;
   }
-
+  
+  &release_signals;
 }
 
 
@@ -2240,9 +2350,10 @@ and whether they need to be erased.
 =cut
 
 sub _check_move_or_erase {
-
   my $self=shift;
   my ($panel, $erase)=@_;
+
+  &catch_signals;
 
   if (defined($panel)) {
     $self->panel($panel);
@@ -2252,7 +2363,8 @@ sub _check_move_or_erase {
   }
 
   $self->erase() if $erase;
-
+  
+  &release_signals;
 }
 
 
@@ -2299,6 +2411,10 @@ sub replay {
   my $self = shift;
   my $state = shift || $self->{State};
 
+
+  &catch_signals;
+
+
   if (!defined($state)) {
     die "A state object must be defined to play back commands!\n";
   }
@@ -2318,6 +2434,8 @@ sub replay {
     my ($command, $commandname, $arg, $opt)=@$arg;
     &$command($self, @$arg, $opt);
   }
+  
+  &release_signals;
 }
 
 
@@ -2428,13 +2546,16 @@ Set focus for subsequent PGPLOT commands to this window.
 =cut
 
 sub focus {
-
   my $self=shift;
   return if !defined($self->{ID});
+
+  &catch_signals;
+
   my $sid; pgqid($sid);
   # Only perform a pgslct if necessary.
   pgslct($self->{ID}) unless $sid == $self->{ID};
 
+  &release_signals;
 }
 
 
@@ -2508,6 +2629,8 @@ sub info {
     if ( wantarray() ) { @inq = @_; }
     else               { push @ing, $_[0]; }
 
+    &catch_signals;
+
     $self->focus();
     my @ans;
     foreach my $inq ( @inq ) {
@@ -2515,6 +2638,7 @@ sub info {
 	pgqinf( uc($inq), $state, $len );
 	push @ans, $state;
     }
+  &release_signals;
     return wantarray() ? @ans : $ans[0];
 } # info()
 
@@ -2551,13 +2675,15 @@ sub panel {
 EOD
   }
 
+  &catch_signals;
+
   # We do not subtract 1 from X because we would need to add it again to
   # have a 1-offset numbering scheme.
   $self->{CurrentPanel} = ($ypos-1)*$self->{NX}+($xpos);
   $self->_add_to_state(\&panel, $xpos, $ypos);
   pgpanl($xpos, $ypos);
 
-
+  &release_signals;
 }
 
 
@@ -2580,6 +2706,8 @@ EOD
       $self->panel($u_opt);
     }
 
+    &catch_signals;
+
     $self->focus();
     # What should I do with the state here????
     pgeras();
@@ -2587,7 +2715,8 @@ EOD
     # Remove hold.
     $self->{Hold}=0;
   }
-
+  
+  &release_signals;
 }
 
 
@@ -2691,7 +2820,9 @@ the present state restored by C<_restore_status>.
 
 sub _save_status {
   my $self=shift;
+  &catch_signals;
   pgsave if $self->_status() eq 'OPEN';
+  &release_signals;
 }
 
 =head2 _restore_status
@@ -2702,7 +2833,9 @@ Restore the PGPLOT state. See L</_save_status>.
 
 sub _restore_status {
   my $self=shift;
+  &catch_signals;
   pgunsa if $self->_status() eq 'OPEN';
+  &release_signals;
 }
 
 
@@ -2863,6 +2996,8 @@ should be ok,  as that routine returns a rather sensible error-message.
     my ($col, $is_textbg) = @_;
     $is_textbg = 0 if !defined($is_textbg);
 
+    &catch_signals;
+
     # The colour index to use for user changes.
     # This is increased until the max of the colour map.
     # I don't know if this can change, but let's not take any
@@ -2925,6 +3060,7 @@ should be ok,  as that routine returns a rather sensible error-message.
       }
     }
 
+    &release_signals;
 
   }
 
@@ -2944,6 +3080,8 @@ sub _standard_options_parser {
   #
   my $self=shift;
   my ($o)=@_;
+
+  &catch_signals;
 
   #
   # The input hash has to contain the options _set by the user_
@@ -3021,6 +3159,8 @@ sub _standard_options_parser {
       pgshs($angle,$separation, $phase);
     }
   }
+
+  &release_signals;
 }
 
 
@@ -3043,6 +3183,9 @@ sub initenv{
   $self->_status();
 
   my ($in, $u_opt)=_extract_hash(@_);
+
+  &catch_signals;
+
   my ($xmin, $xmax, $ymin, $ymax, $just, $axis)=@$in;
   $u_opt={} unless defined($u_opt);
 
@@ -3179,6 +3322,8 @@ sub initenv{
   pgsch($chsz);
 
 #  $self->{_env_set}[$self->{CurrentPanel}]=1;
+  &release_signals;
+
   1;
 }
 
@@ -3194,6 +3339,9 @@ sub _set_env_options {
 
 sub redraw_axes {
   my $self = shift;
+  
+  &catch_signals;
+  
   my $o;
   if (defined($self->{_env_options})) {
     # Use the previous settings for the plot box.
@@ -3222,7 +3370,7 @@ sub redraw_axes {
 
   $self->_add_to_state(\&redraw_axes);
 
-
+  &release_signals;
 }
 
 
@@ -3230,6 +3378,9 @@ sub label_axes {
   # print "label_axes: got ",join(",",@_),"\n";
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+
+  &catch_signals;
+
   # :STATE RELATED:
   # THIS WILL PROBABLY NOT WORK as label_axes can be called both by
   # the user directly and by env... Let's see.
@@ -3278,6 +3429,7 @@ sub label_axes {
 
   pgslw($old_lw) if defined $old_lw;
   $self->_restore_status;
+  &release_signals;
 
 }
 
@@ -3368,6 +3520,8 @@ sub env {
     $self->_add_to_state(\&bin, $in, $opt);
 
 
+    &catch_signals;
+
     barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
@@ -3407,6 +3561,8 @@ sub env {
     $self->_standard_options_parser($u_opt);
     pgbin($n, $x->get_dataref, $data->get_dataref, $centre);
     $self->_restore_status();
+
+    &release_signals;
     1;
   }
 }
@@ -3585,6 +3741,8 @@ sub env {
 
     barf 'Usage: cont ( $image, %options )' if $#$in<0;
 
+    &catch_signals;
+
     # Parse input
     my ($image, $contours, $tr, $misval) = @$in;
     $self->_checkarg($image,2);
@@ -3726,6 +3884,9 @@ EOD
     # Restore attributes
       $self->redraw_axes unless $self->held(); # Redraw box
       $self->_restore_status();
+
+    &release_signals;
+
     1;
   }
 }
@@ -3744,6 +3905,8 @@ EOD
     }
     my ($in, $opt)=_extract_hash(@_);
     $self->_add_to_state(\&bin, $in, $opt);
+
+    &catch_signals;
 
     $opt = {} if !defined($opt);
     barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
@@ -3825,6 +3988,7 @@ EOD
     }
 
     $self->_restore_status();
+    &release_signals;
     1;
   }
 }
@@ -3853,7 +4017,9 @@ sub tline {
     $y = $x; $x = $y->xvals();
   }
 
-  # This is very very cludgy, but it was the best way I could find..
+  &catch_signals;
+
+  # This is very very kludgy, but it was the best way I could find..
   my $o = _thread_options($y->getdim(1), $opt);
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
@@ -3888,7 +4054,8 @@ sub tline {
   }
   _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
-
+  
+  &release_signals;
 }
 
 
@@ -3918,6 +4085,7 @@ sub tpoints {
   barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
   my ($x, $y)=@$in;
 
+  &catch_signals;
 
   if ($#$in==0) {
     $y = $x; $x = $y->xvals();
@@ -3960,6 +4128,8 @@ sub tpoints {
   _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
 
+  &release_signals;
+
 }
 
 
@@ -3989,6 +4159,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_checkarg($x,1);
     my $n = nelem($x);
 
+    &catch_signals;
+
     my ($is_1D, $is_2D);
     if ($#$in==1) {
       $is_1D = $self->_checkarg($y,1,undef,1);
@@ -3998,7 +4170,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	
 	# Ok, let us use the threading possibility.
 	$self->tline(@$in, $opt);
-	
+
+	&release_signals;
 	return;
       } else {
 	barf '$x and $y must be same size' if $n!=nelem($y);
@@ -4051,6 +4224,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_restore_status();
     $self->_add_to_state(\&line, $in, $opt);
 
+    &release_signals;
     1;
   }
 }
@@ -4068,6 +4242,8 @@ sub arrow {
   barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
 
   my ($x1, $y1, $x2, $y2)=@$in;
+  
+  &catch_signals;
 
   my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
@@ -4081,6 +4257,7 @@ sub arrow {
   $self->_restore_status();
   $self->_add_to_state(\&arrow, $in, $opt);
 
+  &release_signals;
 }
 
 
@@ -4099,6 +4276,8 @@ sub arrow {
     my ($x, $y, $sym)=@$in;
     $self->_checkarg($x,1);
     my $n=nelem($x);
+
+    &catch_signals;
 
     my ($is_1D, $is_2D);
     if ($#$in>=1) {
@@ -4166,6 +4345,7 @@ sub arrow {
 
     $self->_restore_status();
     $self->_add_to_state(\&points, $in, $opt);
+    &release_signals;
     1;
   }
 }
@@ -4214,6 +4394,9 @@ sub arrow {
 	barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
 
+
+	&catch_signals;
+
 	# check imag has been called, and get information
 	# - this is HORRIBLE
 	my $iref = $self->_retrieve( 'imag' );
@@ -4259,6 +4442,7 @@ sub arrow {
 	$self->_restore_status();
 	$self->_add_to_state(\&draw_wedge, $in, $opt);
 
+	&release_signals;
 	1;
     } # sub: draw_wedge()
 }
@@ -4329,6 +4513,9 @@ sub arrow {
 
 
     barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+
+    &catch_signals;
+
     my ($image,$min,$max,$tr) = @$in;
     $self->_checkarg($image,2);
     my($nx,$ny) = $image->dims;
@@ -4504,6 +4691,7 @@ sub arrow {
     }
 
     $self->_add_to_state(\&imag, $in, $opt);
+    &release_signals;
     1;
 
   } # sub: imag()
@@ -4686,6 +4874,8 @@ EOD
     $contrast   = 1   unless defined $contrast;
     $brightness = 0.5 unless defined $brightness;
 
+    &catch_signals;
+
     pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	    $blue->get_dataref, $n, $contrast, $brightness );
     $self->{CTAB} = { ctab => [ $levels, $red, $green, $blue ],
@@ -4693,6 +4883,8 @@ EOD
 	      contrast => $contrast
 	    };			# Loaded
     $self->_add_to_state(\&ctab, $in, $opt);
+
+    &release_signals;
 
     1;
   }
@@ -4749,6 +4941,9 @@ EOD
     $bias = 5*max($image)/$ny unless defined $bias;
     my $work = float(zeroes($nx));
 
+
+    &catch_signals;
+
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
@@ -4759,6 +4954,8 @@ EOD
 
     $self->_restore_status();
     $self->_add_to_state(\&hi2d, $in, $opt);
+    
+    &release_signals;
     1;
   }
 }
@@ -4774,6 +4971,9 @@ sub poly {
   $self->_checkarg($y,1);
   my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+
+  &catch_signals;
 
   unless ( $self->held() ) {
       my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
@@ -4791,6 +4991,9 @@ sub poly {
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
   $self->_add_to_state(\&poly, $in, $opt);
+
+  release_signals;
+
   1;
 }
 
@@ -4818,6 +5021,9 @@ sub poly {
     $o->{YCenter}=$y if defined($y);
     $o->{Radius} = $radius if defined($radius);
 
+    &catch_signals;
+
+
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     $self->_save_status();
@@ -4825,6 +5031,8 @@ sub poly {
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
     $self->_add_to_state(\&circle, $in, $opt);
+
+    &release_signals;
   }
 }
 
@@ -4862,6 +5070,9 @@ sub poly {
       barf "The major and minor axis and the center coordinates must be given!";
     }
 
+
+    &catch_signals;
+
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     my $t = 2*$PI*sequence($o->{NPoints})/($o->{NPoints}-1);
@@ -4878,6 +5089,7 @@ sub poly {
     $self->poly($x, $y, $opt);
     $self->turn_on_recording();
 
+    &release_signals;
   }
 
 }
@@ -4929,6 +5141,8 @@ sub poly {
       barf 'The center of the rectangle must be specified!';
     }
 
+    &catch_signals;
+
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     # Ok if we got this far it is about time to do something useful,
@@ -4950,6 +5164,7 @@ sub poly {
     $self->poly($x, $y, $opt);
     $self->turn_on_recording();
 
+    &release_signals;
   }
 }
 
@@ -4997,6 +5212,8 @@ sub poly {
     }
     $tr = $self->CtoF77coords($tr);
 
+    &catch_signals;
+
     $self->initenv( 0, $nx-1, 0, $ny-1, $opt ) unless $self->held();
     print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
@@ -5006,6 +5223,8 @@ sub poly {
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
     $self->_add_to_state(\&vect, $in, $opt);
+    
+    &release_signals;
     1;
   }
 }
@@ -5062,6 +5281,9 @@ sub poly {
     barf "text: You must specify the X-position!\n" if !defined($o->{XPos});
     barf "text: You must specify the Y-position!\n" if !defined($o->{YPos});
 
+
+    &catch_signals;
+
     # Added support for different background colours..
     # 2/10/01 JB - To avoid -w noise we use a reg-exp..
     if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
@@ -5092,6 +5314,8 @@ sub poly {
 #
     $self->_restore_status();
     $self->_add_to_state(\&text, $in, $opt);
+
+    &release_signals;
 
     1;
   }
@@ -5150,6 +5374,9 @@ sub poly {
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
       barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
     }
+
+    &catch_signals;
+
     $self->_save_status();
 
 #    print "Setting character size to: ".$u_opt->{CharSize}."\n"
@@ -5299,6 +5526,9 @@ sub poly {
 
     $self->_restore_status();
     $self->_add_to_state(\&legend, $in, $opt);
+
+    &release_signals;
+
   }
 
 }
@@ -5353,6 +5583,8 @@ sub poly {
 
     my ($x, $y, $ch);
 
+    &catch_signals;
+
     # The window needs to be focussed before using the cursor commands.
     # Added 08/08/01 by JB after bug report from Brad Holden.
     $self->focus();
@@ -5401,6 +5633,8 @@ sub poly {
 		       $o->{YRef}, $x, $y, $ch);
 
     $self->_add_to_state(\&cursor, [], $opt);
+    
+    &release_signals;
     return ($x, $y, $ch, $o->{XRef}, $o->{YRef});
 
   }
