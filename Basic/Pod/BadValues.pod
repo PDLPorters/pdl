@@ -232,6 +232,28 @@ that were bad will become 'good', but containing the old bad value.
 See discussion below.  It's not a problem for floating-point types, since
 you can't change their badvalue.
 
+=head2 Bad values and boolean operators
+
+For those boolean operators in L<PDL::Ops|PDL::Ops>, evaluation 
+on a bad value returns the bad value.  Whilst this means that 
+
+ $mask = $img > $thresh;
+
+correctly propogates bad values, it I<will> cause problems
+for checks such as
+
+ do_something() if any( $img > $thresh );
+
+which need to be re-written as something like
+
+ do_something() if any( ($img > $thresh) & $img->isgood() );
+
+When using one of the 'projection' functions in L<PDL::Ufunc|PDL::Ufunc> - such as 
+L<orover|PDL::Ufunc/orover> - 
+bad values are skipped over (see the documentation of these
+functions for the current (poor) handling of the case when
+all elements are bad).
+
 =head2 A bad value for each piddle, and related issues
 
 The following is relevant only for integer types, where there is a choice
@@ -295,6 +317,16 @@ See F<PDL/Bad/bad.pd> for read/write routines to the values.
 
 All this means that the internals of PDL are not binary compatible with
 PDL 2.1.1 and earlier; external modules will need to be recompiled.
+
+=head2 Why not make a PDL subclass?
+
+The support for bad values could have been done as a PDL sub-class.
+The advantage of this approach would be that you only load in the code 
+to handle bad values if you actually want to use them.
+The downside is that the code then gets separated: any bug fixes/improvements
+have to be done to the code in two different files.  With the present approach
+the code is in the same C<pp_def> function (although there is still the problem
+that both C<Code> and C<BadCode> sections need updating).
 
 =head2 Default bad values
 
@@ -498,7 +530,7 @@ For I<simple> routines processing floating-point numbers, we should let
 the computer process the bad values (ie C<NaN> and C<Inf> values) instead
 of using the code in the C<BadCode> section.  Many such routines have
 been labelled using C<NoBadifNaN =E<gt> 1>; however this is currently 
-ignored by PDL::PP.
+I<ignored> by PDL::PP.
 
 For these routines, we want to use the C<Code> section if
 
@@ -517,7 +549,6 @@ Checking for C<Nan>, and C<Inf> is done by using the C<finite()>
 system call.  If you want to set a value to the C<NaN> value, the
 following bit of code can be used (this can be found in
 both F<Basic/Core/Core.xs.PL> and F<Basic/Bad/bad.pd>):
-
 
   /* for big-endian machines */
   static union { unsigned char __c[4]; float __d; } 
@@ -581,10 +612,6 @@ It would also mean that the pdl structure would need to have a
 variable to store its bad value, which would mean binary incompatability
 with previous versions of PDL with bad value support.
 
-=head2 What to do with boolean operations?
-
-What should C<$a != 2> return for bad values: 0 or the bad value?
-
 =head2 Dataflow of the badflag
 
 Currently changes to the bad flag are propogated to the children of a piddle,
@@ -630,40 +657,6 @@ need to be changed ...
 
 what to do about C<$b = pdl(-2); $a = log10($b)> - C<$a> should
 be set bad, but it currently isn't.
-
-=item *
-
-Need to look at C<which()>: how should it handle bad values?
-I think it needs to handle bad values in the mask array.
-
-=item *
-
-what to do about C<any($a E<gt> 20)> when all elements of C<$a> are bad:
-C<orover($a E<gt> 20)> will produce a bad value, which is then returned
-to the caller as a scaler (via C<return $tmp-E<gt>at()>).
-
-=over 4
-
-=item 1
-
-should we just die
-
-=item 2 
-
-should we return bad (as it's a scalar we would have to ensure
-that it was converted to the type of the input piddle first)
-
-=item 3
-
-call a user-defined sub-routine? (supply a default one that dies, say?)
-
-=item 4 
-
-...
-
-=back
-
-(also for avg,zcheck,... in F<primitive.pd>)
 
 =item *
 
