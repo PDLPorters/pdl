@@ -1,3 +1,6 @@
+DJB/CS (11-Sep-02)
+    - 'make clean' now removes _Inline/ as does t/inlinepdlpp.pl when its
+      run (to make sure that we're testing the latest&greatest code)
 TJ (09-Sep-02)
     - Fix valgrind warning in pdlapi.c (use of uninitialised variable in dump)
     - PDL::IO::Storable now uses PTR2IV
