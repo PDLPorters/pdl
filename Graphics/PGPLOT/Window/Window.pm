@@ -379,6 +379,126 @@ plot in the wrong panel... The package tries to be smart and do this
 correctly, but might get it wrong at times.
 
 
+=head1 STATE and RECORDING
+
+A new addition to the graphics interface is the ability to record plot
+commands. This can be useful when you create a nice-looking plot on the
+screen that you want to re-create on paper for instance. Or if you want
+to redo it with slightly changed variables for instance. This is still
+under development and views on the interface are welcome.
+
+The functionality is somewhat detached from the plotting functions
+described below so I will discuss them and their use here.
+
+In general there is nothing you need to do to keep the module recording
+your every move, recording is on by default. To turn it off when you
+create a new device you can set the C<Recording> option to false (C<undef>,
+or 0 for instance).
+
+=head2 Use of recording
+
+The recording is meant to help you recreate a plot with new data or
+to a different device. The most typical situation is that you have
+created a beautiful plot on screen and want to have a Postscript file
+with it. In the dreary old world you needed to go back and execute all
+commands manually, but with this wonderful new contraption, the recorder,
+you can just replay your commands:
+
+  dev '/xs'
+  $x = sequence(10)
+  line $x, $x**2, {Linestyle => 'Dashed'}
+  $s = retrieve_state() # Get the current tape out of the recorder.
+  dev '/cps'
+  replay $s
+
+This should result in a C<pgplot.ps> file with a parabola drawn with a
+dashed line. Note the command C<retrieve_state> which retrieves the current
+state of the recorder and return an object (of type PDL::Graphics::State)
+that is used to replay commands later.
+
+=head2 Controlling the recording
+
+Like any self-respecting recorder you can turn the recorder on and off
+using the C<turn_on_recording> and C<turn_off_recording> respectively.
+Likewise you can clear the state using the C<clear_state> command.
+
+  $w=PDL::Graphics::PGPLOT::Window->new({Device => '/xs'})
+  $x=sequence(10); $y=$x*$x
+  $w->line($x, $y)
+  $w->turn_off_recording
+  $w->line($y, $x)
+  $w->turn_on_recording
+  $w->line($x, $y*$x)
+  $state = $w->retrieve_state()
+
+We can then replay C<$state> and get a parabola and a cubic plot.
+
+  $w->replay($state);
+
+=head2 Tips and Gotchas!
+
+The data are stored in the state object as references to the real
+data. This leads to one good and one potentially bad consequence:
+
+=over
+
+=item The good is that you can create the plot and then subsequently
+redo the same plot using a different set of data. This is best explained
+by an example. Let us first create a simple gradient image and get
+a copy of the recording:
+
+  $im = sequence(10,10)
+  imag $im
+  $s=retrieve_state
+
+Now this was a rather dull plot, and in reality we wanted to show an
+image using C<rvals>. Instead of re-creating the plot (which of course
+here would be the simplest option) we just change C<$im>:
+
+  $im -= sequence(10,10)
+  $im += rvals(10,10)
+
+Now replay the commands
+
+  replay $s
+
+And hey presto! A totally different plot. Note however the trickery
+required to avoid losing reference to C<$im>
+
+=item This takes us immediately to the major problem with the recording
+though. Memory leakage! Since the recording keeps references to the data
+it can keep data from being freed (zero reference count) when you expect
+it to be. For instance, in this example, we lose totally track of the
+original $im variable, but since there is a reference to it in the state
+it will not be freed
+
+  $im = sequence(1000,1000)
+  imag $im
+  $s = retrieve_state
+  $im = rvals(10,10)
+
+Thus after the execution of these commands we still have a reference to
+a 1000x1000 array which takes up a lot of memory...
+
+The solution is to call C<clear> on the state variable:
+
+  $s->clear()
+
+(This is done automatically if the variable goes out of scope). I forsee
+this problem to most acute when working on the C<perldl> command line,
+but since this is exactly where the recording is most useful the best
+advice is just to be careful and call clear on state variables.
+
+If you are working with scripts and use large images for instance I would
+instead recommend that you turn off recording if you do not need it:
+
+   dev '/xs', {Recording => 0};
+
+=back
+
+
+
+
 =head1 FUNCTIONS
 
 A more detailed listing of the functions and their usage follows. For
@@ -1943,7 +2063,7 @@ sub _thread_options {
 # Replay related functions #
 ############################
 
-my $DEBUGSTATE = 1;
+my $DEBUGSTATE = 0;
 sub replay {
   my $self = shift;
   my $state = shift || $self->{State};
