@@ -266,8 +266,11 @@ sub pdlpp_postamble_int {
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 qq|
 
-$pref.xs $pref.pm: $src $w/Basic/Gen/pm_to_blib
+$pref.pm: $src $w/Basic/Gen/pm_to_blib
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+
+$pref.xs: $pref.pm
+	\$(TOUCH) \$@
 
 $pref.c: $pref.xs
 
@@ -285,8 +288,11 @@ sub pdlpp_postamble {
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 qq|
 
-$pref.xs $pref.pm: $src
+$pref.pm: $src
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+
+$pref.xs: $pref.pm
+	\$(TOUCH) \$@
 
 $pref.c: $pref.xs
 

@@ -868,10 +868,10 @@ glPolygonOffsetEXT(factor,bias)
 	GLfloat bias
 	CODE:
 	{
-		#ifdef GL_EXT_polygon_offset
+#ifdef GL_EXT_polygon_offset
 			extern void glPolygonOffsetEXT(GLfloat factor, GLfloat units);
 			glPolygonOffsetEXT(factor,bias);
-		#endif
+#endif
 	}
 
 #

@@ -714,7 +714,7 @@ MODULE = PDL::Graphics::Karma PACKAGE = PDL::Graphics::Karma
 void
 _kcur_int(app,type)
    PPCODE:
-    char* app = SvPV(ST(0),na);
+    char* app = SvPV(ST(0),PL_na);
     int type = SvIV(ST(1));
     double x,y;
     KEvent coord;

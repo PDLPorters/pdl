@@ -1,6 +1,23 @@
 (!!! = possible source of incompatibilities)
 2.004
 
+Marc Lehmann
+	- Patch to Basic/Core/Dev.pm fix Parallel build bug. (Ref PDL-Porters Messages
+	  dated 1/8/00 and 1/5/00.)
+        - Small Patch to Graphics/Karma/karma.pd. Change 'na' to 'PL_na';
+          (PDL-P msg 1/15/00)
+
+Robin Williams:
+	- Patch to Graphics/TriD/OpenGL/generate.p to get 
+          OpenGL working on OSF (it crunched because
+          perlxs interprets the #ifs as comments 
+          if they're indented).
+
+Karl Glazebrook:
+	- Patch to Perldl.PL to improve readlines handling:
+	   - tells you which module it is using
+           - correctly informs whether editing is available or not
+
 John Cerney
 	- Documentation fix for FlexRaw.pm (Based on change submitted
           by Francois Primeau.)
