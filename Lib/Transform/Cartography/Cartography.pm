@@ -246,7 +246,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -637,7 +637,8 @@ sub PDL::Transform::Cartography::_finish {
       $out->{iunit} = $me->{iunit};
       $out->{otype} = $me->{otype};
       $out->{ounit} = $me->{ounit};
-
+      $out->{odim} = 2;
+      $out->{idim} = 2;
       return $out;
     } 
   return $me;
@@ -1958,6 +1959,78 @@ sub t_az_eqa {
 
   $me->_finish;
 }
+
+
+######################################################################
+
+=head2 t_hammer
+
+=for ref
+
+(Cartography) Hammer/Aitoff elliptical projection (az.; auth.)
+
+The Hammer/Aitoff projection is often used to display the Celestial
+sphere.  It is mathematically related to the Lambert Azimuthal Equal-Area
+projection (L<t_az_eqa>), and maps the sphere to an ellipse of unit 
+eccentricity.
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+=cut
+
+sub t_hammer {
+  my($me) = _new(@_,"Hammer/Aitoff Projection");
+  
+  $me->{otype} = ['Longitude','Latitude'];
+  $me->{ounit} = ['Proj. radians','Proj. radians'];
+  $me->{odim} = 2;
+  $me->{idim} = 2;
+
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    $out->(0:1) *= $o->{conv};
+    my($th) = $out->((0));
+    my($ph) = $out->((1));
+    my($t) = sqrt( 2 / (1 + cos($ph) * cos($th/2)));
+    $th .= 2 * $t * cos($ph) * sin($th/2);
+    $ph .= $t * sin($ph);
+    $out;
+  }
+  ;
+
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($x) = $out->((0));
+    my($y) = $out->((1));
+
+    my($rej) = which(($x*$x/8 + $y*$y/2)->flat > 1);
+    
+    my($zz);
+    my($z) = sqrt( $zz = (1 - $x*$x/16 - $y*$y/4) );
+    $x .= 2 * atan( ($z * $x) / (4 * $zz - 2) );
+    $y .= asin($y * $z);
+    
+    $out->(0:1) /= $o->{conv};
+
+    $x->flat->($rej) .= $o->{bad};
+    $y->flat->($rej) .= $o->{bad};
+
+    $out;
+  };
+
+  $me->_finish;
+}
+    
+    
+    
+
+
 
 ######################################################################
 
