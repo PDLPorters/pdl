@@ -1,4 +1,7 @@
 CED 18-Jan-2005
+   pdlcore.c.PL: fixed a pointer arithmetic issue that was causing
+   trouble under Windows.  Thanks, Sisyphus!
+CED 18-Jan-2005
    - added segfault.t to test suite
 CED 16-Jan-2005
    - pdlcore.c.PL: Following Alexey Tourbin's awesome research,

@@ -825,7 +825,7 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                             stride,
                             pdl,
                             plevel+1,
-                            pptr+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
+                            ((PDL_Byte *)pptr)+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
                            );
     }
 
