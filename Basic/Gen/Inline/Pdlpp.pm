@@ -458,7 +458,7 @@ with PDL::PP (or rather, it will once these docs are complete C<;)>.
 For more information on Inline in general, see L<Inline>.
 
 C<Inline::Pdlpp> is a shameless rip-off of C<Inline::C>.
-Most Kudos go to Brian I.
+Most Kudos goes to Brian I.
 
 =head1 Usage
 
@@ -471,12 +471,15 @@ or
 
     bind Inline Pdlpp => ...;
 
-=head1 Example
+=head1 Examples
 
-Pending availability of full docs here is quick example that demonstrates typical usage.
+Pending availability of full docs a few quick examples
+that illustrate typical usage.
+
+=head2 A simple example
 
    # example script inlpp.pl
-   use PDL; # this must be called before (!) 'use Inline Pdlpp' calls
+   use PDL; # must be called before (!) 'use Inline Pdlpp' calls
 
    use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
 
@@ -513,6 +516,55 @@ Usage of C<Inline::Pdlpp> in general is similar to C<Inline::C>.
 In the absence of full docs for C<Inline::Pdlpp> you might want to compare
 L<Inline::C>.
 
+=head2 Code that uses external libraries, etc
+
+The script below is somewhat more complicated in that it uses code
+from an external library (here from Numerical Recipes). All the
+relevant information regarding include files, libraries and boot
+code is specified in a config call to C<Inline>. For more experienced
+Perl hackers it might be helpful to know that the format is
+similar to that used with L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>. The
+keywords are equivalent to those used with C<Inline::C>. For the
+moment please compare L<Inline::C> for further details on the usage of C<INC>,
+C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
+
+   use PDL; # this must be called before (!) 'use Inline Pdlpp' calls
+
+   use Inline Pdlpp => Config =>
+     INC => "-I$ENV{HOME}/include",
+     LIBS => "-L$ENV{HOME}/lib -lnr -lm",
+     # code to be included in the generated XS
+     AUTO_INCLUDE => <<'EOINC',
+   #include <math.h>
+   #include "nr.h"    /* for poidev */
+   #include "nrutil.h"  /* for err_handler */
+
+   static void nr_barf(char *err_txt)
+   {
+     fprintf(stderr,"Now calling croak...\n");
+     croak("NR runtime error: %s",err_txt);
+   }
+   EOINC
+   # install our error handler when loading the Inline::Pdlpp code
+   BOOT => 'set_nr_err_handler(nr_barf);';
+
+   use Inline Pdlpp; # the actual code is in the __Pdlpp__ block below
+
+   $a = zeroes(10) + 30;;
+   print $a->poidev(5),"\n";
+
+   __DATA__
+
+   __Pdlpp__
+
+   pp_def('poidev',
+	   Pars => 'xm(); [o] pd()',
+	   GenericTypes => [L,F,D],
+	   OtherPars => 'long idum',
+	   Code => '$pd() = poidev((float) $xm(), &$COMP(idum));',
+   );
+
+
 =head1 ACKNOWLEDGEMENTS
 
 Brian Ingerson for creating the Inline infrastructure.
@@ -520,6 +572,10 @@ Brian Ingerson for creating the Inline infrastructure.
 =head1 AUTHOR
 
 Christian Soeller <soellermail@excite.com>
+
+=head1 SEE ALSO
+
+PDL, PDL::PP, Inline, Inline::C
 
 =head1 COPYRIGHT
 

@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 17;
+	plan tests => 21;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -72,3 +72,15 @@ $cmp = $twod->slice('-1:0')->dice_axis(1,$idx);
 eval translate_and_show '$b = $twod(-1:0,$idx);';
 ok (!$@);
 ok(all $b == $cmp);
+
+# modifiers
+
+$a = sequence 10;
+eval translate_and_show '$b = $a($a<3;?)';
+ok (!$@);
+ok(all $b == pdl(0,1,2));
+
+$a = sequence 3,3;
+eval translate_and_show '$b = $a(0:-2;_);';
+ok (!$@);
+ok(all $b == sequence 8);
