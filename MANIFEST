@@ -416,6 +416,7 @@ Lib/Interpolate/Makefile.PL
 Lib/Interpolate/Slatec/Makefile.PL
 Lib/Interpolate/Slatec/Slatec.pm
 Lib/Makefile.PL
+Lib/MatrixOps.pm
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
@@ -608,6 +609,7 @@ t/lut.t
 t/lvalue.t
 t/magic.t
 t/matmult.t
+t/matrixops.t
 t/misc.t
 t/ndf.t
 t/niceslice.t

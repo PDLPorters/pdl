@@ -215,9 +215,13 @@ sub stringify {
 
 =head2 PDL::Transform::apply
 
+=for sig
+
+ Signature: ( PDL::Transform a; a(n) )
+
 =for usage
 
-  $out = $f->eval($data);
+  $out = $f->apply($data);
 
 =for ref 
 
@@ -245,6 +249,10 @@ sub apply {
 
 =head2 PDL::Transform::invert
 
+=for sig
+
+ Signature: (PDL::Transform a)
+
 =for usage
 
   $out = $f->invert($data);
@@ -268,6 +276,10 @@ sub invert {
 ######################################################################
 
 =head2 PDL::Transform::inverse
+
+=for sig
+
+  Signature: (PDL::Transform a) 
 
 =for usage 
 
@@ -314,6 +326,10 @@ sub inverse {
 ######################################################################
 
 =head2 PDL::Transform::compose
+
+=for sig
+
+ Signature: (PDL::Transform f; PDL::Transform g)
 
 =for usage
 
@@ -368,6 +384,10 @@ sub compose {
 ######################################################################
 
 =head2 PDL::Transform::map
+
+=for sig
+
+ Signature: (PDL::Transform a; data(); template(); \%opt)
 
 =for usage
 
@@ -509,6 +529,10 @@ sub map {
 ######################################################################
 
 =head2 PDL::Transform::unmap
+
+=for sig
+
+ Signature: (PDL::Transform a; data(); template(); \%opt)
 
 =for usage
 
