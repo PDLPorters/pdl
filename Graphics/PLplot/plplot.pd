@@ -1383,13 +1383,13 @@ sub shadeplot {
   my $xmap = ((PDL->sequence($nx)*(($self->{BOX}[1] - $self->{BOX}[0])/($nx - 1))) + $self->{BOX}[0]);
   my $ymap = ((PDL->sequence($ny)*(($self->{BOX}[3] - $self->{BOX}[2])/($ny - 1))) + $self->{BOX}[2]);
 
-  my $grid = PDL->new ($nx);
-  $grid = $grid->append ($xmap);
-  $grid = $grid->append ($ymap);
+  my $grid = plAllocGrid ($xmap, $ymap);
 
   plshades($z, @{$self->{BOX}}, $clevel, $fill_width,
            $cont_color, $cont_width, $rectangular,
 	   0, \&pltr1, $grid);
+
+  plFreeGrid ($grid);
 }
 
 # handle histograms
@@ -2282,8 +2282,8 @@ plFree2dGrid (pg)
   int pg
 PPCODE:
   PLcGrid2* grid = (PLcGrid2*) pg;
-  plFree2dGrid (pg->xg);
-  plFree2dGrid (pg->yg);
+  plFree2dGrid (&pg->xg);
+  plFree2dGrid (&pg->yg);
   free (pg);
 EOC
 
