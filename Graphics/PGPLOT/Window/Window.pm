@@ -4933,12 +4933,10 @@ sub _fits_foo {
   }
   my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
 
-
   my($hdr) = $pdl->gethdr();
 
-  $opt->{Transform} = _FITS_tr($pane,$pdl);
-
-  %opt2 = %{$opt};
+  %opt2 = %{$u_opt}; # copy options
+  $opt2->{Transform} = _FITS_tr($pane,$pdl);
 
   local($_);
   foreach $_(keys %opt2){
@@ -4955,6 +4953,7 @@ sub _fits_foo {
 
   $opt2{pix}=1.0 
     if( (!defined($opt2{Pix})) && ($hdr->{CTYPE1} eq $hdr->{CTYPE2}));
+
   eval '$pane->'.$cmd.'($pdl,\%opt2);';
 
   $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
