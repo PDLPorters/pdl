@@ -1,3 +1,8 @@
+CS  - allow PP Code to handle constructs like
+            $arr(n => 3*i+1)
+      when Text::Balanced is installed
+    - fix Benchmark suite
+    - NiceSlice.pm: make splitprotected interface similar to split's
 CS  - fix PP.pm: bug #564937 (needed a check for sv_isobject(...) )
     - make sure pp_done is called automatically if user forgets!
 CS  - applied Diab's patch #559860: improve trylink, Math/Makefile.PL
