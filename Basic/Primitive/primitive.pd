@@ -1632,10 +1632,11 @@ that are non-zero in $mask.
 
    perldl> $a=sequence(10,10,3,4)
 
-   perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w)
+   perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
    [3] [0] [2] [0]
-   perldl> print $a->at($x,$y,$z,$w)
+   perldl> print $a->at(list(cat($x,$y,$z,$w)))
    203
+
 =cut
 
 *whichND = \&PDL::whichND;
