@@ -50,7 +50,9 @@ $interactive = $ENV{'PDL_INT'};
 eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
 t_ok(1,!$@);
 
-eval '$w = new PDL::Graphics::PGPLOT::Window(Dev=>"/xw",Size=>[6,4],NX=>2,NY=>2,Ch=>2.5,HardCH=>2.5);';
+my $dev = $ENV{'PGPLOT_DEV'} ? $ENV{'PGPLOT_DEV'} : "/xw";
+
+eval '$w = new PDL::Graphics::PGPLOT::Window(Dev=>"'. $dev . '",Size=>[6,4],NX=>2,NY=>2,Ch=>2.5,HardCH=>2.5);';
 t_ok(2,!$@);
 
 { no warnings;
