@@ -89,8 +89,7 @@ $t2 = rfits $file;
 ok( (sum($t->slice('0:4,:')) == -sum($t2->slice('5:-1,:')) ));
 
 $h = $t2->gethdr;
-
-ok($$h{'FOO'} eq "'foo       '" && $$h{'BAR'} == 42);
+ok($$h{'FOO'} eq "foo" && $$h{'BAR'} == 42);
 
 unlink $file;
 
