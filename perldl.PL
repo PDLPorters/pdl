@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.30'; print "perlDL shell v$VERSION
+$VERSION = '1.31'; print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
  'COPYING' in the PDL distribution. This is free software and you
  are welcome to redistribute it under certain conditions, see
@@ -133,13 +133,35 @@ while(defined($_ = shift @ARGV)) {
 eval "use Term::ReadLine";
 my $readlines = ($@ eq "");
 
-print "ReadLines enabled" if $readlines;
+my @enabled = ();
+push @enabled, "ReadLines" if $readlines;
 
-print "\n";
+eval 'use PDL::NiceSlice';
+unless ($@) {
+  my $report = 0;
+  sub report {
+    my $ret = $report;
+    $report = $_[0] if $#_ > -1;
+    return $ret;
+  }
+  my $preproc = sub { my ($txt) = @_;
+	  my $new = PDL::NiceSlice::perldlpp($txt);
+	  print STDERR "processed $new\n" if report && $new ne $txt;
+	  return $new;
+  };
+  sub trans { $PERLDL::PREPROCESS  = $preproc;
+     $PERLDL::PREPROCESS = undef if $#_ > -1 && !$_[0];}
+  sub notrans { trans 0 }
+  trans; # switch on by default
+  push @enabled, "NiceSlice";
+}
+
+print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 my($term);
 if ( $readlines ){
     $term = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
+    $PERLDL::TERM = $term;
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
         if(${$term->Features}{tkRunning}) {
@@ -213,6 +235,7 @@ sub startup_def {
   return "PDL/default.perldlrc";
 }
 
+
 # Global and local startup
 
 my $startup_file = -e "$HOME/.perldlrc" ? "$HOME/.perldlrc" : startup_def();
@@ -274,6 +297,7 @@ my %demos =
      '3dgal' => 'PDL::Demos::TriDGallery',
      'tk3d' => 'PDL::Demos::TkTriD_demo',
      'pgplot' => 'PDL::Demos::PGPLOT_demo',
+     'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
      'bad' => 'PDL::Demos::BAD_demo',
      'bad2' => 'PDL::Demos::BAD2_demo',
      );
@@ -292,6 +316,7 @@ Use:
                 # *very* concise PDL scripts
    demo Tk3d    # Requires the perl Tk module
    demo pgplot  # Requires the PGPLOT package
+   demo OOplot  # Requires the PGPLOT package (OO interface to PGPLOT)
    demo bad     # Requires bad value support
    demo bad2    # Requires bad value support and PGPLOT
 
@@ -361,7 +386,7 @@ restart:
         next;
      }else{
         # Send code to pre-processor if defined
-        $_ = $PERLDL::PREPROCESS->($_)
+        $_ = &$PERLDL::PREPROCESS($_)
           if (defined $PERLDL::PREPROCESS && 
               ref($PERLDL::PREPROCESS) eq 'CODE');
 
@@ -442,11 +467,52 @@ e.g.:
    Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
 
 
-Miscellaneous shell features:
+=head2 Command-line options
 
 =over 4
 
-=item 1.
+=item -tk
+
+Load Tk when starting the shell (the perl Tk module, which is
+available from CPAN must be installed). This enables readline
+event loop processing.
+
+=item -f file
+
+Loads the file before processing any user input. Any errors
+during the execution of the file are fatal.
+
+=item -w
+
+Runs with warning messages (i.e. the normal perl C<-w> warnings)
+turned-on.
+
+=item -M module
+
+Loads the module before processing any user input.
+Compare corresponding C<perl> switch.
+
+=item -m module
+
+Unloads the module before processing any user input.
+
+=item -I directory
+
+Adds directory to the include path. (i.e. the @INC array)
+Compare corresponding C<perl> switch.
+
+=back
+
+=head2 Terminating C<perldl>
+
+A C<perldl> session can be terminated with any of the commands
+C<quit>, C<exit> or the shorthands C<x> or C<q>.
+
+=head2 Shortcuts and aliases
+
+=over
+
+=item *
 
 The shell aliases C<p> to be a convenient short form of C<print>, e.g.
 
@@ -458,14 +524,36 @@ The shell aliases C<p> to be a convenient short form of C<print>, e.g.
     [1 1 1 1 1]
    ]
 
-'q' and 'x' are short-hand for quit.
+=item *
 
-'l' lists the history buffer
+C<q> and C<x> are short-hand for C<quit>.
 
-'?' is an alias for help
+=item *
 
-'help', 'apropos', 'usage' and 'sig': all words after these commands are
-used verbatim and not evaluated by perl. So you can write, e.g.,
+C<l> lists the history buffer
+
+  perldl> l # list last 20 commands
+
+  perldl> l 40 # list last 40 commands
+
+=item *
+
+C<?> is an alias for L<help|PDL::Doc::Perldl/help>
+
+  perldl> ? wpic
+
+=item *
+
+C<??> is an alias for L<apropos|PDL::Doc::Perldl/apropos>
+
+  perldl> ?? PDL::Doc
+
+=item *
+
+L<help|PDL::Doc::Perldl/help>, L<apropos|PDL::Doc::Perldl/apropos>,
+L<usage|PDL::Doc::Perldl/usage> and L<sig|PDL::Doc::Perldl/sig>:
+all words after these commands are used verbatim and not evaluated
+by perl. So you can write, e.g.,
 
     help help
 
@@ -473,8 +561,10 @@ instead of
 
     help 'help'
 
+=back
 
-=item 2.
+
+=head2 The startup file F<~/.perldlrc>
 
 If the file F<~/.perldlrc> is found it is sourced at start-up to load default
 modules, set shell variables, etc. If it is NOT found the distribution file
@@ -490,15 +580,22 @@ subroutines for the project in the current directory.
 The name is chosen specfically because it was found hidden files were
 NOT wanted in this circumstances.
 
-=item 3.
+=head2 Shell variables
 
-Shell variables: (if you don't like the defaults change them in F<~/.perldlrc>
+Shell variables: (I<Note>: if you don't like the defaults change
+them in F<~/.perldlrc>)
+
+=over
+
+=item *
 
 $PERLDL::ESCAPE  - default value '#'
 
 Any line starting with this character is treated as a shell
 escape. The default value is chosen because it escapes the
 code from the standard perl interpreter.
+
+=item *
 
 $PERLDL::PAGER - default value C<more>
 
@@ -507,17 +604,31 @@ prints output one screenful at a time.  On Unix, setting C<page(1)>
 and $PERLDL::PAGER to C<tee -a outfile> will keep a record of the
 output generated by subsequent perldl commands (without paging).
 
+=item *
+
 $PERLDL::PROMPT - default value 'perldl> '
 
 Enough said  But can also be set to a subroutine reference, e.g.
 $PERLDL::PROMPT = sub {join(':',(gmtime)[2,1,0]).'> '} puts the
 current time into the prompt.
 
+=item *
+
 $HOME
 
 The user's home directory
 
-=item 4.
+=item *
+
+$PERLDL::TERM
+
+This is the Term::ReadLine object associated with the perldl
+shell. This can be used by routines called from perldl if your
+command is interactive.
+
+=back
+
+=head2 Executing scripts from the C<perldl> prompt
 
 A useful idiom for developing perldl scripts or editing functions
 on-line is
@@ -532,7 +643,7 @@ also need to change the '&' on non-Unix systems).
 Running "do 'script'" again updates any variables and function
 definitions from the current version of 'script'.
 
-=item 5.
+=head2 Automatically execute your own hooks
 
 The variable @PERLDL::AUTO is a simple list of perl code strings
 and/or code reference. It is used to define code to be
@@ -575,7 +686,10 @@ PDL scripts.
 Finally note this is a very powerful facility - which means
 it should be used with caution!
 
-=item 6
+=head2 Command preprocessing
+
+NOTE: This feature is used by default by L<PDL::NiceSlice|PDL::NiceSlice>.
+See below for more about slicing at the C<perldl> prompt
 
 In some cases, it is convenient to process commands before they are
 sent to perl for execution. For example, this is the case where the
@@ -616,41 +730,67 @@ is required to check for cases where the caller has supplied a normal
 list (and so does not require automatic quoting) or variable
 interpolation is required.
 
-=back
+=head2 C<perldl> and L<PDL::NiceSlice|PDL::NiceSlice>
 
-=head2 Command-line options
+L<PDL::NiceSlice|PDL::NiceSlice> introduces a more convenient
+slicing syntax for piddles. In current versions of C<perldl>
+niceslicing is enabled by default (if the required CPAN modules
+are installed on your machine).
 
-=over 4
+At startup C<perldl> will let you
+know if niceslicing is enabled. The startup message will contain
+info to this end, something like this:
 
-=item -tk
+   perlDL shell v1.XX
+    PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+    'COPYING' in the PDL distribution. This is free software and you
+    are welcome to redistribute it under certain conditions, see
+    the same file for details.
+   ReadLines, NiceSlice  enabled
+   Reading /home/csoelle/.perldlrc...
+   Type 'demo' for online demos
+   Loaded PDL v2.XX
 
-Load Tk when starting the shell (the perl Tk module, which is
-available from CPAN must be installed). This enables readline
-event loop processing.
+When you get such a message that indicates C<NiceSlice> is enabled
+you can use the enhanced slicing syntax:
 
-=item -f file
+  perldl> $a = sequence 10;
+  perldl> p $a(3:8:2)
 
-Loads the file before processing any user input. Any errors
-during the execution of the file are fatal.
+For details consult L<PDL::NiceSlice>.
 
-=item -w
+L<PDL::NiceSlice|PDL::NiceSlice> installs a filter in the
+ C<$PERLDL::PREPROCESS> variable (see above) to enable the enhanced slicing
+syntax. You can use a few commands in the C<perldl> shell to
+switch this preprocessing on or off and also explicitly check
+the substitutions that the NiceSlice filter makes.
 
-Runs with warning messages (i.e. the normal perl C<-w> warnings)
-turned-on.
+You can switch the L<PDL::NiceSlice|PDL::NiceSlice> filter on and off
+by typing
 
-=item -M module
+  perldl> trans # switch niceslicing on
 
-Loads the module before processing any user input.
+and
 
-=item -m module
+  perldl> notrans # switch niceslicing off
 
-Unloads the module before processing any user input.
+respectively. The filter is on by default.
 
-=item -I directory
+To see how your commands are translated
+switch reporting on:
 
-Adds directory to the include path. (i.e. the @INC array)
+  perldl> report 1;
+  perldl> p $a(3:8:2)
+ processed p $a->nslice([3,8,2])
+ [3 5 7]
 
-=back
+Similarly, switch reporting off as needed
+
+  perldl> report 0;
+  perldl>  p $a(3:8:2)
+ [3 5 7]
+
+Reporting is off by default.
 
 =cut
 

@@ -89,10 +89,11 @@ sub PDL::fitpoly1d {
    
    # Internally normalise data
    
-   my $xmean = (abs($x)->sum)/($x->nelem);
-   my $ymean = (abs($y)->sum)/($y->nelem);
-   $ymean = 1 if $ymean == 0;
-   $xmean = 1 if $xmean == 0;
+   # means for each 1D data set
+   my $xmean = (abs($x)->average)->dummy(0);  # dummy for correct threading
+   my $ymean = (abs($y)->average)->dummy(0);
+   (my $tmp = $ymean->where($ymean == 0)) .= 1 if any $ymean == 0;
+   ($tmp = $xmean->where($xmean == 0)) .= 1 if any $xmean == 0;
    my $y2 = $y / $ymean;
    my $x2 = $x / $xmean;
    

@@ -1,0 +1,12 @@
+<SOFTPKG NAME="PDL" VERSION="2,2,1snap061901,0">
+	<TITLE>PDL</TITLE>
+	<ABSTRACT>Perl Data Language</ABSTRACT>
+	<AUTHOR>PerlDL Developers (perldl@jach.hawaii.edu)</AUTHOR>
+	<IMPLEMENTATION>
+		<DEPENDENCY NAME="File-Spec" VERSION="0,6,0,0" />
+		<OS NAME="MSWin32" />
+		<ARCHITECTURE NAME="MSWin32-x86-multi-thread" />
+		<CODEBASE HREF="PDL.tar.gz" />
+		<INSTALL EXEC="perl">install.ppm</INSTALL>
+	</IMPLEMENTATION>
+</SOFTPKG>

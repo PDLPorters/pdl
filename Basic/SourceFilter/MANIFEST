@@ -1,0 +1,11 @@
+README
+README.head
+NiceSlice.pm
+MANIFEST
+INSTALL
+Makefile.PL
+t/niceslice.t
+t/nsdatahandle.t
+local.perldlrc
+example
+Changes

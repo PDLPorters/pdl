@@ -6,6 +6,7 @@ BEGIN{if ($^O =~ /MSWin/) {
 use ExtUtils::MakeMaker;
 
 @pods = map { $_=~s/.pod//; $_ } glob("*.pod");
+push @pods, 'PP-Inline' unless grep {/PP-Inline/} @pods;
 
 # DISABLED
 # push @pods, 'Export';
@@ -26,4 +27,16 @@ WriteMakefile(
  'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
 );
 
+sub MY::postamble {
+  my $text = '';
+  if ( $] >= 5.005 ) {
+    $text .= << 'EOT';
+
+PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
+	podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
+
+EOT
+  }
+  $text;
+}
 

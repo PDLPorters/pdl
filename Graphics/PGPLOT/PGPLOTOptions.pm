@@ -92,9 +92,10 @@ instance. It defaults to 1.
 
 The position of the plot in normalised coordinates.
 
-=item NoErase
+=item Erase
 
-Allows plotting multiple panels on one plot, normally used with 'PlotPosition'.
+Explicitly erase the plotting surface, normally required when making new
+plots with PlotPosition.
 
 =back
 
@@ -116,59 +117,106 @@ use strict;
 use vars qw(@ISA @EXPORT_OK);
 
 @ISA = ('Exporter');
-@EXPORT_OK = qw(default_options);
+@EXPORT_OK = qw(default_options set_pgplot_options);
 
 #
-# At the moment this does not have the option of setting default values
-# for options externally. This should be resolved.
+# To be able to set options outside of PGPLOT in the .perldlrc I will
+# have to define these local variables.
 #
+my %options = (
+	       Device => undef,
+	       AxisColour => 3,
+	       BackgroundColour => -1, # Text background colour
+	       HardLW => 4,
+	       HardCH => 1.4,
+	       HardFont => 2,
+	       HardAxisColour => 1,
+	       HardColour => 1,
+	       Axis => 'BCNST',
+	       AspectRatio => undef,
+	       WindowWidth => undef,
+	       WindowXSize => undef,
+	       WindowYSize => undef,
+	       WindowName => '',
+	       NXPanel => 1,
+	       NYPanel => 1,
+	       Justify => 0,
+	       Border => 0,
+	       CharSize => 1,
+	       Symbol => 17,
+	       Colour => 5,
+	       ErrTerm => 1,
+	       LineStyle => 1,
+	       Font => 1,
+	       Fill => 1,
+	       ITF => 0,
+	       Transform => undef,
+	       LineWidth => 1,
+	       Xrange => undef,
+	       Yrange => undef,
+	       Arrow => {FS => 1, Angle => 45.0, Vent => 0.3,
+			   ArrowSize => undef},
+	       Hatch => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
+	       XTitle => '',
+	       YTitle => '',
+	       Title => ''
+	      );
+
 
 sub default_options {
 
+
   my $DEV=undef;
+  # Use the standard PGPLOT environment variable.
   $DEV  = $ENV{"PGPLOT_DEV"} if defined $ENV{"PGPLOT_DEV"};
+  # However if the user has specified the Perl-ish variable use that.
+  $DEV  = $options{Device} if defined($options{Device});
   $DEV  = "?" if !defined($DEV) || $DEV eq ""; # Safe default
 
   # Options specific (primarily) to window creation
   my $wo = {
 	    Device => $DEV, ### Tidy this up.
-	    AxisColour  => 3,	 # Axis colour
-	    HardLW      => 4,	 # Line width for hardcopy devices,
-	    HardCH      => 1.4,	 # Character height for hardcopy devices
-	    HardFont    => 2,	 # For for hardcopy devices
-	    HardAxisColour => 1,     # Black colour as default on hardcopy devices.
-	    HardColour => 1,     # Black as default plot colour on hardcopy devices.
-	    Axis        => 'BCNST',# The type of box
- 	    AspectRatio => undef, # The aspect ratio of the plot window.
- 	    WindowWidth => undef,    # The width of the plot window in inches.
-	    WindowXSize => undef, # The X&Y size of a window, these will be
-	    WindowYSize => undef, # used to give the aspect ratio if defined.
-	    WindowName  => '',    # The window name given
-	    NXPanel     => 1,     # The number of plotting panels
-	    NYPanel     => 1,     # Ditto.
-	    Justify     => 0,
-	    Border      => 0,
-	    CharSize    => 1,     # Character size for annotation
-	    NoErase     => 0,
+	    AxisColour  => $options{AxisColour}, # Axis colour
+	    HardLW      => $options{HardLW}, # Line width for hardcopy devices,
+	    HardCH      => $options{HardCH}, # Character height for hardcopy devices
+	    HardFont    => $options{HardFont}, # For for hardcopy devices
+	    HardAxisColour => $options{HardAxisColour},	# Black colour as default on hardcopy devices.
+	    HardColour => $options{HardColour},	# Black as default plot colour on hardcopy devices.
+	    Axis        => $options{Axis}, # The type of box
+ 	    AspectRatio => $options{AspectRatio}, # The aspect ratio of the plot window.
+ 	    WindowWidth => $options{WindowWidth}, # The width of the plot window in inches.
+	    WindowXSize => $options{WindowXSize}, # The X&Y size of a window, these will be
+	    WindowYSize => $options{WindowYSize}, # used to give the aspect ratio if defined.
+	    WindowName  => $options{WindowName}, # The window name given
+	    NXPanel     => $options{NXPanel}, # The number of plotting panels
+	    NYPanel     => $options{NYPanel}, # Ditto.
+	    Justify     => $options{Justify},
+	    Border      => $options{Border},
+	    CharSize    => $options{CharSize}, # Character size for annotation
+	    Erase       => 0,
+	    Recording   => 0,	# Off by default.
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
 
 
   # Options specific to plotting commands
   my $o = {
-	   Symbol      => 17,	 # Symbol for points
-	   Colour      => 5,	 # Colour for plots
-	   CharSize    => 1,     # Character height
-	   ErrTerm     => 1,	 # Size of error-bar terminators
+	   Symbol      => $options{Symbol},	 # Symbol for points
+	   Colour      => $options{Colour},	 # Colour for plots
+	   CharSize    => $options{CharSize},     # Character height
+	   ErrTerm     => $options{ErrTerm},	 # Size of error-bar terminators
            Erase       => 0,     # Whether to erase a panel when switching.
 	   Panel       => undef, # What panel to switch to.
-	   LineStyle   => 1,	 # Solid linestyle
-	   Font	       => 1,	 # Normal font
-	   Fill	       => 1,	 # Solid fill
-	   ITF	       => 0,	 # Linear ITF
-	   Axis	       => 0,	 # Standard axis-type
-	   Transform   => undef, # The transform used for plots.
-	   LineWidth   => 1,
+	   LineStyle   => $options{LineStyle},	 # Solid linestyle
+	   Font	       => $options{Font},	 # Normal font
+	   Fill	       => $options{Fill},	 # Solid fill
+	   ITF	       => $options{ITF},	 # Linear ITF
+	   Axis	       => $options{Axis},	 # Standard axis-type
+	   Transform   => $options{Transform},   # The transform used for plots.
+	   LineWidth   => $options{LineWidth},
+	   Xrange      => $options{Xrange},
+	   Yrange      => $options{Yrange},
+	   BackgroundColour => $options{BackgroundColour},
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.
 	   # Note that the arrowsize is implemented as a synonym for the
@@ -177,12 +225,11 @@ sub default_options {
 	   # In addition to this the arrowsize below is also set to be undefined
 	   # by default which will automatically use the character size.
 	   # All these problems are historical..
-	   Arrow       => {FS => 1, Angle => 45.0, Vent => 0.3,
-			   ArrowSize => undef},
-	   Hatch       => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
-	   XTitle      => '',    # Label for X-axis
-	   YTitle      => '',    # Label for Y-axis
-	   Title       => '',    # Title for plot
+	   Arrow       => $options{Arrow},
+	   Hatch       => $options{Hatch},
+	   XTitle      => $options{XTitle},    # Label for X-axis
+	   YTitle      => $options{YTitle},    # Label for Y-axis
+	   Title       => $options{Title},    # Title for plot
 	  };
 
 
@@ -191,12 +238,19 @@ sub default_options {
 	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch',
 	   FillType => 'Fill', 'ArrowSize' => 'CharSize',
 	   AxisColor => 'AxisColour', HardAxisColor => 'HardAxisColour',
-	   HardColor => 'HardColor'};
+	   HardColor => 'HardColor', BackgroundColor => 'BackgroundColour'};
   #
   # And now for the lookup tables..
   #
   my $t = {
 	   Colour => {
+			'White' => 0, 'Black' => 1, 'Red' => 2,
+			'Green' => 3, 'Blue' => 4, 'Cyan' => 5,
+			'Magenta' => 6,	'Yellow' => 7, 'Orange' => 8,
+			'DarkGray' => 14, 'DarkGrey' => 14,
+			'LightGray' => 15, 'LightGrey' => 15
+		       },
+	   BackgroundColour => {
 			'White' => 0, 'Black' => 1, 'Red' => 2,
 			'Green' => 3, 'Blue' => 4, 'Cyan' => 5,
 			'Magenta' => 6,	'Yellow' => 7, 'Orange' => 8,
@@ -270,6 +324,46 @@ sub default_options {
   $general_options->synonyms($s);
 
   return ($general_options, $window_options);
+
+}
+
+
+=head2 set_pgplot_options
+
+This function allows the user to set the default PGPLOT options. It
+is particularly useful in the C<.perldlrc> file since one can do
+
+  use PDL::Graphics::PGPLOTOptions ('set_pgplot_options');
+  set_pgplot_options('Device' => '/xs', 'HardLW' => 3);
+
+for instance to set the default values. The main drawback is that the
+routine is rather unflexible with no synonyms or case-insensitivity.
+
+=cut
+
+sub set_pgplot_options {
+  my %o;
+  if (ref($_[0]) eq 'HASH') {
+    %o = %{$_[0]};
+  } else {
+    %o = @_;
+  }
+
+  foreach my $k (keys %o) {
+    if (exists($options{$k})) {
+      $options{$k} = $o{$k};
+    } elsif ($k =~ /Color/) {
+      my $knew = $k;
+      $knew =~ s/Color/Colour/;
+      if (!exists($options{$knew})) {
+	warn "Option $k is not recognised!\n";
+      } else {
+	$options{$knew} = $o{$k};
+      }
+    } else {
+      warn "Option $k is not recognised!\n";
+    }
+  }
 
 }
 

@@ -1,3 +1,123 @@
+2.3
+John Cerney (11/13/01)
+    - Changes to Release_Notes, PDL.pm, TODO associated
+      with making release 2.3
+    - |= &= bug fix
+CS  - inline fixes
+    - dim & ndims aliases for getdim & getndims
+    - perldl doc updates
+    - reverting perldl.conf changes introduced in CVS
+    - Makefile.PL: detect buggy solaris+gcc+mymalloc combination
+CS  - fix Dev.pm warnings (triggered by Inline::Pdlpp tests)
+    - Inline::Pdlpp docs
+CS  - fix bug in Dev.pm that I introduced
+    - change misleading topdl docs (fooled me!)
+    - macosx patch
+CS  - Tim's TERM patch
+    - Stefan's Matrix patch
+    - added PDL::API manpage
+    - PDL::Core::Dev helper functions for work with
+      Inline
+    - pictests only for internal PNM format
+DJB (23/Oct/01)
+    - changes to bad.pd in order to clean up build slightly (for 
+      instance we longer need to create pdlapi.c from pdlapi.c.PL)
+    - added Diab Jerius' patch [ #469110 ] for rvals/options
+    - added a test for this [and fixed a bug I'd introduced]
+DJB (15/Oct/01)
+    - minor fix to ellipse (no longer requires options array) and to
+      imag (will correctly handle transforms for axes with "-ve" pixel 
+      size, such as RA in Astronomy)
+CS  - Xrange, Yrange for PGPLOT, fix tline and tpoints
+CS  - niceslice docs, class methods for PDL::Options,
+      perldl: enable niceslicing at startup (if available)
+      Lvalue: add sever method
+CS  - Inline::Pdlpp docs addittions, test script added
+CS  - NiceSlice modifiers + bug fix
+CS  - Inline::Pdlpp !!!
+DJB (23/Aug/01)
+    - you no longer need to surround options by {} for
+      PDL::Graphics::PGPLOT::Window->new()
+JB  - Added a recording feature to the PGPLOT interface.
+CS  - NiceSlice doc update
+JB  (14/Aug/01)
+    - Added a package wide store for options for env. This allows the
+      next device to reuse the most recent set of env options.
+CS  - minmax: return scalars!
+    - PDL::Options for PDL::Graphics::Karma
+    - disable PDL::PP SIG{__DIE__} overload by default
+DJB (07/Aug/01)
+    - added VertSpace to ...PGPLOT::Window's legend()
+CS  - make sure perldl works with NiceSlice
+    - add nslice to lvalue funcs
+    - new 'sclr' method
+    - enhanced clump interface
+    - pdlapi: backport pdl_get vaffine
+    - experimental 'autosever' for PDL::NiceSlice
+    - quieter 'mkhtmldocs'
+    - fix OpenGL docs screwing up online help
+DJB (05/Aug/01)
+    - applied wfits patch from Diab Jerius 
+      ([ #443431 ] wfits outputs illegal FITS keywords)
+    - added test for whist to t/hist.t from DIAB Jerius (patch #443438)
+    - added 'demo ooplot' to demonstrate "new" interface to PGPLOT
+CS  - PDLCode.pm: fix bug #441586: PDL::PP cant handle pars with numerals
+CS  - primitive.pd: fix random funcs so that they work with Perl's srand
+      * does it work on pre-5.6 perls? *
+    - update Lvalue documentation
+CS  - slices.pd: fix lags bug #436823
+    - Fit/Polynomial.pm: normalization wasn't threaded (bug #438335)
+    - PP.pm: make CoreSv linkage static (MacOSX)
+    - Basic.pm: apply whist patch
+    - PDL::SFilter renamed to PDL::NiceSlice
+CS  - fix MANIFEST
+    - fix 'reduce' docs
+    - SFilter improvements
+    - which and which_both now auto-flatten the input piddle
+      to match 'where' behaviour
+    - Core.pm: 'flat' change and added 'nslice'
+    - pdlcore.h : compatibility with C++ compilation
+      **** required renaming 'new' member of struct Core to 'pdlnew' !! **** 
+CS  - Makefile.PL: Filter::Simple, Text::Balanced dependencies
+    - bad.pd: fix for win32
+    - Lib/Slatec/Makefile.PL: win32 fix
+    - t/flexraw.t: remove extraneous 'use ExtUtils::F77'
+    - t/poly.t: win32 needs larger error threshold ?:(
+    - t/sfilter.t: script broke on platforms without prereqs
+    - win32: general update for latest build; add slatec support
+DJB (20/Jun/01)
+    - make bad.pd compile with PDL::Type changes and fix minor bug
+CS  - fix rvals bug (annoying one!)
+    - syntactical sugar: convenience operators for PDL::Type
+CS  - Basic/SourceFilter (see also L<PDL::SFilter>)
+    - generate PP templates with pptemplate
+    - PP: pp_boundscheck (see PP.pm)
+CS  - PP.pm: remove first '$this' arg from pp_add_exported!
+    - LM.pm: fix implementation bug; still not sure if it works properly
+             need more tests!
+    - apply Raul's debian patch
+DJB (7/Jun/01)
+    - minor fix for rfits() with bad-value support
+John Cerney (6/4/01)
+    - Doco fix in complex.pd
+CS  - image2d.t skip fix
+    - mslice update
+    - numeric for PDL::Char
+DJB (24/May/01)
+    - fixed bug in Image2D::centroid2d when (x+box/2) > m (ditto for the y 
+      axis). Added bad-value support to centroid2d and max2d_ind
+DJB (8/May/01)
+    - OpenBSD doesn't seem to have values.h, which causes Basic/Math to fail:
+      see http://testers.cpan.org/search?request=dist&dist=PDL#2.2.1 
+      Now using limits.h in Basic/Math/mconf.h for GNU systems - only tested
+      on solaris and i386-linux.
+    - fixed typo in debian/rules
+John Cerney (5/3/01)
+    - Simple change to primitive.pd so that interpol sub
+      makes it into the PDL namespace, and not just the
+      PDL::Primitive namespace. Also added a simple test
+      case for this routine.
+CS  - F77CONF variable for debian build (see INSTALL)
 2.2.1
 John Cerney (4/25/01)
     - Changes to Release_Notes, PDL.pm, TODO associated
@@ -14,7 +134,7 @@ John Cerney (4/11/01)
       gets built with interfaces to functions that aren't there. Setting
       PDL_DL_NONLAZY=0 prevents the test case from failing in these
       cases.
- DJB (10/Apr/01)
+DJB (10/Apr/01)
     - hacked Core/Dev.pm to work with perl 5.6.1 (ExtUtils::Liblist has
       changed although its documentation has not)
 CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test

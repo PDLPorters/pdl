@@ -46,7 +46,7 @@ if(!$loaded) {
 }
 
 
-use ExtUtils::F77;
+# use ExtUtils::F77;
 
 if(0) {
 print STDERR "Testing F77 compiler: (garbage may result)\n--------";

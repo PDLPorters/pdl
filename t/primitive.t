@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 9;
+plan tests => 11;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -60,3 +60,16 @@ my $p = pdl [ 1, 2, 3, 4, 7, 9, 1, 1, 6, 2, 5];
 my $q = zeroes 5;
 minimum_n_ind $p, $q;
 ok(tapprox $q, pdl(0, 6, 7, 1, 9));
+
+# check that our random functions work with Perl's srand
+srand 5;
+my $r1 = random 10;
+srand 5;
+my $r2 = random 10;
+ok(tapprox $r1, $r2);
+
+srand 10;
+$r1 = grandom 10;
+srand 10;
+$r2 = grandom 10;
+ok(tapprox $r1, $r2);

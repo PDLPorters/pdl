@@ -25,9 +25,10 @@ package PDL::Basic;
 use PDL::Core '';
 use PDL::Types;
 use PDL::Exporter;
+use PDL::Options;
 
 @ISA=qw/PDL::Exporter/;
-@EXPORT_OK = qw/ rvals axisvals allaxisvals xvals yvals zvals sec ins hist
+@EXPORT_OK = qw/ rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
 	similar_assign transpose sequence xlinvals ylinvals
 	zlinvals axislinvals/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -38,6 +39,7 @@ use PDL::Exporter;
 *sec            = \&PDL::sec;		
 *ins            = \&PDL::ins;		
 *hist           = \&PDL::hist;		
+*whist           = \&PDL::whist;		
 *similar_assign = \&PDL::similar_assign;
 *transpose      = \&PDL::transpose;
 *xlinvals 	= \&PDL::xlinvals;
@@ -246,6 +248,64 @@ L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
 sub PDL::hist {
     barf('Usage: ([$xvals],$hist) = hist($data,[$min,$max,$step])') if $#_<0;
     my($pdl,$min,$max,$step)=@_;
+    my $xvals;
+
+    ($step, $min, $bins, $xvals) = 
+        _hist_bin_calc($pdl, $min, $max, $step, wantarray());
+
+    PDL::Primitive::histogram($pdl->clump(-1),(my $hist = null),
+			      $step,$min,$bins);
+
+    return wantarray() ? ($xvals,$hist) : $hist;
+}
+
+=head2 whist
+
+=for ref
+
+Create a weighted histogram of a piddle
+
+=for usage
+
+ $hist = whist($data, $wt, [$min,$max,$step]);
+ ($xvals,$hist) = whist($data, $wt, [$min,$max,$step]);
+
+If requested, C<$xvals> gives the computed bin centres.
+C<$data> and C<$wt> should have the same dimensionality and extents.
+
+A nice idiom (with 
+L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
+
+ bin whist $data, $wt;  # Plot histogram
+
+=for example
+
+ perldl> p $y
+ [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
+ perldl> $wt = grandom($y->nelem)
+ perldl> $h = whist $y, $wt, 0, 20, 1 # hist with step 1, min 0 and 20 bins
+ perldl> p $h                        
+ [0 0 0 0 0 0 -0.49552342  1.7987439 0.39450696  4.0073722 -2.6255299 -2.5084501  2.6458365  4.1671676 0 0 0 0 0 0]
+
+
+=cut
+
+sub PDL::whist {
+    barf('Usage: ([$xvals],$hist) = whist($data,$wt,[$min,$max,$step])')
+            if @_ < 2;
+    my($pdl,$wt,$min,$max,$step)=@_;
+    my $xvals;
+
+    ($step, $min, $bins, $xvals) = 
+        _hist_bin_calc($pdl, $min, $max, $step, wantarray());
+
+    PDL::Primitive::whistogram($pdl->clump(-1),$wt->clump(-1),
+			       (my $hist = null), $step, $min, $bins);
+    return wantarray() ? ($xvals,$hist) : $hist;
+}
+
+sub _hist_bin_calc {
+    my($pdl,$min,$max,$step,$wantarray)=@_;
     $min = $pdl->min() unless defined $min;
     $max = $pdl->max() unless defined $max;
     my $ntype = $pdl->get_datatype;
@@ -258,12 +318,12 @@ sub PDL::hist {
     my $bins = int(($max-$min)/$step);
     print "hist with step $step, min $min and $bins bins\n"
       if $PDL::debug;
-    PDL::Primitive::histogram($pdl->clump(-1),(my $hist = null),
-			      $step,$min,$bins);
     my $xvals = $min + $step/2 + sequence(PDL::Type->new($ntype),$bins)*
-        PDL::convert($step,$ntype) if wantarray();
-    return wantarray() ? ($xvals,$hist) : $hist;
+        PDL::convert($step,$ntype) if $wantarray;
+
+    return ( $step, $min, $bins, $xvals );
 }
+
 
 =head2 sequence
 
@@ -318,6 +378,8 @@ Fills a piddle with radial distance values from some centre.
  Centre => [$x,$y,$z...] # Specify centre
  Center => [$x,$y.$z...] # synonym.
 
+ Squared => 1 # return distance squared (i.e., don't take the square root)
+
 =for example
 
  perldl> print rvals long,7,7,{Centre=>[2,2]}
@@ -355,9 +417,15 @@ sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) :
 sub PDL::rvals { # Return radial distance from given point and offset
     my $class = shift;
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
+    my %opt = defined $opt ? 
+               iparse( {
+			CENTRE  => undef, # needed, otherwise centre/center handling painful
+			Squared => 0,
+		       }, $opt ) : ();
     my $r =  scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-    my (@pos) = @{$opt->{'Centre'}} if exists $opt->{'Centre'} ;
-    (@pos) = @{$opt->{'Center'}} if exists $opt->{'Center'} ;
+
+    my @pos;
+    @pos = @{$opt{CENTRE}} if defined $opt{CENTRE};
     my $offset;
 
     $r .= 0.0;
@@ -370,7 +438,7 @@ sub PDL::rvals { # Return radial distance from given point and offset
 	 $tmp -= $offset; $tmp *= $tmp;
          $r += $tmp;
     }
-    return $r->inplace->sqrt;
+    return $opt{Squared} ? $r : $r->inplace->sqrt;
 }
 
 =head2 axisvals

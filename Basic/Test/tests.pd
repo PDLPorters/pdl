@@ -44,9 +44,9 @@ void ppcp(PDL_Byte *dst, PDL_Byte *src, int len)
 # test the $P vaffine behaviour
 # when 'phys' flag is in.
 pp_deft('foop',
-	Pars => 'byte [phys]a(n); byte [o,phys]b(n)',
+	Pars => 'byte [phys]a1(n); byte [o,phys]b(n)',
 	GenericTypes => [B],
-	Code => 'ppcp($P(b),$P(a),$SIZE(n));',
+	Code => 'ppcp($P(b),$P(a1),$SIZE(n));',
 );
 
 # now in primitive.pd
@@ -54,18 +54,19 @@ pp_deft('foop',
 # double qualifier
 #pp_deft(
 #	'dsumover',
-#	Pars => 'a(n); double [o]b();',
+#	Pars => 'a1(n); double [o]b();',
 #	Code => 'PDL_Double tmp = 0;
-#	 loop(n) %{ tmp += $a(); %}
+#	 loop(n) %{ tmp += $a1(); %}
 #	 $b() = tmp;'
 #);
 
 # float qualifier
+# and also test if numerals in variable name work
 pp_deft(
 	'fsumover',
-	Pars => 'a(n); float [o]b();',
+	Pars => 'a1(n); float [o]b();',
 	Code => 'PDL_Float tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
+	 loop(n) %{ tmp += $a1(); %}
 	 $b() = tmp;'
 );
 

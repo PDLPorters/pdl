@@ -108,9 +108,19 @@ print OUT <<'!NO!SUBS!';
 
 =head1 OBJECTS
 
-This module contains one object - C<PDL::Type> - that is returned by the
-L<type|PDL::Core/type> method of a piddle.  It has several methods, listed below,
-which provide an easy way to access type infotmation:
+This module declares one class - C<PDL::Type> - objects of this class
+are returned by the L<type|PDL::Core/type> method of a piddle.  It has
+several methods, listed below, which provide an easy way to access
+type information:
+
+Additionally, comparison and stringification are overloaded so that
+you can compare and print type objects, e.g.
+
+  $nofloat = 1 if $pdl->type < float;
+  die "must be double" if $type != double;
+
+For further examples check again the
+L<type|PDL::Core/type> method.
 
 =over 4
 
@@ -164,7 +174,14 @@ sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
     }
 
 print OUT <<'!NO!SUBS!';
-sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }                      
+sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }      
+
+# make life a bit easier
+use overload (
+	      "\"\""  => sub { lc $_[0]->shortctype },
+	      "<=>"   => sub { $_[2] ? $_[1]->enum <=> $_[0]->enum :
+	                               $_[0]->enum <=> $_[1]->enum },
+	     );
 
 } # package: PDL::Type                                                          
 

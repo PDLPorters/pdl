@@ -656,20 +656,21 @@ bad values, depending on the pattern of bad values in the input piddle.',
 		     $SETBAD(b(m=>i,n=>j));
                      flag = 1;
                   }
-	 
+
                } /* if: ISGOODVAR() */
 
 	    } /* for: i */
          } /* for: j */
 
       %} /* threadloop */
- 
+
          /* handle bad flag */
          if ( flag ) $PDLSTATESETBAD(b);
          ', # BadCode
 );
 
-pp_def('max2d_ind',Doc=><<'EOD',
+pp_def('max2d_ind',
+      Doc=><<'EOD',
 =for ref
 
 Return value/position of maximum value in 2D image
@@ -678,7 +679,14 @@ Contributed by Tim Jeness
 
 EOD
 
-       HandleBad => 0, # a marker
+      BadDoc=><<'EOD',
+
+Bad values are excluded from the search. If all pixels
+are bad then the output is set bad.
+
+EOD
+
+       HandleBad => 1,
         Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
         Code => '
         double cur; int curind1; int curind2;
@@ -694,9 +702,32 @@ EOD
         $val() = cur;
         $x()   = curind1;
         $y()   = curind2;
+        ',
+        BadCode => '
+        double cur; int curind1; int curind2;
+        curind1 = -1;
+        curind2 = -1;
+        loop(m) %{
+           loop(n) %{
+           if( $ISGOOD(a()) && ( (!n && !m) || ($a() > cur) ) ) {
+                cur = $a(); curind1 = m; curind2 = n;
+              }
+           %}
+        %}
+        if ( curind1 < 0 ) {
+          $SETBAD(val());
+          $SETBAD(x());
+          $SETBAD(y());
+        } else {
+          $val() = cur;
+          $x()   = curind1;
+          $y()   = curind2;
+	}
         ');
 
-pp_def('centroid2d',Doc=><<'EOD',
+pp_def('centroid2d',
+
+        Doc=><<'EOD',
 =for ref
 
 Refine a list of object positions in 2D image by centroiding in a box
@@ -705,8 +736,17 @@ C<$box> is the full-width of the box, i.e. the window
 is C<+/- $box/2>.
 
 EOD
-       HandleBad => 0, # a marker
+
+        BadDoc=><<'EOD',
+Bad pixels are excluded from the centroid calculation. If all elements are
+bad (or the pixel sum is 0 - but why would you be centroiding
+something with negatives in...) then the output values are set bad.
+
+EOD
+
+       HandleBad => 1,
 	Pars => 'im(m,n); x(); y(); box(); [o]xcen(); [o]ycen();',
+
 	Code => '
    int i,j,i1,i2,j1,j2,m_size,n_size;
    double sum,data,sumx,sumy;
@@ -714,9 +754,9 @@ EOD
    m_size = $SIZE(m); n_size = $SIZE(n);
 
    i1 = $x() - $box()/2; i1 = i1<0 ? 0 : i1;
-   i2 = $x() + $box()/2; i1 = i1>=m_size ? m_size-1 : i1;
+   i2 = $x() + $box()/2; i2 = i2>=m_size ? m_size-1 : i2;
    j1 = $y() - $box()/2; j1 = j1<0 ? 0 : j1;
-   j2 = $y() + $box()/2; j1 = j1>=n_size ? n_size-1 : j1;
+   j2 = $y() + $box()/2; j2 = j2>=n_size ? n_size-1 : j2;
 
    sum = sumx = sumy = 0;
    for(j=j1; j<=j2; j++) { for(i=i1; i<=i2; i++) {
@@ -727,6 +767,42 @@ EOD
    }}
    $xcen() = sumx/sum;
    $ycen() = sumy/sum;
+',
+
+	BadCode => '
+   int i,j,i1,i2,j1,j2,m_size,n_size;
+   double sum,data,sumx,sumy;
+
+   m_size = $SIZE(m); n_size = $SIZE(n);
+
+   i1 = $x() - $box()/2; i1 = i1<0 ? 0 : i1;
+   i2 = $x() + $box()/2; i2 = i2>=m_size ? m_size-1 : i2;
+   j1 = $y() - $box()/2; j1 = j1<0 ? 0 : j1;
+   j2 = $y() + $box()/2; j2 = j2>=n_size ? n_size-1 : j2;
+
+   sum = sumx = sumy = 0;
+   for(j=j1; j<=j2; j++) { 
+      for(i=i1; i<=i2; i++) {
+         data = $im(m=>i,n=>j);
+         if ( $ISGOODVAR(data,im) ) {
+            sum += data;
+            sumx += data*i;
+            sumy += data*j;
+	 }
+      }
+   }
+   /*
+    * if sum == 0 then we will flag as bad -- although it could just mean that
+    * there is negative values in the dataset.
+    * - should use a better check than != 0.0  ...
+    */
+   if ( sum != 0.0 ) {
+      $xcen() = sumx/sum;
+      $ycen() = sumy/sum;
+   } else {
+      $SETBAD(xcen());
+      $SETBAD(ycen());
+  }
 '
 );
 
@@ -1251,9 +1327,6 @@ from the I<output> C<(u,v)> image to the I<input> C<(x,y)> image:
   x = sum(j=0,np-1) sum(i=0,np-1) px(i,j) * u^i * v^j
   y = sum(j=0,np-1) sum(i=0,np-1) py(i,j) * u^i * v^j
 
-Please note that this storage is the transpose of that used
-by the C<polywarp> routine in IDL.
-
 The transformation is returned for the reverse direction (ie
 output to input image) since that is what is required by the
 L<warp2d()|/warp2d> routine.  The L<applywarp2d()|/applywarp2d>
@@ -1558,7 +1631,7 @@ Warp a 2D image given a polynomial describing the I<reverse> mapping.
 
 Apply the polynomial transformation encoded in the C<$px> and
 C<$py> piddles to warp the input image C<$img> into the output
-image C<$out>.  It is similar to the C<poly_2d> routine in IDL.
+image C<$out>.
 
 The format for the polynomial transformation is described in
 the documentation for the L<fitwarp2d()|/fitwarp2d> routine.
@@ -1571,11 +1644,11 @@ By default, a C<tanh> kernel is used, but this can be changed
 using the C<KERNEL> option discussed below
 (the choice of kernel depends on the frequency content of the input image).
 
-The routine is based on the C<warping> command from 
+The routine is based on the C<warping> command from
 the Eclipse data-reduction package - see http://www.eso.org/eclipse/ - and
 for further details on image resampling see
 Wolberg, G., "Digital Image Warping", 1990, IEEE Computer
-Society Press (ISBN 0-8186-8944-7).  
+Society Press ISBN 0-8186-8944-7).
 
 Currently the output image is the same size as the input one,
 which means data will be lost if the transformation reduces
@@ -1605,7 +1678,7 @@ The options are:
   NOVAL  - default value is 0
 
 C<KERNEL> is used to specify which interpolation kernel to use
-(to see what these kernels look like, use the 
+(to see what these kernels look like, use the
 L<warp2d_kernel()|/warp2d_kernel> routine).
 The options are:
 

@@ -1,0 +1,31 @@
+# some useful functions to experiment with
+# the new PDL source filter within the perldl shell
+
+# report switches translation reporting on/off
+# trans and notrans switch source filtering on/off
+
+# include the perl code below in your standard
+# perldl startup file ($ENV{HOME}/.perldlrc)
+# to have it always available when working
+# in the perldl shell
+
+$PERLDL::report = 0;
+sub report {
+  my $ret = $PERLDL::report;
+  $PERLDL::report = $_[0] if $#_ > -1;
+  return $ret;
+}
+
+use PDL::NiceSlice;
+my $preproc = sub { my ($txt) = @_;
+	my $new = PDL::NiceSlice::perldlpp $txt;
+	print STDERR "processed $new\n" if report && $new ne $txt;
+	return $new;
+};
+
+sub trans { $PERLDL::PREPROCESS  = $preproc }
+sub notrans { $PERLDL::PREPROCESS  = undef }
+trans; # switch on by default
+
+
+1;

@@ -104,8 +104,8 @@ sub PDL::lmfit {
   my ($maxiter,$eps) = map {$opt->{$_}} qw/Maxiter Eps/;
   # initialize some variables
   my ($isig2,$chisq) = (1/($sig*$sig),0);
-  my ($ym,$al,$cov,$bet,$olda,$ochisq,$di,$pivt,$info) =
-    map {null} (0..8);
+  my ($ym,$al,$cov,$bet,$oldbet,$olda,$oldal,$ochisq,$di,$pivt,$info) =
+    map {null} (0..10);
   my ($aldiag,$codiag);  # the diagonals for later updating
   # this will break threading
   my $dyda = zeroes($x->type,$x->getdim(0),$a->getdim(0));
@@ -131,8 +131,8 @@ sub PDL::lmfit {
     $alv *= $isig2;
     $alv->sumover($al);                         # calculate alpha
     (($y-$ym)*$isig2*$dyda)->sumover($bet);     # calculate beta
-    if ($iter == 0) {$olda .= $a; $ochisq .= $chisq;
-                     $aldiag = $al->diagonal(0,1);
+    if ($iter == 0) {$olda .= $a; $ochisq .= $chisq; $oldbet .= $bet;
+                     $oldal .= $al; $aldiag = $al->diagonal(0,1);
                      $cov .= $al; $codiag = $cov->diagonal(0,1)}
     $di .= abs($chisq-$ochisq);
     # print "$iter: chisq, lambda, dlambda: $chisq, $lambda,",$di/$chisq,"\n";
@@ -140,10 +140,14 @@ sub PDL::lmfit {
       $lambda *= 0.1;
       $ochisq .= $chisq;
       $olda .= $a;
+      $oldbet .= $bet;
+      $oldal .= $al;
     } else {
       $lambda *= 10;
       $chisq .= $ochisq;
-      $a .= $olda;
+      $a .= $olda;      # go back to previous a
+      $bet .= $oldbet;  # and beta
+      $al .= $oldal;    # and alpha
     }
   } while ($iter++==0 || $iter < $maxiter && $di/$chisq > $eps);
   barf "iteration did not converge" if $iter >= $maxiter && $di/$chisq > $eps;

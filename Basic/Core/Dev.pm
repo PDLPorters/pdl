@@ -25,12 +25,13 @@ PDL development and is often used from within Makefile.PL's.
 
 package PDL::Core::Dev;
 
-use English; use Exporter; use DynaLoader;
-use IO::File;
-@ISA    = qw( Exporter DynaLoader );
+use English; require Exporter;
+
+@ISA    = qw( Exporter );
 
 @EXPORT = qw( isbigendian genpp %PDL_DATATYPES 
 	     PDL_INCLUDE PDL_TYPEMAP
+	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
@@ -42,22 +43,84 @@ use IO::File;
 
 # The INST are here still just in case we want to change something later.
 
+# print STDERR "executing PDL::Core::Dev from",join(',',caller),"\n";
+
+# Return library locations
+
+
 sub PDL_INCLUDE { '-I'.whereami_any().'/Core' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
-sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
-sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
+# sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
+# sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
 
 sub PDL_INST_INCLUDE {&PDL_INCLUDE}
 sub PDL_INST_TYPEMAP {&PDL_TYPEMAP}
 
+sub PDL_AUTO_INCLUDE {
+  my ($symname) = @_;
+  $symname ||= 'PDL';
+  return << "EOR";
+#include <pdlcore.h>
+static Core* $symname; /* Structure holds core C functions */
+static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+EOR
+}
+
+sub PDL_BOOT {
+  my ($symname) = @_;
+  $symname ||= 'PDL';
+  return << "EOR";
+
+   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+#ifndef aTHX_
+#define aTHX_
+#endif
+   if (CoreSV==NULL)
+     Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
+   $symname = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   if ($symname->Version != PDL_CORE_VERSION)
+     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+
+EOR
+}
+
+# whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
+use Cwd qw/abs_path/;
+sub whereami_any {
+	my $dir = (&whereami(1) or &whereami_inst(1) or
+          die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
+	return abs_path($dir);
+}
+
+sub whereami {
+   for $dir (@INC,qw|. .. ../.. ../../..|) {
+      return ($_[0] ? $dir . '/Basic' : $dir)
+	if -e "$dir/Basic/Core/Dev.pm";
+   }
+   die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
+    if !$_[0];
+    return undef;
+}
+
+sub whereami_inst {
+   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
+      return ($_[0] ? $dir . '/PDL' : $dir)
+	if -e "$dir/PDL/Core/Dev.pm";
+   }
+   die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
+    if !$_[0];
+   return undef;
+}
+
 # Data types to C types mapping
 # get the map from Types.pm
 {
-eval('do "'.whereami_any().'/Core/Types.pm"');
-if($@) {
+eval('require PDL::Types');
+if($@) {  # if PDL::Types doesn't work try with full path (during build)
   my $foo = $@;
   $@="";
-  do('require "'.whereami_any().'/Core/Types.pm"');
+  eval('require "'.whereami_any().'/Core/Types.pm"');
   if($@) {
    die "can't find PDL::Types.pm: $foo and $@" unless $@ eq "";
   }
@@ -100,6 +163,8 @@ perl's C<%Config> array.
    my $retval = isbigendian();
 
 =cut
+
+# ' emacs parsing dummy
 
 # big/little endian?
 sub isbigendian {
@@ -285,32 +350,6 @@ q~
 
 }
 
-# Return library locations
-
-# whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
-sub whereami_any {
-	&whereami(1) or &whereami_inst(1) or
-          die "Unable to determine ANY directory path to PDL::Core::Dev module\n";
-}
-
-sub whereami {
-   for $dir (@INC,qw|. .. ../.. ../../..|) {
-      return ($_[0] ? $dir . '/Basic' : $dir)
-	if -e "$dir/Basic/Core/Dev.pm";
-   }
-   die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-}
-
-sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
-      return ($_[0] ? $dir . '/PDL' : $dir)
-	if -e "$dir/PDL/Core/Dev.pm";
-   }
-   die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-}
-
 # Expects list in format:
 # [gtest.pd, GTest, PDL::GTest], [...]
 # source,    prefix,module/package
@@ -340,8 +379,7 @@ $pref\$(OBJ_EXT): $pref.c
 }
 
 
-# This is the function internal for PDL.
-# Later on, we shall provide another for use outside PDL.
+# This is the function to be used outside the PDL tree.
 sub pdlpp_postamble {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
@@ -349,7 +387,7 @@ sub pdlpp_postamble {
 qq|
 
 $pref.pm: $src
-	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	\$(PERL) -I$w \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
@@ -406,6 +444,7 @@ sub unsupported {
 }
 
 sub write_dummy_make {
+  require IO::File;
     my ($msg) = @_;
     my $fh = new IO::File "> Makefile" or die "can't open Makefile";
     print $fh <<"EOT";
@@ -514,8 +553,8 @@ sub trylink {
 
   require File::Spec;
   my $fs = 'File::Spec';
-  sub cdir { return $fs->catdir(@_)}
-  sub cfile { return $fs->catfile(@_)}
+  my $cdir = sub { return $fs->catdir(@_)};
+  my $cfile = sub { return $fs->catfile(@_)};
   use Config;
 
   # check if MakeMaker should be used to preprocess the libs
@@ -546,9 +585,9 @@ sub trylink {
   my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
   my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
             defined $ENV{TMP} ? $ENV{TMP} :
-                           cdir($fs->rootdir,$td);
+                           &$cdir($fs->rootdir,$td);
 
-  my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
+  my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "couldn't open testfile for writing";
   my $prog = <<"EOF";
 $inc

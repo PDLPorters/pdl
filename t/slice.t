@@ -20,7 +20,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..38\n";
+print "1..41\n";
 
 if(1) {
 
@@ -252,3 +252,14 @@ ok(37,$@ =~ /^Splitdim: nthdim/);
 $a = sequence 5,5;
 $b = $a->diagonal(0,1);
 ok(38, tapprox $b, sequence(5)*6);
+
+$a = sequence 10;
+eval '$b = $a->lags(1,1,1)->make_physdims';
+ok(39, $@ =~ /lags: dim out of range/);
+
+eval '$b = $a->lags(0,-1,1)->make_physdims';
+ok(40, $@ =~ /lags: step must be positive/);
+
+eval '$b = $a->lags(0,1,11)->make_physdims';
+ok(41, $@ =~ /too large/);
+

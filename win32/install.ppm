@@ -1,0 +1,54 @@
+use PDL;
+use Win32::File;
+use Config;
+
+print << "EOD";
+\a\a
+This script will complete your PDL installation.
+
+Press 'Enter' to continue.
+
+EOD
+
+<>;
+
+require PDL::Doc::Perldl;
+$db = $PDL::onlinedoc;
+$db->ensuredb;
+$file = $db->outfile;
+
+print << "EOM";
+
+Patching online docs in file $file
+Report problems with this installation script to perldl\@jach.hawaii.edu
+
+EOM
+
+$hash = $db->gethash;
+$key = each %$hash;
+# print "checking key $key\n";
+# print "File value: $hash->{$key}->{'File'}\n";
+
+if ($hash->{$key}->{'File'} =~ m|^(.*blib/lib)/PDL|)
+  {$root = $1; # print "root is $root\n";
+   $hash->{$key}->{'File'} =~ s/^$root/$Config{installsitearch}/}
+else
+  {die "couldn't find root"}
+
+while (my $key = each %$hash) {
+  $hash->{$key}->{'File'} =~ s/^$root/$Config{installsitearch}/;
+}
+
+$attr = ARCHIVE;
+warn "couldn't get attributes" unless Win32::File::GetAttributes($file,$attr);
+$newattr = $attr & ~READONLY;
+warn "couldn't set attributes" if $newattr != $attr &&
+	!Win32::File::SetAttributes($file,$newattr);
+$db->savedb;
+# restore old attributes
+warn "couldn't restore attributes" if $newattr != $attr &&
+	!Win32::File::SetAttributes($file,$attr);
+
+print "PDL has been successfully installed.\n";
+print "Press 'Enter' to exit.\n";
+<>;

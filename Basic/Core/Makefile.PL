@@ -105,7 +105,7 @@ WriteMakefile(
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
+                   'pdlconv.c pdlsections.c pdlcore.c'.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
@@ -134,7 +134,7 @@ pdl.h:: pdl.h.PL mymalloc.p\n"
 . make_from_PL( 'pdl.h' )
 . 
     join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
-    qw( Core.pm Core.xs pdlapi.c pdlcore.c ) )
+    qw( Core.pm Core.xs pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? q|
 

@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#ifndef WIN32
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__)
 #include <values.h>
 #endif
 #include <float.h>
@@ -747,7 +747,7 @@ static void mcon()
      */
 {
   
-#ifndef WIN32
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__)
   base = 2;
   eta = DBL_EPSILON;
   smalno = MINDOUBLE;

@@ -43,7 +43,9 @@ use vars qw/$VERSION %EXPORT_TAGS %DEF_SYNS @ISA/;
 
 require Exporter;
 
-$VERSION = '0.91';
+# difference to 0.91 is that added CENTRE/CENTER as default
+# synonymns (patch by Diab Jerius [ #469110 ])
+$VERSION = '0.92';
 
 @ISA = qw(Exporter);
 
@@ -57,10 +59,17 @@ Exporter::export_tags('Func');
 
 # List of default synonyms
 %DEF_SYNS = (
-	     COLOR => 'COLOUR',
-	     COLOUR => 'COLOR'
+	     COLOR  => 'COLOUR',
+	     COLOUR => 'COLOR',
+	     CENTER => 'CENTRE',
+	     CENTRE => 'CENTER',
 	    );
 
+my $default = {
+	       WarnOnMissing => 1,
+	       FullOptions => 1,
+	       DEBUG => 0,
+	      };
 
 =head1 Utility functions
 
@@ -82,10 +91,9 @@ These routines are exported into the callers namespace by default.
 =item parse( \%defaults, \%user_options)
 
 This will parse user options by using the defaults.  The following
-settings are used for parsing: The options can be case-insensitive, a
-default synonym table is consulted (currently just contains a synonym
-for COLOUR), minimum-matching is turned on, translation of values is
-not performed.
+settings are used for parsing: The options are case-sensitive, a
+default synonym table is consulted (see L</Default Synonyms>),
+minimum-matching is turned on, and translation of values is not performed.
 
 A hash (not hash reference) containing the processed options is returned.
 
@@ -135,6 +143,15 @@ sub _parse {
 
 =back
 
+=head2 Default Synonyms
+
+The following default synonyms are available in the non-OO interface:
+
+  COLOR  => COLOUR
+  COLOUR => COLOR
+  CENTER => CENTRE
+  CENTRE => CENTER
+
 =head1 METHODS
 
 The following methods are available to PDL::Options objects.
@@ -167,9 +184,11 @@ sub new {
   $opt->{AutoTranslate}= 1;# Automatically translate options when processing
   $opt->{MinMatchTrans} = 0; # Min matching during translation
   $opt->{CaseSensTrans} = 0; # Case sensitive during translation
-  $opt->{FullOptions} = 1; # Return full options list
-  $opt->{WarnOnMissing}=1; # Whether to warn for options that are invalid or not.
-  $opt->{DEBUG}    = 0;    # Turn on debug messages
+  # Return full options list
+  $opt->{FullOptions} = $default->{FullOptions};
+  # Whether to warn for options that are invalid or not
+  $opt->{WarnOnMissing}= $default->{WarnOnMissing};
+  $opt->{DEBUG}    = $default->{DEBUG};    # Turn on debug messages
 
   # Bless into class
   bless ( $opt, $class);
@@ -179,7 +198,6 @@ sub new {
 
   return $opt;
 }
-
 
 =item extend (\%options)
 
@@ -606,8 +624,13 @@ the line.
 
 sub warnonmissing {
   my $self = shift;
-  if (@_) { $self->{WarnOnMissing}=shift;}
-  return $self->{WarnOnMissing};
+  if (ref $self) {
+    if (@_) { $self->{WarnOnMissing}=shift;}
+    return $self->{WarnOnMissing};
+  } else {
+    $default->{WarnOnMissing} = shift if @_;
+    return $default->{WarnOnMissing};
+  }
 }
 
 
@@ -620,8 +643,13 @@ Can be used to set or return this value.
 
 sub debug {
   my $self = shift;
-  if (@_) { $self->{DEBUG} = shift; }
-  return $self->{DEBUG};
+  if (ref $self) {
+    if (@_) { $self->{DEBUG} = shift; }
+    return $self->{DEBUG};
+  } else {
+    $default->{DEBUG} = shift if @_;
+    return $default->{DEBUG};
+  }
 }
 
 

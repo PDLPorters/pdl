@@ -5,7 +5,7 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
 =head1 SYNOPSIS
 
  perldl> use PDL::Graphics::PGPLOT::Window
- perldl> $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs'});
+ perldl> $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
  perldl> $a = pdl [1..100]
  perldl> $b = sqrt($a)
  perldl> $win->line($b)
@@ -223,9 +223,27 @@ the default colour map):
   5 - CYAN     6 - MAGENTA   7 - YELLOW   8 - ORANGE  14 - DARKGRAY
  16 - LIGHTGRAY
 
+However there is a much more flexible mechanism to deal with colour.
+The colour can be set as a 3 or 4 element anonymous array (or piddle)
+which gives the RGB colours. If the array has four elements the first
+element is taken to be the colour index to change. For normal work you
+might want to simply use a 3 element array with R, G and B values and
+let the package deal with the details. The R,G and B values go from 0
+to 1.
+
+In addition the package will also try to interpret non-recognised
+colour names using the default X11 lookup table, normally using the
+C<rgb.txt> that came with PGPLOT.
+
+For more details on the handling of colour it is best that the user
+consults the PGPLOT documentation. Further details on the handling of
+colour can be found in the documentation for the internal routine
+L<_set_colour|/_set_colour>.
+
 =item filltype
 
-Set the fill type to be used by L<poly|/poly>. 
+Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
+L<ellipse|/ellipse> and L<rectangle|/rectangle>
 The fill can either be specified using numbers or name, according to the 
 following table, where the recognised name is shown in capitals - it is 
 case-insensitive, but the whole name must be specified.
@@ -309,6 +327,16 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
 
  $opt = {LINEWIDTH => 10}; # A rather fat line
 
+=item plotting range
+
+Explicitly set the plot range in x and y. X-range and Y-range are set
+separately via the aptly named options C<Xrange> and C<Yrange>. If omitted
+PGPLOT selects appropriate defaults (minimum and maximum of the data range
+in general). These options are ignored if the window is on hold.
+
+  line $x, $y, {xr => [0,5]}; # y-range uses default
+  line $x, $y, {Xrange => [0,5], Yrange => [-1,3]}; # fully specified range
+
 =back
 
 =head1 OBJECT-ORIENTED INTERFACE
@@ -354,11 +382,11 @@ user to be able to monitor both the birth rates and accumulated number
 of rabbits and the spatial distribution of the births. Since these are
 logically different he chooses to have two windows open:
 
-  $rate_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
-              Aspect => 1, WindowWidth => 5, NXPanel => 2});
+  $rate_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
+              Aspect => 1, WindowWidth => 5, NXPanel => 2);
 
-  $area_win = PDL::Graphics::PGPLOT::Window->new({Device => '/xw',
-              Aspect => 1, WindowWidth => 5});
+  $area_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
+              Aspect => 1, WindowWidth => 5);
 
 See the documentation for L<new> below for a full overview of the
 options you can pass to the constructor.
@@ -377,6 +405,126 @@ That is basically it. The commands should automatically focus the relevant
 window. Due to the limitations of PGPLOT this might however lead you to
 plot in the wrong panel... The package tries to be smart and do this
 correctly, but might get it wrong at times.
+
+
+=head1 STATE and RECORDING
+
+A new addition to the graphics interface is the ability to record plot
+commands. This can be useful when you create a nice-looking plot on the
+screen that you want to re-create on paper for instance. Or if you want
+to redo it with slightly changed variables for instance. This is still
+under development and views on the interface are welcome.
+
+The functionality is somewhat detached from the plotting functions
+described below so I will discuss them and their use here.
+
+Recording is off by default. To turn it on when you create a new
+device you can set the C<Recording> option to true, or you can set
+the C<$PDL::Graphics::PGPLOT::RECORDING> variable to 1. I recommend doing the
+latter in your C<.perldlrc> file at least since you will often have use
+for recording in the perldl script.
+
+=head2 Use of recording
+
+The recording is meant to help you recreate a plot with new data or
+to a different device. The most typical situation is that you have
+created a beautiful plot on screen and want to have a Postscript file
+with it. In the dreary old world you needed to go back and execute all
+commands manually, but with this wonderful new contraption, the recorder,
+you can just replay your commands:
+
+  dev '/xs', {Recording => 1}
+  $x = sequence(10)
+  line $x, $x**2, {Linestyle => 'Dashed'}
+  $s = retrieve_state() # Get the current tape out of the recorder.
+  dev '/cps'
+  replay $s
+
+This should result in a C<pgplot.ps> file with a parabola drawn with a
+dashed line. Note the command C<retrieve_state> which retrieves the current
+state of the recorder and return an object (of type PDL::Graphics::State)
+that is used to replay commands later.
+
+=head2 Controlling the recording
+
+Like any self-respecting recorder you can turn the recorder on and off
+using the C<turn_on_recording> and C<turn_off_recording> respectively.
+Likewise you can clear the state using the C<clear_state> command.
+
+  $w=PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
+  $w->turn_on_recording;
+  $x=sequence(10); $y=$x*$x;
+  $w->line($x, $y);
+  $w->turn_off_recording;
+  $w->line($y, $x);
+  $w->turn_on_recording;
+  $w->line($x, $y*$x);
+  $state = $w->retrieve_state();
+
+We can then replay C<$state> and get a parabola and a cubic plot.
+
+  $w->replay($state);
+
+=head2 Tips and Gotchas!
+
+The data are stored in the state object as references to the real
+data. This leads to one good and one potentially bad consequence:
+
+=over
+
+=item The good is that you can create the plot and then subsequently
+redo the same plot using a different set of data. This is best explained
+by an example. Let us first create a simple gradient image and get
+a copy of the recording:
+
+  $im = sequence(10,10)
+  imag $im
+  $s=retrieve_state
+
+Now this was a rather dull plot, and in reality we wanted to show an
+image using C<rvals>. Instead of re-creating the plot (which of course
+here would be the simplest option) we just change C<$im>:
+
+  $im -= sequence(10,10)
+  $im += rvals(10,10)
+
+Now replay the commands
+
+  replay $s
+
+And hey presto! A totally different plot. Note however the trickery
+required to avoid losing reference to C<$im>
+
+=item This takes us immediately to the major problem with the recording
+though. Memory leakage! Since the recording keeps references to the data
+it can keep data from being freed (zero reference count) when you expect
+it to be. For instance, in this example, we lose totally track of the
+original $im variable, but since there is a reference to it in the state
+it will not be freed
+
+  $im = sequence(1000,1000)
+  imag $im
+  $s = retrieve_state
+  $im = rvals(10,10)
+
+Thus after the execution of these commands we still have a reference to
+a 1000x1000 array which takes up a lot of memory...
+
+The solution is to call C<clear> on the state variable:
+
+  $s->clear()
+
+(This is done automatically if the variable goes out of scope). I forsee
+this problem to most acute when working on the C<perldl> command line,
+but since this is exactly where the recording is most useful the best
+advice is just to be careful and call clear on state variables.
+
+If you are working with scripts and use large images for instance I would
+instead recommend that you do not turn on recording unless you need it.
+
+=back
+
+
 
 
 =head1 FUNCTIONS
@@ -410,18 +558,25 @@ Constructor for PGPLOT object/device/plot window.
 
 =for usage
 
-Usage: PDL::Graphics::PGPLOT::Window->new($opt);
+  Usage: PDL::Graphics::PGPLOT::Window->new($opt);
+  Usage: PDL::Graphics::PGPLOT::Window->new($option=>$value,...);
 
-C<$opt> is a reference to a hash with options for the new device. The options
-recognised are the following:
+Options to new() can either be specified via a reference to a hash
+
+  $win = PDL::Graphics::PGPLOT::Window->new({Dev=>'/xserve',ny=>2});
+
+or directly, as an array
+
+  # NOTE: no more {} !
+  $win = PDL::Graphics::PGPLOT::Window->new(Dev=>'/xserve',ny=>2);
+
+The following lists the recognised options:
 
 =over
 
 =item AspectRatio
 
-=item AspectRatio
-
-The aspect ratio of the image, in the sense vertical/horisontal.  If both
+The aspect ratio of the image, in the sense vertical/horizontal.  If both
 this and WindowWidth are set to zero, the default view surface is used.
 (This is the default case).
 
@@ -472,8 +627,8 @@ Thus the following call will set up a window where the default axis colour
 will be yellow and where plot lines normally have red colour and dashed
 linestyle.
 
-  $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs',
-          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed'});
+  $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs',
+          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed');
 
 
 =head2 close
@@ -786,9 +941,9 @@ value used by C<imag> (recommended choice).  Default is C<undef>.
 
 =for ref
 
-Load an image colour table. 
+Load an image colour table.
 
-Usage:
+ Usage:
 
 =for usage
 
@@ -1255,7 +1410,7 @@ options list.
 Example:
 
    $im = rvals(100, 100);
-   $w = PDL::Graphics::PGPLOT::Window->new({Device => '/xs'});
+   $w = PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
    $t = $w->transform(dims($im), {ImageCenter => 0,  Pixinc => 5});
    $w->imag($im, {Transform => $t});
 
@@ -1340,11 +1495,16 @@ centered text and a value of 1.0 gives right-justified text.
 
 These gives alternative ways to specify the text and position.
 
+=item C<BackgroundColour>
+
+This sets the background colour for the text in case an opaque background
+is desired. You can also use the synonyms C<Bg> and C<BackgroundColor>.
+
 =back
 
 The following standard options influence this command:
 
-   COLOUR
+   COLOUR, CHARSIZE
 
 =for example
 
@@ -1368,7 +1528,7 @@ C<$x> and C<$y> determines the upper left hand corner of the box in which
 the legend goes. If the width is specified either as an argument or as
 an option in the option hash this is used to determine the optimal character
 size to fit the text into part of this width (defaults to 0.5 - see the
-description of C<Fraction> below). The rest of the width is filled out with
+description of C<TextFraction> below). The rest of the width is filled out with
 either lines or symbols according to the content of the C<LineStyle>,
 C<Symbol>, C<Colour> and C<LineWidth> options.
 
@@ -1390,16 +1550,32 @@ The width and/or height of each line (including symbol/line). This is
 used to determine the character size. If any of these are set to 'Automatic'
 the current character size will be used.
 
-=item C<Fraction>
+=item C<TextFraction>
 
-The text and the symbol/line is set inside a box. C<Fraction> determines how
-much of this box should be devoted to text. THis defaults to 0.5.
+The text and the symbol/line is set inside a box. C<TextFraction>
+determines how much of this box should be devoted to text. This
+defaults to 0.5. You can also use C<Fraction> as a synonym to this.
 
 =item C<TextShift>
 
 This option allows for fine control of the spacing between the text and the
 start of the line/symbol. It is given in fractions of the total width of the
 legend box. The default value is 0.1.
+
+=item C<VertSpace> or C<VSpace>
+
+By default the text lines are separated by one character height (in the sense that
+if the separation were 0 then they would lie on top of each other). The
+C<VertSpace> option allows you to increase (or decrease) this gap in units of
+the character height; a value of 0.5 would add half a character height to the
+gap between lines, and -0.5 would remove the same distance.
+The default value is 0.
+
+=item C<BackgroundColour>
+
+This sets the background colour for the text in case an opaque background
+is desired. You can also use the synonyms C<Bg> and C<BackgroundColor>.
+
 
 =back
 
@@ -1408,7 +1584,7 @@ legend box. The default value is 0.1.
   line $x, $y, {Color => 'Red', LineStyle => 'Solid'};
   line $x2, $y2, {Color => 'Blue', 'LineStyle' => 'Dashed', LineWidth => 10};
 
-  legend 5, 5, ['A red line', 'A blue line'],
+  legend ['A red line', 'A blue line'], 5, 5,
       {LineStyle => ['Solid', 'Dashed'], Colour => ['Red', 'Blue']
        LineWidth => [undef, 10]}; # undef gives default.
 
@@ -1494,6 +1670,7 @@ use PDL::Ufunc;
 use PDL::Primitive;
 use PDL::Types;
 use PDL::Options;
+use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use SelfLoader;
 use Exporter;
@@ -1504,6 +1681,7 @@ require DynaLoader;
 @ISA = qw( Exporter SelfLoader DynaLoader );
 
 bootstrap PDL::Graphics::PGPLOT::Window;
+$PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 
 
 #
@@ -1522,22 +1700,33 @@ bootstrap PDL::Graphics::PGPLOT::Window;
 # for a patchy solution where they are specially treated in the new_window
 # routine.
 #
-my ($GeneralOptions, $WindowOptions) = default_options();
-# Turn off warnings for missing options...
-$GeneralOptions->warnonmissing(0);
-$WindowOptions->warnonmissing(0);
+# Added 28/9/01 JB
+# Delay the intialization of the window options so that it is possible
+# to set the defaults in the .perldlrc file
+my ($GeneralOptions, $WindowOptions) = (undef, undef);
 
 
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
-
+my $PREVIOUS_ENV = undef;
 
 sub new {
 
   my $type = shift;
-  my $u_opt = shift;
 
-  $u_opt={} unless defined($u_opt);
+  # Set the default options!
+  ($GeneralOptions, $WindowOptions) = default_options();
+  # Turn off warnings for missing options...
+  $GeneralOptions->warnonmissing(0);
+  $WindowOptions->warnonmissing(0);
+
+  # options are either given in a hash reference, or as a list
+  # (which is converted to a hash reference to make the code easier)
+  my $u_opt;
+  if ( ref($_[0]) eq "HASH" ) { $u_opt = shift; }
+  else                        { $u_opt = { @_ }; }
+#  $u_opt={} unless defined($u_opt);
+
   my $opt = $WindowOptions->options($u_opt);
   $WindowOptions->full_options(0);
   my $user_options = $WindowOptions->current();
@@ -1582,7 +1771,9 @@ sub new {
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
 	      'CurrentPanel'  => 0,
-	      '_env_options'  => undef
+	      '_env_options'  => undef,
+	      'State'         => undef,
+	      'Recording'     => $opt->{Recording}        || $PDL::Graphics::PGPLOT::RECORDING,
 	     };
 
   if (defined($self->{Options})) {
@@ -1593,7 +1784,10 @@ sub new {
   bless $self, ref($type) || $type;
 
   $self->_open_new_window($opt);
+  # This weird setup is required to create the object.
 
+  # We always have to create a state variable to avoid undefined errors.
+  $self->{State}=PDL::Graphics::State->new();
 
   return $self;
 
@@ -1780,7 +1974,7 @@ sub _setup_window {
   my ($hcopy, $len);
   my $wo = $self->{PlotOptions}->defaults();
 
-  pgsci($wo->{Colour});
+  $self->_set_colour($wo->{Colour});
   pgask(0);
 
 }
@@ -1857,6 +2051,7 @@ sub _advance_panel {
   if ($new_panel > ($self->{NX}*$self->{NY})) {
     # We are at the end of the page..
     $new_panel = 1;
+    $self->clear_state();
     pgpage();
 #    $self->{_env_set}=[];
   }
@@ -1924,6 +2119,80 @@ sub _thread_options {
   return \@hashes;
 }
 
+############################
+# Replay related functions #
+############################
+
+my $DEBUGSTATE = 0;
+
+sub debug_state {
+  $DEBUGSTATE = !$DEBUGSTATE;
+}
+
+sub replay {
+  my $self = shift;
+  my $state = shift || $self->{State};
+
+  if (!defined($state)) {
+    die "A state object must be defined to play back commands!\n";
+  }
+
+  my @list = $state->get();
+
+
+  if ($#list < 0) {
+    # If there are no commands, then the user might have forgotten to
+    # turn on recording, let us remind him/her
+
+    warn "Replaying an empty state - did you turn on recording?\n";
+    print "Hint: Put PDL::Graphics::PGPLOT::RECORDING=1 in your .perldlrc file\n"
+  }
+
+  foreach my $arg (@list) {
+    my ($command, $commandname, $arg, $opt)=@$arg;
+    &$command($self, @$arg, $opt);
+  }
+}
+
+
+sub clear_state {
+  my $self = shift;
+  print "Clearing state!\n" if $DEBUGSTATE;
+  $self->{State}->clear();
+}
+
+sub turn_off_recording {
+  my $self=shift;
+  # Turning off does _NOT_ clear the state at the moment!
+   $self->{Recording} =0;
+  print "Turning off state!\n" if $DEBUGSTATE;
+}
+sub turn_on_recording {
+  my $self=shift;
+  # Previous calls are not recorded of course..
+  print "Turning on state!\n" if $DEBUGSTATE;
+  $self->{Recording} = 1;
+  $self->{State}=PDL::Graphics::State->new() unless defined($self->{State});
+}
+
+sub _add_to_state {
+  my $self=shift;
+  my ($func, $arg, $opt)=@_;
+  my ($pkg, $fname, $line, $funcname, $hasargs, $wantarray,
+      $evaltext, $isrequire, $hints, $bitmask)=caller(1);
+  # We only add if recording has been turned on.
+  print "Adding to state ! $func, $arg, $opt\n" if $DEBUGSTATE;
+  print "State = ".$self->{State}."\n" if $DEBUGSTATE;
+  $self->{State}->add($func, $funcname, $arg, $opt) if $self->{Recording};
+}
+
+sub retrieve_state {
+  my $self=shift;
+  my $state_copy = $self->{State}->copy();
+  print "Retriving state!\n" if $DEBUGSTATE;
+  return $state_copy;
+}
+
 
 #####################################
 # Window related "public" routines. #
@@ -1938,6 +2207,7 @@ sub close {
       pgclos();
   }
   $self->{ID}=undef;
+  $self->clear_state();
 }
 
 =head2 options
@@ -2005,6 +2275,7 @@ sub focus {
 sub hold {
   my $self=shift;
   $self->{Hold}=1;
+  $self->_add_to_state(\&hold);
   return $self->{Hold};
 }
 
@@ -2012,6 +2283,7 @@ sub hold {
 sub release {
   my $self=shift;
   $self->{Hold}=0;
+  $self->_add_to_state(\&release);
   return $self->{Hold};
 }
 
@@ -2115,6 +2387,7 @@ EOD
   # We do not subtract 1 from X because we would need to add it again to
   # have a 1-offset numbering scheme.
   $self->{CurrentPanel} = ($ypos-1)*$self->{NX}+($xpos);
+  $self->_add_to_state(\&panel, $xpos, $ypos);
   pgpanl($xpos, $ypos);
 
 
@@ -2141,7 +2414,9 @@ EOD
     }
 
     $self->focus();
+    # What should I do with the state here????
     pgeras();
+    $self->_add_to_state(\&erase, [], $u_opt);
     # Remove hold.
     $self->{Hold}=0;
   }
@@ -2249,26 +2524,36 @@ This routine checks and optionally alters the arguments given to it.
 
 sub _checkarg {			# Check/alter arguments utility
   my $self = shift;
-  my ($arg,$dims,$type) = @_;
+  my ($arg,$dims,$type,$nobarf) = @_;
   $type = $PDL_F unless defined $type;
+
+  # nobarf added so the end-user can choose whether to die or not..x
+  $nobarf = 0 unless defined($nobarf);
+  my $ok = 1;
+
   $arg = topdl($arg);		# Make into a pdl
   $arg = convert($arg,$type) if $arg->get_datatype != $type;
   if (($arg->getndims > $dims)) {
     # Get the dimensions, find out which are == 1. If it helps
     # chuck these off and return trimmed piddle.
     my $n=nelem(which(pdl($arg->dims)==1));
-    barf "Data is >".$dims."D" if ($arg->getndims-$n) > $dims;
-    my $count=0;      my $qq;
-    my $s=join ',',
-      map {if ($_ == 1 && $count<$arg->getndims-$dims) {$qq='(0)'; $count++}
-	   else {
-	     $qq= '';
-	   }
-	   ; $qq} $arg->dims;
-    $arg=$arg->slice($s);
+    if (($arg->getndims-$n) > $dims) {
+      $ok = 0;
+      barf "Data is >".$dims."D" unless $nobarf;
+    } else {
+      my $count=0;      my $qq;
+      my $s=join ',',
+	map {if ($_ == 1 && $count<$arg->getndims-$dims) {$qq='(0)'; $count++}
+	     else {
+	       $qq= '';
+	     }
+	     ; $qq} $arg->dims;
+      $arg=$arg->slice($s);
+    }
   }
-  $_[0] = $arg;			# Alter
-  1;
+  $_[0] = $arg if $ok;	# Alter
+
+  return $ok;
 }
 
 # a hack to store information in the object.  
@@ -2297,6 +2582,7 @@ sub _store {
     # store data
     $self->{_horrible_storage_space}{$name} = $object;
 
+
 } # sub: _store()
 
 # retrieve information from storage space
@@ -2323,6 +2609,137 @@ sub _retrieve {
 # Options parser #
 ##################
 
+
+
+=head2 _set_colour
+
+This is an internal routine that encapsulates all the nastiness of
+setting colours depending on the different PGPLOT colour models (although
+HLS is not supported).
+
+The routine works in the following way:
+
+=over 8
+
+=item *
+
+At initialisation of the plot device the work colour index is set
+to 16. The work index is the index the routine will modify unless the
+user has specified something else.
+
+=item *
+
+The routine should be used after standard interpretation and synonym
+matching has been used. So if the colour is given as input is an integer
+that colour index is used.
+
+=item *
+
+If the colour is a reference the routine checks whether it is an
+C<ARRAY> or a C<PDL> reference. If it is not an error message is given.
+If it is a C<PDL> reference it will be converted to an array ref.
+
+=item *
+
+If the array has four elements the first element is interpreted
+as the colour index to modify and this overrules the setting for the
+work index used internally. Otherwise the work index is used and incremented
+until the maximum number of colours for the output device is reached
+(as indicated by C<pgqcol>). Should you wish to change that you need
+to read the PGPLOT documentation - it is somewhat device dependent.
+
+=item *
+
+When the array has been recognised the R,G and B colours of the
+user-set index or work index is set using the C<pgscr> command and we
+are finished.
+
+=item *
+
+If the input colour instead is a string we try to set the colour
+using the PGPLOT routine C<pgscrn> with no other error-checking. This
+should be ok,  as that routine returns a rather sensible error-message.
+
+=back
+
+=cut
+
+{
+  my $work_ci = 16;
+
+  sub _set_colour {
+    my $self = shift;
+    my ($col, $is_textbg) = @_;
+    $is_textbg = 0 if !defined($is_textbg);
+
+    # The colour index to use for user changes.
+    # This is increased until the max of the colour map.
+    # I don't know if this can change, but let's not take any
+    # chances.
+    my ($min_col, $max_col);
+    pgqcol($min_col, $max_col);
+
+    #
+    # Extended treatment of colours - added 2/10/01 JB.
+    #
+    if (ref($col)) {
+      if ((ref($col) eq 'PDL') or (ref($col) eq 'ARRAY')) {
+	my @colvals = (ref($col) eq 'PDL' ? list($col) : @{$col});
+	my ($r, $g, $b)=@colvals;
+	my $index = $work_ci;
+	if ($#colvals == 3) {
+	  # This is a situation where the first element is interpreted
+	  # as a PGPLOT colour index, otherwise we'll use our own
+	  # strategy to step through indices.
+	  ($index, $r, $g, $b)=@colvals;
+	} else {
+  	  $work_ci += 1;
+	  # NB this does not work on devices with < 16 colours.
+	  $work_ci = 16 if $work_ci > $max_col;
+	}
+	pgscr($index, $r, $g, $b);
+
+	if ($is_textbg) {
+	  pgstbg($index);
+	} else {
+	  pgsci($index);
+	}
+      } else {
+	warn "The colour option must be a number, string, array or PDL!\n";
+      }
+    } else {
+      # Now check if this is a name that could be recognised by pgscrn.
+      # To simplify the logic we first check if $col is a digit.
+      if ($col =~ m/^\s*\d+\s*$/) { 
+	if ($is_textbg) {
+	  pgstbg($col);
+	} else {
+	  pgsci($col);
+	}
+      } else {
+	#
+	# Ok, we either have an untranslated colour name or something
+	# bogus - let PGPLOT deal with that!
+	#
+	my $ier;
+	pgscrn($work_ci, $col, $ier);
+	if ($is_textbg) {
+	  pgstbg($work_ci);
+	} else {
+	  pgsci($work_ci);
+	}
+	$work_ci += 1;
+	# NB this does not work on devices with < 16 colours.
+	$work_ci = 16 if $work_ci > $max_col;
+      }
+    }
+
+
+  }
+
+}
+
+
 =head2 _standard_options_parser
 
 This internal routine is the default routine for parsing options. This
@@ -2337,16 +2754,13 @@ sub _standard_options_parser {
   my $self=shift;
   my ($o)=@_;
 
-#  print "Standard options parser: Font set to: $$o{Font}\n";
-
   #
   # The input hash has to contain the options _set by the user_
   #
-  pgsci($o->{Colour})	  if exists($o->{Colour});
+  $self->_set_colour($o->{Colour}) if (exists($o->{Colour}));
   pgsls($o->{LineStyle})  if exists($o->{LineStyle});
   pgslw($o->{LineWidth})  if exists($o->{LineWidth});
   pgscf($o->{Font})	  if exists($o->{Font});
-#  print "The character size is $$o{CharSize}\n";
   pgsch($o->{CharSize})	  if exists($o->{CharSize});
   pgsfs($o->{Fill})	  if exists($o->{Fill});
 #  pgsch($o->{ArrowSize})  if exists($o->{ArrowSize});
@@ -2455,7 +2869,7 @@ sub initenv{
   # Save current colour and set the axis colours
   my ($col);
   pgqci($col);
-  pgsci($o->{AxisColour});
+  $self->_set_colour($o->{AxisColour});
   # Save current font size and set the axis character size.
   my ($chsz);
   pgqch($chsz);
@@ -2503,10 +2917,12 @@ sub initenv{
   #
   # To give a consistent system and to tidy up we will call
   # erase if there are several panels, and pgpage otherwise.
-  if (!defined($o->{NoErase}) || $o->{NoErase} == 0) {
+  if (defined($o->{Erase}) && $o->{Erase}) {
     if ($self->{NX}*$self->{NY} > 1) {
       pgeras();
+      $self->clear_state(); # Added to deal with new pages.
     } else {
+      $self->clear_state(); # Added to deal with new pages.
       pgpage();
     }
   }
@@ -2537,14 +2953,25 @@ sub initenv{
       pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   }
+  $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
   $self->label_axes($u_opt);
 
   #  pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
-  pgsci($col);
+  $self->_set_colour($col);
   pgsch($chsz);
-  $self->{_env_options} = [$xmin, $xmax, $ymin, $ymax, $o];
+
 #  $self->{_env_set}[$self->{CurrentPanel}]=1;
   1;
+}
+
+# This is a tidy little routine to set the env options and update the global
+# variable.
+sub _set_env_options {
+  my $self=shift;
+  my @opt=@_;
+
+  $self->{_env_options} = [@opt];
+  $PREVIOUS_ENV = [@opt];
 }
 
 sub redraw_axes {
@@ -2559,7 +2986,7 @@ sub redraw_axes {
   } else {
     $o=$self->{Options}->defaults();
   }
-  pgsci($o->{AxisColour});
+  $self->_set_colour($o->{AxisColour});
   my ($chsz);
   pgqch($chsz);
   pgsch($o->{CharSize});
@@ -2572,8 +2999,12 @@ sub redraw_axes {
       pgbox($axval,0,0,$axval,0,0);
     }
   }
-  pgsci($col);
+  $self->_set_colour($col);
   pgsch($chsz);
+
+  $self->_add_to_state(\&redraw_axes);
+
+
 }
 
 
@@ -2581,6 +3012,11 @@ sub label_axes {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  # :STATE RELATED:
+  # THIS WILL PROBABLY NOT WORK as label_axes can be called both by
+  # the user directly and by env... Let's see.
+  $self->_add_to_state(\&label_axes, $in, $opt);
+
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
@@ -2593,6 +3029,12 @@ sub label_axes {
   # $self->{Options}
   my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
 
+  # Added 25/8/01 JB to check whether label_axes is called before env..
+  # This is not fool-proof though... And it will give a warning if the
+  # user creates her/his env box outside of this package.
+  warn "label_axes called before env - weird results might occur!\n" unless
+    defined($self->{_env_options});
+
   $self->_save_status();
   $self->_standard_options_parser($u_opt);
   $o->{Title}=$title if defined($title);
@@ -2600,6 +3042,8 @@ sub label_axes {
   $o->{YTitle}=$ytitle if defined($ytitle);
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
   $self->_restore_status;
+
+
 }
 
 
@@ -2633,15 +3077,43 @@ sub env {
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
   my $o = $self->{PlotOptions}->options($opt);
-  $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+  #
+  # Inserted 06/08/01 - JB to be able to determine whether the user has
+  # specified a particular PlotPosition in which case we do _not_ call
+  # _check_move_or_erase...
+  #
+  my $o2 = $self->{Options}->options($opt);
+  if (!defined($o2->{PlotPosition}) || $o2->{PlotPosition} eq 'Default') {
+      $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+  }
 
   barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
-    if ($#_==-1 && !defined($self->{_env_options})) || 
+    if ($#_==-1 && !defined($self->{_env_options}) && !defined($PREVIOUS_ENV)) || 
       ($#_>=0 && $#_<=2) || $#_>6;
   my(@args);
-  @args = $#_==-1 ? @{$self->{_env_options}} : @_;     # No args - use previous
+
+  # Set the args. The logic here was extended 13/8 by JB to use the
+  # previous setting of the plot env variables regardless of device
+  # if the current device does not have a setting for env etc.
+  if ($#_ == -1) {
+    if (defined(@{$self->{_env_options}})) {
+      @args = @{$self->{_env_options}};
+    } elsif (defined($PREVIOUS_ENV)) {
+      @args = @{$PREVIOUS_ENV};
+    } else {
+      @args = ();
+    }
+  } else {
+    @args = @_;
+  }
   $self->initenv( @args );
+  ## The adding to state has to take place here to avoid being cleared
+  ## buy the call to initenv...
+  $self->_add_to_state(\&env, $in, $opt);
   $self->hold();
+
+
   1;
 }
 
@@ -2658,6 +3130,9 @@ sub env {
       $bin_options->add_synonym({Center => 'Centre'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
+
     barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
@@ -2676,7 +3151,12 @@ sub env {
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($data);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -2866,6 +3346,8 @@ sub env {
     }
 
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&cont, $in, $opt);
+
     barf 'Usage: cont ( $image, %options )' if $#$in<0;
 
     # Parse input
@@ -2987,14 +3469,14 @@ sub env {
 
       my $dum;
       pgqci($dum);
-      pgsci($labelcolour);
+      $self->_set_colour($labelcolour);
       foreach $label (@{$labels}) {
 	pgconl( $image->get_dataref, $nx,$ny,1,$nx,1,$ny,
 		$contours->slice("($count)"),
 		$tr->get_dataref, $label, $intval, $minint);
 	$count++;
       }
-      pgsci($dum);
+      $self->_set_colour($dum);
     } elsif (defined($labels)) {
       #
       #  We must have had the wrong number of labels
@@ -3026,6 +3508,8 @@ EOD
       $errb_options->add_synonym({Terminator => 'Term'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
     $opt = {} if !defined($opt);
     barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
  Usage: errb ( $y, $yerrors [, $options] )
@@ -3063,6 +3547,10 @@ EOD
 	$xmin = min( $x - $t[2] ); $xmax = max( $x + $t[3] );
 	$ymin = min( $y - $t[4] ); $ymax = max( $y + $t[5] );
       }
+      ($xmin,$xmax) = @{$o->{Xrange}} if ref $o->{Xrange} eq 'ARRAY';
+      ($ymin,$ymax) = @{$o->{Yrange}} if ref $o->{Yrange} eq 'ARRAY';
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -3109,15 +3597,19 @@ EOD
 # that you may :)
 #
 
+my $line_options = undef;
 sub tline {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tline, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
   my ($x, $y)=@$in;
-
+  if (!defined($line_options)) {
+    $line_options=$self->{PlotOptions}->extend({Missing => undef});
+  }
 
   if ($#$in==0) {
     $y = $x; $x = $y->xvals();
@@ -3128,17 +3620,40 @@ sub tline {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tline($x, $y, $x->yvals, $self, $o);
+  unless ( $self->held() ) {
+    my ($o, $u_opt) = $self->_parse_options($line_options,$opt);
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    
+    my ($ymin, $ymax, $xmin, $xmax);
+    # Make sure the missing value is used as the min or max value
+    if (defined $o->{Missing} ) {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	minmax($y);
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	minmax($x);
+    }
+    if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+    if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->hold; # we hold for the duration of the threaded plot
+  }
+  _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
 
 }
 
 
-PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
+PDL::thread_define('_tline(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
-    $self->line($x, $y, $opt->[$ind->at(0)]);
-    $self->hold();
+    # use Data::Dumper;
+    # print Dumper $opt->[$ind->at(0)];
+    $self->line($x, $y,$opt->[$ind->at(0)] || {}); #
 });
 
 
@@ -3148,10 +3663,12 @@ PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
 # that you may :)
 #
 
+my $points_options = undef;
 sub tpoints {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tpoints, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
@@ -3167,17 +3684,41 @@ sub tpoints {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tpoints($x, $y, $x->yvals, $self, $o);
+  unless ( $self->held() ) {
+    if (!defined($points_options)) {
+      $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
+    }
+    my ($o, $u_opt) = $self->_parse_options($points_options,$opt);
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    
+    my ($ymin, $ymax, $xmin, $xmax);
+    # Make sure the missing value is used as the min or max value
+    if (defined $o->{Missing} ) {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	minmax($y);
+      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	minmax($x);
+    }
+    if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+    if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->hold; # we hold for the duration of the threaded plot
+  }
+  _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
   $self->release unless $tmp_hold;
 
 }
 
 
-PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
+PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
   PDL::over {
     my ($x, $y, $ind, $self, $opt)=@_;
-    $self->points($x, $y, $opt->[$ind->at(0)]);
-    $self->hold();
+    $self->points($x, $y, $opt->[$ind->at(0)] || {});
 });
 
 
@@ -3194,20 +3735,32 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $line_options=$self->{PlotOptions}->extend({Missing => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $opt = {} if !defined($opt);
 
     barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
     my($x,$y) = @$in;
     $self->_checkarg($x,1);
     my $n = nelem($x);
 
+    my ($is_1D, $is_2D);
     if ($#$in==1) {
-      $self->_checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
+      $is_1D = $self->_checkarg($y,1,undef,1);
+      if (!$is_1D) {
+	$is_2D = $self->_checkarg($y,2,undef,1);
+	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	
+	# Ok, let us use the threading possibility.
+	$self->tline(@$in, $opt);
+	
+	return;
+      } else {
+	barf '$x and $y must be same size' if $n!=nelem($y);
+      }
     } else {
       $y = $x; $x = float(sequence($n));
     }
 
     # Let us parse the options if any.
+    $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($line_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
@@ -3216,13 +3769,18 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       # Make sure the missing value is used as the min or max value
       my ($ymin, $ymax, $xmin, $xmax);
       if (defined $o->{Missing} ) {
-	($ymin, $ymax)=minmax($y->where($y != $o->{Missing}));
-	($xmin, $xmax)=minmax($x->where($x != $o->{Missing}));
+	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
+	  @{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
+	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
       } else {
-	($ymin, $ymax)=minmax($y);
-	($xmin, $xmax)=minmax($x);
+	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+	  minmax($y);
+	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+	  minmax($x);
       }
-
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
     $self->_save_status();
@@ -3236,6 +3794,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       pgline($n, $x->get_dataref, $y->get_dataref);
     }
     $self->_restore_status();
+    $self->_add_to_state(\&line, $in, $opt);
+
     1;
   }
 }
@@ -3264,6 +3824,7 @@ sub arrow {
   $self->_standard_options_parser($u_opt);
   pgarro($x1, $y1, $x2, $y2);
   $self->_restore_status();
+  $self->_add_to_state(\&arrow, $in, $opt);
 
 }
 
@@ -3279,19 +3840,31 @@ sub arrow {
       $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $opt = {} if !defined($opt);
     barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $y, $sym)=@$in;
     $self->_checkarg($x,1);
     my $n=nelem($x);
 
-    if ($#$in>=1) {
-      $self->_checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
+    my ($is_1D, $is_2D);
+    if ($#$in==1) {
+      $is_1D = $self->_checkarg($y,1,undef,1);
+      if (!$is_1D) {
+	$is_2D = $self->_checkarg($y,2,undef,1);
+	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	
+	# Ok, let us use the threading possibility.
+	$self->tpoints(@$in, $opt);
+	return;
+
+      } else {
+	barf '$x and $y must be same size' if $n!=nelem($y);
+      }
     } else {
       $y = $x; $x = float(sequence($n));
     }
 
     # Let us parse the options if any.
+    $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($points_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
@@ -3299,7 +3872,12 @@ sub arrow {
     # Save some time for large datasets.
     #
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($y);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
@@ -3328,6 +3906,7 @@ sub arrow {
     pgline($n, $x->get_dataref, $y->get_dataref) if $o->{PlotLine}>0;
 
     $self->_restore_status();
+    $self->_add_to_state(\&points, $in, $opt);
     1;
   }
 }
@@ -3396,13 +3975,13 @@ sub arrow {
 	# do we really want this?
 	# - (03/15/01 DJB) removed since I assume that draw_wedge()
 	#   will be called before the focus has been changed.
-	#   Not ideal, but I don't think the current implementation will 
-	#   handle such cases anyway (ie getting the correct min/max values 
+	#   Not ideal, but I don't think the current implementation will
+	#   handle such cases anyway (ie getting the correct min/max values
 	#   for the wedge).
 #	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 	# get the options used to draw the axes
-	# note: use the window object, not the options hash, though we 
+	# note: use the window object, not the options hash, though we
 	# probably could/should do that
 	my $wo = $self->{_env_options}[4];
 
@@ -3410,7 +3989,7 @@ sub arrow {
 	$self->_save_status();
 
 	# we use the colour/size of the axes here
-	pgsci($wo->{AxisColour});
+	$self->_set_colour($wo->{AxisColour});
 	pgsch($wo->{CharSize});
 
 	# draw the wedge
@@ -3419,6 +3998,7 @@ sub arrow {
 
 	# restore character colour & size before returning
 	$self->_restore_status();
+	$self->_add_to_state(\&draw_wedge, $in, $opt);
 
 	1;
     } # sub: draw_wedge()
@@ -3464,6 +4044,7 @@ sub arrow {
     # Note that passing $u_opt is ok here since the two routines accept the
     # same options!
     $self->imag (@$in,$u_opt);
+    # This is not added to the state, because the imag command does that
   }
 
   sub imag {
@@ -3579,11 +4160,13 @@ sub arrow {
 	my $wo = $self->{Options}->options($opt);
 	print "Axis colour set to $$wo{AxisColour}\n";
 	if ($self->{NX}*$self->{NY} > 1) {
+	  $self->clear_state();
 	  pgeras();
 	} else {
+	  $self->clear_state();
 	  pgpage();
 	}
-	pgsci($wo->{AxisColour});
+	$self->_set_colour($wo->{AxisColour});
 	pgvstd;			## Change this to use the margins for display!
 
 	## Set the window to the correct number of pixels for the
@@ -3591,25 +4174,31 @@ sub arrow {
 	pgqvsz($unit,$x0,$x1,$y0,$y1);
 	pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
 
-	$self->{_env_options} = [0, ($x1-$x0)*$pitch/$pix, 0, 
+	$self->_set_env_options(0, ($x1-$x0)*$pitch/$pix, 0, 
 				 ($y1-$y0)*$pitch, 
-				 $self->{Options}->options($opt)];
+				 $self->{Options}->options($opt));
 #	$self->{_env_set}[$self->{CurrentPanel}]=1;
-	pgsci($col);
+	$self->_set_colour($col);
       } else {
 	# Scale the image correctly even with rotation by calculating the new
 	# corner points
-	$self->initenv(($tr->slice("0:2")*pdl[
-					      [1, 0.5, 0.5],
-					      [1, 0.5, $nx+0.5],
-					      [1, $nx+0.5, 0.5],
-					      [1, $nx+0.5, $nx+0.5]])->sumover->minmax,
-		       ($tr->slice("3:5")*pdl[
-					      [1, 0.5, 0.5],
-					      [1, 0.5, $ny+0.5],
-					      [1, $ny+0.5, 0.5],
-					      [1, $ny+0.5, $ny+0.5]])->sumover->minmax,
-		       $opt);
+	# - we respect the sense of the input axis by swapping the min/max
+	#   values if the pixel size is negative (DJB 01/10/15)
+        #
+        my @xvals = ($tr->slice("0:2")*pdl[
+					   [1, 0.5, 0.5],
+					   [1, 0.5, $nx+0.5],
+					   [1, $nx+0.5, 0.5],
+					   [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
+        my @yvals = ($tr->slice("3:5")*pdl[
+					   [1, 0.5, 0.5],
+					   [1, 0.5, $ny+0.5],
+					   [1, $ny+0.5, 0.5],
+					   [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
+        if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
+        if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
+
+	$self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
       }
     }				# if ! hold
 
@@ -3636,7 +4225,9 @@ sub arrow {
 	$self->release() unless $hflag;
     }
 
+    $self->_add_to_state(\&imag, $in, $opt);
     1;
+
   } # sub: imag()
 
 }
@@ -3741,6 +4332,8 @@ EOD
 	      brightness => $brightness,
 	      contrast => $contrast
 	    };			# Loaded
+    $self->_add_to_state(\&ctab, $in, $opt);
+
     1;
   }
 
@@ -3804,6 +4397,7 @@ EOD
 	   $bias, 1, $work->get_dataref);
 
     $self->_restore_status();
+    $self->_add_to_state(\&hi2d, $in, $opt);
     1;
   }
 }
@@ -3821,7 +4415,12 @@ sub poly {
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
   unless ( $self->held() ) {
-    my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
+	   @{$o->{Xrange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
+	   @{$o->{Yrange}} : minmax($y);
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
     $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
   }
 
@@ -3830,6 +4429,7 @@ sub poly {
   my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
+  $self->_add_to_state(\&poly, $in, $opt);
   1;
 }
 
@@ -3863,6 +4463,7 @@ sub poly {
     $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
+    $self->_add_to_state(\&circle, $in, $opt);
   }
 }
 
@@ -3889,6 +4490,7 @@ sub poly {
       $ell_options->synonyms({Angle => 'Theta'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $opt = {} unless defined $opt;
     my ($x, $y, $a, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
@@ -3913,7 +4515,12 @@ sub poly {
     $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+
+    $self->_add_to_state(\&ellipse, $in, $opt);
+    # Now turn off recording so we don't get this one twice..
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 
@@ -3981,7 +4588,11 @@ sub poly {
     my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+    $self->_add_to_state(\&rectangle, $in, $opt);
+    # Turn off recording temporarily.
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 }
@@ -4038,6 +4649,7 @@ sub poly {
     pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
+    $self->_add_to_state(\&vect, $in, $opt);
     1;
   }
 }
@@ -4064,6 +4676,7 @@ sub poly {
 					       YPos => undef
 					      });
       $text_options->add_synonym({Justify => 'Justification'});
+      $text_options->add_synonym({Bg => 'BackgroundColour'});
     }
 
     # Extract the options hash and separate it from the other input
@@ -4089,10 +4702,17 @@ sub poly {
     barf "text: You must specify the X-position!\n" if !defined($o->{XPos});
     barf "text: You must specify the Y-position!\n" if !defined($o->{YPos});
 
+    # Added support for different background colours..
+    # 2/10/01 JB - To avoid -w noise we use a reg-exp..
+    if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
+      # Do this unless a negative integer..
+      $self->_set_colour($o->{BackgroundColour}, 1);
+    }
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
 #
     $self->_restore_status();
+    $self->_add_to_state(\&text, $in, $opt);
 
     1;
   }
@@ -4113,9 +4733,13 @@ sub poly {
 						 YPos	   => undef,
 						 Width     => 'Automatic',
 						 Height    => 'Automatic',
-						 Fraction  => 0.5,
-						 TextShift => 0.1
-						});
+						 TextFraction  => 0.5,
+						 TextShift => 0.1,
+						 VertSpace => 0
+						     });
+      $legend_options->synonyms({ VSpace => 'VertSpace' });
+      $legend_options->synonyms({ Fraction => 'TextFraction' });
+      $legend_options->add_synonym({Bg => 'BackgroundColour'});
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -4149,14 +4773,24 @@ sub poly {
     }
     $self->_save_status();
 
+#    print "Setting character size to: ".$u_opt->{CharSize}."\n"
+#      if defined $u_opt->{CharSize};
     $self->_standard_options_parser($u_opt); # Set font, charsize, colour etc.
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
     my $chsz; pgqch($chsz);
 
+#    print "I found a character size of $chsz\n";
     # In the following we want to deal with an array of text.
     $text = [$text] unless ref($text) eq 'ARRAY';
+
+    ## Now, set the background colour of the text before getting further.
+    ## Added 2/10/01 - JB - test as a regexp to avoid -w noise.
+    if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
+      # Do this unless a negative integer..
+      $self->_set_colour($o->{BackgroundColour}, 1);
+    }
 
     # The size of the legend can be specified by giving the width or the
     # height so to calculate the required text size we need to find the
@@ -4165,6 +4799,9 @@ sub poly {
     # Get the window size.
     my ($xmin, $xmax, $ymax, $ymin);
     pgqwin($xmin, $xmax, $ymin, $ymax);
+
+    # note: VertSpace is assumed to be a scalar
+    my $vspace = $o->{VertSpace};
 
     my $required_charsize=$chsz*9000;
     if ($o->{Width} eq 'Automatic' && $o->{Height} eq 'Automatic') {
@@ -4187,9 +4824,11 @@ sub poly {
 	  $t_height = $$ybox[2]-$$ybox[0];
 	}
       }
-      
-      $o->{Width} = $t_width/$o->{Fraction};
-      $o->{Height} = $t_height*($#$text+1); # The height of all lines..
+
+      $o->{Width} = $t_width/$o->{TextFraction};
+      # we include an optional vspace (which is given as a fraction of the
+      # height of a line)
+      $o->{Height} = $t_height*(1+$vspace)*($#$text+1); # The height of all lines..
     } else {
       # We have some constraint on the size.
       my ($win_width, $win_height)=($xmax-$xmin, $ymax-$ymin);
@@ -4199,7 +4838,7 @@ sub poly {
       # plot window - thus ensuring not too large a text size should the
       # user have done something stupid, but still large enough to
       # detect an error.
-      $o->{Width}=2*$win_width/$o->{Fraction} if $o->{Width} eq 'Automatic';
+      $o->{Width}=2*$win_width/$o->{TextFraction} if $o->{Width} eq 'Automatic';
       $o->{Height}=2*$win_height if $o->{Height} eq 'Automatic';
 
       my $n_lines = $#$text+1; # The number of lines.
@@ -4207,16 +4846,17 @@ sub poly {
 	# Find the bounding box of left-justified text
 	my ($xbox, $ybox);
 	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
-	
-	# Find what charactersize is required to fit the height or
-	# fraction*width:
-	my $t_width= $o->{Fraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
-	my $t_height = $o->{Height}/$n_lines/($$ybox[2]-$$ybox[0]);
+
+	# Find what charactersize is required to fit the height
+	# (accounting for vspace) or fraction*width:
+	my $t_width= $o->{TextFraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
+	my $t_height = $o->{Height}/(1+$vspace)/$n_lines/($$ybox[2]-$$ybox[0]); # XXX is (1+$vspace) correct
 
 	$t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
 #	print "For text = $t the optimal size is $t_chsz ($t_width, $t_height)\n";
 	$required_charsize = $t_chsz if $t_chsz < $required_charsize;
 
+	pgsch($required_charsize*$chsz); # Since we measured relative to $chsz
       }
     }
 
@@ -4225,12 +4865,15 @@ sub poly {
     # text. The next step is to create the legend. We can set linestyle,
     # linewidth, colour and symbol for each of these texts.
     #
-    pgsch($required_charsize*$chsz); # Since we measured relative to $chsz
     my ($xpos, $ypos) = ($o->{XPos}, $o->{YPos});
-    my ($xstart, $xend)=($o->{XPos}+$o->{Fraction}*$o->{Width}+
+    my ($xstart, $xend)=($o->{XPos}+$o->{TextFraction}*$o->{Width}+
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
 
     my $n_lines=$#$text+1;
+
+    # step size in y
+    my $ystep = $o->{Height} / $n_lines;
+
     foreach (my $i=0; $i<=$#$text; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
@@ -4243,7 +4886,7 @@ sub poly {
 					Colour => $color->[$i]
 				      });
       my $col; pgqci($col);
-      pgsci($t_o->{Colour}) if defined($color->[$i]);
+      $self->_set_colour($t_o->{Colour}) if defined($color->[$i]);
       my ($lw, $ls);
       pgqls($ls); pgqlw($lw);
 
@@ -4263,15 +4906,16 @@ sub poly {
 	pgslw($t_o->{LineWidth}) if defined($linewidth->[$i]);
 	pgline(2, [$xstart, $xend], [$yline, $yline]);
       }
-      pgsci($col); # Reset colour after each line so that the text comes
+      $self->_set_colour($col); # Reset colour after each line so that the text comes
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
-      $ypos -= $o->{Height}/$n_lines;
+      $ypos -= $ystep;
     }
 
 
     $self->_restore_status();
+    $self->_add_to_state(\&legend, $in, $opt);
   }
 
 }
@@ -4319,11 +4963,16 @@ sub poly {
     }
 
     my ($opt)=@_;
+
     $opt = {} unless defined($opt);
     my $place_cursor=1; # Since X&Y might be uninitialised.
     my $o = $cursor_options->options($opt);
 
     my ($x, $y, $ch);
+
+    # The window needs to be focussed before using the cursor commands.
+    # Added 08/08/01 by JB after bug report from Brad Holden.
+    $self->focus();
 
     if ($o->{Type} eq 'Rectangle' && !defined($o->{XRef})) {
       #
@@ -4368,6 +5017,7 @@ sub poly {
     my $istat = pgband($o->{Type}, $place_cursor, $o->{XRef},
 		       $o->{YRef}, $x, $y, $ch);
 
+    $self->_add_to_state(\&cursor, [], $opt);
     return ($x, $y, $ch, $o->{XRef}, $o->{YRef});
 
   }

@@ -20,23 +20,37 @@ BEGIN {
       $forcebuild=1;
    }
    
-   if ($^O =~ /win32/i) {
-      $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
-      goto skip unless $forcebuild;
-   }
+#    if ($^O =~ /win32/i) {
+#       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
+#       goto skip unless $forcebuild;
+#    }
 
-   eval "use ExtUtils::F77";  # Might want "use ExtUtils::F77 qw(generic f2c)"
-   print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
-   if ($@ ne "") {
-      $msg = "\n".$@."\n    ExtUtils::F77 module not found. Ought not build PDL::Slatec    \n" ;
-      goto skip unless $forcebuild;
-   }
-   if ($ExtUtils::F77::VERSION < 1.03 ) {
-      $msg = "\n   need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Slatec   \n" ;
-      goto skip unless $forcebuild;
-   }
+   if (exists $PDL_CONFIG{F77CONF} && -f $PDL_CONFIG{F77CONF}) {
+     print "loading F77 configuration from $PDL_CONFIG{F77CONF}...\n";
+     eval "require '$PDL_CONFIG{F77CONF}'";
+     if ($@ ne "") {
+       $msg = "\n".$@.
+	 "\n\tF77CONF file not loaded. Ought not build PDL::Slatec\n" ;
+       goto skip unless $forcebuild;
+     }
+     $f77 = 'F77Conf';
+   } else {
+     eval "use ExtUtils::F77";  # Might want "use ExtUtils::F77 qw(generic f2c)"
+     if ($@ ne "") {
+       $msg = "\n".$@.
+	 "\n\tExtUtils::F77 module not found. Ought not build PDL::Slatec\n" ;
+       goto skip unless $forcebuild;
+     } else {
+       $f77 = 'ExtUtils::F77';
+       print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
+       if ($ExtUtils::F77::VERSION < 1.03 ) {
+	 $msg = "\n\tneed a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Slatec\n" ;
+	 goto skip unless $forcebuild;
+       }
+     }  # end if ($@ ne "")
+   } # if (exists $PDL_CONFIG{F77CONF}...
 
-   $compiler_available = ExtUtils::F77->testcompiler;
+   $compiler_available = $f77->testcompiler;
 
    if (!$compiler_available) {
       $msg = "\n   No f77 compiler found. Ought to skip PDL::Slatec on this system    \n";
@@ -66,15 +80,15 @@ return if $donot;
 %hash = pdlpp_stdargs_int(@::pack);
 
 $hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
-$hash{LIBS}[0] .= ExtUtils::F77->runtime ;
+$hash{LIBS}[0] .= $f77->runtime ;
 $hash{clean}{FILES} .= " f77_underscore" .
   join '', map {" slatec/$_.o "} @slatecfiles;
 
 # Handle multiple compilers
 
-$f2cbased = (ExtUtils::F77->runtime =~ /-lf2c/);
-$g2cbased = (ExtUtils::F77->runtime =~ /-lg2c/) unless $f2cbased;
-$trail = ExtUtils::F77->trail_;
+$f2cbased = ($f77->runtime =~ /-lf2c/);
+$g2cbased = ($f77->runtime =~ /-lg2c/) unless $f2cbased;
+$trail = $f77->trail_;
 
 # no longer create the prototypes here - this is now handled
 # by slatec.pd. In fact, with the current method, we no
@@ -96,15 +110,15 @@ WriteMakefile(
 );
 
 sub MY::postamble {
-        $mycompiler     = ExtUtils::F77->compiler();
-        $mycflags       = ExtUtils::F77->cflags();
+        $mycompiler     = $f77->compiler();
+        $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@::pack);
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map {
 ("
 
-slatec/$_.o: slatec/$_.f slatec/$_.P
-	$mycompiler -c -o slatec/$_.o $mycflags slatec/$_.f
+slatec/$_\$(OBJ_EXT): slatec/$_.f slatec/$_.P
+	$mycompiler -c -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
 " )} @slatecfiles;
  
 }

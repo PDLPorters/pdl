@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..36\n";
+print "1..38\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -133,3 +133,8 @@ ok(35, tapprox $a, $b );
 
 # check inplace
 ok(36, tapprox pdl(110,23)->inplace->log10(), $b );
+$data = ones 5;
+$data &= 0;
+ok(37, all $data == 0);
+$data |= 1;
+ok(38, all $data == 1);

@@ -5,11 +5,12 @@
 # Note: any $HOME/.perldlrc file overrides this
 
 use PDL;
+use PDL::Dbg;  # Enable useful commands
 #use PDL::Lite; # Alternative to above for hard-core freaks
 
 # PDL waffle options (and pacify -w)
 BEGIN{
-   $PDL::debug = $PDL::debug = 0;
+   $PDL::debug = $PDL::debug = 1;
    $PDL::verbose = $PDL::verbose = 1;
 }
 

@@ -1,0 +1,69 @@
+INSTALLING on win32
+-------------------
+
+This is a collection of tips if you are trying to compile PDL
+on win32. Your milage may vary. In general you might want to
+fall back on the binary windows version provided at
+http://pdl.perl.org .
+
+Supported compilers: MS Visual Studio 6 has been reported to work
+
+General procedure:
+
+   perl Makefile.PL
+   nmake
+
+That should be it (in theory). Currently there are a number of niggles
+but work arounds exist.
+
+Compilation report
+------------------
+
+Version:  PDL 2.2.1 (actually CVS snapshot 19/6/01)
+
+If you want to use slatec you need the f77 support and need the
+F77CONF argument on the command line.
+
+       perl Makefile.PL F77CONF=win32/win32f77.pl
+       nmake
+
+This will only work together with a working f2c and associated
+libraries libi77.lib and libf77.lib.  You need to edit
+win32/win32f77.pl to reflect the location of f2c, the libs and the
+include file f2c.h. If you have problems just omit the F77CONF
+argument from the 'perl Makefile.PL' command. In that case you won't
+have slatec support though.
+
+Niggle:
+
+The first nmake stops with an error that Core.obj is not found.
+Workaround: once you get this error do the following:
+
+   cd Basic\Core
+   nmake Core.xs
+   cd ..\..
+   perl Makefile.PL # with F77CONF=win32/win32f77.pl if you want slatec
+   nmake
+
+Now it should work.
+
+Finish with
+
+   nmake test
+
+Should pass everything but test 6 in conv.t. Safe to ignore for now.
+
+Making an installable PPM
+-------------------------
+
+Some pseudo code how to go about that
+is in the file makeppm.pl (which is currently
+really just comments).
+
+UPDATE: A target 'ppm' is now available
+from the makefile.
+
+  make ppm
+
+should do the job, however, it relies on
+a number of programs like cp, mv, tar, etc.

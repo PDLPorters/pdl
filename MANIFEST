@@ -14,7 +14,7 @@ Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/pdl.h.PL
 Basic/Core/pdl_hfiles.p
-Basic/Core/pdlapi.c.PL
+Basic/Core/pdlapi.c
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
@@ -30,6 +30,8 @@ Basic/Core/pdlthread.h
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/typemap.pdl
+Basic/Gen/Inline/Makefile.PL
+Basic/Gen/Inline/Pdlpp.pm
 Basic/Gen/Makefile.PL
 Basic/Gen/PP.pm
 Basic/Gen/PP/CType.pm
@@ -42,6 +44,7 @@ Basic/Gen/PP/SymTab.pm
 Basic/Gen/PP/Var.pm
 Basic/Gen/PP/XS.pm
 Basic/Gen/PP/dump.pp
+Basic/Gen/pptemplate.PL
 Basic/Lite.pm
 Basic/LiteF.pm
 Basic/Lvalue.pm
@@ -77,6 +80,7 @@ Basic/Ops/Makefile.PL
 Basic/Ops/ops.pd
 Basic/Options.pm
 Basic/PDL.pm
+Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/Delta.pod
@@ -95,6 +99,12 @@ Basic/Primitive/primitive.pd
 Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
+Basic/SourceFilter/Changes
+Basic/SourceFilter/Makefile.PL
+Basic/SourceFilter/NiceSlice.pm
+Basic/SourceFilter/example
+Basic/SourceFilter/local.perldlrc
+Basic/SourceFilter/test.pl
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
@@ -108,6 +118,7 @@ Demos/BAD2_demo.pm.PL
 Demos/BAD_demo.pm.PL
 Demos/General.pm
 Demos/Makefile.PL
+Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm
 Demos/Screen.pm
 Demos/TkTriD_demo.pm
@@ -217,13 +228,14 @@ Graphics/LUT/tables/stairs8.fits
 Graphics/LUT/tables/stairs9.fits
 Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
-Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
-Graphics/PGPLOT/Window/typemap
+Graphics/PGPLOT/PGPLOTOptions.pm
+Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
-Graphics/PGPLOT/Window/Makefile.PL
+Graphics/PGPLOT/Window/typemap
+Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/README
@@ -306,9 +318,9 @@ Lib/Fit/Gaussian/Makefile.PL
 Lib/Fit/Gaussian/gauss.c
 Lib/Fit/Gaussian/gaussian.pd
 Lib/Fit/LM.pm
+Lib/Fit/Linfit.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
-Lib/Fit/Linfit.pm
 Lib/Func.pm
 Lib/GSL/Makefile.PL
 Lib/GSL/README
@@ -573,6 +585,7 @@ debian/buildnotes
 debian/changelog
 debian/control
 debian/copyright
+debian/f77conf.pl
 debian/pdl-menu
 debian/postinst
 debian/postrm
@@ -587,6 +600,7 @@ t/aaa_load.t
 t/argtest.t
 t/autoload.t
 t/bad.t
+t/basic.t
 t/bess.t
 t/bool.t
 t/callext.c
@@ -594,6 +608,7 @@ t/callext.t
 t/clump.t
 t/complex.t
 t/conv.t
+t/core.t
 t/croak.t
 t/erf.t
 t/erfi.t
@@ -615,15 +630,18 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
+t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
-t/lut.t
+t/interpol.t
 t/linfit.t
+t/lut.t
 t/lvalue.t
 t/magic.t
 t/matmult.t
 t/misc.t
 t/ndf.t
+t/niceslice.t
 t/ones.t
 t/opengl.t
 t/ops.t
@@ -655,3 +673,9 @@ t/thread_def.t
 t/trig.t
 t/vaffine.t
 t/xvals.t
+win32/INSTALL
+win32/PDL.ppd
+win32/Readme
+win32/install.ppm
+win32/makeppm.pl
+win32/win32f77.pl

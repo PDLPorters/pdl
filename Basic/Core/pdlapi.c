@@ -1,43 +1,9 @@
-#
-# Create pdlapi.c
-# - needed since we allow bad pixel handling to be switched off
-#
- 
-use strict;
- 
-use Config;
-use File::Basename qw(&basename &dirname);
- 
-# check for bad value support
-use vars qw( $bvalflag $usenan );
-require "badsupport.p";
 
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//                                                              
-    if ($Config{'osname'} eq 'VMS' or
-	$Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
- 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {
-    print "Extracting $file (NO bad value support)\n";
-}
-chmod 0644, $file;
- 
-print OUT <<"!WITH!SUBS!";
- 
-/* pdlapi.c - generated automatically by pdlapi.c.PL */
-/*          - functions for manipulating pdl structs */
-/*          - bad value support = $bvalflag */
-
-!WITH!SUBS!
- 
-print OUT <<'!NO!SUBS!';
+/* pdlapi.c - functions for manipulating pdl structs  */
+/*  - for a while (up to + including 2.2.1) this file */
+/*    created by pdlapi.c.PL [due to bad value code]  */
+/*    we now have dummy functions so do not need to   */
+/*    create the file                                 */
 
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
@@ -454,41 +420,25 @@ void pdl_dump_flags(int flags, int nspac)
 {
 	int i;
 	int len, found, sz;
-!NO!SUBS!
 
-    if ( $bvalflag ) { print OUT "	int flagval[15] = {\n"; }
-    else             { print OUT "	int flagval[14] = {\n"; }
-
-    print OUT <<'!NO!SUBS!';
+	int flagval[15] = {
 	    PDL_ALLOCATED,PDL_PARENTDATACHANGED,
 	    PDL_PARENTDIMSCHANGED,PDL_PARENTREPRCHANGED,
 	    PDL_DATAFLOW_F,PDL_DATAFLOW_B,PDL_NOMYDIMS,
 	    PDL_OPT_VAFFTRANSOK,PDL_INPLACE,PDL_DESTROYING,
 	    PDL_DONTTOUCHDATA, PDL_MYDIMS_TRANS, PDL_HDRCPY, 
-!NO!SUBS!
+	    PDL_BADVAL, 0
+	};
 
-    if ( $bvalflag ) { print OUT "	    PDL_BADVAL,\n"; }
-
-    print OUT <<'!NO!SUBS!';
-		0};
-
-!NO!SUBS!
-
-    if ( $bvalflag ) { print OUT "	char *flagchar[14] = {\n"; }
-    else             { print OUT "	char *flagchar[13] = {\n"; }
-
-    print OUT <<'!NO!SUBS!';
+	char *flagchar[14] = {
 	    "ALLOCATED","PARENTDATACHANGED",
 	    "PARENTDIMSCHANGED","PARENTREPRCHANGED",
 	    "DATAFLOW_F","DATAFLOW_B","NOMYDIMS",
 	    "OPT_VAFFTRANSOK","INPLACE","DESTROYING",
-	    "DONTTOUCHDATA","MYDIMS_TRANS", "HDRCPY"
-!NO!SUBS!
-
-    if ( $bvalflag ) { print OUT '	    ,"BADVAL"' . "\n"; }
-
-    print OUT <<'!NO!SUBS!';
+	    "DONTTOUCHDATA","MYDIMS_TRANS", "HDRCPY",
+            "BADVAL"
 	};
+
 	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
 
@@ -662,12 +612,14 @@ void pdl_print(pdl *it) {
 #endif
 }
 
+/* pdl_get is now vaffine aware */
 double pdl_get(pdl *it,int *inds) {
-	int i;
-	int offs=0;
-	for(i=0; i<it->ndims; i++)
-		offs += it->dimincs[i] * inds[i];
-	return pdl_get_offs(it,offs);
+        int i, *incs;
+        int offs=PDL_REPROFFS(it);
+        incs = PDL_VAFFOK(it) ? it->vafftrans->incs : it->dimincs;
+        for(i=0; i<it->ndims; i++)
+                offs += incs[i] * inds[i];
+        return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
 double pdl_get_offs(pdl *it, PDL_Long offs) {
@@ -1532,5 +1484,3 @@ void pdl_vafftrans_alloc(pdl *it)
 }
 
 #endif
-
-!NO!SUBS!

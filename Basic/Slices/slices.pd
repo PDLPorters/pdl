@@ -395,8 +395,10 @@ pp_def(
 
 # Affine! Make sure vaffine chaining understands to stop in the right
 # place.
+# the perl wrapper clump is now defined in Core.pm
+# this is just the low level interface
 pp_def(
-	'clump',
+	'_clump_int',
 	P2Child => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
@@ -429,27 +431,7 @@ pp_def(
 		 $SETDIMS();
 		 $SETDELTATHREADIDS(1-nrem);
 		 ',
-	Doc => <<'EOD',
-
-=for ref
-
-"clumps" the first C<n> dimensions into one large dimension
-
-If, for example, C<$a> has dimensions C<(5,3,4)> then after
-
-=for example
-
- $b = $a->clump(2);   # Clump 2 first dimensions
-
-the variable C<$b> will have dimensions C<(15,4)>
-and the element C<$b-E<gt>at(7,3)> refers to the element 
-C<$a-E<gt>at(1,2,3)>.
-
-Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
-is provided as an alias for this functionality.
-
-=cut
-EOD
+	Doc => 'internal',
 );
 }
 
@@ -1119,6 +1101,12 @@ pp_def(
 
 Returns a piddle of lags to parent.
 
+Usage:
+
+=for usage
+
+  $lags = $a->lags($nthdim,$step,$nlags);
+
 I.e. if C<$a> contains
 
  [0,1,2,3,4,5,6,7]
@@ -1137,6 +1125,10 @@ is a (5,2) matrix
 This order of returned indices is kept because the function is
 called "lags" i.e. the nth lag is n steps behind the original.
 
+C<$step> and C<$nlags> must be positive. C<$nthdim> can be
+negative and will then be counted from the last dim backwards
+in the usual way (-1 = last dim).
+
 EOD
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -1145,6 +1137,14 @@ EOD
 	OtherPars => 'int nthdim; int step; int n;',
 	RedoDims => '
 		int i;
+		if ($PRIV(nthdim) < 0)  /* the usual conventions */
+	           $PRIV(nthdim) = $PARENT(ndims) + $PRIV(nthdim);
+		if ($PRIV(nthdim) < 0 || $PRIV(nthdim) >= $PARENT(ndims))
+		   $CROAK("lags: dim out of range");
+		if ($COMP(n) < 1)
+		   $CROAK("lags: number of lags must be positive");
+		if ($COMP(step) < 1)
+		   $CROAK("lags: step must be positive");
 		$PRIV(offs) = 0;
 		$SETNDIMS($PARENT(ndims)+1);
 		$DOPRIVDIMS();
@@ -1153,6 +1153,9 @@ EOD
 			$PRIV(incs)[i] = $PARENT(dimincs)[i];
 		}
 		$CHILD(dims)[i] = $PARENT(dims)[i] - $COMP(step) * ($COMP(n)-1);
+		if ($CHILD(dims)[i] < 1)
+		  $CROAK("lags: product of step size and "
+			 "number of lags too large");
 		$CHILD(dims)[i+1] = $COMP(n);
 		$PRIV(incs)[i] = ($PARENT(dimincs)[i]);
 		$PRIV(incs)[i+1] = - $PARENT(dimincs)[i] * $COMP(step);

@@ -494,7 +494,7 @@ package PDL::PP::Access;
 use Carp;
 
 sub new { my($type,$str,$parent) = @_;
-	$str =~ /^\$([a-zA-Z_]+)\s*\(([^)]*)\)/ or
+	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
 		confess ("Access wrong: '$str'\n");
 	my($pdl,$inds) = ($1,$2);
 	if($pdl =~ /^T/) {new PDL::PP::MacroAccess($pdl,$inds);}
@@ -1114,7 +1114,7 @@ sub separate_code {
                 |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
 ###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
                 |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
-	        |\$[a-zA-Z_]+\s*\([^)]*\)  # $a(...): access
+	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
 		|\btypes\s*\([^)]+\)\s*%{  # types(..) %{
 		|\bthreadloop\s*%{         # threadloop %{
@@ -1155,7 +1155,7 @@ if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 #		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
+	    } elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
 		push @{$stack[-1]},new PDL::PP::Access($control,$this);
 	    } elsif($control =~ /^%}/) {
 	        pop @stack;

@@ -1,0 +1,173 @@
+A source filter for PDL: take the pain out of slicing !
+
+Source filtering allows to experiment with new syntax
+and the power is only limited by the sophistication of the
+source parser.
+
+Build the module in the usual way:
+
+  perl Makefile.PL
+  make test  # no real test suite yet
+  make install
+
+Everything is still very experimental but the
+principal approach seems promising.
+
+The file 'local.perldc' contains some useful definitions to
+experiment with the new syntax within the perldl shell.
+
+NAME
+    PDL::SFilter - a PDL source filter
+
+SYNOPSYS
+      use PDL::SFilter;
+
+      $a(1:4) .= 2;
+      print $b((0),1:$end);
+      $a->xchg(0,1)->(($pos-1)) .= 0;
+
+DESCRIPTION
+    `PDL''s `slice' syntax sucks. This module attempts to reduce the
+    suction. How does it work? We can't change Perl's syntax limitations.
+    However, Damian Conway has shown how to move forward within the
+    framework of Perl 5 syntax restrictions. The answer lies in the murky
+    area of source filters. Source filters can be thought of as a very
+    powerful macro facility. Finally Perl will rival Lisp in obscurity. The
+    possibility for confusion is virtually infinite and only matched by the
+    power of the approach ;).
+
+    *NOTE*: `PDL::SFilter' relies on modules from CPAN that make source
+    filtering and parsing easier. In particular it requires Filter::Simple
+    (which in turn requires a module from the Filter distribution) and
+    Text::Balanced.
+
+New slicing syntax
+  Parentheses on a scalar variable
+
+    An arglist in parentheses following directly after a scalar variable
+    name that is *not* preceded by `&' will be translated into an approriate
+    call to `mslice', e.g.
+
+      $a(1:4) .= 2;
+
+    is equivalent to
+
+      $a->mslice([1,4]) .= 2
+
+    However,
+
+      &$a(4,5);
+
+    will be left untouched to not interfere with the current subref syntax.
+
+  The *default method* syntax
+
+    The second syntax that will be recognized is what I called the *default
+    method* syntax. It is the method arrow `->' directly followed by an open
+    parenthesis `(', e.g.
+
+      $a->xchg(0,1)->(($pos)) .= 0;
+
+    corresponds to
+
+      $a->xchg(0,1)->mslice([$pos,$pos,0]) .= 0; # really the ($pos) 
+                                                 # format of slice
+
+    Why two ways to different ways to invoke slicing? The first syntax
+    `$a(args)' doesn't work with chained method calls. E.g.
+
+      $a->xchg(0,1)(0);
+
+    won't work. Instead, use the *default method* syntax:
+
+      $a->xchg(0,1)->(0);
+
+    Similarly, if you have a list of piddles `@pdls':
+
+      $b = $pdls[5]->(0:-1);
+
+  argument list syntax
+
+    Note that perl variables and function invocations can be used in the
+    argument list:
+
+      $a($pos-1:$end,myfunc(1,3)) .= 5;
+
+    There can even be other slicing commands in the arglist:
+
+      $a(0:-1:$pdl($step)->at(0)) *= 2;
+
+    You can access ranges using the usual `:' format:
+
+      $a($start:$stop:$step) *= 4;
+
+    Note that you can omit the trailing step. `::' is not allowed to avoid
+    clashes with Perl's namespace syntax. A position in parentheses `($pos)'
+    selects that position and removes the dim from the result piddle (just
+    like `slice' does):
+
+      print $a((0));
+
+    An empty argument selects the whole dimension:
+
+      print $a(,(0));
+
+    Trailing dims can be omitted as usual and will be selected as a whole.
+
+      $a = sequence 5, 5, 5;
+      $b = $a(0); # slice of shape [1,5,5]
+
+    Anyway, that's the theory. This whole thing is probably not yet
+    foolproof but a start.
+
+Use in scripts and `perldl' shell
+    In a script or module write something like
+
+      use PDL::SFilter;
+
+      # this code will be translated
+
+      no PDL::SFilter;
+
+      # this code won't
+
+    See also the Filter::Simple manpage and test.pl in this distribution for
+    an example.
+
+    To use the filter in the `perldl' shell add the following two lines to
+    your .perldlrc file:
+
+       use PDL::SFilter;
+       $PERLDL::PREPROCESS = \&PDL::SFilter::perldlpp;
+
+    Error checking and reporting is poor to non-existent at the moment. It
+    can be done though (see for example Damian Conway's Switch module).
+
+Dependencies
+    This module relies on the latest version of mslice to work properly.
+    These are included below for the moment. If your installed PDL has a
+    different mslice version just include the following in your .perldlrc:
+
+       # called for colon-less args 
+       # preserves parens if present        
+       sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
+       sub PDL::mslice {
+               my($pdl) = shift;
+               return $pdl->slice(join ',',(map {
+                               $_ eq "X" ? ":" :
+                               ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+                               "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
+                               !ref $_ ? intpars $_ :
+                               die "INVALID SLICE DEF $_"
+                       } @_));
+       }
+
+BUGS
+    Undoubtedly `;)'. The module is still highly experimental. Feedback and
+    bug reports are welcome.
+
+COPYRIGHT
+    Copyright (c) 2001, Christian Soeller. All Rights Reserved. This module
+    is free software. It may be used, redistributed and/or modified under
+    the same terms as PDL itself (see http://pdl.perl.org).
+

@@ -35,20 +35,28 @@ not the "highest" (for some definition)
 
 =over 4
 
-=item C<i> is a constant exported by this module, which represents
+=item *
+
+C<i> is a constant exported by this module, which represents
 C<-1**0.5>, i.e. the imaginary unit. it can be used to quickly and
 conviniently write complex constants like this: C<4+3*i>.
 
-=item Use C<r2C(real-values)> to convert from real to complex, as in C<$r
+=item *
+
+Use C<r2C(real-values)> to convert from real to complex, as in C<$r
 = Cpow $cplx, r2C 2>. The overloaded operators automatically do that for
 you, all the other functions, do not. So C<Croots 1, 5> will return all
 the fifths roots of 1+1*i (due to threading).
 
-=item use C<cplx(real-valued-piddle)> to cast from normal piddles intot he
+=item *
+
+use C<cplx(real-valued-piddle)> to cast from normal piddles intot he
 complex datatype. Use C<real(complex-valued-piddle)> to cast back. This
 requires a copy, though.
 
-=item BEWARE: This module has not been extensively tested. Watch out and
+=item *
+
+BEWARE: This module has not been extensively tested. Watch out and
 send me bugreports!
 
 =back

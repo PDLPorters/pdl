@@ -1,0 +1,11 @@
+0.8
+docs
+0.7
+fixed a bug that sometimes screwed up error reporting
+modifiers: _,?,|
+0.6
+nslice: lvalue
+doc updates
+KGB: fix multiline parsing
+0.5
+initial public release

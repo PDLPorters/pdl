@@ -1,0 +1,411 @@
+=head1 NAME
+
+PDL::API - making piddles from Perl and C/XS code
+
+=head1 DESCRIPTION
+
+A simple cookbook how to create piddles manually.
+It covers both the Perl and the C/XS level.
+Additionally, it describes the PDL core routines
+that can be accessed from other modules. These
+routines basically define the PDL API. If you need to
+access piddles from C/XS you probably need to know
+about these functions.
+
+=head1 SYNOPSIS
+
+  use PDL;
+  sub mkmypiddle {
+   ...
+  }
+
+=head1 Creating a piddle manually from Perl
+
+Sometimes you want to create a piddle I<manually>
+from binary data. You can do that at the Perl level.
+Examples in the distribution include some of the
+IO routines. The code snippet below illustrates the
+required steps.
+
+   use Carp;
+   sub mkmypiddle {
+     my $class = shift;
+     my $pdl  = $class->new;
+     $pdl->set_datatype($PDL_B);
+     my @dims = (1,3,4);
+     my $sz = 1;
+     for (@dims) { $sz *= $_ }
+     $pdl->setdims([@dims]);
+     my $dref = $pdl->get_dataref();
+
+     # read data directly from file
+     open my $file, '<data.dat' or die "couldn't open data.dat";
+     my $len = $size*PDL::Core::howbig($pdl->get_datatype);
+     croak "couldn't read enough data" if
+       read( $file, $$dref, $len) != $len;
+     close $file;
+     $pdl->upd_data();
+
+     return $pdl;
+   }
+
+=head1 Creating a piddle in C
+
+The following example creates a piddle at the C level.
+We use the C<Inline> module which is really the way to interface
+Perl and C these days. Note the use of the C<PDL_INCLUDE>, C<PDL_TYPEMAP>,
+C<PDL_AUTO_INCLUDE> and C<PDL_BOOT> functions that were imported from
+C<PDL::Core::Dev>. They are used in conjunction with an Inline
+Config call to ensure that the PDL typemap, the PDL include files
+and the PDL Core routines are found during compilation and later
+runtime execution.
+
+   use PDL::LiteF;
+   use PDL::Core::Dev;
+
+   $a = myfloatseq(); # exercise our C piddle constructor
+
+   print $a->info,"\n";
+
+   # the reason for this config call is explained below
+   use Inline C => Config =>
+     INC           => &PDL_INCLUDE,  # make sure we find pdlcore.h etc
+     TYPEMAPS      => &PDL_TYPEMAP,  # use the PDL typemap
+     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,  # global declarations and includes
+     BOOT          => &PDL_BOOT;     # boot code to load the Core struct
+
+   use Inline C;
+   Inline->init; # useful if you want to be able to 'do'-load this script
+
+   __DATA__
+
+   __C__
+
+   static pdl* new_pdl(int datatype, PDL_Long dims[], int ndims)
+   {
+     pdl *p = PDL->pdlnew();
+     PDL->setdims (p, dims, ndims);  /* set dims */
+     p->datatype = datatype;         /* and data type */
+     PDL->allocdata (p);             /* allocate the data chunk */
+
+     return p;
+   }
+
+   pdl* myfloatseq()
+   {
+     PDL_Long dims[] = {5,5,5};
+     pdl *p = new_pdl(PDL_F,dims,3);
+     PDL_Float *dataf = (PDL_Float *) p->data;
+     int i;
+
+     for (i=0;i<5*5*5;i++)
+       dataf[i] = i; /* the data must be initialized ! */
+     return p;
+   }
+
+=head2 Wrapping your own data into a piddle
+
+Sometimes you obtain a chunk of data from another
+source, for example an image processing library, etc.
+All you want to do in that case is wrap your data
+into a piddle struct at the C level. Examples using this approach
+can be found in the IO modules (where FastRaw and FlexRaw
+use it for mmapped access) and the Gimp Perl module (that
+uses it to wrap Gimp pixel regions into piddles).
+The following script demonstrates a simple example:
+
+   use PDL::LiteF;
+   use PDL::Core::Dev;
+   use PDL::Graphics::PGPLOT;
+
+   $b = mkpiddle();
+
+   print $b->info,"\n";
+
+   imag1 $b;
+
+   use Inline C => Config =>
+     INC           => &PDL_INCLUDE,
+     TYPEMAPS      => &PDL_TYPEMAP,
+     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE,
+     BOOT          => &PDL_BOOT;
+
+   use Inline C;
+   Inline->init;
+
+   __DATA__
+
+   __C__
+
+   /* wrap a user supplied chunk of data into a piddle
+    * You must specify the dimensions (dims,ndims) and 
+    * the datatype (constants for the datatypes are declared
+    * in pdl.h; e.g. PDL_B for byte type, etc)
+    *
+    * when the created piddle 'npdl' is destroyed on the
+    * Perl side the function passed as the 'delete_magic'
+    * parameter will be called with the pointer to the pdl structure
+    * and the 'delparam' argument.
+    * This gives you an opportunity to perform any clean up
+    * that is necessary. For example, you might have to
+    * explicitly call a function to free the resources
+    * associated with your data pointer.
+    * At the very least 'delete_magic' should zero the piddle's data pointer:
+    * 
+    *     void delete_mydata(pdl* pdl, int param)
+    *     {
+    *       pdl->data = 0;
+    *     }
+    *     pdl *p = pdl_wrap(mydata, PDL_B, dims, ndims, delete_mydata,0);
+    *
+    * pdl_wrap returns the pointer to the pdl
+    * that was created.
+    */
+   typedef void (*DelMagic)(pdl *, int param);
+   static void default_magic(pdl *p, int pa) { p->data = 0; }
+   static pdl* pdl_wrap(void *data, int datatype, PDL_Long dims[],
+			int ndims, DelMagic delete_magic, int delparam)
+   {
+     pdl* npdl = PDL->pdlnew(); /* get the empty container */
+
+     PDL->setdims(npdl,dims,ndims); /* set dims      */
+     npdl->datatype = datatype;     /* and data type */
+     npdl->data = data;             /* point it to your data */
+     /* make sure the core doesn't meddle with your data */
+     npdl->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
+     if (delete_magic != NULL)
+       PDL->add_deletedata_magic(npdl, delete_magic, delparam);
+     else
+       PDL->add_deletedata_magic(npdl, default_magic, 0);
+     return npdl;
+   }
+
+   #define SZ 256
+   /* a really silly function that makes a ramp image
+    * in reality this could be an opaque function
+    * in some library that you are using
+    */
+   static PDL_Byte* mkramp(void)
+   {
+     PDL_Byte *data;
+     int i;
+
+     if ((data = malloc(SZ*SZ*sizeof(PDL_Byte))) == NULL)
+       croak("mkramp: Couldn't allocate memory");
+     for (i=0;i<SZ*SZ;i++)
+       data[i] = i % SZ;
+
+     return data;
+   }
+
+   /* this function takes care of the required clean-up */
+   static void delete_myramp(pdl* p, int param)
+   {
+     if (p->data)
+       free(p->data);
+     p->data = 0;
+   }
+
+   pdl* mkpiddle()
+   {
+     PDL_Long dims[] = {SZ,SZ};
+     pdl *p;
+
+     p = pdl_wrap((void *) mkramp(), PDL_B, dims, 2, 
+		  delete_myramp,0); /* the delparam is abitrarily set to 0 */
+     return p;
+   }
+
+=head1 The gory details
+
+=head2 The Core struct -- getting at PDL core routines at runtime
+
+PDL uses a technique similar to that employed by the Tk modules
+to let other modules use its core routines. A pointer to all
+shared core PDL routines is stored in the C<$PDL::SHARE> variable.
+XS code should get hold of this pointer at boot time so that
+the rest of the C/XS code can then use that pointer for access
+at run time. This initial loading of the pointer is most easily
+achieved using the functions C<PDL_AUTO_INCLUDE> and C<PDL_BOOT>
+that are defined and exported by C<PDL::Core::Dev>. Typical usage
+with the Inline module has already been demonstrated:
+
+   use Inline C => Config =>
+     INC           => &PDL_INCLUDE,
+     TYPEMAPS      => &PDL_TYPEMAP,
+     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE, # declarations
+     BOOT          => &PDL_BOOT;         # code for the XS boot section
+
+
+The code returned by C<PDL_AUTO_INCLUDE> makes sure that F<pdlcore.h>
+is included and declares the static variables to hold the pointer to
+the C<Core> struct. It looks something like this:
+
+   print PDL_AUTO_INCLUDE;
+
+ #include <pdlcore.h>
+ static Core* PDL; /* Structure holds core C functions */
+ static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+
+The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
+and initializes the pointer to the C<Core> struct. For those who know
+their way around the Perl API here is the code:
+
+   print PDL_BOOT;
+
+   perl_require_pv ("PDL::Core"); /* make sure PDL::Core is loaded */
+   CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
+ #ifndef aTHX_
+ #define aTHX_
+ #endif
+   if (CoreSV==NULL)
+     Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
+   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   if (PDL->Version != PDL_CORE_VERSION)
+     Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
+
+The C<Core> struct contains version info to ensure that the structure defined
+in F<pdlcore.h> really corresponds to the one obtained at runtime. The code
+above tests for this
+
+   if (PDL->Version != PDL_CORE_VERSION)
+     ....
+
+With these preparations your code can now access the
+core routines as already shown in some of the examples above, e.g.
+
+  pdl *p = PDL->pdlnew();
+
+By default the C variable named C<PDL> is used to hold the pointer to the
+C<Core> struct. If that is (for whichever reason) a problem you can
+explicitly specify a name for the variable with the C<PDL_AUTO_INCLUDE>
+and the C<PDL_BOOT> routines:
+
+   use Inline C => Config =>
+     INC           => &PDL_INCLUDE,
+     TYPEMAPS      => &PDL_TYPEMAP,
+     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE 'PDL_Corep',
+     BOOT          => &PDL_BOOT 'PDL_Corep';
+
+Make sure you use the same identifier with C<PDL_AUTO_INCLUDE>
+and C<PDL_BOOT> and use that same identifier in your own code.
+E.g., continuning from the example above:
+
+  pdl *p = PDL_Corep->pdlnew();
+
+=head2 Some selected core routines explained
+
+The full definition of the C<Core> struct can be found in the file
+F<pdlcore.h>. In the following the most frequently used member
+functions of this struct are briefly explained.
+
+=over 5
+
+=item *
+
+C<pdl *SvPDLV(SV *sv)>
+
+=item *
+
+C<pdl *SetSV_PDL(SV *sv, pdl *it)>
+
+=item *
+
+C<pdl *pdlnew()>
+
+C<pdlnew> returns an empty pdl object that needs further initialization
+to turn it into a proper piddle. Example:
+
+  pdl *p = PDL->pdlnew();
+  PDL->setdims(p,dims,ndims);
+  p->datatype = PDL_B;
+
+=item *
+
+C<pdl *null()>
+
+=item *
+
+C<SV *copy(pdl* p, char* )>
+
+=item *
+
+C<void *smalloc(int nbytes)>
+
+=item *
+
+C<int howbig(int pdl_datatype)>
+
+=item *
+
+C<void add_deletedata_magic(pdl *p, void (*func)(pdl*, int), int param)>
+
+=item *
+
+C<void allocdata(pdl *p)>
+
+=item *
+
+C<void make_physical(pdl *p)>
+
+=item *
+
+C<void make_physdims(pdl *p)>
+
+=item *
+
+C<void make_physvaffine(pdl *p)>
+
+=item *
+
+C<void qsort_X(PDL_Xtype *data, int a, int b)> and
+C<void qsort_ind_X(PDL_Xtype *data, int *ix, int a, int b)>
+
+where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
+Long, Float or Double.
+
+
+=back
+
+=cut
+
+# ones that are not clear:
+# safe_indterm
+# converttypei_new
+# converttype
+# get_convertedpdl
+# affine_new
+# make_trans_mutual
+# make_now
+# get
+# get_offs
+# put_offs
+# setdims_careful
+# tmp
+# destroy
+# twod
+# grow
+# flushcache
+# reallocdims
+# reallocthreadids
+# resize_defaultincs
+
+=head1 SEE ALSO
+
+L<PDL>
+
+L<Inline>
+
+=head1 BUGS
+
+This manpage is still under development.
+Feedback and corrections are welcome.
+
+=head1 COPYRIGHT
+
+Copyright (c) 2001, Christian Soeller. All Rights Reserved.
+This module is free software. It may be used, redistributed
+and/or modified under the same terms as PDL itself
+(see http://pdl.perl.org).
+
+=cut

@@ -3,14 +3,12 @@ Section: math
 Priority: optional
 Maintainer: Raul Miller <moth@debian.org>
 Standards-Version: 3.1.1
-Source-Depends: g77, mesag-dev, xlib6g-dev
+Build-Depends: g77, xlibmesa-dev, xlib6g-dev, libncurses-dev, perl (>= 5.6.0-16), libextutils-f77-perl
 
 Package: pdl
-Section: math
-Priority: optional
 Architecture: any
-Depends:  perl-5.6, libterm-readkey-perl, ${shlibs:Depends}
-Suggests: pgperl, mesag3, netpbm | imagemagick
+Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}
+Suggests: pgperl, libgl1, netpbm | imagemagick
 Conflicts: r-pdl
 Replaces: r-pdl
 Description: The perl data language. Perl extensions for numerics.

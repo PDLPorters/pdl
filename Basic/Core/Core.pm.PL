@@ -1,6 +1,9 @@
 #
 # Create Core.pm
 # - needed since we allow bad pixel handling to be switched off
+#   (note this now only changes the documentation, since we
+#    have PDL::Bad supplying dummy functions -- eg a badvalue()
+#    which always returns 0).
 #
 
 use strict;
@@ -71,14 +74,14 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
    long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat
+   dummy mslice approx flat sclr
    );
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
     long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
-    diagonal dummy mslice approx flat
+    diagonal dummy mslice approx flat sclr
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
@@ -114,7 +117,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *byte	      = \&PDL::byte;	  *at		= \&PDL::at;
 *short        = \&PDL::short;	  *flows	= \&PDL::flows;
-*ushort       = \&PDL::ushort;	
+*ushort       = \&PDL::ushort;	  *sclr         = \&PDL::sclr;
 *long	      = \&PDL::long;	
 *float        = \&PDL::float;	  
 *double       = \&PDL::double;	  *thread_define = \&PDL::thread_define;
@@ -125,7 +128,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *dummy        = \&PDL::dummy;
 *mslice       = \&PDL::mslice;
 *isempty      = \&PDL::isempty;
-
+*string       = \&PDL::string;
 sub barf;
 
 ##################################################################
@@ -282,7 +285,14 @@ Return piddle dimensions as a perl list
  perldl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
-=head2 PDL::getndims
+=head2 ndims
+
+=for ref
+
+Returns the number of dimensions in a piddle. Alias
+for L<getndims|PDL::Core/getndims>.
+
+=head2 getndims
 
 =for ref
 
@@ -297,7 +307,14 @@ Returns the number of dimensions in a piddle
  perldl> p zeroes(10,3,22)->getndims
  3
 
-=head2 PDL::getdim
+=head2 dim
+
+=for ref
+
+Returns the size of the given dimension of a piddle. Alias
+for L<getdim|PDL::Core/getdim>.
+
+=head2 getdim
 
 =for ref
 
@@ -344,11 +361,17 @@ which is doing some fiddling with internals and assumes
 a piddle argument (e.g. for method calls). Using C<topdl()>
 will ensure nothing breaks if passed with '2'.
 
+Note that C<topdl()> is not exported by default (see example
+below for usage). 
+
 =for example
 
- $a = topdl 43;         # $a is piddle with value '43'
- $b = topdl $piddle;    # fall through
- $a = topdl (1,2,3,4);  # Convert 1D array
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
+
+ $a = topdl 43;             # $a is piddle with value '43'
+ $b = topdl $piddle;        # fall through
+ $a = topdl (1,2,3,4);      # Convert 1D array
 
 =head2 PDL::get_datatype
 
@@ -371,7 +394,13 @@ type object, unlike L<type|/type>.
 
 Returns the size of a piddle datatype in bytes.
 
+Note that C<howbig()> is not exported by default (see example
+below for usage). 
+
 =for usage
+
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
 
  $size = howbig($piddle->get_datatype);
 
@@ -421,8 +450,8 @@ sub topdl {PDL->topdl(@_)}
 		
 		"<<="   => sub { PDL::shiftleft ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		">>="   => sub { PDL::shiftright($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
-		"|="    => sub { PDL::orop      ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
-		"&="    => sub { PDL::andop     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"|="    => sub { PDL::or2      ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"&="    => sub { PDL::and2     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		"^="    => sub { PDL::xor       ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 	        "**="   => sub { PDL::power     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 	        "%="    => sub { PDL::modulo    ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
@@ -489,7 +518,13 @@ sub PDL::howbig {
 
 Returns the piddle thread IDs as a perl list
 
+Note that C<threadids()> is not exported by default (see example
+below for usage). 
+
 =for usage
+
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
 
  @ids = threadids $piddle;
 
@@ -708,6 +743,64 @@ sub PDL::dummy($$;$) {
      if $dim>$pdl->getndims || $dim < 0;
          $_[2] = 1 if ($#_ < 2);
          $pdl->slice((','x$dim)."*$_[2]");
+}
+
+=head2 clump
+
+=for ref
+
+"clumps" several dimensions into one large dimension
+
+If called with one argument C<$n> clumps the first C<$n>
+dimensions into one. For example, if C<$a> has dimensions
+C<(5,3,4)> then after
+
+=for example
+
+ $b = $a->clump(2);   # Clump 2 first dimensions
+
+the variable C<$b> will have dimensions C<(15,4)>
+and the element C<$b-E<gt>at(7,3)> refers to the element
+C<$a-E<gt>at(1,2,3)>.
+
+Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
+is provided as a convenient alias.
+
+If C<clump> is called with an index list with more than one element
+it is treated as a list of dimensions that should be clumped together
+into one. The resulting
+clumped dim is placed at the position of the lowest index in the list.
+This convention ensures that C<clump> does the expected thing in
+the usual cases. The following example demonstrates typical usage:
+
+  $a = sequence 2,3,3,3,5; # 5D piddle
+  $c = $a->clump(1..3);    # clump all the dims 1 to 3 into one
+  print $c->info;          # resulting 3D piddle has clumped dim at pos 1
+ PDL: Double D [2,27,5]
+
+=cut
+
+sub PDL::clump {
+  my $ndims = $_[0]->getndims;
+  if ($#_ < 2) {
+    barf "Error in clump: Too many dimensions $_[1] to clump from $ndims"
+      if $_[1] > $ndims;
+    return &PDL::_clump_int(@_);
+  } else {
+    my ($this,@dims) = @_;
+    my $targd = $ndims-1;
+    my @dimmark = (0..$ndims-1);
+    barf "too many dimensions" if @dims > $ndims;
+    for my $dim (@dims) {
+      barf "dimension index $dim larger than greatest dimension"
+	if $dim > $ndims-1 ;
+      $targd = $dim if $targd > $dim;
+      barf "duplicate dimension $dim" if $dimmark[$dim]++ > $dim;
+    }
+    my $clumped = $this->thread(@dims)->unthread(0)->clump(scalar @dims);
+    $clumped = $clumped->mv(0,$targd) if $targd > 0;
+    return $clumped;
+  }
 }
 
 =head2 thread_define
@@ -961,9 +1054,7 @@ my %info = (
 				 !$_[0]->allocated; # apparently can be both?
 			       $state .= '-' if $state eq '';   # lazy eval
 			       $state .= 'C' if $_[0]->anychgd;
-!NO!SUBS!
-    print OUT "	       \$state .= 'B' if \$_[0]->badflag;\n" if $bvalflag;
-    print OUT <<'!NO!SUBS!';
+ 			       $state .= 'B' if $_[0]->badflag;
 			       $state;
 			     },
 		 },
@@ -1178,14 +1269,77 @@ allowing easier inclusion of dimensions in perl code.
 
 =cut
 
+# called for colon-less args
+# preserves parens if present
+sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
+
 sub PDL::mslice {
         my($pdl) = shift;
         return $pdl->slice(join ',',(map {
-                        $_ eq "X" ? ":" :
-                        ref $_ eq "ARRAY" ? join ':', map {int $_} @$_ :
-                        !ref $_ ? int $_ :
+                        !ref $_ && $_ eq "X" ? ":" :
+			   ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+			   "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
+                        !ref $_ ? intpars $_ :
                         die "INVALID SLICE DEF $_"
                 } @_));
+}
+
+=head2 nslice
+
+=for ref
+
+Internally used interface to L<slice|/PDL::Slice/slice>
+and L<dice|/PDL::Slice/dice> that is the runtime part of
+the L<PDL::NiceSlice|PDL::NiceSlice> implementation.
+
+=for usage
+
+ $a = $x->nslice(...);
+
+=for example
+
+ # below is the same as $x->slice("5:7,:,3:4:2")
+ $a = $x->nslice([5,7],X,[3,4,2]);
+
+It implements a superset of L<mslice|PDL::Core/mslice>'s
+features. Should probably not be used in your scripts. Rather
+resort to the L<PDL::NiceSlice|PDL::NiceSlice> interface.
+
+=cut
+
+#' get quotes right for emacs
+
+sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
+		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
+		  die "multielement piddle where only one allowed" :
+		    die "non piddle ref '".ref $_[0]."'"
+		      : int $_[0] }
+sub PDL::nslice {
+  my($pdl) = shift;
+  my @args = @_;
+  my $i = 0;
+  for (@args) {
+    if (UNIVERSAL::isa($_,'PDL')) {
+      if ($_->nelem > 1) {
+	PDL::Core::barf 'piddle must be <= 1D' if $_->getndims > 1;
+	# dice this axis
+	$pdl = $pdl->dice_axis($i,$_);
+	# and keep resulting dim fully in slice
+	$_ = 'X'; } 
+      else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+                                    # to a scalar for 'slice'
+    }
+    $i++;
+  }
+  # print STDERR 'processed arglist: ',join(',',@args);
+  my $slstr = join ',',(map {
+    !ref $_ && $_ eq "X" ? ":" :
+      ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
+	"("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
+	  _intpar $_
+	} @args);
+  # print STDERR "slicestr: $slstr\n";
+  return $pdl->slice($slstr);
 }
 
 # Utility to determine if argument is blessed object
@@ -1508,12 +1662,14 @@ flatten a piddle (alias for C<$pdl->clump(-1)>)
 Useful method to make a 1D piddle from an
 arbitrarily sized input piddle. Data flows
 back and forth as usual with slicing routines.
+Falls through if argument already 1D, 0D args are
+promoted to 1D.
 
 =cut
 
 *flat = \&PDL::flat;
-sub PDL::flat {
-  return $_[0]->clump(-1);
+sub PDL::flat { # fall through if < 2D
+  return $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
 =head2 convert
@@ -1669,8 +1825,14 @@ A convenience function for use with the piddle constructors, e.g.
 =for example
 
  $b = PDL->zeroes($a->type,$a->dims,3);
+ die "must be float" unless $a->type == float;
 
-See the discussion of the C<PDL::Type> object in L<PDL::Types>.
+See also the discussion of the C<PDL::Type> class in L<PDL::Types>.
+Note that the C<PDL::Type> objects have overloaded comparison and
+stringify operators so that you can compare and print types:
+
+ $a = $a->float if $a->type < float;
+ $t = $a->type; print "Type is $t\";
 
 =cut
 
@@ -1682,7 +1844,7 @@ sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 $PDL::_STRINGIZING = 0;
 
-sub string {
+sub PDL::string {
     my($self,$format)=@_;
     if($PDL::_STRINGIZING) {
     	return "ALREADY_STRINGIZING_NO_LOOPS";
@@ -1693,23 +1855,12 @@ sub string {
     	return "TOO LONG TO PRINT";
     }
     if ($ndims==0) {
-!NO!SUBS!
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
 	if ( $self->badflag() and $self->isbad() ) {
 	    return "BAD";
 	} else {
 	    my @x = $self->at();
 	    return ($format ? sprintf($format, $x[0]) : "$x[0]");
 	}
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-	 my @x = $self->at();
-	 return ($format ? sprintf($format, $x[0]) : "$x[0]");
-!NO!SUBS!
-} # if: $bvalflag
-print OUT <<'!NO!SUBS!';
     }
     return "Null" if $self->isnull;
     return "Empty" if $self->isempty; # Empty piddle
@@ -1865,6 +2016,68 @@ sub PDL::at {     # Return value at ($x,$y,$z...)
     at_c ($self, [@_]);
 }
 
+=head2 sclr
+
+=for ref
+
+return a single value from a piddle as a scalar
+
+=for example
+
+  $val = $a(10)->sclr;
+  $val = sclr inner($a,$b);
+
+The C<sclr> method is useful to turn a piddle into a normal Perl
+scalar. Its main advantage over using C<at> for this purpose is the fact
+that you do not need to worry if the piddle is 0D, 1D or higher dimensional.
+Using C<at> you have to supply the correct number of zeroes, e.g.
+
+  $a = sequence(10);
+  $b = $a->slice('4');
+  print $b->sclr; # no problem
+  print $b->at(); # error: needs at least one zero
+
+C<sclr> is generally used when a Perl scalar is required instead
+of a one-element piddle. If the input is a multielement piddle
+the first value is returned as a Perl scalar. You can optionally
+switch on checks to ensure that the input piddle has only one element:
+
+  PDL->sclr({Check => 'warn'}); # carp if called with multi-el pdls
+  PDL->sclr({Check => 'barf'}); # croak if called with multi-el pdls
+
+are the commands to switch on warnings or raise an error if
+a multielement piddle is passed as input. Note that these options
+can only be set when C<sclr> is called as a class method (see
+example above). Use
+
+  PDL->sclr({Check=>0});
+
+to switch these checks off again (default setting);
+When called as a class method the resulting check mode is returned
+(0: no checking, 1: warn, 2: barf).
+
+=cut
+
+my $chkmode = 0; # default mode no checks
+use Carp;
+use PDL::Options;
+sub PDL::sclr {
+  my $this = shift;
+  if (ref $this) { # instance method
+    carp "multielement piddle in 'sclr' call"
+      if ($chkmode == 1 && $this->nelem > 1);
+    croak "multielement piddle in 'sclr' call"
+      if ($chkmode == 2 && $this->nelem > 1);
+    return sclr_c($this);
+  } else {  # class method
+    my $check = (iparse({Check=>0},ifhref($_[0])))[1];
+    if (lc($check) eq 'warn') {$chkmode = 1}
+    elsif (lc($check) eq 'barf') {$chkmode = 2}
+    else {$chkmode = $check != 0 ? 1 : 0}
+    return $chkmode;
+  }
+}
+
 =head2 cat
 
 =for ref
@@ -1914,15 +2127,9 @@ sub PDL::cat {
   my ($i,$t); my $s = ":,"x$_[0]->getndims;
   for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
 
-!NO!SUBS!
-	if ( $bvalflag ) {
-print OUT <<'!NO!SUBS!';
-        # propogate any bad flags
-	for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
-!NO!SUBS!
-} # if: $bvalflag
+   # propogate any bad flags
+   for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
 
-print OUT <<'!NO!SUBS!';
   return $res;
 }
 
@@ -2172,9 +2379,7 @@ sub str1D {
     my $dtype = $self->get_datatype();
     $dformat = $PDL::floatformat  if $dtype == $PDL_F;
     $dformat = $PDL::doubleformat if $dtype == $PDL_D;
-!NO!SUBS!
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
+
     my $badflag = $self->badflag();
     for $t (@$x) {
 	if ( $badflag and $t eq "BAD" ) {
@@ -2188,23 +2393,7 @@ sub str1D {
 	}
        $ret .= $t.$sep;
     }
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-    for $t (@$x) {
-        if ($format) {
-	  $t = sprintf $format,$t;
-	} else{ # Default
-	    if ($dformat && length($t)>7) { # Try smaller
-		$t = sprintf $dformat,$t;
-	    }
-	}
-       $ret .= $t.$sep;
-    }
-!NO!SUBS!
-} # if: $bvalflag
 
-    print OUT <<'!NO!SUBS!';
     chop $ret; $ret.="]";
     return $ret;
 }
@@ -2220,22 +2409,13 @@ sub str2D{
     my ($i, $f, $t, $len, $ret);
 
     my $dtype = $self->get_datatype();
-!NO!SUBS!
-
-    if ( $bvalflag ) { print OUT 
-'    my $badflag = $self->badflag();
-';
-}
-    print OUT <<'!NO!SUBS!';
+    my $badflag = $self->badflag();
 
     my $findmax = 1;
     if (!defined $format || $format eq "") { 
 	# Format not given? - find max length of default
 	$len=0;
 
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
 	if ( $badflag ) {
 	    for (@$x) { 
 		if ( $_ eq "BAD" ) { $i = 3; } 
@@ -2245,14 +2425,7 @@ sub str2D{
 	} else {
 	    for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
 	}
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-	for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
-!NO!SUBS!
-} # if: $bvalflag
 
-	print OUT <<'!NO!SUBS!';
 	$format = "%".$len."s";
 	
 	if ($len>7) { # Too long? - perhaps try smaller format
@@ -2274,9 +2447,7 @@ sub str2D{
     if($findmax) {
 	# Find max length of strings in final format
 	$len=0;
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
+
 	if ( $badflag ) {
 	    for (@$x) {
 		if ( $_ eq "BAD" ) { $i = 3; }
@@ -2288,16 +2459,6 @@ sub str2D{
 		$i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
 	    }
 	}
-!NO!SUBS!
-} else {
-    print OUT <<'!NO!SUBS!';
-	for (@$x) {
-	    $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
-	}
-!NO!SUBS!
-} # if: $bvalflag
-	
-    print OUT <<'!NO!SUBS!';
     } # if: $findmax
 
     $ret = "\n" . " "x$level . "[\n";
@@ -2305,22 +2466,13 @@ sub str2D{
 	my $level = $level+1;
 	$ret .= " "x$level ."[";
 	for ($i=0; $i<=$#$x; $i++) {
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
+
 	    if ( $badflag and $$x[$i] eq "BAD" ) {
 		$f = "BAD";
 	    } else {
 		$f = sprintf $format,$$x[$i];
 	    }
-!NO!SUBS!
-} else {
-    print OUT <<'!NO!SUBS!';
-            $f = sprintf $format,$$x[$i];
-!NO!SUBS!
-} # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
 	    $t = $len-length($f); $f = " "x$t .$f if $t>0;
 	    $ret .= $f;
 	    if (($i+1)%$dims[0]) {

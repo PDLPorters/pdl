@@ -48,11 +48,21 @@ print OUT <<'!NO!SUBS!';
 
 #include "pdl.h"
 #include "pdlthread.h"
+/* the next one causes trouble in c++ compiles - exclude for now */
+#ifndef __cplusplus
 #include "pdlmagic.h"
+#endif
 
 !NO!SUBS!
 
     print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
+
+print OUT <<'!NO!SUBS!' if ($^O =~ /MSWin/);
+ 
+#define finite _finite
+#include <float.h>
+
+!NO!SUBS!
 
 print OUT <<'!NO!SUBS!';
 
@@ -213,8 +223,8 @@ void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 struct Core {
     I32    Version;
     pdl*   (*SvPDLV)      ( SV*  );
-    void   (*SetSV_PDL)( SV *sv, pdl *it );
-    pdl*   (*new)         ( );
+    void   (*SetSV_PDL)   ( SV *sv, pdl *it );
+    pdl*   (*pdlnew)      ( );  /* renamed because of C++ clash */
     pdl*   (*tmp)         ( );
     pdl*   (*create)      (int type);
     void   (*destroy)     (pdl *it);

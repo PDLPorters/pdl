@@ -30,8 +30,8 @@ package PDL::Lvalue;
 
 # list of functions that can be used as lvalue subs
 # extend as necessary
-my @funcs = qw/slice mslice index where px diagonal clump
-  dummy index2d dice xchg mv/;
+my @funcs = qw/slice mslice nslice index where px diagonal clump
+  dummy index2d dice dice_axis xchg mv flat sever/;
 my $prots = join '', map { my $proto = prototype "PDL::$_";
 	my $pstr = $proto ? "($proto)" : "";
 	          "sub $_ $pstr : lvalue;\n"}
@@ -50,6 +50,11 @@ test if routine is a known PDL lvalue sub
 returns the list of PDL lvalue subs if no routine name is given, e.g.
 
   @lvfuncs = PDL::Lvalue->subs;
+
+It can be used in scalar context to find out if your
+PDL has lvalue subs:
+
+  print 'has lvalue subs' if PDL::Lvalue->subs;
 
 =cut
 

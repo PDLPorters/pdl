@@ -170,9 +170,9 @@ $ppcode .= exports(\%consts);
 #
 $ppcode .= "pp_addpm(<<'EODOCS');\n";
 $ppcode .= "\n=head2 OpenGL Interface Functions\n\n";
-$ppcode .= "=for ref\n\nThe following is a list of OpenGL functions for which an interface was created.  Please refer to the OpenGL documentation for descriptions.\n\n";
+$ppcode .= "=over 4\n\nThe following is a list of OpenGL functions for which an interface was created.  Please refer to the OpenGL documentation for descriptions.\n\n";
 $ppcode .= $pmdocs;
-$ppcode .= "=cut\n\nEODOCS\n";
+$ppcode .= "=back\n\n=cut\n\nEODOCS\n";
 
 $ppcode .= "pp_done();";
 open(F,">ppcode.out");
@@ -292,7 +292,7 @@ sub getfuncs {
 	 my @args = split(/\,/,$args);
 	 @args=() if (($args =~ /^\s*void\s*$/) || ($args =~ /^\s*$/));
 
-    $pmdocs .= "=for ref \n\n$name\n\n";
+    $pmdocs .= "=item * \n\n$name\n\n";
 
 	 $outstr .= "pp_addxs('','\n";
 	 $outstr .= "$rt\n";
@@ -662,7 +662,9 @@ my $debug;
 
 Returns a new OpenGL object with attributes specified in the options
 field.  These attributes are:
+
 =for ref
+
   x,y - the position of the upper left corner of the window (0,0)
   width,height - the width and height of the window in pixels (500,500)
   parent - the parent under which the new window should be opened (root)

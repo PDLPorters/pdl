@@ -90,7 +90,7 @@ print OUT <<'!NO!SUBS!';
 
 #define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))
 
-#define SET_RETVAL_NV x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
+#define SET_RETVAL_NV(x) x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
 
 Core PDL; /* Struct holding pointers to shared C routines */
 
@@ -565,6 +565,29 @@ set_debugging(i)
 	RETVAL
 
 
+SV *
+sclr_c(it)
+   pdl* it
+   CODE:
+	PDL_Long nullp = 0;
+	PDL_Long dummyd = 1;
+	PDL_Long dummyi = 1;
+	double result;
+
+        /* get the first element of a piddle and return as
+         * Perl double scalar (NV)
+         */
+        pdl_make_physvaffine( it );
+	if (it->nvals < 1)
+           barf("piddle must have at least one element");
+	/* offs = PDL_REPROFFS(it); */
+        /* result = pdl_get_offs(PDL_REPRP(it),offs); */
+        result=pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
+        &dummyi, PDL_REPROFFS(it),1);
+        SET_RETVAL_NV(it) ;
+
+    OUTPUT:
+        RETVAL
 
 
 SV *
@@ -595,7 +618,7 @@ at_c(x,position)
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
 	x->ndims);
 
-    SET_RETVAL_NV ;
+    SET_RETVAL_NV(x) ;
 
     OUTPUT:
      RETVAL
@@ -776,14 +799,14 @@ BOOT:
    PDL.SvPDLV      = SvPDLV;
    PDL.SetSV_PDL   = SetSV_PDL;
    PDL.create      = pdl_create;
-   PDL.new         = pdl_external_new;
+   PDL.pdlnew      = pdl_external_new;
    PDL.tmp         = pdl_external_tmp;
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
-   PDL.smalloc      = pdl_malloc;
+   PDL.smalloc     = pdl_malloc;
    PDL.howbig      = pdl_howbig;
    PDL.packdims    = pdl_packdims;
    PDL.unpackdims  = pdl_unpackdims;
@@ -1019,6 +1042,8 @@ set_dataflow_b(self,value)
 int
 getndims(x)
 	pdl *x
+	ALIAS:
+	     PDL::ndims = 1
 	CODE:
 		pdl_make_physdims(x);
 		RETVAL = x->ndims;
@@ -1029,6 +1054,8 @@ int
 getdim(x,y)
 	pdl *x
 	int y
+	ALIAS:
+	     PDL::dim = 1
 	CODE:
 		pdl_make_physdims(x);
 		if (y < 0) y = x->ndims + y;

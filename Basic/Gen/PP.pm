@@ -14,10 +14,13 @@ use Exporter;
 
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
-		      pp_core_importList pp_beginwrap pp_setversion pp_addbegin/;
+		      pp_core_importList pp_beginwrap pp_setversion
+                      pp_addbegin pp_boundscheck /;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
+
+$PDL::PP::VERSION = 2.2;
 
 use Carp;
 
@@ -31,9 +34,12 @@ my $ntypes = $#PDL::Types::names;
 
 use strict;
 
+sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
+
 sub import {
-	my ($mod,$modname, $packname, $prefix) = @_;
+	my ($mod,$modname, $packname, $prefix, $callpack) = @_;
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
+	$::CALLPACK = defined $callpack ? $callpack : $::PDLMOD;
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
 	$::PDLXS="";
 	$::PDLBEGIN="";
@@ -49,6 +55,20 @@ sub import {
 				# importing barf only.
 	@_=("PDL::PP");
 	goto &Exporter::import;
+}
+
+
+# query/set boungschecking
+# if on the generated XS code will have optional boundschecking
+# that can be turned on/off at runtime(!) using
+#   __PACKAGE__::set_boundscheck(arg); # arg should be 0/1
+# if off code is speed optimized and no runtime boundschecking
+# can be performed
+# ON by default
+sub pp_boundscheck {
+  my $ret = $PP::boundscheck;
+  $PP::boundscheck = $_[0] if $#_ > -1;
+  return $ret;
 }
 
 sub pp_beginwrap {
@@ -82,7 +102,8 @@ sub pp_addpm {
 }
 
 sub pp_add_exported {
-	my ($this,$exp) = @_;
+	# my ($this,$exp) = @_;
+        my $exp = join ' ', @_; # get rid of this silly $this argument
 	$::PDLPMROUT .= $exp." ";
 }
 
@@ -126,7 +147,7 @@ sub printxs {
 }
 
 sub pp_addxs {
-	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::PDLMOD\n\n",
+	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::CALLPACK\n\n",
                          @_,
                          "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
 }
@@ -140,6 +161,7 @@ sub pp_done {
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n\n\n=cut\n\n\n"
 	  : '';
 	print "DONE!\n" if $::PP_VERBOSE;
+	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	(my $fh = new FileHandle(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
 
 $fh->print(qq%
@@ -154,7 +176,7 @@ $fh->print(qq%
 static Core* PDL; /* Structure hold core C functions */
 static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
-SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
 /* we need to handle croak ourserlves */
 /* #undef croak
@@ -211,12 +233,14 @@ BOOT:
      Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
 %);
+
+unless (nopm) {	
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
-($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
+	($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
 
-$fh->print(qq%
+	$fh->print(qq%
 #
 # GENERATED WITH PDL::PP! Don't modify!
 #
@@ -251,8 +275,8 @@ $::PDLPM{Bot}
 
 1;
 
-%);
-
+		   %);  # end of print
+      }  # unless (nopm) {...
 }
 
 sub pp_def {
@@ -292,7 +316,8 @@ sub pp_def {
 # final free time (thread, dimmed things).
 
 use Carp;
-$SIG{__DIE__} = sub {print Carp::longmess(@_); die;};
+$SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
+  if $::PP_VERBOSE;  # seems to give us trouble with 5.6.1
 
 # Rule table syntax:
 # make  $_->[0] from $_->[1].

@@ -66,8 +66,8 @@ Suffix magic:
 
   # Automatically uncompress via gunzip pipe
   $pdl = rfits('file.fits.gz');
-  # Automatically uncompress via uncompress pipe 
-  $pdl = rfits('file.fits.Z');  
+  # Automatically uncompress via uncompress pipe
+  $pdl = rfits('file.fits.Z');
 
   $pdl = rfits('file.fits[2]'); # Read HDU extension #2
   $pdl = rfits('file.fits.gz[3]'); # Read HDU extension #3
@@ -81,14 +81,15 @@ FITS Headers stored in piddle and can be retrived with $a->gethdr.
 The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
 header is copied to new piddles.
 
-This header is a reference to a hash where the hash keys are the 
-keywords in the FITS header. It is important to note that for strings, 
+This header is a reference to a hash where the hash keys are the
+keywords in the FITS header. It is important to note that for strings,
 the surrounding quotes are kept to ensure that strings that look like
-numbers are kept as strings. This is also of importance if you create 
-your own header information and you want the value to be printed out 
+numbers are kept as strings. This is also of importance if you create
+your own header information and you want the value to be printed out
 as a string. Each record (comprising keyword, value, and
 any comment string) must fit within 80 characters; any value that
-is too long is truncated (silently).
+is too long is truncated (silently). Also, keywords are converted to
+I<uppercase>; this is part of the FITS standard.
 
 Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where C<$h> is
 the header retrieved with C<$a-E<gt>gethdr>.
@@ -110,6 +111,9 @@ converted to bad (if necessary).
 } # if: $bvalflag
 
 #'
+
+# it would be good to allow the use of the Astro::FITS::Header
+# (on CPAN) if available.
 
 pp_addpm(<<'!NO!SUBS!');
 =cut
@@ -217,7 +221,7 @@ sub PDL::rfits {
 
    # Slurp the FITS binary data
 
-   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , "bytes\n" if
+   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" if
    $PDL::verbose;
 
    read( FITS, $$dref, $size*PDL::Core::howbig($pdl->get_datatype) );
@@ -232,74 +236,64 @@ sub PDL::rfits {
       bswap8($pdl) if $pdl->get_datatype == $PDL_D;
    }
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-
-   # do we have bad values? - needs to be done before BSCALE/BZERO
-   # (at least for integers)
-   #
-   if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
-       # integer, so bad value == BLANK keyword
-       my $blank = $foo->{BLANK};
-       # do we have to do any conversion?
-       if ( $blank == $pdl->badvalue() ) {
-	   $pdl->badflag(1);
-       } else {
-	   # we change all BLANK values to the current bad value
-	   # (would not be needed with a per-piddle bad value)
-	   $pdl->inplace->setvaltobad( $blank );
+   if ( $PDL::Bad::Status ) {
+       # do we have bad values? - needs to be done before BSCALE/BZERO
+       # (at least for integers)
+       #
+       if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
+	   # integer, so bad value == BLANK keyword
+	   my $blank = $foo->{BLANK};
+	   # do we have to do any conversion?
+	   if ( $blank == $pdl->badvalue() ) {
+	       $pdl->badflag(1);
+	   } else {
+	       # we change all BLANK values to the current bad value
+	       # (would not be needed with a per-piddle bad value)
+	       $pdl->inplace->setvaltobad( $blank );
+	   }
+       } elsif ( $foo->{BITPIX} < 0 ) {
+	   # bad values are stored as NaN's in FITS
+	   # let setnanbad decide if we need to change anything
+	   $pdl->inplace->setnantobad();
        }
-   } elsif ( $foo->{BITPIX} < 0 ) {
-       # bad values are stored as NaN's in FITS
-       # let setnanbad decide if we need to change anything
-       $pdl->inplace->setnantobad();
-   }
-   print "FITS file may contain bad values.\n" 
-       if $pdl->badflag() and $PDL::verbose;
-!NO!SUBS!
-
-} # if: $bvalflag
-
-   pp_addpm(<<'!NO!SUBS!');
+       print "FITS file may contain bad values.\n"
+	   if $pdl->badflag() and $PDL::verbose;
+   } # if: PDL::Bad::Status
 
    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
    $bscale = 1 if $bscale eq "";
    $bzero  = 0 if $bzero  eq "";
-   
+
    # Be clever and work out the final datatype before eating
    # memory
-
-!NO!SUBS!
-
-   if ( ! $bvalflag ) {
-       pp_addpm( '   my $tmp = $pdl->clump(-1)->slice("0:0");' . "\n" );
-   } else {
-       pp_addpm(<<'!NO!SUBS!');
-   # have to be careful about the first element begin bad
+   #
+   # ensure we pick an element that is not equal to the bad value
+   # (is this OTT?)
    my $tmp;
    if ( $pdl->badflag() == 0 ) {
-      $tmp = $pdl->clump(-1)->slice("0:0");
-   } else { 
-      # this loop assumes there's at least one good pixel - too lazy to fix
-      my $index = 0;
-      while ( $pdl->clump(-1)->slice("${index}:${index}")->isbad() ) { $index++; }
-      $tmp = $pdl->clump(-1)->slice("${index}:${index}");
+       $tmp = $pdl->flat()->slice("0:0");
+   } elsif ( $pdl->ngood > 0 ) {
+       my $index = which( $pdl->flat()->isbad() == 0 )->at(0);
+       $tmp = $pdl->flat()->slice("${index}:${index}");
+   } else {
+       # all bad, so ignore the type conversion and return
+       # -- too lazy to include this check in the code below,
+       #    so just copy the header clean up stuff
+       print "All elements are bad.\n" if $PDL::verbose;
+       
+       delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+       $pdl->sethdr($foo);
+       $pdl->hdrcpy(1);
+       return $pdl;
    }
-
-!NO!SUBS!
-} 
-
-pp_addpm(<<'!NO!SUBS!');
 
    $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element of $pdl
    $tmp = $tmp+$bzero  if $bzero  != 0;
-  
+
    $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
-   
-   $pdl *= $bscale if $bscale != 1; 
+
+   $pdl *= $bscale if $bscale != 1;
    $pdl += $bzero  if $bzero  != 0;
 
    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
@@ -413,7 +407,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    %hdr = ();
    my $h = $pdl->gethdr;
    if (defined($h)) {
-      for (keys %$h) { $hdr{$_} = $$h{$_} } # Copy
+      for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
    }
 
    delete $hdr{SIMPLE}; delete $hdr{'END'};
@@ -436,26 +430,15 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    }
    wheader('BUNIT');
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-
-    # IF badflag is set
-    #   and BITPIX > 0 - ensure the header contains the BLANK keyword
-    #                    (make sure it's for the correct type)
-    #   otherwise      - make sure the BLANK keyword is removed
-    if ( $pdl->badflag() ) {
+   # IF badflag is set
+   #   and BITPIX > 0 - ensure the header contains the BLANK keyword
+   #                    (make sure it's for the correct type)
+   #   otherwise      - make sure the BLANK keyword is removed
+   if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
        else               { delete $HDR{BLANK}; }
-    }
-
-!NO!SUBS!
-
-} # if: $bvalflag
-
-   pp_addpm(<<'!NO!SUBS!');
-
+   }
+  
    for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
    wheader('HISTORY'); # Make sure that HISTORY entries come last.
    printf FITS "%-80s", "END"; $nbytes += 80;
@@ -487,62 +470,35 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
    my $tmp;
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-
-	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-	    # just print up a message - conversion is actually done in the loop
-	    print "Converting PDL bad value to NaN\n" if $PDL::verbose;
-	}
-
-!NO!SUBS!
-
-} # if: $bvalflag
-
-   pp_addpm(<<'!NO!SUBS!');
+   if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+       # just print up a message - conversion is actually done in the loop
+       print "Converting PDL bad value to NaN\n" if $PDL::verbose;
+   }
 
    while ($nbytes - $off > $BUFFSZ) {
 
-      # Data to be transferred
+       # Data to be transferred
 
-      $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
-                         -$bzero)/$bscale );
+       $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
+			   -$bzero)/$bscale );
 
-!NO!SUBS!
+       # if there are bad values present, and output type is floating-point,
+       # convert the bad values to NaN's.  We can ignore integer types, since
+       # we have set the BLANK keyword
+       #
+       if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	   $buff->inplace->setbadtonan();
+       }
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-	# if there are bad values present, and output type is floating-point,
-	# convert the bad values to NaN's.  We can ignore integer types, since
-	# we have set the BLANK keyword
-	#
-	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
-	    $buff->inplace->setbadtonan();
-	}
-!NO!SUBS!
-
-} # if: $bvalflag
-
-   pp_addpm(<<'!NO!SUBS!');
-
-      &$bswap($buff); print  FITS ${$buff->get_dataref};
-      $off += $BUFFSZ;
+       &$bswap($buff); print FITS ${$buff->get_dataref};
+       $off += $BUFFSZ;
    }
    $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-    if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+   if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
        $buff->inplace->setbadtonan();
-    }
-!NO!SUBS!
+   }
 
-} # if: $bvalflag
-	pp_addpm(<<'!NO!SUBS!');
    &$bswap($buff); print  FITS ${$buff->get_dataref};
    print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
 

@@ -1,8 +1,15 @@
+MANIFEST\.old
 ~$
 \.BAK$
 ^\.exists
+^_Inline
+^[.]Inline
 ^Basic/Core/badsupport\.p
 .*\.0$
+\.(tmp|new|diff|ori)$
+^Basic/SourceFilter/INSTALL
+^Basic/SourceFilter/MANIFEST
+^Basic/SourceFilter/README
 ^t/.*\.pnm$
 ^core
 ^pdldoc.db$
@@ -40,6 +47,7 @@ pdlexamples\.c$
 ^Basic/Bad/Bad\.c$
 ^Basic/Bad/Bad\.pm$
 ^Basic/Bad/Bad\.xs$
+^Basic/Gen/pptemplate.pod$
 ^Basic/Math/Math\.c$
 ^Basic/Math/Math\.pm$
 ^Basic/Math/Math\.xs$
@@ -54,8 +62,8 @@ pdlexamples\.c$
 ^Basic/Core/Types\.pm$
 ^Basic/Core/Core\.pm$
 ^Basic/Core/Core\.xs$
-^Basic/Core/pdlapi\.c$
 ^Basic/Core/pdlcore\.[ch]$
+^Basic/Gen/pptemplate$
 ^Basic/Ops/Ops\.c$
 ^Basic/Ops/Ops\.xs$
 ^Basic/Ops/Ops\.pm$
@@ -65,6 +73,9 @@ pdlexamples\.c$
 ^Basic/Slices/Slices\.c$
 ^Basic/Slices/Slices\.xs$
 ^Basic/Slices/Slices\.pm$
+^Basic/SourceFilter/MANIFEST
+^Basic/SourceFilter/README
+^Basic/SourceFilter/README\.head
 ^Basic/GTest/GTest\.c$
 ^Basic/GTest/GTest\.xs$
 ^Basic/GTest/GTest\.pm$
@@ -111,6 +122,11 @@ Lib/PCA/PCA*
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
 ^Graphics/TriD/OpenGLQ/blib
 ^Graphics/TriD/Rout/Rout\.*
+^Graphics/PGPLOT/Window/Window.c
+^Graphics/TriD/OpenGL/OpenGL.pm
+^Graphics/TriD/OpenGL/OpenGL.xs
+^Graphics/TriD/OpenGL/ppcode.out
+^Graphics/TriD/OpenGL/typemap
 ^Basic/Test/Tests\..*
 ^Graphics/IIS/IIS\..*
 ^Image2D/Image2D\..*
@@ -146,3 +162,4 @@ so_locations
 ^Demos/BAD_demo.pm$
 ^Demos/BAD2_demo.pm$
 ^IO/NDF/NDF.pm$
+^win32/pbmwin32.tar.gz

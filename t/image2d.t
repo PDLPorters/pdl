@@ -2,8 +2,8 @@
 #
 
 use Test;
-BEGIN { 
-    plan tests => 9; 
+BEGIN {
+    plan tests => 15;
 }
 
 use PDL;
@@ -49,6 +49,20 @@ tapprox( conv2d($b,$a,{Boundary => 'Reflect'}), $ans );
 $ans = pdl ([8,15,12],[21,36,27],[20,33,24]);
 tapprox( conv2d($b,$a,{Boundary => 'Truncate'}), $ans );
 
+# max2d_ind
+$a = 100 / (1.0 + rvals(5,5));
+$a = $a * ( $a < 90 );
+my @ans = $a->max2d_ind();
+print "max2d_ind: " . join( ',', @ans ) . "\n";
+ok( $ans[0] == 50 & $ans[1] == 1 & $ans[2] == 2 );
+
+# centroid2d
+$a = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
+$a = $a * ( $a >= 9 );
+@ans = $a->centroid2d( 10, 10, 20 );
+tapprox( $ans[0], 8.432946  );  # numbers calculated by an independent program
+tapprox( $ans[1], 11.756724 );
+
 # med2d
 my $t;
 $a = zeroes(5,5);
@@ -86,14 +100,27 @@ if ( $PDL::Bad::Status ) {
 
     #print $a, patchbad2d($a);
     tapprox( patchbad2d($a), $ans );  # 8
-    
+
     # patchbad2d: good data
     $a = sequence(5,5);
     #print $a, patchbad2d($a);
     tapprox( patchbad2d($a), $a );  # 9
 
+    # max2d_ind
+    $a = 100 / (1.0 + rvals(5,5));
+    $a = $a->setbadif( $a > 90 );
+    my @ans = $a->max2d_ind();
+    print "max2d_ind: " . join( ',', @ans ) . "\n";
+    ok( $ans[0] == 50 & $ans[1] == 1 & $ans[2] == 2 );
+
+    # centroid2d
+    $a = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
+    $a = $a->setbadif( $a < 9 );
+    @ans = $a->centroid2d( 10, 10, 20 );
+    tapprox( $ans[0], 8.432946  );  # numbers should be same as when set < 9 to 0
+    tapprox( $ans[1], 11.756724 );
+
 } else { 
     my $msg = "Skipped: PDL::Bad support not available.";
-    skip($msg,1,1);
-    skip($msg,1,1);
+    for (0..4) { skip($msg,1,1) } # skip 5 tests
 }
