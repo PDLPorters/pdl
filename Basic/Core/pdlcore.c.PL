@@ -47,7 +47,7 @@ static SV *getref_pdl(pdl *it) {
 	if(!it->sv) {
 		SV *ref;
 		HV *stash = gv_stashpv("PDL",TRUE);
-		SV *psv = newSViv((IV)it);
+		SV *psv = newSViv(PTR2IV(it));
 		it->sv = psv;
 		newref = newRV_noinc(it->sv);
 		(void)sv_bless(newref,stash);
@@ -303,7 +303,7 @@ print OUT <<'!NO!SUBS!';
 	ret = pnew;
    } else {
 #else
-	   ret = (pdl *)SvIV(sv2);
+	   ret = INT2PTR(pdl *,SvIV(sv2));
 #endif
 #ifdef FOOOOOOOO
    }

@@ -228,7 +228,7 @@ BOOT:
 #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "This module requires use of PDL::Core first");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   PDL = INT2PTR(Core*, SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT

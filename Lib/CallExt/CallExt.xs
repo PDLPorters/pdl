@@ -54,5 +54,5 @@ BOOT:
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
    if (CoreSV==NULL)
      croak("This module requires use of PDL::Core first");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
                                   
