@@ -21,31 +21,31 @@ PDL::Graphics::PGPLOT is an interface to the PGPLOT graphical libraries.
 
 Current display commands:
 
-   imag         -  Display an image (uses pgimag()/pggray() as appropriate)
-   ctab         -  Load an image colour table
-   line         -  Plot vector as connected points
-   points       -  Plot vector as points
-   errb         -  Plot error bars
-   cont         -  Display image as contour map
-   bin          -  Plot vector as histogram ( e.g. C<bin(hist($data))> )
-   hi2d         -  Plot image as 2d histogram (not very good IMHO...)
-   poly         -  Draw a polygon
-   vect         -  Display 2 images as a vector field
+  imag       -  Display an image (uses pgimag()/pggray() as appropriate)
+  ctab       -  Load an image colour table
+  line       -  Plot vector as connected points
+  points     -  Plot vector as points
+  errb       -  Plot error bars
+  cont       -  Display image as contour map
+  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
+  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
+  poly       -  Draw a polygon
+  vect       -  Display 2 images as a vector field
 
 Device manipulation commands:
 
-   hold         -  Hold current plot window range - allows overlays etc.
-   release      -  Release back to autoscaling of new plot window for each 
-                   command
-   rel          -  short alias for 'release'
-   env          -  Define a plot window, put on 'hold'
-   dev          -  Explicitly set a new PGPLOT graphics device
+  hold       -  Hold current plot window range - allows overlays etc.
+  release    -  Release back to autoscaling of new plot window for each 
+                command
+  rel        -  short alias for 'release'
+  env        -  Define a plot window, put on 'hold'
+  dev        -  Explicitly set a new PGPLOT graphics device
 
 The actual PGPLOT module is loaded only when the first of these
 commands is executed.
 
 Notes: $transform for image/cont etc. is used in the same way as the
-TR() array in the underlying PGPLOT FORTRAN routine but is, fortunately,
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
 zero-offset.
 
 For completeness: The transformation array connect the pixel index to a
@@ -61,22 +61,23 @@ C<get_dataref>
 to get the reference to the values. Before passing to pgplot routines
 however, the data are checked to see if they are in accordance with the
 format (typically dimensionality) required by the PGPLOT routines.
-This is done using the routine C<checkarg> (internal to PGPLOT.) This routine
+This is done using the routine C<checkarg> (internal to PGPLOT). This routine
 checks the dimensionality of the input data. If there are superfluous
 dimensions of size 1 they will be trimmed away until the dimensionality
 is correct. Example:
 
-  Assume a piddle with dimensions (1,100,1,1) is passed to C<line>, which
-  expects its inputs to be vectors. C<checkarg> will then return a piddle
-  with dimensions (100). If instead the same piddle was passed to C<imag>,
-  which requires 2D piddles as output, C<checkarg> would return a piddle
-  with dimensionality (100, 1) (Dimensions are removed from the I<start>)
+Assume a piddle with dimensions (1,100,1,1) is passed to C<line>, which
+expects its inputs to be vectors. C<checkarg> will then return a piddle
+with dimensions (100). If instead the same piddle was passed to C<imag>,
+which requires 2D piddles as output, C<checkarg> would return a piddle
+with dimensionality (100, 1) (Dimensions are removed from the I<start>)
 
 Thus, if you want to provide support for another PGPLOT function, the
 structure currently look like this (there are plans to use the Options
 package to simplify the options parsing):
 
-  ($arg, $opt)=_extract_hash(@_); # Extract the hash(es) on the commandline
+  # Extract the hash(es) on the commandline
+  ($arg, $opt)=_extract_hash(@_); 
   <Check the number of input parameters>
   <deal with $arg>
   checkarg($x, 3); # For a hypothetical 3D routine.
@@ -97,8 +98,9 @@ say, with pgslw() are preserved.
 =head2 Alphabetical listing of standard options
 
 The following options are always parsed. Whether they have any importance
-depend on the routine invoked - line style is irrelevant for imag and so
-on.  This is indicated in the help text for the commands below.
+depend on the routine invoked - e.g. line style is irrelevant for C<imag>, 
+or the justify option is irrelevant if the display is on 'hold'.
+This is indicated in the help text for the commands below.
 
 The options are not case sensitive and will match for unique substrings,
 but this is not encouraged as obscure options might invalidate what
@@ -160,13 +162,24 @@ It can either be specified as a number, or by one of the following names:
  LOGY   (20) draw box and label Y-axis logarithmically
  LOGXY  (30) draw box and label both axes logarithmically
 
+=item border
+
+Normally the limits are
+chosen so that the plot just fits; with this option you can increase
+(or decrease) the limits by either a relative 
+(ie a fraction of the original axis width) or an absolute amount.
+Either specify a hash array, where the keys are C<TYPE> (set to 
+'relative' or 'absolute') and C<VALUE> (the amount to change the limits
+by), or set to 1, which is equivalent to
+C<BORDER =E<gt> { TYPE =E<gt> 'rel', VALUE =E<gt> 0.05 }>.
+
 =item charsize
 
 Set the character/symbol size as a multiple of the standard size.
 
    $opt = {CHARSIZE => 1.5}
 
-=item colour
+=item colour (or color)
 
 Set the colour to be used for the subsequent plotting. This can be
 specified as a number, and the most used colours can also be specified
@@ -179,7 +192,7 @@ the default colour map):
 
 =item filltype
 
-Set the fill type to be used for pgpoly/pgrect/pgcirc. The fill
+Set the fill type to be used by C<poly>. The fill
 can either be specified using numbers or name, according to the following
 table, where the recognised name is shown in capitals - it is case-
 insensitive, but the whole name must be specified.
@@ -230,7 +243,7 @@ Can also be specified as
 
    $opt = {FILL=> 'HATCHED', HATCH => pdl [30,4,0.0]};
 
-See also the documentation for poly for another example of hatching.
+For another example of hatching, see L</poly>.
 
 =item justify
 
@@ -291,7 +304,7 @@ $xmin, $xmax, $ymin, $ymax are the plot boundaries.
 $justify is a boolean value (default is 0);
 if true the axes scales will be the same (see L</justify>).
 $axis describes how the axes should be drawn (see
-L</axis>).
+L</axis>) and defaults to 0.
 
 =head2 imag
 
@@ -304,12 +317,12 @@ Display an image (uses pgimag()/pggray() as appropriate)
   Usage: imag ( $image,  [$min, $max, $transform], [$opt] )
 
 Notes: $transform for image/cont etc. is used in the same way as the
-TR() array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset.
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
+fortunately, zero-offset.
 
 Options recognised:
 
-       ITF - the image transfer function applied to the pixel values.  It
+       ITF - the image transfer function applied to the pixel values. It
              may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
              acceptable). It defaults to 'LINEAR'.
       MIN  - Sets the minimum value to be used for calculation of the
@@ -318,7 +331,7 @@ Options recognised:
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
     The following standard options influence this command:
-    AXIS, JUSTIFY
+    AXIS, BORDER, JUSTIFY
 
 =head2 ctab
 
@@ -335,7 +348,7 @@ Usage:
    ctab ( $levels, $red, $green, $blue, [$contrast, $brightness] )
    ctab ( '', $contrast, $brightness ) # use last color table
 
-Notes: See L<PDL::Graphics::LUT> for access to a large
+Note: See L<PDL::Graphics::LUT> for access to a large
 number of colour tables.
 
 Options recognised:
@@ -355,13 +368,14 @@ Plot vector as connected points
  Options recognised:
 
     The following standard options influence this command:
-    AXIS, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
  $x = sequence(10)/10.;
  $y = sin($x)**2;
- line $x, $y, {COLOR => 'RED', LINESTYLE=>3}; # Draw a red dot-dashed line
+ # Draw a red dot-dashed line
+ line $x, $y, {COLOR => 'RED', LINESTYLE=>3}; 
 
 =head2 points
 
@@ -385,10 +399,10 @@ Plot vector as points
               4 - CIRCLE   5 - CROSS   7 - TRIANGLE 8 - EARTH
               9 - SUN     11 - DIAMOND 12- STAR
 
-    PLOTLINE - If this is >0 a line will be drawn through the points.
+  PLOTLINE - If this is >0 a line will be drawn through the points.
 
     The following standard options influence this command:
-    AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -418,7 +432,7 @@ Usage:
            as name or number - see documentation for 'points'
 
     The following standard options influence this command:
-    AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -438,8 +452,8 @@ Display image as contour map
  Usage: cont ( $image,  [$contours, $transform, $misval], [$opt] )
 
 Notes: $transform for image/cont etc. is used in the same way as the
-TR() array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset.
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
+fortunately, zero-offset.
 
  Options recognised:
 
@@ -458,17 +472,17 @@ zero-offset.
    TRANSFORM - The pixel-to-world coordinate transform vector
 
     The following standard options influence this command:
-    AXIS, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
    $x=sequence(10,10);
    $ncont = 4;
    $labels= ['COLD', 'COLDER', 'FREEZING', 'NORWAY']
+   # This will give four blue contour lines labelled in red.
    cont $x, {NCONT => $ncont, LABELS => $labels, LABELCOLOR => RED,
              COLOR => BLUE}
 
-   # This will give four blue contour lines labelled in red.
 
 =head2 bin
 
@@ -483,7 +497,7 @@ Plot vector as histogram ( e.g. C<bin(hist($data))> )
  Options recognised:
 
     The following standard options influence this command:
-    AXIS, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 
 =head2 hi2d
@@ -503,7 +517,7 @@ Plot image as 2d histogram (not very good IMHO...)
        BIAS - The bias to shift each array slice up by.
 
     The following standard options influence this command:
-    AXIS, JUSTIFY
+    AXIS, BORDER, JUSTIFY
 
  Note that meddling with the ioffset and bias often will require you to
  change the default plot range somewhat. It is also worth noting that if
@@ -529,7 +543,8 @@ Usage: poly ( $x, $y )
  Options recognised:
 
     The following standard options influence this command:
-    AXIS, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE, LINEWIDTH
+    AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE, 
+    LINEWIDTH
 
 =for example
 
@@ -553,8 +568,8 @@ Display 2 images as a vector field
    Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )
 
 Notes: $transform for image/cont etc. is used in the same way as the
-TR() array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset.
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
+fortunately, zero-offset.
 
 This routine will plot a vector field. $a is the horizontal component
 and $b the vertical component.
@@ -570,7 +585,8 @@ TRANSFORM - The pixel-to-world coordinate transform vector
   MISSING - Elements with this value are ignored.
 
     The following standard options influence this command:
-    ARROW, ARROWSIZE, AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
+    ARROW, ARROWSIZE, AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, 
+    LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -743,11 +759,59 @@ sub initdev{  # Ensure a device is open
      dev() if ($state eq "CLOSED");
 1;}
 
+# initenv( $xmin, $xmax, $ymin, $ymax, $just, $axis )
+# initenv( $xmin, $xmax, $ymin, $ymax, $just )
+# initenv( $xmin, $xmax, $ymin, $ymax, \%opt )
+#
+# \%opt can be supplied but not be defined
+# we parse the JUSTIFY, AXIS, and BORDER options here,
+# rather than have a multitude of checks below
+#
 sub initenv{ # Default box
     my ($col); initdev(); pgqci($col); pgsci($AXISCOLOUR);
-    my @opts = @_;
-    if ( $#opts == 4 ) { push @opts, 0; }
-    $opts[5] = _match_axis( $opts[5] );
+    my @opts = @_; 
+    if ( ref($opts[4]) eq "HASH" ) {
+	# parse options
+	my $hashref = $opts[4];
+
+	$opts[5] = 0; # axis
+	$opts[4] = 0; # justify
+	while (my ($key, $val) = each %{$hashref}) {
+	    $key = uc($key);
+	    if    ($key =~ m/^JUST/) { $opts[4] = $val; } # JUSTIFY
+	    elsif ($key =~ m/^AXIS/) { $opts[5] = $val; } # AXIS
+	    elsif ($key =~ m/^BORD/ and $val != 0 ) {
+		my $type  = "REL";
+		my $delta = 0.05;
+		if ( ref($val) eq "HASH" ) {
+		    while (my ($bkey, $bval) = each %{$val}) {
+			$bkey = uc($bkey);
+			if    ($bkey =~ m/^TYP/) { $type = uc $bval; }
+			elsif ($bkey =~ m/^VAL/) { $delta = $bval; }
+		    } # while: (bkey,bval)
+		} # if: ref($val) eq "HASH"
+
+		if ( $type =~ m/^REL/ ) {
+		    my $sep = ( $opts[1] - $opts[0] ) * $delta;
+		    $opts[0] -= $sep; $opts[1] += $sep;
+		    $sep = ( $opts[3] - $opts[2] ) * $delta;
+		    $opts[2] -= $sep; $opts[3] += $sep;
+		} elsif ( $type =~ m/^ABS/ ) {
+		    $opts[0] -= $delta; $opts[1] += $delta;
+		    $opts[2] -= $delta; $opts[3] += $delta;
+		} else {
+		    print "Warning: unknown BORDER/TYPE option '$type'.\n";
+		}
+	    } # if: ... $key
+	} # while: (key,val)
+    } elsif ( $#opts == 4 ) {
+	$opts[4] = 0 unless defined $opts[4]; # \%opt supplied but not defined
+	$opts[5] = 0;
+    }
+    # ensure we have a numeric value for the axis option
+    my $axopt = $opts[5];
+    $opts[5] = $_axis{ uc($axopt) };
+    barf "Unknown axis option '$axopt'." unless defined($opts[5]);
     pgenv(@opts); 
     pgsci($col);
     @last = (@opts);
@@ -767,14 +831,6 @@ sub redraw_axes {
     }
     pgsci($col);
 }
-
-sub _match_axis ($) {
-    my $val  = shift;
-    my $axis = $_axis{uc($val)};
-    barf "Unknown axis option '$val'." unless defined($axis);
-    return $axis;
-}
-    
 
 sub CtoF77coords{  # convert a transform array from zero-offset to unit-offset images
     my $tr = pdl(shift); # Copy
@@ -936,7 +992,7 @@ sub env {
 # Plot a histogram with pgbin()
 
 sub bin {
-  ($in, $opt)=_extract_hash(@_);
+    ($in, $opt)=_extract_hash(@_);
     barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
@@ -949,18 +1005,10 @@ sub bin {
        $data = $x; $x = float(sequence($n));
      }
 
-    my $justify = 0;
-  my $axis = 0;
-
-    # Parse for options
-    while (my ($key, $val) = each %{$opt}) {
-	$key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
+    unless ( $hold ) {
+	my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
+	initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
-
-    my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
-    initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
     save_status();
     # Let's also parse the options if any.
     standard_options_parser($opt);
@@ -980,17 +1028,8 @@ sub cont {
   my($nx,$ny) = $image->dims;
   my ($ncont)=9; # The number of contours by default
 
-  my $justify = 0;
-  my $axis = 0;
+  initenv( 0,$nx-1, 0, $ny-1, $opt ) unless ( $hold );
 
-  # Parse for options
-  while (my ($key, $val) = each %{$opt}) {
-      $key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
-  }
-
-  initenv( 0,$nx-1, 0, $ny-1, $justify, $axis ) unless $hold;
   my($minim, $maxim)=minmax($image);
 
   # First save the present status
@@ -1086,16 +1125,6 @@ Usage: errb ( $y, $yerrors [, $options] )
        errb ( $x, $y, $xloerr, $xhierr, $yloerr, $yhierr [, $options])
 EOD
 
-  my $justify = 0;
-  my $axis = 0;
-
-  # Parse for options
-  while (my ($key, $val) = each %{$opt}) {
-      $key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
-  }
-
   my @t=@$in;
   my $i=0; my $n;
   for (@t) {
@@ -1105,8 +1134,11 @@ EOD
   }
   my $x = $#t==1 ? float(sequence($n)) : $t[0];
   my $y = $#t==1 ? $t[0] : $t[1];
-  my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
+  
+  unless( $hold ) {
+      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
   save_status();
   # Let us parse the options if any.
   my $term=$ERRTERM;
@@ -1162,25 +1194,16 @@ sub line {
   checkarg($x,1);
   my $n = nelem($x);
 
-  my $justify = 0;
-  my $axis = 0;
-
-  # Parse for options
-  while (my ($key, $val) = each %{$opt}) {
-      $key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
-  }
-
   if ($#$in==1) {
     checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
   } else {
     $y = $x; $x = float(sequence($n));
   }
 
-
-  my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
+  unless ( $hold ) {
+      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
   save_status();
   standard_options_parser($opt);
   pgline($n, $x->get_dataref, $y->get_dataref);
@@ -1196,16 +1219,6 @@ sub points {
   checkarg($x,1);
   my $n=nelem($x);
 
-  my $justify = 0;
-  my $axis = 0;
-
-  # Parse for options
-  while (my ($key, $val) = each %{$opt}) {
-      $key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
-  }
-
   if ($#$in>=1) {
     checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
   }else{
@@ -1215,11 +1228,13 @@ sub points {
   #
   # Save some time for large datasets.
   #
-  my $plot_line=0;
-  my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
+  unless ( $hold ) {
+      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
   save_status();
 
+  my $plot_line=0;
 
   standard_options_parser($opt);
   # Additional functionality for points..
@@ -1266,8 +1281,6 @@ sub imag {
   checkarg($image,2);
   my($nx,$ny) = $image->dims;
 
-  my $justify = 0;
-  my $axis = 0;
   my $itf = 0;
 
   # Parse for options input instead of calling convention
@@ -1276,8 +1289,6 @@ sub imag {
     if ($key =~ m/^TRAN/) {$tr=$val;}
     elsif ($key =~ m/^MIN/) { $min=$val;}
     elsif ($key =~ m/^MAX/) {$max=$val;}
-    elsif ($key =~ m/^JUST/) { $justify = $val; }
-    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
     elsif ($key =~ m/ITF/ ) {
       defined( $itf = $ITF{uc $val} )
       or barf ( "illegal ITF value `$val'. use one of: " .
@@ -1301,7 +1312,7 @@ sub imag {
     at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
     at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
     at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-    $justify, $axis
+    $opt
   ) unless $hold;
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
@@ -1419,23 +1430,18 @@ sub hi2d {
     $x = float(sequence($nx));
   }
 
-  my $justify = 0;
-  my $axis = 0;
-
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
       $key = uc($key);
     if ($key =~ m/^IOF/) {$ioff=$val;}
     elsif ($key =~ m/^BIAS/) {$bias=$val;}
-    elsif ($key =~ m/^JUST/) { $justify = $val; }
-    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
   $ioff = 1 unless defined $ioff;
   $bias = 5*max($image)/$ny unless defined $bias;
   $work = float(zeroes($nx));
 
-  initenv( 0 ,2*($nx-1), 0, 10*max($image), $justify, $axis  ) unless $hold;
+  initenv( 0 ,2*($nx-1), 0, 10*max($image), $opt ) unless $hold;
   pghi2d($image->get_dataref, $nx, $ny, 1,$nx,1,$ny, $x->get_dataref, $ioff,
 	 $bias, 1, $work->get_dataref);
   1;}
@@ -1450,22 +1456,13 @@ sub poly {
   checkarg($x,1);
   checkarg($y,1);
 
-  # Parse for options
-  my $justify = 0;
-  my $axis = 0;
-
-  # Parse for options
-  while (my ($key, $val) = each %{$opt}) {
-      $key = uc($key);
-      if    ($key =~ m/^JUST/) { $justify = $val; }
-      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
+  unless ( $hold ) {
+      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      initenv( $xmin, $xmax, $ymin, $ymax, $opt );
   }
-
-  my $n = nelem($x);
-  my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
   save_status();
   standard_options_parser($opt);
+  my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   restore_status();
 1;}
@@ -1482,9 +1479,6 @@ sub vect {
   my($n1,$n2) = $b->dims;
   barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
 
-  my $justify = 0;
-  my $axis = 0;
-
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
       $key = uc($key);
@@ -1492,8 +1486,6 @@ sub vect {
     elsif ($key =~ m/^POS/) {$pos=$val;}
     elsif ($key =~ m/^TR/) {$tr=$val;}
     elsif ($key =~ m/^MIS/) {$misval=$val;}
-    elsif ($key =~ m/^JUST/) { $justify = $val; }
-    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
 
@@ -1508,7 +1500,7 @@ sub vect {
   }
   $tr = CtoF77coords($tr);
 
-  initenv( 0, $nx-1, 0, $ny-1, $justify, $axis  ) unless $hold;
+  initenv( 0, $nx-1, 0, $ny-1, $opt ) unless $hold;
   print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
   save_status();
@@ -1519,5 +1511,4 @@ sub vect {
   1;}
 
 1;# Exit with OK status
-
 
