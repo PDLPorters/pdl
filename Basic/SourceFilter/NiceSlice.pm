@@ -327,7 +327,7 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
   $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
 
-  # Use with perldl (or include these lines in .perldlrc)
+  # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
   perldl> use PDL::NiceSlice; 
   # next one is required, see below
   perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
@@ -447,6 +447,10 @@ filtering works in Perl (see also the IMPLEMENTATION
 section below).
 
 =head2 Usage with perldl
+
+I<NOTE>: This information only applies to versions of
+L<perldl|perldl> smaller than 1.31 . From v1.31 onwards
+niceslicing is enabled by default. See L<perldl> for details.
 
 To use the filter in the C<perldl> shell you need to
 add the following two lines to your F<.perldlrc> file:

@@ -1,4 +1,7 @@
-CS    - fix Dev.pm warnings (triggered by Inline::Pdlpp tests)
+    - perldl doc updates
+    - reverting perldl.conf changes introduced in CVS
+    - Makefile.PL: detect buggy solaris+gcc+mymalloc combination
+CS  - fix Dev.pm warnings (triggered by Inline::Pdlpp tests)
     - Inline::Pdlpp docs
 CS  - fix bug in Dev.pm that I introduced
     - change misleading topdl docs (fooled me!)

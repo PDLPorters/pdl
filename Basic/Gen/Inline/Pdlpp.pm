@@ -577,7 +577,7 @@ C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
 
 For information on how to specify Inline configuration options, see
 L<Inline>. This section describes each of the configuration options
-available for C. Most of the options correspond either to MakeMaker or
+available for Pdlpp. Most of the options correspond either to MakeMaker or
 XS options of the same name. See L<ExtUtils::MakeMaker> and L<perlxs>.
 
 =head2 AUTO_INCLUDE

@@ -1270,6 +1270,31 @@ sub PDL::mslice {
                 } @_));
 }
 
+=head2 nslice
+
+=for ref
+
+Internally used interface to L<slice|/PDL::Slice/slice>
+and L<dice|/PDL::Slice/dice> that is the runtime part of
+the L<PDL::NiceSlice|PDL::NiceSlice> implementation.
+
+=for usage
+
+ $a = $x->nslice(...);
+
+=for example
+
+ # below is the same as $x->slice("5:7,:,3:4:2")
+ $a = $x->nslice([5,7],X,[3,4,2]);
+
+It implements a superset of L<mslice|PDL::Core/mslice>'s
+features. Should probably not be used in your scripts. Rather
+resort to the L<PDL::NiceSlice|PDL::NiceSlice> interface.
+
+=cut
+
+#' get quotes right for emacs
+
 sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		  die "multielement piddle where only one allowed" :

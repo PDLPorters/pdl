@@ -3,7 +3,7 @@ INSTALLATION
 ------------
 
 To install PDL on your machine, first check that you have a high
-enough version of Perl. 5.005 is adaquete for most of PDL, however the
+enough version of Perl. 5.005 is adequate for most of PDL, however the
 OpenGL and TriD packages now require 5.6.0, if you need to upgrade get
 at least this version.
 

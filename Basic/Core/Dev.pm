@@ -379,8 +379,7 @@ $pref\$(OBJ_EXT): $pref.c
 }
 
 
-# This is the function internal for PDL.
-# Later on, we shall provide another for use outside PDL.
+# This is the function to be used outside the PDL tree.
 sub pdlpp_postamble {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
@@ -388,7 +387,7 @@ sub pdlpp_postamble {
 qq|
 
 $pref.pm: $src
-	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
+	\$(PERL) -I$w \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
 	\$(TOUCH) \$@
