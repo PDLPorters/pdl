@@ -3705,10 +3705,18 @@ sub initenv{
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
   if ($self->autolog) {
-    $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30 ||
-		    $o->{Axis}[0] =~ /L/) ? 1 : 0; #/BCLNST/) ? 1 : 0;
-    $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30 ||
-		    $o->{Axis}[1] =~ /L/) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+    # Bug fix JB, 03/03/05 - logging noisy/failed when running with -w or strict.
+    # Hence the extra check on the content of Axis
+    if (ref($o->{Axis}) eq 'ARRAY') {
+      $self->{Logx} = ($o->{Axis}[0] =~ /L/) ? 1 : 0;
+      $self->{Logy} = ($o->{Axis}[1] =~ /L/) ? 1 : 0;
+    } elsif (ref($o->{Axis})) {
+      release_and_barf "The axis option must be an array ref or a scalar!\n";
+    } else {
+      $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+      $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+    }
+
     ($xmin,$xmax) = map {
       release_and_barf "plot boundaries not positive in logx-mode" if $_ <= 0;
       log($_)/log(10) } ($xmin,$xmax)
