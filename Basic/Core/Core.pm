@@ -1943,6 +1943,54 @@ sub str2D{
 
 1;# Exit with OK status
 
+
+########## Docs for functions in Core.xs ##################
+# Pod docs for functions that are imported from Core.xs and are
+#  not documented elsewhere. Currently this is not a complete
+#  list. There are others like sethdr, etc.
+
+=head2 gethdr
+
+=for ref
+
+Retrieve header information from a piddle
+
+=for example
+
+   $pdl=rfits('file.fits');
+   $h=$pdl->gethdr;
+ 
+   print "Number of pixels in the X-direction=$$h{NAXIS1}\n";
+
+The gethdr function retrieves whatever header information is contained
+within a piddle. The header can be set with sethdr and is always a 
+hash reference and has to be dereferenced for access to the value. 
+
+It is important to realise that you are free to insert whatever hash
+reference you want in the header, so you can use it to record important
+information about your piddle, and that it is not automatically copied
+when you copy the piddle. 
+
+For instance a wrapper around rcols that allows your piddle to remember
+the file it was read from and the columns could be easily written 
+(here assuming that no regexp is needed, extensions are left as an 
+exercise for the reader)
+
+  sub ext_rcols {
+     my ($file, @columns)=@_;
+     my $header={};
+     $$header{File}=$file;
+     $$header{Columns}=\@columns;
+
+     @piddles=rcols $file, @columns;
+     foreach (@piddles) { $_->sethdr($header); } 
+     return @piddles;
+  }
+     
+
+
+
+
 =head1 AUTHOR
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),

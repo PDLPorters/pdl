@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..29\n";
+print "1..30\n";
 
 if(1) {
 
@@ -213,4 +213,12 @@ ok(28, $@ =~ /Negative slice cannot start or end above limit/);
 
 # Test of dice and dice_axis
 $a = sequence(10,4);
-ok(29, $a->dice([1,2],[0,3])->sum == 66 );
+ok(29, approx( $a->dice([1,2],[0,3])->sum , pdl(66) ) );
+
+# Test of Reorder:
+$a = sequence(5,3,2);
+@newDimOrder = (2,1,0);
+$b = $a->reorder(@newDimOrder);
+
+ok(30, approx($b->average->average->sum , pdl(72.5) ) );
+

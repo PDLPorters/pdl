@@ -76,3 +76,17 @@ PDL::Lib::Slatec
 
 PDL::IO::Browser
 		Requires a 'curses'-compatible library
+
+PDL::IO::NDF
+                Requires the perl/NDF interface (NDFPERL).
+                (which also requires a fortran compiler and the
+                fortran NDF library). See either
+                http://www.jach.hawaii.edu/jcmt_sw/perl/ or
+                http://www.starlink.rl.ac.uk/cgi-store/storeform2?NDFPERL
+                for information on NDFPERL. See
+                http://www.starlink.rl.ac.uk/cgi-store/storeform2?NDF
+                to retrieve the NDF libraries.
+
+                                        Module builds ok without
+                                        NDF module and library
+

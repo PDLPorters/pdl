@@ -161,7 +161,7 @@ sub PDL::rpnm {
     # get the header information
     my ($line, $pgot, @dims) = ("",0,0,0,0);
     while (($pgot<$params) && ($line=<PNM>)) {
-	next if $line =~ /^#/;       # a comment
+       $line =~ s/#.*$//;
 	next if $line =~ /^\s*$/;    # just white space
 	while ($line !~ /^\s*$/ && $pgot < $params) {
 	    if ($line =~ /\s*(\S+)(.*)$/) {

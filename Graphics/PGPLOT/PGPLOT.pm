@@ -1147,7 +1147,12 @@ sub imag {
   }
   $tr = CtoF77coords($tr);
 
-  initenv( -0.5,$nx-0.5, -0.5, $ny-0.5  ) unless $hold;
+  initenv(
+    at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
+    at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
+    at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
+    at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
+  ) unless $hold;
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
   pgqcir($i1, $i2);          # Colour range - if too small use pggray dither algorithm

@@ -29,14 +29,49 @@ package PDL::Derived;
 
 sub new {
    my $class = shift;
-   my $x = bless {}, $class;
-   my $value = shift;
-   $$x{PDL} = $value;
-   $$x{SomethingElse} = 42;
-   return $x;
+
+   my $data = $_[0];
+
+   my $self;
+   if(ref($data) eq 'PDL' ){ # if $data is an object (a pdl)
+	   $self = $class->initialize;
+	   $self->{PDL} = $data;
+   }
+   else{	# if $data not an object call inherited constructor
+	   $self = $class->SUPER::new($data);
+   }
+
+
+   return $self;
 }
 
+####### Initialize function. This over-ridden function is called by the PDL constructors
+sub initialize {
+	my $class = shift;
+        my $self = {
+                PDL => PDL->null, 	# used to store PDL object
+		someThingElse => 42,
+        };
+	$class = (ref $class ? ref $class : $class );
+        bless $self, $class;
+}
 
+###### Derived Object Needs to supply its own copy #####
+sub copy {
+	my $self = shift;
+	
+	# setup the object
+	my $new = $self->initialize;
+	
+	# copy the PDL
+	$new->{PDL} = $self->{PDL}->SUPER::copy;
+
+	# copy the other stuff:
+	$new->{someThingElse} = $self->{someThingElse};
+
+	return $new;
+
+}
 ## Now check to see if the different categories of primitive operations
 ##   return the PDL::Derived type.
 package main;
@@ -45,7 +80,9 @@ package main;
 
 $z = PDL::Derived->new( ones(5,5) ) ;
 
+
 ok(1,ref($z)eq"PDL::Derived");
+
 
 
 #### Check the type after incrementing:

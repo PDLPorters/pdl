@@ -1,6 +1,19 @@
-
 Notes
 -----
+
+Fixed to -DUNK (for reasons given below), but tried to get as much
+information on system specifics as possible from header files (may
+need to reconfigure mconf.h on systems other than Linux/Sun/Dec).
+
+Altered handling of nan and infinity to try to provide a consistent
+interface through function calls (system dependencies go in
+Makefile.PL, mconf.h: infinity.c and quiet_nan.c may need more obscure
+fallback ways of generating Inf and NaN for clever-clever compilers).
+
+More work will now be necessary to include extra cephes routines, but
+should be easier to configure what's there for new OSs.
+
+RJRW 29/10/98
 
 - added linalg.shar
 

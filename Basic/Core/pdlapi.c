@@ -1395,6 +1395,7 @@ void pdl_make_physvaffine(pdl *it)
 	pdl_make_physical(current);
 
   mkphys_vaff_end:
+       free(incsleft);
 	PDLDEBUG_f(printf("Make_physvaffine_exit %d\n",it));
 
 }

@@ -19,6 +19,7 @@ WriteMakefile(
                     'Lite.pm'    => '$(INST_LIBDIR)/PDL/Lite.pm',
                     'LiteF.pm'    => '$(INST_LIBDIR)/PDL/LiteF.pm',
                     'AutoLoader.pm'    => '$(INST_LIBDIR)/PDL/AutoLoader.pm',
+                    'Options.pm'  => '$(INST_LIBDIR)/PDL/Options.pm',
                     $defstartup => '$(INST_LIBDIR)/PDL/'.$defstartup},
      'MAN3PODS' => {'AutoLoader.pm' => '$(INST_MAN3DIR)/PDL::AutoLoader.$(MAN3EXT)'},
      'DIR'      => ['Pod','Gen','Core','Ops','Primitive','Slices','Test','Math'],

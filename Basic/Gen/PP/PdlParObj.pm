@@ -196,9 +196,15 @@ sub get_xsnormdimchecks { my($this) = @_;
 	my $pdl = $this->get_nname;
 	my $str = ""; my $ninds = 0+scalar(@{$this->{IndObjs}});
 	$str .= "if(!__creating[$this->{Number}]) {";
+	# Dimensional Promotion when number of dims is less than required:
+	#   Previous warning message now commented out.
 	$str .= "
 		if(($pdl)->ndims < $ninds) {
-			\$CROAK(\" Too few dimensions for argument \'$this->{Name}\'\\n\");
+                 ".join('', map {       
+		"if (($pdl)->ndims < $_ && ".$this->{IndObjs}[$_-1]->get_size()." <= 1)
+		".$this->{IndObjs}[$_-1]->get_size() ." = 1;\n"}
+                      (1..$ninds))."
+                /*      \$CROAK(\"Too few dimensions for argument \'$this->{Name}\'\\n\"); */
 		}
 	";
 # Now, the real check.
@@ -206,10 +212,11 @@ sub get_xsnormdimchecks { my($this) = @_;
 	for(@{$this->{IndObjs}}) {
 		my $siz = $_->get_size();
 		my $dim = "($pdl)->dims[$no]";
+               my $ndims = "($pdl)->ndims";
 		$str .= "
-		  if($siz == -1 || $siz == 1) {
+                 if($siz == -1 || ($ndims > $no && $siz == 1)) {
 			$siz = $dim;
-		  } else if($siz != $dim) {
+                 } else if($ndims > $no && $siz != $dim) {
 		  	if($dim == 1) {
 				/* Do nothing */ /* XXX Careful, increment? */
 			} else {
@@ -276,7 +283,7 @@ sub get_incsets {
 	my($this,$str) = @_;
 	my $no=0;
 	(join '',map {
-		"if($str->dims[$_] <= 1)
+               "if($str->ndims <= $_ || $str->dims[$_] <= 1)
 		  \$PRIV(".($this->get_incname($_)).") = 0; else
 		 \$PRIV(".($this->get_incname($_)).
 			") = ".($this->{FlagPhys}?

@@ -237,7 +237,7 @@ of, for example, the PGPLOT FORTRAN library.
 
 Again following the usual convention coordinate (0,0) is displayed
 at the bottom left when displaying an image. It appears at the
-top right when using "C<print $a>" etc.
+top left when using "C<print $a>" etc.
 
    $b = $a->slice("$x1:$x2,$y1:$y1,$z1:$z2"); # Take subsection
 

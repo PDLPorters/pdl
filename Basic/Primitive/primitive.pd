@@ -122,6 +122,62 @@ defpdl(
 );
 
 defpdl(
+      'intover',
+      'a(n); int+ [o]b();',
+      '',
+      '$GENERIC(b) tmp = 0;
+       int ns = $SIZE(n), nn;
+       /* Integration formulae from Press et al 2nd Ed S 4.1 */
+       switch (ns) {
+      case 1:
+          threadloop %{
+          $b() = 0.; /* not a(n=>0); as interval has zero width */
+          %}
+          break;
+        case 2:
+          threadloop %{
+          $b() = 0.5*($a(n=>0)+$a(n=>1));
+          %}
+          break;
+        case 3:
+          threadloop %{
+          $b() = ($a(n=>0)+4*$a(n=>1)+$a(n=>2))/3.;
+          %}
+          break;
+      case 4:
+          threadloop %{
+          $b() = ($a(n=>0)+$a(n=>3)+3.*($a(n=>1)+$a(n=>2)))*0.375;
+          %}
+          break;
+      case 5:
+          threadloop %{
+          $b() = (14.*($a(n=>0)+$a(n=>4))
+                   +64.*($a(n=>1)+$a(n=>3))
+                   +24.*$a(n=>2))/45.;
+          %}
+          break;
+      default:
+          threadloop %{
+        for (nn=3;nn<ns-3;nn++) { tmp += $a(n=>nn); }
+        tmp += (23./24.)*($a(n=>2)+$a(n=>nn));nn++;
+        tmp += (7./6.)  *($a(n=>1)+$a(n=>nn));nn++;
+        tmp += 0.375    *($a(n=>0)+$a(n=>nn));
+        $b() = tmp;
+          %}
+      }
+      ',
+       projectdocs('integral','intover',
+q~Notes:
+
+For n > 3, these are all O(h^4) (like Simpson's rule), but are
+integrals between the end points assuming the pdl gives values just at
+these centres: for such `functions', sumover is correct to O(h), but
+is the natural (and correct) choice for binned data, of course.
+~)
+);
+
+
+defpdl(
 	'cumusumover',
 	'a(n); int+ [o]b(n);',
 	'',

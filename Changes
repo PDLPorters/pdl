@@ -1,4 +1,86 @@
 (!!! = possible source of incompatibilities)
+2.0 (1.99990 with very minor changes)
+John Cerney
+	- Fixed duplicate entry of PDL::IO::NDF information in the DEPENDENCIES file.
+	- Added more items to Known_Problems file.
+1.99990
+John Cerney:
+	- Renamed reorderDims method to reorder to slices.pd
+
+Christian Soeller:
+	- Dimension promotion of 0-d PDLs patch.
+	- Patch to pnm.pd to fix bug reported to the list by Karl. 
+
+Tuomas Lukka:
+	- Allow mmapping of null piddles (i.e. zero-length vectors: dims = (0))
+        - Fix Math spelling mistake: PI0 -> PIO
+        - Fix Math compilation error: add ++
+	- Added close(fd) at the end of set_data_by_mmap in Core.xs
+
+Karl Glazebrook
+	- Added Rcube to IO/Misc.pd Reads list of files directly
+	  into a large data cube (for efficiency).
+	- Corrected spelling error in the README file.
+
+Pete Ratzlaff
+	- Fix to imag() in PGPLOT.pm to set the world plotting
+	  coordinates to a more sensible result when specifying
+          a translation.
+
+Jarle Brinchmann
+	- Added FITS header support for comments & history.
+
+Joshua Pritikin
+	- Patch to pdlapi.c to fix obvious memory leak.
+	- Patch to PP.pm to workaround @_ bugs in perl5.005.
+
+Robin Williams
+	- Fix for some reported compliation problems with Math
+          library.
+
+1.99989
+Tuomas Lukka:
+	- Added Fractal Mountain range to Tri-d demos
+        - Corrected error in impatient.pod. ('top right'
+           to 'top left' in 'Sections' section.)
+
+Tim Jenness
+	- Updated dependency file to reflect the addition
+          of PDL::IO::NDF to the distribution.
+
+Anton Berezin
+	- Modified Basic/Math/Makefile.PL to fix potential
+          conflicts with temp files in the /tmp directory
+
+John Cerney:
+	- Added reorderDims method to slices.pd
+	- Modified subclass2/3.t tests to be more representative
+          of how a functional object would be subclassed. 
+	- Added '-I/usr/X11R6/include' to the default OPENGL_INC in 
+	  perldl.conf
+
+Robin Williams
+	- Cosmetic patch to TriDGallery
+	- Addition of intover (integral) to Primitive.pm
+        - Changes to Basic/Math files so that nan and
+          infinity handling are now in a consistent interface.
+
+Pete Ratzlaff
+	- Fixes typo in Gaussian.pm
+
+Karl Glazebrook
+	- Patch to IO/Misc/misc.pd to fix a minor bug
+	- Patch to IO/Misc/misc.pd to be more memory efficient.
+	- Update to Simplex.pm docs to be more clear to mere
+          mortals. Addition of tsimp2.pl example.
+
+Joshua Pritikin
+	- Patch to pdlmagic.h to fix problems compliling with
+	  SunPro 4.2 C++.
+
+Christian Soeller:
+	- Added a quick/simple ascii file reader (rasc) to
+	  IO/Misc.pd
 1.99988
 Christian Soeller:
 	- patch to make the picrgb/picnorgb tests fail more gracefully

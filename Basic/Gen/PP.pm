@@ -1185,12 +1185,12 @@ sub pmcode {
 			push @tmap,$tcnt;
 			push @imap,-2;
 			$tcnt++;
-			$ispl .= "push \@ret,$::PDLOBJ->nullcreate(\$_[0]);    # Create a null using nullcreate
-			\$_[$acnt] = \$ret[-1];";              
+                       $ispl .= "push \@ret,$::PDLOBJ->nullcreate(\$a[0]);    # Create a null using nullcreate
+                       \$a[$acnt] = \$ret[-1];";
 		} elsif($parobjs->{$_}->{FlagTemp}) {
 			push @tmap,-1;
 			push @imap,-1;
-			my $spl = "\$_[$acnt] = $::PDLOBJ->nullcreate(\$_[0]);"; # Create a null using nullcreate
+                       my $spl = "\$a[$acnt] = $::PDLOBJ->nullcreate(\$a[0]);"; # Create a null using nullcreate
 			$tspl .= $spl; $ispl .= $spl
 		} else {
 			push @tmap,$tcnt;
@@ -1209,18 +1209,20 @@ sub pmcode {
 	my $ind;
 	for $ind (reverse 0..$#imap) {
 		if($imap[$ind] == -2) {
-			$icode .= "unshift \@ret,(\$_[$ind] = $::PDLOBJ->nullcreate(\$_[0]) );\n"; # Create a null using nullcreate
+                       $icode .= "unshift \@ret,(\$a[$ind] = $::PDLOBJ->nullcreate(\$a[0]) );\n"; # Create a null using nullcreate
 		} elsif($imap[$ind] == -1) {
-			$icode .= "\$_[$ind] = $::PDLOBJ->nullcreate(\$_[0]);\n"; # Create a null using nullcreate
+                       $icode .= "\$a[$ind] = $::PDLOBJ->nullcreate(\$a[0]);\n"; # Create a null using nullcreate
 		} else {
-			$icode .= "\$_[$ind] = \$_[$imap[$ind]];\n";
+                       $icode .= "\$a[$ind] = \$a[$imap[$ind]];\n"
+                           if $ind != $imap[$ind];
 		}
 	}
 	for $ind (reverse 0..$#tmap) {
 		if($tmap[$ind] == -1) {
-			$tcode .= "\$_[$ind] = $::PDLOBJ->nullcreate(\$_[0])\n;"; # Create a null using nullcreate
+                       $tcode .= "\$a[$ind] = $::PDLOBJ->nullcreate(\$a[0])\n;"; # Create a null using nullcreate
 		} else {
-			$tcode .= "\$_[$ind] = \$_[$tmap[$ind]];\n";
+                       $tcode .= "\$a[$ind] = \$a[$tmap[$ind]];\n"
+                           if $ind != $tmap[$ind];
 		}
 	}
 #	print "COUNTS0: $acnt $tcnt $icnt\n";
@@ -1228,16 +1230,15 @@ sub pmcode {
 #	print "COUNTS: $acnt $tcnt $icnt\n";
 
 	return "sub ".$::PDLOBJ."::$name {
-		if(\$#_ == ". ($acnt-1) ." || \$#_ == -1 ) { &".$::PDLOBJ."::".$newxsname."; }
-		 elsif(\$#_ == ". ($tcnt-1) .") {
-		 	\@_ = \@_;
+               my \@a = \@_;
+               if(\$#a == ". ($acnt-1) ." || \$#a == -1 ) { &".$::PDLOBJ."::".$newxsname."; }
+                elsif(\$#a == ". ($tcnt-1) .") {
 		 	$tcode
-			&".$::PDLOBJ."::".$newxsname.";
-		} elsif(\$#_ == ". ($icnt-1) .") {
-			\@_ = \@_;
+                       &".$::PDLOBJ."::".$newxsname."(\@a);\@a=();
+               } elsif(\$#a == ". ($icnt-1) .") {
 			my \@ret;
 			$icode
-			&".$::PDLOBJ."::".$newxsname.";
+                       &".$::PDLOBJ."::".$newxsname."(\@a);\@a=();
 			return wantarray?(\@ret):\$ret[0];
 		} else {
 			barf \"Invalid number of arguments for $name\";

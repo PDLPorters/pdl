@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..26\n";
+print "1..28\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -17,6 +17,7 @@ sub ok {
         print "not " unless $result ;
         print "ok $no\n" ;
 }
+
 
 $file = '/tmp/iotest$$';
 
@@ -74,7 +75,7 @@ ok( (sum($t->slice('0:4,:')) == -sum($t2->slice('5:-1,:')) ));
 
 $h = $t2->gethdr;
 
-ok($$h{'Foo'} eq 'foo' && $$h{'Bar'} == 42);
+ok($$h{'Foo'} eq "'foo       '" && $$h{'Bar'} == 42);
 
 unlink $file;
 
@@ -140,5 +141,44 @@ ok(sum($a)==768 && sum($b)==50331648);
     }
     unlink 'x.fits';
 };
+
+############# Test rasc  #############
+
+# test 27 - 28
+open(OUT, ">$file") || die "Can not open $file for writing\n";
+print OUT <<EOD;
+0.231862613
+0.20324005
+0.067813045
+0.040103501
+0.438047631
+0.283293628
+0.375427346
+0.195821617
+0.189897617
+0.035941205
+0.339051483
+0.096540854
+0.25047197
+0.579782013
+0.236164184
+0.221568561
+0.009776015
+0.290377604
+0.785569601
+0.260724391
+
+EOD
+close(OUT);
+
+$a = PDL->null;
+$a->rasc($file,20);
+ok( abs($a->sum - 5.13147) < .01 );
+ 
+$b = zeroes(float,20,2);
+$b->rasc($file);
+ok( abs($b->sum - 5.13147) < .01 );
+
+unlink $file;
 
 1;

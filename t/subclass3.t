@@ -15,14 +15,50 @@ package PDL::Derived;
 @PDL::Derived::ISA = qw/PDL/;
 
 
+sub new {
+   my $class = shift;
+
+   my $data = $_[0];
+
+   my $self;
+   if(ref($data) eq 'PDL' ){ # if $data is an object (a pdl)
+	   $self = $class->initialize;
+	   $self->{PDL} = $data;
+   }
+   else{	# if $data not an object call inherited constructor
+	   $self = $class->SUPER::new($data);
+   }
+
+
+   return $self;
+}
+
+####### Initialize function. This over-ridden function is called by the PDL constructors
 sub initialize {
 	my $class = shift;
         my $self = {
-                SomethingElse => 42,  	# necessary extension :-)
                 PDL => PDL->null, 	# used to store PDL object
-                };
+		someThingElse => 42,
+        };
 	$class = (ref $class ? ref $class : $class );
         bless $self, $class;
+}
+
+###### Derived Object Needs to supply its own copy #####
+sub copy {
+	my $self = shift;
+	
+	# setup the object
+	my $new = $self->initialize;
+	
+	# copy the PDL
+	$new->{PDL} = $self->{PDL}->SUPER::copy;
+
+	# copy the other stuff:
+	$new->{someThingElse} = $self->{someThingElse};
+
+	return $new;
+
 }
 
 ### Check of over-riding sumover
@@ -34,11 +70,11 @@ sub sumover{
 	my ($arg) = @_; 
 	if( ! defined $arg){   # no-argument form of calling
 		$arg = $self->SUPER::sumover;
-		return $self->{SomethingElse} + $arg;
+		return $self->{someThingElse} + $arg;
 	}
 	else{  # one-argument form of calling
 		$self->SUPER::sumover($arg);
-		$arg += $self->{SomethingElse};
+		$arg +=  $self->{someThingElse};
 	}
 		
 

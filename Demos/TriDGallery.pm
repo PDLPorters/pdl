@@ -143,19 +143,27 @@ $a = $t->mv(0,2);} points3d [whichND(($a != 0) & ($a != 255))];
 
 ~;
 
-# Hmmm???
 actnw q~
-# From Lucy AJ 79, 745            [Robin Williams (converted to TriD by Tjl)]
+# Lucy deconvolution (AJ 79, 745) [Robin Williams (=> TriD by Tjl)]
 use PDL; use PDL::Graphics::TriD; nokeeptwiddling3d();
 sub smth {use PDL::Image2D; conv2d($_[0],exp(-(rvals ones(3,3))**2));}
-$a=rfits("m51.fits")->float; $c=$d=avg($a)+0*$a;while(max $c>1.1)
-{$c=smth($a/smth($d));$d*=$c;imagrgb[$d/max $d];}
+$a=rfits("m51.fits")->float; $c=$d=avg($a)+0*$a;
+while(max $c>1.1) {$c=smth($a/smth($d));$d*=$c;imagrgb[$d/850];}
 ~;
 
 # use PDL; use PDL::Image2D; use PDL::Graphics::TriD;nokeeptwiddling3d;
 # $d=byte(random(zeroes(90,90))>0.5);do{$k=byte [[1,1,1],[1,0,1],[1,1,1]];
 # imagrgb[$d]if($k++%2); $s=conv2d($d,$k)/8;$i=90*90*random(50);$t=$d->
 # clump(2)-> index($i);$t.=($s->clump(2)->index($i)>.5);}while(!twiddle3d)
+
+actnw q~
+# Fractal mountain range [Tuomas Lukka]
+use PDL;use PDL::Image2D;use PDL::Graphics::TriD;$k=ones(5,5) / 25;
+$a=5;$b=ones(1,1)/2;for(1..7){$c=$b->dummy(0,2)->clump(2)->xchg(0,1)->
+dummy(0,2)->clump(2)->xchg(0,1)->copy;$c+=$a*$c->random;$a/=3;
+$b=conv2d($c,$k); imag3d[$b],{Lines => 0}; }
+
+~;
 
 comment q|
 	We hope you did like that and got a feeling of

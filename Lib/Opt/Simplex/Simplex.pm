@@ -21,11 +21,16 @@ according to certain rules. The main
 benefit of the algorithm is that you do not need to calculate
 the derivatives of your function. 
 
-The initial simplex is generated with its centroid at $init,
-which is assumed to be one-dimensional.
+$init is a 1D vector holding the initial values of the N fitted
+parameters, $optimum is a vector holding the final solution.
+
+$initsize is the size of $init (more...)
+
+$minsize is some sort of convergence criterion (more...)
+- e.g. $minsize = 1e-6
 
 The sub is assumed to understand more than 1 dimensions and threading.
-Its signature is 'inp(ndims); [ret]out()'. An example would be
+Its signature is 'inp(nparams); [ret]out()'. An example would be
 
 	sub evaluate_func_at {
 		my($xv) = @_;
@@ -33,6 +38,9 @@ Its signature is 'inp(ndims); [ret]out()'. An example would be
 		my $x2 = $xv->slice("(1)");
 		return $x1**4 + ($x2-5)**4 + $x1*$x2;
 	}
+
+Here $xv is a vector holding the current values of the parameters
+being fitted which are then sliced out explicitly as $x1 and $x2.
 
 $ssize gives a very very approximate estimate of how close we might
 be - it might be miles wrong. It is the euclidean distance between
@@ -74,7 +82,7 @@ C<http://chem1.nrl.navy.mil/~shaffer/chemoweb.html>.
 
 Numerical Recipes (bla bla bla XXX ref).
 
-The demonstration (Examples/Simplex/tsimp.pl).
+The demonstration (Examples/Simplex/tsimp.pl and tsimp2.pl).
 
 =head1 AUTHOR
 

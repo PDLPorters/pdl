@@ -1,0 +1,20 @@
+The following issues have been reported with this version of
+PDL. 
+
+- Some bus errors have been reported with PDL and perl 5.005
+  built with the threading option.
+
+- SGI format failure on some machines in t/picnorgb.t and t/picrgb.t
+(Jarle Brinchmann reported this on 11/3/98).
+
+- The html docs for the modules in IO/Misc aren't being built during 'make
+  install'. 
+
+- Some problems have been reported with PDL and perl5.005 on R5000 Indy
+  machine running Irix 6.2. This was corrected by re-compiling perl without
+  the perl-provided malloc.
+
+
+For more information on these and other PDL issues, and for
+submissions of patches (bug patches are always welcome!), 
+see the PDL mailing lists at http://pdl.perl.org/support.html

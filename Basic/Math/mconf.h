@@ -64,9 +64,25 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 /* For PDL, use system defaults where possible */
 #include <math.h>
+#include <values.h>
 
-/* Constant definitions for math error conditions
- */
+/* Now include system-specific stuff */
+#if defined __sun && ! defined __GNUC__
+#include <sunmath.h>
+#include <ieeefp.h>
+#include <float.h>
+#define NANARG 1L
+#endif
+#if defined __alpha
+#include <float.h>
+#include <nan.h>
+#endif
+#ifndef NANARG
+#define NANARG
+#endif
+#define nan() quiet_nan(NANARG)
+
+/* Constant definitions for math error conditions */
 
 #ifndef DOMAIN
 #define DOMAIN		1	/* argument domain error */
@@ -108,69 +124,6 @@ typedef struct
 	double i;
 	} cmplxl;
 
-/* Type of computer arithmetic */
-
-/* PDP-11, Pro350, VAX:
- */
-/* #define DEC 1 */
-
-/* Intel IEEE, low order words come first:
- */
-/* #define IBMPC 1 */
-
-/* Motorola IEEE, high order words come first
- * (Sun 680x0 workstation):
- */
-/* #define MIEEE 1 */
-
-/* UNKnown arithmetic, invokes coefficients given in
- * normal decimal format.  Beware of range boundary
- * problems (MACHEP, MAXLOG, etc. in const.c) and
- * roundoff problems in pow.c:
- * (Sun SPARCstation)
- */
-#define UNK 1
-
-/* If you define UNK, then be sure to set BIGENDIAN properly. */
-#define BIGENDIAN 1
-
-/* Define this `volatile' if your compiler thinks
- * that floating point arithmetic obeys the associative
- * and distributive laws.  It will defeat some optimizations
- * (but probably not enough of them).
- *
- * #define VOLATILE volatile
- */
-#define VOLATILE
-
-/* For 12-byte long doubles on an i386, pad a 16-bit short 0
- * to the end of real constants initialized by integer arrays.
- *
- * #define XPD 0,
- *
- * Otherwise, the type is 10 bytes long and XPD should be
- * defined blank (e.g., Microsoft C).
- *
- * #define XPD
- */
-#define XPD 0,
-
-/* Define to support tiny denormal numbers, else undefine. */
-#define DENORMAL 0
-
-/* Define to ask for infinity support, else undefine. */
-#define INFINITIES 0
-
-/* Define to ask for support of numbers that are Not-a-Number,
-   else undefine.  This may automatically define INFINITIES in some files. */
-#define NANS 0
-
-/* Define to distinguish between -0.0 and +0.0.  */
-#define MINUSZERO 1
-
-/* Define 1 for ANSI C atan2() function
-   See atan.c and clog.c. */
-#define ANSIC 1
 
 /* Get ANSI function prototypes, if you want them. */
 #ifdef __STDC__
@@ -183,32 +136,28 @@ int mtherr();
 /* Variable for error reporting.  See mtherr.c.  */
 extern int merror;
 
-/* Sun support for PDL */
-#ifdef __sun
-#include <sys/types.h>
-#ifndef __GNUC__
-#include <sunmath.h>
-#endif
-#ifndef _BIG_ENDIAN
-#undef BIGENDIAN
-#endif
-
-#ifdef NANS
-#ifdef __GNUC__
+#ifdef MY_QUIET_NAN
 extern double quiet_nan();
-#define NAN quiet_nan()
-#else
-#define NAN quiet_nan(1L)
 #endif
-#endif
-
-#ifdef INFINITIES
-#ifdef __GNUC__
-extern double infinity(void);
-#endif
-#ifndef INFINITY
-#define INFINITY infinity()
-#endif
-#endif
+#ifdef MY_INFINITY
+extern double infinity();
 #endif
 
+extern double MACHEP;
+extern double UFLOWTHRESH;
+extern double MAXLOG;
+extern double MINLOG;
+extern double MAXNUM;
+#ifndef PI
+extern double PI;
+#endif
+extern double PIO2;
+extern double PIO4;
+extern double SQRT2;
+extern double SQRTH;
+extern double LOG2E;
+extern double SQ2OPI;
+extern double LOGE2; 
+extern double LOGSQ2;
+extern double THPIO4;
+extern double TWOOPI;

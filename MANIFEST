@@ -48,6 +48,7 @@ Basic/Math/atanh.c
 Basic/Math/blas.c
 Basic/Math/const.c
 Basic/Math/eigens.c
+Basic/Math/infinity.c
 Basic/Math/j0.c
 Basic/Math/j1.c
 Basic/Math/jn.c
@@ -58,6 +59,7 @@ Basic/Math/ndtr.c
 Basic/Math/ndtri.c
 Basic/Math/polevl.c
 Basic/Math/protos.h
+Basic/Math/quiet_nan.c
 Basic/Math/rint.c
 Basic/Math/simq.c
 Basic/Math/yn.c
@@ -130,6 +132,7 @@ Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
 Example/Simplex/tsimp.pl
+Example/Simplex/tsimp2.pl
 Graphics/IIS/Makefile.PL
 Graphics/IIS/iis.pd
 Graphics/IIS/libiis.h
@@ -202,6 +205,7 @@ IO/Pnm/converters/README
 IO/Pnm/converters/pnmtotiff.c
 IO/Pnm/converters/tifftopnm.c
 IO/Pnm/pnm.pd
+Known_problems
 Lib/CallExt/CallExt.pm
 Lib/CallExt/CallExt.xs
 Lib/CallExt/Makefile.PL

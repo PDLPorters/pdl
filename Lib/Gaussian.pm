@@ -116,7 +116,7 @@ package PDL::Gaussian;
 use PDL::Core '';
 use PDL::Slatec;
 use PDL::Primitive;
-use PDL::Slice;
+use PDL::Slices;
 use PDL::Lib::LLSQRout;
 
 sub new {

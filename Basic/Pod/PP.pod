@@ -1172,7 +1172,7 @@ with the C<pp_add_boot> command:
 
 =end html
 
-By default, PP.pm puts all subs defined using the defpdl function into the output .pm
+By default, PP.pm puts all subs defined using the pp_def function into the output .pm
 file's EXPORT list. This can create problems if you are creating a subclassed
 object where you don't want any methods exported. (i.e. the methods will only
 be called using the $object->method syntax).

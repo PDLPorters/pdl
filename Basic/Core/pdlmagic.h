@@ -1,3 +1,6 @@
+#ifndef _pdlmagic_H_
+#define _pdlmagic_H_
+
 #define PDL_ISMAGIC(it) ((it)->magic != 0)
 
 /* Magic stuff */
@@ -117,3 +120,4 @@ void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t);
 void pdl_delete_mmapped_data(pdl *p, int param) ;
 void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, int param), int param);
 
+#endif _pdlmagic_H_
