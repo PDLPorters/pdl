@@ -6,7 +6,7 @@
 # - this is called by Makefile.PL to ensure the file exists 
 #   when the makefile is written
 #
- 
+
 use strict;
 
 use Config;
@@ -16,7 +16,7 @@ use File::Basename qw(&basename &dirname);
 use vars qw( $bvalflag $usenan );
 use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
- 
+
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
@@ -42,7 +42,7 @@ print OUT <<"!WITH!SUBS!";
 # This file is automatically created by NDF.pm.PL
 # - bad value support = $bvalflag
 !WITH!SUBS!
- 
+
 print OUT <<'!NO!SUBS!';
 
 package PDL::IO::NDF;
@@ -628,7 +628,8 @@ sub rdata {
 
       # Check the bad-data status of this component
       my $this_badflag = 0;
-      ndf_bad($indf, $dcomp, 0, $this_badflag, $status );
+      my $ecomp = ( $dcomp =~ /Err/ ? "Variance" : $dcomp);
+      ndf_bad($indf, $ecomp, 0, $this_badflag, $status );
 
       if ($status == &NDF::SAI__OK) {
 
