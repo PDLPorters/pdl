@@ -746,6 +746,9 @@ $deftype = double;  # Default type for piddles
 #  read in all lines, reverse, then apply the step
 #  -> fix point 4 above
 # 
+# perhaps should just simplify the LINES option - ie remove
+# support for reversed arrays?
+#
 
 sub rcols{PDL->rcols(@_)}
 
@@ -859,6 +862,9 @@ sub PDL::rcols {
        # check for line_ctr before or after the pattern matching
        # Prior to PDL 2.003 the line checks were done BEFORE the
        # pattern matching
+       #
+       # need this first check, even with it almost repeated at end of loop,
+       # incase the pattern matching excludes $line_num == $line_end, say
        last if     defined($line_end)   and $line_num > $line_end;
        next if     defined($line_start) and $line_num < $line_start;
        next if     $$options{EXCLUDE} ne '' and /$$options{EXCLUDE}/;
@@ -905,6 +911,9 @@ sub PDL::rcols {
 
        # store the line number
        $line_store->set( $index, $line_num );
+
+       # Thanks to Frank Samuelson for this
+       last if defined($line_end) and $line_num == $line_end;
    }
 
    close($fh) unless $is_handle;

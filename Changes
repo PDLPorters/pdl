@@ -1,3 +1,5 @@
+Doug Burke 
+    - rcols(): do not read an extra line with LINES option (Frank Samuelson)
 CS  -  fix call of Perl_croak in pdlthread.c for threading perls (reported
        by Diab Jerius)
 Doug Burke (03/11/00)
