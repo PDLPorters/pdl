@@ -1,3 +1,4 @@
+CS  - NiceSlice parser updates, see Changes in NiceSlice dir
 CED (19-Dec-2002)
     - window.pm: Fixed off-by-one bug in ->lines
     - Transform.pm: Fixed some stuff in t_linear

@@ -13,8 +13,10 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.991;
+$PDL::NiceSlice::VERSION = '0.99.2';
 $PDL::NiceSlice::debug = 0;
+# the next one is largely stolen from Regexp::Common
+my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -154,6 +156,8 @@ sub splitprotected ($$) {
 my $prefixpat = qr/.*?  # arbitrary leading stuff
                    ((?<!&)\$\w+  # $varname not preceded by '&'
                     |->)         # or just '->'
+                    (\s|$RE_cmt)* # ignore comments
+		    \s*          # more whitespace
                    (?=\()/smx;   # directly followed by open '(' (look ahead)
 
 # translates a single arg into corresponding
@@ -215,7 +219,7 @@ sub findslice {
 #  Do final check for "for $avar(LIST)" and "foreach $avar(LIST)" syntax. 
 #  Process into an 'nslice' call only if it's not that.
 
-    if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s ||
+    if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+(\s|$RE_cmt)*$/s ||
       # foreach statement: Don't translate
 	$prefix =~ m/->\s*\$\w+$/s) # e.g. $a->$method(args)
       # method invocation via string, don't translate either
@@ -286,7 +290,8 @@ sub findslice {
       # assumption here: sever should be last
       # and order of other modifiers doesn't matter
       $post = join '', sort @post; # need to ensure that sever is last
-      $processed .= "$prefix". ($prefix =~ /->$/ ? '' : '->').
+      $processed .= "$prefix". ($prefix =~ /->(\s*$RE_cmt*)*$/ ? 
+				'' : '->').
 	$pre.$call.$arg.$post.$mypostfix;
     }
 

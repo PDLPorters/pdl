@@ -6,7 +6,8 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 35;
+	plan tests => 40,
+	# todo => [37..40],
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -138,6 +139,10 @@ $a = '';
 eval translate_and_show 'for  our $b(1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');
 
+$a = ''; # foreach and whitespace
+eval translate_and_show 'foreach  my $b (1,2,3,4) {$a .= $b;}';
+ok(!$@ and $a eq '1234');
+
 # block method access translation
 
 $a = pdl(5,3,2);
@@ -145,3 +150,43 @@ my $method = 'dim';
 eval translate_and_show '$c = $a->$method(0)';
 print "c: $c\n";
 ok(!$@ && $c == $a->dim(0));
+
+#
+# todo ones
+#
+
+# whitespace tolerance
+
+$a= sequence 10;
+eval translate_and_show '$c = $a (0)';
+ok(!$@ && $c == $a->at(0));
+
+# comment tolerance
+
+eval translate_and_show << 'EOT';
+
+$c = $a-> # comment
+	 (0);
+EOT
+
+ok(!$@ && $c == $a->at(0));
+
+eval translate_and_show << 'EOT';
+
+$c = $a-> # comment
+          # comment line 2
+	 (0);
+EOT
+
+ok(!$@ && $c == $a->at(0));
+
+$a = ''; # foreach and whitespace + comments
+eval translate_and_show << 'EOT';
+
+foreach  my $b # a random comment thrown in
+
+(1,2,3,4) {$a .= $b;}
+
+EOT
+
+ok(!$@ and $a eq '1234');
