@@ -1,3 +1,4 @@
+DJB - Backported "_Inline removal to Makefile.PL & t/inlinepdlpp.t"
 CS  - version to 2.3.4
 CS  - backported a number of patches from the main branch
       DB 9/11:	Lite.pm typo

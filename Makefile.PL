@@ -247,7 +247,8 @@ WriteMakefile(
 	      'clean' => {
 		  'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' . 
-		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'
+		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
+                      '_Inline/'
 		      },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
 	      ($] ge '5.005') ? (
