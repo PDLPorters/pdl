@@ -515,7 +515,7 @@ sub topdl {PDL->topdl(@_)}
 ####################### Overloaded operators #######################
 
 { package PDL;
-  use UNIVERSAL 'isa'; # need that later in info function
+  # use UNIVERSAL 'isa'; # need that later in info function
   use Carp;
 
   use overload (

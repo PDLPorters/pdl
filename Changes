@@ -1,3 +1,7 @@
+CS 24-Feb-2005
+   Remove 'use UNIVERSAL' for Core.pm.PL; shouldn't be needed anyway
+   and gave strange import problems when using PDL with Net::SSH::Perl;
+   also needed a change of isa to UNIVERSAL::isa in Dbg.pm
 SIS 23-FEB-2005
    Another small tweak to Basic/Core/Makefie.PL to improve the hack that
    enables PDL to be built using dmake (Win32).

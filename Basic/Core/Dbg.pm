@@ -120,7 +120,7 @@ sub px {
   while (($key,$val) = each(%stab)) {
     $pdl = ${"$package$key"};
     # print info for all objects derived from this class
-    if (isa($pdl,$classname)) {
+    if (UNIVERSAL::isa($pdl,$classname)) {
       $npdls++;
       $info = $pdl->info($PDL::Dbg::Infostr);
       printf "\$%-11s %s %s\n",$key,$info,(ref($pdl) eq $classname ? '' :
