@@ -1,3 +1,12 @@
+CED (15-Aug-02)
+    - PGPLOT::Window fixes:
+	- ticks default to outside for images; inside for everyone else
+	- cleaned up pixel scaling code (used initenv() now) in imag
+	- Image alignment code - you can choose how the image fits within
+	  the box if you explicitly set the scaling (or use fits_imag)
+	- fits_imag automagically draws wedges rather than modifying the title.
+	- draw_wedge position defaults to 1.5 rather than 2 (avoids cropping of
+	  wedge labels in the default case).
 CED (12-Aug-02)
     - Minor speed increase to InterpND (still needs work!)
     - PGPLOT::Window::(imag1|imag|fits_imag) now does pixel scaling correctly
@@ -5,6 +14,8 @@ CED (12-Aug-02)
     - Axes now default to having tick marks outside the box instead of inside 
 	the box.  That prevents scrozzling by images.
     - pgwin() convenience function is a little more convenient
+    - Fix to spinlocks in Window.pm.
+    - gethdr() can return undef again; new method hdr() is always defined.
 CED (9-Aug-02)
     - Signal-deferral mechanism for PDL::Graphics::PGPLOT::Window should
 	avoid many pgplot-related weirdnesses

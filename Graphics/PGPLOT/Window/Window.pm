@@ -905,32 +905,53 @@ Options recognised:
        ITF - the image transfer function applied to the pixel values. It
              may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
              acceptable). It defaults to 'LINEAR'.
-      MIN  - Sets the minimum value to be used for calculation of the
+
+       MIN - Sets the minimum value to be used for calculation of the
              display stretch
-      MAX  - Sets the maximum value for the same
+
+       MAX - Sets the maximum value for the same
+
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
-      PIX  - Sets the image pixel aspect ratio.  By default, imag
+
+       PIX - Sets the image pixel aspect ratio.  By default, imag
              stretches the image pixels so that the final image aspect
              ratio fits the viewport exactly.  Setting PIX=>1 causes
              the image aspect ratio to be preserved.  (the image is
              scaled to avoid cropping, unless you specify scaling 
-             manually).  Larger numbers yield "landscape mode" pixels.
+             manually).  Larger numbers yield "portrait mode" pixels
+             to match the C<Aspect> standard parameter in the PGPLOT
+             constructor.  PIX overrides the boolean C<Justify> standard 
+             PGPLOT option; but C<Justify=>1> acts the same as 
+             C<PIX=>1>.
+
      PITCH - Sets the number of image pixels per screen unit, in the X
              direction.  The Y direction is determined by PIX, which 
              defaults to 1 if PITCH is specified and PIX is not.  PITCH 
              causes UNIT to default to "inches" so that it is easy to say 
              100dpi by specifying {PITCH=>100}.  Larger numbers yield 
              higher resolution (hence smaller appearing) images.
+
       UNIT - Sets the screen unit used for scaling.  Must be one of the
              PGPLOT supported units (inch, mm, pixel, normalized).  You
              can refer to them by name or by number.  Defaults to pixels
              if not specified.
+
      SCALE - Syntactic sugar for the reciprocal of PITCH.  Makes the
              UNIT default to "pixels" so you can say "{SCALE=>1}"
              to see your image in device pixels.   Larger SCALEs lead
              to larger appearing images.
+
  DrawWedge - set to 1 to draw a colour bar (default is 0)
+
      Wedge - see the draw_wedge() routine
+
+     ALIGN - How to align the image in the box.  Two-character string
+             with "L","R", or "C" in the first character and 
+             "T", "B", or "C" in the second character.  This should
+             probably be implemented in a more general way but works
+             for now.  Default is "BL".  This doesn't make sense unless
+             you're manually messing with the scaling anyhow, because 
+             if you're not, then the image is scaled to exactly fit the box.
 
 The following standard options influence this command:
 
@@ -965,7 +986,7 @@ Display an image with correct aspect ratio
 
 This is syntactic sugar for 
 
-  $win->imag( { PIX=>1 } );
+  $win->imag( { PIX=>1, ALIGN=>'CC' } );
 
 =head2 fits_imag
 
@@ -997,12 +1018,18 @@ a spectrum) then the default pixel aspect ratio is adjusted to match the
 plot viewport.
 
 You can override the image scaling using the SCALE, PIX, or PITCH
-options just as with the imag() method -- but those parameters refer
-to the scientific coordinate system rather than to the pixel
-coordinate system (e.g. "PITCH=>100" means "100 scientific units per
-inch", and "SCALE=>1" means "1 scientific unit per device pixel".  See
-the imag() writeup for more info on these options.  Scaling happens
-relative to the image datum, not relative to the corner of the image.
+options just as with L<the imag() method|PDL::Graphics::Window::imag> -- but 
+those parameters refer to the scientific coordinate system rather than 
+to the pixel coordinate system (e.g. C<PITCH=>100> means "100 scientific units 
+per inch", and C<SCALE=>1> means "1 scientific unit per device pixel".  See
+L<the imag() writeup|PDL::Graphics::Window::imag> for more info on these 
+options.  
+
+The default value of the C<ALIGN> option is 'CC' -- centering the image 
+both vertically and horizontally.
+
+By default fits_imag draws a color wedge on the right; you can explicitly
+set the C<DrawWedge> option to 0 to avoid this.
 
 =head2 draw_wedge
 
@@ -1033,11 +1060,11 @@ Which side of the image to draw the wedge: can be one of 'B', 'L', 'T', or
 =item Displacement
 
 How far from the egde of the image should the wedge be drawn, in units of character
-size. To draw within the image use a negative value. Default is B<2>.
+size. To draw within the image use a negative value. Default is B<1.5>.
 
 =item Width
 
-How wide should the wedge be, in units of character size.  Default is B<3>. 
+How wide should the wedge be, in units of character size.  Default is B<2>. 
 
 =item Label
 
@@ -4395,8 +4422,8 @@ sub arrow {
 	    $wedge_options = 
 		$self->{PlotOptions}->extend({
 		    Side => 'R',
-		    Displacement => 2.0,
-		    Width => 3.0,
+		    Displacement => 1.5,
+		    Width =>3.0,
 		    Label => '',
 		    ForeGround => undef,
 		    BackGround => undef,
@@ -4518,6 +4545,7 @@ sub arrow {
 						  Unit => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
+						  Align => 'BL'
 						 });
     }
 
@@ -4548,20 +4576,30 @@ sub arrow {
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
-
+    
     if (defined($tr)) {
-      $self->_checkarg($tr,1);
-      barf '$transform incorrect' if nelem($tr)!=6;
+	$self->_checkarg($tr,1);
+	barf '$transform incorrect' if nelem($tr)!=6;
     } else {
-      $tr = float [0,1,0, 0,0,1];
+	$tr = float [0,1,0, 0,0,1];
     }
     $tr = $self->CtoF77coords($tr);
-
+    
     ##############################
     # Set up coordinate transformation in the output window.
-
+    
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     if (!$self->held()) {
+      
+      #########
+      # Set axis defaults -- this overrides the ('BCNST') default in 
+      # PGPLOTOptions.pm, but only for images!
+      #
+      print "\$o->{Axis} = '$o->{Axis}'\n";
+      $o = $self->{Options}->options({Axis=>'BCINST'})
+	unless($u_opt->{Axis});
+      print "\$o->{Axis} = '$o->{Axis}'\n";
+      
       #########
       # Parse out scaling options - this is pretty long because
       # the defaults for each value change based on the others.
@@ -4570,7 +4608,7 @@ sub arrow {
       #
       local $_;
       my ($pix,$pitch,$unit);
-
+      
       if ($u_opt->{'Scale'}) {
 	($pix,$pitch,$unit)=(1,1.0/$u_opt->{'Scale'},3);
       }
@@ -4581,11 +4619,11 @@ sub arrow {
 	$unit = _parse_unit($_);
 	barf ("Unknown unit '$_'\n") unless defined($unit);
       }
+
+      $pix = $o->{'Justify'} if ($o->{'Justify'});
       $pix = $u_opt->{'PIX'} if defined $u_opt->{'PIX'};
-
-
-
-      
+      print "u_opt keys are: '".join("', '",keys %$u_opt)."'\n";
+      print "pix=$pix\n";
       ##############################
       ## Figure out how big the image is in data space.  This
       ## is the coordinate system that the $tr matrix translates pixels
@@ -4600,85 +4638,72 @@ sub arrow {
 					 [1, $nx+0.5, 0.5],
 					 [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
       my $xrange = $xvals[1] - $xvals[0];
-
+      
       my @yvals = ($tr->slice("3:5")*pdl[
 					 [1, 0.5, 0.5],
 					 [1, 0.5, $ny+0.5],
 					 [1, $ny+0.5, 0.5],
 					 [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
       my $yrange = $yvals[1] - $yvals[0];
-
+      
       if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
       if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
-
-
+      
+      
       ##############################
       ## Do the initial scaling setup.  If $pix is defined, then
-      ## handle the scaling locally, else use initenv (much simpler).
-
-      if (defined $pix) {
+      ## we have to figure out a dataspace range that's suitable; 
+      ## otherwise, the initenv call is straightforward.
+      ## (previous versions handled the initenv stuff manually; but
+      ## it's better to keep that all centralized...) (CED 15-Aug-2002)
+      
+      my(@env_range) = (@xvals[0..1],@yvals[0..1]);
+      
+      if ( $pix ) {
+	# Get size of plotting window in screen units
 	my ( $x0,$x1,$y0,$y1 );
-	print "PIX defined...\n";
-
-	if (!defined($pitch)) {
-	  ## Set scaling parameters automagically.
-
-	  # Get size of viewport, in inches
-	  # (pgqvp gives active plotting area, not the whole window)
-	  pgqvp(1,$x0,$x1,$y0,$y1);
-	  
-	  print "x0=$x0, x1=$x1, y0=$y0, y1=$y1\n" if $PDL::verbose;
-
-	  # Set number of pixels per inch
-	  ($unit,$pitch) = (1, max(pdl( $xrange / ($x1-$x0) ,
-					$yrange / ($y1-$y0) * $pix  )));
-
-	  print "imag: defined pitch & unit automagically\n" if $PDL::verbose;
-	}
-
-	print "imag: unit='$unit', pitch='$pitch'\n" if $PDL::verbose;
-
-
-	my($col); pgqci($col);
-	my $wo = $self->{Options}->options($opt);
-	print "Axis colour set to $$wo{AxisColour}\n";
-
-	if ($self->{NX}*$self->{NY} > 1) {
-	  $self->clear_state();
-	  pgeras();
-	} else {
-	  $self->clear_state();
-	  pgpage();
-	}
-
-	$self->_set_colour($wo->{AxisColour});
-	pgvstd;			## Standard margins
-#	pgsvp(0,1,0,1) ## (This is how to use the whole window.)
-
-	## Set the window to the correct number of pixels for the
-	## viewport size and the specified $pitch. (viz. pgqvsz)
+	$unit = 1 unless defined($unit);
 	pgqvp($unit,$x0,$x1,$y0,$y1);
 
-	my($xr2) = ($x1-$x0) / 2.0 * float($pitch);
-	my($yr2) = ($y1-$y0) / 2.0 * float($pitch) / float($pix);
+	##############################
+	# pix is always defined if pitch is defined, but not vice
+	# versa.  Work out a suitable pitch if necessary.
+	$pitch = max(pdl( $xrange / ($x1-$x0) ,
+			  $yrange / ($y1-$y0) * $pix  ))
+	  unless defined($pitch);
+	
+	##############################
+	# Work out the boundaries of the window in data space,
+	# given the pitch and requested pixel aspect ratio.
+	# This is complicated by the need to handle the ALIGN option.
+	local($_) = $u_opt->{Align};
+	print "Alignment string='$_'\n";
+	if( m/L/i ) {
+	  @env_range[0..1] = ($xvals[0], $xvals[0] + ($x1-$x0)*$pitch);
+	} elsif( m/R/i ) {
+	  @env_range[0..1] = ($xvals[1] - ($x1-$x0)*$pitch, $xvals[1]);
+	} else {
+	  @env_range[0..1] = (0.5* ( $xvals[0]+$xvals[1] - ($x1-$x0)*$pitch ),
+			      0.5* ( $xvals[0]+$xvals[1] + ($x1-$x0)*$pitch));
+	}
 
-	my($im_xctr) = ( $xvals[0] + $xvals[1] )  /  2.0;
-	my($im_yctr) = ( $yvals[0] + $yvals[1] )  /  2.0;
+	if( m/B/i ) {
+	  @env_range[2..3] = ($yvals[0], $yvals[0] + ($y1-$y0)*$pitch/$pix);
+	} elsif( m/T/i ) {
+	  @env_range[2..3] = ($yvals[1] - ($y1-$y0)*$pitch/$pix, $yvals[1]);
+	} else {
+	  @env_range[2..3]=(0.5*($yvals[0]+$yvals[1] - ($y1-$y0)*$pitch/$pix),
+			    0.5*($yvals[0]+$yvals[1] + ($y1-$y0)*$pitch/$pix));
+	}
+	print "env_range=",join(",",@env_range),"\n";
+      } # if defined $pix
 
-	my(@pgswin) =  ($im_xctr - $xr2,
-			$im_xctr + $xr2,
-			$im_yctr - $yr2,
-			$im_yctr + $yr2);
-	pgswin(@pgswin);
 
-	$self->_set_env_options(@pgswin,$self->{Options}->options($opt));
+      # Here's the initenv call, after much ado.  JUSTIFY is set to 0 
+      # explicitly, because it's handled through the PIX code above.
+      $self->initenv( @env_range, 0, $o->{Axis}  );
 
-	$self->_set_colour($col);
-      } else {
-	## print "no PIX defined...\n";
-	  $self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
-      }
-    }				# if ! hold
+    } # if ! hold
 
     print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
@@ -4697,7 +4722,6 @@ sub arrow {
       pgimag( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
       $self->_store( imag => { routine => "I", min => $min, max => $max } );
     }
-    $self->redraw_axes unless $self->held(); # Redraw box
 
     # draw the wedge, if requested
     if ( $u_opt->{DrawWedge} ) {
@@ -4775,6 +4799,8 @@ sub fits_imag {
   foreach $_(keys %opt2){
     delete $opt2{$_} if(m/title/i);
   }
+  $opt2{Align} = 'CC' unless defined($opt2{Align});
+  $opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
 
   my($min) = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
   my($max) = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
@@ -4794,7 +4820,7 @@ sub fits_imag {
   }
   $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
 		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
-		    $opt->{title} . $rangestr,$opt
+		    $opt->{title}, $opt
 		    );
 
 }
