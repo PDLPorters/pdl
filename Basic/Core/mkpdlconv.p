@@ -111,6 +111,10 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     HV*   hash;
     int   nbytes;
     int   diffsize;
+#if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
+    dXSARGS;
+#endif
+
 
     PDLDEBUG_f(printf("pdl_converttype %d, %d, %d, %d\n", a, a->datatype,
     	targtype, changePerl);)
@@ -191,9 +195,10 @@ print <<'EOD';
       /* Store new data */
 
       if (diffsize) {
+        STRLEN n_a;
          bar = a->datasv;
          sv_setpvn( bar, (char*) a->data, nbytes );
-         a->data = (void*) SvPV(bar, na);
+         a->data = (void*) SvPV(bar, n_a);
       }
 
     }

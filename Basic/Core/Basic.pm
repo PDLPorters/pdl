@@ -325,7 +325,7 @@ Fills a piddle with radial distance values from some centre.
 
 =cut
 
-sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals : PDL->rvals(@_) }
+sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) : PDL->rvals(@_) }
 sub PDL::rvals { # Return radial distance from given point and offset
     my $class = shift;
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";

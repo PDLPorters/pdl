@@ -814,7 +814,7 @@ another example that illustrates typical usage of both new features:
 	Code => 'PerlIO *fp;
 		 IO *io;
 
-		 io = GvIO(gv_fetchpv($PRIV(fd),FALSE,SVt_PVIO));
+               io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
 		 if (!io || !(fp = IoIFP(io)))
 			croak("Can\'t figure out FP");
 
@@ -832,8 +832,8 @@ section follow those in the C<Pars> section when invoking the function, i.e.
    pnmout($pdl,'FILE');
 
 When you want to access this parameter inside the code section you
-have to tell PP by using the C<$PRIV> macro, i.e. you write
-C<$PRIV(fd)> as in the example. Otherwise PP wouldn't know that the
+have to tell PP by using the C<$COMP> macro, i.e. you write
+C<$COMP(fd)> as in the example. Otherwise PP wouldn't know that the
 C<fd> you are referring to is the same as that specified in the
 C<OtherPars> section.
 
@@ -902,7 +902,7 @@ function:
 		 IO *io;
 		 int len;
 
-		 io = GvIO(gv_fetchpv($PRIV(fd),FALSE,SVt_PVIO));
+               io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
 		 if (!io || !(fp = IoIFP(io)))
 			croak("Can\'t figure out FP");
 
@@ -932,7 +932,7 @@ especially CPU intensive code) only once per thread, i.e.
   pp_def('do_raworascii',
 	 Pars => 'a(); b(); [o]c()',
 	 OtherPars => 'int mode',
-	 Code => ' switch ($PRIV(mode)) {
+       Code => ' switch ($COMP(mode)) {
 		    case RAW:
 			threadloop %{
                             /* do raw stuff */

@@ -38,9 +38,12 @@ EOT
 }
 
 
-WriteMakefile(
- pdlpp_stdargs_int(@::pack)
-);
+#WriteMakefile(
+# pdlpp_stdargs_int(@::pack)
+#);
+%hash = pdlpp_stdargs_int(@::pack);
+$hash{LIBS} = ['-lm'];
+WriteMakefile(%hash);
 
 sub MY::postamble {
 	pdlpp_postamble_int(@::pack);

@@ -197,7 +197,7 @@ void pdl_initthreadstruct(int nobl,
 				if(thread->dims[nth] != 1) {
 					if(thread->dims[nth] !=
 						pdls[j]->dims[i+realdims[j]]) {
-						pdl_croak_param(info,j,"Mismatched Implicit thread dimension %d: should be %d, is %d",
+                                              pdl_croak_param(info,j,"Mismatched implicit thread dimension %d: should be %d, is %d\n\t",
 							i,
 							thread->dims[nth],
 							pdls[j]->dims[i+thread->realdims[j]]);
@@ -364,6 +364,8 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 	va_list args;
 	char *message; char *name;
 	static char mesgbuf[200];
+      static char argsbuf[256], *argb;
+      int i, k, l;
 	va_start(args,pat);
 	message = mess(pat,&args);
 	/* Now, croak() overwrites this string. make a copy */
@@ -375,7 +377,27 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 		if(j >= info->nparamnames)
 			name = "ERROR: UNKNOWN PARAMETER";
 		else	name = info->paramnames[j];
-		croak("PDL: %s: Parameter '%s': %s\n",info->funcname,name,message);
+              for (i=0,argb=argsbuf,l=255;i<info->nparamnames && l;i++) {
+                /* Could improve method, but 256 chars should be
+                     enough anyway! */
+                k = strlen(info->paramnames[i]);
+                if (k < l-4) {
+                  memcpy(argb,info->paramnames[i],k);
+                  argb += k;
+                  *argb = ',';
+                  argb++;
+                  l -= k+1;
+                } else {
+                  *argb++ = '.';
+                  *argb++ = '.';
+                  *argb++ = '.';
+                  argb++;
+                  l = 0;
+                }
+              }
+              *--argb = '\0';
+              croak("PDL: %s(%s): Parameter '%s'\n%s\n",
+                    info->funcname,argsbuf,name,message);
 	}
 }
 

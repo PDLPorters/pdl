@@ -259,7 +259,7 @@ defpdl(
 		 $b() = tmp;
 	 %}
 	 ',
-	 projectdocs('product','prodover','')
+	 cumuprojectdocs('product','cumuprodover','')
 );
 
 
@@ -420,6 +420,45 @@ sub PDL::$op->[0] {
 EOD
 
 } # for $op
+
+pp_add_exported('','any all');
+pp_addpm(<<'EOPM');
+
+=head2 any
+
+=for ref
+
+Return true if any element in piddle set
+
+Useful in conditional expressions:
+
+=for example
+
+ if (any $a>15) { print "some values are greater than 15\n" }
+
+=cut
+
+*any = \&or;
+*PDL::any = \&PDL::or;
+
+=head2 all
+
+=for ref
+
+Return true if all elements in piddle set
+
+Useful in conditional expressions:
+
+=for example
+
+ if (all $a>15) { print "all values are greater than 15\n" }
+
+=cut
+
+*all = \&and;
+*PDL::all = \&PDL::and;
+
+EOPM
 
 pp_addpm(<<'EOD'
 

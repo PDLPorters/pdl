@@ -73,6 +73,20 @@ PDL::Lib::Slatec
                                         ExtUtils::F77 (version >= 1.03)
 					is installed and Extutils::F77
 					supports your platform.
+PDL::GSL::RNG
+                Needs the GSL (Gnu Scientific Library) to build.
+		See http://sourceware.cygnus.com/gsl/
+
+                                        Will not be built unless
+					GSL is installed.
+PDL::FFTW
+                Needs the FFTW to build. (A free C FFT library
+                including multi-dimensional, real, and parallel
+                transforms) 
+		See http://www.fftw.org/
+
+                                        Will not be built unless
+					FFTW is installed.
 
 PDL::IO::Browser
 		Requires a 'curses'-compatible library

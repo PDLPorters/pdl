@@ -1,0 +1,8 @@
+FFTW-PDL 0.5
+
+Interface to FFTW 2.x for PDL.
+Copyright 1999 Christian Pellegrin.
+This is free software with no warranty,
+see COPYING in the source root of PDL.
+
+Please report any bugs to <chri@infis.univ.ts.it>

@@ -397,16 +397,17 @@ sub ext1D {
 
 =for ref
 
-Read ASCII whitespaced cols from file into piddles efficiently.
+Read ASCII whitespaced cols from file into piddles efficiently
+(also see rgrep()).
 
 There are two calling conventions - the old version, where
 a pattern can be specified after the filename/handle, and the new
 version where options are given as as hash reference. This 
 reference can be given as either the second or last argument.
 
-The default behaviour is to read in from all lines unless they 
-begin with a # character, or if a pattern is given,  read
-in data from lines matching the pattern.
+The default behaviour is to ignore lines beginning with a # character
+and lines that only consist of whitespace. Options exist to only read
+from lines that match, or do not match, supplied patterns.
 
 Options:
 
@@ -416,7 +417,12 @@ Options:
      - only use lines which match this pattern (default '').
   LINES   
      - which line numbers to use. Line numbers start at 0 and the syntax 
-       is 'a:b:c' to use every c'th line between a and b (default '').
+       is 'a:b:c' to use every c'th matching line between a and b
+       (default '').
+  PERLCOLS
+     - an array of column numbers which are to be read into perl arrays
+       rather than piddles. References to these arrays are returned after
+       the requested piddles.
 
 Can take file name or *HANDLE, and if no columns are specified, 
 all are assumed. 
@@ -435,21 +441,20 @@ e.g.,
 =for example
 
   $x         = PDL->rcols 'file1';
-  ($x,$y)    = rcols 'file1';
   ($x,$y)    = rcols *STDOUT;
 
-  # to only read lines containing the string foo that do not
-  # begin with # (since EXCLUDE defaults to '^#')
+  # read in lines containing the string foo, where the first
+  # example also ignores lines that with a # character.
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/' };
-
-  # to only read in lines containing the string foo
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/', EXCLUDE => '' };
-  # or, using the old-style
-  ($x,$y,$z) = rcols 'file2', "/foo/",0,4,5;
 
   # ignore the first 27 lines of the file
   ($x,$y) = rcols 'file3', { LINES => '27:-1' }
   ($x,$y) = rcols 'file3', { LINES => '27:' }
+
+  # read in the first column as a perl array and the next two as piddles
+  ($x,$y,$name) = rcols 'file4', 1, 2, { PERLCOLS => [ 0 ] };
+  printf "Number of names read in = %d\n", 1 + $#$name;
 
 Notes:
 
@@ -461,10 +466,9 @@ separator.
 
 3. To remove a particular check set its value to ''.
 
-4. Although the LINES option looks remarkably similar to
-the format of slice(), it works on line numbers - not the 
-resulting array - so both '0:-1' and '0:-2' give the same 
-result IF the last line starts with a '#'.
+4. For PDL-2.003, the meaning of the 'c' value in the LINES option has
+changed: it now only counts matching lines rather than all lines as in
+previous versions of PDL.
 
 =cut
 
@@ -483,7 +487,12 @@ sub PDL::rcols {
    shift;
 
    # set up default options
-   my $opt = new PDL::Options( { EXCLUDE => '/^#/', INCLUDE => '', LINES => '' } );
+   my $opt = new PDL::Options( {
+       EXCLUDE => '/^#/',
+       INCLUDE => '',
+       LINES => '',
+       PERLCOLS => undef
+       } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
 
    # has the user supplied any options
@@ -499,11 +508,25 @@ sub PDL::rcols {
    # a reference to a hash array
    my $options = $opt->current();   
 
-   # what are the patterns
-   $$options{EXCLUDE} =~ s|^/(.*)/$|$1|;
-   $$options{INCLUDE} =~ s|^/(.*)/$|$1|;
+   # what are the patterns?
+   foreach my $pattern ( qw( INCLUDE EXCLUDE ) ) {
+       if ( $$options{$pattern} ne '' ) {
+         barf "rcols() - unable to parse $pattern value.\n" if $$options{$pattern} !~ m|^/.*/$|;
+         $$options{$pattern} =~ s|^/(.*)/$|$1|;
+       }
+   }
 
-   # not pretty
+   # which columns are to be read into piddles and which into perl arrays?
+   my @perl_cols;
+   if ( $$options{PERLCOLS} ) {
+       @perl_cols = @{ $$options{PERLCOLS} };
+   } else {
+       @perl_cols = ();
+   }
+   my ( @pdl_cols )  = @_;
+
+   # work out which line numbers are required
+   # - the regexp's are a bit over the top
    my ( $a, $b, $c );
    if ( $$options{LINES} ne '' ) {
        if ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*$/ ) {
@@ -515,15 +538,16 @@ sub PDL::rcols {
        }
    }
 
-   # default behaviour
+   # Since we do not know how many lines there are in advance, things get a bit messy
    my ( $index_start, $index_end ) = ( 0, -1 );
-   $index_start = $a if defined($a) and $a ne '';
-   $index_end   = $b if defined($b) and $b ne '';
+   $index_start  = $a if defined($a) and $a ne '';
+   $index_end    = $b if defined($b) and $b ne '';
+   my $line_step = $c || 1;
 
-   my $line_step   = $c || 1;
+   # $line_rev = 0/1 for normal order/reversed
+   # $line_start/_end refer to the first and last line numbers that we want
+   # (the values of which we may not know until we've read in all the file)
    my ( $line_start, $line_end, $line_rev );
-
-   # ugh! not pretty
    if ( ($index_start >= 0 and $index_end < 0) ) {
        # eg 0:-1
        $line_rev = 0; $line_start = $index_start;
@@ -545,7 +569,6 @@ sub PDL::rcols {
    }
    
    my @ret;
-   my @cols = @_;
 
    my (@v,$k); 
 
@@ -561,15 +584,16 @@ sub PDL::rcols {
 
        $line_num++;
 
-       # the order of these checks is important, 
-       # particularly whether we check for line_ctr before or after
-       # the pattern matching
+       # the order of these checks is important, particularly whether we
+       # check for line_ctr before or after the pattern matching
+       # Prior to PDL 2.003 the line checks were done BEFORE the
+       # pattern matching
        last if     defined($line_end)   and $line_num > $line_end;
        next if     defined($line_start) and $line_num < $line_start;
-       next unless ++$line_ctr == $line_step; 
-       $line_ctr = 0;
        next if     $$options{EXCLUDE} ne '' and /$$options{EXCLUDE}/;
        next unless $$options{INCLUDE} eq '' or  /$$options{INCLUDE}/;
+       next unless ++$line_ctr == $line_step;
+       $line_ctr = 0;
 
        $index++;
        @v = $colsep eq ' ' ? split(' ') : split($colsep) ; 
@@ -577,20 +601,25 @@ sub PDL::rcols {
        # if the first line, set up the output piddles
        # using all the columns if the user doesn't specify anything
        if ( $index == 0 ) {
-	   @cols = ( 0 .. $#v ) if $#cols < 0;
-	   for (0..$#cols) { $ret[$_] = $class->zeroes(double,1); }
+         @pdl_cols = ( 0 .. $#v ) if $#pdl_cols < 0;
+         $k = 0;
+         for (0..$#pdl_cols) { $ret[$_] = $class->zeroes(double,1); $k++; }
+         for (@perl_cols)    { $ret[$k++] = []; }
 	   $line_store = $class->zeroes(long,1); # only need to store integers
        }
 
        # if necessary, extend PDL in buffered manner
        if ( $pdlsize < $index ) {
-	   for (0..$#cols) { ext1D( $ret[$_], $extend ); } 
+         for (0..$#pdl_cols) { ext1D( $ret[$_], $extend ); }
 	   ext1D( $line_store, $extend );
 	   $pdlsize += $extend;
        }
 
        # Set values - '1*' is split() bug workaround
-       $k = 0; for (@cols) { set $ret[$k++], $index, 1*$v[$_]; } 
+       # - stick perl arrays onto end of $ret
+       $k = 0;
+       for (@pdl_cols)  { set $ret[$k++], $index, 1*$v[$_]; }
+       for (@perl_cols) { push @{ $ret[$k++] }, $v[$_]; }
 
        # store the line number
        $line_store->set( $index, $line_num );
@@ -599,21 +628,30 @@ sub PDL::rcols {
    close($fh) unless $is_handle;
 
    # have we read anything in? if not, return empty piddles
-   # - not wonderful
    if ( $index == -1 ) {
        print "Warning: rcols() did not read in any data.\n" if $PDL::verbose;
        if ( wantarray ) {
-	   foreach ( 0 .. $#cols ) { $ret[$_] = PDL->null; }
+         foreach ( 0 .. $#pdl_cols ) { $ret[$_] = PDL->null; }
+         for ( ($#pdl_cols+1) .. ($#pdl_cols+1+$#perl_cols) ) { $ret[$_] = []; }
 	   return ( @ret );
        } else { 
 	   return PDL->null;
        }
    }
 
-   # sort out excising the data
+   # if the user has asked for lines => 0:-1 or 0:10 or 1:10 or 1:-1,
+   # - ie not reversed and the last line number is known -
+   # then we can skip the following nastiness
+   if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
+       for ( 0 .. $#pdl_cols ) { $ret[$_] = $ret[$_]->slice("0:${index}"); };
+       wantarray ? return(@ret) : return $ret[0];
+   }
+
+   # Work out which line numbers we want. First we clean up the piddle
+   # containing the line numbers that have been read in
    $line_store = $line_store->slice("0:${index}");
 
-   # ugh! not pretty at all
+   # work out the min/max line numbers required
    if ( $line_rev ) {
        if ( defined($line_start) and defined($line_end) ) {
 	   my $dummy = $line_start;
@@ -635,7 +673,19 @@ sub PDL::rcols {
        $indices = which( $line_store >= $line_start & $line_store <= $line_end );
    }
 
-   for (@ret) { $_ = $_->index($indices)->copy; }; # Truncate
+   # truncate the piddles
+   for ( 0 .. $#pdl_cols ) { $ret[$_] = $ret[$_]->index($indices); };
+
+   # truncate/reverse/etc the perl arrays
+   my @indices_array = list $indices;
+   $k = $#pdl_cols + 1;
+   foreach ( 0 .. $#perl_cols ) {
+       my @temp = @{ $ret[$k] };
+       $ret[$k] = [];
+       foreach my $i ( @indices_array ) { push @{ $ret[$k] }, $temp[$i] };
+       $k++;
+   }
+
    wantarray ? return(@ret) : return $ret[0];
 }
 
@@ -1023,7 +1073,7 @@ endread:
 
 EOH
 
-pp_add_exported('rasc');
+pp_add_exported('', 'rasc rcube');
 pp_addpm(<<'EOPM');
 
 

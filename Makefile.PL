@@ -77,7 +77,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
 
- 'PREREQ_PM' => { 'File::Spec' => 0.7 },
+ 'PREREQ_PM' => { 'ExtUtils::F77' => 1.10, 'File::Spec' => 0.6 },
  'NAME' => 'PDL',
  'VERSION_FROM' => 'Basic/Core/Version.pm',
  'EXE_FILES' => ['perldl'],

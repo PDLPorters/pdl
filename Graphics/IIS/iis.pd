@@ -101,28 +101,59 @@ Displays an image on a IIS device (e.g. SAOimage/Ximtool)
 
 =for usage
 
+   iis $image, [ { MIN => $min, MAX => $max,
+                   TITLE => 'pretty picture' } ]
    iis $image, [$min,$max]
 
 =for sig
 
-   iis(image(m,n),[min(),max()])
+   iis(image(m,n),[\%options]) or iis(image(m,n),[min(),max()])
 
 Displays image on a IIS device. If min() or max() are omitted they
 are autoscaled. A good demonstration of PDL threading can be had
 by giving iis() a data *cube* - iis() will be repeatedly called
 for each plane of the cube resulting in a poor man's movie!
 
+If supplied, TITLE is used to label the frame, if no title is
+supplied, either the OBJECT value stored in the image header or a
+default string is used (the title is restricted to a maximum
+length of 32 characters).
+
 =cut
 
 sub iis {
-   barf 'Usage: iis ( $image, [$min, $max] )' if $#_<0 || $#_>2;
-   my($image,$min,$max)=@_;
-   my($nx,$ny) = dims($image);
-   fbconfig($stdimage) if $stdimage ne $last_stdimage;
-   $min = $image->min unless defined $min;
-   $max = $image->max unless defined $max;
-   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
-   &_iis_int($image,$min,$max);
+    my $usage = 'Usage: iis ( $image, [\%hash | $min, $max] )';
+    barf $usage if $#_<0 || $#_>2;
+
+    my $image  = shift;
+    my ( $min, $max );
+
+    my $title = 'perlDL rules !';
+    my $header = $image->gethdr();
+    if ( defined $header and defined $$header{OBJECT} ) {
+      $title = $$header{OBJECT};
+      $title =~ s/^'(.*)'$/$1/;
+    }
+
+    if ( $#_ == 1 ) { $min = $_[0]; $max = $_[1]; }
+    elsif ( $#_ == 0 ) {
+      barf $usage unless ref($_[0]) eq "HASH";
+
+      my $opt = new PDL::Options( { MIN => undef, MAX => undef, TITLE => $title } );
+      $opt->options( shift );
+      my $options = $opt->current;
+
+      $min   = $$options{MIN};
+      $max   = $$options{MAX};
+      $title = $$options{TITLE};
+    }
+
+    my($nx,$ny) = dims($image);
+    fbconfig($stdimage) if $stdimage ne $last_stdimage;
+    $min = $image->min unless defined $min;
+    $max = $image->max unless defined $max;
+    print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
+    &_iis_int($image,$min,$max,$title);
 1;}
 
 =head2 iiscur
@@ -416,8 +447,8 @@ pp_def('iis',
         PMCode=>'',
 	Doc => undef,
         Pars => 'image(m,n); min(); max();',
+        OtherPars => 'char *perl_title',
         Code => '
-
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
 
@@ -428,6 +459,7 @@ pp_def('iis',
    float xx, yx, xy, yy, xo, yo; int w_type; /* WCS */
    float fmin, fmax;
    char wcsbuf[SZ_WCSTEXT];
+   char title[33];  /* 32 chars + null terminator */
    int chan;
    STRLEN n_a;
 
@@ -495,7 +527,10 @@ pp_def('iis',
 
       xx=1; yx=0; xy=0; yy=-1; xo=baseX-offx; yo=baseY+frameY-offy-1; w_type=1;
 
-      sprintf (wcsbuf, "%s\n%f %f %f %f %f %f %f %f %d","perlDL rules!",
+      strncpy( title, $COMP(perl_title), 32 );
+      title[32] = ' . "'" . '\0' . "'" . ';
+      sprintf (wcsbuf, "%-33s\n%f %f %f %f %f %f %f %f %d",
+               title,  /*** was "perlDL rules!", ***/
                xx, yx, xy, yy, xo, yo, fmin, fmax, w_type);
       iis_write((char*)wcsbuf, SZ_WCSTEXT*sizeof(char));
 

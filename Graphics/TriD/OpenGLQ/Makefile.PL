@@ -19,6 +19,7 @@ foreach (@{$hash{LIBS}}) {
 }
 $hash{DEFINE} .= ' '.$PDL_CONFIG{OPENGL_DEFINE};
 $hash{INC} .= ' '.$PDL_CONFIG{OPENGL_INC};
+${$hash{LIBS}}[0] .= ' -lm';
 WriteMakefile(%hash);
 
 sub MY::postamble {

@@ -277,10 +277,10 @@ sub myprelude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
 '	/* THREADLOOPBEGIN */
- if(PDL->startthreadloop(&($PRIV(__thread)),$PRIV(vtable)->readdata,
+ if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__privtrans))) return;
    do {
- '.(join '',map {"${_}_datap += \$PRIV(__thread).offs[".(0+$no++)."];\n"}
+ '.(join '',map {"${_}_datap += \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
 ';
 }
@@ -289,9 +289,9 @@ sub mypostlude {my($this,$parent,$context) = @_;
  my $no;
  my ($ord,$pdls) = $parent->get_pdls();
 '	/* THREADLOOPEND */
- '.(join '',map {"${_}_datap -= \$PRIV(__thread).offs[".(0+$no++)."];\n"}
+ '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
-	} while(PDL->iterthreadloop(&$PRIV(__thread),0));
+      } while(PDL->iterthreadloop(&$PRIV(__pdlthread),0));
  '
 }
 
@@ -311,18 +311,18 @@ sub myprelude {my($this,$parent,$context) = @_;
  my $no; my $no2=-1; my $no3=-1;
  my ($ord,$pdls) = $parent->get_pdls();
 '	/* THREADLOOPBEGIN */
- if(PDL->startthreadloop(&($PRIV(__thread)),$PRIV(vtable)->readdata,
+ if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__tr)) return;
    do { register int __tind1=0,__tind2=0;
-        register int __tnpdls = $PRIV(__thread).npdls;
-	register int __tdims1 = $PRIV(__thread.dims[1]);
-	register int __tdims0 = $PRIV(__thread.dims[0]);
-	register int *__offsp = PDL->get_threadoffsp(&$PRIV(__thread));
+        register int __tnpdls = $PRIV(__pdlthread).npdls;
+      register int __tdims1 = $PRIV(__pdlthread.dims[1]);
+      register int __tdims0 = $PRIV(__pdlthread.dims[0]);
+      register int *__offsp = PDL->get_threadoffsp(&$PRIV(__pdlthread));
  '.(join '',map {$no2++;
-            "register int __tinc0_".($no2)." = \$PRIV(__thread).incs[$no2];"}
+            "register int __tinc0_".($no2)." = \$PRIV(__pdlthread).incs[$no2];"}
 	     @$ord).
    (join '',map {$no3++;
-            "register int __tinc1_".($no3)." = \$PRIV(__thread).incs[__tnpdls+$no3];"}
+            "register int __tinc1_".($no3)." = \$PRIV(__pdlthread).incs[__tnpdls+$no3];"}
 	     @$ord).
    (join '',map {"${_}_datap += __offsp[".(0+$no++)."];\n"}
  		@$ord).'
@@ -348,9 +348,9 @@ sub mypostlude {my($this,$parent,$context) = @_;
      (join '',map {"${_}_datap -= __tinc1_".(0+$no3++)." *
      				  __tdims1;"}
  		@$ord).'
- '.(join '',map {"${_}_datap -= \$PRIV(__thread).offs[".(0+$no++)."];\n"}
+ '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
  		@$ord).'
-	} while(PDL->iterthreadloop(&$PRIV(__thread),2));
+      } while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));
  '
 }
 

@@ -137,3 +137,5 @@ sub toimage {
   my ($this) = @_;
   return $this->flatten(0);
 }
+
+1;

@@ -495,7 +495,11 @@ pdl_barf(pat, va_alist)
 	}
     }
     if (PL_in_eval) {
-	PL_restartop = die_where(message);
+#if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
+       PL_restartop = die_where(message,strlen(message));
+#else
+        PL_restartop = die_where(message);
+#endif
 	JMPENV_JUMP(3);
     }
     PerlIO_puts(PerlIO_stderr(),message);

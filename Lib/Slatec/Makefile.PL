@@ -2,13 +2,12 @@
 
 # Slatec module
 
-use lib "."; # For included ExtUtils::F77
 
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
 # This mess sorts out the Fortran availability - KGB.
-# Depends on ExtUtils::F77 (copy included)
+# Depends on ExtUtils::F77
 
 BEGIN {
    $msg = ""; $forcebuild=0;

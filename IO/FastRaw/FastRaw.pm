@@ -49,7 +49,7 @@ it may well preread some for you).
 Note that memory savings and copy-on-write are operating-system
 dependent - see Core.xs and your operating system documentation
 for exact semantics of whatever. Basically, if you write to a
-mmapped file without c<ReadOnly>, the change will be reflected
+mmapped file without C<ReadOnly>, the change will be reflected
 in the file immediately. C<ReadOnly> doesn't really make it impossible
 to write to the piddle but maps the memory privately so the file
 will not be changed when you change the piddle. Be aware though
@@ -227,8 +227,17 @@ sub PDL::readfraw {
 	my $hdr = _read_frawhdr($name);
 	my $pdl = $class->zeroes ((new PDL::Type($hdr->{Type})), @{$hdr->{Dims}});
 	my $len = length ${$pdl->get_dataref};
-	$d->sysread(${$pdl->get_dataref},$len) == $len
-	  or barf "Couldn't read enough data from '$name'";
+# wrong.
+#       $d->sysread(${$pdl->get_dataref},$len) == $len
+#         or barf "Couldn't read enough data from '$name'";
+        my $index = 0;
+        my $data;
+        my $retlen;
+        while (($retlen = $d->sysread($data, $len)) != 0) {
+                substr(${$pdl->get_dataref},$index,$len,$data);
+                $index += $retlen;
+               $len -= $retlen;
+        }
 	$pdl->upd_data();
 	return $pdl;
 }

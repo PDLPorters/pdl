@@ -20,7 +20,7 @@ PDL::Core::Dev->import();
              	 erf ndtr erfc ndtr j0 j0 j1 j1 jn jn
 	     	 y0 j0 y1 j1 yn yn ndtri ndtri
 		 blas blas eigens eigens simq simq rint rint
-               nan quiet_nan infinity infinity
+               nan quiet_nan infinity infinity svd svd
 	       );
 %included = ();
 
@@ -40,7 +40,7 @@ if ($^O eq 'solaris' or $^O eq 'sunos') {
        }
     }
 }
-@need = qw(ndtri blas eigens simq); # List of routine we need because system
+@need = qw(ndtri blas eigens simq svd y0 yn); # List of routine we need because system
             # does not have them
 
 # Test for absence of unary functions

@@ -1,0 +1,12 @@
+PDL-GSL-0.6
+
+PDL interface to GSL 0.4.1 rng and randist functions.
+
+by Christian Pellegrin <chri@infis.univ.ts.it>, Copyleft, 1999
+see COPYING in the root of the PDL build tree.
+
+This is an interface to the random number generator part
+of the GNU Scientific Library. The documentation is
+in the .pd file and is automaticaly generated.
+
+

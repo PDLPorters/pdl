@@ -25,9 +25,6 @@
 #define barf PDL->pdl_barf
 #endif
 
-#undef croak
-#define croak barf
-
 typedef int Logical;
 
 /*************** Function prototypes *********************/

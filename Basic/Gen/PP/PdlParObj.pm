@@ -239,7 +239,7 @@ sub get_xsnormdimchecks { my($this) = @_;
 		   (map {"dims[$_] = ".$this->{IndObjs}[$_]->get_size().";"}
 		      0..$#{$this->{IndObjs}});
 		my $istemp = $this->{FlagTemp} ? 1 : 0;
-		$str .="\n PDL->thread_create_parameter(&\$PRIV(__thread),$this->{Number},dims,$istemp);\n"
+              $str .="\n PDL->thread_create_parameter(&\$PRIV(__pdlthread),$this->{Number},dims,$istemp);\n"
 	}
 	$str .= "}";
 	$str

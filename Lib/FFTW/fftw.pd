@@ -1,0 +1,959 @@
+
+require 'typespec';
+
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::FFTW - Core PDL interface to Fastes Fourier Transform in the West v2.x
+
+=head1 DESCRIPTION
+
+This is a mean to interface PDL with the FFTW library. It's similar to the standard FFT routine but
+it's usually faster and has support for real transforms. It works well for the type of PDLs for
+which was compiled (otherwise it must do conversions).
+
+=head1 SYNOPSIS
+
+    use PDL::FFTW
+
+    load_wisdom("file_name");
+
+    out_cplx_pdl =  fftw(in_cplx_pdl);
+    out_cplx_pdl = ifftw(in_cplx_pdl);
+
+    out_cplx_pdl =  rfftw(in_real_pdl);
+    out_real_pdl = irfftw(in_cplx_pdl);
+
+    cplx_pdl = nfftw(cplx_pdl);
+    cplx_pdl = infftw(cplx_pdl);
+
+    cplx_pdl = Cmul(a_cplx_pdl, b_cplx_pdl);
+    cplx_pdl = Cconj(a_cplx_pdl);
+    real_pdl = Cmod(a_cplx_pdl); 
+    real_pdl = Cmod2(a_cplx_pdl); 
+
+=head1 FUNCTIONS
+
+Please refer to the FFTW documentation for a better understanting of these functions.
+
+Note that complex numbers are rapresented as a leading 2-element piddle dimension.
+
+=head2 load_wisdom()
+
+=for ref
+
+Loads the wisdom from a file from better FFTW performance. The wisdom
+is automatically saved when the program ends.
+
+=for usage
+
+load_wisdom($fname);
+
+=head2 fftw()
+
+=for ref 
+
+Complex FFT.
+
+=for usage
+
+$pdl_cplx = fftw $pdl_real;
+
+=head2 ifftw()
+
+=for ref 
+
+Complex IFFT.
+
+=for usage
+
+$pdl_cplx = fftw $pdl_cplx;
+
+=head2 nfftw()
+
+=for ref 
+
+Complex inplace FFT.
+
+=for usage
+
+$pdl_cplx = nfftw $pdl_cplx;
+
+=head2 infftw()
+
+=for ref 
+
+Complex inplace IFFT.
+
+=for usage
+
+$pdl_cplx = infftw $pdl_cplx;
+
+=head2 rfftw()
+
+=for ref 
+
+Real FFT. For an input piddle of dimesnsions (n1,n2,...) the 
+output is (2,(n1/2)+1,n2,...). 
+
+=for usage
+
+$pdl_cplx = fftw $pdl_real;
+
+=head2 irfftw()
+
+=for ref 
+
+Real IFFT. Have a look at rfftw to understand the format. USE
+ONLY an even n1!
+
+=for usage
+
+$pdl_real = fftw $pdl_cplx;
+
+=head2 nrfftw()
+
+=for ref 
+
+Real inplace FFT. If you want a transformation on a piddle
+with dimensions (n1,n2,....) you MUST put it a piddle
+with dimensions (2*(n1/2+1),n2,...).
+
+=for usage
+
+$pdl_cplx = nrfftw $pdl_real;
+
+=head2 inrfftw()
+
+=for ref 
+
+Real inplace IFFT. Have a look at nrfftw to understand the format. USE
+ONLY an even n1!
+
+=for usage
+
+$pdl_real = infftw $pdl_cplx;
+
+=head2 Cmul()
+
+=for ref
+
+Complex multiplication.
+
+=for usage
+
+$out_pdl_cplx = Cmul($a_pdl_cplx,$b_pdl_cplx);
+
+=head2 Cbmul()
+
+=for ref
+
+Complex inplace multiplication.
+
+=for usage
+
+Cbmul($a_pdl_cplx,$b_pdl_cplx);
+
+=head2 Cdiv()
+
+=for ref
+
+Complex division.
+
+=for usage
+
+$out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_cplx);
+
+=head2 Cbdiv()
+
+=for ref
+
+Complex inplace division.
+
+=for usage
+
+Cbdiv($a_pdl_cplx,$b_pdl_cplx);
+
+=head2 Cscale()
+
+=for ref
+
+Complex scale.
+
+=for usage
+
+$out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_real);
+
+=head2 Cbscale()
+
+=for ref
+
+Complex inplace scale.
+
+=for usage
+
+Cbscale($a_pdl_cplx,$b_pdl_real);
+
+=head2 Cconj()
+
+=for ref
+
+Complex conjugate.
+
+=for usage
+
+$out_pdl_cplx = Cconj($a_pdl_cplx);
+
+=head2 Cbconj()
+
+=for ref
+
+Complex inplace conjugate.
+
+=for usage
+
+Cbconj($a_pdl_cplx);
+
+=head2 Cexp()
+
+=for ref
+
+Complex exponentation.
+
+=for usage
+
+$out_pdl_cplx = Cexp($a_pdl_cplx);
+
+=head2 Cbexp()
+
+=for ref
+
+Complex inplace exponentation.
+
+=for usage
+
+Cbexp($a_pdl_cplx);
+
+=head2 Cmod()
+
+=for ref
+
+Returns module of a complex module.
+
+=for usage
+
+$out_pdl_real = Cmod($a_pdl_cplx);
+
+=head2 Cmod2()
+
+=for ref
+
+Returns squared module of a complex module.
+
+=for usage
+
+$out_pdl_real = Cmod2($a_pdl_cplx);
+
+=head2 Carg()
+
+=for ref
+
+Returns argument of a complex module.
+
+=for usage
+
+$out_pdl_real = Carg($a_pdl_cplx);
+
+
+=cut
+
+
+EOD
+
+
+pp_addpm('
+
+
+use PDL;
+use strict;
+
+my ($wisdom_fname, $wisdom_loaded, %plan_cache, $datatype, $warn_conv);
+
+#
+# package vriables: $wisdom_fname, $wisdom_loaded, %plan_cache, $datatype, $warn_conv, 
+#           $COMPILED_TYPE: (Type "double" or "float") that PDL::FFTW was compiled/linked to
+#
+
+$wisdom_loaded = 0;
+
+$PDL::FFTW::COMPILED_TYPE = "'.$fftwtype.'";
+
+
+sub load_wisdom {
+  ($wisdom_fname) = @_;
+  my ($wisdom, $ok);
+
+  if (!$wisdom_loaded) {
+  $wisdom_loaded = 1;
+  if (!open(TMPFILE,$wisdom_fname)) {
+    print STDERR "Warning: couldn\'t find wisdom file\n";
+    return;
+  }
+  $wisdom = <TMPFILE>;
+  close(TMPFILE);
+  $ok = PDL_fftw_import_wisdom_from_string($wisdom);
+  if (!$ok) {
+    print STDERR "Warning: couldn\'t import wisdom\n";
+  }
+  }
+}
+
+sub save_wisdom {
+  if ($wisdom_loaded) {
+    my $wisdom = PDL_fftw_export_wisdom_to_string();
+
+    if (!open(TMPFILE,">$wisdom_fname")) {
+      print STDERR "Warning: couldn\'t write wisdom file\n";
+      return;
+    }
+    print TMPFILE $wisdom;
+    close(TMPFILE);
+  }
+}
+
+sub BEGIN {
+  my $HOME=$ENV{HOME};
+  my $test_type = ' . $fftwtype  . ' 1;
+
+  $datatype = $test_type->get_datatype;
+  $warn_conv = 0;
+#  if ( -e "$HOME/.wisdom" ) {
+#    print STDERR "Autoloading wisdom\n";
+#    load_wisdom("$HOME/.wisdom");
+#  }
+}
+
+sub END {
+  save_wisdom();
+}
+
+# real fftw
+
+sub rfftw {
+  my $in = PDL::Core::topdl(shift);
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i);
+
+ 
+  if ($datatype != $in->get_datatype) {
+    $in = convert $in, ' . $fftwtype . ';
+    if ($warn_conv != 1) {
+      print STDERR "PDL::FFTW Warning! doing conversion.\n";
+      $warn_conv = 1;
+    }
+  }
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  }
+  $name="r_@{newdims}_f";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_rfftwnd_create_plan($pdldims,0,$wisdom_loaded);
+  }
+  $dims[0]= int($dims[0]/2)+1;
+  unshift @dims, 2;
+  $out = zeroes ' . $fftwtype . ',@dims;
+  $in->make_physical;
+  PDL_rfftwnd_one_real_to_complex($plan_cache{$name},$in,$out);
+  return $out;
+}
+
+# this assumes even last input dimension!
+
+sub irfftw {
+  my $in = PDL::Core::topdl(shift);
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i);
+
+  $i = shift @dims;
+  if ($i != 2) {
+     barf("Working only on complex numbers!");
+  } 
+  if ($datatype != $in->get_datatype) {
+    $in = convert $in, ' . $fftwtype . ';
+    if ($warn_conv != 1) {
+      print STDERR "PDL::FFTW Warning! doing conversion.\n";
+      $warn_conv = 1;
+    }
+  }
+  $i= shift @dims;
+  unshift @newdims, 2*($i-1);
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  } 
+  $name="r_@{newdims}_b";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_rfftwnd_create_plan($pdldims,1,$wisdom_loaded);
+  }
+  unshift @dims, 2*($i-1);
+  $out = zeroes ' . $fftwtype . ',@dims;
+  $in->make_physical;
+  PDL_rfftwnd_one_complex_to_real($plan_cache{$name},$in,$out);
+  return $out;
+}
+
+# real inplace fftw
+
+sub nrfftw {
+  my ($in)=@_;
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i,$ndim);
+
+ 
+  if ($datatype != $in->get_datatype) {
+	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . ' !");
+  }
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  }
+  $ndim = $newdims[$#newdims] = 2*(int($newdims[$#newdims]/2) - 1);
+  $name="nr_@{newdims}_f";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_rfftwnd_create_plan($pdldims,0,$wisdom_loaded+2);
+  }
+  $dims[0]= int($ndim/2)+1;
+  unshift @dims, 2;
+  $in->make_physical;
+  PDL_inplace_rfftwnd_one_real_to_complex($plan_cache{$name},$in);
+  $in->reshape(@dims);
+  return $in;
+}
+
+# this assumes even last input dimension!
+
+sub inrfftw {
+  my ($in)=@_;
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i,$ndim);
+
+  $i = shift @dims;
+  if ($i != 2) {
+     barf("Working only on complex numbers!");
+  } 
+  if ($datatype != $in->get_datatype) {
+	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . ' !");
+  }
+  $i= shift @dims;
+  $ndim =  2*($i-1);
+  unshift @newdims, $ndim;
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  } 
+  $name="nr_@{newdims}_b";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_rfftwnd_create_plan($pdldims,1,$wisdom_loaded+2);
+  }
+  unshift @dims, 2*(int($ndim/2)+1);
+  $in->make_physical;
+  PDL_inplace_rfftwnd_one_complex_to_real($plan_cache{$name},$in);
+  $in->reshape(@dims);
+  return $in;
+}
+
+# complex fftw
+
+sub fftw {
+  my $in = PDL::Core::topdl(shift);
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i);
+
+  if ($datatype != $in->get_datatype) {
+    $in = convert $in, ' . $fftwtype . ';
+    if ($warn_conv != 1) {
+      print STDERR "PDL::FFTW Warning! doing conversion.\n";
+      $warn_conv = 1;
+    }
+  }
+  $i=shift @dims;
+  if ($i!=2) {
+    barf("It works only on complex!");
+  }
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  }
+  $name="c_@{newdims}_f";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_fftwnd_create_plan($pdldims,0,$wisdom_loaded);
+  }
+  unshift @dims, 2;
+  $out = zeroes ' . $fftwtype . ',@dims;
+  $in->make_physical;
+  PDL_fftwnd_one($plan_cache{$name},$in,$out);
+  return $out;
+}
+
+sub ifftw {
+  my $in = PDL::Core::topdl(shift);
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i);
+
+  if ($datatype != $in->get_datatype) {
+    $in = convert $in, ' . $fftwtype . ';
+    if ($warn_conv != 1) {
+      print STDERR "PDL::FFTW Warning! doing conversion.\n";
+      $warn_conv = 1;
+    }
+  } 
+  $i = shift @dims;
+  if ($i != 2) {
+     barf("Working only on complex numbers!");
+  }
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  } 
+  $name="c_@{newdims}_b";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_fftwnd_create_plan($pdldims,1,$wisdom_loaded);
+  }
+  unshift @dims, 2;
+  $out = zeroes ' . $fftwtype . ',@dims;
+  $in->make_physical;
+  PDL_fftwnd_one($plan_cache{$name},$in,$out);
+  return $out;
+}
+
+# complex inplace fftw
+
+sub nfftw {
+  my ($in)=@_;
+  my @dims = $in->dims;
+  my @newdims;
+  my ($name,$i);
+
+  if ($datatype != $in->get_datatype) {
+	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . ' !");
+  } 
+  $i=shift @dims;
+  if ($i!=2) {
+    barf("It works only on complex!");
+  }
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  }
+  $name="n_@{newdims}_f";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_fftwnd_create_plan($pdldims,0,$wisdom_loaded+2);
+  }
+  $in->make_physical;
+  PDL_inplace_fftwnd_one($plan_cache{$name},$in);
+  return $in;
+}
+
+sub infftw {
+  my ($in)=@_;
+  my @dims = $in->dims;
+  my @newdims;
+  my ($out,$name,$i);
+
+  if ($datatype != $in->get_datatype) {
+	barf("Cannot do inplace fftw: compiled for ' . $fftwtype . ' !");
+  } 
+  $i = shift @dims;
+  if ($i != 2) {
+     barf("Working only on complex numbers!");
+  } 
+  foreach $i (@dims) {
+    unshift @newdims, $i;
+  } 
+  $name="n_@{newdims}_b";
+  if ( !defined($plan_cache{$name}) ) {
+    my $pdldims = long [@newdims];
+    $plan_cache{$name} = PDL_fftwnd_create_plan($pdldims,1,$wisdom_loaded+2);
+  }
+  $in->make_physical;
+  PDL_inplace_fftwnd_one($plan_cache{$name},$in);
+  return $out;
+}
+  
+');
+
+
+pp_def('Cmul',
+       Pars => 'a(n); b(n); [o]c(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c(n => 0)= $a(n => 0)*$b(n => 0) - $a(n => 1)*$b(n => 1);
+$c(n => 1)= $a(n => 0)*$b(n => 1) + $a(n => 1)*$b(n => 0);
+%}
+'
+      );
+
+pp_def('Cscale',
+       Pars => 'a(n); b(); [o]c(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c(n => 0)= $a(n => 0)*$b();
+$c(n => 1)= $a(n => 1)*$b();
+%}
+'
+      );
+
+pp_def('Cdiv',
+       Pars => 'a(n); b(n); [o]c(n);',
+       Code => '
+$GENERIC() divi;
+
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+divi = $b(n => 0)*$b(n => 0) + $b(n => 1)*$b(n => 1);
+
+$c(n => 0)= ( $a(n => 0)*$b(n => 0) + $a(n => 1)*$b(n => 1) ) / divi;
+$c(n => 1)= ( $a(n => 1)*$b(n => 0) - $a(n => 0)*$b(n => 1) ) / divi;
+%}
+'
+      );
+
+pp_def('Cbmul',
+       Pars => 'a(n); b(n);',
+       Code => '
+$GENERIC() tmp1,tmp;
+
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+tmp = $a(n => 0);
+tmp1 = $a(n => 1);
+$a(n => 0)= tmp * $b(n => 0) - tmp1 * $b(n => 1);
+$a(n => 1)= tmp * $b(n => 1) + tmp1 * $b(n => 0);
+%}
+'
+      );
+
+pp_def('Cbscale',
+       Pars => 'a(n); b();',
+       Code => '
+$GENERIC() tmp1,tmp,divi;
+
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$a(n => 0) *= $b();
+$a(n => 1) *= $b();
+%}
+'
+      );
+
+pp_def('Cconj',
+       Pars => 'a(n); [o]c(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c(n => 0)= $a(n => 0);
+$c(n => 1)= -$a(n => 1);
+%}
+'
+      );
+
+pp_def('Cbconj',
+       Pars => 'a(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$a(n => 1)= -$a(n => 1);
+%}
+'
+      );
+
+pp_def('Cexp',
+       Pars => 'a(n); [o]c(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c(n => 0)= exp($a(n => 0)) * cos($a(n => 1));
+$c(n => 1)= exp($a(n => 0)) * sin($a(n => 1));
+%}
+'
+      );
+
+#pp_def('Cexpi',
+#       Pars => 'a(); [o]c(n);',
+#       Code => '
+#$SIZE(n)=2;
+#threadloop %{
+#$c(n => 0)= cos($a());
+#$c(n => 1)= sin($a());
+#%}
+#'
+#      );
+
+pp_def('Cbexp',
+       Pars => 'a(n);',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+double re = $a(n => 0);
+double im = $a(n => 1);
+
+$a(n => 0)= exp(re) * cos(im);
+$a(n => 1)= exp(re) * sin(im);
+%}
+'
+      );
+
+pp_def('Cmod',
+       Pars => 'a(n); [o]c();',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c()= sqrt ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
+%}
+'
+      );
+
+pp_def('Carg',
+       Pars => 'a(n); [o]c();',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c()= atan2($a(n=>1),$a(n=>0));
+%}
+'
+      );
+
+pp_def('Cmod2',
+       Pars => 'a(n); [o]c();',
+       Code => '
+if ($SIZE(n)!=2) barf("This function works only on complex\n");
+threadloop %{
+$c()= ( $a(n => 0)*$a(n => 0) + $a(n => 1)*$a(n => 1) );
+%}
+'
+      );
+
+
+### real fftw
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+int
+PDL_rfftwnd_create_plan(dims, dir, flag)
+  pdl* dims
+  int dir
+  int flag
+CODE:
+ {
+  fftw_direction fdir=0;
+  int fflag=FFTW_USE_WISDOM;
+
+  if (dims->ndims != 1) {barf("Only 1d input dimesions make sense");} 
+  if (dims->data == NULL) {barf("input piddles must be physical");} 
+  if (dims->datatype != PDL_L) {barf("Only integers please");} 
+
+  if (dir) {
+    fdir=FFTW_COMPLEX_TO_REAL;
+  }
+  else {
+    fdir=FFTW_REAL_TO_COMPLEX;
+  }
+  if (flag & 1 ) { 
+    fflag |= FFTW_ESTIMATE;
+  }
+  else {
+    fflag |= FFTW_MEASURE;
+  }
+  if (flag & 2 ) { 
+    fflag |= FFTW_IN_PLACE;
+  }
+  else {
+    fflag |= FFTW_OUT_OF_PLACE;
+  }
+ 
+  RETVAL = 
+  (int) rfftwnd_create_plan( dims->dims[0], 
+			    ( int *) dims->data,
+			    fdir,
+			    fflag);
+
+ }
+OUTPUT:
+ RETVAL
+'
+);
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_rfftwnd_one_real_to_complex(plan, in, out)
+  int plan
+  pdl* in
+  pdl* out
+ CODE:
+  if (in->data==NULL || out->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE || out->datatype != PDL_MYTYPE) {barf("Bad Type");}
+  rfftwnd_one_real_to_complex( (rfftwnd_plan) plan, (fftw_real *) in->data, (fftw_complex *) out->data);
+');
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_rfftwnd_one_complex_to_real(plan, in, out)
+  int plan
+  pdl* in
+  pdl* out
+ CODE:
+  if (in->data==NULL || out->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE || out->datatype != PDL_MYTYPE) {barf("Bad type");} 
+  rfftwnd_one_complex_to_real( (rfftwnd_plan) plan, (fftw_complex *) in->data, (fftw_real *) out->data);
+
+
+');
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_inplace_rfftwnd_one_real_to_complex(plan, in)
+  int plan
+  pdl* in
+ CODE:
+  if (in->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE) {barf("Bad Type");}
+  rfftwnd_one_real_to_complex( (rfftwnd_plan) plan, (fftw_real *) in->data, NULL);
+');
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
+  int plan
+  pdl* in
+ CODE:
+  if (in->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE) {barf("Bad type");} 
+  rfftwnd_one_complex_to_real( (rfftwnd_plan) plan, (fftw_complex *) in->data, NULL);
+
+
+');
+
+### complex fftw
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+int
+PDL_fftwnd_create_plan(dims, dir, flag)
+  pdl* dims
+  int dir
+  int flag
+CODE:
+ {
+  fftw_direction fdir=0;
+  int fflag=FFTW_USE_WISDOM;
+
+  if (dims->ndims != 1) {barf("Only 1d input dimesions make sense");} 
+  if (dims->data == NULL) {barf("input piddles must be physical");} 
+  if (dims->datatype != PDL_L) {barf("Only integers please");} 
+
+  if (dir) {
+    fdir=FFTW_BACKWARD;
+  }
+  else {
+    fdir=FFTW_FORWARD;
+  }
+  if (flag & 1 ) { 
+    fflag |= FFTW_ESTIMATE;
+  }
+  else {
+    fflag |= FFTW_MEASURE;
+  }
+  if (flag & 2 ) { 
+    fflag |= FFTW_IN_PLACE;
+  }
+  else {
+    fflag |= FFTW_OUT_OF_PLACE;
+  }
+ 
+  RETVAL = 
+  (int) fftwnd_create_plan( dims->dims[0], 
+			    ( int *) dims->data,
+			    fdir,
+			    fflag);
+
+ }
+OUTPUT:
+ RETVAL
+'
+);
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_fftwnd_one(plan, in, out)
+  int plan
+  pdl* in
+  pdl* out
+ CODE:
+  if (in->data==NULL || out->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE || out->datatype != PDL_MYTYPE) {barf("Bad type!");} 
+  fftwnd_one( (fftwnd_plan) plan, (fftw_complex *) in->data, (fftw_complex *) out->data);
+');
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+void
+PDL_inplace_fftwnd_one(plan, in)
+  int plan
+  pdl* in
+ CODE:
+  if (in->data==NULL) {barf("Need a physical pdl!");}
+  if (in->datatype != PDL_MYTYPE) {barf("Only float please");} 
+  fftwnd_one( (fftwnd_plan) plan, (fftw_complex *) in->data, NULL);
+');
+
+### wisdom stuff
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+int
+PDL_fftw_import_wisdom_from_string (wisdom)
+ char* wisdom
+ CODE:
+  RETVAL = ( fftw_import_wisdom_from_string(wisdom) == FFTW_SUCCESS );
+ OUTPUT:
+  RETVAL
+');
+
+pp_addxs('','
+MODULE = PDL::FFTW PACKAGE = PDL::FFTW
+
+char* 
+PDL_fftw_export_wisdom_to_string ()
+ CODE:
+  RETVAL = fftw_export_wisdom_to_string();
+ OUTPUT:
+  RETVAL
+');
+
+
+pp_add_exported('','PDL_rfftwnd_create_plan PDL_rfftwnd_one_real_to_complex PDL_rfftwnd_one_complex_to_real load_wisdom save_wisdom rfftw PDL_fftw_export_wisdom_to_string PDL_fftw_import_wisdom_from_string irfftw PDL_inplace_fftwnd_one PDL_fftwnd_one PDL_fftwnd_create_plan fftw ifftw nfftw infftw nrfftw inrfftw PDL_inplace_rfftwnd_one_real_to_complex PDL_inplace_rfftwnd_one_complex_to_real');
+
+pp_done();

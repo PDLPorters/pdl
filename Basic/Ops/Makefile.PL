@@ -10,9 +10,12 @@ PDL::Core::Dev->import();
 
 @pack = (["ops.pd",Ops,PDL::Ops]);
 
-WriteMakefile(
- pdlpp_stdargs_int(@::pack)
-);
+#WriteMakefile(
+# pdlpp_stdargs_int(@::pack)
+#);
+%hash = pdlpp_stdargs_int(@::pack);
+$hash{LIBS} = ['-lm'];
+WriteMakefile(%hash);
 
 sub MY::postamble {
 	pdlpp_postamble_int(@::pack);

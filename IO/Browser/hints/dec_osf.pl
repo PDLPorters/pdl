@@ -7,4 +7,4 @@
 #      /* These are the ENHANCED CURSES interfaces in X/Open Curses, Issue 4 */
 #
 
-$self->{'DEFINE'} .= '-D_XOPEN_SOURCE_EXTENDED';
+$self->{'DEFINE'} .= ' -D_XOPEN_SOURCE_EXTENDED';

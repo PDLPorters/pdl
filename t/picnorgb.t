@@ -32,6 +32,8 @@ sub check {
   }
 }
 
+sub rgb { $_[0]->getndims == 3 && $_[0]->getdim(0) == 3 }
+
 use PDL::LiteF;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
@@ -103,13 +105,13 @@ foreach $format (sort @allowed) {
     $in3 = rpic_unlink("tbin.$form->[0]");
 
     if ($format ne 'TIFF') {
-      $scale = ($form->[2] ? $im1->dummy(0,3) : $im1);
+      $scale = ($form->[2] || rgb($in1) ? $im1->dummy(0,3) : $im1);
       $comp = $scale / PDL::ushort($form->[1]);
       ok($n++,$usherr || approx($comp,$in1,$form->[3]));
     }
-    $comp = ($form->[2] ? $im2->dummy(0,3) : $im2);
+    $comp = ($form->[2] || rgb($in2) ? $im2->dummy(0,3) : $im2);
     ok($n++,approx($comp,$in2));
-    $comp = ($form->[2] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
+    $comp = ($form->[2] || rgb($in3) ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
     $comp = $comp->ushort*$in3->max if $format eq 'SGI' && $in3->max > 0;
     ok($n++,approx($comp,$in3));
 

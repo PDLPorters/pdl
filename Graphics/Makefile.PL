@@ -9,8 +9,14 @@ if($PDL_CONFIG{WITH_3D}) {
 	print "\t Not building TriD. You should try it, though.\n";
 }
 
+#WriteMakefile(
+#     'NAME' => 'PDL',
+#     VERSION_FROM => '../Basic/Core/Version.pm',
+#     DIR => [@subdirs]
+#);
 WriteMakefile(
-	'NAME' => 'PDL',
-	VERSION_FROM => '../Basic/Core/Version.pm',
-	DIR => [@subdirs]
+        'NAME' => 'PDL',
+        VERSION_FROM => '../Basic/Core/Version.pm',
+        DIR => [@subdirs],
+        LIB => ['-lm'],
 );

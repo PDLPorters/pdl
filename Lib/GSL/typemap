@@ -1,0 +1,12 @@
+TYPEMAP
+gsl_rng *		ANY_OBJ
+gsl_ran_discrete_t *	T_PTROBJ
+
+OUTPUT
+ANY_OBJ
+	sv_setref_pv($arg, CLASS, (void *) $var);
+
+INPUT
+ANY_OBJ
+	$var = ($type) SvIV((SV*)SvRV($arg))
+

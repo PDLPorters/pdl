@@ -150,6 +150,7 @@ open(TYPEMAP,">typemap") or die "Can't write typemap\n";;
 select TYPEMAP;
 for(@types) {gettypes($_)}
 print "GLXContext	T_PTR\n";
+print "GLXFBConfig    T_PTR\n";
 print "Bool	T_INT\n";
 close TYPEMAP;
 
@@ -176,6 +177,8 @@ sub getfuncs {
 				$a =~ s/(\w+)\s+(\w+)\s*\[[^]]*\]/$1_star $2/;
                                 $a =~ s/const\s+(.*\S)\s*\*\s*(.*)/$1_star $2/;
                                 $a =~ s/(.*\S)\s*\*\s*(.*)/$1_star $2/;
+                                $a =~ s/const\s+//;
+                                $a =~ s/^\s*(\w+)\s*$/$1 arg$i/;
                                 $a =~ /(\w+)\s+(\w+)/;
                                 print($2);
                                 $i++;

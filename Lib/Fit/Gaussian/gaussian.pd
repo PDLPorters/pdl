@@ -168,11 +168,9 @@ pp_def($name,
        $peak_ht() = par[1]; 
        $background() = bkg;
        
-       i=0;
        loop(n) %{
-          val = ( (double) i - par[2] ) / par[0];
+          val = ( (double) $xval() - par[2] ) / par[0];
           $datafit() = par[1] * exp (- val * val) + bkg;
-	  i++; 
        %}
  	
 	',

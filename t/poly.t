@@ -1,8 +1,19 @@
 use PDL::LiteF;
-use PDL::Fit::Polynomial;
+BEGIN {
+        eval " use PDL::Fit::Polynomial; ";
+        $loaded = ($@ ? 0 : 1);
+}
+
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 print "1..1\n";
+
+unless ($loaded) {
+        for (1..1) {
+                print "ok $_ # Skipped: probably PDL::Slatec not available.\n";
+        }
+        exit;
+}
 
 sub ok {
         my $no = shift ;

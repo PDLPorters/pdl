@@ -133,26 +133,47 @@ to PDL variables on-the-fly.
 (also see "Type Conversion" and "Input/Output" sections below)
 
 
-=head2 Arithmetic
+=head2 Arithmetic (and boolean expressions)
 
  $a = $b + 2; $a++; $a = $b / $c; # Etc.
 
  $c=sqrt($a); $d = log10($b+100); # Etc
 
- $e = $a>42; # Vector condtional
+ $e = $a>42; # Vector conditional
 
  $e = 42*($a>42) + $a*($a<=42); # Cap top
 
+ $b = $a->log10 unless any ($a <= 0); # avoid floating point error
+
  $a = $a / ( max($a) - min($a) );
 
- $f = index($a, where($a > 10)); # where returns set of indices for 1D pdl.
+ $f = where($a, $a > 10); # where returns a piddle of elements for
+                         # which the condition is true
 
  print $a; # $a in string context prints it in a N-dimensional format
 
 (and other perl operators/functions)
 
-There are also predefined functions, which you will find on other manpages.
-The most important are L<PDL::Primitive> and L<PDL::Slices>.
+When using piddles in conditional expressions (i.e. C<if>, C<unless> and
+C<while> constructs) only piddles with exactly one element are allowed, e.g.
+
+  $a = pdl (1,0,0,1);
+  print "is set" if $a->index(2);
+
+Note that the boolean operators return in general multielement
+piddles. Therefore, the following will raise an error
+
+  print "is ok" if $a > 3;
+
+since C<$a E<gt> 3> is a piddle with 4 elements. Rather use C<all> or C<any>
+to test if all or any of the elements fulfill the condition:
+
+  print "some are > 3" if any $a>3;
+  print "can't take logarithm" unless all $a>0;
+
+There are also many predefined functions, which are described on other
+manpages. Check L<PDL::Index>.
+
 
 =head2 Matrix functions
 
@@ -213,6 +234,8 @@ allow the convenient shorthand:
    $a = float [1..1000];         # Create 1D float array
 
 etc.
+
+=head2 Piddles and boolean expressions
 
 =head2 Printing
 

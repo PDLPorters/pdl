@@ -480,7 +480,7 @@ sub mapflex {
 	    foreach (@{$hdr->{Dims}}) {
 		$si *= $_;
 	    }
-	    $size += $si * howbig ($type);
+	    $size += $si * PDL::Core::howbig ($type);
 	}
     }
 # $s now contains estimated size of data in header --

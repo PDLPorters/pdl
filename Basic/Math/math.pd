@@ -195,6 +195,49 @@ pp_def("erfi",
 		$b() = ndtri((double)$a());
 ');
 
+pp_def("svd",
+      Pars => 'a(n,m); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
+      GenericTypes => [D],
+      Code => '
+              extern void SVD( double *W, double *Z, int nRow, int nCol );
+              int sm = $SIZE(m), sn = $SIZE(n), i;
+              double *w, *t, zv;
+              t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
+              loop (m) %{
+                loop(n) %{
+                  *t++ = $a();
+                %}
+              %}
+              SVD(w, $P(z), sm, sn);
+              t = w;
+              loop (n) %{
+                zv = sqrt($z());
+                $z() = zv;
+              %}
+              loop (m) %{
+                loop (n) %{
+                  $u() = *t++/$z();
+                %}
+              %}
+              loop (n) %{
+                for (i=0;i<sn;i++) {
+                  $v(n0=>i, n1=>n) = *t++;
+                }
+              %}
+              free(w);
+',
+      , Doc => '
+=for ref
+
+Singular value decomposition of array.
+
+=for usage
+
+      ($u, $s, $v) = svd($a);
+
+',);
+
+
 # XXX The next two really need driver routines...
 
 pp_def("eigens",
@@ -276,14 +319,20 @@ required).
 pp_def("squaretotri",
 	Pars => 'a(n,n); b(m)',
 	Code => '
-               register int mna=0, nb=0, ns = $SIZE(n);
+             register int mna=0, nb=0, ns = $SIZE(n);
+            #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
+            dXSARGS;
+             #endif
+
+            threadloop %{
 		if($SIZE(m) != (ns * (ns+1))/2) {
 			barf("Wrong sized args for squaretotri");
 		}
 		loop(m) %{
                        $b() = $a(n0 => mna, n1 => nb);
-                       na++; if(mna > nb) {mna = 0; nb ++;}
+                      mna++; if(mna > nb) {mna = 0; nb ++;}
 		%}
+             %}
 	',
 	Doc => '
 =for ref

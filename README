@@ -1,9 +1,6 @@
 WARNING: There is absolutely no warranty for this software
 package. See the file COPYING for details.
 
-This is a beta version working up to 2.0 of PerlDL.
------------------------------------------------------
-
 
 Blurb
 -----
@@ -16,6 +13,8 @@ are the bread and butter of scientific computing. e.g. C<$a=$b+$c> can add two
 
 The aim is to provide tons of useful functionality for
 scientific and numeric analysis.
+
+Check the pdl web site at http://pdl.perl.org for more information.
 
 
 Installation
@@ -63,6 +62,12 @@ Lib/PCA.pm, ICA.pm, PCARout, DataPresenter
 Lib/Slatec
 		Should in principle work but porting is difficult.
 		If you can't compile it, remove it from Lib/Makefile.PL
+Lib/GSL
+		Interface to the Random distributions of the GNU
+		Scientific Library. You might have to modify the
+		perldl.conf file so PDL knows were to find the lib
+		and include directories when building PDL.
+		See DEPENDENCIES file for more info. 
 IO/Misc		Stable, expected to work
 IO/FastRaw	seems to work & be stable.
 

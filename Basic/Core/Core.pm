@@ -326,7 +326,7 @@ sub topdl {PDL->topdl(@_)}
 
 { package PDL;
   use UNIVERSAL 'isa'; # need that later in info function
-
+  use Carp;
 BEGIN {
 @PDL::biops1  = qw( + * - / );
 @PDL::biops2  = qw( > < <= >= == != );
@@ -391,11 +391,11 @@ BEGIN {
      'x'      =>  sub{my $foo = $_[0]->null();
      		      PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
      '~'      =>  \&PDL::Basic::transpose,
-     'bool' => sub { !($_[0]->getndims == 1 && ($_[0]->dims)[0] == 0); }, # For Boolean tests, 
-									  # just check to see if the
-									  # PDL is null
-     "\"\""   =>  \&PDL::Core::string
-   );
+     'bool' => sub { return 0 if $_[0]->isnull;
+                    unless ($_[0]->nelem == 1) {
+                      croak("multielement piddle in conditional expression")}
+                    $_[0]->clump(-1)->at(0); },
+     "\"\""   =>  \&PDL::Core::string   );
 }
 
 sub rswap {

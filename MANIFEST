@@ -62,6 +62,7 @@ Basic/Math/protos.h
 Basic/Math/quiet_nan.c
 Basic/Math/rint.c
 Basic/Math/simq.c
+Basic/Math/svd.c
 Basic/Math/yn.c
 Basic/Ops/Makefile.PL
 Basic/Ops/ops.pd
@@ -210,6 +211,9 @@ Lib/FFT/Makefile.PL
 Lib/FFT/fft.pd
 Lib/FFT/fftn.c
 Lib/FFT/fftn.h
+Lib/FFTW/Makefile.PL
+Lib/FFTW/Readme
+Lib/FFTW/fftw.pd
 Lib/Filter/LinPred.pm
 Lib/Filter/Linear.pm
 Lib/Filter/Makefile.PL
@@ -218,6 +222,10 @@ Lib/Fit/Gaussian/gauss.c
 Lib/Fit/Gaussian/gaussian.pd
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
+Lib/GSL/Makefile.PL
+Lib/GSL/README
+Lib/GSL/gsl_random.pd
+Lib/GSL/typemap
 Lib/Gaussian.pm
 Lib/Image2D/Makefile.PL
 Lib/Image2D/image2d.pd
@@ -231,7 +239,6 @@ Lib/Makefile.PL
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
-Lib/Slatec/ExtUtils/F77.pm
 Lib/Slatec/Makefile.PL
 Lib/Slatec/slatec.pd
 Lib/Slatec/slatec/dasum.P
@@ -384,11 +391,13 @@ t/erfi.t
 t/familyfree.t
 t/fastraw.t
 t/fft.t
+t/fftw.t
 t/flexraw.t
 t/flow.t
 t/foo.t
 t/func.pdl
 t/gauss.t
+t/gsl_rng.t
 t/hist.t
 t/howbig.t
 t/ica.t

@@ -1,4 +1,113 @@
 (!!! = possible source of incompatibilities)
+2.003
+Christian Pellegrin
+	- Patch to add an interface to the GSL
+	  (GNU Scientific Library) package. 
+	- Patch to compile under perl5.005_57
+	- Patch to add an interface to the FFTW
+	  library. (A free C FFT library including
+          multi-dimensional, real, and parallel transforms)
+
+Christian Soller
+	- Patch to add 'any' and 'all' functions to use for comparison
+          operations. (e.g. This enables things like ($pdl->any == 3.2)
+           or $pdl->all > 0 )
+	- Patch to picnorgb test to fix greyscale and rgb 
+          generation on some platforms.
+	- Misc Patch: Make Image.pm return 1. 
+          Make the gaussian fit routines use the correct
+          xvals.
+        
+Karl Glazebrook:
+	- Patch to Basic/Core/Basic.pm to fix bug in 
+          centre=> when operating on pre-existing array.
+
+John Cerney:
+	- Put File::Spec in the PREREQ_PM list. (PDL now 
+          requires File::Spec since PDL2.002)
+	- Removed of ExtUtils::F77 from the distribution.
+          Added ExtUtils::F77 to the PREREQ_PM list.
+          (ExtUtils::F77 is already on CPAN separately.
+           Having it also distributed with PDL causes
+           confusion.)
+        - Fixed cumuprodover docs to be similar to
+          cumusumover.
+	- Fixed typo in squaretotri function. (na
+	  changed to mna)
+	- Fixed IO/FlexRaw to find properly find the
+          howbig function.
+	- Fixed export of rasc and rcube in IO/misc/
+          misc.pd.
+
+Brian Craft:
+	- Patch to FastFaw.pm to fix sysread problems when
+          reading from fifos.
+
+Lupe Christoph:
+	- Patch to OpenGL.xs to compile with perlio/sfio.
+             
+
+Brain Warner:
+	- Patch so t/poly.t doesn't fail if Slatec not 
+          installed.
+
+
+Robin Williams:
+	- Added Singular Value Decomposition (SVD) function.
+	- Patch to IO/Browser/hists/dec_osf.pl to fix
+          small syntax in -D_XOPEN_SOURCE_EXTENDED
+          define flag.
+	- Patch to Basic/Core/pdlthread.c to clarify
+          error messages when barfing.
+	- Patch to fix problems with generate.p and
+          OpenGL on Solaris. 
+
+
+Helmut Jarausch:
+	- Change to pldcore.c to fix problem compiling on
+          a IRIX6.5.3 box using perl 5.005_57
+
+
+Mark Lehmann:
+	- Patch to pdlcore.h and PP.pm to overwrite
+          croak() via PP and not in pdlcore.h
+
+Joshua Pritikin:
+	- Fix to Basic/Core/mkpldconv.p to change na
+          variable to n_a.
+
+Al Danial:
+	- Patch to fix compilation on RS/6000
+	  running AIX 4.3.2 and perl 5.004_04.
+
+Doug Burke:
+	- Patch to iis.pd to allow the user
+          to change the title of an image
+          displayed with iis().
+	- Patch to IO/Misc/misc.pd:
+	    1) Added option PERLCOLS so you can now read
+               in columns into perl arrays at the same
+               time as reading in data into piddles.
+
+	    2) Changed the meaning of the 'c' parameter
+               in the LINES option. It will only affect
+               you if you use LINES together with 
+               INCLUDE/EXCLUDE.
+
+	    3) It now complains if you forget to surround
+                patterns by //
+
+	     4) It will also warn you (if $PDL::verbose is true)
+                if no data is read in from a file.
+	- Patch to PP.pod docs to clearup PRIV/CODE usage.
+
+
+Tim Pickering
+	- Patch to Basic/Math/Makefile.PL to get the bessy0
+          and bessyn working again in glibc 2.1 systems. 
+	  (glibc 2.0 as in RH 5.2 or
+	  debian 2.1 is not affected)
+
 2.002
 John Cerney:
 	- Modified Basic/Core/Makefile.Pl so that ppport.h
@@ -16,7 +125,7 @@ Christian Soeller:
 	- Changes to get the win32 activestate port
 	  going. (available from 
 		ftp://ftp.aao.gov.au:/pub/perldl/dev/Win32)
-	- Changes to complile under cygwin32.
+	- Changes to compile under cygwin32.
 
 Doug Burke:
 	- Modification to slices.pd docs clarifying the

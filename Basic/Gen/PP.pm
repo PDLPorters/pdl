@@ -123,6 +123,10 @@ static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
 SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
+/* we need to handle croak ourserlves */
+#undef croak
+#define croak barf
+
 #if ! $PP::boundscheck
 # define PP_INDTERM(max, at) at
 #else
@@ -496,7 +500,7 @@ $PDL::PP::deftbl =
  [[NewXSCoerceMust],	[],	sub {""}],
  [[NewXSCoerceMustSub1], [NewXSCoerceMust],	sub{subst_makecomp(FOO,@_)}],
  [[NewXSCoerceMustSubs], [NewXSCoerceMustSub1,NewXSSymTab,Name],	"dosubst"],
- [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__thread.inds = 0;" : ""}],
+ [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}],
 
  [[NewXSCode,BootSetNewXS,NewXSInPrelude
   ],		[_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
@@ -718,7 +722,7 @@ sub find_datatype {
 
 sub make_incsizes {
 	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
-	($havethreading?"pdl_thread __thread; ":"").
+      ($havethreading?"pdl_thread __pdlthread; ":"").
 	 (join '',map {$parobjs->{$_}->get_incdecls} @$parnames).
 	 (join '',map {$_->get_decldim} values %$dimobjs);
 }
@@ -726,7 +730,7 @@ sub make_incsizes {
 sub make_incsize_copy {
 	my($parnames,$parobjs,$dimobjs,$copyname,$havethreading) = @_;
 	($havethreading?
-	"PDL->thread_copy(&(\$PRIV(__thread)),&($copyname->__thread));"
+      "PDL->thread_copy(&(\$PRIV(__pdlthread)),&($copyname->__pdlthread));"
 	 : "").
 	 (join '',map {$parobjs->{$_}->get_incdecl_copy(sub{"\$PRIV($_[0])"},
 	 						sub{"$copyname->$_[0]"})} @$parnames).
@@ -738,7 +742,7 @@ sub make_incsize_copy {
 sub make_incsize_free {
 	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
 	$havethreading ?
-	'PDL->freethreadloop(&($PRIV(__thread)));'
+      'PDL->freethreadloop(&($PRIV(__pdlthread)));'
 	: ''
 }
 
@@ -776,7 +780,7 @@ sub make_redodims_thread {
 	$str .= " {\n " . make_parnames($pnames,$pobjs,$dobjs) . "
 		 PDL->initthreadstruct(2,\$PRIV(pdls),
 			__realdims,__creating,$npdls,
-			&__einfo,&(\$PRIV(__thread)),
+                      &__einfo,&(\$PRIV(__pdlthread)),
                         \$PRIV(vtable->per_pdl_flags));
 		}\n";
 	$str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
