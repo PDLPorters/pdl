@@ -13,6 +13,8 @@ print $x, "\n";
 print $y, "\n";
 print loglog($x,$y), "\n";
 
+print "Should = ",log(double $x)/log(double $y),"\n";
+
 # Return log $x to base $y using callext() routine - 
 # perl wrapper makes this nice and easy to use.
 

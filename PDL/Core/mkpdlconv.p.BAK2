@@ -208,11 +208,10 @@ void pdl_coercetypes( pdl** aa, pdl** bb, Logical changePerl ) {
 
 void pdl_grow (pdl* a, int newsize) {
 
-   SV* foo;
+   SV** foo;
    HV* hash;
    int nbytes;
    int ncurr;
-   int len;
 
    nbytes = newsize * pdl_howbig(a->datatype);
    ncurr  = SvCUR( (SV*)a->sv );
@@ -220,29 +219,38 @@ void pdl_grow (pdl* a, int newsize) {
       return;    /* Nothing to be done */
 
    hash = (HV*) SvRV( (SV*) a->sv ); 
-   foo = pdl_getKey(hash, "Data");
 
-   if (ncurr>nbytes)  /* Nuke back to zero */
-      sv_setpvn(foo,"",0);
+   if (ncurr>nbytes) { /* Nuke back to zero */
+      foo = hv_store(hash, "Data", strlen("Data"), newSVpv("",0), 0 );
+      if (foo == NULL)
+         croak("Error deleting old 'Data' component");
+   }
       
-   SvGROW ( foo, nbytes );   SvCUR_set( foo, nbytes );
-   a->data = SvPV( foo, len ); a->nvals = newsize;
+   foo = hv_fetch( hash, "Data", strlen("Data"), 0);
+   if (foo == NULL)
+      croak("Error accessing 'Data' component");
+
+   SvGROW ( *foo, nbytes );   SvCUR_set( *foo, nbytes );
+
+   a->data = SvPV( *foo, na ); a->nvals = newsize;
 }
 
 /*  Utility to change the value of the data type field of a pdl  */
 
 void pdl_retype (pdl* a, int newtype) {
 
-   SV* foo;
+   SV** foo;
    HV* hash; 
 
    if (a->datatype == newtype) 
       return;  /* Nothing to be done */
 
    hash = (HV*) SvRV( (SV*) a->sv ); 
-   foo = pdl_getKey(hash, "Datatype");
-   sv_setiv(foo, (IV) newtype);
+   foo = hv_store(hash, "Datatype", strlen("Datatype"), newSViv(newtype), 0 );
+   if (foo == NULL)
+      croak("Store of new 'Datatype' failed");
    a->datatype = newtype;
+
 }
 
 /* Given PDL return an allocated **ptr to 2D data thus allowing a[j][i] syntax */

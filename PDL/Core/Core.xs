@@ -1,6 +1,6 @@
 
 /* 
-   Core.xs   Under construction
+   Core.xs
 
 */
 
@@ -13,33 +13,89 @@
 
 /* Return a integer or numeric scalar as approroate */
 
-#define SET_RETVAL_NV x.datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
+#define SET_RETVAL_NV x->datatype<PDL_F ? (RETVAL=newSViv( (IV)result )) : (RETVAL=newSVnv( result ))
 
 static Core PDL; /* Struct holding pointers to shared C routines */
 
-MODULE = PDL::Core     PACKAGE = PDL::Core
+MODULE = PDL::Core     PACKAGE = PDL
 
+
+# Destroy a PDL - delete the $$x{PDL} cache
+
+void
+DESTROY(self)
+  SV *	self;
+  CODE:
+    pdl* thepdl = pdl_getcache( (HV*) SvRV(self) );
+    if (thepdl != NULL) 
+       pdl_destroy(thepdl);
+
+# Force an update of $$x{PDL} cache because perl values are changed
+
+void
+flush(self)
+  SV *	self;
+  CODE:
+    pdl_fillcache( (HV*) SvRV(self) ); /* Recache value */ 
+
+# Debugging utility
+
+void
+dump(pdlsv)
+  SV*	pdlsv;
+  CODE:
+    pdl* x;
+    int i,j;
+    for (i=1; i<=2; i++) {
+       if (i==1)
+          printf("=============================================\n");
+       else {
+          printf("\n.............Flushing.............\n\n");
+          x=pdl_fillcache((HV*) SvRV(pdlsv));
+       }
+
+       x = pdl_getcache((HV*)SvRV(pdlsv));
+       if (x == NULL)
+          printf("[Cache empty]\n");
+       else{
+          printf("Cache found at address %d\n", x); 
+          printf("x.data = %d\n",  x->data);
+          printf("x.datatype = %d\n",  x->datatype);
+          printf("x.nvals = %d\n", x->nvals);
+          printf("x.dims = %d\n", x->dims);
+          printf("x.ndims = %d\n", x->ndims);
+          printf("Dims = ");
+          for(j=0; j<x->ndims; j++)
+             printf("%d ", *(x->dims+j));
+          printf("\n");
+       }
+    }
+    printf("=============================================\n\n");
+      
+   
+
+MODULE = PDL::Core     PACKAGE = PDL::Core
 
 # C = A op B function
 
 SV *
 biop(a,b,reverse,op)
-   pdl	a
-   pdl	b
+   pdl*	a
+   pdl*	b
    Logical	reverse
    char *	op
    CODE:
-    pdl c; 
+    pdl* c; 
     RETVAL = pdl_copy(a,""); /* Init value to return */
     c = SvPDLV(RETVAL);         /* Map */
 
     pdl_coercetypes(&a, &b, TMP);  /* Ensure data types equal */
-    pdl_retype(&c, a.datatype); pdl_grow(&c, BIGGESTOF(a,b)); 
+    pdl_retype(c, a->datatype); pdl_grow(c, BIGGESTOF(a,b)); 
 
     if (reverse)
        pdl_swap(&a,&b);
 
-    pdl_biop(op, c.data, a.data, b.data, a.nvals, b.nvals, a.datatype); 
+    pdl_biop(op, c->data, a->data, b->data, a->nvals, b->nvals, a->datatype); 
     
     OUTPUT:
      RETVAL
@@ -48,27 +104,27 @@ biop(a,b,reverse,op)
 
 SV *
 biop2(a,b,reverse,op)
-   pdl	a
-   pdl	b
+   pdl*	a
+   pdl*	b
    Logical	reverse
    char *	op
    CODE:
-    pdl_converttype(&b, a.datatype, TMP);   /* Ensure data types equal */
-    pdl_biop(op, a.data, a.data, b.data, a.nvals, b.nvals, a.datatype); 
+    pdl_converttype(&b, a->datatype, TMP);   /* Ensure data types equal */
+    pdl_biop(op, a->data, a->data, b->data, a->nvals, b->nvals, a->datatype); 
     /* Note OUTPUT is automatically OK as return value is ST(0) (immortal) */
     
 # Unary functions Y=F(X) (e.g. sqrt() log() etc.)
 
 SV *
 ufunc(x,func)
-   pdl	x
+   pdl*	x
    char *	func
    CODE:
-     pdl y;
+     pdl* y;
      RETVAL = pdl_copy(x,""); /* Init value to return */
      y = SvPDLV(RETVAL);      /* Map */
 
-     pdl_ufunc( func, y.data, y.nvals, y.datatype );
+     pdl_ufunc( func, y->data, y->nvals, y->datatype );
 
     OUTPUT:
      RETVAL
@@ -77,22 +133,22 @@ ufunc(x,func)
 
 SV *
 bifunc(a,b,reverse,func)
-   pdl	a
-   pdl	b
+   pdl*	a
+   pdl*	b
    Logical	reverse
    char *	func
    CODE:
-    pdl c;
+    pdl* c;
     RETVAL = pdl_copy(a,""); /* Init value to return */
     c = SvPDLV(RETVAL);               /* Map */
 
     pdl_coercetypes(&a, &b, TMP);  /* Ensure data types equal */
-    pdl_retype(&c, a.datatype); pdl_grow(&c, BIGGESTOF(a,b));
+    pdl_retype(c, a->datatype); pdl_grow(c, BIGGESTOF(a,b));
 
     if (reverse)
        pdl_swap(&a,&b);
 
-    pdl_bifunc(func, c.data, a.data, b.data, a.nvals, b.nvals, a.datatype); 
+    pdl_bifunc(func, c->data, a->data, b->data, a->nvals, b->nvals, a->datatype); 
 
     OUTPUT:
      RETVAL
@@ -101,13 +157,12 @@ bifunc(a,b,reverse,func)
 
 SV *
 convert(a,datatype)
-   pdl	a
+   pdl*	a
    int	datatype
    CODE:
-    pdl b;
+    pdl* b;
     RETVAL = pdl_copy(a,""); /* Init value to return */
     b = SvPDLV(RETVAL);      /* Map */
-
     pdl_converttype( &b, datatype, PERM );
 
     OUTPUT:
@@ -125,42 +180,42 @@ howbig(datatype)
 
 SV *
 min(x)
-   pdl	x
+   pdl*	x
    CODE:
      double result;
-     result = pdl_min( x.data, x.nvals, x.datatype );
+     result = pdl_min( x->data, x->nvals, x->datatype );
      SET_RETVAL_NV ;    
    OUTPUT:
      RETVAL
 
 SV *
 max(x)
-   pdl	x
+   pdl*	x
    CODE:
      double result;
-     result = pdl_max( x.data, x.nvals, x.datatype );
+     result = pdl_max( x->data, x->nvals, x->datatype );
      SET_RETVAL_NV ;    
    OUTPUT:
      RETVAL
 
 SV *
 sum(x)
-   pdl	x
+   pdl*	x
    CODE:
      double result;
-     result = pdl_sum( x.data, x.nvals, x.datatype );
+     result = pdl_sum( x->data, x->nvals, x->datatype );
      SET_RETVAL_NV ;    
    OUTPUT:
      RETVAL
 
-# Subsection functipn
+# Subsection function
 
 SV *
 sec_c(x,section)
-   pdl	x
+   pdl*	x
    int *	section = NO_INIT 
    CODE:
-     pdl y;
+     pdl* y;
      int nsecs;
      int size;
 
@@ -168,19 +223,18 @@ sec_c(x,section)
      y = SvPDLV(RETVAL);      /* Map */
 
      section = pdl_packdims( ST(1), &nsecs);
-     if (section == NULL || nsecs != 2*(x.ndims))
+     if (section == NULL || nsecs != 2*(x->ndims))
         croak("Invalid subsection specified");
 
-     size = pdl_validate_section( section, x.dims, x.ndims );
-     pdl_grow ( &y, size );   /* To new size */
-
+     size = pdl_validate_section( section, x->dims, x->ndims );
+     pdl_grow ( y, size );   /* To new size */
 
      /* Note - cast to char ptr to make byte ptr */
 
-     pdl_subsection( (char*) y.data, (char*) x.data, 
-                        x.datatype, section, x.dims,  &(x.ndims) );
- 
-     pdl_unpackdims( RETVAL, x.dims, x.ndims ); /* Update Dims */
+     pdl_subsection( (char*) y->data, (char*) x->data, 
+                        y->datatype, section, y->dims,  &(y->ndims) );
+
+     pdl_unpackdims( RETVAL, y->dims, y->ndims ); /* Update Dims */
 
     OUTPUT:
      RETVAL
@@ -191,41 +245,41 @@ sec_c(x,section)
 
 void
 insertin_c(y,x,postion)
-   pdl	y
-   pdl	x
+   pdl*	y
+   pdl*	x
    int *	pos = NO_INIT 
    CODE:
      int npos;
 
-     if (y.ndims < x.ndims)
+     if (y->ndims < x->ndims)
         croak("Cannot insert higher into lower dimension");    
 
      pos = pdl_packdims( ST(2), &npos);
-     if (pos == NULL || npos != y.ndims) 
+     if (pos == NULL || npos != y->ndims) 
         croak("Invalid insertion position specified");
 
-     pdl_converttype(&x, y.datatype, TMP); /* Ensure same type */
+     pdl_converttype(&x, y->datatype, TMP); /* Ensure same type */
 
      /* Note - cast to char ptr to make byte ptr */
 
-     pdl_insertin( (char*) y.data, y.dims, y.ndims, 
-                   (char*) x.data, x.dims, x.ndims,  
-                   x.datatype, pos );
+     pdl_insertin( (char*) y->data, y->dims, y->ndims, 
+                   (char*) x->data, x->dims, x->ndims,  
+                   x->datatype, pos );
  
 
 SV *
 at_c(x,position)
-   pdl	x
+   pdl*	x
    int *	pos = NO_INIT
    CODE:
     int npos;
     double result;
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x.ndims) 
+    if (pos == NULL || npos != x->ndims) 
        croak("Invalid position");
 
-    result = pdl_at( x.data, x.datatype, pos, x.dims, x.ndims);
+    result = pdl_at( x->data, x->datatype, pos, x->dims, x->ndims);
 
     SET_RETVAL_NV ;    
 
@@ -234,7 +288,7 @@ at_c(x,position)
 
 SV *
 set_c(x,position,value)
-   pdl	x
+   pdl*	x
    int *	pos = NO_INIT
    double	value
    CODE:
@@ -242,22 +296,22 @@ set_c(x,position,value)
     double result;
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x.ndims) 
+    if (pos == NULL || npos != x->ndims) 
        croak("Invalid position");
 
-    pdl_set( x.data, x.datatype, pos, x.dims, x.ndims, value);
+    pdl_set( x->data, x->datatype, pos, x->dims, x->ndims, value);
 
 # Fill array with the corresponding coordinate (1=X, 2=Y, etc..)
 
 SV *
 axisvals(x,axis)
-   pdl	x
+   pdl*	x
    int	axis
    CODE:
-     pdl y;
+     pdl* y;
      RETVAL = pdl_copy(x,""); /* Init value to return */ 
      y = SvPDLV(RETVAL);      /* Map */
-     if (axis>=y.ndims) 
+     if (axis>=y->ndims) 
         croak("Data has not enough dimensions for axis=%d",axis);
      pdl_axisvals(y, axis);
     OUTPUT:
@@ -266,15 +320,15 @@ axisvals(x,axis)
 # Convolve array a with b
 SV *
 convolve(a,b)
-   pdl	a
-   pdl	b
+   pdl*	a
+   pdl*	b
    CODE:
-     pdl c;
+     pdl* c;
      RETVAL = pdl_copy(a,""); /* Init value to return */ 
      c = SvPDLV(RETVAL);      /* Map */
 
      pdl_coercetypes(&a, &b, TMP);  /* Ensure data types equal */
-     pdl_retype(&c, a.datatype); pdl_grow(&c, a.nvals); 
+     pdl_retype(c, a->datatype); pdl_grow(c, a->nvals); 
 
      pdl_convolve( c, a, b );
      OUTPUT:
@@ -283,23 +337,24 @@ convolve(a,b)
 # Return histogram of a
 SV *
 hist_c(a,min,max,step)
-   pdl	a
+   pdl*	a
    double	min
    double	max
    double	step
    CODE:
      int nbins;
-     pdl c;
+     pdl* c;
      RETVAL = pdl_copy(a,"NoData"); /* Init value to return */ 
      c = SvPDLV(RETVAL);      /* Map */
 
      nbins = (max-min)/step;
      if (nbins<=0)
         croak("Error max<=min");
-     pdl_grow(&c, nbins);               /* New size */ 
-     pdl_unpackdims( (SV*) c.sv, &nbins, 1 ); /* Change dimensions */
+     pdl_grow(c, nbins);               /* New size */ 
+     pdl_unpackdims( (SV*) c->sv, &nbins, 1 ); /* Change dimensions */
 
      pdl_hist( c, a, min, step );
+
      OUTPUT:
       RETVAL
 
@@ -307,34 +362,37 @@ hist_c(a,min,max,step)
 
 SV *
 matrix_mult(a,b,reverse)
-   pdl	a
-   pdl	b
+   pdl*	a
+   pdl*	b
    Logical	reverse
    CODE:
-     pdl c;
+     pdl* c;
      RETVAL = pdl_copy(a,"NoData"); /* Init value to return */ 
      c = SvPDLV(RETVAL);            /* Map */
 
      pdl_coercetypes(&a, &b, TMP);  /* Ensure data types equal */
-     pdl_retype(&c, a.datatype);
+     pdl_retype(c, a->datatype);
      if (reverse)
         pdl_swap(&a,&b);
 
-     pdl_matrixmult(&c,a,b);  /* This fills in the dims of c */
+     pdl_matrixmult(c,a,b);   /* This fills in the dims of c */
+     pdl_unpackdims( (SV*) c->sv, c->dims, c->ndims );  /* Change SV* dims */
 
-     pdl_unpackdims( (SV*) c.sv, c.dims, c.ndims ); /* Change SV* dims */
      OUTPUT:
       RETVAL
 
 SV * 
 transpose(x,...)
-   pdl	x
+   pdl*	x
    CODE:
-     pdl y;
+     pdl* y;
+     pdl* thepdl;
      RETVAL = pdl_copy(x,""); /* Init value to return */
      y = SvPDLV(RETVAL);      /* Map */
-     pdl_transpose(&y, x);
-     pdl_unpackdims( (SV*) y.sv, y.dims, y.ndims ); /* Change SV* dims */
+
+     pdl_transpose(y, x);
+     pdl_unpackdims( (SV*) y->sv, y->dims, y->ndims ); /* Change SV* dims */
+
      OUTPUT:
       RETVAL
     
@@ -344,18 +402,18 @@ transpose(x,...)
 void
 callext_c(...)
      PPCODE:
-        int (*symref)(int nargs, pdl *x);
-        int nargs = items-1;
-        pdl *x;
+        int (*symref)(int npdl, pdl **x);
+        int npdl = items-1;
+        pdl **x;
         int i;
 
-        symref = (int(*)(int, pdl*)) SvIV(ST(0));
+        symref = (int(*)(int, pdl**)) SvIV(ST(0));
 
-        x = pdl_malloc( nargs * sizeof(pdl) );
-        for(i=0; i<nargs; i++) 
+        x = (pdl**) pdl_malloc( npdl * sizeof(pdl*) );
+        for(i=0; i<npdl; i++) 
            x[i] = SvPDLV(ST(i+1));
 
-        i = (*symref)(nargs, x);
+        i = (*symref)(npdl, x);
         if (i==0)
            croak("Error calling external routine");
 
@@ -395,3 +453,4 @@ myeval(code)
   CODE:
    PUSHMARK(sp) ;
    perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME);
+

@@ -25,14 +25,14 @@ MODULE = PDL::Graphics::IIS     PACKAGE = PDL::Graphics::IIS
 
 void
 iis_c(image,lo,hi)
-   pdl	image
+   pdl*	image
    float	lo
    float	hi
    CODE:
-    int*  dims        = image.dims;
+    int*  dims        = image->dims;
     int   frame       = (int)SvIV( perl_get_sv("iisframe", FALSE) );
 
-    if (image.ndims != 2) 
+    if (image->ndims != 2) 
        croak("Array is not 2D");
     if (frame<1 || frame>4)
        croak("$iisframe must be in range 1--4");
@@ -41,7 +41,7 @@ iis_c(image,lo,hi)
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ), 
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
-    iis_display( image.data, image.datatype, dims[0],dims[1],lo,hi,frame );
+    iis_display( image->data, image->datatype, dims[0],dims[1],lo,hi,frame );
     iis_close();
 
 void
@@ -65,26 +65,26 @@ iiscur_c()
 
 void
 iiscirc_c(x,y,r,colour)
-   pdl	x
-   pdl	y
-   pdl	r
-   pdl colour
+   pdl*	x
+   pdl*	y
+   pdl*	r
+   pdl* colour
    CODE:
      int frame  = (int)SvIV( perl_get_sv("iisframe", FALSE) );
-     int n = x.nvals;
+     int n = x->nvals;
      int i, j=0, k=0;
      float *xx,*yy,*rr;
      long  *cc;
 
-     if (x.ndims!=1 || y.ndims !=1 || r.ndims !=1 || colour.ndims!=1) 
+     if (x->ndims!=1 || y->ndims !=1 || r->ndims !=1 || colour->ndims!=1) 
          croak("Arguments must be 1D");
-     if (y.nvals !=n || (r.nvals!=n && r.nvals!=1) || (colour.nvals!=n && colour.nvals!=1))
+     if (y->nvals !=n || (r->nvals!=n && r->nvals!=1) || (colour->nvals!=n && colour->nvals!=1))
          croak("Dimensions must match");
 
-     PDL->converttype( &x, PDL_F, TMP); xx = (float*) x.data;
-     PDL->converttype( &y, PDL_F, TMP); yy = (float*) y.data;
-     PDL->converttype( &r, PDL_F, TMP); rr = (float*) r.data;
-     PDL->converttype( &colour, PDL_L, TMP); cc = (long*) colour.data;
+     PDL->converttype( &x, PDL_F, TMP); xx = (float*) x->data;
+     PDL->converttype( &y, PDL_F, TMP); yy = (float*) y->data;
+     PDL->converttype( &r, PDL_F, TMP); rr = (float*) r->data;
+     PDL->converttype( &colour, PDL_L, TMP); cc = (long*) colour->data;
 
      iis_open(SvPV(perl_get_sv("fifi",FALSE),na),SvPV(perl_get_sv("fifo",FALSE),na),
         (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
@@ -92,9 +92,9 @@ iiscirc_c(x,y,r,colour)
         (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
      for (i=0; i<n; i++) {
          iis_drawcirc( xx[i], yy[i], rr[j], (int)cc[k], frame);
-         if (r.nvals!=1) 
+         if (r->nvals!=1) 
             j++;
-         if (colour.nvals!=1) 
+         if (colour->nvals!=1) 
             k++;
      }
     iis_close();

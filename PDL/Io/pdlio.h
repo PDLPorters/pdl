@@ -1,2 +1,2 @@
 
-pdl pdl_frombuff( SV* sv );
+pdl* pdl_frombuff( Core* PDL, SV* sv );

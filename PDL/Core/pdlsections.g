@@ -251,34 +251,34 @@ void pdl_set( void* x, int datatype, int* pos, int* dims, int ndims, double valu
 
 /* Fill array with the corresponding coordinate (1=X, 2=Y, etc..) */
 
-void pdl_axisvals( pdl a, int axis ) {
+void pdl_axisvals( pdl* a, int axis ) {
    
    int i,j;
    int *dims, *data, *pos, nrow;
    
-   dims = (int*) a.dims;
+   dims = (int*) a->dims;
 
-   GENERICLOOP (a.datatype)
+   GENERICLOOP (a->datatype)
 
-      generic *data = (generic*) a.data;
+      generic *data = (generic*) a->data;
    
-      pos = (int*) pdl_malloc( a.ndims * sizeof(int) );
-      for (i=0; i<a.ndims; i++) /* Init */
+      pos = (int*) pdl_malloc( a->ndims * sizeof(int) );
+      for (i=0; i<a->ndims; i++) /* Init */
            pos[i]=0;
       
       /* For each pixel */
       
       i=0; nrow = dims[0];
-      while(i<a.nvals) {
+      while(i<a->nvals) {
          for (j=0; j<nrow; j++) { /* Fill row */
               pos[0]=j;
               data[i] =  pos[axis];
               i++;
          }
          pos[0]=0;
-         if (a.ndims<2) 
+         if (a->ndims<2) 
             break;
-         pdl_row_plusplus( pos, dims, a.ndims );
+         pdl_row_plusplus( pos, dims, a->ndims );
       }
    
   ENDGENERICLOOP

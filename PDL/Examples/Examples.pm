@@ -12,7 +12,6 @@ use DynaLoader;
 
 bootstrap PDL::Examples;
 
-
 ;# Exit with OK status
 
 1;

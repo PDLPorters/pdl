@@ -3,12 +3,12 @@
 
 =head2 PDL - Perl Data Language extension module
 
-Version 1.00 alpha
+Version 1.03 alpha
 
 "Why is it that we entertain the belief that for every purpose odd
 numbers are the most effectual?" - Pliny the Elder.
 
-I<Karl Glazebrook, AAO, 4/10/1996. [kgb@aaoepp.aao.gov.au]>
+I<Karl Glazebrook, AAO, 28/11/1996. [kgb@aaoepp.aao.gov.au]>
 
 
 =head1 DESCRIPTION
@@ -92,6 +92,7 @@ Here are some ways of creating a PDL variable:
    $a = pdl [1..10];             # 1D array
    $a = pdl (1,2,3,4);           # Ditto
    $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
+   $b = pdl 42                   # 0-dimensional scalar
    $c = pdl $a;                  # Make a new copy
    
    $d = byte [1..10];            # See "Type conversion"
@@ -283,7 +284,7 @@ PGPLOT
 
 PGPLOT provdes a simple library for line graphics and image display.
 
-There is an easy interface to this in the interna;l module
+There is an easy interface to this in the internal module
 PDL::Graphics::PG. (This calls routines in the separately available
 PGPLOT top-level module.)
 
@@ -307,6 +308,9 @@ Device manipulation commands:
    rel          -  short alias for 'release'
    env          -  Define a plot window, put on 'hold'
    dev          -  Explicitly set a new PGPLOT graphics device
+
+The actual PGPLOT module is loaded only when the first of these
+commands is executed.
    
 e.g:
 
@@ -640,6 +644,9 @@ PDL reserves for it's own use:
    $$a{Inplace}; # Flag - inplace() sets this. Next time a copy is attempted
                  # it does not occur and the flag is unset.
 
+   $$a{PDL};  # Pointer to cached C values of above. This allows
+              # C routines to get at the data FAST.
+
 Anything else stored in the structure will be copied to new objects
 (e.g. by $b = $a + 1) automatically as long as PDL knows how to copy it.
 [If it is a reference to another object PDL tries the ->copy method.]
@@ -655,6 +662,11 @@ topdl() does NOT perform a copy if a pdl variable is passed - it
 just falls through - which is obviosuly the desired behaviour. The
 routine is not of course necessary in normal user defined functions
 which do not care about internals.
+
+If you have changed with the guts you ********MUST******** 
+call the method C<$pdl->flush()> to update the C cache from the
+new perl values otherwise PDL will get very confused (Mnemonic: 'flush
+the piddle after a fiddle').
 
 Finally there is no reason why the data structure should not
 contain another PDL variable!
@@ -718,4 +730,11 @@ Defined in PDL::Graphics::*
 Footnotes:
 
 * = indicates C<inplace()> safe & useful with this function
+
+=head2 Complete List of PDL methods
+
+For convenience (the ->meth syntax looks more appropriate) some
+pdl routines are defined as methods:
+
+$pdl->flush    -  Update C cache from perl values
 

@@ -32,16 +32,16 @@ MODULE = PDL::Examples     PACKAGE = PDL::Examples
 
 SV *
 fibonacci(x)
-   pdl	x
+   pdl*	x
    CODE:
-    pdl y;
-    if (x.ndims != 1) 
+    pdl* y;
+    if (x->ndims != 1) 
        croak("Array is not 1D");
 
     RETVAL = PDL->copy(x,"");   /* Init y value to return as copy of x */
     y = PDL->SvPDLV(RETVAL);    /* Map */
 
-    pdl_fibonacci( y.data, y.datatype, y.nvals );     /* Do it */
+    pdl_fibonacci( y->data, y->datatype, y->nvals );     /* Do it */
    
     OUTPUT:
      RETVAL
@@ -50,20 +50,20 @@ fibonacci(x)
 
 SV *
 cc8compt(x)
-   pdl	x
+   pdl*	x
    CODE:
-    pdl y;
-    int* dims    = x.dims;
+    pdl* y;
+    int* dims    = x->dims;
     int nx, ny;
 
     RETVAL = PDL->copy(x,""); /* Init y value to return as copy of x */
     y = PDL->SvPDLV(RETVAL);         /* Map */
 
-    nx = *(y.dims); ny = y.ndims==2 ? *(y.dims+1) : 1; 
+    nx = *(y->dims); ny = y->ndims==2 ? *(y->dims+1) : 1; 
 
     /* Note: PDL->twod(pdl) returns void** ptr to 1D or 2D array */
 
-    pdl_cc8compt( PDL->twod(y), y.datatype, nx, ny); /* do it */
+    pdl_cc8compt( PDL->twod(y), y->datatype, nx, ny); /* do it */
 
    OUTPUT:
      RETVAL

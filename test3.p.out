@@ -1,3 +1,4 @@
+IO loaded
 BITPIX = -32 size = 88504 pixels 
 Reading 354016bytes
 BSCALE =  &&  BZERO = 
@@ -33,4 +34,5 @@ size = 354016 type = 4
 Dims = 299 296 
 Float:  Max =  15453.8798828125  min =  -290.715698242188 
 short:  Max =  15453  min =  -290 
+Loaded PGPLOT
 Displaying 299 x 296 image from 2.22832489013672 to 9.6648416519165 ...

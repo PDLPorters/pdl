@@ -29,38 +29,39 @@ void loglog_doit( double *x, double *y, int nvals) {
 }
 
 /* 
-   This is the hook routine - nargs is the number of
-   arguments and *args is an array of pdl structures
+   This is the hook routine - npdl is the number of
+   arguments and *pdllist is an array of pdl* structures
 */
 
-int loglog_ext(int nargs, pdl *args) {
+int loglog_ext(int npdl, pdl **pdllist) {
 
-   pdl x,y;
+   pdl* x;
+   pdl* y;
 
-   /* Check args */
+   /* Check pdllist */
 
    printf("\nExecuting C external routine\n\n");
 
-   if (nargs != 2) {
+   if (npdl != 2) {
       fprintf(stderr, "Error in number of arguments\n");
       return (0); /* Failure */
    }
 
-   x = args[0]; y = args[1];
+   x = pdllist[0]; y = pdllist[1];
     
-   if (x.datatype != PDL_D || y.datatype != PDL_D) {
+   if (x->datatype != PDL_D || y->datatype != PDL_D) {
       fprintf(stderr, "Error in data type of arguments\n");
       return (0); /* Failure */
    }
 
-   if (x.nvals != y.nvals) {
+   if (x->nvals != y->nvals) {
       fprintf(stderr, "Number of data values unequal in arguments\n");
       return(0); /* Failure */
    }
 
    /* Now do the buisness! */
 
-   loglog_doit( (double*) x.data, (double*) y.data, x.nvals); 
+   loglog_doit( (double*) x->data, (double*) y->data, x->nvals); 
 
    return(1);  /* Success! */
 }

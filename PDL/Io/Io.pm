@@ -12,7 +12,21 @@ use PDL::Core;     # Grab the Core names
 use DynaLoader; use Carp; use SelfLoader;
 @ISA = qw( PDL::Exporter DynaLoader SelfLoader ); 
 
-bootstrap PDL::Io;
+
+# Load compiled code only on demand
+
+BEGIN {$io_loaded = 0}
+
+local $^W=0;  # Do it this way to suppress spurious warnings
+eval << 'EOD';
+sub AUTOLOAD {
+   bootstrap PDL::Io unless $io_loaded;
+   $io_loaded = 1;
+   print "IO loaded\n" if $PDL::verbose;
+   $SelfLoader::AUTOLOAD = $AUTOLOAD;
+   goto &SelfLoader::AUTOLOAD;
+}
+EOD
 
 1; # Return OK status
 
@@ -21,6 +35,7 @@ __DATA__
 # SelfLoaded code
 
 sub ext1D { # Internal routine to extend 1D PDL array by size $n
+            # Note it assumes caller will ->flush at end.
    my ($a,$n) = @_;
    $$a{Data} .= "\0"x($n*howbig($$a{Datatype}));
    $$a{Dims} = [$$a{Dims}[0]+$n];
@@ -72,7 +87,7 @@ sub rcols {
    }                                                    # split() bug workaround
 
    close(FILE);
-   for (@ret) { $_ = sec($_,0,$m) }; # Truncate
+   for (@ret) { $_->flush; $_ = sec($_,0,$m); }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
 }
 
@@ -118,7 +133,7 @@ sub rgrep  {
       $k=0; for(0..$nret) { set $ret[$k++], $m, 1*$v[$_] } # Set values - '1*' is 
    }                                                      # ensures numeric
    close(FILE);
-   for (@ret) { $_ = sec($_,0,$m) }; # Truncate
+   for (@ret) { $_->flush; $_ = sec($_,0,$m) }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
 }
 
@@ -253,6 +268,7 @@ sub rfits { # Read a FITS format file and return a PDL
 
    open(FITS, $file) || croak "FITS file $file not found";
    $nbytes = 0; # Number of bytes read so far
+   $line = "";
 
    $$pdl{Hdr} = {};  # Read the FITS ASCII header into $pdl{Hdr}
    while() {
@@ -281,11 +297,6 @@ sub rfits { # Read a FITS format file and return a PDL
    $$pdl{Datatype} = $PDL_F    if $$pdl{Hdr}{"BITPIX"} == -32;
    $$pdl{Datatype} = $PDL_D    if $$pdl{Hdr}{"BITPIX"} == -64;
 
-   if ( !isbigendian() ) { # Need to byte swap
-      bswap2($pdl) if $$pdl{Datatype} == $PDL_S;
-      bswap4($pdl) if $$pdl{Datatype} >  $PDL_S;
-   }
-
    print "BITPIX = ",$$pdl{Hdr}{"BITPIX"}," size = $size pixels \n" 
          if $PDL::verbose;
 
@@ -297,7 +308,7 @@ sub rfits { # Read a FITS format file and return a PDL
 
    close(FITS);
 
-   if ( !isbigendian() ) { # Need to byte swap on little endian machines
+   if (!isbigendian() ) { # Need to byte swap on little endian machines
       bswap2($pdl) if $$pdl{Datatype} == $PDL_S;
       bswap4($pdl) if $$pdl{Datatype} == $PDL_L || $$pdl{Datatype} == $PDL_F;
       bswap8($pdl) if $$pdl{Datatype} == $PDL_D;

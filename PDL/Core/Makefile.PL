@@ -8,7 +8,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
  'VERSION_FROM'	=> 'Core.pm', 
- 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
+ 'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT)  pdlsections$(OBJ_EXT) '.
                    'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT)',
   'PM'           => {'Core.pm'        => '$(INST_LIBDIR)/Core.pm',
@@ -17,7 +18,8 @@ WriteMakefile(
                      'pdlcore.h'      => '$(INST_LIBDIR)/Core/pdlcore.h',
                      'typemap.pdl'    => '$(INST_LIBDIR)/Core/typemap.pdl'},
  'LIBS'        => [''],
- 'clean'       => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
+ 'clean'       => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
                    'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c'},

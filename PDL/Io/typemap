@@ -1,9 +1,10 @@
 
 TYPEMAP
-pdl	T_PDLBUFF
+pdl*	T_PDLBUFF
+pdl *	T_PDLBUFF
 
 INPUT
 
 T_PDLBUFF
-	$var = SvPOK($arg) ? pdl_frombuff($arg) : PDL->SvPDLV($arg)
+	$var = SvPOK($arg) ? pdl_frombuff(PDL, $arg) : PDL->SvPDLV($arg)
 

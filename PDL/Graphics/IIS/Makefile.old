@@ -1,7 +1,7 @@
 # This Makefile is for the PDL::Graphics::IIS extension to perl.
 #
 # It was generated automatically by MakeMaker version
-# 5.34 (Revision: 1.202) from the contents of
+# 5.38 (Revision: 1.207) from the contents of
 # Makefile.PL. Don't edit this file, edit Makefile.PL instead.
 #
 #	ANY CHANGES MADE HERE WILL BE LOST!
@@ -21,22 +21,22 @@
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/local/lib/perl5/sun4-sunos/5.003/Config.pm)
+# These definitions are from config.sh (via /usr/lib/perl5/i586-linux/5.003/Config.pm)
 
 # They may have been overridden via Makefile.PL or on the command line
 AR = ar
-CC = gcc
+CC = cc
 CCCDLFLAGS = -fpic
-CCDLFLAGS =  
+CCDLFLAGS = -rdynamic
 DLEXT = so
 DLSRC = dl_dlopen.xs
-LD = ld
-LDDLFLAGS = -assert nodefinitions -L/usr/local/lib
+LD = cc
+LDDLFLAGS = -shared -L/usr/local/lib
 LDFLAGS =  -L/usr/local/lib
-LIBC = /lib/libc.so.1.9
+LIBC = /lib/libc.so
 LIB_EXT = .a
 OBJ_EXT = .o
-RANLIB = /usr/bin/ranlib
+RANLIB = :
 SO = so
 
 
@@ -45,31 +45,31 @@ AR_STATIC_ARGS = cr
 NAME = PDL::Graphics::IIS
 DISTNAME = PDL-Graphics-IIS
 NAME_SYM = PDL_Graphics_IIS
-VERSION = 1.01
-VERSION_SYM = 1_01
-XS_VERSION = 1.01
+VERSION = 1.03
+VERSION_SYM = 1_03
+XS_VERSION = 1.03
 INST_BIN = ../../.././blib/bin
 INST_EXE = ../../.././blib/script
 INST_LIB = ../../.././blib/lib
 INST_ARCHLIB = ../../.././blib/arch
 INST_SCRIPT = ../../.././blib/script
-PREFIX = /usr/local
+PREFIX = /usr
 INSTALLDIRS = site
 INSTALLPRIVLIB = $(PREFIX)/lib/perl5
-INSTALLARCHLIB = $(PREFIX)/lib/perl5/sun4-sunos/5.003
+INSTALLARCHLIB = $(PREFIX)/lib/perl5/i586-linux/5.003
 INSTALLSITELIB = $(PREFIX)/lib/perl5/site_perl
-INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/sun4-sunos
+INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/i586-linux
 INSTALLBIN = $(PREFIX)/bin
 INSTALLSCRIPT = $(PREFIX)/bin
-PERL_LIB = /usr/local/lib/perl5
-PERL_ARCHLIB = /usr/local/lib/perl5/sun4-sunos/5.003
-SITELIBEXP = /usr/local/lib/perl5/site_perl
-SITEARCHEXP = /usr/local/lib/perl5/site_perl/sun4-sunos
+PERL_LIB = /usr/lib/perl5
+PERL_ARCHLIB = /usr/lib/perl5/i586-linux/5.003
+SITELIBEXP = /usr/lib/perl5/site_perl
+SITEARCHEXP = /usr/lib/perl5/site_perl/i586-linux
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/local/lib/perl5/sun4-sunos/5.003/CORE
+PERL_INC = /usr/lib/perl5/i586-linux/5.003/CORE
 PERL = /usr/local/bin/perl
 FULLPERL = /usr/local/bin/perl
 
@@ -78,8 +78,8 @@ DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 
-MAKEMAKER = /usr/local/lib/perl5/ExtUtils/MakeMaker.pm
-MM_VERSION = 5.34
+MAKEMAKER = /usr/lib/perl5/ExtUtils/MakeMaker.pm
+MM_VERSION = 5.38
 
 # FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
 # BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
@@ -155,7 +155,7 @@ AUTOSPLITFILE = $(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -e 'use AutoSplit;au
 
 # --- MakeMaker tool_xsubpp section:
 
-XSUBPPDIR = /usr/local/lib/perl5/ExtUtils
+XSUBPPDIR = /usr/lib/perl5/ExtUtils
 XSUBPP = $(XSUBPPDIR)/xsubpp
 XSPROTOARG = 
 XSUBPPDEPS = $(XSUBPPDIR)/typemap ../../../PDL/Core/typemap.pdl
@@ -167,7 +167,7 @@ XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap ../../../PDL/Core/typemap.pd
 SHELL = /bin/sh
 CHMOD = chmod
 CP = cp
-LD = ld
+LD = cc
 MV = mv
 NOOP = sh -c true
 RM_F = rm -f
@@ -200,8 +200,8 @@ EQUALIZE_TIMESTAMP = $(PERL) -we 'open F, ">$$ARGV[1]"; close F;' \
 
 # --- MakeMaker cflags section:
 
-CCFLAGS = -I/usr/local/include
-OPTIMIZE = -O
+CCFLAGS = -Dbool=char -DHAS_BOOL -I/usr/local/include
+OPTIMIZE = -O2
 PERLTYPE = 
 LARGE = 
 SPLIT = 
@@ -284,21 +284,21 @@ config :: $(INST_ARCHAUTODIR)/.exists
 config :: $(INST_AUTODIR)/.exists
 	@$(NOOP)
 
-$(INST_AUTODIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
+$(INST_AUTODIR)/.exists :: /usr/lib/perl5/i586-linux/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_AUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/i586-linux/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_AUTODIR)
 
-$(INST_LIBDIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
+$(INST_LIBDIR)/.exists :: /usr/lib/perl5/i586-linux/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_LIBDIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/i586-linux/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_LIBDIR)
 
-$(INST_ARCHAUTODIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
+$(INST_ARCHAUTODIR)/.exists :: /usr/lib/perl5/i586-linux/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_ARCHAUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/lib/perl5/i586-linux/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_ARCHAUTODIR)
 

@@ -10,7 +10,22 @@ use PDL::Core; # Grab the Core names
 use DynaLoader; use Carp;  use SelfLoader;
 @ISA    = qw( PDL::Exporter DynaLoader SelfLoader ); 
 
-bootstrap PDL::Graphics::IIS;
+# Load compiled code only on demand
+
+BEGIN{ $iis_loaded = 0 }
+
+local $^W=0;  # Do it this way to suppress spurious warnings
+eval << 'EOD';
+sub AUTOLOAD {
+   unless ($iis_loaded) {
+      bootstrap PDL::Graphics::IIS unless $iis_loaded;
+      $iis_loaded = 1;
+      print "Graphics::IIS loaded\n" if $PDL::verbose;
+   }
+   $SelfLoader::AUTOLOAD = $AUTOLOAD;
+   goto &SelfLoader::AUTOLOAD;
+}
+EOD
 
 $iisframe    = 1;       # Starting defaults
 $stdimage    = "imt1024";

@@ -1,5 +1,6 @@
 TYPEMAP
-pdl	T_PDL
+pdl*	T_PDL
+pdl *	T_PDL
 Logical	T_IV
 
 INPUT

@@ -49,12 +49,12 @@ isbigendian()
 
 void
 bswap2(x)
-   pdl	x;
+   pdl*	x;
    CODE:
       int i;
-      short *aa = (short*) x.data; short bb;
+      short *aa = (short*) x->data; short bb;
       unsigned char *a,*b;
-      int n = x.nvals * PDL->howbig(x.datatype) / sizeof(short);
+      int n = x->nvals * PDL->howbig(x->datatype) / sizeof(short);
       for(i=0;i<n; i++) {
          bb = aa[i]; a = (unsigned char*) (void*) (aa+i);  
          b = (unsigned char*) &bb;
@@ -65,12 +65,12 @@ bswap2(x)
 
 void
 bswap4(x)
-   pdl	x;
+   pdl*	x;
    CODE:
       int i;
-      long *aa = (long*) x.data; long bb;
+      long *aa = (long*) x->data; long bb;
       unsigned char *a,*b;
-      int n = x.nvals * PDL->howbig(x.datatype) / sizeof(long);
+      int n = x->nvals * PDL->howbig(x->datatype) / sizeof(long);
       for(i=0;i<n; i++) {
          bb = aa[i]; a = (unsigned char*) (void*) (aa+i);  
          b = (unsigned char*) &bb;
@@ -83,12 +83,12 @@ bswap4(x)
 
 void
 bswap8(x)
-   pdl	x;
+   pdl*	x;
    CODE:
       int i;
-      double *aa = (double*) x.data; double bb;
+      double *aa = (double*) x->data; double bb;
       unsigned char *a,*b;
-      int n = x.nvals * PDL->howbig(x.datatype) / sizeof(double);
+      int n = x->nvals * PDL->howbig(x->datatype) / sizeof(double);
       for(i=0;i<n; i++) {
          bb = aa[i]; a = (unsigned char*) (void*) (aa+i);  
          b = (unsigned char*) &bb;

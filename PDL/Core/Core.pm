@@ -3,17 +3,17 @@
 
 package PDL::Core;
 
-$PDL::VERSION = "1.01";
+$PDL::VERSION = "1.03";
 
 # Functions exportable in this part of the module
 
 @EXPORT_OK = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_F $PDL_D howbig nelem dims
-	      pdl topdl byte short ushort long float double
+	      pdl topdl null byte short ushort long float double
 	      convert log10 inplace zeroes ones sequence min max sum list
 	      listindices sec ins set at axisvals xvals yvals zvals rvals
 	      callext convolve hist stats reshape transpose);
 
-@EXPORT_STATIC = qw( pdl topdl zeroes ones sequence );
+@EXPORT_STATIC = qw( pdl topdl null zeroes ones sequence );
 
 use DynaLoader; use Carp;  
 @ISA    = qw( PDL::Exporter DynaLoader ); 
@@ -112,16 +112,25 @@ sub pdl { my $x = shift; return $x->new(@_) }
 
 # Inheritable 'new' method for PDL objects
 
+sub null {  # Special token for PDL::PP
+   my $class = shift;
+   my $new = bless {}, $class;
+   $$new{Data}="";
+   $$new{Dims}=[0];
+   return $new;
+}
+  
 sub PDL::new {         
    my $this = shift;
    return $this->copy if ref($this);
    my $new = bless {}, $this;
    $$new{Datatype} = $PDL_D;
-   my $value = scalar(@_) ? (scalar(@_)>1 ? [@_] : shift) : 0; # ref thyself
-
+   my $value = (scalar(@_)>1 ? [@_] : shift);  # ref thyself
+   $value = 0 if !defined($value);
    if (ref(\$value) eq "SCALAR") { 
        $$new{Data}     = pack( $pack[$$new{Datatype}], $value ); 
-       $$new{Dims}     = [1];
+       $$new{Dims}     = [];
+       return $new;
    }
    elsif (ref($value) eq "ARRAY") { 
        $level = 0; @dims = (); # package vars
@@ -143,15 +152,18 @@ sub PDL::copy {
     my $value = shift;
     croak("Argument is an ".ref($value)." not an object") unless blessed($value);
     my $option  = shift;
+    $option = "" if !defined $option;
     if ($$value{Inplace}) {   # Copy protection
        delete $$value{Inplace};
        return $value;
     }
     my $new = bless {}, ref($value);
     for ( grep($_ ne "Data", keys %$value) ) {   # Efficient to ignore Data here
+          next if $_ eq "PDL";
           $$new{$_} = rcopyitem( $$value{$_} );  # Deep copy
     }
     $$new{Data} = $option eq "NoData" ? "" : $$value{Data}; # Special
+    $new->flush;
     return $new;
 }
 
@@ -186,7 +198,6 @@ sub inplace {
 # Create zero filled array (function/inheritable constructor)
 
 sub zeroes {
-    croak 'Usage: $a = zeroes($nx, $ny, $nz ...) or PDL->zeroes(...)' if $#_<1;
     my $class = shift; 
     my $nelems = 1; my @dims;
     for (@_) { 
@@ -231,6 +242,7 @@ sub reshape {
    }else{
       $$a{Data} = substr($$a{Data},0,length($$a{Data})+$nelem); # Chop
    }
+   $a->flush;
 1;}
 
 # type to type conversion functions (with automatic conversion to pdl vars)
@@ -286,13 +298,15 @@ sub stats {
 
 sub string { 
     my($self,$format)=@_;
-    if (nelem($self)==1) { # Just one datum...
+    my $ndims = scalar(dims($self));
+    return "Null" if $ndims==1 && $$self{Dims}[0]==0; # Null token
+    if ($ndims==0) {
        my @x = unpack($pack[$$self{Datatype}], $$self{Data});
        return ($format ? sprintf($format, $x[0]) : "$x[0]");
     }
     local $sep  = $PDL::use_commas ? "," : " ";
     local $sep2 = $PDL::use_commas ? "," : "";
-    if ($#{$$self{Dims}}==0) {
+    if ($ndims==1) {
        return str1D($self,$format);
     }
     else{
@@ -452,7 +466,13 @@ sub strND {
        my $ret="\n"." "x$level ."["; my $j;       
        for ($j=0; $j<$dims[$#dims]; $j++) {
            @sec[$#sec-1..$#sec]=($j,$j);
-	   $ret .= strND(sec($self,@sec),$format, $level+1); 
+
+           my $x = sec($self,@sec);  # Subsection
+
+           $$x{Dims} = [@dims];      # Correct for unit-chopping
+           pop @{$$x{Dims}}; $self->flush;
+
+           $ret .= strND($x,$format, $level+1); 
 	   chop $ret; $ret .= $sep2;
        }
        chop $ret if $PDL::use_commas;
@@ -496,7 +516,8 @@ sub str2D{
     my @x = unpack($pack[$$self{Datatype}], $$self{Data} );
     my ($i, $f, $t, $len, $ret);
 
-    if ($format eq "") { # Format not given? - find max length of default
+    if (!defined $format || $format eq "") { # Format not given? - 
+                                             # find max length of default
        $len=0;
        for (@x) {$i = length($_); $len = $i>$len ? $i : $len };
        $format = "%".$len."s"; 
@@ -558,11 +579,13 @@ package PDL::Exporter;
 
 use Exporter;
 
+
 sub import {
 
    my $pkg = shift;
    my @exports = @_;
    my @revised_exports = ();
+   local $^W=0;  # Supress redefining subroutines warning
    my ($e,$OO,$toeval);
    for $e (@exports) {
       $e eq "OO" ? $OO++ : push @revised_exports, $e;
@@ -575,7 +598,7 @@ sub import {
       Exporter::export( $pkg, $PDL::name, @revised_exports );
    }
    else{
-      @static = ();
+      @static = (); $toeval="";
       @{"${pkg}::EXPORT_FAIL"} = @{"${pkg}::EXPORT_STATIC"}; # Call back handle
       Exporter::export( $pkg, $call, @revised_exports );
 
@@ -598,4 +621,3 @@ sub export_fail {
 ;# Exit with OK status
 
 1;
-
