@@ -2008,6 +2008,26 @@ pp_def ('plsym',
          Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
 
+# Plot shaded 3-d surface plot
+
+pp_def ('plsurf3d',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); int clevel(nlevel);',
+         GenericTypes => [D],
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zz;
+
+           size_x =  $SIZE(nx);
+           size_y =  $SIZE(ny);
+           plAlloc2dGrid (&zz, size_x, size_y);
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               zz[i][j] = $z(nx => i, ny => j);
+           c_plsurf3d ($P(x), $P(y), zz, size_x, size_y, $opt(),
+                       $P(clevel), $SIZE(nlevel));
+           plFree2dGrid (zz, size_x, size_y);'
+        );
+
 pp_done();
 
 # Local Variables:
