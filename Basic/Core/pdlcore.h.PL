@@ -17,7 +17,7 @@ use vars qw( %PDL_DATATYPES );
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
 use vars qw( $pdl_core_version );
-$pdl_core_version = 4;  
+$pdl_core_version = 4;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -47,6 +47,9 @@ print OUT <<'!NO!SUBS!';
 /*
  * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
  */
+
+#ifndef __PDLCORE_H
+#define __PDLCORE_H
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -339,6 +342,9 @@ print OUT <<'!NO!SUBS!';
 typedef struct Core Core;
 
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
+
+/* __PDLCORE_H */
+#endif
 
 !NO!SUBS!
 

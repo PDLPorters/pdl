@@ -1,4 +1,7 @@
 
+#ifndef __PDLTHREAD_H
+#define __PDLTHREAD_H
+
 
 typedef struct pdl_errorinfo {
 	char *funcname;
@@ -75,5 +78,5 @@ typedef struct pdl_thread {
 #define PDL_THREAD_P(thread,which,ptr) ((ptr)+(thread).offs[ind])
 #define PDL_THREAD_UPDP(thread,which,ptr) /* Nothing */
 
-
-
+/* __PDLTHREAD_H */
+#endif
