@@ -234,7 +234,7 @@ sub PDL::readfraw {
         my $data;
         my $retlen;
         while (($retlen = $d->sysread($data, $len)) != 0) {
-                substr(${$pdl->get_dataref},$index,$len,$data);
+                substr(${$pdl->get_dataref},$index,$len) = $data;
                 $index += $retlen;
                $len -= $retlen;
         }
