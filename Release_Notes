@@ -7,9 +7,10 @@ General Notes:
      - After installing PDL 2.4.0 external PDL modules will need to re-built.
        (any such modules will refuse to load until they have been re-built)
        
-     - A new demo of the PDL::Transform module has been added to perldl.
-       Type 'demo transform' in the perldl shell. ( Note that PGPLOT
-       is required to run)
+     - New demos of the PDL::Transform and PDL::Transform::Cartography
+	modules have been added to perldl.
+       Type 'demo transform' or 'demo cartography' in the perldl shell. 
+	( Note that PGPLOT is required to run )
 
 Summary of Changes:
 
@@ -21,7 +22,8 @@ Summary of Changes:
        Library, including interpolation, finite-difference, random
        variable, and other routines.
 
-     - New, very powerful indexing and slicing operators allow boundary conditions   (range, indexND)
+     - New, very powerful indexing and slicing operators allow boundary 
+	  conditions   (range, indexND)
 
      - N-dimensional indexing (indexND) and selection (whichND) methods
 
@@ -46,8 +48,10 @@ Summary of Changes:
      - Improvements to the perldl shell:
        * Many bug fixes
        * Multi-line inputs to the perldl shell for easier cut-n-paste
-       * ^D blocking on demand (controlled by perl variable or command-line switch)
+       * ^D blocking on demand (controlled by perl variable or command-line 
+	  switch)
        * Autoloading detects error conditions on compile
+       * New demos
 
     - Header copying is now explicit rather than by reference -- so that,
       e.g., FITS file manipulation is more intuitive and natural.
@@ -58,7 +62,10 @@ Summary of Changes:
 
     - Several new utility routines, including glue(), zcheck(), and ndcoords().
 
-    - Better matrix operation support
+    - Better matrix operation support: matrix operations are now in 
+	PDL::MatrixOps, and are all threadable.  Singular value decomposition,
+	determinant, linear equation solving, matrix inversion, 
+	eigenvalue decomposition, and LU-decomposition.
 
 Release notes for PDL 2.3.4 -------------------------------
 
