@@ -1,17 +1,15 @@
 The following issues have been reported with this version of
 PDL. 
 
-- Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL.  Current
+- Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
+  because of the removal of the magic pm_to_blib target.  Current
   versions (such as 6.17, bundled with the current perl, v5.8.6) work OK. 
-  The problems with later versions are considered to be the result
-  of newly-introduced design bugs in MakeMaker; we have followed the core
-  perl team in our support of earlier MakeMaker versions.
+  With PDL 2.4.2, we have followed the core perl team in our use of
+  earlier MakeMaker versions.
 
 - FFTW 3.0.1 is now out but is not supported (yet). You can use 2.x versions
   of FFTW, fall back on the built-in fft routines, or (best of all) submit a 
   patch. 
-
-- Recent versions of MakeMaker seem to cause trouble 
 
 - If @INC has '.' at the front of the search path part of the build will
   fail (specifically mkpdlconv will not be able to 'use English' since
