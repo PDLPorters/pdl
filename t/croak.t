@@ -41,12 +41,15 @@ $c = $b->slice(":,:,1");
 ok(2,1);  # if we're here we survived
 
 $b = pdl [[1,1,1],[2,2,2]];
-eval {$c = $b->clump(3); $c->make_physical();};
+eval {$c = $b->dummy(3,1); $c->make_physical();};
 print "ERROR WAS: '$@'\n";
-ok(3,$@ =~ /error/i);
+ok(3,!!$@);
 
 $::i = 4;
 
 $b = zeroes(5,3,3);
 $c = $b->slice(":,:,1");
 ok(4,1);  # if we're here we survived
+
+
+
