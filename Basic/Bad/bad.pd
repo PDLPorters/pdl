@@ -247,8 +247,8 @@ switch on/off/examine bad data flag
 A return value of 1 does not guarantee the presence of
 bad data in a piddle; all it does is say that we need to 
 I<check> for the presence of such beasties. To actually 
-find out if there are any bad values, use the 
-L<check_badflag|/check_badflag> method.
+find out if there are any bad values present in a piddle, 
+use the L<check_badflag|/check_badflag> method.
 
 =for bad
 
@@ -271,9 +271,8 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 
 If a new value is supplied via a piddle (e.g. C<$a-E<gt>badvalue(23)>),
 then the data in the supplied piddle is converted to use the new
-bad value as well IFF the data type is an integer; 
-the bad value for both C<float> and C<double> can not be changed
-(it is C<NaN>).
+bad value as well if the data type is an integer 
+or C<$PDL::Bad::UseNaN == 0>.
 
 Currently there is no way of automatically converting the bad
 values of already existing piddles. This could be supported - e.g. 
@@ -419,7 +418,7 @@ sub PDL::badvalue {
     if ( UNIVERSAL::isa($self,"PDL") ) {
 	$num = $self->get_datatype;
 	if ( $num < 4 and defined($val) and $self->badflag ) {
-	    $self->inplace->replacebad( $val );
+	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
@@ -720,20 +719,156 @@ copy across the data.
 
 Unfortunately, this routine can I<not> be run inplace, since the
 current implementation can not handle the same piddle used as
-C<a> and C<mask> (eg C<$a-E<gt>inplace-E<gt>setbadif($a%2)> fails),
-and I am too lazy to fix it.
+C<a> and C<mask> (eg C<$a-E<gt>inplace-E<gt>setbadif($a%2)> fails).
+
+Also see L<setvaltobad|/setvaltobad> and L<setnantobad|/setnantobad>.
 
 ',
        BadDoc =>
 'The output always has its bad flag set, even if it does not contain
-any bad values (use C<check_badflag|/check_badflag> to check
+any bad values (use L<check_badflag|/check_badflag> to check
 whether there are any bad values in the output). 
 Any bad values in the input piddles are copied across to the output piddle.
 ',
        ); # pp_def: setbadif
 
+# this is useful because $a->setbadif( $a == 23 )
+# is common and that can't be done inplace
+#
+# this doesn't need a BadCode section
 pp_def(
-    'replacebad',
+    'setvaltobad',
+    HandleBad => 1,
+    Pars => 'a(); [o]b();',
+    OtherPars => 'double value;',
+    Inplace => 1,
+    CopyBadStatusCode => 
+    'if ( a == b && $ISPDLSTATEGOOD(a) )
+       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+    ',
+    Code =>
+    'if ( $a() == $COMP(value) ) {
+        $SETBAD(b());
+     } else {
+        $b() = $a();
+     }',
+    Doc => 
+'
+=for ref
+
+Set bad all those elements which equal the supplied value.
+
+=for example
+
+ $a = sequence(10) % 3;
+ $a->inplace->setvaltobad( 0 );
+ print "$a\n";
+ [BAD 1 2 BAD 1 2 BAD 1 2 BAD]
+
+This is a simpler version of L<setbadif|/setbadif>, but this
+function can be done inplace.  See L<setnantobad|/setnantobad>
+if you want to convert NaN/Inf to the bad value.
+
+',
+       BadDoc =>
+'The output always has its bad flag set, even if it does not contain
+any bad values (use L<check_badflag|/check_badflag> to check
+whether there are any bad values in the output). 
+Any bad values in the input piddles are copied across to the output piddle.
+',
+       ); # pp_def: setvaltobad
+
+# setnantobad is a straight copy if $PDL::Bad::UseNaN == 1
+#
+if ( $usenan ) {
+    pp_add_exported( '', 'setnantobad' );
+    pp_addpm(<<'!NO!SUBS!');
+
+=head2 setnantobad
+
+=for ref
+
+Sets NaN/Inf values in the input piddle bad
+(only relevant for floating-point piddles).
+Can be done inplace.
+
+As C<$PDL::Bad::UseNan == 1>, this is just a straight copy.
+
+=for usage
+
+ $b = $a->setnantobad;
+ $a->inplace->setnantobad;
+
+=for bad
+
+Supports bad values.
+
+=cut
+
+*setnantobad = \&PDL::setnantobad;
+sub PDL::setnantobad{
+    die "ERROR: setnantobad is currently too stupid to allow it to do anything\n";
+    my $a = shift;
+    my $b;
+    if ( $a->is_inplace ) {
+	$a->set_inplace(0);
+	$b = $a;
+    } elsif ( $#_ > -1 ) {
+	$b = $_[0]; 
+    } else {
+	$b = PDL->nullcreate($a);
+    }
+    return $b; 
+}
+
+!NO!SUBS!
+
+} else {
+    # usenan is not true, so we need to do something
+pp_def(
+    'setnantobad',
+    HandleBad => 1,
+    Pars => 'a(); [o]b();',
+    GenericTypes => [ 'F', 'D' ],
+    Inplace => 1,
+    CopyBadStatusCode => 
+    '/* note: not quite the normal check since set b bad within Code */
+     /* we propogate the bad flag even if a was originally bad since */
+     /* there is no easy way to pass this information around */
+     if ( a == b && $ISPDLSTATEBAD(b) )
+       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+    ',
+    Code =>
+    'int flag = 0;
+     threadloop %{
+        if ( ! finite($a()) ) { $SETBAD(b()); flag = 1; }
+        else                  { $b() = $a(); }
+     %}
+     if ( flag ) { $PDLSTATESETBAD(b); }
+     ',
+    Doc => 
+'
+=for ref
+
+Sets NaN/Inf values in the input piddle bad
+(only relevant for floating-point piddles).
+Can be done inplace.
+
+=for usage
+
+ $b = $a->setnantobad;
+ $a->inplace->setnantobad;
+
+',
+    BadDoc => 'Supports bad values.',
+    ); # pp_def: setnantobad
+
+} # if: $usenan
+
+# renamed replacebad by setbadtoval
+pp_def(
+    'setbadtoval',
     HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval;',
@@ -766,7 +901,7 @@ L<badmask|PDL::Math/badmask>.
 
 =for example
 
- $a->inplace->replacebad(23); 
+ $a->inplace->setbadtoval(23); 
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 0
 
@@ -776,7 +911,7 @@ L<badmask|PDL::Math/badmask>.
 If the input piddle does not have its bad flag set, then
 values are copied with no replacement.
 ',
-       ); # pp_def: replacebad
+       ); # pp_def: setbadtoval
 
 pp_def(
     'copybad',

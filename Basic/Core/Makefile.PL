@@ -70,27 +70,9 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
     }
 }
 
-
-if ($PDL_CONFIG{WITH_BADVAL}) { # compile check_endian.c
-  print "\nTrying to figure out endian-ness of machine...";
-  my $efile = 'check_endian';
-  my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
-  my $COMP = "$Config{cc} -o $efile ${efile}.c $HIDE";
-  die "ERROR: unable to compile ${efile}.c"
-    if system( $COMP );
-  chomp( my $is_big_endian = `./$efile` ); # . might not be in our path
-  die "ERROR: unknown return value ($is_big_endian) from $efile"
-    unless $is_big_endian =~ /^(0|1|-1)$/;
-  unlink $efile;
-  die "ERROR: unknown endian type ($efile returned -1)"
-    if $is_big_endian eq "-1";
-  print " It is " . ($is_big_endian ? "big" : "little") . " endian\n";
-} else { $is_big_endian = -1 } 
-
-my $fh = new IO::File ">isbigendian.p" 
-    or die "Unable to write to isbigendian.p";
-print $fh "\$isbigendian = $is_big_endian;\n1;\n";
-$fh->close;
+# isbigendian() is in PDL::Dev
+print "\nTrying to figure out endian-ness of machine...";
+print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
 
 # badsupport.p is made by the top-level Makefile, but placed
 # into Basic/Core, so we clean it up here
@@ -118,7 +100,7 @@ WriteMakefile(
                    'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
-		   'mymalloc.p isbigendian.p badsupport.p'
+		   'mymalloc.p badsupport.p'
 		   },
  'INC'          => "$mallocinc",
 );

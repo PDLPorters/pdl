@@ -1,4 +1,11 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+    - cleaned up endian support. Threw out my check_endian stuff since perl
+      already knows - there's a isbigendian fn in Dev.pm (eg see 
+      IO/Misc/misc.pd)
+    - added setvaltobad() and setnantobad() to PDL::Bad, renamed replacebad()
+      to setbadtoval() (perhaps should keep it as an alias?)
+      setnantobad doesn't work (yet) if $PDL::Bad::UseNaN == 1
 CS
 	- added Matrix.pm (suggestion by Stefan Heuel)
 	- Core.xs.PL: getdim, at and set now support the 'infinite dim'

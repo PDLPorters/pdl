@@ -7,7 +7,7 @@ use English; use Exporter; use DynaLoader;
 use IO::File;
 @ISA    = qw( Exporter DynaLoader );
 
-@EXPORT = qw(genpp %PDL_DATATYPES 
+@EXPORT = qw( isbigendian genpp %PDL_DATATYPES 
 	     PDL_INCLUDE PDL_TYPEMAP
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
@@ -59,6 +59,15 @@ foreach $key (keys %PDL::Types::typehash) {
 $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
                 : 'O_NONBLOCK';
 
+# big/little endian?
+sub isbigendian {
+    use Config;
+    my $byteorder = $Config{byteorder} || 
+	die "ERROR: Unable to find 'byteorder' in perl's Config\n";
+    return 1 if $byteorder eq "4321";
+    return 0 if $byteorder eq "1234";
+    die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n"; 
+}
 
 #################### PDL Generic PreProcessor ####################
 #

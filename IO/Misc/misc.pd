@@ -4,9 +4,8 @@ use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
 # and endian-ness of machine
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, 
-			     "Basic", "Core", "isbigendian.p" );
+require PDL::Core::Dev;
+my $isbigendian = PDL::Core::Dev::isbigendian();
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -50,6 +49,7 @@ pp_addpm(<<'!NO!SUBS!');
 use PDL::Primitive;
 use PDL::Types;
 use PDL::Options;
+use PDL::Bad;
 use Carp;
 
 =head2 rfits()
@@ -186,10 +186,42 @@ sub PDL::rfits {
 
    if (!isbigendian() ) { # Need to byte swap on little endian machines
       bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-      bswap4($pdl) if $pdl->get_datatype == $PDL_L || $pdl->get_datatype ==
-      $PDL_F;
+      bswap4($pdl) if $pdl->get_datatype == $PDL_L || 
+	  $pdl->get_datatype == $PDL_F;
       bswap8($pdl) if $pdl->get_datatype == $PDL_D;
    }
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+   # do we have bad values? - needs to be done before BSCALE/BZERO
+   # (at least for integers)
+   #
+   if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
+       # integer, so bad value == BLANK keyword
+       my $blank = $foo->{BLANK};
+       # do we have to do any conversion?
+       if ( $blank == $pdl->badvalue() ) {
+	   $pdl->badflag(1);
+       } else {
+	   # we change all BLANK values to the current bad value
+	   # (would not be needed with a per-piddle bad value)
+	   $pdl->inplace->setvaluebad( $blank );
+       }
+   } else {
+       # bad values are stored as NaN's in FITS
+       # let setnanbad decide if we need to change anything
+       $pdl->inplace->setnantobad();
+   }
+   print "FITS file may contain bad values.\n" 
+       if $pdl->badflag() and $PDL::verbose;
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'EOD');
 
    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
@@ -212,39 +244,6 @@ sub PDL::rfits {
 
    # Header
    $pdl->sethdr($foo);
-
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-
-   # do we have bad values?
-   #
-   # the integer-handling is wrong, because we need to check
-   # for the bad value BEFORE scaling
-   # and the floating point case is just ugly
-   #
-   if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
-       # integer, and bad value == BLANK keyword
-       my $blank = $foo->{BLANK};
-       # do we have to do any conversion?
-       if ( $blank == $pdl->badvalue() ) {
-	   $pdl->badflag(1);
-       } else {
-	   $pdl = $pdl->setbadif( $pdl == $blank );
-       }
-       print "FITS file may contain bad values.\n" if $PDL::verbose;
-   } else {
-      # bad values are stored as NaN's
-      # - this is NASTY
-      $pdl->inplace->badmask( $pdl->badvalue );
-      $pdl->badflag(1) if any( $pdl == $pdl->badvalue );
-   }
-!NO!SUBS!
-
-} # if: $bvalflag
-
-   pp_addpm(<<'EOD');
 
    return $pdl;
 }
@@ -276,7 +275,7 @@ $BITPIX is optional and coerces the output format.
 =for bad
 
 Note that currently L<wfits|/wfits> does I<not> write out the
-C<BLANK> keyword.
+C<BLANK> keyword/convert floating-point bad values to NaN.
 
 !NO!SUBS!
 } # if: $bvalflag
@@ -1200,8 +1199,7 @@ Determine endianness of machine - returns 0 or 1 accordingly
 
 EOD
 
-# $isbigendian is set up in isbigendian.p in Basic/Core/
-# (created at compile time)
+# $isbigendian is set up at top of file
 pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL::isbigendian;\n");
 pp_add_exported("", "isbigendian");
 

@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 62;
+	plan tests => 64;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: badvalue support not compiled\n";
@@ -169,14 +169,14 @@ ok( $s[2], 66.5 );                       #
 ok( $s[3], 22 );                         # 
 ok( $s[4], 98 );                         # 40
 
-# how about replacebad
-$a = $b->replacebad(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+# how about setbadtoval (was replacebad)
+$a = $b->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
 ok( all($a == 0) );                   # 
 
 # and inplace?
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
-$b->inplace->replacebad(20);
+$b->inplace->setbadtoval(20);
 $a = $b - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
 ok( all($a == 0) );                   # 
 
@@ -207,7 +207,7 @@ ok( PDL::Core::string( $a->isbad ),
 $a = sequence( byte, 2, 3 );
 $a = $a->setbadif( $a == 3 );
 $b = $a->slice("(1),:");
-$a->inplace->replacebad(3);
+$a->inplace->setbadtoval(3);
 ok( $b->badflag, 0 );                  # 45
 
 $a = sequence( byte, 2, 3 );
@@ -342,7 +342,7 @@ ok( PDL::Core::string($c->clump(-1)),
 #$a = sequence( byte, 2, 3 );
 #$a = $a->setbadif( $a == 3 );
 #$b = $a->slice("(1),:");
-#$a .= $a->replacebad(3);
+#$a .= $a->setbadtoval(3);
 #ok( $a->badflag, 0 );                  # this fails
 #ok( $b->badflag, 0 );                  # as does this
 
@@ -352,3 +352,16 @@ $a->setbadat(2);
 $a->inplace->badmask(0);
 ok( PDL::Core::string($a), "[0 1 0 3 4]" );  #
 
+# setvaltobad
+$a = sequence(10) % 4;
+$a->inplace->setvaltobad( 1 );
+ok( PDL::Core::string( $a->clump(-1) ), 
+    "[0 BAD 2 3 0 BAD 2 3 0 BAD]" );   #
+
+# simple test for setnantobad
+# - could have a 1D FITS image containing
+#   NaN's and then a simple version of rfits
+#   (can't use rfits as does conversion!)
+$a->inplace->setnantobad;
+ok( PDL::Core::string( $a->clump(-1) ), 
+    "[0 BAD 2 3 0 BAD 2 3 0 BAD]" );   #

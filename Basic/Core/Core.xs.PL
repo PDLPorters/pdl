@@ -13,8 +13,8 @@ use vars qw( $bvalflag $usenan );
 require "badsupport.p";
 
 # are we big or little endian?
-use vars qw( $isbigendian );
-require "isbigendian.p";
+require PDL::Core::Dev;
+my $isbigendian = PDL::Core::Dev::isbigendian();
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.

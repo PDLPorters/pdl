@@ -10,7 +10,7 @@ BEGIN {
 	 ok($@, ''); 
   }else{
 	 plan tests => 1; 
-	 skip(1,1,1);
+         print "ok 1 # Skipped: OpenGL support not compiled\n";
 	 exit;
   }
 }
