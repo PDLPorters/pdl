@@ -1397,7 +1397,7 @@ sub imag {
   ##############################
   # Set up coordinate transformation in the output window.
   
-  if(!$hold) {
+  if (!$hold) {
     #########
     # Parse out scaling options - this is pretty long because
     # the defaults for each value change based on the others.
@@ -1422,13 +1422,14 @@ sub imag {
 	local($i);
 	for($i=0;defined($c=shift(@c));$i++) {
 	  m/^$c/ || next;
-	  $unit=$i; break;
+	  $unit=$i; 
+	  last;
 	}
       }
       barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
     }
 
-    $pix = $opt->{'PIX'} if(defined $opt->{'PIX'});
+    $pix = $opt->{'PIX'} if defined $opt->{'PIX'};
     
     ##############################
     ## Do the initial scaling setup.  If $pix is defined, then
@@ -1436,123 +1437,42 @@ sub imag {
     ## [ The PIX, SCALE, and UNIT options could in principle be fed to
     ## initenv instead of doing it here... ]
     
-     if(defined $pix) {
-       initdev;
-       my $x0,$x1,$y0,$y1;
- 
-       if(!defined($pitch)) {
-       ## Set scaling parameters automagically.
- 
-       pgqvsz(1,$x0,$x1,$y0,$y1);
-       print "x0=$x0, x1=$x1, y0=$y0, y1=$y1n";
-       ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
-                                            $ny / ($y1-$y0)   )));
-       print "defined pitch & unit automagicallyn";
-       }
-       print "unit='$unit', pitch='$pitch'n";
- 
-       my($col); pgqci($col); pgsci($AXISCOLOUR);
-       pgpage;
-       pgvstd;  ## Change this to use the margins for display!
- 
-       ## Set the window to the correct number of pixels for the 
-       ## viewport size and the specified $pitch.
-       pgqvsz($unit,$x0,$x1,$y0,$y1); 
-       pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
- 
-       pgsci($col);
-     } else {
-
-       initenv(
-	       at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
-	       at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
-	       at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
-	       at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-	       $opt
-	       );
-
-     }
-  }
-  ##############################
-  # Set up coordinate transformation in the output window.
-  
-  if(!$hold) {
-    #########
-    # Parse out scaling options - this is pretty long because
-    # the defaults for each value change based on the others.
-    # (e.g. specifying "SCALE" and no unit gives pixels; but
-    # specifying "PITCH" and no unit gives dpi).
-    #
-    local $_;
-    my ($pix,$pitch,$unit);
-    
-    if($opt->{'SCALE'}) {
-      ($pix,$pitch,$unit)=(1,1.0/$opt->{'SCALE'},3);
-    }
-    if($opt->{'PITCH'}) {
-      ($pix,$pitch,$unit) = (1,$opt->{'PITCH'},1);
-    }
-    if(defined ($_ = $opt->{'UNIT'})) {
-      undef $unit;
-      if(m/^d/ && $_ <= 4) { # Numeric data type spec
-	$unit = $_;
-      } else { 
-	local(@c) = ('n','i','m','p');
-	local($i);
-	for($i=0;defined($c=shift(@c));$i++) {
-	  m/^$c/ || next;
-	  $unit=$i; break;
+    if(defined $pix) {
+	initdev;
+	my ( $x0,$x1,$y0,$y1 );
+	
+	if(!defined($pitch)) {
+	    ## Set scaling parameters automagically.
+	    
+	    pgqvsz(1,$x0,$x1,$y0,$y1);
+	    print "x0=$x0, x1=$x1, y0=$y0, y1=$y1n" if $PDL::verbose;
+	    ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
+					  $ny / ($y1-$y0)   )));
+	    print "imag: defined pitch & unit automagically\n" if $PDL::verbose;
 	}
-      }
-      barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
+	
+	print "imag: unit='$unit', pitch='$pitch'\n" if $PDL::verbose;
+	
+	my($col); pgqci($col); pgsci($AXISCOLOUR);
+	pgpage;
+	pgvstd;  ## Change this to use the margins for display!
+	
+	## Set the window to the correct number of pixels for the 
+	## viewport size and the specified $pitch.
+	pgqvsz($unit,$x0,$x1,$y0,$y1); 
+	pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
+	
+	pgsci($col);
+    } else {
+	initenv(
+		at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
+		at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
+		at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
+		at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
+		$opt
+		);
     }
-
-    $pix = $opt->{'PIX'} if(defined $opt->{'PIX'});
-    
-    ##############################
-    ## Do the initial scaling setup.  If $pix is defined, then
-    ## handle the scaling locally, else use initenv.
-    ## [ The PIX, SCALE, and UNIT options could in principle be fed to
-    ## initenv instead of doing it here... ]
-    
-     if(defined $pix) {
-       initdev;
-       my $x0,$x1,$y0,$y1;
-       
-       if(!defined($pitch)) {
-	 ## Set scaling parameters automagically.
-	 
-	 pgqvsz(1,$x0,$x1,$y0,$y1);
-	 print "x0=$x0, x1=$x1, y0=$y0, y1=$y1n";
-	 ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
-				       $ny / ($y1-$y0)   )));
-	 print "imag: defined pitch & unit automagically\n" if($PDL::verbose);
-       }
-       
-       print "imag: unit='$unit', pitch='$pitch'\n" if($PDL::verbose);
-       
-       my($col); pgqci($col); pgsci($AXISCOLOUR);
-       pgpage;
-       pgvstd;  ## Change this to use the margins for display!
- 
-       ## Set the window to the correct number of pixels for the 
-       ## viewport size and the specified $pitch.
-       pgqvsz($unit,$x0,$x1,$y0,$y1); 
-       pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
- 
-       pgsci($col);
-     } else {
-
-       initenv(
-	       at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
-	       at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
-	       at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
-	       at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-	       $opt
-	       );
-
-     }
-  }
+  } # if ! hold
 
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
