@@ -37,7 +37,7 @@ The colour with which to draw axes. Default value=3 (Green)
 =item HardLW, HardCH, HardFont, HardAxisColour, HardColour
 
 The linewidth, character height, font and axis colour to use on hardcopy
-devices. The default values are HardLW=4, HardCH=1.4, HardFont=2 (Roman),
+devices. The default values are HardLW=1, HardCH=1.4, HardFont=2 (Roman),
 HardAxisColour=1 (Black) and HardColour=1 as well. The latter is the default
 plot colour to use on hardcopy devices.
 
@@ -140,7 +140,7 @@ my %options = (
 	       Device => undef,
 	       AxisColour => 3,
 	       BackgroundColour => -1, # Text background colour
-	       HardLW => 4,
+	       HardLW => 1,
 	       HardCH => 1.4,
 	       HardFont => 2,
 	       HardAxisColour => 1,
@@ -226,7 +226,6 @@ sub default_options {
 	    Recording   => 0,	# Off by default.
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
-
 
   # Options specific to plotting commands
   my $o = {

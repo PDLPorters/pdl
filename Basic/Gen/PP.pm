@@ -1200,9 +1200,12 @@ sub wrap_vfn {
 	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
 	    $p2decl .= '
-	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY))
-		  __it->hdrsv = (void*)
-		      newRV((SV*) SvRV((SV*)__parent->hdrsv));';
+	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
+		  __it->hdrsv = (void*) 
+		      newRV((SV*) SvRV((SV*)__parent->hdrsv));
+                  __it->state |= PDL_HDRCPY;
+             }
+        ';
 	}
     } # if: $p2child == 1
 

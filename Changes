@@ -1,6 +1,13 @@
 CED 20-March-2003
     - pdlhash.c: if PDL::BIGPDL is true, then ignore the 1-Gb limit on PDLs.
-
+    - Window.pm: 
+	- Fix labeling bug that affected some output devices (titles
+	   were doubled in ppm device due to a pgplot buffering bug).
+	- Fix handling of FITS headers in _fits_foo -- let PDL dimensions
+	   override NAXIS<n>.
+    - PP.pm:
+	- hdrcpy bit is sticky, so that headers make their way down 
+	   pipelines of operations.  
 CED 18-March-2003
     - Core.pm.PL: fix '.=' closure (closes bug #630793)
     - pdlapi.c: Check that a dimension is nonzero before dividing by it,

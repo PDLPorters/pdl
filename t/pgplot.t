@@ -51,6 +51,7 @@ PGPLOT test includes interactive components.  Press <RETURN> within
 10 seconds to not skip the interactive part of the test.
 ';
 $SIG{ALRM} = sub {die "alarm\n"};
+undef $a;
 eval {
 	alarm 10;
 	$a = <STDIN>;
@@ -58,7 +59,7 @@ eval {
 };
 $SIG{ALRM} = undef;
 
-$interactive = ($@ ne "alarm\n");
+$interactive = defined $a;
 
 print STDERR "\nSkipping interactive tests...\n"
 unless($interactive);	

@@ -3849,11 +3849,12 @@ sub _FITS_tr {
     unless (scalar(keys %$hdr) || (!$PDL::debug));
 
   my($ic);
+  my($isapdl) = UNIVERSAL::isa($pdl,'PDL');
 
   {
     no warnings; # don't complain about missing fields in fits headers
     $ic = [ (   ($hdr->{CDELT1} || 1.0) *	 
-		    (  ($hdr->{NAXIS1} || $pdl->getdim(0) )  /  2.0 
+		    (  ($isapdl ? $pdl->dim(0) : $hdr->{NAXIS1} )  /  2.0 
 		       -   
 		       ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
 		       + 
@@ -3864,7 +3865,7 @@ sub _FITS_tr {
 		    )
 		,
 		(   ($hdr->{CDELT2} || 1.0) * 
-		    (  ($hdr->{NAXIS2} || $pdl->getdim(1) )  / 2.0
+		    (  ($isapdl ? $pdl->dim(1) : $hdr->{NAXIS2} )  / 2.0
 		       - 
 		       ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
 		       +
@@ -3876,7 +3877,7 @@ sub _FITS_tr {
 		];
   }
   my(@dims);
-  if(UNIVERSAL::isa($pdl,'PDL')) {
+  if($isapdl) {
     @dims = $pdl->dims;
   } else {
     for my $i(1..$hdr->{NAXIS}) {
@@ -3969,9 +3970,13 @@ sub label_axes {
              # The 'T' offset is computed so that the original 
              # vertical center is maintained.
   pgmtxt('T', ($p->[0]+0.5)/( $o->{TitleSize} || 1 ) - 0.5 , 0.5, 0.5, $o->{Title});  
+
+  pgebuf();  # Flush the buffer to avoid a pgplot bug that produced
+  pgbbuf();  # doubled titles for some devices (notably the ppm device).
+
   pgsch($sz);
-  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
-  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
+#  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
+#  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
   pgebuf();
 
 #    pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});

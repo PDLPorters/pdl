@@ -53,8 +53,11 @@ void pdl_grow (pdl* a, int newsize) {
    	die("Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
      fflush(stdout);
    }
-
-   SvGROW ( foo, nbytes );   SvCUR_set( foo, nbytes );
+   
+   {
+     void *p;
+     p = SvGROW ( foo, nbytes );   SvCUR_set( foo, nbytes );
+   }
    a->data = (void *) SvPV( foo, len ); a->nvals = newsize;
 }
 
