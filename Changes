@@ -1,3 +1,5 @@
+CS  12-12-03
+   - Lvalue.pm: change v-strings to backwards compatible version numbers
 CED 09-Dec-2003
    - m51.fits: Replaced non-free NOAO image with free Hubble Heritage image
 CS  08-Dec-2003
