@@ -1,4 +1,12 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+        - Added PCHIP routines tp PDL::Slatec (interpolation,
+          differentiation, and integration of functions).
+          Also moved creation of SlatecProtos.h from Makefile.PL
+          to slatec.pd
+        - stop wfits() from complaining when reading in the header
+          of FITS files from the DSS server at STScI
+        - minor clean up of write_dummy_make() Basic/Core/Dev.pm
 Tim Jenness
 	- Update PDL::IO::NDF to v1.02, enhance reading of axis errors
 	  plus some bug fixes.

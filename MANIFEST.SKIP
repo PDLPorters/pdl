@@ -112,9 +112,10 @@ so_locations
 ^Graphics/Karma/Karma\..*
 .*Version_check$
 ^tbyte\.tif$
-^tushort\.tif$
+^tushort\.(tif|rgb)$
 ^perl$
 ^Basic/Core/Config\.pm
 ^Basic/Core/Version\.pm
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
+^Graphics/PGPLOT/PGPLOT.c
