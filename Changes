@@ -1,4 +1,6 @@
-CED 31-Aug-2003
+CED 23-Aug-2003
+   - Added uniqvec() to primitive.pd
+CED 22-Aug-2003
    - Added 'mirror' boundary condition to range()
    - Added qsortvec() to ufunc -- lexicographically sort a bunch of vectors.
 CED 8-Aug-2003

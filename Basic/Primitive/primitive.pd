@@ -583,8 +583,48 @@ sub PDL::uniq {
   my $srt = $arr->clump(-1)->qsort;
   my $uniq = $srt->where($srt != $srt->rotate(-1));
   # make sure we return something if there is only one value
-  return $uniq->nelem == 0 ? $srt->index(0)->sever : $uniq;
+  return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
 }
+
+=head2 uniqvec
+
+=for ref
+
+return all unique vectors out of a collection
+
+The unique vectors are returned in lexicographically sorted
+ascending order.  The 0th dimension of the input PDL is treated
+as a dimensional index within each vector, and the 1st and any higher
+dimensions are taken to run across vectors.  The return value is always
+2D; any structure of the input PDL (beyond using the 0th dimension 
+for vector index) is lost.  
+
+See also L<uniq|uniq> for a uniqe list of scalars; and
+L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
+lexicographcally.
+
+=cut
+
+sub PDL::uniqvec {
+  my($pdl) = shift;
+  return $pdl if($pdl->nelem == 0 | $pdl->ndims <2 );
+
+  my $srt = $pdl->mv(0,-1)->
+	clump($pdl->ndims - 1)->
+	mv(-1,0)->qsortvec->
+	mv(0,-1);
+
+  my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
+
+  return $uniq->nelem==0 ? 
+	$srt->slice(":,(0)") :
+	$srt->dice($uniq)->mv(0,-1);
+}
+
+	
+  
+  
+	
 
 EOPM
 
