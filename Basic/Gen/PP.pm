@@ -1207,19 +1207,18 @@ if (hdrp) {
     
     hdr_copy = (SV *)POPs;
 
-    SvREFCNT_inc(hdr_copy); /* Keep hdr_copy from vanishing during FREETMPS */
+    if(hdr_copy && hdr_copy != &PL_sv_undef)
+       SvREFCNT_inc(hdr_copy); /*Keep hdr_copy from vanishing during FREETMPS*/
 
     FREETMPS ;
     LEAVE ;
 
-    SvREFCNT_dec(hdr_copy); /* make it ephemeral again */
 
   } /* end of callback  block */
 
 DeePcOPY
     ;
 # if(hdrp) block is still open -- now reassign all the aliases...
-
 
   # Found the header -- now copy it into all the right places.
   foreach ( 0 .. $nn ) {

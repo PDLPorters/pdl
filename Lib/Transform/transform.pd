@@ -2274,7 +2274,6 @@ sub PDL::Transform::Linear::new {
 	UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
 	  $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
 	  $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
-	}	
     } 	
 	
     if(defined($scale) && 
