@@ -4567,6 +4567,9 @@ sub arrow {
 						  Unit => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
+						  XTitle => undef,
+						  YTitle => undef,
+						  Title  => undef
 						 });
     }
 
@@ -4806,8 +4809,24 @@ sub arrow {
 sub fits_imag {
   my($pane) = shift;
   my($pdl) = shift;
-  my($opt) = shift;
-  $opt = {} unless defined($opt);
+  my($opt_in) = shift;
+  $opt_in = {} unless defined($opt_in);
+  if (!defined($f_im_options)) {
+    $f_im_options = $pane->{PlotOptions}->extend({
+      						  PIX => undef,
+						  Min => undef,
+						  Max => undef,
+						  Scale => undef,
+						  Pitch => undef,
+						  Unit => undef,
+						  DrawWedge => 0,
+						  Wedge => undef,
+						  XTitle => undef,
+						  YTitle => undef,
+						  Title  => undef
+						 });
+  }
+  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
 
   my($hdr) = $pdl->gethdr();
 
@@ -4877,9 +4896,9 @@ sub fits_imag {
   } else {
     $pane->imag($pdl,\%opt2);
   }
-  $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
-		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
-		    $opt->{title}, $opt
+  $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
+		    $opt->{YTitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
+		    $opt->{Title}, $opt
 		    );
 
 }
