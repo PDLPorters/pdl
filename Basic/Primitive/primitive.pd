@@ -1580,13 +1580,19 @@ Interpolate values from an N-D piddle
   $index = pdl([[2.2,3.5],[4.1,5.0]],[[6.0,7.4],[8,9]]);
   print $source->interpND( $index );
 
-InterpND acts like L<indexND|indexND>, collapsing C<$index> by
-lookup into C<$source>; but it does interpolation, rather than
-straight lookup, into C<$source>.  Several options may be passed in
-via an options hash; by default, linear interpolation is used, with
+InterpND acts like L<indexND|indexND>, collapsing C<$index> by lookup
+into C<$source>; but it does interpolation, rather than straight
+lookup, into C<$source>.  Several options may be passed in via an
+options hash. By default, linear or sample interpolation is used, with
 constant value outside the boundaries of the source pdl.  Because the
 output is interpolated, rather than indexed values, no flowback
 occurs.
+
+All the interpolation methods treat the pixels as value-centered, so
+the C<sample> method will return $a->(0) for coordinate values on 
+the set [-0.5,0.5), and the C<linear> method will return $a->(1) for 
+a coordinate value of exactly 1.5.
+
 
 Allowable options:
    
@@ -1594,7 +1600,8 @@ Allowable options:
 
 =item method 
 
-Values are 'linear' and 'sample' (for now). (default linear)
+Values are 'linear' and 'sample' (for now). (default linear for floating
+point types; sample for integer types)
 
 =item bound  
 
@@ -1621,7 +1628,13 @@ sub PDL::interpND {
 
   my($opt) = (defined $options) ? $options : {};
 
-  my($method)   = $opt->{method} || $opt->{Method} || 'linear';
+  my($method)   = $opt->{method} || $opt->{Method};
+  if(!defined $method) {
+	$method = ($source->type <= zeroes(long,1)->type) ? 
+	   	   'sample' : 
+	           'linear';
+  }
+
   my($boundary) = $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
   my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
 
@@ -1631,8 +1644,8 @@ sub PDL::interpND {
 
   elsif ($method =~ m/linear/) {
     # Generate a table of offsets to look up
-    my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),2 ** $index->dim(0))) 
-		      / 2**(PDL::Basic::xvals($index->dim(0))))
+    my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),1<<$index->dim(0)))
+	           / 2 ** (PDL::Basic::xvals($index->dim(0))))
 		     ->xchg(0,1)->sever
 		     )
                    % 2;
@@ -1647,16 +1660,18 @@ sub PDL::interpND {
 		       $index - $intind
 		       )
 		   ->reorder(
-			     $index->getndims,
-			     PDL::Basic::xvals($index->getndims)->list
+			     $index->ndims,
+			     PDL::Basic::xvals($index->ndims)->list
 			     )->sever
 		   );
+
     my($i);
     my(@id) = $index->dims;
     my(@sd) = $source->dims;
     $out = zeroes(@id[1..$#id],@sd[$id[0]..$#sd]);
-    
+
     for ($i=0;$i<$offsets->dim(0);$i++){
+
       my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),
 				 PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
 				    ))->sever->prodover ;

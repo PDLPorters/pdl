@@ -11,7 +11,7 @@ sub near {
 	((( abs($a - $b) > 1e-14 ) -> sum ) == 0 );
 }
 
-print "1..12\n";
+print "1..13\n";
 
 eval "use PDL::MatrixOps;";
 ok(1,!$@);
@@ -24,7 +24,7 @@ eval '($lu,$perm,$par) = lu_decomp($a)';
 
 ok(2,!$@);                                 # ran OK
 ok(3,$par==-1);                            # parity is right
-ok(4,($perm == pdl(2,1,0))->sumover==3);   # permutation is right
+ok(4,all($perm == pdl(2,1,0)));            # permutation is right
 
 $l = $lu->copy; 
 $l->diagonal(0,1) .= 1; 
@@ -57,3 +57,13 @@ $b2=undef; # avoid warning from compiler
 eval '$b2 = inv($b,$opt={s=>1})';
 ok(11,!$@);
 ok(12,!defined $b2);
+
+
+### Check threaded determinant -- simultaneous recursive det of four 4x4's
+$a = pdl([3,4,5,6],[6,7,8,9],[9,0,7,6],[4,3,2,0]); # det=48
+$b = pdl([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]); # det=1
+$c = pdl([0,1,0,0],[1,0,0,0],[0,0,1,0],[0,0,0,1]); # det=-1
+$d = pdl([1,2,3,4],[5,4,3,2],[0,0,3,0],[3,0,1,6]); # det=-216
+$e = ($a->cat($b)) -> cat( $c->cat($d) );
+$det = $e->determinant;
+ok(13,all($det == pdl([48,1],[-1,-216])));

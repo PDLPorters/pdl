@@ -1,3 +1,8 @@
+CED (14-Nov-2002)
+    - interpND defaults to 'sample' if its input is an integer type
+    - Math::eigens is quiet about symmetrizing unless PDL::debug is set
+    - photometric distortion (not correct yet but functional) in PDL::Transform
+    - updates to MatrixOps.pm   
 DJB (14-Nov-2002)
     - Added 'demo transform' to perldl to showcase PDL::Transform
 CED (14-Nov-2002)

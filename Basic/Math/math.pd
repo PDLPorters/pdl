@@ -437,12 +437,13 @@ sub PDL::eigens {
           if $err == 0;
       $err = PDL::max(abs($a-$sym))/$err;
       warn "Using symmetrized version of the matrix in eigens"
-          if $err > 1e-5;
+	if $err > 1e-5 && $PDL::debug;
 
       ## Get lower diagonal form 
       ## Use whichND/indexND because whereND doesn\'t exist (yet?) and
-      ## is threadable (unlike where).  Note that for historical reasons
-      ## whichND needs a scalar() around it to give back a nice 2xn PDL index.
+      ## the combo is threadable (unlike where).  Note that for historical 
+      ## reasons whichND needs a scalar() around it to give back a 
+      ## nice 2xn PDL index. 
       my $lt  = PDL::indexND($sym,
 			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
 						 PDL->yvals($n,$n)))
@@ -452,7 +453,9 @@ sub PDL::eigens {
       
       &PDL::_eigens_int($lt, $ev, $e);
 
-      return $ev, $e;
+      return $ev, $e
+	if(wantarray);
+      $e;
 }
 '
       , Doc => '

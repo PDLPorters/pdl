@@ -106,8 +106,14 @@ LU decompose a matrix, with row permutation
 =for description
 
 lu_decomp returns an LU decomposition of a square matrix, using
-Crout's method with partial pivoting.  It's ported from
-I<Numerical Recipes>
+Crout's method with partial pivoting.  It's ported from I<Numerical
+Recipes>.  The partial pivoting keeps it numerically stable but
+defeats efficient threading, so if you have a few matrices to
+decompose accurately, you should use lu_decomp, but if you have a
+million matrices to decompose and don't mind a higher error budget you
+probably want to use L<lu_decomp2|lu_decomp2>, which doesn't do the
+pivoting (and hence gives wrong answers for near-singular or large
+matrices), but does do threading.
 
 lu_decomp decomposes the input matrix into matrices L and U such that
 LU = A, L is a subdiagonal matrix, and U is a superdiagonal matrix.
@@ -135,10 +141,13 @@ defined; in those cases, lu_decomp silently returns undef.  Some
 singular matrices LU-decompose just fine, and those are handled OK but
 give a zero determinant (and hence can't be inverted).
 
-Threading is not allowed at present, though it could certainly be
-added through recursive smoke and mirrors.  Conventional threading 
-wouldn't work, because the pivoting technique requires that each layer
-be examined independently.  
+lu_decomp uses pivoting, which rearranges the values in the matrix for
+more numerical stability.  This makes it really good for large and
+even near-singular matrices, but makes it unable to properly vectorize
+threaded operation.  If you have a LOT of small matrices to
+invert (like, say, a 3x3x1000000 PDL) you should use L<lu_decomp2>,
+which doesn't pivot and is therefore threadable (and, of course, works
+in-place).
 
 =cut
 
@@ -454,11 +463,26 @@ sub inv {
 
 =for ref
 
-Compute the determinant of a square matrix, using LU decomposition.
+Determinant of a square matrix using LU decomposition (for large matrices)
 
-You feed in a square matrix, you get back the determinant.  Some options
-exist that allow you to cache the LU decomposition of the matrix 
-(note that the LU decomposition is invalid if the determinant is zero!).
+You feed in a square matrix, you get back the determinant.  Some
+options exist that allow you to cache the LU decomposition of the
+matrix (note that the LU decomposition is invalid if the determinant
+is zero!).  The LU decomposition is cacheable, in case you want to
+re-use it.  This method of determinant finding is more rapid than
+recursive-descent on large matrices, and if you reuse the LU
+decomposition it's essentially free.
+
+Because LU decomposition is inherently nonthreadable, you get no
+threading advantage for calling C<det> with a large array of matrices.
+(As this documentation is written, det actually barfs if you try to
+thread with it).  The LU decomposition method also has some exception
+handling for certain classes of singlular matrix, which complicates
+(and slows) threading even further.
+
+If you want to use threading on a matrix that's less than, say, 10x10,
+then you should use L<determinant|determinant>, which is a more
+robust, threadable determinant finder, instead.
 
 OPTIONS:
 
@@ -489,7 +513,7 @@ sub det {
       if(exists($opt->{lu}));
   }
    
-  ( (defined $lu) ? $lu->diagonal(0,1)->prodover : 0 );
+  ( (defined $lu) ? $lu->diagonal(0,1)->prodover * $par : 0 );
 }
 
 ######################################################################
@@ -506,16 +530,23 @@ sub det {
 
 =for ref
 
-Compute the determinant of a square matrix, using recursive-descent.
+Determinant of a square matrix, using recursive descent (threadable).
 
 This is the traditional, robust recursive determinant method taught in
-most linear algebra courses.  It scales like n! (and hence is slow)
-but is potentially more robust than many other methods -- hence it is
-included here.
+most linear algebra courses.  It scales like C<O(n!)> (and hence is
+pitifully slow for large matrices) but is very robust because no 
+division is involved (hence no division-by-zero errors for singular
+matrices).  It's also threadable, so you can find the determinants of 
+a large collection of matrices all at once if you want.
+
+Matrices up to 3x3 are handled by direct multiplication; larger matrices
+are handled by recursive descent to the 3x3 case.
 
 The LU-decomposition method L<det|det> is faster in isolation for
-matrices larger than about 4x4, and is much faster if you end up
-reusing the LU decomposition of $a.
+single matrices larger than about 4x4, and is much faster if you end up
+reusing the LU decomposition of $a, but does not thread well.
+
+=cut
 
 *PDL::determinant = \&determinant;
 sub determinant {
@@ -523,33 +554,48 @@ sub determinant {
   my($n);
   return undef unless(
 		      UNIVERSAL::isa($a,'PDL') &&
-		      $a->getndims == 2 &&
+		      $a->getndims >= 2 &&
 		      ($n = $a->dim(0)) == $a->dim(1)
 		      );
   
-  return $a->flat if($n==1);
+  return $a->clump(2) if($n==1);
   if($n==2) {
-    my($b) = $a->flat;
+    my($b) = $a->clump(2);
     return $b->index(0)*$b->index(3) - $b->index(1)*$b->index(2);
   }
   if($n==3) {
-    my($b) = $a->flat;
-    return $b->index(0)*$b->index(4)*$b->index(8) 
-      - $b->index(1)*$b->index(5)*$b->index(6) 
-      + $b->index(2)*$b->index(3)*$b->index(7);
+    my($b) = $a->clump(2);
+    
+    my $b3 = $b->index(3);
+    my $b4 = $b->index(4);
+    my $b5 = $b->index(5);
+    my $b6 = $b->index(6);
+    my $b7 = $b->index(7);
+    my $b8 = $b->index(8);
+
+    return ( 
+	 $b->index(0) * ( $b4 * $b8 - $b5 * $b7 )
+      +  $b->index(1) * ( $b5 * $b6 - $b3 * $b8 )
+      +  $b->index(2) * ( $b3 * $b7 - $b4 * $b6 )
+	     );
   }
   
   my($i);
-  my($sum);
-  
+  my($sum) = zeroes($a->slice("(0),(0)")); 
+
+  # Do middle submatrices
   for $i(1..$n-2) {
-    my($el) = $a->slice("(0),($i)");
-    next unless ( my($el) = $a->slice("(0),($i)") ); # sic
+    my $el = $a->slice("($i),(0)");
+    next if( all ($el==0) );  # Optimize away unnecessary recursion
+
     $sum += $el * (1-2*($i%2)) * 
-      _determinant($a->slice("1:-1,0:".($i-1))->append($a->slice("1:-1,".($i+1).":-1")));
+      determinant(        $a->slice("0:".($i-1).",1:-1") ->
+		   append($a->slice(($i+1).":-1,1:-1")));
   }
-  $sum += $a->slice("(0),(0)") * _determinant($a->slice("1:-1,1:-1"));
-  $sum -= $a->slice("(0),(-1)") * _determinant($a->slice("1:-1,0:-2")) * (1 - 2*($n%2));
+
+  # Do beginning and end submatrices
+  $sum += $a->slice("(0),(0)")  * determinant($a->slice("1:-1,1:-1"));
+  $sum -= $a->slice("(-1),(0)") * determinant($a->slice("0:-2,1:-1")) * (1 - 2*($n % 2));
   
   return $sum;
 }
