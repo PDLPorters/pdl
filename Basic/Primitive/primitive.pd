@@ -2055,7 +2055,7 @@ EOD
 		' %}',
 	   BadCode => $_->{Variables} .
                  'loop(n) %{ 		
-			if ( $mask() && $mask() != mask_badval ) {
+			if ( $mask() && $ISGOOD($mask()) ) {
 				$inds(m => dm) = n;
 				dm++;
 			}'.$_->{Elseclause} . "\n".
@@ -2081,7 +2081,7 @@ EOD
 		if(dpdl->state & PDL_BADVAL)
 		  for (i=0; i<dpdl->dims[0]; i++) {
 	 	 	$GENERIC() foo = *(m_datap+inc*i+offs);
-	 	        if(foo && foo != mask_badval) sum++;
+	 	        if(foo && $ISGOODVAR(foo,mask) )sum++;
 		}
 	        else
 ':'').'
