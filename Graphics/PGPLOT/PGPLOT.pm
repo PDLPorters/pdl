@@ -610,25 +610,6 @@ TRANSFORM - The pixel-to-world coordinate transform vector
  $b=rvals(11,11,{Centre=>[0,0]});
  vect $a, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
-=head2 pgflush
-
-=for ref
-
-Close plot, write contents to file.  This done in an END block when 
-perl shuts down, but it is sometimes useful to be able to do this
-manually.  This is the case when using a persistent perl interpreter
-such as mod_perl for web development.  This function just calls pgend().
-
-=for usage
-
-   Usage: pgflush()
-
-=for example
-
- line ...
- points ...
- pgflush() 
-
 =head1 AUTHOR
 
 Karl Glazebrook [kgb@aaoepp.aao.gov.au] modified by Jarle Brinchmann
@@ -654,8 +635,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag image ctab ctab_info hi2d poly vect pgflush
-	      CtoF77coords
+	      imag image ctab ctab_info hi2d poly vect CtoF77coords
 );
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
@@ -827,9 +807,6 @@ sub initenv{ # Default box
     $opts[5] = $_axis{ uc($axopt) };
     barf "Unknown axis option '$axopt'." unless defined($opts[5]);
 
-    # Apply any other options
-    standard_options_parser($hashref) if ($hashref);
-
     pgenv(@opts); 
     pgsci($col);
     @last = (@opts);
@@ -995,15 +972,12 @@ sub release { $hold=0; print "Graphics RELEASED\n" if $PDL::verbose;};
 # set the envelope for plots and put auto-axes on hold
 
 sub env {
-    barf "Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis] )
-                 env ( $xmin, $xmax, $ymin, $ymax, [$opts] )"
+    barf "Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis] )"
        if ($#_==-1 && !defined(@last)) || ($#_>=0 && $#_<=2) || $#_>5;
     my(@args);
     @args = $#_==-1 ? @last : @_;         # No args - use previous
-    unless ( defined($args[4]) && ref($args[4]) eq "HASH" ) {
-      $args[4] = 0 unless defined $args[4]; # $just
-      $args[5] = 0 unless defined $args[5]; # $axis
-    }
+    $args[4] = 0 unless defined $args[4]; # $just
+    $args[5] = 0 unless defined $args[5]; # $axis
     initdev();
     initenv( @args );
     hold;
@@ -1556,11 +1530,6 @@ sub vect {
   restore_status();
   1;}
 
-sub pgflush {
-  pgend();
-  1;
-}
-  
 
 1;# Exit with OK status
 

@@ -1,5 +1,6 @@
 package PDL::Demos::PGPLOT_demo;
 use PDL;
+use PDL::Graphics::PGPLOT;
 
 PDL::Demos::Routines->import();
 sub comment($);
