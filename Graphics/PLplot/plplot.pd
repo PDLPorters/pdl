@@ -1745,7 +1745,7 @@ pp_addpm (<<'EOPM');
 =pod
 
 The PDL low-level interface to the PLplot library closely mimics the C API.
-Users are referred to the PLplot User's Manual, distributed with the source
+Users are referred to the PLplot User\'s Manual, distributed with the source
 PLplot tarball.  This manual is also available on-line at the PLplot web
 site (http://www.plplot.org).
 
@@ -1757,23 +1757,23 @@ following functions [shown below with their prototypes in PDL, with
 arguments preceded by "(pdl)" are piddle-convertible; see the PLplot manual
 for the meaning of the arguments]:
 
-  plaxes ((pdl) x0, (pdl) y0, (pdl) xtick, (pdl) nxsub, (pdl) ytick, 
+  plaxes ((pdl) x0, (pdl) y0, (pdl) xtick, (pdl) nxsub, (pdl) ytick,
           (pdl) nysub, (string) xopt, (string (yopt))
-  plbox ((pdl) xtick, (pdl) nxsub, (pdl) ytick, (pdl) nysub, 
+  plbox ((pdl) xtick, (pdl) nxsub, (pdl) ytick, (pdl) nysub,
          (string) xopt, (string) yopt)
-  plbox3 ((pdl) xtick, (pdl) nsubx, (pdl) ytick, (pdl) nsuby, 
-          (pdl) ztick, (pdl) nsubz, (string) xopt, (string) xlabel, 
-	  (string) yopt, (string) ylabel, (string) zopt, 
+  plbox3 ((pdl) xtick, (pdl) nsubx, (pdl) ytick, (pdl) nsuby,
+          (pdl) ztick, (pdl) nsubz, (string) xopt, (string) xlabel,
+	  (string) yopt, (string) ylabel, (string) zopt,
 	  (string) zlabel)
-  plmtex ((pdl) disp, (pdl) pos, (pdl) just, (string) side), 
+  plmtex ((pdl) disp, (pdl) pos, (pdl) just, (string) side),
           (string) text);
   plstart ((pdl) nx, (pdl) ny, (string) devname);
-  
+
 The second notable different between the C and the PDL APIs is that many of
 the PDL calls do not need arguments to specify the size of the the vectors
 and/or matrices being passed.  This size parameters are deduced from the
 size of the piddles, when possible.  For now, the following interfaces are
-affected:  
+affected:
 
   plcont (f, kx, lx, ky, ly, clevel)
   plfill (x, y)
@@ -2213,11 +2213,10 @@ pp_def ('pltr2',
 
 pp_addhdr (<<'EOH');
 
-static SV* plcont_pltr_subroutine;
+static SV* pltr_subroutine;
 
 static void
-plcont_pltr_callback (double x, double y, double* tx, double* ty,
-                      PLPointer pltr_data)
+pltr_callback (PLFLT x, PLFLT y, PLFLT* tx, PLFLT* ty, PLPointer pltr_data)
 {
   I32 count;
   dSP;
@@ -2226,31 +2225,64 @@ plcont_pltr_callback (double x, double y, double* tx, double* ty,
   SAVETMPS;
 
   PUSHMARK (SP);
-  XPUSHs (sv_2mortal (newSVnv (x)));
-  XPUSHs (sv_2mortal (newSVnv (y)));
+  XPUSHs (sv_2mortal (newSVnv ((double) x)));
+  XPUSHs (sv_2mortal (newSVnv ((double) y)));
   XPUSHs ((SV*) pltr_data);
   PUTBACK;
 
-  count = call_sv (plcont_pltr_subroutine, G_ARRAY);
+  count = call_sv (pltr_subroutine, G_ARRAY);
 
   SPAGAIN;
 
   if (count != 2)
     croak ("pltr: must return two scalars");
 
-  *ty = POPn;
-  *tx = POPn;
+  *ty = (PLFLT) POPn;
+  *tx = (PLFLT) POPn;
 
   PUTBACK;
   FREETMPS;
   LEAVE;
 }
 
+static SV* defined_subroutine;
+
+static PLINT
+defined_callback (PLFLT x, PLFLT y)
+{
+  I32 count, retval;
+  dSP;
+
+  ENTER;
+  SAVETMPS;
+
+  PUSHMARK (SP);
+  XPUSHs (sv_2mortal (newSVnv ((double) x)));
+  XPUSHs (sv_2mortal (newSVnv ((double) y)));
+  PUTBACK;
+
+  count = call_sv (defined_subroutine, G_SCALAR);
+
+  SPAGAIN;
+
+  if (count != 1)
+    croak ("defined: must return one scalar");
+
+  retval = POPi;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+
+  return retval;
+}
+
 EOH
 
 pp_def ('plcont',
          GenericTypes => [D],
-         Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); clevel(nlevel);',
+         Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); '
+                 . 'clevel(nlevel)',
          OtherPars => 'SV* pltr; SV* pltr_data;',
          Doc => 'FIXME: documentation here!',
          Code => '
@@ -2266,11 +2298,11 @@ pp_def ('plcont',
              for (j = 0; j < size_y; j++)
                ff[i][j] = $f(nx => i, ny => j);
 
-           plcont_pltr_subroutine = $COMP(pltr);
+           pltr_subroutine = $COMP(pltr);
 
            c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
                      $P(clevel), $SIZE(nlevel),
-                     plcont_pltr_callback, (PLPointer) $COMP(pltr_data));
+                     pltr_callback, (PLPointer) $COMP(pltr_data));
 
            plFree2dGrid (ff, size_x, size_y);'
         );
@@ -2370,6 +2402,45 @@ pp_def ('plscmap1l',
 	   c_plscmap1l ($itype(), $SIZE(n), $P(isty), $P(coord1),
 	                       $P(coord2), $P(coord3), rev);'
         );
+
+# Shade individual region on the basis of value
+
+pp_def ('plshade1',
+         GenericTypes => [D],
+         Pars => 'a(nx,ny); left(); right(); bottom(); top(); shade_min();'
+                 . 'shade_max(); sh_cmap(); sh_color(); sh_width();'
+                 . 'min_color(); min_width(); max_color(); max_width();'
+                 . 'rectangular()',
+         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT* a;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           a = (PLFLT *) calloc (size_x * size_y, sizeof(PLFLT));
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               a[i * size_y + j] = (PLFLT) $a(nx => i, ny => j);
+
+           defined_subroutine = $COMP(defined);
+           pltr_subroutine = $COMP(pltr);
+
+           c_plshade1 (a, size_x, size_y,
+             SvTRUE ($COMP(defined)) ? defined_callback : NULL,
+             $left(), $right(), $bottom(), $top(),
+             $shade_min(), $shade_max(), $sh_cmap(), $sh_color(), $sh_width(),
+             $min_color(), $min_width(), $max_color(), $max_width(),
+             plfill, $rectangular(),
+             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
+             (PLPointer) $COMP(pltr_data));
+
+           free ((void *) a);'
+        );
+
 
 pp_addpm (<<'EOPM');
 
