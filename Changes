@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
 Tim Jenness
+	- Update PDL::IO::NDF to v1.02, enhance reading of axis errors
+	  plus some bug fixes.
 	- Add test for PDL::IO::NDF
         - Added polynomial fitting routines to PDL::Slatec (polfit, 
 	  pvalue and pcoef)
