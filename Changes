@@ -1,6 +1,11 @@
 CED (5-Feb-2003)
-    - Fix to Window.pm -- ctab selects window focus now (as it should).
-    - 
+    - Window.pm: 
+	- ctab() selects window focus now (as it should).
+	- lines() doesn't barf on trivial vector
+	- pgwin() is much more forgiving in its syntax.  In particular,
+	  you can say "pgwin(xs,J=>1)" and it'll know what you mean.
+    - Basic:
+	New ->fhdr method makes a tied FITS header if possible
 CED (30-Jan-2003)
     - Modified interpND linear method (30% faster!).
     - Added PNG interpretation to ::IO::Pic.

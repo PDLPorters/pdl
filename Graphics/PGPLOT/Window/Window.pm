@@ -1581,7 +1581,8 @@ Display 2 images as a vector field
 
 =for usage
 
- Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )
+ Usage: vect ( $w, $a, $b, [$scale, $pos, $transform, $misval], { opt } );
+        $w->vect($a,$b,[$scale,$pos,$transform,$misval], { opt });
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
@@ -1589,7 +1590,10 @@ fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
-and C<$b> the vertical component.
+and C<$b> the vertical component.  The scale factor converts between 
+vector length units and scientific positional units.  You can set the 
+scale, position, etc. either by passing in parameters in the normal parameter
+list or by passing in options.
 
 Options recognised:
 
@@ -2080,16 +2084,13 @@ sub catch_signals {
 sub release_signals {
   local($_);
 
-  print "sig_log: ",join(",",%sig_log),"\n" if($PDL::debug > 1);
   $sig_nest-- if($sig_nest > 0);
-  print "release_signals: sig_nest=$sig_nest\n" if($PDL::debug>1);
   return if($sig_nest > 0);
 
   # restore original handlers
   foreach $_(keys %sig_handlers) {
     no warnings; # allow assignment even if sig_handlers{$_} is undef
     $SIG{$_}=$sig_handlers{$_};
-    print "set sig{$_} back to $sig_handlers{$_}\n";
     delete $sig_handlers{$_};
   }
 
@@ -4739,6 +4740,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     # Loop over everything in the list
     for my $i(0..$#$x) {
       my($xx,$yy) = ($x->[$i],$y->[$i]);
+      next if($xx->nelem < 2);
+
       my($pp) = $#$p ? $p->[$i] : $p->[0];  # allow scalar pen in array case
       my($miss) = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
       my($n) = $xx->nelem;

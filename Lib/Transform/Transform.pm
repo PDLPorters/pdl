@@ -683,9 +683,11 @@ sub map {
   # Autoscale by transforming a subset of the input points' coordinates
   # to the output range, and pick a FITS header that fits the output
   # coordinates into the given template.
-  unless(defined $out->gethdr || $nofits) {
+  unless((ref $out eq 'HASH' && $out->{NAXIS}) ||
+	 (defined $out->gethdr && $out->hdr->{NAXIS}) !!
+	 $nofits) {
       print "generating output FITS header..." if($PDL::debug);
-      my $samp_ratio = 30;
+      my $samp_ratio = 100;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
 			undef);
@@ -736,7 +738,6 @@ sub map {
 	$osize = $omax - $omin;
 	$omin -= $osize / $samp_ratio;
 	$omax += $osize / $samp_ratio;
-	$osize *= (1 + 2/$samp_ratio);
 	$osize->where($osize == 0) .= 1.0;
       }
       
