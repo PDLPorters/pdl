@@ -590,6 +590,7 @@ for my $i(1..$hdr->{TFIELDS}) {
       # Apply scaling and badval keywords, which are illegal for A, L, and X
       # types but legal for anyone else.
 
+     
       my $tzero = $hdr->{"TZERO$i"};
       my $tscal = $hdr->{"TSCAL$i"};
       if( $tmpcol->{type} =~ m/[ALX]/i ) {
@@ -597,19 +598,10 @@ for my $i(1..$hdr->{TFIELDS}) {
 	         $tmpcol->{name} . "); type is $tmpcol->{type})\n" 
 	if(defined($tzero) or defined $tscal);
       } else {
-	    # The checks here just save a little time in the undefined cases
-	    $tmpcol->{data} *= $tscal unless(!defined($tscal) || $tscal==1);
+	    $tmpcol->{data} *= $tscal unless((length($tscal)==0) || $tscal==1);
 	    $tmpcol->{data} += $tzero unless($tzero==0);
       }
 
-	if($tmpcol->{type} =~ m/[ALX]/i) {
-		print STDERR "Ignoring illegal TSCAL$i keyword for " . 
-	               $tmpcol->{name}." (form " . $hdr->{"TFORM$i"} . " )\n";
-	} else {
-		$tmpcol->{data} *= $hdr->{"TSCAL$i"};
-      }
-
-	
       $tbl->{$tmpcol->{name}} = $tmpcol->{data}->xchg(0,1);
 
    } elsif(defined $post) {
