@@ -152,6 +152,7 @@ for(@types) {gettypes($_)}
 print "GLXContext	T_PTR\n";
 print "GLXFBConfig    T_PTR\n";
 print "Bool	T_INT\n";
+while ( my ($key, $val) = each %t ) {print "$key T_$val\n" };
 close TYPEMAP;
 
 sub getfuncs {

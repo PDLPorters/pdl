@@ -9,6 +9,11 @@ John Cerney
 	  by Diab Jurius).
 	- Updated TriD Makefile to find openGL libs specified in the 
 	  perldl.conf file.
+	- Updated Graphics/TriD/OpenGL/generate.p to include patch by
+	  Diab Jerius (ref PDL-Porters message dated 11/9/99). 
+	  This fixes compilation problems with native openGL on solaris.
+	  Note: Patch to Graphics/TriD/TriD/GL.pm was not applied. (Risk
+	  of breaking GL on other platforms)
 
 CS
 	- added function 'det' to PDL::Slatec -> calculate determinant
