@@ -1,3 +1,7 @@
+2.3.1
+John Cerney (11/21/01)
+    - Changes to Release_Notes, PDL.pm associated
+      with making release 2.3.1
 DJB - added WITH_IO_BROWSER to perldl.conf (default 0) to
       control whether PDL::IO::Browser is made. Will now compile
       on MacOS X 10.1.
