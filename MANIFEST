@@ -10,10 +10,10 @@ Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
 Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
-Basic/Core/mkpdlconv.p
 Basic/Core/pdl.h.PL
 Basic/Core/pdl_hfiles.p
 Basic/Core/pdlapi.c
+Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c
 Basic/Core/pdlcore.h
 Basic/Core/pdlfamily.c

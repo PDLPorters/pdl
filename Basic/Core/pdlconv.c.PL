@@ -1,20 +1,37 @@
-#!/usr/local/bin/perl
-
-# Perl utility to generate pdlconv.c automatically
-# for many different datatypes
-
+#
+# Create pdlconv.c
+# - for many different datatypes + bad value stuff
+ 
+use strict;
+ 
+use Config;
+use File::Basename qw(&basename &dirname);
+ 
 require 'Dev.pm'; PDL::Core::Dev->import;
+use vars qw( %PDL_DATATYPES %PDL_DATATYPES_BADVAL );
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+    if ($Config{'osname'} eq 'VMS' or
+        $Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+chmod 0644, $file;
 
 # $date = `date`; chop $date;
 
 ##### HEADER ######
 
-print <<EOD;
+print OUT <<'!NO!SUBS!';
 
 
 /***************************************************************
 
    pdlconv.c
+   automatically created by pdlconv.c.PL
 
 ****************************************************************/
 
@@ -22,12 +39,12 @@ print <<EOD;
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-EOD
+!NO!SUBS!
 
-for([readdata_vaffine, "*ap = *pp"],
-    [writebackdata_vaffine, "*pp = *ap"]) {
+for(['readdata_vaffine', "*ap = *pp"],
+    ['writebackdata_vaffine', "*pp = *ap"]) {
 
-print <<EOD;
+print OUT <<"!WITH!SUBS!";
 
 void pdl_$_->[0](pdl *a) {
 	PDL_Long *inds ;
@@ -43,14 +60,14 @@ void pdl_$_->[0](pdl *a) {
 	PDL_ENSURE_ALLOCATED(a);
 	if(0) {
 
-EOD
+!WITH!SUBS!
 
 ##### Generate code for each data type #####
 
-for $in ( keys %PDL_DATATYPES ) {
+for my $in ( keys %PDL_DATATYPES ) {
 
-    $intype = $PDL_DATATYPES{$in};
-    print <<EOD;
+    my $intype = $PDL_DATATYPES{$in};
+    print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in)  {
        { $intype *ap = ($intype *) a->data;
@@ -71,27 +88,24 @@ for $in ( keys %PDL_DATATYPES ) {
 	 }
        }
 
-EOD
+!WITH!SUBS!
 
 } #### End of perl loop ####
 
-print <<'EOD';
+print OUT <<'!NO!SUBS!';
 
 	}
 
 	free(inds);
 }
 
-EOD
+!NO!SUBS!
 
 } # End of outer perl loop
 
-print <<'EOD';
-
-
+print OUT <<'!NO!SUBS!';
 
 /* Various conversion utilities for pdl data types */
-
 
 /* Swap pdls */
 
@@ -158,16 +172,18 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     if (0) {
         /* Nothing */
 
-EOD
+!NO!SUBS!
 
 ##### Generate code for each pair of data types #####
 
-for $in ( keys %PDL_DATATYPES ) { for $targ ( keys %PDL_DATATYPES ) {
+for my $in ( keys %PDL_DATATYPES ) { 
+    for my $targ ( keys %PDL_DATATYPES ) {
 
     next if $in eq $targ; # Skip duplicates
 
-    $intype = $PDL_DATATYPES{$in}; $targtype = $PDL_DATATYPES{$targ};
-    print <<EOD;
+    my $intype = $PDL_DATATYPES{$in}; 
+    my $targtype = $PDL_DATATYPES{$targ};
+    print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in && targtype == $targ)  {
        { $intype *bb = ($intype *) b;
@@ -178,13 +194,13 @@ for $in ( keys %PDL_DATATYPES ) { for $targ ( keys %PDL_DATATYPES ) {
                 *aa-- = ($targtype) *bb--;
        }
 
-EOD
+!WITH!SUBS!
 
 }} #### End of perl loop ####
 
 #### Trailer ####
 
-print <<'EOD';
+print OUT <<'!NO!SUBS!';
 
     } else {
       croak("Don't know how to convert datatype %d to %d", intype, targtype);
@@ -297,4 +313,4 @@ void ** pdl_twod( pdl* x ) {
 }
 
 
-EOD
+!NO!SUBS!

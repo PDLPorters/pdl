@@ -87,27 +87,25 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
+                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) '.
                    'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
 		   'pdl.h pdlsimple.h Types.pm Version.pm'},
  'INC'          => "$mallocinc",
 );
 
 # Extra targets to build
+#
+# surely Dev.pm should handle the OS requirements when ?
+# processing generic (ie .g) code
+#
 
 sub MY::postamble {
 PDL::Core::Dev::postamble().
 '
 # Bits of C code we generate from special perl scripts
-
-pdlbasicops.c:  mkpdlbasicops.p
-	$(PERL) mkpdlbasicops.p > pdlbasicops.c
-
-pdlconv.c:  mkpdlconv.p
-	$(PERL) mkpdlconv.p > pdlconv.c
-
+#
 '.($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g

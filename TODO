@@ -55,6 +55,8 @@ TidBits
 * clean Dev.pm (perl is clever enough to know if it's in the build tree
   or outside)
 
+* Does Basic/Core/Makefile.PL really need to add a rule for compiling
+  pdlsections.g if $^O =~ /^MSWin/? Doesn't Dev.pm already handle this?
 
 Tidbits
 ----

@@ -23,6 +23,9 @@ use Carp;
 
 # use strict qw/vars refs/;
 
+# number of types (used in find_datatype)
+my $ntypes = $#PDL::Types::names;
+
 sub import {
 	my ($mod,$modname, $packname, $prefix) = @_;
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
@@ -478,14 +481,14 @@ $PDL::PP::deftbl =
 #  [[GenericTypes],	[],	sub {[F,D]}],
 
  [[NewXSFindDatatypeNS],	[ParNames,ParObjs,IgnoreTypesOf,NewXSSymTab,
-				GenericTypes],
+				GenericTypes,HASP2Child],
  						"find_datatype"],
 
  [[NewXSFindDatatype],	[NewXSFindDatatypeNS,NewXSSymTab,Name],
  						"dousualsubsts"],
  [[NewXSTypeCoerce],	[NoConversion],		sub {""}],
 
- [[NewXSTypeCoerceNS],	[ParNames,ParObjs,IgnoreTypesOf,NewXSSymTab],
+ [[NewXSTypeCoerceNS],	[ParNames,ParObjs,IgnoreTypesOf,NewXSSymTab,HASP2Child],
  						"coerce_types"],
 
  [[NewXSTypeCoerce],	[NewXSTypeCoerceNS,NewXSSymTab,Name], "dousualsubsts"],
@@ -797,8 +800,27 @@ sub make_newcoerce {
 	} (keys %$ftypes);
 }
 
+# Assuming that, if HASP2Child is true, we only have
+# PARENT; CHILD parameters, so we can just take the
+# datatype to be that of PARENT (which is set up by
+# find_datatype()). Little bit complicated because
+# we need to set CHILD's datatype under certain 
+# circumstances
+#
 sub coerce_types {
-    my($parnames,$parobjs,$ignore,$newstab) = @_;
+    my($parnames,$parobjs,$ignore,$newstab,$hasp2child) = @_;
+
+    # mainly will be [oca]CHILD();
+    if ( $hasp2child ) {
+	my $child = $$parnames[1];
+	return "" if $ignore->{$child};
+
+	die "ERROR: coerce_types expected $child to be [oca]\n"
+	    unless $parobjs->{$child}{FlagCreateAlways};
+
+	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
+    }
+
     my $str = "";
     foreach ( @$parnames ) {
 	next if $ignore->{$_};
@@ -834,12 +856,26 @@ sub coerce_types {
 # First, finds the greatest datatype, then, if not supported, takes
 # the largest type supported by the function.
 # Not yet optimal.
+#
+# Assuming that, if HASP2Child is true, we only have
+# PARENT; CHILD parameters, so we can just take the
+# datatype to be that of PARENT (see also coerce_types())
+#
 sub find_datatype {
-    my($parnames,$parobjs,$ignore,$newstab,$gentypes) = @_;
+    my($parnames,$parobjs,$ignore,$newstab,$gentypes,$hasp2child) = @_;
 
     my $dtype = "\$PRIV(__datatype)";
+
+    # TODO XXX
+    #  check can probably be removed, but left in since I don't know
+    #  what I'm doing (DJB)
+    die "ERROR: gentypes != $ntypes with p2child\n" 
+	if $hasp2child and $#$gentypes != $ntypes;
+
+    return "$dtype = $$parnames[0]\->datatype;\n"
+	if $hasp2child;
+
     my $str = "$dtype = 0;";
-    
     foreach ( @$parnames ) {
 	my $po = $parobjs->{$_};
 	next if $ignore{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
@@ -1179,19 +1215,21 @@ sub NewParentChildPars {
 	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_NN");
 }
 
-sub ParentChildPars {
-	my($p2child,$name) = @_;
-	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_XX",
-	"
-	*$name = \\&PDL::$name;
-	sub PDL::$name {
-		my \$this = shift;
-		my \$foo=\$this->null;
-		PDL::${name}_XX(\$this,\$foo,\@_);
-		\$foo
-	}
-	");
-}
+# doesn't seem to be used anymore
+#
+#sub ParentChildPars {
+#	my($p2child,$name) = @_;
+#	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_XX",
+#	"
+#	*$name = \\&PDL::$name;
+#	sub PDL::$name {
+#		my \$this = shift;
+#		my \$foo=\$this->null;
+#		PDL::${name}_XX(\$this,\$foo,\@_);
+#		\$foo
+#	}
+#	");
+#}
 
 sub mkstruct {
 	my($pnames,$pobjs,$comp,$priv,$name) = @_;
