@@ -3175,15 +3175,15 @@ sub arrow {
 	# Scale the image correctly even with rotation by calculating the new
 	# corner points
 	$self->initenv(($tr->slice("0:2")*pdl[
-					      [1, 0, 0],
-					      [1, 0, $nx],
-					      [1, $nx, 0],
-					      [1, $nx, $nx]])->sumover->minmax,
+					      [1, 0.5, 0.5],
+					      [1, 0.5, $nx+0.5],
+					      [1, $nx+0.5, 0.5],
+					      [1, $nx+0.5, $nx+0.5]])->sumover->minmax,
 		       ($tr->slice("3:5")*pdl[
-					      [1, 0, 0],
-					      [1, 0, $ny],
-					      [1, $ny, 0],
-					      [1, $ny, $ny]])->sumover->minmax,
+					      [1, 0.5, 0.5],
+					      [1, 0.5, $ny+0.5],
+					      [1, $ny+0.5, 0.5],
+					      [1, $ny+0.5, $ny+0.5]])->sumover->minmax,
 		       $opt);
       }
     }				# if ! hold

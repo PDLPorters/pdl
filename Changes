@@ -1,6 +1,7 @@
 Doug Burke (03/11/00)
     - removed $_ from shorttype method: fixes $_->info() bug 
     - perldl/pdldoc now list other matches to a help query (not wonderful)
+    - fixed 0.5 pixel shift in imag()
 CS  -  fix bug in splitdim (didn't check nthdim) that can lead to coredumps
 Jarle Brinchmann (22/10/00)
     - Further bug fixes to PGPLOT added (courtesy of Kaj Wiik). Also a
