@@ -210,7 +210,8 @@ sub PDL::RandVar::Sobol::sample() {
       if($j>=$PDL::RandVar::Sobol::MAXBIT);
     
     # XOR with appropriate direction variable
-    $o->slice(":,($i)") .= ($me->{ix} ^= $me->{iv}->slice("($j),:"));
+    my $fmh = $o->slice(":,($i)");
+    $fmh .= ($me->{ix} ^= $me->{iv}->slice("($j),:"));
   }
 	   
   ($o *= ($me->{fac} * $me->{scale})) += $me->{start};
