@@ -234,15 +234,13 @@ push @enabled,"MultiLines" if $multi_ok;
 
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
-my($term);
 if ( $readlines ){
-    $term = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
-    $PERLDL::TERM = $term;
+    $PERLDL::TERM = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
-        if(${$term->Features}{tkRunning}) {
+        if(${$PERLDL::TERM->Features}{tkRunning}) {
 		print "Using Tk event loop\n";
-		$term->tkRunning(1);
+		$PERLDL::TERM->tkRunning(1);
 	} else {
 		warn("Sorry, cannot use Tk with this version of ReadLine\n");
 	}
@@ -253,7 +251,7 @@ if ( $readlines ){
 	close HIST;
 	map s/\n//g , @allhist ;
 	foreach (@allhist) {
-	    $term->addhistory($_);
+	    $PERLDL::TERM->addhistory($_);
 	}
     }
     eval <<'EOEND';
@@ -261,7 +259,7 @@ sub END {
 
     # Save History in $ENV{'HOME'}/.perldl_hist
     # GetHistory doesn't work on all versions...
-    my @a= $term->GetHistory() if $term->can('GetHistory');
+    my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
 
     $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
     @a= @a[($#a-50)..($#a)] if $#a > 50 ;
@@ -278,7 +276,7 @@ EOEND
 sub l {
   if ($readlines) {
     my $n = $#_ > -1 ? shift : 20;
-    my @h = $term->GetHistory();
+    my @h = $PERLDL::TERM->GetHistory();
     my $min = $#h < $n-1 ? 0 : $#h-$n+1;
     map {print "$_: $h[$_]\n"} ($min..$#h);
   }
@@ -537,7 +535,7 @@ sub process_input {
 	     ((ref $PERLDL::PROMPT) ? &$PERLDL::PROMPT : $PERLDL::PROMPT);
 
 	 if ($readlines) {
-	     $_ = $term->readline($prompt);
+	     $_ = $PERLDL::TERM->readline($prompt);
 	 }else{
 	     print $prompt if(-t ARGV);  # Don't print prompt in pipes
 	     $_ = <>;

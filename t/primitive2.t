@@ -19,7 +19,7 @@ sub tapprox {
 
 
 ###### Testing Begins #########
-print "1..19\n";  
+print "1..27\n";  
 
 
 use PDL::LiteF;
@@ -53,6 +53,16 @@ ok($testNo++, tapprox($statsRes[1],4.554) );
 ok($testNo++, tapprox($statsRes[2],3) );
 ok($testNo++, tapprox($statsRes[3],1) );
 ok($testNo++, tapprox($statsRes[4],13) );
+ok($testNo++, tapprox($statsRes[6],4.462));
+
+@statsRes = $im->short->stats; # Make sure that stats are promoted to floating-point
+
+ok($testNo++, tapprox($statsRes[0],5.36) );
+ok($testNo++, tapprox($statsRes[1],4.554) );
+ok($testNo++, tapprox($statsRes[2],3) );
+ok($testNo++, tapprox($statsRes[3],1) );
+ok($testNo++, tapprox($statsRes[4],13) );
+ok($testNo++, tapprox($statsRes[6],4.462));
 
 # print "StatRes = ".join(", ",@statsRes)."\n";
 
@@ -63,11 +73,11 @@ my $ones = ones(5,5);
 
 # print "StatRes with moments = ".join(", ",@statsRes)."\n";
 ok($testNo++, tapprox($statsRes[0],5.36) );
-ok($testNo++, tapprox($statsRes[1],4.4621) );
+ok($testNo++, tapprox($statsRes[1],4.554) );
 ok($testNo++, tapprox($statsRes[2],3) );
 ok($testNo++, tapprox($statsRes[3],1) );
 ok($testNo++, tapprox($statsRes[4],13) );
-
+ok($testNo++, tapprox($statsRes[6],4.462));
 
 # which ND test
 my $a= PDL->sequence(10,10,3,4);  

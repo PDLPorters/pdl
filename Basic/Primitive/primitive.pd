@@ -779,7 +779,7 @@ have its bad flag set if the output contains any bad data.',
 
 pp_def('statsover',
 	HandleBad => 1,
-	Pars => 'a(n); w(n); int+ [o]avg(); int+ [o]rms(); int+ [o]min(); int+ [o]max(); int+ [o]adev(); int+ [o]prms()',
+	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => 
 	'$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;         
@@ -863,10 +863,10 @@ pp_def('statsover',
       PMCode => '
 
 sub PDL::statsover {
-   barf(\'Usage: ($mean,[$rms, $median, $min, $max, $adev]) = statsover($data,[$weights])\') if $#_>1;
+   barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if $#_>1;
    my ($data, $weights) = @_;
    $weights = $data->ones() if !defined($weights);
-   
+
    my $median = $data->medover();
    my $mean = PDL->nullcreate($data);
    my $rms = PDL->nullcreate($data);
@@ -874,10 +874,10 @@ sub PDL::statsover {
    my $max = PDL->nullcreate($data);
    my $adev = PDL->nullcreate($data);
    my $prms = PDL->nullcreate($data);
-   &PDL::_statsover_int($data, $weights, $mean, $rms, $min, $max, $adev, $prms);
+   &PDL::_statsover_int($data, $weights, $mean, $prms, $min, $max, $adev, $rms);
 
    return $mean unless wantarray;
-   return ($mean, $rms, $median, $min, $max, $adev, $prms);
+   return ($mean, $prms, $median, $min, $max, $adev, $rms);
 }
 
 ',
@@ -959,14 +959,12 @@ Calculates useful statistics on a piddle
 
 =for usage
 
- ($mean,$rms,$median,$min,$max) = stats($piddle,[$weights]);
+ ($mean,$prms,$median,$min,$max,$adev,$rms) = stats($piddle,[$weights]);
 
-This utility calculates all the most useful
-quantities in one call.
-
-B<Note:> The RMS value that this function returns in the RMS 
-deviation from the mean, also known as the population standard-
-deviation:  $rms = sqrt(sum(($val-$mean)**2)) / ($n-1)
+This utility calculates all the most useful quantities in one call.
+It works the same way as L</statsover>, except that the quantities are
+calculated considering the entire input PDL as a single sample, rather
+than as a collection of rows.
 
 EOD
 
@@ -974,8 +972,8 @@ EOD
 	pp_addpm(<<'EOD');
 =for bad
 
-The return values if all elements are bad is currently poorly
-defined.
+Bad values are handled; if all input values are bad, then all of the output
+values are flagged bad.
 
 EOD
 } # if: bvalflag
@@ -986,43 +984,20 @@ pp_addpm(<<'EOD');
 sub PDL::stats {
     barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
     my ($data,$weights) = @_;
-    my ($mean,$rms);
-    if ($#_==0) {
-EOD
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->ngood;
-!NO!SUBS!
-} else {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->nelem;
-!NO!SUBS!
-
-} # if: $bvalflag
-
-       pp_addpm(<<'EOD');
-       if ( $npts == 0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = $data->dsum / $npts;
-	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / ($npts-1) );
-       }
-    }
-    else {
-       my $wtsum = $weights->dsum;
-       if ( $wtsum == 0.0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = (($weights*$data)->dsum) / $wtsum;
-	   $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
-       }
-    }
-    my ($median,$min,$max) = ($data->median,$data->min,$data->max);
-    print "Mean = $mean, RMS = $rms, Median = $median\n".
-          "Min  = $min, Max = $max\n" if $PDL::verbose;
-    return $mean unless wantarray;
-    return ($mean,$rms,$median,$min,$max);
+    # Ensure that $weights is properly threaded over; this could be
+    # done rather more efficiently...
+    if(defined $weights) {
+	$weights = pdl($weights) unless UNIVERSAL::isa($weights,'PDL');
+	if( ($weights->ndims != $data->ndims) or 
+	    (pdl($weights->dims) != pdl($data->dims))->or
+	  ) {
+		$weights = $weights + zeroes($data)
+	}
+	$weights = $weights->flat;
+    } 
+	
+    return PDL::statsover($data->flat,$weights);
 }
 EOD
 

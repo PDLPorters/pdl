@@ -94,6 +94,7 @@ unlink $file;
         $q = PDL->rfits('x.fits');
         @s = $q->stats;
 	my $flag;
+	print "s=@s\n";
         if ($s[0] == 1.5 and $s[1] < 0.7072 and $s[1]>0.577) {
            $flag = 1;
         } else {
