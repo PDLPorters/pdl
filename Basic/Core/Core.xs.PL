@@ -128,6 +128,103 @@ static SV* pdl_unpackint ( PDL_Long *dims, int ndims ) {
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
 
+#ifdef FOOFOO_PROPOGATE_BADFLAG
+
+/*
+ * this seems to cause an infinite loop in between tests 42 & 43 of
+ * t/bad.t - ie
+ *
+ * $a = sequence( byte, 2, 3 );
+ * $b = $a->slice("(1),:");
+ * my $mask = sequence( byte, 2, 3 );
+ * $mask = $mask->setbadif( ($mask % 3) == 2 );
+ * print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
+ * $a->inplace->copybad( $mask );                          <-- think this is the call
+ * print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
+ * print "$a $b\n";
+ * ok( $b->badflag, 1 );
+ * 
+ */
+
+/* used by propogate_badflag() */
+
+void propogate_badflag_children( pdl *it, int newval ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; 
+	     i++ ) {
+	    
+	    pdl *child = trans->pdls[i];
+
+	    if ( newval ) child->state |=  PDL_BADVAL;
+            else          child->state &= ~PDL_BADVAL;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badflag_children( child, newval );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* propogate_badflag_children */
+
+/* used by propogate_badflag() */
+
+void propogate_badflag_parents( pdl *it ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = 0;
+	     i < trans->vtable->nparents; 
+	     i++ ) {
+	    
+	    pdl *parent = trans->pdls[i];
+
+	    /* only sets allowed here */
+	    parent->state |= PDL_BADVAL;
+
+	    /* make sure we propogate to grandparents, etc */
+	    propogate_badflag_parents( parent );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* propogate_badflag_parents */
+
+/*
+ * we want to change the bad flag of the children
+ * (newval = 1 means set flag, 0 means clear it).
+ * If newval == 1, then we also loop through the
+ * parents, setting their bad flag
+ *
+ * thanks to Christian Soeller for this 
+ */
+
+void propogate_badflag( pdl *it, int newval ) {
+   /* only do anything if the flag has changed - do we need this check ? */
+   if ( newval ) {
+      if ( (it->state & PDL_BADVAL) == 0 ) {
+         propogate_badflag_parents( it );
+         propogate_badflag_children( it, newval );
+      }
+   } else {
+      if ( (it->state & PDL_BADVAL) > 0 ) {
+         propogate_badflag_children( it, newval );
+      }
+
+   }
+
+} /* propogate_badflag */
+
+#else        /* FOOFOO_PROPOGATE_BADFLAG */
+
 /* newval = 1 means set flag, 0 means clear it */
 /* thanks to Christian Soeller for this */
 
@@ -153,6 +250,8 @@ void propogate_badflag( pdl *it, int newval ) {
     }
     PDL_END_CHILDLOOP(it)
 } /* propogate_badflag */
+
+#endif    /* FOOFOO_PROPOGATE_BADFLAG */
 
 !NO!SUBS!
     } # if: $bvalflag
@@ -538,7 +637,6 @@ set_c(x,position,value)
        pdl_vaffinechanged(x, PDL_PARENTDATACHANGED);
     else
        pdl_changed( x , PDL_PARENTDATACHANGED , 0 );
-
 
 BOOT:
 

@@ -15,7 +15,7 @@ my $author = '
 
 =head1 AUTHOR
 
-Doug Burke (burke@ifa.hawaii.edu) and ...
+Doug Burke (burke@ifa.hawaii.edu), 2000.
 
 All rights reserved. There is no warranty. You are allowed to
 redistribute this software / documentation under certain conditions. For
@@ -340,7 +340,14 @@ pp_addpm(<<'!NO!SUBS!');
     }
 
 } # end of package PDL::Type
-	    
+
+# note: 
+#  if sent a piddle, we have to change it's bad values
+#  (but only if it contains bad values)
+#  - there's a slight overhead in that the badflag is
+#    cleared and then set (hence propogatind to all
+#    children) but we'll ignore that)
+#    
 sub PDL::badvalue {
     no strict 'refs';
 
@@ -348,6 +355,10 @@ sub PDL::badvalue {
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
 	$num = $self->get_datatype;
+	if ( defined $val and $self->badflag ) {
+	    $self->inplace->replacebad( $val );
+	    $self->badflag(1);
+	}
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
@@ -539,6 +550,52 @@ EOD
 
 } # for $op
 
+pp_addpm(<<'!NO!SUBS!');
+
+=head2 setbadat
+
+=for ref
+
+Set the value to bad at a given position.
+
+=for usage
+
+ setbadat $piddle, @position
+
+C<@position> is a coordinate list, of size equal to the
+number of dimensions in the piddle. 
+This is a wrapper around L<set|PDL::Core/set> and is
+probably mainly useful in test scripts!
+
+=for example
+
+ perldl> $x = sequence 3,4
+ perldl> $x->setbadat 2,1
+ perldl> p $x
+ [
+  [  0   1   2]
+  [  3   4 BAD]
+  [  6   7   8]
+  [  9  10  11]
+ ]
+
+=for bad
+
+Supports badvalues.
+
+=cut
+
+*setbadat = \&PDL::setbadat;
+sub PDL::setbadat{
+    barf 'Usage: setbadat($pdl, $x, $y, ...)' if $#_<1;
+    my $self  = shift; 
+    PDL::Core::set_c ($self, [@_], $self->badvalue);
+    $self->badflag(1);
+    return $self;
+}
+
+!NO!SUBS!
+
 # NOTE: the Code section uses SETBAD 
 #
 # have removed inplace stuff because:
@@ -614,16 +671,18 @@ pp_def(
     'replacebad',
     HandleBad => 1,
     Pars => 'a(); [o]b();',
-    OtherPars => 'double newval',
+    OtherPars => 'double newval;',
     Inplace => 1,
     Code => '$b() = $a();',
     BadCode => 
     '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+     $GENERIC(b) a_val;
      threadloop %{
-        if ( $ISBAD(a()) ) {
+        a_val = $a();
+        if ( $ISBADVAR(a_val,a) ) {
            $b() = replace;
         } else {
-           $b() = $a();
+           $b() = a_val;
         }
      %}',
     CopyBadStatusCode => 

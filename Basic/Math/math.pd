@@ -45,29 +45,30 @@ doco (qw/cosh sinh tanh acosh asinh atanh/,
 'The standard hyperbolic function.');
 
 doco (qw/ceil floor rint/,
-'Round to integral values in floating-point format');
+'Round to integral values in floating-point format.');
 
-doco( 'pow',"Synonym for `**'");
+doco( 'pow',"Synonym for `**'.");
 
-doco ('erf',"The error function");
-doco ('erfc',"The complement of the error function");
-doco ('erfi',"The inverse of the error function");
-doco ('ndtri',"The value for which the area under the
+doco ('erf',"The error function.");
+doco ('erfc',"The complement of the error function.");
+doco ('erfi',"The inverse of the error function.");
+doco ('ndtri',
+"=for ref
+
+The value for which the area under the
 Gaussian probability density function (integrated from
-minus infinity) is equal to the argument (cf L<erfi|/erfi>)");
+minus infinity) is equal to the argument (cf L<erfi|/erfi>).");
 
-doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
+doco(qw/bessj0 bessj1 bessy0 bessy1/, 
+     "The standard Bessel function." );
 
-=for ref
+doco( qw/bessjn bessyn/, 
+'=for ref
 
-The standard Bessel Functions
-
-EOD
-
-$doco{'bessjn'} .= <<'EOD';
+The standard Bessel function.
 This has a second integer
 argument which gives the order of the function required.
-EOD
+');
 
 if ($^O !~ /win32/i) {  # doesn't seem to be in the MS VC lib
 doco( 'lgamma' ,<<'EOD');
@@ -137,8 +138,12 @@ sub badcode_bifunc {
 	"\$b() = $name(\$$a(),\$$b()); }"; 
 }
 
-my $func;
+sub inplace_doc {
+    my $func = shift;
+    return "$doco{$func} Works inplace.";
+}
 
+my $func;
 foreach $func (@ufuncs1) {
     pp_def($func,
 	   HandleBad => 1,
@@ -146,7 +151,7 @@ foreach $func (@ufuncs1) {
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => $doco{$func},
+	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
 	   );
@@ -158,7 +163,7 @@ foreach $func (@ufuncs1g) {
 	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => $doco{$func},
+	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
 	   );
@@ -169,7 +174,8 @@ foreach $func (@bifuncs1) {
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
-	   Doc => $doco{$func},
+	   Inplace => [ 'a' ],
+	   Doc => inplace_doc( $func ),
 	   Code => code_bifunc($func),
 	   BadCode => badcode_bifunc($func),
 	   );
@@ -183,7 +189,7 @@ foreach $func (@ufuncs2) {
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => $doco{$func},
+	   Doc => inplace_doc( $func ),
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
 	   );
@@ -197,14 +203,12 @@ foreach $func (@besufuncs) {
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Inplace => 1,
-	   Doc => $doco{$fname},
+	   Doc => inplace_doc( $fname ),
 	   Code => code_ufunc($func),
 	   BadCode => badcode_ufunc($func),
 	   );
 }
 
-# could make these work inplace (ie Inplace => ['a'])
-#
 foreach $func (@besbifuncs) {
     my $fname = "bess$func";
     pp_def($fname,
@@ -212,7 +216,8 @@ foreach $func (@besbifuncs) {
 	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); int n(); [o]b();',
-	   Doc => $doco{$fname},
+	   Inplace => [ 'a' ],
+	   Doc => inplace_doc( $fname ),
 	   Code => code_bifunc($func,'n','a'),
 	   BadCode => badcode_bifunc($func,'n','a'),
 	   );
@@ -258,7 +263,7 @@ pp_def(
 pp_def(
        'isfinite',
        Pars => 'a(); int [o]mask();',
-       Inplace => [ 'a', 'mask' ],
+       Inplace => 1,
        HandleBad => 1,
        Code => 
        '$mask() = finite((double) $a()) != 0;',
@@ -270,7 +275,7 @@ pp_def(
         $SETPDLSTATEGOOD(mask);          /* always make sure the output is "good" */
        ',
        Doc => 
-'Sets C<$mask> true if C<$a> is either a C<NaN> or C<inf> (either positive or negative).',
+'Sets C<$mask> true if C<$a> is either a C<NaN> or C<inf> (either positive or negative). Works inplace.',
        BadDoc =>
 'Returns true if an element is bad, as well as C<NaN> or C<inf>.',
        );
@@ -284,7 +289,7 @@ pp_def(
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
        Inplace => 1,
-       Doc => $doco{"erfi"},
+       Doc => inplace_doc( "erfi" ),
        Code => 
        'extern double ndtri(double), SQRTH;
 	$b() = SQRTH*ndtri((1+(double)$a())/2);',
@@ -301,7 +306,7 @@ pp_def(
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
        Inplace => 1,
-       Doc => $doco{"ndtri"},
+       Doc => inplace_doc( "ndtri" ),
        Code => 
        'extern double ndtri(double);
 	$b() = ndtri((double)$a());',

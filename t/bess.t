@@ -2,7 +2,7 @@
 
 use Test;
 
-BEGIN { plan tests => 4; }
+BEGIN { plan tests => 5; }
 
 use PDL::LiteF;
 use PDL::Math;
@@ -25,7 +25,6 @@ $a = pdl(0.5,0.0);
 $a->inplace->bessj0;
 ok( approx($a,pdl(0.9384,1)) );
 
-# bess[jy]n not inplace yet
-#$a = pdl(0.2);
-#$a->inplace->bessyn(2);
-#print $a, "\n";
+$a = pdl(0.2);
+$a->inplace->bessyn(2);
+ok( approx( $a, -32.15714 ) );   # 5

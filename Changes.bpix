@@ -1,5 +1,10 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (08/16/00)
+   - $pdl->badvalue(23) finally changes the bad values in $pdl to the new
+     value (here 23).
+   - added $pdl->setbadat(2) -- a wrapper around set() -- probably mostly
+     useful for test scripts
 Doug Burke (08/10/00-08/13/00)
    - added some text to PDL::PP documentation about writing 'bad' code
    - clean up of documentation and output from 'badinfo' command: added

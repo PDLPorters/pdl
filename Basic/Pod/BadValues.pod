@@ -193,11 +193,6 @@ To change the current bad value, supply the new number to badvalue - eg
 I<Note>: the value is silently converted to the correct C type, and
 returned - ie C<byte-E<gt>badvalue(2.3e34)> returns 255 on my solaris machine.
 
-I<TODO>:
-
-   $pdl->badvalue(2.3) should update $pdl to use 2.3 as it's bad value. 
-   Currently $pdl will be left using the old bad value.
-
 Note that changes to the bad value are NOT propogated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
@@ -252,7 +247,8 @@ C<propogate_badflag> in F<Basic/Bad/bad.pd>).
 It's not clear what to do with parents: I can see the reason for propogating a 
 'set badflag' request to parents, but I think a child should NOT be able to clear 
 the badflag of a parent. 
-Actually, I'm vacillating on this one.
+Actually, I'm vacillating on this one (plus it looks like there's the
+chance of infinite loops if code is done inplace, or I messed up somewhere!).
 
 There's also the issue of what happens when you change the bad value for a piddle.
 
@@ -303,7 +299,7 @@ to pp_def:
 This ensures that the correct variables are initialised for the C<$ISBAD> etc
 macros. It is also used by the automatic document-creation routines to
 provide default information on the bad value support of a routine without
-the user having to type it themselves. (this is in its early stages).
+the user having to type it themselves (this is in its early stages).
 
 To flag a routine as NOT handling bad values, use 
 
@@ -342,7 +338,7 @@ If the option
    HandleBad => 1
 
 is given, then the readdata code automatically creates a variable called
-C<<pdl nameE<gt>_badval>, which contains the badvalue for that piddle (see
+C<E<lt>pdl nameE<gt>_badval>, which contains the bad value for that piddle (see
 C<get_xsdatapdecl()> in F<Basic/Gen/PP/PdlParObjs.pm>). 
 After Tuomas' suggestion, macros have been set up to provide easy access:
 
@@ -533,12 +529,7 @@ call a user-defined sub-routine? (supply a default one that dies, say)
 
 =back
 
-(also for avg,zcheck,... in primitive.pd)
-
-=item *
-
-C<$pdl-E<gt>badvalue(23)> should change the bad value in C<$pdl> to 23
-(as well as changing the default bad value, which it does)
+(also for avg,zcheck,... in F<primitive.pd>)
 
 =item *
 
@@ -554,12 +545,6 @@ looks like starlink's byte goes from -127 to 127 - ie not unsigned
 =head2 Suggestions
 
 =over 4
-
-=item *
-
-How about a C<setbad()> method like C<set>, eg
-
- $a->setbad(1,1);  # sets (1,1) bad (and ensures bad flag is set)
 
 =item *
 
@@ -638,16 +623,16 @@ this on the 'top-level' piddle? Nasty...
 
 get some code set up to do benchmarks to see how much things are
 slowed down (and to check that I haven't messed things up if
-WITH_BADVAL is 0/undef).
+C<WITH_BADVAL> is 0/undef).
 
 =item *
 
-some of the names aren't appealing - I'm thinking of orig_badvalue()
-in Basic/Bad/bad.pd in particular. Any suggestions appreciated.
+some of the names aren't appealing - I'm thinking of C<orig_badvalue()>
+in F<Basic/Bad/bad.pd> in particular. Any suggestions appreciated.
 
 =item *
 
-Basic/Core/pdlconv.c.PL - I don't understand when pdl_converttype()
+F<Basic/Core/pdlconv.c.PL> - I don't understand when C<pdl_converttype()>
 is called, so I've included a check that prints a message to STDERR
 if it's called with a bad piddle. This will need removing at some
 point as it's wasted space...

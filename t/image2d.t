@@ -2,7 +2,9 @@
 #
 
 use Test;
-BEGIN { plan tests => 9; }
+BEGIN { 
+    plan tests => 9; 
+}
 
 use PDL;
 use PDL::Image2D;
@@ -72,20 +74,25 @@ $ans = $a->copy;
 print $a, $mask, patch2d($a,$mask);
 approx( patch2d($a,$mask), $ans );  # 7
 
-# patchbad2d: bad data
-$m = $a->slice('1:3,1:3');
-$m .= $a->badvalue;
-$a->badflag(1);        # should sort out propogation of badflag
+if ( $PDL::Bad::Status ) {
+    # patchbad2d: bad data
+    $m = $a->slice('1:3,1:3');
+    $m .= $a->badvalue;
+    $a->badflag(1);        # should sort out propogation of badflag
 
-$ans = ones(5,5);
-$ans->set(2,2,$ans->badvalue);
-$ans->badflag(1);
+    $ans = ones(5,5);
+    $ans->set(2,2,$ans->badvalue);
+    $ans->badflag(1);
 
-#print $a, patchbad2d($a);
-approx( patchbad2d($a), $ans );  # 8
+    #print $a, patchbad2d($a);
+    approx( patchbad2d($a), $ans );  # 8
+    
+    # patchbad2d: good data
+    $a = sequence(5,5);
+    #print $a, patchbad2d($a);
+    approx( patchbad2d($a), $a );  # 9
 
-# patchbad2d: good data
-$a = sequence(5,5);
-#print $a, patchbad2d($a);
-approx( patchbad2d($a), $a );  # 9
-
+} else { 
+    skip(1,1,1);
+    skip(1,1,1);
+}
