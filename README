@@ -37,3 +37,14 @@ Should be simply a matter of:
 ; make test
 ; make install
 
+License
+-------
+
+PDL is distributed under the same licensing conditions (GPL or Artistic)
+as Perl itself.
+
+The authors thank Pat Seitzer and the IRAF group of the National Optical
+Astronomy Observatories for permission to include their image of M51 (m51.fits)
+as a demonstration image. Redistribution of the image is prohibited without
+their permission.
+
