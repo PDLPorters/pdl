@@ -619,6 +619,7 @@ t/interp.t
 t/interp_slatec.t
 t/lut.t
 t/linfit.t
+t/lvalue.t
 t/magic.t
 t/matmult.t
 t/misc.t
