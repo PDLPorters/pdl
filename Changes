@@ -1,4 +1,5 @@
 CS  - add PDL::IO::Storable and PDL::GSL::SF hierarchy
+    - fast pdl method! please test heavily
 CS  - explicitly load PDL::Core in PP boot section
     - examples: make modules with Inline::Pdlpp! 
 CED (26-Jun-02)

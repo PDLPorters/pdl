@@ -900,6 +900,57 @@ myeval(code)
    perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME);
 
 
+# make piddle belonging to 'class' and of type 'type'
+# from avref 'array_ref' which is checked for being
+# rectangular first
+
+SV*
+pdl_avref(array_ref, class, type)
+     SV* array_ref
+     char* class
+     int type
+  CODE:
+     /* make a piddle from a Perl array ref */
+     AV *dims, *av;
+     int i, depth;
+     int datalevel = -1;
+     SV* psv;
+     pdl* p;
+
+     if (!SvROK(array_ref))
+       croak("pdl_avref: not a reference");
+     if (SvTYPE(SvRV(array_ref)) != SVt_PVAV)
+       croak("pdl_avref: not an array reference");
+     av = (AV *) SvRV(array_ref);
+     dims = newAV();
+
+     av_store(dims,0,newSViv((IV) av_len(av)+1));
+     /* even if we contain nothing depth is one */
+     depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+
+     /* printf("will make type %s\n",class); */
+     /* 
+	at this stage start making a piddle and populate it with
+	values from the array (which has already been checked in av_check)
+     */
+     if (strcmp(class,"PDL") == 0) {
+        p = pdl_from_array(av,dims,type,NULL); /* populate with data */
+        ST(0) = sv_newmortal();
+        SetSV_PDL(ST(0),p);
+     } else {
+       /* call class->initialize method */
+       PUSHMARK(SP);
+       XPUSHs(sv_2mortal(newSVpv(class, 0)));
+       PUTBACK;
+       perl_call_method("initialize", G_SCALAR);
+       SPAGAIN;
+       psv = POPs;
+       PUTBACK;
+       p = SvPDLV(psv); /* and get piddle from returned object */
+       ST(0) = psv;
+       pdl_from_array(av,dims,type,p); /* populate ;) */
+     }
+
 MODULE = PDL::Core	PACKAGE = PDL
 
 # pdl_null is created/imported with no PREFIX  as pdl_null.

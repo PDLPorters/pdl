@@ -600,23 +600,18 @@ Constructs piddle from perl numbers and lists.
 =cut
 
 sub PDL::new {
+   # print "in PDL::new\n";
    my $this = shift;
    return $this->copy if ref($this);
    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
+   my $value = (@_ >1 ? [@_] : shift);  # ref thyself
+   $value = 0 unless defined $value;
+   return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
    $new->set_datatype($type);
-   my $value = (scalar(@_)>1 ? [@_] : shift);  # ref thyself
-   $value = 0 if !defined($value);
    if (ref(\$value) eq "SCALAR") {
        $new->setdims([]);
        ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
-       $new->upd_data();
-   }
-   elsif (ref($value) eq "ARRAY") {
-       $level = 0; @dims = (); # package vars
-       my $str = rpack($pack[$new->get_datatype], $value);
-       $new->setdims([reverse @dims]);
-       ${$new->get_dataref()} = $str;
        $new->upd_data();
    }
    elsif (blessed($value)) { # Object
