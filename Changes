@@ -1,3 +1,7 @@
+DJB 01-Jul-04
+   - pdlcore.c.PL/pdl_kludge_copy_<>() issues: changed \n to \\n in some error
+     messages (would not compile otherwise) and a switch statement is now
+     auto-generated from %PDL::Types::typehash rather than hard-coded
 CED 17-Jun-04
    - pdlcore.c.PL: av_ndcheck and pdl_setav_$type now support PDLs thrown
 	into the mix. 

@@ -4,7 +4,7 @@
 #
  
 use strict;
- 
+
 use Config;
 use File::Basename qw(&basename &dirname);
  
@@ -793,13 +793,12 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
  */
 
   if(plevel > pdl->ndims || level > ndims)
-   croak("pdl_kludge_copy: Assertion failed; help!  plevel (%d) > pdl->ndims (%d)! Bug!",plevel,pdl->ndims-1);
+   croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; plevel (%d) > pdl->ndims (%d)",plevel,pdl->ndims-1);
   
   if(plevel <= pdl->ndims-1 ) {
    
     if(ndims-2-level < 0) 
-       croak("assertion failed in pdl_kludge_copy: ndims-2-level (%d) < 0!.\n  Have another beer and submit a bug report.\n",ndims-2-level);
-
+       croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; ndims-2-level (%d) < 0!.",ndims-2-level);
 
     stride /= pdims[ndims-2-level];  
 
@@ -816,29 +815,24 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
     }
   } else {
       switch(pdl->datatype) {
-        case PDL_D:
-          *pdata = (PDL_$type) (*((PDL_Double *)pptr));
+!WITH!SUBS!
+
+# loop through all the types
+#
+foreach my $switch_type (keys %PDL::Types::typehash) {
+
+    my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
+
+print OUT <<"!WITH!SUBS!";
+       case ${switch_type}:
+          *pdata = (PDL_$type) (*((${ctype} *)pptr));
           break;
-        case PDL_F:
-          *pdata = (PDL_$type) (*((PDL_Float *)pptr));
-          break;
-        case PDL_L:
-          *pdata = (PDL_$type) (*((PDL_Long *)pptr));
-          break;
-        case PDL_S:
-          *pdata = (PDL_$type) (*((PDL_Short *)pptr));
-          break;
-        case PDL_U:
-          *pdata = (PDL_$type) (*((PDL_Ushort *)pptr));
-          break;
-        case PDL_B:
-          *pdata = (PDL_$type) (*((PDL_Byte *)pptr));
-          break;
-        case PDL_LL:
-          *pdata = (PDL_$type) (*((PDL_LongLong *)pptr));
-          break;
+!WITH!SUBS!
+}
+
+print OUT <<"!WITH!SUBS!";
         default: 
-          croak("pdl_kludge_copy: unknown type. This is a bug.");
+          croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: unknown type of %d.",pdl->datatype);
           break;
     }
     
