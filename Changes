@@ -1,3 +1,6 @@
+CS  04-Dec-2003
+   - add code to Makefile.PL that tries to detect
+     broken redhat installations
 CS  03-Dec-2003
    - PGPLOT::Graphics::Window: activate autolog for the 'points'
      command and add some brief docs about autologging (see docs
