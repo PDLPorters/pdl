@@ -810,7 +810,8 @@ Sets NaN/Inf values in the input piddle bad
 (only relevant for floating-point piddles).
 Can be done inplace.
 
-As C<$PDL::Bad::UseNan == 1>, this is just a straight copy.
+As C<$PDL::Bad::UseNan == 1>, this is just a copy
+with a call to L<check_badflag()|/check_badflag> thrown in.
 
 =for usage
 
@@ -825,17 +826,18 @@ Supports bad values.
 
 *setnantobad = \&PDL::setnantobad;
 sub PDL::setnantobad{
-    die "ERROR: setnantobad is currently too stupid to allow it to do anything\n";
     my $a = shift;
     my $b;
     if ( $a->is_inplace ) {
 	$a->set_inplace(0);
 	$b = $a;
     } elsif ( $#_ > -1 ) {
-	$b = $_[0]; 
+	$b = $_[0] = $a->copy; # is this correct?
     } else {
-	$b = PDL->nullcreate($a);
+	$b = $a->copy;
     }
+    # make sure bad flag is set, otherwise check_badflag() is a nop
+    $b->badflag(1); $b->check_badflag();
     return $b; 
 }
 
@@ -847,8 +849,8 @@ Sets Bad values to NaN
 (only relevant for floating-point piddles).
 Can be done inplace.
 
-As C<$PDL::Bad::UseNan == 1>, this is just a straight copy,
-except that it clears the bad flag. And does not work.
+As C<$PDL::Bad::UseNan == 1>, this is just a copy,
+with the bad flag being cleared.
 
 =for usage
 
@@ -863,7 +865,18 @@ Supports bad values.
 
 *setbadtonan = \&PDL::setbadtonan;
 sub PDL::setbadtonan{
-    die "ERROR: setbadtonan is currently too stupid to allow it to do anything\n";
+    my $a = shift;
+    my $b;
+    if ( $a->is_inplace ) {
+	$a->set_inplace(0);
+	$b = $a;
+    } elsif ( $#_ > -1 ) {
+	$b = $_[0] = $a->copy; # is this correct?
+    } else {
+	$b = $a->copy;
+    }
+    $b->badflag(0);
+    return $b; 
 }
 
 !NO!SUBS!

@@ -247,7 +247,7 @@ sub PDL::rfits {
 	   # (would not be needed with a per-piddle bad value)
 	   $pdl->inplace->setvaltobad( $blank );
        }
-   } else {
+   } elsif ( $foo->{BITPIX} < 0 ) {
        # bad values are stored as NaN's in FITS
        # let setnanbad decide if we need to change anything
        $pdl->inplace->setnantobad();

@@ -1464,10 +1464,33 @@ any changes are absorbed into the definition of the
 C<$EQUIVCPOFFS()> macro (ie it is handled automatically
 by PDL::PP>.
 
-There are no guarantees that this is the best way to do it (or that
-it's even correct)!
+=head1 USEFUL ROUTINES
 
-=head1 Makefiles for PP files
+The PDL C<Core> structure, defined in F<Basic/Core/pdlcore.h.PL>, contains
+pointers to a number of routines that may be useful to you.  The majority
+of these routines deal with manipulating piddles, but some are more general:
+
+=over 4
+
+=item PDL->qsort_B( PDL_Byte *xx, int a, int b )
+
+Sort the array C<xx> between the indices C<a> and C<b>.
+There are also versions for the other PDL datatypes,
+with postfix C<_S>, C<_U>, C<_L>, C<_F>, and C<_D>.
+Any module using this must ensure that C<PDL::Primitive>
+is loaded.
+
+=item PDL->qsort_ind_B( PDL_Byte *xx, int *ix, int a, int b )
+
+As for C<PDL-E<gt>qsort_B>, but this time sorting the indices
+rather than the data.
+
+=back
+
+The routine C<med2d> in F<Lib/Image2D/image2d.pd> shows how such routines are 
+used.
+
+=head1 MAKEFILES FOR PP FILES
 
 If you are going to generate a package from your PP file (typical file
 extensions are C<.pd> or C<.pp> for the files containing PP code) it
