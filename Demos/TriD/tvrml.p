@@ -2,7 +2,7 @@ BEGIN { $PDL::Graphics::TriD::device = "VRML"; }
 use PDL::Graphics::TriD;
 use PDL::LiteF;
 use Carp;
-
+#	$PDL::Graphics::TriD::verbose=1;
 $SIG{__DIE__} = sub {print Carp::longmess(@_); die;};
 
 $set = tridsettings();
@@ -33,9 +33,18 @@ $g->scalethings();
 describe3d('A simple test of
 the current PDL 3D
 VRML module');
+
 $win = PDL::Graphics::TriD::get_current_window();
- use PDL::Graphics::TriD::Logo;
- $win->add_object(new PDL::Graphics::TriD::Logo);
+
+use PDL::Graphics::TriD::Logo;
+
+$win->add_object(new PDL::Graphics::TriD::Logo);
+
+#use Data::Dumper;
+#my $out = Dumper($win);
+#print $out;
+
+
 $win->display('netscape');
 
 

@@ -1,0 +1,22 @@
+This is a rewrite of the OpenGL 0.5 module.  It now requires and
+is distributed with the module PDL.  The script opengl.pd reads 
+the GL header files as defined in perldl.conf and builds an interface
+for GL.  It has thus far been tested on the following GL:
+
+  GL_VERSION:  1.1 Irix 6.5
+  GL_VENDOR:   SGI
+  GL_RENDERER: IMPACT/1/1/1
+
+  GL_VERSION:  1.2 Mesa 3.3 beta
+  GL_VENDOR:   Brian Paul
+  GL_RENDERER: Mesa X11
+
+If you successful build it on another platform please let me know so
+that I can add it to this list.  If you cannot successfully build it,
+try to pinpoint the problem as much as possible and I can try to help
+as time permits.  The GL include files are run through cpp before
+prototypes are read from them, often the problem is just finding the
+right OPENGL_DEFINE flags to put in the perldl.conf.  If you change
+perldl.conf you must rerun perl Makefile.PL at the top level.
+
+James P. Edwards July 2000.  jedwards@inmet.gov.br

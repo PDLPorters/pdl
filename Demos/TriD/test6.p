@@ -7,6 +7,7 @@ my $key = <STDIN>;
 chomp($key);
 exit if($key);
 exec("perldl 	<<EOF
+use blib
 demo Tk3d
 EOF");	
 1;

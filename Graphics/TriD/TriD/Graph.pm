@@ -85,7 +85,8 @@ sub get_points {
 
 sub clear_data {
 	my($this) = @_;
-	$this->{Data} = {}; $this->{DataBind} = {};
+	$this->{Data} = {};
+	$this->{DataBind} = {};
 	$this->{UnBound} = {};
 	$this->changed();
 }

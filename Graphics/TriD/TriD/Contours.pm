@@ -1,3 +1,25 @@
+=head1 NAME
+
+  PDL::Graphics::TriD::Contours - 3D Surface contours for TriD
+
+=head1 SYNOPSIS
+
+=for usage
+
+    # A simple contour plot in black and white
+
+    use PDL::Graphics::TriD;
+    use PDL::Graphics::TriD::Contours;
+    $size = 25;
+    $x = (xvals zeroes $size,$size) / $size;
+    $y = (yvals zeroes $size,$size) / $size;
+    $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
+    $data=new PDL::Graphics::TriD::Contours($z,
+               [$z->xvals/$size,$z->yvals/$size,0]);
+    PDL::Graphics::TriD::graph_object($data)
+
+=cut 
+
 package PDL::Graphics::TriD::Contours;
 use strict;
 use PDL;
@@ -7,6 +29,39 @@ use Data::Dumper;
 
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ContourSegCnt Labels LabelStrings/;
+
+=head1 FUNCTIONS
+
+=head2 new()
+
+=for ref
+
+Define a new contour plot for TriD.  
+
+=for example
+
+  $data=new PDL::Graphics::TriD::Contours($d,[$x,$y,$z],[$r,$g,$b],$options);
+
+where $d is a 2D pdl of data to be contoured. [$x,$y,$z] define a 3D
+map of $d into the visualization space [$r,$g,$b] is an optional [3,1]
+piddle specifing the contour color and $options is a hash reference to
+a list of options documented below.  Contours can also be colored by
+value using the set_color_table function.
+
+=for opt
+
+  ContourInt  => 0.7  # explicitly set a contour interval
+  ContourMin  => 0.0  # explicitly set a contour minimum
+  ContourMax  => 10.0 # explicitly set a contour maximum
+  ContourVals => $pdl # explicitly set all contour values
+  Font =>  $font      # explicitly set the font for contour labels
+
+  If ContourVals is specified ContourInt, ContourMin, and ContourMax
+  are ignored.  If no options are specified, the algorthym tries to
+  choose values based on the data supplied.  Font can also be specified or
+  overwritten by the add_labels() function below.
+
+=cut
 
 sub new{
   my($type,$data,$points,$colors,$options) = @_;
@@ -39,8 +94,6 @@ sub new{
 
   $this->{ContourSegCnt} = [];
 
-  my $zval;
-
   my @lines;
   my($xmin,$dx,$ymin,$dy);
 
@@ -54,26 +107,19 @@ sub new{
 
 
   my $fac=1;
-  my $plane;
 
-  if(defined $this->{Options}{Surface}){
-      my $surf =  $this->{Options}{Surface};
-      foreach(keys %{$this->{Options}{Surface}}){
-	  if(defined $zval){
-	      barf "Only one of XY XZ YZ surfaces allowed";
-	  }
-	  $zval=$this->{Options}{Surface}{$_};
-	  $plane=$_;
-      }
-      if($plane eq "XZ"){
-	(my $t = $grid->slice("1:2")) .= $grid->slice("1:2")->rotate(1);
-      }elsif($plane eq "YZ"){
-	$grid=$grid->rotate(1);
-      }
-  }else{
-      $plane="XY";
-      $zval=0;
-  }
+#  my $plane;
+#
+#  if(defined $this->{Options}{Surface}){
+#	 $plane=$_;
+#	 if($plane eq "XZ"){
+#		(my $t = $grid->slice("1:2")) .= $grid->slice("1:2")->rotate(1);
+#	 }elsif($plane eq "YZ"){
+#		$grid=$grid->rotate(1);
+#	 }
+#  }else{
+#	 $plane="XY";
+#  }
 
 
   unless(defined $this->{Options}{ContourMin}){
@@ -88,7 +134,8 @@ sub new{
 		  if($PDL::Graphics::TriD::verbose);
     }
   }
-  unless(defined $this->{Options}{ContourMax}){
+  unless(defined $this->{Options}{ContourMax} && 
+			$this->{Options}{ContourMax} > $this->{Options}{ContourMin} ){
     if(defined $this->{Options}{ContourInt}){
       $this->{Options}{ContourMax} = $this->{Options}{ContourMin};
       while($this->{Options}{ContourMax}+$this->{Options}{ContourInt} < $max){
@@ -104,7 +151,7 @@ sub new{
       }
     }
   }
-  unless(defined $this->{Options}{ContourInt}){
+  unless(defined $this->{Options}{ContourInt} &&  $this->{Options}{ContourInt}>0){
     $this->{Options}{ContourInt} = int($fac*($this->{Options}{ContourMax}-$this->{Options}{ContourMin}))/(10*$fac);
     print "ContourInt =  ",$this->{Options}{ContourInt},"\n"
 		if($PDL::Graphics::TriD::verbose);
@@ -118,13 +165,13 @@ sub new{
     $cvals = $cvals->xlinvals($this->{Options}{ContourMin},$this->{Options}{ContourMax});  
   }else{
     $cvals = $this->{Options}{ContourVals};
+    $this->{Options}{ContourMax}=$cvals->max;
+    $this->{Options}{ContourMin}=$cvals->min;
   }
   $this->{Options}{ContourVals} = $cvals;
 
   print "Cvals = $cvals\n" if($PDL::Graphics::TriD::verbose);  
   
-  my ($i,$j,$i1,$j1);
-
   $this->contour_segments($cvals,$data,$grid);
 
   return $this;
@@ -132,30 +179,45 @@ sub new{
 
 
 
-=head2 addlabels
+sub get_valid_options{
+  return{ ContourInt => undef, 
+			 ContourMin => undef, 
+			 ContourMax=>  undef, 
+			 ContourVals=> pdl->null,
+			 UseDefcols=>1,
+			 Font=>$PDL::Graphics::TriD::GL::fontbase}
+}
 
-$contour->addlabels($labelint,$density,$font);
 
-=over 4
-=item * labelint is the integer interval between labeled contours ie if you
-have 8 countour levels and specify labelint=3 addlabels will attempt
-to label the 1st, 4th, and 7th contours.  labelint defaults to 1.
 
-=item * density is the number of contour line segments to label as determined
-by the length of the line segment with respect to the length of the
-longest possible line segment in the plot.  density defaults to 1.
 
-=back
+=head2 addlabels()
+
+=for ref
+
+Add labels to a contour plot 
+
+=for usage
+
+  $contour->addlabels($labelint,$segint,$font);
+
+$labelint is the integer interval between labeled contours.  If you
+have 8 countour levels and specify $labelint=3 addlabels will attempt
+to label the 1st, 4th, and 7th contours.  $labelint defaults to 1.
+
+$segint specifies the density of labels on a single contour
+level.  Each contour level consists of a number of connected 
+line segments, $segint defines how many of these segments get labels.
+$segint defaults to 5, that is every fifth line segment will be labeled.
+  
 
 =cut
-
-
 
 sub addlabels{
   my ($self,$labelint, $segint ,$font) = @_;
 
   $labelint = 1 unless(defined $labelint);
-  $font =  $PDL::Graphics::TriD::GL::fontbase unless(defined $font);
+  $font =  $self->{Options}{Font} unless(defined $font);
   $segint = 5 unless(defined $segint);
 
   my $cnt=0;
@@ -204,35 +266,36 @@ sub addlabels{
 
 }
 
+=head2 set_colortable($table)
 
-sub get_valid_options{
-    return{ ContourInt => undef, 
-	    ContourMin => undef, 
-	    ContourMax=>  undef, 
-	    ContourVals=> pdl->null,
-            Surface=>{XY=>0},
-	    UseDefcols=>1,
-	    Font=>$PDL::Graphics::TriD::GL::fontbase}
-}
+=for ref
 
-sub get_attribute{
-  my($self, $attname) = @_;
-  my $allowed_attributes = $self->get_valid_options;
-  if(defined $allowed_attributes->{$attname}){
-    return $self->{$attname};
-  }
-  barf "Invalid attribute to $self\n";
-}
+Sets contour level colors based on the color table.
+
+=for usage 
+
+$table is passed in as either a piddle of [3,n] colors, where n is the
+number of contour levels, or as a reference to a function which
+expects the number of contour levels as an argument and returns a
+[3,n] piddle.  It should be straight forward to use the
+L<PDL::Graphics::LUT> tables in a function which subsets the 256
+colors supplied by the look up table into the number of colors needed
+by Contours.
+
+=cut
 
 sub set_colortable{
   my($self,$table) = @_;
-  
-  my $min = $self->{Options}{ContourMin};
-  my $max = $self->{Options}{ContourMax};  
-  my $int = $self->{Options}{ContourInt};
-  my $ncolors=($max-$min)/$int+1;  
-
-  my $colors= &$table($ncolors);
+  my $colors;
+  if(ref($table) eq "CODE"){
+	 my $min = $self->{Options}{ContourMin};
+	 my $max = $self->{Options}{ContourMax};  
+	 my $int = $self->{Options}{ContourInt};
+	 my $ncolors=($max-$min)/$int+1;  
+	 $colors= &$table($ncolors);
+  }else{
+	 $colors = $table;
+  }
 
   if($colors->getdim(0)!=3){
     $colors->reshape(3,$colors->nelem/3);
@@ -240,9 +303,22 @@ sub set_colortable{
   print "Color info ",$self->{Colors}->info," ",$colors->info,"\n" if($PDL::Graphics::TriD::verbose);
  
   $self->{Colors} = $colors;
-
 }
-  
+
+=head2 coldhot_colortable()
+
+=for ref 
+
+A simple colortable function for use with the set_colortable function.
+
+=for usage 
+
+coldhot_colortable defines a blue red spectrum of colors where the
+smallest contour value is blue, the highest is red and the others are
+shades in between.
+
+=cut 
+
 sub coldhot_colortable{
   my($ncolors) = @_;
   my $colorpdl;
