@@ -1,3 +1,5 @@
+DJB (7/Jun/01)
+    - minor fix for rfits() with bad-value support
 John Cerney (6/4/01)
     - Doco fix in complex.pd
 CS  - image2d.t skip fix

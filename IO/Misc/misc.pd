@@ -217,7 +217,7 @@ sub PDL::rfits {
 
    # Slurp the FITS binary data
 
-   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , "bytes\n" if
+   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" if
    $PDL::verbose;
 
    read( FITS, $$dref, $size*PDL::Core::howbig($pdl->get_datatype) );
@@ -256,7 +256,7 @@ sub PDL::rfits {
        # let setnanbad decide if we need to change anything
        $pdl->inplace->setnantobad();
    }
-   print "FITS file may contain bad values.\n" 
+   print "FITS file may contain bad values.\n"
        if $pdl->badflag() and $PDL::verbose;
 !NO!SUBS!
 
@@ -268,38 +268,47 @@ sub PDL::rfits {
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
    $bscale = 1 if $bscale eq "";
    $bzero  = 0 if $bzero  eq "";
-   
+
    # Be clever and work out the final datatype before eating
    # memory
 
 !NO!SUBS!
 
    if ( ! $bvalflag ) {
-       pp_addpm( '   my $tmp = $pdl->clump(-1)->slice("0:0");' . "\n" );
+       pp_addpm( '   my $tmp = $pdl->flat()->slice("0:0");' . "\n" );
    } else {
        pp_addpm(<<'!NO!SUBS!');
-   # have to be careful about the first element begin bad
+   # ensure we pick an element that is not equal to the bad value
+   # (is this OTT?)
    my $tmp;
    if ( $pdl->badflag() == 0 ) {
-      $tmp = $pdl->clump(-1)->slice("0:0");
-   } else { 
-      # this loop assumes there's at least one good pixel - too lazy to fix
-      my $index = 0;
-      while ( $pdl->clump(-1)->slice("${index}:${index}")->isbad() ) { $index++; }
-      $tmp = $pdl->clump(-1)->slice("${index}:${index}");
+      $tmp = $pdl->flat()->slice("0:0");
+   } elsif ( $pdl->ngood > 0 ) {
+      my $index = which( $pdl->flat()->isbad() == 0 )->at(0);
+      $tmp = $pdl->flat()->slice("${index}:${index}");
+   } else {
+     # all bad, so ignore the type conversion and return
+     # -- too lazy to include this check in the code below,
+     #    so just copy the header clean up stuff
+     print "All elements are bad.\n" if $PDL::verbose;
+
+     delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+     $pdl->sethdr($foo);
+     $pdl->hdrcpy(1);
+     return $pdl;
    }
 
 !NO!SUBS!
-} 
+}
 
 pp_addpm(<<'!NO!SUBS!');
 
    $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element of $pdl
    $tmp = $tmp+$bzero  if $bzero  != 0;
-  
+
    $pdl = $pdl->convert($tmp->type) if $tmp->get_datatype != $pdl->get_datatype;
-   
-   $pdl *= $bscale if $bscale != 1; 
+
+   $pdl *= $bscale if $bscale != 1;
    $pdl += $bzero  if $bzero  != 0;
 
    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
