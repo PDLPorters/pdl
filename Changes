@@ -1,3 +1,4 @@
+CS  - fix box2d threading bug
 CS (25/9/2002)
     - 2.3.4 release branch merged into trunk
 TJ (13-Sep-02)

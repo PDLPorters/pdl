@@ -3,7 +3,7 @@
 
 use Test;
 BEGIN {
-    plan tests => 15;
+    plan tests => 16;
 }
 
 use PDL;
@@ -124,3 +124,12 @@ if ( $PDL::Bad::Status ) {
     my $msg = "Skipped: PDL::Bad support not available.";
     for (0..4) { skip($msg,1,1) } # skip 5 tests
 }
+# box2d bug test
+my $b = random(10,10);
+my $box = cat $b,$b,$b;
+
+my $bav = $b->box2d(3,3,0);
+my $boxav = $box->box2d(3,3,0);
+
+# all 2D averages should be the same
+tapprox($bav->sum,$boxav->clump(2)->sumover);
