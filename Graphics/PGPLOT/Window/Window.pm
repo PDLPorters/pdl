@@ -1147,12 +1147,12 @@ Plot vector as connected points
 If the 'MISSING' option is specified, those points in the C<$y> vector
 which are equal to the MISSING value are not plotted, but are skipped
 over.  This allows one to quickly draw multiple lines with one call to
-C<line>, for example to draw coastlines for maps.
+C<line>, for example to draw coastlines for maps.  
 
 =for usage
 
  Usage: line ( [$x,] $y, [$opt] )
-
+        
 The following standard options influence this command:
 
  AXIS, BORDER, COLO(U)R, LINESTYLE, LINEWIDTH, MISSING,
@@ -1164,6 +1164,49 @@ The following standard options influence this command:
  $y = sin($x)**2;
  # Draw a red dot-dashed line
  line $x, $y, {COLOR => 'RED', LINESTYLE=>3}; 
+
+=head2 lines
+
+=for ref
+
+Plot a list of vectors as discrete sets of connected points
+
+This works much like L<line|line>, but for discrete sets of connected
+points.  There are two ways to break lines: you can pass in x/y coordinates
+just like in L<line|line>, but with an additional C<pen> piddle that 
+indicates whether the pen is up or down on the line segment following
+each point (so you set it to zero at the end of each line segment you
+want to draw);  or you can pass in an array ref containing a list
+of single polylines to draw.  
+
+Happily, there's extra meaning packed into the C<pen> piddle: it
+multiplies the COLO(U)R that you set, so if you feed in boolean 
+values you get what you expect -- but you can also feed in integer
+or floating-point values to get multicolored lines. 
+
+Equally happily, even if you are using the array ref mechanism 
+to break your polylines you can feed in an array ref of C<pen> values to 
+take advantage of the color functionality or further dice your polylines.
+
+Note that, unlike L<line|line>, C<lines> has no no specify-$y-only
+calling path.  That's because C<lines> is intended more for line art than for
+plotting, so you always have to specify both $x and $y. 
+
+=for usage
+
+ Usage: $w->( $x, $y, [$pen], [$opt] );
+        $w->( $xy, [$pen], [$opt] );
+        $w->( \@xvects, \@yvects, [\@pen], [$opt] );
+        $w->( \@xyvects, [\@pen], [$opt] );
+
+The following standard options influence this command:
+ AXIS, BORDER, COLO(U)R, LINESTYLE, LINEWIDTH, MISSING,
+ JUSTIFY, SCALE, PITCH, PIX, ALIGN
+
+CAVEAT:
+
+Setting C<pen> elements to 0 prevents drawing altogether, so you 
+can't use that to draw in the background color.  
 
 =head2 points
 
@@ -1860,6 +1903,8 @@ use PDL::Types;
 use PDL::Options;
 use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
+use PDL::Slices;
+use PDL::NiceSlice;
 use SelfLoader;
 use PGPLOT;
 
@@ -3597,12 +3642,12 @@ sub _image_xyrange {
   ## origin-at-1 coordinates) and find the minimum and maximum 
   ## X and Y values of 'em all.
 
-  my @xvals = ($tr->slice("0:2")*pdl[
+  my @xvals = ($tr->(0:2)*pdl[
 				     [1, 0.5, 0.5],
 				     [1, 0.5, $nx+0.5],
 				     [1, $nx+0.5, 0.5],
 				     [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
-  my @yvals = ($tr->slice("3:5")*pdl[
+  my @yvals = ($tr->(3:5)*pdl[
 				     [1, 0.5, 0.5],
 				     [1, 0.5, $ny+0.5],
 				     [1, $ny+0.5, 0.5],
@@ -4151,11 +4196,11 @@ sub env {
       # Loop over filled contours (perhaps should be done in PP for speed)
       # Do not shade negative and 0-levels
       for ($i = 0; $i < ($ncont - 1); $i++) {
-	pgscr(16, list $fillcontours->slice(":,$i"));
+	pgscr(16, list $fillcontours->(:,$i));
 	pgsci(16);
 	pgconf($image->get_dataref, $nx, $ny,
                1, $nx, 1, $ny,
-	       list($contours->slice($i.':'.($i + 1))), $tr->get_dataref);
+	       list($contours->($i:($i+1))), $tr->get_dataref);
       }
       pgscr(16, $cr, $cg, $cb); # Restore color index 16
       pgebuf();
@@ -4185,7 +4230,7 @@ sub env {
       $self->_set_colour($labelcolour);
       foreach $label (@{$labels}) {
 	pgconl( $image->get_dataref, $nx,$ny,1,$nx,1,$ny,
-		$contours->slice("($count)"),
+		$contours->(($count)),
 		$tr->get_dataref, $label, $intval, $minint);
 	$count++;
       }
@@ -4466,6 +4511,181 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 {
   my $line_options = undef;
 
+  #
+  # lines: CED 17-Dec-2002
+  # 
+  sub lines {
+    my $self = shift;
+    
+    if(!defined($line_options)) {
+      $line_options = $self->{PlotOptions}->extend({Missing=>undef});
+    }
+    my($in,$opt) = _extract_hash(@_);
+    
+    # Parse out the options and figure out which syntax is being used
+    # This is a pain to look at but the computer does it behind your back so 
+    # what do you care? --CED
+    my($x,$y,$p);
+    
+    if(@$in == 3) {
+      release_and_barf "lines: inconsistent array refs in \$x,\$y,\$p call\n"
+	if(!((ref $in->[0] eq 'ARRAY') ^ (ref $in->[1] eq 'ARRAY')));
+      
+      ($x,$y) =   (ref $in->[0] eq 'ARRAY') ? 
+	($in->[0],$in->[1]) : ([$in->[0]],[$in->[1]]);
+      
+      $p = (ref $in->[2] eq 'ARRAY') ? $in->[2] : [$in->[2]];
+    }
+    elsif(@$in == 2) { # $xy, $p  or $x,$y (no-$p)
+      my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
+      my($b) = (ref $in->[1] eq 'ARRAY') ? $in->[1] : [$in->[1]];
+      
+      release_and_barf " lines: \$xy must be a piddle\n"
+	unless(UNIVERSAL::isa($a->[0],'PDL'));
+      
+      if(  ( ref $in->[0] ne ref $in->[1] ) ||   
+	   ( ! UNIVERSAL::isa($b->[0],'PDL') ) ||
+	   ( $a->[0]->ndims > $b->[0]->ndims )
+	   ) { # $xy, $p case -- split $xy into $x and $y.
+	
+	foreach $_(@$a){
+	  push(@$x,$_->((0)));
+	  push(@$y,$_->((1)));
+	}
+	$p = $b;
+	
+      } else {  # $x,$y,(omitted $p) case -- make default $p.
+	$x = $a;
+	$y = $b;
+	$p = [1];
+      }
+    }
+    
+    elsif(@$in == 1) { # $xy,(omitted $p) case 
+      my($a) = (ref $in->[0] eq 'ARRAY') ? $in->[0] : [$in->[0]];
+      
+      foreach $_(@$a) {
+	push(@$x,$_->((0)));
+	push(@$y,$_->((1)));
+      }
+      $p = [1];
+    }
+    
+    else {
+      release_and_barf " lines: ".scalar(@$in)." is not a valid number of args\n";
+    }
+
+    release_and_barf "lines: x and y lists have different numbers of elements" 
+      if($#$x != $#$y);
+
+    release_and_barf "lines: \$o->\{Missing\} must be an array ref if specified\n" if (defined $o->{Missing} && ref $o->{Missing} ne 'ARRAY');
+    
+    ##############################
+    # Now $x, $y, and $p all have array refs containing their respective
+    # vectors.  Set up pgplot (copy-and-pasted from line; this is probably
+    # the Wrong thing to do -- we probably ought to call line directly).
+    #
+
+    &catch_signals;
+    
+    $opt = {} unless defined($opt);
+    my($o,$u_opt) = $self->_parse_options($line_options,$opt);
+    
+    $self->_check_move_or_erase($o->{Panel},$o->{Erase});
+    my $held = $self->held();
+    unless ($held) {
+      my($ymin,$ymax,$xmin,$xmax) = (
+				     zeroes(scalar(@$y)),
+				     zeroes(scalar(@$y)),
+				     zeroes(scalar(@$y)),
+				     zeroes(scalar(@$y))
+				     );
+      my $thunk = sub {
+	my($range) = shift; 
+	if(ref $range eq 'ARRAY') { 
+	  $min .= $range->[0]; 
+	  $max .= $range->[1];
+	  return;
+	}
+	my($vals,$missing,$min,$max) = @_;
+	my($mask) = (isfinite $vals);
+	$mask &= ($vals != missing) if(defined $missing);
+	my($a,$b) = minmax(where($vals,$mask));
+	$min .= $a;
+	$max .= $b;
+      };
+      for my $i(0..$#$x) {
+	my $miss = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
+	&$thunk($o->{XRange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)));
+	&$thunk($o->{YRange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)));
+      }
+
+      $xmin = $xmin->min;
+      $xmax = $xmax->max;
+      $ymin = $ymin->min;
+      $ymax = $ymax->max;
+      
+      if($xmin==$xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if($ymin==$ymax) { $ymin -= 0.5; $ymax += 0.5; }
+      
+      print "lines: xmin=$xmin; xmax=$xmax; ymin=$ymin; ymax=$ymax\n"
+	if($PDL::verbose);
+      $self->initenv($xmin,$xmax,$ymin,$ymax,$opt);
+    }
+
+    $self->_save_status();
+    $self->_standard_options_parser($u_opt);
+
+    # Loop over everything in the list
+    for my $i(0..$#$x) {
+      my($xx,$yy) = ($x->[$i],$y->[$i]);
+      my($pp) = $#$p ? $p->[$i] : $p->[0];  # allow scalar pen in array case
+      my($miss) = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
+      my($n) = $xx->nelem;
+
+
+      $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
+      $pp = zeroes($xx)+$pp 
+	if($pp->nelem == 1);
+      
+      my($pn,$pval) = rle($pp);
+      my($pos,$run,$rl) = (0,0,0);
+
+      # Within each list element loop over runs of pen value
+      while($rl = $pn->at($run)) {  # assignment
+	my($pv);
+	if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
+	  my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
+	  my $x0 = float $xx->($pos:$top);
+	  my $y0 = float $yy->($pos:$top);
+	  
+	  $self->_set_colour($pv * (defined $o->{Colour} ? $o->{Colour} : 1));
+
+	  ($x0,$y0) = $self->checklog($x0,$y0) if $self->autolog;
+	  
+	  if(defined($miss)) {
+	    my $mpt = defined $miss ? $miss->($pos:$top) : undef;
+	    pggapline($rl,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
+	  } else {
+	    pgline($rl,$x0->get_dataref,$y0->get_dataref);
+	  }
+	  
+	  $self->hold();
+	}
+	
+	$pos += $rl;
+	$run++;
+      } # end of within-piddle polyline loop
+    } # end of array ref loop
+    
+    $self->_restore_status();
+    $self->_add_to_state(\&lines,$in,$opt);
+
+    $self->release() unless($held);
+
+    &release_signals;
+    1;
+  }
 
   sub line {
     my $self = shift;
@@ -5066,10 +5286,10 @@ EOD
       $n = $t[0];
       $ctab   = float($ctab) if $ctab->get_datatype != $PDL_F;
       my $nn = $n-1;
-      $levels = $ctab->slice("0:$nn,0:0");
-      $red    = $ctab->slice("0:$nn,1:1");
-      $green  = $ctab->slice("0:$nn,2:2");
-      $blue   = $ctab->slice("0:$nn,3:3");
+      $levels = $ctab->(0:$nn,0:0);
+      $red    = $ctab->(0:$nn,1:1);
+      $green  = $ctab->(0:$nn,2:2);
+      $blue   = $ctab->(0:$nn,3:3);
     } else {
       ($levels, $red, $green, $blue, $contrast, $brightness) = @arg;
       $self->_checkarg($levels,1);  $n = nelem($levels);

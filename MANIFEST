@@ -570,6 +570,8 @@ debian/postinst
 debian/postrm
 debian/preinst
 debian/rules
+earth-interp.pl
+earth.txt
 m51.fits
 pdldoc.PL
 perldl.PL

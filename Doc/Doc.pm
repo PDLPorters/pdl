@@ -48,7 +48,7 @@ use PDL::Pod::Parser;
 sub new {
   my ($type) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS|NAME");
+  $parser->select("METHODS|OPERATORS|CONTRUCTORS|FUNCTIONS|NAME");
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
   $parser->{INBLOCK} = 0;
@@ -741,7 +741,7 @@ sub extrdoc {
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS/$func(\\(.*\\))*\\s*");
+  $parser->select("FUNCTIONS/$func(\\(.*\\))*\\s*","OPERATORS/$func(\\(.*\\))*\\s*","CONSTRUCTORS/$func(\\(.*\\))*\\s*","METHODS/$func(\\(.*\\))*\\s*");
   $parser->parse_from_filehandle($in,$out);
 }
 

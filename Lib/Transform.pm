@@ -192,7 +192,7 @@ $VERSION = "0.7";
 BEGIN {
    use Exporter ();
    @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_shift t_pincushion );
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_shift t_pincushion t_spherical );
    @EXPORT = @EXPORT_OK;
    %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 }
@@ -267,8 +267,6 @@ changes.
 sub apply {
   my($me) = shift;
   my($from) = shift;
-
-  print "PDL::Transform::apply...\n";
 
   return &{$me->{func}}($from,$me->{params})
     if defined($me->{func});
@@ -805,7 +803,7 @@ mechanism or by direct call using the exported C<t_<name>> subroutine.
 
 =head2 t_inverse 
 
-=for usage 
+=for usage
 
   $t2 = t_inverse($t);
   $t2 = $t->inverse;
@@ -2091,8 +2089,10 @@ comes online (a la Math::Units) any angular unit should be OK.
 
 =back
 
-sub t_spherical { new PDL::Transform::Spherical(@_); }
+=cut
+
 @PDL::Transform::Spherical::ISA = ('PDL::Transform');
+sub t_spherical { new PDL::Transform::Spherical(@_); }
 
 sub PDL::Transform::Spherical::new {
     my($class) = shift;
@@ -2102,6 +2102,9 @@ sub PDL::Transform::Spherical::new {
     }
 
     my($me) = PDL::Transform::new($class);
+
+    $me->{params}->{indim} = 3;
+    $me->{params}->{outdim} = 3;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
     $me->{params}->{origin} = PDL->zeroes(3)
@@ -2120,19 +2123,19 @@ sub PDL::Transform::Spherical::new {
 	my($data,$o) = @_;
 	my($d) = $data->copy - $o->{origin};
 
-	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2));
-	my($out) =   ($d->is_inplace) ? $data ? $data->copy;
+	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
+	my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
 	$out->((0)) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-	$out->((1)) .= asin($d2 / $r);
-	$out->((2)) .= atan2($d1, -$d0);
+	$out->((1)) .= atan2($d1, $d0);
+	$out->((2)) .= asin($d2 / $out->((0)));
 
 
 	$out->(1:2) *= $o->{angunit}
 	  if(defined $o->{angunit});
 	
 	$out;
-    }
+      };
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
@@ -2147,20 +2150,27 @@ sub PDL::Transform::Spherical::new {
 	my($x,$y,$z) = 
 	    ($out->((0)),$out->((1)),$out->((2)));
 
+	my($ph,$th);
 	if(defined $o->{angunit}){
-	    $z .= $r * sin($phi / $o-
-	$z .= $r * sin($phi);
-	$x .= $r * cos($phi);
-	$y .= $x * sin($theta);
-	$x *= cos($theta);
+	  $ph = $o->{angunit} * $phi;
+	  $th = $o->{angunit} * $theta;
+	} else {
+	  $ph = $phi;
+	  $th = $theta;
+	}
 
+	$z .= $r * sin($ph);
+	$x .= $r * cos($ph);
+	$y .= $x * sin($th);
+	$x *= cos($th);
 	$out += $o->{origin};
 
 	$out;
-    }
+      };
 
     $me;
-}
+  }
+
 
 =head1 AUTHOR
 

@@ -1,3 +1,9 @@
+CED (17-Dec-2002)
+    - Minor fixes to Transform.pm
+    - Added "lines" to Window.pm
+    - Added Earth map data file to the top level of the distro.
+    - temporarily added "earth-interp.pl" to the top level of the distro.
+    - Allowed "Methods" as well as "Functions" for func list in Doc.pm
 CED (11-Dec-2002)
     - Minor fix to Windows.pm in _FITS_tr.
 CED (10-Dec-2002)
