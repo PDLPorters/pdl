@@ -1,3 +1,4 @@
+CS  - check for Astro::FITS::Version >= 1.12
 CED (17-Jun-02)
     - add fits_imag to PGPLOT interface
 CS  - allow niceslice to use the syntax
