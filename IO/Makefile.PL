@@ -17,7 +17,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
      'NAME'	=> 'PDL',
      'VERSION_FROM' => '../Basic/Core/Version.pm',
-     'PM'       => {},
+      'PM'       => { 'Dumper.pm' => '$(INST_LIBDIR)/PDL/IO/Dumper.pm' },
      'DIR'      => [ @dirs ],
 );
 
