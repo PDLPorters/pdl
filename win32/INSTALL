@@ -5,26 +5,6 @@ It's not (yet) as straightforward as it ought to be - but it's not all
 that difficult, either. If it's too much, then you can fall back on the
 binary windows version provided at http://pdl.perl.org .
 
-First up there's a MakeMaker bug to deal with. Open up your
-perl\lib\ExtUtils\MM_Win32.pm and find the subroutine 'sub xs_o'.
-If you're going to be using nmake it needs to read as follows:
-
-sub xs_o {
-return
-    '
-.xs$(OBJ_EXT):
-	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
-	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
-	';
-}
-
-If you're using dmake then it needs to be:
-
-sub xs_o {
-    return '';
-}
-
-
 To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
 ----------------------------------------------------------------------
 

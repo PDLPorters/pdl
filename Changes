@@ -1,3 +1,8 @@
+SIS 14-FEB-2005
+   Minor alteration Basic/Core/Makefile.PL to address a MakeMaker bug.
+   (Users now don't need to edit MM_Win32.pm.) Minor alterations regarding
+   definition and usage of TESTTYPE() macro with Microsoft compilers
+   in pdlcore.c.PL. Update win32/INSTALL to reflect changes.
 SIS 12-FEB-2005
    Tidy up some things relating to Win32. All alterations of a minor nature.
    Files affected were Makefile.PL, Basic/Core/Dev.pm, Basic/Core/Makefile.PL,
