@@ -1841,6 +1841,7 @@ require DynaLoader;
 bootstrap PDL::Graphics::PGPLOT::Window;
 $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 
+
 ####
 # Helper routines to handle signal avoidance:
 # cpgplot doesn't take well to being interrupted, so we mask out INT
@@ -1848,12 +1849,14 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 # those INTs, so we need a handler that marks 'em.
 #
 # You call catch_signals with no arguments.  INT and __DIE__ signals
-# are sent to the signal_catcher, and released (if any are caught) in
+# are sent to the signal_catcher, and released, not necessarily in 
 # the order they occured, by release_signals.  
 #
-# To avoid problems with nested catch_signals() and release_signals() calls,
-# a variable keeps track of balancing the two.  No signals are actually
-# released until you undo all of 'em.
+# To avoid problems with nested &catch_signals and &release_signals calls,
+# a variable keeps track of balancing the two.  Ideally, no signals would
+# actually be released until you undo all of 'em -- but the code is meant
+# to be forgiving, so the third caught INT signal in a row gets released,
+# to be trapped in the usual way.
 #
 # catch_signals catches the __DIE__ pseudosignal, but barf() doesn't
 # throw it -- so remember to release signals before barfing!
@@ -1862,11 +1865,28 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 # if you want to defer any other signal you can simply add it to the 
 # list in catch_signals.  
 #
-# Don't try to parse arguments within catch_signals unless you first do a 
-# global search-and-replace "&catch_signals;"->"&catch_signals()".
+# Don't try to parse arguments within catch_signals -- the omitted-() call
+# is extra fast but doesn't set @_!
 #
 #  --CED 9-Aug-2002
 ####
+
+=head2 signal_catcher, catch_signals, release_signals
+
+To prevent pgplot from doing a fandango on core, we have to block interrupts
+during PGPLOT calls.  Specifically, INT needs to get caught.  These internal 
+routines provide a mechanism for that.  
+
+You simply bracket any PGPLOT calls with C<&catch_signals> above and
+C<&release_signals> below, and the signal_catcher will queue up any
+signals (like INT -- the control-C interrupt) until the
+C<&release_signals> call.
+
+Any exit path (including C<barf()>) from your hot code must include
+C<&release_signals>, or interrupts could be deferred indefinitely (which
+would be a bug).
+
+=cut
 
 my %sig_log;
 my @sig_log;
