@@ -33,8 +33,8 @@ required steps.
      my $pdl  = $class->new;
      $pdl->set_datatype($PDL_B);
      my @dims = (1,3,4);
-     my $sz = 1;
-     for (@dims) { $sz *= $_ }
+     my $size = 1;
+     for (@dims) { $size *= $_ }
      $pdl->setdims([@dims]);
      my $dref = $pdl->get_dataref();
 
