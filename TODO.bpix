@@ -21,14 +21,6 @@ Problems:
 
 .) improve the tests
 
-.) remove 'UseBadforNan => 1' and replace with something like
-   'NoBadifNaN' (if true then can ignore the BadCode/...
-   segment - ir opposite logic to UseBadforNaN)
-
-.) Revamp PDLCode.pm - have an object whose get_str() does something 
-   like 'if ( badflag ) { badcode } else { goodcode }' - this would
-   mean we don't need the same number of threadloop's etc in good/badcode
-
 .) looks like starlink's byte goes from -127 to 127 - ie not unsigned.
 
 Suggestions/To do:
@@ -36,14 +28,14 @@ Suggestions/To do:
 
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix
-   I've started labelling routines which will have to use the BadCode
-   section even when using NaN's by 'UseBadforNaN => 1' - this
-   doesn't yet do anything.
+   I've started labelling routines which could ignore the BadCode
+   section by 'NoBadifNaN => 1' - a previous attempt has left 
+   'UseBadifNaN => 1' dotted around the place, these need to be
+   removed.
 
 .) 'bad-ify' the rest of the code...
 
-.) do any more routines need to be converted to work inplace (done
-   replacebad)?
+.) do any more routines need to be converted to work inplace?
 
 .) divide in ops.pd should trap '/ 0' cases as well. also special cases 
    for sqrt(), log ... and integration with NaN support

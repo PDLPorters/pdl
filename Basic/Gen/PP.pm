@@ -306,7 +306,7 @@ use PDL::PP::PDLCode;
 
 $|=1;
 
-# don't bother with strictness here, as it ewould mean to much to change
+# don't bother with strictness here, as it would mean to much to change
 no strict;
 
 $PDL::PP::deftbl =
@@ -496,9 +496,10 @@ $PDL::PP::deftbl =
  # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
- [[CallCopy], [DimObjs, USParNames, USParObjs, Name], 
+ [[CallCopy], [DimObjs, USParNames, USParObjs, Name, HASP2Child],             
  	sub{ 
-	    my ($dimObj, $USParNames, $USParObjs, $Name) = @_;
+	    my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
+	    return 0 if $hasp2c;
 
 	    my $noDimmedArgs = scalar(keys %$dimObj);		
 	    my $noArgs = scalar(@$USParNames);		
@@ -711,7 +712,8 @@ $PDL::PP::deftbl =
  [[NewXSCoerceMustSubs], [NewXSCoerceMustSub1,NewXSSymTab,Name],	"dosubst"],
  [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}],
 
- [[NewXSFindBadStatusNS], [BadFlag,_FindBadStatusCode,NewXSArgs,USParObjs,OtherParTypes,NewXSSymTab], 
+ [[NewXSFindBadStatusNS], 
+    [BadFlag,_FindBadStatusCode,NewXSArgs,USParObjs,OtherParTypes,NewXSSymTab,Name], 
     "findbadstatus",
     "Rule to find the bad value status of the input piddles"],
 
@@ -931,9 +933,7 @@ sub translate {
   } # RULE:
 #	print Dumper($pars);
     print "GOING OUT!\n" if $::PP_VERBOSE;
-
-    use strict;
-
+    use strict; # a bit pointless ?
     return $pars;
 } # sub: translate()
 
@@ -2013,7 +2013,7 @@ sub get_badstate {
 # not sure.
 #
 sub findbadstatus {
-    my ( $badflag, $badcode, $xsargs, $parobjs, $optypes, $symtab ) = @_;
+    my ( $badflag, $badcode, $xsargs, $parobjs, $optypes, $symtab, $name ) = @_;
     return '' unless $bvalflag;
 
     return $badcode if defined $badcode;
@@ -2065,7 +2065,7 @@ sub findbadstatus {
       printf(\"WARNING: routine does not handle bad values.\\n\");
       $clear_bad
   }\n";
-	print "\nWARNING: printing a warning about not handling bad values.\n\n"; ## DBG
+	print "\nNOTE: $name does not handle bad values.\n\n"; ## DBG
     } # if: $badflag
 
     return $str;

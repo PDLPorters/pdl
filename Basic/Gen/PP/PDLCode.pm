@@ -3,16 +3,6 @@
 #
 # This is what makes the nice loops go around etc.
 #
-# To do:
-#  rewrite bad value handling. I think we want an object that,
-#  given Code and BadCode writes something like
-#   'if (badflag) { BadCode } else { Code }'
-#  Ideally this would allow the Code and BadCode sections to
-#  use different numbers of threadloop %{ %} constructs etc
-#  One minor difficulty is that we don't want separate
-#  type loops (at least not at the moment), since that is
-#  just extra code
-#
 
 use strict;
 
@@ -61,10 +51,6 @@ sub new {
 	ParNames => $parnames,
 	ParObjs => $parobjs,
 	Gencurtype => [], # stack to hold GenType in generic loops
-	HandleBad  => $handlebad,
-	BadCode => undef, # ugly: hacky way to pass data to get_str
-        # ugly: see get_str() in BadBlock/ComplexThreadloop
-	processing_badcode => 0, 
 	types => 0,  # hack for PDL::PP::Types/GenericLoop
     }, $type;
     
@@ -77,14 +63,35 @@ sub new {
     my ( $threadloops, $coderef, $sizeprivs ) = 
 	$this->separate_code( "{$inccode\n$code\n}" );
 
+    # Now, if there is no explicit threadlooping in the code,
+    # enclose everything into it.
+    if(!$threadloops && !$dont_add_thrloop && $havethreading) {
+	print "Adding threadloop...\n" if $::PP_VERBOSE;
+	my $nc = $coderef;
+	$coderef = new PDL::PP::ThreadLoop();
+	push @{$coderef},$nc;
+    }
+
+    # repeat for the bad code, then stick good and bad into
+    # a BadSwitch object which creates the necessary
+    # 'if (bad) { badcode } else { goodcode }' code
+    #
+    # NOTE: amalgamate sizeprivs from good and bad code
+    #
     if ( $handlebad ) {
+	print "Processing 'bad' code...\n" if $::PP_VERBOSE;
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) = 
 	    $this->separate_code( "{$inccode\n$badcode\n}" );
 
-	# store bad code representation in object so that 
-	# ComplexThreadLoop can find it
-	# XXX NASTY XXX
-	$this->{BadCode} = $bad_coderef;
+	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
+	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
+	    my $nc = $bad_coderef;
+	    $bad_coderef = new PDL::PP::ThreadLoop();
+	    push @{$bad_coderef},$nc;
+	}
+
+	my $good_coderef = $coderef;
+	$coderef = new PDL::PP::BadSwitch( $good_coderef, $bad_coderef );
 
 	# amalgamate sizeprivs from Code/BadCode segmtents:
 	# fortunately sizeprivs is a simple hash, with each element 
@@ -98,27 +105,9 @@ sub new {
 	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
 	}
 
-	die "ERROR: threadloops are not the same between Code and BadCode (BadVal stuff).\n"
-	    unless $bad_threadloops == $threadloops;
-
-	# re-bless $coderef, since we want it now to be in a PDL::PP::BadBlock
-	# - IFF it includes a threadloop
-	# NOTE: is this check sufficient
-	if ( $threadloops ) {
-	    $coderef = bless $coderef, "PDL::PP::BadBlock";
-	}
-
     } # if: $handlebad
 
     print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-    # Now, if there is no explicit threadlooping in the code,
-    # enclose everything into it.
-    if(!$threadloops && !$dont_add_thrloop && $havethreading) {
-	print "Adding threadloop...\n" if $::PP_VERBOSE;
-	my $nc = $coderef;
-	$coderef = new PDL::PP::ThreadLoop();
-	push @{$coderef},$nc;
-    }
 
     # Enclose it all in a genericloop.
     unless ($nogeneric_loop) {
@@ -186,8 +175,6 @@ sub myprelude {}
 sub myitem {return "";}
 sub mypostlude {}
 
-# reason for get_str_int() is shown in the 
-# horrible hacking done in PDL::PP::ComplexThreadLoop
 sub get_str {
     my ($this,$parent,$context) = @_;
     my $str = $this->myprelude($parent,$context);
@@ -214,50 +201,30 @@ sub get_str_int {
 
 ###########################
 #
-# Encapsulate a block
-# to deal with bad code
+# Deal with bad code
+# - ie create something like
+#   if ( badflag ) { badcode } else { goodcode }
 #
-# this is to deal with bad code that uses the
-# threadloop %{ %} construct, since my
-# original hack doesn't work in this case
-# - XXX should really redesign the whole process
-#   but I don't understand it well enough...
-#
-package PDL::PP::BadBlock;
-@PDL::PP::BadBlock::ISA = "PDL::PP::Block";
+package PDL::PP::BadSwitch;
+@PDL::PP::BadSwitch::ISA = "PDL::PP::Block";
 
-# reason for get_str_int() is shown in the 
-# horrible hacking done in PDL::PP::ComplexThreadLoop
+sub new { 
+    my($type,$good,$bad) = @_;
+    return bless [$good,$bad], $type;
+}
+
 sub get_str {
     my ($this,$parent,$context) = @_;
 
-    die "Programming error: found a BadBlock when not interested in bad code\n"
-	unless exists $parent->{HandleBad} and $parent->{HandleBad};
+    my $good = $this->[0];
+    my $bad  = $this->[1];
 
-    # just use the default value if we're not bothered
-    # with bad code
-#    return $this->SUPER::get_str($parent,$context) unless 
-#	exists $parent->{HandleBad} and $parent->{HandleBad};
+    my $str = "if ( \$PRIV(bvalflag) ) { /*** do 'bad' Code ***/\n";
+    $str .= $bad->get_str($parent,$context);
+    $str .= "} else { /*** else do 'good' Code ***/\n";
+    $str .= $good->get_str($parent,$context);
+    $str .= "}\n";
 
-    die "PROGRAMMING ERROR: entered BadBlock's get_str() when already processing BadCode.\n"
-	if $parent->{processing_badcode};
-    $parent->{processing_badcode} = 1;
-
-    # NOTE: $badcode is going to be a PDL::PP::Block
-    my $badcode = $parent->{BadCode};
-    die "PROGRAMMING ERROR: expected \$parent->{BadCode} to contain data."
-	unless defined $badcode;
-
-    my $prelude  = $this->myprelude($parent,$context);
-    my $postlude = $this->mypostlude($parent,$context);
-
-    my $str = "if ( \$PRIV(bvalflag) ) {\n$prelude";
-    $str .= $badcode->get_str_int($parent,$context);
-    $str .= "$postlude\n} else { /*** else do 'good' Code ***/\n$prelude";
-    $str .= $this->get_str_int($parent,$context);
-    $str .= "$postlude}\n";
-
-    $parent->{processing_badcode} = 0;
     return $str;
 }
 
@@ -300,10 +267,10 @@ sub mypostlude { my($this,$parent,$context) = @_;
 ###########################
 #
 # Encapsulate a generic type loop
-
 #
-# I have commented out the #define/#undef of the THISISxxx macros
-# to reduce the size of the xs code (it got in my way)
+# we use the value of $parent->{types} [set by a PDL::PP::Types object]
+# to determine whether to define/undefine the THISISxxx macros
+# (makes the xs code easier to read)
 #
 package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
@@ -468,66 +435,14 @@ sub mypostlude {my($this,$parent,$context) = @_;
  '
 }
 
-# we over-ride the get_str in PDL::PP::Block so that we can
-# handle the case of a threadloop when bad value handling is
-# requested and code is supplied
-#
-# IF we have bad code, then the $coderef for that bit of code
-# is actually stored in $parent, rather than within $this,
-# since I don't see an easy way to store it in $this (at first
-# I thought $#$this == 0, but that's not true (eg see intover 
-# in primitive.pd)
-#
-# NOTE: to allow BadCode when using 'threadloop %{', I have
-# had to hack things further. It's now in a situation when a
-# re-write is required, but I don't have the time/energy to
-# do it. Now we fall back to the original behaviour (ie use
-# Block's get_str) IFF we are already processing bad values
-# - which will be if we have a BadBlock)
-#
-#   XXX this is truly nasty XXX
-#
-sub get_str {
-    my ($this,$parent,$context) = @_;
-
-    # just use the default value if we're not bothered
-    # with bad code - INCLUDES if we're already processing
-    # bad values
-    return $this->SUPER::get_str($parent,$context) 
-	unless 
-	    exists $parent->{HandleBad} and $parent->{HandleBad} and 
-		$parent->{processing_badcode} == 0;
-
-    $parent->{processing_badcode} = 1;
-
-    # NOTE: $badcode is going to be a PDL::PP::Block
-    my $badcode = $parent->{BadCode};
-    die "PROGRAMMING ERROR: expected \$parent->{BadCode} to contain data."
-	unless defined $badcode;
-
-    my $prelude  = $this->myprelude($parent,$context);
-    my $postlude = $this->mypostlude($parent,$context);
-
-    my $str = "if ( \$PRIV(bvalflag) ) {\n$prelude";
-    $str .= $badcode->get_str_int($parent,$context);
-    $str .= "$postlude\n} else {\n$prelude";
-    $str .= $this->get_str_int($parent,$context);
-    $str .= "$postlude}\n";
-
-    $parent->{processing_badcode} = 0;
-    return $str;
-
-} # get_str()
-
 ###########################
 #
 # Encapsulate a types() switch
 #
-# I've disabled this (any use will cause the compilation to die)
-# just to see if anyone uses it - if it's actually needed then
-# PDL::PP::GenericLoop (above) needs several lines uncommented
+# horrible hack:
+#  set $parent->{types} if we create this object so that
+#  PDL::PP::GenericLoop knows to define the THISIS ... macros
 #
-
 package PDL::PP::Types;
 use Carp;
 @PDL::PP::Types::ISA = "PDL::PP::Block";

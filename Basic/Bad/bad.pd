@@ -496,6 +496,8 @@ EOD
 
 } # sub: projectdocs()
 
+# perhaps these should have pm code which returns the
+# answer if the bad flag is not set
 pp_def(
        'nbadover',
        HandleBad => 1,
@@ -564,10 +566,28 @@ EOD
 } # for $op
 
 # NOTE: the Code section uses SETBAD 
+#
+# if uncomment hdrcode, can do
+#   $a = sequence(3,3)
+#   $b = $a->copy
+#   $b->inplace->setbadif( $a % 2 )
+#
+# but NOT
+#   $b->inplace->setbadif( $b % 2 )
+# which barf's:
+#   PDL: PDL::Bad::setbadif(a,mask,b): Parameter 'mask'
+#   PDL barfed: Mismatched implicit thread dimension 0: should be 5, is 0           
+#
+
 pp_def(
     'setbadif',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
+#    HdrCode => 
+#    'if (a->state & PDL_INPLACE) {
+#        a->state &= ~PDL_INPLACE; /* unset */
+#        b = a;  /* discard output value, leak? */
+#     }',
     Code =>
     'if ( $mask() ) {
         $SETBAD(b());
@@ -589,14 +609,19 @@ pp_def(
 Set elements bad based on the supplied mask, otherwise
 copy across the data.
 
-Is this sensible?
-
 =for example
 
- $a = random(10,10);
- $a = $a->setbadif( $a > 0.8 );
+ $a = sequence(5,5);
+ $a = $a->setbadif( $a % 2 );
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 1
+
+Currently can not be done inplace - I would like the following
+to work but it barfs, so the code has been removed:
+
+ $a->inplace->setbadif( $a % 2 )
+ PDL: PDL::Bad::setbadif(a,mask,b): Parameter ' . "'mask'" . '
+ PDL barfed: Mismatched implicit thread dimension 0: should be 5, is 0
 
 ',
        BadDoc =>
@@ -611,9 +636,12 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
-    # need for threadloop is due to limitations of hacked PDLCode
-    # and my lack of desire to sort it out
-    Code => 'threadloop %{ $b() = $a(); %}',
+    HdrCode => 
+    'if (a->state & PDL_INPLACE) {
+        a->state &= ~PDL_INPLACE; /* unset */
+        b = a;  /* discard output value, leak? */
+     }',
+    Code => '$b() = $a();',
     BadCode => 
 '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
  threadloop %{
@@ -625,22 +653,17 @@ pp_def(
  %}',
     CopyBadStatusCode => 
     '$SETPDLSTATEGOOD(b);',  # always make sure the output is 'good'
-    HdrCode => 
-    'if (a->state & PDL_INPLACE) {
-        a->state &= ~PDL_INPLACE; /* unset */
-        b = a;  /* discard output value, leak? */
-     }',
     Doc => 
 '
 =for ref
 
 Replace any bad values by a (non-bad) value. 
 
-I<NOTE>: does this work inplace? It should do.
+Can be done inplace.
 
 =for example
 
- $a = $a->replacebad(23); 
+ $a->inplace->replacebad(23); 
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 0
 
@@ -656,6 +679,11 @@ pp_def(
     'copybad',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
+    HdrCode => 
+    'if (a->state & PDL_INPLACE) {
+        a->state &= ~PDL_INPLACE; /* unset */
+        b = a;  /* discard output value, leak? */
+     }',
     Code =>
     '$b() = $a();',
     BadCode =>
@@ -663,11 +691,6 @@ pp_def(
         $SETBAD(b());
      } else {
         $b() = $a();
-     }',
-    HdrCode => 
-    'if (a->state & PDL_INPLACE) {
-        a->state &= ~PDL_INPLACE; /* unset */
-        b = a;  /* discard output value, leak? */
      }',
     Doc => 
 '

@@ -92,6 +92,7 @@ WriteMakefile(
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => ['perldl', 'pdldoc'],
 	      'PM' => { @podpms }, # so that the script docs are picked up                 
+	      'MAN3PODS' => {}, # don't pick up the script pods again                        
 # 'OPTIMIZE'  => '-g',		  # If you want to debug, uncomment this.
 	      'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},

@@ -136,6 +136,7 @@ my $func;
 foreach $func (@ufuncs1) {
     pp_def($func,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Doc => $doco{$func},
@@ -147,6 +148,7 @@ foreach $func (@ufuncs1) {
 foreach $func (@ufuncs1g) {
     pp_def($func,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   Pars => 'a(); [o]b();',
 	   Doc => $doco{$func},
 	   Code => code_ufunc($func),
@@ -157,6 +159,7 @@ foreach $func (@ufuncs1g) {
 foreach $func (@bifuncs1) {
     pp_def($func,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
 	   Doc => $doco{$func},
 	   Code => code_bifunc($func),
@@ -168,6 +171,7 @@ foreach $func (@bifuncs1) {
 foreach $func (@ufuncs2) {
     pp_def($func,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Doc => $doco{$func},
@@ -180,6 +184,7 @@ foreach $func (@besufuncs) {
     my $fname = "bess$func";
     pp_def($fname,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); [o]b();',
 	   Doc => $doco{$fname},
@@ -192,6 +197,7 @@ foreach $func (@besbifuncs) {
     my $fname = "bess$func";
     pp_def($fname,
 	   HandleBad => 1,
+	   NoBadifNaN => 1,
 	   GenericTypes => ['F','D'],
 	   Pars => 'a(); int n(); [o]b();',
 	   Doc => $doco{$fname},
@@ -233,6 +239,7 @@ pp_def(
 pp_def(
        "erfi",
        HandleBad => 1,
+       NoBadifNaN => 1,
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
        Doc => $doco{"erfi"},
@@ -248,6 +255,7 @@ pp_def(
 pp_def(
        "ndtri",
        HandleBad => 1,
+       NoBadifNaN => 1,
        GenericTypes => ['F','D'],
        Pars => 'a(); [o]b()',
        Doc => $doco{"ndtri"},
@@ -415,7 +423,6 @@ pp_def("squaretotri",
 
 Convert a symmetric square matrix to triangular vector storage
 
-=cut
 ',
 );
 

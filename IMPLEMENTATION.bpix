@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/20/00
+ last update: 07/27/00
 
 --------------------------------------------------------------------------------
 
@@ -151,28 +151,16 @@ leaving Code as it is. PP::PDLCode will then create a loop something like
 
 it's probably easier to just look at the .xs file to see what goes on.
 
-As of 07/20/00, it should now be able to handle BadCode which uses the 
-'threadloop %{ ... %}' construction (previously it would cause recursion
-until the VM was eaten up).
-
-NOTE: the above relies on horrible hacking of PDL::PP::Code and
-PDL::PP::ComplexThreadLoop (eg PP/PDLCode.pm), since I couldn't see a way, 
-using the current system, to get a loop like the above. If you can, 
-please implement! [it's got even worse with the changes necessary to
-support 'threadloop']
+As of 07/27/00, PDLCode.pm has been rewritten. It's no longer such a hack,
+and now you don't need to have the same number of 'threadloop %{ %}'
+in Code and BadCode.
 
 Similar to BadCode, there's BadBackCode, and BadRedoDimsCode.
 
-Handling EquivCPOffsCode is a bit different: I *assume* that it will NOT
-contain 'loop %{', 'threadloop %{' etc, which means that we can't rely on
-PP::ComplexThreadLoop (in PP/PDLCode) to create something like
-  if ( __trans->bvalflag ) { bad code } else { good code }.
-
-However, it does *appear* that 'bad code' can be automatically generated
-by a simple transform of 'good code' - the expansion of $EQUIVCPOFFS(i,j)
-just needs to deal with the possibility of bad values. Therefore, we do
-NOT have to specify a 'BadEquivCPOffsCode', and let the [EquivCPOffsCode]
-and [Code] rules generate it automatically.
+Handling EquivCPOffsCode is a bit different: under the assumption that the
+only access to data is via the '$EQUIVCPOFFS(i,j)' macro, then we can 
+automatically create the 'bad' version of it; see the [EquivCPOffsCode]
+and [Code] rules.
 
 Macros have been provided to provide access to the bad-flag status of 
 a pdl:
@@ -205,23 +193,23 @@ Short answer: because I don't know how.
 After talking with Tim Jenness, it looks like it should be able to get
 the code to use NaN's as bad values if available - this should mean we can
 skip the checks for bad values in the C code, since f(x) with x = NaN
-produces NaN, and does it quickly (apparently). 
+produces NaN, and does it quickly (apparently). However, many routines would
+remain unchanged (eg counting the number of bad values, or summing up all the
+values).
 
 Basically, PP.pm would ignore the BadCode/BadBackCode/etc pp_def()
 options, just using the Code/... options instead. The supporting code
 would still be used (ie for setting the bad flag on output piddles etc).
-I would add a rule 'NaNFlag' to PP.pm - something similar to 'BadFlag'
-which is true of $bvalflag is true and the system supports NaN. This
-would then be added to the requirements for the rules which use BadCode/
-whatever and then it's just a case of updating the subroutines.
-
 Some routines would still need explicit code to handle NaN values (eg min, 
-max, median - see primitive.pd). I have started adding the poorly-named
-option 'UseBadforNaN => 1' to these routines - although at present it is
-ignored. In the future, PP.pm should use the BadCode/... options with a
-different expansion for the $ISBAD() etc macros [if that's even necessary].
-If a routine has no 'UseBadforNaN' rule then we can just use the Code section, 
-ignoring BadCode/etc.
+max, median - see primitive.pd) - we should be able to use the existing
+BadCode/etc values for these.
+
+I have started adding the poorly-named option 'NoBadifNaN => 1'
+to those routines which should be able to ignore the BadCode options.
+It's currently a NOP, and only added to bad.pd and math.pd. Other files
+still contain the option 'UseBadforNaN', which I'd added to flag those 
+routines which would need to retain the BadCode segment. However, there are 
+more of the latter than the former, hence the switch (I'm lazy).
 
 The PDL::PP::BadAccess, PDL::PP::BadVarAccess, and PDL::PP::PPBadAccess objects 
 in Basic/PP/PDLCore.pm *MAY* need updating to produce different code depending 

@@ -1,5 +1,8 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (07/27/00)
+   - changed PP/PDLCode.pm to greatly improve the handling of 'bad' code. It's
+     almost not a horrible hack now ;)
 Doug Burke (07/26/00)
    - PDL::Tests - routine names now begin with 'test_' (see t/pptest.t)
    - Added 'dsumover/dcumusumover/dsum' (and same for prod) to primitive.pd -
@@ -7,7 +10,8 @@ Doug Burke (07/26/00)
      input piddle (without converting the input piddle during the calculation)
      Also added prod, a wrapper around prodover, as sum is a wrapper around 
      sumover and dprod,dsum. changed stats to use dsum() rather than sum()
-   - removed UseBadforNaN from primitive.pd, bad.pd, added NoBadifNaN to ops.pd
+   - removed UseBadforNaN from primitive.pd, bad.pd, added NoBadifNaN to 
+     ops.pd and math.pd
    - changed PDLCode to use THISIS macros if actually used by code, rather than
      dying (un-tested)
    - hacked PDL::IO::NDF to read/write the bad value flag (incomplete) and 
