@@ -203,6 +203,8 @@ Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
+Graphics/PGPLOT/PGPLOT.xs
+Graphics/PGPLOT/typemap
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/OpenGL.m
