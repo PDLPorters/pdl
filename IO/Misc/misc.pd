@@ -478,6 +478,10 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      $h->{SIMPLE} = 'T';
      my(@a) = $hdr->itembyname('SIMPLE');
      $a[0]->comment('Created with PDL (http://pdl.perl.org)');
+
+     # and register it as a LOGICAL rather than a string
+     $a[0]->type('LOGICAL');
+
      
      #
      # Use tied interface to set all the keywords.  Note that this

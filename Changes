@@ -1,3 +1,5 @@
+TJ (2002-09-20) - wfits should now write SIMPLE as logical with
+      Astro::FITS::Header
 TJ  - wfits now works correctly with Astro::FITS::Header
 TJ  - Paper over weirdness in PDL::GSL build when Slatec is disabled. 
 TJ  - func.t was failing if Slatec was not available. This was because
