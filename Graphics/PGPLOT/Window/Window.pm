@@ -4387,17 +4387,31 @@ sub fits_imag {
       unless (scalar(keys %$hdr) || !$PDL::debug);
 
 
-  # $ic gets the image center, in data coordinates.  That's why the 
-  # $hdr->{NAXIS1}/2 is in there.  
+  # $ic gets the image center, in data coordinates.  Looks more
+  # complex than it is, because of all the paranoid default values
+  # embedded in the expression.
 
-  my($ic) = [ defined($hdr->{CRPIX1}) ? 
-		    $hdr->{CDELT2} * ($hdr->{NAXIS1}/2 - $hdr->{CRPIX1} + 1 ) + ( $hdr->{CRVAL1} ) : 
-		    0
-		    ,
-		    
-		    defined($hdr->{CRPIX2}) ?
-		    $hdr->{CDELT2} * ($hdr->{NAXIS2}/2 - $hdr->{CRPIX2} + 1 ) + ( $hdr->{CRVAL2} ) : 
-		    0
+  my($ic) = [ (   ($hdr->{CDELT1} || 1.0) *	 
+		  (  ($hdr->{NAXIS1} || $pdl->getdim(0) )  /  2.0 
+		     -   
+		     ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
+		     + 
+		     1 
+		   ) 
+		  +
+		  ( $hdr->{CRVAL1} )
+	      )
+	      ,
+	      (   ($hdr->{CDELT2} || 1.0) * 
+		  (  ($hdr->{NAXIS2} || $pdl->getdim(1) )  / 2.0
+		     - 
+		     ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
+		     +
+		     1
+		  )
+		  +
+		  ( $hdr->{CRVAL2} )
+	      )
 	      ];
 
   my($transform) = $pane->transform(
@@ -4414,7 +4428,10 @@ sub fits_imag {
   delete $opt2{ytitle};
   delete $opt2{title};
   $pane->imag1($pdl,\%opt2);
-  $pane->label_axes($opt->{xtitle} . " ($hdr->{CTYPE1}) ",$opt->{ytitle} . " ($hdr->{CTYPE2}) ",$opt->{title},$opt);
+  $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
+		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
+		    $opt->{title},$opt
+		    );
 }
 
 

@@ -154,7 +154,7 @@ use vars qw (@ISA @EXPORT);
 @ISA = ('Exporter');
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag imag1 draw_wedge ctab ctab_info hi2d poly vect CtoF77coords
+	      fits_imag imag imag1 draw_wedge ctab ctab_info hi2d poly vect CtoF77coords
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
 	      tpoints tline retrieve_state replay turn_off_recording
