@@ -58,6 +58,12 @@ PDL::Graphics::PGPLOT
                                         Module builds ok without
                                         PGPLOT module and library
 
+PDL::Graphics::PLplot
+                The PLplot graphics library. See http://plplot.sourceforge.net 
+
+                                        Module builds ok without
+                                        PLplot module and library
+
 PDL::Graphics::IIS
                 To be useful an application that supports the
                 'IIS' protocol must be installed, e.g. SAOimage

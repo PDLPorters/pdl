@@ -698,4 +698,3 @@ win32/makeppm.pl
 win32/PDL.ppd
 win32/Readme
 win32/win32f77.pl
-META.yml                                 Module meta-data (added by MakeMaker)
