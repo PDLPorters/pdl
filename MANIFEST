@@ -537,6 +537,7 @@ Lib/Slatec/slatec/xermsg.f
 Lib/Slatec/slatec/xerprn.f
 Lib/Slatec/slatec/xersve.f
 Lib/Slatec/slatec/xgetua.f
+Lib/Transform.pm
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL

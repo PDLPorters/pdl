@@ -1,3 +1,7 @@
+CED (30-10-2002)
+    - Added Transform.pm version 0.5
+CED (29-10-2002)
+    - m51.fits: hand-edited the file to fix bad NAXIS tag (was 0)
 CED (25-10-2002)
     - IO/Misc.pm: removed not-so-spurious warnings from rfits (bug #626342)
     - PGPLOT/Window.pm: fixed spinlocks for PGPLOT -- now faster,
