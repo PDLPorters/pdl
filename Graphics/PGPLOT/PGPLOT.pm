@@ -17,8 +17,6 @@ PDL::Graphics::PGPLOT - PGPLOT enhanced interface for PDL
 
 PDL::Graphics::PGPLOT is an interface to the PGPLOT graphical libraries.
 
-=head1 FUNCTIONS
-
 Current display commands:
 
  imag     -  Display an image (uses pgimag()/pggray() as appropriate)
@@ -281,6 +279,8 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
 
 =back
 
+=head1 FUNCTIONS
+
 A more detailed listing of the functions and their usage follows. For
 all functions we specify which options take effect and what other options
 exist for the given function.
@@ -382,6 +382,8 @@ The following standard options influence this command:
    To see an image with maximum size in the current window, but square
    pixels, say:
          imag $a,{PIX=>1}
+   An alternative approach is to try:
+         imag $a,{JUSTIFY=>1}
    To see the same image, scaled 1:1 with device pixels, say:
          imag $a,{SCALE=>1}
    To see an image made on a device with 1:2 pixel aspect ratio, with 
@@ -392,7 +394,7 @@ The following standard options influence this command:
    To display an image with 100 micron pixels, say:
          imag $a,{PITCH=>10,UNIT=>'mm'}
 
-=head2 im
+=head2 imag1
 
 =for ref
 
@@ -400,7 +402,7 @@ Display an image with correct aspect ratio
 
 =for usage
 
- Usage:  im ( $image, [$min, $max, $transform], [$opt] )
+ Usage:  imag1 ( $image, [$min, $max, $transform], [$opt] )
 
 Notes: This is syntactic sugar for imag({PIX=>1}).
 

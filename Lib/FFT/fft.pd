@@ -292,11 +292,11 @@ sub PDL::ifftnd{
 
 pp_addpm(<<'EOD');
 
-=head2 fftconvolve(), kernctr()
+=head2 fftconvolve()
 
 =for ref
 
-N-dimensional convolution, auxiliary routine to generate `centred' kernel
+N-dimensional convolution
 
 =for usage
 
@@ -306,13 +306,29 @@ N-dimensional convolution, auxiliary routine to generate `centred' kernel
 fftconvolve works inplace, and returns an error array in kernel as an
 accuracy check -- all the values in it should be negligible.
 
-The sizes of the image and the kernel must be the same.  kernctr
+The sizes of the image and the kernel must be the same.  
+L<kernctr|/kernctr>
 centres a small kernel to emulate the behaviour of the direct
 convolution routines.
 
 The speed cross-over between using straight convolution 
 (L<PDL::Image2D::conv2d()|PDL::Image2D/conv2d>) and
 these fft routines is for kernel sizes roughly 7x7.
+
+=head2 kernctr()
+
+=for ref
+
+`centre' a kernel (auxiliary routine to fftconvolve)
+
+=for usage
+
+	$kernel = kernctr($image,$smallk);
+	fftconvolve($image,$kernel);
+
+kernctr
+centres a small kernel to emulate the behaviour of the direct
+convolution routines.
 
 =cut
 

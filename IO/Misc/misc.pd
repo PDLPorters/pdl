@@ -1303,7 +1303,8 @@ pp_def('_rasc',
                    }
                  %}
                 @,
-	Doc => 'Internal Function used by rasc. '
+#	Doc => 'Internal Function used by rasc. '
+	Doc => undef,
 );
 
 
