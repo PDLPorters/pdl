@@ -1485,6 +1485,11 @@ centered text and a value of 1.0 gives right-justified text.
 
 These gives alternative ways to specify the text and position.
 
+=item C<BackgroundColour>
+
+This sets the background colour for the text in case an opaque background
+is desired. You can also use the synonyms C<Bg> and C<BackgroundColor>.
+
 =back
 
 The following standard options influence this command:
@@ -1555,6 +1560,12 @@ C<VertSpace> option allows you to increase (or decrease) this gap in units of
 the character height; a value of 0.5 would add half a character height to the
 gap between lines, and -0.5 would remove the same distance.
 The default value is 0.
+
+=item C<BackgroundColour>
+
+This sets the background colour for the text in case an opaque background
+is desired. You can also use the synonyms C<Bg> and C<BackgroundColor>.
+
 
 =back
 
@@ -2600,30 +2611,42 @@ The routine works in the following way:
 
 =over 8
 
-=item At initialisation of the plot device the work colour index is set
+=item *
+
+At initialisation of the plot device the work colour index is set
 to 16. The work index is the index the routine will modify unless the
 user has specified something else.
 
-=item The routine should be used after standard interpretation and synonym
+=item *
+
+The routine should be used after standard interpretation and synonym
 matching has been used. So if the colour is given as input is an integer
 that colour index is used.
 
-=item If the colour is a reference the routine checks whether it is an
+=item *
+
+If the colour is a reference the routine checks whether it is an
 C<ARRAY> or a C<PDL> reference. If it is not an error message is given.
 If it is a C<PDL> reference it will be converted to an array ref.
 
-=item If the array has four elements the first element is interpreted
+=item *
+
+If the array has four elements the first element is interpreted
 as the colour index to modify and this overrules the setting for the
 work index used internally. Otherwise the work index is used and incremented
 until the maximum number of colours for the output device is reached
 (as indicated by C<pgqcol>). Should you wish to change that you need
 to read the PGPLOT documentation - it is somewhat device dependent.
 
-=item When the array has been recognised the R,G and B colours of the
+=item *
+
+When the array has been recognised the R,G and B colours of the
 user-set index or work index is set using the C<pgscr> command and we
 are finished.
 
-=item If the input colour instead is a string we try to set the colour
+=item *
+
+If the input colour instead is a string we try to set the colour
 using the PGPLOT routine C<pgscrn> with no other error-checking. This
 should be ok,  as that routine returns a rather sensible error-message.
 
@@ -2636,7 +2659,8 @@ should be ok,  as that routine returns a rather sensible error-message.
 
   sub _set_colour {
     my $self = shift;
-    my ($col) = @_;
+    my ($col, $is_textbg) = @_;
+    $is_textbg = 0 if !defined($is_textbg);
 
     # The colour index to use for user changes.
     # This is increased until the max of the colour map.
@@ -2661,10 +2685,15 @@ should be ok,  as that routine returns a rather sensible error-message.
 	} else {
   	  $work_ci += 1;
 	  # NB this does not work on devices with < 16 colours.
-	  $work_ci = 16 if $work_ci > $max_ci;
+	  $work_ci = 16 if $work_ci > $max_col;
 	}
 	pgscr($index, $r, $g, $b);
-	pgsci($index);
+
+	if ($is_textbg) {
+	  pgstbg($index);
+	} else {
+	  pgsci($index);
+	}
       } else {
 	warn "The colour option must be a number, string, array or PDL!\n";
       }
@@ -2672,7 +2701,11 @@ should be ok,  as that routine returns a rather sensible error-message.
       # Now check if this is a name that could be recognised by pgscrn.
       # To simplify the logic we first check if $col is a digit.
       if ($col =~ m/^\s*\d+\s*$/) { 
-	pgsci($col);
+	if ($is_textbg) {
+	  pgstbg($col);
+	} else {
+	  pgsci($col);
+	}
       } else {
 	#
 	# Ok, we either have an untranslated colour name or something
@@ -2680,10 +2713,14 @@ should be ok,  as that routine returns a rather sensible error-message.
 	#
 	my $ier;
 	pgscrn($work_ci, $col, $ier);
-	pgsci($work_ci);
+	if ($is_textbg) {
+	  pgstbg($work_ci);
+	} else {
+	  pgsci($work_ci);
+	}
 	$work_ci += 1;
 	# NB this does not work on devices with < 16 colours.
-	$work_ci = 16 if $work_ci > $max_ci;
+	$work_ci = 16 if $work_ci > $max_col;
       }
     }
 
@@ -4547,6 +4584,7 @@ sub poly {
 					       YPos => undef
 					      });
       $text_options->add_synonym({Justify => 'Justification'});
+      $text_options->add_synonym({Bg => 'BackgroundColour'});
     }
 
     # Extract the options hash and separate it from the other input
@@ -4572,6 +4610,12 @@ sub poly {
     barf "text: You must specify the X-position!\n" if !defined($o->{XPos});
     barf "text: You must specify the Y-position!\n" if !defined($o->{YPos});
 
+    # Added support for different background colours..
+    # 2/10/01 JB - To avoid -w noise we use a reg-exp..
+    if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
+      # Do this unless a negative integer..
+      $self->_set_colour($o->{BackgroundColour}, 1);
+    }
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
 #
@@ -4599,10 +4643,11 @@ sub poly {
 						 Height    => 'Automatic',
 						 TextFraction  => 0.5,
 						 TextShift => 0.1,
-						 VertSpace => 0,
+						 VertSpace => 0
 						     });
       $legend_options->synonyms({ VSpace => 'VertSpace' });
       $legend_options->synonyms({ Fraction => 'TextFraction' });
+      $text_options->add_synonym({Bg => 'BackgroundColour'});
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -4628,7 +4673,7 @@ sub poly {
     $o->{YPos} = $y if defined($y);
     $o->{Width} = $width if defined($width);
 
-    # We could keep accessing $o but this is more succint.
+x    # We could keep accessing $o but this is more succint.
     $text = $o->{Text};
 
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
@@ -4647,6 +4692,13 @@ sub poly {
 #    print "I found a character size of $chsz\n";
     # In the following we want to deal with an array of text.
     $text = [$text] unless ref($text) eq 'ARRAY';
+
+    ## Now, set the background colour of the text before getting further.
+    ## Added 2/10/01 - JB - test as a regexp to avoid -w noise.
+    if ($o->{BackgroundColour} !~ m/^-?\d+$/) {
+      # Do this unless a negative integer..
+      $self->_set_colour($o->{BackgroundColour}, 1);
+    }
 
     # The size of the legend can be specified by giving the width or the
     # height so to calculate the required text size we need to find the

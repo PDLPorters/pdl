@@ -126,6 +126,7 @@ use vars qw(@ISA @EXPORT_OK);
 my %options = (
 	       Device => undef,
 	       AxisColour => 3,
+	       BackgroundColour => -1, # Text background colour
 	       HardLW => 4,
 	       HardCH => 1.4,
 	       HardFont => 2,
@@ -211,6 +212,7 @@ sub default_options {
 	   Axis	       => $options{Axis},	 # Standard axis-type
 	   Transform   => $options{Transform},   # The transform used for plots.
 	   LineWidth   => $options{LineWidth},
+	   BackgroundColour => $options{BackgroundColour},
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.
 	   # Note that the arrowsize is implemented as a synonym for the
@@ -232,12 +234,19 @@ sub default_options {
 	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch',
 	   FillType => 'Fill', 'ArrowSize' => 'CharSize',
 	   AxisColor => 'AxisColour', HardAxisColor => 'HardAxisColour',
-	   HardColor => 'HardColor'};
+	   HardColor => 'HardColor', BackgroundColor => 'BackgroundColour'};
   #
   # And now for the lookup tables..
   #
   my $t = {
 	   Colour => {
+			'White' => 0, 'Black' => 1, 'Red' => 2,
+			'Green' => 3, 'Blue' => 4, 'Cyan' => 5,
+			'Magenta' => 6,	'Yellow' => 7, 'Orange' => 8,
+			'DarkGray' => 14, 'DarkGrey' => 14,
+			'LightGray' => 15, 'LightGrey' => 15
+		       },
+	   BackgroundColour => {
 			'White' => 0, 'Black' => 1, 'Red' => 2,
 			'Green' => 3, 'Blue' => 4, 'Cyan' => 5,
 			'Magenta' => 6,	'Yellow' => 7, 'Orange' => 8,
@@ -339,8 +348,14 @@ sub set_pgplot_options {
   foreach my $k (keys %o) {
     if (exists($options{$k})) {
       $options{$k} = $o{$k};
-    } elsif ($k eq 'Color') {
-      $options{Colour} = $o{Color};
+    } elsif ($k =~ /Color/) {
+      my $knew = $k;
+      $knew =~ s/Color/Colour/;
+      if (!exists($options{$knew})) {
+	warn "Option $k is not recognised!\n";
+      } else {
+	$options{$knew} = $o{$k};
+      }
     } else {
       warn "Option $k is not recognised!\n";
     }
