@@ -149,6 +149,7 @@ Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
+Graphics/Graphics2D.pm
 Graphics/IIS/Makefile.PL
 Graphics/IIS/iis.pd
 Graphics/IIS/libiis.h
