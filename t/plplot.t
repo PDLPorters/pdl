@@ -50,17 +50,20 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 #   --CED
 ###
 if($pid = fork()) {
-	waitpid($pid,0);
+	$a = waitpid($pid,0);
 } else {
+	sleep 1;
 	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>"/tmp/foo$$.xfig");
-	exit(0);
+	exit(0);	
 }
 
-ok( ($not_ok = $?)==0 , "PLplot crash test"  );
+ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
 unlink "/tmp/foo$pid.xfig";
 
 if($not_ok) {
-	printf SAVEERR <<EOERR ;
+	printf SAVEERR <<"EOERR" ;
+
+Return value $not_ok; a is $a; pid is $pid
 
 ************************************************************************
 * PLplot failed the crash test: it appears to crash its owner process. *
