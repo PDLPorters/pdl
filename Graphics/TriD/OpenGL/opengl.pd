@@ -422,9 +422,21 @@ glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
 	    if(!vi) {
 			return;
 		 }
+
+
+       hv_store(RETVAL, "GL_Version",strlen("GL_Version"), 
+               newSVpv((char *) glGetString(GL_VERSION),0),0);
+       hv_store(RETVAL, "GL_Vendor",strlen("GL_Vendor"), 
+               newSVpv((char *) glGetString(GL_VENDOR),0),0);
+       hv_store(RETVAL, "GL_Renderer",strlen("GL_Renderer"), 
+               newSVpv((char *) glGetString(GL_RENDERER),0),0);
+
+
 	
 	    /* create a GLX context */
 	    ctx = glXCreateContext(dpy, vi, NULL, GL_TRUE);
+
+
 	    if(!ctx) {
 			return;
 		 }
@@ -465,12 +477,8 @@ glpcOpenWindow(x,y,w,h,pw,event_mask, ...)
        hv_store(RETVAL, "Display", strlen("Display"), newSViv((IV) dpy),0);
        hv_store(RETVAL, "Window", strlen("Window"), newSViv((IV) win),0);
        hv_store(RETVAL, "Context", strlen("Context"),   newSViv((IV) ctx),0);
-       hv_store(RETVAL, "GL_Version",strlen("GL_Version"), 
-               newSVpv((char *) glGetString(GL_VERSION),0),0);
-       hv_store(RETVAL, "GL_Vendor",strlen("GL_Vendor"), 
-               newSVpv((char *) glGetString(GL_VENDOR),0),0);
-       hv_store(RETVAL, "GL_Renderer",strlen("GL_Renderer"), 
-               newSVpv((char *) glGetString(GL_RENDERER),0),0);
+
+
  	    /* clear the buffer */
 	    glClearColor(0,0,0,1);
        while((err = glGetError()) != GL_NO_ERROR){
