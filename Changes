@@ -1,30 +1,9 @@
-TJ (09-Sep-02)
-    - Fix valgrind warning in pdlapi.c (use of uninitialised variable in dump)
-    - PDL::IO::Storable now uses PTR2IV
-TJ/CS (09-Sep-02)
-    - Fix memory leak associated with magic
-CED (30-Aug-02)
-    - Fix to Window.pm documentation -- explains wart about panel()
-CED (29-Aug-02)
-    - minor fix to fits_imag -- axis labels
-    - Added TightLabels (boolean) and TitleSize (float) standard options
-	to control window labeling. 
-CED (28-Aug-02)
-    - minor fix to rangeb - physicalize index before checking its size
-CED (27-Aug-02)
-    - range() is now an lvalue, as are indexND and indexNDb.
-    - pdl_malloc call is now via PDL Core structure, avoiding
-	complete failure of the test suite :-)
-    - extra debugging fprintf() calls deleted.
-    - range() is a front-end to rangeb(), allowing omission of optional
-	arguments.
-    - rangeb handles boundary conditions.
-CED (26-Aug-02)
-    - slices.pd: added range (PP implementation)
-    - Incremented core_version in pdlcore.h.PL
-    - ->range doesn't spew debugging now (commented out)
-CED (20-Aug-02)
-    - slices.pd: added rangeND (first-cut implementation)
+CS  - backported a number of patches from the main branch
+      DB 9/11:	Lite.pm typo
+      TJ 9/02:	PDL::IO::Storable now uses PTR2IV
+      		Fix valgrind warning in pdlapi.c
+			(use of uninitialised variable in dump)
+      		Fix memory leak associated with magic
 CED (19-Aug-02)
     - Window.pm spinlock includes special release_and_barf to unlock signals.
 	(the Right Answer is to fix barf() to throw a __DIE__ signal;
