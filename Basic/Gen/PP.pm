@@ -1219,7 +1219,7 @@ DeePcOPY
 	 if( hdr_copy != &PL_sv_undef ) 
              SvREFCNT_inc(hdr_copy); 
 	 $names[$_]\->hdrsv = hdr_copy;
-         printf("$names[$_]: added a reference.\n");
+         printf("$names[$_]: added a reference.\\n");
        }
      if(propagate_hdrcpy)
        $names[$_]\->state |= PDL_HDRCPY;
