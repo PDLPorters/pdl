@@ -97,36 +97,24 @@ L<gnomonic|t_gnomonic> images -- that is to say, gnomonic projections
 of a portion of the celestial sphere near the paraxial direction.
 This is the projection that most consumer grade cameras produce.
 
-Wide-angle optical systems are often tuned to produce
-L<"equidistant azimuthal"|t_az_eqd> projections of a portion of the
-celestial sphere, which has the advantage that you can put an entire
-celestial hemisphere on a finite region in the focal plane.  If you
-want to interpret wide-angle celestial images then you should pick the
-projection that is appropriate for your telescope; the two projections
-are equivalent for small fields of view.
+Magnification in an optical system changes the angle of incidence
+of the rays on the focal plane for a given angle of incidence at the
+aperture.  For example, a 10x telescope with a 2 degree field of view
+exhibits the same gnomonic distortion as a simple optical system with 
+a 20 degree field of view.  Wide-angle optics typically have magnification
+less than 1 ('fisheye lenses'), reducing the gnomonic distortion 
+considerably but introducing L<"equidistant azimuthal"|t_az_eqd> distortion --
+there's no such thing as a free lunch!
 
 Because many solar-system objects are spherical,
 PDL::Transform::Cartography includes perspective projections for
 producing maps of spherical bodies from perspective views.  Those
 projections are C<"t_vertical"|t_vertical> and
 C<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
-spherical body and planar projected coordinates at the viewpoint.
-
-If you want to use the perspective transformations to interpret wide-angle
-views of Earth or other spheres from close up, you must consider whether
-your camera is a "fisheye" (equidistant azimuthal) lens or a normal
-(gnomonic) lens (typical for consumer cameras up to about a 70 degree field 
-of view).  You can tell which you have by examining the distortion around the
-outer edges of the image:  are objects stretched radially (gnomonic; simple
-lens) or tangentially (equidistant azimuthal; fisheye lens)?  To interpret a 
-perspective aerial view from a simple wide-angle lens, you can use the 
-normal perspective transform, but to interpret a fisheye lens (which uses
-the equidistant azimuthal projection) you need to use the compound transform:
-
-    ( t_az_eqd x !t_gnomonic x t_perspective(out=>angle,<options>) )
-
-which will map (lon,lat) on the Earth to focal plane angular parameters in
-your fisheye-lens camera.
+spherical body and planar projected coordinates at the viewpoint.  
+L<"t_vertical"|t_vertical> is the vertical perspective projection 
+given by Snyder, but L<"t_perspective"|t_perspective> is a fully
+general perspective projection that also handles magnification correction.
 
 =head1 TRANSVERSE & OBLIQUE PROJECTIONS; STANDARD OPTIONS
 
@@ -153,7 +141,7 @@ same direction.
 
 =item u, unit, Unit [default 'degree']
 
-This is the name of the angular unit to use.
+This is the name of the angular unit to use in the lon/lat coordinate system.
 
 =item b, B
 
@@ -176,8 +164,8 @@ This parameter is a synonym for the roll angle, above.
 
 This is the value that missing points get.  Mainly useful for the
 inverse transforms.  (This should work fine if set to BAD, if you have
-bad-value support compiled in).  The default nan is calculated at load time
-with asin(1.2).
+bad-value support compiled in).  The default nan is asin(1.2), calculated
+at load time.
 
 =back
 
@@ -213,7 +201,8 @@ transform.  Something like Math::Convert::Units should be used instead
 to generate the conversion constant. 
 
 A cleaner higher-level interface is probably needed (see the examples);
-for example, earth_coast could return a graticule if asked.
+for example, earth_coast could return a graticule if asked, instead of 
+needing one to be glued on.
 
 The class structure is somewhat messy because of the varying needs of
 the different transformations.  PDL::Transform::Cartography is a base
