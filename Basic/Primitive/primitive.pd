@@ -1,16 +1,8 @@
+use strict;
 
 # check for bad value support
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
-sub defpdl {
-    my %hash = (Pars => $_[1],
-		OtherPars => $_[2],
-		Code => $_[3]);
-    $hash{Doc} = $_[4] if $#_>3;
-    
-    pp_def($_[0],%hash);
-}
 
 pp_addhdr(<<'EOD');
 #define IsNaN(x) (x != x)
@@ -21,7 +13,7 @@ pp_addhdr(<<'EOD');
 
 EOD
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 use PDL::Slices;
 use Carp;
@@ -41,6 +33,23 @@ For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 =head1 SYNOPSIS
 
  use PDL::Primitive;
+
+=cut
+
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
+by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
+(kgb@aaoepp.aao.gov.au).
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
 
 =cut
 
@@ -71,7 +80,6 @@ I<any> dimension.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
-=cut
 
 EOD
 
@@ -105,7 +113,6 @@ is the first element of the parameter.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
-=cut
 
 EOD
 
@@ -132,6 +139,8 @@ my %over =
 foreach my $func ( keys %over ) {
 
     # creates $func and cumu$func functions
+    # and d$func and dcumu$func functions, which
+    # perform the calculations in double precision
     
     my $name = $over{$func}{name};
     my $op   = $over{$func}{op};
@@ -140,7 +149,6 @@ foreach my $func ( keys %over ) {
     pp_def(
 	   $func,
 	   HandleBad => 1,
-	   UseBadforNaN => 1,
 	   Pars => 'a(n); int+ [o]b();',
 	   Code => 
 	   '$GENERIC(b) tmp = ' . $init . ';
@@ -154,14 +162,35 @@ foreach my $func ( keys %over ) {
             %}
             if ( flag ) { $b() = tmp; }
             else        { $SETBAD(b()); }',
-	   Docs => projectdocs( $name, $func, '' ),
+	   Doc => projectdocs( $name, $func, '' ),
+	   );
+
+    # as above, but in double precision
+    pp_def(
+	   "d$func",
+	   HandleBad => 1,
+	   Pars => 'a(n); double [o]b();',
+	   Code => 
+	   'double tmp = ' . $init . ';
+	    loop(n) %{ tmp ' . $op . ' $a(); %}
+	    $b() = tmp;',
+	   BadCode => 
+	   'double tmp = ' . $init . ';
+            int flag = 0;
+	    loop(n) %{ 
+               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+            %}
+            if ( flag ) { $b() = tmp; }
+            else        { $SETBAD(b()); }',
+	   Doc => projectdocs( $name, "d$func", 
+"Unlike L<$func|/$func>, the calculations are performed in double\n" .
+"precision." ),
 	   );
 
     my $cfunc = "cumu${func}";
     pp_def(
 	   $cfunc,
 	   HandleBad => 1,
-	   UseBadforNaN => 1,
 	   Pars => 'a(n); int+ [o]b(n);',
 	   Code => 
            '$GENERIC(b) tmp = ' . $init . ';
@@ -178,29 +207,48 @@ foreach my $func ( keys %over ) {
 	          $b() = tmp;
                }
 	    %}',
-	   Docs => cumuprojectdocs( $name, $cfunc, '' ),
+	   Doc => cumuprojectdocs( $name, $cfunc, '' ),
+	   );
+
+    pp_def(
+	   "d$cfunc",
+	   HandleBad => 1,
+	   Pars => 'a(n); double [o]b(n);',
+	   Code => 
+           'double tmp = ' . $init . ';
+	    loop(n) %{ 
+               tmp ' . $op . ' $a();
+	       $b() = tmp;
+	    %}',
+	   BadCode => 
+	   'double tmp = ' . $init . ';
+	    loop(n) %{ 
+               if ( $ISBAD(a()) ) { $SETBAD(b()); }
+               else {
+                  tmp ' . $op . ' $a();
+	          $b() = tmp;
+               }
+	    %}',
+	   Doc => cumuprojectdocs( $name, $cfunc, 
+"Unlike L<cumu$func|/cumu$func>, the calculations are performed in double\n" .
+"precision." ),
 	   );
 
 } # foreach: my $func
 
 
-# XXX why cnt? Why not size(n)? Why not threadloop for efficiency
+# XXX Why not threadloop for efficiency
 #
-# I should address these, but can't be bothered...
-#
-# have changed cnt to be a long - it's needed for BadCode,
-# but isn't for Code.
+# I should address this, but can't be bothered...
 #
 pp_def( 
 	'average',
 	HandleBad => 1,
-	UseBadforNaN => 1,
 	Pars => 'a(n); int+ [o]b();',
 	Code => 
 	'$GENERIC(b) tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp / ($GENERIC(b)) cnt;',
+	 loop(n) %{ tmp += $a(); %}
+	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
          long cnt = 0;
@@ -212,117 +260,83 @@ pp_def(
 	Docs => projectdocs( 'average', 'average', '' ),
 	);
 
-# note: should be able to wrap these up like I've done for
-# sum/prod over, since they're essentially the same algorithm.
-#
-pp_def(
-       'zcover',
-       HandleBad => 1,
-       UseBadforNaN => 1,
-       Pars => 'a(n); int+ [o]b();',
-       Code =>
-       '$GENERIC(b) tmp = 1;
-       loop(n) %{ tmp = tmp && $a() == 0; if (!tmp) break; %}
-       $b() = tmp;',
-       BadCode => 
-       '$GENERIC(b) tmp = 1;
-        int flag = 0;
-        loop(n) %{
-           if ( $ISGOOD(a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
-       CopyBadStatusCode => '',
-       Doc => projectdocs('== 0','zcover',''), # used to be '!= 0' which is wrong
+# do the above calculation, but in double precision
+pp_def( 
+	'daverage',
+	HandleBad => 1,
+	Pars => 'a(n); double [o]b();',
+	Code => 
+	'double tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ tmp += $a(); cnt++; %}
+	 $b() = tmp / cnt;',
+	BadCode => 
+	'double tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ 
+            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
+         %}
+         if ( cnt ) { $b() = tmp / cnt; }
+         else       { $SETBAD(b()); }',
+	Docs => projectdocs( 'average', 'average', 
+"Unlike L<average|/average>, the calculation is performed in double\n" .
+"precision." ),
+	);
+
+%over = 
+    (
+     zcover   => { txt => '== 0', init => 1, alltypes => 1,
+		   op => 'tmp = tmp && $a() == 0;', check => '!tmp' },
+     andover  => { txt => 'and', init => 1, 
+		   op => 'tmp = tmp && $a();', check => '!tmp' },
+     bandover => { txt => 'bitwise and', init => '~0', 
+		   op => 'tmp &= $a();', check => '!tmp' },
+     orover   => { txt => 'or', init => 0, 
+		   op => 'tmp = tmp || $a();', check => 'tmp' },
+     borover  => { txt => 'bitwise or', init => 0, 
+		   op => 'tmp |= $a();', check => '!~tmp' },
+
+     );
+
+#foreach my $func ( keys %over ) {
+foreach my $func ( qw( zcover andover bandover orover borover ) ) {
+
+    my $txt   = $over{$func}{txt};
+    my $init  = $over{$func}{init};
+    my $op    = $over{$func}{op};
+    my $check = $over{$func}{check};
+
+    my %extra = {};
+    unless ( defined $over{$func}{alltypes} and $over{$func}{alltypes} ) {
+	$extra{GenericTypes} = ['B','S','U','L'];
+    }
+
+    pp_def(
+	   $func,
+	   HandleBad => 1,
+	   %extra,
+	   Pars => 'a(n); int+ [o]b();',
+	   Code =>
+	   '$GENERIC(b) tmp = ' . $init . ';
+            loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
+            $b() = tmp;',
+	   BadCode => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+            int flag = 0;
+            loop(n) %{
+               if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }
+            %}
+            if ( flag ) { $b() = tmp; }
+            else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
+	   CopyBadStatusCode => '',
+	   Doc => projectdocs( $txt, $func,''), 
        BadDoc => 
 'If C<a()> contains only bad data (and its bad flag is set), 
 C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
 as it will not contain any bad values.',
-       );
+	   );
 
-pp_def(
-       'andover',
-       HandleBad => 1,
-       UseBadforNaN => 1,
-       Pars => 'a(n); int+ [o]b();',
-       GenericTypes => [B,S,U,L],
-       Code => 
-       '$GENERIC(b) tmp = 1;
-        loop(n) %{ tmp = tmp && $a(); if (!tmp) break; %}
-        $b() = tmp;',
-       BadCode =>
-       '$GENERIC(b) tmp = 1;
-        int flag = 0;
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else        { $SETBAD(b()); }',
-       Doc => projectdocs('and','andover','')
-);
-
-pp_def(
-       'bandover',
-       HandleBad => 1,
-       UseBadforNaN => 1,
-       Pars => 'a(n); int+ [o]b();',
-       GenericTypes => [B,S,U,L],
-       Code => 
-       '$GENERIC(b) tmp = ~ 0 ;
-        loop(n) %{ tmp &= $a(); if (!tmp) break; %}
-        $b() = tmp;',
-       BadCode => 
-       '$GENERIC(b) tmp = ~ 0 ;
-        int flag = 0;
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { tmp &= $a(); flag = 1; if (!tmp) break; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else        { $SETBAD(b()); }',
-       Doc => projectdocs('bitwise and','bandover','')
-       );
-
-pp_def(
-       'orover',
-       HandleBad => 1,
-       UseBadforNaN => 1,
-       Pars => 'a(n); int+ [o]b();',
-       GenericTypes => [B,S,U,L],
-       Code => 
-       '$GENERIC(b) tmp = 0;
-        loop(n) %{ tmp = tmp || $a(); if (tmp) break; %}
-        $b() = tmp;',
-       BadCode =>
-       '$GENERIC(b) tmp = 0;
-        int flag = 0;
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else        { $SETBAD(b()); }',
-       Doc => projectdocs('or','orover','')
-       );
-
-pp_def(
-       'borover',
-       HandleBad => 1,
-       UseBadforNaN => 1,
-       Pars => 'a(n); int+ [o]b();',
-       GenericTypes => [B,S,U,L],
-       Code => 
-       '$GENERIC(b) tmp = 0;
-        loop(n) %{ tmp |= $a(); if (!~tmp) break; %}
-        $b() = tmp;',
-       BadCode => 
-       '$GENERIC(b) tmp = 0;
-        int flag = 0;
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else        { $SETBAD(b()); }',
-       Doc => projectdocs('bitwise or','borover','')
-       );
+} # foreach: $func
 
 # this would need a lot of work to support bad values
 # plus it gives me a chance to check out HandleBad => 0 ;)
@@ -386,8 +400,8 @@ is the natural (and correct) choice for binned data, of course.
 # Internal utility sorting routine for median/qsort routines.
 
 for (keys %PDL::Types::typehash) {
-   $ctype = $PDL::Types::typehash{$_}{ctype};
-   $ppsym = $PDL::Types::typehash{$_}{ppsym};
+   my $ctype = $PDL::Types::typehash{$_}{ctype};
+   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
 
    pp_addhdr("
 
@@ -491,7 +505,6 @@ my $find_median_lower = '
 pp_def(
        'medover',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
        Code => 
@@ -508,7 +521,6 @@ pp_def(
 pp_def(
        'oddmedover',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('oddmedian','oddmedover','
 
@@ -532,22 +544,25 @@ some circumstances.
 
 # Generate small ops functions to do entire array
 #
-# - if all alements are bad, the bad value is returned
-#   we ensure that the bad value is for the type
-#   of the piddle that is sent in - NOT that returned
-#   by the call to the routine
+# How to handle a return value of BAD - ie what
+# datatype to use?
 #
-for $op ( ['avg','average','average'],
-          ['sum','sumover','sum'],
-          ['zcheck','zcover','check for zero'],
-          ['and','andover','logical and'],
-          ['band','bandover','bitwise and'],
-          ['or','orover','logical or'],
-          ['bor','borover','bitwise or'],
-	  ['min','minimum','minimum'],
-	  ['max','maximum','maximum'],
-	  ['median', 'medover', 'median'],
-	  ['oddmedian','oddmedover','oddmedian']) {
+for my $op ( ['avg','average','average'],
+	     ['sum','sumover','sum'],
+
+	     ['prod','prodover','product'],
+	     ['dprod','dprodover','product (in double precision)'],
+	     ['dsum','dsumover','sum (in double precision)'],
+
+	     ['zcheck','zcover','check for zero'],
+	     ['and','andover','logical and'],
+	     ['band','bandover','bitwise and'],
+	     ['or','orover','logical or'],
+	     ['bor','borover','bitwise or'],
+	     ['min','minimum','minimum'],
+	     ['max','maximum','maximum'],
+	     ['median', 'medover', 'median'],
+	     ['oddmedian','oddmedover','oddmedian']) {
     my $name = $op->[0];
     my $func = $op->[1];
     my $text = $op->[2];
@@ -565,6 +580,10 @@ Return the $text of all elements in a piddle
 
  \$x = $name(\$data);
 
+EOD
+
+    if ( $bvalflag ) {
+	pp_addpm(<<"EOD");
 =for bad
 
 This routine handles bad values (see the
@@ -575,6 +594,10 @@ has the same type as the input piddle OR
 perhaps we should die - makes sense for the conditional
 ops but not things like sum)
 
+EOD
+} # if: bvalflag
+
+   pp_addpm(<<"EOD");
 =cut
 
 *$name = \\&PDL::$name;
@@ -602,11 +625,19 @@ Useful in conditional expressions:
 
  if (any $a>15) { print "some values are greater than 15\n" }
 
+EOPM
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'EOPM');
 =for bad
 
 See L<or|/or> for comments on what happens when all elements
 in the check are bad.
 
+EOPM
+} # if: bvalflag
+
+pp_addpm(<<'EOPM');
 =cut
 
 *any = \&or;
@@ -624,11 +655,19 @@ Useful in conditional expressions:
 
  if (all $a>15) { print "all values are greater than 15\n" }
 
+EOPM
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'EOPM');
 =for bad
 
 See L<and|/and> for comments on what happens when all elements
 in the check are bad.
 
+EOPM
+} # IF: BVALFLAG
+
+pp_addpm(<<'EOPM');
 =cut
 
 *all = \&and;
@@ -679,7 +718,6 @@ pp_add_exported('', 'minmax');
 pp_def(
     'qsort',
     HandleBad => 1,
-    UseBadforNaN => 1,
     Pars => 'a(n); [o]b(n);',
     Code => 
     'int nn;
@@ -725,7 +763,6 @@ sub generic_qsort_ind {
 pp_def(
        'qsorti',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); int [o]indx(n);',
        Code => 
        'int nn = $COMP(__n_size)-1;
@@ -756,20 +793,27 @@ pp_def(
 Quicksort a vector and return index of elements in ascending order.
 
 =for example
-
+<
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
 
 '
-       ); # pp_def( qsorti
+       ); # pp_def: qsorti
 
 
-defpdl(
-	'axisvalues',
-	'[o,nc]a(n)',
-	'',
-	'loop(n) %{ $a() = n; %}',
-	'
+sub defpdl {
+    my %hash = (Pars => $_[1],
+		OtherPars => $_[2],
+		Code => $_[3]);
+    $hash{Doc} = $_[4] if $#_>3;
+    
+    pp_def($_[0],%hash);
+}
+
+pp_def( 'axisvalues',
+	Pars => '[o,nc]a(n)',
+	Code => 'loop(n) %{ $a() = n; %}',
+	Doc => '
 =for ref
 
 Internal routine
@@ -779,13 +823,12 @@ L<axisvals|PDL::Basic/axisvals>
 and alters its argument.
 
 '
-       );
+       ); # pp_def: axisvalues
 
 
 pp_def(
        'inner',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); b(n); [o]c();', 
        Code => 
        'double tmp = 0;
@@ -818,7 +861,6 @@ as it will not contain any bad values.',
 pp_def(
        'outer',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); b(m); [o]c(n,m);',
        Code => 
        'loop(n,m) %{ 
@@ -879,7 +921,6 @@ pp_add_exported('', 'matmult');
 pp_def(
        'innerwt',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); b(n); c(n); [o]d();',
        Code => 
        'double tmp = 0;
@@ -911,7 +952,6 @@ Weighted (i.e. triple) inner product
 pp_def(
        'inner2',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); b(n,m); c(m); [o]d();',
        Code => 
        'double tmp=0;
@@ -947,7 +987,6 @@ very wasteful. Instead, you should use a temporary for C<b*c>.
 pp_def(
        'inner2d',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n,m); b(n,m); [o]c();',
        Code => 
        'double tmp=0;
@@ -981,7 +1020,6 @@ Equivalent to
 pp_def(
        'inner2t',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
        Code => 
        'loop(n,k) %{ 
@@ -1051,17 +1089,16 @@ closures at some point.
 #
 my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
 
-for $which (
-	    ['minimum','<'],
-	    ['maximum','>'] 
-	    ) {
+for my $which (
+	       ['minimum','<'],
+	       ['maximum','>'] 
+	       ) {
     my $name = $which->[0];
     my $op   = $which->[1];
 
     pp_def( 
 	    $name,
 	    HandleBad => 1,
-	    UseBadforNaN => 1,
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1087,7 +1124,6 @@ otherwise the bad flag is cleared for the output piddle.',
     pp_def( 
 	    "${name}_ind",
 	    HandleBad => 1,
-	    UseBadforNaN => 1,
 	    Pars => 'a(n); int [o] c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1150,7 +1186,6 @@ otherwise the bad flag is cleared for the output piddle.',
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,
-	UseBadforNaN => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
 	Code => 
 	'$GENERIC() curmin, curmax;
@@ -1224,7 +1259,6 @@ for my $opt (
     pp_def(
 	   $name,
 	   HandleBad => 1,
-	   UseBadforNaN => 1,
 	   Pars => 'a(); b(); [o] c()',
 	   Code => 
 	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
@@ -1251,7 +1285,7 @@ EOD
 
 } # for: my $opt
 
-pp_add_exported('', clip);
+pp_add_exported('', 'clip');
 
 pp_addpm(<<'EOD');
 
@@ -1266,6 +1300,20 @@ Clip a piddle by (optional) upper or lower bounds.
  $b = $a->clip(0,3);
  $c = $a->clip(undef, $x);
 
+EOD
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'EOD');
+=for bad
+
+clip handles bad values since it is just a
+wrapper around L<hclip|/hclip> and
+L<lclip|/lclip>.
+
+EOD
+} # if: $bvalflag
+
+pp_addpm(<<'EOD');
 =cut
 
 *clip = \&PDL::clip;
@@ -1289,7 +1337,6 @@ EOD
 pp_def(
        'wtstat',
        HandleBad => 1,
-       UseBadforNaN => 1,
        Pars => 'a(n); wt(n); avg(); [o]b();',
        OtherPars => 'int deg',
        Code =>
@@ -1471,7 +1518,7 @@ pp_def('vsearch',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
 	Pars => 'i(); x(n); int [o]ip()',
-	GenericTypes => [F,D], # too restrictive ?
+	GenericTypes => ['F','D'], # too restrictive ?
 	Code => 'int carp=0;
 		 threadloop %{
 		   long n1 = $SIZE(n)-1;
@@ -1530,7 +1577,7 @@ pp_def('interpolate',
        HandleBad => 0,
        BadDoc => 'needs major (?) work to handles bad values',
 	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
-	GenericTypes => [F,D], # too restrictive ?
+	GenericTypes => ['F','D'], # too restrictive ?
 	Code => '
 		 $GENERIC() d;
 		 long n  = $SIZE(n);
@@ -1640,7 +1687,7 @@ sub interpol ($$$;$) {
 
 EOD
 
-pp_add_exported("", one2nd);
+pp_add_exported("", 'one2nd');
 pp_addpm(<<'EOD');
 
 =head2 one2nd
@@ -1689,7 +1736,7 @@ sub PDL::one2nd {
 
 EOD
 
-$doc_which = <<'EOD';
+my $doc_which = <<'EOD';
 
 =for ref
 
@@ -1715,7 +1762,7 @@ complement, use the function L<which_both|/which_both>.
 
 EOD
 
-$doc_which_both = <<'EOD';
+my $doc_which_both = <<'EOD';
 
 =for ref
 
@@ -1845,7 +1892,7 @@ sub PDL::where {
 EOD
 );
 
-pp_add_exported("", where);
+pp_add_exported("", 'where');
 
 pp_def('append',
 	Pars => 'a(n); b(m); [o] c(mn)',
@@ -2134,6 +2181,18 @@ B<Note:> The RMS value that this function returns in the RMS
 deviation from the mean, also known as the population standard-
 deviation.
 
+EOD
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'EOD');
+=for bad
+
+The return values if all elements are bad is currently poorly
+defined.
+
+EOD
+} # if: bvalflag
+pp_addpm(<<'EOD');
 =cut
 
 *stats	  = \&PDL::stats;
@@ -2156,13 +2215,21 @@ EOD
 } # if: $bvalflag
 
        pp_addpm(<<'EOD');
-       $mean = $data->sum / $npts;
-       $rms  = sqrt( ((($data-$mean)**2 )->sum) / $npts );
+       if ( $npts == 0 ) {
+	   $mean = 0.0; $rms = 0.0;
+       } else {
+	   $mean = $data->dsum / $npts;
+	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / $npts );
+       }
     }
     else {
-       my $wtsum = $weights->sum;
-       $mean = (($weights*$data)->sum) / $wtsum;
-       $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->sum )  / $wtsum );
+       my $wtsum = $weights->dsum;
+       if ( $wtsum == 0.0 ) {
+	   $mean = 0.0; $rms = 0.0;
+       } else {
+	   $mean = (($weights*$data)->dsum) / $wtsum;
+	   $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
+       }
     }
     my ($median,$min,$max) = ($data->median,$data->min,$data->max);
     print "Mean = $mean, RMS = $rms, Median = $median\n".
@@ -2207,7 +2274,7 @@ sub PDL::whichND {
 EOD
 );
 
-pp_add_exported("", whichND);
+pp_add_exported("", 'whichND');
 
 pp_def('fibonacci',
         Pars => '[o]x(n);',
@@ -2240,7 +2307,6 @@ EOD
 pp_def(
     'indadd',
     HandleBad => 1,
-    UseBadforNaN => 1,
     Pars => 'a(); int ind(); [o] sum(m)',
     Code => 
     'register int foo = $ind();
@@ -2288,23 +2354,5 @@ Threaded Example:
 
 =cut
 ');
-
-pp_addpm({At=>Bot},<<'EOD');
-
-=head1 AUTHOR
-
-Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
-by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
-(kgb@aaoepp.aao.gov.au).
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
-EOD
 
 pp_done();

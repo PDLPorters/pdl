@@ -2,6 +2,18 @@
 # of the PDL::PP code.
 #
 # This is what makes the nice loops go around etc.
+#
+# To do:
+#  rewrite bad value handling. I think we want an object that,
+#  given Code and BadCode writes something like
+#   'if (badflag) { BadCode } else { Code }'
+#  Ideally this would allow the Code and BadCode sections to
+#  use different numbers of threadloop %{ %} constructs etc
+#  One minor difficulty is that we don't want separate
+#  type loops (at least not at the moment), since that is
+#  just extra code
+#
+
 use strict;
 
 # check for bad value support
@@ -53,6 +65,7 @@ sub new {
 	BadCode => undef, # ugly: hacky way to pass data to get_str
         # ugly: see get_str() in BadBlock/ComplexThreadloop
 	processing_badcode => 0, 
+	types => 0,  # hack for PDL::PP::Types/GenericLoop
     }, $type;
     
     my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
@@ -296,37 +309,57 @@ package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
 
 # Types: BSULFD,
-sub new { my($type,$types,$name,$varnames,$whattype) = @_;
-	bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
-		$whattype],$type;
+sub new { 
+    my($type,$types,$name,$varnames,$whattype) = @_;
+    bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
+	   $whattype],$type;
 }
 
 sub myoffs {4}
 
+sub myprelude { 
+    my($this,$parent,$context) = @_;
+    push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
 
-sub myprelude { my($this,$parent,$context) = @_;
-	push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
-	"/* Start generic loop */\n".
-#	(join '',map{
-#		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
-#	}(qw/B S U L F D/)).
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = join '',
+	map { 
+	    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n" 
+	    }
+	(qw/B S U L F D/);
+    }
+
+    return "/* Start generic loop */\n$thisis_loop\n" .
 	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
 }
 
-sub myitem { my($this,$parent,$nth) = @_;
+sub myitem { 
+    my($this,$parent,$nth) = @_;
 #	print "GENERICITEM\n";
-	my $item = $this->[0]->[$nth];
-	if(!$item) {return "";}
-	$parent->{Gencurtype}->[-1] = $item->[1];
-	"\t} break; case $item->[0]: {\n".
-#	(join '',map {
-#		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
-#	}(qw/B S U L F D/)).
-#	"#undef THISIS$this->[1]_$item->[3]\n#define THISIS$this->[1]_$item->[3](a) a\n".
-	(join '',map{
+    my $item = $this->[0]->[$nth];
+    if(!$item) {return "";}
+    $parent->{Gencurtype}->[-1] = $item->[1];
+
+    my $thisis_loop = '';
+    if ( $parent->{types} ) {
+	$thisis_loop = (
+			join '',
+			map {
+			    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
+			}
+			(qw/B S U L F D/) 
+			) . 
+			    "#undef THISIS$this->[1]_$item->[3]\n" . 
+				"#define THISIS$this->[1]_$item->[3](a) a\n";
+    }
+	
+    return "\t} break; case $item->[0]: {\n".
+	$thisis_loop . 
+	    (join '',map{
 		# print "DAPAT: '$_'\n";
 		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
-	} (@{$this->[2]})) ;
+	    } (@{$this->[2]})) ;
 }
 
 sub mypostlude { my($this,$parent,$context) = @_;
@@ -499,17 +532,15 @@ package PDL::PP::Types;
 use Carp;
 @PDL::PP::Types::ISA = "PDL::PP::Block";
 
-sub new { my($type,$ts) = @_;
-	$ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
-	bless [$ts],$type; }
+sub new { 
+    my($type,$ts,$parent) = @_;
+    $ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
+    $parent->{types} = 1; # hack for PDL::PP::GenericLoop
+    bless [$ts],$type; }
 sub myoffs { return 1; }
 sub myprelude {
     my($this,$parent,$context) = @_;
-###
-    die "I have disabled PDL::PP::Types to see what happens\n DJB 07/16/00\n",
-     " need to remove die and comments in Gen/PP/PDLCode\n"; # XXX DBG
-###
-    "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+    return "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
@@ -1134,7 +1165,7 @@ if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
-		my $ob = new PDL::PP::Types($1);
+		my $ob = new PDL::PP::Types($1,$this);
 		push @{$stack[-1]},$ob;
 		push @stack,$ob;
 	    } elsif($control =~ /^threadloop\s*%{/) {

@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 47;
+	plan tests => 51;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -42,16 +42,16 @@ ok( $c->sum(), 21 );    # 3
 
 # is the flag propogated?
 $a->badflag(1);
-ok( $a->badflag(), 1 ); # 4
+ok( $a->badflag() ); # 4
 
 $c = $a + $b;
-ok( $c->badflag(), 1 ); # 5
+ok( $c->badflag() ); # 5
 ok( $c->sum(), 21 );    # 6
 
 $a->badflag(0);
 $b->badflag(1);
 $c = $a + $b;
-ok( $c->badflag(), 1 ); # 7
+ok( $c->badflag() ); # 7
 
 # how about copies/vaffines/whatever
 $a = rvals( long, 7, 7, {Centre=>[2,2]} );
@@ -60,7 +60,7 @@ ok( $b->badflag, 0 );   # 8
 
 $a->badflag(1);
 $b = $a;
-ok( $b->badflag, 1 );   # 9
+ok( $b->badflag );   # 9
 
 $a->badflag(0);
 $b = $a->slice('2:5,3:4');
@@ -75,7 +75,7 @@ print "Info: b = ", $b->info($i), "\n";
 print "Info: c = ", $b->info($i), "\n";
 
 # let's check that it gets through to a child of a child
-ok( $c->badflag, 1 );   # 11
+ok( $c->badflag );   # 11
 
 # can we change bad values
 ok( byte->badvalue, byte->orig_badvalue ); # 12
@@ -97,7 +97,7 @@ ok( sum($c), 8 ); # 15
 
 # does conversion of bad types work
 $c = float($b);
-ok( $c->badflag, 1 );        # 16
+ok( $c->badflag );        # 16
 ok( PDL::Core::string($c), "[1 BAD 3]" );  # 17
 ok( sum($c), 4 ); # 18
 
@@ -146,28 +146,54 @@ $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
-ok( approx( $s[0], 61.9375 ), 1 );       # 33
-ok( approx( $s[1], 26.7312 ), 1 );       # 34
+ok( approx( $s[0], 61.9375 ) );       # 33
+ok( approx( $s[1], 26.7312 ) );       # 34
 ok( $s[2], 66.5 );                       # 35
 ok( $s[3], 22 );                         # 36
 ok( $s[4], 98 );                         # 37
 
+# how about replacebad
+$a = $b->replacebad(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+ok( all($a == 0) );                   # 38
+
+# and inplace?
+$a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
+$b = $a->setbadif( $a < 20 ); 
+$b->inplace->replacebad(20);
+$a = $b - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
+ok( all($a == 0) );                   # 39
+
+# ditto for copybad
+$a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
+$b = $a->setbadif( $a < 20 ); 
+$c = copybad( $a, $b );
+ok( PDL::Core::string( $c->isbad ), 
+    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #40
+
+$a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
+$b = $a->setbadif( $a < 20 ); 
+$a->inplace->copybad( $b );
+ok( PDL::Core::string( $a->isbad ), 
+    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #41
+
 # test some of the qsort functions
+$a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
+$b = $a->setbadif( $a < 20 ); 
 my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
-    );                                   # 38
+    );                                   # 42
 
 # check comparison/bit operators in ops.pd
 
 $a = pdl( 2, 4, double->badvalue );
 $a->badflag(1);
 $b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
-ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 39
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 43
 
 $b = byte(1,2,255,4);
 $b->badflag(1);
-ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 40
+ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 44
 
 # quick look at math.pd
 use PDL::Math;
@@ -175,22 +201,22 @@ use PDL::Math;
 $a = pdl(0.5,double->badvalue,0);
 $a->badflag(1);
 $b = bessj0($a);
-ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 41
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 45
 
 $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
 $b = bessjn($a,3);  # thread over n()
-ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 42
-ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 43
+ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 46
+ok( abs($b->at(1)-0.010) < 0.001 );      # 47
 
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
-ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 44
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ) );  # 48
 
 # I haven't changed rotate, but it should work anyway
 $a = byte( 0, 1, 255, 4, 5 );
 $a->badflag(1);
-ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 45
+ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 49
 
 # check indadd, norm
 
@@ -210,7 +236,7 @@ $b = pdl [1,2],[2,1];
 use PDL::Image2D;
 $c = conv2d($a, $b);
 
-ok( int(at(sum($c-$ans))), 0 ); # 46
+ok( int(at(sum($c-$ans))), 0 ); # 50
 
 $a = zeroes(5,5);
 $a->badflag(1);
@@ -220,4 +246,6 @@ $a->set(2,2,$a->badvalue);
 
 $b = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 47
+ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 51
+
+

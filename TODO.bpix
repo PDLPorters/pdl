@@ -10,6 +10,7 @@ Problems:
       that it was converted to the type of the input piddle first)
    c) call a user-defined sub-routine?
    d) ...
+   (also for avg,zcheck,... in primitive.pd)
 
 .) improve the documentation support (such as get it working properly).
    The logic may need tweaking for the automatic document creation,
@@ -19,6 +20,16 @@ Problems:
    (as well as changing the default bad value, which it does)
 
 .) improve the tests
+
+.) remove 'UseBadforNan => 1' and replace with something like
+   'NoBadifNaN' (if true then can ignore the BadCode/...
+   segment - ir opposite logic to UseBadforNaN)
+
+.) Revamp PDLCode.pm - have an object whose get_str() does something 
+   like 'if ( badflag ) { badcode } else { goodcode }' - this would
+   mean we don't need the same number of threadloop's etc in good/badcode
+
+.) looks like starlink's byte goes from -127 to 127 - ie not unsigned.
 
 Suggestions/To do:
 ================
@@ -30,6 +41,9 @@ Suggestions/To do:
    doesn't yet do anything.
 
 .) 'bad-ify' the rest of the code...
+
+.) do any more routines need to be converted to work inplace (done
+   replacebad)?
 
 .) divide in ops.pd should trap '/ 0' cases as well. also special cases 
    for sqrt(), log ... and integration with NaN support

@@ -206,15 +206,6 @@ pp_addpm(<<'!NO!SUBS!');
 ############################################################
 ############################################################
 
-*baddata = \&PDL::baddata;
-
-sub PDL::baddata {
-    die "WARNING: baddata has been removed - use badflag instead.\n";
-}
-
-############################################################
-############################################################
-
 =head2 badflag
 
 =for ref
@@ -451,7 +442,6 @@ Returns a 1 if the value is $name, 0 otherwise.
 pp_def(
        'isbad',
        HandleBad => 1,
-       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(); int [o]b();',
        Code => 
        '$b() = 0;',
@@ -464,7 +454,6 @@ pp_def(
 pp_def(
        'isgood',
        HandleBad => 1,
-       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(); int [o]b();',
        Code => 
        '$b() = 0;',
@@ -510,7 +499,6 @@ EOD
 pp_def(
        'nbadover',
        HandleBad => 1,
-       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(n); int+ [o]b();',
        Code => 
        '$b() = 0;',
@@ -526,7 +514,6 @@ pp_def(
 pp_def(
        'ngoodover',
        HandleBad => 1,
-       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(n); int+ [o]b();',
        Code => 
        '$b() = ($GENERIC(b)) $SIZE(n);',
@@ -576,23 +563,26 @@ EOD
 
 } # for $op
 
-# we do not bother with a BadCode section here
-
+# NOTE: the Code section uses SETBAD 
 pp_def(
-       'setbadif',
-       HandleBad => 1,
-       UseBadforNaN => 1,           # NOP at the moment
-       Pars => 'a(); mask(); [o]b();',
-       Code => 
-       'if ( $ISBAD(mask()) || $mask() ) {   /* in case the bad value == 0 */
-           $SETBAD(b());
-        } else {
-           $b() = $a();
-        }',
-       FindBadStatusCode => '',  # we don't care about the input
-       CopyBadStatusCode => 
-       '$SETPDLSTATEBAD(b);',  # always make sure the output is 'bad'
-       Doc => 
+    'setbadif',
+    HandleBad => 1,
+    Pars => 'a(); mask(); [o]b();',
+    Code =>
+    'if ( $mask() ) {
+        $SETBAD(b());
+     } else {
+        $b() = $a();
+     }',
+    BadCode =>
+    'if ( $ISBAD(mask()) || $mask() ) {   /* in case the bad value == 0 */
+        $SETBAD(b());
+     } else {
+        $b() = $a();
+     }',
+    CopyBadStatusCode => 
+    '$SETPDLSTATEBAD(b);',  # always make sure the output is 'bad'
+    Doc => 
 '
 =for ref
 
@@ -614,7 +604,94 @@ Is this sensible?
 any bad values. Any bad values in the input piddles are copied
 across to the output piddle.
 ',
-       );
+       ); # pp_def: setbadif
+
+pp_def(
+    'replacebad',
+    HandleBad => 1,
+    Pars => 'a(); [o]b();',
+    OtherPars => 'double newval',
+    # need for threadloop is due to limitations of hacked PDLCode
+    # and my lack of desire to sort it out
+    Code => 'threadloop %{ $b() = $a(); %}',
+    BadCode => 
+'$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+ threadloop %{
+    if ( $ISBAD(a()) ) {
+       $b() = replace;
+    } else {
+       $b() = $a();
+    }
+ %}',
+    CopyBadStatusCode => 
+    '$SETPDLSTATEGOOD(b);',  # always make sure the output is 'good'
+    HdrCode => 
+    'if (a->state & PDL_INPLACE) {
+        a->state &= ~PDL_INPLACE; /* unset */
+        b = a;  /* discard output value, leak? */
+     }',
+    Doc => 
+'
+=for ref
+
+Replace any bad values by a (non-bad) value. 
+
+I<NOTE>: does this work inplace? It should do.
+
+=for example
+
+ $a = $a->replacebad(23); 
+ print "a badflag: ", $a->badflag, "\n";
+ a badflag: 0
+
+',
+       BadDoc =>
+'The output always has its bad flag cleared.
+If the input piddle does not have its bad flag set, then
+values are copied with no replacement.
+',
+       ); # pp_def: replacebad
+
+pp_def(
+    'copybad',
+    HandleBad => 1,
+    Pars => 'a(); mask(); [o]b();',
+    Code =>
+    '$b() = $a();',
+    BadCode =>
+    'if ( $ISBAD(mask()) ) {
+        $SETBAD(b());
+     } else {
+        $b() = $a();
+     }',
+    HdrCode => 
+    'if (a->state & PDL_INPLACE) {
+        a->state &= ~PDL_INPLACE; /* unset */
+        b = a;  /* discard output value, leak? */
+     }',
+    Doc => 
+'
+=for ref
+
+Copies values from one piddle to another, setting them
+bad if they are bad in the supplied mask.
+
+Can be done inplace.
+
+=for example
+
+ $a = byte( [0,1,3] );
+ $mask = byte( [0,0,0] );
+ set($mask,1,$mask->badvalue);
+ $a->inplace->setbad( $mask );
+ p $a;
+ [0 BAD 3]
+
+',
+    BadDoc =>
+'Handles bad values.',
+
+    ); # pp_def: copybad
 
 # have removed badvalue_as_pdl()
 #

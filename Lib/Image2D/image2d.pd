@@ -17,6 +17,25 @@ of anywhere else to put them
 
 =cut
 
+use PDL::Primitive;
+use Carp;
+
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHORS
+
+Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
+(rjrw@ast.leeds.ac.uk) and Tim Jeness (timj@jach.hawaii.edu).
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
 EOD
 
 pp_addhdr('
@@ -35,6 +54,7 @@ pp_addhdr('
 
 
 /* Local quick-sort routine for doubles */
+/* (see also primitive.pd) */
 
 void pdl_lqsortD(double* xx, int a, int b) {
 
@@ -171,7 +191,6 @@ EOD
        BadDoc =>
 'Unlike the FFT routines, conv2d is able to process bad values.',
        HandleBad => 1,
-       UseBadforNaN => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
         PMCode => '
@@ -276,8 +295,10 @@ is rather pointless)
 =cut
 
 EOD
+       BadDoc => 
+'Bad values are ignored in the calculation. If all elements within the 
+kernel are bad, the output is set bad.',
        HandleBad => 1,
-       UseBadforNaN => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
         PMCode => '
@@ -287,6 +308,8 @@ sub PDL::med2d {
    die \'Usage: med2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )\'
       if $#_<1 || $#_>2;
    my($a,$kern) = @_;
+   croak "med2d: kernel must contain some positive elements.\n" 
+       if all( $kern <= 0 );
    my $c = $#_ == 2 ? $_[2] : PDL->null;
    &PDL::_med2d_int($a,$kern,$c,
 	(!(defined $opt && exists $opt->{Boundary}))?0:
@@ -361,8 +384,6 @@ sub PDL::med2d {
 		 } /* for: j1 */
 		 if ( flag == 0 ) {
 		    $SETBAD(b(m=>i,n=>j));
-                 } else if ( count == 0 ) {
-		    $b(m=>i,n=>j) = 0;
                  } else {
                     pdl_lqsortD(tmp,0,count-1);
                     $b(m=>i,n=>j) = tmp[(count-1)/2];
@@ -426,8 +447,6 @@ Return value/position of maximum value in 2D image
 
 Contributed by Tim Jeness
 
-=cut
-
 EOD
 
        HandleBad => 0, # a marker
@@ -455,8 +474,6 @@ Refine a list of object positions in 2D image by centroiding in a box
 
 C<$box> is the full-width of the box, i.e. the window
 is C<+/- $box/2>.
-
-=cut
 
 EOD
        HandleBad => 0, # a marker
@@ -522,8 +539,6 @@ segmented objects and fill object pixels with object number
 
  $segmented = cc8compt( $image > $threshold );
 
-=cut
-
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]b(m,n);',
@@ -543,8 +558,7 @@ segmented objects and fill object pixels with object number
          $b() = $a();
       %} %}
 
-      /* 1st pass counts max possible compts, 2nd records equivalences
-*/
+      /* 1st pass counts max possible compts, 2nd records equivalences */
 
       for (pass = 0; pass<2; pass++) {
 
@@ -558,19 +572,16 @@ segmented objects and fill object pixels with object number
 
       newlabel = 1; /* Running label */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image
-pixels */
+      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
 
             nfound = 0; /* Number of neighbour >0 */
 
             i1 = i-1; j1 = j-1; i2 = i+1;
 
-            if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen
-*/
+            if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen */
 
                if (i>0 && $b(m=>i1, n=>j)>0)
-                   neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label
-of it */
+                   neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
                if (j>0 && $b(m=>i, n=>j1)>0)
                    neighbour[nfound++] = $b(m=>i, n=>j1);
                if (j>0 && i>0  && $b(m=>i1, n=>j1)>0)
@@ -586,7 +597,7 @@ of it */
                   if (nfound>1 && pass == 1) {  /* Assign equivalents */
                       for(k=1; k<nfound; k++)
                          AddEquiv( equiv, (PDL_Long)$b(m=>i, n=>j),
-neighbour[k] );
+                            neighbour[k] );
                   }
                }
             }
@@ -618,8 +629,7 @@ neighbour[k] );
 
       /* Now remove equivalences */
 
-      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image
-pixels */
+      for(j=0; j<ny; j++) { for(i=0; i<nx; i++) { /* Loop over image pixels */
            $b(m=>i, n=>j)   = equiv[ (PDL_Long) $b(m=>i, n=>j)  ] ;
       }}
 
@@ -713,7 +723,6 @@ fill the area inside the given polygon with a given colour
 
 This function works inplace, i.e. modifies C<im>.
 
-=cut
 EOD
 );
 
@@ -765,6 +774,7 @@ rotnewsz(m,n,angle)
 ');
 
 pp_def('rot2d',
+       HandleBad => 0,
 	Pars => 'im(m,n); float angle(); bg(); int aa(); [o] om(p,q)',
 	Code => 'int ierr;
 		 if ((ierr = rotate($P(im),$P(om),$SIZE(m),$SIZE(n),$SIZE(p),
@@ -815,6 +825,7 @@ EOD
 );
 
 pp_def('bilin2d',
+       HandleBad => 0,
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
 =for ref
@@ -822,8 +833,6 @@ pp_def('bilin2d',
 Bilineary maps the first piddle in the second. The
 interpolated values are actually added to the second
 piddle which is supposed to be larger than the first one.
-
-=cut
 
 EOD
 ,
@@ -860,14 +869,13 @@ EOD
 ');
 
 pp_def('rescale2d',
+       HandleBad => 0,
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
 =for ref
 
 The first piddle is rescaled to the dimensions of the second
 (expandind or meaning values as needed) and then added to it.
-
-=cut
 
 EOD
 ,
@@ -982,21 +990,5 @@ else if(ox < ix && oy >= iy) {
 }
 else barf("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
   ');
-
-pp_addpm({At=>'Bot'},<<'EOD');
-
-=head1 AUTHORS
-
-Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
-(rjrw@ast.leeds.ac.uk) and Tim Jeness (timj@jach.hawaii.edu).
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-=cut
-
-EOD
 
 pp_done();

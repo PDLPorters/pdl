@@ -258,6 +258,10 @@ double on a best guess basis.  Any perl arrays are written as CHAR
 array extensions (on the assumption that numeric arrays will exist as
 PDLs).
 
+=for bad
+
+The bad flag is written to the file, if set. 
+
 =cut
 
 # This is one form of the new command
@@ -315,6 +319,14 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
 
   # Create a history extension
   ndf_hcre($outndf, $status);
+
+  # set the bad value flag 
+  # XXX needs working on
+  my $badflag = $pdl->badflag;;
+  ndf_sbad( $badflag, $outndf, 'Data', $status );
+  if ( $badflag and $pdl->get_datatype == 0 ) {
+      print "\nWARNING: not convinced starlink and pdl's BYTE agree\n";
+  }
 
   # Annul the identifier
   ndf_annul($outndf, $status);

@@ -1,5 +1,19 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (07/26/00)
+   - PDL::Tests - routine names now begin with 'test_' (see t/pptest.t)
+   - Added 'dsumover/dcumusumover/dsum' (and same for prod) to primitive.pd -
+     these routines work in double precision, NOT the datatype of the
+     input piddle (without converting the input piddle during the calculation)
+     Also added prod, a wrapper around prodover, as sum is a wrapper around 
+     sumover and dprod,dsum. changed stats to use dsum() rather than sum()
+   - removed UseBadforNaN from primitive.pd, bad.pd, added NoBadifNaN to ops.pd
+   - changed PDLCode to use THISIS macros if actually used by code, rather than
+     dying (un-tested)
+   - hacked PDL::IO::NDF to read/write the bad value flag (incomplete) and 
+     fixed rndf('../bob') (some problems with byte datatype?)
+   - replacebad can now be used inplace, added copybad to PDL::Bad (also 
+     inplace)
 Doug Burke (07/21/00)
    - now works if use 'threadloop %{ .. %}' in Code/BadCode (PP/PDLCode.pm 
      should really be rewritten as my hacks are horrible)
