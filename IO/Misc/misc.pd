@@ -197,17 +197,6 @@ C<$h> is the header retrieved with C<$a-E<gt>gethdr>.
 History entries in the header are stored as C<$$h{HISTORY}>, which is an
 anonymous array for each HISTORY entry in the header.
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-        pp_addpm(<<'!NO!SUBS!');
-=for bad
-
-If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>, 
-the piddle will have its bad flag set, and those elements which equal the
-C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
-converted to bad (if necessary).
-
 BINTABLE EXTENSIONS
 
 Binary tables are handled.  
@@ -225,11 +214,11 @@ the expression
   $a->{FOO}->((2))
 
 returns a 5-element double-precision PDL containing the values of FOO
-from the second row of the table.
+from the third row of the table.
 
-The original FITS header of the table is parsed as with a normal FITS file,
-and is returned in the element 'hdr' of $a.  You can use that to presere 
-the original column order, if you like.
+The header of the table itself is parsed as with a normal FITS HDU,
+and is returned in the element 'hdr' of the returned hash.  You can
+use that to presere the original column order, if you like.
 
 Because different columns in the table might have identical names, the
 binary table reader practices collision avoidance.  If you have
@@ -238,7 +227,22 @@ multiple columns named "FOO", then the first one encountered
 next "FOO_2", etc.  The appropriate TTYPEn fields in the header are
 changed to match the renamed column fields.
 
-NOTES
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+        pp_addpm(<<'!NO!SUBS!');
+=for bad
+
+If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>, 
+the piddle will have its bad flag set, and those elements which equal the
+C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
+converted to bad (if necessary).
+
+!NO!SUBS!
+
+pp_addpm(<<'!NO!SUBS!');
+
+=for notes
 
 * The binary table stuff is done rather inefficiently.  That's because
 FITS binary tables are arranged in heterogeneous order FIRST, so we
