@@ -13,7 +13,8 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.97;
+$PDL::NiceSlice::VERSION = 0.99;
+$PDL::NiceSlice::debug = 0;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -159,6 +160,7 @@ my $prefixpat = qr/.*?  # arbitrary leading stuff
 # mslice format
 sub onearg ($) {
   my ($arg) = @_;
+  print STDERR "processing arg $arg\n" if $PDL::NiceSlice::debug;
   return q|'X'| if $arg =~ /^\s*:??\s*$/;     # empty arg or just colon
   # recursively process args for slice syntax
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
@@ -184,7 +186,8 @@ sub onearg ($) {
 # process the arg list
 sub procargs {
   my ($txt) = @_;
-  $txt =~ s/\((.*)\)/$1/s;
+  print STDERR "procargs: got $txt\n" if $PDL::NiceSlice::debug;
+  # $txt =~ s/^\s*\((.*)\)\s*$/$1/s; # this is now done by findslice
   # push @callstack, $txt; # for later error reporting
   my $args = $txt =~ /^\s*$/s ? '' :
     join ',', map {onearg $_} splitprotected ',', $txt;
@@ -213,44 +216,75 @@ sub findslice {
 #  Process into an 'nslice' call only if it's not that.
 
     if($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s) {
-      $processed .= "$prefix".$found;       # foreach statement: Don't translate 
-
+      # foreach statement: Don't translate
+      $processed .= "$prefix".$found;
     } else {      # statement is a real slice and not a foreach
-      
-      my ($mod,$call,$arg,$post);
-      
+
+      my ($call,$pre,$post,$arg);
+
+      # the following section got an overhaul in v0.99
+      # to fix modifier parsing and allow >1 modifier
+      # this code still needs polishing
       savearg $found; # error reporting
-      
-      filterdie "invalid modifier $1"
-	if $found =~ /(;\s*[[:graph:]]{2,}?\s*)\)$/;
-      if ($found =~ s/;\s*(\S)\s*\)$/\)/) { # check for trailing modifiers
-	$mod = $1;
-	if ($mod eq '?') {
-	  $call = 'where';
-	  $arg = $found;
-	  $post = '';
-	} elsif ($mod eq '_') {
-	  $call = 'flat->nslice';
-	  $arg = procargs($found);
-	  $post = '';
-	} elsif ($mod eq '|') {
+      print STDERR "findslice: found $found\n" if $PDL::NiceSlice::debug;
+      $found =~ s/^\s*\((.*)\)\s*$/$1/s;
+      my ($slicearg,@mods) = splitprotected ';', $found;
+      filterdie "more than 1 modifier group: @mods" if @mods > 1;
+      # filterdie "invalid modifier $1"
+      #	if $found =~ /(;\s*[[:graph:]]{2,}?\s*)\)$/;
+      print STDERR "MODS: @mods\n" if $PDL::NiceSlice::debug;
+      my @post = (); # collects all post nslice operations
+      my @pre = ();
+      if (@mods) {
+	(my $mod = $mods[0]) =~ s/\s//sg; # eliminate whitespace
+	my @modflags = split '', $mod;
+	print STDERR "MODFLAGS: @modflags\n" if $PDL::NiceSlice::debug;
+	filterdie "more than 1 modifier incompatible with ?: @modflags"
+	  if @modflags > 1 && grep (/\?/, @modflags); # only one flag with where
+	my %seen = ();
+	if (@modflags) {
+	  for my $mod1 (@modflags) {
+	    if ($mod1 eq '?') {
+	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
+	      $call = 'where';
+	      $arg = "($slicearg)";
+	      # $post = ''; # no post action required
+	    } elsif ($mod1 eq '_') {
+	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
+	      push @pre, 'flat->';
+	      $call ||= 'nslice';       # do only once
+	      $arg = procargs($slicearg);
+	      # $post = ''; # no post action required
+	    } elsif ($mod1 eq '|') {
+	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
+	      $call ||= 'nslice';
+	      $arg ||= procargs($slicearg);
+	      push @post, '->sever';
+	    } elsif ($mod1 eq '-') {
+	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
+	      $call ||= 'nslice';
+	      $arg ||= procargs($slicearg);
+	      push @post, '->reshape(-1)';
+	    } else {
+	      filterdie "unknown modifier $mod1";
+	    }
+	  }
+	} else { # empty modifier block
 	  $call = 'nslice';
-	  $arg = procargs($found);
-	  $post = '->sever';
-	} elsif ($mod eq '-') {
-	  $call = 'nslice';
-	  $arg = procargs($found);
-	  $post = '->reshape(-1)';
-	} else {
-	  filterdie "unknown modifier $mod";
+	  $arg = procargs($slicearg);
+	  # $post = '';
 	}
-      } else {
+      } else { # no modifier block
 	$call = 'nslice';
-	$arg = procargs($found);
-	$post = '';
+	$arg = procargs($slicearg);
+	# $post = '';
       }
+      $pre = join '', @pre;
+      # assumption here: sever should be last
+      # and order of other modifiers doesn't matter
+      $post = join '', sort @post; # need to ensure that sever is last
       $processed .= "$prefix". ($prefix =~ /->$/ ? '' : '->').
-	$call.$arg.$post.$mypostfix;
+	$pre.$call.$arg.$post.$mypostfix;
     }
 
   } # end of while loop
@@ -692,7 +726,7 @@ Four modifiers are currently implemented:
 
 =item *
 
-C<_> : flatten the piddle before applying the slice expression. Here
+C<_> : I<flatten> the piddle before applying the slice expression. Here
 is an example
 
    $b = sequence 3, 3;
@@ -745,7 +779,8 @@ That's about all there is to know about this one.
 
 =item *
 
-C<-> : reduce the number of dimensions (potentially) by deleting all
+C<-> : I<squeeze> out any singleton dimensions. In less technical terms:
+reduce the number of dimensions (potentially) by deleting all
 dims of size 1. It is equivalent to doing a L<reshape|PDL::Core/reshape>(-1).
 That can be very handy if you want to simplify
 the results of slicing operations:
@@ -759,6 +794,18 @@ It also provides a unique opportunity to have smileys in your code!
 Yes, PDL gives new meaning to smileys.
 
 =back
+
+=head2 combining modifiers
+
+Several modifiers can be used simultaneously, e.g.
+
+  $c = $a(0;-|); # squeeze and sever
+
+The notable exception is the C<where> modifier (C<?>) which must not
+be combined with other flags (let me know if you see a good reason
+to relax this rule). Repeating a modifier will raise an error:
+
+  $c = $a(-1:1;|-|); # will cause error
 
 Modifiers are a new and experimental feature of C<PDL::NiceSlice>. So
 don't be surprised if things don't work quite as expected.

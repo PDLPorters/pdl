@@ -4,11 +4,12 @@ MatrixOps -- Matrix operations for PDLs
 
 =head1 SYNOPSIS
 
-$inv = $a->inv
+   $inv = $a->inv;
 
-$det = $a->det
+   $det = $a->det;
 
-($lu,$perm,$par) = $a->lu_decomp
+   ($lu,$perm,$par) = $a->lu_decomp;
+   $x = lu_backsub($lu,$perm,$b); # solve $a x $x = $b
 
 =head1 DESCRIPTION
 
@@ -35,7 +36,7 @@ The following things need to be added:
 
 =over 3
 
-=item * Gaussian elimination 
+=item * Gaussian elimination
 
 =item * Eigenvalues (from NR or from PDL::Math?)
 
@@ -46,6 +47,13 @@ The following things need to be added:
 The following other things need doing:
 
 =over 3
+
+=item * simplified highlevel interfaces:
+
+C<solve> with default and options for other backend methods (e.g. LU,
+SVD, etc).
+
+others?
 
 =item * Make a MatrixOps::Slatec subclass
 

@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 25;
+	plan tests => 34;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -73,17 +73,52 @@ eval translate_and_show '$b = $twod(-1:0,$idx);';
 ok (!$@);
 ok(all $b == $cmp);
 
+#
 # modifiers
+#
 
 $a = sequence 10;
-eval translate_and_show '$b = $a($a<3;?)';
+eval translate_and_show '$b = $a($a<3;?)' ;
 ok (!$@);
 ok(all $b == pdl(0,1,2));
 
+# flat modifier
 $a = sequence 3,3;
 eval translate_and_show '$b = $a(0:-2;_);';
 ok (!$@);
 ok(all $b == sequence 8);
+
+# where modifier cannot be mixed with other modifiers
+$a = sequence 10;
+eval { translate_and_show '$b = $a($a<3;?_)' };
+ok ($@ =~ 'more than 1');
+
+# more than one identifier
+$a = sequence 3,3;
+eval translate_and_show '$b = $a(0;-|)';
+print "Error was: $@\n" if $@;
+ok (!$@);
+eval {$b++};
+print "\$b = $b\n";
+ok($b->dim(0) == 3 && all $b == 3*sequence(3)+1);
+ok($a->at(0,0) == 0);
+
+# do we ignore whitspace correctly?
+eval translate_and_show '$c = $a(0; - | )';
+print "Error was: $@\n" if $@;
+ok (!$@);
+ok (all $c == $b-1);
+
+# empty modifier block
+$a = sequence 10;
+eval translate_and_show '$b = $a(0;   )';
+ok (!$@);
+ok ($b == $a->at(0));
+
+# modifiers repeated
+eval 'translate_and_show "\$b = \$a(0;-||)"';
+print "Error was: $@\n" if $@;
+ok ($@ =~ 'twice or more');
 
 # foreach/for blocking
 

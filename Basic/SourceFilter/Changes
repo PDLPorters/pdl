@@ -1,3 +1,6 @@
+0.99
+ - allow more than one modifier
+ - fix modifier parsing
 0.91
  - leave 'for(each)? (my|our) $y(0,1) {}' alone
 0.9
