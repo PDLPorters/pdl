@@ -15,7 +15,7 @@ PDL::IO::Misc - misc IO routines for PDL
 
 =head1 DESCRIPTION
 
-A mixture of basic I/O functionality
+Some basic I/O functionality: FITS, tables, byte-swapping
 
 =head1 SYNOPSIS
 
@@ -56,16 +56,6 @@ use strict;
 
 !NO!SUBS!
 
-
-#pp_addpm(<<'EOD');
-
-#=item bswap2( [o]x() )
-
-#Swaps pairs of bytes in argument x()
-
-#=cut
-#EOD
-
 defpdl(
         'bswap2',
         'x(); ',
@@ -87,15 +77,6 @@ defpdl(
 );
 
 
-#pp_addpm(<<'EOD');
-#
-#=item bswap4( [o]x() )
-
-#Swaps quads of bytes in argument x()
-
-#=cut
-#EOD
-
 defpdl(
         'bswap4',
         'x(); ',
@@ -116,15 +97,6 @@ defpdl(
      "Swaps quads of bytes in argument x()"
 );
 
-
-#pp_addpm(<<'EOD');
-
-#=item bswap8( [o]x() )
-
-#Swaps octets of bytes in argument x()
-
-#=cut
-#EOD
 
 defpdl(
         'bswap8',
@@ -240,6 +212,8 @@ converted to bad (if necessary).
 
 !NO!SUBS!
 
+} # end of if($bvalflag)
+
 pp_addpm(<<'!NO!SUBS!');
 
 =for notes
@@ -266,11 +240,6 @@ See L<rfits|rfits> for details on header handling.
 =cut
 
 !NO!SUBS!
-} # if: $bvalflag
-
-#'
-
-pp_addpm("\n=cut\n\n");
 
 pp_addpm(<<'!NO!SUBS!');
 
@@ -356,6 +325,10 @@ $PDL::IO::FITS_Extension = {
 #   ($thing, $row, $rpt, $extra)
 # and return the generated binary string.
 #
+# The finisher just takes the data itself.  It should:
+#    * Byteswap
+#    * Condition the data to final dimensional form (if necessary)
+#    * Apply TSCAL/TZERO keywords (as necessary)
 #
 # The magic numbers in the table (1,2,4,8, etc.) are kludgey -- they break
 # the isolation of PDL size and local code -- but they are a part of the FITS
@@ -399,7 +372,7 @@ $PDL::IO::FITS_bintable_handlers = {
 		my $s = substr($strs->[$row],0,$rpt);
 		$s . ' 'x($rpt - length $s);
            } 
-           , undef # no swapper
+           , undef # no finisher needed
           ]             
  ,'B' => [ byte,    1,     1,     1  ] # byte
  ,'L' => [ byte,    1,     1,     1  ] # logical - treat as byte
@@ -424,10 +397,13 @@ $PDL::IO::FITS_bintable_handlers = {
 		my $rlen = 2 * PDL::Core::howbig(float) * $rpt;
 		substr( ${$pdl->get_dataref}, $rlen * $row, $rlen );
 	   }
- 	  ,sub { # swapper
-		my($pdl)  = shift;
+ 	  ,sub { # finisher
+		my($pdl, $n, $hdr)  = shift;
 		bwap4($pdl);
 		$pdl->reorder(2,1,0);
+	        print STDERR "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n" 
+	             if( (defined $hdr->{"TSCAL$n"} && $hdr->{"TSCAL$n"} != 0)
+	                 or ($hdr->{"TZERO$n"} != 0) );
 	   }
 	  ]
  ,'M' => [ sub { # constructor (cut-n-pasted from 'C' above)
@@ -448,9 +424,12 @@ $PDL::IO::FITS_bintable_handlers = {
 		substr( ${$pdl->get_dataref}, $rlen * $row, $rlen );
 	   }
  	  ,sub { # swapper
-		my($pdl)  = shift;
+		my($pdl, $n, $hdr)  = shift;
 		bwap8($pdl);
 		$pdl->reorder(2,1,0);
+	        print STDERR "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n" 
+	             if( (defined $hdr->{"TSCAL$n"} && $hdr->{"TSCAL$n"} != 0)
+	                 or ($hdr->{"TZERO$n"} != 0) );
 	   }
 	  ]
 # 'P' - array descriptor -- not supported.
@@ -592,7 +571,9 @@ for my $i(1..$hdr->{TFIELDS}) {
    my $post = $tmpcol->{handler}->[3];
 
    if(ref $post eq 'CODE') {
-      $tbl->{$tmpcol->{name}} = &$post($tmpcol->{data});
+
+      $tbl->{$tmpcol->{name}} = &$post($tmpcol->{data}, $i, $hdr);
+
    } elsif( (ref ($tmpcol->{data})) eq 'PDL' ) {
       $tmpcol->{data}->upd_data;
 
@@ -606,7 +587,31 @@ for my $i(1..$hdr->{TFIELDS}) {
 	      }
       }
 
+      # Apply scaling and badval keywords, which are illegal for A, L, and X
+      # types but legal for anyone else.
+
+      my $tzero = $hdr->{"TZERO$i"};
+      my $tscal = $hdr->{"TSCAL$i"};
+      if( $tmpcol->{type} =~ m/[ALX]/i ) {
+	print STDERR "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
+	         $tmpcol->{name} . "); type is $tmpcol->{type})\n" 
+	if(defined($tzero) or defined $tscal);
+      } else {
+	    # The checks here just save a little time in the undefined cases
+	    $tmpcol->{data} *= $tscal unless(!defined($tscal) || $tscal==1);
+	    $tmpcol->{data} += $tzero unless($tzero==0);
+      }
+
+	if($tmpcol->{type} =~ m/[ALX]/i) {
+		print STDERR "Ignoring illegal TSCAL$i keyword for " . 
+	               $tmpcol->{name}." (form " . $hdr->{"TFORM$i"} . " )\n";
+	} else {
+		$tmpcol->{data} *= $hdr->{"TSCAL$i"};
+      }
+
+	
       $tbl->{$tmpcol->{name}} = $tmpcol->{data}->xchg(0,1);
+
    } elsif(defined $post) {
 	print STDERR "Postfrobnication bug detected in column $i ("
 	       . $tmpcol->{name}. ").  Winging it.\n";
@@ -913,6 +918,7 @@ warning is printed.
 
     if ( $bvalflag ) {
         pp_addpm(<<'!NO!SUBS!');
+
 =for bad
 
 For integer types (ie C<BITPIX E<gt> 0>), the C<BLANK> keyword is set
@@ -923,6 +929,7 @@ converted to NaN (if necessary) before writing.
 } # if: $bvalflag
 
 pp_addpm(<<'!NO!SUBS!');
+
 =cut
 
 *wfits = \&PDL::wfits;
