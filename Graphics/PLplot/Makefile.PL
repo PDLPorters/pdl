@@ -133,6 +133,23 @@ if ($@) {
   open (OPT, ">>OPTIONS!");
   print OPT "NOMEM!\n";
   close OPT;
+} else {
+  print "\tplsmem function found, in-memory plotting available!\n";
+}
+
+# Test if PLplot has plsvect, for in vector plotting
+eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+#include <plplot.h>
+main () {  plsvect (NULL, NULL, 0, 0); }
+EOC
+};
+if ($@) {
+  print "\tplsvect function not found, no vector plotting available!\n";
+  open (OPT, ">>OPTIONS!");
+  print OPT "NOVECT!\n";
+  close OPT;
+} else {
+  print "\tplsvect function found, vector plotting available!\n";
 }
 
 # Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)

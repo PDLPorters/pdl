@@ -13,8 +13,6 @@ use Test::More;
 BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
-#  eval " use PDL::Graphics::PLplot; ";
-#  unless ($@){
     plan tests => 27;
     use_ok( "PDL::Graphics::PLplot" );
   }

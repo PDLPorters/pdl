@@ -1,3 +1,6 @@
+DCH 30-Jul-04
+   - Cleaned up plplot.t a bit.  Made compilation of plplot routines
+     plsvect and plvect dependent upon a recent enough version of plplot.
 DCH 29-Jul-04
    - Cleanup in plplot.d.  Fixed documentation bug 959902.  Fixed line
      width specification (LINEWIDTH option).  Fixed test bug in

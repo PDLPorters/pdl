@@ -1,5 +1,5 @@
 use Config;
-use vars qw/$nomem $debug $plpoly3/;
+use vars qw/$nomem $debug $plpoly3 $novect/;
 
 $debug = 0; # show generated pp_defs and other debug info
 
@@ -9,6 +9,10 @@ my @opts = <OPT>;
 close OPT;
 $nomem = 0;
 $nomem = 1 if (grep /NOMEM!/, @opts);
+
+$novect = 0;
+$novect = 1 if (grep /NOVECT!/, @opts);
+
 $plpoly3 = 5;
 $plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
 
@@ -2990,14 +2994,17 @@ pp_def ('plgriddata',
         );
 
 
+
+unless ($novect) {
+
 # Vector field plots
 
-pp_def ('plvect',
-         GenericTypes => [D],
-         Pars => 'u(nx,ny); v(nx,ny); scale();',
-         OtherPars => 'SV* pltr; SV* pltr_data;',
-         Doc => 'FIXME: documentation here!',
-         Code => '
+  pp_def ('plvect',
+	  GenericTypes => [D],
+	  Pars => 'u(nx,ny); v(nx,ny); scale();',
+	  OtherPars => 'SV* pltr; SV* pltr_data;',
+	  Doc => 'FIXME: documentation here!',
+	  Code => '
            int i, j, size_x, size_y;
            PLFLT** u;
            PLFLT** v;
@@ -3024,14 +3031,14 @@ pp_def ('plvect',
 
            plFree2dGrid (u, size_x, size_y);
            plFree2dGrid (v, size_x, size_y);'
-        );
-
-pp_def ('plsvect',
-         Pars => 'arrowx(npts); arrowy(npts); int fill()',
-         GenericTypes => [D],
-         Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
-        );
-
+	 );
+  
+  pp_def ('plsvect',
+	  Pars => 'arrowx(npts); arrowy(npts); int fill()',
+	  GenericTypes => [D],
+	  Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
+	 );
+}
 
 pp_addpm (<<'EOPM');
 
