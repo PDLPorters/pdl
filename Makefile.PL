@@ -47,20 +47,20 @@ sub getpdl_config {
   my ($pdl_conf_file) = @_;
 
   # First read in distribution config file
+  # and convert y/n to 1/0
+  #
   require './perldl.conf';
+  foreach (values %PDL_CONFIG) { s/^y.*/1/i; s/^n.*/0/i; }
 
   %PDL_CONFIG_DIST = %PDL_CONFIG; # Save standard values
 
   # Now read in the users config file if specified
-
+  # and convert y/n to 1/0
+  #
   if (-f $pdl_conf_file) {
     warn "\nINFORMATION: using file $pdl_conf_file to set configuration defaults\n\n";
     require $pdl_conf_file;
-    foreach(values %PDL_CONFIG){
-	s/^y.*/1/i;
-	s/^n.*/0/i;
-    }
-
+    foreach(values %PDL_CONFIG){ s/^y.*/1/i; s/^n.*/0/i; }
   }
 
   # Sanity checking of user supplied keys (look for ones not defined in dist)
