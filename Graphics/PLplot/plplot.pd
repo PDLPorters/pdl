@@ -1871,7 +1871,7 @@ void c_plgchr(PLFLT *p_def, PLFLT *p_ht);
 void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
 void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
 void c_plgcompression(PLINT *compression);
-void c_plgdev(char *p_dev);
+#void c_plgdev(char *p_dev);
 void c_plgdidev(PLFLT *p_mar, PLFLT *p_aspect, PLFLT *p_jx, PLFLT *p_jy);
 void c_plgdiori(PLFLT *p_rot);
 void c_plgdiplt(PLFLT *p_xmin, PLFLT *p_ymin, PLFLT *p_xmax, PLFLT *p_ymax);
@@ -2789,6 +2789,28 @@ OUTPUT:
 EOC
 
 pp_add_exported ('plgstrm');
+
+pp_addpm (<<'EOPM');
+=head2 plgsdev
+=for sig
+  $driver = plgdev ()
+=for ref
+  Gets the current driver name.
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+char*
+plgdev ()
+CODE:
+  char driver[80];
+  c_plgdev (driver);
+  RETVAL = driver;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plgdev');
 
 pp_addpm (<<'EOPM');
 =head2 plmkstrm
