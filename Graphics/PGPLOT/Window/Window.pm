@@ -2118,6 +2118,57 @@ EOD
 # Plot points with pgpnts()
 
 
+=head2 arrow
+
+=for ref
+
+Plot an arrow
+
+=for usage
+
+ Usage: arrow($x1, $y1, $x2, $y2, [, $opt]);
+
+Plot an arrow from C<$x1, $y1> to C<$x2, $y2>. The arrow shape can be
+set using the option C<Arrow>. See the documentation for general options
+for details about this option (and the example below):
+
+=for example
+
+Example:
+
+  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
+
+which draws a broad, large arrow from (0, 1) to (1, 2).
+
+=cut
+
+
+sub arrow {
+
+  my $self = shift;
+
+  my ($in, $opt)=_extract_hash(@_);
+  $opt = {} if !defined($opt);
+
+  barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
+
+  my ($x1, $y1, $x2, $y2)=@$in;
+
+  my $o = $self->{PlotOptions}->options($opt);
+  $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+  unless ($self->held()) {
+    $self->initenv($x1, $x2, $y1, $y2, $opt);
+  }
+
+  $self->_save_status();
+  $self->_standard_options_parser($o);
+  pgarro($x1, $y1, $x2, $y2);
+  $self->_restore_status();
+
+}
+
+
+
 {
   my $points_options = undef;
 
@@ -2612,6 +2663,8 @@ The radius of the circle.
     $o->{YCenter}=$y if defined($y);
     $o->{Radius} = $radius if defined($radius);
 
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
     $self->_save_status();
     $self->_standard_options_parser($o);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
@@ -2698,6 +2751,8 @@ might need changing in the case of very large ellipses.
        || !defined($o->{YCenter})) {
       barf "The major and minor axis and the center coordinates must be given!";
     }
+
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     my $t = 2*$PI*sequence($o->{NPoints})/($o->{NPoints}-1);
     my ($xtmp, $ytmp) = ($o->{MajorAxis}*cos($t), $o->{MinorAxis}*sin($t));
@@ -2804,6 +2859,8 @@ is given in radians.
       print "$usage\n";
       barf 'The center of the rectangle must be specified!';
     }
+
+    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     # Ok if we got this far it is about time to do something useful,
     # namely construct the piddle that contains the sides of the rectangle.
