@@ -229,7 +229,10 @@ sub findslice {
   }
   poparg;      # clean stack
   pop @srcstr; # clear stack
-  $processed .= substr $src, pos($src); # append the remaining text portion
+  # append the remaining text portion
+  #     use substr only if we have had at least one pass
+  #     through above loop (otherwise pos is uninitialized)
+  $processed .= $ct > 0 ? substr $src, pos($src) : $src;
 }
 
 
@@ -238,7 +241,15 @@ sub perldlpp {
  my ($txt) = @_;
  my $new;
  eval '$new = PDL::NiceSlice::findslice $txt';
- return "print q#preprocessor error: $@#" if $@;
+ if ($@) {
+   my $err = $@;
+   for (split '','#!|\'"%~/') {
+     return "print q${_}preprocessor error: $err${_}"
+       unless $err =~ m{[$_]};
+    }
+   return "print q{preprocessor error: $err}"; # if this doesn't work
+                                               # we're stuffed
+ }
  return $new;
 }
 
@@ -409,9 +420,9 @@ Similarly, if you have a list of piddles C<@pdls>:
 
 The argument list is a comma separated list. Each argument specifies
 how the corresponding dimension in the piddle is sliced. In contrast
-to usage of L<slice|PDL::Slices/slice> the arguments should not be
-quoted. Rather freely mix literals (1,3,etc), perl variabales and
-function invocations, e.g.
+to usage of the L<slice|PDL::Slices/slice> method the arguments should
+I<not> be quoted. Rather freely mix literals (1,3,etc), perl
+variabales and function invocations, e.g.
 
   $a($pos-1:$end,myfunc(1,3)) .= 5;
 
@@ -443,6 +454,19 @@ Note that using prototypes in the definition of myfunc does not help.
 At this stage the source filter is simply not intelligent enough to
 make use of this information. So beware of this subtlety.
 
+Another pitfall to be aware of: currently, you can't use the conditional
+operator in slice expressions (i.e., C<?:>, since the parser confuses them
+with ranges). For example, the following will cause an error:
+
+  $a = sequence 10;
+  $b = rand > 0.5 ? 0 : 1; # this one is ok
+  print $a($b ? 1 : 2);    # error !
+ syntax error at (eval 59) line 3, near "1,
+
+For the moment, just try to stay clear of the conditional operator
+in slice expressions (or provide us with a patch to the parser to
+resolve this issue ;).
+
 =head2 Modifiers
 
 Following a suggestion originally put forward by Karl Glazebrook the
@@ -465,9 +489,9 @@ is an example
    print $b(0:-2;_); # same as $b->flat->(0:-2)
  [0 1 2 3 4 5 6 7]
 
-which is quite different to the same slice expression without the modifier
+which is quite different from the same slice expression without the modifier
 
-   print $b(0:-2;_);
+   print $b(0:-2);
  [
   [0 1]
   [3 4]
@@ -476,7 +500,7 @@ which is quite different to the same slice expression without the modifier
 
 =item *
 
-C<|>: sever the link to the piddle, e.g.
+C<|>: L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
    $a = sequence 10;
    $b = $a(0:2;|);  # same as $a(0:2)->sever
@@ -486,9 +510,10 @@ C<|>: sever the link to the piddle, e.g.
 
 =item *
 
-C<?>: short hand to indicate that this is really a C<where> expression
+C<?>: short hand to indicate that this is really a
+L<where|PDL::Primitive/where> expression
 
-Since expressions like
+As expressions like
 
   $a->where($a>5)
 
@@ -496,18 +521,29 @@ are used very often you can write that shorter as
 
   $a($a>5;?)
 
-With the C<?>-modifier the expression preceding the modifier is not
+With the C<?>-modifier the expression preceding the modifier is I<not>
 really a slice expression (e.g. ranges are not allowed) but rather an
-expression as it would normally be used with the
-L<where|PDL::Primitive/where> method. That's about all there is to
-know about this one.
+expression as required by the L<where|PDL::Primitive/where> method.
+For example, the following code will raise an error:
+
+  $a = sequence 10;
+  print $a(0:3;?);
+ syntax error at (eval 70) line 3, near "0:"
+
+That's about all there is to know about this one.
 
 =back
 
+Modifiers are a pretty new feature of C<PDL::NiceSlice>. So
+don't be surprised if things don't work quite as expected.
+Feedback is welcome as usual. The modifier syntax may change
+in the future.
 
 =head2 Argument formats
 
-You can use ranges and secondly, piddles as 1D index lists.
+In slice expressions you can use ranges and secondly,
+piddles as 1D index lists (although compare the description
+of the C<?>-modifier for exceptions).
 
 =over 2
 
@@ -753,6 +789,10 @@ be in the next PDL release.
 =head1 BUGS
 
 Error checking is probably not yet foolproof.
+
+The conditional operator can't be used in slice expressions (see
+above).
+
 Feedback and bug reports are welcome. Please include an example
 that demonstrates the problem. Log bug reports in the PDL
 bug database at
