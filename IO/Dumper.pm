@@ -277,12 +277,12 @@ sub PDL::IO::Dumper::big_PDL {
   
   return 0 
     if($a->nelem <= $PDL::IO::Dumper::small_thresh 
-       && !(keys %{$a->gethdr()})
+       && !(keys %{$a->hdr()})
        );
   
   return 1
     if($a->nelem <= $PDL::IO::Dumper::med_thresh
-       && ( !( ( (tied %{$a->gethdr()}) || '' ) =~ m/^Astro::FITS::Header\=/)  )
+       && ( !( ( (tied %{$a->hdr()}) || '' ) =~ m/^Astro::FITS::Header\=/)  )
        );
 
   return 2;
@@ -431,7 +431,7 @@ sub PDL::IO::Dumper::dump_PDL {
       ## even if we don't want it).  Delete the FITS header if we don't
       ## want one.  
       ##
-      if( !scalar(keys %{$_->gethdr()}) ) {
+      if( !scalar(keys %{$_->hdr()}) ) {
 	push(@s,"\$$pdlid->sethdr(undef);\n");
       }
     }
@@ -450,14 +450,14 @@ sub PDL::IO::Dumper::dump_PDL {
     ## Ultimately, Data::Dumper will get fixed to handle tied objects, 
     ## and this kludge will go away.
     ## 
-#    print "hdr: ",$_->gethdr()," keys:",scalar(keys(%{$_->gethdr()})),"\n";
+#    print "hdr: ",$_->hdr()," keys:",scalar(keys(%{$_->hdr()})),"\n";
 
-    if( scalar(keys %{$_->gethdr()}) ) {
-      if( ((tied %{$_->gethdr()}) || '') =~ m/Astro::FITS::Header\=/) {
+    if( scalar(keys %{$_->hdr()}) ) {
+      if( ((tied %{$_->hdr()}) || '') =~ m/Astro::FITS::Header\=/) {
 	push(@s,"# (Header restored from FITS file)\n");
       } else {
 	push(@s,"\$$pdlid->sethdr( eval <<'EndOfHeader_${pdlid}'\n",
-	     &PDL::IO::Dumper::sdump($_->gethdr()),
+	     &PDL::IO::Dumper::sdump($_->hdr()),
 	     "\nEndOfHeader_${pdlid}\n);\n",
 	     "\$$pdlid->hdrcpy(".$_->hdrcpy().");\n"
 	     );

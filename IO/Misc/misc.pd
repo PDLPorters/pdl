@@ -77,9 +77,9 @@ HDU's by using the [n] syntax, the second one is [1]. This works
 as long as they are IMAGE extensions - this module does not
 do FITS tables!
 
-FITS Headers stored in piddle and can be retrived with $a->gethdr.
-The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
-header is copied to new piddles.
+FITS Headers are stored in the piddle and can be retrived with
+$a->gethdr.  The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set
+so that the header is copied to new piddles.
 
 This header is a reference to a hash where the hash keys are the
 keywords in the FITS header.  If you have the "Astro::FITS::Header"
@@ -88,7 +88,7 @@ object.  The tied-hash interface is designed so that it emulates the
 legacy PDL support: keyword/value pairs are accessed as with an ordinary 
 hash.  But for more precise control of the FITS header you can access
 the underlying Astro::FITS::Header object using the perl "tied" builtin
-(see the L<Astro::FITS::Header> man page for details).
+(see L<Astro::FITS::Header> for details).
 
 Keywords are converted to I<uppercase>; this is part of the FITS
 standard; but access is case-insensitive on the perl side, provided

@@ -1828,15 +1828,14 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 # a variable keeps track of balancing the two.  No signals are actually
 # released until you undo all of 'em.
 #
-# catch_signals always catches the __DIE__ pseudosignal, so if you 
-# confess() or barf() or die() or whatever, all the signal handlers get
-# restored.
+# catch_signals catches the __DIE__ pseudosignal, but barf() doesn't
+# throw it -- so remember to release signals before barfing!
 #
 # The mechanism is a little over-powered for what we need -- but, hey,
 # if you want to defer any other signal you can simply add it to the 
 # list in catch_signals.  
 #
-# Don't try to parse arguments with catch_signals unless you first do a 
+# Don't try to parse arguments within catch_signals unless you first do a 
 # global search-and-replace "&catch_signals;"->"&catch_signals()".
 #
 #  --CED 9-Aug-2002
@@ -2083,7 +2082,8 @@ sub _open_new_window {
   &catch_signals;
   my $window_nr = pgopen($self->{Device});
   if ($window_nr < 0) {
-    barf("Opening new window (pgopen) failed: $window_nr\n");
+      &release_signals;
+      barf("Opening new window (pgopen) failed: $window_nr\n");
   }
   $self->{ID} = $window_nr;
   $self->{Name} = "Window$window_nr" if $self->{Name} eq "";
@@ -2313,6 +2313,7 @@ sub _reopen {
   &catch_signals;
   my $window_nr = pgopen($self->{Device});
   if ($window_nr < 0) {
+    &release_signals;
     barf("Opening new window (pgopen) failed: $window_nr\n");
   }
   $self->{ID} = $window_nr;

@@ -17,7 +17,7 @@ sub hdrcmp {
   return $ah == $bh;
 }
 
-print "1..8\n";
+print "1..9\n";
 
 $a = zeroes(20);
 $a->hdrcpy(1);
@@ -46,5 +46,5 @@ print "d: ",$d->gethdr(),"\n";
 ok(7,hdrcmp($a,$d));
 
 $a->hdrcpy(0);
-ok(8,defined($a->slice('3')->gethdr) && !( keys (%{$a->slice('3')->gethdr})));
-
+ok(8,defined($a->slice('3')->hdr) && !( keys (%{$a->slice('3')->hdr})));
+ok(9,!defined($a->slice('3')->gethdr));
