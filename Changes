@@ -1,3 +1,6 @@
+CED 05-Dec-2003
+   - Clean up axis labeling code in imag(); should eliminate spurious
+	doubled titles.
 CS  04-Dec-2003
    - add code to Makefile.PL that tries to detect
      broken redhat installations

@@ -5501,17 +5501,22 @@ sub arrow {
 
     $self->initenv( _image_xyrange($tr,$nx,$ny,$o), $o );
 
-    if (!$self->held()) {
-      # Label axes if necessary
-      if(defined ($u_opt->{Title} || 
-		  $u_opt->{XTitle} || 
-		  $u_opt->{YTitle})) {
-	$self->label_axes($u_opt->{XTitle},
-			  $u_opt->{YTitle},
-			  $u_opt->{Title},
-			  $u_opt);
-      }
-    } 
+
+    #
+    # Commented out, CED, 5-Dec-2003 -- 
+    # this is handled by redraw_axes, at the bottom.
+    #
+    #if (!$self->held()) {
+    #  # Label axes if necessary
+    #  if(defined ($u_opt->{Title} || 
+    #		  $u_opt->{XTitle} || 
+    #		  $u_opt->{YTitle})) {
+    #	$self->label_axes($u_opt->{XTitle},
+    #			  $u_opt->{YTitle},
+    #			  $u_opt->{Title},
+    #			  $u_opt);
+    #  }
+    # } 
 
     pgsitf( $itf );
     my ($i1, $i2);
