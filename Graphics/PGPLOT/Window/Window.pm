@@ -3543,7 +3543,7 @@ sub label_axes {
   pgsch($sz * ( $o->{TitleSize} || 1 ));
              # The 'T' offset is computed so that the original 
              # vertical center is maintained.
-  pgmtxt('T', ($p->[0]+0.5)/$o->{TitleSize} - 0.5 , 0.5, 0.5, $o->{Title});  
+  pgmtxt('T', ($p->[0]+0.5)/( $o->{TitleSize} || 1 ) - 0.5 , 0.5, 0.5, $o->{Title});  
   pgsch($sz);
   pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
   pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
