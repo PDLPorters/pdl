@@ -975,14 +975,20 @@ if $pdl's CTYPE1 field contains "bleems".
 
 If you don't pass in an xtitle or ytitle parameter, you still get the 
 units designation.  But if there's no CTYPE1 or CTYPE2 then you get no
-units designation.
+units designation.  
 
-Using the SCALE, PIX, or PITCH options works OK -- but those parameters
-refer to the scientific coordinate system rather than to the pixel
-coordinate system (e.g. "PITCH=>100" means "100 scientific units per inch",
-and "SCALE=>1" means "1 scientific unit per device pixel".  See
-the imag() writeup for more info on these options.  Scaling happens relative
-to the image datum.
+If CTYPE1 and CTYPE2 agree, then the default pixel aspect ratio is 1 
+(in scientific units, NOT in original pixels).  If they don't agree (as for
+a spectrum) then the default pixel aspect ratio is adjusted to match the 
+plot viewport.
+
+You can override the image scaling using the SCALE, PIX, or PITCH
+options just as with the imag() method -- but those parameters refer
+to the scientific coordinate system rather than to the pixel
+coordinate system (e.g. "PITCH=>100" means "100 scientific units per
+inch", and "SCALE=>1" means "1 scientific unit per device pixel".  See
+the imag() writeup for more info on these options.  Scaling happens
+relative to the image datum, not relative to the corner of the image.
 
 =head2 draw_wedge
 
@@ -4552,22 +4558,29 @@ sub fits_imag {
   my($transform) = $pane->transform(
     {ImageDimensions=>[$pdl->dims],
      Angle=>($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180,
-     Pixinc=>[($hdr->{CDELT1} || 1.0), ($hdr->{CDELT2} || 1.0)],
+     Pixinc=> [($hdr->{CDELT1} || 1.0), ($hdr->{CDELT2} || 1.0)],
      ImageCenter=>$ic
      }
    );
 
   $opt->{Transform} = $transform;
   %opt2 = %{$opt};
-  delete $opt2{xtitle};
-  delete $opt2{ytitle};
-  delete $opt2{title};
+
+  local($_);
+  foreach $_(keys %opt2){
+    delete $opt2{$_} if(m/title/i);
+  }
 
   my($min) = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
   my($max) = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
-  my($unit)= $pdl->gethdr->{BUNIT} || "DN";
-  my($rangestr) = " ( $min - $max $unit ) ";
-  $pane->imag1($pdl,\%opt2);
+  my($unit)= $pdl->gethdr->{BUNIT} || "";
+  my($rangestr) = " ($min to $max $unit) ";
+
+  if($hdr->{CTYPE1} eq $hdr->{CTYPE2}) {
+    $pane->imag1($pdl,\%opt2);
+  } else {
+    $pane->imag($pdl,\%opt2);
+  }
   $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
 		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
 		    $opt->{title} . $rangestr,$opt
