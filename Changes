@@ -1,3 +1,6 @@
+DJ  21-May-04
+   - fix to which/which_both bad value code to make it work when 
+     BADVAL_USENAN = 1
 CED 30-Apr-04
    - perldl: warns if AutoLoader is not loaded by perldlrc; avoids
      a suite of installation follies.
