@@ -1,3 +1,5 @@
+CED (30-Aug-02)
+    - Fix to Window.pm documentation -- explains wart about panel()
 CED (29-Aug-02)
     - minor fix to fits_imag -- axis labels
     - Added TightLabels (boolean) and TitleSize (float) standard options

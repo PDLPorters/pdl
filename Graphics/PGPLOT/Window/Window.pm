@@ -354,6 +354,16 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
 
 The HardLW option should be used if you are plotting to a hardcopy device.
 
+=item Panel
+
+It is possible to define multiple plot ``panels'' with in a single
+window (see the L<NXPanel and NYPanel options in the
+constructor|PDL::Graphics::PGPLOT::Window>).  You can explicitly set
+in which panel most plotting commands occur, by passing either a
+scalar or an array ref into the C<Panel> option.  There is also a
+L<panel|PDL::Graphics::PGPLOT::panel> method, but its use is deprecated
+because of a wart with the PGPLOT interface.
+
 =item plotting range
 
 Explicitly set the plot range in x and y. X-range and Y-range are set
@@ -363,6 +373,7 @@ in general). These options are ignored if the window is on hold.
 
   line $x, $y, {xr => [0,5]}; # y-range uses default
   line $x, $y, {Xrange => [0,5], Yrange => [-1,3]}; # fully specified range
+
 
 =back
 
@@ -769,7 +780,18 @@ Switch to a different panel
   $win->panel(<num>);
 
 Move to a different panel on the plotting surface. Note that you will need
-to erase it manually if that is what you require.
+to erase it manually if that is what you require.  
+
+This routine currently does something you probably don't want, and hence is
+deprecated for most use:  if you say
+
+  $win->panel(1);
+  $win->imag($image);
+
+then $image will actually be displayed in panel B<2>.  That's because
+the main plotting routines such as line and imag all advance the panel
+when necessary.  Instead, it's better to use the Panel option within
+plotting commands, if you want to set the panel explicitly.  
 
 =head2 release
 
