@@ -4813,8 +4813,26 @@ EOD
       # Allow for the error bars
       my ( $xmin, $xmax, $ymin, $ymax );
 
+
+      # Bug fix, JB 03/03/05 - user input ranges were not considered.
+      my @axes_to_do = ();
+
+      if (ref($o->{XRange})) {
+	($d{'x'}{min}, $d{'x'}{max})=@{$o->{XRange}};
+	if ($d{'x'}{xmin} == $d{'x'}{max}) { $d{'x'}{min} -= 0.5; $d{'x'}{max} += 0.5; }
+      } else {
+	push @axes_to_do, 'x';
+      }
+      if (ref($o->{YRange})) {
+	($d{'y'}{min}, $d{'y'}{max})=@{$o->{YRange}};
+	 if ($d{'y'}{xmin} == $d{'y'}{max}) { $d{'y'}{min} -= 0.5; $d{'y'}{max} += 0.5; }
+      } else {
+	push @axes_to_do, 'y';
+      }
+
+
       # loop over the axes to calculate plot limits
-      for my $ax ( qw( x y ) )
+      for my $ax (@axes_to_do)
 	{
 	  $axis = $d{$ax};
 	  $range = uc $ax . 'range';
