@@ -1169,12 +1169,13 @@ name(rng)
  OUTPUT:
   RETVAL
 
-#void
-#DESTROY(rng)
-#  gsl_rng * rng
-# CODE:
-#  fprintf(stderr,"Freeing %d\n");
-#  gsl_rng_free((gsl_rng *) rng);
+void
+DESTROY(sv)
+  SV * sv
+ CODE:
+  gsl_rng *rng = (gsl_rng *) SvIV((SV*)SvRV(sv));
+  /* fprintf(stderr,"Freeing %d\n",rng); */
+  gsl_rng_free((gsl_rng *) rng);
 
 gsl_ran_discrete_t *
 ran_discrete_preproc(rng, p)

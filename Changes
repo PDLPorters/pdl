@@ -1,3 +1,6 @@
+CS  - bump up NiceSlice version
+    - gsl_random rng destructor!
+    - improve PDL::Exporter doc (I never remember the darn syntax)
 CS  - reshape behaviour like idl when no dim args are given
     - niceslicing gets a new modifier: $a(;-) drops dims of size 1
 CED (16 May 02)
