@@ -19,7 +19,7 @@ while(<MAP>) {
   if($color==0) {
     push(@mainlist,pdl(@a)); undef @a;
   }
-  push(@a,[$x,$y,$z,$color-1]);
+  push(@a,[$x,$y,$z,$color ? $color-1:0]);
   $nelem++;
 }
 shift @mainlist; # get rid of null first item
