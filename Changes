@@ -1,10 +1,18 @@
 (!!! = possible source of incompatibilities)
+
+Tim Jenness (6/68/00)
+    - miscellaneous patches for Win32 support
+         Make Callext.pm and callext.t more generic
+         Lib/Image2D check for presence of rint()
+         Add ABSTRACT and AUTHOR to top level Makefile.PL
+    - conv.t now uses the Test module
 Doug Burke (6/21/00; 6/22/00)
     - mkhtmldoc.pl should now handle links to scripts in Index.pod for 
       perl < 5.6.0. Removed link hacking for perl >= 5.6.0.
+2.1.1
 CS  - fix Perl_croak problem with 'usethreading'
 Doug Burke (6/15/00)
-    - hand-rolled podselect (podsel) created if perl version earler than
+    - hand-rolled podselect (podsel) created if perl version earlier than
       5.6.0
 Doug Burke (6/9/00)
     - added Christian's changes to online documentation to support scripts
