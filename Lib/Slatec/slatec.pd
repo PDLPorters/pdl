@@ -486,10 +486,10 @@ sub prepfft {
 }
 
 *fft = \&PDL::fft;
-sub PDL::fft {
+sub PDL::fft (;@) {
 	my($v) = @_;
 	my $ws = prepfft($v->getdim(0));
-	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null), 
+	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null),
 		  (my $b = PDL->null), $ws);
 	return ($az,$a,$b);
 }
