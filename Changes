@@ -1,3 +1,6 @@
+JB  (14/Aug/01)
+    - Added a package wide store for options for env. This allows the
+      next device to reuse the most recent set of env options.
 CS  - minmax: return scalars!
     - PDL::Options for PDL::Graphics::Karma
 DJB (07/Aug/01)
