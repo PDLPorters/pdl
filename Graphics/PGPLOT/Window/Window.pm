@@ -4739,7 +4739,7 @@ sub poly {
 						     });
       $legend_options->synonyms({ VSpace => 'VertSpace' });
       $legend_options->synonyms({ Fraction => 'TextFraction' });
-      $text_options->add_synonym({Bg => 'BackgroundColour'});
+      $legend_options->add_synonym({Bg => 'BackgroundColour'});
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -4765,7 +4765,7 @@ sub poly {
     $o->{YPos} = $y if defined($y);
     $o->{Width} = $width if defined($width);
 
-x    # We could keep accessing $o but this is more succint.
+    # We could keep accessing $o but this is more succint.
     $text = $o->{Text};
 
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
