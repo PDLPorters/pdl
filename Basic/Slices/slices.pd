@@ -51,27 +51,15 @@ powerful language in many ways: since you can alter the original
 data by altering some easier-to-use representation of it, many things are
 much easier to accomplish, just like making the above unit matrix.
 
-You are allowed to slice in more dimensions than exist in a piddle,
-provided that all the additional dimensions have indices of zero.
-That gets around a problem with other allegedly high-level languages
-that distinguish artificially between (e.g.) scalars and 1-D vectors
-of rank 1.  For example:
-
-  perldl> $a = pdl(1)
-
-makes $a a scalar (0-dimensional) piddle but you can still find the
-0th element of it in as many dimensions as you want:
-
-  perldl> print $a->slice("0,0,0")
-  0
-
-  perldl> print $a->slice("1")
-  Error in slice:Too many dims in slice 
-
 =head1 BUGS 
 
 For the moment, you can't slice the empty piddle.  This should probably
 change:  slices of the empty piddle should probably return the empty piddle.
+
+Many types of index errors are reported far from the indexing
+operation that caused them.  This is caused by the underlying architecture:
+slice() sets up a mapping between variables, but that mapping isn't 
+tested for correctness until it is used (potentially much later).
 
 =cut
 
@@ -805,6 +793,25 @@ inserts an extra (dummy) dimension of width I<a>.
 An extension is planned for a later stage allowing
 C<$a-E<gt>slice('(=1),(=1|5:8),3:6(=1),4:6')>
 to express a multidimensional diagonal of C<$a>.
+
+Trivial out-of-bounds slicing is allowed: if you slice a source
+dimension that doesn't exist, but only index the 0th element, then
+slice treats the source as if there were a dummy dimension there.
+The following are all equivalent:
+	
+	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
+	xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
+	xvals(5)->((2),0)           # NiceSlice syntax
+	xvals(5)->((2))->dummy(0,1) # NiceSlice syntax
+
+This is an error:
+	
+	xvals(5)->slice('(2),1')	# nontrivial out-of-bounds slice dies
+
+Because slicing doesn't directly manipulate the source and destination 
+pdl -- it just sets up a transformation between them -- indexing errors 
+often aren't reported until later.  This is either a bug or a feature,
+depending on whether you prefer error-reporting clarity or speed of execution.
 
 =cut
 EOD
