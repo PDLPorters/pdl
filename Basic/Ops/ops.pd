@@ -50,26 +50,21 @@ sub biop {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}',
-	pp_def($name,
-	       Pars => 'a(); b(); [o]c();',
-	       OtherPars => 'int swap',
-	       HandleBad => 1,
-	       NoBadifNaN => 1,
-	       Code => 
-	       "\$c() = \$a() $op \$b();",
-	       BadCode =>
-	       'if ( $ISBAD($a()) || $ISBAD($b()) )
-	          $SETBAD($c());
-	        else' . "\n  \$c() = \$a() $op \$b();\n",
-	       %extra,
-	       Doc => << "EOD");
+    }
+    pp_def($name,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   HandleBad => 1,
+	   NoBadifNaN => 1,
+	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Code => 
+	   "\$c() = \$a() $op \$b();",
+	   BadCode =>
+	   'if ( $ISBAD($a()) || $ISBAD($b()) )
+	       $SETBAD($c());
+	    else' . "\n  \$c() = \$a() $op \$b();\n",
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -104,30 +99,25 @@ sub bifunc {
     b = tmp;
   }
 EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}';
- 	my $ovcall;
- 	# is this one to be used as a function or operator ?
- 	if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
- 	else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
-	pp_def($name,
-	       HandleBad => 1,
-	       NoBadifNaN => 1,
-	       Pars => 'a(); b(); [o]c();',
-	       OtherPars => 'int swap',
-	       Code => 
-	       "\$c() = $func(\$a(),\$b());",
-	       BadCode =>
-	       'if ( $ISBAD(a()) || $ISBAD(b()) )
-	          $SETBAD(c());
-	        else' . "\n  \$c() = $func(\$a(),\$b());\n",
-	       %extra,
-	       Doc => << "EOD");
+    }
+    my $ovcall;
+    # is this one to be used as a function or operator ?
+    if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
+    else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
+    pp_def($name,
+	   HandleBad => 1,
+	   NoBadifNaN => 1,
+	   Pars => 'a(); b(); [o]c();',
+	   OtherPars => 'int swap',
+	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Code => 
+	   "\$c() = $func(\$a(),\$b());",
+	   BadCode =>
+	   'if ( $ISBAD(a()) || $ISBAD(b()) )
+	       $SETBAD(c());
+	    else' . "\n  \$c() = $func(\$a(),\$b());\n",
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
@@ -156,17 +146,13 @@ sub ufunc {
 	   Pars => 'a(); [o]b()',
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
+	   Inplace => [ 'a', 'b' ],
 	   Code => 
 	   "\$b() = $func(\$a());",
 	   BadCode =>
 	   'if ( $ISBAD($a()) )
 	      $SETBAD($b());
 	   else' . "\n  \$b() = $func(\$a());\n",
-	   HdrCode => 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  b = a;  /* discard output value, leak? */
-				}',
 	   %extra,
 	   Doc => << "EOD");
 =for ref

@@ -1,5 +1,8 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (08/02/00)
+   - added more to the demo
+   - brought up to date with changes on main branch (see Changes)
 Doug Burke (07/27/00)
    - changed PP/PDLCode.pm to greatly improve the handling of 'bad' code. It's
      almost not a horrible hack now ;)
@@ -13,8 +16,6 @@ Doug Burke (07/26/00)
      sumover and dprod,dsum. changed stats to use dsum() rather than sum()
    - removed UseBadforNaN from primitive.pd, bad.pd, added NoBadifNaN to 
      ops.pd and math.pd
-   - changed PDLCode to use THISIS macros if actually used by code, rather than
-     dying (un-tested)
    - hacked PDL::IO::NDF to read/write the bad value flag (incomplete) and 
      fixed rndf('../bob') (some problems with byte datatype?)
    - replacebad can now be used inplace, added copybad to PDL::Bad (also 
@@ -29,11 +30,6 @@ Doug Burke (07/16/00)
    - added SETPDLSTATE(BAD|GOOD) and ISPDLSTATE(BAD|GOOD) expansions to dosubst 
      in PP.pm (useful for xxxxBadStatusCode)
    - removed badvalue_as_pdl()
-   - removed inclusion of the 'THISISxxx' C pre-processor commands to the xs
-     files - since they were annoying me when I was looking at the code. 
-     If they are needed (I think likely only if someone uses the 'types'
-     command in Code, then PP.pm will die - remove this statement in 
-     PP/PDLCode.pm and undef the lines it mentions in a comment
 Doug Burke (07/15/00)
    - fixed qsorti() and perldl's badinfo command
    - added $ISBADVAR(foo,pdl) & other macros, improved/cleaned up 

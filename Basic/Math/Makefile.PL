@@ -49,6 +49,7 @@ PDL::Core::Dev->import();
 	      nan quiet_nan
 	      infinity infinity
 	      svd svd
+	      polyroots cpoly
 	    );
 @keys = sort keys %source;
 %included = ();

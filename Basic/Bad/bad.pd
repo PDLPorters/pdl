@@ -576,18 +576,14 @@ EOD
 #   $b->inplace->setbadif( $b % 2 )
 # which barf's:
 #   PDL: PDL::Bad::setbadif(a,mask,b): Parameter 'mask'
-#   PDL barfed: Mismatched implicit thread dimension 0: should be 5, is 0           
+#   PDL barfed: Mismatched implicit thread dimension 0: should be 3, is 0           
 #
 
 pp_def(
     'setbadif',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
-#    HdrCode => 
-#    'if (a->state & PDL_INPLACE) {
-#        a->state &= ~PDL_INPLACE; /* unset */
-#        b = a;  /* discard output value, leak? */
-#     }',
+#    Inplace => [ 'a', 'b' ],
     Code =>
     'if ( $mask() ) {
         $SETBAD(b());
@@ -621,7 +617,7 @@ to work but it barfs, so the code has been removed:
 
  $a->inplace->setbadif( $a % 2 )
  PDL: PDL::Bad::setbadif(a,mask,b): Parameter ' . "'mask'" . '
- PDL barfed: Mismatched implicit thread dimension 0: should be 5, is 0
+ PDL barfed: Mismatched implicit thread dimension 0: should be 3, is 0
 
 ',
        BadDoc =>
@@ -636,11 +632,7 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
-    HdrCode => 
-    'if (a->state & PDL_INPLACE) {
-        a->state &= ~PDL_INPLACE; /* unset */
-        b = a;  /* discard output value, leak? */
-     }',
+    Inplace => [ 'a', 'b' ],
     Code => '$b() = $a();',
     BadCode => 
 '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
@@ -679,11 +671,7 @@ pp_def(
     'copybad',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
-    HdrCode => 
-    'if (a->state & PDL_INPLACE) {
-        a->state &= ~PDL_INPLACE; /* unset */
-        b = a;  /* discard output value, leak? */
-     }',
+    Inplace => [ 'a', 'b' ],
     Code =>
     '$b() = $a();',
     BadCode =>

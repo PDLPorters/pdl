@@ -85,208 +85,103 @@ comment q|
 |;
 
 act q|
-    # check to see whether bad value support has been compiled in
-    croak("Oh, no bad value support!\n") unless $PDL::Bad::Status;
+
+    # There are 2 ways to see whether bad-value support has been
+    # compiled into your perldl:
+    print("You can use bad values.\n") if $PDL::Bad::Status;
+
+    # or
+    use PDL::Config;
+    print("You can stil use bad values.\n") if $PDL::Config{WITH_BADVAL};
+
+    # note that PDL::Bad is included by default when you use 
+    # 'use PDL', 'use PDL::Lite', or 'use PDL::LiteF'
+
 |;
 
 act q|
+
     # create a piddle
     $a = byte(1,2,3);
     print( "Bad flag (a) == ", $a->badflag(), "\n" );
+
     # set bad flag, even though all the data is good
     $a->badflag(1);
     print( "Bad flag (a) == ", $a->badflag(), "\n" );
+
     # note the bad flag is infectious
     $b = 2 * $a;
-    print( "Bad flag (b) == ", $b->badflag(), "\n" );
+    print( "Bad flag (b) == ", $b->badflag(), "\n\n" );
+
+    $c = pdl(2,3); # just a piddle without the badflag set
+
+    print "   Type   Dimension        State          Mem\n";
+    print "-------------------------------------------------\n";
+    print "a ", $a->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "b ", $b->info("%-6T %-15D   %-5S  %12M"), "\n";
+    print "c ", $c->info("%-6T %-15D   %-5S  %12M"), "\n\n";
 |;
 
 act q|
-    print "No bad values:   ", $a, "\n";
+
+    print "No bad values:   $a\n";
     # set the middle value bad
     set($a,1,$a->badvalue());
+
     # now print out
-    print "Some bad values: ", $a, "\n";
-|;
+    print "Some bad values: $a\n";
+    print "b contains:      $b\n";
+    $c = $a + $b;
+    print "so a + b =       $c\n\n";
 
-=begin COMMENT
-
-act q|
-    # First we define some variables to use for the rest of the demo.
-    $x=sequence(10);
-    $y=2*$x**2;
-
-    # Now a simple plot with points
-    points $x, $y;
-|;
-
-act q|
-    # Here is the same with lines
-    line $x, $y;
-|;
-
-act q|
-    # If you want to overlay one plot you can use the command
-    # 'hold' to put the graphics on hold and 'release' to
-    # revert the effect
-
-    points $x, $y, {SYMBOL=>4};  # The last argument sets symboltype
-    hold;
-    # Now draw lines between the points
-    line $x, $y;
-    # Plot errorbars over the points
-    $yerr=sqrt($y);
-    errb $x, $y, $yerr;
-
-    # To revert to old behaviour, use release
-    release;
-|;
-
-act q|
-    bin $x, $y;
-
-    # This plots a binned histogram of the data and as you can
-    # see it made a new plot.
-|;
-
-act q|
-    # 2D data can also easily be accomodated:
-
-    # First make a simple image
-    $gradient=sequence(40,40);
-
-    # Then display it.
-    imag $gradient;
-
-    # And overlay a contour plot over it:
-    hold;
-    cont $gradient;
-    release;
-|;
-
-act q|
-  # PDL::Graphics::PGPLOT contains several colour tables,
-  # a more extensive collection can be found in 
-  # PDL::Graphics::LUT
-  #
-  # (note: the call to lut_names() can take a few seconds to execute)
-  #
-  use PDL::Graphics::LUT;
-  @names = lut_names();
-  print "Available tables: [ ", @names, " ]\n";
-
-  # use the first table
-  ctab( lut_data($names[0]) );
-  use PGPLOT;
-  pglabel "", "", "Colour table: $names[0]";
-
-|;
-
-act q|
-    # To change plot specifics you can either use the specific PGPLOT
-    # commands - recommended if you need lots of control over your
-    # plot.
-    #
-    # Or you can use the new option specifications:
-
-    # To plot our first graph again with blue color, dashed line
-    # and a thickness of 10 we can do:
-
-    line $x, $y, {COLOR=>5, LINESTYLE=>'dashed', LINEWIDTH=>10};
 
 |;
 
 act q|
 
-  # Now for a more complicated example.
-  # First create some data
-  $a=sequence(360)*3.1415/180.;
-  $b=sin($a)*transpose(cos($a));
+    # The module PDL::Bad contains a number of routines designed
+    # to make using bad values easy.
+    print "a contains ", $a->nbad, " bad elements.\n";
+    print "The bad value for type #",$a->get_datatype," is ",$a->badvalue,"\n";
+    print "It is easy to find whether a value is good: ", isgood($a), "\n\n";
 
-  # Make a piddle with the wanted contours
-  $contours=pdl [0.1,0.5,1.0];
-  # And an array (reference to an array) with labels
-  $labels=['A', 'B', 'C'];
-  # Create a contour map of the data - note that we can set the colour of
-  # the labels.
-  cont($b, {CONTOURS=>$contours, linest=>'DASHED',
-	    LINEWIDTH=>3, COLOR=>2, LABELCOL=>4});
-  hold;
+    print "or to remove the bad values\n";
+    $a->inplace->replacebad(23);
+    print "a = $a and \$a->badflag == ", $a->badflag, "\n\n";
 
-  pgqlw($linewidth);
-
-  points $a->slice('0:-1:4')*180./3.1415;
-  release;
-|;
-
-act q|
-  #
-  # More examples of changing the plot defaults
-  # 
-  $a = 1+sequence(10);
-  $b = $a*2;
-  $bord_opt = { TYPE => 'RELATIVE', VALUE => 0.1 };
-  line log10($a), $b, { AXIS => 'LOGX', BORDER => $bord_opt };
-|;
-
-act q|
-  #
-  # We can also create vector maps of data
-  # This requires one array for the horizontal component and
-  # one for the vertical component
-  #
-  $horizontal=sequence(10,10);
-  $vertical=transpose($horizontal)+random(10,10)*$horizontal/10.;
-
-  $arrow={ARROW=> {FS=>1, ANGLE=>25, VENT=>0.7, SIZE=>3}};
-  vect $horizontal, $vertical, {ARROW=>$arrow, COLOR=>RED};
-  hold;
-  cont $vertical-$horizontal, {COLOR=>YELLOW};
-  release;
+    print "We can even label certain values as bad!\n";
+    $a = sequence(3,3);
+    $a = $a->setbadif( $a % 2 );
+    print $a;
 
 |;
 
 act q|
-  #
-  # To draw [filled] polygons, the command poly is handy:
-  #
 
-  $x=sequence(10)/5;
-  poly $x, $x**2, {FILL=>HATCHED, COLOR=>BLUE};
+    # the issue of how to cope with dataflow is not fully resolved. At
+    # present, if you change the badflag of a piddle, all its children
+    # are also changed:
+    $a = sequence( byte, 2, 3 );
+    $a = $a->setbadif( $a == 3 );
+    $b = $a->slice("(1),:");
+    print "b = $b\tbadflag = ", $b->badflag, "\n";
 
+    $a->inplace->replacebad(3);
+    print "b = $b\tbadflag = ", $b->badflag, "\n\n";
+
+    # NOTE: the second $b->badflag should NOT return 1 ...
 |;
 
-act q|
-  #
-  # the latest feature of PDL are complex numbers
-  # so let's play with a simple example
-  #
-  
+comment q|
+    Many of the 'core' routines have been converted to handle bad values.
+    However, some (including most of the additional modules) have not,
+    either because it does not make sense or its too much work to do! 
 
-  use PDL::Complex;
-  $z50 = zeroes(50);
-  $c = $z50->xlinvals(0,7)+i*$z50->xlinvals(2,4);
-  line im sin $c; hold;      # the imaginary part
-  line re sin $c;            # real
-  line abs sin $c; release;  # and the modulus
-  
+    To find out the status of a particular routine, use the 'badinfo'
+    command in perldl (this information is also included when you do
+    'help'), or the '-b' switch of pdldoc.
+
 |;
-
-act q|
-  #
-  # more complex numbers
-  #
-  
-  use PDL::Complex;
-  $c =  zeroes(300)->xlinvals(0,12)+i*zeroes(300)->xlinvals(2,10);
-  $sin = sin $c;
-  line $sin->im, $sin->re;   # look at the result in the complex plane
-  
-|;
-
-=end COMMENT
-
-=cut
 
 !NO!SUBS!
 
