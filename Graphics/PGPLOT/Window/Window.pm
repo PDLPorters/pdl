@@ -2064,10 +2064,11 @@ sub _setup_window {
   # default size instead of the size the user asked for.  We also have
   # to turn PGASK off so the user doesn't get asked to hit "return".
   # Afterwards, we turn it back on because that's the default state.
-  my($s,$n);
-  pgqinf('HARDCOPY',$s,$n);
+  # (although it is set to 0 again pretty soon)
+  #
+  pgqinf('HARDCOPY',my $hcopy,my $len);
   pgpap($width, $aspect);
-  if($s eq 'NO') {
+  if($hcopy eq 'NO') {
     pgask(0);
     pgpage();
     pgask(1);
@@ -2086,7 +2087,6 @@ sub _setup_window {
   # Setup the colours
   my $o = $self->{Options}->current();
   pgask(0);
-  pgqinf("HARDCOPY",$hcopy,$len);
   if ($hcopy eq "YES") {
     # This has changed to set the defaults instead.
     pgslw($o->{HardLW});
