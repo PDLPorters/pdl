@@ -1,6 +1,8 @@
 (!!! = possible source of incompatibilities)
 
-Doug Burke
+Doug Burke (7/12/00,7/13/00)
+    - changed zcover's documentation from '!=' to '==' since it returns
+      true if all elements == 0.
     - removed unused memory allocation code in pdl_*_vaffine() routines in
       pdlconv.c.PL
     - added a few notes to DEVELOPMENT on how (not) to create a CVS branch 

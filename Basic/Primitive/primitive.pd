@@ -126,7 +126,8 @@ defpdl(
       '$GENERIC(b) tmp = 1;
        loop(n) %{ tmp = tmp && $a() == 0; if (!tmp) break; %}
        $b() = tmp;',
-       projectdocs('!= 0','zcover','')
+       projectdocs('== 0','zcover','')   # it's checking for zeroes, so shouldn't be !=0
+#       projectdocs('!= 0','zcover','')   
 );
 
 pp_def(
