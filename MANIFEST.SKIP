@@ -49,7 +49,7 @@ pdlexamples\.c$
 ^Basic/Core/Core\.pm$
 ^Basic/Core/Core\.xs$
 ^Basic/Core/pdlapi\.c$
-^Basic/Core/pdlcore\.h$
+^Basic/Core/pdlcore\.[ch]$
 ^Basic/Ops/Ops\.c$
 ^Basic/Ops/Ops\.xs$
 ^Basic/Ops/Ops\.pm$
@@ -135,4 +135,5 @@ so_locations
 ^pdldoc.pod
 ^podsel$
 ^Demos/BAD_demo.pm$
-^IO/NDF/NDF.pm$
+^Demos/BAD2_demo.pm$
+^IO/NDF/NDF.(pm|xs|c|o)$

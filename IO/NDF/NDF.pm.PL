@@ -1,3 +1,4 @@
+# -*-perl-*-
 #
 # The contents depend on whether we have bad-value support in PDL.
 # (there's only a small amount of code that uses bad values)
@@ -87,7 +88,7 @@ use vars qw/%pdltypes %startypes $ndf_loaded $VERSION $EXTNAME/;
 $VERSION = '1.02';
 
 # Set PDL -> Starlink data types
-%pdltypes = ("$PDL_B"  => "_BYTE",
+%pdltypes = ("$PDL_B"  => "_UBYTE",     # was "_BYTE"
 	     "$PDL_S"  => "_WORD",
 	     "$PDL_US" => "_UWORD",
 	     "$PDL_L"  => "_INTEGER",
@@ -109,6 +110,32 @@ $VERSION = '1.02';
 # NDF extensions so that they can be recreated
 
 $EXTNAME = 'NDF_EXT';
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+# internal functions for checking bad values
+
+sub compare_bad_values ($) {
+    my $dtype = shift;
+    no strict 'refs';
+    my $name = "_cbv_int$dtype";
+    return &{$name}();
+}
+
+sub starlink_bad_value ($) {
+    my $dtype = shift;
+    no strict 'refs';
+    my $name = "_gbv_int$dtype";
+    return &{$name}();
+}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 
 =head2 rndf()
 
@@ -156,6 +183,10 @@ C<$$hdr{NDF_EXT}{IRAS}{ASTROMETRY}{'PROJ_PARS'}>. All array structures are
 stored as arrays in the Hdr: numeric arrays are stored as PDLs,
 logical and character arrays are stored as plain Perl arrays. FITS
 arrays are a special case and are expanded as scalars into the header.
+
+PDL does not have a signed byte datatype, so any '_BYTE' data
+is read into a C<byte> (unsigned) piddle and a warning is printed
+to C<STDOUT>.
 
 !NO!SUBS!
 
@@ -225,13 +256,9 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   $nomask = 1 if $nomask != 0;
   ndf_sqmf($nomask, $indf, $status);
 
-  # check for the bad value flag 
-  # XXX needs working on
-  my $badflag = 0;
-  ndf_bad($indf, 'Data', 0, $badflag, $status );
-
   # Read the data array (need to pass the header as well)
-  rdata($indf, $pdl, $nomask, $header, $class, $status);
+  my $badflag;
+  ( $status, $badflag ) = rdata($indf, $pdl, $nomask, $header, $class, $status);
 
   # Read the axes
   raxes($indf, $pdl, $header, $class, $status);
@@ -395,9 +422,6 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
   # XXX needs working on
   my $badflag = $pdl->badflag;
   ndf_sbad( $badflag, $outndf, 'Data', $status );
-  if ( $badflag and $pdl->get_datatype == 0 ) {
-      print "\nWARNING: not convinced starlink and pdl's BYTE agree\n";
-  }
 
 !NO!SUBS!
 
@@ -525,10 +549,18 @@ L<NDF> for information on the NDF module.
 #  RDATA
 #    Read Data, Quality and Variance
 
+# returns ( $status, $badflag ), where $badflag is:
+#
+#   1 - the piddle may contain bad data
+#   0 - the piddle contains no bad data
+#
+# This reports starlink's bad-data flag (ie it's valid
+# even in bad value support is not available in PDL)
+#
 sub rdata {
   my ($indf, $pdl, $nomask, $header, $class, $status) = @_;
 
-  return $status if $status != &NDF::SAI__OK;
+  return ( $status, undef ) if $status != &NDF::SAI__OK;
 
   my ($maxdims, $ndim, @dim, @comps, $dcomp, $tcomp, $exist);
   my ($type, $data_pntr, $el, $temppdl, $nbytes, $badbit, $dref);
@@ -551,6 +583,8 @@ sub rdata {
   #    D A T A  +  V  A  R  I  A  N  C  E  +  Q U A L I T Y          #
   ####################################################################
 
+  my $badflag = 0;
+
   @comps = ('Data','Error');
   push(@comps, 'Quality') if $nomask;
 
@@ -569,9 +603,17 @@ sub rdata {
       # Map the data array
       ndf_map($indf, $dcomp, $type, 'READ', $data_pntr, $el, $status);
 
+      # Check the bad-data status of this component
+      my $this_badflag = 0;
+      ndf_bad($indf, $dcomp, 0, $this_badflag, $status );
+
       if ($status == &NDF::SAI__OK) {
 
 	print "Reading $dcomp array...\n" if $PDL::verbose;
+
+	# combine the bad data flag with the "global" one for
+	# the file
+	$badflag ||= ($this_badflag != 0);
 
 	# Create a temporary PDL to deal with separate components
 	if ($dcomp eq 'Data') {
@@ -587,6 +629,10 @@ sub rdata {
 	$temppdl->setdims([@dim]);
 	$dref = $temppdl->get_dataref;
 
+	# warning about data loss
+	if ( $type eq "_BYTE" ) {
+	    print "Warning: NDF type (signed byte) converted to PDL's unsigned byte.\n";
+	}
 
 	# How many bytes in this data type?
 	$type =~ s/^_|^_U//;
@@ -605,6 +651,25 @@ sub rdata {
 	  $temppdl->sethdr($qhdr);
 	}
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	# if badflag is true, convert any STARLINK bad values
+	# to PDL values
+	if ( $badflag and 
+	     !compare_bad_values($temppdl->get_datatype) ) {
+	    my $star_bad = starlink_bad_value($temppdl->get_datatype);
+	    print "Converting from STARLINK bad value ($star_bad)...\n" if $PDL::verbose;
+	    # is this inefficient? (unfortunately setbadif can't be done inplace)
+	    $temppdl = $temppdl->setbadif( $temppdl == $star_bad );
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 	# Flush and Clear temporary PDL
 	$temppdl->upd_data();
 	undef $temppdl;
@@ -615,7 +680,7 @@ sub rdata {
   }
   err_flush($status) if $status != &NDF::SAI__OK;
 
-  return $status;
+  return ( $status, $badflag );
 }
 
 

@@ -202,18 +202,6 @@ void  pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, /* Set valu
                 PDL_Long *incs, PDL_Long offs, int ndims, double value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
-/* pdlstats.c */
-
-double pdl_min(void*x, int n, int datatype);
-double pdl_max(void*x, int n, int datatype);
-double pdl_sum(void*x, int n, int datatype);
-
-/* pdlmoremaths.c */
-
-void pdl_convolve (pdl* c, pdl* a, pdl* b); /* Real space convolution */
-void pdl_hist (pdl* c, pdl* a, double min, double step) ; /* Histogram of data */
-void pdl_matrixmult( pdl *c, pdl* a, pdl* b);  /* Matrix multiplication */
-
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
 #define PDL_CORE_VERSION 1

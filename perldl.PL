@@ -275,6 +275,7 @@ my %demos =
      'tk3d' => 'PDL::Demos::TkTriD_demo',
      'pgplot' => 'PDL::Demos::PGPLOT_demo',
      'bad' => 'PDL::Demos::BAD_demo',
+     'bad2' => 'PDL::Demos::BAD2_demo',
      );
 
 sub demo {
@@ -282,16 +283,17 @@ sub demo {
     if(/^$/) {
 	print <<EOD;
 Use:
-	demo pdl	# general demo
-	demo 3d		# 3d demo (requires TriD compiled with OpenGL or Mesa)
-			# as well as an X display properly set up.
-	demo 3d2	# 3d demo, second part. This is very memory-heavy, make
-			# your window fairly small.
-	demo 3dgal      # the 3D gallery: generate interesting images with
-	                # *very* concise PDL scripts
-        demo Tk3d       # Requires the perl Tk module
-	demo pgplot	# Requires the PGPLOT package
-        demo bad        # Requires bad value support to have been compiled in
+   demo pdl     # general demo
+   demo 3d      # 3d demo (requires TriD compiled with OpenGL or Mesa)
+                # as well as an X display properly set up.
+   demo 3d2     # 3d demo, second part. This is very memory-heavy, make
+                # your window fairly small.
+   demo 3dgal   # the 3D gallery: generate interesting images with
+                # *very* concise PDL scripts
+   demo Tk3d    # Requires the perl Tk module
+   demo pgplot  # Requires the PGPLOT package
+   demo bad     # Requires bad value support
+   demo bad2    # Requires bad value support and PGPLOT
 
 EOD
     return;

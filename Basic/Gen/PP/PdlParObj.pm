@@ -412,9 +412,10 @@ sub get_xsdatapdecl {
 
     # assuming we always need this 
     # - may not be true - eg if $asgnonly ??
-    #
-    if ( $this->{BadFlag} and $type ) {
-	$str .= "\t$type   ${name}_badval = PDL->bvals._$type;\n";
+    # - not needed for floating point types when using NaN as bad values
+    if ( $this->{BadFlag} and $type and $type !~ /^PDL_(Float|Double)$/ ) {
+	my $cname = $type; $cname =~ s/^PDL_//;
+	$str .= "\t$type   ${name}_badval = PDL->bvals.$cname;\n";
     }	
 
     return "$str\n";

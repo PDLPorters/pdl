@@ -1,3 +1,44 @@
+#
+# Create pdlcore.c
+# - needed for bad-value handling in whichdatatype
+#
+ 
+use strict;
+ 
+use Config;
+use File::Basename qw(&basename &dirname);
+ 
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+use vars qw( %PDL_CONFIG );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//                                                              
+    if ($Config{'osname'} eq 'VMS' or
+	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+ 
+print OUT <<"!WITH!SUBS!";
+ 
+/* pdlcore.c - generated automatically by pdlcore.c.PL */
+/*           - bad value support = $bvalflag */
+
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
 
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
@@ -121,7 +162,7 @@ pdl* SvPDLV ( SV* sv ) {
       double data;
       int datatype;
 
-       ret = pdl_new();  /* Scratch pdl */
+      ret = pdl_new();  /* Scratch pdl */
 
 /*       ret->sv = (void*) sv; !! */
 
@@ -131,7 +172,33 @@ pdl* SvPDLV ( SV* sv ) {
 
        if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
           data = SvNV(sv);
-          datatype = pdl_whichdatatype_double(data);
+
+!NO!SUBS!
+
+# XXX HACK this may not be sensible (DJB 08/31/00)
+
+if ( $bvalflag ) {
+   print OUT <<'!NO!SUBS!';
+
+          /*
+           * default NaN/Inf's to double
+           * XXX sensible ?
+           */
+          if ( finite(data) == 0 ) {
+             datatype = PDL_D;
+          } else {
+             datatype = pdl_whichdatatype_double(data);
+          }
+
+!NO!SUBS!
+} else {
+
+   print OUT "\tdatatype = pdl_whichdatatype_double(data);\n";
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+
 	  }
        else { /* Perl Int (e.g. 2) */
           data = SvNV(sv);
@@ -506,3 +573,5 @@ pdl_barf(pat, va_alist)
     (void)PerlIO_flush(PerlIO_stderr());
     my_failure_exit();
 }
+
+!NO!SUBS!

@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 61;
+	plan tests => 62;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -85,11 +85,13 @@ byte->badvalue( byte->orig_badvalue );
 
 # check setbadat()
 $a = pdl(1,2,3,4,5);
-my $badval = $a->badvalue;
 $a->setbadat(2);
 ok( PDL::Core::string($a), "[1 2 BAD 4 5]" );   # 14
 
 # now check that badvalue() changes the piddle
+# (only for integer types)
+$a = convert($a,ushort);
+my $badval = $a->badvalue;
 $a->badvalue(44);
 ok( PDL::Core::string($a), "[1 2 BAD 4 5]" );   # 15
 $a->badflag(0);
@@ -152,7 +154,7 @@ ok( $a->median, 3 );             #
 
 $a = random(20);
 $a->badflag(1);
-ok( $a->check_badstatus, 0 );            # 35
+ok( $a->check_badflag, 0 );            # 35
 
 $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 
@@ -343,3 +345,10 @@ ok( PDL::Core::string($c->clump(-1)),
 #$a .= $a->replacebad(3);
 #ok( $a->badflag, 0 );                  # this fails
 #ok( $b->badflag, 0 );                  # as does this
+
+# badmask: inplace
+$a = sequence(5);
+$a->setbadat(2);
+$a->inplace->badmask(0);
+ok( PDL::Core::string($a), "[0 1 0 3 4]" );  #
+

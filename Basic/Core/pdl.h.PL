@@ -73,9 +73,10 @@ my $badval_struct = "typedef struct badvals {\n";
 foreach my $i ( reverse(0 .. $ntypes) ) {
     my $name = $PDL::Types::names[$i];
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
-    my $ctype     = $PDL::Types::typehash{$name}->{ctype};
-    $badval_struct .= "   $realctype _$ctype;\n";
-    $badval_struct .= "   $realctype default_$ctype;\n";
+    my $cname     = $PDL::Types::typehash{$name}->{ctype};
+    $cname =~ s/^PDL_//;
+    $badval_struct .= "   $realctype $cname;\n";
+    $badval_struct .= "   $realctype default_$cname;\n";
 }
 $badval_struct .= "} badvals;\n";
 

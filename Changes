@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (08/12/00-08/13/00; 08/17/00)
+Doug Burke (08/12/00-08/13/00; 08/17/00; 08/22/00)
+    - IO::NDF now saves byte piddles as "_UBYTE", rather than "_BYTE", NDFs
+    - moved log10 from Core to Ops - now uses C-library version
     - removed 1-argument form of where() since been deprecated long enough
     - minor bugfix to Graphics/Karma/Makefile.PL
     - made qsort and qsort_ind C routines in primitive.pd available to all

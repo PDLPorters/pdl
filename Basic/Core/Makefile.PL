@@ -73,7 +73,7 @@ WriteMakefile(
  'VERSION_FROM' => 'Version.pm',
  'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) pdlfamily$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT)  pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
+                   'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
   		(map {($_,'$(INST_LIBDIR)/'.$_)} (
 			qw/Core.pm Basic.pm Version.pm Types.pm
@@ -87,10 +87,9 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
-                   'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlapi.c pdl.h pdlsimple.h pdlcore.h '.
+                   'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
+                   'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
+		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm '
 		   },
  'INC'          => "$mallocinc",

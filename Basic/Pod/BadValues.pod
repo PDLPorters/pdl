@@ -33,13 +33,14 @@ You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
 Well, yes and no - many routines, such as C<y=sin(x)>, will propogate NaN's 
 without the user having to code differently, but routines such as C<qsort>, or
 finding the median of an array, need to be re-coded to handle bad values.
-Currently we do not use NaN values, but it's a priority to look into this.
+For floating-point datatypes, C<NaN> and C<Inf> are used to flag bad values.
+but for the integer types special values have to be used.
 
 =head2 Code increase due to bad values
 
 On an i386 machine running linux and perl 5.005_03, I measured the 
 following sizes (the Slatec code was compiled in, but none of the other 
-options: eg Karma, FFTW, GSL, and 3d were): 
+options: eg Karma, FFTW, GSL, and 3d were):
 
 =over 4
 
@@ -64,7 +65,8 @@ routines (ie everything else in the PDL distribution) had been changed.
 
 =head2 A quick overview
 
-C<demo bad> within L<perldl|PDL::perldl> gives a demonstration of some of the things
+C<demo bad> and C<demo bad2>
+within L<perldl|PDL::perldl> gives a demonstration of some of the things
 possible with bad values.
 
 See L<PDL::Bad> for useful routines for working with bad values and F<t/bad.t>
@@ -76,11 +78,11 @@ The intention is to:
 
 =item *
 
-not significantly affect PDL for users who don't want bad value support
+not significantly affect PDL for users who don't need bad value support
 
 =item *
 
-be as fast as possible when bad value support is required
+be as fast as possible when bad value support is installed
 
 =back 
 
@@ -129,6 +131,7 @@ this, use C<$pdl-E<gt>badflag($new_bad_status)>, where C<$new_bad_status> can be
 When a routine creates a piddle, it's bad-value flag will depend on the input
 piddles: unless over-ridden (see the C<CopyBadStatusCode> option to C<pp_def>), the 
 bad-value flag will be set true if any of the input piddles contain bad values.
+To check that a piddle really contains bad data, use the C<check_badflag> method.
 
 I<NOTE>: propogation of the badflag
 
@@ -170,7 +173,8 @@ children.
 
 =back
 
-This wouldn't be hard to implement. Does it make sense though? There's also
+This shouldn't be hard to implement (although an initial attempt failed!). 
+Does it make sense though? There's also
 the issue of what happens if you change the badvalue of a piddle - should
 these propogate to children/parents (yes) or whether you should only be
 able to change the badvalue at the 'top' level - ie those piddles which do
@@ -191,14 +195,18 @@ To change the current bad value, supply the new number to badvalue - eg
   $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
 
 I<Note>: the value is silently converted to the correct C type, and
-returned - ie C<byte-E<gt>badvalue(2.3e34)> returns 255 on my solaris machine.
+returned - ie C<byte-E<gt>badvalue(-26)> returns 230 on my linux machine.
 
-Note that changes to the bad value are NOT propogated to previously-created
+Note that changes to the bad value are I<NOT> propogated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
-See discussion below.
+See discussion below.  It's not a problem for floating-point types, since
+you can't change their badvalue.
 
 =head2 A bad value for each piddle, and related issues
+
+The following is relevant only for integer types, where there is a choice
+of value to use as the bad flag.
 
 Currently, there is one bad value for each datatype. The code is written so 
 that we could have a separate bad value for each piddle (stored in the 
@@ -215,23 +223,9 @@ pdl structure) - this would then remove the current problem of:
  [1 2 255 4 5]
 
 ie the bad value in C<$a> has lost its I<bad> status using the current 
-implementation. 
+implementation.  It would almost certainly cause problems elsewhere though!
 
-The overhead would be too large to have 
-
-   byte->badvalue($newval)
-
-propogate through C<all> bad piddles and update their bad values.
-We could save a 'time' value in the pdl and then automatically update the bad value
-of a piddle if we find it's 'time' is older than the 'time' of the default bad
-value. But that would be slow and probably rather painful.
-
-However, I think that having a per-piddle bad value would cause too much
-code overhead (not in the current implementation but this needs looking at).
-
-Bottom line - per-piddle bad values are low on the list of my priorities.
-
-=head1 Implementation details
+=head1 IMPLEMENTATION DETAILS
 
 Various bits of code use either F<perldl.conf> or F<PDL::Config> to find out 
 whether to support bad values (user code can examine the value of 
@@ -250,37 +244,39 @@ It's not clear what to do with parents: I can see the reason for propogating a
 the badflag of a parent. 
 Actually, I'm vacillating on this one (plus it looks like there's the
 chance of infinite loops if code is done inplace, or I messed up somewhere!).
-
 There's also the issue of what happens when you change the bad value for a piddle.
 
 The C<pdl_trans> structure has been extended to include an integer value,
 C<bvalflag>, which acts as a switch to tell the code whether to handle bad values
 or not. This value is set if any of the input piddles have their C<PDL_BADVAL> 
 flag set (although this code can be replaced by setting C<FindBadStateCode> in 
-pp_def). I tried using the flags field - instead of adding a new variable -
-in the trans struct, but it didn't work (the bit was occasionally getting 
-cleared during calls to C<PDL-E<gt>make_trans_mutual()> and I couldn't be 
-bothered to track it down). 
+pp_def).  The logic of the check is going to get a tad more complicated
+if I allow routines to fall back to using the C<Code> section for 
+floating-point types (ie those routines with C<NoBadifNaN =E<gt> 1>).
 
-The bad values are now stored in a structure within the Core PDL structure
+The bad values for the integer types
+are now stored in a structure within the Core PDL structure
 - C<PDL.bvals> (eg F<Basic/Core/pdlcore.h.PL>); see also 
 'typedef badvals' in F<Basic/Core/pdl.h.PL> and the
 BOOT code of F<Basic/Core/Core.xs.PL> where the values are initialised to 
-(hopefully) sensible values. See F<PDL/Bad/bad.pd> for read/write routines to
-these values.
+(hopefully) sensible values.  For floating-point numbers, we use the
+C<finite()> function to check whether it is good or not.
+See F<PDL/Bad/bad.pd> for read/write routines to
+the values.
 
 The default/original bad values are set to (taken from the Starlink
-distribution):
+distribution for the integer types):
 
-  #include <float.h>
   #include <limits.h>
 
   PDL_Byte    ==  UCHAR_MAX
   PDL_Short   ==   SHRT_MIN
   PDL_Ushort  ==  USHRT_MAX
   PDL_Long    ==    INT_MIN
-  PDL_Float   ==   -FLT_MAX
-  PDL_Double  ==   -DBL_MAX
+
+Note that, for the floating point types, all of C<NaN>, C<+Inf>, and
+C<-Inf> are taken to be bad.  Also, these can't be changed, unlike the 
+integer types.
 
 =head2 How do I change a routine to handle bad values?
 
@@ -313,18 +309,27 @@ would be awkward to convert - but I've not tried it out to see if it works.
 If you want to handle bad values but not set the state of all the output
 piddles, or if it's only one input piddle that's important, then look
 at the PP rules C<NewXSFindBadStatus> and C<NewXSCopyBadStatus> and the
-corresponding pp_def options
+corresponding C<pp_def> options:
 
 =over 4
 
 =item FindBadStatusCode 
 
+By default, C<FindBadStatusCode> creates code which sets 
+C<__privtrans-E<gt>bvalflag> depending on the state of the bad flag
+of the input piddles: see C<findbadstatus> in F<Basic/Gen/PP.pm>.
+
 =item CopyBadStatusCode
 
-=back
+The default code here is a bit simpler than for C<FindBadStatusCode>:
+the bad flag of the output piddles are set if 
+C<__privtrans-E<gt>bvalflag> is true after the code has been
+evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
+with the responsibility of setting the badflag of the output piddle
+left to the C<BadCode> section (e.g. the C<xxxover> routines
+in F<Basic/Primitive/primitive.pd>).
 
-A number of routines use this - eg C<isXXXover> (F<bad.pd>) and C<zcover>
-(F<primitive.pd>). 
+=back
 
 If you have a routine that you want to be able to use as inplace, look
 at the routines in F<bad.pd> (or F<ops.pd>)
@@ -338,34 +343,43 @@ If the option
 
    HandleBad => 1
 
-is given, then the readdata code automatically creates a variable called
-C<E<lt>pdl nameE<gt>_badval>, which contains the bad value for that piddle (see
-C<get_xsdatapdecl()> in F<Basic/Gen/PP/PdlParObjs.pm>). 
-After Tuomas' suggestion, macros have been set up to provide easy access:
+is given, then many things happen.  For integer types, the readdata code 
+automatically creates a variable called C<E<lt>pdl nameE<gt>_badval>, 
+which contains the bad value for that piddle (see
+C<get_xsdatapdecl()> in F<Basic/Gen/PP/PdlParObjs.pm>).  However, do not 
+hard code this name into your code!
+Instead use macros (thanks to Tuomas for the suggestion):
 
   '$ISBAD(a(n=>1))'  expands to '$a(n=>1) == a_badval'
   '$ISGOOD(a())'                '$a()     != a_badval'
   '$SETBAD(bob())'              '$bob()    = bob_badval'
 
-well, the C<$a(...)> is expanded as well. Also, you can use a $ before the
+well, the C<$a(...)> is expanded as well. Also, you can use a C<$> before the
 pdl name, if you so wish, but it begins to look like line noise -
 eg C<$ISGOOD($a())>.
 
 If you cache a piddle value in a variable -- eg C<index> in F<slices.pd> --
 the following routines are useful:
 
-   '$ISBADVAR(c_var,pdl)'     'c_var == pdl_badval'
-   '$ISGOODVAR(c_var,pdl)'    'c_var != pdl_badval'
-   '$SETBADVAR(c_var,pdl)'    'c_var  = pdl_badval'
+   '$ISBADVAR(c_var,pdl)'       'c_var == pdl_badval'
+   '$ISGOODVAR(c_var,pdl)'      'c_var != pdl_badval'
+   '$SETBADVAR(c_var,pdl)'      'c_var  = pdl_badval'
 
 The following have been introduced, They may need playing around with to 
 improve their use.
 
-  '$PPISBAD(CHILD,[i])           'CHILD_physdatap[i] == CHILD_badval'
-  '$PPISGOOD(CHILD,[i])          'CHILD_physdatap[i] != CHILD_badval'
-  '$PPSETBAD(CHILD,[i])          'CHILD_physdatap[i]  = CHILD_badval'
+  '$PPISBAD(CHILD,[i])          'CHILD_physdatap[i] == CHILD_badval'
+  '$PPISGOOD(CHILD,[i])         'CHILD_physdatap[i] != CHILD_badval'
+  '$PPSETBAD(CHILD,[i])         'CHILD_physdatap[i]  = CHILD_badval'
 
-This means that you can change
+It's a bit different for C<float> and C<double>, where we consider
+C<NaN>, C<+Inf>, and C<-Inf> all to be bad. In this case:
+
+  ISBAD   becomes   finite(piddle) == 0
+  ISGOOD            finite(piddle) != 0
+  SETBAD            piddle          = 0.0/0.0
+
+This all means that you can change
 
    Code => '$a() = $b() + $c();'
 
@@ -385,7 +399,9 @@ leaving Code as it is. PP::PDLCode will then create a loop something like
         threadloop over Code
    }
 
-it's probably easier to just look at the F<.xs> file to see what goes on.
+(it's probably easier to just look at the F<.xs> file to see what goes on).
+
+=head2 Going beyond the Code section
 
 Similar to C<BadCode>, there's C<BadBackCode>, and C<BadRedoDimsCode>.
 
@@ -393,6 +409,8 @@ Handling C<EquivCPOffsCode> is a bit different: under the assumption that the
 only access to data is via the C<$EQUIVCPOFFS(i,j)> macro, then we can 
 automatically create the 'bad' version of it; see the C<[EquivCPOffsCode]>
 and C<[Code]> rules in L<PDL::PP>.
+
+=head2 Macro access to the bad flag of a piddle
 
 Macros have been provided to provide access to the bad-flag status of 
 a pdl:
@@ -412,43 +430,49 @@ there are:
   '$ISPDLSTATEBAD(a)'        -> '((a->state & PDL_BADVAL) > 0)'
   '$ISPDLSTATEGOOD(a)'       -> '((a->state & PDL_BADVAL) == 0)'
 
+=head2 Handling NaN values
+
+There are two issues:
+
+=over 4
+
+=item NaN as the bad value
+
+which is done (although we may want to allow a fall back for machines
+it is not supported on).
+
+=item Ignoring BadCode sections
+
+which is I<not>.
+
+=back
+
+For I<simple> routines processing floating-point numbers, we should let
+the computer process the bad values (ie C<NaN> and C<Inf> values) instead
+of using the code in the C<BadCode> section.  Many such routines have
+been labelled using C<NoBadifNaN =E<gt> 1>; however this is currently 
+ignored by PDL::PP.
+
+For these routines, we want to use the C<Code> section if
+
+  the piddle does not have its bad flag set
+  the datatype is a float or double
+
+otherwise we use the C<BadCode> section.  This is going to take some
+hacking of PP::PDLCode!
+
+There's also the problem of how we handle 'exceptions' - since C<$a = pdl(2) / pdl(0)>
+produces a bad value but doesn't update the badflag value of the piddle. 
+Can we catch an exception, or do we have to trap for this
+(e.g. search for C<exception> in F<Basic/Ops/ops.pd>)?
+
+=head2 Disclaimer
+
 Please note that the current design is based on my failure to understand
 what the C<xxx_redodims()>, C<xxx_copy()>, C<xxx_free()> functions that are 
 created by PP do (ie I haven't changed them).
 
-=head2 Why not use NaN (IEEE) when present?
-
-Short answer: because I don't know how. 
-
-After talking with Tim Jenness, it looks like it should be able to get
-the code to use NaN's as bad values if available - this should mean we can
-skip the checks for bad values in the C code, since C<f(x)> with C<x = NaN>
-produces C<NaN>, and does it quickly (apparently). However, many routines would
-remain unchanged (eg counting the number of bad values, or summing up all the
-values).
-
-Basically, PDL::PP would ignore the C<BadCode>/C<BadBackCode>/etc C<pp_def()>
-options, just using the C<Code>/... options instead. The supporting code
-would still be used (ie for setting the bad flag on output piddles etc).
-Some routines would still need explicit code to handle NaN values (eg C<min>, 
-C<max>, C<median> - see F<primitive.pd>) - we should be able to use the existing
-C<BadCode>/etc values for these.
-
-I have started adding the poorly-named option C<NoBadifNaN =E<gt> 1>
-to those routines which should be able to ignore the C<BadCode> options.
-It's currently a NOP. 
-
-The C<PDL::PP::BadAccess>, C<PDL::PP::BadVarAccess>, and C<PDL::PP::PPBadAccess> objects 
-in F<Basic/PP/PDLCore.pm> I<MAY> need updating to produce different code depending 
-on whether NaN support was available or not.
-
-There's also the issue of whether there's a NaN value for each datatype used by
-PDL (I'm not sure there is). If not, then those without NaN values would have to
-use the original code.
-
-I'd love someone to implement this. 
-
-=head2 What about documentation?
+=head1 WHAT ABOUT DOCUMENTATION?
 
 One of the strengths of PDL is it's on-line documentation. The aim is to use
 this system to provide informtion on how/if a routine supports bad values:
@@ -468,29 +492,32 @@ C<=for bad> directive (+ text) if bad value support is compiled in. In fact, thi
 is a pain when handling bad values at the perl, rather than PDL::PP, level: perhaps
 I should just scrap the C<WITH_BADVAL> option...
 
-=head2 Other notes
+=head1 EVERYTHING ELSE
 
 The build process has been affected. The following files are
 now created during the build:
 
   Basic/Core/Dev.pm      by mkdev.pl
              pdlcore.h      pdlcore.h.PL
+             pdlcore.c      pdlcore.c.PL
              pdlapi.c       pdlapi.c.PL
              Core.xs        Core.xs.PL
              Core.pm        Core.pm.PL     
 
 We can't use F<Dev.pm.PL>, since F<Dev.pm> is used by the Makefile.PL's,
-so it must be created as soon as possible.
+so it must be created as soon as possible in the build process.
 
 Several new files have been added:
 
-  Basic/Pod/Badvalues (ie this file)
+  Basic/Pod/Badvalues.pod (ie this file)
 
   t/bad.t
 
   Basic/Bad/
   Basic/Bad/Makefile.PL
             bad.pd
+
+  IO/NDF/NDF.xs.PL
 
 etc
 
@@ -502,7 +529,13 @@ etc
 
 =item *
 
+what to do about C<$b = pdl(-2); $a = log10($b)> - C<$a> should
+be set bad, but it currently isn't.
+
+=item *
+
 Need to look at C<which()>: how should it handle bad values?
+I think it needs to handle bad values in the mask array.
 
 =item *
 
@@ -535,57 +568,17 @@ call a user-defined sub-routine? (supply a default one that dies, say)
 
 =item *
 
-looks like starlink's byte goes from -127 to 127 - ie not unsigned
-(ie L<PDL::IO::NDF>).
+make wfits write out the BLANK keyword for bad values.
+
+=item *
+
+get rndf/wndf to convert bad values
 
 =back
 
 =head2 Suggestions
 
 =over 4
-
-=item *
-
-look at the routines to see if can be improved (speed wise) by
-use of C<threadloop> construct - I'm thinking in particular about 
-those routines that set the state of a piddle within the C<BadCode>,
-rather than the C<CopyBadStatusCode>, section.
-
-=item *
-
-NaN support - this would make it *much* faster on machines which
-support it (or so I've assumed - does it?) 
-I've started labelling routines which could ignore the BadCode
-section by C<NoBadifNaN =E<gt> 1>.
-
-See the discussion somewhere above this.
-
-=item *
-
-do any more routines need to be converted to work inplace?
-
-=item *
-
-divide in F<ops.pd> should trap C</ 0> cases as well. also special cases 
-for C<sqrt()>, C<log> ... and integration with NaN support
-
-=item *
-
-With the current scheme, it would be possible to have a per-piddle
-bad value. However, new piddles would use the default values.
-All it would need (I think) is for newly-created piddles to have
-their badvalue set to the default value -- I'm just not sure
-when new piddles are created within the C code! Then PdlParObj's
-get_xsdatapdecl() method needs changing to access the per-piddle
-bad value rather than the values stored in the C<PDL-E<gt>bvals>
-structure. The actual code wouldn't need changing, as long as it 
-was written using the C<$ISGOOD>/C<ISBAD>/C<SETBAD> macros.
-
-It would be redundant if we used NaN support - so maybe we should 
-put this on the back-burner until we get Nan support.
-
-I'm moving away from the idea of per-piddle bad values, as I think
-it would increase the amount of code in certain cases.
 
 =item *
 

@@ -64,7 +64,8 @@ print OUT <<'!NO!SUBS!';
 !NO!SUBS!
 
     if ( $bvalflag ) {
-	print OUT "#include <float.h>\n#include <limits.h>\n";
+#	print OUT "#include <float.h>\n#include <limits.h>\n";   # needed if don't use NaN
+	print OUT "#include <limits.h>\n";
     }
 
 print OUT <<'!NO!SUBS!';
@@ -253,8 +254,26 @@ void propogate_badflag( pdl *it, int newval ) {
 
 #endif    /* FOOFOO_PROPOGATE_BADFLAG */
 
+
+/* this is horrible - the routines from bad should perhaps be here instead ? */
+double pdl_get_badvalue( int datatype ) {
+    double retval;
+    switch ( datatype ) {
+	case 0: retval = PDL.bvals.Byte;   break;
+	case 1: retval = PDL.bvals.Short;  break;
+	case 2: retval = PDL.bvals.Ushort; break;
+	case 3: retval = PDL.bvals.Long;   break;
+	case 4: case 5: retval = (0.0/0.0); break;
+
+      default:
+	barf("Unknown type sent to pdl_get_badvalue\n");
+    }
+    return retval;
+} /* pdl_get_badvalue() */
+
 !NO!SUBS!
-    } # if: $bvalflag
+    
+} # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
 
@@ -581,45 +600,95 @@ list_c(x)
 				{stop = 0; break;}
 	}
 
+# returns the string 'BAD' if an element is bad
+#
+
 SV *
 listref_c(x)
-	pdl *x
-	CODE:
-	PDL_Long *inds,*incs,offs;
-	void *data;
-	int ind;
-	int lind;
-	int stop = 0;
-	AV *av;
-        pdl_make_physvaffine( x );
-	inds = pdl_malloc(sizeof(PDL_Long) * x->ndims); /* GCC -> on stack :( */
-	data = PDL_REPRP(x);
-	incs = (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs);
-	offs = PDL_REPROFFS(x);
-	av = newAV();
-	av_extend(av,x->nvals);
-	lind=0;
-	for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
-	while(!stop) {
-		av_store(av,lind,newSVnv(pdl_at( data, x->datatype,
-			inds, x->dims, incs, offs, x->ndims)));
-		lind++;
-		stop = 1;
-		for(ind = 0; ind < x->ndims; ind++)
-			if(++(inds[ind]) >= x->dims[ind])
-				inds[ind] = 0;
-			else
-				{stop = 0; break;}
-	}
-	RETVAL = newRV_noinc((SV *)av);
-	OUTPUT:
-	RETVAL
+   pdl *x
+  CODE:
+   PDL_Long *inds,*incs,offs;
+   void *data;
+   int ind, lind;
+   int stop = 0;
+   AV *av;
+
+!NO!SUBS!
+
+if ( $bvalflag ) {
+   print OUT <<'!NO!SUBS!';
+
+   SV *sv;
+   double pdl_val, pdl_badval;
+   int badflag = (x->state & PDL_BADVAL) > 0;
+
+   if ( badflag && x->datatype < 4 ) {
+      pdl_badval = pdl_get_badvalue( x->datatype ); 
+   }
+
+!NO!SUBS!
+}
+
+print OUT <<'!NO!SUBS!';
+
+   pdl_make_physvaffine( x );
+   inds = pdl_malloc(sizeof(PDL_Long) * x->ndims); /* GCC -> on stack :( */
+   data = PDL_REPRP(x);
+   incs = (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs);
+   offs = PDL_REPROFFS(x);
+   av = newAV();
+   av_extend(av,x->nvals);
+   lind=0;
+   for(ind=0; ind < x->ndims; ind++) inds[ind] = 0;
+   while(!stop) {
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+
+	print OUT <<'!NO!SUBS!';
+      pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
+      if ( badflag && ( (x->datatype < 4 && pdl_val == pdl_badval) ||
+			(x->datatype >= 4 && finite(pdl_val) == 0) ) ) {
+	 sv = newSVpvn( "BAD", 3 );
+      } else {
+	 sv = newSVnv( pdl_val );
+      }
+      av_store( av, lind, sv );
+!NO!SUBS!
+
+    } else {
+
+	print OUT <<'!NO!SUBS!';
+      av_store(av,lind,
+               newSVnv( pdl_at( data, x->datatype,
+	       inds, x->dims, incs, offs, x->ndims ) )
+               );
+!NO!SUBS!
+
+} # bvalflag
+
+print OUT <<'!NO!SUBS!';
+
+      lind++;
+      stop = 1;
+      for(ind = 0; ind < x->ndims; ind++) {
+	 if(++(inds[ind]) >= x->dims[ind]) {
+       	    inds[ind] = 0;
+         } else {
+       	    stop = 0; break;
+         }
+      }
+   }
+   RETVAL = newRV_noinc((SV *)av);
+  OUTPUT:
+   RETVAL
 
 void
 set_c(x,position,value)
-   pdl*	x
-   PDL_Long *	pos = NO_INIT
-   double	value
+    pdl*	x
+    PDL_Long *	pos = NO_INIT
+    double	value
    CODE:
     int npos;
 
@@ -695,16 +764,23 @@ BOOT:
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
-    PDL.bvals._PDL_Byte   = PDL.bvals.default_PDL_Byte   = UCHAR_MAX;
-    PDL.bvals._PDL_Short  = PDL.bvals.default_PDL_Short  = SHRT_MIN;
-    PDL.bvals._PDL_Ushort = PDL.bvals.default_PDL_Ushort = USHRT_MAX;
-    PDL.bvals._PDL_Long   = PDL.bvals.default_PDL_Long   = INT_MIN;
-    PDL.bvals._PDL_Float  = PDL.bvals.default_PDL_Float  = -FLT_MAX;
-    PDL.bvals._PDL_Double = PDL.bvals.default_PDL_Double = -DBL_MAX;
+    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
+    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
+    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
+    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
+    PDL.bvals.Float  = PDL.bvals.default_Float  = (0.0/0.0);
+    PDL.bvals.Double = PDL.bvals.default_Double = (0.0/0.0);
+/***
+ *    PDL.bvals.Float  = PDL.bvals.default_Float  = -FLT_MAX;
+ *    PDL.bvals.Double = PDL.bvals.default_Double = -DBL_MAX;
+ ***/
 
     PDL.propogate_badflag = propogate_badflag;
+
 !NO!SUBS!
+
 } # if: $bvalflag
+
 print OUT <<'!NO!SUBS!';
    /*
       "Publish" pointer to this structure in perl variable for use

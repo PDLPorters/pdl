@@ -15,7 +15,7 @@ sub approx {
 	return $d < 0.01;
 }
 
-print "1..33\n";
+print "1..34\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -117,3 +117,6 @@ $warning_shutup = $warning_shutup = sqrt $a->inplace;
 ok(32, approx $a, pdl($sq2));
 $a = pdl 4;
 ok(33, approx 2, sqrt($a->inplace));
+
+# log10 now uses C library
+ok(34, approx log10(110), log(110)/log(10) );

@@ -1,6 +1,47 @@
 --------------------------------------------------------------------------------
 
-Doug Burke (08/16/00)
+Doug Burke (08/30/00)
+   - using NaN/Inf seems to work. Now need to work out how to get routines
+     flagged by 'NoBadifNaN=>1' to ignore the BadCode section for floating-
+     point types.
+   - fixed str2D
+   - removed pdlcore.c, added pdlcore.c.PL: fiddled SvPDLV to set the datatype
+     to PDL_D if a NaN is supplied. Sensible? It means we cah leave 
+     whichdatatype_double alone.
+Doug Burke (08/30/00)
+   - hopefully fixed yesterday's problem with CHILD types. Core stuff has been
+     changed.
+   - have HACKED list() to return BAD. A bit nasty. Still need to change
+     str2D in Core to take account of it.
+   - may have to change assgn to handle bad values ? 
+     Something is screwed up... I may have to change whichdatatype_XXX
+     to process NaN values
+Doug Burke (08/29/00)
+   - started to convert to use Nan/Inf for non-integer types. Have got
+     $xxxBAD/GOODxxx macros converted in Gen/PP/PDLCode.pm. 
+     Need to allow to switch off (testing and non-NaN machines).
+     Need to clean up Core stuff so change set-up values for F and D from
+     STARLINK.
+     Need to change bad code so can't change floating point bad values
+     (add a function: can_change_badvalue(type) returning 0 or 1)
+     Do we need to ensure that the xs code has a '#include <math.h>'
+     and that the Makefile links with -lm ? (it seems to compile okay on linux 
+     without this bother)
+Doug Burke (08/28/00)
+   - commented out exception handling in ops.pd as want to get NaN/Inf stuff
+     (ie using them for bad values in F,D data types) first
+   - improving bad-value support in IO::NDF - added NDF.xs.PL. The aim is to
+     convert to piddle bad values when read in. Not looked at writing out.
+Doug Burke (08/16/00-08/25/00)
+   - added initial attempt to trap illegal ops in Ops. Needs thinking about for
+     unsigned integer types, since checks like 'a < 0' are always false
+     - perhaps use 'type() %{ %}'...?
+     NOTE: needs to be incorporated into Code section, which means *a lot*
+           of thinking about
+   - trying to get rfits/wfits to propogate badflag info. somewhat broken
+   - corrected isfinite() documentation to live up to its name
+   - added 'bad2' to the demos: eye-candy for the soul! This involves
+     installing m51.fits into the Demos dir of the installed distribution
    - $pdl->badvalue(23) finally changes the bad values in $pdl to the new
      value (here 23).
    - added $pdl->setbadat(2) -- a wrapper around set() -- probably mostly

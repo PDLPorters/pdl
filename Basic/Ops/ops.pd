@@ -1,4 +1,4 @@
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -10,6 +10,9 @@ This module provides the functions used by PDL to
 overload the basic mathematical operators (C<+ - / *>
 etc.) and functions (C<sin sqrt> etc.)
 
+It also includes the function C<log10>, which should
+be a perl function so that we can overload it!
+
 =head1 SYNOPSIS
 
 none
@@ -17,6 +20,20 @@ none
 =cut
 
 EOD
+
+pp_addpm({At=>'Bot'},<<'EOPM');
+
+=head1 AUTHOR
+
+Tuomas J. Lukka (lukka@fas.harvard.edu),
+Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
+Doug Hunt (dhunt@ucar.edu), 
+Christian Soeller (c.soeller@auckland.ac.nz),
+and Doug Burke (burke@ifa.hawaii.edu).
+
+=cut
+
+EOPM
 
 pp_addhdr('
 #include <math.h>
@@ -42,6 +59,7 @@ sub biop {
     my ($name,$op,$swap,$doc,%extra) = @_;
     my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
     $op = $op->[0] if ref $op eq 'ARRAY';
+
     if ($swap) {
 	$extra{HdrCode} = << 'EOH';
   pdl *tmp;
@@ -52,6 +70,15 @@ sub biop {
   }
 EOH
     }
+
+    # handle exceptions
+    my $badcode = '$ISBAD(a()) || $ISBAD(b())';
+    if ( exists $extra{Exception} ) {
+#	$badcode .= " || $extra{Exception}";
+	print "Warning: ignored exception for $name\n";
+	delete $exists{Exception};
+    }
+
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
@@ -61,8 +88,8 @@ EOH
 	   Code => 
 	   "\$c() = \$a() $op \$b();",
 	   BadCode =>
-	   'if ( $ISBAD($a()) || $ISBAD($b()) )
-	       $SETBAD($c());
+	   'if ( ' . $badcode . ' )
+	       $SETBAD(c());
 	    else' . "\n  \$c() = \$a() $op \$b();\n",
 	   CopyBadStatusCode =>
 	   'if ( $PRIV(bvalflag) ) {
@@ -157,9 +184,19 @@ sub ufunc {
     my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
     my $funcovp = protect_chars $funcov;
     $func = $func->[0] if ref $func eq 'ARRAY';
+
+    # handle exceptions
+    my $badcode = '$ISBAD(a())';
+    if ( exists $extra{Exception} ) {
+#	$badcode .= " || $extra{Exception}";
+	print "Warning: ignored exception for $name\n";
+	delete $exists{Exception};
+    }
+
     # do not have to worry about propogation of the badflag when
     # inplace since only input piddle is a, hence its badflag
     # won't change
+    # UNLESS an exception occurs...
     pp_def($name,
 	   Pars => 'a(); [o]b()',
 	   HandleBad => 1,
@@ -168,8 +205,8 @@ sub ufunc {
 	   Code => 
 	   "\$b() = $func(\$a());",
 	   BadCode =>
-	   'if ( $ISBAD($a()) )
-	      $SETBAD($b());
+	   'if ( ' . $badcode . ' )
+	      $SETBAD(b());
 	   else' . "\n  \$b() = $func(\$a());\n",
 	   %extra,
 	   Doc => << "EOD");
@@ -189,9 +226,19 @@ EOD
 
 ######################################################################
 
-# it would make sense to trap illegal operations here (well, it would
-# be nice if you could set up exceptions to catch them all, but it's
-# not going to be portable)
+# we trap some illegal operations here -- see the Exception option
+# note, for the ufunc()'s, the checks do not work too well
+#    for unsigned integer types (ie < 0)
+#
+# XXX needs thinking about 
+#    - have to integrate into Code section as well (so
+#      12/pdl(2,4,0,3) is trapped and flagged bad)
+#      --> complicated
+#    - perhaps could use type %{ %} ?
+#
+# ==> currently have commented out the exception code, since
+#     want to see if can use NaN/Inf for bad values
+#     (would solve many problems for F,D types)
 #
 # there is an issue over how we handle comparison operators
 # - see Primitive/primitive.pd/zcover() for more discussion
@@ -204,7 +251,7 @@ biop('mult','*',0,'multiply two piddles');
 
 # all those need swapping
 biop('minus','-',1,'subtract two piddles');
-biop('divide','/',1,'divide two piddles');
+biop('divide','/',1,'divide two piddles', Exception => '$b() == 0' );
 
 ## note: divide should perhaps trap division by zero as well
 
@@ -237,28 +284,25 @@ bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
 bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc('sqrt','sqrt','elementwise square root');
+ufunc('sqrt','sqrt','elementwise square root', Exception => '$a() < 0' );
 ufunc('abs',['ABS','abs'],'elementwise absolute value',GenericTypes => [D,F,S,L]);
 ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation');
-ufunc('log','log','the natural logarithm',GenericTypes => [D]);
 ufunc('exp','exp','the exponential function',GenericTypes => [D]);
-
-pp_addpm({At=>Bot},<<'EOPM');
-
-=head1 AUTHOR
-
-Tuomas J. Lukka (lukka@fas.harvard.edu),
-Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
-Doug Hunt (dhunt@ucar.edu), 
-Christian Soeller (c.soeller@auckland.ac.nz),
-and Doug Burke (burke@ifa.hawaii.edu).
-
-=cut
-
-EOPM
+ufunc('log','log','the natural logarithm',GenericTypes => [D], 
+      Exception => '$a() <= 0' );
 
 pp_export_nothing(); 
+
+# perhaps, as there isn't a perl log10 function to overload, we 
+# shouldn't have this here. 
+# note the nasty hack of exporting log10, so we can say
+# print log10(100) and get an answer
+#
+ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D], 
+      Exception => '$a() <= 0'  );
+pp_add_exported( '', 'log10' );
+
 pp_done();
 

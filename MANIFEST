@@ -16,7 +16,7 @@ Basic/Core/pdl.h.PL
 Basic/Core/pdl_hfiles.p
 Basic/Core/pdlapi.c.PL
 Basic/Core/pdlconv.c.PL
-Basic/Core/pdlcore.c
+Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
 Basic/Core/pdlfamily.c
 Basic/Core/pdlhash.c
@@ -101,6 +101,7 @@ Changes.bpix
 DEPENDENCIES
 DEVELOPMENT
 Demos/BAD_demo.pm.PL
+Demos/BAD2_demo.pm.PL
 Demos/General.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
@@ -270,6 +271,7 @@ IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/NDF/Makefile.PL
 IO/NDF/NDF.pm.PL
+IO/NDF/NDF.xs.PL
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/converters/README

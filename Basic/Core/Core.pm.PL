@@ -71,13 +71,13 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT = qw( pdl null barf ); # Only stuff always exported!
 
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
-   long float double convert log10 inplace zeroes ones list listindices
+   long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
    dummy mslice);
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
-    long float double convert log10 inplace zeroes ones list listindices
+    long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
     diagonal dummy mslice/],
    Internal=>[qw/howbig threadids topdl/]
@@ -105,7 +105,8 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 
 ################ Exportable functions of the Core ######################
 
-*howbig       = \&PDL::howbig;	  *log10	= \&PDL::log10;
+# log10 is now in PDL::Ops
+*howbig       = \&PDL::howbig;	  
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
 *threadids    = \&PDL::threadids; *listindices  = \&PDL::listindices;
@@ -421,8 +422,8 @@ sub topdl {PDL->topdl(@_)}
 		"!"     => sub { PDL::not  ($_[0]); },
 		"~"     => sub { PDL::bitnot ($_[0]); },
 
-		"log"   => sub { PDL::log  ($_[0]); },
-		"exp"   => sub { PDL::exp  ($_[0]); },
+		"log"   => sub { PDL::log   ($_[0]); },
+		"exp"   => sub { PDL::exp   ($_[0]); },
 
 	        "**"    => \&PDL::power,          # in1, in2, swap if true
 
@@ -451,7 +452,8 @@ sub topdl {PDL->topdl(@_)}
 
 sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
 
-sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
+# now in ops
+#sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
 
 ##################### Data type/conversion stuff ########################
 
@@ -1613,6 +1615,18 @@ occasionally useful and is provied for backwards compatibility.
    # Do something on each value...
  }
 
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT<<'!NO!SUBS!';
+=for bad
+
+list converts any bad values into the string 'BAD'.
+
+!NO!SUBS!
+}
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 # No threading, just the ordinary dims.
@@ -1997,10 +2011,9 @@ sub str1D {
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
     my $badflag = $self->badflag();
-    my $badval  = $self->badvalue();
     for $t (@$x) {
-	if ( $badflag and $t == $badval ) {
-	    $t = "BAD";
+	if ( $badflag and $t eq "BAD" ) {
+	    # do nothing
         } elsif ($format) {
 	  $t = sprintf $format,$t;
 	} else{ # Default
@@ -2046,7 +2059,6 @@ sub str2D{
 
     if ( $bvalflag ) { print OUT 
 '    my $badflag = $self->badflag();
-    my $badval  = $self->badvalue();
 ';
 }
     print OUT <<'!NO!SUBS!';
@@ -2061,8 +2073,8 @@ sub str2D{
 	print OUT <<'!NO!SUBS!';
 	if ( $badflag ) {
 	    for (@$x) { 
-		if ( $_ == $badval ) { $i = 3; } 
-		else                 { $i = length($_); }
+		if ( $_ eq "BAD" ) { $i = 3; } 
+		else               { $i = length($_); }
 		$len = $i>$len ? $i : $len;
 	    } 
 	} else {
@@ -2102,8 +2114,8 @@ sub str2D{
 	print OUT <<'!NO!SUBS!';
 	if ( $badflag ) {
 	    for (@$x) {
-		if ( $_ == $badval ) { $i = 3; }
-		else                 { $i = length(sprintf $format,$_); }
+		if ( $_ eq "BAD" ) { $i = 3; }
+		else               { $i = length(sprintf $format,$_); }
 		$len = $i>$len ? $i : $len;
 	    }
 	} else {
@@ -2131,7 +2143,7 @@ sub str2D{
 !NO!SUBS!
     if ( $bvalflag ) { 
 	print OUT <<'!NO!SUBS!';
-	    if ( $badflag and $$x[$i] == $badval ) {
+	    if ( $badflag and $$x[$i] eq "BAD" ) {
 		$f = "BAD";
 	    } else {
 		$f = sprintf $format,$$x[$i];
@@ -2230,17 +2242,6 @@ The C<sethdr> function must be given a hash reference.
 For further information on the header, see L<gethdr|/gethdr> and
 L<hdrcpy|/hdrcpy>.
 
-=head1 AUTHOR
-
-Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
-Tuomas J. Lukka, (lukka@husc.harvard.edu) and Christian
-Soeller (c.soeller@auckland.ac.nz) 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
 =head2 hdrcpy
 
 =for ref
@@ -2260,6 +2261,17 @@ flag using the C<hdrcpy> method will enable automatic hdr
 copying. Note that copying is B<by reference> for efficiency
 reasons. C<hdrcpy> without an argument just returns the
 current setting of the flag.
+
+=head1 AUTHOR
+
+Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
+Tuomas J. Lukka, (lukka@husc.harvard.edu) and Christian
+Soeller (c.soeller@auckland.ac.nz) 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
 
 =cut
 

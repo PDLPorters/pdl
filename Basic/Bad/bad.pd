@@ -53,10 +53,28 @@ L<PDL::BadValues>.
 
  Bad value support in PDL is turned off.
 
+=head1 VARIABLES
+
+There are currently two variables that this module defines
+which may be of use.
+
+=over 4
+
+=item $PDL::Bad::Status
+
+Set to 0
+
+=item $PDL::Bad::UseNaN
+
+Set to 0
+
+=back
+
 =cut
 
 # really should be a constant
-$PDL::Bad::Support = 0;
+$PDL::Bad::Status = 0;
+$PDL::Bad::UseNaN = 0;
 
 !NO!SUBS!
 
@@ -111,10 +129,29 @@ L<PDL::BadValues>.
 
  and some other things
 
+=head1 VARIABLES
+
+There are currently two variables that this module defines
+which may be of use.
+
+=over 4
+
+=item $PDL::Bad::Status
+
+Set to 1
+
+=item $PDL::Bad::UseNaN
+
+Set to 1.  This would be zero if we do not use C<NaN>
+for the bad value.
+
+=back
+
 =cut
 
-# really should be a constant
+# really should be constants
 $PDL::Bad::Status = 1;
+$PDL::Bad::UseNaN = 1;
 
 use strict;
 
@@ -204,7 +241,7 @@ A return value of 1 does not guarantee the presence of
 bad data in a piddle; all it does is say that we need to 
 I<check> for the presence of such beasties. To actually 
 find out if there are any bad values, use the 
-L<check_badstatus|/check_badstatus> method.
+L<check_badflag|/check_badflag> method.
 
 =for bad
 
@@ -227,7 +264,9 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 
 If a new value is supplied via a piddle (e.g. C<$a-E<gt>badvalue(23)>),
 then the data in the supplied piddle is converted to use the new
-bad value as well.
+bad value as well IFF the data type is an integer; 
+the bad value for both C<float> and C<double> can not be changed
+(it is C<NaN>).
 
 Currently there is no way of automatically converting the bad
 values of already existing piddles. This could be supported - e.g. 
@@ -261,7 +300,7 @@ It also has an I<awful> name.
 
 Does support bad values.
 
-=head2 check_badstatus
+=head2 check_badflag
 
 =for ref
 
@@ -274,7 +313,7 @@ It returns the final state of the bad-value flag.
 
 =for example
 
- print "State of bad flag == ", $pdl->check_badstatus;
+ print "State of bad flag == ", $pdl->check_badflag;
 
 =for bad
 
@@ -282,13 +321,13 @@ Does support bad values.
 
 =cut
 
-*check_badstatus = \&PDL::check_badstatus;
+*check_badflag = \&PDL::check_badflag;
 
-sub PDL::check_badstatus {
+sub PDL::check_badflag {
     my $pdl = shift;
     $pdl->badflag(0) if $pdl->badflag and $pdl->nbad == 0;
     return $pdl->badflag;
-} # sub: check_badstatus()
+} # sub: check_badflag()
 
 !NO!SUBS!
 
@@ -298,9 +337,14 @@ my $ntypes = $#PDL::Types::names;
     my $str;
 foreach my $i ( 0 .. $ntypes ) {
     my $type = new PDL::Type $i;
-    my $ctype = $type->ctype;
     my $realctype = $type->realctype;
-    my $storage = "PDL->bvals._$ctype";
+
+    my $cname = $type->ctype;
+    $cname =~ s/^PDL_//;
+    my $storage = "PDL->bvals.$cname";
+
+    my $set_code = "if ( items > 0 ) { $storage = ($realctype) val; }";
+    $set_code = "" if $type ==4 or $type == 5;
 
     $str .= 
 "
@@ -308,7 +352,7 @@ $realctype
 _badvalue_int${i}(val=0)
     double val
   CODE:
-    if ( items > 0 ) { $storage = ($realctype) val; }
+    $set_code
     RETVAL = $storage;
   OUTPUT:
     RETVAL
@@ -316,7 +360,7 @@ _badvalue_int${i}(val=0)
 $realctype
 _default_badvalue_int${i}()
   CODE:
-    RETVAL = PDL->bvals.default_$ctype;
+    RETVAL = PDL->bvals.default_$cname;
   OUTPUT:
     RETVAL
     
@@ -355,8 +399,10 @@ pp_addpm(<<'!NO!SUBS!');
 #  if sent a piddle, we have to change it's bad values
 #  (but only if it contains bad values)
 #  - there's a slight overhead in that the badflag is
-#    cleared and then set (hence propogatind to all
+#    cleared and then set (hence propogating to all
 #    children) but we'll ignore that)
+#  - we can ignore this for float/double types
+#    since we can't change the bad value
 #    
 sub PDL::badvalue {
     no strict 'refs';
@@ -365,7 +411,7 @@ sub PDL::badvalue {
     my $num;
     if ( UNIVERSAL::isa($self,"PDL") ) {
 	$num = $self->get_datatype;
-	if ( defined $val and $self->badflag ) {
+	if ( $num < 4 and defined($val) and $self->badflag ) {
 	    $self->inplace->replacebad( $val );
 	    $self->badflag(1);
 	}
@@ -451,7 +497,7 @@ pp_def(
        HandleBad => 1,
        Pars => 'a(); int [o]b();',
        Code => 
-       '$b() = 0;',
+       '$b() = 1;',
        BadCode => 
        '$b() = $ISGOOD(a());',
        CopyBadStatusCode => '',
@@ -673,7 +719,7 @@ and I am too lazy to fix it.
 ',
        BadDoc =>
 'The output always has its bad flag set, even if it does not contain
-any bad values (use C<check_badstatus|/check_badstatus> to check
+any bad values (use C<check_badflag|/check_badflag> to check
 whether there are any bad values in the output). 
 Any bad values in the input piddles are copied across to the output piddle.
 ',

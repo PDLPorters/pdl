@@ -52,8 +52,9 @@ sub run {
 	print OUT <<'!NO!SUBS!';
 
 comment q|
+
     Your version of PDL has been compiled without support for bad
-    values, hence this demo doesn't do very much.
+    values, hence this demo doesn't do anything.
 
 |;
 
@@ -64,8 +65,6 @@ comment q|
 
 comment q|
     Welcome to this tour of the bad value support in PDL
-
-    This is currently a 'work in progress', so please excuse the mess.
 
     Each piddle contains a flag - accessible via the badflag() method - 
     which indicates whether:
@@ -178,6 +177,25 @@ act q|
 
     $a->inplace->replacebad(3);
     print "b = $b\tbadflag = ", $b->badflag, "\n\n";
+
+|;
+
+act q|
+    # One area that is likely to cause confusion is the return value from
+    # comparison operators (e.g. all and any) when ALL elements are bad.
+
+    # Currently, the bad value is returned; however most code will not
+    # be aware of this and just see it as a true or false value (depending
+    # on the numerical value used to store bad values).
+
+    # There is also the fact that the bad value need not relate to the
+    # type of the input piddle (due to internal conversion to an 'int +').
+    
+    $a = ones(3); $a = $a->setbadif( $a == 1 );
+    print "Any returns: ", any( $a > 2 ), "\n";
+    print "which is the bad value of 'long' (", long->badvalue, ").\n";
+
+    print "Whereas the bad value for \$a is: ", $a->badvalue, "\n";
 
 |;
 

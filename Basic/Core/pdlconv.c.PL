@@ -59,7 +59,8 @@ print OUT <<'!NO!SUBS!';
 
 # these 2 routines shouldn't need to be changed to handle
 # bad values, since all they do is copy data from
-# one piddle to another
+# one piddle to another of the same type
+# (assuming no per-piddle bad values)
 #
 
 for(['readdata_vaffine', "*ap = *pp"],
@@ -68,18 +69,11 @@ for(['readdata_vaffine', "*ap = *pp"],
 print OUT <<"!WITH!SUBS!";
 
 void pdl_$_->[0](pdl *a) {
-/***	PDL_Long *inds ; ***/
 	int i,j;
 	int intype = a->datatype;
 	if(!PDL_VAFFOK(a)) {
-		die("Pdl_make_phys_from_vaffine without vaffine");
+		die("pdl_$_ without vaffine");
 	}
-/***
-#	inds = malloc(sizeof(PDL_Long) * a->ndims);
-#	for(i=0; i<a->ndims; i++) {
-#		inds[i] = 0;
-#	}
-***/
 	PDL_ENSURE_ALLOCATED(a);
 	if(0) {
 
@@ -112,8 +106,6 @@ for my $in ( keys %PDL_DATATYPES ) {
 
 !WITH!SUBS!
 
-# XXX should there be another } before EOD ? XXX 
-
 } #### End of perl loop ####
 
 print OUT <<'!NO!SUBS!';
@@ -141,19 +133,10 @@ void pdl_swap(pdl** a, pdl** b) {
 /* Change the type of all the data in a pdl struct, either changing the
    original perl structure or making a temporary copy  */
 
-/* XXX TODO XXX */
-/* does this have to be bad-value aware? *
- * 
- * sticking in a line at the top:
- *  if( a->state & PDL_BADVAL ) fprintf(stderr,"blah")
- *
- * produces NO output after 'make test'
- * HOWEVER, as only t/bad.t makes use of bad pdl's it's
- * not too surprising ...
- *
+/* 
+ * it seems this does not have to be aware of bad values
+ * (at least in the current scheme)
  */
-
-/* fprintf(stderr,"pdl_converttype %d, %d, %d, %d\n", a, a->datatype, targtype, changePerl); */
 
 void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     pdl* a=*aa;  /* Point to cache */
@@ -167,24 +150,10 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     dXSARGS;
 #endif
 
-!NO!SUBS!
-
-    # XXX just a hack - needs removing
-    if ( $bvalflag ) {
-print OUT <<'!NO!SUBS!';
-    if ( a->state & PDL_BADVAL )
-      fprintf(stderr,"NOTE: pdl_converttype %d -> %d [%d] called with a bad pdl\n", 
-	      a->datatype, targtype, changePerl);
-!NO!SUBS!
-}
-
-print OUT <<'!NO!SUBS!';
-
     PDLDEBUG_f(printf("pdl_converttype %d, %d, %d, %d\n", a, a->datatype,
     	targtype, changePerl);)
 
     intype = a->datatype;
-
     if (intype == targtype)
        return;
 
@@ -226,15 +195,6 @@ print OUT <<'!NO!SUBS!';
 
 ##### Generate code for each pair of data types #####
 
-# XXX BPIX XXX
-#
-# Note:
-#   checking bad pixels via == here - MAY not be sensible
-#
-# QUS: is a->state & PDL_BADVAL always going to be unset
-#      since a is the new piddle?
-#
-
 for my $in ( keys %PDL_DATATYPES ) { 
     for my $targ ( keys %PDL_DATATYPES ) {
 
@@ -243,44 +203,7 @@ for my $in ( keys %PDL_DATATYPES ) {
     my $intype   = $PDL_DATATYPES{$in}; 
     my $targtype = $PDL_DATATYPES{$targ};
 
-# NOTE: we currently do not handle bad values
-# (one reason is that bad values are NOT compile-time constants,
-# but can be changed by the user [or that's the plan])
-#
-    if ( 0 and $bvalflag ) {
-	my $inbad    = $PDL_DATATYPES_BADVAL{$in};
-	my $targbad  = $PDL_DATATYPES_BADVAL{$targ};
-	print OUT <<"!WITH!SUBS!";
-
-    } else if (intype == $in && targtype == $targ)  {
-	{
-	    $intype *bb = ($intype *) b;
-	    $targtype *aa = ($targtype *) a->data;
-	    int i = a->nvals;
-	    aa += i-1; bb += i-1;
-	    printf("DBG: copying data from $intype to $targtype -- nvals = %d\\n", i);
-	    printf("     a->state & PDL_BADVAL == %6d\\n", a->state & PDL_BADVAL );
-	    if ( a->state & PDL_BADVAL ) {
-		while (i--) {
-		    if ( *bb == $inbad ) {
-			/* get 'warning: dereferencing `void *' pointer' messages */
-	                *aa-- = $targbad;
-	                *b--;
-	            } else {
-	                *aa-- = ($targtype) *bb--;
-	            }
-	        }
-            } else {
-	        while (i--)
-	            *aa-- = ($targtype) *bb--;
-            }
-        }
-
-!WITH!SUBS!
-
-} else {
-
-	print OUT <<"!WITH!SUBS!";
+    print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in && targtype == $targ)  {
        { $intype *bb = ($intype *) b;
@@ -292,8 +215,6 @@ for my $in ( keys %PDL_DATATYPES ) {
        }                                                                        
 
 !WITH!SUBS!
-
-} # if: $bvalflag
 
 }} #### End of perl loop ####
 

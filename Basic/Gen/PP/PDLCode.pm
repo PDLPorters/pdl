@@ -52,6 +52,7 @@ sub new {
 	ParObjs => $parobjs,
 	Gencurtype => [], # stack to hold GenType in generic loops
 	types => 0,  # hack for PDL::PP::Types/GenericLoop
+	pars => {},  # hack for PDL::PP::NaNSupport/GenericLoop
     }, $type;
     
     my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
@@ -93,13 +94,13 @@ sub new {
 	my $good_coderef = $coderef;
 	$coderef = new PDL::PP::BadSwitch( $good_coderef, $bad_coderef );
 
-	# amalgamate sizeprivs from Code/BadCode segmtents:
-	# fortunately sizeprivs is a simple hash, with each element 
-	# containing a string (see PDL::PP::Loop)
+	# amalgamate sizeprivs from Code/BadCode segments
+	# (sizeprivs is a simple hash, with each element 
+	# containing a string - see PDL::PP::Loop)
 	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
 	    my $str = $$sizeprivs{$bad_key}; 
 	    if ( defined $str ) {
-		die "ERROR: was hoping that sizeprivs would not cause a problem in PP/PDLCode.pm (BadVal stuff)\n"
+		die "ERROR: sizeprivs problem in PP/PDLCode.pm (BadVal stuff)\n"
 		    unless $str eq $bad_str;
 	    }
 	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
@@ -288,6 +289,14 @@ sub myprelude {
     my($this,$parent,$context) = @_;
     push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
 
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) {
+	my ( @test ) = keys %{$parent->{pars}};
+	die "ERROR: need to rethink NaNSupport in GenericLoop\n"
+	    if $#test != -1;
+	$parent->{pars} = {};
+    }
+
     my $thisis_loop = '';
     if ( $parent->{types} ) {
 	$thisis_loop = join '',
@@ -307,6 +316,13 @@ sub myitem {
     my $item = $this->[0]->[$nth];
     if(!$item) {return "";}
     $parent->{Gencurtype}->[-1] = $item->[1];
+
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) {
+	foreach my $parname ( @{$this->[2]} ) {
+	    $parent->{pars}{$parname} = $item->[1];
+	}
+    }
 
     my $thisis_loop = '';
     if ( $parent->{types} ) {
@@ -329,9 +345,14 @@ sub myitem {
 	    } (@{$this->[2]})) ;
 }
 
-sub mypostlude { my($this,$parent,$context) = @_;
-	pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
-	"\tbreak;}
+sub mypostlude { 
+    my($this,$parent,$context) = @_;
+    pop @{$parent->{Gencurtype}};  # and clean up the Gentype stack
+
+    # horrible hack for PDL::PP::NaNSupport
+    if ( $this->[1] ne "" ) { $parent->{pars} = {}; }
+    
+    return "\tbreak;}
 	default:barf(\"PP INTERNAL ERROR! PLEASE MAKE A BUG REPORT\\n\");}\n";
 }
 
@@ -504,24 +525,108 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 
 ###########################
 #
+# used by BadAccess code to know when to use NaN support
+#
+# this needs improving to allow setting Float/Double to 0
+# in %use_nan
+#
+# horrible hack for piddles whose type has been specified 
+# using the FType option - see GenericLoop. There MUST be 
+# a better way than this...
+#
+package PDL::PP::NaNSupport;
+
+# need to be lower-case because of FlagTyped stuff
+my %use_nan =
+    ( 'byte' => 0, 'short' => 0, 'ushort' => 0, 'long' => 0,
+      'int' => 0,
+#      'float' => 0, 'double' => 0 );
+      'float' => 1, 'double' => 1 );
+
+sub use_nan ($) {
+    my $type = shift;
+
+    $type =~ s/^PDL_//;
+    $type = lc $type;
+    die "ERROR: Unknown type [$type] used in a 'Bad' macro."
+	unless exists $use_nan{$type};
+    return $use_nan{$type};
+}
+
+sub convert ($$$$$) {
+    my ( $parent, $name, $lhs, $rhs, $opcode ) = @_;
+
+    my $type = $parent->{Gencurtype}[-1];
+    die "ERROR: unable to find type info for $opcode access"
+	unless defined $type;
+
+    # note: gentype may not be sensible because the
+    # actual piddle could have a 'fixed' type
+    die "ERROR: unable to find piddle $name in parent!"
+	unless exists $parent->{ParObjs}{$name};
+    my $pobj = $parent->{ParObjs}{$name};
+
+    # based on code from from PdlParObj::ctype()
+    # - want to handle FlagTplus case
+    # - may not be correct
+    # - extended to include hack to GenericLoop 
+    #
+    if ( exists $parent->{pars}{$name} ) {
+	$type = $parent->{pars}{$name};
+	print "#DBG: hacked <$name> to type <$type>\n";
+    } elsif ( exists $pobj->{FlagTyped} and $pobj->{FlagTyped} ) {
+	$type = $pobj->{Type};
+
+	# this should use Dev.pm - fortunately only worried about double/float here
+	# XXX - do I really know what I'm doing ?
+	if ( $pobj->{FlagTplus} ) {
+	    my $gtype = $parent->{Gencurtype}[-1];
+	    if ( $gtype eq "PDL_Double" ) {
+		$type = $gtype if $type ne "double";
+	    } elsif ( $gtype eq "PDL_Float" ) {
+		$type = $gtype if $type !~ /^(float|double)$/;  # note: ignore doubles
+	    }
+	}
+    }
+	
+    if ( use_nan($type) ) {
+	if ( $opcode eq "SETBAD" ) {
+	    $rhs = "(0.0/0.0)";
+	} else {
+	    $rhs = "0";
+	    $lhs = "finite($lhs)";
+	}
+    }
+    
+    return ( $lhs, $rhs );
+}
+
+###########################
+#
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
 #
-# $ISBAD($a(n))  -> $a(n) == a_badval
-# $ISGOOD($a())     $a()  != a_badval
-# $SETBAD($a())     $a()   = a_badval
+# Integer types (BSUL) + floating point when no NaN (FD)
+#   $ISBAD($a(n))  -> $a(n) == a_badval
+#   $ISGOOD($a())     $a()  != a_badval
+#   $SETBAD($a())     $a()   = a_badval
+#
+# floating point with NaN
+#   $ISBAD($a(n))  -> finite($a(n)) == 0
+#   $ISGOOD($a())     finite($a())  != 0
+#   $SETBAD($a())     $a()           = (0.0/0.0)
 #
 # I've also got it so that the $ on the pdl name is not
 # necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
 # amount of line noise. This is actually done by the regexp
 # in the separate_code() sub at the end of the file.
 #
-# note: we also expand out $a(n) etc as well here
+# note: 
+#   we also expand out $a(n) etc as well here
 #
-# IEEE NaN support - I'm assuming this would have to be
-#  changed to  $a() != $a() etc - which means 2 accesses to
-#  the data structure
-# 
+# To do:
+#   need to allow use of F,D without NaN
+#
 
 package PDL::PP::BadAccess;
 use Carp;
@@ -535,8 +640,10 @@ sub new {
 	"  unknown piddle <$pdl_name($inds)>\n"
 	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
 
-    bless [$opcode, $pdl_name, $inds], $type;
+    return bless [$opcode, $pdl_name, $inds], $type;
 }
+
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -547,18 +654,22 @@ sub get_str {
 
     print "PDL::PP::BadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
 
-    my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
-
-    my $op    = $ops{$opcode};
+    my $op = $ops{$opcode};
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadAccess\n"
 	unless defined $op;
 
-    my $obj  = $parent->{ParObjs}{$name};
+    my $obj = $parent->{ParObjs}{$name};
     die "ERROR: something screwy in PDL::PP::BadAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
 
     my $lhs = $obj->do_access($inds,$context);
     my $rhs = "${name}_badval";
+
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+
+#    use Data::Dumper;
+#    print "#DBG: ", Dumper($parent);
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
@@ -570,21 +681,16 @@ sub get_str {
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
 #
-# $ISBADVAR(foo,a)  -> foo == a_badval
-# $ISGOODVAR(foo,a)    foo != a_badval
-# $SETBADVAR(foo,a)    foo  = a_badval
+# Integer types (BSUL) + floating point when no NaN (FD)
+#   $ISBADVAR(foo,a)  -> foo == a_badval
+#   $ISGOODVAR(foo,a)    foo != a_badval
+#   $SETBADVAR(foo,a)    foo  = a_badval
 #
-# I've also got it so that the $ on the pdl name is not
-# necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
-# amount of line noise. This is actually done by the regexp
-# in the separate_code() sub at the end of the file.
+# floating point with NaN
+#   $ISBADVAR(foo,a)  -> finite(foo) == 0
+#   $ISGOODVAR(foo,a)    finite(foo) != 0
+#   $SETBADVAR(foo,a)    foo          = (0.0/0.0)
 #
-# note: we also expand out $a(n) etc as well here
-#
-# IEEE NaN support - I'm assuming this would have to be
-#  changed to  $a() != $a() etc - which means 2 accesses to
-#  the data structure
-# 
 
 package PDL::PP::BadVarAccess;
 use Carp;
@@ -601,6 +707,8 @@ sub new {
     bless [$opcode, $var_name, $pdl_name], $type;
 }
 
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
 sub get_str {
     my($this,$parent,$context) = @_;
 
@@ -610,18 +718,19 @@ sub get_str {
 
     print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$pdl_name]\n" if $::PP_VERBOSE;
 
-    my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
-
-    my $op    = $ops{$opcode};
+    my $op = $ops{$opcode};
     die "ERROR: unknown check <$opcode> sent to PDL::PP::BadVarAccess\n"
 	unless defined $op;
 
-    my $obj  = $parent->{ParObjs}{$pdl_name};
+    my $obj = $parent->{ParObjs}{$pdl_name};
     die "ERROR: something screwy in PDL::PP::BadVarAccess (PP/PDLCode.pm)\n"
 	unless defined( $obj );
 
     my $lhs = $var_name;
     my $rhs = "${pdl_name}_badval";
+
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $pdl_name, $lhs, $rhs, $opcode );
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
@@ -640,6 +749,11 @@ sub get_str {
 #  $PPISBAD(PARENT,[i])  -> PARENT_physdatap[i] == PARENT_badval
 #  etc
 #
+# if we use NaN's, then
+#  $PPISBAD(PARENT,[i])   -> finite(PARENT_physdatap[i]) == 0
+#  $PPISGOOD(PARENT,[i])  -> finite(PARENT_physdatap[i]) != 0
+#  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = (0.0/0.0)
+#
 
 package PDL::PP::PPBadAccess; 
 use Carp;
@@ -651,6 +765,9 @@ sub new {
     bless [$opcode, $pdl_name, $inds], $type;
 }
 
+# PP is stripped in new()
+my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
 sub get_str {
     my($this,$parent,$context) = @_;
 
@@ -660,10 +777,7 @@ sub get_str {
 
     print "PDL::PP::PPBadAccess sent [$opcode] [$name] [$inds]\n" if $::PP_VERBOSE;
 
-    # PP is stripped in new()
-    my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
-
-    my $op    = $ops{$opcode};
+    my $op = $ops{$opcode};
     die "\nERROR: unknown check <$opcode> sent to PDL::PP::PPBadAccess\n"
 	unless defined $op;
 
@@ -674,77 +788,12 @@ sub get_str {
     my $lhs = $obj->do_physpointeraccess() . "$inds";
     my $rhs = "${name}_badval";
 
+    ( $lhs, $rhs ) = 
+      PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
+
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
 }
-
-
-###########################
-#
-# Encapsulate a check on whether the state flag of a piddle
-# is set/change this state
-#
-# $STATEISBAD(a)    ->  (a->state & PDL_BADVAL) > 0
-# $STATEISGOOD(a)   ->  (a->state & PDL_BADVAL) == 0
-# 
-# $STATESETBAD(a)   ->  (a->state |= PDL_BADVAL)
-# $STATESETGOOD(a)  ->  (a->state &= ~PDL_BADVAL)
-# 
-# see also the abstraction used in PP.pm --- 
-#   get_badstate() etc
-#
-# NOTE: I doubt these are ever going to be used
-#
-
-#package PDL::PP::StateBadAccess;
-#use Carp;
-#
-#sub new { 
-#    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
-#
-#    # $op  is one of: IS SET
-#    # $val is one of: GOOD BAD
-#
-#    # trying to avoid auto creation of hash elements
-#    my $check = $parent->{ParObjs};
-#    die "\nIt looks like you have tried a \$STATE${op}${val}() macro on an\n" .
-#	"  unknown piddle <$pdl_name>\n"
-#	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
-#
-#    bless [$op, $val, $pdl_name], $type;
-#}
-#
-#sub get_str {
-#    my($this,$parent,$context) = @_;
-#
-#    my $op   = $this->[0];
-#    my $val  = $this->[1];
-#    my $name = $this->[2];
-#
-#    print "PDL::PP::StateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
-#
-#    my %ops  = ( 
-#		 IS  => { GOOD => '==', BAD => '> 0' },
-#		 SET => { GOOD => '&= ~', BAD => '|= ' },
-#	     );
-#
-#    my $opcode = $ops{$op}{$val};
-#    my $type = $op . $val;
-#    die "ERROR: unknown check <$type> sent to PDL::PP::StateBadAccess\n"
-#	unless defined $opcode;
-#
-#    my $state = "${name}->state";
-#
-#    my $str;
-#    if ( $op eq 'IS' ) {
-#	$str = "($state & PDL_BADVAL) $opcode";
-#    } elsif ( $op eq 'SET' ) {
-#	$str = "$state ${opcode}PDL_BADVAL";
-#    }
-#
-#    print "DBG:  [$str]\n" if $::PP_VERBOSE;
-#    return $str;
-#}
 
 
 ###########################
@@ -777,6 +826,11 @@ sub new {
     bless [$op, $val, $pdl_name], $type;
 }
 
+my %ops  = ( 
+	     IS  => { GOOD => '== 0', BAD => '> 0' },
+	     SET => { GOOD => '&= ~', BAD => '|= ' },
+	     );
+
 sub get_str {
     my($this,$parent,$context) = @_;
 
@@ -785,11 +839,6 @@ sub get_str {
     my $name = $this->[2];
 
     print "PDL::PP::PDLStateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
-
-    my %ops  = ( 
-		 IS  => { GOOD => '== 0', BAD => '> 0' },
-		 SET => { GOOD => '&= ~', BAD => '|= ' },
-	     );
 
     my $opcode = $ops{$op}{$val};
     my $type = $op . $val;

@@ -6,6 +6,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 	      NAME => 'PDL::IO::NDF',
 #     'VERSION_FROM' => 'NDF.pm',
-	      clean => { Files => 'NDF.pm' },
+              INC   => '-I../../Basic/Core',
+	      clean => { Files => 'NDF.pm NDF.xs NDF.c NDF.o' },
 );
 
