@@ -1,3 +1,8 @@
+CED (6-Aug-02)
+    - New % operator follows (mathematically correct) perl % operator behavior
+    - AutoLoad throws an error if foo.pdl doesn't declare foo().  (used
+	to loop endlessly).  
+    - AutoLoad error messages are more informative.
 CS  - hopefully fixed bug with new pdl(arrayref) implementation
 CED (2-Aug-02)
 	- Add IndexND to slices.pd
