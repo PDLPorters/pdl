@@ -89,7 +89,7 @@ use strict;
 
 =for sig
 
-  Signature: (a(m,m); [o]b(n); [o]c)
+  Signature: (a(m,m); [o]b(n); [o]c; [o]lu)
 
 =for ref
 
@@ -149,6 +149,11 @@ invert (like, say, a 3x3x1000000 PDL) you should use L<lu_decomp2>,
 which doesn't pivot and is therefore threadable (and, of course, works
 in-place).
 
+If you ask lu_decomp to thread (by having a nontrivial third dimension
+in the matrix) then it will call lu_decomp2 instead.  That is a
+numerically unstable (non-pivoting) method that is mainly useful for
+smallish, not-so-singular matrices but is threadable.
+
 =cut
 
 *PDL::lu_decomp = \&lu_decomp;
@@ -163,8 +168,14 @@ sub lu_decomp {
   
   barf('lu_decomp requires a square (2D) PDL\n')
     if(!UNIVERSAL::isa($in,'PDL') || 
-       $in->ndims != 2 || 
+       $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));
+
+  if(($in->ndims > 2) && !( (pdl($in->dims)->slice("2:-1") < 2)->all )  ) {
+    warn('lu_decomp: calling lu_decomp2 for threadability') 
+      if($PDL::debug);
+    return lu_decomp2($in,$permute,$parity,$sing_ok);
+  }
   
   my($n) = $in->dim(0);
   my($n1) = $n; $n1--;
@@ -257,6 +268,116 @@ sub lu_decomp {
 
 ######################################################################
 
+=head2 lu_decomp2
+
+=for sig
+
+ Signature: (a(m,m); [0]lu(n)
+
+=for ref
+
+LU decompose a matrix, with no row permutation (threadable!)
+
+=for usage
+
+  ($lu, $perm, $parity) = lu_decomp2($a);
+
+  $lu = lu_decomp2($a,[$perm,$par]); 
+
+  lu_decomp($a->inplace,[$perm,$par]);
+
+=for description
+
+C<lu_decomp2> works just like L<lu_decomp|lu_decomp>, but it does no
+pivoting at all and hence can be usefully threaded.  For compatibility
+with L<lu_decomp|lu_decomp>, it will give you a permutation list and a parity
+scalar if you ask for them -- but they are always trivial.
+
+Because C<lu_decomp2> does not pivot, it is numerically unstable --
+that means it is less precise than L<lu_decomp>, particularly for
+large or near-singular matrices.  On the other hand, if you want 
+to invert rapidly a few x 10^5 2x2 or 3x3 matrices, it's just the ticket.
+
+The output is a single matrix that contains the LU decomposition of $a;
+you can even do it in-place, thereby destroying $a, if you want.  See
+L<lu_decomp> for more information about LU decomposition. 
+
+=cut
+
+*PDL::lu_decomp2 = \&lu_decomp2;
+
+sub lu_decomp2 {
+  my($in) = shift;
+  my($perm) = shift;
+  my($par) = shift;
+
+  my($sing_ok) = shift;
+
+  my $TINY = 1e-30;
+  
+  barf('lu_decomp2 requires a square (2D) PDL\n')
+    if(!UNIVERSAL::isa($in,'PDL') || 
+       $in->ndims < 2 || 
+       $in->dim(0) != $in->dim(1));
+  
+  my($n) = $in->dim(0);
+  my($n1) = $n; $n1--;
+
+  my($inplace) = $in->is_inplace;
+  my($out) = ($inplace) ? $in : $in->copy;
+
+
+  if(defined $perm) {
+    barf('lu_decomp2: permutation vector must match the matrix')
+      if(!UNIVERSAL::isa($perm,'PDL') || 
+	 $perm->ndims != 1 || 
+	 $perm->dim(0) != $out->dim(0));
+    $perm .= xvals($in->dim(0));
+  } else {
+    $perm = xvals($in->dim(0));
+  }
+
+  if(defined $par) {
+    barf('lu_decomp: parity must be a scalar PDL') 
+      if(!UNIVERSAL::isa($par,'PDL') ||
+	 $par->nelem != 1);
+    $par .= 1.0;
+  } else {
+    $par = pdl(1.0);
+  }
+
+  my $diagonal = $out->diagonal(0,1);
+
+  my($col,$row);
+  for $col(0..$n1) {       
+    for $row(1..$n1) {   
+      my($klim) = $row<$col ? $row : $col;
+      if($klim > 0) {
+	$klim--;
+	my($el) = $out->index2d($col,$row);
+
+	$el -= ( $out->slice("($col),0:$klim") *
+		 $out->slice("0:$klim,($row)") )->sumover;
+      }
+
+    }
+    
+    # Figure a_ij, with no pivoting
+    if($col < $n1) {
+      # Divide the rest of the column by the diagonal element 
+      $out->slice("($col),".($col+1).":$n1") /= $diagonal->index($col)->dummy(0,$n1-$col);
+    }
+
+  } # end of column loop
+
+  if(wantarray) {
+    return ($out,$perm,$par);
+  }
+  $out;
+}
+
+######################################################################
+
 =head2 lu_backsub
 
 =for sig
@@ -270,7 +391,7 @@ Solve A X = B for matrix A, by back substitution into A's LU decomposition.
 =for usage
 
   ($lu,$perm) = lu_decomp($a);
-  $x = lu_backsub($lu,$perm,$b);
+  $x = lu_backsub($lu,$perm,$par,$b);
   
   lu_backsub($lu,$perm,$b->inplace); # modify $b in-place
 
@@ -325,11 +446,22 @@ sub lu_backsub {
 
   # Permute the vector and make a copy if necessary.
   my $out;
-  if($b->is_inplace) {
-    $b .= $b->dummy(1,$b->dim(0))->index($perm)->sever;
-    $out = $b;
+  my $nontrivial = !(($perm==xvals($perm))->all);
+  if($nontrivial) {
+    if($b->is_inplace) {
+      $b .= $b->dummy(1,$b->dim(0))->index($perm)->sever;
+      $out = $b;
+    } else {
+      $out = $b->dummy(1,$b->dim(0))->index($perm)->sever;
+    }
   } else {
-    $out = $b->dummy(1,$b->dim(0))->index($perm)->sever;
+    $out = ($b->is_inplace ? $b : $b->copy);
+  }
+
+  # Make sure threading over lu happens OK...
+
+  while($out->ndims < $lu->ndims) {
+    $out = $out->dummy(-1,$lu->dim($out->ndims));
   }
 
   ## Do forward substitution into L
@@ -337,18 +469,18 @@ sub lu_backsub {
 
   for $row(1..$n1) {
     $r1 = $row-1;
-    $out->index($row) -= ($lu->slice("0:$r1,($row)") * 
+    $out->index($row) -= ($lu->slice("0:$r1,$row") * 
 		       $out->slice("0:$r1")
 		       )->sumover;
   }
 
   ## Do backward substitution into U, and normalize by the diagonal
-  my $ludiag = $lu->diagonal(0,1);
+  my $ludiag = $lu->diagonal(0,1)->dummy(1,$n);
   $out->index($n1) /= $ludiag->index($n1);
 
   for ($row=$n1; $row>0; $row--) {
     $r1 = $row-1;
-    $out->index($r1) -= ($lu->slice("$row:$n1,($r1)") * 
+    $out->index($r1) -= ($lu->slice("$row:$n1,$r1") * 
 			$out->slice("$row:$n1")
 			)->sumover;
     $out->index($r1) /= $ludiag->index($r1);
@@ -367,7 +499,7 @@ sub lu_backsub {
 
 =for usage
 
-  $a1 = inv($a, {$opt});
+  $a1 = inv($a, {$opt});                 #default lu_decomp (not threadable)
 
 =for ref
 
@@ -377,6 +509,12 @@ You feed in an NxN matrix in $a, and get back its inverse (if it
 exists).  The code is inplace-aware, so you can get back the inverse
 in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
+
+C<inv> uses lu_decomp by default; that's a numerically stable (pivoting)
+LU decomposition method.  If you ask it to thread then a numerically
+unstable (non-pivoting) method is used instead, so don't thread 
+over largish or near-singular matrices unless you don't care about the anwer.
+
 
 OPTIONS:
 
@@ -413,7 +551,7 @@ sub inv {
 
   barf "inverse needs a square PDL as a matrix\n" 
     unless(UNIVERSAL::isa($a,'PDL') &&
-	   $a->dims == 2 &&
+	   $a->dims >= 2 &&
 	   $a->dim(0) == $a->dim(1)
 	   );
 
@@ -431,7 +569,7 @@ sub inv {
   $opt->{det} = $det
     if exists($opt->{det});
 
-  unless($det) {
+  unless($det->nelem > 1 || $det) {
     return undef 
       if $opt->{s};
     barf("inverse: got a singular matrix or LU decomposition\n");
@@ -473,16 +611,14 @@ re-use it.  This method of determinant finding is more rapid than
 recursive-descent on large matrices, and if you reuse the LU
 decomposition it's essentially free.
 
-Because LU decomposition is inherently nonthreadable, you get no
-threading advantage for calling C<det> with a large array of matrices.
-(As this documentation is written, det actually barfs if you try to
-thread with it).  The LU decomposition method also has some exception
-handling for certain classes of singlular matrix, which complicates
-(and slows) threading even further.
+If you wask det to thread then L<lu_decomp|lu_decomp> drops you through
+to L<lu_decomp2|lu_decomp2>, which is numerically unstable (and hence
+not useful for very large matrices) but quite fast.
 
 If you want to use threading on a matrix that's less than, say, 10x10,
-then you should use L<determinant|determinant>, which is a more
-robust, threadable determinant finder, instead.
+and might be near singular, then you might want to use
+L<determinant|determinant>, which is a more robust, threadable
+determinant finder, instead.
 
 OPTIONS:
 

@@ -202,7 +202,7 @@ $VERSION = "0.7";
 BEGIN {
    use Exporter ();
    @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose);
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_scale t_rot t_shift );
    @EXPORT = @EXPORT_OK;
    %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 }
@@ -467,7 +467,7 @@ sub compose {
 Shift a transform into a different space by 'wrapping' it with a second.
 
 This is just a convenience function for two L<compose|Transform::compose> calls.
-It's useful to make a single transformation happen in some other space.
+It is useful to make a single transformation happen in some other space.
 For example, to shift the origin of rotation, do this:
 
   $im = rfits('m51.fits');
@@ -560,7 +560,7 @@ input image. (default = false)
 
 If set, and if the data set is 2-D (an image), then do actual
 integration of each output pixels's mapped area on the input plane.
-This is pretty slow compared to sampling, but is much more accurate.
+This is pretty slow compared to sampling, but it's much more accurate.
 
 =back
 
@@ -702,54 +702,59 @@ sub map {
     ###############
     ### Calculate the jacobian everywhere: nxn matrix with trailing index dims
     ### for each pixel. 
-    print "enumerating jacobian...\n";
     my($jacob) = PDL->zeroes($nd, $nd, @sizes); # (col, row, dims)
 
     my($slstr) = ",0:-2"x($nd-1);
     for($i=0;$i<$nd;$i++){
-      print "i=$i\n";
       my($ind) = $indices->xchg(1,$i+1);
       $jacob->slice("($i)") .= ( $ind->slice(":,1:-1".$slstr) - 
 				 $ind->slice(":,0:-2".$slstr)
 				 ) -> xchg(1,$i+1);
-      print "ok\n";
     }
     
-    print "flattening jacobian...\n";
-    my $jdet = $jacob->determinant->flat; # original determinant
-    my $jac  = $jacob->reorder(2..($nd+1),0,1)->clump($nd); # (list, col, row)
-
-    ###############
-    ### Figure out the footprint size of each outpus pixel, in 
-    ### input coordinates.  This relies on the peculiar coincidence 
-    ### (or whatever) that the eigenvalues of the squared Jacobian are 
-    ### the squared lengths of the principal axes of the ellipsoid formed 
-    ### by transforming the pixel.  We just grab a cube as big as the 
-    ### longest axis.
-
-    my ($ev, $e) = (eigens ($jac->reorder(2,1,0) x 
-			    $jac->reorder(1,2,0)));
-    $e = $e->inplace->abs; # (eig, list)
-
-    # Figure out the size needed for each subfield.  Don't allow any
-    # sizes larger than half the largest dimension of the source field.
-
-    my $big = PDL->pdl($in->dims)->max * 0.1;
-
-    my $sizes = $e->maximum->sqrt->clip(undef,$big);    # (list)
+    my $jac  = $jacob->reorder(2..($nd+1),0,1)->clump($nd)
+		->mv(0,2);                              # (col, row, list)
 
 
     ###############
-    ### Pad the eigenvalues of the jacobian out to 1, and generate
-    ### the inverse of the padded version.  We lose information about
-    ### rotations (by symmetrizing in eigens) and reflection (by 
-    ### taking the absolute value of the eigenvalue), but all of that 
-    ### stuff takes place inside each pixel anyhow, so it's no big deal.
-    ($ev, $e) = (eigens ($jac->reorder(1,2,0)));
-    $e = $e->inplace->clip(1,undef); 
-    my $ijac = $ev->xchg(0,1)->sever;   # (row, col, list)
-    $ijac->mv(0,2) /= $e;               # safe since $e is padded to 1.
-    $ijac x= $ev;                       # (col, row, list)
+    ### Determinant comes in handy for the photon-preserving case,
+    ### but needs to be taken from the non-fattened Jacobian (see below)
+    my $jdet = $jacob->determinant->flat;
+
+    ###############
+    ### Singular-value decompose the Jacobian and fatten it to ensure 
+    ### at least one intersection with the grid.
+    print "singular value of jac... (",join(",",$jac->dims),")\n";
+    my ($r1, $s, $r2) = svd $jac;
+    $s += sqrt($nd);                       # diagonal of an N-cube
+    print "ok\n";
+
+    ###############
+    ### Reconstruct the fattened Jacobian: jac = r1 x s x r2
+    $r1 *= $s->dummy(1,$nd); # scale by the singular values
+    $jac .= $r1 x $r2;
+
+    ###############
+    ### Use the fattened singular values to figure out how big 
+    ### a subregion needs to be considered.  Then we're done with 
+    ### the SVD stuff so we can free it up.
+    my $big = pdl($in->dims)->max / 10.0;
+    my $sizes = $s->maximum->clip(undef,$big);  # List of sizes of region to use
+
+    $s = $r1 = $r2 = undef;
+
+    ###############
+    ### Figure out the inverse Jacobian.  Always invertible -- we 
+    ### made sure the singular values were nonzero!
+    ###
+    ### Inverting like this is almost certainly wasteful -- it's
+    ### likely much easier to invert r1 & r2, knowing that they are
+    ### rotation matrices. 
+    ###
+    ### We're also done with $jac so we do this inplace and then 
+    ### (just to make sure) explicitly free up $jac.
+    my $ijac = $jac->inplace->inv;
+    $jac = undef;
 
     ###############
     ### Loop over increasing size, doubling the size each time until
@@ -799,7 +804,7 @@ sub map {
       print "offsetting...  center is ",join("x",$center->dims),"; pixels is ",join("x",$pixels->dims),"\n";
       my($points) = $center->indexND($pixels->dummy(0,1));  # (pix-list, coord)
       print " points has dimension ",join("x",$points->dims),"\n";
-      $coords_in += $points->floor - 0.5*$size;       # (pix-list, coord, rgn-list)
+      $coords_in += $points->floor - 0.5*$size + 1;         # (pix-list, coord, rgn-list)
 
       ###############
       ### Calculate the offsets (in output space) of each center from 
@@ -847,13 +852,6 @@ sub map {
 		      clump($nd)                   # (rgn-list,pix-list)
 		      ->sever;
       print "input is ",join("x",$input->dims),"\n";
-
-      $PDL::debug::filterpanel->range($coords_in->
-				      slice(":,:,(0)")->
-				      xchg(0,1)
-				      ,
-				      $size,'e') += $filt
-				      if(defined $PDL::debug::filterpanel);
 
       $filt *= $input;  # (rgn-list, pix-list)
 
@@ -1215,19 +1213,31 @@ sub PDL::Transform::Linear::new {
   
   $me->{params}->{pre} = _opt($o,['pre','Pre','preoffset','offset',
 				  'Offset','PreOffset','Preoffset'],0);
+  $me->{params}->{pre} = pdl($me->{params}->{pre}) 
+    if(defined $me->{params}->{pre});
   
   $me->{params}->{post} = _opt($o,['post','Post','postoffset','PostOffset',
 				   'shift','Shift'],0);
+  $me->{params}->{post} = pdl($me->{params}->{post}) 
+    if(defined $me->{params}->{post});
 
   $me->{params}->{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
+  $me->{params}->{matrix} = pdl($me->{params}->{matrix}) 
+    if(defined $me->{params}->{matrix});
 
   $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
-  $me->{params}->{rot} = pdl(0) unless defined($me->{params}->{rot});
+  $me->{params}->{rot} = 0 unless defined($me->{params}->{rot});
+  $me->{params}->{rot} = pdl($me->{params}->{rot});
 
   print "me->{params}->{rot} = ".$me->{params}->{rot}."\n";
 
   my $o_dims = _opt($o,['dims','Dims']);
+  $o_dims = pdl($o_dims)
+    if defined($o_dims);
+  
   my $scale  = _opt($o,['s','scale','Scale']);
+  $scale = pdl($scale) 
+    if defined($scale);
   
   # Figure out the number of dimensions to transform, and, 
   # if necessary, generate a new matrix.
@@ -1372,6 +1382,70 @@ sub PDL::Transform::Linear::stringify {
 
 
 ######################################################################
+########## Convenience interfaces to Linear...
+
+=head2 t_scale
+
+=head2 PDL::Transform::Scale
+
+=for usage 
+
+  $f = t_scale(<scale>)
+
+=for ref
+
+Convenience interface to L<t_linear|t_linear>.
+
+t_scale produces a tranform that scales around the origin by a fixed
+amount.  It acts exactly the same as L<t_linear(Scale=><scale>)|t_linear>.
+
+=cut
+
+sub t_scale { new PDL::Transform::Linear(Scale=>$_[0]); }
+
+
+##########
+##########
+
+=head2 t_offset 
+
+=for usage
+
+  $f = t_offset(<shift>)
+
+=for ref
+
+Convenience interface to L<t_linear|t_linear>.
+
+t_offset produces a transform that shifts the origin to a new location.
+It acts exactly the same as L<t_linear(Pre=><shift>)|t_linear>.
+
+=cut
+
+sub t_offset {new PDL::Transform::Linear(Pre=>$_[0]);}
+
+##########
+##########
+
+=head2 t_rot
+
+=for usage
+
+  $f = t_rot(<rotation-in-degrees>)
+
+=for ref
+
+Convenience interface to L<t_linear|t_linear>.
+
+t_rot produces a rotation transform in 2-D (scalar), 3-D (3-vector), or
+N-D (matrix).  It acts exactly the same as L<t_linear(Rot=><shift>)|t_linear>.
+
+=cut
+
+sub t_rot {new PDL::Transform::Linear(Rot=>$_[0]);}
+
+
+######################################################################
 
 =head2 t_fits
 
@@ -1379,7 +1453,7 @@ sub PDL::Transform::Linear::stringify {
 
 =for usage
 
-  $f = new PDL::Transform::FITS ($fits)
+  $f = t_fits($fits)
 
 =for ref 
 
@@ -1621,7 +1695,7 @@ in the units of distance in the input plane.
 
 =item r0, c, conformal, Conformal
 
-This is a floating-point value that causes t_radial to generate
+If defined, this floating-point value causes t_radial to generate
 (theta, ln(r/r0)) coordinates out.  Theta is in radians, and the
 radial coordinate varies by 1 for each e-folding of the r0-scaled
 distance from the input origin.  The logarithmic scaling is useful for
@@ -1630,7 +1704,7 @@ shapes of small things preserved in the image.
 
 =item o, origin, Origin
 
-This is the origin of the expansion.
+This is the origin of the expansion.  Pass in a PDL or an array ref.
 
 =back
 
@@ -1646,8 +1720,8 @@ full image width in the horizontal direction, and to stretch 1 radius out
 to a diameter in the vertical direction.
 
   $a = rfits('m51.fits');
-  $ts = t_linear(s => pdl(250/2.0/3.14159, 2)); # Scale to fill orig. image
-  $tu = t_radial(o => pdl(130,130));            # Expand around galactic core
+  $ts = t_linear(s => [250/2.0/3.14159, 2]); # Scale to fill orig. image
+  $tu = t_radial(o => [130,130]);            # Expand around galactic core
   $b = $ts->compose($tu)->unmap($a);            
 
 Examine radial structure in M51 (conformal):
@@ -1658,7 +1732,7 @@ each piece of the image looks "natural" -- only scaled and not stretched.
 
   $a = rfits('m51.fits')
   $ts = t_linear(s=> 250/2.0/3.14159);    # Note scalar (heh) scale.
-  $tu = t_radial(o=>pdl(130,130), r0=>5); # 5 pix. radius -> bottom of image
+  $tu = t_radial(o=> [130,130], r0=>5); # 5 pix. radius -> bottom of image
   $b = $ts->compose($tu)->unmap($a);
 
 
@@ -1680,8 +1754,11 @@ sub PDL::Transform::Radial::new {
   $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
   $me->{params}->{origin} = pdl(0,0) 
     unless defined($me->{params}->{origin});
+  $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+
 
   $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
+  $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
 
   $me->{name} = "radial (direct)";
   
