@@ -1,4 +1,3 @@
-use PDL::NiceSlice;
 =head1 NAME
 
 PDL::IO::Dumper -- data dumping for structs with PDLs
@@ -81,6 +80,8 @@ This package comes with NO WARRANTY.
 
 =cut
 
+use PDL::NiceSlice;
+
 package PDL::IO::Dumper;
 
 BEGIN{
@@ -102,18 +103,17 @@ BEGIN{
 
 ######################################################################
 
-=head2 sdump -- dump a data structure to a string
+=head2 sdump
+
+=for ref
+
+Dump a data structure to a string.
 
 =for usage
 
-Usage: 
-
-  use PDL::IO::Dumper; 
-
+  use PDL::IO::Dumper;
   $s = sdump(<VAR>);
-
   ...
-
   <VAR> = eval $s;
 
 =for description
@@ -153,22 +153,21 @@ sub PDL::IO::Dumper::sdump {
 
 ######################################################################
 
-=head2 fdump -- dump a data structure to a file
+=head2 fdump
+
+=for ref
+
+Dump a data structure to a file
 
 =for usage
 
-Usage: 
-
   use PDL::IO::Dumper;
-
   fdump(<VAR>,$filename);
-
   ...
-
   <VAR> = frestore($filename);
 
 =for description
- 
+
 fdump dumps a single complex data structure to a file.  You restore the
 data structure by eval'ing the perl code put in the file.  A convenience
 routine (frestore) exists to do it for you.
@@ -181,7 +180,7 @@ syntax checking) but it won't do much for you, just build your data
 structure and exit.
 
 =cut
- 
+
 sub PDL::IO::Dumper::fdump { 
   my($struct,$file) = @_;
   if(!open(FDuMPFILE,">$file")) {
@@ -196,18 +195,17 @@ sub PDL::IO::Dumper::fdump {
 
 ######################################################################
 
-=head2 frestore -- restore a dumped file
+=head2 frestore
+
+=for ref
+
+Restore a dumped file
 
 =for usage
 
-Usage:
-
   use PDL::IO::Dumper;
-
   fdump(<VAR>,$filename);
-
   ...
-
   <VAR> = frestore($filename);
 
 =for description
@@ -234,6 +232,8 @@ sub PDL::IO::Dumper::frestore {
 
 =head2 deep_copy
 
+=for ref
+
 Convenience function copies a complete perl data structure by the
 brute force method of "eval sdump".
 
@@ -245,7 +245,11 @@ sub PDL::IO::Dumper::deep_copy {
 
 ######################################################################
 
-=head2 PDL::IO::Dumper::big_PDL -- identify whether a PDL is ``big''
+=head2 PDL::IO::Dumper::big_PDL
+
+=for ref
+
+Identify whether a PDL is ``big'' [Internal routine]
 
 Internal routine takes a PDL and returns a boolean indicating whether
 it's small enough for direct insertion into the dump string.  If 0, 
@@ -276,8 +280,12 @@ sub PDL::IO::Dumper::big_PDL {
 
 ######################################################################
 
-=head2 PDL::IO::Dumper::stringify_PDL -- turn a PDL into a 1-part perl expr
-  
+=head2 PDL::IO::Dumper::stringify_PDL
+
+=for ref
+
+Turn a PDL into a 1-part perl expr [Internal routine]
+
 Internal routine that takes a PDL and returns a perl string that evals to the
 PDL.  It should be used with care because it doesn't dump headers and 
 it doesn't check number of elements.  The point here is that numbers are
@@ -348,7 +356,11 @@ sub PDL::IO::Dumper::stringify_PDL{
 
 ######################################################################
 
-=head2 PDL::IO::Dumper::dump_PDL -- generate 1- or 2-part expr for a PDL
+=head2 PDL::IO::Dumper::dump_PDL
+
+=for ref
+
+Generate 1- or 2-part expr for a PDL [Internal routine]
 
 Internal routine that produces commands defining a PDL.  You supply
 (<PDL>, <name>) and get back two strings: a prepended command string and an
@@ -437,7 +449,11 @@ sub PDL::IO::Dumper::dump_PDL {
   
 ######################################################################
 
-=head2 PDL::IO::Dumper::find_PDLs -- walk a data structure and dump PDLs
+=head2 PDL::IO::Dumper::find_PDLs
+
+=for ref
+
+Walk a data structure and dump PDLs [Internal routine]
 
 Walks the original data structure and generates appropriate exprs
 for each PDL.  The exprs are inserted into the Data::Dumper output
