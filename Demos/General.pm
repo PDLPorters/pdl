@@ -45,7 +45,7 @@ act q|
 act q|
 	# Now, don't think that the number of dimensions is limited
 	# to two:
-	$m = zeroes(3,2,2); # 2x2x2 cube
+	$m = zeroes(3,2,2); # 3x2x2 cube
 	output $m;
 |;
 
