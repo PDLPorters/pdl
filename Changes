@@ -1,4 +1,6 @@
 DJ  21-May-04
+   - added Graphics::Limits, which determines display ranges for
+     multiple concurrent data sets
    - Primitive: fix to which/which_both bad value code to make it work when 
      BADVAL_USENAN = 1
 CED 30-Apr-04
