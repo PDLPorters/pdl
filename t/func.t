@@ -1,34 +1,25 @@
 # -*-perl-*-
 #
+use Test;
 use PDL::LiteF;
 
-my $ctr = 1;
-sub ok {
-    my $result = shift ;
-    print "not " unless $result ;
-    print "ok $ctr\n" ;
-    $ctr++;
-#    print "[ $result ]\n";
+BEGIN {
+    $loaded = 0; $slatec = 0;
+    eval "use PDL::Func;";
+    $loaded = ($@ ? 0 : 1);
+    eval "use PDL::Slatec";
+    $slatec = ($@ ? 0 : 1);
+
+    plan tests => $slatec ? 16 : 5;
 }
 
-$loaded = 0; $slatec = 0;
-eval "use PDL::Func;";
-$loaded = ($@ ? 0 : 1);
-eval "use PDL::Slatec";
-$slatec = ($@ ? 0 : 1);
- 
-my $ntests = 15;
-print "1..$ntests\n";
-
 ##########################################################
-
-use PDL::Func;
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);
 
 my $obj = init PDL::Func ( x => $x, y => $y );
-ok( $obj->scheme() eq "Linear" );
+ok( $obj->scheme() eq "Linear" );  # 1
 
 my $xi = $x - 0.5;
 my $yi = $obj->interpolate( $xi );
@@ -44,22 +35,20 @@ ok( all ($oerr-$err) == 0 );
 
 # check we trap a call to an unavailable method
 eval { $obj->gradient( $xi ); };
-ok( $@ ne "" );
+ok( $@ ne "" ); # 5
 
 ## Test: Hermite
 #
-unless ( $slatec ) {
-    for ($ctr..$ntests) {
-        print "ok $_ # Skipped: PDL::Slatec not available.\n";
-    }
-    exit;                                                                       
-}
+exit unless $slatec;
 
 $x = sequence(float,10);
 $y = $x*$x + 0.5;
-$obj->set( Interpolate => "Hermite", x => $x, y => $y, bc => "simple" );
+#$obj->set( Interpolate => "Hermite", x => $x, y => $y, bc => "simple" );
+$obj->set( Interpolate => "Hermite", x => $x, y => $y );
 
+print "bc for Hermite interpolation: " . $obj->get('bc') . "\n";
 ok( $obj->scheme() eq "Hermite" ); 
+ok( $obj->get('bc') eq "simple" ); 
 ok( $obj->status == 1 );
 
 my $gi;

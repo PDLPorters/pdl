@@ -215,7 +215,7 @@ my %attr =
      },
      Linear  => {},
      Hermite => {
-	 bc  => { settable => 1, gettable => 1, required => 1 },
+	 bc  => { settable => 1, gettable => 1, required => 1, default => "simple" },
 	 g   => { gettable => 1 },
      },
      );
@@ -288,7 +288,7 @@ sub _init_attr {
 	$self->{values}{$attr} = undef;
     }
 
-    # now set up for the particular inerpolation scheme
+    # now set up for the particular interpolation scheme
     $ref = $attr{$interpolate};
     foreach my $attr ( keys %{$ref} ) {
 	# set default values, if not known
@@ -300,11 +300,13 @@ sub _init_attr {
 
 	# change the values to those supplied
 	foreach my $type ( keys %{$ref->{$attr}} ) {
+	    next if $type eq "default";
 	    $self->{attributes}{$attr}{$type} = $ref->{$attr}{$type}
 		if exists $self->{types}{$type};
 	}
-	# set value to undef
-	$self->{values}{$attr} = undef;
+	# set value to default value/undef
+	$self->{values}{$attr} = 
+	    exists $ref->{$attr}{default} ? $ref->{$attr}{default} : undef;
     }
 } # sub: _init_attr()
 

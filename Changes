@@ -1,3 +1,6 @@
+DJB (26/Mar/01)
+    - PDL::Func now sets bc => 'simple' as the default for Hermite
+      interpolation.
 DJB (14/Mar/01)
     - PGPLOT::Window changes: addressed "undefined window size" part
       of bug #406858; added PosReference option + minor bug fix
