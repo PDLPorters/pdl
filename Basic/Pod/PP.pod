@@ -46,7 +46,7 @@ and dataflow (see L<PDL::Dataflow>) which use of PP allows.
 So how do you use PP? Well for the most part you just write ordinary C
 code except for special PP constructs which take the form:
 
-    $something(something else)
+   $something(something else)
 
 or:
 
@@ -251,13 +251,15 @@ can even do dataflow with C<sumit>, C<sumover>, etc
 (don't be dismayed if you don't understand the concept of dataflow
 in PDL very well yet; it is still very much experimental).
 
-
 The 'slice operation' is a different kind of operation: in a slice
 operation, you are not changing any data, you are defining
 correspondences between different elements of two piddles (examples include
 the index manipulation/slicing function definitions in the file F<slices.pd>
 that is part of the PDL distribution; but beware, this is not introductory
 level stuff).
+
+If PDL was compiled with support for bad values (ie C<WITH_BADVAL =E<gt> 1>),
+then additional keys are required for C<pp_def>, as explained below.
 
 If you are just interested in communicating with some external
 library (for example some linear algebra/matrix library), you'll usually
@@ -305,7 +307,7 @@ can do
 
 and have threading work correctly (the result is $c == [7 8 9]).
 
-=head2 The C<Pars> section : the signature of a PP function
+=head2 The Pars section: the signature of a PP function
 
 Seeing the above example code you will most probably ask: what is this
 strange C<$c=null> syntax in the second call to our new C<add> function? If
@@ -559,7 +561,7 @@ in the latest PDL versions you can use it to define threaded functions
 from within perl, i.e. what we call I<perl level threading>. Please check
 L<PDL::Indexing> for details.
 
-=head2 The C<Code> section
+=head2 The Code section
 
 The C<Code> section contains the actual XS code that will be in the
 innermost part of a threadloop (if you don't know what a thread loop is then
@@ -575,8 +577,6 @@ Let's quickly reiterate the C<sumover> example:
 		  loop(n) %{ tmp += a(); %}
 		  $b() = tmp;',
   );
-
-
 
 The C<loop> construct in the C<Code> section also refers to the
 dimension name so you don't need to specify any limits: the loop is
@@ -654,6 +654,160 @@ as new needs arise, new common code can be abstracted back into it. If
 you want to learn more on why you might want to change PDL::PP and how
 to do it check the section on PDL::PP internals.
 
+=head2 Handling bad values
+
+If you do not have bad-value support compiled into PDL you can
+ignore this section and the related keys: C<BadCode>, C<HandleBad>, ...
+(try printing out the value of C<$PDL::Bad::Status> - if it equals 0 
+then move straight on).
+
+There are several keys and macros used when writing code to handle
+bad values. The first one is the C<HandleBad> key:
+
+=over 4
+
+=item HandleBad => 0
+
+This flags a pp-routine as I<NOT> handling bad values. If this routine
+is sent piddles with their C<badflag> set, then a warning message is
+printed to STDOUT and the piddles are processed as if the value used to
+represent bad values is a valid number. The C<badflag> value is
+not propogated to the output piddles.
+
+An example of when this is used is for FFT routines, which generally
+do not have a way of ignoring part of the data.
+
+=item HandleBad => 1
+
+This causes PDL::PP to write extra code that ensures the BadCode
+section is used.
+
+=item HandleBad is not given
+
+If any of the input piddles have their C<badflag> set, then the
+output piddles will have their C<badflag> set, but any supplied
+BadCode is ignored.
+
+=back
+
+To handle bad values, code must be written somewhat differently;
+for instance, 
+
+ $c() = $a() + $b();
+
+becomes something like
+
+ if ( $a() != BADVAL && $b() != BADVAL ) {
+    $c() = $a() + $b();
+ } else {
+    $c() = BADVAL;
+ }
+
+However, we only want the second version if bad values are present in
+the input piddles (and that bad-value support is wanted!) - otherwise 
+we actually want the first part of code. This is where the C<BadCode>
+key comes in; you use it to specify the code to execute if bad values
+may be present, and PP uses both it and the C<Code> section to create
+something like:
+
+ if ( bad_values_are_present ) {
+    fancy_threadloop_stuff {
+       BadCode
+    }
+ } else {
+    fancy_threadloop_stuff {
+       Code
+    }
+ }
+
+This approach means that there is virtually no overhead when 
+bad values are not present (ie the L<badflag|PDL::Bad/badflag> routine
+returns 0).
+
+There are also C<BadBackCode> and C<BadRedoDimsCode>, to go
+with the C<BackCode> and C<RedoDimsCode> options, although they
+have not been used yet.
+
+The BadCode section can use the same macros and looping constructs
+as the Code section. 
+However, it wouldn't be much use without the following additional
+macros:
+
+=over 4
+
+=item $ISBAD(var)
+
+To check whether a piddle's value is bad, use the C<$ISBAD> macro:
+
+ if ( $ISBAD(a()) ) { printf("a() is bad\n"); }
+
+You can also access given elements of a piddle:
+
+ if ( $ISBAD(a(n=>l)) ) { printf("element %d of a() is bad\n", l); }
+
+=item $ISGOOD(var)
+
+This is the opposite of the C<$ISBAD> macro.
+
+=item $SETBAD(var)
+
+For when you want to set an element of a piddle bad.
+
+=item $ISBADVAR(c_var,pdl)
+
+If you have cached the value of a piddle C<$a()> into a c-variable (C<foo> say),
+then to check whether it is bad, use C<$ISBADVAR(foo,a)>.
+
+=item $ISGOODVAR(c_var,pdl)
+
+As above, but this time checking that the cached value
+isn't bad.
+
+=item $SETBADVAR(c_var,pdl)
+
+To copy the bad value for a piddle into a c variable, use
+C<$SETBADVAR(foo,a)>.
+
+=back
+
+I<TODO:> mention C<$PPISBAD()> etc macros.
+
+Using these macros, the above code could be specified as:
+
+ Code => '$c() = $a() + $b();',
+ BadCode => '
+    if ( $ISBAD(a()) || $ISBAD(b()) ) {
+       $SETBAD(c());
+    } else {
+       $c() = $a() + $b();
+    }',
+
+Since this is perl, TMTOWTDI, so you could also write:
+
+ BadCode => '
+    if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
+       $c() = $a() + $b();
+    } else {
+       $SETBAD(c());
+    }',
+
+If you want access to the value of the badflag for a given
+piddle, you can use the C<$PDLSTATExxxx()> macros:
+
+=over 4
+
+=item $PDLSTATEISBAD(pdl)
+
+=item $PDLSTATEISGOOD(pdl)
+
+=item $PDLSTATESETBAD(pdl)
+
+=item $PDLSTATESETGOOD(pdl)
+
+=back
+
+I<TODO:> mention the C<FindBadStatusCode> and
+C<CopyBadStatusCode> options to C<pp_def>.
 
 =head2 Interfacing your own/library functions using PP
 
@@ -714,7 +868,6 @@ level of sophistication!
 Finally note when types are converted automatically one MUST
 use the C<[o]> qualifier for output variables or you hard
 one changes will get optimised away by PP!
-
 
 If you interface a large library you can automate the interfacing even
 further. Perl can help you again(!) in doing this. In many libraries
@@ -982,6 +1135,16 @@ by C<pp_def> are only really useful for what we call I<slice operations>
 One thing that is strongly being planned is variable number
 of arguments, which will be a little tricky.
 
+An incomplete list of the available keys:
+
+=over 4
+
+=item Inplace
+
+Setting this key (e.g. C<Inplace =E<gt> 1>) marks the routine as working inplace.
+
+=back
+
 =head2 Other PDL::PP functions to support concise package definition
 
 So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
@@ -1198,7 +1361,6 @@ subclass.pm" when running the program.
 
 For these cases the pp_core_importList can be used to change what is imported from Core.pm. 
 For example: 
-      
 
   pp_core_importList('()') 
       
@@ -1218,8 +1380,7 @@ would result in
 being generated in the output .pm file. This would result in just 'barf'
 being imported from Core.pm.
 
-
-=head2 Slice operation
+=head1 Slice operation
 
 The slice operation section of this manual is provided using
 dataflow and lazy evaluation: when you need it, ask Tjl to write it.
@@ -1230,7 +1391,7 @@ And anyway, the slice operations require a much more intimate knowledge
 of PDL internals than the data operations. Furthermore, the complexity
 of the issues involved is considerably higher than that in the average
 data operation. If you would like to convince yourself of this fact
-take a look at the C<Basic/Slices/slices.pd> file in the PDL
+take a look at the F<Basic/Slices/slices.pd> file in the PDL
 distribution :-). Nevertheless,
 functions generated using the slice operations are at the heart of the
 index manipulation and dataflow capabilities of PDL.
@@ -1238,7 +1399,7 @@ index manipulation and dataflow capabilities of PDL.
 Also, there are a lot of dirty issues with virtual piddles and
 vaffines which we shall entirely skip here.
 
-=head2 Makefiles for PP files
+=head1 Makefiles for PP files
 
 If you are going to generate a package from your PP file (typical file
 extensions are C<.pd> or C<.pp> for the files containing PP code) it
@@ -1273,14 +1434,13 @@ to stay within some limits so that your package will continue to work
 with later versions of PDL.
 
 If you don't want to use prepackaged arguments,
-here is a generic Makefile.PL that you can adapt for your own
+here is a generic F<Makefile.PL> that you can adapt for your own
 needs:
 
   # Makefile.PL for a package defined by PP code.
 
   use PDL::Core::Dev;            # Pick up development utilities
   use ExtUtils::MakeMaker;
-
 
   WriteMakefile(
    'NAME'  	=> 'PDL::Lib::Mylib',
@@ -1301,6 +1461,7 @@ needs:
   #   arg2: basename of the xs and pm files to be generated
   #   arg3: name of the package that is to be generated
   sub MY::postamble { pdlpp_postamble(["mylib.pd",Mylib,PDL::Lib::Mylib]); }
+
 To make life even easier PDL::Core::Dev defines the function C<pdlpp_stdargs>
 that returns a hash with default values that can be passed (either
 directly or after appropriate modification) to a call to WriteMakefile.
@@ -1322,9 +1483,7 @@ Here, C<$src> is the name of the source file with PP code, C<$pref> the
 prefix for the generated .pm and .xs files and C<$mod> the name of the
 exntension module to generate.
 
-
-
-=head2 INTERNALS
+=head1 INTERNALS
 
 The internals of the current version consist of a large
 table which gives the rules according to which things are translated
@@ -1339,7 +1498,8 @@ your best bet will be to read the source code :-( or ask on the list
 
 =head1 Appendix A: Some keys recognised by PDL::PP
 
-Unless otherwise specified, the arguments are strings.
+Unless otherwise specified, the arguments are strings. Keys marked with
+(bad) are only used if bad-value support is compiled into PDL.
 
 =over 4
 
@@ -1356,6 +1516,18 @@ arguments which are not pdls. Default: nothing.
 the actual code that implements the functionality; several PP macros and
 PP functions are recognised in the string value
 
+=item HandleBad (bad)
+
+If set to 1, the routine is assumed to support bad values and the code in
+the BadCode key is used if bad values are present.
+If set to 0, cause the routine to print a warning if any of the input piddles 
+have their bad flag set.
+
+=item BadCode (bad)
+
+Give the code to be used if bad values may be present in the input piddles.
+Only used if C<HandleBad =E<gt> 1>.
+
 =item GenericTypes
 
 An array reference. The array may contain any subset of the strings
@@ -1363,6 +1535,10 @@ An array reference. The array may contain any subset of the strings
 your operation will accept.
 This is very useful (and important!) when interfacing an external library.
 Default: [qw/B S U L F D/]
+
+=item Inplace
+
+Mark a function as being able to work inplace (use C<Inplace =E<gt> 1>).
 
 =item Doc
 
@@ -1376,13 +1552,22 @@ If the Doc field is omitted PP will generate default documentation
 
 If you really want the function NOT to be documented in any way at this point
 (e.g. for an internal routine, or because youu are doing it elsewhere in the
-code) explictly specify C<Doc=>undef>.
+code) explictly specify C<Doc=E<gt>undef>.
+
+=item BadDoc (bad)
+
+Contains the text returned by the C<badinfo> command (in C<perldl>) or
+the C<-b> switch to the C<pdldoc> shell script. In many cases, you will
+not need to specify this, since the information can be automatically
+created by PDL::PP.
 
 =back
 
 =head1 Appendix B: PP macros and functions
 
 =head2 Macros
+
+Macros labelled by (bad) are only useable in BadXXXX sections.
 
 =over 7
 
@@ -1416,11 +1601,25 @@ a physical pointer access to pdl C<a>; mainly for internal use
 =item $TXXX(Alternative,Alternative)
 
 expansion alternatives according to runtime type of operation,
-where XXX is some string that is matched by /[BSULFD+]/.
+where XXX is some string that is matched by C</[BSULFD+]/>.
 
 =item $PDL(a)
 
 return a pointer to the pdl data structure (pdl *) of piddle C<a>
+
+=item $ISBAD(a()) (bad)
+
+returns true if the value stored in C<a()> equals the bad value
+for this piddle.
+
+=item $ISGOOD(a()) (bad)
+
+returns true if the value stored in C<a()> does not equal the bad value
+for this piddle.
+
+=item $SETBAD(a()) (bad)
+
+Sets C<a()> to equal the bad value for this piddle.
 
 =back
 

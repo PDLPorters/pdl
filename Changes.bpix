@@ -1,5 +1,7 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (08/10/00)
+   - added some text to PDL::PP documentation about writing 'bad' code
 Doug Burke (08/02/00-08/03/00)
    - added more to the demo
    - brought up to date with changes on main branch (see Changes)
