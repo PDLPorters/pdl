@@ -85,7 +85,7 @@ This package comes with NO WARRANTY.
 
 =cut
 
-use PDL::NiceSlice;
+# use PDL::NiceSlice;
 
 package PDL::IO::Dumper;
 
