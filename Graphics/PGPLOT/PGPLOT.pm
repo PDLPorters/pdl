@@ -22,6 +22,7 @@ PDL::Graphics::PGPLOT is an interface to the PGPLOT graphical libraries.
 Current display commands:
 
  imag     -  Display an image (uses pgimag()/pggray() as appropriate)
+ im       -  Shorthand to display an image with aspect ratio of 1
  ctab     -  Load an image colour table
  line     -  Plot vector as connected points
  points   -  Plot vector as points
@@ -335,6 +336,19 @@ Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
 fortunately, zero-offset.
 
+There are several options related to scaling.  By default, the image
+is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
+aspect ratio preservation, and 1:1 pixel mapping are available.  
+(1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
+for, eg, movie display; but it's not recommended for final output as 
+it's not device-independent.)
+There are several options related to scaling.  By default, the image
+is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
+aspect ratio preservation, and 1:1 pixel mapping are available.  
+(1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
+for, eg, movie display; but it's not recommended for final output as 
+it's not device-independent.)
+
 Options recognised:
 
        ITF - the image transfer function applied to the pixel values. It
@@ -344,10 +358,56 @@ Options recognised:
              display stretch
       MAX  - Sets the maximum value for the same
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
-
+      PIX  - Sets the image pixel aspect ratio.  By default, imag
+             stretches the image pixels so that the final image aspect
+             ratio fits the viewport exactly.  Setting PIX=>1 causes
+             the image aspect ratio to be preserved.  (the image is
+             scaled to avoid cropping, unless you specify scaling 
+             manually).  Larger numbers yield "landscape mode" pixels.
+      PITCH -Sets the number of image pixels per screen unit, in the Y
+             direction.  The X direction is determined by PIX, which defaults
+             to 1 if PITCH is specified and PIX is not.  PITCH causes UNIT
+             to default to "inches" so that it's easy to say 100dpi by
+             specifying {PITCH=>100}.  Larger numbers yield higher resolution
+             (hence smaller appearing) images.
+      UNIT - Sets the screen unit used for scaling.  Must be one of the
+             PGPLOT supported units (inch, mm, pixel, normalized).  You
+             can refer to them by name or by number.  Defaults to pixels
+             if not specified.
+   
+      SCALE -Syntactic sugar for the reciprocal of PITCH.  Makes the
+             UNIT default to "pixels" so you can say "{SCALE=>1}"
+             to see your image in device pixels.   Larger SCALEs lead
+             to larger appearing images.
+ 
+   To see an image with maximum size in the current window, but square
+   pixels, say:
+         imag $a,{PIX=>1}
+   To see the same image, scaled 1:1 with device pixels, say:
+         imag $a,{SCALE=>1}
+   To see an image made on a device with 1:2 pixel aspect ratio, with 
+   X pixels the same as original image pixels, say
+         imag $a,{PIX=>0.5,SCALE=>2}
+   To display an image at 100 dpi on any device, say:
+         imag $a,{PITCH=>100}
+   To display an image with 100 micron pixels, say:
+         imag $a,{PITCH=>10,UNIT=>'mm'}
+ 
 The following standard options influence this command:
 
  AXIS, BORDER, JUSTIFY
+
+=head2 im
+
+=for ref
+
+Display an image with correct aspect ratio 
+
+=for usage
+
+ Usage:  im ( $image, [$min, $max, $transform], [$opt] )
+
+Notes: This is syntactic sugar for imag({PIX=>1}).
 
 =head2 ctab
 
@@ -641,7 +701,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag image ctab ctab_info hi2d poly vect CtoF77coords
+	      imag im ctab ctab_info hi2d poly vect CtoF77coords
 );
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
@@ -1296,17 +1356,23 @@ sub points {
 
 # display an image using pgimag()/pggray() as appropriate
 
+sub im {
+  ($in,$opt)=_extract_hash(@_);
+  barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#in>3;
+  $opt->{'PIX'}=1 unless defined $opt{'PIX'};
+  imag (@$in,$opt);
+}
+
 sub imag {
   ($in, $opt)=_extract_hash(@_);
 
-  # There is little use for options here, but I could add support
-  # for a contoured overlay.
 
   barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
   my ($image,$min,$max,$tr) = @$in;
   checkarg($image,2);
   my($nx,$ny) = $image->dims;
 
+  my($pix,$pitch,$unit,$scale);
   my $itf = 0;
 
   # Parse for options input instead of calling convention
@@ -1333,13 +1399,166 @@ sub imag {
   }
   $tr = CtoF77coords($tr);
 
-  initenv(
-    at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
-    at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
-    at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
-    at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-    $opt
-  ) unless $hold;
+  ##############################
+  # Set up coordinate transformation in the output window.
+  
+  if(!$hold) {
+    #########
+    # Parse out scaling options - this is pretty long because
+    # the defaults for each value change based on the others.
+    # (e.g. specifying "SCALE" and no unit gives pixels; but
+    # specifying "PITCH" and no unit gives dpi).
+    #
+    local $_;
+    my ($pix,$pitch,$unit);
+    
+    if($opt->{'SCALE'}) {
+      ($pix,$pitch,$unit)=(1,1.0/$opt->{'SCALE'},3);
+    }
+    if($opt->{'PITCH'}) {
+      ($pix,$pitch,$unit) = (1,$opt->{'PITCH'},1);
+    }
+    if(defined ($_ = $opt->{'UNIT'})) {
+      undef $unit;
+      if(m/^d/ && $_ <= 4) { # Numeric data type spec
+	$unit = $_;
+      } else { 
+	local(@c) = ('n','i','m','p');
+	local($i);
+	for($i=0;defined($c=shift(@c));$i++) {
+	  m/^$c/ || next;
+	  $unit=$i; break;
+	}
+      }
+      barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
+    }
+
+    $pix = $opt->{'PIX'} if(defined $opt->{'PIX'});
+    
+    ##############################
+    ## Do the initial scaling setup.  If $pix is defined, then
+    ## handle the scaling locally, else use initenv.
+    ## [ The PIX, SCALE, and UNIT options could in principle be fed to
+    ## initenv instead of doing it here... ]
+    
+     if(defined $pix) {
+       initdev;
+       my $x0,$x1,$y0,$y1;
+ 
+       if(!defined($pitch)) {
+       ## Set scaling parameters automagically.
+ 
+       pgqvsz(1,$x0,$x1,$y0,$y1);
+       print "x0=$x0, x1=$x1, y0=$y0, y1=$y1n";
+       ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
+                                            $ny / ($y1-$y0)   )));
+       print "defined pitch & unit automagicallyn";
+       }
+       print "unit='$unit', pitch='$pitch'n";
+ 
+       my($col); pgqci($col); pgsci($AXISCOLOUR);
+       pgpage;
+       pgvstd;  ## Change this to use the margins for display!
+ 
+       ## Set the window to the correct number of pixels for the 
+       ## viewport size and the specified $pitch.
+       pgqvsz($unit,$x0,$x1,$y0,$y1); 
+       pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
+ 
+       pgsci($col);
+     } else {
+
+       initenv(
+	       at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
+	       at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
+	       at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
+	       at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
+	       $opt
+	       );
+
+     }
+  }
+  ##############################
+  # Set up coordinate transformation in the output window.
+  
+  if(!$hold) {
+    #########
+    # Parse out scaling options - this is pretty long because
+    # the defaults for each value change based on the others.
+    # (e.g. specifying "SCALE" and no unit gives pixels; but
+    # specifying "PITCH" and no unit gives dpi).
+    #
+    local $_;
+    my ($pix,$pitch,$unit);
+    
+    if($opt->{'SCALE'}) {
+      ($pix,$pitch,$unit)=(1,1.0/$opt->{'SCALE'},3);
+    }
+    if($opt->{'PITCH'}) {
+      ($pix,$pitch,$unit) = (1,$opt->{'PITCH'},1);
+    }
+    if(defined ($_ = $opt->{'UNIT'})) {
+      undef $unit;
+      if(m/^d/ && $_ <= 4) { # Numeric data type spec
+	$unit = $_;
+      } else { 
+	local(@c) = ('n','i','m','p');
+	local($i);
+	for($i=0;defined($c=shift(@c));$i++) {
+	  m/^$c/ || next;
+	  $unit=$i; break;
+	}
+      }
+      barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
+    }
+
+    $pix = $opt->{'PIX'} if(defined $opt->{'PIX'});
+    
+    ##############################
+    ## Do the initial scaling setup.  If $pix is defined, then
+    ## handle the scaling locally, else use initenv.
+    ## [ The PIX, SCALE, and UNIT options could in principle be fed to
+    ## initenv instead of doing it here... ]
+    
+     if(defined $pix) {
+       initdev;
+       my $x0,$x1,$y0,$y1;
+       
+       if(!defined($pitch)) {
+	 ## Set scaling parameters automagically.
+	 
+	 pgqvsz(1,$x0,$x1,$y0,$y1);
+	 print "x0=$x0, x1=$x1, y0=$y0, y1=$y1n";
+	 ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
+				       $ny / ($y1-$y0)   )));
+	 print "imag: defined pitch & unit automagically\n" if($PDL::verbose);
+       }
+       
+       print "imag: unit='$unit', pitch='$pitch'\n" if($PDL::verbose);
+       
+       my($col); pgqci($col); pgsci($AXISCOLOUR);
+       pgpage;
+       pgvstd;  ## Change this to use the margins for display!
+ 
+       ## Set the window to the correct number of pixels for the 
+       ## viewport size and the specified $pitch.
+       pgqvsz($unit,$x0,$x1,$y0,$y1); 
+       pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
+ 
+       pgsci($col);
+     } else {
+
+       initenv(
+	       at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
+	       at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
+	       at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
+	       at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
+	       $opt
+	       );
+
+     }
+  }
+
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
   pgsitf( $itf );
@@ -1360,7 +1579,20 @@ sub imag {
 sub ctab {
   ($in, $opt)=_extract_hash(@_);
 
-  # First indirect arg list through %CTA
+  # No arguments -- print list of tables
+  if(scalar(@$in) == 0) {
+    print "Available 'standard' color tables are:\n",join(",",sort keys %CTAB)
+      ,"\n";
+    return;
+  }
+  # No arguments -- print list of tables
+  if(scalar(@$in) == 0) {
+    print "Available 'standard' color tables are:\n",join(",",sort keys %CTAB)
+      ,"\n";
+    return;
+  }
+
+  # First indirect arg list through %CTAB
   my(@arg) = @$in;
   if ($#arg>=0 && !ref($arg[0])) { # First arg is a name not an object
     # if first arg is undef or empty string, means use last CTAB.
