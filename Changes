@@ -1,5 +1,6 @@
 (!!! = possible source of incompatibilities)
 Tim Jenness
+	- Add test for PDL::IO::NDF
         - Added polynomial fitting routines to PDL::Slatec (polfit, 
 	  pvalue and pcoef)
 John Cerney
