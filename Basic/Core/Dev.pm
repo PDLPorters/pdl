@@ -10,11 +10,6 @@ PDL development and is often used from within Makefile.PL's.
 =head1 SYNOPSIS
 
    use PDL::Core::Dev;
-   if ($^O =~ /win32/i) {
-    warn "Win32 systems not yet supported. Will not build PDL::IO::Browser";
-    write_dummy_make(unsupported('PDL::XXX','win32'));
-    return;
-   }
 
 =head1 FUNCTIONS
 
@@ -482,7 +477,9 @@ sub write_dummy_make {
   require IO::File;
     my ($msg) = @_;
     print STDERR "writing dummy Makefile\n";
-    my $fh = new IO::File "> Makefile" or die "can't open Makefile";
+    my $fh = new IO::File "> Makefile" or die "Can't open dummy Makefile: $!";
+
+if($^O !~ /mswin32/i) {
     print $fh <<"EOT";
 fred:
 	\@echo \"****\"
@@ -500,7 +497,28 @@ realclean ::
 	rm -rf Makefile Makefile.old
 
 EOT
-    close($fh);
+}
+
+else { # It's Win32
+    print $fh <<"EOT";
+fred:
+	\@echo \"****\"
+	\@echo \"$msg\"
+	\@echo \"****\"
+
+all: fred
+
+test: fred
+
+clean ::
+	-ren Makefile Makefile.old <NUL
+
+realclean ::
+	del /F /Q Makefile Makefile.old <NUL
+
+EOT
+}
+   close($fh) or die "Can't close dummy Makefile: $!";
 }
 
 sub getcyglib {
@@ -622,7 +640,8 @@ sub trylink {
 
   print "     Trying $txt...\n     " unless $txt =~ /^\s*$/;
 
-  my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1';
+  my $HIDE = !$hide ? '' : '>/dev/null 2>&1';
+  if($^O =~ /mswin32/i) {$HIDE = '>NUL 2>&1'}
 
   my $tempd;
 
