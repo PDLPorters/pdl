@@ -1604,8 +1604,15 @@ Returns piddle of indices of non-zero values.
  $i = which($mask);
 
 returns a pdl with indices for all those elements that are
-nonzero in the mask. Note that mask really has to be 1-D (use C<clump(-1)>
-if you need to work with ND-images)
+nonzero in the mask. Note that the returned indices will be 1D. If you want
+to index into the original mask or a similar piddle remember to flatten
+it before calling index:
+
+  $data = random 5, 5;
+  $idx = which $data > 0.5; # $idx is now 1D
+  $bigsum = $data->flat->index($idx)->sum;  # flatten before indexing
+
+Compare also L<where|/where> for similar functionality.
 
 If you want to return both the indices of non-zero values and the
 complement, use the function L<which_both|/which_both>.
@@ -1629,7 +1636,8 @@ Returns piddle of indices of non-zero values and their complement
 
  ($i, $c_i) = which_both($mask);
 
-This works just as which, but the complement of C<$i> will be in C<$c_i>.
+This works just as L<which|/which>, but the complement of C<$i> will be in
+C<$c_i>.
 
 =for example
 
@@ -1647,20 +1655,40 @@ EOD
 	  Variables => 'int dm=0;',
 	  Elseclause => "",
 	  Autosize => '$SIZE(m) = sum;',
-	  Doc => $doc_which
+	  Doc => $doc_which,
+	  PMCode=><<'EOD',
+   sub which { my ($this,$out) = @_;
+		$this = $this->flat;
+		$out = $this->nullcreate unless defined $out;
+		PDL::_which_int($this,$out);
+		return $out;
+   }
+   *PDL::which = \&which;
+EOD
 	  },
 	 {Name => 'which_both',
 	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
 	  Variables => 'int dm=0; int dm2=0;',
 	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
 	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
-	  Doc => $doc_which_both
+	  Doc => $doc_which_both,
+	  PMCode=><<'EOD',
+   sub which_both { my ($this,$outi,$outni) = @_;
+		$this = $this->flat;
+		$outi = $this->nullcreate unless defined $outi;	
+		$outni = $this->nullcreate unless defined $outni;
+		PDL::_which_both_int($this,$outi,$outni);
+		return wantarray ? ($outi,$outni) : $outi;
+   }
+   *PDL::which_both = \&which_both;
+EOD
 	  }
 	 )
 {
     pp_def($_->{Name},
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
+	   PMCode => $_->{PMCode},
 	   Code => $_->{Variables} .
                  'loop(n) %{
 			if ($mask()) {

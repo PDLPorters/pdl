@@ -1,3 +1,11 @@
+CS  - fix MANIFEST
+    - fix 'reduce' docs
+    - SFilter improvements
+    - which and which_both now auto-flatten the input piddle
+      to match 'where' behaviour
+    - Core.pm: 'flat' change and added 'nslice'
+    - pdlcore.h : compatibility with C++ compilation
+      **** required renaming 'new' member of struct Core to 'pdlnew' !! **** 
 CS  - Makefile.PL: Filter::Simple, Text::Balanced dependencies
     - bad.pd: fix for win32
     - Lib/Slatec/Makefile.PL: win32 fix

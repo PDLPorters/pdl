@@ -17,7 +17,7 @@ C<maximum>, C<average>, etc).
  $a = sequence 5,5;
  # reduce by adding all
  # elements along 2nd dimension
- $b = $a->reduce(add,1);
+ $b = $a->reduce('add',1);
  @ops = $a->canreduce; # return a list of all allowed operations
 
 =head1 FUNCTIONS
@@ -78,8 +78,9 @@ along the specified dimension
  $a = sequence 5,5;
  # reduce by adding all
  # elements along 2nd dimension
- $b = $a->reduce(add,1);
- $b = $a->reduce(plus,1);
+ $b = $a->reduce('add',1);
+ $b = $a->reduce('plus',1);
+ $b = $a->reduce('+',1);     # three ways to do the same thing
 
 [ As an aside: if you are familiar with threading you will see that
 this is actually the same as
@@ -87,6 +88,19 @@ this is actually the same as
  $b = $a->mv(1,0)->sumover
 
 ]
+
+NOTE: You should quote the name of the operation (1st arg) that
+you want C<reduce> to perform. This is important since some of the
+names are identical to the names of the actual PDL functions
+which might be imported into your namespace. And you definitely
+want a string as argument, not a function invocation! For example,
+this will probably fail:
+
+  $b = $a->reduce(avg,1); # gives an error from invocation of 'avg'
+
+Rather use
+
+  $b = $a->reduce('avg',1);
 
 C<reduce> provides a simple and unified interface to the
 I<projection> functions and makes people coming from other

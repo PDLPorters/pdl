@@ -1211,6 +1211,39 @@ sub PDL::mslice {
                 } @_));
 }
 
+sub _intpar { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
+		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
+		  die "multielement piddle where only one allowed" :
+		    die "non piddle ref '".ref $_[0]."'"
+		      : int $_[0] }
+sub PDL::nslice {
+  my($pdl) = shift;
+  my @args = @_;
+  my $i = 0;
+  for (@args) {
+    if (UNIVERSAL::isa($_,'PDL')) {
+      if ($_->nelem > 1) {
+	PDL::Core::barf 'piddle must be <= 1D' if $_->getndims > 1;
+	# dice this axis
+	$pdl = $pdl->dice_axis($i,$_);
+	# and keep resulting dim fully in slice
+	$_ = 'X'; } 
+      else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+                                    # to a scalar for 'slice'
+    }
+    $i++;
+  }
+  # print STDERR 'processed arglist: ',join(',',@args);
+  my $slstr = join ',',(map {
+    !ref $_ && $_ eq "X" ? ":" :
+      ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+	"("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
+	  _intpar $_
+	} @args);
+  # print STDERR "slicestr: $slstr\n";
+  return $pdl->slice($slstr);
+}
+
 # Utility to determine if argument is blessed object
 
 sub blessed {
@@ -1531,12 +1564,14 @@ flatten a piddle (alias for C<$pdl->clump(-1)>)
 Useful method to make a 1D piddle from an
 arbitrarily sized input piddle. Data flows
 back and forth as usual with slicing routines.
+Falls through if argument already 1D, 0D args are
+promoted to 1D.
 
 =cut
 
 *flat = \&PDL::flat;
-sub PDL::flat {
-  return $_[0]->clump(-1);
+sub PDL::flat { # fall through if < 2D
+  return $_[0]->getndims != 1 ? $_[0]->clump(-1) : $_[0];
 }
 
 =head2 convert

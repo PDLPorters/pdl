@@ -3,5 +3,6 @@ README.head
 SFilter.pm
 MANIFEST
 Makefile.PL
-test.pl
+t/sfilter.t
 local.perldlrc
+example
