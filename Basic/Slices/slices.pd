@@ -391,9 +391,9 @@ sub PDL::indexNDb{
   my($source_size) = pdl($source->dims);
 
   if($source_size->nelem < $index_limits->nelem) {
-    $index_limits->slice("0:".$source_size->nelem-1) .= $source_size;
+    $index_limits->slice("0:".($source_size->nelem-1)) .= $source_size;
   } else {
-    $index_limits .= $source_size->slice("0:".$index_limits->nelem-1);
+    $index_limits .= $source_size->slice("0:".($index_limits->nelem-1));
   }
   
   my($ind);

@@ -1,5 +1,6 @@
 CED (8-Aug-02)
     - Minor fixes to fits_imag, also in PDL::Graphics::PGPLOT::Window
+    - Minor fix to IndexND, in slice.pd
 DJB (8-Aug-02)
     - changed behaviour of TextWidth option in PDL::Graphics::PGPLOT::Window
       It is now only applied if specified (ie doesn't default to 1 and so
