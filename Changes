@@ -1,5 +1,6 @@
 CS  12-16-03
    - t/plplot.t: redirect stderr to get rid of silly messages
+   - update Release_Notes
 CED 12-15-03
    - primitive.pd: change statsover to use population standard deviation for
      rms term -- solves bug #852359
