@@ -1,3 +1,20 @@
+Jarle Brinchmann (07/30/00)
+    - Considerable re-write of PGPLOT. This now uses PDL::Option to 
+      set options. There is also now a OO interface 
+      PDL::Graphics::PGPLOT::Window which PDL::Graphics::PGPLOT now uses.
+   
+    - New functionality includes:
+
+      - Interactive cursors (cursor)
+      - Text on plots       (text)
+      - Legends             (legend)
+      - Multiple plot windows, oone can jump from panel to panel when
+        the window is divided in several.
+      - More control over options - see PDL::Graphics::PGPLOTOptions for
+        details.
+    This is not tested under Windows - and possibly not all functions work
+    as they used to..
+
 (!!! = possible source of incompatibilities)
 Doug Burke (07/27/00)
     - some minor changes to PP.pm & PDLCode.pm (no longer generates
