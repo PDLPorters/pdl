@@ -3,6 +3,8 @@ CS  - fix wcols bug #541847
 	recent debian systems
 	**** possible source of incompatibility ******
     - dumper.t: test only if uuencode/decode present
+    - lmfit example
+    - add diskcache.t to MANIFEST
 CS  - remove remaining call to pdl_family funcs in pdlapi.c
     - apply perldl patch for -M switch (bug #530441)
 CS  - perldl v1.32: changed preprocess interface -> pipeline

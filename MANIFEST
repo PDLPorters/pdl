@@ -157,6 +157,10 @@ Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
+Example/Fit/lmfit_example.pl
+Example/InlinePdlpp/inlpp.pl
+Example/InlinePdlpp/inlpp_link.pl
+Example/InlinePdlpp/inlppminimal.pl
 Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp.pl
@@ -616,6 +620,7 @@ t/complex.t
 t/conv.t
 t/core.t
 t/croak.t
+t/diskcache.t
 t/dumper.t
 t/erf.t
 t/erfi.t
