@@ -1,3 +1,7 @@
+2.3
+John Cerney (11/13/01)
+    - Changes to Release_Notes, PDL.pm, TODO associated
+      with making release 2.3
 CS  - inline fixes
     - dim & ndims aliases for getdim & getndims
     - perldl doc updates

@@ -1,3 +1,16 @@
+Release notes for PDL 2.3 -------------------------------
+ 
+ Summary of Changes
+   - A nicer slicing syntax for PDL added via the new 
+     PDL::NiceSlice module.
+   - Inline::Pdlpp module added, which enables in-line
+     PDL::PP definitions. (i.e. no Makefiles, building
+      hassles for creating PP code)
+   - A Multitude of bug fixes, doc updated, and other
+     changes.
+	
+  See the Changes file for a detailed list of changes.
+  
 Release notes for PDL 2.2.1 -------------------------------
  
  Summary of Changes
