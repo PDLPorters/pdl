@@ -365,8 +365,10 @@ pp_def('norm',
        'double sum=0;
         int flag = 0;
 	loop(n) %{ 
-           sum += $vec()*$vec(); 
-           flag = 1;
+           if ( $ISGOOD(vec()) ) {
+              sum += $vec()*$vec(); 
+              flag = 1;
+           }
         %}
         if ( flag ) {
 	   if (sum > 0) {
