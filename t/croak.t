@@ -41,9 +41,8 @@ $c = $b->slice(":,:,1");
 ok(2,1);  # if we're here we survived
 
 $b = pdl [[1,1,1],[2,2,2]];
-eval {$c = $b->dummy(3,1); $c->make_physical();};
-print "ERROR WAS: '$@'\n";
-ok(3,!!$@);
+eval {$c = $b->dummy(5,1); $c->make_physical();};
+ok(3,!$@);
 
 $::i = 4;
 

@@ -715,10 +715,23 @@ sub PDL::unwind {
 Insert a 'dummy dimension' of given length (defaults to 1)
 
 No relation to the 'Dungeon Dimensions' in Discworld!
+
 Negative positions specify relative to last dimension,
 i.e. C<dummy(-1)> appends one dimension at end,
 C<dummy(-2)> inserts a dummy dimension in front of the
 last dim, etc.
+
+If you specify a dimension position larger than the existing
+dimension list of your PDL, the PDL gets automagically padded with extra
+dummy dimensions so that you get the dim you asked for, in the slot you 
+asked for.  This could cause you trouble if, for example, 
+you ask for $a->dummy(5000,1) because $a will get 5,000 dimensions, 
+each of rank 1. 
+
+Because padding at the beginning of the dimension list moves existing
+dimensions from slot to slot, it's considered unsafe, so automagic
+padding doesn't work for large negative indices -- only for large
+positive indices.
 
 =for usage
 
@@ -733,17 +746,50 @@ last dim, etc.
   [2 2 2]
  ]
 
+ perldl> p sequence(3)->dummy(3,2)
+ [
+  [
+   [0 1 2]
+  ]
+  [
+   [0 1 2]
+  ]
+ ]
+
+ perldl> p sequence(3)->dummy(-3,2)
+ For safety, <pos> < -(dims+1) is not allowed in dummy, allowed min=-2.
+
 =cut
 
 sub PDL::dummy($$;$) {
-   my ($pdl,$dim) = @_;
+   my ($pdl,$dim,$size) = @_;
    $dim = $pdl->getndims+1+$dim if $dim < 0;
-   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
- 	 . $_[0]->getndims)
-     if $dim>$pdl->getndims || $dim < 0;
-         $_[2] = 1 if ($#_ < 2);
-         $pdl->slice((','x$dim)."*$_[2]");
-}
+   $size = 1 unless defined($size);
+
+   barf("For safety, <pos> < -(dims+1) forbidden in dummy.  min="
+	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
+
+   my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
+   $s .= '*,' x ( $dim-$pdl->getndims-1 );
+   $s .= "*$size";
+
+#   print "slice string is '$s'\n";
+   $pdl->slice($s);
+}  
+
+
+## Cheesy, slow way
+#   while ($dim>$pdl->getndims){
+#     print STDERR "."; flush STDERR;
+#     $pdl = $pdl->dummy($pdl->getndims,1);
+#   }
+#
+#   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
+# 	 . $_[0]->getndims)
+#     if $dim>$pdl->getndims || $dim < 0;
+#   
+#   $_[2] = 1 if ($#_ < 2);
+#   $pdl->slice((','x$dim)."*$_[2]");
 
 =head2 clump
 
