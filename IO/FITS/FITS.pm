@@ -856,25 +856,25 @@ return $tbl;
 =head2 wfits()
   
 =for ref
- 
+
 Simple PDL FITS writer
 
-=for 
+=for example
 
   wfits $pdl, 'filename.fits', [$BITPIX];
   $pdl->wfits('foo.fits',-32);
 
 Suffix magic:
-  
+
   # Automatically compress through pipe to gzip
   wfits $pdl, 'filename.fits.gz';
   # Automatically compress through pipe to compress 
   wfits $pdl, 'filename.fits.Z';  
 
 $BITPIX is optional and coerces the output format.
-  
+
 Header handling:
-  
+
 If C<$pdl> has a FITS header attached to it (actually, any hash that
 contains a SIMPLE=>T keyword), then that FITS header is written out to the
 file.  The image dimension tags are adjusted to the actual dataset.
