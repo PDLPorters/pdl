@@ -1,3 +1,9 @@
+CED 21-May-2003
+   - Revamped tranforms demo
+   - Added cartography demo
+   - Fixed justification logic in Graphics::PGPLOT::Window::fits_foo
+   - Fixed a bunch of documentation
+   - Removed debugging prints from Cartography.pm
 CED 20-May-2003
    - "arbitary" -> "arbitrary" in Window.pm
    - Fixed-up Transform demo

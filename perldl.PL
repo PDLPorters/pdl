@@ -364,6 +364,7 @@ my %demos =
      'bad' => 'PDL::Demos::BAD_demo',
      'bad2' => 'PDL::Demos::BAD2_demo',
      'transform' => 'PDL::Demos::Transform_demo',
+     'cartography' => 'PDL::Demos::Cartography_demo'
      );
 
 sub demo {
@@ -371,19 +372,21 @@ sub demo {
     if(/^$/) {
 	print <<EOD;
 Use:
-   demo pdl       # general demo
-   demo 3d        # 3d demo (requires TriD compiled with OpenGL or Mesa)
-                  # as well as an X display properly set up.
-   demo 3d2       # 3d demo, second part. This is very memory-heavy, make
-                  # your window fairly small.
-   demo 3dgal     # the 3D gallery: generate interesting images with
-                  # *very* concise PDL scripts
-   demo Tk3d      # Requires the perl Tk module
-   demo pgplot    # Requires the PGPLOT package
-   demo OOplot    # Requires the PGPLOT package (OO interface to PGPLOT)
-   demo bad       # Requires bad value support
-   demo bad2      # Requires bad value support and PGPLOT
-   demo transform # Requires the PGPLOT package
+   demo pdl         # general demo
+
+   demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
+   demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
+   demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
+   demo Tk3d        # Requires the perl Tk module
+
+   demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
+   demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
+
+   demo transform   # Coordinate transformations (Req.: PGPLOT)
+   demo cartography # Cartographic projections (Req.: PGPLOT)
+
+   demo bad         # Bad-value demo (Req.: bad value support)
+   demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
 EOD
     return;

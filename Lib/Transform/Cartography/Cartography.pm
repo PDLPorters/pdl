@@ -429,17 +429,18 @@ sub earth_image {
   barf("earth_image: $f not found in \@INC.\n")
     unless defined($im);
 
-  $im->sethdr({
-    NAXIS=>3,
-    NAXIS1=>2048, CRPIX1=>1024.5, CRVAL1=>0,
-    NAXIS2=>1024, CRPIX2=>512.5,  CRVAL2=>0,
-    NAXIS3=>3,    CRPIX3=>1,      CRVAL3=>0,
-    CTYPE1=>'Longitude', CUNIT1=>'degrees', CDELT1=>180/1024.0,
-    CTYPE2=>'Latitude',  CUNIT2=>'degrees', CDELT2=>180/1024.0,
-    CTYPE3=>'RGB',       CUNIT3=>'index',  CDELT3=>1.0,
-    COMMENT=>'Plate Caree Projection Image',
-    HISTORY=>'PDL Distribution Image, derived from NASA/MODIS data',
-  });
+  my $h = $im->fhdr;
+
+  $h->{SIMPLE} = 'T';
+  $h->{NAXIS} = 3;
+  $h->{NAXIS1}=2048;	      $h->{CRPIX1}=1024.5;    $h->{CRVAL1}=0;
+  $h->{NAXIS2}=1024;	      $h->{CRPIX2}=512.5;     $h->{CRVAL2}=0;
+  $h->{NAXIS3}=3,             $h->{CRPIX3}=1;         $h->{CRVAL3}=0;
+  $h->{CTYPE1}='Longitude';   $h->{CUNIT1}='degrees'; $h->{CDELT1}=180/1024.0;
+  $h->{CTYPE2}='Latitude';    $h->{CUNIT2}='degrees'; $h->{CDELT2}=180/1024.0;
+  $h->{CTYPE3}='RGB';         $h->{CUNIT3}='index';   $h->{CDELT3}=1.0;
+  $h->{COMMENT}='Plate Caree Projection';
+  $h->{HISTORY}='PDL Distribution Image, derived from NASA/MODIS data',
   
   $im->hdrcpy(1);
   $im;
@@ -1813,7 +1814,6 @@ sub t_gnomonic {
 
 	my $idx = whichND($k > $cl0  | ($k < 0) | (!isfinite($k)));
 	if($idx->nelem) {
-	  print "found ".$idx->nelem."bad points...\n";
 	  $out->((0))->range($idx) .= $o->{bad};
 	  $out->((1))->range($idx) .= $o->{bad};
 	}
@@ -1837,7 +1837,6 @@ sub t_gnomonic {
 	my $idx = whichND($rho==0);
 
 	if($idx->nelem) {
-	  print "index is $idx...\n";
 	  $out->((0))->range($idx) .= 0;
 	  $out->((1))->range($idx) .= 0;
 	}

@@ -5637,7 +5637,12 @@ sub _fits_foo {
 						  YRange=>undef,
 						  XTitle => undef,
 						  YTitle => undef,
-						  Title  => undef
+						  Title  => undef,
+						  CharSize=>undef,
+						  CharThick=>undef,
+						  HardCH=>undef,
+						  HardLW=>undef,
+ 					          TextThick=>undef
 						 });
   }
 
@@ -5661,7 +5666,8 @@ sub _fits_foo {
   my($rangestr) = " ($min to $max $unit) ";
 
   $opt2{Pix}=1.0 
-    if( (!defined($opt2{Pix})) && 
+    if( (!defined($opt2{Justify})) &&
+	(!defined($opt2{Pix})) && 
 	( $hdr->{CUNIT1} ? ($hdr->{CUNIT1} eq $hdr->{CUNIT2}) 
                          : ($hdr->{CTYPE1} eq $hdr->{CTYPE2})
 	  )
