@@ -15,12 +15,13 @@ sub inpath {
   return 0;
 }
 
-$hasuuencode = inpath('uuencode') && inpath('uudecode');
+eval "use Convert::UU;";
+$hasuuencode = !$@ || (inpath('uuencode') && inpath('uudecode'));
 print "1..16\n";
 
 unless ($hasuuencode) {
 	for (1..16) {
-		print "ok $_ # Skipped: uuencode/decode not available\n";
+		print "ok $_ # Skipped: neither uuencode/decode nor Convert:UU is available\n";
 	}
 	exit;
 }
