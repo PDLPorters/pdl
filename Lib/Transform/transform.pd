@@ -3114,11 +3114,10 @@ sub t_spherical {
 	my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
 	$out->((0)) .= atan2($d1, $d0);
-	$out->((1)) .= asin($d2 / $out->((0)));
 	$out->((2)) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+	$out->((1)) .= asin($d2 / $out->((2)));
 
-
-	$out->(1:2) /= $o->{angunit}
+	$out->(0:1) /= $o->{angunit}
 	  if(defined $o->{angunit});
 	
 	$out;

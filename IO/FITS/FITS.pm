@@ -349,7 +349,7 @@ sub PDL::rfits {
      ## Legacy (straight header-to-hash-ref) parsing.  
      ## Deprecated but preserved.
      
-     hdr_legacy: do {
+     hdr_legacy: { do {
        # skip if the first eight characters are ' '
        # - as seen in headers from the DSS at STScI
        next if substr($line,0,8) eq " " x 8;
@@ -369,7 +369,7 @@ sub PDL::rfits {
        }
        last hdr_legacy if ((defined $name) && $name eq "END");
        $nbytes += read(FITS, $line, 80);
-     } while(!eof(FITS));
+     } while(!eof(FITS)); }
 
      # Clean up HISTORY card
      $$foo{"HISTORY"} = \@history if $#history >= 0;
@@ -1629,7 +1629,7 @@ sub _prep_table {
   my $rkey;
   for my $key(@colkeys) {
     my $r = _rows($hash->{$key});
-    ($rows,$rkey) = ($r,$key) unless(defined($rows) || $rows==1);
+    ($rows,$rkey) = ($r,$key) unless(defined($rows) && $rows != 1);
     if($r != $rows && $r != 1) {
       print STDERR "_prep_table_hdr: inconsistent number of rows ($rkey: $rows vs. $key: $r)\n";
       return undef;
