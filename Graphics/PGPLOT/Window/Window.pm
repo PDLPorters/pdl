@@ -1403,6 +1403,31 @@ color table for a particular image.
 
 Return information about the currently loaded color table
 
+=head2 autolog
+
+=for ref
+
+Turn on automatic logarithmic scaling in C<line> and C<points>
+
+=for usage
+
+  Usage:  autolog([0|1]);
+
+Setting the argument to 1 turns on automatic log scaling and setting it to
+zero turns it off again. The function can be used in both the object
+oriented and standard interface. To learn more, see the documentation for
+L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window>.
+
+=for example
+
+   my $win = PDL::Graphics::PGPLOT::Window->new(dev=>'/xserve'); 
+   my $x=sequence(10);
+   my $y=$x*$x+1;
+
+   $win->autolog(1);
+   $win->line($x,$y, {Axis => 'LogY'});
+
+
 =head2 line
 
 =for ref
@@ -2401,6 +2426,7 @@ my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
 
 my $AUTOLOG = 0;
+
 
 sub autolog {
   my $class = shift;
