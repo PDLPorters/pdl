@@ -162,7 +162,11 @@ pp_addhdr <<'EOH';
 #endif
 
 #if __GLIBC__ > 1 && defined __USE_GNU
-# define SINCOS(x,s,c) sincos ((x), &(s), &(c))
+/* needs a proper fix in the next version */
+/* # define SINCOS(x,s,c) sincos ((x), &(s), &(c)) */
+# define SINCOS(x,s,c)                  \
+        (s) = sin (x);                  \
+        (c) = cos (x);
 #else
 # define SINCOS(x,s,c)                  \
         (s) = sin (x);                  \

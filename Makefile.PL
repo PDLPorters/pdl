@@ -9,6 +9,12 @@ BEGIN{
   die "PDL requires Perl v5.004 or later\n" if $@ ne "";
 }
 
+END{
+  eval "use 5.005";
+  warn "\n\n*The next version of PDL will require Perl v5.005 or later!*\n".
+    "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
+}
+
 $seen_pdlconf = 0;
 
 # Scan ARGV for config file argument
