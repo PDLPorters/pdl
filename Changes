@@ -1,3 +1,8 @@
+Doug Hunt
+        - added PDL::Char, a subtype of PDL which allows manipulation
+          of byte type PDLs as N dimensional arrays of fixed length
+          strings
+
 Doug Burke
         - added AXIS option to PDL::Graphics::PGPLOT + doc changes
         - added PDL::LUT module to provide colour tables - useful for

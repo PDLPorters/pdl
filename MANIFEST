@@ -2,6 +2,7 @@ Basic/AutoLoader.pm
 Basic/Core/Basic.pm
 Basic/Core/Core.pm
 Basic/Core/Core.xs
+Basic/Core/Char.pm
 Basic/Core/Dbg.pm
 Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
@@ -479,6 +480,7 @@ t/picnorgb.t
 t/picrgb.pl
 t/picrgb.t
 t/pnm.t
+t/pdlchar.t
 t/poly.t
 t/pptest.t
 t/primitive.t
