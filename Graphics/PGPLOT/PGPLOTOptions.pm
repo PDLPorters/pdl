@@ -174,7 +174,8 @@ sub default_options {
 
   # Now for the synonyms
   my $s = {Color => 'Colour', 'Line-style' => 'LineStyle',
-	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch'};
+	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch',
+	   FillType => 'Fill'};
   #
   # And now for the lookup tables..
   #

@@ -162,6 +162,7 @@ use vars qw (@ISA @EXPORT);
 	      imag imag1 ctab ctab_info hi2d poly vect CtoF77coords
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
+	      tpoints tline
 	    );
 
 *rel = *release;		# Alias
@@ -509,9 +510,17 @@ sub line {
   dev() if !defined($CW);
   $CW->line(@_);
 }
+sub tline {
+  dev() if !defined($CW);
+  $CW->tline(@_);
+}
 sub points {
   dev() if !defined($CW);
   $CW->points(@_);
+}
+sub tpoints {
+  dev() if !defined($CW);
+  $CW->tpoints(@_);
 }
 sub imag {
   dev() if !defined($CW);

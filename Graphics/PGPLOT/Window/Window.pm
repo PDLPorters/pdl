@@ -1165,6 +1165,36 @@ sub _check_move_or_erase {
 }
 
 
+=head2 _thread_options
+
+This function is a cludgy utility function that expands an options hash
+to an array of hashes looping over options. This is mainly of use for
+"threaded" interfaces to standard plotting routines.
+
+=cut
+
+
+sub _thread_options {
+  my ($n, $h) = @_;
+
+  # Loop over each option.
+  my @hashes=(); # One for each option.
+  my @keys = keys %$h;
+  foreach my $k (@keys) {
+    my @vals=();
+    my $v=$h->{$k};
+    $v = [$v] if ref($v) ne 'ARRAY';
+    while ($#vals+1 < $n) {
+      splice(@vals, @vals, 0, @$v);
+    }
+    for (my $i=0; $i<$n; $i++) {
+      $hashes[$i]->{$k}=$vals[$i];
+    }
+  }
+  return \@hashes;
+}
+
+
 #####################################
 # Window related "public" routines. #
 #####################################
@@ -2058,6 +2088,135 @@ EOD
   }
 }
 
+#
+# A "threaded" line - I cannot come up with a more elegant way of doing
+# this without re-coding bits of thread_over but it might very well be
+# that you may :)
+#
+=head2 tline
+
+=for ref
+
+Threaded line plotting
+
+=for usage
+
+ Usage: tline($x, $y, $optionts);
+
+This is a threaded interface to C<line>. This is convenient if you have
+a 2D array and want to plot out every line in one go. The routine will
+apply any options you apply in a "reasonable" way. In the sense that it
+will loop over the options wrapping over if there are less options than
+lines.
+
+Example:
+
+  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
+  $tx=zeroes(100,5)->xlinvals(-5,5);
+  $ty = $tx + $tx->yvals;
+  tline($tx, $ty, $h);
+
+
+=cut
+
+sub tline {
+
+  my $self = shift;
+  my ($in, $opt)=_extract_hash(@_);
+  $opt={} if !defined($opt);
+
+  barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
+  my ($x, $y)=@$in;
+
+
+  if ($#$in==0) {
+    $y = $x; $x = $y->xvals();
+  }
+
+  # This is very very cludgy, but it was the best way I could find..
+  my $o = _thread_options($y->getdim(1), $opt);
+  # We need to keep track of the current status of hold or not since
+  # the tline function automatically enforces a hold to allow for overplots.
+  my $tmp_hold = $self->held();
+  _tline($x, $y, $x->yvals, $self, $o);
+  $self->release unless $tmp_hold;
+
+}
+
+
+PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
+  PDL::over {
+    my ($x, $y, $ind, $self, $opt)=@_;
+    $self->line($x, $y, $opt->[$ind->at(0)]);
+    $self->hold();
+});
+
+
+#
+# A "threaded" point - I cannot come up with a more elegant way of doing
+# this without re-coding bits of thread_over but it might very well be
+# that you may :)
+#
+=head2 tpoints
+
+=for ref
+
+A threaded interface to points
+
+=for usage
+
+ Usage: tpoints($x, $y, $options);
+
+This is a threaded interface to C<points>. This is convenient if you have
+a 2D array and want to plot out every line in one go. The routine will
+apply any options you apply in a "reasonable" way. In the sense that it
+will loop over the options wrapping over if there are less options than
+lines.
+
+Example:
+
+  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
+  $tx=zeroes(100,5)->xlinvals(-5,5);
+  $ty = $tx + $tx->yvals;
+  tpoints($tx, $ty, $h);
+
+
+=cut
+
+sub tpoints {
+
+  my $self = shift;
+  my ($in, $opt)=_extract_hash(@_);
+  $opt={} if !defined($opt);
+
+  barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
+  my ($x, $y)=@$in;
+
+
+  if ($#$in==0) {
+    $y = $x; $x = $y->xvals();
+  }
+
+  # This is very very cludgy, but it was the best way I could find..
+  my $o = _thread_options($y->getdim(1), $opt);
+  # We need to keep track of the current status of hold or not since
+  # the tline function automatically enforces a hold to allow for overplots.
+  my $tmp_hold = $self->held();
+  _tpoints($x, $y, $x->yvals, $self, $o);
+  $self->release unless $tmp_hold;
+
+}
+
+
+PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
+  PDL::over {
+    my ($x, $y, $ind, $self, $opt)=@_;
+    $self->points($x, $y, $opt->[$ind->at(0)]);
+    $self->hold();
+});
+
+
+
 # Plot a line with pgline()
 
 {
@@ -2656,6 +2815,7 @@ The radius of the circle.
 						 YCenter => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $opt = {} if !defined($opt);
     my ($x, $y, $radius)=@$in;
 
     my $o = $circle_options->options($opt);
