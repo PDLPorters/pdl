@@ -254,7 +254,7 @@ sub getfuncs {
 	 #    $rt =~ s/^\s*const\s+//;
 	 if($dontfuncs{$name}) { next }
     
-    if($args =~ /GLvoid\*\s+\*/) { next }
+    if($args =~ /GLvoid\s*\*\s*\*/) { next }
 
 	 push @subnames,$name;
 	 #	print "Gen: $rt $name $args\n";
@@ -618,7 +618,11 @@ package PDL::Graphics::OpenGL::OO;
 use PDL::Options;
 use strict;
 my $debug;
-use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
+#
+# This is a list of all the fields of the opengl object and one could create a 
+# psuedo hash style object but I want to use multiple inheritence with Tk...
+#
+#use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
 
 =head2 new($class,$options)
 
@@ -646,9 +650,11 @@ sub new {
 										  $p->{parent},$p->{mask},
 										  @{$p->{attributes}});
 
-  
-  no strict 'refs';
-  my $self = bless [ \%%{"$class\::FIELDS"}], $class;
+#  psuedo-hash style see note above  
+#  no strict 'refs';
+#  my $self = bless [ \%%{"$class\::FIELDS"}], $class;
+#
+  my $self = bless {},$class;
 
   $self->{Options} = $p;
 
@@ -728,7 +734,7 @@ sub AUTOLOAD {
   my($self,@args) = @_;
   use vars qw($AUTOLOAD);
   my $sub = $AUTOLOAD; 
-
+  return if($sub =~ /DESTROY/);
   $sub =~ s/.*:://;
   $sub = "PDL::Graphics::OpenGL::$sub";
   if(defined $debug){

@@ -13,9 +13,12 @@ if( defined($t) and $t == 0 ) {
   $PDL_CONFIG{OPENGL_LIBS} = guessogllibs($PDL_CONFIG{OPENGL_LIBS});
 
   if(defined $PDL_CONFIG{OPENGL_LIBS}){
-    print "\n    Success using $PDL_CONFIG{OPENGL_LIBS}\n\n";
 	 unshift @subdirs,"TriD";
+    if($PDL_CONFIG{OPENGL_LIBS} =~ /Mesa/){
+		$PDL_CONFIG{OPENGL_DEFINE} .= ' -DGL_GLEXT_LEGACY';
+	 }
 	 $PDL_CONFIG{WITH_3D}=1;
+    print "\n    Success using $PDL_CONFIG{OPENGL_LIBS} $PDL_CONFIG{OPENGL_DEFINE}\n\n";
   }else{
 	 warn "\n     COULD NOT link OpenGL \n".
 		"    Not building OpenGL and TriD options!\n\n";
@@ -52,17 +55,17 @@ sub guessogllibs{
 		  ."\n     trying to guess...\n\n";
 	 }
   }
-  if (trylink 'libGL',
+  if (trylink( 'libGL',
 		'', 'char glBegin(); glBegin();',
-		libs('-lGL'), $mmpre) {
+		libs('-lGL'), $mmpre)) {
 	 $libs = '-lGLU -lGL';
-  } elsif (trylink 'libMesaGL',
+  } elsif (trylink ('libMesaGL',
 			  '', 'char glBegin(); glBegin();',
-			  libs('-lMesaGL'), $mmpre) {
+			  libs('-lMesaGL'), $mmpre)) {
 	 $libs = '-lMesaGLU -lMesaGL';
-  } elsif (trylink 'libMesaGL with pthread',
+  } elsif (trylink ('libMesaGL with pthread',
 			  '', 'char glBegin(); glBegin();',
-			  libs('-lMesaGL -lpthread'), $mmpre) {
+			  libs('-lMesaGL -lpthread'), $mmpre)) {
 	 $libs = '-lMesaGLU -lMesaGL -lpthread';
   }
 
