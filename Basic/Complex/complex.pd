@@ -1,7 +1,6 @@
+$VERSION = 0.6;
 
-$VERSION = 0.5;
-
-# pp_setversion $VERSION; # it currently segfaults on my machine CS
+# pp_setversion $VERSION;
 pp_beginwrap; # required for overload to work
 
 pp_addpm {At => Top}, <<'EOD';
@@ -19,61 +18,130 @@ PDL::Complex - handle complex numbers
 This module features a growing number of functions manipulating complex
 numbers. These are usually represented as a pair C<[ real imag ]> or
 C<[ angle phase ]>. If not explicitly mentioned, the functions can work
-inplace and require rectangular form.
+inplace (not yet implemented!!!) and require rectangular form.
 
-=head1 TIPS, TRICKS & BEWARES
+While there is a procedural interface available (C<$a/$b*$c <=> Cmul
+(Cdiv $a, $b), $c)>), you can also opt to cast your pdl's into the
+C<PDL::Complex> datatype, which works just like your normal piddles, but
+with all the normal perl operators overloaded.
+
+The latter means that C<sin($a) + $b/$c> will be evaluated using the nromal rules of complex numbers, while other
+pdl functions (like C<max>) just treat the piddle as a real-valued piddle with a lowest dimension of size 2, so C<max> will return
+the maximum of all real and imaginary parts, not the "highest" (for some definition) 
+
+=head1 TIPS, TRICKS & CAVEATS
 
 =over 4
 
-=item C<Cadd> and C<Csub> are equivalent to C<+> and C<->.
+=item C<i> is a constant exported by this module, which represents
+C<-1**0.5>, i.e. the imaginary unit. it can be used to quickly and
+conviniently write complex constants like this: C<4+3*i>.
 
-=item C<i> is a constant exported by this module, which represents C<-1**0.5>.
+=item Use C<r2C(real-values)> to convert from real to complex, as in C<$r
+= Cpow $cplx, r2C 2>. The overloaded operators automatically do that for
+you, all the other functions, do not. So C<Croots 1, 5> will return all
+the fifths roots of 1+1*i (due to threading).
 
-=item Use C<r2C(real-values)> to convert from real to complex, as in C<$r = Cpow $cplx, r2C 2>.
+=item use C<cplx(real-valued-piddle)> to cast from normal piddles intot he
+complex datatype. Use C<real(complex-valued-piddle)> to cast back. This
+requires a copy, though.
 
-=item Always think twice before using a perl operator when a complex
-function with the same name exists (i.e. C<*> vs. C<Cmul>, or C<sin>
-vs. C<Csin>).
-
-=item BEWARE: This module has not been extensively tested. Watch out and send me bugreports!
+=item BEWARE: This module has not been extensively tested. Watch out and
+send me bugreports!
 
 =back
 
 =head1 EXAMPLE WALK-THROUGH
 
-The complex constant one is equal to C<pdl(1,0)>:
+The complex constant five is equal to C<pdl(1,0)>:
 
-   perldl> p $x = r2C(1)
+   perldl> p $x = r2C 5
+   [5 0]
 
-   [1 0]
+Now calculate the three roots of of five:
 
-Now calculate the three roots of unity:
+   perldl> p $r = Croots $x, 3 
 
-   perldl> p $r = $x->Croots(3) 
+   [
+    [  1.7099759           0]
+    [-0.85498797   1.4808826]
+    [-0.85498797  -1.4808826]
+   ]
 
 Check that these really are the roots of unity:
 
-   perldl> p $r->Cpow(r2C(3))
+   perldl> p $r ** 3
+
+   [
+    [             5              0]
+    [             5 -3.4450524e-15]
+    [             5 -9.8776239e-15]
+   ]
 
 Duh! Could be better. Now try by multiplying C<$r> three times with itself:
 
-   perldl> p Cmul $r, Cmul $r, $r  
+   perldl> p $r*$r*$r
 
-Well... maybe C<Cpow> isn't as bad as I thought. Now multiply by C<i> and
-negate, which is just a very expensive way of swapping real and imaginary
-parts.
+   [
+    [             5              0]
+    [             5 -2.8052647e-15]
+    [             5 -7.5369398e-15]
+   ]
 
-   perldl> p Cneg Cmul $r, i
+Well... maybe C<Cpow> (which is used by the C<**> operator) isn't as
+bad as I thought. Now multiply by C<i> and negate, which is just a very
+expensive way of swapping real and imaginary parts.
 
-You can split away the real part:
+   perldl> p -($r*i)
 
-   perldl> p Cre $r
+   [
+    [         -0   1.7099759]
+    [  1.4808826 -0.85498797]
+    [ -1.4808826 -0.85498797]
+   ]
+
+Of course, this is not the same as multiplying C<-$r> by C<i>, as in:
+
+   perldl> p -$r*i  
+
+   [
+    [        -0 -1.7099759]
+    [-1.4808826 0.85498797]
+    [ 1.4808826 0.85498797]
+   ]
+
+But you surely know this.
+
+Now plot the magnitude of (part of) the complex sine. First generate the coefficients:
+
+   perldl> $sin = i * zeroes(50)->xlinvals(2,4)
+                    + zeroes(50)->xlinvals(0,7)
+
+However, watch closely: if we had added the real part to the imaginary
+part (i.e. C<vector + i * vector>) then piddle would have tried to use
+normal, elementwise addition, since the first argument is of type PDL,
+but PDL::Complex. So either make sure that the first argument is always
+a complex number or use C<r2C> to force it to be one. Fortunately, pdl
+detects most of these cases via the version mismatch and generates an
+error.
+
+Now plot the imaginary part, the real part and the magnitude of the sine
+into the same diagram:
+
+   perldl> line Cim sin $sin; hold
+   perldl> line Cre sin $sin
+   perldl> line abs sin $sin
+
+Sorry, but I didn't yet try to reproduce the diagram in this
+text. Just run the commands yourself, making sure that you have loaded
+C<PDL::Complex> (and C<PDL::Graphics::PGPLOT>).
+
 
 =cut
 
 EOD
 
-for (qw(Ctan Catan Cre Cim i cplx real re im)) {
+for (qw(Ctan Catan re im i cplx real)) {
    pp_add_exported '', $_;
 }
 
@@ -218,7 +286,7 @@ pp_def 'Cp2r',
           $GENERIC() a = $r(m=>1);
           double s, c;
 
-          SINCOS (m, s, c);
+          SINCOS (a, s, c);
           $p(m=>0) = s * m;
           $p(m=>1) = c * m;
        !
@@ -662,19 +730,17 @@ pp_def 'Croots',
 
 pp_addpm <<'EOD';
 
-=head2 Cre cplx, Cim cplx
+=head2 re cplx, im cplx
 
 Return the real or imaginary part of the complex number(s) given. These
 are indexing operators, so data flow works. NOTE: These two functions do
 _NOT_ work on the complex datatype as you would expect! Best to avoid them
-or cast the result back to "real".
+or cast the result back to "real". NOTE AGAIN: Maybe it works now as expected
 
 =cut
 
-sub Cre($) { $_[0]->slice("(0)") }
-sub Cim($) { $_[0]->slice("(1)") }
-sub re { $_[0]->slice("(0)")->real }
-sub im { $_[0]->slice("(1)")->real }
+sub re($) { bless $_[0]->slice("(0)"), 'PDL' }
+sub im($) { bless $_[0]->slice("(1)"), 'PDL' }
 
 EOD
 
@@ -705,7 +771,7 @@ pp_def 'rCpolynomial',
        !
 ;
 
-pp_add_isa ' PDL';
+pp_add_isa 'PDL';
 
 pp_addpm {At => Bot}, <<'EOD';
 
@@ -746,7 +812,7 @@ sub initialize {
 }
 
 BEGIN { $i = bless pdl 0,1 }
-sub i () { $i };
+sub i () { $i->copy };
 
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
@@ -768,3 +834,4 @@ perl(1), L<PDL>.
 EOD
 
 pp_done;
+
