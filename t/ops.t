@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..38\n";
+print "1..39\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -138,3 +138,5 @@ $data &= 0;
 ok(37, all $data == 0);
 $data |= 1;
 ok(38, all $data == 1);
+
+ok(39, all $data eq $data); # check eq operator
