@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/27/00
+ last update: 08/03/00
 
 --------------------------------------------------------------------------------
 
@@ -41,11 +41,7 @@ bvalflag, which acts as a switch to tell the code whether to handle bad values
 or not. This value is set if any of the input piddles have their PDL_BADVAL 
 flag set (although this code can be replaced by setting FindBadStateCode in 
 pp_def). I tried using the flags field in the trans struct, but it was 
-occasionally getting cleared during calls to PDL->make_trans_mutual(). See the 
-get/set/clear_badval subs in PP.pm, one get_str() sub in PP/PDLCode.pm and
-un-comment the PDL_ITRANS_HAVE_BADFLAG lines in Core/pdl.h.PL (as well as
-comment out the bvalflag line in the trans structure) if you want to 
-investigate further.
+occasionally getting cleared during calls to PDL->make_trans_mutual(). 
 
 The bad values are now stored in a structure within the Core PDL structure
 - PDL.bvals (eg pdlcore.h.PL); see also 'typedef badvals' in pdl.h.PL and the
@@ -67,6 +63,7 @@ PDL_Float   ==   -FLT_MAX
 PDL_Double  ==   -DBL_MAX
 
 Some of the present functionality (and lack of it) can be found in t/bad.t
+or 'demo bad' within perldl.
 
 --------------------------------------------------------------------------------
 
@@ -100,8 +97,12 @@ piddles, or if it's only one input piddle that's important, then look
 at the PP rules NewXSFindBadStatus and NewXSCopyBadStatus and the
 corresponding pp_def options
    FindBadStatusCode and CopyBadStatusCode
-I've only just started to use this functionality - see zcover in primitive.pd
-and isbadover/isgoodover in bad.pd.
+A number of routines use this - eg isXXXover (bad.pd) and zcover
+(primitive.pd). 
+
+If you have a routine that you want to be able to use as inplace, look
+at the routines in bad.pd which use the 'Inplace' option to see how the
+bad flag is propogated to children using the xxxBadStatusCode options.
 
 If the option
    HandleBad => 1

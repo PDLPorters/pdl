@@ -169,7 +169,6 @@ act q|
     $a->inplace->replacebad(3);
     print "b = $b\tbadflag = ", $b->badflag, "\n\n";
 
-    # NOTE: the second $b->badflag should NOT return 1 ...
 |;
 
 comment q|

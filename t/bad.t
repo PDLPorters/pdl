@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 51;
+	plan tests => 54;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -107,13 +107,13 @@ $a->badflag(1);
 ok( PDL::Core::string($a->isbad),  "[0 0 1 1 0 0 1 0 0]" ); # 19
 ok( PDL::Core::string($a->isgood), "[1 1 0 0 1 1 0 1 1]" ); # 20
 
-ok( $a->nbad, 3 );           # 21
-ok( $a->ngood, 6 );          # 22
+ok( $a->nbad, 3 );           # 
+ok( $a->ngood, 6 );          # 
 
 $a = byte( [255,255], [0,255], [0,0] );
 $a->badflag(1);
-ok( PDL::Core::string($a->nbadover),  "[2 1 0]" );  # 23
-ok( PDL::Core::string($a->ngoodover), "[0 1 2]" );  # 24
+ok( PDL::Core::string($a->nbadover),  "[2 1 0]" );  # 
+ok( PDL::Core::string($a->ngoodover), "[0 1 2]" );  # 
 
 # check dataflow (or vaffine or whatever it's called)
 $a = byte( [1,2,byte->badvalue,4,5], [byte->badvalue,0,1,2,byte->badvalue] );
@@ -121,23 +121,23 @@ $a->badflag(1);
 $b = $a->slice(',(1)');
 ok( sum($b), 3 );            # 25
 $b++;
-ok( PDL::Core::string($a), "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n" ); # 26 
+ok( PDL::Core::string($a), "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n" ); # 
 
 $a = byte->badvalue * ones(byte,3,2);
-ok( $a->get_datatype, 0 );                           # 27
+ok( $a->get_datatype, 0 );                           # 
 $a->badflag(1);
-ok( PDL::Core::string( zcover($a) ), "[BAD BAD]" );  # 28
+ok( PDL::Core::string( zcover($a) ), "[BAD BAD]" );  # 
 $a->set(1,1,1); $a->set(2,1,1);
-ok( PDL::Core::string( zcover($a) ), "[BAD 0]" );  # 29
+ok( PDL::Core::string( zcover($a) ), "[BAD 0]" );  # 
 
 $a = byte(1,2,255,4,5);
 ok( $a->median, 4 );  # 30
 $a->badflag(1);
-ok( $a->median, 3 );  # 31
+ok( $a->median, 3 );  # 
 
 $a = random(20);
 $a->badflag(1);
-ok( $a->check_badstatus, 0 );            # 32
+ok( $a->check_badstatus, 0 );            # 
 
 $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 
@@ -146,22 +146,22 @@ $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
-ok( approx( $s[0], 61.9375 ) );       # 33
-ok( approx( $s[1], 26.7312 ) );       # 34
+ok( approx( $s[0], 61.9375 ) );       # 
+ok( approx( $s[1], 26.7312 ) );       # 
 ok( $s[2], 66.5 );                       # 35
-ok( $s[3], 22 );                         # 36
-ok( $s[4], 98 );                         # 37
+ok( $s[3], 22 );                         # 
+ok( $s[4], 98 );                         # 
 
 # how about replacebad
 $a = $b->replacebad(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
-ok( all($a == 0) );                   # 38
+ok( all($a == 0) );                   # 
 
 # and inplace?
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 $b->inplace->replacebad(20);
 $a = $b - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
-ok( all($a == 0) );                   # 39
+ok( all($a == 0) );                   # 
 
 # ditto for copybad
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
@@ -174,7 +174,30 @@ $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 $a->inplace->copybad( $b );
 ok( PDL::Core::string( $a->isbad ), 
-    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #41
+    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #
+
+## setbadif does not want to work inplace...
+$a = sequence(3,3);
+$a->inplace->setbadif( $a % 2 );
+ok( PDL::Core::string( $a->clump(-1) ), 
+    "[0 BAD 2 BAD 4 BAD 6 BAD 8]" );   #
+
+## look at propogation of bad flag using inplace routines...
+$a = sequence( byte, 2, 3 );
+$a = $a->setbadif( $a == 3 );
+$b = $a->slice("(1),:");
+$a->inplace->replacebad(3);
+ok( $b->badflag, 0 );                  # 
+
+$a = sequence( byte, 2, 3 );
+$b = $a->slice("(1),:");
+my $mask = sequence( byte, 2, 3 );
+$mask = $mask->setbadif( ($mask % 3) == 2 );
+print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
+$a->inplace->copybad( $mask );
+print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
+print "$a $b\n";
+ok( $b->badflag, 1 );                  # 
 
 # test some of the qsort functions
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
@@ -182,18 +205,18 @@ $b = $a->setbadif( $a < 20 );
 my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
-    );                                   # 42
+    );                                   # 45
 
 # check comparison/bit operators in ops.pd
 
 $a = pdl( 2, 4, double->badvalue );
 $a->badflag(1);
 $b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
-ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 43
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 
 
 $b = byte(1,2,255,4);
 $b->badflag(1);
-ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 44
+ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 
 
 # quick look at math.pd
 use PDL::Math;
@@ -201,22 +224,22 @@ use PDL::Math;
 $a = pdl(0.5,double->badvalue,0);
 $a->badflag(1);
 $b = bessj0($a);
-ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 45
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 
 
 $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
 $b = bessjn($a,3);  # thread over n()
-ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 46
-ok( abs($b->at(1)-0.010) < 0.001 );      # 47
+ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 
+ok( abs($b->at(1)-0.010) < 0.001 );             # 50
 
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
-ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ) );  # 48
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ) );  # 
 
 # I haven't changed rotate, but it should work anyway
 $a = byte( 0, 1, 255, 4, 5 );
 $a->badflag(1);
-ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 49
+ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 
 
 # check indadd, norm
 
@@ -236,7 +259,7 @@ $b = pdl [1,2],[2,1];
 use PDL::Image2D;
 $c = conv2d($a, $b);
 
-ok( int(at(sum($c-$ans))), 0 ); # 50
+ok( int(at(sum($c-$ans))), 0 ); # 
 
 $a = zeroes(5,5);
 $a->badflag(1);
@@ -246,6 +269,5 @@ $a->set(2,2,$a->badvalue);
 
 $b = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 51
-
+ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 54
 

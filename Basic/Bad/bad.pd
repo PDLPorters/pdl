@@ -85,6 +85,9 @@ PDL::Bad - PDL does process bad values
 PDL has been compiled with WITH_BADVAL set to 1. Therefore,
 you can enter the wonderful world of bad values.
 
+This module is loaded when you do C<use PDL>, 
+C<Use PDL::Lite> or C<PDL::LiteF>.
+
 =head1 SYNOPSIS
 
  use PDL::Bad;
@@ -567,23 +570,14 @@ EOD
 
 # NOTE: the Code section uses SETBAD 
 #
-# if uncomment hdrcode, can do
-#   $a = sequence(3,3)
-#   $b = $a->copy
-#   $b->inplace->setbadif( $a % 2 )
-#
-# but NOT
-#   $b->inplace->setbadif( $b % 2 )
-# which barf's:
-#   PDL: PDL::Bad::setbadif(a,mask,b): Parameter 'mask'
-#   PDL barfed: Mismatched implicit thread dimension 0: should be 3, is 0           
+# something strange is going in with inplace here...
 #
 
 pp_def(
     'setbadif',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
-#    Inplace => [ 'a', 'b' ],
+    Inplace => [ 'a', 'b' ],
     Code =>
     'if ( $mask() ) {
         $SETBAD(b());
@@ -597,7 +591,12 @@ pp_def(
         $b() = $a();
      }',
     CopyBadStatusCode => 
-    '$SETPDLSTATEBAD(b);',  # always make sure the output is 'bad'
+#    '$SETPDLSTATEBAD(b);',  # always make sure the output is "bad"
+# use the following if finally get it working inplace
+    'if ( a == b && $ISPDLSTATEGOOD(a) )
+       propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+    ',
     Doc => 
 '
 =for ref
@@ -612,12 +611,7 @@ copy across the data.
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 1
 
-Currently can not be done inplace - I would like the following
-to work but it barfs, so the code has been removed:
-
- $a->inplace->setbadif( $a % 2 )
- PDL: PDL::Bad::setbadif(a,mask,b): Parameter ' . "'mask'" . '
- PDL barfed: Mismatched implicit thread dimension 0: should be 3, is 0
+This should *NOT* be used inplace (currently rather broken).
 
 ',
        BadDoc =>
@@ -635,16 +629,19 @@ pp_def(
     Inplace => [ 'a', 'b' ],
     Code => '$b() = $a();',
     BadCode => 
-'$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
- threadloop %{
-    if ( $ISBAD(a()) ) {
-       $b() = replace;
-    } else {
-       $b() = $a();
-    }
- %}',
+    '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
+     threadloop %{
+        if ( $ISBAD(a()) ) {
+           $b() = replace;
+        } else {
+           $b() = $a();
+        }
+     %}',
     CopyBadStatusCode => 
-    '$SETPDLSTATEGOOD(b);',  # always make sure the output is 'good'
+    'if ( a == b && $ISPDLSTATEBAD(a) )
+       propogate_badflag( b, 0 );  /* propogate badflag if inplace AND its changed */
+     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
+    ',
     Doc => 
 '
 =for ref
@@ -680,6 +677,13 @@ pp_def(
      } else {
         $b() = $a();
      }',
+    CopyBadStatusCode =>
+    'if ( __privtrans->bvalflag ) {
+        if ( a == b && $ISPDLSTATEGOOD(a) ) {
+           propogate_badflag( b, 1 ); /* have inplace op AND badflag has changed */
+        }
+        $SETPDLSTATEBAD(b);
+     }',
     Doc => 
 '
 =for ref
@@ -694,93 +698,18 @@ Can be done inplace.
  $a = byte( [0,1,3] );
  $mask = byte( [0,0,0] );
  set($mask,1,$mask->badvalue);
- $a->inplace->setbad( $mask );
+ $a->inplace->copybad( $mask );
  p $a;
  [0 BAD 3]
+
+It is equivalent to:
+
+ $c = $a + $mask * 0
 
 ',
     BadDoc =>
 'Handles bad values.',
 
     ); # pp_def: copybad
-
-# have removed badvalue_as_pdl()
-#
-=begin OLDCODE
-
-*badvalue_as_pdl = \&PDL::badvalue_as_pdl;
-
-# text in 'badvalue'
-Also see the L<badvalue_as_pdl|/badvalue_as_pdl> method
-- please heed the warnings in its description!
-
-# within PDL::Type
-    # ugly
-    sub badvalue_as_pdl { 
-	my $self = shift;
-	my $name = "PDL::_badvalue_int" . $self->enum();
-	my $pdl  = PDL->pdl( $self, &{$name}() );
-	$pdl->badflag(1);
-	return $pdl;
-    }
-
-sub PDL::badvalue_as_pdl {
-    no strict 'refs';
-
-    my $self = shift;
-    my $num;
-    my $type;
-    if ( UNIVERSAL::isa($self,"PDL") ) {
-	$num = $self->get_datatype;
-    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
-	$num = $self->enum;
-	$type = $self;
-    } else {
-        # assume it's a number
-        $num = $self;
-    }
-    $type = new PDL::Type($num) unless defined $type;
-
-    my $name = "PDL::_badvalue_int$num";
-    my $pdl = pdl( $type, &{$name}() );
-    $pdl->badflag(1);
-    return $pdl;
-
-} # sub: badvalue_as_pdl()
-
-=head2 badvalue_as_pdl
-
-=for ref
-
-as for L<badvalue|/badvalue>, but returning a 0D piddle
-which has its bad flag set.
-See the example as this DOES NOT WORK.
-
-=for example
-
- #########################################
- #########################################
- ##
- ## WARNING: this is wrong, since 
- ##  ($a < 20) * $a->badvalue_as_pdl is
- ##  bad for ALL elements
- ##  when what I want some way of saying
- ##  badwhere($a < 20)....
- ##
- $a = random(20,30) * 100;
- $a += ($a < 20) * $a->badvalue_as_pdl;
- print $a->badflag, "\n";
- 1
- # now try with badvalue
- $a = random(20,30) * 100;
- $a += ($a < 20) * $a->badvalue;
- print $a->badflag, "\n";
- 0  # since $a->badvalue is just a number
-
-EXPECT THIS FUNCTION TO CHANGE/DISAPPEAR...
-
-=end OLDCODE
-
-=cut
 
 pp_done;
