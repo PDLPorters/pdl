@@ -834,7 +834,10 @@ for my $i(1..$hdr->{TFIELDS}) {
     } # end of scaling section.
 
 
-    $tbl->{$tmpcol->{name}} = $tmpcol->{data}->xchg(0,1);
+    $tbl->{$tmpcol->{name}} = 
+	  ( $tmpcol->{data}->dim(0) == 1 ) 
+	? $tmpcol->{data}->slice("(0)") 
+	: $tmpcol->{data}->xchg(0,1);
     
   } elsif(defined $post) {
     print STDERR "Postfrobnication bug detected in column $i ("

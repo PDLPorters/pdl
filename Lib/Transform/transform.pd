@@ -37,7 +37,7 @@ accepts a PDL whose 0th dimension is coordinate index (all other
 dimensions are threaded over) and transforms the vectors into the new
 coordinate system.  
 
-Transform also includes image resampling, via the L<map|/map> method,
+Transform also includes image resampling, via the L<map|/map> method.
 You define a coordinate transform using a Transform object, then use
 it to remap an image PDL.  The output is a remapped, resampled image.
 
@@ -98,7 +98,7 @@ at first.  Here are some examples of transforms in action:
 
 =item '!'
 
-The bang operator is a unary inversion operator.  It binds exactly as
+The bang is a unary inversion operator.  It binds exactly as
 tightly as the normal bang operator.
 
 =item 'x' 
@@ -1003,9 +1003,8 @@ pp_def('map',
 
 =for usage
 
-  $output = $input->map($transform,[<template>],[<options>]);
-  $output = $transform->map($input,[<template>],[<options>]);
-
+  $b = $a->map($xform,[<template>],[\%opt]); # Distort $a with tranform $xform
+  $b = $a->map(t_identity,[$pdl],[\%opt]); # rescale $a to match $pdl's dims.
 
 =for ref
 
@@ -1037,6 +1036,11 @@ autoscaled: C<map> transforms a few vectors in the forward direction
 to generate a mapping that will put most of the data on the image
 plane, for most transformations.  The calculated mapping gets stuck in the
 output's FITS header.
+
+Autoscaling is especially useful for rescaling images -- if you specify
+the identity transform and allow autoscaling, you duplicate the 
+functionality of L<rescale2d|PDL::Image2D/rescale2d>, but with more 
+options for interpolation.
 
 You can operate in pixel space, and avoid autoscaling of the output,
 by setting the C<nofits> option (see below).
@@ -1168,8 +1172,10 @@ this is only accurate for magnification.
 =item * f, fft
 
 Pixel values are interpolated using the term coefficients of the
-Fourier transform of the original data.  As with linear and cubic
-interpolation, this is only accurate for magnification.
+Fourier transform of the original data.  This prevents aliasing in the
+case where the image is distorted or shrunk, but often yields
+undesired "ringing" for expansion of normal images.  Best suited to
+studying images with repetitive or wavelike features.
 
 =item * h, hanning
 
@@ -1244,13 +1250,12 @@ shrunk wind up brighter; parts that are enlarged end up fainter.
 
 VARIABLE FILTERING:
 
-The 'hanning' and 'gaussian' method of interpolation give
+The 'hanning' and 'gaussian' methods of interpolation give
 photometrically accurate resampling of the input data for arbitrary
 transformations.  At each pixel, the code generates a linear
 approximation to the input transformation, and uses that linearization
 to estimate the "footprint" of the output pixel in the input space.  
 The output value is a weighted average of the appropriate input spaces.  
-
 
 A caveat about these methods is that they assume the transformation is
 continuous.  Transformations that contain discontinuities will give
@@ -1261,13 +1266,6 @@ the average value of everything along the parallel occupied by the
 pixel.  This flaw is inherent in the assumptions that underly creating
 a Jacobian matrix.  Maybe someone will write code to work around it.
 Maybe that someone is you.
-
-
-NOTES:
-
-Jacobian tracking can be a memory hog, especially if the
-transformation includes very large regions outside of the original
-input plane.  Some sort of memory guard needs to be put in place.
 
 =cut
 
@@ -1300,8 +1298,6 @@ sub map {
 
   $tmp = [$in->dims]  unless(defined($tmp));
 
-
-  
   # Generate an appropriate output piddle for values to go in
   my($out);
   my(@odims);
@@ -1520,7 +1516,7 @@ sub map {
   }
 
   ####################
-  # Allocate the utput array
+  # Allocate the output array
   my $o2 = PDL->new_from_specification($in2->type, 
 				    @iddims[1..$#iddims], 
 	 			    $in2->dim(-1)
