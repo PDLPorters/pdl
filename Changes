@@ -1,3 +1,6 @@
+SIS 10-FEB-2005
+   Another change to Basic/Core/Makefile.PL to simplify build procedure
+   on Win32.
 SIS 6-FEB-2005
    Minor changes to Basic/Core/Makefile.PL, Basic/Core/Dev.pm, and the
    top level Makefile.PL to simplify build requirements/procedures
