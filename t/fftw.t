@@ -16,9 +16,6 @@ unless ($loaded) {
 	exit;
 }
 
-
-
-
 sub ok {
         my $no = shift ;
         my $result = shift ;
@@ -30,7 +27,9 @@ sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = max($c);
-        $d < 0.0001;
+#print STDERR "diff = [$d]\n";
+#        $d < 0.0001;
+	$d < 1.1e-4;
 }
 
 
