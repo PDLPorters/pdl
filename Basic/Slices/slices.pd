@@ -501,6 +501,19 @@ pp_def(
 	Doc => <<'EOD',
 =for ref
 
+Engine for L<range|range>
+
+=for example
+
+Same calling convention as L<range|range>, but you must supply all
+parameters.  
+
+=cut
+
+=head2 range
+
+=for ref 
+
 Extract selected chunks from a source piddle, with boundary conditions
 
 =for example
