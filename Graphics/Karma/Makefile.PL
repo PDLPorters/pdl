@@ -86,10 +86,10 @@ my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
 
 %hash = pdlpp_stdargs(@::pack);
 $hash{INC}         .= " -I$karmabase/include $mallocinc";
-$hash{LIBS}[0]     .=' -L'. $karmabase."/lib" .' -lkarma -lkarmagraphics -L/usr/X11R6/lib -lkarmaX11 -lX11 -lXext -lm $malloclib';
+$hash{LIBS}[0]     .=' -L'. $karmabase."/lib" .' -lkarma -lkarmagraphics -L/usr/X11R6/lib -lkarmaX11 -lX11 -lXext -lm ' . $malloclib;
 # change here approriately for other platforms !
 if ($^O =~ 'irix' or $^O eq 'dec_osf') { $rflag = '-rpath ' } else { $rflag = '-R' }
-$hash{dynamic_lib} = { OTHERLDFLAGS => $rflag.'/usr/local/karma/lib'};
+$hash{dynamic_lib} = { OTHERLDFLAGS => $rflag.$karmabase.'/lib'};
 $hash{'dist'}      = { COMPRESS => 'gzip', SUFFIX => 'gz'};
 $hash{'clean'}->{'FILES'} .= ' .tx.defaults';
 WriteMakefile(%hash);

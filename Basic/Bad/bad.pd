@@ -192,7 +192,6 @@ switch on/off/examine bad data flag
     print "Data may contain bad values.\n"; 
   }
   $a->badflag(1);      # set bad data flag
-  $a /= $b;            # b may contain zeroes
   $a->badflag(0);      # unset bad data flag
 
 A return value of 1 does not guarantee the presence of
@@ -220,9 +219,14 @@ a PDL::Type object, or one of C<$PDL_B>, C<$PDL_S>, etc.
    print "The bad data value for ushort is: ", 
       $a->badvalue(), "\n";
 
-TODO: when called via a piddle - eg C<$pdl-E<gt>badvalue(23)> -
-then it should change not only the default bad value for that type, but
-also change the value stored in the piddle as well.
+If a new value is supplied via a piddle (e.g. C<$a-E<gt>badvalue(23)>),
+then the data in the supplied piddle is converted to use the new
+bad value as well.
+
+Currently there is no way of automatically converting the bad
+values of already existing piddles. This could be supported - e.g. 
+by having a per-piddle bad value or by storing a time index in the piddle
+structure - if required.
 
 =for bad
 

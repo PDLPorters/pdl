@@ -243,7 +243,8 @@ ignored. If set, it does not guarantee that bad values are present, just that
 they should be checked for. Thanks to help from Christian, C<badflag()> - which 
 sets/clears this flag (see F<Basic/Bad/bad.pd>) - will update I<ALL> the 
 children/grandchildren/etc of a piddle if its state changes (see 
-C<propogate_badflag> in F<Basic/Bad/bad.pd>). 
+C<badflag> in F<Basic/Bad/bad.pd> and
+C<propogate_badflag> in F<Basic/Core/Core.xs.PL>). 
 It's not clear what to do with parents: I can see the reason for propogating a 
 'set badflag' request to parents, but I think a child should NOT be able to clear 
 the badflag of a parent. 
@@ -563,10 +564,6 @@ C<UseBadifNaN =E<gt> 1> dotted around the place, these need to be
 removed.
 
 See the discussion somewhere above this.
-
-=item *
-
-'bad-ify' the rest of the code...
 
 =item *
 
