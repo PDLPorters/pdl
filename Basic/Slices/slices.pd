@@ -345,7 +345,8 @@ sub PDL::indexND {
   my($mult) = ones($idim0);
   my($i);
   for $i(0..($idim0-2)) {
-    $mult->index($i+1) .= $mult->index($i) * $source_dims[$i];
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $mult->index($i+1)) .= $mult->index($i) * $source_dims[$i];
   }
 
   ########## 
@@ -431,6 +432,7 @@ as the performance hit isn't so bad (though its engine, L<indexND|indexND>,
 probably should be written in C).
 
 =cut
+
 # indexNDb: CED 7-Aug-2002
 
 sub PDL::indexNDb{ 
@@ -440,7 +442,9 @@ sub PDL::indexNDb{
   my($source_size) = pdl($source->dims);
 
   if($source_size->nelem < $index_limits->nelem) {
-    $index_limits->slice("0:".($source_size->nelem-1)) .= $source_size;
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $index_limits->slice("0:".($source_size->nelem-1))) 
+       .= $source_size;
   } else {
     $index_limits .= $source_size->slice("0:".($index_limits->nelem-1));
   }
@@ -475,7 +479,8 @@ sub PDL::indexNDb{
   if($method =~ m/trunc/i) {
     $retval = $retval->copy; 
     my($ind2) = whichND( ($ind != $index)->sumover );
-    $retval->indexND($ind2) .= (defined $bad ? $bad : 0.0);
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $retval->indexND($ind2)) .= (defined $bad ? $bad : 0.0);
   }    
   
   return $retval;

@@ -1,3 +1,5 @@
+CS (25/9/2002)
+    - 2.3.4 release branch merged into trunk
 TJ (13-Sep-02)
     - Basic/Core/Core.xs hdr and gethdr XS functions did not strictly
       adhere to XS syntax. (5.005_03 xsubpp complains loudly)
@@ -31,6 +33,34 @@ CED (26-Aug-02)
     - ->range doesn't spew debugging now (commented out)
 CED (20-Aug-02)
     - slices.pd: added rangeND (first-cut implementation)
+---- 2.3.4 release merged into trunk on 25/9/2002 (see above)
+2.3.4
+JC (23 Sep 02)
+    - Changes to Release_Notes associated
+      with making release 2.3.4
+Frederic Magnard (2002-09-20)
+    - Fix NAXIS in fits writer with Astro::FITS::Header
+TJ (2002-09-20) - wfits should now write SIMPLE as logical with
+      Astro::FITS::Header
+TJ  - wfits now works correctly with Astro::FITS::Header
+TJ  - Paper over weirdness in PDL::GSL build when Slatec is disabled. 
+TJ  - func.t was failing if Slatec was not available. This was because
+      PDL::Func was loaded before PDL::Slatec in t/func.t. Now fixed
+      (and include an additional croak in PDL::Func).
+TJ  - Compatibility fixes for perl 5.005_03
+        + updated ppport.h from perl 5.8.0
+        + lvalue problems with slices.pd and primitive.pd
+        + Graphics/PGPLOT/Window/Window.xs now uses ppport.h
+TJ  - Core.xs.PL used invalid XS for hdr and gethdr
+DJB - Backported "_Inline removal to Makefile.PL & t/inlinepdlpp.t"
+CS  - version to 2.3.4
+CS  - backported a number of patches from the main branch
+      DB 9/11:	Lite.pm typo
+      TJ 9/02:	PDL::IO::Storable now uses PTR2IV
+      		Fix valgrind warning in pdlapi.c
+			(use of uninitialised variable in dump)
+      		Fix memory leak associated with magic
+----- branched off 2.3.4 release at this point
 CED (19-Aug-02)
     - Window.pm spinlock includes special release_and_barf to unlock signals.
 	(the Right Answer is to fix barf() to throw a __DIE__ signal;

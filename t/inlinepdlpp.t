@@ -20,6 +20,9 @@ BEGIN {
 	print "ok 1 # Skipped: Inline not installed\n";
 	exit;
     }
+    require ExtUtils::Command;
+    local @ARGV = '_Inline';
+    &ExtUtils::Command::rm_rf;
 }
 
 sub shape { join ',', $_[0]->dims }
