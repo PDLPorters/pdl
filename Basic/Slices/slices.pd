@@ -683,11 +683,17 @@ switch(ind_pdl->datatype) {
 	for(i=0;i<$COMP(rdim);i++) 
 	  $COMP(sizes[i]) = *((long *)(size_pdl->data));
 
-      else if( size_pdl->nvals == $COMP(rdim) &&size_pdl->ndims == 1) 
+      else if( size_pdl->nvals <= $COMP(rdim) &&size_pdl->ndims == 1) 
 	for(i=0;i<$COMP(rdim);i++)
-	  $COMP(sizes[i]) = ((long *)(size_pdl->data))[i];
-      else 
-	$CROAK("Size must be scalar or match index's 0th dim in range\n");
+	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
+	                    	((long *)(size_pdl->data))[i] :
+		                0
+			    );
+      else {
+	$CROAK("Size must match index's 0th dim in range\n");
+      }
+	
+
     } /* end of nonempty size-piddle code */
   } /* end of defined-size-piddle code */
 

@@ -91,7 +91,7 @@ sub init_converter_table {
   # default flag to be used with any converter unless overridden with FLAGS
   $Dflags = '-quiet';
   %converter = ();
-  for ('TIFF','SGI','RAST','PCX')
+  for ('TIFF','SGI','RAST','PCX','PNG')
     { my $conv = lc; $converter{$_} = {put => "pnmto$conv",
 				       get => "$conv".'topnm'} }
   for (['PNM','NONE','NONE'],
@@ -634,7 +634,9 @@ sub chkext {
 	return 'IFF'  if $ext =~ /^(iff)|(ilbm)$/;
 	return 'PS'   if $ext =~ /^ps/;
 	return 'FITS' if $ext =~ /^f(i?ts|it)$/;
+	return 'PNG'  if $ext =~ /^png$/i;
     }
+
 
     return 'UNKNOWN';
 }
@@ -668,6 +670,8 @@ sub chkform {
     return 'PCX'  if $magic =~ /^\012[\000-\005]/;
     return 'PS'   if $magic =~ /%!\s*PS/;
     return 'FITS' if $magic =~ /^SIMPLE  \=/;
+    return 'PNG'  if $magic =~ /^.PNG\r/;
+
 
     return chkext(getext($file));    # then try extensions
 }

@@ -1,3 +1,10 @@
+CED (30-Jan-2003)
+    - Modified interpND linear method (30% faster!).
+    - Added PNG interpretation to ::IO::Pic.
+    - Cleaned up RGB support in Transform/Cartography; fixed many bugs.
+	in threaded transforming (mv(<n>,-1) is deprecated!)
+    - Added FITS header support to transformations.
+    - Added automagic RGB recognition to ->imag.
 AJ  (29-Jan-2003)
     - Added PDL::GSL::INTERP and PDL::GSL::DIFF and corresponding 
 	tests t/gsl_interp.t and t/gsl_diff.t

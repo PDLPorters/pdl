@@ -1615,8 +1615,6 @@ EOD
 pp_add_exported('','interpND');
 pp_addpm(<<'EOD');
 
-
-
 =head2 interpND 
 
 =for ref 
@@ -1699,56 +1697,47 @@ sub PDL::interpND {
   my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
 
   if($method =~ m/^s(am(p(le)?)?)?/i) {
-    return $source->indexNDb(PDL::Math::floor($index+0.5),$boundary);
+    return $source->range(PDL::Math::floor($index+0.5),0,$boundary);
   }
 
   elsif ($method =~ m/^l(in(ear)?)?/i) {
-    # Generate a table of offsets to look up
-    my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),1<<$index->dim(0)))
-	           / 2 ** (PDL::Basic::xvals($index->dim(0))))
-		     ->xchg(0,1)->sever
-		     )
-                   % 2;
+    ## key: (ith = index thread; cth = cube thread; sth = source thread)
+    my $d = $index->dim(0);
+    my $di = $index->ndims - 1;
 
-    # alpha gets coefficients.  Dims:
-    #   0   - 0 or 1                    (coeff. for below or above)
-    #   1   - index dimension           (0th dim of index) 
-    #   ... - echo of $index extra dims 
-    my($intind) = PDL::Math::floor($index);
+    # Grab a 2-on-a-side n-cube around each desired pixel
+    my $samp = $source->range($index,2,$boundary); # (ith, cth, sth)
 
-    my($alpha) = ( cat(1 - $index + PDL::Math::floor($index),
-		       $index - $intind
-		       )
-		   ->reorder(
-			     $index->ndims,
-			     PDL::Basic::xvals($index->ndims)->list
-			     )->sever
-		   );
+    # Reorder to put the cube dimensions in front and convert to a list
+    $samp = $samp->reorder( $di .. $di+$d-1,
+			    0 .. $di-1,
+			    $di+$d .. $samp->ndims-1) # (cth, ith, sth)
+                  ->clump($d); # (clst, ith, sth)
 
-    my($i);
-    my(@id) = $index->dims;
-    my(@sd) = $source->dims;
-    $out = zeroes(@id[1..$#id],@sd[$id[0]..$#sd]);
+    # Enumerate the corners of an n-cube and convert to a list
+    # (the 'x' is the normal perl repeat operator)
+    my $crnr = PDL::Basic::ndcoords( (2) x $index->dim(0) ) # (index,cth)
+             ->mv(0,-1)->clump($index->dim(0))->mv(-1,0); # (index, clst)
 
-    for ($i=0;$i<$offsets->dim(0);$i++){
-
-      my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),
-				 PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
-				    ))->sever->prodover ;
-      
-      if( ($coeff==0)->and ) {
-	print "interpND: Skip case $i of ".$offsets->dim(0)."\n" 
-	  if($PDL::debug);
-	next;
-      }
-      $out += $coeff * $source->indexNDb($intind + $offsets->slice("($i)")
-					 , $boundary);
+    # a & b are the weighting coefficients.
+    my($a,$b);
+    {
+      my $bb = PDL::Math::floor($index);
+      $a = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
+      $b = ($bb + 1 - $index) -> dummy(1,$crnr->dim(1)); # index, clst, ith
     }
-    
-    return $out;
 
+    # Use 1/0 corners to select which multiplier happens, multiply
+    # 'em all together to get sample weights, and sum to get the answer.
+    my $out =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
+		 -> prodover                          #clst, ith
+		 );
+
+    $out = ($out * $samp)->sumover; # ith, sth
+
+    return $out;
   }  else {
-    barf("interp_nd: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
+    barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
   }
 }
 

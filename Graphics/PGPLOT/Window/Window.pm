@@ -5227,8 +5227,15 @@ sub arrow {
 
 sub imag {
   my $me = shift;
+  my $im = shift;
   my @a = @_;
-  _imag($me,\&pgimag,2,@a);
+
+  if(UNIVERSAL::isa($im,'PDL') && ($im->ndims == 3) && ($im->dim(2)==3)) {
+    rgbi($me,$im,@a);
+    return;
+  }
+
+  _imag($me,\&pgimag,2,$im,@a);
 }
 
 
@@ -5343,7 +5350,11 @@ sub _fits_foo {
   my($rangestr) = " ($min to $max $unit) ";
 
   $opt2{pix}=1.0 
-    if( (!defined($opt2{Pix})) && ($hdr->{CTYPE1} eq $hdr->{CTYPE2}));
+    if( (!defined($opt2{Pix})) && 
+	( $hdr->{CUNIT1} ? ($hdr->{CUNIT1} eq $hdr->{CUNIT2}) 
+                         : ($hdr->{CTYPE1} eq $hdr->{CTYPE2})
+	  )
+	);
 
   my($o2) = \%opt2;
 
@@ -5353,8 +5364,17 @@ sub _fits_foo {
 
   eval $cmdstr;
 
-  $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
-		    $opt->{YTitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
+  my $mkaxis = sub {
+    my ($typ,$unit) = @_;
+    our @templates = ("(arbitary units)","%u","%t","%t (%u)");
+    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+    $s =~ s/\%u/$unit/;
+    $s =~ s/\%t/$typ/;
+    $s;
+  };
+
+  $pane->label_axes($opt->{XTitle} || &$mkaxis($hdr->{CTYPE1},$hdr->{CUNIT1}),
+		    $opt->{YTitle} || &$mkaxis($hdr->{CTYPE2},$hdr->{CUNIT2}),
 		    $opt->{Title}, $opt
 		    );
 

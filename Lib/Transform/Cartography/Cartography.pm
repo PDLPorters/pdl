@@ -411,7 +411,7 @@ sub earth_image {
   my($nd) = shift;
   my $f;
   my $dir = "PDL/Transform/Cartography/earth_";
-  $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
+  $f = ($nd =~ m/^n/i) ? "${dir}night.png" : "${dir}day.png";
   
   local $_;
   my $im;
@@ -424,11 +424,11 @@ sub earth_image {
 
   $im->sethdr({
     NAXIS=>3,
-    NAXIS1=>4096, CRPIX1=>2048.5, CRVAL1=>0,
-    NAXIS2=>2048, CRPIX2=>1024.5, CRVAL2=>0,
+    NAXIS1=>2048, CRPIX1=>1024.5, CRVAL1=>0,
+    NAXIS2=>1024, CRPIX2=>512.5,  CRVAL2=>0,
     NAXIS3=>3,    CRPIX3=>1,      CRVAL3=>0,
-    CTYPE1=>'Longitude', CUNIT1=>'degree', CDELT1=>90/1024.0,
-    CTYPE2=>'Latitude',  CUNIT2=>'degree', CDELT2=>90/1024.0,
+    CTYPE1=>'Longitude', CUNIT1=>'degree', CDELT1=>180/1024.0,
+    CTYPE2=>'Latitude',  CUNIT2=>'degree', CDELT2=>180/1024.0,
     CTYPE3=>'RGB',       CUNIT3=>'index',  CDELT3=>1.0,
     COMMENT=>'Plate Caree Projection Image',
     HISTORY=>'PDL Distribution Image, derived from NASA/MODIS data',
@@ -604,6 +604,8 @@ sub new {
     $me->{params}->{conv} = my $conv = _uconv($unit);
     $me->{params}->{u} = $unit;
 
+    $me->{itype} = ['latitude','longitude'];
+    $me->{iunit} = [$me->{params}->{u},$me->{params}->{u}];
 
     $me->{params}->{o} = $or * $conv;
     $me->{params}->{roll} = $roll * $conv;
@@ -625,16 +627,20 @@ sub new {
 # finishing off the transformations that accept the origin and roll 
 # options.
 sub PDL::Transform::Cartography::_finish {
-    my($me) = shift;
-    ( ( ($me->{params}->{o}->(0) != 0) || 
-	($me->{params}->{o}->(1) != 0) ||
-	($me->{params}->{roll} != 0) 
-	)
-      ?
-      t_compose($me,t_rot_sphere($me->{options}))
-      :
-      $me
-     );
+  my($me) = shift;
+  if( ($me->{params}->{o}->(0) != 0) || 
+      ($me->{params}->{o}->(1) != 0) ||
+      ($me->{params}->{roll} != 0) 
+      ) {
+      my $out = t_compose($me,t_rot_sphere($me->{options}));
+      $out->{itype} = $me->{itype};
+      $out->{iunit} = $me->{iunit};
+      $out->{otype} = $me->{otype};
+      $out->{ounit} = $me->{ounit};
+
+      return $out;
+    } 
+  return $me;
 }
 
 
@@ -693,6 +699,9 @@ coordinates are in units of "body radii".
 sub t_unit_sphere {
   my($me) = _new(@_,'Unit Sphere Projection'); 
   $me->{odim} = 3;
+
+  $me->{params}->{otype} = ['X','Y','Z'];
+  $me->{params}->{ounit} = ['body radii','body radii','body radii'];
 
   $me->{params}->{r} = pdl(_opt($me->{options},
 				['r','radius','Radius'],
@@ -808,12 +817,19 @@ sub _rotmat {
 sub t_rot_sphere {
     my($me) = _new(@_,'Spherical rotation');
 
+
     my($th,$ph) = $me->{params}->{o}->list;
     my($r) = $me->{params}->{roll}->at(0);
 
     my($rotmat) = _rotmat($th,$ph,$r);
 
-    return t_wrap( t_linear(m=>$rotmat, d=>3), t_unit_sphere());
+    my $out =  t_wrap( t_linear(m=>$rotmat, d=>3), t_unit_sphere());
+    $out->{itype} = $me->{itype};
+    $out->{iunit} = $me->{iunit};
+    $out->{otype} = ['rotated longitude','rotated latitude'];
+    $out->{ounit} = $me->{iunit};
+
+    $out;
 }
 
 
@@ -867,6 +883,9 @@ coordinates.
 
 sub t_orthographic {
     my($me) = _new(@_,'Orthographic Projection');
+    
+    $me->{otype} = ['projected X','projected Y'];
+    $me->{ounit} = ['body radii','body radii'];
 
     my $m= _opt($me->{options},
 		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
@@ -986,6 +1005,9 @@ sub t_caree {
     my($me) = _new(@_,'Plate Caree Projection');
     my $p = $me->{params};
 
+    $me->{otype} = ['projected longitude','latitude'];
+    $me->{ounit} = ['proj. body radii','body radii'];
+
     $p->{stretch} = cos($p->{std});
 
     $me->{func} = sub {
@@ -1045,6 +1067,14 @@ sub t_sin_lat {
     $me->{params}->{std} = pdl(_opt($me->{options},
 				['s','std','standard','Standard'],
 				0))->at(0) * $me->{params}->{conv};
+
+    if($me->{params}->{std} == 0) {
+      $me->{otype} = ['longitude','sin latitude'];
+      $me->{ounit} = ['radians',' ']; # nonzero but blank!
+    } else {
+      $me->{otype} = ['proj. longitude','proj. sin latitude'];
+      $me->{ounit} = ['radians',' '];
+    }
 
     $me->{params}->{stretch} = sqrt(cos($me->{params}->{std}));
 
@@ -1141,6 +1171,14 @@ sub t_mercator {
     $p->{std} = pdl(_opt($me->{options},
 			 ['s','std','standard','Standard'],
 			 0))->at(0) * $p->{conv};
+
+    if($p->{std} == 0) {
+      $me->{otype} = ['longitude','tan latitude'];
+      $me->{ounit} = ['radians',' '];
+    } else {
+      $me->{otype} = ['proj. longitude','proj. tan latitude'];
+      $me->{ounit} = ['radians',' '];
+    }
 
     $p->{stretch} = cos($p->{std});
 
@@ -1268,6 +1306,9 @@ sub t_conic {
 
     $p->{G} = cos($p->{std}->((0)))/$p->{n} + $p->{std}->((0));
 
+    $me->{otype} = ['Conic X','Conic Y'];
+    $me->{ounit} = ['Proj. radians','Proj. radians'];
+
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
@@ -1380,6 +1421,9 @@ sub t_albers  {
     $p->{C} = (cos($p->{std}->((1)))*cos($p->{std}->((1))) + 
 		     2 * $p->{n} * sin($p->{std}->((1))) );
     $p->{rho0} = sqrt($p->{C}) / $p->{n}; 
+
+    $me->{otype} = ['Conic X','Conic Y'];
+    $me->{ounit} = ['Proj. radians','Proj. radians'];
 
     $me->{func} = sub {
 	my($d,$o) = @_;
@@ -1505,6 +1549,9 @@ sub t_lambert {
 
     $p->{rho0} = $p->{F};
 
+    $me->{otype} = ['Conic X','Conic Y'];
+    $me->{ounit} = ['Proj. radians','Proj. radians'];
+
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
@@ -1589,6 +1636,9 @@ sub t_stereographic {
 			      ['c','clip','Clip'],
 			      120) * $me->{params}->{conv};
 
+    $me->{otype} = ['Stereo X','Stereo Y'];
+    $me->{ounit} = ['Proj. body radii','Proj. radians'];
+
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
@@ -1670,6 +1720,9 @@ sub t_gnomonic {
 			      75) * $me->{params}->{conv});
 
     $me->{params}->{c} .= $me->{params}->{c}->clip(undef,(90-1e-6)*$me->{params}->{conv});
+
+    $me->{otype} = ['Tangent-plane X','Tangent-plane Y'];
+    $me->{ounit} = ['Proj. radians','Proj. radians'];
 
     $me->{func} = sub {
 	my($d,$o) = @_;
@@ -1769,6 +1822,9 @@ sub t_az_eqd {
 				['c','clip','Clip'],
 				180) * $me->{params}->{conv});
 
+  $me->{otype} = ['X distance','Y distance'];
+  $me->{ounit} = ['radians','radians'];
+
   $me->{func} = sub {
     my($d,$o) = @_;
     my($out) = $d->is_inplace ? $d : $d->copy;
@@ -1853,6 +1909,9 @@ sub t_az_eqa {
   $me->{params}->{c} = pdl(_opt($me->{options},
 				['c','clip','Clip'],
 				180) * $me->{params}->{conv});
+
+  $me->{otype} = ['Azimuthal X','Azimuthal Y'];
+  $me->{ounit} = ['Proj. radians','Proj. radians'];
 
   $me->{func} = sub {
     my($d,$o) = @_;
@@ -1953,6 +2012,9 @@ sub t_vertical {
     my $m= _opt($me->{options},
 		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
 		1);
+
+    $me->{otype} = ['Perspective X','Perspective Y'];
+    $me->{ounit} = ['Body radii','Body radii'];
 
     if($m=~m/^b/i) {
 	$p->{m} = 0;
@@ -2256,7 +2318,7 @@ sub t_perspective {
     
     $p->{iu} = _opt($me->{options},
 		   ['i','iu','image_unit','Image_Unit'],
-		   'deg');
+		   'degrees');
     
     $p->{tconv} = _uconv($p->{iu});
 
@@ -2328,6 +2390,9 @@ sub t_perspective {
     $p->{post} = t_compose( t_gnomonic(u=>'radian',c=>$PI/2*0.999),
 			    t_scale(1.0/$p->{mag}/$p->{tconv},d=>2)
 			    );
+
+    $me->{otype} = ['Perspective X','Perspective Y'];
+    $me->{ounit} = [$p->{iu},$p->{io}];
 
     # func just does the hemispheric selection; all else is done externally.
     $me->{func} = sub {
