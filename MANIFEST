@@ -663,6 +663,7 @@ t/primitive2.t
 t/pthread.t
 t/reduce.t
 t/refs.t
+t/requiredmods.t
 t/scope.t
 t/slatec.t
 t/slice.t

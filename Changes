@@ -1,3 +1,5 @@
+CS 170503
+   - Makefile.PL cleanup + restrict tests when vital modules missing
 CS 140503
    - further Makefile.PL fiddling
 CED 12-05-2003
