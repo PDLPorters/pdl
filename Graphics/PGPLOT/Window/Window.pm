@@ -1539,7 +1539,7 @@ $WindowOptions->warnonmissing(0);
 
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
-
+my $PREVIOUS_ENV = undef;
 
 sub new {
 
@@ -2551,9 +2551,20 @@ sub initenv{
   #  pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
   pgsci($col);
   pgsch($chsz);
-  $self->{_env_options} = [$xmin, $xmax, $ymin, $ymax, $o];
+  $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
+
 #  $self->{_env_set}[$self->{CurrentPanel}]=1;
   1;
+}
+
+# This is a tidy little routine to set the env options and update the global
+# variable.
+sub _set_env_options {
+  my $self=shift;
+  my @opt=@_;
+
+  $self->{_env_options} = [@opt];
+  $PREVIOUS_ENV = [@opt];
 }
 
 sub redraw_axes {
@@ -2654,10 +2665,24 @@ sub env {
   }
 
   barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
-    if ($#_==-1 && !defined($self->{_env_options})) || 
+    if ($#_==-1 && !defined($self->{_env_options}) && !defined($PREVIOUS_ENV)) || 
       ($#_>=0 && $#_<=2) || $#_>6;
   my(@args);
-  @args = $#_==-1 ? @{$self->{_env_options}} : @_;     # No args - use previous
+
+  # Set the args. The logic here was extended 13/8 by JB to use the
+  # previous setting of the plot env variables regardless of device
+  # if the current device does not have a setting for env etc.
+  if ($#_ == -1) {
+    if (defined(@{$self->{_env_options}})) {
+      @args = @{$self->{_env_options}};
+    } elsif (defined($PREVIOUS_ENV)) {
+      @args = @{$PREVIOUS_ENV};
+    } else {
+      @args = ();
+    }
+  } else {
+    @args = @_;
+  }
   $self->initenv( @args );
   $self->hold();
   1;
@@ -3609,9 +3634,9 @@ sub arrow {
 	pgqvsz($unit,$x0,$x1,$y0,$y1);
 	pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
 
-	$self->{_env_options} = [0, ($x1-$x0)*$pitch/$pix, 0, 
+	$self->_set_env_options(0, ($x1-$x0)*$pitch/$pix, 0, 
 				 ($y1-$y0)*$pitch, 
-				 $self->{Options}->options($opt)];
+				 $self->{Options}->options($opt));
 #	$self->{_env_set}[$self->{CurrentPanel}]=1;
 	pgsci($col);
       } else {
