@@ -1,3 +1,8 @@
+SIS 23-FEB-2005
+   Another small tweak to Basic/Core/Makefie.PL to improve the hack that
+   enables PDL to be built using dmake (Win32).
+   Amend Basic/Core/pdlcore.c.PL to cater for "finite" with Microsoft
+   compilers. This correction pointed out by Vanuxem Gregory - thanks Greg.
 SIS 14-FEB-2005
    Minor alteration Basic/Core/Makefile.PL to address a MakeMaker bug.
    (Users now don't need to edit MM_Win32.pm.) Minor alterations regarding
