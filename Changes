@@ -1,3 +1,7 @@
+CED 22-May-2003
+   - Better fallbacks for RGB images if PGPLOT-RGB support isn't installed
+         (Window.pm)
+   - pgplot.t test cleans up its own window.
 CED 21-May-2003
    - Revamped tranforms demo
    - Added cartography demo
