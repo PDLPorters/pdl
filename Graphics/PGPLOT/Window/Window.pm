@@ -53,7 +53,8 @@ The list of currently availably methods:
 
 Device manipulation commands:
 
- new          -  Construct a new output device (synonym "pgwin" is exported)
+ new          -  Construct a new output device 
+ pgwin        -  Exported hook to new()
  close        -  Close a PGPLOT output device.
  focus        -  Set focus to the given device. This should normally be
                  done behind the scenes.
@@ -370,6 +371,8 @@ handy when you write a large program package and you do not want to import
 routines nilly-willy in which case an OO approach with method calls is a
 lot cleaner.
 
+The pgwin exported constructor, arguably, breaks this philosophy; hopefully 
+it will ``wither away'' when other compatible modules are available.
 
 =back
 
@@ -549,6 +552,22 @@ where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 =head2 Window control functions.
 
 =for ref Internal
+
+=head2 pgwin
+
+=for ref
+
+Exported constructor for PGPLOT object/device/plot window.
+
+=for usage
+
+ Usage: pgwin($opt);
+ Usage: pgwin($option->$value,...);
+
+Parameters are passed on to new() and can either be specified by hash
+reference or as a list.
+
+See the documentation fo PDL::Graphics::PGPLOT::Window::new for details.
 
 =head2 new
 
