@@ -2,6 +2,8 @@ CED 12-16-03
    - ufunc.pd: average() returns 0 when given an integer empty piddle
 	and nan when given a floating-point empty piddle (unless badvals
 	are compiled, in which case you get BAD back).
+   - Fixed broken vector coastline (when did that happen?)
+   - Minor documentation fix to NDF.pm.PL
 CS  12-16-03
    - t/plplot.t: redirect stderr to get rid of silly messages
    - update Release_Notes
