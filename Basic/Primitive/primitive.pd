@@ -398,14 +398,6 @@ is the natural (and correct) choice for binned data, of course.
 
 # Internal utility sorting routine for median/qsort routines.
 
-# QUS: 
-#  how to re-write these to handle bad values?
-#  probably easiest to have a bad-value aware version
-#  as well as the original one.
-#  (one quick way would be to create a new copy of the
-#  piddle with all the bad values removed - however, that's
-#  rather wasteful of memory).
-#
 for (keys %PDL::Types::typehash) {
    $ctype = $PDL::Types::typehash{$_}{ctype};
    $ppsym = $PDL::Types::typehash{$_}{ppsym};
@@ -469,30 +461,66 @@ for (keys %PDL::Types::typehash) {
    ");
 }
 
-pp_def('medover',
-       HandleBad => 0,  # this is more a flag to get someone to update this
-        Pars => 'a(n); [o]b(); [t]tmp(n);',
-	Doc => projectdocs('median','medover',''),
-        Code => '
-           int nn, nn1, nn2;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
+# when copying the data over to the temporary array,
+# ignore the bad values and then only send the number
+# of good elements to the sort routines
+#
+
+my $generic_qsort = '
            $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
              pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+';
 
+my $copy_to_temp_good = '
+           int nn, nn1;
+	   loop(n) %{ $tmp() = $a(); %}
+           nn = $COMP(__n_size)-1; ' .
+       $generic_qsort;
+
+my $copy_to_temp_bad = '
+        register int nn = 0;
+	loop(n) %{ 
+           if ( $ISGOOD($a()) ) { $tmp(n=>nn) = $a(); nn++; }
+        %}
+        if ( nn == 0 ) {
+           $SETBAD($b());
+        } else {
+';
+
+my $find_median_average = '
            nn1 = nn/2; nn2 = nn1+1;
            if (nn%2==0) {
 	      $b() = $tmp(n => nn1);
            }
            else {
 	      $b() = 0.5*( $tmp(n => nn1) + $tmp(n => nn2)  );
-           }
-');
+           }';
 
-pp_def('oddmedover',
-       HandleBad => 0,  # this is more a flag to get someone to update this
-        Pars => 'a(n); [o]b(); [t]tmp(n);',
-	Doc => projectdocs('oddmedian','oddmedover','
+my $find_median_lower = '
+        nn1 = nn/2;
+	$b() = $tmp(n => nn1);';
+
+pp_def(
+       'medover',
+       HandleBad => 1,
+       Pars => 'a(n); [o]b(); [t]tmp(n);',
+       Doc => projectdocs('median','medover',''),
+       Code => 
+       "int nn2;\n" . $copy_to_temp_good . $find_median_average,
+       BadCode =>
+       $copy_to_temp_bad . 
+       '   int nn1, nn2;
+           nn -= 1; ' .
+       $generic_qsort .
+       $find_median_average . '}',
+
+); # pp_def: medover
+
+pp_def(
+       'oddmedover',
+       HandleBad => 1,
+       Pars => 'a(n); [o]b(); [t]tmp(n);',
+       Doc => projectdocs('oddmedian','oddmedover','
 
 The median is sometimes not a good choice as if the array has
 an even number of elements it lies half-way between the two
@@ -501,16 +529,15 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
-        Code => '
-           int nn, nn1;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+       Code => 
+       $copy_to_temp_good . $find_median_lower,
+       BadCode =>
+       $copy_to_temp_bad . 
+       '   int nn1;
+           nn -= 1; '.
+       $find_median_lower . '}',
 
-           nn1 = nn/2;
-	   $b() = $tmp(n => nn1);
-');
+); # pp_def: oddmedover
 
 
 # Generate small ops functions to do entire array

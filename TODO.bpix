@@ -13,6 +13,10 @@ Problems:
    solaris (perl 5.6.0, cc).
    Does it mean I've screwed up the internals somewhere?
 
+.) improve the documentation support (such as get it working properly).
+   The logic needs tweaking for the automatic document creation,
+   and the output needs beautifying.
+
 Suggestions/To do:
 ================
 
@@ -51,12 +55,6 @@ Suggestions/To do:
 .) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).
-
-.) it would be nice to have the online documentation system be able
-   to produce information on whether a given routine processes
-   bad values (HandleBad => 1), explicitly doesn't (HandleBad => 0),
-   or hasn't been converted yet so just passes on the bad value flag
-   to output piddles (no HandleBad option)
 
 .) divide in ops.pd should trap '/ 0' cases as well. also special cases 
    for sqrt(), log ... 

@@ -1,5 +1,12 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (07/12/00)
+   - first attempt at including information on bad-value support into the
+     documentation. '=for bad' has been introduced, with a 'badinfo' command
+     in perldl/-b flag in pdldoc. For pp_def functions you can supply 
+     information using the 'BadDoc' option or let it generate some simple
+     text itself. Comments please. Note, it doesn't work properly!
+   - converted median code in primitive.pd. 
 Doug Burke (07/11/00)
    - fixed test 7. Added a quick overview section to README.bpix. 
    - added $PPISBAD, $PPISGOOD, and $PPSETBAD macros - see IMPLEMENTATION.bpix

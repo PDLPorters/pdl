@@ -19,7 +19,19 @@ $file =~ s/\.pl$//
 unlink $file if -f $file;
 my $fh = new IO::File "> $file" or die "Can't create $file: $!";
 
-print "Extracting $file (with variable substitutions)\n";
+# check for bad value support
+use File::Spec;
+require "perldl.conf";
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;                                   
+
+my $usage_info;
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+    $usage_info = "[-a] [-b] [-h] [-s] [-u] <string>";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+    $usage_info = "[-a] [-h] [-s] [-u] <string>";
+}                                                                               
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
@@ -41,18 +53,33 @@ use PDL::Doc::Perldl;
 use File::Basename;
 
 use vars qw( $VERSION );
-$VERSION = '0.1';
+$VERSION = '0.2';
 
-my %options = ( a => \&apropos, h => \&help, s => \&sig, u => \&usage );
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
+my %options = 
+    ( a => \&apropos, b => \&badinfo, h => \&help, s => \&sig, 
+      u => \&usage );
 
 my $name = basename( $0 );
 my $usage = <<"EOH";
-Usage: $name [-a] [-h] [-s] [-u] <string>
+!NO!SUBS!
+
+    print $fh "Usage: \$name $usage_info\n";
+
+print $fh <<'!NO!SUBS!';
 
 This program provides command-line access to the PDL documentation.
 If no flag is specified, -h is assumed.
 
   -a (apropos) searches the documentation for the string
+!NO!SUBS!
+
+print $fh "  -b (badinfo) does the function support bad values?\n" 
+    if $bvalflag;
+    
+print $fh <<'!NO!SUBS!';
   -h (help)    prints the help for the function/module/document
   -s (sig)     prints the signature of the function
   -u (usage)   gives usage information on the function
@@ -106,6 +133,16 @@ This is the default option.
 
 Regex search PDL documentation database.
 
+!NO!SUBS!
+
+print $fh <<'!NO!SUBS!' if $bvalflag;
+=item B<-b> badinfo
+
+Information on the support for bad values provided by the function.
+
+!NO!SUBS!
+
+print $fh <<'!NO!SUBS!';
 =item B<-s> sig
 
 prints signature of PDL function.
@@ -118,7 +155,7 @@ Prints usage information for a PDL function.
 
 =head1 VERSION
 
-This is pdldoc v0.1.
+This is pdldoc v0.2.
 
 =head1 AUTHOR
 

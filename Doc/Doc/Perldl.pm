@@ -24,7 +24,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw( apropos usage help sig );
+@EXPORT = qw( apropos usage help sig badinfo );
 
 use PDL::Doc;
 use IO::File;
@@ -32,6 +32,9 @@ use Pod::Text;
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = new PDL::Doc (FindStdFile());
+
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
 # pod commands are stripped from the ref string before printing.
 # How we do this depends on the version of Pod::Text installed.
@@ -358,6 +361,12 @@ The following four commands support online help in the perldl shell:
   ??		  -- alias for 'apropos'
   usage           -- print usage information for a given PDL function
   sig             -- print signature of PDL function
+EOH
+
+print "  badinfo         -- information on the support for bad values\n"
+   if $bvalflag;
+
+print <<'EOH';
 
   Quick start:
 
@@ -369,5 +378,44 @@ The following four commands support online help in the perldl shell:
 EOH
   }
 }
+
+=head2 badinfo
+
+=for ref
+
+provides information on the bad-value support of a function
+
+And has a horrible name.
+
+=for usage
+
+ badinfo 'func'
+
+=cut
+
+sub badinfo {
+    my $func = shift;
+    die "Usage: badinfo \$funcname\n" unless defined $func;
+
+    die "PDL has not been compiled with support for bad values.\n" .
+	"Recompile with WITH_BADVAL set to 1 in config file!.\n"
+	    unless $bvalflag;
+
+    die "no online doc database" unless defined $PDL::onlinedoc;
+
+    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    if ( @match ) {
+	my ($name,$hash) = @{$match[0]};
+	my $info = $hash->{Bad};
+
+	if ( defined $info ) {
+	    print "$info\n";
+	} else {
+	    print "\n  No information on bad-value support found for $func\n";
+	}
+    } else {
+	print "\n  no match\n";
+    }
+} # sub: badinfo()
 
 1; # OK

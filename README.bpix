@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/09/00
+ last update: 07/12/00
 
 --------------------------------------------------------------------------------
 
@@ -44,6 +44,11 @@ However, in most cases, the bad value support has a negligible affect on speed,
 so you should set WITH_CONFIG to 1! One exception is if you are low on memory,
 since the amount of code produced is larger (I haven't checked to see by how
 much, so it may actually not be a significant amount).
+
+To find out if a routine supports bad values, use the 'badinfo' command in
+perldl or the '-b' option to pdlsoc. This facility is currently a 'proof of
+concept' (or, more realistically, a quick hack) so expect it to be rough 
+around the edges.
 
 Each piddle contains a flag - accessible via $pdl->badvalue - to say whether
 there's bad data present: 

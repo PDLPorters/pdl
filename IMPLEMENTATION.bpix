@@ -3,11 +3,18 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/11/00
+ last update: 07/12/00
 
 --------------------------------------------------------------------------------
 
 See README.bpix for a brief overview.
+
+Sections:
+  Implementation details
+  How do I change some pp_code to handle bad values?
+  Why not use NaN (IEEE) when present?
+  What about documentation?
+  Other notes
 
 --------------------------------------------------------------------------------
 
@@ -59,6 +66,8 @@ PDL_Float   ==   -FLT_MAX
 PDL_Double  ==   -DBL_MAX
 
 Some of the present functionality (and lack of it) can be found in t/bad.t
+
+--------------------------------------------------------------------------------
 
 How do I change some pp_code to handle bad values?
 ==================================================
@@ -141,6 +150,8 @@ created by PP do. (ie I haven't changed them)
 There's (to my mind at least!) issues about how to handle comparison
 operators - see TODO.bpix and the comments near zcover() in primitive.pd.
 
+--------------------------------------------------------------------------------
+
 Why not use NaN (IEEE) when present?
 ====================================
 
@@ -157,6 +168,27 @@ would still be used. Perhaps it would be necessary to provide NaNCode/...
 options in case falling back to Code is not sufficient in certain cases.
 
 I'd love someone to try this.
+
+--------------------------------------------------------------------------------
+
+What about documentation?
+=========================
+
+One of the strengths of PDL is it's on-line documentation. The aim is to use
+this system to provide informtion on how/if a routine supports bad values:
+in many cases pp_def() contains all the information anyway, so the 
+function-writer doesn't need to do anything at all! For the cases when this is
+not sufficient, there's the 'BadDoc' option to pp_def(). For code written at
+the perl level - ie in a .pm file - use the '=for bad' pod directive.
+
+This information will be available via man/pod2man/html documenation. It's also
+accessible from the perldl shell - using the 'badinfo' command - and the pdldoc
+shell command - using the '-b' option.
+
+This support is at a very early stage (ie not much thought has gone into it):
+comments are welcome; improvements to the code preferred ;)
+
+--------------------------------------------------------------------------------
 
 Other notes
 ===========

@@ -326,7 +326,33 @@ $PDL::PP::deftbl =
  	sub {$_[0]?'$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;':"/* No flow: $_[0] */"}],
 
 # no docs by default
- [[Doc],        [],     sub {"\n=for ref\n\ninfo not available\n"}],
+    [[Doc],        [],     sub {"\n=for ref\n\ninfo not available\n"}],
+    
+# try and automate the docs 
+# could be really clever and include the sig to see about
+# input/output params, for instance
+#
+    [[BadDoc],   [BadFlag,Name,_CopyBadStatusCode], 
+          sub { return undef unless $bvalflag;  
+		my ( $bf, $name, $code ) = @_;
+		my $str;
+		if ( ! defined($bf) ) {
+		    $str = "$name does not process bad values.\n";
+		} elsif ( $bf ) {
+		    $str = "$name does handle bad values.\n";
+		} else {
+		    $str = "$name ignores the bad-value flag of the input piddles.\n";
+		}
+		if ( ! defined($code) ) {
+		    $str .= "It will set the bad-value flag of all output piddles if " .
+			"the flag is set for any of the input piddles.\n";
+		} elsif (  $code eq '' ) {
+		    $str .= "The output piddles will NOT have their bad-value flag set.\n";
+		} else {
+		    $str .= "The state of the bad-value flag of the output piddles is unknown.\n";
+		}
+	    }],
+ 
 # no p2child by default
  [ [HASP2Child],   [P2Child],   sub {return $_[0] != 0}],
  [ [HASP2Child],   [],     sub {0}],
@@ -430,9 +456,8 @@ $PDL::PP::deftbl =
 
  [[HaveThreading],	[],	sub {1}],
 
-# the docs - should include HandleBad to flag bad-value aware (and non-aware)
-# functions
- [[PdlDoc],             [Name,_Pars,OtherPars,Doc],  "GenDocs"],
+# the docs
+ [[PdlDoc],             [Name,_Pars,OtherPars,Doc,_BadDoc],  "GenDocs"],
 
 # Parameters in the 'a(x,y); [o]b(y)' format, with
 # fixed nos of real, unthreaded-over dims.
@@ -763,11 +788,15 @@ $PDL::PP::deftbl =
 use strict;
 
 sub GenDocs {
-  my ($name,$pars,$otherpars,$doc) = @_;
+  my ($name,$pars,$otherpars,$doc,$baddoc) = @_;
 
   # Allow explcit non-doc using Doc=>undef
 
   return '' if $doc eq '' && (!defined $doc) && $doc==undef;
+  return '' if $doc =~ /^\s*internal\s*$/i;
+
+  # remove any 'bad' documentation if we're not compiling support
+  $baddoc = undef unless $bvalflag;
 
   # If the doc string is one line let's have to for the
   # reference card information as well
@@ -775,7 +804,6 @@ sub GenDocs {
                 #  'implicit split to @_ is deprecated' messages
   $doc = "=for ref\n\n".$doc if( scalar(@splitRes = split("\n", $doc)) <= 1);
 
-  return '' if $doc =~ /^\s*internal\s*$/i;
   $::DOCUMENTED++;
   $pars = "P(); C()" unless $pars;
   $pars =~ s/^\s*(.+[^;])[;\s]*$/$1/;
@@ -783,6 +811,10 @@ sub GenDocs {
   my $sig = "$pars".( $otherpars ? "; $otherpars" : "");
 
   $doc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m; # Strip extra =cut's
+  if ( defined $baddoc ) {
+      $baddoc =~ s/\n(=cut\s*\n)+(\s*\n)*$/\n/m;
+      $baddoc = "=for bad\n\n$baddoc";
+  }
 
   return << "EOD";
 
@@ -793,6 +825,8 @@ sub GenDocs {
   Signature: ($sig)
 
 $doc
+
+$baddoc
 
 =cut
 
