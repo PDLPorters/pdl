@@ -1,3 +1,11 @@
+CS  - make sure perldl works with NiceSlice
+    - add nslice to lvalue funcs
+    - new 'sclr' method
+    - enhanced clump interface
+    - pdlapi: backport pdl_get vaffine
+    - experimental 'autosever' for PDL::NiceSlice
+    - quieter 'mkhtmldocs'
+    - fix OpenGL docs screwing up online help
 DJB (05/Aug/01)
     - applied wfits patch from Diab Jerius 
       ([ #443431 ] wfits outputs illegal FITS keywords)

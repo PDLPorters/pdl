@@ -395,8 +395,10 @@ pp_def(
 
 # Affine! Make sure vaffine chaining understands to stop in the right
 # place.
+# the perl wrapper clump is now defined in Core.pm
+# this is just the low level interface
 pp_def(
-	'clump',
+	'_clump_int',
 	P2Child => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
@@ -429,27 +431,7 @@ pp_def(
 		 $SETDIMS();
 		 $SETDELTATHREADIDS(1-nrem);
 		 ',
-	Doc => <<'EOD',
-
-=for ref
-
-"clumps" the first C<n> dimensions into one large dimension
-
-If, for example, C<$a> has dimensions C<(5,3,4)> then after
-
-=for example
-
- $b = $a->clump(2);   # Clump 2 first dimensions
-
-the variable C<$b> will have dimensions C<(15,4)>
-and the element C<$b-E<gt>at(7,3)> refers to the element 
-C<$a-E<gt>at(1,2,3)>.
-
-Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
-is provided as an alias for this functionality.
-
-=cut
-EOD
+	Doc => 'internal',
 );
 }
 

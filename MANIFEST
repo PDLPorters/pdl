@@ -604,6 +604,7 @@ t/callext.t
 t/clump.t
 t/complex.t
 t/conv.t
+t/core.t
 t/croak.t
 t/erf.t
 t/erfi.t

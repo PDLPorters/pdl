@@ -71,14 +71,14 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
    long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat
+   dummy mslice approx flat sclr
    );
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
     long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
-    diagonal dummy mslice approx flat
+    diagonal dummy mslice approx flat sclr
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
@@ -114,7 +114,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *null	      = \&PDL::null;	  *set  	= \&PDL::set;
 *byte	      = \&PDL::byte;	  *at		= \&PDL::at;
 *short        = \&PDL::short;	  *flows	= \&PDL::flows;
-*ushort       = \&PDL::ushort;	
+*ushort       = \&PDL::ushort;	  *sclr         = \&PDL::sclr;
 *long	      = \&PDL::long;	
 *float        = \&PDL::float;	  
 *double       = \&PDL::double;	  *thread_define = \&PDL::thread_define;
@@ -726,6 +726,64 @@ sub PDL::dummy($$;$) {
      if $dim>$pdl->getndims || $dim < 0;
          $_[2] = 1 if ($#_ < 2);
          $pdl->slice((','x$dim)."*$_[2]");
+}
+
+=head2 clump
+
+=for ref
+
+"clumps" several dimensions into one large dimension
+
+If called with one argument C<$n> clumps the first C<$n>
+dimensions into one. For example, if C<$a> has dimensions
+C<(5,3,4)> then after
+
+=for example
+
+ $b = $a->clump(2);   # Clump 2 first dimensions
+
+the variable C<$b> will have dimensions C<(15,4)>
+and the element C<$b-E<gt>at(7,3)> refers to the element
+C<$a-E<gt>at(1,2,3)>.
+
+Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
+is provided as a convenient alias.
+
+If C<clump> is called with an index list with more than one element
+it is treated as a list of dimensions that should be clumped together
+into one. The resulting
+clumped dim is placed at the position of the lowest index in the list.
+This convention ensures that C<clump> does the expected thing in
+the usual cases. The following example demonstrates typical usage:
+
+  $a = sequence 2,3,3,3,5; # 5D piddle
+  $c = $a->clump(1..3);    # clump all the dims 1 to 3 into one
+  print $c->info;          # resulting 3D piddle has clumped dim at pos 1
+ PDL: Double D [2,27,5]
+
+=cut
+
+sub PDL::clump {
+  my $ndims = $_[0]->getndims;
+  if ($#_ < 2) {
+    barf "Error in clump: Too many dimensions $_[1] to clump from $ndims"
+      if $_[1] > $ndims;
+    return &PDL::_clump_int(@_);
+  } else {
+    my ($this,@dims) = @_;
+    my $targd = $ndims-1;
+    my @dimmark = (0..$ndims-1);
+    barf "too many dimensions" if @dims > $ndims;
+    for my $dim (@dims) {
+      barf "dimension index $dim larger than greatest dimension"
+	if $dim > $ndims-1 ;
+      $targd = $dim if $targd > $dim;
+      barf "duplicate dimension $dim" if $dimmark[$dim]++ > $dim;
+    }
+    my $clumped = $this->thread(@dims)->unthread(0)->clump(scalar @dims);
+    $clumped = $clumped->mv(0,$targd) if $targd > 0;
+    return $clumped;
+  }
 }
 
 =head2 thread_define
@@ -1927,6 +1985,68 @@ sub PDL::at {     # Return value at ($x,$y,$z...)
     barf 'Usage: at($pdl, $x, $y, ...)' if $#_<0;
     my $self = shift;
     at_c ($self, [@_]);
+}
+
+=head2 sclr
+
+=for ref
+
+return a single value from a piddle as a scalar
+
+=for example
+
+  $val = $a(10)->sclr;
+  $val = sclr inner($a,$b);
+
+The C<sclr> method is useful to turn a piddle into a normal Perl
+scalar. Its main advantage over using C<at> for this purpose is the fact
+that you do not need to worry if the piddle is 0D, 1D or higher dimensional.
+Using C<at> you have to supply the correct number of zeroes, e.g.
+
+  $a = sequence(10);
+  $b = $a->slice('4');
+  print $b->sclr; # no problem
+  print $b->at(); # error: needs at least one zero
+
+C<sclr> is generally used when a Perl scalar is required instead
+of a one-element piddle. If the input is a multielement piddle
+the first value is returned as a Perl scalar. You can optionally
+switch on checks to ensure that the input piddle has only one element:
+
+  PDL->sclr({Check => 'warn'}); # carp if called with multi-el pdls
+  PDL->sclr({Check => 'barf'}); # croak if called with multi-el pdls
+
+are the commands to switch on warnings or raise an error if
+a multielement piddle is passed as input. Note that these options
+can only be set when C<sclr> is called as a class method (see
+example above). Use
+
+  PDL->sclr({Check=>0});
+
+to switch these checks off again (default setting);
+When called as a class method the resulting check mode is returned
+(0: no ckecking, 1: warn, 2: barf).
+
+=cut
+
+my $chkmode = 0; # default mode no checks
+use Carp;
+use PDL::Options;
+sub PDL::sclr {
+  my $this = shift;
+  if (ref $this) { # instance method
+    carp "multielement piddle in 'sclr' call"
+      if ($chkmode == 1 && $this->nelem > 1);
+    croak "multielement piddle in 'sclr' call"
+      if ($chkmode == 2 && $this->nelem > 1);
+    return sclr_c($this);
+  } else {  # class method
+    my $check = (iparse({Check=>0},ifhref($_[0])))[1];
+    if (lc($check) eq 'warn') {$chkmode = 1}
+    elsif (lc($check) eq 'barf') {$chkmode = 2}
+    else {$chkmode = $check != 0 ? 1 : 0}
+    return $chkmode;
+  }
 }
 
 =head2 cat

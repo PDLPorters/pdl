@@ -7,3 +7,4 @@ Makefile.PL
 t/niceslice.t
 local.perldlrc
 example
+Changes

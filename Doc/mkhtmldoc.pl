@@ -15,11 +15,17 @@
 
 use File::Find;
 use File::Basename;
-use File::Basename;                                                             
+use File::Basename;
+use Getopt::Std;
 use Pod::Html;
 use Cwd;
 
 use IO::File; # for hack_links()
+
+$opt_v = 0;
+
+getopts('v');
+my $verbose = $opt_v;
 
 ##############################################################
 ## Subroutines
@@ -41,7 +47,7 @@ sub mkdir_p ($$$) {
 #    my $dir = File::Spec->catdir( @dirs );
     my $dir = join '/', @dirs;
     mkdir_p ($dir, $_[1], $_[2]);
-    print "Creating directory $_[0]\n";
+    print "Creating directory $_[0]\n" if $verbose;
     mkdir $_[0], $_[1] or die "Couldn't create directory $_[0]";
 }
 
@@ -109,8 +115,10 @@ chdir $back;
 
 #my $updir = File::Spec->updir;
 
-print "Put HTML $htmldir\n";
-print "Scanning $startdir ... \n\n";
+print "Making HTML docs...\n\n";
+
+print "Put HTML $htmldir\n" if $verbose;
+print "Scanning $startdir ... \n\n" if $verbose;
 $sub = sub { 
     return unless $File::Find::name =~ /[.]pod$/ or
 	($File::Find::name =~ /[.]pm$/ and 
@@ -123,7 +131,8 @@ $sub = sub {
 #	 $File::Find::name =~ /[.]pod$/) {
 
     if (!&has_pod($File::Find::name)) {
-	printf STDERR "%-30s\n", $_ ."... skipped (no pod)";
+	printf STDERR "%-30s\n", $_ ."... skipped (no pod)"
+	  if $verbose;
 	return;
     }
     
@@ -165,14 +174,14 @@ $sub = sub {
     my $outfile = "${htmldir}/${outfi}";
     $outfile =~ s/[.](pm|pod)$//;
     $outfile .= ".html";
-    printf STDERR "%-30s\n", $_ ."... > $outfile";
+    printf STDERR "%-30s\n", $_ ."..."; #  > $outfile";
     
     chdir $htmldir; # reuse our pod caches
     my $topPerlDir = $startdir;
     
     # get Directory just above PDL for podroot arg
     $topPerlDir = $1 if ($startdir =~ /^(.+?)\/PDL$/);
-    print "startdir: $startdir, podroot: $topPerlDir\n";
+    print "startdir: $startdir, podroot: $topPerlDir\n" if $verbose;
     
     # instead of having htmlroot="../../.."
     # (or even File::Spec->catdir( $updir, $updir, $updir ) )
@@ -181,6 +190,7 @@ $sub = sub {
     my $htmlrootdir = $htmldir;
     $htmlrootdir =~ s|PDL$||;
     
+    my $verbopts = $verbose ? "--verbose" : "--quiet";
     pod2html("--podpath=PDL:.",
 	     "--podroot=$topPerlDir",
 	     "--htmlroot=$htmlrootdir",
@@ -188,7 +198,8 @@ $sub = sub {
 	     "--recurse",
 	     "--infile=$file",
 	     "--outfile=$outfile",
-	     "--verbose");
+	     $verbopts,
+	    );
     hack_html( $outfile ) if $] < 5.006;
     
     chdir $File::Find::dir; # don't confuse File::Find

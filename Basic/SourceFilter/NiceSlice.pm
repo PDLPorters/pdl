@@ -10,12 +10,19 @@ package PDL::NiceSlice;
 #   $pdl->mslice(processed_args);
 #
 
-$PDL::NiceSlice::VERSION = 0.5;
+$PDL::NiceSlice::VERSION = 0.6;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
     "$PDL::Version::VERSION" lt '2.2.2') { # make sure we got uptodate version
                                            # of nslice
+
+eval << 'EOF' unless PDL->can('flat');
+    sub PDL::flat { # fall through if < 2D
+      return $_[0]->dims == 1 ? $_[0] : $_[0]->clump(-1);
+    }
+EOF
+
 eval << 'EOH';
   {
     package PDL;
@@ -24,9 +31,6 @@ eval << 'EOH';
 		      die "multielement piddle where only one allowed" :
 			die "non piddle ref '".ref $_[0]."'"
 			  : int $_[0] }
-    sub PDL::flat { # fall through if < 2D
-      return $_[0]->getndims > 1 ? $_[0]->clump(-1) : $_[0];
-    }
     sub PDL::nslice {
       my($pdl) = shift;
       my @args = @_;
@@ -34,7 +38,7 @@ eval << 'EOH';
       for (@args) {
 	if (UNIVERSAL::isa($_,'PDL')) {
 	  if ($_->nelem > 1) {
-	    PDL::Core::barf 'piddle must be <= 1D' if $_->getndims > 1;
+	    PDL::Core::barf('piddle must be <= 1D') if $_->getndims > 1;
 	    # dice this axis
 	    $pdl = $pdl->dice_axis($i,$_);
 	    # and keep resulting dim fully in slice
@@ -56,6 +60,9 @@ eval << 'EOH';
     }
   }
 EOH
+
+# mark as lvalue sub if 5.6.x and above
+eval 'sub PDL::nslice : lvalue;' if ($^V and $^V ge v5.6.0);
 }
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
@@ -69,6 +76,15 @@ sub curarg {
 my @srcstr = (); # stack for refs to current source strings
 my $offset = 1;  # line offset
 my $file   = 'unknown';
+
+my $mypostfix = '';
+
+sub autosever {
+  my ($this,$arg) = @_;
+  $arg = 1 unless defined $arg;
+  if ($arg) {$mypostfix = '->sever'} else
+    {$mypostfix = ''}
+}
 
 sub line {
   die __PACKAGE__." internal error: can't determine line number"
@@ -179,7 +195,7 @@ sub findslice {
     print STDERR "pass $ct: found slice expr $found at line ".line()."\n"
       if $verb;
     $processed .= "$prefix". ($prefix =~ /->$/ ? '' : '->').
-      'nslice'.procargs($found);
+      'nslice'.procargs($found).$mypostfix;
   }
   pop @srcstr; # clear stack
   $processed .= substr $src, pos($src); # append the remaining text portion

@@ -363,7 +363,7 @@ restart:
         next;
      }else{
         # Send code to pre-processor if defined
-        $_ = $PERLDL::PREPROCESS->($_)
+        $_ = &$PERLDL::PREPROCESS($_)
           if (defined $PERLDL::PREPROCESS && 
               ref($PERLDL::PREPROCESS) eq 'CODE');
 
