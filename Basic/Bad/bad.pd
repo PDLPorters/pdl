@@ -104,6 +104,22 @@ pp_add_exported( '',
 		 'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
 		 'setbadat ' );
 
+# If UseNaN == 0, we need to have a variable containing the 
+# value for NaN. This is taken from Basoc/Core/Core.xs.PL
+#
+if ( $usenan == 0 ) {
+    require PDL::Core::Dev; PDL::Core::Dev->import;
+    pp_addhdr( "\nstatic union { unsigned char __c[4]; float __d; } __pdl_nan = {\n" );
+    if ( isbigendian() ) {
+	pp_addhdr( "{ 0x7f, 0xc0, 0, 0 } };\n\n" );
+    } else {
+	pp_addhdr( "{ 0, 0, 0xc0, 0x7f } };\n\n" );
+    }
+    pp_addhdr( "float _nan_float;\ndouble _nan_double;\n\n" );
+    pp_add_boot( " _nan_float = __pdl_nan.__d;\n  _nan_double = (double) __pdl_nan.__d;\n" );
+
+} # if: $usenan
+
 ## Header
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
 
@@ -779,10 +795,11 @@ Any bad values in the input piddles are copied across to the output piddle.
 ',
        ); # pp_def: setvaltobad
 
-# setnantobad is a straight copy if $PDL::Bad::UseNaN == 1
+# setnantobad \ are straight copies if $PDL::Bad::UseNaN == 1
+# setbadtonan /
 #
 if ( $usenan ) {
-    pp_add_exported( '', 'setnantobad' );
+    pp_add_exported( '', 'setnantobad setbadtonan' );
     pp_addpm(<<'!NO!SUBS!');
 
 =head2 setnantobad
@@ -820,6 +837,33 @@ sub PDL::setnantobad{
 	$b = PDL->nullcreate($a);
     }
     return $b; 
+}
+
+=head2 setbadtonan
+
+=for ref
+
+Sets Bad values to NaN
+(only relevant for floating-point piddles).
+Can be done inplace.
+
+As C<$PDL::Bad::UseNan == 1>, this is just a straight copy,
+except that it clears the bad flag. And does not work.
+
+=for usage
+
+ $b = $a->setbadtonan;
+ $a->inplace->setbadtonan;
+
+=for bad
+
+Supports bad values.
+
+=cut
+
+*setbadtonan = \&PDL::setbadtonan;
+sub PDL::setbadtonan{
+    die "ERROR: setbadtonan is currently too stupid to allow it to do anything\n";
 }
 
 !NO!SUBS!
@@ -863,6 +907,38 @@ Can be done inplace.
 ',
     BadDoc => 'Supports bad values.',
     ); # pp_def: setnantobad
+
+pp_def(
+    'setbadtonan',
+    HandleBad => 1,
+    Pars => 'a(); [o]b();',
+    GenericTypes => [ 'F', 'D' ],
+    Inplace => 1,
+    CopyBadStatusCode => 
+    'if ( a == b )
+       PDL->propogate_badflag( b, 0 ); /* propogate cleared badflag if inplace */
+     $SETPDLSTATEGOOD(b);          /* always make sure the output is "good" */
+    ',
+    Code =>
+    'if ( $ISBAD(a()) ) { $b() = $TFD(_nan_float,_nan_double); }  /* _nan_xxx set up at top of file */
+     else               { $b() = $a(); }
+     ',
+    Doc => 
+'
+=for ref
+
+Sets Bad values to NaN
+(only relevant for floating-point piddles).
+Can be done inplace and it clears the bad flag.
+
+=for usage
+
+ $b = $a->setbadtonan;
+ $a->inplace->setbadtonan;
+
+',
+    BadDoc => 'Supports bad values.',
+    ); # pp_def: setbadtonan
 
 } # if: $usenan
 

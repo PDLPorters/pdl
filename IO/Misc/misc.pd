@@ -89,16 +89,15 @@ anonymous array for each HISTORY entry in the header.
 	pp_addpm(<<'!NO!SUBS!');
 =for bad
 
-If a FITS file contains the C<BLANK> keyword, the piddle
-will have its bad flag set, and those elements which equal the
-C<BLANK> value will be set bad.
-I<This is probably broken>.
-
-Note that currently L<wfits|/wfits> does I<not> write out the
-C<BLANK> keyword/convert to NaN's.
+If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>, 
+the piddle will have its bad flag set, and those elements which equal the
+C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
+converted to bad (if necessary).
 
 !NO!SUBS!
 } # if: $bvalflag
+
+#'
 
 pp_addpm(<<'!NO!SUBS!');
 =cut
@@ -208,7 +207,7 @@ sub PDL::rfits {
        } else {
 	   # we change all BLANK values to the current bad value
 	   # (would not be needed with a per-piddle bad value)
-	   $pdl->inplace->setvaluebad( $blank );
+	   $pdl->inplace->setvaltobad( $blank );
        }
    } else {
        # bad values are stored as NaN's in FITS
@@ -221,7 +220,7 @@ sub PDL::rfits {
 
 } # if: $bvalflag
 
-   pp_addpm(<<'EOD');
+   pp_addpm(<<'!NO!SUBS!');
 
    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
@@ -230,8 +229,29 @@ sub PDL::rfits {
    
    # Be clever and work out the final datatype before eating
    # memory
-   
-   my $tmp = $pdl->clump(-1)->slice("0:0");
+
+!NO!SUBS!
+
+   if ( ! $bvalflag ) {
+       pp_addpm( '   my $tmp = $pdl->clump(-1)->slice("0:0");' . "\n" );
+   } else {
+       pp_addpm(<<'!NO!SUBS!');
+   # have to be careful about the first element begin bad
+   my $tmp;
+   if ( $pdl->badflag() == 0 ) {
+      $tmp = $pdl->clump(-1)->slice("0:0");
+   } else { 
+      # this loop assumes there's at least one good pixel - too lazy to fix
+      my $index = 0;
+      while ( $pdl->clump(-1)->slice("${index}:${index}")->isbad() ) { $index++; }
+      $tmp = $pdl->clump(-1)->slice("${index}:${index}");
+   }
+
+!NO!SUBS!
+} 
+
+pp_addpm(<<'!NO!SUBS!');
+
    $tmp = $tmp*$bscale if $bscale != 1; # Dummy run on one element of $pdl
    $tmp = $tmp+$bzero  if $bzero  != 0;
   
@@ -274,8 +294,9 @@ $BITPIX is optional and coerces the output format.
 	pp_addpm(<<'!NO!SUBS!');
 =for bad
 
-Note that currently L<wfits|/wfits> does I<not> write out the
-C<BLANK> keyword/convert floating-point bad values to NaN.
+For integer types (ie C<BITPIX E<gt> 0>), the C<BLANK> keyword is set
+to the bad value.  For floating-point types, the bad value is
+converted to NaN (if necessary) before writing.
 
 !NO!SUBS!
 } # if: $bvalflag
@@ -371,6 +392,27 @@ sub PDL::wfits { # Write a PDL to a FITS format file
       wheader('BZERO');
    }
    wheader('BUNIT');
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+    # IF badflag is set
+    #   and BITPIX > 0 - ensure the header contains the BLANK keyword
+    #                    (make sure it's for the correct type)
+    #   otherwise      - make sure the BLANK keyword is removed
+    if ( $pdl->badflag() ) {
+       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
+       else               { delete $HDR{BLANK}; }
+    }
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
    for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
    wheader('HISTORY'); # Make sure that HISTORY entries come last.
    printf FITS "%-80s", "END"; $nbytes += 80;
@@ -402,16 +444,62 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    my $BUFFSZ = 360*2880; # = ~1Mb - must be multiple of 2880
    my $tmp;
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+
+	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	    # just print up a message - conversion is actually done in the loop
+	    print "Converting PDL bad value to NaN\n" if $PDL::verbose;
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
    while ($nbytes - $off > $BUFFSZ) {
 
       # Data to be transferred
 
       $buff = &$convert( ($p1d->slice( ($off/$sz).":". (($off+$BUFFSZ)/$sz-1))
                          -$bzero)/$bscale );
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+	# if there are bad values present, and output type is floating-point,
+	# convert the bad values to NaN's.  We can ignore integer types, since
+	# we have set the BLANK keyword
+	#
+	if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+	    $buff->inplace->setbadtonan();
+	}
+!NO!SUBS!
+
+} # if: $bvalflag
+
+   pp_addpm(<<'!NO!SUBS!');
+
       &$bswap($buff); print  FITS ${$buff->get_dataref};
       $off += $BUFFSZ;
    }
    $buff = &$convert( ($p1d->slice($off/$sz.":-1") - $bzero)/$bscale );
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+    if ( $pdl->badflag() and $BITPIX < 0 and $PDL::Bad::UseNaN == 0 ) {
+       $buff->inplace->setbadtonan();
+    }
+!NO!SUBS!
+
+} # if: $bvalflag
+	pp_addpm(<<'!NO!SUBS!');
    &$bswap($buff); print  FITS ${$buff->get_dataref};
    print FITS " "x(($BUFFSZ - $buff->getdim(0) * $sz)%2880);  # Fill HDU
 
@@ -1197,7 +1285,7 @@ Determine endianness of machine - returns 0 or 1 accordingly
 
 =cut
 
-EOD
+!NO!SUBS!
 
 # $isbigendian is set up at top of file
 pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL::isbigendian;\n");

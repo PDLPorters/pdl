@@ -81,6 +81,26 @@ foreach $key (keys %PDL::Types::typehash) {
 $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
                 : 'O_NONBLOCK';
 
+=head2 isbigendian
+
+=for ref
+
+Is the machine big or little endian?
+
+=for example
+
+  print "Your machins is big endian.\n" if isbigendian();
+
+returns 1 if the machine is big endian, 0 if little endian,
+or dies if neither.  It uses the C<byteorder> element of
+perl's C<%Config> array.
+
+=for usage
+
+   my $retval = isbigendian();
+
+=cut
+
 # big/little endian?
 sub isbigendian {
     use Config;

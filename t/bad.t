@@ -8,16 +8,22 @@
 use strict;
 use Test;
 
+my $fname = 'delme.fits';
+
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 64;
+	plan tests => 68;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: badvalue support not compiled\n";
 	exit;
     }
 } 
+
+END {
+    unlink $fname if -e $fname;
+}
 
 use PDL::LiteF;
 $| = 1;
@@ -365,3 +371,21 @@ ok( PDL::Core::string( $a->clump(-1) ),
 $a->inplace->setnantobad;
 ok( PDL::Core::string( $a->clump(-1) ), 
     "[0 BAD 2 3 0 BAD 2 3 0 BAD]" );   #
+
+# test r/wfits
+use PDL::IO::Misc;
+$a = sequence(10)->setbadat(0);
+print "Writing to fits: $a  type = (", $a->get_datatype, ")\n";
+$a->wfits($fname);
+$b = rfits($fname);
+print "Read from fits:  $b  type = (", $b->get_datatype, ")\n";
+
+ok( $b->slice('0:0')->isbad );      # 65
+ok( sum(abs($a-$b)) < 1.0e-5 );      # 
+
+# now force to integer
+$a->wfits($fname,16);
+$b = rfits($fname);
+print "BITPIX 16: datatype == ", $b->get_datatype, " badvalue == ", $b->badvalue(), "\n";
+ok( $b->slice('0:0')->isbad );      # 
+ok( sum(abs(convert($a,short)-$b)) < 1.0e-5 );      # 

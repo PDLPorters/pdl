@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+    - improved support for bad values in r/wfits and r/wndf
+    - added setbadtonan() to PDL::Bad.
 CS
 	- moved trylink to Dev.pm (L<PDL::Core::Dev>)
 	- modified Graphics/Makefile.PL accordingly
