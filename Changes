@@ -1,5 +1,8 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke (7/02/00)
+    - stopped some excess code generation & improve legibility of some code
+      in Basic/Gen/PP.pm
 Tim Jenness (6/30/00)
     - PDL::CallExt now works on WinNT with VC++
 Doug Burke (6/29/00)

@@ -798,53 +798,67 @@ sub make_newcoerce {
 }
 
 sub coerce_types {
-	my($parnames,$parobjs,$ignore,$newstab) = @_;
-	(join '',map {
-		my $dtype = ($parobjs->{$_}->{FlagTyped}) ?
-			($parobjs->{$_}->{FlagTplus}) ?
-			  "PDLMAX(".$parobjs->{$_}->cenum().
-			       ",\$PRIV(__datatype))" :
-                             $parobjs->{$_}->cenum()
-			: "\$PRIV(__datatype)";
-		($ignore->{$_} ? () :
-		 $parobjs->{$_}->{FlagCreateAlways} ?
-		  "$_->datatype = $dtype; " :
-		   "if((($_->state & PDL_NOMYDIMS) &&
-		         $_->trans == NULL) &&
-		       0$parobjs->{$_}->{FlagCreat}) {
-			  $_->datatype = $dtype;
-		    } else if($dtype != $_->datatype) {
-			$_ = PDL->get_convertedpdl($_,$dtype);
-		    }")} (@$parnames))
-}
+    my($parnames,$parobjs,$ignore,$newstab) = @_;
+    my $str = "";
+    foreach ( @$parnames ) {
+	next if $ignore->{$_};
+	
+	my $po = $parobjs->{$_}; 
+
+	my $dtype;
+	if ( $po->{FlagTyped} ) {
+	    $dtype = $po->cenum();
+	    $dtype = "PDLMAX($dtype,\$PRIV(__datatype))"
+		if $po->{FlagTplus};
+	} else {
+	    $dtype = "\$PRIV(__datatype)";
+	}
+
+	if ( $po->{FlagCreateAlways} ) {
+	    $str .= "$_->datatype = $dtype; ";
+	} else {
+	    $str .= 
+	 "if( ($_->state & PDL_NOMYDIMS) && $_->trans == NULL ) {
+	     $_->datatype = $dtype;
+	  } else " 
+	      if $po->{FlagCreat};
+	    $str .= "if($dtype != $_->datatype) {
+	     $_ = PDL->get_convertedpdl($_,$dtype);
+	  }";
+	}
+    } # foreach: @$parnames
+
+    return $str;
+} # sub: coerce_types()
 
 # First, finds the greatest datatype, then, if not supported, takes
 # the largest type supported by the function.
 # Not yet optimal.
 sub find_datatype {
-	my($parnames,$parobjs,$ignore,$newstab,$gentypes) = @_;
-	"\$PRIV(__datatype) = 0;".
-	(join '', map {
-		$parobjs->{$_}->{FlagTyped}
-			? () :
-#		print "FD: $_, $ignore->{$_}, $parobjs->{$_}->{FlagCreateAlways}\n";
-		($ignore->{$_} ||
-		 $parobjs->{$_}->{FlagCreateAlways} ? () :
-		 "if(".
-		   ($parobjs->{$_}->{FlagCreat}?
-		      "!(($_->state & PDL_NOMYDIMS) &&
-		       $_->trans == NULL) && " : "")
-		       ."
-		 	\$PRIV(__datatype) < $_->datatype) {
+    my($parnames,$parobjs,$ignore,$newstab,$gentypes) = @_;
+    
+    my $str = "\$PRIV(__datatype) = 0;";
+    
+    foreach ( @$parnames ) {
+	my $po = $parobjs->{$_};
+	next if $ignore{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
+	
+	$str .= "if(";
+	$str .= "!(($_->state & PDL_NOMYDIMS) &&
+		       $_->trans == NULL) && "
+			   if $po->{FlagCreat};
+	$str .= "\$PRIV(__datatype) < $_->datatype) {
 		 	\$PRIV(__datatype) = $_->datatype;
-		  }
-		  ")
-	}(@$parnames)).
-	(join '', map {
-		"if(\$PRIV(__datatype) == PDL_$_) {
-		 } else "
-	}(@$gentypes))."\$PRIV(__datatype) = PDL_$gentypes->[-1];";
-}
+		    }\n";
+    } # foreach: @$parnames
+    
+    $str .= join '', map {
+	"if(\$PRIV(__datatype) == PDL_$_) {}
+	 else "
+	 }(@$gentypes);
+
+    return $str .= "\$PRIV(__datatype) = PDL_$gentypes->[-1];";
+} # sub: find_datatype()
 
 sub make_incsizes {
 	my($parnames,$parobjs,$dimobjs,$havethreading) = @_;
@@ -890,16 +904,24 @@ sub make_parnames {
 sub make_redodims_thread {
 	my($pnames,$pobjs,$dobjs,$dpars,$pcode) = @_;
 	my $str; my $npdls = @$pnames;
-	$str .= "int __creating[$npdls];";
+
+	my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $#$pnames );
+	$str .= "int __creating[$npdls];\n";
 	$str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
-	$str .= join '',map {"__creating[$_] =
-			(PDL_CR_SETDIMSCOND(__privtrans,\$PRIV(pdls[$_])))
-				&& ".($pobjs->{$pnames->[$_]}{FlagCreat}?1:0)." ;\n"} (0..$#$pnames);
+	foreach ( 0 .. $#$pnames ) {
+	    $str .= "__creating[$_] = ";
+	    if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
+		$str .= "PDL_CR_SETDIMSCOND(__privtrans,$privname[$_]);\n";
+	    } else {
+		$str .= "0;\n";
+	    }
+	} # foreach: 0 .. $#$pnames
+
 # - null != [0]
 #	$str .= join '',map {"if((!__creating[$_]) && \$PRIV(pdls[$_])-> ndims == 1 && \$PRIV(pdls[$_])->dims[0] == 0)
 #				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
 #					"} (0..$#$pnames);
-	$str .= join '',map {"if((!__creating[$_]) && (\$PRIV(pdls[$_])->state & PDL_NOMYDIMS) && \$PRIV(pdls[$_])->trans == 0)
+	$str .= join '',map {"if((!__creating[$_]) && ($privname[$_]\->state & PDL_NOMYDIMS) && $privname[$_]\->trans == 0)
 				   \$CROAK(\"CANNOT CREATE PARAMETER $pobjs->{$pnames->[$_]}{Name}\");
 					"} (0..$#$pnames);
 	$str .= " {\n$pcode\n}\n";
@@ -913,7 +935,7 @@ sub make_redodims_thread {
 	$str .= hdrcheck($pnames,$pobjs);
 	$str .= join '',map {$pobjs->{$pnames->[$_]}->
 				get_incsets("\$PRIV(pdls[$_])")} 0..$#$pnames;
-	$str;
+	return $str;
 }
 
 sub hdrcheck {
@@ -925,11 +947,12 @@ sub hdrcheck {
                   "if (!hdrp && !__creating[i++] && $_\->hdrsv && ($_\->state & PDL_HDRCPY))
                        hdrp = $_\->hdrsv;\n" } @names;
   $str .= "if (hdrp) {\n";
-  $str .= join '',map {
-                  "if (".($pobjs->{$pnames->[$_]}{FlagCreat}?1:0).
-		    " && \$PRIV(pdls[$_])\->hdrsv != hdrp)
-                      \$PRIV(pdls[$_])\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n"
-		} 0..$#$pnames;
+  foreach ( 0 .. $#names ) {
+      if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
+	  $str .= "if ( $names[$_]\->hdrsv != hdrp )
+                      $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n"
+		      }
+  }
   $str .= "}}\n";
   $str;
 }
@@ -980,30 +1003,35 @@ sub mkfhdrinfo {
 
 # XXX __privtrans explicit :(
 sub wrap_vfn {
-	my($code,$hdrinfo,$rout,$p2child,$name) = @_;
-        my $type = ($name eq "copy" ? "pdl_trans *" : "void");
-	my $sname = $hdrinfo->{StructName};
-	my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
-	my $hdrcheck = $name eq "redodims" ?
-	  'if (__tr->pdls[0]->hdrsv && (__tr->pdls[0]->state & PDL_HDRCPY))
-		  __tr->pdls[1]->hdrsv = (void*)
-		      newRV((SV*) SvRV((SV*)__tr->pdls[0]->hdrsv));' :
-			'';
+    my($code,$hdrinfo,$rout,$p2child,$name) = @_;
+    my $type = ($name eq "copy" ? "pdl_trans *" : "void");
+    my $sname = $hdrinfo->{StructName};
+    my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
+
 #	print "$rout\_$name: $p2child\n";
-	my $p2decl = ($p2child==1 ? 
-	             "pdl *__it = __tr->pdls[1];
-                pdl *__parent = __tr->pdls[0];
-		$hdrcheck" : '');
-        qq|$type $rout(pdl_trans *__tr $oargs) {
-                int __dim;
-                $sname *__privtrans = ($sname *) __tr;
-		$p2decl
-                {
-			$code
-		}
+    my $p2decl = '';
+    if ( $p2child == 1 ) {
+	$p2decl = 
+	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
+	if ( $name eq "redodims" ) {
+	    $p2decl .= '
+	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY))
+		  __it->hdrsv = (void*)
+		      newRV((SV*) SvRV((SV*)__parent->hdrsv));';
 	}
-        |;
-}
+    } # if: $p2child == 1
+
+    qq|$type $rout(pdl_trans *__tr $oargs) {
+	int __dim;
+	$sname *__privtrans = ($sname *) __tr;
+	$p2decl
+	{
+	    $code
+	}
+    }
+    |;
+
+} # sub: wrap_vfn()
 
 sub makesettrans {
 	my($pnames,$pobjs,$symtab) = @_;
@@ -1520,13 +1548,15 @@ sub VarArgsXSHdr {
 
   # clause for reading in all variables
   my $clause1 = ''; my $cnt = 0;
-  for (my $i=0;$i<@args;$i++) { 
+  foreach my $i ( 0 .. $#args ) {
     if ($other{$args[$i]}) {  # other par
-      $clause1 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n"; $cnt++;
+      $clause1 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n"; 
+      $cnt++;
     } elsif ($outca{$args[$i]}) {
       push (@create, $args[$i]);
     } else {
-      $clause1 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n"; $cnt++;
+      $clause1 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n"; 
+      $cnt++;
     }
   }
 
@@ -1545,7 +1575,7 @@ sub VarArgsXSHdr {
 ";
 
     $cnt = 0;
-    for (my $i=0;$i<@args;$i++) { 
+    foreach my $i ( 0 .. $#args ) {
       if ($other{$args[$i]}) {
 	$clause2 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
 	$cnt++;
@@ -1570,7 +1600,7 @@ sub VarArgsXSHdr {
   # clause for reading in input and creating output and temp vars
   my $clause3 = '';
   $cnt = 0;
-  for (my $i=0;$i<@args;$i++) { 
+  foreach my $i ( 0 .. $#args ) {
     if ($other{$args[$i]}) {
       $clause3 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
       $cnt++;
