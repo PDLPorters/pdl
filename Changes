@@ -1,3 +1,7 @@
+CED 07-Dec-2003
+   - ufunc.pd: average() and daverage() return 0 when given an empty piddle
+	in a non-bad-value environment.  [One might argue that this should be
+	nan; I'm open to changing it...]
 CED 05-Dec-2003
    - Clean up axis labeling code in imag(); should eliminate spurious
 	doubled titles.

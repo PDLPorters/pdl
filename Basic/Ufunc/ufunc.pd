@@ -345,8 +345,11 @@ pp_def(
 	Pars => 'a(n); int+ [o]b();',
 	Code => 
 	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
+	if($SIZE(n)) {
+	   loop(n) %{ tmp += $a(); %} ; 
+   	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
+        }
+          else { $b() = 0; }',
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
          long cnt = 0;
@@ -365,9 +368,11 @@ pp_def(
 	Pars => 'a(n); double [o]b();',
 	Code => 
 	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp / cnt;',
+	if($SIZE(n)) {
+	 loop(n) %{ tmp += $a(); %}
+	 $b() = tmp / $SIZE(n); 
+	}
+	  else { $b() = 0; }',
 	BadCode => 
 	'double tmp = 0;
          long cnt = 0;
