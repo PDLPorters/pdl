@@ -24,13 +24,14 @@ use PDL::Types;
 use PDL::Exporter;
 
 @ISA=qw/PDL::Exporter/;
-@EXPORT_OK = qw/ rvals axisvals xvals yvals zvals sec ins hist
+@EXPORT_OK = qw/ rvals axisvals allaxisvals xvals yvals zvals sec ins hist
 	similar_assign transpose sequence xlinvals ylinvals
 	zlinvals axislinvals/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 # Exportable functions
 *axisvals       = \&PDL::axisvals;		
+*allaxisvals       = \&PDL::allaxisvals;		
 *sec            = \&PDL::sec;		
 *ins            = \&PDL::ins;		
 *hist           = \&PDL::hist;		
@@ -323,6 +324,24 @@ Fills a piddle with radial distance values from some centre.
   [4 4 4 4 4 5 5]
  ]
 
+ For a more general metric, one can define, e.g.,
+
+ sub distance {
+   my ($a,$centre,$f) = @_;
+   my ($r) = $a->allaxisvals-$centre;
+   $f->($r);
+ }
+ sub l1 { sumover(abs($_[0])); }
+ sub euclid { use PDL::Math 'pow'; pow(sumover(pow($_[0],2)),0.5); }
+ sub linfty { maximum(abs($_[0])); }
+
+ so now
+
+ distance($a, $centre, \&euclid);
+
+ will emulate 'rvals', while '\&l1' and '\&linfty' will generate other
+ well-known norms. 
+
 =cut
 
 sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) : PDL->rvals(@_) }
@@ -393,6 +412,39 @@ sub axisvals2 {
 	}
 	my $bar = $dummy->xchg(0,$nth);
 	PDL::Primitive::axisvalues($bar);
+	return $dummy;
+}
+
+=head2 allaxisvals
+
+=for ref
+
+Generates a piddle with index values
+
+=for usage
+
+ $z = allaxisvals ($piddle);
+
+allaxisvals() produces an array with axis values along each dimension,
+adding an extra dimension at the start.
+
+allaxisvals($piddle)->slice("($nth)") will produce the same result
+as axisvals($piddle,$nth) (although with extra work and not inplace).
+
+It's useful when all the values will be required, as in the example
+given of a generalized 'rvals'.
+
+=cut
+
+sub PDL::allaxisvals {
+	my($this) = @_;
+	my($dims) = $this->getndims;
+	my($dummy) = $this->dummy(0,$dims)->new;
+	my(@dums) = $dummy->mv(0,$dims)->dog;
+	foreach (0 .. $dims-1) {
+	  my $bar = $dums[$_]->xchg(0,$_);
+	  PDL::Primitive::axisvalues($bar);
+	}
 	return $dummy;
 }
 
