@@ -1231,13 +1231,15 @@ both vertically and horizontally.
 =item Axis direction:
 
 By default, fits_imag tries to guess which direction your axes are meant
-to go (left-to-right or right-to-left) using the CDELT keywords:  if CDELT<n>
+to go (left-to-right or right-to-left) using the CDELT keywords:
+if C<< CDELT<n> >>
 is negative, then rather than reflecting the image fits_imag will plot the
 X axis so that the highest values are on the left.  
 
 This is the most convenient behavior for folks who use calibrated
 (RA,DEC) images, but it is technically incorrect.  To force the direction,
-use the DirAxis option.  Setting C<DirAxis=E<gt>1> (abbreviated C<di=E<gt>1>)
+use the DirAxis option.  Setting
+C<< DirAxis=>1 >> (abbreviated C<< di=>1 >>)
 will force the scientific axes to increase to the right, reversing the image
 as necessary.
 
@@ -3904,7 +3906,7 @@ sub initenv{
       #
       # Sort out the direction that each axis runs...
       #
-      my $dax,$day;
+      my ( $dax, $day );
       unless(defined $o->{DirAxis}) {
 	($dax,$day) = (0,0);
       } elsif( ! ref $o->{DirAxis} ) {
@@ -3915,7 +3917,7 @@ sub initenv{
 	release_and_barf "DirAxis option must be a scalar or array\n";
       }
 
-      print "dax=$dax; day=$day\n";
+      ##print "dax=$dax; day=$day\n";
       ( $xx0, $xx1 ) = ( $xx1, $xx0 ) 
 	if (  ( $dax==0   and   ($xmin-$xmax)*($xx0-$xx1)<0 )
 	      or ( $dax < 0 ) 
