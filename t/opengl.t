@@ -10,6 +10,9 @@ BEGIN{
 
 # use PDL::Graphics::OpenGL;
 
+sub hasDISPLAY {
+  return defined $ENV{DISPLAY} && $ENV{DISPLAY} !~ /^\s*$/;
+}
 
 use Test;
 
@@ -17,13 +20,14 @@ BEGIN {
   use PDL::Config;
   if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} 
       # only if GL modules have actually been built
-      && $PDL::Config{GL_BUILD}) {
+      && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
 	 plan tests => 3; 
 	 eval 'use PDL::Graphics::OpenGL';
 	 ok($@, ''); 
   }else{
 	 plan tests => 1; 
-         print "ok 1 # Skipped: OpenGL support not compiled\n";
+         print hasDISPLAY() ? "ok 1 # Skipped: OpenGL support not compiled\n"
+	   : "ok 1 # Skipped: DISPLAY environment variable not set\n";
 	 exit;
   }
 }
