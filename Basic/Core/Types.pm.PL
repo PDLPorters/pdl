@@ -56,15 +56,15 @@ my @types = (
 # the next entry can be uncommented to give you a 64 bit type
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
-# 	     {
-# 	      identifier => 'LL',
-# 	      onecharident => 'Q',   # only needed if different from identifier
-# 	      pdlctype => 'PDL_LongLong',
-# 	      realctype => &typeofPDLi64,
-# 	      ppforcetype => 'longlong',
-# 	      usenan => 0,
-# 	      packtype => 'q*',
-# 	     },
+	     {
+	      identifier => 'LL',
+	      onecharident => 'Q',   # only needed if different from identifier
+	      pdlctype => 'PDL_LongLong',
+	      realctype => &typeofPDLi64,
+	      ppforcetype => 'longlong',
+	      usenan => 0,
+	      packtype => 'q*',
+	     },
 	     {
 	      identifier => 'F',
 	      pdlctype => 'PDL_Float',
@@ -138,6 +138,8 @@ sub gentypehashentry ($$) {
 		 sym => &gentypenames($type),
 		 numval => $num,
 		 usenan => $type->{usenan},
+		 ioname => &convertfunc($type), # same as the name of the
+		                                # convertfunc
 		};
   return $newhash;
 }
@@ -212,9 +214,9 @@ print OUT qq{
 
 print OUT <<'!NO!SUBS!';
 
-@EXPORT_OK = (@EXPORT, qw/ppdefs typesrtkeys mapfld typefld/);
+@EXPORT_OK = (@EXPORT, qw/types ppdefs typesrtkeys mapfld typefld/);
 %EXPORT_TAGS = (
-	All=>[@EXPORT,qw/ppdefs typesrtkeys mapfld typefld/],
+	All=>[@EXPORT,qw/types ppdefs typesrtkeys mapfld typefld/],
 );
 
 @ISA    = qw( Exporter );
@@ -398,9 +400,15 @@ The value returned by C<ctype> without the 'PDL_' prefix.
 
 sub enum   { return $_[0]->[0]; }
 sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
+sub PDL::Types::types { # return all known types as type objects
+  map { new PDL::Type PDL::Types::typefld($_,'numval') } 
+      PDL::Types::typesrtkeys();
+}
+
 !NO!SUBS!
 
-foreach my $name ( qw( ctype ppsym realctype ) ) {
+foreach my $name ( qw( ctype ppsym realctype ppforcetype convertfunc
+		       sym numval usenan ioname) ) {
   print OUT << "EOS";
 sub $name {
   return \$PDL::Types::typehash{\$_[0]->symbol}->{$name};

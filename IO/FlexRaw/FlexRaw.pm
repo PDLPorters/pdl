@@ -220,7 +220,7 @@ package PDL::IO::FlexRaw;
 use PDL;
 use Exporter;
 use FileHandle;
-use PDL::Types;
+use PDL::Types ':All';
 use PDL::IO::Misc qw(bswap2 bswap4 bswap8);
 
 @PDL::IO::FlexRaw::ISA = qw/Exporter/;
@@ -228,19 +228,36 @@ use PDL::IO::Misc qw(bswap2 bswap4 bswap8);
 @EXPORT = qw/writeflex writeflexhdr readflex mapflex/;
 
 # Cast type numbers in concrete, for external file's sake...
-%flexnames = (
-   $PDL_B => 'byte', $PDL_S => 'short',
-   $PDL_US => 'ushort', $PDL_L => 'long',
-   $PDL_F => 'float', $PDL_D => 'double');
+%flexnames = ( map {(typefld($_,'numval') => typefld($_,'ioname'))}
+	       typesrtkeys());
+%flextypes = ( map {(typefld($_,'ioname') => typefld($_,'numval'),
+		     typefld($_,'numval') => typefld($_,'numval'),
+		     lc typefld($_,'ppsym') =>  typefld($_,'numval'),
+		    )}
+	       typesrtkeys());
+%flexswap = ( map {my $val = typefld($_,'numval');
+		   my $nb = PDL::Core::howbig($val);
+		   ($val =>  $nb > 1 ? "bswap$nb" : undef)}
+	      typesrtkeys());
 
-%flextypes = (
-'byte'   => $PDL_B, '0' => $PDL_B, 'b' => $PDL_B, 'c' => $PDL_B,
-'short'  => $PDL_S, '1' => $PDL_S, 's' => $PDL_S,
-'ushort' => $PDL_US,'2' => $PDL_US,'u' => $PDL_US,
-'long'   => $PDL_L, '3' => $PDL_L, 'l' => $PDL_L,
-'float'  => $PDL_F, '4' => $PDL_F, 'f' => $PDL_F,
-'double' => $PDL_D, '5' => $PDL_D, 'd' => $PDL_D
-);
+# use Data::Dumper;
+# print Dumper \%flexnames;
+# print Dumper \%flextypes;
+# print Dumper \%flexswap;
+
+# %flexnames = (
+#    $PDL_B => 'byte', $PDL_S => 'short',
+#    $PDL_US => 'ushort', $PDL_L => 'long',
+#    $PDL_F => 'float', $PDL_D => 'double');
+
+# %flextypes = (
+# 'byte'   => $PDL_B, '0' => $PDL_B, 'b' => $PDL_B, 'c' => $PDL_B,
+# 'short'  => $PDL_S, '1' => $PDL_S, 's' => $PDL_S,
+# 'ushort' => $PDL_US,'2' => $PDL_US,'u' => $PDL_US,
+# 'long'   => $PDL_L, '3' => $PDL_L, 'l' => $PDL_L,
+# 'float'  => $PDL_F, '4' => $PDL_F, 'f' => $PDL_F,
+# 'double' => $PDL_D, '5' => $PDL_D, 'd' => $PDL_D
+# );
 
 $PDL::FlexRaw::verbose = 0;
 
@@ -411,10 +428,12 @@ READ:
 	&readchunk($d,$pdl,$len,$name) or last READ;
 	$chunkread += $len;
 	if ($swapbyte) {
-	    bswap2($pdl) if $pdl->get_datatype == $PDL_S;
-	    bswap4($pdl) if $pdl->get_datatype == $PDL_L
-		|| $pdl->get_datatype == $PDL_F;
-	    bswap8($pdl) if $pdl->get_datatype == $PDL_D;
+	  my $method = $flexswap{$type};
+	  $pdl->$method if $method;
+# 	    bswap2($pdl) if $pdl->get_datatype == $PDL_S;
+# 	    bswap4($pdl) if $pdl->get_datatype == $PDL_L
+# 		|| $pdl->get_datatype == $PDL_F;
+# 	    bswap8($pdl) if $pdl->get_datatype == $PDL_D;
 	}
 	if ($newfile && $f77mode) {
 	    if ($zipt || $swapbyte) {

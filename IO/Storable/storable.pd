@@ -87,6 +87,8 @@ sub pdlpack {
   # likely to break when moving stored piddles across
   # different architectures
   # probably need to store endianness and type info with it
+  # type should be saved by name! the type codes could change depending
+  # on the PDL version
 }
 
 sub pdlunpack {

@@ -145,6 +145,14 @@ pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
 . make_from_PL( 'pdlsimple.h' )
 ."
 
+pdlconv.c:: pdlconv.c.PL Types.pm\n"
+. make_from_PL( 'pdlconv.c' )
+."
+
+pdlcore.c:: pdlcore.c.PL Types.pm\n"
+. make_from_PL( 'pdlcore.c' )
+."
+
 pdlcore.h:: pdlcore.h.PL Types.pm\n"
 . make_from_PL( 'pdlcore.h' )
 .

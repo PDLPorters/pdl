@@ -1,3 +1,7 @@
+CS  - PDL::IO::FlexRaw now understands all types
+    - uncommented type longlong -- let's see how many installations
+      break ;)
+    - added t/iotypes.t
 CS  ******** merged in type extension stuff
     - example of extending data types: add longlong type (64bit integer)
     - that type is disabled by default but you can uncomment the
