@@ -91,6 +91,8 @@ use DynaLoader;
 
 @ISA    = qw( PDL::Exporter DynaLoader );
 
+use strict;
+use vars qw($level @dims $sep $sep2 $match);
 bootstrap PDL::Core;
 
 # Important variables (place in PDL namespace)
@@ -2371,7 +2373,6 @@ EOD
 # package vars $level and @dims must be initialised first.
 
 sub rpack {
-
     my ($ptype,$a) = @_;  my ($ret,$type);
 
     $ret = "";
@@ -2382,24 +2383,22 @@ sub rpack {
        }else{
           $dims[$level] = scalar(@$a);
        }
-       $level++;
 
        $type = ref($$a[0]);
-       for(@$a) {
-          barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
-          $ret .= rpack($ptype,$_);
-       }
-       $level--;
-
-    }elsif (ref($a) eq "PDL") {
-
+        if ($type) {
+        $level++;
+        for(@$a) {
+            barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
+            $ret .= rpack($ptype,$_);
+        }
+        $level--;
+        } else {
+        # These are leaf nodes
+        $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$a;
+      }
+    } elsif (ref($a) eq "PDL") {
 	barf 'Cannot make a new piddle from two or more piddles, try "cat"';
-
-    }elsif (ref(\$a) eq "SCALAR") { # Note $PDL_D assumed
-
-      $ret = defined($_) ? pack($ptype,$_) : pack($ptype,$PDL::undefval);
-
-    }else{
+    } else {
         barf "Don't know how to make a PDL object from passed argument";
     }
     return $ret;

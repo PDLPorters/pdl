@@ -1,3 +1,4 @@
+CS  - patch by Ken Williams to improve speed of 'pdl $perl_array_ref'
 CS  - check for Astro::FITS::Version >= 1.12
 CED (17-Jun-02)
     - add fits_imag to PGPLOT interface
