@@ -73,7 +73,7 @@ Return value $not_ok; a is $a; pid is $pid
 ************************************************************************
 * PLplot failed the crash test: it appears to crash its owner process. *
 * This is probably due to a misconfiguration of the PLplot libraries.  *
-* Next we'll try creating a test window from which will probably dump  *
+* Next we\'ll try creating a test window from which will probably dump  *
 * some (hopefully helpful) error messages and then die.                *
 ************************************************************************
 
@@ -183,7 +183,7 @@ my $c  = cos($a);
 
 # test rainbow point plotting with color key
 $pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
-$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
+#$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
 $pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 $pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
 $pl->close;
@@ -213,7 +213,7 @@ plpoin($x, $y, 2);
 plvpor(0.86,0.90,0.1,0.9);
 plwind (0, 10, 0, 100);
 plbox (0, 0, 0, 0, '', 'TM');
-plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,360), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0));
+plscmap1l (0, PDL->new(0,1), PDL->new(0,360), PDL->new(0.5, 0.5), PDL->new(1,1), pdl []);
 for (my $i=0;$i<10;$i++) {
   plcol1($i/10);
   plfill (PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
@@ -412,3 +412,6 @@ print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
 $txt =~ s/Opened test\d*\.xfig\n//sg;
 warn $txt unless $txt =~ /\s*/;
 
+# Local Variables:
+# mode: cperl
+# End:

@@ -843,17 +843,17 @@ use vars qw(%_constants %_actions);
      if ($legal{$pal}) {
        $self->{PALETTE} = $pal;
        if      ($pal eq 'RAINBOW') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,300), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(0,300), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
        } elsif ($pal eq 'REVERSERAINBOW') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(270,-30), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(270,-30), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
        } elsif ($pal eq 'GREYSCALE') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0),   PDL->new(0,1), PDL->new(0,0), PDL->new(0,0));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(0,0),   PDL->new(0,1), PDL->new(0,0), PDL->new(0,0));
        } elsif ($pal eq 'REVERSEGREYSCALE') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0),   PDL->new(1,0), PDL->new(0,0), PDL->new(0,0));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(0,0),   PDL->new(1,0), PDL->new(0,0), PDL->new(0,0));
        } elsif ($pal eq 'GREENRED') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(120,0), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(120,0), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
        } elsif ($pal eq 'REDGREEN') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,120), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
+	 plscmap1l (0, PDL->new(0,1), PDL->new(0,120), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
        }
      } else {
        die "Illegal palette name.  Legal names are: " . join (" ", keys %legal);
