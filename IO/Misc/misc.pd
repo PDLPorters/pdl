@@ -129,9 +129,8 @@ BEGIN {
 	eval "use Astro::FITS::Header;";
 	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
 	if($PDL::Astro_FITS_Header) {
-	  # no warnings; # pre 5.6 dislikes this
 	  my($a) = $Astro::FITS::Header::VERSION;
-	  # $a =~ s/\..*//;
+	  $a =~ s/[^0-9\.].*//;
 	  $PDL::Astro_FITS_Header = 0 if($a < 1.12);
 	}
 }
