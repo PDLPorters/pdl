@@ -1662,10 +1662,10 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 # for a patchy solution where they are specially treated in the new_window
 # routine.
 #
-my ($GeneralOptions, $WindowOptions) = default_options();
-# Turn off warnings for missing options...
-$GeneralOptions->warnonmissing(0);
-$WindowOptions->warnonmissing(0);
+# Added 28/9/01 JB
+# Delay the intialization of the window options so that it is possible
+# to set the defaults in the .perldlrc file
+my ($GeneralOptions, $WindowOptions) = (undef, undef);
 
 
 my $PREVIOUS_DEVICE = undef;
@@ -1675,6 +1675,12 @@ my $PREVIOUS_ENV = undef;
 sub new {
 
   my $type = shift;
+
+  # Set the default options!
+  ($GeneralOptions, $WindowOptions) = default_options();
+  # Turn off warnings for missing options...
+  $GeneralOptions->warnonmissing(0);
+  $WindowOptions->warnonmissing(0);
 
   # options are either given in a hash reference, or as a list
   # (which is converted to a hash reference to make the code easier)
@@ -3699,13 +3705,13 @@ sub arrow {
 	# do we really want this?
 	# - (03/15/01 DJB) removed since I assume that draw_wedge()
 	#   will be called before the focus has been changed.
-	#   Not ideal, but I don't think the current implementation will 
-	#   handle such cases anyway (ie getting the correct min/max values 
+	#   Not ideal, but I don't think the current implementation will
+	#   handle such cases anyway (ie getting the correct min/max values
 	#   for the wedge).
 #	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 	# get the options used to draw the axes
-	# note: use the window object, not the options hash, though we 
+	# note: use the window object, not the options hash, though we
 	# probably could/should do that
 	my $wo = $self->{_env_options}[4];
 
