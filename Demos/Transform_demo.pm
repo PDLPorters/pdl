@@ -17,7 +17,7 @@ sub run {
   local($PDL::verbose) = 0;
 
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
-$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XSERVE";
+$ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
 
 # try and find m51.fits
 $d = File::Spec->catdir( "PDL", "Demos" );
@@ -256,6 +256,9 @@ comment q|
  as well as other planets &c.
 
 |;
+
+  $win->close;
+  undef $win;
 } 
 
 1;

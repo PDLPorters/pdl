@@ -564,7 +564,7 @@ Lib/Transform/Cartography/earth_coast.vec.fits
 Lib/Transform/Cartography/earth_day.jpg
 Lib/Transform/Cartography/earth_night.jpg
 Lib/Transform/Makefile.PL
-Lib/Transform/Transform.pm
+Lib/Transform/transform.pd
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL

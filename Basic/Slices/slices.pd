@@ -319,7 +319,7 @@ sub PDL::range {
       my ($s,$el);
       foreach $el(@$bound) {
 	barf "Illegal boundary value '$el' in range"
-  	  unless( $el =~ m/^([0123fFtTeEpP])/ );
+  	  unless( $el =~ m/^([0123fFtTeEpPmM])/ );
 	$s .= $1;
       }
       $bound = $s;

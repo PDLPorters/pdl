@@ -1,3 +1,7 @@
+CED 01-Sep-2003
+   - Moved Transform.pm to PP; wrote C version of map() algorithm.
+   - Revamped Window.pm documentation a bit.
+   - Fixed bg bug in text().
 CED 23-Aug-2003
    - Added uniqvec() to primitive.pd
 CED 22-Aug-2003
