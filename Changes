@@ -1,3 +1,5 @@
+JC 19-May-2003
+   - Updated Release Notes
 CED 19-May-2003
    - Fixed FlexRaw to use binmode() on file handles.  Also fixed flexraw.t
  	to use binmode() in its byte-swapper.
