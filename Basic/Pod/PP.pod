@@ -46,7 +46,7 @@ and dataflow (see L<PDL::Dataflow>) which use of PP allows.
 So how do you use PP? Well for the most part you just write ordinary C
 code except for special PP constructs which take the form:
 
-    $something(something else)
+   $something(something else)
 
 or:
 
@@ -305,7 +305,7 @@ can do
 
 and have threading work correctly (the result is $c == [7 8 9]).
 
-=head2 The C<Pars> section : the signature of a PP function
+=head2 The Pars section: the signature of a PP function
 
 Seeing the above example code you will most probably ask: what is this
 strange C<$c=null> syntax in the second call to our new C<add> function? If
@@ -559,7 +559,7 @@ in the latest PDL versions you can use it to define threaded functions
 from within perl, i.e. what we call I<perl level threading>. Please check
 L<PDL::Indexing> for details.
 
-=head2 The C<Code> section
+=head2 The Code section
 
 The C<Code> section contains the actual XS code that will be in the
 innermost part of a threadloop (if you don't know what a thread loop is then
@@ -982,6 +982,16 @@ by C<pp_def> are only really useful for what we call I<slice operations>
 One thing that is strongly being planned is variable number
 of arguments, which will be a little tricky.
 
+An incomplete list of the available keys:
+
+=over 4
+
+=item Inplace
+
+Setting this key (e.g. C<Inplace =E<gt> 1>) marks the routine as working inplace.
+
+=back
+
 =head2 Other PDL::PP functions to support concise package definition
 
 So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
@@ -1198,7 +1208,6 @@ subclass.pm" when running the program.
 
 For these cases the pp_core_importList can be used to change what is imported from Core.pm. 
 For example: 
-      
 
   pp_core_importList('()') 
       
@@ -1218,7 +1227,6 @@ would result in
 being generated in the output .pm file. This would result in just 'barf'
 being imported from Core.pm.
 
-
 =head2 Slice operation
 
 The slice operation section of this manual is provided using
@@ -1230,7 +1238,7 @@ And anyway, the slice operations require a much more intimate knowledge
 of PDL internals than the data operations. Furthermore, the complexity
 of the issues involved is considerably higher than that in the average
 data operation. If you would like to convince yourself of this fact
-take a look at the C<Basic/Slices/slices.pd> file in the PDL
+take a look at the F<Basic/Slices/slices.pd> file in the PDL
 distribution :-). Nevertheless,
 functions generated using the slice operations are at the heart of the
 index manipulation and dataflow capabilities of PDL.
@@ -1273,14 +1281,13 @@ to stay within some limits so that your package will continue to work
 with later versions of PDL.
 
 If you don't want to use prepackaged arguments,
-here is a generic Makefile.PL that you can adapt for your own
+here is a generic F<Makefile.PL> that you can adapt for your own
 needs:
 
   # Makefile.PL for a package defined by PP code.
 
   use PDL::Core::Dev;            # Pick up development utilities
   use ExtUtils::MakeMaker;
-
 
   WriteMakefile(
    'NAME'  	=> 'PDL::Lib::Mylib',
@@ -1301,6 +1308,7 @@ needs:
   #   arg2: basename of the xs and pm files to be generated
   #   arg3: name of the package that is to be generated
   sub MY::postamble { pdlpp_postamble(["mylib.pd",Mylib,PDL::Lib::Mylib]); }
+
 To make life even easier PDL::Core::Dev defines the function C<pdlpp_stdargs>
 that returns a hash with default values that can be passed (either
 directly or after appropriate modification) to a call to WriteMakefile.
@@ -1321,8 +1329,6 @@ as follows:
 Here, C<$src> is the name of the source file with PP code, C<$pref> the
 prefix for the generated .pm and .xs files and C<$mod> the name of the
 exntension module to generate.
-
-
 
 =head2 INTERNALS
 
@@ -1364,6 +1370,10 @@ your operation will accept.
 This is very useful (and important!) when interfacing an external library.
 Default: [qw/B S U L F D/]
 
+=item Inplace
+
+Mark a function as being able to work inplace (use C<Inplace =E<gt> 1>).
+
 =item Doc
 
 Used to specify a documentation string in Pod format. See PDL::Doc
@@ -1376,7 +1386,7 @@ If the Doc field is omitted PP will generate default documentation
 
 If you really want the function NOT to be documented in any way at this point
 (e.g. for an internal routine, or because youu are doing it elsewhere in the
-code) explictly specify C<Doc=>undef>.
+code) explictly specify C<Doc=E<gt>undef>.
 
 =back
 
@@ -1416,7 +1426,7 @@ a physical pointer access to pdl C<a>; mainly for internal use
 =item $TXXX(Alternative,Alternative)
 
 expansion alternatives according to runtime type of operation,
-where XXX is some string that is matched by /[BSULFD+]/.
+where XXX is some string that is matched by C</[BSULFD+]/>.
 
 =item $PDL(a)
 
