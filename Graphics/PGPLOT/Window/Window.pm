@@ -805,6 +805,16 @@ aspect ratio preservation, and 1:1 pixel mapping are available.
 for, eg, movie display; but it's not recommended for final output as
 it's not device-independent.)
 
+Here's an additional complication: the "pixel" stuff refers not
+(necessarily) to normal image pixels, but rather to I<transformed>
+image pixels.  That is to say, if you feed in a transform matrix
+via the TRANSFORM option, the PIX, SCALE, etc. options all refer to the
+transformed coordinates and not physical image pixels.  That is a Good 
+Thing because it, e.g., lets you specify plate scales of your output
+plots directly!  See fits_imag for an example application.  If you
+do not feed in a transform matrix, then the identity matrix is applied
+so that the scaling options refer to original data pixels.
+
 To draw a colour bar (or wedge), either use the C<DrawWedge> option,
 or the C<draw_wedge()> routine (once the image has been drawn).
 
@@ -823,8 +833,8 @@ Options recognised:
              the image aspect ratio to be preserved.  (the image is
              scaled to avoid cropping, unless you specify scaling 
              manually).  Larger numbers yield "landscape mode" pixels.
-     PITCH - Sets the number of image pixels per screen unit, in the Y
-             direction.  The X direction is determined by PIX, which 
+     PITCH - Sets the number of image pixels per screen unit, in the X
+             direction.  The Y direction is determined by PIX, which 
              defaults to 1 if PITCH is specified and PIX is not.  PITCH 
              causes UNIT to default to "inches" so that it is easy to say 
              100dpi by specifying {PITCH=>100}.  Larger numbers yield 
@@ -887,13 +897,6 @@ Display a FITS image with correct axes
 
 Notes: 
 
-Because the point of fits_imag is to generate the transform array for
-you, you shouldn't pass in a TRANSFORM array, or a PIX, PITCH, UNIT,
-or SCALE specification (all they do is generate other transform
-arrays).  Currently passing one of these parameters into fits_imag does
-undefined things.  It's not likely to crash, but it's also not likely
-to be what you want, either.
-
 Currently fits_imag also generates titles for you and appends the CTYPE
 units if they're present.  So if you say
 
@@ -905,6 +908,13 @@ if $pdl's CTYPE1 field contains "bleems".
 If you don't pass in an xtitle or ytitle parameter, you still get the 
 units designation.  But if there's no CTYPE1 or CTYPE2 then you get no
 units designation.
+
+Using the SCALE, PIX, or PITCH options works OK -- but those parameters
+refer to the scientific coordinate system rather than to the pixel
+coordinate system (e.g. "PITCH=>100" means "100 scientific units per inch",
+and "SCALE=>1" means "1 scientific unit per device pixel".  See
+the imag() writeup for more info on these options.  Scaling happens relative
+to the image datum.
 
 =head2 draw_wedge
 
@@ -4227,25 +4237,57 @@ sub arrow {
 	}
 	barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
       }
-
       $pix = $u_opt->{'PIX'} if defined $u_opt->{'PIX'};
+
+
+
+      
+      ##############################
+      ## Figure out how big the image is in data space.  This
+      ## is the coordinate system that the $tr matrix translates pixels
+      ## into.  Because the transform is an inhomogeneous scale-and-rotate,
+      ## the limiting points are always the corners of the original
+      ## physical data plane after transformation.
+      # - we respect the sense of the input axis by swapping the min/max
+      #   values if the pixel size is negative (DJB 01/10/15)
+      my @xvals = ($tr->slice("0:2")*pdl[
+					 [1, 0.5, 0.5],
+					 [1, 0.5, $nx+0.5],
+					 [1, $nx+0.5, 0.5],
+					 [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
+      my $xrange = $xvals[1] - $xvals[0];
+
+      my @yvals = ($tr->slice("3:5")*pdl[
+					 [1, 0.5, 0.5],
+					 [1, 0.5, $ny+0.5],
+					 [1, $ny+0.5, 0.5],
+					 [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
+      my $yrange = $yvals[1] - $yvals[0];
+
+      if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
+      if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
+
 
       ##############################
       ## Do the initial scaling setup.  If $pix is defined, then
-      ## handle the scaling locally, else use initenv.
-      ## [ The PIX, SCALE, and UNIT options could in principle be fed to
-      ## initenv instead of doing it here... ]
+      ## handle the scaling locally, else use initenv (much simpler).
 
       if (defined $pix) {
 	my ( $x0,$x1,$y0,$y1 );
+	print "PIX defined...\n";
 
 	if (!defined($pitch)) {
 	  ## Set scaling parameters automagically.
 
+	  # Get size of viewport, in inches
 	  pgqvsz(1,$x0,$x1,$y0,$y1);
+	  
 	  print "x0=$x0, x1=$x1, y0=$y0, y1=$y1\n" if $PDL::verbose;
-	  ($unit,$pitch) = (1, max(pdl( $pix * $nx / ($x1-$x0)  , 
-					$ny / ($y1-$y0)   )));
+
+	  # Set number of pixels per inch
+	  ($unit,$pitch) = (1, max(pdl( $xrange / ($x1-$x0) ,
+					$yrange / ($y1-$y0) * $pix  )));
+
 	  print "imag: defined pitch & unit automagically\n" if $PDL::verbose;
 	}
 
@@ -4255,6 +4297,7 @@ sub arrow {
 	my($col); pgqci($col);
 	my $wo = $self->{Options}->options($opt);
 	print "Axis colour set to $$wo{AxisColour}\n";
+
 	if ($self->{NX}*$self->{NY} > 1) {
 	  $self->clear_state();
 	  pgeras();
@@ -4262,37 +4305,31 @@ sub arrow {
 	  $self->clear_state();
 	  pgpage();
 	}
+
 	$self->_set_colour($wo->{AxisColour});
-	pgvstd;			## Change this to use the margins for display!
+	pgvstd;			## Standard margins
+#	pgsvp(0,1,0,1) ## (This is how to use the whole window.)
 
 	## Set the window to the correct number of pixels for the
 	## viewport size and the specified $pitch.
 	pgqvsz($unit,$x0,$x1,$y0,$y1);
-	pgswin(0,($x1-$x0)*$pitch/$pix,0,($y1-$y0)*$pitch);
 
-	$self->_set_env_options(0, ($x1-$x0)*$pitch/$pix, 0, 
-				 ($y1-$y0)*$pitch, 
-				 $self->{Options}->options($opt));
-#	$self->{_env_set}[$self->{CurrentPanel}]=1;
+	my($xr2) = ($x1-$x0) / 2.0 * float($pitch);
+	my($yr2) = ($y1-$y0) / 2.0 * float($pitch) / float($pix);
+
+	my($im_xctr) = ( $xvals[0] + $xvals[1] )  /  2.0;
+	my($im_yctr) = ( $yvals[0] + $yvals[1] )  /  2.0;
+
+	my(@pgswin) =  ($im_xctr - $xr2,
+			$im_xctr + $xr2,
+			$im_yctr - $yr2,
+			$im_yctr + $yr2);
+	pgswin(@pgswin);
+	$self->_set_env_options(@pgswin,$self->{Options}->options($opt));
+
 	$self->_set_colour($col);
       } else {
-	# Scale the image correctly even with rotation by calculating the new
-	# corner points
-	# - we respect the sense of the input axis by swapping the min/max
-	#   values if the pixel size is negative (DJB 01/10/15)
-        #
-        my @xvals = ($tr->slice("0:2")*pdl[
-					   [1, 0.5, 0.5],
-					   [1, 0.5, $nx+0.5],
-					   [1, $nx+0.5, 0.5],
-					   [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
-        my @yvals = ($tr->slice("3:5")*pdl[
-					   [1, 0.5, 0.5],
-					   [1, 0.5, $ny+0.5],
-					   [1, $ny+0.5, 0.5],
-					   [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
-        if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
-        if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
+	print "no PIX defined...\n";
 
 	$self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
       }
@@ -4305,6 +4342,8 @@ sub arrow {
     pgqcir($i1, $i2);		# Colour range - if too small use pggray dither algorithm
 
     # Why is the PS output disabled in the following if statement??
+    # [I think because the postscript device is busted for pggray(). 
+    #   --CED 20-Jun-2002]
     if ($i2-$i1<16 || $self->{Device} =~ /^v?ps$/i) {
       pggray( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
@@ -4331,8 +4370,9 @@ sub arrow {
 }
 
 #
-# Complain to deforest@boulder.swri.edu if this one doesn't work for you.
 # Display an image with axes appropriate for its FITS header.
+# This just sets up a transform matrix to substitute the FITS 
+# scientific coordinate system instead of the pixel-grid coordinate system.
 #
 sub fits_imag {
   my($pane) = shift;
@@ -4345,6 +4385,7 @@ sub fits_imag {
   print STDERR
     "Warning: fits_imag got a null FITS header (didja set hdrcpy?)\n"
       unless (scalar(keys %$hdr) || !$PDL::debug);
+
 
   # $ic gets the image center, in data coordinates.  That's why the 
   # $hdr->{NAXIS1}/2 is in there.  
@@ -4359,22 +4400,20 @@ sub fits_imag {
 		    0
 	      ];
 
-
-
   my($transform) = $pane->transform(
     {ImageDimensions=>[$pdl->dims],
-     Angle=>($hdr->{CROTA} || 0),
-     Pixinc=>($hdr->{CDELT1} || 1.0),  # This should, but can't, be a 2-array.
+     Angle=>($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180,
+     Pixinc=>[($hdr->{CDELT1} || 1.0), ($hdr->{CDELT2} || 1.0)],
      ImageCenter=>$ic
      }
    );
-  print "ok\n";
+
   $opt->{Transform} = $transform;
   %opt2 = %{$opt};
   delete $opt2{xtitle};
   delete $opt2{ytitle};
   delete $opt2{title};
-  $pane->imag($pdl,\%opt2);
+  $pane->imag1($pdl,\%opt2);
   $pane->label_axes($opt->{xtitle} . " ($hdr->{CTYPE1}) ",$opt->{ytitle} . " ($hdr->{CTYPE2}) ",$opt->{title},$opt);
 }
 
