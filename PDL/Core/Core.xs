@@ -373,7 +373,8 @@ hist_c(a,min,max,step)
      if (nbins<=0)
         croak("Error max<=min");
      pdl_grow(c, nbins);               /* New size */ 
-     pdl_unpackdims( (SV*) c->sv, &nbins, 1 ); /* Change dimensions */
+     c->ndims = 1; *(c->dims)=nbins;
+     pdl_unpackdims( (SV*) c->sv, c->dims, c->ndims ); /* Change dimensions */
 
      pdl_hist( c, a, min, step );
 

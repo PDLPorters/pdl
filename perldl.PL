@@ -101,7 +101,7 @@ $PERLDL_ESCAPE. This could, for example, be set in C<~/.perldlrc>.
 
 unshift @INC, "./blib"; 
 print <<'EOD';
-perlDL shell v1.10
+perlDL shell v1.11
 EOD
 
 $PERLDL_ESCAPE = '#'; # Default shell escape

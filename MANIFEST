@@ -53,5 +53,7 @@ Makefile.PL
 PDL.pod
 perldl.PL
 MANIFEST
-democallext.p
-democallext.c
+demos/callext.p
+demos/callext.c
+PDL-FAQ.pod
+demos/pdlimage

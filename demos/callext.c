@@ -6,7 +6,7 @@
 
   E.g. on Solaris this would be compiled:
 
-  cc -o democallext.so -G -Kpic democallext.c
+  cc -o callext.so -G -Kpic callext.c
 
   to generate dynamically loadable code. For other systems
   see the man pages on your C compiler or the Perl config 
@@ -16,7 +16,7 @@
 
 #include <stdio.h>
 #include <math.h>
-#include "PDL/Core/pdl.h"  /* data structure defs */
+#include "../PDL/Core/pdl.h"  /* data structure defs */
 
 /* This is the action routine */
 

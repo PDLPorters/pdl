@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 
-# Example of how to use callext() - also see democallext.c
+# Example of how to use callext() - also see callext.c
 
 use PDL;
 
@@ -37,7 +37,7 @@ sub loglog {
 
    my $ret = pdl($x); # Make copy of $x to return
 
-   callext("./democallext.so", "loglog_ext", $ret, $y);
+   callext("./callext.so", "loglog_ext", $ret, $y);
 
    return $ret;
 }

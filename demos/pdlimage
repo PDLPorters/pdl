@@ -1,0 +1,534 @@
+#!/usr/local/bin/perl
+#!/disk-a/koehler/RKutils/bin/perl
+#
+# pdlimage	by Rainer Koehler
+#
+# Last Change: Mon Feb 24 09:53:04 1997
+#
+# Some minor (?) changes by kgb 12/Feb
+#
+# Consider it freeware, so don't complain if it sends you
+# or your data straight to hell without further notice.  >:->
+#
+#############################################################################
+
+use Carp;
+use Cwd;
+use PDL;
+use Tk;
+use Tk::ErrorDialog;
+
+$debug = 0;
+print STDERR "running\n" if $debug;
+
+$MW = MainWindow->new;
+#
+# Some defaults you might want to change
+#
+$stdimage = "imt512";
+$geometry = "+518-24";	# to the right of saoimg and at the lower edge
+@saogeom  = ("-geometry", "+0+0");
+$useximtl = 0;
+$hdrgeom  = "";
+$filter   = "*.fits*";
+$file     = cwd() . "/";
+
+my $stdfont  = "-*-Helvetica-Bold-R-Normal--*-120-75-75-*";
+my $entryfont= "-*-Helvetica-Medium-R-Normal--*-120-75-75-*";
+my $textfont = "-*-courier-Bold-R-*-*-*-120-75-75-*";
+
+
+while($arg = shift)
+{
+  if($arg =~ /^-v/) { $PDL::verbose++;  next; }
+  if($arg =~ /^-g/) { $geometry= shift;	next; }
+  if($arg =~ /^-s/) { @saogeom = ("-geometry",(shift || "+0+0")); next; }
+  if($arg =~ /^-hd/){ $hdrgeom = shift; next; }
+  if($arg =~ /^-f/) { $filter  = shift; next; }
+  if($arg =~ /^-x/) { $useximtl= 1;	next; }
+  if($arg =~ /^-h/)
+  {
+    print "USAGE: $0 [-h] [-v] [-geom ctl-win-pos] [-saogeom saoimage-pos]\n"
+	. "       [-hdrgeom hdr-win-pos] [-filter \"pattern\"] [file]\n";
+    next;
+  }
+  $file = $arg;
+}
+
+$file =~ s/^~/$ENV{HOME}/;
+$file = cwd() . "/$file" unless ($file =~ m!^/!);
+
+$cwd = $file;
+$cwd =~ s!/[^/]*$!! if (!-d $cwd);
+chdir($cwd);
+#
+# Make a private pair of fifos to talk to OUR saoimage
+# (method to call mkmumble stolen from The Camel, p.345)
+#
+my $savepath = $ENV{PATH};
+$ENV{PATH} .= ":/etc:/usr/etc";
+my $fipath = "/tmp/pdlimt$$";
+
+if( system("mknod ${fipath}i p") and system("mkfifo ${fipath}i"))
+{	die "Can't create ${fipath}i!\a\n"; 	}
+
+if( system("mknod ${fipath}o p") and system("mkfifo ${fipath}o"))
+{	unlink $fipath."i";  die "Can't create ${fipath}o!\a\n"; }
+
+$ENV{IMTDEV} = "fifo:${fipath}i:${fipath}o";
+$ENV{PATH} = $savepath;
+
+END { if(defined $fipath) { unlink $fipath."i";  unlink $fipath."o"; } }
+
+$saopid= $useximtl? ximtool : saoimage(@saogeom) or die "Can't start saoimage!\n";
+
+END { kill 'INT', $saopid if(defined $saopid); }
+
+############################## Config stuff ##############################
+print STDERR "Starting config stuff\n" if $debug;
+
+$MW->configure(-bg => "black");
+
+$MW->option("add", "*Background",	"SlateGray",	"widgetDefault");
+$MW->option("add", "*Foreground",	"White",	"widgetDefault");
+$MW->option("add", "*activeBackground",	"SteelBlue",	"widgetDefault");
+$MW->option("add", "*activeForeground", "White",	"widgetDefault");
+$MW->option("add", "*HighlightBackground", "Black",	"widgetDefault");
+$MW->option("add", "*HighlightColor",	"#d9d9d9",	"widgetDefault");
+$MW->option("add", "*HighlightThickness",1);
+$MW->option("add", "*BorderWidth",	 1);
+$MW->option("add", "*Font",		$stdfont,	"widgetDefault");
+
+$MW->option("add", "*Label.HighlightThickness", 0);
+$MW->option("add", "*Frame.HighlightThickness", 0);
+$MW->option("add", "*Toplevel.HighlightThickness", 0);
+
+$MW->option("add", "*Text.background",	"MidnightBlue",	"widgetDefault");
+$MW->option("add", "*Text*Font",	$textfont,	"widgetDefault");
+
+$MW->option("add", "*Entry.background",	"SteelBlue",	"widgetDefault");
+$MW->option("add", "*Entry*Font",	$entryfont,	"widgetDefault");
+
+$MW->option("add", "*Listbox*BorderWidth",	2);
+$MW->option("add", "*Listbox*Relief",		"sunken");
+$MW->option("add", "*Listbox.background",	"MidnightBlue",	"widgetDefault");
+$MW->option("add", "*Listbox.selectBackground", "SlateGray",	"widgetDefault");
+$MW->option("add", "*Listbox.selectForeground", "White",	"widgetDefault");
+$MW->option("add", "*Scrollbar.elementBorderWidth", 2	);
+$MW->option("add", "*Scrollbar.background",	"SteelBlue",	"widgetDefault");
+
+#############################################################################
+# Wir basteln uns ein GUI...
+
+my $width = 50;
+my $ready = 0;
+
+#################### 1.line: Filter/verbose ####################
+print STDERR "1. line\n" if $debug;
+
+my $FR0 = $MW->Frame(-relief => "raised")->pack(-padx => 2, -pady => 1, -fill => "both");
+
+$FR0->Label(-text => "Filter:", -width => 8)->pack(-side => "left");
+
+my $FiE= $FR0->Entry(-relief => "sunken", -textvariable => \$filter);
+
+$FiE->pack(-side => "left", -padx => 5, -pady => 2, -expand => 1, -fill => "both");
+$FiE->bind("<Return>", sub { &read_files } );
+
+$FR0->Checkbutton(-text => "Verbose", -variable => \$PDL::verbose, -pady => 2, -padx => 2,
+		  -selectcolor => "SteelBlue", -highlightbackground => "SlateGray")
+	->pack(-side => "left", -padx => 3);
+
+#################### 2.line: dirs & files ####################
+print STDERR "2. line\n" if $debug;
+
+my $FR1 = $MW->Frame(-bd => 0, -bg => "Black")
+	->pack(-pady => 1, -expand => 1, -fill => "both");
+
+
+my $FRdir= $FR1->Frame(-relief => "raised")
+	->pack(-side => "left",	-padx => 2, -fill => "both", -expand => 1);
+
+my $FRdF= $FRdir->Frame()->pack(-pady => 2, -fill => "x");
+
+my $FRdsk= $FRdF->Menubutton(-text => "Disks...", -pady => 2, -relief => "raised")
+	->pack(-side => "left", -padx => 4);
+foreach $d ( glob "/*/$ENV{USER}/")
+{	$FRdsk->command(-label => "$d", -command => [ \&cd_to, $d ]);	}
+
+my $FRdmb= $FRdF->Menubutton(-text => "Directories:", -pady => 2, -relief => "raised")
+	->pack(-side => "left");
+
+print STDERR "2. line, DirList\n" if $debug;
+
+my $DirL= $FRdir->Listbox(-width => 15, -height => 12)
+	->pack(-side => "left", -padx => 4, -pady => 3, -fill => "both", -expand => 1);
+my $DirS= $FRdir->Scrollbar(-command => ["yview", $DirL])
+	->pack(-side => "left", -padx => 3, -pady => 3, -fill => "y");
+$DirL->configure(-yscrollcommand => ['set', $DirS]);
+
+sub select_dir
+{
+  my @selist = $DirL->curselection;
+  my $dest = $DirL->get($selist[0]);
+  if ( $dest eq "../")
+  {	# up
+    chdir "..";
+    $file = cwd();
+    $FRdmb->menu->delete("last");
+    &read_dirs;
+    &read_files;
+  }
+  else
+  {	# down
+    &cd_to($dest);
+  }
+}
+
+$DirL->bind("<Double-1>", \&select_dir );
+$DirL->bind("<Return>", \&select_dir );
+
+my $FRfil= $FR1->Frame(-relief => "raised")
+	->pack(-side => "left",	-padx => 2, -fill => "both", -expand => 1);
+
+$FRfil->Label(-text => "Files:")->pack(-fill => "x", -pady => 5);
+
+my $FilL= $FRfil->Listbox(-width => 10, -height => 12)
+	->pack(-side => "left", -padx => 4, -pady => 3, -fill => "both", -expand => 1);
+my $FilS= $FRfil->Scrollbar(-command => ["yview", $FilL])
+	->pack(-side => "left", -padx => 3, -pady => 3, -fill => "both");
+$FilL->configure(-yscrollcommand => ['set', $FilS]);
+
+sub select_file
+{
+  my($display_it)= @_;
+  my @selist = $FilL->curselection;
+  my $dest = $FilL->get($selist[0]);
+  $file = cwd() . "/$dest" if $dest;
+  &new_file if $display_it;
+}
+
+$FilL->bind("<1>", [ \&select_file, 0 ]);
+$FilL->bind("<Double-1>", [ \&select_file, 1]);
+$FilL->bind("<Return>", \&select_file );
+
+
+#################### 3.line: Filename ####################
+print STDERR "3. line\n" if $debug;
+
+my $FR2= $MW->Frame(-relief => "raised")
+	->pack(-fill => "both", -padx => 2, -pady => 1);
+
+$FR2->Label(-text => "Filename:", -width => 8)->pack(-side =>"left", -padx => 1);
+my $FlE= $FR2->Entry(-width => $width, -relief => "sunken", -textvariable => \$file)
+	->pack(-side => "left", -padx => 3, -pady => 2, -expand => 1, -fill => "both");
+
+$FlE->bind("<Return>", sub { &cd_to($file) if (-d $file); });
+
+$FlE->bind("<Key-Tab>", sub { &complete_entry_fname($FlE); });
+$FlE->bind("<Shift-Tab>", sub { });
+$FlE->bind("<Control-Tab>", sub { });
+
+#################### 4.line: File Params ####################
+print STDERR "4. line\n" if $debug;
+
+my $FR3= $MW->Frame(-borderwidth => 0, -background => "black")
+	->pack(-fill => "x", -padx => 1, -pady => 1);
+
+$statstr = "Object: <None>";
+$FR3->Label(-textvariable => \$statstr, -anchor => "w", -relief => "raised", -padx => 3)
+	->pack(-side => "left", -padx => 1, -expand => 1, -fill => "both");
+
+my $FR3f= $FR3->Frame(-relief => "raised")
+	->pack(-side => "left", -fill => "x", -padx => 1);
+
+$frame = "";
+$FR3f->Label(-text => "Frame no.")->pack(-side => "left", -padx => 2);
+$FR3f->Entry(-width => 10, -relief => "sunken", -textvariable => \$frame)
+	->pack(-side => "left", -padx => 3, -pady => 2, -expand => 1, -fill => "both");
+
+
+#################### 5.line: Min/Max ####################
+print STDERR "5. line\n" if $debug;
+
+my $FR4= $MW->Frame(-relief => "raised")->pack(-fill => "x", -padx => 2, -pady => 1);
+
+$MMCnv= $FR4->Canvas(-relief => "sunken", -width => 200, -height => 42,
+		     -background => "MidnightBlue")
+	->pack(-side => "right", -padx => 2, -pady => 2, -expand => 1, -fill => "both");
+
+$histwd= 1;
+sub click_min
+{
+  my($c)= @_;
+  my $x = $c->canvasx($c->XEvent->x);
+  $cutmin= sprintf("%.4g",$imgmin + ($x-4) * ($imgmax-$imgmin) / $histwd);
+  $autolim= "";
+  $c->move("min",$x-$histmin_x,0);
+  $histmin_x= $x;
+}
+$MMCnv->bind("min","<1>" => \&click_min );
+$MMCnv->bind("min","<B1-Motion>" => \&click_min );
+$MMCnv->bind("min","<ButtonRelease-1>", sub { &click_min;  &new_file; });
+
+sub click_max
+{
+  my($c)= @_;
+  my $x = $c->canvasx($c->XEvent->x);
+  $cutmax= sprintf("%.4g",$imgmin + ($x-4) * ($imgmax-$imgmin) / $histwd);
+  $autolim= "";
+  $c->move("max",$x-$histmax_x,0);
+  $histmax_x= $x;
+}
+$MMCnv->bind("max","<1>", \&click_max );
+$MMCnv->bind("max","<B1-Motion>", \&click_max );
+$MMCnv->bind("max","<ButtonRelease-1>", sub { &click_max;  &new_file; });
+
+
+$autolim= "1";
+my $FR4dsp= $FR4->Frame(-borderwidth => 0)->pack(-fill => "x");
+$FR4dsp->Label(-text => "Display limits:", -anchor => "w", -padx => 3)
+	->pack(-side => "left", -fill => "x");
+$FR4dsp->Checkbutton(-text => "Auto", -variable => \$autolim,
+		  -selectcolor => "SteelBlue", -highlightbackground => "SlateGray")
+	->pack(-side => "right", -padx => 3);
+
+$cutmin= $imgmin= "";
+my $FR4min= $FR4->Frame(-borderwidth => 0)->pack(-fill => "x");
+$FR4min->Label(-text => "min =", -width => 5, -anchor => "e")
+	->pack(-side => "left", -padx => 3);
+$FR4min->Entry(-width => 10, -relief => "sunken", -textvariable => \$cutmin)
+	->pack(-padx => 2, -pady => 2, -expand => 1, -fill => "both")
+	->bind("<Return>", sub { $autolim= ""; });
+
+$cutmax= $imgmax= "";
+my $FR4max= $FR4->Frame(-borderwidth => 0)->pack(-fill => "x");
+$FR4max->Label(-text => "max =", -width => 5, -anchor => "e")
+	->pack(-side => "left", -padx => 3);
+$FR4max->Entry(-width => 10, -relief => "sunken", -textvariable => \$cutmax)
+	->pack(-padx => 2, -pady => 2, -expand => 1, -fill => "both")
+	->bind("<Return>", sub { $autolim= ""; });
+
+#################### last line: Ok/Cnc ####################
+print STDERR "last line\n" if $debug;
+
+my $FR99= $MW->Frame(-relief => "raised")
+	->pack(-fill => "x", -padx => 2, -pady => 1);
+
+$FR99->Button(-text => "Display", -width => 8, -command => sub{ &new_file; })
+	->pack(-side => "left", -expand => 1, -fill => "both", -padx => 4, -pady => 4);
+
+$FR99->Button(-text => "View Header", -width => 8, -command => sub{ &view_hdr; })
+	->pack(-side => "left", -expand => 1, -fill => "both", -padx => 4, -pady => 4);
+
+$FR99->Button(-text => "Quit", -width => 8, -command => sub{ exit })
+	->pack(-side => "left", -expand => 1, -fill => "both", -padx => 4, -pady => 4);
+
+
+#############################################################################
+print STDERR "last words\n" if $debug;
+
+$MW->geometry($geometry);
+$FiE->focus;
+
+$ED = $MW->ErrorDialog;
+
+($MW->update, &new_file()) if $file ne $cwd;
+
+&fill_dir_menu();
+&read_dirs();
+&read_files();
+
+MainLoop;
+
+
+#############################################################################
+
+sub cd_to
+{
+  my($cwd) = @_;
+  print "going to $cwd\n" if $PDL::verbose;
+  chdir $cwd or $FlE->Error("couldn't change working directory to \"$cwd\": $!\n");
+  $file = cwd() . "/";
+  &fill_dir_menu;	&read_dirs;	&read_files;
+}
+
+#############################################################################
+
+sub fill_dir_menu
+{
+  my($cwd) = "";
+  $FRdmb->menu->delete( 1, "end");
+  foreach $d ( split("/",cwd()))
+  {
+    $cwd .= "$d/";
+    $FRdmb->menu->insert(1,"command",-label => "$d/", -command => [ \&cd_to, $cwd ]);
+  }
+}
+
+#############################################################################
+
+sub read_dirs
+{
+  $DirL->delete(0, "end");
+  $DirL->insert("end", "../") unless cwd() eq "/";
+
+  foreach $i ( sort( glob("*/")))  { $DirL->insert("end", $i); }
+}
+
+sub read_files
+{
+  $FilL->delete(0, "end");
+  foreach $i ( sort( glob($filter))) {
+    $FilL->insert("end", $i) unless (-d $i);
+  }
+}
+
+#############################################################################
+
+sub new_file
+{
+  if($file)
+  {
+    print STDERR "$file..." if $PDL::verbose;
+    (-f $file) or croak "$file not found!\n";
+
+    my $img, $n1, $n2, $n3;
+    print STDERR "reading..." if $PDL::verbose;
+    $img = rfits($file);
+
+    print STDERR "ok\n" if $PDL::verbose;
+    $statstr= "Object: '" . $$img{Hdr}{'OBJECT'}
+		."'  X: " . ($n1= $$img{Hdr}{'NAXIS1'})
+		. "  Y: " . ($n2= $$img{Hdr}{'NAXIS2'});
+
+    if( $$img{Hdr}{'NAXIS'} > 2)
+    {
+	$statstr .= "  Z: " . ($n3= $$img{Hdr}{'NAXIS3'});
+	$frame= 0  if( $frame < 0 || $frame eq "");
+	$frame= $n3-1  if( $frame >= $n3);
+	$img = sec($img, 0,$n1-1, 0,$n2-1, $frame,$frame);
+    }
+    else { $frame= ""; }
+
+    my $min= min($img);  $imgmin= $min;
+    my $max= max($img);  $imgmax= $max;
+    my $wdt= $MMCnv->winfo("width")-10;  $histwd= $wdt;
+    my $hgt= $MMCnv->winfo("height")-4;
+    $h = hist $img,$min,$max,($max-$min)/$wdt;
+    $scl= $hgt / max($h);
+
+    $MMCnv->delete("all");
+    for $i (0..nelem($h)-1) {
+      #print "$i: ", at($h,$i),"\n";
+      $MMCnv->create("line",4+$i,$hgt+1,4+$i,$hgt-at($h,$i)*$scl,-fill => "White");
+    }
+    if( $autolim) {
+      $cutmin= sprintf("%.4g",$min);
+      $cutmax= sprintf("%.4g",$max);
+    }
+    elsif ($cutmin > $cutmax)  { my $t= $cutmin;  $cutmin= $cutmax;  $cutmax= $t; }
+
+    my $x;
+    $x= 4+($cutmin-$min)*$wdt/($max-$min);
+    $MMCnv->delete("min");
+    $MMCnv->create("line",$x,2,$x,$hgt+1,-fill => "SteelBlue", -tags => "min");
+    $MMCnv->create("rectangle",$x-3,4,$x+3,10,-fill => "SteelBlue", -tags => "min");
+    $histmin_x= $x;
+
+    $MMCnv->delete("max");
+    $x= 4+($cutmax-$min)*$wdt/($max-$min);
+    $MMCnv->create("line",$x,2,$x,$hgt+1,-fill => "SteelBlue", -tags => "max");
+    $MMCnv->create("rectangle",$x-3,4,$x+3,10,-fill => "SteelBlue", -tags => "max");
+    $histmax_x= $x;
+
+    unless( $autolim) {
+      $min= ($cutmin ne "")? $cutmin : undef;
+      $max= ($cutmax ne "")? $cutmax : undef;
+    }
+    iis $img, $cutmin,$cutmax;
+  }
+}
+
+
+#############################################################################
+
+sub view_hdr
+{
+  open HDR,$file or croak "FITS file $file not found";
+
+  (read(HDR, $l, 80) == 80 and ($l =~ /^SIMPLE  = +T/))
+    or croak "file $file is not in FITS-format\n";
+
+  $HV->destroy if Exists($HV);
+  $HV= $MW->Toplevel(-title => "Header of $file");
+
+  $HVbF= $HV->Frame(-relief => "raised", -bd => 1)->pack(-side => "bottom", -fill => "x");
+  $HVbF->Button(-width => 20, -text => "Dismiss", -command => sub { $HV->destroy })
+	    ->pack(-pady => 3);
+
+  $HVtF= $HV->Frame(-relief => "raised", -bd => 1)->pack(-fill => "both", -expand => 1);
+  $HVT= $HVtF->Text(-relief => "sunken", -bd => 1, -setgrid => 1)
+	    ->pack(-padx=>"2m", -pady=>3, -side=>"left", -fill=>"both", -expand => 1);
+  $HVS= $HVtF->Scrollbar(-relief => "sunken", -command => ["yview", $HVT])
+	    ->pack(-padx=>"1m", -pady=>3, -side=>"left", -fill=>"y");
+  $HVT->configure(-yscrollcommand => ['set', $HVS]);
+
+  $HV->geometry($hdrgeom) if $hdrgeom;
+
+  while( read(HDR, $l, 80) == 80) {
+    $HVT->insert("end", "$l\n");
+    last if $l =~ /^END     /;
+  }
+  close HDR;
+}
+
+#############################################################################
+
+sub common_string
+{
+  my(@list) = @_;
+  my($first) = shift @list;
+  my($len,$substr);
+
+ CHAR:
+  for $len (1..length($first))
+  {
+    $substr = substr($first,0,$len);
+    for $str (@list)
+    {
+      if( $substr ne substr($str,0,$len))
+      {
+	chop($substr);	last CHAR;
+      }
+    }
+  }
+  return $substr;
+}
+
+sub complete_entry_fname
+{
+  my($entry)= shift @_;
+  my($dir)  = shift @_ || 0;
+  my($stub) = "";
+  my($fname)= $file;
+
+  ($stub,$fname) = ($fname =~ /^(.*\s+)(\S+)\s*$/) if ($fname =~ /\s/);
+  # We want to keep the spaces at the end of $stub!
+
+  if( @flist = glob($fname . ($dir ? "*/" : "*")))
+  {
+    $stub .= common_string(@flist);
+    print "result: $stub\n" if $PDL::verbose;
+    $file = $stub;
+    if (-d "$file")
+    {	$file .= "/";	cd_to($file);	}
+  }
+  else
+  { $entry->bell; }
+  Tk->break;
+}
+
+
+__END__
+

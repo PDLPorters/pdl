@@ -1,5 +1,5 @@
 
-This is version 1.03 of PDL
+This is version 1.11 of PDL
 ---------------------------
 
 It demonsrates basic data processing functionality but has no where
@@ -11,14 +11,15 @@ me (kgb@aaoepp.aao.gov.au) or mailing list perldl@jach.hawaii.edu
 (subscription address:  perldl-request@jach.hawaii.edu) with ideas and
 suggestions.
 
-Karl Glazebrook, Anglo-Australian Observatory. 6/Oct/1996.
+Karl Glazebrook, Anglo-Australian Observatory. 24/Feb/1997.
 
 Requirements.
 -------------
 
 perl5.003 or later. (Probably OK with 5.002 but I can not test.)
 
-PGPLOT v2.01 (or higher) module must be installed to access PGPLOT graphics.
+PGPLOT v2.0 (or higher) module must be installed and working to 
+access PGPLOT graphics.
 
 saoimage or ximtool must be installed to display images with
 these programs.

@@ -3,12 +3,12 @@
 
 =head2 PDL - Perl Data Language extension module
 
-Version 1.10 release
+Version 1.11 release
 
 "Why is it that we entertain the belief that for every purpose odd
 numbers are the most effectual?" - Pliny the Elder.
 
-I<Karl Glazebrook, AAO, 16/Feb/1997. [kgb@aaoepp.aao.gov.au]>
+I<Karl Glazebrook, AAO, 24/Feb/1997. [kgb@aaoepp.aao.gov.au]>
 
 
 =head1 DESCRIPTION
@@ -242,8 +242,8 @@ top right when using "C<print $a>" etc.
                    # axisvals($x,$axis) and rvals() for radial distance 
                    # from centre).
 
-(Note: I hope to enable syntax like C<$$a{'0..200,3..200'}> using
-C<tie()> but I am still thinking about the ramifications of this)
+*** Note: Experimental neat virtual slicing syntax is being worked upon for PDL 2.0 ***
+
 
 =head2 Input/Output
 
@@ -291,7 +291,7 @@ PGPLOT provdes a simple library for line graphics and image display.
 
 There is an easy interface to this in the internal module
 PDL::Graphics::PG. (This calls routines in the separately available
-PGPLOT top-level module.)
+PGPLOT top-level perl module - version 2.0 or higher.)
 
 Current display commands:
 
@@ -411,12 +411,14 @@ in file "pdl.h" which is included in the perlDL distribution and has no
 perl dependencies.  It is trivial to cast the data array (pdl.data) to
 (float), (double) etc. and pass to any other C routine.
 
-This is all demonstrated in the files "democallext.*" in the perlDL
+This is all demonstrated in the files "demos/callext.*" in the perlDL
 distribution.
 
 Note: This is only intended as a quick and dirty prototyping interface
 for the scientist/hacker. perlDL developers should write a module
-along the lines of the example PDL::Examples.
+along the lines of the example PDL::Examples. (Or better: join
+the pdl-porters mailling list and find out about how to take advantage
+of the cool features coming up in PDL 2.0)
 
 
 =head2 perldl shell
@@ -492,6 +494,11 @@ something more sophisticated using the X-axis for example.
 If you were feeling really ambitious you might do PDL::Ir::Spectrum
 which understood about the gaps between the J H and K bands!
 
+
+***IMPORTANT: THIS IS AN EXPERIMENTAL FEATURE****
+
+i.e. it may go away in PDL v2.0. It is not yet clear whether it is
+neat or a crock. :-) Comments welcome.
 
 =head2 Memory usage and references
 
@@ -575,14 +582,17 @@ WARNINGS:
 =over
 
 =item 1.
+
 The usual caveats about duplicate references apply. 
 
 =item 2.
+
 Obviously when used with some functions which can not be applied
 in situ (e.g. convolve()) unexpected effects may occur! I try to
 indicate inplace() safe functions below.
 
 =item 3.
+
 Type conversions [e.g. float()] may cause hidden copying.
 
 =back
@@ -638,6 +648,12 @@ the piddle after a fiddle').
 
 Finally there is no reason why the data structure should not
 contain another PDL variable!
+
+
+***IMPORTANT*** This structure was experimental, and has already
+gone away in the latest development version of PDL2.0. You have
+been warned. :-)
+
 
 
 =head2 Complete List of Exported Functions
