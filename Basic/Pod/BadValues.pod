@@ -246,7 +246,7 @@ for checks such as
 
 which need to be re-written as something like
 
- do_something() if any( ($img > $thresh) & $img->isgood() );
+ do_something() if any( setbadtoval( ($img > $thresh), 0 ) );
 
 When using one of the 'projection' functions in L<PDL::Ufunc|PDL::Ufunc> - such as 
 L<orover|PDL::Ufunc/orover> - 
