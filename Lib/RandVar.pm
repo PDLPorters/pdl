@@ -29,20 +29,23 @@ more complex sampling.
 RandVar is designed for easy subclassing.  You need only implement 
 ->sample and ->new to get a new class.
 
-When you ``use PDL::RandVar'' you also get some standard subclasses
-they're pretty cheap to load.  When you use RandVar, the following classes
+When you ``use PDL::RandVar'' you also get some standard subclasses.
+They're pretty cheap to load.  When you use RandVar, the following classes
 are also automagically loaded (and have their own documentation):
 
 =over 3
 
 =item RandVar::Sobol
 
-Implements subrandom sequences that help some types of Monte Carlo 
-algorithm converge faster
+Subrandom sequences that help some types of algorithm converge faster.
 
 =item RandVar::Histogram
 
-Implements arbitrarily-distributed random variables
+Arbitarily distributed random variables.
+
+=item RandVar::Gaussian
+
+Gaussian distributions.  
 
 =back
 

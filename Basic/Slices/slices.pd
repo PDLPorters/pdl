@@ -51,6 +51,23 @@ powerful language in many ways: since you can alter the original
 data by altering some easier-to-use representation of it, many things are
 much easier to accomplish, just like making the above unit matrix.
 
+You are allowed to slice in more dimensions than exist in a piddle,
+provided that all the additional dimensions have indices of zero.
+That gets around a problem with other allegedly high-level languages
+that distinguish artificially between (e.g.) scalars and 1-D vectors
+of rank 1.  For example:
+
+  perldl> $a = pdl(1)
+
+makes $a a scalar (0-dimensional) piddle but you can still find the
+0th element of it in as many dimensions as you want:
+
+  perldl> print $a->slice("0,0,0")
+  0
+
+  perldl> print $a->slice("1")
+  Error in slice:Too many dims in slice 
+
 =cut
 
 use PDL::Core ':Internal';
@@ -67,6 +84,8 @@ to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
+
+Some hacks added by CED, 2002.
 
 =cut
 
@@ -877,10 +896,39 @@ EOD
 	RedoDims => '
 		int i; int start; int end; int inc;
 		if ($COMP(nthintact) > $PARENT(ndims)) {
-		        $SETNDIMS(0); /* dirty fix */
-			$PRIV(offs) = 0;
-			$SETDIMS();
-			$CROAK("Too many dims in slice"); }
+			/* Slice has more dims than parent.  Check that the extra dims are 
+			 * all zero, and if they are then give back What You Probably Wanted,
+			 * which is a slice with a truncated dimension list.  (Note that there
+			 * are two ways to indicate a zero dimension: "0" and "-<w>",
+			 * where <w> happens to be the order of that dimension in the original
+			 * piddle.  The latter case still causes an error.  That is a feature.)
+			 *    --CED 15-March-2002
+			 */
+			int ii,ok;
+
+			   /* Check index for each extra dim */
+
+			for(ok=1, ii = $PARENT(ndims); ok && ii < $COMP(nthintact) ; ii++)
+				ok = ( $COMP(start[ii]) == 0 ) && ( $COMP(end[ii]) == 0 );
+
+			if(ok) {
+
+			   /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
+
+			  $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims);
+			  $COMP(nthintact) = $PARENT(ndims);
+
+			} else { 	
+
+			   /* Invalid slice: nonzero extra dimension.  Clean up and die.  */
+
+  			 $SETNDIMS(0); /* dirty fix */
+			 $PRIV(offs) = 0;	
+			 $SETDIMS();
+			 $CROAK("Too many dims in slice");
+
+			}
+ 	        }
 		$SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
 		$DOPRIVDIMS();
 		$PRIV(offs) = 0;
