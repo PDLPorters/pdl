@@ -1854,7 +1854,7 @@ void c_pljoin(PLFLT x1, PLFLT y1, PLFLT x2, PLFLT y2);
 void c_pllab(const char *xlabel, const char *ylabel, const char *tlabel);
 void c_pllightsource(PLFLT x, PLFLT y, PLFLT z);
 #void c_plline(PLINT n, PLFLT *x, PLFLT *y); # defined below with bad value support
-void c_plline3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
+#void c_plline3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
 void c_pllsty(PLINT lin);
 #void c_plmesh(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt); # must handle ** parms separately
 void c_plmkstrm(PLINT *p_strm);
@@ -1863,9 +1863,8 @@ void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *t
 #void c_plotsh3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT side); # must handle ** parms separately
 void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
 #void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
-void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
-void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);
-void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc);
+#void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
+#void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc);
 void c_plprec(PLINT setp, PLINT prec);
 void c_plpsty(PLINT patt);
 void c_plptex(PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just, const char *text);
@@ -2051,6 +2050,30 @@ pp_def ('plpoin',
          Pars => 'x(n); y(n); int code()',
          GenericTypes => [D],
          Code => 'c_plpoin($SIZE(n),$P(x),$P(y),$code());'
+        );
+
+# Plots a character at the specified points in 3 space
+
+pp_def ('plpoin3',
+         Pars => 'x(n); y(n); z(n); int code()',
+         GenericTypes => [D],
+         Code => 'c_plpoin3($SIZE(n),$P(x),$P(y),$P(z),$code());'
+        );
+
+# Draw a line in 3 space
+
+pp_def ('plline3',
+         Pars => 'x(n); y(n); z(n)',
+         GenericTypes => [D],
+         Code => 'c_plline3($SIZE(n),$P(x),$P(y),$P(z));'
+        );
+
+# Draws a polygon in 3 space
+
+pp_def ('plpoly3',
+         Pars => 'x(n); y(n); z(n); int draw(m); int ifcc()',
+         GenericTypes => [D],
+         Code => 'c_plpoly3($SIZE(n),$P(x),$P(y),$P(z),$P(draw),$ifcc());'
         );
 
 # Plot a histogram from unbinned data
