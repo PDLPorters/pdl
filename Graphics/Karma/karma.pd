@@ -174,6 +174,8 @@ pp_add_exported('','kim krgb kstarted kcur');
 
 pp_addpm(<<'ENDOFPM');
 
+use PDL::Options;
+
 # kim - send image data to karma app
 
 =head2 kim
@@ -697,18 +699,26 @@ EOD
 ', PMCode=><<'EOD');
 
 sub PDL::koverlay {
-   my $hash = pop @_ if ref($_[-1]) eq "HASH";
+   my $hash = ref($_[-1]) eq "HASH" ? pop @_ : {};
    barf("Usage: koverlay: \$x, \$y, {Options...} \n") if @_ != 2;
    my($x,$y) = @_;
+   $hash = {iparse({App => $LASTAPP,
+                    Colour => "blue",
+                    Radius => 10,
+                    Ellipse => 0,
+                    PA => 0,
+                    Fill => 0,
+                    ID => undef,
+                    Coords => "WORLD"},$hash)};
    my ($app,$col,$rad,$ell,$PA,$fill,$id,$dotext);
-   $app = $LASTAPP unless ($app = delete($hash->{App}));
-   $col = "blue"   unless ($col = delete($hash->{Colour}));
-   $rad = 10       unless ($rad = delete($hash->{Radius}));
-   $ell = 0        unless ($ell = delete($hash->{Ellip}));
-   $PA  = 0        unless ($PA   = delete($hash->{PA}));
-   $fill = 0       unless ($fill = delete($hash->{Fill}));
+   $app = $hash->{App};
+   $col = $hash->{Colour};
+   $rad = $hash->{Radius};
+   $ell = $hash->{Ellipse};
+   $PA  = $hash->{PA};
+   $fill = $hash->{Fill};
    $dotext = 1;
-   unless ($id = delete($hash->{ID})) {
+   unless (defined ($id = $hash->{ID})) {
      $id = pdl(0); $dotext = 0;
    }
 
@@ -805,11 +815,12 @@ pp_addpm({At=>Bot},<<'EOD');
 
 =head1 AUTHORS
 
-Copyright (C) Christian Soeller, Karl Glazebrook 1997. Reproducing
+Copyright (C)  1997-2001 Christian Soeller, Karl Glazebrook. Reproducing
 documentation from the pdl distribution in any way that does not include a
 statement telling who the original authors are is forbidden.  Reproducing
 and/or distributing the documentation  in any  form that  alters the text is
-forbidden.
+forbidden. This module is free software and can be distributed under the
+same terms as PDL itself.
 
 =cut
 

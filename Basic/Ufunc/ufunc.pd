@@ -825,6 +825,7 @@ Returns an array with minimum and maximum values of a piddle.
 This routine does I<not> thread over the dimensions of C<$pdl>; 
 it returns the minimum and maximum values of the whole array.
 See L<minmaximum|/minmaximum> if this is not what is required.
+The two values are returned as Perl scalars similar to min/max.
 
 =for example
 
@@ -839,7 +840,7 @@ See L<minmaximum|/minmaximum> if this is not what is required.
 sub PDL::minmax {
   my ($x)=@_; my $tmp;
   my @arr = $x->clump(-1)->minmaximum;
-  return @arr[0,1];
+  return map {$_->sclr} @arr[0,1]; # return as scalars !
 }
 
 EOD

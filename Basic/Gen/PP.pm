@@ -308,7 +308,8 @@ sub pp_def {
 # final free time (thread, dimmed things).
 
 use Carp;
-$SIG{__DIE__} = sub {print Carp::longmess(@_); die;};
+$SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
+  if $::PP_VERBOSE;  # seems to give us trouble with 5.6.1
 
 # Rule table syntax:
 # make  $_->[0] from $_->[1].
