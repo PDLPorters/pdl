@@ -137,7 +137,7 @@ sub PDL::IO::Dumper::sdump {
   my($v);
   my($dups);
   foreach $v(values %pdls) {
-    print "Hey! $v->".$pdls{$v}."!\n";
+    print "Hey! $v->".(defined $pdls{$v} ? $pdls{$v} : "[empty]" )."!\n";
     $dups++ if($v >1);
   }
   print STDERR "Warning: duplicated PDL ref.  If sdump hangs, you have a circular reference.\n"  if($dups);
