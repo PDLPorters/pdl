@@ -134,7 +134,15 @@ pp_def(
 	Dims => '$COPYDIMS();',
 	ParentInds => '$COPYINDS();',
 	Identity => 1,
-	Doc => 'internal',
+	Doc => 
+'=for ref
+
+This is an internal slicing routine.
+
+If you want an identity matrix, see L<PDL::MatrixOps::m_identity>.
+
+=cut
+',
 );
 
 $doc = <<'EOD';

@@ -11,9 +11,8 @@ sub near {
 	((( abs($a - $b) > 1e-14 ) -> sum ) == 0 );
 }
 
-print "1..13\n";
-
-eval "use PDL::MatrixOps;";
+print "1..16\n";
+eval 'use PDL::MatrixOps;';
 ok(1,!$@);
 
 
@@ -67,3 +66,10 @@ $d = pdl([1,2,3,4],[5,4,3,2],[0,0,3,0],[3,0,1,6]); # det=-216
 $e = ($a->cat($b)) -> cat( $c->cat($d) );
 $det = $e->determinant;
 ok(13,all($det == pdl([48,1],[-1,-216])));
+
+### Check identity and stretcher matrices...
+ok(14, (m_identity(2)->flat == pdl(1,0,0,1))->all);
+
+ok(15, (stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all);
+
+ok(16, (stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all);

@@ -1,3 +1,8 @@
+CED (19-Nov-2002)
+    - Ported MatrixOps to PP; moved to subdir of Basic; split the 
+	matrix ops from math.pd and moved into matrixops.pd  MatrixOps
+	is now autoloaded by "use PDL;".
+    - Minor mods & cross-refs added to documentation in several modules
 CED (18-Nov-2002)
     - Transform: improvements to t_lookup
 CED (17-Nov-2002)

@@ -1,7 +1,6 @@
 =head1 NAME
 
-PDL::Matrix -- a derived matrix class that implements column-major
-constructors and methods
+PDL::Matrix -- a convenience matrix class for column-major access
 
 =head1 VERSION
 
@@ -24,10 +23,13 @@ This document refers to version PDL::Matrix 0.01 of PDL::Matrix
 =head2 Overview
 
 This package tries to help people who want to use PDL for 2D matrix
-computation with lots of indexing involved . It provides a PDL
+computation with lots of indexing involved. It provides a PDL
 subclass so one- and two-dimensional piddles that are used as
-vectors resp. matrices can be typed in using traditional matrix
+vectors resp and matrices can be typed in using traditional matrix
 convention.
+
+If you want to know more about matrix operation support in PDL, you 
+want to read L<PDL::MatrixOps> or L<PDL::Slatec>.
 
 The original pdl class refers to the first index as the first row,
 the second index as the first column of a matrix. Consider
@@ -55,7 +57,7 @@ matrix. So now, the above example would be written as
    [4 5]
   ]
 
-Routines like eigenvalue or matrix inversion can be used without
+Routines like L<eigens|eigens> or L<inv|inv> can be used without
 any changes.
 
 Furthermore one can construct and use vectors as n x 1 matrices
