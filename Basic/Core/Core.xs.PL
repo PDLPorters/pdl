@@ -804,7 +804,6 @@ BOOT:
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;
-   PDL.hard_copy   = pdl_hard_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
    PDL.smalloc     = pdl_malloc;
@@ -1203,7 +1202,8 @@ sethdr(p,h)
 		else  
 		   p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
-SV * hdr(p)
+SV *
+hdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);
@@ -1220,7 +1220,8 @@ SV * hdr(p)
 	OUTPUT:
 	 RETVAL
 
-SV * gethdr(p)
+SV *
+gethdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);
