@@ -92,6 +92,7 @@ typedef struct pdl_trmagic_family {
 
 void pdl__magic_add(pdl *,pdl_magic *);
 void pdl__magic_rm(pdl *,pdl_magic *);
+void pdl__magic_free(pdl *);
 
 int pdl__magic_isundestroyable(pdl *);
 

@@ -186,6 +186,7 @@ void pdl__free(pdl *it) {
 /* Call special freeing magic, if exists */
     if(PDL_ISMAGIC(it)) {
     	pdl__call_magic(it, PDL_MAGIC_DELETEDATA);
+	pdl__magic_free(it);
     }
 
     if(it->datasv) {

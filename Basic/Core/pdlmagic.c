@@ -32,6 +32,18 @@ void pdl__magic_rm(pdl *it,pdl_magic *mag)
 	die("PDL:Magic not found: Internal error\n");
 }
 
+void pdl__magic_free(pdl *it)
+{
+  if (pdl__ismagic(it) && !pdl__magic_isundestroyable(it)) {
+    pdl_magic *foo = it->magic;
+    while(foo) {
+      pdl_magic *next = foo->next;
+      free(foo);
+      foo = next;
+    }
+  }
+}
+
 /* Test for undestroyability */
 
 int pdl__magic_isundestroyable(pdl *it)
