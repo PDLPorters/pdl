@@ -111,6 +111,25 @@ The reading of compressed data is switched on automatically if the
 filename requested ends in .gz or .Z, or if the originally specified
 filename does not exist, but one of these compressed forms does.
 
+If writeflex and readflex are given a reference to a file handle
+as a first parameter instead of a filename, then the data is read
+or written to the open filehandle. This gives an easy way to read
+an arbitrary slice in a big data volume as in the following example:
+
+
+	use PDL;
+	use PDL::IO::FastRaw;
+
+        open(DATA, "raw3d.dat");
+
+        # assume we know the data size from an external source
+        ($width, $height, $data_size) = (256,256, 4);
+
+        my $slice_num = 64;   # slice to look at
+        # Seek to slice
+        seek(DATA, $width*$height*$data_size * $slice_num, 0);
+        $pdl = readflex \*DATA, [{Dims=>[$width, $height], Type=>'long'}];
+
 Mapflex memory maps, rather than reads, the data files.  Its interface
 is similar to `readflex'.  Extra options specify if the data is to be
 loaded `ReadOnly', if the data file is to be `Creat'-ed anew on the
@@ -157,6 +176,7 @@ Read a binary file with flexible format specification
 =for usage
 
  ($x,$y,...) = readflex("filename" [, $hdr])
+ ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
 
 
 =head2 writeflex
@@ -168,6 +188,7 @@ Write a binary file with flexible format specification
 =for usage
 
   $hdr = writeflex($file, $pdl1, $pdl2,...)
+  $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
 
 
 =head2 mapflex
@@ -318,13 +339,19 @@ sub mapchunk {
 }
 
 sub readflex {
-    barf 'Usage ($x,$y,...) = readflex("filename" [, \@hdr])'
+    barf 'Usage ($x,$y,...) = readflex("filename"|FILEHANDLE [, \@hdr])'
 	if $#_ > 1;
     my ($name,$h) = @_;
     my ($hdr, $pdl, $len, @out, $chunk, $chunkread, $data);
     local ($offset) = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
+    my $d;
 
+    # Test if $name is a file handle
+    if (defined fileno($name)) {
+	$d = $name;
+    }
+    else {
     if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
 	(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
 	$data = "gzip -dcq $name |";
@@ -334,11 +361,12 @@ sub readflex {
     }
 
     my ($size) = (stat $name)[7];
-    my ($d) = new FileHandle $data
+	$d = new FileHandle $data
 	or barf "Couldn't open '$data' for reading";
     binmode $d;
     if ($#_ == 0) {
 	$h = _read_flexhdr("$name.hdr");
+    }
     }
 
 # Go through headers which reconfigure
@@ -440,7 +468,7 @@ READ:
 sub mapflex {
     my ($usage)
 	= 'Usage ($x,$y,...) = mapflex("filename" [, \@hdr] [,\%opts])';
-    my ($name) = shift @_;
+    my $name = shift;
     # reference to header array
     my ($h, $size);
     # reference to options array, with defaults
@@ -456,7 +484,7 @@ sub mapflex {
 	} elsif (ref($_) eq "HASH") {
 	    %opts = (%opts,%$_);
 	} else {
-	    barf $usage;
+	    warn $usage;
 	}
     }
 
@@ -496,6 +524,8 @@ sub mapflex {
 
     $d = byte PDL->zeroes(1);
     # print "Mapping total size $size\n";
+    # use Data::Dumper;
+    # print "Options: ", Dumper(\%opts), "\n";
     $d->set_data_by_mmap($name,$size,1,($opts{ReadOnly}?0:1),
 			 ($opts{Creat}?1:0),
 			 (0644),
@@ -560,14 +590,23 @@ READ:
 }
 
 sub writeflex {
-    barf 'Usage writeflex("filename",$pdl,...)' if $#_<0;
+    my $usage = 'Usage writeflex("filename"|FILEHANDLE,$pdl,...)';
+    barf $usage if $#_<0;
     my($name) = shift; my (@ret);
-    barf 'Usage writeflex("filename",$pdl,...)' if ref $name;
-    my $d = new FileHandle ">$name"
+    my $d;
+
+    # Test if $name is a file handle
+    if (defined fileno($name)) {
+	$d = $name;
+    }
+    else {
+	barf $usage if ref $name;
+	$d = new FileHandle ">$name"
 	or barf "Couldn't open '$name' for writing";
     binmode $d;
+    }
     foreach $pdl (@_) {
-	barf 'Usage writeflex("filename",$pdl,...)' if ! ref $pdl;
+	barf $usage if ! ref $pdl;
 	# print join(' ',$pdl->getndims,$pdl->dims),"\n";
 	push @ret, {
 	    Type => $flexnames{$pdl->get_datatype},

@@ -51,6 +51,16 @@ powerful language in many ways: since you can alter the original
 data by altering some easier-to-use representation of it, many things are
 much easier to accomplish, just like making the above unit matrix.
 
+=head1 BUGS 
+
+For the moment, you can't slice the empty piddle.  This should probably
+change:  slices of the empty piddle should probably return the empty piddle.
+
+Many types of index errors are reported far from the indexing
+operation that caused them.  This is caused by the underlying architecture:
+slice() sets up a mapping between variables, but that mapping isn't 
+tested for correctness until it is used (potentially much later).
+
 =cut
 
 use PDL::Core ':Internal';
@@ -67,6 +77,8 @@ to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
+
+Some hacks added by CED, 2002.
 
 =cut
 
@@ -152,12 +164,14 @@ EOD
 my $index_init_good = 
        'register int foo = $ind(); 
         if( foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
+	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+                foo,$SIZE(n)-1);
         }';
 my $index_init_bad = 
        'register int foo = $ind(); 
         if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
+	   barf("PDL::index: invalid index %d (valid range 0..%d)",
+                foo,$SIZE(n)-1);
         }';
 
 pp_def(
@@ -183,11 +197,13 @@ my $index2d_init_good =
        'register int fooa,foob;
 	fooa = $inda(); 
         if( fooa<0 || fooa>=$SIZE(na) ) {
-           barf("PDL::index: invalid index 1");
+           barf("PDL::index: invalid x-index %d (valid range 0..%d)",
+                fooa,$SIZE(na)-1);
         }
 	foob = $indb(); 
         if( foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
+	   barf("PDL::index: invalid y-index %d (valid range 0..%d)",
+                foob,$SIZE(nb)-1);
         }';
 my $index2d_init_bad =
        'register int fooa,foob;
@@ -365,10 +381,16 @@ pp_def(
 	P2Child => 1,
 	Priv => 'int nnew; int nrem;',
 	RedoDims => 'int i; int d1;
-		if($COMP(n) > $PARENT(ndims)) {
-			$CROAK("Too many dimensions %d to clump from %d",
-				$COMP(n),$PARENT(ndims));
-		}
+		if($COMP(n) > $PARENT(ndims)) 
+			/* Now with more flavor: truncate overly long clumps to 
+			   just clump existing dimensions...  (CED 17-Mar-2002) */
+
+			$COMP(n) = $PARENT(ndims);
+
+			/* Old croaking code: */
+			/*$CROAK("Too many dimensions %d to clump from %d", */
+			/*		$COMP(n),$PARENT(ndims)); */
+
 		 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
 		 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
 		 $SETNDIMS($PRIV(nnew));
@@ -407,11 +429,19 @@ pp_def(
 	RedoDims => 'int i; int d1;
 		int nrem; int nnew;
 		if($COMP(n) > $PARENT(ndims)) {
+			/* Now with more flavor:  truncate clumping in this case to 
+			 * the total number of dimensions that actually exist...
+			 *  --CED 17-Mar-2002
+			 */
+ 			$COMP(n) = -1;
+			
+#ifdef older_croaking_code
 			$SETNDIMS(0);  /* fix to make sure we do not get problems later */
 			$PRIV(offs) = 0;
 			$SETDIMS();
 			$CROAK("Too many dimensions %d to clump from %d",
 				$COMP(n),$PARENT(ndims));
+#endif
 		}
 		 nrem = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
 		 nnew = $PARENT(ndims) - nrem + 1;
@@ -693,6 +723,10 @@ EOD
 );
 
 
+pp_addhdr << 'EOH';
+#define sign(x) ( (x) < 0 ? -1 : 1)
+EOH
+
 # I think the quotes in the =item ":" lines
 # confuse the perldoc stuff
 #
@@ -759,6 +793,25 @@ inserts an extra (dummy) dimension of width I<a>.
 An extension is planned for a later stage allowing
 C<$a-E<gt>slice('(=1),(=1|5:8),3:6(=1),4:6')>
 to express a multidimensional diagonal of C<$a>.
+
+Trivial out-of-bounds slicing is allowed: if you slice a source
+dimension that doesn't exist, but only index the 0th element, then
+slice treats the source as if there were a dummy dimension there.
+The following are all equivalent:
+	
+	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
+	xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
+	xvals(5)->((2),0)           # NiceSlice syntax
+	xvals(5)->((2))->dummy(0,1) # NiceSlice syntax
+
+This is an error:
+	
+	xvals(5)->slice('(2),1')	# nontrivial out-of-bounds slice dies
+
+Because slicing doesn't directly manipulate the source and destination 
+pdl -- it just sets up a transformation between them -- indexing errors 
+often aren't reported until later.  This is either a bug or a feature,
+depending on whether you prefer error-reporting clarity or speed of execution.
 
 =cut
 EOD
@@ -869,10 +922,75 @@ EOD
 	RedoDims => '
 		int i; int start; int end; int inc;
 		if ($COMP(nthintact) > $PARENT(ndims)) {
-		        $SETNDIMS(0); /* dirty fix */
-			$PRIV(offs) = 0;
-			$SETDIMS();
-			$CROAK("Too many dims in slice"); }
+	/* Slice has more dims than parent.  Check that the extra dims are 		
+         * all zero, and if they are then give back What You Probably Wanted,
+	 * which is a slice with dummy dimensions of order 1 in place of each excessive 
+	 * dimension.  (Note that there are two ways to indicate a zero dimension: "0" and "-<w>",
+	 * where <w> happens to be the order of that dimension in the original
+	 * piddle.  The latter case still causes an error.  That is a feature.)
+	 *    --CED 15-March-2002
+	 */
+			int ii,parentdim,ok;
+			int n_xtra_dims=0, n_xtra_olddims=0;
+
+			   /* Check index for each extra dim in the ordinary affine list */
+
+			for(ok=1, ii = 0; ok && ii < $COMP(intactnew) ; ii++) {
+				parentdim = $COMP(corresp[ii]);
+/*				fprintf(stderr,"ii=%d,parent=%d, ndum=%d, nnew=%d...",ii,parentdim,$COMP(ndum),$COMP(nnew));				*/
+				if(parentdim >= $PARENT(ndims)) {					
+
+					ok = ( ( $COMP(start[ii]) == 0 ) && 
+					  	( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 )
+					);
+					if(ok) {
+						/* Change this into a dummy dimension, rank 1 */
+						$COMP(corresp[ii]) = -1;
+						$COMP(start[ii])   = 0;
+						$COMP(end[ii])     = 0;
+						$COMP(inc[ii])     = 1;
+						$COMP(ndum)++;      /* One more dummy dimension... */
+						$COMP(nnew)--;      /* ... one less real dimension */
+						$COMP(nthintact)--; /* ... one less intact dim */
+/*						fprintf(stderr,"ok, ndum=%d, nnew=%d\n",$COMP(ndum), $COMP(nnew));*/
+					}
+/*				fflush(stderr);*/
+				}
+			}	
+			
+			  /* Check index for each indexed parent dimension */
+			for(ii=0; ok && ii < $COMP(nolddims); ii++) {
+				if($COMP(whichold[ii]) >= $PARENT(ndims)) {
+					ok = ( $COMP(whichold[ii]) < $PARENT(ndims) ) ||
+						( $COMP(oldind[ii]) == 0 ) ||
+						( $COMP(oldind[ii]) == -1) ;
+					if(ok) {
+					  int ij;
+					  /* crunch indexed dimensions -- slow but sure */
+					  $COMP(nolddims)--;
+					  for(ij=ii; ij<$COMP(nolddims); ij++) {
+						$COMP(oldind[ij]) = $COMP(oldind[ij+1]);
+					 	$COMP(whichold[ij]) = $COMP(whichold[ij+1]);
+					  }
+					  $COMP(nthintact)--;
+					}
+				}
+			}	
+/*	fprintf(stderr,"ok=%d\n",ok);fflush(stderr);*/
+			if(ok) {
+			   /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
+/*			  $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims); */
+/*			  $COMP(nthintact) = $PARENT(ndims);*/
+			} else { 	
+
+			   /* Invalid slice: nonzero extra dimension.  Clean up and die.  */
+
+  			 $SETNDIMS(0); /* dirty fix */
+			 $PRIV(offs) = 0;	
+			 $SETDIMS();
+			 $CROAK("Too many dims in slice");
+			}
+ 	        }
 		$SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
 		$DOPRIVDIMS();
 		$PRIV(offs) = 0;
@@ -893,7 +1011,7 @@ EOD
 				   end >= $PARENT(dims[parentdim])) {
 					barf("Slice cannot start or end above limit");
 				}
-				if((end-start)*inc < 0)
+				if(sign(end-start)*sign(inc) < 0)
 					inc = -inc;
 				$PRIV(incs[i]) = $PARENT(dimincs[parentdim]) * inc;
 				$PRIV(offs) += start * $PARENT(dimincs[parentdim]);
@@ -901,6 +1019,8 @@ EOD
 				$PRIV(incs[i]) = 0;
 			}
 			$CHILD(dims[i]) = ((int)((end-start)/inc))+1;
+                        if ($CHILD(dims[i]) <= 0)
+                           barf("slice internal error: computed slice dimension must be positive");
 		}
 		for(i=$COMP(nthintact); i<$PARENT(ndims); i++) {
 			int cdim = i - $COMP(nthintact) + $COMP(intactnew);

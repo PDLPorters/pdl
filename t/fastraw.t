@@ -81,7 +81,6 @@ ok(4,tapprox($f, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])));
 
 ok(5, $f->type->[0] == (&float)->[0]);
 
-# unlink "tmp0","tmp0.hdr";
-# unlink "tmp1","tmp1.hdr";
+unlink "tmp1","tmp1.hdr";
 
 

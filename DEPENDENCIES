@@ -4,21 +4,44 @@ PDL Module Dependencies
 This file lists dependencies of PDL modules on external programs/libraries.
 Some of the modules will build ok without the external software but in
 general are not very useful without it. Others require certain
-libraries/ include files to be installed. See INSTALL on hints how to
-disable building of some modules in the distrib if required.
+libraries/include files to be installed. See INSTALL on hints how to
+enable/disable building of some modules in the distrib if required.
+
+The easiest way to resolve dependencies on other Perl modules is to use
+the CPAN module to install PDL. Installation should be as simple as
+
+  cpan install PDL   # if the cpan script is in your path
+
+or if you don't have the cpan script try
+
+  perl -MCPAN -e shell
+  cpan> install PDL
 
 
 MODULE          DEPENDS ON                  COMMENT
 
 PDL (all)	perl 5.005		you need at least this version
 					of perl to succeed.
+		File::Spec		version >= 0.6 required, included
+					with recent perls (5.6.x and higher)
+
+PDL::Lvalue    	perl 5.6		not supported in pre 5.6
+
+PDL::NiceSlice  Text::Balanced		a nicer way to index piddles
+		Filter			a must-have!!
+
+Inline::Pdlpp	Inline			version >= 0.43 required
+					module allows to define fast PP code
+					inline in your scripts
 
 perldl (shell)  Term::ReadLine    	perl provides a stub but if you
 					compile and install a better one
 					(Term::ReadLine or
-					Term::ReadLine::Gnu)
+					Term::ReadLine::Gnu) you get proper
+					command line editing
 
 PDL::Graphics::TriD
+		perl 5.6 &
                 Requires OpenGL implementation. For free implementation
                 check out Mesa at http://www.ssec.wisc.edu/~brianp/Mesa.html
 
@@ -64,7 +87,8 @@ PDL::IO::Pic
                                         Module builds
                                         ok without converters
 
-PDL::Lib::Slatec
+PDL::Slatec	ExtUtils::F77		linear algebra routines
+					several other modules use PDL::Slatec
                 Slatec fortran lib is included but requires a
 		fortran compiler and the perl module ExtUtils::F77
 		(version >= 1.03) to be installed.
@@ -73,8 +97,9 @@ PDL::Lib::Slatec
                                         ExtUtils::F77 (version >= 1.03)
 					is installed and Extutils::F77
 					supports your platform.
-PDL::GSL::RNG
+PDL::GSL modules
                 Needs the GSL (Gnu Scientific Library) to build.
+		Version >= 1.0 is required
 		See http://sourceware.cygnus.com/gsl/
 
                                         Will not be built unless
@@ -90,6 +115,7 @@ PDL::FFTW
 
 PDL::IO::Browser
 		Requires a 'curses'-compatible library
+		not built by default (edit perldl.conf to enable)
 
 PDL::IO::NDF
                 Requires the perl/NDF interface (NDFPERL).

@@ -1,5 +1,8 @@
 # Test ->slice(). This is not yet good enough: we need
-# nasty test cases,
+# nasty test cases
+#
+# Okay -- here're a couple (CED 3-apr-2002).  
+#	 Added permissive-slicing tests, 42-50...
 
 use PDL::LiteF;
 # kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -20,7 +23,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..41\n";
+print "1..50\n";
 
 if(1) {
 
@@ -45,7 +48,6 @@ ok(2,$b->at(0,0) == 22);
 ok(3,$b->at(1,0) == 24);
 ok(4,$b->at(0,1) == 42);
 ok(5,$b->at(1,1) == 44);
-
 
 $b .= 0.5 * double ones(2,2);
 
@@ -262,4 +264,28 @@ ok(40, $@ =~ /lags: step must be positive/);
 
 eval '$b = $a->lags(0,1,11)->make_physdims';
 ok(41, $@ =~ /too large/);
+
+##############################
+# Tests of permissive slicing and dummying
+
+$a = xvals(5,5)+10*yvals(5,5);
+
+eval '$b = $a->slice("1,2,(0)")->make_physical';
+ok(42, !$@);
+ok(43, $b->ndims == 2 && pdl($b->dims)->sumover == 2);
+
+eval '$c = $a->slice("1,2,(1)")->make_physical';
+ok(44, $@=~ /too many dims/i);
+
+eval '$d = $a->slice("0:1,2:3,0")->make_physical';
+ok(45, !$@);
+ok(46,eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(2,2,1))->sumover == 3)' && !$@);
+
+eval '$d = $a->slice("0:1,2:3,0")->xchg(0,2)';
+ok(47, !$@);
+ok(48,eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(1,2,2))->sumover == 3)' && !$@);
+
+eval '$e = $a->dummy(6,2)';
+ok(49, !$@);
+ok(50,eval '$e->ndims == 6 && ((pdl($e->dims) == pdl(5,5,1,1,1,2))->sumover==6)' && !$@);
 

@@ -2,6 +2,15 @@ CURRENT PRIORITIES:
 
 # = done
 
+- better docs -> doc roadmap
+   'sever' additional docs
+- fix some of the inaccuracies in PDL::Internals
+- PDL::Doc : 	learn to cope with duplicate function names (e.g.
+		PDL::min and PDL::GSL::RNG::min)
+		install scanpdldocs script to make it easier to
+			add user docs to the online docs database
+		postamble code: standard postamble for docscanning
+			of user modules (to be used in Makefile.PL)
 # - perldl docs on builtin niceslicing
 # - nslice docs
 # - more Inline::Pdlpp docs

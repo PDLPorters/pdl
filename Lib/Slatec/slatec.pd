@@ -112,13 +112,34 @@ Separates supplied arguments and return values.
 =for ref
 
 Fit discrete data in a least squares sense by polynomials
-in one variable.
+in one variable.  Handles threading correctly--one can pass in a 2D PDL (as C<$y>)
+and it will pass back a 2D PDL, the rows of which are the polynomial regression
+results (in C<$r> corresponding to the rows of $y.
 
 =for usage
 
  ($ndeg, $r, $ierr, $a) = polyfit($x, $y, $w, $maxdeg, $eps);
 
-C<eps> is modified to contain the rms error of the fit.
+ where on input:
+
+ C<x> and C<y> are the values to fit to a polynomial.
+ C<w> are weighting factors
+ C<maxdeg> is the maximum degree of polynomial to use and 
+ C<eps> is the required degree of fit.
+
+ and on output:
+
+ C<ndeg> is the degree of polynomial actually used
+ C<r> is the values of the fitted polynomial 
+ C<ierr> is a return status code, and
+ C<a> is some working array or other
+ C<eps> is modified to contain the rms error of the fit.
+
+=for bad
+
+This version of polyfit handles bad values correctly.  It strips them out
+of the $x variable and creates an appropriate $y variable containing indices
+of the non-bad members of $x before calling the Slatec routine C<polfit>.
 
 =head2 polycoef
 
@@ -259,6 +280,9 @@ open( PROTOS, "> SlatecProtos.h" );
 # in the perldl shell after a '?? string' command
 #
 sub defslatec {
+
+    my $debug = 0;  # print out calls to pp_def
+
     my($pname,$fnames,$argstr,$docstring,$funcref) = @_;
     my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
     my @args2 = map {
@@ -355,6 +379,22 @@ sub defslatec {
       $docstring = '';
     }
 
+    # If debug flag set, then print out pp_def call for each call to defslatec
+    if ($debug) {
+      my $pars = (join ';',@ppars);
+      my $code = (join '',@ifincode) . "\n " . $func . "  (". (join ',',@funcpars) . ");\n";
+      my $generictypes = "[" . join (", ", map {$_->[0]} @talts) . "],\n";
+      print <<"ENDDBG";
+pp_def($pname,
+  Pars => $pars,
+  OtherPars => '',
+  Code => $code,
+  GenericTypes => $generictypes,
+  Doc => $docstring
+);
+ENDDBG
+}
+
     pp_def($pname,
       Pars => (join ';',@ppars),
       OtherPars => '',
@@ -446,10 +486,10 @@ sub prepfft {
 }
 
 *fft = \&PDL::fft;
-sub PDL::fft {
+sub PDL::fft (;@) {
 	my($v) = @_;
 	my $ws = prepfft($v->getdim(0));
-	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null), 
+	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null),
 		  (my $b = PDL->null), $ws);
 	return ($az,$a,$b);
 }
@@ -475,22 +515,19 @@ sub PDL::polyfit {
 
   # A array needs some work space
   my $sz = ((3*$_[0]->getdim(0)) + (3*$_[3]) + 3);
-  my $a = $_[0]->zeroes( $sz ); # This should be of type $x
+  my @otherdims = $_[0]->dims; shift @otherdims;
+  my $a = $_[0]->zeroes( $sz, @otherdims ); # This should be of type $x
 
-  # these are returned as integers
   my $ierr = PDL->null;
   my $ndeg = PDL->null;
 
   # Now call polfit                                                           
   polfit($_[0], $_[1], $_[2], $_[3], $ndeg, $_[4], $r, $ierr, $a);
 
-  # Convert ierr and ndeg to simple scalars
-  $ierr = $ierr->at();
-  $ndeg = $ndeg->at();
-
   # Return the arrays
   return ($ndeg, $r, $ierr, $a);
 }
+
 
 *polycoef = \&PDL::polycoef;
 sub PDL::polycoef {
@@ -698,26 +735,6 @@ defslatec(
 
 ##################################################################
 ##################################################################
-#
-# polynomial fitting stuff
-#
-defslatec(
-      'polfit', {S => 'polfit', D => 'dpolft'},
-      '
-      Dim             n;
-      Mat             x(n);
-      Mat             y(n);
-      Mat             w(n);
-      IntFlag         maxdeg ();
-      IntFlag  [o]    ndeg   ();
-      Mat      [o]    eps    ();
-      Mat      [o]    r      (n);
-      IntFlag  [o]    ierr   ();
-      Mat      [o]    a      (foo);
-      ',
-'Fit discrete data in a least squares sense by polynomials
-in one variable. C<x()>, C<y()> and C<w()> must be of the same type.'
-);                                                                            
 
 defslatec(
       'pcoef', {S => 'pcoef', D => 'dpcoef'},
@@ -1430,6 +1447,51 @@ Error status returned by C<$ierr>:
 
 ##################################################################
 ##################################################################
+
+#
+# This version of polfit accepts bad values and also allows threading
+#
+
+pp_def('polfit',
+  Pars => 'x(n);y(n);w(n);int maxdeg();int [o]ndeg();[o]eps();[o]r(n);int [o]ierr();[o]a(foo);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
+  OtherPars => '',
+  Code => '$TFD(polfit_,dpolft_)  (&$PRIV(__n_size),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));',
+  GenericTypes => ['F','D'],
+  HandleBad => 1, 
+  NoBadifNaN => 1,
+  BadCode => 'int ns = $SIZE(n);
+              int i;
+	      int j = 0;
+              for (i=0;i<ns;i++) {   /* get rid of bad values.  Call polfit with [xyw]tmp instead of [xyz]. */
+                if ($ISGOOD(y(n=>i))) {
+                  $xtmp(n=>j) = $x(n=>i);
+                  $ytmp(n=>j) = $y(n=>i);
+                  $wtmp(n=>j) = $w(n=>i);
+                  j++;
+                }
+              }
+	      if (j <= $maxdeg()) {
+                for (i=0;i<ns;i++) {
+                  $SETBAD(r(n=>i));
+                }
+                $ierr() = 2;
+              } else {
+                $TFD(polfit_,dpolft_)  (&j,$P(xtmp),$P(ytmp),$P(wtmp),$P(maxdeg),$P(ndeg),$P(eps),$P(rtmp),$P(ierr),$P(a));
+                j=0;
+                for (i=0;i<ns;i++) {  /* replace bad values */
+                  if ($ISGOOD(y(n=>i))) {
+                    $r(n=>i) = $rtmp(n=>j);
+                    j++;
+                  } else {
+		    $SETBAD(r(n=>i));
+                  }
+                }
+              }',
+
+  Doc => 'Fit discrete data in a least squares sense by polynomials
+          in one variable. C<x()>, C<y()> and C<w()> must be of the same type.
+	  This version handles bad values appropriately',
+);
 
 close( PROTOS );
 

@@ -15,6 +15,7 @@ INSTALL 		detailed installation instructions
 Known_problems	 	check before you report compilation problems
 DEPENDENCIES		Other software that PDL relies on (and where
 			to get it)
+BUGS			how to make a bug report and where to send it
 perldl.conf		PDL configuration options
 Basic/Pod/FAQ.pod 	the FAQ in pod format
 			try 'perldoc PDL::FAQ' after installation
@@ -65,7 +66,7 @@ from within the root of the PDL tree or just
 	perldl
 	
 if you have installed PDL already ('make install') to get the
-interactive pdl shell. In this shell, 'help' gives you
+interactive PDL shell. In this shell, 'help' gives you
 access to PDL documentation for each function separately ('help
 help' for more about this) and 'demo' gives you some basic
 examples of what you can do.
@@ -82,37 +83,12 @@ Lib/	   - The stuff that PDL would still be useful without but
 Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
 
-The new organization makes it possible in the future to make "PDL-Lite"
-(just the Basic/ directory) if that seems necessary.
+Comments are welcome - so are volunteers to write code and documentation!
+Please contact the developers mailing list pdl-porters@jach.hawaii.edu
+(subscription address: pdl-porters-request@jach.hawaii.edu) with ideas
+and suggestions.
 
-This distribution has parts at different levels of
-completion - usually they are marked in the docs but here is
-a brief rundown of what is good and what is something you need
-to know what you're doing to use:
-
-Basic/  	stable
-Graphics/PGPLOT stable (an updated version, with an OO interface, is 
-		in the works)
-Graphics/TriD	recently undergone a major update.
-Lib/Opt/Simplex	works
-Lib/Slatec
-		Should in principle work but porting is difficult.
-		If you can't compile it, remove it from Lib/Makefile.PL
-Lib/GSL
-		Interface to the Random distributions of the GNU
-		Scientific Library. You might have to modify the
-		perldl.conf file so PDL knows were to find the lib
-		and include directories when building PDL.
-		See DEPENDENCIES file for more info. 
-IO/Misc		stable
-IO/FastRaw	stable.
-
-Comments are welcome - so are volunteers to write code! Please contact the
-developers mailing list pdl-porters@jach.hawaii.edu (subscription address: 
-pdl-porters-request@jach.hawaii.edu) with ideas and suggestions.
-
-	Tuomas J. Lukka (lukka@fas.harvard.edu)
-        Karl Glazebrook (kgb@aaoepp.aao.gov.au)
+  The pdl-porters team.
 
 Compilation Reports:
 --------------------

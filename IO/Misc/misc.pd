@@ -82,17 +82,20 @@ The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
 header is copied to new piddles.
 
 This header is a reference to a hash where the hash keys are the
-keywords in the FITS header. It is important to note that for strings,
-the surrounding quotes are kept to ensure that strings that look like
-numbers are kept as strings. This is also of importance if you create
-your own header information and you want the value to be printed out
-as a string. Each record (comprising keyword, value, and
-any comment string) must fit within 80 characters; any value that
-is too long is truncated (silently). Also, keywords are converted to
-I<uppercase>; this is part of the FITS standard.
+keywords in the FITS header.  If you have the "Astro::FITS::Header"
+module installed, the header is actually a tied-hash to a FITS header
+object.  The tied-hash interface is designed so that it emulates the 
+legacy PDL support: keyword/value pairs are accessed as with an ordinary 
+hash.  But for more precise control of the FITS header you can access
+the underlying Astro::FITS::Header object using the perl "tied" builtin
+(see the L<Astro::FITS::Header> man page for details).
 
-Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where C<$h> is
-the header retrieved with C<$a-E<gt>gethdr>.
+Keywords are converted to I<uppercase>; this is part of the FITS
+standard; but access is case-insensitive on the perl side, provided
+that Astro::FITS::Header is intalled.
+
+Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where 
+C<$h> is the header retrieved with C<$a-E<gt>gethdr>.
 History entries in the header are stored as C<$$h{HISTORY}>, which is an
 anonymous array for each HISTORY entry in the header.
 
@@ -112,13 +115,29 @@ converted to bad (if necessary).
 
 #'
 
-# it would be good to allow the use of the Astro::FITS::Header
-# (on CPAN) if available.
-
 pp_addpm(<<'!NO!SUBS!');
 =cut
 
 sub rfits {PDL->rfits(@_)}
+
+##############################
+#
+# Check if there's Astro::FITS::Header support, and set flag.
+# Kludgy but it only has to run once, on first load.  --CED
+#
+BEGIN {
+	eval "use Astro::FITS::Header;";
+	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
+	if($PDL::Astro_FITS_Header) {
+	  # no warnings; # pre 5.6 dislikes this
+	  my($a) = $Astro::FITS::Header::VERSION;
+	  $a =~ s/\..*//;
+	  $PDL::Astro_FITS_Header = 0 if($a < 2);
+	}
+	
+}
+##############################
+
 
 sub PDL::rfits {
    my $class = shift;
@@ -141,63 +160,92 @@ sub PDL::rfits {
    $nbytes = 0; # Number of bytes read so far
    $line = "";
 
+  #
+  # Switch here:  in case of legacy support, use the parser written
+  # by KGB; otherwise, if Astro::FITS::Header exists, use that and 
+  # put a tied hash into the returned piddle's header.  (CED)
+  # 
    my $foo={};       # To go in pdl
    $$foo{"BSCALE"}=1;
    $$foo{"BZERO"}=0;
    my @history=();
    my $currentext=0;
+
+   my @cards = ();
    while( !eof(FITS)) {
       read(FITS,$line,80);
       barf "file $file is not in FITS-format:\n$line\n"
                   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
       $nbytes += 80;
 
+      push(@cards,$line)  if($PDL::Astro_FITS_Header);
+
       # Now skip to required extension
-      
       if ($currentext != $extnum) {
           while(1) {
       	    # Move to next record
-      	    read(FITS,$line,2880-80);
-	    barf "Unexpected end of FITS file\n" if eof(FITS);
-	    # Read start of next record
-      	    read(FITS,$line,80);
-	    barf "Unexpected end of FITS file\n" if eof(FITS);
-	    # Check if we have found the new extension
-	    # if not move on
-	    $currentext++ if  $line =~ /^XTENSION/;
-	    if ($currentext == $extnum) {
-	       print "Found extension $currentext \n" if $PDL::verbose;
-	       $line =~ /^XTENSION= \'(\w+)\s*\'/;
-	       barf "Can not handle $1 extensions\n" unless $1 eq "IMAGE";
-	       last;
-	    }   
-	  }
-      }	 
+       	    read(FITS,$line,2880-80);
+   	    barf "Unexpected end of FITS file\n" if eof(FITS);
+   	    # Read start of next record
+         	    read(FITS,$line,80);
+   	    barf "Unexpected end of FITS file\n" if eof(FITS);
+   	    # Check if we have found the new extension
+   	    # if not move on
+   	    $currentext++ if  $line =~ /^XTENSION/;
+   	    if ($currentext == $extnum) {
+   	       print "Found extension $currentext \n" if $PDL::verbose;
+   	       $line =~ /^XTENSION= \'(\w+)\s*\'/;
+   	       barf "Can not handle $1 extensions\n" unless $1 eq "IMAGE";
+   	       last;
+   	    }   
+   	  }
+        }
 
-      # skip if the first eight characters are ' '
-      # - as seen in headers from the DSS at STScI
-      next if substr($line,0,8) eq " " x 8;
+        $name = (split(' ',substr($line,0,8)))[0]; 
+        $rest = substr($line,8);
 
-      $name = (split(' ',substr($line,0,8)))[0]; 
-      $rest = substr($line,8);
+	if(!($PDL::Astro_FITS_Header)) { 
+	  # (No FITS header library -- do legacy parsing)
+	     
+          # skip if the first eight characters are ' '
+          # - as seen in headers from the DSS at STScI
+          next if substr($line,0,8) eq " " x 8;
+   
+          $name = (split(' ',substr($line,0,8)))[0]; 
+          $rest = substr($line,8);
+ 
+          if ($name =~ m/^HISTORY/) {
+             push @history, $rest;
+          } else {
+             $$foo{$name} = "";
+             undef $comment;
 
-      if ($name =~ m/^HISTORY/) {
-         push @history, $rest;
-      } else {
-         $$foo{$name} = "";
-         undef $comment;
-         $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) *$| ;
-         $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) +/(.*)$| ;
-         $$foo{$name}="'".$1."'" if $rest =~ m|^= '(.*)' *$| ;
-         $$foo{$name}="'".$1."'" if $rest =~ m|^= '(.*)' +/(.*)$| ;
-         $$foo{COMMENT}{$name} = $2 if defined($2);
-         last if $name eq "END";
-      }
+             $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
+ 	     $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
+             $$foo{COMMENT}{$name} = $3 if defined($3);
+          }
+	} # End of legacy parsing
+
+        last if $name eq "END";
+
    }
+ 
+
+   # (This line only runs if KGB parsing has happened)
    $$foo{"HISTORY"} = \@history if $#history >= 0;
+
+   # Step to end of header block in file
    $nbytes %= 2880;
    my $bar; read(FITS,$bar, 2880-$nbytes) if $nbytes!=0; # Skip to end of card
 
+   # Do header parsing and tying if Astro::FITS::Header is enabled
+   if($PDL::Astro_FITS_Header) {
+	my($hdr) = new Astro::FITS::Header(Cards => \@cards);
+	my(%hdrhash);
+	tie %hdrhash,"Astro::FITS::Header",$hdr;
+	$foo = \%hdrhash;
+   }
+   
    # Setup piddle structure
 
    $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
@@ -209,7 +257,7 @@ sub PDL::rfits {
    my @dims; # Store the dimenions 1..N, compute total number of pixels
    $size = 1;  $i=1;
    while(defined( $$foo{"NAXIS$i"} )) {
-     $size = $size*$$foo{"NAXIS$i"};
+     $size *= $$foo{"NAXIS$i"};
      push @dims, $$foo{"NAXIS$i"} ; $i++;
    }
    $pdl->setdims([@dims]);
@@ -262,8 +310,8 @@ sub PDL::rfits {
 
    $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
    print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
-   $bscale = 1 if $bscale eq "";
-   $bzero  = 0 if $bzero  eq "";
+   $bscale = 1 if (!defined($bscale) || $bscale eq "");
+   $bzero  = 0 if (!defined($bzero)  || $bzero  eq "");
 
    # Be clever and work out the final datatype before eating
    # memory
@@ -299,6 +347,7 @@ sub PDL::rfits {
    delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
 
    # Header
+
    $pdl->sethdr($foo);
    $pdl->hdrcpy(1);
 
@@ -309,7 +358,7 @@ sub PDL::rfits {
 
 =for ref
 
-Simple piddle FITS writer
+Piddle FITS writer
 
 =for example
 
@@ -342,6 +391,12 @@ pp_addpm(<<'!NO!SUBS!');
 =cut
 
 *wfits = \&PDL::wfits;
+
+BEGIN {
+  @PDL::IO::Misc::wfits_keyword_order = 
+    ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
+}
+
 
 sub PDL::wfits { # Write a PDL to a FITS format file
 
@@ -389,59 +444,162 @@ sub PDL::wfits { # Write a PDL to a FITS format file
       ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
 
       if ($min<$dmin || $max>$dmax) {
-         $bzero = $min;
+         $bzero = $min - $dmin;
          $max -= $bzero;
          $bscale = $max/$dmax if $max>$dmax;
        }
        print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
    }
 
+   
+   ## Open file & prepare to write binary info
    open(FITS, "$file") || barf "Unable to create FITS file $file\n";
    binmode FITS;
-   printf FITS "%-80s", "SIMPLE  =                    T ";
 
-   $nbytes = 80; # Number of bytes written so far
+   ##############################
+   ## Check header and prepare to write it out
 
-   # Write FITS header
+   my($h) = $pdl->gethdr();
+   if(defined($h) && 
+      (defined (tied %$h)) && 
+      ((tied %$h) =~ m/Astro::FITS::Header/)) {
+     my $k;
 
-   %hdr = ();
-   my $h = $pdl->gethdr;
-   if (defined($h)) {
-      for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
-   }
+     ##############################
+     ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
+     ## direct hash handler below, so I've more or less just copied and
+     ## pasted with some translation.  --CED
+     ##
+     my $hdr = tied %$h;
 
-   delete $hdr{SIMPLE}; delete $hdr{'END'};
+     #
+     # Put advertising comment in the SIMPLE field
+     #
+     $h->{SIMPLE} = 'T';
+     my(@a) = $hdr->itembyname('SIMPLE');
+     $a[0]->comment('Created with PDL (http://pdl.perl.org)');
+     
+     #
+     # Use tied interface to set all the keywords.  Note that this
+     # preserves existing per-line comments, only changing the values.
+     #
+     $h->{BITPIX} = $BITPIX;
+     $h->{NAXIS} = pdl->getndims;
+     for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
 
-   $hdr{BITPIX} =  $BITPIX;
-   $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
-   wheader('BITPIX');
+     $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
+     $hdr{BSCALE} = $bscale if($bscale != 1);
+     $hdr{BZERO}  = $bzero  if($bzero  != 0);
 
-   $ndims = $pdl->getndims; # Dimensions of data array
-   $hdr{NAXIS}  = $ndims;
-   wheader('NAXIS');
-   for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
-   for $k (1..$ndims) { wheader("NAXIS$k") }
-
-   if ($bscale != 1 || $bzero  != 0) {
-      $hdr{BSCALE} =  $bscale;
-      $hdr{BZERO}  =  $bzero;
-      wheader('BSCALE');
-      wheader('BZERO');
-   }
-   wheader('BUNIT');
-
-   # IF badflag is set
-   #   and BITPIX > 0 - ensure the header contains the BLANK keyword
-   #                    (make sure it's for the correct type)
-   #   otherwise      - make sure the BLANK keyword is removed
-   if ( $pdl->badflag() ) {
+     if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
        else               { delete $HDR{BLANK}; }
+     }
+     
+     #
+     # Use object interface to sort the lines. This is complicated by
+     # the need for an arbitrary number of NAXIS<n> lines in the middle
+     # of the sorting.  Keywords with a trailing '1' in the sorted-order
+     # list get looped over.
+     my($kk) = 0; 
+     for $k(0..$#PDL::IO::Misc::wfits_keyword_order) {
+       my($kn) = 0;
+       
+       my @index;
+       do {            # Loop over numericised keywords (e.g. NAXIS1)
+	 
+ 	 my $kw = $PDL::IO::Misc::wfits_keyword_order[$k]; # $kw get keyword
+ 	 $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
+ 	 @index = $hdr->index($kw);
+	 
+	 if(defined $index[0]) {
+	     $hdr->insert($kk, $hdr->remove($index[0])) 
+	       unless ($index[0] == $kk) ;
+	     $kk++;
+	 }
+       } while((defined $index[0]) && $kn);
+     }
+
+     #
+     # Delete the END card if necessary (for later addition at the end)
+     #
+     $hdr->removebyname('END');
+
+     #
+     # Make sure that the HISTORY lines all come at the end
+     # 
+     my @hindex = $hdr->index('HISTORY');
+     for $k(0..$#$hindex) {
+       $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
+     }
+
+     #
+     # Make sure the last card is an END
+     #
+     $hdr->insert(-1,new Astro::FITS::Header::Item(Keyword=>'END'));
+     
+     #
+     # Write out all the cards, and note how many bytes for later padding.
+     #
+     my $s = join("",$hdr->cards);
+     print FITS $s;
+     $nbytes = length $s;
+   } else {
+
+     #
+     # Legacy emitter (note different advertisement in the SIMPLE
+     # comment, for debugging!)
+     #
+   
+     printf FITS "%-80s", "SIMPLE  =                    T / PDL::IO::Misc::wfits (http://pdl.perl.org)";
+     
+     $nbytes = 80; # Number of bytes written so far
+     
+     # Write FITS header
+     
+     %hdr = ();
+     if (defined($h)) {
+       for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
+     }
+     
+     delete $hdr{SIMPLE}; delete $hdr{'END'};
+     
+     $hdr{BITPIX} =  $BITPIX;
+     $hdr{BUNIT} = "Data Value" unless exists $hdr{BUNIT};
+     wheader('BITPIX');
+     
+     $ndims = $pdl->getndims; # Dimensions of data array
+     $hdr{NAXIS}  = $ndims;
+     wheader('NAXIS');
+     for $k (1..$ndims) { $hdr{"NAXIS$k"} = $pdl->getdim($k-1) }
+     for $k (1..$ndims) { wheader("NAXIS$k") }
+     
+     if ($bscale != 1 || $bzero  != 0) {
+       $hdr{BSCALE} =  $bscale;
+       $hdr{BZERO}  =  $bzero;
+       wheader('BSCALE');
+       wheader('BZERO');
+     }
+     wheader('BUNIT');
+     
+     # IF badflag is set
+     #   and BITPIX > 0 - ensure the header contains the BLANK keyword
+     #                    (make sure it's for the correct type)
+     #   otherwise      - make sure the BLANK keyword is removed
+     if ( $pdl->badflag() ) {
+       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
+       else               { delete $HDR{BLANK}; }
+     }
+     
+     for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
+     wheader('HISTORY'); # Make sure that HISTORY entries come last.
+     printf FITS "%-80s", "END"; $nbytes += 80;
    }
-  
-   for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
-   wheader('HISTORY'); # Make sure that HISTORY entries come last.
-   printf FITS "%-80s", "END"; $nbytes += 80;
+
+
+   #
+   # Pad the header to a legal value and write the rest of the FITS file.
+   #
    $nbytes %= 2880;
    print FITS " "x(2880-$nbytes) if $nbytes != 0; # Fill up HDU
 
@@ -519,42 +677,54 @@ sub wheader {     # Local utility routine of wfits()
    } else {
       # Check that we are dealing with a scalar value in the header
       # Need to make sure that the header does not include PDLs or
-      # other structures. Return unless $hdr{$k} is a scalar
+      # other structures. Return unless $hdr{$k} is a scalar.
+     my($hdrk) = $hdr{$k};
 
-      return unless not ref($hdr{$k});
+     if(ref $hdrk eq 'ARRAY') {
+       $hdrk = join("\n",@$hdrk);
+     }
 
-      if ($hdr{$k} eq "") {
+      return unless not ref($hdrk);
+
+      if ($hdrk eq "") {
          printf FITS "%-80s", substr($k,0,8);
       } else {
          printf FITS "%-8s= ", substr($k,0,8);
-         if ($hdr{$k} =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
+
+         if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
          my $cl=60-((exists($hdr{COMMENT}{$k})) ? 2 : 0);
          my $end=' ' x $cl;
          $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
-         printf FITS "%20s%-50s", substr($hdr{$k},0,20),
+         printf FITS "%20s%-50s", substr($hdrk,0,20),
          substr($end, 0, 50);
-        } elsif ($hdr{$k} eq 'F' or $hdr{$k} eq 'T') {
+        } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
           # Logical flags ?
-          printf FITS "%20s", $hdr{$k};
+          printf FITS "%20s", $hdrk;
           my $end=' ' x 50;
           $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
           printf FITS "%-50s", $end;
-        }
-         else {
-         $hdr{$k}=$1 if ($hdr{$k}=~m/'(.*)'/); # Take off surrounding ''
-         my $sl=length($hdr{$k})+2;
-         $sl=10 if $sl < 10;
-         my $cl=68-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
-         printf FITS "'%-$ {sl}s'", substr($hdr{$k},0,$sl);
-         if (exists($hdr{COMMENT}{$k})) {
-               printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
-           } else {
-             printf FITS "%-$ {cl}s", ' ' x $cl;
-            }
-         }
-      }
+        } else {
+	  # Handle strings, truncating as necessary
+	  # (doesn't do multicard strings like Astro::FITS::Header does)
+	  
+	  # Convert single quotes to doubled single quotes 
+	  # (per FITS standard)
+	  my($st) = $hdrk;
+	  $st =~ s/\'/\'\'/g;
+	  
+	  my $sl=length($st)+2;
+	  my $cl=70-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
+	  print FITS "'$st'";
+	  
+	  if (exists($hdr{COMMENT}{$k}) && defined($hdr{COMMENT}{$k})) {
+	    printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
+	  } else {
+	    printf FITS "%-$ {cl}s", ' ' x $cl;
+	  }
+	}
+       }
       $nbytes += 80; delete $hdr{$k};
-   }
+    }
    delete $hdr{COMMENT}{$k};
 1;}
 
@@ -715,7 +885,7 @@ sub PDL::rcols {
    barf 'Usage ($x,$y,...) = rcols( *HANDLE|"filename", ["/pattern/" or \%options], $col1, $col2, ..., [ \%options] )' 
        if $#_<0;
 
-   my $is_handle = ref(\$_[0]) eq "GLOB";
+   my $is_handle = defined fileno $_[0] ? 1 : 0;
    my $fh = $is_handle ? $_[0] : "FILE";
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
@@ -1013,7 +1183,9 @@ sub PDL::wcols {
    }
    my $file = $_[-1];
    my $file_opened;
-   if (ref(\$file) eq "GLOB") {  # file handle passed directly
+   my $is_handle = !UNIVERSAL::isa($file,'PDL') && defined fileno($file) ? 1 
+	: 0;
+   if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
    else{
@@ -1184,7 +1356,7 @@ of C<$1>, C<$2> etc.
      my (@ret,@v,$nret); my ($m,$n)=(-1,0); # Count/PDL size
      my $pattern = shift;
 
-     my $is_handle = ref(\$_[0]) eq "GLOB";
+     my $is_handle = defined fileno $_[0] ? 1 : 0;
      my $fh = $is_handle ? $_[0] : "FILE";
      open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
 
@@ -1498,9 +1670,10 @@ nonexistent).
 
 =for usage
 
-  $pdl->rasc("filename" [,$noElements]);
+  $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
       Where:
-  	filename is the name of the ASCII file to read
+  	filename is the name of the ASCII file to read or
+          open file handle
 	$noElements is the optional number of elements in the file to read.
 	    (If not present, all of the file will be read to fill up $pdl).
 	$pdl can be of type float or double for more precision.
@@ -1514,7 +1687,6 @@ nonexistent).
   $imm = zeroes(float,20,2);
   $imm->rasc('test.num');
 
-
 =cut
 
 sub rasc {PDL->rasc(@_)}
@@ -1522,9 +1694,15 @@ sub PDL::rasc {
   use IO::File;
   my ($pdl, $file, $num) = @_;
   $num = -1 unless defined $num;
-  my $fi = new IO::File "<$file" || barf "Can't open $file";
+  my $fi = $file;
+  my $is_openhandle = defined fileno $fi ? 1 : 0;
+  unless ($is_openhandle) {
+    barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
+       if !defined $file || ref $file;
+    $fi = new IO::File "<$file" or barf "Can't open $file";
+  }
   $pdl->_rasc(my $ierr=null,$num,$fi);
-  close $fi;
+  close $fi unless $is_openhandle;
   return all $ierr > 0;
 }
 

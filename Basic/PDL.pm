@@ -6,9 +6,18 @@ PDL - Main loader of PDL default modules
 
 Loads the default set of modules associated
 with PDL, making the functions available in
-the current namespace. See also 
-L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF> 
+the current namespace. See also
+L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF>
 if start-up time becomes an issue.
+
+The PDL::Math module has been added to the list of modules
+for versions later than 2.3.1. Note that PDL::Math is still
+I<not> included in the
+L<Lite|PDL::Lite> and L<LiteF|PDL::LiteF>
+start-up modules.
+
+If you are looking for general documentation on PDL
+the L<PDL::Index|PDL::Index> manpage is a good starting point.
 
 =head1 SYNOPSIS
 
@@ -21,6 +30,7 @@ if start-up time becomes an issue.
    use PDL::Basic;
    use PDL::Slices;
    use PDL::Bad;
+   use PDL::Math;
    use PDL::Version;
    use PDL::IO::Misc;
    use PDL::Lvalue;
@@ -28,8 +38,8 @@ if start-up time becomes an issue.
 =cut
 
 
-# set the version: 
-$PDL::VERSION = '2.3.2'; # delete 'cvs' bit for release !
+# set the version:
+$PDL::VERSION = '2.3.3'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
@@ -49,6 +59,7 @@ use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Bad;
+use PDL::Math;
 use PDL::Lvalue;
 
 # Load these for TPJ compatibility
@@ -67,6 +78,6 @@ die $@ if $@;
 package PDL;
 
 
-;# Exit with OK status
+# Exit with OK status
 
 1;

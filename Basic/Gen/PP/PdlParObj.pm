@@ -6,7 +6,7 @@ package PDL::PP::PdlParObj;
 
 use Carp;
 use SelfLoader;
-use PDL::Core;
+# use PDL::Core;
 use PDL::Types;
 
 @ISA = qw/ SelfLoader /;

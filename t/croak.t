@@ -16,7 +16,6 @@ sub tapprox {
 $SIG{BUS} = \&not_ok;
 $SIG{SEGV} = \&not_ok;
 
-
 sub not_ok {
 	print STDERR "\ngot fatal signal\n";
 	print "not ok ".$::i."\n";
@@ -25,28 +24,31 @@ sub not_ok {
 
 print "1..4\n";
 
-
 # PDL::Core::set_debugging(1);
 $b = pdl [[1,1,1],[2,2,2]];
 
 # we are using more dims than are available
+$i = 1;
 eval {$c = $b->slice(':,:,:,(1)'); $c->make_physical();};
 print "ERROR WAS: '$@'\n";
 ok(1,$@ =~ /error/i);
 
-$::i = 2;
+$i++;
 # now see if we survive the destruction of this invalid trans
 $b = zeroes(5,3,3);
 $c = $b->slice(":,:,1");
 ok(2,1);  # if we're here we survived
 
+$i++;
 $b = pdl [[1,1,1],[2,2,2]];
-eval {$c = $b->clump(3); $c->make_physical();};
-print "ERROR WAS: '$@'\n";
-ok(3,$@ =~ /error/i);
+eval {$c = $b->dummy(5,1); $c->make_physical();};
+ok(3,!$@);
 
-$::i = 4;
-
+$i++;
 $b = zeroes(5,3,3);
 $c = $b->slice(":,:,1");
-ok(4,1);  # if we're here we survived
+ok(4,1);  
+
+# if we're here we survived
+
+

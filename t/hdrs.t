@@ -46,5 +46,5 @@ print "d: ",$d->gethdr(),"\n";
 ok(7,hdrcmp($a,$d));
 
 $a->hdrcpy(0);
-ok(8,!defined($a->slice('3')->gethdr));
+ok(8,defined($a->slice('3')->gethdr) && !( keys (%{$a->slice('3')->gethdr})));
 

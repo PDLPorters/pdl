@@ -1,1 +1,0 @@
-extern E_f snrm2_(integer *n, real *sx, integer *incx);

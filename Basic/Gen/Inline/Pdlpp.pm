@@ -465,6 +465,10 @@ these docs are complete C<;)>.
 
 For more information on Inline in general, see L<Inline>.
 
+Some example scripts demonstrating C<Inline::Pdlpp> usage can be
+found in the F<Example/InlinePdlpp> directory.
+
+
 C<Inline::Pdlpp> is mostly a shameless rip-off of C<Inline::C>.
 Most Kudos goes to Brian I.
 

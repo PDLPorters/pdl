@@ -1,2 +1,0 @@
-extern int ezfftb_(integer *n, real *r__, real *azero, real *a, real *b, real *wsave);
-/*:ref: rfftb_ 14 3 4 6 6 */

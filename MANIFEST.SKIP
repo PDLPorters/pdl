@@ -153,6 +153,7 @@ so_locations
 ^perl$
 ^Basic/Core/Config\.pm
 ^Basic/Core/Version\.pm
+^Basic/Pod/PP-Inline\.pod$
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
 ^Graphics/PGPLOT/PGPLOT.c
@@ -163,3 +164,4 @@ so_locations
 ^Demos/BAD2_demo.pm$
 ^IO/NDF/NDF.pm$
 ^win32/pbmwin32.tar.gz
+^Lib/GSL/RNG\.(pm|xs|c)

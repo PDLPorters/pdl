@@ -1,6 +1,0 @@
-extern int spoco_(real *a, integer *lda, integer *n, real *rcond, real *z__, integer *info);
-/*:ref: sasum_ 6 3 4 6 4 */
-/*:ref: spofa_ 14 4 6 4 4 4 */
-/*:ref: sscal_ 14 4 4 6 6 4 */
-/*:ref: saxpy_ 14 6 4 6 6 4 6 4 */
-/*:ref: sdot_ 6 5 4 6 4 6 4 */

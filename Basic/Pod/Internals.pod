@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Internals - description of the current internals
+PDL::Internals - description of some aspects of the current internals
 
 =head1 DESCRIPTION
 
@@ -10,160 +10,318 @@ This document explains various aspects of the current implementation
 of PDL. If you just want to use PDL for something, you definitely
 do not need to read this. Even if you want to interface your C routines
 to PDL or create new L<PDL::PP|PDL::PP> functions, you do not need to read this
-(though it may be informative). This document is primarily
+man page (though it may be informative). This document is primarily
 intended for people interested in debugging or changing the internals
 of PDL. To read this, a good understanding of the C language
 and programming and data structures in general is required, as well
-as some perl understanding. If you read through this document
+as some Perl understanding. If you read through this document
 and understand all of it and are able to point what any part of
 this document refers to in the PDL core sources and additionally
 struggle to understand L<PDL::PP|PDL::PP>, you will be awarded the title
 "PDL Guru" (of course, the current version of this document
-is so incomplete that this is not yet the case).
+is so incomplete that this is next to impossible from just these notes).
 
 B<Warning:> If it seems that this document has gotten out of date,
-please inform the PerlDL developers email list (address in the README
-file) about it. This may well happen.
+please inform the PDL porters email list (pdl-porters@jach.hawaii.edu).
+This may well happen.
 
 =head2 Piddles
 
-Currently, a pdl data object is a hash ref which contains the element
-PDL, which is a pointer to a pdl structure, as well as some other fields.
-The file C<Core.pm> uses some of these fields and the file C<pdlhash.c> converts
-these to C when necessary.
+The pdl data object is generally an opaque scalar reference into a 
+pdl structure in memory. Alternatively, it may be a hash reference with
+the C<PDL> field containing the scalar reference (this makes overloading
+piddles easy, see L<PDL::Objects|PDL::Objects>). You can easily find out
+at the Perl level which type of piddle you are dealing with. The example
+code below demonstrates how to do it:
 
-The pdl struct is defined in C<pdl.h> and the meanings of the fields
-are
+   # check if this a piddle
+   die "not a piddle" unless UNIVERSAL::isa($pdl, 'PDL');
+   # is it a scalar ref or a hash ref?
+   if (UNIVERSAL::isa($pdl, "HASH")) {
+     die "not a valid PDL" unless exists $pdl->{PDL} &&
+	UNIVERSAL::isa($pdl->{PDL},'PDL');
+     print "This is a hash reference,",
+	" the PDL field contains the scalar ref\n";
+   } else {
+        print "This is a scalar ref that points to address $$pdl in memory\n";
+   }
 
-=over 8
+The scalar reference points to the numeric address of a C structure of
+type C<pdl> which is defined in F<pdl.h>. The mapping between the
+object at the Perl level and the C structure containing the actual
+data and structural that makes up a piddle is done by the PDL typemap.
+The functions used in the PDL typemap are defined pretty much at the top
+of the file F<pdlcore.h>. So what does the structure look like:
 
-=item magicno
+	struct pdl {
+	   unsigned long magicno; /* Always stores PDL_MAGICNO as a sanity check */
+	     /* This is first so most pointer accesses to wrong type are caught */
+	   int state;        /* What's in this pdl */
 
-A magic number, used to check whether something really is a piddle
-when debugging.
+	   pdl_trans *trans; /* Opaque pointer to internals of transformation from
+				parent */
 
-=item state
+	   pdl_vaffine *vafftrans;
 
-Various flags about the state of the pdl, such as whether the parents
-of this pdl have been altered at some point.
+	   void*    sv;      /* (optional) pointer back to original sv.
+				  ALWAYS check for non-null before use.
+				  We cannot inc refcnt on this one or we'd
+				  never get destroyed */
 
-=item trans
+	   void *datasv;        /* Pointer to SV containing data. Refcnt inced */
+	   void *data;            /* Null: no data alloced for this one */
+	   int nvals;           /* How many values allocated */
+	   int datatype;
+	   PDL_Long   *dims;      /* Array of data dimensions */
+	   PDL_Long   *dimincs;   /* Array of data default increments */
+	   short    ndims;     /* Number of data dimensions */
 
-Where this pdl was obtained from. This pointer may be null, in which
-case this pdl is not getting any dataflow from anywhere.
-Note, however that being non-null does not mean that data is flowing:
+	   unsigned char *threadids;  /* Starting index of the thread index set n */
+	   unsigned char nthreadids;
 
- $a = pdl 2,3,4; 
- $b = pdl 4,5,6;
- $c = $a + $b;     # Note: no dataflow (not asked for)
+	   pdl *progenitor; /* I'm in a mutated family. make_physical_now must
+			       copy me to the new generation. */
+	   pdl *future_me;  /* I'm the "then" pdl and this is my "now" (or more modern
+			       version, anyway */
 
-here, the trans field in C<$c> contains a pointer to a transformation.
-Only when C<$a> or C<$b> is changed, is the transformation destroyed and
-the field cleared. To see whether data is flowing, check the flags
-field of the trans struct.
+	   pdl_children children;
 
-=item vafftrans
+	   short living_for; /* perl side not referenced; delete me when */
 
-This is intended for speeding up e.g. the chaining of affine
-transformations. See C<pdlapi.c> for the code handling this.
-Also, C<slices.pd> defines some things with / for this.
+	   PDL_Long   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
+	   PDL_Long   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
+	   unsigned char def_threadids[PDL_NTHREADIDS];
 
-=item sv
+	   struct pdl_magic *magic;
 
-Pointer to the hash object. May be null if this pdl does not have
-a perl counterpart.
+	   void *hdrsv; /* "header", settable from outside */
+	};
 
-=item datasv, data
+This is quite a structure for just storing some data in - what is going on?
 
-The field datasv is a pointer to the perl SV containing the data string.
-These may be null before the pdl is finally physicalized.
+=over 5
 
-=item nvals
+=item Data storage
 
-How many values there are in data
+We are going to start with some of the simpler members: first of all,
+there is the member
 
-=item datatype
+	void *datasv;
 
-The type of the data stored in the data vector.
+which is really a pointer to a Perl SV structure (C<SV *>). The SV is
+expected to be representing a string, in which the data of the piddle
+is stored in a tightly packed form. This pointer counts as a reference
+to the SV so the reference count has been incremented when the C<SV *>
+was placed here (this reference count business has to do with Perl's
+garbage collection mechanism -- don't worry if this doesn't mean much
+to you). This pointer is allowed to have the value C<NULL> which 
+means that there is no actual Perl SV for this data - for instance, the data
+might be allocated by a C<mmap> operation. Note the use of an SV*
+was purely for convenience, it allows easy transformation of
+packed data from files into piddles. Other implementations are not
+excluded.
 
-=item dims, ndims
+The actual pointer to data is stored in the member
 
-The dimensions of this pdl. Remember to physicalize the pdl before using.
+	void *data;
 
-=item dimincs
+which contains a pointer to a memory area with space for
 
-As an optimization, an increment for each dimension is stored here.
-These are required to correspond exactly to dims. 
-If you want to optimize for affine transformations, use the trans or vtrans.
+	int nvals;
 
-=item threadids, nthreadids
+data items of the data type of this piddle.
 
-This is where the threading tags are stored. The way this works
-is that ndims and dims hold I<all> dimensions of the pdl, including
-threaded dimensions. The real dimensions of the pdl extend from 0 to
-C<threadids[0]-1>, the thread dimensions with id 0 extend from
-C<threadids[0]> to C<threadids[1]-1> and the thread dimensions with the last id
-extend from C<threadids[nthreadids-1]> to C<threadids[nthreadids]-1>.
-For example, if a pdl has dimensions C<(2,3,4,5)> (= 120 elements)
-and C<nthreadids==2> and C<threadids={1,3,4}>, there is one "real" dimensions
-with size 2, two dimensions with threadid 0 (3 and 4) and the dimensions
-with size 5 has threadid 1.
+The data type of the data is stored in the variable
 
-=item progenitor, future_me
+	int datatype;
 
-See the section on families below
+the values for this member are given in the enum C<pdl_datatypes> (see
+F<pdl.h>). Currently we have byte, short, unsigned short, long, float and
+double types, see also L<PDL::Types>.
 
-=item children
+=item Dimensions
 
-The children of this pdl i.e. where data is flowing to from this pdl.
+The number of dimensions in the piddle is given by the member
 
-=item living_for
+	int ndims;
 
-XXX Not quite clear right now. Has to do with families
+which shows how many entries there are in the arrays
 
-=item def_*
+	PDL_Long   *dims;      
+	PDL_Long   *dimincs;
 
-To avoid mallocs, there is a suitable amount of space already allocated
-for each pointer in this pdl, with the ideology that if you have more
-than six-dimensional data you must be willing to settle for a little
-more overhead.
+These arrays are intimately related: C<dims> gives the sizes of the dimensions
+and C<dimincs> is always calculated by the code
 
-=item magic
+	int inc = 1;
+        for(i=0; i<it->ndims; i++) {
+		it->dimincs[i] = inc; inc *= it->dims[i];
+	}
 
-If this pdl is magical (e.g. if it is bound to something), this
-pointer is non-null and you must call the appropriate magic-handling
-routines when using the pdl.
+in the routine C<pdl_resize_defaultincs> in C<pdlapi.c>.
+What this means is that the dimincs can be used to calculate the offset
+by code like
 
-=item hdrsv
+	int offs = 0;
+	for(i=0; i<it->ndims; i++) {
+		offs += it->dimincs[i] * index[i];
+	}
 
-A ``header'' SV * that can be set and accessed from outside.
-Can be used to include any perl object in a piddle.
+but this is not always the right thing to do,
+at least without checking for certain things first.
+
+=item Default storage
+
+Since the vast majority of piddles don't have more than 6 dimensions,
+it is more efficient to have default storage for the dimensions and dimincs
+inside the PDL struct.
+
+   	PDL_Long   def_dims[PDL_NDIMS];   
+   	PDL_Long   def_dimincs[PDL_NDIMS]; 
+
+The C<dims> and C<dimincs> may be set to point to the beginning of these
+arrays if C<ndims> is smaller than or equal to the compile-time constant
+C<PDL_NDIMS>. This is important to note when freeing a piddle struct.
+The same applies for the threadids:
+
+   	unsigned char def_threadids[PDL_NTHREADIDS];
+
+=item Magic
+
+It is possible to attach magic to piddles, much like Perl's own magic
+mechanism. If the member pointer
+
+	   struct pdl_magic *magic;
+
+is nonzero, the PDL has some magic attached to it. The implementation
+of magic can be gleaned from the file F<pdlmagic.c> in the distribution.
+
+=item State
+
+One of the first members of the structure is 
+
+	int state;
+
+The possible flags and their meanings are given in C<pdl.h>.
+These are mainly used to implement the lazy evaluation mechanism
+and keep track of piddles in these operations.
+
+=item Transformations and virtual affine transformations
+
+As you should already know, piddles often carry information about
+where they come from. For example, the code
+
+	$b = $a->slice("2:5");
+	$b .= 1;
+
+will alter $a. So C<$b> and C<$a> I<know> that they are connected
+via a C<slice>-transformation. This information is stored in the members
+
+   	pdl_trans *trans; 
+   	pdl_vaffine *vafftrans;
+
+Both C<$a> (the I<parent>) and C<$b> (the child) store this information
+about the transformation in appropriate slots of the C<pdl> structure.
+
+C<pdl_trans> and C<pdl_vaffine> are structures that we will look at in
+more detail below.
+
+=item The Perl SVs
+
+When piddles are referred to through Perl SVs, we store an additional
+reference to it in the member
+
+	void*    sv;
+
+in order to be able to return a reference to the user when he wants to 
+inspect the transformation structure on the Perl side.
+
+Also, we store an opaque
+
+	void *hdrsv; 
+
+which is just for use by the user to hook up arbitrary data with this sv.
+This one is generally manipulated through L<sethdr|PDL::core/sethdr> and
+L<gethdr|PDL::Core/gethdr> calls.
+ 
+=back
+
+=head2 Smart references and transformations: slicing and dicing
+
+Smart references and most other fundamental functions
+operating on piddles are implemented via I<transformations>
+(Aas mentioned above) which are represented by the type C<pdl_trans> in PDL.
+
+A transformation links input and output piddles and contains
+all the infrastructure that defines how
+
+=over 4
+
+=item *
+
+output piddles are obtained from input piddles
+
+=item *
+
+changes in smartly linked output piddles (e.g. the I<child>
+of a sliced I<parent> piddle) are flown back to the input
+piddle in transformations where this is supported (the most
+often used example being C<slice> here).
+
+=item *
+
+datatype and size of output piddles that need to be created
+are obtained
 
 =back
 
-=head2 Transformations
+In general, executing a PDL function on a group of piddles
+results in creation of a transformation of the requested
+type that links all input and output arguments (at least
+those that are piddles). In PDL functions that support
+data flow between input and output args (e.g. C<slice>,
+C<index>) this transformation links I<parent> (input) and
+I<child> (output) piddles permanently until either the link is
+explicitly broken by user request (C<sever> at the perl level)
+or all parents and childen have been destroyed. In those
+cases the transformation is lazy-evaluated, e.g. only executed
+when piddle values are actually accessed.
 
-Each transformation has a virtual table which contains
-various information about that transformation. Usually
-transformations are generated with 
-L<PDL::PP|PDL::PP> so it's better to see
-that documentation.
+In I<non-flowing> functions, for example addition (C<+>) and inner
+products (C<inner>), the transformation is installed just as
+in flowing functions but then the transformation is immediately
+executed and destroyed (breaking the link between input and output args)
+before the function returns.
 
-=head2 Freeing
+It should be noted that the close link between input and output args
+of a flowing function (like L<slice|PDL::Slices/slice>) requires
+that piddle objects that are linked in
+such a way be kept alive beyond the point where they have gone
+out of scope from the point of view of perl:
 
-Currently, not much is freed, especially when dataflow is done.
-This is bound to change pretty soon.
+  $a = zeroes(20);
+  $b = $a->slice('2:4');
+  undef $a;    # last reference to $a is now destroyed
 
-=head2 Threading
-
-The file C<pdlthread.c> handles most of the threading matters.
-The threading is encapsulated in the structure C<pdlthread.h>.
+Although $a should now be destroyed according to perl's rules
+the underlying C<pdl> structure must actually only be freed when C<$b>
+also goes out of scope (since it still references
+internally some of C<$a>'s data). This example demonstrates that such
+a dataflow paradigm between PDL objects necessitates a special
+destruction algorithm that takes the links between piddles
+into account and couples the lifespan of those objects. The
+non-trivial algorithm is implemented in the function
+C<pdl_destroy> in F<pdlapi.c>. In fact, most of the code
+in F<pdlapi.c> and F<pdlfamily.c> is concerned with
+making sure that piddles (C<pdl *>s) are created, updated
+and freed at the right times depending on interactions
+with other piddles via PDL transformations (remember, C<pdl_trans>). 
 
 =head2 Accessing children and parents of a piddle
 
-The file F<Basic/Core/pdlapi.h.PL> contains useful routines for
-manipulating the pdl structure (it's probably easier to read
-F<Basic/Core/pdlapi.h> once you've performed a build of PDL).
+When piddles are dynamically linked via transformations as
+suggested above input and output piddles are referred to as parents
+and children, respectively.
 
 An example of processing the children of a piddle is provided
 by the C<baddata> method of PDL::Bad (only available if you
@@ -188,7 +346,8 @@ containing bad values, using
  perldl> $a->baddata(1)
 
 then I want the state of C<$b> - it's I<child> - to be changed as
-well, so that I get a 'B' in the I<State> field:
+well (since it will either share or inherit some of C<$a>'s data and
+so be also I<bad>), so that I get a 'B' in the I<State> field:
 
  perldl> ? vars                    
  PDL variables in package main::
@@ -239,19 +398,147 @@ What B<is> important is that we call C<propogate_badflag> on this
 piddle, to ensure we loop through its children. This recursion
 ensures we get to all the I<offspring> of a particular piddle.
 
-B<THE FOLLOWING NEEDS TO BE CHECKED>.
-
 Access to I<parents> is similar, with the C<for> loop replaced by:
 
 	for( i = 0;
 	     i < trans->vtable->nparents;
 	     i++ ) {
+           /* do stuff with parent #i: trans->pdls[i] */
+        }
 
+=head2 What's in a transformation (C<pdl_trans>)
+
+All transformations are implemented as structures
+
+  struct XXX_trans {
+	int magicno; /* to detect memory overwrites */
+	short flags; /* state of the trans */
+	pdl_transvtable *vtable;   /* the all important vtable */
+	void (*freeproc)(struct pdl_trans *);  /* Call to free this trans
+		(in case we had to malloc some stuff dor this trans) */
+        pdl *pdls[NP]; /* The pdls involved in the transformation */
+	int __datatype; /* the type of the transformation */
+        /* in general more members
+        /* depending on the actual transformation (slice, add, etc)
+	 */
+  };
+
+The transformation identifies all C<pdl>s involved in the trans
+
+  pdl *pdls[NP];
+
+with C<NP> depending on the number of piddle args of the particular
+trans. It records a state
+
+  short flags;
+
+and the datatype
+
+  int __datatype;
+
+of the trans (to which all piddles must be converted unless
+they are explicitly typed, PDL functions created with L<PDL::PP|PDL::PP>
+make sure that these conversions are done as necessary). Most important is
+the pointer to the vtable (virtual table) that contains the actual
+functionality
+
+ pdl_transvtable *vtable;
+
+The vtable structure in turn looks something like (slightly
+simplified from F<pdl.h> for clarity)
+
+  typedef struct pdl_transvtable {
+	pdl_transtype transtype;
+	int flags;
+	int nparents;   /* number of parent pdls (input) */
+	int npdls;      /* number of child pdls (output) */
+	char *per_pdl_flags;  /* optimization flags */
+	void (*redodims)(pdl_trans *tr);  /* figure out dims of children */
+	void (*readdata)(pdl_trans *tr);  /* flow parents to children  */
+	void (*writebackdata)(pdl_trans *tr); /* flow backwards */
+	void (*freetrans)(pdl_trans *tr); /* Free both the contents and it of
+					the trans member */
+	pdl_trans *(*copy)(pdl_trans *tr); /* Full copy */
+  	int structsize;
+	char *name; /* For debuggers, mostly */
+  } pdl_transvtable;
+
+We focus on the callback functions:
+
+  	void (*redodims)(pdl_trans *tr);
+
+C<redodims> will work out the dimensions of piddles that need
+to be created and is called from within the API function that
+should be called to ensure that the dimensions of a piddle are
+accessible (F<pdlapi.c>):
+
+   void pdl_make_physdims(pdl *it)
+
+C<readdata> and C<writebackdata> are responsible for the actual
+computations of the child data from the parents or parent data
+from those of the children, respectively (the dataflow aspect).
+The PDL core makes sure that these are called as needed when
+piddle data is accessed (lazy-evaluation). The general API
+function to ensure that a piddle is up-to-date is
+
+  void pdl_make_physvaffine(pdl *it)
+
+which should be called before accessing piddle data from
+XS/C (see F<Core.xs> for some examples).
+
+C<freetrans> frees dynamically allocated memory associated
+with the trans as needed and C<copy> can copy the transformation.
+Again, functions built with L<PDL::PP|PDL::PP> make sure that copying
+and freeing via these callbacks happens at the right times. (If they
+fail to do that we have got a memory leak -- this has happened in
+the past ;).
+
+The transformation and vtable code is hardly ever written by
+hand but rather generated by L<PDL::PP|PDL::PP> from concise descriptions.
+
+Certain types of transformations can be optimized very
+efficiently obviating the need for explicit C<readdata>
+and C<writebackdata> methods. Those transformations are
+called I<pdl_vaffine>. Most dimension manipulating
+functions (e.g., C<slice>, C<xchg>) belong to this class.
+
+The basic trick is that parent and child of such a transformation work
+on the same (shared) block of data which they just choose
+to interpret differently (by dusing different C<dims>, C<dimincs> and
+C<offs> on the same data, compare the C<pdl> structure above).
+Each operation on a piddle sharing
+data with another one in this way is therefore automatically flown
+from child to parent and back -- after all they are reading and writing
+the same block of memory. This is currently not perl thread safe --
+no big loss since the whole PDL core is not reentrant
+(perl threading C<!=> PDL threading!).
+
+=head2 Signatures: threading over elementary operations
+
+Most of that functionality of PDL threading (automatic iteration
+of elemntary operations over multidim piddles) is implemented in the
+file F<pdlthread.c>.
+
+The L<PDL::PP|PDL::PP> generated functions (in particular the
+C<readdata> and C<writebackdata> callbacks) use this infrastructure to 
+make sure that the fundamental operation implemented by the
+trans is performed in agreement with PDL's threading semantics.
+
+=head2 Defining new PDL functions -- Glue code generation
+
+Please, see L<PDL::PP> and examples in the PDL distribution. Implementation
+and syntax are currently far from perfect but it does a good job!
+
+=head1 BUGS
+
+This description is far from perfect. If you need more details
+or something is still unclear please ask on the pdl-porters
+mailing list (pdl-porters@jach.hawaii.edu).
 
 =head1 AUTHOR
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu),
-2000 Doug Burke (burke@ifa.hawaii.edu).
+2000 Doug Burke (burke@ifa.hawaii.edu), 2002 Christian Soeller.
 
 Redistribution in the same form is allowed but reprinting requires
 a permission from the author.

@@ -1,2 +1,0 @@
-extern int xerbla_(char *srname, integer *info, ftnlen srname_len);
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

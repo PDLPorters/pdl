@@ -116,15 +116,19 @@ sub whereami_inst {
 # Data types to C types mapping
 # get the map from Types.pm
 {
-eval('require "'.whereami_any().'/Core/Types.pm"'); # lets dist Types.pm win
-if($@) {  # if PDL::Types doesn't work try with full path (during build)
-  my $foo = $@;
-  $@="";
-  eval('require PDL::Types');
-  if($@) {
-   die "can't find PDL::Types: $foo and $@" unless $@ eq "";
+# load PDL::Types only if it has not been previously loaded
+  my $loaded_types = grep (m%(PDL|Core)/Types[.]pm$%, keys %INC);
+  $@ = ''; # reset
+  eval('require "'.whereami_any().'/Core/Types.pm"') # lets dist Types.pm win
+    unless $loaded_types; # only when PDL::Types not yet loaded
+  if($@) {  # if PDL::Types doesn't work try with full path (during build)
+    my $foo = $@;
+    $@="";
+    eval('require PDL::Types');
+    if($@) {
+      die "can't find PDL::Types: $foo and $@" unless $@ eq "";
+    }
   }
-}
 }
 PDL::Types->import();
 
@@ -446,6 +450,7 @@ sub unsupported {
 sub write_dummy_make {
   require IO::File;
     my ($msg) = @_;
+    print STDERR "writing dummy Makefile\n";
     my $fh = new IO::File "> Makefile" or die "can't open Makefile";
     print $fh <<"EOT";
 fred:
@@ -490,7 +495,8 @@ a perl configure clone
     $have_GL = 0;
   }
   $maybe = 
-    trylink 'libwhatever', $inc, $body, $libs, {MakeMaker=>1, Hide=>0};
+    trylink 'libwhatever', $inc, $body, $libs, $cflags,
+        {MakeMaker=>1, Hide=>0, Clean=>1};
 
 Try to link some C-code making up the body of a function
 with a given set of library specifiers
@@ -499,9 +505,9 @@ return 1 if successful, 0 otherwise
 
 =for usage
 
-   trylink $infomsg, $include, $progbody, $libs [,{OPTIONS}];
+   trylink $infomsg, $include, $progbody, $libs [,$cflags,{OPTIONS}];
 
-Takes 4 + 1 optional argument.
+Takes 4 + 2 optional arguments.
 
 =over 5
 
@@ -523,22 +529,30 @@ the body of the program (in function main)
 library flags to use for linking. Preprocessing
 by MakeMaker should be performed as needed (see options and example).
 
+=item *
+
+compilation flags. For example, something like C<-I/usr/local/lib>.
+Optional argument. Empty if omitted.
+
 =item OPTIONS
 
 =over
 
-=item 2
-
 =item MakeMaker
 
-Preprocess library in the way MakeMaker does things. This is
+Preprocess library strings in the way MakeMaker does things. This is
 advisable to ensure that your code will actually work after the link
 specs have been processed by MakeMaker.
 
 =item Hide
 
-Controls of linking output etc is hidden from the user or not.
+Controls if linking output etc is hidden from the user or not.
 On by default.
+
+=item Clean
+
+Remove temporary files. Enabled by default. You might want to switch
+it off during debugging.
 
 =back
 
@@ -549,8 +563,8 @@ On by default.
 
 sub trylink {
   my $opt = ref $_[$#_] eq 'HASH' ? pop : {};
-  my ($txt,$inc,$body,$libs) = @_;
-
+  my ($txt,$inc,$body,$libs,$cflags) = @_;
+  $cflags ||= '';
   require File::Spec;
   my $fs = 'File::Spec';
   my $cdir = sub { return $fs->catdir(@_)};
@@ -558,9 +572,10 @@ sub trylink {
   use Config;
 
   # check if MakeMaker should be used to preprocess the libs
-  my $mmprocess = exists $opt->{MakeMaker} && $opt->{MakeMaker};
-  my $hide = exists $opt->{Hide} ? $opt->{Hide} : 1;
-
+  for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
+  my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
+  my $hide = exists $opt->{hide} ? $opt->{hide} : 1;
+  my $clean = exists $opt->{clean} ? $opt->{clean} : 1;
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
       require ExtUtils::Liblist;
@@ -604,10 +619,10 @@ EOF
   print FILE $prog;
   close FILE;
   # print "test prog:\n$prog\n";
-  print "$Config{cc} -o $te $tc $libs $HIDE ...\n" unless $hide;
-  my $success = (system("$Config{cc} -o $te $tc $libs $HIDE") == 0) && 
+  print "$Config{cc} $cflags -o $te $tc $libs $HIDE ...\n" unless $hide;
+  my $success = (system("$Config{cc} $cflags -o $te $tc $libs $HIDE") == 0) && 
     -e $te ? 1 : 0;
-  unlink "$te","$tc";
+  unlink "$te","$tc" if $clean;
   print $success ? "\t\tYES\n" : "\t\tNO\n" unless $txt =~ /^\s*$/;
   return $success;
 }

@@ -1,1 +1,0 @@
-extern int polfit_(integer *n, real *x, real *y, real *w, integer *maxdeg, integer *ndeg, real *eps, real *r, integer *ierr, real *a);

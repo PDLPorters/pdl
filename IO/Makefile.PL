@@ -14,10 +14,12 @@ if ( $build_browser ) {
 use ExtUtils::MakeMaker;
 # # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # # the contents of the Makefile that is written.
+
 WriteMakefile(
-     'NAME'	=> 'PDL',
+     'NAME'	=> 'PDL::IO',
      'VERSION_FROM' => '../Basic/Core/Version.pm',
-     'PM'       => {},
+     'PM'       => { 'Dumper.pm' => '$(INST_LIB)/PDL/IO/Dumper.pm' },
      'DIR'      => [ @dirs ],
 );
+
 

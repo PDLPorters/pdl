@@ -7,7 +7,7 @@ $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
-$ntests = 27;
+$ntests = 29;
 print "1..$ntests\n";
 BEGIN{
 	$|=1;
@@ -500,6 +500,36 @@ foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
     $ok &&= tapprox($_,shift @a);
 }
+ok($testno++,$ok);
+
+# Use readflex with an open file handle
+@req = (byte(1..3),
+        long(5..10),
+	float(10..15)->reshape(3,2)/100,
+	double(0..99)/1e8);
+$hdr = writeflex('tmprawdata', @req);
+open(IN, 'tmprawdata');
+@a = readflex(\*IN, $hdr);
+$ok = 1;
+foreach (@req) {
+    # print "$_ vs ",@a[0],"\n";
+    $ok &&= tapprox($_,shift @a);
+}
+close(IN);
+unlink 'tmprawdata';
+ok($testno++,$ok);
+
+# use writeflex with an open file handle
+open(OUT, ">tmprawdata");
+$hdr = writeflex(\*OUT, @req);
+close(OUT);
+@a = readflex('tmprawdata', $hdr);
+$ok = 1;
+foreach (@req) {
+    # print "$_ vs ",@a[0],"\n";
+    $ok &&= tapprox($_,shift @a);
+}
+unlink 'tmprawdata';
 ok($testno++,$ok);
 
 __END__

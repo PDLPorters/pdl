@@ -4,10 +4,9 @@ BEGIN{if ($^O =~ /MSWin/) {
   File::DosGlob->import('glob');}
 }
 
-
 @pms = map {($_ => '$(INST_LIBDIR)/'.$_)}
   (<*.pm>, <PP/*.pm>, 'PP/Dump.pm');
-push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/PDL/pptemplate.pod')
+push @pms, ('pptemplate.pod' => '$(INST_LIBDIR)/pptemplate.pod')
   if $] >= 5.006;
 
 use ExtUtils::MakeMaker;

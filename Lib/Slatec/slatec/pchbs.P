@@ -1,3 +1,0 @@
-extern int pchbs_(integer *n, real *x, real *f, real *d, integer *incfd, integer *knotyp, integer *nknots, real *t, real *bcoef, integer *ndim, integer *kord, integer *ierr);
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */
-/*:ref: pchkt_ 14 4 4 6 4 6 */

@@ -1,3 +1,99 @@
+2.3.3
+JC (22 May 02)
+    - Changes to Release_Notes, PDL.pm associated
+      with making release 2.3.3
+CS  - bump up NiceSlice version
+    - gsl_random rng destructor!
+    - improve PDL::Exporter doc (I never remember the darn syntax)
+CS  - reshape behaviour like idl when no dim args are given
+    - niceslicing gets a new modifier: $a(;-) drops dims of size 1
+CED (16 May 02)
+    - Several minor changes to Dumper and RandVar for compatibility with
+	BSD and perl 5.005
+CS  - Makefile.PL: warning if mods for NiceSlice missing
+    - IO/Misc: print warning at the end of the make output
+    - Graphics/PGPLOT: small change to the (still undocumented) autolog func
+CED (15 May 02)
+    - Added Astro::FITS::Header recognition to PDL::IO::Dumper.
+CED (14 May 02)
+    - Removed NiceSlicing from RandVar and Dumper (they use slice only now)
+CED (from the distant past)
+    - Added PDL::IO::Dumper, which provides deep data structure storage
+	and retrieval in armored-ASCII format.  Requires Data::Dumper 
+	(from CPAN), FITSIO (also from CPAN), and uuencode(1). 
+CED (13 May 02)
+    - Modified legacy rfits/wfits support to handle strings more cleanly
+	(more like Astro::FITS::Header)
+    - Moved missing-module message to IO/Misc/Makefile.PL
+    - Added stringification test to t/misc.t
+CED (10 May 02)
+    - Modified rfits/wfits to support Astro::FITS::Header as an underlying
+	FITS header driver. The fallback (to the more-or-less original KGB 
+	code) is probably Wrong as string handling now changes depending
+	on the presence of Astro::FITS::Header;
+	whether Astro::FITS::Header is present; but ultimately everyone
+	just uses Astro::FITS::Header and the problem goes away.
+CS  - folded PDL-2_3-gimp-fix branch into main trunk
+    - typos
+DJB (09 May 02)
+    - removed *.P files from Lib/Slatec/slatec/ (no longer needed)
+CS  - fix wcols bug #541847
+    - remove $Config{libs} from callext_cc to make callext work on
+	recent debian systems
+	**** possible source of incompatibility ******
+    - dumper.t: test only if uuencode/decode present
+    - lmfit example
+    - add diskcache.t to MANIFEST
+CS  - remove remaining call to pdl_family funcs in pdlapi.c
+    - apply perldl patch for -M switch (bug #530441)
+CS  - perldl v1.32: changed preprocess interface -> pipeline
+    - Pic.pm: make option parsing case insensitive
+    - Lvalue.pm : use attributes interface (fixes lvalues with bleadperl)
+    - Core: remove pdlfamily.c dependencies and delete the file
+            pdlapi.c: make_now noop, future_me etc stuff in pdl_destroy
+    - PP: make_now is really a noop with above family changes - removed
+    - doc updates
+DJB (09 Apr 02)
+    - added 'use PDL::Math' to PDL.pm (but not Lite/LiteF versions)
+    (22 Apr 02)
+    - added Kaj Wiik's patch to use pgtbox in PGPLOT/Window.pm (#538831)
+      -- this needs documentation!
+JB  (07 Apr 02)
+    - Moved $CTAB to become part of the $self object in PGPLOT/Window.pm 
+      This fixes the error that caused the second image plotted to hard-
+      copy devices to become blank.
+DJB (02 Apr 02)
+    - added Ben Gertzfield's patch for bug #538283 (pptemplate.pod location)
+CS  - doc updates
+    - box2d in image2d.pd
+    - some more PGPLOT tline fixes
+    - PGPLOT autolog stuff (as yet undocumented)
+    - perldl -V  (version info)
+    - remove 'use PDL::Core' from PdlParObj.pm (static linking)
+    - Makefile.PL: fix PDL::Config formatting,
+      	make solaris/usemymalloc/gcc message even more verbose
+    - misc.pd: fix rasc bug (|| vs or)
+    - add BUGS file
+DJB (27 Feb 02)
+    - added finite fix for HP-UX systems to math.pd (by Albert Chin)
+CS  - slice fix
+    - pdlcore.h.PL: gimp fix
+    - perldl Ctrl-C handling (Ken Williams tip!)
+    - polyfillv: make lvalue sub
+DJB
+    - PDL::IO::NDF::rndf() now accepts NDF sections (01/08/02)
+    - added fft prototype to slatec.pd (from Jonathan Scott Duff, 01/17/02)
+CS  - INSTALL & DEPENDENCIES update (bug #488867)
+    - FlexRaw: read/write from open file handles (by Dov Grobgeld)
+    - IO::Misc: fix filehandle code for rcols etc.
+                add file handle awareness to rasc
+    - slices.pd: improve 'index' error message
+CS  - remove the defunct t/quat.t
+    - fix PDL::GSL to work with libgsl 1.X
+CS  - fix for #474736 (sym with points), needed that feature
+    - applied symsize patch #474853
+CS  - fix for Dev.pm: load PDL::Types only once
+    - stop PDL::IO::Pic warning by default
 2.3.2
 CS  - change pdlcore.h.PL so that gimp-perl compiles
       again

@@ -523,6 +523,86 @@ sub PDL::med2df {
 
 ); # pp_def: med2df
 
+pp_addhdr(<<'EOH');
+#define EZ(x) ez ? 0 : (x)
+EOH
+pp_def('box2d',
+       Pars => 'a(n,m); [o] b(n,m)',
+       OtherPars => 'int wx; int wy; int edgezero',
+       Code => '
+                register int nx = 0.5*$COMP(wx);
+                register int ny = 0.5*$COMP(wy);
+                register int xs = $SIZE(n);
+                register int ys = $SIZE(m);
+		register int ez = $COMP(edgezero);
+                double div, sum, lsum;
+                int xx,yy,y,ind1,ind2,first=1;
+
+		div = 1/((2.0*nx+1)*(2.0*ny+1));
+		
+		threadloop %{
+		  for (y=0;y<ys;y++)
+		    for (xx=0; xx<nx; xx++) {
+			ind1 = xs-1-xx;  /* rightmost strip */
+			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
+			$b(n=>ind1,m=>y) = EZ($a(n=>ind1,m=>y));
+		  }
+		  for (xx=0;xx<xs;xx++)
+		    for (y=0; y<ny; y++) {
+			ind1 = ys-1-y;  /* topmost strip */
+			$b(n=>xx,m=>y) = EZ($a(n=>xx,m=>y));
+			$b(n=>xx,m=>ind1) = EZ($a(n=>xx,m=>ind1));
+		  }
+       		  for (y=ny;y<ys-ny;y++) {
+		    if (first) {
+		       first = 0;
+		       lsum = 0;
+		       for (yy=y-ny;yy<=y+ny;yy++)   /* initialize sum */
+		          for (xx=0;xx<=2*nx;xx++)
+			    lsum += $a(n=>xx,m=>yy);
+		    } else {
+			ind1 = y-ny-1;
+			ind2 = y+ny;
+			for (xx=0;xx<=2*nx;xx++) {
+			    lsum -= $a(n=>xx,m=>ind1); /* remove top pixels */
+			    lsum += $a(n=>xx,m=>ind2); /* add bottom pixels */
+			}
+		    }
+		    sum = lsum;
+		    $b(n=>nx,m=>y) = div*sum;     /* and assign */
+		    for (xx=nx+1;xx<xs-nx;xx++) {     /* loop along line */
+		      ind1 = xx-nx-1;
+		      ind2 = xx+nx;
+		      for (yy=y-ny;yy<=y+ny;yy++) {
+			sum -= $a(n=>ind1,m=>yy); /* remove leftmost data */
+			sum += $a(n=>ind2,m=>yy); /* and add rightmost */
+		      }
+		      $b(n=>xx,m=>y) = div*sum;         /* and assign */
+		    }
+		  }
+		%}',
+       Doc => << 'EOD',
+=for ref
+
+fast 2D boxcar average
+
+=for example
+
+  $smoothim = $im->box2d($wx,$wy,$edgezero=1);
+
+The edgezero argument controls if edge is set to zero (edgezero=1)
+or just keeps the original (unfiltered) values.
+
+C<box2d> should be updated to support similar edge options
+as C<conv2d> and C<med2d> etc.
+
+Boxcar averaging is a pretty crude way of filtering. For serious stuff
+better filters are around (e.g., use L<conv2d|conv2d> with the appropriate
+kernel). On the other hand it is fast and computational cost grows only
+approximately linearly with window size.
+EOD
+); # pp_def box2d
+
 pp_def('patch2d', 
        Doc=><<'EOD',
 =for ref

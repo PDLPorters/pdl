@@ -1,3 +1,13 @@
+Release notes for PDL 2.3.3 -------------------------------
+  
+  Mainly a bugfix release with some nice little additions:
+     - PDL::IO::Dumper: Cleanly save and restore complex
+        data structures including PDLs.  
+     - Support for the new Astro::FITS::Header module
+       (availiable on CPAN).
+	
+  See the Changes file for a detailed list of changes.
+
 Release notes for PDL 2.3.2 ------------------------------
 
 A pure bugfix release to fix compilation problems with gimp-perl

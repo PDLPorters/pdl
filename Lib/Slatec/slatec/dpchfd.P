@@ -1,3 +1,0 @@
-extern int dpchfd_(integer *n, doublereal *x, doublereal *f, doublereal *d, integer *incfd, logical *skip, integer *ne, doublereal *xe, doublereal *fe, doublereal *de, integer *ierr);
-/*:ref: dchfdv_ 14 12 7 7 7 7 7 7 4 7 7 7 4 4 */
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

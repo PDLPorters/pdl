@@ -1,1 +1,0 @@
-extern int pcoef(integer *l, real *c, real *tc, real *a);

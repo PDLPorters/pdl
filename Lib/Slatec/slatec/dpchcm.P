@@ -1,3 +1,0 @@
-extern int dpchcm_(integer *n, doublereal *x, doublereal *f, doublereal *d, integer *incfd, logical *skip, integer *ismon, integer *ierr);
-/*:ref: dchfcm_ 4 3 7 7 7 */
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -715,10 +715,23 @@ sub PDL::unwind {
 Insert a 'dummy dimension' of given length (defaults to 1)
 
 No relation to the 'Dungeon Dimensions' in Discworld!
+
 Negative positions specify relative to last dimension,
 i.e. C<dummy(-1)> appends one dimension at end,
 C<dummy(-2)> inserts a dummy dimension in front of the
 last dim, etc.
+
+If you specify a dimension position larger than the existing
+dimension list of your PDL, the PDL gets automagically padded with extra
+dummy dimensions so that you get the dim you asked for, in the slot you 
+asked for.  This could cause you trouble if, for example, 
+you ask for $a->dummy(5000,1) because $a will get 5,000 dimensions, 
+each of rank 1. 
+
+Because padding at the beginning of the dimension list moves existing
+dimensions from slot to slot, it's considered unsafe, so automagic
+padding doesn't work for large negative indices -- only for large
+positive indices.
 
 =for usage
 
@@ -733,17 +746,50 @@ last dim, etc.
   [2 2 2]
  ]
 
+ perldl> p sequence(3)->dummy(3,2)
+ [
+  [
+   [0 1 2]
+  ]
+  [
+   [0 1 2]
+  ]
+ ]
+
+ perldl> p sequence(3)->dummy(-3,2)
+ For safety, <pos> < -(dims+1) is not allowed in dummy, allowed min=-2.
+
 =cut
 
 sub PDL::dummy($$;$) {
-   my ($pdl,$dim) = @_;
+   my ($pdl,$dim,$size) = @_;
    $dim = $pdl->getndims+1+$dim if $dim < 0;
-   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
- 	 . $_[0]->getndims)
-     if $dim>$pdl->getndims || $dim < 0;
-         $_[2] = 1 if ($#_ < 2);
-         $pdl->slice((','x$dim)."*$_[2]");
-}
+   $size = 1 unless defined($size);
+
+   barf("For safety, <pos> < -(dims+1) forbidden in dummy.  min="
+	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
+
+   my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
+   $s .= '*,' x ( $dim-$pdl->getndims-1 );
+   $s .= "*$size";
+
+#   print "slice string is '$s'\n";
+   $pdl->slice($s);
+}  
+
+
+## Cheesy, slow way
+#   while ($dim>$pdl->getndims){
+#     print STDERR "."; flush STDERR;
+#     $pdl = $pdl->dummy($pdl->getndims,1);
+#   }
+#
+#   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
+# 	 . $_[0]->getndims)
+#     if $dim>$pdl->getndims || $dim < 0;
+#   
+#   $_[2] = 1 if ($#_ < 2);
+#   $pdl->slice((','x$dim)."*$_[2]");
 
 =head2 clump
 
@@ -783,7 +829,7 @@ the usual cases. The following example demonstrates typical usage:
 sub PDL::clump {
   my $ndims = $_[0]->getndims;
   if ($#_ < 2) {
-    barf "Error in clump: Too many dimensions $_[1] to clump from $ndims"
+    return &PDL::_clump_int($_[0],$_[1]) # Truncate clumping to actual dims
       if $_[1] > $ndims;
     return &PDL::_clump_int(@_);
   } else {
@@ -1617,8 +1663,40 @@ The data elements are preserved, obviously they will wrap
 differently and get truncated if the new array is shorter.
 If the new array is longer it will be zero-padded.
 
-Note: an explicit copy is forced - this is the only way
-(for now) of stopping a crash if C<$x> is a slice.
+***Potential incompatibility with earlier versions of PDL****
+If the list of C<NEWDIMS> is empty C<reshape> will just drop
+all dimensions of size 1 (preserving the number of elements):
+
+  $a = sequence(3,4,5);
+  $b = $a(1,3);
+  $b->reshape();
+  print $b->info;
+ PDL: Double D [5]
+
+Dimensions of size 1 will also be dropped if C<reshape> is
+invoked with the argument -1:
+
+  $b = $a->reshape(-1);
+
+As opposed to C<reshape> without arguments, C<reshape(-1)>
+preserves dataflow:
+
+  $a = ones(2,1,2);
+  $b = $a(0)->reshape(-1);
+  $b++;
+  print $a;
+ [
+  [
+   [2 1]
+  ]
+  [
+   [2 1]
+  ]
+ ]
+
+Note: an explicit copy of slices is generally forced - this is the
+only way (for now) of stopping a crash if C<$x> is a slice.
+Important: Physical piddles are changed inplace!
 
 =for example
 
@@ -1637,9 +1715,15 @@ Note: an explicit copy is forced - this is the only way
 
 *reshape = \&PDL::reshape;
 sub PDL::reshape{
+  if (@_ == 2 && $_[1] == -1) {  # a slicing reshape that drops 1-dims
+    return $_[0]->slice(join(',',map {$_ == 1 ? '(0)' : ''} $_[0]->dims));
+  }
   my $pdl = pdl($_[0]);
   my $nelem = $pdl->nelem;
-  $pdl->setdims([@_[1..$#_]]);
+  my @dims = @_[1..$#_];
+  for my $dim(@dims) { barf "reshape: invalid dim size '$dim'" if $dim < 0 }
+  @dims = grep($_ != 1, $pdl->dims) if @dims == 0; # get rid of dims of size 1
+  $pdl->setdims([@dims]);
   $pdl->upd_data;
   if ($pdl->nelem > $nelem) {
      my $tmp=$pdl->clump(-1)->slice("$nelem:-1");
@@ -1662,8 +1746,7 @@ flatten a piddle (alias for C<$pdl->clump(-1)>)
 Useful method to make a 1D piddle from an
 arbitrarily sized input piddle. Data flows
 back and forth as usual with slicing routines.
-Falls through if argument already 1D, 0D args are
-promoted to 1D.
+Falls through if argument already E<lt>= 1D.
 
 =cut
 
@@ -2512,18 +2595,23 @@ Retrieve header information from a piddle
 
 The C<gethdr> function retrieves whatever header information is contained
 within a piddle. The header can be set with L<sethdr|/sethdr> and is always a 
-hash reference and has to be dereferenced for access to the value. 
+hash reference or undef.
 
-It is important to realise that you are free to insert whatever hash
-reference you want in the header, so you can use it to record important
-information about your piddle, and that it is not automatically copied
-when you copy the piddle. 
-See L<hdrcpy|/hdrcpy> to enable automatic header copying.
+Note that gethdr() works by B<reference>: you can modify the header
+in-place once it has been retrieved:
 
-For instance a wrapper around rcols that allows your piddle to remember
-the file it was read from and the columns could be easily written 
-(here assuming that no regexp is needed, extensions are left as an 
-exercise for the reader)
+  $a  = rfits($filename);
+  $ah = $a->gethdr();
+  $ah->{FILENAME} = $filename;
+
+It is also important to realise that the header is not automatically copied
+when you copy the piddle.  See L<hdrcpy|/hdrcpy> to enable automatic
+header linking (copy-by-reference), or do it manually for copy-by-value.
+
+Here's another example: a wrapper around rcols that allows your piddle
+to remember the file it was read from and the columns could be easily
+written (here assuming that no regexp is needed, extensions are left
+as an exercise for the reader)
 
  sub ext_rcols {
     my ($file, @columns)=@_;
@@ -2544,18 +2632,35 @@ Set header information of a piddle
 
 =for example
 
- $pdl=rfits('file.fits');
- $h=$pdl->gethdr;
+ $pdl = zeroes(100,100);
+ $h = {NAXIS=>2, NAXIS1=>100, NAXIS=>100, COMMENT=>"Sample FITS-style header"};
  # add a FILENAME field to the header
  $$h{FILENAME} = 'file.fits';
  $pdl->sethdr( $h );
 
 The C<sethdr> function sets the header information for a piddle.
-Normally you would get the current header information with
-L<gethdr|/gethdr>, add/change/remove fields, then apply those changes with
-C<sethdr>.
+You must feed in a hash ref or undef, and the piddle's header field is 
+set to be a new ref to the same hash (or undefined).  
 
-The C<sethdr> function must be given a hash reference.
+The hash ref requirement is a speed bump put in place since the normal
+use of headers is to store fits header information and the like.  Of course,
+if you want you can hang whatever ugly old data structure you want off
+of the header, but that makes life more complex.
+
+Remember that the hash isn't copied -- the header is made into a ref that points to the
+same underlying data.  To get a real copy without making any assumptions about
+the underlying data structure, you should:
+
+ use PDL::IO::Dumper;
+ $pdl->sethdr( deep_copy($h) );
+
+(which is slow but general).  It's considerably faster to do an 
+elementwise copy if you know that all the elements happen to be scalars:
+
+  $h2={}; for $foo(keys %$h) { $h2->{$foo} = $$h{$foo}; }
+  $pdl->sethdr( $h2 );
+
+The C<sethdr> function must be given a hash reference or undef.
 For further information on the header, see L<gethdr|/gethdr> and
 L<hdrcpy|/hdrcpy>.
 
@@ -2576,7 +2681,8 @@ Normally, the optional header of a piddle is not copied
 automatically in pdl operations. Switching on the hdrcpy
 flag using the C<hdrcpy> method will enable automatic hdr
 copying. Note that copying is B<by reference> for efficiency
-reasons. C<hdrcpy> without an argument just returns the
+reasons, which may not be What You Want if you are modifying
+the header as you go.  C<hdrcpy> without an argument just returns the
 current setting of the flag.
 
 =head1 AUTHOR
@@ -2584,6 +2690,7 @@ current setting of the flag.
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
 Tuomas J. Lukka, (lukka@husc.harvard.edu) and Christian
 Soeller (c.soeller@auckland.ac.nz) 1997.
+Modified, Craig DeForest (deforest@boulder.swri.edu) 2002.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

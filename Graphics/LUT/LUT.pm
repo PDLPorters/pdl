@@ -23,12 +23,12 @@ PDL::Graphics::LUT - provides access to a number of look-up tables
 PDL::Graphics::LUT contains a number of colour look-up tables
 (in rgb format) and intensity ramps, and provides routines to 
 access this data.
-The format of the data is suitable for use by 
+The format of the data is suitable for use by
 L<PDL::Graphics::PGPLOT/ctab>.
 
 Unlike the initial release of the package, the data tables are
-now stored within the PDL distribution 
-(see L<$tabledir|/$tabledir> and L<$rampdir|/$rampdir>) 
+now stored within the PDL distribution as FITS files
+(see L<$tabledir|/$tabledir> and L<$rampdir|/$rampdir>),
 rather than in the module itself.
 Changes to these directories will be picked up on the next call
 to one of the package functions.
@@ -53,7 +53,7 @@ Return, as a list, the names of the available intensity ramps.
 
 =for usage
 
- @ramps = lut_names();
+ @ramps = lut_ramps();
 
 =head2 lut_data()
 
@@ -107,7 +107,7 @@ http://star-www.dur.ac.uk/~pdraper/ for more details.
 
 =head1 AUTHOR
 
-Doug Burke (burke@ifa.hawaii.edu), with thanks to 
+Doug Burke (djburke@cpan.org), with thanks to 
 Peter Draper/STARLINK for providing the colour-table data,
 and Christian Soeller and Karl Glazebrook for their help.
 
@@ -232,7 +232,7 @@ EOD
 
     my $s = $reverse ? "-1:0" : "";
     return ( $l, $rgb->slice("${s},(0)"), $rgb->slice("${s},(1)"), $rgb->slice("${s},(2)") );
-    
+
 } # sub: lut_data()
 
 # Exit with OK status

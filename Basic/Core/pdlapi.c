@@ -210,7 +210,11 @@ void pdl__destroy_childtranses(pdl *it,int ensure) {
 	PDL_END_CHILDLOOP(it)
 }
 
-/* Must think about.
+/*
+
+  *Note*: the mutator/progenitor/family stuff is disabled and will
+  be ignored for the foreseeable future.
+
   A piddle may be
    - a parent of something - just ensure & destroy
    - a child of something - just ensure & destroy
@@ -254,11 +258,20 @@ void pdl_destroy(pdl *it) {
 	    it->sv = NULL;
     }
 
-    if(it->progenitor || it->living_for || it->future_me) {
-    	/* XXXXXXXXX Shouldn't do this! BAD MEMLEAK */
-        PDLDEBUG_f(printf("Family, not Destr. %d\n",it);)
-	goto soft_destroy;
-    }
+    /* the progenitor etc stuff is not really implemented
+       so we comment it out; this should not affect anything
+       -- we'll see ;)
+       Note: the memleak comment refers to the original code
+       which is now disabled!
+    */
+    /* XXXXXXXXX Shouldn't do this! BAD MEMLEAK */
+    /* 
+       if(it->progenitor || it->living_for || it->future_me) {
+           PDLDEBUG_f(printf("Family, not Destr. %d\n",it);)
+           goto soft_destroy;
+       }
+    */
+
     /* 1. count the children that do flow */
     PDL_START_CHILDLOOP(it)
     	curt = PDL_CHILDLOOP_THISCHILD(it);
@@ -464,7 +477,7 @@ void pdl_dump_spac(pdl *it,int nspac)
 	spaces[i] = '\0';
 	printf("%sDUMPING %d     datatype: %d\n",spaces,it,it->datatype);
 	pdl_dump_flags(it->state,nspac+3);
-	printf("%s   transv: %d, trans: %d, sv: %d\n",spaces,
+	printf("%s   transvtable: %d, trans: %d, sv: %d\n",spaces,
 		(it->trans?it->trans->vtable:0), it->trans, it->sv);
 	if(it->datasv) {
 		printf("%s   Data SV: %d, Svlen: %d, data: %d, nvals: %d\n", spaces,
@@ -753,7 +766,7 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
 		for(i=0; i<trans->vtable->nparents; i++)
 			if(trans->pdls[i] == it) nthind = i;
 		croak("Sorry, families not allowed now (i.e. You cannot modify dataflowing pdl)\n");
-		pdl_family_create(it,trans,nthind,nth);
+		/* pdl_family_create(it,trans,nthind,nth); */
 	} else {
 		it->trans = trans;
 		it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
@@ -876,9 +889,13 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 
 
 pdl *pdl_make_now(pdl *it) {
+  return it;
+  /* the family stuff is not really implemented
+     so we'll ignore it and get rid of pdlfamily.c
 	if(it->future_me) return it->future_me;
 	if(!it->progenitor) return it;
 	return pdl_family_clone2now(it);
+  */
 }
 
 void pdl_make_physical(pdl *it) {

@@ -1,2 +1,0 @@
-extern doublereal dpchid_(integer *n, doublereal *x, doublereal *f, doublereal *d, integer *incfd, logical *skip, integer *ia, integer *ib, integer *ierr);
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -1,4 +1,0 @@
-extern int pchce_(integer *ic, real *vc, integer *n, real *x, real *h, real *slope, real *d, integer *incfd, integer *ierr);
-/*:ref: pchdf_ 6 4 4 6 6 4 */
-/*:ref: pchst_ 6 2 6 6 */
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -20,7 +20,8 @@ trouble.
 =head1 DESCRIPTION
 
 This package offers a OO interface to the PGPLOT plotting package. This
-is intended to replace the traditional interface in L<PDL::Graphics::PGPLOT>
+is intended to replace the traditional interface in
+L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>
 and contains interfaces to a large number of PGPLOT routines. Below the
 usage examples for each function tend to be given in the non-OO version for
 historical reasons. This will slowly be changed, but in the meantime refer
@@ -53,28 +54,28 @@ The list of currently availably methods:
 
 Device manipulation commands:
 
- new          -  Constructor for a new PGPLOT output device
- close        -  Close a PGPLOT output device
+ new          -  Constructor for a new PGPLOT output device.
+ close        -  Close a PGPLOT output device.
  focus        -  Set focus to the given device. This should normally be
                  done behind the scenes.
  hold         -  Hold current plot window range - allows overlays etc.
- release      -  Release back to autoscaling of new plot window for each 
-                 command
- held         -  Returns true if the graphics is held on the current device.
- env          -  Define a plot window, put on 'hold'
- panel        -  Move to a specified plot panel when several panels are defined.
- erase        -  Erase the current window (or panel)
+ release      -  Release back to autoscaling of new plot window for each
+                 command.
+ held         -  Returns true if the graphics is held on the current
+                 device.
+ env          -  Define a plot window, put on 'hold'.
+ panel        -  Move to a specified plot panel when several panels are
+                 defined.
+ erase        -  Erase the current window (or panel).
 
- options      -  Get the options set for the present output device
- id           -  The ID for the device
- device       -  The device type
- name         -  The window name
-
-
+ options      -  Get the options set for the present output device.
+ id           -  The ID for the device.
+ device       -  The device type.
+ name         -  The window name.
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset. The C<transform()> routine can be used to create this piddle.
+zero-offset. The L<transform()|/transform> routine can be used to create this piddle.
 
 For completeness: The transformation array connect the pixel index to a
 world coordinate such that:
@@ -243,9 +244,9 @@ L<_set_colour|/_set_colour>.
 =item filltype
 
 Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
-L<ellipse|/ellipse> and L<rectangle|/rectangle>
-The fill can either be specified using numbers or name, according to the 
-following table, where the recognised name is shown in capitals - it is 
+L<ellipse|/ellipse>, and L<rectangle|/rectangle>
+The fill can either be specified using numbers or name, according to the
+following table, where the recognised name is shown in capitals - it is
 case-insensitive, but the whole name must be specified.
 
  1 - SOLID
@@ -388,7 +389,7 @@ logically different he chooses to have two windows open:
   $area_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
               Aspect => 1, WindowWidth => 5);
 
-See the documentation for L<new> below for a full overview of the
+See the documentation for L<new|/new> below for a full overview of the
 options you can pass to the constructor.
 
 Next, Odd wants to create plotting areas for subsequent plots and maybe
@@ -613,7 +614,7 @@ AspectRatio are set to zero, the default view surface is used.
 
 These two options allow an alternative setting of WindowWidth and AspectRatio.
 Their values are actually not parsed here, but rather subsequently in the
-C<_setup_window> routine below.
+L<_setup_window|/_setup_window> routine below.
 
 =back
 
@@ -730,11 +731,11 @@ Define a plot window, and put graphics on 'hold'
  $win->env( $xmin, $xmax, $ymin, $ymax, [$justify, $axis] );
  $win->env( $xmin, $xmax, $ymin, $ymax, [$options] );
 
-C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
+C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.
 C<$justify> is a boolean value (default is B<0>);
-if true the axes scales will be the same (see L</justify>).
+if true the axes scales will be the same (see C<justify>).
 C<$axis> describes how the axes should be drawn (see
-L</axis>) and defaults to B<0>.
+C<axis>) and defaults to B<0>.
 
 If the second form is used, $justify and $axis can be set in the options
 hash, for example:
@@ -793,15 +794,15 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
  $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
-aspect ratio preservation, and 1:1 pixel mapping are available.  
+aspect ratio preservation, and 1:1 pixel mapping are available.
 (1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
-for, eg, movie display; but it's not recommended for final output as 
+for, eg, movie display; but it's not recommended for final output as
 it's not device-independent.)
 
 To draw a colour bar (or wedge), either use the C<DrawWedge> option,
@@ -1007,7 +1008,9 @@ The following standard options influence this command:
 
  AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
-The ColorValues option allows one to plot XYZ data with the
+C<SymbolSize> allows to adjust the symbol size, it defaults to CharSize.
+
+The C<ColorValues> option allows one to plot XYZ data with the
 Z axis mapped to a color value.  For example:
 
  use PDL::Graphics::LUT;
@@ -1018,7 +1021,7 @@ Z axis mapped to a color value.  For example:
 
  $y = sequence(10)**2+random(10);
  # Plot blue stars with a solid line through:
- points $y, {PLOTLINE => 1, COLOUR => BLUE, SYMBOL => STAR};
+ points $y, {PLOTLINE => 1, COLOUR => BLUE, symbol => STAR}; # case insensitive
 
 =head2 errb
 
@@ -1062,8 +1065,8 @@ Display image as contour map
  Usage: cont ( $image,  [$contours, $transform, $misval], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 Options recognised:
@@ -1137,9 +1140,10 @@ The following standard options influence this command:
 
 Note that meddling with the C<ioffset> and C<bias> often will require you to
 change the default plot range somewhat. It is also worth noting that if
-you have TriD working you will probably be better off using 
+you have TriD working you will probably be better off using
 L<mesh3d|PDL::Graphics::TriD/mesh3d> or
-a similar command - see L<PDL::Graphics::TriD>.
+a similar command - see the L<PDL::Graphics::TriD|PDL::Graphics::TriD>
+module.
 
 =for example
 
@@ -1169,7 +1173,6 @@ Example:
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
 
-
 =head2 poly
 
 =for ref
@@ -1184,7 +1187,7 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE, 
+ AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE,
  LINEWIDTH
 
 =for example
@@ -1220,7 +1223,6 @@ The position of the center of the circle
 =item Radius
 
 The radius of the circle.
-
 
 =back
 
@@ -1262,9 +1264,10 @@ C<$x> and C<$y> must be given.
 The number of points used to draw the ellipse. This defaults to 100 and
 might need changing in the case of very large ellipses.
 
-
 =back
 
+The routine also recognises the same standard options as
+accepted by L<poly|/poly>.
 
 =head2 rectangle
 
@@ -1277,9 +1280,9 @@ Draw a rectangle.
  Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
 
 This routine draws a rectangle with the chosen fill style. Internally
-it calls L<poly> which is somewhat slower than C<pgrect> but which
+it calls L<poly|/poly> which is somewhat slower than C<pgrect> but which
 allows for rotated rectangles as well. The routine recognises the same
-options as poly and in addition the following
+options as C<poly> and in addition the following:
 
 =over
 
@@ -1320,8 +1323,8 @@ Display 2 images as a vector field
  Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
@@ -1710,6 +1713,30 @@ my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
 
+my $AUTOLOG = 0;
+
+sub autolog {
+  my $class = shift;
+  my $ret;
+  if (ref $class) {
+    $ret = $class->{Autolog} || $AUTOLOG;
+    $class->{Autolog} = shift if @_ > 0;
+  } else {
+    my $ret = $AUTOLOG;
+    $AUTOLOG = shift if @_ > 0;
+  }
+  return $ret;
+}
+
+sub checklog {
+  my ($self,$x,$y) = @_;
+  $x = $x->log10->float if defined $x && $self->autolog && $self->{Logx};
+  $y = $y->log10->float if defined $y && $self->autolog && $self->{Logy};
+  # print STDERR "Logx: ",$self->{Logx},"\n";
+  # print STDERR "Logy: ",$self->{Logy},"\n";
+  return ($x,$y);
+}
+
 sub new {
 
   my $type = shift;
@@ -1759,6 +1786,7 @@ sub new {
   $this_plotopt->synonyms($s);
   $this_plotopt->warnonmissing(0);
 
+  # Modified 7/4/02 JB to add CTAB as an aspect of the window.
   my $self = {
 	      'Options'	      => $this_opt,
 	      'PlotOptions'   => $this_plotopt,
@@ -1774,6 +1802,7 @@ sub new {
 	      '_env_options'  => undef,
 	      'State'         => undef,
 	      'Recording'     => $opt->{Recording}        || $PDL::Graphics::PGPLOT::RECORDING,
+	      'CTAB'          => undef, # The default colour table
 	     };
 
   if (defined($self->{Options})) {
@@ -2309,21 +2338,22 @@ Get general information about the PGPLOT environment.
 The valid values of C<@item> are as below, where case is not
 important:
 
-  VERSION     - What PGPLOT version is in use
-  STATE       - The status of the output device, this is returns 'OPEN'
+  VERSION     - What PGPLOT version is in use.
+  STATE       - The status of the output device, this is returns 'OPEN'.
                 if the device is open and 'CLOSED' otherwise.
   USER        - The username of the owner of the spawning program.
-  NOW         - The current date and time in the format 'dd-MMM-yyyy hh:mm'.
-                Most people are likely to use Perl functions for this.
-  DEVICE    * - The current PGPLOT device or file, see also C<device>
-  FILE      * - The filename for the current device
-  TYPE      * - And the device type for the current device
+  NOW         - The current date and time in the format
+                'dd-MMM-yyyy hh:mm'. Most people are likely to use Perl
+                functions instead.
+  DEVICE    * - The current PGPLOT device or file, see also device().
+  FILE      * - The filename for the current device.
+  TYPE      * - And the device type for the current device.
   DEV/TYPE  * - This combines DEVICE and TYPE in a form that can be used
-                as input to C<new>.
+                as input to new.
   HARDCOPY  * - This is flag which is set to 'YES' if the current device is
                 a hardcopy device and 'NO' otherwise.
-  TERMINAL  * - This flag is set to 'YES' if the current device is the user's
-                terminal and 'NO' otherwise.
+  TERMINAL  * - This flag is set to 'YES' if the current device is the
+                user's terminal and 'NO' otherwise.
   CURSOR    * - A flag ('YES' or 'NO') to inform whether the current device
                 has a cursor.
 
@@ -2505,7 +2535,7 @@ sub _save_status {
 
 =head2 _restore_status
 
-Restore the PGPLOT state. See L<_save_status>.
+Restore the PGPLOT state. See L</_save_status>.
 
 =cut
 
@@ -2862,9 +2892,25 @@ sub initenv{
   $u_opt->{Justify} = $just if defined($just);
   $u_opt->{Axis} = "$axis" if defined($axis);
 
-
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
+
+  if ($self->autolog) {
+    # print STDERR "Options: ",$o->{Axis},"\n";
+    # use Data::Dumper; print Dumper $o->{Axis};
+    $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30 ||
+		    $o->{Axis}[0] =~ /BCLNST/) ? 1 : 0;
+    $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30 ||
+		    $o->{Axis}[1] =~ /BCLNST/) ? 1 : 0;
+    ($xmin,$xmax) = map {
+      barf "plot boundaries not positive in logx-mode" if $_ <= 0;
+      log($_)/log(10) } ($xmin,$xmax)
+	if $self->{Logx};
+    ($ymin,$ymax) = map { 
+      barf "plot boundaries not positive in logy-mode" if $_ <= 0;
+      log($_)/log(10) } ($ymin,$ymax)
+	if $self->{Logy};
+  }
 
   # Save current colour and set the axis colours
   my ($col);
@@ -2941,16 +2987,16 @@ sub initenv{
   if ($o->{Justify} == 1) {
     pgwnad($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
-      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+      pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
-      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+      pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   } else {
     pgswin($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
-      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+      pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
     } else {
-      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+      pgtbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   }
   $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
@@ -2994,9 +3040,9 @@ sub redraw_axes {
   $axval = 0 unless defined $axval; # safety check
   unless ( $self->{Hold} ) {
     if ( ref($axval) ) {
-      pgbox($$axval[0],0,0,$$axval[1],0,0);
+      pgtbox($$axval[0],0,0,$$axval[1],0,0);
     } else {
-      pgbox($axval,0,0,$axval,0,0);
+      pgtbox($axval,0,0,$axval,0,0);
     }
   }
   $self->_set_colour($col);
@@ -3581,6 +3627,9 @@ EOD
       pgerrb(4,$n,$x->get_dataref,$y->get_dataref,$t[4]->get_dataref,$term);
     }
     if ($plot_points) {
+       if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
+           pgsch($opt->{SymbolSize});
+       }
       $symbol=long($symbol);
       my $ns=nelem($symbol);
       pgpnts($n, $x->get_dataref, $y->get_dataref, $symbol->get_dataref, $ns)
@@ -3624,6 +3673,10 @@ sub tline {
     my ($o, $u_opt) = $self->_parse_options($line_options,$opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     
+    # use Data::Dumper;
+    # print Dumper $o;
+    # print Dumper $u_opt;
+
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
@@ -3639,7 +3692,9 @@ sub tline {
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
     if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    # use Data::Dumper;
+    # print "tline options: ", Dumper($opt), "\n";
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     $self->hold; # we hold for the duration of the threaded plot
   }
   _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
@@ -3690,7 +3745,11 @@ sub tpoints {
     }
     my ($o, $u_opt) = $self->_parse_options($points_options,$opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
-    
+
+    # use Data::Dumper;
+    # print Dumper $o;
+    # print Dumper $u_opt;
+
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
@@ -3706,7 +3765,7 @@ sub tpoints {
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
     if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     $self->hold; # we hold for the duration of the threaded plot
   }
   _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
@@ -3786,6 +3845,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    ($x,$y) = $self->checklog($x,$y) if $self->autolog;
+
     # If there is a missing value specified, use pggapline
     # to break the line around missing values.
     if (defined $o->{Missing}) {
@@ -3846,7 +3907,7 @@ sub arrow {
     my $n=nelem($x);
 
     my ($is_1D, $is_2D);
-    if ($#$in==1) {
+    if ($#$in>=1) {
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
@@ -3883,8 +3944,12 @@ sub arrow {
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
+       pgsch($opt->{SymbolSize});
+    }
+
     if (exists($opt->{ColorValues})) {
-      my $sym = $o->{Symbol} || 0;
+      my $sym ||= $o->{Symbol} || 0;
       my $z   = $opt->{ColorValues};
       $self->_checkarg($z,1);    # make sure this is a float PDL
       pgcolorpnts($n, $x->get_dataref, $y->get_dataref, $z->get_dataref, $sym);
@@ -4207,6 +4272,8 @@ sub arrow {
     pgsitf( $itf );
     my ($i1, $i2);
     pgqcir($i1, $i2);		# Colour range - if too small use pggray dither algorithm
+
+    # Why is the PS output disabled in the following if statement??
     if ($i2-$i1<16 || $self->{Device} =~ /^v?ps$/i) {
       pggray( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
@@ -4234,6 +4301,9 @@ sub arrow {
 
 # Load a colour table using pgctab()
 
+#
+# Modified 7/4/02 JB - having the last colour table as a variable in here
+# did not work. So it is now moved to the $self hash.
 {
   # This routine doesn't really have any options at the moment, but
   # it uses the following standard variables
@@ -4243,17 +4313,17 @@ sub arrow {
   $CTAB{Fire}    = [ pdl([0,0.33,0.66,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]) ];
   $CTAB{Gray}    = $CTAB{Grey};	# Alias
   $CTAB{Igray}   = $CTAB{Igrey}; # Alias
-  my $CTAB        = undef;	# last CTAB used
 
   # It would be easy to add options though..
-
   sub _ctab_set {
-    return defined($CTAB);
+    my $self = shift;
+    return defined($self->{CTAB});
   }
 
   sub ctab {
     my $self = shift;
     my ($in, $opt)=_extract_hash(@_);
+
 
     # No arguments -- print list of tables
     if (scalar(@$in) == 0) {
@@ -4276,14 +4346,14 @@ sub arrow {
     if ($#arg>=0 && !ref($arg[0])) {       # First arg is a name not an object
       # if first arg is undef or empty string, means use last CTAB.
       # preload with Grey if no prior CTAB
-      $arg[0] = 'Grey' unless $arg[0] || $CTAB;
+      $arg[0] = 'Grey' unless $arg[0] || $self->{CTAB};
 
       # now check if we're using the last one specified
       if ( ! $arg[0] ) {
 	shift @arg;
-	unshift @arg, @{$CTAB->{ctab}};
-	$brightness = $CTAB->{brightness};
-	$contrast = $CTAB->{contrast};
+	unshift @arg, @{$self-{CTAB}->{ctab}};
+	$brightness = $self->{CTAB}->{brightness};
+	$contrast = $self->{CTAB}->{contrast};
       } else {
 	my $name = ucfirst(lc(shift @arg)); # My convention is $CTAB{Grey} etc...
 	barf "$name is not a standard colour table" unless defined $CTAB{$name};
@@ -4328,7 +4398,7 @@ EOD
 
     pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	    $blue->get_dataref, $n, $contrast, $brightness );
-    $CTAB = { ctab => [ $levels, $red, $green, $blue ],
+    $self->{CTAB} = { ctab => [ $levels, $red, $green, $blue ],
 	      brightness => $brightness,
 	      contrast => $contrast
 	    };			# Loaded
@@ -4343,8 +4413,9 @@ EOD
     my ($in, $opt)=_extract_hash(@_);
     barf 'Usage: ctab_info( )' if $#$in> -1;
 
-    return () unless $CTAB;
-    return @{$CTAB->{ctab}}, $CTAB->{contrast}, $CTAB->{brightness};
+    return () unless $self->{CTAB};
+    return @{$self->{CTAB}->{ctab}}, $self-{CTAB}->{contrast},
+      $self->{CTAB}->{brightness};
   }
 }
 
@@ -4469,10 +4540,6 @@ sub poly {
 
 # Plot an ellipse using poly.
 
-
-
-
-
 {
   my $ell_options = undef;
 
@@ -4514,7 +4581,6 @@ sub poly {
     my ($costheta, $sintheta)=(cos($o->{Theta}), sin($o->{Theta}));
     $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
-
 
     $self->_add_to_state(\&ellipse, $in, $opt);
     # Now turn off recording so we don't get this one twice..
@@ -5028,7 +5094,7 @@ sub poly {
 
 The coding tries to follow reasonable standards, so that all functions
 starting with an underscore should be considered as internal and should
-not be called from outside the package. In addition most routines has
+not be called from outside the package. In addition most routines have
 a set of options. These are encapsulated and are not accessible outside
 the routine. This is to avoid collisions between different variables.
 
@@ -5048,8 +5114,6 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-
 
 #
 

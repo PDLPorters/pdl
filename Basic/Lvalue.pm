@@ -31,11 +31,10 @@ package PDL::Lvalue;
 # list of functions that can be used as lvalue subs
 # extend as necessary
 my @funcs = qw/slice mslice nslice index where px diagonal clump
-  dummy index2d dice dice_axis xchg mv flat sever/;
-my $prots = join '', map { my $proto = prototype "PDL::$_";
-	my $pstr = $proto ? "($proto)" : "";
-	          "sub $_ $pstr : lvalue;\n"}
-	@funcs;
+  dummy index2d dice dice_axis xchg mv flat sever polyfillv/;
+
+my $prots = join "\n", map {"use attributes 'PDL', \\&PDL::$_, 'lvalue';"}
+  @funcs;
 
 =head2 subs
 

@@ -9,80 +9,91 @@ PDL::GSL::RNG - PDL interface to RNG and randist routines in GSL
 
 =head1 DESCRIPTION
 
-This is an interface to the rng and randist packages present in the GNU Scientific Library. 
+This is an interface to the rng and randist packages present
+in the GNU Scientific Library.
 
 =head1 SYNOPSIS
 
-use PDL;
-use PDL::GSL::RNG;
+   use PDL;
+   use PDL::GSL::RNG;
 
-$rng = PDL::GSL::RNG->new('taus');
+   $rng = PDL::GSL::RNG->new('taus');
 
-$rng->set_seed(time());
+   $rng->set_seed(time());
 
-$a=zeroes(5,5,5)
+   $a=zeroes(5,5,5)
 
-$rng->get_uniform($a); # inplace
+   $rng->get_uniform($a); # inplace
 
-$b=$rng->get_uniform(3,4,5); # creates new pdl
+   $b=$rng->get_uniform(3,4,5); # creates new pdl
 
-=head1 General methods for handling Random Number Generator. 
+=head1 FUNCTIONS
 
 =head2 new()
 
 =for ref 
 
-The new method initializes a new instance of the RNG. The avaible RNGs are:
-slatec, cmrg, gfsr4, minstd, mrg, mt19937, r250, ran0, ran1, ran2, ran3, rand48, rand, random8_bsd, random8_glibc2, random8_libc5, random128_bsd, random128_glibc2, random128_libc5, random256_bsd, random256_glibc2, random256_libc5, random32_bsd, random32_glibc2, random32_libc5, random64_bsd, random64_glibc2, random64_libc5, random_bsd, random_glibc2, random_libc5, randu, ranf, ranlux389, ranlux, ranmar, taus, transputer, tt800, uni32, uni, vax, zuf, default. The last one uses the enviroment variable GSL_RNG_TYPE. Please look at
-the GSL documentation for more information.
+The new method initializes a new instance of the RNG.
 
-=for usage 
-
-Usage:
-
-$blessed_ref = PDL::GSL::RNG->new($RNG_name);
-
-=for example
-
-Example:
-
-$rng = PDL::GSL::RNG->new('taus');
-
-=head2 set_seed();
-
-=for ref 
-
-Sets the RNG seed.
+The avaible RNGs are:
+slatec, cmrg, gfsr4, minstd, mrg, mt19937, r250, ran0, ran1, ran2,
+ran3, rand48, rand, random8_bsd, random8_glibc2, random8_libc5,
+random128_bsd, random128_glibc2, random128_libc5, random256_bsd,
+random256_glibc2, random256_libc5, random32_bsd, random32_glibc2,
+random32_libc5, random64_bsd, random64_glibc2, random64_libc5,
+random_bsd, random_glibc2, random_libc5, randu, ranf, ranlux389,
+ranlux, ranmar, taus, transputer, tt800, uni32, uni, vax, zuf,
+default. The last one (default) uses the enviroment variable
+GSL_RNG_TYPE. Please check the GSL documentation for more
+information.
 
 =for usage
 
 Usage:
 
-$rng->set_seed($integer);
-
-=for example
+   $blessed_ref = PDL::GSL::RNG->new($RNG_name);
 
 Example:
 
-$rng->set_seed(666);
+=for example
+
+   $rng = PDL::GSL::RNG->new('taus');
+
+=head2 set_seed();
+
+=for ref
+
+Sets the RNG seed.
+
+Usage:
+
+=for usage
+
+   $rng->set_seed($integer);
+
+Example:
+
+=for example
+
+   $rng->set_seed(666);
 
 =head2 min()
 
 =for ref
 
-Return the minimum value generable by the RNG.
-
-=for usage
+Return the minimum value generable by this RNG.
 
 Usage: 
 
-$integer = $rng->min();
+=for usage
 
-=for example
+   $integer = $rng->min();
 
 Example:
 
-$min = $rng->min(); $max = $rng->max();
+=for example
+
+   $min = $rng->min(); $max = $rng->max();
 
 =head2 max()
 
@@ -90,17 +101,17 @@ $min = $rng->min(); $max = $rng->max();
 
 Return the maximum value generable by the RNG.
 
-=for usage
-
 Usage: 
 
-$integer = $rng->max();
+=for usage
 
-=for example
+   $integer = $rng->max();
 
 Example:
 
-$min = $rng->min(); $max = $rng->max();
+=for example
+
+   $min = $rng->min(); $max = $rng->max();
 
 =head2 name()
 
@@ -108,19 +119,17 @@ $min = $rng->min(); $max = $rng->max();
 
 Returns the name of the RNG.
 
-=for usage
-
 Usage: 
 
-$string = $rng->name();
+=for usage
 
-=for example
+   $string = $rng->name();
 
 Example:
 
-$name = $rng->name();
+=for example
 
-=head1 Sampling the RNG.
+   $name = $rng->name();
 
 =head2 get_uniform()
 
@@ -129,21 +138,19 @@ $name = $rng->name();
 This function creates a piddle with given dimensions or accept an
 existing piddle and fills it. get_uniform() returns values 0<=x<1,
 
-=for usage
-
 Usage: 
 
-$piddle = $rng->get_uniform($list_of_integers)
+=for usage
 
-$rng->get_uniform($piddle);
-
-=for example
+   $piddle = $rng->get_uniform($list_of_integers)
+   $rng->get_uniform($piddle);
 
 Example:
 
-$a = zeroes 5,6; $max=100;
+=for example
 
-$o = $rng->get_uniform(10,10); $rng->get_uniform($a);
+   $a = zeroes 5,6; $max=100;
+   $o = $rng->get_uniform(10,10); $rng->get_uniform($a);
 
 =head2 get_uniform_pos()
 
@@ -152,21 +159,19 @@ $o = $rng->get_uniform(10,10); $rng->get_uniform($a);
 This function creates a piddle with given dimensions or accept an
 existing piddle and fills it. get_uniform_pos() returns values 0<x<1,
 
-=for usage
-
 Usage: 
 
-$piddle = $rng->get_uniform_pos($list_of_integers)
+=for usage
 
-$rng->get_uniform_pos($piddle);
-
-=for example
+   $piddle = $rng->get_uniform_pos($list_of_integers)
+   $rng->get_uniform_pos($piddle);
 
 Example:
 
-$a = zeroes 5,6;
+=for example
 
-$o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($a);
+   $a = zeroes 5,6;
+   $o = $rng->get_uniform_pos(10,10); $rng->get_uniform_pos($a);
 
 =head2 get()
 
@@ -176,21 +181,19 @@ This function creates a piddle with given dimensions or accept an
 existing piddle and fills it. get() returns integer values 
 beetween a minimum and a maximum specific to evry RNG.
 
-=for usage
-
 Usage: 
 
-$piddle = $rng->get($list_of_integers)
+=for usage
 
-$rng->get($piddle);
-
-=for example
+   $piddle = $rng->get($list_of_integers)
+   $rng->get($piddle);
 
 Example:
 
-$a = zeroes 5,6;
+=for example
 
-$o = $rng->get(10,10); $rng->get($a);
+   $a = zeroes 5,6;
+   $o = $rng->get(10,10); $rng->get($a);
 
 =head2 get_int()
 
@@ -200,185 +203,163 @@ This function creates a piddle with given dimensions or accept an
 existing piddle and fills it. get_int() returns integer values 
 beetween 0 and $max.
 
-=for usage
-
 Usage: 
 
-$piddle = $rng->get($max, $list_of_integers)
+=for usage
 
-$rng->get($max, $piddle);
-
-=for example
+   $piddle = $rng->get($max, $list_of_integers)
+   $rng->get($max, $piddle);
 
 Example:
 
-$a = zeroes 5,6; $max=100;
+=for example
 
-$o = $rng->get(10,10); $rng->get($a);
-
-=head1 Random deviates with given distribution.
+   $a = zeroes 5,6; $max=100;
+   $o = $rng->get(10,10); $rng->get($a);
 
 =head2 ran_gaussian()
 
 =for ref
 
-These functions return random deviates with given distribution. They accept
-the parameters of the distribution and a sepcification of where to put
-output. This spec can be in form of list of integers that specify the dimendsions
-of the ouput piddle or an existing piddle that will be filled.
+These functions return random deviates from given distribution.
 
-=for usage
+The general form is
+
+  ran_[distrib](args)
+
+where distrib can be any of the ones shown below.
+
+They accept the parameters of the distribution and a specification of
+where to put output. This spec can be in form of list of integers that
+specify the dimensions of the ouput piddle or an existing piddle that
+will be filled with values inplace.
 
 Usage:
 
-$piddle = $rng->ran_gaussian($sigma,[list of integers]);
+=for usage
 
-$rng->ran_gaussian($sigma,$piddle);
+   # gaussian dist
+   $piddle = $rng->ran_gaussian($sigma,[list of integers]);
+   $rng->ran_gaussian($sigma,$piddle);
 
-$piddle = $rng->ran_ugaussian_tail($tail,[list of integers]);
+   # gaussian tail
+   $piddle = $rng->ran_ugaussian_tail($tail,[list of integers]);
+   $rng->ran_ugaussian_tail($tail,$piddle);
 
-$rng->ran_ugaussian_tail($tail,$piddle);
+   # exponential dist
+   $piddle = $rng->ran_exponential($mu,[list of integers]);
+   $rng->ran_exponential($mu,$piddle);
 
-$piddle = $rng->ran_exponential($mu,[list of integers]);
+   # laplacian dist
+   $piddle = $rng->ran_laplace($mu,[list of integers]);
+   $rng->ran_laplace($mu,$piddle);
 
-$rng->ran_exponential($mu,$piddle);
+   $piddle = $rng->ran_exppow($mu,$a,[list of integers]);
+   $rng->ran_exppow($mu,$a,$piddle);
 
-$piddle = $rng->ran_laplace($mu,[list of integers]);
+   $piddle = $rng->ran_cauchy($mu,[list of integers]);
+   $rng->ran_cauchy($mu,$piddle);
 
-$rng->ran_laplace($mu,$piddle);
+   $piddle = $rng->ran_rayleigh($sigma,[list of integers]);
+   $rng->ran_rayleigh($sigma,$piddle);
 
-$piddle = $rng->ran_exppow($mu,$a,[list of integers]);
+   $piddle = $rng->ran_rayleigh_tail($a,$sigma,[list of integers]);
+   $rng->ran_rayleigh_tail($a,$sigma,$piddle);
 
-$rng->ran_exppow($mu,$a,$piddle);
+   $piddle = $rng->ran_levy($mu,$a,[list of integers]);
+   $rng->ran_levy($mu,$a,$piddle);
 
-$piddle = $rng->ran_cauchy($mu,[list of integers]);
+   $piddle = $rng->ran_gamma($a,$b,[list of integers]);
+   $rng->ran_gamma($a,$b,$piddle);
 
-$rng->ran_cauchy($mu,$piddle);
+   $piddle = $rng->ran_flat($a,$b,[list of integers]);
+   $rng->ran_flat($a,$b,$piddle);
 
-$piddle = $rng->ran_rayleigh($sigma,[list of integers]);
+   $piddle = $rng->ran_lognormal($zeta, $sigma,[list of integers]);
+   $rng->ran_lognormal($zeta, $sigma,$piddle);
 
-$rng->ran_rayleigh($sigma,$piddle);
+   $piddle = $rng->ran_chisq($nu,[list of integers]);
+   $rng->ran_chisq($nu,$piddle);
 
-$piddle = $rng->ran_rayleigh_tail($a,$sigma,[list of integers]);
+   $piddle = $rng->ran_fdist($nu1, $nu2,[list of integers]);
+   $rng->ran_fdist($nu1, $nu2,$piddle);
 
-$rng->ran_rayleigh_tail($a,$sigma,$piddle);
+   $piddle = $rng->ran_tdist($nu,[list of integers]);
+   $rng->ran_tdist($nu,$piddle);
 
-$piddle = $rng->ran_levy($mu,$a,[list of integers]);
+   $piddle = $rng->ran_beta($a,$b,[list of integers]);
+   $rng->ran_beta($a,$b,$piddle);
 
-$rng->ran_levy($mu,$a,$piddle);
+   $piddle = $rng->ran_logistic($m,[list of integers]u)
+   $rng->ran_logistic($m,$piddleu)
 
-$piddle = $rng->ran_gamma($a,$b,[list of integers]);
+   $piddle = $rng->ran_pareto($a,$b,[list of integers]);
+   $rng->ran_pareto($a,$b,$piddle);
 
-$rng->ran_gamma($a,$b,$piddle);
+   $piddle = $rng->ran_weibull($mu,$a,[list of integers]);
+   $rng->ran_weibull($mu,$a,$piddle);
 
-$piddle = $rng->ran_flat($a,$b,[list of integers]);
+   $piddle = $rng->ran_gumbel1($a,$b,[list of integers]);
+   $rng->ran_gumbel1($a,$b,$piddle);
 
-$rng->ran_flat($a,$b,$piddle);
+   $piddle = $rng->ran_gumbel2($a,$b,[list of integers]);
+   $rng->ran_gumbel2($a,$b,$piddle);
 
-$piddle = $rng->ran_lognormal($zeta, $sigma,[list of integers]);
+   $piddle = $rng->ran_poisson($mu,[list of integers]);
+   $rng->ran_poisson($mu,$piddle);
 
-$rng->ran_lognormal($zeta, $sigma,$piddle);
+   $piddle = $rng->ran_bernoulli($p,[list of integers]);
+   $rng->ran_bernoulli($p,$piddle);
 
-$piddle = $rng->ran_chisq($nu,[list of integers]);
+   $piddle = $rng->ran_binomial($p,$n,[list of integers]);
+   $rng->ran_binomial($p,$n,$piddle);
 
-$rng->ran_chisq($nu,$piddle);
+   $piddle = $rng->ran_negative_binomial($p,$n,[list of integers]);
+   $rng->ran_negative_binomial($p,$n,$piddle);
 
-$piddle = $rng->ran_fdist($nu1, $nu2,[list of integers]);
+   $piddle = $rng->ran_pascal($p,$n,[list of integers]);
+   $rng->ran_pascal($p,$n,$piddle);
 
-$rng->ran_fdist($nu1, $nu2,$piddle);
+   $piddle = $rng->ran_geometric($p,[list of integers]);
+   $rng->ran_geometric($p,$piddle);
 
-$piddle = $rng->ran_tdist($nu,[list of integers]);
+   $piddle = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers]);
+   $rng->ran_hypergeometric($n1, $n2, $t,$piddle);
 
-$rng->ran_tdist($nu,$piddle);
-
-$piddle = $rng->ran_beta($a,$b,[list of integers]);
-
-$rng->ran_beta($a,$b,$piddle);
-
-$piddle = $rng->ran_logistic($m,[list of integers]u)
-
-$rng->ran_logistic($m,$piddleu)
-
-$piddle = $rng->ran_pareto($a,$b,[list of integers]);
-
-$rng->ran_pareto($a,$b,$piddle);
-
-$piddle = $rng->ran_weibull($mu,$a,[list of integers]);
-
-$rng->ran_weibull($mu,$a,$piddle);
-
-$piddle = $rng->ran_gumbel1($a,$b,[list of integers]);
-
-$rng->ran_gumbel1($a,$b,$piddle);
-
-$piddle = $rng->ran_gumbel2($a,$b,[list of integers]);
-
-$rng->ran_gumbel2($a,$b,$piddle);
-
-$piddle = $rng->ran_poisson($mu,[list of integers]);
-
-$rng->ran_poisson($mu,$piddle);
-
-$piddle = $rng->ran_bernoulli($p,[list of integers]);
-
-$rng->ran_bernoulli($p,$piddle);
-
-$piddle = $rng->ran_binomial($p,$n,[list of integers]);
-
-$rng->ran_binomial($p,$n,$piddle);
-
-$piddle = $rng->ran_negative_binomial($p,$n,[list of integers]);
-
-$rng->ran_negative_binomial($p,$n,$piddle);
-
-$piddle = $rng->ran_pascal($p,$n,[list of integers]);
-
-$rng->ran_pascal($p,$n,$piddle);
-
-$piddle = $rng->ran_geometric($p,[list of integers]);
-
-$rng->ran_geometric($p,$piddle);
-
-$piddle = $rng->ran_hypergeometric($n1, $n2, $t,[list of integers]);
-
-$rng->ran_hypergeometric($n1, $n2, $t,$piddle);
-
-$piddle = $rng->ran_logarithmic($p,[list of integers]);
-
-$rng->ran_logarithmic($p,$piddle);
-
-=for example
+   $piddle = $rng->ran_logarithmic($p,[list of integers]);
+   $rng->ran_logarithmic($p,$piddle);
 
 Example:
 
-$o = $rng->ran_gaussian($sigma,10,10);
+=for example
 
-$rng->ran_gaussian($sigma,$a);
+  $o = $rng->ran_gaussian($sigma,10,10);
+  $rng->ran_gaussian($sigma,$a);
 
 
-=head2 $rng->ran_gaussian_var()
+=head2 ran_gaussian_var()
 
 =for ref
 
-This method is similar to the ran_gaussian() expect that it takes the
+This method is similar to L<ran_[distrib]()|ran_gaussian()> except that it
+takes the
 parameters of the distribution as a piddle and returns a piddle of equal
-dimensions. Of course you can use the same set of distribution as in
-the previous method.
-
-=for usage
+dimensions. Of course, you can use the same set of distributions as in
+the previous method (see also the L<ran_gaussian|ran_gaussian()> entry above).
 
 Usage:
 
-$piddle = $rng->ran_[distribution]($distr_parameters_list,$piddle_dim_list);
+=for usage
 
-$rng->ran_[distribution]($distr_parameters_list,$piddle);
-
-=for example
+   $piddle = $rng->ran_[distribution]($distr_parameters_list,$piddle_dim_list);
+   $rng->ran_[distribution]($distr_parameters_list,$piddle);
 
 Example:
 
-$sigma_pdl = rvals zeroes 11,11; $o = $rng->ran_gaussian_var($sigma_pdl);
+=for example
 
+   $sigma_pdl = rvals zeroes 11,11;
+   $o = $rng->ran_gaussian_var($sigma_pdl);
 
 =head2 ran_additive_gaussian()
 
@@ -386,17 +367,17 @@ $sigma_pdl = rvals zeroes 11,11; $o = $rng->ran_gaussian_var($sigma_pdl);
 
 Add Gaussian noise of given sigma to a piddle.
 
-=for usage
-
 Usage:
 
-$rng->ran_additive_gaussian($sigma,$piddle);
+=for usage
 
-=for example
+   $rng->ran_additive_gaussian($sigma,$piddle);
 
 Example:
 
-$rng->ran_additive_gaussian(1,$image);
+=for example
+
+   $rng->ran_additive_gaussian(1,$image);
 
 =head2 ran_additive_poisson()
 
@@ -404,36 +385,36 @@ $rng->ran_additive_gaussian(1,$image);
 
 Add Poisson noise of given sigma to a piddle.
 
-=for usage
-
 Usage:
 
-$rng->ran_additive_poisson($mu,$piddle);
+=for usage
 
-=for example
+   $rng->ran_additive_poisson($mu,$piddle);
 
 Example:
 
-$rng->ran_additive_poisson(1,$image);
+=for example
+
+   $rng->ran_additive_poisson(1,$image);
 
 =head2 ran_feed_poisson()
 
 =for ref
 
-This method
-simulates shot noise, taking the values of piddle as values for mu to be fed in the poissonian RNG.
-
-=for usage
+This method simulates shot noise, taking the values of piddle as
+values for mu to be fed in the poissonian RNG.
 
 Usage:
 
-$rng->ran_feed_poisson($piddle);
+=for usage
 
-=for example
+   $rng->ran_feed_poisson($piddle);
 
 Example:
 
-$rng->ran_feed_poisson($image);
+=for example
+
+   $rng->ran_feed_poisson($image);
 
 =head2 ran_bivariate_gaussian()
 
@@ -441,35 +422,35 @@ $rng->ran_feed_poisson($image);
 
 Generates $n bivariate gaussian random deviates.
 
-=for usage
-
 Usage:
 
-$piddle = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
+=for usage
 
-=for example
+   $piddle = $rng->ran_bivariate_gaussian($sigma_x,$sigma_y,$rho,$n);
 
 Example:
 
-$o = $rng->ran_bivariate_gaussian(1,2,0.5,1000);
+=for example
+
+   $o = $rng->ran_bivariate_gaussian(1,2,0.5,1000);
 
 =head2 ran_dir()
 
 =for ref
 
-Returns $n random vectors in $ndim dimensions.
-
-=for usage
+Returns C<$n> random vectors in C<$ndim> dimensions.
 
 Usage:
 
-$piddle = $rng->ran_dir($ndim,$n);
+=for usage
 
-=for example
+   $piddle = $rng->ran_dir($ndim,$n);
 
 Example:
 
-$o = $rng->ran_dir($ndim,$n);
+=for example
+
+   $o = $rng->ran_dir($ndim,$n);
 
 =head2 ran_discrete_preproc()
 
@@ -479,21 +460,19 @@ This method returns a handle that must be used when calling
 ran_discrete(). You specify the probability of the integer number
 that are returned by ran_discrete().
 
-=for usage
-
 Usage:
 
-$discrete_dist_handle = $rng->ran_discrete_preproc($double_piddle_prob);
+=for usage
 
-=for example
+   $discrete_dist_handle = $rng->ran_discrete_preproc($double_piddle_prob);
 
 Example:
 
-$prob = pdl [0.1,0.3,0.6];
+=for example
 
-$ddh = $rng->ran_discrete_preproc($prob);
-
-$o = $rng->ran_discrete($discrete_dist_handle,100);
+   $prob = pdl [0.1,0.3,0.6];
+   $ddh = $rng->ran_discrete_preproc($prob);
+   $o = $rng->ran_discrete($discrete_dist_handle,100);
 
 =head2 ran_discrete()
 
@@ -502,23 +481,21 @@ $o = $rng->ran_discrete($discrete_dist_handle,100);
 Is used to get the desired samples once a proper handle has been
 enstablished (see ran_discrete_preproc()).
 
-=for usage
-
 Usage:
 
-$piddle = $rng->ran_discrete($discrete_dist_handle,$num);
+=for usage
 
-=for example
+   $piddle = $rng->ran_discrete($discrete_dist_handle,$num);
 
 Example:
 
-$prob = pdl [0.1,0.3,0.6];
+=for example
 
-$ddh = $rng->ran_discrete_preproc($prob);
+   $prob = pdl [0.1,0.3,0.6];
+   $ddh = $rng->ran_discrete_preproc($prob);
+   $o = $rng->ran_discrete($discrete_dist_handle,100);
 
-$o = $rng->ran_discrete($discrete_dist_handle,100);
-
-=head1 Shuffling and choosing.
+# =head1 Shuffling and choosing.
 
 =head2 ran_shuffle()
 
@@ -526,11 +503,11 @@ $o = $rng->ran_discrete($discrete_dist_handle,100);
 
 Shuffles values in piddle
 
-=for usage
-
 Usage:
 
-$rng->ran_shuffle($piddle);
+=for usage
+
+   $rng->ran_shuffle($piddle);
 
 =head2 ran_shuffle_vec()
 
@@ -538,11 +515,11 @@ $rng->ran_shuffle($piddle);
 
 Shuffles values in piddle
 
-=for usage
-
 Usage:
 
-$rng->ran_shuffle_vec(@vec);
+=for usage
+
+   $rng->ran_shuffle_vec(@vec);
 
 =head2 ran_choose_vec()
 
@@ -550,11 +527,11 @@ $rng->ran_shuffle_vec(@vec);
 
 Chooses values from $inpiddle to $outpiddle.
 
-=for usage
-
 Usage:
 
-$rng->ran_choose($inpiddle,$outpiddle);
+=for usage
+
+   $rng->ran_choose($inpiddle,$outpiddle);
 
 =head2 ran_choose_vec()
 
@@ -562,13 +539,13 @@ $rng->ran_choose($inpiddle,$outpiddle);
 
 Chooses $n values from @vec.
 
-=for usage
-
 Usage:
 
-@choosen = $rng->ran_choose_vec($n,@vec);
+=for usage
 
-=head1 Caothic maps.
+   @choosen = $rng->ran_choose_vec($n,@vec);
+
+# =head1 Caotic maps.
 
 =head2 ran_ver()
 
@@ -577,11 +554,11 @@ Usage:
 Returns a piddle with $n values generated by the Verhulst map from $x0 and
 paramater $r.
 
-=for usage
-
 Usage:
 
-$rng->ran_ver($x0, $r, $n);
+=for usage
+
+   $rng->ran_ver($x0, $r, $n);
 
 =head2 ran_caos()
 
@@ -590,16 +567,29 @@ $rng->ran_ver($x0, $r, $n);
 Returns values from Verhuls map with $r=4.0 and randomly choosen
 $x0. The values are scaled by $m.
 
-=for usage
-
 Usage:
 
-$rng->ran_caos($m,$n);
+=for usage
+
+   $rng->ran_caos($m,$n);
+
+=head1 BUGS
+
+Feedback is welcome. Log bugs in the PDL bug database (the
+database is always linked from http://pdl.perl.org).
+
+=head1 SEE ALSO
+
+L<PDL>
+
+The GSL documentation is online at
+
+  http://sources.redhat.com/gsl/ref/gsl-ref_toc.html
 
 =head1 AUTHOR
 
 This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
-All rights reserved. There
+Docs mangled by C. Soeller. All rights reserved. There
 is no warranty. You are allowed to redistribute this software /
 documentation under certain conditions. For details, see the file
 COPYING in the PDL distribution. If this file is separated from the
@@ -664,13 +654,18 @@ pp_addpm(make_get_sub('get_int','$n,'));
 pp_addhdr('
 #include <string.h>
 
-#include "gsl_rng.h"
-#include "gsl_randist.h"
+#include "gsl/gsl_rng.h"
+#include "gsl/gsl_randist.h"
 
 
 ');
 
-pp_def(
+sub pp_defnd { # hide the docs
+  my ($name, %hash) = @_;
+  pp_def($name,%hash,Doc=>undef);
+}
+
+pp_defnd(
        'gsl_get_uniform_meat',
        Pars => '[o]a()',
        GenericTypes => [F,D],
@@ -678,7 +673,7 @@ pp_def(
        Code => '
 $a() = gsl_rng_uniform((gsl_rng *) $COMP(rng));');
 
-pp_def(
+pp_defnd(
        'gsl_get_uniform_pos_meat',
        Pars => '[o]a()',
        GenericTypes => [F,D],
@@ -686,14 +681,14 @@ pp_def(
        Code => '
 $a() = gsl_rng_uniform_pos((gsl_rng *) $COMP(rng));');
 
-pp_def(
+pp_defnd(
        'gsl_get_meat',
        Pars => '[o]a()',
        OtherPars => 'int rng',
        Code => '
 $a() = gsl_rng_get((gsl_rng *) $COMP(rng));');
 
-pp_def(
+pp_defnd(
        'gsl_get_int_meat',
        Pars => '[o]a()',
        OtherPars => 'int n; int rng',
@@ -728,7 +723,7 @@ sub add_randist {
     $fcall2='$a(),$b(),$c()';
   }
 
-  pp_def(
+  pp_defnd(
 	 'ran_' . $name . '_meat',
 	 Pars => '[o]x()',
 	 OtherPars => $pars1,
@@ -752,7 +747,7 @@ else {
 }
 ');
 
-  pp_def(
+  pp_defnd(
 	 'ran_' . $name . '_var_meat',
 	 Pars => $pars2 . ';[o]x()',
 	 OtherPars => 'int rng',
@@ -767,7 +762,7 @@ my ($obj,@var) = @_;
 }
 ');
 
-#  pp_def(
+#  pp_defnd(
 #	 'ran_' . $name . '_add_meat',
 #	 Pars => '[o]x()',
 #	 OtherPars => $pars1,
@@ -788,7 +783,7 @@ my ($obj,@var) = @_;
 #');
 
 #  if ($npar==1) {
-#    pp_def(
+#    pp_defnd(
 #	   'ran_' . $name . '_feed_meat',
 #	   Pars => '[o]x()',
 #	   OtherPars => 'int rng',
@@ -843,7 +838,7 @@ add_randist('logarithmic',1);
 
 # specific rnadist
 
-pp_def(
+pp_defnd(
        'ran_additive_gaussian_meat',
        Pars => ';[o]x()',
        OtherPars => 'double sigma; int rng',
@@ -862,7 +857,7 @@ pp_addpm('
        }
        ');
 
-pp_def(
+pp_defnd(
        'ran_additive_poisson_meat',
        Pars => ';[o]x()',
        OtherPars => 'double sigma; int rng',
@@ -881,7 +876,7 @@ pp_addpm('
        }
        ');
 
-pp_def(
+pp_defnd(
        'ran_feed_poisson_meat',
        Pars => ';[o]x()',
        OtherPars => 'int rng',
@@ -900,7 +895,7 @@ pp_addpm('
        }
        ');
 
-pp_def(
+pp_defnd(
 	'ran_bivariate_gaussian_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'double sigma_x; double sigma_y; double rho; int rng',
@@ -925,7 +920,7 @@ pp_addpm('
        }
        ');
 
-pp_def(
+pp_defnd(
 	'ran_dir_2d_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'int rng',
@@ -936,7 +931,7 @@ $x(n=>0)=xx;
 $x(n=>1)=yy;
 ');	
 
-pp_def(
+pp_defnd(
 	'ran_dir_3d_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'int rng',
@@ -950,7 +945,7 @@ $x(n=>2)=zz;
 
 $MAX_DIMENSIONS = 100;
 
-pp_def(
+pp_defnd(
 	'ran_dir_nd_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'int ns => n; int rng',
@@ -976,7 +971,7 @@ pp_addpm('
        }
        ');
 
-pp_def(
+pp_defnd(
 	'ran_discrete_meat',
 	Pars => ';[o]x()',
 	OtherPars => 'int rng_discrete; int rng',
@@ -1030,7 +1025,7 @@ return @out;
 ');
 
 
-pp_def(
+pp_defnd(
 	'ran_ver_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'double x0; double r;int ns => n; int rng',
@@ -1039,7 +1034,7 @@ double xx=$COMP(x0);
 
 loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');	
 
-pp_def(
+pp_defnd(
 	'ran_caos_meat',
 	Pars => ';[o]x(n)',
 	OtherPars => 'double m; int ns => n; int rng',
@@ -1174,12 +1169,13 @@ name(rng)
  OUTPUT:
   RETVAL
 
-#void
-#DESTROY(rng)
-#  gsl_rng * rng
-# CODE:
-#  fprintf(stderr,"Freeing %d\n");
-#  gsl_rng_free((gsl_rng *) rng);
+void
+DESTROY(sv)
+  SV * sv
+ CODE:
+  gsl_rng *rng = (gsl_rng *) SvIV((SV*)SvRV(sv));
+  /* fprintf(stderr,"Freeing %d\n",rng); */
+  gsl_rng_free((gsl_rng *) rng);
 
 gsl_ran_discrete_t *
 ran_discrete_preproc(rng, p)

@@ -1,2 +1,0 @@
-extern int dpchci_(integer *n, doublereal *h, doublereal *slope, doublereal *d, integer *incfd);
-/*:ref: dpchst_ 7 2 7 7 */

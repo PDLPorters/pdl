@@ -44,7 +44,7 @@ $min = $rng->min(); $max = $rng->max();
 
 print "ok ".$n++."\n";
 
-# max() function Test: 
+# rmax() function Test: 
 $min = $rng->min(); $max = $rng->max();
 
 print "ok ".$n++."\n";

@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..36\n";
+print "1..39\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -79,18 +79,20 @@ ok( (sum($a)==15 && max($b)==66 && $b->getdim(0)==5) );
 $t = long xvals(zeroes(11,20))-5;
 
 # note: keywords are converted to uppercase
-%hdr = ('Foo'=>'foo', 'Bar'=>42);
+%hdr = ('Foo'=>'foo', 'Bar'=>42, 'NUM'=>'0123',NUMSTR=>['0123']);
 $t->sethdr(\%hdr);
 
 wfits($t, $file);
-
+print "#file is $file\n";
 $t2 = rfits $file;
 
 ok( (sum($t->slice('0:4,:')) == -sum($t2->slice('5:-1,:')) ));
 
 $h = $t2->gethdr;
+ok($$h{'FOO'} eq "foo" && $$h{'BAR'} == 42);
+print "# test 5: foo='".$$h{'FOO'}."'; bar=='".$$h{'BAR'}."'\n";
 
-ok($$h{'FOO'} eq "'foo       '" && $$h{'BAR'} == 42);
+ok($$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123');
 
 unlink $file;
 
@@ -194,7 +196,10 @@ $b = zeroes(float,20,2);
 $b->rasc($file);
 ok( abs($b->sum - 5.13147) < .01 );
 
-unlink $file;
+eval '$b->rasc("file_that_does_not_exist")';
+ok( $@ =~ /^Can't open/ );
+
+unlink $file; # clean up
 
 #######################################################
 # Tests of rcols() options: 29 to 36
@@ -234,5 +239,8 @@ $PDL::IO::Misc::deftype = short;
 ok( $a->get_datatype == short->[0] ); # test: 36
 
 unlink $file;
+
+eval { wcols $a, $b };
+ok(!$@);
 
 1;

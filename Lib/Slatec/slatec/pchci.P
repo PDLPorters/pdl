@@ -1,2 +1,0 @@
-extern int pchci_(integer *n, real *h, real *slope, real *d, integer *incfd);
-/*:ref: pchst_ 6 2 6 6 */

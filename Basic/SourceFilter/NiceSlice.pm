@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.9;
+$PDL::NiceSlice::VERSION = 0.95;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -156,7 +156,7 @@ sub onearg ($) {
   # recursively process args for slice syntax
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
   # no doubles colon are matched to avoid confusion with Perl's C<::>
-  if ($arg =~ /(?<!:):(?!:)/) {
+  if ($arg =~ /(?<!:):(?!:)/) { # a start:stop:delta range
     my @args = splitprotected $arg, '(?<!:):(?!:)';
     filterdie "invalid range in slice expression '".curarg()."'"
       if @args > 3;
@@ -167,7 +167,7 @@ sub onearg ($) {
   }
   # the (pos) syntax, i.e. 0D slice
   return "[$arg,0,0]" if $arg =~ s/^\s*\((.*)\)\s*$/$1/; # use the new [x,x,0]
-  # we don't allow [] syntax (although that's what mslice uses)
+  # we don't allow [] syntax (although that's what nslice internally uses)
   filterdie "invalid slice expression containing '[', expression was '".
     curarg()."'" if $arg =~ /^\s*\[/;
   # this must be a simple position, leave as is
@@ -187,7 +187,7 @@ sub procargs {
 }
 
 # this is the real workhorse that translates occurences
-# of $a(args) into $args->mslice(processed_arglist)
+# of $a(args) into $args->nslice(processed_arglist)
 #
 sub findslice {
   my ($src,$verb) = @_;
@@ -205,7 +205,7 @@ sub findslice {
 #  Do final check for "for $avar(LIST)" and "foreach $avar(LIST)" syntax. 
 #  Process into an 'nslice' call only if it's not that.
 
-    if($prefix =~ m/for(each)?\s+\$\w+$/s) {
+    if($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s) {
       $processed .= "$prefix".$found;       # foreach statement: Don't translate 
 
     } else {      # statement is a real slice and not a foreach
@@ -230,6 +230,10 @@ sub findslice {
 	  $call = 'nslice';
 	  $arg = procargs($found);
 	  $post = '->sever';
+	} elsif ($mod eq '-') {
+	  $call = 'nslice';
+	  $arg = procargs($found);
+	  $post = '->reshape(-1)';
 	} else {
 	  filterdie "unknown modifier $mod";
 	}
@@ -261,10 +265,10 @@ sub perldlpp {
  if ($@) {
    my $err = $@;
    for (split '','#!|\'"%~/') {
-     return "print q${_}preprocessor error: $err${_}"
+     return "print q${_}NiceSlice error: $err${_}"
        unless $err =~ m{[$_]};
     }
-   return "print q{preprocessor error: $err}"; # if this doesn't work
+   return "print q{NiceSlice error: $err}"; # if this doesn't work
                                                # we're stuffed
  }
  return $new;
@@ -331,6 +335,8 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $a($a!=3;?)++;            # short for $a->where($a!=3)++
   $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
   $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
+  $new = sequence 3,1,4,1;
+  $b = $n(;-);              # drop all dimensions of size 1
 
   # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
   perldl> use PDL::NiceSlice; 
@@ -673,13 +679,13 @@ on PDL slicing. The general syntax is
 
     $pdl(<slice>;<modifier>)
 
-Three modifiers are currently implemented:
+Four modifiers are currently implemented:
 
 =over
 
 =item *
 
-C<_>: flatten the piddle before applying the slice expression. Here
+C<_> : flatten the piddle before applying the slice expression. Here
 is an example
 
    $b = sequence 3, 3;
@@ -697,7 +703,7 @@ which is quite different from the same slice expression without the modifier
 
 =item *
 
-C<|>: L<sever|PDL::Core/sever> the link to the piddle, e.g.
+C<|> : L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
    $a = sequence 10;
    $b = $a(0:2;|)++;  # same as $a(0:2)->sever++
@@ -708,7 +714,7 @@ C<|>: L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
 =item *
 
-C<?>: short hand to indicate that this is really a
+C<?> : short hand to indicate that this is really a
 L<where|PDL::Primitive/where> expression
 
 As expressions like
@@ -729,6 +735,21 @@ For example, the following code will raise an error:
  syntax error at (eval 70) line 3, near "0:"
 
 That's about all there is to know about this one.
+
+=item *
+
+C<-> : reduce the number of dimensions (potentially) by deleting all
+dims of size 1. It is equivalent to doing a L<reshape|PDL::Core/reshape>(-1).
+That can be very handy if you want to simplify
+the results of slicing operations:
+
+  $a = ones 3, 4, 5;
+  $b = $a(1,0;-); # easier to type than $a((1),(0))
+  print $b->info;
+ PDL: Double D [5]
+
+It also provides a unique opportunity to have smileys in your code!
+Yes, PDL gives new meaning to smileys.
 
 =back
 

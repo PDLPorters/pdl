@@ -497,7 +497,7 @@ ND convolution using real ffts from the FFTW library
 
 =for example
 
-  $conv = rfftwconv $im, kernctr $k;
+  $conv = rfftwconv $im, kernctr $im, $k; # kernctr is from PDL::FFT
 
 =cut
 
@@ -522,7 +522,7 @@ Assumes real input!
 
 =for example
 
-  $conv = fftwconv $im, kernctr $k;
+  $conv = fftwconv $im, kernctr $im, $k; # kernctr is from PDL::FFT
 
 =cut
 

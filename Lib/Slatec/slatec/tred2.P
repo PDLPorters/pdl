@@ -1,1 +1,0 @@
-extern int tred2_(integer *nm, integer *n, real *a, real *d__, real *e, real *z__);

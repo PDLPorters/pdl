@@ -1,5 +1,0 @@
-extern int rsfoo_(integer *nm, integer *n, real *a, real *w, integer *matz, real *z__, real *fv1, real *fv2, integer *ierr);
-/*:ref: tred1_ 14 6 4 4 6 6 6 6 */
-/*:ref: tqlrat_ 14 4 4 6 6 4 */
-/*:ref: tred2_ 14 6 4 4 6 6 6 6 */
-/*:ref: tql2_ 14 6 4 4 6 6 6 4 */

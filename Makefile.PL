@@ -9,18 +9,51 @@ BEGIN{
     die "PDL requires Perl v5.005 or later\n" if $@ ne "";
 }
 
+END{
+  my @hasnt = ();
+  my @test = (['Filter::Util::Call','Filter'],
+	      ['Text::Balanced','Text::Balanced'],
+	     );
+  for my $mod (@test) {
+    eval "use $mod->[0]";
+    push @hasnt, $mod->[1] if $@;
+  }
+  if (@hasnt) {
+    print << 'EOP';
+
+************************************************************
+Your installation won't be fully functional since it lacks
+certain modules. As a result PDL::NiceSlice will not work.
+This will significantly reduce the usefulness of your
+installation.
+
+Please install the following module(s) [available from CPAN]
+
+EOP
+
+    for (@hasnt) { print "\t$_\n" }
+
+
+    print << 'EOP';
+
+************************************************************
+EOP
+
+    warn << 'EOW' unless $perl_560;
+
+* The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*
+* Upgrade your perl now for maximum PDL fun in the future!               *
+
+EOW
+  }
+}
+
 eval "use 5.6.0";
 if ($@ ne ""){
     warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
 	"Building PDL without TriD (WITH_3D=>0)\n\n";
 }else{
     $perl_560=1;
-}
-
-END{
-    warn "\n\n*The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*\n".
-	"*Upgrade your perl now for maximum PDL fun in the future!*\n\n" 
-	    unless $perl_560;
 }
 
 $seen_pdlconf = 0;
@@ -60,9 +93,12 @@ if (!$forcebuild &&
 FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
 
 On this platform the combination of gcc and Perl's malloc
-are buggy. The optimizations lead to coredumps when PDL is run
-and make it unusable. We advise you to recompile Perl with
-'usemymalloc=n'.
+are buggy. The optimizations lead to random coredumps
+and make PDL essentially unusable.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+WORKAROUND: YOU MUST RECOMPILE PERL WITH 'usemymalloc=n' !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 You may override and force the build by including the
 'FORCE' switch:
@@ -70,7 +106,8 @@ You may override and force the build by including the
   perl Makefile.PL FORCE
 
 However, you will most likely end up with an unusable
-PDL build unless 'all' optimizations are disabled!
+PDL build unless *all* optimizations are disabled!
+YOU HAVE BEEN WARNED!!
 
 EOM
 }
@@ -95,7 +132,12 @@ if (-f $pdl_conf_file) {
 
 for(keys %PDL_CONFIG) {
 	if(!exists($PDL_CONFIG_DIST{$_})) {
-	   die("Invalid key $_ found in user supplied $pdl_conf_file - this key appears to be no longer in use. Please review configuration options");
+	   die << "EOD";
+Invalid key $_ found in user supplied $pdl_conf_file
+  - this key appears to be no longer in use.
+  Please review configuration options and check the comments in
+  the file perldl.conf that came with this distribution
+EOD
 	}
 }
 
@@ -177,15 +219,17 @@ die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
     }
 }
 
+
 use ExtUtils::MakeMaker;
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"} 
   qw/perldl pdldoc/;
 
 @prereq = (
-	   'File::Spec' => 0.6,
-	   Filter::Simple => 0, # for PDL::SFilter
-	   Text::Balanced => 0, # for PDL::SFilter
+	   File::Spec       => 0.6,
+	   Filter::Util::Call => 0, # for PDL::NiceSlice
+	   Text::Balanced     => 0, # for PDL::NiceSlice
+	   Inline             => 0.43,
 	  );
 push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
@@ -226,7 +270,7 @@ package PDL;
 for(keys %PDL_CONFIG) {
 	print OUT "\t$_\t=>\t";
 	if(defined $PDL_CONFIG{$_}) {
-		print OUT '"',quotemeta($PDL_CONFIG{$_}),'"';
+		print OUT myformat($PDL_CONFIG{$_});
 	} else {
 		print OUT "undef";
 	}
@@ -234,6 +278,22 @@ for(keys %PDL_CONFIG) {
 }
 print OUT ");\n1;";
 close OUT;
+
+# very simple formatter, assumes structures are *not* nested
+sub myformat {
+  my $entry = shift;
+  if (ref $entry eq 'ARRAY') {
+    my $list = join ',', (map {('"'.quotemeta($_).'"')} @$entry);
+    return "[$list]";
+  } elsif (ref $entry eq 'HASH') {
+    my $list = join ",\n", (map {('"'.quotemeta($_).'" => "'.
+			       quotemeta($entry->{$_}).'"')} keys %$entry);
+    $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
+    return "{$list}";
+  } else {
+     return join '', '"',quotemeta($PDL_CONFIG{$_}),'"';
+  }
+}
 
 # Extra build target to build the doc database
 

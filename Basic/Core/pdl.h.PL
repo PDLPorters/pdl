@@ -297,9 +297,11 @@ struct pdl {
    pdl_trans *trans; /* Opaque pointer to internals of transformation from
    			parent */
 
-
-/* Not used yet. */
-   pdl_vaffine *vafftrans;
+   pdl_vaffine *vafftrans; /* pointer to vaffine transformation
+                              a vafftrans is an optimization that is possible
+                              for some types of trans (slice etc)
+                              - unused for non-affine transformations
+                            */
 
    void*    sv;      /* (optional) pointer back to original sv.
    			  ALWAYS check for non-null before use.
@@ -316,6 +318,15 @@ struct pdl {
 
    unsigned char *threadids;  /* Starting index of the thread index set n */
    unsigned char nthreadids;
+
+   /* the progenitor, future_me and living_for members
+      are unused. They are related to one of Tuomas' ideas about
+      pervasive dataflow for PDL and the concept of families that
+      he thought up. This was never implemented and Tuomas gave up
+      on the idea (and later PDL as a whole). We keep those members
+      as a hangover for the moment but they might go at a later time
+      -- although that might result in backward compatibility problems
+    */
 
    pdl *progenitor; /* I'm in a mutated family. make_physical_now must
    		       copy me to the new generation. */
@@ -335,7 +346,7 @@ struct pdl {
 
    struct pdl_magic *magic;
 
-   void *hdrsv; /* "header", settable from outside */
+   void *hdrsv; /* "header", settable from Perl */
 };
 
 
