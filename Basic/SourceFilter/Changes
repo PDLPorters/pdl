@@ -1,3 +1,5 @@
+1.0.0
+ - fix parsing foreach: detect embedded niceslice expressions
 0.99.2
  - changed to 2 dot version number
  - fix parsing problems with interspersed

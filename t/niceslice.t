@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 41,
+	plan tests => 42,
 	# todo => [37..40],
     } else {
 	plan tests => 1;
@@ -142,6 +142,10 @@ ok(!$@ and $a eq '1234');
 $a = ''; # foreach and whitespace
 eval translate_and_show 'foreach  my $b (1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');
+
+$a = ''; my $t = ones 10; # foreach and imbedded expression
+eval translate_and_show 'foreach my $type ( $t(0)->list ) { $a .= $type }';
+ok(!$@ and $a eq '1');
 
 # block method access translation
 

@@ -1,3 +1,7 @@
+CS
+   - fix NiceSlice foreach bug; v to 1.0.0
+   - fix fftwconv
+2.4.0 released
 CED 22-May-2003
    - Better fallbacks for RGB images if PGPLOT-RGB support isn't installed
          (Window.pm)
