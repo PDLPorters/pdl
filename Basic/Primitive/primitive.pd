@@ -1728,9 +1728,9 @@ they are calculated and put in the stash.
 
 =item b, bound, boundary, Boundary
 
-This option is passed unmodified into L<indexNDb|PDL::Slices/indexNDb>
-as its boundary-handling method. 
-Current allowed values are 'extend', 'periodic', and 'truncate' 
+This option is passed unmodified into L<indexND|PDL::Slices/indexND>, 
+which is used as the indexing engine for the interpolation.
+Some current allowed values are 'extend', 'periodic', 'truncate', and 'mirror'
 (default is 'truncate').
 
 =item bad
@@ -2077,21 +2077,27 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns indices to non-zero values or those values from another piddle.
+Return the values from a piddle for whose indices a condition piddle is nonzero.
 
 =for usage
 
- $i = $x->where($x+5 > 0); # $i contains elements of $x
+ $i = $x->where($x+5 > 0); # $i contains those elements of $x
                            # where mask ($x+5 > 0) is 1
-
-Note: C<$i> is always 1-D, even if C<$x> is >1-D. The first argument
-(the values) and the second argument (the mask) currently have to have
-the same initial dimensions (or horrible things happen).
+ $i .= -5;  # Set those elements (of $x) to -5. Together, these
+            # commands clamp $x to a maximum of -5. 
 
 It is also possible to use the same mask for several piddles with
 the same call:
 
  ($i,$j,$k) = where($x,$y,$z, $x+5>0);
+
+Note: C<$i> is always 1-D, even if C<$x> is >1-D. 
+
+WARNING: The first argument
+(the values) and the second argument (the mask) currently have to have
+the exact same dimensions (or horrible things happen). You *cannot*
+thread over a smaller mask, for example.
+
 
 =cut
 

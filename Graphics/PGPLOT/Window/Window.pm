@@ -3756,7 +3756,7 @@ sub initenv{
       my($xrange) = abs(($xmax-$xmin) * $wxs / $pitch );
       ($wx0,$wx1) = 
 	(m/L/i) ? ( $ox0, $ox0  +  $xrange ) :
-	(m/R/i) ? ( $ox1  -  $xrange ) :
+	(m/R/i) ? ( $ox1  -  $xrange, $ox1 ) :
 	  (0.5 * ( $ox0 + $ox1 - $xrange ), 0.5 * ( $ox0 + $ox1 + $xrange ));
 
       my($yrange) = abs(($ymax-$ymin) * $wys * $pix / $pitch );

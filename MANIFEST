@@ -78,8 +78,6 @@ Basic/MatrixOps/NOTES
 Basic/MatrixOps/blas.c
 Basic/MatrixOps/eigens.c
 Basic/MatrixOps/matrixops.pd
-Basic/MatrixOps/mconf.h
-Basic/MatrixOps/mtherr.c
 Basic/MatrixOps/protos.h
 Basic/MatrixOps/simq.c
 Basic/MatrixOps/svd.c

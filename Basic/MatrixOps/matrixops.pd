@@ -88,7 +88,7 @@ _row_ vectors; if you want a _column_ vector you must add a dummy dimension:
 Implicit threading works correctly with most matrix operations, but
 you must be extra careful that you understand the dimensionality.  In 
 particular, matrix multiplication and other matrix ops need nx1 PDLs
-as row vectors and 1xn PDLs as column vectors.  In many cases you must
+as row vectors and 1xn PDLs as column vectors.  In most cases you must
 explicitly include the trailing 'x1' dimension in order to get the expected
 results when you thread over multiple row vectors.
 
@@ -206,10 +206,11 @@ exists).  The code is inplace-aware, so you can get back the inverse
 in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
 
-C<inv> uses lu_decomp by default; that is a numerically stable (pivoting)
-LU decomposition method.  If you ask it to thread then a numerically
-unstable (non-pivoting) method is used instead, so avoid thread ing
-over largish or near-singular matrices unless precision is not important.
+C<inv> uses lu_decomp by default; that is a numerically stable
+(pivoting) LU decomposition method.  If you ask it to thread then a
+numerically unstable (non-pivoting) method is used instead, so avoid
+threading over collections of large (say, more than 4x4) or
+near-singular matrices unless precision is not important.
 
 
 OPTIONS:
@@ -220,7 +221,9 @@ OPTIONS:
 
 Boolean value indicating whether to complain if the matrix is singular.  If
 this is false, singular matrices cause inverse to barf.  If it is true, then 
-singular matrices cause inverse to return undef.
+singular matrices cause inverse to return undef.  In the threading case, no 
+checking for singularity is performed, if any of the matrices in your threaded 
+collection are singular, they receive NaN entries.
 
 =item * lu (I/O)
 
