@@ -20,7 +20,7 @@ if ($^O =~ /win32/i) {
 } else {
     #
     # default locations:
-    my @check_dirs = qw( /lib/ /usr/lib/ /usr/local/lib/ );
+    my @check_dirs = qw( /lib/ /usr/lib/ /usr/local/lib/ /usr/X11R6/lib/ /usr/local/X11R6/lib/ /usr/X11/lib/ /usr/local/X11/lib/ );
 
     # append locations from perldl.conf, if specified:
     @check_dirs =
@@ -32,13 +32,14 @@ if ($^O =~ /win32/i) {
     my $lib = ""; # Gets the first lib found...
     my @patterns = qw( GL.a GL.so MesaGL.a MesaGL.so );
 
+    my %Ldirs = ();
     foreach my $dir (@check_dirs) {
-	last if $gl_build;
 	my $h = "${dir}/lib";
 
-	map { $lib = "${h}$_" if -e "${h}$_"; } @patterns;
+	map { if (-e "${h}$_") { $lib = "${h}$_" unless $gl_build; 
+				 $Ldirs{$dir}++;} } @patterns;
 
-	if( $lib ) {
+	if( !$gl_build && $lib ) {
 	    $gl_dir   = $dir;
 	    $gl_build = 1;
 
@@ -49,6 +50,7 @@ if ($^O =~ /win32/i) {
 	    }
 	}
     }
+    $PDL::Config{OPENGL_LIBS} = join(" ",(map { "-L$_" } keys %Ldirs),$PDL::Config{OPENGL_LIBS});
 
     $gl_msg = "skipping build of TriD::OpenGL(Q) modules - unable to find libs"
 	unless $gl_build;

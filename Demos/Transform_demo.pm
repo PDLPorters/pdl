@@ -272,7 +272,7 @@ act q|
 |;
 
 act q|
-    ###   Now rotate the image 750 degrees in 5 degree increments.
+    ###   Now rotate the image 360 degrees in 10 degree increments.
     ###   The 'match' method resamples $data to the rotated scientific
     ###   coordinate system in $hdr.  The "pixel coordinates" window shows 
     ###   the resampled data in their new pixel coordinate system. 
@@ -282,7 +282,7 @@ act q|
 
   $hdr = $data->hdr_copy;
   
-  for( $rot=0; $rot<=750; $rot += 5 ) {
+  for( $rot=0; $rot<=360; $rot += 10 ) {
     $hdr->{CROTA2} = $rot;
 
     $d = $data->match($hdr);

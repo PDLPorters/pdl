@@ -1,3 +1,6 @@
+CED 19-Aug-04
+   - Fixed OpenGL build to work with Mandrake 10 (this will need
+     better fixing later, but should work OK with all current distros).
 DCH 30-Jul-04
    - Cleaned up plplot.t a bit.  Made compilation of plplot routines
      plsvect and plvect dependent upon a recent enough version of plplot.
