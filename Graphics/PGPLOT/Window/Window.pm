@@ -2731,13 +2731,16 @@ sub panel {
     # We have been given a single number... This can be converted
     # to a X&Y position with a bit of calculation. The code is taken
     # from one2nd.
-    my $i=$_[0]-1;		# The code is 0 offset..
+    release_and_barf("panel: Panel numbering starts at 1, not 0\n")
+      if($_[0]<=0);
+
+    my $i=$_[0]-1;	        # Offset code is 0-based (of course)
     $xpos = $i % $self->{NX};
     $i = long($i/$self->{NX});
     $ypos=$i % $self->{NY};
     $xpos++; $ypos++;		# Because PGPLOT starts at 1..
   } else {
-    release_and_barf <<'EOD'
+    release_and_barf <<'EOD';
  Usage: panel($xpos, $ypos);   or
         panel([$xpos, $ypos]); or
         panel($index);
@@ -3526,7 +3529,7 @@ sub label_axes {
   # it to 0 to get the original broken  behavior.  [CED 2002 Aug 29]
 
   $label_params = [ [2.0,  3.2, 2.2], # default
-		    [1.25, 2.7, 2.2], # tightened
+		    [1.0, 2.7, 2.2], # tightened
 		    ]
 		      unless defined($label_params);
 
@@ -3538,7 +3541,9 @@ sub label_axes {
 
   pgbbuf(); # Begin a buffered batch output to the device
   pgsch($sz * ( $o->{TitleSize} || 1 ));
-  pgmtxt('T', $p->[0], 0.5, 0.5, $o->{Title});  
+             # The 'T' offset is computed so that the original 
+             # vertical center is maintained.
+  pgmtxt('T', ($p->[0]+0.5)/$o->{TitleSize} - 0.5 , 0.5, 0.5, $o->{Title});  
   pgsch($sz);
   pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
   pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
