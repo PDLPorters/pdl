@@ -1,3 +1,6 @@
+CED (7-Aug-02)
+    - Slightly cleaner MOD in ops.pd
+    - added interpND (to primitive.pd) and indexNDb (to slices.pd).
 CED (6-Aug-02)
     - New % operator follows (mathematically correct) perl % operator behavior
     - AutoLoad throws an error if foo.pdl doesn't declare foo().  (used
