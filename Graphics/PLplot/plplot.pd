@@ -1597,6 +1597,15 @@ PLK_Shift_R PLK_Control_L PLK_Control_R PLK_Caps_Lock PLK_Shift_Lock
 PLK_Meta_L PLK_Meta_R PLK_Alt_L PLK_Alt_R PLK_Super_L PLK_Super_R
 PLK_Hyper_L PLK_Hyper_R
 
+# Type of gridding algorithm for plgriddata ()
+
+GRID_CSA
+GRID_DTLI
+GRID_NNI
+GRID_NNIDW
+GRID_NNLI
+GRID_NNAIDW
+
 EODEF
 
 
@@ -1848,6 +1857,7 @@ void pldip2dc(PLFLT *xmin, PLFLT *ymin, PLFLT *xmax, PLFLT *ymax);
 void c_plend(void);
 void c_plend1(void);
 void c_plenv(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLINT just, PLINT axis);
+void c_plenv0(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax, PLINT just, PLINT axis);
 void c_pleop(void);
 void c_plerrx(PLINT n, PLFLT *xmin, PLFLT *xmax, PLFLT *y);
 void c_plerry(PLINT n, PLFLT *x, PLFLT *ymin, PLFLT *ymax);
@@ -2557,6 +2567,32 @@ pp_def ('plot3d',
         );
 
 
+# Plots a 3-d representation of the function z[x][y] with contour
+
+pp_def ('plot3dc',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
+         GenericTypes => [D],
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zz;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&zz, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               zz[i][j] = $z(nx => i, ny => j);
+
+           c_plot3dc ($P(x), $P(y), zz, size_x, size_y, $opt(),
+                      $P(clevel), $SIZE(nlevel));
+
+           plFree2dGrid (zz, size_x, size_y);'
+        );
+
+
 # Set color map1 colors using a piece-wise linear relationship
 
 pp_def ('plscmap1l',
@@ -2841,7 +2877,33 @@ pp_def ('plstripc',
 	     $COMP(labx), $COMP(laby), $COMP(labtop));
 
            $id() = (int) id;'
+        );
 
+
+pp_def ('plgriddata',
+         GenericTypes => [D],
+         Pars => 'x(npts); y(npts); z(npts); xg(nptsx); yg(nptsy);'
+	         . 'int type(); data(); [o] zg(nptsx,nptsy)',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zg;
+
+           size_x = $SIZE(nptsx);
+           size_y = $SIZE(nptsy);
+
+           plAlloc2dGrid (&zg, size_x, size_y);
+
+           c_plgriddata ($P(x), $P(y), $P(z), $SIZE(npts),
+	                 $P(xg), size_x, $P(yg), size_y,
+	                 zg, $type(), $data());
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               $zg(nptsx => i, nptsy => j) = zg[i][j];
+
+           plFree2dGrid (zg, size_x, size_y);
+         '
         );
 
 
