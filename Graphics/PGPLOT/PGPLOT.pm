@@ -146,6 +146,20 @@ wants to plot the same arrow with several sizes.
 
    $opt = {ARROWSIZE => 2.5};
 
+=item axis
+
+Set the axis value (see L</env()>).
+It can either be specified as a number, or by one of the following names:
+
+ EMPTY  (-2) draw no box, axes or labels
+ BOX    (-1) draw box only
+ NORMAL (0)  draw box and label it with coordinates
+ AXES   (1)  same as NORMAL, but also draw (X=0,Y=0) axes
+ GRID   (2)  same as AXES, but also draw grid lines
+ LOGX   (10) draw box and label X-axis logarithmically
+ LOGY   (20) draw box and label Y-axis logarithmically
+ LOGXY  (30) draw box and label both axes logarithmically
+
 =item charsize
 
 Set the character/symbol size as a multiple of the standard size.
@@ -218,6 +232,12 @@ Can also be specified as
 
 See also the documentation for poly for another example of hatching.
 
+=item justify
+
+A boolean value which, if true, causes both axes to drawn
+to the same scale; see
+the PGPLOT pgenv() command for more information.
+
 =item linestyle
 
 Set the line style. This can either be specified as a number following
@@ -267,11 +287,11 @@ Define a plot window, and put graphics on 'hold'
 
   Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
 
-$xmin, $xmax, $ymin, $ymax are the plot boundaries.  $justify is a boolean
-value; if true the axes scales will be the same (see the PGPLOT pgenv()
-command for more info).  $justify defaults to 0.  $axis is the PGPLOT code
-which describes how the axes should be drawn.  See the PGPLOT pgenv()
-command for more information).  It defaults to 0.
+$xmin, $xmax, $ymin, $ymax are the plot boundaries.  
+$justify is a boolean value (default is 0);
+if true the axes scales will be the same (see L</justify>).
+$axis describes how the axes should be drawn (see
+L</axis>).
 
 =head2 imag
 
@@ -290,21 +310,21 @@ zero-offset.
 Options recognised:
 
        ITF - the image transfer function applied to the pixel values.  It
-             may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is acceptable).
-           It defaults to 'LINEAR'.
-   JUSTIFY - the plot axes will be justified
+             may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
+             acceptable). It defaults to 'LINEAR'.
       MIN  - Sets the minimum value to be used for calculation of the
              display stretch
       MAX  - Sets the maximum value for the same
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
-  None of the standard options are relevant here
+    The following standard options influence this command:
+    AXIS, JUSTIFY
 
 =head2 ctab
 
 =for ref
 
-Load an image colour table
+Load an image colour table. 
 
 Usage:
 
@@ -314,6 +334,9 @@ Usage:
    ctab ( $ctab, [$contrast, $brightness] ) # $ctab is Nx4 array
    ctab ( $levels, $red, $green, $blue, [$contrast, $brightness] )
    ctab ( '', $contrast, $brightness ) # use last color table
+
+Notes: See L<PDL::Graphics::LUT> for access to a large
+number of colour tables.
 
 Options recognised:
 
@@ -331,10 +354,8 @@ Plot vector as connected points
 
  Options recognised:
 
-    JUSTIFY - the plot axes will be justified
-
     The following standard options influence this command:
-    COLO(U)R, LINESTYLE, LINEWIDTH
+    AXIS, COLO(U)R, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -354,8 +375,6 @@ Plot vector as points
 
  Options recognised:
 
-    JUSTIFY - the plot axes will be justified
-
     SYMBOL - Either a piddle with the same dimensions as $x, containing
              the symbol associated to each point or a number specifying
              the symbol to use for every point, or a name specifying the
@@ -369,7 +388,7 @@ Plot vector as points
     PLOTLINE - If this is >0 a line will be drawn through the points.
 
     The following standard options influence this command:
-    CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH
+    AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -394,13 +413,12 @@ Usage:
 
  Options recognised:
 
- JUSTIFY - the plot axes will be justified
     TERM - Length of terminals in multiples of the default length
   SYMBOL - Plot the datapoints using the symbol value given, either
            as name or number - see documentation for 'points'
 
     The following standard options influence this command:
-    CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH
+    AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -430,7 +448,6 @@ zero-offset.
                pgcons) If this is set >0 the chosen linestyle will be
                ignored and solid line used for the positive contours
                and dashed line for the negative contours.
-     JUSTIFY - the plot axes will be justified
       LABELS - An array of strings with labels for each contour
  LABELCOLOUR - The colour of labels if different from the draw colour
                This will not interfere with the setting of draw colour
@@ -441,7 +458,7 @@ zero-offset.
    TRANSFORM - The pixel-to-world coordinate transform vector
 
     The following standard options influence this command:
-    COLOUR, LINESTYLE, LINEWIDTH
+    AXIS, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -465,10 +482,8 @@ Plot vector as histogram ( e.g. C<bin(hist($data))> )
 
  Options recognised:
 
-     JUSTIFY - the plot axes will be justified
-
     The following standard options influence this command:
-    COLOUR, LINESTYLE, LINEWIDTH
+    AXIS, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 
 =head2 hi2d
@@ -486,9 +501,9 @@ Plot image as 2d histogram (not very good IMHO...)
     IOFFSET - The offset for each array slice. >0 slants to the right
                                                <0 to the left.
        BIAS - The bias to shift each array slice up by.
-    JUSTIFY - the plot axes will be justified
 
-    None of the standard options influence this command.
+    The following standard options influence this command:
+    AXIS, JUSTIFY
 
  Note that meddling with the ioffset and bias often will require you to
  change the default plot range somewhat. It is also worth noting that if
@@ -513,10 +528,8 @@ Usage: poly ( $x, $y )
 
  Options recognised:
 
-    JUSTIFY - the plot axes will be justified
-
     The following standard options influence this command:
-    COLOUR, LINESTYLE, LINEWIDTH, FILLTYPE, HATCHING
+    AXIS, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -548,7 +561,6 @@ and $b the vertical component.
 
  Options recognised:
 
-  JUSTIFY - the plot axes will be justified
     SCALE - Set the scale factor for vector lengths.
       POS - Set the position of vectors.
             <0 - vector head at coordinate
@@ -558,7 +570,7 @@ TRANSFORM - The pixel-to-world coordinate transform vector
   MISSING - Elements with this value are ignored.
 
     The following standard options influence this command:
-    ARROW, ARROWSIZE, CHARSIZE, COLOUR, LINESTYLE, LINEWIDTH
+    ARROW, ARROWSIZE, AXIS, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
 =for example
 
@@ -622,6 +634,7 @@ $HARD_CH    = 1.4; # Character height for hardcopy devices
 $HARD_FONT  = 2;   # Font for hardcopy devices
 
 # Standard colour tables (args to ctab())
+# see also PDL::Graphics::LUT
 
 %CTAB = ();
 $CTAB{Grey}    = [ pdl([0,1],[0,1],[0,1],[0,1]) ];
@@ -644,6 +657,18 @@ $DEV  = "?" if !defined($DEV) || $DEV eq ""; # Safe default
 	 TRIANGLE=>7, EARTH=>8, SUN=>9, DIAMOND=>11, STAR=>12);
 
 %ITF = ( LINEAR => 0, LOG => 1, SQRT => 2 );
+
+# valid values for axis parameter (eg env())
+%_axis = 
+    ( -2 => -2, EMPTY => -2, -1 => -1, BOX => -1,
+      0 => 0, NORMAL => 0, 1 => 1, AXES => 1, 2 => 2, GRID => 2,
+      10 => 10, LOGX => 10, 20 => 20, LOGY => 20, 30 => 30, LOGXY => 30 );
+
+# corresponding values for calls to pgbox()
+%_pgbox =
+    ( -2 => '', -1 => 'BC', 0 => 'BCNST', 1 => 'ABCNST', 2 => 'ABCGNST',
+      10 => [ 'BCLNST', 'BCNST' ], 20 => [ 'BCNST', 'BCLNST' ], 
+      30 => [ 'BCLNST', 'BCLNST' ] );
 
 BEGIN { $pgplot_loaded = 0 }
 
@@ -720,16 +745,36 @@ sub initdev{  # Ensure a device is open
 
 sub initenv{ # Default box
     my ($col); initdev(); pgqci($col); pgsci($AXISCOLOUR);
-    pgenv(@_,0); pgsci($col);
-    @last = (@_,0);
+    my @opts = @_;
+    if ( $#opts == 4 ) { push @opts, 0; }
+    @opts[5] = _match_axis( @opts[5] );
+    pgenv(@opts); 
+    pgsci($col);
+    @last = (@opts);
 1;}
 
 sub redraw_axes {
     pgqci($col); pgsci($AXISCOLOUR);
-    pgbox('BCNST',0,0,'BCNST',0,0) unless $hold;
+    my $axval = @last[5]; $axval = 0 unless defined $axval; # safety check
+    $labs = $_pgbox{$axval};
+    barf "Unknown axis value '$axval'." unless defined $labs;
+    unless ( $hold ) {
+	if ( ref($labs) ) {
+	    pgbox($$labs[0],0,0,$$labs[1],0,0);
+	} else {
+	    pgbox($labs,0,0,$labs,0,0);
+	}
+    }
     pgsci($col);
 }
 
+sub _match_axis ($) {
+    my $val  = shift;
+    my $axis = $_axis{uc($val)};
+    barf "Unknown axis option '$val'." unless defined($axis);
+    return $axis;
+}
+    
 
 sub CtoF77coords{  # convert a transform array from zero-offset to unit-offset images
     my $tr = pdl(shift); # Copy
@@ -883,10 +928,7 @@ sub env {
     $args[4] = 0 unless defined $args[4]; # $just
     $args[5] = 0 unless defined $args[5]; # $axis
     initdev();
-    pgqci($col); pgsci($AXISCOLOUR);
-    pgenv(@args);
-    @last = @args;
-    pgsci($col);
+    initenv( @args );
     hold;
 1;}
 
@@ -908,14 +950,17 @@ sub bin {
      }
 
     my $justify = 0;
+  my $axis = 0;
 
     # Parse for options
     while (my ($key, $val) = each %{$opt}) {
-      if ($key =~ m/^JUST/i) { $justify = $val; }
+	$key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
     }
 
     my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
-    initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
+    initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
     save_status();
     # Let's also parse the options if any.
     standard_options_parser($opt);
@@ -936,13 +981,16 @@ sub cont {
   my ($ncont)=9; # The number of contours by default
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
-  initenv( 0,$nx-1, 0, $ny-1, $justify ) unless $hold;
+  initenv( 0,$nx-1, 0, $ny-1, $justify, $axis ) unless $hold;
   my($minim, $maxim)=minmax($image);
 
   # First save the present status
@@ -1039,10 +1087,13 @@ Usage: errb ( $y, $yerrors [, $options] )
 EOD
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
   my @t=@$in;
@@ -1055,7 +1106,7 @@ EOD
   my $x = $#t==1 ? float(sequence($n)) : $t[0];
   my $y = $#t==1 ? $t[0] : $t[1];
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
   save_status();
   # Let us parse the options if any.
   my $term=$ERRTERM;
@@ -1112,10 +1163,13 @@ sub line {
   my $n = nelem($x);
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
   if ($#$in==1) {
@@ -1126,7 +1180,7 @@ sub line {
 
 
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
   save_status();
   standard_options_parser($opt);
   pgline($n, $x->get_dataref, $y->get_dataref);
@@ -1143,10 +1197,13 @@ sub points {
   my $n=nelem($x);
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
   if ($#$in>=1) {
@@ -1160,7 +1217,7 @@ sub points {
   #
   my $plot_line=0;
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
   save_status();
 
 
@@ -1210,15 +1267,18 @@ sub imag {
   my($nx,$ny) = $image->dims;
 
   my $justify = 0;
+  my $axis = 0;
   my $itf = 0;
 
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^TRAN/i) {$tr=$val;}
-    elsif ($key =~ m/^MIN/i) { $min=$val;}
-    elsif ($key =~ m/^MAX/i) {$max=$val;}
-    elsif ($key =~ m/^JUST/i) { $justify = $val; }
-    elsif ($key =~ m/ITF/i ) {
+      $key = uc($key);
+    if ($key =~ m/^TRAN/) {$tr=$val;}
+    elsif ($key =~ m/^MIN/) { $min=$val;}
+    elsif ($key =~ m/^MAX/) {$max=$val;}
+    elsif ($key =~ m/^JUST/) { $justify = $val; }
+    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
+    elsif ($key =~ m/ITF/ ) {
       defined( $itf = $ITF{uc $val} )
       or barf ( "illegal ITF value `$val'. use one of: " .
                 join(',', keys %ITF) );
@@ -1241,7 +1301,7 @@ sub imag {
     at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
     at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
     at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-    $justify
+    $justify, $axis
   ) unless $hold;
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
@@ -1360,19 +1420,22 @@ sub hi2d {
   }
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^IOF/i) {$ioff=$val;}
-    elsif ($key =~ m/^BIAS/i) {$bias=$val;}
-    elsif ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+    if ($key =~ m/^IOF/) {$ioff=$val;}
+    elsif ($key =~ m/^BIAS/) {$bias=$val;}
+    elsif ($key =~ m/^JUST/) { $justify = $val; }
+    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
   $ioff = 1 unless defined $ioff;
   $bias = 5*max($image)/$ny unless defined $bias;
   $work = float(zeroes($nx));
 
-  initenv( 0 ,2*($nx-1), 0, 10*max($image), $justify  ) unless $hold;
+  initenv( 0 ,2*($nx-1), 0, 10*max($image), $justify, $axis  ) unless $hold;
   pghi2d($image->get_dataref, $nx, $ny, 1,$nx,1,$ny, $x->get_dataref, $ioff,
 	 $bias, 1, $work->get_dataref);
   1;}
@@ -1389,12 +1452,18 @@ sub poly {
 
   # Parse for options
   my $justify = 0;
+  my $axis = 0;
+
+  # Parse for options
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+      if    ($key =~ m/^JUST/) { $justify = $val; }
+      elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
+
   my $n = nelem($x);
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax, $justify) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify, $axis ) unless $hold;
   save_status();
   standard_options_parser($opt);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
@@ -1414,14 +1483,17 @@ sub vect {
   barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
 
   my $justify = 0;
+  my $axis = 0;
 
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
-    if ($key =~ m/^SCAL/i) {$scale=$val;}
-    elsif ($key =~ m/^POS/i) {$pos=$val;}
-    elsif ($key =~ m/^TR/i) {$tr=$val;}
-    elsif ($key =~ m/^MIS/i) {$misval=$val;}
-    elsif ($key =~ m/^JUST/i) { $justify = $val; }
+      $key = uc($key);
+    if ($key =~ m/^SCAL/) {$scale=$val;}
+    elsif ($key =~ m/^POS/) {$pos=$val;}
+    elsif ($key =~ m/^TR/) {$tr=$val;}
+    elsif ($key =~ m/^MIS/) {$misval=$val;}
+    elsif ($key =~ m/^JUST/) { $justify = $val; }
+    elsif ($key =~ m/^AXIS/) { $axis = _match_axis($val); }
   }
 
 
@@ -1436,7 +1508,7 @@ sub vect {
   }
   $tr = CtoF77coords($tr);
 
-  initenv( 0, $nx-1, 0, $ny-1, $justify  ) unless $hold;
+  initenv( 0, $nx-1, 0, $ny-1, $justify, $axis  ) unless $hold;
   print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
   save_status();

@@ -1,6 +1,6 @@
 use ExtUtils::MakeMaker;
 
-@subdirs = ("PGPLOT", "IIS", "Karma");
+@subdirs = ("PGPLOT", "LUT", "IIS", "Karma");
 
 if($PDL_CONFIG{WITH_3D}) {
 	print "\t Building TriD extension. Turn off WITH_3D if there are problems\n";

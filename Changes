@@ -1,3 +1,9 @@
+Doug Burke
+        - added AXIS option to PDL::Graphics::PGPLOT + doc changes
+        - added PDL::LUT module to provide colour tables - useful for
+          PGPLOT's ctab() function (note: plan, in near future, to
+          change to a binary format to reduce size of this module)
+
 CS
 	- Levenberg-Marquardt fitting module
 	- added required additional slatec functions + some docs

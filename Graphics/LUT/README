@@ -1,0 +1,10 @@
+
+LUT.pm.PL contains the code, change this rather than LUT.pm or else your
+changes will be over-written! 
+
+The files in tables/*.lasc are used to create the colour tables.
+
+The colour tables were taken from STARLINK's GAIA distribution, where they
+have the GNU copyleft. Further information on STARLINK and GAIA can be found
+via http://star-www.rl.ac.uk/ and http://star-www.dur.ac.uk/~pdraper/.
+ 
