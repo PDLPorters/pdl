@@ -48,6 +48,9 @@ char *str_value(int x, int y,
   case PDL_D:
     sprintf(str,format[type],*(((double *)data)+y*nx+x));
     break;
+  default:
+    croak("type (val=%d) not implemented",type);
+    break;
   }
   return str;
 }
@@ -73,6 +76,9 @@ void set_value(int x, int y,
     break;
   case PDL_D:
     *(((PDL_Double *)data)+y*nx+x) = atof(str);
+    break;
+  default:
+    croak("type (val=%d) not implemented",type);
     break;
   }
   return;

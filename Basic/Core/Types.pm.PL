@@ -132,7 +132,7 @@ package PDL::Types;
 require Exporter;
 use Carp;
 
-@EXPORT = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_F $PDL_D @pack %typehash );
+@EXPORT = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_LL $PDL_F $PDL_D @pack %typehash );
 @EXPORT_OK = (@EXPORT, qw/ppdefs typesrtkeys mapfld typefld/);
 %EXPORT_TAGS = (
 	All=>[@EXPORT,qw/ppdefs typesrtkeys mapfld typefld/],
@@ -143,11 +143,11 @@ use Carp;
 # Data types/sizes (bytes) [must be in order of complexity]
 
 # Enum
-( $PDL_B, $PDL_S, $PDL_US, $PDL_L, $PDL_F, $PDL_D ) = (0..5);
+( $PDL_B, $PDL_S, $PDL_US, $PDL_L, $PDL_LL, $PDL_F, $PDL_D ) = (0..6);
 
 # Corresponding pack types
-@PDL::Types::pack=("C*", "s*", "S*", "l*", "f*", "d*");
-@PDL::Types::names= qw/PDL_B PDL_S PDL_US PDL_L PDL_F PDL_D/;
+@PDL::Types::pack=("C*", "s*", "S*", "l*", "q*", "f*", "d*");
+@PDL::Types::names= qw/PDL_B PDL_S PDL_US PDL_L PDL_LL PDL_F PDL_D/;
 
 # should be usable in a couple of places, e.g. Dev.pm (how to locate
 # during compilation?) and PDL::PP::PDLCode, also used in PDL::Dbg
@@ -173,6 +173,7 @@ print OUT
  ["\$PDL_S",  "'PDL_S'",  "'PDL_Short'",  "'S'", "'short'",          0, "'short'"],
  ["\$PDL_US", "'PDL_US'", "'PDL_Ushort'", "'U'", "'unsigned short'", 0, "'ushort'"],
  ["\$PDL_L",  "'PDL_L'",  "'PDL_Long'",   "'L'", "'".$itype."'",     0, "'int'"],
+ ["\$PDL_LL", "'PDL_LL'", "'PDL_LongLong'", "'Q'", "'long long'",    0, "'longlong'"],
  ["\$PDL_F",  "'PDL_F'",  "'PDL_Float'",  "'F'", "'float'",          1, "'float'"],
  ["\$PDL_D",  "'PDL_D'",  "'PDL_Double'", "'D'", "'double'",         1, "'double'"],
  ); 

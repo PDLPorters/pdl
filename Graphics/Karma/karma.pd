@@ -329,6 +329,7 @@ kconnect(app)
 pp_def('ksend2D',
 	Pars => 'im(m,n); byte lut(o,p)', Doc=>undef,
 	OtherPars => 'int haslut; char* karma_app; SV *bb',
+        GenericTypes => ['B','S','U','L','F','D'], # no longlong karma type ??
 	Code => 'array_desc    *arrayd;
 	         array_pointer arrayp;
 		 multi_array   *arraym;
@@ -424,6 +425,7 @@ pp_def('ksend2D',
 pp_def('ksend3D',
 	Pars => 'im(m,n,z); byte lut(o,p)', Doc=>undef,
 	OtherPars => 'int haslut; char* karma_app; SV* bb',
+        GenericTypes => ['B','S','U','L','F','D'], # no longlong karma type ??
 	Code => 'array_desc    *arrayd;
 	         array_pointer arrayp;
 		 multi_array   *arraym;
