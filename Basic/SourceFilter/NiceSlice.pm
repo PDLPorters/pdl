@@ -296,13 +296,25 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   use PDL::NiceSlice;
 
   $a(1:4) .= 2;             # concise syntax for ranges
-  print $b((0),1:$end);
-  $a->xchg(0,1)->(($pos-1)) .= 0;
-  
+  print $b((0),1:$end);     # use variables in the slice expression
+  $a->xchg(0,1)->(($pos-1)) .= 0; # default method syntax
+
   $idx = long 1, 7, 3, 0;   # a piddle of indices
   $a(-3:2:2,$idx) += 3;     # mix explicit indexing and ranges
+  $a->clump(1,2)->(0:30);   # 'default method' syntax
+  $a(myfunc(0,$var),1:4)++; # when using functions in slice expressions
+                            # use parentheses around args!
 
+  # modifiers
   $a($a!=3;?)++;            # short for $a->where($a!=3)++
+  $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
+  $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
+
+  # Use with perldl (or include these lines in .perldlrc)
+  perldl> use PDL::NiceSlice; 
+  # next one is required, see below
+  perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
+  perldl> $a(4:5) .= xvals(2);
 
 =head1 DESCRIPTION
 
@@ -323,6 +335,152 @@ installation should be as easy as this:
 
    $ perl -MCPAN -e shell
    cpan> install PDL::NiceSlice
+
+=head1 Use in scripts and C<perldl> shell
+
+The new slicing syntax can be switched on and off in scripts
+and perl modules by using or unloading C<PDL::NiceSlice>.
+
+Note: this will I<not> work in the L<perldl|perldl> shell
+(see below how to enable the new slicing syntax within L<perldl|perldl>).
+
+But now back to scripts and modules.
+Everything after C<use PDL::NiceSlice> will be translated
+and you can use the snew slicing syntax. Source filtering
+will continue until the end of the file is encountered.
+You can stop sourcefiltering before the end of the file
+by issuing a C<no PDL::NiceSlice> statement.
+
+Here is an example:
+
+  use PDL::NiceSlice;
+
+  # this code will be translated
+  # and you can use the new slicing syntax
+
+  no PDL::NiceSlice;
+
+  # this code won't
+  # and the new slicing syntax will raise errors!
+
+See also L<Filter::Simple> and F<example> in this distribution for
+further examples.
+
+NOTE: Unlike "normal" modules you need to include a
+C<use PDL::NiceSlice> call in each and every file that
+contains code that uses the new slicing syntax. Imagine
+the following situation: a file F<test0.pl>
+
+   # start test0.pl
+   use PDL;
+   use PDL::NiceSlice;
+
+   $a = sequence 10;
+   print $a(0:4),"\n";
+
+   require 'test1.pl';
+   # end test0.pl
+
+that C<require>s a second file F<test1.pl>
+
+   # begin test1.pl
+   $aa = sequence 11;
+   print $aa(0:7),"\n";
+   1;
+   # end test1.pl
+
+Following conventional perl wisdom everything should be alright
+since we C<use>d C<PDL> and C<PDL::NiceSlice> already from within
+F<test0.pl> and by the time F<test1.pl> is C<require>d things should
+be defined and imported, etc. A quick test run will, however, produce
+something like the following:
+
+  perl test0.pl
+ [0 1 2 3 4]
+ syntax error at test1.pl line 3, near "0:"
+ Compilation failed in require at test0.pl line 7.
+
+This can be fixed by adding the line
+
+  use PDL::NiceSlice;
+
+C<before> the code in F<test1.pl> that uses the
+new slicing syntax (to play safe just include the line
+near the top of the file), e.g.
+
+   # begin corrected test1.pl
+   use PDL::NiceSlice;
+   $aa = sequence 11;
+   print $aa(0:7),"\n";
+   1;
+   # end test1.pl
+
+Now things proceed more smoothly
+
+  perl test0.pl
+ [0 1 2 3 4]
+ [0 1 2 3 4 5 6 7]
+
+Note that we don't need to issue C<use PDL> again.
+C<PDL::NiceSlice> is a somewhat I<funny> module in
+that respect. It is a consequence of the way source
+filtering works in Perl (see also the IMPLEMENTATION
+section below).
+
+=head2 Usage with perldl
+
+To use the filter in the C<perldl> shell you need to
+add the following two lines to your F<.perldlrc> file:
+
+   use PDL::NiceSlice;
+   $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
+
+A more complete tool box of commands for experimentation is
+in the file F<local.perldlrc> in the C<PDL::NiceSlice> source
+directory. Just include the code in that file in your usual
+F<~/.perldlrc> and you can switch source filtering with
+PDL::NiceSlice on and off by typing C<trans> and C<notrans>,
+respectively. To see what and how your commands are translated
+switch reporting on:
+
+  perldl> report 1;
+
+Similarly, switch reporting off as needed
+
+  perldl> report 0;
+
+Note that these commands will only work if you included
+the contents of F<local.perldlrc> in your perldl startup file.
+
+=head2 evals and C<PDL::NiceSlice>
+
+Due to C<PDL::NiceSlice> being a source filter it won't work
+in the usual way within evals. The following will I<not> do what
+you want:
+
+  $a = sequence 10;
+  eval << 'EOE';
+
+  use PDL::NiceSlice;
+  $b = $a(0:5);
+
+  EOE
+  print $b;
+
+Instead say:
+
+  use PDL::NiceSlice;
+  $a = sequence 10;
+  eval << 'EOE';
+
+  $b = $a(0:5);
+
+  EOE
+  print $b;
+
+Source filters I<must> be executed at compile time to be effective. And
+C<PDL::NiceFilter> is just a source filter (although it is not
+necessarily obvious for the casual user).
 
 =head1 The new slicing syntax
 
@@ -424,7 +582,7 @@ The argument list is a comma separated list. Each argument specifies
 how the corresponding dimension in the piddle is sliced. In contrast
 to usage of the L<slice|PDL::Slices/slice> method the arguments should
 I<not> be quoted. Rather freely mix literals (1,3,etc), perl
-variabales and function invocations, e.g.
+variables and function invocations, e.g.
 
   $a($pos-1:$end,myfunc(1,3)) .= 5;
 
@@ -505,8 +663,9 @@ which is quite different from the same slice expression without the modifier
 C<|>: L<sever|PDL::Core/sever> the link to the piddle, e.g.
 
    $a = sequence 10;
-   $b = $a(0:2;|);  # same as $a(0:2)->sever
-   $b++;
+   $b = $a(0:2;|)++;  # same as $a(0:2)->sever++
+   print $b;
+ [1 2 3]
    print $a; # check if $a has been modified
  [0 1 2 3 4 5 6 7 8 9]
 
@@ -536,7 +695,7 @@ That's about all there is to know about this one.
 
 =back
 
-Modifiers are a pretty new feature of C<PDL::NiceSlice>. So
+Modifiers are a new and experimental feature of C<PDL::NiceSlice>. So
 don't be surprised if things don't work quite as expected.
 Feedback is welcome as usual. The modifier syntax may change
 in the future.
@@ -545,7 +704,7 @@ in the future.
 
 In slice expressions you can use ranges and secondly,
 piddles as 1D index lists (although compare the description
-of the C<?>-modifier for exceptions).
+of the C<?>-modifier above for an exception).
 
 =over 2
 
@@ -655,13 +814,13 @@ mixed in slicing expressions:
   $a = random 5, 5;
   $b = $a(-1:2,pdl(3,0,1));
 
-=head2 piddles as indices
+=head2 piddles as indices in ranges
 
 You can use piddles to specify indices in ranges. No need to
 turn them into proper perl scalars with the new slicing syntax.
 However, make sure they contain not more than one element! Otherwise
-a runtime error will be triggered. First a few examples that illustrate
-proper usage:
+a runtime error will be triggered. First a couple of examples that
+illustrate proper usage:
 
   $a = sequence 5, 5;
   $rg = pdl(1,-1,3);
@@ -688,90 +847,7 @@ C<PDL::NiceSlice> treats any expression with unprotected C<:>'s as a
 range.  I<Unprotected> means as usual 
 I<"not occurring between matched parentheses">.
 
-=head1 Use in scripts and C<perldl> shell
-
-Source filtering can be switched on and off in scripts
-and perl modules by using or unloading C<PDL::NiceSlice>.
-
-Note: this will I<not> work in the L<perldl|perldl> shell
-(see below how to enable the new slicing syntax within L<perldl|perldl>).
-
-But now back to scripts and modules.
-Everything after C<use PDL::NiceSlice> will be translated
-and you can use the snew slicing syntax. Source filtering
-will continue until the end of the file is encountered.
-You can stop sourcefiltering before the end of the file
-by issuing a C<no PDL::NiceSlice> statement.
-
-Here is an example:
-
-  use PDL::NiceSlice;
-
-  # this code will be translated
-  # and you can use the new slicing syntax
-
-  no PDL::NiceSlice;
-
-  # this code won't
-  # and the new slicing syntax will raise errors!
-
-See also L<Filter::Simple> and F<example> in this distribution for
-further examples.
-
-To use the filter in the C<perldl> shell you need to
-add the following two lines to your F<.perldlrc> file:
-
-   use PDL::NiceSlice;
-   $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
-
-A more complete tool box of commands for experimentation is
-in the file F<local.perldlrc> in the C<PDL::NiceSlice> source
-directory. Just include the code in that file in your usual
-F<~/.perldlrc> and you can switch source filtering with
-PDL::NiceSlice on and off by typing C<trans> and C<notrans>,
-respectively. To see what and how your commands are translated
-switch reporting on:
-
-  perldl> report 1;
-
-Similarly, switch reporting off as needed
-
-  perldl> report 0;
-
-Note that these commands will only work if you included
-the contents of F<local.perldlrc> in your perldl startup file.
-
-=head2 evals and C<PDL::NiceSlice>
-
-Due to C<PDL::NiceSlice> being a source filter it won't work
-in the usual way within evals. The following will I<not> do what
-you want:
-
-  $a = sequence 10;
-  eval << 'EOE';
-
-  use PDL::NiceSlice;
-  $b = $a(0:5);
-
-  EOE
-  print $b;
-
-Instead say:
-
-  use PDL::NiceSlice;
-  $a = sequence 10;
-  eval << 'EOE';
-
-  $b = $a(0:5);
-
-  EOE
-  print $b;
-
-Source filters I<must> be executed at compile time to be effective. And
-C<PDL::NiceFilter> is just a source filter (although it is not
-necessarily obvious for the casual user).
-
-=head1 Implementation
+=head1 IMPLEMENTATION
 
 C<PDL::NiceSlice> exploits the ability of Perl to use source filtering
 (see also L<perlfilter>). A source filter basically filters (or

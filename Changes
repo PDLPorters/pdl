@@ -1,3 +1,6 @@
+CS  - niceslice docs, class methods for PDL::Options,
+      perldl: enable niceslicing at startup (if available)
+      Lvalue: add sever method
 CS  - Inline::Pdlpp docs addittions, test script added
 CS  - NiceSlice modifiers + bug fix
 CS  - Inline::Pdlpp !!!

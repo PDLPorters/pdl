@@ -61,6 +61,11 @@ Exporter::export_tags('Func');
 	     COLOUR => 'COLOR'
 	    );
 
+my $default = {
+	       WarnOnMissing => 1,
+	       FullOptions => 1,
+	       DEBUG => 0,
+	      };
 
 =head1 Utility functions
 
@@ -167,9 +172,11 @@ sub new {
   $opt->{AutoTranslate}= 1;# Automatically translate options when processing
   $opt->{MinMatchTrans} = 0; # Min matching during translation
   $opt->{CaseSensTrans} = 0; # Case sensitive during translation
-  $opt->{FullOptions} = 1; # Return full options list
-  $opt->{WarnOnMissing}=1; # Whether to warn for options that are invalid or not.
-  $opt->{DEBUG}    = 0;    # Turn on debug messages
+  # Return full options list
+  $opt->{FullOptions} = $default->{FullOptions};
+  # Whether to warn for options that are invalid or not
+  $opt->{WarnOnMissing}= $default->{WarnOnMissing};
+  $opt->{DEBUG}    = $default->{DEBUG};    # Turn on debug messages
 
   # Bless into class
   bless ( $opt, $class);
@@ -179,7 +186,6 @@ sub new {
 
   return $opt;
 }
-
 
 =item extend (\%options)
 
@@ -606,8 +612,13 @@ the line.
 
 sub warnonmissing {
   my $self = shift;
-  if (@_) { $self->{WarnOnMissing}=shift;}
-  return $self->{WarnOnMissing};
+  if (ref $self) {
+    if (@_) { $self->{WarnOnMissing}=shift;}
+    return $self->{WarnOnMissing};
+  } else {
+    $default->{WarnOnMissing} = shift if @_;
+    return $default->{WarnOnMissing};
+  }
 }
 
 
@@ -620,8 +631,13 @@ Can be used to set or return this value.
 
 sub debug {
   my $self = shift;
-  if (@_) { $self->{DEBUG} = shift; }
-  return $self->{DEBUG};
+  if (ref $self) {
+    if (@_) { $self->{DEBUG} = shift; }
+    return $self->{DEBUG};
+  } else {
+    $default->{DEBUG} = shift if @_;
+    return $default->{DEBUG};
+  }
 }
 
 

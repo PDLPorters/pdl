@@ -133,9 +133,29 @@ while(defined($_ = shift @ARGV)) {
 eval "use Term::ReadLine";
 my $readlines = ($@ eq "");
 
-print "ReadLines enabled" if $readlines;
+my @enabled = ();
+push @enabled, "ReadLines" if $readlines;
 
-print "\n";
+eval 'use PDL::NiceSlice';
+unless ($@) {
+  $PERLDL::report = 0;
+  sub report {
+    my $ret = $PERLDL::report;
+    $PERLDL::report = $_[0] if $#_ > -1;
+    return $ret;
+  }
+  my $preproc = sub { my ($txt) = @_;
+	  my $new = PDL::NiceSlice::perldlpp($txt);
+	  print STDERR "processed $new\n" if report && $new ne $txt;
+	  return $new;
+  };
+  sub trans { $PERLDL::PREPROCESS  = $preproc }
+  sub notrans { $PERLDL::PREPROCESS  = undef }
+  trans; # switch on by default
+  push @enabled, "NiceSlice";
+}
+
+print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 my($term);
 if ( $readlines ){
@@ -212,6 +232,7 @@ sub startup_def {
   return "PDL/default.pdl" if $^O =~ /win32/i;
   return "PDL/default.perldlrc";
 }
+
 
 # Global and local startup
 
