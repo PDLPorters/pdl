@@ -2,6 +2,7 @@ CED (24-Feb-2003)
     - slices.pd:
         - range(), indexND, & interpND now accept multiple boundary conditions
 	- fixed up indexNDb and indexND documentation
+	- portability fix to whichdatatype_double mod
 CED (21-Feb-2003)
     - Modified whichdatatype and whichdatatype_double to represent nan with
 	a double, rather than barfing.

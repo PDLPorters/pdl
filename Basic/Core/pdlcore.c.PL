@@ -40,12 +40,34 @@ print OUT <<"!WITH!SUBS!";
 /*           - bad value support = $bvalflag */
 
 !WITH!SUBS!
- 
-print OUT <<'!NO!SUBS!';
+  ;
 
+
+print OUT <<'!HEADER!'
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
+!HEADER!
+  ;
+
+if($^O =~ /MSWin/) {
+  # _finite in CV++ 4.0 
+  print <<'FOO'
+#define finite _finite
+#include <float.h>
+FOO
+;
+}
+
+print OUT <<'!NO!SUBS!'
+
+#ifndef finite
+#ifdef isfinite
+#define finite isfinite
+#else
+#define finite(a) (((a) == 0) || ((a) * 0) != (a))
+#endif
+#endif
 
 static SV *getref_pdl(pdl *it) {
 	SV *newref;
@@ -76,7 +98,7 @@ int pdl_howbig (int datatype) {
     switch (datatype) {
 
 !NO!SUBS!
-
+  ;
 # generate the cases for the various types
 
 for my $type (typesrtkeys()) {
@@ -111,7 +133,7 @@ for my $type (typesrtkeys()) {
 
 print OUT <<'!NO!SUBS!';
 
-        if( !isfinite(nv) ) { return PDL_D; }
+        if( !finite(nv) ) { return PDL_D; }
 
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
 		nv);
@@ -123,7 +145,7 @@ int pdl_whichdatatype_double (double nv) {
 	TESTTYPE(PDL_F,PDL_Float)
 	TESTTYPE(PDL_D,PDL_Double)
 
-        if( !isfinite(nv) ) { return PDL_D; }
+        if( !finite(nv) ) { return PDL_D; }
 
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
 		nv);
