@@ -81,7 +81,7 @@ ok( $obj->status == 1 );
 
 $yi = $obj->interpolate( $xi );
 ok( $obj->status == 1 );
-ok( dims($yi) == 2 & $yi->getdim(0) == $xi->getdim(0) & $yi->getdim(1) == 2 );
+ok( ( (dims($yi) == 2) & ($yi->getdim(0) == $xi->getdim(0))) & ($yi->getdim(1) == 2) );
 
 $ans = cat( $xi*$xi+43.3, $xi*$xi*$xi-23 );
 $d   = abs( $ans - $yi );

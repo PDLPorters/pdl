@@ -193,7 +193,7 @@ sub PDL::rfits {
 
   my $class = shift;
   
-  barf 'Usage: $a = rfits($file)  -or-   $a = PDL->rfits($file)' if (@_ < 1 || $_ > 2);
+  barf 'Usage: $a = rfits($file)  -or-   $a = PDL->rfits($file)' if (@_ < 1 || @_ > 2);
   
   my $file = shift; 
   
