@@ -1007,7 +1007,9 @@ The following standard options influence this command:
 
  AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
-The ColorValues option allows one to plot XYZ data with the
+C<SymbolSize> allows to adjust the symbol size, it defaults to CharSize.
+
+The C<ColorValues> option allows one to plot XYZ data with the
 Z axis mapped to a color value.  For example:
 
  use PDL::Graphics::LUT;
@@ -1018,7 +1020,7 @@ Z axis mapped to a color value.  For example:
 
  $y = sequence(10)**2+random(10);
  # Plot blue stars with a solid line through:
- points $y, {PLOTLINE => 1, COLOUR => BLUE, SYMBOL => STAR};
+ points $y, {PLOTLINE => 1, COLOUR => BLUE, symbol => STAR}; # case insensitive
 
 =head2 errb
 
@@ -3581,6 +3583,9 @@ EOD
       pgerrb(4,$n,$x->get_dataref,$y->get_dataref,$t[4]->get_dataref,$term);
     }
     if ($plot_points) {
+       if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
+           pgsch($opt->{SymbolSize});
+       }
       $symbol=long($symbol);
       my $ns=nelem($symbol);
       pgpnts($n, $x->get_dataref, $y->get_dataref, $symbol->get_dataref, $ns)
@@ -3846,7 +3851,7 @@ sub arrow {
     my $n=nelem($x);
 
     my ($is_1D, $is_2D);
-    if ($#$in==1) {
+    if ($#$in>=1) {
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
@@ -3883,8 +3888,12 @@ sub arrow {
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    if (exists($opt->{SymbolSize})) { # Set symbol size (2001.10.22 kwi)
+       pgsch($opt->{SymbolSize});
+    }
+
     if (exists($opt->{ColorValues})) {
-      my $sym = $o->{Symbol} || 0;
+      my $sym ||= $o->{Symbol} || 0;
       my $z   = $opt->{ColorValues};
       $self->_checkarg($z,1);    # make sure this is a float PDL
       pgcolorpnts($n, $x->get_dataref, $y->get_dataref, $z->get_dataref, $sym);
