@@ -5,10 +5,14 @@ use PDL::LiteF;
 
 BEGIN {
     $loaded = 0; $slatec = 0;
-    eval "use PDL::Func;";
-    $loaded = ($@ ? 0 : 1);
+    # Must load slatec before Func since Func loads slatec itself
+    # and this line will be a no-op (and so we will not be able to
+    # spot that Slatec has failed)
     eval "use PDL::Slatec";
     $slatec = ($@ ? 0 : 1);
+
+    eval "use PDL::Func;";
+    $loaded = ($@ ? 0 : 1);
 
     plan tests => $slatec ? 16 : 5;
 }

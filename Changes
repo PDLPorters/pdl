@@ -1,3 +1,6 @@
+TJ  - func.t was failing if Slatec was not available. This was because
+      PDL::Func was loaded before PDL::Slatec in t/func.t. Now fixed
+      (and include an additional croak in PDL::Func).
 TJ  - Compatibility fixes for perl 5.005_03
         + updated ppport.h from perl 5.8.0
         + lvalue problems with slices.pd and primitive.pd
