@@ -733,7 +733,7 @@ sub t_rot_sphere {
 			[ 0,    cos($r),   -sin($r)   ], 
 			[ 0,    sin($r),    cos($r)   ])
 		   );
-    print "ok\n";
+
     return t_wrap( t_linear(m=>$rotmat, d=>3), t_unit_sphere());
 }
 
@@ -1423,8 +1423,6 @@ sub t_lambert {
 
     $p->{rho0} = $p->{F};
 
-    print "std=$p->{std}\nn=$p->{n}\nF=$p->{F}\nrho0=$p->{rho0}\n";
-
     $me->{func} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
@@ -1691,7 +1689,6 @@ sub t_vertical {
 				'd','dist','distance','Distance'],
 			       2.0
 			       );
-    print "radius = $me->{params}->{r0}\n";
     
     if($me->{params}->{r0} == 0) {
 	print "t_vertical: r0 = 0; using t_gnomonic instead\n"
@@ -1727,7 +1724,7 @@ sub t_vertical {
 		if($o->{m} == 1);
 	    $idx = which($cos_c > 1.0/$o->{r0})
 		if($o->{m} == 2);
-	    print "bad value is $o->{bad}\n";
+
 	    $out->(0:1,$idx) .= $o->{bad}
 	      if(defined $idx && ref $idx eq 'PDL' && $idx->nelem);
 	}

@@ -195,7 +195,7 @@ pp_addpm(<<'EOD');
 
 =for usage
 
-  $a1 = inv($a, {$opt});                 #default lu_decomp (not threadable)
+  $a1 = inv($a, {$opt});                
 
 =for ref
 
@@ -312,9 +312,10 @@ re-use it.  This method of determinant finding is more rapid than
 recursive-descent on large matrices, and if you reuse the LU
 decomposition it's essentially free.
 
-If you wask det to thread then L<lu_decomp|lu_decomp> drops you through
-to L<lu_decomp2|lu_decomp2>, which is numerically unstable (and hence
-not useful for very large matrices) but quite fast.
+If you ask det to thread (by giving it a 3-D or higher dim piddle)
+then L<lu_decomp|lu_decomp> drops you through to
+L<lu_decomp2|lu_decomp2>, which is numerically unstable (and hence not
+useful for very large matrices) but quite fast.
 
 If you want to use threading on a matrix that's less than, say, 10x10,
 and might be near singular, then you might want to use
@@ -740,7 +741,7 @@ sub lu_decomp {
     if($col < $n1) {
       # Find the maximum value in the rest of the row
       my $sl = $out->(($col),$col:$n1);
-      my $wh = $sl->maximum_ind;
+      my $wh = $sl->abs->maximum_ind;
       my $big = $sl->index($wh)->sever;
       
       # Permute if necessary to make the diagonal the maximum
@@ -805,8 +806,11 @@ scalar if you ask for them -- but they are always trivial.
 
 Because C<lu_decomp2> does not pivot, it is numerically unstable --
 that means it is less precise than L<lu_decomp>, particularly for
-large or near-singular matrices.  On the other hand, if you want 
-to invert rapidly a few x 10^5 2x2 or 3x3 matrices, it's just the ticket.
+large or near-singular matrices.  There are also specific types of 
+non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
+which is a 90 degree rotation matrix but which confuses lu_decomp2).
+On the other hand, if you want to invert rapidly a few hundred thousand
+small matrices and don't mind missing one or two, it's just the ticket.
 
 The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
