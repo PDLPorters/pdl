@@ -529,7 +529,7 @@ I<"not occurring between matched parentheses">.
 =head1 Use in scripts and C<perldl> shell
 
 Source filtering can be switched on and off in scripts
-and perl modules by using or unloading C<PDL::Filter>.
+and perl modules by using or unloading C<PDL::NiceSlice>.
 Everything after C<use PDL::NiceSlice> will be translated
 and you can use the snew slicing syntax. Source filtering
 will continue until the end of the file is encountered.
