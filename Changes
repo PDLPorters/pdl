@@ -1,3 +1,7 @@
+2.3.3
+JC (22 May 02)
+    - Changes to Release_Notes, PDL.pm associated
+      with making release 2.3.3
 CS  - bump up NiceSlice version
     - gsl_random rng destructor!
     - improve PDL::Exporter doc (I never remember the darn syntax)
