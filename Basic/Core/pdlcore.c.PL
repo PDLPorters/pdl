@@ -48,6 +48,8 @@ print OUT <<'!HEADER!'
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
+#define sv_undef(sv) (!(sv) || ((sv)==&PL_sv_undef) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)))
+
 !HEADER!
   ;
 
@@ -206,8 +208,8 @@ void pdl_makescratchhash(pdl *ret,double data, int datatype) {
 
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
-   the data block isn't actually copied)  - scalars are automatically
-   converted
+   the data block is not actually copied)  - scalars are automatically
+   converted.
 */
 
 pdl* SvPDLV ( SV* sv ) {
@@ -227,8 +229,15 @@ pdl* SvPDLV ( SV* sv ) {
 
 /* Scratch hash for the pdl :( - slow but safest. */
 
-       /* Figure datatype to use */
+	/* handle undefined values */		       
+        if( sv_undef(sv) ) {
+            sv = get_sv("PDL::undefval",1);
+	    if(SvIV(get_sv("PDL::debug",1))){
+		fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
+		}
+	}
 
+       /* Figure datatype to use */
        if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
           data = SvNV(sv);
 
@@ -242,7 +251,7 @@ if ( $bvalflag and $usenan ) {
    print OUT <<'!NO!SUBS!';
 
           /*
-           * default NaN/Inf's to double
+           * default NaN/Infs to double
            * XXX sensible ?
            */
           if ( finite(data) == 0 ) {
@@ -502,7 +511,7 @@ void* pdl_malloc ( int nbytes ) {
 /*********** Stuff for barfing *************/
 
 /* Version of perl's mess_alloc - we need this copy
-here because it is defined static in util.c! */
+here because it's defined static in util.c! */
 
 static SV *
 pdl_mess_alloc()
@@ -765,7 +774,7 @@ static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
 
 /* 
  * pdl_kludge_copy  - copy a PDL into a part of a being-formed PDL.
- * It's only used by pdl_setav, to handle the case where a PDL is part
+ * It is only used by pdl_setav, to handle the case where a PDL is part
  * of the argument list. Ideally this would use the existing threadloop 
  * code but that seems too hard.  
  *
@@ -850,9 +859,16 @@ print OUT <<"!WITH!SUBS!";
  *    In the Best of All Possible Worlds this would be badval compliant and 
  *    the extra elements would get filled in with BAD.  Soon, soon.
  * --CED, 17-Jun-2004
+ *
+ * - Check for undef values and set the PDL element to PDL::undefval for those
+ *   elements.
+ * - Keep track of how many undef values were encountered, for debugging
+ *   (I am wary of action-at-a-distance)
+ *
+ *  -CED, 28-Jul-2004
  */
  
-void pdl_setav_$type(PDL_$type* pdata, AV* av,
+long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	PDL_Long* pdims, PDL_Long ndims, int level)
 {
   int cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
@@ -861,6 +877,17 @@ void pdl_setav_$type(PDL_$type* pdata, AV* av,
   int i,stride=1;
 
   SV* el;
+  double undefval; 
+  char debug_flag;
+  long undef_count = 0;
+
+  {
+     SV *sv = get_sv("PDL::undefval",0);
+     undefval = (sv_undef(sv)) ? 0 : (char)SvNV(sv);
+
+     sv = get_sv("PDL::debug",0);
+     debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+ }
 
   for (i=0;i<ndims-1-level;i++)
     stride *= pdims[i];
@@ -869,7 +896,7 @@ void pdl_setav_$type(PDL_$type* pdata, AV* av,
 
     el = *(av_fetch(av,i,0));
     if (SVavref(el))
-       pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
+       undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
     else if( SvROK(el) ) {
       pdl *pdl;
       if( pdl = SvPDLV(el) ) {
@@ -891,17 +918,20 @@ void pdl_setav_$type(PDL_$type* pdata, AV* av,
 	croak("Non-array, non-PDL element in list");
       }
     } else { /* SvROK(el)==0; scalar element */
-
        if(level < ndims-1) 
 	 pdl_setzero_$type(pdata,pdims,ndims,level+1);
 
-       *pdata = (PDL_$type) SvNV(el);
-
+         if( sv_undef(el) ) {
+	     *pdata = (PDL_$type) undefval; /* undef case */
+	     undef_count++;
+	 } else {
+	    *pdata = (PDL_$type) SvNV(el);
+	}
     }
 
   } /* end of i loop */
   
-  /* in case this dim is incomplete set remaining elements to zero */
+  /* in case this dim is incomplete set remaining elements to undefval */
   
   for (i=len+1, pdata;i<cursz;i++,pdata += stride) {
     if (level < ndims-1) /* ndims-1 is datalevel */
@@ -912,6 +942,12 @@ void pdl_setav_$type(PDL_$type* pdata, AV* av,
 	*pdata = 0;
     }
   }
+  
+  if(level==0 && debug_flag && undefval && undef_count) {
+      fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %d time%s\\n",undefval,undef_count,undef_count==1?"":"s");
+  }
+
+  return undef_count;
 }
 
 

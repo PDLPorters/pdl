@@ -699,10 +699,19 @@ sub PDL::new {
    return $this->copy if ref($this);
    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
-   $value = 0 unless defined $value;
+
+   unless(defined $value) {
+       if($PDL::debug && $PDL::undefval) {
+	   print STDERR "Warning: PDL::new converted undef to $PDL::undefval ($PDL::undefval)\n";
+       }
+       $value = $PDL::undefval+0
+   }
+
    return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
    $new->set_datatype($type);
+
+
    if (ref(\$value) eq "SCALAR") {
        $new->setdims([]);
        ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );

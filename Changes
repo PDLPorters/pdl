@@ -1,3 +1,9 @@
+CED 28-Jul-04
+   - updated constructor and conversion routines to handle 
+     $PDL::undefval properly.  Since I don't like
+     action-at-a-distance, I also added tripwires to this activity
+     if $PDL::debug is set -- hopefully that mitigates the horror 
+     somewhat.
 CED 21-Jul-04
    - changes to perldl.PL to allow script handling.
    - introducing "pdl", a byte-compiled trampoline that spawns off a perldl.
