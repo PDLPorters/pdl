@@ -1,3 +1,5 @@
+DJB (04 Jun 02)
+    - minor fixes to the build highlighted by warnings from perl 5.8.0
 TJ (31 May 02)
     - Use INT2PTR/PTR2IV to fix compiler warnings
       when the IV size does not match the pointer size

@@ -313,7 +313,9 @@ sub defslatec {
 	  die "Invalid ppars ",(join ',',@$_),"\n";
       }
     } @args2;
-    print "Pars: ",(join ';',@ppars),"\n";
+
+    # uncomment the following line to see what perl thinks the input pars are
+    ##print "Pars: ",(join ';',@ppars),"\n";
 	
     my @talts = map { 
           defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";

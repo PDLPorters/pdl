@@ -5,8 +5,13 @@ PDL::Core::Dev->import();
 my @dirs = qw( FastRaw Misc FlexRaw Pnm NDF );
 my $build_browser = $PDL_CONFIG{WITH_IO_BROWSER} || 0;
 if ( $build_browser ) {
-    push @dirs, 'Browser';
-    print "\n   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n\n";
+    # PDL::IO::Browser isn't (yet?) supported for win32 systems
+    if ( $^O =~ /win32/i ) {
+        print "\n   PDL::IO::Browser is not supported on Win32 systems - will not build.\n";
+    } else {
+      push @dirs, 'Browser';
+      print "\n   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n\n";
+    }
 } else {
     print "\n   Not building PDL::IO::Browser. Turn on WITH_IO_BROWSER if this is incorrect.\n\n";
 }
