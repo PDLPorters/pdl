@@ -3631,6 +3631,7 @@ sub _FITS_tr {
     unless (scalar(keys %$hdr) || (!$PDL::debug));
 
   my($ic);
+
   {
     no warnings; # don't complain about missing fields in fits headers
     $ic = [ (   ($hdr->{CDELT1} || 1.0) *	 
@@ -4927,6 +4928,13 @@ sub _fits_foo {
   $opt_in = {} unless defined($opt_in);
   if (!defined($f_im_options)) {
     $f_im_options = $pane->{PlotOptions}->extend({
+                                                  Contours=>undef,
+						  Follow=>0,
+						  Labels=>undef,
+						  LabelColour=>undef,
+						  Missing=>undef,
+						  NContours=>undef,
+						  FillContours=>undef,
 						  Min => undef,
 						  Max => undef,
 						  DrawWedge => 0,
