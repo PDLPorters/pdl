@@ -182,8 +182,16 @@ sub callext_cc {
 	($cc_obj = $src) =~ s/\.c$/$Config{_o}/;
 	my $ld_obj = $output;
 	($ld_obj = $cc_obj) =~ s/\.o$/\.$Config{dlext}/ unless defined $output;
+
+	# Output flags for compiler depend on os.
+	# -o on unix or /Fo" " on WindowsNT
+	# Need a start and end string
+	my $do = ( $^O =~ /MSWin/i ? '/Fo"' : '-o ');
+	my $eo = ( $^O =~ /MSWin/i ? '"' : '' );
+
+	# Compiler command
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
-		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src -o $cc_obj";
+		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src $do$cc_obj$eo";
 
 	# The linker output flag is -o on unix and -out: on Windows
 	my $o = ( $^O =~ /MSWin/i ? '-out:' : '-o ');
