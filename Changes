@@ -1,3 +1,5 @@
+CED 11-Nov-2003
+   - Added FITS BINTABLE reading to PDL::IO::Misc.
 CED 04-Nov-2003
    - Updated Matrix.pm 
    - Removed null tests from trans code in PP.pm - to enable better handling
