@@ -1,3 +1,6 @@
+CED (06-Dec-2002)
+    - Minor fix to range documentation
+    - Shut up warnings in Window.pm sig handler and fix fits_imag (bug #649630)
 CED (05-Dec-2002)
     - Numerous fixes to PDL::Transform
     - Minor tweak to MatrixOps

@@ -1954,6 +1954,7 @@ sub catch_signals {
 
   if($sig_nest == 0) {
     foreach $_(@sigs) {
+      no warnings;  # mask out warning in case $SIG{$_} is undef or "".
       next if ($SIG{$_} == \&signal_catcher);
       $sig_handlers{$_}=$SIG{$_};
       $SIG{$_}=\&signal_catcher;
@@ -1972,6 +1973,7 @@ sub release_signals {
 
   # restore original handlers
   foreach $_(keys %sig_handlers) {
+    no warnings; # allow assignment even if sig_handlers{$_} is undef
     $SIG{$_}=$sig_handlers{$_};
     delete $sig_handlers{$_};
   }
@@ -4949,8 +4951,9 @@ sub fits_imag {
 
   # Clear the plot area, even if graphics are held
   my($wx1,$wx2,$wy1,$wy2);
+  pgqvp(1,$wx1,$wx2,$wy1,$wy2);  
   if($pane->held()) {
-      $pane->rectangle(0.5*($wx1+$wx2),0.5*($wy1,$wy2),$wx2-$wx1,$wy2-$wy1,{Color=>0});
+    $pane->rectangle(0.5*($wx1+$wx2),0.5*($wy1+$wy2),$wx2-$wx1,$wy2-$wy1,{Color=>0});
   }
 
   if($hdr->{CTYPE1} eq $hdr->{CTYPE2}) {

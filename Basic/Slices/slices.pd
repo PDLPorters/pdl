@@ -460,8 +460,9 @@ sub PDL::range {
   my $index = PDL->pdl($ind);
   $index = $index->dummy(0,1) unless $index->ndims;
   my $size = defined($sz) ? PDL->pdl($sz) : undef;
-
-  return $source->rangeb($index,$size,$bound);
+	
+  no warnings; # shut up about passing undef into rangeb
+  $source->rangeb($index,$size,$bound);
 }
 EOD-range
 
@@ -490,13 +491,15 @@ Extract selected chunks from a source piddle, with boundary conditions
 	$out = $source->range($index,[$size,[$boundary]])
 
 Returns elements or rectangular slices of the original piddle, indexed by 
-C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is 
+the C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is 
 a piddle whose first dimension has order up to N.  Each row of C<$index> is 
-treated as coordinates of a single value or slice from C<$source>, specifying 
+treated as coordinates of a single value or chunk from C<$source>, specifying 
 the location(s) to extract.  
 
+B<INPUTS>
+
 C<$index> and C<$size> can be piddles or array refs such as you would
-feed to the piddle constructor.
+feed to L<zeroes|zeroes> and its ilk.
 
 You can extract single elements or N-D rectangular ranges from C<$source>,
 by setting C<$size>.  If C<$size> is undef or zero, then you get a single
@@ -504,10 +507,10 @@ sample for each row of C<$index>.  This behavior is similar to
 L<indexNDb|indexNDb>, which is in fact implemented as a call to L<range|range>.
 
 If C<$size> is positive then you get a range of values from C<$source> at 
-each location, and the output has an extra dimension allocated for it.  
+each location, and the output has extra dimensions allocated for them.
 C<$size> can be a scalar, in which case it applies to all dimensions, or an 
 N-vector, in which case each element is applied independently to the 
-corresponding dimension in C<$source>.
+corresponding dimension in C<$source>.  See below for details.
 
 $boundary is a single number or string, indicating the type of boundary
 conditions to use when ranges reach the edge of $source:
@@ -538,6 +541,8 @@ strict-modulo the corresponding dimensions of $source.  This is equivalent to
 duplicating the $source piddle throughout dimension space.
 
 =back
+
+B<OUTPUT>
 
 The output threads over both C<$index> and C<$source>.  Because implicit 
 threading can happen in a couple of ways, a little thought is needed.  The
