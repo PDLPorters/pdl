@@ -55,6 +55,7 @@ pdlexamples\.c$
 ^Basic/Gen/PP/Dump\.pm\.tmp$
 ^Lib/CallExt/CallExt\.c$
 ^Lib/Opt/Golden
+^Lib/FFTW/typespec
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm
 ^Lib/Slatec/Slatec.xs

@@ -30,7 +30,7 @@ sub import {
 	$::PDLBEGIN="";
 	$::PDLPMROUT="";
  	for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
-	$::PDLPMISA="PDL::Exporter DynaLoader";
+	@::PDLPMISA=('PDL::Exporter', 'DynaLoader');
 	@::PDL_IFBEGINWRAP = ('','');
 	$::PDLVERSIONSET = '';
 	$::PDLMODVERSION = undef;
@@ -82,7 +82,7 @@ sub pp_addbegin {
 	if ($cmd =~ /^\s*BOOT\s*$/) {
 		pp_beginwrap;
 	} else {
-		$::PDLBEGIN .= $cmd." ";
+		$::PDLBEGIN .= $cmd."\n";
 	}
 }
 
@@ -92,8 +92,7 @@ sub pp_export_nothing {
 }
 
 sub pp_add_isa {
-        my ($isa) = @_;
-	$::PDLPMISA .= $isa." ";
+	push @::PDLPMISA,@_;
 }
 
 sub pp_add_boot {
@@ -199,8 +198,10 @@ BOOT:
      croak("$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
 %);
-
-	($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
+	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
+	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
+		unless $::PDLBEGIN =~ /^\s*$/;
+($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
 
 $fh->print(qq%
 #
@@ -218,14 +219,12 @@ use DynaLoader;
 
 $::PDL_IFBEGINWRAP[0]
    $::PDLVERSIONSET
-   \@ISA    = qw( $::PDLPMISA );
+   \@ISA    = ( $::PDLPMISA );
    push \@PDL::Core::PP, __PACKAGE__;
    bootstrap $::PDLMOD $::PDLMODVERSION;
 $::PDL_IFBEGINWRAP[-1]
 
-BEGIN {
 $::PDLBEGIN
-}
 
 $::PDLPM{Top}
 
@@ -270,8 +269,8 @@ sub pp_def {
 	if(defined($$obj{PMFunc})) {
 		pp_addpm($$obj{PMFunc}."\n");
 	}else{
-                pp_addbegin('*'.$name.' = \&'.$::PDLOBJ.
-                         '::'.$name.";\n");
+                pp_addpm($::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
+                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]);
 	}
 }
 

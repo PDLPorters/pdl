@@ -3,8 +3,13 @@ CS
 	- PP: added pp_addbegin, pp_beginwrap and pp_setversion
 		pp_addxs now adds to the current module's namespace by default,
 		!not! to PDL anymore (patch by Marc Lehmann)
+		pp_addisa now really works as advertised (i.e. adds to
+		@ISA and doesn't split on whitespace anymore)
 	- misc.pd: bswap functions work always inplace, remove
 	  [o] from sigs
+	- added PDL::Complex to the dist (first try of a derived class),
+	  does remarkly many things already but needs some testing,
+	  donated by Marc Lehmann
 
 CS
 	- Levenberg-Marquardt fitting module

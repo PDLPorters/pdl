@@ -1,4 +1,6 @@
 Basic/AutoLoader.pm
+Basic/Complex/Makefile.PL
+Basic/Complex/complex.pd
 Basic/Core/Basic.pm
 Basic/Core/Core.pm
 Basic/Core/Core.xs
@@ -405,6 +407,7 @@ t/foo.t
 t/func.pdl
 t/gauss.t
 t/gsl_rng.t
+t/hdrs.t
 t/hist.t
 t/howbig.t
 t/ica.t

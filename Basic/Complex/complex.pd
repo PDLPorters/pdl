@@ -1,0 +1,770 @@
+
+$VERSION = 0.5;
+
+# pp_setversion $VERSION; # it currently segfaults on my machine CS
+pp_beginwrap; # required for overload to work
+
+pp_addpm {At => Top}, <<'EOD';
+=head1 NAME
+
+PDL::Complex - handle complex numbers
+
+=head1 SYNOPSIS
+
+  use PDL;
+  use PDL::Complex;
+
+=head1 DESCRIPTION
+
+This module features a growing number of functions manipulating complex
+numbers. These are usually represented as a pair C<[ real imag ]> or
+C<[ angle phase ]>. If not explicitly mentioned, the functions can work
+inplace and require rectangular form.
+
+=head1 TIPS, TRICKS & BEWARES
+
+=over 4
+
+=item C<Cadd> and C<Csub> are equivalent to C<+> and C<->.
+
+=item C<i> is a constant exported by this module, which represents C<-1**0.5>.
+
+=item Use C<r2C(real-values)> to convert from real to complex, as in C<$r = Cpow $cplx, r2C 2>.
+
+=item Always think twice before using a perl operator when a complex
+function with the same name exists (i.e. C<*> vs. C<Cmul>, or C<sin>
+vs. C<Csin>).
+
+=item BEWARE: This module has not been extensively tested. Watch out and send me bugreports!
+
+=back
+
+=head1 EXAMPLE WALK-THROUGH
+
+The complex constant one is equal to C<pdl(1,0)>:
+
+   perldl> p $x = r2C(1)
+
+   [1 0]
+
+Now calculate the three roots of unity:
+
+   perldl> p $r = $x->Croots(3) 
+
+Check that these really are the roots of unity:
+
+   perldl> p $r->Cpow(r2C(3))
+
+Duh! Could be better. Now try by multiplying C<$r> three times with itself:
+
+   perldl> p Cmul $r, Cmul $r, $r  
+
+Well... maybe C<Cpow> isn't as bad as I thought. Now multiply by C<i> and
+negate, which is just a very expensive way of swapping real and imaginary
+parts.
+
+   perldl> p Cneg Cmul $r, i
+
+You can split away the real part:
+
+   perldl> p Cre $r
+
+=cut
+
+EOD
+
+for (qw(Ctan Catan Cre Cim i cplx real re im)) {
+   pp_add_exported '', $_;
+}
+
+pp_addhdr <<'EOH';
+
+#include <math.h>
+
+#ifndef M_PI
+# define M_PI   3.1415926535897932384626433832795029
+#endif
+#ifndef M_2PI
+# define M_2PI  (2. * M_PI)
+#endif
+
+#if __GLIBC__ > 1 && (defined __USE_MISC || defined __USE_XOPEN || defined __USE_ISOC9X)
+# define CABS(r,i) hypot (r, i)
+#else
+  static double
+  CABS (double r, double i)
+  {
+    double t;
+
+    if (r < 0) r = - r;
+    if (i < 0) i = - i;
+
+    if (i > r)
+      {
+        t = r; r = i; i = t;
+      }
+
+    if (r + i == r)
+      return r;
+
+    t = i / r;
+    return r * sqrt (1 + t*t);
+  }
+#endif
+
+#if __GLIBC__ > 1 && defined __USE_GNU
+# define SINCOS(x,s,c) sincos ((x), &(s), &(c))
+#else
+# define SINCOS(x,s,c)                  \
+        (s) = sin (x);                  \
+        (c) = cos (x);
+#endif
+
+
+#define CSQRT(type,ar,ai,cr,ci) 		\
+        type mag = CABS ((ar), (ai));		\
+        type t;					\
+                                                \
+        if (mag == 0)				\
+          (cr) = (ci) = 0;			\
+        else if ((ar) > 0)			\
+          {					\
+            t = sqrt (0.5 * (mag + (ar)));	\
+            (cr) = t;				\
+            (ci) = 0.5 * (ai) / t;		\
+          }					\
+        else					\
+          {					\
+            t = sqrt (0.5 * (mag - (ar)));	\
+                                                \
+            if ((ai) < 0)			\
+              t = -t;				\
+                                                \
+            (ci) = t;				\
+            (cr) = 0.5 * (ai) / t;		\
+          }
+
+#define CLOG(ar,ai,cr,ci)			\
+        (cr) = log (CABS ((ar), (ai)));		\
+        (ci) = atan2 ((ai), (ar));
+
+EOH
+
+pp_addpm <<'EOP';
+
+=head2 cplx real-valued-pdl
+
+Cast a real-valued piddle to the complex datatype. The first dimension of
+the piddle must be of size 2. After this the usual (complex) arithmetic
+operators are applied to this pdl, rather than the normal elementwise pdl
+operators.
+
+=head2 real cplx-valued-pdl
+
+Cast a complex vlaued pdl back to the "normal" pdl datatype. Afterwards
+the normal elementwise pdl operators are used in operations.
+
+=cut
+
+sub cplx($) {
+   bless $_[0]->copy;
+}
+
+*PDL::cplx = \&cplx;
+
+sub real($) {
+   bless $_[0]->sever, 'PDL';
+}
+
+EOP
+
+pp_def 'r2C',
+       Pars => 'r(); [o]c(m=2)',
+       Doc => 'convert real to complex, assuming an imaginary part of zero',
+       PMCode => 'sub PDL::r2C($) { my $r = __PACKAGE__->initialize; &PDL::_r2C_int($_[0], $r); $r }',
+       Code => q!
+          $c(m=>0) = $r();
+          $c(m=>1) = 0;
+       !
+;
+
+pp_def 'i2C',
+       Pars => 'r(); [o]c(m=2)',
+       Doc => 'convert imaginary to complex, assuming a real part of zero',
+       PMCode => 'sub PDL::i2C($) { my $r = __PACKAGE__->initialize; &PDL::_i2C_int($_[0], $r); $r }',
+       Code => q!
+          $c(m=>0) = 0;
+          $c(m=>1) = $r();
+       !
+;
+
+pp_def 'Cr2p',
+       Pars => 'r(m=2); float+ [o]p(m=2)',
+       Doc => 'convert complex numbers in rectangular form to polar (mod,arg) form',
+       Code => q!
+          $GENERIC() x = $r(m=>0);
+          $GENERIC() y = $r(m=>1);
+          $p(m=>0) = CABS (x, y);
+          $p(m=>1) = atan2 (y, x);
+       !
+;
+
+pp_def 'Cp2r',
+       Pars => 'r(m=2); [o]p(m=2)',
+       GenericTypes => [F,D],
+       Doc => 'convert complex numbers in polar (mod,arg) form to rectangular form',
+       Code => q!
+          $GENERIC() m = $r(m=>0);
+          $GENERIC() a = $r(m=>1);
+          double s, c;
+
+          SINCOS (m, s, c);
+          $p(m=>0) = s * m;
+          $p(m=>1) = c * m;
+       !
+;
+
+pp_def 'Cadd', # this is here for a) completeness and b) not having to mess with PDL::Ops
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+        Doc => undef,
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() br = $b(m=>0), bi = $b(m=>1);
+           $c(m=>0) = ar + br;
+           $c(m=>1) = ai + bi;
+        ^
+;
+
+pp_def 'Csub', # this is here for a) completeness and b) not having to mess with PDL::Ops
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+        Doc => undef,
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() br = $b(m=>0), bi = $b(m=>1);
+           $c(m=>0) = ar - br;
+           $c(m=>1) = ai - bi;
+        ^
+;
+
+pp_def 'Cmul',
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+        Doc => 'complex multiplication',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() br = $b(m=>0), bi = $b(m=>1);
+           $c(m=>0) = ar*br - ai*bi;
+           $c(m=>1) = ar*bi + ai*br;
+        ^
+;
+
+pp_def 'Cscale',
+	Pars => 'a(m=2); b(); [o]c(m=2)',
+        Doc => 'mixed complex/real multiplication',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $c(m=>0) = ar * $b();
+           $c(m=>1) = ai * $b();
+        ^
+;
+
+pp_def 'Cdiv',
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'complex division',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() br = $b(m=>0), bi = $b(m=>1);
+
+           if (fabs (br) > fabs (bi))
+             {
+               $GENERIC() tt = bi / br;
+               $GENERIC() dn = br + tt * bi;
+               $c(m=>0) = (ar + tt * ai) / dn;
+               $c(m=>1) = (ai - tt * ar) / dn;
+             }
+           else
+             {
+               $GENERIC() tt = br / bi;
+               $GENERIC() dn = br * tt + bi;
+               $c(m=>0) = (ar * tt + ai) / dn;
+               $c(m=>1) = (ai * tt - ar) / dn;
+             }
+        ^
+;
+
+pp_def 'Ccmp',
+	Pars => 'a(m=2); b(m=2); [o]c()',
+        GenericTypes => [F,D],
+        Doc => 'Complex comparison oeprator (spaceship). It orders by real first, then by imaginary.',
+        Code => q^
+           $GENERIC() a, b;
+           
+           a = $a(m=>0), b = $b(m=>0);
+           if (a != b)
+             $c() = (a > b) * 2 - 1;
+           else
+             {
+               a = $a(m=>1), b = $b(m=>1);
+               $c() = a == b ? 0
+                             : (a > b) * 2 - 1;
+             }
+        ^
+;
+
+pp_def 'Cconj',
+	Pars => 'a(m=2); [o]c(m=2)',
+        Doc => 'complex conjugation',
+        Code => q^
+           $c(m=>0) =  $a(m=>0);
+           $c(m=>1) = -$a(m=>1);
+        ^
+;
+
+pp_def 'Cneg',
+	Pars => 'a(m=2); [o]c(m=2)',
+        Doc => 'complex negation',
+        Code => q^
+           $c(m=>0) = -$a(m=>0);
+           $c(m=>1) =  $a(m=>1);
+        ^
+;
+
+pp_def 'Cabs',
+	Pars => 'a(m=2); [o]c()',
+        GenericTypes => [F,D],
+        Doc => 'complex C<abs()> (also known as I<modulus>)',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $c() = CABS (ar, ai);
+        ^
+;
+
+pp_def 'Cabs2',
+	Pars => 'a(m=2); [o]c()',
+        Doc => 'complex squared C<abs()> (also known I<squared modulus>)',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $c() = ar*ar + ai*ai;
+        ^
+;
+
+pp_def 'Carg',
+	Pars => 'a(m=2); [o]c()',
+        GenericTypes => [F,D],
+        Doc => 'complex argument function ("angle")',
+        Code => q^
+           $c() = atan2 ($a(m=>1), $a(m=>0));
+        ^
+;
+
+pp_def 'Csin',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i))',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           double s, c;
+
+           SINCOS (ar, s, c);
+           $c(m=>0) = s * cosh (ai);
+           $c(m=>1) = c * sinh (ai);
+        ^
+;
+
+pp_def 'Ccos',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'cos (a) = 1/2 * (exp (a*i) + exp (-a*i))',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           double s, c;
+
+           SINCOS (ar, s, c);
+           $c(m=>0) =   c * cosh (ai);
+           $c(m=>1) = - s * sinh (ai);
+        ^
+;
+
+pp_addpm <<'EOD';
+
+=head2 Ctan a [not inplace]
+
+tan (a) = -i * (exp (a*i) - exp (-a*i)) / (exp (a*i) + exp (-a*i))
+
+=cut
+
+sub Ctan($) { Csin($_[0]) / Ccos($_[0]) }
+
+EOD
+
+pp_def 'Cexp',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a)))',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() ex = exp (ar);
+           double s, c;
+
+           SINCOS (ai, s, c);
+           $c(m=>0) = ex * c;
+           $c(m=>1) = ex * s;
+        ^
+;
+
+pp_def 'Clog',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'log (a) = log (cabs (a)) + i * carg (a)',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           CLOG (ar, ai, $c(m=>0), $c(m=>1));
+        ^
+;
+
+pp_def 'Cpow',
+	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'complex C<pow()> (C<**>-operator)',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           $GENERIC() br = $b(m=>0), bi = $b(m=>1);
+
+           double logr, logi, x, y;
+           double  s, c;
+
+           CLOG (ar, ai, logr, logi);
+           x = exp (logr*br - logi*bi);
+           y =      logr*bi + logi*br;
+
+           SINCOS (y, s, c);
+           $c(m=>0) = x * c;
+           $c(m=>1) = x * s;
+        ^
+;
+
+pp_def 'Csqrt',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           CSQRT ($GENERIC(), ar, ai, $c(m=>0), $c(m=>1));
+        ^
+;
+
+pp_def 'Casin',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           $GENERIC() t1 = sqrt ((ar+1)*(ar+1) + ai*ai);
+           $GENERIC() t2 = sqrt ((ar-1)*(ar-1) + ai*ai);
+           $GENERIC() alpha = (t1+t2)*0.5;
+           $GENERIC() beta  = (t1-t2)*0.5;
+
+           if      (alpha < 1) alpha = 1;
+           if      (beta >  1) beta =  1;
+           else if (beta < -1) beta = -1;
+
+           $c(m=>0) =   atan2 (beta, sqrt (1-beta*beta));
+           $c(m=>1) = - log (alpha + sqrt (alpha*alpha-1));
+           if (ai > 0 || (ai == 0 && ar < -1))
+              $c(m=>1) = - $c(m=>1);
+        ^
+;
+
+pp_def 'Cacos',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           $GENERIC() t1 = sqrt ((ar+1)*(ar+1) + ai*ai);
+           $GENERIC() t2 = sqrt ((ar-1)*(ar-1) + ai*ai);
+           $GENERIC() alpha = (t1+t2)*0.5;
+           $GENERIC() beta  = (t1-t2)*0.5;
+
+           if      (alpha < 1) alpha = 1;
+           if      (beta >  1) beta =  1;
+           else if (beta < -1) beta = -1;
+
+           $c(m=>0) = atan2 (sqrt (1-beta*beta), beta);
+           $c(m=>1) = log (alpha + sqrt (alpha*alpha-1));
+           if (ai > 0 || (ai == 0 && ar < -1))
+              $c(m=>1) = - $c(m=>1);
+        ^
+;
+
+pp_addpm <<'EOD';
+
+=head2 Catan cplx [not inplace]
+
+Return the complex C<atan()>.
+
+=cut
+
+sub Catan($) {
+   my $z = shift;
+   Cmul pdl(0, 0.5), Clog Cdiv i+$z, i-$z;
+}
+
+EOD
+
+pp_def 'Csinh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'sinh (a) = (exp (a) - exp (-a)) / 2',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           double s, c;
+
+           SINCOS (ai, s, c);
+           $c(m=>0) = sinh (ar) * c;
+           $c(m=>0) = cosh (ar) * s;
+        ^
+;
+
+pp_def 'Ccosh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'cosh (a) = (exp (a) + exp (-a)) / 2',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           double s, c;
+
+           SINCOS (ai, s, c);
+           $c(m=>0) = cosh (ar) * c;
+           $c(m=>0) = sinh (ar) * s;
+        ^
+;
+
+pp_def 'Ctanh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+           double den;
+           double s, c;
+
+           SINCOS (2*ai, s, c);
+           den = cosh (2*ar) + c;
+
+           $c(m=>0) = sinh (2*ar) / den;
+           $c(m=>0) = s           / den;
+        ^
+;
+
+pp_def 'Casinh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           $GENERIC() yr = (ar-ai) * (ar+ai) + 1;
+           $GENERIC() yi = 2*ar*ai;
+
+           CSQRT ($GENERIC(), yr, yi, yr, yi)
+
+           yr += ar;
+           yi += ai;
+
+           CLOG (yr, yi, $c(m=>0), $c(m=>1));
+        ^
+;
+
+pp_def 'Cacosh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           $GENERIC() yr = (ar-ai) * (ar+ai) - 1;
+           $GENERIC() yi = 2*ar*ai;
+
+           CSQRT ($GENERIC(), yr, yi, yr, yi)
+
+           yr += ar;
+           yi += ai;
+
+           CLOG (yr, yi, $c(m=>0), $c(m=>1));
+        ^
+;
+
+pp_def 'Catanh',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => '',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           double i2 = ar*ar;
+           double num = i2 + (1+ar) * (1+ar);
+           double den = i2 + (1-ar) * (1-ar);
+
+           $c(m=>0) = 0.25 * (log(num) - log(den));
+           $c(m=>1) = 0.5 * atan2 (2*ai, 1 - ar*ar - i2);
+        ^
+;
+
+pp_def 'Cproj',
+	Pars => 'a(m=2); [o]c(m=2)',
+        GenericTypes => [F,D],
+        Doc => 'compute the projection of a complex number to the riemann sphere',
+        Code => q^
+           $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
+
+           double den = ar*ar + ai*ai + 1;
+
+           $c(m=>0) = 2*ar / den;
+           $c(m=>1) = 2*ai / den;
+        ^
+;
+
+pp_def 'Croots',
+	Pars => 'a(m=2); [o]c(m=2,n)',
+        OtherPars => 'int n => n',
+        GenericTypes => [F,D],
+        Doc => 'Compute the C<n> roots of C<a>. C<n> must be a positive integer. The result will always be a complex type!',
+        PMCode => q^sub PDL::Croots($$) {
+           my ($pdl, $n) = @_;
+           my $r = PDL->null;
+           &PDL::_Croots_int($pdl, $r, $n);
+           bless $r;
+        }^,
+        Code => q^
+           double ar = $a(m=>0), ai = $a(m=>1),
+                  n1 = 1 / (double)$COMP(n),
+                  rr = pow (CABS (ar, ai), n1), /* do not optimize the sqrt out of this expr! */
+                  at = atan2 (ai, ar),
+                  ti = M_2PI * n1;
+
+           loop(n) %{
+               double s, c;
+
+               SINCOS (at, s, c);
+
+               $c(m=>0) = rr * c;
+               $c(m=>1) = rr * s;
+
+               at += ti;
+            %}
+        ^
+;
+
+pp_addpm <<'EOD';
+
+=head2 Cre cplx, Cim cplx
+
+Return the real or imaginary part of the complex number(s) given. These
+are indexing operators, so data flow works. NOTE: These two functions do
+_NOT_ work on the complex datatype as you would expect! Best to avoid them
+or cast the result back to "real".
+
+=cut
+
+sub Cre($) { $_[0]->slice("(0)") }
+sub Cim($) { $_[0]->slice("(1)") }
+sub re { $_[0]->slice("(0)")->real }
+sub im { $_[0]->slice("(1)")->real }
+
+EOD
+
+pp_def 'rCpolynomial',
+       Pars => 'coeffs(n); x(c=2,m); [o]out(c=2,m)',
+       Doc => 'evaluate the polynomial with (real) coefficients C<coeffs> at the (complex) position(s) C<x>. C<coeffs[0]> is the constant term.',
+       GenericTypes => [F,D],
+       Code => q!
+          loop(m) %{
+             double xr = 1;
+             double xi = 0;
+             double or = 0;
+             double oi = 0;
+             double Xr;
+
+             loop(n) %{
+                or += $coeffs() * xr;
+                oi += $coeffs() * xi;
+
+                Xr = xr;
+                xr = Xr * $x(c=>0) - xi * $x(c=>1);
+                xi = xi * $x(c=>0) + Xr * $x(c=>1);
+             %}
+
+             $out(c=>0) = or;
+             $out(c=>1) = oi;
+          %}
+       !
+;
+
+pp_add_isa ' PDL';
+
+pp_addpm {At => Bot}, <<'EOD';
+
+# overload must be here, so that all the functions can be seen
+
+# undocumented compatibility functions
+sub Catan2($$) { Catan Cdiv $_[1], $_[0] }
+sub atan2($$)  { Catan Cdiv $_[1], $_[0] }
+
+sub _gen_biop {
+   local $_ = shift;
+   my $sub;
+   if (/(\S+)\+(\w+)/) {
+      $sub = eval 'sub { '.$2.' $_[0], ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1] }';
+   } elsif (/(\S+)\-(\w+)/) {
+      $sub = eval 'sub { my $b = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                       $_[2] ? '.$2.' $b, $_[0] : '.$2.' $_[0], $b }';
+   } else {
+      die;
+   }
+   return ($1, $sub) if $1 eq "atan2";
+   ($1, $sub, "$1=", $sub);
+}
+
+sub _gen_unop {
+   my ($op, $func) = ($_[0] =~ /(.+)@(\w+)/);
+   *$op = \&$func if $op =~ /\w+/; # create an alias
+   ($op, eval 'sub { '.$func.' $_[0] }');
+}
+
+sub _gen_cpop {
+   ($_[0], eval 'sub { my $b = ref $_[1] eq __PACKAGE__ ? $_[1] : r2C $_[1];
+                 ($_[2] ? $b <=> $_[0] : $_[0] <=> $b) '.$_[0].' 0 }');
+}
+
+sub initialize {
+   bless PDL->null, $_[0];
+}
+
+BEGIN { $i = bless pdl 0,1 }
+sub i () { $i };
+
+use overload
+   (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
+   (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt -@Cneg abs@Cabs)),
+   (map _gen_cpop($_), qw(< <= == != => >)),
+   '++' => sub { $_[0] += 1 },
+   '--' => sub { $_[0] -= 1 },
+;
+
+=head1 AUTHOR
+
+Marc Lehmann <pcg@goof.com>. 
+
+=head1 SEE ALSO
+
+perl(1), L<PDL>.
+
+=cut
+EOD
+
+pp_done;
