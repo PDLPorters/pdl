@@ -246,7 +246,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_utm t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer t_aitoff);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -551,6 +551,7 @@ sub _uconv{
   ###
   local($_) = shift;
   my($silent) =shift;
+
   my($a) = 
     ( m/^deg/i    ? $DEG2RAD :
       m/^arcmin/i ? $DEG2RAD / 60 :
@@ -560,6 +561,11 @@ sub _uconv{
       m/^microrad/i ? 1e-6 :
       m/^millirad/i ? 1e-3 :
       m/^rad(ian)?s?$/i ? 1.0 :
+      m/^meter/ ? 1.0/6371000 :                # Assuming Earth cartography!
+      m/^kilometer/ ? 1.0/6371 :
+      m/^km/ ? 1.0/6371 :
+      m/^Mm/ ? 1.0/6.371 :
+      m/^mile/  ? 1.0/(637100000/2.54/12/5280) :
       undef
       );
   print STDERR "Cartography: unrecognized unit '$_'\n"    
@@ -579,7 +585,7 @@ sub _uconv{
 #
 
 
-sub _new{new('PDL::Transform::Cartography',@_);} # not exported
+sub _new { new('PDL::Transform::Cartography',@_); } # not exported
 sub new {
     my($class) = shift;
     my($name) = pop;
@@ -614,6 +620,21 @@ sub new {
 
     $me->{itype} = ['longitude','latitude'];
     $me->{iunit} = [$me->{params}->{u},$me->{params}->{u}];
+
+    my($ou) = _opt($o,['ou','ounit','OutputUnit'],undef);
+    $me->{params}->{ou} = $ou;
+    if(defined $ou) {
+      if(!(ref $ou)) {
+	$me->{params}->{oconv} = _uconv($ou);
+      } else {
+	my @oconv;
+	map {push(@oconv,_uconv($_))} @$ou;
+	$me->{params}->{oconv} = pdl(@oconv);
+      }
+    } else {
+      $me->{params}->{oconv} = undef;
+    }
+    $me->{ounit} = $me->{params}->{ou};
 
     $me->{params}->{o} = $or * $conv;
     $me->{params}->{roll} = $roll * $conv;
@@ -1112,10 +1133,10 @@ sub t_mercator {
 
     if($p->{std} == 0) {
       $me->{otype} = ['longitude','tan latitude'];
-      $me->{ounit} = ['radians',' '];
+      $me->{ounit} = ['radians',' '] unless(defined $me->{ounit});
     } else {
       $me->{otype} = ['proj. longitude','proj. tan latitude'];
-      $me->{ounit} = ['radians',' '];
+      $me->{ounit} = ['radians',' '] unless(defined $me->{ounit});
     }
 
     $p->{stretch} = cos($p->{std});
@@ -1132,6 +1153,7 @@ sub t_mercator {
 	    unless($o->{c}->[0] == $o->{c}->[1]);
 
 	$out->(0:1) *= $o->{stretch};
+	$out->(0:1) /= $o->{oconv} if(defined $o->{oconv});
 			    
 	$out;
     };
@@ -1140,6 +1162,7 @@ sub t_mercator {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace? $d : $d->copy;
 
+	$out->(0:1) *= $o->{oconv} if defined($o->{oconv});
 	$out->(0:1) /= $o->{stretch};
 	$out->((1)) .= (atan(exp($out->((1)))) - $PI/4)*2;
 	$out->(0:1) /= $o->{conv};
@@ -1149,6 +1172,101 @@ sub t_mercator {
 
     $me->_finish;
 }    
+
+######################################################################
+
+=head2 t_utm
+
+=for usage
+
+  $t = t_utm(<zone>,<options>);
+
+=for ref
+
+(Cartography) Universal Transverse Mercator projection (cylindrical)
+
+This is the internationally used UTM projection, with 2 subzones 
+(North/South).  The UTM zones are parametrized individually, so if you
+want a Zone 30 map you should use C<t_utim(30)>.  By default you get
+the northern subzone, so that locations in the southern hemisphere get 
+negative Y coordinates.  If you select the southern subzone (with the 
+"subzone=>-1" option), you get offset southern UTM coordinates.  
+
+The 20-subzone military system is not yet supported.  If/when it is
+implemented, you will be able to enter "subzone=>[a-t]" to select a N/S
+subzone.
+
+Note that UTM is really a family of transverse Mercator projections
+with different central meridia.  Each zone properly extends for six
+degrees of longitude on either side of its appropriate central meridian,
+with Zone 1 being centered at -177 degrees longitude (177 west).
+Properly speaking, the zones only extend from 80 degrees south to 84 degrees
+north; but this implementation lets you go all the way to 90 degrees.
+The default UTM coordinates are meters.  The origin for each zone is
+on the equator, at an easting of -500,000 meters.
+
+This implementation, like the rest of the PDL::Transform::Cartography
+package, uses a spherical datum rather than the "official" ellipsoidal
+datums for the UTM system.
+
+OPTIONS
+
+=over 3
+
+=item STANDARD OPTIONS 
+
+(No positional options -- Origin and Roll are ignored) 
+
+=item ou, ounit, OutputUnit
+
+(This is likely to become a standard option in a future release) The
+unit of the output map.  By default, this is 'meters' for UTM, but you
+may specify 'deg' or 'km' or even (heaven help us) 'miles' if you
+prefer.
+
+=item sz, subzone, SubZone
+
+Set this to -1 for the southern hemisphere subzone.  Ultimately you
+should be able to set it to a letter to get the corresponding military
+subzone, but that's too much effort for now.
+
+=cut
+
+sub t_utm {
+  my $zone = (int(shift)-1) % 60 + 1;
+  my($a) = _new(@_,"UTM-$zone");
+  my $opt = $a->{options};
+
+  ## Make sure that there is a conversion (default is 'meters')
+  $a->{ounit} = ['meter','meter'] unless defined($a->{ounit});
+  $a->{ounit} = [$a->{ounit},$a->{ounit}] unless ref($a->{ounit});
+  $a->{params}->{oconv} = _uconv($a->{ounit}->[0]);
+
+  ## Define our zone and NS offset 
+  my $subzone = _opt($opt,['sz', 'subzone', 'SubZone'],1);
+  my $offset = zeroes(2);
+  $offset->(0) .= 5e5*(2*$PI/40e6)/$a->{params}->{oconv};
+  $offset->(1) .= ($subzone < 0) ? $PI/2/$a->{params}->{oconv} : 0;
+
+  my $merid = ($zone * 6) - 183;
+  
+  my($me) = t_compose(t_linear(post=>$offset,
+			       rot=>-90
+			       ),
+
+		      t_mercator(o=>[$merid,0], 
+				 r=>90, 
+				 ou=>$a->{ounit}, 
+				 s=>$RAD2DEG * (180/6371))
+		      );
+
+
+  my $s = ($zone < 0) ? "S Hemisphere " : "";
+  $me->{otype} = ["UTM-$zone Easting","${s}Northing"];
+  $me->{ounit} = $a->{ounit};
+
+  return $me;
+}
 
 ######################################################################
 
