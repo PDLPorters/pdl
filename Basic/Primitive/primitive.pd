@@ -684,14 +684,15 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns an array with minimum, maximum of a piddle.
+Returns an array with minimum and maximum values of a piddle.
 
 =for usage
 
  ($mn, $mx) = minmax($pdl);
 
-Return C<$mn> as minimum, C<$mx> as maximum, C<$mn_ind> as the index of minimum and
-C<$mx_ind> as the index of the maximum.
+This routine does I<not> thread over the dimensions of C<$pdl>; 
+it returns the minimum and maximum values of the whole array.
+See L<minmaximum|/minmaximum> if this is not what is required.
 
 =for example
 
@@ -1553,7 +1554,7 @@ routine for searching 1D values i.e. step-function interpolation.
 
  $inds = vsearch($vals, $xs);
 
-Returns for each value of C<$val> the index of the least larger member
+Returns for each value of C<$vals> the index of the least larger member
 of C<$xs> (which need to be in increasing order). If the value is larger
 than any member of C<$xs>, the index to the last element of C<$xs> is 
 returned.
@@ -1965,6 +1966,22 @@ pp_def($_->{Name},
 	%}
 	threadloop %{
 	   loop(n) %{
+	      j = (int) (($in()-min)/step);
+	      if (j<0) j=0;
+	      if (j > maxj) j = maxj;
+	      ($hist(m => j))'.$_->{HistOp}.';
+	   %}
+	%}',
+       BadCode => 
+       'register int j;
+	register int maxj = $SIZE(m)-1;
+	register double min  = $COMP(min);
+	register double step = $COMP(step);
+	threadloop %{
+	   loop(m) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{
               if ( $ISGOOD(in()) ) {
 	         j = (int) (($in()-min)/step);
 	         if (j<0) j=0;
@@ -2037,31 +2054,58 @@ for(
     )
 {
 pp_def($_->{Name},
-	Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
-		# set outdim by Par!
-	OtherPars => 'double stepa; double mina; int masize => ma;
-	              double stepb; double minb; int mbsize => mb;',
-	Code => 'register int ja,jb;
-		 register int maxja = $SIZE(ma)-1;
-		 register int maxjb = $SIZE(mb)-1;
-		 register double mina = $COMP(mina);
-		 register double minb = $COMP(minb);
-		 register double stepa = $COMP(stepa);
-		 register double stepb = $COMP(stepb);
-		 threadloop %{
-			 loop(ma,mb) %{ $hist() = 0; %}
-		 %}
-		 threadloop %{
-		 	loop(n) %{
-				ja = (int) (($ina()-mina)/stepa);
-				jb = (int) (($inb()-minb)/stepb);
-				if (ja<0) ja=0;
-				if (ja > maxja) ja = maxja;
-				if (jb<0) jb=0;
-				if (jb > maxjb) jb = maxjb;
-				($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
-			%}
-		 %}
+       Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
+       # set outdim by Par!
+       OtherPars => 'double stepa; double mina; int masize => ma;
+	             double stepb; double minb; int mbsize => mb;',
+       HandleBad => 1,
+       Code => 
+       'register int ja,jb;
+	register int maxja = $SIZE(ma)-1;
+	register int maxjb = $SIZE(mb)-1;
+	register double mina = $COMP(mina);
+	register double minb = $COMP(minb);
+	register double stepa = $COMP(stepa);
+	register double stepb = $COMP(stepb);
+	threadloop %{
+	   loop(ma,mb) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{
+	      ja = (int) (($ina()-mina)/stepa);
+	      jb = (int) (($inb()-minb)/stepb);
+	      if (ja<0) ja=0;
+	      if (ja > maxja) ja = maxja;
+	      if (jb<0) jb=0;
+	      if (jb > maxjb) jb = maxjb;
+	      ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
+	   %}
+	%}
+	',
+       BadCode => 
+       'register int ja,jb;
+	register int maxja = $SIZE(ma)-1;
+	register int maxjb = $SIZE(mb)-1;
+	register double mina = $COMP(mina);
+	register double minb = $COMP(minb);
+	register double stepa = $COMP(stepa);
+	register double stepb = $COMP(stepb);
+	threadloop %{
+	   loop(ma,mb) %{ $hist() = 0; %}
+	%}
+	threadloop %{
+	   loop(n) %{
+              if ( $ISGOOD(ina()) && $ISGOOD(inb()) ) {
+	         ja = (int) (($ina()-mina)/stepa);
+	         jb = (int) (($inb()-minb)/stepb);
+	         if (ja<0) ja=0;
+	         if (ja > maxja) ja = maxja;
+	         if (jb<0) jb=0;
+	         if (jb > maxjb) jb = maxjb;
+	         ($hist(ma => ja,mb => jb))'.$_->{HistOp}.';
+              }
+	   %}
+	%}
 	',
 Doc=><<"EOD");
 

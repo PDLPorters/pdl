@@ -1,3 +1,46 @@
+#
+# The contents depend on whether we have bad-value support in PDL.
+# (there's only a small amount of code that uses bad values)
+#
+ 
+use strict;
+
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+use vars qw( %PDL_CONFIG );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+ 
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+    if ($Config{'osname'} eq 'VMS' or
+	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+
+#########################################################
+
+print OUT <<"!WITH!SUBS!";
+ 
+# This file is automatically created by NDF.pm.PL
+# - bad value support = $bvalflag
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
+
 package PDL::IO::NDF;
 
 =head1 NAME
@@ -62,7 +105,6 @@ $VERSION = '1.02';
 	      "_DOUBLE"  =>$PDL_D
 	     );
 
-
 # This is the name I use in the PDL header hash that contains the
 # NDF extensions so that they can be recreated
 
@@ -115,11 +157,19 @@ stored as arrays in the Hdr: numeric arrays are stored as PDLs,
 logical and character arrays are stored as plain Perl arrays. FITS
 arrays are a special case and are expanded as scalars into the header.
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
 =for bad
 
 I<This needs thinking about!> The current implementation is 
 too basic, in that it only looks at the C<'DATA'> array.
 
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 =cut
 
 # This is one form of the new command
@@ -217,13 +267,21 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   # Put the header into the main pdl
   $pdl->sethdr($header);
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
   # set the bad flag if it was set in the input file
   print "Bad flag status is: $badflag\n" if $PDL::verbose;
   $pdl->badflag(1) if $badflag;
 
+!NO!SUBS!
+
+} # if; $bvalflag
+
+  print OUT <<'!NO!SUBS!';
   return $pdl;
 }
-
 
 =head2 wndf()
 
@@ -258,10 +316,19 @@ double on a best guess basis.  Any perl arrays are written as CHAR
 array extensions (on the assumption that numeric arrays will exist as
 PDLs).
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
 =for bad
 
 The bad flag is written to the file, if set. 
 
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 # This is one form of the new command
@@ -320,14 +387,23 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
   # Create a history extension
   ndf_hcre($outndf, $status);
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
   # set the bad value flag 
   # XXX needs working on
-  my $badflag = $pdl->badflag;;
+  my $badflag = $pdl->badflag;
   ndf_sbad( $badflag, $outndf, 'Data', $status );
   if ( $badflag and $pdl->get_datatype == 0 ) {
       print "\nWARNING: not convinced starlink and pdl's BYTE agree\n";
   }
 
+!NO!SUBS!
+
+} # if: $bvalflag
+
+  print OUT <<'!NO!SUBS!';
   # Annul the identifier
   ndf_annul($outndf, $status);
 
@@ -343,7 +419,6 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
 
   return 1;
 }
-
 
 =head2 propndfx()
 
@@ -419,7 +494,6 @@ sub PDL::propndfx {  # Write a PDL to a NDF format file
   return 1;
 }
 
-
 =head1 NOTES
 
 The perl NDF module must be available. This is available from the 
@@ -442,7 +516,6 @@ L<PDL::FAQ> for general information on the Perl Data language,
 L<NDF> for information on the NDF module.
 
 =cut
-
 
 
 #######################################################################
@@ -1436,6 +1509,7 @@ sub mkstruct {
 
 }
 
-
-
+# end of module
 1;
+
+!NO!SUBS!

@@ -17,6 +17,8 @@ Basic/Pod/FAQ.pod 	the FAQ in pod format
 Basic/Pod/Impatient.pod
 			a quick overview of PDL
 			try 'perldoc PDL::Impatient' after installation
+Basic/Pod/BadValues.pod
+                        a discussion of the bad value support in PDL
 PDL::Index		a guide to PDL documentation
 			!only available *after* successful installation!
 			try 'perldoc PDL::Index'
@@ -84,13 +86,11 @@ completion - usually they are marked in the docs but here is
 a brief rundown of what is good and what is something you need
 to know what you're doing to use:
 
-Basic/  	should be fairly stable.
-Graphics/PG 	works, should be stable
-Graphics/TriD	works, but some of the interfaces might still change.
+Basic/  	stable
+Graphics/PGPLOT stable (an updated version, with an OO interface, is 
+		in the works)
+Graphics/TriD	recently undergone a major update.
 Lib/Opt/Simplex	works
-Lib/PCA.pm, ICA.pm, PCARout, DataPresenter
-		These are alpha stage. Don't use if you don't know
-		what you're doing
 Lib/Slatec
 		Should in principle work but porting is difficult.
 		If you can't compile it, remove it from Lib/Makefile.PL
@@ -100,8 +100,8 @@ Lib/GSL
 		perldl.conf file so PDL knows were to find the lib
 		and include directories when building PDL.
 		See DEPENDENCIES file for more info. 
-IO/Misc		Stable, expected to work
-IO/FastRaw	seems to work & be stable.
+IO/Misc		stable
+IO/FastRaw	stable.
 
 Comments are welcome - so are volunteers to write code! Please contact the
 developers mailing list pdl-porters@jach.hawaii.edu (subscription address: 

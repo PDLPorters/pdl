@@ -31,7 +31,7 @@ included in the file.
 
 unless ( $bvalflag ) {
 
-    pp_addpm({At=>'Top'},<<"!WITH!SUBS!");
+    pp_addpm({At=>'Top'},<<'!NO!SUBS!');
 
 =head1 NAME
 
@@ -50,6 +50,16 @@ so it does not contain any bad-value support code.
 
  Bad value support in PDL is turned off.
 
+=cut
+
+# really should be a constant
+$PDL::Bad::Support = 0;
+
+!NO!SUBS!
+
+    ## Footer
+    pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
+
 =head1 BUGS
 
 None - it does nothing perfectly!
@@ -58,11 +68,8 @@ $author
 
 =cut
 
-# really should be a constant
-$PDL::Bad::Support = 0;
-
 !WITH!SUBS!
-
+    
     pp_export_nothing();
     pp_done();
     exit;
@@ -534,13 +541,35 @@ EOD
 
 # NOTE: the Code section uses SETBAD 
 #
-# something strange is going in with inplace here...
+# have removed inplace stuff because:
+#  $a->inplace->setbadif( $a % 2 )
+# actually sets the badflag in a for ($a % 2) - this is
+# done inplace, and the flag cleared. Hence the setbadif()
+# call is NOT done inplace.
 #
+# Don't want to play around with inplace-type code to 
+# try and fix this (doubt will be easy)
+#
+my %setbadif_extra = ( );
+if ( 0 ) {
+    ## ie if fix inplace issues
+    $setbadif_extra{Inplace} = [ 'a' ];
+    $setbadif_extra{CopyBadStatusCode} = 
+    'if ( a == b && $ISPDLSTATEGOOD(a) )
+       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
+     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
+    ';
+} else {
+    # always make sure the output is "bad"
+    $setbadif_extra{CopyBadStatusCode} = 
+    '$SETPDLSTATEBAD(b);';
+}
+    
 pp_def(
     'setbadif',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
-    Inplace => [ 'a', 'b' ],
+    %setbadif_extra,
     Code =>
     'if ( $mask() ) {
         $SETBAD(b());
@@ -553,13 +582,6 @@ pp_def(
      } else {
         $b() = $a();
      }',
-    CopyBadStatusCode => 
-#    '$SETPDLSTATEBAD(b);',  # always make sure the output is "bad"
-# use the following if finally get it working inplace
-    'if ( a == b && $ISPDLSTATEGOOD(a) )
-       PDL->propogate_badflag( b, 1 ); /* propogate badflag if inplace */
-     $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
-    ',
     Doc => 
 '
 =for ref
@@ -574,13 +596,17 @@ copy across the data.
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 1
 
-This should *NOT* be used inplace (currently rather broken).
+Unfortunately, this routine can I<not> be run inplace, since the
+current implementation can not handle the same piddle used as
+C<a> and C<mask> (eg C<$a-E<gt>inplace-E<gt>setbadif($a%2)> fails),
+and I am too lazy to fix it.
 
 ',
        BadDoc =>
 'The output always has its bad flag set, even if it does not contain
-any bad values. Any bad values in the input piddles are copied
-across to the output piddle.
+any bad values (use C<check_badstatus|/check_badstatus> to check
+whether there are any bad values in the output). 
+Any bad values in the input piddles are copied across to the output piddle.
 ',
        ); # pp_def: setbadif
 
@@ -589,7 +615,7 @@ pp_def(
     HandleBad => 1,
     Pars => 'a(); [o]b();',
     OtherPars => 'double newval',
-    Inplace => [ 'a', 'b' ],
+    Inplace => 1,
     Code => '$b() = $a();',
     BadCode => 
     '$GENERIC(b) replace = ($GENERIC(b)) $COMP(newval);
@@ -632,7 +658,7 @@ pp_def(
     'copybad',
     HandleBad => 1,
     Pars => 'a(); mask(); [o]b();',
-    Inplace => [ 'a', 'b' ],
+    Inplace => [ 'a' ],
     Code =>
     '$b() = $a();',
     BadCode =>

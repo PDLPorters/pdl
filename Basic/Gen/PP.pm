@@ -384,63 +384,10 @@ $PDL::PP::deftbl =
  [[EquivCPOffsCode],	[Identity],	"equivcpoffscode",
     "something to do with dataflow between CHILD & PARENT, I think."],
 
- # If there is an EquivCPOffsCOde and:
- #    no bad-value support ==> use that
- #    bad value support ==> write a bit of code that does
- #      if ( $PRIV(bvalflag) ) {
- #          bad-EquivCPOffsCode
- #      } else {
- #          good-EquivCPOffsCode
- #      }
- #
- #  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that 
- #  does) use 'loop %{' or 'threadloop %{', we can't rely on the
- #  hacked PDLCode to automatically write code like above, hence the
- #  ecplicit definition here.
- #
- #  Note: I *assume* that bad-Equiv..Code == good-Equiv..Code *EXCEPT*
- #        that we re-define the meaning of the $EQUIVCPOFFS macro to
- #        check for bad values when copying things over.
- #        This means having to write less code.
- #
- # Since PARENT & CHILD need NOT be the same type we cannot just copy
- # values from one to the other - we have to check for the presence
- # of bad values, hence the expansion for the $bad code
- #
- [[Code],	[EquivCPOffsCode,BadFlag],	
-    sub { 
-	my $good = shift;
-        my $bad  = $good;
-	$good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
-	return 
-	    'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '};';
-      },
-    "create Code from EquivCPOffsCode *WITH* bad value support"],
-
- [[BackCode],	[EquivCPOffsCode,BadFlag],	
-    sub { 
-	my $good = shift;
-	my $bad  = $good;
-	$good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
-	return 
-	    'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '};';
-      },
-    "create BackCode from EquivCPOffsCode *WITH* bad value support"],
-
- [[Code],	[EquivCPOffsCode],	
-    sub { my $ret =  shift;
-	  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
-	  return $ret;
-      },
+ [[Code],	[EquivCPOffsCode,BadFlag],   "CodefromEquivCPOffsCode",
     "create Code from EquivCPOffsCode"],
 
- [[BackCode],	[EquivCPOffsCode],	
-    sub { my $ret =  shift;
-	  $ret =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
-	  return $ret;
-      },
+ [[BackCode],	[EquivCPOffsCode,BadFlag],   "BackCodefromEquivCPOffsCode",
     "create BackCode from EquivCPOffsCode"],
 
  [[Affine_Ok],	[EquivCPOffsCode],	sub {0}],
@@ -2085,7 +2032,8 @@ sub findbadstatus {
 #
 sub copybadstatus {
     my ( $badflag, $badcode, $xsargs, $parobjs, $symtab ) = @_;
-    return '' unless $bvalflag or $badflag == 0;
+##    return '' unless $bvalflag or $badflag == 0;
+    return '' unless $bvalflag;
 
     return $badcode if defined $badcode;
 
@@ -2199,6 +2147,76 @@ sub InplaceCode {
           }",
 
 } # sub: InplaceCode
+
+# If there is an EquivCPOffsCOde and:
+#    no bad-value support ==> use that
+#    bad value support ==> write a bit of code that does
+#      if ( $PRIV(bvalflag) ) { bad-EquivCPOffsCode }
+#      else                   { good-EquivCPOffsCode }
+#
+#  Note: since EquivCPOffsCOde doesn't (or I haven't seen any that 
+#  do) use 'loop %{' or 'threadloop %{', we can't rely on
+#  PDLCode to automatically write code like above, hence the
+#  explicit definition here.
+#
+#  Note: I *assume* that bad-Equiv..Code == good-Equiv..Code *EXCEPT*
+#        that we re-define the meaning of the $EQUIVCPOFFS macro to
+#        check for bad values when copying things over.
+#        This means having to write less code.
+#
+# Since PARENT & CHILD need NOT be the same type we cannot just copy
+# values from one to the other - we have to check for the presence
+# of bad values, hence the expansion for the $bad code
+#
+# sent [EquivCPOffsCode,BadFlag]
+#
+sub CodefromEquivCPOffsCode {
+    my $good  = shift;
+    my $bflag = shift;
+
+    my $bad = $good;
+
+    # parse 'good' code
+    $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
+
+    my $str = $good;
+
+    if ( defined $bflag and $bflag ) {
+	# parse 'bad' code
+	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+
+	$str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+    }
+
+    return $str;
+
+} # sub: CodefromEquivCPOffsCode
+
+# this just reverses PARENT & CHILD in the expansion of
+# the $EQUIVCPOFFS macro (ie compared to CodefromEquivCPOffsCode)
+#
+sub BackCodefromEquivCPOffsCode {
+    my $good = shift;
+    my $bflag = shift;
+
+    my $bad  = $good;
+
+    # parse 'good' code
+    $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
+
+    my $str = $good;
+
+    if ( defined $bflag and $bflag ) {
+	# parse 'bad' code
+	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
+
+	$str = 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
+    }
+
+    return $str;
+
+} # sub: BackCodefromEquivCPOffsCode
+
 
 # Make the pm code to massage the arguments if not given enough.
 # This function is troublesome because perl5.004_0[0123]

@@ -107,6 +107,12 @@ pp_addhdr('
 # Standard `-lm'
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
 my (@ufuncs1g) = qw(ceil floor rint); # Any type
+
+# Note: 
+#  ops.pd has a power() function that does the same thing
+#  (although it has OtherPars => 'int swap;' as well)
+#  - left this in for now.
+# 
 my (@bifuncs1) = qw(pow); # Any type
 
 # Extended `-lm'
@@ -197,6 +203,8 @@ foreach $func (@besufuncs) {
 	   );
 }
 
+# could make these work inplace (ie Inplace => ['a'])
+#
 foreach $func (@besbifuncs) {
     my $fname = "bess$func";
     pp_def($fname,

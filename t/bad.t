@@ -11,8 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-#	plan tests => 56, todo => [ 42 ];  
-	plan tests => 58;   # prefer it if it fails, as a reminder
+	plan tests => 58;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -169,7 +168,7 @@ $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 $c = copybad( $a, $b );
 ok( PDL::Core::string( $c->isbad ), 
-    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #40
+    "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); # 40
 
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
@@ -177,12 +176,15 @@ $a->inplace->copybad( $b );
 ok( PDL::Core::string( $a->isbad ), 
     "[0 0 0 1 0 0 0 0 0 0 0 1 0 0 0 0 1 0 0 1]" ); #
 
-## setbadif does not want to work inplace...
-$a = sequence(3,3);
-$a->inplace->setbadif( $a % 2 );
-#$a = $a->setbadif( $a % 2 );              # for when not bothered about inplace
-ok( PDL::Core::string( $a->clump(-1) ), 
-    "[0 BAD 2 BAD 4 BAD 6 BAD 8]" );   #
+## $a->inplace->setbadif( $a % 2 ) does NOT work because
+## ($a % 2) is performed inplace - ie the flag is set for 
+## that function
+#
+##$a = sequence(3,3);
+##$a->inplace->setbadif( $a % 2 );
+###$a = $a->setbadif( $a % 2 );              # for when not bothered about inplace
+##ok( PDL::Core::string( $a->clump(-1) ), 
+##    "[0 BAD 2 BAD 4 BAD 6 BAD 8]" );   #
 
 ## look at propogation of bad flag using inplace routines...
 $a = sequence( byte, 2, 3 );
@@ -207,14 +209,14 @@ $b = $a->setbadif( $a < 20 );
 my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
-    );                                   # 45
+    );                                   # 
 
 # check comparison/bit operators in ops.pd
 
 $a = pdl( 2, 4, double->badvalue );
 $a->badflag(1);
 $b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
-ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 45
 
 $b = byte(1,2,255,4);
 $b->badflag(1);
@@ -232,11 +234,11 @@ $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
 $b = bessjn($a,3);  # thread over n()
 ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 
-ok( abs($b->at(1)-0.010) < 0.001 );             # 50
+ok( abs($b->at(1)-0.010) < 0.001 );             # 
 
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
-ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ) );  # 
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ) );  # 50
 
 # I haven't changed rotate, but it should work anyway
 $a = byte( 0, 1, 255, 4, 5 );
@@ -282,7 +284,7 @@ $b = $a->setbadif( $a % 2 );
 $a->inplace->plus($b,0);
 print $a;
 print "$c\n";
-ok( PDL::Core::string($c), "[BAD 8 BAD]" );  #55
+ok( PDL::Core::string($c), "[BAD 8 BAD]" );  #
 
 # test bifunc fns
 $a = sequence(3,3);
@@ -291,7 +293,7 @@ $b = $a->setbadif( $a % 3 != 0 );
 $a->inplace->power($b,0);
 print $a;
 print "$c\n";
-ok( PDL::Core::string($c), "[27 BAD BAD]" );  #
+ok( PDL::Core::string($c), "[27 BAD BAD]" );  # 55
 
 # test histogram (using hist)
 $a = pdl( qw/1 2 3 4 5 4 3 2 2 1/ );
@@ -309,3 +311,13 @@ $a->inplace->isfinite;
 #print "A: datatype = [",$a->get_datatype,"]\n";
 ok( PDL::Core::string($a), "[1 0 1 1 1 1 1 1 1 1]" ); # 
 #print "A: datatype = [",$a->get_datatype,"]\n";
+
+# histogram2d
+$a = long(1,1,1,2,2);
+$b = long(2,1,1,1,1);
+$b = $b->setbadif( $b == 2 );
+my @c = ( 1,0,3 );
+$c = histogram2d($a,$b,@c,@c);
+ok( PDL::Core::string($c->clump(-1)), 
+    "[0 0 0 0 2 2 0 0 0]" );             #
+

@@ -1,6 +1,11 @@
+
+use strict;
+
 use Config;
 use File::Basename qw(&basename &dirname);
 use IO::File;
+
+use vars qw( %PDL_CONFIG );
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -12,6 +17,7 @@ use IO::File;
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
     if ($^O eq 'VMS' or $^O eq 'os2');  # "case-forgiving"
@@ -59,8 +65,13 @@ use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
 my %options = 
-    ( a => \&apropos, b => \&badinfo, h => \&help, s => \&sig, 
-      u => \&usage );
+    ( a => \&apropos, 
+!NO!SUBS!
+
+      print $fh '      b => \&badinfo,' . "\n" if $bvalflag;
+
+print $fh <<'!NO!SUBS!';
+      h => \&help, s => \&sig, u => \&usage );
 
 my $name = basename( $0 );
 my $usage = <<"EOH";
@@ -110,13 +121,30 @@ pdldoc - shell interface to PDL documentation
 
 B<pdldoc> <text>
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print $fh <<'!NO!SUBS!';
+B<pdldoc> [B<-a>] [B<-b>] [B<-h>] [B<-s>] [B<-u>] <text>
+!NO!SUBS!
+} else {
+	print $fh <<'!NO!SUBS!';
 B<pdldoc> [B<-a>] [B<-h>] [B<-s>] [B<-u>] <text>
+!NO!SUBS!
+}
+
+print $fh <<'!NO!SUBS!';
 
 =head1 DESCRIPTION
 
 The aim of B<pdldoc> is to provide the same functionality
-as the C<apropos>, C<help>, C<sig>, and C<usage> commands 
-available in the L<perldl|PDL::perldl> shell.
+as the C<apropos>, C<help>, C<sig>, 
+!NO!SUBS!
+
+    print $fh "C<badinfo>, \n" if $bvalflag;
+
+print $fh <<'!NO!SUBS!';
+and C<usage> commands available in the L<perldl|PDL::perldl> shell.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
 

@@ -135,3 +135,4 @@ so_locations
 ^pdldoc.pod
 ^podsel$
 ^Demos/BAD_demo.pm$
+^IO/NDF/NDF.pm$

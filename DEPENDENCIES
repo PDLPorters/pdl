@@ -10,7 +10,7 @@ disable building of some modules in the distrib if required.
 
 MODULE          DEPENDS ON                  COMMENT
 
-PDL (all)	perl 5.004_01		you need at least this version
+PDL (all)	perl 5.005		you need at least this version
 					of perl to succeed.
 
 perldl (shell)  Term::ReadLine    	perl provides a stub but if you

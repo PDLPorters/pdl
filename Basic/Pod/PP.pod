@@ -680,7 +680,8 @@ do not have a way of ignoring part of the data.
 =item HandleBad => 1
 
 This causes PDL::PP to write extra code that ensures the BadCode
-section is used.
+section is used, and that the C<$ISBAD()> macro (and its brethren)
+work.
 
 =item HandleBad is not given
 
@@ -708,7 +709,7 @@ becomes something like
 
 However, we only want the second version if bad values are present in
 the input piddles (and that bad-value support is wanted!) - otherwise 
-we actually want the first part of code. This is where the C<BadCode>
+we actually want the original code. This is where the C<BadCode>
 key comes in; you use it to specify the code to execute if bad values
 may be present, and PP uses both it and the C<Code> section to create
 something like:
@@ -1141,11 +1142,58 @@ An incomplete list of the available keys:
 
 =item Inplace
 
-Setting this key marks the routine as working inplace. 
+Setting this key marks the routine as working inplace - ie
+the input and output piddles are the same. An example is
+C<$a-E<gt>inplace-E<gt>sqrt()> (or C<sqrt(inplace($a))>).
 
- Inplace => 1      if  Pars => 'a(); [o]b();'
+=over 4
 
- Inplace => ['a']  if  Pars => 'a(); b(); [o]c();'
+=item Inplace => 1
+
+Use when the routine is a unary function, such as C<sqrt>.
+
+=item Inplace => ['a']
+
+If there are more than one input piddles, specify the name
+of the one that can be changed inplace using an array reference.
+
+=item Inplace => ['a','b']
+
+If there are more than one output piddle, specify the name
+of the input piddle and output piddle in a 2-element array
+reference. This probably isn't needed, but left in for
+completeness.
+
+=back
+
+If bad values are being used, care must be taken to ensure the
+propogation of the badflag when inplace is being used;
+consider this excerpt from F<Basic/Bad/bad.pd>:
+
+  pp_def('replacebad',HandleBad => 1,
+    Pars => 'a(); [o]b();',
+    OtherPars => 'double newval',
+    Inplace => 1,
+    CopyBadStatusCode => 
+    '/* propogate badflag if inplace AND it has changed */
+     if ( a == b && $ISPDLSTATEBAD(a) )
+       PDL->propogate_badflag( b, 0 );
+
+     /* always make sure the output is "good" */
+     $SETPDLSTATEGOOD(b);
+    ',
+    ...
+
+Since this routine removes all bad values, then the output piddle had
+its bad flag cleared. If run inplace (so C<a == b>), then we have to
+tell all the children of C<a> that the bad flag has been cleared (to
+save time we make sure that we call C<PDL-E<gt>propogate_badgflag> only
+if the input piddle had its bad flag set).
+
+NOTE: one idea is that the documentation for the routine could be 
+automatically flagged to indicate that it can be executed inplace,
+ie something similar to how C<HandleBad> sets C<BadDoc> if it's not 
+supplied (it's not an ideal solution).
 
 =back
 
@@ -1413,9 +1461,11 @@ Along with C<BadCode>, there are also the C<BadBackCode> and
 C<BadRedoDimsCode> keys for C<pp_def>. However, any
 C<EquivCPOffsCode> should I<not> need changing, since 
 any changes are absorbed into the definition of the
-C<$EQUIVCPOFFS()> macro.
+C<$EQUIVCPOFFS()> macro (ie it is handled automatically
+by PDL::PP>.
 
-There are no guarantees that this is the best way to do it!
+There are no guarantees that this is the best way to do it (or that
+it's even correct)!
 
 =head1 Makefiles for PP files
 
@@ -1537,7 +1587,8 @@ PP functions are recognised in the string value
 =item HandleBad (bad)
 
 If set to 1, the routine is assumed to support bad values and the code in
-the BadCode key is used if bad values are present.
+the BadCode key is used if bad values are present;
+it also sets things up so that the C<$ISBAD()> etc macros can be used.
 If set to 0, cause the routine to print a warning if any of the input piddles 
 have their bad flag set.
 
@@ -1558,9 +1609,13 @@ Default: [qw/B S U L F D/]
 
 Mark a function as being able to work inplace. 
 
- Inplace => 1      if  Pars => 'a(); [o]b();'
+ Inplace => 1          if  Pars => 'a(); [o]b();'
+ Inplace => ['a']      if  Pars => 'a(); b(); [o]c();'
+ Inplace => ['a','b']  if  Pars => 'a(); b(); [o]c(); [o]d();'
 
- Inplace => ['a']  if  Pars => 'a(); b(); [o]c();'
+If bad values are being used, care must be taken to ensure the
+propogation of the badflag when inplace is being used;
+for instance see the code for C<replacebad> in F<Basic/Bad/bad.pd>. 
 
 =item Doc
 
@@ -1581,7 +1636,8 @@ code) explictly specify C<Doc=E<gt>undef>.
 Contains the text returned by the C<badinfo> command (in C<perldl>) or
 the C<-b> switch to the C<pdldoc> shell script. In many cases, you will
 not need to specify this, since the information can be automatically
-created by PDL::PP.
+created by PDL::PP. However, as befits computer-generated text, it's
+rather stilted; it may be much better to do it yourself!
 
 =back
 
@@ -1589,7 +1645,8 @@ created by PDL::PP.
 
 =head2 Macros
 
-Macros labelled by (bad) are only useable in BadXXXX sections.
+Macros labelled by (bad) are only used if bad-value support is compiled into
+PDL.
 
 =over 7
 
@@ -1632,16 +1689,19 @@ return a pointer to the pdl data structure (pdl *) of piddle C<a>
 =item $ISBAD(a()) (bad)
 
 returns true if the value stored in C<a()> equals the bad value
-for this piddle.
+for this piddle. 
+Requires C<HandleBad> being set to 1.
 
 =item $ISGOOD(a()) (bad)
 
 returns true if the value stored in C<a()> does not equal the bad value
 for this piddle.
+Requires C<HandleBad> being set to 1.
 
 =item $SETBAD(a()) (bad)
 
 Sets C<a()> to equal the bad value for this piddle.
+Requires C<HandleBad> being set to 1.
 
 =back
 
@@ -1670,6 +1730,8 @@ I<PDL>
 For the concepts of threading and slicing check L<PDL::Indexing>.
 
 L<PDL::Internals>
+
+L<PDL::BadValues> for information on bad values
 
 I<perlxs>, I<perlxstut>
 

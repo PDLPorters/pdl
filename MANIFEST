@@ -255,7 +255,6 @@ Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
-IMPLEMENTATION.bpix
 INSTALL
 IO/Browser/Makefile.PL
 IO/Browser/browse.c
@@ -269,7 +268,7 @@ IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/NDF/Makefile.PL
-IO/NDF/NDF.pm
+IO/NDF/NDF.pm.PL
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/converters/README
@@ -549,10 +548,8 @@ MANIFEST
 MANIFEST.SKIP
 Makefile.PL
 README
-README.bpix
 Release_Notes
 TODO
-TODO.bpix
 TestTools/Mem/foobar
 TestTools/Mem/tmem.pl
 debian/README.debian
