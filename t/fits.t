@@ -81,109 +81,114 @@ sub compare_piddles ($$$) {
     ok( $flag, "  and all the values agree" );
 }
 
-my $a = long( 1, 4, 9, 32 );
-my $b = double( 2.3, 4.3, -999.0, 42 );
-my $table = { COLA => $a, COLB => $b };
-wfits $table, $file;
+unless($PDL::Astro_FITS_Header) {
+ # Astro::FITS::Header is not present, ignore table tests
+ for(1..59){ok(1,"Test skipped (no binary table support without Astro::FITS::Header)");}
+} else { # Astro::FITS::Header exists
 
-my $table2 = rfits $file;
-unlink $file;
-
-ok( defined $table2, "Read of table returned something" );
-is( ref($table2), "HASH", "which is a hash reference" );
-is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
-
-ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" );
-is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );
-is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );
-is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );
-is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );
-
-compare_piddles $a, $$table2{COLA}, "COLA";
-compare_piddles $b, $$table2{COLB}, "COLB";
-
-$table = { BAR => $a, FOO => $b,
-	   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
-$table2 = {};
-
-wfits $table, $file;
-$table2 = rfits $file;
-
-ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
-    "Read in the second binary table" );
-is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );
-is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );
-is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
-is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );
-
-compare_piddles $a, $$table2{BAR}, "BAR";
-compare_piddles $b, $$table2{FOO}, "FOO";
-
-# try out more "exotic" data types
-
-$a = byte(12,45,23,0);
-$b = short(-99,100,0,32767);
-my $c = ushort(99,32768,65535,0);
-my $d = [ "A string", "b", "", "The last string" ];
-my $e = float(-999.0,0,0,12.3);
-##my $f = float(1,0,-1,2) + i * float( 0,1,2,-1 );
-$table = {
-       ACOL => $a, BCOL => $b, CCOL => $c, DCOL => $d, ECOL => $e,
-##	  FCOL => $f,
-};
-$table2 = {};
-
-wfits $table, $file;
-$table2 = rfits $file;
-#unlink $file;
-
-ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
-    "Read in the third binary table" );
-my @elem = sort keys %$table2;
-##my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL FCOL hdr tbl ) );
-##is ( $#elem+1, 8, "hash contains 8 elements" );
-my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ) );
-is ( $#elem+1, 7, "hash contains 7 elements" );
-ok( eq_array( \@elem, \@expected ), "hash contains expected keys" );
-
-# convert the string array so that each element has the same length
-# (and calculate the maximum length to use in the check below)
-#
-my $dlen = 0;
-foreach my $str ( @$d ) {
-  my $len = length($str);
-  $dlen = $len > $dlen ? $len : $dlen;
+	my $a = long( 1, 4, 9, 32 );
+	my $b = double( 2.3, 4.3, -999.0, 42 );
+	my $table = { COLA => $a, COLB => $b };
+	wfits $table, $file;
+	
+	my $table2 = rfits $file;
+	unlink $file;
+	
+	ok( defined $table2, "Read of table returned something" );
+	is( ref($table2), "HASH", "which is a hash reference" );
+	is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
+	
+	ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" );
+	is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );
+	is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );
+	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );
+	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );
+	
+	compare_piddles $a, $$table2{COLA}, "COLA";
+	compare_piddles $b, $$table2{COLB}, "COLB";
+	
+	$table = { BAR => $a, FOO => $b,
+		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
+	$table2 = {};
+	
+	wfits $table, $file;
+	$table2 = rfits $file;
+	
+	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
+	    "Read in the second binary table" );
+	is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );
+	is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );
+	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
+	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );
+	
+	compare_piddles $a, $$table2{BAR}, "BAR";
+	compare_piddles $b, $$table2{FOO}, "FOO";
+	
+	# try out more "exotic" data types
+	
+	$a = byte(12,45,23,0);
+	$b = short(-99,100,0,32767);
+	my $c = ushort(99,32768,65535,0);
+	my $d = [ "A string", "b", "", "The last string" ];
+	my $e = float(-999.0,0,0,12.3);
+	##my $f = float(1,0,-1,2) + i * float( 0,1,2,-1 );
+	$table = {
+	       ACOL => $a, BCOL => $b, CCOL => $c, DCOL => $d, ECOL => $e,
+	##	  FCOL => $f,
+	};
+	$table2 = {};
+	
+	wfits $table, $file;
+	$table2 = rfits $file;
+	#unlink $file;
+	
+	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
+	    "Read in the third binary table" );
+	my @elem = sort keys %$table2;
+	##my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL FCOL hdr tbl ) );
+	##is ( $#elem+1, 8, "hash contains 8 elements" );
+	my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ) );
+	is ( $#elem+1, 7, "hash contains 7 elements" );
+	ok( eq_array( \@elem, \@expected ), "hash contains expected keys" );
+	
+	# convert the string array so that each element has the same length
+	# (and calculate the maximum length to use in the check below)
+	#
+	my $dlen = 0;
+	foreach my $str ( @$d ) {
+	  my $len = length($str);
+	  $dlen = $len > $dlen ? $len : $dlen;
+	}
+	foreach my $str ( @$d ) {
+	  $str .= ' ' x ($dlen-length($str));
+	}
+	
+	# note that, for now, ushort data is written out as a long (Int4)
+	# instead of being written out as an Int2 using TSCALE/TZERO
+	#
+	my $i = 1;
+	foreach my $colinfo ( ( ["ACOL","1B",$a],
+				["BCOL","1I",$b],
+				["CCOL","1J",$c->long],
+				["DCOL","${dlen}A",$d],
+				["ECOL","1E",$e],
+	##			["FCOL","1M",$f]
+			      ) ) {
+	  is( $$table2{hdr}{"TTYPE$i"}, $$colinfo[0], "column $i is $$colinfo[0]" );
+	  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" );
+	  my $col = $$table2{$$colinfo[0]};
+	  if ( UNIVERSAL::isa($col,"PDL") ) {
+	    compare_piddles $col, $$colinfo[2], $$colinfo[0];
+	  } else {
+	    # Need to somehow handle the arrays since the data read in from the
+	    # file all have 15-character length strings (or whatever the length is)
+	    #
+	    ok( eq_array($col, $$colinfo[2]),
+		"  $$colinfo[0] values agree (as an array reference)" );
+	  }
+	  $i++;
+	}
 }
-foreach my $str ( @$d ) {
-  $str .= ' ' x ($dlen-length($str));
-}
-
-# note that, for now, ushort data is written out as a long (Int4)
-# instead of being written out as an Int2 using TSCALE/TZERO
-#
-my $i = 1;
-foreach my $colinfo ( ( ["ACOL","1B",$a],
-			["BCOL","1I",$b],
-			["CCOL","1J",$c->long],
-			["DCOL","${dlen}A",$d],
-			["ECOL","1E",$e],
-##			["FCOL","1M",$f]
-		      ) ) {
-  is( $$table2{hdr}{"TTYPE$i"}, $$colinfo[0], "column $i is $$colinfo[0]" );
-  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" );
-  my $col = $$table2{$$colinfo[0]};
-  if ( UNIVERSAL::isa($col,"PDL") ) {
-    compare_piddles $col, $$colinfo[2], $$colinfo[0];
-  } else {
-    # Need to somehow handle the arrays since the data read in from the
-    # file all have 15-character length strings (or whatever the length is)
-    #
-    ok( eq_array($col, $$colinfo[2]),
-	"  $$colinfo[0] values agree (as an array reference)" );
-  }
-  $i++;
-}
-
 ########### Check if r/wfits bugs are fixed ################
 
 {

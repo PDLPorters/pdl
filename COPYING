@@ -1,7 +1,6 @@
-  Copyright (c) 1997, 1998, 1999, 2000, 2001 by the contributors named
-  in the individual files. All rights reserved.  This distribution is
-  free software; you can redistribute it and/or modify it under the same
-  terms as Perl itself.
+  Copyright (c) 1997-2004 by the contributors named in the individual files. 
+  All rights reserved.  This distribution is free software; you can
+  redistribute it and/or modify it under the same terms as Perl itself.
 
   The demonstration image m51.fits is derived from the Hubble Heritage
   project archival images; its creation was funded in part by a grant
