@@ -1584,9 +1584,8 @@ InterpND acts like L<indexND|indexND>, collapsing C<$index> by lookup
 into C<$source>; but it does interpolation, rather than straight
 lookup, into C<$source>.  Several options may be passed in via an
 options hash. By default, linear or sample interpolation is used, with
-constant value outside the boundaries of the source pdl.  Because the
-output is interpolated, rather than indexed values, no flowback
-occurs.
+constant value outside the boundaries of the source pdl.  No flowback
+occurs, because the output is interpolated rather than indexed.
 
 All the interpolation methods treat the pixels as value-centered, so
 the C<sample> method will return $a->(0) for coordinate values on 

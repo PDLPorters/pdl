@@ -28,8 +28,8 @@ with or without inverses.
 Transform also includes image mapping methods that use interpND.  You
 define a coordinate transform using a Transform object, then apply
 that to a PDL that contains an image.  The output is a remapped,
-resampled image.   Eventually, the resampled image will have an updated
-FITS header that corresponds to what coordinates it's in.
+resampled image.  Eventually, the resampled image will have an updated
+FITS header that corresponds to what coordinates it represents.
 
 In keeping with standard practice, but somewhat counterintuitively,
 the transform is used to map coordinates FROM the destination
@@ -120,7 +120,7 @@ dimensions.
 
 Ref to an inverse method that reverses the transformation.  It must
 accept the same "params" hash that the forward method accepts.  This
-key can be left undefined in cases where the inverse doesn't exist.
+key can be left undefined in cases where there is no inverse.
 
 =item indim, outdim
 
@@ -143,7 +143,7 @@ work right.
 
 =item is_inverse
 
-Bit indicating whether the transform has been inverted.  That's useful
+Bit indicating whether the transform has been inverted.  That is useful
 for some stringifications (see the PDL::Transform::Linear
 stringifier), and may be useful for other things.
 
@@ -178,6 +178,11 @@ rather than matrix-multiply-and-add operations.
 =cut
 use PDL::MatrixOps;
 
+our $PI = 3.1415926535897932384626;
+our $DEG2RAD = $PI / 180;
+our $RAD2DEG = 180/$PI;
+our $E  = exp(1);
+
 package PDL::Transform;
 use overload '""' => \&_strval;
 
@@ -186,7 +191,7 @@ $VERSION = "0.7";
 BEGIN {
    use Exporter ();
    @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_shift );
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_shift t_pincushion );
    @EXPORT = @EXPORT_OK;
    %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 }
@@ -206,7 +211,7 @@ sub _opt {
   my($alt) = shift;  # default is undef -- ok.
   local($_);
   foreach $_(@$synonyms){
-    return $hash->{$_}
+    return (UNIVERSAL::isa($alt,'PDL')) ? PDL->pdl($hash->{$_}) : $hash->{$_}
     if defined($hash->{$_}) ;
   }
   return $alt;
@@ -282,7 +287,7 @@ sub apply {
 
 If an inverse exists, apply the inverse transform to some coordinates.
 
-If the inverse doesn't exist, return undef.
+If the inverse does not exist, return undef.
 
 =cut
 
@@ -312,11 +317,11 @@ Resample an image or N-D dataset using a coordinate transform.
 
 The transform is applied to the coordinates of $output to obtain 
 coordinates for interpolation from the $input array.  NOTE that this is
-somewhat counterintuitive at first; but it's the correct way to do 
+somewhat counterintuitive at first; but it is the correct way to do 
 image distortion.
 
 The output has the same data type as the input.  This is a feature,
-but it can lead to `strange' banding behaviors if you use interpolation
+but it can lead to strange-looking banding behaviors if you use interpolation
 on an integer input variable.
 
 <template> can be one of:
@@ -480,7 +485,7 @@ sub map {
   $PDL::debugerooni_out = $out;
 
   my($integrate) = scalar(_opt($opt,['m','method','Method']) =~ m/[jJ](ac(obian)?)?/);
-  print "integrate ='$integrate'\n";
+
   if(!$integrate) {
     
     ##############################
@@ -493,6 +498,7 @@ sub map {
     }
     
     $indices = $me->apply($indices->inplace);
+
     $out .= $in->interpND($indices,$opt);
   }
 
@@ -517,7 +523,7 @@ sub map {
       if($nd != $nd_in);
 
     ###############
-    ### Interprest integration-specific options...
+    ### Interpret integration-specific options...
     my $big = _opt($opt,['big','Big']) || pdl($in->dims)->max / 5.0;
     $big = pdl($big) unless UNIVERSAL::isa($big,'PDL');
 
@@ -672,14 +678,14 @@ sub map {
       my $f_norm = $filt->sumover;       # (pix-list)
 
       if(defined $PDL::debug::w && ($size >4)) {
-	print "Saving pixels...\n";
+	  print "Saving pixels...\n" if($PDL::debug);
 	my $i;
 	for ($i=0;$i<$filt->dim(1);$i++) {
 	  $PDL::debug::w = new PDL::Graphics::PGPLOT::Window(Dev=>sprintf("%6.6d.gif/gif",++($PDL::debug::n)),
 				 Size=>[3,3]);
 	  $PDL::debug::w->imag($filt->slice(":,($i)")->reshape($size,$size));
 	  $PDL::debug::w->close;
-	  print " . " if(!($i%100));
+	  print " . " if($PDL::debug && !($i%100));
 	}
       }
       
@@ -883,7 +889,7 @@ sub compose {
   $me->{func} = sub {
     my ($data,$p) = @_;
     my ($ip) = $data->is_inplace;
-    for my $t ( reverse(@{$p->{clist}}) ) {
+    for my $t ( reverse @{$p->{clist}} ) {
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
     }
     $data;
@@ -964,7 +970,7 @@ and get the same result.
 
 Generic constructor generates the identity transform.
 
-This constructor really is trivial -- it's mainly used by the other transform 
+This constructor really is trivial -- it is mainly used by the other transform 
 constructors.  It takes no parameters and returns the identity transform.
 
 =cut
@@ -1045,7 +1051,7 @@ scale numbers.
 =item o, offset, Offset
 
 (default 0.0) Specifies the linear amount of offset before lookup.  
-This is only a scalar, because it's intended to let you switch to 
+This is only a scalar, because it is intended to let you switch to 
 corner-centered coordinates if you want to (just feed in o=-0.25).
 
 =item b, bound, boundary, Boundary
@@ -1074,12 +1080,12 @@ To do the same thing but with a smaller lookup table, try:
   $b = $t->map($a);
 
 (Notice that, although the lookup table coordinates are is divided by 16, 
-it's a 17x17 -- so linear interpolation works right to the edge of the original
+it is a 17x17 -- so linear interpolation works right to the edge of the original
 domain.)
 
 NOTES
 
-Inverses aren't yet implemented -- the best way to do it might be by 
+Inverses are not yet implemented -- the best way to do it might be by 
 judicious use of map() on the forward transformation.
 
 =cut
@@ -1195,7 +1201,7 @@ The options you can usefully pass in are:
 =item s, scale, Scale
 
 A scaling scalar (heh), vector, or matrix.  If you specify a vector
-it's treated as a diagonal matrix (for convenience).  It gets
+it is treated as a diagonal matrix (for convenience).  It gets
 left-multiplied with the transformation matrix you specify (or the
 identity), so that if you specify both a scale and a matrix the
 scaling is done after the rotation or skewing or whatever.
@@ -1204,7 +1210,7 @@ scaling is done after the rotation or skewing or whatever.
 
 A rotation angle in degrees -- useful for 2-D and 3-D data only.  If
 you pass in a scalar, it specifies a rotation from the 0th axis toward
-the 1st axis.  If you pass in a 3-vector, it's treated as a set of
+the 1st axis.  If you pass in a 3-vector, it is treated as a set of
 Euler angles, and a rotation matrix is generated that does the following, in
 order:
 
@@ -1220,7 +1226,7 @@ order:
 
 The rotation matrix is left-multiplied with the transformation matrix
 you specify, so that if you specify both rotation and a general matrix
-the rotation happens after the more general operation -- though that's
+the rotation happens after the more general operation -- though that is
 deprecated.
 
 Of course, you can duplicate this functionality -- and get more
@@ -1229,8 +1235,8 @@ with the C<matrix> option.
 
 =item m, matrix, Matrix
 
-The transformation matrix.  It doesn't even have to be square, if you want
-to change the dimensionality of your input.  If it's invertible (note: 
+The transformation matrix.  It does not even have to be square, if you want
+to change the dimensionality of your input.  If it is invertible (note: 
 must be square for that), then you automagically get an inverse transform too.
 
 =item pre, preoffset, offset, Offset
@@ -1247,13 +1253,13 @@ units).
 
 =item dims, Dims
 
-Most of the time it's obvious how many dimensions you want to deal
+Most of the time it is obvious how many dimensions you want to deal
 with: if you supply a matrix, it defines the transformation; if you
 input offset vectors in the C<pre> and C<post> options, those define
-the number of dimensions.  But if you only supply scalars, there's no way
+the number of dimensions.  But if you only supply scalars, there is no way
 to tell and the default number of dimensions is 2.  This provides a way 
 to do, e.g., 3-D scaling: just set C<{s=><scale-factor>, dims=>3}> and
-you're on your way.
+you are on your way.
 
 =back
 
@@ -1348,7 +1354,7 @@ sub PDL::Transform::Linear::new {
 		       $angle = $angle->at(0)
 			 if(UNIVERSAL::isa($angle,'PDL'));
 
-		       my($a) = $angle*3.1415926535897932384626/180;
+		       my($a) = $angle * $DEG2RAD;
 		       $subm x= pdl([cos($a),-sin($a)],[sin($a),cos($a)]);
 		     };
     
@@ -1399,6 +1405,7 @@ sub PDL::Transform::Linear::new {
   $me->{inv} = (defined $me->{params}->{inverse}) ? sub {
     my($in,$opt) = @_;
     my($a) = $in - $opt->{post};
+
 
     my($outmat) = $a x $opt->{inverse};
     return $outmat-$_[1]->{pre};
@@ -1526,7 +1533,7 @@ applying the inverse goes the other way.  This is just a convenience
 subclass of PDL::Transform::Linear.
 
 For now, this transform is rather limited -- it really ought to 
-accept units differences and stuff like that, but they're just
+accept units differences and stuff like that, but they are just
 ignored for now.  Probably that would require putting units into
 the whole transform framework.  
 
@@ -1604,7 +1611,7 @@ sub PDL::Transform::FITS::new {
       my $cr = $hdr->{CROTA};
       $cr = $hdr->{CROTA1} unless defined $cr;
 
-      $cr *= 3.14159265358979323846264338 / 180;
+      $cr *= $DEG2RAD;
       $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
 
     }
@@ -1686,8 +1693,8 @@ The name of the transform (defaults to "code").
 
 The code variables are executable perl code, either as a code ref or
 as a string that will be eval'ed to produce code refs.  If you pass in
-a string, it's eval'ed at call time to get a code ref.  If it compiles
-OK but doesn't return a code ref, then it's re-evaluated with "sub {
+a string, it gets eval'ed at call time to get a code ref.  If it compiles
+OK but does not return a code ref, then it gets re-evaluated with "sub {
 ... }" wrapped around it, to get a code ref.
 
 Note that code callbacks like this can be used to do really weird
@@ -1718,8 +1725,9 @@ sub PDL::Transform::Code {
 
 ######################################################################
 
-=head2 t_radial 
+=head2 t_cylindrical
 
+=head2 t_radial
 
 =for usage
 
@@ -1728,9 +1736,9 @@ sub PDL::Transform::Code {
 
 =for ref
 
-Convert to radial coordinates.  (2-D; with inverse)
+Convert Cartesian to radial/cylindrical coordinates.  (2-D/3-D; with inverse)
 
-Converts Cartesian to radial (theta,r) coordinates.  You can choose
+Converts 2-D Cartesian to radial (theta,r) coordinates.  You can choose
 direct or conformal conversion.  Direct conversion preserves radial
 distance from the origin; conformal conversion preserves local angles,
 so that each small-enough part of the image only appears to be scaled
@@ -1738,7 +1746,13 @@ and rotated, not stretched.  Conformal conversion puts the radius on a
 logarithmic scale, so that scaling of the original image plane is
 equivalent to a simple offset of the transformed image plane.
 
-Theta runs B<clockwise> instead of the more usual counterclockwise; that's
+If you use three or more dimensions, the higher dimensions are ignored,
+yielding a conversion from Cartesian to cylindrical coordinates, which
+is why there are two aliases for the same transform.  If you use higher
+dimensionality than 2, you must manually specify the origin or you will 
+get dimension mismatch errors when you apply the transform.
+
+Theta runs B<clockwise> instead of the more usual counterclockwise; that is
 to preserve the mirror sense of small structures.
 
 OPTIONS:
@@ -1799,6 +1813,7 @@ each piece of the image looks "natural" -- only scaled and not stretched.
 @PDL::Transform::Radial::ISA = ('PDL::Transform');
 
 sub t_radial { new PDL::Transform::Radial(@_); }
+sub t_cylindrical { new PDL::Transform::Radial(@_); }
 
 sub PDL::Transform::Radial::new {
   my($class) = shift;
@@ -1813,47 +1828,304 @@ sub PDL::Transform::Radial::new {
   $me->{params}->{origin} = pdl(0,0) 
     unless defined($me->{params}->{origin});
   $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
-
-
+  
+  
   $me->{params}->{r0} = _opt($o,['r0','R0','c','conformal','Conformal']);
   $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
-
+  
   $me->{name} = "radial (direct)";
   
   $me->{func} = sub {
-    my($data,$o) = @_;
-    my($d) = $data - $o->{origin};
-    my($d0) = $d->index(0);
-    my($d1) = $d->index(1);
 
-    my $out = atan2($d1->dummy(0,1), - $d0->dummy(0,1));
+      my($data,$o) = @_;
 
-    if(defined $o->{r0}) {
-      return append($out,log( sqrt($d1*$d1+$d0*$d0)->dummy(0,1) / $o->{r0} ));
-    }
+      my($out) = ($data->is_inplace) ? $data : zeroes($data);
 
-    return   append($out,    sqrt($d1*$d1+$d0*$d0)->dummy(0,1) );
+      my($d) = $data->copy - $o->{origin};
+
+
+      my($d0) = $d->slice("(0)");
+      my($d1) = $d->slice("(1)");
+
+      # (mod operator on atan2 puts everything in the interval [0,2*PI).)
+      $out->slice("(0)") .= atan2(-$d1,$d0) % (2*$PI);
+
+      $out->slice("(1)") .= (defined $o->{r0}) ?
+	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
+	      sqrt($d1*$d1 + $d0*$d0);
+      
+      $out;
   };
-  
+
   $me->{inv} = sub {
-    my($data,$o) = @_;
-    my($d0) = $data->index(0);
-    my($d1) = $data->index(1);
-    my $out;
 
-    if(defined $o->{r0}) {
-      $out = ($o->{r0} * exp($d1))->dummy(0,2) *
-	     append( cos($d0)->dummy(0,1), -sin($d0)->dummy(0,1) );	     
-    } else {
-      $out = $d1->dummy(0,2) * 
-	     append( cos($d0)->dummy(0,1), -sin($d0)->dummy(0,1) );
-    }
+    my($d,$o) = @_;
+    my($d0,$d1,$out)=
+	( ($d->is_inplace) ?
+	  ($d->slice("(0)")->copy, $d->slice("(1)")->copy->dummy(0,2), $d) :
+	  ($d->slice("(0)"),       $d->slice("(1)")->dummy(0,2),       $d->copy)
+	  );
+      
+    my($os) = $out->slice("0:1");
+    $os .= append(cos($d0)->dummy(0,1),-sin($d0)->dummy(0,1));
+    $os *= defined $o->{r0}  ?  ($o->{r0} * exp($d1))  :  $d1;
+    $os += $o->{origin};
 
-    $out += $o->{origin};
+    $out;
   };
   
   
   $me;
+}
+
+######################################################################
+
+=head2 t_pincushion
+
+=for usage
+
+    $t = t_pincushion(<options>);
+  
+=for ref
+
+Azimuthally symmetric quadratic (pincushion) scaling (2-d; with inverse)
+
+Radial distortion is characteristic of a nonflat focal plane in a
+symmetric paraxial optical system.  The first distortion term is the
+quadratic (pincushion) term.  C<t_pincushion> uses
+L<t_radial|t_radial> and L<t_quadratic|t_quadratic> to achieve
+azimuthally symmetric pincushion distortion.  The options are the same
+as for L<t_quadratic|t_quadratic>, but only scalars are allowed.
+
+=cut
+
+
+
+
+
+######################################################################
+
+=head2 t_quadratic
+
+=for usage
+
+  $t = t_square(<options>);
+  $t = new PDL::Transform::Pincushion(<options>);
+
+=for ref
+
+Quadratic scaling -- cylindrical pincushion (n-d; with inverse)
+
+Quadratic scaling emulates pincushion in a cylindrical optical system:
+separate quadratic scaling is applied to each axis.  You can apply
+separate distortion along any of the principal axes.  If you want
+different axes, use L<wrap|wrap> and L<t_linear|t_linear> to rotate
+them to the correct angle.  The scaling options may be scalars or
+vectors; if they are scalars then the expansion is isotropic.
+
+The formula for the expansion is: 
+
+    f(a) = ( <a> + <strength> * a^2/<L_0> ) / (abs(<strength>) + 1)
+
+where <strength> is a scaling coefficient and <L_0> is a fundamental
+length scale.   Negative values of <strength> result in a pincushion 
+contraction.
+
+OPTIONS
+
+=over 3
+
+=item o,origin,Origin
+
+The origin of the pincushion.
+
+=item l,l0,length,Length,r0
+
+The fundamental scale of the transformation -- the radius that remains
+unchanged.
+
+=item s,str,strength,Strength
+
+The relative strength of the pincushion.
+
+=back
+
+=cut
+
+@PDL::Transform::Pincushion::ISA = ('PDL::Transform');
+
+sub t_pincushion { new PDL::Transform::Pincushion(@_); }
+sub PDL::Transform::Pincushion::new {
+    my($class) = shift;
+    my($o) = $_[0];
+    if(ref $o ne 'HASH') {
+	$o = {@_};
+    }
+    my($me) = PDL::Transform::new($class);
+    
+    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0,0));
+    $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
+    $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
+
+    $me->{name} = "pincushion";
+    
+    $me->{func} = sub {
+	my($data,$o) = @_;
+	my($d) = $data->copy - $me->{params}->{origin};
+	$d += $me->{params}->{str} * ($d * abs($d)) / $me->{params}->{l0};
+	$d /= (abs($me->{params}->{str}) + 1);
+	$d += $me->{params}->{origin};
+	if($data->is_inplace) {
+	    $data .= $d;
+	    return $data;
+	}
+	$d;
+    };
+    
+    $me->{inv} = sub {
+	my($data,$o) = @_;
+	my($d) = $data->copy ;
+	my($o) = $me->{params}->{origin};
+	my($s) = $me->{params}->{str};
+	my($l) = $me->{params}->{l0};
+
+	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($data-$o) * (1+abs($s))))
+	    / 2 / $s * $l) * (1 - 2*($data < $o));
+	$d += $me->{params}->{origin};
+	if($data->is_inplace) {
+	    $data .= $d;
+	    return $data;
+	}
+	$d;
+    };
+    $me;
+}
+
+
+######################################################################
+
+=head2 t_spherical
+
+=for usage
+
+    $t = t_spherical(<options>);
+    $f = new PDL::Transform::Spherical(<options>);
+
+=for ref
+
+Convert Cartesian to spherical coordinates.  (3-D; with inverse)
+
+Convert 3-D Cartesian to spherical (theta, phi, r) coordinates.  Theta
+is longitude, centered on 0, and phi is latitude, also centered on 0.
+Unless you specify Euler angles, the pole points in the +Z direction
+and the prime meridian is in the +X direction.  The default is for
+theta and phi to be in radians; you can select degrees if you want
+them.
+
+Just as the L<t_radial|Radial> 2-D transform acts like a 3-D
+cylindrical transform by ignoring third and higher dimensions,
+Spherical acts like a hypercylindrical transform in four (or higher)
+dimensions.  Also as with L<t_radial|Radial>, you must manually specify
+the origin if you want to use more dimensions than 3.
+
+OPTIONS:
+
+=over 3
+
+=item o, origin, Origin [default (0,0,0)]
+
+This is the Cartesian origin of the spherical expansion.  Pass in a PDL
+or an array ref.  
+
+=item e, euler, Euler [default (0,0,0)]
+
+This is a 3-vector containing Euler angles to change the angle of the
+pole and ordinate.  The first two numbers are the (theta, phi) angles
+of the pole in a (+Z,+X) spherical expansion, and the last is the
+angle that the new prime meridian makes with the meridian of a simply
+tilted sphere.  This is implemented by composing the output transform
+with a PDL::Transform::Linear object.
+
+=item u, unit, Unit (default radians)
+
+This option sets the angular unit to be used.  Acceptable values are
+"degrees","radians", or reasonable substrings thereof (e.g. "deg", and
+"rad", but "d" and "r" are deprecated).  Once genuine unit processing
+comes online (a la Math::Units) any angular unit should be OK.
+
+=back
+
+sub t_spherical { new PDL::Transform::Spherical(@_); }
+@PDL::Transform::Spherical::ISA = ('PDL::Transform');
+
+sub PDL::Transform::Spherical::new {
+    my($class) = shift;
+    my($o) = $_[0];
+    if(ref $o ne 'HASH') {
+	$o = { @_ } ;
+    }
+
+    my($me) = PDL::Transform::new($class);
+
+    $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
+    $me->{params}->{origin} = PDL->zeroes(3)
+	unless defined($me->{params}->{origin});
+    $me->{params}->{origin} = PDL->pdl($me->{params}->{origin});
+    
+    $me->{params}->{deg} = _opt($o,['d','degrees','Degrees']);
+    
+    my $unit = _opt($o,['u','unit','Unit']);
+    $me->{params}->{angunit} = ($unit =~ m/^d/i) ? 
+	$DEG2RAD : undef;
+    
+    $me->{name} = "spherical";
+    
+    $me->{func} = sub {
+	my($data,$o) = @_;
+	my($d) = $data->copy - $o->{origin};
+
+	my($d0,$d1,$d2) = ($d->slice("(0)"),$d->slice("(1)"),$d->slice("(2)"));
+	my($out) =   ($d->is_inplace) ? $data ? $data->copy;
+
+	($out->slice("(0)"), $out->slice("(1)"), $out->slice("(2)"));
+
+	$out->slice("(0)") .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+	$out->slice("(1)") .= asin($d2 / $r);
+	$out->slice("(2)") .= atan2($d1, -$d0);
+
+
+	$out->slice("1:2") *= $o->{angunit}
+	  if(defined $o->{angunit});
+	
+	$out;
+    }
+
+    $me->{inv} = sub {
+	my($d,$o) = @_;
+	
+	my($theta,$phi,$r,$out) = 
+	    ( ($d->is_inplace) ? 
+	      ($d->slice("(0)")->copy,$d->slice("(1)")->copy,$d->slice("(2)")->copy, $d) :
+	      ($d->slice("(0)"), $d->slice("(1)"), $d->slice("(2)"), $d->copy)
+	      );
+
+	
+	my($x,$y,$z) = 
+	    ($out->slice("(0)"),$out->slice("(1)"),$out->slice("(2)"));
+
+	if(defined $o->{angunit}){
+	    $z .= $r * sin($phi / $o-
+	$z .= $r * sin($phi);
+	$x .= $r * cos($phi);
+	$y .= $x * sin($theta);
+	$x *= cos($theta);
+
+	$out += $o->{origin};
+
+	$out;
+    }
+
+    $me;
 }
 
 =head1 AUTHOR

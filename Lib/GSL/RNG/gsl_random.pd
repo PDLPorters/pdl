@@ -602,6 +602,13 @@ EOD
 
 # PP interface to RNG
 
+
+##############################
+# 
+# make_get_sub generates a wrapper PDL subroutine that handles the 
+# fill-a-PDL and create-a-PDL cases for each of the GSL functions.
+#  --CED 
+#
 sub make_get_sub {
   my ($fname,$par) =@_;
   my $s;

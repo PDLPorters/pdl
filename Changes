@@ -1,3 +1,6 @@
+CED (02-Dec-2002)
+    - indexND now uses range call instead of index call (works faster)
+    - many mods to Transform
 CED (21-Nov-2002)
     - PDL::Math loads PDL::MatrixOps by default for backwards compatibility.
 CED (19-Nov-2002) 

@@ -427,7 +427,7 @@ the values at the boundaries out to infinity.
 
 =item truncate
 
-missing values get 0 or the missing value that you feed in (or BAD,
+out-of-bounds values get 0 or the missing value that you feed in (or BAD,
 eventually -- but BAD values aren't supported at present).  Because
 ``truncate'' involves inserting values that aren't necessarily present
 in the original array, it returns a I<copy> of the data rather than an
@@ -436,16 +436,11 @@ original array.
 
 =item forbid
 
-missing values cause an "out of bounds" barf.
+out-of-bounds values cause a barf.
 
 =back
 
-C<indexNDb> is different than C<indexND> only because it includes
-extra overhead for handling boundary values.
-
-This routine is written in perl.  It should probably stay that way
-as the performance hit isn't so bad (though its engine, L<indexND|indexND>,
-probably should be written in C).
+C<indexNDb> is now just a front end for a C<range> call.
 
 =cut
 
@@ -454,52 +449,10 @@ probably should be written in C).
 sub PDL::indexNDb{ 
   my($source,$index,$method,$bad) = @_;
 
-  my($index_limits) = ones($index->dim(0));
-  my($source_size) = pdl($source->dims);
 
-  if($source_size->nelem < $index_limits->nelem) {
-    # use $tmp for 5.005_03 compatibility
-    (my $tmp = $index_limits->slice("0:".($source_size->nelem-1))) 
-       .= $source_size;
-  } else {
-    $index_limits .= $source_size->slice("0:".($index_limits->nelem-1));
-  }
-  
-  my($ind);
+  my($i1) = $index->mv(0,-1)->clump(scalar($index->dims)-1)->mv(-1,0);
+  $source->range($i1,1,$method)->reshape($index->index(0)->dims);
 
-  if($method =~ m/ext/i || $method =~ m/trunc/i) { # extend or truncate
-
-    $ind = $index->clip(0,$index_limits - 1);
-
-  } elsif ($method =~ m/per/i) { # periodic
-
-   $ind = $index % $index_limits;
-
-  } elsif ($method =~ m/for/i) { # forbid
-
-    $ind = $index->clip(zeroes($index_limits),$index_limits);
-    if(sum($ind != $index)) {
-      barf "Index out of bounds in indexNDb\n";
-    }
-
-  } else { # default (extend)
-
-    $ind = $index->clip(0,$index_limits - 1);
-    
-    print "indexNDb: unrecognized method '$method'; using default (extend).\n"
-      if($PDL::debug && defined $method);
-  }
-    
-  my($retval) =  $source->indexND($ind);
-
-  if($method =~ m/trunc/i) {
-    $retval = $retval->copy; 
-    my($ind2) = whichND( ($ind != $index)->sumover );
-    # use $tmp for 5.005_03 compatibility
-    (my $tmp = $retval->indexND($ind2)) .= (defined $bad ? $bad : 0.0);
-  }    
-  
-  return $retval;
 }
 
 EOD-indexNDb
