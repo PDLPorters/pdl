@@ -11,7 +11,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
 # Do the appropriate substitutions in the code.
 sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
-	    $extrageneric,$havethreading, $dont_add_thrloop) = @_;
+	    $extrageneric,$havethreading, $dont_add_thrloop, $nogeneric_loop) = @_;
 
          # C++ style comments
          #
@@ -97,7 +97,7 @@ sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
 		push @{$coderef},$nc;
 	}
 # Enclose it all in a genericloop.
-	{
+	unless ($nogeneric_loop) {
 # XXX Make genericloop understand denied pointers;...
 		my $nc = $coderef;
 		$coderef = new PDL::PP::GenericLoop($generictypes,"",

@@ -321,94 +321,77 @@ sub topdl {PDL->topdl(@_)}
 { package PDL;
   use UNIVERSAL 'isa'; # need that later in info function
   use Carp;
-BEGIN {
-@PDL::biops1  = qw( + * - / );
-@PDL::biops2  = qw( > < <= >= == != );
-@PDL::biops3  = qw( << >> | & ^ );
 
-@PDL::ufuncs1 = qw( sqrt abs );
-@PDL::ufuncs1f = qw( sin cos );
-@PDL::ufuncs2 = qw( ! ~ NOTHING );
-@PDL::ufuncs2f = qw( log exp );
-@PDL::bifuncs = ("pow",["pow","**"],"atan2",["MODULO","%"],["SPACESHIP","<=>"]);
+  use overload (
+		"+"     => \&PDL::plus,     # in1, in2
+		"*"     => \&PDL::mult, # in1, in2
+		"-"     => \&PDL::minus,    # in1, in2, swap if true
+		"/"     => \&PDL::divide,   # in1, in2, swap if true
+		
+		"+="    => sub { PDL::plus     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"*="    => sub { PDL::mult ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"-="    => sub { PDL::minus    ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"/="    => sub { PDL::divide   ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 
-%PDL::bop_sbclasschk = map {my $op = $_;
-     	    ($op => sub {my $foo; # print "OP: $op\n";
-			 ref $_[1] && (ref $_[1] ne __PACKAGE__) 
-			   && defined ($foo = overload::Method($_[1],$op)) ?
-			     &$foo($_[1],$_[0],!$_[2]) :
-			       ($foo = $_[0]->null(),
-				PDL::_my_biop1_int(&PDL::Core::rswap,$foo,$op),
-				$foo)})}
-  @PDL::biops1;
+		">"     => \&PDL::gt,       # in1, in2, swap if true
+		"<"     => \&PDL::lt,       # in1, in2, swap if true
+		"<="    => \&PDL::le,       # in1, in2, swap if true
+		">="    => \&PDL::ge,       # in1, in2, swap if true
+		"=="    => \&PDL::eq,       # in1, in2
+		"!="    => \&PDL::ne,       # in1, in2
+		
+		"<<"    => \&PDL::shiftleft,  # in1, in2, swap if true
+		">>"    => \&PDL::shiftright, # in1, in2, swap if true
+		"|"     => \&PDL::or2,        # in1, in2
+		"&"     => \&PDL::and2,       # in1, in2
+		"^"     => \&PDL::xor,        # in1, in2
+		
+		"<<="   => sub { PDL::shiftleft ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		">>="   => sub { PDL::shiftright($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"|="    => sub { PDL::orop      ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"&="    => sub { PDL::andop     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"^="    => sub { PDL::xor       ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+	        "**="   => sub { PDL::power     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+	        "%="    => sub { PDL::modulo    ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		
+		"sqrt"  => sub { PDL::sqrt ($_[0]); },
+		"abs"   => sub { PDL::abs  ($_[0]); },
+		"sin"   => sub { PDL::sin  ($_[0]); },
+		"cos"   => sub { PDL::cos  ($_[0]); },
 
-};
+		"!"     => sub { PDL::not  ($_[0]); },
+		"~"     => sub { PDL::bitnot ($_[0]); },
 
-   use overload (
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = $_[0]->null(); # print "OP: $op\n";
-			 PDL::_my_biop1_int(&PDL::Core::rswap,$foo,$op); $foo
-			  },
-	    "$op=" => sub {PDL::Ops::my_biop1(&PDL::Core::rswapass,$op);
-	    	          return $_[0];})} @PDL::biops1),
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = $_[0]->null(); 
-     		       PDL::Ops::my_biop2(&PDL::Core::rswap,$foo,$op); $foo;})} 
-		       			  @PDL::biops2),
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = $_[0]->null(); 
-     		       PDL::Ops::my_biop3(&PDL::Core::rswap,$foo,$op); $foo;},
-	    "$op=" => sub {PDL::Ops::my_biop3(&PDL::Core::rswapass,$op);
-	    	          return $_[0];})} @PDL::biops3),
+		"log"   => sub { PDL::log  ($_[0]); },
+		"exp"   => sub { PDL::exp  ($_[0]); },
 
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = PDL::Core::new_or_inplace($_[0]);
-     		       PDL::Ops::my_ufunc1($_[0],$foo,$op); $foo;})} @PDL::ufuncs1),
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = PDL::Core::new_or_inplace($_[0]);
-     		       PDL::Ops::my_ufunc1f($_[0],$foo,$op); $foo;})} @PDL::ufuncs1f),
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = PDL::Core::new_or_inplace($_[0]);
-     		       PDL::Ops::my_ufunc2($_[0],$foo,$op); $foo;})} @PDL::ufuncs2),
-     (map {my $op = $_;
-     	    ($op => sub {my $foo = PDL::Core::new_or_inplace($_[0]);
-     		       PDL::Ops::my_ufunc2f($_[0],$foo,$op); $foo;})} @PDL::ufuncs2f),
+	        "**"    => \&PDL::power,          # in1, in2, swap if true
 
-     (map {my $op = (ref $_ ? $_->[0] : $_);
-     	   my $opname = (ref $_ ? $_->[1] : $_);
-    ($opname => sub {my $foo = $_[0]->null();
-		PDL::Ops::my_bifunc1(&PDL::Core::rswap,$foo,$op); $foo;})} 
-		   @PDL::bifuncs),
+	        "atan2" => \&PDL::atan2,          # in1, in2, swap if true
+	        "%"     => \&PDL::modulo,         # in1, in2, swap if true
 
-#     "="      =>  sub {shift->pdl_hard_copy}, # Copy
-     "="      =>  sub {$_[0]}, # Don't copy
+	        "<=>"   => \&PDL::spaceship,      # in1, in2, swap if true
 
-     "**="    => sub {my @args = (&PDL::Core::rswap);
-     			PDL::Ops::my_bifunc1(@args,$args[0],"pow"); $args[0];},
-     "%="    => sub {my @args = (&PDL::Core::rswap);
-     			PDL::Ops::my_bifunc1(@args,$args[0],"MODULO"); $args[0];},
+		"="     =>  sub {$_[0]},          # Don't deep copy, just copy reference
 
-     ".="     => sub {my @args = reverse &PDL::Core::rswap;
-		      return $args[1]->info("%C (%A): %T %D %S %M")
-			if !ref $args[0] && $args[0] eq '';
-		      PDL::Primitive::assgn(@args);
-		      return $args[1];},
-     
-     'x'      =>  sub{my $foo = $_[0]->null();
-     		      PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
-     '~'      =>  \&PDL::Basic::transpose,
-     'bool' => sub { return 0 if $_[0]->isnull;
-                    unless ($_[0]->nelem == 1) {
-                      croak("multielement piddle in conditional expression")}
-                    $_[0]->clump(-1)->at(0); },
-     "\"\""   =>  \&PDL::Core::string   );
+		".="    => sub {my @args = reverse &PDL::Core::rswap;
+				return $args[1]->info("%C (%A): %T %D %S %M")
+				  if !ref $args[0] && $args[0] eq '';
+				PDL::Primitive::assgn(@args);
+				return $args[1];},
+		 
+		'x'     =>  sub{my $foo = $_[0]->null();
+				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
+
+		'bool'  => sub { return 0 if $_[0]->isnull;
+				 unless ($_[0]->nelem == 1) {
+				   croak("multielement piddle in conditional expression")}
+				 $_[0]->clump(-1)->at(0); },
+		"\"\""  =>  \&PDL::Core::string   );
 }
 
 sub rswap {
 	if($_[2]) { return  @_[1,0] } else { return @_[0,1] }
-}
-sub rswapass {
-	if($_[2]) { return  @_[1,0,1] } else { return @_[0,1,0] }
 }
 
 sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
@@ -538,8 +521,6 @@ sub PDL::new {
    return $new;
 }
 
-# Call pdl_null XS function, bless it and return.
-sub PDL::initialize { bless &PDL::pdl_null(), (ref $_[0] ? ref $_[0]: $_[0]) }
 
 =head2 PDL::copy
 

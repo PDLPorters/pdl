@@ -616,6 +616,23 @@ pdl_remove_threading_magic(it)
 MODULE = PDL::Core	PACKAGE = PDL	
 
 SV *
+initialize(class)
+	SV *class
+
+        PPCODE:
+	HV *bless_stash;
+
+        if (SvROK(class)) { /* a reference to a class */
+	  bless_stash = SvSTASH(SvRV(class));
+        } else {            /* a class name */
+          bless_stash = gv_stashsv(class, 0);
+        }
+        ST(0) = sv_newmortal();
+        SetSV_PDL(ST(0),pdl_null());   /* set a null PDL to this SV * */
+        ST(0) = sv_bless(ST(0), bless_stash); /* bless appropriately  */
+	XSRETURN(1);
+
+SV *
 get_dataref(self)
 	pdl *self
 	CODE:

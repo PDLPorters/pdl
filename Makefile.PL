@@ -81,7 +81,7 @@ WriteMakefile(
  'NAME' => 'PDL',
  'VERSION_FROM' => 'Basic/Core/Version.pm',
  'EXE_FILES' => ['perldl'],
-# 'OPTIMIZE'  => '-g',				  # If you want speed, remove this
+# 'OPTIMIZE'  => '-g',		  # If you want to debug, uncomment this.
  'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
  'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
  'clean' => {'FILES' => 'perldl pdldoc.db tbyte.tif tmp0 tmp0.hdr tushort.tif MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'},

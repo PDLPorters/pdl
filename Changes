@@ -1,4 +1,18 @@
 (!!! = possible source of incompatibilities)
+
+Doug Hunt (4/26/2000)
+        - Merged fast-xswrapper branch back to main PDL tree.
+        - Left Ops thus:
+          All ops are are overloaded to call XS as directly as possible, but
+          the direct call of ops such as : $a->plus($b, 0) requires the '0' argument
+          which tells the XS routine 'plus' not to swap the arguments.
+CS
+	- slight ops.pd changes
+	- match prototypes with original ones in complex.pd
+	- some more work on PP.pm (yet unfinished)
+Doug Hunt (4/19/2000)
+        - Cleaned up Ops to take advantage of new fast XS wrappers 
+
 Doug Burke
         - changes to pod to HTML conversion. Links between modules - eg 
           L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT> - should now work.
@@ -33,9 +47,9 @@ Tim Jenness
 	- Add test for PDL::IO::NDF
         - Added polynomial fitting routines to PDL::Slatec (polfit, 
 	  pvalue and pcoef)
+
 John Cerney
 	- Added (psuedo)-support for variable-size strings in PDL::Char
-	
 
 2.005
 CS	- version to 2.005

@@ -10,10 +10,6 @@ This module provides the functions used by PDL to
 overload the basic mathematical operators (C<+ - / *>
 etc.) and functions (C<sin sqrt> etc.)
 
-You probably don't need to know about this
-and the interface may well
-change so the documentation ends here.
-
 =head1 SYNOPSIS
 
 none
@@ -21,116 +17,164 @@ none
 =cut
 
 EOD
-# REPLACE FOLLOWING BY USE
-# when using not in this package.
-#
-# Parts from old mkpdlbasicops.p, rest Copyright (C) Tuomas J. Lukka 1996, 1997
-
-# Phase 1: generate lists of
-#	[operator_name, how_to_apply]
-
-@biops1  = map {[$_,"\$c() = \$a() $_ \$b()"]} qw( + * - / );
-@biops2  = map {[$_,"\$c() = \$a() $_ \$b()"]} qw( > < <= >= == != );
-@biops3  = map {[$_,"\$c() = (PDL_Long) \$a() $_ (PDL_Long) \$b()"]}qw( << >> | & ^ );
-
-@ufuncs1 = map {[$_,"\$b() = ($_(\$a()))"]} qw( sqrt abs );
-@ufuncs1f = map {[$_,"\$b() = ($_(\$a()))"]} qw( sin cos );
-@ufuncs2 = map {[$_,"\$b() = ($_((PDL_Long)\$a()))"]} qw( ! ~ NOTHING );
-@ufuncs2f = map {[$_,"\$b() = ($_((PDL_Long)\$a()))"]} qw( log exp );
-@bifuncs = map {[$_,"\$c() = ($_(\$a(),\$b()))"]}
-	qw( pow atan2 MODULO SPACESHIP );
-
-sub nofloat { # Decide which ops can't be done on floats/doubles
-    	my $op = shift;
-	my (@bitops) = qw( << >> | & ^ ~ );
-    	for (@bitops) { return 1 if $_ eq $op }
-	return 0;
-}
-
-sub remove_float_casts { # Remove casts in certain cases
-  my $op=shift;
-  my $code = $op->[1];
-  $code =~ s/\(PDL_Long\)//g unless nofloat($op->[0]);
-  return $code;
-}
-
-sub remove_all_casts { # Remove casts in all cases
-  my $op=shift;
-  my $code = $op->[1];
-  $code =~ s/\(PDL_Long\)//g;
-  return $code;
-}
-
-# Fudge ABS function for unsigned types to get
-# rid of the stupid compiler warning
-
-sub absfudge{
-   my $s = shift;
-   $s =~ s/abs/\$TBSUL(NOTHING,abs,NOTHING,abs)/;
-   return $s;
-}
-
 pp_addhdr('
 #include <math.h>
 
-#define MODULO(X,N)     ( (X) - (N)*((int)((X)/(N))) )
-#define SPACESHIP(A,B)  ( ((A)<(B)) ? -1 : ((A)!=(B)) )
-#define abs(A)          ( (A)>=0 ? (A) : -(A) )
+#define MOD(X,N)     ( (X) - (N)*((int)((X)/(N))) )
+#define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
+#define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 #define NOTHING
 ');
 
-# First, map all the types
+# simple binary operators
+sub biop {
+	my ($name,$op,$swap,$doc,%extra) = @_;
+	my $optxt = $op;
+	if ($optxt =~ s/>/E<gt>/) {} else
+	{ $optxt =~ s/</E<lt>/}
+	if ($swap) {
+	  $extra{HdrCode} = << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	pp_def($name,
+		Pars => 'a(); b(); [o]c();',
+		OtherPars => 'int swap',
+		Code => "\$c() = \$a() $op \$b();",
+		%extra,
+		Doc => << "EOD");
+=for ref
 
-$arg3str = 'a(); b(); [o]c();';
-$arg2str = 'a(); [o]b();';
+$doc
 
-my $ind = 0;
-for $optype ([biop1,\@biops1,$arg3str,undef],
-     [biop2,\@biops2,$arg3str,undef],
-     [biop3,\@biops3,$arg3str,undef],
-     [bifunc1,\@bifuncs,$arg3str,undef],
-     [ufunc1,\@ufuncs1,$arg2str,undef],
-     [ufunc1f,\@ufuncs1f,$arg2str,[F,D]],
-     [ufunc2,\@ufuncs2,$arg2str,undef],
-     [ufunc2f,\@ufuncs2f,$arg2str,[F,D]],
-     ) { $ind ++;
-pp_def("my_$optype->[0]",
-	($optype->[3] ? (GenericTypes => $optype->[3]) : ()),
-	Pars => $optype->[2],
-	OtherPars => "char* pdl_op",
-Code => "if(0) {".
-	  (join '',map {qq^
-     } else if(!strcmp(\$COMP(pdl_op),"$_->[0]")) {
-		  types(FD) %{
-		      threadloop %{
-			  ^.remove_float_casts($_).qq^;
-                      %}
-		  %}
-		  types(BSUL) %{
-		      threadloop %{
-			  ^.absfudge(remove_all_casts($_)).qq^;
-                      %}
-		   %}
-             ^
-# Close the type loop.
-# End the enclosing "if".
-		} @{$optype->[1]}).
-	q|}; /* printf("OMYBIOP, '%s'\n",pdl_op); */ |,
-	Doc  => 'internal',
-);
+=for example
+
+   \$c = $name \$a, \$b;
+   \$c = \$a $op \$b;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the binary C<$optxt> operator.
+EOD
 }
 
+#simple binary functions
+sub bifunc {
+	my ($name,$func,$swap,$doc,%extra) = @_;
+	if ($swap) {
+	  $extra{HdrCode} = << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	pp_def($name,
+		Pars => 'a(); b(); [o]c();',
+		OtherPars => 'int swap',
+		Code => "\$c() = $func(\$a(),\$b());",
+		%extra,
+		Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$c = $name \$a, \$b;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the binary C<$func> function.
+EOD
+}
+
+# simple unary functions and operators
+sub ufunc {
+	my ($name,$func,$doc,%extra) = @_;
+	pp_def($name,
+		Pars => 'a(); [o]b()',
+		Code => "\$b() = $func(\$a());",
+		%extra,
+		Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$b = $func \$a;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the unary C<$func> operator/function.
+EOD
+}
+
+
+## arithmetic ops
+# no swap
+biop('plus','+',0,'add two piddles');
+biop('mult','*',0,'multiply two piddles');
+
+# all those need swapping
+biop('minus','-',1,'subtract two piddles');
+biop('divide','/',1,'divide two piddles');
+
+## comparison ops
+# need swapping
+biop('gt','>',1,'the binary E<gt> (greater than) operation');
+biop('lt','<',1,'the binary E<lt> (less than) operation');
+biop('le','<=',1,'the binary E<lt>= (less equal) operation');
+biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
+# no swap required
+biop('eq','==',0,'binary I<equal to> operation (==)');
+biop('ne','!=',0,'binary I<not equal to> operation (!=)');
+
+## bit ops
+# those need to be limited to the right types
+my $T = [B,U,S,L]; # the sensible types here
+biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
+biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
+biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
+
+# really an ufunc
+ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
+
+# some standard binary functions
+bifunc('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
+bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
+bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
+
+# some standard unary functions
+ufunc('sqrt','sqrt','elementwise square root');
+ufunc('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
+ufunc('sin','sin','the sin function');
+ufunc('cos','cos','the cos function');
+ufunc('not','!','the elementwise I<not> operation');
+ufunc('log','log','the natural logarithm',GenericTypes => [D]);
+ufunc('exp','exp','the exponential function',GenericTypes => [D]);
 
 pp_addpm({At=>Bot},<<'EOPM');
 
 =head1 AUTHOR
 
-Tuomas J. Lukka (lukka@fas.harvard.edu) and Karl Glazebrook
-(kgb@aaoepp.aao.gov.au).
+Tuomas J. Lukka (lukka@fas.harvard.edu),
+Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
+Doug Hunt (dhunt@ucar.edu), and 
+Christian Soeller (c.soeller@auckland.ac.nz).
 
 =cut
 
 EOPM
 
+pp_export_nothing(); 
 pp_done();
 
