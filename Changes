@@ -1,4 +1,19 @@
-(!!! = possible source of incompatibilities)
+Jarle Brinchmann (21/10/00)
+    - Considerable re-write of PGPLOT. This now uses PDL::Option to 
+      set options. There is also now a OO interface 
+      PDL::Graphics::PGPLOT::Window which PDL::Graphics::PGPLOT now uses.
+   
+    - New functionality includes:
+
+      - Interactive cursors (cursor)
+      - Text on plots       (text)
+      - Legends             (legend)
+      - Multiple plot windows, oone can jump from panel to panel when
+        the window is divided in several.
+      - More control over options - see PDL::Graphics::PGPLOTOptions for
+        details.
+    This is not tested under Windows - and possibly not all functions work
+    as they used to..
 Doug Burke (18/10/00)
     - added warp2d (+ supporting fns) to PDL::Image2D. This allows
       images to be resampled using 2D polynomials as basis functions.
@@ -6,12 +21,12 @@ Doug Burke (18/10/00)
     - rfits() now sets hdrcpy flag of piddle (so that the FITS header is 
       copied to new piddles).
 Doug Burke
-!!! - moved PDL::Type object from PDL::Core to PDL::Types. This shouldn't
+    - moved PDL::Type object from PDL::Core to PDL::Types. This shouldn't
       affect most people.
 CS
-!!! - split primitive.pd into primitive.pd and ufunc stuff (ufunc.pd)
+    - split primitive.pd into primitive.pd and ufunc stuff (ufunc.pd)
     - changed loaders to reflect this split (PDL.pm, Lite.pm, LiteF.pm)
-!!! - moved 'assgn' to PDL::Ops (since it's primarily used for
+    - moved 'assgn' to PDL::Ops (since it's primarily used for
       overloading '.=')
     - added conv1d to primitive.pd -> this one was dropped
       from the dist at some stage but it makes sense to have it
@@ -25,7 +40,7 @@ CS
 Doug Burke
     - improved support for bad values in r/wfits and r/wndf
     - added setbadtonan() to PDL::Bad.
-!!! - moved log10() entirely over to Basic/Ops/ops.pd (so it's no longer
+    - moved log10() entirely over to Basic/Ops/ops.pd (so it's no longer
       defined in PDL::Core. 
 CS
 	- moved trylink to Dev.pm (L<PDL::Core::Dev>)

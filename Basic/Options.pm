@@ -168,6 +168,7 @@ sub new {
   $opt->{MinMatchTrans} = 0; # Min matching during translation
   $opt->{CaseSensTrans} = 0; # Case sensitive during translation
   $opt->{FullOptions} = 1; # Return full options list
+  $opt->{WarnOnMissing}=1; # Whether to warn for options that are invalid or not.
   $opt->{DEBUG}    = 0;    # Turn on debug messages
 
   # Bless into class
@@ -178,6 +179,68 @@ sub new {
 
   return $opt;
 }
+
+
+=item extend (\%options)
+
+This will copy the existing options object and extend it with the
+requested extra options.
+
+=cut
+
+sub extend {
+
+  my ($self, $opt)=@_;
+
+  my $class = ref($self);
+  my $h = {%{$self}};
+  croak ("Argument is not reference to hash!\n") unless ref($opt) eq 'HASH';
+  #
+  # The next step is to perform a deep copy of the hash
+  # references since we might want to change these without
+  # changing the originals.
+  #
+  $h->{SYNONYMS}={%{$self->{SYNONYMS}}};
+  $h->{Translation}={%{$self->{Translation}}};
+  $h->{CurrKeys}=[@{$self->{CurrKeys}}];
+  #
+  # Create the extended option list.
+  #
+  my %all_options = (%{$opt}, %{$self->{DEFAULTS}});
+
+  # Bless it
+  bless ($h, $class);
+
+  # And parse the default options
+  $h->defaults(\%all_options);
+
+  return $h;
+
+}
+
+# =item change_defaults (\%options)
+
+# This will merge the options given with the defaults hash and hence change
+# the default hash. This is not normally a good idea, but in certain dynamic
+# situations you might want to adjust a default parameter for future calls
+# to the routine.
+
+# =cut
+
+# sub change_defaults {
+
+#   my $self=shift;
+
+#   my $arg = shift;
+#   croak("Argument is not a hash reference!\n") unless ref($arg) eq 'HASH';
+
+#   my $defs = $self->defaults($arg);
+
+#   $self->defaults($)
+
+
+# }
+
 
 =item defaults( \%defaults )
 
@@ -207,6 +270,50 @@ sub defaults {
   # Decouple the hash to protect it from being modified outside the
   # object
   my %hash = %{$self->{DEFAULTS}};
+  return \%hash;
+
+}
+
+=item add_synonym (\%synonyms)
+
+Method to add another synonym to an option set
+The argument should be a reference to a hash.
+
+=cut
+
+sub add_synonym {
+  my $self=shift;
+  return unless @_;
+  my $arg = shift;
+  croak("Synonym argument is not a hash reference") unless ref($arg) eq "HASH";
+
+  foreach (keys %$arg) {
+    $self->{SYNONYMS}{$_}=$arg->{$_};
+  }
+  my %hash = %{$self->{SYNONYMS}};
+  return \%hash;
+
+}
+
+=item add_translation (\%translation)
+
+Method to add another translation rule to an option set.
+The argument should be a reference to a hash.
+
+=cut
+
+
+sub add_translation {
+  my $self = shift;
+  return unless @_;
+  my $arg = shift;
+  croak("Translation argument is not a hash reference") unless ref($arg) eq 'HASH';
+
+  foreach (keys %$arg) {
+    $self->{Translation}{$_}=$arg->{$_};
+  }
+  my %hash = %{$self->{Translation}};
+
   return \%hash;
 
 }
@@ -477,6 +584,22 @@ sub minmatchtrans {
 }
 
 
+=item warnonmissing
+
+Turn on or off the warning message printed when an options is not in
+the options hash. This can be convenient when a user passes a set of
+options that has to be parsed by several different option objects down
+the line.
+
+=cut
+
+sub warnonmissing {
+  my $self = shift;
+  if (@_) { $self->{WarnOnMissing}=shift;}
+  return $self->{WarnOnMissing};
+}
+
+
 =item debug
 
 Turn on or off debug messages. Default is off (0).
@@ -502,7 +625,7 @@ Case sensitivity and minimum matching can be configured using
 the mimatch() and casesens() methods.
 
 A warning is raised if keys present in the user options are not
-present in the defaults.
+present in the defaults unless warnonmissing is set.
 
 A reference to a hash containing the merged options is returned.
 
@@ -571,7 +694,7 @@ sub options {
       # At this point we have matched the userkey to a key in the
       # defaults list (or if not say so)
       if ($#matched == -1) {
-	print "Warning: $userkey is not a valid option\n";
+	print "Warning: $userkey is not a valid option\n" if $self->{WarnOnMissing};
       } else {
 	if ( $#matched > 0 ) {
 	  print "Warning: Multiple matches for option $userkey\n";
@@ -727,8 +850,10 @@ sub compare_with_list {
 	# exact match even if alternatives exist (eg COL will always
 	# match just COL if the keys are COL and COLOUR)
 	# First do the exact match (case insensitive)
+      {
+	local $^W = undef; # To silence warnings about uninitialised values
 	@result =  grep { /^$key$/i } @list;
-
+      }
 	# If this match came up with something then we will use it
 	# Else we will try a minimum match (assuming flag is true)
 

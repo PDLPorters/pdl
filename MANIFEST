@@ -213,10 +213,13 @@ Graphics/LUT/tables/stairs8.fits
 Graphics/LUT/tables/stairs9.fits
 Graphics/LUT/tables/standard.fits
 Graphics/Makefile.PL
+Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
-Graphics/PGPLOT/PGPLOT.xs
-Graphics/PGPLOT/typemap
+Graphics/PGPLOT/Window/typemap
+Graphics/PGPLOT/Window/Window.pm
+Graphics/PGPLOT/Window/Window.xs
+Graphics/PGPLOT/Window/Makefile.PL
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/README
