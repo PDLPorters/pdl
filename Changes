@@ -1,3 +1,6 @@
+CED 25-Mar-2003
+   - Fixed pgplot.t test to not use broken asynchronous I/O in perl5.
+	Switches interactivity on an environment variable instead.
 CS 25/03/03
    - karma.pd: added 'kvis' command to start new kvis app
 CS 22/03/03

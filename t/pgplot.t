@@ -45,23 +45,9 @@ if($@) {
    exit 0;
 }
 
-print STDERR '
+$interactive = $ENV{'PDL_INT'};
 
-PGPLOT test includes interactive components.  Press <RETURN> within 
-10 seconds to not skip the interactive part of the test.
-';
-$SIG{ALRM} = sub {die "alarm\n"};
-undef $a;
-eval {
-	alarm 10;
-	$a = <STDIN>;
-	alarm 0;
-};
-$SIG{ALRM} = undef;
-
-$interactive = defined $a;
-
-print STDERR "\nSkipping interactive tests...\n"
+print STDERR "\nenvironment var PDL_INTERACTIVE not set; skipping interactive tests...\n"
 unless($interactive);	
 
 eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
