@@ -1,8 +1,13 @@
+CS  -  fix call of Perl_croak in pdlthread.c for threading perls (reported
+       by Diab Jerius)
 Doug Burke (03/11/00)
     - removed $_ from shorttype method: fixes $_->info() bug 
     - perldl/pdldoc now list other matches to a help query (not wonderful)
     - fixed 0.5 pixel shift in imag()
 CS  -  fix bug in splitdim (didn't check nthdim) that can lead to coredumps
+    -  Dev.pm: malloc debugging support
+    -  Core.pm.PL: flat as clump(-1) alias
+		   bug in mslice: cast indices to int added
 Jarle Brinchmann (22/10/00)
     - Further bug fixes to PGPLOT added (courtesy of Kaj Wiik). Also a
       convenience function to calculate transforms (transform, courtesy
