@@ -13,6 +13,9 @@ PDL::Core::Dev->import();
 
 unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 
+my $libname = "libplplotd.so";
+my $incname = "plplot.h";
+
 my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && $PDL_CONFIG{WITH_PLPLOT} == 0) ? 0 : 1;
 unless ($found_plplot) {
   buildDummy ("User requested no PLplot interface!");
@@ -25,21 +28,20 @@ foreach my $libdir (
 		    '/usr/lib',
 		    '/opt/lib',
 		    '/ops/tools/lib',
-		    $PDL_CONFIG{WHERE_PLPLOT_LIB},
+		    $PDL_CONFIG{WHERE_PLPLOT_LIBS},
 		                  # Add new library paths here!!
 		    ) {
 
-  if (-e "$libdir/libplplotd.so") {
+  if (-e "$libdir/$libname") {
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
     last;
   }
 
-
 }
 
 unless (defined ($plplot_lib_path)) {
-  buildDummy ("Cannot find plplot library (libplplotd.so), skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot library ($libname), skipping PDL::Graphics::PLplot\n");
   return if (caller); exit;
 }
 
@@ -57,7 +59,7 @@ foreach my $incdir (
 		                  # Add new header paths here!!
 		    ) {
 
-  if (-e "$incdir/plplot.h") {
+  if (-e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
       $inc2 = $incdir;
@@ -69,7 +71,7 @@ foreach my $incdir (
 }
 
 unless (defined ($plplot_include_path)) {
-  buildDummy ("Cannot find plplot header file, plplot.h, skipping PDL::Graphics::PLplot\n");
+  buildDummy ("Cannot find plplot header file ($incname), skipping PDL::Graphics::PLplot\n");
   return if (caller); exit;
 }
 
@@ -83,8 +85,6 @@ unless ($size == 8) {
   print "          Sizeof(PLFLT) must be 8. PLplot must be compiled --with-double (IE ./configure --with-double)\n";
   $found_plplot = 0;
 } 
-
-
 
 # Try linking with library.  New if blocks should be added if necessary
 my $libs;
@@ -163,6 +163,7 @@ sub compileAndRun {
   open (OUT, ">temp.c");
   print OUT $code;
   close OUT;
+  unlink './temp'; # since we work out whether the compile succeeds by presence of this
   
   my $cc = $Config{cc};
   my $ccflags = $Config{ccflags};
