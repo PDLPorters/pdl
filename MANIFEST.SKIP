@@ -2,6 +2,8 @@ MANIFEST\.old
 ~$
 \.BAK$
 ^\.exists
+^_Inline
+^[.]Inline
 ^Basic/Core/badsupport\.p
 .*\.0$
 \.(tmp|new|diff|ori)$

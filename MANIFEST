@@ -631,6 +631,7 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
+t/inlinepdlpp.t
 t/interp.t
 t/interp_slatec.t
 t/interpol.t

@@ -448,16 +448,18 @@ __END__
 
 =head1 DESCRIPTION
 
-C<Inline::Pdlpp> is a module that allows you to write PDL subroutines in the PDL::PP style. The
-big benefit compared to plain C<PDL::PP> is that you can write these definitions inline
-in any old perl script (without the normal hassle of creating Makefiles, building, etc).
-Since version 0.30 the Inline module supports multiple programming languages and
-each language has its own support module. This document describes how to use Inline
-with PDL::PP (or rather, it will once these docs are complete C<;)>.
+C<Inline::Pdlpp> is a module that allows you to write PDL subroutines
+in the PDL::PP style. The big benefit compared to plain C<PDL::PP> is
+that you can write these definitions inline in any old perl script
+(without the normal hassle of creating Makefiles, building, etc).
+Since version 0.30 the Inline module supports multiple programming
+languages and each language has its own support module. This document
+describes how to use Inline with PDL::PP (or rather, it will once
+these docs are complete C<;)>.
 
 For more information on Inline in general, see L<Inline>.
 
-C<Inline::Pdlpp> is a shameless rip-off of C<Inline::C>.
+C<Inline::Pdlpp> is mostly a shameless rip-off of C<Inline::C>.
 Most Kudos goes to Brian I.
 
 =head1 Usage
@@ -524,8 +526,8 @@ relevant information regarding include files, libraries and boot
 code is specified in a config call to C<Inline>. For more experienced
 Perl hackers it might be helpful to know that the format is
 similar to that used with L<ExtUtils::MakeMaker|ExtUtils::MakeMaker>. The
-keywords are equivalent to those used with C<Inline::C>. For the
-moment please compare L<Inline::C> for further details on the usage of C<INC>,
+keywords are largely equivalent to those used with C<Inline::C>. Please
+see below for further details on the usage of C<INC>,
 C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
 
    use PDL; # this must be called before (!) 'use Inline Pdlpp' calls
@@ -564,6 +566,98 @@ C<LIBS>, C<AUTO_INCLUDE> and C<BOOT>.
 	   Code => '$pd() = poidev((float) $xm(), &$COMP(idum));',
    );
 
+
+=head1 Pdlpp Configuration Options
+
+For information on how to specify Inline configuration options, see
+L<Inline>. This section describes each of the configuration options
+available for C. Most of the options correspond either to MakeMaker or
+XS options of the same name. See L<ExtUtils::MakeMaker> and L<perlxs>.
+
+=head2 AUTO_INCLUDE
+
+Specifies extra statements to automatically included. They will be
+added onto the defaults. A newline char will be automatically added.
+Does essentially the same as a call to C<pp_addhdr>. For short
+bits of code C<AUTO_INCLUDE> is probably syntactically nicer.
+
+    use Inline Pdlpp => Config => AUTO_INCLUDE => '#include "yourheader.h"';
+
+=head2 BLESS
+
+Same as C<pp_bless> command. Specifies the package (i.e. class)
+to which your new I<pp_def>ed methods will be added. Defaults
+to C<PDL> if omitted.
+
+    use Inline Pdlpp => Config => BLESS => 'PDL::Complex';
+
+=head2 BOOT
+
+Specifies C code to be executed in the XS BOOT section. Corresponds to
+the XS parameter. Does the same as the C<pp_add_boot> command. Often used
+to execute code only once at load time of the module, e.g. a library
+initialization call.
+
+=head2 CC
+
+Specify which compiler to use.
+
+=head2 CCFLAGS
+
+Specify extra compiler flags.
+
+=head2 INC
+
+Specifies an include path to use. Corresponds to the MakeMaker parameter.
+
+    use Inline Pdlpp => Config => INC => '-I/inc/path';
+
+=head2 LD
+
+Specify which linker to use.
+
+=head2 LDDLFLAGS
+
+Specify which linker flags to use. 
+
+NOTE: These flags will completely override the existing flags, instead
+of just adding to them. So if you need to use those too, you must
+respecify them here.
+
+=head2 LIBS
+
+Specifies external libraries that should be linked into your
+code. Corresponds to the MakeMaker parameter.
+
+    use Inline Pdlpp => Config => LIBS => '-lyourlib';
+
+or 
+
+    use Inline Pdlpp => Config => LIBS => '-L/your/path -lyourlib';
+
+=head2 MAKE
+
+Specify the name of the 'make' utility to use.
+
+=head2 MYEXTLIB
+
+Specifies a user compiled object that should be linked in. Corresponds
+to the MakeMaker parameter.
+
+    use Inline Pdlpp => Config => MYEXTLIB => '/your/path/yourmodule.so';
+
+=head2 OPTIMIZE
+
+This controls the MakeMaker OPTIMIZE setting. By setting this value to
+'-g', you can turn on debugging support for your Inline
+extensions. This will allow you to be able to set breakpoints in your
+C code using a debugger like gdb.
+
+=head2 TYPEMAPS
+
+Specifies extra typemap files to use. Corresponds to the MakeMaker parameter.
+
+    use Inline Pdlpp => Config => TYPEMAPS => '/your/path/typemap';
 
 =head1 ACKNOWLEDGEMENTS
 
