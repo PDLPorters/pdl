@@ -1743,6 +1743,7 @@ Create transform array for contour and image plotting
 
  $win->transform([$xdim,$ydim], $options);
 
+(For information on coordinate transforms, try L<PDL::Transform|PDL::Transform>.)
 This function creates a transform array in the format required by the image
 and contouring routines. You must call it with the dimensions of your image
 as arguments or pass these as an anonymous hash - see the example below.
