@@ -1187,7 +1187,7 @@ sub t_mercator {
 
 This is the internationally used UTM projection, with 2 subzones 
 (North/South).  The UTM zones are parametrized individually, so if you
-want a Zone 30 map you should use C<t_utim(30)>.  By default you get
+want a Zone 30 map you should use C<t_utm(30)>.  By default you get
 the northern subzone, so that locations in the southern hemisphere get 
 negative Y coordinates.  If you select the southern subzone (with the 
 "subzone=>-1" option), you get offset southern UTM coordinates.  
@@ -1205,9 +1205,20 @@ north; but this implementation lets you go all the way to 90 degrees.
 The default UTM coordinates are meters.  The origin for each zone is
 on the equator, at an easting of -500,000 meters.
 
-This implementation, like the rest of the PDL::Transform::Cartography
-package, uses a spherical datum rather than the "official" ellipsoidal
-datums for the UTM system.
+The standard UTM projection has a slight reduction in scale at the
+prime meridian of each zone: the transverse Mercator projection's
+standard "parallels" are 180km e/w of the central meridian.  However,
+many Europeans prefer the "Gauss-Kruger" system, which is virtually
+identical to UTM but with a normal tangent Mercator (standard parallel
+on the prime meridian).  To get this behavior, set "gk=>1".
+
+Like the rest of the PDL::Transform::Cartography package, t_utm uses a
+spherical datum rather than the "official" ellipsoidal datums for the
+UTM system.
+
+This implementation was derived from the rather nice description by 
+Denis J. Dean, located on the web at:
+http://www.cnr.colostate.edu/class_info/nr502/lg3/datums_coordinates/utm.html
 
 OPTIONS
 
@@ -1217,18 +1228,29 @@ OPTIONS
 
 (No positional options -- Origin and Roll are ignored) 
 
-=item ou, ounit, OutputUnit
+=item ou, ounit, OutputUnit (default 'meters')
 
 (This is likely to become a standard option in a future release) The
 unit of the output map.  By default, this is 'meters' for UTM, but you
 may specify 'deg' or 'km' or even (heaven help us) 'miles' if you
 prefer.
 
-=item sz, subzone, SubZone
+=item sz, subzone, SubZone (default 1)
 
 Set this to -1 for the southern hemisphere subzone.  Ultimately you
 should be able to set it to a letter to get the corresponding military
 subzone, but that's too much effort for now.
+
+=item gk, gausskruger (default 0)
+
+Set this to 1 to get the (European-style) tangent-plane Mercator with
+standard parallel on the prime meridian.  The default of 0 places the
+standard parallels 180km east/west of the prime meridian, yielding better 
+average scale across the zone.  Setting gk=>1 makes the scale exactly 1.0
+at the central meridian, and >1.0 everywhere else on the projection. 
+The difference in scale is about 0.3%.
+
+=back
 
 =cut
 
@@ -1249,6 +1271,8 @@ sub t_utm {
   $offset->(1) .= ($subzone < 0) ? $PI/2/$a->{params}->{oconv} : 0;
 
   my $merid = ($zone * 6) - 183;
+
+  my $gk = _opt($opt,['gk','gausskruger'],0);
   
   my($me) = t_compose(t_linear(post=>$offset,
 			       rot=>-90
@@ -1257,7 +1281,8 @@ sub t_utm {
 		      t_mercator(o=>[$merid,0], 
 				 r=>90, 
 				 ou=>$a->{ounit}, 
-				 s=>$RAD2DEG * (180/6371))
+				 s=>$gk ? 0 : ($RAD2DEG * (180/6371))
+				)
 		      );
 
 
