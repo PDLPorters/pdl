@@ -1872,7 +1872,7 @@ void c_plgpage(PLFLT *p_xp, PLFLT *p_yp,PLINT *p_xleng, PLINT *p_yleng, PLINT *p
 void c_plgra(void);
 void c_plgspa(PLFLT *xmin, PLFLT *xmax, PLFLT *ymin, PLFLT *ymax);
 #void c_plgstrm(PLINT *p_strm);
-void c_plgver(char *p_ver);
+#void c_plgver(char *p_ver);
 void c_plgxax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgyax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgzax(PLINT *p_digmax, PLINT *p_digits);
@@ -2690,6 +2690,8 @@ pp_addpm (<<'EOPM');
     pX, pY:    absolute device coordinates of pointer
     dX, dY:    relative device coordinates of pointer
     wX, wY:    world coordinates of pointer
+
+  Returns an empty hash if no translation to world coordinates is possible.
 =cut
 EOPM
 
@@ -2698,31 +2700,32 @@ void
 plGetCursor ()
 PPCODE:
   PLGraphicsIn gin;
-  plGetCursor (&gin);
-  PUSHs (sv_2mortal (newSVpv ("type", 0)));
-  PUSHs (sv_2mortal (newSViv ((IV) gin.type)));
-  PUSHs (sv_2mortal (newSVpv ("state", 0)));
-  PUSHs (sv_2mortal (newSVuv ((UV) gin.state)));
-  PUSHs (sv_2mortal (newSVpv ("keysym", 0)));
-  PUSHs (sv_2mortal (newSVuv ((UV) gin.keysym)));
-  PUSHs (sv_2mortal (newSVpv ("button", 0)));
-  PUSHs (sv_2mortal (newSVuv ((UV) gin.button)));
-  PUSHs (sv_2mortal (newSVpv ("subwindow", 0)));
-  PUSHs (sv_2mortal (newSViv ((IV) gin.subwindow)));
-  PUSHs (sv_2mortal (newSVpv ("string", 0)));
-  PUSHs (sv_2mortal (newSVpv (gin.string, 0)));
-  PUSHs (sv_2mortal (newSVpv ("pX", 0)));
-  PUSHs (sv_2mortal (newSViv ((IV) gin.pX)));
-  PUSHs (sv_2mortal (newSVpv ("pY", 0)));
-  PUSHs (sv_2mortal (newSViv ((IV) gin.pY)));
-  PUSHs (sv_2mortal (newSVpv ("dX", 0)));
-  PUSHs (sv_2mortal (newSVnv ((double) gin.dX)));
-  PUSHs (sv_2mortal (newSVpv ("dY", 0)));
-  PUSHs (sv_2mortal (newSVnv ((double) gin.dY)));
-  PUSHs (sv_2mortal (newSVpv ("wX", 0)));
-  PUSHs (sv_2mortal (newSVnv ((double) gin.wX)));
-  PUSHs (sv_2mortal (newSVpv ("wY", 0)));
-  PUSHs (sv_2mortal (newSVnv ((double) gin.wY)));
+  if (plGetCursor (&gin)) {
+    PUSHs (sv_2mortal (newSVpv ("type", 0)));
+    PUSHs (sv_2mortal (newSViv ((IV) gin.type)));
+    PUSHs (sv_2mortal (newSVpv ("state", 0)));
+    PUSHs (sv_2mortal (newSVuv ((UV) gin.state)));
+    PUSHs (sv_2mortal (newSVpv ("keysym", 0)));
+    PUSHs (sv_2mortal (newSVuv ((UV) gin.keysym)));
+    PUSHs (sv_2mortal (newSVpv ("button", 0)));
+    PUSHs (sv_2mortal (newSVuv ((UV) gin.button)));
+    PUSHs (sv_2mortal (newSVpv ("subwindow", 0)));
+    PUSHs (sv_2mortal (newSViv ((IV) gin.subwindow)));
+    PUSHs (sv_2mortal (newSVpv ("string", 0)));
+    PUSHs (sv_2mortal (newSVpv (gin.string, 0)));
+    PUSHs (sv_2mortal (newSVpv ("pX", 0)));
+    PUSHs (sv_2mortal (newSViv ((IV) gin.pX)));
+    PUSHs (sv_2mortal (newSVpv ("pY", 0)));
+    PUSHs (sv_2mortal (newSViv ((IV) gin.pY)));
+    PUSHs (sv_2mortal (newSVpv ("dX", 0)));
+    PUSHs (sv_2mortal (newSVnv ((double) gin.dX)));
+    PUSHs (sv_2mortal (newSVpv ("dY", 0)));
+    PUSHs (sv_2mortal (newSVnv ((double) gin.dY)));
+    PUSHs (sv_2mortal (newSVpv ("wX", 0)));
+    PUSHs (sv_2mortal (newSVnv ((double) gin.wX)));
+    PUSHs (sv_2mortal (newSVpv ("wY", 0)));
+    PUSHs (sv_2mortal (newSVnv ((double) gin.wY)));
+  }
 EOC
 
 pp_add_exported ('plGetCursor');
@@ -2771,6 +2774,30 @@ OUTPUT:
 EOC
 
 pp_add_exported ('plmkstrm');
+
+# Get the current library version number
+
+pp_addpm (<<'EOPM');
+=head2 plgver
+=for sig
+  $version = plgver ()
+=for ref
+  (See the PLplot manual for reference.)
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+char*
+plgver ()
+CODE:
+  char ver[80];
+  c_plgver (ver);
+  RETVAL = ver;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plgver');
 
 
 pp_addpm (<<'EOPM');
