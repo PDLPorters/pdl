@@ -190,13 +190,7 @@ $fh->close();
 # make sure we have Types.pm ready for prime time
 use Config; # for startperl
 die "Types.pm.PL not found in Basic/Core" unless -f 'Basic/Core/Types.pm.PL';
-
-# note:
-#   we explicitly send in the TYPES_LONGLONG option on the command-line
-#   so that the script can get this information
-#
-my $longlong_flag = $PDL_CONFIG{TYPES_LONGLONG} || 0;
-system "$Config{perlpath} Basic/Core/Types.pm.PL TYPES_LONGLONG=$longlong_flag";
+system "$Config{perlpath} Basic/Core/Types.pm.PL";
 die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
 
 # Are we using bad values or not? Are we using NaN or not?

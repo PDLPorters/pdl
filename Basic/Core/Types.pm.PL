@@ -9,18 +9,6 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
-# parse the command-line values
-# (currently there's only one)
-#
-my $longlong_flag = 0; # defaults (here) to no PDL_LongLong type unless specified
-@ARGV = map {
-    if ( /^TYPES_LONGLONG=(.*)$/ ) {
-	$longlong_flag = $1; ();
-    } else {
-	$_
-    }
-} @ARGV;
-
 # Figure out the 4 byte integer type on this machine
 
 sub typeofPDLLong {
@@ -36,9 +24,6 @@ sub typeofPDLi64 {
 
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!
-#
-# The PDL_LongLong type is controlled by TYPES_LONGLONG config
-# value in perldl.conf (ie whether it's included or not)
 #
 my @types = (
 	     {
@@ -77,16 +62,12 @@ my @types = (
 	      usenan => 0,
 	      packtype => 'l*',
 	      defaultbadval => 'INT_MIN',
-	  });
+	     },
 
-#
-# Ensure the TYPES_LONGLONG option in perldl.conf is set to 1 to
-# give you a 64 bit type
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
 #
-if ( $longlong_flag == 1 ) {
-    push @types, ( {
+       {
 	identifier => 'LL',
 	onecharident => 'Q',   # only needed if different from identifier
 	pdlctype => 'PDL_LongLong',
@@ -97,12 +78,8 @@ if ( $longlong_flag == 1 ) {
 	defaultbadval => 'LONG_MIN', # this is far from optimal
 		                     # but LLONG_MIN/LLONG_MAX are probably
 		                     # nonportable
-    } );
-}
+      },
 
-# add the remaining types
-#
-push @types, (
 	      {
 		  identifier => 'F',
 		  pdlctype => 'PDL_Float',
