@@ -20,7 +20,8 @@ trouble.
 =head1 DESCRIPTION
 
 This package offers a OO interface to the PGPLOT plotting package. This
-is intended to replace the traditional interface in L<PDL::Graphics::PGPLOT>
+is intended to replace the traditional interface in
+L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>
 and contains interfaces to a large number of PGPLOT routines. Below the
 usage examples for each function tend to be given in the non-OO version for
 historical reasons. This will slowly be changed, but in the meantime refer
@@ -53,28 +54,28 @@ The list of currently availably methods:
 
 Device manipulation commands:
 
- new          -  Constructor for a new PGPLOT output device
- close        -  Close a PGPLOT output device
+ new          -  Constructor for a new PGPLOT output device.
+ close        -  Close a PGPLOT output device.
  focus        -  Set focus to the given device. This should normally be
                  done behind the scenes.
  hold         -  Hold current plot window range - allows overlays etc.
- release      -  Release back to autoscaling of new plot window for each 
-                 command
- held         -  Returns true if the graphics is held on the current device.
- env          -  Define a plot window, put on 'hold'
- panel        -  Move to a specified plot panel when several panels are defined.
- erase        -  Erase the current window (or panel)
+ release      -  Release back to autoscaling of new plot window for each
+                 command.
+ held         -  Returns true if the graphics is held on the current
+                 device.
+ env          -  Define a plot window, put on 'hold'.
+ panel        -  Move to a specified plot panel when several panels are
+                 defined.
+ erase        -  Erase the current window (or panel).
 
- options      -  Get the options set for the present output device
- id           -  The ID for the device
- device       -  The device type
- name         -  The window name
-
-
+ options      -  Get the options set for the present output device.
+ id           -  The ID for the device.
+ device       -  The device type.
+ name         -  The window name.
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset. The C<transform()> routine can be used to create this piddle.
+zero-offset. The L<transform()|/transform> routine can be used to create this piddle.
 
 For completeness: The transformation array connect the pixel index to a
 world coordinate such that:
@@ -243,9 +244,9 @@ L<_set_colour|/_set_colour>.
 =item filltype
 
 Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
-L<ellipse|/ellipse> and L<rectangle|/rectangle>
-The fill can either be specified using numbers or name, according to the 
-following table, where the recognised name is shown in capitals - it is 
+L<ellipse|/ellipse>, and L<rectangle|/rectangle>
+The fill can either be specified using numbers or name, according to the
+following table, where the recognised name is shown in capitals - it is
 case-insensitive, but the whole name must be specified.
 
  1 - SOLID
@@ -388,7 +389,7 @@ logically different he chooses to have two windows open:
   $area_win = PDL::Graphics::PGPLOT::Window->new(Device => '/xw',
               Aspect => 1, WindowWidth => 5);
 
-See the documentation for L<new> below for a full overview of the
+See the documentation for L<new|/new> below for a full overview of the
 options you can pass to the constructor.
 
 Next, Odd wants to create plotting areas for subsequent plots and maybe
@@ -613,7 +614,7 @@ AspectRatio are set to zero, the default view surface is used.
 
 These two options allow an alternative setting of WindowWidth and AspectRatio.
 Their values are actually not parsed here, but rather subsequently in the
-C<_setup_window> routine below.
+L<_setup_window|/_setup_window> routine below.
 
 =back
 
@@ -730,11 +731,11 @@ Define a plot window, and put graphics on 'hold'
  $win->env( $xmin, $xmax, $ymin, $ymax, [$justify, $axis] );
  $win->env( $xmin, $xmax, $ymin, $ymax, [$options] );
 
-C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
+C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.
 C<$justify> is a boolean value (default is B<0>);
-if true the axes scales will be the same (see L</justify>).
+if true the axes scales will be the same (see C<justify>).
 C<$axis> describes how the axes should be drawn (see
-L</axis>) and defaults to B<0>.
+C<axis>) and defaults to B<0>.
 
 If the second form is used, $justify and $axis can be set in the options
 hash, for example:
@@ -793,15 +794,15 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
  $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
-aspect ratio preservation, and 1:1 pixel mapping are available.  
+aspect ratio preservation, and 1:1 pixel mapping are available.
 (1:1 pixel mapping GREATLY increases the speed of pgimag, and is useful
-for, eg, movie display; but it's not recommended for final output as 
+for, eg, movie display; but it's not recommended for final output as
 it's not device-independent.)
 
 To draw a colour bar (or wedge), either use the C<DrawWedge> option,
@@ -1064,8 +1065,8 @@ Display image as contour map
  Usage: cont ( $image,  [$contours, $transform, $misval], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 Options recognised:
@@ -1139,9 +1140,10 @@ The following standard options influence this command:
 
 Note that meddling with the C<ioffset> and C<bias> often will require you to
 change the default plot range somewhat. It is also worth noting that if
-you have TriD working you will probably be better off using 
+you have TriD working you will probably be better off using
 L<mesh3d|PDL::Graphics::TriD/mesh3d> or
-a similar command - see L<PDL::Graphics::TriD>.
+a similar command - see the L<PDL::Graphics::TriD|PDL::Graphics::TriD>
+module.
 
 =for example
 
@@ -1171,7 +1173,6 @@ Example:
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
 
-
 =head2 poly
 
 =for ref
@@ -1186,7 +1187,7 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE, 
+ AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, JUSTIFY, LINESTYLE,
  LINEWIDTH
 
 =for example
@@ -1222,7 +1223,6 @@ The position of the center of the circle
 =item Radius
 
 The radius of the circle.
-
 
 =back
 
@@ -1264,9 +1264,10 @@ C<$x> and C<$y> must be given.
 The number of points used to draw the ellipse. This defaults to 100 and
 might need changing in the case of very large ellipses.
 
-
 =back
 
+The routine also recognises the same standard options as
+accepted by L<poly|/poly>.
 
 =head2 rectangle
 
@@ -1279,9 +1280,9 @@ Draw a rectangle.
  Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
 
 This routine draws a rectangle with the chosen fill style. Internally
-it calls L<poly> which is somewhat slower than C<pgrect> but which
+it calls L<poly|/poly> which is somewhat slower than C<pgrect> but which
 allows for rotated rectangles as well. The routine recognises the same
-options as poly and in addition the following
+options as C<poly> and in addition the following:
 
 =over
 
@@ -1322,8 +1323,8 @@ Display 2 images as a vector field
  Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
-C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset. The C<transform()> routine can be used to 
+C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
+fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
@@ -2337,21 +2338,22 @@ Get general information about the PGPLOT environment.
 The valid values of C<@item> are as below, where case is not
 important:
 
-  VERSION     - What PGPLOT version is in use
-  STATE       - The status of the output device, this is returns 'OPEN'
+  VERSION     - What PGPLOT version is in use.
+  STATE       - The status of the output device, this is returns 'OPEN'.
                 if the device is open and 'CLOSED' otherwise.
   USER        - The username of the owner of the spawning program.
-  NOW         - The current date and time in the format 'dd-MMM-yyyy hh:mm'.
-                Most people are likely to use Perl functions for this.
-  DEVICE    * - The current PGPLOT device or file, see also C<device>
-  FILE      * - The filename for the current device
-  TYPE      * - And the device type for the current device
+  NOW         - The current date and time in the format
+                'dd-MMM-yyyy hh:mm'. Most people are likely to use Perl
+                functions instead.
+  DEVICE    * - The current PGPLOT device or file, see also device().
+  FILE      * - The filename for the current device.
+  TYPE      * - And the device type for the current device.
   DEV/TYPE  * - This combines DEVICE and TYPE in a form that can be used
-                as input to C<new>.
+                as input to new.
   HARDCOPY  * - This is flag which is set to 'YES' if the current device is
                 a hardcopy device and 'NO' otherwise.
-  TERMINAL  * - This flag is set to 'YES' if the current device is the user's
-                terminal and 'NO' otherwise.
+  TERMINAL  * - This flag is set to 'YES' if the current device is the
+                user's terminal and 'NO' otherwise.
   CURSOR    * - A flag ('YES' or 'NO') to inform whether the current device
                 has a cursor.
 
@@ -2533,7 +2535,7 @@ sub _save_status {
 
 =head2 _restore_status
 
-Restore the PGPLOT state. See L<_save_status>.
+Restore the PGPLOT state. See L</_save_status>.
 
 =cut
 
@@ -4538,10 +4540,6 @@ sub poly {
 
 # Plot an ellipse using poly.
 
-
-
-
-
 {
   my $ell_options = undef;
 
@@ -4583,7 +4581,6 @@ sub poly {
     my ($costheta, $sintheta)=(cos($o->{Theta}), sin($o->{Theta}));
     $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
-
 
     $self->_add_to_state(\&ellipse, $in, $opt);
     # Now turn off recording so we don't get this one twice..
@@ -5097,7 +5094,7 @@ sub poly {
 
 The coding tries to follow reasonable standards, so that all functions
 starting with an underscore should be considered as internal and should
-not be called from outside the package. In addition most routines has
+not be called from outside the package. In addition most routines have
 a set of options. These are encapsulated and are not accessible outside
 the routine. This is to avoid collisions between different variables.
 
@@ -5117,8 +5114,6 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
-
-
 
 #
 
