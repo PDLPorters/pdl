@@ -573,6 +573,7 @@ debian/buildnotes
 debian/changelog
 debian/control
 debian/copyright
+debian/f77conf.pl
 debian/pdl-menu
 debian/postinst
 debian/postrm
