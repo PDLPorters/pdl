@@ -822,6 +822,21 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                             pptr+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
                            );
     }
+
+    /* pad this level to zero if there are not enough elements */
+    if(i < pdims[level]) 
+	if(level<ndims-1) {
+	    pdata += stride*i;
+	    pdims[level] -= i;
+	    pdl_setzero_$type(pdata,pdims,ndims,level);
+	    pdims[level] += i;
+	} else {
+	    pdata += stride * i;
+	    for(;i<pdims[level];i++) {
+		*pdata = 0;
+		pdata += stride;
+	    }
+	}
   } else {
       switch(pdl->datatype) {
 !WITH!SUBS!
@@ -843,7 +858,13 @@ print OUT <<"!WITH!SUBS!";
         default: 
           croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: unknown type of %d.",pdl->datatype);
           break;
-    }
+     }
+
+      /* Pad subtree to zero if the PDL is not deep enough */
+	  if(level < ndims-1) {
+	      pdata += stride/pdims[level];
+	      pdl_setzero_$type(pdata,pdims,ndims,level+1);
+	  }
     
   }
 }

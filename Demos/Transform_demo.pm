@@ -99,7 +99,7 @@ act q|
   ### Create a PGPLOT window, and display the original image
     $win = pgwin( nx=>2, ny=>2, Charsize=>2, Justify=>1, Size=>[8,6] );
 
-    $win->fits_imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
+    $win->imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
 
   ### Grow m51 by a factor of 3; origin is at lower left
   #   (the "pix" makes the resampling happen in pixel coordinate 
@@ -126,7 +126,7 @@ act q|
     ### Clear the panel and start over
 
     $win->panel(4);                 # (Clear whole window on next plot)
-    $win->fits_imag( $m51, { Title=>"M51" } );
+    $win->imag( $m51, { Title=>"M51" } );
 
     ### Scale in scientific coordinates.
     #   Here's a way to scale in scientific coordinates:
