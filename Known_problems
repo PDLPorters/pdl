@@ -10,13 +10,18 @@ PDL.
 - The html docs for the modules in IO/Misc aren't being built during 'make
   install' (this one seems to be fixed now). 
 
-- Some problems have been reported with PDL and perl5.005 (core dumps, 
+- Some problems have been reported with PDL and perl5.005/5.6.0 (core dumps, 
    and/or regression tests failing) when perl is compiled with the perl-
    provided malloc. This has been reported on the following platforms:
      * R5000 Indy machine running Irix 6.2
      * Sun Solaris 2.5, gcc.
      * HPUX
+     * Sun Solaris 2.6, gcc, perl5.6.0 (ActivePerl)
 
+- If @INC has '.' at the front of the search path part of the build will
+  fail (specifically mkpdlconv will not be able to 'use English' since
+  it uses Exporter.pm from Basic/Core and not the system Exporter.pm).
+    [added by Tim Jenness on 15 Apr 2000]
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
