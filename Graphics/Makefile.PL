@@ -31,7 +31,7 @@ if( defined($t) and $t == 0 ) {
 #     VERSION_FROM => '../Basic/Core/Version.pm',
 #     DIR => [@subdirs]
 #);
-my @pm_names = qw (Graphics2D.pm);
+my @pm_names = qw (Graphics2D.pm State.pm);
 my %pm = map { $h = '$(INST_LIBDIR)/';
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
 	       ( $_, $h . $_ );
