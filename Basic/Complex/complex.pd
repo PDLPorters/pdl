@@ -816,11 +816,16 @@ sub i () { $i->copy };
 
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
-   (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt -@Cneg abs@Cabs)),
+   (map _gen_unop($_), qw(sin@Csin cos@Ccos exp@Cexp abs@Cabs log@Clog sqrt@Csqrt abs@Cabs)),
    (map _gen_cpop($_), qw(< <= == != => >)),
    '++' => sub { $_[0] += 1 },
    '--' => sub { $_[0] -= 1 },
 ;
+
+# overwrite PDL's overloading to honour subclass methods in + - * /
+{ package PDL;
+  use overload ( map { $_ => $PDL::bop_sbclasschk{$_}} @PDL::biops1);
+}
 
 =head1 AUTHOR
 
