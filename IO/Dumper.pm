@@ -94,7 +94,7 @@ BEGIN{
 
   package PDL::IO::Dumper;
 
-  $PDL::IO::Dumper::VERSION = 1.2.1;
+  $PDL::IO::Dumper::VERSION = 1.3.1;
   
   @PDL::IO::Dumper::ISA = ( Exporter ) ;
   @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
@@ -418,7 +418,7 @@ sub PDL::IO::Dumper::dump_PDL {
       ## 
       ## Generate commands to uudecode the FITS file and resnarf it
       ##
-      @s = ("open DuMPERFILE,'|uudecode'; print DuMPERFILE <<'blat'\n",
+      @s = ("open DuMPERFILE,'|(cd /tmp; uudecode)'; print DuMPERFILE <<'blat'\n",
 	    @uulines,
 	    "blat\n;\n",
 	    "close DuMPERFILE;\n",
