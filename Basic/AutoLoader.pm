@@ -123,6 +123,7 @@ my $pkg = (caller())[0];
 my $toeval = "package $pkg;";
 
 $toeval .= <<'EOD';
+$PDLLIB_CT = 0;
 
 push @PERLDL::AUTO, \&PDL::AutoLoader::reloader;
 

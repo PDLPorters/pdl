@@ -1,4 +1,9 @@
 (!!! = possible source of incompatibilities)
+
+zowie   - Autoloader update (handles '+' for entire dir trees)
+	- Graphics::PGPLOT::imag update (includes options for image scaling)
+	- perldl update (minor fix to avoid null code ref bug in PDL::myeval)
+
 CS	- debian stuff
 	- image rotation (rot2d)
 	- karma  kimagergb renamed to krgb
