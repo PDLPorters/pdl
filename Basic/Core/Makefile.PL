@@ -116,7 +116,7 @@ WriteMakefile(
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
 		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm ' .
+		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p isbigendian.p badsupport.p'
 		   },
  'INC'          => "$mallocinc",
