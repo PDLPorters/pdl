@@ -151,6 +151,7 @@ sub default_options {
 	    Border      => 0,
 	    CharSize    => 1,     # Character size for annotation
 	    Erase       => 0,
+	    Recording   => 0,     # Off by default.
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
 
