@@ -33,6 +33,7 @@ libraries.  It currently supports PGPLOT-5.2 and PGPLOT-5.2-cd2.  The
 -cd2 version includes RGB output and anti-aliasing.
 
 High-level plotting commands:
+
  imag       -  Display an image (uses pgimag/pggray/pgrgbi as appropriate)
  fits_imag  -  Display a FITS image in scientific coordinates
  cont       -  Display image as contour map
@@ -53,6 +54,7 @@ High-level plotting commands:
  legend     -  Create a legend with different texts, linestyles etc.
 
 Low-level plotting commands:
+
  arrow      -  Draw an arrow
  poly       -  Draw a polygon
  rectangle  -  Draw a rectangle
@@ -62,6 +64,7 @@ Low-level plotting commands:
  ellipse    -  Draw an ellipse.
 
 Device manipulation commands:
+
  new           -  Construct a new output device 
  pgwin         -  Exported hook to new()
  close         -  Close a PGPLOT output device.
@@ -346,15 +349,15 @@ C<rgb.txt> that came with PGPLOT.
 For more details on the handling of colour it is best that the user
 consults the PGPLOT documentation. Further details on the handling of
 colour can be found in the documentation for the internal routine
-L<_set_colour|/_set_colour>.
+L</_set_colour>.
 
 The HardColour option should be used if you are plotting to a hardcopy device
 [this may be untrue?].
 
 =item filltype
 
-Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
-L<ellipse|/ellipse>, and L<rectangle|/rectangle>
+Set the fill type to be used by L</poly>, L</circle>,
+L</ellipse>, and L</rectangle>
 The fill can either be specified using numbers or name, according to the
 following table, where the recognised name is shown in capitals - it is
 case-insensitive, but the whole name must be specified.
@@ -451,7 +454,7 @@ The HardLW option should be used if you are plotting to a hardcopy device.
 Sets the number of data pixels per inch on the output device.
 You can set the C<unit> (see below) to change this to any other
 PGPLOT unit (millimeters, pixels, etc.).   Pitch is device independent,
-so an image should appear exactly the same size (e.g. C<Pitch=>100>
+so an image should appear exactly the same size (e.g. C<Pitch=E<gt>100>
 is 100 dpi) regardless of output device.
 
 =item pix
@@ -468,17 +471,17 @@ the C<unit> (see below) to change this to number of PGPLOT units
 (inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
 as it is not device-independent; but it does come in handy for quick
 work on digital displays, where aliasing might otherwise interfere
-with image interpretation.  For example, C<scale=>1> displays 
+with image interpretation.  For example, C<scale=E<gt>1> displays 
 images at their native resolution.
 
 =item Panel
 
 It is possible to define multiple plot ``panels'' with in a single
 window (see the L<NXPanel and NYPanel options in the
-constructor|PDL::Graphics::PGPLOT::Window>).  You can explicitly set
+constructor|/new>).  You can explicitly set
 in which panel most plotting commands occur, by passing either a
 scalar or an array ref into the C<Panel> option.  There is also a
-L<panel|PDL::Graphics::PGPLOT::panel> method, but its use is deprecated
+L<panel|PDL::Graphics::PGPLOT/panel> method, but its use is deprecated
 because of a wart with the PGPLOT interface.
 
 =item plotting & imaging range
@@ -496,7 +499,7 @@ in general). These options are ignored if the window is on hold.
 Imaging requires some thought if you don't want to lose a pixel off
 the edge of the image.  Pixels are value-centered (they are centered
 on the coordinate whose value they represent), so the appropriate
-range to plot the entirety of a 100x100 pixel image is [-0.5,99.5] on
+range to plot the entirety of a 100x100 pixel image is C<[-0.5,99.5]> on
 each axis.
 
 =back
@@ -788,9 +791,10 @@ The number of panels in the Y-direction
 
 Yet another way to identify the plot window size -- this takes a scalar
 or an array ref containing one, two, or three numbers.  One number gives
-you a square window.  Two gives you a rectangular window (X,Y).  Three
-lets you specify the unit compactly (e.g. [<X>,<Y>,1] for inches,
-[<X>,<Y>,2] for mm) but is deprecated in favor of using the Unit option.
+you a square window.  Two gives you a rectangular window C<(X,Y)>.  Three
+lets you specify the unit compactly (e.g. C<< [<X>,<Y>,1] >> for inches,
+C<< [<X>,<Y>,2] >> for mm) but is deprecated in favor of using the 
+C<Unit> option.
 See the discussion on size setting.
 
 =item Unit
@@ -836,9 +840,10 @@ linestyle.
 
 Size setting: There are a gazillion ways to set window size, in
 keeping with TIMTOWTDI.  In general you can get away with passing any
-unique combination of an <X> size, a <Y> size, and/or an aspect ratio.
-In increasing order of precedence, the options are: (Units,
-AspectRatio, WindowWidth, Window<X,Y>Size, Size). 
+unique combination of an C<< <X> >> size, a C<< <Y> >>size,
+and/or an aspect ratio.
+In increasing order of precedence, the options are: (C<Units>,
+C<AspectRatio>, C<WindowWidth>, C<< Window<X,Y>Size >>, C<Size>). 
 
 So if you specify an AspectRatio *and* an X and a Y coordinate, the
 AspectRatio is ignored.  Likewise, if you specify Units and a
@@ -1039,7 +1044,8 @@ recommended for final output as it's not device-independent.)
 Here's an additional complication: the "pixel" stuff refers not
 (necessarily) to normal image pixels, but rather to I<transformed>
 image pixels.  That is to say, if you feed in a transform matrix
-via the TRANSFORM option, the PIX, SCALE, etc. options all refer to the
+via the C<TRANSFORM> option, the C<PIX>, C<SCALE>,
+etc. options all refer to the
 transformed coordinates and not physical image pixels.  That is a Good 
 Thing because it, e.g., lets you specify plate scales of your output
 plots directly!  See fits_imag for an example application.  If you
@@ -1071,7 +1077,7 @@ Options recognised:
                table by specifying your own range -- e.g. if you
                say "CRange=>[0.25,0.75]" then only the middle half
                of the pseudocolor space will be used.  (See the 
-               writeup on L<ctab|ctab>.)
+               writeup on ctab().)
                
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
@@ -1120,9 +1126,9 @@ This is syntactic sugar for
 
 Display an RGB color image 
 
-The calling sequence is exactly like L<imag|imag>, except that the input
-image must have three dimensions: N x M x 3.  The last dimension is the 
-(R,G,B) color value.  This routine requires pgplot 5.3devel or above.
+The calling sequence is exactly like L</imag>, except that the input
+image must have three dimensions: C<N x M x 3>.  The last dimension is the 
+(R,G,B) color value.  This routine requires B<pgplot 5.3devel> or later.
 Calling rgbi explicitly is not necessary, as calling image with an
 appropriately dimensioned RGB triplet makes it fall through to rgbi.
 
@@ -1181,7 +1187,7 @@ options just as with L<the imag() method|/imag> -- but
 those parameters refer to the scientific coordinate system rather than 
 to the pixel coordinate system (e.g. C<PITCH=>100> means "100 scientific units 
 per inch", and C<SCALE=>1> means "1 scientific unit per device pixel".  See
-L<the imag() writeup|PDL::Graphics::Window::imag> for more info on these 
+L<the imag() writeup|/imag> for more info on these 
 options.  
 
 The default value of the C<ALIGN> option is 'CC' -- centering the image 
