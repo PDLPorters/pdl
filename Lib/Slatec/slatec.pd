@@ -12,15 +12,75 @@ PDL::Slatec - PDL interface to the slatec numerical programming library
 
 =head1 DESCRIPTION
 
-This module serves the dual purpose of showing how to interface
-PDL to an external library and providing various functions to 
-interface to the slatec library. In due time, reasonable 
-perl functions will be provided to take advantage of all 
-the library but currently we only have
+This module serves the dual purpose of providing an interface to
+parts of the slatec library and showing how to interface PDL
+to an external library.
+Using this library requires a fortran compiler; the source for the routines
+is provided for convenience.
 
+Currently available are routines to:
+manipulate matrices; calculate FFT's; 
+fit data using polynomials; 
+and interpolate/integrate data using piecewise cubic Hermite interpolation.
 
-=head1 FUNCTIONS
+=head2 Piecewise cubic Hermite interpolation (PCHIP)
 
+PCHIP is the slatec package of routines to perform piecewise cubic
+Hermite interpolation of data.
+It features software to produce a monotone and "visually pleasing"
+interpolant to monotone data.  
+According to Fritsch & Carlson ("Monotone piecewise
+cubic interpolation", SIAM Journal on Numerical Analysis 
+17, 2 (April 1980), pp. 238-246),
+such an interpolant may be more reasonable than a cubic spline if
+the data contains both "steep" and "flat" sections.  
+Interpolation of cumulative probability distribution functions is 
+another application.
+These routines are cryptically named (blame FORTRAN), 
+beginning with 'ch', and accept either float or double piddles. 
+
+Most of the routines require an integer parameter called C<check>;
+if set to 0, then no checks on the validity of the input data are
+made, otherwise these checks are made.
+The value of C<check> can be set to 0 if a routine,
+such as L<chim|/chim>, has already been successfully called.
+
+=over 4
+
+=item 1 
+
+If not known, estimate derivative values for the points
+using the L<chim|/chim>, L<chic|/chic>, or L<chsp|/chsp> routines
+(the following routines require both the function (C<f>)
+and derivative (C<d>) values at a set of points (C<x>)). 
+
+=item 2 
+
+Evaluate, integrate, or differentiate the resulting PCH
+function using the routines:
+L<chfd|/chfd>; L<chfe|/chfe>; L<chia|/chia>; L<chid|/chid>.
+
+=item 3 
+
+If desired, you can check the monotonicity of your
+data using L<chcm|/chcm>. 
+
+=back
+ 
+EOD
+# ' un-confuse emacs
+
+# if define chbs, then add something like the following to point 3:
+#
+# or use L<chbs|/chbs> to convert a PCH function into B-representation 
+# for use with the B-spline routines of slatec 
+# (although no interface to them currently exist).
+#
+
+# add function definitions after finishing the first pp_addpm(), since this
+# adds a '=head1 FUNCTIONS' line at the end of the text
+
+pp_addpm(<<'END');
 =head2 eigsys
 
 =for ref
@@ -31,7 +91,7 @@ Eigenvalues and eigenvectors of a real positive definite symmetric matrix.
 
  ($eigvals,$eigvecs) = eigsys($mat)
 
-Note: this function should be extended to calculate only eigenvalues if called
+Note: this function should be extended to calculate only eigenvalues if called 
 in scalar context!
 
 =head2 matinv
@@ -63,7 +123,7 @@ C<eps> is modified to contain the rms error of the fit.
 =head2 polycoef
 
 Convenience wrapper routine around the C<pcoef> C<slatec> function.
-Separates supplied arguments and return values.
+Separates supplied arguments and return values.                               
 
 =for ref
 
@@ -82,7 +142,7 @@ For multiple input x positions, a corresponding y position is calculated.
 
 The derivatives PDL is one dimensional (of size C<nder>) if a single x
 position is supplied, two dimensional if more than one x position is
-supplied.
+supplied.                                                                     
 
 =for ref
 
@@ -94,33 +154,18 @@ derivatives, at a specified point.
 
  ($yfit, $yp) = polyvalue($l, $nder, $x, $a);
 
-
-=head1 NOTES
-
-Using this library requires a fortran compiler. The source for the routines
-is provided for convenience.
-
-=head1 AUTHOR
-
-Copyright (C) 1997 Tuomas J. Lukka. 
-Copyright (C) 2000 Tim Jenness.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL 
-distribution. If this file is separated from the PDL distribution, 
-the copyright notice should be included in the file.
-
-
-
 =cut
-EOD
+
+END
+
+use strict;
 
 # for MDim, ld[str] is interpreted as "leading dimension of ..."
 
 # Making the BAD BAD BAD assumption that PDL_Long == int 
 # in fortran. BAD BAD BAD XXX (I'm going to regret this)
 
-%ftypes = (S => F, D => D);
+my %ftypes = (S => 'F', D => 'D');
 
 sub firstpar {
 	$_[0] =~ /^\(([^),]+)[),]/ or die "Can't find first par from $_[0]";
@@ -129,58 +174,174 @@ sub firstpar {
 
 # whether or not to append undercores
 
-$uscore = (-e "f77_underscore" ? "_" : ""); 
+my $uscore = (-e "f77_underscore" ? "_" : ""); 
 
+# used in defslatec()
+#my %ignore_ppar = ( Incfd => 1, CheckFlag => 1 );
+my %ignore_ppar = ( Incfd => 1 );
+my %prototype = ( F => "float", D => "double" );
+
+# an alternative is to declare the function in the Code section
+# of pp_def(), using something like:
+#
+#    my $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(".
+#      (join ',',map {$_->[1].$uscore} @talts).") ();";
+#    if ( defined $fpar ) { 
+#      $codeproto = "\$T".(join '',map {$_->[0]} @talts)."(float,double) $codeproto";
+#    }
+#    $codeproto = "extern $codeproto";
+#
+# and then add `$codeproto . "\n" .' to the beginning of the Code
+# section.
+#
+# this then gets rid of the need of the prototype file. 
+#
+open( PROTOS, "> SlatecProtos.h" );
+
+# defslatec( $pdlname, $funcnames, $argstr, $docstring, $funcref )
+#
+# $pdlname is the name of the PDL function to be created
+# $funcnames is a reference to a hash array, whose keys define
+# the single (S), and double precision (D) names of the
+# SLATEC routines to be linked to.
+#
+# $argstr is a list of arguments expected by the SLATEC routine
+# - some of the allowed type names are:
+#   FuncRet
+#     - specifies that this is a function, not a subroutine, and
+#       that the output of the function should be stored in this
+#       variable
+#   Incfd
+#     - used in the PCHIP functions to specify the INCFD argument
+#       that we force to be 1, so the user never has to specify it
+#       (this allows the PCHIP routines to use 2D data, but as it's
+#        done in FORTRAN array order, and PDL has a much richer way
+#        of accessing parts of an array we force the data to be 1D).
+#   CheckFlag
+#     - the PCHIP routined may change the value from 0 to 1 if an
+#       error occurs but the checks were successful. As this complicates
+#       things we copy the user value to a temporary variable,
+#       so that the sent in value is not changed.
+#   FortranIndex
+#     - pchid()/dpchid() require FORTRAN array indices, so 
+#       this type flags that we should add 1 onto the input values
+#       before sending to the slatec function
+#
+# $docstring gives the text to be used as the function dicumentation
+#
+# $funcref gets placed within a '=for ref' pod statement at the
+# start of the documentation - ie it is placed before the
+# text within $docstring. This string gets printed out
+# in the perldl shell after a '?? string' command
+#
 sub defslatec {
-	my($pname,$fnames,$argstr,$opts) = @_;
-	my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
-	my @args2 = map {
+    my($pname,$fnames,$argstr,$docstring,$funcref) = @_;
+    my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
+    my @args2 = map {
 		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
 		  ((?:\[[^]]*\])?)\s* 	# Options
 		  ([a-zA-Z]+)\s*      	# Par name
 		  ((?:\([^)]*\))?)\s*$	# Dims
 		 /x or die("Invalid slatec par $_");
 		[$1,$2,$3,$4]} @args;
-	my @ppars = map {
-		if($_->[0] =~ /^M?Dim$/) {
-			()
-		} else {
-		($_->[0] eq "Mat" and join '',@{$_}[1,2,3]) or
-		($_->[0] eq "IntFlag" and "int ".join '',@{$_}[1,2,3]) or
-		die "Invalid ppars ",(join ',',@$_),"\n";
-		}
-		} @args2;
-	my @talts = map {defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";
-			 [$ftypes{$_},$fnames->{$_}]}
-			 	keys %$fnames;
-	my $func = "\$T".(join '',map {$_->[0]} @talts) . "(" . 
-	  (join ',',map {$_->[1].$uscore} @talts).")";
 
-	my %lds = map {
-		($_->[0] eq "Mat" and $_->[3] ne "()") ? 
-			("ld".$_->[2] =>
-			 "&\$PRIV(__".firstpar($_->[3])."_size)")
-		: ()} @args2;
+    # is this for a function (Type name eq "FuncRet")
+    # or a subroutine?
+    my $fpar;
+    foreach ( @args2 ) { 
+      next unless $_->[0] eq "FuncRet";
+      die "Only one FuncRet allowed in pars list.\n" if defined $fpar;
+      $fpar = "\$$_->[2]()";
+    }
 
-	my @funcpars =map {(($_->[0] eq "Mat" or
-	  		     $_->[0] eq "IntFlag") and "\$P($_->[2])") or
-			   ($_->[0] eq "Dim" and "&\$PRIV(__$_->[2]_size)") or
-			   ($_->[0] eq "MDim" and $lds{$_->[2]}) or
-			   die "Invalid args2";
-			}  @args2;
+    my @ppars = map {
+      if($_->[0] =~ /^M?Dim$/ or defined $ignore_ppar{$_->[0]} ) {
+	  ()
+      } else {
+	  (($_->[0] eq "Mat" or $_->[0] eq "FuncRet")
+           and join '',@{$_}[1,2,3]) or
+	  (($_->[0] eq "IntFlag" or $_->[0] eq "FortranIndex" or $_->[0] eq "CheckFlag")
+           and "int ".join '',@{$_}[1,2,3]) or
+	  die "Invalid ppars ",(join ',',@$_),"\n";
+      }
+    } @args2;
+    print "Pars: ",(join ';',@ppars),"\n";
+	
+    my @talts = map { 
+          defined $ftypes{$_} or die "FTYPE $_ NOT THERE\n";
+          [$ftypes{$_},$fnames->{$_}] 
+    } keys %$fnames;
 
-	print "Pars: ",(join ';',@ppars),"\n";
+    my $func = "\$T".(join '',map {$_->[0]} @talts) . "(" . 
+      (join ',',map {$_->[1].$uscore} @talts).")";
+    if ( defined $fpar ) { $func = "$fpar = $func"; }
 
-	pp_def($pname,
-		Pars => (join ';',@ppars),
-		OtherPars => '',
-		Code => (join '',@ifincode) . "\n " .
-			$func . "  (". (join ',',@funcpars) . ");\n"
-			. (join '',@ifoutcode),
-		GenericTypes => [map {$_->[0]} @talts],
-	        %$opts,
-	);
-}
+    my %lds = map {
+          ($_->[0] eq "Mat" and $_->[3] ne "()") ? 
+          ("ld".$_->[2] => "&\$PRIV(__".firstpar($_->[3])."_size)")
+	  : ()
+    } @args2;
+
+    my @funcpars;
+    foreach ( @args2 ) {
+      next if $_->[0] eq "FuncRet";
+      if ( $_->[0] eq "Mat" or $_->[0] eq "IntFlag" ) {
+	  push @funcpars, "\$P($_->[2])";
+      } elsif ( $_->[0] eq "Dim" ) {
+	  push @funcpars, "&\$PRIV(__$_->[2]_size)";
+      } elsif ( $_->[0] eq "MDim" ) {
+	  push @funcpars, $lds{$_->[2]};
+      } elsif ( $_->[0] eq "Incfd" or $_->[0] eq "CheckFlag" ) {
+	  push @funcpars, "&_" . lc($_->[0]);
+      } elsif ( $_->[0] eq "FortranIndex" ) {
+	  push @funcpars, "&_$_->[2]"; 
+      } else {
+	  die "Invalid args2";
+      }
+    }
+
+    # _incfd     = 1 makes sure PCHIP code treats piddle as 1D
+    # _checkflag - copy input data to a temporary variable, in case
+    #              the PCHIP routine decides to change it
+    #
+    my @ifincode;
+    foreach ( @args2 ) {
+      if ( $_->[0] eq "Incfd" ) {
+	  push @ifincode, "int _" . lc($_->[0]) . " = 1;";
+      } elsif ( $_->[0] eq "CheckFlag" ) {
+	  push @ifincode, "int _" . lc($_->[0]) . " = \$$_->[2]();";
+      } elsif ( $_->[0] eq "FortranIndex" ) {
+	  # convert from C to F77 index
+	  push @ifincode, "int _$_->[2] = \$$_->[2]() + 1;"
+      }
+    }
+
+    foreach ( @talts ) {
+	my $codeproto = "extern ";
+	if ( defined $fpar ) { $codeproto .= "$prototype{$_->[0]} "; }
+	$codeproto .= "$_->[1]$uscore ();";
+	print PROTOS $codeproto . "\n";
+    }
+
+    # add on the function reference, if supplied, to the start of
+    # the doc string
+    if ( defined $docstring ) {
+      $docstring = "\n=for ref\n\n$funcref\n\n$docstring" if defined $funcref;
+    } else {
+      $docstring = '';
+    }
+
+    pp_def($pname,
+      Pars => (join ';',@ppars),
+      OtherPars => '',
+      Code => (join '',@ifincode) . "\n " .
+               $func . "  (". (join ',',@funcpars) . ");\n",
+#              . (join '',@ifoutcode),
+      GenericTypes => [map {$_->[0]} @talts],
+      Doc => $docstring
+#      %$opts,
+    );
+} # sub: defslatec()
 
 pp_addhdr('
 #include "SlatecProtos.h"
@@ -192,7 +353,6 @@ void MAIN__ () {
    
 ');
 
-
 pp_add_exported('',"eigsys matinv fft fftb polyfit polycoef polyvalue");
 
 pp_addpm(<<'END');
@@ -201,7 +361,6 @@ use PDL::Core;
 use PDL::Basic;
 use PDL::Primitive;
 use strict;
-
 
 # Note: handles only real symmetric positive-definite.
 
@@ -281,7 +440,7 @@ sub rfft {
 sub PDL::polyfit {
   barf 'Usage: polyfit($x, $y, $w, $maxdeg, $eps);'
     unless @_ == 5;
-  
+
   # Create the output arrays
   my $r = PDL->null;
 
@@ -293,7 +452,7 @@ sub PDL::polyfit {
   my $ierr = PDL->null;
   my $ndeg = PDL->null;
 
-  # Now call polfit
+  # Now call polfit                                                           
   polfit($_[0], $_[1], $_[2], $_[3], $ndeg, $_[4], $r, $ierr, $a);
 
   # Convert ierr and ndeg to simple scalars
@@ -311,9 +470,9 @@ sub PDL::polycoef {
 
   # Allocate memory for return PDL
   # Simply l + 1 but cant see how to get PP to do this - TJ
-  # Not sure the return type since I do not know 
+  # Not sure the return type since I do not know
   # where PP will get the information from
-  my $tc = PDL->zeroes( abs($_[0]) + 1 );
+  my $tc = PDL->zeroes( abs($_[0]) + 1 );                                     
 
   # Run the slatec routine
   pcoef($_[0], $_[1], $tc, $_[2]);
@@ -333,12 +492,12 @@ sub PDL::polyvalue {
 
   # This one must be preallocated and must take into account
   # the size of $x if greater than 1
-  my $yp;
+  my $yp;                                                                     
   print $_[2]->getdim(0),"\n";
   if ($_[2]->getdim(0) == 1) {
     $yp = $_[2]->zeroes($_[1]);
   } else {
-    $yp   = $_[2]->zeroes($_[1], $_[2]->getdim(0));
+    $yp = $_[2]->zeroes($_[1], $_[2]->getdim(0));
   }
 
   # Run the slatec function
@@ -348,7 +507,7 @@ sub PDL::polyvalue {
   return ($yfit, $yp);
 
 }
-
+                                                                              
 END
 
 defslatec(
@@ -367,11 +526,11 @@ defslatec(
 	 IntFlag   	job	();
 	 IntFlag [o]	info	();
 	',
-	{Doc => 'singular value decomposition of a matrix'}
+'singular value decomposition of a matrix'
 );
 
 defslatec(
-	'poco',{S => spoco, D => dpoco},
+	'poco',{S => 'spoco', D => 'dpoco'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -379,12 +538,12 @@ defslatec(
 	 Mat	[o]	z	(n);
 	 IntFlag [o]	info	();
 	',
-	{Doc => 'Factor a real symmetric positive definite matrix
-		and estimate the condition number of the matrix.'}
+'Factor a real symmetric positive definite matrix
+and estimate the condition number of the matrix.'
 );
 
 defslatec(
-	'geco',{S => sgeco, D => dgeco},
+	'geco',{S => 'sgeco', D => 'dgeco'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -392,37 +551,40 @@ defslatec(
 	 Mat	 [o]	rcond	();
 	 Mat	 [o]	z	(n);
 	',
-	{Doc => 'Factor a matrix using Gaussian elimination and estimate
-            the condition number of the matrix.'}
+'Factor a matrix using Gaussian elimination and estimate
+the condition number of the matrix.'
 );
 
 defslatec(
-	'gefa',{S => sgefa, D => dgefa},
+	'gefa',{S => 'sgefa', D => 'dgefa'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
 	 IntFlag [o]	ipvt	(n);
 	 IntFlag [o]	info	();
 	',
-	{Doc => 'Factor a matrix using Gaussian elimination.'}
+'Factor a matrix using Gaussian elimination.'
 );
 
 # XXX Ensure two == 2!!
+#
+# pofa and sqrdc aren't (yet?) implemented
+#
 defslatec(
-	'podi',{S => spodi, D => dpodi},
+	'podi',{S => 'spodi', D => 'dpodi'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
 	 Mat	[o]	det	(two=2);
 	 IntFlag	job	();
 	',
-	{Doc => 'Compute the determinant and inverse of a certain real
-            symmetric positive definite matrix using the factors
-            computed by SPOCO, SPOFA or SQRDC.'}
+'Compute the determinant and inverse of a certain real
+symmetric positive definite matrix using the factors
+computed by L<poco|/poco>.'
 );
 
 defslatec(
-	'gedi',{S => sgedi, D => dgedi},
+	'gedi',{S => 'sgedi', D => 'dgedi'},
 	'Mat		a	(n,n);
 	 MDim		lda;
 	 Dim		n;
@@ -431,13 +593,13 @@ defslatec(
 	 Mat	 [o]	work	(n);
 	 IntFlag	job	();
 	',
-	{Doc => 'Compute the determinant and inverse of a matrix using the
-            factors computed by SGECO or SGEFA.'}
+'Compute the determinant and inverse of a matrix using the
+factors computed by L<geco|/geco> or L<gefa|/gefa>.'
 );
 	
 
 defslatec(
-	'gesl',{S => sgesl, D => dgesl},
+	'gesl',{S => 'sgesl', D => 'dgesl'},
 	'Mat		a	(lda,n);
 	 MDim		lda;
 	 Dim		n;
@@ -445,12 +607,12 @@ defslatec(
 	 Mat		b	(n);
 	 IntFlag	job	();
 	',
-	{Doc => 'Solve the real system A*X=B or TRANS(A)*X=B using the
-            factors computed by DGECO or DGEFA'}
+'Solve the real system C<A*X=B> or C<TRANS(A)*X=B> using the
+factors computed by L<geco|/geco> or L<gefa|/gefa>.'
 );
 
 defslatec(
-	'rs', {S => rsfoo},
+	'rs', {S => 'rsfoo'},
 	'MDim		lda;
 	 Dim		n;
 	 Mat		a	(n,n);
@@ -461,29 +623,31 @@ defslatec(
 	 Mat	[t]	fvtwo	(n);
 	 IntFlag [o]	ierr	();
 	',
-	{Doc => 'This subroutine calls the recommended sequence of
-     	subroutines from the eigensystem subroutine package (EISPACK)
-     	to find the eigenvalues and eigenvectors (if desired)
-     	of a REAL SYMMETRIC matrix.'}
+'This subroutine calls the recommended sequence of
+subroutines from the eigensystem subroutine package (EISPACK)
+to find the eigenvalues and eigenvectors (if desired)
+of a REAL SYMMETRIC matrix.'
 
 );
 
 # XXX wsave : at least 3n+15
 defslatec(
-	'ezffti', {S => ezffti},
+	'ezffti', {S => 'ezffti'},
 	'IntFlag	n	();
 	 Mat [o]	wsave(foo);
 	',
-	{Doc => 'Subroutine EZFFTI initializes the work array WSAVE
-	which is used in both EZFFTF and EZFFTB.  The prime factorization
-	of N together with a tabulation of the trigonometric functions
-	are computed and stored in WSAVE.'}
+'Subroutine ezffti initializes the work array C<wsave()>
+which is used in both L<ezfftf|/ezfftf> and 
+L<ezfftb|/ezfftb>.  
+The prime factorization
+of C<n> together with a tabulation of the trigonometric functions
+are computed and stored in C<wsave()>.'
 
 );
 
 # XXX Correct for azero, a and b
 defslatec(
-	'ezfftf', {S => ezfftf},
+	'ezfftf', {S => 'ezfftf'},
 	'Dim		n;
 	 Mat		r(n);
 	 Mat [o]	azero();
@@ -494,7 +658,7 @@ defslatec(
 );
 
 defslatec(
-	'ezfftb', {S => ezfftb},
+	'ezfftb', {S => 'ezfftb'},
 	'Dim		n;
 	 Mat  [o]	r(n);
 	 Mat  		azero();
@@ -504,53 +668,487 @@ defslatec(
 	'
 );
 
+##################################################################
+##################################################################
+#
+# polynomial fitting stuff
+#
 defslatec(
-	'polfit', {S => polfit, D => dpolft},
-	'
-	Dim             n;
-	Mat             x(n);
-        Mat             y(n);
-	Mat             w(n);
-	IntFlag         maxdeg ();
-        IntFlag  [o]    ndeg   ();
-        Mat      [o]    eps    ();
-        Mat      [o]    r      (n);
-	IntFlag  [o]    ierr   ();
-	Mat      [o]    a      (foo);
-	',
-	{Doc => 'Fit discrete data in a least squares sense by polynomials
-        in one variable. x(), y() and w() must be of the same type.'}
-);
-
-
-defslatec(
-	'pcoef', {S => pcoef, D => dpcoef},
-	'
-	IntFlag  l ();
-	Mat      c ();
-	Mat [o]  tc (bar);
-	Mat      a (foo);
-	',
-	{Doc => 'Convert the C<polfit> coefficients to Taylor series form.
-         c and a() must be of the same type.'}
-);
+      'polfit', {S => 'polfit', D => 'dpolft'},
+      '
+      Dim             n;
+      Mat             x(n);
+      Mat             y(n);
+      Mat             w(n);
+      IntFlag         maxdeg ();
+      IntFlag  [o]    ndeg   ();
+      Mat      [o]    eps    ();
+      Mat      [o]    r      (n);
+      IntFlag  [o]    ierr   ();
+      Mat      [o]    a      (foo);
+      ',
+'Fit discrete data in a least squares sense by polynomials
+in one variable. C<x()>, C<y()> and C<w()> must be of the same type.'
+);                                                                            
 
 defslatec(
-	'pvalue', {S => pvalue, D => dp1vlu},
-	'
-	IntFlag  l ();
-	Dim      nder;
-	Mat      x    ();
-	Mat [o]  yfit ();
-	Mat [o]  yp   (nder);
-	Mat      a    (foo);
-	',
-	{Doc => 'Use the coefficients generated by C<polfit> to evaluate the
-            polynomial fit of degree L, along with the first NDER of
-            its derivatives, at a specified point. x and a must be of the
-            same type.'}
+      'pcoef', {S => 'pcoef', D => 'dpcoef'},
+      '
+      IntFlag  l ();
+      Mat      c ();
+      Mat [o]  tc (bar);
+      Mat      a (foo);
+      ',
+'Convert the C<polfit> coefficients to Taylor series form.
+C<c> and C<a()> must be of the same type.'
+);                                                                            
+
+defslatec(
+      'pvalue', {S => 'pvalue', D => 'dp1vlu'},
+      '
+      IntFlag  l ();
+      Dim      nder;
+      Mat      x    ();
+      Mat [o]  yfit ();
+      Mat [o]  yp   (nder);
+      Mat      a    (foo);
+      ',
+'Use the coefficients generated by C<polfit> to evaluate the
+polynomial fit of degree C<l>, along with the first C<nder> of
+its derivatives, at a specified point. C<x> and C<a> must be of the
+same type.'
+);                                                                            
+
+##################################################################
+##################################################################
+#
+# PCHIP library
+#
+defslatec(
+	  'chim', {S => 'pchim', D => 'dpchim'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           Incfd        dummy;
+           IntFlag [o]  ierr    ();
+          ',
+'Calculate the derivatives at the given set of points (C<$x,$f>,
+where C<$x> is strictly increasing).
+The resulting set of points - C<$x,$f,$d>, referred to
+as the cubic Hermite representation - can then be used in
+other functions, such as L<chfe|/chfe>, L<chfd|/chfd>,
+and L<chia|/chia>.
+
+The boundary conditions are compatible with monotonicity,
+and if the data are only piecewise monotonic, the interpolant
+will have an extremum at the switch points; for more control
+over these issues use L<chic|/chic>. 
+
+On successful completion, C<$ierr = 0>, otherwise:
+  >0 - there were C<ierr> switches in the direction of 
+       monotonicity (data still valid).
+  -1 - C<nelem($x) < 2>
+  -3 - C<$x> is not strictly increasing.
+',
+'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+);	  
+
+# switch has become mflag, since `switch' is a reserved word in
+# C.
+#
+# can not say (nwk=2*n) --- the rhs has to equal a number
+# -> could Basic/Gen/PP/Dims.pm be hacked to allow this?
+#
+# I didn't have much success with preceeding wk by [t] 
+#
+defslatec(
+	  'chic', {S => 'pchic', D => 'dpchic'},
+	  'IntFlag      ic      (two=2);
+           Mat          vc      (two=2);
+           Mat          mflag   ();
+           Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           Incfd        dummy;
+           Mat          wk      (nwk);
+           Dim          nwk;
+           IntFlag [o]  ierr    ();
+          ',
+'Calculate the derivatives at the given points (C<$x,$f>,
+where C<$x> is strictly increasing).
+Control over the boundary conditions is given by the 
+C<$ic> and C<$vc> piddles, and the value of C<$mflag> determines
+the treatment of points where monotoncity switches
+direction. A simpler, more restricted, interface is available 
+using L<chim|/chim>.
+
+The first and second elements of C<$ic> determine the boundary
+conditions at the start and end of the data respectively.
+If the value is 0, then the default condition, as used by
+L<chim|/chim>, is adopted.
+If greater than zero, no adjustment for monotonicity is made,
+otherwise if less than zero the derivative will be adjusted.
+The allowed magnitudes for C<ic(0)> are:
+  B<1>  if first derivative at C<x(0)> is given in C<vc(0)>.
+  B<2>  if second derivative at C<x(0)> is given in C<vc(0)>.
+  B<3>  to use the 3-point difference formula for C<d(0)>.
+     (Reverts to the default b.c. if C<n < 3>)
+  B<4>  to use the 4-point difference formula for C<d(0)>.
+     (Reverts to the default b.c. if C<n < 4>)
+  B<5>  to set C<d(0)> so that the second derivative is 
+     continuous at C<x(1)>.
+     (Reverts to the default b.c. if C<n < 4>) 
+
+The values for C<ic(1)> are the same as above, except that
+the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
+The values of C<$vc> need only be set if options 1 or 2 are chosen
+for C<$ic>.
+
+Set C<$mflag = 0> if interpolant is required to be monotonic in
+each interval, regardless of the data. This causes C<$d> to be
+set to 0 at all switch points. Set C<$mflag> to be non-zero to
+use a formula based on the 3-point difference formula at switch
+points. If C<$mflag E<gt> 0>, then the interpolant at swich points
+is forced to not deviate from the data by more than C<$mflag*dfloc>, 
+where C<dfloc> is the maximum of the change of C<$f> on this interval
+and its two immediate neighbours.
+If C<$mflag < 0>, no such control is to be imposed.            
+
+The piddle C<$wk> is only needed for work space. However, I could
+not get it to work as a temporary variable, so you must supply
+it; it is a 1D piddle with C<2*n> elements.
+
+On a sucessful return, C<$ierr = 0>, otherwise:
+   1  if C<ic(0) < 0> and C<d(0)> had to be adjusted for
+      monotonicity.
+   2  if C<ic<1) < 0> and C<d(n-1)> had to be adjusted
+      for monotonicity.
+   3  if both of the above are true.
+  -1  if C<n < 2>.
+  -3  if C<$x> is not strictly increasing.
+  -4  if C<abs(ic(0)) E<gt> 5>.
+  -5  if C<abs(ic(1)) E<gt> 5>.
+  -6  if both of the above are true.
+  -7  if C<nwk < 2*(n-1)>.
+',
+'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
+);	  
+
+# as above, have made wk an actual piddle, rather than a [t]
+defslatec(
+	  'chsp', {S => 'pchsp', D => 'dpchsp'},
+	  'IntFlag      ic      (two=2);
+           Mat          vc      (two=2);
+           Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat     [o]  d       (n);
+           Incfd        dummy;
+           Mat          wk      (nwk);
+           Dim          nwk;
+           IntFlag [o]  ierr    ();
+          ',
+'Calculate the derivatives, using cubic spline interpolation,
+at the given points (C<$x,$f>), with the specified
+boundary conditions. 
+Control over the boundary conditions is given by the 
+C<$ic> and C<$vc> piddles.
+The resulting values - C<$x,$f,$d> - can
+be used in all the functions which expect a cubic
+Hermite function.
+
+The first and second elements of C<$ic> determine the boundary
+conditions at the start and end of the data respectively.
+The allowed values for C<ic(0)> are:
+  B<0>  to set C<d(0)> so that the third derivative is 
+     continuous at C<x(1)>.
+  B<1>  if first derivative at C<x(0)> is given in C<vc(0>).
+  B<2>  if second derivative at C<x(0>) is given in C<vc(0)>.
+  B<3>  to use the 3-point difference formula for C<d(0)>.
+     (Reverts to the default b.c. if N.LT.3 .)
+  B<4>  to use the 4-point difference formula for C<d(0)>.
+     (Reverts to the default b.c. if N.LT.4 .)                 
+
+The values for C<ic(1)> are the same as above, except that
+the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
+The values of C<$vc> need only be set if options 1 or 2 are chosen
+for C<$ic>.
+
+The piddle C<$wk> is only needed for work space. However, I could
+not get it to work as a temporary variable, so you must supply
+it; it is a 1D piddle with C<2*n> elements.
+
+On a successful return, C<$ierr = 0>, otherwise:
+  -1  if C<nelem($x) < 2>.
+  -3  if C<$x> is not strictly increasing.
+  -4  if C<ic(0) < 0 or ic(0) > 4>.
+  -5  if C<ic(1) < 0 or ic(1) > 4>.
+  -6  if both of the above are true.
+  -7  if C<nwk < 2*n>.
+  -8  in case of trouble solving the linear system
+      for the interior derivative values.
+',
+'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
+);	  
+
+defslatec(
+	  'chfd', {S => 'pchfd', D => 'dpchfd'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           CheckFlag    check   ();
+           Dim          ne;
+           Mat          xe      (ne);
+           Mat     [o]  fe      (ne);
+           Mat     [o]  de      (ne);
+           IntFlag [o]  ierr    ();
+          ',
+'Given a piecewise cubic Hermite function - such as from
+L<chim|/chim> - evaluate the function (C<$fe>) and 
+derivative (C<$de>) at a set of points (C<$xe>).
+If function values alone are required, use L<chfe|/chfe>.
+Set C<check> to 0 to skip checks on the input data.
+
+On successful completion, C<$ierr = 0>, otherwise:
+  >0 - extrapolation was performed at C<ierr> points
+       (data still valid).
+  -1 - C<nelem($x) < 2>
+  -3 - C<$x> is not strictly increasing.
+  -4 - C<nelem($xe) < 1>.
+  -5 - an error has occurred in a lower-level routine,
+       this should never happen.
+',
+'Interpolate function and derivative values.'
+);	  
+
+defslatec(
+	  'chfe', {S => 'pchfe', D => 'dpchfe'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           CheckFlag    check    ();
+           Dim          ne;
+           Mat          xe      (ne);
+           Mat     [o]  fe      (ne);
+           IntFlag [o]  ierr    ();
+          ',
+'Given a piecewise cubic Hermite function - such as from
+L<chim|/chim> - evaluate the function (C<$fe>) at
+a set of points (C<$xe>).
+If derivative values are also required, use L<chfd|/chfd>.
+Set C<check> to 0 to skip checks on the input data.
+
+On successful completion, C<$ierr = 0>, otherwise:
+  >0 - extrapolation was performed at C<ierr> points
+       (data still valid).
+  -1 - C<nelem($x) < 2>
+  -3 - C<$x> is not strictly increasing.
+  -4 - C<nelem($xe) < 1>.
+',
+'Interpolate function values.'
+);	  
+
+defslatec(
+	  'chia', {S => 'pchia', D => 'dpchia'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           CheckFlag    check    ();
+           Mat          a       ();
+           Mat          b       ();
+           FuncRet [o]  ans     ();
+           IntFlag [o]  ierr    ();
+          ',
+'Evaluate the definite integral of a a piecewise
+cubic Hermite function over an arbitrary interval,
+given by C<[$a,$b]>.
+See L<chid|/chid> if the integration limits are
+data points.
+Set C<check> to 0 to skip checks on the input data.
+
+The values of C<$a> and C<$b> do not have
+to lie within C<$x>, although the resulting integral
+value will be highly suspect if they are not.
+
+On successful completion, C<$ierr = 0>, otherwise:
+   1 - C<$a> lies outside C<$x>.
+   2 - C<$b> lies outside C<$x>.
+   3 - both of the above are true.
+  -1 - C<nelem($x) < 2>
+  -3 - C<$x> is not strictly increasing.
+  -4 - an error has occurred in a lower-level routine,
+       this should never happen.
+',
+'Integrate (x,f(x)) over arbitrary limits.'
 );
 
+defslatec(
+	  'chid', {S => 'pchid', D => 'dpchid'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           CheckFlag    check    ();
+           FortranIndex ia      ();
+           FortranIndex ib      ();
+           FuncRet [o]  ans     ();
+           IntFlag [o]  ierr    ();
+          ',
+'Evaluate the definite integral of a a piecewise
+cubic Hermite function between C<x($ia)> and
+C<x($ib)>. 
+
+See L<chia|/chia> for integration between arbitrary
+limits.
+
+Although using a fortran routine, the values of
+C<$ia> and C<$ib> are zero offset.
+Set C<check> to 0 to skip checks on the input data.
+
+On successful completion, C<$ierr = 0>, otherwise:
+  -1 - C<nelem($x) < 2>
+  -3 - C<$x> is not strictly increasing.
+  -4 - C<$ia> or C<$ib> is out of range.
+',
+'Integrate (x,f(x)) between data points.'
+);
+
+defslatec(
+	  'chcm', {S => 'pchcm', D => 'dpchcm'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           CheckFlag    check    ();
+           IntFlag [o]  ismon   (n);
+           IntFlag [o]  ierr    ();
+          ',
+'The outout piddle C<$ismon> indicates over
+which intervals the function is monotonic.
+Set C<check> to 0 to skip checks on the input data.
+
+For the data interval C<[x(i),x(i+1)]>, the
+values of C<ismon(i)> can be:
+  -3  if function is probably decreasing
+  -1  if function is strictly decreasing
+   0  if function is constant
+   1  if function is strictly increasing
+   2  if function is non-monotonic
+   3  if function is probably increasing
+
+If C<abs(ismon(i)) == 3>, the derivative values are
+near the boundary of the monotonicity region. A small
+increase produces non-monotonicity; decrease, strict
+monotonicity.
+
+The above applies to C<i = 0 .. nelem($x)-1>. The last element of
+C<$ismon> indicates whether
+the entire function is monotonic over $x.
+',
+'Check the given piecewise cubic Hermite function for monotonicity.'
+);	  
+
+=pod ignore function for now although code is in slatec/ directory
+
+# XXX tsize = 2*n+4
+#     bsize = 2*n
+#
+# ndim gets set to 2*n
+#
+# Changed by routine:
+#   nknots
+#   t
+defslatec(
+	  'chbs', {S => 'pchbs', D => 'dpchbs'},
+	  'Dim          n;
+           Mat          x       (n);
+           Mat          f       (n);
+           Mat          d       (n);
+           Incfd        dummy;
+           IntFlag      knotyp  ();
+           IntFlag      nknots  ();
+           Mat          t       (tsize);
+           Mat     [o]  bcoef   (bsize);
+           IntFlag [o]  ndim    ();
+           IntFlag [o]  kord    ();
+           IntFlag [o]  ierr    ();
+          ',
+'The resulting B-spline representation of the data
+(i.e. C<nknots>, C<t>, C<bcoeff>, C<ndim>, and
+C<kord>) can be evaluated by C<bvalu> (which is 
+currently not available).
+
+Array sizes: C<tsize = 2*n + 4>, C<bsize = 2*n>,
+and C<ndim = 2*n>.
+
+C<knotyp> is a flag which controls the knot sequence.
+The knot sequence C<t> is normally computed from C<$x> 
+by putting a double knot at each C<x> and setting the end knot pairs
+according to the value of C<knotyp> (where C<m = ndim = 2*n>):
+   B<0>   Quadruple knots at the first and last points.
+   B<1>   Replicate lengths of extreme subintervals:
+       C<t( 0 ) = t( 1 ) = x(0) - (x(1)-x(0))>
+       C<t(m+3) = t(m+2) = x(n-1) + (x(n-1)-x(n-2))>
+   B<2>   Periodic placement of boundary knots:
+       C<t( 0 ) = t( 1 ) = x(0) - (x(n-1)-x(n-2))>
+       C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
+   B<<0>  Assume the C<nknots> and C<t> were set in a previous call.
+
+C<nknots> is the number of knots and may be changed by the routine. 
+If C<knotyp E<gt>= 0>, C<nknots> will be set to C<ndim+4>,
+otherwise it is an input variable, and an error will occur if its
+value is not equal to C<ndim+4>.
+
+C<t> is the array of C<2*n+4> knots for the B-representation
+and may be changed by the routine.
+If C<knotyp E<gt>= 0>, C<t> will be changed so that the
+interior double knots are equal to the x-values and the
+boundary knots set as indicated above,
+otherwise it is assumed that C<t> was set by a
+previous call (no check is made to verify that the data
+forms a legitimate knot sequence). 
+
+On successful completion, C<$ierr = 0>, otherwise:
+  -4 - C<knotyp E<gt> > 2>.
+  -5 - C<knotyp < 0> and C<nknots != 2*n + 4>.
+',
+'Piecewise Cubic Hermite function to B-Spline converter.'
+);	  
+
+=cut
+
+##################################################################
+##################################################################
+
+close( PROTOS );
+
+##################################################################
+##################################################################
+
+pp_addpm(<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka. 
+Copyright (C) 2000 Tim Jenness, Doug Burke.            
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL 
+distribution. If this file is separated from the PDL distribution, 
+the copyright notice should be included in the file.
+
+=cut
+EOD
 
 pp_done();
 

@@ -1,7 +1,5 @@
 
-
 # Slatec module
-
 
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
@@ -50,29 +48,10 @@ BEGIN {
    skip:
    
    if ($msg ne "" && $forcebuild==0) {
-      warn $msg."\n";
-      open(OUT,">Makefile");
-      print OUT "fred:\n";
-      print OUT "\t\@echo \n";
-	  my $emsg = substr($msg, 1);	# Get rid of leading \n
-	  $emsg =~ s/\n+$//;			# Remove final \n(s)
-	  $emsg =~ s/"//g;	
-	  $emsg =~ s/\n/"\n\t\@echo "/g;		# Echo other lines
-      print OUT "\t\@echo \"$emsg\"\n";
-      print OUT "\t\@echo \n";
-      print OUT "\nall: fred\n";
-      print OUT "\ntest: fred\n";
-      print OUT <<EOT;
-
-clean ::
-	-mv Makefile Makefile.old
-
-realclean ::
-	rm -rf Makefile Makefile.old
-
-EOT
-      close(OUT);
-      $donot = 1;
+       warn $msg . "\n";
+       $msg =~ s/\n//g;
+       write_dummy_make( $msg );
+       $donot = 1;
    } else {
    print "\n   Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n\n";
    }
@@ -88,7 +67,7 @@ return if $donot;
 
 $hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
 $hash{LIBS}[0] .= ExtUtils::F77->runtime ;
-$hash{clean}{FILES} .= " f77_underscore SlatecProtos.h" .
+$hash{clean}{FILES} .= " f77_underscore" .
   join '', map {" slatec/$_.o "} @slatecfiles;
 
 # Handle multiple compilers
@@ -97,37 +76,10 @@ $f2cbased = (ExtUtils::F77->runtime =~ /-lf2c/);
 $g2cbased = (ExtUtils::F77->runtime =~ /-lg2c/) unless $f2cbased;
 $trail = ExtUtils::F77->trail_;
 
-print "Generating Slatec Prototypes\n";
-
-open(OUT, ">SlatecProtos.h");
-for $f (@slatecfiles) {
- open IN, "slatec/$f.P" or die "file slatec/$f.P not found";
- # is the following really necessary since we are getting rid of all
- # the types anyway ????
- # print OUT '#include "g2c.h"',"\n" if $g2cbased;
-
- while(<IN>) {
- 
-    next unless /extern/; # Ignore garbage
- 
-    # Get rid of the function type
-
-    s/extern\s+\S+\s/extern /; 
-    
-    # Get rid of the argument types (we must trust Fortran/C standard
-    # correspondences).
-    
-    s/\(.*\)/\(\)/g;
-    
-    # Get rid of underscores if required
-  
-    s/_\(/\(/g unless $trail;
-  
- print OUT $_;
- }
- close IN;
-}
-close(OUT);
+# no longer create the prototypes here - this is now handled
+# by slatec.pd. In fact, with the current method, we no
+# longer need the .P files
+#
 
 # Create flag file according to whether or not to use
 # underscores (pretty hacky)
@@ -140,14 +92,14 @@ if ($trail) {
 
 WriteMakefile(
  %hash,
- VERSION => '0.11',  # This is overridden by VERSION_FROM in %hash
+ VERSION => "0.12",   # This is overridden by VERSION_FROM in %hash 
 );
 
 sub MY::postamble {
         $mycompiler     = ExtUtils::F77->compiler();
         $mycflags       = ExtUtils::F77->cflags();
 	my $orig = pdlpp_postamble_int(@::pack);
-	$orig =~ s/:\s*slatec\.pd/: slatec.pd SlatecProtos.h/;
+	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map {
 ("
 
