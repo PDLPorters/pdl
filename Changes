@@ -1,3 +1,8 @@
+CED (27-Aug-02)
+    - range() is now an lvalue, as are indexND and indexNDb.
+    - pdl_malloc call is now via PDL Core structure, avoiding
+	complete failure of the test suite :-)
+    - extra debugging fprintf() calls deleted.
 CED (26-Aug-02)
     - slices.pd: added range (PP implementation)
     - Incremented core_version in pdlcore.h.PL
