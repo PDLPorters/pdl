@@ -2589,7 +2589,7 @@ sub t_fits {
   $n = 2 
     if($opt->{ignore_rgb} && $n==3 && $hdr->{NAXIS3} == 3);
 
-  my($matrix) = PDL->zeroes($hdr->{NAXIS});
+  my($matrix) = PDL->zeroes($hdr->{NAXIS},$hdr->{NAXIS});
   my($pre) = PDL->zeroes($n);
   my($post) = PDL->zeroes($n);
 
@@ -2606,7 +2606,7 @@ sub t_fits {
     #
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
-      $matrix->(($1),($2)) .= $hdr->{h};
+      $matrix->(($1-1),($2-1)) .= $hdr->{h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
