@@ -1,9 +1,3 @@
-# TODO
-#
-# Need to be able to change bad value for a given type,
-# and ensure that it is propogated through all the
-# necessary structures (only if bad alue support is
-# required though!)
 
 use strict;
 
@@ -19,12 +13,6 @@ sub typeofPDLLong {
 }
 
 my $itype = &typeofPDLLong;
-
-# check for bad value support
-use File::Spec;
-require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
-use vars qw( %PDL_CONFIG );
-my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -43,11 +31,7 @@ $file =~ s/\.pl$//
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {		     
-    print "Extracting $file (NO bad value support)\n";
-}
+print "Extracting $file\n";
 chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
@@ -77,7 +61,6 @@ require Exporter;
 @EXPORT = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_F $PDL_D @pack %typehash );
 @ISA    = qw( Exporter );
 
-
 # Data types/sizes (bytes) [must be in order of complexity]
 
 # Enum
@@ -92,12 +75,6 @@ require Exporter;
 #
 %PDL::Types::typehash = (
 !NO!SUBS!
-
-# NOTE:
-#
-# the bad values are now stored in a C structure accessible from the
-# PDL structure - see PDL::Bad for access routines
-#
 
 print OUT 
     map {

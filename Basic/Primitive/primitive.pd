@@ -213,6 +213,7 @@ foreach my $func ( keys %over ) {
 	   Doc => cumuprojectdocs( $name, $cfunc, '' ),
 	   );
 
+    # as above but in double precision
     pp_def(
 	   "d$cfunc",
 	   HandleBad => 1,
@@ -240,52 +241,6 @@ foreach my $func ( keys %over ) {
 } # foreach: my $func
 
 
-# XXX Why not threadloop for efficiency
-#
-# I should address this, but can't be bothered...
-#
-pp_def( 
-	'average',
-	HandleBad => 1,
-	Pars => 'a(n); int+ [o]b();',
-	Code => 
-	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
-	BadCode => 
-	'$GENERIC(b) tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
-         else       { $SETBAD(b()); }',
-	Docs => projectdocs( 'average', 'average', '' ),
-	);
-
-# do the above calculation, but in double precision
-pp_def( 
-	'daverage',
-	HandleBad => 1,
-	Pars => 'a(n); double [o]b();',
-	Code => 
-	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp / cnt;',
-	BadCode => 
-	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / cnt; }
-         else       { $SETBAD(b()); }',
-	Docs => projectdocs( 'average', 'average', 
-"Unlike L<average|/average>, the calculation is performed in double\n" .
-"precision." ),
-	);
-
 %over = 
     (
      zcover   => { txt => '== 0', init => 1, alltypes => 1,
@@ -301,8 +256,7 @@ pp_def(
 
      );
 
-#foreach my $func ( keys %over ) {
-foreach my $func ( qw( zcover andover bandover orover borover ) ) {
+foreach my $func ( keys %over ) {
 
     my $txt   = $over{$func}{txt};
     my $init  = $over{$func}{init};
@@ -400,13 +354,65 @@ is the natural (and correct) choice for binned data, of course.
 ~)
 ); # intover
 
+# XXX Why not threadloop for efficiency
+#
+# I should address this, but can't be bothered...
+#
+pp_def( 
+	'average',
+	HandleBad => 1,
+	Pars => 'a(n); int+ [o]b();',
+	Code => 
+	'$GENERIC(b) tmp = 0;
+	 loop(n) %{ tmp += $a(); %}
+	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
+	BadCode => 
+	'$GENERIC(b) tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ 
+            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
+         %}
+         if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
+         else       { $SETBAD(b()); }',
+	Doc => projectdocs( 'average', 'average', '' ),
+	);
+
+# do the above calculation, but in double precision
+pp_def( 
+	'daverage',
+	HandleBad => 1,
+	Pars => 'a(n); double [o]b();',
+	Code => 
+	'double tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ tmp += $a(); cnt++; %}
+	 $b() = tmp / cnt;',
+	BadCode => 
+	'double tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ 
+            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
+         %}
+         if ( cnt ) { $b() = tmp / cnt; }
+         else       { $SETBAD(b()); }',
+	Doc => projectdocs( 'average', 'daverage', 
+"Unlike L<average|/average>, the calculation is performed in double\n" .
+"precision." ),
+	);
+
 # Internal utility sorting routine for median/qsort routines.
+#
+# note: we export them to the PDL Core structure for use in
+#       other modules (eg Image2D)
 
 for (keys %PDL::Types::typehash) {
-   my $ctype = $PDL::Types::typehash{$_}{ctype};
-   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+    my $ctype = $PDL::Types::typehash{$_}{ctype};
+    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
 
-   pp_addhdr("
+    pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
+		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
+
+    pp_addhdr("
 
       void pdl_qsort_$ppsym($ctype* xx, int a, int b) {
 
@@ -519,7 +525,7 @@ pp_def(
        generic_qsort('tmp') .
        $find_median_average . '}',
 
-); # pp_def: medover
+       ); # pp_def: medover
 
 pp_def(
        'oddmedover',
@@ -542,7 +548,7 @@ some circumstances.
            nn -= 1; '.
        $find_median_lower . '}',
 
-); # pp_def: oddmedover
+       ); # pp_def: oddmedover
 
 
 # Generate small ops functions to do entire array
@@ -1117,7 +1123,7 @@ otherwise the bad flag is cleared for the output piddle.
 
 Note that C<NaNs> are considered to be valid values;
 see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
-for ways of maskng NaNs.
+for ways of masking NaNs.
 ',
 	    );
 

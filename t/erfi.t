@@ -1,12 +1,13 @@
 # -*-perl-*-
 
+use Test;
+
+BEGIN { plan tests => 2; }
+
 use PDL::LiteF;
 use PDL::Math;
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-use Test;
-plan tests => 2;
 
 sub approx {
         my($a,$b) = @_;

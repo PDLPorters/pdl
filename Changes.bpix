@@ -7,7 +7,8 @@ Doug Burke (08/10/00-08/13/00)
      TODO.bpix)
    - math.pd: added isfinite(), converted badmask to handle bad values
    - histogram/whistogram/histogram2d (primitive.pd) converted
-   - cleaned up so works with no bad value support
+   - cleaned up so works with no bad value support (ie WITH_BADVAL=0)
+   - added patchbad2d to Image2D
 Doug Burke (08/02/00-08/03/00)
    - added more to the demo
    - brought up to date with changes on main branch (see Changes)
@@ -19,16 +20,10 @@ Doug Burke (07/27/00)
      almost not a horrible hack now ;)
    - added 'demo bad' to perldl - it doesn't do much at the moment
 Doug Burke (07/26/00)
-   - PDL::Tests - routine names now begin with 'test_' (see t/pptest.t)
-   - Added 'dsumover/dcumusumover/dsum' (and same for prod) to primitive.pd -
-     these routines work in double precision, NOT the datatype of the
-     input piddle (without converting the input piddle during the calculation)
-     Also added prod, a wrapper around prodover, as sum is a wrapper around 
-     sumover and dprod,dsum. changed stats to use dsum() rather than sum()
    - removed UseBadforNaN from primitive.pd, bad.pd, added NoBadifNaN to 
      ops.pd and math.pd
-   - hacked PDL::IO::NDF to read/write the bad value flag (incomplete) and 
-     fixed rndf('../bob') (some problems with byte datatype?)
+   - hacked PDL::IO::NDF to read/write the bad value flag (incomplete) 
+     Some problems with byte datatype?
    - replacebad can now be used inplace, added copybad to PDL::Bad (also 
      inplace)
 Doug Burke (07/21/00)

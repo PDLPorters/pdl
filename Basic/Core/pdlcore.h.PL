@@ -288,8 +288,25 @@ void (*allocdata) (pdl *it);
 
 !NO!SUBS!
 
+# set up the qsort routines
+
+    # fortunately it looks like Types.pm.PL is processed before this
+    # file
+    require "Types.pm";  # ie PDL::Types
+
+for (keys %PDL::Types::typehash) {
+   my $ctype = $PDL::Types::typehash{$_}{ctype};
+   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+
+   print OUT "void (*qsort_${ppsym}) (${ctype} *xx, int a, int b );\n";
+   print OUT "void (*qsort_ind_${ppsym}) (${ctype} *xx, int *ix, int a, int b );\n";
+}
+
+# storage space for bad values
+
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
+
   badvals bvals;  /* store the default bad values */
   void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
 !NO!SUBS!

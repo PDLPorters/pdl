@@ -1,7 +1,7 @@
 #!/usr/bin/perl 
 #
 #  PDL::Graphics::TriD::Tk - A Tk widget interface to the PDL::Graphics::TriD
-#  visualization package:  $Revision$  
+#  visualization package: (taken out revision as it seems to confuse CVS branch)
 #
 #  James P. Edwards
 #  Instituto Nacional de Meteorologia
@@ -58,10 +58,6 @@ use strict;
 $PDL::Graphics::TriD::Tk::verbose=0;
 
 Tk::Widget->Construct('Tk');
-
-#$PDL::Graphics::TriD::Tk::VERSION = '$Revision$ ' ;
-#$PDL::Graphics::TriD::Tk::VERSION =~ s/\$Revision$\s*$/$1/;
-#sub Version {return $PDL::Graphics::TriD::Tk::VERSION;}
 
 =head1 FUNCTIONS
 

@@ -1,7 +1,6 @@
 use Test;
 
-#plan tests => 23;
-plan tests => 21;
+BEGIN { plan tests => 21; }
 
 use PDL::LiteF;
 use PDL::Tests;

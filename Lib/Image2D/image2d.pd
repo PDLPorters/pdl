@@ -17,7 +17,7 @@ of anywhere else to put them
 
 =cut
 
-use PDL::Primitive;
+use PDL::Primitive;  # ensure qsort routine available
 use Carp;
 
 EOD
@@ -51,35 +51,6 @@ pp_addhdr('
 #ifdef NEEDS_RINT
 #define rint(X) floor( X + 0.5 )
 #endif
-
-
-/* Local quick-sort routine for doubles */
-/* (see also primitive.pd) */
-
-void pdl_lqsortD(double* xx, int a, int b) {
-
-   int i,j;
-
-   double t, median;
-
-   i = a; j = b;
-   median = xx[(i+j) / 2];
-   do {
-      while (xx[i] < median)
-	 i++;
-      while (median < xx[j])
-	 j--;
-      if (i <= j) {
-	 t = xx[i]; xx[i] = xx[j]; xx[j] = t;
-	 i++; j--;
-      }
-   } while (i <= j);
-
-   if (a < j)
-      pdl_lqsortD(xx,a,j);
-   if (i < b)
-      pdl_lqsortD(xx,i,b);
- }
 
 ');
 
@@ -184,8 +155,6 @@ will be quicker.
                           (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
-
-=cut
 
 EOD
        BadDoc =>
@@ -292,8 +261,6 @@ is rather pointless)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
 
-=cut
-
 EOD
        BadDoc => 
 'Bad values are ignored in the calculation. If all elements within the 
@@ -344,9 +311,10 @@ sub PDL::med2d {
                           } /* if: i2 >= 0 */
 		       } /* for: i1 */
 		 } /* for: j1 */
-                 pdl_lqsortD(tmp,0,count-1);
 
+                 PDL->qsort_D( tmp, 0, count-1 );
                  $b(m=>i,n=>j) = tmp[(count-1)/2];
+
               } /* for: i */
            } /* for: j */
            %}
@@ -385,8 +353,10 @@ sub PDL::med2d {
 		 if ( flag == 0 ) {
 		    $SETBAD(b(m=>i,n=>j));
                  } else {
-                    pdl_lqsortD(tmp,0,count-1);
+
+                    PDL->qsort_D( tmp, 0, count-1 );
                     $b(m=>i,n=>j) = tmp[(count-1)/2];
+
 		 }
               } /* for: i */
            } /* for: j */
@@ -396,49 +366,151 @@ sub PDL::med2d {
 
 ); # pp_def: med2d
 
-pp_def('patch2d', Doc=><<'EOD',
+pp_def('patch2d', 
+       Doc=><<'EOD',
 =for ref
 
-patch bad pixels out of 2D images,
+patch bad pixels out of 2D images using a mask
 
 =for usage
 
  $patched = patch2d $data, $bad;
 
-C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel. Pixels are replaced by the average
-of their non-bad neighbours.
-
-=cut
+C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel. 
+Pixels are replaced by the average of their non-bad neighbours;
+if all neighbours are bad, the original data value is
+copied across.
 
 EOD
        BadDoc => 
-'despite the name, this function does not I<yet> handle bad values.',         
-       HandleBad => 0, # a marker
+'This routine does not handle bad values - use L<patchbad2d|/patchbad2d> instead',
+       HandleBad => 0,
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
-        Code => '
-           int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
-           double tmp;
+        Code => 
+        'int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
+         double tmp;
+	 
+         m_size = $COMP(__m_size); n_size = $COMP(__n_size);
 
-           m_size = $COMP(__m_size); n_size = $COMP(__n_size);
+      threadloop %{
+	 
+         for(j=0; j<n_size; j++) { 
+            for(i=0; i<m_size; i++) {
 
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              $b(m=>i,n=>j) = $a(m=>i,n=>j);
-              if ($bad(m=>i,n=>j)==1) {
-                 tmp = 0; norm=0;
-                 for(j1=-1; j1<=1; j1++) { for(i1=-1; i1<=1; i1++) {
-                     i2 = i+i1; j2 = j+j1;
-                     if (j2>0 && i2>0 && i2<m_size && j2<n_size &&
-                        $bad(m=>i2,n=>j2)!=1)
-                        tmp += $a(m=>i2,n=>j2); norm++;
-                 }}
-                 if (norm>0) {  /* Patch */
-                    $b(m=>i,n=>j) = tmp/norm;
-                 }
+               $b(m=>i,n=>j) = $a(m=>i,n=>j);
 
-              } /* Next pixel */
-           }}
-');
+               if ( $bad(m=>i,n=>j)==1 ) {
+                  tmp = 0; norm=0;
+                  for(j1=-1; j1<=1; j1++) { 
+		     j2 = j+j1;
+		     if ( j2>=0 && j2<n_size ) {
+                        for(i1=-1; i1<=1; i1++) {
+                           /* ignore central pixel, which we know is bad */
+			   if ( i1!=0 || j1!=0 ) {
+                              i2 = i+i1; 
+                              if ( i2>=0 && i2<m_size && $bad(m=>i2,n=>j2)!=1 ) {
+                                 tmp += $a(m=>i2,n=>j2); 
+                                 norm++;
+			      }
+			   } /* if: i1!=0 || j1!=0 */
+		        } /* for: i1 */
+		     }
+		  } /* for: j1 */
 
+                  if (norm>0) {  /* Patch */
+                     $b(m=>i,n=>j) = tmp/norm;
+		  }
+	 
+               } /* if: bad() */
+
+	    } /* for: i */
+         } /* for: j */
+
+      %} /* threadloop */
+
+         ', # Code
+);
+
+pp_def('patchbad2d', 
+       Doc=><<'EOD',
+=for ref
+
+patch bad pixels out of 2D images containing bad values
+
+=for usage
+
+ $patched = patchbad2d $data;
+
+Pixels are replaced by the average of their non-bad neighbours;
+if all neighbours are bad, the output is set bad.
+If the input piddle contains I<no> bad values, then a straight copy
+is performed (see L<patch2d|/patch2d>).
+
+EOD
+       BadDoc => 
+'patchbad2d handles bad values. The output piddle I<may> contain
+bad values, depending on the pattern of bad values in the input piddle.',
+       HandleBad => 1,
+        Pars => 'a(m,n); [o]b(m,n);',
+        Code => 'loop(n,m) %{ $b() = $a(); %}', # just copy
+        CopyBadStatusCode => '', # handled by BadCode
+        BadCode => 
+        'int m_size, n_size,  i,j, i1,j1, i2,j2, norm, flag;
+         double tmp;
+         $GENERIC(a) a_val;
+
+         flag = 0;
+         m_size = $COMP(__m_size); n_size = $COMP(__n_size);
+
+      threadloop %{
+	 
+         for(j=0; j<n_size; j++) { 
+            for(i=0; i<m_size; i++) {
+
+	       a_val = $a(m=>i,n=>j);	
+               if ( $ISGOODVAR(a_val,a) ) {
+                  $b(m=>i,n=>j) = a_val;
+
+	       } else { 
+                  tmp = 0; norm=0;
+                  for(j1=-1; j1<=1; j1++) { 
+		     j2 = j+j1;
+		     if ( j2>=0 && j2<n_size ) {
+                        for(i1=-1; i1<=1; i1++) {
+                           /* ignore central pixel, which we know is bad */
+			   if ( i1!=0 || j1!=0 ) {
+                              i2 = i+i1; 
+                              if ( i2>=0 && i2<m_size ) {
+                                 a_val = $a(m=>i2,n=>j2);
+                                 if ( $ISGOODVAR(a_val,a) ) {
+                                    tmp += a_val; 
+                                    norm++;
+				 }
+			      }
+			   } /* if: i1!=0 || j1!=0 */
+		        } /* for: i1 */
+		     }
+		  } /* for: j1 */
+
+                  /* Patch */
+                  if (norm>0) {
+                     $b(m=>i,n=>j) = tmp/norm;
+		  } else {
+		     $SETBAD(b(m=>i,n=>j));
+                     flag = 1;
+                  }
+	 
+               } /* if: ISGOODVAR() */
+
+	    } /* for: i */
+         } /* for: j */
+
+      %} /* threadloop */
+ 
+         /* handle bad flag */
+         if ( flag ) $PDLSTATESETBAD(b);
+         ', # BadCode
+);
 
 pp_def('max2d_ind',Doc=><<'EOD',
 =for ref

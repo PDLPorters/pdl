@@ -557,6 +557,19 @@ looks like starlink's byte goes from -127 to 127 - ie not unsigned
 
 =item *
 
+How about a C<setbad()> method like C<set>, eg
+
+ $a->setbad(1,1);  # sets (1,1) bad (and ensures bad flag is set)
+
+=item *
+
+look at the routines to see if can be improved (speed wise) by
+use of C<threadloop> construct - I'm thinking in particular about 
+those routines that set the state of a piddle within the C<BadCode>,
+rather than the C<CopyBadStatusCode>, section.
+
+=item *
+
 NaN support - this would make it *much* faster on machines which
 support it (or so I've assumed - does it?) 
 I've started labelling routines which could ignore the BadCode

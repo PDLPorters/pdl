@@ -103,8 +103,9 @@ PDL::Core::Dev::postamble().
 "
 # Bits of C code we generate from special perl scripts
 #
+# don't need to specify how to create pdl.h as that's done automatically
 pdl.h:: pdl.h.PL mymalloc.p
-\t\$(PERL) pdl.h.PL
+#\t\$(PERL) pdl.h.PL
 
 ".($^O =~ /MSWin/ ? q|
 
