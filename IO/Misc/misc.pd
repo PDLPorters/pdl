@@ -40,7 +40,7 @@ the copyright notice should be included in the file.
 
 EOD
 
-pp_add_exported('',"rfits wfits rcols wcols swcols rgrep rdsa");
+pp_add_exported('',"rfits rfitshdr wfits rcols wcols swcols rgrep rdsa");
 
 ############################## PM CODE ########################################
 
@@ -112,6 +112,14 @@ the piddle will have its bad flag set, and those elements which equal the
 C<BLANK> value will be set bad.  For C<BITPIX E<lt> 0>, any NaN's are
 converted to bad (if necessary).
 
+=head2 rfitshdr()
+
+=for ref
+
+Read in the header of a FITS file, returning it as a hash or tied hash.
+
+=cut
+
 !NO!SUBS!
 } # if: $bvalflag
 
@@ -121,6 +129,7 @@ pp_addpm(<<'!NO!SUBS!');
 =cut
 
 sub rfits {PDL->rfits(@_)}
+sub rfitshdr {PDL->rfitshdr(@_)}
 
 ##############################
 #
@@ -138,8 +147,11 @@ BEGIN {
 }
 ##############################
 
+sub PDL::rfits { &PDL::_rfits_int(0,@_); }
+sub PDL::rfitshdr { &PDL::_rfits_int(1,@_); }
 
-sub PDL::rfits {
+sub PDL::_rfits_int {
+   my $hdr_only = shift;
    my $class = shift;
    barf 'Usage: $a = rfits($file); $a = PDL->rfits("...")' if $#_!=0;
    my $file = shift; my $pdl  = $class->new;
@@ -244,7 +256,9 @@ sub PDL::rfits {
 	tie %hdrhash,"Astro::FITS::Header",$hdr;
 	$foo = \%hdrhash;
    }
-   
+
+   return $foo if($hdr_only);
+
    # Setup piddle structure
 
    $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
