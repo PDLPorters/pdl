@@ -558,7 +558,9 @@ to the edge than the half-width of the kernel.
 The boundary conditions are the same as those accepted by
 L<range|PDL::Slices/range>, because this option is passed directly
 into L<range|PDL::Slices/range>.  Useful options are 'truncate' (the
-default), 'extend', and 'periodic'.
+default), 'extend', and 'periodic'.  You can select different boundary 
+conditions for different axes -- see L<range|PDL::Slices/range> for more 
+detail.
 
 The (default) truncate option marks all the near-boundary pixels as BAD if
 you have bad values compiled into your PDL. 
