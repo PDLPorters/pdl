@@ -891,9 +891,7 @@ my %info = (
 		 },
 	    T => {
 		  Name => 'Type',
-		  Sub => sub {$_ = $PDL::Types::typehash{
-		    $PDL::Types::names[$_[0]->get_datatype]}->{'ctype'};
-			    s/PDL_//; $_},
+		  Sub => sub { return $_[0]->type->shortctype; },
 		 },
 	    S => {
 		  Name => 'State',
@@ -1471,19 +1469,33 @@ for(
 		}');
 }
 
-{package PDL::Type;
- sub new {my($type,$val) = @_;
-	  if("PDL::Type" eq ref $val) {return bless [@$val],$type}
-	  if(ref $val and $val->isa(PDL)) {
-		if($val->getndims != 0) {
-		  PDL::Core::barf("Can't make a type out of non-scalar piddle $val!");
-		}
-		$val = $val->at;
-	  }
-	  PDL::Core::barf("Can't make a type out of non-scalar $val!".(ref $val)."!") if ref $val;
-          bless [$val],$type
-	  }
+
+{
+    package PDL::Type;
+    sub new {
+	my($type,$val) = @_;
+	if("PDL::Type" eq ref $val) {return bless [@$val],$type}
+	if(ref $val and $val->isa(PDL)) {
+	    if($val->getndims != 0) {
+	      PDL::Core::barf("Can't make a type out of non-scalar " . 
+			      "piddle $val!");
+	    }
+	    $val = $val->at;
+	}
+      PDL::Core::barf("Can't make a type out of non-scalar $val!".
+		      (ref $val)."!") if ref $val;
+	return bless [$val],$type;
+    }
+ 
+sub enum   { return $_[0]->[0]; }
+sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
+foreach my $name ( qw( ctype ppsym realctype ) ) {
+    eval "sub $name { " . 'return $PDL::Types::typehash{$_[0]->symbol}->{' . $
+	name . '}; }';
 }
+sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }
+
+} # package: PDL::Type
 
 
 =head2 type

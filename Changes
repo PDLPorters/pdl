@@ -1,6 +1,12 @@
 (!!! = possible source of incompatibilities)
 
-Tim Jenness (6/68/00)
+Doug Burke (6/29/00)
+    - added methods to PDL::Type - enum, symbol, ctype, ppsym, realctype
+      and shortctype - which provide access to information in PDL::Types 
+      eg print byte->ctype prints "PDL_Byte". 
+      Changed info in Core and rcols in IO/Misc to use these methods.
+      Currently un-documented.
+Tim Jenness (6/28/00)
     - miscellaneous patches for Win32 support
          Make Callext.pm and callext.t more generic
          Lib/Image2D check for presence of rint()

@@ -666,14 +666,11 @@ sub PDL::rcols {
 	 if ( $PDL::verbose ) { # dbg aid
 	     print "Reading data into piddles of type: [ ";
 	     foreach my $t ( @types ) {
-		 # not sure this is the official way of doing it
-		 my $name = $PDL::Types::typehash{$PDL::Types::names[$t->[0]]}->{ctype};
-		 $name =~ s/PDL_//;
-		 print "$name ";
+		 print $t->shortctype() . " ";
 	     }
 	     print "]\n";
 	 }
-
+	 
          $k = 0;
          for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
          for (@perl_cols)    { $ret[$k++] = []; }

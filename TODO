@@ -54,11 +54,6 @@ TidBits
 ----
 * clean Dev.pm (perl is clever enough to know if it's in the build tree
   or outside)
-* more complete PDL::Type class, so that you can say
-   byte->val   --> $PDL_B
-   byte->enum  --> PDL_B
-   byte->ctype --> PDL_Byte , etc; would be useful for PP and PDL
-
 
 
 Tidbits
