@@ -21,7 +21,11 @@ trouble.
 
 This package offers a OO interface to the PGPLOT plotting package. This
 is intended to replace the traditional interface in L<PDL::Graphics::PGPLOT>
-and contains interfaces to a large number of PGPLOT routines.
+and contains interfaces to a large number of PGPLOT routines. Below the
+usage examples for each function tend to be given in the non-OO version for
+historical reasons. This will slowly be changed, but in the meantime refer
+to the section on OO-interface below to see how to convert the usage
+information below to OO usage (it is totally trivial).
 
 PDL::Graphics::PGPLOT::Window is an interface to the PGPLOT graphical
 libraries.
@@ -377,22 +381,19 @@ correctly, but might get it wrong at times.
 
 A more detailed listing of the functions and their usage follows. For
 all functions we specify which options take effect and what other options
-exist for the given function.
+exist for the given function. The function descriptions below are all
+given for the non-OO usage for historical reasons, but since the conversion
+to an OO method is trivial there is no major need for concern. Whenever you
+see a function example of the form
 
-=head2 dev
+  Usage: a_simple_function($x, $y, $z [, $opt]);
 
-=for ref
+and you wish to use the OO version, just let your mind read the above line
+as:
 
-Open PGPLOT graphics device
+  Usage: $win->a_simple_function($x, $y, $z [, $opt]);
 
-=for usage
-
- Usage: dev $device, [$nx,$ny];
-
-C<$device> is a PGPLOT graphics device such as "/xserve" or "/ps",
-if omitted defaults to last used device (or value of env
-var C<PGPLOT_DEV> if first time).
-C<$nx>, C<$ny> specify sub-panelling.
+where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 
 =head2 env
 
@@ -415,6 +416,34 @@ If the second form is used, $justify and $axis can be set in the options
 hash, for example:
 
  env 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', CHARSIZE => 0.7};
+
+In addition the following options can also be set for C<env>:
+
+=over
+
+=item PlotPosition
+
+The position of the plot on the page relative to the view surface in
+normalised coordinates as an anonymous array. The array should contain
+the lower and upper X-limits and then the lower and upper Y-limits. To
+place two plots above each other with no space between them you could do
+
+  env(0, 1, 0, 1, {PlotPosition => [0.1, 0.5, 0.1, 0.5]});
+  env(5, 9, 0, 8, {PlotPosition => [0.1, 0.5, 0.5, 0.9]});
+
+=item Axis, Justify, Border
+
+See the description of general options for these options.
+
+=item AxisColour
+
+Set the colour of the coordinate axes.
+
+=item XTitle, YTitle, Title, Font, CharSize
+
+Axes titles and the font and size to print them.
+
+=back
 
 =head2 imag
 
@@ -2575,7 +2604,7 @@ The radius of the circle.
 						 XCenter => undef,
 						 YCenter => undef});
     }
-    my ($in, $opt)=$self->_extract_hash(@_);
+    my ($in, $opt)=_extract_hash(@_);
     my ($x, $y, $radius)=@$in;
 
     my $o = $circle_options->options($opt);
@@ -2608,17 +2637,18 @@ following options:
 
 =over
 
-=item A
+=item MajorAxis
 
 The major axis of the ellipse - this must be defined or C<$a> must be given.
 
-=item B
+=item MinorAxis
 
 The minor axis, like A this is required.
 
-=item Theta
+=item Theta (synonym Angle)
 
-The orientation of the ellipse - defaults to 0.0
+The orientation of the ellipse - defaults to 0.0. This is given in
+radians.
 
 =item XCenter and YCenter
 
@@ -2645,31 +2675,32 @@ might need changing in the case of very large ellipses.
     my $self = shift;
     if (!defined($ell_options)) {
       $ell_options = $self->{PlotOptions}->extend({
-					      A=>undef,
-					      B=>undef,
+					      MajorAxis=>undef,
+					      MinorAxis=>undef,
 					      Theta => 0.0,
 					      XCenter => undef,
 					      YCenter => undef,
 					      NPoints => 100
-					    });
+						  });
+      $ell_options->synonyms({Angle => 'Theta'});
     }
-    my ($in, $opt)=$self->_extract_hash(@_);
+    my ($in, $opt)=_extract_hash(@_);
     my ($x, $y, $a, $b, $theta)=@$in;
 
     my $o = $ell_options->options($opt);
     $o->{XCenter}=$x if defined($x);
     $o->{YCenter}=$y if defined($y);
-    $o->{A} = $a if defined($a);
-    $o->{B} = $b if defined($b);
+    $o->{MajorAxis} = $a if defined($a);
+    $o->{MinorAxis} = $b if defined($b);
     $o->{Theta}=$theta if defined($theta);
 
-    if (!defined($o->{A}) || !defined($o->{B}) || !defined($o->{XCenter})
+    if (!defined($o->{MajorAxis}) || !defined($o->{MinorAxis}) || !defined($o->{XCenter})
        || !defined($o->{YCenter})) {
       barf "The major and minor axis and the center coordinates must be given!";
     }
 
-    my $t = 2*$PI*sequence($o->{Npoints})/($o->{Npoints}-1);
-    my ($xtmp, $ytmp) = ($o->{A}*cos($t), $o->{B}*sin($t));
+    my $t = 2*$PI*sequence($o->{NPoints})/($o->{NPoints}-1);
+    my ($xtmp, $ytmp) = ($o->{MajorAxis}*cos($t), $o->{MinorAxis}*sin($t));
 
     # Rotate the ellipse and shift it.
     my ($costheta, $sintheta)=(cos($o->{Theta}), sin($o->{Theta}));
@@ -2681,6 +2712,118 @@ might need changing in the case of very large ellipses.
   }
 
 }
+
+
+=head2 rectangle
+
+=for ref
+
+Draw a rectangle.
+
+=for usage
+
+ Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
+
+This routine draws a rectangle with the chosen fill style. Internally
+it calls L<poly> which is somewhat slower than C<pgrect> but which
+allows for rotated rectangles as well. The routine recognises the same
+options as poly and in addition the following
+
+=over
+
+=item XCenter and YCenter
+
+The position of the center of the rectangle. XCentre and YCentre are
+valid synonyms.
+
+=item XSide and YSide
+
+The length of the X and Y sides. If only one is specified the
+shape is taken to be square with that as the side-length, alternatively
+the user can set Side
+
+=item Side
+
+The length of the sides of the rectangle (in this case a square) - syntactic
+sugar for setting XSide and YSide identical. This is overridden by XSide
+or YSide if any of those are set.
+
+=item Angle (synonym Theta)
+
+The angle at which the rectangle is to be drawn. This defaults to 0.0 and
+is given in radians.
+
+
+=back
+
+
+=cut
+
+
+{
+  my $rect_opt = undef;
+  sub rectangle {
+    my $self = shift;
+    my $usage='Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt])';
+    if (!defined($rect_opt)) {
+      # No need to use $self->{PlotOptions} here since we
+      # pass control to poly below.
+      $rect_opt = PDL::Options->new({XCenter => undef, YCenter => undef,
+				     XSide => undef, YSide => undef,
+				     Angle => 0, Side => undef});
+      $rect_opt->synonyms({XCentre => 'XCenter', YCentre => 'YCenter',
+			  Theta => 'Angle'});
+      $rect_opt->warnonmissing(0);
+    }
+    my ($in, $opt)=_extract_hash(@_);
+    my ($xc, $yc, $xside, $yside, $angle)=@$in;
+    my $o=$rect_opt->options($opt);
+
+    $o->{XCenter}=$xc if defined($xc);
+    $o->{YCenter}=$xc if defined($yc);
+    $o->{XSide}=$xside if defined($xside);
+    $o->{YSide}=$xside if defined($yside);
+    $o->{Angle}=$angle if defined($angle);
+
+    ##
+    # Now do some error checking and checks for squares.
+    ##
+    if (defined($o->{XSide}) || defined($o->{YSide})) {
+      # At least one of these are set - let us ignore Side.
+      $o->{XSide}=$o->{YSide} if !defined($o->{XSide});
+      $o->{YSide}=$o->{XSide} if !defined($o->{YSide});
+    } elsif (defined($o->{Side})) {
+      $o->{XSide}=$o->{Side};
+      $o->{YSide}=$o->{Side};
+    } else {
+      print "$usage\n";
+      barf 'The sides of the rectangle must be specified!';
+    }
+
+    unless (defined($o->{XCenter}) && defined($o->{YCenter})) {
+      print "$usage\n";
+      barf 'The center of the rectangle must be specified!';
+    }
+
+    # Ok if we got this far it is about time to do something useful,
+    # namely construct the piddle that contains the sides of the rectangle.
+
+    # We make it first parallell to the coordinate axes around origo
+    # and rotate it subsequently (ala the ellipse routine above).
+    my ($dx, $dy)=(0.5*$o->{XSide}, 0.5*$o->{YSide});
+    my $xtmp = pdl(-$dx, $dx, $dx, -$dx, -$dx);
+    my $ytmp = pdl(-$dy, -$dy, $dy, $dy, -$dy);
+
+    my ($costheta, $sintheta)=(cos($o->{Angle}), sin($o->{Angle}));
+    my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
+    my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
+
+    $self->poly($x, $y, $opt);
+
+  }
+}
+
+
 # display a vector map of 2 images using pgvect()
 
 {
