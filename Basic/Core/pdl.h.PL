@@ -374,6 +374,7 @@ struct pdl {
 
 #define DECL_RECURSE_GUARD static int __nrec=0;
 #define START_RECURSE_GUARD __nrec++; if(__nrec > 100) {die("PerlDL:Internal Error:Recursion exceeded\n");}
+#define ABORT_RECURSE_GUARD __nrec=0;
 #define END_RECURSE_GUARD __nrec--;
 
 #define PDL_ENSURE_ALLOCATED(it) ((it->state & PDL_ALLOCATED) ||  \
