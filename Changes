@@ -1,6 +1,7 @@
 CS 060503
    - set OPTIMIZE via perldl.conf
    - PDL.pm: version @ 2.4.0
+   - Inline::Pdlpp: new NOISY flag (show compilation output)
 CS 030503
    - is_inplace: allow testing and unsetting inplace flag in one statement
    - complex.pd: fiddling with namespaces and other bits
