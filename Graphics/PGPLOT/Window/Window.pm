@@ -4177,12 +4177,27 @@ information on the Representation of World Coordinate Systems in FITS.
 
 	} # no warnings;
 
+	#
+	# Here's what we would do if PGPLOT worked as advertised...
+	#
+#	return transform( $pane, {
+#	    ImageDimensions => [ $n1, $n2 ],
+#	    Angle  => $angle,
+#	    Pixinc => [ $cdelt1, $cdelt2 ],
+#	    RefPos => [ [$cpix1-1, $cpix2-1], [$cval1,$cval2] ]
+#	    } );
+	#
+	# Here's what we do because it doesn't. 
+	#
+	$offset = sqrt(0.5)* max abs cos ( $angle + pdl(-1,1)*0.25*3.1415926 );
+	$offset = $TMP::offset;
 	return transform( $pane, {
 	    ImageDimensions => [ $n1, $n2 ],
 	    Angle  => $angle,
 	    Pixinc => [ $cdelt1, $cdelt2 ],
-	    RefPos => [ [$cpix1-1, $cpix2-1], [$cval1,$cval2] ]
+	    RefPos => [ [$cpix1-1-$offset, $cpix2-1-$offset], [$cval1,$cval2] ]
 	    } );
+
 
     } # sub: _FITS_tr
   

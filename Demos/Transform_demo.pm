@@ -251,10 +251,10 @@ $win->close;
 act q|
     ###   Native FITS interpretation makes it easy to view your data in
     ###   your preferred coordinate system.  Here we zoom in on a 0.2x0.2
-    ###   arcmin region of M51, sampling it to 50x50 pixels resolution.
-
+    ###   arcmin region of M51, sampling it to 100x100 pixels resolution.
+  
     $m51 = float $m51;
-    $data = $m51->match([50,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+    $data = $m51->match([100,100],{or=>[[-0.05,0.15],[-0.05,0.15]]});
     $s = "M51 closeup ("; $ss=" coords)";
     $ps = " (pixels)";
 
@@ -295,14 +295,14 @@ act q|
 act q|
    ###   You can do the same thing even with nonsquare coordinates.
    ###   Here, we resample the same region in scientific space into a 
-   ###   100x25 pixel array.
+   ###   150x50 pixel array.
    
-  $data = $m51->match([100,25],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+  $data = $m51->match([150,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
   $hdr = $data->hdr_copy;
 
   $w1->release; 
   $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}", 
-		                xtitle=>"X$ps", ytitle=>"Y$ps", pix=>2 } );
+		                xtitle=>"X$ps", ytitle=>"Y$ps", pix=>1 } );
   $w1->hold;
 
   for( $rot=0; $rot<=750; $rot += 5 ) {
