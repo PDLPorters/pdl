@@ -1,0 +1,16 @@
+tmp_glu.h
+OpenGL.c
+tmp_glx.h
+OpenGL.pm
+.cvsignore
+tmp_gl.h
+Makefile
+OpenGL.bs
+tmp_glxtokens.h
+ppcode.out
+tmp_X.h
+pm_to_blib
+.cvsignore.old
+typemap
+OpenGL.xs
+
