@@ -1,3 +1,5 @@
+DJB (07/Aug/01)
+    - added VertSpace to ...PGPLOT::Window's legend()
 CS  - make sure perldl works with NiceSlice
     - add nslice to lvalue funcs
     - new 'sclr' method

@@ -1401,6 +1401,15 @@ This option allows for fine control of the spacing between the text and the
 start of the line/symbol. It is given in fractions of the total width of the
 legend box. The default value is 0.1.
 
+=item C<VertSpace> or C<VSpace>
+
+By default the text lines are separated by one character height (in the sense that
+if the separation were 0 then they would lie on top of each other). The
+C<VertSpace> option allows you to increase (or decrease) this gap in units of
+the character height; a value of 0.5 would add half a character height to the
+gap between lines, and -0.5 would remove the same distance.
+The default value is 0.
+
 =back
 
 =for example
@@ -1408,7 +1417,7 @@ legend box. The default value is 0.1.
   line $x, $y, {Color => 'Red', LineStyle => 'Solid'};
   line $x2, $y2, {Color => 'Blue', 'LineStyle' => 'Dashed', LineWidth => 10};
 
-  legend 5, 5, ['A red line', 'A blue line'],
+  legend ['A red line', 'A blue line'], 5, 5,
       {LineStyle => ['Solid', 'Dashed'], Colour => ['Red', 'Blue']
        LineWidth => [undef, 10]}; # undef gives default.
 
@@ -4114,8 +4123,10 @@ sub poly {
 						 Width     => 'Automatic',
 						 Height    => 'Automatic',
 						 Fraction  => 0.5,
-						 TextShift => 0.1
-						});
+						 TextShift => 0.1,
+						 VertSpace => 0,
+						     });
+      $legend_options->synonyms({ VSpace => 'VertSpace' });
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -4166,6 +4177,9 @@ sub poly {
     my ($xmin, $xmax, $ymax, $ymin);
     pgqwin($xmin, $xmax, $ymin, $ymax);
 
+    # note: VertSpace is assumed to be a scalar
+    my $vspace = $o->{VertSpace};
+
     my $required_charsize=$chsz*9000;
     if ($o->{Width} eq 'Automatic' && $o->{Height} eq 'Automatic') {
       # Ok - we just continue with the given character size.
@@ -4187,9 +4201,11 @@ sub poly {
 	  $t_height = $$ybox[2]-$$ybox[0];
 	}
       }
-      
+
       $o->{Width} = $t_width/$o->{Fraction};
-      $o->{Height} = $t_height*($#$text+1); # The height of all lines..
+      # we include an optional vspace (which is given as a fraction of the
+      # height of a line)
+      $o->{Height} = $t_height*(1+$vspace)*($#$text+1); # The height of all lines..
     } else {
       # We have some constraint on the size.
       my ($win_width, $win_height)=($xmax-$xmin, $ymax-$ymin);
@@ -4207,11 +4223,11 @@ sub poly {
 	# Find the bounding box of left-justified text
 	my ($xbox, $ybox);
 	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
-	
-	# Find what charactersize is required to fit the height or
-	# fraction*width:
+
+	# Find what charactersize is required to fit the height
+	# (accounting for vspace) or fraction*width:
 	my $t_width= $o->{Fraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
-	my $t_height = $o->{Height}/$n_lines/($$ybox[2]-$$ybox[0]);
+	my $t_height = $o->{Height}/(1+$vspace)/$n_lines/($$ybox[2]-$$ybox[0]); # XXX is (1+$vspace) correct
 
 	$t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
 #	print "For text = $t the optimal size is $t_chsz ($t_width, $t_height)\n";
@@ -4231,6 +4247,10 @@ sub poly {
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
 
     my $n_lines=$#$text+1;
+
+    # step size in y
+    my $ystep = $o->{Height} / $n_lines;
+
     foreach (my $i=0; $i<=$#$text; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
@@ -4267,7 +4287,7 @@ sub poly {
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
-      $ypos -= $o->{Height}/$n_lines;
+      $ypos -= $ystep;
     }
 
 
