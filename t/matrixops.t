@@ -11,7 +11,7 @@ sub near {
 	((( abs($a - $b) > 1e-14 ) -> sum ) == 0 );
 }
 
-print "1..16\n";
+print "1..19\n";
 eval 'use PDL::MatrixOps;';
 ok(1,!$@);
 
@@ -74,3 +74,17 @@ ok(15, (stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all);
 
 ok(16, (stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all);
 
+### Check eigens
+$a = pdl([3,4],[4,-3]);
+
+### Check that eigens runs OK
+eval {($vec,$val) = eigens $a};
+ok(17, !$@);
+
+### Check that it really returns eigenvectors
+$c = float(($a x $vec) / $vec); 
+ok(18, all($c->slice(":,0") == $c->slice(":,1")));
+
+### Check that the eigenvalues are correct for this matrix
+ok(19, (float($val->slice("0")) == - float($val->slice("1")) and 
+	float($val->slice("0") * $val->slice("1")) == float(-25)));

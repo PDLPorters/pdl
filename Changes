@@ -1,3 +1,6 @@
+CED 25-Nov-2003
+   - Fixed eigens; eigenvectors are now in the columns of the output 
+	eigenvector matrix, rather than in the rows.
 CED 21-Nov-2003
    - Fixed bug 755563 (I hope) in the OpenGL configuration
    - Fixed bug 793195; some random doc improvements for  Image2D and Transform.

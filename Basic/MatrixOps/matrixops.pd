@@ -490,7 +490,7 @@ pp_def("eigens",
       
       &PDL::_eigens_int($lt, $ev, $e);
 
-      return $ev, $e
+      return $ev->xchg(0,1), $e
 	if(wantarray);
       $e;                #just eigenvalues
    }
@@ -508,10 +508,10 @@ If called in scalar context it hands back only the eigenvalues.  Ultimately,
 it should switch to a faster algorithm in this case (as discarding the 
 eigenvectors is wasteful).
 
-The eigenvectors are returned in ROWS of the returned PDL rather than
-in columns.  That makes it slightly easier to access individual eigenvectors,
-since the 0th dim of the output PDL runs across the eigenvectors and the 
-1st dim runs across their components.
+The eigenvectors are returned in COLUMNS of the returned PDL.  That
+makes it slightly easier to access individual eigenvectors, since the
+0th dim of the output PDL runs across the eigenvectors and the 1st dim
+runs across their components.
 
 	($ev,$e) = eigens $a;  # Make eigenvector matrix
 	$vector = $ev->($n);   # Select nth eigenvector as a column-vector
