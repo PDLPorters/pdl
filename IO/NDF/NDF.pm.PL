@@ -224,8 +224,9 @@ to C<STDOUT>.
 	print OUT <<'!NO!SUBS!';
 =for bad
 
-I<This needs thinking about!> The current implementation is 
-too basic, in that it only looks at the C<'DATA'> array.
+If the starlink bad flag is set, then the bad flag on the output
+piddle is also set.  Starlink bad values are converted to the
+current bad value used by the piddle type (if they are different).
 
 !NO!SUBS!
 } # if: $bvalflag
@@ -631,7 +632,7 @@ sub rdata {
 
 	# combine the bad data flag with the "global" one for
 	# the file
-	$badflag ||= ($this_badflag != 0);
+	$badflag |= ($this_badflag != 0);
 
 	# Create a temporary PDL to deal with separate components
 	if ($dcomp eq 'Data') {
