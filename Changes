@@ -1,4 +1,9 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (5/22/00)
+    - Graphics::IIS - now works with new PP code + minor doc changes
+    - Func - changed gradient() to work as described + added PDL::Func::
+      to method names in the documentation so they do not get picked up
+      by perldl's help (eg 'help set')
 John Cerney (5/21/00)
     - Minor Changes to Basic/Gen/PP.pm to fix error reporting, and
       to get rid of some warning messages when run with the -w 
