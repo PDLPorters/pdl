@@ -285,7 +285,14 @@ Return piddle dimensions as a perl list
  perldl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
-=head2 PDL::getndims
+=head2 ndims
+
+=for ref
+
+Returns the number of dimensions in a piddle. Alias
+for L<getndims|PDL::Core/getndims>.
+
+=head2 getndims
 
 =for ref
 
@@ -300,7 +307,14 @@ Returns the number of dimensions in a piddle
  perldl> p zeroes(10,3,22)->getndims
  3
 
-=head2 PDL::getdim
+=head2 dim
+
+=for ref
+
+Returns the size of the given dimension of a piddle. Alias
+for L<getdim|PDL::Core/getdim>.
+
+=head2 getdim
 
 =for ref
 

@@ -1,3 +1,5 @@
+CS  - inline fixes
+    - dim & ndims aliases for getdim & getndims
     - perldl doc updates
     - reverting perldl.conf changes introduced in CVS
     - Makefile.PL: detect buggy solaris+gcc+mymalloc combination

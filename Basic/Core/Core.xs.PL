@@ -1042,6 +1042,8 @@ set_dataflow_b(self,value)
 int
 getndims(x)
 	pdl *x
+	ALIAS:
+	     PDL::ndims = 1
 	CODE:
 		pdl_make_physdims(x);
 		RETVAL = x->ndims;
@@ -1052,6 +1054,8 @@ int
 getdim(x,y)
 	pdl *x
 	int y
+	ALIAS:
+	     PDL::dim = 1
 	CODE:
 		pdl_make_physdims(x);
 		if (y < 0) y = x->ndims + y;
