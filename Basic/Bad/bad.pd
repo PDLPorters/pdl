@@ -156,7 +156,7 @@ pp_addpm(<<'!NO!SUBS!');
 
 *baddata       = \&PDL::baddata;
 *badvalue      = \&PDL::badvalue;
-*orig_badvalue = \&PDL::badvalue;
+*orig_badvalue = \&PDL::orig_badvalue;
 
 ############################################################
 ############################################################
@@ -213,6 +213,8 @@ a given type.
 
 This routine operates the same as L<badvalue|/badvalue>, 
 except you can not change the values.
+
+It is also has an awful name.
 
 =for example
 
