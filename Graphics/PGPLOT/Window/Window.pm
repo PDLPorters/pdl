@@ -1219,9 +1219,9 @@ should be passed as a reference to an array.
 
 The increment in output coordinate per pixel.
 
-=item ImageCenter
+=item ImageCenter (or ImageCentre)
 
-The centre of the image as an anonymous array  B<or> as a scalar. In the
+The centre of the image as an anonymous array B<or> as a scalar. In the
 latter case the x and y value for the center will be set equal to this
 scalar. This is particularly useful in the common case  when the center
 is (0, 0).
@@ -1932,8 +1932,7 @@ this is not updated when the window is changed later.
 =cut
 
 sub options {
-  my ($name)=@_;
-  return $self->{Options};
+  return $_[0]->{Options};
 }
 
 =head2 id
