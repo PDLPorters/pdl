@@ -1,4 +1,12 @@
 (!!! = possible source of incompatibilities)
+2.004
+
+John Cerney
+	- Documentation fix for FlexRaw.pm (Based on change submitted
+          by Francois Primeau.)
+	- Updated Makefile in FFTW to correct a build problem that occurs
+	  when both single and double FFTW libs are present. (suggested
+	  by Diab Jurius).
 
 CS
 	- added function 'det' to PDL::Slatec -> calculate determinant
