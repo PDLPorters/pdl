@@ -274,6 +274,7 @@ my %demos =
      '3dgal' => 'PDL::Demos::TriDGallery',
      'tk3d' => 'PDL::Demos::TkTriD_demo',
      'pgplot' => 'PDL::Demos::PGPLOT_demo',
+     'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
      'bad' => 'PDL::Demos::BAD_demo',
      'bad2' => 'PDL::Demos::BAD2_demo',
      );
@@ -292,6 +293,7 @@ Use:
                 # *very* concise PDL scripts
    demo Tk3d    # Requires the perl Tk module
    demo pgplot  # Requires the PGPLOT package
+   demo OOplot  # Requires the PGPLOT package (OO interface to PGPLOT)
    demo bad     # Requires bad value support
    demo bad2    # Requires bad value support and PGPLOT
 

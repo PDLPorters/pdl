@@ -98,11 +98,11 @@ Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
 Basic/SourceFilter/MANIFEST
 Basic/SourceFilter/Makefile.PL
+Basic/SourceFilter/NiceSlice.pm
 Basic/SourceFilter/README
 Basic/SourceFilter/README.head
-Basic/SourceFilter/NiceSlice.pm
-Basic/SourceFilter/local.perldlrc
 Basic/SourceFilter/example
+Basic/SourceFilter/local.perldlrc
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
@@ -116,6 +116,7 @@ Demos/BAD2_demo.pm.PL
 Demos/BAD_demo.pm.PL
 Demos/General.pm
 Demos/Makefile.PL
+Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm
 Demos/Screen.pm
 Demos/TkTriD_demo.pm
@@ -591,7 +592,6 @@ m51.fits
 pdldoc.PL
 perldl.PL
 perldl.conf
-sfilter.t
 t/README
 t/aaa_load.t
 t/argtest.t
@@ -668,7 +668,6 @@ t/trig.t
 t/vaffine.t
 t/xvals.t
 win32/INSTALL
-win32/Makeppm
 win32/PDL.ppd
 win32/Readme
 win32/install.ppm

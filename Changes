@@ -2,6 +2,7 @@ DJB (05/Aug/01)
     - applied wfits patch from Diab Jerius 
       ([ #443431 ] wfits outputs illegal FITS keywords)
     - added test for whist to t/hist.t from DIAB Jerius (patch #443438)
+    - added 'demo ooplot' to demonstrate "new" interface to PGPLOT
 CS  - PDLCode.pm: fix bug #441586: PDL::PP cant handle pars with numerals
 CS  - primitive.pd: fix random funcs so that they work with Perl's srand
       * does it work on pre-5.6 perls? *

@@ -19,6 +19,7 @@ WriteMakefile(
                     'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',
 		    'TkTriD_demo.pm'	=> '$(INST_LIBDIR)/Demos/TkTriD_demo.pm',
 		    'PGPLOT_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_demo.pm',
+		    'PGPLOT_OO_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_OO_demo.pm',
                     'BAD_demo.pm'       => '$(INST_LIBDIR)/Demos/BAD_demo.pm',
                     'BAD2_demo.pm'      => '$(INST_LIBDIR)/Demos/BAD2_demo.pm',
                     '../m51.fits'       => '$(INST_LIBDIR)/Demos/m51.fits',
