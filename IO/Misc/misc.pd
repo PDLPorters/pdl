@@ -225,7 +225,7 @@ sub PDL::rfits {
           }
 	} # End of legacy parsing
 
-        last if $name eq "END";
+        last if ((defined $name) && $name && $name eq "END");
 
    }
  

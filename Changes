@@ -1,4 +1,5 @@
 CED (25-10-2002)
+    - IO/Misc.pm: removed not-so-spurious warnings from rfits (bug #626342)
     - PGPLOT/Window.pm: fixed spinlocks for PGPLOT -- now faster,
 	clearer, and actually functional (see bug #615277). 
     - Primitive/primitive.pd: fix to interpND behavior -- it now threads 
