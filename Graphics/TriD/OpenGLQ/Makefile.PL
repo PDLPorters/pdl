@@ -1,13 +1,17 @@
-BEGIN {
-  PDL::Core::Dev->import();
-  $skip = 0;
-  if ($^O =~ /win32/i) {
-    write_dummy_make(unsupported('PDL::Graphics::OpenGLQ','win32'));
-    $skip=1;
-  }
-}
 
-goto SKIP if $skip;
+# should now be handled by ../Makefile.PL
+#
+#BEGIN {
+#  PDL::Core::Dev->import();
+#  $skip = 0;
+#  if ($^O =~ /win32/i) {
+#    write_dummy_make(unsupported('PDL::Graphics::OpenGLQ','win32'));
+#    $skip=1;
+#  }
+#}
+#
+#goto SKIP if $skip;
+
 use ExtUtils::MakeMaker;
 
  PDL::Core::Dev->import();
@@ -26,4 +30,4 @@ sub MY::postamble {
 	pdlpp_postamble_int(@::pack);
 }  # Add genpp rule
 
-SKIP: return;
+# SKIP: return;

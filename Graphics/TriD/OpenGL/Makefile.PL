@@ -1,18 +1,22 @@
-BEGIN {
-  PDL::Core::Dev->import();
-  $skip = 0;
-  if ($^O =~ /win32/i) {
-    write_dummy_make(unsupported('PDL::Graphics::OpenGL','win32'));
-    $skip=1;
-  }
-}
+
+# should now be handled by ../Makefile.PL
+#
+#BEGIN {
+#  PDL::Core::Dev->import();
+#  $skip = 0;
+#  if ($^O =~ /win32/i) {
+#    write_dummy_make(unsupported('PDL::Graphics::OpenGL','win32'));
+#    $skip=1;
+#  }
+#}
+#
+#goto SKIP if $skip;
 
 # Makefile.PL for PDL::Graphics::OpenGL module.
 
 # Use this as a template for the Makefile.PL for
 # any external PDL module.
 
-goto SKIP if $skip;
 use ExtUtils::MakeMaker;
 
 # Add several possible places for -L.
@@ -29,5 +33,5 @@ WriteMakefile(
 #      ['-L/usr/X11R6/lib -L/usr/lib/mesa/ -lGL -lGLU -lMesaGL -lMesaGLU -lXext -lX11 '],
 #
 
-SKIP: return;
+#SKIP: return;
 
