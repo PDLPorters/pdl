@@ -429,10 +429,6 @@ Lib/Makefile.PL
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
-Lib/RandVar.pm
-Lib/RandVar/Histogram.pm
-Lib/RandVar/Makefile.PL
-Lib/RandVar/Sobol.pm
 Lib/Slatec/Makefile.PL
 Lib/Slatec/slatec.pd
 Lib/Slatec/slatec/chfcm.f
@@ -547,7 +543,9 @@ Lib/Slatec/slatec/xermsg.f
 Lib/Slatec/slatec/xerprn.f
 Lib/Slatec/slatec/xersve.f
 Lib/Slatec/slatec/xgetua.f
-Lib/Transform/Cartography/Earth.pm
+Lib/Transform/Cartography/earth_day.jpg
+Lib/Transform/Cartography/earth_night.jpg
+Lib/Transform/Cartography/earth_coast.vec.fits
 Lib/Transform/Cartography/Makefile.PL
 Lib/Transform/Cartography.pm
 Lib/Transform/Makefile.PL

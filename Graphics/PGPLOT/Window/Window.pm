@@ -1068,6 +1068,19 @@ both vertically and horizontally.
 By default fits_imag draws a color wedge on the right; you can explicitly
 set the C<DrawWedge> option to 0 to avoid this.
 
+=head2 fits_rgbi
+
+=for ref
+
+Display an RGB FITS image with correct axes
+
+=for usage
+
+  $win->fits_rgbi( image, [$min,$max], [$opt] );
+
+Works exactly like L<fits_imag|fits_imag>, but the image must be in 
+(X,Y,RGB) form.  Only the first two axes of the FITS header are examined.
+
 =head2 draw_wedge
 
 =for ref
@@ -5298,6 +5311,11 @@ sub _fits_foo {
 sub fits_imag {
   my($self) = shift;
   _fits_foo($self,'imag',@_);
+}
+
+sub fits_rgbi {
+  my($self) = shift;
+  _fits_foo($self,'rgbi',@_);
 }
 
 sub fits_cont {

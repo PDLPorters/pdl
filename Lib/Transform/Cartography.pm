@@ -236,13 +236,17 @@ auxiliary functions (no leading 't_').
 
 =cut
 
+# Import PDL::Transform into the calling package -- the cartography
+# stuff isn't much use without it.
+use PDL::Transform;
+
 package PDL::Transform::Cartography;
 @ISA = ( 'Exporter','PDL::Transform' );
 $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -348,21 +352,91 @@ sub graticule {
 
 (Cartography) PDL constructor - coastline map of Earth
 
-Loads the PDL::Transform::Cartography:Earth package and returns a
-coastline map based on the 1987 CIA World Coastline database (see
-author information).  
+Returns a vector coastline map based on the 1987 CIA World Coastline
+database (see author information).  The vector coastline data are in
+plate caree format so they can be converted to other projections via
+the L<apply|PDL::Transform::apply> method and cartographic transforms,
+and are suitable for plotting with the
+L<lines|PDL::Graphics::PGPLOT::Window::lines> method in the PGPLOT 
+output library:  the first dimension is (X,Y,pen) with breaks having 
+a pen value of 0 and hairlines having negative pen values.  The second 
+dimension threads over all the points in the data set.  
 
-The routine loads the package explicitly at run-time in order to 
-avoid the overhead of loading it when not needed; this might be 
-False Laziness as it is "only" 150k.
+The vector map includes lines that pass through the antipodean
+meridian, so if you want to plot it without reprojecting, you should
+run it through L<clean_lines|clean_lines> first:
+
+    $w = pgwin();
+    $w->lines(earth_coast->clean_lines);     # plot plate caree map of world
+    $w->lines(earth_coast->apply(t_gnomonic))# plot gnomonic map of world
+
+C<earth_coast> is just a quick-and-dirty way of loading the file
+"earth_coast.vec.fits" that is part of the normal installation tree.
 
 =cut
 
 sub earth_coast {
-    eval "use PDL::Transform::Cartography::Earth;";
-    return PDL::Transform::Cartography::Earth::earth_coast();
+    my $fn = "PDL/Transform/Cartography/earth_coast.vec.fits";
+    local $_;
+    foreach(@INC) {
+	my $file = "$a/$fn";
+	return rfits($file) if(-e $file);
     }
+    barf("earth_coast: $fn not found in \@INC.\n");
+}
 
+=head2 earth_image
+
+=for usage
+
+ $rgb = earth_image()
+
+=for ref
+
+(Cartography) PDL constructor - RGB pixel map of Earth 
+
+Returns an RGB image of Earth based on data from the MODIS instrument
+on the NASA EOS/Terra satellite.  (You can get a full-resolution 
+image from http://earthobservatory.nasa.gov/Newsroom/BlueMarble/).
+The image is a plate caree map, so you can convert it to other
+projections via the L<map|PDL::Transform::map> method and cartographic
+transforms.
+
+This is just a quick-and-dirty way of loading the earth-image files that
+are distributed along with PDL.
+
+=cut
+
+sub earth_image {
+  my($nd) = shift;
+  my $f;
+  my $dir = "PDL/Transform/Cartography/earth_";
+  $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
+  
+  local $_;
+  my $im;
+  foreach(@INC) {
+    my $file = "$_/$f";
+    $im = rpic($file)->mv(0,-1) if(-e $file);
+  }
+  barf("earth_image: $f not found in \@INC.\n")
+    unless defined($im);
+
+  $im->sethdr({
+    NAXIS=>3,
+    NAXIS1=>4096, CRPIX1=>2048.5, CRVAL1=>0,
+    NAXIS2=>2048, CRPIX2=>1024.5, CRVAL2=>0,
+    NAXIS3=>3,    CRPIX3=>1,      CRVAL3=>0,
+    CTYPE1=>'Longitude', CUNIT1=>'degree', CDELT1=>90/1024.0,
+    CTYPE2=>'Latitude',  CUNIT2=>'degree', CDELT2=>90/1024.0,
+    CTYPE3=>'RGB',       CUNIT3=>'index',  CDELT3=>1.0,
+    COMMENT=>'Plate Caree Projection Image',
+    HISTORY=>'PDL Distribution Image, derived from NASA/MODIS data',
+  });
+  
+  $im->hdrcpy(1);
+  $im;
+}
 
 =head2 clean_lines
 
@@ -837,12 +911,14 @@ sub t_orthographic {
 	my ($out) = $o->{t_int}->apply($d);
 	if($o->{m}) {
 	    my $idx;
-	    $idx = which($out->((2)) < 0) 
+	    $idx = whichND($out->((2)) < 0) 
 		if($o->{m} == 1);
-	    $idx = which($out->((2)) > 0)
+	    $idx = whichND($out->((2)) > 0)
 		if($o->{m} == 2);
-	    $out->(0:1,$idx) .= $o->{bad}
-	      if(defined $idx && ref $idx eq 'PDL' && $idx->nelem);
+	    if(defined $idx && ref $idx eq 'PDL' && $idx->nelem){
+	      $out->((0))->range($idx) .= $o->{bad};
+	      $out->((1))->range($idx) .= $o->{bad};
+	    }
 	}
 
 	my($d0) = $out->dim(0);
@@ -1611,10 +1687,10 @@ sub t_gnomonic {
 	$out->((0)) .= $k * $cph * sin($th);
 	$out->((1)) .= $k * sin($ph);
 
-	my $idx = which($k > $cl0  | ($k < 0));
+	my $idx = whichND($k > $cl0  | ($k < 0));
 	if($idx->nelem) {
-	  $out->((0))->($idx) .= $o->{bad};
-	  $out->((1))->($idx) .= $o->{bad};
+	  $out->((0))->range($idx) .= $o->{bad};
+	  $out->((1))->range($idx) .= $o->{bad};
 	}
 
 	$out;
@@ -1623,19 +1699,23 @@ sub t_gnomonic {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	
+
 	my($x) = $d->((0));
 	my($y) = $d->((1));
 
 	my($rho) = sqrt($x*$x + $y*$y);
 	my($c) = atan($rho/$o->{k0});
-	
+
 	$out->((0)) .= atan2($x * sin($c), $rho * cos($c));
 	$out->((1)) .= asin($y * sin($c) / $rho);
-	my($idx) = which($rho==0);
-	$out->(0:1,$idx) .= 0
-	  if($idx->nelem);
 
+	my $idx = whichND($rho==0);
+
+	if($idx->nelem) {
+	  print "index is $idx...\n";
+	  $out->((0))->range($idx) .= 0;
+	  $out->((1))->range($idx) .= 0;
+	}
 	$out->(0:1) /= $o->{conv};
 	$out;
     };
@@ -1707,10 +1787,10 @@ sub t_az_eqd {
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
 
-    my($idx) = which($c > $o->{c});
+    my $idx = whichND($c > $o->{c});
     if($idx->nelem) {
-      $x->($idx) .= $o->{bad};
-      $y->($idx) .= $o->{bad};
+      $x->range($idx) .= $o->{bad};
+      $y->range($idx) .= $o->{bad};
     }
 
     $out;
@@ -1727,10 +1807,10 @@ sub t_az_eqd {
     $out->((0)) .= atan2( $x * sin($rho), $rho * cos $rho );
     $out->((1)) .= asin( $y * sin($rho) / $rho );
 
-    my($idx) = which($rho == 0);
+    my $idx = whichND($rho == 0);
     if($idx->nelem) {
-      $out->((0))->($idx) .= 0;
-      $out->((1))->($idx) .= 0;
+      $out->((0))->range($idx) .= 0;
+      $out->((1))->range($idx) .= 0;
     }
 
     $out->(0:1) /= $o->{conv};
@@ -1790,10 +1870,10 @@ sub t_az_eqa {
     $x .= $k * cos($ph) * sin($th);
     $y .= $k * sin($ph);
 
-    my($idx) = which($c > $o->{c});
+    my $idx = whichND($c > $o->{c});
     if($idx->nelem) {
-      $x->($idx) .= $o->{bad};
-      $y->($idx) .= $o->{bad};
+      $x->range($idx) .= $o->{bad};
+      $y->range($idx) .= $o->{bad};
     }
 
     $out;
@@ -1952,13 +2032,15 @@ sub t_vertical {
 
 	if($o->{m}) {
 	    my $idx;
-	    $idx = which($cos_c < 1.0/$o->{r0})
+	    $idx = whichND($cos_c < 1.0/$o->{r0})
 		if($o->{m} == 1);
-	    $idx = which($cos_c > 1.0/$o->{r0})
+	    $idx = whichND($cos_c > 1.0/$o->{r0})
 		if($o->{m} == 2);
 
-	    $out->(0:1,$idx) .= $o->{bad}
-	      if(defined $idx && ref $idx eq 'PDL' && $idx->nelem);
+	    if(defined $idx && ref $idx eq 'PDL' && $idx->nelem){
+	      $out->((0))->range($idx) .= $o->{bad};
+	      $out->((1))->range($idx) .= $o->{bad};
+	    }
 	}
 
 
@@ -1968,7 +2050,7 @@ sub t_vertical {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 	my($out) = $d->is_inplace ? $d : $d->copy;
-	
+
 	# Reverse the hemisphere if the mask is set to 'far'
 	my($P) = ($o->{m} == 2) ? -$o->{r0} : $o->{r0};
 
@@ -1983,9 +2065,13 @@ sub t_vertical {
 	my($cos_c) = sqrt(1 - $sin_c*$sin_c);
 
 	# Switch c's quadrant where necessary, by inverting cos(c).
-	$cos_c->where($rho > ($P-1/$P)) *= -1
-	    if($P<0);
+	if($P<0) {
+	  my $idx = whichND($rho > ($P-1/$P));
+	  $cos_c->range($idx) *= -1
+	    if($idx->nelem > 0);
+	}
 
+	
 	$out->((0)) .= atan( $d->((0)) * $sin_c / ($rho * $cos_c) );
 	$out->((1)) .= asin( $d->((1)) * $sin_c / $rho );
 
@@ -2265,9 +2351,9 @@ sub t_perspective {
 	
 	my($idx);
 	if($o->{m}==1) {
-	  $idx = which($cos_c < $thresh);
+	  $idx = whichND($cos_c < $thresh);
 	} elsif($o->{m}==2) {
-	  $idx = which($cos_c > $thresh);
+	  $idx = whichND($cos_c > $thresh);
 	}
 	else {
 	  $idx = null;
@@ -2275,8 +2361,10 @@ sub t_perspective {
 	
 	$out = $o->{pre}->apply($dc);
 	
-	$out->(0:1,$idx) .= $o->{bad} 
-	if($idx->nelem);
+	if(defined $idx && ref $idx eq 'PDL' && $idx->nelem) {
+	  $out->((0))->range($idx) .= $o->{bad};
+	  $out->((1))->range($idx) .= $o->{bad};
+	}
       }
       else {
 	$out = $o->{pre}->apply($dc);

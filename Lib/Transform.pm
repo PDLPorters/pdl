@@ -119,7 +119,7 @@ Ref to an inverse method that reverses the transformation.  It must
 accept the same "params" hash that the forward method accepts.  This
 key can be left undefined in cases where there is no inverse.
 
-=item indim, outdim
+=item idim, odim
 
 Number of useful dimensions for indexing on the input and output sides
 (ie the order of the 0th dimension of the coordinates to be fed in or 
@@ -527,6 +527,8 @@ sub map {
   my($tmp) = shift;
   my($opt) = shift;
      
+  print "map..." if($PDL::debug);
+
   # Check for options-but-no-template case
   if(ref $tmp eq 'HASH' && !(defined $opt)) {
     if(!defined($tmp->{NAXIS})) {  # FITS headers all have NAXIS.
@@ -537,6 +539,8 @@ sub map {
 
   $tmp = $in unless(defined($tmp));
 
+
+  print "making output..." if($PDL::debug);
 
   my($out);
   if(UNIVERSAL::isa($tmp,'PDL')) {
@@ -564,18 +568,29 @@ sub map {
     $out = zeroes(float,$tmp);
   }
 
+  print "checking integrate..." if($PDL::debug);
+
   my($integrate) = scalar(_opt($opt,['m','method','Method']) =~ m/[jJ](ac(obian)?)?/);
 
+  ##############################
+  ## Figure out the dimensionality of the 
+  ## transform itself (extra dimensions come along for the ride)
+  print "checking dims..." if($PDL::debug);
+
+  my $nd = $me->{idim} || 2;
+  my @sizes = $out->dims;
+  my @dd = @sizes;
+  splice @dd,$nd; # Cut out dimensions after the end
 
   ##############################
   ## Non-integration code: 
   ## just transform and interpolate.
-
   if(!$integrate) {
-    $out .= $in->interpND(
-			  $me->invert(PDL::Basic::ndcoords($out->dims)->float->inplace),
-			  $opt
-			  );
+      print "inverting...\n" if($PDL::debug);
+      print "dd=@dd\n";
+    my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
+      print "idx ok\n" if($PDL::debug);
+    $out .= $in->interpND($idx,$opt);
   }
 
   ##############################
@@ -588,15 +603,6 @@ sub map {
 
   else {
     my($i,$j);
-    my($nd) = $out->ndims;
-    my($nd_in) = $in->ndims;
-    my(@sizes) = $out->dims;
-
-    #
-    # Chicken out
-    #
-    barf("can't do integrative mapping from N->M when N != M (yet).\n")
-      if($nd != $nd_in);
 
     ###############
     ### Interpret integration-specific options...
@@ -622,7 +628,7 @@ sub map {
     my $sizes;
     {
       my $indices = $me->invert(
-			       (float(PDL::Basic::ndcoords((PDL->pdl(@sizes)+1)->list))->clump(1..$nd)
+			       (float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd)
 
 			       - 0.5)->inplace
 			       )->reshape($nd,(PDL->pdl(@sizes)+1)->list);
@@ -867,7 +873,7 @@ sub unmap {
 =for ref
 
 Return the inverse of a PDL::Transform.  This just reverses the 
-func/inv pair and the idims/odims pair.  Note that sometimes you
+func/inv pair and the idim/odim pair.  Note that sometimes you
 end up with a transform that cannot be applied or mapped, because
 either the mathematical inverse doesn't exist or the inverse func isn't
 implemented.
@@ -897,8 +903,8 @@ sub inverse {
   $out->{inv}  = $me->{func}; 
   $out->{func} = $me->{inv};
 
-  $out->{idims} = $me->{odims};
-  $out->{odims} = $me->{idims};
+  $out->{idim} = $me->{odim};
+  $out->{odim} = $me->{idim};
 
   $out->{name} = "(inverse ".$me->{name}.")";
 
@@ -985,6 +991,7 @@ sub compose {
     my ($data,$p) = @_;
     my ($ip) = $data->is_inplace;
     for my $t ( reverse @{$p->{clist}} ) {
+      print "applying $t\n" if($PDL::debug);
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
     }
     $data;
@@ -994,6 +1001,7 @@ sub compose {
     my($data,$p) = @_;
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
+      print "inverting $t..." if($PDL::debug);
       $data = $t->{inv}($ip ? $data->inplace : $data, $t->{params});
     }
     $data;
@@ -1092,8 +1100,8 @@ sub t_identity { new PDL::Transform(@_) };
 sub new {
   my($class) = shift;
   my $me = {name=>'identity', 
-	    indim => 0,
-	    outdim => 0,
+	    idim => 0,
+	    odim => 0,
 	    func=>{\&PDL::Transform::_identity}, 
 	    inv=>{\&PDL::Transform::_identity},
 	    params=>{}
@@ -1219,8 +1227,8 @@ sub t_lookup {
   my($bound) = _opt($o,['b','bound','boundary','Boundary']);
   my($method)= _opt($o,['m','meth','method','Method']);
 
-  $me->{idims} = $source->ndims - 1;
-  $me->{odims} = $source->dims($source->ndims-1);
+  $me->{idim} = $source->ndims - 1;
+  $me->{odim} = $source->dims($source->ndims-1);
 
   $me->{params} = {
       table => $source,
@@ -1237,8 +1245,8 @@ sub t_lookup {
    my $lookup_func = sub {
      my($data,$p,$table_name) = @_;
 
-    if($data->dim(0) > $me->{idims}) {
-      croak("Too many dims (".$data->dim(0).") for your table (".$me->{idims}.")\n");
+    if($data->dim(0) > $me->{idim}) {
+      croak("Too many dims (".$data->dim(0).") for your table (".$me->{idim}.")\n");
     };
 
     $data = pdl($data) 
@@ -1298,6 +1306,10 @@ you can choose your favorite method to specify the transform you want.
 The inverse transform is automagically generated, provided that it
 actually exists (the transform matrix is invertible).  Otherwise, the
 inverse transform just croaks.
+
+Extra dimensions in the input vector are ignored, so if you pass a 
+3xN vector into a 3-D linear transformation, the final dimension is passed
+through unchanged.
 
 The options you can usefully pass in are:
 
@@ -1446,7 +1458,7 @@ sub PDL::Transform::Linear::new {
     
     $me->{params}->{matrix} = PDL->zeroes($me->{idim},$me->{odim});
     $me->{params}->{matrix}->diagonal(0,1) .= 1;
-  }
+}
 
   ### Handle rotation option 
   my $rot = $me->{params}->{rot};
@@ -1503,9 +1515,15 @@ sub PDL::Transform::Linear::new {
     delete $me->{params}->{inverse};
   }
   
+  $me->{params}->{idim} = $me->{idim};
+  $me->{params}->{odim} = $me->{odim};
+
   $me->{func} = sub {
     my($in,$opt) = @_;
     my($d) = $opt->{matrix}->dim(0)-1;
+
+    barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
+	if($in->dim(0) < $d);
 
     my($a) = $in->(0:$d)->copy + $opt->{pre};
     my($out) = $in->is_inplace ? $in : $in->copy;
@@ -1517,12 +1535,11 @@ sub PDL::Transform::Linear::new {
   
   $me->{inv} = (defined $me->{params}->{inverse}) ? sub {
     my($in,$opt) = @_;
-
     my($d) = $opt->{inverse}->dim(0)-1;
-
+    barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
+	if($in->dim(0) < $d);
     my($a) = $in->(0:$d)->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
-
     $out->(0:$d) .= $a x $opt->{inverse} - $opt->{pre};
 
     $out;
@@ -2174,8 +2191,8 @@ sub t_spherical {
 
     my($me) = PDL::Transform::new($class);
 
-    $me->{params}->{indim} = 3;
-    $me->{params}->{outdim} = 3;
+    $me->{params}->{idim} = 3;
+    $me->{params}->{odim} = 3;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
     $me->{params}->{origin} = PDL->zeroes(3)

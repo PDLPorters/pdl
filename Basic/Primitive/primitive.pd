@@ -2027,19 +2027,24 @@ sub PDL::whichND {
 
   # Scalar context: generate an N-D index piddle
 
-  my $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+
+  $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
   my $i;
+
   for $i(0..$#mdims-1) {
    # use $tmp for 5.005_03 compatibility
    (my $tmp = $mult->index($i+1)) .= $mult->index($i)*$mdims[$i];
   }
+
   for $i(0..$#mdims) {
-   my($s) = $ind->slice("($i),:");
+   my($s) = $ind->index($i);
    $s /= $mult->index($i);
    $s %= $mdims[$i];
   }
+
   return $ind;
 }
 
