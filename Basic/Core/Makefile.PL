@@ -42,6 +42,7 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 	}
 } else {
 	print "\tNope, your perl was not linked against pthread library\n";
+	print "\tYou need to include -lpthread in your perl libs configuration\n";
 	$pthread_library = '';
 }
 
@@ -58,7 +59,9 @@ if ((!defined($conf) or $conf)
 	print "\t==> I couldn't find pthread support. However, you have
 \t    turned on the forcing option in PDL_CONFIG so I guess I gotta do it\n";
 } else {
-	print "\t==> PDL will be built without POSIX thread support. Shame on you.\n";
+	print "\t==> PDL will be built without POSIX thread support.\n";
+	print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
+	print "\t==> Enabling perl threads will not help!\n";
 	$pthread_define = '';
 	$PDL_CONFIG{WITH_POSIX_THREADS} = 0;
 }

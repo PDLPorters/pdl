@@ -11,7 +11,7 @@ BEGIN{
 
 END{
   eval "use 5.6.0";
-  warn "\n\n*The next version of PDL will require Perl v5.6.0 or later!*\n".
+  warn "\n\n*The next major version of PDL (v2.2) will require Perl v5.6.0 or later!*\n".
     "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
 }
  
@@ -173,7 +173,7 @@ exit;
 !NO!SUBS!
 	$fh->close;
 	chmod 0755, $podsel;
-
+	$podsel = "./$podsel"; # '.' may not be in our path (potential win32 problem?)
 } # if: perl version < 5.006
 
 $text .=
