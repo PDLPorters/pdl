@@ -29,7 +29,7 @@ WriteMakefile(
 
 sub MY::postamble {
   my $text = '';
-  if ( $] >= 5.006 ) {
+  if ( $] >= 5.005 ) {
     $text .= << 'EOT';
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
