@@ -1,5 +1,6 @@
 CED (15-Jan-2003)
     - fix to Dumper -- uses Convert::UU (instead of uudecode) if available.
+    - Transform::Cartography::Earth -- update dumped info
 CED (3-Jan-2003)
     - primitive: added glue() method -- arbitrary-dimension append
     - Transform: 
