@@ -147,18 +147,6 @@ Bit indicating whether the transform has been inverted.  That's useful
 for some stringifications (see the PDL::Transform::Linear
 stringifier), and may be useful for other things.
 
-=item jacobian
-
-Ref to a method that returns the jacobian matrix of the transformation --
-this is the partial derivative of each output coordinate with respect to 
-each input coordinate.
-
-=item inv_jacobian
-
-Ref to a method that returns the inverse jacobian matrix of the 
-transformation -- this is the partial derivative of each input 
-coordinate with respect to each output coordinate.
-
 =back
 
 Transforms should be inplace-aware where possible, to prevent excessive
@@ -185,10 +173,6 @@ instead of just strung together pixel-to-pixel.
 Linear transformations should be handled with heterogeneous Hershey matrices,
 rather than matrix-multiply-and-add operations.  
 
-Until full Jacobean tracking is in place, transforms that shrink the 
-image (or a part of it -- see L<t_radial|t_radial>) will lose information
-because they sample the input image sparsely.
-
 =head1 METHODS
 
 =cut
@@ -202,7 +186,7 @@ $VERSION = "0.7";
 BEGIN {
    use Exporter ();
    @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_scale t_rot t_shift );
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_shift );
    @EXPORT = @EXPORT_OK;
    %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 }
@@ -312,181 +296,6 @@ sub invert {
 
 ######################################################################
 
-=head2 t_inverse 
-
-=head2 PDL::Transform::inverse
-
-=for usage 
-
-  $t2 = $t->inverse;
-
-=for ref
-
-Return the inverse of a PDL::Transform.  This just reverses the 
-func/inv pair and the idims/odims pair.  Note that sometimes you
-end up with a transform that can't be applied or mapped, because
-either the mathematical inverse doesn't exist or the inverse func isn't
-implemented.
-
-The inverse transform remains connected to the main transform because
-they both point to the original parameters hash.  That turns out to be
-useful.
-
-=cut
-
-*t_inverse = \&inverse;
-
-sub inverse {
-  my($me) = shift;
-
-  unless(defined($me->{inv})) {
-    Carp::cluck("PDL::Transform::inverse:  got a transform with no inverse.\n");
-    return undef;
-  }
-
-  my(%out) = %$me; # force explicit copy of top-level
-  my($out) = \%out;
-  
-  $out->{inv}  = $me->{func}; 
-  $out->{func} = $me->{inv};
-
-  $out->{idims} = $me->{odims};
-  $out->{odims} = $me->{idims};
-
-  $out->{name} = "(inverse ".$me->{name}.")";
-
-  $out->{is_inverse} = !($out->{is_inverse});
-
-  bless $out,(ref $me);
-  return $out;
-}
-  
-  
-######################################################################
-
-=head2 t_compose 
-
-=head2 PDL::Transform::compose
-
-=for usage
-
-  $f2 = $f->compose($g[,$h,$i,...]);
-
-=for ref 
-
-Function composition: f(g(x)), f(g(h(x))), ...
-
-This is accomplished by inserting a splicing code ref into the C<func>
-and C<inv> slots.  It combines multiple compositions into a single
-list of transforms to be executed in orer.  If one of the functions is
-itself a composition, it is interpolated into the list rather than left
-intact.  Ultimately, linear transformations may also be combined within
-the list.
-
-=cut
-
-@PDL::Transform::Composition::ISA = ('PDL::Transform');
-sub PDL::Transform::Composition::stringify {
-  package PDL::Transform::Composition;
-  my($me) = shift;
-  my($out) = SUPER::stringify $me;
-  $out =~ s/ /\n  /;
-  $out =~ s/: /:\n  /;
-  $out;
-}
-
-*t_compose = \&compose;
-
-sub compose {
-  local($_);
-  my(@funcs) = @_;
-  my($me) = PDL::Transform->new;
-
-  # No inputs case: return the identity function
-  return $me
-    if(!@funcs);
-
-  $me->{name} = "";
-  my($f);
-  my(@clist);
-
-  for $f(@funcs) {
-    if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
-      if($f->{is_inverse}) {
-	for(reverse(@{$f->{params}->{clist}})) {
-	  push(@clist,$_->inverse);
-	  $me->{name} .= " o inverse ( ".$_->{name}." )";
-	}
-      } else {
-	for(@{$f->{params}->{clist}}) {
-	  push(@clist,$_);
-	  $me->{name} = " o ".$_->{name};
-	}
-      }
-    } else {  # Not a composition -- just push the transform onto the list.
-      push(@clist,$f);
-      $me->{name} .= " o ".$f->{name};
-    }
-  }
-
-  $me->{name}=~ s/^ o //; # Get rid of leading composition mark
-
-  $me->{params}->{clist} = \@clist;
-
-  $me->{func} = sub {
-    my ($data,$p) = @_;
-    my ($ip) = $data->is_inplace;
-    for my $t ( reverse(@{$p->{clist}}) ) {
-      $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
-    }
-    $data;
-  };
-
-  $me->{inv} = sub {
-    my($data,$p) = @_;
-    my($ip) = $data->is_inplace;
-    for my $t ( @{$p->{clist}} ) {
-      $data = $t->{inv}($ip ? $data->inplace : $data, $t->{params});
-    }
-    $data;
-  };
-
-  return bless($me,'PDL::Transform::Composition');
-}
-
-######################################################################
-
-=head2 PDL::Transform::wrap
-
-=for usage
-
-  $g1fg = $f->wrap($g);
-
-=for ref
-
-Shift a transform into a different space by 'wrapping' it with a second.
-
-This is just a convenience function for two L<compose|Transform::compose> calls.
-It is useful to make a single transformation happen in some other space.
-For example, to shift the origin of rotation, do this:
-
-  $im = rfits('m51.fits');
-  $tf = new PDL::Transform::FITS($im);
-  $tr = new PDL::Transform::Linear({rot=>30});
-  $im1 = $tr->unmap($tr);               # Rotate around pixel origin
-  $im2 = $tr->unmap($tr->wrap($tf));    # Rotate round FITS scientific origin
-
-=cut
-
-sub wrap {
-  my($f) = shift;
-  my($g) = shift;
-  
-  return $g->inverse->compose($f,$g);
-}
-
-######################################################################
-
 =head2 PDL::Transform::map
 
 =for sig
@@ -499,7 +308,7 @@ sub wrap {
 
 =for ref
 
-Map an image or N-D dataset using the transform as a coordinate transform.
+Resample an image or N-D dataset using a coordinate transform.
 
 The transform is applied to the coordinates of $output to obtain 
 coordinates for interpolation from the $input array.  NOTE that this is
@@ -554,18 +363,20 @@ from fastest to slowest, are:
   
 =over 3
 
-=item * s, sample
+=item * s, sample (default for integers)
 
 Pixel values in the output plane are sampled from the closest data value
 in the input plane.  This is very fast but not very accurate for either 
-magnfication or decimation (shrinking).
+magnification or decimation (shrinking).  It is the default for templates
+of integer type.
 
-=item * l, linear
+=item * l, linear (default for floats)
 
 Pixel values are linearly interpolated from the closst data value in the 
 input plane.  This is reasonably fast but only accurate for magnification.
 Decimation (shrinking) of the image causes aliasing and loss of photometry
-as features fall between the samples.
+as features fall between the samples.  It is the default for floating-point
+templates.
 
 =item * j, jacobian
 
@@ -575,6 +386,7 @@ correct way to deform images and yields very good results -- but
 at a cost.  It runs perhaps 10 times slower than linear interpolation.
 
 =back
+
 
 =item b, blur, Blur
 
@@ -616,7 +428,7 @@ Currently FITS headers are detected but not acted upon.  You must
 handle your FITS transformations manually.
 
 Jacobian tracking is a memory hog, especially if the transformation includes
-very large regions off of the original input plane.  Some sort of memory
+very large regions outside of the original input plane.  Some sort of memory
 guard needs to be put in place.
 
 =cut
@@ -709,7 +521,7 @@ sub map {
     my $big = _opt($opt,['big','Big']) || pdl($in->dims)->max / 5.0;
     $big = pdl($big) unless UNIVERSAL::isa($big,'PDL');
 
-    my $blur  = _opt($opt,['b','blur','Blur']) || 0.5;
+    my $blur  = _opt($opt,['b','blur','Blur']) || 0.7;
     my $blur2 = 1.0 / $blur / $blur ; # used inside the Gaussian, below
 
     my $flux = scalar((_opt($opt,['p','phot','photometry','Photometry'])) =~
@@ -937,17 +749,205 @@ sub unmap {
   return $me->inverse->map(@_);
 }
 
+######################################################################
+
+=head1 OPERATORS
+
+These are quasi-constructors: they accept PDL::Transform objects,
+and return others.  You can access operators using perl's method call
+mechanism or by direct call using the exported C<t_<name>> subroutine.
+
+=cut
+
+######################################################################
+
+=head2 t_inverse 
+
+=for usage 
+
+  $t2 = t_inverse($t);
+  $t2 = $t->inverse;
+
+=for ref
+
+Return the inverse of a PDL::Transform.  This just reverses the 
+func/inv pair and the idims/odims pair.  Note that sometimes you
+end up with a transform that can't be applied or mapped, because
+either the mathematical inverse doesn't exist or the inverse func isn't
+implemented.
+
+The inverse transform remains connected to the main transform because
+they both point to the original parameters hash.  That turns out to be
+useful.
+
+=cut
+
+*t_inverse = \&inverse;
+
+sub inverse {
+  my($me) = shift;
+
+  unless(defined($me->{inv})) {
+    Carp::cluck("PDL::Transform::inverse:  got a transform with no inverse.\n");
+    return undef;
+  }
+
+  my(%out) = %$me; # force explicit copy of top-level
+  my($out) = \%out;
+  
+  $out->{inv}  = $me->{func}; 
+  $out->{func} = $me->{inv};
+
+  $out->{idims} = $me->{odims};
+  $out->{odims} = $me->{idims};
+
+  $out->{name} = "(inverse ".$me->{name}.")";
+
+  $out->{is_inverse} = !($out->{is_inverse});
+
+  bless $out,(ref $me);
+  return $out;
+}
+  
+  
+######################################################################
+
+=head2 t_compose 
+
+=for usage
+
+  $f2 = t_compose($f, $g,[...]);
+  $f2 = $f->compose($g[,$h,$i,...]);
+
+=for ref 
+
+Function composition: f(g(x)), f(g(h(x))), ...
+
+This is accomplished by inserting a splicing code ref into the C<func>
+and C<inv> slots.  It combines multiple compositions into a single
+list of transforms to be executed in orer.  If one of the functions is
+itself a composition, it is interpolated into the list rather than left
+intact.  Ultimately, linear transformations may also be combined within
+the list.
+
+=cut
+
+@PDL::Transform::Composition::ISA = ('PDL::Transform');
+sub PDL::Transform::Composition::stringify {
+  package PDL::Transform::Composition;
+  my($me) = shift;
+  my($out) = SUPER::stringify $me;
+  $out =~ s/ /\n  /;
+  $out =~ s/: /:\n  /;
+  $out;
+}
+
+*t_compose = \&compose;
+
+sub compose {
+  local($_);
+  my(@funcs) = @_;
+  my($me) = PDL::Transform->new;
+
+  # No inputs case: return the identity function
+  return $me
+    if(!@funcs);
+
+  $me->{name} = "";
+  my($f);
+  my(@clist);
+
+  for $f(@funcs) {
+    if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
+      if($f->{is_inverse}) {
+	for(reverse(@{$f->{params}->{clist}})) {
+	  push(@clist,$_->inverse);
+	  $me->{name} .= " o inverse ( ".$_->{name}." )";
+	}
+      } else {
+	for(@{$f->{params}->{clist}}) {
+	  push(@clist,$_);
+	  $me->{name} = " o ".$_->{name};
+	}
+      }
+    } else {  # Not a composition -- just push the transform onto the list.
+      push(@clist,$f);
+      $me->{name} .= " o ".$f->{name};
+    }
+  }
+
+  $me->{name}=~ s/^ o //; # Get rid of leading composition mark
+
+  $me->{params}->{clist} = \@clist;
+
+  $me->{func} = sub {
+    my ($data,$p) = @_;
+    my ($ip) = $data->is_inplace;
+    for my $t ( reverse(@{$p->{clist}}) ) {
+      $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
+    }
+    $data;
+  };
+
+  $me->{inv} = sub {
+    my($data,$p) = @_;
+    my($ip) = $data->is_inplace;
+    for my $t ( @{$p->{clist}} ) {
+      $data = $t->{inv}($ip ? $data->inplace : $data, $t->{params});
+    }
+    $data;
+  };
+
+  return bless($me,'PDL::Transform::Composition');
+}
+
+######################################################################
+
+=head2 t_wrap
+
+=for usage
+
+  $g1fg = $f->wrap($g);
+  $g1fg = t_wrap($f,$g);
+
+=for ref
+
+Shift a transform into a different space by 'wrapping' it with a second.
+
+This is just a convenience function for two L<compose|Transform::compose> calls.
+It is useful to make a single transformation happen in some other space.
+For example, to shift the origin of rotation, do this:
+
+  $im = rfits('m51.fits');
+  $tf = new PDL::Transform::FITS($im);
+  $tr = new PDL::Transform::Linear({rot=>30});
+  $im1 = $tr->unmap($tr);               # Rotate around pixel origin
+  $im2 = $tr->unmap($tr->wrap($tf));    # Rotate round FITS scientific origin
+
+=cut
+
+*t_wrap = \&wrap;
+
+sub wrap {
+  my($f) = shift;
+  my($g) = shift;
+  
+  return $g->inverse->compose($f,$g);
+}
+
+
 
 ######################################################################
 
 =head1 CONSTRUCTORS
 
-These routines just construct different types of transformation.  They're
-all trivial subclasses of PDL::Transform, so you can say
-   
-  $a = new PDL::Transform::<type>(<params>)
+The constructors all return subclasses of PDL::Transform, so you can say:
+  
+  $a = new PDL::Transform::<name>(<params>)
+or
+  $a = t_<name>(<params>)
 
-but it would be a real pain to put each one in its own .pm file.
+and get the same result.
 
 =cut
 
@@ -955,11 +955,10 @@ but it would be a real pain to put each one in its own .pm file.
 
 =head2 t_identity
 
-=head2 new PDL::Transform
-
 =for usage
 
- my $xform = new PDL::Transform
+  my $xform = t_identity
+  my $xform = new PDL::Transform;
 
 =for ref
 
@@ -971,7 +970,6 @@ constructors.  It takes no parameters and returns the identity transform.
 =cut
 
 sub _identity { return shift; }
-
 sub t_identity { new PDL::Transform(@_) };
 
 sub new {
@@ -991,19 +989,18 @@ sub new {
 
 =head2 t_lookup 
 
-=head2 new PDL::Transform::Lookup
-
 =for usage
 
+  $f = t_lookup($lookup, {<options>});
   $f = new PDL::Transform::Lookup($lookup, { <options> });
 
 =for ref
 
 Transform by lookup into an explicit table.
 
-You specify an N+1-D PDL that is interpreted as an N-D lookup table
-of column vectors.  The last dimension has order equal to the output
-dimensionality of the transform.
+You specify an N+1-D PDL that is interpreted as an N-D lookup table of
+column vectors (vector index comes last).  The last dimension has
+order equal to the output dimensionality of the transform.
 
 For added flexibility in data space, You can specify pre-lookup linear
 scaling and offset of the data.  Of course you can specify the
@@ -1032,8 +1029,7 @@ that last index threading dimension -- if necessary, use C<dummy(-1,1)>.
 
 The lookup index scaling is: out = lookup[ (scale * data) + offset ].
 
-There is no inverse transform -- that's too hard and sometimes
-impossible, so the inverse transform just croaks.
+The inverse transform is calculated. 
 
 Options are listed below; there are several synonyms for each.
 
@@ -1043,7 +1039,8 @@ Options are listed below; there are several synonyms for each.
 
 (default 1.0) Specifies the linear amount of scaling to be done before 
 lookup.  You can feed in a scalar or an N-vector; other values may cause
-trouble.
+trouble.  If you want to save space in your table, then specify smaller 
+scale numbers. 
 
 =item o, offset, Offset
 
@@ -1061,7 +1058,32 @@ Interpolation method to be fed to L<interpND|interpND>
 
 =back
 
+EXAMPLE
+
+To scale logarithmically the Y axis of m51, try:
+
+  $a = rfits('m51.fits');
+  $lookup = xvals(256,256) -> cat( 10**(yvals(256,256)/100) * 256/10**2.55 );
+  $t = t_lookup($lookup);
+  $b = $t->map($a);
+
+To do the same thing but with a smaller lookup table, try:
+
+  $lookup = 16 * xvals(17,17)->cat(10**(yvals(17,17)/(100/16)) * 16/10**2.55);
+  $t = t_lookup($lookup,{scale=>1/16.0});
+  $b = $t->map($a);
+
+(Notice that, although the lookup table coordinates are is divided by 16, 
+it's a 17x17 -- so linear interpolation works right to the edge of the original
+domain.)
+
+NOTES
+
+Inverses aren't yet implemented -- the best way to do it might be by 
+judicious use of map() on the forward transformation.
+
 =cut
+
 @PDL::Transform::Lookup::ISA = ('PDL::Transform');
 
 sub t_lookup {new PDL::Transform::Lookup(@_);}
@@ -1099,20 +1121,20 @@ sub PDL::Transform::Lookup::new {
       }
     };
 
-  $me->{func} = sub {
-    my($data) = shift;
-    if($data->dim(0) > $me->{idim}) {
-      croak("Too many dims (".$data->dim(0).") for your table (".$me->{idim}.")\n");
+  
+   my $lookup_func = sub {
+     my($data,$p,$table_name) = @_;
+
+    if($data->dim(0) > $me->{idims}) {
+      croak("Too many dims (".$data->dim(0).") for your table (".$me->{idims}.")\n");
     };
 
-    my($p) = shift;
-    
     $data = pdl($data) 
       unless ((ref $data) && (UNIVERSAL::isa($data,'PDL')));
-    
+
     my($a)= ($p
-	     ->{table}
-	     ->interpND($data * $p->{scale} + $p->{offset},
+	     ->{$table_name}
+	     ->interpND(float($data) * $p->{scale} + $p->{offset},
 			$p->{interpND_opt}
 			)
 	     );
@@ -1122,27 +1144,37 @@ sub PDL::Transform::Lookup::new {
     # the dimension list.
     my($dnd) = $data->ndims - 1;
     return ($a -> ndims > $data->ndims - 1) ? 
-      ($a->reorder( $dnd..($dnd + $p->{table}->ndims - $data->dim(0)-1)
+      ($a->reorder( $dnd..($dnd + $p->{$table_name}->ndims - $data->dim(0)-1)
 		    , 0..$data->ndims-2
 		    )
        ) : $a;
   };
 
-  $me->{inv} = undef;
+  $me->{func} = sub {my($data,$p) = @_;  &$lookup_func($data,$p,'table')};
+
+  #######
+  ## Lazy inverse -- find it if and only if we need it...
+  $me->{inv} = sub {
+      my $p = shift;
+      if(!defined($p->{'itable'})) {
+	barf "Inversion of lookup transforms is not yet implemented\n";
+      }
+      &$lookup_func(@_[0..1], 'itable') ;
+    };
+
 
   $me->{name} = 'Lookup';
 
   return $me;
-}				  
+}
 
 ######################################################################
 
 =head2 t_linear
 
-=head2 new PDL::Transform::Linear
-  
 =for usage
-  
+
+$f = t_linear({options});  
 $f = new PDL::Transform::Linear( {Options} );
 
 =for ref
@@ -1184,8 +1216,6 @@ order:
 
 =item * Rotate by rot->(0) degrees from the 1st to the 2nd axis
 
-The rotation matrix is 
-
 =back
 
 The rotation matrix is left-multiplied with the transformation matrix
@@ -1205,7 +1235,7 @@ must be square for that), then you automagically get an inverse transform too.
 
 =item pre, preoffset, offset, Offset
 
-The vector to be added to the data before it gets multiplied by the matrix
+The vector to be added to the data before they get multiplied by the matrix
 (equivalent of CRVAL in FITS, if you are converting from scientific to 
 pixel units).
 
@@ -1418,8 +1448,6 @@ sub PDL::Transform::Linear::stringify {
 
 =head2 t_scale
 
-=head2 PDL::Transform::Scale
-
 =for usage 
 
   $f = t_scale(<scale>)
@@ -1481,11 +1509,10 @@ sub t_rot {new PDL::Transform::Linear(Rot=>$_[0]);}
 
 =head2 t_fits
 
-=head2 new PDL::Transform::FITS
-
 =for usage
 
-  $f = t_fits($fits)
+  $f = t_fits($fits);
+  $f = new PDL::Transform::FITS;
 
 =for ref 
 
@@ -1614,11 +1641,10 @@ sub PDL::Transform::FITS::new {
 
 =head2 t_code 
 
-=head2 new PDL::Transform::Code 
-
 =for usage
 
-  $f = new PDL::Transform::Code(<func>,[<inv>],[options])
+  $f = t_code(<func>,[<inv>],[options]);
+  $f = new PDL::Transform::Code(<func>,[<inv>],[options]);
 
 =for ref
 
@@ -1694,10 +1720,10 @@ sub PDL::Transform::Code {
 
 =head2 t_radial 
 
-=head2 new PDL::Transform::Radial
 
 =for usage
 
+  $f = t_radial(<options>);
   $f = new PDL::Transform::Radial(<options>);
 
 =for ref
