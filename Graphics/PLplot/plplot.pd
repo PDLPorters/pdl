@@ -1579,7 +1579,6 @@ MESH
 EODEF
 
 
-
 # Read in a modified plplot.h file.  Define
 # a low-level perl interface to PLplot from these definitions.
 # This could be cleaner!!
@@ -1996,6 +1995,7 @@ pp_def ('plParseOpts',
         GenericTypes => [D],
         Pars => 'int [o] retval()',
         OtherPars => 'SV* argv; int mode',
+        Doc => 'FIXME: documentation here!',
         Code => '
                 SV* sv = $COMP (argv);
                 AV* arr;
@@ -2086,6 +2086,150 @@ pp_def ('plstyl',
          GenericTypes => [D],
          Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
        );
+
+# Plot contours
+
+# Identity transformation
+
+pp_def ('pltr0',
+        Pars => 'double x(); double y(); double [o] tx(); double [o] ty()',
+        GenericTypes => [D],
+        OtherPars => 'SV* pltr_data;',
+        Doc => 'FIXME: documentation here!',
+        Code => '
+          double tx, ty;
+
+          pltr0 ($x(), $y(), &tx, &ty, NULL);
+
+          $tx() = tx;
+          $ty() = ty;'
+        );
+
+# Linear interpolation from singly dimensioned coord arrays
+
+pp_def ('pltr1',
+        Pars => 'double x(); double y(); grid(n); '
+                . 'double [o] tx(); double [o] ty()',
+        GenericTypes => [D],
+        Doc => 'FIXME: documentation here!',
+        Code => '
+          PLcGrid grid;
+          double tx, ty;
+
+          grid.xg = $P(grid) + 1;
+          grid.nx = $grid(n => 0);
+
+          grid.yg = $P(grid) + grid.nx + 1;
+          grid.ny = $SIZE(n) - grid.nx - 1;
+
+          pltr1 ($x(), $y(), &tx, &ty, (PLPointer) &grid);
+
+          $tx() = tx;
+          $ty() = ty;'
+        );
+
+# Linear interpolation from doubly dimensioned coord arrays
+
+pp_def ('pltr2',
+        Pars => 'double x(); double y(); grid(nx,ny,m); '
+                . 'double [o] tx(); double [o] ty()',
+        GenericTypes => [D],
+        Doc => 'FIXME: documentation here!',
+        Code => '
+          PLcGrid2 grid;
+          int i, j, size_x, size_y;
+          double tx, ty;
+
+          if ($SIZE(m) != 2)
+            croak ("pltr2: third argument must be a [nx,ny,2] piddle");
+
+          size_x = $SIZE(nx);
+          size_y = $SIZE(ny);
+
+          plAlloc2dGrid (&grid.xg, size_x, size_y);
+          plAlloc2dGrid (&grid.yg, size_x, size_y);
+
+          for (i = 0; i < size_x; i++)
+            for (j = 0; j < size_y; j++) {
+              grid.xg[i][j] = $grid(nx => i, ny => j, m => 0);
+              grid.yg[i][j] = $grid(nx => i, ny => j, m => 1);
+            }
+
+          grid.nx = size_x;
+          grid.ny = size_y;
+
+          pltr2 ($x(), $y(), &tx, &ty, (PLPointer) &grid);
+
+          $tx() = tx;
+          $ty() = ty;
+
+          plFree2dGrid (grid.xg, size_x, size_y);
+          plFree2dGrid (grid.yg, size_x, size_y);'
+        );
+
+pp_addhdr (<<'EOH');
+
+static SV* plcont_pltr_subroutine;
+
+static void
+plcont_pltr_callback (double x, double y, double* tx, double* ty,
+                      PLPointer pltr_data)
+{
+  I32 count;
+  dSP;
+
+  ENTER;
+  SAVETMPS;
+
+  PUSHMARK (SP);
+  XPUSHs (sv_2mortal (newSVnv (x)));
+  XPUSHs (sv_2mortal (newSVnv (y)));
+  XPUSHs ((SV*) pltr_data);
+  PUTBACK;
+
+  count = call_sv (plcont_pltr_subroutine, G_ARRAY);
+
+  SPAGAIN;
+
+  if (count != 2)
+    croak ("pltr: must return two scalars");
+
+  *ty = POPn;
+  *tx = POPn;
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+}
+
+EOH
+
+pp_def ('plcont',
+         GenericTypes => [D],
+         Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); clevel(nlevel);',
+         OtherPars => 'SV* pltr; SV* pltr_data;',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** ff;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&ff, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               ff[i][j] = $f(nx => i, ny => j);
+
+           plcont_pltr_subroutine = $COMP(pltr);
+
+           c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
+                     $P(clevel), $SIZE(nlevel),
+                     plcont_pltr_callback, (PLPointer) $COMP(pltr_data));
+
+           plFree2dGrid (ff, size_x, size_y);'
+        );
 
 pp_done();
 
