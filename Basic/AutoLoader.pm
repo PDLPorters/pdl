@@ -152,7 +152,7 @@ sub AUTOLOAD {
 	$PDLLIB_CT = scalar(@PDLLIB);
     }
 
-    print "Loading $func.pdl...\n" if $PDL::verbose;
+    print "Loading $func.pdl ..." if $PDL::verbose;
     my $file;
 
     my $s = "PDL AutoLoader:  Undefined subroutine $func() cannot be autoloaded.\n";
@@ -161,6 +161,8 @@ sub AUTOLOAD {
         $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
 	  
+	  print "found $file\n" if $PDL::verbose;
+
 	  &PDL::AutoLoader::autoloader_do($file);
 	  
 	  
