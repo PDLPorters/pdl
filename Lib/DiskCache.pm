@@ -100,6 +100,8 @@ Object constructor.
 
 see the TIEARRAY options,below.
 
+=back
+
 =cut
 
 sub diskcache {
@@ -340,6 +342,7 @@ all elements are always flushed from an rw cache.  For ro caches,
 this is a not-too-slow (but safe) no-op.
 
 =cut
+
 sub PDL::DiskCache::sync {
   my($me) = shift;
   
@@ -367,9 +370,13 @@ Synchronize the cache out to disk if it's an rw cache, before allowing
 it to be broken down by the destructor crew.
 
 =cut
+
 sub PDL::DiskCache::DESTROY {
   my($me) = shift;
 
   $me->sync;
 
 }
+
+# return true
+1;

@@ -136,6 +136,8 @@ Construct a uniformly distributed random variable.
   $a = new RandVar(<size>,<opt>);
 
 Options:
+
+=over 3
   
 =item range
 
