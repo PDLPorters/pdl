@@ -922,7 +922,7 @@ pdl_avref(array_ref, class, type)
      if (SvTYPE(SvRV(array_ref)) != SVt_PVAV)
        croak("pdl_avref: not an array reference");
      av = (AV *) SvRV(array_ref);
-     dims = newAV();
+     dims = (AV *) sv_2mortal( (SV *) newAV());
 
      av_store(dims,0,newSViv((IV) av_len(av)+1));
      /* even if we contain nothing depth is one */

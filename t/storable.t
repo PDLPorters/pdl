@@ -4,12 +4,12 @@
 use Test;
 
 BEGIN { 
-  eval 'use Storable 1.03';
+  eval 'use Storable 1.0';
   unless ($@) {
     plan tests => 6;
   } else {
     plan tests => 1;
-    print "ok 1 # Skipped: Storable >= 1.03 not installed\n";
+    print "ok 1 # Skipped: Storable >= 1.0 not installed\n";
     exit;
   }
 }

@@ -1,3 +1,4 @@
+CS  - hopefully fixed bug with new pdl(arrayref) implementation
 CED (2-Aug-02)
 	- Add IndexND to slices.pd
 	- Add pdl output for scalar context to WhereND in primitive.pd
@@ -31,8 +32,8 @@ CS  - allow niceslice to use the syntax
         as $greater_1D_piddle
 CS  - allow PP Code to handle constructs like
             $arr(n => 3*i+1)
-      when Text::Balanced is installed
-    - fix Benchmark suite
+        if Text::Balanced is installed
+    - fix included Benchmark suite
     - NiceSlice.pm: make splitprotected interface similar to split's
 CS  - fix PP.pm: bug #564937 (needed a check for sv_isobject(...) )
     - make sure pp_done is called automatically if user forgets!
