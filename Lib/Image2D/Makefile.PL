@@ -11,6 +11,14 @@ PDL::Core::Dev->import();
 
 %hash = pdlpp_stdargs_int( @pack );
 $hash{LIBS} = [ '-lm' ];
+
+# On windows we do not have an rint function (at least on VC++)
+# Should do a proper test for rint similar to that done for
+# PDL::Math. For now, simply test architecture
+if ($^O =~ /MSWin/i) {
+  $hash{DEFINE} = " -DNEEDS_RINT";
+}
+
 WriteMakefile( %hash );
 
 

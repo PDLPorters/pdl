@@ -25,6 +25,13 @@ pp_addhdr('
 
 #define REALMOD(a,b) {while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b);}
 
+/* rint is missing on some platforms (eg Win32) */
+
+#ifdef NEEDS_RINT
+#define rint(X) floor( X + 0.5 )
+#endif
+
+
 /* Local quick-sort routine for doubles */
 
 void pdl_lqsortD(double* xx, int a, int b) {
