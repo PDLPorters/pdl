@@ -3,6 +3,7 @@
 
 use PDL::LiteF;
 use PDL::IO::Misc;
+use PDL::IO::FITS;
 
 use PDL::Core ':Internal'; # For howbig()
 

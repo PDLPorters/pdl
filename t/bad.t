@@ -398,7 +398,8 @@ ok( PDL::Core::string( $a->clump(-1) ),
     "[0 BAD 2 3 0 BAD 2 3 0 BAD]" );   #
 
 # test r/wfits
-use PDL::IO::Misc;
+use PDL::IO::FITS;
+
 $a = sequence(10)->setbadat(0);
 print "Writing to fits: $a  type = (", $a->get_datatype, ")\n";
 $a->wfits($fname);

@@ -314,6 +314,8 @@ IO/FastRaw/FastRaw.pm
 IO/FastRaw/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
+IO/FITS/FITS.pm
+IO/FITS/Makefile.PL
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
