@@ -115,7 +115,7 @@ sub PDL::RandVar::Histogram::new {
   my($acc) = pdl(0);
 
   for $i(0..$n - 1){
-    my($bd) = $boundaries->(($i));
+    my($bd) = $boundaries->slice("($i)");
     $bd .= ($acc += $bd);
   }
 
@@ -169,7 +169,7 @@ sub PDL::RandVar::Histogram::sample() {
     my($step) = $sstart->copy;
 
     while($step > 0 && 
-	  ! ( ($i==0 || $b->($i-1) <= $r)
+	  ! ( ($i==0 || $b->slice($i-1) <= $r)
 	      &&
 	      ($b->($i) > $r)
 	    )

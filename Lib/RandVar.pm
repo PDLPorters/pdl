@@ -115,7 +115,6 @@ BEGIN {
 
 use strict;
 use Carp;
-use PDL::NiceSlice;
 use PDL;
 
 
@@ -198,8 +197,8 @@ sub PDL::RandVar::new {
   $me->{range} = $me->{range}->dummy(1,$me->{size})
     if($me->{range}->ndims < 2);
 
-  $me->{start} = $me->{range}->((0),:);
-  $me->{scale} = $me->{range}->((1),:) - $me->{start};
+  $me->{start} = $me->{range}->slice("(0),:");
+  $me->{scale} = $me->{range}->slice("(1),:") - $me->{start};
   $me->{opt} = {%$opt} if(ref $opt eq 'HASH');
   
   return bless($me,$type);
@@ -251,14 +250,14 @@ sub PDL::RandVar::sample {
     my($j);
     for $i(0..$n-1) {
       for $j(0..$me->{size}-1) {
-	$out->(($i),($j)) .= rand;
+	$out->slice("($i),($j)") .= rand;
       }
       
-      ($out->(($i),:) *= $me->{scale}) += $me->{start};
+      ($out->("($i),:") *= $me->{scale}) += $me->{start};
     }
   } else {
     for $i(0..$n-1) {
-      $out->($i) .= rand;
+      $out->slice("$i") .= rand;
     }
     ($out *= $me->{scale}) += $me->{start};
   }

@@ -341,7 +341,7 @@ sub PDL::IO::Dumper::stringify_PDL{
 
   my($i);
   for($i = 0; $i < $pdl->nelem; $i++) {
-    push(@s, &{$dmp_elt}( $pdlflat->(($i)) )  );
+    push(@s, &{$dmp_elt}( $pdlflat->slice("($i)") )  );
   }
 
  

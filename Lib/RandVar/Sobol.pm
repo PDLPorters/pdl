@@ -45,7 +45,6 @@ the Wrong way to do it.
 @ISA = ('PDL::RandVar');
 package PDL::RandVar::Sobol;
 use PDL;
-use PDL::NiceSlice;
 use Carp;
 
 BEGIN {
@@ -162,7 +161,7 @@ sub PDL::RandVar::Sobol::new {
   my($j,$k,$l,$i);
   for($k=0;$k<$me->{dim};$k++) {
     # Copy initial values from the class variable into this value
-    $me->{iv}->(0:$#{$PDL::RandVar::Sobol::iv[$k]}, $k) .=  ##
+    $me->{iv}->slice(sprintf("0:%d,%d",$#{$PDL::RandVar::Sobol::iv[$k]},$k)) .= 
       pdl($PDL::RandVar::Sobol::iv[$k])                               ##
 	<< (($PDL::RandVar::Sobol::MAXBIT - xvals(scalar(@{$PDL::RandVar::Sobol::iv[$k]})))); ##
     
@@ -171,18 +170,18 @@ sub PDL::RandVar::Sobol::new {
 
       my($ipp) = $me->{poly}[$k]; 
 
-      my($i) = $me->{iv}->($j - $me->{mdeg}->[$k], $k);
+      my($i) = $me->{iv}->slice(sprintf("%d,%d",$j - $me->{mdeg}->[$k], $k));
 
       # Exclusive-OR with highest-order term (implicit)
       $i ^= ($i >> $me->{mdeg}->[$k]);
 
       # Loop over lower-order terms in the polynomial.
       for($l=$me->{mdeg}->[$k]-1;$l>=0;$l--) {
-	$i ^= ($me->{iv}->($j-$l)) if($ipp & 1);
+	$i ^= ($me->{iv}->slice($j-$l)) if($ipp & 1);
 	$ipp >>= 1;
       }
 
-      $me->{iv}->($j,$k).=$i;
+      $me->{iv}->slice("$j,$k").=$i;
     }
 
   } # end of cross-dimension initialization loop 
@@ -211,7 +210,7 @@ sub PDL::RandVar::Sobol::sample() {
       if($j>=$PDL::RandVar::Sobol::MAXBIT);
     
     # XOR with appropriate direction variable
-    $o->(:,($i)) .= ($me->{ix} ^= $me->{iv}->(($j),:));
+    $o->slice(":,($i)") .= ($me->{ix} ^= $me->{iv}->slice("($j),:"));
   }
 	   
   ($o *= ($me->{fac} * $me->{scale})) += $me->{start};
