@@ -153,7 +153,7 @@ sub iis {
     $min = $image->min unless defined $min;
     $max = $image->max unless defined $max;
     print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
-    &_iis_int($image,$min,$max,$title);
+    &PDL::_iis_int($image,$min,$max,$title);
 1;}
 
 =head2 iiscur
@@ -174,7 +174,7 @@ by the user.
 
 sub iiscur {
     barf 'Usage: ($x,$y) = iiscur($ch)' if $#_>=1;
-    my ($x,$y,$ch) = &_iiscur_int();
+    my ($x,$y,$ch) = _iiscur_int();
     $_[0] = $ch; # Pass this back in args
     return ($x,$y);
 }
@@ -229,7 +229,7 @@ sub iiscirc {
    fbconfig($stdimage) if $stdimage ne $last_stdimage;
    $radius = 10 unless defined $radius;
    $colour = 204 unless defined $colour;
-   &_iiscirc_int($x, $y, $radius, $colour);
+   &PDL::_iiscirc_int($x, $y, $radius, $colour);
 1;}
 
 =head2 saoimage
