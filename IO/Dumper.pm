@@ -92,17 +92,19 @@ package PDL::IO::Dumper;
 BEGIN{
   use Exporter ();
 
-  our $VERSION = 1.2.1;
-  
-  our @ISA = ( Exporter ) ;
-  our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
-  our @EXPORT = @EXPORT_OK;
-  our %EXPORT_TAGS = ( Func=>[@EXPORT_OK]);
+  package PDL::IO::Dumper;
 
- use PDL;
- use PDL::Exporter;
- use Data::Dumper;
- use Carp;
+  $PDL::IO::Dumper::VERSION = 1.2.1;
+  
+  @PDL::IO::Dumper::ISA = ( Exporter ) ;
+  @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
+  @PDL::IO::Dumper::EXPORT = @EXPORT_OK;
+  %PDL::IO::Dumper::EXPORT_TAGS = ( Func=>[@EXPORT_OK]);
+
+  use PDL;
+  use PDL::Exporter;
+  use Data::Dumper;
+  use Carp;
 }
 
 ######################################################################

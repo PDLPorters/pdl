@@ -181,7 +181,8 @@ sub PDL::RandVar::Histogram::sample() {
       }
       $step .= ($step/2)->floor;
     }
-    $o->slice($j) .= $i->clip(0);
+
+    $o->slice("($j)") .= $i->clip(0);
   }
 
   return $out;
