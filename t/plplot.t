@@ -247,7 +247,7 @@ my $cont_color = 0;
 my $cont_width = 0;
 my $xmap = ((sequence($nx)*(2/($nx-1))) + -1); # map X coords linearly to -1 to 1
 my $ymap = ((sequence($ny)*(2/($ny-1))) + -1);
-my $grid = append (pdl ([$nx]), append ($xmap, $ymap));
+my $grid = plAllocGrid ($xmap, $ymap);
 plshades($z, -1, 1, -1, 1,
          $clevel, $fill_width,
          $cont_color, $cont_width, 1, 
