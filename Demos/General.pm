@@ -19,9 +19,9 @@ comment q|
 	of PDL. However, because we want this script to
 	run everywhere, some modules which require external
 	modules for use are explicitly excluded, namely
-	 - Graphics::TriD (3D Graphics) [*]
-	 - Graphics::PG (PGPLOT graphics)
-	 - IO::FlexRaw (flexible raw input/output)
+	 - PDL::Graphics::TriD (3D Graphics) [*]
+	 - PDL::Graphics::PGPLOT (PGPLOT graphics)
+	 - PDL::IO::FlexRaw (flexible raw input/output)
  	[*]: this module has its separate demos in a subdirectory.
 
 	Note that your own scripts must start with

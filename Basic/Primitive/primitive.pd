@@ -31,14 +31,13 @@ PDL::Primitive - primitive operations for pdl
 This module provides some primitive and useful functions defined
 using PDL::PP and able to use the new indexing tricks.
 
-See L<PDL::Indexing> for how to use indices creatively.
+See L<PDL::Indexing|PDL/Indexing> for how to use indices creatively.
 
-For explanation of the signature format, see L<PDL::PP>.
+For explanation of the signature format, see L<PDL::PP|PDL/PP>.
 
 =head1 SYNOPSIS
 
  use PDL::Primitive;
-
 
 =cut
 
@@ -58,16 +57,16 @@ Project via $name to N-1 dimensions
 This function reduces the dimensionality of a piddle
 by one by taking the $name along the 1st dimension.
 
-By using C<xchg> etc. (see L<PDL::Slices>) it is possible to use
+By using L<xchg|PDL/Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
 =for usage
 
-    \$a = $op(\$b);
+ \$a = $op(\$b);
 
 =for example
 
-	\$spectrum = $op \$image->xchg(0,1)
+ \$spectrum = $op \$image->xchg(0,1)
 
 $extras
 =cut
@@ -89,7 +88,7 @@ Cumulative $name
 This function calculates the cumulative $name
 along the 1st dimension.
 
-By using C<xchg> etc. (see L<PDL::Slices>) it is possible to use
+By using L<xchg|PDL/Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
 The sum is started so that the first element in the cumulative $name
@@ -97,11 +96,11 @@ is the first element of the parameter.
 
 =for usage
 
-    \$a = $op(\$b);
+ \$a = $op(\$b);
 
 =for example
 
-	\$spectrum = $op \$image->xchg(0,1)
+ \$spectrum = $op \$image->xchg(0,1)
 
 $extras
 =cut
@@ -219,9 +218,9 @@ defpdl(
        projectdocs('integral','intover',
 q~Notes:
 
-For n > 3, these are all O(h^4) (like Simpson's rule), but are
+For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
 integrals between the end points assuming the pdl gives values just at
-these centres: for such `functions', sumover is correct to O(h), but
+these centres: for such `functions', sumover is correct to C<O(h)>, but
 is the natural (and correct) choice for binned data, of course.
 ~)
 );
@@ -407,7 +406,7 @@ Return the $op->[2] of all elements in a piddle
 
 =for usage
 
-\$x = $op->[0](\$data);
+ \$x = $op->[0](\$data);
 
 =cut
 
@@ -472,17 +471,15 @@ Returns an array with minimum, maximum of a piddle.
 
  ($mn, $mx) = minmax($pdl);
 
- Return $mn as minimum, $mx as maximum, $mn_ind as the index of minimum and
- $mx_ind as the index of the maximum.
+Return C<$mn> as minimum, C<$mx> as maximum, C<$mn_ind> as the index of minimum and
+C<$mx_ind> as the index of the maximum.
 
 =for example
 
  perldl> $x = pdl [1,-2,3,5,0]
-
  perldl> ($min, $max) = minmax($x);
-
  perldl> p "$min $max\n";
-
+ -2 5
 
 =cut
 
@@ -516,7 +513,7 @@ Quicksort a vector into ascending order.
 
 =for example
 
-print qsort random(10);
+ print qsort random(10);
 
 =cut
 ');
@@ -540,8 +537,8 @@ Quicksort a vector and return index of elements in ascending order.
 
 =for example
 
-$ix = qsorti $a;
-print $a->index($ix); # Sorted list
+ $ix = qsorti $a;
+ print $a->index($ix); # Sorted list
 
 =cut
 ');
@@ -557,8 +554,9 @@ defpdl(
 
 Internal routine
 
-C<axisvalues> is the internal primitive that implements C<axisvals> and
-alters its argument.
+C<axisvalues> is the internal primitive that implements 
+L<axisvals|PDL::Basic/axisvals> 
+and alters its argument.
 
 =cut
 '
@@ -575,7 +573,7 @@ defpdl(
 
 Inner product over one dimension
 
-	c = sum_i a_i * b_i
+ c = sum_i a_i * b_i
 
 ');
 
@@ -590,7 +588,7 @@ defpdl(
 
 outer product over one dimension
 
-Naturally, it is possiblet to achieve the effects of outer
+Naturally, it is possible to achieve the effects of outer
 product simply by threading over the "C<*>"
 operator but this function is provided for convenience.
 
@@ -642,7 +640,8 @@ defpdl(
 
 Weighted (i.e. triple) inner product
 
-	d = sum_i a(i) b(i) c(i)
+ d = sum_i a(i) b(i) c(i)
+
 =cut
 ');
 
@@ -661,10 +660,10 @@ defpdl(
 
 Inner product of two vectors and a matrix
 
-	d = sum_ij a(i) b(i,j) c(j)
+ d = sum_ij a(i) b(i,j) c(j)
 
-Note that you should probably not thread over a and c since that would be  very
-wasteful. Instead, you should use a temporary for b*c.
+Note that you should probably not thread over C<a> and C<c> since that would be  
+very wasteful. Instead, you should use a temporary for C<b*c>.
 
 =cut
 ');
@@ -686,7 +685,7 @@ Inner product over 2 dimensions.
 
 Equivalent to
 
-	$c = inner($a->clump(2), $b->clump(2))
+ $c = inner($a->clump(2), $b->clump(2))
 
 '
 );
@@ -706,10 +705,10 @@ defpdl(
 	%}',<<'EOD');
 =for ref
 
-Efficient Triple matrix product a*b*c
+Efficient Triple matrix product C<a*b*c>
 
-Efficiency comes from by using the temporary tmp. This operation only scales as
-N**3 whereas threading using inner2 would scale as N**4.
+Efficiency comes from by using the temporary C<tmp>. This operation only scales as
+C<N**3> whereas threading using L<inner2|/inner2> would scale as C<N**4>.
 
 The reason for having this routine is that you do not need to
 have the same thread-dimensions for C<tmp> as for the other arguments,
@@ -789,18 +788,16 @@ pp_addpm(<<'EOD'
 
 =for ref
 
- Find minimum and maximum and their indices for a given piddle;
+Find minimum and maximum and their indices for a given piddle;
 
 =for usage
 
-        perldl> $a=pdl [[-2,3,4],[1,0,3]]
+ perldl> $a=pdl [[-2,3,4],[1,0,3]]
+ perldl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
+ perldl> p $min, $max, $min_ind, $max_ind
+ [-2 0] [4 3] [0 1] [2 2]
 
-	perldl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
-
-        perldl> p $min, $max, $min_ind, $max_ind
-        [-2 0] [4 3] [0 1] [2 2]
-
-        See also minmax, which clumps the piddle together.
+See also L<minmax|/minmax>, which clumps the piddle together.
 
 =cut
 EOD
@@ -825,7 +822,7 @@ for (['hclip','>'],['lclip','<']) {
     pp_def($_->[0],
           Pars => 'a(); b(); [o] c()',
           Code => '$c() = ($a() '.$_->[1].' $b()) ? $b() : $a();',
-          Doc =>  'clip $a by $b ($b is '.($_->[0] eq 'hclip' ? 'upper' :
+          Doc =>  'clip C<$a> by C<$b> (C<$b> is '.($_->[0] eq 'hclip' ? 'upper' :
                   'lower').' bound)',
           PMCode=><<"EOD",
 sub PDL::$_->[0] {
@@ -853,8 +850,8 @@ Clip a piddle by (optional) upper or lower bounds.
 
 =for usage
 
-	$b = $a->clip(0,3);
-	$c = $a->clip(undef, $x);
+ $b = $a->clip(0,3);
+ $c = $a->clip(undef, $x);
 
 =cut
 
@@ -889,13 +886,11 @@ defpdl(
 	 	statsum += $wt() * (tmp - $avg()); %}
 	 $b() = statsum / wtsum;
 	',<<'EOD');
-=head2 wtstat
-
 =for ref
 
 Weighted statistical moment of given degree
 
-This calculates a weighted statistic over the vector a.
+This calculates a weighted statistic over the vector C<a>.
 The formula is
 
  b() = (sum_i wt_i * (a_i ** degree - avg)) / (sum_i wt_i)
@@ -914,10 +909,10 @@ Constructor which returns piddle of random numbers
 
 =for usage
 
-   $a = random([type], $nx, $ny, $nz,...);
-   $a = random $b;
+ $a = random([type], $nx, $ny, $nz,...);
+ $a = random $b;
 
-   etc. (see 'zeroes')
+etc (see L<zeroes|PDL::Core/zeroes>).
 
 This is the uniform distribution between 0 and 1 (assumedly
 excluding 1 itself). The arguments are the same as C<zeroes>
@@ -932,13 +927,13 @@ Constructor which returns piddle of random numbers
 
 =for usage
 
-   $a = randsym([type], $nx, $ny, $nz,...);
-   $a = randsym $b;
+ $a = randsym([type], $nx, $ny, $nz,...);
+ $a = randsym $b;
 
-   etc. (see 'zeroes')
+etc (see L<zeroes|PDL/Core/zeroes>).
 
 This is the uniform distribution between 0 and 1 (excluding both 0 and
-1, cf C<random>). The arguments are the same as C<zeroes> (q.v.) -
+1, cf L<random|/random>). The arguments are the same as C<zeroes> (q.v.) -
 i.e. one can specify dimensions, types or give a template.
 
 =cut
@@ -990,12 +985,12 @@ Constructor which returns piddle of Gaussian random numbers
 
 =for usage
 
-   $a = grandom([type], $nx, $ny, $nz,...);
-   $a = grandom $b;
+ $a = grandom([type], $nx, $ny, $nz,...);
+ $a = grandom $b;
 
-   etc. See 'zeroes'
+etc (see L<zeroes|PDL/Core/zeroes>).
 
-This is generated using the math library routine `ndtri'.
+This is generated using the math library routine C<ndtri>.
 
 Mean = 0, Stddev = 1
 
@@ -1059,23 +1054,25 @@ routine for searching 1D values i.e. step-function interpolation.
 
 =for usage
 
-   $inds = vsearch($vals, $xs);
+ $inds = vsearch($vals, $xs);
 
-Returns for each value of $val the index of the least larger member
-of $xs (which need to be in increasing order). If the value is larger
-than any member of $xs, the index to the last element of $xs is returned.
+Returns for each value of C<$val> the index of the least larger member
+of C<$xs> (which need to be in increasing order). If the value is larger
+than any member of C<$xs>, the index to the last element of C<$xs> is 
+returned.
 
 =for example
 
 This function is useful e.g. when you have a list of probabilities
 for events and want to generate indices to events:
 
-	$a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
-	$b = random 20;
-	$c = vsearch($b, $a); # Now, $c will have the appropriate distr.
+ $a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
+ $b = random 20;
+ $c = vsearch($b, $a); # Now, $c will have the appropriate distr.
 
-It is possible to use the C<cumusumover> function to obtain
+It is possible to use the L<cumusumover|/cumusumover> function to obtain
 cumulative probabilities from absolute probabilities.
+
 EOD
 
 pp_def('interpol',
@@ -1119,12 +1116,12 @@ routine for 1D linear interpolation
 
  $interpolated_values = interpol($interpol_at, $ordered_abscissas, $yvalues)
 
-'interpol' uses a binary search to find the suspects, er...,
+C<interpol> uses a binary search to find the suspects, er...,
 interpolation indices and therefore abscissas have to be strictly
 ordered (increasing or decreasing). For interpolation at lots of
 closely spaced abscissas an approach that uses the last index found as
 a start for the next search can be faster (compare Numerical Recipes
-'hunt' routine). Feel free to implement that on top of the binary
+C<hunt> routine). Feel free to implement that on top of the binary
 search if you like. For out of bounds values it just does a linear
 extrapolation and issues a warning upon completion.
 
@@ -1142,17 +1139,17 @@ Converts a one dimensional index piddle to a set of ND coordinates
 
 =for usage
 
-  @coords=one2nd($a, $indices)
+ @coords=one2nd($a, $indices)
 
 returns an array of piddles containing the ND indexes corresponding to
 the one dimensional list indices. The indices are assumed to correspond
-to array $a clumped using clump(-1). This routine is used in whichND,
+to array C<$a> clumped using C<clump(-1)>. This routine is used in 
+L<whichND|/whichND>,
 but is useful on its own occasionally.
 
 =for example
 
  perldl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
-
  perldl> $maxind=maximum_ind($c); p $maxind;
  6
  perldl> print one2nd($a, maximum_ind($c))
@@ -1180,8 +1177,7 @@ sub PDL::one2nd {
 
 EOD
 
-pp_addpm(<<'EOD'
-=head2 which
+$doc_which = <<'EOD';
 
 =for ref
 
@@ -1192,12 +1188,11 @@ Returns piddle of indices of non-zero values.
  $i = which($mask);
 
 returns a pdl with indices for all those elements that are
-nonzero in the mask. Note that mask really has to be 1-D (use clump(-1)
+nonzero in the mask. Note that mask really has to be 1-D (use C<clump(-1)>
 if you need to work with ND-images)
 
 If you want to return both the indices of non-zero values and the
-complement, use the function which_both.
-
+complement, use the function L<which_both|/which_both>.
 
 =for example
 
@@ -1206,9 +1201,9 @@ complement, use the function which_both.
  perldl> $indx = which($x>6); p $indx
  [7 8 9]
 
-=cut
+EOD
 
-=head2 which_both
+$doc_which_both = <<'EOD';
 
 =for ref
 
@@ -1218,7 +1213,7 @@ Returns piddle of indices of non-zero values and their complement
 
  ($i, $c_i) = which_both($mask);
 
-This works just as which, but the complement of $i will be in $c_i.
+This works just as which, but the complement of C<$i> will be in C<$c_i>.
 
 =for example
 
@@ -1228,24 +1223,25 @@ This works just as which, but the complement of $i will be in $c_i.
  [5 6 7 8 9]
  [0 1 2 3 4]
 
-=cut
-
-
 EOD
-);
 
 for ({Name=>'which',
       Pars => 'mask(n); int [o] inds(m);',
       Variables => 'int dm=0;',
       Elseclause => "",
-      Autosize => '$SIZE(m) = sum;'},
+      Autosize => '$SIZE(m) = sum;',
+      Doc => $doc_which
+      },
      {Name => 'which_both',
       Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
       Variables => 'int dm=0; int dm2=0;',
       Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
-      Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;'})
+      Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
+      Doc => $doc_which_both
+      })
 {
 pp_def($_->{Name},
+       Doc => $_->{Doc},
 	Pars => $_->{Pars},
 	Code => $_->{Variables} .
                  'loop(n) %{
@@ -1290,7 +1286,7 @@ Returns indices to non-zero values or those values from another piddle.
  $i = $x->where($x+5 > 0); # $i contains elements of $x
                            # where mask ($x+5 > 0) is 1
 
-Note: $i is always 1-D, even if $x is >1-D. The first argument
+Note: C<$i> is always 1-D, even if C<$x> is >1-D. The first argument
 (the values) and the second argument (the mask) currently have to have
 the same initial dimensions (or horrible things happen).
 
@@ -1300,13 +1296,13 @@ the same call:
  ($i,$j,$k) = where($x,$y,$z, $x+5>0);
 
 There is also the following syntax, retained only for compatibility
-with PDL versions <1.99.
+with PDL versions < 1.99.
 This use is deprecated, and will be removed
-in the future.  Use C<which> instead.
+in the future.  Use L<which|/which> instead.
 
  $i = where($x > 0);       # indices to $x, equivalent to 'which()'
 
-Note: the mask has to be 1-D. See the documentation for C<which>
+Note: the mask has to be 1-D. See the documentation for L<which|/which>
 
 =cut
 
@@ -1361,9 +1357,9 @@ append two piddles by concantening along their respective first dimensions
 
 =for example
 
-   $a = ones(2,4,7);
-   $b = sequence 5;
-   $c = $a->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
+ $a = ones(2,4,7);
+ $b = sequence 5;
+ $c = $a->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
 
 C<append> appends two piddles along their first dims. Rest of the dimensions
 must be compatible in the threading sense. Resulting size of first dim is
@@ -1380,7 +1376,7 @@ for({Name => 'histogram',
      Doc1 => "",
      Doc2 => "",
      Doc3 => "number of\n",
-     Doc4 => "\nUse C<hist()> instead for a high-level interface.\n",
+     Doc4 => "\nUse L<hist|PDL::Basic/hist> instead for a high-level interface.\n",
      Doc5 => "histogram(pdl(1,1,2),1,0,3)\n [0 2 1]"},
     {Name => 'whistogram',
      WeightPar => 'float+ wt(n);',
@@ -1388,7 +1384,7 @@ for({Name => 'histogram',
      HistOp => '+= $wt()',
      Doc1 => " from weighted data",
      Doc2 => "\$weights, ",
-     Doc3 => "sum of the values in \$weights\nthat correspond to ",
+     Doc3 => "sum of the values in C<\$weights>\nthat correspond to ",
      Doc4 => "",
      Doc5 => "whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)\n [0 0.2 0.5 0]"})
 {
@@ -1424,14 +1420,14 @@ Calculates a histogram$_->{Doc1} for given stepsize and minimum.
  \$hist = zeroes \$numbins;  # Put histogram in existing piddle.
  $_->{Name}(\$data, $_->{Doc2}\$hist, \$step, \$min, \$numbins);
 
-The histogram will contain \$numbins bins starting from \$min, each
-\$step wide. The value in each bin is the $_->{Doc3}values in \$data that lie within the bin limits.
+The histogram will contain C<\$numbins> bins starting from C<\$min>, each
+C<\$step> wide. The value in each bin is the $_->{Doc3}values in C<\$data> that lie within the bin limits.
 
 Data below the lower limit is put in the first bin, and data above the
 upper limit is put in the last bin.
 
 The output is reset in a different threadloop so that you
-can take a histogram of \$a(10,12) into \$b(15) and get the result
+can take a histogram of C<\$a(10,12)> into C<\$b(15)> and get the result
 you want.
 $_->{Doc4}
 =for example
@@ -1450,12 +1446,12 @@ for({Name => 'histogram2d',
      Doc2 => "",
      Doc3 => "number of\n",
      Doc5 => "histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
+ [
+  [0 0 0]
+  [0 2 2]
+  [0 1 0]
+ ]
 
-[
- [0 0 0]
- [0 2 2]
- [0 1 0]
-]
 "},
     {Name => 'whistogram2d',
      WeightPar => 'float+ wt(n);',
@@ -1463,14 +1459,14 @@ for({Name => 'histogram2d',
      HistOp => '+= $wt()',
      Doc1 => " from weighted data",
      Doc2 => " \$weights,",
-     Doc3 => "sum of the values in\n\$weights that correspond to ",
+     Doc3 => "sum of the values in\nC<\$weights> that correspond to ",
      Doc5 => "whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
+ [
+  [  0   0   0]
+  [  0 0.5 0.9]
+  [  0 0.1   0]
+ ]
 
-[
- [  0   0   0]
- [  0 0.5 0.9]
- [  0 0.1   0]
-]
 "})
 {
 pp_def($_->{Name},
@@ -1514,9 +1510,10 @@ Calculates a 2d histogram$_->{Doc1}.
  $_->{Name}(\$datax, \$datay,$_->{Doc2} \$hist,
        \$stepx, \$minx, \$nbinx, \$stepy, \$miny, \$nbiny);
 
-The histogram will contain \$nbinx x \$nbiny bins, with the lower
-limits of the first one at (\$minx, \$miny), and with bin size
-(\$stepx, \$stepy). The value in each bin is the $_->{Doc3}values in \$datax and \$datay that lie within the bin limits.
+The histogram will contain C<\$nbinx> x C<\$nbiny> bins, with the lower
+limits of the first one at C<(\$minx, \$miny)>, and with bin size
+C<(\$stepx, \$stepy)>. 
+The value in each bin is the $_->{Doc3}values in C<\$datax> and C<\$datay> that lie within the bin limits.
 
 Data below the lower limit is put in the first bin, and data above the
 upper limit is put in the last bin.
@@ -1544,10 +1541,10 @@ After
 
 =for example
 
-   $c = crossp $a, $b
+ $c = crossp $a, $b
 
-the inner product $c*$a and $c*$b will be zero, i.e. $c is
-orthogonal to $a and $b
+the inner product C<$c*$a> and C<$c*$b> will be zero, i.e. C<$c> is
+orthogonal to C<$a> and C<$b>
 
 =cut
 EOD
@@ -1623,19 +1620,18 @@ Returns the coordinates for non-zero values
 
 =for usage
 
-   @coords=whichND($mask);
+ @coords=whichND($mask);
 
 returns an array of piddles containing the coordinates of the elements
-that are non-zero in $mask.
+that are non-zero in C<$mask>.
 
 =for example
 
-   perldl> $a=sequence(10,10,3,4)
-
-   perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
-   [3] [0] [2] [0]
-   perldl> print $a->at(list(cat($x,$y,$z,$w)))
-   203
+ perldl> $a=sequence(10,10,3,4)
+ perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
+ [3] [0] [2] [0]
+ perldl> print $a->at(list(cat($x,$y,$z,$w)))
+ 203
 
 =cut
 
@@ -1715,6 +1711,7 @@ Threaded Example:
   print $sum."\n";
   #Result: ( 1, 2, and 3 added to elements 1,4,6 $sum)
   # [0 1 0 0 2 0 3 0 0 0]
+
 =cut
 ');
 

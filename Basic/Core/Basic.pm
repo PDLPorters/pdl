@@ -8,7 +8,10 @@ PDL::Basic -- Basic utility functions for PDL
 This module contains basic utility functions for
 creating and manipulating piddles. Most of these functions
 are simplified interfaces to the more flexible functions in
-the modules PDL::Primitive and PDL::Slices.
+the modules 
+L<PDL::Primitive|PDL/Primitive> 
+and 
+L<PDL::Slices|PDL/Slices>.
 
 =head1 SYNOPSIS
 
@@ -52,7 +55,7 @@ Fills a piddle with X index values
  $x = xvals($somearray);
  $x = xvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see 'zeroes'
+etc. see L<zeroes|PDL/Core/zeroes>.
 
 =for example
 
@@ -83,7 +86,7 @@ Fills a piddle with Y index values
  $x = yvals($somearray); yvals(inplace($somearray));
  $x = yvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see 'zeroes'
+etc. see L<zeroes|PDL/Core/zeroes>.
 
 =for example
 
@@ -114,7 +117,7 @@ Fills a piddle with Z index values
  $x = zvals($somearray); zvals(inplace($somearray));
  $x = zvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see 'zeroes'
+etc. see L<zeroes|PDL/Core/zeroes>.
 
 =for example
 
@@ -140,7 +143,9 @@ etc. see 'zeroes'
 
 =for ref
 
-X,Y or Z axis values between endpoints. (see xvals,yvals,zvals)
+X,Y or Z axis values between endpoints 
+(see L<xvals|/xvals>, L<yvals|/yvals>,
+L<zvals|/zvals>).
 
 =for usage
 
@@ -150,7 +155,7 @@ X,Y or Z axis values between endpoints. (see xvals,yvals,zvals)
  $z = f($x,$y);            # calculate Z for X between 0.5 and 1.5 and
  			   # Y between -2 and -1.
 
-xlinvals, ylinvals and zlinvals return a piddle with the same shape
+C<xlinvals>, C<ylinvals> and C<zlinvals> return a piddle with the same shape
 as their first argument and linearly scaled values between the two other
 arguments along the given axis.
 
@@ -212,22 +217,22 @@ Create histogram of a piddle
  $hist = hist($data,[$min,$max,$step]);
  ($xvals,$hist) = hist($data,[$min,$max,$step]);
 
-If requested, $xvals gives the computed bin centres
+If requested, C<$xvals> gives the computed bin centres
 
-A nice idiom (with PDL::Graphics::PG) is
+A nice idiom (with 
+L<PDL::Graphics::PGPLOT|PDL/Graphics/PGPLOT>) is
 
  bin hist $data;  # Plot histogram
 
 =for example
 
  perldl> p $y
- [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7 10 10 10 13]
+ [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
  perldl> $h = hist $y,0,20,1
- hist with step 1, min 0 and 21 bins
+ hist with step 1, min 0 and 20 bins
 
  perldl> p $h
- [0 0 0 0 0 0 2 3 1 3 8 4 4 5 0 0 0 0 0 0 0]
-
+ [0 0 0 0 0 0 2 3 1 3 5 4 4 4 0 0 0 0 0 0]
 
 =cut
 
@@ -263,7 +268,7 @@ Create array filled with a sequence of values
 
  $a = sequence($b); $a = sequence [OPTIONAL TYPE], @dims;
 
-etc. see 'zeroes'
+etc. see L<zeroes|PDL/Core/zeroes>.
 
 =for example
 
@@ -339,7 +344,7 @@ Fills a piddle with radial distance values from some centre.
 
  distance($a, $centre, \&euclid);
 
- will emulate 'rvals', while '\&l1' and '\&linfty' will generate other
+ will emulate rvals, while '\&l1' and '\&linfty' will generate other
  well-known norms. 
 
 =cut
@@ -377,11 +382,11 @@ Fills a piddle with index values on Nth dimension
 
  $z = axisvals ($piddle, $nth);
 
-This is the routine, for which xvals(), yvals() etc
-are mere shorthands. axisvals() can be used to fill
+This is the routine, for which L<xvals|/xvals>, L<yvals|/yvals> etc
+are mere shorthands. C<axisvals> can be used to fill
 along any dimension.
 
-Note the 'from specification' style (see 'zeroes') is
+Note the 'from specification' style (see L<zeroes|PDL/Core/zeroes>) is
 not available here, for obvious reasons.
 
 =cut
@@ -425,14 +430,14 @@ Generates a piddle with index values
 
  $z = allaxisvals ($piddle);
 
-allaxisvals() produces an array with axis values along each dimension,
+C<allaxisvals> produces an array with axis values along each dimension,
 adding an extra dimension at the start.
 
-allaxisvals($piddle)-E<gt>slice("($nth)") will produce the same result
-as axisvals($piddle,$nth) (although with extra work and not inplace).
+C<allaxisvals($piddle)-E<gt>slice("($nth)")> will produce the same result
+as C<axisvals($piddle,$nth)> (although with extra work and not inplace).
 
 It's useful when all the values will be required, as in the example
-given of a generalized 'rvals'.
+given of a generalized L<rvals|/rvals>.
 
 =cut
 
