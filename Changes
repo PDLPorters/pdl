@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
-
+2.005
+CS	- version to 2.005
+	- finally try to fix 5.6.0 problem correctly
 Doug Burke (4/4/00)
         - Changed to Basic/Makefile.PL to install man pages for PDL,
           PDL::Lite, PDL::LiteF, and PDL::Options.
