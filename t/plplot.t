@@ -13,7 +13,7 @@ use Test::More;
 BEGIN{
   eval " use PDL::Graphics::PLplot; ";
   unless ($@){
-    plan tests => 25;
+    plan tests => 26;
   }
   else {
     plan tests => 1;
@@ -51,7 +51,8 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 #   --CED
 ###
 
-my $tmpfile = $PDL::Config{TEMPDIR} . "/foo$$.xfig";
+my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
+my $tmpfile = $tmpdir . "/foo$$.xfig";
 
 if($pid = fork()) {
 	$a = waitpid($pid,0);
@@ -175,19 +176,26 @@ $pl->text("Test string inside window",     TEXTPOSITION => [0, 0, 0.5, 0.5, 0]);
 $pl->close;
 ok (-s "test9.xfig" > 0, "Printing text inside and outside of plot window");
 
-# test rainbow point plotting with color key
-$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
-
 my $pi = atan2(1,1)*4;
 my $a  = (sequence(20)/20) * 2 * $pi;
 my $b  = sin($a);
 my $c  = cos($a);
 
+# test rainbow point plotting with color key
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
 $pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
 $pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 $pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
 $pl->close;
 ok (-s "test10.xfig" > 0, "Colored symbol plot with key");
+
+# test reverse rainbow point plotting with color key
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10a.xfig");
+$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'REVERSERAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
+$pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
+$pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
+$pl->close;
+ok (-s "test10a.xfig" > 0, "Colored symbol plot with key: reverse rainbow");
 
 # Test plot and color key (low level interface)
 plsdev ("xfig");
@@ -403,3 +411,4 @@ close IN; undef $tmp;
 print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
 $txt =~ s/Opened test\d*\.xfig\n//sg;
 warn $txt unless $txt =~ /\s*/;
+

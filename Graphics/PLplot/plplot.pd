@@ -210,7 +210,11 @@ Specify zero (default) to let PLplot compute this automatically.
 Load pre-defined color map 1 color ranges.  Currently, values include:
 
   RAINBOW   -- from Red to Violet through the spectrum
+  REVERSERAINBOW   -- Violet through Red
   GREYSCALE -- from black to white via grey.
+  REVERSEGREYSCALE -- from white to black via grey.
+  GREENRED  -- from green to red
+  REDGREEN  -- from red to green
 
 =for example
 
@@ -378,6 +382,21 @@ Specify a label for the Y axis.
 Interval (in graph units/world coordinates) between major y axis tick marks.
 Specify zero (default) to allow PLplot to compute this automatically.
 
+=head2 ZRANGE
+
+For xyplot (when COLORMAP is specified), for shadeplot and for colorkey.  Normally, the
+range of the Z variable (color) is taken as $z->minmax.  If a different range is desired, 
+specify it in ZRANGE, like so:
+
+  $pl->shadeplot ($z, $nlevels, PALETTE => 'GREENRED', ZRANGE => [0,100]);
+
+  ...or...
+
+  $pl->xyplot ($x, $y, PALETTE  => 'RAINBOW', PLOTTYPE => 'POINTS', 
+	               COLORMAP => $z,        ZRANGE => [-90,-20]);
+  $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.13, 0.85], 
+                       ZRANGE => [-90,-20]);
+
 =head1 FUNCTIONS
 
 =head2 new
@@ -534,8 +553,8 @@ via the BOX option.
 
   # vertical key to the right of the original plot.
   # The BOX must be specified to give real coordinate values to the $z array.
-  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW');
-  $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
+  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW', ZRANGE => [0,100]); 
+  $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85], ZRANGE => [0,100]);
 
 =head2 histogram
 
@@ -816,21 +835,25 @@ use vars qw(%_constants %_actions);
    PALETTE =>
 
    # load some pre-done color map 1 setups
-   # currently 'RAINBOW' and 'GREYSCALE'.
    sub {
      my $self = shift;
      my $pal  = shift;
 
-     my %legal = (RAINBOW => 1, GREYSCALE => 1, GREENRED => 1);
+     my %legal = (REVERSERAINBOW => 1, REVERSEGREYSCALE => 1, REDGREEN => 1, RAINBOW => 1, GREYSCALE => 1, GREENRED => 1);
      if ($legal{$pal}) {
        $self->{PALETTE} = $pal;
-       plscmap1n (128);  # set map 1 to 128 colors (should work for devices with 256 colors)
        if      ($pal eq 'RAINBOW') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,300), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0));
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,300), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
+       } elsif ($pal eq 'REVERSERAINBOW') {
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(270,-30), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0,0));
        } elsif ($pal eq 'GREYSCALE') {
-	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0), PDL->new(0,1), PDL->new(0,0), PDL->new(0));
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0),   PDL->new(0,1), PDL->new(0,0), PDL->new(0,0));
+       } elsif ($pal eq 'REVERSEGREYSCALE') {
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,0),   PDL->new(1,0), PDL->new(0,0), PDL->new(0,0));
        } elsif ($pal eq 'GREENRED') {
 	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(120,0), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
+       } elsif ($pal eq 'REDGREEN') {
+	 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,120), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(1,1));
        }
      } else {
        die "Illegal palette name.  Legal names are: " . join (" ", keys %legal);
@@ -993,6 +1016,14 @@ use vars qw(%_constants %_actions);
      $self->{YTICK} = $val;
    },
 
+   ZRANGE  => sub { 
+     my $self = shift;
+     my $val  = shift;
+     die "ZRANGE must be a perl array ref with min and max Z values"
+       unless (ref($val) =~ /ARRAY/ && @$val == 2);
+     $self->{ZRANGE} = $val;
+   },
+
 );
 
 
@@ -1142,6 +1173,8 @@ sub new {
   plspage (0, 0, @{$self->{PAGESIZE}}, 0, 0) if (defined($self->{PAGESIZE}));
   plssub (@{$self->{SUBPAGES}});
   plfontld (1); # extented symbol pages
+  plscmap0n (16);   # set up color map 0 to 16 colors.  Is this needed?
+  plscmap1n (128);  # set map 1 to 128 colors (should work for devices with 256 colors)
   plinit ();
 
   # set page orientation
@@ -1231,9 +1264,9 @@ sub xyplot {
     }
     plssym   (0, $self->{SYMBOLSIZE}) if (defined($self->{SYMBOLSIZE}));
 
-
     if (defined($z)) {  # if a color range plot requested
-      plcolorpoints ($x, $y, $z, $c);
+      my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $z->minmax;	
+      plcolorpoints ($x, $y, $z, $c, $min, $max);
     } else {
       plsym ($x, $y, $c);
     }
@@ -1274,14 +1307,16 @@ sub colorkey {
 
   plcol0  (1); # set to frame color
 
+  my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $var->minmax;
+
   # plot box
   if      ($orientation eq 'v') {
     # set world coordinates based on input variable
-    @box = (0, 1, $var->minmax);
+    @box = (0, 1, $min, $max);
     plwind (@box);
     plbox (0, 0, 0, 0, '', 'TM');  # !!! note out of order call
   } elsif ($orientation eq 'h') {
-    @box = ($var->minmax, 0, 1);
+    @box = ($min, $max, 0, 1);
     plwind (@box);
     plbox (0, 0, 0, 0, 'TM', '');  # !!! note out of order call
   } else {
@@ -1343,7 +1378,7 @@ sub shadeplot {
   plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
-  my ($min, $max) = $z->minmax;
+  my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $z->minmax;
   my $clevel = ((PDL->sequence($nsteps)*(($max - $min)/($nsteps-1))) + $min);
 
   # may add as options later.  Now use constants
@@ -1858,29 +1893,45 @@ pp_def ('plline',
 
 # C routine to draw points with a color scale
 pp_def ('plcolorpoints',
-         Pars => 'x(n); y(n); z(n); int sym();',
+         Pars => 'x(n); y(n); z(n); int sym(); minz(); maxz()',
          GenericTypes => [D],
+         HandleBad => 1,
          Code => 'int i;
                   int j;
                   int ns = $SIZE(n);
                   PLFLT zrange, ci;
 
-                  /* find range of z */
-
-                  PLFLT minz =  9.99e30;
-                  PLFLT maxz = -9.99e30;
-                  for (i=0;i<ns;i++) {
-                    if ($z(n=>i) < minz) minz = $z(n=>i);
-                    if ($z(n=>i) > maxz) maxz = $z(n=>i);
-                  }
-                  zrange  = maxz  - minz;
+                  zrange  = $maxz() - $minz();
 
                   for (i=1;i<ns;i++) {
-                    ci = ($z(n=>i) - minz) / zrange;  /* get color idx in 0-1 range */
+                    ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
+                    // ci = (ci * 0.875) + 0.125;           /* scale to 0.125-1 range (long story) */
+                    if (ci < 0) ci = 0; /* enforce bounds */
+                    if (ci > 1) ci = 1;
+                    c_plcol1 (ci); /* set current color */
+                    printf ("ci(%d) = %f\n", i, ci);
+                    c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
+                  }',
+         BadCode => 
+	         'int i;
+                  int j;
+                  int ns = $SIZE(n);
+                  PLFLT zrange, ci;
+
+                  zrange  = $maxz()  - $minz();
+
+                  for (i=1;i<ns;i++) {
+                    if ($ISBAD(z(n=>i))) continue;
+                    ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
+                    if (ci < 0) ci = 0; /* enforce bounds */
+                    if (ci > 1) ci = 1;
                     c_plcol1 (ci); /* set current color */
                     c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
                   }',
-        );
+
+       );
+
+
 
 #
 ## simplified interfaces to plshades: shade and contour plots
