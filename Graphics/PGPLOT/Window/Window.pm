@@ -400,6 +400,8 @@ where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 
 =head2 Window control functions.
 
+=for ref Internal
+
 =head2 new
 
 =for ref
@@ -559,6 +561,8 @@ or array reference which makes it possible to specify the panel to erase when
 working with several panels.
 
 =head2 Plotting functions
+
+=for ref Internal
 
 =head2 env
 
@@ -1304,6 +1308,8 @@ Example:
 
 =head2 Text routines
 
+=for ref Internal
+
 
 =head2 text
 
@@ -1409,6 +1415,8 @@ legend box. The default value is 0.1.
 
 =head2 Cursor routines
 
+=for ref Internal
+
 =head2 cursor
 
 =for ref
@@ -1468,6 +1476,8 @@ To select a region of the X-axis:
 
 
 =head2 Internal routines
+
+=for ref Internal
 
 =cut
 

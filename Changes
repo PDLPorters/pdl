@@ -1,3 +1,7 @@
+CS  - PDL::Lvalue -- PDL lvalue subs (added to loaders)
+    - PDL::Matrix -- added docs
+    - doc tidbits
+    - don't test raster and SGI formats any more (pic(no)*rgb.t)
 John Cerney (4/11/01)
     - Modified t/opengl.t to turn-off the PERL_DL_NONLAZY env variable
       when running this test. Due to some inconsistencies in the opengl

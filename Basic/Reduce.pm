@@ -68,6 +68,8 @@ my %reduce = (
 
 =head2 reduce
 
+=for ref
+
 reduce dimension of piddle by one by applying an operation
 along the specified dimension
 
@@ -139,5 +141,16 @@ sub PDL::canreduce {
   my ($this) = @_;
   return keys %reduce;
 }
+
+=head1 AUTHOR
+
+Copyright (C) 2000 Christian Soeller (c.soeller@auckland.ac.nz). All
+rights reserved. There is no warranty. You are allowed to redistribute
+this software / documentation under certain conditions. For details,
+see the file COPYING in the PDL distribution. If this file is
+separated from the PDL distribution, the copyright notice should be
+included in the file.
+
+=cut
 
 1;
