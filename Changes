@@ -1,3 +1,7 @@
+John Cerney (6/12/00)
+    - Added new curve fitting routine: Linfit. Finds
+      a linear-combination of specified functions
+      that best fits data. (Similar to Polynomial.pm)
 Marc Lehmann (5/!2/00)
     - Don't add artificial newlines in PdlParObj.pm, you never know what the
       surrounding code might look like. Makes PDL compile with perl-5.7 again.

@@ -307,6 +307,7 @@ Lib/Fit/Gaussian/gaussian.pd
 Lib/Fit/LM.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
+Lib/Fit/Linfit.pm
 Lib/Func.pm
 Lib/GSL/Makefile.PL
 Lib/GSL/README
@@ -616,6 +617,7 @@ t/imagergb.t
 t/interp.t
 t/interp_slatec.t
 t/lut.t
+t/linfit.t
 t/magic.t
 t/matmult.t
 t/misc.t
