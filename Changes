@@ -1,3 +1,5 @@
+CED (28-Aug-02)
+    - minor fix to rangeb - physicalize index before checking its size
 CED (27-Aug-02)
     - range() is now an lvalue, as are indexND and indexNDb.
     - pdl_malloc call is now via PDL Core structure, avoiding

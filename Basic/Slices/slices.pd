@@ -752,11 +752,13 @@ EOD
 		if(!ind_pdl)  {
 			$CROAK("unable to convert index to a PDL");
 		}
+
+		PDL->make_physdims(ind_pdl);
+
 		if(ind_pdl->nvals == 0) {
 			$CROAK("Cannot use the empty PDL as an index");
 		}		
 
-		PDL->make_physdims(ind_pdl);
 		if(ind_pdl->ndims > 2) {
 		  $CROAK("Only 1 thread dimension allowed in the index PDL");
 		}
