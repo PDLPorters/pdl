@@ -18,8 +18,6 @@ These things are known to be not working but will be fixed RSN:
 
 =over 3
 
-=item BYTEs
-
 =item COMMON blocks
 
 =item COMPLEX numbers
@@ -90,6 +88,8 @@ start with '+' are used to store metadata about the file itself.
 sub ridl {
   my( $name ) = shift;
   
+  STDERR->autoflush(1);
+
   open(IDLSAV,"<$name") || barf("ridl: Can't open `$name' for reading\n");
   
   my $hash = read_preamble();
@@ -139,14 +139,14 @@ our $types = [ ['START_MARKER',undef]     # 0      (start of SAVE file)
 
 our $vtypes = [
 	   undef                                       #  0 
-	  ,["Byte",      'C',           1            ] #  1 
+	  ,["Byte",      \&r_n_pdl,    [byte]        ] #  1 
 	  ,["Short",     \&r_n_cast,   [long,short]  ] #  2 
 	  ,["Long",      \&r_n_pdl,    [long]        ] #  3
 	  ,["Float",     \&r_n_pdl,    [float]       ] #  4
 	  ,["Double",    \&r_n_pdl,    [double]      ] #  5
 	  ,["Complex",   undef                       ] #  6
-	  ,["String",    \&r_strvar                  ] #  7
-	  ,["Structure", sub {}                      ] #  8
+	  ,["String",    \&r_strvar,   []            ] #  7
+	  ,["Structure", sub {},       []            ] #  8
 	  ,["ComplexDbl",undef                       ] #  9
 	  ,["HeapPtr",   undef                       ] # 10 
 	  ,["Object",    undef                       ] # 11
@@ -252,7 +252,9 @@ sub read_records {
 
     if(defined $types->[$type]) {
       if(defined ($types->[$type]->[1])) {
+	print "Found record of type $types->[$type]->[0]...\n" if($PDL::debug);
 	$retval = &{$types->[$type]->[1]}($hash);
+	print "OK.\n" if($PDL::debug);
       } else {
 	print STDERR "Ignoring record of type ".$types->[$type]->[0]." - not implemented.\n";
       }
@@ -327,7 +329,8 @@ sub r_v {
   sysread(IDLSAV,$buf,4);
   $version = $hash->{"+meta"}->{v_fmt} = unpack "N",$buf;
 
-  barf("Unknown IDL save file version ".$version)
+#  barf("Unknown IDL save file version ".$version)
+  print STDERR "Warning: unknown IDL save file version $version; winging it!"
     if($version != 5);
 
   $hash->{"+meta"}->{v_arch} = r_string();
@@ -380,13 +383,10 @@ sub r_var {
 
       if(($flags & 32) == 0) {
 	  ## Simple array case
-	  print "simple array...\n" if($PDL::debug);
-
+	  print "simple array...type=$type\n" if($PDL::debug);
 	  my @args= ([ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]], 
 		     @{$vtypes->[$type]->[2]});
-
 	  my $pdl =  &{$vtypes->[$type]->[1]}(@args);
-	  
 	  $hash->{$name} = $pdl; 
 
       } else {
@@ -465,20 +465,21 @@ sub r_arraydesc {
     sysread(IDLSAV,$buf,4*8);
     
     my(@vals) = unpack("N"x8,$buf);
-    print "r_arraydesc_table: vals[0]=".$vals[0]." (should be 8)\n";
+    print STDERR "r_arraydesc_table: vals[0]=".$vals[0]." (should be 8)\n"
+      if($vals[0] != 8);
     for my $i(0..7) {
 	$out->{$r_arraydesc_table->[$i]} = $vals[$i];
     }
     my $nmax = $vals[7];
     my $nelem = $vals[3];
-    print "nmax is $nmax\n";
+
     sysread(IDLSAV,$buf,$nmax*4);
     $out->{dims} = [unpack("N"x$nmax,$buf)];
     my $dims = pdl(@{$out->{dims}});
 
     $out->{pdldims} = $dims;
 
-    print("PDL::IO::IDL: Inconsistent array dimensions in variable (nelem=$nelem, dims=".join("x",@{$out->{dims}}).")")
+    print STDERR "PDL::IO::IDL: Inconsistent array dimensions in variable (nelem=$nelem, dims=".join("x",@{$out->{dims}}).")"
 	if($nelem != $dims->prod);
     
     $out;
@@ -636,7 +637,7 @@ sub r_struct {
 #
 # r_string
 #
-# Loads in a string value, leaving the file pointer correctly aligned
+# Reads a string value, leaving the file pointer correctly aligned
 # on a 32-bit boundary (if it started that way).  Returns the string as
 # a perl scalar.
 #
@@ -656,11 +657,25 @@ sub r_string{
 
 ##############################
 #
+# r_strvar 
+#
+# Reads a string variable (different than r_string because 
+# of the extra length duplication in the IDL file...)
+#
+sub r_strvar {
+    my $buf;
+    sysread(IDLSAV,$buf,4);
+    return r_string();
+}
+
+
+##############################
+#
 # r_n_pdl
 #
 # Reads <n> normal integer-type numerical values as a pdl.
 # You feed in the dimlist and type, you get back the 
-# final pdl.
+# final pdl.  The read is padded to the nearest word boundary.
 #
 
 sub r_n_pdl {
@@ -672,9 +687,9 @@ sub r_n_pdl {
     $pdl->setdims($dims);
 
     my $dref = $pdl->get_dataref();
-    my $dsize = PDL::Core::howbig($type);
+    my $dsize = PDL::Core::howbig($type) * (pdl($dims)->prod);
 
-    sysread(IDLSAV,$$dref, (pdl($dims)->prod) * $dsize );
+    sysread(IDLSAV, $$dref, $dsize - ($dsize % -4) );
     
     if($little_endian) {
 	bswap2($pdl) if($dsize==2);
@@ -689,19 +704,6 @@ sub r_n_cast {
     my($dims,$type1,$type2) = @_;
     
     (r_n_pdl($dims,$type1))->convert($type2);
-}
-
-
-##############################
-#
-# r_strvar 
-#
-# Reads a string variable (different than r_string because 
-# of the extra length duplication...)
-sub r_strvar {
-    my $buf;
-    sysread(IDLSAV,$buf,4);
-    return r_string();
 }
 
 

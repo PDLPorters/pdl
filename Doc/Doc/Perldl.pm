@@ -36,7 +36,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw( apropos aproposover usage help sig badinfo );
+@EXPORT = qw( apropos aproposover usage help sig badinfo whatis );
 
 use PDL::Doc;
 use IO::File;
@@ -457,6 +457,96 @@ sub allindent {
 }
 
 
+=head2 whatis
+
+=for ref
+
+Describe a perl and/or PDL variable or expression.  Useful for
+determining the type of an expression, identifying the keys in a hash
+or a data structure, or examining WTF an unknown object is.
+
+=for usage
+
+ Usage: whatis $var
+        whatis <expression>
+
+=cut
+
+sub whatis {
+  my $topic;
+
+  if(@_ > 1) {
+    whatis_r('',0,[@_]);
+  } else {
+    whatis_r('',0,shift);
+  }
+}
+
+$PDL::Doc::Perldl::max_strlen = 55;
+$PDL::Doc::Perldl::max_arraylen = 10;
+$PDL::Doc::Perldl::max_keylen = 10;
+$PDL::Doc::Perldl::array_indent=5;
+$PDL::Doc::Perldl::hash_indent=3;
+
+sub whatis_r {
+  my $prefix = shift;
+  my $indent = shift;
+  my $a = shift;
+  
+  unless(defined $a) {
+    print $prefix,"<undef>\n";
+    return;
+  }
+
+  unless(ref $a) {
+    print "${prefix}'".
+      substr($a,0,$PDL::Doc::Perldl::max_strlen).
+      "'".((length $a > $PDL::Doc::Perldl::max_strlen) && '...').
+      "\n";
+    return;
+  }
+
+  if(ref $a eq 'ARRAY') {
+    print "${prefix}Array (".scalar(@$a)." elements):\n";
+
+    my($el);
+    for $el(0..$#$a) {
+      my $pre = sprintf("%s  %2d: "," "x$indent,$el);
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::array_indent, $a->[$el]);
+      last if($el == $PDL::Doc::Perldl::max_arraylen);
+    } 
+    printf "%s   ... \n"," " x $indent
+      if($#$a > $PDL::Doc::Perldl::max_arraylen);
+
+    return;
+  }
+      
+  if(ref $a eq 'HASH') {
+    print "${prefix}Hash (".scalar(keys %$a)." elements)\n";
+    my $key;
+    for $key(sort keys %$a) {
+      my $pre = " " x $indent .
+	        " $key: " . 
+		(" "x($PDL::Doc::Perldl::max_keylen - length($key))) ;
+
+      whatis_r($pre,$indent + $PDL::Doc::Perldl::hash_indent, $a->{$key});
+    }
+    return;
+  }
+
+  if(ref $a eq 'CODE') {
+    print "${prefix}Perl CODE ref\n";
+    return;
+  }
+
+  if(UNIVERSAL::can($a,'px')) {
+    local $PDL::debug = 1;
+    $a->px($prefix.(ref $a));
+  } else {
+    print "${prefix}Object: ".ref($a)."\n";
+  }
+}
+
 =head2 help
 
 =for ref
@@ -532,7 +622,6 @@ sub help {
 The following commands support online help in the perldl shell:
 
  help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
- help $a        -- print information about $a (if it's a piddle)
  help vars      -- print information about all current piddles
  help url       -- locate the HTML version of the documentation
  help www       -- View docs with default web browser (set by env: PERLDL_WWW)
@@ -540,6 +629,7 @@ The following commands support online help in the perldl shell:
  apropos 'word' -- search for keywords/function names 
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function
+ whatis <expr>  -- Describe the type and structure of an expression or piddle.
 
  ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
 EOH

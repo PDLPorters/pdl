@@ -1,3 +1,5 @@
+CED 16-Oct-2003
+   - Added whatis() function to perldl
 CED 15-Oct-2003
    - Added PDL::IO::IDL.
 CED 15-Sep-2003
