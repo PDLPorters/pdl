@@ -3382,6 +3382,12 @@ sub initenv{
 	if $self->{Logy};
   }
 
+  # DJB 2003/12/01 - added some error checking for user errors like
+  #   setting xmin==xmax. yeah, should really check abs(x1-x2)<tolerance ;)
+  #
+  release_and_barf "x axis has min==max" if $xmin == $xmax;
+  release_and_barf "y axis has min==max" if $ymin == $ymax;
+
   if($self->held()) {
     $self->focus();
   } else {
