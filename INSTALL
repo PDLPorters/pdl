@@ -54,6 +54,21 @@ There is also another make item:
 
 creates the documentation database for use in the perldl shell.
 
+f77 configuration
+-----------------
+
+f77 configuration information is normally picked up from ExtUtils::F77
+to build modules like PDL::Slatec that rely on a working fortran compiler.
+In cases where you don't want to rely on ExtUtils::F77 for one reason
+or another (debian package build) there is now the config variable F77CONF.
+It is supposed to point to a perl file that implements a minimal F77Conf
+class (see debian/f77conf.pl for an example). The use of F77CONF is
+similar to the PDLCONF variable, e.g.
+
+   perl Makefile.PL F77CONF=debian/f77conf.pl
+
+Note that almost always it is better to use ExtUtils::F77. Only use the
+F77CONF mechanism if you have a good reason to.
 
 COMMON PROBLEMS
 ---------------

@@ -30,7 +30,10 @@ $seen_pdlconf = 0;
 	if(/^PDLCONF=(.*)$/) {
 		$seen_pdlconf=1;
 		$pdl_conf_file = $1; ();
-	} else {
+	} elsif (/^F77CONF=(.*)$/) {
+		$seen_f77conf=1;
+		$pdl_f77conf=$1; ();
+        } else {
 		$_
 	}
 } @ARGV;
@@ -69,6 +72,14 @@ for(keys %PDL_CONFIG) {
 
 for(keys %PDL_CONFIG_DIST) {
    $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
+}
+
+if ($seen_f77conf) {
+  eval 'require File::Spec';
+  last unless ($@ eq ""); # skip if we don't have File::Spec
+  $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
+    unless File::Spec->file_name_is_absolute($pdl_f77conf);
+  $PDL_CONFIG{F77CONF} = $pdl_f77conf;
 }
 
 $PDL_CONFIG{WITH_3D} = 0 unless $perl_560;
