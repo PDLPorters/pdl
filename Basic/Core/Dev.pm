@@ -450,6 +450,7 @@ sub unsupported {
 sub write_dummy_make {
   require IO::File;
     my ($msg) = @_;
+    print STDERR "writing dummy Makefile\n";
     my $fh = new IO::File "> Makefile" or die "can't open Makefile";
     print $fh <<"EOT";
 fred:
@@ -571,9 +572,10 @@ sub trylink {
   use Config;
 
   # check if MakeMaker should be used to preprocess the libs
-  my $mmprocess = exists $opt->{MakeMaker} && $opt->{MakeMaker};
-  my $hide = exists $opt->{Hide} ? $opt->{Hide} : 1;
-  my $clean = exists $opt->{Clean} ? $opt->{Clean} : 1;
+  for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
+  my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
+  my $hide = exists $opt->{hide} ? $opt->{hide} : 1;
+  my $clean = exists $opt->{clean} ? $opt->{clean} : 1;
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
       require ExtUtils::Liblist;

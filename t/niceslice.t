@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 23;
+	plan tests => 25;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -93,4 +93,12 @@ ok(!$@ and $a eq '1234');
 
 $a = '';
 eval translate_and_show 'for    $b(1,2,3,4) {$a .= $b;}';
+ok(!$@ and $a eq '1234');
+
+$a = '';
+eval translate_and_show 'for  my  $b(1,2,3,4) {$a .= $b;}';
+ok(!$@ and $a eq '1234');
+
+$a = '';
+eval translate_and_show 'for  our $b(1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');

@@ -70,7 +70,7 @@ You may override and force the build by including the
   perl Makefile.PL FORCE
 
 However, you will most likely end up with an unusable
-PDL build unless 'all' optimizations are disabled!
+PDL build unless *all* optimizations are disabled!
 
 EOM
 }
@@ -95,7 +95,12 @@ if (-f $pdl_conf_file) {
 
 for(keys %PDL_CONFIG) {
 	if(!exists($PDL_CONFIG_DIST{$_})) {
-	   die("Invalid key $_ found in user supplied $pdl_conf_file - this key appears to be no longer in use. Please review configuration options");
+	   die << "EOD";
+Invalid key $_ found in user supplied $pdl_conf_file
+  - this key appears to be no longer in use.
+  Please review configuration options and check the comments in
+  the file perldl.conf that came with this distribution
+EOD
 	}
 }
 
@@ -183,9 +188,10 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/perldl pdldoc/;
 
 @prereq = (
-	   'File::Spec' => 0.6,
-	   Filter::Simple => 0, # for PDL::SFilter
-	   Text::Balanced => 0, # for PDL::SFilter
+	   File::Spec       => 0.6,
+	   Filter::Util::Call => 0, # for PDL::NiceSlice
+	   Text::Balanced     => 0, # for PDL::NiceSlice
+	   Inline             => 0.43,
 	  );
 push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 

@@ -10,6 +10,9 @@ the current namespace. See also
 L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF> 
 if start-up time becomes an issue.
 
+If you are looking for general documentation on PDL
+the L<PDL::Index|PDL::Index> manpage is a good starting point.
+
 =head1 SYNOPSIS
 
  use PDL; # Is equivalent to the following:
@@ -29,7 +32,7 @@ if start-up time becomes an issue.
 
 
 # set the version: 
-$PDL::VERSION = '2.3.1'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.3.1cvs'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
@@ -67,6 +70,6 @@ die $@ if $@;
 package PDL;
 
 
-;# Exit with OK status
+# Exit with OK status
 
 1;

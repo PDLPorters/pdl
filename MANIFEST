@@ -658,7 +658,6 @@ t/pptest.t
 t/primitive.t
 t/primitive2.t
 t/pthread.t
-t/quat.t
 t/reduce.t
 t/refs.t
 t/scope.t

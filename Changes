@@ -1,3 +1,5 @@
+CS  - remove the defunct t/quat.t
+    - fix PDL::GSL to work with libgsl 1.X
 CS  - fix for #474736 (sym with points), needed that feature
     - applied symsize patch #474853
 CS  - fix for Dev.pm: load PDL::Types only once

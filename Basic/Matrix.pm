@@ -79,8 +79,9 @@ package PDL::Matrix;
 
 
 #use PDL::Core;
-use PDL::Slatec;
+#use PDL::Slatec;
 use PDL::Exporter;
+use Carp;
 
 @ISA = qw/PDL::Exporter PDL/;
 
@@ -371,11 +372,13 @@ sub mdims {
   return @res;
 }
 
+eval "use PDL::Slatec";
+my $has_slatec = ($@ ? 0 : 1);
 sub inv {
   my $self = shift;
-  return matinv($self);
+  croak "inv: PDL::Slatec not available" unless $has_slatec;
+  return $self->matinv;
 }
-
 
 =head2 kroneckerproduct
 

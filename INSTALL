@@ -21,7 +21,10 @@ self-documenting.
 
 Note: If you are happy with your perldl.conf you can keep the file
 handy for future reference. Place it in ~/.perldl.conf where
-it will be picked up automatically or use 'perl Makefile.PL PDLCONF=file'
+it will be picked up automatically or use 
+
+    perl Makefile.PL PDLCONF=your_conf_file
+
 next time.
 
 After editing the configuration options just say
@@ -61,7 +64,7 @@ f77 configuration
 f77 configuration information is normally picked up from ExtUtils::F77
 to build modules like PDL::Slatec that rely on a working fortran compiler.
 In cases where you don't want to rely on ExtUtils::F77 for one reason
-or another (debian package build) there is now the config variable F77CONF.
+or another (win32 build) there is now the config variable F77CONF.
 It is supposed to point to a perl file that implements a minimal F77Conf
 class (see debian/f77conf.pl for an example). The use of F77CONF is
 similar to the PDLCONF variable, e.g.

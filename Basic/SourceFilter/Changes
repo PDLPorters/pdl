@@ -1,11 +1,21 @@
+0.91
+ - leave 'for(each)? (my|our) $y(0,1) {}' alone
+0.9
+ - source filters clobber the DATA file handle unless they are disabled
+   upon encountering __DATA__|__END__ ! Fixed NiceSlice to avoid that.
+   (now uses Filter::Util::Call directly)
+ - doc updates
+ - doc updates
 0.8
-docs
+ - CED: leave 'for(each)? $x(...) {}' alone
+ - fix error bug (reported by Doug Burke)
+ - docs clarification
 0.7
-fixed a bug that sometimes screwed up error reporting
-modifiers: _,?,|
+ - fixed a bug that sometimes screwed up error reporting
+ - modifiers: _,?,|
 0.6
-nslice: lvalue
-doc updates
-KGB: fix multiline parsing
+ - doc updates
+ - declare nslice lvalue sub if perl version >= 5.6.0
+ - KGB: fix multiline parsing
 0.5
-initial public release
+ - initial public release
