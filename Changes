@@ -1,3 +1,8 @@
+DJB 24-Feb-04
+   - 'use strict' fix for PDL::IO::FITS::rfits (when reading a binary table)
+     (needs test cases added to t/fits.t)
+   - FITS checks moved from t/misc.t into t/fits.t (new file)
+   - t/misc.t and t/fits.t now use the Test module
 CED 12-Feb-04
    - FITS.pm: Applied patches 881870 and 880507 from Kaj Wiik -- zero size
      field fix, and 'A' and 'X' type fixes.

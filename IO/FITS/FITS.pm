@@ -801,18 +801,24 @@ for my $i(1..$hdr->{TFIELDS}) {
     # types but legal for anyone else.
     
     if($opt->{bscale}) {
-      my $tzero = $hdr->{"TZERO$i"};
-      my $tscal = $hdr->{"TSCAL$i"};
-      if( (length($tzero) || length($tscal)) && $tmpcol->{type} =~ m/[ALX]/i ){
-	print STDERR "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
-	  $tmpcol->{name} . "); type is $tmpcol->{type})\n" 
-	  if(defined($tzero) or defined $tscal);
-	
-      } else {
-	unless((length($tscal)==0) || $tscal==1) {
+      my $tzero = $hdr->{"TZERO$i"} || 0.0;
+      my $tscal = $hdr->{"TSCAL$i"} || 1.0;
+      delete $hdr->{"TZERO$i"};
+      delete $hdr->{"TSCAL$i"};
+
+      # is using '==' rather than 'within a tolerance of blah' okay here?
+      #
+      my $valid_tzero = ($tzero != 0.0);
+      my $valid_tscal = ($tscal != 1.0);
+
+      if ( $valid_tzero or $valid_tscal ) {
+
+	if ( $tmpcol->{type} =~ m/[ALX]/i ) {
+	  print STDERR "Ignoring illegal TSCAL/TZERO keywords for col $i (" .
+	  $tmpcol->{name} . "); type is $tmpcol->{type})\n";
+        } else {
 	  
 	  # Use PDL's cleverness to work out the final datatype...
-	  
 	  my $tmp;
 	  my $pdl = $tmpcol->{data};
 	  if($pdl->badflag() == 0) {
@@ -831,9 +837,7 @@ for my $i(1..$hdr->{TFIELDS}) {
 	    if($tmp->get_datatype != $pdl->get_datatype);
 	}
 	
-	delete $hdr->{"TZERO$i"};
-	delete $hdr->{"TSCAL$i"};
-      }
+      } # if: $valid_tzero or $valid_tscal
     } # end of scaling section.
     
     if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
