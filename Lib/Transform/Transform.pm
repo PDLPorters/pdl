@@ -752,6 +752,10 @@ sub map {
   unless((defined $out->gethdr && $out->hdr->{NAXIS}) ||
 	 $nofits) {
       print "generating output FITS header..." if($PDL::Transform::debug);
+
+      $out->sethdr($in->hdr_copy) # Copy extraneous fields...
+	if(defined $in->hdr);
+
       my $samp_ratio = 300;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
@@ -1102,9 +1106,9 @@ sub map {
     $out->clump($nd)->range($pixels->dummy(0,1)) .=
       ($flux 
        ?
-       double($input->sumover * $p_jdet / $f_norm / ($reduction ** $nd)); 
+       double($input->sumover * $jdet / $f_norm / ($reduction ** $nd))
        :
-       double($input->sumover / $f_norm / ($reduction ** $nd));
+       double($input->sumover / $f_norm / ($reduction ** $nd))
        );
     
     print "ok\n" if($PDL::Transform::debug);
@@ -2377,10 +2381,10 @@ sub t_radial {
 
       my($data,$o) = @_;
 
-      my($out) = ($data->is_inplace) ? $data : zeroes($data);
+      my($out) = ($data->new_or_inplace);
 
-      my($d) = $data->copy - $o->{origin};
-
+      my($d) = $data->copy;
+      $d->(0:1) -= $o->{origin};
 
       my($d0) = $d->((0));
       my($d1) = $d->((1));
@@ -2391,7 +2395,7 @@ sub t_radial {
       $out->((1)) .= (defined $o->{r0}) ?
 	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
 	      sqrt($d1*$d1 + $d0*$d0);
-      
+
       $out;
   };
 

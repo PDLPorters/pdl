@@ -1,3 +1,8 @@
+CED 8-Aug-2003
+   - DiskCache now accepts a "bless" option that blesses the tied array
+	into the PDL::DiskCache class for easier access to the "sync" and
+	"purge" methods.
+   - Some fixes to Transform.
 CED 5-Aug-2003
    - Several minor fixes (bugs 777000, 783104, and 772492)
 CED 27-Jul-2003
