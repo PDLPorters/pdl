@@ -90,7 +90,7 @@ sub todouble {
 
 =for ref
 
-FFT of real function [inplace].
+One-dimensional FFT of real function [inplace].
 
 The real part of the transform ends up in the first half of the array
 and the imaginary part of the transform ends up in the second half of
@@ -107,6 +107,7 @@ the array.
 sub PDL::realfft {
     barf("Usage: realfft(real(*)") if $#_ != 0;
     my ($a) = @_;
+    todouble($a);
 # FIX: could eliminate $b
     my ($b) = 0*$a;
     fft($a,$b);
@@ -119,7 +120,7 @@ sub PDL::realfft {
 
 =for ref
 
-Inverse of realfft routine [inplace].
+Inverse of one-dimensional realfft routine [inplace].
 
 =for usage
 
@@ -130,8 +131,10 @@ Inverse of realfft routine [inplace].
 *realifft = \&PDL::realifft;
 
 sub PDL::realifft {
+    use PDL::Primitive 'max';
     barf("Usage: realifft(xfm(*)") if $#_ != 0;
     my ($a) = @_;
+    todouble($a);
     my ($n) = int((($a->dims)[0]-1)/2); my($t);
 # FIX: could eliminate $b
     my ($b) = 0*$a;

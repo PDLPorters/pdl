@@ -16,7 +16,7 @@ sub approx {
         $d < 0.01;
 }
 
-print "1..9\n";
+print "1..10\n";
 
 $k = ones(5,5);
 $a = rfits("m51.fits");
@@ -61,3 +61,7 @@ $kk = kernctr($a,$k);  fftconvolve($i=$a->copy,$kk);
 
 ok (8,approx($kk,0));  ok (9,approx($i,$b));
 
+$b = $a->copy;
+
+# Test real ffts
+realfft($b); realifft($b); ok(10,approx($a,$b));
