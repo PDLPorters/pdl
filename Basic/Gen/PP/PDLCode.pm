@@ -547,8 +547,20 @@ package PDL::PP::NaNSupport;
 use PDL::Types ':All'; # typefld et al.
 
 # need to be lower-case because of FlagTyped stuff
+#
+# need to be able to handle signatures with fixed types
+# which means parameters like 'int mask()',
+# which means the hack to add 'int' to %use_nan
+#
 my %use_nan =
-  map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+    map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+$use_nan{int} = 0;
+
+# original try
+##my %use_nan =
+##  map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+
+# Was the following, before new Type "interface"
 #     ( byte => 0, short => 0, ushort => 0, long => 0,
 #       int => 0,  longlong => 0, # necessary for fixed-type piddles (or something)
 #       float => $usenan, 
