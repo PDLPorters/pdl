@@ -351,7 +351,14 @@ pp_def(
 	   loop(n) %{ tmp += $a(); %} ; 
    	   $b() = tmp / ($GENERIC(b)) $SIZE(n);
         }
-          else { $b() = 0; }',
+          else { $GENERIC(b) foo = 0.25; 
+	         if(foo == 0) {  /* Cheesy check for floating-pointiness */
+	             $b() = 0;   /* Integer - set to 0 */
+	          } else {
+	             $b() = sqrt(-1);  /* Cheesy NaN -- CED */
+		 }
+	        }',
+
 	BadCode => 
 	'$GENERIC(b) tmp = 0;
          long cnt = 0;
