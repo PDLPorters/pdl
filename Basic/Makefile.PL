@@ -34,15 +34,3 @@ WriteMakefile(
      'DIR'      => ['Pod','Gen','Core','Bad','Ops','Ufunc','Primitive',
 		    'Slices','Test','Math','Complex','SourceFilter'],
 );
-
-
-# For the lazy people
-sub MY::postamble {
-PDL::Core::Dev::postamble().
-q~
-
-test_tjl :
-	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' t/*.t
-
-~
-}
