@@ -1394,7 +1394,7 @@ sub histogram {
   # set color for histograms
   plcol0  ($self->{CURRENT_COLOR_IDX});
 
-  plhist ($x->nelem, $x, $min, $max, $nbins, 1);  # '1' is oldbins parm:  dont call plenv!
+  plhist ($x, $min, $max, $nbins, 1);  # '1' is oldbins parm:  dont call plenv!
 }
 
 # Draw bar graphs
@@ -1731,7 +1731,7 @@ void c_plgver(char *p_ver);
 void c_plgxax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgyax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgzax(PLINT *p_digmax, PLINT *p_digits);
-void c_plhist(PLINT n, PLFLT *data, PLFLT datmin, PLFLT datmax, PLINT nbin, PLINT oldwin);
+#void c_plhist(PLINT n, PLFLT *data, PLFLT datmin, PLFLT datmax, PLINT nbin, PLINT oldwin);
 void c_plhls(PLFLT h, PLFLT l, PLFLT s);
 void c_plinit(void);
 void c_pljoin(PLFLT x1, PLFLT y1, PLFLT x2, PLFLT y2);
@@ -1943,11 +1943,19 @@ pp_def ('plParseOpts',
 );
 
 # Plots a character at the specified points
- 
+
 pp_def ('plpoin',
          Pars => 'x(n); y(n); int code()',
          GenericTypes => [D],
          Code => 'c_plpoin($SIZE(n),$P(x),$P(y),$code());'
+        );
+
+# Plot a histogram from unbinned data
+
+pp_def ('plhist',
+         Pars => 'data(n); datmin(); datmax(); int nbin(); int oldwin()',
+         GenericTypes => [D],
+         Code => 'c_plhist($SIZE(n),$P(data),$datmin(),$datmax(),$nbin(),$oldwin());'
         );
 
 pp_done();

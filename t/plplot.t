@@ -268,7 +268,7 @@ $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 plend1();
 
 ok (-s "test14.xfig" > 0, "Histogram plotting, low level interface");
@@ -293,7 +293,7 @@ $nbins = 15;
 $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 
 pladv (2);
 plvpor(0.1, 0.9, 0.1, 0.9); 
@@ -305,7 +305,7 @@ $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 
 plend1();
 
