@@ -3323,7 +3323,7 @@ sub initenv{
   # of the previous initenv() function when $just and/or $axis was
   # specified in conjunction with an options hash.
   $u_opt->{Justify} = $just if defined($just);
-  $u_opt->{Axis} = "$axis" if defined($axis);
+  $u_opt->{Axis} = $axis if defined($axis);
 
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
