@@ -171,9 +171,9 @@ converted to bad (if necessary).
 
 Read only the header of a FITS file or an extension within it.
 
-This is syntactic sugar for the C<data=>0> option to L<rfits|rfits>.
+This is syntactic sugar for the C<data=>0> option to L<rfits|/rfits()>.
 
-See L<rfits|rfits> for details on header handling.  rfitshdr() runs 
+See L<rfits|/rfits()> for details on header handling.  rfitshdr() runs 
 the same code to read the header, but returns it rather than 
 reading in a data structure as well.
 
