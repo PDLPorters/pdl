@@ -9,7 +9,7 @@
 #
 use Getopt::Long;
 use strict;
-use warnings;
+
 use Config;
 
 
@@ -27,13 +27,15 @@ my $verbose;
 my @dontfuncs;
 my @oosubs; # holds subroutine prototypes for oo interface
 
+
+
 my %dontfuncs;
 for(@dontfuncs) {$dontfuncs{$_} = 1}
 
 my(@path);
 foreach(@incs){
   if(-d "$_"){
-	 push(@path,$	_);
+	 push(@path,$_);
   }else{
 	 die "ERROR: directory $_ not found, fix perldl.conf and rerun perl Makefile.PL";
   }
@@ -49,18 +51,19 @@ my %consts; # filled by sub getconsts
 my @subnames;  # filled by sub getfuncs
 
 my %t=(
-		 'int'    => 'INT',
-		 'float'  => 'FLOAT',
-		 'double' => 'DOUBLE',
-		 'short'  => 'SHORT',
-		 'long'   => 'LONG',
-		 'char'   => 'CHAR',
-		 'XID'    => 'U_LONG',
+       'int'    => 'INT',
+       'float'  => 'FLOAT',
+       'double' => 'DOUBLE',
+       'short'  => 'SHORT',
+       'long'   => 'LONG',
+       'char'   => 'CHAR',
+       'XID'    => 'U_LONG',
+       'GLenum'    => 'U_LONG',
        'void *' => 'PTR',
-		 'GLXFBConfig' => 'PTR',
+       'GLXFBConfig' => 'PTR',
        'Display *' => 'PTR',
        'Bool'    => 'U_CHAR'
-		);
+      );
 
 open(TYPEMAP,">typemap") or die "Can not write typemap\n";;
 select TYPEMAP;
@@ -208,25 +211,26 @@ sub cpp {
 sub gettypes {
   my(@file) = @_;
   my @tkeys = keys(%t);
+
   foreach my $line (@file) {
-	 if($line =~ /typedef/) {
-		my $cnt=0;
-		foreach my $k (@tkeys) {
-		  if($line =~ /typedef\s+$k\s+(\w+)\s*\;/){
-			 print "$1\t\tT_$t{$k}\n" ;
-		  }elsif($line =~ /typedef\s+signed\s+$k\s+(\w+)\s*\;/){
-			 print "$1\t\tT_$t{$k}\n" ;
-		  }elsif($line =~ /typedef\s+unsigned\s+$k\s+(\w+)\s*\;/){
-			 print "$1\t\tT_U_$t{$k}\n" ;
-		  }else{
-			 $cnt++;
-		  }
-		}
-		if($cnt > $#tkeys){
-		  $line =~ /typedef\s+(.*)\s+(\w+)\s*\;/;
-		  print STDERR "typedef Not Found >$line<$1<$2\n" if($verbose);
-		}
-	 }
+    if($line =~ /typedef/) {
+      my $cnt=0;
+      foreach my $k (@tkeys) {
+	if($line =~ /typedef\s+$k\s+(\w+)\s*\;/){
+	  print "$1\t\tT_$t{$k}\n" ;
+	}elsif($line =~ /typedef\s+signed\s+$k\s+(\w+)\s*\;/){
+	  print "$1\t\tT_$t{$k}\n" ;
+	}elsif($line =~ /typedef\s+unsigned\s+$k\s+(\w+)\s*\;/){
+	  print "$1\t\tT_U_$t{$k}\n" ;
+	}else{
+	  $cnt++;
+	}
+      }
+      if($cnt > $#tkeys){
+	$line =~ /typedef\s+(.*)\s+(\w+)\s*\;/;
+	print STDERR "typedef Not Found >$line<$1<$2\n" if($verbose);
+      }
+    }
   }
 }
 

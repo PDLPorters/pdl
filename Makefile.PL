@@ -7,12 +7,22 @@ $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 BEGIN{
   eval "use 5.005";
   die "PDL requires Perl v5.005 or later\n" if $@ ne "";
+  
+	 
+}
+
+eval "use 5.6.0";  
+if ($@ ne ""){
+  warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
+	    "Building PDL without TriD (WITH_3D=>0)\n\n";
+}else{
+  $pdl_560=1 ;
 }
 
 END{
-  eval "use 5.6.0";
   warn "\n\n*The next major version of PDL (v2.2) will require Perl v5.6.0 or later!*\n".
-    "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
+	 "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" 
+		unless($perl_560);
 }
  
 $seen_pdlconf = 0;
@@ -63,6 +73,9 @@ for(keys %PDL_CONFIG_DIST) {
    $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
 }
 
+$PDL_CONFIG{WITH_3D} = 0 unless($perl_560);
+
+
 
 # Get Version from Basic/PDL.pm and generated Basic/Core/Version.pm from it
 require 'Basic/PDL.pm';
@@ -78,6 +91,7 @@ print VERSIONFILE "1;\n";
 
 close VERSIONFILE;
 
+print "hello world\n";
 
 use ExtUtils::MakeMaker;
 
