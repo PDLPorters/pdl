@@ -313,13 +313,15 @@ sub whereami_inst {
 
 # This is the function internal for PDL.
 # Later on, we shall provide another for use outside PDL.
+#
+# added badsupport.p as a requisite
 sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 qq|
 
-$pref.pm: $src $w/Basic/Gen/pm_to_blib
+$pref.pm: $src $w/Basic/Gen/pm_to_blib $w/Basic/Core/badsupport.p
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm

@@ -41,11 +41,6 @@ WriteMakefile(%hash);
 # - not very elegant
 #
 sub MY::postamble {
-	pdlpp_postamble_int(@::pack) .
-"
-Bad.pm: ../Core/badsupport.p
-
-";
-
+	pdlpp_postamble_int(@::pack);
 }  # Add genpp rule
 

@@ -100,7 +100,9 @@ $author
 
 #########################################################
 
-pp_add_exported( '', 'badflag badvalue orig_badvalue badvalue_as_pdl' );
+pp_add_exported( '', 
+		 'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
+		 'setbadat ' );
 
 ## Header
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
