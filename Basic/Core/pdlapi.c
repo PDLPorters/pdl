@@ -766,7 +766,7 @@ void pdl_set_trans_parenttrans(pdl *it, pdl_trans *trans,int nth)
 		for(i=0; i<trans->vtable->nparents; i++)
 			if(trans->pdls[i] == it) nthind = i;
 		croak("Sorry, families not allowed now (i.e. You cannot modify dataflowing pdl)\n");
-		pdl_family_create(it,trans,nthind,nth);
+		/* pdl_family_create(it,trans,nthind,nth); */
 	} else {
 		it->trans = trans;
 		it->state |= PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED ;
