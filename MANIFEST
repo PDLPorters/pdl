@@ -285,6 +285,7 @@ IO/Browser/Makefile.PL
 IO/Browser/browse.c
 IO/Browser/browser.pd
 IO/Browser/hints/dec_osf.pl
+IO/Dumper.pm
 IO/FastRaw/FastRaw.pm
 IO/FastRaw/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
