@@ -1466,6 +1466,16 @@ sub new {
 }
 
 
+#
+# Graphics windows should be closed when they go out of scope.
+# Thanks to Doug Burke for pointing this out.
+#
+sub DESTROY {
+  my $self=shift;
+
+  $self->close();
+}
+
 
 =head2 _open_new_window
 
@@ -1540,15 +1550,27 @@ sub _setup_window {
 
   # Setup the colours
   my $o = $self->{Options}->current();
-  my ($hcopy, $len);
   pgask(0);
   pgqinf("HARDCOPY",$hcopy,$len);
   if ($hcopy eq "YES") {
+    # This has changed to set the defaults instead.
     pgslw($o->{HardLW});
     pgsch($o->{HardCH});
     pgscf($o->{HardFont});
+    # To change defaults you first need to read them out and then
+    # adjust them and set them again
+    my $temp_wo = $self->{PlotOptions}->defaults();
+    $temp_wo->{Font}= $o->{HardFont};
+    $temp_wo->{CharSize}= $o->{HardCH};
+    $temp_wo->{LineWidth}= $o->{HardLW};
+    $self->{PlotOptions}->defaults($temp_wo);
+    my $temp_o=$self->{Options}->defaults();
+    $temp_o->{AxisColour}=$o->{HardAxisColour};
+    $self->{Options}->defaults($temp_o);
   }
+  my ($hcopy, $len);
   my $wo = $self->{PlotOptions}->defaults();
+
   pgsci($wo->{Colour});
   pgask(0);
 
@@ -1700,6 +1722,7 @@ sub _thread_options {
 sub close {
   my $self=shift;
   pgclos() if $self->_status() eq 'OPEN';
+  $self->{ID}=undef;
 }
 
 =head2 options
@@ -1757,6 +1780,7 @@ Set focus for subsequent PGPLOT commands to this window.
 sub focus {
 
   my $self=shift;
+  return if !defined($self->{ID});
   my $sid; pgqid($sid);
   # Only perform a pgslct if necessary.
   pgslct($self->{ID}) unless $sid == $self->{ID};
