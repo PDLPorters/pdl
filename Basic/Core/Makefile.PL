@@ -48,6 +48,7 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 		print "\tGood, found -lc_r on a freebsd system.\n";
     }else{
 	   print "On FreeBSD try building perl with libc_r instead of libc\n";
+		$pthread_library = '';
     }
    	
 } else {
