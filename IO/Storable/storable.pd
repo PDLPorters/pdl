@@ -65,7 +65,7 @@ make_null(sv)
 	it->state |= PDL_NOMYDIMS;
 
         /* connect pdl struct to this sv */
-        sv_setiv(SvRV(sv),(IV)it);
+        sv_setiv(SvRV(sv),PTR2IV(it));
         it->sv = SvRV(sv);
         /* printf("it->sv = %d\n",it->sv); */
         PDL->SetSV_PDL(sv,it);

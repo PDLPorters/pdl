@@ -1,3 +1,6 @@
+TJ (09-Sep-02)
+    - Fix valgrind warning in pdlapi.c (use of uninitialised variable in dump)
+    - PDL::IO::Storable now uses PTR2IV
 TJ/CS (09-Sep-02)
     - Fix memory leak associated with magic
 CED (30-Aug-02)
