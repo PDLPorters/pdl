@@ -1,3 +1,4 @@
+JB  - Added a recording feature to the PGPLOT interface.
 CS  - NiceSlice doc update
 JB  (14/Aug/01)
     - Added a package wide store for options for env. This allows the
