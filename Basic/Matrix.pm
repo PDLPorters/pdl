@@ -33,13 +33,13 @@ want to read L<PDL::MatrixOps> or L<PDL::Slatec>.
 
 The original pdl class refers to the first index as the first row,
 the second index as the first column of a matrix. Consider
-     
+
   print $B = sequence(3,2)
   [
    [0 1 2]
    [3 4 5]
   ]
-  
+
 which gives a 2x3 matrix in terms of the matrix convention, but the
 constructor used (3,2). This might get more confusing when using
 slices like sequence(3,2)->slice("1:2,(0)") : with traditional
@@ -57,8 +57,8 @@ matrix. So now, the above example would be written as
    [4 5]
   ]
 
-Routines like L<eigens|eigens> or L<inv|inv> can be used without
-any changes.
+Routines like L<eigens|PDL::MatrixOps/eigens> or
+L<inv|PDL::MatrixOps/inv> can be used without any changes.
 
 Furthermore one can construct and use vectors as n x 1 matrices
 without mentioning the second index '1'.
