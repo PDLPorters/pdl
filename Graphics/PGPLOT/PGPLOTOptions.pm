@@ -90,6 +90,10 @@ instance.
 
 The position of the plot in normalised coordinates.
 
+=item NoErase
+
+Allows plotting multiple panels on one plot, normally used with 'PlotPosition'.
+
 =back
 
 =head2 Plot specific options
@@ -142,6 +146,7 @@ sub default_options {
 	    Justify     => 0,
 	    Border      => 0,
 	    CharSize    => 1,     # Character size for annotation
+	    NoErase     => 0,
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
 
@@ -161,10 +166,16 @@ sub default_options {
 	   Axis	       => 0,	 # Standard axis-type
 	   Transform   => undef, # The transform used for plots.
 	   LineWidth   => 1,
-	   ArrowSize   => 1,
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.
-	   Arrow       => {FS => 1, Angle => 45.0, Vent => 0.3, ArrowSize => 1},
+	   # Note that the arrowsize is implemented as a synonym for the
+	   # charsize this should not cause any problems but might be worth
+	   # noting...
+	   # In addition to this the arrowsize below is also set to be undefined
+	   # by default which will automatically use the character size.
+	   # All these problems are historical..
+	   Arrow       => {FS => 1, Angle => 45.0, Vent => 0.3,
+			   ArrowSize => undef},
 	   Hatch       => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
 	   XTitle      => '',    # Label for X-axis
 	   YTitle      => '',    # Label for Y-axis
@@ -175,7 +186,7 @@ sub default_options {
   # Now for the synonyms
   my $s = {Color => 'Colour', 'Line-style' => 'LineStyle',
 	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch',
-	   FillType => 'Fill'};
+	   FillType => 'Fill', 'ArrowSize' => 'CharSize'};
   #
   # And now for the lookup tables..
   #
