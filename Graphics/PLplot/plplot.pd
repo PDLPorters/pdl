@@ -1746,7 +1746,7 @@ void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *t
 #void c_plot3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt, PLINT side); # must handle ** parms separately
 #void c_plotsh3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT side); # must handle ** parms separately
 void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
-void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
+#void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
 void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
 void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);            
 void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc);
@@ -1941,6 +1941,14 @@ pp_def ('plParseOpts',
                 free (args);
         ',
 );
+
+# Plots a character at the specified points
+ 
+pp_def ('plpoin',
+         Pars => 'x(n); y(n); int code()',
+         GenericTypes => [D],
+         Code => 'c_plpoin($SIZE(n),$P(x),$P(y),$code());'
+        );
 
 pp_done();
 
