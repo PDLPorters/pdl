@@ -4,11 +4,10 @@ pp_addpm({At=>Top},<<'EOD');
 
 PDL::Image2D - Miscellaneous 2D image processing functions
 
-
 =head1 DESCRIPTION
 
-  Miscellaneous 2D image processing functions - for want
-  of anywhere else to put them
+Miscellaneous 2D image processing functions - for want
+of anywhere else to put them
 
 =head1 SYNOPSIS
 
@@ -56,8 +55,6 @@ void pdl_lqsortD(double* xx, int a, int b) {
 ');
 
 pp_def('conv2d', Doc=><<'EOD',
-=head2 conv2d
-
 =for ref
 
 2D convolution of an array with a kernel (smoothing)
@@ -68,13 +65,14 @@ pp_def('conv2d', Doc=><<'EOD',
 
 =for example
 
-  perldl> $smoothed = conv2d $image, ones(3,3), {Boundary => Reflect}
+ $smoothed = conv2d $image, ones(3,3), {Boundary => Reflect}
 
 =for options
 
  Boundary - controls what values are assumed for the image when kernel
             crosses its edge:
- 	    => Default  - periodic boundary conditions (i.e. wrap around axis)
+ 	    => Default  - periodic boundary conditions 
+                          (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
 
@@ -176,14 +174,11 @@ sub PDL::conv2d {
 
 
 pp_def('med2d', Doc=> <<'EOD',
-
-=head2 med2d
-
 =for ref
 
 2D median-convolution of an array with a kernel (smoothing)
 
-Note: only points in the kernel >0 are included in the median, other
+Note: only points in the kernel E<gt>0 are included in the median, other
 points are weighted by the kernel value (medianing lots of zeroes
 is rather pointless)
 
@@ -193,7 +188,7 @@ is rather pointless)
 
 =for example
 
-  perldl> $smoothed = med2d $image, ones(3,3), {Boundary => Reflect}
+ $smoothed = med2d $image, ones(3,3), {Boundary => Reflect}
 
 =for options
 
@@ -309,17 +304,15 @@ sub PDL::med2d {
 ');
 
 pp_def('patch2d', Doc=><<'EOD',
-=head2 patch2d
-
 =for ref
 
 patch bad pixels out of 2D images,
 
 =for usage
 
-$patched = patch2d $data, $bad;
+ $patched = patch2d $data, $bad;
 
-$bad is a 2D mask array where 1=bad pixel 0=good pixel. Pixels are replaced by the average
+C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel. Pixels are replaced by the average
 of their non-bad neighbours.
 
 =cut
@@ -352,8 +345,6 @@ EOD
 
 
 pp_def('max2d_ind',Doc=><<'EOD',
-=head2 max2d_ind
-
 =for ref
 
 Return value/position of maximum value in 2D image
@@ -364,7 +355,7 @@ Contributed by Tim Jeness
 
 EOD
 
-        Pars => 'a(m,n); [o]b(); int [o]c(); int[o]d();',
+        Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
         Code => '
         double cur; int curind1; int curind2;
         curind1=0;
@@ -376,20 +367,18 @@ EOD
               }
            %}
         %}
-        $b() = cur;
-        $c() = curind1;
-        $d() = curind2;
+        $val() = cur;
+        $x()   = curind1;
+        $y()   = curind2;
         ');
 
 pp_def('centroid2d',Doc=><<'EOD',
-=head2 centroid2d
-
 =for ref
 
 Refine a list of object positions in 2D image by centroiding in a box
 
-$box is the full-width of the box, i.e. the window
-is +/- $box/2
+C<$box> is the full-width of the box, i.e. the window
+is C<+/- $box/2>.
 
 =cut
 
@@ -454,7 +443,7 @@ segmented objects and fill object pixels with object number
 
 =for example
 
-perldl> $segmented = cc8compt($image>$threshold);
+ $segmented = cc8compt( $image > $threshold );
 
 =cut
 
@@ -749,8 +738,6 @@ EOD
 pp_def('bilin2d',
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
-=head2 bilin2d
-
 =for ref
 
 Bilineary maps the first piddle in the second. The
@@ -796,8 +783,6 @@ EOD
 pp_def('rescale2d',
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
-=head2 rescale2d
-
 =for ref
 
 The first piddle is rescaled to the dimensions of the second
@@ -930,7 +915,6 @@ to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
-
 
 =cut
 
