@@ -6,7 +6,7 @@ Release notes for PDL 2.3 -------------------------------
    - Inline::Pdlpp module added, which enables in-line
      PDL::PP definitions. (i.e. no Makefiles, building
       hassles for creating PP code)
-   - A Multitude of bug fixes, doc updated, and other
+   - A Multitude of bug fixes, doc updates, and other
      changes.
 	
   See the Changes file for a detailed list of changes.
