@@ -35,9 +35,9 @@ use strict;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
-=head1 Name
+=head1 NAME
 
-MatrixOps -- Matrix operations for PDLs
+PDL::MatrixOps
 
 =head1 SYNOPSIS
 
@@ -112,8 +112,6 @@ If there's something you want that isn't here, please add and document it!
 =item * Link into GSL?
 
 =back
-
-=head1 METHODS
 
 =cut
 

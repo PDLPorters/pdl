@@ -139,7 +139,7 @@ foreach (@keys) {
 }
 print "\n\n";
 
-@pack = (["matrixops.pd",MatrixOps,PDL::MatrixOps]);
+@pack = (["matrixops.pd",'MatrixOps','PDL::MatrixOps']);
 %hash = pdlpp_stdargs_int(@::pack);
 
 %seen = (); # Build object file list
