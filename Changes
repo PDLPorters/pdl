@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+CS
+    - fixed a problem with TriD: APIENTRY not defined when
+            processing glu.h (since include files are ignored)
 Doug Burke
     - improved support for bad values in r/wfits and r/wndf
     - added setbadtonan() to PDL::Bad.

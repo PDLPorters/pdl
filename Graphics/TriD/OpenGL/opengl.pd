@@ -193,7 +193,8 @@ sub cpp {
 
   open(TFILE,">/tmp/generate.h")  || die "Could not write /tmp/generate.h";
   foreach(@file){
-	 next if(/^\s*\#include\s+/);
+	 next if(/^\s*\#include\s+/);  # this is dangerous
+		# as a consequence APIENTRY is undefined and glu routines are ignored
 	 print TFILE $_;
   }
   close(TFILE);
@@ -204,11 +205,21 @@ sub cpp {
   foreach(split ' ', $Config{cppflags}){
 	 $com .= " $_" if(/-D/);
   }
-  $com .= " -D_LANGUAGE_C";  # forces prototypes of SGI GL 
+  $com .= " -D_LANGUAGE_C -DAPIENTRY=''";  # forces prototypes of SGI GL 
 
   open(FILE,"$com /tmp/generate.h |") || die "cant open $com $file|\n";
   @file = <FILE>;
   close(FILE);
+  if ($verbose) {
+	use File::Basename;
+	my $out = basename($file).".cpp";
+	open FI, ">$out" ||
+	     die "can't open temp output file $out";
+	print "outputting to $out...\n";
+	print FI "/* command: $com */\n";
+	print FI join('',@file);
+	close FI;
+  }
   return @file;
 
 }
@@ -257,7 +268,7 @@ sub getfuncs {
     if($args =~ /GLvoid\s*\*\s*\*/) { next }
 
 	 push @subnames,$name;
-	 #	print "Gen: $rt $name $args\n";
+	 print "Gen: $rt $name $args\n" if $verbose;
 	 #    push @vfuncs,"$rt,$name,V_$name,($args)";
 	 #
 	 # Ignore Display * when looking for pointers
