@@ -32,6 +32,15 @@ use IO::File;
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = new PDL::Doc (FindStdFile());
 
+# we use a private routine from Pod::Text
+# (prepare_for_output) in printmatch() in order
+# to strip away pod directives from the ref
+# string
+# --- XXX NAUGHTY NAUGHTY NAUGHTY XXX ---
+# but I couldn't (easily) see any other way to do it
+#
+use Pod::Text;
+
 # Find std file
 
 sub FindStdFile {
@@ -47,13 +56,49 @@ sub FindStdFile {
   warn "Unable to find PDL/pdldoc.db in ".join(":",@INC)."\n";
 }
 
+# used to find out how wide the screen should be
+# for printmatch() - really should check for a 
+# sensible lower limit (for printmatch >~ 40
+# would be my guess)
+#
+# taken from Pod::Text, then hacked to get it
+# to work (at least on my solaris and linux
+# machines)
+#
+sub screen_width() {
+    return $ENV{COLUMNS}
+       || (($ENV{TERMCAP} =~ /co#(\d+)/) and $1)
+       || ($^O ne 'MSWin32' and $^O ne 'dos' and 
+	   (`stty -a 2>/dev/null` =~ /columns\s*=?\s*(\d+)/) and $1)
+       || 72;                                                                   
+}
+
+# the $^W assignment stops Pod::Text::fill() from 
+# generating "Use of uninitialised values" errors
+#
 sub printmatch {
-  my @match = @_;
-  unless (@match) {
-    print "no match\n\n";
-  } else {
-    for (@match) { printf "%-15s %s\n", $_->[0], $_->[1]->{Ref}}
-  }
+    my @match = @_;
+    unless (@match) {
+	print "no match\n\n";
+    } else {
+	# XXX this is NASTY
+	$Pod::Text::indent = 0;
+	$Pod::Text::SCREEN = screen_width()-17;
+	local $^W = 0;
+	for my $m (@match) { 
+	    $_ = $m->[1]->{Ref} || "[No reference available]";
+	    Pod::Text::prepare_for_output; # adds a '\n' to $_
+	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
+	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
+	    s/\n/\n                /g;
+	    my $name = $m->[0];
+	    if ( length($name) > 15 ) { 
+		printf "%s ...\n                %s\n", $name, $_; 
+	    } else {
+		printf "%-15s %s\n", $name, $_; 
+	    }
+	}
+    }
 }
 
 =head2 apropos

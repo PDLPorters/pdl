@@ -1,4 +1,14 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+        - Improved output from apropos (aka ??) in the perldl shell:
+          1) ref string is now cleaned of any pod directives (eg C<$a> -> '$a')
+          2) the formatting has been improved, so that it fills the screen,
+             word-wraps, and indents the ref string if printed on new lines
+          3) better handling of long names 
+          As an example, try 'perldl> ?? str' before and after.
+          However, it's a *horrible* hack - using undocumented parts of
+          Pod::Text to do 1 and 2, and calculation of screen width is poor.
+          Needs testing on perl 5.6.0 for a start!
 CS
 	- applied vaffine leak fix to main branch
 	- new polyfill function (image2d.pd)
@@ -11,6 +21,8 @@ Doug Burke
         - stop wfits() from complaining when reading in the header
           of FITS files from the DSS server at STScI
         - minor clean up of write_dummy_make() Basic/Core/Dev.pm
+        - minor doc updates for PDL::Primitive and PDL::Basic
+        - converted FFTW and GSL to use write_dummy_make() in Makefile.PL
 Tim Jenness
 	- Update PDL::IO::NDF to v1.02, enhance reading of axis errors
 	  plus some bug fixes.
