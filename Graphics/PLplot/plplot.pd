@@ -1298,8 +1298,8 @@ sub colorkey {
       $y0 = $box[2] + ($i * $yinc);
       my $y1 = $y0 + $yinc;
       PDL::Graphics::PLplot::plcol1($i/$ncols);
-      PDL::Graphics::PLplot::plfill (4, PDL->new($box[0],$box[1],$box[1],$box[0]),
-				        PDL->new($y0,$y0,$y1,$y1));
+      PDL::Graphics::PLplot::plfill (PDL->new($box[0],$box[1],$box[1],$box[0]),
+				     PDL->new($y0,$y0,$y1,$y1));
     }
   } else {
     my $xinc = ($box[1] - $box[0])/$ncols;
@@ -1308,8 +1308,8 @@ sub colorkey {
       $x0 = $box[0] + ($i * $xinc);
       my $x1 = $x0 + $xinc;
       PDL::Graphics::PLplot::plcol1($i/$ncols);
-      PDL::Graphics::PLplot::plfill (4, PDL->new($x0,$x0,$x1,$x1),
-				        PDL->new($box[2],$box[3],$box[3],$box[2]));
+      PDL::Graphics::PLplot::plfill (PDL->new($x0,$x0,$x1,$x1),
+				     PDL->new($box[2],$box[3],$box[3],$box[2]));
     }
   }
 }
@@ -1707,7 +1707,7 @@ void c_pleop(void);
 void c_plerrx(PLINT n, PLFLT *xmin, PLFLT *xmax, PLFLT *y);
 void c_plerry(PLINT n, PLFLT *x, PLFLT *ymin, PLFLT *ymax);
 void c_plfamadv(void);
-void c_plfill(PLINT n, PLFLT *x, PLFLT *y);
+#void c_plfill(PLINT n, PLFLT *x, PLFLT *y);
 void c_plfill3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
 void c_plflush(void);
 void c_plfont(PLINT ifont);
@@ -1956,6 +1956,14 @@ pp_def ('plhist',
          Pars => 'data(n); datmin(); datmax(); int nbin(); int oldwin()',
          GenericTypes => [D],
          Code => 'c_plhist($SIZE(n),$P(data),$datmin(),$datmax(),$nbin(),$oldwin());'
+        );
+
+# Area fill
+
+pp_def ('plfill',
+         Pars => 'x(n); y(n)',
+         GenericTypes => [D],
+         Code => 'c_plfill($SIZE(n),$P(x),$P(y));'
         );
 
 pp_done();

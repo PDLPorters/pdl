@@ -208,7 +208,7 @@ plbox (0, 0, 0, 0, '', 'TM');
 plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,360), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0));
 for (my $i=0;$i<10;$i++) {
   plcol1($i/10);
-  plfill (4, PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
+  plfill (PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
 }
 plend1();
 
@@ -403,10 +403,3 @@ close IN; undef $tmp;
 print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
 $txt =~ s/Opened test\d*\.xfig\n//sg;
 warn $txt unless $txt =~ /\s*/;
-
-
-
-
-
-
-
