@@ -87,7 +87,13 @@ sub PDL::rfits {
                   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
       $nbytes += 80;
 
-      $name = (split(' ',substr($line,0,8)))[0]; $rest=substr($line,8);
+      # skip if the first eight characters are ' '
+      # - as seen in headers from the DSS at STScI
+      next if substr($line,0,8) eq "        ";
+
+      $name = (split(' ',substr($line,0,8)))[0]; 
+      $rest = substr($line,8);
+      
       if ($name =~ m/^HISTORY/) {
          push @history, $rest;
       } else {
