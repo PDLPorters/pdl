@@ -1785,6 +1785,7 @@ sub new {
   $this_plotopt->synonyms($s);
   $this_plotopt->warnonmissing(0);
 
+  # Modified 7/4/02 JB to add CTAB as an aspect of the window.
   my $self = {
 	      'Options'	      => $this_opt,
 	      'PlotOptions'   => $this_plotopt,
@@ -1800,6 +1801,7 @@ sub new {
 	      '_env_options'  => undef,
 	      'State'         => undef,
 	      'Recording'     => $opt->{Recording}        || $PDL::Graphics::PGPLOT::RECORDING,
+	      'CTAB'          => undef, # The default colour table
 	     };
 
   if (defined($self->{Options})) {
@@ -4268,6 +4270,8 @@ sub arrow {
     pgsitf( $itf );
     my ($i1, $i2);
     pgqcir($i1, $i2);		# Colour range - if too small use pggray dither algorithm
+
+    # Why is the PS output disabled in the following if statement??
     if ($i2-$i1<16 || $self->{Device} =~ /^v?ps$/i) {
       pggray( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
@@ -4295,6 +4299,9 @@ sub arrow {
 
 # Load a colour table using pgctab()
 
+#
+# Modified 7/4/02 JB - having the last colour table as a variable in here
+# did not work. So it is now moved to the $self hash.
 {
   # This routine doesn't really have any options at the moment, but
   # it uses the following standard variables
@@ -4304,17 +4311,17 @@ sub arrow {
   $CTAB{Fire}    = [ pdl([0,0.33,0.66,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]) ];
   $CTAB{Gray}    = $CTAB{Grey};	# Alias
   $CTAB{Igray}   = $CTAB{Igrey}; # Alias
-  my $CTAB        = undef;	# last CTAB used
 
   # It would be easy to add options though..
-
   sub _ctab_set {
-    return defined($CTAB);
+    my $self = shift;
+    return defined($self->{CTAB});
   }
 
   sub ctab {
     my $self = shift;
     my ($in, $opt)=_extract_hash(@_);
+
 
     # No arguments -- print list of tables
     if (scalar(@$in) == 0) {
@@ -4337,14 +4344,14 @@ sub arrow {
     if ($#arg>=0 && !ref($arg[0])) {       # First arg is a name not an object
       # if first arg is undef or empty string, means use last CTAB.
       # preload with Grey if no prior CTAB
-      $arg[0] = 'Grey' unless $arg[0] || $CTAB;
+      $arg[0] = 'Grey' unless $arg[0] || $self->{CTAB};
 
       # now check if we're using the last one specified
       if ( ! $arg[0] ) {
 	shift @arg;
-	unshift @arg, @{$CTAB->{ctab}};
-	$brightness = $CTAB->{brightness};
-	$contrast = $CTAB->{contrast};
+	unshift @arg, @{$self-{CTAB}->{ctab}};
+	$brightness = $self->{CTAB}->{brightness};
+	$contrast = $self->{CTAB}->{contrast};
       } else {
 	my $name = ucfirst(lc(shift @arg)); # My convention is $CTAB{Grey} etc...
 	barf "$name is not a standard colour table" unless defined $CTAB{$name};
@@ -4389,7 +4396,7 @@ EOD
 
     pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	    $blue->get_dataref, $n, $contrast, $brightness );
-    $CTAB = { ctab => [ $levels, $red, $green, $blue ],
+    $self->{CTAB} = { ctab => [ $levels, $red, $green, $blue ],
 	      brightness => $brightness,
 	      contrast => $contrast
 	    };			# Loaded
@@ -4404,8 +4411,9 @@ EOD
     my ($in, $opt)=_extract_hash(@_);
     barf 'Usage: ctab_info( )' if $#$in> -1;
 
-    return () unless $CTAB;
-    return @{$CTAB->{ctab}}, $CTAB->{contrast}, $CTAB->{brightness};
+    return () unless $self->{CTAB};
+    return @{$self->{CTAB}->{ctab}}, $self-{CTAB}->{contrast},
+      $self->{CTAB}->{brightness};
   }
 }
 
