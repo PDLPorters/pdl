@@ -393,9 +393,6 @@ if($^O !~ /mswin32/i) {
    $cleanup = 'pdl ' . $cleanup;
    }
 
-# Write a temporary Basic/Core/Config.pm for dmake (Win32) ... it later gets overwritten.
-if($Config{make} eq 'dmake') {make_PDL_Config_pm();}
-
 WriteMakefile(
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
@@ -426,8 +423,6 @@ WriteMakefile(
 
 # do *after* WriteMakefile since some options
 # are set by the recursively called Makefile.PLs
-# Using dmake (Win32) this was done prior to WriteMakefile - and now we overwrite it
-
 make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
