@@ -1,3 +1,5 @@
+CED 12-31-03
+   - Cleared out cruft from MatrixOps build process.
 CED 12-29-03
    - PLPlot Makefile.PL prints more informative messages during configure
    - Added crash test to t/plplot.t
