@@ -798,8 +798,17 @@ use overload
 
 # overwrite PDL's overloading to honour subclass methods in + - * /
 { package PDL;
-  use overload ( map { $_ => $PDL::bop_sbclasschk{$_}} @PDL::biops1);
-}
+        my $warningFlag;
+        # This strange usage of BEGINs is to ensure the
+        # warning messages get disabled and enabled in the
+        # proper order. Without the BEGIN's the 'use overload'
+        #  would be called first.
+        BEGIN {$warningFlag = $^W; # Temporarily disable warnings caused by 
+               $^W = 0;            # redefining PDL's subs
+              }
+        use overload ( map { $_ => $PDL::bop_sbclasschk{$_}} @PDL::biops1);
+        BEGIN{ $^W = $warningFlag;} # Put Back Warnings  
+};
 
 =head1 AUTHOR
 

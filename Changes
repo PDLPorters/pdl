@@ -1,6 +1,8 @@
 (!!! = possible source of incompatibilities)
 2.004
-
+John Cerney (3/5/00)
+	- Modified Basic/Complex/Complex.pd to not generate warning messages
+          when re-defining the PDL overloaded operator subs.
 Doug Burke
         - IO::Misc - default type for DEFTYPE (rcols option) is now definable 
           using the $PDL::IO::Misc::deftype variable.
