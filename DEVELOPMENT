@@ -26,7 +26,7 @@ nice concise one is at
 
   http://www.cyclic.com/cvs/doc-blandy-text.html
 
-and a very good/complete ome is the online version of the CVS book at
+and a very good/complete one is the online version of the CVS book at
 
   http://cvsbook.red-bean.com/cvsbook.html
 
@@ -42,7 +42,6 @@ PDL CVS repository.
     - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files if
       applicable.
 
-
 2) Remember to include POD documentation for any functions you add to 
    the distribution. 
     - See Basic/Core/Core.pm for an example of including POD
@@ -54,7 +53,10 @@ PDL CVS repository.
 
 2) Make sure you add a test case in the 't' directory for any
    significant additional capability you add to the PDL package.
-
+   Please use one the Test module available within Perl - ie
+   "use Test;" - rather than doing-it-yourself as most of our tests
+   do!
+   
 3) Don't commit before you successfully built and passed 'make
    test'. But then again, don't keep your changes private for too long
    to avoid conflicts with other developers.
@@ -105,7 +107,6 @@ PDL since there will only be one place they need to change if the
 default value causes problems.
 
 This *includes* test cases as well as for Makefile.PL's!
-
 
 Creating a new CVS branch:
 --------------------------
