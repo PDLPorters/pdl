@@ -3,6 +3,9 @@ CED (27-Aug-02)
     - pdl_malloc call is now via PDL Core structure, avoiding
 	complete failure of the test suite :-)
     - extra debugging fprintf() calls deleted.
+    - range() is a front-end to rangeb(), allowing omission of optional
+	arguments.
+    - rangeb handles boundary conditions.
 CED (26-Aug-02)
     - slices.pd: added range (PP implementation)
     - Incremented core_version in pdlcore.h.PL

@@ -240,7 +240,7 @@ pp_def(
 
 # indexND: CED 2-Aug-2002
 pp_add_exported('','indexND indexNDb');
-pp_addpm(<<'EOD');
+pp_addpm(<<'EOD-indexND');
 
 =head2 indexND
 
@@ -373,10 +373,16 @@ sub PDL::indexND {
 	      -> reshape((@idims,@extra_dims))
 	  );
 }
+EOD-indexND
+
+
+pp_addpm(<<'EOD-indexNDb');
 
 =head2 indexNDb
 
-=for Find selected elements in an N-D piddle, with boundary handling
+=for ref
+
+Find selected elements in an N-D piddle, with boundary handling
 
 =for example
 
@@ -475,124 +481,76 @@ sub PDL::indexNDb{
   return $retval;
 }
 
-=head2 rangeND
+EOD-indexNDb
 
-=for ref
+pp_addpm(<<'EOD-range');
 
-Return selected rectangles from a piddle, indexed by another piddle.
+sub PDL::range {
+ my($source,$index,$size,$bound) = @_;
+ 
+ $size = 1 unless defined($size);
+ $bound = 0 unless defined($bound);
 
-=for example
-
-   $out = $source->rangeND($index, [$size], [$step])
-
-   $source = 10*xvals(10,10) + yvals(10,10);
-   $index = pdl(2,5); $size = pdl(2,3);
-   print $source->rangeND($index,$size);
-
-   [
-    [25 35]
-    [26 36]
-    [27 37]
-   ]
-
-Returns rectangular slices from a piddle, indexed by a vector and size piddle
-
-The C<$index> is a piddle whose 0th dimension contains index coordinates into C<$source>,
-as in L<indexND|indexND>; you may thread over other dimensions.  C<$size> may be a scalar
-or match the 0th dimension of C<$index>; it determines the size of the returned chunk of the
-C<$source> piddle.  If C<$size> is omitted then it defaults to 1, which is equivalent
-to calling L<indexND|indexND>.
-
-rangeND is implemented in perl rather than C, so it probably isnt as fast as it could be.
-For single rectangles, it should be pretty quick, but in the threaded case, it works
-via multiple calls to L<slice|slice> so improvement is very possible!  
-
-Just now rangeND loses dataflow for threaded-index cases.  Hopefully this will be fixed.
-
-rangeND doesn't check boundaries.  One day we'll have rangeNDb (by analogy to 
-L<indexNDb|indexNDb>).
-
-=cut
-
-sub PDL::rangeND {
-  my($source) = shift;
-  my($ipdl) = shift;
-  my($size) = shift;
-  my($step) = shift;
-
-  barf('rangeND requires PDL first and second arguments!\n') unless
-    (UNIVERSAL::isa($source,'PDL') && UNIVERSAL::isa($ipdl,'PDL'));
-
-  $size = PDL::pdl('PDL',defined($size) ? $size : 1) unless UNIVERSAL::isa($size,'PDL');
-  $step = PDL::pdl('PDL',defined($step) ? $step : 1) unless UNIVERSAL::isa($step,'PDL');
-
-  my(@sdim) = $source->dims;
-  my($idim,@thread_dims) = $ipdl->dims;
-
-  barf('rangeND: size and step must be 1-D\n') 
-    if($size->getndims > 1 || $step->getndims > 1);
-  
-  $size = $size->dummy(0,$idim)->flat  if($size->nelem == 1);
-  $step = $step->dummy(0,$idim)->flat  if($step->nelem == 1);
-
-  $size = long($size + 0.5);
-  $step = long($step + 0.5);
-  $ipdl = long($ipdl + 0.5);
-
-  barf('rangeND: size and/or step must match index 0th dimension\n') 
-    if($size->dim(0) != $ipdl->dim(0) || $step->dim(0) != $ipdl->dim(0));
-    
-  
-  if(scalar(@thread_dims)) {
-    # Lamest possible threading -- recurse for all elements.
-    # First make a long list, then cat it, then reshape that.
-    my($i2) = $ipdl->reorder(1..scalar(@thread_dims),0)->clump(scalar(@thread_dims));
-    my(@temp);
-    my($i);
-    for($i=0;$i<$i2->dim(0);$i++) {
-      push(@temp,$source->rangeND($i2->slice("($i)"),$size,$step));
-    }
-    return cat(@temp)->reshape($temp[0]->dims,@thread_dims);
-
-  } else {
-    # No-threading case:  just take the slice and return it.
-    my(@slstr);
-    my($i);
-    for($i=0;$i<$idim;$i++) {
-      $slstr[$i] = $ipdl->at($i) . ':' . ( $size->at($i) + $ipdl->at($i) - 1 ) . 
-	':' . $step->at($i);
-    }
-
-    return $source->slice(join(",",@slstr));
-  }
+ $source->rangeb($index,$size,$bound);
 }
-			     
-    
-  
+EOD-range
 
-EOD
 
 pp_def(
-	'range',
+	'rangeb',
 	Doc => <<'EOD',
 =for ref
 
-Extract selected chunks from a source piddle.
+Extract selected chunks from a source piddle, with boundary conditions
 
 =for example
 
-	$out = $source->range($indices,$size)
+	$out = $source->range($indices,[$size,[$boundary]])
 
-Returns a rectangular slice of the original piddle, indexed by another piddle.
+Returns a rectangular slice of the original piddle, indexed by the index
+piddle.
 
 $source is an N-dimensional piddle, and $indices is a 2-dimensional
 NxM-piddle, specifying M separate ranges to extract into the single
-return piddle.  (You may omit the second dimension if M=1).  $size may
-be either a scalar or an N-piddle, and it specifies the dimensions of
-the output array.
+return piddle.  (You may omit the second dimension if M=1).  
+
+$size may be either a scalar or an N-piddle, and it specifies the
+dimensions of the output array.  If you want only single elements, you
+may omit $size. 
+
+$boundary is a single number or string, indicating the type of boundary
+conditions to use when ranges reach the edge of $source:
+
+=over 3
+
+=item 0 (synonyms: 'f','forbid') B<(default)>
+
+Ranges aren't allowed to cross the boundary of the original PDL.  Disallowed
+ranges throw an error.  The errors are thrown at evaluation time, not
+at the time of the range call (this is the same behavior as L<slice|slice>).
+
+=item 1 (synonyms: 't','truncate')
+
+Values outside the original piddle get 0 or BAD.  Reverse dataflow is disabled
+when this option is set.  B<NOT IMPLEMENTED YET>
+
+=item 2 (synonyms: 'e','extend')
+
+Values that would be outside the original piddle point instead to the 
+nearest allowed value within the piddle.  See the CAVEAT below on reverse 
+mappings that aren't single valued.
+
+=item 3 (synonyms: 'p','periodic')
+
+Periodic boundary conditions apply: the numbers in $index are applied,
+strict-modulo the corresponding dimensions of $source.  This is equivalent to
+duplicating the $source piddle throughout dimension space.
+
+=back
 
 Dimensions of $source are threaded over -- ie if $source has N+K dimensions
-then the $out gets K extra dimensions.
+then the $out gets K extra dimensions, each of which runs over the full
+size of the corresponding dimension in $source.
 
 C<range> does single-list threading over the index.  Because implicit
 threading can happen in two ways, a little thought is needed.
@@ -605,7 +563,7 @@ range.  That's to avoid confusion between the list thread dim and possible
 implicit thread dims at the end of the dimension list.
 
 
-B<Dataflow>: Dataflow is bidirectional.  
+B<Dataflow>: Dataflow is bidirectional.
 
 B<Examples>:
 Here are basic examples of C<range> operation, showing how to get 
@@ -642,6 +600,20 @@ how to mark loci in the original matrix (using dataflow).
      [23 33]
     ]
 
+    perldl> $src = xvals(5,3)*10+yvals(5,3)
+    perldl> print $src->range(3,1)  /* Thread over y dimension in $src */
+    [
+     [
+      [30]
+     ]
+     [
+      [31]
+     ]
+     [
+      [32]
+     ]
+    ]
+   
     perldl> $src = zeroes(5,4);
     perldl> $src->range(pdl([2,3],[0,1]),pdl(2,1)) .= xvals(2,2,1) + 1
     perldl> print $src
@@ -670,8 +642,11 @@ involves lookup into a single list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
 is somewhat slower than for affine transformations (which don't have
 to copy data around).  Thus, if you have a few very large (order of
-10^5 element) chunks, you might find that perl lists of ordinary
+10^4 element) chunks, you might find that perl lists of ordinary
 slices are faster.
+
+C<range> is a perl front-end to a PP function, C<rangeb>.  Calling
+C<rangeb> is marginally faster but requires that you include all arguments.
 
 =cut
 EOD
@@ -682,7 +657,7 @@ EOD
 # Get all parameters in as SVs even though they're meant to be interpreted
 # as PDLs -- because the PP signature syntax can't handle the cross-level
 # comparison between order of 0th dimension and number of dimensions.
-	OtherPars => 'SV *index; SV *size;',
+	OtherPars => 'SV *index; SV *size; SV *boundary',
 
 # nitems: number of list elements
 # idim:   dimensions of the index (size of parallelpiped)
@@ -697,6 +672,7 @@ EOD
 		 long poff[$COMP(nitems)];
 		 long sizes[$COMP(idim)];
 		 long ctr[$COMP(idim) + PDL_NDIMS];
+	         short boundary;
 		 ',
 #
 # MakeComp is complicated a bit by the fact that (as of 21-Aug-2002)
@@ -714,6 +690,40 @@ EOD
 		pdl *size_pdl;
 		long i,j;
 		
+
+		/***
+		* Check and condition the boundary parameter
+		*/
+		{
+		 char *s;
+		 STRLEN len;
+		 SV *foo;
+		 if(SvROK(boundary))
+			foo = SvRV(boundary);
+		 else
+			foo = boundary;
+		
+		 s = SvPV(boundary,len);
+		 switch(*s) {
+			case '0': case 'f': case 'F': default:
+			/* forbid */ 
+			  $COMP(boundary) = 0;
+			  break;
+			case '1': case 't': case 'T': 
+		        /* truncate */
+			  $CROAK("Truncation not yet allowed");
+			  break;
+	  	        case '2': case 'e': case 'E':
+			/* extend */
+			 $COMP(boundary) = 2;
+			 break;
+			case '3': case 'p': case 'P':
+			/* periodic */
+			 $COMP(boundary) = 3;
+			 break;
+	         }
+		}
+
 		/***
 		* Check and condition the index piddle
 		* Some of this is apparently done by XS -- but
@@ -887,8 +897,11 @@ EOD-MakeComp
 		   ulim= (i<($PARENT(ndims))) ? ( $PARENT(dims[i])) : 1 ;
 
 		   for(k=0;k< ($COMP(nitems)) ; k++) {
-		      if(($COMP(lowerbound)[ k * ($COMP(idim)) + i] < 0) ||
-			 ($COMP(upperbound)[ k * ($COMP(idim)) + i] >= ulim)) {
+			
+		      /* Check range if boundary conditions are turned off */
+		      if(!($COMP(boundary)) && 
+			 (($COMP(lowerbound)[ k * ($COMP(idim)) + i] < 0) ||
+			 ($COMP(upperbound)[ k * ($COMP(idim)) + i] >= ulim))) {
 			   $CHILD(ndims) = 0;
 			   $SETNDIMS(0);
 			   $SETDIMS();
@@ -941,33 +954,113 @@ EOD-RedoDims
 		for(dim=0;dim<($CHILD_P(ndims));dim++)
 			ctr[dim] = 0;
 
-/* 	fprintf(stderr,"Doing big ol' loop...\n");*/
-		do {
-		   ptoff = ctoff = 0;
-
-		   /* Calculate offset within each individual range */
-		   for(dim=0; dim < ($CHILD_P(ndims))-1; dim++) {
-		      if(dim < ($PARENT_P(ndims))) 
-			ptoff += ($PARENT_P(dimincs))[dim] * ctr[dim];
-		      ctoff += ($CHILD_P(dimincs))[dim+1] * ctr[dim];
-		   }
+		/* No boundary condition case:  the offsets are linearly
+		 * related, so we can calculate an overall offset for 
+		 * position within the range, and then loop over 
+		 * items (ranges), adding offsets as we go.
+		 * -CED
+		 */
+		if($COMP(boundary) == 0){
+			do {
+			   ptoff = ctoff = 0;
 	
-		   /* Copy the item for all ranges */
-		   for(item = 0; item < $COMP(nitems); item++) {
-			/* temp vars work around nested-expansion bug in PP */
-			long a = $CHILD_P(dimincs[0])*item + ctoff;
-			long b = $COMP(poff[item])         + ptoff;
-			$EQUIVCPOFFS(a,b);
-		   }
+			   /* Calculate offset within each individual range */
+			   for(dim=0; dim < ($CHILD_P(ndims))-1; dim++) {
+			      if(dim < ($PARENT_P(ndims))) 
+				ptoff += ($PARENT_P(dimincs))[dim] * ctr[dim];
+			      ctoff += ($CHILD_P(dimincs))[dim+1] * ctr[dim];
+			   }
+	
+			   /* No boundary condition handling */
+			   for(item = 0; item < $COMP(nitems); item++) {
+				long a = $CHILD_P(dimincs[0])*item + ctoff;
+				long b = $COMP(poff[item])         + ptoff;
+				$EQUIVCPOFFS(a,b);
+			   }
+				
+	
+			   /* Increment element within range */
+			   for(dim=1; dim < ($CHILD_P(ndims));  dim++) {
+				if( (++(ctr[dim-1])) >= $CHILD_P(dims[dim]))
+					ctr[dim-1] = 0;
+				else
+					break;
+			   }
+			} while(dim < $CHILD_P(ndims)); /* Checks result of inc loop */
+		} else { 
+		  /* Boundary condition case: the offsets aren't necessarily
+		   * linearly related.  This stuff is pretty stoopid: we just
+		   * explicitly recalculate the offset for every single point,
+		   * truncating or periodicizing or whatever for every 
+		   * offset.  It can be improved by perhaps 30% by being 
+		   * smarter about evaluation order, (like un-nesting the
+		   * switch) but I'm too lazy to do it.  Wait for Moore's Law
+		   * [ (18 months) * log_2(1/30%) ] instead. :-)
+		   * -CED
+		   */
+		  do {
+		    for(item = 0; item < $COMP(nitems); item++) {
+			long a;
 
-		   /* Increment element within range */
-		   for(dim=1; dim < ($CHILD_P(ndims));  dim++) {
-			if( (++(ctr[dim-1])) >= $CHILD_P(dims[dim]))
-				ctr[dim-1] = 0;
-			else
+
+		      /* Calculate offset (with mods) within each range */
+		      ptoff = ctoff = 0;
+
+		      switch($COMP(boundary)) {
+
+		        case 1: /* truncation */
+				/* barf because $CROAK mysteriously fails */
+			      barf("rangeb debug" "truncation not allowed (yet) (This can't happen! Go away!)"); 
+			      break;
+
+			case 2: /* extension -- crop parent dims */
+
+			      for(dim=0;dim<($CHILD_P(ndims))-1;dim++) {
+				long pd = ctr[dim] + $COMP(lowerbound[item*$COMP(idim)+dim]);
+				if(pd < 0) 
+					pd=0;
+				else if(pd >= $PARENT_P(dims[dim]))
+					pd = $PARENT_P(dims[dim])-1;
+
+				
+				ptoff += ($PARENT_P(dimincs))[dim] * pd;
+				ctoff += ($CHILD_P(dimincs))[dim+1] * ctr[dim];
+			      }
+			      break;	
+
+			case 3: /* periodic -- parent dims modulo size */
+			      for(dim=0;dim<($CHILD_P(ndims))-1;dim++) {
+				long pd = ctr[dim] + $COMP(lowerbound[item*$COMP(idim)+dim]);
+				if(pd < 0) /* Fold up to above zero */
+					pd += pd * $PARENT_P(dims[dim]);
+				pd %= $PARENT_P(dims[dim]);
+				ptoff += ($PARENT_P(dimincs))[dim] * pd;
+				ctoff += ($CHILD_P(dimincs))[dim+1]*ctr[dim];
+			      }
+			      break;
+
+			default:
+				/* barf because $CROAK mysteriously fails */
+				barf("rangeb debug" "Unknown boundary condition code! This can't happen -- go away!");
 				break;
-		   }
-		} while(dim < $CHILD_P(ndims)); /* Checks result of inc loop */
+		      } /* end of switch */
+
+		      /* Do the actual data copy */
+		      a = $CHILD_P(dimincs[0])*item + ctoff;
+		      $EQUIVCPOFFS(a,ptoff);
+
+		    } /* end of item code */
+		
+		    /* Increment element within range */
+		    for(dim=1; dim < ($CHILD_P(ndims));  dim++) {
+		      if( (++(ctr[dim-1])) >= $CHILD_P(dims[dim]))
+			ctr[dim-1] = 0;
+		      else
+			break;
+		    }
+		  } while(dim < $CHILD_P(ndims)); /* Checks result of inc loop */
+		}
+
 EOD-EquivCPOffsCode
 
 );
