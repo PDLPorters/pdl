@@ -3229,7 +3229,7 @@ sub label_axes {
   # the user directly and by env... Let's see.
   $self->_add_to_state(\&label_axes, $in, $opt);
 
-  barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
+  barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 3;
 
   my ($xtitle, $ytitle, $title)=@$in;
 
@@ -4562,10 +4562,15 @@ sub fits_imag {
   delete $opt2{xtitle};
   delete $opt2{ytitle};
   delete $opt2{title};
+
+  my($min) = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
+  my($max) = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
+  my($unit)= $pdl->gethdr->{BUNIT} || "DN";
+  my($rangestr) = " ( $min - $max $unit ) ";
   $pane->imag1($pdl,\%opt2);
   $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
 		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
-		    $opt->{title},$opt
+		    $opt->{title} . $rangestr,$opt
 		    );
 }
 
