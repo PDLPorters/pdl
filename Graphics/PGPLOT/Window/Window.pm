@@ -1882,9 +1882,11 @@ C<&release_signals> below, and the signal_catcher will queue up any
 signals (like INT -- the control-C interrupt) until the
 C<&release_signals> call.
 
-Any exit path (including C<barf()>) from your hot code must include
-C<&release_signals>, or interrupts could be deferred indefinitely (which
-would be a bug).
+Any exit path from your hot code must include C<&release_signals>, or
+interrupts could be deferred indefinitely (which would be a bug).
+This includes calls to C<&barf> -- even barfs from someone you called!
+So avoid calling out of the local module if possible, and use 
+release_and_barf() instead of barf() from within this module.
 
 =cut
 
@@ -1899,7 +1901,7 @@ sub signal_catcher {
   if($sig eq '__DIE__') {
     return unless defined $^S;  # Don't do anything during parsing of an eval
     $sig_nest = 1;              # Unwrap all nests when dying
-    release_signals();
+    &release_signals;
     &{$SIG{__DIE__}}($sig) if defined($SIG{__DIE__});
     return;
   }
@@ -1907,7 +1909,7 @@ sub signal_catcher {
   # Print message if debugging is on or on multiple INT signals
   print STDERR "PDL::Graphics::PGPLOT::Window: Caught signal '$sig'\n" if($PDL::debug || ($sig_log{$sig} && ($sig eq 'INT')));
 
-  release_signals() if($sig_log{$sig}>2 && ($sig eq 'INT'));
+  &release_signals if($sig_log{$sig}>2 && ($sig eq 'INT'));
 
   push(@sig_log,$sig);
   $sig_log{$sig}++;
@@ -1952,6 +1954,12 @@ sub release_signals {
     $sig_log{$_}=0;
     kill $_,$$;
   }
+}
+
+sub release_and_barf {
+  $sig_nest = 1;
+  &release_signals;
+  barf(@_);
 }
 
 #
@@ -2128,10 +2136,9 @@ sub _open_new_window {
 
   &catch_signals;
   my $window_nr = pgopen($self->{Device});
-  if ($window_nr < 0) {
-      &release_signals;
-      barf("Opening new window (pgopen) failed: $window_nr\n");
-  }
+  release_and_barf("Opening new window (pgopen) failed: $window_nr\n")
+    if ($window_nr < 0);
+
   $self->{ID} = $window_nr;
   $self->{Name} = "Window$window_nr" if $self->{Name} eq "";
 
@@ -2359,10 +2366,10 @@ sub _reopen {
 
   &catch_signals;
   my $window_nr = pgopen($self->{Device});
-  if ($window_nr < 0) {
-    &release_signals;
-    barf("Opening new window (pgopen) failed: $window_nr\n");
-  }
+
+  release_and_barf("Opening new window (pgopen) failed: $window_nr\n")
+    if ($window_nr < 0);
+  
   $self->{ID} = $window_nr;
 
   $self->_setup_window(@parameters);
@@ -2730,7 +2737,7 @@ sub panel {
     $ypos=$i % $self->{NY};
     $xpos++; $ypos++;		# Because PGPLOT starts at 1..
   } else {
-    barf <<'EOD'
+    release_and_barf <<'EOD'
  Usage: panel($xpos, $ypos);   or
         panel([$xpos, $ypos]); or
         panel($index);
@@ -2847,7 +2854,7 @@ sub _parse_options {
   ## Should do something sensible if $opt is no options object f.i.
   if (defined($oin) && ref($oin) ne 'HASH') {
     my ($package, $file, $line, $sub)=caller(1);
-    barf "_parse_options called by $sub with non-hash options element!";
+    release_and_barf "_parse_options called by $sub with non-hash options element!";
   } elsif (!defined($oin)) {
     my ($package, $file, $line, $sub)=caller(1);
     warn "_parse_options called by $sub without an options hash! - continuing\n";
@@ -2925,7 +2932,7 @@ sub _checkarg {			# Check/alter arguments utility
     my $n=nelem(which(pdl($arg->dims)==1));
     if (($arg->getndims-$n) > $dims) {
       $ok = 0;
-      barf "Data is >".$dims."D" unless $nobarf;
+      release_and_barf "Data is >".$dims."D" unless $nobarf;
     } else {
       my $count=0;      my $qq;
       my $s=join ',',
@@ -2956,7 +2963,7 @@ sub _checkarg {			# Check/alter arguments utility
 #
 sub _store {
     my $self = shift;
-    barf 'Usage: _store( $self, $name, $item )' unless $#_ == 1;
+    release_and_barf 'Usage: _store( $self, $name, $item )' unless $#_ == 1;
 
     my $name   = shift;
     my $object = shift;
@@ -2976,11 +2983,11 @@ sub _store {
 #
 sub _retrieve {
     my $self = shift;
-    barf 'Usage: _retrieve( $self, $name )' unless $#_ == 0;
+    release_and_barf 'Usage: _retrieve( $self, $name )' unless $#_ == 0;
 
     my $name = shift;
 
-    barf "Internal error: no storage space in object"
+    release_and_barf "Internal error: no storage space in object"
 	unless exists $self->{_horrible_storage_space};
 
     if ( exists $self->{_horrible_storage_space}{$name} ) {
@@ -3243,7 +3250,7 @@ sub _SetupViewport {
     # Set standard viewport
     pgvstd();
   } else {
-    barf "The PlotPosition must be given as an array reference!" unless
+    release_and_barf "The PlotPosition must be given as an array reference!" unless
       ref($o->{PlotPosition}) eq 'ARRAY';
     my ($x1, $x2, $y1, $y2)=@{$o->{PlotPosition}};
     pgsvp ($x1, $x2, $y1, $y2);
@@ -3295,11 +3302,11 @@ sub initenv{
     $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30 ||
 		    $o->{Axis}[1] =~ /BCLNST/) ? 1 : 0;
     ($xmin,$xmax) = map {
-      barf "plot boundaries not positive in logx-mode" if $_ <= 0;
+      release_and_barf "plot boundaries not positive in logx-mode" if $_ <= 0;
       log($_)/log(10) } ($xmin,$xmax)
 	if $self->{Logx};
     ($ymin,$ymax) = map { 
-      barf "plot boundaries not positive in logy-mode" if $_ <= 0;
+      release_and_barf "plot boundaries not positive in logy-mode" if $_ <= 0;
       log($_)/log(10) } ($ymin,$ymax)
 	if $self->{Logy};
   }
@@ -3471,7 +3478,7 @@ sub label_axes {
   # the user directly and by env... Let's see.
   $self->_add_to_state(\&label_axes, $in, $opt);
 
-  barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 3;
+  release_and_barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 3;
 
   my ($xtitle, $ytitle, $title)=@$in;
 
@@ -3560,7 +3567,7 @@ sub env {
       $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
   }
 
-  barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
+  release_and_barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
     if ($#_==-1 && !defined($self->{_env_options}) && !defined($PREVIOUS_ENV)) || 
       ($#_>=0 && $#_<=2) || $#_>6;
   my(@args);
@@ -3607,14 +3614,14 @@ sub env {
 
     &catch_signals;
 
-    barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
+    release_and_barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
     $self->_checkarg($x,1);
 
     my $n = nelem($x);
     if ($#$in==1) {
-      $self->_checkarg($data,1); barf '$x and $y must be same size' if $n!=nelem($data);
+      $self->_checkarg($data,1); release_and_barf '$x and $y must be same size' if $n!=nelem($data);
     } else {
       $data = $x; $x = float(sequence($n));
     }
@@ -3712,14 +3719,14 @@ sub env {
 		($x_pix, $y_pix) = @{$o->{ImageDims}};
 	    }
 	    else {
-		barf "Image dimensions must be given as an array reference!";
+		release_and_barf "Image dimensions must be given as an array reference!";
 	    }
 	} 
 	
 	# The user has to pass the dimensions of the image somehow, so this
 	# is a good point to check whether he/she/it has done so.
 	unless (defined($x_pix) && defined($y_pix)) {
-	  barf "You must pass the image dimensions to the transform routine\n";
+	  release_and_barf "You must pass the image dimensions to the transform routine\n";
 	}
 
 	# The RefPos option gives more flexibility than
@@ -3742,13 +3749,13 @@ sub env {
 	}
 	elsif ( defined $o->{RefPos} ) {
 	    my $aref = $o->{RefPos};
-	    barf "RefPos option must be sent an array reference.\n"
+	    release_and_barf "RefPos option must be sent an array reference.\n"
 		unless ref($aref) eq 'ARRAY';
-	    barf "RefPos must be a 2-element array reference\n"
+	    release_and_barf "RefPos must be a 2-element array reference\n"
 		unless $#$aref == 1;
 	    my $pixref  = $aref->[0];
 	    my $wrldref = $aref->[1];
-	    barf "Elements of RefPos must be 2-element array references\n"
+	    release_and_barf "Elements of RefPos must be 2-element array references\n"
 		unless $#$pixref == 1 and $#$wrldref == 1;
 
 	    ($xref_pix,  $yref_pix)  = @{$pixref};
@@ -3824,7 +3831,7 @@ sub env {
     my ($in, $opt)=_extract_hash(@_);
     $self->_add_to_state(\&cont, $in, $opt);
 
-    barf 'Usage: cont ( $image, %options )' if $#$in<0;
+    release_and_barf 'Usage: cont ( $image, %options )' if $#$in<0;
 
     &catch_signals;
 
@@ -3865,7 +3872,7 @@ sub env {
 
     if (defined($tr)) {
       $self->_checkarg($tr,1);
-      barf '$transform incorrect' if nelem($tr)!=6;
+      release_and_barf '$transform incorrect' if nelem($tr)!=6;
     } else {
       $tr = float [0,1,0, 0,0,1];
     }
@@ -3909,7 +3916,7 @@ sub env {
 	$fillcontours = $fillcontours->dummy(0,3);
       } elsif (($fillcontours->getdim(1) != $ncont - 1) ||
 	       ($fillcontours->getdim(0) != 3)) {
-	barf "Argh, wrong dims in filled contours!";
+	release_and_barf "Argh, wrong dims in filled contours!";
       }
       my ($cr, $cg, $cb, $i);
       pgqcr(16, $cr, $cg, $cb); # Save color index 16
@@ -3994,7 +4001,7 @@ EOD
     &catch_signals;
 
     $opt = {} if !defined($opt);
-    barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
+    release_and_barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
  Usage: errb ( $y, $yerrors [, $options] )
 	errb ( $x, $y, $yerrors [, $options] )
 	errb ( $x, $y, $xerrors, $yerrors [, $options])
@@ -4006,7 +4013,7 @@ EOD
     for (@t) {
       $self->_checkarg($_, 1);
       $n = nelem($_) if $i++ == 0;
-      barf "Args must have same size" if nelem($_)!=$n;
+      release_and_barf "Args must have same size" if nelem($_)!=$n;
     }
     my $x = $#t==1 ? float(sequence($n)) : $t[0];
     my $y = $#t==1 ? $t[0] : $t[1];
@@ -4092,7 +4099,7 @@ sub tline {
   $self->_add_to_state(\&tline, $in, $opt);
   $opt={} if !defined($opt);
 
-  barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
+  release_and_barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
   my ($x, $y)=@$in;
   if (!defined($line_options)) {
     $line_options=$self->{PlotOptions}->extend({Missing => undef});
@@ -4167,7 +4174,7 @@ sub tpoints {
   $self->_add_to_state(\&tpoints, $in, $opt);
   $opt={} if !defined($opt);
 
-  barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
+  release_and_barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
   my ($x, $y)=@$in;
 
   &catch_signals;
@@ -4239,7 +4246,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     }
     my ($in, $opt)=_extract_hash(@_);
 
-    barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
+    release_and_barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
     my($x,$y) = @$in;
     $self->_checkarg($x,1);
     my $n = nelem($x);
@@ -4251,7 +4258,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
-	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	release_and_barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
 	
 	# Ok, let us use the threading possibility.
 	$self->tline(@$in, $opt);
@@ -4259,7 +4266,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	&release_signals;
 	return;
       } else {
-	barf '$x and $y must be same size' if $n!=nelem($y);
+	release_and_barf '$x and $y must be same size' if $n!=nelem($y);
       }
     } else {
       $y = $x; $x = float(sequence($n));
@@ -4324,7 +4331,7 @@ sub arrow {
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
 
-  barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
+  release_and_barf 'Usage: arrow($x1, $y1, $x2, $y2 [, $options])' if $#$in != 3;
 
   my ($x1, $y1, $x2, $y2)=@$in;
   
@@ -4357,7 +4364,7 @@ sub arrow {
       $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
-    barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
+    release_and_barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $y, $sym)=@$in;
     $self->_checkarg($x,1);
     my $n=nelem($x);
@@ -4369,14 +4376,14 @@ sub arrow {
       $is_1D = $self->_checkarg($y,1,undef,1);
       if (!$is_1D) {
 	$is_2D = $self->_checkarg($y,2,undef,1);
-	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	release_and_barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
 	
 	# Ok, let us use the threading possibility.
 	$self->tpoints(@$in, $opt);
 	return;
 
       } else {
-	barf '$x and $y must be same size' if $n!=nelem($y);
+	release_and_barf '$x and $y must be same size' if $n!=nelem($y);
       }
     } else {
       $y = $x; $x = float(sequence($n));
@@ -4476,7 +4483,7 @@ sub arrow {
 
 	my ( $in, $opt ) = _extract_hash(@_);
 	$opt = {} unless defined($opt);
-	barf 'Usage: $win->draw_wedge( [$options] )'
+	release_and_barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
 
 
@@ -4485,7 +4492,7 @@ sub arrow {
 	# check imag has been called, and get information
 	# - this is HORRIBLE
 	my $iref = $self->_retrieve( 'imag' );
-	barf 'draw_wedge() can only be called after a call to imag()'
+	release_and_barf 'draw_wedge() can only be called after a call to imag()'
 	    unless defined $iref;
 
 	# Let us parse the options if any.
@@ -4567,7 +4574,7 @@ sub arrow {
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
 
-    barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+    release_and_barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
     $u_opt->{'PIX'}=1 unless defined $u_opt->{'PIX'};
     # Note that passing $u_opt is ok here since the two routines accept the
     # same options!
@@ -4598,7 +4605,7 @@ sub arrow {
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
 
 
-    barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+    release_and_barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
 
     &catch_signals;
 
@@ -4615,14 +4622,14 @@ sub arrow {
     $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
 
     # Check on ITF value hardcoded in.
-    barf ( "illegal ITF value `$val'") if $itf > 2 || $itf < 0;
+    release_and_barf ( "illegal ITF value `$val'") if $itf > 2 || $itf < 0;
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
     
     if (defined($tr)) {
 	$self->_checkarg($tr,1);
-	barf '$transform incorrect' if nelem($tr)!=6;
+	release_and_barf '$transform incorrect' if nelem($tr)!=6;
     } else {
 	$tr = float [0,1,0, 0,0,1];
     }
@@ -4658,7 +4665,7 @@ sub arrow {
       }
       if (defined ($_ = $u_opt->{'Unit'})) {
 	$unit = _parse_unit($_);
-	barf ("Unknown unit '$_'\n") unless defined($unit);
+	release_and_barf ("Unknown unit '$_'\n") unless defined($unit);
       }
 
       $pix = $o->{'Justify'} if ($o->{'Justify'});
@@ -4936,7 +4943,7 @@ sub fits_imag {
 	$contrast = $self->{CTAB}->{contrast};
       } else {
 	my $name = ucfirst(lc(shift @arg)); # My convention is $CTAB{Grey} etc...
-	barf "$name is not a standard colour table" unless defined $CTAB{$name};
+	release_and_barf "$name is not a standard colour table" unless defined $CTAB{$name};
 	unshift @arg, @{$CTAB{$name}};
       }
     }
@@ -4944,7 +4951,7 @@ sub fits_imag {
 
     if ($#arg<0 || $#arg>5) {
       my @std = keys %CTAB;
-      barf <<"EOD";
+      release_and_barf <<"EOD";
  Usage: ctab ( \$name, [\$contrast, $\brightness] ) # Builtin col table
 	     [Builtins: @std]
 	ctab ( \$ctab, [\$contrast, \$brightness] ) # $ctab is Nx4 array
@@ -4955,7 +4962,7 @@ EOD
 
     if ($#arg<3) {
       ($ctab, $contrast, $brightness) = @arg;
-      @t = $ctab->dims; barf 'Must be a Nx4 array' if $#t != 1 || $t[1] != 4;
+      @t = $ctab->dims; release_and_barf 'Must be a Nx4 array' if $#t != 1 || $t[1] != 4;
       $n = $t[0];
       $ctab   = float($ctab) if $ctab->get_datatype != $PDL_F;
       my $nn = $n-1;
@@ -4967,7 +4974,7 @@ EOD
       ($levels, $red, $green, $blue, $contrast, $brightness) = @arg;
       $self->_checkarg($levels,1);  $n = nelem($levels);
       for ($red,$green,$blue) {
-	$self->_checkarg($_,1); barf 'Arguments must have same size' unless nelem($_) == $n;
+	$self->_checkarg($_,1); release_and_barf 'Arguments must have same size' unless nelem($_) == $n;
       }
     }
 
@@ -4995,7 +5002,7 @@ EOD
   sub ctab_info {
     my $self = shift;
     my ($in, $opt)=_extract_hash(@_);
-    barf 'Usage: ctab_info( )' if $#$in> -1;
+    release_and_barf 'Usage: ctab_info( )' if $#$in> -1;
 
     return () unless $self->{CTAB};
     return @{$self->{CTAB}->{ctab}}, $self-{CTAB}->{contrast},
@@ -5020,7 +5027,7 @@ EOD
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
 
-    barf 'Usage: hi2d ( $image, [$x, $ioff, $bias] [, $options] )' if $#$in<0 || $#$in>3;
+    release_and_barf 'Usage: hi2d ( $image, [$x, $ioff, $bias] [, $options] )' if $#$in<0 || $#$in>3;
     my ($image, $x, $ioff, $bias) = @$in;
     $self->_checkarg($image,2);
     my($nx,$ny) = $image->dims;
@@ -5031,7 +5038,7 @@ EOD
 
     if (defined($x)) {
       $self->_checkarg($x,1);
-      barf '$x incorrect' if nelem($x)!=$nx;
+      release_and_barf '$x incorrect' if nelem($x)!=$nx;
     } else {
       $x = float(sequence($nx));
     }
@@ -5067,7 +5074,7 @@ EOD
 sub poly {
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
-  barf 'Usage: poly ( $x, $y [, $options] )' if $#$in<0 || $#$in>2;
+  release_and_barf 'Usage: poly ( $x, $y [, $options] )' if $#$in<0 || $#$in>2;
   my($x,$y) = @$in;
   $self->_checkarg($x,1);
   $self->_checkarg($y,1);
@@ -5094,7 +5101,7 @@ sub poly {
   $self->_restore_status();
   $self->_add_to_state(\&poly, $in, $opt);
 
-  release_signals;
+  &release_signals;
 
   1;
 }
@@ -5169,7 +5176,7 @@ sub poly {
 
     if (!defined($o->{MajorAxis}) || !defined($o->{MinorAxis}) || !defined($o->{XCenter})
        || !defined($o->{YCenter})) {
-      barf "The major and minor axis and the center coordinates must be given!";
+      release_and_barf "The major and minor axis and the center coordinates must be given!";
     }
 
 
@@ -5235,12 +5242,12 @@ sub poly {
       $o->{YSide}=$o->{Side};
     } else {
       print "$usage\n";
-      barf 'The sides of the rectangle must be specified!';
+      release_and_barf 'The sides of the rectangle must be specified!';
     }
 
     unless (defined($o->{XCenter}) && defined($o->{YCenter})) {
       print "$usage\n";
-      barf 'The center of the rectangle must be specified!';
+      release_and_barf 'The center of the rectangle must be specified!';
     }
 
     &catch_signals;
@@ -5287,12 +5294,12 @@ sub poly {
       $vect_options->add_synonym({Pos => 'Position'});
     }
     my ($in, $opt)=_extract_hash(@_);
-    barf 'Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
+    release_and_barf 'Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )' if $#$in<1 || $#$in>5;
     my ($a, $b, $scale, $pos, $tr, $misval) = @$in;
     $self->_checkarg($a,2); $self->_checkarg($b,2);
     my($nx,$ny) = $a->dims;
     my($n1,$n2) = $b->dims;
-    barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
+    release_and_barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
 
     my ($o, $u_opt) = $self->_parse_options($vect_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
@@ -5308,7 +5315,7 @@ sub poly {
 
     if (defined($tr)) {
       $self->_checkarg($tr,1);
-      barf '$transform incorrect' if nelem($tr)!=6;
+      release_and_barf '$transform incorrect' if nelem($tr)!=6;
     } else {
       $tr = float [0,1,0, 0,0,1];
     }
@@ -5359,7 +5366,7 @@ sub poly {
     # Extract the options hash and separate it from the other input
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
-    barf 'Usage: text ($text, $x, $y, [,$opt])' if 
+    release_and_barf 'Usage: text ($text, $x, $y, [,$opt])' if 
       (!defined($opt) && $#$in < 2) || ($#$in > 3) || ($#$in < 0);
     my ($text, $x, $y)=@$in;
 
@@ -5380,8 +5387,8 @@ sub poly {
     $o->{Text}=$text if defined($text);
     $o->{XPos}=$x if defined($x);
     $o->{YPos}=$y if defined($y);
-    barf "text: You must specify the X-position!\n" if !defined($o->{XPos});
-    barf "text: You must specify the Y-position!\n" if !defined($o->{YPos});
+    release_and_barf "text: You must specify the X-position!\n" if !defined($o->{XPos});
+    release_and_barf "text: You must specify the Y-position!\n" if !defined($o->{YPos});
 
 
     &catch_signals;
@@ -5474,7 +5481,7 @@ sub poly {
     $text = $o->{Text};
 
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
-      barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
+      release_and_barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
     }
 
     &catch_signals;
@@ -5716,11 +5723,11 @@ sub poly {
       # There is a little bit of gritty error-checking
       # for the users convenience here.
       if ($o->{Type}==1 || $o->{Type}==2) {
-	barf "When specifying $$o{Type} as cursor you must specify the reference point";
+	release_and_barf "When specifying $$o{Type} as cursor you must specify the reference point";
       } elsif ($o->{Type}==3 && !$got_yref) {
-	barf "When specifying two horizontal lines you must specify the Y-reference";
+	release_and_barf "When specifying two horizontal lines you must specify the Y-reference";
       } elsif ($o->{Type}==4 && !$got_xref ) {
-	barf "When specifying two vertical lines you must specify the X-reference";
+	release_and_barf  "When specifying two vertical lines you must specify the X-reference";
       }
 
       # Ok so we have some valid combination of type and reference point.
