@@ -11,13 +11,13 @@
 #   MakeMaker Parameters:
 
 #	DEFINE => q[ -DMY_BLAS -DMY_EIGENS -DMY_SIMQ -DMY_SVD]
-#	INC => q[-I/var/local/src/PDL/CVS/PDL/Basic/Core  ]
+#	INC => q[-I/usr/local/src/PDL/PDL/Basic/Core  ]
 #	LIBS => [q[-lm]]
 #	MAN3PODS => { MatrixOps.pm=>q[$(INST_MAN3DIR)/PDL::MatrixOps.$(MAN3EXT)] }
 #	NAME => q[PDL::MatrixOps]
 #	OBJECT => q[MatrixOps$(OBJ_EXT) blas$(OBJ_EXT) eigens$(OBJ_EXT) simq$(OBJ_EXT) svd$(OBJ_EXT) mtherr$(OBJ_EXT)]
 #	PM => { MatrixOps.pm=>q[$(INST_LIBDIR)/MatrixOps.pm] }
-#	TYPEMAPS => [q[/var/local/src/PDL/CVS/PDL/Basic/Core/typemap.pdl]]
+#	TYPEMAPS => [q[/usr/local/src/PDL/PDL/Basic/Core/typemap.pdl]]
 #	VERSION_FROM => q[../../Basic/Core/Version.pm]
 #	clean => { FILES=>q[MatrixOps.xs MatrixOps.pm MatrixOps$(OBJ_EXT) MatrixOps.c] }
 
@@ -102,20 +102,22 @@ BASEEXT = MatrixOps
 PARENT_NAME = PDL
 DLBASE = $(BASEEXT)
 VERSION_FROM = ../../Basic/Core/Version.pm
-INC = -I/var/local/src/PDL/CVS/PDL/Basic/Core  
+INC = -I/usr/local/src/PDL/PDL/Basic/Core  
 DEFINE =  -DMY_BLAS -DMY_EIGENS -DMY_SIMQ -DMY_SVD
 OBJECT = MatrixOps$(OBJ_EXT) blas$(OBJ_EXT) eigens$(OBJ_EXT) simq$(OBJ_EXT) svd$(OBJ_EXT) mtherr$(OBJ_EXT)
 LDFROM = $(OBJECT)
 LINKTYPE = dynamic
 
 # Handy lists of source code files:
-XS_FILES= 
-C_FILES = blas.c \
+XS_FILES= MatrixOps.xs
+C_FILES = MatrixOps.c \
+	blas.c \
 	eigens.c \
 	mtherr.c \
 	simq.c \
 	svd.c
-O_FILES = blas.o \
+O_FILES = MatrixOps.o \
+	blas.o \
 	eigens.o \
 	mtherr.o \
 	simq.o \
@@ -186,8 +188,8 @@ AUTOSPLITFILE = $(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -e 'use AutoSplit;au
 XSUBPPDIR = /usr/lib/perl5/5.6.1/ExtUtils
 XSUBPP = $(XSUBPPDIR)/xsubpp
 XSPROTOARG = 
-XSUBPPDEPS = $(XSUBPPDIR)/typemap /var/local/src/PDL/CVS/PDL/Basic/Core/typemap.pdl $(XSUBPP)
-XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap /var/local/src/PDL/CVS/PDL/Basic/Core/typemap.pdl
+XSUBPPDEPS = $(XSUBPPDIR)/typemap /usr/local/src/PDL/PDL/Basic/Core/typemap.pdl $(XSUBPP)
+XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap /usr/local/src/PDL/PDL/Basic/Core/typemap.pdl
 
 
 # --- MakeMaker tools_other section:
@@ -227,7 +229,7 @@ EQUALIZE_TIMESTAMP = $(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -MExtUtils::Command
 # --- MakeMaker cflags section:
 
 CCFLAGS = -fno-strict-aliasing -I/usr/local/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-OPTIMIZE = -O3
+OPTIMIZE = -O2
 PERLTYPE = 
 MPOLLUTE = 
 
@@ -459,7 +461,7 @@ manifypods : pure_all MatrixOps.pm
 # the Makefile here so a later make realclean still has a makefile to use.
 
 clean ::
-	-rm -rf MatrixOps.xs MatrixOps.pm MatrixOps$(OBJ_EXT) MatrixOps.c ./blib $(MAKE_APERL_FILE) $(INST_ARCHAUTODIR)/extralibs.all perlmain.c mon.out core core.*perl.*.? *perl.core so_locations pm_to_blib *$(OBJ_EXT) *$(LIB_EXT) perl.exe $(BOOTSTRAP) $(BASEEXT).bso $(BASEEXT).def $(BASEEXT).exp
+	-rm -rf MatrixOps.c MatrixOps.xs MatrixOps.pm MatrixOps$(OBJ_EXT) MatrixOps.c ./blib $(MAKE_APERL_FILE) $(INST_ARCHAUTODIR)/extralibs.all perlmain.c mon.out core core.*perl.*.? *perl.core so_locations pm_to_blib *$(OBJ_EXT) *$(LIB_EXT) perl.exe $(BOOTSTRAP) $(BASEEXT).bso $(BASEEXT).def $(BASEEXT).exp
 	-mv Makefile Makefile.old $(DEV_NULL)
 
 
@@ -545,6 +547,8 @@ PERL_HDRS = \
 
 $(OBJECT) : $(PERL_HDRS)
 
+MatrixOps.c : $(XSUBPPDEPS)
+
 
 # --- MakeMaker makefile section:
 
@@ -623,8 +627,8 @@ pm_to_blib: $(TO_INST_PM)
 # --- MakeMaker postamble section:
 
 
-MatrixOps.pm: matrixops.pd /var/local/src/PDL/CVS/PDL/Basic/Gen/pm_to_blib /var/local/src/PDL/CVS/PDL/Basic/Core/badsupport.p /var/local/src/PDL/CVS/PDL/Basic/Core/Types.pm
-	$(PERL) -I/var/local/src/PDL/CVS/PDL/blib/lib -I/var/local/src/PDL/CVS/PDL/blib/arch "-MPDL::PP qw/PDL::MatrixOps PDL::MatrixOps MatrixOps/" matrixops.pd
+MatrixOps.pm: matrixops.pd /usr/local/src/PDL/PDL/Basic/Gen/pm_to_blib /usr/local/src/PDL/PDL/Basic/Core/badsupport.p /usr/local/src/PDL/PDL/Basic/Core/Types.pm
+	$(PERL) -I/usr/local/src/PDL/PDL/blib/lib -I/usr/local/src/PDL/PDL/blib/arch "-MPDL::PP qw/PDL::MatrixOps PDL::MatrixOps MatrixOps/" matrixops.pd
 
 MatrixOps.xs: MatrixOps.pm
 	$(TOUCH) $@

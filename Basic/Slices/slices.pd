@@ -352,7 +352,7 @@ sub PDL::indexND {
   my(@extra_dims) = splice(@source_dims,$idim0);
 
   ##########
-  # Don't check bounds -- too slow!
+  # Do not check bounds -- too slow!
   # my($clipped_ipdl) = $ipdl->clip( 0, PDL::pdl('PDL',@source_dims) - 1);
   # barf "indexND: Index out of range" if(($clipped_ipdl != $ipdl)->sum);
 
@@ -366,7 +366,7 @@ sub PDL::indexND {
   }
 
   ########## 
-  # Make the slice, using index (where we can, because it's fast) or 
+  # Make the slice, using index (where we can, because it is fast) or 
   # dice (where we have to because there are extra dimensions in the source), 
   # and then reshape it to the desired output dimension.  
   # Two major cases involve whether the output be severed or no.
@@ -428,10 +428,10 @@ the values at the boundaries out to infinity.
 =item truncate
 
 out-of-bounds values get 0 or the missing value that you feed in (or BAD,
-eventually -- but BAD values aren't supported at present).  Because
-``truncate'' involves inserting values that aren't necessarily present
+eventually -- but BAD values are not supported at present).  Because
+``truncate'' involves inserting values that are not necessarily present
 in the original array, it returns a I<copy> of the data rather than an
-ordinary slice-by-reference, so you can't flow values back to the
+ordinary slice-by-reference, so you cannot flow values back to the
 original array.
 
 =item forbid
@@ -448,11 +448,7 @@ C<indexNDb> is now just a front end for a C<range> call.
 
 sub PDL::indexNDb{ 
   my($source,$index,$method,$bad) = @_;
-
-
-  my($i1) = $index->mv(0,-1)->clump(scalar($index->dims)-1)->mv(-1,0);
-  $source->range($i1,1,$method)->reshape($index->index(0)->dims);
-
+  return $source->range($index,undef,$method);
 }
 
 EOD-indexNDb
@@ -460,15 +456,14 @@ EOD-indexNDb
 pp_addpm(<<'EOD-range');
 
 sub PDL::range {
- my($source,$index,$size,$bound) = @_;
- 
- $size = 1 unless defined($size);
- $bound = 0 unless defined($bound);
+  my($source,$ind,$sz,$bound) = @_;
+  my $index = PDL->pdl($ind);
+  $index = $index->dummy(0,1) unless $index->ndims;
+  my $size = defined($sz) ? PDL->pdl($sz) : undef;
 
- $source->rangeb($index,$size,$bound);
+  return $source->rangeb($index,$size,$bound);
 }
 EOD-range
-
 
 pp_def(
 	'rangeb',
@@ -497,13 +492,23 @@ Extract selected chunks from a source piddle, with boundary conditions
 Returns a rectangular slice of the original piddle, indexed by the index
 piddle.
 
-$source is an N-dimensional piddle, and $indices is a 2-dimensional
+C<$source> is an N-dimensional piddle, and C<$indices> is a 2-dimensional
 NxM-piddle, specifying M separate ranges to extract into the single
-return piddle.  (You may omit the second dimension if M=1).  
+return piddle.  
 
-$size may be either a scalar or an N-piddle, and it specifies the
-dimensions of the output array.  If you want only single elements, you
-may omit $size. 
+C<$size> may be either undef, a scalar, or an N-piddle, and it specifies the
+dimensions of the output array.  If an element of C<$size> is zero, then a
+single sample is taken in the corresponding dimension, and that dimension
+is omitted from the output -- so setting, e.g., C<$size = pdl(2,0)> yields
+a collection of 2-piddles, while C<$size=pdl(2,1)> yields a collection of
+2x1-piddles.  Same data, different dim list.
+
+If you pass in a scalar C<$size>, then it is expanded to the size of the
+index dimension.
+
+If you omit C<$size> entirely, it is treated exactly the same as passing
+in C<0>, which is to say you get similar behavior to L<indexNDb|indexNDb>.
+(which is in fact implemented as call to C<range>).  
 
 $boundary is a single number or string, indicating the type of boundary
 conditions to use when ranges reach the edge of $source:
@@ -512,7 +517,7 @@ conditions to use when ranges reach the edge of $source:
 
 =item 0 (synonyms: 'f','forbid') B<(default)>
 
-Ranges aren't allowed to cross the boundary of the original PDL.  Disallowed
+Ranges are not allowed to cross the boundary of the original PDL.  Disallowed
 ranges throw an error.  The errors are thrown at evaluation time, not
 at the time of the range call (this is the same behavior as L<slice|slice>).
 
@@ -525,7 +530,7 @@ when this option is set.  B<NOT IMPLEMENTED YET>
 
 Values that would be outside the original piddle point instead to the 
 nearest allowed value within the piddle.  See the CAVEAT below on reverse 
-mappings that aren't single valued.
+mappings that are not single valued.
 
 =item 3 (synonyms: 'p','periodic')
 
@@ -539,16 +544,17 @@ Dimensions of $source are threaded over -- ie if $source has N+K dimensions
 then the $out gets K extra dimensions, each of which runs over the full
 size of the corresponding dimension in $source.
 
-C<range> does single-list threading over the index.  Because implicit
+C<range> does full threading over the index.  Because implicit
 threading can happen in two ways, a little thought is needed.
 The returned dimension list is stacked up like so:
 
-	(list thread dim),(index dims (size)),(implicit thread dims)
+	(index thread dims),(index dims (size)),(source excess thread dims)
 
-Note that the list thread dim is always allocated, even if you only want one
-range.  That's to avoid confusion between the list thread dim and possible
-implicit thread dims at the end of the dimension list.
-
+Note that each of the sets of dims can be allocated or not depending
+on context, so you have to be careful about how you thread.  In
+particular, if C<$index> has only 1 dimension, then there are no index
+thread dims at all.  If C<$index> has 3 dimensions, then it is
+collapsed to 2 index thread dims by the lookup operation.
 
 B<Dataflow>: Dataflow is bidirectional.
 
@@ -559,21 +565,23 @@ and selection of individual chunks.  The last example shows
 how to mark loci in the original matrix (using dataflow).
 
     perldl> $src = 10*xvals(10,5)+yvals(10,5)
-    perldl> print $src->range(pdl(2,3),1)  # Cut out a single element
+    perldl> print $src->range(pdl(2,3))    # Cut out a single element
+    23
+    perldl> print $src->range(pdl(2,3),1)  # Cut out a single 1x1 block
     [
-     [
-      [23]
-     ]
+     [23]
     ]
-
     perldl> print $src->range(pdl(2,3), pdl(2,1)) # Cut a 2x1 chunk
+    [
+     [23 33]
+    ]
+    perldl> print $src->range(pdl([[2,3]]),pdl(2,1)) # Trivial list of 1 chunk
     [
      [
       [23]
       [33]
      ]
     ]
-
     perldl> print $src->range(pdl([2,3],[0,1]), pdl(2,1)) # two 2x1 chunks
     [
      [
@@ -581,7 +589,6 @@ how to mark loci in the original matrix (using dataflow).
       [33 11]
      ]
     ]
-
     perldl> print $src->range(pdl([2,3],[0,1]),pdl(2,1))->((0)) # 0th chunk
     [
      [23 33]
@@ -590,15 +597,9 @@ how to mark loci in the original matrix (using dataflow).
     perldl> $src = xvals(5,3)*10+yvals(5,3)
     perldl> print $src->range(3,1)  /* Thread over y dimension in $src */
     [
-     [
-      [30]
-     ]
-     [
-      [31]
-     ]
-     [
-      [32]
-     ]
+     [30]
+     [31]
+     [32]
     ]
    
     perldl> $src = zeroes(5,4);
@@ -635,426 +636,360 @@ slices are faster.
 C<range> is a perl front-end to a PP function, C<rangeb>.  Calling
 C<rangeb> is marginally faster but requires that you include all arguments.
 
-=cut
+DEVEL NOTES
+
+* index thread dimensions are effectively clumped internally.  This
+makes it easier to loop over the index array but a little more brain-bending 
+to tease out the algorithm.
+
+* Currently the index threads really do run fastest in memory; this is 
+probably the wrong direction to thread, for fastest behavior -- modifying 
+the appropriate dimincs in RedoDims ought to take care of it.
+
+=cut 
+
 EOD
 	HandleBad => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
-# Get all parameters in as SVs even though they're meant to be interpreted
-# as PDLs -- because the PP signature syntax can't handle the cross-level
-# comparison between order of 0th dimension and number of dimensions.
 	OtherPars => 'SV *index; SV *size; SV *boundary',
 
-# nitems: number of list elements
-# idim:   dimensions of the index (size of parallelpiped)
-# lowerbound, upperbound: range of each parallelpiped
-# poff: Computed offset in the parent array of each lower-bound address
-#       (calculated in RedoDims).
-# ctr: Dimension counter used in EquivCPOffsCode.
+
+#
+# rdim: dimensionality of each range.
+#
+# ntsize: number of nonzero size dimensions
+# sizes:  array of range sizes, indexed (0..rdim-1).  A zero element means
+#	  that the dimension is omitted from the child dim list.
+# corners: parent coordinates of each corner, running fastest over coord index.
+#	(indexed 0 .. (nitems-1)*(rdim)+rdim-1)
+# nitems: total number of list elements   (product of itdims)
+# itdim:  number of index thread dimensions
+# itdims: Size of each index thread dimension, indexed (0..itdim-1)
 # 
-	Comp => 'long nitems; long idim; 
-		 long lowerbound[$COMP(idim) * $COMP(nitems)]; 
-		 long upperbound[$COMP(idim) * $COMP(nitems)];
-		 long poff[$COMP(nitems)];
-		 long sizes[$COMP(idim)];
-		 long ctr[$COMP(idim) + PDL_NDIMS];
+	Comp => 'long rdim;
+                 long nitems;
+                 long itdim;
+                 long ntsize;
+		 long sizes[$COMP(rdim)];
+		 long itdims[$COMP(itdim)];
+		 long corners[$COMP(rdim) * $COMP(nitems)];
 	         short boundary;
 		 ',
-#
-# MakeComp is complicated a bit by the fact that (as of 21-Aug-2002)
-# temporary piddles don't seem to be implemented (see "pdl_converttype"
-# in pdlconv.c -- dies if you try to make a temporary cast -- and 
-# "pdl_create" in pdlcore.c -- dies if you try to make a mortal piddle.)
-# Since the indices could be any type we have to coerce them into 
-# the correct type (long).  If that wouldn't involve any loss of information
-# (ie they're already char or short or long) then the indices get changed
-# in place to save time on the next iteration (assuing that there will
-# be one).  Otherwise, we have to make a temporary copy and coerce that.
-#
 	MakeComp => <<'EOD-MakeComp',
-		pdl *ind_pdl;
-		pdl *size_pdl;
-		long i,j;
-		
+pdl *ind_pdl;
+pdl *size_pdl;
 
-		/***
-		* Check and condition the boundary parameter
-		*/
-		{
-		 char *s;
-		 STRLEN len;
-		 SV *foo;
-		 if(SvROK(boundary))
-			foo = SvRV(boundary);
-		 else
-			foo = boundary;
-		
-		 s = SvPV(boundary,len);
-		 switch(*s) {
-			case '0': case 'f': case 'F': default:
-			/* forbid */ 
-			  $COMP(boundary) = 0;
-			  break;
-			case '1': case 't': case 'T': 
-		        /* truncate */
-			  $CROAK("Truncation not yet allowed");
-			  break;
-	  	        case '2': case 'e': case 'E':
-			/* extend */
-			 $COMP(boundary) = 2;
-			 break;
-			case '3': case 'p': case 'P':
-			/* periodic */
-			 $COMP(boundary) = 3;
-			 break;
-	         }
-		}
+/*** 
+ * Check and condition the boundary parameter 
+ */
+{
+  char *s;
+  STRLEN len;
+  SV *foo = (SvROK(boundary)) ? SvRV(boundary) : boundary;
+  s = SvPV(boundary,len);
+  
+  switch(*s) {
+  case '0': case 'f': case 'F': default:      /* forbid */
+    $COMP(boundary) = 0;
+    break;
+  case '1': case 't': case 'T':               /* truncate */
+    $CROAK("Truncation not yet implemented in range");
+    break;
+  case '2': case 'e': case 'E':               /* extend */
+    $COMP(boundary) = 2;
+    break;
+  case '3': case 'p': case 'P':               /* periodic */
+    $COMP(boundary) = 3;
+    break;
+  }
+}
 
-		/***
-		* Check and condition the index piddle
-		* Some of this is apparently done by XS -- but
-		* XS doesn't check for existing SVs that are undef
-		*/		
-		
-		if( (index == NULL) || (index == &PL_sv_undef) ){
-		  $CROAK("index variable must be defined");
-		}
-			
-		
-		ind_pdl = PDL->SvPDLV(index);
-		if(!ind_pdl)  {
-			$CROAK("unable to convert index to a PDL");
-		}
+/***
+ * Check and condition the index piddle.  Some of this is apparently
+ * done by XS -- but XS doesn't check for existing SVs that are undef.
+ */
+if ((index==NULL) || (index == &PL_sv_undef))
+   { $CROAK("index variable must be defined in range"); }
 
-		PDL->make_physdims(ind_pdl);
+if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
+   { $CROAK("unable to convert index to a PDL in range"); }
+  
+PDL->make_physdims(ind_pdl);
 
-		if(ind_pdl->nvals == 0) {
-			$CROAK("Cannot use the empty PDL as an index");
-		}		
+if(ind_pdl->nvals == 0)
+    { $CROAK("Cannot use the empty PDL as an index in range"); }
 
-		if(ind_pdl->ndims > 2) {
-		  $CROAK("Only 1 thread dimension allowed in the index PDL");
-		}
-		
+/***
+ * Ensure that the index is a long.  If there's no loss of information,
+ * just upgrade it -- otherwise, make a temporary copy.
+ */
+switch(ind_pdl->datatype) {
+ default:                              /* Most types: */
+   ind_pdl = PDL->hard_copy(ind_pdl);  /*   copy and fall through */
+ case PDL_B: case PDL_S: case PDL_US:  
+   PDL->converttype(&ind_pdl,PDL_L,1); /* convert in place. */
+   break;
+ case PDL_L:                           
+   break;
+}
 
-		/* Convert the index as necessary.  If there's
-	           no loss of information, upgrade the index to long;
-		   otherwise, make a temporary copy.
-		 */
-		switch(ind_pdl->datatype) {
-			case PDL_B: case PDL_S: case PDL_US:
-				PDL->converttype(&ind_pdl,PDL_L,1);
-				break;
-			case PDL_L:
-			default:
-				ind_pdl = PDL->hard_copy(ind_pdl);
-				PDL->converttype(&ind_pdl,PDL_L,1);
-				break;
-		}
+/***
+ * Figure sizes of the COMP arrrays and allocate them.
+ */
+{
+  long i,nitems;
 
-		/***
-		* Allocate the coordinate-storage arrays...
-		*/
-		
-		$COMP(idim) = ind_pdl->ndims ? ind_pdl->dims[0] : 1;
-		$COMP(nitems) = ind_pdl->ndims==2 ? ind_pdl->dims[1] : 1;
+  $COMP(rdim) = ind_pdl->ndims ? ind_pdl->dims[0] : 1;
+  for(i=nitems=1; i < ind_pdl->ndims; i++)  /* Accumulate item list size */
+    nitems *= ind_pdl->dims[i];
+  $COMP(nitems) = nitems;
+  $COMP(itdim) = ind_pdl->ndims ? ind_pdl->ndims - 1 : 0;
+  $DOCOMPDIMS();
+}
 
-		$DOCOMPDIMS();
+/***
+ * Store the sizes of the index-thread dims
+ */
+{
+  long i;
+  long nd = ind_pdl->ndims - 1;
+  for(i=0; i < nd ; i++)
+    $COMP(itdims[i]) = ind_pdl->dims[i+1];
+}
 
-		/***
-		* Check and condition the size piddle, and store sizes
-		*/
-		
-		if( (size == NULL) || (size == &PL_sv_undef) ) {
-			for(i=0;i<$COMP(idim);i++) 
-				$COMP(sizes[i]) = 1;
-		} else { /* we got a value */
-			size_pdl = PDL->SvPDLV(size); 
-			if(!size_pdl){
-				$CROAK("Unable to convert size to a PDL\n");
-			}
+/*** 
+ * Check and condition the size piddle, and store sizes of the ranges
+ */
+{
+  long i,ntsize;
 
-			if(size_pdl->nvals == 0) {
-				for(i=0;i<$COMP(idim);i++)
-					$COMP(sizes[i])=1;
-			} else { /* the piddle is nonempty */
+  if( (size == NULL) || (size == &PL_sv_undef) ) 
+    for(i=0;i<$COMP(rdim);i++)
+	  $COMP(sizes[i]) = 0;
+  else {
+    if(!(size_pdl = PDL->SvPDLV(size))) /* assignment */
+      $CROAK("Unable to convert size to a PDL in range");
+    if(size_pdl->nvals == 0)
+      for(i=0;i<$COMP(rdim);i++)
+	$COMP(sizes[i]) = 0;
+    else {
+      switch(size_pdl->datatype) {
+      default:                              /* Most types: */
+	size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
+      case PDL_B: case PDL_S: case PDL_US:  
+	PDL->converttype(&size_pdl,PDL_L,1); /* convert in place. */
+	break;
+      case PDL_L:                           
+	break;
+      }
+      
+      /* Copy the sizes, or die if they're the wrong shape */
+      if(size_pdl->nvals == 1) 
+	for(i=0;i<$COMP(rdim);i++) 
+	  $COMP(sizes[i]) = *((long *)(size_pdl->data));
 
-				/* Convert to long 
-				 * If there's no loss of information,
-				 * upgrade it to long; otherwise, make
-				 * a temporary copy.
-				 */
-				switch(size_pdl->datatype) {
-				  PDL_B: PDL_S: PDL:US:
-				      PDL->converttype(&size_pdl,PDL_L,1);
-				      break;
-				  PDL_L:
-				    break;
-				 default:
-				      size_pdl =  PDL->hard_copy(size_pdl);
-				      PDL->converttype(&size_pdl,PDL_L,1);
-				    break;
-				}
-				/* Empty piddle -- use 1 everywhere */
-				if( size_pdl->nvals == 0 ) {
+      else if( size_pdl->nvals == $COMP(rdim) &&size_pdl->ndims == 1) 
+	for(i=0;i<$COMP(rdim);i++)
+	  $COMP(sizes[i]) = ((long *)(size_pdl->data))[i];
+      else 
+	$CROAK("Size must be scalar or match index's 0th dim in range\n");
+    } /* end of nonempty size-piddle code */
+  } /* end of defined-size-piddle code */
 
-				    for(i=0;i<$COMP(idim);i++)
-					$COMP(sizes[i]) = 1;
-				}
-				/* One value -- duplicate it everywhere */
-				else if( size_pdl->nvals == 1) {
-				    for(i=0;i<$COMP(idim);i++)
-					$COMP(sizes[i]) = *((long *)(size_pdl->data));
-				}
-				/* Correct number of values -- copy them in */
-				else if( size_pdl->nvals == $COMP(idim) && 
-					 size_pdl->ndims == 1 ) {
+  /* Insert the number of nontrivial sizes (these get output dimensions) */
+  for(i=ntsize=0;i<$COMP(rdim);i++)
+    if($COMP(sizes[i]))
+      ntsize++;
+  $COMP(ntsize) = ntsize;
+}
 
-				    for(i=0;i<$COMP(idim);i++)
-					$COMP(sizes[i]) = ((long *)(size_pdl->data))[i];
-				}
-				/* Incorrect no. of values -- throw an error */
-				else {
-					$CROAK("Size piddle must match index piddle's 0th dim");
-				}
-		
-			} /* End of nonempty piddle stuff */
-		} /* end of size stashination */
+/***
+ * Stash coordinates of the corners
+ */
 
-		/* Stash starting and ending coordinates in the list */
-		    for(i = 0; i < $COMP(nitems); i++) {
-		      for(j=0; j < $COMP(idim); j++) {
-			long lower,upper;
-			lower = ((long *)(ind_pdl->data)) [ 
-					i * ind_pdl->dimincs[1] + 
-					j * ind_pdl->dimincs[0] 
-				   ];
-			upper = lower + $COMP(sizes[j]) - 1;
+{
+  long i,j,k,ioff;
+  long *cptr;
+  long *iter = (long *)(PDL->smalloc(sizeof(long) * ($COMP(itdim))));
+  
+  /* initialize iterator to loop over index threads */
+  cptr = iter;
+  for(k=0;k<$COMP(itdim);k++)
+    *(cptr++) = 0;
+  
+  cptr = $COMP(corners);  
+  do {
+    /* accumulate offset into the index from the iterator */
+    for(k=ioff=0;k<$COMP(itdim);k++)
+      ioff += iter[k] * ind_pdl->dimincs[k+1];
+    
+    /* Loop over the 0th dim of index, copying coords */ 
+    for(j=0;j<$COMP(rdim);j++) 
+      *(cptr++) = ((long *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
+    
+    /* Increment the iterator -- the test increments, the body carries. */
+    for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
+      iter[k] = 0;
+  } while(k<$COMP(itdim));
+}
 
 
-/* fprintf(stderr,"\tSetting lowerbound[%d] (%d*%d + %d) = %d\n",i*($COMP(idim))+j,i,$COMP(idim),j,lower);*/
-			$COMP(lowerbound[i * $COMP(idim) + j]) = lower;
-			$COMP(upperbound[i * $COMP(idim) + j]) = upper;
-
-		    }
-		  }
-
-/* 	fprintf(stderr,"range:makecomp finished\nnitems %d\tidim %d\n",$COMP(nitems),$COMP(idim));*/
-/* 		fprintf(stderr,"bounds:");*/
-/*		for(i=0;i<$COMP(idim);i++) */
-/* 	fprintf(stderr," %d-%d ",$COMP(lowerbound[i]),$COMP(upperbound[i]));*/
-
-		$SETREVERSIBLE(1);
-/* 	fprintf(stderr,"\nbye!\n");*/
+$SETREVERSIBLE(1);
 
 EOD-MakeComp
 
 	RedoDims => <<'EOD-RedoDims' ,
-		long tdim;   /* Surviving thread dims */
-	 	long i,j;
-		long inc;
-		char errflag = 0;
+{		      
+  long stdim = $PARENT(ndims) - $COMP(rdim);
+  long dim,inc;
+  long i;
 
-/* 	fprintf(stderr,"range::redodims...\n");*/
+  /* Check index compatibility with parent. */
+  if(stdim < 0) {
+    barf("range: parent has too few dims (permissive ranging not yet allowed)");
+  }
 
-		tdim = $PARENT(ndims)- $COMP(idim) ;
-		tdim = (tdim > 0) ? tdim : 0;
+  /* Set dimensionality of child */
+  $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
+  $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
 
-/* 	fprintf(stderr,"setting dims to %d (1 + %d + %d) ...\n",1+$COMP(idim)+tdim,$COMP(idim),tdim);		*/
-		$CHILD(ndims) = 1 + $COMP(idim) + tdim;
-		$SETNDIMS(1 + $COMP(idim) + tdim);
-/* 	fprintf(stderr,"setting dim 0 to %d (nitems)\n",$COMP(nitems));*/
+  /* Copy index thread dimensions to child */
+  inc = 1;
+  for(dim=0; dim<$COMP(itdim); dim++) {
+    $CHILD(dimincs[dim]) = inc;
+    inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
 
-		$CHILD(dims[0]) = $COMP(nitems);
-		$CHILD(dimincs[0]) = 1;
+  }
+  
+  /* Copy size dimensions to child, crunching as we go. */
+  for(i=0;i<$COMP(rdim);i++) {
+    if($COMP(sizes[i])) {
+      $CHILD(dimincs[dim]) = inc;
+      inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
+    }
+  }
 
-	 	j=1;
-		inc = $COMP(nitems);
+  /* Copy source thread dimensions to child */
+  for(i=0;i<stdim;i++) {
+    $CHILD(dimincs[dim]) = inc;
+    inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
+  }
 
-		/*******
-	         *  Copy dims that are indexed, check for out-of-bounds, and
-		 *  generate parent 1-D offsets 
-		 */
-		for(i=0;i<$COMP(nitems);i++) 
-			$COMP(poff[i]) = 0;
 
-		for(i=0;i<$COMP(idim);i++,j++) {
-		   long ulim;
-		   long k;
-/* 	fprintf(stderr,"setting dim %d to %d (sizes[%d])\n",j,$COMP(sizes[i]),i);*/
-		   ulim= (i<($PARENT(ndims))) ? ( $PARENT(dims[i])) : 1 ;
-
-		   for(k=0;k< ($COMP(nitems)) ; k++) {
-			
-		      /* Check range if boundary conditions are turned off */
-		      if(!($COMP(boundary)) && 
-			 (($COMP(lowerbound)[ k * ($COMP(idim)) + i] < 0) ||
-			 ($COMP(upperbound)[ k * ($COMP(idim)) + i] >= ulim))) {
-			   $CHILD(ndims) = 0;
-			   $SETNDIMS(0);
-			   $SETDIMS();
-			   $CROAK("Range out of bounds\n");
-		      }
-
-		      ($COMP(poff))[k] += 
-			   ($PARENT(dimincs))[i] * 
-			   ($COMP(lowerbound))[ k * ($COMP(idim)) + i];
-/* 	fprintf(stderr,"\tpoff[%d] = %d\n",k,$COMP(poff[k]));*/
-
-		   }
-	
-		   ($CHILD(dims))[j] = ($COMP(sizes))[i];
-		   /* The 0 here makes it a dummy dimension! */
-		   ($CHILD(dimincs))[j] = (i<($PARENT(ndims))) ? inc : 0;
-		   inc *= ($CHILD(dims))[j];
-	  	}
-
-		/* Copy threaded-over dims */
-		for(;i<$PARENT(ndims);i++,j++) {
-/* 	fprintf(stderr,"setting dim %d to %d (thread[%d])\n",j,$PARENT(dims[i]),i);*/
-			$CHILD(dims[j]) = $PARENT(dims[i]);
-			$CHILD(dimincs[j]) = inc;
-			inc *= ($CHILD(dims[j]));
-		}
-
-		$CHILD(datatype) = $PARENT(datatype);
-		$SETDIMS();
+  $CHILD(datatype) = $PARENT(datatype);
+  $SETDIMS();
+}
 
 EOD-RedoDims
 
 	EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
-		long dim, item;
-		long tdim, total_dim, nperitem;
-		long bound_index;   /* index into boundary array */
-		long ptoff,ctoff;   /* parent and child offsets */
-		long *ctr;
+{
+  long *iter, *ip;  /* vector iterator */
+  long *sizes, *sp; /* size vector including stdims */
+  long *coords;     /* current coordinates */
 
-		/* number of copies to make per item in the list */
-		nperitem = $CHILD_P(nvals) / $COMP(nitems);
-/* 	fprintf(stderr,"nitems = %d; nperitem=%d\n",$COMP(nitems),nperitem);*/
+  long k;           /* index */
+  long item;        /* index thread iterator */
+  long stdim = $PARENT_P(ndims) - $COMP(rdim);  /* guaranteed >=0 by RedoDims */
+
+  /* Allocate iterator and larger size vector -- do it all in one foop 
+   * to avoid extra calls to smalloc.
+   */
+    if(!(iter = (long *)(PDL->smalloc(sizeof(long) * ($PARENT_P(ndims) * 2 + $COMP(rdim)))))) {
+    barf("couldn't get memory for range iterator");
+  }
+  sizes  = iter + $PARENT_P(ndims);
+  coords = sizes + $PARENT_P(ndims);
+
+  /* Figure out size vector */
+  for(ip = $COMP(sizes), sp = sizes, k=0; k<$COMP(rdim); k++)
+     *(sp++) = *(ip++);
+  for(; k < $PARENT_P(ndims); k++) 
+     *(sp++) = $PARENT_P(dims[k]);
+
+  for(item=0; item<$COMP(nitems); item++) {
+    /* initialize in-range iterator */
+    for(ip = iter, k=0; k<$PARENT_P(ndims); k++) 
+      *(ip++) = 0;
+    
+    do {
+      long poff = 0;
+      long coff;
+      long k2;
 
 
-		if(($CHILD_P(ndims)) > $COMP(idim) + (PDL_NDIMS)) 
-			ctr = (long *)(PDL->smalloc($CHILD_P(ndims)));
-		else
-			ctr = $COMP(ctr);
+      for(k=0; k < $COMP(rdim); k++){
+ 	long ck = coords[k] = iter[k] + 
+	                      $COMP(corners[ item * $COMP(rdim) + k  ]) ;
+ 	if(ck < 0 || ck >= $PARENT_P(dims[k])) {
+ 	  switch($COMP(boundary)) {
+ 	  case 0: /* no boundary breakage allowed */
+ 	    barf("index out-of-bounds in range\n");
+ 	    break;
+ 	  case 1: /* truncation */
+ 	    barf("truncation not allowed yet in range\n");
+ 	    break;
+ 	  case 2: /* extension -- crop */
+ 	    coords[k] = (ck >= $PARENT_P(dims[k])) ? $PARENT_P(dims[k])-1 : 0;
+ 	    break;
+ 	  case 3: /* periodic -- mod it */
+ 	    coords[k] %= $PARENT_P(dims[k]);
+ 	    if(coords[k] < 0)   /* Fix mod breakage in C */
+ 	      coords[k] += $PARENT_P(dims[k]);
+ 	    break;
+ 	  default:
+ 	    barf("Unknown boundary condition in range -- bug alert!");
+ 	    break;
+ 	  }
+ 	}
+      }
 
-		for(dim=0;dim<($CHILD_P(ndims));dim++)
-			ctr[dim] = 0;
+      coff = $CHILD_P(dimincs[0]) * item;
 
-		/* No boundary condition case:  the offsets are linearly
-		 * related, so we can calculate an overall offset for 
-		 * position within the range, and then loop over 
-		 * items (ranges), adding offsets as we go.
-		 * -CED
-		 */
-		if($COMP(boundary) == 0){
-			do {
-			   ptoff = ctoff = 0;
+      /* Find offsets into the child and parent arrays */
+      for(k2 = $COMP(itdim), poff = k = 0; 
+	  k < $COMP(rdim); 
+	  k++) { 
+	poff += coords[k]*$PARENT_P(dimincs[k]);
+	if($COMP(sizes[k])) 
+	  coff += iter[k] * $CHILD_P(dimincs[k2++]);
+      }
+
+      /* Loop the copy over all the source thread dims (above rdim). */
+      do {
+	long poff1 = poff;
+	long coff1 = coff;
 	
-			   /* Calculate offset within each individual range */
-			   for(dim=0; dim < ($CHILD_P(ndims))-1; dim++) {
-			      if(dim < ($PARENT_P(ndims))) 
-				ptoff += ($PARENT_P(dimincs))[dim] * ctr[dim];
-			      ctoff += ($CHILD_P(dimincs))[dim+1] * ctr[dim];
-			   }
-	
-			   /* No boundary condition handling */
-			   for(item = 0; item < $COMP(nitems); item++) {
-				long a = $CHILD_P(dimincs[0])*item + ctoff;
-				long b = $COMP(poff[item])         + ptoff;
-				$EQUIVCPOFFS(a,b);
-			   }
-				
-	
-			   /* Increment element within range */
-			   for(dim=1; dim < ($CHILD_P(ndims));  dim++) {
-				if( (++(ctr[dim-1])) >= $CHILD_P(dims[dim]))
-					ctr[dim-1] = 0;
-				else
-					break;
-			   }
-			} while(dim < $CHILD_P(ndims)); /* Checks result of inc loop */
-		} else { 
-		  /* Boundary condition case: the offsets aren't necessarily
-		   * linearly related.  This stuff is pretty stoopid: we just
-		   * explicitly recalculate the offset for every single point,
-		   * truncating or periodicizing or whatever for every 
-		   * offset.  It can be improved by perhaps 30% by being 
-		   * smarter about evaluation order, (like un-nesting the
-		   * switch) but I'm too lazy to do it.  Wait for Moore's Law
-		   * [ (18 months) * log_2(1/30%) ] instead. :-)
-		   * -CED
-		   */
-		  do {
-		    for(item = 0; item < $COMP(nitems); item++) {
-			long a;
+	for(k2 = $COMP(itdim) + $COMP(ntsize), k = $COMP(rdim); 
+	    k<$PARENT_P(ndims); 
+	    k++) {
+	  poff1 += iter[k] * $PARENT_P(dimincs[k]);
+	  coff1 += iter[k] * $CHILD_P(dimincs[k2++]);
+	}
 
+	$EQUIVCPOFFS(coff1,poff1);
 
-		      /* Calculate offset (with mods) within each range */
-		      ptoff = ctoff = 0;
+	for( k=$COMP(rdim); 
+	     k < $PARENT_P(ndims) && (++(iter[k]) >= $PARENT_P(dims[k])); 
+	     k++)
+	  iter[k] = 0;
+      } while(k < $PARENT_P(ndims)); /* end of source-thread iteration */
 
-		      switch($COMP(boundary)) {
+      for(k = 0;
+	  k < $COMP(rdim) && (++(iter[k]) >= $COMP(sizes[k]));
+	  k++)
+	iter[k] = 0;
+    } while(k < $COMP(rdim)); /* end of main iterator */
+  } /* end of item do loop */
 
-		        case 1: /* truncation */
-				/* barf because $CROAK mysteriously fails */
-			      barf("rangeb debug" "truncation not allowed (yet) (This can't happen! Go away!)"); 
-			      break;
-
-			case 2: /* extension -- crop parent dims */
-
-			      for(dim=0;dim<($CHILD_P(ndims))-1;dim++) {
-				long pd = ctr[dim] + $COMP(lowerbound[item*$COMP(idim)+dim]);
-				if(pd < 0) 
-					pd=0;
-				else if(pd >= $PARENT_P(dims[dim]))
-					pd = $PARENT_P(dims[dim])-1;
-
-				
-				ptoff += ($PARENT_P(dimincs))[dim] * pd;
-				ctoff += ($CHILD_P(dimincs))[dim+1] * ctr[dim];
-			      }
-			      break;	
-
-			case 3: /* periodic -- parent dims modulo size */
-			      for(dim=0;dim<($CHILD_P(ndims))-1;dim++) {
-				long pd = ctr[dim] + $COMP(lowerbound[item*$COMP(idim)+dim]);
-				if(pd < 0) /* Fold up to above zero */
-					pd += abs(pd * $PARENT_P(dims[dim]));
-				pd %= $PARENT_P(dims[dim]);
-				ptoff += ($PARENT_P(dimincs))[dim] * pd;
-				ctoff += ($CHILD_P(dimincs))[dim+1]*ctr[dim];
-			      }
-			      break;
-
-			default:
-				/* barf because $CROAK mysteriously fails */
-				barf("rangeb debug" "Unknown boundary condition code! This can't happen -- go away!");
-				break;
-		      } /* end of switch */
-
-		      /* Do the actual data copy */
-		      a = $CHILD_P(dimincs[0])*item + ctoff;
-		      $EQUIVCPOFFS(a,ptoff);
-
-		    } /* end of item code */
-		
-		    /* Increment element within range */
-		    for(dim=1; dim < ($CHILD_P(ndims));  dim++) {
-		      if( (++(ctr[dim-1])) >= $CHILD_P(dims[dim]))
-			ctr[dim-1] = 0;
-		      else
-			break;
-		    }
-		  } while(dim < $CHILD_P(ndims)); /* Checks result of inc loop */
-		}
+}
 
 EOD-EquivCPOffsCode
 
 );
 
-	
 
 pp_def(
 	'rld',
@@ -1133,7 +1068,7 @@ Run-length encode a vector
 
 Given vector C<$c>, generate a vector C<$a> with the number of each element,
 and a vector C<$b> of the unique values.  Only the elements up to the
-first instance of `0' in C<$a> should be considered.
+first instance of C<0> in C<$a> should be considered.
 
 =for example
 

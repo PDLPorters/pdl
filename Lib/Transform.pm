@@ -389,9 +389,17 @@ Pixel values are filtered through a spatially-variable filter tuned to the
 computed Jacobian of the transformation.  This is the mathematically
 correct way to deform images and yields very good results -- but 
 at a cost.  It runs perhaps 10 times slower than linear interpolation.
+See the notes on Jacobian tracking, below.
 
 =back
 
+=item e, ecc, eccentricity, Eccentricity (default=10)
+
+This is the maximum eccentricity that is allowed for the local ellipse of
+transformation in the Jacobian method of interpolation.  Lower numbers
+yield better memory efficiency and speed, at a cost of some blurring in the
+case of pathological transformations (that stretch much more in one direction
+than others).  
 
 =item b, blur, Blur
 
@@ -426,6 +434,30 @@ shrunk wind up brighter; parts that are enlarged end up fainter.
 =back
 
 =back
+
+JACOBIAN TRACKING:
+
+This method of interpolation gives photometrically accurate resampling
+of the input data for arbitrary transformations.  The Jacobian of the
+reverse transformation is the matrix C<J_ij = d X_i / d x_j>, where i
+and j are index variables, the X_i are the input-plane coordinates,
+and the x_j are the output-plane coordinates.  At each pixel, the code
+generates a linear approximation to the transformation using the local
+discrete Jacobian.  The output pixels are treated as circles of radius
+1.0, and transformed via the linear approximation to ellipses in the
+input plane.  The eigenvalues of the Jacobian are padded to a minimum
+of 1.4, ensuring that the transformed ellipses are fat enough to
+encounter at least one sample point in the input plane.  
+
+To avoid numerical runaway, there are some limitations on the reverse-
+transformed ellipses.  In particular, the computational efficiency
+scales inversely as the ratio between the largest and smallest
+eigenvalues, so the ellipses are not allowed to get too eccentric.  The
+maximum eccentricity is given in the C<eccentricity> option, and 
+
+
+
+
 
 NOTES:
 
@@ -486,6 +518,7 @@ sub map {
 
   my($integrate) = scalar(_opt($opt,['m','method','Method']) =~ m/[jJ](ac(obian)?)?/);
 
+
   if(!$integrate) {
     
     ##############################
@@ -515,7 +548,7 @@ sub map {
     my($nd) = $out->ndims;
     my($nd_in) = $in->ndims;
     my(@sizes) = $out->dims;
-
+    
     #
     # Chicken out
     #
@@ -524,8 +557,7 @@ sub map {
 
     ###############
     ### Interpret integration-specific options...
-    my $big = _opt($opt,['big','Big']) || pdl($in->dims)->max / 5.0;
-    $big = pdl($big) unless UNIVERSAL::isa($big,'PDL');
+    my($ecc) = _opt($opt,['e','ecc','eccentricity','Eccentricity'],10.0);
 
     my $blur  = _opt($opt,['b','blur','Blur']) || 0.7;
     my $blur2 = 1.0 / $blur / $blur ; # used inside the Gaussian, below
@@ -581,14 +613,18 @@ sub map {
     ### at least one intersection with the grid.  Then save the size
     ### of the enclosing N-cube, for use down below. 
     ### This is in a block to get rid of the temporary variables.
+    ###
+    ### smin gets the maximum of itself, the N-cube diagonal, and the largest 
+    ### singular value divided by the largest acceptable aspect ratio.
     my $sizes;
     { 
       my ($r1, $s, $r2) = svd $jac;
-      $s += sqrt($nd);          # diagonal of an N-cube
+      $s .= $s->cat( $s->maximum->dummy(0,$nd),
+		     ones($sm)*sqrt($nd)
+		     )
+	->mv(-1,0)->maximum;
       $r2 *= $s->dummy(1,$nd);  # cheap mult; dummy keeps threading right
       $jac .= $r2 x $r1;
-
-      $sizes = $s->maximum->clip(undef,$big); 
     }      
 
 
@@ -601,19 +637,51 @@ sub map {
 
     ###############
     ### Loop over increasing size, doubling the size each time until
-    ### the very largest pixels are handled.
+    ### the very largest pixels are handled.  The largest pixel we
+    ### can handle is the size of the input dataset!
+    ###
+    ### The sampling is done not on the original image (necessarily) but
+    ### rather on a reduced version of the original image.  The amount of
+    ### reduction is determined by the pixel size divided by the maximum
+    ### allowed eccentricity.
     my $size;
     my $last_size=0;
     my $outf = $out->flat;
-    for($size=4; $size < $big*1.9999; $size *= 2){
-      $size = PDL->pdl($big)->floor + 1 
-	if($size > $big);
-      my($pixels) = ($size < $big) ? 
+    my $maxdim = (PDL->pdl($in->dims))->max;
+    my $reduced = $in;
+    my $reduction = 1;
+
+    for($size=4; $size < $maxdim*2; $size *= 2){
+      $size = $maxdim
+	if($size > $maxdim);
+      my($pixels) = ($size < $maxdim) ? 
 	which($sizes >= $last_size/2.0 & $sizes < $size/2.0) :
 	which($sizes >= $last_size/2.0);
 
       print "found ",$pixels->nelem," points..." if($PDL::debug);
       next if($pixels->nelem == 0);
+
+      ###############
+      ### Figure out if we have to reduce and, if so, do it.
+      ### Reduction is brute-force (and hence introduces aliasing)
+      ### but that shouldn't matter much since we antialias later;
+      ### it certainly doesn't contribute in first order.
+      ### 
+      ### The image is freshly reduced each time, which is a waste
+      ### of cycles -- it should be reduced by a factor 
+      my($reduce) = $size / ($ecc + 1);
+      if($reduce > 2) {
+	$reduce = 2 ** ( (PDL->log($reduce) / PDL->log(2))->floor );
+      }
+
+      if($reduce > $reduction) {
+	my @rdims = PDL->pdl($in->dims) / $reduce -> ceil;
+	my $r2dex = ndcoords($rdims) * $reduce / $reduction;
+	my $r2 = $reduced->range($r2dex
+
+	
+      }
+
 
       ###############
       ### Enumerate a cube of coordinate offsets of the current size.
