@@ -233,11 +233,11 @@ Graphics/Makefile.PL
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
 Graphics/PGPLOT/PGPLOTOptions.pm
-Graphics/PGPLOT/State.pm
 Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
 Graphics/PGPLOT/Window/typemap
+Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/README
