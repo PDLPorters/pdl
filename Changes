@@ -1,5 +1,12 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke
+        - Graphics::LUT - added several intensity ramps, instead of just
+          using a linear scale.
+        - internal changes to Graphics::LUT - now stores data in external
+          FITS files rather than within the module to improve speed and 
+          reduce use of disk-space. 
+
 Marc Lehmann
 	- small changes to complex.pd: remove bogus Cneg, streamline docs.
 
