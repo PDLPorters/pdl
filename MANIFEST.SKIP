@@ -40,7 +40,6 @@ pdlexamples\.c$
 ^Basic/Math/Math\.xs$
 ^Basic/Core/Config\.pm
 ^Basic/Core/Version\.pm
-^Basic/Core/Dev\.pm$
 ^Basic/Core/Core\.c$
 ^Basic/Core/check_endian$
 ^Basic/Core/isbigendian.p$

@@ -70,7 +70,7 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
     }
 }
 
-print "Trying to figure out endian-ness of machine...";
+print "\nTrying to figure out endian-ness of machine...";
 
 # compile check_endian.c
 my $efile = 'check_endian';
@@ -139,11 +139,11 @@ PDL::Core::Dev::postamble().
 # there must be a more elegant way of saying that
 # certain files have additional dependencies!
 
-pdl.h:: pdl.h.PL mymalloc.p badsupport.p\n"
+pdl.h:: pdl.h.PL mymalloc.p\n"
 . make_from_PL( 'pdl.h' )
 . 
     join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
-    qw( Core.pm Core.xs pdlapi.c pdlconv.c pdlcore.h pdlcore.h ) )
+    qw( Core.pm Core.xs pdlapi.c pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? q|
 

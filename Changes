@@ -1,8 +1,11 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (09/06/00)
-    - more build clean ups: fixes for BAD*demo.pm.PL, pdldoc.PL and IO/NDF
-    - changes to build of Basic/Core and Basic/Bad to try and get build to work
-      if change WITH_BADVAL (doesn't fully work yet). 
+Doug Burke (09/06/00-09/07/00)
+    - Core and pdl_trans structure are now the same, whatever the choice of 
+      WITH_BADVAL and BADVAL_USENAN. The version number of the core has been
+      bumped to 2 (removing the need for Christian's recent patch) since this
+      is binary incompatible with PDL 2.1.1
+    - clean up of build process - both because of above change and also to
+      stop problems when switching between WITH_BADVAL = 1 and 0.
     - exported several routines in PDL::Bad
 Jim Edwards
     - improved OpenGL detection during 'perl Makefile.PL'

@@ -1,18 +1,14 @@
 #
 # Create pdlconv.c 
-# - for many different datatypes + bad value stuff
+# - for many different datatypes
 
 use strict;
  
 use Config;
 use File::Basename qw(&basename &dirname);
  
-# check for bad value support
-use vars qw( $bvalflag $usenan );
-require "badsupport.p";
-
 require 'Dev.pm'; PDL::Core::Dev->import;
-use vars qw( %PDL_DATATYPES %PDL_DATATYPES_BADVAL );
+use vars qw( %PDL_DATATYPES );
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -22,13 +18,9 @@ my $file;
 $file =~ s/\.pl$//                                                              
     if ($Config{'osname'} eq 'VMS' or
 	$Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
  
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {
-    print "Extracting $file (NO bad value support)\n";
-}
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 # $date = `date`; chop $date;
@@ -40,8 +32,7 @@ print OUT <<"!WITH!SUBS!";
 /***************************************************************
 
     pdlconv.c
-    automatically created by mkpdlconv.p
-    bad value support = $bvalflag
+    automatically created by pdlconv.c.PL
 
 ****************************************************************/
 

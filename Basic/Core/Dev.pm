@@ -1,34 +1,3 @@
-#
-# Create Basic/Core/Dev.pm
-# - needed since we allow bad pixel handling to be switched off
-# - created by top-level Makefile.PL since Dev.pm is used in
-#   other Makefile.PL's
-#
-
-use File::Spec;
-
-# check for bad value support
-use vars qw( $bvalflag $usenan ); 
-require File::Spec->catfile( "Basic", "Core", "badsupport.p" );
-
-# note: ths is run from the top-level makefile,
-# hence the need for Basic/Core
-my $file = File::Spec->catfile( "Basic", "Core", "Dev.pm" );
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {		     
-    print "Extracting $file (NO bad value support)\n";
-}
-open OUT, "> $file" or die "Can't create $file: $!";
-
-print OUT <<"!WITH!SUBS!";
-#
-# Dev.pm - automatically created by Basic/Core/mkdev.pl
-# - bad value support = $bvalflag
-#
-!WITH!SUBS!
-
-print OUT <<'!NO!SUBS!';
 # Stuff used in development/install environment of PDL Makefile.PL's
 # - not part of PDL itself.
 
@@ -39,10 +8,6 @@ use IO::File;
 @ISA    = qw( Exporter DynaLoader );
 
 @EXPORT = qw(genpp %PDL_DATATYPES 
-!NO!SUBS!
-	     if ( $bvalflag ) { print OUT "	     \%PDL_DATATYPES_BADVAL\n"; }
-
-print OUT <<'!NO!SUBS!';
 	     PDL_INCLUDE PDL_TYPEMAP
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
@@ -89,19 +54,6 @@ foreach $key (keys %PDL::Types::typehash) {
 	$PDL::Types::typehash{$key}->{'ctype'};
 }
 
-!NO!SUBS!
-	     if ( $bvalflag ) { 
-		 print OUT <<'!NO!SUBS!';
-%PDL_DATATYPES_BADVAL = ();
-foreach $key (keys %PDL::Types::typehash) {
-    $PDL_DATATYPES_BADVAL{$PDL::Types::typehash{$key}->{'sym'}} =
-	$PDL::Types::typehash{$key}->{'badval'};
-}
-
-!NO!SUBS!
-} # if: $bvalflag
-
-print OUT <<'!NO!SUBS!';
 # non-blocking IO configuration
 
 $O_NONBLOCK = defined $Config{'o_nonblock'} ? $Config{'o_nonblock'}
@@ -428,7 +380,4 @@ return "-L$lp -l$lib";
 }
 
 1; # Return OK
-
-!NO!SUBS!
-
 

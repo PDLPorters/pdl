@@ -20,13 +20,13 @@ my $file;
 $file =~ s/\.pl$//
         if ($Config{'osname'} eq 'VMS' or
             $Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
  
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
 } else {		     
     print "Extracting $file (NO bad value support)\n";
 }
+open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 print OUT <<"!WITH!SUBS!";

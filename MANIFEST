@@ -8,11 +8,11 @@ Basic/Core/Char.pm
 Basic/Core/Core.pm.PL
 Basic/Core/Core.xs.PL
 Basic/Core/Dbg.pm
+Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
 Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
 Basic/Core/check_endian.c
-Basic/Core/mkdev.pl
 Basic/Core/pdl.h.PL
 Basic/Core/pdl_hfiles.p
 Basic/Core/pdlapi.c.PL

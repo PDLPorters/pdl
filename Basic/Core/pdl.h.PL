@@ -6,10 +6,6 @@ use File::Basename qw(&basename &dirname);
 require "pdl_hfiles.p";
 require "mymalloc.p";
 
-# check for bad value support
-use vars qw( $bvalflag $usenan );
-require "badsupport.p";
-
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
@@ -29,13 +25,9 @@ my $file;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {		     
-    print "Extracting $file (NO bad value support)\n";
-}
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
@@ -45,7 +37,6 @@ print OUT <<"!GROK!THIS!";
 
 /*
  * THIS FILE IS GENERATED FROM pdl.h.PL! Do NOT edit!
- * bad value support = $bvalflag
  */
 
 #ifndef __PDL_H
@@ -68,18 +59,18 @@ $mymalloc
 !GROK!THIS!
 
 # set up the badvalues structure
-my $badval_struct = "typedef struct badvals {\n";
-
+# - for binary compatability, this is created whatever the
+#   value of $bvalflag and $usenan
+print OUT "typedef struct badvals {\n";
 foreach my $i ( reverse(0 .. $ntypes) ) {
     my $name = $PDL::Types::names[$i];
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
     my $cname     = $PDL::Types::typehash{$name}->{ctype};
     $cname =~ s/^PDL_//;
-    $badval_struct .= "   $realctype $cname;\n";
-    $badval_struct .= "   $realctype default_$cname;\n"
-	unless $usenan and $i >= 4;  # can not change badvalue for float/double if use NaN
+    print OUT "   $realctype $cname;\n";
+    print OUT "   $realctype default_$cname;\n";
 }
-$badval_struct .= "} badvals;\n";
+print OUT "} badvals;\n";
 
 print OUT <<'!NO!SUBS!';
 
@@ -134,13 +125,8 @@ print OUT <<'!NO!SUBS!';
 
 #define PDL_HDRCPY				0x0200
 
-!NO!SUBS!
+#define PDL_BADVAL                              0x0400
 
-    if ( $bvalflag ) {
-	print OUT "#define PDL_BADVAL                              0x0400\n\n"; 
-    }
-
-print OUT <<'!NO!SUBS!';
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
 		&& (pdl)->trans == (pdl_trans *)(wtrans))
 
@@ -217,18 +203,6 @@ typedef struct pdl_transvtable {
 
 #define PDL_ITRANS_FORFAMILY 0x0008
 
-!NO!SUBS!
-
-#if ( $bvalflag ) {
-#print OUT<<'!NO!SUBS!';
-#
-##define PDL_ITRANS_HAVE_BADVAL 0x0010 /* if set, check for bad values */ 
-#
-#!NO!SUBS!
-#}
-
-print OUT<<'!NO!SUBS!';
-
 #define PDL_ITRANS_ISAFFINE 0x1000
 #define PDL_ITRANS_VAFFINEVALID 0x2000
 #define PDL_ITRANS_NONMUTUAL 0x4000  /* flag for destruction */
@@ -245,13 +219,7 @@ print OUT<<'!NO!SUBS!';
 	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
 					(means whether malloced or not) */ \
         pdl *pdls[np]; /* The pdls involved in the transformation */ \
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	print OUT "        int bvalflag;  \\\n";  # using flags field instead
-    }
-
-print OUT <<'!NO!SUBS!';
+        int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
 	int __datatype
 
 #define PDL_TR_MAGICNO 0x91827364
@@ -312,14 +280,6 @@ typedef struct pdl_family_trans {
 } pdl_family_trans;
 
 struct pdl_magic;
-
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	print OUT $badval_struct;
-    }
-
-print OUT <<'!NO!SUBS!';
 
 /* We should try to keep this under 256-foo bytes at all costs */
 

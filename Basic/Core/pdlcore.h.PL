@@ -4,9 +4,9 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
-# check for bad value support
-use vars qw( $bvalflag $usenan $pdl_core_version );
-require "badsupport.p";
+# version 2 is for versions after PDL 2.1.1
+use vars qw( $pdl_core_version );
+$pdl_core_version = 2;  
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -23,28 +23,20 @@ my $file;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
 
-if ( $bvalflag ) {
-    print "Extracting $file (WITH bad value support)\n";
-} else {		     
-    print "Extracting $file (NO bad value support)\n";
-}
+print "Extracting $file\n";
+open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
 
-print OUT <<"!WITH!SUBS!";
-
-/*
- * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
- * bad value support = $bvalflag
- */
-
-!WITH!SUBS!
 
 print OUT <<'!NO!SUBS!';
+/*
+ * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
+ */
+
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "ppport.h"
@@ -57,6 +49,12 @@ print OUT <<'!NO!SUBS!';
 #include "pdl.h"
 #include "pdlthread.h"
 #include "pdlmagic.h"
+
+!NO!SUBS!
+
+    print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
+
+print OUT <<'!NO!SUBS!';
 
 #define PDL_TMP  0        /* Flags */
 #define PDL_PERM 1
@@ -202,17 +200,7 @@ void  pdl_set( void* x, int datatype, PDL_Long* pos, PDL_Long* dims, /* Set valu
                 PDL_Long *incs, PDL_Long offs, int ndims, double value);
 void pdl_axisvals( pdl* a, int axis );               /* Fill with axis values */
 
-!NO!SUBS!
-
-$pdl_core_version = $bvalflag ? 0xb1 : # the first BAD version
-                                1; # otherwise
-
-print OUT <<"!WITH!SUBS!";
-
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
-
-
-#define PDL_CORE_VERSION $pdl_core_version
 
 struct Core {
     I32    Version;
@@ -249,7 +237,6 @@ void (*freethreadloop)(pdl_thread *thread);
 void (*thread_create_parameter)(pdl_thread *thread,int j,int *dims,
 				int temp);
 void (*add_deletedata_magic) (pdl *it,void (*func)(pdl *, int param), int param); /* Automagic destructor */
-  
 
 /* XXX NOT YET IMPLEMENTED */
 void (*setdims_careful)(pdl *pdl);
@@ -282,7 +269,7 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
 void (*allocdata) (pdl *it);
   PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 
-!WITH!SUBS!
+!NO!SUBS!
 
 # set up the qsort routines
 
@@ -300,15 +287,10 @@ for (keys %PDL::Types::typehash) {
 
 # storage space for bad values
 
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
+print OUT <<'!NO!SUBS!';
 
   badvals bvals;  /* store the default bad values */
   void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
-!NO!SUBS!
-    } # if: $bvalflag
-
-print OUT <<'!NO!SUBS!';
 
 };
 
