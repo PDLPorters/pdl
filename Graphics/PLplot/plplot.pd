@@ -1,11 +1,17 @@
 use Config;
-use vars '$nomem';
+use vars qw/$nomem $plplotvers $debug/;
 
-# This variable is set based on a file created in Makefile.PL
-# If the NOMEM! file exists, the plplot installation does not support
-# the 'mem' (in memory) driver, so skip parts of the interface that use this.
+$debug = 0; # show generated pp_defs and other debug info
+
+# Read in options determined by Makefile.PL and written to the OPTIONS! file
+open (OPT, 'OPTIONS!');
+my @opts = <OPT>;
+close OPT;
 $nomem = 0;
-$nomem = 1 if (-e "NOMEM!");
+$nomem = 1 if (grep /NOMEM!/, @opts);
+($plplotvers) = grep /PLPLOT VERSION =/, @opts;
+
+print "Processing for plplot version $plplotvers\n" if ($debug);
 
 pp_addpm({At => Top}, <<'EOD');
 =head1 NAME
@@ -1411,17 +1417,33 @@ sub create_low_level {
   my $defn = shift;
   my @lines = split (/\n/, $defn);
 
-  my $debug = 0; # print out pp_defs
-
   foreach (@lines) {
 
     next if (/^\#/);  # Skip commented out lines
     next if (/^\s*$/); # Skip blank lines
 
+    # some functions change with plplot version.  If this function 
+    # has a version specified, note it down.
+    my $req_vers = '';
+    if (/PLPLOT VERSION = (.*)/) {
+      $req_vers = $1;
+      print "This line: $_ only applies to version $req_vers\n" if ($debug);
+    }
+    if ($req_vers && ($plplotvers !~ /$req_vers/)) {  # skip functions not for this version
+      print "Skipping $_ for $plplotvers!\n" if ($debug);
+      next;
+    }
+
     print "$_\n" if ($debug);
 
     my ($return_type, $func_name, $parms) = /^(\w+\**)\s+(\w+)\((.+)\)\;/;
     (my $pfunc_name = $func_name) =~ s/c_//; # get rid of c_ in perl func names
+
+    if (($pfunc_name eq 'plend') and ($plplotvers =~ /5.2/)) {
+	$func_name = 'c_plend1';  # plplot 5.2 demands use of plend1 instead of plend
+        print "Changed c_plend to c_plend1!\n" if ($debug);
+    }
+
     my @parms = split (/,/, $parms);
 
     my @vars  = ();
@@ -1600,7 +1622,8 @@ void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *t
 void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
 void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
 void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
-void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);
+void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);             PLPLOT VERSION = 5.1.0
+void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc); PLPLOT VERSION = 5.2.0
 void c_plprec(PLINT setp, PLINT prec);
 void c_plpsty(PLINT patt);
 void c_plptex(PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just, const char *text);

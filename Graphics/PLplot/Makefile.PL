@@ -3,11 +3,14 @@
 use PDL::Core::Dev;            # Pick up development utilities
 use ExtUtils::MakeMaker;
 use Config;
+use vars qw /$plplotvers/; # version of plplot used
 
 
 # 
 ## Search for plplot library and include file
 #
+
+unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 
 my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && $PDL_CONFIG{WITH_PLPLOT} == 0) ? 0 : 1;
 print "User requested no PLplot interface!\n" if ($found_plplot == 0);
@@ -24,6 +27,11 @@ foreach my $libdir (
 		    ) {
 
   if (-e "$libdir/libplplotd.so") {
+    my $link = readlink("$libdir/libplplotd.so");
+    ($plplotvers) = ($link =~ /libplplotd\.so\.(.*)$/);
+    open (OPT, ">>OPTIONS!");
+    print OPT "PLPLOT VERSION = $plplotvers\n";
+    close OPT;
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= $libdir;
     last;
@@ -84,10 +92,11 @@ eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", <<'EO
 main () {  plsmem (0, 0, NULL); }
 EOC
 };
-unlink ("NOMEM!");
 if ($@) {
   print "plsmem function not available, no in-memory plotting available!\n";
-  system "touch NOMEM!";
+  open (OPT, ">>OPTIONS!");
+  print OPT "NOMEM!\n";
+  close OPT;
 }
 
 # Try linking with library.  New if blocks should be added if necessary
@@ -132,7 +141,7 @@ unless ($found_plplot) {
 		'INC'          => &PDL_INCLUDE()." $plplot_include_path", 
 		'LIBS'         => [$libs],  
 		'clean'        => {'FILES'  => 
-				     'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* Makefile.old'},
+				     'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'},
 		);
   
   sub MY::postamble { pdlpp_postamble($package); }	
