@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+John Cerney
+	- Added (psuedo)-support for variable-size strings in PDL::Char
+	
+
 2.005
 CS	- version to 2.005
 	- finally try to fix 5.6.0 problem correctly

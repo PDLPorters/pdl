@@ -2,6 +2,9 @@ package PDL::Char;
 
 @ISA = qw (PDL);
 use overload ("\"\""   =>  \&PDL::Char::string);
+use strict;
+use vars ('$level', '@dims'); # Global Vars used
+
 
 =head1 NAME
 
@@ -49,7 +52,7 @@ Function to create a byte PDL from a string, list of strings, list of list of st
 =for usage
 
  # create a new PDL::Char from a perl array of strings
- $strpdl = PDL::Char->new( ['abc', 'def', 'ghi'] );  
+ $strpdl = PDL::Char->new( ['abc', 'def', 'ghij'] );  
 
  # Convert a PDL of type 'byte' to a PDL::Char
  $strpdl1 = PDL::Char->new (sequence (byte, 4, 5)+99);
@@ -67,7 +70,7 @@ sub new {
 
   # re-bless byte PDLs as PDL::Char
   if (ref($value) =~ /PDL/) {
-    PDL::Core::barf 'Cannot convert a non-byte PDL to PDL::Char' 
+    PDL::Core::barf('Cannot convert a non-byte PDL to PDL::Char')
       if ($value->get_datatype != $PDL::Types::PDL_B);
     return bless $value, $type;
   }
@@ -77,7 +80,15 @@ sub new {
   $self->set_datatype($ptype);
   $value = 0 if !defined($value);
   $level = 0; @dims = (); # package vars
-  my $str = _rcharpack($value);
+  my $maxlength;      # max length seen for all character strings
+  my $samelen	= 1;  # Flag = 1 if all character strings are the same length
+
+  # 1st Pass thru the perl array structure, assume all strings the same length
+  my $str = _rcharpack($value,\$maxlength,\$samelen);
+  unless( $samelen){  # Strings weren't the same length, go thru again and null pad to
+	      	     # the max length.
+	$str = _rcharpack2($value,$maxlength);
+  }
   $self->setdims([reverse @dims]);
   ${$self->get_dataref} = $str;
   $self->upd_data();
@@ -87,36 +98,93 @@ sub new {
 # Take an N-D perl array of strings and pack it into a single string, 
 # updating the $level and @dims package vars on the way.  
 # Used by the 'char' constructor
+#
+#  References supplied so $maxlength and $samelen are updated along the way as well.
+#    
+#    
+#   This version (_rcharpack) is for the 1st pass thru the N-d string array.
+#    It assumes that all strings are the same length, but also checks to see if they aren't
 sub _rcharpack {
 
-  my $a = shift;
+  my $a = shift;		     # Input string
+  my ($maxlenref, $samelenref) = @_; # reference to $maxlength, $samelen
+
   my ($ret,$type);
   
   $ret = "";
   if (ref($a) eq "ARRAY") {
 
-    PDL::Core::barf 'Array is not rectangular' if (defined($dims[$level]) and 
+    PDL::Core::barf('Array is not rectangular') if (defined($dims[$level]) and 
 					$dims[$level] != scalar(@$a));
     $dims[$level] = scalar (@$a);
     $level++;
     
     $type = ref($$a[0]);
     for(@$a) {
-      PDL::Core::barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
-      $ret .= _rcharpack($_);
+      PDL::Core::barf('Array is not rectangular') unless $type eq ref($_); # Equal types
+      $ret .= _rcharpack($_,$maxlenref, $samelenref);
     }
     
     $level--;
     
   }elsif (ref(\$a) eq "SCALAR") { 
-    $dims[$level] = length ($a);
+    my $len = length($a);
+
+    # Check for this length being different then the others:
+    $$samelenref = 0 if( defined($$maxlenref) && ($len != $$maxlenref) );
+    # Save the max length:
+    $$maxlenref = $len if( !defined($$maxlenref) || $len > $$maxlenref); # see if this is the max length seen so far
+
+    $dims[$level] = $len;
     $ret = $a;
     
   }else{
-    PDL::Core::barf "Don't know how to make a PDL object from passed argument";
+    PDL::Core::barf("Don't know how to make a PDL object from passed argument");
   }
   return $ret;
 }				
+#
+#    
+#   This version (_rcharpack2) is for the 2nd pass (if required) thru the N-d string array.
+#   If the 1st pass thru (_rcharpack) finds that all strings were not the same length, 
+#   this routine will go thru and null-pad all strings to the max length seen.
+#     Note: For efficiency, the error checking is not repeated here, because any errors will
+#       already be detected in the 1st pass.
+#
+sub _rcharpack2 {
+
+  my $a = shift;		  # Input string
+  my ($maxlen) = @_; 		  # Length to pad strings to
+
+  my ($ret,$type);
+  
+  $ret = "";
+  if (ref($a) eq "ARRAY") {
+
+    #  Checks not needed the second time thru (removed)
+
+    $dims[$level] = scalar (@$a);
+    $level++;
+    
+    $type = ref($$a[0]);
+    for(@$a) {
+      $ret .= _rcharpack2($_,$maxlen);
+    }
+    
+    $level--;
+    
+  }elsif (ref(\$a) eq "SCALAR") { 
+    my $len = length($a);
+
+    $dims[$level] = $maxlen;
+    $ret = $a.("\00" x ($maxlen - $len));
+  }
+  return $ret;
+}
+
+
+#
+#
 
 =head2 string
 
@@ -147,8 +215,9 @@ sub string {
   my $sep = $PDL::use_commas ? "," : " ";
 
   if ($self->dims == 1) {
-    my $str = $self->get_dataref;
-    return "\'". $$str. "\'". $sep;
+    my $str = ${$self->get_dataref}; # get copy of string
+    $str =~ s/\00+$//g; # get rid of any null padding
+    return "\'". $str. "\'". $sep;
   } else {
     my @dims = reverse $self->dims;
     my $ret = '';
@@ -197,7 +266,7 @@ dimension of the PDL.  It will be truncated if it is longer.
 =cut
 
 sub setstr {    # Sets a particular single value to a string.
-  PDL::Core::barf 'Usage: setstr($pdl, $x, $y,.., $value)' if $#_<2;
+  PDL::Core::barf('Usage: setstr($pdl, $x, $y,.., $value)') if $#_<2;
   my $self = shift;
   my $val  = pop;
 
@@ -229,11 +298,13 @@ string is the implied first dimension.
 =cut
 
 sub atstr {    # Fetchs a string value from a PDL::Char
-  PDL::Core::barf 'Usage: atstr($pdl, $x, $y,..,)' if (@_ < 2);
+  PDL::Core::barf('Usage: atstr($pdl, $x, $y,..,)') if (@_ < 2);
   my $self = shift;
   
   my $str = ':,' . join (',', map {"($_)"} @_);
   my $a = $self->slice($str);
   
-  return ${$a->get_dataref};
+  my $val = ${$a->get_dataref}; # get the data
+  $val =~ s/\00+$//g; # get rid of any null padding
+  return $val;
 }
