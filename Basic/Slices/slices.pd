@@ -68,6 +68,11 @@ makes $a a scalar (0-dimensional) piddle but you can still find the
   perldl> print $a->slice("1")
   Error in slice:Too many dims in slice 
 
+=head1 BUGS 
+
+For the moment, you can't slice the empty piddle.  This should probably
+change:  slices of the empty piddle should probably return the empty piddle.
+
 =cut
 
 use PDL::Core ':Internal';
@@ -388,10 +393,16 @@ pp_def(
 	P2Child => 1,
 	Priv => 'int nnew; int nrem;',
 	RedoDims => 'int i; int d1;
-		if($COMP(n) > $PARENT(ndims)) {
-			$CROAK("Too many dimensions %d to clump from %d",
-				$COMP(n),$PARENT(ndims));
-		}
+		if($COMP(n) > $PARENT(ndims)) 
+			/* Now with more flavor: truncate overly long clumps to 
+			   just clump existing dimensions...  (CED 17-Mar-2002) */
+
+			$COMP(n) = $PARENT(ndims);
+
+			/* Old croaking code: */
+			/*$CROAK("Too many dimensions %d to clump from %d", */
+			/*		$COMP(n),$PARENT(ndims)); */
+
 		 $COMP(nrem) = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
 		 $PRIV(nnew) = $PARENT(ndims) - $COMP(nrem) + 1;
 		 $SETNDIMS($PRIV(nnew));
@@ -430,11 +441,19 @@ pp_def(
 	RedoDims => 'int i; int d1;
 		int nrem; int nnew;
 		if($COMP(n) > $PARENT(ndims)) {
+			/* Now with more flavor:  truncate clumping in this case to 
+			 * the total number of dimensions that actually exist...
+			 *  --CED 17-Mar-2002
+			 */
+ 			$COMP(n) = -1;
+			
+#ifdef older_croaking_code
 			$SETNDIMS(0);  /* fix to make sure we do not get problems later */
 			$PRIV(offs) = 0;
 			$SETDIMS();
 			$CROAK("Too many dimensions %d to clump from %d",
 				$COMP(n),$PARENT(ndims));
+#endif
 		}
 		 nrem = ($COMP(n)==-1 ? $PARENT(threadids[0]) : $COMP(n));
 		 nnew = $PARENT(ndims) - nrem + 1;

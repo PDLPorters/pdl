@@ -783,7 +783,7 @@ the usual cases. The following example demonstrates typical usage:
 sub PDL::clump {
   my $ndims = $_[0]->getndims;
   if ($#_ < 2) {
-    barf "Error in clump: Too many dimensions $_[1] to clump from $ndims"
+    return &PDL::_clump_int($_[0],$_[1]) # Truncate clumping to actual dims
       if $_[1] > $ndims;
     return &PDL::_clump_int(@_);
   } else {
