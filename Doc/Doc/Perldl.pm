@@ -25,7 +25,7 @@ use vars qw(@ISA @EXPORT);
 
 @ISA = qw(Exporter);
 
-@EXPORT = qw( apropos usage help sig badinfo );
+@EXPORT = qw( apropos aproposover usage help sig badinfo );
 
 use PDL::Doc;
 use IO::File;
@@ -184,10 +184,15 @@ sub apropos  {
     die "Usage: apropos \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
-    my @match = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
-    printmatch @match;
+    printmatch aproposover $func;
 }
 
+sub aproposover {
+    die "Usage: aproposover \$funcname\n" unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $func = shift;
+    return $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+}
 
 sub finddoc  {
 	die 'Usage: doc $topic' unless $#_>-1;

@@ -83,7 +83,7 @@ double* packdouble ( SV* sv, int *ndims ) {
 
    *ndims = (int) av_len(array) + 1;  /* Number of dimensions */
 
-   darr = (double *) PDL->malloc( (*ndims) * sizeof(double) );
+   darr = (double *) PDL->smalloc( (*ndims) * sizeof(double) );
    if (darr == NULL)
       barf("Out of memory");
 

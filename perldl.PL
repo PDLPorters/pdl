@@ -225,7 +225,7 @@ if ($PDL_OK) {
    require PDL::Version if not defined $PDL::Version::VERSION;
    print "Type 'demo' for online demos\n";
    eval "use PDL::Bad;";
-   my $bflag = defined($PDL::Bad::Status) and $PDL::Bad::Status;
+   my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
    if ( $bflag ) {
       print "Loaded PDL v$PDL::Version::VERSION (supports bad values)\n";
    } else {

@@ -505,7 +505,7 @@ transpose rows and columns.
 
  $b = transpose($a); $b = ~$a;
 
-Also bound to the C<~> unary operator.
+Also bound to the C<~> unary operator in PDL::Matrix.
 
 =for example
 
@@ -530,9 +530,7 @@ sub PDL::transpose {
 # 1-Dim: add dummy
 		return pdl $this->dummy(0);
 	}
-	my $tmp = PDL->null;
-	$tmp .= $this->xchg(0,1);
-	return $tmp;
+	return $this->xchg(0,1)->sever;
 }
 
 1;

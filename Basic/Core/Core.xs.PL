@@ -572,14 +572,24 @@ at_c(x,position)
    pdl*	x
    PDL_Long *	pos = NO_INIT
    CODE:
-    int npos;
+    int npos, ipos;
     double result;
 
       pdl_make_physvaffine( x );
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x->ndims)
+    
+    if (pos == NULL || npos < x->ndims)
        barf("Invalid position");
+
+    /*  allow additional trailing indices
+     *  which must be all zero, i.e. a
+     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim piddle
+     */
+    for (ipos=x->ndims; ipos<npos; ipos++)
+      if (pos[ipos] != 0)
+         barf("Invalid position");
 
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
@@ -732,13 +742,22 @@ set_c(x,position,value)
     PDL_Long *	pos = NO_INIT
     double	value
    CODE:
-    int npos;
+    int npos,ipos;
 
     pdl_make_physvaffine( x );
 
     pos = pdl_packdims( ST(1), &npos);
-    if (pos == NULL || npos != x->ndims)
+    if (pos == NULL || npos < x->ndims)
        barf("Invalid position");
+
+    /*  allow additional trailing indices
+     *  which must be all zero, i.e. a
+     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim piddle
+     */
+    for (ipos=x->ndims; ipos<npos; ipos++)
+      if (pos[ipos] != 0)
+         barf("Invalid position");
 
     pdl_children_changesoon( x , PDL_PARENTDATACHANGED );
     pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
@@ -764,7 +783,7 @@ BOOT:
    PDL.copy        = pdl_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
-   PDL.malloc      = pdl_malloc;
+   PDL.smalloc      = pdl_malloc;
    PDL.howbig      = pdl_howbig;
    PDL.packdims    = pdl_packdims;
    PDL.unpackdims  = pdl_unpackdims;
@@ -997,7 +1016,12 @@ getdim(x,y)
 	int y
 	CODE:
 		pdl_make_physdims(x);
-		RETVAL = x->dims[y];
+		if (y < 0) y = x->ndims + y;
+		if (y < 0) barf("negative dim index too large");
+		if (y < x->ndims)
+                   RETVAL = x->dims[y];
+                else
+		   RETVAL = 1; /* return size 1 for all other dims */
 	OUTPUT:
 		RETVAL
 

@@ -1,4 +1,22 @@
 (!!! = possible source of incompatibilities)
+CS
+	- Core.xs.PL: getdim, at and set now support the 'infinite dim'
+	  piddle behaviour discussed on pdl-porters
+	- perldl: $bflag incorrect due to low 'and' precendence
+	- PDL.pm: the version was still far behind ;-(
+	- Basic.pm: PDL->null breaks inheritance
+	- Core.pm.PL: allow <2D piddles as arguments in creating functions
+		(not yet reflected in the docs). Another step on the way
+		to improve the balancing act between scalar and 1D piddles
+		and normal perl scalars
+	- Core.xs.PL, pdlcore.h.PL: PDL.malloc -> PDL.smalloc renamed
+	- Core/Makefile.PL: endian stuff only when WITH_BADVAL (reduce
+	  likelihood of build problems); don't assume that '.' is in the
+	  PATH (good distributions like DEBIAN avoid that ;)
+	- Doc/Perldl.pm: new (undocumented) aproposover function -- do
+		your own thing with returned matches
+	- karma.pd: PDL->malloc -> PDL->smalloc
+
 Doug Burke (09/06/00-09/07/00)
     - Core and pdl_trans structure are now the same, whatever the choice of 
       WITH_BADVAL and BADVAL_USENAN. The version number of the core has been

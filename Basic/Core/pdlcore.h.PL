@@ -214,7 +214,7 @@ struct Core {
     SV*    (*copy)        ( pdl*, char* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
-    void*  (*malloc)      ( int );
+    void*  (*smalloc)      ( int );
     int    (*howbig)      ( int );
     PDL_Long*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Long* dims, int ndims );

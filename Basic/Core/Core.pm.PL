@@ -308,6 +308,18 @@ Returns the size of the given dimension.
  perldl> p zeroes(10,3,22)->getdim(1)
  3
 
+Negative indices count from the end of the dims array.
+Indices beyond the end will return a size of 1. This
+reflects the idea that any pdl is equivalent to an
+infinitely dimensional array in which only a finite number of
+dimensions have a size different from one. For example, in that sense a
+3D piddle of shape [3,5,2] is equivalent to a [3,5,2,1,1,1,1,1,....]
+piddle. Accordingly,
+
+  print $a->getdim(10000);
+
+will print 1 for most practically encountered piddles.
+
 =head2 topdl
 
 =for ref
@@ -1191,9 +1203,45 @@ Internal method: create piddle by specification
 
 This is the argument processing method called by L<zeroes|/zeroes>
 and some other functions
-which constructs piddles from argument listss of the form:
+which constructs piddles from argument lists of the form:
 
  [type], $nx, $ny, $nz,...
+
+For C<$nx>, C<$ny>, etc. 0 and 1D piddles are allowed.
+Giving those has the same effect as if saying C<$arg-E<gt>list>,
+e.g.
+
+   1, pdl(5,2), 4
+
+is equivalent to
+
+   1, 5, 2, 4
+
+Note, however, that in all functions using C<new_from_specification>
+calling C<func $piddle> will probably not do what you want. So to play safe
+use (e.g. with zeroes)
+
+  $pdl = zeroes $dimpdl->list; 
+
+Calling
+
+  $pdl = zeroes $dimpdl;
+
+will rather be equivalent to
+
+  $pdl = zeroes $dimpdl->dims;
+
+However,
+
+  $pdl = zeroes ushort, $dimpdl;
+
+will again do what you intended since it is interpreted
+as if you had said
+
+  $pdl = zeroes ushort, $dimpdl->list;
+
+This is unfortunate and confusing but no good solution seems
+obvious that would not break existing scripts.
 
 =cut
 
@@ -1202,9 +1250,17 @@ sub PDL::new_from_specification{
     my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
     my $nelems = 1; my @dims;
     for (@_) {
-       barf "Trying to use piddle as dimensions?" if ref $_;
-       barf "Dimensions must be positive" if $_<=0;
-       $nelems *= $_; push @dims, $_
+       if (ref $_) {
+         barf "Trying to use non-piddle as dimensions?" unless $_->isa('PDL');
+         barf "Trying to use multi-dim piddle as dimensions?"
+              if $_->getndims > 1;
+         warn "creating > 10 dim piddle (piddle arg)!"
+              if $_->nelem > 10;
+         for my $dim ($_->list) {$nelems *= $dim; push @dims, $dim}
+       } else {
+         barf "Dimensions must be positive" if $_<=0;
+         $nelems *= $_; push @dims, $_
+       }
     }
     my $pdl = $class->initialize();
     $pdl->set_datatype($type);
@@ -1282,6 +1338,9 @@ Various forms of usage,
  perldl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
+See also L<new_from_specification|new_from_specification>
+for details on using piddles in the dimensions list.
+
 =cut
 
 sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zeroes : PDL->zeroes(@_) }
@@ -1306,6 +1365,9 @@ construct a one filled piddle
 =for example
 
  see zeroes() and add one
+
+See also L<new_from_specification|new_from_specification>
+for details on using piddles in the dimensions list.
 
 =cut
 
