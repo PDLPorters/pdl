@@ -1,3 +1,5 @@
+DJB (02 Apr 02)
+    - added Ben Gertzfield's patch for bug #538283 (pptemplate.pod location)
 CS  - doc updates
     - box2d in image2d.pd
     - some more PGPLOT tline fixes
