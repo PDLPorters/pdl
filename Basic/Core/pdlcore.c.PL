@@ -8,6 +8,9 @@ use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
  
+require 'Dev.pm'; PDL::Core::Dev->import;
+use vars qw( %PDL_DATATYPES );
+
 # check for bad value support
 use vars qw( $bvalflag $usenan );
 require "badsupport.p";
@@ -47,7 +50,7 @@ static SV *getref_pdl(pdl *it) {
 	if(!it->sv) {
 		SV *ref;
 		HV *stash = gv_stashpv("PDL",TRUE);
-		SV *psv = newSViv((IV)it);
+		SV *psv = newSViv(PTR2IV(it));
 		it->sv = psv;
 		newref = newRV_noinc(it->sv);
 		(void)sv_bless(newref,stash);
@@ -303,7 +306,7 @@ print OUT <<'!NO!SUBS!';
 	ret = pnew;
    } else {
 #else
-	   ret = (pdl *)SvIV(sv2);
+	   ret = INT2PTR(pdl *,SvIV(sv2));
 #endif
 #ifdef FOOOOOOOO
    }
@@ -533,4 +536,174 @@ pdl_barf(pat, va_alist)
 
     croak(message);
 }
+
+/* traverse an array ref recursively following down any number of
+   levels of references and make sure that
+   (1) no other references than array refs are present
+   (2) at no level data and array refs are mixed
+
+   The routine works out the dimensions of a corresponding
+   piddle (in the AV dims) in reverse notation (vs PDL conventions).
+  
+   It does not enforce a rectangular array the idea being that
+   omitted values will be set to zero in the resulting piddle,
+   i.e. we can make piddles from 'sparse' array refs
+
+*/
+int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
+{
+  int i, len, oldlen, newdepth, depth = 0;
+  int hasref = 0, hasnonref=0;
+  SV *el;
+
+  len = av_len(av);
+  for (i=0; i<= len; i++) {
+    newdepth = 0;
+    el = *(av_fetch(av,i,0));
+    if (SvROK(el)) {
+      if (SvTYPE(SvRV(el)) != SVt_PVAV)
+	croak("av_ndcheck: non-array ref in structure");
+      hasref = 1;
+      if (hasnonref)
+         croak("av_ndcheck: mixed array-ref and non array-refs");
+      newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
+    }
+    else {
+     hasnonref = 1;
+     if (hasref)
+       croak("av_ndcheck: mixed array-ref and non array-refs");
+     if (*datalevel > 0 && *datalevel != level)
+       croak("av_ndcheck: mixing data and array_refs on level %d", 
+	     *datalevel > level ? level : *datalevel);
+     *datalevel = level;
+    }
+    if (newdepth > depth)
+      depth = newdepth;
+  }
+  len++;
+  if (dims != NULL) {
+    /* printf("Length is %d\n",av_len(dims)); */
+    if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
+	&& SvIOK(*(av_fetch(dims, level, 0)))) {
+      oldlen = (int) SvIV(*(av_fetch(dims, level, 0)));
+      if (len > oldlen)
+	sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
+    }
+    else
+      av_store(dims,level,newSViv((IV) len));
+  }
+  /* printf("level/datalevel are %d/%d\n",level,*datalevel); */
+  return depth;
+}
+
+pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
+{
+  int ndims, i, level=0;
+  PDL_Long *pdims;
+
+  ndims = av_len(dims)+1;
+  pdims = (PDL_Long *) pdl_malloc( (ndims) * sizeof(*pdims) );
+  for (i=0; i<ndims; i++)
+     pdims[i] = SvIV(*(av_fetch(dims, ndims-1-i, 0))); /* reverse order */
+  if (p == NULL)
+     p = pdl_new();
+  pdl_setdims (p, pdims, ndims);
+  p->datatype = type;
+  pdl_allocdata (p);
+  pdl_make_physical(p);
+  /* this one assigns the data */
+  /* note that this switch statement should be generated from
+   * %PDL_DATATYPES to make it compatible with future changes
+   * in PDL data types
+   */
+  switch (type) {
+   case PDL_D:
+      pdl_setav_Double(p->data,av,pdims,ndims,level);
+      break;
+   case PDL_F:
+      pdl_setav_Float(p->data,av,pdims,ndims,level);
+      break;
+   case PDL_L:
+      pdl_setav_Long(p->data,av,pdims,ndims,level);
+      break;
+   case PDL_S:
+      pdl_setav_Short(p->data,av,pdims,ndims,level);
+      break;
+   case PDL_U:
+      pdl_setav_Ushort(p->data,av,pdims,ndims,level);
+      break;
+   case PDL_B:
+      pdl_setav_Byte(p->data,av,pdims,ndims,level);
+      break;
+   default:
+      croak("pdl_from_array: internal error: got type %d",type);
+      break;
+  }
+  p->state &= ~PDL_NOMYDIMS;
+  return p;
+}
+
+
 !NO!SUBS!
+
+# these are helper functions for fast assignment from array refs
+# mainly used by pdl_avref in Core.xs which implements converting
+# array refs to piddles
+
+for my $in ( keys %PDL_DATATYPES ) {
+
+  (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
+
+print OUT <<"!WITH!SUBS!";
+
+static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
+                               PDL_Long ndims, int level)
+{
+  int i, nels=1;
+  
+  for (i=0; i<ndims-level;i++)
+     nels *= pdims[i];
+  for (i=0; i<nels; i++)
+    pdata[i] = 0;
+}
+
+void pdl_setav_$type(PDL_$type* pdata, AV* av,
+	PDL_Long* pdims, PDL_Long ndims, int level)
+{
+/* this thing will need to be recursive and fill up missing bits
+   with zeroes
+*/
+  int cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
+                                       inwards */
+  int len = av_len(av);
+  int i,stride=1;
+  SV* el;
+
+  for (i=0;i<ndims-1-level;i++)
+    stride *= pdims[i];
+  /* printf("level, cursz, stride: %d, %d, %d\n",level, cursz, stride); */
+  for (i=0;i<=len;i++,pdata += stride) {
+    /* printf("pdata = %d\n",pdata); */
+    el = *(av_fetch(av,i,0));
+    if (SVavref(el))
+       pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
+    else
+       *pdata = (PDL_$type) SvNV(el);
+  }
+  /* in case this dim is incomplete set remaining elements to zero */
+  for (i=len+1, pdata;i<cursz;i++,pdata += stride) {
+    /* printf("pdata = %d\n",pdata); */
+    if (level < ndims-1) /* ndims-1 is datalevel */
+        pdl_setzero_$type(pdata,pdims, ndims, level+1); /* set whole subtree
+                                                          * to zero
+                                                          */
+    else {
+      /* printf("extra element at %d\n",i); */
+      *pdata = 0;
+    }
+  }
+}
+
+!WITH!SUBS!
+
+} # end type loop

@@ -39,6 +39,46 @@ for (['Byte',$PDL_B],
 		      Val => $_->[1]  };
 }
 
+my $hasTB = 0;
+eval 'use Text::Balanced';
+if ($@) {
+  # this is too annoying
+  # warn "PDL::PP: can't load Text::Balanced, code parsing will be limited";
+} else {
+  $hasTB = 1;
+}
+
+# split regex $re separated arglist
+# but ignore bracket-protected bits
+# (i.e. text that is within matched brackets)
+# fallback to simple split if we can't find Text::Balanced
+my $prebrackreg = qr/^([^\(\{\[]*)/;
+sub splitprotected ($$) {
+  my ($re,$txt) = @_;
+  return split $re, $txt unless $hasTB;
+  return () if !defined $txt || $txt =~ /^\s*$/;
+  my ($got,$pre) = (1,'');
+  my @chunks = ('');
+  my $ct = 0; # infinite loop protection
+  while ($got && $txt =~ /[({\[]/ && $ct++ < 1000) {
+    # print "iteration $ct\n";
+    ($got,$txt,$pre) =
+      Text::Balanced::extract_bracketed($txt,'{}()[]',$prebrackreg);
+    my @partialargs = split $re, $pre, -1;
+    $chunks[-1] .= shift @partialargs if @partialargs;
+    push @chunks, @partialargs;
+    $chunks[-1] .= $got;
+  }
+  confess "possible infinite parse loop, splitting '$txt' "
+			   if $ct >= 1000;
+  my @partialargs = split $re, $txt, -1;
+  $chunks[-1] .= shift @partialargs if @partialargs;
+  push @chunks, @partialargs if @partialargs;
+  # print STDERR "args found: $#chunks\n";
+  # print STDERR "splitprotected $txt on $re: [",join('|',@chunks),"]\n";
+  return @chunks;
+}
+
 # null != [0]
 #  - in Core.
 
@@ -322,8 +362,8 @@ sub do_access {
 	my $pdl = $this->{Name};
 # Parse substitutions into hash
 	my %subst = map
-	 {/^\s*(\w+)\s*=>\s*(\w*)\s*$/ or confess "Invalid subst $_\n"; ($1,$2)}
-	 	split ',',$inds;
+	 {/^\s*(\w+)\s*=>\s*(\S*)\s*$/ or confess "Invalid subst $_\n"; ($1,$2)}
+	 	splitprotected ',',$inds;
 # Generate the text
 	my $text;
 	$text = "(${pdl}_datap)"."[";

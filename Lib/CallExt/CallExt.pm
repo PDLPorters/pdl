@@ -148,9 +148,9 @@ sub callext{
     my($file,$symbol, @pdl_args) = @_;
 
     my $libref = DynaLoader::dl_load_file($file);
-    my $err    = DynaLoader::dl_error(); barf $err if defined $err;
+    my $err    = DynaLoader::dl_error(); barf $err if !defined $libref;
     my $symref = DynaLoader::dl_find_symbol($libref, $symbol);
-    $err       = DynaLoader::dl_error(); barf $err if defined $err;
+    $err       = DynaLoader::dl_error(); barf $err if !defined $symref;
 
     _callext_int($symref, @pdl_args);
 1;}

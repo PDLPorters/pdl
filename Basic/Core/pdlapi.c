@@ -186,6 +186,7 @@ void pdl__free(pdl *it) {
 /* Call special freeing magic, if exists */
     if(PDL_ISMAGIC(it)) {
     	pdl__call_magic(it, PDL_MAGIC_DELETEDATA);
+	pdl__magic_free(it);
     }
 
     if(it->datasv) {
@@ -454,6 +455,7 @@ void pdl_dump_flags(int flags, int nspac)
 
 	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
+	sz = 0;
 
 	printf("%sState: (%d) ",spaces,flags);
 	len = 0;

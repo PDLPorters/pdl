@@ -51,6 +51,8 @@ use PDL::Types;
 use PDL::Options;
 use PDL::Bad;
 use Carp;
+use Symbol qw/ gensym /;
+use strict;
 
 =head2 rfits()
 
@@ -77,9 +79,9 @@ HDU's by using the [n] syntax, the second one is [1]. This works
 as long as they are IMAGE extensions - this module does not
 do FITS tables!
 
-FITS Headers stored in piddle and can be retrived with $a->gethdr.
-The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
-header is copied to new piddles.
+FITS Headers are stored in the piddle and can be retrived with
+$a->gethdr.  The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set
+so that the header is copied to new piddles.
 
 This header is a reference to a hash where the hash keys are the
 keywords in the FITS header.  If you have the "Astro::FITS::Header"
@@ -88,7 +90,7 @@ object.  The tied-hash interface is designed so that it emulates the
 legacy PDL support: keyword/value pairs are accessed as with an ordinary 
 hash.  But for more precise control of the FITS header you can access
 the underlying Astro::FITS::Header object using the perl "tied" builtin
-(see the L<Astro::FITS::Header> man page for details).
+(see L<Astro::FITS::Header> for details).
 
 Keywords are converted to I<uppercase>; this is part of the FITS
 standard; but access is case-insensitive on the perl side, provided
@@ -129,12 +131,10 @@ BEGIN {
 	eval "use Astro::FITS::Header;";
 	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
 	if($PDL::Astro_FITS_Header) {
-	  # no warnings; # pre 5.6 dislikes this
 	  my($a) = $Astro::FITS::Header::VERSION;
-	  $a =~ s/\..*//;
-	  $PDL::Astro_FITS_Header = 0 if($a < 2);
+	  $a =~ s/[^0-9\.].*//;
+	  $PDL::Astro_FITS_Header = 0 if($a < 1.12);
 	}
-	
 }
 ##############################
 
@@ -218,7 +218,6 @@ sub PDL::rfits {
              push @history, $rest;
           } else {
              $$foo{$name} = "";
-             undef $comment;
 
              $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
  	     $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
@@ -397,14 +396,15 @@ BEGIN {
     ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
 }
 
+# Until we do a rewrite these have to be file global since they
+# are used by the wheader routine
+my (%hdr, $nbytes);
 
 sub PDL::wfits { # Write a PDL to a FITS format file
-
    barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
 
    my ($pdl,$file,$BITPIX) = @_;
    my ($k, $buff, $off, $ndims, $sz);
-   local($nbytes, %hdr);
 
    if ($file =~ /\.gz$/) {            # Handle compression
       $file = "|gzip -9 > $file";
@@ -435,7 +435,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
 
    # Automatically figure output scaling
 
-   $bzero = 0; $bscale = 1;
+   my $bzero = 0; my $bscale = 1;
    if ($BITPIX>0) {
       my $min = $pdl->min;
       my $max = $pdl->max;
@@ -462,7 +462,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    my($h) = $pdl->gethdr();
    if(defined($h) && 
       (defined (tied %$h)) && 
-      ((tied %$h) =~ m/Astro::FITS::Header/)) {
+      (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header"))) {
      my $k;
 
      ##############################
@@ -478,22 +478,26 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      $h->{SIMPLE} = 'T';
      my(@a) = $hdr->itembyname('SIMPLE');
      $a[0]->comment('Created with PDL (http://pdl.perl.org)');
+
+     # and register it as a LOGICAL rather than a string
+     $a[0]->type('LOGICAL');
+
      
      #
      # Use tied interface to set all the keywords.  Note that this
      # preserves existing per-line comments, only changing the values.
      #
      $h->{BITPIX} = $BITPIX;
-     $h->{NAXIS} = pdl->getndims;
+     $h->{NAXIS} = $pdl->getndims;
      for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
 
      $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
-     $hdr{BSCALE} = $bscale if($bscale != 1);
-     $hdr{BZERO}  = $bzero  if($bzero  != 0);
+     $h->{BSCALE} = $bscale if($bscale != 1);
+     $h->{BZERO}  = $bzero  if($bzero  != 0);
 
      if ( $pdl->badflag() ) {
-       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
-       else               { delete $HDR{BLANK}; }
+       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $h->{BLANK} = $a->badvalue(); }
+       else               { delete $h->{BLANK}; }
      }
      
      #
@@ -529,14 +533,15 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      # Make sure that the HISTORY lines all come at the end
      # 
      my @hindex = $hdr->index('HISTORY');
-     for $k(0..$#$hindex) {
+     for $k(0..$#hindex) {
        $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
      }
 
      #
      # Make sure the last card is an END
      #
-     $hdr->insert(-1,new Astro::FITS::Header::Item(Keyword=>'END'));
+     $hdr->insert(scalar($hdr->cards),
+	new Astro::FITS::Header::Item(Keyword=>'END'));
      
      #
      # Write out all the cards, and note how many bytes for later padding.
@@ -588,7 +593,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      #   otherwise      - make sure the BLANK keyword is removed
      if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
-       else               { delete $HDR{BLANK}; }
+       else               { delete $hdr{BLANK}; }
      }
      
      for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
@@ -865,6 +870,8 @@ when read in, then the whole array reversed.
 
 =cut
 
+use vars qw/ $colsep $deftype /;
+
 $colsep = " ";      # Default column separator
 $deftype = double;  # Default type for piddles
 
@@ -886,7 +893,7 @@ sub PDL::rcols {
        if $#_<0;
 
    my $is_handle = defined fileno $_[0] ? 1 : 0;
-   my $fh = $is_handle ? $_[0] : "FILE";
+   my $fh = $is_handle ? $_[0] : gensym;
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
 
@@ -1190,7 +1197,7 @@ sub PDL::wcols {
    }
    else{
        if (ref(\$file) eq "SCALAR") {  # Must be a file name
-          $fh = "FILE";
+          $fh = gensym;
          if (!$is_handle) {
             $file = ">$file" unless $file =~ /^\|/ or $file =~ /^\>/;
              open $fh, $file or barf "File $file can not be opened for writing\n";
@@ -1357,7 +1364,7 @@ of C<$1>, C<$2> etc.
      my $pattern = shift;
 
      my $is_handle = defined fileno $_[0] ? 1 : 0;
-     my $fh = $is_handle ? $_[0] : "FILE";
+     my $fh = $is_handle ? $_[0] : gensym;
      open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
 
      if (ref($pattern) ne "CODE") {
@@ -1413,6 +1420,7 @@ Not yet tested with PDL-1.9X versions
 
 sub rdsa{PDL->rdsa(@_)}
 
+use vars qw/ $dsa_loaded /;
 sub PDL::rdsa {
     my $class = shift;
     barf 'Usage: ([$xaxis],$data) = rdsa($file)' if $#_!=0;
@@ -1420,7 +1428,7 @@ sub PDL::rdsa {
     eval 'use DSA' unless $dsa_loaded++;
     barf 'Cannot use DSA library' if $@ ne "";
 
-    $status = 0;
+    my $status = 0;
 
     # Most of this stuff stolen from Frossie:
 
@@ -1428,9 +1436,12 @@ sub PDL::rdsa {
     dsa_named_input('IMAGE',$file,$status);
     goto skip if $status != 0;
 
-    dsa_get_range('IMAGE',$vmin,$vmax,$status);
-    dsa_data_size('IMAGE',5, $data_ndims, \@data_dims, $data_elements, $status);
-    dsa_map_data('IMAGE','READ','FLOAT',$data_address,$data_slot,$status);
+    dsa_get_range('IMAGE',my $vmin,my $vmax,$status);
+    my @data_dims;
+    dsa_data_size('IMAGE',5, my $data_ndims, \@data_dims, my $data_elements, 
+                  $status);
+    dsa_map_data('IMAGE','READ','FLOAT',my $data_address,my $data_slot,
+                 $status);
 
     @data_dims = @data_dims[0..$data_ndims-1];
     print "Dims of $file = @data_dims\n" if $PDL::verbose;
@@ -1441,10 +1452,11 @@ sub PDL::rdsa {
     $pdl->upd_data();
 
     if (wantarray) { # Map X axis values
-      dsa_axis_size('IMAGE',1,5, $axis_ndims, \@axis_dims,
-                    $axis_elements, $status);
-      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',$axis_address,
-                    $axis_slot,$status);
+      my @axis_dims;
+      dsa_axis_size('IMAGE',1,5, my $axis_ndims, \@axis_dims,
+                    my $axis_elements, $status);
+      dsa_map_axis_data('IMAGE',1,'READ','FLOAT',my $axis_address,
+                    my $axis_slot,$status);
       @axis_dims = @axis_dims[0..$axis_ndims-1];
       $xpdl = $class->new;
       $xpdl->set_datatype($PDL_F);

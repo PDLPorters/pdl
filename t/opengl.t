@@ -15,7 +15,9 @@ use Test;
 
 BEGIN { 
   use PDL::Config;
-  if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} ){
+  if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} 
+      # only if GL modules have actually been built
+      && $PDL::Config{GL_BUILD}) {
 	 plan tests => 3; 
 	 eval 'use PDL::Graphics::OpenGL';
 	 ok($@, ''); 

@@ -1,0 +1,77 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::ZETA - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+#include "../gslerr.h"
+');
+
+pp_def('gsl_sf_zeta',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_zeta_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Riemann Zeta Function zeta(x) = Sum[ k^(-s), {k,1,Infinity} ], s != 1.0'
+      );
+
+pp_def('gsl_sf_hzeta',
+       GenericTypes => [D],
+       OtherPars =>'double q',
+       Pars=>'double s(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_hzeta_e,($s(), $COMP(q), &r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Hurwicz Zeta Function zeta(s,q) = Sum[ (k+q)^(-s), {k,0,Infinity} ]'
+      );
+
+pp_def('gsl_sf_eta',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_eta_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Eta Function eta(s) = (1-2^(1-s)) zeta(s)'
+      );
+
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

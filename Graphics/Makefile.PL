@@ -49,7 +49,7 @@ WriteMakefile(
 	      'PM'       => \%pm,
 	      'MAN3PODS' => \%man3pods,
 	      DIR => [@subdirs],
-	      LIB => ['-lm'],
+#	      LIBS => ['-lm'],  # corrected from LIB=>..., then commented out
 	     );
 
 sub guessogllibs{

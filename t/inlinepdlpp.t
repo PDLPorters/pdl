@@ -5,6 +5,13 @@ use blib;  # otherwise possible error on virgin systems not finding PDL::Core
 use PDL::LiteF;
 
 BEGIN {
+    # clean out the _Inline directory on every test
+    # (may be OTT but ensures that we're always testing the latest code)
+    #
+    require ExtUtils::Command;
+    local @ARGV = '_Inline';
+    &ExtUtils::Command::rm_rf;
+
     eval 'use Inline 0.43';
     unless ($@) {
 	plan tests => 3;
@@ -17,6 +24,7 @@ BEGIN {
 
 sub shape { join ',', $_[0]->dims }
 
+# use Inline 'INFO'; # use to generate lots of info
 use Inline 'Pdlpp';
 
 ok(1); # ok, we made it so far
@@ -39,3 +47,5 @@ pp_def('testinc',
 	Pars => 'a(); [o] b()',
 	Code => '$b() = $a() + 1;' # wow, that's complicated
 );
+
+# this tests the bug with a trailing comment and *no* newline

@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.95;
+$PDL::NiceSlice::VERSION = 0.97;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -37,20 +37,27 @@ eval << 'EOH';
     sub PDL::nslice {
       my($pdl) = shift;
       my @args = @_;
-      my $i = 0;
+      my ($i,$noslice) = (0,0);
       for (@args) {
 	if (UNIVERSAL::isa($_,'PDL')) {
 	  if ($_->nelem > 1) {
-	    PDL::Core::barf('piddle must be <= 1D') if $_->getndims > 1;
-	    # dice this axis
-	    $pdl = $pdl->dice_axis($i,$_);
-	    # and keep resulting dim fully in slice
-	    $_ = 'X'; } 
-	  else { $_ = $_->flat->at(0) } # reduce this one-element piddle
-	  # to a scalar for 'slice'
+	    if ($_->getndims > 1) {
+	      # allow one multi-D arg which will imply flat addressing
+	      PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
+	      $pdl = $pdl->flat->index($_);
+	      $noslice = 1;
+	    } else {
+	      # dice this axis
+	      $pdl = $pdl->dice_axis($i,$_);
+	      # and keep resulting dim fully in slice
+	      $_ = 'X'; 
+	    }
+	  } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+					# to a scalar for 'slice'
 	}
 	$i++;
       }
+      return $pdl if $noslice;
       # print STDERR 'processed arglist: ',join(',',@args);
       my $slstr = join ',',(map {
 	!ref $_ && $_ eq "X" ? ":" :
@@ -113,7 +120,7 @@ my $prebrackreg = qr/^([^\(\{\[]*)/;
 # but ignore bracket-protected bits
 # (i.e. text that is within matched brackets)
 sub splitprotected ($$) {
-  my ($txt,$re) = @_;
+  my ($re,$txt) = @_;
   my ($got,$pre) = (1,'');
   my @chunks = ('');
   my $ct = 0; # infinite loop protection
@@ -157,7 +164,7 @@ sub onearg ($) {
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
   # no doubles colon are matched to avoid confusion with Perl's C<::>
   if ($arg =~ /(?<!:):(?!:)/) { # a start:stop:delta range
-    my @args = splitprotected $arg, '(?<!:):(?!:)';
+    my @args = splitprotected '(?<!:):(?!:)', $arg;
     filterdie "invalid range in slice expression '".curarg()."'"
       if @args > 3;
     $args[0] = 0 if !defined $args[0] || $args[0] =~ /^\s*$/;
@@ -180,7 +187,7 @@ sub procargs {
   $txt =~ s/\((.*)\)/$1/s;
   # push @callstack, $txt; # for later error reporting
   my $args = $txt =~ /^\s*$/s ? '' :
-    join ',', map {onearg $_} splitprotected $txt, ',';
+    join ',', map {onearg $_} splitprotected ',', $txt;
   $args =~ s/\s//sg; # get rid of whitespace
   # pop @callstack; # remove from call stack
   return "($args)";

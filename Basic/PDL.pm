@@ -39,7 +39,7 @@ the L<PDL::Index|PDL::Index> manpage is a good starting point.
 
 
 # set the version:
-$PDL::VERSION = '2.3.3'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.3.4'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 

@@ -881,7 +881,7 @@ print OUT <<'!NO!SUBS!';
        by other modules
    */
 
-   sv_setiv(perl_get_sv("PDL::SHARE",TRUE), (IV) (void*) &PDL);
+   sv_setiv(perl_get_sv("PDL::SHARE",TRUE), PTR2IV(&PDL));
 
 # version of eval() which propogates errors encountered in
 # any internal eval(). Must be passed a code reference - could
@@ -899,6 +899,57 @@ myeval(code)
    PUSHMARK(sp) ;
    perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME);
 
+
+# make piddle belonging to 'class' and of type 'type'
+# from avref 'array_ref' which is checked for being
+# rectangular first
+
+SV*
+pdl_avref(array_ref, class, type)
+     SV* array_ref
+     char* class
+     int type
+  CODE:
+     /* make a piddle from a Perl array ref */
+     AV *dims, *av;
+     int i, depth;
+     int datalevel = -1;
+     SV* psv;
+     pdl* p;
+
+     if (!SvROK(array_ref))
+       croak("pdl_avref: not a reference");
+     if (SvTYPE(SvRV(array_ref)) != SVt_PVAV)
+       croak("pdl_avref: not an array reference");
+     av = (AV *) SvRV(array_ref);
+     dims = (AV *) sv_2mortal( (SV *) newAV());
+
+     av_store(dims,0,newSViv((IV) av_len(av)+1));
+     /* even if we contain nothing depth is one */
+     depth = 1 + av_ndcheck(av,dims,0,&datalevel);
+
+     /* printf("will make type %s\n",class); */
+     /* 
+	at this stage start making a piddle and populate it with
+	values from the array (which has already been checked in av_check)
+     */
+     if (strcmp(class,"PDL") == 0) {
+        p = pdl_from_array(av,dims,type,NULL); /* populate with data */
+        ST(0) = sv_newmortal();
+        SetSV_PDL(ST(0),p);
+     } else {
+       /* call class->initialize method */
+       PUSHMARK(SP);
+       XPUSHs(sv_2mortal(newSVpv(class, 0)));
+       PUTBACK;
+       perl_call_method("initialize", G_SCALAR);
+       SPAGAIN;
+       psv = POPs;
+       PUTBACK;
+       p = SvPDLV(psv); /* and get piddle from returned object */
+       ST(0) = psv;
+       pdl_from_array(av,dims,type,p); /* populate ;) */
+     }
 
 MODULE = PDL::Core	PACKAGE = PDL
 
@@ -1152,21 +1203,34 @@ sethdr(p,h)
 		   p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
 SV *
-gethdr(p)
+hdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);
-                /* Make sure that in the undef case we return not undef but an empty */
-                /* hash ref.  This is a Good Thing because it means you can always   */
-                /* modify the return value in-place to change the PDL's header, at   */
-	        /* the cost of autogeneration of an empty hash whenever you gethdr() */
-		/* for the first time. */
+
+                /* Make sure that in the undef case we return not */
+                /* undef but an empty hash ref. */
 
                 if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
 	            p->hdrsv = (void*) newRV_noinc( (SV*)newHV() );
                 }
 
 		RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
+
+	OUTPUT:
+	 RETVAL
+
+SV *
+gethdr(p)
+	pdl *p
+	CODE:
+		pdl_make_physdims(p);
+
+                if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
+	            RETVAL = &PL_sv_undef;
+                } else {
+		    RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
+                }
 
 	OUTPUT:
 	 RETVAL

@@ -1,6 +1,4 @@
-PDL-GSL-0.6
-
-PDL interface to GSL 0.4.1 rng and randist functions.
+PDL interface to GSL 1.X rng and randist functions.
 
 by Christian Pellegrin <chri@infis.univ.ts.it>, Copyleft, 1999
 see COPYING in the root of the PDL build tree.

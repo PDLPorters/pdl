@@ -260,7 +260,7 @@ their way around the Perl API here is the code:
  #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
 
@@ -270,6 +270,8 @@ above tests for this
 
    if (PDL->Version != PDL_CORE_VERSION)
      ....
+
+For more information on the Core struct see L<PDL::Internals|PDL::Internals>.
 
 With these preparations your code can now access the
 core routines as already shown in some of the examples above, e.g.

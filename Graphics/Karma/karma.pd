@@ -106,7 +106,7 @@ void ensure_initialised() {
     dm_native_setup ();
     conn_initialise ( ( void (*) () ) NULL );
     /*  Register multi_array client protocol support  */
-    dsxfr_register_connection_limits (-1, 1);
+    dsxfr_register_connection_limits (-1, 2);
   }
 }
 
@@ -215,7 +215,7 @@ sub kim {
   else {
       $inds = [0,$pdl->getdim(0)-1,0,$pdl->getdim(1)-1]
          unless $inds=delete($hash->{BB});
-      ksend2D ($pdl, $lut, $haslut,$app,$inds);
+      ksend2D ($pdl, $lut, $haslut,$app,$inds,$PDL::verbose);
   }
   $LASTAPP = $app;
 }
@@ -327,10 +327,10 @@ kconnect(app)
 
 ');
 
-# currently lut is assumed to be 8bits
+# currently lut is asgsumed to be 8bits
 pp_def('ksend2D',
 	Pars => 'im(m,n); byte lut(o,p)', Doc=>undef,
-	OtherPars => 'int haslut; char* karma_app; SV *bb',
+	OtherPars => 'int haslut; char* karma_app; SV *bb; int verbose',
 	Code => 'array_desc    *arrayd;
 	         array_pointer arrayp;
 		 multi_array   *arraym;
@@ -353,7 +353,8 @@ pp_def('ksend2D',
 		 lengths[0] = $SIZE(n);
 		 lengths[1] = $SIZE(m);
 		 ms = $SIZE(m); ns = $SIZE(n); os = $SIZE(o); ps = $SIZE(p);
-		 printf("Sending to %s...\n",$COMP(karma_app));
+		 if ($COMP(verbose))
+                     printf("Sending to %s...\n",$COMP(karma_app));
 		 if (!ensure_connection($COMP(karma_app)))
                       barf("Error connecting to %s via karma communications",
 				$COMP(karma_app));

@@ -21,6 +21,11 @@ $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
 $PDL::PP::VERSION = 2.2;
+$PDL::PP::done = 0;  # pp_done has not been called yet
+
+END {
+  pp_done() unless $PDL::PP::done; # make sure we call this
+}
 
 use Carp;
 
@@ -158,6 +163,8 @@ sub printxsc {
 }
 
 sub pp_done {
+        return if $PDL::PP::done; # do only once!
+        $PDL::PP::done = 1;
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n\n\n=cut\n\n\n"
 	  : '';
 	print "DONE!\n" if $::PP_VERBOSE;
@@ -221,14 +228,17 @@ MODULE = $::PDLMOD PACKAGE = $::PDLOBJ
 $::PDLXS
 
 BOOT:
+
    /* Get pointer to structure of core shared C routines */
+   /* make sure PDL::Core is loaded */
+   perl_require_pv("PDL::Core");
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
 #ifndef aTHX_
 #define aTHX_
 #endif
    if (CoreSV==NULL)
-     Perl_croak(aTHX_ "This module requires use of PDL::Core first");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+     Perl_croak(aTHX_ "Can't load PDL::Core module");
+   PDL = INT2PTR(Core*, SvIV( CoreSV ));  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
@@ -277,7 +287,7 @@ $::PDLPM{Bot}
 
 		   %);  # end of print
       }  # unless (nopm) {...
-}
+} # end pp_done
 
 sub pp_def {
 	my($name,%hash) = @_;
@@ -1837,7 +1847,8 @@ $pars
      a hash which is a derived PDL subclass (SVt_PVHV) */
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
     parent = ST(0);
-    objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  /* The package to bless output vars into is taken from the first input var */
+    if (sv_isobject(parent))
+      objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  /* The package to bless output vars into is taken from the first input var */
   }
   if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */
     nreturn = $noutca;

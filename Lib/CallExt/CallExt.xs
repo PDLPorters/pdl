@@ -26,7 +26,7 @@ _callext_int(...)
 	pdl *t;
         int i;
 
-        symref = (int(*)(int, pdlsimple**)) SvIV(ST(0));
+        symref = (int(*)(int, pdlsimple**)) INT2PTR(void*,SvIV(ST(0)));
 
         New( 42, x, npdl, pdlsimple* ); /* Ptr array */
         for(i=0; i<npdl; i++) {
@@ -54,5 +54,5 @@ BOOT:
    CoreSV = perl_get_sv("PDL::SHARE",FALSE);  /* SV* value */
    if (CoreSV==NULL)
      croak("This module requires use of PDL::Core first");
-   PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   PDL = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
                                   

@@ -1,0 +1,283 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::GAMMA - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+
+#include "../gslerr.h"
+
+');
+
+pp_def('gsl_sf_lngamma',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+double sgn;
+GSLERR(gsl_sf_lngamma_sgn_e,($x(),&r,&sgn))
+$y() = r.val;
+$e() = r.err; 
+$s() = sgn;
+',
+       Doc =>'Log[Gamma(x)], x not a negative integer Uses real Lanczos method. Determines the sign of Gamma[x] as well as Log[|Gamma[x]|] for x < 0. So Gamma[x] = sgn * Exp[result_lg].'
+      );
+
+pp_def('gsl_sf_gamma',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Gamma(x), x not a negative integer'
+      );
+
+pp_def('gsl_sf_gammastar',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gammastar_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Regulated Gamma Function, x > 0 Gamma^*(x) = Gamma(x)/(Sqrt[2Pi] x^(x-1/2) exp(-x)) = (1 + 1/(12x) + ...),  x->Inf'
+      );
+
+pp_def('gsl_sf_gammainv',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gammainv_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'1/Gamma(x)'
+      );
+
+pp_def('gsl_sf_lngamma_complex',
+       GenericTypes => [D],
+       Pars=>'double zr(); double zi(); double [o]x(); double [o]y(); double [o]xe(); double [o]ye()',
+       Code =>'
+gsl_sf_result r;
+gsl_sf_result ri;
+GSLERR(gsl_sf_lngamma_complex_e,($zr(),$zi(),&r,&ri))
+$x() = r.val;
+$xe() = r.err; 
+$y() = ri.val;
+$ye() = ri.err; 
+',
+       Doc =>'Log[Gamma(z)] for z complex, z not a negative integer. Calculates: lnr = log|Gamma(z)|, arg = arg(Gamma(z))  in (-Pi, Pi]'
+      );
+
+pp_def('gsl_sf_taylorcoeff',
+       GenericTypes => [D],
+       OtherPars => 'int n',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_taylorcoeff_e,($COMP(n),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'x^n / n!'
+      );
+
+pp_def('gsl_sf_fact',
+       GenericTypes => [L],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_fact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'n!'
+      );
+
+pp_def('gsl_sf_doublefact',
+       GenericTypes => [L],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_doublefact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'n!! = n(n-2)(n-4)'
+      );
+
+pp_def('gsl_sf_lnfact',
+       GenericTypes => [L],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnfact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'ln n!'
+      );
+
+pp_def('gsl_sf_lndoublefact',
+       GenericTypes => [L],
+       Pars=>'x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lndoublefact_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'ln n!!'
+      );
+
+pp_def('gsl_sf_lnchoose',
+       GenericTypes => [L],
+       Pars=>'n(); m(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnchoose_e,($n(), $m(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'log(n choose m)'
+      );
+
+pp_def('gsl_sf_choose',
+       GenericTypes => [L],
+       Pars=>'n(); m(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_choose_e,($n(), $m(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'n choose m'
+      );
+
+pp_def('gsl_sf_lnpoch',
+       GenericTypes => [D],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]s(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+double sgn;
+GSLERR(gsl_sf_lnpoch_sgn_e,($COMP(a),$x(),&r,&sgn))
+$y() = r.val;
+$e() = r.err; 
+$s() = sgn;
+',
+       Doc =>'Logarithm of Pochammer (Apell) symbol, with sign information. result = log( |(a)_x| ), sgn    = sgn( (a)_x ) where (a)_x := Gamma[a + x]/Gamma[a]'
+      );
+
+pp_def('gsl_sf_poch',
+       GenericTypes => [D],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_poch_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Pochammer (Apell) symbol (a)_x := Gamma[a + x]/Gamma[x]'
+      );
+
+pp_def('gsl_sf_pochrel',
+       GenericTypes => [D],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_pochrel_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Relative Pochammer (Apell) symbol ((a,x) - 1)/x where (a,x) = (a)_x := Gamma[a + x]/Gamma[a]'
+      );
+
+pp_def('gsl_sf_gamma_inc_Q',
+       GenericTypes => [D],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_inc_Q_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Normalized Incomplete Gamma Function Q(a,x) = 1/Gamma(a) Integral[ t^(a-1) e^(-t), {t,x,Infinity} ]'
+      );
+
+pp_def('gsl_sf_gamma_inc_P',
+       GenericTypes => [D],
+       OtherPars => 'double a',
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_gamma_inc_P_e,($COMP(a),$x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Complementary Normalized Incomplete Gamma Function P(a,x) = 1/Gamma(a) Integral[ t^(a-1) e^(-t), {t,0,x} ]'
+      );
+
+pp_def('gsl_sf_lnbeta',
+       GenericTypes => [D],
+       Pars=>'double a(); double b(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_lnbeta_e,($a(),$b(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Logarithm of Beta Function Log[B(a,b)]'
+      );
+
+pp_def('gsl_sf_beta',
+       GenericTypes => [D],
+	OtherPars => '',
+       Pars=>'double a(); double b();double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_beta_e,($a(),$b(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Beta Function B(a,b)'
+      );
+
+pp_addpm({At=>Bot},<<'EOD');
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

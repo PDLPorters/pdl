@@ -15,7 +15,7 @@ sub tapprox {
 	return $d < 0.01;
 }
 
-print "1..38\n";
+print "1..42\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -79,6 +79,7 @@ $b = $a % 3;
 ok(17,$b->at(0) == 0);
 ok(18,$b->at(1) == 1);
 ok(19,$b->at(3) == 0);
+# [ More modulus testing farther down! ]
 
 # Might as well test this also
 
@@ -138,3 +139,16 @@ $data &= 0;
 ok(37, all $data == 0);
 $data |= 1;
 ok(38, all $data == 1);
+
+ok(39, all $data eq $data); # check eq operator
+
+
+# check proper modulus...
+$a = xvals(15)-7;
+$b = $a % 3;
+ok(40,sum($b != pdl(2,0,1,2,0,1,2,0,1,2,0,1,2,0,1)) == 0);
+$b = $a % -3;
+ok(41,sum($b != pdl(-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2,-1,0,-2))==0);
+$b = $a % 0;
+ok(42,sum($b != 0) == 0)
+

@@ -9,8 +9,8 @@ PDL to work, without importing an functions in
 to the current namespace. This is the absolute
 minimum set for PDL.
 
-Though know functions are defined (apart from
-a few always exported by Core) you can still
+Although no functions are defined (apart from
+a few always exported by L<PDL::Core|PDL::Core>) you can still
 use method syntax, viz:
 
   $x->wibble(42);

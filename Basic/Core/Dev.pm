@@ -78,7 +78,7 @@ sub PDL_BOOT {
 #endif
    if (CoreSV==NULL)
      Perl_croak(aTHX_ "We require the PDL::Core module, which was not found");
-   $symname = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   $symname = INT2PTR(Core*,SvIV( CoreSV ));  /* Core* value */
    if ($symname->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
 
@@ -94,7 +94,7 @@ sub whereami_any {
 }
 
 sub whereami {
-   for $dir (@INC,qw|. .. ../.. ../../..|) {
+   for $dir (@INC,qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/Basic' : $dir)
 	if -e "$dir/Basic/Core/Dev.pm";
    }
@@ -104,7 +104,7 @@ sub whereami {
 }
 
 sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
+   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../.. ../../../..|) {
       return ($_[0] ? $dir . '/PDL' : $dir)
 	if -e "$dir/PDL/Core/Dev.pm";
    }
@@ -547,7 +547,8 @@ specs have been processed by MakeMaker.
 =item Hide
 
 Controls if linking output etc is hidden from the user or not.
-On by default.
+On by default except within the build of the PDL distribution
+where the config value set in F<perldl.conf> prevails.
 
 =item Clean
 
@@ -574,7 +575,8 @@ sub trylink {
   # check if MakeMaker should be used to preprocess the libs
   for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
   my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
-  my $hide = exists $opt->{hide} ? $opt->{hide} : 1;
+  my $hide = exists $opt->{hide} ? $opt->{hide} : 
+    exists $::PDL_CONFIG{HIDE_TRYLINK} ? $::PDL_CONFIG{HIDE_TRYLINK} : 1;
   my $clean = exists $opt->{clean} ? $opt->{clean} : 1;
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
@@ -603,7 +605,7 @@ sub trylink {
                            &$cdir($fs->rootdir,$td);
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
-  open FILE,">$tc" or die "couldn't open testfile for writing";
+  open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";
   my $prog = <<"EOF";
 $inc
 
@@ -619,11 +621,17 @@ EOF
   print FILE $prog;
   close FILE;
   # print "test prog:\n$prog\n";
+  # make sure we can overwrite the executable. shouldn't need this,
+  # but if it fails and HIDE is on, the user will never see the error.	 
+  open(T, ">$te") or die( "unable to write to test executable `$te'");
+  close T;
   print "$Config{cc} $cflags -o $te $tc $libs $HIDE ...\n" unless $hide;
   my $success = (system("$Config{cc} $cflags -o $te $tc $libs $HIDE") == 0) && 
     -e $te ? 1 : 0;
   unlink "$te","$tc" if $clean;
   print $success ? "\t\tYES\n" : "\t\tNO\n" unless $txt =~ /^\s*$/;
+  print $success ? "\t\tSUCCESS\n" : "\t\tFAILED\n"
+    if $txt =~ /^\s*$/ && !$hide;
   return $success;
 }
 

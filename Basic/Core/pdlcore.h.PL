@@ -1,12 +1,23 @@
 # -*-perl-*-
 
+##############################
+#
+# Be sure to increment $pdl_core_version (about 8 lines below this note)
+# if you change any prototypes or modify the Core structure!
+#
+##############################
+
 use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
 
+require 'Dev.pm'; PDL::Core::Dev->import;
+use vars qw( %PDL_DATATYPES );
+
 # version 2 is for versions after PDL 2.1.1
+# version 4 has pdl_hard_copy included in the Core structure.
 use vars qw( $pdl_core_version );
-$pdl_core_version = 3;  
+$pdl_core_version = 4;  
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -70,6 +81,7 @@ print OUT <<'!NO!SUBS!';
 #define PDL_PERM 1
 
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
+#define SVavref(x) (SvROK(x) && SvTYPE(SvRV(x))==SVt_PVAV)
 
 /* for the moment we go back to the original croak
  * since there seem to be quite a few problems with maintaining
@@ -97,6 +109,21 @@ void*   pdl_malloc ( int nbytes );           /* malloc memory - auto free()*/
 void pdl_makescratchhash(pdl *ret,double data, int datatype);
 PDL_Long pdl_safe_indterm(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 void pdl_barf(const char* pat,...); /* General croaking utility */
+int av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
+pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
+
+!NO!SUBS!
+
+for my $in ( keys %PDL_DATATYPES ) {
+
+  (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
+  print OUT <<"!WITH!SUBS!";
+void pdl_setav_$type(PDL_$type* pdata, AV* av,
+	PDL_Long* pdims, PDL_Long ndims, int level);
+!WITH!SUBS!
+}
+
+print OUT <<'!NO!SUBS!';
 
 /* pdlapi.c */
 
@@ -225,6 +252,7 @@ struct Core {
     void   (*destroy)     (pdl *it);
     pdl*   (*null)        ();
     SV*    (*copy)        ( pdl*, char* );
+    pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( int );

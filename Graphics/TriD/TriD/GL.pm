@@ -244,7 +244,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 
 
 
-use POSIX qw/acos/;
+use POSIX qw//;
 sub PDL::Graphics::TriD::Quaternion::togl {
   my($this) = @_;
   if(abs($this->[0]) == 1) { return ; }
@@ -252,7 +252,7 @@ sub PDL::Graphics::TriD::Quaternion::togl {
     # die "Unnormalized Quaternion!\n";
     $this->normalize_this();
   } 
-  &glRotatef(2*acos($this->[0])/3.14*180, @{$this}[1..3]);
+  &glRotatef(2*POSIX::acos($this->[0])/3.14*180, @{$this}[1..3]);
 }
 
 ##################################

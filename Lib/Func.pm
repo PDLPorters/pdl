@@ -393,12 +393,16 @@ sub _init_hermite {
 	if ( $#$end   == 1 ) { $vc->set( 1, $end->[1] ); }
 
 	my $wk = $x->zeroes( $x->float, 2*$xdim );
+	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
+	  if $modules{slatec} == 0;
 	( $g, $ierr ) = chic( $ic, $vc, $monotonic, $x, $y, $wk );
 
 	$self->{flags}{routine} = "chic";
 
     } elsif ( $bc eq "simple" ) {
 	# chim
+	croak "ERROR: Hermite interpolation is not available without PDL::Slatec.\n"
+	  if $modules{slatec} == 0;
 	( $g, $ierr ) = chim( $x, $y );
 
 	$self->{flags}{routine} = "chim";

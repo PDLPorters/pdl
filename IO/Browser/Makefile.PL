@@ -1,14 +1,7 @@
-if ($^O =~ /win32/i) {
-  PDL::Core::Dev->import();
-  warn "Win32 systems not yet supported. Will not build PDL::IO::Browser";
-  write_dummy_make(unsupported('PDL::IO::Browser','win32'));
-  return;
-}
 
 # Makefile.PL for PDL::IO module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
+#
+# - check for win32 systems is now done in ../Makefile.PL
 
 use ExtUtils::MakeMaker;
 

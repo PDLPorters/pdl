@@ -42,8 +42,8 @@ pp_addpm({At=>'Bot'},<<'EOD');
 =head1 AUTHOR
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
-by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
-(kgb@aaoepp.aao.gov.au).
+by Christian Soeller (c.soeller@auckland.ac.nz), Karl Glazebrook
+(kgb@aaoepp.aao.gov.au), and Craig DeForest (deforest@boulder.swri.edu).
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -1563,6 +1563,119 @@ sub interpol ($$$;$) {
 
 EOD
 
+pp_add_exported('','interpND');
+pp_addpm(<<'EOD');
+
+
+
+=head2 interpND 
+
+=for ref 
+
+Interpolate values from an N-D piddle
+
+=for example
+
+  $source = 10*xvals(10,10) + yvals(10,10);
+  $index = pdl([[2.2,3.5],[4.1,5.0]],[[6.0,7.4],[8,9]]);
+  print $source->interpND( $index );
+
+InterpND acts like L<indexNDb|indexNDb>, collapsing C<$index> by
+lookup into C<$source>; but it does interpolation, rather than
+straight lookup, into C<$source>.  Several options may be passed in
+via an options hash; by default, linear interpolation is used, with
+constant value outside the boundaries of the source pdl.  Because the
+output is interpolated, rather than indexed values, no flowback
+occurs.
+
+Allowable options:
+   
+=over 3
+
+=item method 
+
+Values are 'linear' and 'sample' (for now). (default linear)
+
+=item bound  
+
+This option is passed unmodified into L<indexNDb|indexNDb> as its 
+boundary-handling method.  Current allowed values are 'extend', 'periodic', 
+and 'truncate'. (default is 'truncate')
+
+=item bad
+
+contains the fill value used for 'truncate' boundary.  (default 0)
+
+=back
+
+=cut
+				  
+*interpND = *PDL::interpND;
+sub PDL::interpND {
+  my $source = shift;
+  my $index = shift;
+  my $options = shift;
+
+  barf 'Usage: interp_nd($source,$index,[{%options}])\n'
+    if(defined $options   and    ref $options ne 'HASH');
+
+  my($opt) = (defined $options) ? $options : {};
+
+  my($method)   = $opt->{method} || $opt->{Method} || 'linear';
+  my($boundary) = $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
+  my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
+
+  if($method =~ m/samp/) {
+    return $source->indexNDb(PDL::Math::floor($index+0.5),$boundary);
+  }
+
+  elsif ($method =~ m/linear/) {
+    # Generate a table of offsets to look up
+    my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),2 ** $index->dim(0))) 
+		      / 2**(PDL::Basic::xvals($index->dim(0))))
+		     ->xchg(0,1)->sever
+		     )
+                   % 2;
+
+    # alpha gets coefficients.  Dims:
+    #   0   - 0 or 1                    (coeff. for below or above)
+    #   1   - index dimension           (0th dim of index) 
+    #   ... - echo of $index extra dims 
+    my($intind) = PDL::Math::floor($index);
+
+    my($alpha) = ( cat(1 - $index + PDL::Math::floor($index),
+		       $index - $intind
+		       )
+		   ->reorder(
+			     $index->getndims,
+			     PDL::Basic::xvals($index->getndims)->list
+			     )->sever
+		   );
+    my($i);
+    $out = zeroes($index->slice("(0)"));
+    
+    for ($i=0;$i<$offsets->dim(0);$i++){
+      my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),
+				 PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
+				    ))->sever->prodover ;
+      
+      if( ($coeff==0)->and ) {
+	print "interpND: Skip case $i of ".$offsets->dim(0)."\n" 
+	  if($PDL::debug);
+	next;
+      }
+      $out += $coeff * $source->indexNDb($intind + $offsets->slice("($i)")
+					 , $boundary);
+    }
+    
+    return $out;
+
+  }  else {
+    barf("interp_nd: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
+  }
+}
+
+EOD
 
 ##############################################################
 # things related to indexing: one2nd, which, where
@@ -1795,14 +1908,25 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns the coordinates for non-zero values
+Returns the coordinates for non-zero values. 
 
 =for usage
 
  @coords=whichND($mask);
 
-returns an array of piddles containing the coordinates of the elements
-that are non-zero in C<$mask>.
+returns a perl list of piddles containing the coordinates of the
+elements that are non-zero in C<$mask>.  Each element corresponds to a
+particular index dimension.  For example, if $mask has rank 4 and 100
+matching elements, then @coords has 4 elements, each of which is a pdl
+of size 100.
+
+ $coords = whichND($mask);
+
+returns a PDL containing the coordinates of the elements that are non-zero 
+in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
+full coordinate listing of each point; the 1st dimension lists all the points.
+For example, if $mask has rank 4 and 100 matching elements, then $coords has
+dimension 4x100.
 
 =for example
 
@@ -1817,14 +1941,36 @@ that are non-zero in C<$mask>.
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
   my $mask = shift;
-  my $ind=($mask->clump(-1))->which;
 
-  return $mask->one2nd($ind);
+  # List context: generate a perl list by dimension
+  if(wantarray) {
+	  my $ind=($mask->clump(-1))->which;
+	  return $mask->one2nd($ind);
+  } 
+
+  # Scalar context: generate an N-D index piddle
+
+  my $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+  my $mult = ones($mask->getndims)->long;
+  my @mdims = $mask->dims;
+  my $i;
+  for $i(0..$#mdims-1) {
+   # use $tmp for 5.005_03 compatibility
+   (my $tmp = $mult->index($i+1)) .= $mult->index($i)*$mdims[$i];
+  }
+  for $i(0..$#mdims) {
+   my($s) = $ind->slice("($i),:");
+   $s /= $mult->index($i);
+   $s %= $mdims[$i];
+  }
+  return $ind;
 }
 
 EOD
 );
 
 pp_add_exported("", 'whichND');
+
+
 
 pp_done();

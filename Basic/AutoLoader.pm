@@ -71,7 +71,8 @@ No doubt this interface could be improved upon some more. :-)
 
 =head1 AUTHOR
 
-Copyright(C) 1997 Karl Glazebrook (kgb@aaoepp.aao.gov.au).
+Copyright(C) 1997 Karl Glazebrook (kgb@aaoepp.aao.gov.au);
+several extensions by Craig DeForest (deforest@boulder.swri.edu)
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -165,24 +166,34 @@ sub AUTOLOAD {
 
 
     print "Loading $func.pdl...\n" if $PDL::verbose;
+    my $file;
+
+    my $s = "PDL AutoLoader:  Undefined subroutine $func() cannot be autoloaded.\n";
+
     for my $dir (@PDLLIB_EXPANDED) {
-        my $file = $dir . "/" . "$func.pdl";
+        $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
 	  
-	  PDL::AutoLoader::autoloader_do($file);
-	   # Remember autoloaded functions and do some reasonably
-	   # smart cacheing of file/directory change times
+	  &PDL::AutoLoader::autoloader_do($file);
+	  
+	  
+	  # Remember autoloaded functions and do some reasonably
+	  # smart cacheing of file/directory change times
+	  
+	  if ($PDL::AutoLoader::Rescan) {
+	    $PDL::AutoLoader::FileInfo{$func} = [ $file, (stat($file))[9] ];
+	  }
+	  
+	  # Now go to the autoload function
+	  goto &$AUTOLOAD unless ($@ || !defined(&{$AUTOLOAD}));
 
-	   if ($PDL::AutoLoader::Rescan) {
-	      $PDL::AutoLoader::FileInfo{$func} = [ $file, (stat($file))[9] ];
-	   }
-
-	   # Now go to the autoloaed function
-
-	   goto &$AUTOLOAD unless $@;
+	  die $s."\tWhile parsing file `$file':\n$@\n" if($@);
+	  die $s."\tFile `$file' doesn't \n\tdefine ${AUTOLOAD}().\n"
+	  
 	}
-    }
-    die "PDL autoloader: Undefined subroutine $func() cannot be AutoLoaded\n";
+      }
+
+    die $s."\tNo file `$func.pdl' was found in your \@PDLLIB path.\n";
 }
 
 EOD

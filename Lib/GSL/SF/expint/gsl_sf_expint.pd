@@ -1,0 +1,151 @@
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSLSF::EXPINT - PDL interface to GSL Special Functions
+
+=head1 DESCRIPTION
+
+This is an interface to the Special Function package present in the GNU Scientific Library. 
+
+=head1 SYNOPSIS
+
+=head1 Functions
+
+=cut
+EOD
+
+# PP interface to GSL
+
+pp_addhdr('
+#include <gsl/gsl_sf.h>
+
+#include "../gslerr.h"
+
+');
+
+pp_def('gsl_sf_expint_E1',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_E1_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'E_1(x) := Re[ Integrate[ Exp[-xt]/t, {t,1,Infinity}] ]'
+      );
+
+pp_def('gsl_sf_expint_E2',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_E2_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'E_2(x) := Re[ Integrate[ Exp[-xt]/t^2, {t,1,Infity}] ]'
+      );
+
+pp_def('gsl_sf_expint_Ei',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_Ei_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Ei(x) := PV Integrate[ Exp[-t]/t, {t,-x,Infinity}]'
+      );
+
+pp_def('gsl_sf_Shi',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Shi_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Shi(x) := Integrate[ Sinh[t]/t, {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Chi',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Chi_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Chi(x) := Re[ M_EULER + log(x) + Integrate[(Cosh[t]-1)/t, {t,0,x}] ]'
+      );
+
+pp_def('gsl_sf_expint_3',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_expint_3_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Ei_3(x) := Integral[ Exp[-t^3], {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Si',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Si_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Si(x) := Integrate[ Sin[t]/t, {t,0,x}]'
+      );
+
+pp_def('gsl_sf_Ci',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_Ci_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'Ci(x) := -Integrate[ Cos[t]/t, {t,x,Infinity}]'
+      );
+
+pp_def('gsl_sf_atanint',
+       GenericTypes => [D],
+       Pars=>'double x(); double [o]y(); double [o]e()',
+       Code =>'
+gsl_sf_result r;
+GSLERR(gsl_sf_atanint_e,($x(),&r))
+$y() = r.val;
+$e() = r.err; 
+',
+       Doc =>'AtanInt(x) := Integral[ Arctan[t]/t, {t,0,x}]'
+      );
+
+
+
+pp_addpm({At=>Bot},<<'EOD');
+=head1 AUTHOR
+
+This file copyright (C) 1999 Christian Pellegrin <chri@infis.univ.trieste.it>
+All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL SF modules were written by G. Jungman.
+
+=cut
+EOD
+
+pp_done();

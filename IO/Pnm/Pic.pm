@@ -75,6 +75,12 @@ the filter when trying to open the pipe.
 #    'whatevertopnm'  name of the executable
 # The 'FLAGS' key must be used if the converter needs other flags than
 # the default flags ($Dflags)
+#
+#
+# The "referral" field, if present, contains a within-perl referral
+# to other methods for reading/writing the PDL as that type of file.  The 
+# methods must have the same syntax as wpic/rpic (e.g. wfits/rfits).
+#
 
 $PDL::IO::Pic::debug = 0;
 &init_converter_table();
@@ -98,6 +104,9 @@ sub init_converter_table {
     $converter{$_->[0]} = {put => $_->[1],
 			   get => $_->[2]}
   }
+
+  $converter{'FITS'}={ 'referral' => {'put' => \&PDL::wfits, 'get' => \&PDL::rfits} };
+
   # these converters do not understand pbmplus flags:
   $converter{'JPEG'}->{FLAGS} = '';
   $converter{'GIF'}->{Prefilt} = 'ppmquant 256 |';
@@ -105,8 +114,13 @@ sub init_converter_table {
 
   my $key;
   for $key (keys %converter) {
-    $converter{$key}->{Rok} = inpath($converter{$key}->{get});
-    $converter{$key}->{Wok} = inpath($converter{$key}->{put});
+
+    $converter{$key}->{Rok} = inpath($converter{$key}->{'get'}) 
+      if defined($converter{$key}->{'get'});
+
+    $converter{$key}->{Wok} = inpath($converter{$key}->{'put'}) 
+      if defined($converter{$key}->{'put'});
+
     if (defined $converter{$key}->{Prefilt}) {
       my $filt = $1 if $converter{$key}->{Prefilt} =~ /^\s*(\S+)\s+/;
       $converter{$key}->{Wok} = inpath($filt) if $converter{$key}->{Wok};
@@ -257,18 +271,27 @@ sub PDL::rpic {
 	$type = $$hints{'FORMAT'};
         barf "unsupported (input) image format"
 	    unless (exists($converter{$type}) &&
-		    $converter{$type}->{get} !~ /NA/);
+		    $converter{$type}->{'get'} !~ /NA/);
       }
     else {
 	$type = chkform($file);
 	barf "can't figure out file type, specify explicitly"
 	    if $type =~ /UNKNOWN/; }
 
+    my($converter) = $PDL::IO::Pic::converter;
+    if (defined($converter{$type}->{referral})) {
+      if(ref ($converter{$type}->{referral}->{'get'}) eq 'CODE') {
+	return &{$converter{$type}->{referral}->{'get'}}(@_);
+      } else {
+	barf "rpic: internal error with referral (format is $type)\n";
+      }
+    }
+
     my $flags = $converter{$type}->{FLAGS};
     $flags = "$Dflags" unless defined($flags);
     $flags .= " $$hints{XTRAFLAGS}" if defined($$hints{XTRAFLAGS});
     my $cmd = "$converter{$type}->{get} $flags $file |";
-    $cmd = $file if $converter{$type}->{get} =~ /^NONE/;
+    $cmd = $file if $converter{$type}->{'get'} =~ /^NONE/;
 
     print("conversion by '$cmd'\n") if $PDL::IO::Pic::debug > 10;
 
@@ -418,7 +441,16 @@ sub PDL::wpic {
 
     $hints = {iparse($wpicopts, $hints)} if ref $hints;
     # figure out the right converter
-    my ($conv, $flags, $format) = getconv($pdl,$file,$hints);
+    my ($conv, $flags, $format, $referral) = getconv($pdl,$file,$hints);
+
+    if(defined($referral)) {
+      if(ref ($referral->{'put'}) eq 'CODE') {
+	return &{$referral->{'put'}}(@_);
+      } else {
+	barf "wpic: internal error with referral (format is $format)\n";
+      }
+    }
+
     print "Using the command $conv with the flags $flags\n"
        if $PDL::IO::Pic::debug>10;
 
@@ -601,6 +633,7 @@ sub chkext {
 	return 'RAST' if $ext =~ /^(r)|(rast)$/;
 	return 'IFF'  if $ext =~ /^(iff)|(ilbm)$/;
 	return 'PS'   if $ext =~ /^ps/;
+	return 'FITS' if $ext =~ /^f(i?ts|it)$/;
     }
 
     return 'UNKNOWN';
@@ -634,6 +667,7 @@ sub chkform {
     return 'IFF'  if $magic =~ /ILBM$/;
     return 'PCX'  if $magic =~ /^\012[\000-\005]/;
     return 'PS'   if $magic =~ /%!\s*PS/;
+    return 'FITS' if $magic =~ /^SIMPLE  \=/;
 
     return chkext(getext($file));    # then try extensions
 }
@@ -653,7 +687,7 @@ sub getconv {
 	$type = $$hints{'FORMAT'};
         barf "unsupported (output) image format"
 	    unless (exists($converter{$type})
-	      && $converter{$type}->{put} !~ /NA/);
+	      && $converter{$type}->{'put'} !~ /NA/);
       }
     else {
 	$type = chkext(getext($file),1);
@@ -663,7 +697,7 @@ sub getconv {
 	  }
       }
 
-    my $conv = $converter{$type}->{put};
+    my $conv = $converter{$type}->{'put'};
 
     # the datatype check is only a dirty fix for the ppmquant problem with
     # types > byte
@@ -677,7 +711,10 @@ sub getconv {
     if (defined($$hints{'COLOR'}) && $$hints{'COLOR'} =~ /bwdither/) {
 	$flags = " | $conv $flags";
 	$conv =  "pgmtopbm -floyd"; }
-    return ($conv, $flags, $type);
+
+    my($referral) = $converter{$type}->{referral};
+
+    return ($conv, $flags, $type, $referral);
 }
 
 # helper proc for wpic

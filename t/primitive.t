@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 11;
+plan tests => 14;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -53,8 +53,8 @@ ok(tapprox($c->where($b), PDL->pdl(10,11,12,17,18,20,21))); # 6
 # originally in pptest
 $a = ones(byte,3000);
 dsumover($a,($b=null));
-ok( $b->get_datatype, $PDL_D );   # 7
-ok( $b->at, 3000 );               # 8
+ok($b->get_datatype, $PDL_D );   # 7
+ok($b->at, 3000 );               # 8
 
 my $p = pdl [ 1, 2, 3, 4, 7, 9, 1, 1, 6, 2, 5];
 my $q = zeroes 5;
@@ -73,3 +73,20 @@ $r1 = grandom 10;
 srand 10;
 $r2 = grandom 10;
 ok(tapprox $r1, $r2);
+
+##############################
+# Test that whichND works OK...
+my $r = xvals(10,10)+10*yvals(10,10);
+$a = whichND( $r % 12 == 0 );
+print $a;
+ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0');
+
+##############################
+# Simple test case for interpND...
+$a = xvals(10,10)+yvals(10,10)*10;
+my($index) = cat(3+xvals(5,5)*0.25,7+yvals(5,5)*0.25)->reorder(2,0,1);
+my($z) = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
+eval '$b = $a->interpND($index);';
+ok(!$@);
+ok(sum($b != $z) == 0);
+

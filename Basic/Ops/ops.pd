@@ -29,7 +29,8 @@ Tuomas J. Lukka (lukka@fas.harvard.edu),
 Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
 Doug Hunt (dhunt@ucar.edu), 
 Christian Soeller (c.soeller@auckland.ac.nz),
-and Doug Burke (burke@ifa.hawaii.edu).
+Doug Burke (burke@ifa.hawaii.edu),
+and Craig DeForest (deforest@boulder.swri.edu).
 
 =cut
 
@@ -38,7 +39,13 @@ EOPM
 pp_addhdr('
 #include <math.h>
 
-#define MOD(X,N)     ( (X) - (N)*((int)((X)/(N))) )
+/* MOD requires hackage to map properly into the positive-definite numbers. */
+/* Note that this code causes some warning messages in the compile, because */
+/* the unsigned data types always fail the ((foo)<0) tests.  I believe that */
+/* gcc optimizes those tests away for those data types.  --CED 7-Aug-2002   */
+
+#define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((int)((X)/(ABS(N))) + (   ( ((N) * ((int)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
+
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 #define NOTHING

@@ -63,7 +63,6 @@ type conversion, threading etc.
 
 package PDL::Core;
 use PDL::Types;
-use PDL::PP::Signature;
 
 $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
@@ -91,6 +90,8 @@ use DynaLoader;
 
 @ISA    = qw( PDL::Exporter DynaLoader );
 
+use strict;
+use vars qw($level @dims $sep $sep2 $match);
 bootstrap PDL::Core;
 
 # Important variables (place in PDL namespace)
@@ -440,6 +441,7 @@ sub topdl {PDL->topdl(@_)}
 		"<="    => \&PDL::le,       # in1, in2, swap if true
 		">="    => \&PDL::ge,       # in1, in2, swap if true
 		"=="    => \&PDL::eq,       # in1, in2
+		"eq"    => \&PDL::eq,       # in1, in2
 		"!="    => \&PDL::ne,       # in1, in2
 		
 		"<<"    => \&PDL::shiftleft,  # in1, in2, swap if true
@@ -597,23 +599,18 @@ Constructs piddle from perl numbers and lists.
 =cut
 
 sub PDL::new {
+   # print "in PDL::new\n";
    my $this = shift;
    return $this->copy if ref($this);
    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
+   my $value = (@_ >1 ? [@_] : shift);  # ref thyself
+   $value = 0 unless defined $value;
+   return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
    $new->set_datatype($type);
-   my $value = (scalar(@_)>1 ? [@_] : shift);  # ref thyself
-   $value = 0 if !defined($value);
    if (ref(\$value) eq "SCALAR") {
        $new->setdims([]);
        ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
-       $new->upd_data();
-   }
-   elsif (ref($value) eq "ARRAY") {
-       $level = 0; @dims = (); # package vars
-       my $str = rpack($pack[$new->get_datatype], $value);
-       $new->setdims([reverse @dims]);
-       ${$new->get_dataref()} = $str;
        $new->upd_data();
    }
    elsif (blessed($value)) { # Object
@@ -925,6 +922,7 @@ C<[t]> qualifier and all type qualifiers are ignored.
 
 sub PDL::over (&) { $_[0] }
 sub PDL::thread_define ($$) {
+  require PDL::PP::Signature;
   my ($str,$sub) = @_;
   my $others = 0;
   if ($str =~ s/[,]*\s*NOtherPars\s*=>\s*([0-9]+)\s*[,]*//) {$others = $1}
@@ -1363,20 +1361,27 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 sub PDL::nslice {
   my($pdl) = shift;
   my @args = @_;
-  my $i = 0;
+  my ($i,$noslice) = (0,0);
   for (@args) {
     if (UNIVERSAL::isa($_,'PDL')) {
       if ($_->nelem > 1) {
-	PDL::Core::barf 'piddle must be <= 1D' if $_->getndims > 1;
-	# dice this axis
-	$pdl = $pdl->dice_axis($i,$_);
-	# and keep resulting dim fully in slice
-	$_ = 'X'; } 
-      else { $_ = $_->flat->at(0) } # reduce this one-element piddle
-                                    # to a scalar for 'slice'
+	if ($_->getndims > 1) {
+	  # allow one multi-D arg which will imply flat addressing
+	  PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
+	  $pdl = $pdl->flat->index($_);
+	  $noslice = 1;
+	} else {
+	  # dice this axis
+	  $pdl = $pdl->dice_axis($i,$_);
+	  # and keep resulting dim fully in slice
+	  $_ = 'X'; 
+	}
+      } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+                                      # to a scalar for 'slice'
     }
     $i++;
-  }
+  }  
+  return $pdl if $noslice;
   # print STDERR 'processed arglist: ',join(',',@args);
   my $slstr = join ',',(map {
     !ref $_ && $_ eq "X" ? ":" :
@@ -1409,6 +1414,7 @@ sub alltopdl {
     return $_[1] if blessed($_[1]); # Fall through
     return $_[0]->new($_[1]);
 0;}
+
 
 =head2 inplace
 
@@ -1451,6 +1457,45 @@ sub PDL::inplace {
 }
 
 # Copy if not inplace
+
+
+=head2 is_inplace
+
+=for ref
+
+Test the in-place flag on a piddle
+
+=for usage
+
+  $out = ($in->is_inplace) ? $in : zeroes($in);
+  $in->set_inplace(0)
+
+Provides access to the L<inplace:inplace> hint flag, within the perl millieu. 
+That way functions you write can be inplace aware...
+
+=head2 set_inplace
+
+=for ref
+
+Set the in-place flag on a piddle
+
+=for usage
+  
+  $out = ($in->is_inplace) ? $in : zeroes($in);
+  $in->set_inplace(0);
+
+Provides access to the L<inplace:inplace> hint flag, within the perl millieu.
+Useful mainly for turning it OFF, as L<inplace:inplace> turns it ON more
+conveniently.
+
+=head2 new_or_inplace
+
+=for ref
+
+Return back either the argument pdl or a copy of it depending on whether
+it be flagged in-place or no.  Handy for building inplace-aware functions.
+
+=cut
 
 sub new_or_inplace {
 	my $pdl = shift;
@@ -1892,7 +1937,7 @@ for(
 	["double",'$PDL_D']
 ) {
 	eval ('sub PDL::'.$_->[0]." { ".
-		'return bless ['.$_->[1].'], PDL::Type unless @_;
+		'return bless ['.$_->[1].'], "PDL::Type" unless @_;
                 convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
 		}');
 }
@@ -2363,7 +2408,6 @@ EOD
 # package vars $level and @dims must be initialised first.
 
 sub rpack {
-
     my ($ptype,$a) = @_;  my ($ret,$type);
 
     $ret = "";
@@ -2374,24 +2418,22 @@ sub rpack {
        }else{
           $dims[$level] = scalar(@$a);
        }
-       $level++;
 
        $type = ref($$a[0]);
-       for(@$a) {
-          barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
-          $ret .= rpack($ptype,$_);
-       }
-       $level--;
-
-    }elsif (ref($a) eq "PDL") {
-
+        if ($type) {
+        $level++;
+        for(@$a) {
+            barf 'Array is not rectangular' unless $type eq ref($_); # Equal types
+            $ret .= rpack($ptype,$_);
+        }
+        $level--;
+        } else {
+        # These are leaf nodes
+        $ret = pack $ptype, map {defined($_) ? $_ : $PDL::undefval} @$a;
+      }
+    } elsif (ref($a) eq "PDL") {
 	barf 'Cannot make a new piddle from two or more piddles, try "cat"';
-
-    }elsif (ref(\$a) eq "SCALAR") { # Note $PDL_D assumed
-
-      $ret = defined($_) ? pack($ptype,$_) : pack($ptype,$PDL::undefval);
-
-    }else{
+    } else {
         barf "Don't know how to make a PDL object from passed argument";
     }
     return $ret;
@@ -2580,7 +2622,6 @@ sub str2D{
 # Pod docs for functions that are imported from Core.xs and are
 #  not documented elsewhere. Currently this is not a complete
 #  list. There are others.
-
 =head2 gethdr
 
 =for ref
@@ -2596,6 +2637,10 @@ Retrieve header information from a piddle
 The C<gethdr> function retrieves whatever header information is contained
 within a piddle. The header can be set with L<sethdr|/sethdr> and is always a 
 hash reference or undef.
+
+C<gethdr> returns undef if the piddle has not yet had a header
+defined; compare with C<hdr>, which is guaranteed to return a defined
+value.
 
 Note that gethdr() works by B<reference>: you can modify the header
 in-place once it has been retrieved:
@@ -2623,6 +2668,28 @@ as an exercise for the reader)
     foreach (@piddles) { $_->sethdr($header); } 
     return @piddles;
  }
+
+=head2 hdr
+
+=for ref
+
+Retrieve header information from a piddle
+
+=for example
+
+ $pdl->hdr->{CDELT1} = 1;
+
+The C<hdr> function allows convenient access to the header of a
+piddle.  Unlike C<gethdr> it is guaranteed to return a defined value,
+so you can use it in a hash dereference as in the example.  If the
+header doesn't yet exist, it gets autogenerated as an empty hash. 
+
+Note that this is usually -- but not always -- What You Want.  If
+you want to use a tied L<Astro::FITS::Header|Astro::FITS::Header> 
+hash, for example, you should (currently) construct it yourself and use 
+C<sethdr> to put it into the piddle.  (But you can certainly just
+write FITS fields into the header and write it out -- that should
+always work).
 
 =head2 sethdr
 

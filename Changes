@@ -1,3 +1,137 @@
+2.3.4
+JC (23 Sep 02)
+    - Changes to Release_Notes associated
+      with making release 2.3.4
+Frederic Magnard (2002-09-20)
+    - Fix NAXIS in fits writer with Astro::FITS::Header
+TJ (2002-09-20) - wfits should now write SIMPLE as logical with
+      Astro::FITS::Header
+TJ  - wfits now works correctly with Astro::FITS::Header
+TJ  - Paper over weirdness in PDL::GSL build when Slatec is disabled. 
+TJ  - func.t was failing if Slatec was not available. This was because
+      PDL::Func was loaded before PDL::Slatec in t/func.t. Now fixed
+      (and include an additional croak in PDL::Func).
+TJ  - Compatibility fixes for perl 5.005_03
+        + updated ppport.h from perl 5.8.0
+        + lvalue problems with slices.pd and primitive.pd
+        + Graphics/PGPLOT/Window/Window.xs now uses ppport.h
+TJ  - Core.xs.PL used invalid XS for hdr and gethdr
+DJB - Backported "_Inline removal to Makefile.PL & t/inlinepdlpp.t"
+CS  - version to 2.3.4
+CS  - backported a number of patches from the main branch
+      DB 9/11:	Lite.pm typo
+      TJ 9/02:	PDL::IO::Storable now uses PTR2IV
+      		Fix valgrind warning in pdlapi.c
+			(use of uninitialised variable in dump)
+      		Fix memory leak associated with magic
+CED (19-Aug-02)
+    - Window.pm spinlock includes special release_and_barf to unlock signals.
+	(the Right Answer is to fix barf() to throw a __DIE__ signal;
+	but that opens other cans of worms.)
+    - documentation for some of the inplace-flag handlers
+CED (16-Aug-02)
+    - indexND: runs faster; doesn't check boundaries at all
+    - indexNDb: includes "forbid" boundary condition (which barfs on violation)
+    - interpND: skips trivial cases for bilinear interpolation (factor-of-2
+	speedup for each dimension that is indexed by an integer)
+    - Window.pm: 
+	* ->imag labels axes, if you pass in label fields as options.
+        * isolated initenv() viewport setup, so imag() can use it in pix code
+	           
+CED (15-Aug-02)
+    - PGPLOT::Window fixes:
+	- ticks default to outside for images; inside for everyone else
+	- cleaned up pixel scaling code (used initenv() now) in imag
+	- Image alignment code - you can choose how the image fits within
+	  the box if you explicitly set the scaling (or use fits_imag)
+	- fits_imag automagically draws wedges rather than modifying the title.
+	- draw_wedge position defaults to 1.5 rather than 2 (avoids cropping of
+	  wedge labels in the default case).
+CED (12-Aug-02)
+    - Minor speed increase to InterpND (still needs work!)
+    - PGPLOT::Window::(imag1|imag|fits_imag) now does pixel scaling correctly
+	(I hope) -- substituded pgqvp (viewport dims) for pgqvsz (window dims)
+    - Axes now default to having tick marks outside the box instead of inside 
+	the box.  That prevents scrozzling by images.
+    - pgwin() convenience function is a little more convenient
+    - Fix to spinlocks in Window.pm.
+    - gethdr() can return undef again; new method hdr() is always defined.
+CED (9-Aug-02)
+    - Signal-deferral mechanism for PDL::Graphics::PGPLOT::Window should
+	avoid many pgplot-related weirdnesses
+CED (8-Aug-02)
+    - Minor fixes to fits_imag, also in PDL::Graphics::PGPLOT::Window
+    - Minor fix to IndexND, in slice.pd
+    - now fits_imag doesn't attempt to reconcile different CTYPE units.
+DJB (8-Aug-02)
+    - changed behaviour of TextWidth option in PDL::Graphics::PGPLOT::Window
+      It is now only applied if specified (ie doesn't default to 1 and so
+      clobber the LineWidth/HardLW settings). Added a little documentation
+      but it needs to be improved.
+CED (7-Aug-02)
+    - Slightly cleaner MOD in ops.pd
+    - added interpND (to primitive.pd) and indexNDb (to slices.pd).
+CED (6-Aug-02)
+    - New % operator follows (mathematically correct) perl % operator behavior
+    - AutoLoad throws an error if foo.pdl doesn't declare foo().  (used
+	to loop endlessly).  
+    - AutoLoad error messages are more informative.
+CS  - hopefully fixed bug with new pdl(arrayref) implementation
+CED (2-Aug-02)
+	- Add IndexND to slices.pd
+	- Add pdl output for scalar context to WhereND in primitive.pd
+CED (1-Aug-02)
+    	- Incorporate FITS into rpic/wpic interface (allow conversion code
+	  to recognize drop-in replacement functions for rpic/wpic)
+	- Minor fix to FITS I/O version checking
+CS  - add PDL::IO::Storable and PDL::GSL::SF hierarchy
+    - fast pdl method! please test heavily
+    - don't do opengl tests unless opengl is actually built!
+    - mute annoying warnings from PP::PDLParObj
+CS  - explicitly load PDL::Core in PP boot section
+    - examples: make modules with Inline::Pdlpp! 
+CED (26-Jun-02)
+	PDL::Graphics::PGPLOT::Window::line() autoranging avoids infinity
+CED (25-Jun-02)
+    Changes to PDL::Graphics::PGPLOT::Window:
+	- Added pgwin() -- exported constructor (less typing)
+	- Added =>Size option to constructor    (less typing)
+	- Added =>Units option to constructor (PGPLOT units only at the moment)
+	- Interactive windows appear at the size you ask for. (less annoyance)
+DJB - quoted "PDL::Type" in byte/short/.. fns in Core.pm to fix
+      problem seen with using 'use strict' with perl 5.6.0
+CS  - patch by Ken Williams to improve speed of 'pdl $perl_array_ref'
+CS  - check for Astro::FITS::Version >= 1.12
+CED (17-Jun-02)
+    - add fits_imag to PGPLOT interface
+CS  - allow niceslice to use the syntax
+          $pdl($greater_1D_piddle)
+        which indexes into flattened $pdl; result has same shape
+        as $greater_1D_piddle
+CS  - allow PP Code to handle constructs like
+            $arr(n => 3*i+1)
+        if Text::Balanced is installed
+    - fix included Benchmark suite
+    - NiceSlice.pm: make splitprotected interface similar to split's
+CS  - fix PP.pm: bug #564937 (needed a check for sv_isobject(...) )
+    - make sure pp_done is called automatically if user forgets!
+CS  - applied Diab's patch #559860: improve trylink, Math/Makefile.PL
+    - applied Diab's patch #559885: overload 'eq'
+    - Inline::Pdlpp: fix join-bug, add MakePdlppInstallable to allow
+      installation of modules with Inline Pdlpp calls, update test
+      and INFO method
+    - allow to set trylink 'Hide' behaviour from perldl.conf (suggested
+      by Diab)
+DJB (04 Jun 02)
+    - minor fixes to the build highlighted by warnings from perl 5.8.0
+TJ (31 May 02)
+    - Use INT2PTR/PTR2IV to fix compiler warnings
+      when the IV size does not match the pointer size
+      (eg linux with -Dusermorebits). This will break compatibility
+      with perl 5.005 unless we add some of our own macros
+    - Fix prototype warning in rout.pd with PerlIO_print
+    - Apply CS's patch to CallExt.pm to prevent spurious
+      failure of DynaLoader in perl 5.8.0
 2.3.3
 JC (22 May 02)
     - Changes to Release_Notes, PDL.pm associated

@@ -1,0 +1,191 @@
+pp_addpm << 'EOPM';
+
+=head1 NAME
+
+PDL::IO::Storable - helper functions to make PDL usable with Storable
+
+=head1 SYNOPSIS
+
+  use Storable;
+  use PDL::IO::Storable;
+  $hash = {
+            'foo' => 42,
+            'bar' => zeroes(23,45),
+          };
+  store $hash, 'perlhash.dat';
+
+=head1 DESCRIPTION
+
+C<Storable> implements object persistence for Perl data structures
+that can (in principle) contain arbitrary Perl objects. Complicated
+objects must supply their own methods to be serialized and thawed.
+This module implements the relevant methods to be able to store
+and retrieve piddles via Storable.
+
+=head1 FUNCTIONS
+
+=cut
+
+EOPM
+
+# it *seems* to work now
+# better wait for some more extensive testing to be sure though
+
+pp_addhdr << 'EOH';
+
+EOH
+
+pp_addxs << 'EOXS';
+MODULE = PDL::Storable     PACKAGE = PDL
+
+void
+make_null(sv)
+        SV *sv
+        CODE:
+        SV *newref, *dat;
+        PDL_Long fake[1] = {0};
+        STRLEN n_a;
+
+        /* we basically mimick pdl_null but without letting
+         * it give us a it->sv ! We have our own to which we
+         * connect below
+         */
+        pdl *it = PDL->pdlnew();
+	it->datatype = PDL_B;
+	it->data = PDL->smalloc(PDL->howbig(it->datatype));
+        dat = newSVpv(it->data,PDL->howbig(it->datatype));
+        it->data = SvPV(dat,n_a);
+        it->datasv = dat;
+        PDL->setdims(it, fake, 0); /* However, there are 0 dims in scalar */
+        it->nvals = 1;
+        /* PDL->set(it->data, it->datatype, NULL, NULL, NULL, 0, 0, 0.0); */
+
+        /* a null piddle  */
+	PDL->setdims(it,fake,1);
+	it->state |= PDL_NOMYDIMS;
+
+        /* connect pdl struct to this sv */
+        sv_setiv(SvRV(sv),PTR2IV(it));
+        it->sv = SvRV(sv);
+        /* printf("it->sv = %d\n",it->sv); */
+        PDL->SetSV_PDL(sv,it);
+
+EOXS
+
+pp_addpm << 'EOPM';
+
+use Carp;
+
+{ package PDL;
+# routines to make PDL work with Storable >= 1.03
+sub pdlpack {
+  my ($pdl) = @_;
+  my $hdr = pack 'i*', $pdl->get_datatype, $pdl->getndims, $pdl->dims;
+  my $dref = $pdl->get_dataref;
+  return $hdr.$$dref; # header followed by dataref
+  # note that this packing is not network transparent !!!!!
+  # likely to break when moving stored piddles across
+  # different architectures
+  # probably need to store endianness and type info with it
+}
+
+sub pdlunpack {
+  use Config;
+  my ($pdl,$pack) = @_;
+  my $stride = $Config{intsize};
+  my ($type,$ndims) = unpack 'i2', $pack;
+  my @dims = $ndims > 0 ? unpack 'i*', substr $pack, 2*$stride,
+     $ndims*$stride : ();
+  print "thawing PDL, Dims: [",join(',',@dims),"]\n" if $PDL::verbose;
+  $pdl->make_null; # make this a real piddle -- this is the tricky bit!
+  $pdl->set_datatype($type);
+  $pdl->setdims([@dims]);
+  my $dref = $pdl->get_dataref;
+  $$dref = substr $pack, (2+$ndims)*$stride;
+  $pdl->upd_data;
+  return $pdl;
+}
+
+sub STORABLE_freeze {
+  my ($self, $cloning) = @_;
+  return if $cloning;         # Regular default serialization
+  return UNIVERSAL::isa($self, "HASH") ? ("",{%$self}) # hash ref -> Storable
+    : (pdlpack $self); # pack the piddle into a long string
+}
+
+sub STORABLE_thaw {
+  my ($pdl,$cloning,$serial,$hashref) = @_;
+  # print "in STORABLE_thaw\n";
+  return if $cloning;
+  my $class = ref $pdl;
+  if (defined $hashref) {
+    croak "serial data with hashref!" unless !defined $serial ||
+      $serial eq "";
+    for (keys %$hashref) { $pdl->{$_} = $hashref->{$_} }
+  } else {
+    # all the magic is happening in pdlunpack
+    $pdl->pdlunpack($serial); # unpack our serial into this sv
+  }
+}
+
+# have these as PDL methods
+
+=head2 store
+
+=for ref
+
+store a piddle using L<Storable|Storable>
+
+=for example
+
+  $a = random 12,10;
+  $a->store('myfile');
+
+=cut
+
+=head2 freeze
+
+=for ref
+
+freeze a piddle using L<Storable|Storable>
+
+=for example
+
+  $a = random 12,10;
+  $frozen = $a->freeze;
+
+=cut
+
+sub store  { require Storable; Storable::store(@_) }
+sub freeze { require Storable; Storable::freeze(@_) }
+}
+
+=head1 BUGS
+
+The packed piddles are I<not> stored in a network transparent
+way. As a result expect problems when moving C<Storable> data
+containing piddles across computers.
+
+This could be fixed by amending the methods C<pdlpack> and
+C<pdlunpack> appropriately. If you want this functionality
+feel free to submit patches.
+
+If you want to move piddle data
+across platforms I recommend L<PDL::NetCDF|PDL::NetCDF> as
+an excellent (and IMHO superior) workaround.
+
+=head1 AUTHOR
+
+Copyright (C) 2002 Christian Soeller <c.soeller@auckland.ac.nz>
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+
+EOPM
+
+pp_done;

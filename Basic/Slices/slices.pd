@@ -51,6 +51,10 @@ powerful language in many ways: since you can alter the original
 data by altering some easier-to-use representation of it, many things are
 much easier to accomplish, just like making the above unit matrix.
 
+Slicing is so central to the PDL language that a special compile-time
+syntax has been introduced to handle it compactly; see L<PDL::NiceSlice> 
+for details.
+
 =head1 BUGS 
 
 For the moment, you can't slice the empty piddle.  This should probably
@@ -71,14 +75,13 @@ pp_addpm({At => 'Bot'},<< 'EOD');
 
 =head1 AUTHOR
 
-Copyright (C) 1997 Tuomas J. Lukka.
+Copyright (C) 1997 Tuomas J. Lukka.  Contributions by
+Craig DeForest, deforest@boulder.swri.edu.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
-
-Some hacks added by CED, 2002.
 
 =cut
 
@@ -137,26 +140,25 @@ pp_def(
 $doc = <<'EOD';
 =for ref
 
-These functions provide rudimentary index indirection.
+C<index> and C<index2d> provide rudimentary index indirection.
 
 =for example
 
- $c = a(ind());
- $c = a(ind1(),ind2());
+ $c = index($source,$ind);
+ $c = index2d($source2,$ind1,$ind2);
 
-It would be useful to have a more complete function for this
-at some point, or at least a perl wrapper, that allows
+use the C<$ind> variables as indices to look up values in C<$source>.  
+C<index2d> uses separate piddles for X and Y coordinates.  For more
+general N-dimensional indexing, see L<PDL::Slices> or the L<PDL::NiceSlice>
+syntax.
 
- $c = $a->islice("1:2",$ind1,"3:4",$ind2);
-
-with many dimensions.
-
-This function is two-way, i.e. after
+These functions are two-way, i.e. after
 
  $c = $a->index(pdl[0,5,8]);
  $c .= pdl [0,2,4];
 
 the changes in C<$c> will flow back to C<$a>.
+
 
 =cut
 EOD
@@ -234,6 +236,222 @@ pp_def(
        BadDoc =>
        'index2d barfs if either of the index values are bad.',
 );
+
+
+# indexND: CED 2-Aug-2002
+pp_add_exported('','indexND indexNDb');
+pp_addpm(<<'EOD');
+
+=head2 indexND
+
+=for ref
+
+Find selected elements in an N-D piddle
+
+=for example
+
+  $source = 10*xvals(10,10) + yvals(10,10);
+  $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+  print $source->indexND( $index );
+
+  [
+   [23 45]
+   [67 89]
+  ]
+
+IndexND collapses C<$index> by lookup into C<$source>.  The 
+0th dimension of C<$index> is treated as coordinates in C<$source>, and 
+the return value has the same dimensions as the rest of C<$index>.
+The returned elements are looked up from C<$source>.  Dataflow
+works -- propagated assignment flows back into C<$source>.
+
+You can get out hyperplanes from $source, too, in the same way as with
+ordinary slicing: use a lower-order vector for the index, and the extra 
+source dimensions are stuck on the end of the output dimension list.  
+Here's an example, using the same index PDL as above but a 
+higher-dimensional source:
+
+  $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
+  $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+  print $source->indexND( $index );
+
+  [
+   [
+    [230 450]
+    [670 890]
+   ]
+   [
+    [231 451]
+    [671 891]
+   ]
+  ]
+
+WARNING: To save time, no boundary checking is done!  Indices outside
+the boundaries of the original array are handled, er, poorly -- you can
+get anything from the wrong element (wrapped) to a slice-out-of-bounds
+error if you're out of bounds.  L<indexBDb|indexNDb> does boundary 
+checking.
+
+The natural counterpart to indexND is L<whichND|whichND>, which generates
+appropriate lists of coordinates for indexND.  See also
+L<indexNDb|indexNDb>, which handles boundary conditions gracefully, and
+L<interpND|interpND>, which handles floating-point index piddles.
+
+=cut
+
+sub PDL::indexND {
+  my($pdl) = PDL::pdl('PDL',shift);
+  my($ipdl)= PDL::pdl('PDL',shift);
+  $ipdl = $ipdl->dummy(0,1) if($ipdl->getndims < 1);
+
+  ##########
+  # $idim0 gets the indexing vectors.
+  # @idims gets all remaining dimensions
+  my(@idims) = $ipdl->dims;
+  my($idim0) = splice(@idims,0,1);
+
+  ##########
+  # Add dummy dimensions of order 1 to the source PDL until there are 
+  # enough dimensions to satisfy the index...
+  while(($rank = $pdl->getndims) < $idim0) {
+    $pdl = $pdl->dummy(-1,1);
+  }
+
+  ##########
+  # Record extra dimensions for addition at the end...
+  my(@source_dims) = $pdl->dims;
+  my(@extra_dims) = splice(@source_dims,$idim0);
+
+  ##########
+  # Don't check bounds -- too slow!
+  # my($clipped_ipdl) = $ipdl->clip( 0, PDL::pdl('PDL',@source_dims) - 1);
+  # barf "indexND: Index out of range" if(($clipped_ipdl != $ipdl)->sum);
+
+  ##########
+  # Generate multipliers to flatten the original pdl
+  my($mult) = ones($idim0);
+  my($i);
+  for $i(0..($idim0-2)) {
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $mult->index($i+1)) .= $mult->index($i) * $source_dims[$i];
+  }
+
+  ########## 
+  # Make the slice, using index (where we can, because it's fast) or 
+  # dice (where we have to because there are extra dimensions in the source), 
+  # and then reshape it to the desired output dimension.  
+  if(scalar(@extra_dims)==0) {
+    return ($pdl -> flat -> index( ($ipdl * $mult)->sumover->flat )
+	      -> reshape(@idims)
+	  );
+  }
+  return ($pdl -> clump($idim0) -> dice( ($ipdl * $mult)->sumover->flat )
+	      -> reshape((@idims,@extra_dims))
+	  );
+}
+
+=head2 indexNDb
+
+=for Find selected elements in an N-D piddle, with boundary handling
+
+=for example
+
+   $source = 10*xvals(10,10)+yvals(10,10);
+   $index = pdl([[-1,3],[4,5]],[[6,7],[8,23]]);
+   $out = indexNDb($source, $index);
+
+   $out = indexNDb($source, $index, $method, $missing);
+
+C<indexNDb> collapses C<$index> by lookup into C<$source>, with boundary
+condition handling using the given method (if present).  
+
+C<$method> can be one of:
+
+=over 3
+
+=item  periodic
+
+the original array is taken to describe an N-torus.
+
+=item extend 
+
+the indices are clipped to the correct dimension, effectively duplicating
+the values at the boundaries out to infinity.
+
+=item truncate
+
+missing values get 0 or the missing value that you feed in (or BAD,
+eventually -- but BAD values aren't supported at present).  Because
+``truncate'' involves inserting values that aren't necessarily present
+in the original array, it returns a I<copy> of the data rather than an
+ordinary slice-by-reference, so you can't flow values back to the
+original array.
+
+=item forbid
+
+missing values cause an "out of bounds" barf.
+
+=back
+
+C<indexNDb> is different than C<indexND> only because it includes
+extra overhead for handling boundary values.
+
+=cut
+
+# indexNDb: CED 7-Aug-2002
+
+sub PDL::indexNDb{ 
+  my($source,$index,$method,$bad) = @_;
+
+  my($index_limits) = ones($index->dim(0));
+  my($source_size) = pdl($source->dims);
+
+  if($source_size->nelem < $index_limits->nelem) {
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $index_limits->slice("0:".($source_size->nelem-1))) 
+       .= $source_size;
+  } else {
+    $index_limits .= $source_size->slice("0:".($index_limits->nelem-1));
+  }
+  
+  my($ind);
+
+  if($method =~ m/ext/i || $method =~ m/trunc/i) { # extend or truncate
+
+    $ind = $index->clip(0,$index_limits - 1);
+
+  } elsif ($method =~ m/per/i) { # periodic
+
+   $ind = $index % $index_limits;
+
+  } elsif ($method =~ m/for/i) { # forbid
+
+    $ind = $index->clip(zeroes($index_limits),$index_limits);
+    if(sum($ind != $index)) {
+      barf "Index out of bounds in indexNDb\n";
+    }
+
+  } else { # default (extend)
+
+    $ind = $index->clip(0,$index_limits - 1);
+    
+    print "indexNDb: unrecognized method '$method'; using default (extend).\n"
+      if($PDL::debug && defined $method);
+  }
+    
+  my($retval) =  $source->indexND($ind);
+
+  if($method =~ m/trunc/i) {
+    $retval = $retval->copy; 
+    my($ind2) = whichND( ($ind != $index)->sumover );
+    # use $tmp for 5.005_03 compatibility
+    (my $tmp = $retval->indexND($ind2)) .= (defined $bad ? $bad : 0.0);
+  }    
+  
+  return $retval;
+}
+
+EOD
 
 pp_def(
 	'rld',
@@ -801,8 +1019,8 @@ The following are all equivalent:
 	
 	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
 	xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
-	xvals(5)->((2),0)           # NiceSlice syntax
-	xvals(5)->((2))->dummy(0,1) # NiceSlice syntax
+	xvals(5)->slice((2),0)                # NiceSlice syntax
+	xvals(5)->((2))->dummy(0,1) 	      # NiceSlice syntax
 
 This is an error:
 	
@@ -1709,6 +1927,7 @@ sub PDL::dice_axis {
   return $self->mv($axis,0)->index($ix)->mv($n-1,$axis);
 }  
 *dice_axis = \&PDL::dice_axis;
+
 
 EOD
 
