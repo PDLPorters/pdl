@@ -37,8 +37,14 @@ EOP
     print << 'EOP';
 
 ************************************************************
-
 EOP
+
+    warn << 'EOW' unless $perl_560;
+
+* The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*
+* Upgrade your perl now for maximum PDL fun in the future!               *
+
+EOW
   }
 }
 
@@ -48,12 +54,6 @@ if ($@ ne ""){
 	"Building PDL without TriD (WITH_3D=>0)\n\n";
 }else{
     $perl_560=1;
-}
-
-END{
-    warn "\n\n*The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*\n".
-	"*Upgrade your perl now for maximum PDL fun in the future!*\n\n" 
-	    unless $perl_560;
 }
 
 $seen_pdlconf = 0;
