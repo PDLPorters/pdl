@@ -1545,6 +1545,21 @@ Example:
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
 
+=head2 rect
+
+=for ref
+
+Draw a non-rotated rectangle
+
+Usage: rect ( $x1, $x2, $y1, $y2 )
+
+Options recognised:
+
+The following standard options influence this command:
+
+ AXIS, BORDER, COLOUR, FILLTYPE, HATCHING, LINESTYLE,  LINEWIDTH
+ JUSTIFY, SCALE, PIX, PITCH, ALIGN
+
 =head2 poly
 
 =for ref
@@ -5925,6 +5940,45 @@ EOD
     1;
   }
 }
+
+# Plot a rectangle with pgrect()
+sub rect {
+  my $self = shift;
+  my ($in, $opt)=_extract_hash(@_);
+  release_and_barf 'Usage: rect ( $x1, $x2, $y1, $y2 [, $options] )' if( $#$in<0 || $#$in>3);
+  my($x1,$x2,$y1,$y2) = @$in;
+  $self->_checkarg($x1,1);
+  $self->_checkarg($x2,1);
+  $self->_checkarg($y1,1);
+  $self->_checkarg($y2,1);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, ($opt || {}));
+  $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+  &catch_signals;
+
+  unless ( $self->held() ) {
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : minmax(pdl($x1->at(0),$x2->at(0)));
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : minmax(pdl($y1->at(0),$y2->at(0)));
+      if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
+      if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
+
+  $self->_save_status();
+  $self->_standard_options_parser($u_opt);
+  my $n = nelem($x);
+  pgrect($x1, $x2, $y1, $y2);
+  $self->_restore_status();
+  $self->_add_to_state(\&poly, $in, $opt);
+
+  &release_signals;
+
+  1;
+}
+
+
 
 # Plot a polygon with pgpoly()
 
