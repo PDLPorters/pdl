@@ -1,3 +1,9 @@
+CED (17-Jun-02)
+    Changes to PDL::Graphics::PGPLOT::Window:
+	- Added pgwin() -- exported constructor (less typing)
+	- Added =>Size option to constructor    (less typing)
+	- Added =>Units option to constructor (PGPLOT units only at the moment)
+	- Interactive windows appear at the size you ask for. (less annoyance)
 DJB - quoted "PDL::Type" in byte/short/.. fns in Core.pm to fix
       problem seen with using 'use strict' with perl 5.6.0
 CS  - patch by Ken Williams to improve speed of 'pdl $perl_array_ref'
