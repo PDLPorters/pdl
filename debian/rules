@@ -12,7 +12,7 @@ INSTALL=/usr/bin/install
 
 build:
 	$(checkdir)
-	HOME=`pwd`/debian perl Makefile.PL INSTALLDIRS=perl PREFIX=$(ddir)/usr F77CONF=debian/ff7conf.pl
+	HOME=`pwd`/debian perl Makefile.PL INSTALLDIRS=perl PREFIX=$(ddir)/usr F77CONF=debian/f77conf.pl
 #	    INSTALLPRIVLIB=${ddir}/usr/lib/perl5
 	make
 	#make test	## disabled until doesn't require X

@@ -3,6 +3,7 @@ DJB (8/May/01)
       see http://testers.cpan.org/search?request=dist&dist=PDL#2.2.1 
       Now using limits.h in Basic/Math/mconf.h for GNU systems - only tested
       on solaris and i386-linux.
+    - fixed typo in debian/rules
 John Cerney (5/3/01)
     - Simple change to primitive.pd so that interpol sub
       makes it into the PDL namespace, and not just the
