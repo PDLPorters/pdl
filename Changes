@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+John Cerney (5/21/00)
+    - Minor Changes to Basic/Gen/PP.pm to fix error reporting, and
+      to get rid of some warning messages when run with the -w 
+      switch
 Doug Burke (5/19/00)
         - Amalgated Interpolate & Interpolate::Slatec into PDL::Func (found
           in Lib/). I've left the old files in the distribution, although they're

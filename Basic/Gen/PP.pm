@@ -654,8 +654,9 @@ sub GenDocs {
 
   # If the doc string is one line let's have to for the
   # reference card information as well
-
-  $doc = "=for ref\n\n".$doc if split("\n", $doc) <= 1;
+  my @splitRes; # temp split variable to get rid of 
+                #  'implicit split to @_ is deprecated' messages
+  $doc = "=for ref\n\n".$doc if( scalar(@splitRes = split("\n", $doc)) <= 1);
 
   return '' if $doc =~ /^\s*internal\s*$/i;
   $::DOCUMENTED++;
@@ -1257,7 +1258,6 @@ sub MkPrivStructInit {
 		$sname->__ddone = 0;
 		$sname->vtable = &$vtable;
 		$sname->freeproc = PDL->trans_mallocfreeproc;";
-	return $init;
 }
 
 sub MkDefSyms {
@@ -1454,7 +1454,7 @@ sub VarArgsXSHdr {
   my $nallout = $nout + $noutca;
   my $usageargs = join (",", @args);
   
-  my $ci = '  ';  # Current indenting
+  $ci = '  ';  # Current indenting
 
   # Generate declarations for SV * variables corresponding to pdl * output variables.
   # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
@@ -1464,7 +1464,7 @@ sub VarArgsXSHdr {
   my @create = ();  # The names of variables which need to be created by calling 
                     # the 'initialize' perl routine from the correct package.
   
-  my $ci = '    ';  # Current indenting
+  $ci = '    ';  # Current indenting
 
   # clause for reading in all variables
   my $clause1 = ''; my $cnt = 0;
@@ -1565,7 +1565,7 @@ $clause3
   } 
 
   else {
-    croak (\"Usage:  PDL::$xsname($usageargs) (you may leave temporaries or output variables out of list)\");
+    croak (\"Usage:  PDL::$name($usageargs) (you may leave temporaries or output variables out of list)\");
   }
 }
 {
