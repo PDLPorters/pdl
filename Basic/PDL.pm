@@ -1,14 +1,25 @@
 =head1 NAME
 
-PDL - Main loader of PDL default modules
+PDL - the Perl Data Language
 
 =head1 DESCRIPTION
 
-Loads the default set of modules associated
-with PDL, making the functions available in
-the current namespace. See also
-L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF>
-if start-up time becomes an issue.
+PDL is the Perl Data Language, a perl extension that is designed for
+scientific and bulk numeric data processing and display.  It extends
+perl's syntax and includes fully vectorized, multidimensional array
+handling, plus several paths for device-independent graphics output.
+
+You can run PDL programs directly as perl scripts that include the
+PDL module (with "use PDL;"), or via an interactive shell (see
+L<the perldl(1) man page|perldl>).  For basic information on the 
+language, see L<the pdl(1) (lowercase) man page|pdl>.
+
+The PDL language extension includes about a dozen perl modules that
+form the core of the language, plus additional modules that add
+further functionality.  The perl module "PDL" loads all of the core
+modules automatically, making their functions available in the current
+perl namespace.  See also L<PDL::Lite|PDL::Lite> or
+L<PDL::LiteF|PDL::LiteF> if start-up time becomes an issue.
 
 The PDL::Math module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
