@@ -6,41 +6,34 @@ if($^O =~ /mswin32/i) {
 
   if($cc eq 'cl') {
      $opt = '-O2';
-     $out = '/Fo';
      $obj = '.obj';
      }
 
   else {
      $opt = '-O3';
-     $out = '-o';
      $obj = '.o';
      }
 
-  if(system "$cc $out complex$obj -c $opt complex.c") {die "Failed to compile complex.c"}
-  if(system "$cc $out eigen$obj -c $opt eigen.c") {die "Failed to compile eigen.c"}
-  if(system "$cc $out matrix$obj -c $opt matrix.c") {die "Failed to compile matrix.c"}
-  if(system "$cc $out sslib$obj -c $opt sslib.c") {die "Failed to compile sslib.c"}
+  if($Config{make} eq 'nmake') {$line = ".c$obj:\n\t$cc -c $opt \$*.c"}
+  else {$line = "\%.o: \%.c Makefile\n\t$cc -c $opt \$<"}
 
-  print "\nWriting dummy Makefile for PDL::MatrixOps/ssl\n"; 
+open(FOO, ">Makefile") or die "Can't open ssl/Makefile for writing: $!";
+print FOO "
 
-  open(FOO, ">Makefile");
-  print FOO <<'FOO';
+all: complex$obj eigen$obj matrix$obj sslib$obj
 
-fred:
-	@echo "****"
-	@echo "All MatrixOps/ssl compilation done when Makefile.PL was run"
-	@echo "****"
-
-all: fred
+$line
 
 clean ::
-	-ren Makefile Makefile.old
+	-ren Makefile Makefile.old <NUL
+	-del /F /Q complex$obj eigen$obj matrix$obj sslib$obj <NUL
 
 realclean ::
-	del /F /Q Makefile Makefile.old
+	del /F /Q Makefile Makefile.old complex$obj eigen$obj matrix$obj sslib$obj <NUL
 
+";
 
-FOO
+close(FOO) or die "Can't close ssl/Makefile after writing: $!";
 }
 
 else {
