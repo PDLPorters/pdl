@@ -3,6 +3,12 @@ use strict;
 
 use PDL;
 use PDL::Config;
+use File::Temp 'tempdir';
+use File::Spec;
+
+# Temp directory name.  The catfile() call adds a trailing dir
+# separator (e.g. "/" on POSIX).
+my $d = File::Spec->catfile(tempdir(CLEANUP=>1),"");
 
 use Test;
 BEGIN { plan tests => 4; }
@@ -14,8 +20,7 @@ if($@) {print $@,"\n";}
 ok( !$@ );
 
 ##2 Make a DiskCache object
-my($d) = $PDL::Config{TEMPDIR} . "/test-$$/";
-`mkdir $d`;
+
 
 eval <<'BAR'
   do {
@@ -38,7 +43,6 @@ eval <<'BAZ'
 BAZ
   ;
 
-`rm -rf $d`;
 
 # end
 
