@@ -1275,6 +1275,8 @@ EOD
 
 pp_def(
        'wtstat',
+       HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); wt(n); avg(); [o]b();',
        OtherPars => 'int deg',
        Code =>
@@ -1290,6 +1292,25 @@ pp_def(
 	   statsum += $wt() * (tmp - $avg()); 
         %}
 	$b() = statsum / wtsum;',
+       BadCode =>
+       'double wtsum = 0;
+	double statsum = 0;
+        int flag = 0;
+	loop(n) %{
+           if ( $ISGOOD(wt()) && $ISGOOD(a()) && $ISGOOD(avg()) ) {
+              register double tmp; 
+              register int i;
+	      wtsum += $wt();
+	      tmp=1; 
+              for(i=0; i<$COMP(deg); i++) 
+                 tmp *= $a();
+	      statsum += $wt() * (tmp - $avg()); 
+              flag = 1;
+           }
+        %}
+        if ( flag ) { $b() = statsum / wtsum; }
+        else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
+       CopyBadStatusCode => '',
        Doc => 
 '=for ref
 
@@ -1300,7 +1321,10 @@ The formula is
 
  b() = (sum_i wt_i * (a_i ** degree - avg)) / (sum_i wt_i)
 
-'
+',
+       BadDoc => 
+'Bad values are ignored in any calculation; C<$b> will only
+have its bad flag set if the output contains any bad data.',
        );
 
 pp_addpm(<<'EOD');

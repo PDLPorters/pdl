@@ -2,7 +2,7 @@
 Problems:
 =========
 
-.) get the tests fixed
+.) improve the tests
 
 .) improve the documentation support (such as get it working properly).
    The logic needs tweaking for the automatic document creation,
@@ -21,25 +21,6 @@ Suggestions/To do:
    doesn't yet do anything.
 
 .) 'bad-ify' the rest of the code...
-
-.) we need something like 'badwhere($a < 20)' which returns a 
-   piddle in which those elements which pass the condition are
-   set bad, otherwise 0 (and has it's bad flag set). This 
-   would allow you to replace values less than 20 with the bad value 
-   by '$a += badwhere($a < 20)' (or maybe *=)
-      EXCEPT THAT it shouldn't be called 'where', and probably won't
-      work like this at all...
-   See t/bad.t for foofoobad() --- This needs thinking about
-
-   Actually, what I think we want is 'setbadif( $a < 20 )' to return
-   a copy of $a which:
-     a) has its bad flag set 
-     b) elements with $a < 20 are set bad
-     c) other elements are left alone
-
-   This would mean you could type '$a = setbadif( $a < 20 )'
-
-   Comments?
 
 .) divide in ops.pd should trap '/ 0' cases as well. also special cases 
    for sqrt(), log ... and integration with NaN support

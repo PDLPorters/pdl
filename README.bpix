@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/14/00
+ last update: 07/16/00
 
 --------------------------------------------------------------------------------
 
@@ -38,7 +38,9 @@ Enter PDL's WITH_BADVAL configuration option -  if set to 0 or undef, the
 bad-value support is ignored and you won't see any slow-down of code.
 
 The routines which support bad values are written to be as fast as possible -
-particularly when operating on piddles which do not contain bad values.
+particularly when operating on piddles which do not contain bad values, and to
+cause as little a speed-down when used with piddles that do not contain bad
+values.
 
 You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
 Well, yes and no - many routines, such as y=sin(x), will propogate NaN's 

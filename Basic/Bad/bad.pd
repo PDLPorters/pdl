@@ -615,6 +615,46 @@ EOD
 
 } # for $op
 
+# we do not bother with a BadCode section here
+
+pp_def(
+       'setbadif',
+       HandleBad => 1,
+       UseBadforNaN => 1,           # NOP at the moment
+       Pars => 'a(); mask(); [o]b();',
+       Code => 
+       'if ( $ISBAD(mask()) || $mask() ) {   /* in case the bad value == 0 */
+           $SETBAD(b());
+        } else {
+           $b() = $a();
+        }',
+       FindBadStatusCode => '',  # we don't care about the input
+       CopyBadStatusCode => 
+       'b->state |= PDL_BADVAL;',  # always make sure the output is 'bad'
+       Doc => 
+'
+=for ref
+
+Set elements bad based on the supplied mask, otherwise
+copy across the data.
+
+Is this sensible?
+
+=for example
+
+ $a = random(10,10);
+ $a = $a->setbadif( $a > 0.8 );
+ print "a badflag: ", $a->badflag, "\n";
+ a badflag: 1
+
+=for bad
+
+The output always has its bad flag set, even if it does not contain
+any bad values. Any bad values in the input piddles are copied
+across to the output piddle.
+',
+       );
+
 pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
 
 $author

@@ -667,8 +667,11 @@ sub get_str {
 # $STATESETBAD(a)   ->  (a->state |= PDL_BADVAL)
 # $STATESETGOOD(a)  ->  (a->state &= ~PDL_BADVAL)
 # 
-# this may never be used (eg see the abstraction used in
-# PP.pm --- get_badstate() etc)
+# see also the abstraction used in PP.pm --- 
+#   get_badstate() etc
+#
+# NOTE: I doubt these are ever going to be used
+#
 
 package PDL::PP::StateBadAccess;
 use Carp;
