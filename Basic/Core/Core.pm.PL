@@ -1211,7 +1211,7 @@ sub PDL::mslice {
                 } @_));
 }
 
-sub _intpar { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
+sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		  die "multielement piddle where only one allowed" :
 		    die "non piddle ref '".ref $_[0]."'"
@@ -1236,7 +1236,7 @@ sub PDL::nslice {
   # print STDERR 'processed arglist: ',join(',',@args);
   my $slstr = join ',',(map {
     !ref $_ && $_ eq "X" ? ":" :
-      ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+      ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
 	"("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
 	  _intpar $_
 	} @args);

@@ -4,9 +4,9 @@ use Test;
 use PDL::LiteF;
 
 BEGIN { 
-    eval 'require PDL::SFilter';
+    eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 13;
+	plan tests => 17;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -15,13 +15,14 @@ BEGIN {
 } 
 
 $| = 1;
-sub PDL::SFilter::findslice;
+sub PDL::NiceSlice::findslice;
 sub translate_and_show {
   my ($txt) = @_;
-  my $etxt = PDL::SFilter::findslice $txt;
+  my $etxt = PDL::NiceSlice::findslice $txt;
   print "$txt -> \n\t$etxt\n";
   return $etxt;
 }
+
 
 ok (!$@);
 
@@ -56,3 +57,18 @@ my $idx = pdl 1,4,5;
 eval translate_and_show '$b = $a($idx);';
 ok (!$@);
 ok(all $b == $idx);
+
+# use 1-el piddles as indices
+my $rg = pdl(2,7,2);
+my $cmp = pdl(2,4,6);
+eval translate_and_show '$b = $a($rg(0):$rg(1):$rg(2));';
+ok (!$@);
+ok(all $b == $cmp);
+
+# mix ranges and index piddles
+my $twod = sequence 5,5;
+$idx = pdl 2,3,0;
+$cmp = $twod->slice('-1:0')->dice_axis(1,$idx);
+eval translate_and_show '$b = $twod(-1:0,$idx);';
+ok (!$@);
+ok(all $b == $cmp);

@@ -1,4 +1,4 @@
-package PDL::SFilter;
+package PDL::NiceSlice;
 
 # replace all occurences of the form
 #
@@ -10,7 +10,7 @@ package PDL::SFilter;
 #   $pdl->mslice(processed_args);
 #
 
-$PDL::SFilter::VERSION = 0.4;
+$PDL::NiceSlice::VERSION = 0.4;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -19,7 +19,7 @@ if ("$PDL::Version::VERSION" !~ /cvs$/ and
 eval << 'EOH';
   {
     package PDL;
-    sub _intpar { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
+    sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		    $_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		      die "multielement piddle where only one allowed" :
 			die "non piddle ref '".ref $_[0]."'"
@@ -47,7 +47,7 @@ eval << 'EOH';
       # print STDERR 'processed arglist: ',join(',',@args);
       my $slstr = join ',',(map {
 	!ref $_ && $_ eq "X" ? ":" :
-	  ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+	  ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
 	    "("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
 	      _intpar $_
 	    } @args);
@@ -190,7 +190,7 @@ sub findslice {
 sub perldlpp {
  my ($txt) = @_;
  my $new;
- eval '$new = PDL::SFilter::findslice $txt';
+ eval '$new = PDL::NiceSlice::findslice $txt';
  return "print q|preprocessor error: $@|" if $@;
  return $new;
 }
@@ -216,26 +216,29 @@ my $sub = \&{"${class}::import"}; # get the import meth created by F::Simple
 
 =head1 NAME
 
-PDL::SFilter - towards a less insane slice syntax
+PDL::NiceSlice - toward a nicer slicing syntax for PDL
 
 =head1 SYNOPSYS
 
-  use PDL::SFilter;
+  use PDL::NiceSlice;
 
-  $a(1:4) .= 2;
+  $a(1:4) .= 2;             # concise syntax for ranges
   print $b((0),1:$end);
   $a->xchg(0,1)->(($pos-1)) .= 0;
+  
+  $idx = long 1, 7, 3, 0;   # a piddle of indices
+  $a(-3:2:2,$idx) += 3;     # mix explicit indexing and ranges
 
 =head1 DESCRIPTION
 
-C<PDL>'s C<slice> syntax sucks. This module tries to rectify the
-situation to some degree. Using Perl's ability to do I<source
+C<PDL>'s L<slice|PDL::Slices/slice> syntax sucks. This module tries to rectify the
+situation to some degree. Using Perl's ability to use I<source
 filtering> (which you can think of as a very powerful macro facility,
-see L<perlfilter>) it introduces a more reasonable syntax for slicing
-of PDL objects (AKA piddles).  C<PDL::SFilter> implements the source
-filter that provides this new feature.
+see L<perlfilter>) it introduces a more reasonable syntax
+for slicing PDL objects (AKA piddles).  C<PDL::NiceSlice> implements
+the source filter that provides this new feature.
 
-I<NOTE>: C<PDL::SFilter> relies on several modules from CPAN that make
+I<NOTE>: C<PDL::NiceSlice> relies on several modules from CPAN that make
 source filtering and parsing easier. In particular it requires
 F<Filter::Simple> (which in turn requires a module from the F<Filter>
 distribution) and F<Text::Balanced>. To make your life easier it is
@@ -244,16 +247,16 @@ during installation automatically. Using the cpan installation shell
 installation should be as easy as this:
 
    $ perl -MCPAN -e shell
-   cpan> i PDL::SFilter
+   cpan> i PDL::NiceSlice
 
 =head1 The new slicing syntax
 
-Using C<PDL::SFilter> slicing piddles becomes so much easier since, first of
-all, you don't need to make explicit method calls any more. No
+Using C<PDL::NiceSlice> slicing piddles becomes so much easier since, first of
+all, you don't need to make explicit method calls. No
 
   $pdl->slice(....);
 
-calls, etc. Instead, C<PDL::SFilter> introduces two ways in which to
+calls, etc. Instead, C<PDL::NiceSlice> introduces two ways in which to
 slice piddles without too much typing:
 
 =over 2
@@ -301,7 +304,7 @@ invocation of the code reference C<$a> with argumentlist C<(4,5)>.
 
 The second syntax that will be recognized is what I called the
 I<default method> syntax. It is the method arrow C<-E<gt>> directly
-followed by an open parenthesis C<(>, e.g.
+followed by an open parenthesis, e.g.
 
   $a->xchg(0,1)->(($pos)) .= 0;
 
@@ -311,8 +314,8 @@ can write in plain Perl
   $sub = sub { print join ',', @_ };
   $sub->(1,'a');
 
-NOTE: Once C<use PDL::SFilter> is in effect (see below how to switch it off
-again in a source file) the preprocessor will incorrectly
+NOTE: Once C<use PDL::NiceSlice> is in effect (see below how to switch it off
+again in a source file) the source filter will incorrectly
 replace the above call to C<$sub> with an invocation of the slicing method.
 This is one of the pitfalls of using a source filter that doesn't know
 anything about the runtime type of a variable (cf. the
@@ -323,6 +326,8 @@ the C<&>-way of calling subrefs, e.g.:
 
   $sub = sub { print join ',', @_ };
   &$sub(1,'a');
+
+=head2 When to use which syntax?
 
 Why are there two different ways to invoke slicing?
 The first syntax C<$a(args)> doesn't work with chained method calls. E.g.
@@ -340,10 +345,11 @@ Similarly, if you have a list of piddles C<@pdls>:
 
 =head2 The argument list
 
-The argument list is a comma separated list. Each argument determines
+The argument list is a comma separated list. Each argument specifies
 how the corresponding dimension in the piddle is sliced. In contrast
-to usage of C<slice> arguments should not be quoted. Rather freely mix literals
-(1,3,etc), perl variabales and function invocations, e.g.
+to usage of L<slice|PDL::Slices/slice> the arguments should not be
+quoted. Rather freely mix literals (1,3,etc), perl variabales and
+function invocations, e.g.
 
   $a($pos-1:$end,myfunc(1,3)) .= 5;
 
@@ -352,7 +358,7 @@ There can even be other slicing commands in the arglist:
   $a(0:-1:$pdl($step)) *= 2;
 
 NOTE: If you use function calls in the arglist make sure that
-you use parentheses around the argument lists. Otherwise the
+you use parentheses around their argument lists. Otherwise the
 source filter will get confused since it splits the argument
 list on commas that are not protected by parentheses. Take
 the following example:
@@ -396,7 +402,7 @@ Examples:
   $a(::2);   # this won't work (in the way you probably intended)
   $a(:-1:2); # this will select every 2nd element in the 1st dim
 
-Just as with C<slice> negative indices count from the end of the dimension
+Just as with L<slice|PDL::Slices/slice> negative indices count from the end of the dimension
 backwards with C<-1> being the last element. If the start index is smaller
 than the stop index the resulting piddle will have the elements in reverse
 between those indices:
@@ -416,7 +422,7 @@ the resulting piddle but rather reduced to size 1:
  PDL: Double D [1]
 
 If you want to get completely rid of that dimension enclose the index
-in parentheses (again similar to the C<slice> syntax):
+in parentheses (again similar to the L<slice|PDL::Slices/slice> syntax):
 
   print $a((5));
  5
@@ -455,66 +461,148 @@ these dimensions will be fully kept in the sliced piddle:
 
 =item * piddle index lists
 
+The second way to select indices from a dimension is via 1D piddles
+of indices. A simple example:
+
+  $a = random 10;
+  $idx = long 3,4,7,0;
+  $b = $a($idx);
+
+This way of selecting indices was previously only possible using
+L<dice|PDL::Slices/dice> (C<PDL::NiceSlice> attempts to unify the
+C<slice> and C<dice> interfaces). Note that the indexing piddles must
+be 1D or 0D. Higher dimensional piddles as indices will raise an error:
+
+  $a = sequence 5, 5;
+  $idx2 = ones 2,2;
+  $sum = $a($idx2)->sum;
+ piddle must be <= 1D at /home/XXXX/.perldlrc line 93
+
+Note that using index piddles is not as efficient as using ranges.
+If you can represent the indices you want to select using a range
+use that rather than an equivalent index piddle. In particular,
+memory requirements are increased with index piddles (and execution
+time I<may> be longer). That said, if an index piddle is the way to
+go use it!
+
 =back
+
+As you might have expected ranges and index piddles can be freely
+mixed in slicing expressions:
+
+  $a = random 5, 5;
+  $b = $a(-1:2,pdl(3,0,1));
 
 =head2 piddles as indices
 
+You can use piddles to specify indices in ranges. No need to
+turn them into proper perl scalars with the new slicing syntax.
+However, make sure they contain not more than one element! Otherwise
+a runtime error will be triggered. First a few examples that illustrate
+proper usage:
+
+  $a = sequence 5, 5;
+  $rg = pdl(1,-1,3);
+  print $a($rg(0):$rg(1):$rg(2),2);
+ [
+  [11 14]
+ ]
+  print $a($rg+1,:$rg(0));
+ [
+  [2 0 4]
+  [7 5 9]
+ ]
+
+The next one raises an error 
+
+  print $a($rg+1,:$rg(0:1));
+ multielement piddle where only one allowed at XXX/Core.pm line 1170.
+
+The problem is caused by using the 2-element piddle C<$rg(0:1)> as the
+stop index in the second argument C<:$rg(0:1)> that is interpreted as
+a range by C<PDL::NiceSlice>. You I<can> use multielement piddles as
+index piddles as described above but not in ranges. And
+C<PDL::NiceSlice> treats any expression with unprotected C<:>'s as a
+range.  I<Unprotected> means as usual 
+I<"not occurring between matched parentheses">.
+
 =head1 Use in scripts and C<perldl> shell
 
-In a script or module write
-something like
+Source filtering can be switched on and off in scripts
+and perl modules by using or unloading C<PDL::Filter>.
+Everything after C<use PDL::NiceSlice> will be translated
+and you can use the snew slicing syntax. Source filtering
+will continue until the end of the file is encountered.
+You can stop sourcefiltering before the end of the file
+by issuing a C<no PDL::NiceSlice> statement.
 
-  use PDL::SFilter;
+Here is an example:
+
+  use PDL::NiceSlice;
 
   # this code will be translated
+  # and you can use the new slicing syntax
 
-  no PDL::SFilter;
+  no PDL::NiceSlice;
 
   # this code won't
+  # and the new slicing syntax will raise errors!
 
-See also L<Filter::Simple> and F<test.pl> in this distribution for
-an example.
+See also L<Filter::Simple> and F<example> in this distribution for
+further examples.
 
-To use the filter in the C<perldl> shell
+To use the filter in the C<perldl> shell you need to
 add the following two lines to your F<.perldlrc> file:
 
-   use PDL::SFilter;
-   $PERLDL::PREPROCESS = \&PDL::SFilter::perldlpp;
+   use PDL::NiceSlice;
+   $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
 
 A more complete tool box of commands for experimentation is
-in the file F<local.perldlrc> in the C<PDL::SFilter> source
-directory.
+in the file F<local.perldlrc> in the C<PDL::NiceSlice> source
+directory. Just include the code in that file in your usual
+F<~/.perldlrc> and you can switch source filtering with
+PDL::NiceSlice on and off by typing C<trans> and C<notrans>,
+respectively. To see what and how your commands are translated
+switch reporting on:
 
-Error checking is not yet foolproof. Please send comments
-and bug reports to the pdl-porters list <pdl-porters@jach.hawaii.edu>.
+  perldl> report 1;
 
-=head1 Dependencies
+Similarly, switch reporting off as needed
 
-This module relies on the latest version of mslice to work properly.
-These are included below for the moment. If your installed PDL has
-a different mslice version just include the following in your F<.perldlrc>
-(or even better include the contents of the file F<local.perldlrc> that
-is part of this dist):
+  perldl> report 0;
 
-   # called for colon-less args	
-   # preserves parens if present	
-   sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
-   sub PDL::mslice {
-	   my($pdl) = shift;
-	   return $pdl->slice(join ',',(map {
-			   $_ eq "X" ? ":" :
-			   ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
-			   "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
-			   !ref $_ ? intpars $_ :
-			   die "INVALID SLICE DEF $_"
-		   } @_));
-   }
+Note that these commands will only work if you included
+the contents of F<local.perldlrc> in your perldl startup file.
 
+=head1 Implementation
+
+C<PDL::NiceSlice> exploits the ability of Perl to use source filtering
+(see also L<perlfilter>). A source filter basically filters (or
+rewrites) your perl code before it is seen by the
+compiler. C<PDL::NiceSlice> searches through your Perl source code and when
+it finds the new slicing syntax it rewrites the argument list
+appropriately and splices a call to the C<nslice> method using the
+modified arg list into your perl code. You can see how this works in
+the L<perldl|perldl> shell by switching on reporting (see above how to do
+that).
+
+The C<nslice> method is an extended version of L<mslice|PDL::Core/mslice> that
+knows how to deal with index piddles (and therefore combines
+slicing and dicing). Full documentation of C<nslice> will
+be in the next PDL release.
 
 =head1 BUGS
 
-Undoubtedly C<;)>. The module is still highly experimental.
-Feedback and bug reports are welcome.
+Error checking is probably not yet foolproof.
+Feedback and bug reports are welcome. Please include an example
+that demonstrates the problem. Log bug reports in the PDL
+bug database at
+
+  http://sourceforge.net/bugs/?group_id=612
+
+or send them to the pdl-porters mailing list
+E<lt>pdl-porters@jach.hawaii.eduE<gt>.
+
 
 =head1 COPYRIGHT
 

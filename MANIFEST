@@ -100,9 +100,9 @@ Basic/SourceFilter/MANIFEST
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/README
 Basic/SourceFilter/README.head
-Basic/SourceFilter/SFilter.pm
+Basic/SourceFilter/NiceSlice.pm
 Basic/SourceFilter/local.perldlrc
-Basic/SourceFilter/test.pl
+Basic/SourceFilter/example
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
@@ -634,6 +634,7 @@ t/magic.t
 t/matmult.t
 t/misc.t
 t/ndf.t
+t/niceslice.t
 t/ones.t
 t/opengl.t
 t/ops.t
@@ -654,7 +655,6 @@ t/quat.t
 t/reduce.t
 t/refs.t
 t/scope.t
-t/sfilter.t
 t/slatec.t
 t/slice.t
 t/subclass.t

@@ -1,8 +1,8 @@
 README
 README.head
-SFilter.pm
+NiceSlice.pm
 MANIFEST
 Makefile.PL
-t/sfilter.t
+t/niceslice.t
 local.perldlrc
 example

@@ -1,17 +1,17 @@
 A source filter for PDL: take the pain out of slicing !
 
-Source filtering allows to experiment with new syntax
+Perl source filtering is a way to experiment with new syntax
 and the power is only limited by the sophistication of the
 source parser.
 
 Build the module in the usual way:
 
   perl Makefile.PL
-  make test  # no real test suite yet
+  make test
   make install
 
-Everything is still very experimental but the
-principal approach seems promising.
+Everything is still experimental but the
+approach seems promising.
 
 The file 'local.perldc' contains some useful definitions to
 experiment with the new syntax within the perldl shell.
