@@ -118,16 +118,29 @@ sub whereami_inst {
 # to create this variable so it is available during 'perl Makefile.PL' and
 # it can be eval-ed during 'make'
 #
-##print STDERR "{{{{ is PDL::Config defined [" . (defined %PDL::Config ? "yes" : "no" ). "] }}}}\n";
 unless ( defined %PDL::Config ) {
 
-    ##print STDERR "{{{{ Loading PDL::Config }}}}\n";
-    # this uses the distribution version before the installed version
-    eval 'require "' . whereami_any() . '/Core/Config.pm";';
+    # look for the distribution and then the installed version
+    # (a manual version of whereami_any)
+    #
+    my $dir;
+    $dir = whereami(1);
+    if ( defined $dir ) {
+	$dir = abs_path($dir . "/Core");
+    } else {
+	# as no argument given whereami_inst will die if it fails
+        # (and it also returns a slightly different path than whereami(1)
+        #  does, since it does not include "/PDL")
+	#
+	$dir = whereami_inst;
+	$dir = abs_path($dir . "/PDL");
+    }
+
+    eval 'require "' . $dir . '/Config.pm";';
     die "Unable to find PDL's configuration info\n [$@]"
       if $@;
+
 }
-##print STDERR "{{{{ is PDL::Config defined [" . (defined %PDL::Config ? "yes" : "no" ). "] }}}}\n";
 
 # Data types to C types mapping
 # get the map from Types.pm
