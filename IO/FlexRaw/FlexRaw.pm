@@ -87,7 +87,8 @@ give header information, rather than using a .hdr file.  For example,
 	];
 	@a = readflex('banana',$header);
 
-reads our example file again.
+reads our example file again.  As a special case, when NDims is 1, Dims
+may be given as a scalar.
 
 Within PDL, readflex and writeflex can be used to write several pdls
 to a single file -- e.g.
@@ -376,7 +377,7 @@ READ:
 	    $type = $flextypes{$type};
 	}
 	$pdl = PDL->zeroes ((new PDL::Type($type)),
-			    @{$hdr->{Dims}});
+			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 	$len = length $ {$pdl->get_dataref};
 
 	&readchunk($d,$pdl,$len,$name) or last READ;
@@ -477,7 +478,7 @@ sub mapflex {
 	    $f77mode = 1;
 	} else {
 	    my($si) = 1;
-	    foreach (@{$hdr->{Dims}}) {
+	    foreach (ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims}) {
 		$si *= $_;
 	    }
 	    $size += $si * PDL::Core::howbig ($type);
@@ -522,7 +523,7 @@ READ:
 	    $type = $flextypes{$type};
 	}
 	$pdl = PDL->zeroes ((new PDL::Type($type)),
-			    @{$hdr->{Dims}});
+			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 	$len = length $ {$pdl->get_dataref};
 
 	&mapchunk($d,$pdl,$len,$name) or last READ;
@@ -594,7 +595,8 @@ sub writeflexhdr {
 	}
 	print $h join("\n",$_->{Type},
 		      $_->{NDims},
-		      (join ' ',@{ $_->{Dims}})),"\n\n";
+		      (join ' ',ref $_->{Dims} ? @{$_->{Dims}} : $_->{Dims})),
+	"\n\n";
     }
 }
 
