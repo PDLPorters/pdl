@@ -209,16 +209,14 @@ sub Contourdemos{
    
     if($demo eq "2DB&W"){
       $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
-		$data->addlabels(2,0.25);
     }elsif($demo eq "2DColor"){
       $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
-		$data->addlabels(2,0.25);
     }elsif($demo eq "3DColor"){
       $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,$z]);
       $data->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
-		$data->addlabels(2,1);
     }
+	 $data->addlabels(2,5);
 
     $graph->add_dataseries($data,"Contours$demo");
   }

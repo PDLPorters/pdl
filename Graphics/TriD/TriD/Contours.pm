@@ -6,7 +6,7 @@ use PDL::Graphics::TriD::Labels;
 use Data::Dumper;
 
 use base qw/PDL::Graphics::TriD::GObject/;
-use fields qw/ContourSegCnt _MaxDistance Labels LabelStrings/;
+use fields qw/ContourSegCnt Labels LabelStrings/;
 
 sub new{
   my($type,$data,$points,$colors,$options) = @_;
@@ -124,25 +124,8 @@ sub new{
   print "Cvals = $cvals\n" if($PDL::Graphics::TriD::verbose);  
   
   my ($i,$j,$i1,$j1);
-#  $i1=$dims[0]-2;
-#  $j1=$dims[1]-2;
 
-#
-# Used to compute label spacing -3 assures that both arrays are the same size.
-#
-
-  $this->{_MaxDistance} = vdistance($grid->slice(":,0:-3:2,0:-3:2"),
-			 	   $grid->slice(":,1:-2:2,1:-2:2"))->max;
   $this->contour_segments($cvals,$data,$grid);
-
-#  for($i=0;$i<$cvals->nelem;$i++){
-#    my $cval = sprintf("%-6.6g",$cvals->slice("($i)"));
-#    print "cval = $cval, \n";
-#
-#    $this->add_dataseries(new PDL::Graphics::TriD::Lines(
-#				      ,$colors),"_CONTOUR_$cval")
-#      unless($mpts->[$i]->isempty);
-#  } 
 
   return $this;
 }      
@@ -169,16 +152,11 @@ longest possible line segment in the plot.  density defaults to 1.
 
 
 sub addlabels{
-  my ($self,$labelint, $density ,$font) = @_;
+  my ($self,$labelint, $segint ,$font) = @_;
 
   $labelint = 1 unless(defined $labelint);
   $font =  $PDL::Graphics::TriD::GL::fontbase unless(defined $font);
-  my $df;
-  if(defined $density){
-    $df = 1-$density;
-  }else{
-    $df=0;
-  }
+  $segint = 5 unless(defined $segint);
 
   my $cnt=0;
 
@@ -187,50 +165,34 @@ sub addlabels{
 
   my $pcnt = 0;
   my $cnt;
+  my $offset = pdl[0.5,0.5,0.5];
 
   for(my $i=0; $i<= $#{$self->{ContourSegCnt}}; $i++){
     next unless defined $self->{ContourSegCnt}[$i];
     $cnt = $self->{ContourSegCnt}[$i];
     my $val = $self->{Options}{ContourVals}->slice("($i)");
+   
+    my $leg =  $self->{Points}->slice(":,$pcnt:$cnt");
+    $pcnt=$cnt+1;
+
     next if($i % $labelint);
 
-    my $lp1 = $self->{Points}->slice(":,$pcnt:$cnt");
-    my $lp2 = $lp1->slice(":,1:-1:2");  
-	 $lp1=$lp1->slice(":,0:-2:2");
-    $pcnt = $cnt+1 ;
-#
-# normalized length of line
-#
-    my $dis;
-    if($df>0){
-      $dis =  vdistance($lp1,$lp2)/$self->{_MaxDistance} >= $df;
-    }else{
-      $dis =  ones($lp1->getdim(1))->dummy(0);
-    }
-#    print "clump 1 ", $dis->info,"\n";
+    for(my $j=0; $j< $leg->getdim(1); $j+=2){
+      next if(($j/2) % $segint);
 
+		my $j1=$j+1;
 
-    $dis = $dis->append($dis->append($dis))->clump(2);
-    next unless($dis->orover);
+      my $lp2 = $leg->slice(":,($j)") + 
+                $offset*($leg->slice(":,($j1)") -       
+					  $leg->slice(":,($j)"));
 
-    $lp2 = ($lp1+($lp2-$lp1)*0.5);
-
-    print "clump 2 ",$lp2->info,$lp2,$dis->info,$dis,"\n";
- 
-
-    $lp2=$lp2->clump(2)->where($dis);
-
-    print "clump out\n";
-
-    next if($lp2->isempty);
-
-    $lp = $lp->append($lp2);
+		
+		$lp = $lp->append($lp2);
 # need a label string for each point    
-    
-    for(my $i=0;$i<$lp2->getdim(0)/3;$i++){
-      push(@$strlist,$val);
-    }
+		push(@$strlist,$val);
 
+	 }
+	 
   }
   if($lp->nelem>0){
 	 $self->{Points} = $self->{Points}->xchg(0,1)
@@ -241,19 +203,6 @@ sub addlabels{
   }
 
 }
-
-
-sub vdistance{
-  my($lp1,$lp2) = @_;
-
-  sqrt(($lp2->slice("0,:")-$lp1->slice("0,:"))**2+
-       ($lp2->slice("1,:")-$lp1->slice("1,:"))**2+
-       ($lp2->slice("2,:")-$lp1->slice("2,:"))**2);
-
-}
-
-
-
 
 
 sub get_valid_options{
