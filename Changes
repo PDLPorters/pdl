@@ -1,3 +1,7 @@
+2.3.4
+JC (23 Sep 02)
+    - Changes to Release_Notes associated
+      with making release 2.3.4
 Frederic Magnard (2002-09-20)
     - Fix NAXIS in fits writer with Astro::FITS::Header
 TJ (2002-09-20) - wfits should now write SIMPLE as logical with

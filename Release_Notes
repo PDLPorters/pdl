@@ -1,3 +1,15 @@
+Release notes for PDL 2.3.4 -------------------------------
+
+     - Now should compile using perl 5.8.0
+     - Improved speed for generating PDL's from a perl array ref
+     - Added PDL::IO::Storable, which enables PDL storage/retrieval
+       using the Storable package.
+     - Added  PDL::GSL::SF (Gnu Scientific Library, Special Functions) hierarchy
+     - New % operator follows (mathematically correct) perl % operator behavior
+     - Numerous Bug Fixes
+	
+  See the Changes file for a detailed list of changes.
+
 Release notes for PDL 2.3.3 -------------------------------
   
   Mainly a bugfix release with some nice little additions:
