@@ -502,7 +502,7 @@ ND convolution using real ffts from the FFTW library
 
 =cut
 
-*PDL::rfftwconv = \&rfftconv;
+*PDL::rfftwconv = \&rfftwconv;
 sub rfftwconv {
   my ($a,$b) = @_;
   my ($ca,$cb) = (rfftw($a), rfftw($b));

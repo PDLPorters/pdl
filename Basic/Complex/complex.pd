@@ -726,6 +726,9 @@ are returned as piddles (ref eq PDL).
 sub re($) { bless $_[0]->slice("(0)"), 'PDL' }
 sub im($) { bless $_[0]->slice("(1)"), 'PDL' }
 
+*PDL::Complex::re = \&re;
+*PDL::Complex::im = \&im;
+
 EOD
 
 pp_def 'rCpolynomial',
