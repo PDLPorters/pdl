@@ -42,6 +42,7 @@ eval <<'BAZ'
 BAZ
   ;
 
+`rm -rf $d`;
     
 
     
