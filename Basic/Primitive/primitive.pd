@@ -1699,7 +1699,7 @@ sub PDL::interpND {
     return $out;
 
   }  else {
-    barf("interp_nd: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
+    barf("interp_nd: unknown method '\$method'; valid ones are 'linear' and 'sample'.\n");
   }
 }
 
@@ -1742,7 +1742,7 @@ but is useful on its own occasionally.
 
 *one2nd = \&PDL::one2nd;
 sub PDL::one2nd {
-  barf "Usage: one2nd $array $indices\n" if $#_ != 1;
+  barf "Usage: one2nd \$array \$indices\n" if $#_ != 1;
   my ($a, $ind)=@_;
   my @dimension=$a->dims;
   my(@index);
@@ -1907,7 +1907,7 @@ the same call:
 =cut
 
 sub PDL::where {
-    barf "Usage: where( $pdl1, ..., $pdlN, $mask )\n" if $#_ == 0;
+    barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
 
     if($#_ == 1) {
 	my($data,$mask) = @_;
