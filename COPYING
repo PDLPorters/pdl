@@ -1,6 +1,10 @@
-  Copyright (c) 1997,1998 by the contributors named in the individual
+  Copyright (c) 1997, 1998, 1999 by the contributors named in the individual
   files. All rights reserved.  This distribution is free software; you can
   redistribute it and/or modify it under the same terms as Perl itself.
+
+  m51.fits is included as a demonstration by kind permission of IRAF
+  group at the National Optical and Astronomical Observatories, in particular
+  Pat Seitzer, who retain ownership.
 
   Inline documentation in any module files (pod format) and documentation
   files (.pod files) in this distribution are additionally protected by
@@ -12,21 +16,19 @@
   the following conditions are met: 1. that the copyright notice remains
   intact 2. the original authors' names are clearly displayed, 3. that
   any changes made to the documentation outside the official PDL
-  distribution (as released by either Karl Glazebrook, Tuomas Lukka,
-  or Christian Soeller) are clearly marked as such and 4. That this
-  copyright notice is distributed with the copied version so that it
-  may be easily found.
+  distribution (as released by the current release manager) are clearly
+  marked as such and 4. That this copyright notice is distributed with
+  the copied version so that it may be easily found.
 
-All the files in the distribution should have the following copyright
-notice:
+  All the files in the distribution should have a copyright notice
+  according to the following template:
 
 	Copyright (C) 199X Author1, Author2.
         All rights reserved. There is no warranty. You are allowed
         to redistribute this software / documentation as described
         in the file COPYING in the PDL distribution.
 
-(the following paragraphs are borrowed from the BSD copyright and
- the GNU copyleft)
+  In addition, the following disclaimers apply:
 
   THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND ANY EXPRESS
   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -59,7 +61,3 @@ notice:
   INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF
   THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER
   OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
-EXCEPTIONS:
-
-  m51.fits (see README)
