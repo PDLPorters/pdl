@@ -5677,7 +5677,7 @@ sub _fits_foo {
 
   my $mkaxis = sub {
     my ($typ,$unit) = @_;
-    our @templates = ("(arbitary units)","%u","%t","%t (%u)");
+    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
     $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
     $s =~ s/\%u/$unit/;
     $s =~ s/\%t/$typ/;
