@@ -344,11 +344,17 @@ which is doing some fiddling with internals and assumes
 a piddle argument (e.g. for method calls). Using C<topdl()>
 will ensure nothing breaks if passed with '2'.
 
+Note that C<topdl()> is not exported by default (see example
+below for usage). 
+
 =for example
 
- $a = topdl 43;         # $a is piddle with value '43'
- $b = topdl $piddle;    # fall through
- $a = topdl (1,2,3,4);  # Convert 1D array
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
+
+ $a = topdl 43;             # $a is piddle with value '43'
+ $b = topdl $piddle;        # fall through
+ $a = topdl (1,2,3,4);      # Convert 1D array
 
 =head2 PDL::get_datatype
 
@@ -371,7 +377,13 @@ type object, unlike L<type|/type>.
 
 Returns the size of a piddle datatype in bytes.
 
+Note that C<howbig()> is not exported by default (see example
+below for usage). 
+
 =for usage
+
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
 
  $size = howbig($piddle->get_datatype);
 
@@ -489,7 +501,13 @@ sub PDL::howbig {
 
 Returns the piddle thread IDs as a perl list
 
+Note that C<threadids()> is not exported by default (see example
+below for usage). 
+
 =for usage
+
+ use PDL::Core ':Internal'; # use the internal routines of 
+                            # the Core module
 
  @ids = threadids $piddle;
 
