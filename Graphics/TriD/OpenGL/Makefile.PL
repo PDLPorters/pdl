@@ -11,6 +11,7 @@ use ExtUtils::MakeMaker;
 push @{$hash{LIBS}}, $PDL_CONFIG{OPENGL_LIBS};
 $hash{INC} .= $PDL_CONFIG{OPENGL_INC};
 $hash{DEFINE} .= $PDL_CONFIG{OPENGL_DEFINE};
+$hash{clean}{FILES} .= ' tmp_*.h ppcode.out';
 
 #use Data::Dumper;
 #my $out = Dumper(\%hash);

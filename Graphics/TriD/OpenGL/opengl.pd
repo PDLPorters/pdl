@@ -191,7 +191,10 @@ sub cpp {
   my @file = <FILE>;
   close(FILE);
 
-  open(TFILE,">/tmp/generate.h")  || die "Could not write /tmp/generate.h";
+  my $nfile = $file;
+  $nfile =~ s/.*\//tmp_/;
+
+  open(TFILE,">$nfile")  || die "Could not write $nfile";
   foreach(@file){
 	 next if(/^\s*\#include\s+/);  # this is dangerous
 		# as a consequence APIENTRY is undefined and glu routines are ignored
@@ -207,7 +210,7 @@ sub cpp {
   }
   $com .= " -D_LANGUAGE_C -DAPIENTRY=''";  # forces prototypes of SGI GL 
 
-  open(FILE,"$com /tmp/generate.h |") || die "cant open $com $file|\n";
+  open(FILE,"$com $nfile |") || die "cant open $com $nfile|\n";
   @file = <FILE>;
   close(FILE);
   if ($verbose) {
