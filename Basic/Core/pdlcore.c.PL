@@ -53,9 +53,9 @@ print OUT <<'!HEADER!'
 !HEADER!
   ;
 
-if($^O =~ /MSWin/) {
-  # _finite in CV++ 4.0 
-  print <<'FOO'
+if($Config{cc} eq 'cl') {
+  # _finite in CV++ 4.0
+  print OUT <<'FOO';
 #define finite _finite
 #include <float.h>
 FOO
