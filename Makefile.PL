@@ -163,9 +163,8 @@ $Config{'startperl'}
 	print $fh <<'!NO!SUBS!';
 
 # script to emulate podselect (available in perl 5.6.0)
-require 'Doc/Pod/Parser.pm';
-require 'Doc/Pod/Select.pm';
-PDL::Pod::Select->import();
+use blib;
+use PDL::Pod::Select;
 
 die "Usage: $0 <file>\n" if $#ARGV == -1;
 podselect(@ARGV);
@@ -178,10 +177,10 @@ exit;
 
 $text .=
 "
-perldl.pod : perldl
+perldl.pod : perldl subdirs
 	$podsel perldl > perldl.pod
 
-pdldoc.pod : pdldoc
+pdldoc.pod : pdldoc subdirs
 	$podsel pdldoc > pdldoc.pod
 
 ";
