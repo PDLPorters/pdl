@@ -3517,7 +3517,35 @@ sub label_axes {
       pgslw($o->{TextWidth});
   }
 
-  pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
+  # pglab by default goes too far from the plot!  If NYPanels > 1
+  # then the bottom label of a higher plot tends to squash the plot 
+  # title for the plot below it.   To remedy this problem I've
+  # replaced the pglab call with a set of calls to pgmtxt, cribbed
+  # from the pglab.f file.  The parameters are shrunk inward if NYPanel > 1 
+  # or if the option "TightLabels" is set.  You can also explicitly set 
+  # it to 0 to get the original broken  behavior.  [CED 2002 Aug 29]
+
+  $label_params = [ [2.0,  3.2, 2.2], # default
+		    [1.25, 2.7, 2.2], # tightened
+		    ]
+		      unless defined($label_params);
+
+  my($p) = $label_params->[ ( ($self->{NY} > 1 && !defined $o->{TightLabels})
+			      || $o->{TightLabels} 
+			      ) ? 1 : 0 ];
+  my($sz);
+  pgqch($sz);
+
+  pgbbuf(); # Begin a buffered batch output to the device
+  pgsch($sz * ( $o->{TitleSize} || 1 ));
+  pgmtxt('T', $p->[0], 0.5, 0.5, $o->{Title});  
+  pgsch($sz);
+  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
+  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
+  pgebuf();
+
+#    pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
+
 
   pgslw($old_lw) if defined $old_lw;
   $self->_restore_status;

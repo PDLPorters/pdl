@@ -1,5 +1,7 @@
 CED (29-Aug-02)
     - minor fix to fits_imag -- axis labels
+    - Added TightLabels (boolean) and TitleSize (float) standard options
+	to control window labeling. 
 CED (28-Aug-02)
     - minor fix to rangeb - physicalize index before checking its size
 CED (27-Aug-02)
