@@ -1,3 +1,6 @@
+CS  - get rid of Perl_die etc dependencies and other barfisms
+    - make sure t/inlinepdlpp.t has a full search path to PDL::Core
+    - Basic/Pod : podselect only when Pod::Select available
 CS  - fix Makefile/Dev.pm bugs (that break build on PDL-free
       systems)
     - bump version to 2.3.1

@@ -29,7 +29,8 @@ WriteMakefile(
 
 sub MY::postamble {
   my $text = '';
-  if ( $] >= 5.005 ) {
+  eval 'require Pod::Select';
+  if (!$@ && $] >= 5.005 ) {
     $text .= << 'EOT';
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm

@@ -103,7 +103,7 @@ Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
 int pdl_debugging=0;
 
-#define CHECKP(p)    if ((p) == NULL) barf("Out of memory")
+#define CHECKP(p)    if ((p) == NULL) croak("Out of memory")
 
 static int* pdl_packint( SV* sv, int *ndims ) {
 
@@ -283,7 +283,7 @@ double pdl_get_badvalue( int datatype ) {
 	case 5: retval = PDL.bvals.Double; break;
 
       default:
-	barf("Unknown type sent to pdl_get_badvalue\n");
+	croak("Unknown type sent to pdl_get_badvalue\n");
     }
     return retval;
 } /* pdl_get_badvalue() */
@@ -342,7 +342,7 @@ call_trans_foomethod(trans,i1,i2,i3)
 	PDL_TR_CHKMAGIC(trans);
 	pdl_trans_changesoon(trans,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
 	if(trans->vtable->foomethod == NULL) {
-		barf("This transformation doesn't have a foomethod!");
+		croak("This transformation doesn't have a foomethod!");
 	}
 	(trans->vtable->foomethod)(trans,i1,i2,i3);
 	pdl_trans_changed(trans,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
@@ -474,7 +474,7 @@ set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
        fd = open(fname,(writable && shared ? O_RDWR : O_RDONLY)|
                (creat ? O_CREAT : 0),mode);
        if(fd < 0) {
-               barf("Error opening file");
+               croak("Error opening file");
        }
        if(trunc) {
                ftruncate(fd,0);   /* Clear all previous data */
@@ -486,7 +486,7 @@ set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
 				(shared ? MAP_SHARED : MAP_PRIVATE),
 				fd,0);
 		if(!it->data)
-			barf("Error mmapping!");
+			croak("Error mmapping!");
        } else {
                /* Special case: zero-length file */
                it->data = NULL;
@@ -496,7 +496,7 @@ set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
        pdl_add_deletedata_magic(it, pdl_delete_mmapped_data, len);
        close(fd);
 #else
-	barf("mmap not supported on this architecture");
+	croak("mmap not supported on this architecture");
 #endif
        RETVAL = 1;
 OUTPUT:
@@ -579,7 +579,7 @@ sclr_c(it)
          */
         pdl_make_physvaffine( it );
 	if (it->nvals < 1)
-           barf("piddle must have at least one element");
+           croak("piddle must have at least one element");
 	/* offs = PDL_REPROFFS(it); */
         /* result = pdl_get_offs(PDL_REPRP(it),offs); */
         result=pdl_at(PDL_REPRP(it), it->datatype, &nullp, &dummyd,
@@ -603,7 +603,7 @@ at_c(x,position)
     pos = pdl_packdims( ST(1), &npos);
     
     if (pos == NULL || npos < x->ndims)
-       barf("Invalid position");
+       croak("Invalid position");
 
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
@@ -612,7 +612,7 @@ at_c(x,position)
      */
     for (ipos=x->ndims; ipos<npos; ipos++)
       if (pos[ipos] != 0)
-         barf("Invalid position");
+         croak("Invalid position");
 
     result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
         (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
@@ -771,7 +771,7 @@ set_c(x,position,value)
 
     pos = pdl_packdims( ST(1), &npos);
     if (pos == NULL || npos < x->ndims)
-       barf("Invalid position");
+       croak("Invalid position");
 
     /*  allow additional trailing indices
      *  which must be all zero, i.e. a
@@ -780,7 +780,7 @@ set_c(x,position,value)
      */
     for (ipos=x->ndims; ipos<npos; ipos++)
       if (pos[ipos] != 0)
-         barf("Invalid position");
+         croak("Invalid position");
 
     pdl_children_changesoon( x , PDL_PARENTDATACHANGED );
     pdl_set(PDL_REPRP(x), x->datatype, pos, x->dims,
@@ -993,7 +993,7 @@ get_dataref(self)
 	pdl *self
 	CODE:
 	if(self->state & PDL_DONTTOUCHDATA) {
-		barf("Trying to get dataref to magical (mmaped?) pdl");
+		croak("Trying to get dataref to magical (mmaped?) pdl");
 	}
 	pdl_make_physical(self); /* XXX IS THIS MEMLEAK WITHOUT MORTAL? */
 	RETVAL = (newRV(self->datasv));
@@ -1014,7 +1014,7 @@ upd_data(self)
 	CODE:
        STRLEN n_a;
 	if(self->state & PDL_DONTTOUCHDATA) {
-		barf("Trying to touch dataref of magical (mmaped?) pdl");
+		croak("Trying to touch dataref of magical (mmaped?) pdl");
 	}
        self->data = SvPV((SV*)self->datasv,n_a);
 	XSRETURN(0);
@@ -1059,7 +1059,7 @@ getdim(x,y)
 	CODE:
 		pdl_make_physdims(x);
 		if (y < 0) y = x->ndims + y;
-		if (y < 0) barf("negative dim index too large");
+		if (y < 0) croak("negative dim index too large");
 		if (y < x->ndims)
                    RETVAL = x->dims[y];
                 else
@@ -1136,7 +1136,7 @@ sethdr(p,h)
 		      p->hdrsv = (void*) newSViv(0);
 		}
 		if (!SvROK(h) || SvTYPE(SvRV(h)) != SVt_PVHV)
-		      barf("Not a HASH reference");		
+		      croak("Not a HASH reference");		
 		p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
 SV *
@@ -1170,7 +1170,7 @@ threadover_n(...)
    {
     int npdls = items - 1;
     if(npdls <= 0)
-    	barf("Usage: threadover_n(pdl[,pdl...],sub)");
+    	croak("Usage: threadover_n(pdl[,pdl...],sub)");
     {
 	    int i,sd;
 	    pdl **pdls = malloc(sizeof(pdl *) * npdls);
@@ -1212,7 +1212,7 @@ threadover(...)
     int targs = items - 4;
     if (items > 0) nothers = SvIV(ST(0));
     if(targs <= 0 || nothers < 0 || nothers >= targs)
-    	barf("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
+    	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
     npdls = targs-nothers;
     {
 	    int i,j,nd1,nd2,dtype=0,nc=npdls;
@@ -1232,7 +1232,7 @@ threadover(...)
 	    CHECKP(incs); CHECKP(csv);
 
 	    if (nd1 != npdls || nd2 < npdls)
-		barf("threadover: need one realdim and creating flag "
+		croak("threadover: need one realdim and creating flag "
 		      "per pdl!");
 	    for(i=0; i<npdls; i++) {
 		pdls[i] = SvPDLV(ST(i+1));
@@ -1246,7 +1246,7 @@ threadover(...)
 	    for (i=npdls+1; i<=targs; i++)
 		others[i-npdls-1] = ST(i);
 	    if (nd2 < nc)
-		barf("Not enough dimension info to create pdls");
+		croak("Not enough dimension info to create pdls");
 #ifdef DEBUG_PTHREAD
 		for (i=0;i<npdls;i++) { /* just for debugging purposes */
 		printf("pdl %d Dims: [",i);
