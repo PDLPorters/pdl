@@ -13,6 +13,7 @@ use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
 use vars qw( %PDL_CONFIG );
 my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -176,8 +177,10 @@ pdl* SvPDLV ( SV* sv ) {
 !NO!SUBS!
 
 # XXX HACK this may not be sensible (DJB 08/31/00)
+# - only relevant if BADVAL_USENAN is true in config file
+#
 
-if ( $bvalflag ) {
+if ( $bvalflag and $usenan ) {
    print OUT <<'!NO!SUBS!';
 
           /*

@@ -4,15 +4,17 @@
 # This is what makes the nice loops go around etc.
 #
 
+package PDL::PP::Code;
+use Carp;
+
 use strict;
 
 # check for bad value support
 #
 use PDL::Config;
+#use vars qw ( $bvalflag $usenan );
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
-package PDL::PP::Code;
-use Carp;
+my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
@@ -526,22 +528,30 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 ###########################
 #
 # used by BadAccess code to know when to use NaN support
+# - the output depends on the value of the
+#   BADVAL_USENAN option in perldl.conf
+#   == 1 then we use NaN's
+#      0             PDL.bvals.Float/Double
 #
-# this needs improving to allow setting Float/Double to 0
-# in %use_nan
-#
-# horrible hack for piddles whose type has been specified 
-# using the FType option - see GenericLoop. There MUST be 
-# a better way than this...
+# note the *horrible hack* for piddles whose type have been 
+# specified using the FType option - see GenericLoop. 
+# There MUST be a better way than this...
 #
 package PDL::PP::NaNSupport;
 
 # need to be lower-case because of FlagTyped stuff
 my %use_nan =
-    ( 'byte' => 0, 'short' => 0, 'ushort' => 0, 'long' => 0,
-      'int' => 0,
-#      'float' => 0, 'double' => 0 );
-      'float' => 1, 'double' => 1 );
+    ( byte => 0, short => 0, ushort => 0, long => 0,
+      int => 0,  # necessary for fixed-type piddles (or something)
+      float => $usenan, 
+      double => $usenan 
+      );
+
+my %set_nan = 
+    (
+     float  => 'PDL->bvals.Float',  PDL_Float  => 'PDL->bvals.Float',
+     double => 'PDL->bvals.Double', PDL_Double => 'PDL->bvals.Double',
+     );
 
 sub use_nan ($) {
     my $type = shift;
@@ -573,7 +583,7 @@ sub convert ($$$$$) {
     #
     if ( exists $parent->{pars}{$name} ) {
 	$type = $parent->{pars}{$name};
-	print "#DBG: hacked <$name> to type <$type>\n";
+	print "#DBG: hacked <$name> to type <$type>\n" if $::PP_VERBOSE;
     } elsif ( exists $pobj->{FlagTyped} and $pobj->{FlagTyped} ) {
 	$type = $pobj->{Type};
 
@@ -591,7 +601,8 @@ sub convert ($$$$$) {
 	
     if ( use_nan($type) ) {
 	if ( $opcode eq "SETBAD" ) {
-	    $rhs = "(0.0/0.0)";
+#	    $rhs = "(0.0/0.0)";
+	    $rhs = $set_nan{$type};
 	} else {
 	    $rhs = "0";
 	    $lhs = "finite($lhs)";
@@ -614,7 +625,7 @@ sub convert ($$$$$) {
 # floating point with NaN
 #   $ISBAD($a(n))  -> finite($a(n)) == 0
 #   $ISGOOD($a())     finite($a())  != 0
-#   $SETBAD($a())     $a()           = (0.0/0.0)
+#   $SETBAD($a())     $a()           = PDL->bvals.Float (or .Double)
 #
 # I've also got it so that the $ on the pdl name is not
 # necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
@@ -668,9 +679,6 @@ sub get_str {
     ( $lhs, $rhs ) = 
       PDL::PP::NaNSupport::convert( $parent, $name, $lhs, $rhs, $opcode );
 
-#    use Data::Dumper;
-#    print "#DBG: ", Dumper($parent);
-
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
 }
@@ -689,7 +697,7 @@ sub get_str {
 # floating point with NaN
 #   $ISBADVAR(foo,a)  -> finite(foo) == 0
 #   $ISGOODVAR(foo,a)    finite(foo) != 0
-#   $SETBADVAR(foo,a)    foo          = (0.0/0.0)
+#   $SETBADVAR(foo,a)    foo          = PDL->bvals.Float (or .Double)
 #
 
 package PDL::PP::BadVarAccess;
@@ -752,7 +760,7 @@ sub get_str {
 # if we use NaN's, then
 #  $PPISBAD(PARENT,[i])   -> finite(PARENT_physdatap[i]) == 0
 #  $PPISGOOD(PARENT,[i])  -> finite(PARENT_physdatap[i]) != 0
-#  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = (0.0/0.0)
+#  $PPSETBAD(PARENT,[i])  -> PARENT_physdatap[i]          = PDL->bvals.Float (or .Double)
 #
 
 package PDL::PP::PPBadAccess; 

@@ -1,12 +1,19 @@
 --------------------------------------------------------------------------------
 
-Doug Burke (08/30/00)
+Doug Burke (09/02/00)
+   - davg added to primitive.pd
+Doug Burke (09/01/00)
+   - added BADVAL_USENAN flag to perldl.conf to define whether or not to use
+     NaN's to represent bad values for floating-point types (it looks like
+     the speed varies greatly depending on the processor although that could
+     be due to the simplicity of my tests so far).
+Doug Burke (08/31/00)
    - using NaN/Inf seems to work. Now need to work out how to get routines
      flagged by 'NoBadifNaN=>1' to ignore the BadCode section for floating-
      point types.
    - fixed str2D
    - removed pdlcore.c, added pdlcore.c.PL: fiddled SvPDLV to set the datatype
-     to PDL_D if a NaN is supplied. Sensible? It means we cah leave 
+     to PDL_D if a NaN is supplied. Sensible? It means we can leave 
      whichdatatype_double alone.
 Doug Burke (08/30/00)
    - hopefully fixed yesterday's problem with CHILD types. Core stuff has been

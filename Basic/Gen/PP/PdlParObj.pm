@@ -1,11 +1,21 @@
 ##############################################
+
+##############################################
+
 package PDL::PP::PdlParObj;
+
 use Carp;
 use SelfLoader;
 use PDL::Core;
 use PDL::Types;
 
 @ISA = qw/ SelfLoader /;
+
+# check for bad value support
+#
+use PDL::Config;
+#my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+$usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 # need some mods in Types and Core for that
 # for (byte,short,ushort,long,float,double) {
@@ -42,13 +52,13 @@ for (['Byte',$PDL_B],
 
 __DATA__
 
-# need for $bvalflag is due to hacked get_xsdatapdecl() 
+# need for $badflag is due to hacked get_xsdatapdecl() 
 # - this should disappear when (if?) things are done sensibly
 #
 sub new {
-	my($type,$string,$number,$bvalflag) = @_;
-	$bvalflag ||= 0;
-	my $this = bless {Number => $number, BadFlag => $bvalflag},$type;
+	my($type,$string,$number,$badflag) = @_;
+	$badflag ||= 0;
+	my $this = bless {Number => $number, BadFlag => $badflag},$type;
 # Parse the parameter string
 	$string =~
 		/^
@@ -180,10 +190,10 @@ sub ctype {
 
 # return the enum type for a parobj; it'd better be typed
 sub cenum {
-  my $this = shift;
-  croak "cenum: unknownn type"
-    unless defined($PDL::PP::PdlParObj::Typemap{$this->{Type}});
-  return $PDL::PP::PdlParObj::Typemap{$this->{Type}}->{Cenum};
+    my $this = shift;
+    croak "cenum: unknown type [" . $this->{Type} . "]"
+	unless defined($PDL::PP::PdlParObj::Typemap{$this->{Type}});
+    return $PDL::PP::PdlParObj::Typemap{$this->{Type}}->{Cenum};
 }
 
 sub get_nname{ my($this) = @_;
@@ -413,7 +423,8 @@ sub get_xsdatapdecl {
     # assuming we always need this 
     # - may not be true - eg if $asgnonly ??
     # - not needed for floating point types when using NaN as bad values
-    if ( $this->{BadFlag} and $type and $type !~ /^PDL_(Float|Double)$/ ) {
+    if ( $this->{BadFlag} and $type and 
+	 ( $usenan == 0 or $type !~ /^PDL_(Float|Double)$/ ) ) {
 	my $cname = $type; $cname =~ s/^PDL_//;
 	$str .= "\t$type   ${name}_badval = PDL->bvals.$cname;\n";
     }	

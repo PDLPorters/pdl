@@ -3,6 +3,11 @@
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
+# and endian-ness of machine
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, 
+			     "Basic", "Core", "isbigendian.p" );
+
 pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
@@ -1115,9 +1120,22 @@ sub PDL::rdsa {
     return ($xpdl,$pdl);
 }
 
+=head2 isbigendian()
+
+=for ref
+
+Determine endianness of machine - returns 0 or 1 accordingly
+
+=cut
+
+EOD
+
+# $isbigendian is set up in isbigendian.p in Basic/Core/
+# (created at compile time)
+pp_addpm( "sub PDL::isbigendian { return $isbigendian; };\n*isbigendian = \\&PDL::isbigendian;\n");
+pp_add_exported("", "isbigendian");
 
 ################################ XS CODE ######################################
-EOD
 
 sub defpdl {
 	pp_def(
@@ -1128,43 +1146,6 @@ sub defpdl {
 		Doc  => $_[4],
 	);
 }
-
-pp_addpm(<<'EOD');
-
-=head2 isbigendian()
-
-=for ref
-
-Determine endianness of machine - returns 0 or 1 accordingly
-
-=cut
-EOD
-
-pp_addxs('','
-
-MODULE = PDL::IO::Misc PACKAGE = PDL
-
-int
-isbigendian()
-   CODE:
-     unsigned short i;
-     PDL_Byte *b;
-
-     i = 42; b = (PDL_Byte*) (void*) &i;
-
-     if (*b == 42)
-        RETVAL = 0;
-     else if (*(b+1) == 42)
-        RETVAL = 1;
-     else
-         barf("Impossible - machine is neither big nor little endian!!\n");
-     OUTPUT:
-       RETVAL
-');
-
-pp_addpm("*isbigendian = \\&PDL::isbigendian;\n");
-pp_add_exported("", "isbigendian");
-
 
 ###### Read ASCII Function ##########
 pp_addhdr(<<'EOH');

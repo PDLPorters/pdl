@@ -1,13 +1,15 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (08/12/00-08/13/00; 08/17/00; 08/22/00)
+Doug Burke 
+    - Basic/Core now contains isbigendian.p - this is created at compile time.
+      IO::Misc::isbigendian uses this.
     - IO::NDF now saves byte piddles as "_UBYTE", rather than "_BYTE", NDFs
-    - moved log10 from Core to Ops - now uses C-library version
+    - log10 is now in Ops (using C-library version), although a version is
+      left in Core.pm.PL so that log10(2.3) returns a perl scalar, not a 0D piddle
     - removed 1-argument form of where() since been deprecated long enough
     - minor bugfix to Graphics/Karma/Makefile.PL
     - made qsort and qsort_ind C routines in primitive.pd available to all
       modules via the PDL Core structure (pdlcore.h is now created by pdlcore.h.PL)
-    - updated image2d.pd to use primitive's qsort rather than its own and
-      fixed a bug in patch2d
+      and updated image2d.pd to use this (+ bug fix to patch2d)
     - added double precision versions of sum, sumover, cumusumover (same for prod)
       and average (eg dsum, daverage). Added prodover routine
       Changed stats to use this (+ changed PDL::Tests to avoid name clashes)

@@ -206,10 +206,6 @@ pdldoc.pod : pdldoc subdirs
 
 ";
 
-if( $] < 5.005 ){  # for perl5.004, docs go into INSTALLSITELIB
-	$text =~ s/INSTALLSITEARCH/INSTALLSITELIB/g;
-}
-
 return $text
 
 }

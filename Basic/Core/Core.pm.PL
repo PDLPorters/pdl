@@ -105,7 +105,6 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 
 ################ Exportable functions of the Core ######################
 
-# log10 is now in PDL::Ops
 *howbig       = \&PDL::howbig;	  
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
 *dims	      = \&PDL::dims;	  *list 	= \&PDL::list;
@@ -115,7 +114,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *short        = \&PDL::short;	  *flows	= \&PDL::flows;
 *ushort       = \&PDL::ushort;	
 *long	      = \&PDL::long;	
-*float        = \&PDL::float;	  *cutmask	 = \&PDL::cutmask;
+*float        = \&PDL::float;	  
 *double       = \&PDL::double;	  *thread_define = \&PDL::thread_define;
 *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
 *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
@@ -452,8 +451,14 @@ sub topdl {PDL->topdl(@_)}
 
 sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
 
-# now in ops
-#sub PDL::log10{ my $x = shift; my $y = log $x; $y /= log(10); return $y };
+# log10() is defined in ops.pd, so $pdl->log10() will use that.
+# we leave this here so that log10() will work on normal perl variables 
+# (ie return a perl variable rather than a 0D piddle)
+sub ::log10 { 
+    my $x = shift; 
+    return $x->log10() if UNIVERSAL::isa($x,"PDL");
+    return log($x) / log(10); 
+};
 
 ##################### Data type/conversion stuff ########################
 

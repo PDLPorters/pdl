@@ -42,6 +42,8 @@ pdlexamples\.c$
 ^Basic/Core/Version\.pm
 ^Basic/Core/Dev\.pm$
 ^Basic/Core/Core\.c$
+^Basic/Core/check_endian$
+^Basic/Core/isbigendian.p$
 ^Basic/Core/mymalloc.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlsimple\.h$

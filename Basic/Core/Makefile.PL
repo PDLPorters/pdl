@@ -4,6 +4,9 @@
 #require '../Core/Dev.pm';
 PDL::Core::Dev->import();
 
+use Config;
+use IO::File;
+
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
 my $pthread_define  = '-DPDL_PTHREAD';
@@ -12,14 +15,14 @@ my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
 my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
   $PDL_CONFIG{MALLOCDBG}->{include} : '';
 
-print "Trying to figure out POSIX threads support ...\n";
-
 open HFILE, ">mymalloc.p" or die "couldn't open mymalloc.p";
 print HFILE defined $PDL_CONFIG{MALLOCDBG}->{define} ?
   "\$mymalloc = <<'EOM';\n$PDL_CONFIG{MALLOCDBG}->{define}\nEOM\n" :
    "\$mymalloc = '';\n";
 print HFILE "1;\n";
 close HFILE;
+
+print "Trying to figure out POSIX threads support ...\n";
 
 if(-e $pthread_include) {
 	print "\tSaw pthread.h. Fine.\n";
@@ -67,6 +70,27 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
     }
 }
 
+print "Trying to figure out endian-ness of machine...";
+
+# compile check_endian.c
+my $efile = 'check_endian';
+my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
+my $COMP = "$Config{cc} -o $efile ${efile}.c $HIDE";
+die "ERROR: unable to compile ${efile}.c"
+    if system( $COMP );
+chomp( my $is_big_endian = `$efile` );
+die "ERROR: unknown return value ($is_big_endian) from $efile"
+    unless $is_big_endian =~ /^(0|1|-1)$/;
+unlink $efile;
+die "ERROR: unknown endian type ($efile returned -1)"
+    if $is_big_endian eq "-1";
+
+my $fh = new IO::File ">isbigendian.p" 
+    or die "Unable to write to isbigendian.p";
+print $fh "\$isbigendian = $is_big_endian;\n1;\n";
+$fh->close;
+print " It is " . ($is_big_endian ? "big" : "little") . " endian\n";
+
 use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
@@ -90,7 +114,8 @@ WriteMakefile(
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlconv.c pdlsections.c pdlapi.c pdlcore.c'.
 		   'pdl.h pdlsimple.h pdlcore.h '.
-		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm '
+		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm ' .
+		   'mymalloc.p isbigendian.p '
 		   },
  'INC'          => "$mallocinc",
 );

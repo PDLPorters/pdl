@@ -13,9 +13,17 @@ PDL::Core::Dev->import();
 use File::Spec;
 require File::Spec->catfile( File::Spec->curdir, "perldl.conf" );
 my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
+
 print "\n\t";
 if ( $bvalflag ) {
     print "Congratulations - building PDL with bad value support (WITH_BADVAL=1)";
+    print "\n\t";
+    if ( $usenan ) {
+ 	print "+ using NaN for floating-point bad value";
+    } else {
+ 	print "+ using -FLT_MAX/-DBL_MAX for floating-point bad values";
+    }
 } else {
     print "building PDL without bad value support (WITH_BADVAL!=1)";
 }

@@ -295,14 +295,11 @@ ufunc('log','log','the natural logarithm',GenericTypes => [D],
 
 pp_export_nothing(); 
 
-# perhaps, as there isn't a perl log10 function to overload, we 
-# shouldn't have this here. 
-# note the nasty hack of exporting log10, so we can say
-# print log10(100) and get an answer
-#
+# comment out the pp_export_nothing call if 'sub ::log10' is
+# removed from Core.pm.PL
 ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D], 
       Exception => '$a() <= 0'  );
-pp_add_exported( '', 'log10' );
+pp_export_nothing(); 
 
 pp_done();
 

@@ -13,6 +13,11 @@ use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
 use vars qw( %PDL_CONFIG );
 my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+my $usenan   = $PDL_CONFIG{BADVAL_USENAN} || 0;
+
+# are we big or little endian?
+use vars qw( $isbigendian );
+require "isbigendian.p";
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -64,9 +69,23 @@ print OUT <<'!NO!SUBS!';
 !NO!SUBS!
 
     if ( $bvalflag ) {
-#	print OUT "#include <float.h>\n#include <limits.h>\n";   # needed if don't use NaN
+	print OUT "#include <float.h>\n" unless $usenan;
 	print OUT "#include <limits.h>\n";
-    }
+
+	# set up the NaN value, if necessary
+	# based on the GNU version of /usr/include/bits/nan.h
+	# - need to work out whether we're big/little endian here
+	#
+	if ( $usenan ) {
+	    print OUT 
+		"static union { unsigned char __c[4]; float __d; } __pdl_nan = { ";
+	    if ( $isbigendian ) {
+		print OUT "{ 0x7f, 0xc0, 0, 0 } };\n\n";
+	    } else {
+		print OUT "{ 0, 0, 0xc0, 0x7f } };\n\n";
+	    }
+	} # if: $usenan
+    } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
 
@@ -263,7 +282,8 @@ double pdl_get_badvalue( int datatype ) {
 	case 1: retval = PDL.bvals.Short;  break;
 	case 2: retval = PDL.bvals.Ushort; break;
 	case 3: retval = PDL.bvals.Long;   break;
-	case 4: case 5: retval = (0.0/0.0); break;
+	case 4: retval = PDL.bvals.Float;  break;
+	case 5: retval = PDL.bvals.Double; break;
 
       default:
 	barf("Unknown type sent to pdl_get_badvalue\n");
@@ -616,18 +636,36 @@ listref_c(x)
 !NO!SUBS!
 
 if ( $bvalflag ) {
-   print OUT <<'!NO!SUBS!';
+    # note: 
+    #  the badvalue is stored in a double, but that's what pdl_at()
+    #  returns
 
+    print OUT 
+'
    SV *sv;
    double pdl_val, pdl_badval;
    int badflag = (x->state & PDL_BADVAL) > 0;
 
+';
+
+    # do we have to bother about NaN's?
+    if ( $usenan ) { 
+       print OUT
+'
    if ( badflag && x->datatype < 4 ) {
       pdl_badval = pdl_get_badvalue( x->datatype ); 
    }
+';
+   } else {
+       print OUT
+'
+   if ( badflag ) {
+      pdl_badval = pdl_get_badvalue( x->datatype ); 
+   }
+';
 
-!NO!SUBS!
-}
+   } # if: $usenan
+} # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
 
@@ -646,16 +684,23 @@ print OUT <<'!NO!SUBS!';
 
     if ( $bvalflag ) {
 
-	print OUT <<'!NO!SUBS!';
+	my $condition;
+	if ( $usenan ) {
+	    $condition = '( (x->datatype < 4 && pdl_val == pdl_badval) ||
+			(x->datatype >= 4 && finite(pdl_val) == 0) )';
+	} else {
+	    $condition = 'pdl_val == pdl_badval';
+	}
+
+	print OUT <<"!WITH!SUBS!";
       pdl_val = pdl_at( data, x->datatype, inds, x->dims, incs, offs, x->ndims );
-      if ( badflag && ( (x->datatype < 4 && pdl_val == pdl_badval) ||
-			(x->datatype >= 4 && finite(pdl_val) == 0) ) ) {
+      if ( badflag && $condition ) {
 	 sv = newSVpvn( "BAD", 3 );
       } else {
 	 sv = newSVnv( pdl_val );
       }
       av_store( av, lind, sv );
-!NO!SUBS!
+!WITH!SUBS!
 
     } else {
 
@@ -757,28 +802,37 @@ BOOT:
    PDL.make_physical = pdl_make_physical;
    PDL.make_physdims = pdl_make_physdims;
    PDL.pdl_barf      = pdl_barf;
-   PDL.allocdata      = pdl_allocdata;
-   PDL.safe_indterm = pdl_safe_indterm;
+   PDL.allocdata     = pdl_allocdata;
+   PDL.safe_indterm  = pdl_safe_indterm;
 
 !NO!SUBS!
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
+
+    PDL.propogate_badflag = propogate_badflag;
+
     PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
     PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
     PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
     PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
-    PDL.bvals.Float  = PDL.bvals.default_Float  = (0.0/0.0);
-    PDL.bvals.Double = PDL.bvals.default_Double = (0.0/0.0);
-/***
- *    PDL.bvals.Float  = PDL.bvals.default_Float  = -FLT_MAX;
- *    PDL.bvals.Double = PDL.bvals.default_Double = -DBL_MAX;
- ***/
-
-    PDL.propogate_badflag = propogate_badflag;
-
 !NO!SUBS!
 
+    # note: no defaults if usenan
+    if ( $usenan ) {
+    print OUT 
+'
+    PDL.bvals.Float  = __pdl_nan.__d;
+    PDL.bvals.Double = (double) __pdl_nan.__d;
+';
+} else {
+    print OUT 
+'
+      PDL.bvals.Float  = PDL.bvals.default_Float  = -FLT_MAX;
+      PDL.bvals.Double = PDL.bvals.default_Double = -DBL_MAX;
+';
+
+} # if: $usenan
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';

@@ -556,10 +556,11 @@ some circumstances.
 #
 for my $op ( ['avg','average','average'],
 	     ['sum','sumover','sum'],
-
 	     ['prod','prodover','product'],
-	     ['dprod','dprodover','product (in double precision)'],
+
+	     ['davg','daverage','average (in double precision)'],
 	     ['dsum','dsumover','sum (in double precision)'],
+	     ['dprod','dprodover','product (in double precision)'],
 
 	     ['zcheck','zcover','check for zero'],
 	     ['and','andover','logical and'],

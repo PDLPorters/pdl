@@ -10,6 +10,7 @@ require "mymalloc.p";
 use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
 my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
@@ -70,13 +71,15 @@ $mymalloc
 
 # set up the badvalues structure
 my $badval_struct = "typedef struct badvals {\n";
+
 foreach my $i ( reverse(0 .. $ntypes) ) {
     my $name = $PDL::Types::names[$i];
     my $realctype = $PDL::Types::typehash{$name}->{realctype};
     my $cname     = $PDL::Types::typehash{$name}->{ctype};
     $cname =~ s/^PDL_//;
     $badval_struct .= "   $realctype $cname;\n";
-    $badval_struct .= "   $realctype default_$cname;\n";
+    $badval_struct .= "   $realctype default_$cname;\n"
+	unless $usenan and $i >= 4;  # can not change badvalue for float/double if use NaN
 }
 $badval_struct .= "} badvals;\n";
 
