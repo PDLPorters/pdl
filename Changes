@@ -1,4 +1,12 @@
 CS
+	- introduced switch for automatic hdr copying, off by default
+	- PP: added pp_addbegin, pp_beginwrap and pp_setversion
+		pp_addxs now adds to the current module's namespace by default,
+		!not! to PDL anymore (patch by Marc Lehmann)
+	- misc.pd: bswap functions work always inplace, remove
+	  [o] from sigs
+
+CS
 	- Levenberg-Marquardt fitting module
 	- added required additional slatec functions + some docs
 	- some handy bits for PDL::Options function interface

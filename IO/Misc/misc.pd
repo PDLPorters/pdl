@@ -962,6 +962,8 @@ EOD
 
 pp_addxs('','
 
+MODULE = PDL::IO::Misc PACKAGE = PDL
+
 int
 isbigendian()
    CODE:

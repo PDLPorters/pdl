@@ -77,7 +77,7 @@ WriteMakefile(
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
                    'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
                    'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
-		   'pdl.h pdlsimple.h Types.pm'},
+		   'pdl.h pdlsimple.h Types.pm Version.pm'},
 );
 
 # Extra targets to build

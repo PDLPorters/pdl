@@ -97,6 +97,7 @@ $hash{LIBS}[0]     .=' -L'. $karmabase."/lib" .' -lkarma -lkarmagraphics -L/usr/
 if ($^O =~ 'irix' or $^O eq 'dec_osf') { $rflag = '-rpath ' } else { $rflag = '-R' }
 $hash{dynamic_lib} = { OTHERLDFLAGS => $rflag.'/usr/local/karma/lib'};
 $hash{'dist'}      = { COMPRESS => 'gzip', SUFFIX => 'gz'};
+$hash{'clean'}->{'FILES'} .= ' .tx.defaults';
 WriteMakefile(%hash);
 
 # Add genpp rule

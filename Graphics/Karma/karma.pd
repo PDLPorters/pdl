@@ -243,7 +243,7 @@ sub kstarted {
      if $#_>0;
   my $app = $#_ > -1 ? shift : $LASTAPP;
   $LASTAPP = $app;
-  return PDL::kconnect($app);
+  return kconnect($app);
 }
 
 

@@ -12,8 +12,9 @@ use FileHandle;
 use Exporter;
 @ISA = qw(Exporter);
 
-@PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot pp_add_exported pp_addxs pp_add_isa pp_export_nothing
-		  pp_core_importList pp_beginwrap pp_setversion	/;
+@PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
+                      pp_add_exported pp_addxs pp_add_isa pp_export_nothing
+		      pp_core_importList pp_beginwrap pp_setversion pp_addbegin/;
 
 $PP::boundscheck = 1;
 
@@ -26,6 +27,7 @@ sub import {
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
 	$::PDLXS="";
+	$::PDLBEGIN="";
 	$::PDLPMROUT="";
  	for ('Top','Bot','Middle') { $::PDLPM{$_}="" }
 	$::PDLPMISA="PDL::Exporter DynaLoader";
@@ -75,6 +77,15 @@ sub pp_add_exported {
 	$::PDLPMROUT .= $exp." ";
 }
 
+sub pp_addbegin {
+	my ($cmd) = @_;
+	if ($cmd =~ /^\s*BOOT\s*$/) {
+		pp_beginwrap;
+	} else {
+		$::PDLBEGIN .= $cmd." ";
+	}
+}
+
 #  Sub to call to export nothing (i.e. for building OO package/object)
 sub pp_export_nothing {
 	$::PDLPMROUT = ' ';
@@ -107,7 +118,9 @@ sub printxs {
 }
 
 sub pp_addxs {
-	PDL::PP->printxs(@_);
+	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::PDLMOD\n\n",
+                         @_,
+                         "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
 }
 
 sub printxsc {
@@ -210,6 +223,10 @@ $::PDL_IFBEGINWRAP[0]
    bootstrap $::PDLMOD $::PDLMODVERSION;
 $::PDL_IFBEGINWRAP[-1]
 
+BEGIN {
+$::PDLBEGIN
+}
+
 $::PDLPM{Top}
 
 $::FUNCSPOD
@@ -253,8 +270,8 @@ sub pp_def {
 	if(defined($$obj{PMFunc})) {
 		pp_addpm($$obj{PMFunc}."\n");
 	}else{
-	        pp_addpm('*'.$name.' = \&'.$::PDLOBJ.
-	                 '::'.$name.";\n");
+                pp_addbegin('*'.$name.' = \&'.$::PDLOBJ.
+                         '::'.$name.";\n");
 	}
 }
 

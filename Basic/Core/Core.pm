@@ -1124,6 +1124,28 @@ sub PDL::inplace {
     my $pdl = PDL->topdl(shift); $pdl->set_inplace(1); return $pdl;
 }
 
+=head2 hdrcpy
+
+=for ref
+
+switch on/off/examine automatic header copying
+
+=for example
+
+  print "hdrs will be copied" if $a->hdrcpy;
+  $a->hdrcpy(1);       # switch on hdr copying
+  $b = $a->sumover;    # and $b will inherit $a's hdr
+  $a->hdrcpy(0);       # and now make $a non-infectious again
+  
+Normally, the optional header of a piddle is not copied
+automatically in pdl operations. Switching on the hdrcpy
+flag using the C<hdrcpy> method will enable automatic hdr
+copying. Note that copying is B<by reference> for efficiency
+reasons. C<hdrcpy> without an argument just returns the
+current setting of the flag.
+
+=cut
+
 # Copy if not inplace
 
 sub new_or_inplace {
