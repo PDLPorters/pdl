@@ -1,3 +1,7 @@
+CED 04-04-04 (heh).
+   - slices.pd: range - Added extra speedbump to avoid common programming error
+      (more than five implicit dims throws a warning)
+   - transform.pd: map - Added some extra dimensionality checks
 CED 26-Mar-04
    - Primitive: which() now ignores bad-value entries (before it always
 	selected the BAD value).

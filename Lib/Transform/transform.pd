@@ -1303,6 +1303,9 @@ sub map {
       $me = $a;
   }
 
+  barf ("PDL::Transform::map: source is not defined or is not a PDL\n")
+    unless(defined $in and  UNIVERSAL::isa($in,'PDL'));
+
   my($tmp) = shift;
   my($opt) = shift;
      
@@ -1356,7 +1359,17 @@ sub map {
   my $nd = $me->{odim} || $me->{idim} || 2;
   my @sizes = $out->dims;
   my @dd = @sizes;
+  
   splice @dd,$nd; # Cut out dimensions after the end
+
+  # Check that there are elements in the output fields...
+  barf "map: output has no dims!\n" 
+	unless(@dd);
+  my $ddtotal = 1;
+  map {$ddtotal *= $_} @dd;
+  barf "map: output has no elements (at least one dim is 0)!\n"
+     unless($ddtotal);
+
 
   ##############################
   # If necessary, generate an appropriate FITS header for the output.
@@ -1493,10 +1506,11 @@ sub map {
 
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
-  my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->double + 0.5);
+  my $ndc = PDL::Basic::ndcoords(@dd);
+  my $idx = $me->invert($ndc->double + 0.5);
 
-
-
+  barf "map: Transformation had no inverse\n" unless defined($idx);
+	
   ##############################
   ## Integrate ?  (Jacobian, Gaussian, Hanning)  
   my $integrate = ($method =~ m/^[jghJGH]/);
