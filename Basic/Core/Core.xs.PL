@@ -1156,11 +1156,18 @@ gethdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);
-		if(p->hdrsv) {
-		   RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
-		} else {
-		   XSRETURN_UNDEF;
-		}
+                /* Make sure that in the undef case we return not undef but an empty */
+                /* hash ref.  This is a Good Thing because it means you can always   */
+                /* modify the return value in-place to change the PDL's header, at   */
+	        /* the cost of autogeneration of an empty hash whenever you gethdr() */
+		/* for the first time. */
+
+                if((p->hdrsv==NULL) || (p->hdrsv == &PL_sv_undef)) {
+	            p->hdrsv = (void*) newRV_noinc( (SV*)newHV() );
+                }
+
+		RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
+
 	OUTPUT:
 	 RETVAL
 

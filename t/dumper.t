@@ -7,7 +7,7 @@ sub ok {
         print "ok $no\n" ;
 }
 
-print "1..17\n";
+print "1..16\n";
 
 ########### First test the load...
 eval "use PDL::IO::Dumper;";
@@ -55,7 +55,6 @@ ok(14,!$@ && (ref $a eq 'ARRAY'));
 
 ok(15, eval '$a->[0]->hdrcpy() == 1 && $a->[1]->hdrcpy() == 0');
 ok(16, eval '($a->[0]->gethdr()->{ok}==1) && ($a->[1]->gethdr()->{ok}==2)');
-ok(17, eval '!defined($a->[2]->gethdr())');
 
 	
 

@@ -2512,18 +2512,23 @@ Retrieve header information from a piddle
 
 The C<gethdr> function retrieves whatever header information is contained
 within a piddle. The header can be set with L<sethdr|/sethdr> and is always a 
-hash reference and has to be dereferenced for access to the value. 
+hash reference or undef.
 
-It is important to realise that you are free to insert whatever hash
-reference you want in the header, so you can use it to record important
-information about your piddle, and that it is not automatically copied
-when you copy the piddle. 
-See L<hdrcpy|/hdrcpy> to enable automatic header copying.
+Note that gethdr() works by B<reference>: you can modify the header
+in-place once it has been retrieved:
 
-For instance a wrapper around rcols that allows your piddle to remember
-the file it was read from and the columns could be easily written 
-(here assuming that no regexp is needed, extensions are left as an 
-exercise for the reader)
+  $a  = rfits($filename);
+  $ah = $a->gethdr();
+  $ah->{FILENAME} = $filename;
+
+It is also important to realise that the header is not automatically copied
+when you copy the piddle.  See L<hdrcpy|/hdrcpy> to enable automatic
+header linking (copy-by-reference), or do it manually for copy-by-value.
+
+Here's another example: a wrapper around rcols that allows your piddle
+to remember the file it was read from and the columns could be easily
+written (here assuming that no regexp is needed, extensions are left
+as an exercise for the reader)
 
  sub ext_rcols {
     my ($file, @columns)=@_;
@@ -2544,18 +2549,35 @@ Set header information of a piddle
 
 =for example
 
- $pdl=rfits('file.fits');
- $h=$pdl->gethdr;
+ $pdl = zeroes(100,100);
+ $h = {NAXIS=>2, NAXIS1=>100, NAXIS=>100, COMMENT=>"Sample FITS-style header"};
  # add a FILENAME field to the header
  $$h{FILENAME} = 'file.fits';
  $pdl->sethdr( $h );
 
 The C<sethdr> function sets the header information for a piddle.
-Normally you would get the current header information with
-L<gethdr|/gethdr>, add/change/remove fields, then apply those changes with
-C<sethdr>.
+You must feed in a hash ref or undef, and the piddle's header field is 
+set to be a new ref to the same hash (or undefined).  
 
-The C<sethdr> function must be given a hash reference.
+The hash ref requirement is a speed bump put in place since the normal
+use of headers is to store fits header information and the like.  Of course,
+if you want you can hang whatever ugly old data structure you want off
+of the header, but that makes life more complex.
+
+Remember that the hash isn't copied -- the header is made into a ref that points to the
+same underlying data.  To get a real copy without making any assumptions about
+the underlying data structure, you should:
+
+ use PDL::IO::Dumper;
+ $pdl->sethdr( deep_copy($h) );
+
+(which is slow but general).  It's considerably faster to do an 
+elementwise copy if you know that all the elements happen to be scalars:
+
+  $h2={}; for $foo(keys %$h) { $h2->{$foo} = $$h{$foo}; }
+  $pdl->sethdr( $h2 );
+
+The C<sethdr> function must be given a hash reference or undef.
 For further information on the header, see L<gethdr|/gethdr> and
 L<hdrcpy|/hdrcpy>.
 
@@ -2576,7 +2598,8 @@ Normally, the optional header of a piddle is not copied
 automatically in pdl operations. Switching on the hdrcpy
 flag using the C<hdrcpy> method will enable automatic hdr
 copying. Note that copying is B<by reference> for efficiency
-reasons. C<hdrcpy> without an argument just returns the
+reasons, which may not be What You Want if you are modifying
+the header as you go.  C<hdrcpy> without an argument just returns the
 current setting of the flag.
 
 =head1 AUTHOR
@@ -2584,6 +2607,7 @@ current setting of the flag.
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
 Tuomas J. Lukka, (lukka@husc.harvard.edu) and Christian
 Soeller (c.soeller@auckland.ac.nz) 1997.
+Modified, Craig DeForest (deforest@boulder.swri.edu) 2002.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

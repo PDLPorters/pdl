@@ -49,7 +49,8 @@ This is by choice:  (A) it's difficult to recognize which objects
 are actually external, and (B) most everyday objects are quite safe.
 
 There's currently no reference recursion detection, so a non-treelike
-reference topology will cause Dumper to buzz forever.
+reference topology will cause Dumper to buzz forever.  That will
+be fixed in a future version.
 
 =head1 Author, copyright, no warranty
 
@@ -71,6 +72,9 @@ This package comes with NO WARRANTY.
 
 =item * 1.1 (26-Feb-2002): Shorter form for short PDLs; more readability
 
+=item * 1.2 (28-Feb-2002): Added deep_copy() -- exported convenience function
+  for "eval sdump"
+
 =back
 
 =head1 FUNCTIONS
@@ -82,10 +86,10 @@ package PDL::IO::Dumper;
 BEGIN{
   use Exporter ();
 
-  our $VERSION = 1.1;
+  our $VERSION = 1.2;
   
   our @ISA = ( Exporter ) ;
-  our @EXPORT_OK = qw( fdump sdump frestore );
+  our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
   our @EXPORT = @EXPORT_OK;
 
   our %EXPORT_TAGS = ( );
@@ -123,11 +127,20 @@ convenience routine exists to use it.
 sub PDL::IO::Dumper::sdump {
 # Make an initial dump...
   my($s) = Data::Dumper->Dump([@_]);
-
+  my($pdls);
 # Find the bless(...,'PDL') lines
   while($s =~ s/bless\( do\{\\\(my \$o \= (\d+)\)\}\, \'PDL\' \)/\$PDL_$1/) {
-    $pdls{$1}=1;
+    $pdls{$1}++;
   }
+
+## Check for duplicates -- a weak proxy for recursion...
+  my($v);
+  my($dups);
+  foreach $v(values %pdls) {
+    print "Hey! $v->".$pdls{$v}."!\n";
+    $dups++ if($v >1);
+  }
+  print STDERR "Warning: duplicated PDL ref.  If sdump hangs, you have a circular reference.\n"  if($dups);
 
   # This next is broken into two parts to ensure $s is evaluated *after* the 
   # find_PDLs call (which modifies $s using the s/// operator).
@@ -217,7 +230,18 @@ sub PDL::IO::Dumper::frestore {
   eval $file;
 }
 
+######################################################################
 
+=head2 deep_copy
+
+Convenience function copies a complete perl data structure by the
+brute force method of "eval sdump".
+
+=cut
+
+sub PDL::IO::Dumper::deep_copy {
+  return eval sdump @_;
+}
 
 ######################################################################
 
