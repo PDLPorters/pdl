@@ -10,7 +10,7 @@ use PDL::Dbg;  # Enable useful commands
 
 # PDL waffle options (and pacify -w)
 BEGIN{
-   $PDL::debug = $PDL::debug = 1;
+   $PDL::debug = $PDL::debug = 0;
    $PDL::verbose = $PDL::verbose = 1;
 }
 
