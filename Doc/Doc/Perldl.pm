@@ -6,7 +6,8 @@ PDL::Doc::Perldl - commands for accessing PDL doc database from 'perldl' shell
 
 This module provides a simple set of functions to
 access the PDL documentation of database, for use
-from the 'perldl' shell.
+from the I<perldl> shell and the I<pdldoc> command-line
+program.
 
 =head1 SYNOPSIS
 
@@ -82,7 +83,7 @@ sub screen_width() {
        || (($ENV{TERMCAP} =~ /co#(\d+)/) and $1)
        || ($^O ne 'MSWin32' and $^O ne 'dos' and 
 	   (`stty -a 2>/dev/null` =~ /columns\s*=?\s*(\d+)/) and $1)
-       || 72;                                                                   
+       || 72;
 }
 
 # the $^W assignment stops Pod::Text::fill() from 
@@ -158,7 +159,6 @@ Regex search PDL documentation database
  apropos 'text'
 
 =for example
-
 
  perldl> apropos 'pic'
  rpic            Read images in many formats with automatic format detection.
@@ -337,9 +337,6 @@ sub help {
 	  $topic->px('This variable is');
       } else {
 	  $topic = 'PDL::Doc::Perldl' if $topic =~ /^\s*help\s*$/i;
-#	  if ($topic =~ /^\s*perldl\s*$/i) {
-#	      system("pod2text $0 | $PDL::Doc::pager\n");
-#	  } elsif ($topic =~ /^\s*vars\s*$/i) {
 	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
 	  } else {
@@ -393,6 +390,9 @@ And has a horrible name.
 
 =cut
 
+# need to get this to format the output - want a format_bad()
+# subroutine that's like - but much simpler - than format_ref()
+#
 sub badinfo {
     my $func = shift;
     die "Usage: badinfo \$funcname\n" unless defined $func;
