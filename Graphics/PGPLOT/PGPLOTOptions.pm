@@ -137,6 +137,8 @@ my %options = (
 	       WindowWidth => undef,
 	       WindowXSize => undef,
 	       WindowYSize => undef,
+               Size => undef,
+               Unit=> undef,
 	       WindowName => '',
 	       NXPanel => 1,
 	       NYPanel => 1,
@@ -187,6 +189,8 @@ sub default_options {
  	    WindowWidth => $options{WindowWidth}, # The width of the plot window in inches.
 	    WindowXSize => $options{WindowXSize}, # The X&Y size of a window, these will be
 	    WindowYSize => $options{WindowYSize}, # used to give the aspect ratio if defined.
+	    Size        => $options{Size},        # alternative window size spec
+	    Unit        => $options{Unit},        # Units for size spec
 	    WindowName  => $options{WindowName}, # The window name given
 	    NXPanel     => $options{NXPanel}, # The number of plotting panels
 	    NYPanel     => $options{NYPanel}, # Ditto.

@@ -5,7 +5,7 @@ PDL::Graphics::PGPLOT::Window - A OO interface to PGPLOT windows
 =head1 SYNOPSIS
 
  perldl> use PDL::Graphics::PGPLOT::Window
- perldl> $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs');
+ perldl> $win = pgwin(Device => '/xs');
  perldl> $a = pdl [1..100]
  perldl> $b = sqrt($a)
  perldl> $win->line($b)
@@ -33,7 +33,6 @@ libraries.
 
 
 The list of currently availably methods:
-
  imag       -  Display an image (uses pgimag()/pggray() as appropriate)
  ctab       -  Load an image colour table
  ctab_info  -  Get information about currently loaded colour table
@@ -54,7 +53,7 @@ The list of currently availably methods:
 
 Device manipulation commands:
 
- new          -  Constructor for a new PGPLOT output device.
+ new          -  Construct a new output device (synonym "pgwin" is exported)
  close        -  Close a PGPLOT output device.
  focus        -  Set focus to the given device. This should normally be
                  done behind the scenes.
@@ -577,9 +576,8 @@ The following lists the recognised options:
 
 =item AspectRatio
 
-The aspect ratio of the image, in the sense vertical/horizontal.  If both
-this and WindowWidth are set to zero, the default view surface is used.
-(This is the default case).
+The aspect ratio of the image, in the sense vertical/horizontal. 
+See the discussion on size setting.
 
 =item Device
 
@@ -598,6 +596,25 @@ The number of panels in the X-direction
 
 The number of panels in the Y-direction
 
+=item Size
+
+Yet another way to identify the plot window size -- this takes a scalar
+or an array ref containing one, two, or three numbers.  One number gives
+you a square window.  Two gives you a rectangular window (X,Y).  Three
+lets you specify the unit compactly (e.g. [<X>,<Y>,1] for inches,
+[<X>,<Y>,2] for mm) but is deprecated in favor of using the Unit option.
+See the discussion on size setting.
+
+=item Unit
+
+The unit to use for size setting.  PGPLOT accepts inch, mm, or pixel.
+The default unit is inches for historical reasons, but you can choose
+millimeters or (God forbid) pixels as well.  String or numeric
+specifications are OK (0=normalized, 1=inches, 2=mm, 3=pixels).
+Normalized units make no sense here and are not accepted.  Ideally
+someone will one day hook this into the CPAN units parser so you can
+specify window size in rods or attoparsecs.
+
 =item WindowName
 
 The name to give to the window. No particular use is made of this at present.
@@ -605,16 +622,13 @@ It would be great if it was possible to change the title of the window frame.
 
 =item WindowWidth
 
-The width of the window in inches. If this is set to 0.0, the biggest window
-consistent with the AspectRatio setting will be chosen. If both this and
-AspectRatio are set to zero, the default view surface is used.
-(This is the default case).
+The width of the window in inches (or the specified Unit).  See the 
+discussion on size setting.
 
 =item WindowXSize and WindowYSize
 
-These two options allow an alternative setting of WindowWidth and AspectRatio.
-Their values are actually not parsed here, but rather subsequently in the
-L<_setup_window|/_setup_window> routine below.
+The width and height of the window in inches (or the specified Unit).  See
+the discussion on size setting.
 
 =back
 
@@ -631,6 +645,20 @@ linestyle.
   $win = PDL::Graphics::PGPLOT::Window->new(Device => '/xs',
           AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed');
 
+
+Size setting: There are a gazillion ways to set window size, in
+keeping with TIMTOWTDI.  In general you can get away with passing any
+unique combination of an <X> size, a <Y> size, and/or an aspect ratio.
+In increasing order of precedence, the options are: (Units,
+AspectRatio, WindowWidth, Window<X,Y>Size, Size). 
+
+So if you specify an AspectRatio *and* an X and a Y coordinate, the
+AspectRatio is ignored.  Likewise, if you specify Units and a
+three-component Size, the Units option is ignored in favor of the 
+numeric unit in the Size.
+
+If you don't specify enough information to set the size of the window, 
+you get the default pane size and shape for that device.
 
 =head2 close
 
@@ -781,7 +809,7 @@ Label plot axes
 
   $win->label_axes(<xtitle>, <ytitle>, <plot title>, $options);
 
-Draw labels for each axis on a plot.
+Draw labels for each axis on a plot. 
 
 =head2 imag
 
@@ -1707,6 +1735,7 @@ To select a region of the X-axis:
 #'
 
 package PDL::Graphics::PGPLOT::Window;
+require Exporter;
 
 use PDL::Core qw/:Func :Internal/; # Grab the Core names
 use PDL::Basic;
@@ -1717,12 +1746,12 @@ use PDL::Options;
 use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use SelfLoader;
-use Exporter;
 use PGPLOT;
 
 require DynaLoader;
 
 @ISA = qw( Exporter SelfLoader DynaLoader );
+@EXPORT = qw( pgwin );
 
 bootstrap PDL::Graphics::PGPLOT::Window;
 $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
@@ -1778,6 +1807,10 @@ sub checklog {
   return ($x,$y);
 }
 
+sub pgwin{
+  return PDL::Graphics::PGPLOT::Window->new(@_);
+}
+  
 sub new {
 
   my $type = shift;
@@ -1901,107 +1934,126 @@ sub _open_new_window {
 
 =head2 _setup_window
 
-This routine sets up a new window with its shape and size. This is also where
-the two options C<WindowXSize> and C<WindowYSize> are parsed. These are then
-forgotten (well, they are stored in $self->{Options}, but forget that) and
-the corresponding aspect ratio and window width is stored.
-Alternatively, the C<AspectRatio> and C<WindowWidth> options are used to
-set the view surface.  The logic goes somewhat like this:
-
-=over 8
-
-=item 1
-
-If C<WindowXSize> and C<WindowYSize> are both non-zero, then those are used.
-
-=item 2
-
-If C<AspectRatio> is non-zero and C<WindowWidth> is zero, 
-C<WindowWidth> is calculated such that it a region with the given
-aspect ratio will fit within the device's view surface.
-
-=item 3
-
-If both C<AspectRatio> and C<WindowWidth> are zero, the device's
-default C<AspectRatio> and C<WindowWidth> is used.
-
-=back
+This routine sets up a new window with its shape and size. This is
+also where the size options are actually parsed. These are then
+forgotten (well, they are stored in $self->{Options}) and the
+corresponding aspect ratio and window width is stored.  See the
+discussion under new() for the logic.
 
 Finally the subpanels are set up using C<pgsubp> and colours and linewidth
 are adjusted according to whether we have a hardcopy device or not.
 
 =cut
 
+# bit: 2=>height; 1=>width; 0=>aspect
+$DefaultWindowWidth = 6;
+$DefaultWindowAspect=0.618;
+
+# These are thunks to handle regularizing window values in _setup_window.
+# Index is binary by validity of value.  0 = undefined (or 0), 1 = ok. 
+# Bit 0 = aspect, bit 1 = width, bit 2 = height.  Arguments in the same order.
+# Return value is ($aspect, $height).  
+#
+# If nothing is defined we try to grab the latest values from PGPLOT itself.
+$__setup_subs = [
+  sub { my($vs_x1,$vs_x2,$vs_y1,$vs_y2);                        # 0 (000) 
+	pgqvsz(1,$vs_x1,$vs_x2,$vs_y1,$vs_y2);
+	my($w) = ($vs_x2 - $vs_x1) || $DefaultWindowWidth;
+	return ( ((($vs_y2 - $vs_y1) / $w) || $DefaultWindowAspect),
+	  $w
+	  );
+      },
+  sub { ($_[0], $DefaultWindowWidth / ($_[0]<1 ? 1 : $_[0])); },# 1 (001)
+  sub { ($DefaultWindowAspect, $_[1]); },                       # 2 (010)
+  sub { @_; },                                                  # 3 (011)
+  sub { ($DefaultWindowAspect, $_[2] / $_[0]); },               # 4 (100)
+  sub { ($_[0], $_[2] / $_[0] ) },                              # 5 (101)
+  sub { ($_[2] / $_[1], $_[1] ) },                              # 6 (110)
+  sub { ($_[2] / $_[1], $_[1] ) } # use W and H; ignore Aspect  # 7 (111)
+];
+
+
 sub _setup_window {
   my $self = shift;
   my $opt = shift;
+  # Get options as hash or as list
+  if(ref $opt ne 'HASH') {
+    $opt = {$opt,@_};
+  }
 
-  my $aspect = $self->{AspectRatio};
-  my $width = $self->{WindowWidth};
+  my $unit = _parse_unit($opt->{Unit}) || 1;
 
-  # Now some error-checking..
-  if (defined($opt->{WindowXSize}) && defined($opt->{WindowYSize})) {
-    if ($opt->{WindowXSize} == 0 || $opt->{WindowYSize}==0) {
-      warn "A window can not have zero size in any direction!\n";
-      print "The size options are ignored!\n";
+  my $aspect = $opt->{AspectRatio};
+
+  my($width,$height);
+
+  $width  = $opt->{WindowXSize} || $opt->{WindowWidth};
+  $height = $opt->{WindowYSize};
+
+  if(defined $opt->{Size}) {
+    if(ref $opt->{Size} eq 'ARRAY') {
+      $width = $opt->{Size}->[0];
+      $height = $opt->{Size}->[1] || $width;
+      $unit = _parse_unit($opt->{Size}->[2]) if defined($opt->{Size}->[2]);
+      print "Size = [",join(',',@{$opt->{Size}}),"]\n";
+    } elsif(!(ref $opt->{Size})) {
+      $width = $height = $opt->{Size};
     } else {
-      # Check this!
-      $aspect = $opt->{WindowXSize}/$opt->{WindowYSize};
-      $width = $opt->{WindowXSize};
+      warn("Size must be a scalar or an array ref if specified! Ignoring...\n");
     }
   }
-#  $self->{AspectRatio}=$aspect;
-#  $self->{WindowWidth}=$width;
 
-  # stop perl complaining when 'use strict' is on.
-  # I am assuming that setting them to 0 is correct in this case
-  # (Doug 03/14/01)
-  $aspect = 0 unless defined $aspect;
-  $width  = 0 unless defined $width;
-
-  # grab whatever width fits the aspect ratio.
-  # for PGPLOT, pgpap() does this automatically.
-  # this is a place holder so we don't forget this case
-  if ( $aspect && 0 == $width )
-  {
-  }
-
-  # use the current view surface.  unfortunately, this isn't the
-  # default view surface, but the *current* view surface.
-  # PGPLOT doesn't provide a public routine to get the default view surface.
-  elsif ( 0 == $aspect &&  0 == $width )
-  {
-    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
-    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
-
-    $width = $vs_x2 - $vs_x1;
-    $aspect = ( $vs_y2 - $vs_y1 ) / $width;
-  }
-
-  elsif ( 0 == $aspect && $width )
-  {
-    warn "The aspect must be specified if the window width is specified\n";
-    $aspect = 0.618;
-  }
-
+  ($aspect,$width) = &{$__setup_subs->[ ((!!($aspect))   ) | 
+					((!!($width ))<<1) |
+					((!!($height))<<2)
+					]}($aspect,$width,$height);
   $self->{AspectRatio} = $aspect;
   $self->{WindowWidth} = $width;
-
-  # Ok - call pgpap to set the size.
-  # print "Window opened with Width=$width and AspectRatio=$aspect\n";
-  pgpap($width, $aspect);
-
-  # if just the AspectRatio was set, we don't know the WindowWidth;
-  # grab that here.  don't do it by default to avoid resetting
-  # values (due to round off) and confusing the user
-  if ( $self->{AspectRatio} &&  0 == $self->{WindowWidth} )
-  {
-    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
-    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
-
-    $self->{WindowWidth} = $vs_x2 - $vs_x1;
+  print "unit=$unit\n";
+  # 
+  # PGPLOT seems not to include full unit support in (e.g.) the pgpap 
+  # command -- so check here and convert mm->inches if necessary.
+  # This is a real kludge that should be replaced with Real Units Conversion
+  # at a future date.
+  # 
+  if($unit==2) {         # mm -> inches
+    $width /= 25.4;
+    $height /= 25.4;
+  } elsif($unit==3) {    # pixels -> inches.  Warning, not device independent!
+                         # What a kludge -- get window width in both pixels
+                         # and inches to figure out the scaling factor for
+                         # pgpap (which requires inches).
+                         #
+                         # Currently this is probably Not What You Want 
+                         # because it doesn't account for the margins
+                         # around the plot region.  That will happen soon.
+                         # --CED
+    my($x0,$x1,$y0,$y1);
+    pgqvsz(3,$x0,$x1,$y0,$y1);
+    my($pixwidth) = $x1 - $x0;
+    pgqvsz(1,$x0,$x1,$y0,$y1);
+    my($inwidth) = $x1 - $x0;
+    my($pixperinch) = $pixwidth / $inwidth;
+    $width /= $pixperinch;
+    $height /= $pixperinch;
+  } elsif($unit ==0 || $unit > 3) {
+    warn("Invalid unit specification for window size; defaulting to inches.\n");
   }
 
+  # OK, we got a decent size.  Now call pgpap to set the size in the
+  # device, and (for interactive devices!) pgpag to get the size we
+  # want -- otherwise the window just hangs around looking lame at the
+  # default size instead of the size the user asked for.  We also have
+  # to turn PGASK off so the user doesn't get asked to hit "return".
+  # Afterwards, we turn it back on because that's the default state.
+  my($s,$n);
+  pgqinf('HARDCOPY',$s,$n);
+  pgpap($width, $aspect);
+  if($s eq 'NO') {
+    pgask(0);
+    pgpage();
+    pgask(1);
+  }
 
   # Now do the sub-division into panels.
   my $nx = $self->{NX};
@@ -2519,6 +2571,32 @@ sub _extract_hash {
     $count++
   }
   return (\@opt, $$hashes[0]);
+}
+
+=head2 _parse_unit
+
+Convert a unit string or number into a PGPLOT-certified length unit
+specification, or return undef if it won't go.
+
+=cut
+@__unit_match = (
+  qr/^\s*0|(n(orm(al(ized)?)?)?)\s*$/i,
+  qr/^\s*1|(i(n(ch(es)?)?)?)\s*$/i,
+  qr/^\s*2|(m(m|(illimeter))?s?)\s*$/i,
+  qr/^\s*3|(p(ix(el)?)?s?)\s*$/i
+);
+  
+sub _parse_unit {
+  my($u) = shift;
+  print "parse_unit: got '$u'\n";
+
+  my($i);
+
+  for $i(0..$#__unit_match) {
+    return $i if($u =~ m/$__unit_match[$i]/);
+  }
+
+  return undef;
 }
 
 =head2 _parse_options
@@ -3096,7 +3174,7 @@ sub redraw_axes {
 
 
 sub label_axes {
-
+  print "label_axes: got ",join(",",@_),"\n";
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
   # :STATE RELATED:
@@ -3127,7 +3205,15 @@ sub label_axes {
   $o->{Title}=$title if defined($title);
   $o->{XTitle}=$xtitle if defined($xtitle);
   $o->{YTitle}=$ytitle if defined($ytitle);
+
+  $o->{TextWidth}=1 unless defined($o->{TextWidth});
+  my($old_lw);
+  pgqlw($old_lw);
+  pgslw($o->{TextWidth});
+
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
+
+  pgslw($old_lw);
   $self->_restore_status;
 
 
@@ -4223,19 +4309,8 @@ sub arrow {
 	($pix,$pitch,$unit) = (1,$u_opt->{'Pitch'},1);
       }
       if (defined ($_ = $u_opt->{'Unit'})) {
-	undef $unit;
-	if (m/^d/ && $_ <= 4) {	# Numeric data type spec
-	  $unit = $_;
-	} else { 
-	  my @c = ('n','i','m','p');
-	  my ($i, $c);
-	  for ($i=0;defined($c=shift(@c));$i++) {
-	    m/^$c/ || next;
-	    $unit=$i; 
-	    last;
-	  }
-	}
-	barf ('If you specify UNIT, it has to be one of (normal,inches,millimeters,pixels)!') unless defined($unit);
+	$unit = _parse_unit($_);
+	barf ("Unknown unit '$_'\n") unless defined($unit);
       }
       $pix = $u_opt->{'PIX'} if defined $u_opt->{'PIX'};
 
@@ -4891,9 +4966,13 @@ sub poly {
 
     # Next - parse options
     my ($o, $u_opt) = $self->_parse_options($text_options, $opt);
+
     # Check for change of panel or request to erase the panel
-    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    # (Commented out by CED 21-Jun-2002, because this seems
+    #   to erase too much -- e.g. it's hard to scribble on a line plot!)
+    #    $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     # Parse standard options such as colour
+
     $self->_save_status();
 
     $self->_standard_options_parser($u_opt);
@@ -4911,8 +4990,13 @@ sub poly {
       # Do this unless a negative integer..
       $self->_set_colour($o->{BackgroundColour}, 1);
     }
+
+    my($old_lw);
+    pgqls($old_lw);
+    pgslw($o->{TextWidth} || 1);
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
+    pgslw($old_lw);
 #
     $self->_restore_status();
     $self->_add_to_state(\&text, $in, $opt);
@@ -5242,7 +5326,7 @@ Karl Glazebrook [kgb@aaoepp.aao.gov.au] modified by Jarle Brinchmann
 (jarle@astro.ox.ac.uk) who is also responsible for the OO interface,
 docs mangled by Tuomas J. Lukka (lukka@fas.harvard.edu) and
 Christian Soeller (c.soeller@auckland.ac.nz). Further contributions and
-bugfixes from Kaj Wiik, Doug Burke and many others.
+bugfixes from Kaj Wiik, Doug Burke, Craig DeForest, and many others.
 
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
