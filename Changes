@@ -1,3 +1,5 @@
+CED 28-May-04
+   - primitive.pd: fixes to glue()
 DJ  21-May-04
    - added Graphics::Limits, which determines display ranges for
      multiple concurrent data sets

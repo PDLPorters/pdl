@@ -1285,24 +1285,48 @@ pp_addpm(<<'EOD')
 
 =for ref
 
-Glue two or more PDLs together along an arbitrary dimension (N-D L<append|append>).
+Glue two or more PDLs together along an arbitrary dimension 
+(N-D L<append|append>).
 
-Sticks $a, $b, and all following arguments together using a combination
-of xchg() and append().  All other dimensions must be compatible in the 
+Sticks $a, $b, and all following arguments together along the
+specified dimension.  All other dimensions must be compatible in the 
 threading sense.  
 
 Glue is permissive, in the sense that every PDL is treated as having an
 infinite number of trivial dimensions of order 1 -- so C<$a->glue(3,$b)>
 works, even if $a and $b are only one dimensional.
 
-C<glue> is implemented in pdl, and should probably be updated (one day) to a 
-pure PP function.
+If one of the PDLs has no elements, it is ignored.  Likewise, if one
+of them is actually the undefined value, it is treated as if it had no
+elements.
+
+If the first parameter is a defined perl scalar rather than a pdl,
+then it is taken as a dimension along which to glue everything else,
+so you can say C<$cube = PDL::glue(3,@image_list);> if you like.
+
+C<glue> is implemented in pdl, using a combination of L<xchg|xchg> and
+L<append|append>.  It should probably be updated (one day) to a pure PP
+function.
 
 =cut
 
 sub PDL::glue{
     my($a) = shift;
     my($dim) = shift;
+
+    if(defined $a && !(ref $a)) {
+	my $b = $dim;
+	$dim = $a;
+	$a = $b;
+    }
+
+    if(!defined $a || $a->nelem==0) {
+	return $a unless(@_);
+	return shift() if(@_<=1);
+	$a=shift;
+	return PDL::glue($a,$dim,@_);
+    }
+
     if($dim - $a->dim(0) > 100) {
 	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
     }
@@ -1313,7 +1337,9 @@ sub PDL::glue{
 
     while(scalar(@_)){
 	my $b = shift;
-	while($dim > $b->ndims) {
+	next unless(defined $b && $b->nelem);
+
+	while($dim >= $b->ndims) {
 		$b = $b->dummy(-1,1);
         }
 	$b = $b->xchg(0,$dim);
