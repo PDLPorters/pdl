@@ -111,7 +111,7 @@ sub PDL::AutoLoader::reloader {
        ($file, $old_t) = @{ $PDL::AutoLoader::FileInfo{$func} };
        if ( (stat($file))[9]>$old_t ) { # Reload
           print "Reloading $file as file changed...\n" if $PDL::verbose;
-          do $file;
+	  &PDL::AutoLoader::autoloader_do($file);
 	  $PDL::AutoLoader::FileInfo{$func} = [ $file, (stat($file))[9] ];
        }
    }
@@ -169,17 +169,7 @@ sub AUTOLOAD {
         my $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
 	  
-	  # Simple 'do' doesn't work with preprocessing -- stick NiceSlice 
-	  # in manually if it's needed (yuck).
-	  if(defined($PDL::NiceSlice::VERSION)) {
-	    if(open(AUTOLOAD_FILE,"<$file")) {
-	      my($script) = &PDL::NiceSlice::perldlpp(join("",<AUTOLOAD_FILE>));
-	      eval $script;
-	    }
-	  } else {
-	    do $file;
-	  }
-
+	  PDL::AutoLoader::autoloader_do($file);
 	   # Remember autoloaded functions and do some reasonably
 	   # smart cacheing of file/directory change times
 
@@ -199,6 +189,27 @@ EOD
 
 eval $toeval;
 
+}
+
+
+# Simple 'do' doesn't work with preprocessing -- this replaces
+# "do file" and sticks NiceSlice in manually if it's needed (yuck).
+
+sub PDL::AutoLoader::autoloader_do {
+  my ($file) = shift;
+  
+  if(defined($PDL::NiceSlice::VERSION)) {
+    
+    print "AutoLoader: NiceSlice enabled...\n" if($PDL::debug);
+    
+    if(open(AUTOLOAD_FILE,"<$file")) {
+      my($script) = &PDL::NiceSlice::perldlpp(join("",<AUTOLOAD_FILE>));
+      eval $script;
+    }
+  } else {
+    print "AutoLoader: no NiceSlice...\n" if($PDL::debug);
+    do $file;
+  }
 }
 
 
