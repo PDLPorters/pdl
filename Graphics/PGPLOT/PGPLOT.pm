@@ -153,7 +153,7 @@ use vars qw (@ISA @EXPORT);
 @ISA = ('Exporter');
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-	      imag imag1 ctab ctab_info hi2d poly vect CtoF77coords
+	      imag imag1 draw_wedge ctab ctab_info hi2d poly vect CtoF77coords
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
 	      tpoints tline
@@ -523,6 +523,10 @@ sub imag {
 sub imag1 {
   dev() if !defined($CW);
   $CW->imag1(@_);
+}
+sub draw_wedge {
+  barf 'Open a plot window first!' if !defined($CW);
+  $CW->draw_wedge(@_);
 }
 sub ctab {
   dev() if !defined($CW);

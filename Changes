@@ -1,5 +1,6 @@
 Doug Burke 
     - rcols(): do not read an extra line with LINES option (Frank Samuelson)
+    - added draw_wedge() (& DrawWedge option to imag()) to PGPLOT 
 CS  -  fix call of Perl_croak in pdlthread.c for threading perls (reported
        by Diab Jerius)
 Doug Burke (03/11/00)

@@ -636,6 +636,9 @@ aspect ratio preservation, and 1:1 pixel mapping are available.
 for, eg, movie display; but it's not recommended for final output as 
 it's not device-independent.)
 
+To draw a colour bar (or wedge), either use the C<DrawWedge> option,
+or the C<draw_wedge()> routine (once the image has been drawn).
+
 Options recognised:
 
        ITF - the image transfer function applied to the pixel values. It
@@ -665,6 +668,8 @@ Options recognised:
              UNIT default to "pixels" so you can say "{SCALE=>1}"
              to see your image in device pixels.   Larger SCALEs lead
              to larger appearing images.
+ DrawWedge - set to 1 to draw a colour bar (default is 0)
+     Wedge - see the draw_wedge() routine
 
 The following standard options influence this command:
 
@@ -698,6 +703,69 @@ Display an image with correct aspect ratio
  Usage:  imag1 ( $image, [$min, $max, $transform], [$opt] )
 
 Notes: This is syntactic sugar for imag({PIX=>1}).
+
+=head2 draw_wedge
+
+=for ref
+
+Add a wedge (colour bar) to an image.
+
+=for usage
+
+ Usage: $win->draw_wedge( [$opt] )
+
+Adds a wedge - shows the mapping between colour and value for a pixel - to
+the current image.  This can also be achieved by setting C<DrawWedge> to 1
+when calling the C<imag> routine.
+
+The colour and font size are the same as used to draw the image axes
+(although this will probably fail if you did it yourself).  To control the size
+and location of the wedge, use the C<Wedge> option, giving it a hash reference
+containing any of the following:
+
+=over 4
+
+=item Side
+
+Which side of the image to draw the wedge: can be one of 'B', 'L', 'T', or
+'R'. Default is B<'R'>.
+
+=item Displacement
+
+How far from the egde of the image should the wedge be drawn, in units of character
+size. To draw within the image use a negative value. Default is B<2>.
+
+=item Width
+
+How wide should the wedge be, in units of character size.  Default is B<3>. 
+
+=item Label
+
+A text label to be added to the wedge.  If set, it is probably worth
+increasing the C<Width> value by about 1 to keep the text readable.
+Default is B<''>.
+
+=item ForeGround (synonym Fg)
+
+The pixel value corresponding to the "maximum" colour.  If C<undef>, uses the 
+value used by C<imag> (recommended choice).  Default is C<undef>.
+
+=item BackGround (synonym Bg)
+
+The pixel value corresponding to the "minimum" colour.  If C<undef>, uses the 
+value used by C<imag> (recommended choice).  Default is C<undef>.
+
+=back
+
+=for example
+
+ $a = rvals(50,50);
+ $win = PDL::Graphics::PGPLOT::Window->new();
+ $win->imag( $a, { Justify => 1, ITF => 'sqrt' } );
+ $win->draw_wedge( { Wedge => { Width => 4, Label => 'foo' } } );
+ # although the following might be more sensible
+ $win->imag( $a, { Justify => 1, ITF => 'sqrt', DrawWedge => 1,
+     Wedge => { Width => 4, Label => 'foo'} } );
 
 =head2 ctab
 
@@ -2055,6 +2123,54 @@ sub _checkarg {			# Check/alter arguments utility
   1;
 }
 
+# a hack to store information in the object.  
+# Currently only used by imag() for storing information
+# useful to draw_wedge().  
+#
+# This routine needs changing:
+#  . store values using PDL::Options, so you can update rather than overwrite
+#  . associate the information with a particular window/panel/whatever
+#  . clear information when plot erased (correct for current use by imag(), 
+#    but maybe not in more general cases?)
+#   
+# The API is liable to change: you have been warned (Doug Burke)
+#
+sub _store {
+    my $self = shift;
+    barf 'Usage: _store( $self, $name, $item )' unless $#_ == 1;
+
+    my $name   = shift;
+    my $object = shift;
+
+    # create storage space, if needed
+    $self->{_horrible_storage_space} = {} 
+    unless defined $self->{_horrible_storage_space};
+
+    # store data
+    $self->{_horrible_storage_space}{$name} = $object;
+
+} # sub: _store()
+
+# retrieve information from storage space
+# - same caveats as with _store()
+#
+sub _retrieve {
+    my $self = shift;
+    barf 'Usage: _retrieve( $self, $name )' unless $#_ == 0;
+
+    my $name = shift;
+
+    barf "Internal error: no storage space in object"
+	unless exists $self->{_horrible_storage_space};
+
+    if ( exists $self->{_horrible_storage_space}{$name} ) {
+	return $self->{_horrible_storage_space}{$name};
+    } else {
+	return undef;
+    }
+
+} # sub: _retrieve()
+
 ##################
 # Options parser #
 ##################
@@ -3002,6 +3118,93 @@ sub arrow {
   }
 }
 
+# add a "wedge" to the image
+# - since this can be called from imag() as well as by the user,
+#   we make all parameters defined as options
+#
+#   Wedge => { 
+#              Side         => one of B L T R,
+#              Displacement => default = 2,
+#              Width        => default = 3,
+#              Fg/Bg        => default, values used by imag()
+#              Label        => default ''
+#            }
+#
+# - uses horrible _store()/_retireve() routines, which need to 
+#   know (but don't) about changing window focus/erasing/...
+#
+# Want to be able to specify a title (optional)
+# - also, by default want to use the axes colour/size, but want to be able to 
+#   over-ride this
+#
+# initial version by Doug Burke (11/20/00 ish)
+
+{
+    my $wedge_options = undef;
+
+    sub draw_wedge {
+	my $self = shift;
+	if ( !defined($wegde_options) ) {
+	    $wedge_options = 
+		$self->{PlotOptions}->extend({
+		    Side => 'R',
+		    Displacement => 2.0,
+		    Width => 3.0,
+		    Label => '',
+		    ForeGround => undef,
+		    BackGround => undef,
+		});
+	    $wedge_options->synonyms({ Fg => 'ForeGround', Bg => 'BackGround' });
+	}
+
+	my ( $in, $opt ) = _extract_hash(@_);
+	$opt = {} unless defined($opt);
+	barf 'Usage: draw_wedge( [$options] )'
+	    unless $#$in == -1;
+
+	# check imag has been called, and get information
+	# - this is HORRIBLE
+	my $iref = $self->_retrieve( 'imag' );
+	barf 'draw_wedge() can only be called after a call to imag()'
+	    unless defined $iref;
+
+	# Let us parse the options if any.
+	# - not convinced I know what I'm doing
+	my $o;
+	if ( defined $opt->{Wedge} ) {
+	    $o = $wedge_options->options( $opt->{Wedge} );
+	} else {
+	    $o = $wedge_options->current();
+	}
+	$o->{ForeGround} = $$iref{max} unless defined( $o->{ForeGround} );
+	$o->{BackGround} = $$iref{min} unless defined( $o->{BackGround} );
+
+	# do we really want this?
+	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+	# get the options used to draw the axes
+	# note: use the window object, not the options hash, though we 
+	# probably could/should do that
+	my $wo = $self->{_env_options}[4];
+
+	# Save current status
+	$self->_save_status();
+
+	# we use the colour/size of the axes here
+	pgsci($wo->{AxisColour});
+	pgsch($wo->{CharSize});
+
+	# draw the wedge
+	my $side = $o->{Side} . $$iref{routine};
+	pgwedg( $side, $o->{Displacement}, $o->{Width}, $o->{BackGround}, $o->{ForeGround}, $o->{Label} );
+
+	# restore character colour & size before returning
+	$self->_restore_status();
+
+	1;
+    } # sub: draw_wedge()
+}
+
 # display an image using pgimag()/pggray() as appropriate
 
 
@@ -3027,7 +3230,9 @@ sub arrow {
 						  Max => undef,
 						  Scale => undef,
 						  Pitch => undef,
-						  Unit => undef
+						  Unit => undef,
+						  DrawWedge => 0,
+						  Wedge => undef,
 						 });
     }
 
@@ -3052,7 +3257,9 @@ sub arrow {
 						  Max => undef,
 						  Scale => undef,
 						  Pitch => undef,
-						  Unit => undef
+						  Unit => undef,
+						  DrawWedge => 0,
+						  Wedge => undef,
 						 });
     }
 
@@ -3069,7 +3276,6 @@ sub arrow {
 
     my($pix,$pitch,$unit,$scale);
     my $itf = 0;
-
 
     $tr = $u_opt->{Transform} if exists($u_opt->{Transform});
     $min = $u_opt->{Min} if exists($u_opt->{Min});
@@ -3195,11 +3401,17 @@ sub arrow {
     pgqcir($i1, $i2);		# Colour range - if too small use pggray dither algorithm
     if ($i2-$i1<16 || $self->{Device} =~ /^v?ps$/i) {
       pggray( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
+      $self->_store( imag => { routine => "G", min => $min, max => $max } );
     } else {
       $self->ctab('Grey') unless $self->_ctab_set(); # Start with grey
       pgimag( $image->get_dataref, $nx,$ny,1,$nx,1,$ny, $min, $max, $tr->get_dataref);
+      $self->_store( imag => { routine => "I", min => $min, max => $max } );
     }
     $self->redraw_axes unless $self->held(); # Redraw box
+
+    # draw the wedge, if requested
+    $self->draw_wedge( $u_opt ) if $u_opt->{DrawWedge};
+
     1;
   }
 
