@@ -1,3 +1,6 @@
+DJB 29-Jul-04
+   - added tests to t/core.t for $PDL::undefval fix (bug#886263 fixed
+     by Craig) and cleaned up the test to use Test::More (was Test).
 CED 28-Jul-04
    - updated constructor and conversion routines to handle 
      $PDL::undefval properly.  Since I don't like
