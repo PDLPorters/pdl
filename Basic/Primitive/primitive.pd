@@ -1580,7 +1580,7 @@ Interpolate values from an N-D piddle
   $index = pdl([[2.2,3.5],[4.1,5.0]],[[6.0,7.4],[8,9]]);
   print $source->interpND( $index );
 
-InterpND acts like L<indexNDb|indexNDb>, collapsing C<$index> by
+InterpND acts like L<indexND|indexND>, collapsing C<$index> by
 lookup into C<$source>; but it does interpolation, rather than
 straight lookup, into C<$source>.  Several options may be passed in
 via an options hash; by default, linear interpolation is used, with
@@ -1652,7 +1652,9 @@ sub PDL::interpND {
 			     )->sever
 		   );
     my($i);
-    $out = zeroes($index->slice("(0)"));
+    my(@id) = $index->dims;
+    my(@sd) = $source->dims;
+    $out = zeroes(@id[1..$#id],@sd[$id[0]..$#sd]);
     
     for ($i=0;$i<$offsets->dim(0);$i++){
       my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),

@@ -457,6 +457,11 @@ sub PDL::eigsys {
 
 sub PDL::matinv {
 	my($m) = @_;
+	my(@dims) =$m->getndims;
+
+	# Keep from dumping core (FORTRAN does no error checking)
+	return undef unless( @dims == 2 && $dims[0] == $dims[1] );
+  
 	$m = $m->copy(); # Make sure we don't overwrite :(
 	gefa($m,(my $ipvt=null),(my $info=null));
 	if(sum($info) > 0) {

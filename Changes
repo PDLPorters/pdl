@@ -1,3 +1,9 @@
+CED (25-10-2002)
+    - Primitive/primitive.pd: fix to interpND behavior -- it now threads 
+	correctly in the bilinear dual-threading case.
+    - Lib/Slatec/slatec.pd: added nonsquare-array check to matinv.
+	Similar checks are probably needed throughout to keep FORTRAN
+	from dying.
 CS  - PDL::IO::FlexRaw now understands all types
     - uncommented type longlong -- let's see how many installations
       break ;)
