@@ -103,7 +103,8 @@ Displays an image on a IIS device (e.g. SAOimage/Ximtool)
 =for usage
 
  iis $image, [ { MIN => $min, MAX => $max,
-                 TITLE => 'pretty picture' } ]
+                 TITLE => 'pretty picture',
+                 FRAME => 2 } ]
  iis $image, [$min,$max]
 
 =for sig
@@ -118,7 +119,10 @@ for each plane of the cube resulting in a poor man's movie!
 If supplied, C<TITLE> is used to label the frame, if no title is
 supplied, either the C<OBJECT> value stored in the image header or a
 default string is used (the title is restricted to a maximum
-length of 32 characters).
+length of 32 characters). 
+
+To specify which frame to draw to, either use
+the package variable C<$iisframe>, or the C<FRAME> option.
 
 =cut
 
@@ -136,25 +140,28 @@ sub iis {
       $title =~ s/^'(.*)'$/$1/;
     }
 
+    my $frame = $iisframe;
     if ( $#_ == 1 ) { $min = $_[0]; $max = $_[1]; }
     elsif ( $#_ == 0 ) {
       barf $usage unless ref($_[0]) eq "HASH";
 
-      my $opt = new PDL::Options( { MIN => undef, MAX => undef, TITLE => $title } );
+      my $opt = new PDL::Options( { MIN => undef, MAX => undef, TITLE => $title, FRAME => $frame } );
       $opt->options( shift );
       my $options = $opt->current;
 
       $min   = $$options{MIN};
       $max   = $$options{MAX};
       $title = $$options{TITLE};
+      $iisframe = $$options{FRAME};
     }
 
     my($nx,$ny) = dims($image);
     fbconfig($stdimage) if $stdimage ne $last_stdimage;
     $min = $image->min unless defined $min;
     $max = $image->max unless defined $max;
-    print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
+    print "Displaying $nx x $ny image in frame $iisframe from $min to $max ...\n" if $PDL::verbose;
     PDL::_iis($image,$min,$max,$title);
+    $iisframe = $frame; # restore value
     1;
 }
 

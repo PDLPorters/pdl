@@ -1,6 +1,9 @@
 (!!! = possible source of incompatibilities)
-CS	- hopefully the PDL::Filter modules will work now
-		a proper test should be added
+Doug Burke (5/23/00)
+    - minor doc changes to Indexing.pod, image2d.pd, fft.pd & NDF.pm
+    - added FRAME option to iis (Graphics::IIS)
+CS      - hopefully the PDL::Filter modules will work now
+                a proper test should be added
 Doug Burke (5/22/00)
     - Graphics::IIS - now works with new PP code + minor doc changes
     - Func - changed gradient() to work as described + added PDL::Func::

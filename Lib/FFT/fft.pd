@@ -26,7 +26,13 @@ Each routine works `inplace'.
 	$kernel = kernctr($image,$smallk);
 	fftconvolve($image,$kernel);
 
-=head1 FUNCTIONS
+=head1 ALTERNATIVE FFT PACKAGES
+
+Various other modules - such as 
+L<PDL::FFTW|PDL::FFTW> and L<PDL::Slatec|PDL::Slatec> - 
+contain FFT routines.
+However, unlike PDL::FFT, these modules are optional,
+and so may not be installed.
 
 =cut
 
@@ -304,7 +310,8 @@ The sizes of the image and the kernel must be the same.  kernctr
 centres a small kernel to emulate the behaviour of the direct
 convolution routines.
 
-The speed cross-over between using straight convolution (conv2d) and
+The speed cross-over between using straight convolution 
+(L<PDL::Image2D::conv2d()|PDL::Image2D/conv2d>) and
 these fft routines is for kernel sizes roughly 7x7.
 
 =cut
@@ -400,6 +407,7 @@ pp_def('convmath',
 	   $b() = (t2*t2-t1*t1)/4;
         %}
 ',
+#	Doc => undef,
 	Doc => 'Internal routine doing maths for convolution'
 );
 

@@ -20,23 +20,23 @@ see L<PDL::FAQ|PDL::FAQ>):
 
 =over 5
 
-=item 
+=item *
 
 document perl level threading
 
-=item 
+=item *
 
 threadids
 
-=item 
+=item *
 
 update and correct description of slice
 
-=item 
+=item *
 
 new functions in slice.pd (affine, lag, splitdim)
 
-=item 
+=item *
 
 reworking of paragraph on explicit threading
 
@@ -134,7 +134,7 @@ several screens full of digits ;).
 
  perldl> help vars
  PDL variables in package main::
-  
+
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
  $im          Double D [5,5]                P            0.20Kb                  
@@ -159,7 +159,7 @@ easily achieved with the powerful slice function:
  perldl> $area = $im->slice('3:4,3:1')
  perldl> help vars  # or just PDL->vars
  PDL variables in package main::
-  
+
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
  $even        Double D [5,2]                -C           0.00Kb
@@ -272,7 +272,7 @@ have appropriate dimensions.
  perldl> $line = $im->slice(':,(0)')
  perldl> help $line
  This variable is Double D [5]                  -C           0.00Kb
-                                                                                
+
  perldl> p $line
  [1 2 3 4 5]          
 
@@ -345,7 +345,7 @@ in way we can express as:
 
 =back
 
-[ work in the new index function: $b = $a->index($c); ???? ]
+[ work in the new index function: C<$b = $a-E<gt>index($c);> ???? ]
 
 =head2 There are different kinds of assignments in PDL
 
@@ -385,7 +385,7 @@ E.g.
   [16 17 18 19 20]
   [21 22 23 24 25]
  ]
-                                                                                
+
  perldl> p $line
  [1 1 1 1 1]
 
@@ -468,7 +468,7 @@ later). Here are a list and some examples how to use them.
 
 inserts a dummy dimension of the size you specify (default 1) at the
 chosen location. You can't wait to hear how that is achieved?  Well,
-all elements with index C<(X,x,Y)> (C<0<=x<size_of_dummy_dim>) just map to
+all elements with index C<(X,x,Y)> (C<0E<lt>=xE<lt>size_of_dummy_dim>) just map to
 the element with index C<(X,Y)> of the parent pdl (where C<X> and C<Y> refer to
 the group of indices before and after the location where the dummy
 dimension was inserted.)
@@ -587,7 +587,7 @@ sequences you say
  perldl> $seqs = $stack->clump(2)
  perldl> help vars
  PDL variables in package main::
-  
+
  Name         Type   Dimension       Flow  State          Mem
  ----------------------------------------------------------------
  $seqs        Double D [8000,50]            -C           0.00Kb                  
