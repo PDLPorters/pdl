@@ -137,7 +137,7 @@ Inverse of one-dimensional realfft routine [inplace].
 *realifft = \&PDL::realifft;
 
 sub PDL::realifft {
-    use PDL::Primitive 'max';
+    use PDL::Ufunc 'max';
     barf("Usage: realifft(xfm(*)") if $#_ != 0;
     my ($a) = @_;
     todouble($a);

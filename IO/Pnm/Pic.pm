@@ -686,7 +686,7 @@ sub chkpdl {
     if ($pdl->get_datatype >= $PDL_L ||
 	$pdl->get_datatype == $PDL_S ||
 	(!$converter{$format}->{ushortok} && $pdl->get_datatype == $PDL_US)) {
-	print "scaling data to type byte...\n";
+	print "scaling data to type byte...\n" if $PDL::IO::Pic::debug;
 	$pdl = bytescl($pdl,-255);
     }
 

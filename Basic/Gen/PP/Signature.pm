@@ -116,6 +116,9 @@ sub checkdims {
   my $n = @{$this->{Names}};
   croak "not enough pdls to match signature" unless $#_ >= $n-1;
   my @pdls = @_[0..$n-1];
+  if ($PDL::debug) { print "args: ".
+		     join(' ,',map { "[".join(',',$_->dims)."]," } @pdls)
+		       . "\n"}
   my $i = 0;
   my @creating = map $this->{Objects}->{$_}->perldimcheck($pdls[$i++]),
          @{$this->{Names}};

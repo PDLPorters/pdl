@@ -73,6 +73,9 @@ pdlexamples\.c$
 ^Basic/Complex/Complex\.c
 ^Basic/Complex/Complex\.pm
 ^Basic/Complex/Complex\.xs
+^Basic/Ufunc/Ufunc\.c
+^Basic/Ufunc/Ufunc\.pm
+^Basic/Ufunc/Ufunc\.xs
 ^Doc/pdlfunc\.pod
 ^Lib/FFTW/FFTW\.c
 ^Lib/FFTW/FFTW\.pm

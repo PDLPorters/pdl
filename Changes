@@ -1,7 +1,18 @@
 (!!! = possible source of incompatibilities)
 CS
+!!! - split primitive.pd into primitive.pd and ufunc stuff (ufunc.pd)
+    - changed loaders to reflect this split (PDL.pm, Lite.pm, LiteF.pm)
+!!! - moved 'assgn' to PDL::Ops (since it's primarily used for
+      overloading '.=')
+    - added conv1d to primitive.pd -> this one was dropped
+      from the dist at some stage but it makes sense to have it
+    - Pic.pm: print conversion message only when debugging
     - fixed a problem with TriD: APIENTRY not defined when
             processing glu.h (since include files are ignored)
+    - added sever docs
+    - a reduce function for PDL (Reduce.pm)
+    - percentile projections patch applied to primitive.pd
+    - fix some thread_define problems
 Doug Burke
     - improved support for bad values in r/wfits and r/wndf
     - added setbadtonan() to PDL::Bad.

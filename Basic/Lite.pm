@@ -22,6 +22,7 @@ use method syntax, viz:
    use PDL::Core '';
    use PDL::Ops '';
    use PDL::Primitive '';
+   use PDL::Ufunc '';
    use PDL::Basic '';
    use PDL::Slices '';
    use PDL::Bad '';
@@ -36,6 +37,7 @@ use method syntax, viz:
 use PDL::Core '';
 use PDL::Ops '';
 use PDL::Primitive '';
+use PDL::Ufunc '';
 use PDL::Basic '';
 use PDL::Slices '';
 use PDL::Bad '';

@@ -450,7 +450,7 @@ sub topdl {PDL->topdl(@_)}
 		".="    => sub {my @args = reverse &PDL::Core::rswap;
 				return $args[1]->info("%C (%A): %T %D %S %M")
 				  if !ref $args[0] && $args[0] eq '';
-				PDL::Primitive::assgn(@args);
+				PDL::Ops::assgn(@args);
 				return $args[1];},
 		 
 		'x'     =>  sub{my $foo = $_[0]->null();
@@ -794,12 +794,18 @@ sub PDL::thread_define ($$) {
   print "defining '$name' with signature '$sigstr' and $others extra args\n"
 						  if $PDL::debug;
   my $sig = new PDL::PP::Signature($sigstr);
+  my $args = @{$sig->names}; # number of piddle arguments
+  barf "no piddle args" if $args == 0;
+  $args--; 
   # TODO: $sig->dimcheck(@_) + proper creating generation
-  my $def = '$sig->checkdims(@_);
+  my $def = "\@_[0..$args] = map {PDL::Core::topdl(\$_)} \@_[0..$args];\n".
+            '$sig->checkdims(@_);
 	     PDL::threadover($others,@_,$sig->realdims,$sig->creating,$sub)';
   my $package = caller;
   local $^W = 0; # supress the 'not shared' warnings
+  print "defining...\nsub $name { $def }\n" if $PDL::debug;
   eval ("package $package; sub $name { $def }");
+  barf "error defining $name: $@\n" if $@;
 }
 
 =head2 PDL::thread
@@ -1007,6 +1013,36 @@ sub dimstr {
   }
   return $dstr;
 }
+
+=head2 sever
+
+=for ref
+
+sever any links of this piddle to parent piddles
+
+In PDL it is possible for a piddle to be just another
+view into another piddle's data. In that case we call
+this piddle a I<virtual piddle> and the original piddle owning
+the data its parent. In other languages these alternate views
+sometimes run by names such as I<alias> or I<smart reference>.
+
+Typical functions that return such piddles are C<slice>, C<xchg>,
+C<index>, etc. Sometimes, however, you would like to separate the
+I<virtual piddle> from its parent's data and just give it a live of
+its own. This is simply achieved by using C<sever>. For example,
+
+=for example
+
+   $a = $pdl->index(pdl(0,3,7))->sever;
+   $a++;       # important: $pdl is not modified!
+
+In this regard it acts similar to C<copy>. However, in general
+performance is better with C<sever> and secondly, C<sever> doesn't
+lead to futile copying when used on piddles that already have their own data.
+
+   $a = zeroes(20);
+   $a->sever;   # NOOP since $a is already its own boss!
+
 
 =head2 PDL::info
 

@@ -17,6 +17,7 @@ if start-up time becomes an issue.
    use PDL::Core;
    use PDL::Ops;
    use PDL::Primitive;
+   use PDL::Ufunc;
    use PDL::Basic;
    use PDL::Slices;
    use PDL::Bad;
@@ -43,6 +44,7 @@ package $pkg;
 use PDL::Core;
 use PDL::Ops;
 use PDL::Primitive;
+use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Bad;

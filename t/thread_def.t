@@ -16,7 +16,7 @@ sub approx {
 }
 
 $debug = $debug = 0;
-$PDL::debug = 0;
+$PDL::debug = 1;
 print "1..5\n";
 
 $a = sequence(3,4);

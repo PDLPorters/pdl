@@ -4,11 +4,7 @@ use strict;
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
-# should we use the finite() routine in libm ?
-# (is the Windows version _finite() ?)
-#
 pp_addhdr(<<'EOD');
-#define IsNaN(x) (x != x)
 
 #ifndef RAND_MAX
 #error "You must have a working RAND_MAX! Something's wrong with your include files"
@@ -58,773 +54,12 @@ the copyright notice should be included in the file.
 
 EOD
 
-sub projectdocs {
-    my $name = shift;
-    my $op = shift;
-    my $extras = shift;
-    return <<EOD;
 
-=for ref
-
-Project via $name to N-1 dimensions
-
-This function reduces the dimensionality of a piddle
-by one by taking the $name along the 1st dimension.
-
-By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
-I<any> dimension.
-
-=for usage
-
- \$a = $op(\$b);
-
-=for example
-
- \$spectrum = $op \$image->xchg(0,1)
-
-$extras
-
-EOD
-
-} # sub: projectdocs()
-
-sub cumuprojectdocs {
-    my $name = shift;
-    my $op = shift;
-    my $extras = shift;
-    return <<EOD;
-
-=for ref
-
-Cumulative $name
-
-This function calculates the cumulative $name
-along the 1st dimension.
-
-By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
-I<any> dimension.
-
-The sum is started so that the first element in the cumulative $name
-is the first element of the parameter.
-
-=for usage
-
- \$a = $op(\$b);
-
-=for example
-
- \$spectrum = $op \$image->xchg(0,1)
-
-$extras
-
-EOD
-
-} # sub: cumuprojectdocs()
-
-# it's a bit unclear what to do with the comparison operators,
-# since the return value could be bad because all elements are bad,
-# which needs checking for since the bad value could evaluate to 
-# true or false (eg if the user has set it to 0)
-#
-# by setting CopyBadStatusCode to '', we stop the output piddle
-# from automatically being set bad if any of the input piddles are bad.
-# - we can set the flag within BadCode if necessary
-#
-# This may NOT be sensible. Only time, and comments, will tell...
-#
-
-my %over = 
-    (
-     sumover  => { name => 'sum',     op => '+=', init => 0, },
-     prodover => { name => 'product', op => '*=', init => 1, },
-     );
-
-foreach my $func ( keys %over ) {
-
-    # creates $func and cumu$func functions
-    # and d$func and dcumu$func functions, which
-    # perform the calculations in double precision
-    
-    my $name = $over{$func}{name};
-    my $op   = $over{$func}{op};
-    my $init = $over{$func}{init};
-
-    pp_def(
-	   $func,
-	   HandleBad => 1,
-	   Pars => 'a(n); int+ [o]b();',
-	   Code => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ tmp ' . $op . ' $a(); %}
-	    $b() = tmp;',
-	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-            int flag = 0;
-	    loop(n) %{ 
-               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
-            %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); }',
-	   Doc => projectdocs( $name, $func, '' ),
-	   );
-
-    # as above, but in double precision
-    pp_def(
-	   "d$func",
-	   HandleBad => 1,
-	   Pars => 'a(n); double [o]b();',
-	   Code => 
-	   'double tmp = ' . $init . ';
-	    loop(n) %{ tmp ' . $op . ' $a(); %}
-	    $b() = tmp;',
-	   BadCode => 
-	   'double tmp = ' . $init . ';
-            int flag = 0;
-	    loop(n) %{ 
-               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
-            %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); }',
-	   Doc => projectdocs( $name, "d$func", 
-"Unlike L<$func|/$func>, the calculations are performed in double\n" .
-"precision." ),
-	   );
-
-    my $cfunc = "cumu${func}";
-    pp_def(
-	   $cfunc,
-	   HandleBad => 1,
-	   Pars => 'a(n); int+ [o]b(n);',
-	   Code => 
-           '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ 
-               tmp ' . $op . ' $a();
-	       $b() = tmp;
-	    %}',
-	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-	    loop(n) %{ 
-               if ( $ISBAD(a()) ) { $SETBAD(b()); }
-               else {
-                  tmp ' . $op . ' $a();
-	          $b() = tmp;
-               }
-	    %}',
-	   Doc => cumuprojectdocs( $name, $cfunc, '' ),
-	   );
-
-    # as above but in double precision
-    pp_def(
-	   "d$cfunc",
-	   HandleBad => 1,
-	   Pars => 'a(n); double [o]b(n);',
-	   Code => 
-           'double tmp = ' . $init . ';
-	    loop(n) %{ 
-               tmp ' . $op . ' $a();
-	       $b() = tmp;
-	    %}',
-	   BadCode => 
-	   'double tmp = ' . $init . ';
-	    loop(n) %{ 
-               if ( $ISBAD(a()) ) { $SETBAD(b()); }
-               else {
-                  tmp ' . $op . ' $a();
-	          $b() = tmp;
-               }
-	    %}',
-	   Doc => cumuprojectdocs( $name, $cfunc, 
-"Unlike L<cumu$func|/cumu$func>, the calculations are performed in double\n" .
-"precision." ),
-	   );
-
-} # foreach: my $func
-
-
-%over = 
-    (
-     zcover   => { txt => '== 0', init => 1, alltypes => 1,
-		   op => 'tmp = tmp && $a() == 0;', check => '!tmp' },
-     andover  => { txt => 'and', init => 1, 
-		   op => 'tmp = tmp && $a();', check => '!tmp' },
-     bandover => { txt => 'bitwise and', init => '~0', 
-		   op => 'tmp &= $a();', check => '!tmp' },
-     orover   => { txt => 'or', init => 0, 
-		   op => 'tmp = tmp || $a();', check => 'tmp' },
-     borover  => { txt => 'bitwise or', init => 0, 
-		   op => 'tmp |= $a();', check => '!~tmp' },
-
-     );
-
-foreach my $func ( keys %over ) {
-
-    my $txt   = $over{$func}{txt};
-    my $init  = $over{$func}{init};
-    my $op    = $over{$func}{op};
-    my $check = $over{$func}{check};
-
-    my %extra = {};
-    unless ( defined $over{$func}{alltypes} and $over{$func}{alltypes} ) {
-	$extra{GenericTypes} = ['B','S','U','L'];
-    }
-
-    pp_def(
-	   $func,
-	   HandleBad => 1,
-	   %extra,
-	   Pars => 'a(n); int+ [o]b();',
-	   Code =>
-	   '$GENERIC(b) tmp = ' . $init . ';
-            loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
-            $b() = tmp;',
-	   BadCode => 
-	   '$GENERIC(b) tmp = ' . $init . ';
-            int flag = 0;
-            loop(n) %{
-               if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }
-            %}
-            if ( flag ) { $b() = tmp; }
-            else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
-	   CopyBadStatusCode => '',
-	   Doc => projectdocs( $txt, $func,''), 
-       BadDoc => 
-'If C<a()> contains only bad data (and its bad flag is set), 
-C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
-as it will not contain any bad values.',
-	   );
-
-} # foreach: $func
-
-# this would need a lot of work to support bad values
-# plus it gives me a chance to check out HandleBad => 0 ;)
-#
-pp_def(
-       'intover',
-       HandleBad => 0,
-       Pars => 'a(n); int+ [o]b();',
-       Code =>
-       '$GENERIC(b) tmp = 0;
-       int ns = $SIZE(n), nn;
-       /* Integration formulae from Press et al 2nd Ed S 4.1 */
-       switch (ns) {
-      case 1:
-          threadloop %{
-          $b() = 0.; /* not a(n=>0); as interval has zero width */
-          %}
-          break;
-        case 2:
-          threadloop %{
-          $b() = 0.5*($a(n=>0)+$a(n=>1));
-          %}
-          break;
-        case 3:
-          threadloop %{
-          $b() = ($a(n=>0)+4*$a(n=>1)+$a(n=>2))/3.;
-          %}
-          break;
-      case 4:
-          threadloop %{
-          $b() = ($a(n=>0)+$a(n=>3)+3.*($a(n=>1)+$a(n=>2)))*0.375;
-          %}
-          break;
-      case 5:
-          threadloop %{
-          $b() = (14.*($a(n=>0)+$a(n=>4))
-                   +64.*($a(n=>1)+$a(n=>3))
-                   +24.*$a(n=>2))/45.;
-          %}
-          break;
-      default:
-          threadloop %{
-        for (nn=3,tmp=0;nn<ns-3;nn++) { tmp += $a(n=>nn); }
-        tmp += (23./24.)*($a(n=>2)+$a(n=>nn));nn++;
-        tmp += (7./6.)  *($a(n=>1)+$a(n=>nn));nn++;
-        tmp += 0.375    *($a(n=>0)+$a(n=>nn));
-        $b() = tmp;
-          %}
-      }
-      ',
-       Doc => projectdocs('integral','intover',
-q~Notes:
-
-For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
-integrals between the end points assuming the pdl gives values just at
-these centres: for such `functions', sumover is correct to C<O(h)>, but
-is the natural (and correct) choice for binned data, of course.
-~)
-); # intover
-
-pp_def( 
-	'average',
-	HandleBad => 1,
-	Pars => 'a(n); int+ [o]b();',
-	Code => 
-	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp / ($GENERIC(b)) $SIZE(n);',
-	BadCode => 
-	'$GENERIC(b) tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
-         else       { $SETBAD(b()); }',
-	Doc => projectdocs( 'average', 'average', '' ),
-	);
-
-# do the above calculation, but in double precision
-pp_def( 
-	'daverage',
-	HandleBad => 1,
-	Pars => 'a(n); double [o]b();',
-	Code => 
-	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp / cnt;',
-	BadCode => 
-	'double tmp = 0;
-         long cnt = 0;
-	 loop(n) %{ 
-            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
-         %}
-         if ( cnt ) { $b() = tmp / cnt; }
-         else       { $SETBAD(b()); }',
-	Doc => projectdocs( 'average', 'daverage', 
-"Unlike L<average|/average>, the calculation is performed in double\n" .
-"precision." ),
-	);
-
-# Internal utility sorting routine for median/qsort routines.
-#
-# note: we export them to the PDL Core structure for use in
-#       other modules (eg Image2D)
-
-for (keys %PDL::Types::typehash) {
-    my $ctype = $PDL::Types::typehash{$_}{ctype};
-    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
-
-    pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
-		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
-
-    pp_addhdr("
-
-      void pdl_qsort_$ppsym($ctype* xx, int a, int b) {
-
-         int i,j;
-
-         $ctype t, median;
-
-         i = a; j = b;
-         median = xx[(i+j) / 2];
-         do {
-            while (xx[i] < median)
-               i++;
-            while (median < xx[j])
-               j--;
-            if (i <= j) {
-               t = xx[i]; xx[i] = xx[j]; xx[j] = t;
-               i++; j--;
-            }
-         } while (i <= j);
-
-         if (a < j)
-            pdl_qsort_$ppsym(xx,a,j);
-         if (i < b)
-            pdl_qsort_$ppsym(xx,i,b);
-
-      }
-
-      void pdl_qsort_ind_$ppsym($ctype* xx,  int* ix, int a, int b) {
-
-         int i,j;
-
-         int t;
-        $ctype median;
-
-         i = a; j = b;
-         median = xx[ix[(i+j) / 2]];
-
-         do {
-          while (xx[ix[i]] < median)
-               i++;
-            while (median < xx[ix[j]])
-               j--;
-            if (i <= j) {
-               t = ix[i]; ix[i] = ix[j]; ix[j] = t;
-               i++; j--;
-            }
-         } while (i <= j);
-
-         if (a < j)
-            pdl_qsort_ind_$ppsym(xx,ix,a,j);
-         if (i < b)
-            pdl_qsort_ind_$ppsym(xx,ix,i,b);
-
-      }
-
-   ");
-}
-
-# when copying the data over to the temporary array,
-# ignore the bad values and then only send the number
-# of good elements to the sort routines
-#
-
-sub generic_qsort {
-    my $pdl = shift;
-    return '$TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
-}
-
-# should use threadloop ?
-#
-my $copy_to_temp_good = '
-           int nn, nn1;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1; ' .
-       generic_qsort('tmp');
-
-my $copy_to_temp_bad = '
-        register int nn = 0;
-	loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; }
-        %}
-        if ( nn == 0 ) {
-           $SETBAD(b());
-        } else {
-';
-
-my $find_median_average = '
-           nn1 = nn/2; nn2 = nn1+1;
-           if (nn%2==0) {
-	      $b() = $tmp(n => nn1);
-           }
-           else {
-	      $b() = 0.5*( $tmp(n => nn1) + $tmp(n => nn2)  );
-           }';
-
-my $find_median_lower = '
-        nn1 = nn/2;
-	$b() = $tmp(n => nn1);';
-
-pp_def(
-       'medover',
-       HandleBad => 1,
-       Pars => 'a(n); [o]b(); [t]tmp(n);',
-       Doc => projectdocs('median','medover',''),
-       Code => 
-       "int nn2;\n" . $copy_to_temp_good . $find_median_average,
-       BadCode =>
-       $copy_to_temp_bad . 
-       '   int nn1, nn2;
-           nn -= 1; ' .
-       generic_qsort('tmp') .
-       $find_median_average . '}',
-
-       ); # pp_def: medover
-
-pp_def(
-       'oddmedover',
-       HandleBad => 1,
-       Pars => 'a(n); [o]b(); [t]tmp(n);',
-       Doc => projectdocs('oddmedian','oddmedover','
-
-The median is sometimes not a good choice as if the array has
-an even number of elements it lies half-way between the two
-middle values - thus it does not always correspond to a data
-value. The lower-odd median is just the lower of these two values
-and so it ALWAYS sits on an actual data value which is useful in
-some circumstances.
-	'),
-       Code => 
-       $copy_to_temp_good . $find_median_lower,
-       BadCode =>
-       $copy_to_temp_bad . 
-       '   int nn1;
-           nn -= 1; '.
-       $find_median_lower . '}',
-
-       ); # pp_def: oddmedover
-
-
-# Generate small ops functions to do entire array
-#
-# How to handle a return value of BAD - ie what
-# datatype to use?
-#
-for my $op ( ['avg','average','average'],
-	     ['sum','sumover','sum'],
-	     ['prod','prodover','product'],
-
-	     ['davg','daverage','average (in double precision)'],
-	     ['dsum','dsumover','sum (in double precision)'],
-	     ['dprod','dprodover','product (in double precision)'],
-
-	     ['zcheck','zcover','check for zero'],
-	     ['and','andover','logical and'],
-	     ['band','bandover','bitwise and'],
-	     ['or','orover','logical or'],
-	     ['bor','borover','bitwise or'],
-	     ['min','minimum','minimum'],
-	     ['max','maximum','maximum'],
-	     ['median', 'medover', 'median'],
-	     ['oddmedian','oddmedover','oddmedian']) {
-    my $name = $op->[0];
-    my $func = $op->[1];
-    my $text = $op->[2];
-   pp_add_exported('', $name);
-
-   pp_addpm(<<"EOD");
-
-=head2 $name
-
-=for ref
-
-Return the $text of all elements in a piddle
-
-=for usage
-
- \$x = $name(\$data);
-
-EOD
-
-    if ( $bvalflag ) {
-	pp_addpm(<<"EOD");
-=for bad
-
-This routine handles bad values (see the
-documentation for L<$func|/$func>).
-I still need to decide how to handle the case when 
-the return value is a bad value (eg to make sure it
-has the same type as the input piddle OR 
-perhaps we should die - makes sense for the conditional
-ops but not things like sum)
-
-EOD
-} # if: bvalflag
-
-   pp_addpm(<<"EOD");
-=cut
-
-*$name = \\&PDL::$name;
-sub PDL::$name {
-	my(\$x) = \@_; my \$tmp;
-	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
-	return \$tmp->at();
-}
-EOD
-
-} # for $op
-
-pp_add_exported('','any all');
-pp_addpm(<<'EOPM');
-
-=head2 any
-
-=for ref
-
-Return true if any element in piddle set
-
-Useful in conditional expressions:
-
-=for example
-
- if (any $a>15) { print "some values are greater than 15\n" }
-
-EOPM
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'EOPM');
-=for bad
-
-See L<or|/or> for comments on what happens when all elements
-in the check are bad.
-
-EOPM
-} # if: bvalflag
-
-pp_addpm(<<'EOPM');
-=cut
-
-*any = \&or;
-*PDL::any = \&PDL::or;
-
-=head2 all
-
-=for ref
-
-Return true if all elements in piddle set
-
-Useful in conditional expressions:
-
-=for example
-
- if (all $a>15) { print "all values are greater than 15\n" }
-
-EOPM
-
-    if ( $bvalflag ) {
-	pp_addpm(<<'EOPM');
-=for bad
-
-See L<and|/and> for comments on what happens when all elements
-in the check are bad.
-
-EOPM
-} # IF: BVALFLAG
-
-pp_addpm(<<'EOPM');
-=cut
-
-*all = \&and;
-*PDL::all = \&PDL::and;
-
-EOPM
-
-pp_addpm(<<'EOD'
-
-=head2 minmax
-
-=for ref
-
-Returns an array with minimum and maximum values of a piddle.
-
-=for usage
-
- ($mn, $mx) = minmax($pdl);
-
-This routine does I<not> thread over the dimensions of C<$pdl>; 
-it returns the minimum and maximum values of the whole array.
-See L<minmaximum|/minmaximum> if this is not what is required.
-
-=for example
-
- perldl> $x = pdl [1,-2,3,5,0]
- perldl> ($min, $max) = minmax($x);
- perldl> p "$min $max\n";
- -2 5
-
-=cut
-
-*minmax = \&PDL::minmax;
-sub PDL::minmax {
-  my ($x)=@_; my $tmp;
-  my @arr = $x->clump(-1)->minmaximum;
-  return @arr[0,1];
-}
-
-EOD
-);
-
-pp_add_exported('', 'minmax');
-#pp_add_exported('', 'minmax_ind');
-
-
-# move all bad values to the end of the array
-#
-pp_def(
-    'qsort',
-    HandleBad => 1,
-    Pars => 'a(n); [o]b(n);',
-    Code => 
-    'int nn;
-     loop(n) %{ $b() = $a(); %}
-     nn = $COMP(__n_size)-1;
-    ' . generic_qsort('b'),
-    BadCode =>
-    'register int nn = 0, nb = $SIZE(n) - 1;
-     loop(n) %{ 
-        if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
-        else                { $SETBAD(b(n=>nb)); nb--; }
-     %}
-     if ( nn != 0 ) {
-        nn -= 1;
-     ' . generic_qsort('b') . ' }',
-    Doc => '
-=for ref
-
-Quicksort a vector into ascending order.
-
-=for example
-
- print qsort random(10);
-
-',
-    BadDoc =>
-'
-Bad values are moved to the end of the array:
-
- perldl> p $b
- [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p qsort($b)
- [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
-',
-    ); # pp_def qsort
-
-sub generic_qsort_ind {
-    return '$TBSULFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
-            pdl_qsort_ind_L,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
-            0, nn);';
-}
-
-pp_def(
-       'qsorti',
-       HandleBad => 1,
-       Pars => 'a(n); int [o]indx(n);',
-       Code => 
-       'int nn = $COMP(__n_size)-1;
-        loop(n) %{ 
-           $indx() = n; 
-        %}
-       ' . generic_qsort_ind(),
-       BadCode =>
-       'register int nn = 0, nb = $SIZE(n) - 1;
-        loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
-           else                { $indx(n=>nb) = n; nb--; }
-        %}
-        if ( nn != 0 ) {
-           nn -= 1;
-        ' . generic_qsort_ind() . ' }',
-       BadDoc => 
-'Bad elements are moved to the end of the array:
-
- perldl> p $b
- [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p $b->index( qsorti($b) )
- [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
-',
-       Doc => '
-=for ref
-
-Quicksort a vector and return index of elements in ascending order.
-
-=for example
-
- $ix = qsorti $a;
- print $a->index($ix); # Sorted list
-
-'
-       ); # pp_def: qsorti
-
-
-pp_def( 'axisvalues',
-	Pars => '[o,nc]a(n)',
-	Code => 'loop(n) %{ $a() = n; %}',
-	Doc => '
-=for ref
-
-Internal routine
-
-C<axisvalues> is the internal primitive that implements 
-L<axisvals|PDL::Basic/axisvals> 
-and alters its argument.
-
-'
-       ); # pp_def: axisvalues
-
+################################################################
+#  a whole bunch of quite basic functions for inner, outer
+#  and matrix products (operations that are not normally
+#  available via operator overloading)
+################################################################
 
 pp_def(
        'inner',
@@ -1083,178 +318,214 @@ closures at some point.
        ); # pp_def inner2t()
 
 
-# I don't think the old behaviour is correct in the presence of NaN's -
-# surely it will set the min/max values to NaN in this case?
-#
-# I have kept in the check for when Bad value support is not being compiled
-#
-my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
+# a helper function for the cross product definition
+sub crassgn {
+  "\$c(tri => $_[0]) = \$a(tri => $_[1])*\$b(tri => $_[2]) -
+	\$a(tri => $_[2])*\$b(tri => $_[1]);"
+}
 
-for my $which (
-	       ['minimum','<'],
-	       ['maximum','>'] 
-	       ) {
-    my $name = $which->[0];
-    my $op   = $which->[1];
-
-    pp_def( 
-	    $name,
-	    HandleBad => 1,
-	    Pars => 'a(n); [o]c();', 
-	    Code => 
-	    '$GENERIC() cur;
-	     loop(n) %{
-	 	if(!n || $a() '.$op.' cur ' . $nan_check . ') {cur = $a();}
-	     %}
-	     $c() = cur;',
-	    BadCode => 
-	    '$GENERIC() cur;
-             int flag = 0;
-	     loop(n) %{
-	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
-	     %}
-             if ( flag ) { $c() = cur; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-	    CopyBadStatusCode => '',
-	    Doc => projectdocs($name,$name),
-	    BadDoc => 
-'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output piddle.
-
-Note that C<NaNs> are considered to be valid values;
-see L<isfinite|PDL::Math/isfinite> and L<badmask|PDL::Math/badmask>
-for ways of masking NaNs.
-',
-	    );
-
-    pp_def( 
-	    "${name}_ind",
-	    HandleBad => 1,
-	    Pars => 'a(n); int [o] c();', 
-	    Code => 
-	    '$GENERIC() cur;
-             int curind;
-	     loop(n) %{
-	 	if(!n || $a() '.$op.' cur ' . $nan_check . ')
-		   {cur = $a(); curind = n;}
-	     %}
-	     $c() = curind;',
-	    BadCode => 
-	    '$GENERIC() cur;
-             int curind, flag = 0; /* should set curind to -1 and check for that, then do not need flag */
-	     loop(n) %{
-	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) 
-                   {cur = $a(); curind = n; flag = 1;}
-	     %}
-             if ( flag ) { $c() = curind; }
-             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-	    CopyBadStatusCode => '',
-	    Doc => "Like $name but returns the index rather than the value",
-	    BadDoc => 
-'Output is set bad if all elements of the input are bad,
-otherwise the bad flag is cleared for the output piddle.',
-	    );
-
-    pp_def( 
-	    "${name}_n_ind",
-	    HandleBad => 0,   # just a marker 
-	    Pars => 'a(n); int[o]c(m);',
-	    Code =>
-	    '$GENERIC() cur; int curind;
-	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
-	     loop(m) %{
-		 loop(n) %{
-		 	int nm; int flag=0;
-		 	for(nm=0; nm<m; nm++) {
-				if($c(m=>nm) == n) {flag=1; break;}
-			}
-			if(!flag &&
-			   (n<=m || $a() '.$op.' cur || IsNaN(cur)))
-				{cur = $a(); curind = n;}
-		 %}
-		 $c() = curind;
-	     %}',
-	    Doc => "Returns the index of C<m> $name elements",
-	    BadDoc => 'Not yet been converted to ignore bad values',
-	    );
-
-} # foreach: $which
-
-
-# removed IsNaN handling, even from Code section
-# I think it was wrong, since it was
-#
-#   if (!n || ($a() < curmin) || IsNaN(curmin)) {curmin = $a(); curmin_ind = n;};
-#   if (!n || ($a() > curmax) || IsNaN(curmax)) {curmax = $a(); curmax_ind = n;};
-#
-# surely this succeeds if cur... is a NaN??
-#
-pp_def( 
-	'minmaximum',
-	HandleBad => 1,
-	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
-	Code => 
-	'$GENERIC() curmin, curmax;
-         int curmin_ind, curmax_ind;
-	 loop(n) %{
-            if ( !n ) {
-               curmin = curmax = $a();
-               curmin_ind = curmax_ind = n;
-            } else {
-               if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-	       if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-            }
-	 %}
-	 $cmin() = curmin; $cmin_ind() = curmin_ind;
-         $cmax() = curmax; $cmax_ind() = curmax_ind;',
-	CopyBadStatusCode => '',
-	BadCode => 
-	'$GENERIC() curmin, curmax;
-         int curmin_ind, curmax_ind, flag = 0;
-	 loop(n) %{
-            if ( $ISGOOD(a()) ) {
-               if ( !flag ) {
-                  curmin = curmax = $a();
-                  curmin_ind = curmax_ind = n;
-                  flag = 1;
-               } else {
-                  if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
-                  if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
-               }
-            } /* ISGOOD */
-	 %}
-         if ( flag ) {
-            $cmin() = curmin; $cmin_ind() = curmin_ind;
-            $cmax() = curmax; $cmax_ind() = curmax_ind;
-         } else {
-            $SETBAD(cmin()); $SETBAD(cmin_ind());
-            $SETBAD(cmax()); $SETBAD(cmax_ind());
-            $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
-            $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
-         }',
-	Doc =>
-'
+pp_def('crossp',
+       Doc => <<'EOD',
 =for ref
 
-Find minimum and maximum and their indices for a given piddle;
+Cross product of two 3D vectors
 
-=for usage
+After
 
- perldl> $a=pdl [[-2,3,4],[1,0,3]]
- perldl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
- perldl> p $min, $max, $min_ind, $max_ind
- [-2 0] [4 3] [0 1] [2 2]
+=for example
 
-See also L<minmax|/minmax>, which clumps the piddle together.
+ $c = crossp $a, $b
 
-',
-	BadDoc =>
-'If C<a()> contains only bad data, then the output piddles will
-be set bad, along with their bad flag.
-Otherwise they will have their bad flags cleared,
-since they will not contain any bad values.',
-	); # pp_def minmaximum
+the inner product C<$c*$a> and C<$c*$b> will be zero, i.e. C<$c> is
+orthogonal to C<$a> and C<$b>
 
+=cut
+EOD
+       Pars => 'a(tri=3); b(tri); [o] c(tri)',
+       Code => 
+       crassgn(0,1,2)."\n". 
+       crassgn(1,2,0)."\n".
+       crassgn(2,0,1),
+       );
+
+pp_def('norm',
+       HandleBad => 1,
+       Pars => 'vec(n); [o] norm(n)',
+       Doc => 'Normalises a vector to unit Euclidean length',
+       Code => 
+       'double sum=0;
+	loop(n) %{ sum += $vec()*$vec(); %}
+	if (sum > 0) {
+	  sum = sqrt(sum);
+	  loop(n) %{ $norm() = $vec()/sum; %}
+	} else {
+	  loop(n) %{ $norm() = $vec(); %}
+	}',
+       BadCode => 
+       'double sum=0;
+        int flag = 0;
+	loop(n) %{ 
+           sum += $vec()*$vec(); 
+           flag = 1;
+        %}
+        if ( flag ) {
+	   if (sum > 0) {
+	      sum = sqrt(sum);
+	      loop(n) %{ 
+                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                 else                 { $norm() = $vec()/sum; }
+              %}
+	   } else {
+	      loop(n) %{ 
+                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                 else                 { $norm() = $vec(); }
+              %}
+           }
+        } else {
+	   loop(n) %{ 
+              $SETBAD(norm());
+           %}
+	}',
+);
+
+# this one was motivated by the need to compute
+# the circular mean efficiently
+# without it could not be done efficiently or without
+# creating large intermediates (check pdl-porters for
+# discussion)
+# see PDL::ImageND for info about the circ_mean function
+pp_def(
+    'indadd',
+    HandleBad => 1,
+    Pars => 'a(); int ind(); [o] sum(m)',
+    Code => 
+    'register int foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     $sum(m => foo) += $a();',
+    BadCode => 
+    'register int foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
+     else               { $sum(m => foo) += $a(); }',
+    BadDoc =>
+'The routine barfs if any of the indices are bad.',
+    Doc=>'
+=for ref
+
+Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:
+
+ sum(ind) += a
+
+=for example
+
+Simple Example:
+
+  $a = 2;
+  $ind = 3;
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum
+  #Result: ( 2 added to element 3 of $sum)
+  # [0 0 0 2 0 0 0 0 0 0]
+
+Threaded Example:
+
+  $a = pdl( 1,2,3);
+  $ind = pdl( 1,4,6);
+  $sum = zeroes(10);
+  indadd($a,$ind, $sum);
+  print $sum."\n";
+  #Result: ( 1, 2, and 3 added to elements 1,4,6 $sum)
+  # [0 1 0 0 2 0 3 0 0 0]
+
+=cut
+');
+
+# 1D convolution
+# useful for threaded 1D filters
+pp_addhdr('
+/* Fast Modulus with proper negative behaviour */
+#define REALMOD(a,b) while ((a)>=(b)) (a) -= (b); while ((a)<0) (a) += (b); 
+');
+pp_def('conv1d',
+       Doc => << 'EOD',
+=for ref
+
+1d convolution along first dimension
+
+=for example
+
+  $con = conv1d sequence(10), pdl(-1,0,1), {Boundary => 'reflect'};
+
+By default, periodic boundary conditions are assumed (i.e. wrap around).
+Alternatively, you can request reflective boundary conditions using
+the C<Boundary> option:
+
+  {Boundary => 'reflect'} # case in 'reflect' doesn't matter
+
+The convolution is performed along the first dimension. To apply it across
+another dimension use the slicing routines, e.g.
+
+  $b = $a->mv(2,0)->conv1d($kernel)->mv(0,2); # along third dim
+
+This function is useful for threaded filtering of 1D signals.
+
+Compare also L<conv2d|PDL::Image2D/conv2d>, L<convolve|PDL::ImageND/convolve>,
+L<fftconvolve|PDL::FFT/fftconvolve>, L<fftwconv|PDL::FFTW/fftwconv>,
+L<rfftwconv|PDL::FFTW/rfftwconv>
+
+EOD
+        Pars => 'a(m); kern(p); [o]b(m);',
+        OtherPars => 'int reflect;',
+        PMCode => '
+        
+sub PDL::conv1d {
+   my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+   die \'Usage: conv1d( a(m), kern(p), [o]b(m), {Options} )\'
+      if $#_<1 || $#_>2;
+   my($a,$kern) = @_;
+   my $c = $#_ == 2 ? $_[2] : PDL->null;
+   &PDL::_conv1d_int($a,$kern,$c,
+		     !(defined $opt && exists $$opt{Boundary}) ? 0 :
+		     lc $$opt{Boundary} eq "reflect");
+   return $c;
+}
+
+',              
+        Code => '
+           int i,i1,i2,poff;
+           double tmp;
+           int reflect = $COMP(reflect); 
+           int m_size = $COMP(__m_size); 
+           int p_size = $COMP(__p_size); 
+
+           poff = (p_size-1)/2;
+           for(i=0; i<m_size; i++) { 
+              tmp = 0; 
+                  for(i1=0; i1<p_size; i1++) { 
+                     i2 = i+i1 - poff; 
+                     if (reflect && i2<0)
+                     	i2 = -i2;
+                     if (reflect && i2>=m_size)
+                     	i2 = m_size-(i2-m_size+1);
+
+                     REALMOD(i2,m_size); 
+                     tmp += $a(m=>i2) * $kern(p=>i1);
+                  }
+              $b(m=>i) = tmp;
+           }
+');
+
+
+#####################################################################
+#  clipping routines
+#####################################################################
+
+# clipping
 
 for my $opt (
 	     ['hclip','>'],
@@ -1340,6 +611,10 @@ sub PDL::clip {
 
 EOD
 
+############################################################
+# elementary statistics and histograms
+############################################################
+
 pp_def(
        'wtstat',
        HandleBad => 1,
@@ -1393,545 +668,83 @@ The formula is
 have its bad flag set if the output contains any bad data.',
        );
 
+pp_add_exported('','stats');
 pp_addpm(<<'EOD');
 
-=head2 random
+=head2 stats
 
 =for ref
 
-Constructor which returns piddle of random numbers
+Calculates useful statistics on a piddle
 
 =for usage
 
- $a = random([type], $nx, $ny, $nz,...);
- $a = random $b;
+ ($mean,$rms,$median,$min,$max) = stats($piddle,[$weights]);
 
-etc (see L<zeroes|PDL::Core/zeroes>).
+This utility calculates all the most useful
+quantities in one call.
 
-This is the uniform distribution between 0 and 1 (assumedly
-excluding 1 itself). The arguments are the same as C<zeroes>
-(q.v.) - i.e. one can specify dimensions, types or give
-a template.
+B<Note:> The RMS value that this function returns in the RMS 
+deviation from the mean, also known as the population standard-
+deviation.
 
-=head2 randsym
-
-=for ref
-
-Constructor which returns piddle of random numbers
-
-=for usage
-
- $a = randsym([type], $nx, $ny, $nz,...);
- $a = randsym $b;
-
-etc (see L<zeroes|PDL::Core/zeroes>).
-
-This is the uniform distribution between 0 and 1 (excluding both 0 and
-1, cf L<random|/random>). The arguments are the same as C<zeroes> (q.v.) -
-i.e. one can specify dimensions, types or give a template.
-
-=cut
 EOD
 
-pp_def(
-	'random',
-	Pars=>'a();',
-	PMFunc => '',
-	Code =>
-	'$a() = ((double)rand()) / (RAND_MAX+1.0);',
-	Doc=>undef,
-	PMCode=><<'EOD',
-sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
-sub PDL::random {
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_random_int($x);
-   return $x;
-}
-EOD
-);
+    if ( $bvalflag ) {
+	pp_addpm(<<'EOD');
+=for bad
 
-pp_def(
-	'randsym',
-	Pars=>'a();',
-	PMFunc => '',
-	Code =>
-	'$a() = (0.5+(double)rand()) / (RAND_MAX+1.0);',
-	Doc=>undef,
-	PMCode=><<'EOD',
-sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
-sub PDL::randsym {
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_randsym_int($x);
-   return $x;
-}
-EOD
-);
+The return values if all elements are bad is currently poorly
+defined.
 
+EOD
+} # if: bvalflag
 pp_addpm(<<'EOD');
-
-=head2 grandom
-
-=for ref
-
-Constructor which returns piddle of Gaussian random numbers
-
-=for usage
-
- $a = grandom([type], $nx, $ny, $nz,...);
- $a = grandom $b;
-
-etc (see L<zeroes|PDL::Core/zeroes>).
-
-This is generated using the math library routine C<ndtri>.
-
-Mean = 0, Stddev = 1
-
 =cut
 
-sub grandom { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->grandom : PDL->grandom(@_) }
-sub PDL::grandom {
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   use PDL::Math 'ndtri';
-   $x .= ndtri(randsym($x));
-   return $x;
-}
-
+*stats	  = \&PDL::stats;
+sub PDL::stats {
+    barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
+    my ($data,$weights) = @_;
+    my ($mean,$rms);
+    if ($#_==0) {
 EOD
 
-pp_add_exported('','grandom');
-
-# note: the extra code that adding 'HandleBad => 1' creates is
-# unneeded here. Things could be made clever enough to work this out,
-# but it's very low priority.
-# It does add doc information though, and lets people know it's been
-# looked at for bad value support
-#
-# argh - using NaN/Inf for float/double bad values screws this up
-# (Something's gone wrong: nan cannot be converted by whichdatatype_double at ...
-# in a call to PDL::Primitive::assgn)
-# - unfortunately uncommenting BadCode/HandleBad doesn't help.
-#  
-# Can't this be handled in Core.pm when '.=' is overloaded ?
-#
-
-pp_def(
-       'assgn',
-#       HandleBad => 1,
-       Pars => 'a(); [o]b();',
-       Code =>
-       '$b() = $a();',
-#       BadCode =>
-#       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
-       Doc =>
-'Plain numerical assignment. This is used to implement the ".=" operator',
-); # pp_def assgn
-
-# The last x is ignored...
-pp_def('vsearch',
-       HandleBad => 0,
-       BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'i(); x(n); int [o]ip()',
-	GenericTypes => ['F','D'], # too restrictive ?
-	Code => 'int carp=0;
-		 threadloop %{
-		   long n1 = $SIZE(n)-1;
-                   long jl=-1, jh=n1, m;
-		   int up = ($x(n => n1) > $x(n => 0));
-		   $GENERIC() d;
-  		   while (jh-jl > 1)  /* binary search */
-    			{
-      				m = (jh+jl) >> 1;
-      				if ($i() > $x(n => m) == up)
-					jl = m;
-      				else
-					jh = m;
-    			}
-		   if (jl == -1) {
-			jh = 0;
-                   } else if (jl == n1) {
-			if ($i() != $x(n => n1)) carp = 1;
-			jh = n1;
-		   } else {
-			jh = jl+1;
-		   }
-		   $ip() = jh;
-		%}
-		if (carp) warn("some values had to be extrapolated");
-', Doc=><<'EOD');
-
-=for ref
-
-routine for searching 1D values i.e. step-function interpolation.
-
-=for usage
-
- $inds = vsearch($vals, $xs);
-
-Returns for each value of C<$vals> the index of the least larger member
-of C<$xs> (which need to be in increasing order). If the value is larger
-than any member of C<$xs>, the index to the last element of C<$xs> is 
-returned.
-
-=for example
-
-This function is useful e.g. when you have a list of probabilities
-for events and want to generate indices to events:
-
- $a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
- $b = random 20;
- $c = vsearch($b, $a); # Now, $c will have the appropriate distr.
-
-It is possible to use the L<cumusumover|/cumusumover> function to obtain
-cumulative probabilities from absolute probabilities.
-
-EOD
-
-pp_def('interpolate',
-       HandleBad => 0,
-       BadDoc => 'needs major (?) work to handles bad values',
-	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
-	GenericTypes => ['F','D'], # too restrictive ?
-	Code => '
-		 $GENERIC() d;
-		 long n  = $SIZE(n);
-		 long n1 = n-1;
-		 int up = ($x(n => n1) > $x(n => 0));
-                 long jl, jh, m;
-                 int carp;
-
-                 threadloop %{
-                   jl = -1;
-                   jh = n;
-                   carp = 0;
-  		   while (jh-jl > 1)  /* binary search */
-    			{
-      				m = (jh+jl) >> 1;
-      				if ($xi() > $x(n => m) == up)
-					jl = m;
-      				else
-					jh = m;
-    			}
-		   if (jl == -1) {
-			if ($xi() != $x(n => 0)) carp = 1;
-			jl = 0;
-                   } else if (jh == n) {
-			if ($xi() != $x(n => n1)) carp = 1;
-			jl = n1-1;
-		   }
-		   jh = jl+1;
-		   if ((d = $x(n => jh)-$x(n => jl)) == 0)
-			barf("identical abscissas");
-		   d = ($x(n => jh)-$xi())/d;
-		   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
-                   $err() = carp;
-		%}
-', Doc=><<'EOD');
-
-=for ref
-
-routine for 1D linear interpolation
-
-=for usage
-
- ( $yi, $err ) = interpolate($xi, $x, $y)
-
-Given a set of points C<($x,$y)>, use linear interpolation
-to find the values C<$yi> at a set of points C<$xi>.
-
-C<interpolate> uses a binary search to find the suspects, er...,
-interpolation indices and therefore abscissas (ie C<$x>)
-have to be I<strictly> ordered (increasing or decreasing). 
-For interpolation at lots of
-closely spaced abscissas an approach that uses the last index found as
-a start for the next search can be faster (compare Numerical Recipes
-C<hunt> routine). Feel free to implement that on top of the binary
-search if you like. For out of bounds values it just does a linear
-extrapolation and sets the corresponding element of C<$err> to 1,
-which is otherwise 0.
-
-See also L<interpol|/interpol>, which uses the same routine,
-differing only in the handling of extrapolation - an error message
-is printed rather than returning an error piddle.
-
-=cut
-EOD
-
-pp_add_exported('', 'interpol');
-pp_addpm(<<'EOD');
-
-=head2 interpol
-
-=for sig
-
- Signature: (xi(); x(n); y(n); [o] yi())
-
-=for ref
-
-routine for 1D linear interpolation
-
-=for usage
-
- $yi = interpol($xi, $x, $y)
-
-C<interpol> uses the same search method as L<interpolate|/interpolate>,
-hence C<$x> must be I<strictly> ordered (either increasing or decreasing).
-The difference occurs in the handling of out-of-bounds values; here
-an error message is printed.
-
-=cut
-
-# kept in for backwards compatability
-sub interpol ($$$;$) {
-    my $xi = shift;
-    my $x  = shift;
-    my $y  = shift;
-
-    my $yi;
-    if ( $#_ == 0 ) { $yi = $_[0]; }
-    else            { $yi = PDL->null; }
-
-    interpolate( $xi, $x, $y, $yi, my $err = PDL->null );
-    print "some values had to be extrapolated\n"
-	if any $err;
-
-    return $yi if $#_ == -1;
-
-} # sub: interpol()
-
-EOD
-
-pp_add_exported("", 'one2nd');
-pp_addpm(<<'EOD');
-
-=head2 one2nd
-
-=for ref
-
-Converts a one dimensional index piddle to a set of ND coordinates
-
-=for usage
-
- @coords=one2nd($a, $indices)
-
-returns an array of piddles containing the ND indexes corresponding to
-the one dimensional list indices. The indices are assumed to correspond
-to array C<$a> clumped using C<clump(-1)>. This routine is used in 
-L<whichND|/whichND>,
-but is useful on its own occasionally.
-
-=for example
-
- perldl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
- perldl> $maxind=maximum_ind($c); p $maxind;
- 6
- perldl> print one2nd($a, maximum_ind($c))
- 0 1 1
- perldl> p $a->at(0,1,1)
- 3
-
-=cut
-
-*one2nd = \&PDL::one2nd;
-sub PDL::one2nd {
-  barf "Usage: one2nd $array $indices\n" if $#_ != 1;
-  my ($a, $ind)=@_;
-  my @dimension=$a->dims;
-  my(@index);
-  my $count=0;
-  foreach (@dimension) {
-    $index[$count++]=$ind % $_;
-    $ind=long($ind/$_);
-  }
-  return @index;
-}
-
-EOD
-
-my $doc_which = <<'EOD';
-
-=for ref
-
-Returns piddle of indices of non-zero values.
-
-=for usage
-
- $i = which($mask);
-
-returns a pdl with indices for all those elements that are
-nonzero in the mask. Note that mask really has to be 1-D (use C<clump(-1)>
-if you need to work with ND-images)
-
-If you want to return both the indices of non-zero values and the
-complement, use the function L<which_both|/which_both>.
-
-=for example
-
- perldl> $x = sequence(10); p $x
- [0 1 2 3 4 5 6 7 8 9]
- perldl> $indx = which($x>6); p $indx
- [7 8 9]
-
-EOD
-
-my $doc_which_both = <<'EOD';
-
-=for ref
-
-Returns piddle of indices of non-zero values and their complement
-
-=for usage
-
- ($i, $c_i) = which_both($mask);
-
-This works just as which, but the complement of C<$i> will be in C<$c_i>.
-
-=for example
-
- perldl> $x = sequence(10); p $x
- [0 1 2 3 4 5 6 7 8 9]
- perldl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
- [5 6 7 8 9]
- [0 1 2 3 4]
-
-EOD
-
-    for (
-	 {Name=>'which',
-	  Pars => 'mask(n); int [o] inds(m);',
-	  Variables => 'int dm=0;',
-	  Elseclause => "",
-	  Autosize => '$SIZE(m) = sum;',
-	  Doc => $doc_which
-	  },
-	 {Name => 'which_both',
-	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
-	  Variables => 'int dm=0; int dm2=0;',
-	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
-	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
-	  Doc => $doc_which_both
-	  }
-	 )
-{
-    pp_def($_->{Name},
-	   Doc => $_->{Doc},
-	   Pars => $_->{Pars},
-	   Code => $_->{Variables} .
-                 'loop(n) %{
-			if ($mask()) {
-				$inds(m => dm) = n;
-				dm++;
-			}'.$_->{Elseclause} . "\n".
-		' %}',
-#		the next one is currently a dirty hack
-#               this will probably break once dataflow is enabled again
-#               *unless* we have made sure that mask is physical by now!!!
-	   RedoDimsCode => '
-		PDL_Long sum = 0;
-		/* not sure if this is necessary */
-		pdl * dpdl = $PDL(mask);
-		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
-		PDL_Long inc = PDL_REPRINC(dpdl,0);
-		PDL_Long offs = PDL_REPROFFS(dpdl);
-		int i;
-
-		if (dpdl->ndims != 1)
-		  barf("dimflag currently works only with 1D pdls");
-
-		for (i=0; i<dpdl->dims[0]; i++) {
-		       if ( *(m_datap+inc*i+offs)) sum++;
-		}
-
-		'.$_->{Autosize} . '
-		/* printf("RedoDimsCode: setting dim m to %ld\n",sum); */'
-	   );
-}
-
-pp_addpm(<<'EOD'
-=head2 where
-
-=for ref
-
-Returns indices to non-zero values or those values from another piddle.
-
-=for usage
-
- $i = $x->where($x+5 > 0); # $i contains elements of $x
-                           # where mask ($x+5 > 0) is 1
-
-Note: C<$i> is always 1-D, even if C<$x> is >1-D. The first argument
-(the values) and the second argument (the mask) currently have to have
-the same initial dimensions (or horrible things happen).
-
-It is also possible to use the same mask for several piddles with
-the same call:
-
- ($i,$j,$k) = where($x,$y,$z, $x+5>0);
-
-=cut
-
-sub PDL::where {
-    barf "Usage: where( $pdl1, ..., $pdlN, $mask )\n" if $#_ == 0;
-
-    if($#_ == 1) {
-	my($data,$mask) = @_;
-	$data = $_[0]->clump(-1) if $_[0]->getndims>1;
-	$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
-	return $data->index($mask->which());
-    } else {
-	if($_[-1]->getndims > 1) {
-	    my $mask = $_[-1]->clump(-1)->which;
-	    return map {$_->clump(-1)->index($mask)} @_[0..$#_-1];
-	} else {
-	    my $mask = $_[-1]->which;
-	    return map {$_->index($mask)} @_[0..$#_-1];
-	}
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+	my $npts = $data->ngood;
+!NO!SUBS!
+} else {
+	pp_addpm(<<'!NO!SUBS!');
+	my $npts = $data->nelem;
+!NO!SUBS!
+
+} # if: $bvalflag
+
+       pp_addpm(<<'EOD');
+       if ( $npts == 0 ) {
+	   $mean = 0.0; $rms = 0.0;
+       } else {
+	   $mean = $data->dsum / $npts;
+	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / $npts );
+       }
     }
+    else {
+       my $wtsum = $weights->dsum;
+       if ( $wtsum == 0.0 ) {
+	   $mean = 0.0; $rms = 0.0;
+       } else {
+	   $mean = (($weights*$data)->dsum) / $wtsum;
+	   $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
+       }
+    }
+    my ($median,$min,$max) = ($data->median,$data->min,$data->max);
+    print "Mean = $mean, RMS = $rms, Median = $median\n".
+          "Min  = $min, Max = $max\n" if $PDL::verbose;
+    return $mean unless wantarray;
+    return ($mean,$rms,$median,$min,$max);
 }
-*where = \&PDL::where;
-
 EOD
-);
-
-pp_add_exported("", 'where');
-
-pp_def('append',
-	Pars => 'a(n); b(m); [o] c(mn)',
-# note that ideally we want to say '$SIZE(mn) = $SIZE(m)+$SIZE(n);'
-# but that requires placing RedoDimsParsedCode *after* assignment of
-# childdims to $SIZE(XXX)!!!  XXXXXmake that workXXXXX
-	RedoDimsCode => '
-		pdl * dpdla = $PDL(a);
-		pdl * dpdlb = $PDL(b);
-                $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
-                        (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
-		',
-	Code => 'register PDL_Long mnp;
-		 PDL_Long ns = $SIZE(n);
-                 threadloop %{
-                       loop(n) %{ $c(mn => n) = $a(); %}
-		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
-		 %}',
-	Doc =>
-'=for ref
-
-append two piddles by concantening along their respective first dimensions
-
-=for example
-
- $a = ones(2,4,7);
- $b = sequence 5;
- $c = $a->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
-
-C<append> appends two piddles along their first dims. Rest of the dimensions
-must be compatible in the threading sense. Resulting size of first dim is
-the sum of the sizes of the first dims of the two argument piddles -
-ie C<n + m>.
-
-'
-   );
 
 for(
     {Name => 'histogram',
@@ -2141,152 +954,578 @@ upper limit is put in the last bin.
 EOD
 }
 
-sub crassgn {
-  "\$c(tri => $_[0]) = \$a(tri => $_[1])*\$b(tri => $_[2]) -
-	\$a(tri => $_[2])*\$b(tri => $_[1]);"
+
+###########################################################
+# a number of constructors: fibonacci, append, axisvalues &
+# random numbers
+###########################################################
+
+pp_def('fibonacci',
+        Pars => '[o]x(n);',
+	Doc=>'Constructor - a vector with Fibonacci\'s sequence',
+	PMFunc=>'',
+	PMCode=><<'EOD',
+sub fibonacci { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->fibonacci : PDL->fibonacci(@_) }
+sub PDL::fibonacci{
+   my $class = shift;
+   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   &PDL::_fibonacci_int($x->clump(-1));
+   return $x;
 }
+EOD
+     Code => '
+        PDL_Long i=0;
+        $GENERIC() x1, x2;
 
-pp_def('crossp',
-       Doc => <<'EOD',
-=for ref
+        x1 = 1; x2 = 0;
 
-Cross product of two 3D vectors
+        loop(n) %{
+           $x() = x1 + x2;
+           if (i++>0) {
+              x2 = x1;
+              x1 = $x();
+           }
+        %}
+');
 
-After
+pp_def('append',
+	Pars => 'a(n); b(m); [o] c(mn)',
+# note that ideally we want to say '$SIZE(mn) = $SIZE(m)+$SIZE(n);'
+# but that requires placing RedoDimsParsedCode *after* assignment of
+# childdims to $SIZE(XXX)!!!  XXXXXmake that workXXXXX
+	RedoDimsCode => '
+		pdl * dpdla = $PDL(a);
+		pdl * dpdlb = $PDL(b);
+                $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
+                        (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
+		',
+	Code => 'register PDL_Long mnp;
+		 PDL_Long ns = $SIZE(n);
+                 threadloop %{
+                       loop(n) %{ $c(mn => n) = $a(); %}
+		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
+		 %}',
+	Doc =>
+'=for ref
+
+append two piddles by concantening along their respective first dimensions
 
 =for example
 
- $c = crossp $a, $b
+ $a = ones(2,4,7);
+ $b = sequence 5;
+ $c = $a->append($b);  # size of $c is now (7,4,7) (a jumbo-piddle ;)
 
-the inner product C<$c*$a> and C<$c*$b> will be zero, i.e. C<$c> is
-orthogonal to C<$a> and C<$b>
+C<append> appends two piddles along their first dims. Rest of the dimensions
+must be compatible in the threading sense. Resulting size of first dim is
+the sum of the sizes of the first dims of the two argument piddles -
+ie C<n + m>.
 
-=cut
-EOD
-       Pars => 'a(tri=3); b(tri); [o] c(tri)',
-       Code => 
-       crassgn(0,1,2)."\n". 
-       crassgn(1,2,0)."\n".
-       crassgn(2,0,1),
-       );
+'
+   );
 
-pp_def('norm',
-       HandleBad => 1,
-       Pars => 'vec(n); [o] norm(n)',
-       Doc => 'Normalises a vector to unit Euclidean length',
-       Code => 
-       'double sum=0;
-	loop(n) %{ sum += $vec()*$vec(); %}
-	if (sum > 0) {
-	  sum = sqrt(sum);
-	  loop(n) %{ $norm() = $vec()/sum; %}
-	} else {
-	  loop(n) %{ $norm() = $vec(); %}
-	}',
-       BadCode => 
-       'double sum=0;
-        int flag = 0;
-	loop(n) %{ 
-           sum += $vec()*$vec(); 
-           flag = 1;
-        %}
-        if ( flag ) {
-	   if (sum > 0) {
-	      sum = sqrt(sum);
-	      loop(n) %{ 
-                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
-                 else                 { $norm() = $vec()/sum; }
-              %}
-	   } else {
-	      loop(n) %{ 
-                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
-                 else                 { $norm() = $vec(); }
-              %}
-           }
-        } else {
-	   loop(n) %{ 
-              $SETBAD(norm());
-           %}
-	}',
-);
+pp_def( 'axisvalues',
+	Pars => '[o,nc]a(n)',
+	Code => 'loop(n) %{ $a() = n; %}',
+	Doc => '
+=for ref
 
-pp_add_exported('','stats');
+Internal routine
+
+C<axisvalues> is the internal primitive that implements 
+L<axisvals|PDL::Basic/axisvals> 
+and alters its argument.
+
+'
+       ); # pp_def: axisvalues
+
+
 pp_addpm(<<'EOD');
 
-=head2 stats
+=head2 random
 
 =for ref
 
-Calculates useful statistics on a piddle
+Constructor which returns piddle of random numbers
 
 =for usage
 
- ($mean,$rms,$median,$min,$max) = stats($piddle,[$weights]);
+ $a = random([type], $nx, $ny, $nz,...);
+ $a = random $b;
 
-This utility calculates all the most useful
-quantities in one call.
+etc (see L<zeroes|PDL::Core/zeroes>).
 
-B<Note:> The RMS value that this function returns in the RMS 
-deviation from the mean, also known as the population standard-
-deviation.
+This is the uniform distribution between 0 and 1 (assumedly
+excluding 1 itself). The arguments are the same as C<zeroes>
+(q.v.) - i.e. one can specify dimensions, types or give
+a template.
 
-EOD
+=head2 randsym
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'EOD');
-=for bad
+=for ref
 
-The return values if all elements are bad is currently poorly
-defined.
+Constructor which returns piddle of random numbers
 
-EOD
-} # if: bvalflag
-pp_addpm(<<'EOD');
+=for usage
+
+ $a = randsym([type], $nx, $ny, $nz,...);
+ $a = randsym $b;
+
+etc (see L<zeroes|PDL::Core/zeroes>).
+
+This is the uniform distribution between 0 and 1 (excluding both 0 and
+1, cf L<random|/random>). The arguments are the same as C<zeroes> (q.v.) -
+i.e. one can specify dimensions, types or give a template.
+
 =cut
-
-*stats	  = \&PDL::stats;
-sub PDL::stats {
-    barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
-    my ($data,$weights) = @_;
-    my ($mean,$rms);
-    if ($#_==0) {
 EOD
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->ngood;
-!NO!SUBS!
-} else {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->nelem;
-!NO!SUBS!
-
-} # if: $bvalflag
-
-       pp_addpm(<<'EOD');
-       if ( $npts == 0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = $data->dsum / $npts;
-	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / $npts );
-       }
-    }
-    else {
-       my $wtsum = $weights->dsum;
-       if ( $wtsum == 0.0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = (($weights*$data)->dsum) / $wtsum;
-	   $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
-       }
-    }
-    my ($median,$min,$max) = ($data->median,$data->min,$data->max);
-    print "Mean = $mean, RMS = $rms, Median = $median\n".
-          "Min  = $min, Max = $max\n" if $PDL::verbose;
-    return $mean unless wantarray;
-    return ($mean,$rms,$median,$min,$max);
+pp_def(
+	'random',
+	Pars=>'a();',
+	PMFunc => '',
+	Code =>
+	'$a() = ((double)rand()) / (RAND_MAX+1.0);',
+	Doc=>undef,
+	PMCode=><<'EOD',
+sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
+sub PDL::random {
+   my $class = shift;
+   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   &PDL::_random_int($x);
+   return $x;
 }
 EOD
+);
+
+pp_def(
+	'randsym',
+	Pars=>'a();',
+	PMFunc => '',
+	Code =>
+	'$a() = (0.5+(double)rand()) / (RAND_MAX+1.0);',
+	Doc=>undef,
+	PMCode=><<'EOD',
+sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
+sub PDL::randsym {
+   my $class = shift;
+   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   &PDL::_randsym_int($x);
+   return $x;
+}
+EOD
+);
+
+pp_addpm(<<'EOD');
+
+=head2 grandom
+
+=for ref
+
+Constructor which returns piddle of Gaussian random numbers
+
+=for usage
+
+ $a = grandom([type], $nx, $ny, $nz,...);
+ $a = grandom $b;
+
+etc (see L<zeroes|PDL::Core/zeroes>).
+
+This is generated using the math library routine C<ndtri>.
+
+Mean = 0, Stddev = 1
+
+=cut
+
+sub grandom { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->grandom : PDL->grandom(@_) }
+sub PDL::grandom {
+   my $class = shift;
+   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+   use PDL::Math 'ndtri';
+   $x .= ndtri(randsym($x));
+   return $x;
+}
+
+EOD
+
+pp_add_exported('','grandom');
+
+###############################################################
+# routines somehow related to interpolation
+###############################################################
+
+# The last x is ignored...
+pp_def('vsearch',
+       HandleBad => 0,
+       BadDoc => 'needs major (?) work to handles bad values',
+	Pars => 'i(); x(n); int [o]ip()',
+	GenericTypes => ['F','D'], # too restrictive ?
+	Code => 'int carp=0;
+		 threadloop %{
+		   long n1 = $SIZE(n)-1;
+                   long jl=-1, jh=n1, m;
+		   int up = ($x(n => n1) > $x(n => 0));
+		   $GENERIC() d;
+  		   while (jh-jl > 1)  /* binary search */
+    			{
+      				m = (jh+jl) >> 1;
+      				if ($i() > $x(n => m) == up)
+					jl = m;
+      				else
+					jh = m;
+    			}
+		   if (jl == -1) {
+			jh = 0;
+                   } else if (jl == n1) {
+			if ($i() != $x(n => n1)) carp = 1;
+			jh = n1;
+		   } else {
+			jh = jl+1;
+		   }
+		   $ip() = jh;
+		%}
+		if (carp) warn("some values had to be extrapolated");
+', Doc=><<'EOD');
+
+=for ref
+
+routine for searching 1D values i.e. step-function interpolation.
+
+=for usage
+
+ $inds = vsearch($vals, $xs);
+
+Returns for each value of C<$vals> the index of the least larger member
+of C<$xs> (which need to be in increasing order). If the value is larger
+than any member of C<$xs>, the index to the last element of C<$xs> is 
+returned.
+
+=for example
+
+This function is useful e.g. when you have a list of probabilities
+for events and want to generate indices to events:
+
+ $a = pdl(.01,.86,.93,1); # Barnsley IFS probabilities cumulatively
+ $b = random 20;
+ $c = vsearch($b, $a); # Now, $c will have the appropriate distr.
+
+It is possible to use the L<cumusumover|/cumusumover> function to obtain
+cumulative probabilities from absolute probabilities.
+
+EOD
+
+pp_def('interpolate',
+       HandleBad => 0,
+       BadDoc => 'needs major (?) work to handles bad values',
+	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
+	GenericTypes => ['F','D'], # too restrictive ?
+	Code => '
+		 $GENERIC() d;
+		 long n  = $SIZE(n);
+		 long n1 = n-1;
+		 int up = ($x(n => n1) > $x(n => 0));
+                 long jl, jh, m;
+                 int carp;
+
+                 threadloop %{
+                   jl = -1;
+                   jh = n;
+                   carp = 0;
+  		   while (jh-jl > 1)  /* binary search */
+    			{
+      				m = (jh+jl) >> 1;
+      				if ($xi() > $x(n => m) == up)
+					jl = m;
+      				else
+					jh = m;
+    			}
+		   if (jl == -1) {
+			if ($xi() != $x(n => 0)) carp = 1;
+			jl = 0;
+                   } else if (jh == n) {
+			if ($xi() != $x(n => n1)) carp = 1;
+			jl = n1-1;
+		   }
+		   jh = jl+1;
+		   if ((d = $x(n => jh)-$x(n => jl)) == 0)
+			barf("identical abscissas");
+		   d = ($x(n => jh)-$xi())/d;
+		   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
+                   $err() = carp;
+		%}
+', Doc=><<'EOD');
+
+=for ref
+
+routine for 1D linear interpolation
+
+=for usage
+
+ ( $yi, $err ) = interpolate($xi, $x, $y)
+
+Given a set of points C<($x,$y)>, use linear interpolation
+to find the values C<$yi> at a set of points C<$xi>.
+
+C<interpolate> uses a binary search to find the suspects, er...,
+interpolation indices and therefore abscissas (ie C<$x>)
+have to be I<strictly> ordered (increasing or decreasing). 
+For interpolation at lots of
+closely spaced abscissas an approach that uses the last index found as
+a start for the next search can be faster (compare Numerical Recipes
+C<hunt> routine). Feel free to implement that on top of the binary
+search if you like. For out of bounds values it just does a linear
+extrapolation and sets the corresponding element of C<$err> to 1,
+which is otherwise 0.
+
+See also L<interpol|/interpol>, which uses the same routine,
+differing only in the handling of extrapolation - an error message
+is printed rather than returning an error piddle.
+
+=cut
+EOD
+
+pp_add_exported('', 'interpol');
+pp_addpm(<<'EOD');
+
+=head2 interpol
+
+=for sig
+
+ Signature: (xi(); x(n); y(n); [o] yi())
+
+=for ref
+
+routine for 1D linear interpolation
+
+=for usage
+
+ $yi = interpol($xi, $x, $y)
+
+C<interpol> uses the same search method as L<interpolate|/interpolate>,
+hence C<$x> must be I<strictly> ordered (either increasing or decreasing).
+The difference occurs in the handling of out-of-bounds values; here
+an error message is printed.
+
+=cut
+
+# kept in for backwards compatability
+sub interpol ($$$;$) {
+    my $xi = shift;
+    my $x  = shift;
+    my $y  = shift;
+
+    my $yi;
+    if ( $#_ == 0 ) { $yi = $_[0]; }
+    else            { $yi = PDL->null; }
+
+    interpolate( $xi, $x, $y, $yi, my $err = PDL->null );
+    print "some values had to be extrapolated\n"
+	if any $err;
+
+    return $yi if $#_ == -1;
+
+} # sub: interpol()
+
+EOD
+
+
+##############################################################
+# things related to indexing: one2nd, which, where
+##############################################################
+
+pp_add_exported("", 'one2nd');
+pp_addpm(<<'EOD');
+
+=head2 one2nd
+
+=for ref
+
+Converts a one dimensional index piddle to a set of ND coordinates
+
+=for usage
+
+ @coords=one2nd($a, $indices)
+
+returns an array of piddles containing the ND indexes corresponding to
+the one dimensional list indices. The indices are assumed to correspond
+to array C<$a> clumped using C<clump(-1)>. This routine is used in 
+L<whichND|/whichND>,
+but is useful on its own occasionally.
+
+=for example
+
+ perldl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
+ perldl> $maxind=maximum_ind($c); p $maxind;
+ 6
+ perldl> print one2nd($a, maximum_ind($c))
+ 0 1 1
+ perldl> p $a->at(0,1,1)
+ 3
+
+=cut
+
+*one2nd = \&PDL::one2nd;
+sub PDL::one2nd {
+  barf "Usage: one2nd $array $indices\n" if $#_ != 1;
+  my ($a, $ind)=@_;
+  my @dimension=$a->dims;
+  my(@index);
+  my $count=0;
+  foreach (@dimension) {
+    $index[$count++]=$ind % $_;
+    $ind=long($ind/$_);
+  }
+  return @index;
+}
+
+EOD
+
+my $doc_which = <<'EOD';
+
+=for ref
+
+Returns piddle of indices of non-zero values.
+
+=for usage
+
+ $i = which($mask);
+
+returns a pdl with indices for all those elements that are
+nonzero in the mask. Note that mask really has to be 1-D (use C<clump(-1)>
+if you need to work with ND-images)
+
+If you want to return both the indices of non-zero values and the
+complement, use the function L<which_both|/which_both>.
+
+=for example
+
+ perldl> $x = sequence(10); p $x
+ [0 1 2 3 4 5 6 7 8 9]
+ perldl> $indx = which($x>6); p $indx
+ [7 8 9]
+
+EOD
+
+my $doc_which_both = <<'EOD';
+
+=for ref
+
+Returns piddle of indices of non-zero values and their complement
+
+=for usage
+
+ ($i, $c_i) = which_both($mask);
+
+This works just as which, but the complement of C<$i> will be in C<$c_i>.
+
+=for example
+
+ perldl> $x = sequence(10); p $x
+ [0 1 2 3 4 5 6 7 8 9]
+ perldl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
+ [5 6 7 8 9]
+ [0 1 2 3 4]
+
+EOD
+
+    for (
+	 {Name=>'which',
+	  Pars => 'mask(n); int [o] inds(m);',
+	  Variables => 'int dm=0;',
+	  Elseclause => "",
+	  Autosize => '$SIZE(m) = sum;',
+	  Doc => $doc_which
+	  },
+	 {Name => 'which_both',
+	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
+	  Variables => 'int dm=0; int dm2=0;',
+	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
+	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
+	  Doc => $doc_which_both
+	  }
+	 )
+{
+    pp_def($_->{Name},
+	   Doc => $_->{Doc},
+	   Pars => $_->{Pars},
+	   Code => $_->{Variables} .
+                 'loop(n) %{
+			if ($mask()) {
+				$inds(m => dm) = n;
+				dm++;
+			}'.$_->{Elseclause} . "\n".
+		' %}',
+#		the next one is currently a dirty hack
+#               this will probably break once dataflow is enabled again
+#               *unless* we have made sure that mask is physical by now!!!
+	   RedoDimsCode => '
+		PDL_Long sum = 0;
+		/* not sure if this is necessary */
+		pdl * dpdl = $PDL(mask);
+		$GENERIC() *m_datap = (($GENERIC() *)(PDL_REPRP(dpdl)));
+		PDL_Long inc = PDL_REPRINC(dpdl,0);
+		PDL_Long offs = PDL_REPROFFS(dpdl);
+		int i;
+
+		if (dpdl->ndims != 1)
+		  barf("dimflag currently works only with 1D pdls");
+
+		for (i=0; i<dpdl->dims[0]; i++) {
+		       if ( *(m_datap+inc*i+offs)) sum++;
+		}
+
+		'.$_->{Autosize} . '
+		/* printf("RedoDimsCode: setting dim m to %ld\n",sum); */'
+	   );
+}
+
+pp_addpm(<<'EOD'
+=head2 where
+
+=for ref
+
+Returns indices to non-zero values or those values from another piddle.
+
+=for usage
+
+ $i = $x->where($x+5 > 0); # $i contains elements of $x
+                           # where mask ($x+5 > 0) is 1
+
+Note: C<$i> is always 1-D, even if C<$x> is >1-D. The first argument
+(the values) and the second argument (the mask) currently have to have
+the same initial dimensions (or horrible things happen).
+
+It is also possible to use the same mask for several piddles with
+the same call:
+
+ ($i,$j,$k) = where($x,$y,$z, $x+5>0);
+
+=cut
+
+sub PDL::where {
+    barf "Usage: where( $pdl1, ..., $pdlN, $mask )\n" if $#_ == 0;
+
+    if($#_ == 1) {
+	my($data,$mask) = @_;
+	$data = $_[0]->clump(-1) if $_[0]->getndims>1;
+	$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
+	return $data->index($mask->which());
+    } else {
+	if($_[-1]->getndims > 1) {
+	    my $mask = $_[-1]->clump(-1)->which;
+	    return map {$_->clump(-1)->index($mask)} @_[0..$#_-1];
+	} else {
+	    my $mask = $_[-1]->which;
+	    return map {$_->index($mask)} @_[0..$#_-1];
+	}
+    }
+}
+*where = \&PDL::where;
+
+EOD
+);
+
+pp_add_exported("", 'where');
 
 pp_addpm(<<'EOD'
 =head2 whichND
@@ -2324,84 +1563,5 @@ EOD
 );
 
 pp_add_exported("", 'whichND');
-
-pp_def('fibonacci',
-        Pars => '[o]x(n);',
-	Doc=>'Constructor - a vector with Fibonacci\'s sequence',
-	PMFunc=>'',
-	PMCode=><<'EOD',
-sub fibonacci { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->fibonacci : PDL->fibonacci(@_) }
-sub PDL::fibonacci{
-   my $class = shift;
-   my $x = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-   &PDL::_fibonacci_int($x->clump(-1));
-   return $x;
-}
-EOD
-     Code => '
-        PDL_Long i=0;
-        $GENERIC() x1, x2;
-
-        x1 = 1; x2 = 0;
-
-        loop(n) %{
-           $x() = x1 + x2;
-           if (i++>0) {
-              x2 = x1;
-              x1 = $x();
-           }
-        %}
-');
-
-pp_def(
-    'indadd',
-    HandleBad => 1,
-    Pars => 'a(); int ind(); [o] sum(m)',
-    Code => 
-    'register int foo = $ind();
-     if( foo<0 || foo>=$SIZE(m) ) {
-       barf("PDL::indadd: invalid index");
-     }
-     $sum(m => foo) += $a();',
-    BadCode => 
-    'register int foo = $ind();
-     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
-       barf("PDL::indadd: invalid index");
-     }
-     if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
-     else               { $sum(m => foo) += $a(); }',
-    BadDoc =>
-'The routine barfs if any of the indices are bad.',
-    Doc=>'
-=for ref
-
-Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:
-
- sum(ind) += a
-
-=for example
-
-Simple Example:
-
-  $a = 2;
-  $ind = 3;
-  $sum = zeroes(10);
-  indadd($a,$ind, $sum);
-  print $sum
-  #Result: ( 2 added to element 3 of $sum)
-  # [0 0 0 2 0 0 0 0 0 0]
-
-Threaded Example:
-
-  $a = pdl( 1,2,3);
-  $ind = pdl( 1,4,6);
-  $sum = zeroes(10);
-  indadd($a,$ind, $sum);
-  print $sum."\n";
-  #Result: ( 1, 2, and 3 added to elements 1,4,6 $sum)
-  # [0 1 0 0 2 0 3 0 0 0]
-
-=cut
-');
 
 pp_done();

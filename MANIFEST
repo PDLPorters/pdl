@@ -91,10 +91,13 @@ Basic/Pod/Philosophy.pod
 Basic/Pod/Tips.pod
 Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
+Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
+Basic/Ufunc/Makefile.PL
+Basic/Ufunc/ufunc.pd
 Basic/default.perldlrc
 COPYING
 Changes
@@ -626,6 +629,7 @@ t/primitive.t
 t/primitive2.t
 t/pthread.t
 t/quat.t
+t/reduce.t
 t/refs.t
 t/scope.t
 t/slatec.t

@@ -313,6 +313,31 @@ sub PDL::log10 {
 '
 );
 
+# note: the extra code that adding 'HandleBad => 1' creates is
+# unneeded here. Things could be made clever enough to work this out,
+# but it's very low priority.
+# It does add doc information though, and lets people know it's been
+# looked at for bad value support
+#
+# argh - using NaN/Inf for float/double bad values screws this up
+# (Something's gone wrong: nan cannot be converted by whichdatatype_double at ...
+# in a call to PDL::Primitive::assgn)
+# - unfortunately uncommenting BadCode/HandleBad doesn't help.
+#  
+# Can't this be handled in Core.pm when '.=' is overloaded ?
+#
+pp_def(
+       'assgn',
+#       HandleBad => 1,
+       Pars => 'a(); [o]b();',
+       Code =>
+       '$b() = $a();',
+#       BadCode =>
+#       'if ( $ISBAD(a()) ) { $SETBAD(b()); } else { $b() = $a(); }',
+       Doc =>
+'Plain numerical assignment. This is used to implement the ".=" operator',
+); # pp_def assgn
+
 #pp_export_nothing(); 
 
 pp_done();

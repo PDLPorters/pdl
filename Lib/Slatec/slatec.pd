@@ -364,6 +364,7 @@ pp_addpm(<<'END');
 use PDL::Core;
 use PDL::Basic;
 use PDL::Primitive;
+use PDL::Ufunc;
 use strict;
 
 # Note: handles only real symmetric positive-definite.

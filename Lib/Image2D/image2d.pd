@@ -17,7 +17,7 @@ of anywhere else to put them
 
 =cut
 
-use PDL::Primitive;  # ensure qsort routine available
+use PDL::Ufunc;  # ensure qsort routine available
 use Carp;
 
 EOD
