@@ -53,7 +53,7 @@ These things are known to be not working and will probably never be fixed
     @EXPORT = @EXPORT_OK;
     @EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 
-    $VERSION = 0.1;
+    $VERSION = 0.2;
     
     use PDL;
     use PDL::Exporter;
@@ -163,6 +163,7 @@ our $quad_ok = eval { my @a = unpack "q","00000001"; $a[0]; };
 
 ### Initialized in read_preamble.
 our $little_endian;
+our $swab;
 
 ##############################
 #
@@ -187,6 +188,8 @@ sub read_preamble {
   } else {
     barf "Unrecognized IDL save file type\n";
   }
+
+  $swab = $little_endian;
 
   $PDL::IO::IDL::struct_table = {};
 
@@ -375,7 +378,7 @@ sub r_var {
       ## Scalar case
       $hash->{$name} = 
 	  &{$vtypes->[$type]->[1]}
-              ([],   @{$vtypes->[$type]->[2]})
+              ($flags, [],   @{$vtypes->[$type]->[2]})
   } else {
       ## Array case
 
@@ -384,7 +387,7 @@ sub r_var {
       if(($flags & 32) == 0) {
 	  ## Simple array case
 	  print "simple array...type=$type\n" if($PDL::debug);
-	  my @args= ([ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]], 
+	  my @args= ($flags,[ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]], 
 		     @{$vtypes->[$type]->[2]});
 	  my $pdl =  &{$vtypes->[$type]->[1]}(@args);
 	  $hash->{$name} = $pdl; 
@@ -406,7 +409,7 @@ sub r_var {
 
 	  # Make a multi-dimensional list that contains the structs
 	  $hash->{$name} = multi_dimify($arrdesc,\@structs);
-#	  $hash->{$name} = \@structs;
+
       }
   }
 
@@ -428,21 +431,24 @@ sub multi_dimify {
 
     my($arrdesc,$structs,$n) = @_;
 
-    print " "x$n,"m_d: ndims=$arrdesc->{ndims}, n=$n\n";
     return shift @{$structs} 
-	if($arrdesc->{ndims} <= $n);
+	if($arrdesc->{ndims} <= $n  or
+	   $arrdesc->{ndims} == 0 or
+	   $arrdesc->{ndims}-$n == 1 && $arrdesc->{dims}->[$n]==1);
 
-    print "dims is ",join(",",@{$arrdesc->{dims}}),"\n";
 
-    return [splice (@{$structs}, 0, $arrdesc->{dims}->[0])]
-	if($arrdesc->{ndims} - $n == 1);
+    if($arrdesc->{ndims} - $n == 1){
+      my @ret = splice @{$structs},0,$arrdesc->{dims}->[$n];
+      return \@ret;
+    }
     
+
     my $out = [];
     my $i;
     for ($i=0;$i<$arrdesc->{dims}->[$n];$i++) {
 	push(@{$out},multi_dimify($arrdesc,$structs,$n+1));
     }
-    print " "x$n,"ok\n";
+
     return $out;
 }
 
@@ -503,10 +509,10 @@ sub r_structdesc {
 
     sysread(IDLSAV,$buf,4*3);
     my($predef,$ntags,$nbytes) = unpack("N"x3,$buf);
-	
-    if(!$predef) {
+    print "predef=$predef,ntags=$ntags,nbytes=$nbytes\n" if($PDL::debug);
+    if(!($predef & 1)) {
 	my $i;
-	print "not predefined. ntags=$ntags..\n";
+	print "not predefined. ntags=$ntags..\n" if($PDL::debug);
 
 	my $st = $PDL::IO::IDL::struct_table->{$name} = {
 	    "ntags" => $ntags 
@@ -521,12 +527,10 @@ sub r_structdesc {
 	$st->{descrip} = [(unpack "N"x(3*$ntags), $buf)];
 
 	
-	print "ntags is $ntags\n";
+	print "ntags is $ntags\n" if($PDL::debug);
 	### Read tag names.
 	for $i(0..$ntags-1) {
 	    push(@{$st->{names}},r_string());
-    	    print "\t$i: '".$st->{names}->[-1]."'...\n";
-
 	}
 	
 	### Search for nested arrays & structures
@@ -534,17 +538,17 @@ sub r_structdesc {
 
 	for $i(0..$ntags-1) {
 	    my $a = $st->{descrip}->[$i*3+2];
-	    print "\t",$st->{names}->[$i],": type is ".$st->{descrip}->[$i*3+1]." (".$vtypes->[$st->{descrip}->[$i*3+1]]->[0].")\n";
+
 	    $nstructs++ if($a & 32);
 	    $narrays++  if($a & 38);
 	}
 
-	print "narrays=$narrays\n";
+	print "narrays=$narrays\n" if($PDL::debug);
 	for $i(0..($narrays-1)) {
 	    push( @{$st->{arrays}}, r_arraydesc() );
 	}
 
-	print "nstructs=$nstructs\n";
+	print "nstructs=$nstructs\n" if($PDL::debug);
 	for $i(0..($nstructs-1)) {
 	    push( @{$st->{structs}}, r_structdesc() );
 	}
@@ -590,11 +594,11 @@ sub r_struct {
 	    $struct_no++ if($flags & 32);
 
 	} else {
-	    print "Reading tag $i ($name)...\n";
+
 	    if( (($flags & 4)==0) and (($flags & 32)==0) ) {
 		## Scalar tag case
 		$struct->{$name} = &{$vtypes->[$type]->[1]}
-		           ([],   @{$vtypes->[$type]->[2]});
+		           ($flags, [],   @{$vtypes->[$type]->[2]});
 	    } else {
 
 		### Array and/or structure case ###
@@ -605,7 +609,7 @@ sub r_struct {
 
 		    ### Tag is a simple array ###
 
-		    my @args = ([ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]],
+		    my @args = ($flags,[ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]],
 				@{$vtypes->[$type]->[2]});
 		    my $pdl = &{$vtypes->[$type]->[1]}(@args);
 
@@ -616,12 +620,13 @@ sub r_struct {
 		    ### Tag is a structure ###
 		    
 		    my $tsname = $sd->{structs}->[$struct_no++];
-		    my @structs = [];
+		    my @structs = ();
 		    for $i(1..$arrdesc->{nelem}) {
 			push(@structs,r_struct($tsname));
 		    }
 
 		    $struct->{$name} = multi_dimify($arrdesc,\@structs);
+
 		}
 	    }
 	}
@@ -664,6 +669,7 @@ sub r_string{
 #
 sub r_strvar {
     my $buf;
+    my $flags = shift;
     sysread(IDLSAV,$buf,4);
     return r_string();
 }
@@ -679,7 +685,7 @@ sub r_strvar {
 #
 
 sub r_n_pdl {
-    my($dims,$type) = @_;
+    my($flags,$dims,$type) = @_;
 
     my $pdl = new PDL;
 
@@ -687,11 +693,13 @@ sub r_n_pdl {
     $pdl->setdims($dims);
 
     my $dref = $pdl->get_dataref();
-    my $dsize = PDL::Core::howbig($type) * (pdl($dims)->prod);
+    my $dsize = PDL::Core::howbig($type);
+    my $hunksize = $dsize * (pdl($dims)->prod);
 
-    sysread(IDLSAV, $$dref, $dsize - ($dsize % -4) );
-    
-    if($little_endian) {
+    sysread(IDLSAV, $$dref, $hunksize - ($hunksize % -4) );
+
+    print "SWAB=$swab, dsize=$dsize\n" if($PDL::debug);
+    if($swab) {
 	bswap2($pdl) if($dsize==2);
 	bswap4($pdl) if($dsize==4);
 	bswap8($pdl) if($dsize==8);
@@ -701,9 +709,9 @@ sub r_n_pdl {
 }
 
 sub r_n_cast {
-    my($dims,$type1,$type2) = @_;
+    my($flags,$dims,$type1,$type2) = @_;
     
-    (r_n_pdl($dims,$type1))->convert($type2);
+    (r_n_pdl($flags,$dims,$type1))->convert($type2);
 }
 
 
