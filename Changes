@@ -1,3 +1,19 @@
+(!!! = possible source of incompatibilities)
+Doug Burke
+        - added TYPES/DEFTYPE options to PDL::IO::Misc::rcols()
+          to specify the type of the piddles
+          NOTE: (!!!)
+            different from patch to 2.003 sent to perldl list 
+            (http://www.xray.mpe.mpg.de/mailing-lists/perldl/2000-01/msg00037.html),
+            as you now specify the types directly, rather than as strings.
+        - added HEADER option to PDL::IO::Misc::wcols()
+        - added BORDER option to PDL::Graphics::PGPLOT
+        - added examples of new PGPLOT options to 'demo pgplot'
+        - added t/lut.t to test PDL::Graphics::LUT, and
+          added tests of options in rcols() to t/misc.t
+        - minor doc update for PDL::Primitive - example for whichND()
+          now works
+
 CS
 	- introduced switch for automatic hdr copying, off by default
 	- PP: added pp_addbegin, pp_beginwrap and pp_setversion
@@ -34,7 +50,6 @@ CS
 	- PGPLOT patch from pdl-porters
 	- Robin's Basic/Math patches
 
-(!!! = possible source of incompatibilities)
 2.003
 Christian Pellegrin
 	- Patch to add an interface to the GSL

@@ -473,6 +473,7 @@ t/ica.t
 t/image2d.t
 t/imagend.t
 t/imagergb.t
+t/lut.t
 t/magic.t
 t/matmult.t
 t/misc.t
