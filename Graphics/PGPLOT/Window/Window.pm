@@ -2111,9 +2111,8 @@ sub _setup_window {
     pgscf($wo->{Font});
     pgslw($wo->{LineWidth});
   }
-  my ($hcopy, $len);
-  my $wo = $self->{PlotOptions}->defaults();
 
+  my $wo = $self->{PlotOptions}->defaults();
   $self->_set_colour($wo->{Colour});
   pgask(0);
 
