@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::RandVar::Histogram
+PDL::RandVar::Histogram -- Arbitary distribution random variables
 
 =head1 VERSION
 
@@ -13,8 +13,6 @@ PDL::RandVar::Histogram
 
 =head1 DESCRIPTION
 
-=head2 Overview
-
 Histogram random variables are useful for generating distributions to
 match arbitrary vector (N-D) data.  On initialization, you feed in a
 clumped array whose value is proportional to the probability of
@@ -22,31 +20,22 @@ landing in each bin.   You get back values of indices into
 the original vector.  If you ask for it, you can get subsampling
 in the mantissa of each index.
 
-=head2 History
+=head1 History
 
   1.0   11-Dec-2001 -- Basic functionality & testing (CED)
 
-=head2 Author, license, no warranty
+=head1 Author, license, no warranty
 
-Copyright 2001, Craig DeForest.
+This file copyright(C) 2001, 2002 Craig DeForest
+(cdeforest@solar.stanford.edu).  This software/documentation may be
+distributed under the same terms as PDL itself (license available at
+http://pdl.perl.org). This package comes with NO WARRANTY.
 
-This code may be distributed under the same terms as Perl itself
-(license available at http://ww.perl.org).  Copying, reverse
-engineering, distribution, and modification are explicitly allowed so
-long as this notice is preserved intact and modified versions are
-clearly marked as such.
+=head1 Bugs:
 
-If you modify the code and it's useful, please check it in to the 
-PDL source tree or send a copy of the modified version to 
-cdeforest@solar.stanford.edu.
+Runs a little slow -- hooking into the gnu package will work better.
 
-This package comes with NO WARRANTY.
-
-=head2 Bugs:
-
-Runs a little slow -- hooking into the gnu package might work better.
-
-=head1 FUNCTIONS
+=head1 Functions
 
 =cut
 
@@ -80,7 +69,7 @@ Construct a new histogram-distribution random variable
  
   $a = new PDL::RandVar::Histogram(<size>,<opt>);
 
-=for opt
+Options: 
 
 =over 3
 

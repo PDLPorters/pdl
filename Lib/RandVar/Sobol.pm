@@ -4,7 +4,7 @@ PDL::RandVar::Sobol -- Sobol subrandom sequences
 
 =head1 VERSION
 
-  Current version is 0.1
+  Current version is 1.0
 
 =head1 SYNOPSIS
 
@@ -13,33 +13,23 @@ PDL::RandVar::Sobol -- Sobol subrandom sequences
 
 =head1 DESCRIPTION
 
-=head2 Overview
-
 Sobol subrandom sequences are used for more uniform sampling of a domain than normal
 random variables can achieve.  They're described cursorily in W.H. Press's _Numerical_
 _Recipes_, 2nd edition, section 7.7 (Cambridge Univ. Press), and this implementation
 is based on their description.  
 
-=head2 History
+=head1 History
 
   0.01    4-Dec-2001 -- Basic functionality (CED)
   0.1    11-Dec-2001 -- First fully functional version (CED)
+  1.0     9-Jan-2002 -- Tests out OK (CED)
 
 =head2 Author, license, no warranty
 
-Copyright 2001, Craig DeForest.
-
-This code may be distributed under the same terms as Perl itself
-(license available at http://ww.perl.org).  Copying, reverse
-engineering, distribution, and modification are explicitly allowed so
-long as this notice is preserved intact and modified versions are
-clearly marked as such.
-
-If you modify the code and it's useful, please check it in to the 
-PDL source tree or send a copy of the modified version to 
-cdeforest@solar.stanford.edu.
-
-This package comes with NO WARRANTY.
+This file copyright(C) 2001, 2002 Craig DeForest
+(cdeforest@solar.stanford.edu).  This software/documentation may be
+distributed under the same terms as PDL itself (license available at
+http://pdl.perl.org). This package comes with NO WARRANTY.
 
 =head2 Bugs:
 
@@ -60,7 +50,7 @@ use Carp;
 
 BEGIN {
 package PDL::RandVar::Sobol;
-$VERSION = 0.1;
+$VERSION = 1.0;
 @ISA = ('PDL::RandVar');
   @polydim = 
   ( undef  #spacer to make the loop work better
@@ -123,7 +113,7 @@ Construct a new Sobol subrandom variable
  
   $a = new PDL::RandVar::Sobol(<size>,<opt>);
 
-=for opt
+Options:
 
 =over 3
 
