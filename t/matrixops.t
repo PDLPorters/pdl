@@ -73,3 +73,4 @@ ok(14, (identity(2)->flat == pdl(1,0,0,1))->all);
 ok(15, (stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all);
 
 ok(16, (stretcher(pdl([2,3],[3,4]))->flat == pdl(2,0,0,3,3,0,0,4))->all);
+
