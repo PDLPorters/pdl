@@ -7,6 +7,8 @@ John Cerney
 	- Updated Makefile in FFTW to correct a build problem that occurs
 	  when both single and double FFTW libs are present. (suggested
 	  by Diab Jurius).
+	- Updated TriD Makefile to find openGL libs specified in the 
+	  perldl.conf file.
 
 CS
 	- added function 'det' to PDL::Slatec -> calculate determinant

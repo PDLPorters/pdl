@@ -16,9 +16,12 @@ if ($^O =~ /win32/i) {
     # default locations:
     @check_dirs = ('/lib/','/usr/lib/','/usr/local/lib/'); 
     
+    @openGL_dirs = grep s/^-L//g, split(' ',$PDL_CONFIG{OPENGL_LIBS});
+
     # append locations from perldl.conf, if specified:
-    @check_dirs = ( @check_dirs, $PDL_CONFIG{OPENGL_LIBS} ) 
-	if( defined $PDL_CONFIG{OPENGL_LIBS} ); 
+    @check_dirs = ( @check_dirs, @openGL_dirs ) 
+        if( defined $PDL_CONFIG{OPENGL_LIBS} ); 
+
     
     foreach $dir (@check_dirs) {
 	last if $gl_build;
