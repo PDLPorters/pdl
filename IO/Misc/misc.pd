@@ -488,7 +488,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      # preserves existing per-line comments, only changing the values.
      #
      $h->{BITPIX} = $BITPIX;
-     $h->{NAXIS} = pdl->getndims;
+     $h->{NAXIS} = $pdl->getndims;
      for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
 
      $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
