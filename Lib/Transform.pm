@@ -6,18 +6,19 @@ PDL::Transform - Image transformations and N-D functions
 
 use PDL::Transform;
 
-my $t = new PDL::Transform::<type>(<opt>)
+ my $t = new PDL::Transform::<type>(<opt>)
 
-$out = $t->apply($in)    # Apply transform to some N-vectors (Transform method)
-$out = $in->apply($t)    # Apply transform to some N-vectors (PDL method)
+ $out = $t->apply($in)  # Apply transform to some N-vectors (Transform method)
+ $out = $in->apply($t)  # Apply transform to some N-vectors (PDL method)
 
-$im1 = $t->map($im);     # Transform image coordinates (Transform method)
-$im1 = $im->map($t);     # Transform image coordinates (PDL method)
+ $im1 = $t->map($im);   # Transform image coordinates (Transform method)
+ $im1 = $im->map($t);   # Transform image coordinates (PDL method)
 
-$t2 = $t->compose($t1);  # compose two transforms
-$t2 = $t x $t1;          # compose two transforms (by analogy to matrix mult.)
+ $t2 = $t->compose($t1);  # compose two transforms
+ $t2 = $t x $t1;          # compose two transforms (by analogy to matrix mult.)
 
-$t3 = $t2->inverse();    # invert a transform
+ $t3 = $t2->inverse();    # invert a transform
+ $t3 = !$t2;              # invert a transform (by analogy to logical "not")
 
 =head1 DESCRIPTION
 
@@ -35,13 +36,9 @@ resampled image.  Eventually, the resampled image will have an updated
 FITS header that corresponds to what coordinates it represents.
 
 In keeping with standard practice, but somewhat counterintuitively,
-the transform is used to map coordinates FROM the destination
-dataspace (or image plane) TO the source dataspace; thus, to convert a
-solar image from perspective to heliospheric lat/lon coordinates, you
-need to apply a deprojection transform.  Since transforms AND their 
-inverses are stored, this just means you can define the forward
-transform, provided that you remember to use L<unmap|Transform::unmap> instead
-of L<map|Transform::map>.
+the L<map|map> method uses the inverse transform to map coordinates
+FROM the destination dataspace (or image plane) TO the source dataspace;
+hence PDL::Transform keeps track of both the forward and inverse transform.
 
 You can define and compose several transformations, then apply them
 all at once to an image.  The image is interpolated only once, when
@@ -58,10 +55,7 @@ into the current package with the name C<t_<transform>>, so the following
 =head1 EXAMPLE
 
 Coordinate transformations and mappings are a little counterintuitive
-at first, because image mapping is usually done in the reverse
-direction (output plane coordinates -> map -> input plane coordinates
-to be interpolated).  Here are some examples of transforms in 
-action:
+at first.  Here are some examples of transforms in action:
 
    use PDL::Transform;
    $a = rfits('m51.fits');   # Substitute path if necessary!
