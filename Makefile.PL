@@ -5,13 +5,13 @@ $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
 # Version test.
 BEGIN{
-  eval "use 5.004";
-  die "PDL requires Perl v5.004 or later\n" if $@ ne "";
+  eval "use 5.005";
+  die "PDL requires Perl v5.005 or later\n" if $@ ne "";
 }
 
 END{
-  eval "use 5.005";
-  warn "\n\n*The next version of PDL will require Perl v5.005 or later!*\n".
+  eval "use 5.6.0";
+  warn "\n\n*The next version of PDL will require Perl v5.6.0 or later!*\n".
     "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
 }
  
