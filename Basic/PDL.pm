@@ -30,8 +30,8 @@ the L<PDL::Index|PDL::Index> manpage is a good starting point.
    use PDL::Basic;
    use PDL::Slices;
    use PDL::Bad;
-   use PDL::Math;
    use PDL::MatrixOps;
+   use PDL::Math;
    use PDL::Version;
    use PDL::IO::Misc;
    use PDL::Lvalue;

@@ -1,3 +1,6 @@
+CED (21-Nov-2002)
+    - Legacy svd, eigens, and simq in PDL::Math.  It yields warnings,
+	but works OK.
 CED (19-Nov-2002) 
     - PDL::Slices::identity -> s_identity; identity is now 
 	exported from MatrixOps and constructs an identity matrix.
