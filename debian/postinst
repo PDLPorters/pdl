@@ -1,3 +1,14 @@
 #!/bin/sh
-set -e
-if test -x /usr/bin/update-menus; then update-menus; fi
+
+[ -x /usr/bin/update-menus ] && /usr/bin/update-menus
+
+# work around potential dpkg breakage
+  if [ "$1" = "configure" ]; then
+        if [ -d /usr/doc -a ! -e /usr/doc/pdl \
+            -a -d /usr/share/doc/pdl ]; then
+                ln -sf ../share/doc/pdl /usr/doc/pdl
+        fi
+  fi
+
+perl /usr/lib/perl/5.6.0/PDL/Doc/scantree.pl >/dev/null 2>&1
+perl /usr/lib/perl/5.6.0/PDL/Doc/mkhtmldoc.pl >/dev/null 2>&1
