@@ -615,6 +615,7 @@ t/complex.t
 t/conv.t
 t/core.t
 t/croak.t
+t/dumper.t
 t/erf.t
 t/erfi.t
 t/familyfree.t
