@@ -1,3 +1,5 @@
+DJB (14-Nov-2002)
+    - Added 'demo transform' to perldl to showcase PDL::Transform
 CED (14-Nov-2002)
     - Math::eigens is now threadable.
 DJB (12-Nov-2002)

@@ -123,6 +123,7 @@ Demos/PGPLOT_OO_demo.pm
 Demos/PGPLOT_demo.pm
 Demos/Screen.pm
 Demos/TkTriD_demo.pm
+Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
 Demos/TriD/test3.p
 Demos/TriD/test4.p

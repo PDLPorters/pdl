@@ -345,7 +345,7 @@ if (-e 'local.perldlrc') {
 sub p { local $^W=0; print(@_); }  # suppress possible undefined var message 
                                    # (dirty)
 
-my %demos = 
+my %demos =
     (
      'pdl' => 'PDL::Demos::General', # have to protect pdl as it means something
      '3d' => 'PDL::Demos::TriD1',
@@ -356,6 +356,7 @@ my %demos =
      'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
      'bad' => 'PDL::Demos::BAD_demo',
      'bad2' => 'PDL::Demos::BAD2_demo',
+     'transform' => 'PDL::Demos::Transform_demo',
      );
 
 sub demo {
@@ -363,18 +364,19 @@ sub demo {
     if(/^$/) {
 	print <<EOD;
 Use:
-   demo pdl     # general demo
-   demo 3d      # 3d demo (requires TriD compiled with OpenGL or Mesa)
-                # as well as an X display properly set up.
-   demo 3d2     # 3d demo, second part. This is very memory-heavy, make
-                # your window fairly small.
-   demo 3dgal   # the 3D gallery: generate interesting images with
-                # *very* concise PDL scripts
-   demo Tk3d    # Requires the perl Tk module
-   demo pgplot  # Requires the PGPLOT package
-   demo OOplot  # Requires the PGPLOT package (OO interface to PGPLOT)
-   demo bad     # Requires bad value support
-   demo bad2    # Requires bad value support and PGPLOT
+   demo pdl       # general demo
+   demo 3d        # 3d demo (requires TriD compiled with OpenGL or Mesa)
+                  # as well as an X display properly set up.
+   demo 3d2       # 3d demo, second part. This is very memory-heavy, make
+                  # your window fairly small.
+   demo 3dgal     # the 3D gallery: generate interesting images with
+                  # *very* concise PDL scripts
+   demo Tk3d      # Requires the perl Tk module
+   demo pgplot    # Requires the PGPLOT package
+   demo OOplot    # Requires the PGPLOT package (OO interface to PGPLOT)
+   demo bad       # Requires bad value support
+   demo bad2      # Requires bad value support and PGPLOT
+   demo transform # Requires the PGPLOT package
 
 EOD
     return;
