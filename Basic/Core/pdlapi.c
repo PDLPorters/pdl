@@ -455,6 +455,7 @@ void pdl_dump_flags(int flags, int nspac)
 
 	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
+	sz = 0;
 
 	printf("%sState: (%d) ",spaces,flags);
 	len = 0;
