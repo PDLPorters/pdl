@@ -389,7 +389,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
       ($dmin,$dmax) = (-2**31, 2**31-1)  if $BITPIX == 32;
 
       if ($min<$dmin || $max>$dmax) {
-         $bzero = $min;
+         $bzero = $min - $dmin;
          $max -= $bzero;
          $bscale = $max/$dmax if $max>$dmax;
        }
