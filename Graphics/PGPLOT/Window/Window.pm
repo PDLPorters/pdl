@@ -2512,7 +2512,7 @@ sub initenv{
   #
   # To give a consistent system and to tidy up we will call
   # erase if there are several panels, and pgpage otherwise.
-  if (!defined($o->{NoErase}) || $o->{NoErase} == 0) {
+  if (defined($o->{Erase}) && $o->{Erase}) {
     if ($self->{NX}*$self->{NY} > 1) {
       pgeras();
     } else {
@@ -2642,7 +2642,16 @@ sub env {
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
   my $o = $self->{PlotOptions}->options($opt);
-  $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+
+  #
+  # Inserted 06/08/01 - JB to be able to determine whether the user has
+  # specified a particular PlotPosition in which case we do _not_ call
+  # _check_move_or_erase...
+  #
+  my $o2 = $self->{Options}->options($opt);
+  if (!defined($o2->{PlotPosition}) || $o2->{PlotPosition} eq 'Default') {
+      $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+  }
 
   barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
     if ($#_==-1 && !defined($self->{_env_options})) || 
@@ -4344,6 +4353,10 @@ sub poly {
     my $o = $cursor_options->options($opt);
 
     my ($x, $y, $ch);
+
+    # The window needs to be focussed before using the cursor commands.
+    # Added 08/08/01 by JB after bug report from Brad Holden.
+    $self->focus();
 
     if ($o->{Type} eq 'Rectangle' && !defined($o->{XRef})) {
       #
