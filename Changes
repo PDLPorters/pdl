@@ -1,3 +1,6 @@
+CS  13-01-04
+   - Basic/Makefile.PL: override MakeMaker clean to *not* delete
+     files named 'core' (problem on case insensitive platforms)
 DJB 12-01-04 [merge of config-variable-cleanup branch]
    - Clean up the use of config values in the build
      process. We no longer use %PDL_CONFIG but use %PDL::Config in
