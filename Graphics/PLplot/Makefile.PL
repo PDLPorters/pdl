@@ -1,10 +1,11 @@
 # Makefile.PL for a package defined by PP code.
 
-use PDL::Core::Dev;            # Pick up development utilities
 use ExtUtils::MakeMaker;
 use Config;
 use vars qw /$plplotvers/; # version of plplot used
 
+# Pick up development utilities
+PDL::Core::Dev->import();
 
 # 
 ## Search for plplot library and include file
