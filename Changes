@@ -1,3 +1,11 @@
+TJ (31 May 02)
+    - Use INT2PTR/PTR2IV to fix compiler warnings
+      when the IV size does not match the pointer size
+      (eg linux with -Dusermorebits). This will break compatibility
+      with perl 5.005 unless we add some of our own macros
+    - Fix prototype warning in rout.pd with PerlIO_print
+    - Apply CS's patch to CallExt.pm to prevent spurious
+      failure of DynaLoader in perl 5.8.0
 2.3.3
 JC (22 May 02)
     - Changes to Release_Notes, PDL.pm associated
