@@ -74,8 +74,6 @@ Basic/Math/rint.c
 Basic/Math/yn.c
 Basic/Matrix.pm
 Basic/MatrixOps/Makefile.PL
-Basic/MatrixOps/MatrixOps.pm
-Basic/MatrixOps/MatrixOps.xs
 Basic/MatrixOps/NOTES
 Basic/MatrixOps/blas.c
 Basic/MatrixOps/eigens.c
@@ -321,9 +319,6 @@ IO/Pnm/converters/pnmtotiff.c
 IO/Pnm/converters/tifftopnm.c
 IO/Pnm/pnm.pd
 IO/Storable/Makefile.PL
-IO/Storable/Storable.c
-IO/Storable/Storable.pm
-IO/Storable/Storable.xs
 IO/Storable/storable.pd
 Known_problems
 Lib/CallExt/CallExt.pm

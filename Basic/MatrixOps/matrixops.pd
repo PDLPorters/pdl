@@ -32,7 +32,6 @@ pp_addhdr('
 }
 
 use strict;
-use PDL::NiceSlice;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -116,7 +115,7 @@ If there is something you want that is not here, please add and document it!
 =cut
 
 use Carp;
-
+use PDL::NiceSlice;
 use strict;
 
 EOD
