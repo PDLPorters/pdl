@@ -1,8 +1,0 @@
-TYPEMAP
-float	T_NV
-float *	T_FLOATS
-
-INPUT
-
-T_FLOATS
-	$var = (float *)(SvPV(SvRV($arg), PL_na))

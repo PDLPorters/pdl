@@ -17,7 +17,15 @@ use vars qw( $bvalflag $usenan );
 use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
  
-my $file = "NDF.pm";
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+        if ($Config{'osname'} eq 'VMS' or
+            $Config{'osname'} eq 'OS2');  # "case-forgiving"
+
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
 } else {
@@ -110,20 +118,40 @@ $EXTNAME = 'NDF_EXT';
 
     if ( $bvalflag ) {
 	print OUT <<'!NO!SUBS!';
+
+use PDL::Bad;
+
 # internal functions for checking bad values
 
-sub compare_bad_values ($) {
-    my $dtype = shift;
-    no strict 'refs';
-    my $name = "_cbv_int$dtype";
-    return &{$name}();
+my $starbad = 0;  # flag
+
+use vars qw( @starbad );
+
+sub _init_starbad {
+    eval 'use NDF' unless $ndf_loaded++;
+    croak 'Cannot use NDF library' if $@ ne "";
+    @starbad = eval 
+          "( &NDF::VAL__BADUB,
+	     &NDF::VAL__BADW,
+	     &NDF::VAL__BADUW,
+	     &NDF::VAL__BADI,
+	     &NDF::VAL__BADF,
+	     &NDF::VAL__BADD );
+";
+    croak 'Unable to initialise bad values from NDF library' if $@ ne "";
+    $starbad++;
 }
 
-sub starlink_bad_value ($) {
-    my $dtype = shift;
-    no strict 'refs';
-    my $name = "_gbv_int$dtype";
-    return &{$name}();
+sub starlink_bad_value ($) { 
+    _init_starbad unless $starbad; 
+    return $starbad[$_[0]]; 
+}
+
+# given a piddle, check if the Starlink bad value matches
+# the bad value used for this type
+sub compare_bad_values ($) { 
+    _init_starbad unless $starbad; 
+    return ($starbad[$_[0]] == badvalue($_[0])); 
 }
 
 !NO!SUBS!
