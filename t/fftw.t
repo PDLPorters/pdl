@@ -123,7 +123,7 @@ $t = ($srin-$rin)*($srin-$rin);
 ok(tapprox(sqrt($t->sum),pdl(0))  );
 
 # do the inplace routines work with slices?
-my $a = ones 2,4;
+my $a = ones(2,4)->$datatype();
 my $fa = fftw $a;
 nfftw $a->slice('');
 ok(tapprox($fa,$a)  );
