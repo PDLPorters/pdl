@@ -1,3 +1,7 @@
+2.2.1
+John Cerney (4/25/01)
+    - Changes to Release_Notes, PDL.pm, TODO associated
+      with making release 2.2.1
 CS  - PDL::Lvalue -- PDL lvalue subs (added to loaders)
     - PDL::Matrix -- added docs
     - doc tidbits

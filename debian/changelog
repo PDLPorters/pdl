@@ -1,3 +1,9 @@
+pdl (1:2.2.1-0) unstable; urgency=low
+
+  * new upstream release
+
+ -- PDL Porters <pdl-porters@jach.hawaii.edu>  Tue, 24 Apr 2001 15:01:23 -0400
+
 pdl (1:2.2-2) unstable; urgency=low
 
   * delete bogus debian.orig directory

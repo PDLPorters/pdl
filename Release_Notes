@@ -1,3 +1,21 @@
+Release notes for PDL 2.2.1 -------------------------------
+ 
+ Summary of Changes
+    Bugs Fixed:
+	  - 'pow' function fixed in math.pd
+  	  - Misc memory leaks fixed.
+  	  - PGPLOT 'undefined window size' 
+	     bug fixed.
+	  - Test failures with opengl.t fixed.
+	  - Error in output of 'minimum_n_ind' function
+	    fixed.
+	    
+    Misc Changes:
+  	- Documentation updates.
+	- Updates to work with perl5.6.1
+	
+  See the Changes file for a detailed list of changes.
+  
 Release notes for PDL 2.2 -------------------------------
 
 Major Changes:
