@@ -2261,6 +2261,11 @@ sub initenv{
   # This behaviour is taken from the PGPLOT manual.
   if ($o->{Justify} == 1) {
     pgwnad($xmin, $xmax, $ymin, $ymax);
+    if (ref($o->{Axis}) eq 'ARRAY') {
+      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+    } else {
+      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+    }
   } else {
     pgswin($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
