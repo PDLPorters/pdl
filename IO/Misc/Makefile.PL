@@ -24,8 +24,8 @@ sub MY::postamble {
 # Check whether FITS modules are available (external to PDL)
 #
 BEGIN {
-  $PDL::IO::Misc::wstr;
-  # no warnings;
+  $PDL::IO::Misc::wstr = '';
+  # no warnings; # pre 5.6 does not like this
   eval "use Astro::FITS::Header";
   if((defined $Astro::FITS::Header::VERSION)){
     $Astro::FITS::Header::VERSION =~ m/^(\d*)/;
@@ -49,14 +49,14 @@ EOW
 # where the user has a chance to see them
 END {
   if($PDL::IO::Misc::wstr) {
-    warn << "EOW";
+    warn << "EOF";
 
-Gentle warning from PDL::IO::Misc:
+* Gentle warning from PDL::IO::Misc: *
 
 $PDL::IO::Misc::wstr
 You can get the latest Astro::FITS::Header module from CPAN --
 point your browser at http://www.cpan.org.
 
-EOW
+EOF
   }
 }

@@ -129,7 +129,7 @@ BEGIN {
 	eval "use Astro::FITS::Header;";
 	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
 	if($PDL::Astro_FITS_Header) {
-	  no warnings;
+	  # no warnings; # pre 5.6 dislikes this
 	  my($a) = $Astro::FITS::Header::VERSION;
 	  $a =~ s/\..*//;
 	  $PDL::Astro_FITS_Header = 0 if($a < 2);
