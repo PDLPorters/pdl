@@ -396,10 +396,17 @@ pdl *pdl_hard_copy(pdl *src) {
 
 }
 
+#define MAXSPACE 256   /* maximal number of prefix spaces in dump routines */
 /* Dump a tranformation (don't dump the pdls, just pointers to them */
-void pdl_dump_trans (pdl_trans *it, int nspac) {
+void pdl_dump_trans_fixspace (pdl_trans *it, int nspac) {
 	int i;
-	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
+	char spaces[MAXSPACE];
+	if (nspac >= MAXSPACE) {
+	  printf("too many spaces requested: %d"
+		 "  (increase MAXSPACE in pdlapi.c), returning\n",nspac);
+	  return;
+	}
+        for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
 	printf("%sDUMPTRANS %d (%s)\n",spaces,it,it->vtable->name);
 	if(it->flags & PDL_ITRANS_ISAFFINE) {
@@ -426,11 +433,10 @@ void pdl_dump_trans (pdl_trans *it, int nspac) {
 	for(;i<it->vtable->npdls; i++)
 		printf("%s%d",(i?" ":""),it->pdls[i]);
 	printf(")\n");
-	free(spaces);
 }
 
 #define MAXLIN 60
-void pdl_dump_flags(int flags, int nspac)
+void pdl_dump_flags_fixspace(int flags, int nspac)
 {
 	int i;
 	int len, found, sz;
@@ -453,7 +459,13 @@ void pdl_dump_flags(int flags, int nspac)
             "BADVAL"
 	};
 
-	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
+	char spaces[MAXSPACE];
+	if (nspac >= MAXSPACE) {
+	  printf("too many spaces requested: %d"
+		 "  (increase MAXSPACE in pdlapi.c), returning\n",nspac);
+	  return;
+	}
+	for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
 	sz = 0;
 
@@ -468,17 +480,22 @@ void pdl_dump_flags(int flags, int nspac)
 	    if (sz>MAXLIN) {sz=0; printf("\n       %s",spaces);}
 	  }
 	printf("\n");
-	free(spaces);
 }
 
-void pdl_dump_spac(pdl *it,int nspac)
+void pdl_dump_fixspace(pdl *it,int nspac)
 {
 	PDL_DECL_CHILDLOOP(it)
 	int i;
-	char *spaces = malloc(nspac+1); for(i=0; i<nspac; i++) spaces[i]=' ';
+	char spaces[MAXSPACE];
+	if (nspac >= MAXSPACE) {
+	  printf("too many spaces requested: %d"
+		 "  (increase MAXSPACE in pdlapi.c), returning\n",nspac);
+	  return;
+	}
+	for(i=0; i<nspac; i++) spaces[i]=' ';
 	spaces[i] = '\0';
 	printf("%sDUMPING %d     datatype: %d\n",spaces,it,it->datatype);
-	pdl_dump_flags(it->state,nspac+3);
+	pdl_dump_flags_fixspace(it->state,nspac+3);
 	printf("%s   transvtable: %d, trans: %d, sv: %d\n",spaces,
 		(it->trans?it->trans->vtable:0), it->trans, it->sv);
 	if(it->datasv) {
@@ -510,18 +527,17 @@ void pdl_dump_spac(pdl *it,int nspac)
 	}
 	printf(")\n");
 	if(it->trans) {
-		pdl_dump_trans(it->trans,nspac+3);
+		pdl_dump_trans_fixspace(it->trans,nspac+3);
 	}
 	printf("%s   CHILDREN:\n",spaces);
 	PDL_START_CHILDLOOP(it)
-		pdl_dump_trans(PDL_CHILDLOOP_THISCHILD(it),nspac+4);
+		pdl_dump_trans_fixspace(PDL_CHILDLOOP_THISCHILD(it),nspac+4);
 	PDL_END_CHILDLOOP(it)
 	/* XXX phys etc. also */
-	free(spaces);
 }
 
 void pdl_dump (pdl *it) {
-	pdl_dump_spac(it,0);
+	pdl_dump_fixspace(it,0);
 }
 
 
