@@ -701,6 +701,10 @@ sub PDL::rcols {
    # then we can skip the following nastiness
    if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
        for ( 0 .. $#pdl_cols ) { $ret[$_] = $ret[$_]->slice("0:${index}"); };
+       if ( $PDL::verbose ) {
+	   if ( $#pdl_cols != -1 ) { print "Read in ", $ret[0]->nelem, " elements.\n"; }
+	   else                    { print "Read in ", $#{ $ret[0] }, " elements.\n"; }
+       }
        wantarray ? return(@ret) : return $ret[0];
    }
 
@@ -743,6 +747,10 @@ sub PDL::rcols {
        $k++;
    }
 
+   if ( $PDL::verbose ) {
+       if ( $#pdl_cols != -1 ) { print "Read in ", $ret[0]->nelem, " elements.\n"; }
+       else                    { print "Read in ", $#{ $ret[0] }, " elements.\n"; }
+   }
    wantarray ? return(@ret) : return $ret[0];
 }
 

@@ -243,7 +243,7 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
 
   barf 'Usage: wndf($pdl,$file)' if $#_!=1;
 
-  my ($indf, $place, $status, $place, $outndf);
+  my ($indf, $place, $status, $outndf);
   my (@lbnd, @ubnd);
 
   my ($pdl, $outfile) = @_;
@@ -413,7 +413,7 @@ sub rdata {
 
   return $status if $status != &NDF::SAI__OK;
 
-  my ($maxdims, @dim, $ndim, @dim, @comps, $dcomp, $tcomp, $exist);
+  my ($maxdims, @dim, $ndim, @comps, $dcomp, $tcomp, $exist);
   my ($type, $data_pntr, $el, $temppdl, $nbytes, $badbit, $dref);
 
   ####################################################################
