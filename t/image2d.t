@@ -33,7 +33,7 @@ $b = sequence(3,3);
 
 ok( 2, int(at(sum(conv2d($a,$b)-$b)))==0 );
 
-$a=ones(3,3);  $ans = pdl ([24,27,33],[33,36,42],[51,54,60]);
+$a=ones(3,3);  $ans = pdl ([12,18,24],[30,36,42],[48,54,60]);
 ok( 3, int(at(sum(conv2d($b,$a,{Boundary => 'Reflect'})-$ans)))==0 );
 
 $ans = pdl ([8,15,12],[21,36,27],[20,33,24]);
