@@ -1284,7 +1284,7 @@ pp_addpm(<<'EOD')
   $c = $a->glue(<dim>,$b,...)
 
 =for ref
-	
+
 Glue two or more PDLs together along an arbitrary dimension (N-D L<append|append>).
 
 Sticks $a, $b, and all following arguments together using a combination
@@ -1532,8 +1532,8 @@ for events and want to generate indices to events:
  $b = random 20;
  $c = vsearch($b, $a); # Now, $c will have the appropriate distr.
 
-It is possible to use the L<cumusumover|/cumusumover> function to obtain
-cumulative probabilities from absolute probabilities.
+It is possible to use the L<cumusumover|PDL::Ufunc/cumusumover>
+function to obtain cumulative probabilities from absolute probabilities.
 
 EOD
 
@@ -1683,7 +1683,7 @@ a coordinate value of exactly 1.
 
 
 Recognized options:
-   
+
 =over 3
 
 =item method 
@@ -1727,9 +1727,10 @@ they are calculated and put in the stash.
 
 =item b, bound, boundary, Boundary
 
-This option is passed unmodified into L<indexNDb|indexNDb> as its 
-boundary-handling method.  Current allowed values are 'extend', 'periodic', 
-and 'truncate'. (default is 'truncate')
+This option is passed unmodified into L<indexNDb|PDL::Slices/indexNDb>
+as its boundary-handling method. 
+Current allowed values are 'extend', 'periodic', and 'truncate' 
+(default is 'truncate').
 
 =item bad
 
@@ -1743,7 +1744,7 @@ data, for the FFT method.
 =back
 
 =cut
-				  
+
 *interpND = *PDL::interpND;
 sub PDL::interpND {
   my $source = shift;
@@ -2129,8 +2130,8 @@ Returns the coordinates for non-zero values.
 
 For historical reasons the return value is different in list and scalar
 context.  In scalar context, you get back a PDL containing coordinates suitable
-for use in L<indexND|/indexND> or L<range|/range>; in list context, the
-coordinates are broken out into separate PDLs.
+for use in L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>;
+in list context, the coordinates are broken out into separate PDLs.
 
  $coords = whichND($mask);
 
