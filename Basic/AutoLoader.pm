@@ -120,7 +120,11 @@ sub PDL::AutoLoader::reloader {
 sub PDL::AutoLoader::import {
 
 my $pkg = (caller())[0];
-my $toeval = "package $pkg;";
+my $toeval = "package $pkg;\n";
+
+# Make sure that the eval gets NiceSlice if we have it in this level
+# (it's a drag that preprocessors aren't transitive...)
+$toeval .= "use PDL::NiceSlice;\n" if(defined $PDL::NiceSlice::VERSION);
 
 $toeval .= <<'EOD';
 $PDLLIB_CT = 0;
@@ -164,8 +168,17 @@ sub AUTOLOAD {
     for my $dir (@PDLLIB_EXPANDED) {
         my $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
-	   # Autoload
-           do $file;
+	  
+	  # Simple 'do' doesn't work with preprocessing -- stick NiceSlice 
+	  # in manually if it's needed (yuck).
+	  if(defined($PDL::NiceSlice::VERSION)) {
+	    if(open(AUTOLOAD_FILE,"<$file")) {
+	      my($script) = &PDL::NiceSlice::perldlpp(join("",<AUTOLOAD_FILE>));
+	      eval $script;
+	    }
+	  } else {
+	    do $file;
+	  }
 
 	   # Remember autoloaded functions and do some reasonably
 	   # smart cacheing of file/directory change times
@@ -184,7 +197,6 @@ sub AUTOLOAD {
 
 EOD
 
-$toeval = 'use PDL::NiceSlice;'.$toeval if($PDL::NiceSlice::VERSION);
 eval $toeval;
 
 }
