@@ -182,7 +182,9 @@ sub PDL::RandVar::Histogram::sample() {
       $step .= ($step/2)->floor;
     }
 
-    $o->slice("($j)") .= $i->clip(0);
+    # Use dummy variable to work around perl-5.005 bletcherousness
+    my ($fmh) = $o->slice("($j)");
+    $fmh .= $i->clip(0);
   }
 
   return $out;
