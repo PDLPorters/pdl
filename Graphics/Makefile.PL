@@ -34,6 +34,7 @@ if( defined($t) and $t == 0 ) {
 my @pm_names = qw (Graphics2D.pm State.pm);
 my %pm = map { $h = '$(INST_LIBDIR)/';
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
+	       $h .= 'Graphics/' if $_ =~ /State.pm$/;
 	       ( $_, $h . $_ );
 	   } ( @pm_names);
 my %man3pods = map { $h = '$(INST_MAN3DIR)/';
