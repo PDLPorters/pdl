@@ -2846,6 +2846,15 @@ sub str2D{
     return $ret;
 }
 
+
+#
+# Sleazy hcpy saves me time typing
+#
+sub PDL::hcpy {
+  $_[0]->hdrcpy($_[1]);
+  $_[0];
+}
+
 ########## Docs for functions in Core.xs ##################
 # Pod docs for functions that are imported from Core.xs and are
 #  not documented elsewhere. Currently this is not a complete
@@ -3035,6 +3044,21 @@ will print:
 
   bar - bar
   bar - baz - bar
+
+=head2 hcpy
+
+=for ref
+
+Switch on/off automatic header copying, with PDL pass-through
+
+=for example
+  
+  $a = rfits('foo.fits')->hcpy(0);
+  $a = rfits('foo.fits')->hcpy(1);
+
+C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL itself.  That
+makes it convenient for inline use in expressions.
+
 
 =head1 AUTHOR
 

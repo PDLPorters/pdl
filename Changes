@@ -1,3 +1,10 @@
+CED 30-Apr-04
+   - FITS.pm: rfits() clears hdrcpy flag by default
+   - pdlapi.c, PP.pm: minor readability cleanup
+   - Core.pm.PL: introducing hcpy, a pass-through hdrcpy clone.  Also,
+	minor fixes to deep copying.  Deep header copying still leaks
+	memory; it's not (yet) obvious why.  [ Removing the refcnt increment
+	in PP.pm causes crashes, so, er, that's not it. ]
 CED 15-Apr-04
    - FITS.pm: minor fix for all-BAD case.
 CED 08-Apr-04

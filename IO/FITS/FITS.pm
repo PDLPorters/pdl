@@ -594,7 +594,7 @@ sub _rfits_image() {
   # Header
   
   $pdl->sethdr($foo);
-  $pdl->hdrcpy(1);
+#  $pdl->hdrcpy(1);
 
   return $pdl;
 } 

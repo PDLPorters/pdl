@@ -1206,7 +1206,9 @@ if (hdrp) {
 	croak("PDL::_hdr_copy didn't return a single value - please report this bug (A).");
     
     hdr_copy = (SV *)POPs;
+
     SvREFCNT_inc(hdr_copy); /* Keep hdr_copy from evaporating from FREETMPS */
+
 
     FREETMPS ;
     LEAVE ;
