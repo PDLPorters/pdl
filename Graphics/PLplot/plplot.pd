@@ -1888,6 +1888,7 @@ void c_plbop(void);
 void c_plbox(const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
 void c_plbox3(const char *xopt, const char *xlabel, PLFLT xtick, PLINT nsubx, const char *yopt, const char *ylabel, PLFLT ytick, PLINT nsuby, const char *zopt, const char *zlabel, PLFLT ztick, PLINT nsubz);
 #void c_plxormod(PLINT mode, PLINT *status);
+void c_plclear(void);
 void c_plcol0(PLINT icol0);
 void c_plcol1(PLFLT col1);
 void c_plcpstrm(PLINT iplsr, PLINT flags);
