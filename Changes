@@ -1,5 +1,10 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke (4/4/00)
+        - Changed to Basic/Makefile.PL to install man pages for PDL,
+          PDL::Lite, PDL::LiteF, and PDL::Options.
+        - Changed Makefile.PL to allow installation of documentation if
+          INSTALLDIRS=perl (rather than site) is used
 CS	- applied Karl's 5.6 patch to pdlcore.c
 	- typo in Doug's error message fixed
 Doug Hunt (3/23/00)
