@@ -1,3 +1,6 @@
+CED 26-Jul-2003
+   - Fixed test for complex.t
+   - Fixed documentation for primitive.t
 CED 24-Jul-2003
    - Online documentation works for autoload files
    - Fixed regexp bug in searcher (special characters broke searching, as 

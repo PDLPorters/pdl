@@ -16,7 +16,7 @@ sub tapprox {
 }
 
 # more tests required; anybody?
-print "1..5\n";
+print "1..6\n";
 $testNo = 1;
 
 $ref = pdl([[-2,1],[-3,1]]);

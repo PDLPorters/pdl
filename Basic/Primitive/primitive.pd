@@ -1652,18 +1652,25 @@ Values can be:
 
 =over 3 
 
-=item * s, sample, Sample (default for integer source types)
+=item * 0, s, sample, Sample (default for integer source types)
 
 The nearest value is taken. Pixels are regarded as centered on their
 respective integer coordinates (no offset from the linear case).
 
-=item * l, linear, Linear (default for floating point source types)
+=item * 1, l, linear, Linear (default for floating point source types)
 
 The values are N-linearly interpolated from an N-dimensional cube of size 2.
 
-=item * c, cube, cubic, Cubic
+=item * 3, c, cube, cubic, Cubic
 
-The values are N-cubic interpolated, using an N-dimensional cube of size 4.
+The values are interpolated using a local cubic fit to the data.  The
+fit is constrained to match the original data and its derivative at the
+data points.  The second derivative of the fit is not continuous at the 
+data points.  Multidimensional datasets are interpolated by the 
+successive-collapse method.
+
+(Note that the constraint on the first derivative causes a small amount
+of ringing around sudden features such as step functions).
 
 =item * f, fft, fourier, Fourier
 
@@ -1722,7 +1729,7 @@ sub PDL::interpND {
     return $source->range(PDL::Math::floor($index+0.5),0,$boundary);
   }
 
-  elsif ($method =~ m/^l(in(ear)?)?/i) {
+  elsif ($method==1 || $method =~ m/^l(in(ear)?)?/i) {
     ## key: (ith = index thread; cth = cube thread; sth = source thread)
     my $d = $index->dim(0);
     my $di = $index->ndims - 1;
@@ -1759,7 +1766,7 @@ sub PDL::interpND {
 
     return $out;
 
-  } elsif($method =~ m/^c(u(b(e|ic)?)?)?/i) {
+  } elsif($method==3 || $method =~ m/^c(u(b(e|ic)?)?)?/i) {
 
       my ($d,@di) = $index->dims;
       my $di = $index->ndims - 1;
@@ -1776,7 +1783,7 @@ sub PDL::interpND {
 	  $b = $b->dummy($i,4);
       }
 
-      # Collapse by splining, one dimension at a time...
+      # Collapse by interpolation, one dimension at a time...
       for my $i(0..$d-1) {
 	  my $a0 = $samp->slice("(1)");    # Just-under-sample
 	  my $a1 = $samp->slice("(2)");    # Just-over-sample
