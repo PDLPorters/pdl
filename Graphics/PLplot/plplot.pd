@@ -1500,7 +1500,7 @@ sub create_low_level_constants {
 
   foreach my $const (@lines) {
     next if (($const =~ /^\#/) or ($const =~ /^\s*$/));
-    my $func = "  
+    my $func = <<"EOC";
 int
 $const()
 PROTOTYPE:
@@ -1508,7 +1508,7 @@ CODE:
   RETVAL = $const;
 OUTPUT:
   RETVAL
-";
+EOC
     pp_addxs ($func);
     pp_add_exported ($const);
   }
