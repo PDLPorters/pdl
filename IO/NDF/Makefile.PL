@@ -5,5 +5,6 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
      'NAME'     => 'PDL::IO::NDF',
+     'VERSION_FROM' => 'NDF.pm',
 );
 
