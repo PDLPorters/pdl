@@ -1,3 +1,6 @@
+CED (16-Jan-2003)
+    - Minor fixes to Transform.
+    - PDL::IO::Pic is auto-used.
 CED (15-Jan-2003)
     - fix to Dumper -- uses Convert::UU (instead of uudecode) if available.
     - Transform::Cartography::Earth -- update dumped info

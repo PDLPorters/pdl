@@ -34,6 +34,7 @@ the L<PDL::Index|PDL::Index> manpage is a good starting point.
    use PDL::Math;
    use PDL::Version;
    use PDL::IO::Misc;
+   use PDL::IO::Pic;
    use PDL::Lvalue;
 
 =cut
@@ -67,6 +68,7 @@ use PDL::Lvalue;
 # Load these for TPJ compatibility
 
 use PDL::IO::Misc;          # Misc IO (Ascii/FITS)
+use PDL::IO::Pic;           # rpic/wpic
 
 EOD
 

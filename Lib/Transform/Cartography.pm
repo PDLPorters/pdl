@@ -815,7 +815,7 @@ sub t_orthographic {
 	t_compose(
 		  t_linear(rot=>[90 - $origin->at(1),
 				 0,
-				 90+ $origin->at(0)],
+				 90 + $origin->at(0)],
 			   d=>3),
 		  t_unit_sphere(u=>$me->{params}->{u})
 		  );
@@ -837,9 +837,9 @@ sub t_orthographic {
 	my ($out) = $o->{t_int}->apply($d);
 	if($o->{m}) {
 	    my $idx;
-	    $idx = which($out->((2)) > 0) 
+	    $idx = which($out->((2)) < 0) 
 		if($o->{m} == 1);
-	    $idx = which($out->((2)) < 0)
+	    $idx = which($out->((2)) > 0)
 		if($o->{m} == 2);
 	    $out->(0:1,$idx) .= $o->{bad}
 	      if(defined $idx && ref $idx eq 'PDL' && $idx->nelem);
