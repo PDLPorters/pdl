@@ -9,7 +9,7 @@ my @opts = <OPT>;
 close OPT;
 $nomem = 0;
 $nomem = 1 if (grep /NOMEM!/, @opts);
-$plpoly3 = 5;  
+$plpoly3 = 5;
 $plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
 
 pp_addpm({At => Top}, <<'EOD');
@@ -76,7 +76,7 @@ the name of the display, eg ('hostname.foobar.com:0')
 
 This option is used in conjunction with DEV => 'mem'.  This option
 takes as input a PDL image and allows one to 'decorate' it using PLplot.
-The 'decorated' PDL image can then be written to an image file using, 
+The 'decorated' PDL image can then be written to an image file using,
 for example, PDL::IO::Pic.  This option may not be available if
 plplot does not include the 'mem' driver.
 
@@ -110,7 +110,7 @@ the page.
 =head2 ORIENTATION
 
 The orientation of the plot:
-  0 --   0 degrees (landscape mode) 
+  0 --   0 degrees (landscape mode)
   1 --  90 degrees (portrait mode)
   2 -- 180 degrees (seascape mode)
   3 -- 270 degrees (upside-down mode)
@@ -139,7 +139,7 @@ Set the number of sub pages in the plot, [$nx, $ny]
 
   # PNG 300 by 600 pixels
   # Two subpages stacked on top of one another.
-  PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', PAGESIZE => [300,600], 
+  PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', PAGESIZE => [300,600],
                                               SUBPAGES => [1,2]);
 
 =head2 Options used after initialization (after 'new')
@@ -165,10 +165,10 @@ Set the current color for plotting and character drawing.
 Colors are specified not as color indices but as RGB triples.
 Some pre-defined triples are included:
 
-  BLACK        GREEN        WHEAT        BLUE       
-  RED          AQUAMARINE   GREY         BLUEVIOLET 
-  YELLOW       PINK         BROWN        CYAN       
-  TURQUOISE    MAGENTA      SALMON       WHITE      
+  BLACK        GREEN        WHEAT        BLUE
+  RED          AQUAMARINE   GREY         BLUEVIOLET
+  YELLOW       PINK         BROWN        CYAN
+  TURQUOISE    MAGENTA      SALMON       WHITE
 
 =for example
 
@@ -216,7 +216,7 @@ Load pre-defined color map 1 color ranges.  Currently, values include:
 
  # Plot x/y points with the z axis in color
  $pl->xyplot ($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
- 
+
 =head2 PLOTTYPE
 
 Specify which type of XY plot is desired:
@@ -227,13 +227,13 @@ Specify which type of XY plot is desired:
 
 =head2 SUBPAGE
 
-Set which subpage to plot on.  Subpages are numbered 1 to N.  
+Set which subpage to plot on.  Subpages are numbered 1 to N.
 A zero can be specified meaning 'advance to the next subpage' (just a call to pladv()).
 
 =for example
 
-  my $pl = PDL::Graphics::PLplot->new(DEV      => 'png',  
-                                        FILE     => 'test.png', 
+  my $pl = PDL::Graphics::PLplot->new(DEV      => 'png',
+                                        FILE     => 'test.png',
                                         SUBPAGES => [1,2]);
   $pl->xyplot ($x, $y, SUBPAGE => 1);
   $pl->xyplot ($a, $b, SUBPAGE => 2);
@@ -263,13 +263,13 @@ or inside the plot window, specified as:
  [$x, $y, $dx, $dy, $just]
 
  Where:
-  x  = x coordinate of reference point of string. 
-  y  = y coordinate of reference point of string. 
-  dx   Together with dy, this specifies the inclination of the string. 
-       The baseline of the string is parallel to a line joining (x, y) to (x+dx, y+dy). 
-  dy   Together with dx, this specifies the inclination of the string. 
-  just Specifies the position of the string relative to its reference point. 
-       If just=0, the reference point is at the left and if just=1, 
+  x  = x coordinate of reference point of string.
+  y  = y coordinate of reference point of string.
+  dx   Together with dy, this specifies the inclination of the string.
+       The baseline of the string is parallel to a line joining (x, y) to (x+dx, y+dy).
+  dy   Together with dx, this specifies the inclination of the string.
+  just Specifies the position of the string relative to its reference point.
+       If just=0, the reference point is at the left and if just=1,
        it is at the right of the string. Other values of just give
        intermediate justifications.
 
@@ -313,20 +313,20 @@ Takes a four element array ref specifying:
 
 Specify how to label the X axis of the plot as a string of option letters:
 
-  a: Draws axis, X-axis is horizontal line (y=0), and Y-axis is vertical line (x=0). 
-  b: Draws bottom (X) or left (Y) edge of frame. 
-  c: Draws top (X) or right (Y) edge of frame. 
-  f: Always use fixed point numeric labels. 
-  g: Draws a grid at the major tick interval. 
-  h: Draws a grid at the minor tick interval. 
-  i: Inverts tick marks, so they are drawn outwards, rather than inwards. 
-  l: Labels axis logarithmically. This only affects the labels, not the data, 
-     and so it is necessary to compute the logarithms of data points before 
+  a: Draws axis, X-axis is horizontal line (y=0), and Y-axis is vertical line (x=0).
+  b: Draws bottom (X) or left (Y) edge of frame.
+  c: Draws top (X) or right (Y) edge of frame.
+  f: Always use fixed point numeric labels.
+  g: Draws a grid at the major tick interval.
+  h: Draws a grid at the minor tick interval.
+  i: Inverts tick marks, so they are drawn outwards, rather than inwards.
+  l: Labels axis logarithmically. This only affects the labels, not the data,
+     and so it is necessary to compute the logarithms of data points before
      passing them to any of the drawing routines.
-  m: Writes numeric labels at major tick intervals in the 
-     unconventional location (above box for X, right of box for Y). 
-  n: Writes numeric labels at major tick intervals in the conventional location 
-     (below box for X, left of box for Y). 
+  m: Writes numeric labels at major tick intervals in the
+     unconventional location (above box for X, right of box for Y).
+  n: Writes numeric labels at major tick intervals in the conventional location
+     (below box for X, left of box for Y).
   s: Enables subticks between major ticks, only valid if t is also specified.
   t: Draws major ticks.
 
@@ -534,7 +534,7 @@ via the BOX option.
 
   # vertical key to the right of the original plot.
   # The BOX must be specified to give real coordinate values to the $z array.
-  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW'); 
+  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW');
   $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 
 =head2 histogram
@@ -564,7 +564,7 @@ Create a histogram of a 1-D variable.
 
 =for example
 
-  $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100]); 
+  $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100]);
 
 =head2 text
 
@@ -670,15 +670,15 @@ use vars qw(%_constants %_actions);
    },
 
    # set plotting box in world coordinates
-   BOX        => sub { 
+   BOX        => sub {
      my $self  = shift;
      my $box   = shift;
      die "Box must be a ref to a four element array" unless (ref($box) =~ /ARRAY/ and @$box == 4);
      $self->{BOX} = $box;
    },
 
-   CHARSIZE   => sub { my $self = shift; 
-                       $self->{CHARSIZE} = $_[0]; 
+   CHARSIZE   => sub { my $self = shift;
+                       $self->{CHARSIZE} = $_[0];
                        plschr   (0, $_[0]) },  # 0 - N
 
    COLOR =>
@@ -689,7 +689,7 @@ use vars qw(%_constants %_actions);
 
      # init.
      $self->{COLORS} = [] unless exists($self->{COLORS});
-     
+
      my @idx = @{$self->{COLORS}}; # map of color index (0-15) to RGB triples
      my $found = 0;
      for (my $i=2;$i<@idx;$i++) {  # map entries 0 and 1 are reserved for BACKGROUND and FRAMECOLOR
@@ -700,7 +700,7 @@ use vars qw(%_constants %_actions);
        }
      }
      return if ($found);
-     
+
      die "Too many colors used! (max 15)" if (@{$self->{COLORS}} > 14);
 
      # add this color as index 2 or greater (entries 0 and 1 reserved)
@@ -718,8 +718,8 @@ use vars qw(%_constants %_actions);
 		       my $pdl  = shift;
 		       my $x    = $pdl->getdim(1);
 		       my $y    = $pdl->getdim(2);
-		       plsmem   ($x, $y, $pdl); 
-		     },   
+		       plsmem   ($x, $y, $pdl);
+		     },
 
    # set output file
    FILE       => sub { plsfnam  ($_[1]) },   # this must be specified with call to new!
@@ -744,14 +744,14 @@ use vars qw(%_constants %_actions);
 
    LINEWIDTH  => sub { plwid  ($_[1]) },
 
-   LINESTYLE  => sub { 
+   LINESTYLE  => sub {
      my $self = shift;
      my $sty  = shift;
      die "LINESTYLE must range from 1 to 8" unless ($sty >= 1 and $sty <= 8);
      $self->{LINESTYLE} = $sty;
    },
 
-   MAJTICKSIZE  => sub { 
+   MAJTICKSIZE  => sub {
      my $self = shift;
      my $val  = shift;
      die "MAJTICKSIZE must be greater than or equal to zero"
@@ -759,7 +759,7 @@ use vars qw(%_constants %_actions);
      plsmaj (0, $val);
    },
 
-   MINTICKSIZE  => sub { 
+   MINTICKSIZE  => sub {
      my $self = shift;
      my $val  = shift;
      die "MINTICKSIZE must be greater than or equal to zero"
@@ -767,7 +767,7 @@ use vars qw(%_constants %_actions);
      plsmin (0, $val);
    },
 
-   NXSUB  => sub { 
+   NXSUB  => sub {
      my $self = shift;
      my $val  = shift;
      die "NXSUB must be an integer greater than or equal to zero"
@@ -775,7 +775,7 @@ use vars qw(%_constants %_actions);
      $self->{NXSUB} = $val;
    },
 
-   NYSUB  => sub { 
+   NYSUB  => sub {
      my $self = shift;
      my $val  = shift;
      die "NYSUB must be an integer greater than or equal to zero"
@@ -804,7 +804,7 @@ use vars qw(%_constants %_actions);
 
    PAGESIZE   =>
      # set plot size in mm.  Only useful in call to 'new'
-     sub { 
+     sub {
        my $self = shift;
        my $dims = shift;
 
@@ -842,7 +842,7 @@ use vars qw(%_constants %_actions);
    sub {
      my $self = shift;
      my $val  = shift;
-     
+
      my %legal = (LINE => 1, POINTS => 1, LINEPOINTS => 1);
      if ($legal{$val}) {
        $self->{PLOTTYPE} = $val;
@@ -887,7 +887,7 @@ use vars qw(%_constants %_actions);
    sub {
      my $self = shift;
      my $val  = shift;
-     
+
      if ($val >= 0 && $val < 3000) {
        $self->{SYMBOL} = $val;
      } else {
@@ -895,7 +895,7 @@ use vars qw(%_constants %_actions);
      }
    },
 
-   SYMBOLSIZE => sub { 
+   SYMBOLSIZE => sub {
      my ($self, $size) = @_;
      die "symbol size must be a real number from 0 to (large)" unless ($size >= 0);
      $self->{SYMBOLSIZE} = $size;
@@ -910,9 +910,9 @@ use vars qw(%_constants %_actions);
    sub {
      my $self = shift;
      my $val  = shift;
-     
+
      die "TEXTPOSITION value must be an array ref with either:
-          [$side, $disp, $pos, $just] or [$x, $y, $dx, $dy, $just]" 
+          [$side, $disp, $pos, $just] or [$x, $y, $dx, $dy, $just]"
        unless ((ref($val) =~ /ARRAY/) and ((@$val == 4) || (@$val == 5)));
 
      if (@$val == 4) {
@@ -931,7 +931,7 @@ use vars qw(%_constants %_actions);
    },
 
    # set the location of the plotting window on the page
-   VIEWPORT => sub { 
+   VIEWPORT => sub {
      my $self  = shift;
      my $vp    = shift;
      die "Viewport must be a ref to a four element array"
@@ -941,7 +941,7 @@ use vars qw(%_constants %_actions);
 
    XBOX       =>
      # set X axis label options.  See pod for definitions.
-     sub { 
+     sub {
        my $self = shift;
        my $opts = lc shift;
 
@@ -958,7 +958,7 @@ use vars qw(%_constants %_actions);
      $self->{XLAB} = $text;
    },
 
-   XTICK  => sub { 
+   XTICK  => sub {
      my $self = shift;
      my $val  = shift;
      die "XTICK must be greater than or equal to zero"
@@ -968,7 +968,7 @@ use vars qw(%_constants %_actions);
 
    YBOX       =>
      # set Y axis label options.  See pod for definitions.
-     sub { 
+     sub {
        my $self = shift;
        my $opts = shift;
 
@@ -985,7 +985,7 @@ use vars qw(%_constants %_actions);
      $self->{YLAB} = $text;
    },
 
-   YTICK  => sub { 
+   YTICK  => sub {
      my $self = shift;
      my $val  = shift;
      die "YTICK must be greater than or equal to zero"
@@ -1015,7 +1015,7 @@ sub _color {
 }
 
 # return 1 if input [r,g,b] triples are equal.
-sub _coloreq { 
+sub _coloreq {
   my ($a, $b) = @_;
   for (my $i=0;$i<3;$i++) { return 0 if ($$a[$i] != $$b[$i]); }
   return 1;
@@ -1203,7 +1203,7 @@ sub xyplot {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   # set the color according to the color specified in the object
@@ -1340,7 +1340,7 @@ sub shadeplot {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   my ($min, $max) = $z->minmax;
@@ -1354,8 +1354,8 @@ sub shadeplot {
   my $rectangular = 1; # only false for non-linear coord mapping (not done yet in perl)
 
   # map X coords linearly to X range, Y coords linearly to Y range
-  my $xmap = ((PDL->sequence($nx)*(($self->{BOX}[1] - $self->{BOX}[0])/($nx - 1))) + $self->{BOX}[0]); 
-  my $ymap = ((PDL->sequence($ny)*(($self->{BOX}[3] - $self->{BOX}[2])/($ny - 1))) + $self->{BOX}[2]); 
+  my $xmap = ((PDL->sequence($nx)*(($self->{BOX}[1] - $self->{BOX}[0])/($nx - 1))) + $self->{BOX}[0]);
+  my $ymap = ((PDL->sequence($ny)*(($self->{BOX}[3] - $self->{BOX}[2])/($ny - 1))) + $self->{BOX}[2]);
 
   plshades($z, @{$self->{BOX}}, $clevel, $fill_width,
            $cont_color, $cont_width, $rectangular, $xmap, $ymap);
@@ -1386,7 +1386,7 @@ sub histogram {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 $self->{XBOX}, $self->{YBOX}); # !!! note out of order call
 
   # set line style for plot only (not box)
@@ -1425,7 +1425,7 @@ sub bargraph {
 
   # plot box
   plcol0  (1); # set to frame color
-  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB}, 
+  plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 'bc', $self->{YBOX}); # !!! note out of order call
 
   # plot labels
@@ -1478,30 +1478,7 @@ sub close {
   plend1 ();
   return;
 }
-
-# The following are definitions used in plParseOpts
-
-*PL_PARSE_PARTIAL   = \0x0000;
-*PL_PARSE_FULL      = \0x0001;
-*PL_PARSE_QUIET     = \0x0002;
-*PL_PARSE_NODELETE  = \0x0004;
-*PL_PARSE_SHOWALL   = \0x0008;
-*PL_PARSE_OVERRIDE  = \0x0010;
-*PL_PARSE_NOPROGRAM = \0x0020;
-*PL_PARSE_NODASH    = \0x0040;
-*PL_PARSE_SKIP      = \0x0080;
 EOD
-
-pp_add_exported('', join (' ', map {"\$$_"} ('PL_PARSE_PARTIAL',
-                                             'PL_PARSE_FULL',
-                                             'PL_PARSE_QUIET',
-                                             'PL_PARSE_NODELETE',
-                                             'PL_PARSE_SHOWALL',
-                                             'PL_PARSE_OVERRIDE',
-                                             'PL_PARSE_NOPROGRAM ',
-                                             'PL_PARSE_NODASH',
-                                             'PL_PARSE_SKIP')));
-
 
 # Necessary includes for .xs file
 pp_addhdr(<<'EOH');
@@ -1509,6 +1486,55 @@ pp_addhdr(<<'EOH');
 #include <plplotP.h>
 #include <stdio.h>
 EOH
+
+
+# The create_low_level_constants function is used to make the #define'd
+# constants in plplot.h available in Perl in the form of functions.  It
+# should be then possible to write code like this:
+#
+#    plParseOpts (\@ARGV, PL_PARSE_SKIP | PL_PARSE_NOPROGRAM);
+
+sub create_low_level_constants {
+  my $defn = shift;
+  my @lines = split (/\n/, $defn);
+
+  foreach my $const (@lines) {
+    next if (($const =~ /^\#/) or ($const =~ /^\s*$/));
+    pp_def ($const,
+            Pars => 'int [o] retval()',
+            Code => "\$retval() = $const;"
+           );
+  }
+}
+
+create_low_level_constants (<<'EODEF');
+
+# Definitions used in plParseOpts
+
+PL_PARSE_PARTIAL
+PL_PARSE_FULL
+PL_PARSE_QUIET
+PL_PARSE_NODELETE
+PL_PARSE_SHOWALL
+PL_PARSE_OVERRIDE
+PL_PARSE_NOPROGRAM
+PL_PARSE_NODASH
+PL_PARSE_SKIP
+
+# Definitions for plmesh and plsurf3d
+
+DRAW_LINEX
+DRAW_LINEY
+DRAW_LINEXY
+MAG_COLOR
+BASE_CONT
+TOP_CONT
+SURF_CONT
+DRAW_SIDES
+FACETED
+MESH
+
+EODEF
 
 
 
@@ -1527,17 +1553,17 @@ EOH
 # pp_def ('plenv',
 #	  Pars => 'xmin(); xmax(); ymin(); ymax(); int just(); int axis();',
 #	  GenericTypes => [D],
-#	  Code => 'c_plenv($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());', 
+#	  Code => 'c_plenv($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());',
 #
 # In 'get' routines, (prefix = plg) all parameters have [o] added before, ie:
-# 
+#
 # void c_plglevel(PLINT *p_level);
-# 
+#
 # leads to:
 # pp_def ('plglevel',
 #	  Pars => 'int [o]p_level;',
 #	  GenericTypes => [D],
-#	  Code => 'c_plglevel($P(p_level));', 
+#	  Code => 'c_plglevel($P(p_level));',
 #
 sub create_low_level {
 
@@ -1555,7 +1581,7 @@ sub create_low_level {
     next if (/^\#/);  # Skip commented out lines
     next if (/^\s*$/); # Skip blank lines
 
-    # some functions change with plplot version.  If this function 
+    # some functions change with plplot version.  If this function
     # has a version specified, note it down.
     my $req_vers = '';
     if (/PLPLOT VERSION = (.*)/) {
@@ -1579,13 +1605,13 @@ sub create_low_level {
       $parm =~ s/$varname//; # parm now contains the full C type
       $varname =~ s/0/zero/;
       $varname =~ s/1/one/;
-      $varname =~ s/2/two/; 
+      $varname =~ s/2/two/;
       $varname =~ s/3/three/; # PP doe not like variable names containing numbers
       $varname =~ s/int/in/;  # PP has trouble with variables starting with 'int'
       $parm =~ s/const //;    # get rid of 'const' in C type
       $parm =~ s/^\s+//;
       $parm =~ s/\s+$//;      # get rid of white space from 'parm'
-      
+
       next if ($varname eq 'void');
       push (@vars, $varname);
       push (@types, $parm);
@@ -1600,7 +1626,7 @@ sub create_low_level {
     # $func_name and the perl name to call it is in $pfunc_name.
 
     my @pars      = ();
-    my @code      = (); 
+    my @code      = ();
     my @otherpars = ();
     my $output = ($pfunc_name =~ /^plg/); # flag: 1 = output routine.
     for (my $i=0;$i<@vars;$i++) {
@@ -1611,9 +1637,9 @@ sub create_low_level {
       my $type = $types[$i];
       my $dim  = ($type =~ tr/*/*/); # count of stars in type (PLFLT ** = 2D)
       my $dimstr;
-      if    ($dim == 0) { $dimstr = '()'; } 
-      elsif ($dim == 1) { $dimstr = '(dima)'; } 
-      elsif ($dim == 2) { $dimstr = '(dima,dimb)'; } 
+      if    ($dim == 0) { $dimstr = '()'; }
+      elsif ($dim == 1) { $dimstr = '(dima)'; }
+      elsif ($dim == 2) { $dimstr = '(dima,dimb)'; }
 
       if ($type =~ /PLFLT/) {
         push (@pars, "double $var$dimstr"); # double input variable
@@ -1621,8 +1647,8 @@ sub create_low_level {
         push (@pars, "int $var$dimstr");    # integer input variable
       } elsif ($type =~ /char\s*\*/) {  # char * input or output
 	push (@otherpars, "char *$vars[$i]");
-      } else { 
-        die "unsupported type: $type"; 
+      } else {
+        die "unsupported type: $type";
       }
 
       # Determine Code section
@@ -1638,7 +1664,7 @@ sub create_low_level {
 
     # if there are no PDL parameters, some compilers cannot handle the
     # pp_def ('foo', Pars => '') type definition.
-    # For these cases, we use plain XS.    
+    # For these cases, we use plain XS.
     if (@pars == 0) {
       my $pars = join (',', @vars);
       my $decl = '';
@@ -1651,30 +1677,30 @@ $pfunc_name($pars)$decl
 CODE:
 	$func_name($pars);
 EOC
-      print "$xsout" if ($debug);	
-      pp_addxs ('', $xsout);     
+      print "$xsout" if ($debug);
+      pp_addxs ('', $xsout);
       pp_add_exported('', $pfunc_name);
 
-    } else {                                                                       
+    } else {
 
       my $pars      = join (';', @pars);
       my $otherpars = join (';', @otherpars);
       my $code      = "$func_name(" . join (',', @code) . ");";
 
       # do the definition
-      print "pp_def (\'$pfunc_name\', 
-             GenericTypes => [D], 
-             Pars => \'$pars\', 
-             OtherPars => \'$otherpars\', 
+      print "pp_def (\'$pfunc_name\',
+             GenericTypes => [D],
+             Pars => \'$pars\',
+             OtherPars => \'$otherpars\',
              Code => \'$code\'
             );
 
             " if ($debug);
 
-      pp_def ($pfunc_name, 
- 	      GenericTypes => [D], 
-              Pars => $pars, 
-              OtherPars => $otherpars, 
+      pp_def ($pfunc_name,
+ 	      GenericTypes => [D],
+              Pars => $pars,
+              OtherPars => $otherpars,
               Code => $code);
     }
 
@@ -1695,7 +1721,7 @@ void c_plbin(PLINT nbin, PLFLT *x, PLFLT *y, PLINT center);
 void c_plbop(void);
 void c_plbox(const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
 void c_plbox3(const char *xopt, const char *xlabel, PLFLT xtick, PLINT nsubx, const char *yopt, const char *ylabel, PLFLT ytick, PLINT nsuby, const char *zopt, const char *zlabel, PLFLT ztick, PLINT nsubz);
-void c_plxormod(PLINT mode, PLINT *status);  
+void c_plxormod(PLINT mode, PLINT *status);
 void c_plcol0(PLINT icol0);
 void c_plcol1(PLFLT col1);
 void c_plcpstrm(PLINT iplsr, PLINT flags);
@@ -1749,7 +1775,7 @@ void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *t
 void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
 #void c_plpoin(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
 void c_plpoin3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT code);
-void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);            
+void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw);
 void c_plpoly3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z, PLINT *draw, PLINT ifcc);
 void c_plprec(PLINT setp, PLINT prec);
 void c_plpsty(PLINT patt);
@@ -1856,14 +1882,14 @@ pp_def ('plcolorpoints',
 # shade plot with linear mapping of z coords to world XY coords
 # NOTE:  the Z grid is indexed in C fashion (Y, X) instead of FORTRAN fashion (X, Y)!
 pp_def ('plshades',
-         Pars => 'z(y,x); xmin(); xmax(); ymin(); ymax(); clevel(l); int fill_width(); 
+         Pars => 'z(y,x); xmin(); xmax(); ymin(); ymax(); clevel(l); int fill_width();
                   int cont_color(); int cont_width(); int rectangular(); xmap(x); ymap(y)',
          GenericTypes => [D],
          Code => 'int nx    = $SIZE(x);
                   int ny    = $SIZE(y);
                   int nlvl  = $SIZE(l);
                   int i,j;
-                  PLcGrid  cgrid1; 
+                  PLcGrid  cgrid1;
                   PLFLT *z = $P(z);
                   PLFLT **vz = calloc(nx, sizeof(PLFLT *)); // allocate pointers to rows of z
                   for (i=0;i<nx;i++) vz[i] = z + ny*i; // fill in ptrs to rows of z
@@ -1873,8 +1899,8 @@ pp_def ('plshades',
                   cgrid1.nx = nx;
                   cgrid1.ny = ny;
 
-                  c_plshades (vz, nx, ny, NULL, $xmin(), $xmax(), $ymin(), $ymax(), 
-                              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(), 
+                  c_plshades (vz, nx, ny, NULL, $xmin(), $xmax(), $ymin(), $ymax(),
+                              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
                               plfill, $rectangular(), pltr1, (void *) &cgrid1);
                   free(vz);',
        );
@@ -1974,6 +2000,7 @@ pp_def ('plsym',
          GenericTypes => [D],
          Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
+
 
 pp_done();
 
