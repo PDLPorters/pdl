@@ -7,7 +7,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$mdiff) = @_;
 	$mdiff = 0.01 unless defined($mdiff);
 	my $c = abs($a-$b);
@@ -67,7 +67,6 @@ $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
 	    'GIF'  => ['gif',256,0,1.01],
 	    'TIFF' => ['tif',1,0,0.01],
   	    'RAST' => ['rast',256,0,0.01],
-	    'IFF'  => ['iff',256,1,0.01],
 	    'SGI'  => ['rgb',1,1,0.01],
 	   );
 
@@ -111,8 +110,8 @@ foreach $form (sort @allowed) {
 
     $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
     print "Comparison arr: $comp" if $PDL::debug;
-    ok($n++,$usherr || approx($comp,$in1,$arr->[3]) || tifftest($form));
-    ok($n++,approx($im2,$in2) || tifftest($form));
+    ok($n++,$usherr || tapprox($comp,$in1,$arr->[3]) || tifftest($form));
+    ok($n++,tapprox($im2,$in2) || tifftest($form));
 
     if ($PDL::debug) {
       print $in1->px;

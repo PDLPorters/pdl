@@ -18,7 +18,7 @@ sub ok {
         print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = max($c);
@@ -216,7 +216,7 @@ ok(  $a->nelem==4 && sum($a)==6 && sum($b)==20 );  # test: 29
 ok( $a->nelem==1 && $a->at(0)==-5 && $b->at(0)==6 );  # test: 30
 
 ($a,$b) = rcols $file,0,1, { LINES => '-2:0' };
-ok( $a->nelem==3 && approx($a,pdl(-5,3,1)) && approx($b,pdl(6,4,2)) ); # test: 31
+ok( $a->nelem==3 && tapprox($a,pdl(-5,3,1)) && tapprox($b,pdl(6,4,2)) ); # test: 31
 
 use PDL::Types;
 ($a,$b) = rcols $file, { DEFTYPE => long };

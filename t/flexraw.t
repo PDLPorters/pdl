@@ -69,7 +69,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	$c = abs($a->clump(-1)-$b->clump(-1));
 	$d = max($c);
@@ -171,7 +171,7 @@ EOT
     # print "@a\n";
     $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok($testno++,$ok && approx($res,$a[1]));
+    ok($testno++,$ok && tapprox($res,$a[1]));
     open(FILE,'>tmprawdata.hdr');
     print FILE <<"EOT";
 # FlexRaw file header
@@ -188,7 +188,7 @@ EOT
     unlink 'tmprawdata.hdr', 'tmprawtest', 'tmprawtest.f';
     $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok($testno++,$ok && approx($res,$a[1]));
+    ok($testno++,$ok && tapprox($res,$a[1]));
 
 # Now try header array
     $ok = 1;
@@ -199,7 +199,7 @@ EOT
     unlink 'tmprawdata';
     $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok($testno++,$ok && approx($res,$a[1]));
+    ok($testno++,$ok && tapprox($res,$a[1]));
     # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
 }
 
@@ -249,7 +249,7 @@ EOT
     unlink 'tmprawdata', 'tmprawdata.hdr', 'tmprawtest', 'tmprawtest.f';
     $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok($testno++,$ok && approx($res,$a[1]));
+    ok($testno++,$ok && tapprox($res,$a[1]));
     # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
 }
 
@@ -303,7 +303,7 @@ EOT
     unlink 'tmprawdata', 'tmprawdata.hdr', 'tmprawtest', 'tmprawtest.f';
     $ok = ($a[1]->at(0) == $ndata);
     $res = eval "$pdltype $exprp";
-    ok($testno++,$ok && approx($res,$a[2]));
+    ok($testno++,$ok && tapprox($res,$a[2]));
     # print $a[2]->getndims()," [",$a[2]->dims,"]\n";
 }
 
@@ -357,7 +357,7 @@ EOT
     unlink 'tmprawdata', 'tmprawdata.hdr', 'tmprawtest', 'tmprawtest.f';
     $ok = ($a[0]->at(0) == $ndata);
     $res = eval "$pdltype $expr2p";
-    ok($testno++,$ok && approx($res,$a[1]));
+    ok($testno++,$ok && tapprox($res,$a[1]));
     # print $a[1]->getndims()," [",$a[1]->dims,"]\n";
 }
 
@@ -417,7 +417,7 @@ $a = byte (32);
 $ok = 1;
 foreach (@req) {
     $h = shift @a;
-    $ok &&= approx($_,$h);
+    $ok &&= tapprox($_,$h);
 }
 ok($testno++,$ok);
 
@@ -446,7 +446,7 @@ $i = short ($l);
 $a = byte (32);
 @req = ($a,$i,$l,$f,$d);
 foreach (@req) {
-    $ok &&= approx($_,$h = shift @a);
+    $ok &&= tapprox($_,$h = shift @a);
 }
 ok($testno++,$ok);
 
@@ -458,14 +458,14 @@ unlink 'tmprawdata.hdr';
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
-    $ok &&= approx($_,shift @a);
+    $ok &&= tapprox($_,shift @a);
 }
 ok($testno++,$ok);
 @a = readflex('tmprawdata', $hdr);
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
-    $ok &&= approx($_,shift @a);
+    $ok &&= tapprox($_,shift @a);
 }
 ok($testno++,$ok);
 unlink 'tmprawdata';
@@ -484,7 +484,7 @@ $hdr = [ {Type => 'byte',   NDims => 1, Dims => 10},
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
-    $ok &&= approx($_,slice(shift @a,"(0)"));
+    $ok &&= tapprox($_,slice(shift @a,"(0)"));
 }
 ok($testno++,$ok);
 unlink 'tmprawdata';
@@ -498,7 +498,7 @@ unlink 'tmprawdata', 'tmprawdata.hdr';
 $ok = 1;
 foreach (@req) {
     # print "$_ vs ",@a[0],"\n";
-    $ok &&= approx($_,shift @a);
+    $ok &&= tapprox($_,shift @a);
 }
 ok($testno++,$ok);
 

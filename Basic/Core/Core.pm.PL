@@ -71,14 +71,14 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
    long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice flat
+   dummy mslice approx flat
    );
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
     long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
-    diagonal dummy mslice flat
+    diagonal dummy mslice approx flat
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
@@ -120,7 +120,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *double       = \&PDL::double;	  *thread_define = \&PDL::thread_define;
 *convert      = \&PDL::convert;   *over 	 = \&PDL::over;
 *dog          = \&PDL::dog;       *cat 	         = \&PDL::cat;
-*type         = \&PDL::type;
+*type         = \&PDL::type;      *approx        = \&PDL::approx;
 *diagonal     = \&PDL::diagonal;
 *dummy        = \&PDL::dummy;
 *mslice       = \&PDL::mslice;
@@ -1119,6 +1119,45 @@ sub PDL::info {
 	$nstr .= $form;
     }
     return sprintf $nstr, @args;
+}
+
+=head2 approx
+
+=for ref
+
+test for approximately equal values (relaxed C<==>)
+
+=for example
+
+  # ok if all corresponding values in
+  # piddles are within 1e-8 of each other
+  print "ok\n" if all approx $a, $b, 1e-8;
+
+C<approx> is a relaxed form of the C<==> operator and
+often more appropriate for floating point types (C<float>
+and C<double>).
+
+Usage:
+
+=for usage
+
+  $res = approx $a, $b [, $eps]
+
+The optional parameter C<$eps> is remembered across invocations
+and initially set to 1e-6, e.g.
+
+  approx $a, $b;         # last $eps used (1e-6 initially)
+  approx $a, $b, 1e-10;  # 1e-10
+  approx $a, $b;         # also 1e-10
+
+=cut
+
+my $approx = 1e-6;  # a reasonable init value
+sub PDL::approx {
+  my ($a,$b,$eps) = @_;
+  $eps = $approx unless defined $eps;  # the default eps
+  $approx = $eps;    # remember last eps
+  return ($a-$b)->abs < $eps;
 }
 
 =head2 mslice

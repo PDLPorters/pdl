@@ -23,10 +23,10 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	$a = pdl $a; $b = pdl $b;
-	print "APPROX: $a $b\n";
+	print "TAPPROX: $a $b\n";
 	if((join ',',$a->dims) ne (join ',',$b->dims)) {
 		print "UNEQDIM\n";
 		return 0;
@@ -48,48 +48,48 @@ sub nq {return PDL::Graphics::TriD::Quaternion->new(@_)}
 $a = nq(0,0,1,0);
 
 $b = $a->rotate([0,0,1]); # Rotate a z-vector around Y axis
-ok(1,approx($b,[1,0,0]));
+ok(1,tapprox($b,[1,0,0]));
 
 $b = $a->rotate([0,1,0]);
-ok(2,approx($b,[0,1,0]));
+ok(2,tapprox($b,[0,1,0]));
 
 $b = $a->rotate([1,0,0]);
-ok(3,approx($b,[0,0,-1]));
+ok(3,tapprox($b,[0,0,-1]));
 
 $b = $a->rotate([0,0,2]); # Rotate a z-vector around Y axis
-ok(4,approx($b,[2,0,0]));
+ok(4,tapprox($b,[2,0,0]));
 
 $b = $a->rotate([0,2,0]);
-ok(5,approx($b,[0,2,0]));
+ok(5,tapprox($b,[0,2,0]));
 
 $b = $a->rotate([2,0,0]);
-ok(6,approx($b,[0,0,-2]));
+ok(6,tapprox($b,[0,0,-2]));
 
 $s2 = sqrt(2);
 
 $a = nq($s2/2, 0, $s2/2, 0);
 
 $b = $a->rotate([0,0,2]); # Rotate a z-vector around Y axis
-ok(7,approx($b,[$s2,0,$s2]));
+ok(7,tapprox($b,[$s2,0,$s2]));
 
 $b = $a->rotate([0,2,0]);
-ok(8,approx($b,[0,2,0]));
+ok(8,tapprox($b,[0,2,0]));
 
 $b = $a->rotate([2,0,0]);
-ok(9,approx($b,[$s2,0,-$s2]));
+ok(9,tapprox($b,[$s2,0,-$s2]));
 
 
 
 $a = nq(-$s2/2, 0, $s2/2, 0);
 
 $b = $a->rotate([0,0,2]); # Rotate a z-vector around Y axis
-ok(10,approx($b,[$s2,0,-$s2]));
+ok(10,tapprox($b,[$s2,0,-$s2]));
 
 $b = $a->rotate([0,2,0]);
-ok(11,approx($b,[0,2,0]));
+ok(11,tapprox($b,[0,2,0]));
 
 $b = $a->rotate([2,0,0]);
-ok(12,approx($b,[-$s2,0,-$s2]));
+ok(12,tapprox($b,[-$s2,0,-$s2]));
 
 
 

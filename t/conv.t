@@ -8,7 +8,7 @@ BEGIN { plan tests => 7 }
 
 use PDL::LiteF;
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = max($c);

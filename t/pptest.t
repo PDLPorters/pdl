@@ -9,7 +9,7 @@ use PDL::Dbg;
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-sub approx {
+sub tapprox {
     my($a,$b,$c,$d) = @_;
     $c = abs($a-$b);
     $d = max($c);
@@ -21,17 +21,17 @@ $a = xvals(zeroes(byte, 2, 4));
 # $P() affine tests
 test_foop($a,($b=null));
 print "$b\n";
-ok( approx($a,$b) );
+ok( tapprox($a,$b) );
 
 test_foop($a->xchg(0,1),($b=null));
 print "$b\n";
-ok( approx($a->xchg(0,1),$b) );
+ok( tapprox($a->xchg(0,1),$b) );
 
 $vaff = $a->dummy(2,3)->xchg(1,2);
 print $vaff;
 $vaff->dump;
 test_foop($vaff,($b=null));
-ok( approx($vaff,$b) );
+ok( tapprox($vaff,$b) );
 
 # now in primitive.t
 # double qualifier
@@ -56,7 +56,7 @@ for (byte,short,ushort,long,float,double) {
 
 test_setdim(($a=null),10);
 ok( join(',',$a->dims) eq "10", 1 );
-ok( approx($a,sequence(10)) );
+ok( tapprox($a,sequence(10)) );
 
 # this used to segv under solaris according to Karl
 { local $=0; # To suppress warnings of use of uninitialized value.
@@ -67,5 +67,5 @@ ok( approx($a,sequence(10)) );
   print $b,"\n";
 
   ok( 1 );  # if we get here at all that is alright
-  ok( approx($a,$b) );
+  ok( tapprox($a,$b) );
 }

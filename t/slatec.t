@@ -19,7 +19,7 @@ sub ok {
 	print "ok $n\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$c,$d) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
@@ -42,10 +42,10 @@ my $mat = pdl [1,0.1],[0.1,2];
 
 print $eigvecs,$eigvals,"\n";
 
-ok(approx($eigvals,pdl(0.9901,2.009)));
-ok(!approx($eigvals,pdl(0.99,2.5)));
+ok(tapprox($eigvals,pdl(0.9901,2.009)));
+ok(!tapprox($eigvals,pdl(0.99,2.5)));
 
-ok(approx($eigvecs,pdl([0.995,-0.0985],[0.0985,0.995])));
+ok(tapprox($eigvecs,pdl([0.995,-0.0985],[0.0985,0.995])));
 
 $mat = pdl [2,3],[4,5];
 
@@ -58,15 +58,15 @@ print $inv;
 
 print $uni;
 
-ok(approx($uni,pdl[1,0],[0,1]));
+ok(tapprox($uni,pdl[1,0],[0,1]));
 
 $det = $mat->det;
 $det->dump;
 $deti = $inv->det;
 $deti->dump;
 
-ok(approx($det,-2));
-ok(approx($deti,-0.5));
+ok(tapprox($det,-2));
+ok(tapprox($deti,-0.5));
 
 # Now do the polynomial fitting tests
 
@@ -196,7 +196,7 @@ my $ismon;
 
 ok($err->getndims==0 & $err->sum == 0);
 ok($ismon->get_datatype == 3);
-ok(approx($ismon,$ans));
+ok(tapprox($ismon,$ans));
 
 ## Test: chia
 #

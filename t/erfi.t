@@ -9,7 +9,7 @@ use PDL::Math;
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         $c = abs($a-$b);
         $d = max($c);
@@ -17,8 +17,8 @@ sub approx {
 }
 
 $a = pdl( 0.01, 0.0 );
-ok( approx( erfi($a), pdl(0.00886,0.0) ) );
+ok( tapprox( erfi($a), pdl(0.00886,0.0) ) );
 
 # inplace
 $a->inplace->erfi;
-ok( approx( $a, pdl(0.00886,0.0) ) );
+ok( tapprox( $a, pdl(0.00886,0.0) ) );

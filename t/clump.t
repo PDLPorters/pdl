@@ -26,7 +26,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	my $c = abs($a-$b);
 	my $d = max($c);
@@ -80,7 +80,7 @@ $b = $a->clump(-1);
 
 print $b;
 
-ok(1,approx($b,pdl [0,1,2,10,11,12,20,21,22]));
+ok(1,tapprox($b,pdl [0,1,2,10,11,12,20,21,22]));
 
 # print $b;
 
@@ -97,6 +97,6 @@ $f= $e->copy();;
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 # ok(2,$@ =~ /^clump: Increments do not match/);
 # Clump supports this now.
-ok(2,approx($d,pdl [0,2,10,12,20,22]));
+ok(2,tapprox($d,pdl [0,2,10,12,20,22]));
 
-ok(3,approx($e,pdl [10,12,20]));
+ok(3,tapprox($e,pdl [10,12,20]));

@@ -7,7 +7,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	my($c,$d);
 	$c = abs($a-$b);
@@ -48,7 +48,7 @@ tline($c,$b);
 print $a;
 print $b;
 
-ok(1,approx($c,$b));
+ok(1,tapprox($c,$b));
 
 $c = ones(5); # produce an error
 eval('tline($a,$c)');
@@ -60,7 +60,7 @@ print $a;
 tassgn($a,($b=null));
 print "$b\n";
 $b->dump;
-ok(3,approx($b,6*sequence(4)));
+ok(3,tapprox($b,6*sequence(4)));
 
 # test if setting named dim with '=' raises error
 # correctly at runtime

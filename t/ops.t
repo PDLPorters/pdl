@@ -8,7 +8,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$c,$d) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
@@ -62,7 +62,7 @@ ok(12,$c->at(2) == 12);
 $a = pdl 16,64,9;
 $b = sqrt($a);
 
-ok(13,approx($b,(pdl 4,8,3)));
+ok(13,tapprox($b,(pdl 4,8,3)));
 
 # See that a is unchanged.
 
@@ -82,41 +82,41 @@ ok(19,$b->at(3) == 0);
 
 # Might as well test this also
 
-ok(20,approx((pdl 2,3),(pdl 2,3)));
-ok(21,!approx((pdl 2,3),(pdl 2,4)));
+ok(20,tapprox((pdl 2,3),(pdl 2,3)));
+ok(21,!tapprox((pdl 2,3),(pdl 2,4)));
 
 # Simple function tests
 
 $a = pdl(2,3);
-ok(22, approx(exp($a), pdl(7.3891,20.0855)));
-ok(23, approx(sqrt($a), pdl(1.4142, 1.7321)));
+ok(22, tapprox(exp($a), pdl(7.3891,20.0855)));
+ok(23, tapprox(sqrt($a), pdl(1.4142, 1.7321)));
 
 # And and Or
 
-ok(24, approx(pdl(1,0,1) & pdl(1,1,0), pdl(1,0,0)));
-ok(25, approx(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1)));
+ok(24, tapprox(pdl(1,0,1) & pdl(1,1,0), pdl(1,0,0)));
+ok(25, tapprox(pdl(1,0,1) | pdl(1,1,0), pdl(1,1,1)));
 
 # atan2
-ok (26, approx(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1)));
+ok (26, tapprox(atan2(pdl(1,1), pdl(1,1)), ones(2) * atan2(1,1)));
 
 $a = sequence (3,4);
 $b = sequence (3,4) + 1;
 
-ok (27, approx($a->or2($b,0), $a | $b));
-ok (28, approx($a->and2($b,0), $a & $b));
-ok (29, approx($b->minus($a,0), $b - $a));
-ok (30, approx($b - $a, ones(3,4)));
+ok (27, tapprox($a->or2($b,0), $a | $b));
+ok (28, tapprox($a->and2($b,0), $a & $b));
+ok (29, tapprox($b->minus($a,0), $b - $a));
+ok (30, tapprox($b - $a, ones(3,4)));
 
 # inplace tests
 
 $a = pdl 1;
 $sq2 = sqrt 2; # perl sqrt
 $a->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
-ok(31, approx $a, pdl 2);
+ok(31, tapprox $a, pdl 2);
 $warning_shutup = $warning_shutup = sqrt $a->inplace;
-ok(32, approx $a, pdl($sq2));
+ok(32, tapprox $a, pdl($sq2));
 $a = pdl 4;
-ok(33, approx 2, sqrt($a->inplace));
+ok(33, tapprox 2, sqrt($a->inplace));
 
 # log10 now uses C library
 # check using scalars and piddles
@@ -129,7 +129,7 @@ $a = log10(pdl(110,23));
 $b = log(pdl(110,23)) / log(10);
 print "a: $a\n";
 print "b: $b\n";
-ok(35, approx $a, $b );
+ok(35, tapprox $a, $b );
 
 # check inplace
-ok(36, approx pdl(110,23)->inplace->log10(), $b );
+ok(36, tapprox pdl(110,23)->inplace->log10(), $b );

@@ -1,3 +1,17 @@
+CS
+    - changes for win32 compatibility:
+        pdlcore.c: avoid die_where & co, use Perl_croak instead
+        Math/cpoly.c: win32 doesn't know about values.h
+        Lib/Image2D/resample.h: win32 doesn't know about M_PI
+        t/fastraw.t: skip mmap tests on win32
+    - slices.pd: possible rotate segfault fixed
+    - fix slight mslice problem (didn't make sure its inputs were
+      converted to int)
+    - new functions 'in' and 'uniq' in primitive.pd -> need tests
+    - image2d: a slightly faster median: med2df
+    - new function approx in Core.pm
+        **** attention: possible name clash; test scripts should *****
+        **** use tapprox from now on                             *****
 2.2
 John Cerney (20/12/00)
     - Minor changes to Makefile.PL and Reduce.pm for compatibility with

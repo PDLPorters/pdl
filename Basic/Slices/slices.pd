@@ -1235,6 +1235,8 @@ EOD
         Code=>'
         int i,j;
         int n_size = $SIZE(n);
+	if (n_size == 0)
+          barf("can not shift zero size piddle (n_size is zero)");
         j = ($shift()) % n_size;
         if (j < 0)
                 j += n_size;
