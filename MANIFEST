@@ -145,6 +145,8 @@ Demos/TriD/tvrml2.p
 Demos/TriD1.pm
 Demos/TriD2.pm
 Demos/TriDGallery.pm
+Demos/earth-interp.pl
+Demos/earth.txt
 Doc/Doc.pm
 Doc/Doc/Config.pm.PL
 Doc/Doc/Perldl.pm
@@ -567,8 +569,6 @@ debian/postinst
 debian/postrm
 debian/preinst
 debian/rules
-earth-interp.pl
-earth.txt
 m51.fits
 pdldoc.PL
 perldl.PL
