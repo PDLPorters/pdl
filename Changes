@@ -1,3 +1,6 @@
+AJ  (29-Jan-2003)
+    - Added PDL::GSL::INTERP and PDL::GSL::DIFF and corresponding 
+	tests t/gsl_interp.t and t/gsl_diff.t
 CED (28-Jan-2003)
     - Added fits_vect method to Window
     - Improved Transform demo (whizzy despiraling demo at end)
