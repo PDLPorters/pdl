@@ -1,3 +1,15 @@
+CS  ******** merged in type extension stuff
+    - example of extending data types: add longlong type (64bit integer)
+    - that type is disabled by default but you can uncomment the
+      section in Types.pm.PL to try it out
+    *** no modification of IO modules yet
+    *** just the core changes to add the type + other changes to
+    *** make all modules compile
+    *** may serve as a testbed for type extensions
+    *** needs testing with BADVALUE support
+CS  - preparations for type extension: concentrate all type-dependent info
+      in Types.pm.PL
+CS  - cpoly.c: try to fix values.h problem on BSDs etc
 CS  - patch for cygwin by Christopher Marshall (Bugs item #597985)
 CS  - fix box2d threading bug
 CS (25/9/2002)

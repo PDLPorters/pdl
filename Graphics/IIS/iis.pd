@@ -555,9 +555,7 @@ pp_def('_iis',
       iis_checksum(hdr);
       iis_write((char*)hdr, 8*sizeof(short));
 
-#define Generic $TBSULFD(PDL_Byte,PDL_Short,PDL_Ushort,PDL_Long,PDL_Float,PDL_Double)
-
-       {   Generic val,sval;
+       {   $GENERIC() val,sval;
 
            for (y = 0; y < ny2; y+=ntrans) {
 
@@ -594,7 +592,6 @@ pp_def('_iis',
            }
 
       }
-#undef Generic
 
    %}
 

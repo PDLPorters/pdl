@@ -368,9 +368,6 @@ struct pdl {
 
 
 
-/* For ease */
-#define PDL_U PDL_US
-
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define DECL_RECURSE_GUARD static int __nrec=0;

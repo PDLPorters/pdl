@@ -15,13 +15,15 @@ cursor terminal browser for piddles.
 =cut
 EOD
 
+use PDL::Types;
+
 pp_def(
 	'browse',
 	Pars => 'a(n,m);',
-	Code => '
-	browse($TBSULFD(0,1,2,3,4,5),$SIZE(n),$SIZE(m),
-		$P(a));
-	',
+	Code => "
+	browse(\$TBSULQFD($PDL_B,$PDL_S,$PDL_US,$PDL_L,$PDL_LL,$PDL_F,$PDL_D),
+                \$SIZE(n),\$SIZE(m),\$P(a));
+	",
 Doc=><<'EOD');
 =head2 browse
 

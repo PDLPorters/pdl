@@ -32,4 +32,6 @@ $typedefs
 
 EOD
 
+$PDL_DATATYPES .= "\n".PDL::Types::typesynonyms()."\n";
+
 1; # OK

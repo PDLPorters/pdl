@@ -367,9 +367,11 @@ sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
+	my $core = "$w/Basic/Core";
+	my $gen = "$w/Basic/Gen";
 qq|
 
-$pref.pm: $src $w/Basic/Gen/pm_to_blib $w/Basic/Core/badsupport.p
+$pref.pm: $src $gen/pm_to_blib $core/badsupport.p $core/Types.pm
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm

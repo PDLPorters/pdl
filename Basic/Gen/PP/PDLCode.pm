@@ -25,7 +25,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 # Do the appropriate substitutions in the code.
 sub new { 
     my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
-       $extrageneric,$havethreading, 
+       $extrageneric,$havethreading,$name,
        $dont_add_thrloop, $nogeneric_loop) = @_;
 
     # simple way of handling bad code check
@@ -55,6 +55,8 @@ sub new {
 	Gencurtype => [], # stack to hold GenType in generic loops
 	types => 0,  # hack for PDL::PP::Types/GenericLoop
 	pars => {},  # hack for PDL::PP::NaNSupport/GenericLoop
+        Generictypes => $generictypes,   # so that MacroAccess can check it
+        Name => $name,
     }, $type;
     
     my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
@@ -278,7 +280,8 @@ sub mypostlude { my($this,$parent,$context) = @_;
 package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
 
-# Types: BSULFD,
+# Types: BSULFD
+use PDL::Types ':All';
 sub new { 
     my($type,$types,$name,$varnames,$whattype) = @_;
     bless [(PDL::PP::get_generictyperecs($types)),$name,$varnames,
@@ -305,7 +308,7 @@ sub myprelude {
 	map { 
 	    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n" 
 	    }
-	(qw/B S U L F D/);
+	(ppdefs);
     }
 
     return "/* Start generic loop */\n$thisis_loop\n" .
@@ -333,7 +336,7 @@ sub myitem {
 			map {
 			    "#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
 			}
-			(qw/B S U L F D/) 
+			(ppdefs) 
 			) . 
 			    "#undef THISIS$this->[1]_$item->[3]\n" . 
 				"#define THISIS$this->[1]_$item->[3](a) a\n";
@@ -468,11 +471,13 @@ sub mypostlude {my($this,$parent,$context) = @_;
 #
 package PDL::PP::Types;
 use Carp;
+use PDL::Types ':All';
 @PDL::PP::Types::ISA = "PDL::PP::Block";
 
 sub new { 
     my($type,$ts,$parent) = @_;
-    $ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
+    my $types = join '', ppdefs; # BSUL....
+    $ts =~ /[$types]+/ or confess "Invalid type access with '$ts'!";
     $parent->{types} = 1; # hack for PDL::PP::GenericLoop
     bless [$ts],$type; }
 sub myoffs { return 1; }
@@ -497,7 +502,8 @@ sub new { my($type,$str,$parent) = @_;
 	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
 		confess ("Access wrong: '$str'\n");
 	my($pdl,$inds) = ($1,$2);
-	if($pdl =~ /^T/) {new PDL::PP::MacroAccess($pdl,$inds);}
+	if($pdl =~ /^T/) {new PDL::PP::MacroAccess($pdl,$inds,
+						   $parent->{Generictypes},$parent->{Name});}
 	elsif($pdl =~ /^P$/) {new PDL::PP::PointerAccess($pdl,$inds);}
 	elsif($pdl =~ /^PP$/) {new PDL::PP::PhysPointerAccess($pdl,$inds);}
         elsif($pdl =~ /^SIZE$/) {new PDL::PP::SizeAccess($pdl,$inds);}
@@ -538,14 +544,28 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 # There MUST be a better way than this...
 #
 package PDL::PP::NaNSupport;
+use PDL::Types ':All'; # typefld et al.
 
 # need to be lower-case because of FlagTyped stuff
+#
+# need to be able to handle signatures with fixed types
+# which means parameters like 'int mask()',
+# which means the hack to add 'int' to %use_nan
+#
 my %use_nan =
-    ( byte => 0, short => 0, ushort => 0, long => 0,
-      int => 0,  # necessary for fixed-type piddles (or something)
-      float => $usenan, 
-      double => $usenan 
-      );
+    map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+$use_nan{int} = 0;
+
+# original try
+##my %use_nan =
+##  map {(typefld($_,'convertfunc') => typefld($_,'usenan')*$usenan)} typesrtkeys;
+
+# Was the following, before new Type "interface"
+#     ( byte => 0, short => 0, ushort => 0, long => 0,
+#       int => 0,  longlong => 0, # necessary for fixed-type piddles (or something)
+#       float => $usenan, 
+#       double => $usenan 
+#       );
 
 my %set_nan = 
     (
@@ -924,26 +944,39 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::MacroAccess;
 use Carp;
+use PDL::Types ':All';
+my $types = join '',ppdefs;
 
-sub new { my($type,$pdl,$inds) = @_; bless [$pdl,$inds],$type; }
+sub new { my($type,$pdl,$inds,$gentypes,$name) = @_; 
+	  $pdl =~ /^\s*T([A-Z]+)\s*$/ or confess("Macroaccess wrong: $pdl\n");
+	  my @ilst = split '',$1;
+	  for my $gt (@$gentypes) {
+	    warn "$name has no Macro for generic type $gt (has $pdl)\n"
+	      unless grep {$gt eq $_} @ilst }
+	  for my $mtype (@ilst) {
+	    warn "Macro for unsupported generic type identifier $mtype".
+	      " (probably harmless)\n"
+	      unless grep {$mtype eq $_} @$gentypes;
+	  }
+	  return bless [$pdl,$inds,$name],
+	    $type; }
 
 sub get_str {my($this,$parent,$context) = @_;
-	my ($pdl,$inds) = @{$this};
-	$pdl =~ /T([BSULFD]+)/ or confess("Macroaccess wrong: $pdl\n");
+	my ($pdl,$inds,$name) = @{$this};
+	$pdl =~ /^\s*T([A-Z]+)\s*$/ 
+	  or confess("Macroaccess wrong in $name (allowed types $types): was '$pdl'\n");
 	my @lst = split ',',$inds;
 	my @ilst = split '',$1;
 	if($#lst != $#ilst) {confess("Macroaccess: different nos of args $pdl $inds\n");}
-	croak "generic type access outside a generic loop"
+	croak "generic type access outside a generic loop in $name"
 	  unless defined $parent->{Gencurtype}->[-1];
-	my $type = $parent->{Gencurtype}->[-1];
-	croak "unknown Type" unless $type =~ /^PDL_([BSULFD])/;
-	$type = $1;
+	my $type = mapfld $parent->{Gencurtype}->[-1], 'ctype' => 'ppsym';
+	#     print "Type access: $type\n";
+	croak "unknown Type in $name (generic type currently $parent->{Gencurtype}->[-1]"
+	  unless defined $type;
 	for (0..$#lst) {
 	  return "$lst[$_]" if $ilst[$_] =~ /$type/;
 	}
-	# return join ' ',map {
-	#	"THISIS_$ilst[$_]($lst[$_])"
-	# } (0..$#lst) ;
 }
 
 
@@ -1027,6 +1060,13 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::TypeConv;
 
+# make the typetable from info in PDL::Types
+use PDL::Types ':All';
+my @typetable = map {[$typehash{$_}->{ppsym},
+		  $typehash{$_}->{ctype},
+		  $typehash{$_}->{numval},
+		 ]} typesrtkeys;
+
 sub print_xscoerce { my($this) = @_;
 	$this->printxs("\t__priv->datatype=PDL_B;\n");
 # First, go through all the types, selecting the most general.
@@ -1055,27 +1095,17 @@ sub PDL::PP::get_generictyperecs { my($types) = @_;
 	my $foo;
 	return [map {$foo = $_;
 		( grep {/$foo->[0]/} (@$types) ) ?
-		  ["PDL_".($_->[0]eq"U"?"US":$_->[0]),$_->[1],$_->[2],$_->[0]]
+		  [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]]
 		  : ()
 	}
-	       (["B","PDL_Byte",$PDL_B],
-		["S","PDL_Short",$PDL_S],
-		["U","PDL_Ushort",$PDL_US],
-		["L","PDL_Long",$PDL_L],
-		["F","PDL_Float",$PDL_F],
-		["D","PDL_Double",$PDL_D])];
+	       @typetable];
 }
 
 sub xxx_get_generictypes { my($this) = @_;
 	return [map {
-		$this->{Types} =~ /$_->[0]/ ? ["PDL_".($_->[0]eq"U"?"US":$_->[0]),$_->[1],$_->[2],$_->[0]] : ()
+		$this->{Types} =~ /$_->[0]/ ? [mapfld($_->[0],'ppsym'=>'sym'),$_->[1],$_->[2],$_->[0]] : ()
 	}
-	       (["B","PDL_Byte",$PDL_B],
-		["S","PDL_Short",$PDL_S],
-		["U","PDL_Ushort",$PDL_US],
-		["L","PDL_Long",$PDL_L],
-		["F","PDL_Float",$PDL_F],
-		["D","PDL_Double",$PDL_D])];
+	       @typetable];
 }
 
 
