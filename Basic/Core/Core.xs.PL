@@ -123,6 +123,42 @@ static SV* pdl_unpackint ( PDL_Long *dims, int ndims ) {
    return (SV*) array;
 }
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+
+/* newval = 1 means set flag, 0 means clear it */
+/* thanks to Christian Soeller for this */
+
+void propogate_badflag( pdl *it, int newval ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; i++ ) {
+	    
+	    pdl *child = trans->pdls[i];
+
+	    if ( newval ) child->state |=  PDL_BADVAL;
+            else          child->state &= ~PDL_BADVAL;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badflag( child, newval );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* propogate_badflag */
+
+!NO!SUBS!
+    } # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+
 MODULE = PDL::Core     PACKAGE = PDL
 
 
@@ -568,6 +604,7 @@ if ( $bvalflag ) {
     PDL.bvals._PDL_Float  = PDL.bvals.default_PDL_Float  = -FLT_MAX;
     PDL.bvals._PDL_Double = PDL.bvals.default_PDL_Double = -DBL_MAX;
 
+    PDL.propogate_badflag = propogate_badflag;
 !NO!SUBS!
 } # if: $bvalflag
 print OUT <<'!NO!SUBS!';

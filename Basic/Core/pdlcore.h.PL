@@ -289,8 +289,11 @@ void (*allocdata) (pdl *it);
 !NO!SUBS!
 
     if ( $bvalflag ) {
-	print OUT "   badvals bvals;  /* store the default bad values */\n";
-    }
+	print OUT <<'!NO!SUBS!';
+  badvals bvals;  /* store the default bad values */
+  void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+!NO!SUBS!
+    } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
 

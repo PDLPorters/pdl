@@ -23,10 +23,6 @@ Problems:
  [  6 BAD   8]
 ]
 
-.) need to look at propogation of the bad flag with inplace funcs
-   from ops.pd. WIll probably need to put a copy of pointer to
-   'propogate_badflag' into PDL structure.
-
 .) what to do about 'any($a > 20)' when all elements of $a are bad:
     orover($a > 20) will produce a bad value, which is then returned
    to the caller as a scaler (via 'return $tmp->at()').

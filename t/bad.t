@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 54;
+	plan tests => 56;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -269,5 +269,24 @@ $a->set(2,2,$a->badvalue);
 
 $b = sequence(3,3);
 $ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
-ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 54
+ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 
 
+# propogation of badflag using inplace ops (ops.pd)
+
+# test biop fns
+$a = sequence(3,3);
+$c = $a->slice(',(1)');
+$b = $a->setbadif( $a % 2 );
+$a->inplace->plus($b,0);
+print $a;
+print "$c\n";
+ok( PDL::Core::string($c), "[BAD 8 BAD]" );  #55
+
+# test bifunc fns
+$a = sequence(3,3);
+$c = $a->slice(',(1)');
+$b = $a->setbadif( $a % 3 != 0 );
+$a->inplace->power($b,0);
+print $a;
+print "$c\n";
+ok( PDL::Core::string($c), "[27 BAD BAD]" );  #

@@ -102,7 +102,10 @@ A number of routines use this - eg isXXXover (bad.pd) and zcover
 
 If you have a routine that you want to be able to use as inplace, look
 at the routines in bad.pd which use the 'Inplace' option to see how the
-bad flag is propogated to children using the xxxBadStatusCode options.
+bad flag is propogated to children using the xxxBadStatusCode options
+(or those in ops.pd). Decided not to automate this as rules would be a
+little complex, since not every inplace op will need to propogate the 
+badflag (eg unary functions).
 
 If the option
    HandleBad => 1

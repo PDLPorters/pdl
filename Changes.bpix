@@ -4,7 +4,8 @@ Doug Burke (08/02/00-08/03/00)
    - added more to the demo
    - brought up to date with changes on main branch (see Changes)
    - fixed an inplace/propogation of bad flag in PDL::Bad (except for setbadif,
-     which is broken when used inplace)
+     which is broken when used inplace) and in PDL::Ops (involved moving
+     propogate_badflag from bad.pd to Core.xs.PL)
 Doug Burke (07/27/00)
    - changed PP/PDLCode.pm to greatly improve the handling of 'bad' code. It's
      almost not a horrible hack now ;)

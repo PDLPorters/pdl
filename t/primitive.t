@@ -3,6 +3,8 @@
 # nasty test cases,
 
 use PDL::LiteF;
+use PDL::Types;
+
 # kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 # PDL::Core::set_debugging(1);
@@ -10,9 +12,7 @@ use PDL::LiteF;
 use strict;
 use Test;
 
-BEGIN {
-    plan tests => 6;
-}
+plan tests => 8;
 
 sub approx {
     my($a,$b) = @_;
@@ -50,3 +50,8 @@ ok(approx($b->which, PDL->pdl(0,1,2,7,8,10,11)));  # 5
 
 ok(approx($c->where($b), PDL->pdl(10,11,12,17,18,20,21))); # 6
 
+# originally in pptest
+$a = ones(byte,3000);
+dsumover($a,($b=null));
+ok( $b->get_datatype, $PDL_D );   # 7
+ok( $b->at, 3000 );               # 8

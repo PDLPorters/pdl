@@ -49,14 +49,16 @@ pp_deft('foop',
 	Code => 'ppcp($P(b),$P(a),$SIZE(n));',
 );
 
+# now in primitive.pd
+#
 # double qualifier
-pp_deft(
-	'dsumover',
-	Pars => 'a(n); double [o]b();',
-	Code => 'PDL_Double tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp;'
-);
+#pp_deft(
+#	'dsumover',
+#	Pars => 'a(n); double [o]b();',
+#	Code => 'PDL_Double tmp = 0;
+#	 loop(n) %{ tmp += $a(); %}
+#	 $b() = tmp;'
+#);
 
 # float qualifier
 pp_deft(

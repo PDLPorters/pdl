@@ -1,6 +1,7 @@
 use Test;
 
-plan tests => 23;
+#plan tests => 23;
+plan tests => 21;
 
 use PDL::LiteF;
 use PDL::Tests;
@@ -33,13 +34,15 @@ $vaff->dump;
 test_foop($vaff,($b=null));
 ok( approx($vaff,$b) );
 
+# now in primitive.t
 # double qualifier
-$a = ones(byte,3000);
-test_dsumover($a,($b=null));
-ok( $b->get_datatype, $PDL_D );
-ok( $b->at, 3000 );
+#$a = ones(byte,3000);
+#test_dsumover($a,($b=null));
+#ok( $b->get_datatype, $PDL_D );
+#ok( $b->at, 3000 );
 
 # float qualifier
+$a = ones(byte,3000);
 test_fsumover($a,($b=null));
 ok( $b->get_datatype, $PDL_F );
 ok( $b->at, 3000 );
