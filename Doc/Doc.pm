@@ -168,7 +168,7 @@ sub trim {
 
 =head1 NAME
 
-  PDL::Doc -- support for PDL online documentation
+PDL::Doc - support for PDL online documentation
 
 =head1 SYNOPSIS
 
@@ -213,6 +213,7 @@ Individual functions in this section are introduced by
 
 
 =pod
+
 where signature is the argumentlist for a PP defined function
 as explained in L<PDL::PP>. Generally, PDL documentation is in
 valid POD format (see L<perlpod>) but uses the C<=for> directive
@@ -734,11 +735,14 @@ discussions on the pdl-porters mailing list.
 
 =head1 AUTHOR
 
-Copyright 1997 Christian Soeller <c.soeller@auckland.ac.nz> and Karl Glazebrook
-<kgb@aaoepp.aao.gov.au>
+Copyright 1997 Christian Soeller E<lt>c.soeller@auckland.ac.nzE<gt> 
+and Karl Glazebrook E<lt>kgb@aaoepp.aao.gov.auE<gt>
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
+=cut
+
+1;
