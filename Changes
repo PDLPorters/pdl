@@ -1,8 +1,10 @@
+CS  - NiceSlice doc update
 JB  (14/Aug/01)
     - Added a package wide store for options for env. This allows the
       next device to reuse the most recent set of env options.
 CS  - minmax: return scalars!
     - PDL::Options for PDL::Graphics::Karma
+    - disable PDL::PP SIG{__DIE__} overload by default
 DJB (07/Aug/01)
     - added VertSpace to ...PGPLOT::Window's legend()
 CS  - make sure perldl works with NiceSlice

@@ -546,6 +546,11 @@ I<"not occurring between matched parentheses">.
 
 Source filtering can be switched on and off in scripts
 and perl modules by using or unloading C<PDL::NiceSlice>.
+
+Note: this will I<not> work in the L<perldl|perldl> shell
+(see below how to enable the new slicing syntax within L<perldl|perldl>).
+
+But now back to scripts and modules.
 Everything after C<use PDL::NiceSlice> will be translated
 and you can use the snew slicing syntax. Source filtering
 will continue until the end of the file is encountered.
@@ -589,6 +594,36 @@ Similarly, switch reporting off as needed
 
 Note that these commands will only work if you included
 the contents of F<local.perldlrc> in your perldl startup file.
+
+=head2 evals and C<PDL::NiceSlice>
+
+Due to C<PDL::NiceSlice> being a source filter it won't work
+in the usual way within evals. The following will I<not> do what
+you want:
+
+  $a = sequence 10;
+  eval << 'EOE';
+
+  use PDL::NiceSlice;
+  $b = $a(0:5);
+
+  EOE
+  print $b;
+
+Instead say:
+
+  use PDL::NiceSlice;
+  $a = sequence 10;
+  eval << 'EOE';
+
+  $b = $a(0:5);
+
+  EOE
+  print $b;
+
+Source filters I<must> be executed at compile time to be effective. And
+C<PDL::NiceFilter> is just a source filter (although it is not
+necessarily obvious for the casual user).
 
 =head1 Implementation
 
