@@ -988,7 +988,16 @@ An incomplete list of the available keys:
 
 =item Inplace
 
-Setting this key (e.g. C<Inplace =E<gt> 1>) marks the routine as working inplace.
+Setting this key marks the routine as working inplace. Inplace should be sent
+an array reference, where the first element is the name of the input piddle
+and the second element the name of the output piddle (it should be clever
+enough to work this out by itself!). For instance, with
+
+ Pars => 'a(); [o]b();'
+
+then
+
+ Inplace => [ 'a', 'b' ]
 
 =back
 
@@ -1372,7 +1381,13 @@ Default: [qw/B S U L F D/]
 
 =item Inplace
 
-Mark a function as being able to work inplace (use C<Inplace =E<gt> 1>).
+Mark a function as being able to work inplace. The argument should be
+an array reference; the first element is the name of the input piddle,
+the second the output piddle (it should be made to work this out from the
+signature of the function!).
+
+ Pars => 'a(); [o] b();',
+ Inplace => [ 'a', 'b' ],
 
 =item Doc
 
