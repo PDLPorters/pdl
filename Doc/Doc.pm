@@ -552,9 +552,8 @@ sub search {
   my $hash = $this->ensuredb;
   my @match = ();
 
-  print "pattern=`$pattern'\n";
   $pattern = $this->checkregex($pattern);
-  print "pattern=`$pattern'\n";
+
   while (my ($key,$val) = each %$hash) {
     for (@$fields) {
       if (($_ eq 'Name' && $key =~ /$pattern/) ||
@@ -583,7 +582,7 @@ sub checkregex {
   my $sep = substr($regex,1,1);
   substr($regex,0,2) = '';
   $sep = '(?<!\\\\)\\'.$sep; # Avoid '\' before the separator 
-  print "sep: `$sep'\n";
+
   my ($pattern,$mod) = split($sep,$regex,2);
   barf "unknown regex modifiers '$mod'" if $mod && $mod !~ /[imsx]+/;
   $pattern = "(?$mod)$pattern" if $mod;

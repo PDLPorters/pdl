@@ -9,11 +9,20 @@ access the PDL documentation of database, for use
 from the I<perldl> shell and the I<pdldoc> command-line
 program.
 
+Autoload files are also matched, via a search of the PDLLIB autoloader
+tree.  That behavior can be switched off with the variable 
+C<$PERLDL::STRICT_DOCS> (true: don't search autoload tree; false: search
+the autoload tree.)
+
 Currently, multiple matches are not handled very well.
 
 =head1 SYNOPSIS
 
  use PDL::Doc::Perldl; # Load all documenation functions
+
+=head1 BUGS
+
+The description contains the misleading word "simple". 
 
 =head1 FUNCTIONS
 
@@ -114,7 +123,11 @@ sub format_ref {
 	$Pod::Text::SCREEN = $width;
 	local $^W = 0;
 	for my $m (@match) { 
-	    $_ = $m->[1]->{Ref} || "[No reference available]";
+	    $_ = $m->[1]{Ref} || 
+		( (defined $m->[1]{CustomFile})
+		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+		  : "[No reference available]"
+		  );
 	  Pod::Text::prepare_for_output(); # adds a '\n' to $_
 	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
 	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
@@ -130,7 +143,12 @@ sub format_ref {
 	my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
 	
 	for my $m (@match) { 
-	    my $ref = $m->[1]->{Ref} || "[No reference available]";
+	    my $ref = $m->[1]{Ref} || 
+		( (defined $m->[1]{CustomFile})
+		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+		  : "[No reference available]"
+		  );
+
 	    $ref = $parser->interpolate( $ref );
 	    $ref = $parser->reformat( $ref );
 	    
@@ -186,7 +204,8 @@ sub aproposover {
     die "Usage: aproposover \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
-    @out = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+    $func =~ s:\/:\\\/:g;
+    search_docs("m/$func/",['Name','Ref','Module'],1);
     
 }
 
@@ -196,6 +215,26 @@ sub apropos  {
     my $func = shift;
     printmatch aproposover $func;
 }
+
+=head2 PDL::Doc::Perldl::search_docs
+
+=for ref
+
+Internal routine to search docs database and autoload files
+
+=cut
+
+sub search_docs {
+    my ($func,$types,$sortflag,$exact) = @_;
+    my @match;
+
+    @match = $PDL::onlinedoc->search($func,$types,$sortflag);
+    push(@match,find_autodoc( $func, $exact ) );
+    
+    @match;
+}
+
+
 
 =head2 PDL::Doc::Perldl::finddoc
 
@@ -213,9 +252,8 @@ sub finddoc  {
     # See if it matches a PDL function name
     print "topic: $topic\n";
     (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?".$t2."\$/",['Name']);
 
-    push(@match,find_autodoc($topic));
+    my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
 
 
     die "Unable to find PDL docs on $topic\n"
@@ -266,9 +304,28 @@ match structure appropriate for the rest of finddoc.
 
 =cut
 
+# Yuck.  Sorry.  At least it works.  -CED
+
 sub find_autodoc {
     my $topic = shift;
-    $topic =~ s/\(\)$//;
+    my $exact = shift;
+    my $matcher;
+    # Fix up regexps and exact matches for the special case of 
+    # searching the autoload dirs...
+    if($exact) {
+	$topic =~ s/\(\)$//;  # "func()" -> "func"
+	$topic .= ".pdl" unless $topic =~ m/\.pdl$/;
+    } else {
+
+	$topic =~ s:([^\$])(.)$:$1\.\*\$$2:; # Include explicit ".*$" at end of
+	                                   # vague matches -- so that we can
+	                                   # make it a ".*\.pdl$" below.
+
+	$topic =~ s:\$(.)$:\.pdl\$$1:; # Force ".pdl" at end of file match
+
+	$matcher = eval "sub { $topic && \$\_ };";  # Avoid multiple compiles
+    }
+
     my @out;
 
     return unless(@main::PDLLIB);
@@ -276,10 +333,23 @@ sub find_autodoc {
 	unless(@main::PDLLIB_EXPANDED);
     
     for my $dir(@main::PDLLIB_EXPANDED) {
- 	my $file = $dir . "/" . "$topic";
-	$file .= ".pdl" unless $file =~ m/\.pdl$/;
-	push(@out,[$topic,{CustomFile => $file, Module => "file $file"}])
-	    if(-e $file);
+	if($exact) {
+	    my $file = $dir . "/" . "$topic";
+	    push(@out,
+	          [$file, {CustomFile => "$file", Module => "file '$file'"}]
+		 )
+		if(-e $file);
+	} else {
+	    opendir(FOO,$dir) || next;
+	    my @dir = readdir(FOO);
+	    closedir(FOO);
+	    for my $file( grep( &$matcher, @dir ) ) {
+		push(@out,
+		     [$file, {CustomFile => "$dir/$file", Module => "file '$dir/$file'"}]
+		     );
+	    }
+
+	}
     }
     @out;
 }
@@ -318,7 +388,8 @@ sub usage {
 sub usage_string{
     my $func = shift;
     my $str = "";
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
+
     unless (@match) { print "\n  no match\n" } 
     else {
 	$str .= "\n" . format_ref( $match[0] );
@@ -362,7 +433,7 @@ sub sig {
 	die "Usage: sig \$funcname\n" unless $#_>-1;
 	die "no online doc database" unless defined $PDL::onlinedoc;
 	my $func = shift;
-	my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+	my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
 	unless (@match) { print "\n  no match\n" } else {
          my ($name,$hash) = @{$match[0]};
 	 die "No signature info found for $func\n"
@@ -483,7 +554,7 @@ sub badinfo {
 
     die "no online doc database" unless defined $PDL::onlinedoc;
 
-    my @match = $PDL::onlinedoc->search("m/^(PDL::)?$func\$/",['Name']);
+    my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
     if ( @match ) {
 	my ($name,$hash) = @{$match[0]};
 	my $info = $hash->{Bad};

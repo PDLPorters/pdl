@@ -1766,7 +1766,7 @@ sub PDL::interpND {
       
       # Grab a 4-on-a-side n-cube around each desired pixel
       my $samp = $source->range($index->floor - 1,4,$boundary) #ith, cth, sth
-	  ->reorder( $di .. $di+$d-1, 0..$di-1, $di+d .. $source->ndims-1 );
+	  ->reorder( $di .. $di+$d-1, 0..$di-1, $di+$d .. $source->ndims-1 );
 	                   # (cth, ith, sth)
       
       # Make a cube of the subpixel offsets, and expand its dims to 
