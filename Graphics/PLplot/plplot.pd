@@ -631,13 +631,18 @@ use vars qw(%_constants %_actions);
      $self->{BOX} = $box;
    },
 
-   CHARSIZE   => sub { plschr   (0, $_[1]) },  # 0 - N
+   CHARSIZE   => sub { my $self = shift; 
+                       $self->{CHARSIZE} = $_[0]; 
+                       plschr   (0, $_[0]) },  # 0 - N
 
    COLOR =>
    # maintain color map, set to specified rgb triple
    sub {
      my $self  = shift;
      my $color = _color(shift);
+
+     # init.
+     $self->{COLORS} = [] unless exists($self->{COLORS});
      
      my @idx = @{$self->{COLORS}}; # map of color index (0-15) to RGB triples
      my $found = 0;
@@ -1006,11 +1011,16 @@ sub new {
   # set up object
   $self->{PLOTTYPE} = 'LINE';
   # $self->{CURRENT_COLOR_IDX} = 1;
+  $self->{COLORS} = [];
+
+  bless $self, $type;
+
+  # set background and frame color first
+  $self->setparm(BACKGROUND => 'WHITE',
+		 FRAMECOLOR => 'BLACK');
 
   # set defaults, allow input options to override
   my %opts = (COLOR      => 'BLACK',
-	      BACKGROUND => 'WHITE',
-	      FRAMECOLOR => 'BLACK',
 	      XBOX       => 'BCNST',
 	      YBOX       => 'BCNST',
 	      JUST       => 0,
@@ -1022,8 +1032,6 @@ sub new {
 	      ORIENTATION=> 0,
 	      @_);
 
-
-  bless $self, $type;
 
   # apply options
   $self->setparm(%opts);
@@ -1262,9 +1270,61 @@ sub histogram {
   # set line style for plot only (not box)
   pllsty ($self->{LINESTYLE});
 
+  # set color for histograms
+  plcol0  ($self->{CURRENT_COLOR_IDX});
+
   plhist ($x->nelem, $x, $min, $max, $nbins, 1);  # '1' is oldbins parm:  dont call plenv!
 }
 
+# Draw bar graphs
+sub bargraph {
+  my $self   = shift;
+  my $labels = shift; # ref to perl list of labels for bars
+  my $values = shift; # pdl of values for bars
+
+  my %opts = @_;
+
+  my $xmax = scalar(@$labels);
+
+  # apply options
+  $self->setparm(%opts);
+
+  my ($ymin, $ymax) = $values->minmax;
+
+  unless (exists($self->{BOX})) {
+    $self->{BOX} = [0, $xmax, $ymin, $ymax]; # box probably too tall!
+  }
+
+  # set up plotting box
+  $self->_setwindow;
+
+  # draw labels
+  $self->_drawlabels;
+
+  # plot box
+  plcol0  (1); # set to frame color
+  plbox (0, 0, 0, 0, 'bc', $self->{YBOX}); # !!! note out of order call
+
+  # plot labels
+  plschr   (0, $self->{CHARSIZE} * 0.7); # use smaller characters
+  my $pos = 0;
+  my $maxlab = 20;  # max number of readable labels on x axis
+  my $skip   = int($xmax/$maxlab) + 1;
+  for (my $i=0;$i<$xmax;$i+=$skip) {
+    my $lab = $$labels[$i];
+    plmtex (0.2, ((0.5+$i)/$xmax), 1.0, "BV", $lab); # !!! out of order parms
+  }
+
+  plcol0  ($self->{CURRENT_COLOR_IDX}); # set back to line color
+
+  # set line style for plot only (not box)
+  pllsty ($self->{LINESTYLE});
+
+  # draw bars
+  plfbox (PDL->sequence($xmax)+0.5, $values);
+
+
+}
 
 # Add text to a plot
 sub text {
@@ -1675,6 +1735,24 @@ pp_def ('plsmem',
              Code => 'c_plsmem($maxx(),$maxy(),$P(image));'
             ) unless ($nomem);
 
+#
+## Box drawing primitive, taken from PLPLOT bar graph example
+#
+
+pp_def ('plfbox',
+         Pars => 'xo(); yo()',
+         GenericTypes => [D],
+         Code => 'PLFLT x[4], y[4];
+                  x[0] = $xo() - 0.5;
+                  y[0] = 0.;
+                  x[1] = $xo() - 0.5;
+                  y[1] = $yo();
+                  x[2] = $xo() + 0.5;
+                  y[2] = $yo();
+                  x[3] = $xo() + 0.5;
+                  y[3] = 0.;
+                  plfill(4, x, y);',
+        );
 
 pp_done();
 

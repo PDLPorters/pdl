@@ -12,7 +12,7 @@ use Test;
 BEGIN{
   eval " use PDL::Graphics::PLplot; ";
   unless ($@){
-    plan tests => 21;
+    plan tests => 23;
     print "ok 1\n";
   }
   else {
@@ -326,6 +326,18 @@ for my $i (0..5) {
 
 $pl->close;
 testok -s "test21.xfig" > 0, 21;
+
+# test bar graphs
+my $pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test22.xfig");
+$pl->bargraph([map { sprintf ("2002.%03d", $_) } (1..100)], 100*random(100), COLOR => 'BLUE');
+$pl->close;
+testok -s "test22.xfig" > 0, 22;
+
+my $pl = PDL::Graphics::PLplot->new(DEV => 'xfig', FILE => "test23.xfig");
+my @labels = ((map { sprintf ("2001.%03d", $_) } (240..365)), (map { sprintf ("2002.%03d", $_) } (1..100)));
+$pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN');
+$pl->close;
+testok -s "test23.xfig" > 0, 23;
 unlink glob ("test*.xfig");
 
 

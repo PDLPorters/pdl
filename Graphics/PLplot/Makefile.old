@@ -11,12 +11,12 @@
 #   MakeMaker Parameters:
 
 #     CCFLAGS => q[-g]
-#     INC => q[-I/home/huntd/src/PDL/Basic/Core -I/ops/tools/include/plplot -I/ops/tools/include]
+#     INC => q[-I/home/huntd/src/PDL-2.3.4cvs1/Basic/Core -I/ops/tools/include/plplot -I/ops/tools/include]
 #     LIBS => [q[-L/ops/tools/lib -lplplotd]]
 #     NAME => q[PDL::Graphics::PLplot]
 #     OBJECT => q[PLplot.o ]
 #     PM => { PLplot.pm=>q[$(INST_LIBDIR)/PLplot.pm] }
-#     TYPEMAPS => [q[/home/huntd/src/PDL/Basic/Core/typemap.pdl]]
+#     TYPEMAPS => [q[/home/huntd/src/PDL-2.3.4cvs1/Basic/Core/typemap.pdl]]
 #     VERSION_FROM => q[Makefile.PL]
 #     clean => { FILES=>q[PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* Makefile.old] }
 
@@ -56,10 +56,10 @@ NAME_SYM = PDL_Graphics_PLplot
 VERSION = 0.19
 VERSION_SYM = 0_19
 XS_VERSION = 0.19
-INST_ARCHLIB = blib/arch
-INST_SCRIPT = blib/script
-INST_BIN = blib/bin
-INST_LIB = blib/lib
+INST_ARCHLIB = ../../blib/arch
+INST_SCRIPT = ../../blib/script
+INST_BIN = ../../blib/bin
+INST_LIB = ../../blib/lib
 INSTALLDIRS = site
 PREFIX = /ops/tools
 SITEPREFIX = /ops/tools
@@ -115,7 +115,7 @@ BASEEXT = PLplot
 PARENT_NAME = PDL::Graphics
 DLBASE = $(BASEEXT)
 VERSION_FROM = Makefile.PL
-INC = -I/home/huntd/src/PDL/Basic/Core -I/ops/tools/include/plplot -I/ops/tools/include
+INC = -I/home/huntd/src/PDL-2.3.4cvs1/Basic/Core -I/ops/tools/include/plplot -I/ops/tools/include
 OBJECT = PLplot$(OBJ_EXT) 
 LDFROM = $(OBJECT)
 LINKTYPE = dynamic
@@ -127,11 +127,11 @@ O_FILES =
 H_FILES = 
 MAN1PODS = 
 MAN3PODS = PLplot.pm
-INST_MAN1DIR = blib/man1
+INST_MAN1DIR = ../../blib/man1
 MAN1EXT = 1
 INSTALLMAN1DIR = /ops/tools/man/man1
 INSTALLSITEMAN1DIR = /ops/tools/man/man$(MAN1EXT)
-INST_MAN3DIR = blib/man3
+INST_MAN3DIR = ../../blib/man3
 MAN3EXT = 3
 INSTALLMAN3DIR = /ops/tools/man/man3
 INSTALLSITEMAN3DIR = /ops/tools/man/man$(MAN3EXT)
@@ -188,8 +188,8 @@ AUTOSPLITFILE = $(PERLRUN) -e 'use AutoSplit;  autosplit($$ARGV[0], $$ARGV[1], 0
 XSUBPPDIR = /ops/tools/lib/perl5/5.8.0/ExtUtils
 XSUBPP = $(XSUBPPDIR)/xsubpp
 XSPROTOARG = 
-XSUBPPDEPS = $(XSUBPPDIR)/typemap /home/huntd/src/PDL/Basic/Core/typemap.pdl $(XSUBPP)
-XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap /home/huntd/src/PDL/Basic/Core/typemap.pdl
+XSUBPPDEPS = $(XSUBPPDIR)/typemap /home/huntd/src/PDL-2.3.4cvs1/Basic/Core/typemap.pdl $(XSUBPP)
+XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap /home/huntd/src/PDL-2.3.4cvs1/Basic/Core/typemap.pdl
 XSUBPP_EXTRA_ARGS = 
 
 
@@ -218,48 +218,8 @@ MKPATH = $(PERLRUN) "-MExtUtils::Command" -e mkpath
 # need any changes to the core distribution and works with older perls
 EQUALIZE_TIMESTAMP = $(PERLRUN) "-MExtUtils::Command" -e eqtime
 
-# Here we warn users that an old packlist file was found somewhere,
-# and that they should call some uninstall routine
-WARN_IF_OLD_PACKLIST = $(PERL) -we 'exit unless -f $$ARGV[0];' \
--e 'print "WARNING: I have found an old package in\n";' \
--e 'print "\t$$ARGV[0].\n";' \
--e 'print "Please make sure the two installations are not conflicting\n";'
 
-UNINST=0
-VERBINST=0
-
-MOD_INSTALL = $(PERL) "-I$(INST_LIB)" "-I$(PERL_LIB)" "-MExtUtils::Install" \
--e "install({@ARGV},'$(VERBINST)',0,'$(UNINST)');"
-
-DOC_INSTALL = $(PERL) -e '$$\="\n\n";' \
--e 'print "=head2 ", scalar(localtime), ": C<", shift, ">", " L<", $$arg=shift, "|", $$arg, ">";' \
--e 'print "=over 4";' \
--e 'while (defined($$key = shift) and defined($$val = shift)){print "=item *";print "C<$$key: $$val>";}' \
--e 'print "=back";'
-
-UNINSTALL =   $(PERLRUN) "-MExtUtils::Install" \
--e 'uninstall($$ARGV[0],1,1); print "\nUninstall is deprecated. Please check the";' \
--e 'print " packlist above carefully.\n  There may be errors. Remove the";' \
--e 'print " appropriate files manually.\n  Sorry for the inconveniences.\n"'
-
-
-# --- MakeMaker dist section:
-ZIPFLAGS = -r
-TO_UNIX = @$(NOOP)
-TAR = tar
-POSTOP = @$(NOOP)
-ZIP = zip
-DIST_DEFAULT = tardist
-CI = ci -u
-SHAR = shar
-COMPRESS = gzip --best
-DIST_CP = best
-PREOP = @$(NOOP)
-TARFLAGS = cvf
-DISTVNAME = $(DISTNAME)-$(VERSION)
-SUFFIX = .gz
-RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
-
+# --- MakeMaker dist section skipped.
 
 # --- MakeMaker macro section:
 
@@ -515,173 +475,17 @@ realclean purge ::  clean
 	rm -rf Makefile Makefile.old
 
 
-# --- MakeMaker dist_basics section:
-distclean :: realclean distcheck
-	$(NOECHO) $(NOOP)
+# --- MakeMaker dist_basics section skipped.
 
-distcheck :
-	$(PERLRUN) "-MExtUtils::Manifest=fullcheck" -e fullcheck
+# --- MakeMaker dist_core section skipped.
 
-skipcheck :
-	$(PERLRUN) "-MExtUtils::Manifest=skipcheck" -e skipcheck
+# --- MakeMaker dist_dir section skipped.
 
-manifest :
-	$(PERLRUN) "-MExtUtils::Manifest=mkmanifest" -e mkmanifest
+# --- MakeMaker dist_test section skipped.
 
-veryclean : realclean
-	$(RM_F) *~ *.orig */*~ */*.orig
+# --- MakeMaker dist_ci section skipped.
 
-
-
-# --- MakeMaker dist_core section:
-
-dist : $(DIST_DEFAULT)
-	@$(PERL) -le 'print "Warning: Makefile possibly out of date with $$vf" if ' \
-	    -e '-e ($$vf="$(VERSION_FROM)") and -M $$vf < -M "Makefile";'
-
-tardist : $(DISTVNAME).tar$(SUFFIX)
-
-zipdist : $(DISTVNAME).zip
-
-$(DISTVNAME).tar$(SUFFIX) : distdir
-	$(PREOP)
-	$(TO_UNIX)
-	$(TAR) $(TARFLAGS) $(DISTVNAME).tar $(DISTVNAME)
-	$(RM_RF) $(DISTVNAME)
-	$(COMPRESS) $(DISTVNAME).tar
-	$(POSTOP)
-
-$(DISTVNAME).zip : distdir
-	$(PREOP)
-	$(ZIP) $(ZIPFLAGS) $(DISTVNAME).zip $(DISTVNAME)
-	$(RM_RF) $(DISTVNAME)
-	$(POSTOP)
-
-uutardist : $(DISTVNAME).tar$(SUFFIX)
-	uuencode $(DISTVNAME).tar$(SUFFIX) \
-		$(DISTVNAME).tar$(SUFFIX) > \
-		$(DISTVNAME).tar$(SUFFIX)_uu
-
-shdist : distdir
-	$(PREOP)
-	$(SHAR) $(DISTVNAME) > $(DISTVNAME).shar
-	$(RM_RF) $(DISTVNAME)
-	$(POSTOP)
-
-
-# --- MakeMaker dist_dir section:
-distdir :
-	$(RM_RF) $(DISTVNAME)
-	$(PERLRUN) "-MExtUtils::Manifest=manicopy,maniread" \
-		-e "manicopy(maniread(),'$(DISTVNAME)', '$(DIST_CP)');"
-
-
-
-# --- MakeMaker dist_test section:
-
-disttest : distdir
-	cd $(DISTVNAME) && $(ABSPERLRUN) Makefile.PL
-	cd $(DISTVNAME) && $(MAKE) $(PASTHRU)
-	cd $(DISTVNAME) && $(MAKE) test $(PASTHRU)
-
-
-# --- MakeMaker dist_ci section:
-
-ci :
-	$(PERLRUN) "-MExtUtils::Manifest=maniread" \
-		-e "@all = keys %{ maniread() };" \
-		-e 'print("Executing $(CI) @all\n"); system("$(CI) @all");' \
-		-e 'print("Executing $(RCS_LABEL) ...\n"); system("$(RCS_LABEL) @all");'
-
-
-# --- MakeMaker install section:
-
-install :: all pure_install doc_install
-
-install_perl :: all pure_perl_install doc_perl_install
-
-install_site :: all pure_site_install doc_site_install
-
-install_vendor :: all pure_vendor_install doc_vendor_install
-
-pure_install :: pure_$(INSTALLDIRS)_install
-
-doc_install :: doc_$(INSTALLDIRS)_install
-	@echo Appending installation info to $(INSTALLARCHLIB)/perllocal.pod
-
-pure__install : pure_site_install
-	@echo INSTALLDIRS not defined, defaulting to INSTALLDIRS=site
-
-doc__install : doc_site_install
-	@echo INSTALLDIRS not defined, defaulting to INSTALLDIRS=site
-
-pure_perl_install ::
-	@$(MOD_INSTALL) \
-		read $(PERL_ARCHLIB)/auto/$(FULLEXT)/.packlist \
-		write $(INSTALLARCHLIB)/auto/$(FULLEXT)/.packlist \
-		$(INST_LIB) $(INSTALLPRIVLIB) \
-		$(INST_ARCHLIB) $(INSTALLARCHLIB) \
-		$(INST_BIN) $(INSTALLBIN) \
-		$(INST_SCRIPT) $(INSTALLSCRIPT) \
-		$(INST_MAN1DIR) $(INSTALLMAN1DIR) \
-		$(INST_MAN3DIR) $(INSTALLMAN3DIR)
-	@$(WARN_IF_OLD_PACKLIST) \
-		$(SITEARCHEXP)/auto/$(FULLEXT)
-
-
-pure_site_install ::
-	@$(MOD_INSTALL) \
-		read $(SITEARCHEXP)/auto/$(FULLEXT)/.packlist \
-		write $(INSTALLSITEARCH)/auto/$(FULLEXT)/.packlist \
-		$(INST_LIB) $(INSTALLSITELIB) \
-		$(INST_ARCHLIB) $(INSTALLSITEARCH) \
-		$(INST_BIN) $(INSTALLSITEBIN) \
-		$(INST_SCRIPT) $(INSTALLSCRIPT) \
-		$(INST_MAN1DIR) $(INSTALLSITEMAN1DIR) \
-		$(INST_MAN3DIR) $(INSTALLSITEMAN3DIR)
-	@$(WARN_IF_OLD_PACKLIST) \
-		$(PERL_ARCHLIB)/auto/$(FULLEXT)
-
-pure_vendor_install ::
-	@$(MOD_INSTALL) \
-		$(INST_LIB) $(INSTALLVENDORLIB) \
-		$(INST_ARCHLIB) $(INSTALLVENDORARCH) \
-		$(INST_BIN) $(INSTALLVENDORBIN) \
-		$(INST_SCRIPT) $(INSTALLSCRIPT) \
-		$(INST_MAN1DIR) $(INSTALLVENDORMAN1DIR) \
-		$(INST_MAN3DIR) $(INSTALLVENDORMAN3DIR)
-
-doc_perl_install ::
-	-@$(MKPATH) $(INSTALLARCHLIB)
-	-@$(DOC_INSTALL) \
-		"Module" "$(NAME)" \
-		"installed into" "$(INSTALLPRIVLIB)" \
-		LINKTYPE "$(LINKTYPE)" \
-		VERSION "$(VERSION)" \
-		EXE_FILES "$(EXE_FILES)" \
-		>> $(INSTALLARCHLIB)/perllocal.pod
-
-doc_site_install ::
-	-@$(MKPATH) $(INSTALLARCHLIB)
-	-@$(DOC_INSTALL) \
-		"Module" "$(NAME)" \
-		"installed into" "$(INSTALLSITELIB)" \
-		LINKTYPE "$(LINKTYPE)" \
-		VERSION "$(VERSION)" \
-		EXE_FILES "$(EXE_FILES)" \
-		>> $(INSTALLSITEARCH)/perllocal.pod
-
-doc_vendor_install ::
-
-
-uninstall :: uninstall_from_$(INSTALLDIRS)dirs
-
-uninstall_from_perldirs ::
-	@$(UNINSTALL) $(PERL_ARCHLIB)/auto/$(FULLEXT)/.packlist
-
-uninstall_from_sitedirs ::
-	@$(UNINSTALL) $(SITEARCHEXP)/auto/$(FULLEXT)/.packlist
-
+# --- MakeMaker install section skipped.
 
 # --- MakeMaker force section:
 # Phony target to force checking subdirectories.
@@ -764,18 +568,8 @@ Makefile : Makefile.PL $(CONFIGDEP)
 # --- MakeMaker staticmake section:
 
 # --- MakeMaker makeaperl section ---
-MAP_TARGET    = perl
+MAP_TARGET    = ../../perl
 FULLPERL      = /ops/tools/bin/perl
-
-$(MAP_TARGET) :: static $(MAKE_APERL_FILE)
-	$(MAKE) -f $(MAKE_APERL_FILE) $@
-
-$(MAKE_APERL_FILE) : $(FIRST_MAKEFILE)
-	@echo Writing \"$(MAKE_APERL_FILE)\" for this $(MAP_TARGET)
-	@$(PERLRUNINST) \
-		Makefile.PL DIR= \
-		MAKEFILE=$(MAKE_APERL_FILE) LINKTYPE=static \
-		MAKEAPERL=1 NORECURS=1 CCCDLFLAGS=
 
 
 # --- MakeMaker test section:
@@ -826,7 +620,7 @@ pm_to_blib: $(TO_INST_PM)
 
 
 PLplot.pm: plplot.pd
-	$(PERL) -I/home/huntd/src/PDL "-MPDL::PP qw/PDL::Graphics::PLplot PDL::Graphics::PLplot PLplot/" plplot.pd
+	$(PERL) -I/home/huntd/src/PDL-2.3.4cvs1 "-MPDL::PP qw/PDL::Graphics::PLplot PDL::Graphics::PLplot PLplot/" plplot.pd
 
 PLplot.xs: PLplot.pm
 	$(TOUCH) $@
