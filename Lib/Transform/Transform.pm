@@ -114,6 +114,7 @@ f^-1 o g o f, or f^-1(g(f(x))).
 
 By analogy to numeric powers, you can apply an operator a positive 
 integer number of times with the ** operator:
+
   $f->compose($f)->compose($f)  # long way
   $f**3                         # short way
 
@@ -543,8 +544,9 @@ L<interpND|PDL::Primitive/interpND> for interpolation.  Possible
 options, in order from fastest to slowest, are:
 
 =over 3
-  
-=item * s, sample (default for integers)
+
+
+=item * s, sample (default for ints)
 
 Pixel values in the output plane are sampled from the closest data value
 in the input plane.  This is very fast but not very accurate for either 
@@ -631,7 +633,7 @@ JACOBIAN TRACKING:
 
 This method of interpolation gives photometrically accurate resampling
 of the input data for arbitrary transformations.  The Jacobian of the
-reverse transformation is the matrix C<J_ij = d X_i / d x_j>, where i
+reverse transformation is the matrix C<J_ij = d x_j / d X_i>, where i
 and j are index variables, the X_i are the input-plane coordinates,
 and the x_j are the output-plane coordinates.  At each pixel, the code
 generates a linear approximation to the transformation using the local
