@@ -1345,7 +1345,9 @@ pp_def('append',
 	RedoDimsCode => '
 		pdl * dpdla = $PDL(a);
 		pdl * dpdlb = $PDL(b);
-		$SIZE(mn) = dpdla->dims[0] + dpdlb->dims[0];',
+                $SIZE(mn) = (dpdla->ndims > 0 ? dpdla->dims[0] : 1) + 
+                        (dpdlb->ndims > 0 ? dpdlb->dims[0] : 1);
+		',
 	Code => 'register PDL_Long mnp;
 		 PDL_Long ns = $SIZE(n);
                  threadloop %{
