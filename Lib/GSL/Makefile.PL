@@ -1,4 +1,5 @@
 use ExtUtils::MakeMaker;
+PDL::Core::Dev->import();
 
 # the real stuff happens in the subdirs
 
@@ -25,8 +26,21 @@ EOW
 # these will be used in the subdirs
 ($GSL_includes, $GSL_libs)  = get_gsl_libs();
 
-WriteMakefile(
-     'NAME'	=> 'PDL::GSL',
-);
+# Version check
+my $MINVERSION = "1.3";
+my $version = `gsl-config --version`;
+chomp $version;
 
+if ($version =~ /^\s*$/) {
+  warn "\tno GSL version info found (gsl-config not installed?)\n\n";
+  $version = 'UNKNOWN VERSION';
+}
+if ($version =~ /UNKNOWN VERSION/ || $version lt "$MINVERSION") {
+  warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
+  write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
+} else {
+  WriteMakefile(
+		'NAME'	=> 'PDL::GSL',
+	       );
+}
 sub MY::postamble {}

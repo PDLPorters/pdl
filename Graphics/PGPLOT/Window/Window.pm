@@ -2271,7 +2271,7 @@ sub autolog {
     $ret = $class->{Autolog} || $AUTOLOG;
     $class->{Autolog} = shift if @_ > 0;
   } else {
-    my $ret = $AUTOLOG;
+    $ret = $AUTOLOG;
     $AUTOLOG = shift if @_ > 0;
   }
   return $ret;
@@ -2281,8 +2281,8 @@ sub checklog {
   my ($self,$x,$y) = @_;
   $x = $x->log10->float if defined $x && $self->autolog && $self->{Logx};
   $y = $y->log10->float if defined $y && $self->autolog && $self->{Logy};
-  # print STDERR "Logx: ",$self->{Logx},"\n";
-  # print STDERR "Logy: ",$self->{Logy},"\n";
+  print STDERR "Logx: ",$self->{Logx},"\n";
+  print STDERR "Logy: ",$self->{Logy},"\n";
   return ($x,$y);
 }
 
