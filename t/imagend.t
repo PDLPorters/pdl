@@ -30,10 +30,10 @@ my $c=convolve ($a, $b);
 ok( 1, int(at(sum($c-$ans)))==0 );
 
 
-my $a = zeroes(6,6); 
+$a = zeroes(6,6); 
 $a->(4,:) .= $a(5,:) .= $a(1,2) .= $a(0,4) .= $a(2,0) .= 1;
 
-my $b = pdl( [-1,0],[0,1] );
+$b = pdl( [-1,0],[0,1] );
 
 
 my $ans_e = pdl(

@@ -194,7 +194,7 @@ my $answer = 3.0*$x*$x;
 
 my ( $d, $err ) = chim( float($x), float($f) );
 
-ok($err->getndims==0 & $err->sum == 0);
+ok(($err->getndims==0) & ($err->sum == 0));
 
 # don't check the first and last elements, as expect the
 # error to be largest there
@@ -205,13 +205,13 @@ ok(all( slice( abs(($d - $answer)/$answer), '1:-2' ) < 0.05 ) );
 my $wk = $f->zeroes( 2 * $f->nelem );
 my $d2 = $f->zeroes;
 chic( pdl([0, 0]), pdl([0, 0]), 1, $x, $f, $d2, $wk, my $err2=null );
-ok($err2->getndims==0 & $err2->sum == 0);
+ok(($err2->getndims==0) & ($err2->sum == 0));
 ok(all( abs($d2 - $d) < 0.02 ) );
 
 ## Test: chsp
 #
 chsp( pdl([0, 0]), pdl([0, 0]), $x, $f, my $d3=null, $wk, my $err3=null );
-ok($err3->getndims==0 & $err3->sum == 0);
+ok(($err3->getndims==0) & ($err3->sum == 0));
 ok(all( abs($d3 - $d) < 2 ) );
 
 ## Test: chfd/chfe
@@ -220,7 +220,7 @@ my $xe = float( pdl( 4 .. 8 ) + 0.5 );
 my ( $fe, $de );
 ( $fe, $de, $err ) = chfd( $x, $f, $d, 1, $xe );
 
-ok($err->getndims==0 & $err->sum == 0);
+ok(($err->getndims==0) & ($err->sum == 0));
 
 $answer = $xe*$xe*$xe + 425.42352;
 ok(all( abs(($fe - $answer)/$answer) < 1.0e-5 ) );
@@ -230,7 +230,7 @@ ok(all( abs(($de - $answer)/$answer) < 0.02 ) );
 
 ( $fe, $err ) = chfe( $x, $f, $d, 1, $xe );
 
-ok($err->getndims==0 & $err->sum == 0);
+ok(($err->getndims==0) & ($err->sum == 0));
 
 $answer = $xe*$xe*$xe + 425.42352;
 ok(all( abs(($fe - $answer)/$answer) < 1.0e-5 ) );
@@ -242,12 +242,12 @@ $f   = float( 1, 2, 3, 4, 3, 4 );
 $ans = long(  1, 1, 1, -1, 1, 2 );
 
 ( $d, $err ) = chim($x, $f);
-ok($err->getndims==0 & $err->sum == 2); # 2 switches in monotonicity
+ok(($err->getndims==0) & ($err->sum == 2)); # 2 switches in monotonicity
 
 my $ismon;
 ( $ismon, $err ) = chcm($x, $f, $d, 1);
 
-ok($err->getndims==0 & $err->sum == 0);
+ok(($err->getndims==0) & ($err->sum == 0));
 ok($ismon->get_datatype == 3);
 ok(tapprox($ismon,$ans));
 

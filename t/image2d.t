@@ -54,7 +54,7 @@ $a = 100 / (1.0 + rvals(5,5));
 $a = $a * ( $a < 90 );
 my @ans = $a->max2d_ind();
 print "max2d_ind: " . join( ',', @ans ) . "\n";
-ok( $ans[0] == 50 & $ans[1] == 1 & $ans[2] == 2 );
+ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2) );
 
 # centroid2d
 $a = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );
@@ -111,7 +111,7 @@ if ( $PDL::Bad::Status ) {
     $a = $a->setbadif( $a > 90 );
     my @ans = $a->max2d_ind();
     print "max2d_ind: " . join( ',', @ans ) . "\n";
-    ok( $ans[0] == 50 & $ans[1] == 1 & $ans[2] == 2 );
+    ok( ($ans[0] == 50) & ($ans[1] == 1) & ($ans[2] == 2) );
 
     # centroid2d
     $a = 100.0 / rvals( 20, 20, { Centre => [ 8, 12.5 ] } );

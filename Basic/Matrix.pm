@@ -102,7 +102,7 @@ $VERSION = "0.5";
 
 use overload( '""' => \&string,
               'x'  => sub {my $foo = $_[0]->null();
-                           \&PDL::Primitive::matmult(@_[1,0],$foo); 
+                           &PDL::Primitive::matmult(@_[1,0],$foo); 
                            $foo;}
             );
 

@@ -3,7 +3,10 @@ CED 12-15-03
      rms term -- solves bug #852359
    - transform.pd: changed call to nan("") to sqrt(-1) for cross-system	
 	compatibility (Slowlaris has no nan() call)
-   - Fixed typo in FITS.pm; shut up precedence complaints from t/misc.t
+   - Fixed typo in FITS.pm; shut up precedence complaints from t/func.t and
+	slatec.t
+   - Shut up v-strings warning in NiceSlice.pm
+   - Numerous other warnings from perl 5.8.2 suppressed.
 CS  12-12-03
    - Lvalue.pm: change v-strings to backwards compatible version numbers
 CED 09-Dec-2003

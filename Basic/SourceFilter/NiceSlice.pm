@@ -75,7 +75,10 @@ eval << 'EOH';
 EOH
 
 # mark as lvalue sub if 5.6.x and above
-eval 'sub PDL::nslice : lvalue;' if ($^V and $^V ge v5.6.0);
+ eval {
+  no strict;
+  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V ge v5.6.0);
+ }
 }
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
