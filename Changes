@@ -1,3 +1,10 @@
+DJB 28-Dec-2004
+   - Clean up of t/fftw.t (use Test::More and PDL::Core::approx()). Small
+     increase in the tolerance used for checks (1.1e-4 to 1.2e-4) to avoid
+     occasional test failures seen on Solaris.
+
+2.4.2 released 28-Dec-2004
+
 CED 27-Dec-2004
    - Window.pm: fixed bug 1091534 (problem with rect())
 DJB 23-Dec-2004
