@@ -218,11 +218,9 @@ it just assumes that the coordinates are correct for (e.g.)  FITS
 scientific-to-pixel transformations.
 
 Composition works OK but should probably be done in a more
-sophisticated way so that, linear transformations are combined at the
-matrix level instead of just strung together pixel-to-pixel.
-
-Linear transformations should probably be handled with heterogeneous
-Hershey matrices, rather than matrix-multiply-and-add operations.
+sophisticated way so that, for example, linear transformations are
+combined at the matrix level instead of just strung together
+pixel-to-pixel.
 
 =head1 FUNCTIONS
 
