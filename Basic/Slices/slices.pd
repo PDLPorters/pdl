@@ -926,16 +926,20 @@ EOD
 			int ii,ok;
 
 			   /* Check index for each extra dim */
-
-			for(ok=1, ii = $PARENT(ndims); ok && ii < $COMP(nthintact) ; ii++)
+			fprintf(stderr,"\nExcessive slice detected.  Checking triviality...");fflush(stderr);
+			for(ok=1, ii = $PARENT(ndims); ok && ii < $COMP(nthintact) ; ii++) {
+				fprintf(stderr,"dim %d: ",ii);fflush(stderr);
 				ok = ( $COMP(start[ii]) == 0 ) && ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 );
-
+				fprintf(stderr,"ok=%d...",ok);fflush(stderr);
+			}	
+			fprintf(stderr,"\n");
 			if(ok) {
 
 			   /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
-
+				fprintf(stderr,"\ntrivial excessive slice.  intactnew=%d; nthintact=%d; parent-dims=%d.  Setting intactnew to %d.\n",$COMP(intactnew),$COMP(nthintact),$PARENT(ndims),$COMP(intactnew)-$COMP(nthintact)+$PARENT(ndims)); fflush(stderr);
 			  $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims);
 			  $COMP(nthintact) = $PARENT(ndims);
+			fprintf(stderr,"setting nthintact to ndims...\n\n"); fflush(stderr);
 
 			} else { 	
 
