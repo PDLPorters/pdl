@@ -422,38 +422,41 @@ EOW
 
 #
 # count_tags: Return a string containing (in order) the open brackets
-# and strings in the string that is passed in.
+# and strings in the string that is passed in.  Used for multi-line parsing.
 #
 sub count_tags {
     my $s = shift;
 
-    $s =~ s/\.*//g; # Ignore all escaped characters
+    $s =~ s/\\.//g; # Ignore all escaped characters
 
-    return undef unless($s =~ m/\w/);
+    return undef unless($s =~ m/[^\s]/);
     
-    # Anything but a delimiter (' q' is a string begin delimiter in perl!)
-    # (This misses pattern matches but hey you can't have everything)...
+    # Anything but a delimiter ('q' is a string begin delimiter in perl,
+    # meaning we have to do a little shenanigan to treat things like 
+    # "quest" and "arquebus" properly.)
     our($prefix,$delim,%closers);
     unless(defined $prefix) {
-	$prefix = qr/([^\{\}\[\]\(\)\'\"\`(\sq)])*/;
-	$delim = '{[(<`><\'><"><q>';
+	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | (\wq) | (q($|\w)) )* /x;
+	$delim = '{[(`\'"q)]}';
 	%closers = ('{'=>'}','['=>']','('=>')');
     }
 
     # Run Text::Balanced on the string with a '{' in front of it, to 
-    # make sure that all quoted strings are "embedded" in the outermose "{".
+    # make sure that all quoted strings are "embedded" in the outermost "{".
+    # The whitespace works around a short-string bug in extract_bracketed.
     my $a;
-
+    my @result;
     eval { @result = 
 	       Text::Balanced::extract_bracketed("{".$s, $delim, $prefix);
 	   $a = $@;
        };
-    
+    print "a = $a\nreturn = '",join("','",@result),"'\n" 
+	if($PERLDL::debug);
 
     if($a =~ m/^Did not find/) {
 	# No quotes -- this should never happen and is a syntax error.
 	print STDERR "[Error in parsing: this should never happen!]\n" 
-	    if($PDL::debug);
+	    if($PERLDL::debug);
 	return undef;
     }
     elsif($a =~ m/^Unmatched emb\w+ quote \((.)\), de\w+ at offset (\d+)/) {
@@ -479,7 +482,7 @@ sub count_tags {
     }
 
     print STDERR "Unknown error message '$a' from parser...\n"
-	if($PDL::debug);
+	if($PERLDL::debug);
     return undef;
 }
 
@@ -534,7 +537,7 @@ sub process_input {
 	 
 	 $lines .= "\n" if($cont); # Make multi-line strings work right.
 	 $lines .= $_;
-	 
+	 print "lines = $lines\n" if($PERLDL::debug);
      } while( $PERLDL::MULTI && ($cont = count_tags($lines)) );
 
  } 
@@ -846,6 +849,14 @@ with no outstanding group operators (such as quotes, blocks, parenthesis, or
 brackets) still active.  Continuation lines have a different prompt that
 shows you what delimiters are still active.
 
+Note that this is not (yet!) a complete perl parser.  In particular,
+Text::Balanced appears to be able to ignore quoting operatores 
+like C<q/ ... /> within a line, but not to be able to extend them across
+lines.  Likewise, there is no support for the '<<' operator.
+
+Multiline conventional strings and {}, [], and () groupings are well
+supported.
+
 =item *
 
 $PERLDL::NO_EOF - default value 0
@@ -856,6 +867,7 @@ set to a true value, then you can't accidentally exit perldl by typing
 set), then you can't use "^D" to exit multiline commands either.  If
 you're piping commands in from a file or pipe, this variable has no
 effect.
+
 
 =item *
 
