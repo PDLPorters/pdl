@@ -1,8 +1,10 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (09/0/00)
+Doug Burke (09/06/00)
     - more build clean ups: fixes for BAD*demo.pm.PL and pdldoc.PL
+    - changes to build of Basic/Core and Basic/Bad to try and get build to work
+      if change WITH_BADVAL (doesn't fully work yet).
 Jim Edwards
-    - improved OpenGL detection during 'perl Majefile.PL'
+    - improved OpenGL detection during 'perl Makefile.PL'
 Doug Burke (09/05/00)
     - minor clean-up to the build process. Now creates Basic/Core/badsupport.p
       in top-level Makefile.PL for when PDL::Config hasn't been created - fixes

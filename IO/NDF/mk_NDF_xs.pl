@@ -7,6 +7,9 @@
 # starlink bad values as constants, so we can code up perl-level
 # functions to do both the check and get functions implemented here.
 #
+# - this is called by Makefile.PL to ensure the file exists (or
+#   has been deleted) when the makefile is written
+#
  
 use strict;
 
@@ -17,15 +20,8 @@ use File::Basename qw(&basename &dirname);
 use vars qw( $bvalflag $usenan );
 use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
- 
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-    if ($Config{'osname'} eq 'VMS' or
-	$Config{'osname'} eq 'OS2');  # "case-forgiving"
+
+my $file = "NDF.xs";
 
 # if we don't have bad value support, we don't need a
 # NDF.xs file

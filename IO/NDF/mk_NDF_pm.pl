@@ -3,6 +3,9 @@
 # The contents depend on whether we have bad-value support in PDL.
 # (there's only a small amount of code that uses bad values)
 #
+# - this is called by Makefile.PL to ensure the file exists 
+#   when the makefile is written
+#
  
 use strict;
 
@@ -14,21 +17,14 @@ use vars qw( $bvalflag $usenan );
 use File::Spec;
 require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Core", "badsupport.p" );
  
-# This forces PL files to create target in same directory as PL file.
-# This is so that make depend always knows where to find PL derivatives.
-chdir(dirname($0));
-my $file;
-($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
-    if ($Config{'osname'} eq 'VMS' or
-	$Config{'osname'} eq 'OS2');  # "case-forgiving"
-open OUT,">$file" or die "Can't create $file: $!";
- 
+my $file = "NDF.pm";
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
 } else {
     print "Extracting $file (NO bad value support)\n";
 }
+
+open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
 
 #########################################################

@@ -270,8 +270,8 @@ IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/NDF/Makefile.PL
-IO/NDF/NDF.pm.PL
-IO/NDF/NDF.xs.PL
+IO/NDF/mk_NDF_pm.pl
+IO/NDF/mk_NDF_xs.pl
 IO/NDF/typemap
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm

@@ -124,16 +124,28 @@ WriteMakefile(
 
 # Extra targets to build
 
+sub make_from_PL ($) {
+    my $head = shift;
+    return "\t" . 
+	'$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) ' .
+	    "${head}.PL $head\n";
+}
+
 sub MY::postamble {
 PDL::Core::Dev::postamble().
 "
 # Bits of C code we generate from special perl scripts
 #
-# don't need to specify how to create pdl.h as that's done automatically
-pdl.h:: pdl.h.PL mymalloc.p
-#\t\$(PERL) pdl.h.PL
+# there must be a more elegant way of saying that
+# certain files have additional dependencies!
 
-".($^O =~ /MSWin/ ? q|
+pdl.h:: pdl.h.PL mymalloc.p badsupport.p\n"
+. make_from_PL( 'pdl.h' )
+. 
+    join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
+    qw( Core.pm Core.xs pdlapi.c pdlconv.c pdlcore.h pdlcore.h ) )
+.
+($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c

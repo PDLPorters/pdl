@@ -37,7 +37,15 @@ print "\n\n";
 
 WriteMakefile(%hash);
 
+# we add ../Core/badsupport.p to the dependencies of Bad.pm
+# - not very elegant
+#
 sub MY::postamble {
-	pdlpp_postamble_int(@::pack);
+	pdlpp_postamble_int(@::pack) .
+"
+Bad.pm: ../Core/badsupport.p
+
+";
+
 }  # Add genpp rule
 
