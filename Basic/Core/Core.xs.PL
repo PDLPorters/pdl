@@ -1203,7 +1203,8 @@ sethdr(p,h)
 		else  
 		   p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
-SV * hdr(p)
+SV *
+hdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);
@@ -1220,7 +1221,8 @@ SV * hdr(p)
 	OUTPUT:
 	 RETVAL
 
-SV * gethdr(p)
+SV *
+gethdr(p)
 	pdl *p
 	CODE:
 		pdl_make_physdims(p);

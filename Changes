@@ -1,3 +1,6 @@
+TJ (13-Sep-02)
+    - Basic/Core/Core.xs hdr and gethdr XS functions did not strictly
+      adhere to XS syntax. (5.005_03 xsubpp complains loudly)
 DJB/CS (11-Sep-02)
     - 'make clean' now removes _Inline/ as does t/inlinepdlpp.pl when its
       run (to make sure that we're testing the latest&greatest code)
