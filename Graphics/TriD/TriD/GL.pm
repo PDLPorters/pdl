@@ -561,7 +561,7 @@ sub PDL::Graphics::TriD::EventHandler::new {
 
 sub PDL::Graphics::TriD::EventHandler::event {
 	my($this,$win,$type,@args) = @_;
-	print "EH: $type\n" if($PDL::Graphics::TriD::verbose);
+	print "EH: $type\n" ;#if($PDL::Graphics::TriD::verbose);
 	if($type == &MotionNotify) {
 #		print "MOTION\n";
 	  my $but = -1;
@@ -626,9 +626,10 @@ use PDL::Graphics::OpenGL;
 sub i_keep_list {return 1} # For Object, so I will be notified of changes.
 use strict;
 use FileHandle;
+
 #BEGIN {
-	$PDL::Graphics::TriD::GL::xsize = 800;
-	$PDL::Graphics::TriD::GL::ysize = 800;
+#	$PDL::Graphics::TriD::GL::xsize = 800;
+#	$PDL::Graphics::TriD::GL::ysize = 800;
 #}
 
 sub new {
@@ -656,7 +657,7 @@ sub new {
   $options->{height} = 	$PDL::Graphics::TriD::GL::ysize unless defined $options->{height};
 
 
-  print "STARTING OPENGL\n" if($PDL::Graphics::TriD::verbose);
+  print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
   
 
   glpOpenWindow(%$options);
@@ -822,8 +823,9 @@ sub display {
 			$_->[0]->togl_vp($this,$_);
 		}
 	}
-
-	glFlush();
+# glFlush is called by glXSwapBuffers!
+#	glFlush();
+# JPE 
 	glXSwapBuffers();
 	$this->{Angle}+= 3;
 }

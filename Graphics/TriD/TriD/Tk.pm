@@ -52,12 +52,10 @@ sub Populate {
   $args->{-width}=600 unless defined $args->{-width};
 
   $TriD->SUPER::Populate($args);
+  # This bind causes GL to be initialized after the 
+  # Tk frame is ready to accept it
   $TriD->bind("<Configure>", [ \&GLinit ]);
   print "Populate complete\n" if($PDL::Graphics::TriD::Tk::verbose);
-  $TriD->parent->bind("<Expose>",sub{print "Here is an MW Expose\n" 
-				       if($PDL::Graphics::TriD::Tk::verbose); 
-				     $TriD->refresh()});
-#  $TriD->bind("<Expose>",sub{print "Here is an Trid Expose\n"; $TriD->refresh()});
 }
 
 
@@ -71,7 +69,18 @@ sub MainLoop
     while (Tk::MainWindow->Count)
     {
       DoOneEvent(Tk::DONT_WAIT());
+      
+
       if(defined $self->{GLwin}){
+	if( &XPending()){
+	  my @e = &glpXNextEvent();
+#	  if($e[0] == &ConfigureNotify) {
+#	    print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
+#	    $self->reshape($e[1],$e[2]);
+#	  }
+
+	  $self->refresh();
+	}
 	my $job=shift(@{$self->{WorkQue}});
 	if(defined $job){
 	  my($cmd,@args) = @$job;
@@ -88,6 +97,8 @@ sub GLinit{
   my($self,@args) = @_;
   
   if(defined $self->{GLwin}){
+    print "NW= ",$self->width," NH= ",$self->height,"\n";
+    $self->update;
     $self->{GLwin}->reshape($self->width,$self->height);
     $self->refresh();
   }else{
@@ -96,9 +107,10 @@ sub GLinit{
     my $options={parent=> ${$self->WindowId},
                  width=> $self->width,
                  height=>$self->height};
-    $options->{mask} = ( NoEventMask );
+    $options->{mask} = ( ExposureMask );
 
     $self->{GLwin} = PDL::Graphics::TriD::get_current_window($options);
+
 
     $self->{GLwin}->clear_viewports();
 
