@@ -87,6 +87,11 @@ sub defcols {
 1;
 package PDL::Graphics::TriD::Points;
 use base qw/PDL::Graphics::TriD::GObject/;
+sub get_valid_options {
+	return {UseDefcols => 0, PointSize=> 1};
+}
+
+
 
 package PDL::Graphics::TriD::Lattice;
 use base qw/PDL::Graphics::TriD::GObject/;

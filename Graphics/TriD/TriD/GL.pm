@@ -4,14 +4,13 @@
 #  - multiple windows - requires editing generate.pl in OpenGL/
 #  - clean up
 #
+#package PDL::Graphics::TriD::GL;
 
-package PDL::Graphics::TriD::GL;
 use PDL::Graphics::OpenGL;
 use PDL::Graphics::OpenGLQ;
 
 $PDL::Graphics::TriD::create_window_sub = sub {
-  print "@_ \n" ; 
-    return new PDL::Graphics::TriD::GL::Window(@_);
+  return new PDL::Graphics::TriD::GL::Window(@_);
 };
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -33,26 +32,30 @@ sub PDL::Graphics::TriD::Object::cannot_mklist {
 }
 
 sub PDL::Graphics::TriD::Object::gl_update_list {
-	my($this) = @_;
-	if($this->{List}) {
-		glDeleteLists($this->{List},1);
-	}
-	my $lno = glGenLists(1);
-	$this->{List} = $lno;
-	print "GENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
-	glNewList($lno,GL_COMPILE);
-	if ($PDL::Graphics::TriD::any_cannots) {
-	  for(@{$this->{Objects}}) {
-	        if(!$_->cannot_mklist()) {
-			$_->togl();
+  my($this) = @_;
+  if($this->{List}) {
+	 glDeleteLists($this->{List},1);
+  }
+  my $lno = glGenLists(1);
+  $this->{List} = $lno;
+  print "GENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
+  glNewList($lno,GL_COMPILE);
+  if ($PDL::Graphics::TriD::any_cannots) {
+	 for(@{$this->{Objects}}) {
+		if(!$_->cannot_mklist()) {
+		  $_->togl();
 		}
-	  }
-	} else { for (@{$this->{Objects}}) {$_->togl()} }
-	print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
-#	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
-	glEndList();
-	print "VALID1 $this\n" if($PDL::Graphics::TriD::verbose);
-	$this->{ValidList} = 1;
+	 }
+  } else { 
+	 for (@{$this->{Objects}}) {
+		$_->togl()
+	 } 
+  }
+  print "EGENLIST $lno\n" if($PDL::Graphics::TriD::verbose);
+  #	pdltotrianglemesh($pdl, 0, 1, 0, ($pdl->{Dims}[1]-1)*$mult);
+  glEndList();
+  print "VALID1 $this\n" if($PDL::Graphics::TriD::verbose);
+  $this->{ValidList} = 1;
 }
 
 sub PDL::Graphics::TriD::Object::gl_call_list {
@@ -67,6 +70,9 @@ sub PDL::Graphics::TriD::Object::gl_call_list {
 	if ($PDL::Graphics::TriD::any_cannots) {
 	  for(@{$this->{Objects}}) {
 		if($_->cannot_mklist()) {
+
+         print ref($_)," cannot mklist\n";
+
 			$_->togl();
 		}
 	  }
@@ -88,11 +94,11 @@ sub PDL::Graphics::TriD::Object::togl {
 
 
 # XXX Aspect handling.
-sub PDL::Graphics::TriD::ViewPort::togl_vp {
+sub PDL::Graphics::TriD::ViewPort::togl_vp::OLD {
   my($this,$win,$rec) = @_;
   my $aspect = $win->{Aspect};
   my ($foo,$x0,$y0,$x1,$y1) = @$rec;
-  print "VPTOGL\n" if($PDL::Graphics::TriD::verbose);
+  print "VPTOGL - shouldn't be here\n" ;#if($PDL::Graphics::TriD::verbose);
   my $w = $win->{W}; 
   my $h = $win->{H};
   my $x = $win->{X0}; 
@@ -127,42 +133,23 @@ sub PDL::Graphics::TriD::ViewPort::togl_vp {
   }
 }
 
-sub PDL::Graphics::TriD::BoundingBox::togl { my($this) = @_;
-	$this = $this->{Box};
-	glDisable(&GL_LIGHTING);
-	glColor3d(1,1,1);
-	glBegin(&GL_LINES);
-	for([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
+sub PDL::Graphics::TriD::BoundingBox::togl { 
+  my($this) = @_;
+  $this = $this->{Box};
+  glDisable(&GL_LIGHTING);
+  glColor3d(1,1,1);
+  glBegin(&GL_LINES);
+  for([0,4,2],[0,1,2],[0,1,5],[0,4,5],[0,4,2],[3,4,2],
 		[3,1,2],[3,1,5],[3,4,5],[3,4,2]) {
-		glVertex3d(@{$this}[@$_]);
-	}
-	glEnd();
-	glBegin(&GL_LINE_STRIP);
-	for([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]) {
-		glVertex3d(@{$this}[@$_]);
-	}
-	glEnd();
-	glEnable(&GL_LIGHTING);
-}
-
-sub PDL::Graphics::TriD::Scale::togl {my ($this) = @_;
-	print "Scale ",(join ',',@{$this->{Args}}),"\n";
-	PDL::Graphics::OpenGL::glScalef(@{$this->{Args}});
-}
-
-
-sub PDL::Graphics::TriD::Translation::togl {my($this) = @_;
-	print "Transl ",(join ',',@{$this->{Args}}),"\n";
-	PDL::Graphics::OpenGL::glTranslatef(@{$this->{Args}});
-}
-
-
-sub PDL::Graphics::TriD::Transformation::togl {
-	my($this) = @_;
-	PDL::Graphics::OpenGL::glPushMatrix();
-	for (@{$this->{Transforms}}) {$_->togl();}
-	$this->SUPER::togl();
-	PDL::Graphics::OpenGL::glPopMatrix();
+	 glVertex3d(@{$this}[@$_]);
+  }
+  glEnd();
+  glBegin(&GL_LINE_STRIP);
+  for([0,1,2],[3,1,2],[0,1,5],[3,1,5],[0,4,5],[3,4,5]) {
+	 glVertex3d(@{$this}[@$_]);
+  }
+  glEnd();
+  glEnable(&GL_LIGHTING);
 }
 
 sub PDL::Graphics::TriD::Graph::togl {
@@ -175,11 +162,6 @@ sub PDL::Graphics::TriD::Graph::togl {
 #	print "TOGL DATA\n";
 	for(keys %{$this->{Data}}) {
 #	  print "TOGL   $_, $this->{Data}{$_}  $this->{Data}{$_}{Options}{LineWidth}\n";
-	  if($this->{Data}{$_}{Options}{LineWidth}){
-	    glLineWidth($this->{Data}{$_}{Options}{LineWidth});
-	  }else{
-	    glLineWidth(1);
-	  }
 	  $this->{Data}{$_}->togl_graph($this,$this->get_points($_));
 	}
 }
@@ -257,7 +239,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 #	print "TOGLAX\n";
 	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 #	print "TOGL EUCLID\n";
-
+   glLineWidth(1); # ought to be user defined
 	glDisable(&GL_LIGHTING);
 	glColor3d(1,1,1);
 	glBegin(&GL_LINES);
@@ -331,6 +313,8 @@ sub PDL::Graphics::TriD::GObject::togl_graph {
 sub PDL::Graphics::TriD::Points::gdraw {
 	my($this,$points) = @_;
 #	print "DRAWPOINTS: \n",$points;
+
+	$this->glOptions();
 	glDisable(&GL_LIGHTING);
 	PDL::gl_points($points,$this->{Colors});
 	glEnable(&GL_LIGHTING);
@@ -338,6 +322,8 @@ sub PDL::Graphics::TriD::Points::gdraw {
 
 sub PDL::Graphics::TriD::Lattice::gdraw {
 	my($this,$points) = @_;
+
+	$this->glOptions();
 	glDisable(&GL_LIGHTING);
 	PDL::gl_line_strip($points,$this->{Colors});
 	PDL::gl_line_strip($points->xchg(1,2),$this->{Colors}->xchg(1,2));
@@ -347,6 +333,8 @@ sub PDL::Graphics::TriD::Lattice::gdraw {
 
 sub PDL::Graphics::TriD::LineStrip::gdraw {
 	my($this,$points) = @_;
+
+	$this->glOptions();
 	glDisable(&GL_LIGHTING);
 	PDL::gl_line_strip($points,$this->{Colors});
 	glEnable(&GL_LIGHTING);
@@ -354,16 +342,45 @@ sub PDL::Graphics::TriD::LineStrip::gdraw {
 
 sub PDL::Graphics::TriD::Lines::gdraw {
 	my($this,$points) = @_;
+
+	$this->glOptions();
 	glDisable(&GL_LIGHTING);
 	PDL::gl_lines($points,$this->{Colors});
 	glEnable(&GL_LIGHTING);
 }
 
+sub PDL::Graphics::TriD::GObject::glOptions {
+  my ($this) = @_;
+
+  if($this->{Options}{LineWidth}){
+	 glLineWidth($this->{Options}{LineWidth});
+  }else{
+	 glLineWidth(1);
+  }
+
+  if($this->{Options}{PointSize}){
+	 glPointSize($this->{Options}{PointSize});
+  }else{
+	 glPointSize(1);
+  }
+  
+  
+
+
+
+}
+
+
 sub PDL::Graphics::TriD::Contours::gdraw {
   my($this,$points) = @_;
+
+  $this->glOptions();
+
   glDisable(&GL_LIGHTING);
   my $pcnt=0;
   my $i=0;
+
+
   foreach(@{$this->{ContourSegCnt}}){
 	 my $colors;
 	 if($this->{Colors}->getndims==2){
@@ -389,6 +406,9 @@ sub PDL::Graphics::TriD::Contours::gdraw {
 
 sub PDL::Graphics::TriD::SLattice::gdraw {
 	my($this,$points) = @_;
+
+	$this->glOptions();
+
 	glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
 	glDisable(&GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
@@ -418,6 +438,9 @@ sub PDL::Graphics::TriD::SLattice::gdraw {
 
 sub PDL::Graphics::TriD::SCLattice::gdraw {
 	my($this,$points) = @_;
+
+	$this->glOptions();
+
 	glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
 	glDisable(&GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
@@ -447,6 +470,10 @@ sub PDL::Graphics::TriD::SCLattice::gdraw {
 
 sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	my($this,$points) = @_;
+
+
+	$this->glOptions();
+
 	glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
 # For some reason, we need to set this here as well.
 	glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
@@ -551,117 +578,40 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	glDisable(&GL_TEXTURE_2D);
 }
 
-# XXX NOT USED
-
-# The careful method is to plot the image as quadrilaterals inside
-# the 0..1,0..1,0 box
-sub PDL::Graphics::TriD::Image::togl_old {
-	my($this) = @_;
-	my($x,$y);
-	my @dims = $this->{Im}->dims;
-	shift @dims; # remove the '3'
-	glDisable(GL_LIGHTING);
-	glNormal3d(0,0,1);
-	my $xmul = 1.0/$dims[0]; my $ymul = 1.0/$dims[1];
-#	print "IMAG2GL, $this->{R}, $this->{G}, $this->{B}\n";
-	my @rvals = $this->{R}->list;
-	my @gvals = $this->{G}->list;
-	my @bvals = $this->{B}->list;
-	for $x (0..$dims[0]-1) {
-#		print "$x\n";
-		for $y (0..$dims[1]-1) {
-			glColor3f((shift @rvals),(shift @gvals),(shift @bvals));
-			glRectd($x*$xmul,$y*$ymul,
-				($x+1)*$xmul,($y+1)*$ymul);
-		}
-	}
-#	print "IMAGDONE\n";
-	glEnd();
-	glEnable(GL_LIGHTING);
-}
-
-
-
-sub PDL::Graphics::TriD::EventHandler::new {
-	my($type) = @_;
-	my $this = bless {"X" => -1, "Y" => -1,Buttons => [],Moved => 0},$type;
-	return $this;
-}
-
-sub PDL::Graphics::TriD::EventHandler::event {
-	my($this,$win,$type,@args) = @_;
-	print "EH: $type\n" if($PDL::Graphics::TriD::verbose);
-	if($type == &MotionNotify) {
-#		print "MOTION\n";
-	  my $but = -1;
-	 SWITCH: { $but = 0, last SWITCH if ($args[0] & (&Button1Mask));
-		   $but = 1, last SWITCH if ($args[0] & (&Button2Mask));
-		   $but = 2, last SWITCH if ($args[0] & (&Button3Mask));
-		   goto NOBUT;
-		 }
-	   if($this->{Buttons}[$but]) {
-	     $this->{Buttons}[$but]->mouse_moved(
-						 $this->{X},$this->{Y},
-						 $args[1],$args[2]);
-	   }
-	   $this->{X} = $args[1]; $this->{Y} = $args[2];
-	   $this->{Moved} = 1;
-	 NOBUT:
-	} elsif($type == &ButtonPress) {
-#		print "BUTTONPRESS\n";
-		my $but = $args[0]-1;
-		$this->{X} = $args[1]; $this->{Y} = $args[2];
-		$this->{Moved} = 0;
-		$this->{Buttons}[$but]->ButtonPress($args[1],$args[2]) 
-		  if($this->{Buttons}[$but]);
-	} elsif($type == &ButtonRelease) {
-#		print "BUTTONRELEASE\n";
-		my $but = $args[0]-1;
-		$this->{Buttons}[$but]->ButtonRelease($args[1],$args[2]) 
-		  if($this->{Buttons}[$but]);
-
-
-		if($but == 2 or !$this->{Moved}) {
-			if(defined &PDL::Graphics::TriD::Tk::post_menu) {
-				PDL::Graphics::TriD::Tk::post_menu($win,@args[3,4]);
-			}
-		}
-	}
-}
-
-sub PDL::Graphics::TriD::EventHandler::set_button {
-	my($this,$butno,$act) = @_;
-	$this->{Buttons}[$butno] = $act;
-}
-
 sub PDL::Graphics::TriD::SimpleController::togl {
 	my($this) = @_;
 
 	$this->{CRotation}->togl();
 	glTranslatef(0,0,-$this->{CDistance});
+
 	$this->{WRotation}->togl();
 	glTranslatef(map {-$_} @{$this->{WOrigin}});
 }
+
 
 ##############################################
 #
 # A window with mouse control over rotation.
 #
-# Do not make two of these!
 #
-package PDL::Graphics::TriD::GL::Window;
+package PDL::Graphics::TriD::Window;
 use PDL::Graphics::OpenGL;
-@ISA = qw/PDL::Graphics::TriD::Window/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/Ev Width Height Interactive 
+              _ViewPorts _CurrentViewPort /;
+
 sub i_keep_list {return 1} # For Object, so I will be notified of changes.
 use strict;
-use FileHandle;
 
-sub new {
-  my($type, $options) = @_;
+sub gdriver {
+  my($this, $options) = @_;
 
-  
+  if(defined $PDL::Graphics::TriD::GL::Window::instance){
+	 return $PDL::Graphics::TriD::GL::Window::instance;
+  }
+
   my @db = &GLX_DOUBLEBUFFER;
-  #	my @db = ();
+
   if($PDL::Graphics::TriD::offline) {$options->{x} = -1; @db=()}
 
   $options->{attributes} = [&GLX_RGBA, @db,
@@ -677,15 +627,10 @@ sub new {
 			 ExposureMask | StructureNotifyMask |
 			 PointerMotionMask) unless defined $options->{mask};
 
-  $options->{width} = 	800 unless defined $options->{width};
-  $options->{height} = 	800 unless defined $options->{height};
-
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
   
-
   glpOpenWindow(%$options);
-
   
   glClearColor(0,0,0,1);
   my $lb = PDL::Graphics::OpenGL::glpRasterFont(
@@ -701,100 +646,140 @@ sub new {
   
   # Will this bring us trouble?
   #	if(defined *PDL::Graphics::TriD::GL::Window::glPolygonOffsetEXT{CODE}) {
-  glEnable(&GL_POLYGON_OFFSET_EXT);
-  glPolygonOffsetEXT(0.0000000000001,0.000002);
+#  glEnable(&GL_POLYGON_OFFSET_EXT);
+#  glPolygonOffsetEXT(0.0000000000001,0.000002);
   #	}
   
-  my $this = bless {
-		    Ev => {	&ConfigureNotify => \&doconfig,
-				&MotionNotify => \&domotion,
-			  },
-		    Angle => 0.0,
-		    Mouse => [undef,undef,undef],
-		    W => $options->{width},
-		    H => $options->{height},
-		    DefMaterial => new PDL::Graphics::TriD::Material,
-		   },$type;
-  $this->reshape();
+  # Inherits attributes of Object class
+#  my $this = $type->SUPER::new();
+#  $this->reshape($options->{width},$options->{height});
+
   my $light = pack "f*",1.0,1.0,1.0,0.0;
   glLightfv(&GL_LIGHT0,&GL_POSITION,$light);
-  $this->{DefMaterial}->togl();
+
   glColor3f(1,1,1);
   
-  # Try to interface with Tk event loop?
-  if(!defined $options->{parent} and defined &Tk::DoOneEvent) {
-    my $gld = PDL::Graphics::OpenGL::glpXConnectionNumber();
-    # Create new mainwindow just for us.
-    my $mw = MainWindow->new();
-    $mw->iconify();
-    my $fh = new FileHandle("<&=$gld\n")
-      or die("Couldn't reopen GL filehandle");
-    $mw->fileevent($fh,'readable',
-		   sub {# print "GLEV\n";
-		     $this->twiddle(1)});
-    $this->{FileHandle} = $fh;
-    $this->{MW} = $mw;
-    print "Under Tk?\n" if($PDL::Graphics::TriD::verbose);
-  }
-  
-  $this->{Interactive} = 1;
+#  $this->{Interactive} = 1;
   print "STARTED OPENGL!\n" if($PDL::Graphics::TriD::verbose);
   
   if($PDL::Graphics::TriD::offline) {
     $this->doconfig($options->{width}, $options->{height});
   }
+  $PDL::Graphics::TriD::GL::Window::instance=$this;
   
-  return $this;
+  return 1;  # Interactive Window
 }
 
-sub add_resizecommand {
-	my($this,$com) = @_;
-	push @{$this->{ResizeCommands}},$com;
-	print "ARC: $this->{W},$this->{H}\n" if($PDL::Graphics::TriD::verbose);
-	&$com($this->{W},$this->{H});
-}
-
-sub get_size {return ($PDL::Graphics::TriD::GL::size,$PDL::Graphics::TriD::GL::size);}
-
-sub set_eventhandler {my($this,$handler) = @_;
-	$this->{EHandler} = $handler;
-}
-
-sub set_transformer {my($this,$transform) = @_;
-	$this->{Transformer} = $transform;
-}
-
-sub set_material {
-  $_[0]->{DefMaterial} = $_[1];
+sub ev_defaults{
+  return {	&ConfigureNotify => \&doconfig,
+				&MotionNotify => \&domotion,
+			}
 }
 
 sub reshape {
 	my($this,$x,$y) = @_;
-	$this->{W} = $x; $this->{H} = $y;
-	print "ARC: $this->{W},$this->{H}\n" if(defined $PDL::Graphics::TriD::verbose);
-	for(@{$this->{ResizeCommands}}) {
-		&$_($this->{W},$this->{H});
+   my $pw = $this->{Width};
+   my $ph = $this->{Height};
+	$this->{Width} = $x; $this->{Height} = $y;
+
+	for my $vp (@{$this->{_ViewPorts}}){
+	  my $nw = $vp->{W} + ($x-$pw) * $vp->{W}/$pw;
+	  my $nx0 = $vp->{X0} + ($x-$pw) * $vp->{X0}/$pw;
+	  my $nh = $vp->{H} + ($y-$ph) * $vp->{H}/$ph;
+	  my $ny0 = $vp->{Y0} + ($y-$ph) * $vp->{Y0}/$ph;
+	  $vp->resize($nx0,$ny0,$nw,$nh);
+	  
 	}
+
 }
 
-sub do_perspective {
-	my($this) = @_;
 
-	print "do_perspective\n" if($PDL::Graphics::TriD::verbose);
 
-        unless($this->{W} and $this->{H}) {return;}
-#	if($this->{W}==0 or $this->{H}==0) {return;}
-	$this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
-#	glResizeBuffers();
-	glViewport(0,0,$this->{W},$this->{H});
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-#	glOrtho (-50.0, 50.0, -50.0,50.0,-1.0,1.0);
-	gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity ();
-#	glTranslatef(0,0,-3);
+sub get_size {
+  my $this=shift;
+  return ($this->{Width},$this->{Height});
 }
+
+
+sub twiddle {
+  my($this,$getout,$dontshow) = @_;
+  my (@e);
+  my $quit;
+  if($PDL::Graphics::TriD::offline) {
+	 $PDL::Graphics::TriD::offlineindex ++;
+	 $this->display();
+	 require PDL::IO::Pic;
+	 wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
+	 return;
+  }
+  if($getout and $dontshow) {
+	 if(!&XPending()) {return}
+  }
+  if(!defined $getout) {
+	 $getout = not $PDL::Graphics::TriD::keeptwiddling;
+  }
+  
+  $this->display();
+  my $hap = 0;
+  my $gotev = 0;
+ TWIDLOOP: while(1) {
+	 #		print "EVENT!\n";
+	 $gotev=0;
+	 if(&XPending() or !$getout) {
+		@e = &glpXNextEvent();
+		#		  @e = &glpXPeekEvent();
+		#		  if ($PDL::Graphics::TriD::verbose){
+		#		    foreach(@e){
+		#		      print "EVENT $_\n" ;
+		#		    }
+		#		  }
+		$gotev=1;
+	 }
+	 if(@e){
+		if($e[0] == &VisibilityNotify) {
+		  $hap = 1;
+		}
+		if($e[0] == &ConfigureNotify) {
+		  print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
+		  $this->reshape($e[1],$e[2]);
+		  $hap=1;
+		}
+		if($e[0] == &KeyPress) {
+		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
+		  if((lc $e[1]) eq "q") {
+			 $quit = 1;
+		  }
+		  if((lc $e[1]) eq "c") {
+			 $quit = 2;
+		  }
+		  if((lc $e[1]) eq "q" and not $getout) {
+			 last TWIDLOOP;
+		  }
+		  $hap=1;
+		}
+	 }
+
+	 if($gotev){
+		#			print "HANDLING $this->{EHandler}\n";
+		foreach my $vp (@{$this->{_ViewPorts}}) {
+		  if(defined($vp->{EHandler})) {
+			 $vp->{EHandler}->event(@e);
+		  }
+		}
+		$hap=1;
+	 }
+	 if(!&XPending()) {
+		if($hap) {$this->display();}
+		if($getout) {last TWIDLOOP}
+	 }
+	 undef @e;
+  }
+  print "STOPTWIDDLE\n" if($PDL::Graphics::TriD::verbose);
+  return $quit;
+}
+
+
+
 
 sub setlist { my($this,$list) = @_;
 	$this->{List} = $list;
@@ -815,48 +800,41 @@ sub domotion {
 
 sub display {
   my($this) = @_;
-	$this->do_perspective();
-        unless($this->{W} and $this->{H}) {return;}
-#	if($this->{W}==0 or $this->{H}==0) {return;}
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
 
-	if($this->{Transformer}) {
-		print "Transforming!\n" if($PDL::Graphics::TriD::verbose);
-		$this->{Transformer}->togl();
-	} else {
-		glTranslatef(0,0,-3);
-		glRotatef($this->{"Angle"},sin($this->{"Angle"}/360),cos($this->{"Angle"}/360),
-			sin(2.5*$this->{Angle}/360));
-	}
-	glTranslatef(-1,-1,-1);
-	glScalef(2,2,2);
-	my $s = 1.5;
-#	glScalef($s,$s,$s);
-	$this->gl_call_list();
-	glPopMatrix();
+  glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+  glMatrixMode(GL_MODELVIEW);
 
-	if($this->{ViewPorts}) {
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		print "DOVP: $this->{W} $this->{H}\n" if($PDL::Graphics::TriD::verbose);
-		for(@{$this->{ViewPorts}}) {
-			$_->[0]->togl_vp($this,$_);
-		}
-	}
-# glFlush is called by glXSwapBuffers!
-#	glFlush();
-# JPE 
-	glXSwapBuffers();
-	$this->{Angle}+= 3;
+
+  for my $vp (@{$this->{_ViewPorts}}) {
+
+	 glPushMatrix();
+    
+
+	 $vp->do_perspective();
+
+
+	 if($vp->{Transformer}) {
+		print "Transforming viewport!\n" if($PDL::Graphics::TriD::verbose);
+		$vp->{Transformer}->togl();
+	 }
+
+	 glTranslatef(-1,-1,-1);
+	 glScalef(2,2,2);  # double the scale in each direction ?
+
+	 $vp->gl_call_list();
+
+	 glPopMatrix();
+
+  }
+
+  glXSwapBuffers();
+#  $this->{Angle}+= 3;
 }
 
+# should this reallyt be in viewport?
 sub read_picture {
 	my($this) = @_;
-	my($w,$h) = @{$this}{qw/W H/};
+	my($w,$h) = @{$this}{qw/Width Height/};
 	my $res = PDL->zeroes(PDL::byte,3,$w,$h);
 	glPixelStorei(&GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(&GL_PACK_ALIGNMENT,1);
@@ -865,95 +843,131 @@ sub read_picture {
 	return $res;
 }
 
-#sub new_viewport {
-#	my(this,$x0,$y0,$x1,$y1) = @_;
-#	# print "NEW_VIEWPORT: $#{$this->{ViewPorts}}\n";
-#	push @{$this->{ViewPorts}},[(new PDL::Graphics::TriD::ViewPort()),
-#		$x0,$y0,$x1,$y1];
-#	return $this->{ViewPorts}[-1][0];
-#}
+package PDL::Graphics::TriD::EventHandler;
+use PDL::Graphics::OpenGL qw/MotionNotify ButtonPress ButtonRelease 
+                             Button1Mask Button2Mask Button3Mask/;
+use fields qw/X Y Buttons VP/;
+use strict;
+sub new {
+  my $class = shift;
+  my $vp = shift;
+  no strict 'refs';
+  my $self = bless [ \%{"$class\::FIELDS"}], $class;
+  $self->{X} = -1;
+  $self->{Y} = -1;
+  $self->{Buttons} = [];
+  $self->{VP} = $vp;
+  $self;
+}
 
-sub clear_viewports {
+sub event {
+  my($this,$type,@args) = @_;
+
+  print "EH: ",ref($this)," $type\n" if($PDL::Graphics::TriD::verbose);
+
+  if($type == &MotionNotify) {
+	 #		print "MOTION\n";
+	 my $but = -1;
+  SWITCH: { 
+		$but = 0, last SWITCH if ($args[0] & (&Button1Mask));
+		$but = 1, last SWITCH if ($args[0] & (&Button2Mask));
+		$but = 2, last SWITCH if ($args[0] & (&Button3Mask));
+		goto NOBUT;
+	 }
+	 if($this->{Buttons}[$but]) {
+		if($this->{VP}->{Active}){
+		  $this->{Buttons}[$but]->mouse_moved(
+														  $this->{X},$this->{Y},
+														  $args[1],$args[2]);
+		}
+	 }
+	 $this->{X} = $args[1]; $this->{Y} = $args[2];
+  NOBUT:
+  } elsif($type == &ButtonPress) {
+	 #		print "BUTTONPRESS\n";
+	 my $but = $args[0]-1;
+	 $this->{X} = $args[1]; $this->{Y} = $args[2];
+	 $this->{Buttons}[$but]->ButtonPress($args[1],$args[2]) 
+		if($this->{Buttons}[$but]);
+  } elsif($type == &ButtonRelease) {
+	 #		print "BUTTONRELEASE\n";
+	 my $but = $args[0]-1;
+	 $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2]) 
+		if($this->{Buttons}[$but]);
+  }
+}
+
+sub set_button {
+	my($this,$butno,$act) = @_;
+	$this->{Buttons}[$butno] = $act;
+}
+
+  
+
+
+package PDL::Graphics::TriD::ViewPort;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
+              DefMaterial AspectRatio Graphs/;
+
+use PDL::Graphics::OpenGL;
+use PDL::Graphics::OpenGLQ;
+
+
+sub highlight {
+  my ($vp) = @_;
+
+  my $pts =  new PDL [[0,0,0],
+				  [$vp->{W},0,0],
+				  [$vp->{W},$vp->{H},0],
+				  [0,$vp->{H},0],
+				  [0,0,0]];
+  my $colors;
+
+  $colors = PDL->ones(3,5);
+
+  glDisable(&GL_LIGHTING);
+  
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  gluOrtho2D(0,$vp->{W},0,$vp->{H});
+  glLineWidth(4);
+  
+  gl_line_strip($pts,$colors);
+
+  glLineWidth(1);
+		
+  glEnable(&GL_LIGHTING);
+
+}
+
+
+
+sub do_perspective {
 	my($this) = @_;
-	# print "CLEAR VPs: $this->{ViewPorts} $#{$this->{ViewPorts}}\n";
-	for(@{$this->{ViewPorts}}) {
-		$_->[0]->clear();
-		undef %{$_->[0]};
-	}
-	$this->{ViewPorts} = [];
-	# print "CLEARED VPs: $this->{ViewPorts} $#{$this->{ViewPorts}}\n";
+
+	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if($PDL::Graphics::TriD::verbose);
+
+        unless($this->{W}>0 and $this->{H}>0) {return;}
+#	if($this->{W}==0 or $this->{H}==0) {return;}
+	$this->{AspectRatio} = (1.0*$this->{W})/$this->{H};
+#	glResizeBuffers();
+
+	glViewport($this->{X0},$this->{Y0},$this->{W},$this->{H});
+
+	$this->highlight() if($this->{Active});
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluPerspective(40.0, $this->{AspectRatio} , 0.1, 200000.0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity ();
 }
 
-sub twiddle {my($this,$getout,$dontshow) = @_;
-	my (@e);
-	my $quit;
-	if($PDL::Graphics::TriD::offline) {
-		$PDL::Graphics::TriD::offlineindex ++;
-		$this->display();
-		require PDL::IO::Pic;
-		wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
-		return;
-	}
-	if($getout and $dontshow) {
-		if(!&XPending()) {return}
-	}
-	if(!defined $getout) {
-		$getout = not $PDL::Graphics::TriD::keeptwiddling;
-	}
-
-	$this->display();
-	my $hap = 0;
-	my $gotev = 0;
-	TWIDLOOP: while(1) {
-#		print "EVENT!\n";
-		$gotev=0;
-		if(&XPending() or !$getout) {
-		  @e = &glpXNextEvent();
-#		  @e = &glpXPeekEvent();
-#		  if ($PDL::Graphics::TriD::verbose){
-#		    foreach(@e){
-#		      print "EVENT $_\n" ;
-#		    }
-#		  }
-		    $gotev=1;
-		}
-		if(@e){
-		  if($e[0] == &VisibilityNotify) {
-		    $hap = 1;
-		  }
-		  if($e[0] == &ConfigureNotify) {
-		    print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
-		    $this->reshape($e[1],$e[2]);
-		    $hap=1;
-		  }
-		  if($e[0] == &KeyPress) {
-		    print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
-		    if((lc $e[1]) eq "q") {
-		      $quit = 1;
-		    }
-		    if((lc $e[1]) eq "c") {
-		      $quit = 2;
-		    }
-		    if((lc $e[1]) eq "q" and not $getout) {
-		      last TWIDLOOP;
-		    }
-		    $hap=1;
-		  }
-		}
-		if($gotev && defined($this->{EHandler})) {
-#			print "HANDLING $this->{EHandler}\n";
-			$this->{EHandler}->event($this,@e);
-			$hap=1;
-		}
-		if(!&XPending()) {
-			if($hap) {$this->display();}
-			if($getout) {last TWIDLOOP}
-		}
-		undef @e;
-	}
-	print "STOPTWIDDLE\n" if($PDL::Graphics::TriD::verbose);
-	return $quit;
-}
 
 ###############
 #

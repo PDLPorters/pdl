@@ -481,11 +481,25 @@ method.
 
 #KGB: NEEDS DOCS ON COMMON OPTIONS!!!!!
 
+# List of global variables
+# 
+# $PDL::Graphics::TriD::offline
+# $PDL::Graphics::TriD::Settings 
+# $PDL::Graphics::TriD::verbose
+# $PDL::Graphics::TriD::keeptwiddling
+# $PDL::Graphics::TriD::hold_on
+# $PDL::Graphics::TriD::curgraph
+# $PDL::Graphics::TriD::cur
+# $PDL::Graphics::TriD::create_window_sub
+# $PDL::Graphics::TriD::current_window
+# 
+# '
 
 package PDL::Graphics::TriD::Basic;
 package PDL::Graphics::TriD;
 use PDL::Exporter;
 use PDL::Core '';  # barf
+#use strict;
 
 # Then, see which display method are we using:
 
@@ -517,7 +531,7 @@ BEGIN {
 
 }
 
-
+use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
 @ISA = qw/PDL::Exporter/;
 @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
   describe3d imagrgb imagrgb3d hold3d release3d
@@ -526,6 +540,8 @@ BEGIN {
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
 use PDL::Graphics::TriD::Object;
+use PDL::Graphics::TriD::Window;
+use PDL::Graphics::TriD::ViewPort;
 use PDL::Graphics::TriD::Graph;
 use PDL::Graphics::TriD::Quaternion;
 use  PDL::Graphics::TriD::Objects;
@@ -588,7 +604,10 @@ sub objplotcommand {
 
 sub checkargs {
 	if(ref $_[$#_] eq "HASH") {
+
+	  print "enter checkargs \n";
 		for([KeepTwiddling,\&keeptwiddling3d]) {
+		  print "checkargs >$_<\n";
 			if(defined $_[$#_]{$_->[0]}) {
 				&{$_->[1]}(delete $_[$#_]{$_->[0]});
 			}
@@ -620,6 +639,7 @@ sub graph_object {
 	$g->bind_default($name);
 	$g->scalethings();
 	print "ADDED TO GRAPH: '$name'\n" if $PDL::Graphics::TriD::verbose;
+
 	twiddle_current();
 	return $obj;
 }
@@ -642,9 +662,12 @@ sub PDL::imagrgb {
 	my (@data) = @_; &checkargs;
 	my $win = PDL::Graphics::TriD::get_current_window();
 	my $imag = new PDL::Graphics::TriD::Image(@data);
-	$win->clear_viewports();
-	my $vp = $win->new_viewport(0,0,1,1);
-	$vp->add_object($imag);
+
+#	$win->clear_viewports();
+#
+#	my $vp1 = $win->new_viewport(0,0,$win->get_size());
+#	$vp1->add_object($imag);
+	$win->current_viewport()->add_object($imag);
 	$win->twiddle();
 }
 
@@ -709,7 +732,9 @@ sub get_new_graph {
 		$g->clear_data();
 	}
 	$g->default_axes();
-	$win->clear_viewports();
+
+#	$win->clear_viewports();
+
 	$win->clear_objects();
 	$win->add_object($g);
 	return $g;
@@ -729,37 +754,20 @@ sub get_current_graph {
 # $PDL::Graphics::TriD::cur = {};
 # $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
-        my $opts = shift @_;
-	my $win = $PDL::Graphics::TriD::cur;
-	if(!defined $win->{Window}) {
-		if(!$PDL::Graphics::TriD::create_window_sub) {
-			barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
-		}
-		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub($opts);
-		if ($win->{Window}->{Interactive}) {
-       		  require PDL::Graphics::TriD::ArcBall;
-		  require PDL::Graphics::TriD::SimpleScaler;
-		  require PDL::Graphics::TriD::Control3D;
-   		  $win->{EventHandler} = new PDL::Graphics::TriD::EventHandler();
-		  $win->{Window}->set_eventhandler($win->{EventHandler});
-		  $win->{Control} = new PDL::Graphics::TriD::SimpleController();
-		  $win->{Window}->set_transformer($win->{Control});
+  my $opts = shift @_;
+  my $win = $PDL::Graphics::TriD::cur;
 
-		  $win->{ArcBall1} = new PDL::Graphics::TriD::ArcCone(
-			$win->{Window}, 0,
-			$win->{Control}{WRotation});
-		  $win->{Scaler} = new PDL::Graphics::TriD::SimpleScaler(
-			$win->{Window},
-			\$win->{Control}{CDistance});
-		  $win->{EventHandler}->set_button(0,$win->{ArcBall1});
-		  $win->{EventHandler}->set_button(2,$win->{Scaler});
-		}
-		$win->{Window}->set_material(new PDL::Graphics::TriD::Material);
-		$PDL::Graphics::TriD::current_window = $win->{Window};
-		$win->{MainWindow} = $win->{Window};
-		$PDL::Graphics::TriD::cur = $win
-	}
-	return $PDL::Graphics::TriD::current_window;
+  if(!defined $win) {
+	 if(!$PDL::Graphics::TriD::create_window_sub) {
+		barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
+	 }
+	 $win = new PDL::Graphics::TriD::Window($opts);
+
+	 $win->set_material(new PDL::Graphics::TriD::Material);
+	 $PDL::Graphics::TriD::current_window = $win;
+	 $PDL::Graphics::TriD::cur = $win
+  }
+  return $PDL::Graphics::TriD::current_window;
 }
 
 # Get the current graphbox
@@ -827,35 +835,6 @@ sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
 }
 
 
-##################################
-#
-# Does nothing by itself except makes an orthogonal window transformation
-# to the provided size elsewhere.
-#
-package PDL::Graphics::TriD::ViewPort;
-use base qw/PDL::Graphics::TriD::Object/;
-use fields qw/ViewPorts W H X0 Y0/;
-sub i_keep_list {return 1} # For object.
-
-#sub new {
-#	my($type) = @_;
-#	my $this = bless {},$type;
-#        print "CREATE VP $this\n";
-#	return $this;
-#}
-
-sub new_viewport {
-	my($this,$x0,$y0,$x1,$y1) = @_;
-	push @{$this->{ViewPorts}},[(new PDL::Graphics::TriD::ViewPort()),
-		$x0,$y0,$x1,$y1];
-	return $this->{ViewPorts}[-1][0];
-}
-
-sub DESTROY {
-	my($this) = @_;
-	# print "DESTROY VP $this\n";
-}
-
 ###################################
 #
 #
@@ -891,8 +870,6 @@ sub add_transformation {
 }
 
 
-package PDL::Graphics::TriD::Window;
-use base qw/PDL::Graphics::TriD::ViewPort/;
 
 =head1 BUGS
 

@@ -249,7 +249,9 @@ Graphics/TriD/TriD/SimpleScaler.pm
 Graphics/TriD/TriD/Surface.pm
 Graphics/TriD/TriD/TextObjects.pm
 Graphics/TriD/TriD/Tk.pm
+Graphics/TriD/TriD/ViewPort.pm
 Graphics/TriD/TriD/VRML.pm
+Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm

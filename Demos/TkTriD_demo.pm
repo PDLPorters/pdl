@@ -6,9 +6,7 @@ use PDL::Graphics::TriD::GL;
 use Tk;
 use PDL::Graphics::TriD::Tk;
 use strict;
-my ($TriDW,$graph); # declare the graph object in main, defined in initialize
-my $e_button;
-
+my $TriDW;      # declare the graph object in main, defined in initialize
 PDL::Demos::Routines->import();
 sub act($);
 sub comment($);
@@ -28,37 +26,49 @@ sub run {
 #
 # The exit button
 #
-  $e_button = $bframe->Button(-text => "Exit",
-			      -command => sub { exit }
-			     )->pack(-side=>'right',-anchor=>'nw',-fill=>'y');
+my  $e_button = $bframe->Button(-text => "Exit",
+										  -command => sub { exit }
+										 )->pack(-side=>'right',-anchor=>'nw',-fill=>'y');
 #
 # The other menus
 # 
 
-  my $menus=[{Name=>'Simple',
-	      Type=>'radio',
-	      Options=>["Off","B&W","Color"],
-	      Command=>\&linedemos,
-	      Value=>'Off'},
-	     {Name=>'Surface',
-	      Type=>'radio',
-	      Options=>["Off","Points","Lines","Lattice"],
-	      Command=>\&Linesdemos,
-	      Value=>'Off'},
-	     {Name=>'Volume',
-	      Type=>'radio',
-	      Options=>["Off","Colors","Lighting"],
-	      Command=>\&Torusdemos,
-	      Value=>'Lighting'},
-	     {Name=>'Contours',
-	      Type=>'radio',
-	      Options=>["Off","2DB&W","2DColor","3DColor"],
-	      Command=>\&Contourdemos,
-	      Value=>'Off'},
-	     {Name=>'Object View',
-	      Type=>'command',
-	      Options=>['Top','East','South'],
-	      Command=>\&setview}];
+  my $menus=
+	 [{Name=>'Simple',
+		Type=>'radio',
+		Options=>["Off","B&W","Color"],
+		Command=>\&linedemos,
+		Value=>'Off'},
+	  {Name=>'Surface',
+		Type=>'radio',
+		Options=>["Off","Points","Lines","Lattice"],
+		Command=>\&Linesdemos,
+		Value=>'Off'},
+	  {Name=>'Volume',
+		Type=>'radio',
+		Options=>["Off","Colors","Lighting"],
+		Command=>\&Torusdemos,
+		Value=>'Lighting'},
+	  {Name=>'Contours',
+		Type=>'radio',
+		Options=>["Off","2DB&W","2DColor","3DColor"],
+		Command=>\&Contourdemos,
+		Value=>'Off'},
+	  {Name=>'Object View',
+		Type=>'command',
+		Options=>['Top','East','South'],
+		Command=>\&setview},
+	  {Name=>'ViewPorts',
+		Type=>'command',
+		Options=>['Split Horizontal','Split Vertical',
+					 'Un-Split (Save This)','Un-Split (Save Others)'],
+		Command=>\&setviewports},
+	  {Name=>'Focus',
+		Type=>'radio',
+		Options=>["Pointer","DoubleClick"],
+		Command=>\&setfocusstyle,
+		Value=>'Pointer'}
+	 ];
   
   foreach my $menu (@$menus){
     my $mew = $bframe->Menubutton(-text=>$menu->{Name},
@@ -68,26 +78,36 @@ sub run {
     if($menu->{Type} eq "radio"){
       foreach(@{$menu->{Options}}){
 	
-	$mew->radiobutton(-label=> $_,
-			  -value=> $_,
-			  -variable=> \$menu->{Value},
-			  -command=> [$menu->{Command},$_] );
+		  $mew->radiobutton(-label=> $_,
+								  -value=> $_,
+								  -variable=> \$menu->{Value},
+								  -command=> [$menu->{Command},$_] );
       }
     }elsif($menu->{Type} eq "command"){
       foreach(@{$menu->{Options}}){
-	$mew->AddItems(["command" => $_,
-			-command=> [$menu->{Command},$_] ]);
+        if(/^Un-Split/){
+			 $mew->AddItems(["command" => $_,
+								  -state => 'disabled',
+								  -command=> [$menu->{Command},$mew,$_] ]);
+		  }else{
+			 $mew->AddItems(["command" => $_,
+								  -command=> [$menu->{Command},$mew,$_] ]);
+		  }
       }
     }
     
   }
-  
+#  
+# Sets a default focus style for viewport
+# 
+  setfocusstyle('Pointer');
 #
 # This sets the graphic that will be displayed when the window is first opened
 #
 
-  $e_button->bind("<Configure>",[ \&Torusdemos,0 ]);
-
+  $e_button->bind("<Configure>",[ sub { my $but = shift; 
+													 Torusdemos(0); 
+													 $but->bind("<Configure>",'') }]);
 
   $TriDW->MainLoop;
 }
@@ -97,11 +117,14 @@ sub run {
 sub linedemos{
   my($bh,$demo) = @_;
   $demo=$bh unless(ref($bh));
- 
+
   return unless defined $TriDW->{GLwin};
-  if(! $demo){
-    # Remove the configure binding
-    $e_button->bind("<Configure>","");
+
+  my $graph;
+
+  $graph = $TriDW->{GLwin}->current_viewport->graph();
+
+  unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
@@ -131,9 +154,9 @@ sub linedemos{
     $graph->add_dataseries($data,"Lines$demo");
   }
   $graph->scalethings();
-  $TriDW->{GLwin}->delete_object($graph);
+  $TriDW->current_viewport()->delete_graph($graph);
     
-  $TriDW->{GLwin}->add_object($graph);
+  $TriDW->current_viewport()->graph($graph);
   $TriDW->refresh();
 }
 
@@ -144,9 +167,11 @@ sub Linesdemos{
   $demo=$bh unless(ref($bh));
  
   return unless defined $TriDW->{GLwin};
-  if(! $demo){
-    # Remove the configure binding
-    $e_button->bind("<Configure>","");
+  my $graph;
+
+  $graph = $TriDW->{GLwin}->current_viewport->graph();
+
+  unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
@@ -174,9 +199,9 @@ sub Linesdemos{
     $graph->add_dataseries($data,"Lines$demo");
   }
   $graph->scalethings();
-  $TriDW->{GLwin}->delete_object($graph);
+  $TriDW->current_viewport()->delete_graph($graph);
     
-  $TriDW->{GLwin}->add_object($graph);
+  $TriDW->current_viewport()->graph($graph);
   $TriDW->refresh();
 }
 
@@ -187,9 +212,11 @@ sub Contourdemos{
   $demo=$bh unless(ref($bh));
  
   return unless defined $TriDW->{GLwin};
-  if(! $demo){
-    # Remove the configure binding
-    $e_button->bind("<Configure>","");
+  my $graph;
+
+  $graph = $TriDW->{GLwin}->current_viewport->graph();
+
+  unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
@@ -206,7 +233,7 @@ sub Contourdemos{
     $x = (xvals zeroes $size,$size) / $size;
     $y = (yvals zeroes $size,$size) / $size;
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
-   
+  
     if($demo eq "2DB&W"){
       $data=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
     }elsif($demo eq "2DColor"){
@@ -221,9 +248,9 @@ sub Contourdemos{
     $graph->add_dataseries($data,"Contours$demo");
   }
   $graph->scalethings();
-  $TriDW->{GLwin}->delete_object($graph);
+  $TriDW->current_viewport()->delete_graph($graph);
     
-  $TriDW->{GLwin}->add_object($graph);
+  $TriDW->current_viewport()->graph($graph);
 
   $TriDW->refresh();
 }
@@ -234,14 +261,17 @@ sub Torusdemos{
   $demo=$bh unless(ref($bh));
  
   return unless defined $TriDW->{GLwin};
-  if(! $demo){
-    # Remove the configure binding
-    $e_button->bind("<Configure>","");
+  my $graph;
+
+  $graph = $TriDW->{GLwin}->current_viewport->graph();
+  
+  unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
     $demo="Lighting";
   }
+
   $graph->delete_data("TorusColors");
   $graph->delete_data("TorusLighting");
 
@@ -269,9 +299,9 @@ sub Torusdemos{
   }
   $graph->scalethings();
 
-  $TriDW->{GLwin}->delete_object($graph);
+  $TriDW->current_viewport()->delete_graph($graph);
     
-  $TriDW->{GLwin}->add_object($graph);
+  $TriDW->current_viewport()->graph($graph);
   $TriDW->refresh();
 }
 
@@ -279,28 +309,16 @@ sub Torusdemos{
 # restore the image view to a known value
 #
 sub setview{
-  my($view) = @_;
+  my($menu,$view) = @_;
 
-  $TriDW->{GLwin}{Transformer}{WRotation}[1]," ",
-  $TriDW->{GLwin}{Transformer}{WRotation}[2]," ",
-  $TriDW->{GLwin}{Transformer}{WRotation}[3],"\n";
+  my $transformer = $TriDW->current_viewport()->transformer();
 
   if($view eq "Top"){
-    print "set view top\n";
-    $TriDW->{GLwin}{Transformer}{WRotation}[0]=0;
-    $TriDW->{GLwin}{Transformer}{WRotation}[1]=0;
-    $TriDW->{GLwin}{Transformer}{WRotation}[2]=0;
-    $TriDW->{GLwin}{Transformer}{WRotation}[3]=0;
+	 $transformer->set({WRotation=>[1,0,0,0]});
   }elsif($view eq "East"){
-    $TriDW->{GLwin}{Transformer}{WRotation}[0]=  0.5;
-    $TriDW->{GLwin}{Transformer}{WRotation}[1]= -0.5;
-    $TriDW->{GLwin}{Transformer}{WRotation}[2]= -0.5;
-    $TriDW->{GLwin}{Transformer}{WRotation}[3]= -0.5;
+	 $transformer->set({WRotation=>[0.5,-0.5,-0.5,-0.5]});
   }elsif($view eq "South"){
-    $TriDW->{GLwin}{Transformer}{WRotation}[0]=0.6;
-    $TriDW->{GLwin}{Transformer}{WRotation}[1]=-0.6;
-    $TriDW->{GLwin}{Transformer}{WRotation}[2]= 0;
-    $TriDW->{GLwin}{Transformer}{WRotation}[3]= 0;
+	 $transformer->set({WRotation=>[0.6,-0.6,0,0]});
   }
 
   $TriDW->refresh();
@@ -308,4 +326,83 @@ sub setview{
 }
 
 
+sub setviewports{
+  my($menu,$request) = @_;
+#  print "svp $request\n";
+
+  my $vp = $TriDW->current_viewport();
+  my $nvp;  
+  if($request eq 'Split Horizontal'){
+	 $nvp=$TriDW->new_viewport($vp->{X0}+$vp->{W}/2,$vp->{Y0},$vp->{W}/2,$vp->{H});
+	 $vp->resize($vp->{X0},$vp->{Y0},$vp->{W}/2,$vp->{H});
+  }elsif($request eq 'Split Vertical'){
+	 $nvp=$TriDW->new_viewport($vp->{X0},$vp->{Y0}+$vp->{H}/2,$vp->{W},$vp->{H}/2);
+	 $vp->resize($vp->{X0},$vp->{Y0},$vp->{W},$vp->{H}/2);
+  }elsif($request eq 'Un-Split (Save This)'){
+	 my $cnt=0;
+	 foreach (@{$TriDW->viewports()}){
+		if(defined $_ && $_ != $vp){
+		  $TriDW->clear_viewport($cnt);
+		}
+		$cnt++;
+	 }
+	 $vp->resize(0,0,$TriDW->{GLwin}{Width},$TriDW->{GLwin}{Height});
+  }elsif($request eq 'Un-Split (Save Others)'){
+	 if($vp->{W} < $TriDW->{GLwin}{Width}){
+		my $x0 = $vp->{X0};
+		my $x1 = $vp->{X0}+$vp->{W};
+		foreach (@{$TriDW->viewports()}){
+		  if(($_->{X0} == $x1) || ($_->{X0}+$_->{W} == $x0)){
+			 $x0 = $_->{X0} if($x0>$_->{X0});
+			 $_->resize(min($x0,$_->{X0}),$_->{Y0},$_->{W}+$vp->{W},$_->{H});
+		  }
+		}
+	 }
+
+	 $TriDW->clear_viewport($vp);
+  }
+  
+  if($#{$TriDW->viewports()} > 0){
+	 $menu->entryconfigure('Un-Split (Save This)', -state=>'normal');
+	 $menu->entryconfigure('Un-Split (Save Others)', -state=>'normal');
+  }else{
+	 $menu->entryconfigure('Un-Split (Save This)', -state=>'disabled');
+	 $menu->entryconfigure('Un-Split (Save Others)', -state=>'disabled');
+  }
+}
+
+sub setfocusstyle{
+  my($fs) = @_;
+
+  if($fs eq 'Pointer'){
+	 $TriDW->bind("<Motion>",[ \&setfocus, Ev('x'),Ev('y')]); 
+	 $TriDW->bind("<Double-Button>",'');
+  }else{
+	 $TriDW->bind("<Motion>",'');
+	 $TriDW->bind("<Double-Button>",[ \&setfocus, Ev('x'),Ev('y')]); 
+  }
+}
+
+sub setfocus{
+  my($this,$x,$y)=@_;
+
+  $y = $TriDW->{GLwin}{Height}-$y;
+  
+  my $num=0;
+
+  foreach my $vp (@{$TriDW->{GLwin}->viewports()}){ 
+    if($vp->{X0}+4 <= $x && $vp->{X0}+$vp->{W}-4>=$x 
+	    && $vp->{Y0}+4 <= $y && $vp->{Y0}+$vp->{H}-4>=$y ){
+		next if($vp->{Active}==1);
+	   $vp->{Active} = 1;
+      $TriDW->{GLwin}->current_viewport($num);
+
+		$TriDW->refresh();
+
+    }else{
+	   $vp->{Active} = 0;
+    }
+    $num++;
+  }
+}
 1;
