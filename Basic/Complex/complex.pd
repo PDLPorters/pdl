@@ -62,8 +62,9 @@ requires a copy, though.
 
 =item *
 
-BEWARE: This module has not been extensively tested. Watch out and
-send me bugreports!
+This module has received some testing by Vanuxem Grégory
+(g.vanuxem at wanadoo dot fr). Please report any other errors you
+come across!
 
 =back
 
@@ -133,9 +134,11 @@ Sorry, but I didn't yet try to reproduce the diagram in this
 text. Just run the commands yourself, making sure that you have loaded
 C<PDL::Complex> (and C<PDL::Graphics::PGPLOT>).
 
-
 =cut
 
+my $i;
+BEGIN { $i = bless pdl 0,1 }
+sub i () { $i->copy };
 EOD
 
 for (qw(Ctan Catan re im i cplx real)) {
@@ -205,9 +208,10 @@ pp_addhdr <<'EOH';
             if ((ai) < 0)			\
               t = -t;				\
                                                 \
-            (ci) = t;				\
             (cr) = 0.5 * (ai) / t;		\
+            (ci) = t;				\
           }
+
 
 #define CLOG(ar,ai,cr,ci)			\
         (cr) = log (CABS ((ar), (ai)));		\
@@ -351,6 +355,27 @@ pp_def 'Cmul',
         ^
 ;
 
+pp_def 'Cprodover',
+	Pars => 'a(m=2,n); [o]c(m=2)',
+        Doc => 'Project via product to N-1 dimension',
+        Code => q^
+	    int iter;
+	    $GENERIC() br, bi, cr, ci,tmp;
+	    cr = $a(m=>0,n=>0);
+	    ci = $a(m=>1,n=>0);
+	   for  (iter=1; iter < $SIZE(n);iter++)
+	   {
+		   br = $a(m=>0,n=>iter);
+		   bi = $a(m=>1,n=>iter);
+		   tmp =  cr*bi + ci*br;
+	           cr = cr*br - ci*bi;
+	           ci = tmp;
+           }
+	    $c(m=>0) = cr;
+	    $c(m=>1) = ci;
+        ^
+;
+
 pp_def 'Cscale',
 	Pars => 'a(m=2); b(); [o]c(m=2)',
         Doc => 'mixed complex/real multiplication',
@@ -418,6 +443,12 @@ pp_def 'Cabs',
 	Pars => 'a(m=2); [o]c()',
         GenericTypes => [F,D],
         Doc => 'complex C<abs()> (also known as I<modulus>)',
+        PMCode => q^sub PDL::Complex::Cabs($) {
+           my $pdl= shift;
+           my $abs = PDL->null;
+           &PDL::Complex::_Cabs_int($pdl, $abs);
+           $abs;
+        }^,
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $c() = CABS (ar, ai);
@@ -427,6 +458,12 @@ pp_def 'Cabs',
 pp_def 'Cabs2',
 	Pars => 'a(m=2); [o]c()',
         Doc => 'complex squared C<abs()> (also known I<squared modulus>)',
+        PMCode => q^sub PDL::Complex::Cabs2($) {
+           my $pdl= shift;
+           my $abs2 = PDL->null;
+           &PDL::Complex::_Cabs2_int($pdl, $abs2);
+           $abs2;
+        }^,
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $c() = ar*ar + ai*ai;
@@ -437,6 +474,12 @@ pp_def 'Carg',
 	Pars => 'a(m=2); [o]c()',
         GenericTypes => [F,D],
         Doc => 'complex argument function ("angle")',
+        PMCode => q^sub PDL::Complex::Carg($) {
+           my $pdl= shift;
+           my $arg = PDL->null;
+           &PDL::Complex::_Carg_int($pdl, $arg);
+           $arg;
+        }^,
         Code => q^
            $c() = atan2 ($a(m=>1), $a(m=>0));
         ^
@@ -479,6 +522,7 @@ pp_addpm <<'EOD';
 =cut
 
 sub Ctan($) { Csin($_[0]) / Ccos($_[0]) }
+
 
 EOD
 
@@ -596,7 +640,7 @@ Return the complex C<atan()>.
 
 sub Catan($) {
    my $z = shift;
-   Cmul pdl(0, 0.5), Clog Cdiv PDL::Complex::i+$z, PDL::Complex::i-$z;
+   Cmul Clog(Cdiv (PDL::Complex::i+$z, PDL::Complex::i-$z)), pdl(0, 0.5);
 }
 
 EOD
@@ -611,7 +655,7 @@ pp_def 'Csinh',
 
            SINCOS (ai, s, c);
            $c(m=>0) = sinh (ar) * c;
-           $c(m=>0) = cosh (ar) * s;
+           $c(m=>1) = cosh (ar) * s;
         ^
 ;
 
@@ -625,7 +669,7 @@ pp_def 'Ccosh',
 
            SINCOS (ai, s, c);
            $c(m=>0) = cosh (ar) * c;
-           $c(m=>0) = sinh (ar) * s;
+           $c(m=>1) = sinh (ar) * s;
         ^
 ;
 
@@ -642,7 +686,7 @@ pp_def 'Ctanh',
            den = cosh (2*ar) + c;
 
            $c(m=>0) = sinh (2*ar) / den;
-           $c(m=>0) = s           / den;
+           $c(m=>1) = s           / den;
         ^
 ;
 
@@ -652,7 +696,6 @@ pp_def 'Casinh',
         Doc => '',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
-
            $GENERIC() yr = (ar-ai) * (ar+ai) + 1;
            $GENERIC() yi = 2*ar*ai;
 
@@ -691,7 +734,7 @@ pp_def 'Catanh',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
-           double i2 = ar*ar;
+           double i2 = ai*ai;
            double num = i2 + (1+ar) * (1+ar);
            double den = i2 + (1-ar) * (1-ar);
 
@@ -726,15 +769,14 @@ pp_def 'Croots',
            bless $r;
         }^,
         Code => q^
+           double s, c;
            double ar = $a(m=>0), ai = $a(m=>1),
                   n1 = 1 / (double)$COMP(n),
                   rr = pow (CABS (ar, ai), n1), /* do not optimize the sqrt out of this expr! */
-                  at = atan2 (ai, ar),
+                  at = atan2 (ai, ar) * n1,
                   ti = M_2PI * n1;
 
            loop(n) %{
-               double s, c;
-
                SINCOS (at, s, c);
 
                $c(m=>0) = rr * c;
@@ -829,10 +871,6 @@ sub _gen_cpop {
 sub initialize {
    bless PDL->null, $_[0];
 }
-
-my $i;
-BEGIN { $i = bless pdl 0,1 }
-sub i () { $i->copy };
 
 use overload
    (map _gen_biop($_), qw(++Cadd --Csub *+Cmul /-Cdiv **-Cpow atan2-Catan2 <=>-Ccmp)),
