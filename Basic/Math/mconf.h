@@ -79,7 +79,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 #include <float.h>
 #define NANARG 1L
 #endif
-#if defined __alpha
+#if defined __alpha && ! defined __linux
 #include <float.h>
 #include <nan.h>
 #endif
