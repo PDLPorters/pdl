@@ -1,7 +1,7 @@
 use Config;
 use vars qw/$nomem $debug $plpoly3/;
 
-$debug = 0; # show generated pp_defs and other debug info
+$debug = 1; # show generated pp_defs and other debug info
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
 open (OPT, 'OPTIONS!');
@@ -385,16 +385,16 @@ Specify zero (default) to allow PLplot to compute this automatically.
 =head2 ZRANGE
 
 For xyplot (when COLORMAP is specified), for shadeplot and for colorkey.  Normally, the
-range of the Z variable (color) is taken as $z->minmax.  If a different range is desired, 
+range of the Z variable (color) is taken as $z->minmax.  If a different range is desired,
 specify it in ZRANGE, like so:
 
   $pl->shadeplot ($z, $nlevels, PALETTE => 'GREENRED', ZRANGE => [0,100]);
 
   ...or...
 
-  $pl->xyplot ($x, $y, PALETTE  => 'RAINBOW', PLOTTYPE => 'POINTS', 
+  $pl->xyplot ($x, $y, PALETTE  => 'RAINBOW', PLOTTYPE => 'POINTS',
 	               COLORMAP => $z,        ZRANGE => [-90,-20]);
-  $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.13, 0.85], 
+  $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.13, 0.85],
                        ZRANGE => [-90,-20]);
 
 =head1 FUNCTIONS
@@ -553,7 +553,7 @@ via the BOX option.
 
   # vertical key to the right of the original plot.
   # The BOX must be specified to give real coordinate values to the $z array.
-  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW', ZRANGE => [0,100]); 
+  $pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW', ZRANGE => [0,100]);
   $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85], ZRANGE => [0,100]);
 
 =head2 histogram
@@ -1016,7 +1016,7 @@ use vars qw(%_constants %_actions);
      $self->{YTICK} = $val;
    },
 
-   ZRANGE  => sub { 
+   ZRANGE  => sub {
      my $self = shift;
      my $val  = shift;
      die "ZRANGE must be a perl array ref with min and max Z values"
@@ -1265,7 +1265,7 @@ sub xyplot {
     plssym   (0, $self->{SYMBOLSIZE}) if (defined($self->{SYMBOLSIZE}));
 
     if (defined($z)) {  # if a color range plot requested
-      my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $z->minmax;	
+      my ($min, $max) = exists ($self->{ZRANGE}) ? @{$self->{ZRANGE}} : $z->minmax;
       plcolorpoints ($x, $y, $z, $c, $min, $max);
     } else {
       plsym ($x, $y, $c);
@@ -1855,7 +1855,7 @@ void c_plssub(PLINT nx, PLINT ny);
 void c_plssym(PLFLT def, PLFLT scale);
 void c_plstar(PLINT nx, PLINT ny);
 void c_plstart(const char *devname, PLINT nx, PLINT ny);
-void c_plstyl(PLINT nms, PLINT *mark, PLINT *space);
+#void c_plstyl(PLINT nms, PLINT *mark, PLINT *space);
 void c_plsvpa(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
 void c_plsxax(PLINT digmax, PLINT digits);
 void plsxwin(PLINT window_id);
@@ -1912,7 +1912,7 @@ pp_def ('plcolorpoints',
                     printf ("ci(%d) = %f\n", i, ci);
                     c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
                   }',
-         BadCode => 
+         BadCode =>
 	         'int i;
                   int j;
                   int ns = $SIZE(n);
@@ -2078,6 +2078,14 @@ pp_def ('plsurf3d',
                        $P(clevel), $SIZE(nlevel));
            plFree2dGrid (zz, size_x, size_y);'
         );
+
+# Set line style
+
+pp_def ('plstyl',
+         Pars => 'int mark(nms); int space(nms)',
+         GenericTypes => [D],
+         Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
+       );
 
 pp_done();
 
