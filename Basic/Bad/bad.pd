@@ -389,7 +389,7 @@ pp_def(
        Code => 
        '$b() = 0;',
        BadCode => 
-       '$b() = $ISBAD($a());',
+       '$b() = $ISBAD(a());',
        CopyBadStatusCode => '',
        Doc => isdocs("bad","[0 1 0]"),
        );
@@ -401,7 +401,7 @@ pp_def(
        Code => 
        '$b() = 0;',
        BadCode => 
-       '$b() = $ISGOOD($a());',
+       '$b() = $ISGOOD(a());',
        CopyBadStatusCode => '',
        Doc => isdocs("good","[1 0 1]"),
        );
@@ -453,7 +453,7 @@ pp_def(
        BadCode => 
        '$GENERIC(b) cnt = 0;
 	loop(n) %{ 
-           if ( $ISBAD($a()) ) { cnt++; }
+           if ( $ISBAD(a()) ) { cnt++; }
         %}
         $b() = cnt;',
        Doc => projectdocs('bad','nbadover'),
@@ -468,7 +468,7 @@ pp_def(
        BadCode => 
        '$GENERIC(b) cnt = 0;
 	loop(n) %{ 
-           if ( $ISGOOD($a()) ) { cnt++; }
+           if ( $ISGOOD(a()) ) { cnt++; }
         %}
         $b() = cnt;',
        Doc => projectdocs('good','ngoodover'),

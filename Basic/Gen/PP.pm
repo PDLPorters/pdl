@@ -1934,6 +1934,25 @@ sub get_badflag_priv {
 ##    return '($PRIV(flags) & PDL_ITRANS_HAVE_BADVAL)';
 }    
 
+# abstract the access to the bad value status of a piddle
+# - means we can easily change the representation without too 
+#   many changes
+#
+sub set_badstate {
+    my $pdl = shift;
+    return "${pdl}->state |= PDL_BADVAL";
+}
+
+sub clear_badstate {
+    my $pdl = shift;
+    return "${pdl}->state &= ~PDL_BADVAL";
+}
+
+sub get_badstate {
+    my $pdl = shift;
+    return "((${pdl}->state & PDL_BADVAL) > 0)";
+}
+
 # checks the input piddles to see if the routine
 # is being any data containing bad values
 #
@@ -1985,10 +2004,14 @@ sub findbadstatus {
     foreach my $i ( 0 .. $#args ) {
 	my $x = $args[$i];
 	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
+	    my $state_is_bad = get_badstate($args[$i]);
 	    if ( $add ) {
-		$str .= "  if ( !($get_bad) && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
+		# access to state information should be encapsulated
+#		$str .= "  if ( !($get_bad) && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
+		$str .= "  if ( !($get_bad) && $state_is_bad ) $set_bad";
 	    } else {
-		$str .= "  if ( $args[$i]\->state & PDL_BADVAL ) $set_bad";
+#		$str .= "  if ( $args[$i]\->state & PDL_BADVAL ) $set_bad";
+		$str .= "  if ( $state_is_bad ) $set_bad";
 		$add = 1;
 	    }
 	}
@@ -2040,7 +2063,8 @@ sub copybadstatus {
 
     $str = "if ( " . get_badflag($sname) . " ) {\n";
     foreach my $arg ( @outs ) {
-	$str .= "  ${arg}->state |= PDL_BADVAL;\n";
+#	$str .= "  ${arg}->state |= PDL_BADVAL;\n";
+	$str .= "  " . set_badstate($arg) . ";\n";
     }
     $str .= "}\n";
 

@@ -1,6 +1,14 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/12/00)
+   - wahay, stats() now works. Whilst not a major achievement, it was why I 
+     started this whole thing...
+   - added $PDLSTATE... macros to access the bad value flag of a piddle 
+     within pp_def(). Corresponding $STATE... macros as well, but not sure
+     they'll be needed.
+   - the $ISBAD/$ISGOOD/$SETBAD macros no longer need the $ before the pdl
+     name (to reduce the amount of line noise), so
+       $ISBAD($a(n))  and $ISBAD(a(n))  are the same
    - first attempt at including information on bad-value support into the
      documentation. '=for bad' has been introduced, with a 'badinfo' command
      in perldl/-b flag in pdldoc. For pp_def functions you can supply 

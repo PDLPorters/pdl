@@ -27,6 +27,14 @@ bad-value support is ignored and you won't see any slow-down of code.
 The routines which support bad values are written to be as fast as possible -
 particularly when operating on piddles which do not contain bad values.
 
+You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
+Well, yes and no - many routines, such as y=sin(x), will propogate NaN's 
+without the user haveing to code differently, but routines such as qsort, or
+finding the median of an array, need to be re-coded to handle bad values.
+Currently we do not use NaN values, but it's a high priority to allow this, 
+since it will speed up the code. See the section in IMPLEMENTATION.bpix for
+more details.
+
 --------------------------------------------------------------------------------
 
 A quick overview

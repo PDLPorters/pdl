@@ -125,6 +125,55 @@ EOD
 } # sub: biop()
 
 #simple binary functions
+sub bifunc_bad {
+	my ($name,$func,$swap,$doc,%extra) = @_;
+	if ($swap) {
+	  $extra{HdrCode} .= << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	# quick and dirty solution to get ->inplace do its job
+	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  c = a;  /* discard output value, leak? */
+				}';
+	pp_def($name,
+	       HandleBad => 1,
+	       Pars => 'a(); b(); [o]c();',
+	       OtherPars => 'int swap',
+	       Code => 
+	       "\$c() = $func(\$a(),\$b());",
+	       BadCode =>
+	       'if ( $ISBAD(a()) || $ISBAD(b()) )
+	          $SETBAD(c());
+	        else' . "\n  \$c() = $func(\$a(),\$b());\n",
+	       %extra,
+	       Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$c = \$a->$name(\$b,0); # explicit function call
+   \$c = $name \$a, \$b;    # overloaded use
+   \$a->inplace(\$b,0);     # modify \$a inplace
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+This function is used to overload the binary C<$func> function.
+Note that when calling this function explicitly you need to supply
+a third argument that should generally be zero (see first example).
+This restriction is expected to go away in future releases.
+EOD
+} # sub: bifunc_bad()
+
+#simple binary functions
 sub bifunc {
 	my ($name,$func,$swap,$doc,%extra) = @_;
 	if ($swap) {
@@ -165,7 +214,7 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: bifunc()
 
 # simple unary functions and operators
 sub ufunc_bad {
@@ -269,10 +318,10 @@ biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
-bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
-bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
-bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
+bifunc_bad('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc_bad('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
+bifunc_bad('modulo','MOD',1,'elementwise C<modulo> operation');
+bifunc_bad('spaceship','SPACE',1,'elementwise C<~> operation');
 
 # some standard unary functions
 ufunc('not','!','the elementwise I<not> operation');

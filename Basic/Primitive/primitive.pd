@@ -149,10 +149,10 @@ foreach my $func ( keys %over ) {
 	    '$GENERIC(b) tmp = ' . $init . ';
              int flag = 0;
 	     loop(n) %{ 
-                if ( $ISGOOD($a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+                if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
              %}
              if ( flag ) { $b() = tmp; }
-             else { $SETBAD($b()); }',
+             else        { $SETBAD(b()); }',
 	    Docs => projectdocs( $name, $func, '' ),
 	    );
 
@@ -170,7 +170,7 @@ foreach my $func ( keys %over ) {
 	   BadCode => 
 	   '$GENERIC(b) tmp = ' . $init . ';
 	    loop(n) %{ 
-               if ( $ISBAD($a()) ) { $SETBAD($b()); }
+               if ( $ISBAD(a()) ) { $SETBAD(b()); }
                else {
                   tmp ' . $op . ' $a();
 	          $b() = tmp;
@@ -202,10 +202,10 @@ pp_def(
 	'$GENERIC(b) tmp = 0;
          long cnt = 0;
 	 loop(n) %{ 
-            if ( $ISGOOD($a()) ) { tmp += $a(); cnt++; }
+            if ( $ISGOOD(a()) ) { tmp += $a(); cnt++; }
          %}
          if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
-         else { $SETBAD($b()); }',
+         else       { $SETBAD(b()); }',
 	Docs => projectdocs( 'average', 'average', '' ),
 	);
 
@@ -245,12 +245,12 @@ pp_def(
         int flag = 0;
         loop(n) %{
 /*** fprintf(stderr, "in loop %d flag = %d\n", n, flag ); ***/
-           if ( $ISGOOD($a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
+           if ( $ISGOOD(a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
         %}
 /*** fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp ); ***/
 /* for some reason, even though flag == 1, b is getting set to the bad value (see above) */
         if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); $PDL(b)->state |= PDL_BADVAL; }',
+        else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
        CopyBadStatusCode => '',
        Doc => projectdocs('!= 0','zcover',''),
        );
@@ -268,10 +268,10 @@ pp_def(
        '$GENERIC(b) tmp = 1;
         int flag = 0;
         loop(n) %{ 
-           if ( $ISGOOD($a()) ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
+           if ( $ISGOOD(a()) ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); }',
+        else        { $SETBAD(b()); }',
        Doc => projectdocs('and','andover','')
 );
 
@@ -288,10 +288,10 @@ pp_def(
        '$GENERIC(b) tmp = ~ 0 ;
         int flag = 0;
         loop(n) %{ 
-           if ( $ISGOOD($a()) ) { tmp &= $a(); flag = 1; if (!tmp) break; }
+           if ( $ISGOOD(a()) ) { tmp &= $a(); flag = 1; if (!tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); }',
+        else        { $SETBAD(b()); }',
        Doc => projectdocs('bitwise and','bandover','')
        );
 
@@ -308,10 +308,10 @@ pp_def(
        '$GENERIC(b) tmp = 0;
         int flag = 0;
         loop(n) %{ 
-           if ( $ISGOOD($a()) ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
+           if ( $ISGOOD(a()) ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); }',
+        else        { $SETBAD(b()); }',
        Doc => projectdocs('or','orover','')
        );
 
@@ -328,10 +328,10 @@ pp_def(
        '$GENERIC(b) tmp = 0;
         int flag = 0;
         loop(n) %{ 
-           if ( $ISGOOD($a()) ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
+           if ( $ISGOOD(a()) ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
         %}
         if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); }',
+        else        { $SETBAD(b()); }',
        Doc => projectdocs('bitwise or','borover','')
        );
 
@@ -466,24 +466,25 @@ for (keys %PDL::Types::typehash) {
 # of good elements to the sort routines
 #
 
-my $generic_qsort = '
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
-';
+sub generic_qsort {
+    my $pdl = shift;
+    return '$TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
+}
 
 my $copy_to_temp_good = '
            int nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
            nn = $COMP(__n_size)-1; ' .
-       $generic_qsort;
+       generic_qsort('tmp');
 
 my $copy_to_temp_bad = '
         register int nn = 0;
 	loop(n) %{ 
-           if ( $ISGOOD($a()) ) { $tmp(n=>nn) = $a(); nn++; }
+           if ( $ISGOOD(a()) ) { $tmp(n=>nn) = $a(); nn++; }
         %}
         if ( nn == 0 ) {
-           $SETBAD($b());
+           $SETBAD(b());
         } else {
 ';
 
@@ -511,7 +512,7 @@ pp_def(
        $copy_to_temp_bad . 
        '   int nn1, nn2;
            nn -= 1; ' .
-       $generic_qsort .
+       generic_qsort('tmp') .
        $find_median_average . '}',
 
 ); # pp_def: medover
@@ -660,15 +661,23 @@ pp_add_exported('', 'minmax');
 #
 pp_def(
     'qsort',
-        Pars => 'a(n); [o]b(n);',
-        Code => '
-           int nn;
-	   loop(n) %{ $b() = $a(); %}
-           nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(b), 0, nn);
-
-', Doc=>'
+    HandleBad => 1,
+    Pars => 'a(n); [o]b(n);',
+    Code => 
+    'int nn;
+     loop(n) %{ $b() = $a(); %}
+     nn = $COMP(__n_size)-1;
+    ' . generic_qsort('b'),
+    BadCode =>
+    'register int nn = 0, nb = $SIZE(n) - 1;
+     loop(n) %{ 
+        if ( $ISGOOD(a()) ) { $b(n=>nn) = $a(); nn++; }
+        else                { $SETBAD(b(n=>nb)); nb--; }
+     %}
+     if ( nn != 0 ) {
+        nn -= 1;
+     ' . generic_qsort('b') . ' }',
+    Doc => '
 =for ref
 
 Quicksort a vector into ascending order.
@@ -736,10 +745,10 @@ pp_def(
     'double tmp = 0;
      int flag = 0;
      loop(n) %{ 
-        if ( $ISGOOD($a()) && $ISGOOD($b()) ) { tmp += $a() * $b(); flag = 1; }
+        if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); flag = 1; }
      %}
      if ( flag ) { $c() = tmp; }
-     else        { $SETBAD($c()); $PDL(c)->state |= PDL_BADVAL; }',
+     else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
     CopyBadStatusCode => '',
     Doc => '
 =for ref
@@ -761,8 +770,8 @@ pp_def(
      %}',
     BadCode => 
     'loop(n,m) %{ 
-       if ( $ISBAD($a()) || $ISBAD($b()) ) {
-          $SETBAD($c());
+       if ( $ISBAD(a()) || $ISBAD(b()) ) {
+          $SETBAD(c());
        } else {
           $c() = $a() * $b(); 
        }
@@ -918,50 +927,90 @@ return the indices of the I<m> maximum elements.
 
 =cut
 
-for $which (['minimum','<'],
-    ['maximum','>']) {
-defpdl(
-	$which->[0],
-	'a(n); [o]c();','',
-	'$GENERIC() cur;
-	 loop(n) %{
-	 	if(!n || $a() '.$which->[1].' cur || IsNaN(cur)) {cur = $a();}
-	 %}
-	 $c() = cur;
-	', projectdocs($which->[0],$which->[0])
-	);
-defpdl(
-	$which->[0]."_ind",
-	'a(n); int[o]c();','',
-	'$GENERIC() cur; int curind;
-	 loop(n) %{
-	 	if(!n || $a() '.$which->[1].' cur || IsNaN(cur))
+# I don't the the old behaviour is correct in the presence of NaN's -
+# surely it will set the min/max values to NaN in this case?
+#
+# I have kept in the check for when Bad value support is not being compiled
+#
+my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
+
+for $which (
+	    ['minimum','<'],
+	    ['maximum','>'] 
+	    ) {
+    my $name = $which->[0];
+    my $op   = $which->[1];
+
+    pp_def( 
+	    $name,
+	    HandleBad => 1,
+	    Pars => 'a(n); [o]c();', 
+	    Code => 
+	    '$GENERIC() cur;
+	     loop(n) %{
+	 	if(!n || $a() '.$op.' cur ' . $nan_check . ') {cur = $a();}
+	     %}
+	     $c() = cur;',
+	    BadCode => 
+	    '$GENERIC() cur;
+             int flag = 0;
+	     loop(n) %{
+	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) {cur = $a(); flag = 1;}
+	     %}
+             if ( flag ) { $c() = cur; }
+             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    CopyBadStatusCode => '',
+	    Doc => projectdocs($name,$name),
+	    );
+
+    pp_def( 
+	    "${name}_ind",
+	    HandleBad => 1,
+	    Pars => 'a(n); int [o] c();', 
+	    Code => 
+	    '$GENERIC() cur;
+             int curind;
+	     loop(n) %{
+	 	if(!n || $a() '.$op.' cur ' . $nan_check . ')
 		   {cur = $a(); curind = n;}
-	 %}
-	 $c() = curind;
-	',"Like $which->[0] but returns the index rather than the value"
-);
-defpdl(
-	$which->[0]."_n_ind",
-	'a(n); int[o]c(m);','',
-	'$GENERIC() cur; int curind;
-	 if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
-	 loop(m) %{
+	     %}
+	     $c() = curind;',
+	    BadCode => 
+	    '$GENERIC() cur;
+             int curind, flag = 0; /* should set curind to -1 and check for that, then do not need flag */
+	     loop(n) %{
+	 	if( $ISGOOD(a()) && (!flag || $a() '.$op.' cur)) 
+                   {cur = $a(); curind = n; flag = 1;}
+	     %}
+             if ( flag ) { $c() = curind; }
+             else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+	    CopyBadStatusCode => '',
+	    Doc => "Like $name but returns the index rather than the value",
+	    );
+
+    pp_def( 
+	    "${name}_n_ind",
+	    HandleBad => 0,   # just a marker 
+	    Pars => 'a(n); int[o]c(m);',
+	    Code =>
+	    '$GENERIC() cur; int curind;
+	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
+	     loop(m) %{
 		 loop(n) %{
 		 	int nm; int flag=0;
 		 	for(nm=0; nm<m; nm++) {
 				if($c(m=>nm) == n) {flag=1; break;}
 			}
 			if(!flag &&
-			   (n<=m || $a() '.$which->[1].' cur || IsNaN(cur)))
+			   (n<=m || $a() '.$op.' cur || IsNaN(cur)))
 				{cur = $a(); curind = n;}
 		 %}
 		 $c() = curind;
-	 %}
-	',"Returns the index of C<m> $which->[0] elements"
-);
-}
+	     %}',
+	    Doc => "Returns the index of C<m> $name elements"
+	    );
 
+} # foreach: $which
 
 
 pp_addpm(<<'EOD'
@@ -1831,6 +1880,12 @@ deviation.
 
 =cut
 
+# I need to think about this, but I think that
+#   $data->sum / $data->ngood need not == $data->avg
+#
+# $b = double->badvalue
+# $data = pdl( [1,2,3],[$b,$b,1] )
+#   $data->sum / $
 
 *stats	  = \&PDL::stats;
 sub PDL::stats {
@@ -1838,12 +1893,27 @@ sub PDL::stats {
     my ($data,$weights) = @_;
     my ($mean,$rms);
     if ($#_==0) {
-       $mean = ($data->sum)/($data->nelem);
-       $rms = sqrt(  ((($data-$mean)**2 )->sum) / ($data->nelem) );
+EOD
+
+    if ( $bvalflag ) {
+	pp_addpm(<<'!NO!SUBS!');
+	my $npts = $data->ngood;
+!NO!SUBS!
+} else {
+	pp_addpm(<<'!NO!SUBS!');
+	my $npts = $data->nelem;
+!NO!SUBS!
+
+} # if: $bvalflag
+
+       pp_addpm(<<'EOD');
+       $mean = $data->sum / $npts;
+       $rms  = sqrt( ((($data-$mean)**2 )->sum) / $npts );
     }
     else {
-       $mean = (($weights*$data)->sum) / (($weights)->sum);
-       $rms = sqrt(  ( ( $weights*(($data-$mean)**2) )->sum )  / ($weights->sum) );
+       my $wtsum = $weights->sum;
+       $mean = (($weights*$data)->sum) / $wtsum;
+       $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->sum )  / $wtsum );
     }
     my ($median,$min,$max) = ($data->median,$data->min,$data->max);
     print "Mean = $mean, RMS = $rms, Median = $median\n".

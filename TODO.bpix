@@ -4,6 +4,17 @@ Problems:
 
 .) get the tests fixed
 
+.) '$i = ($i < 20) * double->badvalue + $i'  when $i is not bad does
+   NOT set $i bad. Even worse, there are no longer any bad values 
+   (apart from those elements where $i == 0).
+   This is because double->badvalue returns a scalar,
+   NOT a 0-D piddle. We could make badvalue return a piddle,
+   but I don't like the supprt of these beasts in PDL. Perhaps
+   we need a new method, something like badvalue_as_pdl(), which returns
+   a 0-D piddle?
+
+   This shouldn't occur if we use NaN's.
+
 .) Trying to make zcover() (primitive.pd) work with bad values (if all
    values are bad, return bad, otherwise ignore the bad values). For
    some reason it doesn't work properly -- see primitive.pd for details.
@@ -17,11 +28,26 @@ Problems:
    The logic needs tweaking for the automatic document creation,
    and the output needs beautifying.
 
+.) $pdl->badvalue(23) should change the bad value in $pdl to 23
+   (as well as changing the default bad value, which it does)
+
 Suggestions/To do:
 ================
 
+.) 'bad-ify' the rest of the code...
+
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix
+
+.) divide in ops.pd should trap '/ 0' cases as well. also special cases 
+   for sqrt(), log ... and integration with NaN support
+
+.) comparison operators in ops.pd - how should they handle bad pixels?
+   ie is (a > badval) true, false, or what. Well, we could have
+   it return a bad value. However, this would cause unpredictable
+   results (eg if( any $a > 0 ) and any $a returns a bad value, then
+   if the bad value is 0, the check fails, otherwise it succeeds...)
+   NASTY. - see zcover in primitive.pd for some comments
 
 .) With the current scheme, it would be possible to have a per-piddle
    bad value. However, new piddles would use the default values.
@@ -33,10 +59,8 @@ Suggestions/To do:
    structure. The actual code wouldn't need changing, as long as it 
    was written using the $ISGOOD/ISBAD/SETBAD macros.
 
-.) 'bad-ify' the rest of the code...
-
-.) $pdl->badvalue(23) should change the bad value in $pdl to 23
-   (as well as changing the default bad value, which it does)
+   It would be redundant if we used NaN support - so maybe we should 
+   put this on the back-burner until we get Nan support.
 
 .) $pdl->baddata() now updates all the children of this piddle
    as well. However, not sure what to do with parents, since:
@@ -52,27 +76,9 @@ Suggestions/To do:
    a child of another piddle, whereas if you set the flag then all
    children AND parents should be set as well?
 
-.) add several more macros (unfortunately the names are reaching the
-   length of the code they replace...)
-     $ISSTATEBAD(a)      -> 'a->state & PDL_BADVAL'
-     $SETSTATEBAD(a)     -> 'a->state |= PDL_BADVAL'
-     $SETSTATEGOOD(a)    -> 'a->state &= ~PDL_BADVAL'
-
-     $ISPDLSTATEBAD(a)   -> '$PDL(a)->state & PDL_BADVAL'
-     $SETPDLSTATEBAD(a)  -> '$PDL(a)->state |= PDL_BADVAL'
-     $SETPDLSTATEGOOD(a) -> '$PDL(a)->state &= ~PDL_BADVAL'
-
-   - you could make the top macros accept $PDL(a), but the () cause 
-     a bit of a pain to process
-
 .) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).
-
-.) divide in ops.pd should trap '/ 0' cases as well. also special cases 
-   for sqrt(), log ... 
-   Qus: how does this integrate with NaN handling (which we don't do
-        at the moment anyway)?
 
 .) some of the names aren't appealing - I'm thinking of orig_badvalue()
    in Basic/Bad/bad.pd in particular. Any suggestions appreciated.
@@ -81,13 +87,6 @@ Suggestions/To do:
    is called, so I've included a check that prints a message to STDERR
    if it's called with a bad piddle. This will need removing at some
    point as it's wasted space...
-
-.) comparison operators in ops.pd - how should they handle bad pixels?
-   ie is (a > badval) true, false, or what. Well, we could have
-   it return a bad value. However, this would cause unpredictable
-   results (eg if( any $a > 0 ) and any $a returns a bad value, then
-   if the bad value is 0, the check fails, otherwise it succeeds...)
-   NASTY. - see zcover in primitive.pd for some comments
 
 .) [not really bad pixel stuff] - are the #define THISIS... lines
    necessary in type-looped PP code?

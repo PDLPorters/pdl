@@ -483,6 +483,22 @@ sub get_str {my($this) = @_;return "\$$this->[0]($this->[1])"}
 #
 # Encapsulate a check on whether a value is good or bad
 # handles both checking (good/bad) and setting (bad)
+#
+# $ISBAD($a(n))  -> $a(n) == a_badval
+# $ISGOOD($a())     $a()  != a_badval
+# $SETBAD($a())     $a()   = a_badval
+#
+# I've also got it so that the $ on the pdl name is not
+# necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
+# amount of line noise. This is actually done by the regexp
+# in the separate_code() sub at the end of the file.
+#
+# note: we also expand out $a(n) etc as well here
+#
+# IEEE NaN support - I'm assuming this would have to be
+#  changed to  $a() != $a() etc - which means 2 accesses to
+#  the data structure
+# 
 
 package PDL::PP::BadAccess;
 use Carp;
@@ -573,6 +589,136 @@ sub get_str {
 
     print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
     return "$lhs $op $rhs";
+}
+
+
+###########################
+#
+# Encapsulate a check on whether the state flag of a piddle
+# is set/change this state
+#
+# $STATEISBAD(a)    ->  (a->state & PDL_BADVAL) > 0
+# $STATEISGOOD(a)   ->  (a->state & PDL_BADVAL) == 0
+# 
+# $STATESETBAD(a)   ->  (a->state |= PDL_BADVAL)
+# $STATESETGOOD(a)  ->  (a->state &= ~PDL_BADVAL)
+# 
+# this may never be used (eg see the abstraction used in
+# PP.pm --- get_badstate() etc)
+
+package PDL::PP::StateBadAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
+
+    # $op  is one of: IS SET
+    # $val is one of: GOOD BAD
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "do not understand this! (StateBadAccess in PDL::PP::PDLCode.pm)\n" 
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$op, $val, $pdl_name], $type;
+}
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $op   = $this->[0];
+    my $val  = $this->[1];
+    my $name = $this->[2];
+
+    print "PDL::PP::StateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
+
+    my %ops  = ( 
+		 IS  => { GOOD => '==', BAD => '> 0' },
+		 SET => { GOOD => '&= ~', BAD => '|= ' },
+	     );
+
+    my $opcode = $ops{$op}{$val};
+    my $type = $op . $val;
+    die "ERROR: unknown check <$type> sent to PDL::PP::StateBadAccess\n"
+	unless defined $opcode;
+
+    my $state = "${name}->state";
+
+    my $str;
+    if ( $op eq 'IS' ) {
+	$str = "($state & PDL_BADVAL) $opcode";
+    } elsif ( $op eq 'SET' ) {
+	$str = "$state ${opcode}PDL_BADVAL";
+    }
+
+    print "DBG:  [$str]\n" if $::PP_VERBOSE;
+    return $str;
+}
+
+
+###########################
+#
+# Encapsulate a check on whether the state flag of a piddle
+# is set/change this state
+#
+# $PDLSTATEISBAD(a)    ->  ($PDL(a)->state & PDL_BADVAL) > 0
+# $PDLSTATEISGOOD(a)   ->  ($PDL(a)->state & PDL_BADVAL) == 0
+# 
+# $PDLSTATESETBAD(a)   ->  ($PDL(a)->state |= PDL_BADVAL)
+# $PDLSTATESETGOOD(a)  ->  ($PDL(a)->state &= ~PDL_BADVAL)
+# 
+
+package PDL::PP::PDLStateBadAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
+
+    # $op  is one of: IS SET
+    # $val is one of: GOOD BAD
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "do not understand this! (PDLStateBadAccess in PDL::PP::PDLCode.pm)\n" 
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$op, $val, $pdl_name], $type;
+}
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $op   = $this->[0];
+    my $val  = $this->[1];
+    my $name = $this->[2];
+
+    print "PDL::PP::PDLStateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
+
+    my %ops  = ( 
+		 IS  => { GOOD => '== 0', BAD => '> 0' },
+		 SET => { GOOD => '&= ~', BAD => '|= ' },
+	     );
+
+    my $opcode = $ops{$op}{$val};
+    my $type = $op . $val;
+    die "ERROR: unknown check <$type> sent to PDL::PP::PDLStateBadAccess\n"
+	unless defined $opcode;
+
+    my $obj = $parent->{ParObjs}{$name};
+    die "\nERROR: ParObjs does not seem to exist for <$name> = problem in PDL::PP::PDLStateBadAccess\n"
+	unless defined $obj;
+
+    my $state = $obj->do_pdlaccess() . "->state";
+
+    my $str;
+    if ( $op eq 'IS' ) {
+	$str = "($state & PDL_BADVAL) $opcode";
+    } elsif ( $op eq 'SET' ) {
+	$str = "$state ${opcode}PDL_BADVAL";
+    }
+
+    print "DBG:  [$str]\n" if $::PP_VERBOSE;
+    return $str;
 }
 
 
@@ -809,9 +955,16 @@ sub separate_code {
     print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
     while($_) {
 	# Parse next statement
+	
+	# I'm not convinced that having the checks twice is a good thing,
+	# since it makes it easy (for me at least) to forget to update one
+	# of them
+
 	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
                 |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
+                |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]+\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
 		|\btypes\s*\([^)]+\)\s*%{  # types(..) %{
@@ -823,6 +976,8 @@ sub separate_code {
 	# Store the user code.
 	# Some day we shall parse everything.
 	push @{$stack[-1]},$1;
+
+if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 
 	# Then, our control.
 	if($control) {
@@ -843,8 +998,12 @@ sub separate_code {
 		$threadloops ++;
 	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
 		push @{$stack[-1]},new PDL::PP::Access($control,$this);
 	    } elsif($control =~ /^%}/) {

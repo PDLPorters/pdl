@@ -12,7 +12,7 @@ BEGIN {
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
 #	plan tests => 24, todo => [11,17];
-	plan tests => 31;
+	plan tests => 36;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -22,6 +22,13 @@ BEGIN {
 
 use PDL::LiteF;
 $| = 1;
+
+sub approx {
+    my ( $a, $b ) = @_;
+    my $d = abs( $a - $b );
+    print "diff = [$d]\n";
+    return $d <= 0.0001;
+}
 
 # check default behaviour (ie no bad data)
 # - probably overkill
@@ -129,3 +136,23 @@ ok( $a->median, 4 );  # 30
 $a->baddata(1);
 ok( $a->median, 3 );  # 31
 
+# check out stats, since it uses several routines
+$a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
+$b = ($a < 20) * double->badvalue;
+$b->baddata(1);
+$b += $a;
+
+# note; we can't say
+#   $b = ($a < 20) * double->badvalue + $a;
+#
+# because double->badvalue returns a scalar, so 
+# '($a<20)*double->badvalue' is good, hence the
+# addition occurs - all the bad values are lost.
+# (this wouldn't be a problem if we used NaN's)
+#
+my @s = $b->stats();                     
+ok( approx( $s[0], 61.9375 ), 1 );       # 32
+ok( approx( $s[1], 26.7312 ), 1 );       # 33
+ok( $s[2], 66.5 );                       # 34
+ok( $s[3], 22 );                         # 35
+ok( $s[4], 98 );                         # 36

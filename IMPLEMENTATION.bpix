@@ -101,14 +101,17 @@ is given, then the readdata code automatically creates a variable called
 get_xsdatapdecl() in PP/PdlParObjs.pm). After Tuomas' suggestion, macros
 have been set up to provide easy access:
 
-  '$ISBAD($a(n=>1))'  expands to '$a(n=>1) == a_badval'
-  '$ISGOOD($a())'                '$a()     != a_badval'
-  '$SETBAD($bob())'              '$bob()    = bob_badval'
+  '$ISBAD(a(n=>1))'  expands to '$a(n=>1) == a_badval'
+  '$ISGOOD(a())'                '$a()     != a_badval'
+  '$SETBAD(bob())'              '$bob()    = bob_badval'
 
-(well, the $a(...) is expanded as well). The following have been
-introduced, since they are used in the default EquivCPOffsCode -
-see the $EQUIVCPOFFS_BAD() 'macro' in that rule and it's expansion
-in the CODE rule. They may need playing around with to improve
+well, the $a(...) is expanded as well. Also, you can use a $ before the
+pdl name, if you so wish, but it begins to look like line noise -
+eg '$ISGOOD($a())'.
+
+The following have been introduced, since they are used in the default 
+EquivCPOffsCode - see the $EQUIVCPOFFS_BAD() 'macro' in that rule and it's 
+expansion in the CODE rule. They may need playing around with to improve
 their use.
 
   '$PPISBAD(CHILD,[i])           'CHILD_physdatap[i] == CHILD_badval'
@@ -142,6 +145,19 @@ these haven't been used yet.
 EquivCPOffsCode has been changed to understand bad values - with a
 $EQUIVCPOFFS_BAD macro as well - although I don't really understand what 
 I'm doing here!
+
+Macros have been provided to provide access to the bad-flag status of 
+a pdl:
+
+  '$PDLSTATEISBAD(a)'    -> '($PDL(a)->state & PDL_BADVAL) > 0'
+  '$PDLSTATEISGOOD(a)'      '($PDL(a)->state & PDL_BADVAL) == 0'
+
+  '$PDLSTATESETBAD(a)'      '$PDL(a)->state |= PDL_BADVAL'
+  '$PDLSTATESETGOOD(a)'     '$PDL(a)->state &= ~PDL_BADVAL'
+
+There are also '$STATE(IS|SET){GOOD|BAD)' macros, for when you
+don't need the $PDL() bit, but I don't think they'll be used (see the
+xxx_setstate() subs in PP.pm).
 
 Please note that the current design is based on my failure to understand
 what the xxx_redodims(), xxx_copy(), xxx_free() functions that are 
@@ -177,6 +193,10 @@ actually use the BadCode/BadBackCode/... sections (since they should work
 without modification - PP/PDLCode.pm would just need to be able to 
 produce different output fro the $ISBAD/... macros). If a routine has
 no BadtoNaN rule then we can just use the Code section, ignoring BadCode/etc.
+
+The PDL::PP::BadAccess and PDL::PP::PPBadAccess objects in Basic/PP/PDLCore.pm
+would need updating to produce different code depending on whether NaN 
+support was available or not.
 
 I'd love someone to try this.
 
