@@ -1,3 +1,8 @@
+CS  Dev.pm: apply Michael Schwern's fix for ExtUtils::LibList
+    Makefile.PL, Types.pm.PL: fix race where Types.pm.PL tries to use
+        PDL::Config before it is written
+    discovered bug in FFTW inplace code: breaks inplace routines with
+    	slices; added TODO test to fftw.t
 DJB 02-Apr-2003
    - moved code from Basic/Bad/bad.pd to Basic/Core/Types.pm.PL: should
      never really have been adding to the PDL::Type namespace from a

@@ -874,6 +874,8 @@ PDL_rfftwnd_one_complex_to_real(plan, in, out)
 
 ');
 
+# NOTE: BUG! the inplace code below will not work with slices!
+# no backpropagation of results!
 pp_addxs('','
 MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 

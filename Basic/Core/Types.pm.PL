@@ -22,9 +22,13 @@ sub typeofPDLi64 {
     die "Can not find an integer 64 bit type";
 }
 
-# check for bad value support
-use PDL::Config;
-my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+my $bvalflag = 0;
+for (@ARGV) {
+  if(/^BADVALS=(.*)$/)
+    {
+      $bvalflag = $1;
+    }
+}
 
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!

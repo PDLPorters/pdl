@@ -187,12 +187,6 @@ package PDL::Version;
 EOVF
 $fh->close();
 
-# make sure we have Types.pm ready for prime time
-use Config; # for startperl
-die "Types.pm.PL not found in Basic/Core" unless -f 'Basic/Core/Types.pm.PL';
-system "$Config{perlpath} Basic/Core/Types.pm.PL";
-die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
-
 # Are we using bad values or not? Are we using NaN or not?
 # NOTE: 
 #  only create if there's been a change (or the file doesn't exist)
@@ -221,6 +215,12 @@ die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
     }
 }
 
+# make sure we have Types.pm ready for prime time
+use Config; # for startperl
+die "Types.pm.PL not found in Basic/Core" unless -f 'Basic/Core/Types.pm.PL';
+my $usebvals = $PDL_CONFIG{WITH_BADVAL} ? "BADVALS=1" : "";
+system "$Config{perlpath} Basic/Core/Types.pm.PL $usebvals";
+die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
 
 use ExtUtils::MakeMaker;
 
