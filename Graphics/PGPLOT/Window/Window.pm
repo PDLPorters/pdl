@@ -855,6 +855,20 @@ C<_setup_window> routine below.
 
 =back
 
+An important point to note is that the default values of most options can be
+specified by passing these to the constructor. All general options (common to
+several functions) can be adjusted in such a way, but function specific
+options can not be set in this way (this is a design limitation which is
+unlikely to be changed).
+
+Thus the following call will set up a window where the default axis colour
+will be yellow and where plot lines normally have red colour and dashed
+linestyle.
+
+  $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs',
+          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed'});
+
+
 =cut
 
 sub new {
@@ -883,9 +897,21 @@ sub new {
   $this_opt->translation($t);
   my $s=$WindowOptions->synonyms();
   $this_opt->synonyms($s);
+  $this_opt->warnonmissing(0);
+
+  # This is the setup for the plot options - which also can
+  # be set on a per-window basis by the user.
+  my $popt = $GeneralOptions->options($u_opt);
+  my $this_plotopt = PDL::Options->new($popt);
+  $t = $GeneralOptions->translation();
+  $this_plotopt->translation($t);
+  $s = $GeneralOptions->synonyms();
+  $this_plotopt->synonyms($s);
+  $this_plotopt->warnonmissing(0);
 
   my $self = {
-	      'Options'	      => $this_opt  || undef,
+	      'Options'	      => $this_opt,
+	      'PlotOptions'   => $this_plotopt,
 	      'Hold'	      => $opt->{Hold}		  || 0,
 	      'Name'	      => $opt->{WindowName}	  || '',
 	      'ID'	      => undef,
@@ -894,7 +920,7 @@ sub new {
 	      'NX'	      => $opt->{NXPanel}	  || 1,
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
-	      'CurrentPanel'  => undef,
+	      'CurrentPanel'  => 0,
 	      '_env_options'  => undef
 	     };
 
@@ -995,7 +1021,9 @@ sub _setup_window {
     pgsch($o->{HardCH});
     pgscf($o->{HardFont});
   }
-  pgsci($o->{Colour}); pgask(0);
+  my $wo = $self->{PlotOptions}->defaults();
+  pgsci($wo->{Colour});
+  pgask(0);
 
 }
 
@@ -1459,7 +1487,7 @@ sub _standard_options_parser {
   # Two new options..
 
 
-  my $wo = $GeneralOptions->defaults(); # Window defaults - for some routines below
+  my $wo = $self->{PlotOptions}->defaults(); # Window defaults - for some routines below
 
   # We just need special treatment of the Arrow and Hatch options,
   # and they are complex for historical reasons...
@@ -1687,7 +1715,7 @@ sub label_axes {
   # Now the titles are set per plot so we use the general options to
   # parse the options (if they were set per window we would use
   # $self->{Options}
-  my $o = $GeneralOptions->options($u_opt);
+  my $o = $self->{PlotOptions}->options($u_opt);
 
   $self->_save_status();
   $self->_standard_options_parser($o);
@@ -1727,7 +1755,7 @@ sub env {
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
-  my $o = $GeneralOptions->options($opt);
+  my $o = $self->{PlotOptions}->options($opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
   barf 'Usage: env ( $xmin, $xmax, $ymin, $ymax, [$just, $axis, $opt] )'
@@ -1748,7 +1776,7 @@ sub env {
   sub bin {
     my $self = shift;
     if (!defined($bin_options)) {
-      $bin_options = $GeneralOptions->extend({Centre => 1});
+      $bin_options = $self->{PlotOptions}->extend({Centre => 1});
       $bin_options->add_synonym({Center => 'Centre'});
     }
     my ($in, $opt)=_extract_hash(@_);
@@ -1802,7 +1830,7 @@ sub env {
   sub cont {
     my $self=shift;
     if (!defined($cont_options)) {
-      $cont_options = $GeneralOptions->extend({Contours => undef,
+      $cont_options = $self->{PlotOptions}->extend({Contours => undef,
 					       Follow => 0,
 					       Labels => undef,
 					       LabelColour => undef,
@@ -1935,7 +1963,7 @@ EOD
   sub errb {
     my $self = shift;
     if (!defined($errb_options)) {
-      $errb_options = $GeneralOptions->extend({Term => 1});
+      $errb_options = $self->{PlotOptions}->extend({Term => 1});
       $errb_options->add_synonym({Terminator => 'Term'});
     }
     my ($in, $opt)=_extract_hash(@_);
@@ -2010,7 +2038,7 @@ EOD
   sub line {
     my $self = shift;
     if (!defined($line_options)) {
-      $line_options=$GeneralOptions->extend({Missing => undef});
+      $line_options=$self->{PlotOptions}->extend({Missing => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -2068,7 +2096,7 @@ EOD
 
     my $self = shift;
     if (!defined($points_options)) {
-      $points_options = $GeneralOptions->extend({PlotLine => 0});
+      $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -2098,7 +2126,8 @@ EOD
     $self->_standard_options_parser($o);
 
 
-    my $sym=$o->{Symbol};
+    # Set symbol if specified in the options hash.
+    $sym ||= $o->{Symbol};
 
     $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
 
@@ -2120,21 +2149,28 @@ EOD
 {
   # The ITF is in the general options - since other functions might want
   # it too.
-  # Here I have gone away from the design idea that all options should be
-  # created on demand - this is just for simplicity of code since both
-  # imag1 and imag would like this option list.
-  my $im_options = $GeneralOptions->extend({
-					    PIX => undef,
-					    Min => undef,
-					    Max => undef,
-					    Scale => undef,
-					    Pitch => undef,
-					    Unit => undef
-					   });
+  #
+  # There is some repetetiveness in the code, but this is to allow the
+  # user to set global defaults when opening a new window.
+  #
+
+  my $im_options = undef;
+
 
   sub imag1 {
     my $self = shift;
     my ($in,$opt)=_extract_hash(@_);
+
+    if (!defined($im_options)) {
+      $im_options = $self->{PlotOptions}->extend({
+						  PIX => undef,
+						  Min => undef,
+						  Max => undef,
+						  Scale => undef,
+						  Pitch => undef,
+						  Unit => undef
+						 });
+    }
 
     # Let us parse the options if any.
     $opt = {} if !defined($opt);
@@ -2150,6 +2186,17 @@ EOD
   sub imag {
 
     my $self = shift;
+    if (!defined($im_options)) {
+      $im_options = $self->{PlotOptions}->extend({
+						  PIX => undef,
+						  Min => undef,
+						  Max => undef,
+						  Scale => undef,
+						  Pitch => undef,
+						  Unit => undef
+						 });
+    }
+
     my ($in, $opt)=_extract_hash(@_);
     # Let us parse the options if any.
     $opt = {} if !defined($opt);
@@ -2416,7 +2463,7 @@ EOD
   sub hi2d {
     my $self = shift;
     if (!defined($hi2d_options)) {
-      $hi2d_options = $GeneralOptions->extend({
+      $hi2d_options = $self->{PlotOptions}->extend({
 					       Ioff => undef,
 					       Bias => undef
 					      });
@@ -2469,7 +2516,7 @@ sub poly {
   my($x,$y) = @$in;
   $self->_checkarg($x,1);
   $self->_checkarg($y,1);
-  my ($o, $u_opt) = $self->_parse_options($GeneralOptions, $opt);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
   unless ( $self->held() ) {
@@ -2524,7 +2571,7 @@ The radius of the circle.
   sub circle {
     my $self = shift;
     if (!defined($circle_options)) {
-      $circle_options = $GeneralOptions->extend({Radius => undef,
+      $circle_options = $self->{PlotOptions}->extend({Radius => undef,
 						 XCenter => undef,
 						 YCenter => undef});
     }
@@ -2597,7 +2644,7 @@ might need changing in the case of very large ellipses.
   sub ellipse {
     my $self = shift;
     if (!defined($ell_options)) {
-      $ell_options = $GeneralOptions->extend({
+      $ell_options = $self->{PlotOptions}->extend({
 					      A=>undef,
 					      B=>undef,
 					      Theta => 0.0,
@@ -2626,8 +2673,8 @@ might need changing in the case of very large ellipses.
 
     # Rotate the ellipse and shift it.
     my ($costheta, $sintheta)=(cos($o->{Theta}), sin($o->{Theta}));
-    my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
-    my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
+    $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
+    $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
     $self->poly($x, $y, $opt);
 
@@ -2642,7 +2689,7 @@ might need changing in the case of very large ellipses.
   sub vect {
     my $self = shift;
     if (!defined($vect_options)) {
-      $vect_options = $GeneralOptions->extend({
+      $vect_options = $self->{PlotOptions}->extend({
 					       Scale => 0,
 					       Position => 0,
 					       Missing => undef
@@ -2746,7 +2793,7 @@ The following standard options influence this command:
     if (!defined($text_options)) {
       # This is the first time this routine is called so we
       # have to initialise the options object.
-      $text_options = $GeneralOptions->extend({
+      $text_options = $self->{PlotOptions}->extend({
 					       Angle => 0.0,
 					       Justification => 0.0,
 					       Text => '',
@@ -2861,7 +2908,7 @@ legend box. The default value is 0.1.
 
     my $self = shift;
     if (!defined($legend_options)) {
-      $legend_options = $GeneralOptions->extend({
+      $legend_options = $self->{PlotOptions}->extend({
 						 Text	   => undef,
 						 XPos	   => undef,
 						 YPos	   => undef,
@@ -2965,7 +3012,7 @@ legend box. The default value is 0.1.
       # Since the parsing of options does not go down array references
       # we need to create a temporary PDL::Options object here to do the
       # parsing..
-      my $t_o = $GeneralOptions->options({
+      my $t_o = $self->{PlotOptions}->options({
 					Symbol => $symbol->[$i],
 					LineStyle => $linestyle->[$i],
 					LineWidth => $linewidth->[$i],
@@ -3093,7 +3140,7 @@ To select a region of the X-axis:
 					   'YRef' => undef,
 					   'Type' => 0
 					  });
-      $cursor_options->translation({
+      $cursor_options->translation({Type=>{
 				   'Default'                  => 0,
 				   'RadialLine'		      => 1,
 				   'Rectangle'		      => 2,
@@ -3102,7 +3149,7 @@ To select a region of the X-axis:
 				   'HorizontalLine'	      => 5,
 				   'VerticalLine'	      => 6,
 				   'CrossHair'		      => 7
-				  });
+				  }});
     }
 
     my ($opt)=@_;
@@ -3133,7 +3180,7 @@ To select a region of the X-axis:
     $y = 0.5*($ymin+$ymax) if !defined($y);
 
     my ($got_xref, $got_yref)=(defined($o->{XRef}), defined($o->{YRef}));
-    if (!got_xref || !got_yref) {
+    if (!$got_xref || !$got_yref) {
       # There is a little bit of gritty error-checking
       # for the users convenience here.
       if ($o->{Type}==1 || $o->{Type}==2) {
@@ -3150,6 +3197,8 @@ To select a region of the X-axis:
 
     }
 
+
+    $ch = ''; # To silence -w
     my $istat = pgband($o->{Type}, $place_cursor, $o->{XRef},
 		       $o->{YRef}, $x, $y, $ch);
 

@@ -254,7 +254,7 @@ sub new_window {
   #      ref($_[0]) ne 'HASH';
   my $win = PDL::Graphics::PGPLOT::Window->new($opt);
   my ($name, $id) = ($win->name(), $win->id());
-  @_WINDOWS[$id] = $name;
+  $_WINDOWS[$id] = $name;
   $_WINDOWNAMES{$name}=$win;
   $_WINDOWNAMES{$id}=$name;	# Reverse lookup for speed
 

@@ -850,8 +850,10 @@ sub compare_with_list {
 	# exact match even if alternatives exist (eg COL will always
 	# match just COL if the keys are COL and COLOUR)
 	# First do the exact match (case insensitive)
+      {
+	local $^W = undef; # To silence warnings about uninitialised values
 	@result =  grep { /^$key$/i } @list;
-
+      }
 	# If this match came up with something then we will use it
 	# Else we will try a minimum match (assuming flag is true)
 
