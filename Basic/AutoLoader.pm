@@ -25,7 +25,18 @@ e.g. in csh
 
  setenv PDLLIB "/home/kgb/pdllib:/local/pdllib"
 
-Note this is kept seperate from C<PERL5LIB> just in case....
+Note this is kept seperate from C<PERL5LIB> just in case.
+
+As an added bonus, you can use a leading '+' on a directory name to
+search not just that directory but the entire directory tree under it
+(excluding symlinks).  The subdirs are determined by explicit search,
+and searches occur at startup and again each time you change the number
+of elements in @PDLLIB.  
+
+For example,
+  setenv PDLLIB "+~kgb/PDL"
+
+will search /home/kgb/PDL and all its subdirectories for .pdl files.
 
 =head2 AUTO-SCANNING
 
@@ -124,8 +135,32 @@ sub AUTOLOAD {
 
     goto &$AUTOLOAD if ord($func)==0;
 
+   # Check if the PDLLIB needs to be expanded and, if so, expand it.
+   # This only updates when PDLLIB changes size, which should be OK
+   # for most things but doesn't catch new directories in expanded
+   # directory trees.  It seems like an OK compromise between never 
+   # catching anything and always thrashing through the directories.
+
+   if($PDLLIB_CT != scalar(@PDLLIB)) {
+     print "Expanding directories from ".join(':',@PDLLIB)."...\n"
+       if($PDL::verbose);
+     local $_;
+     $PDLLIB_CT = scalar(@PDLLIB);
+     foreach $_(@PDLLIB) {
+       # Expand ~{name} and ~ conventions
+       s/^(\+?)~([a-zA-Z0-9]*)// && 
+        ($_ = $1.((getpwnam($2 || getlogin))[7]).$_ );
+       
+       # If there's a leading '+', include all subdirs too.
+       push(@PDLLIB_EXPANDED,
+           s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
+           );
+     }
+   }
+
+
     print "Loading $func.pdl...\n" if $PDL::verbose;
-    for my $dir (@PDLLIB) {
+    for my $dir (@PDLLIB_EXPANDED) {
         my $file = $dir . "/" . "$func.pdl";
 	if (-e $file) {
 	   # Autoload
@@ -151,6 +186,30 @@ EOD
 eval $toeval;
 
 }
+
+
+# Expand directories recursively...
+sub PDL::AutoLoader::expand_dir {
+  local $d;  
+  local @list;  
+  local @subdirs;  
+
+  local $dir = shift;
+    
+  if(! -d $dir) { return undef; }
+  push(@list,$dir);
+
+  opendir(FOO,$dir);
+
+  @subdirs = grep((!m/^\./ && ($_="$dir/$_") && (-d $_)), readdir(FOO));
+  closedir FOO;
+
+  while(defined ($d = shift @subdirs)) {
+    push(@list,&PDL::AutoLoader::expand_dir($d));
+  }
+  return @list;
+}
+
 
 ;# Exit with OK status
 
