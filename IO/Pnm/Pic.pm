@@ -61,7 +61,7 @@ The executables from the netpbm package are assumed to be in your path.
 Problems in finding the executables may show up as PNM format
 errors when calling wpic/rpic. If you run into this kind of problem run
 your program with perl C<-w> so that perl prints a message if it can't find
-the filter when trying to open the pipe.
+the filter when trying to open the pipe. [']
 
 =cut
 
@@ -92,16 +92,41 @@ sub init_converter_table {
   # default flag to be used with any converter unless overridden with FLAGS
   $Dflags = '-quiet';
   %converter = ();
-  for ('TIFF','SGI','RAST','PCX','PNG')
+  
+  # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
+  # jpegtopnm.
+
+  my $jpeg_conv;
+
+  {
+      my @path = split(/:/,$ENV{PATH});
+      local $_;
+      my $pbmplus;
+      
+      for (@path) {
+	  $jpeg_conv="cjpeg" if(-x "$_/cjpeg");
+	  $jpeg_conv="pnmtojpeg" if(-x "$_/pnmtojpeg");
+      }
+  }
+      
+  my @normal = qw/TIFF SGI RAST PCX PNG/;
+  push(@normal,"JPEG") if($jpeg_conv eq 'pnmtojpeg');
+
+  for (@normal)
     { my $conv = lc; $converter{$_} = {put => "pnmto$conv",
 				       get => "$conv".'topnm'} }
-  for (['PNM','NONE','NONE'],
-       ['JPEG','cjpeg','djpeg'],
-       ['PS','pnmtops',
-              'gs -sDEVICE=ppmraw -sOutputFile=- -q -dNOPAUSE -dBATCH'],
 
-       ['GIF','ppmtogif','giftopnm'],
-       ['IFF','ppmtoilbm','ilbmtoppm']) {
+  my @special = (['PNM','NONE','NONE'],
+		 ['PS','pnmtops',
+		  'gs -sDEVICE=ppmraw -sOutputFile=- -q -dNOPAUSE -dBATCH'],
+		 
+		 ['GIF','ppmtogif','giftopnm'],
+		 ['IFF','ppmtoilbm','ilbmtoppm']
+		 );
+  push(@special,['JPEG', 'cjpeg' ,'djpeg']) 
+      if($jpeg_conv eq 'cjpeg');
+
+   for(@special) {
     $converter{$_->[0]} = {put => $_->[1],
 			   get => $_->[2]}
   }
