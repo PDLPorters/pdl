@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = '1.0.0';
+$PDL::NiceSlice::VERSION = '1.0.1';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
@@ -77,7 +77,7 @@ EOH
 # mark as lvalue sub if 5.6.x and above
  eval {
   no strict;
-  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V ge v5.6.0);
+  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V > 5.006000);
  }
 }
 

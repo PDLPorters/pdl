@@ -29,6 +29,19 @@ BEGIN{
 
 # Use xfig driver because it should always be installed.
 
+
+# redirect STDERR to purge silly 'opened *.xfig' messages
+
+require IO::File;
+local *SAVEERR;
+*SAVEERR = *SAVEERR;  # stupid fix to shut up -w (AKA pain-in-the-...-flag)
+open(SAVEERR, ">&STDERR");
+my $tmp = new_tmpfile IO::File || die "couldn't open tmpfile";
+my $pos = $tmp->getpos;
+local *IN;
+*IN = *$tmp;  # doesn't seem to work otherwise
+open(STDERR,">&IN") or warn "couldn't redirect stdder";
+
 my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 
 $pl = PDL::Graphics::PLplot->new (DEV => "xfig",
@@ -343,8 +356,16 @@ ok (-s "test24.xfig" > 0, "Setting error bars and tick size");
 
 unlink glob ("test*.xfig");
 
+# stop STDERR redirection and examine output
 
+open(STDERR, ">&SAVEERR");
+$tmp->setpos($pos);  # rewind
+my $txt = join '',<IN>;
+close IN; undef $tmp;
 
+print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
+$txt =~ s/Opened test\d*\.xfig\n//sg;
+warn $txt unless $txt =~ /\s*/;
 
 
 
