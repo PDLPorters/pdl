@@ -354,10 +354,6 @@ is the natural (and correct) choice for binned data, of course.
 ~)
 ); # intover
 
-# XXX Why not threadloop for efficiency
-#
-# I should address this, but can't be bothered...
-#
 pp_def( 
 	'average',
 	HandleBad => 1,
@@ -482,6 +478,8 @@ sub generic_qsort {
              pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
 }
 
+# should use threadloop ?
+#
 my $copy_to_temp_good = '
            int nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
@@ -783,7 +781,7 @@ pp_def(
        BadCode =>
        'register int nn = 0, nb = $SIZE(n) - 1;
         loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used > 1 */ 
+           if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
            else                { $indx(n=>nb) = n; nb--; }
         %}
         if ( nn != 0 ) {
@@ -932,6 +930,7 @@ pp_def(
        BadCode => 
        'double tmp = 0;
         int flag = 0;
+
 	loop(n) %{ 
            if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
               tmp += $a() * $b() * $c(); 
@@ -965,7 +964,7 @@ pp_def(
         int flag = 0;
 	loop(n,m) %{ 
            if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
-              tmp += $a() * $b() * $c(); 
+              tmp += $a() * $b() * $c();
               flag = 1;
            }
         %}
@@ -1000,7 +999,7 @@ pp_def(
         int flag = 0;
 	loop(n,m) %{ 
            if ( $ISGOOD(a()) && $ISGOOD(b()) ) { 
-              tmp += $a() * $b(); 
+              tmp += $a() * $b();
               flag = 1;
            }
         %}
@@ -1860,36 +1859,25 @@ the same call:
 
  ($i,$j,$k) = where($x,$y,$z, $x+5>0);
 
-There is also the following syntax, retained only for compatibility
-with PDL versions < 1.99.
-This use is deprecated, and will be removed
-in the future.  Use L<which|/which> instead.
-
- $i = where($x > 0);       # indices to $x, equivalent to 'which()'
-
-Note: the mask has to be 1-D. See the documentation for L<which|/which>
-
 =cut
 
 sub PDL::where {
-	if($#_ == 0) {
-	        warn "WARNING: one argument form of where() is now deprecated - use which()\n";
-		return $_[0]->which();
-	} elsif($#_ == 1) {
-	        my($data,$mask) = @_;
-		$data = $_[0]->clump(-1) if $_[0]->getndims>1;
-		$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
-		return $data->index($mask->which());
+    barf "Usage: where( $pdl1, ..., $pdlN, $mask )\n" if $#_ == 0;
+
+    if($#_ == 1) {
+	my($data,$mask) = @_;
+	$data = $_[0]->clump(-1) if $_[0]->getndims>1;
+	$mask = $_[1]->clump(-1) if $_[0]->getndims>1;
+	return $data->index($mask->which());
+    } else {
+	if($_[-1]->getndims > 1) {
+	    my $mask = $_[-1]->clump(-1)->which;
+	    return map {$_->clump(-1)->index($mask)} @_[0..$#_-1];
 	} else {
-		if($_[-1]->getndims > 1) {
-			my $mask = $_[-1]->clump(-1)->which;
-			return map {$_->clump(-1)->index($mask)}
-                               @_[0..$#_-1];
-		} else {
-			my $mask = $_[-1]->which;
-                       return map {$_->index($mask)} @_[0..$#_-1];
-		}
+	    my $mask = $_[-1]->which;
+	    return map {$_->index($mask)} @_[0..$#_-1];
 	}
+    }
 }
 *where = \&PDL::where;
 

@@ -1,5 +1,6 @@
 (!!! = possible source of incompatibilities)
 Doug Burke (08/12/00-08/13/00; 08/17/00)
+    - removed 1-argument form of where() since been deprecated long enough
     - minor bugfix to Graphics/Karma/Makefile.PL
     - made qsort and qsort_ind C routines in primitive.pd available to all
       modules via the PDL Core structure (pdlcore.h is now created by pdlcore.h.PL)

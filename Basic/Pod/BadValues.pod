@@ -436,12 +436,9 @@ C<BadCode>/etc values for these.
 
 I have started adding the poorly-named option C<NoBadifNaN =E<gt> 1>
 to those routines which should be able to ignore the C<BadCode> options.
-It's currently a NOP. Other files may
-still contain the option C<UseBadforNaN>, which I'd added to flag those 
-routines which would need to retain the C<BadCode> segment. However, there are 
-more of the latter than the former, hence the switch (I'm lazy).
+It's currently a NOP. 
 
-The PDL::PP::BadAccess, PDL::PP::BadVarAccess, and PDL::PP::PPBadAccess objects 
+The C<PDL::PP::BadAccess>, C<PDL::PP::BadVarAccess>, and C<PDL::PP::PPBadAccess> objects 
 in F<Basic/PP/PDLCore.pm> I<MAY> need updating to produce different code depending 
 on whether NaN support was available or not.
 
@@ -505,6 +502,10 @@ etc
 
 =item *
 
+Need to look at C<which()>: how should it handle bad values?
+
+=item *
+
 what to do about C<any($a E<gt> 20)> when all elements of C<$a> are bad:
 C<orover($a E<gt> 20)> will produce a bad value, which is then returned
 to the caller as a scaler (via C<return $tmp-E<gt>at()>).
@@ -534,10 +535,6 @@ call a user-defined sub-routine? (supply a default one that dies, say)
 
 =item *
 
-improve the tests
-
-=item *
-
 looks like starlink's byte goes from -127 to 127 - ie not unsigned
 (ie L<PDL::IO::NDF>).
 
@@ -559,9 +556,7 @@ rather than the C<CopyBadStatusCode>, section.
 NaN support - this would make it *much* faster on machines which
 support it (or so I've assumed - does it?) 
 I've started labelling routines which could ignore the BadCode
-section by C<NoBadifNaN =E<gt> 1> - a previous attempt has left 
-C<UseBadifNaN =E<gt> 1> dotted around the place, these need to be
-removed.
+section by C<NoBadifNaN =E<gt> 1>.
 
 See the discussion somewhere above this.
 

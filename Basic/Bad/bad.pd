@@ -42,6 +42,9 @@ PDL::Bad - PDL does not process bad values
 PDL has been compiled with WITH_BADVAL either 0 or undef,
 so it does not contain any bad-value support code.
 
+Implementation details are given in
+L<PDL::BadValues>.
+
 =head1 SYNOPSIS
 
  use PDL::Bad;
@@ -94,6 +97,9 @@ you can enter the wonderful world of bad values.
 
 This module is loaded when you do C<use PDL>, 
 C<Use PDL::Lite> or C<PDL::LiteF>.
+
+Implementation details are given in
+L<PDL::BadValues>.
 
 =head1 SYNOPSIS
 
@@ -625,11 +631,12 @@ if ( 0 ) {
     $setbadif_extra{CopyBadStatusCode} = 
     '$SETPDLSTATEBAD(b);';
 }
-    
+
+# note: have made the mask be an integer    
 pp_def(
     'setbadif',
     HandleBad => 1,
-    Pars => 'a(); mask(); [o]b();',
+    Pars => 'a(); int mask(); [o]b();',
     %setbadif_extra,
     Code =>
     'if ( $mask() ) {
@@ -638,7 +645,8 @@ pp_def(
         $b() = $a();
      }',
     BadCode =>
-    'if ( $ISBAD(mask()) || $mask() ) {   /* in case the bad value == 0 */
+    '/* if the bad value == 0 then all points are going to be selected ... */
+     if ( $ISBAD(mask()) || $mask() ) {
         $SETBAD(b());
      } else {
         $b() = $a();

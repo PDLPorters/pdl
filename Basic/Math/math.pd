@@ -479,10 +479,10 @@ pp_def("squaretotri",
             dXSARGS;
              #endif
 
+	    if($SIZE(m) != (ns * (ns+1))/2) {
+	       barf("Wrong sized args for squaretotri");
+	    }
             threadloop %{
-		if($SIZE(m) != (ns * (ns+1))/2) {
-			barf("Wrong sized args for squaretotri");
-		}
 		loop(m) %{
                        $b() = $a(n0 => mna, n1 => nb);
                       mna++; if(mna > nb) {mna = 0; nb ++;}
