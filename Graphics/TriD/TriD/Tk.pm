@@ -76,8 +76,15 @@ Used for widget initialization by Tk, this function should never be called direc
 sub Populate {
   my($TriD, $args) = @_;
 
-  $args->{-height}=600 unless defined $args->{-height};
-  $args->{-width}=600 unless defined $args->{-width};
+  if(defined $PDL::Graphics::TriD::cur){
+	 print "Current code limitations prevent TriD:Tk from being loaded after ";
+    print "another TriD graphics window has been defined.  If you are running the ";
+	 print "PDL demo package, please start it again and run this demo first.\n";
+	 exit;
+  }
+
+  $args->{-height}=300 unless defined $args->{-height};
+  $args->{-width}=300 unless defined $args->{-width};
 
   $TriD->SUPER::Populate($args);
   # This bind causes GL to be initialized after the 
@@ -94,6 +101,8 @@ Should be used in place of the Tk MainLoop.  Handles all of the Tk
 callbacks and calls the appropriate TriD display functions.  
 
 =cut
+
+
 
 sub MainLoop
 {

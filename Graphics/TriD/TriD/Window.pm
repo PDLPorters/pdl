@@ -51,7 +51,7 @@ sub new_viewport {
   my($this,$x0,$y0,$x1,$y1, $options) = @_;
   my $vp = new PDL::Graphics::TriD::ViewPort($x0,$y0,$x1,$y1);
 #
-  print "Adding viewport $x0,$y0,$x1,$y1\n";
+  print "Adding viewport $x0,$y0,$x1,$y1\n" if($PDL::Graphics::TriD::verbose);
   push @{$this->{_ViewPorts}}, $vp;
 #
 

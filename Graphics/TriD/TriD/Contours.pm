@@ -23,9 +23,10 @@
 package PDL::Graphics::TriD::Contours;
 use strict;
 use PDL;
+use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Rout;
 use PDL::Graphics::TriD::Labels;
-use Data::Dumper;
+#use Data::Dumper;
 
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ContourSegCnt Labels LabelStrings/;
@@ -76,7 +77,7 @@ sub new{
     undef $colors;
   }
 
-  $colors = PDL::Graphics::Trid::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
+  $colors = PDL::Graphics::TriD::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
 
   my $this = $type->SUPER::new($points,$colors,$options);
 
