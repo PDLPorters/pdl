@@ -57,6 +57,7 @@ ok(9,!$@);
 $a = eval $s;
 ok(10,!$@);
 print $@ if($@);
+print "string was $s" if($@);
 ok(11,(ref $a eq 'HASH'));
 ok(12,(ref $a->{e} eq 'PDL') 
 	&& ($a->{e}->nelem==625)

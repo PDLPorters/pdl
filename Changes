@@ -1,3 +1,7 @@
+CED (17-Jan-2003)
+    - PDL::IO::Dumper uses more standard uuencode/uudecode than before,
+	and uses external uuencode/uudecode by preference (faster than
+	Convert::UU)
 CED (16-Jan-2003)
     - Minor fixes to Transform.
     - PDL::IO::Pic is auto-used.

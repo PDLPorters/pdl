@@ -106,6 +106,15 @@ BEGIN{
   eval "use Convert::UU;";
   $PDL::IO::Dumper::convert_ok = !$@;
 
+  my $a = sub {
+      my($prog) = 'uudecode';
+      my $pathsep = $^O =~ /win32/i ? ';' : ':';
+      my $exe = $^O =~ /win32/i ? '.exe' : '';
+      for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
+      return 0;
+  };
+  $PDL::IO::Dumper::uudecode_ok = &$a('uudecode');
+
   use PDL;
   use PDL::Exporter;
   use Data::Dumper;
@@ -148,7 +157,6 @@ sub PDL::IO::Dumper::sdump {
   my($v);
   my($dups);
   foreach $v(keys %pdls) {
-##    print STDERR "Hey! $v->".(defined $pdls{$v} ? $pdls{$v} : "[empty]" )."!\n";
     $dups++ if($pdls{$v} >1);
   }
   print STDERR "Warning: duplicated PDL ref.  If sdump hangs, you have a circular reference.\n"  if($dups);
@@ -385,19 +393,22 @@ are supported).
 =cut
 
 sub PDL::IO::Dumper::uudecode_PDL {
-  my $lines = shift;
-  my $out;
-  my $fname = "/tmp/tmp-$$.fits";
-  if($PDL::IO::Dumper::convert_ok) {
-    open(FITS,">$fname");
-    my $fits = Convert::UU::uudecode($lines);
-    print FITS $fits;
-    close FITS;
-  } else {
-    open(FITS,"|uudecode -o $fname") || 
+    my $lines = shift;
+    my $out;
+    my $fname = "/tmp/tmp-$$.fits";
+    if($PDL::IO::Dumper::uudecode_ok) {
+	open(FITS,"|uudecode");
+	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
+	print FITS $lines;
+	close(FITS);
+    }
+    elsif($PDL::IO::Dumper::convert_ok) {
+	open(FITS,">$fname");
+	my $fits = Convert::UU::uudecode($lines);
+	print FITS $fits;
+	close(FITS);
+    } else {
       barf("Need either uudecode(1) or Convert::UU to decode dumped PDL.\n");
-    print FITS @$lines;
-    close(FITS);
   }
 
   $out = rfits($fname);
@@ -451,14 +462,17 @@ sub PDL::IO::Dumper::dump_PDL {
       ##
       my($fname) = "/tmp/$$.fits";
       wfits($_,$fname);
+      my(@uulines);
 
-      if($PDL::IO::Dumper::convert_ok) {
+      if($PDL::IO::Dumper::uudecode_ok) {
+	open(FITSFILE,"uuencode $fname $fname |");
+	@uulines = <FITSFILE>;
+    } elsif($PDL::IO::Dumper::convert_ok) {
 	open(FITSFILE,"<$fname");
 	@uulines = ( Convert::UU::uuencode(*FITSFILE) );
-      } else {
-	open(FITSFILE,"uuencode $fname $fname |");
-	my(@uulines) = <FITSFILE>;
-      }
+    } else {
+	barf("dump_PDL: Requires either uuencode or Convert:UU");
+    }
       unlink $fname;
       
       ## 
@@ -494,7 +508,6 @@ sub PDL::IO::Dumper::dump_PDL {
     ## Ultimately, Data::Dumper will get fixed to handle tied objects, 
     ## and this kludge will go away.
     ## 
-#    print "hdr: ",$_->hdr()," keys:",scalar(keys(%{$_->hdr()})),"\n";
 
     if( scalar(keys %{$_->hdr()}) ) {
       if( ((tied %{$_->hdr()}) || '') =~ m/Astro::FITS::Header\=/) {
