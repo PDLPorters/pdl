@@ -1051,6 +1051,9 @@ pp_def(
 	Code => 
 	'$GENERIC() curmin, curmax;
          int curmin_ind, curmax_ind;
+
+ 	 curmin = curmax = 0; /* Handle null piddle --CED */
+
 	 loop(n) %{
             if ( !n ) {
                curmin = curmax = $a();
@@ -1066,6 +1069,7 @@ pp_def(
 	BadCode => 
 	'$GENERIC() curmin, curmax;
          int curmin_ind, curmax_ind, flag = 0;
+	
 	 loop(n) %{
             if ( $ISGOOD(a()) ) {
                if ( !flag ) {
@@ -1078,7 +1082,7 @@ pp_def(
                }
             } /* ISGOOD */
 	 %}
-         if ( flag ) {
+         if ( flag ) { /* Handle null piddle */
             $cmin() = curmin; $cmin_ind() = curmin_ind;
             $cmax() = curmax; $cmax_ind() = curmax_ind;
          } else {

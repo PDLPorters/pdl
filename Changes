@@ -4,6 +4,11 @@ CED 18-March-2003
 	in pdl_make_physvaffine.  This bug might exist elsewhere too, 
 	causing random crashes with Empty and Null piddles.  But at
 	least this closes bug #671891.
+    - perldl.PL: Put code to execute inside a trivial block (diverts
+	runaway 'last' and 'next' commands, closes bug #573841)
+    - ufunc.pd: Minmax now returns (0,0) when handed the null piddle,
+	unless bad values are supported in which case it returns (bad,bad).
+	(closes bug #659130)
 CS 17/03/03
     - Core.pm.PL: fix topdl method (closes bug #681015)
     - gsl_integ.pd: fix for compliance with gcc
@@ -677,7 +682,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldÂŽór Olafsson and Vince McIntyre (bug #233484)
+      HalldŽÂŽŽór Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

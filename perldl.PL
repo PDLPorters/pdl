@@ -424,6 +424,10 @@ EOW
 # count_tags: Return a string containing (in order) the open brackets
 # and strings in the string that is passed in.  Used for multi-line parsing.
 #
+# Works by analysing the error message returned by Text::Balanced -- this
+# is sort of fragile against changes in Text::Balanced, but what the heck.
+#  --CED 18-Mar-2003
+#
 sub count_tags {
     my $s = shift;
 
@@ -587,6 +591,12 @@ sub process_input {
   print "\n";
 }
 
+
+######################################################################
+######################################################################
+#####
+##### Main loop is here! (Commands not inside any sub!)
+
 # check for old usage of PERLDL::PREPROCESS
 if (defined $PERLDL::PREPROCESS) {
   preproc_oldwarn();
@@ -606,18 +616,33 @@ while(1) {
   }
 }
 
+#####
+#####
+######################################################################
+######################################################################
+
 # Work routine to eval code and post-process messages
 # Currently used by 'perldl' shell
 
 sub eval_and_report {
   my $__code = shift; # Can be code ref or string
   $@ = ""; # clear $@ since we might not execute the eval below
-  my $__coderef = (ref $__code eq "CODE") ? $__code : eval <<"EOD";
 
-sub {
-   $__code;
-}
+
+  ## Compile the code ref to execute.  The code gets put inside {} braces
+  ## so that there is a trivial loop (the simple block) for 'last' and 'next'
+  ## to escape from.  (Otherwise perl 5.6.1 and 5.8 do a little fandango
+  ## on stack if you type "last" at the shell).  --CED 18-Mar-2003
+
+  my $__coderef = (ref $__code eq "CODE") ? $__code : eval << "EOD"
+							    
+							    sub {
+							      {
+								$__code;
+							      }
+							    }
 EOD
+;
 
   %@ = (); # Workaround to prevent spurious loss of $@
   PDL::Core::myeval( $__coderef )  # Do command with $@ keeping
