@@ -61,9 +61,17 @@ database (see author information).
 =for usage  
 
 =cut
+  package PDL::Transform::Cartography::Earth;
+  use PDL::IO::Dumper;
+
 our $llp;
 
 sub PDL::Transform::Cartography::Earth::earth_coast {
+  my($gsize) = shift;
+  if (defined($gsize)) {
+    my $gdist = shift;
+    return earth_coast()->glue(1,PDL::Transform::Cartography::graticule($gsize,$gdist));
+  } 
 
   return $llp
     if(defined $llp);
@@ -3713,7 +3721,6 @@ sub PDL::Transform::Cartography::Earth::earth_image {
    if(defined $rgbmap);
 
  my($str) = <<'EOF-uuencoded-map'
-begin 664 tmp.jpg
 M_]C_X``02D9)1@`!`@$`2`!(``#_[0,T4&AO=&]S:&]P(#,N,``X0DE-`^D`
 M`````'@``P```$@`2``````"V`(H_^'_X@+Y`D8#1P4H`_P``@```$@`2```
 M```"V`(H``$```!D`````0`#`P,````!)P\``0`!````````````````8`@`
@@ -9026,18 +9033,22 @@ EOF-uuencoded-map
  $fname = "/tmp/$$.jpg";
 
  if (&$inpath('uudecode')) {
-  open(FOO,"| uudecode -o $fname");
+  open(FOO,"|uudecode ");
+  print FOO "begin 664 $fname\n";
   print FOO $str;
  }  else {
   eval 'use Convert::UU';
-  barf "earth_map requires uudecode(1) or Convert::UU" if($@);
-  my $jpg = Convert::UU::uudecode($str);
+  PDL::barf("earth_map requires uudecode(1) or Convert::UU") if($@);
+  print "uudecode(1) not found.  Using perl uudecode (slow)...\n"
+   if($PDL::debug);
+
+  my $jpg = Convert::UU::uudecode("begin 664 $fname\n".$str);
   open(FOO,">$fname");
   syswrite FOO,$jpg;
   close FOO;
  }
   
-  $rgbmap = rpic($fname)->float->mv(0,-1);
+  $rgbmap = PDL::IO::Pic::rpic($fname)->float->mv(0,-1);
   unlink $fname;
 
   $rgbmap->sethdr( {NAXIS=>3,

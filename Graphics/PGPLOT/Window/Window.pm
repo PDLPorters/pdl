@@ -1014,6 +1014,17 @@ This is syntactic sugar for
 
   $win->imag( { PIX=>1, ALIGN=>'CC' } );
 
+=head2 rgbi
+
+=for ref 
+
+Display an RGB color image 
+
+The calling sequence is exactly like L<imag|imag>, except that the input
+image must have three dimensions: N x M x 3.  The last dimension is the 
+(R,G,B) color value.  This currently runs very slowly for X output;
+that should be fixed soon.
+
 =head2 fits_imag
 
 =for ref
@@ -5028,9 +5039,24 @@ sub arrow {
     } # sub: draw_wedge()
 }
 
-# display an image using pgimag()/pggray() as appropriate
-
-
+######################################################################
+#
+# imag and related functions
+#
+# display an image using pgimag()/pggray()/pgrgbi() as appropriate.
+#
+# The longish routine '_imag' handles the meat and potatoes of the setup,
+# but hands off the final plot to the PGPLOT routines pgimag() or pgrgbi().
+# It expects a ref to the appropriate function to be passed in.  The
+# userland methods 'imag' and 'rgbi' are just trampolines that call _imag 
+# with the appropriate function ref.
+#
+# This gets pretty sticky for fits_imag, which is itself a trampoline for
+# _fits_foo -- so if you call fits_imag, it trampolines into fits_foo, which
+# does setup and then bounces into imag, which in turn hands off control
+# to pgimag.  What a mess -- but at least it seems to work OK.  For now.
+#  -- CED 20-Jan-2002
+#
 {
   # The ITF is in the general options - since other functions might want
   # it too.
@@ -5038,40 +5064,17 @@ sub arrow {
   # There is some repetetiveness in the code, but this is to allow the
   # user to set global defaults when opening a new window.
   #
+  #
+  # 
 
   my $im_options = undef;
 
 
-  sub imag1 {
+  sub _imag {
     my $self = shift;
-    my ($in,$opt)=_extract_hash(@_);
+    my $pgcall = shift;
+    my $image_dims = shift;
 
-    if (!defined($im_options)) {
-      $im_options = $self->{PlotOptions}->extend({
-						  Min => undef,
-						  Max => undef,
-						  DrawWedge => 0,
-						  Wedge => undef,
-						  XTitle => undef,
-						  YTitle => undef,
-						  Title  => undef,
-						  Justify => 1
-						 });
-    }
-
-    # Let us parse the options if any.
-    $opt = {} if !defined($opt);
-    my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
-
-    release_and_barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
-    $o->{Pix} = 1 unless defined($o->{Pix});
-    $self->imag (@$in,$o);
-    # This is not added to the state, because the imag command does that.
-  }
-
-  sub imag {
-
-    my $self = shift;
     if (!defined($im_options)) {
       $im_options = $self->{PlotOptions}->extend({
 						  Min => undef,
@@ -5096,7 +5099,7 @@ sub arrow {
     release_and_barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
 
     my ($image,$min,$max,$tr) = @$in;
-    $self->_checkarg($image,2);
+    $self->_checkarg($image,$image_dims);
     my($nx,$ny) = $image->dims;
     $nx = 1 unless($nx);
     $ny = 1 unless($ny);
@@ -5155,7 +5158,7 @@ sub arrow {
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
     } else {
       $self->ctab('Grey') unless $self->_ctab_set(); # Start with grey
-      pgimag( $image->get_dataref, 
+      &$pgcall( $image->get_dataref, 
 	      $nx,$ny,1,$nx,1,$ny, $min, $max, 
 	      $tr->get_dataref);
       $self->_store( imag => { routine => "I", min => $min, max => $max } );
@@ -5176,6 +5179,61 @@ sub arrow {
   } # sub: imag()
 
 }
+
+sub imag {
+  my $me = shift;
+  my @a = @_;
+  _imag($me,\&pgimag,2,@a);
+}
+
+sub rgbi {
+  release_and_barf("rgbi: RGB-enabled PGPLOT is not present\n")
+    unless($PGPLOT::RGB_OK);
+
+  my $me = shift;
+  my @a = @_;
+  my($in,$opt) = _extract_hash(@_);
+  my($image) = shift @$in;
+  if(UNIVERSAL::isa($image,'PDL')) {
+    @dims = $image->dims;
+    if($dims[0] == 3 && $dims[1] > 3 && $dims[2] > 3) {
+      print "rgbi: Hmmm... Found (rgb,X,Y) [deprecated] rather than (X,Y,rgb) [approved]."
+	if($PDL::debug || $PDL::verbose);
+      $image = $image->mv(0,2);
+    }
+  }
+  _imag($me,\&pgrgbi,3,$image,@$in,$opt);
+}
+
+
+sub imag1 {
+  my $self = shift;
+  my ($in,$opt)=_extract_hash(@_);
+  
+  if (!defined($im_options)) {
+    $im_options = $self->{PlotOptions}->extend({
+      Min => undef,
+      Max => undef,
+      DrawWedge => 0,
+      Wedge => undef,
+      XTitle => undef,
+      YTitle => undef,
+      Title  => undef,
+      Justify => 1
+      });
+  }
+  
+  # Let us parse the options if any.
+  $opt = {} if !defined($opt);
+  my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
+  
+  release_and_barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+  $o->{Pix} = 1 unless defined($o->{Pix});
+  $self->imag (@$in,$o);
+  # This is not added to the state, because the imag command does that.
+}
+
+
 
 #
 # Make a plot command that's suitable for a FITS image.  Called

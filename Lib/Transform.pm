@@ -209,7 +209,6 @@ use Carp;
 use strict;
 
 #### little helper kludge parses a list of synonyms
-
 sub _opt {
   my($hash) = shift;
   my($synonyms) = shift;
@@ -228,6 +227,7 @@ sub _opt {
 # for the object itself.  This gets around the fact that stringification
 # overload is a subroutine call, not a method search.
 #
+
 sub _strval {
   my($me) = shift;
   $me->stringify();
@@ -1199,7 +1199,6 @@ Inverses are not yet implemented -- the best way to do it might be by
 judicious use of map() on the forward transformation.
 
 =cut
-
 
 sub t_lookup {
   my($class) = 'PDL::Transform';

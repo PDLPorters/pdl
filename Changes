@@ -1,3 +1,7 @@
+CED (20-Jan-2003)
+    - Added rgbi to Window.pm (requires newer pgplot & PGPLOT).
+    - Added earth_image() to PDL::Transform::Cartography::Earth
+	(this may not be the Right Way to do it)
 CED (17-Jan-2003)
     - PDL::IO::Dumper uses more standard uuencode/uudecode than before,
 	and uses external uuencode/uudecode by preference (faster than
