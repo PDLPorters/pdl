@@ -248,7 +248,8 @@ sub default_options {
 			'Green' => 3, 'Blue' => 4, 'Cyan' => 5,
 			'Magenta' => 6,	'Yellow' => 7, 'Orange' => 8,
 			'DarkGray' => 14, 'DarkGrey' => 14,
-			'LightGray' => 15, 'LightGrey' => 15
+			'LightGray' => 15, 'LightGrey' => 15,
+		      'CosmicSpectrum' => [0.269, 0.388, 0.342]
 		       },
 	   BackgroundColour => {
 			'White' => 0, 'Black' => 1, 'Red' => 2,
