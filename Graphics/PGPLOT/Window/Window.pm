@@ -2062,6 +2062,8 @@ sub _parse_options {
   my $uo=$opt->current();
   $opt->full_options(1);
 
+  $opt->clear_current();
+
   return ($o, $uo);
 
 }
@@ -2440,28 +2442,27 @@ sub redraw_axes {
 sub label_axes {
 
   my $self = shift;
-  my ($in, $u_opt)=_extract_hash(@_);
+  my ($in, $opt)=_extract_hash(@_);
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
   my ($xtitle, $ytitle, $title)=@$in;
 
-  $u_opt = {} if !defined($u_opt); # For safety.
+  $opt = {} if !defined($opt); # For safety.
 
   # Now the titles are set per plot so we use the general options to
   # parse the options (if they were set per window we would use
   # $self->{Options}
-  my $o = $self->{PlotOptions}->options($u_opt);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   $o->{Title}=$title if defined($title);
   $o->{XTitle}=$xtitle if defined($xtitle);
   $o->{YTitle}=$ytitle if defined($ytitle);
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
   $self->_restore_status;
 }
-
 
 
 ############ Exported functions #################
@@ -2530,7 +2531,7 @@ sub env {
 
     # Parse options
     $opt={} unless defined($opt);
-    my $o = $bin_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($bin_options,$opt);
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless ( $self->held() ) {
@@ -2547,7 +2548,7 @@ sub env {
     # $bin_options->full_options(1);
 
     # Let's also parse the options if any.
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     pgbin($n, $x->get_dataref, $data->get_dataref, $centre);
     $self->_restore_status();
     1;
@@ -2577,7 +2578,7 @@ sub env {
 	my ($in, $opt)=_extract_hash(@_);
 	$opt = {} if !defined($opt);
 	my ($o, $u_opt) = $self->_parse_options($transform_options, $opt);
-	$self->_standard_options_parser($o);
+	$self->_standard_options_parser($u_opt);
 
 	my ($angle, $x_pixinc, $y_pixinc, $x_cen, $y_cen);
 	if (defined($o->{Angle})) {
@@ -2687,7 +2688,7 @@ sub env {
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     my ($labelcolour);
     pgqci($labelcolour);	# Default let the labels have the chosen colour.
 
@@ -2879,7 +2880,7 @@ EOD
     }
 
     # Parse other standard options.
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     if ($#t==1) {
       pgerrb(6,$n,$x->get_dataref,$y->get_dataref,$t[1]->get_dataref,$term);
     } elsif ($#t==2) {
@@ -3027,7 +3028,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     # If there is a missing value specified, use pggapline
     # to break the line around missing values.
@@ -3055,14 +3056,14 @@ sub arrow {
 
   my ($x1, $y1, $x2, $y2)=@$in;
 
-  my $o = $self->{PlotOptions}->options($opt);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
   unless ($self->held()) {
     $self->initenv($x1, $x2, $y1, $y2, $opt);
   }
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   pgarro($x1, $y1, $x2, $y2);
   $self->_restore_status();
 
@@ -3104,7 +3105,7 @@ sub arrow {
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     if (exists($opt->{ColorValues})) {
       my $sym = $o->{Symbol} || 0;
@@ -3587,7 +3588,7 @@ EOD
     my $work = float(zeroes($nx));
 
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     $self->initenv( 0 ,2*($nx-1), 0, 10*max($image), $opt ) unless $self->held();
 
@@ -3617,7 +3618,7 @@ sub poly {
   }
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
@@ -3643,7 +3644,7 @@ sub poly {
     $opt = {} if !defined($opt);
     my ($x, $y, $radius)=@$in;
 
-    my $o = $circle_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($circle_options, $opt);
     $o->{XCenter}=$x if defined($x);
     $o->{YCenter}=$y if defined($y);
     $o->{Radius} = $radius if defined($radius);
@@ -3651,7 +3652,7 @@ sub poly {
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
   }
@@ -3825,7 +3826,7 @@ sub poly {
     print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
     $self->_save_status();
-    $self->_standard_options_parser($o); # For arrowtype and arrowhead
+    $self->_standard_options_parser($u_opt); # For arrowtype and arrowhead
     pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
@@ -3865,13 +3866,13 @@ sub poly {
     my ($text, $x, $y)=@$in;
 
     # Next - parse options
-    my $o = $text_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($text_options, $opt);
     # Check for change of panel or request to erase the panel
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     # Parse standard options such as colour
     $self->_save_status();
 
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     # Finally do what the routine needs to do.
     $o->{Text}=$text if defined($text);
@@ -3910,20 +3911,20 @@ sub poly {
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
-    my $o = $legend_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($legend_options, $opt);
 
     #
     # In this function there are several options that we do not want
     # parsed by the standard options parsers so we deal with these
     # here - we translate the linestyles, symbols and colours below
     #
-    my $linestyle=$o->{LineStyle}; delete $o->{LineStyle};
+    my $linestyle=$u_opt->{LineStyle}; delete $u_opt->{LineStyle};
     $linestyle=[$linestyle] if !ref($linestyle) eq 'ARRAY';
-    my $linewidth=$o->{LineWidth}; delete $o->{LineWidth};
+    my $linewidth=$u_opt->{LineWidth}; delete $u_opt->{LineWidth};
     $linewidth=[$linewidth] if !ref($linewidth) eq 'ARRAY';
-    my $color = $o->{Colour}; delete $o->{Colour};
+    my $color = $u_opt->{Colour}; delete $u_opt->{Colour};
     $color=[$color] if !ref($color) eq 'ARRAY';
-    my $symbol = $o->{Symbol}; delete $o->{Symbol};
+    my $symbol = $u_opt->{Symbol}; delete $u_opt->{Symbol};
     $symbol=[$symbol] if !ref($symbol) eq 'ARRAY';
 
     my ($text, $x, $y, $width)=@$in;
@@ -3936,7 +3937,8 @@ sub poly {
       barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
     }
     $self->_save_status();
-    $self->_standard_options_parser($o); # Set font, charsize, colour etc.
+
+    $self->_standard_options_parser($u_opt); # Set font, charsize, colour etc.
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
