@@ -552,6 +552,7 @@ $PDL::PP::deftbl =
  [[NewXSCHdrs],		[NewXSName,NewXSArgs,GlobalNew],	"XSCHdrs"],
  [[NewXSLocals],	[NewXSSymTab],		"Sym2Loc"],
  [[IsAffineFlag],	[],	sub {return "0"}],
+ [[NoPdlThread],	[],	sub {0}],
 
     # need special cases for
     # a) bad values
@@ -560,7 +561,7 @@ $PDL::PP::deftbl =
     # - perhaps I should have separate rules (but b and c produce the
     #   same output...)
     #
- [[NewXSStructInit0], [NewXSSymTab,VTableName,IsAffineFlag],  
+ [[NewXSStructInit0], [NewXSSymTab,VTableName,IsAffineFlag,NoPdlThread],  
     "MkPrivStructInit", "Rule to create and initialise the private trans structure"],
 
  [[NewXSMakeNow],	[ParNames,NewXSSymTab],	"MakeNows"],
@@ -659,9 +660,10 @@ $PDL::PP::deftbl =
 
  [[NewXSStructInit2],	[MakeCompiledRepr, NewXSSymTab,Name],	sub {"{".dosubst(@_)."}"}],
 
- [[CopyCodeNS],	[PrivCopyCode,CompCopyCode,StructName],	sub {"$_[2] *__copy
- 			= malloc(sizeof($_[2]));
-			PDL_TR_CLRMAGIC(__copy);
+ [[CopyCodeNS],	[PrivCopyCode,CompCopyCode,StructName,NoPdlThread],	sub {return "$_[2] *__copy
+ 			= malloc(sizeof($_[2]));" .
+			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);") .
+"			PDL_TR_CLRMAGIC(__copy);
 			__copy->flags = \$PRIV(flags);
 			__copy->vtable = \$PRIV(vtable);
 			__copy->__datatype = \$PRIV(__datatype);
@@ -1626,12 +1628,13 @@ sub defstructname {return "pdl_$_[0]_struct"}
 sub defvtablename {return "pdl_$_[0]_vtable"}
 
 sub MkPrivStructInit {
-    my( $symtab, $vtable, $affflag ) = @_;
+    my( $symtab, $vtable, $affflag, $nopdlthread ) = @_;
     my $sname = $symtab->get_symname('_PDL_ThisTrans');
 
     my $ci = '   ';
     return
 	"\n${ci}$sname = malloc(sizeof(*$sname));\n" .
+	($nopdlthread ? "" : "${ci}PDL_THR_CLRMAGIC(&$sname->__pdlthread);\n") .
 	"${ci}PDL_TR_SETMAGIC($sname);\n" .
 	"${ci}$sname->flags = $affflag;\n" .
 	"${ci}$sname->__ddone = 0;\n" .

@@ -105,6 +105,7 @@ pp_def(
        AffinePriv => 1,
        DefaultFlow => 1,
        P2Child => 1,
+       NoPdlThread => 1,
        ReadDataFuncName => "pdl_readdata_affineinternal",
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
@@ -130,6 +131,7 @@ pp_def(
 	's_identity',
         HandleBad => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	OtherPars => '',
 	Reversible => 1,
@@ -604,6 +606,7 @@ EOD
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	OtherPars => 'SV *index; SV *size; SV *boundary',
 
 
@@ -1171,6 +1174,7 @@ pp_def(
 	GlobalNew => 'converttypei_new',
 	OtherPars => 'int totype;',
 	P2Child => 1,
+        NoPdlThread => 1,
 	Identity => 1,
 	Reversible => 1,
 # Forced types
@@ -1231,6 +1235,7 @@ pp_def(
 pp_def(
 	'_clump_int',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -1284,6 +1289,7 @@ pp_def(
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	XCHGOnly => 1,
 	EquivDimCheck => 'if ($COMP(n1) <0)
 				$COMP(n1) += $PARENT(threadids[0]);
@@ -1429,6 +1435,7 @@ pp_def(
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	XCHGOnly => 1,
 	EquivDimCheck => 'if ($COMP(n1) <0)
 				$COMP(n1) += $PARENT(threadids[0]);
@@ -1493,6 +1500,7 @@ However, the mechanism is not yet finalized and this is just a demonstration.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	OtherPars => 'int nth; int from; int step; int nsteps;',
@@ -1635,6 +1643,7 @@ depending on whether you prefer error-reporting clarity or speed of execution.
 =cut
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	OtherPars => 'char* str',
 	Comp => 'int nnew; int nthintact; int intactnew; int ndum;
@@ -1918,6 +1927,7 @@ END
 
 pp_def( 'affine',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -1959,6 +1969,7 @@ pp_def( 'affine',
 pp_def(
 	'diagonalI',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2071,6 +2082,7 @@ in the usual way (-1 = last dim).
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1, # XXX Not really
 	AffinePriv => 1,
@@ -2130,6 +2142,7 @@ is always true (C<x> has to be less than 3).
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1, # XXX Not really
 	OtherPars => 'int nthdim; int nsp;',
@@ -2220,6 +2233,7 @@ Put some dimensions to a threadid.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2256,7 +2270,7 @@ EOD
 		nthc=0;
 		for(i=0; i<$PARENT(ndims); i++) {
 			flag=0;
-			if($PARENT(nthreadids) > $COMP(id) &&
+			if($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0 &&
 			   i == $PARENT(threadids[$COMP(id)])) {
 			   nthc += $COMP(nwhichdims);
 			}
@@ -2273,7 +2287,7 @@ EOD
 		for(i=0; i<$COMP(nwhichdims); i++) {
 			int cdim,pdim;
 			cdim = i +
-			 ($PARENT(nthreadids) > $COMP(id) ?
+			 ($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0?
 			  $PARENT(threadids[$COMP(id)]) : $PARENT(ndims))
 			  - $COMP(nrealwhichdims);
 			pdim = $COMP(whichdims[i]);
@@ -2305,6 +2319,7 @@ EOD
 # a ->threadI(-1,[])
 pp_def('identvaff',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2343,6 +2358,7 @@ See [TBD Doc] for details and examples.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,

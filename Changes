@@ -1,3 +1,6 @@
+CED 13-Dec-2004
+   - uninitialized memory patch 1083663 (thanks, Miloslav!)
+
 CED 11-Dec-2004
    - transform.pd: added projective transforms (t_projective)
    - slices.pd: added Miloslav's patch (patch #1083663)
