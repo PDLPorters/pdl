@@ -23,7 +23,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..50\n";
+print "1..58\n";
 
 if(1) {
 
@@ -289,3 +289,35 @@ eval '$e = $a->dummy(6,2)';
 ok(49, !$@);
 ok(50,eval '$e->ndims == 6 && ((pdl($e->dims) == pdl(5,5,1,1,1,2))->sumover==6)' && !$@);
 
+
+##############################
+# Tests of indexND
+
+# Basic indexND operation
+$source = 10*xvals(10,10) + yvals(10,10);
+$index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+eval '$a = $source->indexND( $index )';
+ok(51,!$@);
+ok(52,eval 'sum($a != pdl([23,45],[67,89]))==0');
+
+
+# Threaded indexND operation
+$source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
+$index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+eval '$a = $source->indexND($index)';
+ok(53,!$@);
+ok(54,eval 'sum($a != pdl([[230,450],[670,890]],[[231,451],[671,891]]))==0');
+
+# Permissive indexND operation
+$source = xvals(10);
+$index = pdl([3,0,0,0],[4,0,0,0]);
+eval '$a = $source->indexND( $index )';
+ok(55,!$@);
+ok(56,eval 'sum($a != pdl(3,4))==0');
+
+# A trivial case
+$source = pdl(5);
+$index = 0;
+eval '$a = $source->indexND( $index )';
+ok(57,!$@);
+ok(58,eval '$a == 5');

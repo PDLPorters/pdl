@@ -1,3 +1,6 @@
+CED (2-Aug-02)
+	- Add IndexND to slices.pd
+	- Add pdl output for scalar context to WhereND in primitive.pd
 CED (1-Aug-02)
     	- Incorporate FITS into rpic/wpic interface (allow conversion code
 	  to recognize drop-in replacement functions for rpic/wpic)

@@ -1795,14 +1795,25 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns the coordinates for non-zero values
+Returns the coordinates for non-zero values. 
 
 =for usage
 
  @coords=whichND($mask);
 
-returns an array of piddles containing the coordinates of the elements
-that are non-zero in C<$mask>.
+returns a perl list of piddles containing the coordinates of the
+elements that are non-zero in C<$mask>.  Each element corresponds to a
+particular index dimension.  For example, if $mask has rank 4 and 100
+matching elements, then @coords has 4 elements, each of which is a pdl
+of size 100.
+
+ $coords = whichND($mask);
+
+returns a PDL containing the coordinates of the elements that are non-zero 
+in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
+full coordinate listing of each point; the 1st dimension lists all the points.
+For example, if $mask has rank 4 and 100 matching elements, then $coords has
+dimension 4x100.
 
 =for example
 
@@ -1817,14 +1828,35 @@ that are non-zero in C<$mask>.
 *whichND = \&PDL::whichND;
 sub PDL::whichND {
   my $mask = shift;
-  my $ind=($mask->clump(-1))->which;
 
-  return $mask->one2nd($ind);
+  # List context: generate a perl list by dimension
+  if(wantarray) {
+	  my $ind=($mask->clump(-1))->which;
+	  return $mask->one2nd($ind);
+  } 
+
+  # Scalar context: generate an N-D index piddle
+
+  my $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+  my $mult = ones($mask->getndims)->long;
+  my @mdims = $mask->dims;
+  my $i;
+  for $i(0..$#mdims-1) {
+   $mult->index($i+1) .= $mult->index($i)*$mdims[$i];
+  }
+  for $i(0..$#mdims) {
+   my($s) = $ind->slice("($i),:");
+   $s /= $mult->index($i);
+   $s %= $mdims[$i];
+  }
+  return $ind;
 }
 
 EOD
 );
 
 pp_add_exported("", 'whichND');
+
+
 
 pp_done();

@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 11;
+plan tests => 12;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -73,3 +73,9 @@ $r1 = grandom 10;
 srand 10;
 $r2 = grandom 10;
 ok(tapprox $r1, $r2);
+
+##############################
+# Test that whichND works OK...
+my $r = xvals(10,10)+10*yvals(10,10);
+my $a = whichND( $r % 12 == 0 );
+ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0');
