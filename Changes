@@ -1,3 +1,5 @@
+DJB - quoted "PDL::Type" in byte/short/.. fns in Core.pm to fix
+      problem seen with using 'use strict' with perl 5.6.0
 CS  - patch by Ken Williams to improve speed of 'pdl $perl_array_ref'
 CS  - check for Astro::FITS::Version >= 1.12
 CED (17-Jun-02)

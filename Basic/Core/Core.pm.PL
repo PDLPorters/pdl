@@ -1902,7 +1902,7 @@ for(
 	["double",'$PDL_D']
 ) {
 	eval ('sub PDL::'.$_->[0]." { ".
-		'return bless ['.$_->[1].'], PDL::Type unless @_;
+		'return bless ['.$_->[1].'], "PDL::Type" unless @_;
                 convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
 		}');
 }
