@@ -172,8 +172,8 @@ my %options = (
 	       ITF => 0,
 	       Transform => undef,
 	       LineWidth => 1,
-	       Xrange => undef,
-	       Yrange => undef,
+	       XRange => undef,
+	       YRange => undef,
 	       Arrow => {FS => 1, Angle => 45.0, Vent => 0.3,
 			   ArrowSize => undef},
 	       Hatch => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
@@ -252,8 +252,8 @@ sub default_options {
 	   LineWidth   => $options{LineWidth},
 	   TightLabels => $options{TightLabels},
 	   TitleSize   => $options{TitleSize},
-	   Xrange      => $options{Xrange},
-	   Yrange      => $options{Yrange},
+	   XRange      => $options{XRange},
+	   YRange      => $options{YRange},
 	   BackgroundColour => $options{BackgroundColour},
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.

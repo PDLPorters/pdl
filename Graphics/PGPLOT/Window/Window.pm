@@ -455,16 +455,23 @@ scalar or an array ref into the C<Panel> option.  There is also a
 L<panel|PDL::Graphics::PGPLOT::panel> method, but its use is deprecated
 because of a wart with the PGPLOT interface.
 
-=item plotting range
+=item plotting & imaging range
 
 Explicitly set the plot range in x and y. X-range and Y-range are set
-separately via the aptly named options C<Xrange> and C<Yrange>. If omitted
+separately via the aptly named options C<XRange> and C<YRange>. If omitted
 PGPLOT selects appropriate defaults (minimum and maximum of the data range
 in general). These options are ignored if the window is on hold.
 
   line $x, $y, {xr => [0,5]}; # y-range uses default
-  line $x, $y, {Xrange => [0,5], Yrange => [-1,3]}; # fully specified range
+  line $x, $y, {XRange => [0,5], YRange => [-1,3]}; # fully specified range
+  imag $im, {XRange => [30,50], YRange=>[-10,30]};
+  fits_imag $im, {XRange=>[-2,2], YRange=>[0,1]};
 
+Imaging requires some thought if you don't want to lose a pixel off
+the edge of the image.  Pixels are value-centered (they are centered
+on the coordinate whose value they represent), so the appropriate
+range to plot the entirety of a 100x100 pixel image is [-0.5,99.5] on
+each axis.
 
 =back
 
@@ -993,6 +1000,11 @@ C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
 
+If C<$image> is two-dimensional, you get a grey or pseudocolor image
+using the scalar values at each X,Y point.  If C<$image> is
+three-dimensional and the third dimension has order 3, then it is
+treated as an RGB true-color image via L<rgbi|rgbi>.
+
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
 aspect ratio preservation, and 1:1 pixel mapping are available.
@@ -1045,7 +1057,7 @@ Options recognised:
 
 The following standard options influence this command:
 
- AXIS, BORDER, JUSTIFY, SCALE, PIX, PITCH, ALIGN
+ AXIS, BORDER, JUSTIFY, SCALE, PIX, PITCH, ALIGN, XRANGE, YRANGE
 
 =for example
 
@@ -1086,8 +1098,9 @@ Display an RGB color image
 
 The calling sequence is exactly like L<imag|imag>, except that the input
 image must have three dimensions: N x M x 3.  The last dimension is the 
-(R,G,B) color value.  This currently runs very slowly for X output;
-that should be fixed soon.
+(R,G,B) color value.  This routine requires pgplot 5.3devel or above.
+Calling rgbi explicitly is not necessary, as calling image with an
+appropriately dimensioned RGB triplet makes it fall through to rgbi.
 
 =head2 fits_imag
 
@@ -1133,7 +1146,8 @@ The default value of the C<ALIGN> option is 'CC' -- centering the image
 both vertically and horizontally.
 
 By default fits_imag draws a color wedge on the right; you can explicitly
-set the C<DrawWedge> option to 0 to avoid this.
+set the C<DrawWedge> option to 0 to avoid this.  Use the C<WTitle> option
+to set the wedge title.
 
 =head2 fits_rgbi
 
@@ -1187,7 +1201,8 @@ How wide should the wedge be, in units of character size.  Default is B<2>.
 
 A text label to be added to the wedge.  If set, it is probably worth
 increasing the C<Width> value by about 1 to keep the text readable.
-Default is B<''>.
+Default is B<''>.  This is equivalent to the C<WTitle> option to 
+L<imag|imag>, L<fits_imag|fits_imag>, and similar methods.
 
 =item ForeGround (synonym Fg)
 
@@ -3793,12 +3808,14 @@ data world coordinates over which the image ranges.  This is
 used in L<imag|imag> and L<cont|cont>.  It keeps track of the
 required half-pixel offset to display images properly -- eg
 feeding in no tr matrix at all, nx=20, and ny=20 will 
-will return (-0.5,19.5,-0.5,19.5).
+will return (-0.5,19.5,-0.5,19.5).  It also checks the options
+hash for XRange/YRange specifications and, if they are present, it
+overrides the appropriate output with the exact ranges in those fields.
 
 =cut
 
 sub _image_xyrange {
-  my($tr,$nx,$ny) = @_;
+  my($tr,$nx,$ny,$opt) = @_;
 
   # Set identity $tr if no $tr is passed in.  This looks funny 
   # because it's designed for use with evil Fortran coordinates. 
@@ -3813,21 +3830,39 @@ sub _image_xyrange {
   ## physical data plane after transformation.  We just tranform
   ## the four corners of the data (in evil homogeneous FORTRAN 
   ## origin-at-1 coordinates) and find the minimum and maximum 
-  ## X and Y values of 'em all.
+  ## X and Y values of 'em all. 
 
-  my @xvals = ($tr->(0:2)*pdl[
-				     [1, 0.5, 0.5],
-				     [1, 0.5, $nx+0.5],
-				     [1, $nx+0.5, 0.5],
-				     [1, $nx+0.5, $nx+0.5]])->sumover->minmax;
-  my @yvals = ($tr->(3:5)*pdl[
+  my @xvals;
+  if(ref $opt eq 'HASH' and defined $opt->{XRange}) {
+    die "_image_xyrange: if XRange is specified it must be an array ref\n"
+      if(ref $opt->{XRange} ne 'ARRAY');
+    @xvals = @{$opt->{XRange}};
+  } else {
+    @xvals = ($tr->(0:2)*pdl[
+			         [1, 0.5, 0.5],
+			         [1, 0.5, $nx+0.5],
+			         [1, $nx+0.5, 0.5],
+			         [1, $nx+0.5, $nx+0.5]
+			       ])->sumover->minmax;
+  }
+
+  my @yvals;
+  if(ref $opt eq 'HASH' and defined $opt->{YRange}) {
+    die "_image_xyrange: if YRange is specified it must be an array ref\n"
+      if(ref $opt->{YRange} ne 'ARRAY');
+    @yvals = @{$opt->{YRange}};
+  } else {
+    @yvals = ($tr->(3:5)*pdl[
 				     [1, 0.5, 0.5],
 				     [1, 0.5, $ny+0.5],
 				     [1, $ny+0.5, 0.5],
-				     [1, $ny+0.5, $ny+0.5]])->sumover->minmax;
+				     [1, $ny+0.5, $ny+0.5]
+			     ])->sumover->minmax;
+  }
+
   if ( $tr->at(1) < 0 ) { @xvals = ( $xvals[1], $xvals[0] ); }
   if ( $tr->at(5) < 0 ) { @yvals = ( $yvals[1], $yvals[0] ); }
-
+  
   return (@xvals,@yvals);
 }
   
@@ -4095,10 +4130,10 @@ sub env {
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	   @{$o->{Xrange}} : minmax($x);
-      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
-	   @{$o->{Yrange}} : minmax($data);
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : minmax($data);
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
@@ -4343,7 +4378,7 @@ sub env {
     $tr = $self->CtoF77coords($tr);
 
     if (!$self->held()) {
-      $self->initenv( _image_xyrange($tr,$nx,$ny), $o );
+      $self->initenv( _image_xyrange($tr,$nx,$ny,$o), $o );
     }
 
     if (!defined($contours)) {
@@ -4488,8 +4523,8 @@ EOD
 	$xmin = min( $x - $t[2] ); $xmax = max( $x + $t[3] );
 	$ymin = min( $y - $t[4] ); $ymax = max( $y + $t[5] );
       }
-      ($xmin,$xmax) = @{$o->{Xrange}} if ref $o->{Xrange} eq 'ARRAY';
-      ($ymin,$ymax) = @{$o->{Yrange}} if ref $o->{Yrange} eq 'ARRAY';
+      ($xmin,$xmax) = @{$o->{XRange}} if ref $o->{XRange} eq 'ARRAY';
+      ($ymin,$ymax) = @{$o->{YRange}} if ref $o->{YRange} eq 'ARRAY';
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
@@ -4578,14 +4613,14 @@ sub tline {
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
-      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
-	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
-      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+	@{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	@{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
     } else {
-      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? @{$o->{YRange}} :
 	minmax($y);
-      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+      ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ? @{$o->{XRange}} :
 	minmax($x);
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
@@ -4653,14 +4688,14 @@ sub tpoints {
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
-      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
-	@{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
-      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	@{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+	@{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
+      ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	@{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
     } else {
-      ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
+      ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? @{$o->{YRange}} :
 	minmax($y);
-      ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
+      ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ? @{$o->{XRange}} :
 	minmax($x);
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
@@ -4798,8 +4833,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	my($pp) = $#$p ? $p->[$i] : $p->[0]; # allow scalar pen in array case
         $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
 	my $miss = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
-	&$thunk($u_opt->{Xrange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)),$pp);
-	&$thunk($u_opt->{Yrange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)),$pp);
+	&$thunk($u_opt->{XRange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)),$pp);
+	&$thunk($u_opt->{YRange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)),$pp);
       }
 
       $xmin = $xmin->min;
@@ -4940,8 +4975,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 	minmax(where($vals,$mask));
       };
 
-      ($xmin,$xmax) = &$thunk($o->{Xrange},$x,$o->{Missing});
-      ($ymin,$ymax) = &$thunk($o->{Yrange},$y,$o->{Missing});
+      ($xmin,$xmax) = &$thunk($o->{XRange},$x,$o->{Missing});
+      ($ymin,$ymax) = &$thunk($o->{YRange},$y,$o->{Missing});
 
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
@@ -5046,10 +5081,10 @@ sub arrow {
     # Save some time for large datasets.
     #
     unless ( $self->held() ) {
-      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	   @{$o->{Xrange}} : minmax($x);
-      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
-	   @{$o->{Yrange}} : minmax($y);
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : minmax($y);
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
@@ -5122,7 +5157,8 @@ sub arrow {
 		    Side => 'R',
 		    Displacement => 1.5,
 		    Width =>3.0,
-		    Label => '',
+		    WTitle => undef,
+		    Label => undef,
 		    ForeGround => undef,
 		    BackGround => undef,
 		});
@@ -5176,7 +5212,7 @@ sub arrow {
 
 	# draw the wedge
 	my $side = $o->{Side} . $$iref{routine};
-	pgwedg( $side, $o->{Displacement}, $o->{Width}, $o->{BackGround}, $o->{ForeGround}, $o->{Label} );
+	pgwedg( $side, $o->{Displacement}, $o->{Width}, $o->{BackGround}, $o->{ForeGround}, $o->{Label} || $o->{WTitle} || '' );
 
 	# restore character colour & size before returning
 	$self->_restore_status();
@@ -5287,6 +5323,16 @@ sub arrow {
       $cmax = $u_opt->{CRange}->[1];
     }
 
+    if ( exists($u_opt->{XRange}) ) {
+      release_and_barf( "XRange option must be an array ref if specified.\n")
+	if( ref $u_opt->{XRange} ne 'ARRAY' );
+    }
+
+    if ( exists($u_opt->{YRange}) ) {
+      release_and_barf( "YRange option must be an array ref if specified.\n")
+	if( ref $u_opt->{YRange} ne 'ARRAY' );
+    }
+
     $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
 
     # Check on ITF value hardcoded in.
@@ -5307,7 +5353,7 @@ sub arrow {
     
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
-    $self->initenv( _image_xyrange($tr,$nx,$ny), $o );
+    $self->initenv( _image_xyrange($tr,$nx,$ny,$o), $o );
 
     if (!$self->held()) {
       # Label axes if necessary
@@ -5333,8 +5379,9 @@ sub arrow {
     print "Displaying $nx x $ny image from $min to $max, using ".($c2-$c1+1)." colors ($c1-$c2)...\n" if $PDL::verbose;
 
 
-    # Disable PS pggray output because the driver is busted.
-    # pgimag seems to work OK for that output tho'.
+    # Disable PS pggray output because the driver is busted in pgplot-2.3
+    # (haven't tested later versions). pgimag seems to work OK for that 
+    # output tho'.
     if ($c2-$c1<16 || $self->{Device} =~ /^v?ps$/i) {
       print STDERR "_imag: Under 16 colors available; reverting to pggray\n" 
 	if($PDL::debug || $PDL::verbose);
@@ -5492,6 +5539,8 @@ sub _fits_foo {
 						  Max => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
+						  XRange=>undef,
+						  YRange=>undef,
 						  XTitle => undef,
 						  YTitle => undef,
 						  Title  => undef
@@ -5517,7 +5566,7 @@ sub _fits_foo {
   my($unit)= $pdl->gethdr->{BUNIT} || "";
   my($rangestr) = " ($min to $max $unit) ";
 
-  $opt2{pix}=1.0 
+  $opt2{Pix}=1.0 
     if( (!defined($opt2{Pix})) && 
 	( $hdr->{CUNIT1} ? ($hdr->{CUNIT1} eq $hdr->{CUNIT2}) 
                          : ($hdr->{CTYPE1} eq $hdr->{CTYPE2})
@@ -5769,10 +5818,10 @@ sub poly {
   &catch_signals;
 
   unless ( $self->held() ) {
-      my ($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	   @{$o->{Xrange}} : minmax($x);
-      my ($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ?
-	   @{$o->{Yrange}} : minmax($y);
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : minmax($x);
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : minmax($y);
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
     $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
