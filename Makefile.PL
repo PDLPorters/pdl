@@ -56,6 +56,11 @@ sub getpdl_config {
   if (-f $pdl_conf_file) {
     warn "\nINFORMATION: using file $pdl_conf_file to set configuration defaults\n\n";
     require $pdl_conf_file;
+    foreach(values %PDL_CONFIG){
+	s/^y.*/1/i;
+	s/^n.*/0/i;
+    }
+
   }
 
   # Sanity checking of user supplied keys (look for ones not defined in dist)

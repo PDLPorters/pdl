@@ -15,14 +15,14 @@ PDL::Slices -- Stupid index tricks
 =head1 DESCRIPTION
 
 This package provides many of the powerful PerlDL core index
-manipulation routines. These routines are usually two-way
+manipulation routines. These routines mostly contain two-way data flow 
 so you can get a unit matrix by
 
  $a = zeroes(1000,1000);
  $a->diagonal(0,1) ++;
 
-which is usually fairly efficient. See L<PDL::Indexing> and
-L<PDL::Tips> for more examples.
+which is quite efficient. See L<PDL::Indexing> and L<PDL::Tips> for
+more examples.
 
 These functions are usually two-way:
 
