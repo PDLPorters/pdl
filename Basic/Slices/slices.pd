@@ -258,15 +258,15 @@ pp_def(
 pp_add_exported('','indexND indexNDb');
 pp_addpm(<<'EOD-indexND');
 
-=head2 indexND
+=head2 indexND, indexNDb
 
 =for ref
 
-Find selected elements in an N-D piddle
+  Find selected elements in an N-D piddle, with optional boundary handling
 
 =for example
 
-  $out = $source->indexND( $index )
+  $out = $source->indexND( $index, [$method] )
 
   $source = 10*xvals(10,10) + yvals(10,10);
   $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
@@ -283,46 +283,20 @@ the return value has the same dimensions as the rest of C<$index>.
 The returned elements are looked up from C<$source>.  Dataflow
 works -- propagated assignment flows back into C<$source>.  
 
-IndexND is now implemented as a call to L<range|range>, as it has a 
-strict subset of range's functionality.
+IndexND and IndexNDb were originally separate routines but they are both
+now implemented as a call to L<range|range>, and have identical syntax to
+one another.
 
 =cut
 
 sub PDL::indexND {
-	my($source,$index) = @_;
-	return $source->range($index,undef,'f');
+	my($source,$index, $boundary) = @_;
+	return PDL::range($source,$index,undef,$boundary);
 }
+
+*PDL::indexNDb = \&PDL::indexND;
+
 EOD-indexND
-
-
-pp_addpm(<<'EOD-indexNDb');
-
-=head2 indexNDb
-
-=for ref
-
-Find selected elements in an N-D piddle, with boundary handling
-
-=for example
-
-   $source = 10*xvals(10,10)+yvals(10,10);
-   $index = pdl([[-1,3],[4,5]],[[6,7],[8,23]]);
-   $out = indexNDb($source, $index);
-
-   $out = indexNDb($source, $index, $method, $missing);
-
-C<indexNDb> collapses C<$index> by lookup into C<$source>, with boundary
-condition handling using the given method (if present).  It's a front end
-for a call to L<range|range>, and has the same boundary condition switches.
-
-=cut
-
-sub PDL::indexNDb{ 
-  my($source,$index,$method,$bad) = @_;
-  return $source->range($index,undef,$method);
-}
-
-EOD-indexNDb
 
 pp_addpm(<<'EOD-range');
 
@@ -331,7 +305,24 @@ sub PDL::range {
   my $index = PDL->pdl($ind);
   $index = $index->dummy(0,1) unless $index->ndims;
   my $size = defined($sz) ? PDL->pdl($sz) : undef;
+
 	
+  # Pack boundary string if necessary
+  if(defined $bound) {
+    if(ref $bound eq 'ARRAY') {
+      my ($s,$el);
+      foreach $el(@$bound) {
+	barf "Illegal boundary value '$el' in range\n"
+  	  unless( $el =~ m/^([0123fFtTeEpP])/ );
+	$s .= $1;
+      }
+      $bound = $s;
+    }
+    elsif($bound !~ m/^[0123ftepx]+$/  && $bound =~ m/^([0123ftepx])/i ) {
+      $bound = $1;
+    }
+  }
+
   no warnings; # shut up about passing undef into rangeb
   $source->rangeb($index,$size,$bound);
 }
@@ -383,8 +374,14 @@ C<$size> can be a scalar, in which case it applies to all dimensions, or an
 N-vector, in which case each element is applied independently to the 
 corresponding dimension in C<$source>.  See below for details.
 
-$boundary is a single number or string, indicating the type of boundary
-conditions to use when ranges reach the edge of $source:
+$boundary is a number, string, or list ref indicating the type of 
+boundary conditions to use when ranges reach the edge of $source.  If you
+specify no boundary conditions the default is to forbid boundary violations
+on all axes.  If you specify exactly one boundary condition, it applies to 
+all axes.  If you specify more (as elements of a list ref, or as a packed
+string, see below), then they apply to dimensions in the order in which they
+appear, and the last one applies to all subsequent dimensions.  (This is 
+less difficult than it sounds; see the examples below).
 
 =over 3
 
@@ -402,7 +399,7 @@ works OK for the portion of the child that is in-bounds.  The
 out-of-bounds part of the child is reset to (BAD|0) during each
 dataflow operation, but execution continues.
 
-=item 2 (synonyms: 'e','extend')
+=item 2 (synonyms: 'e','x','extend')
 
 Values that would be outside the original piddle point instead to the 
 nearest allowed value within the piddle.  See the CAVEAT below on reverse 
@@ -415,6 +412,17 @@ strict-modulo the corresponding dimensions of $source.  This is equivalent to
 duplicating the $source piddle throughout N-D space.
 
 =back
+
+The boundary condition identifiers all begin with unique characters, so 
+you can feed in multiple boundary conditions as either a list ref or a 
+packed string.  (The packed string is marginally faster to run).  For 
+example, the four expressions [0,1], ['forbid','truncate'], ['f','t'], 
+and 'ft' all specify that violating the boundary in the 0th dimension 
+throws an error, and all other dimensions get truncated.  
+
+If you feed in a single string, it is interpreted as a packed boundary
+array if all of its characters are valid boundary specifiers (e.g. 'pet'),
+but as a single word-style specifier if they are not (e.g. 'forbid').
 
 B<OUTPUT>
 
@@ -561,43 +569,22 @@ EOD
 # itdim:  number of index thread dimensions
 # itdims: Size of each index thread dimension, indexed (0..itdim-1)
 # 
+# bsize: Number of independently specified boundary conditions
+# boundary: Array containing all the boundary condition specs
+
 	Comp => 'long rdim;
                  long nitems;
                  long itdim;
                  long ntsize;
+                 long bsize;
 		 long sizes[$COMP(rdim)];
 		 long itdims[$COMP(itdim)];
 		 long corners[$COMP(rdim) * $COMP(nitems)];
-	         short boundary;
+	         char boundary[$COMP(rdim)];
 		 ',
 	MakeComp => <<'EOD-MakeComp',
 pdl *ind_pdl;
 pdl *size_pdl;
-
-/*** 
- * Check and condition the boundary parameter 
- */
-{
-  char *s;
-  STRLEN len;
-  SV *foo = (SvROK(boundary)) ? SvRV(boundary) : boundary;
-  s = SvPV(boundary,len);
-  
-  switch(*s) {
-  case '0': case 'f': case 'F': default:      /* forbid */
-    $COMP(boundary) = 0;
-    break;
-  case '1': case 't': case 'T':               /* truncate */
-    $COMP(boundary) = 1;
-    break;
-  case '2': case 'e': case 'E':               /* extend */
-    $COMP(boundary) = 2;
-    break;
-  case '3': case 'p': case 'P':               /* periodic */
-    $COMP(boundary) = 3;
-    break;
-  }
-}
 
 /***
  * Check and condition the index piddle.  Some of this is apparently
@@ -642,6 +629,51 @@ switch(ind_pdl->datatype) {
   $DOCOMPDIMS();
 }
 
+/***
+ * Fill in the boundary condition array
+ */
+{
+  char *bstr;
+  STRLEN blen;
+  bstr = SvPV(boundary,blen);
+  
+  if(blen == 0) {
+    /* If no boundary is specified then every dim gets truncated */
+    int i;
+    for (i=0;i<$COMP(rdim);i++) 
+      $COMP(boundary[i]) = 0;
+  } else {
+    int i;
+    for(i=0;i<$COMP(rdim);i++) {
+      switch(bstr[i < blen ? i : blen-1 ]) {
+      case '0': case 'f': case 'F':               /* forbid */
+	$COMP(boundary[i]) = 0;
+	break;
+      case '1': case 't': case 'T':               /* truncate */
+	$COMP(boundary[i]) = 1;
+	break;
+      case '2': case 'e': case 'E':               /* extend */
+	$COMP(boundary[i]) = 2;
+	break;
+      case '3': case 'p': case 'P':               /* periodic */
+	$COMP(boundary[i]) = 3;
+	break;
+      default:
+	{
+	  char buf[BUFSIZ];
+	  /* No need to check if i < blen -- this will barf out the
+	   * first time it gets hit.  I didn't use $ CROAK 'coz that
+	   * macro doesn't let you pass in a string variable -- only a 
+	   * constant.
+	   */
+	  sprintf(buf,"Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
+	  barf(buf);
+	}
+	break;
+      }
+    }
+  }
+}  
 /***
  * Store the sizes of the index-thread dims
  */
@@ -831,7 +863,7 @@ EOD-RedoDims
  	long ck = iter[k] + 
 	          $COMP(corners[ item * $COMP(rdim) + k  ]) ;
  	if(ck < 0 || ck >= $PARENT_P(dims[k])) {
- 	  switch($COMP(boundary)) {
+ 	  switch($COMP(boundary[k])) {
  	  case 0: /* no boundary breakage allowed */
  	    barf("index out-of-bounds in range\n");
  	    break;

@@ -1,7 +1,10 @@
+CED (24-Feb-2003)
+    - slices.pd:
+        - range(), indexND, & interpND now accept multiple boundary conditions
+	- fixed up indexNDb and indexND documentation
 CED (21-Feb-2003)
     - Modified whichdatatype and whichdatatype_double to represent nan with
 	a double, rather than barfing.
-    - Fixed a crash: append broke when appending on a dim of order 0
     - Myriad small fixes to Transforms::Cartography
 	- Perspective works properly
     - Changes to the documentation of Window.pm: axis() is better documented.
