@@ -3828,16 +3828,14 @@ sub initenv{
     
     ###
     # Figure out the stretched pitch, if it isn't set.
-    # Tricky -- we want the pitch with the highest absolute value, but
-    # to preserve the sign.
+    #
     unless(defined $pitch) {
 	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
 		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
-	my $ap = abs($p);
-	$pitch = $p->at($ap->maximum_ind);
+	$pitch = $p->abs->max;
     }
 
-    $pix = ($y1 - $y0) / ($ymax - $ymin) * $pitch 
+    $pix = abs(($y1 - $y0) / ($ymax - $ymin)) * $pitch 
       unless defined($pix);
     
     ##########
@@ -3919,9 +3917,7 @@ sub initenv{
 	release_and_barf "DirAxis option must be a scalar or array\n";
       }
 
-      #
-      # No specification: keep the same order 
-      #
+      print "dax=$dax; day=$day\n";
       ( $xx0, $xx1 ) = ( $xx1, $xx0 ) 
 	if (  ( $dax==0   and   ($xmin-$xmax)*($xx0-$xx1)<0 )
 	      or ( $dax < 0 ) 
