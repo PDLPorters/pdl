@@ -1,3 +1,8 @@
+John Cerney (5/3/01)
+    - Simple change to primitive.pd so that interpol sub
+      makes it into the PDL namespace, and not just the
+      PDL::Primitive namespace. Also added a simple test
+      case for this routine.
 CS  - F77CONF variable for debian build (see INSTALL)
 2.2.1
 John Cerney (4/25/01)

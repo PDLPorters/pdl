@@ -1537,6 +1537,7 @@ sub interpol ($$$;$) {
     return $yi if $#_ == -1;
 
 } # sub: interpol()
+*PDL::interpol = \&interpol;
 
 EOD
 
