@@ -24,14 +24,14 @@ terrestrial maps, but also any nearly spherical surface including the
 Sun, the Celestial sphere, various moons and planets, distant stars,
 etc.  They also are useful for interpreting scientific images, which
 are themselves generally projections of a sphere onto a flat focal
-plane (e.g. the L<t_gnomonic|gnomonic> projection).
+plane (e.g. the L<t_gnomonic|/t_gnomonic> projection).
 
 Unless otherwise noted, all the transformations in this file convert
 from (theta,phi) coordinates on the unit sphere (e.g. (lon,lat) on a
 planet or (RA,dec) on the celestial sphere) into some sort of
 projected coordinates, and have inverse transformations that convert
 back to (theta,phi).  This is equivalent to working from the
-equidistant cylindrical (or L<t_caree|"plate caree">) projection, if
+equidistant cylindrical (or L<"plate caree"|/t_caree>) projection, if
 you are a cartography wonk.
 
 The projected coordinates are generally in units of body radii
@@ -44,13 +44,13 @@ parallels in all the projections.
 
 The transformations that are authalic (equal-area), conformal
 (equal-angle), azimuthal (circularly symmetric), or perspective (true
-perspective on a focal plane from some viewpoint) are marked.  The first
-two categories are mutually exclusive for all but the L<t_unit_sphere|unit
-sphere> 3-D projection.
+perspective on a focal plane from some viewpoint) are marked.  The
+first two categories are mutually exclusive for all but the 
+L<"unit sphere"|/t_unit_sphere> 3-D projection.
 
 Extra dimensions tacked on to each point to be transformed are, in
 general, ignored.  That is so that you can add on an extra index
-to keep track of pen color.  For example, L<earth_coast|earth_coast>
+to keep track of pen color.  For example, L<earth_coast|/earth_coast>
 returns a 3x<n> piddle containing (lon, lat, pen) at each list location.
 Transforming the vector list retains the pen value as the first index
 after the dimensional directions.
@@ -93,7 +93,7 @@ Cartographic transformations are useful for interpretation of
 scientific images, as all cameras produce projections of the celestial
 sphere onto the focal plane of the camera.  A simple (single-element)
 optical system with a planar focal plane generates
-L<gnomonic|t_gnomonic> images -- that is to say, gnomonic projections
+L<gnomonic|/t_gnomonic> images -- that is to say, gnomonic projections
 of a portion of the celestial sphere near the paraxial direction.
 This is the projection that most consumer grade cameras produce.
 
@@ -103,17 +103,17 @@ aperture.  For example, a 10x telescope with a 2 degree field of view
 exhibits the same gnomonic distortion as a simple optical system with 
 a 20 degree field of view.  Wide-angle optics typically have magnification
 less than 1 ('fisheye lenses'), reducing the gnomonic distortion 
-considerably but introducing L<"equidistant azimuthal"|t_az_eqd> distortion --
+considerably but introducing L<"equidistant azimuthal"|/t_az_eqd> distortion --
 there's no such thing as a free lunch!
 
 Because many solar-system objects are spherical,
 PDL::Transform::Cartography includes perspective projections for
 producing maps of spherical bodies from perspective views.  Those
-projections are L<"t_vertical"|t_vertical> and
-L<"t_perspective"|t_perspective>.  They map between (lat,lon) on the
+projections are L<"t_vertical"|/t_vertical> and
+L<"t_perspective"|/t_perspective>.  They map between (lat,lon) on the
 spherical body and planar projected coordinates at the viewpoint.  
-L<"t_vertical"|t_vertical> is the vertical perspective projection 
-given by Snyder, but L<"t_perspective"|t_perspective> is a fully
+L<"t_vertical"|/t_vertical> is the vertical perspective projection 
+given by Snyder, but L<"t_perspective"|/t_perspective> is a fully
 general perspective projection that also handles magnification correction.
 
 =head1 TRANSVERSE & OBLIQUE PROJECTIONS; STANDARD OPTIONS
@@ -288,7 +288,7 @@ sub _strval {
 (Cartography) PDL constructor - generate a lat/lon grid.
 
 Returns a grid of meridians and parallels as a list of vectors suitable
-for sending to L<PDL::Graphics::PGPLOT::Window::lines|lines> for plotting.
+for sending to L<PDL::Graphics::PGPLOT::Window::lines|/lines> for plotting.
 The grid is in degrees in (theta, phi) coordinates -- this is (E lon, N lat) 
 for terrestrial grids or (RA, dec) for celestial ones.  You must then 
 transform the graticule in the same way that you transform the map.
@@ -299,11 +299,11 @@ You can attach the graticule to a vector map using the syntax:
 
 In array context you get back a 2-element list containing a piddle of
 the (theta,phi) pairs and a piddle of the pen values (1 or 0) suitable for
-calling L<PDL::Graphics::PGPLOT::Window::lines|lines>.  In scalar context
+calling L<PDL::Graphics::PGPLOT::Window::lines|/lines>.  In scalar context
 the two elements are combined into a single piddle.
 
 The pen values associated with the graticule are negative, which will
-cause L<PDL::Graphics::PGPLOT::Window::lines|lines> to plot them as
+cause L<PDL::Graphics::PGPLOT::Window::lines|/lines> to plot them as
 hairlines.
 
 =cut
@@ -361,16 +361,16 @@ sub graticule {
 Returns a vector coastline map based on the 1987 CIA World Coastline
 database (see author information).  The vector coastline data are in
 plate caree format so they can be converted to other projections via
-the L<apply|PDL::Transform::apply> method and cartographic transforms,
+the L<apply|/apply> method and cartographic transforms,
 and are suitable for plotting with the
-L<lines|PDL::Graphics::PGPLOT::Window::lines> method in the PGPLOT 
+L<lines|/lines> method in the PGPLOT 
 output library:  the first dimension is (X,Y,pen) with breaks having 
 a pen value of 0 and hairlines having negative pen values.  The second 
 dimension threads over all the points in the data set.  
 
 The vector map includes lines that pass through the antipodean
 meridian, so if you want to plot it without reprojecting, you should
-run it through L<clean_lines|clean_lines> first:
+run it through L<clean_lines|/clean_lines> first:
 
     $w = pgwin();
     $w->lines(earth_coast->clean_lines);     # plot plate caree map of world
@@ -405,7 +405,7 @@ Returns an RGB image of Earth based on data from the MODIS instrument
 on the NASA EOS/Terra satellite.  (You can get a full-resolution 
 image from http://earthobservatory.nasa.gov/Newsroom/BlueMarble/).
 The image is a plate caree map, so you can convert it to other
-projections via the L<map|PDL::Transform::map> method and cartographic
+projections via the L<map|/map> method and cartographic
 transforms.
 
 This is just a quick-and-dirty way of loading the earth-image files that
@@ -460,7 +460,7 @@ C<clean_lines> massages vector data to remove jumps due to singularities
 in the transform.
 
 In the first (scalar) form, C<$line_pen> contains both (X,Y) points and pen 
-values suitable to be fed to L<PDL::Graphics::PGPLOT::Window::lines|lines>;
+values suitable to be fed to L<lines|/lines>;
 in the second (list) form, C<$lines> contains the (X,Y) points and C<$pen>
 contains the pen values.  
 
@@ -663,7 +663,7 @@ sub PDL::Transform::Cartography::_finish {
 
 (Cartography) 3-D globe projection (conformal; authalic)
 
-This is similar to the inverse of L<t_spherical|t_spherical>, but the
+This is similar to the inverse of L<t_spherical|/t_spherical>, but the
 inverse transform projects 3-D coordinates onto the unit sphere,
 yielding only a 2-D (lon/lat) output.  Similarly, the forward
 transform deprojects 2-D (lon/lat) coordinates onto the surface of a
@@ -686,8 +686,8 @@ pen value) are propagated.
 There is no oblique transform for t_unit_sphere, largely because 
 it's so easy to rotate the output using t_linear once it's out into 
 Cartesian space.  In fact, the other projections implement oblique
-transforms by L<t_wrap|wrapping> L<t_linear|t_linear> with
-L<t_unit_sphere|t_unit_sphere>.
+transforms by L<wrapping|/t_wrap> L<t_linear|/t_linear> with
+L<t_unit_sphere|/t_unit_sphere>.
 
 OPTIONS:
 
@@ -864,7 +864,7 @@ as a composition of a t_unit_sphere call, a rotation, and a slice.
 inverse exists.  There is no single inverse for the whole-sphere case,
 so the inverse transform superimposes everything on a single
 hemisphere.  If you want an invertible 3-D transform, you want
-L<t_unit_sphere|t_unit_sphere>.
+L<t_unit_sphere|/t_unit_sphere>.
 
 OPTIONS
 
@@ -881,7 +881,7 @@ The hemisphere to keep in the projection (see L<PDL::Transform::Cartography>).
 NOTES
 
 Alone of the various projections, this one does not use
-L<t_rot_sphere|t_rot_sphere> to handle the standard options, because
+L<t_rot_sphere|/t_rot_sphere> to handle the standard options, because
 the cartesian coordinates of the rotated sphere are already correctly
 projected -- t_rot_sphere would put them back into (theta', phi')
 coordinates.
@@ -1055,7 +1055,7 @@ globe-radii for easy conversion to kilometers; hence the horizontal extent
 is -pi to pi.
 
 You can get oblique Mercator projections by specifying the C<origin> or
-C<roll> options; this is implemented via L<t_rot_sphere|t_rot_sphere>.
+C<roll> options; this is implemented via L<t_rot_sphere|/t_rot_sphere>.
 
 OPTIONS
 
@@ -1232,8 +1232,8 @@ sub t_sin_lat {
 (Cartography) Sinusoidal projection (authalic)
 
 Sinusoidal projection preserves the latitude scale but scales
-longitude according to sin(lat); in this respect it's the companion to
-L<t_sin_lat|t_sin_lat>, which is also authalic but preserves the
+longitude according to sin(lat); in this respect it is the companion to
+L<t_sin_lat|/t_sin_lat>, which is also authalic but preserves the
 longitude scale instead.  
 
 OPTIONS
@@ -1440,7 +1440,7 @@ sectionals of the 50 contiguous United States of America.
 
 The projection reduces to the Lambert equal-area conic (infrequently
 used and not to be confused with the Lambert conformal conic,
-L<t_lambert|t_lambert>!)  if the pole is used as one of the two
+L<t_lambert|/t_lambert>!)  if the pole is used as one of the two
 standard parallels.
 
 Notionally, this is a conic projection onto a cone that intersects the
@@ -1459,7 +1459,7 @@ The locations of the standard parallel(s).  If you specify only one then
 the other is taken to be the nearest pole and a Lambert Equal-Area Conic
 map results.  If you specify both standard parallels to be the same pole,
 then the projection reduces to the Lambert Azimuthal Equal-Area map as
-aq special case.  (Note that L<t_lambert|t_lambert> is Lambert's
+aq special case.  (Note that L<t_lambert|/t_lambert> is Lambert's
 Conformal Conic, the most commonly used of Lambert's projections.)
 
 The default values for the standard parallels are those chosen by Adams
@@ -1572,7 +1572,7 @@ in fact this is implemented by a call to t_mercator.
 Because the transform is conformal, the distant pole is displaced to
 infinity.  Many applications require a clipping boundary.  The value
 is in whatever angular unit you set with the standard 'unit' option.
-For consistency with L<t_mercator|t_mercator>, clipping works the same
+For consistency with L<t_mercator|/t_mercator>, clipping works the same
 way even though in most cases only one pole needs it.  Set this to 0
 for no clipping at all.
 
@@ -2041,7 +2041,7 @@ sub t_az_eqa {
 
 The Hammer/Aitoff projection is often used to display the Celestial
 sphere.  It is mathematically related to the Lambert Azimuthal Equal-Area
-projection (L<t_az_eqa>), and maps the sphere to an ellipse of unit 
+projection (L<t_az_eqa|/t_az_eqa>), and maps the sphere to an ellipse of unit 
 eccentricity, with vertical radius sqrt(2) and horizontal radius of 
 2 sqrt(2).
 
@@ -2111,9 +2111,9 @@ sub t_hammer {
 
 (Cartography) Vertical perspective projection (az.; persp.)
 
-Vertical perspective projection is a generalization of L<t_gnomonic|gnomonic>
-and L<t_stereographic|stereographic> projection, and a special case of 
-L<t_perspective|perspective> projection.  It is a projection from the 
+Vertical perspective projection is a generalization of L<gnomonic|/t_gnomonic>
+and L<stereographic|/t_stereographic> projection, and a special case of 
+L<perspective|/t_perspective> projection.  It is a projection from the 
 sphere onto a focal plane at the camera location.
 
 OPTIONS
@@ -2412,7 +2412,7 @@ focal plane.  If you pass in a scalar, you get a circular crop.  If you
 pass in a 2-element list ref, you get a rectilinear crop, with the
 horizontal 'radius' and vertical 'radius' set separately. 
 
-=back 3
+=back
 
 
 EXAMPLES

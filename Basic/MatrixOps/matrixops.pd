@@ -635,7 +635,7 @@ be sure to get it one way or the other.
 
 LU decomposition is the answer to a lot of matrix questions, including
 inversion and determinant-finding, and lu_decomp is used by
-L<inverse|inverse>.
+L<inverse|/inverse>.
 
 If you pass in $perm and $parity, they either must be predeclared PDLs
 of the correct size ($perm is an n-vector, $parity is a scalar) or
@@ -935,8 +935,8 @@ by convention, so a 1-D PDL corresponds to a row vector, not a column
 vector.
 
 If C<$lu> is dense and you have more than a few points to solve for,
-it is probably cheaper to find C<A^-1> with L<inverse|inverse>, and
-just multiply C<X = A^-1 B>.)  In fact, L<inverse|inverse> works by
+it is probably cheaper to find C<A^-1> with L<inverse|/inverse>, and
+just multiply C<X = A^-1 B>.)  In fact, L<inverse|/inverse> works by
 calling lu_backsub with the identity matrix.
 
 lu_backsub is ported from Section 2.3 of I<Numerical Recipes>.  It is 

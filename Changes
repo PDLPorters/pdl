@@ -1,3 +1,6 @@
+CED 14-Apr-2003
+   - By request, headers are now deep-copied recursively.
+   - Removed a debugging printf in PP.pm
 CED 12-Apr-2003
    - Various: Modified header copying to be quasi-deep, rather than 
 	by reference only.  Changes to PP.pm, Core.pm.PL, and some

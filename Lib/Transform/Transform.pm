@@ -30,12 +30,12 @@ object to keep track of arbitrary functions mapping R^N -> R^M
 with or without inverses.  
 
 The simplest way to use a Transform object is to transform vector
-data between coordinate systems.  The L<apply|"apply"> method 
+data between coordinate systems.  The L<apply|/apply> method 
 accepts a PDL whose 0th dimension is coordinate index (all other
 dimensions are threaded over) and transforms the vectors into the new
 coordinate system.  
 
-Transform also includes image resampling, via the L<map|"map"> method,
+Transform also includes image resampling, via the L<map|/map> method,
 You define a coordinate transform using a Transform object, then use
 it to remap an image PDL.  The output is a remapped, resampled image.
 
@@ -44,7 +44,7 @@ all at once to an image.  The image is interpolated only once, when
 all the composed transformations are applied.
 
 In keeping with standard practice, but somewhat counterintuitively,
-the L<map|map> engine uses the inverse transform to map coordinates
+the L<map|/map> engine uses the inverse transform to map coordinates
 FROM the destination dataspace (or image plane) TO the source dataspace;
 hence PDL::Transform keeps track of both the forward and inverse transform.
 
@@ -101,7 +101,7 @@ springboarding is done via explicit ref rather than by subclassing,
 for convenience both in coding new transforms (just add the
 appropriate sub to the module) and in adding custom transforms at
 run-time. Note that, if possible, new C<func>s should support
-L<inplace|inplace> operation to save memory when the data are flagged 
+L<inplace|/inplace> operation to save memory when the data are flagged 
 inplace.  But C<func> should always return its result even when 
 flagged to compute in-place.
 
@@ -195,8 +195,8 @@ There are both operators and constructors.  The constructors are all
 exported, all begin with "t_", and all return objects that are subclasses
 of PDL::Transform.  
 
-The L<apply|"apply">, L<invert|"invert">, L<map|"map">,
-and L<unmap|"unmap"> methods are also exported to the C<PDL> package: they
+The L<apply|/apply>, L<invert|/invert>, L<map|/map>,
+and L<unmap|/unmap> methods are also exported to the C<PDL> package: they
 are both Transform methods and PDL methods.
 
 =cut
@@ -455,7 +455,7 @@ The following options are interpreted:
 =item b, bound, boundary, Boundary (default = 'truncate')
 
 This is the boundary condition to be applied to the input image; it is
-passed verbatim to L<range|range> or L<interpND|interpND> in the
+passed verbatim to L<range|/range> or L<interpND|/interpND> in the
 sampling or interpolating stage.  Other values are 'forbid','extend', and
 'periodic'.  You can abbreviate this to a single letter.  The default 
 'truncate' causes the entire notional space outside the original image
@@ -475,7 +475,7 @@ subsequent dimensions -- or, for a 2-D transformation, the scientific
 pixel aspect ratio.  Values less than 1 shrink the scale in the first
 dimension compared to the other dimensions; values greater than 1
 enlarge it compared to the other dimensions.  (This is the same sense
-as in the L<PDL::Graphics::PGPLOT::Window|"PGPLOT">interface.)
+as in the L<PGPLOT|PDL::Graphics::PGPLOT>interface.)
 
 =item ir, irange, input_range, Input_Range
 
@@ -511,14 +511,14 @@ from fastest to slowest, are:
   
 =over 3
 
-=item * s, sample (default for integers)
+=item s, sample (default for integers)
 
 Pixel values in the output plane are sampled from the closest data value
 in the input plane.  This is very fast but not very accurate for either 
 magnification or decimation (shrinking).  It is the default for templates
 of integer type.
 
-=item * l, linear (default for floats)
+=item l, linear (default for floats)
 
 Pixel values are linearly interpolated from the closst data value in the 
 input plane.  This is reasonably fast but only accurate for magnification.
@@ -526,15 +526,13 @@ Decimation (shrinking) of the image causes aliasing and loss of photometry
 as features fall between the samples.  It is the default for floating-point
 templates.
 
-=item * j, jacobian
+=item j, jacobian
 
 Pixel values are filtered through a spatially-variable filter tuned to the
 computed Jacobian of the transformation.  This is the mathematically
 correct way to deform images and yields very good results -- but 
 at a cost.  It runs perhaps 10 times slower than linear interpolation.
 See the notes on Jacobian tracking, below.
-
-=back
 
 =item e, ecc, eccentricity, Eccentricity (default=4)
 
@@ -1071,7 +1069,7 @@ sub map {
 
 Map an image or N-D dataset using the inverse as a coordinate transform.
 
-This convenience function just inverts $t and calls L<map|"map"> on
+This convenience function just inverts $t and calls L<map|/map> on
 the inverse; everything works the same otherwise.  For convenience, it
 is both a PDL method and a PDL::Transform method.
 
@@ -1280,7 +1278,7 @@ sub compose {
 Shift a transform into a different space by 'wrapping' it with a second.
 
 This is just a convenience function for two
-L<compose|Transform::compose> calls. C<$a->wrap($b)> is the same as
+L<compose|/compose> calls. C<$a->wrap($b)> is the same as
 C<(!$b) x $a x $b>: the resulting transform first hits the data with
 $b, then with $a, then with the inverse of $b.  
 
@@ -1397,7 +1395,7 @@ then valid data exist between the locations (-0.5) and (N-0.5) in
 lookup pixel space, because the pixels (which are numbered from 0 to
 N-1) are centered on their locations.
 
-Lookup is done using L<interpND|interpND>, so the boundary conditions
+Lookup is done using L<interpND|/interpND>, so the boundary conditions
 and threading behaviour follow from that.
 
 The indexed-over dimensions come first in the table, followed by a
@@ -1433,11 +1431,11 @@ corner-centered coordinates if you want to (just feed in o=-0.25).
 
 =item b, bound, boundary, Boundary
 
-Boundary condition to be fed to L<interpND|interpND>
+Boundary condition to be fed to L<interpND|/interpND>
 
 =item m, method, Method
 
-Interpolation method to be fed to L<interpND|interpND>
+Interpolation method to be fed to L<interpND|/interpND>
 
 =back
 
@@ -1867,10 +1865,10 @@ sub PDL::Transform::Linear::stringify {
 
 =for ref
 
-Convenience interface to L<t_linear|t_linear>.
+Convenience interface to L<t_linear|/t_linear>.
 
 t_scale produces a tranform that scales around the origin by a fixed
-amount.  It acts exactly the same as L<t_linear(Scale=><scale>)|t_linear>.
+amount.  It acts exactly the same as C<t_linear(Scale=>\<scale\>)>.
 
 =cut
 
@@ -1894,10 +1892,10 @@ sub t_scale {
 
 =for ref
 
-Convenience interface to L<t_linear|t_linear>.
+Convenience interface to L<t_linear|/t_linear>.
 
 t_offset produces a transform that shifts the origin to a new location.
-It acts exactly the same as L<t_linear(Pre=><shift>)|t_linear>.
+It acts exactly the same as C<t_linear(Pre=>\<shift\>)>.
 
 =cut
 
@@ -1921,10 +1919,10 @@ sub t_offset {
 
 =for ref
 
-Convenience interface to L<t_linear|t_linear>.
+Convenience interface to L<t_linear|/t_linear>.
 
 t_rot produces a rotation transform in 2-D (scalar), 3-D (3-vector), or
-N-D (matrix).  It acts exactly the same as L<t_linear(Rot=><shift>)|t_linear>.
+N-D (matrix).  It acts exactly the same as C<t_linear(Rot=>\<shift\>)>.
 
 =cut
 
@@ -2251,7 +2249,7 @@ EXAMPLES
 
 These examples do transformations back into the same size image as they
 started from; by suitable use of the "transform" option to 
-L<unmap|unmap> you can send them to any size array you like.
+L<unmap|/unmap> you can send them to any size array you like.
 
 Examine radial structure in M51:
 Here, we scale the output to stretch 2*pi radians out to the
@@ -2374,7 +2372,7 @@ Quadratic scaling -- cylindrical pincushion (n-d; with inverse)
 Quadratic scaling emulates pincushion in a cylindrical optical system:
 separate quadratic scaling is applied to each axis.  You can apply
 separate distortion along any of the principal axes.  If you want
-different axes, use L<wrap|wrap> and L<t_linear|t_linear> to rotate
+different axes, use L<wrap|/wrap> and L<t_linear|/t_linear> to rotate
 them to the correct angle.  The scaling options may be scalars or
 vectors; if they are scalars then the expansion is isotropic.
 
@@ -2473,14 +2471,14 @@ and the prime meridian is in the +X direction.  The default is for
 theta and phi to be in radians; you can select degrees if you want
 them.
 
-Just as the L<t_radial|Radial> 2-D transform acts like a 3-D
+Just as the L<t_radial|/t_radial> 2-D transform acts like a 3-D
 cylindrical transform by ignoring third and higher dimensions,
 Spherical acts like a hypercylindrical transform in four (or higher)
-dimensions.  Also as with L<t_radial|Radial>, you must manually specify
+dimensions.  Also as with L<t_radial|/t_radial>, you must manually specify
 the origin if you want to use more dimensions than 3.
 
 To deal with latitude & longitude on the surface of a sphere (rather than
-full 3-D coordinates), see L<t_unitsphere|t_unitsphere>.
+full 3-D coordinates), see L<t_unitsphere|/t_unitsphere>.
 
 OPTIONS:
 
