@@ -40,12 +40,12 @@ $rng->set_seed(666);
 print "ok ".$n++."\n";
 
 # min() function Test: 
-$min = $rng->rmin(); $max = $rng->rmax();
+$min = $rng->min(); $max = $rng->max();
 
 print "ok ".$n++."\n";
 
 # rmax() function Test: 
-$min = $rng->rmin(); $max = $rng->rmax();
+$min = $rng->min(); $max = $rng->max();
 
 print "ok ".$n++."\n";
 
