@@ -1,8 +1,25 @@
+#
+# this script is executed directly from the top-level Makefile.PL
+# (ie before the standard "loop through the directories" behaviour
+#  of the WriteMakefile() call in that file)
+#
 
 use strict;
 
 use Config;
 use File::Basename qw(&basename &dirname);
+
+# parse the command-line values
+# (currently there's only one)
+#
+my $longlong_flag = 0; # defaults (here) to no PDL_LongLong type unless specified
+@ARGV = map {
+    if ( /^TYPES_LONGLONG=(.*)$/ ) {
+	$longlong_flag = $1; ();
+    } else {
+	$_
+    }
+} @ARGV;
 
 # Figure out the 4 byte integer type on this machine
 
@@ -19,6 +36,10 @@ sub typeofPDLi64 {
 
 # Data types *must* be listed in order of complexity!!
 # this is critical for type conversions!!!
+#
+# The PDL_LongLong type is controlled by TYPES_LONGLONG config
+# value in perldl.conf (ie whether it's included or not)
+#
 my @types = (
 	     {
 	      identifier => 'B',
@@ -52,36 +73,46 @@ my @types = (
 	      ppforcetype => 'int',
 	      usenan => 0,
 	      packtype => 'l*',
-	     },
-# the next entry can be uncommented to give you a 64 bit type
+	  });
+
+#
+# Ensure the TYPES_LONGLONG option in perldl.conf is set to 1 to
+# give you a 64 bit type
 # note that the I/O routines have *not* been updated to be aware of
 # such a type yet
-	     {
-	      identifier => 'LL',
-	      onecharident => 'Q',   # only needed if different from identifier
-	      pdlctype => 'PDL_LongLong',
-	      realctype => &typeofPDLi64,
-	      ppforcetype => 'longlong',
-	      usenan => 0,
-	      packtype => 'q*',
-	     },
-	     {
-	      identifier => 'F',
-	      pdlctype => 'PDL_Float',
-	      realctype => 'float',
-	      ppforcetype => 'float',
-	      usenan => 1,
-	      packtype => 'f*',
-	     },
-	     {
-	      identifier => 'D',
-	      pdlctype => 'PDL_Double',
-	      realctype => 'double',
-	      ppforcetype => 'double',
-	      usenan => 1,
-	      packtype => 'd*',
-	     },
-	    );
+#
+if ( $longlong_flag == 1 ) {
+    push @types, ( {
+	identifier => 'LL',
+	onecharident => 'Q',   # only needed if different from identifier
+	pdlctype => 'PDL_LongLong',
+	realctype => &typeofPDLi64,
+	ppforcetype => 'longlong',
+	usenan => 0,
+	packtype => 'q*',
+    } );
+}
+
+# add the remaining types
+#
+push @types, (
+	      {
+		  identifier => 'F',
+		  pdlctype => 'PDL_Float',
+		  realctype => 'float',
+		  ppforcetype => 'float',
+		  usenan => 1,
+		  packtype => 'f*',
+	      },
+	      {
+		  identifier => 'D',
+		  pdlctype => 'PDL_Double',
+		  realctype => 'double',
+		  ppforcetype => 'double',
+		  usenan => 1,
+		  packtype => 'd*',
+	      },
+	      );
 
 sub checktypehas {
   my ($key,@types) = @_;

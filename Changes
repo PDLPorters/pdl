@@ -1,5 +1,9 @@
+DJB (12-Nov-2002)
+    - Added the TYPES_LONGLONG option to perldl.conf: by default it is set to 1
+      which means that PDL will try and compile support for a 64 bit type. Set
+      to 0 if make fails (or fix the code to work with PDL_LongLong types!)
 CS  - NiceSlice doc additions
-    - PDL::Core: squeeze as reshape(-1) alias 
+    - PDL::Core: squeeze as reshape(-1) alias
 CED (11-Nov-2002)
     - Transform.pm updates - conformal radial expansion, better 
 	documentation, better composition, several minor bug fixes
