@@ -1783,10 +1783,13 @@ affected:
   plfill (x, y)
   plhist (data, datmin, datmax, nbin, oldwin)
   plline (x, y)
+  plline3 (x, y, z)
+  plpoly3 (x, y, z, draw, ifcc)
   plmesh (x, y, z, opt)
   plmeshc (x, y, z, opt, clevel)
   plot3d (x, y, z, opt, side)
   plpoin (x, y, code)
+  plpoin3 (x, y, z, code)
   plscmap1l (itype, intensity, coord1, coord2, coord3, rev)
   plstyl (mark, space)
   plsym (x, y, code)
@@ -2285,9 +2288,104 @@ defined_callback (PLFLT x, PLFLT y)
   return retval;
 }
 
+static SV* mapform_subroutine;
+
+static void default_magic (pdl *p, int pa) { p->data = 0; }
+
+static void
+mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
+{
+  pdl *x_pdl, *y_pdl;
+  PLFLT *tx, *ty;
+  SV *x_sv, *y_sv;
+  int dims, i;
+  I32 count, ax;
+  dSP;
+
+  ENTER;
+  SAVETMPS;
+
+  dims = n;
+
+  x_pdl = PDL->pdlnew ();
+  PDL->add_deletedata_magic(x_pdl, default_magic, 0);
+  PDL->setdims (x_pdl, &dims, 1);
+  x_pdl->datatype = PDL_D;
+  x_pdl->data = x;
+  x_pdl->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
+  x_sv = sv_newmortal ();
+  PDL->SetSV_PDL (x_sv, x_pdl);
+
+  y_pdl = PDL->pdlnew ();
+  PDL->add_deletedata_magic(y_pdl, default_magic, 0);  
+  PDL->setdims (y_pdl, &dims, 1);
+  y_pdl->datatype = PDL_D;
+  y_pdl->data = y;
+  y_pdl->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
+  y_sv = sv_newmortal ();
+  PDL->SetSV_PDL (y_sv, y_pdl);
+
+  PUSHMARK (SP);
+  XPUSHs (x_sv);
+  XPUSHs (y_sv);
+  PUTBACK;
+
+  count = call_sv (mapform_subroutine, G_ARRAY);
+
+  SPAGAIN;
+  SP -= count ;
+  ax = (SP - PL_stack_base) + 1;
+
+  if (count != 2)
+    croak ("mapform: must return two piddles");
+
+  tx = (PLFLT*) ((PDL->SvPDLV(ST(0)))->data);
+  ty = (PLFLT*) ((PDL->SvPDLV(ST(1)))->data);
+
+  for (i = 0; i < n; i++) {
+    *(x + i) = *(tx + i);
+    *(y + i) = *(ty + i);    
+  }
+
+  PUTBACK;
+  FREETMPS;
+  LEAVE;
+}
+
 EOH
 
+# plot continental outline in world coordinates
+
+pp_def ('plmap',
+        Pars => 'minlong(); maxlong(); minlat(); maxlat();',
+	OtherPars => 'SV* mapform; char* type;',
+        GenericTypes => [D],
+        Code => '
+           mapform_subroutine = $COMP(mapform);
+	   check_sub_pointer (mapform_subroutine,
+	     "plmap: mapform must be either 0 or a subroutine pointer");
+
+           plmap (SvTRUE ($COMP(mapform)) ? mapform_callback : NULL,
+	     $COMP(type), $minlong(), $maxlong(), $minlat(), $maxlat());'
+       );
+       
+# Plot the latitudes and longitudes on the background
+
+pp_def ('plmeridians',
+        Pars => 'dlong(); dlat(); minlong(); maxlong(); minlat(); maxlat();',
+	OtherPars => 'SV* mapform;',
+        GenericTypes => [D],
+        Code => '
+           mapform_subroutine = $COMP(mapform);
+	   check_sub_pointer (mapform_subroutine,
+	     "plmeridians: mapform must be either 0 or a subroutine pointer");
+
+           plmeridians (SvTRUE ($COMP(mapform)) ? mapform_callback : NULL,
+	     $dlong(), $dlat(), $minlong(), $maxlong(), $minlat(), $maxlat());'
+       );
+
 # Shade regions on the basis of value
+
 pp_def ('plshades',
          Pars => 'z(x,y); xmin(); xmax(); ymin(); ymax();
                   clevel(l); int fill_width(); int cont_color();
