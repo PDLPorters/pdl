@@ -372,15 +372,17 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $a(myfunc(0,$var),1:4)++; # when using functions in slice expressions
                             # use parentheses around args!
 
-  # modifiers
+  # modifiers are specified in a ;-separated trailing block
   $a($a!=3;?)++;            # short for $a->where($a!=3)++
   $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
   $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
-  $new = sequence 3,1,4,1;
-  $b = $n(;-);              # drop all dimensions of size 1
+  $n = sequence 3,1,4,1;
+  $b = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
+  $b = $n(0,0;-|);          # squeeze *and* sever
+  $c = $a(0,3,0;-);         # more compact way of saying $a((0),(3),(0))
 
   # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
-  perldl> use PDL::NiceSlice; 
+  perldl> use PDL::NiceSlice;
   # next one is required, see below
   perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
   perldl> $a(4:5) .= xvals(2);
@@ -500,10 +502,11 @@ section below).
 =head2 Usage with perldl
 
 I<NOTE>: This information only applies to versions of
-L<perldl|perldl> smaller than 1.31 . From v1.31 onwards
-niceslicing is enabled by default. See L<perldl> for details.
+L<perldl|perldl> earlier than 1.31 . From v1.31 onwards
+niceslicing is enabled by default, i.e.
+I<it should just work>. See L<perldl> for details.
 
-To use the filter in the C<perldl> shell you need to
+For pre v1.31 C<perldl>s you need to
 add the following two lines to your F<.perldlrc> file:
 
    use PDL::NiceSlice;
@@ -525,6 +528,8 @@ Similarly, switch reporting off as needed
 
 Note that these commands will only work if you included
 the contents of F<local.perldlrc> in your perldl startup file.
+In C<perldl> v1.31 and later these commands are available by
+default.
 
 =head2 evals and C<PDL::NiceSlice>
 
@@ -795,22 +800,31 @@ Yes, PDL gives new meaning to smileys.
 
 =back
 
-=head2 combining modifiers
+=head2 Combining modifiers
 
-Several modifiers can be used simultaneously, e.g.
+Several modifiers can be used in the same expression, e.g.
 
   $c = $a(0;-|); # squeeze and sever
 
-The notable exception is the C<where> modifier (C<?>) which must not
+Other combinations are just as useful, e.g. C<;_|> to flatten and
+sever. The sequence in which modifiers are specified is not important.
+
+A notable exception is the C<where> modifier (C<?>) which must not
 be combined with other flags (let me know if you see a good reason
-to relax this rule). Repeating a modifier will raise an error:
+to relax this rule).
+
+Repeating any modifier will raise an error:
 
   $c = $a(-1:1;|-|); # will cause error
+ NiceSlice error: modifier | used twice or more
 
-Modifiers are a new and experimental feature of C<PDL::NiceSlice>. So
-don't be surprised if things don't work quite as expected.
-Feedback is welcome as usual. The modifier syntax may change
-in the future.
+Modifiers are still a new and experimental feature of
+C<PDL::NiceSlice>. I am not sure how many of you are actively using
+them. I<Please do so and experiment with the syntax>. I think
+modifiers are very useful and make life a lot easier.  Feedback is
+welcome as usual. The modifier syntax will likely be further tuned in
+the future but we will attempt to ensure backwards compatibility
+whenever possible.
 
 =head2 Argument formats
 
@@ -1051,7 +1065,7 @@ E<lt>pdl-porters@jach.hawaii.eduE<gt>.
 
 =head1 COPYRIGHT
 
-Copyright (c) 2001, Christian Soeller. All Rights Reserved.
+Copyright (c) 2001, 2002 Christian Soeller. All Rights Reserved.
 This module is free software. It may be used, redistributed
 and/or modified under the same terms as PDL itself
 (see http://pdl.perl.org).
