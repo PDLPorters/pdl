@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+CS	- debian stuff
+	- image rotation (rot2d)
+	- karma  kimagergb renamed to krgb
+		krgb -> can send 3d RGB piddles now (i.e. [3,x,y,z] piddles)
 CS	- quick (and semi-dirty) inplace fix for ops.pd
 	- slices.pd: fix xchg,mv not catching negative dims,
 			treat neg dim indices like neg perl array indices

@@ -677,6 +677,75 @@ sub PDL::polyfillv {
 
 EOPM
 
+pp_addhdr('#include "rotate.c"'."\n\n");
+pp_add_exported('','rotnewsz');
+pp_addxs('
+
+void
+rotnewsz(m,n,angle)
+	int m
+	int n
+	float angle
+	PPCODE:
+	int newcols, newrows;
+
+	if (getnewsize(m,n,angle,&newcols,&newrows) != 0)
+		croak("wrong angle (should be between -90 and +90)");
+	EXTEND(sp,2);
+	PUSHs(sv_2mortal(newSVnv(newcols)));
+	PUSHs(sv_2mortal(newSVnv(newrows)));
+');
+
+pp_def('rot2d',
+	Pars => 'im(m,n); float angle(); bg(); int aa(); [o] om(p,q)',
+	Code => 'int ierr;
+		 if ((ierr = rotate($P(im),$P(om),$SIZE(m),$SIZE(n),$SIZE(p),
+			$SIZE(q),$angle(),$bg(),$aa())) != 0)
+			if (ierr == -1)
+				croak("error during rotate, wrong angle");
+			else
+				croak("wrong output dims, did you set them?");
+		',
+	# ugly workaround since $SIZE(m) and $SIZE(n) are not initialized
+	# when the redodimscode is called
+	# need to fix this!
+	RedoDimsCode => 'int ncols, nrows;
+			if ($PDL(im)->ndims < 2)
+				croak("need > 2d piddle");
+			if (getnewsize($PDL(im)->dims[0],$PDL(im)->dims[1],
+				$angle(), &ncols,
+				&nrows) != 0) 
+			   croak("error during rotate, wrong angle");
+			/* printf("o: %d, p: %d\n",ncols,nrows); */
+			$SIZE(p) = ncols;
+			$SIZE(q) = nrows;',
+	GenericTypes => [B],
+	Doc => << 'EOD',
+=for ref
+
+rotate an image by given C<angle>
+
+=for example
+
+  # rotate by 10.5 degrees with antialiasing, set missing values to 7
+  $rot = $im->rot2d(10.5,7,1);
+
+This function rotates an image through an C<angle> between -90 and + 90
+degrees. Uses/doesn't use antialiasing depending on the C<aa> flag.
+Pixels outside the rotated image are set to C<bg>.
+
+Code modified from pnmrotate (Copyright Jef Poskanzer) with an algorithm based
+on "A Fast Algorithm for General  Raster  Rotation"  by  Alan Paeth,
+Graphics Interface '86, pp. 77-81.
+
+Use the C<rotnewsz> function to find out about the dimension of the
+newly created image
+
+  ($newcols,$newrows) = rotnewsz $oldn, $oldm, $angle;
+
+EOD
+);
+
 pp_def('bilin2d',
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',

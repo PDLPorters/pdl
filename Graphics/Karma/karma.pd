@@ -170,7 +170,7 @@ use vars qw($LASTAPP);
 $LASTAPP = 'kview'; # Default application
 ENDOFPM
 
-pp_add_exported('','kim kimagergb kstarted kcur');
+pp_add_exported('','kim krgb kstarted kcur');
 
 pp_addpm(<<'ENDOFPM');
 
@@ -247,11 +247,11 @@ sub kstarted {
 }
 
 
-=head2 kimagergb
+=head2 krgb
 
 =for usage
 
-kimagergb($lut, [$karma-app])
+krgb($lut, [$karma-app])
 
 =for ref
 
@@ -262,9 +262,13 @@ Does not change current default viewer.
 
 =cut
 
-sub kimagergb {
-barf('Usage: kimagergb($lut, [$karma-app])') if $#_==-1;
-$#_==0? kimagergb_private(@_,$LASTAPP) : kimagergb_private(@_)
+sub krgb {
+  barf('Usage: krgb($lut, [$karma-app])') if $#_==-1;
+  my @args = @_;
+  push @args, $LASTAPP if $#_==0; 
+  barf "must be [3,..] rgb piddle" unless $args[0]->getdim(0) == 3;
+  if ($args[0]->getndims <= 3) { krgb_private(@args) } else {
+	krgb3d_private(@args)}
 };
 
 ENDOFPM
@@ -512,7 +516,7 @@ pp_def('ksend3D',
 );
 
 
-pp_def( 'kimagergb_private',
+pp_def( 'krgb_private',
 	Pars => 'im(m,n,o)', Doc=>undef,
 	OtherPars => 'char* karma_app;',
 	Code => q@int ms=$SIZE(m);
@@ -551,6 +555,55 @@ pp_def( 'kimagergb_private',
 		      %}
 		    %}
 		  %}
+		  dsxfr_put_multi("connections",multi_desc);
+		%}
+
+		ds_dealloc_multi(multi_desc);
+                conn_close(conn_get_client_connection("multi_array",0));@
+);
+
+pp_def( 'krgb3d_private',
+	Pars => 'im(m,n,o,p)', Doc=>undef,
+	OtherPars => 'char* karma_app;',
+	Code => q@int ms=$SIZE(m);
+		 multi_array *multi_desc;
+    		 char *array;
+		 uaddr lengths[3];
+                 static unsigned int elem_types[3] =
+                     {K_UBYTE, K_UBYTE, K_UBYTE};
+                 static char *elem_names[3] =
+                   {"Red Intensity", "Green Intensity", "Blue Intensity"};
+
+		 if (ms != 3)
+		     barf("first dim must be 3 for rgb");
+		 lengths[0] = $SIZE(p);
+		 lengths[1] = $SIZE(o);
+		 lengths[2] = $SIZE(n);
+
+		 /* check if we can use the 'preallocated' equivalent */
+    		 if ( ( array = ds_easy_alloc_n_element_array
+	   		(&multi_desc, 3, lengths,
+	    		(CONST double *) NULL, (CONST double *) NULL,
+	    		(CONST char **) NULL, 3, elem_types,
+	    		(CONST char **) elem_names) ) == NULL )
+    		 {
+			barf("couldn\'t allocate mem for multi array");
+		 }
+
+		 if (!ensure_connection($COMP(karma_app)))
+                      barf("Error connecting to %s via karma communications",
+				$COMP(karma_app));
+
+		threadloop %{
+		  loop(p) %{
+		    loop(o) %{
+		      loop(n) %{
+		        loop(m) %{
+			  *array++ = $im();
+		        %}
+		      %}
+		    %}
+		%}
 		  dsxfr_put_multi("connections",multi_desc);
 		%}
 

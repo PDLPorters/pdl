@@ -1,0 +1,191 @@
+pdl (2.005-2) frozen; urgency=medium
+
+  * Argh, forgot to fix t/gauss.t -- this is required
+    for Bug#55268 to really be fixed.
+
+ -- Raul Miller <moth@debian.org>  Tue, 25 Apr 2000 13:45:28 -0400
+
+pdl (2.005-1) frozen; urgency=medium
+
+  * new bugfix upstream version
+  * two hacks:  (1) disable #ifdef in Basic/Math/mconf.h which includes 
+    <nan.h> on our linux alpha, (2) disable test which shows that guassian 
+    doesn't work properly on our linux alpha.  (Fixes Bug#55268)
+   
+ -- Raul Miller <moth@debian.org>  Mon, 17 Apr 2000 08:17:18 -0400
+
+pdl (2.003-1) unstable; urgency=low
+
+  * new upstream version
+
+ -- Raul Miller <moth@debian.org>  Mon,  1 Nov 1999 07:16:55 -0500
+
+pdl (2.002-3) unstable; urgency=low
+
+  * new maintainer
+  * recreated source package, unpack in pdl-2.002 instead of PDL-2.002
+    [this oddity in source package accounts for earlier diff problems].  
+    (Fixes #45771).
+  * do "make test" at build time
+  * removed suggests jpeg-progs, I can't find any such package
+  * removed suggests pgperl, there's a well labeled demo that fails
+    and that should be enough of a suggestion for people who would want
+    this non-free support.  If there's demand, and if special compilation
+    support turns out to be needed, I supposed I'll have to create
+    a pdl-nonfree...
+
+ -- Raul Miller <moth@debian.org>  Sun, 10 Oct 1999 19:20:09 -0400
+
+pdl (2.002-2) unstable; urgency=low
+
+  * added depends on libterm-readkey-perl
+  
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Sun,  8 Aug 1999 14:25:39 -0700
+  
+  pdl (2.002-1) unstable; urgency=low
+
+  * New upstream
+  * Build with new perl 5.005 package
+  * fixes #40433 with workaround for error in Bessel functions in 
+    libc6 2.1
+  * Fixes #36402, docs are now made at build time and are purged
+    with dpkg --purge. Also previous cruft from old versions is purged 
+    in preinst.
+  * Fixes #38429, typo in Depends
+  
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 25 Jun 1999 17:52:33 -0700
+  
+pdl (2.001-1) unstable; urgency=low
+
+  * New upstream
+  * Add r-pdl code (merging r-pdl package)
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Wed, 21 Apr 1999 14:47:54 -0700
+
+pdl (2.0-2) unstable; urgency=low
+
+  *  link with glibc 2.1.1
+  *  add menu entry
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Thu, 25 Mar 1999 01:52:12 -0700 
+
+pdl (2.0-1) unstable; urgency=low
+
+  *  new upstream version
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Mon, 25 Jan 1999 16:59:48 -0700 	
+
+pdl (1.99988-5) unstable frozen; urgency=low
+
+  *  html docs were put in wrong place.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Tue,  8 Dec 1998 03:39:42 -0700
+
+pdl (1.99988-4) unstable frozen; urgency=low
+
+  * Some package (mesa?) change and broke the build
+    Add X11 include path by hand.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri,  6 Nov 1998 22:03:17 -0700
+
+pdl (1.99988-3) unstable; urgency=low
+
+  * link against mesag3.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Sun, 25 Oct 1998 01:32:34 -0700
+
+pdl (1.99988-2) unstable; urgency=low
+
+  * Make rules less i386-centric
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Tue,  6 Oct 1998 11:44:39 -0700
+	
+pdl (1.99988-1) unstable; urgency=low
+
+  * New minor revision
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri,  2 Oct 1998 00:00:03 -0700
+
+pdl (1.99985-1) unstable; urgency=low
+
+  * New minor revision
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 31 Jul 1998 14:24:09 -0700
+	
+pdl (1.9906-1) frozen unstable; urgency=low
+
+  * New minor revision
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri,  1 May 1998 15:29:16 -0700
+
+pdl (1.9905-1) unstable; urgency=low
+
+  * New minor revision
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 24 Apr 1998 16:17:42 -0700
+
+pdl (1.9904-1) unstable; urgency=low
+
+  * New minor revision
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Mon, 13 Apr 1998 13:45:34 -0700
+
+pdl (1.9902-2) unstable; urgency=low
+
+  * suggests mesag2 not mesa2
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Mon, 13 Apr 1998 13:45:34 -0700
+
+pdl (1.9902-1) unstable; urgency=low
+
+  * Upstream minor revision.
+  * Note doc lookup was still broken in 1.9901
+  * Changed architecture from i386 to any
+  * Fixed doc lookup, I hope
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Mon, 23 Mar 1998 15:31:34 -0700
+
+pdl (1.9901-2) unstable; urgency=low
+
+  * Fixed online doc lookup.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Sat, 14 Mar 1998 18:21:28 -0700
+
+
+pdl (1.9901-1) unstable; urgency=low
+
+  * New upstream minor version including ...
+  * New Free license.
+  * Bug fixes, doc improvements
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Mon,  9 Mar 1998 12:53:32 -0700
+
+pdl (1.9900-1) non-free; urgency=low
+
+  * New upstream release
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 27 Feb 1998 16:42:27 -0700
+
+
+pdl (1.95.07-3) non-free; urgency=low
+
+  * removed perllocal.pod; only for local build
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 23 Jan 1998 22:04:49 -0700
+
+pdl (1.95.07-2) non-free; urgency=low
+
+  * existed a debstd bug; upgraded debstd and repackaged.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 23 Jan 1998 21:09:05 -0700
+
+pdl (1.95.07-1) non-free; urgency=low
+
+  * Initial Release.
+
+ -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 16 Jan 1998 19:32:22 -0700
+
+Local variables:
+mode: debian-changelog
+add-log-mailing-address: "lapeyre@physics.arizona.edu"
+End:

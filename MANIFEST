@@ -1,3 +1,15 @@
+Release_Notes
+Lib/Image2D/rotate.c
+debian/README.debian
+debian/buildnotes
+debian/changelog
+debian/control
+debian/copyright
+debian/pdl-menu
+debian/postinst
+debian/postrm
+debian/preinst
+debian/rules
 Basic/AutoLoader.pm
 Basic/Complex/Makefile.PL
 Basic/Complex/complex.pd

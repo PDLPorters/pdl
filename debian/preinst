@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+echo Checking for bad files in previous version of pdl.
+if [ -d /usr/lib/perl/PDL ] ; then 
+   echo bad directory /usr/lib/perl/PDL is present-- removing ...;
+   rm -rf /usr/lib/perl/PDL ;
+else
+   echo good, bad directory /usr/lib/perl/PDL does not exist;
+fi
+echo Checking for leftover files from previous versions of pdl
+if [ -d /usr/lib/perl5/PDL ]; then
+    echo Removing /usr/lib/perl5/PDL ...;
+    rm -rf /usr/lib/perl5/PDL;
+fi
+
+
+echo Ok, continuing installation of pdl
