@@ -74,7 +74,7 @@ Device manipulation commands:
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset.
+zero-offset. The C<transform()> routine can be used to create this piddle.
 
 For completeness: The transformation array connect the pixel index to a
 world coordinate such that:
@@ -633,7 +633,8 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
@@ -899,7 +900,8 @@ Display image as contour map
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 Options recognised:
 
@@ -1156,7 +1158,8 @@ Display 2 images as a vector field
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
 and C<$b> the vertical component.
@@ -1191,7 +1194,7 @@ Create transform array for contour and image plotting
 
 =for usage
 
- Usage: transform([$xdim], [$ydim], $options);
+ Usage: transform([$xdim,$ydim], $options);
 
 This function creates a transform array in the format required by the image
 and contouring routines. You must call it with the dimensions of your image
@@ -1206,7 +1209,7 @@ The rotation angle of the transform
 =item ImageDimensions
 
 The dimensions of the image the transform is required for. The dimensions
-should be passed as a reference to an anonymous hash.
+should be passed as a reference to an array.
 
 =item Pixinc
 
@@ -1218,6 +1221,26 @@ The centre of the image as an anonymous array  B<or> as a scalar. In the
 latter case the x and y value for the center will be set equal to this
 scalar. This is particularly useful in the common case  when the center
 is (0, 0).
+
+=item PosReference
+
+If you wish to set a pixel other than the image centre to a given
+value, use this option. It should be supplied with a reference to an array
+containing 2 2-element array references, e.g.
+
+ PosReference => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
+
+This will label pixel C<($xpix,$ypix)> as being at position
+C<($xplot,$yplot)>. The C<ImageCentre> option can be considered
+to be a special case of this option, since the following are identical
+(although one is a lot easier to type ;)
+
+ ImageCentre => [ $xc, $yc ]
+ PosReference => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
+
+The values supplied in C<ImageCentre> are used 
+if I<both> C<ImageCentre> and C<PosReference> are supplied in the
+options list.
 
 =back
 
@@ -1652,6 +1675,12 @@ sub _setup_window {
   }
 #  $self->{AspectRatio}=$aspect;
 #  $self->{WindowWidth}=$width;
+
+  # stop perl complaining when 'use strict' is on.
+  # I am assuming that setting them to 0 is correct in this case
+  # (Doug 03/14/01)
+  $aspect = 0 unless defined $aspect;
+  $width  = 0 unless defined $width;
 
   # grab whatever width fits the aspect ratio.
   # for PGPLOT, pgpap() does this automatically.
@@ -2650,28 +2679,35 @@ sub env {
 
 
 {
+    use strict;
     my $transform_options = undef;
 
     sub transform {
 	# Compute the transform array needed in contour and image plotting
 	my $self = shift;
-	my ($xpix, $ypix)=@_;
+
 	if (!defined($transform_options)) {
 	  $transform_options = 
 	    $self->{PlotOptions}->extend({Angle => undef,
 					  ImageDims => undef,
 					  Pixinc => undef,
-					  ImageCenter => undef});
+					  ImageCenter => undef,
+					  PosReference => undef,
+					  });
 	  $transform_options->synonyms({ImageDimensions => 'ImageDims',
 					ImageCentre => 'ImageCenter'});
 	}
 
+	# parse the input
 	my ($in, $opt)=_extract_hash(@_);
+	my ($x_pix, $y_pix)= @$in; 
+
+	# handle options
 	$opt = {} if !defined($opt);
 	my ($o, $u_opt) = $self->_parse_options($transform_options, $opt);
 	$self->_standard_options_parser($u_opt);
 
-	my ($angle, $x_pixinc, $y_pixinc, $x_cen, $y_cen);
+	my ($angle, $x_pixinc, $y_pixinc, $xref_pix, $yref_pix, $xref_wrld, $yref_wrld);
 	if (defined($o->{Angle})) {
 	    $angle = $o->{Angle};
 	}
@@ -2691,12 +2727,14 @@ sub env {
 	    $x_pixinc = $y_pixinc = 1;
 	}
 
-	if (defined $o->{ImageDims} && ref($o->{ImageDims}) eq 'ARRAY') {
-	    ($x_pix, $y_pix) = @{$o->{ImageDims}};
-	}
-	else {
-	    barf "Image dimensions must be given as an array reference!";
-	}
+	if ( defined $o->{ImageDims} ) {
+	    if ( ref($o->{ImageDims}) eq 'ARRAY' ) {
+		($x_pix, $y_pix) = @{$o->{ImageDims}};
+	    }
+	    else {
+		barf "Image dimensions must be given as an array reference!";
+	    }
+	} 
 	
 	# The user has to pass the dimensions of the image somehow, so this
 	# is a good point to check whether he/she/it has done so.
@@ -2704,25 +2742,57 @@ sub env {
 	  barf "You must pass the image dimensions to the transform routine\n";
 	}
 
+	# The PosReference option gives more flexibility than
+	# ImageCentre, since ImageCentre => [ a, b ] is the same 
+	# as PosReference => [ [(nx-1)/2,(ny-1/2)], [a,b] ].
+	# We use ImageCentre in preference to PosReference
+	#
 	if (defined $o->{ImageCenter}) {
-	    if (ref($o->{ImageCenter}) eq 'ARRAY') {
-	        ($x_cen, $y_cen) = @{$o->{ImageCenter}};
+	    print "transform() ignoring PosReference as seen ImageCentre\n"
+		if defined $o->{PosReference} and $PDL::verbose;
+	    my $ic = $o->{ImageCenter};
+	    if (ref($ic) eq 'ARRAY') {
+	        ($xref_wrld, $yref_wrld) = @{$ic};
 	    }
 	    else {
-		$x_cen = $y_cen = $o->{ImageCenter};
+		$xref_wrld = $yref_wrld = $ic;
 	    }
+	    $xref_pix = ($x_pix - 1)/2;
+	    $yref_pix = ($y_pix - 1)/2;
+	}
+	elsif ( defined $o->{PosReference} ) {
+	    my $aref = $o->{PosReference};
+	    barf "PosReference option must be sent an array reference.\n"
+		unless ref($aref) eq 'ARRAY';
+	    barf "PosReference must be a 2-element array reference\n"
+		unless $#$aref == 1;
+	    my $pixref  = $aref->[0];
+	    my $wrldref = $aref->[1];
+	    barf "Elements of PosReference must be 2-element array references\n"
+		unless $#$pixref == 1 and $#$wrldref == 1;
+
+	    ($xref_pix,  $yref_pix)  = @{$pixref};
+	    ($xref_wrld, $yref_wrld) = @{$wrldref};
 	}
 	else {
-	    $x_cen = $y_cen = 0;
+	    $xref_wrld = $yref_wrld = 0;
+	    $xref_pix = ($x_pix - 1)/2;
+	    $yref_pix = ($y_pix - 1)/2;
 	}
-	$tr = pdl(-($x_pix - 1)/2*$x_pixinc*cos($angle) -
-		  ($y_pix - 1)/2*$y_pixinc*sin($angle) + $x_cen,
-		  $x_pixinc*cos($angle),
-		  $y_pixinc*sin($angle),
-		  ($x_pix - 1)/2*$x_pixinc*sin($angle) -
-		  ($y_pix - 1)/2*$y_pixinc*cos($angle) + $y_cen,
-		  -$x_pixinc*sin($angle),
-		  $y_pixinc*cos($angle))
+
+	my $ca = cos( $angle );
+	my $sa = sin( $angle );
+	my $t1 = $x_pixinc * $ca;
+	my $t2 = $y_pixinc * $sa;
+	my $t4 = - $x_pixinc * $sa;
+	my $t5 = $y_pixinc * $ca;
+
+	return pdl( 
+		   $xref_wrld - $t1 * $xref_pix - $t2 * $yref_pix,
+		   $t1, $t2,
+		   $yref_wrld - $t4 * $xref_pix - $t5 * $yref_pix,
+		   $t4, $t5
+		   ); 
     }
 }
 

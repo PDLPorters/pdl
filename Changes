@@ -1,3 +1,7 @@
+DJB (14/Mar/01)
+    - PGPLOT::Window changes: addressed "undefined window size" part
+      of bug #406858; added PosReference option + minor bug fix
+      to transform()
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
       Halldór Olafsson and Vince McIntyre (bug #233484)
