@@ -20,6 +20,19 @@ Problems:
 Suggestions/To do:
 ================
 
+.) NaN support - this would make it *much* faster on machines which
+   support it. See the section in IMPLEMENTATION.bpix
+
+.) With the current scheme, it would be possible to have a per-piddle
+   bad value. However, new piddles would use the default values.
+   All it would need (I think) is for newly-created piddles to have
+   their badvalue set to the default value -- I'm just not sure
+   when new piddles are created within the C code! Then PdlParObj's
+   get_xsdatapdecl() method needs changing to access the per-piddle
+   bad value rather than the values stored in the PDL->bvals
+   structure. The actual code wouldn't need changing, as long as it 
+   was written using the $ISGOOD/ISBAD/SETBAD macros.
+
 .) 'bad-ify' the rest of the code...
 
 .) $pdl->badvalue(23) should change the bad value in $pdl to 23
@@ -68,16 +81,6 @@ Suggestions/To do:
    is called, so I've included a check that prints a message to STDERR
    if it's called with a bad piddle. This will need removing at some
    point as it's wasted space...
-
-.) With the current scheme, it would be possible to have a per-piddle
-   bad value. However, new piddles would use the default values.
-   All it would need (I think) is for newly-created piddles to have
-   their badvalue set to the default value -- I'm just not sure
-   when new piddles are created within the C code! Then PdlParObj's
-   get_xsdatapdecl() method needs changing to access the per-piddle
-   bad value rather than the values stored in the PDL->bvals
-   structure. The actual code wouldn't need changing, as long as it 
-   was written using the $ISGOOD/ISBAD/SETBAD macros.
 
 .) comparison operators in ops.pd - how should they handle bad pixels?
    ie is (a > badval) true, false, or what. Well, we could have

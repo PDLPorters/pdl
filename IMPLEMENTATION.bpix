@@ -164,8 +164,19 @@ produces NaN, and does it quickly (apparently).
 
 Basically, PP.pm would ignore the BadCode/BadBackCode/etc pp_def()
 options, just using the Code/... options instead. The supporting code
-would still be used. Perhaps it would be necessary to provide NaNCode/...
-options in case falling back to Code is not sufficient in certain cases.
+would still be used (ie for setting the bad flag on output piddles etc).
+I would add a rule 'NaNFlag' to PP.pm - something similar to 'BadFlag'
+which is true of $bvalflag is true and the system supports NaN. This
+would then be added to the requirements for the rules which use BadCode/
+whatever and then it's just a case of updating the subroutines.
+
+Some routines would still need explicit code to handle NaN values (eg min, 
+max, median - see primitive.pd). In these cases I would suggest adding 
+something like 'BadtoNaN => 1' to the pp_def, in which case PP.pm would
+actually use the BadCode/BadBackCode/... sections (since they should work
+without modification - PP/PDLCode.pm would just need to be able to 
+produce different output fro the $ISBAD/... macros). If a routine has
+no BadtoNaN rule then we can just use the Code section, ignoring BadCode/etc.
 
 I'd love someone to try this.
 
