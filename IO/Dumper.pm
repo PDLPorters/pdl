@@ -314,8 +314,9 @@ sub PDL::IO::Dumper::stringify_PDL{
  
   ## Assemble all the strings and bracket with a pdl() call.
   
-  $s = "pdl( (" . join(   "),(" , @s  ) .   ") ) "
-    ." -> ".$t." -> reshape(" . join(",",$pdl->dims) . ")";
+  $s = ($PDL::IO::Dumper::stringify_formats{$t}?$t:'pdl').
+       "(" . join(   "," , @s  ) .   ")".
+       (($_->getndims > 1) && ("->reshape(" . join(",",$pdl->dims) . ")"));
 
   return $s;
 }
@@ -397,9 +398,9 @@ sub PDL::IO::Dumper::dump_PDL {
 #    print "hdr: ",$_->gethdr()," keys:",scalar(keys(%{$_->gethdr()})),"\n";
 
     if( (defined ($_->gethdr())) && scalar(keys(%{$_->gethdr()}))) {
-      push(@s,"\$$pdlid->sethdr( eval <<'FooBar'\n",
+      push(@s,"\$$pdlid->sethdr( eval <<'FooBar${pdlid}'\n",
 	   &PDL::IO::Dumper::sdump($_->gethdr()),
-	   "\nFooBar\n);\n",
+	   "\nFooBar${pdlid}\n);\n",
 	   "\$$pdlid->hdrcpy(".$_->hdrcpy().");\n"
 	   );
     }
