@@ -78,6 +78,8 @@ as long as they are IMAGE extensions - this module does not
 do FITS tables!
 
 FITS Headers stored in piddle and can be retrived with $a->gethdr.
+The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
+header is copied to new piddles.
 
 This header is a reference to a hash where the hash keys are the 
 keywords in the FITS header. It is important to note that for strings, 
@@ -302,6 +304,7 @@ pp_addpm(<<'!NO!SUBS!');
 
    # Header
    $pdl->sethdr($foo);
+   $pdl->hdrcpy(1);
 
    return $pdl;
 }

@@ -3,6 +3,8 @@ Doug Burke (18/10/00)
     - added warp2d (+ supporting fns) to PDL::Image2D. This allows
       images to be resampled using 2D polynomials as basis functions.
     - (19/10/00) bug fixes & clean up of documentation for above
+    - rfits() now sets hdrcpy flag of piddle (so that the FITS header is 
+      copied to new piddles).
 Doug Burke
 !!! - moved PDL::Type object from PDL::Core to PDL::Types. This shouldn't
       affect most people.
