@@ -26,60 +26,109 @@ pp_addhdr('
 #define NOTHING
 ');
 
-my $pars1 = 'a(); b(); [o]c();';
-my $pars2 = 'a(); [o]b()';
+# simple binary operators
+sub biop {
+	my ($name,$op,$swap,%extra) = @_;
+	if ($swap) {
+	  $extra{HdrCode} = << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	pp_def($name,
+		Pars => 'a(); b(); [o]c();',
+		OtherPars => 'int swap',
+		Code => "\$c() = \$a() $op \$b();",
+		%extra);
+}
 
-# bifuncs
-pp_def ('plus',       Pars => $pars1, OtherPars => 'int swap', Code => '$c() = $a() + $b();');
-pp_def ('multiply',   Pars => $pars1, OtherPars => 'int swap', Code => '$c() = $a() * $b();');
+#simple binary functions
+sub bifunc {
+	my ($name,$func,$swap,%extra) = @_;
+	if ($swap) {
+	  $extra{HdrCode} = << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	pp_def($name,
+		Pars => 'a(); b(); [o]c();',
+		OtherPars => 'int swap',
+		Code => "\$c() = $func(\$a(),\$b());",
+		%extra);
+}
 
-pp_def ('minus',      Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() - $a(); else $c() = $a() - $b();');
-pp_def ('divide',     Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() / $a(); else $c() = $a() / $b();');
-
-pp_def ('gt',         Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() >  $a(); else $c() = $a() >  $b();');
-pp_def ('lt',         Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() <  $a(); else $c() = $a() <  $b();');
-pp_def ('le',         Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() <= $a(); else $c() = $a() <= $b();');
-pp_def ('ge',         Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = $b() >= $a(); else $c() = $a() >= $b();');
-
-pp_def ('eq',         Pars => $pars1, OtherPars => 'int swap', Code => '$c() = $b() == $a();');
-pp_def ('ne',         Pars => $pars1, OtherPars => 'int swap', Code => '$c() = $b() != $a();');
-
-pp_def ('shiftleft',  Pars => $pars1, OtherPars => 'int swap', 
-	GenericTypes => [B,U,S,L], Code => 'if ($COMP(swap)) $c() = $b() << $a(); else $c() = $a() << $b();');
-pp_def ('shiftright', Pars => $pars1, OtherPars => 'int swap', 
-	GenericTypes => [B,U,S,L], Code => 'if ($COMP(swap)) $c() = $b() >> $a(); else $c() = $a() >> $b();');
-
-pp_def ('orop',       Pars => $pars1, OtherPars => 'int swap', GenericTypes => [B,U,S,L], Code => '$c() = $b() | $a();');
-pp_def ('andop',      Pars => $pars1, OtherPars => 'int swap', GenericTypes => [B,U,S,L], Code => '$c() = $b() & $a();');
-pp_def ('xor',        Pars => $pars1, OtherPars => 'int swap', GenericTypes => [B,U,S,L], Code => '$c() = $b() ^ $a();');
-pp_def ('bitnot',     Pars => $pars2, OtherPars => 'int swap', GenericTypes => [B,U,S,L], Code => '$b() = ~$a();');
+# simple unary functions and operators
+sub ufunc {
+	my ($name,$func,%extra) = @_;
+	pp_def($name,
+		Pars => 'a(); [o]b()',
+		Code => "\$b() = $func(\$a());",
+		%extra);
+}
 
 
-pp_def ('power',      Pars => $pars1, OtherPars => 'int swap', 
-	GenericTypes => [D], Code => 'if ($COMP(swap)) $c() = pow($b(),$a());   else $c() = pow($a(),$b());');
-pp_def ('atan2',      Pars => $pars1, OtherPars => 'int swap', 
-	GenericTypes => [D], Code => 'if ($COMP(swap)) $c() = atan2($b(),$a()); else $c() = atan2($a(),$b());');
-pp_def ('modulo',     Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = MOD($b(),$a());   else $c() = MOD($a(),$b());');
-pp_def ('spaceship',  Pars => $pars1, OtherPars => 'int swap', Code => 'if ($COMP(swap)) $c() = SPACE($b(),$a()); else $c() = SPACE($a(),$b());');
+## arithmetic ops
+# no swap
+biop('plus','+',0);
+biop('mult','*',0);
 
-# ufuncs
+# all those need swapping
+biop('minus','-',1);
+biop('divide','/',1);
 
-pp_def ('sqrt',       Pars => $pars2, Code => '$b() = sqrt($a());');
-pp_def ('abs',        Pars => $pars2, GenericTypes => [D,F,S,L],Code => '$b() = ABS ($a());');
-pp_def ('sin',        Pars => $pars2, Code => '$b() = sin ($a());');
-pp_def ('cos',        Pars => $pars2, Code => '$b() = cos ($a());');
+## comparison ops
+# need swapping
+biop('gt','>',1);
+biop('lt','<',1);
+biop('le','<=',1);
+biop('ge','>=',1);
+# no swap required
+biop('eq','==',0);
+biop('ne','!=',0);
 
-pp_def ('not',        Pars => $pars2, Code => '$b() = !$a();');
+## bit ops
+# those need to be limited to the right types
+my $T = [B,U,S,L]; # the sensible types here
+biop('shiftleft','<<',1,GenericTypes => $T);
+biop('shiftright','>>',1,GenericTypes => $T);
+biop('orop','|',0,GenericTypes => $T);
+biop('andop','&',0,GenericTypes => $T);
+biop('xor','^',0,GenericTypes => $T);
 
-pp_def ('log',        Pars => $pars2, GenericTypes => [D], Code => '$b() = log($a());');
-pp_def ('exp',        Pars => $pars2, GenericTypes => [D], Code => '$b() = exp($a());');
+# really an ufunc
+ufunc('bitnot','~',GenericTypes => $T);
+
+# some standard binary functions
+bifunc('power','pow',1,GenericTypes => [D]);
+bifunc('atan2','atan2',1,GenericTypes => [D]);
+bifunc('modulo','MOD',1);
+bifunc('spaceship','SPACE',1);
+
+# some standard unary functions
+ufunc('sqrt','sqrt');
+ufunc('abs','ABS',GenericTypes => [D,F,S,L]);
+ufunc('sin','sin');
+ufunc('cos','cos');
+ufunc('not','!');
+ufunc('log','log',GenericTypes => [D]);
+ufunc('exp','exp',GenericTypes => [D]);
 
 pp_addpm({At=>Bot},<<'EOPM');
 
 =head1 AUTHOR
 
-Doug Hunt (dhunt@ucar.edu), Tuomas J. Lukka (lukka@fas.harvard.edu) and Karl Glazebrook
-(kgb@aaoepp.aao.gov.au).
+Doug Hunt (dhunt@ucar.edu), Tuomas J. Lukka (lukka@fas.harvard.edu),
+Karl Glazebrook (kgb@aaoepp.aao.gov.au) and Christian Soeller
+(c.soeller@auckland.ac.nz).
 
 =cut
 

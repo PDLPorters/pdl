@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+CS
+	- slight ops.pd changes
+	- match prototypes with original ones in complex.pd
+	- some more work on PP.pm (yet unfinished)
 Doug Hunt (4/19/2000)
         - Cleaned up Ops to take advantage of new fast XS wrappers (experimental)
 

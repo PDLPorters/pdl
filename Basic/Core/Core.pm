@@ -330,12 +330,12 @@ sub topdl {PDL->topdl(@_)}
 
   use overload (
 		"+"     => \&PDL::plus,     # in1, in2
-		"*"     => \&PDL::multiply, # in1, in2
+		"*"     => \&PDL::mult, # in1, in2
 		"-"     => \&PDL::minus,    # in1, in2, swap if true
 		"/"     => \&PDL::divide,   # in1, in2, swap if true
 		
 		"+="    => sub { PDL::plus     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
-		"*="    => sub { PDL::multiply ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"*="    => sub { PDL::mult ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		"-="    => sub { PDL::minus    ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		"/="    => sub { PDL::divide   ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 

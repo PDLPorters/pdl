@@ -807,35 +807,50 @@ use overload
                $^W = 0;            # redefining PDL's subs
               }
 
+
+sub cp(;@) {
+	my $foo; 
+	if (ref $_[1]
+		&& (ref $_[1] ne 'PDL')
+		&& defined ($foo = overload::Method($_[1],'+')))
+		{ &$foo($_[1], $_[0], !$_[2])}
+	else { PDL::plus (@_)}
+}
+
+sub cm(;@) {
+	my $foo; 
+	if (ref $_[1]
+		&& (ref $_[1] ne 'PDL')
+		&& defined ($foo = overload::Method($_[1],'*')))
+		{ &$foo($_[1], $_[0], !$_[2])}
+	else { PDL::mult (@_)}
+}
+
+sub cmi(;@) {
+	my $foo; 
+	if (ref $_[1]
+		&& (ref $_[1] ne 'PDL')
+		&& defined ($foo = overload::Method($_[1],'-')))
+		{ &$foo($_[1], $_[0], !$_[2])}
+	else { PDL::minus (@_)}
+}
+
+sub cd(;@) {
+	my $foo; 
+	if (ref $_[1]
+		&& (ref $_[1] ne 'PDL')
+		&& defined ($foo = overload::Method($_[1],'/')))
+		{ &$foo($_[1], $_[0], !$_[2])}
+	else { PDL::divide (@_)}
+}
+
+
   # Used in overriding standard PDL +, -, *, / ops in the complex subclass.
   use overload (
-		 '+' => sub {my $foo; 
-		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'+'));
-		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'+'));
-			     if    ($ref0) { &$foo(@_); }
-		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
-	                     else          { PDL::plus (@_); }},
-
-		 '*' => sub {my $foo; 
-		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'*'));
-		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'*'));
-			     if    ($ref0) { &$foo(@_); }
-		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
-	                     else          { PDL::multiply (@_); }},
-
-	         '-' => sub {my $foo; 
-		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'-'));
-		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'-'));
-			     if    ($ref0) { &$foo(@_); }
-		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
-	                     else          { PDL::minus (@_); }},
-
-		 '/' => sub {my $foo; 
-		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'/'));
-		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'/'));
-			     if    ($ref0) { &$foo(@_); }
-		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
-	                     else          { PDL::divide (@_); }},
+		 '+' => \&cp,
+		 '*' => \&cm,
+	         '-' => \&cmi,
+		 '/' => \&cd,
 		);
 
 
