@@ -689,10 +689,18 @@ void pdl_make_physdims(pdl *it) {
 	  return;
 	}
 	it->state &= ~(PDL_PARENTDIMSCHANGED | PDL_PARENTREPRCHANGED);
+	/* the fact that a PARENTXXXCHANGED flag is set seems
+	   to imply that this pdl has an associated trans ? */
 	for(i=0; i<it->trans->vtable->nparents; i++) {
 		pdl_make_physdims(it->trans->pdls[i]);
 	}
+	/* doesn't this mean that all children of this trans have
+	   now their dims set and accordingly all those flags should
+	   be reset? Otherwise redodims will be called for them again? */
+	PDLDEBUG_f(printf("Make_physdims: calling redodims %d on %d\n",
+			  it->trans,it));
 	it->trans->vtable->redodims(it->trans);
+	/* why this one? will the old allocated data be freed correctly? */
 	if((c & PDL_PARENTDIMSCHANGED) && (it->state & PDL_ALLOCATED)) {
 		it->state &= ~PDL_ALLOCATED;
 	}
@@ -1105,7 +1113,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
-	if(flag & PDL_PARENTDIMSCHANGED) {
+	if(flag & PDL_PARENTDIMSCHANGED) {  /* redodims called here... */
 		trans->vtable->redodims(trans);
 	}
 	for(j=0; j<trans->vtable->npdls; j++) {
@@ -1115,7 +1123,11 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	if(flag & PDL_PARENTDATACHANGED | flag & PDL_PARENTDIMSCHANGED) {
 		int i;
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
-			/* Assuming affine = p2child */
+		  /* Attention: this assumes affine = p2child */
+		  /* need to signal that redodims has already been called */
+		  /* is ist correct to alos unset PDL_PARENTREPRCHANGED? */
+		        trans->pdls[1]->state &= ~(PDL_PARENTDIMSCHANGED |
+						  PDL_PARENTREPRCHANGED);
 			pdl_make_physvaffine(trans->pdls[1]);
 			pdl_readdata_vaffine(trans->pdls[1]);
 		} else {
@@ -1150,6 +1162,9 @@ void pdl__ensure_transdims(pdl_trans *trans)
    We shall ignore this problem for now and hope it goes away ;)
    (XXX FIX ME) */
 /* XXX Two next routines are memleaks */
+/* somehow this transform will call (implicitly) redodims twice on
+   an unvaffined pdl; leads to memleak if redodims allocates stuff
+   that is only freed in later call to freefunc */
 void pdl_destroytransform(pdl_trans *trans,int ensure)
 {
 	int j;
@@ -1285,6 +1300,16 @@ void pdl_vafftrans_free(pdl *it)
  * We need to do careful testing for clump-type things.
  */
 
+/* pdl_make_physvaffine can be called on *any* pdl -- vaffine or not --
+   it will call make_physical as needed on those
+   this function is the right one to call in any case if you want to
+   make only those physical (i.e. allocating their own data, etc) which
+   have to be and leave those vaffine with updated dims, etc, that do
+   have an appropriate transformation of which they are a child
+
+   should probably have been called make_physcareful to point out what
+   it really does
+*/
 void pdl_make_physvaffine(pdl *it)
 {
 	pdl_trans *t;

@@ -26,12 +26,20 @@ pp_addhdr('
 #define NOTHING
 ');
 
+sub protect_chars {
+  my ($txt) = @_;
+  $txt =~ s/>/E;gt#/g;
+  $txt =~ s/</E;lt#/g;
+  $txt =~ s/;/</g;
+  $txt =~ s/#/>/g;
+  return $txt;
+}
+
 # simple binary operators
 sub biop {
 	my ($name,$op,$swap,$doc,%extra) = @_;
-	my $optxt = $op;
-	if ($optxt =~ s/>/E<gt>/) {} else
-	{ $optxt =~ s/</E<lt>/}
+	my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
+	$op = $op->[0] if ref $op eq 'ARRAY';
 	if ($swap) {
 	  $extra{HdrCode} = << 'EOH';
   pdl *tmp;
@@ -75,6 +83,10 @@ EOD
 #simple binary functions
 sub bifunc {
 	my ($name,$func,$swap,$doc,%extra) = @_;
+	my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+	my $isop=0; if ($funcov =~ s/^op//) { $isop = 1}
+	my $funcovp = protect_chars $funcov;
+	$func = $func->[0] if ref $func eq 'ARRAY';
 	if ($swap) {
 	  $extra{HdrCode} .= << 'EOH';
   pdl *tmp;
@@ -91,11 +103,14 @@ EOH
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  c = a;  /* discard output value, leak? */
 				}';
+	my $ovcall;
+	# is this one to be used as a function or operator ?
+	if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"}
+	else { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"}
 	pp_def($name,
 		Pars => 'a(); b(); [o]c();',
 		OtherPars => 'int swap',
 		Code => "\$c() = $func(\$a(),\$b());",
-		%extra,
 		%extra,
 		Doc => << "EOD");
 =for ref
@@ -105,11 +120,11 @@ $doc
 =for example
 
    \$c = \$a->$name(\$b,0); # explicit function call
-   \$c = $name \$a, \$b;    # overloaded use
-   \$a->inplace(\$b,0);     # modify \$a inplace
+   $ovcall
+   \$a->inplace->$name(\$b,0);     # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the binary C<$func> function.
+This function is used to overload the binary C<$funcovp> function.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
@@ -119,6 +134,9 @@ EOD
 # simple unary functions and operators
 sub ufunc {
 	my ($name,$func,$doc,%extra) = @_;
+	my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+	my $funcovp = protect_chars $funcov;
+	$func = $func->[0] if ref $func eq 'ARRAY';
 	pp_def($name,
 		Pars => 'a(); [o]b()',
 		Code => "\$b() = $func(\$a());",
@@ -135,11 +153,11 @@ $doc
 
 =for example
 
-   \$b = $func \$a;
-   \$a->inplace->$func;  # modify \$a inplace
+   \$b = $funcov \$a;
+   \$a->inplace->$name;  # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the unary C<$func> operator/function.
+This function is used to overload the unary C<$funcovp> operator/function.
 EOD
 }
 
@@ -160,8 +178,8 @@ biop('lt','<',1,'the binary E<lt> (less than) operation');
 biop('le','<=',1,'the binary E<lt>= (less equal) operation');
 biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
 # no swap required
-biop('eq','==',0,'binary I<equal to> operation (==)');
-biop('ne','!=',0,'binary I<not equal to> operation (!=)');
+biop('eq','==',0,'binary I<equal to> operation (C<==>)');
+biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
 
 ## bit ops
 # those need to be limited to the right types
@@ -176,14 +194,14 @@ biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
-bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
-bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
+bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
+bifunc('spaceship',['SPACE','op<=>'],1,'binary C<E<lt>=E<gt>> operation');
 
 # some standard unary functions
 ufunc('sqrt','sqrt','elementwise square root');
-ufunc('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
+ufunc('abs',['ABS','abs'],'elementwise absolut value',GenericTypes => [D,F,S,L]);
 ufunc('sin','sin','the sin function');
 ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation');

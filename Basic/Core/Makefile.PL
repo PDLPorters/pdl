@@ -105,7 +105,8 @@ sub MY::postamble {
 PDL::Core::Dev::postamble().
 '
 # Bits of C code we generate from special perl scripts
-#
+pdl.h:: pdl.h.PL mymalloc.p
+	$(PERL) pdl.h.PL
 '.($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g
