@@ -33,9 +33,8 @@ comment q|
     This demo illustrates the PDL::Transform module.
 
     It requires PGPLOT support in PDL and makes use of the image of
-    m51 kindly provided by the IRAF group at the National Optical and
-    Astronomical Observatories.
-
+    M51 kindly provided by the Hubble Heritage group at the 
+    Space Telescope Science Institute.
 
 |;
 

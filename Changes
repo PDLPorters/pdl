@@ -1,3 +1,5 @@
+CED 09-Dec-2003
+   - m51.fits: Replaced non-free NOAO image with free Hubble Heritage image
 CS  08-Dec-2003
    - Core.pm.PL: fix nslice to handle empty piddles
 CED 07-Dec-2003
