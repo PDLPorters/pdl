@@ -17,6 +17,7 @@ use Exporter;
 		      pp_core_importList pp_beginwrap pp_setversion pp_addbegin/;
 
 $PP::boundscheck = 1;
+$::PP_VERBOSE    = 0;
 
 use Carp;
 
@@ -362,9 +363,13 @@ $PDL::PP::deftbl =
 # The names are PARENT and CHILD.
 #
 # P2Child implicitly means "no data type changes".
- [[USParNames,USParObjs,FOOFOONoConversion,HaveThreading,NewXSName,PMFunc,
- 	PMCode],   [P2Child,Name],
- 		"ParentChildPars"],
+# [[USParNames,USParObjs,FOOFOONoConversion,HaveThreading,NewXSName,PMFunc,
+# 	PMCode],   [P2Child,Name],
+# 		"ParentChildPars"],
+# the new rule makes no PMCode anymore, all handled in XS now
+ [[USParNames,USParObjs,FOOFOONoConversion,HaveThreading,NewXSName],
+   [P2Child,Name],
+ 		"NewParentChildPars"],
  [[NewXSName],	[Name],	sub {"_$_[0]_int"}],
 
  [[EquivPThreadIdExpr],[P2Child],sub {'$CTID-$PARENT(ndims)+$CHILD(ndims)'}],
@@ -384,11 +389,29 @@ $PDL::PP::deftbl =
 
  [[ParNames,ParObjs],	[USParNames,USParObjs],	"sort_pnobjs"],
 
- [[PMCode]	,	[Name,NewXSName,ParNames,ParObjs,OtherParNames,
- 			OtherParTypes], "pmcode"],
 
  [[NewXSArgs],		[USParNames,USParObjs,OtherParNames,OtherParTypes],
  						"NXArgs"],
+
+ # This entry generates a null PMCode entry unless HASP2Child is set.
+ # (which disallows PMCode generation in the next step) D. Hunt 4/13/00
+# [[PMCode],             [HASP2Child],           sub { if ($_[0]) { return "DO NOT SET!!" } else { return undef; } }],
+ # now we do not autogenerate PMCode any longer, so the rule after this
+ # one could really go
+ [[PMCode],             [],           sub { return undef; }],
+
+ [[PMCode]	,	[Name,NewXSName,ParNames,ParObjs,OtherParNames,
+ 			OtherParTypes], "pmcode"],
+
+ # Create header for variable argument list.  Used if no 'other pars' specified.
+ # D. Hunt 4/11/00
+ # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
+ [[VarArgsXSHdr],	[Name,NewXSArgs,USParObjs,OtherParTypes,HASP2Child,PMCode,_GlobalNew],  "VarArgsXSHdr"],
+
+ ## Added new line for returning (or not returning) variables.  D. Hunt 4/7/00
+ # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
+ [[VarArgsXSReturn],	[NewXSArgs,USParObjs,_GlobalNew],         "VarArgsXSReturn"],
+
  [[NewXSHdr],		[NewXSName,NewXSArgs],	"XSHdr"],
  [[NewXSCHdrs],		[NewXSName,NewXSArgs,GlobalNew],	"XSCHdrs"],
  [[DefSyms],		[StructName],			"MkDefSyms"],
@@ -493,7 +516,8 @@ $PDL::PP::deftbl =
  [[PrivNames,PrivObjs],	[Priv],			"OtherPars_nft"],
  [[PrivateRepr],	[PrivNames,PrivObjs],	"NT2Decls_p"],
  [[PrivCopyCode],	[PrivNames,PrivObjs,CopyName], "NT2Copies_p"],
- [[PrivFreeCode],	[PrivNames,PrivObjs], "NT2Free_p"],
+# avoid clash with freecode above?
+ [[NTPrivFreeCode],	[PrivNames,PrivObjs], "NT2Free_p"],
 
  [[IsReversibleCodeNS],	[Reversible],	"ToIsReversible"],
  [[IsReversibleCode],	[IsReversibleCodeNS,NewXSSymTab,Name], "dousualsubsts"],
@@ -518,11 +542,12 @@ $PDL::PP::deftbl =
 			}
 			return (pdl_trans*)__copy;"}],
 
- [[FreeCodeNS],	[PrivFreeCode,CompFreeCode],	sub {"
+ [[FreeCodeNS],	[PrivFreeCode,CompFreeCode,NTPrivFreeCode],	sub {"
 			PDL_TR_CLRMAGIC(__privtrans);
 			$_[1]
 			if(__privtrans->__ddone) {
 				$_[0]
+				$_[2]
 			}
 			"}],
 
@@ -535,6 +560,21 @@ $PDL::PP::deftbl =
  [[NewXSCoerceMustSubs], [NewXSCoerceMustSub1,NewXSSymTab,Name],	"dosubst"],
  [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}],
 
+ # Generates XS code with variable argument list.  If this rule succeeds, the next rule
+ # will not be executed. D. Hunt 4/11/00
+ [[NewXSCode,BootSetNewXS,NewXSInPrelude
+  ],		[_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
+ 			 NewXSMakeNow, NewXSFindDatatype,NewXSTypeCoerce,
+			 NewXSStructInit1,
+			 NewXSStructInit2,
+			 NewXSCoerceMustSubs,_IsReversibleCode,DefaultFlowCode,
+			 NewXSClearThread,
+			 NewXSSetTrans,
+                         VarArgsXSReturn,
+			 ],	"mkVarArgsxscat"],
+
+ # This rule will fail if the preceding rule succeeds 
+ # D. Hunt 4/11/00
  [[NewXSCode,BootSetNewXS,NewXSInPrelude
   ],		[_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
  			 NewXSMakeNow, NewXSFindDatatype,NewXSTypeCoerce,
@@ -649,6 +689,8 @@ sub translate {
 # Are all prerequisites there;
 		my @args;
 #		print "Trying rule ",Dumper($rule) if $::PP_VERBOSE;
+
+		# If any of the rule[0]s exist, don't apply rule
 		for(@{$rule->[0]}) {
 			if(exists $pars->{$_}) {
 				print "Not applying rule $rule->[2], resexist\n"
@@ -656,6 +698,9 @@ sub translate {
 				next RULE
 			}
 		}
+
+		# Unless all rule[1]s exist, don't apply rule
+		# except if a rule is prefixed by '_'
 		for(@{$rule->[1]}) {
 			my $foo = $_;
 			if(/^_/) {
@@ -674,8 +719,12 @@ sub translate {
 			if(exists $pars->{$_}) {
 				confess "Cannot have several meanings yet\n";
 			}
-			print "$_ " if $::PP_VERBOSE;
-			$pars->{$_} = shift @res;
+			my $res = shift @res;
+			unless ($res eq 'DO NOT SET!!') {
+			  $pars->{$_} = $res;
+			  print "$_ " if $::PP_VERBOSE;
+			}
+			    
 		}
 		print "\n" if $::PP_VERBOSE;
 	}
@@ -1032,6 +1081,11 @@ sub subst_makecomp {
 	];
 }
 
+sub NewParentChildPars {
+	my($p2child,$name) = @_;
+	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_NN");
+}
+
 sub ParentChildPars {
 	my($p2child,$name) = @_;
 	return (Pars_nft("PARENT(); [oca]CHILD();"),0,"${name}_XX",
@@ -1128,6 +1182,22 @@ sub mkxscat {
 	$str =~ s/(\s*\n)+/\n/g;
 	($str,$boot,$prel)
 }
+
+sub mkVarArgsxscat {
+	my($glb,$chdrs,$hdr,@bits) = @_;
+	my($xscode,$boot,$prel,$str);
+	if($glb) {
+		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
+		$boot = $chdrs->[3];
+		$str = "$hdr\n";
+	} else {
+		$xscode = join '',@bits;
+		$str = "$hdr \n { $xscode \n}\n\n";
+	}
+	$str =~ s/(\s*\n)+/\n/g;
+	($str,$boot,$prel)
+}
+
 
 # Not necessary ?
 sub CopyPDLPars {
@@ -1249,6 +1319,216 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
+# This subroutine does limited input typemap conversion.
+# Given a variable name (to set), its type, and the source
+# for the variable, returns the correct input typemap entry.
+# D. Hunt 4/13/00
+sub typemap {
+  my $oname  = shift;
+  my $type   = shift;
+  my $arg    = shift;
+
+  # Note that I now just look at the basetype.  I don't
+  # test whether it is a pointer to the base type or not.
+  # This is done because it is simpler and I know that the otherpars
+  # belong to a restricted set of types.  I know a char will really
+  # be a char *, for example.  I also know that an SV will be an SV *.
+  my %typemap = (char   => "(char *)SvPV($arg,PL_na)",
+		 int    => "(int)SvIV($arg)",
+		 double => "(double)SvNV($arg)",
+		 float  => "(float)SvNV($arg)",
+		 SV     => "$arg",
+		);
+
+  my $basetype = $type->{Base};
+  $basetype =~ s/\s+//g;  # get rid of whitespace
+
+  die "Cannot find $basetype in my (small) typemap" unless exists($typemap{$basetype});
+  
+  return ($typemap{$basetype});
+}
+		 
+
+# This subroutine is called when no 'otherpars' exist.
+# This writes an XS header which handles variable argument lists, 
+# thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
+sub VarArgsXSHdr {
+  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,$globalnew) = @_;
+  
+  # Don't do var args processing if 'has p2 child' whatever *that* means
+  # the p2child restriction has been removed; CS 4/15/00
+  # return 'DO NOT SET!!' if ($hasp2child);
+
+  # Don't do var args processing if the user has pre-defined pmcode
+  return 'DO NOT SET!!' if ($pmcode);
+  return undef if $globalnew; # don't generate a HDR if globalnew is set
+                              # globalnew implies internal usage, not XS
+
+  my $ci = '  ';  # current indenting
+  my $pars = join "\n",map {$ci.$_->[1]->get_decl($_->[0]).";"} @$xsargs;
+
+  my @args   = map { $_->[0] } @$xsargs;
+  my %out    = map { $_ => exists($$parobjs{$_})
+		       && exists($$parobjs{$_}{FlagOut})
+				 && !exists($$parobjs{$_}{FlagCreateAlways})}
+		     @args;
+  my %outca = map { $_ => exists($$parobjs{$_})
+		       && exists($$parobjs{$_}{FlagOut})
+				 && exists($$parobjs{$_}{FlagCreateAlways})}
+		     @args;
+  my %tmp    = map { $_ => exists($$parobjs{$_}) && exists($$parobjs{$_}{FlagTemp}) } @args;
+  my %other  = map { $_ => exists($$optypes{$_}) } @args;
+
+  # remember, othervars *are* input vars
+  my $nout   = (grep { $_ } values %out);
+  my $noutca   = (grep { $_ } values %outca);
+  my $nother = (grep { $_ } values %other);
+  my $ntmp   = (grep { $_ } values %tmp);
+  my $ntot   = @args;
+  my $nmaxonstack = $ntot - $noutca;
+  my $nin    = $ntot - ($nout + $noutca + $ntmp);
+  my $ninout = $nin + $nout;
+  my $nallout = $nout + $noutca;
+  my $usageargs = join (",", @args);
+  
+  my $ci = '    ';  # Current indenting
+  
+  # clause for reading in all variables
+  my $clause1 = ''; my $cnt = 0;
+  for (my $i=0;$i<@args;$i++) { 
+    if ($other{$args[$i]}) {  # other par
+      $clause1 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n"; $cnt++;
+    } elsif ($outca{$args[$i]}) {
+      $clause1 .= "$ci$args[$i] = PDL->null();\n"; # always create
+    } else {
+      $clause1 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n"; $cnt++;
+    }
+  }
+
+  # clause for reading in input and output vars and creating temps
+  my $clause2;
+  # skip this clause if there are no temps
+  if ($nmaxonstack == $ninout) {  
+    $clause2 = '';
+  } else {
+    $clause2 = "
+  else if (items == $ninout) { /* all but temps on stack, read in output and create temps */
+    nreturn = $noutca;
+";
+
+    $cnt = 0;
+    for (my $i=0;$i<@args;$i++) { 
+      if ($other{$args[$i]}) {
+	$clause2 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
+	$cnt++;
+      } elsif ($tmp{$args[$i]} || $outca{$args[$i]}) {
+	# a temporary or always create variable
+	$clause2 .= "$ci$args[$i] = PDL->null();\n";
+      } else { # an input or output variable 
+	$clause2 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
+	$cnt++;
+      }
+    }
+    $clause2 .= "}\n";
+  }
+
+  
+  # clause for reading in input and creating output and temp vars
+  my $clause3 = '';
+  $cnt = 0;
+  for (my $i=0;$i<@args;$i++) { 
+    if ($other{$args[$i]}) {
+      $clause3 .= "$ci$args[$i] = " . typemap($args[$i], $$optypes{$args[$i]}, "ST($cnt)") . ";\n";
+      $cnt++;
+    } elsif ($out{$args[$i]} || $tmp{$args[$i]} || $outca{$args[$i]}) {
+      $clause3 .= "$ci$args[$i] = PDL->null();\n";
+    } else {
+      $clause3 .= "$ci$args[$i] = PDL->SvPDLV(ST($cnt));\n";
+      $cnt++;
+    }
+  }
+
+  return<<END;
+
+
+void
+$name(...)
+ PREINIT:
+  HV  *bless_stash;
+  int nreturn;
+$pars
+
+ PPCODE:
+
+{
+  /* Check if you can get a package name for this input value.  It can be either a PDL (SVt_PVMG) or 
+     a hash which is a derived PDL subclass (SVt_PVHV) */
+  if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
+    bless_stash = SvSTASH(SvRV(ST(0)));  /* The package to bless output vars into is taken from the first input var */
+  } else {
+    bless_stash = 0;
+  }
+  if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */
+    nreturn = $noutca;
+$clause1
+  } 
+$clause2
+  else if (items == $nin) { /* only input variables on stack, create outputs and temps */
+    nreturn = $nallout;
+$clause3
+  } 
+
+  else {
+    croak (\"Usage:  PDL::$xsname($usageargs) (you may leave temporaries or output variables out of list)\");
+  }
+}
+
+END
+
+}
+
+# This subroutine produces the code which returns output variables
+# or leaves them as modified input variables.  D. Hunt 4/10/00
+sub VarArgsXSReturn {
+	my($xsargs, $parobjs, $globalnew) = @_;
+        return undef if $globalnew; # don't generate a HDR if globalnew is set
+                              # globalnew implies internal usage, not XS
+
+	# names of output variables    (in calling order)
+	my @outs;
+
+	# beware of existance tests like this:  $$parobjs{$arg->[0]}{FlagOut}  !
+	# this will cause $$parobjs{$arg->[0]} to spring into existance even if $$parobjs{$arg->[0]}{FlagOut}
+	# does not exist!!
+	foreach my $arg (@$xsargs) {
+	  push (@outs, $arg->[0]) if (exists ($$parobjs{$arg->[0]}) && exists ($$parobjs{$arg->[0]}{FlagOut}));
+	}
+
+	my $ci = '  ';  # Current indenting
+
+	my $clause1 = '';
+	for (my $i=0;$i<@outs;$i++) { 
+	  $clause1 .= "$ci\ST($i) = sv_newmortal();
+$ci\PDL->SetSV_PDL(ST($i),$outs[$i]);
+$ci\if (bless_stash) ST($i) = sv_bless(ST($i), bless_stash);
+
+";
+	}
+  
+return <<"END"
+if (nreturn) {
+  if (nreturn - items > 0) EXTEND (SP, nreturn - items);
+$clause1
+  XSRETURN(nreturn);
+} else {
+  XSRETURN(0);
+}
+END
+
+}
+
+
+
 sub XSCHdrs {
 	my($name,$pars,$gname) = @_;
 	my $shortpars = join ',',map {$_->[0]} @$pars;
@@ -1265,6 +1545,7 @@ sub XSCHdrs {
 # and strange argument orderings.
 sub pmcode {
 	my($name,$newxsname,$parnames,$parobjs,$onames,$oobjs) = @_;
+
 	my ($acnt,$tcnt,$icnt)=(0,0,0) ;
 	my ($tspl, $ispl);
 	my (@tmap,@imap); # maps: number to get argument n from

@@ -344,7 +344,7 @@ BEGIN {
 			   && defined ($foo = overload::Method($_[1],$op)) ?
 			     &$foo($_[1],$_[0],!$_[2]) :
 			       ($foo = $_[0]->null(),
-				PDL::_my_biop1_int(&PDL::Core::rswap,$foo,$op),
+				PDL::my_biop1(&PDL::Core::rswap,$foo,$op),
 				$foo)})}
   @PDL::biops1;
 
@@ -353,7 +353,7 @@ BEGIN {
    use overload (
      (map {my $op = $_;
      	    ($op => sub {my $foo = $_[0]->null(); # print "OP: $op\n";
-			 PDL::_my_biop1_int(&PDL::Core::rswap,$foo,$op); $foo
+			 PDL::my_biop1(&PDL::Core::rswap,$foo,$op); $foo
 			  },
 	    "$op=" => sub {PDL::Ops::my_biop1(&PDL::Core::rswapass,$op);
 	    	          return $_[0];})} @PDL::biops1),
