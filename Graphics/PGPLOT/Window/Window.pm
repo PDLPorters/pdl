@@ -530,8 +530,8 @@ Constructor for PGPLOT object/device/plot window.
 
 =for usage
 
-Usage: PDL::Graphics::PGPLOT::Window->new($opt);
-Usage: PDL::Graphics::PGPLOT::Window->new($option=>$value,...);
+  Usage: PDL::Graphics::PGPLOT::Window->new($opt);
+  Usage: PDL::Graphics::PGPLOT::Window->new($option=>$value,...);
 
 Options to new() can either be specified via a reference to a hash
 
@@ -548,9 +548,7 @@ The following lists the recognised options:
 
 =item AspectRatio
 
-=item AspectRatio
-
-The aspect ratio of the image, in the sense vertical/horisontal.  If both
+The aspect ratio of the image, in the sense vertical/horizontal.  If both
 this and WindowWidth are set to zero, the default view surface is used.
 (This is the default case).
 
@@ -915,9 +913,9 @@ value used by C<imag> (recommended choice).  Default is C<undef>.
 
 =for ref
 
-Load an image colour table. 
+Load an image colour table.
 
-Usage:
+ Usage:
 
 =for usage
 
