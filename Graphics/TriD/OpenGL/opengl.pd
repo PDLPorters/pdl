@@ -546,13 +546,14 @@ glpPrintString(base,str)
 
 int
 XPending(d)
-	void *	d
-	CODE:
-	{
-		RETVAL = XPending(d);
-	}
-	OUTPUT:
-	RETVAL
+	Display *	d
+
+int
+XResizeWindow(d, w, x, y)
+	Display *	d
+	Window	w
+	int      x
+	int      y
 
 void
 glpXNextEvent(d)
@@ -671,36 +672,46 @@ field.  These attributes are:
 =cut
 
 sub new {
-  my($class,$options) = @_;
+  my($class_or_hash,$options) = @_;
 
-  my $opt = new PDL::Options(default_options());
-  $opt->incremental(1);
-  $opt->options($options) if(defined $options);
-  my $p = $opt->options;
-
+  my $isref = ref($class_or_hash);  
+  my $p;
 #  PDL::Graphics::OpenGL::glpSetDebug(1);
 
-  my $href =  PDL::Graphics::OpenGL::glpcOpenWindow(
+  if($isref and defined $class_or_hash->{Options}){
+    $p = $class_or_hash->{Options};
+  }else{
+    my $opt = new PDL::Options(default_options());
+    $opt->incremental(1);
+    $opt->options($options) if(defined $options);
+    $p = $opt->options;
+  }
+
+  my $self =  PDL::Graphics::OpenGL::glpcOpenWindow(
                          $p->{x},$p->{y},$p->{width},$p->{height},
 										  $p->{parent},$p->{mask},
 										  @{$p->{attributes}});
-	
-	if(ref($href) ne 'HASH'){
+
+	if(ref($self) ne 'HASH'){
 	  die "Could not create OpenGL window";
    }
+
 #  psuedo-hash style see note above  
 #  no strict 'refs';
 #  my $self = bless [ \%%{"$class\::FIELDS"}], $class;
 #
-  my $self = bless {},$class;
-
   $self->{Options} = $p;
-
-  foreach(keys %%$href){
-    $self->{$_} = $href->{$_};
+  if($isref){
+     if(defined($class_or_hash->{Options})){
+       return bless $self,ref($class_or_hash);
+     }else{
+       foreach(keys %%$self){
+         $class_or_hash->{$_} = $self->{$_};
+       }
+       return $class_or_hash;
+     }
   }
-
-  $self;
+  bless $self,$class_or_hash;
 }
 
 =head2 default_options
@@ -734,6 +745,17 @@ OO interface to XPending
 sub XPending {
 	my($self) = @_;
    PDL::Graphics::OpenGL::XPending($self->{Display});
+}
+
+=head2 XResizeWindow(x,y)
+
+OO interface to XResizeWindow
+
+=cut
+
+sub XResizeWindow {
+  my($self,$x,$y) = @_;
+  PDL::Graphics::OpenGL::XResizeWindow($self->{Display},$self->{Window},$x,$y);
 }
 
 =head2 glpXNextEvent()
