@@ -18,7 +18,7 @@ print "1..18\n";
 unless ($loaded) {
 	#print STDERR "PDL::Slatec not installed. All tests are skipped.\n";
 	for (1..18) {
-		print "ok $_ # Skipped: PDL::GSL::RNG not availalbe.\n";
+		print "ok $_ # Skipped: PDL::GSL::RNG not available.\n";
 	}
 	exit;
 }

@@ -93,6 +93,7 @@ if ( $PDL::Bad::Status ) {
     tapprox( patchbad2d($a), $a );  # 9
 
 } else { 
-    skip(1,1,1);
-    skip(1,1,1);
+    my $msg = "Skipped: PDL::Bad support not available.";
+    skip($msg,1,1);
+    skip($msg,1,1);
 }
