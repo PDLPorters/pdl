@@ -153,7 +153,7 @@ sub trim {
 
     $txt =~ s/^\s*//;
     $txt =~ s/\s*$//;
-    while( $txt =~ s/^\((.*)\)$/\1/ ) {}; # Strip BALANCED brackets
+    while( $txt =~ s/^\((.*)\)$/$1/ ) {}; # Strip BALANCED brackets
 
   }
   for (split "\n", $txt) {
@@ -442,6 +442,7 @@ sub ensuredb {
   return $_[0]->{SYMS} if defined $_[0]->{SYMS};
   open IN, $this->{File} or
     barf "can't open database $this->{File}, scan docs first";
+  binmode IN;
   my ($plen,$txt);
   while (read IN, $plen,2) {
     my ($len) = unpack "S", $plen;
@@ -464,6 +465,7 @@ sub savedb {
   my ($this) = @_;
   my $hash = $this->ensuredb();
   open OUT, ">$this->{File}" or barf "can't write to symdb $this->{File}";
+  binmode OUT;
   while (my ($key,$val) = each %$hash) {
     my $txt = "$key".chr(0).join(chr(0),%$val);
     print OUT pack("S",length($txt)).$txt;
@@ -574,20 +576,27 @@ sub scan {
   # XXXX convert to absolute path
   # my $outfile = '/tmp/'.basename($file).'.pod';
   my $outfile = new NullHandle;
+
+  # Handle RPM etc. case where we are building away from the final
+  # location. Alright it's a hack - KGB
+  my $file2 = $file;
+  $file2 =~ s/^$ENV{BUILDROOTPREFIX}// if $ENV{BUILDROOTPREFIX} ne "";
+
   my $parser = new PDL::PodParser;
   $parser->{verbose} = $verbose;
   $parser->parse_from_filehandle($infile,$outfile);
   $this->{SYMS} = {} unless defined $this->{SYMS};
   my $hash = $this->{SYMS};
   my @stats = stat $file;
-  $this->{FTIME}->{$file} = $stats[9]; # store last mod time
+  $this->{FTIME}->{$file2} = $stats[9]; # store last mod time
   # print "mtime of $file: $stats[9]\n";
   my $phash = $parser->{SYMHASH};
   my $n = 0;
   while (my ($key,$val) = each %$phash) {
     #print "adding '$key'\n";
     $n++;
-    $val->{File} = $file;
+
+    $val->{File} = $file2;
     $hash->{$key} = $val
     }
 
@@ -609,7 +618,7 @@ sub scan {
    }
    $does = 'Hmmm ????' if $does =~ /^\s*$/;
    my $type = ($file =~ /\.pod$/ ? 'Manual:' : 'Module:');
-   $hash->{$name} = {Ref=>"$type $does",File=>$file} if $name !~ /^\s*$/;
+   $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;
    return $n;
 }
 
@@ -696,7 +705,7 @@ discussions on the pdl-porters mailing list.
 
 =head1 AUTHOR
 
-Copyright 1997 Christian Soeller <csoelle@sghms.ac.uk> and Karl Glazebrook
+Copyright 1997 Christian Soeller <c.soeller@auckland.ac.nz> and Karl Glazebrook
 <kgb@aaoepp.aao.gov.au>
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain

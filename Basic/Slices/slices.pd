@@ -594,11 +594,14 @@ Returns a rectangular slice of the original piddle
 
 =for example
 
-  $a->slice('1:3'); #  return the second to fourth elements of $a
+  $a->slice('1:3');  #  return the second to fourth elements of $a
+  $a->slice('3:1');  #  reverse the above
+  $a->slice('-2:1'); #  return last-but-one to second elements of $a
 
 The argument string is a comma-separated list of what to do
 for each dimension. The current formats include
-the following (a,b and c are integers):
+the following, where I<a>, I<b> and I<c> are integers and can
+take legal array index values (including -1 etc):
 
 =over 8
 
@@ -611,24 +614,24 @@ takes the whole dimension intact.
 (nothing) is a synonym for ":"
 (This means that C<$a-E<gt>slice(':,3')> is equal to $a-E<gt>slice(',3')).
 
-=item "n"
+=item "a"
 
-slices only this value out of the corresponding dimension
+slices only this value out of the corresponding dimension.
 
-=item "(n)"
+=item "(a)"
 
-means the same as "n" by itself except that the resulting
+means the same as "a" by itself except that the resulting
 dimension of length one is deleted (so if $a has dims (3,4,5) then
 C<$a-E<gt>slice(':,(2),:')> has dimensions (3,5) whereas
 $a-E<gt>slice(':,2,:') has dimensions (3,1,5)).
 
 =item "a:b"
 
-slices the range I<a> to I<b> inclusive out of the dimension
+slices the range I<a> to I<b> inclusive out of the dimension.
 
 =item "a:b:c"
 
-slices the range I<a> to I<b>, with step c (i.e. 3:7:2 gives the indices
+slices the range I<a> to I<b>, with step I<c> (i.e. 3:7:2 gives the indices
 (3,5,7)). This may be confusing to Matlab users but several other
 packages already use this syntax.
 
@@ -1289,6 +1292,7 @@ EOD
 );
 
 
+pp_add_exported('', 'dice');
 pp_addpm({At => Bot},<< 'EOD');
 
 =head2 dice
@@ -1298,7 +1302,7 @@ pp_addpm({At => Bot},<< 'EOD');
 Dice rows/columns/planes out of a PDL using indexes for
 each dimension.
 
-This method can be used to extract irregular subsets
+This function can be used to extract irregular subsets
 along many dimension of a PDL, e.g. only certain rows in an image,
 or planes in a cube. This can of course be done with
 the usual dimension tricks but this saves having to
@@ -1368,6 +1372,8 @@ sub PDL::dice {
 
 	return $outputPDL;
 }  
+*dice = \&PDL::dice;
+
 
 =head2 dice_axis
 
@@ -1376,7 +1382,7 @@ sub PDL::dice {
 Dice rows/columns/planes from a single PDL axis (dimension)
 using index along a specified axis
 
-This method can be used to extract irregular subsets
+This function can be used to extract irregular subsets
 along any dimension, e.g. only certain rows in an image,
 or planes in a cube. This can of course be done with
 the usual dimension tricks but this saves having to
@@ -1433,6 +1439,7 @@ sub PDL::dice_axis {
   }
   return $self->mv($axis,0)->index($ix)->mv($n-1,$axis);
 }  
+*dice_axis = \&PDL::dice_axis;
 
 =head1 AUTHOR
 
@@ -1447,6 +1454,7 @@ the copyright notice should be included in the file.
 =cut
 
 EOD
+pp_add_exported('', 'dice_axis');
 
 pp_done();
 __DATA__

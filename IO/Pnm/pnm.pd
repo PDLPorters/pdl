@@ -59,6 +59,7 @@ sub show_err {
 # barf after showing any accumulated errors
 sub rbarf {
   my $err = show_err(shift, 0);
+  $err = '' unless defined $err;
   barf @_,"converter error: $err";
 }
 
@@ -142,8 +143,8 @@ sub PDL::rpnm {
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
     my $succeed = open(PNM, $file);
     # redirection now in effect for child
-    close(STDERR);
-    open(STDERR, ">&SAVEERR");
+    # close(STDERR);
+    open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
     rbarf $efile,"Can't open pnm file" unless $succeed;
     binmode PNM;
 
@@ -278,8 +279,8 @@ sub PDL::wpnm {
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
     my $succeed = open(PNM, $pref . $file);
-    close(STDERR);
-    open(STDERR, ">&SAVEERR");
+    # close(STDERR);
+    open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
     rbarf $efile, "Can't open pnm file" unless $succeed;
     binmode PNM;
 
@@ -325,7 +326,7 @@ treated ungracefully (C<rpnm> just barfs).
 
 =head1 AUTHOR
 
-Copyright (C) 1996,1997 Christian Soeller <csoelle@sghms.ac.uk>
+Copyright (C) 1996,1997 Christian Soeller <c.soeller@auckland.ac.nz>
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

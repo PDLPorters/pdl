@@ -64,7 +64,13 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 /* For PDL, use system defaults where possible */
 #include <math.h>
+#if !defined(WIN32) && !defined(_WIN32)
 #include <values.h>
+#endif
+#if defined(_WIN32) || defined(WIN32)
+#include <float.h>
+#define finite _finite
+#endif
 
 /* Now include system-specific stuff */
 #if defined __sun && ! defined __GNUC__

@@ -40,6 +40,7 @@ static void pdl_identity_readdata(pdl_trans *__tr);
    if they wanted. But for now, */
 void pdl__xchghashes(pdl *a,pdl *b)
 {
+    STRLEN n_a;
 	SV *t;
 	void *d;
 	HV *tmp = a->sv;
@@ -50,8 +51,8 @@ void pdl__xchghashes(pdl *a,pdl *b)
 	t = a->datasv;
 	a->datasv = b->datasv;
 	b->datasv = t;
-	a->data = (a->datasv?SvPV((SV*)a->datasv,na):NULL);
-	b->data = (b->datasv?SvPV((SV*)b->datasv,na):NULL);
+       a->data = (a->datasv?SvPV((SV*)a->datasv,n_a):NULL);
+       b->data = (b->datasv?SvPV((SV*)b->datasv,n_a):NULL);
 }
 
 /* Recurse everywhere and set progenitor */

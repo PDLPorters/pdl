@@ -153,7 +153,7 @@ should be sent to the PDL mailing list perldl@jachw.hawaii.edu.
 
 =head1 AUTHOR
 
-Copyright(C) 1997 Christian Soeller (csoelle@sghms.ac.uk).
+Copyright(C) 1997 Christian Soeller (c.soeller@auckland.ac.nz).
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

@@ -1,4 +1,176 @@
 (!!! = possible source of incompatibilities)
+2.002
+John Cerney:
+	- Modified Basic/Core/Makefile.Pl so that ppport.h
+	  gets properly installed.
+	- Removed Version.pm from distribution. This file now
+	  gets auto-generated during the build process.
+	- Fixed permissions of Known_Problems file.
+	- Misc Changes to Doc/mkhtmldoc.pl and Doc/scantree.pl
+          to make html links work correctly.
+        - Minor documentation fixes.
+
+Christian Soeller:
+	- Fixed documentation build problems. Install process
+	  now builds a index html file.
+	- Changes to get the win32 activestate port
+	  going. (available from 
+		ftp://ftp.aao.gov.au:/pub/perldl/dev/Win32)
+	- Changes to complile under cygwin32.
+
+Doug Burke:
+	- Modification to slices.pd docs clarifying the
+	  usage of -1 to indicate the last element when
+	  slicing.
+	- misc.pd doc modification to indicate that rcols()
+	  will ignore lines beginning with a # character
+	  if no pattern is specified.
+	- misc.pd patch to rcols where options can now
+	  be given to:
+		  only include lines matching a pattern
+  		  exclude lines matching a pattern
+  		  only use a specified range of line numbers
+	- Patch to Graphics/IIS/iis.pd to fix warning messages
+	  when running with the perl -w flag.
+
+
+Karl Glazebrook:
+	- Updated F77.pm to match version 1.10 of ExtUtils-F77.
+	- Added polynomial fit package Polynomial.pm
+	- Patch to Lib/Slatec/Makefile.Pl to fix problems
+	  compiling on sparc/solaris
+	- Patch to Basic/Primitive/primitive.pd to make matmult
+	  thread properly and to make matmult an exported function.
+	- Patch to Makefile.PL that allows PDL to be built and
+	  installed conveniently away from it's final destination.
+          This is useful for making RPMs.
+
+Joshua Pritikin:
+	- Patch to pdlcore.c moving some #defines around
+	  to improve portability between perl versions.
+
+Kristian Nielsen
+	- Patch to Basic/Primitive/primitive.pd to fix
+   	  whistogram and whistogram2d problems and updates
+          documentation.
+
+Robin Williams
+	- Update to Basic/Math/Makefile.PL.
+	- Update to Basic/Primitive/Primitive.pd to 
+	  include new functions. zcover, andover, etc.
+	- Patch to FFT to fix but with single-column/row
+	  kernels
+
+Tim Jenness
+	- Patch to IO/NDF/NDF.pm that updates the
+	  POD documentation and makes sure that the reader
+          skips any array extensions (like those generated
+          by Starlink CCDPACK).
+	- Patch to  Lib/Slatec/Makefile.PL
+	  to fix problems compiling slatec with g77 on Redhat
+	  linux
+	- Patch to t/argtest.t, t/scope.t to get rid of 
+	  warning messages.
+	- Patch to perldl.PL that allows a user supplied 
+	  subroutine to be called to pre-process all perldl
+	  strings.
+
+James Williams:
+	- Patch to mkhtmldoc.pl to fix problem with not
+	  generating all html files.
+
+2.001
+John Cerney:
+	- Added reference to the CPAN testers results page
+          to the README file.
+        - Fixed improper comments (causing warning messages)
+          for '#endif _pdlmagic_h' in pdlmagic.h
+        - Removed reference to PDL being only at 'alpha release'
+          in Indexing.pod.
+        - Updated Christian Soeller's email address in all files.
+        - Clarified docs on the RMS element returned by the stats
+          function.
+	- Changed how $PDL::VERSION is set so CPAN will pick it
+          up correctly:
+           * PDL::VERSION is now set directly in PDL.pm
+	   * Makefile.PL reads $PDL::VERSION from PDL.pm and
+	     auto-generates Basic/Version.pm 
+
+Joshua Pritikin: Changes for compatibility with PDL-Objstore.
+	Includes all the fairly conservative changes. More radical
+	changes to come.
+	- Deals with portability between perl versions using Devel-PPPort.
+	- Adds a version number to the PDL API.
+	- Optional bounds checking for PP.
+	- Simplistic support for C++ comments in PP code.
+	- Much improved searching for the Solaris math library.
+
+
+Jarle Brinchmann:
+	- Added 'isempty' function.
+
+Robin Williams:
+	- Doc tidying in Basic/Math together with a 
+	  wrapper routine for eigens and the start of a test set.
+
+Karl Glazebrook:
+	- Patch to where function in primitive.pd to fix 
+	   bug in ($i,$j,$k) = where($x,$y,$z, $x+5>0)
+        - Added PDL::Fit-Gaussion Module
+	- Patch to Core.pm so you can say $a = float(3,4,5)
+          just as you can say $a = pdl(3,4,5).
+	- Patch to slices.pd to export the dice and dice_axis
+	  functions.
+
+Robert Schwebel
+	- Patch for the "perldl" shell that does the following:
+	1.) Print out usage information if non-valid option is given. 
+        2.) Introduce "quit" equivalent to "exit"
+        3.) some linebreaks to fit comments into 80 char terminals
+
+Christian Soeller:
+	- Commented out the close(STDERR) lines in pnd.pd to fix a 
+	  problem where the output from a 'die' is not seen for 
+	  certain test cases after using rpic/wpic from PDL::IO::Pic.
+	- Misc Patch:
+		- negative positions for dummy
+  		- matmult now also supports promotion to sig dims
+  		- PDL::matmult naming corrected
+  		- MathGraph: call PDL::random
+  		- Pic.pm: use PDL::Options -> minimum matching now supported
+   		         removed 'close STDERR' calls
+  		- tifftopnm converter: added -nolut option
+  		- pnm.pd:  get rid of 'uninitialized...' warning
+  		- flexraw.t: fix for broken linux dists that don't have compress (but gzip)
+  		- picnorgb.t: hopefully got rid of error with SGI format
+  		- slice.t/matmult.t: tests for new features.
+
+	- Patch to
+	   - fix a bug when using pthreads and output argument creation
+  	   - new function PDL::Core::pthreads_enabled
+           - updated pthread.t
+        - Fixed a problem in pdlapi.c where some vaffine optimizations
+          had been broken by in a previous version. (Karl also added
+          a test case to complain if this is broken again.)
+
+Doug Burke:
+	- Patch to clean up some of the PGPLOT documentation.
+
+Harry Felder:
+	- Patch to Basic/Math/Makefile.PL to not depend on PWD 
+  	  environment variable.
+
+Doug Hunt:
+	- Patch to Core.pm to add '$PDL::undefval' variable,
+	  which controls how undefs are treaded when a PDL
+	  is created from a perl structure using
+	  pdl(), float(), double(), etc.
+
+Tim Jenness:
+	- Change to perldl to accept -w flag. This runs perldl
+	  with the perl warnings (i.e. the perl -w flag) enabled.
+
+
 2.0 (1.99990 with very minor changes)
 John Cerney
 	- Fixed duplicate entry of PDL::IO::NDF information in the DEPENDENCIES file.

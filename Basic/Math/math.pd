@@ -1,7 +1,7 @@
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
 
-PDL::Math - extended mathematical operations for PDL
+PDL::Math - extended mathematical operations and special functions
 
 =head1 SYNOPSIS
 
@@ -13,10 +13,9 @@ PDL::Math - extended mathematical operations for PDL
 =head1 DESCRIPTION
 
 This module extends PDL with more advanced mathematical
-functions than provided and standard Perl.
+functions than provided by standard Perl.
 
-
-Note all the functions have one input pdl, and one output,  unless otherwise
+All the functions have one input pdl, and one output, unless otherwise
 stated.
 
 The functions are usually available from the system
@@ -37,10 +36,10 @@ sub doco {
 }
 
 doco (qw/acos asin atan tan/,
-'Complete the standard trigonometric functions.');
+'The usual trigonometric function.');
 
 doco (qw/cosh sinh tanh acosh asinh atanh/,
-'The standard hyperbolic functions.');
+'The standard hyperbolic function.');
 
 doco (qw/ceil floor rint/,
 'Round to integral values in floating-point format');
@@ -55,7 +54,7 @@ doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
 
 =for ref
 
-Standard Bessel Functions
+The standard Bessel Functions
 
 =cut
 EOD
@@ -63,14 +62,14 @@ EOD
 $doco{'bessjn'} .= <<'EOD';
 =pod
 This has a second integer
-argument which gives the order of the function require.
+argument which gives the order of the function required.
 =cut
 EOD
 
 $doco{'bessyn'} .= <<'EOD';
 =pod
 This has a second integer
-argument which gives the order of the function require.
+argument which gives the order of the function required.
 =cut
 EOD
 
@@ -94,7 +93,13 @@ pp_addhdr('
 #include <math.h>
 #include "protos.h"
 ');
-
+if ($^O =~ /MSWin/) {
+# _finite in VC++ 4.0
+pp_addhdr('
+#define finite _finite
+#include <float.h>
+');
+}
 # Standard `-lm'
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
 my (@ufuncs1g) = qw(ceil floor rint); # Any type
@@ -203,12 +208,37 @@ pp_def("eigens",
 		}
 		eigens($P(a), $P(ev), $P(e), sn);
 ',
-	Doc => '
+      PMCode =>'
+sub PDL::eigens {
+      my ($a) = @_;
+      my (@d) = $a->dims;
+      barf "Need real square matrix for eigens" 
+            if $#d != 1 or $d[0] != $d[1];
+      my ($n) = $d[0];
+      my ($sym) = 0.5*($a + $a->mv(0,1));
+      my ($err) = PDL::max(abs($sym));
+      barf "Need symmetric component non-zero for eigens"
+          if $err == 0;
+      $err = PDL::max(abs($a-$sym))/$err;
+      warn "Using symmetrized version of the matrix in eigens"
+          if $err > 1e-5;
+      # Get lower triangular form -- 
+      my ($lt) = PDL::where($sym,$sym->xvals <= $sym->yvals)->copy;
+      my ($ev) = PDL->zeroes($n,$n);
+      my ($e)  = PDL->zeroes($n);
+      &PDL::_eigens_int($lt, $ev, $e);
+      return $ev, $e;
+}
+'
+      , Doc => '
 =for ref
 
-Eigenvalues and -vectors of a matrix in lower triangular form
+Eigenvalues and -vectors of a symmetric square matrix.  If passed
+an asymmetric matrix, the routine will warn and symmetrize it.
 
-XXX Hard interface
+=for usage
+
+      ($e, $ev) = eigens($a);
 
 ',);
 
@@ -222,25 +252,37 @@ pp_def("simq",
 		extern int simq( double *A, double *B, double *X,
 			int n, int flag, int *IPS );
 		simq($P(a),$P(b),$P(x),$SIZE(n),$COMP(flag),$P(ips));
-', Doc => '
+',
+      Doc => '
 =for ref
 
-Solution of simultaneous linear equations.
+Solution of simultaneous linear equations, a x = b.
 
-(XXX hard interface)
+a is an n x n matrix (i.e., a vector of length n*n), stored row-wise:
+that is, a(i,j) = a[ij], where ij = i*n + j.  While this is the
+transpose of the normal column-wise storage, this corresponds to
+normal PDL usage.  The contents of matrix a may be altered (but may be
+required for subsequent calls with flag = -1).
+
+b, x, ips are vectors of length n.
+
+Set flag=0 to solve.  Set flag=-1 to do a new back substitution for
+different b vector using the same a matrix previously reduced when
+flag=0 (the ips vector generated in the previous solution is also
+required).
 
 ');
 
 pp_def("squaretotri",
 	Pars => 'a(n,n); b(m)',
 	Code => '
-		register int na=0, nb=0, ns = $SIZE(n);
+               register int mna=0, nb=0, ns = $SIZE(n);
 		if($SIZE(m) != (ns * (ns+1))/2) {
 			barf("Wrong sized args for squaretotri");
 		}
 		loop(m) %{
-			$b() = $a(n0 => na, n1 => nb);
-			na++; if(na > nb) {na = 0; nb ++;}
+                       $b() = $a(n0 => mna, n1 => nb);
+                       na++; if(mna > nb) {mna = 0; nb ++;}
 		%}
 	',
 	Doc => '
@@ -264,6 +306,7 @@ sub eigen_c {
 	PDL::eigens($z, $k, $ev);
 	return ($ev, $k);
 }
+
 
 =head1 BUGS
 

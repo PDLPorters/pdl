@@ -108,7 +108,7 @@ using something similar to the following:
 
 =over 4
 
-=item
+=item *
 
 C<pod2usage(EXIT =E<gt> 2, INPUT =E<gt> "/path/to/your/pod/docs");>
 

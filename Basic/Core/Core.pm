@@ -60,6 +60,8 @@ $PDL::verbose      = 0;
 $PDL::use_commas   = 0;        # Whether to insert commas when printing arrays
 $PDL::floatformat  = "%7g";    # Default print format for long numbers
 $PDL::doubleformat = "%10.8g";
+$PDL::undefval     = 0;        # Value to use instead of undef when creating
+                               # PDLs
 
 ################ Exportable functions of the Core ######################
 
@@ -80,7 +82,7 @@ $PDL::doubleformat = "%10.8g";
 *diagonal     = \&PDL::diagonal;
 *dummy        = \&PDL::dummy;
 *mslice       = \&PDL::mslice;
-
+*isempty      = \&PDL::isempty;
 
 sub barf;
 
@@ -97,15 +99,37 @@ piddle constructor - creates new piddle from perl scalars/arrays
 =for example
 
    $a = pdl [1..10];             # 1D array
+   $a = pdl ([1..10]);           # 1D array
    $a = pdl (1,2,3,4);           # Ditto
    $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
    $b = pdl 42                   # 0-dimensional scalar
    $c = pdl $a;                  # Make a new copy
+   $a = pdl([1,2,3],[4,5,6]);    # 2D
+   $a = pdl([[1,2,3],[4,5,6]]);  # 2D
+
+Note the last two are equivalent - a list is automatically
+converted to a list reference for syntactic convenience. i.e. you
+can omit the outer C<[]>
 
 pdl() is a functional synonym for the 'new' constructor,
 e.g.:
 
    $x = new PDL [1..10];
+
+In order to control how undefs are handled in converting from perl lists to
+PDLs, one can set the variable PDL::undefval.  For example:
+
+  $foo = [[1,2,undef],[undef,3,4]];
+  $PDL::undefval = -999;
+  $f = pdl $foo;
+  print $f
+
+  [
+   [   1    2 -999]
+   [-999    3    4]
+  ]
+
+$PDL::undef defaults to zero.
 
 =cut
 
@@ -615,6 +639,10 @@ sub PDL::unwind {
 Insert a 'dummy dimension' of given length (defaults to 1)
 
 No relation to the 'Dungeon Dimensions' in Discworld!
+Negative positions specify relative to last dimension,
+i.e. C<dummy(-1)> appends one dimension at end,
+C<dummy(-2)> inserts a dummy dimension in front of the
+last dim, etc.
 
 =for usage
 
@@ -633,11 +661,13 @@ No relation to the 'Dungeon Dimensions' in Discworld!
 
 
 sub PDL::dummy($$;$) {
+   my ($pdl,$dim) = @_;
+   $dim = $pdl->getndims+1+$dim if $dim < 0;
    barf ("too high/low dimension in call to dummy, allowed min/max=0/"
  	 . $_[0]->getndims)
-     if $_[1]>$_[0]->getndims || $_[1] < 0;
+     if $dim>$pdl->getndims || $dim < 0;
          $_[2] = 1 if ($#_ < 2);
-         $_[0]->slice((','x$_[1])."*$_[2]");
+         $pdl->slice((','x$dim)."*$_[2]");
 }
 
 
@@ -1139,6 +1169,37 @@ sub PDL::new_from_specification{
     return $pdl;
 }
 
+=head2 isempty
+
+=for ref
+
+Test whether a piddle is empty
+
+=for usage
+
+  print "The piddle has zero dimension\n" if $pdl->isempty;
+
+This function returns 1 if the piddle has zero elements. This is
+useful in particular when using the indexing function which. In the
+case of no match to a specified criterion, the returned piddle has
+zero dimension.
+
+ perldl> $a=sequence(10)
+ perldl> $i=which($a < -1)
+ perldl> print "I found no matches!\n" if ($a->isempty);
+
+Note that having zero elements is rather different from the concept
+of being a null piddle, see the L<PDL::FAQ> and the L<PDL::Indexing>
+and L<PDL::Primitive::isnull> manpages for discussions on this.
+
+=cut 
+
+sub PDL::isempty {
+    my $pdl=shift;
+    return ($pdl->nelem == 0);
+}
+
+
 =head2 zeroes
 
 =for ref
@@ -1311,9 +1372,19 @@ byte|short|ushort|long|float|double convert shorthands
 When called with a piddle argument, they convert to the specific
 datatype.
 
-When called with a numeric or list ref argument they construct
+When called with a numeric or list / listref argument they construct
 a new piddle. This is a convenience to avoid having to be
 long-winded and say <$x = long(pdl(42))>
+
+Thus one can say:
+
+   $a = float(1,2,3,4);           # 1D
+   $a = float([1,2,3],[4,5,6]);   # 2D
+   $a = float([[1,2,3],[4,5,6]]); # 2D
+
+Note the last two are equivalent - a list is automatically
+converted to a list reference for syntactic convenience. i.e. you
+can omit the outer C<[]>
 
 When called with no arguments return a special type token.
 This allows syntactical sugar like:
@@ -1322,6 +1393,21 @@ This allows syntactical sugar like:
 
 This example creates a large piddle directly as byte datatype in
 order to save memory.
+
+In order to control how undefs are handled in converting from perl lists to
+PDLs, one can set the variable PDL::undefval.  For example:
+
+  $foo = [[1,2,undef],[undef,3,4]];
+  $PDL::undefval = -999;
+  $f = float $foo;
+  print $f
+
+  [
+   [   1    2 -999]
+   [-999    3    4]
+  ]
+
+$PDL::undef defaults to zero.
 
 =for example
 
@@ -1386,7 +1472,7 @@ for(
 ) {
 	eval ('sub PDL::'.$_->[0]." { ".
 		'return bless ['.$_->[1].'], PDL::Type unless @_;
-		 convert(alltopdl(\'PDL\',shift),'.$_->[1].')
+                convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
 		}');
 }
 
@@ -1443,7 +1529,8 @@ sub string {
        my @x = $self->at();
        return ($format ? sprintf($format, $x[0]) : "$x[0]");
     }
-    return "Null" if $ndims==1 && $self->getdim(0)==0; # Null token
+    return "Null" if $self->isnull;
+    return "Empty" if $self->isempty; # Empty piddle
     local $sep  = $PDL::use_commas ? "," : " ";
     local $sep2 = $PDL::use_commas ? "," : "";
     if ($ndims==1) {
@@ -1787,7 +1874,7 @@ sub rpack {
 
     }elsif (ref(\$a) eq "SCALAR") { # Note $PDL_D assumed
 
-      $ret = pack($ptype,$_);
+      $ret = defined($_) ? pack($ptype,$_) : pack($ptype,$PDL::undefval);
 
     }else{
         barf "Don't know how to make a PDL object from passed argument";
@@ -1995,7 +2082,7 @@ exercise for the reader)
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au),
 Tuomas J. Lukka, (lukka@husc.harvard.edu) and Christian
-Soeller (csoelle@sghms.ac.uk) 1997.
+Soeller (c.soeller@auckland.ac.nz) 1997.
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

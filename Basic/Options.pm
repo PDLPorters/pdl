@@ -9,7 +9,7 @@ PDL::Options - simplifies option passing by hash in PerlDL
 
   use PDL::Options;
 
-  $hashref = parse( \%defaults, \%user_options);
+  %hash = parse( \%defaults, \%user_options);
 
   use PDL::Options ();
 

@@ -83,9 +83,10 @@ use PDL::Core '';
 use PDL::Basic '';
 use Carp;
 
-$iisframe    = 1;                # Starting defaults
-$stdimage    = "imt1024";
-$HOME        = $ENV{'HOME'};     # Used a lot so shorten
+$iisframe      = 1;                # Starting defaults
+$stdimage      = "imt1024";
+$last_stdimage = "";
+$HOME          = $ENV{'HOME'};     # Used a lot so shorten
 
 
 ################ Public routines #################
@@ -387,11 +388,12 @@ MODULE = PDL::Graphics::IIS PACKAGE = PDL::Graphics::IIS
 void
 _iiscur_int()
    PPCODE:
+    STRLEN n_a;
     float x,y;
     char ch;
     int   frame       = (int)SvIV( perl_get_sv("iisframe", FALSE) );
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),na),SvPV(perl_get_sv("fifo",FALSE),na),
+    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
@@ -427,13 +429,14 @@ pp_def('iis',
    float fmin, fmax;
    char wcsbuf[SZ_WCSTEXT];
    int chan;
+   STRLEN n_a;
 
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
        barf("$iisframe must be in range 1--4");
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),na),SvPV(perl_get_sv("fifo",FALSE),na),
+    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
@@ -564,13 +567,14 @@ pp_def('iiscirc',
         Code => '
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
+   STRLEN n_a;
 
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
        barf("$iisframe must be in range 1--4");
 
-   iis_open(SvPV(perl_get_sv("fifi",FALSE),na),SvPV(perl_get_sv("fifo",FALSE),na),
+   iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
         (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
         (int)SvIV( perl_get_sv("fb_x", FALSE) ),
         (int)SvIV( perl_get_sv("fb_y", FALSE) ) );

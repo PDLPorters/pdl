@@ -34,7 +34,7 @@ sub new {
 =head1 AUTHOR
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu) and by Christian
-Soeller (csoelle@sghms.ac.uk).
+Soeller (c.soeller@auckland.ac.nz).
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

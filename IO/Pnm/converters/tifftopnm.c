@@ -64,14 +64,14 @@ main( argc, argv )
     xel* xelrow;
     register xel* xP;
     xel colormap[MAXCOLORS];
-    int headerdump, scale8bp;
+    int headerdump, scale8bp, nolut;
     register u_char sample;
     register int bitsleft;
     unsigned short bps, spp, photomet;
     unsigned short* redcolormap;
     unsigned short* greencolormap;
     unsigned short* bluecolormap;
-    char* usage = "[-headerdump -8bpalette] [tifffile]";
+    char* usage = "[-headerdump -8bpalette -nolut] [tifffile]";
     tsize_t sz;
 
     pnm_init( &argc, argv );
@@ -79,6 +79,7 @@ main( argc, argv )
     argn = 1;
     headerdump = 0;
     scale8bp = 0;
+    nolut = 0;
 
     while ( argn < argc && argv[argn][0] == '-' && argv[argn][1] != '\0' )
 	{
@@ -86,6 +87,8 @@ main( argc, argv )
 	    headerdump = 1;
 	else if ( pm_keymatch( argv[argn], "-8bpalette", 2 ) )
 	    scale8bp = 1;
+       else if ( pm_keymatch( argv[argn], "-nolut", 2 ) )
+           nolut = 1;
 	else
 	    pm_usage( usage );
 	++argn;
@@ -165,51 +168,54 @@ main( argc, argv )
 
 	    case PHOTOMETRIC_PALETTE:
 	    if ( headerdump )
-		pm_message( "colormapped" );
-	    if ( ! TIFFGetField( tif, TIFFTAG_COLORMAP, &redcolormap, &greencolormap, &bluecolormap ) )
+             pm_message( "colormapped" );
+           if (!nolut) {
+             if ( ! TIFFGetField( tif, TIFFTAG_COLORMAP, &redcolormap, &greencolormap, &bluecolormap ) )
 		pm_error( "error getting colormaps" );
-	    numcolors = maxval + 1;
-	    if ( numcolors > MAXCOLORS )
+             numcolors = maxval + 1;
+             if ( numcolors > MAXCOLORS )
 		pm_error( "too many colors" );
-	    maxval = PNM_MAXMAXVAL;
-	    grayscale = 0;
-	    /* do the conversion only if necessary due to PNM_MAXMAXVAL
-	       being smaller than the largest possible colormap entry,
-	       saves you trouble with rounding errors, etc. (CS) */
-	    if (PNM_MAXMAXVAL < 65535L)
-	      for ( i = 0; i < numcolors; ++i )
-		{
-		  register xelval r, g, b;
-		  r = (long) redcolormap[i] * PNM_MAXMAXVAL / 65535L;
-		  g = (long) greencolormap[i] * PNM_MAXMAXVAL / 65535L;
-		  b = (long) bluecolormap[i] * PNM_MAXMAXVAL / 65535L;
-		  PPM_ASSIGN( colormap[i], r, g, b );
-		  fprintf(stderr,"in: %hu, out: %d\n",greencolormap[i],g);
-		}
-	    else
-	      if (checkcmap(redcolormap,greencolormap,bluecolormap,bps) == 16
-		  && scale8bp)
+             maxval = PNM_MAXMAXVAL;
+             grayscale = 0;
+             /* do the conversion only if necessary due to PNM_MAXMAXVAL
+                being smaller than the largest possible colormap entry,
+                saves you trouble with rounding errors, etc. (CS) */
+             if (PNM_MAXMAXVAL < 65535L)
 		for ( i = 0; i < numcolors; ++i )
 		  {
 		    register xelval r, g, b;
-		    r = redcolormap[i] >> 8;
-		    g = greencolormap[i] >> 8;
-		    b = bluecolormap[i] >> 8;
+                   r = (long) redcolormap[i] * PNM_MAXMAXVAL / 65535L;
+                   g = (long) greencolormap[i] * PNM_MAXMAXVAL / 65535L;
+                   b = (long) bluecolormap[i] * PNM_MAXMAXVAL / 65535L;
 		    PPM_ASSIGN( colormap[i], r, g, b );
-		    fprintf(stderr,"case2: in: %hu, out: %d\n",
-			    greencolormap[i],g);
+                   fprintf(stderr,"in: %hu, out: %d\n",greencolormap[i],g);
 		  }
 	      else
-		for ( i = 0; i < numcolors; ++i )
-		  {
-		    register xelval r, g, b;
-		    r = redcolormap[i];
-		    g = greencolormap[i];
-		    b = bluecolormap[i];
-		    PPM_ASSIGN( colormap[i], r, g, b );
-		    fprintf(stderr,"case2: in: %hu, out: %d\n",
-			    greencolormap[i],g);
-		  }
+               if (checkcmap(redcolormap,greencolormap,bluecolormap,bps) == 16
+                   && scale8bp) 
+                 for ( i = 0; i < numcolors; ++i )
+                   {
+                     register xelval r, g, b;
+                     r = redcolormap[i] >> 8;
+                     g = greencolormap[i] >> 8;
+                     b = bluecolormap[i] >> 8;
+                     PPM_ASSIGN( colormap[i], r, g, b );
+                     fprintf(stderr,"case2: in: %hu, out: %d\n",
+                             greencolormap[i],g);
+                   }
+               else
+                 for ( i = 0; i < numcolors; ++i )
+                   {
+                     register xelval r, g, b;
+                     r = redcolormap[i];
+                     g = greencolormap[i];
+                     b = bluecolormap[i];
+                     PPM_ASSIGN( colormap[i], r, g, b );
+                     fprintf(stderr,"case2: in: %hu, out: %d\n",
+                             greencolormap[i],g);
+                   }
+           } else
+             grayscale = 1;
 	    break;
 
 	    case PHOTOMETRIC_RGB:
@@ -321,11 +327,18 @@ main( argc, argv )
 	    break;
 
 	    case PHOTOMETRIC_PALETTE:
-	    for ( col = 0; col < cols; ++col, ++xP )
-		{
-		NEXTSAMPLE
-		*xP = colormap[sample];
-		}
+             if (!nolut)
+               for ( col = 0; col < cols; ++col, ++xP )
+                 {
+                   NEXTSAMPLE
+                     *xP = colormap[sample];
+                 }
+             else 
+               for ( col = 0; col < cols; ++col, ++xP )
+                 {
+                   NEXTSAMPLE
+                     PNM_ASSIGN1( *xP, sample );
+                 }
 	    break;
 
 	    case PHOTOMETRIC_RGB:

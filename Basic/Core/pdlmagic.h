@@ -115,9 +115,10 @@ int pdl_magic_thread_nthreads(pdl *,int *nthdim);
 int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at once */
 
 void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t);
+int pdl_pthreads_enabled(void);
 
 /* Delete data magic */
 void pdl_delete_mmapped_data(pdl *p, int param) ;
 void pdl_add_deletedata_magic(pdl *it,void (*func)(pdl *, int param), int param);
 
-#endif _pdlmagic_H_
+#endif /* _pdlmagic_H_  */

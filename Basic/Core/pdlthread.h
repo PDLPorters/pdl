@@ -25,8 +25,9 @@ typedef struct pdl_thread {
 	int *realdims;  /* realdims for each pdl (e.g., specified by PP signature) */
 	pdl **pdls;
         char *flags;    /* per pdl flags */
-	int mag_nth;
-	int mag_nthpdl;
+        int mag_nth;    /* magicked thread dim */
+        int mag_nthpdl; /* magicked piddle */
+        int mag_nthr;   /* number of threads */
 } pdl_thread;
 
 

@@ -116,6 +116,7 @@ void pdl_initthreadstruct(int nobl,
 
 	thread->mag_nth = -1;
 	thread->mag_nthpdl = -1;
+        thread->mag_nthr = -1;
 
 	nids=0;
 	mx=0;
@@ -135,6 +136,7 @@ void pdl_initthreadstruct(int nobl,
 		  (nthr = pdl_magic_thread_nthreads(pdls[j],&nthrd))) {
 			thread->mag_nthpdl = j;
 			thread->mag_nth = nthrd - realdims[j];
+                       thread->mag_nthr = nthr;
 			if(thread->mag_nth < 0) {
 				die("Cannot magick non-threaded dims");
 			}
@@ -284,7 +286,9 @@ See the manual for why this is impossible");
 	if (!temp)
 	  for(i=0; i<thread->nimpl; i++)
 		thread->pdls[j]->dims[i+thread->realdims[j]] =
-			thread->dims[i];
+                       thread->dims[i] *
+                     ((i == thread->mag_nth && thread->mag_nthr > 0) ?
+                           thread->mag_nthr : 1);
 	thread->pdls[j]->threadids[0] = td + thread->realdims[j];
 	pdl_resize_defaultincs(thread->pdls[j]);
 	for(i=0; i<thread->nimpl; i++) {

@@ -7,6 +7,11 @@
 use ExtUtils::MakeMaker;
 use Config;
 
+require File::Spec;
+$fs = 'File::Spec';
+sub cdir { return $fs->catdir(@_)}
+sub cfile { return $fs->catfile(@_)}
+
 PDL::Core::Dev->import();
 
 # Files for each routine (.c assumed)
@@ -24,72 +29,89 @@ my (@sfuncs) = qw(nan infinity);
 my (@ufuncs2) = qw(acosh asinh atanh erf erfc rint);
 my (@besufuncs) = qw(j0 j1 y0 y1);
 my (@besbifuncs) = qw(jn yn);
-my ($libs) = '-lm';
-$libs = '-L/opt/SUNWspro/lib -lsunmath '.$libs 
-      if (($^O eq 'solaris' or $^O eq 'sunos') and -d "/opt/SUNWspro/lib/");
-
+my ($libs) = $^O =~ /MSWin/ ? '' : $^O =~ /cygwin/ ? getcyglib('m') : '-lm';
+if ($^O eq 'solaris' or $^O eq 'sunos') {
+    # try to guess where is sunmath
+    my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
+    for my $d (@d) {
+       if (-e "$d/libsunmath.so") {
+           $libs = "-L$d -lsunmath $libs";
+           last;
+       }
+    }
+}
 @need = qw(ndtri blas eigens simq); # List of routine we need because system
             # does not have them
 
 # Test for absence of unary functions
 
-$dir = $ENV{PWD}.'/Basic/Math';
+use Cwd;
+$mmdir = $mdir = cdir 'Basic','Math';
+$mmdir =~ s/\\/\\\\/g;
+$dir = $fs->canonpath(cwd);
+$dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
+$td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
+$tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
+            defined $ENV{TMP} ? $ENV{TMP} :
+                           cdir($fs->rootdir,$td);
 
 my $testfile = "pdl$$";
-my $HIDE = '>/dev/null 2>&1';
+my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
+my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
+
 foreach (@sfuncs) {
-    open FILE,">/tmp/$testfile.c";
+    open FILE,">$tc";
     print FILE <<"EOF";
 #include <stdio.h>
 #include "mconf.h"
-main() {printf("%lg",$_());}
+main() {printf("%lg",$_()); exit(0); }
 EOF
     close FILE;
     push @need, $_ if 
-      system("$Config{cc} -I$dir -o /tmp/$testfile /tmp/$testfile.c $libs $HIDE")
+      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE")
       !=0;
 }
 
 foreach (@ufuncs2) {
-    open FILE,">/tmp/$testfile.c";
+    open FILE,">$tc";
     print FILE <<"EOF";
 #include <stdio.h>
 #include "mconf.h"
-main() {printf("%lg",$_(1.));}
+main() {printf("%lg",$_(1.)); exit(0); }
 EOF
     close FILE;
     push @need, $_ if 
-      system("$Config{cc} -I$dir -o /tmp/$testfile /tmp/$testfile.c $libs $HIDE")
+      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE")
       !=0;
 }
 
 # Test for absence of besfuncs
 
 foreach (@besufuncs) {
-    open FILE,">/tmp/$testfile.c";
+    open FILE,">$tc";
     print FILE <<"EOF";
 #include <stdio.h>
 #include "mconf.h"
-main() {printf("%lg",$_(1.));}
+main() {printf("%lg",$_(1.)); exit(0); }
 EOF
     close FILE;
     push @need, $_  if 
-      system("$Config{cc} -I$dir -o /tmp/$testfile /tmp/$testfile.c $libs $HIDE")
+      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE")
       !=0;
 }
 foreach (@besbifuncs) {
-    open FILE,">/tmp/$testfile.c";
+    open FILE,">$tc";
     print FILE <<"EOF";
 #include <stdio.h>
 #include "mconf.h"
-main() {printf("%lg",$_(1.,1.));}
+main() {printf("%lg",$_(1.,1.)); exit(0); }
 EOF
     close FILE;
     push @need, $_ if 
-      system("$Config{cc} -I$dir -o /tmp/$testfile /tmp/$testfile.c $libs $HIDE")
+      system("$Config{cc} -I$dir -o $te $tc $libs $HIDE")
       !=0;
 }
-unlink "/tmp/$testfile","/tmp/$testfile.c";
+unlink "$te","$tc";
 
 print "\nUsing distribution version of functions: @need\n";
 
@@ -121,3 +143,5 @@ WriteMakefile(%hash);
 sub MY::postamble {
 	pdlpp_postamble_int(@::pack);
 }  # Add genpp rule
+
+

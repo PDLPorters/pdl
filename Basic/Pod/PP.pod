@@ -195,17 +195,17 @@ if you want to
 
 =over 3
 
-=item
+=item *
 
 interface PDL to some external library
 
-=item
+=item *
 
 write some algorithm that would be slow if coded in perl
 (this is not as often as you think; take a look at threading
 and dataflow first).
 
-=item
+=item *
 
 be a PDL developer (and even then it's not obligatory)
 
@@ -1464,7 +1464,7 @@ After the rewrite, this can happen a little by little, though.
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu), Karl
 Glaazebrook (kgb@aaocbn1.aao.GOV.AU) and Christian Soeller
-(csoelle@sghms.ac.uk). All rights reserved. Although destined for
+(c.soeller@auckland.ac.nz). All rights reserved. Although destined for
 release as a man page with the standard PDL distribution, it is not
 public domain. Permission is granted to freely distribute verbatim
 copies of this document provided that no modifications outside of

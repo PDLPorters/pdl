@@ -1096,8 +1096,12 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			} else
 #endif
 #endif
-				if(!trans->pdls[j]) {return;} /* XXX!!! */
+                       {       if(!trans->pdls[j]) {return;} /* XXX!!! */
+                       PDLDEBUG_f(printf("not vaffine ok: %d\n",
+                                         trans->vtable->per_pdl_flags[j]));
+
 				pdl_make_physical(trans->pdls[j]);
+                       }
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}

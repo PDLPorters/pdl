@@ -44,6 +44,7 @@ use PDL::Exporter;
 use PDL::Types;
 use PDL::ImageRGB;
 use PDL::IO::Pnm;
+use PDL::Options;
 use File::Basename;
 use SelfLoader;
 
@@ -75,6 +76,7 @@ the filter when trying to open the pipe.
 # The 'FLAGS' key must be used if the converter needs other flags than
 # the default flags ($Dflags)
 
+$PDL::IO::Pic::debug = 0;
 &init_converter_table();
 
 # setup functions
@@ -112,7 +114,8 @@ sub init_converter_table {
   }
 
   $PDL::IO::Pic::biggrays = &hasbiggrays();
-  print "using big grays\n" if $PDL::debug && $PDL::IO::Pic::biggrays;
+  print "using big grays\n" if $PDL::IO::Pic::debug &&
+    $PDL::IO::Pic::biggrays;
 
   for (keys %converter) {
     $converter{$_}->{ushortok} = $PDL::IO::Pic::biggrays ?
@@ -144,7 +147,7 @@ sub hasbiggrays {
     open(STDERR,">&IN") or barf "couldn't redirect stdder";
 
     system("$converter{$form}->{get} -version");
-    open(STDERR, ">&SAVEERR");
+    open(STDERR, ">&PDL::IO::Pic::SAVEERR");
     $tmp->setpos($pos);  # rewind
     $txt = join '',<IN>;
     close IN; undef $tmp;
@@ -196,6 +199,7 @@ I<Options>
 =for opt
 
     FORMAT  =>  'JPEG'   # explicitly read this format
+    XTRAFLAGS => '-nolut'  # additional flags for converter
 
 Reads image files in most of the formats supported by netpbm. You can
 explicitly specify a supported format by additionally passing a hash
@@ -207,6 +211,8 @@ This is especially useful if the particular format isn't identified by
 a magic number and doesn't have the 'typical' extension or you want to
 avoid the check of the magic number if your data comes in from a pipe.
 The function returns a pdl of the appropriate type upon completion.
+Option parsing uses the L<PDL::Options> module and therefore supports
+minimal options matching.
 
 You can also read directly into an existing pdl that has to have the
 right size(!). This can come in handy when you want to read a sequence
@@ -220,6 +226,11 @@ first plane of a 3D RGB datacube (=4D pdl datacube). You can also do
 transpose/inversion upon read that way.
 
 =cut
+
+my $rpicopts = {
+               FORMAT => undef,
+               XTRAFLAGS => undef,
+              };
 
 sub rpic {PDL->rpic(@_)}
 
@@ -237,6 +248,7 @@ sub PDL::rpic {
         $pdl = $class->initialize;
     }
 
+    $hints = { parse $rpicopts, $hints } if ref $hints;
     if (defined($$hints{'FORMAT'})) {
 	$type = $$hints{'FORMAT'};
         barf "unsupported (input) image format"
@@ -250,10 +262,11 @@ sub PDL::rpic {
 
     my $flags = $converter{$type}->{FLAGS};
     $flags = "$Dflags" unless defined($flags);
+    $flags .= " $$hints{XTRAFLAGS}" if defined($$hints{XTRAFLAGS});
     my $cmd = "$converter{$type}->{get} $flags $file |";
     $cmd = $file if $converter{$type}->{get} =~ /^NONE/;
 
-    print("conversion by '$cmd'\n") if $PDL::debug > 10;
+    print("conversion by '$cmd'\n") if $PDL::IO::Pic::debug > 10;
 
     return rpnm($pdl,$cmd);
 }
@@ -300,7 +313,8 @@ the image format that is being written. Valid options are (key
    COLOR      => 'bw',         # specify color conversion
    LUT        => $lut,         # use color table information
 
-A detailed explanation of these options follows.
+Option parsing uses the L<PDL::Options> module and therefore supports
+minimal options matching. A detailed explanation of supported options follows.
 
 =over 7
 
@@ -384,6 +398,11 @@ easy, complicated tasks possible.
 
 =cut
 
+my %wpicopts = map {($_ => undef)}
+               qw/IFORM CONVERTER FLAGS FORMAT
+               XTRAFLAGS COLOR LUT/;
+my $wpicopts = \%wpicopts;
+
 *wpic = \&PDL::wpic;
 
 sub PDL::wpic {
@@ -393,10 +412,11 @@ sub PDL::wpic {
     my ($pdl,$file,$hints) = @_;
     my ($type, $cmd, $form,$iform,$iraw);
 
+    $hints = {parse($wpicopts, $hints)} if ref $hints;
     # figure out the right converter
     my ($conv, $flags, $format) = getconv($pdl,$file,$hints);
     print "Using the command $conv with the flags $flags\n"
-	if $PDL::debug>10;
+       if $PDL::IO::Pic::debug>10;
 
     if (defined($$hints{IFORM})) {
 	$iform = $$hints{IFORM}; }
@@ -407,11 +427,11 @@ sub PDL::wpic {
 	$iform = 'PNM' if $conv =~ /^\s*(pnm)|(NONE)/; }
     # get final values for $iform and $pdl (check conversions, consistency,etc)
     ($pdl,$iform) = chkpdl($pdl,$iform,$hints,$format);
-    print "using intermediate format $iform\n" if $PDL::debug>10;
+    print "using intermediate format $iform\n" if $PDL::IO::Pic::debug>10;
 
     $cmd = "|"  . "$conv $flags >$file";
     $cmd = ">" . $file if $conv =~ /^NONE/;
-    print "built the command $cmd to write image\n" if $PDL::debug>10;
+    print "built the command $cmd to write image\n" if $PDL::IO::Pic::debug>10;
 
     $iraw = 1 if (defined($$hints{IFORM}) && $$hints{IFORM} =~ /RAW/);
     $iraw = 0 if (defined($$hints{IFORM}) &&
@@ -689,10 +709,10 @@ sub chkpdl {
     }
     if (defined $$hints{LUT}) {  # make LUT images into RGB
 	barf "luts only with non RGB data" if $isrgb;
-	print "starting palette->RGB conversion...\n" if $PDL::debug;
+       print "starting palette->RGB conversion...\n" if $PDL::IO::Pic::debug;
 	$pdl = interlrgb($pdl,$$hints{LUT});
 	$iform = 'PPM';  # and tell everyone we are now RGB
-	print "finished conversion\n" if $PDL::debug;
+       print "finished conversion\n" if $PDL::IO::Pic::debug;
 	}
     return ($pdl, $iform);
 }
@@ -718,7 +738,7 @@ the author.
 
 =head1 AUTHOR
 
-Copyright (C) 1996,1997 Christian Soeller <csoelle@sghms.ac.uk>
+Copyright (C) 1996,1997 Christian Soeller <c.soeller@auckland.ac.nz>
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

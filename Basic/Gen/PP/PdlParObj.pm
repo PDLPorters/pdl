@@ -312,7 +312,7 @@ sub do_access {
 	if(scalar(keys %subst) != 0) {
 		confess("Substitutions left: ".(join ',',keys %subst)."\n");
 	}
-	return "$text /* ACCESS($access) */";
+       return "$text /* ACCESS($access) */\n";
 }
 
 sub has_dim {
@@ -372,7 +372,8 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
 		On stack:".(join ' ',map {"($_->[0],$_->[1])"} @$context)."\n" ;}
 #	return "\$PRIV(".($this->get_incname($ind))."*". $index .")";
 # Now we have them in register variables -> no PRIV
-	return "(".($this->get_incname($ind))."*". $index .")";
+       return ("(".($this->get_incname($ind))."*".
+               "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))");
 }
 
 sub get_xsdatapdecl { my($this,$genlooptype,$asgnonly) = @_;

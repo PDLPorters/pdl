@@ -122,6 +122,56 @@ defpdl(
 );
 
 defpdl(
+      'zcover',
+      'a(n); int+ [o]b();',
+      '',
+      '$GENERIC(b) tmp = 1;
+       loop(n) %{ tmp = tmp && $a() == 0; if (!tmp) break; %}
+       $b() = tmp;',
+       projectdocs('!= 0','zcover','')
+);
+
+pp_def(
+      'andover',
+      Pars => 'a(n); int+ [o]b();',
+      GenericTypes => [B,S,U,L],
+      Code => '$GENERIC(b) tmp = 1;
+       loop(n) %{ tmp = tmp && $a(); if (!tmp) break; %}
+       $b() = tmp;',
+      Doc => projectdocs('and','andover','')
+);
+
+pp_def(
+      'bandover',
+      Pars => 'a(n); int+ [o]b();',
+      GenericTypes => [B,S,U,L],
+      Code => '$GENERIC(b) tmp = ~ 0 ;
+       loop(n) %{ tmp &= $a(); if (!tmp) break; %}
+       $b() = tmp;',
+      Doc => projectdocs('bitwise and','bandover','')
+);
+
+pp_def(
+      'orover',
+      Pars => 'a(n); int+ [o]b();',
+      GenericTypes => [B,S,U,L],
+      Code => '$GENERIC(b) tmp = 0;
+       loop(n) %{ tmp = tmp || $a(); if (tmp) break; %}
+       $b() = tmp;',
+      Doc => projectdocs('or','orover','')
+);
+
+pp_def(
+      'borover',
+      Pars => 'a(n); int+ [o]b();',
+      GenericTypes => [B,S,U,L],
+      Code => '$GENERIC(b) tmp = 0;
+       loop(n) %{ tmp |= $a(); if (!~tmp) break; %}
+       $b() = tmp;',
+      Doc => projectdocs('bitwise or','borover','')
+);
+
+defpdl(
       'intover',
       'a(n); int+ [o]b();',
       '',
@@ -336,6 +386,11 @@ some circumstances.
 
 for $op ( ['avg','average','average'],
           ['sum','sumover','sum'],
+          ['zcheck','zcover','check for zero'],
+          ['and','andover','logical and'],
+          ['band','bandover','bitwise and'],
+          ['or','orover','logical or'],
+          ['bor','borover','bitwise or'],
 	  ['min','minimum','minimum'],
 	  ['max','maximum','maximum'],
 	  ['median', 'medover', 'median'],
@@ -521,13 +576,21 @@ via a threaded inner product
 
 =cut
 
-  sub matmult {
+  sub PDL::matmult {
+    barf "Invalid number of arguments for matmult" if $#_ < 1;
     my ($a,$b,$c) = @_;
+    while ($a->getndims < 2) {$a = $a->dummy(-1)} # promote if necessary
+    while ($b->getndims < 2) {$b = $b->dummy(-1)}
     if(!defined $c) {$c = PDL->nullcreate($a)}
     $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
     return $c;
   }
+
+  *matmult = \&PDL::matmult;
+
 EOD
+
+pp_add_exported('', 'matmult');
 
 
 defpdl(
@@ -1223,10 +1286,10 @@ sub PDL::where {
 		if($_[-1]->getndims > 1) {
 			my $mask = $_[-1]->clump(-1)->which;
 			return map {$_->clump(-1)->index($mask)}
-				@$_[0..$#$_-1];
+                               @_[0..$#_-1];
 		} else {
 			my $mask = $_[-1]->which;
-			return map {$_->index($mask)} @$_[0..$#$_-1];
+                       return map {$_->index($mask)} @_[0..$#_-1];
 		}
 	}
 }
@@ -1274,11 +1337,21 @@ EOD
 for({Name => 'histogram',
     WeightPar => '',
      HistType => 'int+',
-     HistOp => '++'},
+     HistOp => '++',
+     Doc1 => "",
+     Doc2 => "",
+     Doc3 => "number of\n",
+     Doc4 => "\nUse C<hist()> instead for a high-level interface.\n",
+     Doc5 => "histogram(pdl(1,1,2),1,0,3)\n [0 2 1]"},
     {Name => 'whistogram',
-     WeightPar => 'float+ wt();',
+     WeightPar => 'float+ wt(n);',
      HistType => 'float+',
-     HistOp => '+= $wt()'})
+     HistOp => '+= $wt()',
+     Doc1 => " from weighted data",
+     Doc2 => "\$weights, ",
+     Doc3 => "sum of the values in \$weights\nthat correspond to ",
+     Doc4 => "",
+     Doc5 => "whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)\n [0 0.2 0.5 0]"})
 {
 pp_def($_->{Name},
 	Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
@@ -1304,14 +1377,27 @@ Doc=><<"EOD");
 
 =for ref
 
-Calculates a histogram for given stepsize and minimum.
+Calculates a histogram$_->{Doc1} for given stepsize and minimum.
+
+=for usage
+
+ \$h = $_->{Name}(\$data, $_->{Doc2}\$step, \$min, \$numbins);
+ \$hist = zeroes \$numbins;  # Put histogram in existing piddle.
+ $_->{Name}(\$data, $_->{Doc2}\$hist, \$step, \$min, \$numbins);
+
+The histogram will contain \$numbins bins starting from \$min, each
+\$step wide. The value in each bin is the $_->{Doc3}values in \$data that lie within the bin limits.
+
+Data below the lower limit is put in the first bin, and data above the
+upper limit is put in the last bin.
 
 The output is reset in a different threadloop so that you
 can take a histogram of \$a(10,12) into \$b(15) and get the result
 you want.
+$_->{Doc4}
+=for example
 
-XXX: needs some more explanation (relation to C<hist()>)
-etc. and examples!!!
+ perldl> p $_->{Doc5}
 
 =cut
 EOD
@@ -1320,11 +1406,33 @@ EOD
 for({Name => 'histogram2d',
     WeightPar => '',
      HistType => 'int+',
-     HistOp => '++'},
+     HistOp => '++',
+     Doc1 => "",
+     Doc2 => "",
+     Doc3 => "number of\n",
+     Doc5 => "histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
+
+[
+ [0 0 0]
+ [0 2 2]
+ [0 1 0]
+]
+"},
     {Name => 'whistogram2d',
-     WeightPar => 'float+ wt();',
+     WeightPar => 'float+ wt(n);',
      HistType => 'float+',
-     HistOp => '+= $wt()'})
+     HistOp => '+= $wt()',
+     Doc1 => " from weighted data",
+     Doc2 => " \$weights,",
+     Doc3 => "sum of the values in\n\$weights that correspond to ",
+     Doc5 => "whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
+
+[
+ [  0   0   0]
+ [  0 0.5 0.9]
+ [  0 0.1   0]
+]
+"})
 {
 pp_def($_->{Name},
 	Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
@@ -1357,10 +1465,26 @@ Doc=><<"EOD");
 
 =for ref
 
-Calculates a 2d histogram.
+Calculates a 2d histogram$_->{Doc1}.
 
-XXX: needs some more explanation (relation to C<hist()>)
-etc. and examples!!!
+=for usage
+
+ \$h = $_->{Name}(\$datax, \$datay,$_->{Doc2}
+       \$stepx, \$minx, \$nbinx, \$stepy, \$miny, \$nbiny);
+ \$hist = zeroes \$nbinx, \$nbiny;  # Put histogram in existing piddle.
+ $_->{Name}(\$datax, \$datay,$_->{Doc2} \$hist,
+       \$stepx, \$minx, \$nbinx, \$stepy, \$miny, \$nbiny);
+
+The histogram will contain \$nbinx x \$nbiny bins, with the lower
+limits of the first one at (\$minx, \$miny), and with bin size
+(\$stepx, \$stepy). The value in each bin is the $_->{Doc3}values in \$datax and \$datay that lie within the bin limits.
+
+Data below the lower limit is put in the first bin, and data above the
+upper limit is put in the last bin.
+
+=for example
+
+ perldl> p $_->{Doc5}
 
 =cut
 EOD
@@ -1422,6 +1546,10 @@ Calculates useful statistics on a piddle
 
 This utility calculates all the most useful
 quantities in one call.
+
+B<Note:> The RMS value that this function returns in the RMS 
+deviation from the mean, also known as the population standard-
+deviation.
 
 =cut
 
@@ -1520,7 +1648,7 @@ pp_addpm({At=>Bot},<<'EOD');
 =head1 AUTHOR
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
-by Christian Soeller (csoelle@sghms.ac.uk) and Karl Glazebrook
+by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
 (kgb@aaoepp.aao.gov.au).
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain

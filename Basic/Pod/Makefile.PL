@@ -1,3 +1,8 @@
+BEGIN{if ($^O =~ /MSWin/) {
+  print "getting dosglob...\n";
+  require File::DosGlob;
+  File::DosGlob->import('glob');}
+}
 use ExtUtils::MakeMaker;
 
 @pods = map { $_=~s/.pod//; $_ } glob("*.pod");

@@ -52,10 +52,11 @@ $PERLDL::ESCAPE = '#'; 		# Default shell escape
 $PERLDL::PROMPT = "perldl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
-$PERLDL::PAGE = 0;
+$PERLDL::PAGE   = 0;
 $PERLDL::PAGING = 0;
-@PERLDL::AUTO = ();
-$HOME = $ENV{HOME}; # Useful in shell
+@PERLDL::AUTO   = ();
+$PERLDL::PREPROCESS  = undef;   # user supplied code to pre-process shell input
+$HOME = $ENV{HOME};             # Useful in shell
 
 $HOME = 'c:/Temp' if $HOME eq "" # For want of somewhere better..
    and ($^O =~ /win32/i);
@@ -88,30 +89,44 @@ while(defined($_ = shift @ARGV)) {
 			die "Initialization error: $@";
 		}
 		next;
-   } elsif (/^ \- (M|m) (\w+) (\=\w+)? $/x ) {
-        my ($way,$m,@im) = ($1,$2,$3?substr($3,1):());
-        eval "require $m";
-        warn, next if $@;
-        if ($way eq 'M') {
-            $m->import(@im);
-        } else {
-            $m->unimport(@im);
-        }
-    } elsif (/^-I (\S*) $/x) {
-        my $dir = $1;
-        $dir = $ARGV[++$arg]
-            if !$dir;
-        if ($dir =~ m{^ \/ }x) {
-            unshift(@INC, $dir);
-        } else {
-            require FindBin;
-            die "posh: can't find myself" if ! $FindBin::Bin;
-            unshift(@INC, "$FindBin::Bin/$dir");
-        }
+	} elsif(/^-w$/){ 
+		$^W = 1;
+		next;
+        } elsif (/^ \- (M|m) (\w+) (\=\w+)? $/x ) {
+                my ($way,$m,@im) = ($1,$2,$3?substr($3,1):());
+                eval "require $m";
+                warn, next if $@;
+                if ($way eq 'M') {
+                $m->import(@im);
+                } else {
+                        $m->unimport(@im);
+                }
+      } elsif (/^-I (\S*) $/x) {
+            my $dir = $1;
+            $dir = $ARGV[++$arg]
+              if !$dir;
+            if ($dir =~ m{^ \/ }x) {
+              unshift(@INC, $dir);
+            } else {
+              require FindBin;
+              die "Error: can't find myself" if ! $FindBin::Bin;
+              unshift(@INC, "$FindBin::Bin/$dir");
+            }
 
-    } else {
-	die("Unknown argument $_");
-    }
+      } else {
+            print "\n";
+          print "Usage: perldl [options]\n";
+          print "  -tk         try to load Tk module (Enables \n";
+          print "              readline event-loop processing).\n";
+          print "  -f <file>   execute file <file> before starting perldl\n";
+          print "  -w          run with warning messages turned-on \n";
+          print "  -m <module> unload module <module>\n";
+          print "  -M <module> load module <module>\n";
+          print "  -I <dir>    Add <dir> to include path.\n";
+            print "\n";
+
+          die("Unknown argument $_");
+      }
 
 }
 
@@ -150,7 +165,7 @@ sub END {
     # GetHistory doesn't work on all versions...
     my @a= $term->GetHistory() if $term->can('GetHistory');
 
-    $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b)/; # chop off the exit command
+    $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
     @a= @a[($#a-50)..($#a)] if $#a > 50 ;
     if( open HIST, ">$HOME/.perldl_hist" ) {
 	print HIST join("\n",@a);
@@ -242,7 +257,8 @@ if (-e 'local.perldlrc') {
 
 # Short hand for some stuff
 
-sub p { local $^W=0; print(@_); }  # suppress possible undefined var message (dirty)
+sub p { local $^W=0; print(@_); }  # suppress possible undefined var message 
+                                   # (dirty)
 
 sub demo {
 	local $_ = lc $_[0] ;
@@ -312,7 +328,7 @@ restart:
 	warn $mess if $mess;
      }
 
-     if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x') {exit};
+     if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x' || lc $_ eq 'quit') {exit};
      next if /^\s*$/; # Blank line - do nothing
 
      s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
@@ -329,6 +345,11 @@ restart:
         system(substr($_,1)); # Shell escape
         next;
      }else{
+        # Send code to pre-processor if defined
+        $_ = $PERLDL::PREPROCESS->($_)
+          if (defined $PERLDL::PREPROCESS && 
+              ref($PERLDL::PREPROCESS) eq 'CODE');
+
 	startpage;
 	my $mess = eval_and_report($_);
         warn $mess if $mess;
@@ -538,6 +559,47 @@ PDL scripts.
 Finally note this is a very powerful facility - which means
 it should be used with caution!
 
+=item 6
+
+In some cases, it is convenient to process commands before they are
+sent to perl for execution. For example, this is the case where the
+shell is being presented to people unfamiliar with perl but who wish
+to take advantage of commands added locally (eg by automatically 
+quoting arguments to certain commands).
+
+The variable $PERLDL::PREPROCESS can be set to a code reference
+(usually in a local configuration file) that will be called, with the
+current string as argument, just prior to the string being executed by
+the shell. The modified string should be returned.
+
+The following code would check for a call to function 'mysub'
+and bracket arguments with qw.
+
+ $PERLDL::PREPROCESS = sub {
+   my $str = shift;
+   $str =~ s/^\s+//;  # Strip leading space
+   if ($str =~ /^mysub/) {
+     my ($command, $arguments) = split(/\s+/,$str, 2);
+     $str = "$command qw( $arguments )" 
+       if (defined $arguments && $arguments !~ /^qw/);
+   };
+   # Return the input string, modified as required
+   return $str;
+ };
+
+This would convert:
+
+  perldl> mysub arg1 arg2
+
+to
+
+  perldl> mysub qw( arg1 arg2 )
+
+which perl will understand as a list.  Obviously, a little more effort
+is required to check for cases where the caller has supplied a normal
+list (and so does not require automatic quoting) or variable
+interpolation is required.
+
 =back
 
 =head2 Command-line options
@@ -554,6 +616,25 @@ event loop processing.
 
 Loads the file before processing any user input. Any errors
 during the execution of the file are fatal.
+
+=item -w
+
+Runs with warning messages (i.e. the normal perl C<-w> warnings)
+turned-on.
+
+=item -M module
+
+Loads the module before processing any user input.
+
+=item -m module
+
+Unloads the module before processing any user input.
+
+=item -I directory
+
+Adds directory to the include path. (i.e. the @INC array)
+
+=back
 
 =cut
 

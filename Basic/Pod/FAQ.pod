@@ -29,7 +29,7 @@ frequently asked questions about PDL - the Perl Data Language.
 
 This FAQ was generated on 5.3.98.
 
-Current maintainer: Christian Soeller (F<csoelle@sghms.ac.uk>).
+Current maintainer: Christian Soeller (F<c.soeller@auckland.ac.nz>).
 
 =head2 Where to find this document
 
@@ -48,7 +48,7 @@ about it.
 
 Send your comments, additions, suggestions or corrections
 to the PDL mailing list at F<perldl@jach.hawaii.edu> (preferably) or to the
-FAQ maintainer Christian Soeller (F<csoelle@sghms.ac.uk>). See below for instructions on how to join
+FAQ maintainer Christian Soeller (F<c.soeller@auckland.ac.nz>). See below for instructions on how to join
 the mailing lists.
 
 
@@ -716,14 +716,15 @@ For further details consult the documentation in the individual modules.
 
 =head2   What is a C<null> pdl ?
 
-C<null> is a special token for 'empty piddle'. A null pdl can be used
-to flag to a PDL function that it should create an appropriately sized
-and typed piddle. I<Null> piddles can be used in places where a PDL
-function exspects an I<output> or I<temporary> argument. I<Output>
-and I<temporary> arguments are flagged in the I<signature> of a PDL
-function with the C<[o]> and C<[t]> qualifiers (see next question
-if you don't know what the I<signature> of a PDL function is).
-For example, you can invoke the C<sumover> function as follows:
+C<null> is a special type of 'potential piddle' or 'target piddle'. A
+null pdl can be used to flag to a PDL function that it should create
+an appropriately sized and typed piddle. I<Null> piddles can be used
+in places where a PDL function exspects an I<output> or I<temporary>
+argument. I<Output> and I<temporary> arguments are flagged in the
+I<signature> of a PDL function with the C<[o]> and C<[t]> qualifiers
+(see next question if you don't know what the I<signature> of a PDL
+function is).  For example, you can invoke the C<sumover> function as
+follows:
 
   sumover $a, $b=null;
 
@@ -734,6 +735,10 @@ which is equivalent to
 If this seems still a bit murky check L<PDL::Indexing> and L<PDL::PP>
 for details about calling conventions, the I<signature> and
 I<threading> (see also below).
+
+Note that this concept of null piddles is quite different from the
+concept of C<empty> piddles, which are piddles that have zero elements.
+
 
 =head2   What is the I<signature> of a PDL function ?
 
@@ -1001,7 +1006,7 @@ initial revision
 
 If you find any inaccuracies in this document (or disfunctional URLs)
 please report to the perldl mailing list F<perldl@jach.hawaii.edu> or to the
-current FAQ maintainer Christian Soeller (F<csoelle@sghms.ac.uk>).
+current FAQ maintainer Christian Soeller (F<c.soeller@auckland.ac.nz>).
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -1018,12 +1023,12 @@ some questions were taken from Perl Faq and adapted for PDL.
 This document emerged from a joint effort of several PDL developers
 (Karl Glazebrook (F<kgb@aaocbn1.aao.GOV.AU>), Tuomas J. Lukka
 (F<lukka@husc.harvard.edu>), Christian Soeller
-(F<csoelle@sghms.ac.uk>)) to compile a list of the most
+(F<c.soeller@auckland.ac.nz>)) to compile a list of the most
 frequently asked questions about PDL with answers.  Permission is
 granted for verbatim copying (and formatting) of this material as part
 of PDL. Permission is explicitly not granted for distribution in book
 or any corresponding form. Email the current FAQ maintainer
-Christian Soeller (F<csoelle@sghms.ac.uk>) or ask on the PDL mailing list F<perldl@jach.hawaii.edu>
+Christian Soeller (F<c.soeller@auckland.ac.nz>) or ask on the PDL mailing list F<perldl@jach.hawaii.edu>
 if you are unclear.
 
 

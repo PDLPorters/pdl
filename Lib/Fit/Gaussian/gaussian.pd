@@ -1,0 +1,211 @@
+
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::Fit::Gaussian - routines for fitting gaussians
+
+=head1 DESCRIPTION
+
+
+This module contains some custom gaussian fitting routines.
+These were developed in collaboration with Alison Offer,
+they do a reasonably robust job and are quite useful.
+
+Gaussian fitting is something I do a lot of, so I figured
+it was worth putting in my special code.
+
+Note this code is also used in the Karma package.
+
+=head1 SYNOPSIS
+
+        use PDL::Fit::Gaussian;
+        ($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
+        ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr($r, $data);
+
+=head1 FUNCTIONS
+
+=head2 fitgauss1d
+
+=for ref
+
+Fit 1D Gassian to data piddle
+
+=for example
+
+($cen, $pk, $fwhm2, $back, $err, $fit) = fitgauss1d($x, $data);
+
+=for usage
+
+($cen, $pk, $fwhm2, $back, $err, $fit) = fitgauss1d($x, $data);
+
+=for signature
+
+xval(n); data(n); [o]xcentre();[o]peak_ht(); [o]fwhm(); 
+[o]background();int [o]err(); [o]datafit(n); 
+[t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
+
+Fit's a 1D Gaussian robustly free parameters are the centre, peak height,
+FWHM. The background is NOT fit, because I find this is generally
+unreliable, rather a median is determined in the 'outer' 10% of
+pixels (i.e. those at the start/end of the data piddle). The initial
+estimate of the FWHM is the length of the piddle/3, so it might fail
+if the piddle is too long. (This is non-robust anyway). Most data
+does just fine and this is a good default gaussian fitter.
+
+SEE ALSO: fitgauss1dr() for fitting radial gaussians
+
+=head2 fitgauss1dr
+
+=for ref
+
+Fit 1D Gassian to radial data piddle
+
+=for example
+
+($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
+
+=for usage
+
+($pk, $fwhm2, $back, $err, $fit) = fitgauss1dr($r, $data);
+
+=for signature
+
+xval(n); data(n); [o]peak_ht(); [o]fwhm(); 
+[o]background();int [o]err(); [o]datafit(n); 
+[t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
+
+Fit's a 1D radial Gaussian robustly free parameters are the peak height,
+FWHM. Centre is assumed to be X=0 (i.e. start of piddle).
+The background is NOT fit, because I find this is generally
+unreliable, rather a median is determined in the 'outer' 10% of
+pixels (i.e. those at the end of the data piddle). The initial
+estimate of the FWHM is the length of the piddle/3, so it might fail
+if the piddle is too long. (This is non-robust anyway). Most data
+does just fine and this is a good default gaussian fitter.
+
+SEE ALSO: fitgauss1d() to fit centre as well.
+
+=cut
+
+EOD
+pp_addhdr('
+#include "gauss.c"
+');
+          
+  
+   
+for $name ('fitgauss1d','fitgauss1dr') {
+pp_def($name,
+	Pars => 'xval(n); data(n); '.($name eq 'fitgauss1dr' ? '' : '[o]xcentre();'). 
+                '[o]peak_ht(); [o]fwhm(); 
+	         [o]background();int [o]err(); [o]datafit(n); 
+	         [t]sig(n);  [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);',
+	GenericTypes => [D],
+	Code => '
+	  int i, nb;
+          double ymax, xmax, xmin, val, xval, xcenguess, bkg, par[NPAR], a[NPAR][NPAR];
+          ymax = -1e-30; xmax = -1e-30; xmin = 1e30;
+	  $err() = 0;
+	  loop(n) %{
+	     val = $data();
+	     xval = $xval();
+	     $ytmp() = val;
+	     $sig() = 1.0; /* Room for expansion */
+	     
+      	     if (val>ymax)   /* Various max and mins */
+      	         ymax = val;
+      	     if (xval>xmax)
+      	         xmax = xval;
+      	     if (xval<xmin)
+      	         xmin = xval;
+          %}	
+	  
+         /* Find background points - outer 10% */
+         nb = 0; 
+         loop(n) %{
+            if ( abs($xval()-xmin) > 0.9*abs(xmax-xmin) ) {
+                $yytmp(n=>nb) = $ytmp();
+		nb++;
+            }
+        %}
+	
+	/* Estimate background and xcentroid */
+	bkg = 0;
+	xcenguess = 0.0;
+        if (nb>0) { 
+           lqsortD( $P(yytmp), 0, nb-1 );
+	   i = (nb-1)/2;
+           bkg = $yytmp( n=>i ); /* Median */
+        }
+	val = 0.0; xcenguess = 0.0; 
+	loop(n) %{
+	   $ytmp() -= bkg;
+	   xcenguess += $ytmp() * $xval();
+	   val += $ytmp();
+	%}
+	xcenguess /= val;
+	
+        par[2] = xcenguess;
+        par[1] = ymax-bkg;
+        par[0] = (xmax-xmin)/3; /* 1/3 of given box */
+	
+       /* fprintf (stderr, "gauss...1  %f %f %f\n", par[0], par[1], par[2]); */
+       
+       /* Do the fit */
+       
+       '.($name eq 'fitgauss1dr' ? '
+       
+       par[2] = 0.0;
+       $err() = marquardt ($SIZE(n), 2, $P(xval), $P(ytmp), $P(sig), par, $P(rtmp), a); 
+       
+       ' : '
+       $err() = marquardt ($SIZE(n), 3, $P(xval), $P(ytmp), $P(sig), par, $P(rtmp), a); 
+       $xcentre() = par[2];
+       ') .'
+       
+       $fwhm() = (fabs(par[0]))*2.0*sqrt(log(2.0)); /* Ret Values */
+        
+       $peak_ht() = par[1]; 
+       $background() = bkg;
+       
+       i=0;
+       loop(n) %{
+          val = ( (double) i - par[2] ) / par[0];
+          $datafit() = par[1] * exp (- val * val) + bkg;
+	  i++; 
+       %}
+ 	
+	',
+	Doc=>undef
+);
+}
+
+pp_addpm(<<'ENDPM');
+
+1; # OK
+
+ENDPM
+
+pp_addpm(<<'EOD');
+
+=head1 BUGS
+
+May not converge for weird data, still pretty good!
+
+=head1 AUTHOR
+
+This file copyright (C) 1999, Karl Glazebrook (kgb@aaoepp.aao.gov.au),
+Gaussian fitting code by Alison Offer
+(aro@aaocbn.aao.gov.au).  All rights reserved. There
+is no warranty. You are allowed to redistribute this software /
+documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+
+=cut
+
+EOD
+
+pp_done();
+

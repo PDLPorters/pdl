@@ -11,7 +11,7 @@ PDL::Core::Dev->import();
 # Depends on ExtUtils::F77 (copy included)
 
 BEGIN {
-   $msg = "";
+   $msg = ""; $forcebuild=0;
    
    if (defined $PDL_CONFIG{WITH_SLATEC} && $PDL_CONFIG{WITH_SLATEC}==0) {
       $msg = "\n   Will skip build of PDL::Slatec on this system   \n";
@@ -20,29 +20,29 @@ BEGIN {
    
    if (defined $PDL_CONFIG{WITH_SLATEC} && $PDL_CONFIG{WITH_SLATEC}==1) {
       print "\n   Will forcibly try and build PDL::Slatec on this system   \n\n";
-      goto forcebuild;
+      $forcebuild=1;
    }
    
    if ($^O =~ /win32/i) {
       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
-      goto skip;
+      goto skip unless $forcebuild;
    }
 
    eval "use ExtUtils::F77";  # Might want "use ExtUtils::F77 qw(generic f2c)"
    print "(ExtUtils Version $ExtUtils::F77::VERSION)\n";
    if ($@ ne "") {
-      $msg = "\n".$@."\n    ExtUtils::F77 module not found. Will not build PDL::Slatec    \n" ;
-      goto skip;
+      $msg = "\n".$@."\n    ExtUtils::F77 module not found. Ought not build PDL::Slatec    \n" ;
+      goto skip unless $forcebuild;
    }
    if ($ExtUtils::F77::VERSION < 1.03 ) {
-      $msg = "\n   need a version of ExtUtils::F77 >= 1.03. Will not build PDL::Slatec   \n" ;
-      goto skip;
+      $msg = "\n   need a version of ExtUtils::F77 >= 1.03. Ought not build PDL::Slatec   \n" ;
+      goto skip unless $forcebuild;
    }
 
    $compiler_available = ExtUtils::F77->testcompiler;
 
    if (!$compiler_available) {
-      $msg = "\n   No f77 compiler found. Will skip PDL::Slatec on this system    \n";
+      $msg = "\n   No f77 compiler found. Ought to skip PDL::Slatec on this system    \n";
       $PDL_CONFIG{WITH_SLATEC} = 0;
    } else {
       $PDL_CONFIG{WITH_SLATEC} = 1;
@@ -50,7 +50,7 @@ BEGIN {
         
    skip:
    
-   if ($msg ne "") {
+   if ($msg ne "" && $forcebuild==0) {
       warn $msg."\n";
       open(OUT,">Makefile");
       print OUT "fred:\n";
@@ -77,7 +77,6 @@ EOT
    } else {
    print "\n   Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n\n";
    }
-   forcebuild:
 }
 
 return if $donot;
@@ -96,14 +95,16 @@ $hash{clean}{FILES} .= " f77_underscore SlatecProtos.h" .
 # Handle multiple compilers
 
 $f2cbased = (ExtUtils::F77->runtime =~ /-lf2c/);
+$g2cbased = (ExtUtils::F77->runtime =~ /-lg2c/) unless $f2cbased;
 $trail = ExtUtils::F77->trail_;
 
 print "Generating Slatec Prototypes\n";
 
 open(OUT, ">SlatecProtos.h");
-print OUT '#include "f2c.h"',"\n" if $f2cbased;
 for $f (@slatecfiles) {
  open IN, "slatec/$f.P" or die "file slatec/$f.P not found";
+ print OUT '#include "g2c.h"',"\n" if $g2cbased;
+
  while(<IN>) {
  
     next unless /extern/; # Ignore garbage

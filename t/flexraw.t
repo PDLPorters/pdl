@@ -93,6 +93,14 @@ sub byte4swap {
     rename $ofile, $file;
 }
 
+sub inpath {
+  my ($prog) = @_;
+  my $pathsep = $^O =~ /win32/i ? ';' : ':';
+  my $exe = $^O =~ /win32/i ? '.exe' : '';
+  for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
+  return 0;
+}
+
 
 # Types to test the translation for, perl + f77 forms
 %types = ( 'float' => 'real*4', 'double' => 'real*8', 'long' => 'integer*4',
@@ -414,9 +422,12 @@ foreach (@req) {
 }
 ok($testno++,$ok);
 
+$compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes
+# don't have compress
+
 # Try compressed data
 $ok = 1;
-system 'compress -c tmprawdata > tmprawdata.Z'; unlink("tmprawdata");
+system "$compress -c tmprawdata > tmprawdata.Z"; unlink("tmprawdata");
 @a = readflex('tmprawdata');
 $ok &&= $#a==6;
 @a = readflex('tmprawdata.Z');

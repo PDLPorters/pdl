@@ -7,8 +7,6 @@ PDL::Gaussian -- Gaussian distributions.
 	$a = new PDL::Gaussian([3],[5]);
 	$a->set_covariance(...)
 
-	# XXXX Must improve this interface
-
 =head1 DESCRIPTION
 
 This package provides a set of standard routines to handle

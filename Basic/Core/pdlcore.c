@@ -2,16 +2,6 @@
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
-#include "patchlevel.h" /* Needed for ifdefs on perl version */
-#if PATCHLEVEL < 5      /*  Don't include PL_ in front of perl variables for versions < 5.005 */
-#define PL_mess_sv    mess_sv
-#define PL_in_eval    in_eval
-#define PL_restartop restartop
-#endif  /* PATCHLEVEL < 5 */
-/* If running on 5.004_04 or earlier */
-#ifndef dTHR
-#define dTHR extern int errno
-#endif
 
 static SV *getref_pdl(pdl *it) {
 	SV *newref;
@@ -82,6 +72,7 @@ int pdl_whichdatatype_double (double nv) {
 /* Make a scratch data existence for a pdl */
 
 void pdl_makescratchhash(pdl *ret,double data, int datatype) {
+    STRLEN n_a;
 	HV *hash;
 	SV *dat; PDL_Long fake[1];
 
@@ -92,7 +83,7 @@ void pdl_makescratchhash(pdl *ret,double data, int datatype) {
 
        dat = newSVpv(ret->data,pdl_howbig(ret->datatype));
 
-       ret->data = SvPV(dat,na);
+       ret->data = SvPV(dat,n_a);
        ret->datasv = dat;
 #ifdef FOO
  /* Refcnt should be 1 already... */
@@ -354,6 +345,13 @@ void pdl_unpackdims ( SV* sv, PDL_Long *dims, int ndims ) {
          av_store( array, i, newSViv( (IV)dims[i] ) );
 }
 
+PDL_Long pdl_safe_indterm( PDL_Long dsz, PDL_Long at, char *file, int lineno)
+{
+  if (at >= 0 && at < dsz) return at;
+  pdl_barf("access [%d] out of range [0..%d] (inclusive) at %s line %d",
+          at, dsz-1, file?file:"?", lineno);
+}
+
 /*
    pdl_malloc - utility to get temporary memory space. Uses
    a mortal *SV for this so it is automatically freed when the current
@@ -363,14 +361,14 @@ void pdl_unpackdims ( SV* sv, PDL_Long *dims, int ndims ) {
 
 
 void* pdl_malloc ( int nbytes ) {
-
+    STRLEN n_a;
    SV* work;
 
    work = sv_2mortal(newSVpv("", 0));
 
    SvGROW( work, nbytes);
 
-   return (void *) SvPV(work, na);
+   return (void *) SvPV(work, n_a);
 }
 
 /*********** Stuff for barfing *************/
@@ -396,6 +394,13 @@ pdl_mess_alloc()
 /* Version of perl's mess() constructor which doesn't
 do the automatic appending of stuff when "\n" not
 seen at the end of the string - for use by pdl_barf() */
+
+/* work araound an omission in the CAPI */
+#ifdef PERL_CAPI
+#undef PL_mess_sv
+static SV *PDL_mess_sv = NULL;
+#define PL_mess_sv PDL_mess_sv
+#endif
 
 char *
 pdl_mess(pat, args)
@@ -464,12 +469,12 @@ pdl_barf(pat, va_alist)
     message = pdl_mess(pat, &args);
     va_end(args);
 
-    if (diehook) {
+    if (PL_diehook) {
 	/* sv_2cv might call croak() */
-	SV *olddiehook = diehook;
+       SV *olddiehook = PL_diehook;
 	ENTER;
-	SAVESPTR(diehook);
-	diehook = Nullsv;
+       SAVESPTR(PL_diehook);
+       PL_diehook = Nullsv;
 	cv = sv_2cv(olddiehook, &stash, &gv, 0);
 	LEAVE;
 	if (cv && !CvDEPTH(cv) && (CvROOT(cv) || CvXSUB(cv))) {

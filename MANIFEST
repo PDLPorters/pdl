@@ -7,7 +7,6 @@ Basic/Core/Dev.pm
 Basic/Core/Exporter.pm
 Basic/Core/Makefile.PL
 Basic/Core/Types.pm.PL
-Basic/Core/Version.pm
 Basic/Core/mkpdlconv.p
 Basic/Core/pdl.h.PL
 Basic/Core/pdl_hfiles.p
@@ -23,6 +22,7 @@ Basic/Core/pdlsimple.h.PL
 Basic/Core/pdltest.c
 Basic/Core/pdlthread.c
 Basic/Core/pdlthread.h
+Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/typemap.pdl
 Basic/Gen/Makefile.PL
@@ -113,14 +113,11 @@ Doc/Doc.pm
 Doc/Doc/Config.pm.PL
 Doc/Doc/Perldl.pm
 Doc/Makefile.PL
-Doc/Pod/Html.pm
 Doc/Pod/Makefile.PL
 Doc/Pod/Parser.pm
 Doc/Pod/README
 Doc/Pod/Select.pm
 Doc/Pod/Usage.pm
-Doc/Pod/pod2usage.PL
-Doc/Pod/podselect.PL
 Doc/README
 Doc/TODO
 Doc/mkhtmldoc.pl
@@ -216,6 +213,11 @@ Lib/FFT/fftn.h
 Lib/Filter/LinPred.pm
 Lib/Filter/Linear.pm
 Lib/Filter/Makefile.PL
+Lib/Fit/Gaussian/Makefile.PL
+Lib/Fit/Gaussian/gauss.c
+Lib/Fit/Gaussian/gaussian.pd
+Lib/Fit/Makefile.PL
+Lib/Fit/Polynomial.pm
 Lib/Gaussian.pm
 Lib/Image2D/Makefile.PL
 Lib/Image2D/image2d.pd
@@ -386,6 +388,7 @@ t/flexraw.t
 t/flow.t
 t/foo.t
 t/func.pdl
+t/gauss.t
 t/hist.t
 t/howbig.t
 t/ica.t
@@ -403,6 +406,7 @@ t/picnorgb.t
 t/picrgb.pl
 t/picrgb.t
 t/pnm.t
+t/poly.t
 t/pptest.t
 t/primitive.t
 t/primitive2.t
@@ -418,4 +422,5 @@ t/subclass3.t
 t/thread.t
 t/thread_def.t
 t/trig.t
+t/vaffine.t
 t/xvals.t

@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..30\n";
+print "1..31\n";
 
 if(1) {
 
@@ -222,3 +222,6 @@ $b = $a->reorder(@newDimOrder);
 
 ok(30, approx($b->average->average->sum , pdl(72.5) ) );
 
+$a = zeroes(3,4);
+$b = $a->dummy(-1,2);
+ok(31,join(',',$b->dims) eq '3,4,2');

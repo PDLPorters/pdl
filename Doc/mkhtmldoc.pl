@@ -8,13 +8,18 @@
 #
 #    perl mkhtmldoc.pl `pwd`/blib/lib `pwd`/html
 #
-# To get correct interlinking of pages (L<> directives) I had
-# to patch Pod/Html.pm from the perl 5.004_4 distrib. This patch
-# is included. There are now only a few duff links left.
-#
+#  reverted to use Pod::Html from normal perl distrib
 #   Christian
 #
 # (mod. by Tjl)
+
+sub has_pod  # does file contain HTML-able pod?
+{
+   my $line; #mustn't clobber $_ during find
+   open(POD,shift) || return 0;
+   while ($line=<POD>) {return 1 if $line =~ /^=head/} # only a guess, avoids "=for nobody", etc.
+   return 0;
+}
 
 sub mkdir_p ($$$) {
 	return if -d $_[0];
@@ -30,8 +35,10 @@ sub mkdir_p ($$$) {
    # start mkhtmldoc.pl
    use File::Find;
    use File::Basename;
-   use PDL::Pod::Html;
+   use Pod::Html;
    use Cwd;
+
+$SIG{__DIE__} = sub {print Carp::longmess(@_); die;};
 
    $back = getcwd;
 
@@ -63,27 +70,46 @@ sub mkdir_p ($$$) {
 			$File::Find::name !~ /PP.pm/ &&
 			$File::Find::dir !~ m#/PP|/Gen#) or
 			  $File::Find::name =~ /[.]pod$/)  {
+                       if (!&has_pod($File::Find::name)) {
+                         printf STDERR "%-30s\n", $_ ."... skipped (no pod)";
+                         return;
+                       }
 		       my $outdir = $File::Find::dir;
 		       my $re = "\Q$startdir\E";  # ach: '+' in $outdir here!
-		       $outdir =~ s/$re/$htmldir/;
-		       mkdir_p $outdir, 0777, $outdir;
+                      # $outdir =~ s/$re/$htmldir/;
+                      $outdir =~ s/$re//;
+                      $outdir =~ /(^\/)?(.*)$/;
+		      my $basename = basename($File::Find::name);
+		      my $outfi;
+		      if( $basename eq 'PDL.pm'){ # Special case for needed for PDL.pm file
+			$outfi = $basename;       # since it is in a different location than the other
+		      }				  # .pm and pod files.
+                      else{
+		        $outfi = $2.($2 =~ /^\s*$/ ? '' : '/').$basename;
+                        $outfi =~ s|/|_|g;
+		      }
+                      # print "outdir = $outdir, making $outfi\n"; return;
+                      # mkdir_p $outdir, 0777, $outdir;
 		       my $file = $File::Find::name;
-		       my $outfile = "$outdir/".basename($file);
+                      my $outfile = "$htmldir/$outfi";
 		       $outfile =~ s/[.](pm|pod)$//;
 		       $outfile .= ".html";
 		       printf STDERR "%-30s\n", $_ ."... > $outfile";
 		       chdir $htmldir; # reuse our pod caches
-		       $startdir =~ /^(.+?)\/PDL$/;  # get Directory just above PDL for podroot arg
-		       my $topPerlDir = $1;
+                      my $topPerlDir = $startdir;
+                        # get Directory just above PDL for podroot arg
+                      $topPerlDir = $1 if ($startdir =~ /^(.+?)\/PDL$/);
+                      print "startdir: $startdir, podroot: $topPerlDir\n";
 		       pod2html(
-			  "--podpath=PDL",
+			  "--podpath=PDL:.",
 			  "--podroot=$topPerlDir",
-			  "--htmlroot=../",
+                         "--htmlroot=../../..",
 			  "--libpods=perlfaq",
 			  "--recurse",
 			  "--infile=$file",
 			  "--outfile=$outfile",
 			  "--verbose");
+                       chdir $File::Find::dir; # don't confuse File::Find
 		   }
 		 };
-   File::Find::find($sub,$startdir);
+   File::Find::find($sub,$startdir, "$startdir/../PDL.pm");

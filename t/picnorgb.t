@@ -37,7 +37,7 @@ use PDL::IO::Pic;
 use PDL::ImageRGB;
 use PDL::Dbg;
 
-$PDL::debug = 0;
+$PDL::debug = 1;
 $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
                    # output format
 
@@ -110,8 +110,7 @@ foreach $format (sort @allowed) {
     $comp = ($form->[2] ? $im2->dummy(0,3) : $im2);
     ok($n++,approx($comp,$in2));
     $comp = ($form->[2] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
-    $mult = $format eq 'SGI' || $usherr ? 255 : 65535;
-    $comp = $comp->ushort*$mult if $format eq 'SGI'; # yet another format quirk
+    $comp = $comp->ushort*$in3->max if $format eq 'SGI' && $in3->max > 0;
     ok($n++,approx($comp,$in3));
 
     if ($PDL::debug) {

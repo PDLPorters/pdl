@@ -10,9 +10,12 @@ PDL.
 - The html docs for the modules in IO/Misc aren't being built during 'make
   install'. 
 
-- Some problems have been reported with PDL and perl5.005 on R5000 Indy
-  machine running Irix 6.2. This was corrected by re-compiling perl without
-  the perl-provided malloc.
+- Some problems have been reported with PDL and perl5.005 (core dumps, 
+   and/or regression tests failing) when perl is compiled with the perl-
+   provided malloc. This has been reported on the following platforms:
+     * R5000 Indy machine running Irix 6.2
+     * Sun Solaris 2.5, gcc.
+     * HPUX
 
 
 For more information on these and other PDL issues, and for

@@ -420,37 +420,37 @@ an object like
 
 	$a = new PDL::Graphics::TriD::Scale($x,$y,$z);
 
-=head2 C<PDL::Graphics::TriD::Lines>
+=head2 PDL::Graphics::TriD::Lines
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
 piddles and an optional color piddle (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
-=head2 C<PDL::Graphics::TriD::Image>
+=head2 PDL::Graphics::TriD::Image
 
 This is a 2-dimensional RGB image consisting of colored
 rectangles. With OpenGL, this is implemented by texturing so this should
 be relatively memory and execution-time-friendly.
 
-=head2 C<PDL::Graphics::TriD::Lattice>
+=head2 PDL::Graphics::TriD::Lattice
 
 This is a 2-D set of points connected by lines in 3-space.
 The constructor takes as arguments 3 2-dimensional piddles.
 
-=head2 C<PDL::Graphics::TriD::Points>
+=head2 PDL::Graphics::TriD::Points
 
 This is simply a set of points in 3-space. Takes as arguments
 the x, y and z coordinates of the points as piddles.
 
-=head2 C<PDL::Graphics::TriD::Scale(x,y,z)>
+=head2 PDL::Graphics::TriD::Scale(x,y,z)
 
 Self-explanatory
 
-=head2 C<PDL::Graphics::TriD::Translation(x,y,z)>
+=head2 PDL::Graphics::TriD::Translation(x,y,z)
 
 Ditto
 
-=head2 C<PDL::Graphics::TriD::Quaternion(c,x,y,z)>
+=head2 PDL::Graphics::TriD::Quaternion(c,x,y,z)
 
 One way of representing rotations is with quaternions. See the appropriate
 man page.

@@ -7,13 +7,13 @@ PDL::Indexing - how to index piddles.
 This manpage should serve as a first tutorial on the indexing and
 threading features of I<PDL>.
 
-As part of the current PDL alpha release it is also still in alpha
+This manpage is still in alpha
 development and not yet complete. "Meta" comments that point out
 deficiencies/omissions of this document will be surrounded by
 brackets([]), e.g. [ Hopefully I will be able to remove this paragraph
 at some time in the future ]. Furthermore, it is possible that
 there are errors in the code examples. Please report any errors to
-Christian Soeller (csoelle@sghms.ac.uk).
+Christian Soeller (c.soeller@auckland.ac.nz).
 
 Still to be done are (please bear with us and/or ask on the mailing list,
 see L<PDL::FAQ>):
@@ -1360,7 +1360,7 @@ the basic ones defined in primitiv.pd
 
 =head1 AUTHOR & COPYRIGHT
 
-Copyright (C) 1997 Christian Soeller (csoelle@sghms.ac.uk) & Tuomas
+Copyright (C) 1997 Christian Soeller (c.soeller@auckland.ac.nz) & Tuomas
 J. Lukka (lukka@fas.harvard.edu). All rights reserved. Although destined for
 release as a man page with the standard PDL distribution, it is not
 public domain. Permission is granted to freely distribute verbatim

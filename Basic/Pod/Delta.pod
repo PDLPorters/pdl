@@ -40,14 +40,11 @@ Order of the arguments has changed.
 
 No longer copies the header. This may not be a misfeature.
 
-=head2
+=back
 
 =head1 Documentation Changes
 
 Many of the base and library pods were updated.
-
-=back
-
 
 =head1 SEE ALSO
 

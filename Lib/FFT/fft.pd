@@ -360,14 +360,16 @@ sub PDL::kernctr {
 	$d = int(($k-1)/2);
         $stri[$i][0] = "0:$d,";
         $strk[$i][0] = (-$d-1).":-1,";
-        $stri[$i][1] = ($d-$k+1).':-1,';
-        $strk[$i][1] = '0:'.($k-$d-2).',';
+        $stri[$i][1] = $d == 0 ? '' : ($d-$k+1).':-1,';
+        $strk[$i][1] = $d == 0 ? '' : '0:'.($k-$d-2).',';
     }
     # kernel is split between the 2^n corners of the cube
     my ($nchunk) = 2 << $#ni;
-    for ($i=0; $i < $nchunk; $i++) {
+    CHUNK:
+      for ($i=0; $i < $nchunk; $i++) {
 	my ($stri,$strk);
 	for ($n=0, $b=$i; $n <= $#ni; $n++, $b >>= 1) {
+        next CHUNK if $stri[$n][$b & 1] eq '';
 	  $stri .= $stri[$n][$b & 1];
 	  $strk .= $strk[$n][$b & 1];
 	}

@@ -67,7 +67,7 @@ WriteMakefile(
 		)),
   		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
 			qw/Dev.pm typemap.pdl pdl.h pdlcore.h pdlmagic.h pdlsimple.h
-				pdlthread.h/
+				pdlthread.h ppport.h/
 		)),
 		},
  'DEFINE' 	=> $pthread_define,
@@ -93,7 +93,11 @@ pdlbasicops.c:  mkpdlbasicops.p
 pdlconv.c:  mkpdlconv.p
 	$(PERL) mkpdlconv.p > pdlconv.c
 
-';
+'.($^O =~ /MSWin/ ? q|
+
+pdlsections.c: pdlsections.g
+       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
+| : '');
 }
 
 

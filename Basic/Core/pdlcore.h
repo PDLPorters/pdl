@@ -1,6 +1,8 @@
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
+#include "ppport.h"
+#include "XSUB.h"  /* for the win32 perlCAPI crap */
 
 #if defined(CONTEXT) && defined(__osf__)
 #undef CONTEXT
@@ -43,6 +45,7 @@ void    pdl_unpackdims ( SV* sv, PDL_Long *dims,  /* Unpack */
 void*   pdl_malloc ( int nbytes );           /* malloc memory - auto free()*/
 
 void pdl_makescratchhash(pdl *ret,double data, int datatype);
+PDL_Long pdl_safe_indterm(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 void pdl_barf(const char* pat,...); /* General croaking utility */
 
 /* pdlapi.c */
@@ -170,7 +173,10 @@ void pdl_matrixmult( pdl *c, pdl* a, pdl* b);  /* Matrix multiplication */
 
 /* Structure to hold pointers core PDL routines so as to be used by many modules */
 
+#define PDL_CORE_VERSION 1
+
 struct Core {
+    I32    Version;
     pdl*   (*SvPDLV)      ( SV*  );
     void   (*SetSV_PDL)( SV *sv, pdl *it );
     pdl*   (*new)         ( );
@@ -235,6 +241,7 @@ void (*make_physdims)(pdl *it);
 void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*allocdata) (pdl *it);
+  PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 };
 
 typedef struct Core Core;

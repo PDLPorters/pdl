@@ -63,7 +63,7 @@ NEED STUFF ABOUT CODE REFs!!
 =head1 AUTHOR
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
-(lukka@husc.harvard.edu) and Christian Soeller (csoelle@sghms.ac.uk) 1997.
+(lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 1997.
 Commercial reproduction of this documentation in a different format is forbidden.
 
 =cut

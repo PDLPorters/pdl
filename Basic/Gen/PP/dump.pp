@@ -24,7 +24,7 @@ The most basic PP script debugger thinkable.
 
 =head1 AUTHOR
 
-Christian Soeller <csoelle@sghms.ac.uk> .
+Christian Soeller <c.soeller@auckland.ac.nz> .
 
 =cut
 

@@ -9,11 +9,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME         => "PDL::Pod::Parser",
     VERSION_FROM => "Parser.pm",
-    EXE_FILES    => [qw(podselect pod2usage)],
     INSTALLSCRIPT => '$(INST_LIBDIR)/PDL/',
     PM     => {
 	 map {$_ => '$(INST_LIBDIR)/'.$_}
 	 	<*.pm>
 	},
-    clean => {FILES => 'podselect pod2usage'},
 );

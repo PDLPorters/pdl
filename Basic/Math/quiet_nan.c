@@ -5,6 +5,7 @@ double quiet_nan(void)
   double a;
   return NaN(a);
 #else
-  return 0./0.; /* Expect bad value error */
+  double a=0;
+  return 0./a; /* Expect bad value error */
 #endif
 }

@@ -12,6 +12,7 @@ sub ok {
 }
 
 package A;
+use vars qw/$a/;
 # print "A: ",%A::,"\n";
 use PDL;
 

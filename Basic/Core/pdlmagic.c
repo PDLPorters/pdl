@@ -217,6 +217,8 @@ typedef struct ptarg {
 	int no;
 } ptarg;
 
+int pdl_pthreads_enabled(void) {return 1;}
+
 static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
 	if(TVERB) printf("STARTING THREAD %d (%d)\n",p->no, pthread_self());
@@ -292,6 +294,7 @@ void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads) {}
 int pdl_magic_get_thread(pdl *it) {return 0;}
 void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t) {}
 int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {return 0;}
+int pdl_pthreads_enabled() {return 0;}
 #endif
 
 /***************************

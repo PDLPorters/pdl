@@ -15,6 +15,8 @@ use Exporter;
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		  pp_core_importList	/;
 
+$PP::boundscheck = 1;
+
 use Carp;
 
 # use strict qw/vars refs/;
@@ -118,7 +120,14 @@ $fh->print(qq%
 #include "pdlcore.h"
 static Core* PDL; /* Structure hold core C functions */
 static int __pdl_debugging = 0;
+static int __pdl_boundscheck = 0;
 SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+
+#if ! $PP::boundscheck
+# define PP_INDTERM(max, at) at
+#else
+# define PP_INDTERM(max, at) (__pdl_boundscheck? PDL->safe_indterm(max,at, __FILE__, __LINE__) : at)
+#endif
 
 $::PDLXSC
 
@@ -135,6 +144,17 @@ set_debugging(i)
 	OUTPUT:
 	RETVAL
 
+int
+set_boundscheck(i)
+       int i;
+       CODE:
+       if (! $PP::boundscheck)
+         warn("Bounds checking is disabled for $::PDLMOD");
+       RETVAL = __pdl_boundscheck;
+       __pdl_boundscheck = i;
+       OUTPUT:
+       RETVAL
+
 
 MODULE = $::PDLMOD PACKAGE = $::PDLOBJ
 
@@ -146,6 +166,8 @@ BOOT:
    if (CoreSV==NULL)
      Perl_croak("This module requires use of PDL::Core first");
    PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
+   if (PDL->Version != PDL_CORE_VERSION)
+     croak("$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
 %);
 
@@ -164,6 +186,8 @@ use PDL::Core$::PDLCOREIMPORT;
 use PDL::Exporter;
 use DynaLoader;
 \@ISA    = qw( $::PDLPMISA );
+
+push \@PDL::Core::PP, __PACKAGE__;
 
 bootstrap $::PDLMOD;
 

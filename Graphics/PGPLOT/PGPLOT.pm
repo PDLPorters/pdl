@@ -35,7 +35,8 @@ Current display commands:
 Device manipulation commands:
 
    hold         -  Hold current plot window range - allows overlays etc.
-   release      -  Release back to autoscaling of new plot window for each command
+   release      -  Release back to autoscaling of new plot window for each 
+                   command
    rel          -  short alias for 'release'
    env          -  Define a plot window, put on 'hold'
    dev          -  Explicitly set a new PGPLOT graphics device
@@ -64,21 +65,25 @@ This is done using the routine C<checkarg> (internal to PGPLOT.) This routine
 checks the dimensionality of the input data. If there are superfluous
 dimensions of size 1 they will be trimmed away until the dimensionality
 is correct. Example:
+
   Assume a piddle with dimensions (1,100,1,1) is passed to C<line>, which
   expects its inputs to be vectors. C<checkarg> will then return a piddle
   with dimensions (100). If instead the same piddle was passed to C<imag>,
   which requires 2D piddles as output, C<checkarg> would return a piddle
   with dimensionality (100, 1) (Dimensions are removed from the I<start>)
+
 Thus, if you want to provide support for another PGPLOT function, the
 structure currently look like this (there are plans to use the Options
 package to simplify the options parsing):
-  ($arg, $opt)=_extract_hash(@_);  # Extract the hash(es) on the commandline
+
+  ($arg, $opt)=_extract_hash(@_); # Extract the hash(es) on the commandline
   <Check the number of input parameters>
   <deal with $arg>
   checkarg($x, 3); # For a hypothetical 3D routine.
   ...
   pgcube($n, $x->get_dataref);
   1;
+
 =head2 Setting options
 
 All routines in this package take a hash with options as an optional
@@ -204,7 +209,8 @@ in units of 1% of min(height, width) of the view surface, and PHASE to
 set the offset the hatching. Alternatively this can be specified as a
 1x3 piddle $hatch=pdl[$angle, $sep, $phase].
 
-   $opt = {FILLTYPE => 'HATCHED', HATCHING => {ANGLE=>30, SEPARATION=>4}};
+   $opt = {FILLTYPE => 'HATCHED', 
+           HATCHING => {ANGLE=>30, SEPARATION=>4}};
 
 Can also be specified as
 
@@ -267,10 +273,11 @@ TR() array in the underlying PGPLOT FORTRAN routine but is, fortunately,
 zero-offset.
 
 Options recognised:
-     MIN  - Sets the minimum value to be used for calculation of the
-           display stretch
-     MAX  - Sets the maximum value for the same
-TRANSFORM - The transform 'matrix' as a 6x1 vector for display
+
+      MIN  - Sets the minimum value to be used for calculation of the
+             display stretch
+      MAX  - Sets the maximum value for the same
+ TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
   None of the standard options are relevant here
 
@@ -289,6 +296,7 @@ Usage:
    ctab ( $levels, $red, $green, $blue, [$contrast, $brightness] )
 
 Options recognised:
+
    Currently no options are implemented for this command.
 
 =head2 line
@@ -302,6 +310,7 @@ Plot vector as connected points
  Usage: line ( [$x,] $y, [$opt] )
 
  Options recognised:
+
     The following standard options influence this command:
     COLO(U)R, LINESTYLE, LINEWIDTH
 
@@ -529,7 +538,7 @@ TRANSFORM - The pixel-to-world coordinate transform vector
 
 Karl Glazebrook [kgb@aaoepp.aao.gov.au] modified by Jarle Brinchmann
 (jarle@ast.cam.ac.uk), docs mangled by Tuomas J. Lukka
-(lukka@fas.harvard.edu) and Christian Soeller (csoelle@sghms.ac.uk).
+(lukka@fas.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz).
 
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain

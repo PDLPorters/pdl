@@ -6,8 +6,8 @@ PDL - Main loader of PDL default modules
 
 Loads the default set of modules associated
 with PDL, making the functions available in
-the current namespace. See also C<PDL::Lite>,
-C<PDL::LiteF> if start-up time becomes an
+the current namespace. See also L<PDL::Lite>,
+L<PDL::LiteF> if start-up time becomes an
 issue.
 
 =head1 SYNOPSIS
@@ -26,9 +26,8 @@ issue.
 =cut
 
 
-# get the version: 
-use PDL::Version;
-$PDL::VERSION = $PDL::Version::VERSION;
+# set the version: 
+$PDL::VERSION = '2.002';
 
 # Main loader of standard PDL package
 
@@ -57,6 +56,11 @@ EOD
 die $@ if $@;
 
 }
+
+
+# Dummy Package PDL Statement. This is only needed so CPAN
+# properly recognizes the PDL package.
+package PDL;
 
 
 ;# Exit with OK status

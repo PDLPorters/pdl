@@ -108,7 +108,7 @@ get_trans(self)
 	if(self->trans)  {
 		sv_setref_pv(ST(0), "PDL::Trans", (void*)(self->trans));
 	} else {
-		ST(0) = &sv_undef;
+               ST(0) = &PL_sv_undef;
 	}
 
 # This will change in the future, as can be seen from the name ;)
@@ -474,6 +474,7 @@ BOOT:
 
    /* Initialise structure of pointers to core C routines */
 
+   PDL.Version     = PDL_CORE_VERSION;
    PDL.SvPDLV      = SvPDLV;
    PDL.SetSV_PDL   = SetSV_PDL;
    PDL.create      = pdl_create;
@@ -520,6 +521,7 @@ BOOT:
    PDL.make_physdims = pdl_make_physdims;
    PDL.pdl_barf      = pdl_barf;
    PDL.allocdata      = pdl_allocdata;
+   PDL.safe_indterm = pdl_safe_indterm;
 
    /*
       "Publish" pointer to this structure in perl variable for use
@@ -546,6 +548,7 @@ myeval(code)
 
 
 MODULE = PDL::Core	PACKAGE = PDL
+
 # pdl_null is created/imported with no PREFIX  as pdl_null.
 #  'null' is supplied in Core.pm that calls 'initialize' which calls
 #   the pdl_null here
@@ -553,6 +556,11 @@ MODULE = PDL::Core	PACKAGE = PDL
 pdl *
 pdl_null(...)
 
+
+MODULE = PDL::Core     PACKAGE = PDL::Core     PREFIX = pdl_
+
+int
+pdl_pthreads_enabled()
 
 MODULE = PDL::Core	PACKAGE = PDL	PREFIX = pdl_
 
@@ -616,10 +624,11 @@ int
 upd_data(self)
 	pdl *self
 	CODE:
+       STRLEN n_a;
 	if(self->state & PDL_DONTTOUCHDATA) {
 		barf("Trying to touch dataref of magical (mmaped?) pdl");
 	}
-	self->data = SvPV((SV*)self->datasv,na);
+       self->data = SvPV((SV*)self->datasv,n_a);
 	XSRETURN(0);
 
 void

@@ -12,8 +12,6 @@ A mixture of basic I/O functionality
 
  use PDL::IO::Misc;
 
-=head1 FUNCTIONS
-
 =cut
 
 EOD
@@ -25,8 +23,9 @@ pp_add_exported('',"rfits wfits rcols wcols rgrep rdsa");
 
 pp_addpm(<<'EOD');
 
-use PDL::Core;
+use PDL::Primitive;
 use PDL::Types;
+use PDL::Options;
 use Carp;
 
 =head2 rfits()
@@ -37,12 +36,14 @@ Simple piddle FITS reader.
 
 =for example
 
-     $pdl = rfits('file.fits');
+  $pdl = rfits('file.fits');
 
 Suffix magic:
 
-     $pdl = rfits('file.fits.gz'); # Automatically uncompress via gunzip pipe
-     $pdl = rfits('file.fits.Z');  # Automatically uncompress via uncompress pipe
+  # Automatically uncompress via gunzip pipe
+  $pdl = rfits('file.fits.gz');
+  # Automatically uncompress via uncompress pipe 
+  $pdl = rfits('file.fits.Z');  
 
 FITS Headers stored in piddle and can be retrived with $a->gethdr.
 
@@ -184,8 +185,10 @@ Simple piddle FITS writer
 
 Suffix magic:
 
-  wfits $pdl, 'filename.fits.gz'; # Automatically compress through pipe to gzip
-  wfits $pdl, 'filename.fits.Z';  # Automatically compress through pipe to compress
+  # Automatically compress through pipe to gzip
+  wfits $pdl, 'filename.fits.gz';
+  # Automatically compress through pipe to compress 
+  wfits $pdl, 'filename.fits.Z';  
 
 $BITPIX is optional and coerces the output format.
 
@@ -396,30 +399,72 @@ sub ext1D {
 
 Read ASCII whitespaced cols from file into piddles efficiently.
 
-If no columns are specified all are assumed
-Will optionally only process lines matching a pattern.
-Can take file name or *HANDLE, e.g.
+There are two calling conventions - the old version, where
+a pattern can be specified after the filename/handle, and the new
+version where options are given as as hash reference. This 
+reference can be given as either the second or last argument.
+
+The default behaviour is to read in from all lines unless they 
+begin with a # character, or if a pattern is given,  read
+in data from lines matching the pattern.
+
+Options:
+
+  EXCLUDE or IGNORE
+     - ignore lines matching this pattern (default '/^#/').
+  INCLUDE or KEEP
+     - only use lines which match this pattern (default '').
+  LINES   
+     - which line numbers to use. Line numbers start at 0 and the syntax 
+       is 'a:b:c' to use every c'th line between a and b (default '').
+
+Can take file name or *HANDLE, and if no columns are specified, 
+all are assumed. 
 
 =for usage
 
- Usage: ($x,$y,...) = rcols(*HANDLE|"filename", ["/pattern/",$col1, $col2,] ...)
-
+  Usage:
+    ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, 
+			 $col1, $col2, ... )
+    ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., 
+			 { EXCLUDE => '/^!/' } )
+    ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
+ 
 e.g.,
 
 =for example
 
-  ($x,$y)    = rcols 'file1'
-  ($x,$y)    = rcols *STDOUT
-  ($x,$y,$z) = rcols 'file2', "/foo/",3,4
-  $x = PDL->rcols 'file1';
+  $x         = PDL->rcols 'file1';
+  ($x,$y)    = rcols 'file1';
+  ($x,$y)    = rcols *STDOUT;
+
+  # to only read lines containing the string foo that do not
+  # begin with # (since EXCLUDE defaults to '^#')
+  ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/' };
+
+  # to only read in lines containing the string foo
+  ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/', EXCLUDE => '' };
+  # or, using the old-style
+  ($x,$y,$z) = rcols 'file2', "/foo/",0,4,5;
+
+  # ignore the first 27 lines of the file
+  ($x,$y) = rcols 'file3', { LINES => '27:-1' }
+  ($x,$y) = rcols 'file3', { LINES => '27:' }
 
 Notes:
 
-1. Currently quotes are required on the pattern.
+1. Quotes are required on patterns.
 
 2. Columns are separated by whitespace by default,
 use $PDL::IO::Misc::colsep to specify an alternate
 separator.
+
+3. To remove a particular check set its value to ''.
+
+4. Although the LINES option looks remarkably similar to
+the format of slice(), it works on line numbers - not the 
+resulting array - so both '0:-1' and '0:-2' give the same 
+result IF the last line starts with a '#'.
 
 =cut
 
@@ -429,49 +474,168 @@ sub rcols{PDL->rcols(@_)}
 
 sub PDL::rcols {
    my $class = shift;
-   barf 'Usage ($x,$y,...) = rcols(*HANDLE|"filename", ["/pattern/",$col1, $col2,] ...)' if $#_<0;
+   barf 'Usage ($x,$y,...) = rcols( *HANDLE|"filename", ["/pattern/" or \%options], $col1, $col2, ..., [ \%options] )' 
+       if $#_<0;
 
    my $is_handle = ref(\$_[0]) eq "GLOB";
    my $fh = $is_handle ? $_[0] : "FILE";
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
 
-   my $pattern="";
-   if (defined($_[0]) && $_[0] =~ m|^/.*/$|) { # Is a pattern
-      $pattern = shift;
-      substr($pattern,0,1)=""; substr($pattern,-1,1)="";  # Removes //s
+   # set up default options
+   my $opt = new PDL::Options( { EXCLUDE => '/^#/', INCLUDE => '', LINES => '' } );
+   $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
+
+   # has the user supplied any options
+   if ( defined($_[0]) ) {
+       # ensure the old-style behaviour by setting the exclude pattern to ''
+       if ( $_[0] =~ m|^/.*/$| )      { $opt->options( { EXCLUDE => '', INCLUDE => shift } ); }
+       elsif ( ref($_[0]) eq "HASH" ) { $opt->options( shift ); }
    }
 
+   # maybe the last element is a hash array as well
+   $opt->options( pop ) if defined($_[-1]) and ref($_[-1]) eq "HASH";
+
+   # a reference to a hash array
+   my $options = $opt->current();   
+
+   # what are the patterns
+   $$options{EXCLUDE} =~ s|^/(.*)/$|$1|;
+   $$options{INCLUDE} =~ s|^/(.*)/$|$1|;
+
+   # not pretty
+   my ( $a, $b, $c );
+   if ( $$options{LINES} ne '' ) {
+       if ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*$/ ) {
+	   $a = $1; $b = $2;
+       } elsif ( $$options{LINES} =~ /^\s*([+-]?\d*)\s*:\s*([+-]?\d*)\s*:\s*([+]?\d*)\s*$/ ) {
+	   $a = $1; $b = $2; $c = $3;
+       } else {
+	   barf "rcols() - unable to parse LINES option.\n";
+       }
+   }
+
+   # default behaviour
+   my ( $index_start, $index_end ) = ( 0, -1 );
+   $index_start = $a if defined($a) and $a ne '';
+   $index_end   = $b if defined($b) and $b ne '';
+
+   my $line_step   = $c || 1;
+   my ( $line_start, $line_end, $line_rev );
+
+   # ugh! not pretty
+   if ( ($index_start >= 0 and $index_end < 0) ) {
+       # eg 0:-1
+       $line_rev = 0; $line_start = $index_start;
+   } elsif ( $index_end >= 0 and $index_start < 0 ) {
+       # eg -1:0
+       $line_rev = 1; $line_start = $index_end; 
+   } elsif ( $index_end >= $index_start and $index_start >= 0 ) {
+       # eg 0:10
+       $line_rev = 0; $line_start = $index_start; $line_end = $index_end;
+   } elsif ( $index_start > $index_end and $index_end >= 0 ) {
+       # eg 10:0
+       $line_rev = 1; $line_start = $index_end; $line_end = $index_start;
+   } elsif ( $index_start <= $index_end ) {
+       # eg -5:-1
+       $line_rev = 0;
+   } else {
+       # eg -1:-5
+       $line_rev = 1;
+   }
+   
+   my @ret;
    my @cols = @_;
-   my (@ret,@v,$k); my ($m,$n)=(-1,0); # Count/PDL size
+
+   my (@v,$k); 
+
+   my $line_num = -1;
+   my $line_ctr = $line_step - 1;  # ensure first line is always included
+   my $index    = -1;
+   my $pdlsize  =  0;
+   my $extend   = 10000;
+
+   my $line_store;  # line numbers of saved data
 
    while(<$fh>) {
 
-      if ($pattern eq "") {
-           next if /^#/;    # Only skip comments
-      }
-      else{
-           next unless /$pattern/;
-      }
+       $line_num++;
 
-      @v = $colsep eq ' ' ? split(' ') : split($colsep) ; $m++;  # Count got
-      if ($m==0) {
-          @cols = (0..$#v) if $#cols<0; # Use number of cols in first line
-          for (0..$#cols) {
-              $ret[$_] = double($class->new([0])); # Create PDLs
-          }
-      }
-      if ($n<$m) {
-          for (0..$#cols) {
-              ext1D( $ret[$_], 10000 ) # Extend PDL in buffered manner
-          }
-          $n += 10000;
-      }
-      $k=0; for(@cols) { set $ret[$k++], $m, 1*$v[$_] } # Set values - '1*' is
-   }                                                    # split() bug workaround
+       # the order of these checks is important, 
+       # particularly whether we check for line_ctr before or after
+       # the pattern matching
+       last if     defined($line_end)   and $line_num > $line_end;
+       next if     defined($line_start) and $line_num < $line_start;
+       next unless ++$line_ctr == $line_step; 
+       $line_ctr = 0;
+       next if     $$options{EXCLUDE} ne '' and /$$options{EXCLUDE}/;
+       next unless $$options{INCLUDE} eq '' or  /$$options{INCLUDE}/;
+
+       $index++;
+       @v = $colsep eq ' ' ? split(' ') : split($colsep) ; 
+
+       # if the first line, set up the output piddles
+       # using all the columns if the user doesn't specify anything
+       if ( $index == 0 ) {
+	   @cols = ( 0 .. $#v ) if $#cols < 0;
+	   for (0..$#cols) { $ret[$_] = $class->zeroes(double,1); }
+	   $line_store = $class->zeroes(long,1); # only need to store integers
+       }
+
+       # if necessary, extend PDL in buffered manner
+       if ( $pdlsize < $index ) {
+	   for (0..$#cols) { ext1D( $ret[$_], $extend ); } 
+	   ext1D( $line_store, $extend );
+	   $pdlsize += $extend;
+       }
+
+       # Set values - '1*' is split() bug workaround
+       $k = 0; for (@cols) { set $ret[$k++], $index, 1*$v[$_]; } 
+
+       # store the line number
+       $line_store->set( $index, $line_num );
+   }
 
    close($fh) unless $is_handle;
-   for (@ret) { $_ = $_->slice("0:$m")->copy; }; # Truncate
+
+   # have we read anything in? if not, return empty piddles
+   # - not wonderful
+   if ( $index == -1 ) {
+       print "Warning: rcols() did not read in any data.\n" if $PDL::verbose;
+       if ( wantarray ) {
+	   foreach ( 0 .. $#cols ) { $ret[$_] = PDL->null; }
+	   return ( @ret );
+       } else { 
+	   return PDL->null;
+       }
+   }
+
+   # sort out excising the data
+   $line_store = $line_store->slice("0:${index}");
+
+   # ugh! not pretty at all
+   if ( $line_rev ) {
+       if ( defined($line_start) and defined($line_end) ) {
+	   my $dummy = $line_start;
+	   $line_start = $line_end;
+	   $line_end = $dummy;
+       } elsif ( defined($line_start) ) {
+	   $line_end = $line_start;
+       } else {
+	   $line_start = $line_end; 
+       }
+   }
+   $line_start = $line_num + 1 + $index_start if $index_start < 0;
+   $line_end   = $line_num + 1 + $index_end   if $index_end   < 0;
+
+   my $indices;
+   if ( $line_rev ) {
+       $indices = which( $line_store >= $line_end & $line_store <= $line_start )->slice('-1:0');
+   } else {
+       $indices = which( $line_store >= $line_start & $line_store <= $line_end );
+   }
+
+   for (@ret) { $_ = $_->index($indices)->copy; }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
 }
 
@@ -482,7 +646,7 @@ sub PDL::rcols {
 
 Write ASCII whitespaced cols into file from piddles efficiently.
 
-If no columns are specified all are assumed
+If no columns are specified all are assumed.
 Will optionally only process lines matching a pattern.
 Can take file name or *HANDLE, e.g.
 
@@ -1097,3 +1261,5 @@ the copyright notice should be included in the file.
 EOD
 
 pp_done();
+
+

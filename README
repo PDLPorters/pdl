@@ -72,7 +72,13 @@ perldl-request@jach.hawaii.edu) with ideas and suggestions.
 
 	Tuomas J. Lukka (lukka@fas.harvard.edu)
         Karl Glazebrook (kgb@aaoepp.aao.gov.au)
-	
+
+Compilation Reports:
+--------------------
+
+The CPAN Testers' result page provides a database showing the results
+of compiling PDL and many other CPAN packages on multiple platforms.
+See http://www.perl.org/cpan-testers/results.cgi	
 
 Acknowledgement
 ---------------

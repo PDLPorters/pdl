@@ -12,6 +12,14 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 # Do the appropriate substitutions in the code.
 sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
 	    $extrageneric,$havethreading, $dont_add_thrloop) = @_;
+
+         # C++ style comments
+         #
+         # This regexp isn't perfect because it doesn't cope with
+         # literal string constants.
+         #
+         $code =~ s,//.*?\n,,g;
+
 	if($::PP_VERBOSE) {
 		if($dont_add_thrloop) {
 			print "DONT_ADD_THRLOOP!\n";

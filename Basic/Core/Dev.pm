@@ -12,7 +12,7 @@ use English; use Exporter; use DynaLoader;
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
 		 pdlpp_postamble_int pdlpp_stdargs_int
 		 pdlpp_postamble pdlpp_stdargs write_dummy_make
-	         unsupported
+                unsupported getcyglib
 		 );
 
 # Installation locations
@@ -269,6 +269,9 @@ qq|
 $pref.xs $pref.pm: $src $w/Basic/Gen/pm_to_blib
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
+$pref.c: $pref.xs
+
+$pref\$(OBJ_EXT): $pref.c
 |
 	} (@_)
 }
@@ -285,6 +288,9 @@ qq|
 $pref.xs $pref.pm: $src
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
+$pref.c: $pref.xs
+
+$pref\$(OBJ_EXT): $pref.c
 |
 	} (@_)
 }
@@ -352,5 +358,15 @@ EOT
       close(OUT);
 }
 
+sub getcyglib {
+my ($lib) = @_;
+my $lp = `gcc -print-file-name=lib$lib.a`;
+$lp =~ s|/[^/]+$||;
+$lp =~ s|^([a-z,A-Z]):|//$1|g;
+return "-L$lp -l$lib";
+}
+
 1; # Return OK
+
+
 

@@ -14,7 +14,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..1\n";
+print "1..2\n";
 
 $a = pdl [[ 1,  2,  3,  0],
       [ 1, -1,  2,  7],
@@ -36,3 +36,6 @@ print $res;
 
 ok(1,approx($c,$res));
 
+$equiv = float [[1,1,1,1]];  # a 4,1-matrix ( 1 1 1 1 )
+print $equiv;
+ok(2,approx($equiv x $b,float(1) x $b)); # check promotion

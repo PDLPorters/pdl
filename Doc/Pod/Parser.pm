@@ -62,7 +62,6 @@ The formal syntax of a section specification is:
 =over 4
 
 =item
-
 I<head1-title-regexp>/I<head2-title-regexp>/...
 
 =back

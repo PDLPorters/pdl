@@ -19,7 +19,15 @@ sub ok {
 }
 
 
-$file = '/tmp/iotest$$';
+require File::Spec;
+$fs = 'File::Spec';
+sub cdir { return $fs->catdir(@_)}
+sub cfile { return $fs->catfile(@_)}
+$td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
+$tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
+            defined $ENV{TMP} ? $ENV{TMP} :
+                           cdir($fs->rootdir,$td);
+$file = cfile $tempd, "iotest$$";
 
 ############# Test rcols with filename and pattern #############
 

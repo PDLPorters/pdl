@@ -4,6 +4,7 @@ double infinity(void)
 #ifdef DBL_INFINITY
   return DBL_INFINITY;
 #else
-  return 1./0.; /* Expect divide by zero error */
+  double a=0;
+  return 1./a; /* Expect divide by zero error */
 #endif
 }
