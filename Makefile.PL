@@ -314,8 +314,11 @@ package PDL;
 
 BEGIN{
   # Version test.
+  # (See also warning note in the END block)
+
   eval "use 5.6.0";
   die "\nPDL requires Perl v5.6.0 or later\n\n" if $@ ne "";
+  
   # test for critical modules
   @hasnt = ();
   my @test = (['Filter::Util::Call','Filter'],
@@ -550,4 +553,19 @@ EOP
 
 EOP
   }
-}
+
+    eval "use 5.8.0";
+    if($@ ne "") {
+      $vstring = sprintf("%vd",$^V);
+    print <<"DEPRECATED-EOM"
+******************************
+* 
+* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.2, 
+* perl version 5.8 or greater is recommended.  Most stuff will
+* probably still work, but perl versions earlier than 5.8 are
+* deprecated and may stop working in future.
+* 
+******************************
+DEPRECATED-EOM
+   } # end of deprecation case
+} # end of END block

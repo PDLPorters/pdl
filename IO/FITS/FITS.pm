@@ -43,25 +43,6 @@ this software under certain conditions.  For details, see the file
 COPYING in the PDL distribution.  If this file is separated from the 
 PDL distribution, the copyright notice should be pasted into in this file.
 
-=head1 TO DO
-
-=over 3
-
-=item binary tables
-
-Table length calculation is wrong for the check, so the writer always
-spews an error message.
-
-=item binary tables
-
-If you specify header fields sometimes the output file is screwed up.
-Example: write out four floating-point PDLs as four named columns, 
-'foo','bar','baz', and 'quux'.  Try to enter a 'hdr=>{TTYPE1=>"quux"}'
-to force quux to column 1. The emitted header will have the correct
-first three columns, but the fourth column is screwed up.
-
-=back
-
 =head1 FUNCTIONS
 
 =cut
@@ -2068,34 +2049,39 @@ sub _wfits_table ($$$) {
 
 sub _wfits_nullhdu ($) {
   my $fh = shift;
-  barf "Astro::FITS::Header is required.\nGet it from www.cpan.org.\n"
-    unless($PDL::Astro_FITS_Header);
-  my $h = Astro::FITS::Header->new();
-
-  reset_hdr_ctr();
-  add_hdr_item $h, "SIMPLE", "T", 'logical', "Null HDU (no data, only extensions)";
-  add_hdr_item $h, "BITPIX", -32, 'int', "Needed to make fverify happy";
-  add_hdr_item $h, "NAXIS", 0, 'int';
-  add_hdr_item $h, "EXTEND", "T", 'logical', "File contains extensions";
-  add_hdr_item $h, "COMMENT", "", "comment",
+  if($Astro::FITS::Header) {
+    my $h = Astro::FITS::Header->new();
+    
+    reset_hdr_ctr();
+    add_hdr_item $h, "SIMPLE", "T", 'logical', "Null HDU (no data, only extensions)";
+    add_hdr_item $h, "BITPIX", -32, 'int', "Needed to make fverify happy";
+    add_hdr_item $h, "NAXIS", 0, 'int';
+    add_hdr_item $h, "EXTEND", "T", 'logical', "File contains extensions";
+    add_hdr_item $h, "COMMENT", "", "comment",
     "  File written by perl (PDL::IO::FITS::wfits)";
-  #
-  # The following seems to cause a problem so removing for now (I don't
-  # believe it is required, but may be useful for people who aren't
-  # FITS connoisseurs). It could also be down to a version issue in
-  # Astro::FITS::Header since it worked on linux with a newer version
-  # than on Solaris with an older version of the header module)
-  #
-  ##  add_hdr_item $h, "COMMENT", "", "comment",
-  ##    "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
-  ##  add_hdr_item $h, "COMMENT", "", "comment",
-  ##    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
-  add_hdr_item $h, "HDUNAME", "PRIMARY", 'string';
-  add_hdr_item $h, "END", undef, 'undef';
-
-  my $hdr = join("",$h->cards);
-  _print_to_fits( $fh, $hdr, " " );
+    #
+    # The following seems to cause a problem so removing for now (I don't
+    # believe it is required, but may be useful for people who aren't
+    # FITS connoisseurs). It could also be down to a version issue in
+    # Astro::FITS::Header since it worked on linux with a newer version
+    # than on Solaris with an older version of the header module)
+    #
+    ##  add_hdr_item $h, "COMMENT", "", "comment",
+    ##    "  FITS (Flexible Image Transport System) format is defined in 'Astronomy";
+    ##  add_hdr_item $h, "COMMENT", "", "comment",
+    ##    "  and Astrophysics', volume 376, page 359; bibcode: 2001A&A...376..359H";
+    add_hdr_item $h, "HDUNAME", "PRIMARY", 'string';
+    add_hdr_item $h, "END", undef, 'undef';
+    
+    my $hdr = join("",$h->cards);
+    _print_to_fits( $fh, $hdr, " " );
+  } else {
+    _print_to_fits( $fh, 
+		    q+SIMPLE  =                    T / Null HDU (no data, only extensions)            BITPIX  =                  -32 / Needed to make fverify happy                   NAXIS   =                    0                                                  EXTEND  =                    T / File contains extensions                       COMMENT   Written by perl (PDL::IO::FITS::wfits) legacy code.                   COMMENT   For best results, install Astro::FITS::Header.                        HDUNAME = 'PRIMARY '                                                            END                                                                             +,
+		    " ");
+  }
 }
+
     
 1;
 

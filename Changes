@@ -1,9 +1,14 @@
+CED 27-Dec-2004
+   - Window.pm: fixed bug 1091534 (problem with rect())
 DJB 23-Dec-2004
    - Set the WITH_3D option in perldl.conf to be 0 rather than undef on OS-X
      since there are still problems with the build. Also added a path to the
      GL headers to Graphics/Makefile.PL and opengl.pd for OS-X (in case the
      problem gets fixed). I think the whole build process for the 3D stuff
      should be re-worked if anyone has enough tuit's.
+CED 17-Dec-2004
+   - PDL 5.6 is now deprecated by the Makefile.PL
+   - Fix problems with test suite when Astro::FITS::Heder is not installed.
 CED 13-Dec-2004
    - uninitialized memory patch 1083663 (thanks, Miloslav!)
 

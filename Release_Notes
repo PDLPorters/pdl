@@ -4,8 +4,10 @@ General Notes:
 
      - again, mainly a bugfix and polishing release.
      
-     - 5.6.x is now deprecated; 5.8.x is recommended.  Support
+     - perl 5.6.x is now deprecated; 5.8.x is recommended.  Support
        for 5.6.x may go away in future versions.  
+
+     - a little too late for Christmas; but happy new year 2005!
 
 Summary of Changes:
 
@@ -25,8 +27,6 @@ Summary of Changes:
   it does the Right Thing most of the time.
 
  - Cleaner handling of config files
-
-
 
  - Improvements to multi-line parsing in the perldl shell
 

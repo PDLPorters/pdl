@@ -6230,7 +6230,7 @@ sub rect {
 
   $self->_save_status();
   $self->_standard_options_parser($u_opt);
-  my $n = nelem($x);
+
   pgrect($x1, $x2, $y1, $y2);
   $self->_restore_status();
   $self->_add_to_state(\&poly, $in, $opt);
