@@ -260,11 +260,20 @@ if (-e 'local.perldlrc') {
 sub p { local $^W=0; print(@_); }  # suppress possible undefined var message 
                                    # (dirty)
 
+my %demos = 
+    (
+     'pdl' => 'PDL::Demos::General', # have to protect pdl as it means something
+     '3d' => 'PDL::Demos::TriD1',
+     '3d2' => 'PDL::Demos::TriD2',
+     '3dgal' => 'PDL::Demos::TriDGallery',
+     'tk3d' => 'PDL::Demos::TkTriD_demo',
+     'pgplot' => 'PDL::Demos::PGPLOT_demo',
+     );
+
 sub demo {
-	local $_ = lc $_[0] ;
-	require PDL::Demos::Screen; # Get the routines for screen demos.
-	if(/^$/) {
-		print <<EOD;
+    local $_ = lc $_[0] ;
+    if(/^$/) {
+	print <<EOD;
 Use:
 	demo pdl	# general demo
 	demo 3d		# 3d demo (requires TriD compiled with OpenGL or Mesa)
@@ -276,29 +285,20 @@ Use:
         demo Tk3d       # Requires the perl Tk module
 	demo pgplot	# Requires the PGPLOT package
 EOD
-	} elsif(/^pdl$/) {
-		require PDL::Demos::General;
-		PDL::Demos::General::run();
-	} elsif(/^3d$/) {
-		require PDL::Demos::TriD1;
-		PDL::Demos::TriD1::run();
-	} elsif(/^3d2$/) {
-		require PDL::Demos::TriD2;
-		PDL::Demos::TriD2::run();
-	} elsif(/^3dgal$/) {
-		require PDL::Demos::TriDGallery;
-		PDL::Demos::TriDGallery::run();
-	} elsif(/^tk3d$/) {
-		require PDL::Demos::TkTriD_demo;
-		PDL::Demos::TkTriD_demo::run();
-	} elsif(/^pgplot$/) {
-		require PDL::Demos::PGPLOT_demo;
-		PDL::Demos::PGPLOT_demo::run();
-	} else {
-		print "No such demo!\n";
-	}
-}
+    return;
+    } # if: /^$/
 
+    if ( exists $demos{$_} ) {
+	require PDL::Demos::Screen; # Get the routines for screen demos.
+	my $name = $demos{$_};
+	eval "require $name;"; # see docs on require for need for eval
+	$name .= "::run";
+	&{$name}();
+    } else {
+	print "No such demo!\n";
+    }
+
+} # sub: demo
 
 $SIG{'INT'} = sub {print "Ctrl-C detected\n"; goto restart}; # Ctrl-C handler
 
