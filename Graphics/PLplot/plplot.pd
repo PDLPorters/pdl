@@ -1930,6 +1930,8 @@ void c_plssub(PLINT nx, PLINT ny);
 void c_plssym(PLFLT def, PLFLT scale);
 void c_plstar(PLINT nx, PLINT ny);
 void c_plstart(const char *devname, PLINT nx, PLINT ny);
+void c_plstripa(PLINT id, PLINT pen, PLFLT x, PLFLT y);
+void c_plstripd(PLINT id);
 #void c_plstyl(PLINT nms, PLINT *mark, PLINT *space);
 void c_plsvpa(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
 void c_plsxax(PLINT digmax, PLINT digits);
@@ -2798,6 +2800,49 @@ OUTPUT:
 EOC
 
 pp_add_exported ('plgver');
+
+pp_def ('plstripc',
+         GenericTypes => [D],
+         Pars => 'xmin(); xmax(); xjump(); ymin(); ymax();'
+	         . 'xlpos(); ylpos(); int y_ascl(); int acc();'
+                 . 'int colbox(); int collab();'
+                 . 'int colline(n); int styline(n);  int [o] id()',
+         OtherPars => 'char* xspec; char* yspec; SV* legline;'
+                      . 'char* labx; char* laby; char* labtop',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           I32 i;
+           PLINT id;
+           char* legline[4];
+           SV* sv_legline = $COMP(legline);
+           AV* av_legline;
+
+           if (! SvROK (sv_legline)
+               || SvTYPE (SvRV (sv_legline)) != SVt_PVAV)
+             croak ("plstripc: legline must be a reference to an array");
+
+           av_legline = (AV*) SvRV (sv_legline);
+
+           if (av_len (av_legline) != 3)
+             croak ("plstripc: legline must have four elements");
+
+           if ($SIZE(n) != 4)
+             croak ("plstripc: colline and styline must have four elements");
+
+           for (i = 0; i < 4; i++) {
+             SV** elem = av_fetch (av_legline, i, 0);
+             legline[i] = (char *) SvPV_nolen (*elem);
+           }
+
+           c_plstripc (&id, $COMP(xspec), $COMP(yspec),
+	     $xmin(), $xmax(), $xjump(), $ymin(), $ymax(),
+	     $xlpos(), $ylpos(),$y_ascl(), $acc(), $colbox(), $collab(),
+	     $P(colline), $P(styline), legline,
+	     $COMP(labx), $COMP(laby), $COMP(labtop));
+
+           $id() = (int) id;'
+
+        );
 
 
 pp_addpm (<<'EOPM');
