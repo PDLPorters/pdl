@@ -1,6 +1,7 @@
 0.991
  - don't translate method invocation via string, e.g.
      $a->$method(0)
+ - require PDL in Makefile.PL
 0.99
  - allow more than one modifier
  - fix modifier parsing

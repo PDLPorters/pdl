@@ -3,9 +3,6 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 		NAME	=> 'PDL::NiceSlice',
 		VERSION_FROM => 'NiceSlice.pm',
-	        PM => {
-		       map {($_ => '$(INST_LIBDIR)/'.$_)} <*.pm>
-		      },
 		PREREQ_PM => {
 			      Filter::Util::Call => 0,
 			      Text::Balanced => 0,
