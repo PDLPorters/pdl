@@ -252,7 +252,7 @@ sub PDL::rpic {
         $pdl = $class->initialize;
     }
 
-    $hints = { parse $rpicopts, $hints } if ref $hints;
+    $hints = { iparse $rpicopts, $hints } if ref $hints;
     if (defined($$hints{'FORMAT'})) {
 	$type = $$hints{'FORMAT'};
         barf "unsupported (input) image format"
@@ -416,7 +416,7 @@ sub PDL::wpic {
     my ($pdl,$file,$hints) = @_;
     my ($type, $cmd, $form,$iform,$iraw);
 
-    $hints = {parse($wpicopts, $hints)} if ref $hints;
+    $hints = {iparse($wpicopts, $hints)} if ref $hints;
     # figure out the right converter
     my ($conv, $flags, $format) = getconv($pdl,$file,$hints);
     print "Using the command $conv with the flags $flags\n"
