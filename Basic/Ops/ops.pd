@@ -53,7 +53,7 @@ EOH
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
-	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => "\$c() = \$a() $op \$b();",
 	   %extra,
 	   Doc => << "EOD");
@@ -99,7 +99,7 @@ EOH
     pp_def($name,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
-	   Inplace => [ 'a', 'c' ], # quick and dirty solution to get ->inplace do its job
+	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
 	   Code => "\$c() = $func(\$a(),\$b());",
 	   %extra,
 	   Doc => << "EOD");
@@ -130,7 +130,7 @@ sub ufunc {
     pp_def($name,
 	   Pars => 'a(); [o]b()',
 	   Code => "\$b() = $func(\$a());",
-	   Inplace => [ 'a', 'b' ],
+	   Inplace => 1,
 	   %extra,
 	   Doc => << "EOD");
 =for ref

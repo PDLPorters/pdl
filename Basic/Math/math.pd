@@ -123,62 +123,72 @@ my (@besufuncs) = qw(j0 j1 y0 y1); # "
 my (@besbifuncs) = qw(jn yn); # "
 # Need igamma, ibeta, and a fall-back implementation of the above
 
+sub code_ufunc    { return '$b() = ' . $_[0] . '($a());'; }
+sub code_bifunc { 
+    my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
+    return "\$b() = $name(\$$a(),\$$b());"; 
+}
+
+my $func;
 foreach $func (@ufuncs1) {
-pp_def($func,
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    pp_def($func,
+	   GenericTypes => [F,D],
+	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   );
 }
 
 foreach $func (@ufuncs1g) {
-pp_def($func,
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    pp_def($func,
+	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   );
 }
 
 foreach $func (@bifuncs1) {
-pp_def($func,
-	Pars => 'a(); b(); [o]c();',
-	Doc => $doco{$func},
-	Code => '
-		$c() = '.$func.'($a(),$b());
-');
+    pp_def($func,
+	   Pars => 'a(); b(); [o]c();',
+	   Doc => $doco{$func},
+	   Code => code_bifunc($func),
+	   );
 }
 
 # Functions provided by extended -lm
 foreach $func (@ufuncs2) {
-pp_def($func,
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{$func},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    pp_def($func,
+	   GenericTypes => [F,D],
+	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
+	   Doc => $doco{$func},
+	   Code => code_ufunc($func),
+	   );
 }
+
 foreach $func (@besufuncs) {
-pp_def("bess$func",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b();',
-	Doc => $doco{"bess$func"},
-	Code => '
-		$b() = '.$func.'($a());
-');
+    my $fname = "bess$func";
+    pp_def($fname,
+	   GenericTypes => [F,D],
+	   Pars => 'a(); [o]b();',
+	   Inplace => 1,
+	   Doc => $doco{$fname},
+	   Code => code_ufunc($func),
+	   );
 }
+
 foreach $func (@besbifuncs) {
-pp_def("bess$func",
-	GenericTypes => [F,D],
-	Pars => 'a(); int n(); [o]b();',
-	Doc => $doco{"bess$func"},
-	Code => '
-		$b() = '.$func.'($n(),$a());
-');
+    my $fname = "bess$func";
+    pp_def($fname,
+	   GenericTypes => [F,D],
+	   Pars => 'a(); int n(); [o]b();',
+	   Doc => $doco{$fname},
+	   Code => code_bifunc($func,'n','a'),
+	   );
 }
+
 if ($^O !~ /win32/i) {
 pp_def("lgamma",
 	Pars => 'a(); [o]b(); int[o]s()',
@@ -199,19 +209,21 @@ pp_def('badmask',
 
 # Extra functions from cephes
 pp_def("erfi",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b()',
-	Doc => $doco{"erfi"},
-	Code => '
+       GenericTypes => [F,D],
+       Pars => 'a(); [o]b()',
+       Inplace => 1,
+       Doc => $doco{"erfi"},
+       Code => '
 		extern double ndtri(double), SQRTH;
 		$b() = SQRTH*ndtri((1+(double)$a())/2);
 ');
 
 pp_def("ndtri",
-	GenericTypes => [F,D],
-	Pars => 'a(); [o]b()',
-	Doc => $doco{"ndtri"},
-	Code => '
+       GenericTypes => [F,D],
+       Pars => 'a(); [o]b()',
+       Inplace => 1,
+       Doc => $doco{"ndtri"},
+       Code => '
 		extern double ndtri(double);
 		$b() = ndtri((double)$a());
 ');
