@@ -1,3 +1,9 @@
+CED 5-Jul-2003
+   - imagend.pd: convolveND is ready to roll: fixed off-by-1 errors, 
+	added tests and documentation.  
+CED 3-Jul-2003
+   - imagend.pd: add optimized "convolveND".  Still needs a bit of offset-by-1
+	work, but runs 3x faster than convolve() for direct convolution.
 CED 29-Jun-2003
    - slices.pd: clump allows "-n" to mean "keep n dimensions".
 CED 28-Jun-2003
