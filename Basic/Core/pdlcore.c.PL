@@ -65,7 +65,7 @@ print OUT <<'!NO!SUBS!'
 #ifdef isfinite
 #define finite isfinite
 #else
-#define finite(a) (((a) == 0) || ((a) * 0) != (a))
+#define finite(a) (((a) * 0) != (0))
 #endif
 #endif
 
