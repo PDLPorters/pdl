@@ -5,10 +5,16 @@ use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
-%source = qw(blas blas
+%source = ( qw(blas blas
 	     eigens eigens
 	     simq simq
 	     svd svd
+	     )
+	    ,
+	     'eigen0','ssl/eigen',    
+	     'eigen1','ssl/complex',
+	     'eigen2','ssl/matrix',
+	     'eigen3','ssl/sslib'
 	     );
 
 foreach $func(sort keys %source) {
@@ -19,6 +25,8 @@ foreach $func(sort keys %source) {
 }
 
 $hash{LIBS}->[0] .= " -lm ";
+
+$hash{DIR} = ['ssl'];
 
 WriteMakefile( %hash );
 

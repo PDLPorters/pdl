@@ -450,9 +450,9 @@ EOD
 
 
 ######################################################################
-### eigens
+### eigens_sym
 ###
-pp_def("eigens",
+pp_def("eigens_sym",
        HandleBad => 0,
 	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
 	GenericTypes => ['D'],
@@ -460,23 +460,23 @@ pp_def("eigens",
 		extern void eigens( double *A, double *RR, double *E, int N );
 		register int sn = $SIZE (n);
 		if($SIZE (m) != (sn * (sn + 1))/2) {
-			barf("Wrong sized args for eigens");
+			barf("Wrong sized args for eigens_sym");
 		}
 		eigens($P (a), $P (ev), $P (e), sn);
 ',
       PMCode =>'
-   sub PDL::eigens {
+   sub PDL::eigens_sym {
       my ($a) = @_;
       my (@d) = $a->dims;
-      barf "Need real square matrix for eigens" 
+      barf "Need real square matrix for eigens_sym" 
             if $#d < 1 or $d[0] != $d[1];
       my ($n) = $d[0];
       my ($sym) = 0.5*($a + $a->mv(0,1));
       my ($err) = PDL::max(abs($sym));
-      barf "Need symmetric component non-zero for eigens"
+      barf "Need symmetric component non-zero for eigens_sym"
           if $err == 0;
       $err = PDL::max(abs($a-$sym))/$err;
-      warn "Using symmetrized version of the matrix in eigens"
+      warn "Using symmetrized version of the matrix in eigens_sym"
 	if $err > 1e-5 && $PDL::debug;
 
       ## Get lower diagonal form 
@@ -491,7 +491,7 @@ pp_def("eigens",
       my $ev  = PDL->zeroes($sym->dims);
       my $e   = PDL->zeroes($sym->index(0)->dims);
       
-      &PDL::_eigens_int($lt, $ev, $e);
+      &PDL::_eigens_sym_int($lt, $ev, $e);
 
       return $ev->xchg(0,1), $e
 	if(wantarray);
@@ -516,9 +516,141 @@ makes it slightly easier to access individual eigenvectors, since the
 0th dim of the output PDL runs across the eigenvectors and the 1st dim
 runs across their components.
 
+	($ev,$e) = eigens_sym $a;  # Make eigenvector matrix
+	$vector = $ev->($n);       # Select nth eigenvector as a column-vector
+	$vector = $ev->(($n));     # Select nth eigenvector as a row-vector
+
+=for usage
+
+ ($ev, $e) = eigens_sym($a); # e\'vects & e\'vals
+ $e = eigens_sym($a);        # just eigenvalues
+
+',);
+
+######################################################################
+### eigens
+###
+pp_def("eigens",
+       HandleBad => 0,
+	Pars => '[phys]a(m); [o,phys]ev(l,n,n); [o,phys]e(l,n)',
+	GenericTypes => ['D'],
+	Code => '
+		#include "ssl/complex.h"
+		#include "ssl/eigen.h"
+
+		register int sn = $SIZE (n);
+		void *foo[ $SIZE(n) ];
+		void *bar[ $SIZE(n) ];
+		int i,j;
+
+		if($SIZE (l) != 2) {
+		        barf("eigens internal error...");
+		}
+		if($SIZE (m) != (sn * sn )) {
+			fprintf(stderr,"m=%d, sn=%d\n",$SIZE(m),sn);
+			barf("Wrong sized args for eigens");
+		}
+
+		for(  i=j=0;  i<$SIZE(m);  i += $SIZE(n)  ) {
+			foo[j] = &( ($P(a))[ i ] );
+			bar[j] = &( ($P(ev))[ i+i ] );
+			j++;
+		}
+
+		Eigen( sn, 0, foo, 20*sn, 1e-13, 0, 
+		       (SSL_Complex *)( $P(e) ), bar
+		       );
+
+		/* Check for invalid values: convenience block */
+		{ 
+		  int k;
+		  char ok, flag;
+		  PDL_Double eps = 0;
+
+  		/* First: find maximum eigenvalue */
+		  for(i=0; i< $SIZE(n); i++ ) {
+		     PDL_Double z = fabs (  ($P(e))[i*2]  );
+		     if( z > eps )
+		       eps = z;
+		  }    
+		  eps *= 1e-10;
+
+		/* Next: scan for non-real terms or parallel vectors */
+
+                for( i=0;  i< $SIZE(n);  i++ ) {
+                   ok = ( fabs( ($P(e))[i*2+1] ) < eps );
+                   for(  j=0; ok && j< $SIZE(n);  j++) 
+                      ok |= fabs( ($P(ev))[ 2* (i*$SIZE(n) + j) + 1] ) < eps;
+                   for(  k=0; ok && k < i; k++ ) {
+                     if( finite( ($P(ev))[ 2 * (k*$SIZE(n)) ] ) ) { 
+                       for( flag=1, j=0; ok && j< $SIZE(n); j++) 
+                         flag &= (  fabs(  ($P(ev))[ 2 * (i*$SIZE(n) + j) ] - 
+                                           ($P(ev))[ 2 * (k*$SIZE(n) + j) ] 
+                                      ) * 1e-10 
+                                    < fabs( ($P(ev))[2*(i*$SIZE(n)+j)])
+                                  );
+                       ok |= flag;
+                     }
+                   }
+
+                   /* Set column to NaN if necessary */
+                   if( !ok  ) {
+		     for(j=0; j< $SIZE(n); j++) 
+		       ($P(ev))[2 * (i*$SIZE(n)+j)] = nan("");
+		     ($P(e))[i*2] = nan("");
+                   }
+                }
+	       }
+',
+      PMCode =>'
+   sub PDL::eigens {
+      my ($a) = @_;
+      my (@d) = $a->dims;
+      barf "Need real square matrix for eigens" 
+            if $#d < 1 or $d[0] != $d[1];
+
+      my $ev  = PDL->zeroes(2, $a->dims);
+      my $e   = PDL->zeroes(2, $a->index(0)->dims);
+      
+      &PDL::_eigens_int($a->clump(0,1), $ev, $e);
+
+      return $ev->index(0)->xchg(0,1)->sever, $e->index(0)->sever
+	if(wantarray);
+      $e->index(0)->sever;           #just eigenvalues
+   }
+'
+      , Doc => '
+=for ref
+
+Real eigenvalues and -vectors of a real square matrix.  
+
+(See also L<"eigens_sym"|/eigens_sym>, for eigenvalues and -vectors
+of a real, symmetric, square matrix).
+
+Not all square matrices are diagonalizable.  If you feed in a
+non-diagonalizable matrix, then one or more of the eigenvectors will
+be set to NaN, along with the corresponding eigenvalues.  
+
+C<eigens> is threadable, so you can solve 100 eigenproblems by 
+feeding in a 3x3x100 array. Both $ev and $e get extra dimensions accordingly.
+
+If called in scalar context C<eigens> hands back only the eigenvalues.  This
+is somewhat wasteful, as it calculates the eigenvectors anyway.
+
+The eigenvectors are returned in COLUMNS of the returned PDL (ie the
+the 0 dimension).  That makes it slightly easier to access individual
+eigenvectors, since the 0th dim of the output PDL runs across the
+eigenvectors and the 1st dim runs across their components.
+
 	($ev,$e) = eigens $a;  # Make eigenvector matrix
 	$vector = $ev->($n);   # Select nth eigenvector as a column-vector
 	$vector = $ev->(($n)); # Select nth eigenvector as a row-vector
+
+DEVEL NOTES: 
+
+For now, there is no distinction between a complex eigenvalue and an
+invalid eigenvalue, although the underlying code generates complex
+numbers.  It might be useful to be able to return complex eigenvalues.
 
 =for usage
 

@@ -1,3 +1,8 @@
+CED 07-Jan-2005
+   - Updated PDL version to '2.4.2cvs'
+   - In a fit of insomnia, lifted code for non-symmetric eigenvalue
+      problems from Kenneth Geisshirt.  (http://kenneth.geisshirt.dk).
+      Resolves bug 1098245 and gets a long-standing annoyance off my back.
 DJB 06-Jan-2005
    - Fixed norm() to correctly handle bad values. Added test case to bad.t
      (and changed to use Test::More rather than Test module and
