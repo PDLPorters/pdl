@@ -928,7 +928,7 @@ EOD
 			   /* Check index for each extra dim */
 
 			for(ok=1, ii = $PARENT(ndims); ok && ii < $COMP(nthintact) ; ii++)
-				ok = ( $COMP(start[ii]) == 0 ) && ( $COMP(end[ii]) == 0 );
+				ok = ( $COMP(start[ii]) == 0 ) && ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 );
 
 			if(ok) {
 
