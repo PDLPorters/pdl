@@ -1,3 +1,6 @@
+CS  07-Sep-04
+   - make the reduce function a bit more flexible: reduce over
+     list of dims and allow code references
 CED 19-Aug-04
    - Fixed OpenGL build to work with Mandrake 10 (this will need
      better fixing later, but should work OK with all current distros).
@@ -1139,7 +1142,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldBBŽBBBŽBBBŽsr Olafsson and Vince McIntyre (bug #233484)
+      HalldBBÂŽBBBÂŽBBBÂŽsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments
