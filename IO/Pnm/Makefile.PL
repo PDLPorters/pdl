@@ -15,6 +15,6 @@ $hash{'PM'}->{'Pic.pm'} = '$(INST_LIBDIR)/Pic.pm';
 WriteMakefile(%hash);
 
 # Add genpp rule
-sub MY::postamble { pdlpp_postamble(@::pack); }  
+sub MY::postamble { pdlpp_postamble_int(@::pack); }  
 
 

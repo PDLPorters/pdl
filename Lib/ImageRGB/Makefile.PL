@@ -16,5 +16,5 @@ $hash{'clean'}{FILES} .= ' ppm_quant$(OBJ_EXT)';
 WriteMakefile(%hash);
 
 # Add genpp rule
-sub MY::postamble { pdlpp_postamble(@::pack); }
+sub MY::postamble { pdlpp_postamble_int(@::pack); }
 
