@@ -14,8 +14,8 @@ sub new {
   my $this = $arg->SUPER::new();
 
   # Make sure the Graphics has been initialized
-  $options->{width} = 	800 unless defined $options->{width};
-  $options->{height} = 	800 unless defined $options->{height};
+  $options->{width} = 	300 unless defined $options->{width};
+  $options->{height} = 	300 unless defined $options->{height};
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
 

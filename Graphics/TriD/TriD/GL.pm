@@ -700,15 +700,13 @@ sub twiddle {
 		$gotev=1;
 	 }
 	 if(@e){
-		if($e[0] == &VisibilityNotify) {
+		if($e[0] == &VisibilityNotify or $e[0] == &Expose) {
 		  $hap = 1;
-		}
-		if($e[0] == &ConfigureNotify) {
+		}elsif($e[0] == &ConfigureNotify) {
 		  print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
 		  $this->reshape($e[1],$e[2]);
 		  $hap=1;
-		}
-		if($e[0] == &KeyPress) {
+		}elsif($e[0] == &KeyPress) {
 		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
 		  if((lc $e[1]) eq "q") {
 			 $quit = 1;
