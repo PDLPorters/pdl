@@ -901,19 +901,33 @@ isnull(self)
 	OUTPUT:
 		RETVAL
 
-
-void
-pdl_make_physical(self)
+pdl *
+make_physical(self)
 	pdl *self;
+	CODE:
+		pdl_make_physical(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
-void
-pdl_make_physvaffine(self)
+pdl *
+make_physvaffine(self)
 	pdl *self;
+	CODE:
+		pdl_make_physvaffine(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
 
-void
-pdl_make_physdims(self)
+pdl *
+make_physdims(self)
 	pdl *self;
+	CODE:
+		pdl_make_physdims(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
 void
 pdl_dump(x)

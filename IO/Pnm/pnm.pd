@@ -260,8 +260,7 @@ sub PDL::wpnm {
 	    ($pdl->min < 0);
 
     # check for raw format
-    $israw = 1 if (($pdl->get_datatype == $PDL_B) || (($max =$pdl->max) < 256)
-	|| ($type =~ /PBM/));
+    $israw = 1 if (($pdl->get_datatype == $PDL_B) || ($type =~ /PBM/));
     $israw = 0 if (defined($raw) && !$raw);
 
 
@@ -284,6 +283,7 @@ sub PDL::wpnm {
     rbarf $efile, "Can't open pnm file" unless $succeed;
     binmode PNM;
 
+    $max =$pdl->max;
     print "writing ". ($israw ? "raw" : "ascii") .
       "format with magic $magic\n" if $PDL::debug;
     # write header

@@ -1546,7 +1546,8 @@ sub PDL::convert {
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
   return $pdl if $pdl->get_datatype == $type;
-  my $conv = $pdl->flowconvert($type)->sever;
+  # make_physical-call: temporary stopgap to work around core bug
+  my $conv = $pdl->flowconvert($type)->make_physical->sever;
   return $conv;
 }
 
