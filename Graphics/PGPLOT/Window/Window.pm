@@ -2837,6 +2837,12 @@ sub label_axes {
   # $self->{Options}
   my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
 
+  # Added 25/8/01 JB to check whether label_axes is called before env..
+  # This is not fool-proof though... And it will give a warning if the
+  # user creates her/his env box outside of this package.
+  warn "label_axes called before env - weird results might occur!\n" unless
+    defined($self->{_env_options});
+
   $self->_save_status();
   $self->_standard_options_parser($u_opt);
   $o->{Title}=$title if defined($title);
