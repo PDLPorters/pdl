@@ -51,18 +51,20 @@ main(int argc, char **argv) {
         perldl[i]='\0';
 
   if(argc==2) {
-    if(argv[0][0]=='-' && argv[0][1]=='\0') {
+    if(argv[1][0]!='-') {
       char **argv2 = malloc((argc+2)*sizeof(char *));
       int i;
-      if(argv2) {
-        fprintf(stderr,"pdl executable is wonky -- try perldl instead\n");
-	exit(1);
-      }
+
+      if(!argv2) 
+	goto exit;
+
       for(i=0;i<argc;i++)
 	argv2[i+1]=argv[i];
+
       argv2[1]="-";
       argv2[0]="perldl";
       argv2[argc+1]=0;
+
       execv(perldl,argv2);
       fprintf(stderr,"couldn't execv %s\n",perldl);
       goto exit;
