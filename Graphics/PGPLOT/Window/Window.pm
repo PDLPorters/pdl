@@ -200,8 +200,12 @@ a plotting function. This should not be a problem in most cases.
 
 =item axis
 
-Set the axis value (see L</env>).
-It can either be specified as a number, or by one of the following names:
+Set the axis value (see L</env>).  If you pass in a scalar you set the
+axis for the whole plot.  You can also pass in an array ref for finer
+control of the axes.
+
+If you set the option to a scalar value, you get one of a few standard layouts.
+You can specify them by name or by number:
 
  EMPTY  (-2) draw no box, axes or labels
  BOX    (-1) draw box only
@@ -211,6 +215,53 @@ It can either be specified as a number, or by one of the following names:
  LOGX   (10) draw box and label X-axis logarithmically
  LOGY   (20) draw box and label Y-axis logarithmically
  LOGXY  (30) draw box and label both axes logarithmically
+
+If you set the option to an array ref, then you can specify the
+box/axis options separately for the horizontal (ordinate; X
+coordinate; 0th element) and vertical (abscissa; Y coordinate; 1st element))
+axes.  Each element of the array ref should contain a PGPLOT format string.
+Presence or absence of specific characters flags particular options.  For
+normal numeric labels, the options are:
+
+  A : draw axis for this dimension.
+  B : draw bottom (X) or left (Y) edge of frame.
+  C : draw top (X) or right (Y) edge of frame.
+  G : draw Grid of vertical (X) or horizontal (Y) lines.
+  I : Invert ticks: draw them outside the plot rather than inside.
+  L : Label the axis Logarithmically.
+  P : Extend ("Project") major tick marks outside the box.
+  M : Numeric labels go in the alternate place above (X) or to the
+           right (Y) of the viewport.
+  N : Numeric labels go in the usual location below (X) or to the 
+           left  (Y) of the viewport
+  T : Draw major tick marks at the major coordinate interval.
+  S : Draw minor tick marks (subticks).
+  V : Orient numeric labels Vertically.  Only applicable to Y. 
+           (The default is to write them parallel to the axis.)
+  1 : Force decimal labelling, instead of automatic choice 
+  2 : Force exponential labeling, instead of automatic.
+
+If you don't specify any axis value at all, the default is ['BCNST','BCNST']
+for plots and ['BCINST','BCINST'] for images.  (These list ref elements are
+handed on directly to the low-level PGPLOT routines).
+
+In addition, you can specify that your axis labels should be printed
+as days, hours, minutes, and seconds (ideal for julian dates and delta-t,
+or for angular quantities).  You do that by setting additional character 
+flags on the affected axis:
+
+  X : Use HH MM SS.S time labeling rather than conventional numeric
+      labels.  The ordinate is in secsonds. Hours roll over at 24.
+  Y : Like 'X' but the hour field runs past 24 if necessary.
+  Z : Like 'X' but with a days field too (only shown where nonzero).
+  H : Label the numbers with superscript d, h, m, and s symbols.
+  D : Label the numbers with superscript o, ', and '' symbols.   
+  F : Omit first (lowest/leftmost) label; useful for tight layouts.
+  O : Omit leading zeroes in numbers under 10 (e.g. " 3h 3m 1.2s" 
+      rather than "03h 03m 01.2s").
+
+For example, to plot a numeric quantity versus Julian day of the year
+in a standard boxed plot with tick marks, you can use ["BNCSTZHO","BCNST"].
 
 =item border
 
