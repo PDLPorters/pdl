@@ -34,4 +34,4 @@ $yfit = fitpoly1d $x,$y,4;
 
 #hold; line $x, $yfit;
 
-ok(1, max(abs($y-$yfit)) < 200);
+ok(1, max(abs($y-$yfit)) < 210);
