@@ -78,6 +78,9 @@ my @types = (
 	defaultbadval => 'LONG_MIN', # this is far from optimal
 		                     # but LLONG_MIN/LLONG_MAX are probably
 		                     # nonportable
+	                             # on the other hand 2^63 should be the
+                                     # value of of llong_max which we should be
+                                     # able to compute at runtime ?!
       },
 
 	      {

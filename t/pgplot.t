@@ -47,9 +47,6 @@ if($@) {
 
 $interactive = $ENV{'PDL_INT'};
 
-print STDERR "\nenvironment var PDL_INTERACTIVE not set; skipping interactive tests...\n"
-unless($interactive);	
-
 eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
 t_ok(1,!$@);
 
@@ -90,7 +87,7 @@ EOD
 $_ = <STDIN>;
 t_ok(7, ! m/n/i);
 } else {
-print "ok 7 # Skipped: non-interactive\n";
+print "ok 7 # Skipped: interactive tests since env var PDL_INT not set\n";
 }
 
 ##############################
@@ -126,7 +123,7 @@ EOD
 $_ = <STDIN>;
 t_ok(12,! m/n/i);
 } else {
- print("ok 12 # Skipped (non-interactive)\n");
+ print("ok 12 # Skipped: interactive tests since env var PDL_INT not set\n");
 }
 
 
