@@ -15,7 +15,7 @@ sub approx {
 	return $d < 0.01;
 }
 
-print "1..35\n";
+print "1..36\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -122,7 +122,14 @@ ok(33, approx 2, sqrt($a->inplace));
 # check using scalars and piddles
 $a = log10(110);
 $b = log(110) / log(10);
+print "a: $a  [ref(\$a)='", ref($a),"']\n";
+print "b: $b\n";
 ok(34, abs($a-$b) < 1.0e-5 );
 $a = log10(pdl(110,23));
 $b = log(pdl(110,23)) / log(10);
+print "a: $a\n";
+print "b: $b\n";
 ok(35, approx $a, $b );
+
+# check inplace
+ok(36, approx pdl(110,23)->inplace->log10(), $b );

@@ -295,11 +295,25 @@ ufunc('log','log','the natural logarithm',GenericTypes => [D],
 
 pp_export_nothing(); 
 
-# comment out the pp_export_nothing call if 'sub ::log10' is
-# removed from Core.pm.PL
+# make log10() work on scalars (returning scalars)
+# as well as piddles
 ufunc('log10','log10','the base 10 logarithm', GenericTypes => [D], 
-      Exception => '$a() <= 0'  );
-pp_export_nothing(); 
+      Exception => '$a() <= 0',
+      PMCode => 
+'
+sub PDL::log10 { 
+    my $x = shift; 
+    if ( ! UNIVERSAL::isa($x,"PDL") ) { return log($x) / log(10); }
+    my $y;
+    if ( $x->is_inplace ) { $x->set_inplace(0); $y = $x; }
+    else                  { $y = PDL->nullcreate($x); }
+    &PDL::_log10_int( $x, $y );
+    return $y;
+};
+'
+);
+
+#pp_export_nothing(); 
 
 pp_done();
 

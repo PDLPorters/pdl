@@ -71,13 +71,15 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
    long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice);
+   dummy mslice
+   );
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
     long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
-    diagonal dummy mslice/],
+    diagonal dummy mslice
+    /],
    Internal=>[qw/howbig threadids topdl/]
 );
 
@@ -102,6 +104,8 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
                                # PDLs
 
 ################ Exportable functions of the Core ######################
+
+# log10() is now defined in ops.pd
 
 *howbig       = \&PDL::howbig;	  
 *nelem        = \&PDL::nelem;	  *inplace	= \&PDL::inplace;
@@ -460,15 +464,6 @@ sub topdl {PDL->topdl(@_)}
 }
 
 sub rswap { if($_[2]) { return @_[1,0]; } else { return @_[0,1]; } }
-
-# log10() is defined in ops.pd, so $pdl->log10() will use that.
-# we leave this here so that log10() will work on normal perl variables 
-# (ie return a perl variable rather than a 0D piddle)
-sub ::log10 { 
-    my $x = shift; 
-    return $x->log10() if UNIVERSAL::isa($x,"PDL");
-    return log($x) / log(10); 
-};
 
 ##################### Data type/conversion stuff ########################
 

@@ -2,6 +2,8 @@
 Doug Burke
     - improved support for bad values in r/wfits and r/wndf
     - added setbadtonan() to PDL::Bad.
+!!! - moved log10() entirely over to Basic/Ops/ops.pd (so it's no longer
+      defined in PDL::Core. 
 CS
 	- moved trylink to Dev.pm (L<PDL::Core::Dev>)
 	- modified Graphics/Makefile.PL accordingly
