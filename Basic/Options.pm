@@ -43,7 +43,9 @@ use vars qw/$VERSION %EXPORT_TAGS %DEF_SYNS @ISA/;
 
 require Exporter;
 
-$VERSION = '0.91';
+# difference to 0.91 is that added CENTRE/CENTER as default
+# synonymns (patch by Diab Jerius [ #469110 ])
+$VERSION = '0.92';
 
 @ISA = qw(Exporter);
 
@@ -57,8 +59,10 @@ Exporter::export_tags('Func');
 
 # List of default synonyms
 %DEF_SYNS = (
-	     COLOR => 'COLOUR',
-	     COLOUR => 'COLOR'
+	     COLOR  => 'COLOUR',
+	     COLOUR => 'COLOR',
+	     CENTER => 'CENTRE',
+	     CENTRE => 'CENTER',
 	    );
 
 my $default = {
@@ -87,10 +91,9 @@ These routines are exported into the callers namespace by default.
 =item parse( \%defaults, \%user_options)
 
 This will parse user options by using the defaults.  The following
-settings are used for parsing: The options can be case-insensitive, a
-default synonym table is consulted (currently just contains a synonym
-for COLOUR), minimum-matching is turned on, translation of values is
-not performed.
+settings are used for parsing: The options are case-sensitive, a
+default synonym table is consulted (see L</Default Synonyms>),
+minimum-matching is turned on, and translation of values is not performed.
 
 A hash (not hash reference) containing the processed options is returned.
 
@@ -139,6 +142,15 @@ sub _parse {
 
 
 =back
+
+=head2 Default Synonyms
+
+The following default synonyms are available in the non-OO interface:
+
+  COLOR  => COLOUR
+  COLOUR => COLOR
+  CENTER => CENTRE
+  CENTRE => CENTER
 
 =head1 METHODS
 

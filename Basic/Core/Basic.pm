@@ -25,6 +25,7 @@ package PDL::Basic;
 use PDL::Core '';
 use PDL::Types;
 use PDL::Exporter;
+use PDL::Options;
 
 @ISA=qw/PDL::Exporter/;
 @EXPORT_OK = qw/ rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
@@ -377,6 +378,8 @@ Fills a piddle with radial distance values from some centre.
  Centre => [$x,$y,$z...] # Specify centre
  Center => [$x,$y.$z...] # synonym.
 
+ Squared => 1 # return distance squared (i.e., don't take the square root)
+
 =for example
 
  perldl> print rvals long,7,7,{Centre=>[2,2]}
@@ -414,7 +417,12 @@ sub rvals { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->rvals(@_[1..$#_]) :
 sub PDL::rvals { # Return radial distance from given point and offset
     my $class = shift;
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
+    my %opt = defined $opt ? 
+               iparse( {
+			Squared => 0,
+		       }, $opt ) : ();
     my $r =  scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
+    
     my (@pos) = @{$opt->{'Centre'}} if exists $opt->{'Centre'} ;
     my $offset;
 
@@ -428,7 +436,7 @@ sub PDL::rvals { # Return radial distance from given point and offset
 	 $tmp -= $offset; $tmp *= $tmp;
          $r += $tmp;
     }
-    return $r->inplace->sqrt;
+    return $opt{Squared} ? $r : $r->inplace->sqrt;
 }
 
 =head2 axisvals
