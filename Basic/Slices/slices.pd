@@ -239,7 +239,7 @@ pp_def(
 
 
 # indexND: CED 2-Aug-2002
-pp_add_exported('','indexND indexNDb');
+pp_add_exported('','indexND indexNDb rangeND');
 pp_addpm(<<'EOD');
 
 =head2 indexND
@@ -249,6 +249,8 @@ pp_addpm(<<'EOD');
 Find selected elements in an N-D piddle
 
 =for example
+
+  $out = $source->indexND( $index [, <sever> ] )
 
   $source = 10*xvals(10,10) + yvals(10,10);
   $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
@@ -263,7 +265,14 @@ IndexND collapses C<$index> by lookup into C<$source>.  The
 0th dimension of C<$index> is treated as coordinates in C<$source>, and 
 the return value has the same dimensions as the rest of C<$index>.
 The returned elements are looked up from C<$source>.  Dataflow
-works -- propagated assignment flows back into C<$source>.
+works -- propagated assignment flows back into C<$source>.  
+
+The C<sever> flag is used to speed up operations where you don't need
+flowback: normally, the PDL engine has to keep an enumerated list
+of all the relevant pointers in the output PDL, to maintain flow.
+If you don't need flowback, setting C<sever> to 1 will significantly
+speed up the indexing operation.  The flag is included because the
+speedup happens inside indexND.
 
 You can get out hyperplanes from $source, too, in the same way as with
 ordinary slicing: use a lower-order vector for the index, and the extra 
@@ -297,18 +306,22 @@ appropriate lists of coordinates for indexND.  See also
 L<indexNDb|indexNDb>, which handles boundary conditions gracefully, and
 L<interpND|interpND>, which handles floating-point index piddles.
 
+This routine is written in perl.  It should probably be written in C;
+that would make it run considerably faster.
+
 =cut
 
 sub PDL::indexND {
   my($pdl) = PDL::pdl('PDL',shift);
   my($ipdl)= PDL::pdl('PDL',shift);
+  my($sever) = shift;
+
   $ipdl = $ipdl->dummy(0,1) if($ipdl->getndims < 1);
 
   ##########
   # $idim0 gets the indexing vectors.
   # @idims gets all remaining dimensions
-  my(@idims) = $ipdl->dims;
-  my($idim0) = splice(@idims,0,1);
+  my($idim0,@idims) = $ipdl->dims;
 
   ##########
   # Add dummy dimensions of order 1 to the source PDL until there are 
@@ -339,6 +352,18 @@ sub PDL::indexND {
   # Make the slice, using index (where we can, because it's fast) or 
   # dice (where we have to because there are extra dimensions in the source), 
   # and then reshape it to the desired output dimension.  
+  # Two major cases involve whether the output be severed or no.
+  if($sever) {
+    if(scalar(@extra_dims)==0) {
+      return ($pdl -> flat -> index( ($ipdl * $mult)->sumover->flat )
+	      -> sever -> reshape(@idims)
+	      );
+    }
+    return ($pdl -> clump($idim0) -> dice( ($ipdl * $mult)->sumover->flat )
+	    -> sever -> reshape((@idims,@extra_dims))
+	    );
+  }	
+  
   if(scalar(@extra_dims)==0) {
     return ($pdl -> flat -> index( ($ipdl * $mult)->sumover->flat )
 	      -> reshape(@idims)
@@ -395,6 +420,10 @@ missing values cause an "out of bounds" barf.
 C<indexNDb> is different than C<indexND> only because it includes
 extra overhead for handling boundary values.
 
+This routine is written in perl.  It should probably stay that way
+as the performance hit isn't so bad (though its engine, L<indexND|indexND>,
+probably should be written in C).
+
 =cut
 # indexNDb: CED 7-Aug-2002
 
@@ -446,7 +475,103 @@ sub PDL::indexNDb{
   return $retval;
 }
 
+=head2 rangeND
+
+=for ref
+
+Return selected rectangles from a piddle, indexed by another piddle.
+
+=for example
+
+   $out = $source->rangeND($index, [$size], [$step])
+
+   $source = 10*xvals(10,10) + yvals(10,10);
+   $index = pdl(2,5); $size = pdl(2,3);
+   print $source->rangeND($index,$size);
+
+   [
+    [25 35]
+    [26 36]
+    [27 37]
+   ]
+
+Returns rectangular slices from a piddle, indexed by a vector and size piddle
+
+The C<$index> is a piddle whose 0th dimension contains index coordinates into C<$source>,
+as in L<indexND|indexND>; you may thread over other dimensions.  C<$size> may be a scalar
+or match the 0th dimension of C<$index>; it determines the size of the returned chunk of the
+C<$source> piddle.  If C<$size> is omitted then it defaults to 1, which is equivalent
+to calling L<indexND|indexND>.
+
+rangeND is implemented in perl rather than C, so it probably isnt as fast as it could be.
+For single rectangles, it should be pretty quick, but in the threaded case, it works
+via multiple calls to L<slice|slice> so improvement is very possible!  
+
+Just now rangeND loses dataflow for threaded-index cases.  Hopefully this will be fixed.
+
+rangeND doesn't check boundaries.  One day we'll have rangeNDb (by analogy to 
+L<indexNDb|indexNDb>).
+
+=cut
+
+sub PDL::rangeND {
+  my($source) = shift;
+  my($ipdl) = shift;
+  my($size) = shift;
+  my($step) = shift;
+
+  barf('rangeND requires PDL first and second arguments!\n') unless
+    (UNIVERSAL::isa($source,'PDL') && UNIVERSAL::isa($ipdl,'PDL'));
+
+  $size = PDL::pdl('PDL',defined($size) ? $size : 1) unless UNIVERSAL::isa($size,'PDL');
+  $step = PDL::pdl('PDL',defined($step) ? $step : 1) unless UNIVERSAL::isa($step,'PDL');
+
+  my(@sdim) = $source->dims;
+  my($idim,@thread_dims) = $ipdl->dims;
+
+  barf('rangeND: size and step must be 1-D\n') 
+    if($size->getndims > 1 || $step->getndims > 1);
+  
+  $size = $size->dummy(0,$idim)->flat  if($size->nelem == 1);
+  $step = $step->dummy(0,$idim)->flat  if($step->nelem == 1);
+
+  $size = long($size + 0.5);
+  $step = long($step + 0.5);
+  $ipdl = long($ipdl + 0.5);
+
+  barf('rangeND: size and/or step must match index 0th dimension\n') 
+    if($size->dim(0) != $ipdl->dim(0) || $step->dim(0) != $ipdl->dim(0));
+    
+  
+  if(scalar(@thread_dims)) {
+    # Lamest possible threading -- recurse for all elements.
+    # First make a long list, then cat it, then reshape that.
+    my($i2) = $ipdl->reorder(1..scalar(@thread_dims),0)->clump(scalar(@thread_dims));
+    my(@temp);
+    my($i);
+    for($i=0;$i<$i2->dim(0);$i++) {
+      push(@temp,$source->rangeND($i2->slice("($i)"),$size,$step));
+    }
+    return cat(@temp)->reshape($temp[0]->dims,@thread_dims);
+
+  } else {
+    # No-threading case:  just take the slice and return it.
+    my(@slstr);
+    my($i);
+    for($i=0;$i<$idim;$i++) {
+      $slstr[$i] = $ipdl->at($i) . ':' . ( $size->at($i) + $ipdl->at($i) - 1 ) . 
+	':' . $step->at($i);
+    }
+
+    return $source->slice(join(",",@slstr));
+  }
+}
+			     
+    
+  
+
 EOD
+
 
 pp_def(
 	'rld',
@@ -1009,7 +1134,7 @@ to express a multidimensional diagonal of C<$a>.
 
 Trivial out-of-bounds slicing is allowed: if you slice a source
 dimension that doesn't exist, but only index the 0th element, then
-slice treats the source as if there were a dummy dimension there.
+C<slice> treats the source as if there were a dummy dimension there.
 The following are all equivalent:
 	
 	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
@@ -1131,14 +1256,15 @@ EOD
 			}
 		} while(*s);
 		$SETREVERSIBLE(1); /* XXX Only if incs>0, no dummies */
-		~,
+	~,
 	RedoDims => '
 		int i; int start; int end; int inc;
 		if ($COMP(nthintact) > $PARENT(ndims)) {
+
 	/* Slice has more dims than parent.  Check that the extra dims are 		
          * all zero, and if they are then give back What You Probably Wanted,
 	 * which is a slice with dummy dimensions of order 1 in place of each excessive 
-	 * dimension.  (Note that there are two ways to indicate a zero dimension: "0" and "-<w>",
+	 * dimension.  (Note that there are two ways to indicate a zero index: "0" and "-<w>",
 	 * where <w> happens to be the order of that dimension in the original
 	 * piddle.  The latter case still causes an error.  That is a feature.)
 	 *    --CED 15-March-2002

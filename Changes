@@ -1,3 +1,5 @@
+CED (20-Aug-02)
+    - slices.pd: added rangeND (first-cut implementation)
 CED (19-Aug-02)
     - Window.pm spinlock includes special release_and_barf to unlock signals.
 	(the Right Answer is to fix barf() to throw a __DIE__ signal;
