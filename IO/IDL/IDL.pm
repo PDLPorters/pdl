@@ -6,11 +6,11 @@ PDL::IO::IDL -- I/O of IDL Save Files
 
 PDL::IO::IDL allows you to read and write IDL(tm) data files.
 
-Currently, only reading is supported, and even that is to be 
-considered EXPERIMENTAL.  Currently, scalars, arrays, and structures
-are supported.  Heap pointers, compiled code, and objects are not 
-supported.  Of those three, only heap pointers are likely to be
-supported in the near future.
+Currently, only reading is implemented.  Scalars, arrays,
+and structures are all supported.  Heap pointers, compiled code, and
+objects are not supported.  Of those three, only heap pointers are
+likely to be supported in the future, due to draconian licensing terms
+from RSI.
 
 =head1 NOTES
 
@@ -51,7 +51,7 @@ These things are known to be not working and will probably never be fixed
     @EXPORT = @EXPORT_OK;
     @EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 
-    $VERSION = 0.3;
+    $VERSION = 0.5;
     
     use PDL;
     use PDL::Exporter;
@@ -74,11 +74,19 @@ Upon successful completion, $a is a hash ref containing all of the
 variables that are present in the save file, indexed by original
 variable name.  
 
-Numeric arrays are stored as PDLs, structures are stored as hashes,
-and string and structure arrays are stored as perl lists.
+IDL identifiers are case insensitive; they're all converted to
+upper-case in the hash that gets returned.  This may be adjustable at
+a future date.  Furthermore, Because IDL identifiers can't contain
+special characters, some fields that start with '+' are used to store
+metadata about the file itself.
 
-Because IDL identifiers can't contain special characters, some fields that
-start with '+' are used to store metadata about the file itself.
+Numeric arrays are stored as PDLs, structures are stored as hashes,
+and string and structure arrays are stored as perl lists.  Named
+structure types don't exist in perl in the same way that they do in
+IDL, so named structures are described in the 'structs' field of the
+global metadata.  Anonymous structures are treated as simple hashes.
+Named structures are also simple hashes, but they also contain a field
+'+name' that refers to the name of the structure type.  
 
 =cut
 
@@ -93,6 +101,17 @@ sub ridl {
   my $hash = read_preamble();
 
   read_records($hash);
+
+  my @snames = sort keys %{$PDL::IO::IDL::struct_table};
+  @snames = grep(!m/^\+/,@snames);
+  if(@snames) {
+    $hash->{'+structs'}={};
+    local $_;
+    for(@snames) {
+      $hash->{'+structs'}->{$_} = 
+	$PDL::IO::IDL::struct_table->{$_}->{'names'};
+    }
+  }
 
   return $hash;
 }
@@ -137,7 +156,7 @@ our $types = [ ['START_MARKER',undef]     # 0      (start of SAVE file)
 
 our $vtypes = [
 	   undef                                       #  0 
-	  ,["Byte",      \&r_n_pdl,    [byte]        ] #  1 
+	  ,["Byte",      \&r_byte_pdl, []            ] #  1 
 	  ,["Short",     \&r_n_cast,   [long,short]  ] #  2 
 	  ,["Long",      \&r_n_pdl,    [long]        ] #  3
 	  ,["Float",     \&r_n_pdl,    [float]       ] #  4
@@ -162,6 +181,8 @@ our $quad_ok = eval { my @a = unpack "q","00000001"; $a[0]; };
 ### Initialized in read_preamble.
 our $little_endian;
 our $swab;
+our $p64;
+
 
 ##############################
 #
@@ -188,6 +209,8 @@ sub read_preamble {
   }
 
   $swab = $little_endian;
+
+  $p64 = 0;
 
   $PDL::IO::IDL::struct_table = {};
 
@@ -218,36 +241,33 @@ sub read_records {
     sysread(IDLSAV, $tbuf, 4) || barf("PDL::IO::IDL: unexpected EOF\n");
     my $type = unpack "N",$tbuf;
     
-    ### Hack to set 64-bit file offsets BEFORE recording the next seek entry
-    
-    if($type==17) {
-      r_p64($hash);
-    }
-    
     ### Record the next seek location
     ### (and discard 8 more bytes)
-    ###
-    ### (Fix this with a 64-bit PDL snarf like in r_n_pdl, below)
-    
+      
     my $next;
-    if($hash->{'+64'}) {
+    if($p64) {
+      print "Reading 64-bit location..."  if($PDL::debug);
       sysread(IDLSAV,$buf,8 + 8);
       my @next = unpack "NN",$buf;
-      $next = ($little_endian) ? 
-	($next[0] + 2**32 * $next[1]) : 
-	($next[1] + 2**32 * $next[0]);
-    } else {
+      $next = $next[1] + 2**32 * $next[0];
+    } else {      
+      print "Reading 32-bit location..." if($PDL::debug);
       sysread(IDLSAV,$buf,4 + 8);
       $next = unpack "N",$buf;
     }
+    print "$next\n" if($PDL::debug);
     
+    ###
     ### Infinite-loop detector
+    ###
 
-    barf("Repeat index finder was activated!\n")
+    barf("Repeat index finder was activated! This is a bug.\n")
       if($nexts{$next}) ;
     $nexts{$next} = 1;
-    
-    ### Jump into the appropriate handling routine
+
+    ###
+    ### Call the appropriate handling routine
+    ###
 
     $retval = 1;
 
@@ -261,12 +281,12 @@ sub read_records {
       }
     } else {
       print STDERR "\nIgnoring record of unknown type $type - not implemented.\n";
-      print STDERR "\t(chars were ",join(",",unpack "cccc",$tbuf),")\n";
     }
     
     sysseek(IDLSAV, $next, 0);
-    
+  $FOO::hash = $hash;    
   } while($retval);
+
 }
 
 
@@ -307,22 +327,6 @@ sub r_com {
 sub r_end { 0; }
 
 
-
-##############################
-# r_64
-#
-# Jumptable entry for the PROMOTE64 keyword -- just check 
-# that 64-bit numbers are OK, and set the flag if they are.
-sub r_64 {
-  my $out = shift;
-  barf "File requires 64-bit handling (not compiled into your perl)\n"
-    unless($quad_ok);
-
-  $out->{'+64'} = 1;
-}
-
-
-  
 ##############################
 # r_ts
 #
@@ -366,7 +370,12 @@ sub r_v {
   return 1;
 }
 
-
+##############################
+# r_p64
+sub r_p64 {
+  my $hash = shift;
+  $p64 = 1;
+}
 
 ##############################
 # r_var
@@ -397,8 +406,17 @@ sub r_var {
   }
 
   print "Variable $name found (flags is $flags)...\n" if($PDL::debug);
+  
   if((($flags & 4) == 0)  and  (($flags & 32) == 0)) {
       print "it's a scalar\n" if($PDL::debug);
+
+
+      sysread(IDLSAV,$buf,4);
+      my($seven) = unpack "N",$buf;
+      if($seven != 7) {
+	print STDERR "Warning: expected data-start key (7) but got $seven, for variable $name\n";
+      }
+      
       ## Scalar case
       $hash->{$name} = 
 	  &{$vtypes->[$type]->[1]}
@@ -409,14 +427,23 @@ sub r_var {
       my($arrdesc) = r_arraydesc();
 
       if(($flags & 32) == 0) {
+	
 	  ## Simple array case
-	  print "simple array...type=$type\n" if($PDL::debug);
-	  my @args= ($flags,[ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]], 
-		     @{$vtypes->[$type]->[2]});
-	  my $pdl =  &{$vtypes->[$type]->[1]}(@args);
-	  $hash->{$name} = $pdl; 
+	sysread(IDLSAV,$buf,4);
+	my($indicator) = unpack "N",$buf;
 
+	print STDERR "Warning: Reading data from an array but got code $indicator (expected 7)\n"
+	  if($indicator != 7);
+	  
+	  print "simple array...type=$type\n" if($PDL::debug);
+
+	my @args= ($flags,[ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]], 
+		   @{$vtypes->[$type]->[2]});
+	my $pdl =  &{$vtypes->[$type]->[1]}(@args);
+	$hash->{$name} = $pdl; 
+	
       } else {
+
 	  ## Structure case
 	  print "structure...\n" if($PDL::debug);
 	  my($sname) = r_structdesc();
@@ -599,6 +626,8 @@ sub r_struct {
 
     # Initialize the structure itself and the array and structure indices.
     my($struct) = {};
+    $struct->{'+name'} = $sname unless($sname =~ m/^\+/);
+
     my($array_no, $struct_no);
 
     # Loop over tags and snarf each one 
@@ -608,6 +637,8 @@ sub r_struct {
 	
 	my($type) = $sd->{descrip}->[$i*3+1];
 	my($flags) = $sd->{descrip}->[$i*3+2];
+
+	print "reading tag #$i ($sd->{names}->[$i])\n" if($PDL::debug);
 
 	barf("PDL::IO::IDL: Unknown variable type $type in structure")
 	    unless defined($vtypes->[$type]);
@@ -628,6 +659,7 @@ sub r_struct {
 		### Array and/or structure case ###
 
 		my($arrdesc) = $sd->{arrays}->[$array_no++];
+#		sysread(IDLSAV,my $buf,4); # skip indicator
 		
 		if(($flags & 32) == 0) {
 
@@ -636,7 +668,7 @@ sub r_struct {
 		    my @args = ($flags,[ @{$arrdesc->{dims}}[0..$arrdesc->{ndims}-1]],
 				@{$vtypes->[$type]->[2]});
 		    my $pdl = &{$vtypes->[$type]->[1]}(@args);
-
+		    print "  pdl is $pdl\n" if($PDL::debug);
 		    $struct->{$name} = $pdl;
 
 		} else {
@@ -698,6 +730,28 @@ sub r_strvar {
     return r_string();
 }
 
+##############################
+#
+# r_byte_pdl
+#
+# Reads a byte PDL (stored as a strvar)
+#
+sub r_byte_pdl {
+  my($flags,$dims) = @_;
+
+  sysread(IDLSAV,my $buf,4)
+    if($#$dims > 1);
+
+  $a = r_string();
+
+  my $pdl = new PDL;
+  $pdl->set_datatype(byte->enum);
+  $pdl->setdims($dims);
+  ${ $pdl->get_dataref() } = $a;
+  $pdl->upd_data;
+
+  $pdl;
+}
 
 ##############################
 #
@@ -710,19 +764,20 @@ sub r_strvar {
 
 sub r_n_pdl {
     my($flags,$dims,$type) = @_;
-
-    my $pdl = new PDL;
-
-    $pdl->set_datatype($type->enum);
-    $pdl->setdims($dims);
-
-    my $dref = $pdl->get_dataref();
+    
+    my $nelem = pdl($dims)->prod;
     my $dsize = PDL::Core::howbig($type);
-    my $hunksize = $dsize * (pdl($dims)->prod);
+    my $hunksize = $dsize * $nelem;
 
-    sysread(IDLSAV, $$dref, $hunksize - ($hunksize % -4) );
-
-    print "SWAB=$swab, dsize=$dsize\n" if($PDL::debug);
+    my $pdl = PDL->new_from_specification($type,@$dims);
+    my $dref = $pdl->get_dataref();
+    
+    my $len = sysread(IDLSAV, $$dref, $hunksize - ($hunksize % -4) );
+    $pdl->upd_data;
+    
+    print "bytes were ",join(",",unpack "C"x($hunksize-($hunksize%-4)),$$dref),"\n" if($PDL::debug);
+    
+    
     if($swab) {
 	bswap2($pdl) if($dsize==2);
 	bswap4($pdl) if($dsize==4);
@@ -734,7 +789,7 @@ sub r_n_pdl {
 
 sub r_n_cast {
     my($flags,$dims,$type1,$type2) = @_;
-    
+
     (r_n_pdl($flags,$dims,$type1))->convert($type2);
 }
 
