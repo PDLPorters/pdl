@@ -173,7 +173,7 @@ BEGIN {
 
 =head1 FUNCTIONS
 
-=head2 init
+=head2 PDL::Func::init
 
 =for usage
 
@@ -466,7 +466,7 @@ sub _get_value {
 
 ####################################################################
 
-=head2 set
+=head2 PDL::Func::set
 
 =for usage
 
@@ -517,7 +517,7 @@ sub set {
 
 ####################################################################
 
-=head2 get
+=head2 PDL::Func::get
 
 =for usage
 
@@ -556,7 +556,7 @@ sub get {
 #
 # access to flags - have individual methods for these
 
-=head2 scheme
+=head2 PDL::Func::scheme
 
 =for usage
 
@@ -572,7 +572,7 @@ Returns either C<Linear> or C<Hermite>.
 
 sub scheme { return $_[0]->{flags}{scheme}; }
 
-=head2 status
+=head2 PDL::Func::status
 
 =for usage
 
@@ -597,7 +597,7 @@ particular scheme in use.
 
 sub status { return $_[0]->{flags}{status}; }
 
-=head2 routine
+=head2 PDL::Func::routine
 
 =for usage
 
@@ -614,7 +614,7 @@ C<err> attribute.
 
 sub routine { return $_[0]->{flags}{routine}; }
 
-=head2 attributes
+=head2 PDL::Func::attributes
 
 =for usage
 
@@ -668,7 +668,7 @@ sub attributes {
 
 ####################################################################
 
-=head2 interpolate
+=head2 PDL::Func::interpolate
 
 =for usage
 
@@ -746,7 +746,7 @@ sub _interp_hermite {
     return $yi;
 } # sub: _interp_linear()
 
-=head2 gradient
+=head2 PDL::Func::gradient
 
 =for usage
 
@@ -793,11 +793,11 @@ sub gradient {
     }
 	
     # note order of values
-    return wantarray ? ( $gi, $yi ) : $gi;
+    return wantarray ? ( $yi, $gi ) : $gi;
 
 } # sub: gradient
 
-=head2 integrate
+=head2 PDL::Func::integrate
 
 =for usage
 
@@ -911,10 +911,14 @@ interpolation routines, such as those provided by the
 Gnu Scientific Library (GSL), or the B-spline routines
 in the SLATEC library.
 
+In the documentation, the methods are preceeded by C<PDL::Func::>
+to avoid clashes with functions such as C<set> when using
+the C<help> or C<apropos> commands within I<perldl>.
+
 =head1 HISTORY
 
-Amalgamated PDL::Interpolate and PDL::Interpolate::Slatec
-to form PDL::Func. Comments greatly appreciated on the
+Amalgamated C<PDL::Interpolate> and C<PDL::Interpolate::Slatec>
+to form C<PDL::Func>. Comments greatly appreciated on the
 current implementation, as it is not too sensible.
 
 =head1 AUTHOR
