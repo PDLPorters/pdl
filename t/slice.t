@@ -23,7 +23,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..58\n";
+print "1..54\n";
 
 if(1) {
 
@@ -307,17 +307,3 @@ $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval '$a = $source->indexND($index)';
 ok(53,!$@);
 ok(54,eval 'sum($a != pdl([[230,450],[670,890]],[[231,451],[671,891]]))==0');
-
-# Permissive indexND operation
-$source = xvals(10);
-$index = pdl([3,0,0,0],[4,0,0,0]);
-eval '$a = $source->indexND( $index )';
-ok(55,!$@);
-ok(56,eval 'sum($a != pdl(3,4))==0');
-
-# A trivial case
-$source = pdl(5);
-$index = 0;
-eval '$a = $source->indexND( $index )';
-ok(57,!$@);
-ok(58,eval '$a == 5');

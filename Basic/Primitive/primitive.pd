@@ -1748,7 +1748,7 @@ sub PDL::interpND {
     return $out;
 
   }  else {
-    barf("interp_nd: unknown method '\$method'; valid ones are 'linear' and 'sample'.\n");
+    barf("interp_nd: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
   }
 }
 

@@ -2198,7 +2198,22 @@ sub InplaceCode {
 # values from one to the other - we have to check for the presence
 # of bad values, hence the expansion for the $bad code
 #
+# Some operators (notably range) also have an out-of-range flag; they use
+# the macro EQUIVCPTRUNC instead of EQUIVCPOFFS. 
+# $EQUIVCPTRUNC does the same as EQUIVCPOFFS but accepts a child-out-of-bounds
+# flag.  If the out-of-bounds flag is set, the forward code puts BAD/0 into 
+# the child, and reverse code refrains from copying. 
+#                    --CED 27-Jan-2003
+#
 # sent [EquivCPOffsCode,BadFlag]
+
+#
+# NOTE: EQUIVCPOFFS and EQUIVCPTRUNC both suffer from the macro-block
+# wart of C preprocessing.  They look like statements but sometimes 
+# process into blocks, so if/then/else constructs can get broken.
+# Either (1) use blocks for if/then/else, or (2) get excited and 
+# use the "do {BLOCK} while(0)" block-to-statement conversion construct 
+# in the substitution.  I'm too Lazy. --CED 27-Jan-2003
 #
 sub CodefromEquivCPOffsCode {
     my $good  = shift;
@@ -2208,12 +2223,14 @@ sub CodefromEquivCPOffsCode {
 
     # parse 'good' code
     $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
+    $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
 
     my $str = $good;
 
     if ( defined $bflag and $bflag ) {
 	# parse 'bad' code
 	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+	$bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
 
 	$str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
     }
@@ -2233,12 +2250,14 @@ sub BackCodefromEquivCPOffsCode {
 
     # parse 'good' code
     $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
+    $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1] /g;
 
     my $str = $good;
 
     if ( defined $bflag and $bflag ) {
 	# parse 'bad' code
 	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
+	$bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
 
 	$str = 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
     }

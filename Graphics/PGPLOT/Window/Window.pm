@@ -3755,7 +3755,7 @@ sub _FITS_tr {
       push(@dims,$hdr->{"NAXIS$i"});
     }
   }
-    
+
   transform($pane,
 	    {ImageDimensions=>[@dims],
 	     Angle=>($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180,
@@ -5257,7 +5257,9 @@ sub _fits_foo {
   my($cmd) = shift;
   my($pdl) = shift;
   my($opt_in) = shift;
+
   $opt_in = {} unless defined($opt_in);
+
   if (!defined($f_im_options)) {
     $f_im_options = $pane->{PlotOptions}->extend({
                                                   Contours=>undef,
@@ -5276,8 +5278,8 @@ sub _fits_foo {
 						  Title  => undef
 						 });
   }
-  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
 
+  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
   my($hdr) = $pdl->gethdr();
 
   %opt2 = %{$u_opt}; # copy options

@@ -2,8 +2,9 @@ use ExtUtils::MakeMaker;
 
 # "Globe/Globe.pm" puts Globe.pm in the correct subdir!
 WriteMakefile(
-        'NAME' => 'PDL::Transform',
+        'NAME' => 'PDL::Transform::Cartography',
         VERSION_FROM => '../../../Basic/Core/Version.pm',
-	      PM => { map {($_ => '$(INST_LIBDIR)/Transform/Cartography/'.$_)} <*.fits *.jpg> }
+	      PM => { (map {($_ => '$(INST_LIBDIR)/'.$_)}  <*.pm>), 
+		      (map {($_ => '$(INST_LIBDIR)/Cartography/'.$_)} <*.fits *.jpg>)}
 );
 

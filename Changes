@@ -1,3 +1,10 @@
+CED (27-Jan-2003)
+    - Rearranged Lib/Transform to be more like the rest of the source tree.
+    - Several bug fixes in Transform code
+    - Improvements to ->map() method
+    - Added truncation to ->range operator
+    - Added EQUIVCPTRUNC macro to PP, for permissive slicing operators 
+	(like ->range) that can extend out-of-bounds.
 CED (20-Jan-2003)
     - Added rgbi to Window.pm (requires newer pgplot & PGPLOT).
     - Added earth_image() to PDL::Transform::Cartography::Earth

@@ -543,13 +543,13 @@ Lib/Slatec/slatec/xermsg.f
 Lib/Slatec/slatec/xerprn.f
 Lib/Slatec/slatec/xersve.f
 Lib/Slatec/slatec/xgetua.f
+Lib/Transform/Cartography/Cartography.pm
 Lib/Transform/Cartography/earth_day.jpg
 Lib/Transform/Cartography/earth_night.jpg
 Lib/Transform/Cartography/earth_coast.vec.fits
 Lib/Transform/Cartography/Makefile.PL
-Lib/Transform/Cartography.pm
 Lib/Transform/Makefile.PL
-Lib/Transform.pm
+Lib/Transform/Transform.pm
 MANIFEST
 MANIFEST.SKIP
 Makefile.PL

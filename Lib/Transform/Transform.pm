@@ -358,7 +358,11 @@ Resample an image or N-D dataset using a coordinate transform.
 The dataset is resampled so that the new pixel indices are the 
 ordinate and abscissa of the transformed coordinates rather than
 the original ones.  For convenience, this is both a PDL method and a
-PDL::Transform method.
+PDL::Transform method.  If there is a FITS header in the input data, 
+the initial coordinates are taken to be FITS scientific coordinates.
+Likewise, output coordinates are interpreted through the template
+FITS header.  You can prevent FITS interpretation by passing
+in the "nofits" option.
 
 The operation uses the inverse transform: each output pixel location
 is inverse-transformed back to a location in the original dataset, and
@@ -383,20 +387,24 @@ applied so that $t applies to the output scientific coordinates and
 not to the output pixel coordinates.  In this case the NAXIS fields of
 the FITS header are ignored.
 
-=item * a list ref
-
-This is a list of dimensions for the output array.  
-
 =item * a FITS header hash ref
 
 The FITS NAXIS fields are used to define the output array, and the
 FITS transformation is applied to the coordinates so that $t applies to the
 output scientific coordinates.
 
+
+=item * a list ref
+
+This is a list of dimensions for the output array.  The code estimates
+appropriate pixel scaling factors to fill the available space.  The
+scaling factors are placed in the output FITS header.
+
 =item * nothing
 
-In this case, $input (including any FITS header) is used as a template,
-so the output image matches the input image in size and sci-to-pixel mapping.
+In this case, the input image size is used as a template, and scaling
+is done as with the list ref case (above).
+
 
 =back
 
@@ -405,6 +413,12 @@ OPTIONS:
 The following options are interpreted:
 
 =over 3
+
+=item nf, nofits, NoFITS (default = 0)
+
+If you set this to a true value, then FITS headers and interpretation
+are ignored; the transformation is treated as being in raw pixel coordinates.
+
 
 =item m, method, Method
 
@@ -527,8 +541,6 @@ sub map {
   my($tmp) = shift;
   my($opt) = shift;
      
-  print "map..." if($PDL::debug);
-
   # Check for options-but-no-template case
   if(ref $tmp eq 'HASH' && !(defined $opt)) {
     if(!defined($tmp->{NAXIS})) {  # FITS headers all have NAXIS.
@@ -537,47 +549,95 @@ sub map {
     }
   }
 
-  $tmp = $in unless(defined($tmp));
+  $tmp = [$in->dims]  unless(defined($tmp));
 
 
-  print "making output..." if($PDL::debug);
-
+  
+  # Generate an appropriate output piddle for values to go in
   my($out);
+  my(@odims);
+  my($ohdr);
   if(UNIVERSAL::isa($tmp,'PDL')) {
-    $out = $tmp->copy;
+    @odims = $tmp->dims;
     
     my($a);
     if(defined ($a = $tmp->gethdr)) {
       my(%b) = %{$a};
-      $out->sethdr(\%b);
+      $ohdr = \%b;
     }
   } elsif(ref $tmp eq 'HASH') {
     if($tmp->{NAXIS}) {
-      my(@axes);
       for my $i(1..$tmp->{NAXIS}){
-	push(@axes,$tmp->{NAXIS$i});
+	push(@odims,$tmp->{NAXIS$i});
       }
-      $out = zeroes(@axes);
 
       my(%b) = %{$tmp};
-      $out->sethdr(\%b);
+      $ohdr = \%b;
     }
   } elsif(ref $tmp eq 'ARRAY') {
-    $out = zeroes(float,@$tmp);
+    @odims = @$tmp;
   } else {
-    $out = zeroes(float,$tmp);
+    barf("map: confused about dimensions of the output array...\n");
   }
 
-  print "checking integrate..." if($PDL::debug);
+  if(scalar(@odims) < scalar($in->dims)) {
+    my @idims = $in->dims;
+    push(@odims, splice(@idims,scalar(@odims)));
+  }
+
+  $out = zeroes(@odims);
+
+  $out->sethdr($ohdr) if defined($ohdr);
+
+
+  # If necessary, generate an appropriate FITS header for the output.
+  my $nofits = _opt($opt, ['nf','nofits','NoFITS']);
+
+  $me = $me x t_fits($in,{ignore_rgb=>1}) 
+    unless($nofits || !defined($in->hdr->{NAXIS}));
+  
+  unless(defined $out->gethdr || $nofits) {
+      # Transform a subset of input points to get the output range...
+      print "guessing output FITS header..." if($PDL::debug);
+      my $samp_ratio = 10;
+
+      my $ndims = $in->ndims;
+      my $coords = ndcoords(($samp_ratio + 1) x $ndims);
+      $coords *= pdl($in->dims) / $samp_ratio;
+      my $ocoords = $me->apply($coords)->mv(0,-1)->clump($ndims);
+      my ($omin) = $ocoords->minimum;
+      my ($omax) = $ocoords->maximum;
+      my ($orange) = $omax - $omin;
+      $orange->where($orange == 0) .= 1.0;
+      
+      my ($scale) = $orange / pdl($out->dims);
+      
+      my $d;
+      for $d(1..$ndims) {
+	  $out->hdr->{"CRPIX$d"} = 1;
+	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
+	  $out->hdr->{"CRVAL$d"} = $omin->at($d-1);
+	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
+      }
+      $out->hdr->{"NAXIS"} = $ndims;
+      $out->hdr->{"SIMPLE"} = 'T';
+  }
+  
+  $out->hdrcpy(1);
+
+  $PDL::Transform::hdr = $out->hdr;
+  # If necessary, sandwich the transformation into a pair of FITS
+  # transformations
+  
+  $me = t_compose( !(t_fits($out,{ignore_rgb=>1})) x $me )
+    unless($nofits);
 
   my($integrate) = scalar(_opt($opt,['m','method','Method']) =~ m/[jJ](ac(obian)?)?/);
 
   ##############################
   ## Figure out the dimensionality of the 
   ## transform itself (extra dimensions come along for the ride)
-  print "checking dims..." if($PDL::debug);
-
-  my $nd = $me->{idim} || 2;
+  my $nd = $me->{odim} || $me->{idim} || 2;
   my @sizes = $out->dims;
   my @dd = @sizes;
   splice @dd,$nd; # Cut out dimensions after the end
@@ -586,10 +646,7 @@ sub map {
   ## Non-integration code: 
   ## just transform and interpolate.
   if(!$integrate) {
-      print "inverting...\n" if($PDL::debug);
-      print "dd=@dd\n";
     my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
-      print "idx ok\n" if($PDL::debug);
     $out .= $in->interpND($idx,$opt);
   }
 
@@ -786,7 +843,7 @@ sub map {
       ### Pedal to the metal -- accumulate input values and scale by their
       ### appropriate filter value.
       print "grabbing data..." if($PDL::debug);
-
+      print "(bound=$bound)";
       my($input) = $reduced->range(
 			      $coords_in         #(pix-list,coord,rgn-list)
 			        ->(:,:,(0))        #(pix-list,coord)
@@ -796,7 +853,6 @@ sub map {
 		      mv(0,-1)->                   # (<dims>,pix-list)
 		      clump($nd)                   # (rgn-list,pix-list)
 		      ->sever;
-      print "filt dims = (",join(",",$filt->dims),"); input dims = (",join(",",$input->dims),")\n" if($PDL::debug);
       $filt *= $input;  # (rgn-list, pix-list)
       
       ### Stick the summed, filtered output back into the output array!
@@ -965,6 +1021,10 @@ sub compose {
   my(@clist);
 
   for $f(@funcs) {
+
+    $me->{idim} = $f->{idim} if($f->{idim} > $me->{idim});
+    $me->{odim} = $f->{odim} if($f->{odim} > $me->{odim});
+
     if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
       if($f->{is_inverse}) {
 	for(reverse(@{$f->{params}->{clist}})) {
@@ -993,6 +1053,7 @@ sub compose {
     for my $t ( reverse @{$p->{clist}} ) {
       print "applying $t\n" if($PDL::debug);
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
+      print "... ok.\n" if($PDL::debug);
     }
     $data;
   };
@@ -1002,7 +1063,8 @@ sub compose {
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
       print "inverting $t..." if($PDL::debug);
-      $data = $t->{inv}($ip ? $data->inplace : $data, $t->{params});
+      $data = &{$t->{inv}}($data, $t->{params});
+      print "... ok.\n" if($PDL::debug);
     }
     $data;
   };
@@ -1520,6 +1582,7 @@ sub PDL::Transform::Linear::new {
 
   $me->{func} = sub {
     my($in,$opt) = @_;
+
     my($d) = $opt->{matrix}->dim(0)-1;
 
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
@@ -1535,11 +1598,14 @@ sub PDL::Transform::Linear::new {
   
   $me->{inv} = (defined $me->{params}->{inverse}) ? sub {
     my($in,$opt) = @_;
+
     my($d) = $opt->{inverse}->dim(0)-1;
     barf("Linear transform: transform is $d-D; data only ".($in->dim(0))."\n")
 	if($in->dim(0) < $d);
+
     my($a) = $in->(0:$d)->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
+
     $out->(0:$d) .= $a x $opt->{inverse} - $opt->{pre};
 
     $out;
@@ -1673,7 +1739,7 @@ sub t_rotate    {
 
 =for usage
 
-  $f = t_fits($fits);
+  $f = t_fits($fits,[option]);
 
 =for ref 
 
@@ -1695,11 +1761,21 @@ This transform implements the linear transform part of the WCS FITS
 standard outlined in Greisen & Calabata 2002 (A&A in press; find it at
 "http://arxiv.org/abs/astro-ph/0207407").
 
+As a special case, you can pass in the boolean option "ignore_rgb"
+(default 0), and if you pass in a 3-D FITS header in which the last
+dimension has exactly 3 elements, it will be ignored in the output
+transformation.  That turns out to be handy for handling rgb images.
+
 =cut
 
 sub t_fits {
   my($class) = 'PDL::Transform::Linear';
   my($hdr) = shift;
+  my($opt) = shift;
+
+  if(ref $opt ne 'HASH') {
+    $opt = defined $opt ? {$opt,@_} : {} ;
+  }
 
   $hdr = $hdr->gethdr  
     if(defined $hdr && UNIVERSAL::isa($hdr,'PDL'));
@@ -1708,6 +1784,9 @@ sub t_fits {
     if(!defined $hdr || ref $hdr ne 'HASH' || !defined($hdr->{NAXIS}));
   
   my($n) = $hdr->{NAXIS}; $n = $n->at(0) if(UNIVERSAL::isa($n,'PDL'));
+
+  $n = 2 
+    if($opt->{ignore_rgb} && $n==3 && $hdr->{NAXIS3} == 3);
 
   my($matrix) = PDL->zeroes($hdr->{NAXIS});
   my($pre) = PDL->zeroes($n);
@@ -1769,8 +1848,6 @@ sub t_fits {
     for my $i(1..$n) {
       $cd->(($i-1)) .= $hdr->{"CDELT$i"};
     }
-    print "PDL::Transform::FITS:  CDELT diagonal is $cd\n"
-      if($PDL::debug);
     
     $matrix = $cdm x $cpm
   }
