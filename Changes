@@ -1,3 +1,6 @@
+DJB 12-23-03
+   - fix small bug in PDL::Graphics::PGPLOT::Window::initenv() revealed
+     by perl 5.8.2 and test 11 of t/pgplot.t (Use of uninitialized value...)
 CS  12-19-03
    - small release notes change
    - t/primitive.t: test empty piddle handling
