@@ -721,7 +721,7 @@ sub _rfits_bintable {
         PDL->new_from_specification(
                                     $foo 
                                     , $tmpcol->{rpt}, 
-                                    , $hdr->{NAXIS2}
+                                    , $hdr->{NAXIS2}||1
                                     );
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
     }
@@ -833,11 +833,12 @@ for my $i(1..$hdr->{TFIELDS}) {
     }
     } # end of scaling section.
 
-
-    $tbl->{$tmpcol->{name}} = 
-	  ( $tmpcol->{data}->dim(0) == 1 ) 
+    if($hdr->{NAXIS2} > 0) {
+      $tbl->{$tmpcol->{name}} = 
+	( $tmpcol->{data}->dim(0) == 1 ) 
 	? $tmpcol->{data}->slice("(0)") 
 	: $tmpcol->{data}->xchg(0,1);
+    }
     
   } elsif(defined $post) {
     print STDERR "Postfrobnication bug detected in column $i ("
