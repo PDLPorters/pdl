@@ -118,3 +118,4 @@ so_locations
 ^Basic/Core/Version\.pm
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
+^Graphics/LUT/LUT.pm
