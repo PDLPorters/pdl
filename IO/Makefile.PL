@@ -1,6 +1,16 @@
 
 PDL::Core::Dev->import();
 
+# do we build PDL::IO::Browser ?
+my @dirs = qw( FastRaw Misc FlexRaw Pnm NDF );
+my $build_browser = $PDL_CONFIG{WITH_IO_BROWSER} || 0;
+if ( $build_browser ) {
+    push @dirs, 'Browser';
+    print "\n   Building PDL::IO::Browser. Turn off WITH_IO_BROWSER if this is incorrect.\n\n";
+} else {
+    print "\n   Not building PDL::IO::Browser. Turn on WITH_IO_BROWSER if this is incorrect.\n\n";
+}
+
 use ExtUtils::MakeMaker;
 # # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # # the contents of the Makefile that is written.
@@ -8,16 +18,6 @@ WriteMakefile(
      'NAME'	=> 'PDL',
      'VERSION_FROM' => '../Basic/Core/Version.pm',
      'PM'       => {},
-     'DIR'      => ['FastRaw','Misc','FlexRaw','Pnm','Browser','NDF'],
+     'DIR'      => [ @dirs ],
 );
 
-# For the lazy people
-sub MY::postamble {
-PDL::Core::Dev::postamble().
-q~
-
-test_tjl :
-	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' t/*.t
-
-~
-}

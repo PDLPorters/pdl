@@ -1,3 +1,6 @@
+DJB - added WITH_IO_BROWSER to perldl.conf (default 0) to
+      control whether PDL::IO::Browser is made. Will now compile
+      on MacOS X 10.1.
 CS  - get rid of Perl_die etc dependencies and other barfisms
     - make sure t/inlinepdlpp.t has a full search path to PDL::Core
     - Basic/Pod : podselect only when Pod::Select available
