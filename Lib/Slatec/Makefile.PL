@@ -20,10 +20,10 @@ BEGIN {
       $forcebuild=1;
    }
    
-   if ($^O =~ /win32/i) {
-      $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
-      goto skip unless $forcebuild;
-   }
+#    if ($^O =~ /win32/i) {
+#       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
+#       goto skip unless $forcebuild;
+#    }
 
    if (exists $PDL_CONFIG{F77CONF} && -f $PDL_CONFIG{F77CONF}) {
      print "loading F77 configuration from $PDL_CONFIG{F77CONF}...\n";
@@ -117,8 +117,8 @@ sub MY::postamble {
 	$orig .join "\n",map {
 ("
 
-slatec/$_.o: slatec/$_.f slatec/$_.P
-	$mycompiler -c -o slatec/$_.o $mycflags slatec/$_.f
+slatec/$_\$(OBJ_EXT): slatec/$_.f slatec/$_.P
+	$mycompiler -c -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
 " )} @slatecfiles;
  
 }

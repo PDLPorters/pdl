@@ -114,7 +114,12 @@ several methods, listed below, which provide an easy way to access
 type information:
 
 Additionally, comparison and stringification are overloaded so that
-you can compare and print type objects. For examples check again the
+you can compare and print type objects, e.g.
+
+  $nofloat = 1 if $pdl->type < float;
+  die "must be double" if $type != double;
+
+For further examples check again the
 L<type|PDL::Core/type> method.
 
 =over 4

@@ -4,7 +4,8 @@ use Test;
 use PDL::LiteF;
 
 BEGIN { 
-    if ( require Filter::Simple && require Text::Balanced ) {
+    eval 'require PDL::SFilter';
+    unless ($@) {
 	plan tests => 7;
     } else {
 	plan tests => 1;
@@ -14,7 +15,6 @@ BEGIN {
 } 
 
 $| = 1;
-eval 'require PDL::SFilter';
 sub PDL::SFilter::findslice;
 
 ok (!$@);

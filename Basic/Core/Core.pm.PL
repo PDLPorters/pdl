@@ -1692,8 +1692,14 @@ A convenience function for use with the piddle constructors, e.g.
 =for example
 
  $b = PDL->zeroes($a->type,$a->dims,3);
+ die "must be float" unless $a->type == float;
 
-See the discussion of the C<PDL::Type> object in L<PDL::Types>.
+See also the discussion of the C<PDL::Type> class in L<PDL::Types>.
+Note that the C<PDL::Type> objects have overloaded comparison and
+stringify operators so that you can compare and print types:
+
+ $a = $a->float if $a->type < float;
+ $t = $a->type; print "Type is $t\";
 
 =cut
 

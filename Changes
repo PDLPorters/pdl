@@ -1,3 +1,10 @@
+CS  - Makefile.PL: Filter::Simple, Text::Balanced dependencies
+    - bad.pd: fix for win32
+    - Lib/Slatec/Makefile.PL: win32 fix
+    - t/flexraw.t: remove extraneous 'use ExtUtils::F77'
+    - t/poly.t: win32 needs larger error threshold ?:(
+    - t/sfilter.t: script broke on platforms without prereqs
+    - win32: general update for latest build; add slatec support
 DJB (20/Jun/01)
     - make bad.pd compile with PDL::Type changes and fix minor bug
 CS  - fix rvals bug (annoying one!)

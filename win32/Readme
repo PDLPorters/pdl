@@ -1,9 +1,11 @@
-This is a ppm of PDL-2.1.1 to work with
-activestate builds of perl 5.6.0. 
+This is a ppm of PDL-2.2.1+ (snapshot of 19/06/01) to work with
+activestate builds of perl 5.6. 
 
-Version of PDL: PDL-2.1.1
-built by: Tim Jennes <t.jenness@jach.hawaii.edu>
-final packaging: Christian Soeller <c.soeller@auckland.ac.nz>
+News: This build has slatec support! (compiled using f2c)
+
+Version of PDL: PDL-2.2.1snap061901
+
+built and packaged by: Christian Soeller <c.soeller@auckland.ac.nz>
 
 Installation:
 
@@ -24,8 +26,8 @@ included (see PDL::IO::Pic).
 
 Not yet supported on win32 are:
 
-   Graphics (PGPLOT is in the works; watch this space)
-   Slatec (on the TODO list)
+   Graphics (PGPLOT is separate; see comments at
+             http://pdl.perl.org/download)
    Memory mapped data access
    TriD OpenGL backend (VRML should be ok but requires Win32::DDE)
 

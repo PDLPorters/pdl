@@ -1,7 +1,7 @@
 # PSEUDO Code
 
 # 1
-# make sure 'make doctest' was run
+# make sure 'nmake doctest' was run
 
 # 2
 # move blib/lib/PDL/HtmlDocs/PDL to blib/html/lib/PDL

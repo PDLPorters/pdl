@@ -76,7 +76,12 @@ for(keys %PDL_CONFIG_DIST) {
 
 if ($seen_f77conf) {
   eval 'require File::Spec';
-  last unless ($@ eq ""); # skip if we don't have File::Spec
+  unless ($@ eq "") {
+    print STDERR "can't load File::Spec, skipping f77conf\n";
+    # skip if we don't have File::Spec
+    $seen_f77conf = 0;
+    last;
+  }
   $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
     unless File::Spec->file_name_is_absolute($pdl_f77conf);
   $PDL_CONFIG{F77CONF} = $pdl_f77conf;
@@ -132,8 +137,15 @@ use ExtUtils::MakeMaker;
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"} 
   qw/perldl pdldoc/;
 
+@prereq = (
+	   'File::Spec' => 0.6,
+	   Filter::Simple => 0, # for PDL::SFilter
+	   Text::Balanced => 0, # for PDL::SFilter
+	  );
+push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
+
 WriteMakefile(
-	      'PREREQ_PM' => { 'ExtUtils::F77' => 1.10, 'File::Spec' => 0.6 },
+	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => ['perldl', 'pdldoc'],
@@ -151,6 +163,7 @@ WriteMakefile(
 	      ($] ge '5.005') ? (
 				 'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
 				 'ABSTRACT' => 'Perl Data Language',
+				 'BINARY_LOCATION' => 'PDL.tar.gz',
 				 ) : (),
 
 	      );
