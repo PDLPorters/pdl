@@ -159,6 +159,16 @@ These functions are two-way, i.e. after
 
 the changes in C<$c> will flow back to C<$a>.
 
+C<index> provids simple threading:  multiple-dimensioned arrays are treated
+as collections of 1-D arrays, so that
+
+ $a = xvals(10,10)+10*yvals(10,10);
+ $b = $a->index(3);
+ $c = $a->index(9-xvals(10));
+
+puts a single column from C<$a> into C<$b>, and puts a single element
+from each column of C<$a> into C<$c>.  If you want to extract multiple
+columns from an array in one operation, see L<dice> or L<indexND>.
 
 =cut
 EOD

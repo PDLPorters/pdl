@@ -4,23 +4,21 @@ MatrixOps -- Matrix operations for PDLs
 
 =head1 SYNOPSIS
 
-$lu =  $matrix->lu_decomp;
+$inv = $a->inv
 
-$inv = $matrix->inverse
+$det = $a->det
 
-$det = $matrix->determinant
+($lu,$perm,$par) = $a->lu_decomp
 
 =head1 DESCRIPTION
 
 PDL::MatrixOps contains a bunch of operations for handling matrices --
-LU decomposition, inversion, determinant, etc.  These routines
-generally use the first two dimensions of their arguments for the
-matrix dim, and thread over later dimensions.  Except as noted, the
-matrices are treated as indexed in (column,row) order -- that is to
-say (x,y) coordinates; this is the opposite of mathematical matrix
-convention but makes the matrices appear correctly when printed.  It
-should work OK with L<PDL::Matrix|PDL::Matrix> objects -- which just act
-like normal PDLs.
+LU decomposition, inversion, determinant, etc.  Except as noted, the
+matrices are treated as indexed in the normal (column,row) order --
+that is to say (x,y) coordinates; this agrees with normal PDL indexing
+but is the opposite of mathematical matrix convention.  The matrices
+appear correctly when printed.  It should work OK with
+L<PDL::Matrix|PDL::Matrix> objects -- which just act like normal PDLs.
 
 There's some duplication with PDL::Slatec (TIMTOWTDI), but with the
 benefit that FORTRAN isn't required.
@@ -66,7 +64,7 @@ package PDL::MatrixOps;
 $VERSION = "0.5 (2-Nov-2002)";
 
 @ISA = ('PDL','Exporter');
-@EXPORT_OK = qw( lu_decomp lu_backsub inv det );
+@EXPORT_OK = qw( lu_decomp lu_backsub inv det determinant );
 @EXPORTS =   @EXPORT_OK;
 %EXPORT_TAGS = (Func=>\@EXPORT_OK);
 
@@ -93,9 +91,9 @@ LU decompose a matrix, with row permutation
 
   ($lu, $perm, $parity) = lu_decomp($a);
 
-  $lu = lu_decomp($a, $perm, $parity);       # $perm and $parity are outputs!
+  $lu = lu_decomp($a, $perm, $par);  # $perm and $par are outputs!
 
-  lu_decomp($a->inplace,$perm,$parity);      # Everything in place.
+  lu_decomp($a->inplace,$perm,$par); # Everything in place.
 
 =for description
 
@@ -135,6 +133,8 @@ wouldn't work, because the pivoting technique requires that each layer
 be examined independently.  
 
 =cut
+
+*PDL::lu_decomp = \&lu_decomp;
 
 sub lu_decomp {
   my($in) = shift;
@@ -284,6 +284,8 @@ lu_backsub is ported from Section 2.3 of I<Numerical Recipes>.
 
 
 =cut
+
+*PDL::lu_backsub = \&lu_backsub;
 sub lu_backsub {
   my ($lu, $perm, $b, $par);
   if(@_==3) {
@@ -386,7 +388,7 @@ whether or not the matrix is singular.
 =back
 
 =cut
-
+*PDL::inv = \&inv;
 sub inv {
   my $a = shift;
   my $opt = shift;
@@ -444,7 +446,7 @@ sub inv {
 
 =for ref
 
-Compute the determinant of a square matrix.
+Compute the determinant of a square matrix, using LU decomposition.
 
 You feed in a square matrix, you get back the determinant.  Some options
 exist that allow you to cache the LU decomposition of the matrix 
@@ -464,7 +466,7 @@ the matrix won't be decomposed again.
 =back
 
 =cut
-
+*PDL::det = \&det;
 sub det {
   my($a) = shift;
   my($opt) = shift;
@@ -483,6 +485,69 @@ sub det {
 }
 
 ######################################################################
+
+=head2 determinant
+
+=for sig
+ 
+ Signature: (a(m,m))
+
+=for usage
+
+  $det = determinant($a);
+
+=for ref
+
+Compute the determinant of a square matrix, using recursive-descent.
+
+This is the traditional, robust recursive determinant method taught in
+most linear algebra courses.  It scales like n! (and hence is slow)
+but is potentially more robust than many other methods -- hence it is
+included here.
+
+The LU-decomposition method L<det|det> is faster in isolation for
+matrices larger than about 4x4, and is much faster if you end up
+reusing the LU decomposition of $a.
+
+*PDL::determinant = \&determinant;
+sub determinant {
+  my($a) = shift;
+  my($n);
+  return undef unless(
+		      UNIVERSAL::isa($a,'PDL') &&
+		      $a->getndims == 2 &&
+		      ($n = $a->dim(0)) == $a->dim(1)
+		      );
+  
+  return $a->flat if($n==1);
+  if($n==2) {
+    my($b) = $a->flat;
+    return $b->index(0)*$b->index(3) - $b->index(1)*$b->index(2);
+  }
+  if($n==3) {
+    my($b) = $a->flat;
+    return $b->index(0)*$b->index(4)*$b->index(8) 
+      - $b->index(1)*$b->index(5)*$b->index(6) 
+      + $b->index(2)*$b->index(3)*$b->index(7);
+  }
+  
+  my($i);
+  my($sum);
+  
+  for $i(1..$n-2) {
+    my($el) = $a->slice("(0),($i)");
+    next unless ( my($el) = $a->slice("(0),($i)") ); # sic
+    $sum += $el * (1-2*($i%2)) * 
+      _determinant($a->slice("1:-1,0:".($i-1))->append($a->slice("1:-1,".($i+1).":-1")));
+  }
+  $sum += $a->slice("(0),(0)") * _determinant($a->slice("1:-1,1:-1"));
+  $sum -= $a->slice("(0),(-1)") * _determinant($a->slice("1:-1,0:-2")) * (1 - 2*($n%2));
+  
+  return $sum;
+}
+
+
+
 
 =head1 AUTHOR
 

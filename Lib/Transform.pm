@@ -127,6 +127,24 @@ e.g., the compose() method.
 Hash ref containing relevant parameters or anything else the func needs to 
 work right.
 
+=item is_inverse
+
+Bit indicating whether the transform has been inverted.  That's useful
+for some stringifications (see the PDL::Transform::Linear
+stringifier), and may be useful for other things.
+
+=item jacobian
+
+Ref to a method that returns the jacobian matrix of the transformation --
+this is the partial derivative of each output coordinate with respect to 
+each input coordinate.
+
+=item inv_jacobian
+
+Ref to a method that returns the inverse jacobian matrix of the 
+transformation -- this is the partial derivative of each input 
+coordinate with respect to each output coordinate.
+
 =back
 
 Transforms should be inplace-aware where possible, to prevent excessive
@@ -155,22 +173,34 @@ rather than matrix-multiply-and-add operations.
 
 Nonlinear transformations are coming soon.
 
-A Jacobian tracking mechanism is needed for greater accuracy when 
-subsampling the original image.
+=head2 HISTORY
+
+=over 3
+
+=item * 0.5 - initial upload to CVS
+
+=item * 0.6 - Converted to use PDL::MatrixOps instead of PDL::Slatec
+
+=back
+
 
 =head1 METHODS
 
 =cut
 
+use PDL::MatrixOps;
 
 package PDL::Transform;
 use overload '""' => \&_strval;
 
 
-$VERSION = "0.5 (30-Oct-2002 initial CVS upload)";
+$VERSION = "0.6";
 
 use strict;
 use Carp;
+use PDL;
+use PDL::MatrixOps;
+
 eval { use PDL::Slatec };
 
 #### little helper kludge parses a list of synonyms
@@ -213,7 +243,7 @@ sub stringify {
 
 ######################################################################
 
-=head2 PDL::Transform::apply
+=head2 apply
 
 =for sig
 
@@ -247,11 +277,7 @@ sub apply {
 
 ######################################################################
 
-=head2 PDL::Transform::invert
-
-=for sig
-
- Signature: (PDL::Transform a)
+=head2 invert
 
 =for usage
 
@@ -275,11 +301,7 @@ sub invert {
 
 ######################################################################
 
-=head2 PDL::Transform::inverse
-
-=for sig
-
-  Signature: (PDL::Transform a) 
+=head2 inverse
 
 =for usage 
 
@@ -318,6 +340,8 @@ sub inverse {
 
   $out->{name} = "(inverse ".$me->{name}.")";
 
+  $out->{is_inverse} = !($out->{is_inverse});
+
   bless $out,(ref $me);
   return $out;
 }
@@ -325,11 +349,7 @@ sub inverse {
   
 ######################################################################
 
-=head2 PDL::Transform::compose
-
-=for sig
-
- Signature: (PDL::Transform f; PDL::Transform g)
+=head2 compose
 
 =for usage
 
@@ -383,7 +403,38 @@ sub compose {
 
 ######################################################################
 
-=head2 PDL::Transform::map
+=head2 wrap
+
+=for usage
+
+  $g1fg = $f->wrap($g);
+
+=for ref
+
+Shift a transform into a different space by 'wrapping' it with a second.
+
+This is just a convenience function for two L<compose|compose> calls.
+It's useful to make a single transformation happen in some other space.
+For example, to shift the origin of rotation, do this:
+
+  $im = rfits('m51.fits');
+  $tf = new PDL::Transform::FITS($im);
+  $tr = new PDL::Transform::Linear({rot=>30});
+  $im1 = $tr->unmap($tr);               # Rotate around pixel origin
+  $im2 = $tr->unmap($tr->wrap($tf));    # Rotate round FITS scientific origin
+
+=cut
+
+sub wrap {
+  my($f) = shift;
+  my($g) = shift;
+  
+  return $g->inverse->compose($f)->compose($g);
+}
+
+######################################################################
+
+=head2 map
 
 =for sig
 
@@ -396,6 +447,7 @@ sub compose {
 =for ref
 
 Map an image or N-D dataset using the transform as a coordinate transform.
+
 The transform is applied to the coordinates of $output to obtain 
 coordinates for interpolation from the $input array.  NOTE that this is
 somewhat counterintuitive at first; but it's the correct way to do 
@@ -528,7 +580,7 @@ sub map {
   
 ######################################################################
 
-=head2 PDL::Transform::unmap
+=head2 unmap
 
 =for sig
 
@@ -574,7 +626,7 @@ but it would be a real pain to put each one in its own .pm file.
 
 ######################################################################
 
-=head2 PDL::Transform constructor
+=head2 new PDL::Transform
 
 =for usage
 
@@ -606,7 +658,7 @@ sub new {
   
 ######################################################################
 
-=head2 PDL::Transform::Lookup constructor
+=head2 new PDL::Transform::Lookup
 
 =for usage
 
@@ -750,7 +802,7 @@ sub PDL::Transform::Lookup::new {
 
 ######################################################################
 
-=head2 PDL::Transform::Linear constructor
+=head2 new PDL::Transform::Linear
   
 =for usage
   
@@ -773,10 +825,40 @@ The options you can pass in are:
 
 =item s, scale, Scale
 
-A scaling matrix.  It gets left-multiplied with the transformation
-matrix you specify (or the identity), so that if you specify both a
-scale and a matrix the scaling is done after the rotation or skewing or
-whatever.
+A scaling scalar (heh), vector, or matrix.  If you specify a vector
+it's treated as a diagonal matrix (for convenience).  It gets
+left-multiplied with the transformation matrix you specify (or the
+identity), so that if you specify both a scale and a matrix the
+scaling is done after the rotation or skewing or whatever.
+
+=item r, rot, rota, rotation, Rotation
+
+A rotation angle in degrees -- useful for 2-D and 3-D data only.  If
+you pass in a scalar, it specifies a rotation from the 0th axis toward
+the 1st axis.  If you pass in a 3-vector, it's treated as a set of
+Euler angles, and a rotation matrix is generated that does the following, in
+order:
+
+=over 3
+
+=item * Rotate by rot->(2) degrees from 0th to 1st axis
+
+=item * Rotate by rot->(1) degrees from the 2nd to the 0th axis
+
+=item * Rotate by rot->(0) degrees from the 1st to the 2nd axis
+
+The rotation matrix is 
+
+=back
+
+The rotation matrix is left-multiplied with the transformation matrix
+you specify, so that if you specify both rotation and a general matrix
+the rotation happens after the more general operation -- though that's
+deprecated.
+
+Of course, you can duplicate this functionality -- and get more
+general -- by generating your own rotation matrix and feeding it in 
+with the C<matrix> option.
 
 =item m, matrix, Matrix
 
@@ -829,9 +911,12 @@ sub PDL::Transform::Linear::new {
   
   $me->{params}->{post} = _opt($o,['post','Post','postoffset','PostOffset',
 				   'shift','Shift'],0);
-  
+
   $me->{params}->{matrix} = _opt($o,['m','matrix','Matrix','mat','Mat']);
-  
+
+  $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
+  print "me->{params}->{rot} = ".$me->{params}->{rot}."\n";
+
   my $o_dims = _opt($o,['dims','Dims']);
   my $scale  = _opt($o,['s','scale','Scale']);
   
@@ -872,8 +957,38 @@ sub PDL::Transform::Linear::new {
     $me->{params}->{matrix} = PDL->zeroes($me->{idim},$me->{odim});
     $me->{params}->{matrix}->diagonal(0,1) .= 1;
   }
-  
-  
+
+  ### Handle rotation option 
+  my $rot = $me->{params}->{rot};
+  if(defined($rot)) {
+    # Subrotation closure -- rotates from axis $d->(0) --> $d->(1).
+    my $subrot = sub { my($d,$angle,$m)=@_;
+		       my($subm) = $m->dice($d,$d);
+		       my($a) = $angle*3.1415926535897932384626/180;
+		       $subm .= matmult(pdl([cos($a),sin($a)],[-sin($a),cos($a)]),$subm);
+		       print "\n";
+		     };
+    
+    if(UNIVERSAL::isa($rot,'PDL') && $rot->nelem > 1) {
+      if($rot->ndims == 2) {
+	$me->{params}->{matrix} .= matmult($rot,$me->{params}->{matrix});
+      } elsif($rot->nelem == 3) {
+	my $rm = zeroes(3,3);
+	$rm->diagonal(0,1)++;
+	
+	&$subrot(pdl(0,1),$rot->at(2),$rm);
+	&$subrot(pdl(2,0),$rot->at(1),$rm);
+	&$subrot(pdl(1,2),$rot->at(0),$rm);
+	$me->{params}->{matrix} .= matmult($rm,$me->{params}->{matrix});
+      } else {
+	barf("PDL::Transform::Linear: Got a strange rot option -- giving up.\n");
+      }
+    } else {
+      &$subrot(pdl(0,1),$rot,$me->{params}->{matrix});
+    }
+  }
+
+
   #
   # Apply scaling
   #
@@ -883,20 +998,18 @@ sub PDL::Transform::Linear::new {
   #
   # Check for an inverse and apply it if possible
   #
-  if(_determinant($me->{params}->{matrix})) {
-    if(defined(@PDL::Slatec::ISA)) {
-      $me->{params}->{inverse} = PDL::Slatec::matinv($me->{params}->{matrix});
-    } else {
-      Carp::cluck("PDL::Transform::Linear: Can't find slatec (no inverse matrices for you...)\n") unless($PDL::Transform::Linear::slatec_warning);
-	$PDL::Transform::Linear::slatec_warning=1;
-      }
+  my($o2);
+  if($me->{params}->{matrix}->det($o2 = {lu=>undef})) {
+    $me->{params}->{inverse} = $me->{params}->{matrix}->inv($o2);
+  } else {
+    delete $me->{params}->{inverse};
   }
   
   $me->{func} = sub {
     my($in,$opt) = @_;
     my($a) = $in + $opt->{pre};
 
-    my($outmat) = PDL::matmult($a,$opt->{matrix});
+    my($outmat) = $a->matmult($opt->{matrix});
     return $outmat+$_[1]->{post};
   };
   
@@ -904,67 +1017,44 @@ sub PDL::Transform::Linear::new {
     my($in,$opt) = @_;
     my($a) = $in - $opt->{post};
 
-    # Multiply by the transpose on the left, to preserve threading!
-    my($outmat) = PDL::matmult($a,$opt->{inverse}->xchg(0,1));
+    my($outmat) = $a->matmult($opt->{inverse});
     return $outmat-$_[1]->{pre};
   } : undef;
   
   return $me;
 }
 
-sub _determinant {
-  my($a) = shift;
-  my($n);
-  return undef unless(
-		      UNIVERSAL::isa($a,'PDL') &&
-		      $a->getndims == 2 &&
-		      ($n = $a->dim(0)) == $a->dim(1)
-		      );
-  
-  return $a->flat if($n==1);
-  if($n==2) {
-    my($b) = $a->flat;
-    return $b->index(0)*$b->index(3) - $b->index(1)*$b->index(2);
-  }
-  if($n==3) {
-    my($b) = $a->flat;
-    return $b->index(0)*$b->index(4)*$b->index(8) 
-      - $b->index(1)*$b->index(5)*$b->index(6) 
-      + $b->index(2)*$b->index(3)*$b->index(7);
-  }
-  
-  my($i);
-  my($sum);
-  
-  for $i(1..$n-2) {
-    my($el) = $a->slice("(0),($i)");
-    next unless ( my($el) = $a->slice("(0),($i)") ); # sic
-    $sum += $el * (1-2*($i%2)) * 
-      _determinant($a->slice("1:-1,0:".($i-1))->append($a->slice("1:-1,".($i+1).":-1")));
-  }
-  $sum += $a->slice("(0),(0)") * _determinant($a->slice("1:-1,1:-1"));
-  $sum -= $a->slice("(0),(-1)") * _determinant($a->slice("1:-1,0:-2")) * (1 - 2*($n%2));
-  
-  return $sum;
-}
-
-
 sub PDL::Transform::Linear::stringify {
   package PDL::Transform::Linear;
   my($me) = shift;  my($out) = SUPER::stringify $me;
+  my $mp = $me->{params};
   
-  $out .= "Pre-add: ".($me->{params}->{pre})."\n"
-     if(defined $me->{params}->{pre});
-  
-  $out .= "Post-add: ".($me->{params}->{post})."\n"
-    if(defined $me->{params}->{post});
-  
-  $out .= "Forward matrix:".($me->{params}->{matrix})
-    if(defined $me->{params}->{matrix});
-  
-  $out .= "Inverse matrix:".($me->{params}->{inverse})
-    if(defined $me->{params}->{inverse});
+  if(!($me->{is_inverse})){
+    $out .= "Pre-add: ".($mp->{pre})."\n"
+      if(defined $mp->{pre});
+    
+    $out .= "Post-add: ".($mp->{post})."\n"
+      if(defined $mp->{post});
+    
+    $out .= "Forward matrix:".($mp->{matrix})
+      if(defined $mp->{matrix});
+    
+    $out .= "Inverse matrix:".($mp->{inverse})
+      if(defined $mp->{inverse});
+  } else {
+    $out .= "Pre-add: ".(-$mp->{post})."\n"
+      if(defined $mp->{post});
 
+    $out .= "Post-add: ".(-$mp->{pre})."\n"
+      if(defined $mp->{pre});
+    
+    $out .= "Forward matrix:".($mp->{inverse})
+      if(defined $mp->{inverse});
+    
+    $out .= "Inverse matrix:".($mp->{matrix})
+      if(defined $mp->{matrix});
+  }
+    
   $out =~ s/\n/\n  /go;
   $out;
 }
@@ -972,7 +1062,7 @@ sub PDL::Transform::Linear::stringify {
 
 ######################################################################
 
-=head2 PDL::Transform::FITS constructor
+=head2 new PDL::Transform::FITS
 
 =for usage
 
@@ -1101,7 +1191,7 @@ sub PDL::Transform::FITS::new {
 
 ######################################################################
 
-=head2 PDL::Transform::Code constructor
+=head2 new PDL::Transform::Code 
 
 =for usage
 
