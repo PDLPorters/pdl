@@ -112,6 +112,32 @@ can read other HDU's by using the [n] syntax, the second one is [1].
 Currently recognized extensions are IMAGE and BINTABLE.  (See the
 addendum on EXTENSIONS for details).
 
+C<rfits> accepts several options that may be passed in as a hash ref if desired:
+
+=over 3
+
+=item bscale (default=1)
+
+Determines whether the data are linearly scaled using the BSCALE/BZERO keywords
+in the FITS header.  To read in the exact data values in the file, set this
+to 0. 
+
+=item data (default=1)
+
+Determines whether to read the data, or just the header.  If you set this to 
+0, you will get back the FITS header rather than the data themselves.  (Note
+that the header is normally returned as the C<hdr> field of the returned PDL;
+this causes it to be returned as a hash ref directly.)
+
+=item hdrcpy (default=0)
+
+Determines whether the L<hdrcpy:PDL::hdrcpy> flag is set in the returned
+PDL.  Setting the flag will cause an explicit deep copy of the header whenever
+you use the returned PDL in an arithmetic or slicing operation.  That is useful
+in many circumstances but also causes a hit in speed.  
+
+=back
+
 FITS image headers are stored in the output PDL and can be retrieved
 with L<hdr|PDL::Core/hdr> or L<gethdr|PDL::Core/gethdr>.  The
 L<hdrcpy|PDL::Core/hdrcpy> flag of the PDL is set so that the header
@@ -217,7 +243,7 @@ reading in a data structure as well.
 
 =cut
 
-our $rfits_options = new PDL::Options( { bscale=>1, data=>1 } );
+our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0 } );
 
 sub PDL::rfitshdr {
   my $class = shift;
@@ -594,7 +620,8 @@ sub _rfits_image() {
   # Header
   
   $pdl->sethdr($foo);
-#  $pdl->hdrcpy(1);
+
+  $pdl->hdrcpy($opt->{hdrcpy});
 
   return $pdl;
 } 

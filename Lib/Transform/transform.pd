@@ -2160,9 +2160,10 @@ scaling is done after the rotation or skewing or whatever.
 
 A rotation angle in degrees -- useful for 2-D and 3-D data only.  If
 you pass in a scalar, it specifies a rotation from the 0th axis toward
-the 1st axis.  If you pass in a 3-vector, it is treated as a set of
-Euler angles, and a rotation matrix is generated that does the following, in
-order:
+the 1st axis.  If you pass in a 3-vector as either a PDL or an array
+ref (as in "rot=>[3,4,5]"), then it is treated as a set of Euler
+angles in three dimensions, and a rotation matrix is generated that
+does the following, in order:
 
 =over 3
 
@@ -2269,7 +2270,13 @@ sub PDL::Transform::Linear::new {
     $me->{odim} = $me->{params}->{matrix}->dim(1);
     
   } else {
-    
+    if(defined($me->{params}->{rot}) && 
+	UNIVERSAL::isa($me->{params}->{rot},'PDL')) {
+	  $me->{idim} = $me->{odim} = 2 if($me->{params}->{rot}->nelem == 1);
+	  $me->{idim} = $me->{odim} = 3 if($me->{params}->{rot}->nelem == 3);
+	}	
+    } 	
+	
     if(defined($scale) && 
        UNIVERSAL::isa($scale,'PDL') && 
        $scale->getndims > 0) {

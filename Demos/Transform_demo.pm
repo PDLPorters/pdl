@@ -79,7 +79,7 @@ act q|
     # work well with FITS images that contain WCS scientific coordinate
     # information, but works equally well in pixel space.
 
-    $m51 = rfits "$m51path/m51.fits";
+    $m51 = rfits("$m51path/m51.fits",{hdrcpy=>1});
   
     # we use a floating-point version of the image in some of the demos 
     # to highlight the interpolation schemes.  (Note that the FITS
