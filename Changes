@@ -1,5 +1,21 @@
+<<<<<<< Changes
+CED (13 May 02)
+    - Modified legacy rfits/wfits support to handle strings more cleanly
+	(more like Astro::FITS::Header)
+    - Moved missing-module message to IO/Misc/Makefile.PL
+    - Added stringification test to t/misc.t
+
+CED (10 May 02)
+    - Modified rfits/wfits to support Astro::FITS::Header as an underlying
+	FITS header driver. The fallback (to the more-or-less original KGB 
+	code) is probably Wrong as string handling now changes depending
+	on the presence of Astro::FITS::Header;
+	whether Astro::FITS::Header is present; but ultimately everyone
+	just uses Astro::FITS::Header and the problem goes away.
+=======
 CS  - folded PDL-2_3-gimp-fix branch into main trunk
     - typos
+>>>>>>> 1.208
 DJB (09 May 02)
     - removed *.P files from Lib/Slatec/slatec/ (no longer needed)
 CS  - fix wcols bug #541847
