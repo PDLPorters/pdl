@@ -24,16 +24,16 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 DESCRIPTION
 
-This is version 0.5 of the PDL FAQ, a collection of
+This is version 0.6 of the PDL FAQ, a collection of
 frequently asked questions about PDL - the Perl Data Language.
 
-This FAQ was generated on 5.3.98.
+This FAQ was generated on 5.25.00.
 
 Current maintainer: Christian Soeller (F<c.soeller@auckland.ac.nz>).
 
 =head2 Where to find this document
 
-You can find the latest version of this document at F<http://pdl.perl.org/faq.html>.
+You can find the latest version of this document at F<http://pdl.perl.org/Doc/pdlfaq.html>.
 This FAQ will be monthly posted to the PDL mailing list
 F<perldl@jach.hawaii.edu>.
 
@@ -383,15 +383,11 @@ I<very> good reason for doing that.
 
 =head2 B<[!]> What is the current version of PDL ?
 
-As of this writing (FAQ version 0.5 of 5.3.98) the
-latest released version is 1.11. Currently in beta
-test is 1.99. The latest versions should always be
-available from a CPAN mirror site near you (see above for info on where
+As of this writing (FAQ version 0.6 of 5.30.00) the
+latest released version is 2.005. However, you should always check
+CPAN, or the PDL web page F<http://pdl.perl.org> to see if there is a later
+released version. (see above for info on where
 to get PDL).
-
-If there are alpha releases that haven't yet been put onto CPAN interested
-developers can find directions on where to get these distribs at
-F<http://pdl.perl.org/alpha.html>.
 
 =head2 I am looking for a package to do XXX in PDL. Where shall I look for it?
 
@@ -706,9 +702,8 @@ of image sequences as MPEG movies.
 
 =item NetCDF
 
-On CPAN you can find the PDL-NetCDF module that works with the current
-released version of PDL 1.11. A new version for use
-with PDL 1.99 and higher is in the making.
+On CPAN you can find the PDL-NetCDF module. This provides a object-
+oriented interface from PDL to netCDF-format data-files.
 
 =back
 
@@ -789,7 +784,7 @@ initialize(). For example:
     }
 
 
-For another example check the script F<t/subclass.t> in the PDL
+For other examples check the scripts F<t/subclass.t>, F<t/subclass2.t>, etc. in the PDL
 distribution.
 
 =head2 B<[+]> How can I stack a set of 2D arrays (images) into a 3D piddle?
@@ -885,6 +880,10 @@ object as you might remember) regardless of what actual data the PDL
 variable contains.
 
 =head1 CHANGES
+
+=head2 0.6
+
+Minor Updates
 
 =head2 0.5
 
