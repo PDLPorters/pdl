@@ -89,11 +89,19 @@ sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
 # Ouch .... there should be a better fix than this ??
 if($^O =~ /mswin32/i) {
-  if(system "perl Core.xs.PL") {die "Failed to extract Core.xs"}
-  }
-if($Config{make} eq 'dmake') {
-  if(system "perl pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
-  if(system "perl pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
+  # Place Types.pm and Dev.pm where Core.xs.PL can find them.
+  if(system "mkdir PDL"){warn "Failed to create PDL folder"};
+  if(system "mkdir PDL\\Core") {warn "Failed to create PDL/Core folder"};
+  if(system "copy Types.pm PDL\\Types.pm") {die "Failed to copy Types.pm"}
+  if(system "copy Dev.pm PDL\\Core\\Dev.pm") {die "Failed to copy Dev.pm"}
+  if(system "$Config{perlpath} Core.xs.PL") {die "Failed to extract Core.xs"}
+
+  if($Config{make} eq 'dmake') {
+    if(system "$Config{perlpath} pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
+    if(system "$Config{perlpath} pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
+    }
+  # Remove the 2 files and directories now that Core.xs, pdlcore.c and pdlconv.c have been extracted.
+  system("rmdir /S /Q PDL");
   }
 
 use ExtUtils::MakeMaker;
