@@ -336,7 +336,7 @@ sub do_access {
 	if(scalar(keys %subst) != 0) {
 		confess("Substitutions left: ".(join ',',keys %subst)."\n");
 	}
-       return "$text /* ACCESS($access) */\n";
+       return "$text /* ACCESS($access) */ ";
 }
 
 sub has_dim {

@@ -1,3 +1,6 @@
+Marc Lehmann (5/!2/00)
+    - Don't add artificial newlines in PdlParObj.pm, you never know what the
+      surrounding code might look like. Makes PDL compile with perl-5.7 again.
 John Cerney (5/12/00)
     - Updated log10 in ops.pd to have consistent
       copy behavior for subclassed objects as discussed
