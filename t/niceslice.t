@@ -201,4 +201,7 @@ $a->sethdr($h);
 $a->hdrcpy(1);
 eval translate_and_show '$b = $a(1:2,pdl(0,2));';
 
-ok (!$@ and $b->gethdr() == $h);
+# Old hdrcpy test (for copy-by-reference); this is obsolete
+# with quasi-deep copying.  --CED 11-Apr-2003
+#   ok (!$@ and $b->gethdr() == $h);
+ok(!$@ and join("",%{$b->gethdr}) eq join("",%{$h}));

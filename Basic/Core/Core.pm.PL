@@ -549,7 +549,7 @@ sub PDL::howbig {
 	PDL::howbig_c($t);
 }
 
-=head2 threadids
+=head2 PDL::threadids
 
 =for ref
 
@@ -693,6 +693,80 @@ sub PDL::copy {
     return $new;
 }
 
+=head2 PDL::hdr_copy
+
+=for ref
+
+Return an explicit copy of the header of a PDL.
+
+hdr_copy is just a wrapper for the internal routine _hdr_copy, which
+takes the hash ref itself.  That is the routine which is used to make
+copies of the header during normal operations if the hdrcpy() flag of
+a PDL is set.
+
+General-purpose deep copies are expensive in perl, so some simple
+optimization happens:
+
+If the header is a tied array or a blessed hash ref with an associated
+method called C<copy>, then that ->copy method is called.  Otherwise, all
+elements of the hash are explicitly copied, resulting in a "first-level" 
+copy of the header: actual scalars are physically copied, but if elements
+of the header are refs to something else, those something elses aren not 
+copied.
+
+=cut
+
+sub PDL::hdr_copy {
+  my $pdl = shift;
+  my $hdr = $pdl->gethdr;
+  return PDL::_hdr_copy($hdr);
+}
+
+sub PDL::_hdr_copy {
+  my $hdr = shift;
+  my $tobj;
+
+  print "called _hdr_copy\n" if($PDL::debug);
+
+  unless( (ref $hdr)=~m/HASH/ ) {
+    print"returning undef\n" if($PDL::debug);
+    return undef ;
+  }
+
+  if($tobj = tied %$hdr) { # 
+    print "tied..."if($PDL::debug);
+    if(UNIVERSAL::can($tobj,"copy")) {
+      my %rhdr;
+      tie(%rhdr, ref $tobj, $tobj->copy);
+      print "returning\n" if($PDL::debug);
+      return \%rhdr;
+    }
+    
+    # Astro::FITS::Header is special for now -- no copy method yet 
+    # but it is recognized.  Once it gets a copy method this will become
+    # vestigial:
+
+    if(UNIVERSAL::isa($tobj,"Astro::FITS::Header")) {
+      print "Astro::FITS::Header..." if($PDL::debug);
+      my @cards = $tobj->cards;
+      my %rhdr;
+      tie(%rhdr,"Astro::FITS::Header", new Astro::FITS::Header(Cards=>\@cards));
+      print "returning\n" if($PDL::debug);
+      return \%rhdr;
+    }
+  } 
+  elsif(UNIVERSAL::can($hdr,"copy")) {
+    print "found a copy method\n" if($PDL::debug);
+    return $hdr->copy;
+  } 
+
+  # We got here if it's an unrecognized tie or if it's a vanilla hash.
+  print "Making a hash copy..." if($PDL::debug);
+  my %a = %$hdr;
+  print "returning\n" if($PDL::debug);
+  return \%a;
+}
+    
 =head2 PDL::unwind
 
 =for ref
@@ -1416,7 +1490,7 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		      : int $_[0] }
 sub PDL::nslice {
   my($pdl) = shift;
-  my $h = $pdl->hdrcpy() ? $pdl->hdr : undef;
+  my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
   my @args = @_;
   my ($i,$noslice) = (0,0);
   for (@args) {

@@ -14,7 +14,9 @@ sub ok {
 
 sub hdrcmp {
   my ($ah,$bh) = map {$_->gethdr} @_;
-  return $ah == $bh;
+# Copy-by-reference test is obsolete; check contents instead (CED 12-Apr-2003)
+#   return $ah==$bh
+  return join("",%{$ah}) eq join("",%{$bh});
 }
 
 print "1..9\n";

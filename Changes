@@ -1,3 +1,7 @@
+CED 12-Apr-2003
+   - Various: Modified header copying to be quasi-deep, rather than 
+	by reference only.  Changes to PP.pm, Core.pm.PL, and some
+	test files.
 CED 9-Apr-2003
    - slice.pd : Added permissive ranging to, er, range(). Missing source dims 
 	are treated as if they dummy dims of order 1.  
