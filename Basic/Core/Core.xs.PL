@@ -804,6 +804,7 @@ BOOT:
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;
+   PDL.hard_copy   = pdl_hard_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
    PDL.smalloc     = pdl_malloc;

@@ -1464,6 +1464,13 @@ any changes are absorbed into the definition of the
 C<$EQUIVCPOFFS()> macro (ie it is handled automatically
 by PDL::PP>.
 
+=head2 A few notes on writing a slicing routine...
+
+The following few paragraphs describe writing of a new slicing routine
+('range'); any errors are CED's. (--CED 26-Aug-2002)
+
+
+
 =head1 USEFUL ROUTINES
 
 The PDL C<Core> structure, defined in F<Basic/Core/pdlcore.h.PL>, contains
