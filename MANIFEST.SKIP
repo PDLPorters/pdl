@@ -78,6 +78,7 @@ pdlexamples\.c$
 MANIFEST\.bak$
 \bcore$
 ^perldl$
+^pdldoc$
 CVS
 Benchmark/Bench.c
 Benchmark/blib/

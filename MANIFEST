@@ -556,6 +556,7 @@ debian/postrm
 debian/preinst
 debian/rules
 m51.fits
+pdldoc.PL
 perldl.PL
 perldl.conf
 t/README

@@ -1183,6 +1183,7 @@ sub PDL::new_from_specification{
 # is there such a beast?
 # L<PDL::Primitive::isnull|PDL::Primitive/isnull> 
 #
+
 =head2 isempty
 
 =for ref

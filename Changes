@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (5/25/00)
+    - added 'pdldoc' shell command to provide access to PDL documentation
+      without having to start up perldl
 John Cerney 5/25/00)
     - Modified PP.pm to call $arg1->copy for subclassed
       objects in some simple cases, otherwise call

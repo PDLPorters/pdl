@@ -57,8 +57,8 @@ sub FindStdFile {
   for $d (@INC) {
       $f = $d."/PDL/pdldoc.db";
       if (-f $f) {
-         print "Found docs database $f\n"; # if $PDL::debug;
-	 print "Type 'help' for online help\n"; # if $PDL::debug;
+         print "Found docs database $f\n" if $PDL::verbose;
+	 print "Type 'help' for online help\n" if $PDL::verbose;
          return $f;
       }
   }
