@@ -1202,7 +1202,21 @@ EOD
   my $y = $#t==1 ? $t[0] : $t[1];
   
   unless( $hold ) {
-      my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
+      # allow for the error bars
+      my ( $xmin, $xmax, $ymin, $ymax );
+      if ($#t==1) {
+	  ( $xmin, $xmax ) = $x->minmax($x);
+	  $ymin = min( $y - $t[1] ); $ymax = max( $y + $t[1] );
+      } elsif ($#t==2) {
+	  ( $xmin, $xmax ) = $x->minmax($x);
+	  $ymin = min( $y - $t[2] ); $ymax = max( $y + $t[2] );
+      } elsif ($#t==3) {
+	  $xmin = min( $x - $t[2] ); $xmax = max( $x + $t[2] );
+	  $ymin = min( $y - $t[3] ); $ymax = max( $y + $t[3] );
+      } elsif ($#t==5) {
+	  $xmin = min( $x - $t[2] ); $xmax = max( $x + $t[3] );
+	  $ymin = min( $y - $t[4] ); $ymax = max( $y + $t[5] );
+      }
       initenv( $xmin, $xmax, $ymin, $ymax, $opt );
   }
   save_status();
@@ -1268,7 +1282,7 @@ sub line {
 
   unless ( $hold ) {
 
-    # Make sure the missing value is used as the min or max value
+    # Make sure the missing value is not used as the min or max value
     my ($ymin, $ymax, $xmin, $xmax);
     if (exists $$opt{MISSING}) {
       ($ymin, $ymax)=minmax($y->where($y != $$opt{MISSING}));

@@ -88,7 +88,7 @@ BOOT:
 #define aTHX_
 #endif
 	if (ptr==NULL)
-	  Perl_croak(aTHX_ "This module requires PGPLOT version 2.16 or later.\nPlease install/upgrade PGPLOTLOT (see the PDL/DEPENDENCIES file).");
+	  Perl_croak(aTHX_ "This module requires PGPLOT version 2.16 or later.\nPlease install/upgrade PGPLOT (see the PDL/DEPENDENCIES file).");
 	myhandle = (PGPLOT_function_handle*) SvIV( ptr );  
 
 	/* If the structure read from the PGPLOT module is too old */
