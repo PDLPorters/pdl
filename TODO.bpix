@@ -2,7 +2,14 @@
 Problems:
 =========
 
-.) improve the tests
+.) what to do about 'any($a > 20)' when all elements of $a are bad:
+    orover($a > 20) will produce a bad value, which is then returned
+   to the caller as a scaler (via 'return $tmp->at()').
+   a) should we just die
+   b) should we return bad (as it's a scalar we would have to ensure
+      that it was converted to the type of the input piddle first)
+   c) call a user-defined sub-routine?
+   d) ...
 
 .) improve the documentation support (such as get it working properly).
    The logic needs tweaking for the automatic document creation,
@@ -11,8 +18,13 @@ Problems:
 .) $pdl->badvalue(23) should change the bad value in $pdl to 23
    (as well as changing the default bad value, which it does)
 
+.) improve the tests
+
 Suggestions/To do:
 ================
+
+.) allow macros in Find/CopyBadStatusCode options - create a
+   xxxBadStatusCodeNS rule which calls dosubst or dousualsubst ...
 
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix

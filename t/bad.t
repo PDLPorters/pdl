@@ -155,17 +155,9 @@ print "b = <$b>  info = ", $b->info($i), "\n";
 ok( $b->badflag && $b->getndims == 0 && $b->get_datatype == 0, 1 );  # 35
 
 # check out stats, since it uses several routines
+# and setbadif
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
-
-# this would be much easier if we could say
-#   $b = $a + foofoobad($a < 20);
-# ie something like foofoobad() replaces those elements which pass the
-#    condition by the bad value, 0 otherwise...
-# 
-$b = ($a < 20) * $a->badvalue;
-$b->badflag(1);
-$b += $a;
-
+$b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
 ok( approx( $s[0], 61.9375 ), 1 );       # 36
 ok( approx( $s[1], 26.7312 ), 1 );       # 37
@@ -213,4 +205,4 @@ $a = byte( 0, 1, 255, 4, 5 );
 $a->badflag(1);
 ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 48
 
-# need to test primitive's minmaximum
+# check indadd

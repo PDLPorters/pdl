@@ -383,8 +383,6 @@ is the natural (and correct) choice for binned data, of course.
 ~)
 ); # intover
 
-# XXX BADVAL got to here
-
 # Internal utility sorting routine for median/qsort routines.
 
 for (keys %PDL::Types::typehash) {
@@ -533,7 +531,12 @@ some circumstances.
 
 
 # Generate small ops functions to do entire array
-
+#
+# - if all alements are bad, the bad value is returned
+#   we ensure that the bad value is for the type
+#   of the piddle that is sent in - NOT that returned
+#   by the call to the routine
+#
 for $op ( ['avg','average','average'],
           ['sum','sumover','sum'],
           ['zcheck','zcover','check for zero'],
@@ -545,26 +548,34 @@ for $op ( ['avg','average','average'],
 	  ['max','maximum','maximum'],
 	  ['median', 'medover', 'median'],
 	  ['oddmedian','oddmedover','oddmedian']) {
-   pp_add_exported('', $op->[0]);
+    my $name = $op->[0];
+    my $func = $op->[1];
+    my $text = $op->[2];
+   pp_add_exported('', $name);
 
    pp_addpm(<<"EOD");
 
-=head2 $op->[0]
+=head2 $name
 
 =for ref
 
-Return the $op->[2] of all elements in a piddle
+Return the $text of all elements in a piddle
 
 =for usage
 
- \$x = $op->[0](\$data);
+ \$x = $name(\$data);
+
+=for bad
+
+This routine handles bad values (see the
+documentation for L<$func|/$func>).
 
 =cut
 
-*$op->[0] = \\&PDL::$op->[0];
-sub PDL::$op->[0] {
+*$name = \\&PDL::$name;
+sub PDL::$name {
 	my(\$x) = \@_; my \$tmp;
-	\$x->clump(-1)->$op->[1](\$tmp=PDL->nullcreate(\$x) );
+	\$x->clump(-1)->${func}( \$tmp=PDL->nullcreate(\$x) );
 	return \$tmp->at();
 }
 EOD
@@ -586,6 +597,14 @@ Useful in conditional expressions:
 
  if (any $a>15) { print "some values are greater than 15\n" }
 
+=for bad
+
+If all elements of the check (C<$a > 15> above) are bad,
+then the bad value is returned. 
+Perhaps it should die/report an error an error in this case?
+I<BROKEN>: it does not necessarily return the bad value of the 
+type of the piddle (C<$a> above).
+
 =cut
 
 *any = \&or;
@@ -602,6 +621,14 @@ Useful in conditional expressions:
 =for example
 
  if (all $a>15) { print "all values are greater than 15\n" }
+
+=for bad
+
+If all elements of the check (C<$a > 15> above) are bad,
+then the bad value is returned.
+Perhaps it should die/report an error an error in this case?
+I<BROKEN>: it does not necessarily return the bad value of the 
+type of the piddle (C<$a> above).
 
 =cut
 
@@ -648,7 +675,7 @@ pp_add_exported('', 'minmax');
 #pp_add_exported('', 'minmax_ind');
 
 
-# this should move all bad values to the end of the array
+# move all bad values to the end of the array
 #
 pp_def(
     'qsort',
@@ -1018,18 +1045,6 @@ closures at some point.
        ); # pp_def inner2t()
 
 
-=item minimum_ind(a(n),int [o]c()), maximum_ind(a(n),int [o]c())
-
-These functions work like the previous except that they
-return the index of the maximum element
-
-=item minimum_n_ind(a(n),int [o]c(m)), maximum_n_ind(a(n),int [o]c(m))
-
-These functions work like the previous except that they
-return the indices of the I<m> maximum elements.
-
-=cut
-
 # I don't the the old behaviour is correct in the presence of NaN's -
 # surely it will set the min/max values to NaN in this case?
 #
@@ -1118,7 +1133,8 @@ otherwise the bad flag is cleared for the output piddle.',
 		 %}
 		 $c() = curind;
 	     %}',
-	    Doc => "Returns the index of C<m> $name elements"
+	    Doc => "Returns the index of C<m> $name elements",
+	    BadDoc => 'Not yet been converted to ignore bad values',
 	    );
 
 } # foreach: $which
@@ -1270,8 +1286,6 @@ sub PDL::clip {
 }
 
 EOD
-
-# XXX to do 
 
 pp_def(
        'wtstat',
@@ -1723,9 +1737,6 @@ This works just as which, but the complement of C<$i> will be in C<$c_i>.
  [0 1 2 3 4]
 
 EOD
-
-# we want something like
-#   whichbad( $a < 20 ) which is like which
 
     for (
 	 {Name=>'which',
@@ -2216,7 +2227,10 @@ pp_def(
      if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
        barf("PDL::indadd: invalid index");
      }
-     $sum(m => foo) += $a();',
+     if ( $ISBAD(a()) ) { $SETBAD(sum(m => foo)); }
+     else               { $sum(m => foo) += $a(); }',
+    BadDoc =>
+'The routine barfs if any of the indices are bad.',
     Doc=>'
 =for ref
 

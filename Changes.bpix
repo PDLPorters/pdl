@@ -2,6 +2,8 @@
 
 Doug Burke (07/16/00)
    - added setbadif() to PDL::Bad + minor doc updates
+   - what to do for any/or/... routines in primitive.pd when all elements
+     are bad?
 Doug Burke (07/15/00)
    - fixed qsorti() and perldl's badinfo command
    - added $ISBADVAR(foo,pdl) & other macros, improved/cleaned up 
