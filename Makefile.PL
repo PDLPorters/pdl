@@ -140,13 +140,52 @@ doc_perl_install ::
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
 	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 
+';
+
+# note: podselect wasn't in the perl distribution prior to 5.6.0
+my $podsel = "podselect";
+
+if ( $] < 5.006 ) {
+	# make your own podsel
+	$podsel = "podsel";
+	print "Building a simple version of podselect, called $podsel.\n";
+	unlink $podsel if -f $podsel;
+	my $fh = new IO::File "> $podsel" or die "Can't create $podsel: $!";
+
+	use Config;
+	print $fh <<"!GROK!THIS!";
+$Config{'startperl'}
+    eval 'exec perl -S \$0 "\$@"'
+        if 0;
+!GROK!THIS!
+
+	# no variable substitution here
+	print $fh <<'!NO!SUBS!';
+
+# script to emulate podselect (available in perl 5.6.0)
+require 'Doc/Pod/Parser.pm';
+require 'Doc/Pod/Select.pm';
+PDL::Pod::Select->import();
+
+die "Usage: $0 <file>\n" if $#ARGV == -1;
+podselect(@ARGV);
+exit;
+!NO!SUBS!
+	$fh->close;
+	chmod 0755, $podsel;
+
+} # if: perl version < 5.006
+
+$text .=
+"
 perldl.pod : perldl
-	podselect perldl > perldl.pod
+	$podsel perldl > perldl.pod
 
 pdldoc.pod : pdldoc
-	podselect pdldoc > pdldoc.pod
+	$podsel pdldoc > pdldoc.pod
 
-';
+";
+
 if( $] < 5.005 ){  # for perl5.004, docs go into INSTALLSITELIB
 	$text =~ s/INSTALLSITEARCH/INSTALLSITELIB/g;
 }

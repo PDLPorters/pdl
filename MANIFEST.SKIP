@@ -123,3 +123,4 @@ so_locations
 ^Graphics/PGPLOT/PGPLOT.c
 ^perldl.pod
 ^pdldoc.pod
+^podsel$
