@@ -2,7 +2,7 @@ pp_addpm({At => 'Top'},<< 'EOD');
 
 =head1 NAME
 
-PDL::Slices -- Stupid index tricks
+PDL::Slices -- Indexing, slicing, and dicing
 
 =head1 SYNOPSIS
 
@@ -15,45 +15,47 @@ PDL::Slices -- Stupid index tricks
 =head1 DESCRIPTION
 
 This package provides many of the powerful PerlDL core index
-manipulation routines. These routines mostly contain two-way data flow 
-so you can get a unit matrix by
+manipulation routines.  These routines mostly allow two-way data flow,
+so you can modify your data in the most convenient representation.
+For example, you can make a 1000x1000 unit matrix with 
 
  $a = zeroes(1000,1000);
  $a->diagonal(0,1) ++;
 
 which is quite efficient. See L<PDL::Indexing> and L<PDL::Tips> for
-more examples.
-
-These functions are usually two-way:
-
- $b = $a->slice("1:3");
- $b += 5;   		# $a is changed!
-
-If you want to force a copy and no "flow" backwards, you need
-
- $b = $a->slice("1:3")->copy;
- $b += 5;		# $a is not changed.
-
-alternatively, you can use
-
- $b = $a->slice("1:3")->sever;
-
-which does not copy the struct but beware that after
-
- $b = $a->slice("1:3");
- $c = $b->sever;
-
-the variables C<$b> and C<$c> point to the same object but with 
-C<-E<gt>copy> they do not.
-
-The fact that there is this kind of flow makes PDL a very
-powerful language in many ways: since you can alter the original
-data by altering some easier-to-use representation of it, many things are
-much easier to accomplish, just like making the above unit matrix.
+more examples.  
 
 Slicing is so central to the PDL language that a special compile-time
 syntax has been introduced to handle it compactly; see L<PDL::NiceSlice> 
 for details.
+
+PDL indexing and slicing functions usually include two-way data flow, 
+so that you can separate the actions of reshaping your data structures
+and modifying the data themselves.  Two special methods, L<copy|copy> and
+L<sever|sever>, help you control the data flow connection between related 
+variables.
+
+ $b = $a->slice("1:3"); # Slice maintains a link between $a and $b.
+ $b += 5;   		# $a is changed!
+
+If you want to force a physical copy and no data flow, you can copy or
+sever the slice expression:
+
+ $b = $a->slice("1:3")->copy;
+ $b += 5;		# $a is not changed.
+
+ $b = $a->slice("1:3")->sever;
+ $b += 5;               # $a is not changed.
+
+The difference between C<sever> and C<copy> is that sever acts on (and
+returns) its argument, while copy produces a disconnected copy.  If you
+say
+
+ $b = $a->slice("1:3");
+ $c = $b->sever;
+
+then the variables C<$b> and C<$c> point to the same object but with 
+C<-E<gt>copy> they would not.
 
 =head1 BUGS 
 

@@ -1,3 +1,5 @@
+CED 15-Apr-04
+   - FITS.pm: minor fix for all-BAD case.
 CED 08-Apr-04
    - NiceSlice.pm, Core.pm.PL: added dummy syntax to NiceSlice.
    - slices.pd: minor improvements to documentation

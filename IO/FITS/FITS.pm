@@ -563,6 +563,7 @@ sub _rfits_image() {
     # ensure we pick an element that is not equal to the bad value
     # (is this OTT?)
     my $tmp;
+
     if ( $pdl->badflag() == 0 ) {
       $tmp = $pdl->flat()->slice("0:0");
     } elsif ( $pdl->ngood > 0 ) {
@@ -575,6 +576,7 @@ sub _rfits_image() {
       print "All elements are bad.\n" if $PDL::verbose;
       
       delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
+      $tmp = $pdl;
     }  #end of BSCALE section (whew!)
     
     
