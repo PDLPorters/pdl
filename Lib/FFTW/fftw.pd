@@ -166,6 +166,7 @@ EOD
 pp_addpm('
 
 use PDL;
+use PDL::ImageND qw/kernctr/;
 use strict;
 
 my ($wisdom_fname, $wisdom_loaded, %plan_cache, $datatype, $warn_conv);
@@ -1005,7 +1006,7 @@ PDL_fftw_export_wisdom_to_string ()
 
 
 pp_add_exported('','load_wisdom save_wisdom rfftw irfftw fftw ifftw
-nfftw infftw nrfftw inrfftw fftwconv rfftwconv');
+nfftw infftw nrfftw inrfftw fftwconv rfftwconv kernctr');
 
 # I don't see a point in exporting these (CS)
 # 'PDL_rfftwnd_create_plan PDL_rfftwnd_one_real_to_complex PDL_rfftwnd_one_complex_to_real PDL_fftw_export_wisdom_to_string PDL_fftw_import_wisdom_from_string PDL_inplace_fftwnd_one PDL_fftwnd_one PDL_fftwnd_create_plan PDL_inplace_rfftwnd_one_real_to_complex PDL_inplace_rfftwnd_one_complex_to_real';

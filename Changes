@@ -1,3 +1,9 @@
+CS 22/03/03
+   - renamed det in slatec.pd to detsclatec; avoids name clash with
+     PDL::MatrixOps::det; I tried to make the change backwards compatible
+   - PDL::ImageND, PDL::FFT, PDL::FFTW: moved kernctr from PDL::FFT into
+     PDL::ImageND so it can be used by both PDL::FFT and PDL::FFTW; both
+     PDL::FFT and PDL::FFTW export it now by default
 CED 20-March-2003
     - pdlhash.c: if PDL::BIGPDL is true, then ignore the 1-Gb limit on PDLs.
     - Window.pm: 
