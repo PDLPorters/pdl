@@ -2082,7 +2082,7 @@ sub replay {
     # turn on recording, let us remind him/her
 
     warn "Replaying an empty state - did you turn on recording?\n";
-    print "Hint: Put PDL::Graphics::PGPLOT::Window::RECORDING=1 in your .perldlrc file\n"
+    print "Hint: Put PDL::Graphics::PGPLOT::RECORDING=1 in your .perldlrc file\n"
   }
 
   foreach my $arg (@list) {
