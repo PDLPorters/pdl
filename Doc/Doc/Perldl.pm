@@ -28,18 +28,27 @@ use vars qw(@ISA @EXPORT);
 
 use PDL::Doc;
 use IO::File;
+use Pod::Text;
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = new PDL::Doc (FindStdFile());
 
-# we use a private routine from Pod::Text
-# (prepare_for_output) in printmatch() in order
-# to strip away pod directives from the ref
-# string
-# --- XXX NAUGHTY NAUGHTY NAUGHTY XXX ---
-# but I couldn't (easily) see any other way to do it
+# pod commands are stripped from the ref string before printing.
+# How we do this depends on the version of Pod::Text installed.
 #
-use Pod::Text;
+# I'm guessing the difference in behaviour is between versions
+# 1 and 2 of Pod::Text (it's certainly true for 
+# version 1.0203 (perl5.005_03) and 2.03 (perl 5.6.0))
+#
+# version 1:
+#  we use a private routine from Pod::Text
+#  (prepare_for_output) in printmatch() in order
+#  to strip away pod directives from the ref
+#  string
+#
+# version 2: (Thanks to Tim Jenness)
+#  create an object and use the interpol() method
+#
 
 # Find std file
 
@@ -61,7 +70,7 @@ sub FindStdFile {
 # sensible lower limit (for printmatch >~ 40
 # would be my guess)
 #
-# taken from Pod::Text, then hacked to get it
+# taken from Pod::Text (v1.0203), then hacked to get it
 # to work (at least on my solaris and linux
 # machines)
 #
@@ -82,24 +91,44 @@ sub printmatch {
 	print "no match\n\n";
     } else {
 	# XXX this is NASTY
-	$Pod::Text::indent = 0;
-	$Pod::Text::SCREEN = screen_width()-17;
-	local $^W = 0;
-	for my $m (@match) { 
-	    $_ = $m->[1]->{Ref} || "[No reference available]";
-	    Pod::Text::prepare_for_output; # adds a '\n' to $_
-	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
-	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
-	    s/\n/\n                /g;
-	    my $name = $m->[0];
-	    if ( length($name) > 15 ) { 
-		printf "%s ...\n                %s\n", $name, $_; 
-	    } else {
-		printf "%-15s %s\n", $name, $_; 
+	my $width = screen_width()-17;
+	if ( $Pod::Text::VERSION < 2 ) {
+	    $Pod::Text::indent = 0;
+	    $Pod::Text::SCREEN = $width;
+	    local $^W = 0;
+	    for my $m (@match) { 
+		$_ = $m->[1]->{Ref} || "[No reference available]";
+	      Pod::Text::prepare_for_output(); # adds a '\n' to $_
+		$_ = Pod::Text::fill $_; # try and get `nice' wrapping 
+		s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
+		s/\n/\n                /g;
+		my $name = $m->[0];
+		if ( length($name) > 15 ) { 
+		    printf "%s ...\n                %s\n", $name, $_; 
+		} else {
+		    printf "%-15s %s\n", $name, $_; 
+		}
+	    }
+	} else {
+	    my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
+
+	    for my $m (@match) { 
+		my $ref = $m->[1]->{Ref} || "[No reference available]";
+		$ref = $parser->interpolate( $ref );
+		$ref = $parser->reformat( $ref );
+
+		$ref =~ s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
+		$ref =~ s/\n/\n                /g;
+		my $name = $m->[0];
+		if ( length($name) > 15 ) { 
+		    printf "%s ...\n                %s\n", $name, $ref; 
+		} else {
+		    printf "%-15s %s\n", $name, $ref; 
+		}
 	    }
 	}
     }
-}
+} # sub: printmatch()
 
 =head2 apropos
 
@@ -135,11 +164,11 @@ with the C<help> function
 =cut
 
 sub apropos  {
-	die "Usage: apropos \$funcname\n" unless $#_>-1;
-	die "no online doc database" unless defined $PDL::onlinedoc;
-	my $func = shift;
-	my @match = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
-	printmatch @match;
+    die "Usage: apropos \$funcname\n" unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $func = shift;
+    my @match = $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+    printmatch @match;
 }
 
 
