@@ -16,6 +16,14 @@ it was worth putting in my special code.
 
 Note this code is also used in the Karma package.
 
+Note it is not clear to me that this code is fully debugged. The reason
+I say that is because I tried using the internal linear eqn solving 
+C routines called elsewhere and they were giving erroneous results. 
+So steal from this code with caution! However it does give good fits to 
+reasonable looking gaussians and tests show correct parameters.
+    
+             KGB 29/Oct/2002
+
 =head1 SYNOPSIS
 
         use PDL::Fit::Gaussian;
