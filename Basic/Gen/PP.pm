@@ -1335,6 +1335,12 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
+sub indent($$) {
+  my ($text,$ind) = @_;
+  $text =~ s/^(.*)$/$ind$1/mg;
+  return $text;
+}
+
 # This subroutine generates the XS code needed to call the perl 'initialize'
 # routine in order to create new output PDLs
 sub callPerlInit {
@@ -1344,23 +1350,28 @@ sub callPerlInit {
   my $ret = '';
   
   foreach my $name (@$names) {
-    $ret .= "
+    $ret .= << "EOC";
 
+if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
+   $name\_SV = sv_newmortal();
+   $name = PDL->null();
+   PDL->SetSV_PDL($name\_SV,$name);
+   if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
+} else {
+   PUSHMARK(SP);
+   XPUSHs(sv_2mortal(newSVpv(objname, 0))); 
+   PUTBACK;
+   perl_call_method(\"initialize\", G_SCALAR);
+   SPAGAIN;                                                
+   $name\_SV = POPs; 
+   PUTBACK;
+   $name = PDL->SvPDLV($name\_SV);
+}
 
-$ci\PUSHMARK(SP);
-$ci\XPUSHs(sv_2mortal(newSVpv(objname, 0))); 
-$ci\PUTBACK;
-$ci\perl_call_method(\"initialize\", G_SCALAR);
-$ci\SPAGAIN;                                                
-${ci}$name\_SV = POPs; 
-$ci\PUTBACK;
-${ci}$name = PDL->SvPDLV($name\_SV);
-
-
-";
+EOC
   }
 
-  return $ret;
+  return indent($ret,$ci);
 }
 
     
@@ -1523,7 +1534,9 @@ sub VarArgsXSHdr {
 void
 $name(...)
  PREINIT:
-  char *objname = "PDL";
+  char *objname = "PDL"; /* maybe that class should actually depend on the value set
+                            by pp_bless ? (CS) */
+  HV *bless_stash = 0;
   int   nreturn;
 $svdecls
 $pars
@@ -1534,7 +1547,7 @@ $pars
   /* Check if you can get a package name for this input value.  It can be either a PDL (SVt_PVMG) or 
      a hash which is a derived PDL subclass (SVt_PVHV) */
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
-    objname = HvNAME(SvSTASH(SvRV(ST(0))));  /* The package to bless output vars into is taken from the first input var */
+    objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  /* The package to bless output vars into is taken from the first input var */
   }
   if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */
     nreturn = $noutca;

@@ -28,7 +28,10 @@ pp_addhdr('
 
 # simple binary operators
 sub biop {
-	my ($name,$op,$swap,%extra) = @_;
+	my ($name,$op,$swap,$doc,%extra) = @_;
+	my $optxt = $op;
+	if ($optxt =~ s/>/E<gt>/) {} else
+	{ $optxt =~ s/</E<lt>/}
 	if ($swap) {
 	  $extra{HdrCode} = << 'EOH';
   pdl *tmp;
@@ -43,12 +46,25 @@ EOH
 		Pars => 'a(); b(); [o]c();',
 		OtherPars => 'int swap',
 		Code => "\$c() = \$a() $op \$b();",
-		%extra);
+		%extra,
+		Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$c = $name \$a, \$b;
+   \$c = \$a $op \$b;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the binary C<$optxt> operator.
+EOD
 }
 
 #simple binary functions
 sub bifunc {
-	my ($name,$func,$swap,%extra) = @_;
+	my ($name,$func,$swap,$doc,%extra) = @_;
 	if ($swap) {
 	  $extra{HdrCode} = << 'EOH';
   pdl *tmp;
@@ -63,64 +79,88 @@ EOH
 		Pars => 'a(); b(); [o]c();',
 		OtherPars => 'int swap',
 		Code => "\$c() = $func(\$a(),\$b());",
-		%extra);
+		%extra,
+		Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$c = $name \$a, \$b;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the binary C<$func> function.
+EOD
 }
 
 # simple unary functions and operators
 sub ufunc {
-	my ($name,$func,%extra) = @_;
+	my ($name,$func,$doc,%extra) = @_;
 	pp_def($name,
 		Pars => 'a(); [o]b()',
 		Code => "\$b() = $func(\$a());",
-		%extra);
+		%extra,
+		Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$b = $func \$a;
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+This function is used to overload the unary C<$func> operator/function.
+EOD
 }
 
 
 ## arithmetic ops
 # no swap
-biop('plus','+',0);
-biop('mult','*',0);
+biop('plus','+',0,'add two piddles');
+biop('mult','*',0,'multiply two piddles');
 
 # all those need swapping
-biop('minus','-',1);
-biop('divide','/',1);
+biop('minus','-',1,'subtract two piddles');
+biop('divide','/',1,'divide two piddles');
 
 ## comparison ops
 # need swapping
-biop('gt','>',1);
-biop('lt','<',1);
-biop('le','<=',1);
-biop('ge','>=',1);
+biop('gt','>',1,'the binary E<gt> (greater than) operation');
+biop('lt','<',1,'the binary E<lt> (less than) operation');
+biop('le','<=',1,'the binary E<lt>= (less equal) operation');
+biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
 # no swap required
-biop('eq','==',0);
-biop('ne','!=',0);
+biop('eq','==',0,'binary I<equal to> operation (==)');
+biop('ne','!=',0,'binary I<not equal to> operation (!=)');
 
 ## bit ops
 # those need to be limited to the right types
 my $T = [B,U,S,L]; # the sensible types here
-biop('shiftleft','<<',1,GenericTypes => $T);
-biop('shiftright','>>',1,GenericTypes => $T);
-biop('orop','|',0,GenericTypes => $T);
-biop('andop','&',0,GenericTypes => $T);
-biop('xor','^',0,GenericTypes => $T);
+biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('orop','|',0,'binary I<or> of two piddles',GenericTypes => $T);
+biop('andop','&',0,'binary I<and> of two piddles',GenericTypes => $T);
+biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 
 # really an ufunc
-ufunc('bitnot','~',GenericTypes => $T);
+ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc('power','pow',1,GenericTypes => [D]);
-bifunc('atan2','atan2',1,GenericTypes => [D]);
-bifunc('modulo','MOD',1);
-bifunc('spaceship','SPACE',1);
+bifunc('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
+bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
+bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc('sqrt','sqrt');
-ufunc('abs','ABS',GenericTypes => [D,F,S,L]);
-ufunc('sin','sin');
-ufunc('cos','cos');
-ufunc('not','!');
-ufunc('log','log',GenericTypes => [D]);
-ufunc('exp','exp',GenericTypes => [D]);
+ufunc('sqrt','sqrt','elementwise square root');
+ufunc('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
+ufunc('sin','sin','the sin function');
+ufunc('cos','cos','the cos function');
+ufunc('not','!','the elementwise I<not> operation');
+ufunc('log','log','the natural logarithm',GenericTypes => [D]);
+ufunc('exp','exp','the exponential function',GenericTypes => [D]);
 
 pp_addpm({At=>Bot},<<'EOPM');
 
