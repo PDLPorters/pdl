@@ -448,6 +448,41 @@ NOTE: NOT a method! This is because get_datatype returns
  perldl> p howbig(ushort([1..10])->get_datatype)
  2
 
+
+=head2 get_dataref
+
+=for ref
+
+Return the internal data for a piddle, as a perl SCALAR ref.  
+
+Most piddles hold their internal data in a packed perl string, to take
+advantage of perl's memory management.  This gives you direct access
+to the string, which is handy when you need to manipulate the binary
+data directly (e.g. for file I/O).  If you modify the string, you'll
+need to call L<upd_data|upd_data> afterward, to make sure that the
+piddle points to the new location of the underlying perl variable.
+
+You shouldn't mess with the SV unless you've called
+L<make_physical|make_physical> or something similar.  You definitely
+don't want to do anything to the SV to truncate or deallocate the
+string, unless you correspondingly call L<reshape|reshape> to make the
+PDL match its new data dimension.
+
+You definitely don't want to use get_dataref unless you know what you
+are doing (or are trying to find out): you can end up scrozzling
+memory if you shrink or eliminate the string representation of the
+variable.  Here be dragons.
+
+=head2 upd_data
+
+=for ref 
+
+Update the data pointer in a piddle to match its perl SV.
+
+This is useful if you've been monkeying with the packed string
+representation of the PDL, which you probably shouldn't be doing
+anyway.  (see L<get_dataref|get_dataref>.)
+
 =cut
 
 sub topdl {PDL->topdl(@_)}
