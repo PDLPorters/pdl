@@ -559,8 +559,8 @@ pp_def( 'kimagergb_private',
 );
 
 pp_def('koverlay',
-	Pars => 'x(); y(); r(); ell(); PA(); fill()',
-	OtherPars => 'char* karma_app; char* colour; int coordtype;',Doc=><<'EOD',
+	Pars => 'x(); y(); r(); ell(); PA(); fill(); int id();',
+	OtherPars => 'char* karma_app; char* colour; int coordtype; int dotext;',Doc=><<'EOD',
 
 =head2 koverlay
 
@@ -585,7 +585,8 @@ koverlay $x, sqrt($x), {Radius=>$x/3, Colour=>'green', App=>'kpolar'}
   Radius - [piddle] specify radius of ellipses (major axis if ellipse). Default = 10 units.
   Ellip  - [piddle] specify ellipticity of ellipses. Default = 0 i.e. circle.
   PA     - [piddle] specify principle axis (degrees rotation anticlockwise
-                    from the Y axis). Default=0.
+                    from the Y axis). Default.
+  ID     - [piddle] Numeric integer id labels to apply.
   Colour - [string] Colour name for overlay (e.g.  'red'). Default = 'blue'
   App    - [string] name of Karma app to send too
   Fill   - [piddle] whether outlines are filled (0 or 1). (Note filled,
@@ -597,11 +598,13 @@ koverlay $x, sqrt($x), {Radius=>$x/3, Colour=>'green', App=>'kpolar'}
 
 =cut
 EOD
-        Signature => 'x(); y(); {r(); ell(); PA(); fill();}',
+        Signature => 'x(); y(); {r(); ell(); PA(); fill(); int id();}',
 	Code => '
 	  double ell;
 	  int bad=0;
 	  int coordtype = $COMP(coordtype) == 1 ? OVERLAY_COORD_WORLD : OVERLAY_COORD_LINEAR;
+	  int dotext = $COMP(dotext);
+	  char string[81];
 
 	  printf("Sending to %s...\n",$COMP(karma_app));
 
@@ -626,6 +629,11 @@ EOD
 	                 coordtype, (double)$r(), (double)($r()*1.0/(1.0-ell)),
 			 (double)$PA(), $COMP(colour),
 			 (int)($fill() ? 1:0) );
+	     if (dotext) {
+	        sprintf(string,"%-80d\0", $id());
+	        overlay_text(mylist, string, coordtype, (double)($x()+0.8*$r()), (double)($y()+0.8*$r()*1.0/(1.0-ell)),
+		             $COMP(colour), "fixed", 0);
+             }
 	  %}
           while ( !overlay_have_token (mylist) ) dm_native_poll (-1);
           overlay_release_token (mylist);
@@ -639,20 +647,24 @@ sub PDL::koverlay {
    my $hash = pop @_ if ref($_[-1]) eq "HASH";
    barf("Usage: koverlay: \$x, \$y, {Options...} \n") if @_ != 2;
    my($x,$y) = @_;
-   my ($app,$col,$rad,$ell,$PA,$fill);
+   my ($app,$col,$rad,$ell,$PA,$fill,$id,$dotext);
    $app = $LASTAPP unless ($app = delete($hash->{App}));
    $col = "blue"   unless ($col = delete($hash->{Colour}));
    $rad = 10       unless ($rad = delete($hash->{Radius}));
    $ell = 0        unless ($ell = delete($hash->{Ellip}));
    $PA  = 0        unless ($PA   = delete($hash->{PA}));
    $fill = 0       unless ($fill = delete($hash->{Fill}));
+   $dotext = 1;
+   unless ($id = delete($hash->{ID})) {
+     $id = pdl(0); $dotext = 0;
+   }
 
    my $supported = {"WORLD"=>1, "PIXEL"=>2};
    my $type=1;
    $type = $supported->{uc($hash->{Coords})} if defined $hash->{Coords};
    barf "koverlay: Unsupported coordinate type" unless $type;
 
-   &PDL::_koverlay_int($x,$y,$rad,$ell,$PA,$fill,$app,$col,$type);
+   &PDL::_koverlay_int($x,$y,$rad,$ell,$PA,$fill,$id,$app,$col,$type,$dotext);
    $LASTAPP = $app;
 
 }

@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef bool
+#undef bool
+#endif
 #ifdef CURSES
 #include <curses.h>
 #endif
@@ -10,7 +13,9 @@
 #include "pdl.h"
 
 #define CHBUF  256
+#ifndef MIN
 #define MIN(a,b) ((a)<(b)?(a):(b))
+#endif
 
 /* enum pdl_datatypes { PDL_B, PDL_S, PDL_US, PDL_L, PDL_F, PDL_D }; */
 #define HLAB   4
@@ -217,8 +222,8 @@ void browse(int type, int nc, int nr, void *in)
   wmenu  = subwin(stdscr,1,COLS,0,0);
   wvlab  = subwin(stdscr,1,mycols,1,HLAB);
   wscroll= subwin(stdscr,drows,mycols+HLAB,2,0);
-  warray = derwin(wscroll,drows,mycols,0,HLAB);
-  whlab  = derwin(wscroll,drows,HLAB,0,0);
+  warray = subwin(wscroll,drows,mycols,2,HLAB);
+  whlab  = subwin(wscroll,drows,HLAB,2,0);
 
   keypad(warray,TRUE);
   scrollok(stdscr,TRUE);

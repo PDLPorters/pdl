@@ -39,22 +39,29 @@ sub dmax {
 
 # output any errors that have accumulated
 sub show_err {
-  my $file = shift;
+  my ($file,$showflag) = @_;
+  my $err;
+  $showflag = 1 unless defined $showflag;
   if (-s "$file") {
     open(INPUT,$file) or barf "Can't open error file";
-    while (<INPUT>) {
-      print STDERR "converter: $_";
+    if ($showerr) {
+      while (<INPUT>) {
+       print STDERR "converter: $_";
+      }} else {
+       $err = join('',<INPUT>);
     }
   }
   close INPUT;
   unlink $file;
+  return $err unless $showflag;
 }
 
 # barf after showing any accumulated errors
 sub rbarf {
-  show_err(shift);
-  barf @_;
+  my $err = show_err(shift, 0);
+  barf @_,"converter error: $err";
 }
+
 # carp after showing any accumulated errors
 sub rcarp {
   show_err(shift);
@@ -133,11 +140,12 @@ sub PDL::rpnm {
     # catch STDERR
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    open(PNM, $file) or rbarf $efile,"Can't open pnm file";
-    binmode PNM;
+    my $succeed = open(PNM, $file);
     # redirection now in effect for child
     close(STDERR);
     open(STDERR, ">&SAVEERR");
+    rbarf $efile,"Can't open pnm file" unless $succeed;
+    binmode PNM;
 
     read(PNM,(my $magic),2);
     rbarf $efile, "Oops, this is not a PNM file" unless $magic =~ /P[1-6]/;
@@ -269,10 +277,11 @@ sub PDL::wpnm {
     my $pref = ($file !~ /^\s*[|>]/) ? ">" : "";  # test for plain file name
     open(SAVEERR, ">&STDERR");
     open(STDERR, ">$efile") || barf "Can't redirect stderr";
-    open(PNM, $pref . $file) or barf "Can't open pnm file";
-    binmode PNM;
+    my $succeed = open(PNM, $pref . $file);
     close(STDERR);
     open(STDERR, ">&SAVEERR");
+    rbarf $efile, "Can't open pnm file" unless $succeed;
+    binmode PNM;
 
     print "writing ". ($israw ? "raw" : "ascii") .
       "format with magic $magic\n" if $PDL::debug;
@@ -290,8 +299,8 @@ sub PDL::wpnm {
 
     # check if our child returned an error (in case of a pipe)
     if (!(close PNM)) {
-      show_err($efile);
-      barf "wpnm: child (pbmconverter) returned error";
+      my $err = show_err($efile,0);
+      barf "wpnm: pbmconverter error: $err";
     }
     unlink($efile);
 }

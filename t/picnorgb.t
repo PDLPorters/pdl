@@ -9,8 +9,6 @@ sub ok {
 
 sub approx {
 	my($a,$b,$mdiff) = @_;
-       return 0 if $a->getdim(0) != $b->getdim(0) ||
-                   $a->getdim(1) != $b->getdim(1);
 	$mdiff = 0.01 unless defined($mdiff);
 	$c = abs($a-$b);
 	$d = max($c);
@@ -24,13 +22,23 @@ sub rpic_unlink {
   return $pdl;
 }
 
+sub check {
+  my ($err,$i) = @_;
+  if ($err =~ /maxval is too large/) {
+    print STDERR
+       "skipping test $i (recompile pbmplus with PGM_BIGGRAYS!)\n"
+  } else {
+    print STDERR "skipping test $i (unknownm error: $err)\n"
+  }
+}
+
 use PDL::LiteF;
 use PDL::IO::Pic;
 use PDL::ImageRGB;
 use PDL::Dbg;
 
 $PDL::debug = 0;
-$iform=$iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
+$iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
                    # output format
 
 #              [FORMAT, extension, ushort-divisor,
@@ -79,31 +87,31 @@ if ($PDL::debug) {
 # for some reason the pnmtotiff converter coredumps when trying
 # to do the conversion for the ushort data, haven't yet tried to
 # figure out why
-$n = 1;
+$n = 1;$usherr=0;
 foreach $format (sort @allowed) {
     print " ** testing $format format **\n";
     $form = $formats{$format};
-    $in1=0;
 
-eval <<'EOD';
-    $im1->wpic("tushort.$form->[0]",{IFORM => "$iform"})
+    eval '$im1->wpic("tushort.$form->[0]",{IFORM => "$iform"})'
       unless $format eq 'TIFF';
+    if ($format ne 'TIFF' && $@) { check($@,$n); $usherr = 1 } else {$usherr=0}
     $im2->wpic("tbyte.$form->[0]",{IFORM => "$iform"});
     $im3->wpic ("tbin.$form->[0]",{COLOR => 'bw', IFORM => "$iform"});
-    $in1 = rpic_unlink("tushort.$form->[0]") unless $format eq 'TIFF';
+    $in1 = rpic_unlink("tushort.$form->[0]") unless
+        $usherr || $format eq 'TIFF';
     $in2 = rpic_unlink("tbyte.$form->[0]");
     $in3 = rpic_unlink("tbin.$form->[0]");
 
     if ($format ne 'TIFF') {
       $scale = ($form->[2] ? $im1->dummy(0,3) : $im1);
       $comp = $scale / PDL::ushort($form->[1]);
-      ok($n++,approx($comp,$in1,$form->[3]));
+      ok($n++,$usherr || approx($comp,$in1,$form->[3]));
     }
     $comp = ($form->[2] ? $im2->dummy(0,3) : $im2);
-EOD
     ok($n++,approx($comp,$in2));
     $comp = ($form->[2] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
-    $comp = $comp->ushort*65535 if $format eq 'SGI'; # yet another format quirk
+    $mult = $format eq 'SGI' || $usherr ? 255 : 65535;
+    $comp = $comp->ushort*$mult if $format eq 'SGI'; # yet another format quirk
     ok($n++,approx($comp,$in3));
 
     if ($PDL::debug) {

@@ -39,6 +39,8 @@ use PDL::Basic '';
 use PDL::Slices '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
 
+$PDL::Lite::VERSION = $PDL::Version::VERSION;
+
 ;# Exit with OK status
 
 1;

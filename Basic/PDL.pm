@@ -25,6 +25,11 @@ issue.
 
 =cut
 
+
+# get the version: 
+use PDL::Version;
+$PDL::VERSION = $PDL::Version::VERSION;
+
 # Main loader of standard PDL package
 
 sub PDL::import {
@@ -41,7 +46,6 @@ use PDL::Ops;
 use PDL::Primitive;
 use PDL::Basic;
 use PDL::Slices;
-use PDL::Version;
 
 # Load these for TPJ compatibility
 

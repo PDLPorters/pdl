@@ -203,6 +203,34 @@ for (keys %PDL::Types::typehash) {
 
       }
 
+      void pdl_qsort_ind_$ppsym($ctype* xx,  int* ix, int a, int b) {
+
+         int i,j;
+
+         int t;
+        $ctype median;
+
+         i = a; j = b;
+         median = xx[ix[(i+j) / 2]];
+
+         do {
+          while (xx[ix[i]] < median)
+               i++;
+            while (median < xx[ix[j]])
+               j--;
+            if (i <= j) {
+               t = ix[i]; ix[i] = ix[j]; ix[j] = t;
+               i++; j--;
+            }
+         } while (i <= j);
+
+         if (a < j)
+            pdl_qsort_ind_$ppsym(xx,ix,a,j);
+         if (i < b)
+            pdl_qsort_ind_$ppsym(xx,ix,i,b);
+
+      }
+
    ");
 }
 
@@ -336,8 +364,36 @@ pp_def('qsort',
 
 Quicksort a vector into ascending order.
 
-XXX Todo: qsortind
+=for example
 
+print qsort random(10);
+
+=cut
+');
+
+
+pp_def('qsorti',
+        Pars => 'a(n); int [o]indx(n);',
+        Code => '
+           int nn;
+          int i=0;
+           nn = $COMP(__n_size)-1;
+          loop(n) %{ $indx() = i++; %}
+           $TBSULFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
+             pdl_qsort_ind_L,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
+            0, nn);
+
+', Doc=>'
+=for ref
+
+Quicksort a vector and return index of elements in ascending order.
+
+=for example
+
+$ix = qsorti $a;
+print $a->index($ix); # Sorted list
+
+=cut
 ');
 
 

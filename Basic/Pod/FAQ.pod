@@ -872,7 +872,7 @@ you have the connection between the two types of use of the term.
 =head2  What is a piddle C<(;)> ?
 
 Well, PDL scalar variables (which are instances of a particular class
-of perl objects, i.e. blessed thingies (see L<perlfaq>)) are
+of perl objects, i.e. blessed thingies (see I<perlfaq>)) are
 in common PDL parlance often called I<piddles> (for example, check the
 mailing list archives). Err, clear? If not, simply use the term
 I<piddle> when you refer to a PDL variable (an instance of a PDL

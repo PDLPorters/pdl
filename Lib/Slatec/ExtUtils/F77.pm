@@ -23,10 +23,10 @@ variable F77LIBS, e.g.
   % setenv F77LIBS "-lfoo -lbar"
   % perl Makefile.PL
   ...
-  
+
 =cut
 
-$VERSION = "1.07";
+$VERSION = "1.08";
 
 # Database starts here. Basically we have a large hash specifying
 # entries for each os/compiler combination. Entries can be code refs
@@ -86,7 +86,7 @@ $F77config{Solaris}{DEFAULT} = 'F77';
 ### Generic GNU-77 or F2C system ###
 
 $F77config{Generic}{G77}{Link} = sub {
-    my $dir = `gcc -print-file-name=libf2c.a`;
+    my $dir = `g77 -print-file-name=libf2c.a`;
     if( $dir ) {
         $dir =~ s,/libf2c.a$,,;
     } else {
@@ -124,7 +124,8 @@ $F77config{Hpux}{DEFAULT}     = 'F77';
 
 ### IRIX ###
 
-$F77config{Irix}{F77}{Link}   = "-L/usr/lib -lF77 -lI77 -lU77 -lisam -lm";
+$F77config{Irix}{F77}{Link}   =  $Config{cc} =~ /-n32/ ? '-L/usr/lib32 -lftn -lm' :
+   "-L/usr/lib -lF77 -lI77 -lU77 -lisam -lm" ;
 $F77config{Irix}{F77}{Trail_} = 1;
 $F77config{Irix}{DEFAULT}     = 'F77';
 
@@ -192,27 +193,27 @@ sub import {
      # Try this combination
 
      if (defined( $F77config{$system} )){
-     	my $flibs = get ($F77config{$system}{$compiler}{Link});
-     	$Runtime = $flibs . gcclibs();
-     	$ok = validate_libs($Runtime) if $flibs ne "";
+        my $flibs = get ($F77config{$system}{$compiler}{Link});
+        $Runtime = $flibs . gcclibs();
+        $ok = validate_libs($Runtime) if $flibs ne "";
      }else {
-     	$Runtime = $ok = "";
+        $Runtime = $ok = "";
      }
 
      # If it doesn't work try Generic + GNU77
 
      unless (defined($Runtime) && $ok) {
-     	print <<"EOD";
+        print <<"EOD";
 $Pkg: Unable to guess and/or validate system/compiler configuration
 $Pkg: Will try system=Generic Compiler=G77
 EOD
-    	 $system   = "Generic";
-    	 $compiler = "G77";
-    	 my $flibs = get ($F77config{$system}{$compiler}{Link});
-    	 $Runtime =  $flibs. gcclibs();
-    	 $ok = validate_libs($Runtime) if $flibs ne "";
-    	 print "$Pkg: Well that didn't appear to validate. Well I will try it anyway.\n"
-    	      unless $Runtime && $ok;
+         $system   = "Generic";
+         $compiler = "G77";
+         my $flibs = get ($F77config{$system}{$compiler}{Link});
+         $Runtime =  $flibs. gcclibs();
+         $ok = validate_libs($Runtime) if $flibs ne "";
+         print "$Pkg: Well that didn't appear to validate. Well I will try it anyway.\n"
+              unless $Runtime && $ok;
        }
  
       $RuntimeOK = $ok;
@@ -234,25 +235,25 @@ EOD
    }
   
    if (defined( $F77config{$system}{$compiler}{Compiler} )) {
-	$Compiler = $F77config{$system}{$compiler}{Compiler};
+        $Compiler = $F77config{$system}{$compiler}{Compiler};
    } else {
-	print << "EOD";
+        print << "EOD";
 $Pkg: There does not appear to be any configuration info about
 $Pkg: the F77 compiler name. Will assume 'f77'.
 EOD
-	$Compiler = 'f77';
+        $Compiler = 'f77';
    }
 print "$Pkg: Compiler: $Compiler\n";
 
    if (defined( $F77config{$system}{$compiler}{Cflags} )) {
-	$Cflags = $F77config{$system}{$compiler}{Cflags};
+        $Cflags = $F77config{$system}{$compiler}{Cflags};
    } else {
-	print << "EOD";
+        print << "EOD";
 $Pkg: There does not appear to be any configuration info about
 $Pkg: the options for the F77 compiler. Will assume none
 $Pkg: necessary.
 EOD
-	$Cflags = '';
+        $Cflags = '';
    }
 
    print "$Pkg: Cflags: $Cflags\n";
@@ -271,7 +272,7 @@ EOD
  [probably more to come.]
 
 =cut
-	
+        
 sub runtime { return $Runtime; }
 sub runtimeok { return $RuntimeOK; }
 sub trail_  { return $Trail_; }
@@ -396,9 +397,9 @@ sub find_in_path {
    for my $name (@names) {
       for my $dir (@path) {
          if (-x $dir."/$name") {
-	    print "Found compiler $name\n";
-	    return $name;
-	  }
+            print "Found compiler $name\n";
+            return $name;
+          }
       }
    }
    die "Unable to find a fortran compiler using names: ".join(" ",@names);
@@ -407,4 +408,5 @@ sub find_in_path {
 
 
 1; # Return true
+
 

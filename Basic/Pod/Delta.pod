@@ -59,7 +59,7 @@ The F<README> file for general stuff.
 
 =head1 HISTORY
 
-pdldelta was inspired by L<perldelta>  man page in the perl
+pdldelta was inspired by I<perldelta>  man page in the perl
 5.004 distribution.
 
 

@@ -53,6 +53,8 @@ much easier to accomplish, just like making the above unit matrix.
 
 =cut
 
+use PDL::Core ':Internal';
+
 EOD
 
 # $::PP_VERBOSE=1;
@@ -1103,7 +1105,7 @@ pp_def(
 
 All threaded dimensions are made real again.
 
-See L<XXX> for details and examples.
+See [TBD Doc] for details and examples.
 
 =cut
 EOD
@@ -1135,6 +1137,150 @@ EOD
 
 
 pp_addpm({At => Bot},<< 'EOD');
+
+=head2 dice
+
+=for ref
+
+Dice rows/columns/planes out of a PDL using indexes for
+each dimension.
+
+This method can be used to extract irregular subsets
+along many dimension of a PDL, e.g. only certain rows in an image,
+or planes in a cube. This can of course be done with
+the usual dimension tricks but this saves having to
+figure it out each time!
+
+This method is similar in functionality to the slice
+method, but slice requires that contiguous ranges or ranges
+with constant offset be extracted. ( i.e. slice requires 
+ranges of the form 1,2,3,4,5 or 2,4,6,8,10). Because of this
+restriction, slice is more memory efficient and slightly faster
+than dice
+
+=for usage
+
+ $slice = $data->dice([0,2,6],[2,1,6]); # Dicing a 2-D array
+
+The arguments to dice are arrays (or 1D PDLs) for each dimension
+in the PDL. These arrays are used as indexes to which rows/columns/cubes,etc
+to dice-out (or extract) from the $data PDL. 
+
+=for example 
+
+ perldl> $a = sequence(10,4)
+ perldl> p $a
+
+ [
+  [ 0  1  2  3  4  5  6  7  8  9]
+  [10 11 12 13 14 15 16 17 18 19]
+  [20 21 22 23 24 25 26 27 28 29]
+  [30 31 32 33 34 35 36 37 38 39]
+ ]
+
+ perldl> p $a->dice([1,2],[0,3]) # Select columns 1,2 and rows 0,3
+
+ [
+  [ 1  2]
+  [31 32]
+ ]
+
+As this is an index function, any modifications to the
+slice change the parent.
+
+=cut
+
+sub PDL::dice { 
+
+	my $self = shift;
+	my @dim_indexes = @_;  # array of dimension indexes
+	
+	#Check that the number of dim indexes = number of dimensions in the PDL
+	my $no_indexes = scalar(@dim_indexes);
+	my $noDims = $self->getndims;
+	barf("PDL::dice: Number of index arrays ($no_indexes) not equal to the dimensions of the PDL ($noDims")
+			 if $no_indexes != $noDims;
+	my $index;
+	my $pdlIndex;
+	my $outputPDL=$self;
+	my $indexNo = 0;
+
+	# Go thru each index array and dice the input PDL:
+	foreach $index(@dim_indexes){
+                # Convert array refs to PDLs, otherwise use topdl:
+
+		$outputPDL = $outputPDL->dice_axis($indexNo,$index);
+
+		$indexNo++;
+	}
+
+	return $outputPDL;
+}  
+
+=head2 dice_axis
+
+=for ref
+
+Dice rows/columns/planes from a single PDL axis (dimension)
+using index along a specified axis
+
+This method can be used to extract irregular subsets
+along any dimension, e.g. only certain rows in an image,
+or planes in a cube. This can of course be done with
+the usual dimension tricks but this saves having to
+figure it out each time!
+
+=for usage
+
+ $slice = $data->dice_axis($axis,$index);
+
+=for example
+
+ perldl> $a = sequence(10,4)
+ perldl> $idx = pdl(1,2)
+ perldl> p $a->dice_axis(0,$idx) # Select columns
+
+ [
+  [ 1  2]
+  [11 12]
+  [21 22]
+  [31 32]
+ ]
+
+ perldl> $t = $a->dice_axis(1,$idx) # Select rows
+ perldl> $t.=0
+ perldl> p $a
+
+ [
+  [ 0  1  2  3  4  5  6  7  8  9]
+  [ 0  0  0  0  0  0  0  0  0  0]
+  [ 0  0  0  0  0  0  0  0  0  0]
+  [30 31 32 33 34 35 36 37 38 39]
+ ]
+
+The trick to using this is that the index selects
+elements along the dimensions specified, so if you
+have a 2D image axis=0 will select certain X values
+- i.e. extract columns
+
+As this is an index function, any modifications to the
+slice change the parent.
+
+=cut
+
+sub PDL::dice_axis { 
+  my($self,$axis,$idx) = @_;
+  
+  # Convert to PDLs: array refs using new, otherwise use topdl:
+  my $ix = (ref($idx) eq 'ARRAY') ? ref($self)->new($idx) : ref($self)->topdl($idx);
+  my $n = $self->getndims;
+  my $a = $ix->getndims;
+  barf("index_axis: index must be <=1D") if $a>1;
+  for ($a..$n-1) {
+     $ix = $ix->dummy(0);
+  }
+  return $self->mv($axis,0)->index($ix)->mv($n-1,$axis);
+}  
 
 =head1 AUTHOR
 

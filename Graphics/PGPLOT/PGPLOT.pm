@@ -53,7 +53,32 @@ world coordinate such that:
    X = tr[0] + tr[1]*i + tr[2]*j
    Y = tr[3] + tr[4]*i + tr[5]*j
 
+=head2 Variable passing and extensions
 
+In general variables are passed to the pgplot routines by using
+C<get_dataref>
+to get the reference to the values. Before passing to pgplot routines
+however, the data are checked to see if they are in accordance with the
+format (typically dimensionality) required by the PGPLOT routines.
+This is done using the routine C<checkarg> (internal to PGPLOT.) This routine
+checks the dimensionality of the input data. If there are superfluous
+dimensions of size 1 they will be trimmed away until the dimensionality
+is correct. Example:
+  Assume a piddle with dimensions (1,100,1,1) is passed to C<line>, which
+  expects its inputs to be vectors. C<checkarg> will then return a piddle
+  with dimensions (100). If instead the same piddle was passed to C<imag>,
+  which requires 2D piddles as output, C<checkarg> would return a piddle
+  with dimensionality (100, 1) (Dimensions are removed from the I<start>)
+Thus, if you want to provide support for another PGPLOT function, the
+structure currently look like this (there are plans to use the Options
+package to simplify the options parsing):
+  ($arg, $opt)=_extract_hash(@_);  # Extract the hash(es) on the commandline
+  <Check the number of input parameters>
+  <deal with $arg>
+  checkarg($x, 3); # For a hypothetical 3D routine.
+  ...
+  pgcube($n, $x->get_dataref);
+  1;
 =head2 Setting options
 
 All routines in this package take a hash with options as an optional
@@ -215,13 +240,18 @@ exist for the given function.
 =head2 dev
 
 =for ref
+
 Open PGPLOT graphics device
+
 =for usage
+
   Usage: dev $device, [$nx,$ny];
+
 $device is a PGPLOT graphics device such as "/xserve" or "/ps",
 if omitted defaults to last used device (or value of env
 var PGPLOT_DEV if first time).
 $nx, $ny specify sub-panelling.
+
 =head2 imag
 
 =for ref
@@ -613,7 +643,17 @@ sub checkarg {  # Check/alter arguments utility
     $type = $PDL_F unless defined $type;
     $arg = topdl($arg); # Make into a pdl
     $arg = convert($arg,$type) if $arg->get_datatype != $type;
-    barf "Data is >".$dims."D" if $arg->getndims > $dims;
+    if (($arg->getndims > $dims)) {
+      # Get the dimensions, find out which are == 1. If it helps
+      # chuck these off and return trimmed piddle.
+      my $n=nelem(which(pdl($arg->dims)==1));
+      barf "Data is >".$dims."D" if ($arg->getndims-$n) > $dims;
+      my $count=0;      my $qq;
+      my $s=join ',',
+      map {if ($_ == 1 && $count<$arg->getndims-$dims) {$qq='(0)'; $count++}
+         else {$qq= ''}; $qq} $arg->dims;
+      $arg=$arg->slice($s);
+    }
     $_[0] = $arg; # Alter
 1;}
 
@@ -1084,7 +1124,7 @@ sub imag {
   # There is little use for options here, but I could add support
   # for a contoured overlay.
 
-  barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>2;
+  barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
   my ($image,$min,$max,$tr) = @$in;
   checkarg($image,2);
   my($nx,$ny) = $image->dims;

@@ -27,7 +27,7 @@ comfortable with them it is time to check L<PDL::Indexing>.
 
 As you may appreciate from its name PDL::PP is a Pre-Processor, i.e.
 it expands code via substitutions to make real C-code (well, actually
-it outputs XS code (See L<perlxs>) but that is very close to
+it outputs XS code (See I<perlxs>) but that is very close to
 C).
 
 =head1 Overview
@@ -988,7 +988,11 @@ So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
 exports a few other functions to aid you in writing concise PDL extension
 package definitions.
 
+=begin html
+
 =head3 pp_addhdr
+
+=end html
 
 Often when you interface library functions as in the above example
 you have to include additional C include files. Since the XS file is
@@ -999,7 +1003,7 @@ to use when you want to define some C functions for internal use by some
 of the XS functions (which are mostly functions defined by C<pp_def>).
 By including these functions here you make sure that PDL::PP inserts your
 code before the point where the actual XS module section begins and will
-therefore be left untouched by xsubpp (cf. L<perlxs> and L<perlxstut>
+therefore be left untouched by xsubpp (cf. I<perlxs> and I<perlxstut>
 manpages).
 
 A typical call would be
@@ -1027,8 +1031,11 @@ C<pp_def>s, e.g.:
                  ',
   );
 
+=begin html
 
 =head3 pp_addpm
+
+=end html
 
 In many cases the actual PP code (meaning the arguments to C<pp_def>
 calls) is only part of the package you are currently
@@ -1073,7 +1080,11 @@ generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
 
    EOD
 
+=begin html
+
 =head3 pp_add_exported
+
+=end html
 
 You have probably got the idea. In some cases you also want to export
 your additional functions. To avoid getting into trouble with PP which
@@ -1084,15 +1095,22 @@ your functions to the list of exported functions:
 
 Note the initial empty string argument (reason for it?).
 
+=begin html
+
 =head3 pp_add_isa
 
-Similar as the C<pp_add_exported> function works the C<pp_add_isa>
-command. As the name already tells you C<pp_add_isa> adds its
-arguments to the @ISA list so that you can say, e.g.
+=end html
+
+The C<pp_add_isa> command works like the the C<pp_add_exported> function. 
+The arguments to C<pp_add_isa> are added the @ISA list, e.g.
 
   pp_add_isa(' Some::Other::Class ');
 
+=begin html
+
 =head3 pp_addxs
+
+=end html
 
 Sometimes you want to add extra XS code of your own
 (that is generally not involved with any threading/indexing issues
@@ -1128,10 +1146,14 @@ export tag ``:Func''). If you use C<pp_addxs> you shouldn't try to do anything
 that involves threading or indexing directly. PP is much better at generating
 the appropriate code from your definitions.
 
+=begin html
+
 =head3 pp_add_boot
 
+=end html
+
 Finally, you may want to add some code to the BOOT section of the XS file
-(if you don't know what that is check L<perlxs>). This is easily done
+(if you don't know what that is check I<perlxs>). This is easily done
 with the C<pp_add_boot> command:
 
   pp_add_boot(<<EOB);
@@ -1144,7 +1166,11 @@ with the C<pp_add_boot> command:
 	GlobalStruc->maxfiles = 200;
   EOB
 
+=begin html
+
 =head3 pp_export_nothing
+
+=end html
 
 By default, PP.pm puts all subs defined using the defpdl function into the output .pm
 file's EXPORT list. This can create problems if you are creating a subclassed
@@ -1158,7 +1184,11 @@ the end of the .pd file):
   pp_export_nothing();
   pp_done();
 
+=begin html
+
 =head3 pp_core_importList
+
+=end html
 
 By default, PP.pm puts the 'use Core;' line into the output .pm file. This imports Core's
 exported names into the current namespace, which can create 
@@ -1410,13 +1440,13 @@ execute following code if type of operation is any of C<TYPES>
 
 =head1 SEE ALSO
 
-L<PDL>
+I<PDL>
 
 For the concepts of threading and slicing check L<PDL::Indexing>.
 
 L<PDL::Internals>
 
-L<perlxs>, L<perlxstut>
+I<perlxs>, I<perlxstut>
 
 =head1 CURRENTLY UNDOCUMENTED
 

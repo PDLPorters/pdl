@@ -5,7 +5,7 @@ PDL::Indexing - how to index piddles.
 =head1 DESCRIPTION
 
 This manpage should serve as a first tutorial on the indexing and
-threading features of L<PDL>.
+threading features of I<PDL>.
 
 As part of the current PDL alpha release it is also still in alpha
 development and not yet complete. "Meta" comments that point out

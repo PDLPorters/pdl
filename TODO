@@ -26,8 +26,6 @@ Missing Features:
     constructos so $derived->xvals does not give you what
     you expect. Need to think about this some more.
 
-* qsortind
-
 * PDL::IO::Pic should barf when converter not available
 
 "#" = should work now.

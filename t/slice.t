@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..28\n";
+print "1..29\n";
 
 if(1) {
 
@@ -210,3 +210,7 @@ ok(27, approx($b,pdl([0])));
 $b = $a->slice('0:-14');
 eval 'print $b';
 ok(28, $@ =~ /Negative slice cannot start or end above limit/);
+
+# Test of dice and dice_axis
+$a = sequence(10,4);
+ok(29, $a->dice([1,2],[0,3])->sum == 66 );

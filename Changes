@@ -1,4 +1,38 @@
 (!!! = possible source of incompatibilities)
+1.99988
+Christian Soeller:
+	- patch to make the picrgb/picnorgb tests fail more gracefully
+          with the commonplace 'maxval too large' problem.
+	- Corrections for docs in PGPLOT.pm
+	- Fix for pnm.pd to revert the STDERR redirection after
+          a file is opened.
+
+Karl Glazebrook:
+	- Updated Slatec's F77.pm from version 1.07 to 1.08
+	- Added qsorti function.
+	- Added Karma text overlays
+        - Added new indexing function dice_axis
+	
+Robin Williams:
+	- Fix for browser warnings appearing on finicky systems.
+
+Jarle Brinchmann:
+	- Updated to PGPLOT.pm so that if you input a (100,1,100) image 
+	  to imag, the 1-element dimensions will be ignored. It also
+          checks that the piddle doesn't get too small, so that 
+          if you input a (100, 1, 1, 1) image, it will be 
+          treated as a (100,1) image by PGPLOT.
+
+John Cerney:
+	- Modified PP.pod to get rid of 'head3' errors from the pod2man 
+          converters
+	- Modified PDL.pm PDL::Lite.pm , PDL::LiteF.pm so that the $VERSION would
+   	  be picked up correctly. 'use PDL 2.0' now correctly checks the version.
+	- Fixed dead links in pod documentation. 
+	- Added dice and dice axis indexing functions in slice.pd 
+	   (Cerney and Glazeblook)
+	- Modified PdlParObj.pm to clarify 'too few dimemsions' errors.
+
 1.99987
 Karl Glazebrook:
 	- Fix for minor array bounds bug in image2d.pd
@@ -22,6 +56,8 @@ Tim Jenness:
 		(pdlapi.c, pdlcore.h and Core.xs )
 	- Patch to perldl.PL so that $string, $code
 	  and $coderef can be used by the user.
+	- Changes made to directory structure so
+	  NDF.pm would be installed correctly.
 
 Kaj Wiik
 	- Minor syntax fix to PG_PLOT.pm

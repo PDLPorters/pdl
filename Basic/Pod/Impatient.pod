@@ -105,7 +105,7 @@ And the blank quotes '' are regonised as meaning 'nothing'. You
 can also specify a list of functions to import in the normal Perl
 way.
 
-There is also an interactive shell, C<perldl>, see L<perldl>.
+There is also an interactive shell, C<perldl>, see I<perldl>.
 
 =head2 To create a new PDL variable
 

@@ -22,6 +22,11 @@ smaller see the C<PDL::Lite> module.
 
 =cut
 
+# get the version: 
+use PDL::Version;
+$PDL::LiteF::VERSION = $PDL::Version::VERSION;
+
+
 # Load the fundamental PDL packages, with imports
 
 sub PDL::LiteF::import {
@@ -36,7 +41,6 @@ use PDL::Ops;
 use PDL::Primitive;
 use PDL::Basic;
 use PDL::Slices;
-use PDL::Version;
 
 EOD
 

@@ -198,7 +198,7 @@ sub get_xsnormdimchecks { my($this) = @_;
 	$str .= "if(!__creating[$this->{Number}]) {";
 	$str .= "
 		if(($pdl)->ndims < $ninds) {
-			\$CROAK(\"Too few dimensions for $this->{Name}\\n\");
+			\$CROAK(\" Too few dimensions for argument \'$this->{Name}\'\\n\");
 		}
 	";
 # Now, the real check.
