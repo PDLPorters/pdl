@@ -27,3 +27,44 @@ and/or have a look at some of the online tutorials available
 on the web. A nice concise one is at
 
   http://www.cyclic.com/cvs/doc-blandy-text.html
+
+Very good and complete is the online version of the CVS book at
+
+  http://cvsbook.red-bean.com/cvsbook.html
+
+
+PDL Developer Guidelines:
+-------------------------
+
+The following guidelines are for any developer that has access
+to the PDL CVS repository.
+
+1) Before committing a change to the repository you should update:
+    - CHANGES file with a description of the change made. 
+    - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files
+      if applicable.
+
+2) Remember to include POD documentation for any functions you add to
+   the distribution. 
+    - See Basic/Core/Core.pm for an example of 
+      including POD documentation in .pm files. 
+    - See Basic/Core/Primitive/Primitive.pd for
+      an example of including POD documentation
+      in PDL .pd files. 
+    - read the documentation in PDL::Doc for a detailed
+      description of the PDL documentation conventions
+
+2) Make sure you add a test case in the 't' directory for any 
+   significant additional capability you add to the PDL
+   package.
+
+3) Don't commit before you successfully built and passed
+   'make test'. But then again, don't keep your changes
+   private for too long to avoid conflicts with other
+   developers.
+ 
+4) Bugs reported on the list should be entered into the bug
+   database and bugs closed when a patch has been committed as
+   a fix. (Primary responsibility for this task is the pumpking,
+   but other devels should be able to help.)
+  
