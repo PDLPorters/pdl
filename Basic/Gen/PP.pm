@@ -680,9 +680,10 @@ $PDL::PP::deftbl =
 
     # this can be removed once the default bad values are stored in a C structure
     # (rather than as a perl array in PDL::Types)
- [[NewXSCopyBadValues], [BadFlag,NewXSSymTab], 
-    "copybadvalues",
-    "Rule to copy the default bad values into the trnas structure"],
+    # which it now is, hence the comments (DJB 07/10/00)
+# [[NewXSCopyBadValues], [BadFlag,NewXSSymTab], 
+#    "copybadvalues",
+#    "Rule to copy the default bad values into the trnas structure"],
 
  [[NewXSCopyBadStatus], [BadFlag,_CopyBadStatusCode,NewXSArgs,USParObjs,NewXSSymTab], 
     "copybadstatus",
@@ -693,7 +694,7 @@ $PDL::PP::deftbl =
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
     [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
      NewXSFindBadStatus,
-     NewXSCopyBadValues,
+#     NewXSCopyBadValues,
      NewXSMakeNow, 
      NewXSFindDatatype,NewXSTypeCoerce,
      NewXSStructInit1,
@@ -711,7 +712,7 @@ $PDL::PP::deftbl =
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
     [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
      NewXSFindBadStatus,
-     NewXSCopyBadValues,
+#     NewXSCopyBadValues,
      NewXSMakeNow, 
      NewXSFindDatatype,NewXSTypeCoerce,
      NewXSStructInit1,
@@ -1952,36 +1953,37 @@ sub findbadstatus {
 
 } # sub: findbadstatus
 
-# if $badflag is set, then we assume that the routine has been 
-# changed to accomodate bad values, so we copy over the 
-# current bad values to  $sname->badvalues[]
-#
-sub copybadvalues {
-    my ( $badflag, $symtab ) = @_;
-    $badflag ||= 0;
-    return '' unless $badflag;
-
-    my $sname = $symtab->get_symname('_PDL_ThisTrans');
-    return  
-"if ( $sname\->bvalflag ) {
-    AV *aptr = NULL; /* access to bad values array */
-    int maxloop = -1;
-    int i;
-
-    aptr = perl_get_av( \"PDL::Types::badvals\", FALSE );
-    if ( aptr == NULL )
-        barf(\"Error: unable to access bad value array in PDL::Types\");
-
-    maxloop = av_len(aptr);
-    if ( maxloop != $ntypes ) 
-        barf(\"Error: bad value array size (PDL::Types) != $ntypes\");
-
-    for( i = 0; i <= $ntypes; i++ ) {
-        $sname->badvalues[i] = SvNV( *( av_fetch( aptr, i, 0 ) ) );
-    }
-}\n";
-
-} # sub: copybadvalues
+###  # if $badflag is set, then we assume that the routine has been 
+###  # changed to accomodate bad values, so we copy over the 
+###  # current bad values to  $sname->badvalues[]
+###  #
+###  sub copybadvalues {
+###      my ( $badflag, $symtab ) = @_;
+###      $badflag ||= 0;
+###      return '' unless $badflag;
+###  
+###      my $sname = $symtab->get_symname('_PDL_ThisTrans');
+###      return  
+###  "if ( $sname\->bvalflag ) {
+###      AV *aptr = NULL; /* access to bad values array */
+###      int maxloop = -1;
+###      int i;
+###  
+###      aptr = perl_get_av( \"PDL::Types::badvals\", FALSE );
+###      if ( aptr == NULL )
+###          barf(\"Error: unable to access bad value array in PDL::Types\");
+###  
+###      maxloop = av_len(aptr);
+###      if ( maxloop != $ntypes ) 
+###          barf(\"Error: bad value array size (PDL::Types) != $ntypes\");
+###  
+###      for( i = 0; i <= $ntypes; i++ ) {
+###          $sname->badvalues[i] = SvNV( *( av_fetch( aptr, i, 0 ) ) );
+###      }
+###  }\n";
+###  
+###  } # sub: copybadvalues
+###
 
 # copies over the bad value state to the output piddles
 #

@@ -89,10 +89,9 @@ WriteMakefile(
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
-                   'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
-		   'pdl.h pdlsimple.h Types.pm Version.pm '.
-		       'Core.pm Core.c Core.xs Dev.pm Types.pm pdl.h pdlapi.c pdlconv.c pdlsimple.h '
+                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) '.
+                   'pdlconv.c pdlsections.c pdlapi.c pdl.h pdlsimple.h pdlcore.h '.
+		   'Types.pm Version.pm Core.pm Core.c Core.xs Dev.pm Types.pm '
 		   },
  'INC'          => "$mallocinc",
 );

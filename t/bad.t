@@ -23,7 +23,7 @@ BEGIN {
 use PDL::LiteF;
 $| = 1;
 
-use constant BAD_BYTE => 255;
+use constant BAD_BYTE => byte->badvalue;
 
 # check default behaviour (ie no bad data)
 # - probably overkill

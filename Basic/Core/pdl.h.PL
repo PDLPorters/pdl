@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+# -*-perl-*-
 
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -13,7 +13,7 @@ my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
-my $ntypes = 1 + $#PDL::Types::names;
+my $ntypes = $#PDL::Types::names;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -67,6 +67,17 @@ $PDL_DATATYPES
 
 $mymalloc
 !GROK!THIS!
+
+# set up the badvalues structure
+my $badval_struct = "typedef struct badvals {\n";
+foreach my $i ( reverse(0 .. $ntypes) ) {
+    my $name = $PDL::Types::names[$i];
+    my $realctype = $PDL::Types::typehash{$name}->{realctype};
+    my $ctype     = $PDL::Types::typehash{$name}->{ctype};
+    $badval_struct .= "   $realctype _$ctype;\n";
+    $badval_struct .= "   $realctype default_$ctype;\n";
+}
+$badval_struct .= "} badvals;\n";
 
 print OUT <<'!NO!SUBS!';
 
@@ -223,11 +234,7 @@ typedef struct pdl_transvtable {
 !NO!SUBS!
 
     if ( $bvalflag ) {
-        # need to protect the \ because within "" here
-	print OUT <<"!WITH!SUBS!";
-        int bvalflag;              \\
-        double badvalues[$ntypes]; \\
-!WITH!SUBS!
+	print OUT "        int bvalflag;  \\\n";
     }
 
 print OUT <<'!NO!SUBS!';
@@ -291,6 +298,14 @@ typedef struct pdl_family_trans {
 } pdl_family_trans;
 
 struct pdl_magic;
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT $badval_struct;
+    }
+
+print OUT <<'!NO!SUBS!';
 
 /* We should try to keep this under 256-foo bytes at all costs */
 

@@ -49,7 +49,6 @@ print OUT <<'!NO!SUBS!';
 #define USE_MMAP
 #endif
 
-
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "XSUB.h"     /* XSUB include */
@@ -61,6 +60,14 @@ print OUT <<'!NO!SUBS!';
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT "#include <float.h>\n#include <limits.h>\n";
+    }
+
+print OUT <<'!NO!SUBS!';
 
 /* Return a integer or numeric scalar as approroate */
 
@@ -550,6 +557,20 @@ BOOT:
    PDL.allocdata      = pdl_allocdata;
    PDL.safe_indterm = pdl_safe_indterm;
 
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT <<'!NO!SUBS!';
+    PDL.bvals._PDL_Byte   = PDL.bvals.default_PDL_Byte   = UCHAR_MAX;
+    PDL.bvals._PDL_Short  = PDL.bvals.default_PDL_Short  = SHRT_MIN;
+    PDL.bvals._PDL_Ushort = PDL.bvals.default_PDL_Ushort = USHRT_MAX;
+    PDL.bvals._PDL_Long   = PDL.bvals.default_PDL_Long   = INT_MIN;
+    PDL.bvals._PDL_Float  = PDL.bvals.default_PDL_Float  = -FLT_MAX;
+    PDL.bvals._PDL_Double = PDL.bvals.default_PDL_Double = -DBL_MAX;
+
+!NO!SUBS!
+} # if: $bvalflag
+print OUT <<'!NO!SUBS!';
    /*
       "Publish" pointer to this structure in perl variable for use
        by other modules

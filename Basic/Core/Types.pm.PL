@@ -87,42 +87,17 @@ require Exporter;
 @PDL::Types::pack=("C*", "s*", "S*", "l*", "f*", "d*");
 @PDL::Types::names= qw/PDL_B PDL_S PDL_US PDL_L PDL_F PDL_D/;
 
-!NO!SUBS!
-
-# From Starlink
-#
-#include <float.h>
-#include <limits.h>
-# 
-#define VAL__BADF    -FLT_MAX
-#define VAL__BADD    -DBL_MAX
-#define VAL__BADI    INT_MIN
-#define VAL__BADS    SHRT_MIN
-#define VAL__BADUS   USHRT_MAX
-#define VAL__BADB    CHAR_MIN
-#define VAL__BADUB   UCHAR_MAX                                                  
-
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
-# Default magic values - can be changed by user
-# useful to have stored in an array since it makes access
-# from C code a lot easier (than if stored in the typehash
-# below, for instance)
-#
-@PDL::Types::badvals = ( 255, 0, 0, 0, -3e34, -3e34 );
-!NO!SUBS!
-}
-print OUT <<'!NO!SUBS!';
-
 # should be usable in a couple of places, e.g. Dev.pm (how to locate
 # during compilation?) and PDL::PP::PDLCode, also used in PDL::Dbg
 #
-# we do not store the bad values here as well, since any changes 
-# would have to be made here as well as @PDL::Types::badvals() 
-# and I don't think it's worthwhile
-#
 %PDL::Types::typehash = (
 !NO!SUBS!
+
+# NOTE:
+#
+# the bad values are now stored in a C structure accessible from the
+# PDL structure - see PDL::Bad for access routines
+#
 
 print OUT 
     map {

@@ -1,10 +1,18 @@
 
 Some suggestions:
 
-1) Implement storage of default bad values in a C struct, rather
-   than the perl array + copy into trans structure used now.
-   Plus look at introducing a per-piddle bad value (it shouldn't  
-   be much more, if any, code overhead than now).
+1) From: "Tuomas J. Lukka" <lukka@iki.fi>
+
+>    BadCode => 'if ( $b() == b_badval || $c() == c_badval ) { 
+
+Having to write the variable name twice is error-prone.
+How about $BAD($b()) or something like that?
+
+So we need two macros: 
+  $BAD($b())   which expands to '$b() == b_badval'
+  $GOOD($b())                   '$b() != b_badval'
+
+or can we not have nested macro definitions?
 
 2) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
@@ -13,6 +21,10 @@ Some suggestions:
 3) get the tests fixed
 
 4) 'bad-ify' the rest of the code...
+
+5) $pdl->badvalue(23) should not only set the default value for the
+   piddles type to 23 (with approproate casting), but it should
+   change the bad values in $pdl to 23 as well.
 
 Some notes/comments/random musings:
 
@@ -24,7 +36,8 @@ Trying to make zcover() (primitive.pd) work with bad values (if all
 values are bad, return bad, otherwise ignore the bad values). For
 some reason it doesn't work properly -- see primitive.pd for details.
 Something similar with nbadover/ngoodover (see t/bad,t).
- (XP)
+ (XP) 
+   this may not be an issue any more, or maybe machine specific   
 
 t/picnorgb.t wants to fail; in fact it seems a little flaky
 since 'make test' reports 4-6, 10 and 15 failing, whereas
@@ -40,26 +53,6 @@ of the tests).
        this test are screwing things up, but I doubt it)
  (XP)
 
-When setting the new bad value for a type, we need to ensure that
-the value 'fits' into that type (for one thing, this will probably
-confuse the string function) (HP)
-*PLUS*
-Qus: will it create bad values when a type goes out of range
-(eg byte += 256, or conversion from double to float), or
-should this be thought about a bit?
-
---> after comments from Tim Jenness, I think it would make more sense
-for the badvalues to be stored in a C structure, accessible via the
-PDL struct I'd imagine, since we can then do all the necessary casting,
-AND it removes the need for copying over the bad pixel values into 
-the transform structure.  (HP)
-
-It looks like 'int+ [o] b();' causes problems - specifically
-the '+' bit. (need to check to see whether this is still true)
-
-Perhaps we should have a 'reset' method to restore the bad values
-to their original (ie Types.pm) state. (LP)
-
 divide in ops.pd should trap '/ 0' cases as well. 
 also special cases for sqrt(), log ... (HP)
 
@@ -71,12 +64,9 @@ get_xsdatapdecl() method needs changing to access the per-piddle
 bad value rather than the values stored in the trans structure
 (or global C structure, when that gets implemented). The actual
 code wouldn't need changing, as long as it was written using
-<piddle>_badval for each piddle. It would mean that checks for
-isbad() should be done at the C level, but I think we're going to have
-to do that anyway...
-
-print float containing bad value does not produce 'BAD' -
-I think we're going to have to do the bad-value checks in C.
+<piddle>_badval for each piddle. Actually, when the $BAD() and
+$GOOD() macros get implemented it will ease the change to 
+per-pdl bad values (if we go that route).
 
 Qus: how does this integrate with NaN handling?
 
@@ -85,7 +75,7 @@ ie is (a > badval) true, false, or what. Well, we could have
 it return a bad value. However, this would cause unpredictable
 results (eg if( any $a > 0 ) and any $a returns a bad value, then
 if the bad value is 0, the check fails, otherwise it succeeds...)
-NASTY.
+NASTY. - see zcover in primitive.pd for some comments
 
 Qus: [not really bad pixel stuff] - are the #define THISIS... lines
 necessary in type-looped PP code?
@@ -103,3 +93,14 @@ Perhaps all routines should copy across the badflag, and only
 copy over bad value for each type if HandleBad is specified.
 --> have implemented this.
 
+This has been done:
+
+   Implement storage of default bad values in a C struct, rather
+   than the perl array + copy into trans structure used now.
+   Plus look at introducing a per-piddle bad value (it shouldn't  
+   be much more, if any, code overhead than now).
+
+Perhaps we should have a 'reset' method to restore the bad values
+to their original (ie Types.pm) state. 
+--> well, there's no reset method, but orig_badvalue( <type> )
+returns the origin badvalue, so you can set it if desired.

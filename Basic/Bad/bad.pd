@@ -31,7 +31,7 @@ included in the file.
 
 unless ( $bvalflag ) {
 
-    pp_addpm({At=>'Top'},<<"EOD");
+    pp_addpm({At=>'Top'},<<"!WITH!SUBS!");
 
 =head1 NAME
 
@@ -56,7 +56,7 @@ None.
 
 # do nothing
 
-EOD
+!WITH!SUBS!
 
     pp_export_nothing();
     pp_done();
@@ -66,7 +66,7 @@ EOD
 
 ########################################################3
 
-pp_add_exported( '', 'baddata badvalue isgood isbad' );
+pp_add_exported( '', 'baddata badvalue orig_badvalue' );
 
 pp_addpm({At=>'Top'},<<'!NO!SUBS!');
 
@@ -154,10 +154,9 @@ pp_addpm(<<'!NO!SUBS!');
 ############################################################
 ############################################################
 
-*baddata      = \&PDL::baddata;
-*badvalue     = \&PDL::badvalue;
-*isgood       = \&PDL::isgood;
-*isbad        = \&PDL::isbad;
+*baddata       = \&PDL::baddata;
+*badvalue      = \&PDL::badvalue;
+*orig_badvalue = \&PDL::badvalue;
 
 ############################################################
 ############################################################
@@ -192,9 +191,6 @@ returns the value used to indicate a missing (or bad) element
 for the given piddle type. You can give it a piddle, 
 a L<PDL::Type> object, or one of C<$PDL_B>, C<$PDL_S>, etc.
 
-Ugh - needs looking at. For instance, would prefer it to be
-in PDL::Bad rather than PDL::Core.
-
 =for example
 
    $badval = badvalue( float );
@@ -202,99 +198,190 @@ in PDL::Bad rather than PDL::Core.
    print "The bad data value for ushort is: ", 
       $a->badvalue(), "\n";
 
+TODO: when called via a piddle - eg C<$pdl->badvalue(23)> -
+then it should change not only the default bad value for that type, but
+change the value stored in the piddle as well.
+
 =cut
 
-sub PDL::badvalue {
-    my $x = shift; 
-    my $type;
-    if ( UNIVERSAL::isa($x,'PDL::Type') ) {
-	# XXX THIS SHOULD NOT HAPPEN ?
-	print "DBG: calling Type badvalue via PDL - a mess?\n";
-	$type = $x;
-    } elsif ( UNIVERSAL::isa($x,'PDL') ) {
-	$type = $x->type;
-    } else {
-	# assume it's a scalar value corresponding to $PDL_B, etc
-	$type = new PDL::Type $x;
-    }
-    return $type->badvalue;
-} # PDL::badvalue()
-
-############################################################
-############################################################
-
-=head2 isgood
+=head2 orig_badvalue
 
 =for ref
 
-Is a value good?
+returns the original value used to represent bad values for
+a given type.
 
-Returns a 1 if the value is good, 0 otherwise.
+This routine operates the same as L<badvalue|/badvalue>, 
+except you can not change the values.
 
 =for example
 
- $a = pdl(1,2,3);
- $a->baddata(1);
- set($a,1,$a->badvalue);
- $b = isgood(\$a);
- print $b, "\n";
- [1 0 1] (I hope)
-
-It's just another way of saying C<$a != $a->badvalue> - 
-in fact that's how it's implemented.
-
-NOTE: this should probably be re-done as a pp function.
-(see inequality biop in ops.pd).
+   $orig_badval = orig_badvalue( float );
+   $a = ones(ushort,10);
+   print "The original bad data value for ushort is: ", 
+      $a->orig_badvalue(), "\n";
 
 =cut
 
-sub PDL::isgood { 
-    my $x = shift;
-    if ( $x->baddata ) {
-	return ($x != $x->badvalue); 
-    } else {
-	return ones($x);
-    }
+!NO!SUBS!
+
+use PDL::Types;
+my $ntypes = $#PDL::Types::names;
+
+my $cases = "    switch ( type ) {\n";
+my $default_cases = "    switch ( type ) {\n";
+
+foreach my $i ( 0 .. $ntypes ) {
+    my $type = new PDL::Type $i;
+    my $ctype = $type->ctype;
+    
+    my $storage = "PDL->bvals._$ctype";
+
+    $cases .= 
+"  case $i:
+     if ( items > 1 ) { $storage = (".$type->realctype().") val; }
+     RETVAL = $storage;
+   break;
+";
+
+    $default_cases .= 
+"  case $i:
+     RETVAL = PDL->bvals.default_$ctype;
+   break;
+";
 }
 
-=head2 isbad
+$cases .= "  default:\n    barf(\"badvalue: type must be between 0 and $ntypes inclusive.\");    } /* end of switch */\n";
+$default_cases .= "  default:\n    barf(\"badvalue: type must be between 0 and $ntypes inclusive.\");    } /* end of switch */\n";
 
-=for ref
+pp_addxs( <<"!WITH!SUBS!");
+$xshdr
 
-Is a value bad?
+double
+_badvalue_int(type,val=0)
+    int type
+    double val
+  CODE:
+$cases
+  OUTPUT:
+    RETVAL
 
-Returns a 1 if the value is bad, 0 otherwise.
+double
+_default_badvalue_int(type)
+    int type
+  CODE:
+$default_cases
+  OUTPUT:
+    RETVAL
 
-=for example
+!WITH!SUBS!
 
- $a = pdl(1,2,3);
- $a->baddata(1);
- set($a,1,$a->badvalue);
- $b = isbad(\$a);
- print $b, "\n";
- [0 1 0] (I hope)
+pp_addpm(<<'!NO!SUBS!');
 
-It's just another way of saying C<$a == $a->badvalue> - 
-in fact that's how it's implemented.
-
-NOTE: this should probably be re-done as a pp function.
-(see equality biop in ops.pd).
-
-=cut
-
-sub PDL::isbad { 
-    my $x = shift;
-    if ( $x->baddata ) {
-	return ($x == $x->badvalue); 
-    } else {
-	return zeroes($x);
+# add a new method to PDL::Type
+{
+    package PDL::Type;
+    sub badvalue { 
+	my ( $self, $val ) = @_;
+	if ( defined $val ) {
+	    return PDL::_badvalue_int( $self->enum, $val );
+	} else {
+	    return PDL::_badvalue_int( $self->enum );
+	}
     }
-} # sub: isbad()
+
+    sub orig_badvalue { 
+	my $self = shift;
+	return PDL::_default_badvalue_int( $self->enum );
+    }
+}
+	    
+sub PDL::badvalue {
+    my ( $self, $val ) = @_;
+    my $num;
+    if ( UNIVERSAL::isa($self,"PDL") ) {
+	$num = $self->get_datatype;
+    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
+	$num = $self->enum;
+    } else {
+        # assume it's a number
+        $num = $self;
+    }
+    if ( defined $val ) {
+	return PDL::_badvalue_int( $num, $val );
+    } else {
+	return PDL::_badvalue_int( $num );
+    }
+} # sub: badvalue()
+
+sub PDL::orig_badvalue {
+    my $self = shift;
+    my $num;
+    if ( UNIVERSAL::isa($self,"PDL") ) {
+	$num = $self->get_datatype;
+    } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
+	$num = $self->enum;
+    } else {
+        # assume it's a number
+        $num = $self;
+    }
+    return PDL::_default_badvalue_int( $num );
+
+} # sub: orig_badvalue()
 
 ############################################################
 ############################################################
 
 !NO!SUBS!
+
+sub isdocs {
+    my $name = shift;
+    my $out  = shift;
+
+    return "
+
+=for ref
+
+Is a value $name?
+
+Returns a 1 if the value is $name, 0 otherwise.
+
+=for example
+
+ \$a = pdl(1,2,3);
+ \$a->baddata(1);
+ set(\$a,1,\$a->badvalue);
+ \$b = is$name(\$a);
+ print \$b, \"\\n\";
+ $out (I hope)
+
+";
+} # isdocs()
+
+pp_def(
+       'isbad',
+       HandleBad => 1,
+       Pars => 'a(); int [o]b();',
+       Code => 
+       '$b() = 0;',
+       BadCode => 
+       '$b() = $a() == a_badval;',
+       CopyBadStatusCode => '',
+       Doc => isdocs("bad","[0 1 0]"),
+       );
+
+pp_def(
+       'isgood',
+       HandleBad => 1,
+       Pars => 'a(); int [o]b();',
+       Code => 
+       '$b() = 0;',
+       BadCode => 
+       '$b() = $a() != a_badval;',
+       CopyBadStatusCode => '',
+       Doc => isdocs("good","[1 0 1]"),
+       );
+
 
 # modified from primitive.pd
 #
@@ -330,6 +417,9 @@ EOD
 
 # see tests 23 and 24 in t/bad.t
 # - WHY DO THEY FAIL?
+#   and is it machine specific 
+#   (ie fail on linux, succeed on solaris)
+#   - needs checking
 pp_def(
        'nbadover',
        HandleBad => 1,
@@ -392,7 +482,6 @@ sub PDL::$op->[0] {
 EOD
 
 } # for $op
-
 
 pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
 

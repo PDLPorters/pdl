@@ -1542,19 +1542,6 @@ sub enum   { return $_[0]->[0]; }
 sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
 !NO!SUBS!
 
-    if ( $bvalflag ) {
-        print OUT 
-'sub badvalue { 
-   my $self = shift; my $enum = $self->enum;
-   my $newval = shift;
-   if ( defined $newval ) {
-      # XXX note: really could do with casting newval here
-      $PDL::Types::badvals[$enum] = $newval;
-   }
-   return $PDL::Types::badvals[$enum]; 
-}
-';
-    }
     foreach my $name ( qw( ctype ppsym realctype ) ) {
 	print OUT "sub $name { return \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }\n";
     }

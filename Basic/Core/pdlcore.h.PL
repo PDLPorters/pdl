@@ -1,4 +1,50 @@
+# -*-perl-*-
 
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
+# List explicitly here the variables you want Configure to
+# generate.  Metaconfig only looks for shell variables, so you
+# have to mention them as if they were shell variables, not
+# %Config entries.  Thus you write
+#  $startperl
+# to ensure Configure will look for $Config{startperl}.
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+	if ($Config{'osname'} eq 'VMS' or
+	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {		     
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+
+# In this section, perl variables will be expanded during extraction.
+# You can use $Config{...} to use Configure variables.
+
+print OUT <<"!WITH!SUBS!";
+
+/*
+ * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
+ * bad value support = $bvalflag
+ */
+
+!WITH!SUBS!
+
+print OUT <<"!NO!SUBS!";
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "ppport.h"
@@ -239,10 +285,20 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*allocdata) (pdl *it);
   PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT "   badvals bvals;  /* store the default bad values */\n";
+    }
+
+print OUT <<'!NO!SUBS!';
+
 };
 
 typedef struct Core Core;
 
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
+!NO!SUBS!
 

@@ -411,11 +411,10 @@ sub get_xsdatapdecl {
 	"$declini ${name}_physdatap = ($cast($pdl->data));\n";
 
     # assuming we always need this 
-    # - may not be true - eg if $asgnonly
+    # - may not be true - eg if $asgnonly ??
     #
     if ( $this->{BadFlag} and $type ) {
-	$str .= "\t$type   ${name}_badval = (($type) \$PRIV(badvalues[" . 
-	  PDL::PP::PdlParObj::typeval($type) . "]));\n";
+	$str .= "\t$type   ${name}_badval = PDL->bvals._$type;\n";
     }	
 
     return "$str\n";

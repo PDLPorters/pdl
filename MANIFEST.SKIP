@@ -49,7 +49,7 @@ pdlexamples\.c$
 ^Basic/Core/Core\.pm$
 ^Basic/Core/Core\.xs$
 ^Basic/Core/pdlapi\.c$
-^Basic/Core/pdlsimple\.h$
+^Basic/Core/pdlcore\.h$
 ^Basic/Ops/Ops\.c$
 ^Basic/Ops/Ops\.xs$
 ^Basic/Ops/Ops\.pm$

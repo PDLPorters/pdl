@@ -1,5 +1,9 @@
 
+Doug Burke (07/10/00)
+   - bad values are now stored in a C structure, rather than a perl array
+     This seems okay on Solaris but not Linux ...
+   - isbad() and isgood() implemented as pp code rather than
+     perl wrappers around '==' and '!='
 Doug Burke (07/09/00)
    - initial CVS upload.
-   - plenty to do, see the *.bpix files for some rudimentary
-     info
+   - plenty to do, see the *.bpix files for some rudimentary info
