@@ -1,3 +1,5 @@
+AJ  (17-March-2003)
+    - Added PDL::GSL::INTEG
 CED (15-March-2003)
     - perldl: Added multi-line string processing (using Text::Balanced) 
 	and EOF protection to the shell.
