@@ -4082,8 +4082,11 @@ information on the Representation of World Coordinate Systems in FITS.
 	    # changed Jan 14 2004 DJB - previously used CROTA
 	    # keyword but that is not in the WCS standard
 	    # - I hope this doesn't break things
-	    #
-	    $angle  = ($hdr->{"CROTA2$id"} || 0) *
+	    # -- This broke a few things because CROTA is a pseudostandard
+	    #    in the solar physics community.  I added a fallback to 
+	    #    CROTA in case CROTA2 doesn't exist.
+	    $angle  = ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
+			(defined $hdr->{"CROTA"}) ? $hdr->{"CROTA"} : 0)   *
 		3.14159265358979323846264338/180;
 
 	} # no warnings;
@@ -4458,7 +4461,7 @@ sub env {
 	my $sa = sin( $angle );
 	my $t1 = $x_pixinc * $ca;
 	my $t2 = $y_pixinc * $sa;
-	my $t4 = - $x_pixinc * $sa;
+	my $t4 = -$x_pixinc * $sa;
 	my $t5 = $y_pixinc * $ca;
 
 	return pdl( 
