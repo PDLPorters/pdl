@@ -785,20 +785,20 @@ EOD
 			upper = lower + $COMP(sizes[j]) - 1;
 
 
-fprintf(stderr,"\tSetting lowerbound[%d] (%d*%d + %d) = %d\n",i*($COMP(idim))+j,i,$COMP(idim),j,lower);
+/* fprintf(stderr,"\tSetting lowerbound[%d] (%d*%d + %d) = %d\n",i*($COMP(idim))+j,i,$COMP(idim),j,lower);*/
 			$COMP(lowerbound[i * $COMP(idim) + j]) = lower;
 			$COMP(upperbound[i * $COMP(idim) + j]) = upper;
 
 		    }
 		  }
 
-	fprintf(stderr,"range:makecomp finished\nnitems %d\tidim %d\n",$COMP(nitems),$COMP(idim));
-		fprintf(stderr,"bounds:");
-		for(i=0;i<$COMP(idim);i++) 
-	fprintf(stderr," %d-%d ",$COMP(lowerbound[i]),$COMP(upperbound[i]));
+/* 	fprintf(stderr,"range:makecomp finished\nnitems %d\tidim %d\n",$COMP(nitems),$COMP(idim));*/
+/* 		fprintf(stderr,"bounds:");*/
+/*		for(i=0;i<$COMP(idim);i++) */
+/* 	fprintf(stderr," %d-%d ",$COMP(lowerbound[i]),$COMP(upperbound[i]));*/
 
 		$SETREVERSIBLE(1);
-	fprintf(stderr,"\nbye!\n");
+/* 	fprintf(stderr,"\nbye!\n");*/
 
 EOD-MakeComp
 
@@ -808,15 +808,15 @@ EOD-MakeComp
 		long inc;
 		char errflag = 0;
 
-	fprintf(stderr,"range::redodims...\n");
+/* 	fprintf(stderr,"range::redodims...\n");*/
 
 		tdim = $PARENT(ndims)- $COMP(idim) ;
 		tdim = (tdim > 0) ? tdim : 0;
 
-	fprintf(stderr,"setting dims to %d (1 + %d + %d) ...\n",1+$COMP(idim)+tdim,$COMP(idim),tdim);		
+/* 	fprintf(stderr,"setting dims to %d (1 + %d + %d) ...\n",1+$COMP(idim)+tdim,$COMP(idim),tdim);		*/
 		$CHILD(ndims) = 1 + $COMP(idim) + tdim;
 		$SETNDIMS(1 + $COMP(idim) + tdim);
-	fprintf(stderr,"setting dim 0 to %d (nitems)\n",$COMP(nitems));
+/* 	fprintf(stderr,"setting dim 0 to %d (nitems)\n",$COMP(nitems));*/
 		$CHILD(dims[0]) = $COMP(nitems);
 
 
@@ -828,13 +828,13 @@ EOD-MakeComp
 	         *  Copy dims that are indexed, check for out-of-bounds, and
 		 *  generate parent 1-D offsets 
 		 */
-		for(i=0;i<$COMP(idim);i++) 
+		for(i=0;i<$COMP(nitems);i++) 
 			$COMP(poff[i]) = 0;
 
 		for(i=0;i<$COMP(idim);i++,j++) {
 		   long ulim;
 		   long k;
-	fprintf(stderr,"setting dim %d to %d (sizes[%d])\n",j,$COMP(sizes[i]),i);
+/* 	fprintf(stderr,"setting dim %d to %d (sizes[%d])\n",j,$COMP(sizes[i]),i);*/
 		   ulim= (i<($PARENT(ndims))) ? ( $PARENT(dims[i])) : 1 ;
 
 		   for(k=0;k< ($COMP(nitems)) ; k++) {
@@ -849,6 +849,8 @@ EOD-MakeComp
 		      ($COMP(poff))[k] += 
 			   ($PARENT(dimincs))[i] * 
 			   ($COMP(lowerbound))[ k * ($COMP(idim)) + i];
+/* 	fprintf(stderr,"\tpoff[%d] = %d\n",k,$COMP(poff[k]));*/
+
 		   }
 	
 		   ($CHILD(dims))[j] = ($COMP(sizes))[i];
@@ -860,7 +862,7 @@ EOD-MakeComp
 
 		/* Copy threaded-over dims */
 		for(;i<$PARENT(ndims);i++,j++) {
-	fprintf(stderr,"setting dim %d to %d (thread[%d])\n",j,$PARENT(dims[i]),i);
+/* 	fprintf(stderr,"setting dim %d to %d (thread[%d])\n",j,$PARENT(dims[i]),i);*/
 			$CHILD(dims[j]) = $PARENT(dims[i]);
 			$CHILD(dimincs[j]) = inc;
 			inc *= $CHILD(dims[j]);
@@ -870,7 +872,7 @@ EOD-MakeComp
 		$SETDIMS();
 
 
-   fprintf(stderr,"range redodims: debug: CHILD->nvals = %d\n",$CHILD(nvals));
+/*    fprintf(stderr,"range redodims: debug: CHILD->nvals = %d\n",$CHILD(nvals));*/
 EOD-RedoDims
 
 	EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
@@ -881,13 +883,13 @@ EOD-RedoDims
 
 		/* number of copies to make per item in the list */
 		nperitem = $CHILD_P(nvals) / $COMP(nitems);
-	fprintf(stderr,"(CHILD_P(nvals)=%d; CHILD_P(dimincs[%d])=%d; nperitem=%d)\n",$CHILD_P(nvals),$COMP(idim),$CHILD_P(dimincs[$COMP(idim)]),nperitem);
+/* 	fprintf(stderr,"nitems = %d; nperitem=%d\n",$COMP(nitems),nperitem);*/
 
 
 		for(dim=0;dim<$COMP(idim);dim++)
 			($COMP(ctr))[dim] = 0;
 
-	fprintf(stderr,"Doing big ol' loop...\n");
+/* 	fprintf(stderr,"Doing big ol' loop...\n");*/
 		do {
 		   ptoff = ctoff = 0;
 
@@ -896,29 +898,30 @@ EOD-RedoDims
 			ptoff += ($PARENT_P(dimincs))[dim] * ($COMP(ctr))[dim];
 			ctoff += ($CHILD_P(dimincs))[dim+1] * ($COMP(ctr))[dim];
 		   }
-	fprintf(stderr,"\nptoff=%d, ctoff=%d\n",ptoff,ctoff);
+/* 	fprintf(stderr,"\nptoff=%d, ctoff=%d\n",ptoff,ctoff);*/
 	
 		   /* Copy the item for all ranges */
 		   for(item = 0; item < $COMP(nitems); item++) {
 			/* temp vars work around nested-expansion bug in PP */
 			long a = $CHILD_P(dimincs[0])*item + ctoff;
 			long b = $COMP(poff[item])         + ptoff;
+/* 	fprintf(stderr,"\titem=%d,a=%d,b=%d\n",item,a,b);*/
 			$EQUIVCPOFFS(a,b);
 		   }
 
-	for(dim=0;dim<$COMP(idim);dim++)
-	  fprintf(stderr,"%d ",$COMP(ctr[dim]));
+/*	for(dim=0;dim<$COMP(idim);dim++) */
+/* 	  fprintf(stderr,"%d ",$COMP(ctr[dim]));*/
 	
-	fprintf(stderr,"\tIncrementing...");
+/* 	fprintf(stderr,"\tIncrementing...");*/
 		   /* Increment element within range */
 		   for(dim=0;  dim < $COMP(idim);  dim++) {
 			if( (++($COMP(ctr[dim]))) >= $COMP(sizes[dim]) )
 				$COMP(ctr[dim]) = 0;
 			else
 				break;
-	fprintf(stderr,"%d(=%d)...",dim,$COMP(ctr[dim]));
+/* 	fprintf(stderr,"%d(=%d)...",dim,$COMP(ctr[dim]));*/
 		   }
-	fprintf(stderr,"ok\n");
+/* 	fprintf(stderr,"ok\n");*/
 		} while(dim < $COMP(idim)); /* Checks result of inc loop */
 EOD-EquivCPOffsCode
 

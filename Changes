@@ -1,5 +1,7 @@
 CED (26-Aug-02)
     - slices.pd: added range (PP implementation)
+    - Incremented core_version in pdlcore.h.PL
+    - ->range doesn't spew debugging now (commented out)
 CED (20-Aug-02)
     - slices.pd: added rangeND (first-cut implementation)
 CED (19-Aug-02)
