@@ -171,10 +171,10 @@ pp_def(
        '$GENERIC(b) tmp = 1;
         register int flag = 0;
         loop(n) %{
-fprintf(stderr, "in loop %d flag = %d\n", n, flag );
+/*** fprintf(stderr, "in loop %d flag = %d\n", n, flag ); ***/
            if ( $ISGOOD($a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
         %}
-fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp );
+/*** fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp ); ***/
 /* for some reason, even though flag == 1, b is getting set to the bad value (see above) */
         if ( flag ) { $b() = tmp; }
         else { $SETBAD($b()); $PDL(b)->state |= PDL_BADVAL; }',
@@ -262,12 +262,14 @@ pp_def(
        Doc => projectdocs('bitwise or','borover','')
        );
 
-# XXX BADVAL got to here
-
-defpdl(
+# this would need a lot of work to support bad values
+# plus it gives me a chance to check out HandleBad => 0 ;)
+#
+pp_def(
        'intover',
-       'a(n); int+ [o]b();',
-       '',
+       HandleBad => 0,
+       Pars => 'a(n); int+ [o]b();',
+       Code =>
        '$GENERIC(b) tmp = 0;
        int ns = $SIZE(n), nn;
        /* Integration formulae from Press et al 2nd Ed S 4.1 */
@@ -309,7 +311,7 @@ defpdl(
           %}
       }
       ',
-       projectdocs('integral','intover',
+       Doc => projectdocs('integral','intover',
 q~Notes:
 
 For C<n E<gt> 3>, these are all C<O(h^4)> (like Simpson's rule), but are
@@ -318,6 +320,8 @@ these centres: for such `functions', sumover is correct to C<O(h)>, but
 is the natural (and correct) choice for binned data, of course.
 ~)
 ); # intover
+
+# XXX BADVAL got to here
 
 defpdl(
        'cumusumover',

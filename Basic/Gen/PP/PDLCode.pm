@@ -404,6 +404,12 @@ sub get_str {
     my $prelude  = $this->myprelude($parent,$context);
     my $postlude = $this->mypostlude($parent,$context);
 
+    # as I don't think this text is going to have any more macros
+    # expanded (at least PP macros), then I'm hard-coding the
+    # access to the bad value flag
+    # (eg see XXX_badflag() routines in PP.pm)
+    #
+##    my $str = "if ( __privtrans->flags & PDL_ITRANS_HAVE_BADVAL ) {\n$prelude";
     my $str = "if ( __privtrans->bvalflag ) {\n$prelude";
     $str .= $parent->{BadCode}->get_str_int($parent,$context);
     $str .= "$postlude\n} else {\n$prelude";

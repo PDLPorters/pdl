@@ -1,4 +1,16 @@
+--------------------------------------------------------------------------------
 
+Doug Burke (07/11/00)
+   - tried using flags field in trans structure rather than adding a
+     new element (ie bvalflag). didn't really work - see 
+     IMPLEMENTATION.bpix for more comments.
+   - The bad value support seems to work now on linux (probably failed due to
+     an incorrect build).
+   - I seem to have broken test 7 in t/bad.t. Added tests of Primitive's zcover
+     since they fail.
+   - flagged Primitive's intover as a 'HandleBad => 0' case - not tested.
+   - added some musings on Tim Jenness' suggestion to use NaN (IEEE)
+     support if available (see IMPLEMENTATION.bpix)
 Doug Burke (07/10/00)
    - Three macros have been added to make writing pp code a LOT easier:
        $ISBAD, $ISGOOD, and $SETBAD. See IMPLEMENTATION.bpix

@@ -895,7 +895,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++)
 		pdl_set_trans_parenttrans(trans->pdls[i],trans,i);
-	  if(!(trans->flags&PDL_ITRANS_REVERSIBLE))
+	  if(!(trans->flags & PDL_ITRANS_REVERSIBLE))
 		trans->flags &= ~PDL_ITRANS_DO_DATAFLOW_B;
 	  for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 	  	if(trans->pdls[i]->state & PDL_NOMYDIMS) {
@@ -904,7 +904,6 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		}
 	  }
   }
-
 
 #ifdef FOO
 /* If we are not flowing, we must disappear */
@@ -915,7 +914,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 
   PDLDEBUG_f(printf("make_trans_mutual_exit %d\n",trans));
 
-}
+} /* pdl_make_trans_mutual() */
 
 
 pdl *pdl_make_now(pdl *it) {

@@ -12,7 +12,7 @@ BEGIN {
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
 #	plan tests => 24, todo => [11,17];
-	plan tests => 25;
+	plan tests => 27;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -115,4 +115,11 @@ $b = $a->slice(',(1)');
 ok( sum($b), 3 );            # 25
 $b++;
 ok( PDL::Core::string($a), "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n" ); # 26 
+
+$a = BAD_BYTE * ones(3,2);
+$a->baddata(1);
+ok( PDL::Core::string( zcover($a) ), "[BAD BAD]" );  # 26
+$a->set(1,1,1); $a->set(2,1,1);
+ok( PDL::Core::string( zcover($a) ), "[BAD 1]" );  # 27
+
 

@@ -1,30 +1,38 @@
 
 Some suggestions:
 
-2) get some code set up to do benchmarks to see how much things are
+.) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).
 
-3) get the tests fixed
+.) get the tests fixed
 
-4) 'bad-ify' the rest of the code...
+.) 'bad-ify' the rest of the code...
 
-5) $pdl->badvalue(23) should not only set the default value for the
+.) $pdl->badvalue(23) should not only set the default value for the
    piddles type to 23 (with approproate casting), but it should
    change the bad values in $pdl to 23 as well.
 
+.) it would be nice to have the online documentation system be able
+   to produce information on whether a given routine processes
+   bad values (HandleBad => 1), explicitly doesn't (HandleBad => 0),
+   or hasn't been converted yet so just passes on the bad value flag
+   to output piddles (no HandleBad option)
+
 Some notes/comments/random musings:
 
-XP - errr, it's broke, fix it now
-HP - high priority
-LP - low priority
+some of the names aren't appealing - I'm thinking of orig_badvalue()
+in Basic/Bad/bad.pd in particular. Any suggestions appreciated.
+
+Basic/Core/pdlconv.c.PL - I don't understand when pdl_converttype()
+is called, so I've included a check that prints a message to STDERR
+if it's called with a bad piddle. 
 
 Trying to make zcover() (primitive.pd) work with bad values (if all
 values are bad, return bad, otherwise ignore the bad values). For
 some reason it doesn't work properly -- see primitive.pd for details.
 Something similar with nbadover/ngoodover (see t/bad,t).
- (XP) 
-   this may not be an issue any more, or maybe machine specific   
+see t/bad.t
 
 t/picnorgb.t wants to fail; in fact it seems a little flaky
 since 'make test' reports 4-6, 10 and 15 failing, whereas
@@ -38,22 +46,19 @@ of the tests).
        whereas my linux machine (perl 5.005_03) also reports that
        tests 4-6 of picnorgb.t fail. (maybe the changes I made to 
        this test are screwing things up, but I doubt it)
- (XP)
 
 divide in ops.pd should trap '/ 0' cases as well. 
-also special cases for sqrt(), log ... (HP)
+also special cases for sqrt(), log ... 
 
 With the current scheme, it would be possible to have a per-piddle
 bad value. However, new piddles would use the default values.
 All it would need (I think) is for newly-created piddles to have
-their badvalue set to the default value. Then PdlParObj's
+their badvalue set to the default value -- I'm just not sure
+when new piddles are created within the C code! Then PdlParObj's
 get_xsdatapdecl() method needs changing to access the per-piddle
-bad value rather than the values stored in the trans structure
-(or global C structure, when that gets implemented). The actual
-code wouldn't need changing, as long as it was written using
-<piddle>_badval for each piddle. Actually, when the $BAD() and
-$GOOD() macros get implemented it will ease the change to 
-per-pdl bad values (if we go that route).
+bad value rather than the values stored in the PDL->bvals
+structure. The actual code wouldn't need changing, as long as it 
+was written using the $ISGOOD/ISBAD/SETBAD macros.
 
 Qus: how does this integrate with NaN handling?
 

@@ -365,7 +365,7 @@ $PDL::PP::deftbl =
 	if ( $bflag ) {
 	    return 
 '   int i;
-   if ( $PRIV(bvalflag) ) {
+   if ( ' . get_badflag_priv() . ' ) {
       for(i=0; i<$CHILD_P(nvals); i++)  {
          $EQUIVCPOFFS_BAD(i,i);
      }
@@ -1886,6 +1886,36 @@ sub XSCHdrs {
 		"PDL->$gname = $name;"];
 }
 
+# abstract the access to the bad value status
+# - means we can easily change the representation without too 
+#   many changes
+#
+# it's also used in one place in PP/PDLCode.pm
+# -- there it's hard-coded
+#
+sub set_badflag {
+    my $sname = shift;
+    return "$sname\->bvalflag = 1;\n";
+##    return "$sname\->flags |= PDL_ITRANS_HAVE_BADVAL;\n";
+}
+
+sub clear_badflag {
+    my $sname = shift;
+    return "$sname\->bvalflag = 0;\n";
+##    return "$sname\->flags &= ~PDL_ITRANS_HAVE_BADVAL;\n";
+}
+
+sub get_badflag {
+    my $sname = shift;
+    return "$sname\->bvalflag\n";
+##    return "($sname\->flags & PDL_ITRANS_HAVE_BADVAL)";
+}
+
+sub get_badflag_priv {
+    return '$PRIV(bvalflag)';
+##    return '($PRIV(flags) & PDL_ITRANS_HAVE_BADVAL)';
+}    
+
 # checks the input piddles to see if the routine
 # is being any data containing bad values
 #
@@ -1909,8 +1939,6 @@ sub findbadstatus {
 
     my $sname = $symtab->get_symname('_PDL_ThisTrans');
 
-    my $str = '';
-
     my @args   = map { $_->[0] } @$xsargs;
     my %out    = map { 
 	$_ => 
@@ -1928,27 +1956,31 @@ sub findbadstatus {
 	    } @args;
     my %other  = map { $_ => exists($$optypes{$_}) } @args;
 
-    # set bvalflag to 1 if any input variable is bad
-    my $str = "$sname\->bvalflag = 0;\n"; # since malloced-space may bot be zero
+    my $clear_bad = clear_badflag($sname);
+    my $set_bad = set_badflag($sname);
+    my $get_bad = get_badflag($sname);
+
+    my $str = $clear_bad;
+    my $add = 0;
+
+    # set bvalflag if any input variable is bad
     foreach my $i ( 0 .. $#args ) {
 	my $x = $args[$i];
 	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
-	    if ( $str eq '' ) {
-		$str = 
-		    "  if ( $args[$i]\->state & PDL_BADVAL ) $sname\->bvalflag = 1;\n";
+	    if ( $add ) {
+		$str .= "  if ( $get_bad && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
 	    } else {
-		$str .= 
-		    "  if ( !$sname\->bvalflag && ($args[$i]\->state & PDL_BADVAL) ) " .
-			"$sname\->bvalflag = 1;\n";
+		$str .= "  if ( $args[$i]\->state & PDL_BADVAL ) $set_bad";
+		$add = 1;
 	    }
 	}
     } # foreach: my $i
 
     if ( defined($badflag) and $badflag == 0 ) {
-	$str .=
-"  if ( $sname\->bvalflag ) {
+	$str .= 
+"  if ( $get_bad ) {
       printf(\"WARNING: routine does not handle bad values.\\n\");
-      $sname\->bvalflag = 0;
+      $clear_bad
   }\n";
 	print "\nWARNING: printing a warning about not handling bad values.\n\n"; ## DBG
     } # if: $badflag
@@ -1957,37 +1989,6 @@ sub findbadstatus {
 
 } # sub: findbadstatus
 
-###  # if $badflag is set, then we assume that the routine has been 
-###  # changed to accomodate bad values, so we copy over the 
-###  # current bad values to  $sname->badvalues[]
-###  #
-###  sub copybadvalues {
-###      my ( $badflag, $symtab ) = @_;
-###      $badflag ||= 0;
-###      return '' unless $badflag;
-###  
-###      my $sname = $symtab->get_symname('_PDL_ThisTrans');
-###      return  
-###  "if ( $sname\->bvalflag ) {
-###      AV *aptr = NULL; /* access to bad values array */
-###      int maxloop = -1;
-###      int i;
-###  
-###      aptr = perl_get_av( \"PDL::Types::badvals\", FALSE );
-###      if ( aptr == NULL )
-###          barf(\"Error: unable to access bad value array in PDL::Types\");
-###  
-###      maxloop = av_len(aptr);
-###      if ( maxloop != $ntypes ) 
-###          barf(\"Error: bad value array size (PDL::Types) != $ntypes\");
-###  
-###      for( i = 0; i <= $ntypes; i++ ) {
-###          $sname->badvalues[i] = SvNV( *( av_fetch( aptr, i, 0 ) ) );
-###      }
-###  }\n";
-###  
-###  } # sub: copybadvalues
-###
 
 # copies over the bad value state to the output piddles
 #
@@ -2004,8 +2005,6 @@ sub copybadstatus {
 
     return $badcode if defined $badcode;
 
-    my $str = '';
-
     # names of output variables    (in calling order)
     my @outs;
 
@@ -2018,11 +2017,15 @@ sub copybadstatus {
     }
     
     my $sname = $symtab->get_symname('_PDL_ThisTrans');
-    $str = "if ( ${sname}->bvalflag ) {\n";
+
+    my $str = '';
+
+    $str = "if ( " . get_badflag($sname) . " ) {\n";
     foreach my $arg ( @outs ) {
 	$str .= "  ${arg}->state |= PDL_BADVAL;\n";
     }
     $str .= "}\n";
+
     return $str;
 
 } # sub: copybadstatus()

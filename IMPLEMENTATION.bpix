@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/10/00
+ last update: 07/11/00
 
 --------------------------------------------------------------------------------
 
@@ -20,16 +20,19 @@ they should be checked for.
 
 The pdl_trans structure has been extended to include an integer value,
 bvalflag, which acts as a switch to tell the code whether to handle bad values
-or not (perhaps I should have just used the flags variable in the pdl_trans
-structure since it's a bit wasteful to have an integer here). This value is
-set if any of the input piddles have their PDL_BADVAL flag set (althogh
-this code can be replaced by setting FindBadStateCode in pp_def).
+or not. This value is set if any of the input piddles have their PDL_BADVAL 
+flag set (although this code can be replaced by setting FindBadStateCode in 
+pp_def). I tried using the flags field in the trans struct, but it was 
+occasionally getting cleared during calls to PDL->make_trans_mutual(). See the 
+get/set/clear_badval subs in PP.pm, one get_str() sub in PP/PDLCode.pm and
+un-comment the PDL_ITRANS_HAVE_BADFLAG lines in Core/pdl.h.PL (as well as
+comment out the bvalflag line in the trans structure) if you want to 
+investigate further.
 
 The bad values are now stored in a structure within the Core PDL structure
 - PDL.bvals (eg pdlcore.h.PL); see also 'typedef badvals' in pdl.h.PL and the
 BOOT code of Core.xs.PL where the values are initialised to (hopefully)
-sensible values. Although with these values my linux machine crashes whilst
-my solaris machine is okay! See PDL/Bad/bad.pd for read/write routines to
+sensible values. See PDL/Bad/bad.pd for read/write routines to
 these values.
 
 The default/original bad values are set to (taken from the Starlink
@@ -60,8 +63,8 @@ piddles, unless you declare otherwise.
 To flag a routine as NOT handling bad values, use 
    HandleBad => 0
 This *should* cause the routine to print a warning if it's sent any piddles
-with the bad flag set, although I haven't changed anything to 'HandleBad => 0'
-yet to check this out.
+with the bad flag set. Primitive's intover has had this set, but I've not
+tried it out to see if it works.
 
 If you want to handle bad values but not set the state of all the output
 piddles, or if it's only one input piddle that's important, then look
@@ -77,8 +80,8 @@ If the option
    HandleBad => 1
 is given, then the readdata code automatically creates a variable called
 <pdl name>_badval, which contains the badvalue for that piddle (see
-get_xsdatapdecl() in PP/PdlParObjs.pm). Thanks to Tuomas' suggestion, 3 
-macros have been set up to provide easy access:
+get_xsdatapdecl() in PP/PdlParObjs.pm). After Tuomas' suggestion, 3 macros
+have been set up to provide easy access:
 
   '$ISBAD($a(n=>1))'  expands to '$a(n=>1) == a_badval'
   '$ISGOOD($a())'                '$a()     != a_badval'
@@ -121,6 +124,23 @@ created by PP do.
 
 There's (to my mind at least!) issues about how to handle comparison
 operators - see TODO.bpix and the comments near zcover() in primitive.pd.
+
+Why not use NaN (IEEE) when present?
+====================================
+
+Short answer: because I don't know how. 
+
+After talking with Tim Jenness, it looks like it should be able to get
+the code to use NaN's as bad values if available - this should mean we can
+skip the checks for bad values in the C code, since f(x) with x = NaN
+produces NaN, and does it quickly (apparently). 
+
+Basically, PP.pm would ignore the BadCode/BadBackCode/etc pp_def()
+options, just using the Code/... options instead. The supporting code
+would still be used. Perhaps it would be necessary to provide NaNCode/...
+options in case falling back to Code is not sufficient in certain cases.
+
+I'd love someone to try this.
 
 Other notes
 ===========

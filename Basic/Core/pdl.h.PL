@@ -215,6 +215,18 @@ typedef struct pdl_transvtable {
 
 #define PDL_ITRANS_FORFAMILY 0x0008
 
+!NO!SUBS!
+
+#if ( $bvalflag ) {
+#print OUT<<'!NO!SUBS!';
+#
+##define PDL_ITRANS_HAVE_BADVAL 0x0010 /* if set, check for bad values */ 
+#
+#!NO!SUBS!
+#}
+
+print OUT<<'!NO!SUBS!';
+
 #define PDL_ITRANS_ISAFFINE 0x1000
 #define PDL_ITRANS_VAFFINEVALID 0x2000
 #define PDL_ITRANS_NONMUTUAL 0x4000  /* flag for destruction */
@@ -234,7 +246,7 @@ typedef struct pdl_transvtable {
 !NO!SUBS!
 
     if ( $bvalflag ) {
-	print OUT "        int bvalflag;  \\\n";
+	print OUT "        int bvalflag;  \\\n";  # using flags field instead
     }
 
 print OUT <<'!NO!SUBS!';
