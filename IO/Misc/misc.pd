@@ -1214,7 +1214,7 @@ pp_def('_rasc',
 
 defpdl(
 	'bswap2',
-	'[o]x(); ',
+	'x(); ',
 	'',
 	'
       int i;
@@ -1244,7 +1244,7 @@ defpdl(
 
 defpdl(
 	'bswap4',
-	'[o]x(); ',
+	'x(); ',
 	'',
 	'
       int i;
@@ -1274,7 +1274,7 @@ defpdl(
 
 defpdl(
 	'bswap8',
-	'[o]x(); ',
+	'x(); ',
 	'',
 	'
       int i;

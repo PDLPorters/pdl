@@ -746,6 +746,7 @@ SV *
 gethdr(p)
 	pdl *p
 	CODE:
+		pdl_make_physdims(p);
 		if(p->hdrsv) {
 		   RETVAL = newRV( (SV*) SvRV((SV*)p->hdrsv) );
 		} else {

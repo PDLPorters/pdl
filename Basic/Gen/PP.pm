@@ -189,11 +189,12 @@ package $::PDLPACK;
 use PDL::Core$::PDLCOREIMPORT;
 use PDL::Exporter;
 use DynaLoader;
-\@ISA    = qw( $::PDLPMISA );
 
-push \@PDL::Core::PP, __PACKAGE__;
-
-bootstrap $::PDLMOD;
+BEGIN {
+   \@ISA    = qw( $::PDLPMISA );
+    push \@PDL::Core::PP, __PACKAGE__;
+    bootstrap $::PDLMOD;
+}
 
 $::PDLPM{Top}
 
@@ -272,7 +273,9 @@ $PDL::PP::deftbl =
 
 # no docs by default
  [[Doc],        [],     sub {"\n=for ref\n\ninfo not available\n"}],
-
+# no p2child by default
+ [ [HASP2Child],   [P2Child],   sub {return $_[0] != 0}],
+ [ [HASP2Child],   [],     sub {0}],
 # Default: no otherpars
  [[OtherPars],	[],	sub {""}],
 # [[Comp],	[],	sub {""}],
@@ -526,14 +529,14 @@ $PDL::PP::deftbl =
 				 return $r;
 				 }],
  [[RedoDimsSubd],	[RedoDimsSub,NewXSSymTab,Name],	"dosubst"],
- [[RedoDimsFunc], 	[RedoDimsSubd,FHdrInfo,RedoDimsFuncName],
+ [[RedoDimsFunc], 	[RedoDimsSubd,FHdrInfo,RedoDimsFuncName,HASP2Child],
  				sub {wrap_vfn(@_,"redodims")}],
 
 #  [[ReGenedCode],	[ParsedCode,ParObjs,DimObjs],	sub {$_[0]->gen($_[1,2])}],
  [[ReadDataSub],	[ParsedCode],
  				sub {subst_makecomp(FOO,@_)}],
  [[ReadDataSubd],	[ReadDataSub,NewXSSymTab,Name],	"dosubst"],
- [[ReadDataFunc], 	[ReadDataSubd,FHdrInfo,ReadDataFuncName],
+ [[ReadDataFunc], 	[ReadDataSubd,FHdrInfo,ReadDataFuncName,HASP2Child],
  			sub {wrap_vfn(@_,"readdata")}],
 
  [[WriteBackDataSub],	[ParsedBackCode],	sub {subst_makecomp(FOO,@_)}],
@@ -542,14 +545,14 @@ $PDL::PP::deftbl =
  [[WriteBackDataFuncName],	[BackCode,Name],	sub {"pdl_$_[1]_writebackdata"}],
  [[WriteBackDataFuncName],	[Code],	sub {"NULL"}],
 
- [[WriteBackDataFunc], 	[WriteBackDataSubd,FHdrInfo,WriteBackDataFuncName],
+ [[WriteBackDataFunc], 	[WriteBackDataSubd,FHdrInfo,WriteBackDataFuncName,HASP2Child],
  	sub {wrap_vfn(@_,"writebackdata")}],
 
- [[CopyFunc],	[CopyCode,FHdrInfo,CopyFuncName],sub {wrap_vfn(@_,"copy")}],
- [[FreeFunc],	[FreeCode,FHdrInfo,FreeFuncName],sub {wrap_vfn(@_,"free")}],
+ [[CopyFunc],	[CopyCode,FHdrInfo,CopyFuncName,HASP2Child],sub {wrap_vfn(@_,"copy")}],
+ [[FreeFunc],	[FreeCode,FHdrInfo,FreeFuncName,HASP2Child],sub {wrap_vfn(@_,"free")}],
 
  [[FoofName],	[FooCodeSub],	sub {"foomethod"}],
- [[FooFunc],	[FooCodeSub,FHdrInfo,FoofName], sub {wrap_vfn(@_,"foo")}],
+ [[FooFunc],	[FooCodeSub,FHdrInfo,FoofName,HASP2Child], sub {wrap_vfn(@_,"foo")}],
 
  [[FoofName], [],	sub {"NULL"}],
 
@@ -784,9 +787,28 @@ sub make_redodims_thread {
                         \$PRIV(vtable->per_pdl_flags));
 		}\n";
 	$str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
+	$str .= hdrcheck($pnames,$pobjs);
 	$str .= join '',map {$pobjs->{$pnames->[$_]}->
 				get_incsets("\$PRIV(pdls[$_])")} 0..$#$pnames;
 	$str;
+}
+
+sub hdrcheck {
+  my ($pnames,$pobjs) = @_;
+  my @names = map { "\$PRIV(pdls[$_])" } 0..$#$pnames;
+  my $str = '';
+  $str .= "{ int i=0; void *hdrp = NULL;\n";
+  $str .= join '',map {
+                  "if (!hdrp && !__creating[i++] && $_\->hdrsv)
+                       hdrp = $_\->hdrsv;\n" } @names;
+  $str .= "if (hdrp) {\n";
+  $str .= join '',map {
+                  "if (".($pobjs->{$pnames->[$_]}{FlagCreat}?1:0).
+		    " && \$PRIV(pdls[$_])\->hdrsv != hdrp)
+                      \$PRIV(pdls[$_])\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n"
+		} 0..$#$pnames;
+  $str .= "}}\n";
+  $str;
 }
 
 sub def_vtable {
@@ -835,15 +857,24 @@ sub mkfhdrinfo {
 
 # XXX __privtrans explicit :(
 sub wrap_vfn {
-	my($code,$hdrinfo,$rout,$name) = @_;
+	my($code,$hdrinfo,$rout,$p2child,$name) = @_;
         my $type = ($name eq "copy" ? "pdl_trans *" : "void");
 	my $sname = $hdrinfo->{StructName};
 	my $oargs = ($name eq "foo" ? ",int i1,int i2,int i3" : "");
+	my $hdrcheck = $name eq "redodims" ?
+	  'if (__tr->pdls[0]->hdrsv)
+		  __tr->pdls[1]->hdrsv = (void*)
+		      newRV((SV*) SvRV((SV*)__tr->pdls[0]->hdrsv));' :
+			'';
+#	print "$rout\_$name: $p2child\n";
+	my $p2decl = ($p2child==1 ? 
+	             "pdl *__it = __tr->pdls[1];
+                pdl *__parent = __tr->pdls[0];
+		$hdrcheck" : '');
         qq|$type $rout(pdl_trans *__tr $oargs) {
                 int __dim;
                 $sname *__privtrans = ($sname *) __tr;
-                pdl *__it = __tr->pdls[1];
-                pdl *__parent = __tr->pdls[0];
+		$p2decl
                 {
 			$code
 		}
