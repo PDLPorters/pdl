@@ -1,3 +1,4 @@
+CS  -  fix bug in splitdim (didn't check nthdim) that can lead to coredumps
 Jarle Brinchmann (22/10/00)
     - Further bug fixes to PGPLOT added (courtesy of Kaj Wiik). Also a
       convenience function to calculate transforms (transform, courtesy

@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..33\n";
+print "1..34\n";
 
 if(1) {
 
@@ -236,3 +236,8 @@ $b = null;
 $c = null;
 rle($a,$b,$c);
 ok(33,approx $a, rld($b,$c));
+
+$a = zeroes(3,3);
+$b = $a->splitdim(3,3);
+eval '$b->make_physdims';
+ok(34,$@ =~ /^Splitdim: nthdim/);

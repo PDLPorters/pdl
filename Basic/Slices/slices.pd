@@ -445,6 +445,9 @@ the variable C<$b> will have dimensions C<(15,4)>
 and the element C<$b-E<gt>at(7,3)> refers to the element 
 C<$a-E<gt>at(1,2,3)>.
 
+Use C<clump(-1)> to flatten a piddle. The method L<flat|PDL::Core/flat>
+is provided as an alias for this functionality.
+
 =cut
 EOD
 );
@@ -1188,9 +1191,13 @@ EOD
 	OtherPars => 'int nthdim; int nsp;',
 	AffinePriv => 1,
 	RedoDims => '
-		int i = $PRIV(nthdim);
+		int i = $COMP(nthdim);
 		int nsp = $COMP(nsp);
 		if(nsp == 0) {die("Splitdim: Cannot split to 0\n");}
+		if(i <0 || i >= $PARENT(ndims)) {
+			die("Splitdim: nthdim (%d) must not be negative or greater or equal to number of dims (%d)\n",
+				i, $PARENT(ndims));
+		}
 		if(nsp > $PARENT(dims[i])) {
 			die("Splitdim: nsp (%d) cannot be greater than dim (%d)\n",
 				nsp, $PARENT(dims[i]));

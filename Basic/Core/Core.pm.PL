@@ -71,14 +71,14 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 @EXPORT_OK = qw( howbig threadids topdl nelem dims null byte short ushort
    long float double convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice
+   dummy mslice flat
    );
 
 %EXPORT_TAGS = (
    Func=>[qw/nelem dims null byte short ushort
     long float double convert inplace zeroes ones list listindices
     set at flows thread_define over reshape pdl null dog cat barf type
-    diagonal dummy mslice
+    diagonal dummy mslice flat
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
@@ -1143,8 +1143,8 @@ sub PDL::mslice {
         my($pdl) = shift;
         return $pdl->slice(join ',',(map {
                         $_ eq "X" ? ":" :
-                        ref $_ eq "ARRAY" ? join ':',@$_ :
-                        !ref $_ ? $_ :
+                        ref $_ eq "ARRAY" ? join ':', map {int $_} @$_ :
+                        !ref $_ ? int $_ :
                         die "INVALID SLICE DEF $_"
                 } @_));
 }
@@ -1454,6 +1454,27 @@ sub PDL::reshape{
   }
   $_[0] = $pdl;
   return $pdl;
+}
+
+=head2 flat
+
+=for ref
+
+flatten a piddle (alias for C<$pdl->clump(-1)>)
+
+=for example
+
+  $srt = $pdl->flat->qsort;
+
+Useful method to make a 1D piddle from an
+arbitrarily sized input piddle. Data flows
+back and forth as usual with slicing routines.
+
+=cut
+
+*flat = \&PDL::flat;
+sub PDL::flat {
+  return $_[0]->clump(-1);
 }
 
 =head2 convert

@@ -184,7 +184,7 @@ foreach $func (@keys) {
 # Add support routines
 $hash{OBJECT} .= " const\$(OBJ_EXT) mtherr\$(OBJ_EXT) polevl\$(OBJ_EXT)";
 
-$hash{LIBS} = [$libs];
+$hash{LIBS}->[0] .= " $libs";
 WriteMakefile(%hash);
 
 sub MY::postamble {

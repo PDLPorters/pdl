@@ -363,6 +363,10 @@ sub pdlpp_stdargs_int {
  my($rec) = @_;
  my($src,$pref,$mod) = @$rec;
  my $w = whereami();
+ my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
+   $PDL_CONFIG{MALLOCDBG}->{libs} : '';
+ my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
+   $PDL_CONFIG{MALLOCDBG}->{include} : '';
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
@@ -371,8 +375,8 @@ sub pdlpp_stdargs_int {
 	 'OBJECT'       => "$pref\$(OBJ_EXT)",
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
-	 'INC'          => &PDL_INCLUDE()." $inc",
-	 'LIBS'         => ["$libs "],
+	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
+	 'LIBS'         => ["$libs $malloclib "],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }

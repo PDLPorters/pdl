@@ -14,7 +14,7 @@ PDL::Core::Dev->import();
 # pdlpp_stdargs_int(@::pack)
 #);
 %hash = pdlpp_stdargs_int(@::pack);
-$hash{LIBS} = ['-lm'];
+$hash{LIBS}->[0] .= ' -lm ';
 WriteMakefile(%hash);
 
 sub MY::postamble {
