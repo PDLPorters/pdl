@@ -101,7 +101,9 @@ sub setview{
 
   my $transformer = $vp->transformer();
 
-  if($view eq "Top"){
+  if(ref($view) eq "ARRAY"){
+	 $transformer->set({WRotation=>$view});
+  }elsif($view eq "Top"){
 	 $transformer->set({WRotation=>[1,0,0,0]});
   }elsif($view eq "East"){
 	 $transformer->set({WRotation=>[0.5,-0.5,-0.5,-0.5]});
