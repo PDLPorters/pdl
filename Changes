@@ -1,5 +1,6 @@
 CED 15-Sep-2003
-   - Added easier access to local web documentation ("help www")
+   - Added easier access to local web documentation ("help www").
+   - Help searches are case-insensitive.
 CED 01-Sep-2003
    - Moved Transform.pm to PP; wrote C version of map() algorithm.
    - Revamped Window.pm documentation a bit.

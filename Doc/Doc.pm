@@ -556,8 +556,8 @@ sub search {
 
   while (my ($key,$val) = each %$hash) {
     for (@$fields) {
-      if (($_ eq 'Name' && $key =~ /$pattern/) ||
-	  (defined $val->{$_} && $val->{$_} =~ /$pattern/)) {
+      if (($_ eq 'Name' && $key =~ /$pattern/i) ||
+	  (defined $val->{$_} && $val->{$_} =~ /$pattern/i)) {
 	$val = $hash->{$val->{Crossref}}
 	  if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
 	push @match, [$key,$val];

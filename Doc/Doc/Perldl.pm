@@ -323,7 +323,7 @@ sub find_autodoc {
 
 	$topic =~ s:\$(.)$:\.pdl\$$1:; # Force ".pdl" at end of file match
 
-	$matcher = eval "sub { $topic && \$\_ };";  # Avoid multiple compiles
+	$matcher = eval "sub { ${topic}i && \$\_ };";  # Avoid multiple compiles
     }
 
     my @out;
@@ -529,20 +529,19 @@ sub help {
   } else {
 	print <<'EOH';
 
-The following four commands support online help in the perldl shell:
+The following commands support online help in the perldl shell:
 
- help           -- print this text
  help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
  help $a        -- print information about $a (if it's a piddle)
  help vars      -- print information about all current piddles
  help url       -- locate the HTML version of the documentation
- help www       -- View the documentation with a web browser
- help www:<foo> -- View the documentation with web browser <foo>.
+ help www       -- View docs with default web browser (set by env: PERLDL_WWW)
+ help www:<foo> -- View docs with web browser <foo>.
  apropos 'word' -- search for keywords/function names 
- ?              -- alias for 'help'
- ??             -- alias for 'apropos'
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function
+
+ ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
 EOH
 
 print "  badinfo         -- information on the support for bad values\n"
