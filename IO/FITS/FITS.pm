@@ -209,7 +209,7 @@ converted to bad (if necessary).
 
 Read only the header of a FITS file or an extension within it.
 
-This is syntactic sugar for the C<data=>0> option to L<rfits|/rfits()>.
+This is syntactic sugar for the C<data=E<gt>0> option to L<rfits|/rfits()>.
 
 See L<rfits|/rfits()> for details on header handling.  rfitshdr() runs 
 the same code to read the header, but returns it rather than 
@@ -1003,7 +1003,7 @@ sub _rfits_bintable {
 
 
 =head2 wfits()
-  
+
 =for ref
 
 Simple PDL FITS writer
@@ -1077,7 +1077,7 @@ the list are stringified before being written.  For example, if you
 pass in a perl list of 7 PDLs, each PDL will be stringified before
 being written, just as if you printed it to the screen.  This is
 probably not what you want -- you should use L<glue|glue> to connect 
-the separate PDLs into a single one.  (e.g. C<$a->glue(1,$b,$c)->mv(1,0)>)
+the separate PDLs into a single one.  (e.g. C<$a-E<gt>glue(1,$b,$c)-E<gt>mv(1,0)>)
 
 The column names are case-insensitive, but by convention the keys of
 C<$hash> should normally be ALL CAPS, containing only digits, capital
