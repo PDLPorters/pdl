@@ -1,3 +1,6 @@
+CED 20-March-2003
+    - pdlhash.c: if PDL::BIGPDL is true, then ignore the 1-Gb limit on PDLs.
+
 CED 18-March-2003
     - Core.pm.PL: fix '.=' closure (closes bug #630793)
     - pdlapi.c: Check that a dimension is nonzero before dividing by it,
