@@ -686,6 +686,7 @@ t/reduce.t
 t/refs.t
 t/requiredmods.t
 t/scope.t
+t/segfault.t
 t/slatec.t
 t/slice.t
 t/storable.t
