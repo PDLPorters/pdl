@@ -1,6 +1,8 @@
 CED 26-Mar-04
    - Primitive: which() now ignores bad-value entries (before it always
 	selected the BAD value).
+   - Primitive: uniqvec() now works properly if you feed in a lone vector.
+   - added tests for these cases.
 CED 17-Mar-04
    - Transform:  added match() convenience routine
    - Demos:  added a rotating-coordinate-system demo to "demo transform"

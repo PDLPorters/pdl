@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 19;
+plan tests => $PDL::Bad::Status ? 24 : 21 ;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -112,3 +112,24 @@ $c = $a->double;
 ok(isempty $a);
 ok($b->avg == 0);
 ok(! any isfinite $c->average);
+
+##############################
+# Test uniqvec...
+$a = pdl([[0,1],[2,2],[0,1]]);
+$b = $a->uniqvec;
+eval '$c = all($b==pdl([[0,1],[2,2]]))';  ok(!$@ && $c);
+
+$a = pdl([[0,1]])->uniqvec;
+eval '$c = all($a==pdl([[0,1]]))';  ok(!$@ && $c);
+
+##############################
+# Test bad handling in selector
+if($PDL::Bad::Status) {
+  $b = xvals(3);
+  ok(tapprox($b->which,PDL->pdl(1,2)));
+  setbadat $b, 1;
+  ok(tapprox($b->which,PDL->pdl([2])));
+  setbadat $b, 0;
+  setbadat $b, 2;
+  ok($b->which->nelem,0);
+}
