@@ -308,3 +308,13 @@ sub atstr {    # Fetchs a string value from a PDL::Char
   $val =~ s/\00+$//g; # get rid of any null padding
   return $val;
 }
+
+# yuck ;) this is a cool little accessor method
+# rebless a slice into PDL; originally
+# Marc's idea used in PDL::Complex
+sub numeric {
+  my ($seq) = @_;
+  return bless $seq->slice(''), 'PDL';
+}
+
+1;

@@ -125,7 +125,7 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *dummy        = \&PDL::dummy;
 *mslice       = \&PDL::mslice;
 *isempty      = \&PDL::isempty;
-
+*string       = \&PDL::string;
 sub barf;
 
 ##################################################################
@@ -1178,12 +1178,17 @@ allowing easier inclusion of dimensions in perl code.
 
 =cut
 
+# called for colon-less args
+# preserves parens if present
+sub intpars { $_[0] =~ /\(.*\)/ ? '('.int($_[0]).')' : int $_[0] }
+
 sub PDL::mslice {
         my($pdl) = shift;
         return $pdl->slice(join ',',(map {
-                        $_ eq "X" ? ":" :
-                        ref $_ eq "ARRAY" ? join ':', map {int $_} @$_ :
-                        !ref $_ ? int $_ :
+                        !ref $_ && $_ eq "X" ? ":" :
+			   ref $_ eq "ARRAY" ? $#$_ > 1 && @$_[2] == 0 ? 
+			   "(".int(@$_[0]).")" : join ':', map {int $_} @$_ :
+                        !ref $_ ? intpars $_ :
                         die "INVALID SLICE DEF $_"
                 } @_));
 }
@@ -1682,7 +1687,7 @@ sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
 
 $PDL::_STRINGIZING = 0;
 
-sub string {
+sub PDL::string {
     my($self,$format)=@_;
     if($PDL::_STRINGIZING) {
     	return "ALREADY_STRINGIZING_NO_LOOPS";

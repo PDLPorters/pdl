@@ -122,11 +122,5 @@ if ( $PDL::Bad::Status ) {
 
 } else { 
     my $msg = "Skipped: PDL::Bad support not available.";
-    skip($msg,1,1);
-    skip($msg,1,1);
-    skip($msg,1,1);
-    skip($msg,1,1);
-    skip($msg,1,1);
-    skip($msg,1,1);
-    skip($msg,1,1);
+    for (0..4) { skip($msg,1,1) } # skip 5 tests
 }

@@ -1,3 +1,6 @@
+CS  - image2d.t skip fix
+    - mslice update
+    - numeric for PDL::Char
 DJB (24/May/01)
     - fixed bug in Image2D::centroid2d when (x+box/2) > m (ditto for the y 
       axis). Added bad-value support to centroid2d and max2d_ind
