@@ -100,30 +100,11 @@ expensive way of swapping real and imaginary parts.
     [ -1.4808826 -0.85498797]
    ]
 
-Of course, this is not the same as multiplying C<-$r> by C<i>, as in:
-
-   perldl> p -$r*i  
-
-   [
-    [        -0 -1.7099759]
-    [-1.4808826 0.85498797]
-    [ 1.4808826 0.85498797]
-   ]
-
-But you surely know this.
-
-Now plot the magnitude of (part of) the complex sine. First generate the coefficients:
+Now plot the magnitude of (part of) the complex sine. First generate the
+coefficients:
 
    perldl> $sin = i * zeroes(50)->xlinvals(2,4)
                     + zeroes(50)->xlinvals(0,7)
-
-However, watch closely: if we had added the real part to the imaginary
-part (i.e. C<vector + i * vector>) then piddle would have tried to use
-normal, elementwise addition, since the first argument is of type PDL,
-but PDL::Complex. So either make sure that the first argument is always
-a complex number or use C<r2C> to force it to be one. Fortunately, pdl
-detects most of these cases via the version mismatch and generates an
-error.
 
 Now plot the imaginary part, the real part and the magnitude of the sine
 into the same diagram:
@@ -388,15 +369,6 @@ pp_def 'Cconj',
         Code => q^
            $c(m=>0) =  $a(m=>0);
            $c(m=>1) = -$a(m=>1);
-        ^
-;
-
-pp_def 'Cneg',
-	Pars => 'a(m=2); [o]c(m=2)',
-        Doc => 'complex negation',
-        Code => q^
-           $c(m=>0) = -$a(m=>0);
-           $c(m=>1) =  $a(m=>1);
         ^
 ;
 

@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+
+Marc Lehmann
+	- small changes to complex.pd: remove bogus Cneg, streamline docs.
+
 Doug Burke
         - added TYPES/DEFTYPE options to PDL::IO::Misc::rcols()
           to specify the type of the piddles
