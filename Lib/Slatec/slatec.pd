@@ -75,7 +75,7 @@ sub firstpar {
 $uscore = (-e "f77_underscore" ? "_" : ""); 
 
 sub defslatec {
-	my($pname,$fnames,$argstr) = @_;
+	my($pname,$fnames,$argstr,$opts) = @_;
 	my @args = map {/^\s*$/ ? () : $_} split ';', $argstr;
 	my @args2 = map {
 		/^\s*([a-zA-Z]+)\s+ 	# "Type name"
@@ -122,6 +122,7 @@ sub defslatec {
 			$func . "  (". (join ',',@funcpars) . ");\n"
 			. (join '',@ifoutcode),
 		GenericTypes => [map {$_->[0]} @talts],
+	        %$opts,
 	);
 }
 
@@ -219,7 +220,8 @@ defslatec(
 	 Mat 	[o] 	work	(n);
 	 IntFlag   	job	();
 	 IntFlag [o]	info	();
-	'
+	',
+	{Doc => 'singular value decomposition of a matrix'}
 );
 
 defslatec(
@@ -230,7 +232,9 @@ defslatec(
 	 Mat 		rcond	();
 	 Mat	[o]	z	(n);
 	 IntFlag [o]	info	();
-	'
+	',
+	{Doc => 'Factor a real symmetric positive definite matrix
+		and estimate the condition number of the matrix.'}
 );
 
 defslatec(
@@ -241,7 +245,9 @@ defslatec(
 	 IntFlag [o]	ipvt	(n);
 	 Mat	 [o]	rcond	();
 	 Mat	 [o]	z	(n);
-	'
+	',
+	{Doc => 'Factor a matrix using Gaussian elimination and estimate
+            the condition number of the matrix.'}
 );
 
 defslatec(
@@ -251,7 +257,8 @@ defslatec(
 	 Dim		n;
 	 IntFlag [o]	ipvt	(n);
 	 IntFlag [o]	info	();
-	'
+	',
+	{Doc => 'Factor a matrix using Gaussian elimination.'}
 );
 
 # XXX Ensure two == 2!!
@@ -262,7 +269,10 @@ defslatec(
 	 Dim		n;
 	 Mat	[o]	det	(two);
 	 IntFlag	job	();
-	'
+	',
+	{Doc => 'Compute the determinant and inverse of a certain real
+            symmetric positive definite matrix using the factors
+            computed by SPOCO, SPOFA or SQRDC.'}
 );
 
 defslatec(
@@ -274,9 +284,24 @@ defslatec(
 	 Mat	 [o]	det	(two);
 	 Mat	 [o]	work	(n);
 	 IntFlag	job	();
-	'
+	',
+	{Doc => 'Compute the determinant and inverse of a matrix using the
+            factors computed by SGECO or SGEFA.'}
 );
 	
+
+defslatec(
+	'gesl',{S => sgesl, D => dgesl},
+	'Mat		a	(lda,n);
+	 MDim		lda;
+	 Dim		n;
+	 IntFlag	ipvt	(n);
+	 Mat		b	(n);
+	 IntFlag	job	();
+	',
+	{Doc => 'Solve the real system A*X=B or TRANS(A)*X=B using the
+            factors computed by DGECO or DGEFA'}
+);
 
 defslatec(
 	'rs', {S => rsfoo},
@@ -289,7 +314,12 @@ defslatec(
 	 Mat	[t]	fvone	(n);
 	 Mat	[t]	fvtwo	(n);
 	 IntFlag [o]	ierr	();
-	'
+	',
+	{Doc => 'This subroutine calls the recommended sequence of
+     	subroutines from the eigensystem subroutine package (EISPACK)
+     	to find the eigenvalues and eigenvectors (if desired)
+     	of a REAL SYMMETRIC matrix.'}
+
 );
 
 # XXX wsave : at least 3n+15
@@ -297,7 +327,12 @@ defslatec(
 	'ezffti', {S => ezffti},
 	'IntFlag	n	();
 	 Mat [o]	wsave(foo);
-	'
+	',
+	{Doc => 'Subroutine EZFFTI initializes the work array WSAVE
+	which is used in both EZFFTF and EZFFTB.  The prime factorization
+	of N together with a tabulation of the trigonometric functions
+	are computed and stored in WSAVE.'}
+
 );
 
 # XXX Correct for azero, a and b

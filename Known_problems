@@ -8,7 +8,7 @@ PDL.
 (Jarle Brinchmann reported this on 11/3/98).
 
 - The html docs for the modules in IO/Misc aren't being built during 'make
-  install'. 
+  install' (this one seems to be fixed now). 
 
 - Some problems have been reported with PDL and perl5.005 (core dumps, 
    and/or regression tests failing) when perl is compiled with the perl-

@@ -2,23 +2,32 @@
 INSTALLATION
 ------------
 
-To install PerlDL on your machine, first check that you have
+To install PDL on your machine, first check that you have
 a high enough version of Perl. 5.004 should be enough for now.
 
 The file DEPENDENCIES summarizes the dependencies of various
-PDL modules on libraries/other packages. To specify location
-of some of these libs or disable certain modules see also below.
+PDL modules on libraries/other packages. The location of
+some of these files needs to be specified in the file perldl.conf.
 
-Edit file perldl.conf in the current directory, this specifies
-configuration options for building PDL and is self-documenting.
+perldl.conf
+-----------
 
-Then, just say
+Edit the file perldl.conf in the current directory to specify
+configuration options for building PDL. This file is
+self-documenting.
+
+Note: If you are happy with your perldl.conf you can keep the file
+handy for future reference. Place it in ~/.perldl.conf where
+it will be picked up automatically or use 'perl Makefile.PL PDLCONF=file'
+next time.
+
+After editing the configuration options just say
 
 	perl Makefile.PL
 
-in the directory this file is in. (See 'perldoc ExtUtils::MakeMaker
-for info on how to configure the defaults for install location, etc.)
-and if that goes ok, say:
+in the directory this file is in. (See 'perldoc ExtUtils::MakeMaker'
+for info on how to configure the installation location, etc.)
+and if that seems ok, try:
 
 	make
 
@@ -36,11 +45,6 @@ the developers (via the pdl-porters mailing list, see Basic/Pod/FAQ.pod).
 If everything works and you wish to install PDL type
 
    make install
-
-If you are happy with your perldl.conf you can keep the file
-handy for future reference. Place it in ~/.perldl.conf where
-it will be picked up automatically or use 'perl Makefile.PL PDLCONF=file'
-next time.
 
 There is also another make item:
 

@@ -220,6 +220,7 @@ Lib/Filter/Makefile.PL
 Lib/Fit/Gaussian/Makefile.PL
 Lib/Fit/Gaussian/gauss.c
 Lib/Fit/Gaussian/gaussian.pd
+Lib/Fit/LM.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
 Lib/GSL/Makefile.PL
@@ -253,6 +254,8 @@ Lib/Slatec/slatec/dgedi.P
 Lib/Slatec/slatec/dgedi.f
 Lib/Slatec/slatec/dgefa.P
 Lib/Slatec/slatec/dgefa.f
+Lib/Slatec/slatec/dgesl.P
+Lib/Slatec/slatec/dgesl.f
 Lib/Slatec/slatec/dpoco.P
 Lib/Slatec/slatec/dpoco.f
 Lib/Slatec/slatec/dpodi.P
@@ -327,6 +330,8 @@ Lib/Slatec/slatec/sgedi.P
 Lib/Slatec/slatec/sgedi.f
 Lib/Slatec/slatec/sgefa.P
 Lib/Slatec/slatec/sgefa.f
+Lib/Slatec/slatec/sgesl.P
+Lib/Slatec/slatec/sgesl.f
 Lib/Slatec/slatec/snrm2.P
 Lib/Slatec/slatec/snrm2.f
 Lib/Slatec/slatec/spoco.P
@@ -382,6 +387,7 @@ t/aaa_load.t
 t/argtest.t
 t/autoload.t
 t/bess.t
+t/bool.t
 t/callext.c
 t/callext.t
 t/clump.t

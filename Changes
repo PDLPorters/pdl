@@ -1,3 +1,15 @@
+CS
+	- Levenberg-Marquardt fitting module
+	- added required additional slatec functions + some docs
+	- some handy bits for PDL::Options function interface
+	- bool.t didn't make it into 2.002 (touch problem?)
+	- fftw.t test shouldn't rely on another module
+	- PDL::Doc: support input from more than one file
+	- Slatec/Makefile.PL: #include "g2c.h" seems unneccesary (and
+		leeds to trouble on my debian 2.1 system)
+	- PGPLOT patch from pdl-porters
+	- Robin's Basic/Math patches
+
 (!!! = possible source of incompatibilities)
 2.003
 Christian Pellegrin
@@ -10,8 +22,8 @@ Christian Pellegrin
 
 Christian Soller
 	- Patch to add 'any' and 'all' functions to use for comparison
-          operations. (e.g. This enables things like ($pdl->any == 3.2)
-           or $pdl->all > 0 )
+          operations. (e.g. This enables things like any($pdl == 3.2)
+           or all($pdl > 0) )
 	- Patch to picnorgb test to fix greyscale and rgb 
           generation on some platforms.
 	- Misc Patch: Make Image.pm return 1. 

@@ -2,7 +2,7 @@ use PDL;
 use PDL::FFT;
 
 BEGIN {
-        eval " use PDL::GSL::RNG; use PDL::FFTW;";
+        eval "use PDL::FFTW;";
         $loaded = ($@ ? 0 : 1);
 }
 
@@ -11,7 +11,7 @@ print "1..8\n";
 unless ($loaded) {
 	#print STDERR "PDL::Slatec not installed. All tests are skipped.\n";
 	for (1..8) {
-		print "ok $_ # Skipped: PDL::FFTW or PDL::GSL::RNG not availalbe.\n";
+		print "ok $_ # Skipped: PDL::FFTW not available\n";
 	}
 	exit;
 }
@@ -38,17 +38,13 @@ $datatype = eval('$PDL::FFTW::COMPILED_TYPE') if($loaded); # get the type (doubl
 							 # use eval to avoid warning message when PDL::GSL::FFTW not loaded
 $testNo = 1;
 
-
-$rng = PDL::GSL::RNG->new('taus');
-$rng->set_seed(time());
-
 $n = 30;
 $m = 40;
 
 $ir = zeroes($n,$m)->$datatype();
 $ii = zeroes($n,$m)->$datatype();
-$rng->get_uniform($ir);
-$rng->get_uniform($ii);
+$ir = random $ir;
+$ii = random $ii;
 
 $i = cat $ir,$ii;
 $i = $i->mv(2,0);
@@ -92,7 +88,7 @@ ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
 
 $ir = zeroes($n,$m)->$datatype();
 $ii = zeroes($n,$m)->$datatype();
-$rng->get_uniform($ir);
+$ir = random $ir;
 
 $fir = $ir->copy;
 $fii = $ii->copy;

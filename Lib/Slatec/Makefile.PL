@@ -102,7 +102,9 @@ print "Generating Slatec Prototypes\n";
 open(OUT, ">SlatecProtos.h");
 for $f (@slatecfiles) {
  open IN, "slatec/$f.P" or die "file slatec/$f.P not found";
- print OUT '#include "g2c.h"',"\n" if $g2cbased;
+ # is the following really necessary since we are getting rid of all
+ # the types anyway ????
+ # print OUT '#include "g2c.h"',"\n" if $g2cbased;
 
  while(<IN>) {
  

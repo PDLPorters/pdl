@@ -56,7 +56,11 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #include "mconf.h"
 extern double MAXNUM, MAXLOG;
 
+#ifdef MY_FIXYN
+double fixyn( n, x )
+#else
 double yn( n, x )
+#endif
 int n;
 double x;
 {

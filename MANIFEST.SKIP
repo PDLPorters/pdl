@@ -4,6 +4,7 @@
 ^pdldoc.db$
 \.cvsignore$
 .*\.orig$
+.*\.rej$
 .*\#$
 manifypods
 makemakerdflt
@@ -103,4 +104,6 @@ so_locations
 ^tushort\.tif$
 ^perl$
 ^Basic/Core/Config\.pm
+^Basic/Core/Version\.pm
 ^LOG$
+^Graphics/Karma/\.tx\.defaults

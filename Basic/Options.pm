@@ -43,13 +43,13 @@ use vars qw/$VERSION %EXPORT_TAGS %DEF_SYNS @ISA/;
 
 require Exporter;
 
-$VERSION = '0.90';
+$VERSION = '0.91';
 
 @ISA = qw(Exporter);
 
 %EXPORT_TAGS = (
 		'Func' => [qw/
-			   parse
+			   parse iparse ifhref
 			   /]
 	       );
 
@@ -61,6 +61,16 @@ Exporter::export_tags('Func');
 	     COLOUR => 'COLOR'
 	    );
 
+
+=head1 Utility functions
+
+=head2 ifhref
+
+  parse({Ext => 'TIF', ifhref($opt)});
+
+just return the argument if it is a hashref otherwise return
+an empty hashref. Useful in conjunction with parse to return
+just the default values if argument is not a hash ref
 
 =head1 NON-OO INTERFACE
 
@@ -81,12 +91,25 @@ A hash (not hash reference) containing the processed options is returned.
 
   %options = parse( { LINE => 1, COLOUR => 'red'}, { COLOR => 'blue'});
 
+=item iparse( \%defaults, \%user_options)
+
+Same as C<parse> but matching is case insensitive
+
 =cut
 
-sub parse {
+sub ifhref {
+  my ($href) = @_;
+  return defined $href && ref $href eq 'HASH' ? $href : {};
+}
 
-   croak 'Usage: parse( \%defaults, \%user )' if scalar(@_) != 2;
+sub parse { return _parse(1,@_) }
+sub iparse { return _parse(0,@_) }
 
+sub _parse {
+
+   croak 'Usage: parse( \%defaults, \%user )' if scalar(@_) != 3;
+
+   my $casechk = shift;
    my $defaults = shift;
    croak ("First argument is not a hash reference")
       unless ref($defaults) eq "HASH";
@@ -100,7 +123,7 @@ sub parse {
 
    # Set up default behaviour
    $opt->minmatch(1);
-   $opt->casesens(1);
+   $opt->casesens($casechk);
    $opt->synonyms( \%DEF_SYNS );
 
    # Process the options

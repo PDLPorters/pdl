@@ -27,12 +27,14 @@ chdir $dir or die "can't change to $dir";
 $dir = getcwd;
 
 unlink $outdb if -e $outdb;
-$onldc = new PDL::Doc ($outdb);
+$onldc = new PDL::Doc();
+$onldc->outfile($outdb);
 $onldc->scantree($dir."/PDL",$opt_v);
 $onldc->scan($dir."/PDL.pm",$opt_v);
 
 chdir $currdir;
 
+print STDERR "saving...\n";
 $onldc->savedb();
 @mods = $onldc->search('module:',['Ref'],1);
 @mans = $onldc->search('manual:',['Ref'],1);

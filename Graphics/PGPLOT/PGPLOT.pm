@@ -218,7 +218,6 @@ Can also be specified as
 
 See also the documentation for poly for another example of hatching.
 
-
 =item linestyle
 
 Set the line style. This can either be specified as a number following
@@ -258,6 +257,22 @@ if omitted defaults to last used device (or value of env
 var PGPLOT_DEV if first time).
 $nx, $ny specify sub-panelling.
 
+=head2 env
+
+=for ref
+
+Define a plot window, and put graphics on 'hold'
+
+=for usage
+
+  Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
+
+$xmin, $xmax, $ymin, $ymax are the plot boundaries.  $justify is a boolean
+value; if true the axes scales will be the same (see the PGPLOT pgenv()
+command for more info).  $justify defaults to 0.  $axis is the PGPLOT code
+which describes how the axes should be drawn.  See the PGPLOT pgenv()
+command for more information).  It defaults to 0.
+
 =head2 imag
 
 =for ref
@@ -274,6 +289,10 @@ zero-offset.
 
 Options recognised:
 
+       ITF - the image transfer function applied to the pixel values.  It
+             may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is acceptable).
+           It defaults to 'LINEAR'.
+   JUSTIFY - the plot axes will be justified
       MIN  - Sets the minimum value to be used for calculation of the
              display stretch
       MAX  - Sets the maximum value for the same
@@ -294,6 +313,7 @@ Usage:
    ctab ( $name, [$contrast, $brightness] ) # Builtin col table
    ctab ( $ctab, [$contrast, $brightness] ) # $ctab is Nx4 array
    ctab ( $levels, $red, $green, $blue, [$contrast, $brightness] )
+   ctab ( '', $contrast, $brightness ) # use last color table
 
 Options recognised:
 
@@ -310,6 +330,8 @@ Plot vector as connected points
  Usage: line ( [$x,] $y, [$opt] )
 
  Options recognised:
+
+    JUSTIFY - the plot axes will be justified
 
     The following standard options influence this command:
     COLO(U)R, LINESTYLE, LINEWIDTH
@@ -331,6 +353,8 @@ Plot vector as points
  Usage: points ( [$x,] $y, [$symbol(s)], [$opt] )
 
  Options recognised:
+
+    JUSTIFY - the plot axes will be justified
 
     SYMBOL - Either a piddle with the same dimensions as $x, containing
              the symbol associated to each point or a number specifying
@@ -370,6 +394,7 @@ Usage:
 
  Options recognised:
 
+ JUSTIFY - the plot axes will be justified
     TERM - Length of terminals in multiples of the default length
   SYMBOL - Plot the datapoints using the symbol value given, either
            as name or number - see documentation for 'points'
@@ -405,6 +430,7 @@ zero-offset.
                pgcons) If this is set >0 the chosen linestyle will be
                ignored and solid line used for the positive contours
                and dashed line for the negative contours.
+     JUSTIFY - the plot axes will be justified
       LABELS - An array of strings with labels for each contour
  LABELCOLOUR - The colour of labels if different from the draw colour
                This will not interfere with the setting of draw colour
@@ -439,6 +465,8 @@ Plot vector as histogram ( e.g. C<bin(hist($data))> )
 
  Options recognised:
 
+     JUSTIFY - the plot axes will be justified
+
     The following standard options influence this command:
     COLOUR, LINESTYLE, LINEWIDTH
 
@@ -458,6 +486,7 @@ Plot image as 2d histogram (not very good IMHO...)
     IOFFSET - The offset for each array slice. >0 slants to the right
                                                <0 to the left.
        BIAS - The bias to shift each array slice up by.
+    JUSTIFY - the plot axes will be justified
 
     None of the standard options influence this command.
 
@@ -483,6 +512,8 @@ Draw a polygon
 Usage: poly ( $x, $y )
 
  Options recognised:
+
+    JUSTIFY - the plot axes will be justified
 
     The following standard options influence this command:
     COLOUR, LINESTYLE, LINEWIDTH, FILLTYPE, HATCHING
@@ -517,6 +548,7 @@ and $b the vertical component.
 
  Options recognised:
 
+  JUSTIFY - the plot axes will be justified
     SCALE - Set the scale factor for vector lengths.
       POS - Set the position of vectors.
             <0 - vector head at coordinate
@@ -559,7 +591,7 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-                 imag image ctab hi2d poly vect CtoF77coords
+                 imag image ctab ctab_info hi2d poly vect CtoF77coords
 );
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
@@ -583,6 +615,7 @@ use vars qw($AXISCOLOUR $SYMBOL $ERRTERM $HARD_LW $HARD_CH $HARD_FONT);
 
 $AXISCOLOUR = 3;   # Axis colour
 $SYMBOL     = 17;  # Plot symbol for points
+$COLOUR           = 5;   # Colour for plots
 $ERRTERM    = 1;   # Size of error bar terminators
 $HARD_LW    = 4;   # Line width for hardcopy devices
 $HARD_CH    = 1.4; # Character height for hardcopy devices
@@ -596,6 +629,7 @@ $CTAB{Igrey}   = [ pdl([0,1],[1,0],[1,0],[1,0]) ];
 $CTAB{Fire}    = [ pdl([0,0.33,0.66,1],[0,1,1,1],[0,0,1,1],[0,0,0,1]) ];
 $CTAB{Gray}    = $CTAB{Grey};  # Alias
 $CTAB{Igray}   = $CTAB{Igrey}; # Alias
+$CTAB        = undef;         # last CTAB used
 $DEV  = $ENV{"PGPLOT_DEV"} if defined $ENV{"PGPLOT_DEV"};
 $DEV  = "?" if !defined($DEV) || $DEV eq ""; # Safe default
 
@@ -609,6 +643,7 @@ $DEV  = "?" if !defined($DEV) || $DEV eq ""; # Safe default
 %SYMBOLS=(SQUARE=>0, DOT=>1, PLUS=>2, ASTERISK=>3, CIRCLE=>4, CROSS=>5,
 	 TRIANGLE=>7, EARTH=>8, SUN=>9, DIAMOND=>11, STAR=>12);
 
+%ITF = ( LINEAR => 0, LOG => 1, SQRT => 2 );
 
 BEGIN { $pgplot_loaded = 0 }
 
@@ -674,7 +709,7 @@ sub pgdefaults{    # Set up defaults
        pgslw($HARD_LW); pgsch($HARD_CH);
        pgscf($HARD_FONT);
     }
-    pgsci(5); pgask(0);
+    pgsci($COLOUR); pgask(0);
 }
 
 sub initdev{  # Ensure a device is open
@@ -685,8 +720,8 @@ sub initdev{  # Ensure a device is open
 
 sub initenv{ # Default box
     my ($col); initdev(); pgqci($col); pgsci($AXISCOLOUR);
-    pgenv(@_,0,0); pgsci($col);
-    @last = (@_,0,0);
+    pgenv(@_,0); pgsci($col);
+    @last = (@_,0);
 1;}
 
 sub redraw_axes {
@@ -872,8 +907,15 @@ sub bin {
        $data = $x; $x = float(sequence($n));
      }
 
+    my $justify = 0;
+
+    # Parse for options
+    while (my ($key, $val) = each %{$opt}) {
+      if ($key =~ m/^JUST/i) { $justify = $val; }
+    }
+
     my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($data);
-    initenv( $xmin, $xmax, $ymin, $ymax ) unless $hold;
+    initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
     save_status();
     # Let's also parse the options if any.
     standard_options_parser($opt);
@@ -893,7 +935,14 @@ sub cont {
   my($nx,$ny) = $image->dims;
   my ($ncont)=9; # The number of contours by default
 
-  initenv( 0,$nx-1, 0, $ny-1 ) unless $hold;
+  my $justify = 0;
+
+  # Parse for options
+  while (my ($key, $val) = each %{$opt}) {
+    if ($key =~ m/^JUST/i) { $justify = $val; }
+  }
+
+  initenv( 0,$nx-1, 0, $ny-1, $justify ) unless $hold;
   my($minim, $maxim)=minmax($image);
 
   # First save the present status
@@ -903,7 +952,8 @@ sub cont {
   my ($labelcolour);
   pgqci($labelcolour); # Default let the labels have the chosen colour.
   # Parse the options particular to this routine
-  my ($labels, $usepgcont);
+  my ($labels);
+  my $usepgcont = 0;
   while (($key, $value)=each %$opt) {
   SWITCH: {
       if ($key =~ m/^CON/i) {$contours=$value; last SWITCH;}
@@ -988,6 +1038,13 @@ Usage: errb ( $y, $yerrors [, $options] )
        errb ( $x, $y, $xloerr, $xhierr, $yloerr, $yhierr [, $options])
 EOD
 
+  my $justify = 0;
+
+  # Parse for options
+  while (my ($key, $val) = each %{$opt}) {
+    if ($key =~ m/^JUST/i) { $justify = $val; }
+  }
+
   my @t=@$in;
   my $i=0; my $n;
   for (@t) {
@@ -998,7 +1055,7 @@ EOD
   my $x = $#t==1 ? float(sequence($n)) : $t[0];
   my $y = $#t==1 ? $t[0] : $t[1];
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
   save_status();
   # Let us parse the options if any.
   my $term=$ERRTERM;
@@ -1054,6 +1111,13 @@ sub line {
   checkarg($x,1);
   my $n = nelem($x);
 
+  my $justify = 0;
+
+  # Parse for options
+  while (my ($key, $val) = each %{$opt}) {
+    if ($key =~ m/^JUST/i) { $justify = $val; }
+  }
+
   if ($#$in==1) {
     checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
   } else {
@@ -1062,7 +1126,7 @@ sub line {
 
 
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
   save_status();
   standard_options_parser($opt);
   pgline($n, $x->get_dataref, $y->get_dataref);
@@ -1078,6 +1142,13 @@ sub points {
   checkarg($x,1);
   my $n=nelem($x);
 
+  my $justify = 0;
+
+  # Parse for options
+  while (my ($key, $val) = each %{$opt}) {
+    if ($key =~ m/^JUST/i) { $justify = $val; }
+  }
+
   if ($#$in>=1) {
     checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
   }else{
@@ -1089,7 +1160,7 @@ sub points {
   #
   my $plot_line=0;
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax ) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify ) unless $hold;
   save_status();
 
 
@@ -1138,11 +1209,20 @@ sub imag {
   checkarg($image,2);
   my($nx,$ny) = $image->dims;
 
+  my $justify = 0;
+  my $itf = 0;
+
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
     if ($key =~ m/^TRAN/i) {$tr=$val;}
     elsif ($key =~ m/^MIN/i) { $min=$val;}
-    elsif ($key =~ m/^MAX/i) {$max=$val};
+    elsif ($key =~ m/^MAX/i) {$max=$val;}
+    elsif ($key =~ m/^JUST/i) { $justify = $val; }
+    elsif ($key =~ m/ITF/i ) {
+      defined( $itf = $ITF{uc $val} )
+      or barf ( "illegal ITF value `$val'. use one of: " .
+                join(',', keys %ITF) );
+    }
   }
 
   $min = min($image) unless defined $min;
@@ -1161,9 +1241,11 @@ sub imag {
     at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
     at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
     at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
+    $justify
   ) unless $hold;
   print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
 
+  pgsitf( $itf );
   pgqcir($i1, $i2);          # Colour range - if too small use pggray dither algorithm
   pgqinf('TYPE',$dev,$len);  # Device (/ps buggy - force pggray)
   if ($i2-$i1<16 || $dev =~ /^v?ps$/i) {
@@ -1184,9 +1266,21 @@ sub ctab {
   # First indirect arg list through %CTA
   my(@arg) = @$in;
   if ($#arg>=0 && !ref($arg[0])) { # First arg is a name not an object
-    my $name = ucfirst(lc(shift @arg)); # My convention is $CTAB{Grey} etc...
-    barf "$name is not a standard colour table" unless defined $CTAB{$name};
-    unshift @arg, @{$CTAB{$name}};
+    # if first arg is undef or empty string, means use last CTAB.
+    # preload with Grey if no prior CTAB
+    $arg[0] = 'Grey' unless $arg[0] || $CTAB;
+
+    # now check if we're using the last one specified
+    if ( ! $arg[0] ) {
+      shift @arg;
+      unshift @arg, @{$CTAB->{ctab}};
+      $brightness = $CTAB->{brightness};
+      $contrast = $CTAB->{contrast};
+    } else {
+      my $name = ucfirst(lc(shift @arg)); # My convention is $CTAB{Grey} etc...
+      barf "$name is not a standard colour table" unless defined $CTAB{$name};
+      unshift @arg, @{$CTAB{$name}};
+    }
   }
 
 
@@ -1231,10 +1325,24 @@ EOD
   $contrast   = 1   unless defined $contrast;
   $brightness = 0.5 unless defined $brightness;
   initdev();
+
   pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	  $blue->get_dataref, $n, $contrast, $brightness );
-  $CTAB = 1; # Loaded
+  $CTAB = { ctab => [ $levels, $red, $green, $blue ],
+          brightness => $brightness,
+          contrast => $contrast
+        }; # Loaded
   1;}
+
+# get information on last CTAB load
+sub ctab_info {
+  ($in, $opt)=_extract_hash(@_);
+  barf 'Usage: ctab_info( )' if $#$in> -1;
+
+  return () unless $CTAB;
+  return @{$CTAB->{ctab}}, $CTAB->{contrast}, $CTAB->{brightness};
+}
+
 
 # display an image using pghi2d()
 
@@ -1251,17 +1359,20 @@ sub hi2d {
     $x = float(sequence($nx));
   }
 
+  my $justify = 0;
+
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
     if ($key =~ m/^IOF/i) {$ioff=$val;}
     elsif ($key =~ m/^BIAS/i) {$bias=$val;}
+    elsif ($key =~ m/^JUST/i) { $justify = $val; }
   }
 
   $ioff = 1 unless defined $ioff;
   $bias = 5*max($image)/$ny unless defined $bias;
   $work = float(zeroes($nx));
 
-  initenv( 0 ,2*($nx-1), 0, 10*max($image)  ) unless $hold;
+  initenv( 0 ,2*($nx-1), 0, 10*max($image), $justify  ) unless $hold;
   pghi2d($image->get_dataref, $nx, $ny, 1,$nx,1,$ny, $x->get_dataref, $ioff,
 	 $bias, 1, $work->get_dataref);
   1;}
@@ -1275,9 +1386,15 @@ sub poly {
   my($x,$y) = @$in;
   checkarg($x,1);
   checkarg($y,1);
+
+  # Parse for options
+  my $justify = 0;
+  while (my ($key, $val) = each %{$opt}) {
+    if ($key =~ m/^JUST/i) { $justify = $val; }
+  }
   my $n = nelem($x);
   my ($xmin, $xmax)=minmax($x); my ($ymin, $ymax)=minmax($y);
-  initenv( $xmin, $xmax, $ymin, $ymax) unless $hold;
+  initenv( $xmin, $xmax, $ymin, $ymax, $justify) unless $hold;
   save_status();
   standard_options_parser($opt);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
@@ -1296,12 +1413,15 @@ sub vect {
   my($n1,$n2) = $b->dims;
   barf 'Dimensions of $a and $b must be the same' unless $n1==$nx && $n2==$ny;
 
+  my $justify = 0;
+
   # Parse for options input instead of calling convention
   while (my ($key, $val) = each %{$opt}) {
     if ($key =~ m/^SCAL/i) {$scale=$val;}
     elsif ($key =~ m/^POS/i) {$pos=$val;}
     elsif ($key =~ m/^TR/i) {$tr=$val;}
     elsif ($key =~ m/^MIS/i) {$misval=$val;}
+    elsif ($key =~ m/^JUST/i) { $justify = $val; }
   }
 
 
@@ -1316,7 +1436,7 @@ sub vect {
   }
   $tr = CtoF77coords($tr);
 
-  initenv( 0, $nx-1, 0, $ny-1  ) unless $hold;
+  initenv( 0, $nx-1, 0, $ny-1, $justify  ) unless $hold;
   print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
   save_status();

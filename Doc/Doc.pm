@@ -419,16 +419,40 @@ use PDL::Doc::Config;
 
 =head2 new
 
-  $onlinedc = new PDL::Doc ('file.pdl');
+  $onlinedc = new PDL::Doc ('file.pdl',[more files]);
 
 =cut
 
 sub new {
-  my ($type,$file) = @_;
-  $file = DefaultFile() unless $file;
+  my ($type,@files) = @_;
   my $this = bless {},$type;
-  $this->{File} = $file;
+  $this->{File} = [@files];
+  $this->{Scanned} = [];
+  $this->{Outfile} = $files[0];
   return $this;
+}
+
+=head2 addfiles
+
+add another file to the online database associated with this object.
+
+=cut
+
+sub addfiles {
+  my ($this,@files) = @_;
+  push @{$this->{File}}, @files;
+}
+
+=head2 outfile
+
+set the name of the output file for this online db
+
+=cut
+
+sub outfile {
+  my ($this,$file) = @_;
+  $this->{Outfile} = $file if defined $file;
+  return $this->{Outfile};
 }
 
 =head2 ensuredb
@@ -439,18 +463,20 @@ Make sure that the database is slurped in
 
 sub ensuredb {
   my ($this) = @_;
-  return $_[0]->{SYMS} if defined $_[0]->{SYMS};
-  open IN, $this->{File} or
-    barf "can't open database $this->{File}, scan docs first";
-  binmode IN;
-  my ($plen,$txt);
-  while (read IN, $plen,2) {
-    my ($len) = unpack "S", $plen;
-    read IN, $txt, $len;
-    my ($sym, %hash) = split chr(0), $txt;
-    $this->{SYMS}->{$sym} = {%hash};
+  while (my $fi = pop @{$this->{File}}) {
+    open IN, $fi or
+      barf "can't open database $fi, scan docs first";
+    binmode IN;
+    my ($plen,$txt);
+    while (read IN, $plen,2) {
+      my ($len) = unpack "S", $plen;
+      read IN, $txt, $len;
+      my ($sym, %hash) = split chr(0), $txt;
+      $this->{SYMS}->{$sym} = {%hash};
+    }
+    close IN;
+    push @{$this->{Scanned}}, $fi;
   }
-  close IN;
   return $this->{SYMS};
 }
 
@@ -460,11 +486,11 @@ save the database (i.e., the hash of PDL symbols) to the file associated
 with this object.
 
 =cut
-
+ 
 sub savedb {
   my ($this) = @_;
   my $hash = $this->ensuredb();
-  open OUT, ">$this->{File}" or barf "can't write to symdb $this->{File}";
+  open OUT, ">$this->{Outfile}" or barf "can't write to symdb $this->{Outfile}";
   binmode OUT;
   while (my ($key,$val) = each %$hash) {
     my $txt = "$key".chr(0).join(chr(0),%$val);

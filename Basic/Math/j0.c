@@ -225,7 +225,11 @@ return( p * SQ2OPI / sqrt(x) );
 */
 extern double MAXNUM;
 
+#ifdef MY_FIXY0
+double fixy0(x)
+#else
 double y0(x)
+#endif
 double x;
 {
 double polevl(), p1evl();
