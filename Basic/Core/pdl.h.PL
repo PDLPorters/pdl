@@ -6,6 +6,15 @@ use File::Basename qw(&basename &dirname);
 require "pdl_hfiles.p";
 require "mymalloc.p";
 
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
+# how many variable types (ie PDL_Byte, ...) are there?
+require 'Types.pm';
+my $ntypes = 1 + $#PDL::Types::names;
+
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
 # have to mention them as if they were shell variables, not
@@ -16,13 +25,19 @@ require "mymalloc.p";
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
 
-print "Extracting $file (with variable substitutions)\n";
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {		     
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
 # You can use $Config{...} to use Configure variables.
@@ -31,6 +46,7 @@ print OUT <<"!GROK!THIS!";
 
 /*
  * THIS FILE IS GENERATED FROM pdl.h.PL! Do NOT edit!
+ * bad value support = $bvalflag
  */
 
 #ifndef __PDL_H
@@ -105,6 +121,13 @@ print OUT <<'!NO!SUBS!';
 
 #define PDL_HDRCPY				0x0200
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT "#define PDL_BADVAL                              0x0400\n\n"; 
+    }
+
+print OUT <<'!NO!SUBS!';
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
 		&& (pdl)->trans == (pdl_trans *)(wtrans))
 
@@ -197,6 +220,17 @@ typedef struct pdl_transvtable {
 	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
 					(means whether malloced or not) */ \
         pdl *pdls[np]; /* The pdls involved in the transformation */ \
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+        # need to protect the \ because within "" here
+	print OUT <<"!WITH!SUBS!";
+        int bvalflag;              \\
+        double badvalues[$ntypes]; \\
+!WITH!SUBS!
+    }
+
+print OUT <<'!NO!SUBS!';
 	int __datatype
 
 #define PDL_TR_MAGICNO 0x91827364

@@ -1,11 +1,15 @@
 
-sub defpdl {
-	my %hash = (Pars => $_[1],
-		    OtherPars => $_[2],
-		    Code => $_[3]);
-	$hash{Doc} = $_[4] if $#_>3;
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
-	pp_def($_[0],%hash);
+sub defpdl {
+    my %hash = (Pars => $_[1],
+		OtherPars => $_[2],
+		Code => $_[3]);
+    $hash{Doc} = $_[4] if $#_>3;
+    
+    pp_def($_[0],%hash);
 }
 
 pp_addhdr(<<'EOD');
@@ -42,12 +46,11 @@ For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 
 EOD
 
-
 sub projectdocs {
-  my $name = shift;
-  my $op = shift;
-  my $extras = shift;
-  return <<EOD;
+    my $name = shift;
+    my $op = shift;
+    my $extras = shift;
+    return <<EOD;
 
 =for ref
 
@@ -72,13 +75,13 @@ $extras
 
 EOD
 
-}
+} # sub: projectdocs()
 
 sub cumuprojectdocs {
-  my $name = shift;
-  my $op = shift;
-  my $extras = shift;
-  return <<EOD;
+    my $name = shift;
+    my $op = shift;
+    my $extras = shift;
+    return <<EOD;
 
 =for ref
 
@@ -106,74 +109,166 @@ $extras
 
 EOD
 
-}
+} # sub: cumuprojectdocs()
 
+# it's a bit unclear what to do with the comparison operators,
+# since the return value could be bad because all elements are bad,
+# which needs checking for since the bad value could evaluate to 
+# true or false (eg if the user has set it to 0)
+#
+# by setting CopyBadStatusCode to '', we stop the output piddle
+# from automatically being set bad if any of the input piddles are bad.
+# - we can set the flag within BadCode if necessary
+#
+# This may NOT be sensible. Only time, and comments, will tell...
+#
+pp_def(
+       'sumover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       Code => 
+       '$GENERIC(b) tmp = 0;
+	loop(n) %{ tmp += $a(); %}
+	$b() = tmp;',
+       BadCode => 
+       '$GENERIC(b) tmp = 0;
+        register int flag = 0;
+	loop(n) %{ 
+           if ( $a() != a_badval ) { tmp += $a(); flag = 1; }
+        %}
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; }',
+       Docs => projectdocs('sum','sumover',''),
+       );
 
-defpdl(
-	'sumover',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp;',
-	 projectdocs('sum','sumover','')
-);
-
-defpdl(
-      'zcover',
-      'a(n); int+ [o]b();',
-      '',
-      '$GENERIC(b) tmp = 1;
+# zcover doesn't work()
+# 
+# $xa = 255 * ones(byte,3,2)
+# $xa->baddata(1)
+# p zcover($xa)
+# [BAD BAD]           # GOOD
+# set($xa,1,1,1)
+# set($xa,2,1,1)
+# p $xa
+# 
+# [
+#  [BAD BAD BAD]
+#  [BAD   1   1]
+# ]
+#
+# p zcover($xa)
+# [BAD BAD]           # BAD
+#
+pp_def(
+       'zcover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       Code =>
+       '$GENERIC(b) tmp = 1;
        loop(n) %{ tmp = tmp && $a() == 0; if (!tmp) break; %}
        $b() = tmp;',
-       projectdocs('!= 0','zcover','')
+       BadCode => 
+       '$GENERIC(b) tmp = 1;
+        register int flag = 0;
+        loop(n) %{
+fprintf(stderr, "in loop %d flag = %d\n", n, flag );
+           if ( $a() != a_badval ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
+        %}
+fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp );
+/* for some reason, even though flag == 1, b is getting set to the bad value (see above) */
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; $PDL(b)->state |= PDL_BADVAL; }',
+       CopyBadStatusCode => '',
+       Doc => projectdocs('!= 0','zcover',''),
+       );
+
+pp_def(
+       'andover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       GenericTypes => [B,S,U,L],
+       Code => 
+       '$GENERIC(b) tmp = 1;
+        loop(n) %{ tmp = tmp && $a(); if (!tmp) break; %}
+        $b() = tmp;',
+       BadCode =>
+       '$GENERIC(b) tmp = 1;
+        register int flag = 0;
+        loop(n) %{ 
+           if ( $a() != a_badval ) { tmp = tmp && $a(); flag = 1; if (!tmp) break; }
+        %}
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; }',
+       Doc => projectdocs('and','andover','')
 );
 
 pp_def(
-      'andover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 1;
-       loop(n) %{ tmp = tmp && $a(); if (!tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('and','andover','')
-);
+       'bandover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       GenericTypes => [B,S,U,L],
+       Code => 
+       '$GENERIC(b) tmp = ~ 0 ;
+        loop(n) %{ tmp &= $a(); if (!tmp) break; %}
+        $b() = tmp;',
+       BadCode => 
+       '$GENERIC(b) tmp = ~ 0 ;
+        register int flag = 0;
+        loop(n) %{ 
+           if ( $a() != a_badval ) { tmp &= $a(); flag = 1; if (!tmp) break; }
+        %}
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; }',
+       Doc => projectdocs('bitwise and','bandover','')
+       );
 
 pp_def(
-      'bandover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = ~ 0 ;
-       loop(n) %{ tmp &= $a(); if (!tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('bitwise and','bandover','')
-);
+       'orover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       GenericTypes => [B,S,U,L],
+       Code => 
+       '$GENERIC(b) tmp = 0;
+        loop(n) %{ tmp = tmp || $a(); if (tmp) break; %}
+        $b() = tmp;',
+       BadCode =>
+       '$GENERIC(b) tmp = 0;
+        register int flag = 0;
+        loop(n) %{ 
+           if ( $a() != a_badval ) { tmp = tmp || $a(); flag = 1; if (tmp) break; }
+        %}
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; }',
+       Doc => projectdocs('or','orover','')
+       );
 
 pp_def(
-      'orover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 0;
-       loop(n) %{ tmp = tmp || $a(); if (tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('or','orover','')
-);
+       'borover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       GenericTypes => [B,S,U,L],
+       Code => 
+       '$GENERIC(b) tmp = 0;
+        loop(n) %{ tmp |= $a(); if (!~tmp) break; %}
+        $b() = tmp;',
+       BadCode => 
+       '$GENERIC(b) tmp = 0;
+        register int flag = 0;
+        loop(n) %{ 
+           if ( $a() != a_badval ) { tmp |= $a(); flag = 1; if (!~tmp) break; }
+        %}
+        if ( flag ) { $b() = tmp; }
+        else { $b() = b_badval; }',
+       Doc => projectdocs('bitwise or','borover','')
+       );
 
-pp_def(
-      'borover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 0;
-       loop(n) %{ tmp |= $a(); if (!~tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('bitwise or','borover','')
-);
+# XXX BADVAL got to here
 
 defpdl(
-      'intover',
-      'a(n); int+ [o]b();',
-      '',
-      '$GENERIC(b) tmp = 0;
+       'intover',
+       'a(n); int+ [o]b();',
+       '',
+       '$GENERIC(b) tmp = 0;
        int ns = $SIZE(n), nn;
        /* Integration formulae from Press et al 2nd Ed S 4.1 */
        switch (ns) {
@@ -222,42 +317,40 @@ integrals between the end points assuming the pdl gives values just at
 these centres: for such `functions', sumover is correct to C<O(h)>, but
 is the natural (and correct) choice for binned data, of course.
 ~)
-);
-
+); # intover
 
 defpdl(
-	'cumusumover',
-	'a(n); int+ [o]b(n);',
-	'',
-	'$GENERIC(b) tmp = 0;
+       'cumusumover',
+       'a(n); int+ [o]b(n);',
+       '',
+       '$GENERIC(b) tmp = 0;
 	 loop(n) %{ tmp += $a();
 		 $b() = tmp;
 	 %}
 	',
-	 cumuprojectdocs('sum','cumusumover','')
-);
-
-
+       cumuprojectdocs('sum','cumusumover','')
+       );
+       
 defpdl(
-	'prodover',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 1;
+       'prodover',
+       'a(n); int+ [o]b();',
+       '',
+       '$GENERIC(b) tmp = 1;
 	 loop(n) %{ tmp *= $a(); %}
 	 $b() = tmp;',
-	 projectdocs('product','prodover','')
-);
+       projectdocs('product','prodover','')
+       );
 
 defpdl(
-	'cumuprodover',
-	'a(n); int+ [o]b(n);',
-	'',
-	'$GENERIC(b) tmp = 1;
+       'cumuprodover',
+       'a(n); int+ [o]b(n);',
+       '',
+       '$GENERIC(b) tmp = 1;
 	 loop(n) %{ tmp *= $a();
 		 $b() = tmp;
 	 %}
 	 ',
-	 cumuprojectdocs('product','cumuprodover','')
+       cumuprojectdocs('product','cumuprodover','')
 );
 
 

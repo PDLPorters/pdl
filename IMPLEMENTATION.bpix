@@ -1,0 +1,147 @@
+--------------------------------------------------------------------------------
+
+                        Bad value support in PDL
+
+ Doug Burke (burke@ifa.hawaii.edu) & ...
+ last update: 07/09/00
+
+--------------------------------------------------------------------------------
+
+Implementation details
+======================
+
+Various bits of code use either perldl.conf or PDL::Config to find out whether
+to support bad values.
+
+A new flag has been added to the state of a piddle - PDL_BADVAL. If unset, then
+the piddle does not contain bad values, and so all the support code can be 
+ignored. If set, it does not guarantee that bad values are present, just that
+they should be checked for.
+
+The pdl_trans structure has been extended to include an integer value,
+bvalflag, which acts as a switch to tell the code whether to handle bad values
+or not (perhaps I should have just used the flags variable in the pdl_trans
+structure since it's a bit wasteful to have an integer here). This value is
+set if any of the input piddles have their PDL_BADVAL flag set (althogh
+this code can be replaced by setting FindBadStateCode in pp_def).
+
+It also includes an array of 6 doubles (badvaluesp[]) which is used to
+pass the bad value for each PDL type into the routines (see PP rule
+NewXSCopyBadValues). Currently the bad values are stored as a perl array
+in PDL::Types - which is why we use doubles in the trans array. However,
+a high priority is to get the bad values stored in a C structure -
+within the PDL struct sounds like a good place. This has several advantages,
+since NewXSCopyBadValues can be removed, as can the badvalues array from the
+trans structure, and then changes made to get_xsdatapdecl() in 
+PP/PdlParObjs.pm to account for this. One of the problems with the current
+implementation is that it's a pain to cast values within perl - it's more
+natural to do this in C (eg say I decide to change the badvalue for bytes
+to 256 or -1.234 - in the current code this is allowed, and, although it could
+be checked for, it would be a pain).
+
+Some of the present functionality (and lack of it) can be found in t/bad.t
+
+How do I change some pp_code to handle bad values?
+==================================================
+
+Examples can be found in Basic/Bad/bad.pd, Basic/Primitive/primitive.pd,
+Basic/Ops/ops.pd, Slices/Slices/slices.pd, and hopefully many more places
+soon.
+
+All routines should automatically propogate the bad status flag to output
+piddles, unless you declare otherwise.
+
+To flag a routine as NOT handling bad values, use 
+   HandleBad => 0
+This *should* cause the routine to print a warning if it's sent any piddles
+with the bad flag set, although I haven't changed anything to 'HandleBad => 0'
+yet to check this out.
+
+If you want to handle bad values but not set the state of all the output
+piddles, or if it's only one input piddle that's important, then look
+at the PP rules NewXSFindBadStatus and NewXSCopyBadStatus and the
+corresponding pp_def options
+   FindBadStatusCode and CopyBadStatusCode
+I've only just started to use this functionality - see zcover in primitive.pd
+(there's a problem with zcover but I don't think it's to do with this since it
+also affects other routines such as ngoodover/nbadover in Basic/Bad/bad.pd). 
+
+If the option
+   HandleBad => 1
+is given, then the readdata code automatically creates a variable called
+<pdl name>_badval, which contains the badvalue for that piddle (see
+get_xsdatapdecl() in PP/PdlParObjs.pm). This means that you can change
+   Code => '$a() = $b() + $c();'
+to
+   BadCode => 'if ( $b() == b_badval || $c() == c_badval ) { 
+                 $a() = a_badval; 
+               } else {
+                 $a() = $b() + $c();
+               }'
+leaving Code as it is. PP::PDLCode will then create a loop something like
+   if ( __trans->bvalflag ) {
+        threadloop over BadCode
+   } else { 
+        threadloop over Code
+   }
+it's probably easier to just look at the .xs file to see what goes on.
+
+NOTE: the above relies on horrible hacking of PDL::PP::Code and
+PDL::PP::ComplexThreadLoop, since I couldn't see a way, using the current 
+scheme, to get a loop like the above. If you can, please implement!
+
+Similar to BadCode, there's BadBackCode, and BadRedoDimsCode, although
+these haven't been used yet.
+
+EquivCPOffsCode has been changed to understand bad values - with a
+$EQUIVCPOFFS_BAD macro as well - although I don't really understand what 
+I'm doing here!
+
+Please note that the current design is based on my failure to understand
+what the xxx_redodims(), xxx_copy(), xxx_free() functions that are 
+created by PP do. 
+
+Where are the bad values stored?
+================================
+
+At the moment, Basic/Types.pm contains an array (@PDL::Types::badvals),
+which I've filled up with arbitrary numbers. As already noted, a high
+priority is to store the values in a C structure - with associated
+read/write routines. the default values I plan to use are those that
+Starlink use - ie
+
+#include <float.h>
+#include <limits.h>
+#define VAL__BADF    -FLT_MAX
+#define VAL__BADD    -DBL_MAX
+#define VAL__BADI    INT_MIN
+#define VAL__BADS    SHRT_MIN
+#define VAL__BADUS   USHRT_MAX
+#define VAL__BADB    CHAR_MIN
+#define VAL__BADUB   UCHAR_MAX                                                  
+
+although we won't need all of these.
+
+Other notes
+===========
+
+The build process has been affected. The following files are
+now created during the build:
+  Basic/Core/Dev.pm      by mkdev.pl
+             pdlapi.c       pdlapi.c.PL
+             Core.xs        Core.xs.PL
+             Core.pm        Core.pm.PL     
+
+We can't use Dev.pm.PL, since Dev.pm is used by the Makefile.PL's,
+so must be created as soon as possible.
+
+Several new files have been added:
+  README.bpix
+  Changes.bpix
+  IMPLEMENTATION.bpix
+
+  t/bad.t
+
+  Basic/Bad/
+  Basic/Bad/Makefile.PL
+            bad.pd

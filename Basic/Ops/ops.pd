@@ -27,6 +27,60 @@ pp_addhdr('
 ');
 
 # simple binary operators
+
+sub biop_bad {
+	my ($name,$op,$swap,$doc,%extra) = @_;
+	my $optxt = $op;
+	if ($optxt =~ s/>/E<gt>/) {} else
+	{ $optxt =~ s/</E<lt>/}
+	if ($swap) {
+	  $extra{HdrCode} = << 'EOH';
+  pdl *tmp;
+  if (swap) {
+    tmp = a;
+    a = b;
+    b = tmp;
+  }
+EOH
+        }
+	# quick and dirty solution to get ->inplace do its job
+	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  c = a;  /* discard output value, leak? */
+				}',
+	pp_def($name,
+	       Pars => 'a(); b(); [o]c();',
+	       OtherPars => 'int swap',
+	       HandleBad => 1,
+	       Code => "\$c() = \$a() $op \$b();",
+	       BadCode =>
+	       # use of different XX_badval is OTT here as the piddles are all 
+	       # the same type, hence have the same bad value
+	       "if ( \$a() == a_badval || \$b() == b_badval )\n" .
+	       "  \$c() = c_badval;\n" .
+	       "else\n" .
+	       "  \$c() = \$a() $op \$b();\n",
+	       %extra,
+	       Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$c = $name \$a, \$b, 0;     # explicit call with trailing 0
+   \$c = \$a $op \$b;           # overloaded call
+   \$a->inplace->$name(\$b,0);  # modify \$a inplace
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+This function is used to overload the binary C<$optxt> operator.
+Note that when calling this function explicitly you need to supply
+a third argument that should generally be zero (see first example).
+This restriction is expected to go away in future releases.
+EOD
+} # sub: biop_bad()
+
 sub biop {
 	my ($name,$op,$swap,$doc,%extra) = @_;
 	my $optxt = $op;
@@ -70,7 +124,7 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-}
+} # sub: biop()
 
 #simple binary functions
 sub bifunc {
@@ -96,7 +150,6 @@ EOH
 		OtherPars => 'int swap',
 		Code => "\$c() = $func(\$a(),\$b());",
 		%extra,
-		%extra,
 		Doc => << "EOD");
 =for ref
 
@@ -117,6 +170,38 @@ EOD
 }
 
 # simple unary functions and operators
+sub ufunc_bad {
+	my ($name,$func,$doc,%extra) = @_;
+	pp_def($name,
+	       Pars => 'a(); [o]b()',
+	       HandleBad => 1,
+	       Code => "\$b() = $func(\$a());",
+	       BadCode =>
+	       "if ( \$a() == a_badval )\n" .
+	       "  \$b() = b_badval;\n" .
+	       "else\n" .
+	       "  \$b() = $func(\$a());\n",
+	       HdrCode => 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  b = a;  /* discard output value, leak? */
+				}',
+	       %extra,
+	       Doc => << "EOD");
+=for ref
+
+$doc
+
+=for example
+
+   \$b = $func \$a;
+   \$a->inplace->$func;  # modify \$a inplace
+
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
+This function is used to overload the unary C<$func> operator/function.
+EOD
+} # sub: ufunc_bad()
+
 sub ufunc {
 	my ($name,$func,$doc,%extra) = @_;
 	pp_def($name,
@@ -141,17 +226,27 @@ $doc
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the unary C<$func> operator/function.
 EOD
-}
+} # sub: ufunc()
 
+######################################################################
+
+# it would make sense to trap illegal operations here (well, it would
+# be nice if you could set up exceptions to catch them all, but it's
+# not going to be portable)
+#
+# there is an issue over how we handle comparison operators
+# - see Primitive/primitive.pd/zcover() for more discussion
+#
 
 ## arithmetic ops
 # no swap
-biop('plus','+',0,'add two piddles');
-biop('mult','*',0,'multiply two piddles');
+biop_bad('plus','+',0,'add two piddles');
+biop_bad('mult','*',0,'multiply two piddles');
 
 # all those need swapping
-biop('minus','-',1,'subtract two piddles');
-biop('divide','/',1,'divide two piddles');
+biop_bad('minus','-',1,'subtract two piddles');
+biop_bad('divide','/',1,'divide two piddles');
+## note: divide should perhaps trap division by zero as well
 
 ## comparison ops
 # need swapping
@@ -182,13 +277,13 @@ bifunc('modulo','MOD',1,'elementwise C<modulo> operation');
 bifunc('spaceship','SPACE',1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc('sqrt','sqrt','elementwise square root');
-ufunc('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
-ufunc('sin','sin','the sin function');
-ufunc('cos','cos','the cos function');
 ufunc('not','!','the elementwise I<not> operation');
-ufunc('log','log','the natural logarithm',GenericTypes => [D]);
-ufunc('exp','exp','the exponential function',GenericTypes => [D]);
+ufunc_bad('sqrt','sqrt','elementwise square root');
+ufunc_bad('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
+ufunc_bad('sin','sin','the sin function');
+ufunc_bad('cos','cos','the cos function');
+ufunc_bad('log','log','the natural logarithm',GenericTypes => [D]);
+ufunc_bad('exp','exp','the exponential function',GenericTypes => [D]);
 
 pp_addpm({At=>Bot},<<'EOPM');
 

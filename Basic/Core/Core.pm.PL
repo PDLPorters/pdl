@@ -1,3 +1,45 @@
+#
+# Create Core.pm
+# - needed since we allow bad pixel handling to be switched off
+#
+
+use strict;
+
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+use vars qw( %PDL_CONFIG );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+        if ($Config{'osname'} eq 'VMS' or
+            $Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {		     
+    print "Extracting $file (NO bad value support)\n";
+}
+chmod 0644, $file;
+
+print OUT <<"!WITH!SUBS!";
+
+# This file is automatically created by Core.pm.PL
+# - bad value support = $bvalflag
+
+!WITH!SUBS!
+
+print OUT <<'!NO!SUBS!';
+
 =head1 NAME
 
 PDL::Core - fundamental PDL functionality
@@ -83,6 +125,9 @@ $PDL::undefval     = 0;        # Value to use instead of undef when creating
 *isempty      = \&PDL::isempty;
 
 sub barf;
+
+##################################################################
+##################################################################
 
 =head2 pdl
 
@@ -901,6 +946,9 @@ my %info = (
 				 !$_[0]->allocated; # apparently can be both?
 			       $state .= '-' if $state eq '';   # lazy eval
 			       $state .= 'C' if $_[0]->anychgd;
+!NO!SUBS!
+    print OUT "	       \$state .= 'B' if \$_[0]->baddata;\n" if $bvalflag;
+    print OUT <<'!NO!SUBS!';
 			       $state;
 			     },
 		 },
@@ -986,7 +1034,13 @@ Dataflow status
 
 =item S
 
-Some internal flags (P=physical,V=Vaffine,C=changed)
+!NO!SUBS!
+if ( $bvalflag ) {
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed,B=may\ncontain bad/missing data)\n";
+} else {
+   print OUT "Some internal flags (P=physical,V=Vaffine,C=changed)\n";
+}
+print OUT <<'!NO!SUBS!';
 
 =item C
 
@@ -1356,7 +1410,7 @@ sub PDL::convert {
   barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
-  $type = $type->[0] if ref($type) eq 'PDL::Type';
+  $type = $type->enum if ref($type) eq 'PDL::Type';
   return $pdl if $pdl->get_datatype == $type;
   my $conv = $pdl->flowconvert($type)->sever;
   return $conv;
@@ -1469,34 +1523,46 @@ for(
 		}');
 }
 
-
 {
     package PDL::Type;
     sub new {
-	my($type,$val) = @_;
-	if("PDL::Type" eq ref $val) {return bless [@$val],$type}
-	if(ref $val and $val->isa(PDL)) {
-	    if($val->getndims != 0) {
-	      PDL::Core::barf("Can't make a type out of non-scalar " . 
-			      "piddle $val!");
-	    }
-	    $val = $val->at;
-	}
-      PDL::Core::barf("Can't make a type out of non-scalar $val!".
-		      (ref $val)."!") if ref $val;
-	return bless [$val],$type;
+        my($type,$val) = @_;
+        if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
+        if(ref $val and $val->isa(PDL)) {
+            if($val->getndims != 0) {
+              PDL::Core::barf("Can't make a type out of non-scalar piddle $val!");
+            }
+            $val = $val->at;
+        }
+      PDL::Core::barf("Can't make a type out of non-scalar $val!".(ref $val)."!") if ref $val;
+        return bless [$val],$type;
     }
  
 sub enum   { return $_[0]->[0]; }
 sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
-foreach my $name ( qw( ctype ppsym realctype ) ) {
-    eval "sub $name { " . 'return $PDL::Types::typehash{$_[0]->symbol}->{' . $
-	name . '}; }';
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+        print OUT 
+'sub badvalue { 
+   my $self = shift; my $enum = $self->enum;
+   my $newval = shift;
+   if ( defined $newval ) {
+      # XXX note: really could do with casting newval here
+      $PDL::Types::badvals[$enum] = $newval;
+   }
+   return $PDL::Types::badvals[$enum]; 
 }
-sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }
+';
+    }
+    foreach my $name ( qw( ctype ppsym realctype ) ) {
+	print OUT "sub $name { return \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }\n";
+    }
 
-} # package: PDL::Type
+print OUT <<'!NO!SUBS!';
+sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }                      
 
+} # package: PDL::Type                                                          
 
 =head2 type
 
@@ -1533,8 +1599,23 @@ sub string {
     	return "TOO LONG TO PRINT";
     }
     if ($ndims==0) {
-       my @x = $self->at();
-       return ($format ? sprintf($format, $x[0]) : "$x[0]");
+!NO!SUBS!
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	if ( $self->baddata() and $self->isbad() ) {
+	    return "BAD";
+	} else {
+	    my @x = $self->at();
+	    return ($format ? sprintf($format, $x[0]) : "$x[0]");
+	}
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+	 my @x = $self->at();
+	 return ($format ? sprintf($format, $x[0]) : "$x[0]");
+!NO!SUBS!
+} # if: $bvalflag
+print OUT <<'!NO!SUBS!';
     }
     return "Null" if $self->isnull;
     return "Empty" if $self->isempty; # Empty piddle
@@ -1948,19 +2029,43 @@ sub str1D {
     my $x = listref_c($self);
     my ($ret,$dformat,$t);
     $ret = "[";
-    $dformat = $PDL::floatformat  if $self->get_datatype() == $PDL_F;
-    $dformat = $PDL::doubleformat if $self->get_datatype() == $PDL_D;
+    my $dtype = $self->get_datatype();
+    $dformat = $PDL::floatformat  if $dtype == $PDL_F;
+    $dformat = $PDL::doubleformat if $dtype == $PDL_D;
+!NO!SUBS!
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+    my $badflag = $self->baddata();
+    my $badval  = $self->badvalue();
     for $t (@$x) {
-        if ($format) {
+	if ( $badflag and $t == $badval ) {
+	    $t = "BAD";
+        } elsif ($format) {
 	  $t = sprintf $format,$t;
-	}
-	else{ # Default
-           if ($dformat && length($t)>7) { # Try smaller
-             $t = sprintf $dformat,$t;
-	   }
+	} else{ # Default
+	    if ($dformat && length($t)>7) { # Try smaller
+		$t = sprintf $dformat,$t;
+	    }
 	}
        $ret .= $t.$sep;
     }
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+    for $t (@$x) {
+        if ($format) {
+	  $t = sprintf $format,$t;
+	} else{ # Default
+	    if ($dformat && length($t)>7) { # Try smaller
+		$t = sprintf $dformat,$t;
+	    }
+	}
+       $ret .= $t.$sep;
+    }
+!NO!SUBS!
+} # if: $bvalflag
+
+    print OUT <<'!NO!SUBS!';
     chop $ret; $ret.="]";
     return $ret;
 }
@@ -1975,57 +2080,124 @@ sub str2D{
     my $x = listref_c($self);
     my ($i, $f, $t, $len, $ret);
 
-    my $findmax = 1;
-    if (!defined $format || $format eq "") { # Format not given? -
-                                             # find max length of default
-       $len=0;
-       for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
-       $format = "%".$len."s";
+    my $dtype = $self->get_datatype();
+!NO!SUBS!
 
-       if ($len>7) { # Too long? - perhaps try smaller format
-          if ($self->get_datatype() == $PDL_F) {
-	    $format = $PDL::floatformat
-	  } elsif ($self->get_datatype() == $PDL_D) {
-	    $format = $PDL::doubleformat
-	  } else {
-	     # Stick with default
-	     $findmax = 0;
-	  }
-       }
-       else {
-          # Default ok
-	  $findmax = 0;
-       }
+    if ( $bvalflag ) { print OUT 
+'    my $badflag = $self->baddata();
+    my $badval  = $self->badvalue();
+';
+}
+    print OUT <<'!NO!SUBS!';
+
+    my $findmax = 1;
+    if (!defined $format || $format eq "") { 
+	# Format not given? - find max length of default
+	$len=0;
+
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	if ( $badflag ) {
+	    for (@$x) { 
+		if ( $_ == $badval ) { $i = 3; } 
+		else                 { $i = length($_); }
+		$len = $i>$len ? $i : $len;
+	    } 
+	} else {
+	    for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
+	}
+!NO!SUBS!
+} else {
+	print OUT <<'!NO!SUBS!';
+	for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
+!NO!SUBS!
+} # if: $bvalflag
+
+	print OUT <<'!NO!SUBS!';
+	$format = "%".$len."s";
+	
+	if ($len>7) { # Too long? - perhaps try smaller format
+	    if ($dtype == $PDL_F) {
+		$format = $PDL::floatformat;
+	    } elsif ($dtype == $PDL_D) {
+		$format = $PDL::doubleformat;
+	    } else {
+		# Stick with default
+		$findmax = 0;
+	    }
+	}
+	else {
+	    # Default ok
+	    $findmax = 0;
+	}
     }
 
     if($findmax) {
-	    # Find max length of strings in final format
-	    $len=0;
+	# Find max length of strings in final format
+	$len=0;
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	if ( $badflag ) {
 	    for (@$x) {
-	       $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+		if ( $_ == $badval ) { $i = 3; }
+		else                 { $i = length(sprintf $format,$_); }
+		$len = $i>$len ? $i : $len;
 	    }
-    }
+	} else {
+	    for (@$x) {
+		$i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+	    }
+	}
+!NO!SUBS!
+} else {
+    print OUT <<'!NO!SUBS!';
+	for (@$x) {
+	    $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
+	}
+!NO!SUBS!
+} # if: $bvalflag
+	
+    print OUT <<'!NO!SUBS!';
+    } # if: $findmax
 
     $ret = "\n" . " "x$level . "[\n";
-    { my $level = $level+1;
-      $ret .= " "x$level ."[";
-      for ($i=0; $i<=$#$x; $i++) {
-          $f = sprintf $format,$$x[$i];
-          $t = $len-length($f); $f = " "x$t .$f if $t>0;
-          $ret .= $f;
-	  if (($i+1)%$dims[0]) {
-	     $ret.=$sep;
-          }
-	  else{ # End of output line
-	     $ret.="]";
-	     if ($i==$#$x) { # very last number
-	        $ret.="\n";
-	     }
-	     else{
-	        $ret.= $sep2."\n" . " "x$level ."[";
-	     }
-	  }
-       }
+    { 
+	my $level = $level+1;
+	$ret .= " "x$level ."[";
+	for ($i=0; $i<=$#$x; $i++) {
+!NO!SUBS!
+    if ( $bvalflag ) { 
+	print OUT <<'!NO!SUBS!';
+	    if ( $badflag and $$x[$i] == $badval ) {
+		$f = "BAD";
+	    } else {
+		$f = sprintf $format,$$x[$i];
+	    }
+!NO!SUBS!
+} else {
+    print OUT <<'!NO!SUBS!';
+            $f = sprintf $format,$$x[$i];
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+	    $t = $len-length($f); $f = " "x$t .$f if $t>0;
+	    $ret .= $f;
+	    if (($i+1)%$dims[0]) {
+		$ret.=$sep;
+	    }
+	    else{ # End of output line
+		$ret.="]";
+		if ($i==$#$x) { # very last number
+		    $ret.="\n";
+		}
+		else{
+		    $ret.= $sep2."\n" . " "x$level ."[";
+		}
+	    }
+	}
     }
     $ret .= " "x$level."]\n";
     return $ret;
@@ -2115,5 +2287,7 @@ the copyright notice should be included in the file.
 
 =cut
 
-
 1;
+
+!NO!SUBS!
+

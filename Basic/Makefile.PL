@@ -30,7 +30,7 @@ WriteMakefile(
 	      'VERSION_FROM' => 'Core/Version.pm',
 	      'PM'       => \%pm,
 	      'MAN3PODS' => \%man3pods,
-     'DIR'      => ['Pod','Gen','Core','Ops','Primitive','Slices',
+     'DIR'      => ['Pod','Gen','Core','Bad','Ops','Primitive','Slices',
 		    'Test','Math','Complex'],
 );
 

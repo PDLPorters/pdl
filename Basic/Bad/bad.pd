@@ -1,0 +1,409 @@
+# 
+# The contents of Bad.pm depend on whether we have
+# bad-value support in PDL.
+#
+
+use strict;
+
+# check for bad value support
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
+########################################################3
+
+my $author = '
+
+=head1 AUTHOR
+
+Doug Burke (burke@ifa.hawaii.edu) and ...
+
+All rights reserved. There is no warranty. You are allowed to
+redistribute this software / documentation under certain conditions. For
+details, see the file COPYING in the PDL distribution. If this file is
+separated from the PDL distribution, the copyright notice should be
+included in the file.
+
+';
+
+########################################################3
+
+# if no bad-value support, this is easy
+
+unless ( $bvalflag ) {
+
+    pp_addpm({At=>'Top'},<<"EOD");
+
+=head1 NAME
+
+PDL::Bad - PDL does not process bad values
+
+=head1 DESCRIPTION
+
+PDL has been compiled with WITH_BADVAL either 0 or undef,
+so it does not contain any bad-value support code.
+
+=head1 SYNOPSIS
+
+none
+
+$author
+
+=head1 BUGS
+
+None.
+
+=cut
+
+# do nothing
+
+EOD
+
+    pp_export_nothing();
+    pp_done();
+    exit;
+
+} # unless: $bvalflag
+
+########################################################3
+
+pp_add_exported( '', 'baddata badvalue isgood isbad' );
+
+pp_addpm({At=>'Top'},<<'!NO!SUBS!');
+
+=head1 NAME
+
+PDL::Bad - PDL does process bad values
+
+=head1 DESCRIPTION
+
+PDL has been compiled with WITH_BADVAL set to 1. Therefore,
+you can enter the wonderful world of bad values.
+
+=head1 SYNOPSIS
+
+Errrr
+
+=cut
+
+use strict;
+
+use PDL::Types;
+use PDL::Primitive;
+
+############################################################
+############################################################
+##							    
+## XXX BADVAL XXX					    
+##							    
+## these are left over from a previous attempt. 	    
+## need re-doing - or at least thinking about		    
+##							    
+############################################################
+############################################################
+
+!NO!SUBS!
+
+pp_addxs( "#define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))\n" );
+
+my %flags = 
+    ( 
+      baddata => { set => 1, FLAG => "BADVAL" },
+      );
+
+# we want the following to be in PDL, not PDL::Bad, hence
+my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
+
+foreach my $name ( keys %flags ) {
+    my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
+    if ( $flags{$name}{set} ) {
+	pp_addxs( <<"!WITH!SUBS!");
+$xshdr
+
+int
+$name(x,mode=0)
+	pdl *x
+	int mode
+	CODE:
+	if (items>1) 
+	   { setflag(x->state,$flag,mode); }
+	RETVAL = ((x->state & $flag) > 0);
+	OUTPUT:
+	RETVAL
+
+!WITH!SUBS!
+
+} else {
+	pp_addxs( <<"!WITH!SUBS!");
+$xshdr
+
+int
+$name(self)
+	pdl *self
+	CODE:
+	RETVAL = ((self->state & $flag) > 0);
+	OUTPUT:
+	RETVAL
+
+!WITH!SUBS!
+
+} # if: $flags{name}{set}
+
+} # foreach: keys %flags 
+
+pp_addpm(<<'!NO!SUBS!');
+############################################################
+############################################################
+
+*baddata      = \&PDL::baddata;
+*badvalue     = \&PDL::badvalue;
+*isgood       = \&PDL::isgood;
+*isbad        = \&PDL::isbad;
+
+############################################################
+############################################################
+
+=head2 baddata
+
+=for ref
+
+switch on/off/examine bad data flag
+
+=for example
+
+  if ( $a->baddata() ) { 
+    print "Data may contain bad values.\n"; 
+  }
+  $a->baddata(1);      # set bad data flag
+  $a /= $b;            # b may contain zeroes
+  $a->baddata(0);      # unset bad data flag
+
+Bibble.
+
+=cut
+
+############################################################
+############################################################
+
+=head2 badvalue
+
+=for ref
+
+returns the value used to indicate a missing (or bad) element
+for the given piddle type. You can give it a piddle, 
+a L<PDL::Type> object, or one of C<$PDL_B>, C<$PDL_S>, etc.
+
+Ugh - needs looking at. For instance, would prefer it to be
+in PDL::Bad rather than PDL::Core.
+
+=for example
+
+   $badval = badvalue( float );
+   $a = ones(ushort,10);
+   print "The bad data value for ushort is: ", 
+      $a->badvalue(), "\n";
+
+=cut
+
+sub PDL::badvalue {
+    my $x = shift; 
+    my $type;
+    if ( UNIVERSAL::isa($x,'PDL::Type') ) {
+	# XXX THIS SHOULD NOT HAPPEN ?
+	print "DBG: calling Type badvalue via PDL - a mess?\n";
+	$type = $x;
+    } elsif ( UNIVERSAL::isa($x,'PDL') ) {
+	$type = $x->type;
+    } else {
+	# assume it's a scalar value corresponding to $PDL_B, etc
+	$type = new PDL::Type $x;
+    }
+    return $type->badvalue;
+} # PDL::badvalue()
+
+############################################################
+############################################################
+
+=head2 isgood
+
+=for ref
+
+Is a value good?
+
+Returns a 1 if the value is good, 0 otherwise.
+
+=for example
+
+ $a = pdl(1,2,3);
+ $a->baddata(1);
+ set($a,1,$a->badvalue);
+ $b = isgood(\$a);
+ print $b, "\n";
+ [1 0 1] (I hope)
+
+It's just another way of saying C<$a != $a->badvalue> - 
+in fact that's how it's implemented.
+
+NOTE: this should probably be re-done as a pp function.
+(see inequality biop in ops.pd).
+
+=cut
+
+sub PDL::isgood { 
+    my $x = shift;
+    if ( $x->baddata ) {
+	return ($x != $x->badvalue); 
+    } else {
+	return ones($x);
+    }
+}
+
+=head2 isbad
+
+=for ref
+
+Is a value bad?
+
+Returns a 1 if the value is bad, 0 otherwise.
+
+=for example
+
+ $a = pdl(1,2,3);
+ $a->baddata(1);
+ set($a,1,$a->badvalue);
+ $b = isbad(\$a);
+ print $b, "\n";
+ [0 1 0] (I hope)
+
+It's just another way of saying C<$a == $a->badvalue> - 
+in fact that's how it's implemented.
+
+NOTE: this should probably be re-done as a pp function.
+(see equality biop in ops.pd).
+
+=cut
+
+sub PDL::isbad { 
+    my $x = shift;
+    if ( $x->baddata ) {
+	return ($x == $x->badvalue); 
+    } else {
+	return zeroes($x);
+    }
+} # sub: isbad()
+
+############################################################
+############################################################
+
+!NO!SUBS!
+
+# modified from primitive.pd
+#
+sub projectdocs {
+    my $name = shift;
+    my $op = shift;
+    return <<EOD;
+
+=for ref
+
+Find the number of $name elements along the 1st dimension.
+
+This function reduces the dimensionality of a piddle
+by one by finding the number of $name elements
+along the 1st dimension.
+
+By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
+I<any> dimension.
+
+=for usage
+
+ \$a = $op(\$b);
+
+=for example
+
+ \$spectrum = $op \$image->xchg(0,1)
+
+=cut
+
+EOD
+
+} # sub: projectdocs()
+
+# see tests 23 and 24 in t/bad.t
+# - WHY DO THEY FAIL?
+pp_def(
+       'nbadover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       Code => 
+       '$b() = 0;',
+       BadCode => 
+       '$GENERIC(b) cnt = 0;
+	loop(n) %{ 
+           if ( $a() == a_badval ) { cnt++; }
+        %}
+        $b() = cnt;',
+       Doc => projectdocs('bad','nbadover'),
+       );
+
+pp_def(
+       'ngoodover',
+       HandleBad => 1,
+       Pars => 'a(n); int+ [o]b();',
+       Code => 
+       '$b() = ($GENERIC(b)) $SIZE(n);',
+       BadCode => 
+       '$GENERIC(b) cnt = 0;
+	loop(n) %{ 
+           if ( $a() != a_badval ) { cnt++; }
+        %}
+        $b() = cnt;',
+       Doc => projectdocs('good','ngoodover'),
+       );
+
+
+# Generate small ops functions to do entire array
+
+foreach my $op ( 
+	  ['nbad','nbadover','bad'],
+	  ['ngood','ngoodover','good'],
+	  ) {
+    pp_add_exported('', $op->[0]);
+
+    pp_addpm(<<"EOD");
+
+=head2 $op->[0]
+
+=for ref
+
+Returns the number of $op->[2] values in a piddle
+
+=for usage
+
+ \$x = $op->[0](\$data);
+
+=cut
+
+*$op->[0] = \\&PDL::$op->[0];
+sub PDL::$op->[0] {
+	my(\$x) = \@_; my \$tmp;
+	\$x->clump(-1)->$op->[1](\$tmp=PDL->nullcreate(\$x) );
+	return \$tmp->at();
+}
+EOD
+
+} # for $op
+
+
+pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
+
+$author
+
+=head1 BUGS
+
+Loads, I'm sure.
+
+=cut
+
+!WITH!SUBS!
+
+pp_done;

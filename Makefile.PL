@@ -5,16 +5,16 @@ $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
 # Version test.
 BEGIN{
-  eval "use 5.005";
-  die "PDL requires Perl v5.005 or later\n" if $@ ne "";
+    eval "use 5.005";
+    die "PDL requires Perl v5.005 or later\n" if $@ ne "";
 }
 
 END{
-  eval "use 5.6.0";
-  warn "\n\n*The next major version of PDL (v2.2) will require Perl v5.6.0 or later!*\n".
-    "*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
+    eval "use 5.6.0";
+    warn "\n\n*The next major version of PDL (v2.2) will require Perl v5.6.0 or later!*\n".
+	"*Upgrade your perl now for maximum PDL fun in the future!*\n\n" if $@ ne "";
 }
- 
+
 $seen_pdlconf = 0;
 
 # Scan ARGV for config file argument
@@ -78,30 +78,35 @@ print VERSIONFILE "1;\n";
 
 close VERSIONFILE;
 
+# Create Basic/Core/Dev.pm
+system "perl", "Basic/Core/mkdev.pl";
 
 use ExtUtils::MakeMaker;
 
-my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
+my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"} 
   qw/perldl pdldoc/;
 
 WriteMakefile(
-
- 'PREREQ_PM' => { 'ExtUtils::F77' => 1.10, 'File::Spec' => 0.6 },
- 'NAME' => 'PDL',
- 'VERSION_FROM' => 'Basic/Core/Version.pm',
- 'EXE_FILES' => ['perldl', 'pdldoc'],
- 'PM' => { @podpms }, # so that the script docs are picked up
+	      'PREREQ_PM' => { 'ExtUtils::F77' => 1.10, 'File::Spec' => 0.6 },
+	      'NAME' => 'PDL',
+	      'VERSION_FROM' => 'Basic/Core/Version.pm',
+	      'EXE_FILES' => ['perldl', 'pdldoc'],
+	      'PM' => { @podpms }, # so that the script docs are picked up                 
 # 'OPTIMIZE'  => '-g',		  # If you want to debug, uncomment this.
- 'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
- 'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
- 'clean' => {'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod tbyte.tif tmp0 tmp0.hdr tushort.tif MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'},
- 'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
-  ($] ge '5.005') ? (
-            'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
-            'ABSTRACT' => 'Perl Data Language',
-        ) : (),
+	      'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
+	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
+	      'clean' => {
+		  'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
+		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' . 
+		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'
+		      },
+	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
+	      ($] ge '5.005') ? (
+				 'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
+				 'ABSTRACT' => 'Perl Data Language',
+				 ) : (),
 
-);
+	      );
 
 print STDERR "Writing Basic/Core/Config.pm\n";
 
@@ -122,6 +127,7 @@ for(keys %PDL_CONFIG) {
 	print OUT ",\n";
 }
 print OUT ");\n1;";
+close OUT;
 
 # Extra build target to build the doc database
 
@@ -151,21 +157,21 @@ doc_perl_install ::
 my $podsel = "podselect";
 
 if ( $] < 5.006 ) {
-	# make your own podsel
-	$podsel = "podsel";
-	print "Building a simple version of podselect, called $podsel.\n";
-	unlink $podsel if -f $podsel;
-	my $fh = new IO::File "> $podsel" or die "Can't create $podsel: $!";
-
-	use Config;
-	print $fh <<"!GROK!THIS!";
+    # make your own podsel
+    $podsel = "podsel";
+    print "Building a simple version of podselect, called $podsel.\n";
+    unlink $podsel if -f $podsel;
+    my $fh = new IO::File "> $podsel" or die "Can't create $podsel: $!";
+    
+    use Config;
+    print $fh <<"!GROK!THIS!";
 $Config{'startperl'}
     eval 'exec perl -S \$0 "\$@"'
         if 0;
 !GROK!THIS!
 
-	# no variable substitution here
-	print $fh <<'!NO!SUBS!';
+    # no variable substitution here
+    print $fh <<'!NO!SUBS!';                                                
 
 # script to emulate podselect (available in perl 5.6.0)
 use blib;
@@ -175,18 +181,18 @@ die "Usage: $0 <file>\n" if $#ARGV == -1;
 podselect(@ARGV);
 exit;
 !NO!SUBS!
-	$fh->close;
-	chmod 0755, $podsel;
-	$podsel = "./$podsel"; # '.' may not be in our path (potential win32 problem?)
+    $fh->close;
+    chmod 0755, $podsel;
+    $podsel = "./$podsel"; # '.' may not be in our path (potential win32 problem?)
 } # if: perl version < 5.006
 
-$text .=
+$text .=                                                                      
 "
 perldl.pod : perldl subdirs
-	$podsel perldl > perldl.pod
+\t$podsel perldl > perldl.pod
 
 pdldoc.pod : pdldoc subdirs
-	$podsel pdldoc > pdldoc.pod
+\t$podsel pdldoc > pdldoc.pod
 
 ";
 

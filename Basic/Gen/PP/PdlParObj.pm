@@ -42,9 +42,13 @@ for (['Byte',$PDL_B],
 
 __DATA__
 
+# need for $bvalflag is due to hacked get_xsdatapdecl() 
+# - this should disappear when (if?) things are done sensibly
+#
 sub new {
-	my($type,$string,$number) = @_;
-	my $this = bless {Number => $number},$type;
+	my($type,$string,$number,$bvalflag) = @_;
+	$bvalflag ||= 0;
+	my $this = bless {Number => $number, BadFlag => $bvalflag},$type;
 # Parse the parameter string
 	$string =~
 		/^
@@ -193,7 +197,7 @@ sub get_nnflag { my($this) = @_;
 
 # XXX There might be weird backprop-of-changed stuff for [phys].
 #
-# Have changed code to assume that, if(!$this->{FlagCreat}) 
+# Have changed code to assume that, if(!$this->{FlagCreat})
 # then __creating[] will == 0
 #  -- see make_redodims_thread() in ../PP.pm
 #
@@ -386,16 +390,34 @@ sub do_indterm { my($this,$pdl,$ind,$subst,$context) = @_;
                "PP_INDTERM(".$this->{IndObjs}[$ind]->get_size().", $index))");
 }
 
-sub get_xsdatapdecl { my($this,$genlooptype,$asgnonly) = @_;
-	my $type; my $pdl = $this->get_nname; my $flag = $this->get_nnflag;
-		      my $name = $this->{Name};
-	$type = $this->ctype($genlooptype) if defined $genlooptype;
-	my $declini = ($asgnonly ? "" : "\t$type *");
-	my $cast = ($type ? "($type *)" : "");
+# XXX hacked to create a variable containing the bad value for 
+# this piddle. 
+# This is a HACK (Doug Burke 07/08/00)
+# XXX
+#
+sub get_xsdatapdecl { 
+    my($this,$genlooptype,$asgnonly) = @_;
+    my $type; 
+    my $pdl = $this->get_nname; 
+    my $flag = $this->get_nnflag;
+    my $name = $this->{Name};
+    $type = $this->ctype($genlooptype) if defined $genlooptype;
+    my $declini = ($asgnonly ? "" : "\t$type *");
+    my $cast = ($type ? "($type *)" : "");
 # ThreadLoop does this for us.
 #	return "$declini ${name}_datap = ($cast((${_})->data)) + (${_})->offs;\n";
-	return "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));
-		$declini ${name}_physdatap = ($cast($pdl->data));
-	\n";
+    
+    my $str = "$declini ${name}_datap = ($cast(PDL_REPRP_TRANS($pdl,$flag)));\n" .
+	"$declini ${name}_physdatap = ($cast($pdl->data));\n";
+
+    # assuming we always need this 
+    # - may not be true - eg if $asgnonly
+    #
+    if ( $this->{BadFlag} and $type ) {
+	$str .= "\t$type   ${name}_badval = (($type) \$PRIV(badvalues[" . 
+	  PDL::PP::PdlParObj::typeval($type) . "]));\n";
+    }	
+
+    return "$str\n";
 }
 

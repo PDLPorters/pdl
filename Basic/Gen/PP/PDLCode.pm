@@ -4,126 +4,135 @@
 # This is what makes the nice loops go around etc.
 use strict;
 
+# check for bad value support
+#
+use PDL::Config;
+my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
+
 package PDL::PP::Code;
 use Carp;
 
 sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 
+# we define the method separate_code() at the end of this
+# file, so that it can call the constructors from the classes
+# defined in this file. ugly...
+
 # Do the appropriate substitutions in the code.
-sub new { my($type,$code,$parnames,$parobjs,$indobjs,$generictypes,
-	    $extrageneric,$havethreading, $dont_add_thrloop, $nogeneric_loop) = @_;
+sub new { 
+    my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
+       $extrageneric,$havethreading, 
+       $dont_add_thrloop, $nogeneric_loop) = @_;
 
-         # C++ style comments
-         #
-         # This regexp isn't perfect because it doesn't cope with
-         # literal string constants.
-         #
-         $code =~ s,//.*?\n,,g;
+    # simple way of handling bad code check
+    $badcode = undef unless $bvalflag;
+    my $handlebad = defined($badcode);
 
-	if($::PP_VERBOSE) {
-		if($dont_add_thrloop) {
-			print "DONT_ADD_THRLOOP!\n";
-		}
-		print "EXTRAGEN: $extrageneric ",%$extrageneric,"\n";
-		print "ParNAMES: ",(join ',',@$parnames),"\n";
-		print "GENTYPES: ", @$generictypes, "\n";
+    # C++ style comments
+    #
+    # This regexp isn't perfect because it doesn't cope with
+    # literal string constants.
+    #
+    $code =~ s,//.*?\n,,g;
+
+    if($::PP_VERBOSE) {
+	if($dont_add_thrloop) {
+	    print "DONT_ADD_THRLOOP!\n";
 	}
-	my $sizeprivs = {};
-	my($this) = bless {
-		IndObjs => $indobjs,
-		ParNames => $parnames,
-		ParObjs => $parobjs,
-		Gencurtype => [], # stack to hold GenType in generic loops
-	},$type;
-	$_ = "{".
-	   (join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}})).
-	    "$code}";
-# First, separate the code into an array of C fragments (strings),
-# variable references (strings starting with $) and
-# loops (array references, 1. item = variable.
-	my $coderef = new PDL::PP::Block;
-	my @stack = ($coderef);
-	my $control;
-	my $threadloops = 0;
-	while($_) {
-# Parse next statement
-		s/^(.*?) # First, some noise is allowed. This may be bad.
-		   ( \$[a-zA-Z_]+\s*\([^)]*\)   # $a(...): access
-		    |\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
-		    |\btypes\s*\([^)]+\)\s*%{  # types(..) %{
-		    |\bthreadloop\s*%{        # threadloop %{
-		    |%}                     # %}
-		    |$)//xs
-			or confess("Invalid program $_");
-		$control = $2;
-# Store the user code.
-# Some day we shall parse everything.
-		push @{$stack[-1]},$1;
-# Then, our control.
-		if($control) {
-			if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
-				my $ob = new PDL::PP::Loop([split ',',$1],
-					$sizeprivs,$this);
-				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
-				my $ob = new PDL::PP::Types($1);
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-			} elsif($control =~ /^threadloop\s*%{/) {
-				my $ob = new PDL::PP::ThreadLoop();
-				push @{$stack[-1]},$ob;
-				push @stack,$ob;
-				$threadloops ++;
-			} elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
-				push @{$stack[-1]},new PDL::PP::Access($control,$this);
-			} elsif($control =~ /^%}/) {
-				pop @stack;
-			} else {
-				confess("Invalid control: $control\n");
-			}
-		} else {
-			print("No \$2!\n") if $::PP_VERBOSE;
-		}
+	print "EXTRAGEN: $extrageneric ",%$extrageneric,"\n";
+	print "ParNAMES: ",(join ',',@$parnames),"\n";
+	print "GENTYPES: ", @$generictypes, "\n";
+	print "HandleBad: $handlebad\n";
+    }
+    my($this) = bless {
+	IndObjs => $indobjs,
+	ParNames => $parnames,
+	ParObjs => $parobjs,
+	Gencurtype => [], # stack to hold GenType in generic loops
+	HandleBad  => $handlebad,
+	BadCode => undef, # ugly: hacky way to pass data to ComplexThreadLoop->get_str()
+    },$type;
+
+    my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
+
+    # First, separate the code into an array of C fragments (strings),
+    # variable references (strings starting with $) and
+    # loops (array references, 1. item = variable.
+    #
+    my ( $threadloops, $coderef, $sizeprivs ) = 
+	$this->separate_code( "{$inccode\n$code\n}" );
+
+    if ( $handlebad ) {
+	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) = 
+	    $this->separate_code( "{$inccode\n$badcode\n}" );
+	# I'm assuming that I can ignore $bad_threadloops and
+	# $bad_sizeprivs 
+	# XXX foolish XXX I'm sure
+	# - will possibly work for simple cases but fall down 
+	#   as we get more complicated
+	#
+	# yup - found a case when ignoring bad_sizeprivs is foolish
+	# --> PDL::Bad::nbadover.
+	# so, amalgamate the two here
+	$this->{BadCode} = $bad_coderef;
+
+	# fortunately sizeprivs is a simple hash, with each element 
+	# containing a string (see PDL::PP::Loop)
+	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
+	    my $str = $$sizeprivs{$bad_key}; 
+	    if ( defined $str ) {
+		die "ERROR: was hoping that sizeprivs would not cause a problem in PP/PDLCode.pm (BadVal stuff)\n"
+		    unless $str eq $bad_str;
+	    }
+	    $$sizeprivs{$bad_key} = $bad_str;  # copy over
 	}
-	print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-# Now, if there is no explicit threadlooping in the code,
-# enclose everything into it.
-	if(!$threadloops && !$dont_add_thrloop && $havethreading) {
-		print "Adding threadloop...\n" if $::PP_VERBOSE;
-		my $nc = $coderef;
-		$coderef = new PDL::PP::ThreadLoop();
-		push @{$coderef},$nc;
-	}
-# Enclose it all in a genericloop.
-	unless ($nogeneric_loop) {
-# XXX Make genericloop understand denied pointers;...
-		my $nc = $coderef;
-		$coderef = new PDL::PP::GenericLoop($generictypes,"",
-			[grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
-		push @{$coderef},$nc;
-	}
-# Do we have extra generic loops?
-# If we do, first reverse the hash:
-	my %glh;
-	for(keys %$extrageneric) {
-		push @{$glh{$extrageneric->{$_}}},$_;
-	}
-	my $no = 0;
-	for(keys %glh) {
-		my $nc = $coderef;
-		$coderef = new PDL::PP::GenericLoop($generictypes,$no++,
-							$glh{$_},$_);
-		push @$coderef,$nc;
-	}
-# Then, in this form, put it together what we want the code to actually do.
-	print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-	$this->{Code} = "{".(join '',values %$sizeprivs).
-	  $coderef->get_str($this,[])
-	  ."}";
-	$this->{Code};
-}
+
+	die "ERROR: threadloops are not the same between Code and BadCode (BadVal stuff).\n"
+	    unless $bad_threadloops == $threadloops;
+
+    } # if: $handlebad
+
+    print "SIZEPRIVSX: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+    # Now, if there is no explicit threadlooping in the code,
+    # enclose everything into it.
+    if(!$threadloops && !$dont_add_thrloop && $havethreading) {
+	print "Adding threadloop...\n" if $::PP_VERBOSE;
+	my $nc = $coderef;
+	$coderef = new PDL::PP::ThreadLoop();
+	push @{$coderef},$nc;
+    }
+
+    # Enclose it all in a genericloop.
+    unless ($nogeneric_loop) {
+	# XXX Make genericloop understand denied pointers;...
+	my $nc = $coderef;
+	$coderef = new PDL::PP::GenericLoop($generictypes,"",
+	      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
+	push @{$coderef},$nc;
+    }
+
+    # Do we have extra generic loops?
+    # If we do, first reverse the hash:
+    my %glh;
+    for(keys %$extrageneric) {
+	push @{$glh{$extrageneric->{$_}}},$_;
+    }
+    my $no = 0;
+    for(keys %glh) {
+	my $nc = $coderef;
+	$coderef = new PDL::PP::GenericLoop($generictypes,$no++,
+					    $glh{$_},$_);
+	push @$coderef,$nc;
+    }
+
+    # Then, in this form, put it together what we want the code to actually do.
+    print "SIZEPRIVS: ",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+    $this->{Code} = "{".(join '',values %$sizeprivs).
+       $coderef->get_str($this,[])
+       ."}";
+    $this->{Code};
+
+} # new()
 
 # This sub determines the index name for this index.
 # For example, a(x,y) and x0 becomes [x,x0]
@@ -158,20 +167,31 @@ sub myoffs { return 0; }
 sub myprelude {}
 sub myitem {return "";}
 sub mypostlude {}
-sub get_str {my ($this,$parent,$context) = @_;
-   my $str = $this->myprelude($parent,$context);
-   my $it; my $nth=0;
-   MYLOOP: while(1) {
-    $it = $this->myitem($parent,$nth);
-    if($nth && !$it) {last MYLOOP}
-    $str .= $it;
-    $str .= (join '',map {ref $_ ? $_->get_str($parent,$context) : $_}
-	@{$this}[$this->myoffs()..$#{$this}]);
-    $nth ++;
-   }
-   $str .= $this->mypostlude($parent,$context);
-   $str;
+
+# reason for get_str_int() is shown in the 
+# horrible hacking done in PDL::PP::ComplexThreadLoop
+sub get_str {
+    my ($this,$parent,$context) = @_;
+    my $str = $this->myprelude($parent,$context);
+    $str .= $this->get_str_int($parent,$context);
+    $str .= $this->mypostlude($parent,$context);
+    return $str;
 }
+
+sub get_str_int {
+    my ( $this, $parent, $context ) = @_;
+    my $nth=0;
+    my $str = "";
+  MYLOOP: while(1) {
+      my $it = $this->myitem($parent,$nth);
+      last MYLOOP if $nth and !$it;
+      $str .= $it;
+      $str .= (join '',map {ref $_ ? $_->get_str($parent,$context) : $_}
+	       @{$this}[$this->myoffs()..$#{$this}]);
+      $nth++;
+  }
+    return $str;
+} # get_str_int()
 
 ###########################
 #
@@ -307,9 +327,11 @@ use Carp;
 
 sub new { my($type) = @_; bless [],$type; }
 sub myoffs { return 0; }
-sub myprelude {my($this,$parent,$context) = @_;
- my $no; my $no2=-1; my $no3=-1;
- my ($ord,$pdls) = $parent->get_pdls();
+sub myprelude {
+    my($this,$parent,$context) = @_;
+    my $no; my $no2=-1; my $no3=-1;
+    my ($ord,$pdls) = $parent->get_pdls();
+
 '	/* THREADLOOPBEGIN */
  if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
  	__tr)) return;
@@ -354,7 +376,42 @@ sub mypostlude {my($this,$parent,$context) = @_;
  '
 }
 
+# we over-ride the get_str in PDL::PP::Block so that we can
+# handle the case of a threadloop when bad value handling is
+# requested and code is supplied
+#
+# IF we have bad code, then the $coderef for that bit of code
+# is actually stored in $parent, rather than within $this,
+# since I don't see an easy way to store it in $this (at first
+# I thought $#$this == 0, but that's not true (eg see intover 
+# in primitive.pd)
+#
+#   XXX this is truly nasty XXX
+#
+sub get_str {
+    my ($this,$parent,$context) = @_;
 
+    # just use the default value if we're not bothered
+    # with bad code
+    return $this->SUPER::get_str($parent,$context) unless 
+	exists $parent->{HandleBad} and $parent->{HandleBad};
+
+    # NOTE: $badcode is going to be a PDL::PP::Block
+    my $badcode = $parent->{BadCode};
+    die "PROGRAMMING ERROR: expected \$parent->{BadCode} to contain data."
+	unless defined $badcode;
+
+    my $prelude  = $this->myprelude($parent,$context);
+    my $postlude = $this->mypostlude($parent,$context);
+
+    my $str = "if ( __privtrans->bvalflag ) {\n$prelude";
+    $str .= $parent->{BadCode}->get_str_int($parent,$context);
+    $str .= "$postlude\n} else {\n$prelude";
+    $str .= $this->get_str_int($parent,$context);
+    $str .= "$postlude}\n";
+
+    return $str;
+} # get_str()
 
 ###########################
 #
@@ -622,3 +679,79 @@ sub xxx_get_generictypes { my($this) = @_;
 		["F","PDL_Float",$PDL_F],
 		["D","PDL_Double",$PDL_D])];
 }
+
+
+package PDL::PP::Code;
+
+# my ( $threadloops, $coderef, $sizeprivs ) = $this->separate_code( $code );
+#
+# umm, can't call classes defined later on in code ...
+# hence moved to end of file
+# (rather ugly...)
+#
+# separates the code into an array of C fragments (strings),
+# variable references (strings starting with $) and
+# loops (array references, 1. item = variable.
+#
+sub separate_code {
+    my ( $this, $code ) = @_;
+
+    my $coderef = new PDL::PP::Block;
+ 
+    my @stack = ($coderef);
+    my $threadloops = 0;
+    my $sizeprivs = {};
+
+    $_ = $code;
+    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
+    while($_) {
+	# Parse next statement
+	s/^(.*?) # First, some noise is allowed. This may be bad.
+	    ( \$[a-zA-Z_]+\s*\([^)]*\)     # $a(...): access
+		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
+		|\btypes\s*\([^)]+\)\s*%{  # types(..) %{
+		|\bthreadloop\s*%{         # threadloop %{
+		|%}                        # %}
+		|$)//xs
+		    or confess("Invalid program $_");
+	my $control = $2;
+	# Store the user code.
+	# Some day we shall parse everything.
+	push @{$stack[-1]},$1;
+
+	# Then, our control.
+	if($control) {
+	    if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
+		my $ob = new PDL::PP::Loop([split ',',$1],
+					   $sizeprivs,$this);
+		print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
+		my $ob = new PDL::PP::Types($1);
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+	    } elsif($control =~ /^threadloop\s*%{/) {
+		my $ob = new PDL::PP::ThreadLoop();
+		push @{$stack[-1]},$ob;
+		push @stack,$ob;
+		$threadloops ++;
+	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {
+		push @{$stack[-1]},new PDL::PP::Access($control,$this);
+	    } elsif($control =~ /^%}/) {
+	        pop @stack;
+	    } else {
+		confess("Invalid control: $control\n");
+	    }
+	} else {
+	    print("No \$2!\n") if $::PP_VERBOSE;
+	}
+    } # while: $_
+
+    return ( $threadloops, $coderef, $sizeprivs );
+
+} # sub: separate_code()
+
+
+# return true
+1;

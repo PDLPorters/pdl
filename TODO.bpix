@@ -1,0 +1,105 @@
+
+Some suggestions:
+
+1) Implement storage of default bad values in a C struct, rather
+   than the perl array + copy into trans structure used now.
+   Plus look at introducing a per-piddle bad value (it shouldn't  
+   be much more, if any, code overhead than now).
+
+2) get some code set up to do benchmarks to see how much things are
+   slowed down (and to check that I haven't messed things up if
+   WITH_BADVAL is 0/undef).
+
+3) get the tests fixed
+
+4) 'bad-ify' the rest of the code...
+
+Some notes/comments/random musings:
+
+XP - errr, it's broke, fix it now
+HP - high priority
+LP - low priority
+
+Trying to make zcover() (primitive.pd) work with bad values (if all
+values are bad, return bad, otherwise ignore the bad values). For
+some reason it doesn't work properly -- see primitive.pd for details.
+Something similar with nbadover/ngoodover (see t/bad,t).
+ (XP)
+
+t/picnorgb.t wants to fail; in fact it seems a little flaky
+since 'make test' reports 4-6, 10 and 15 failing, whereas
+'perm -Mblib t/picnorgb.t' has 15 as passing...
+Had something similar in t/primitive.t which I managed to make go
+away just by messiong with the script (but not actually changing any
+of the tests). 
+ This suggests something's screwed up in the internals
+ note: on my solaris machine (perl v5.6.0) 'make test' reports that
+       only tests 11, 17, 23 and 24 of bad.t fail
+       whereas my linux machine (perl 5.005_03) also reports that
+       tests 4-6 of picnorgb.t fail. (maybe the changes I made to 
+       this test are screwing things up, but I doubt it)
+ (XP)
+
+When setting the new bad value for a type, we need to ensure that
+the value 'fits' into that type (for one thing, this will probably
+confuse the string function) (HP)
+*PLUS*
+Qus: will it create bad values when a type goes out of range
+(eg byte += 256, or conversion from double to float), or
+should this be thought about a bit?
+
+--> after comments from Tim Jenness, I think it would make more sense
+for the badvalues to be stored in a C structure, accessible via the
+PDL struct I'd imagine, since we can then do all the necessary casting,
+AND it removes the need for copying over the bad pixel values into 
+the transform structure.  (HP)
+
+It looks like 'int+ [o] b();' causes problems - specifically
+the '+' bit. (need to check to see whether this is still true)
+
+Perhaps we should have a 'reset' method to restore the bad values
+to their original (ie Types.pm) state. (LP)
+
+divide in ops.pd should trap '/ 0' cases as well. 
+also special cases for sqrt(), log ... (HP)
+
+With the current scheme, it would be possible to have a per-piddle
+bad value. However, new piddles would use the default values.
+All it would need (I think) is for newly-created piddles to have
+their badvalue set to the default value. Then PdlParObj's
+get_xsdatapdecl() method needs changing to access the per-piddle
+bad value rather than the values stored in the trans structure
+(or global C structure, when that gets implemented). The actual
+code wouldn't need changing, as long as it was written using
+<piddle>_badval for each piddle. It would mean that checks for
+isbad() should be done at the C level, but I think we're going to have
+to do that anyway...
+
+print float containing bad value does not produce 'BAD' -
+I think we're going to have to do the bad-value checks in C.
+
+Qus: how does this integrate with NaN handling?
+
+Qus: comparison operators in ops.pd - how should they handle bad pixels?
+ie is (a > badval) true, false, or what. Well, we could have
+it return a bad value. However, this would cause unpredictable
+results (eg if( any $a > 0 ) and any $a returns a bad value, then
+if the bad value is 0, the check fails, otherwise it succeeds...)
+NASTY.
+
+Qus: [not really bad pixel stuff] - are the #define THISIS... lines
+necessary in type-looped PP code?
+
+Done
+****
+
+Some routines (eg many in slices.pd) just need to ensure that 
+the PDL_BADDATA flag is copied across to the output piddle
+(eg rotate()). This needs handling - will HandleBad => 1
+do the trick, or does it provide too much overhead?
+Similarly, should the bad data stuff in the
+trans structure be propogated by redodims/copy/whatever routines?
+Perhaps all routines should copy across the badflag, and only
+copy over bad value for each type if HandleBad is specified.
+--> have implemented this.
+

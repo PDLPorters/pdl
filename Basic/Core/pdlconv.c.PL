@@ -1,12 +1,18 @@
 #
-# Create pdlconv.c
+# Create pdlconv.c 
 # - for many different datatypes + bad value stuff
- 
+
 use strict;
  
 use Config;
 use File::Basename qw(&basename &dirname);
  
+# check for bad value support
+use File::Spec;
+require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "perldl.conf" );
+use vars qw( %PDL_CONFIG );
+my $bvalflag = $PDL_CONFIG{WITH_BADVAL} || 0;
+
 require 'Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES %PDL_DATATYPES_BADVAL );
 
@@ -15,25 +21,35 @@ use vars qw( %PDL_DATATYPES %PDL_DATATYPES_BADVAL );
 chdir(dirname($0));
 my $file;
 ($file = basename($0)) =~ s/\.PL$//;
-$file =~ s/\.pl$//
+$file =~ s/\.pl$//                                                              
     if ($Config{'osname'} eq 'VMS' or
-        $Config{'osname'} eq 'OS2');  # "case-forgiving"
+	$Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
+ 
+if ( $bvalflag ) {
+    print "Extracting $file (WITH bad value support)\n";
+} else {
+    print "Extracting $file (NO bad value support)\n";
+}
 chmod 0644, $file;
 
 # $date = `date`; chop $date;
 
 ##### HEADER ######
-
-print OUT <<'!NO!SUBS!';
-
-
+ 
+print OUT <<"!WITH!SUBS!";
+ 
 /***************************************************************
 
-   pdlconv.c
-   automatically created by pdlconv.c.PL
+    pdlconv.c
+    automatically created by mkpdlconv.p
+    bad value support = $bvalflag
 
 ****************************************************************/
+
+!WITH!SUBS!
+ 
+print OUT <<'!NO!SUBS!';
 
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
@@ -70,25 +86,26 @@ for my $in ( keys %PDL_DATATYPES ) {
     print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in)  {
-       { $intype *ap = ($intype *) a->data;
-       	 $intype *pp = ($intype *) a->vafftrans->from->data;
-	 pp += a->vafftrans->offs;
-       	 for(i=0; i<a->nvals; i++) {
-	 	$_->[1];
-		for(j=0; j<a->ndims; j++) {
-			pp += a->vafftrans->incs[j];
-			if((j < a->ndims - 1 &&
-			   (i+1) % a->dimincs[j+1]) ||
-			   j == a->ndims - 1)
-			      break;
-			pp -= a->vafftrans->incs[j] *
-				a->dims[j];
-		}
-		ap ++;
-	 }
-       }
+	$intype *ap = ($intype *) a->data;
+	$intype *pp = ($intype *) a->vafftrans->from->data;
+	pp += a->vafftrans->offs;
+	for(i=0; i<a->nvals; i++) {
+	    $_->[1];
+	    for(j=0; j<a->ndims; j++) {
+		pp += a->vafftrans->incs[j];
+		if((j < a->ndims - 1 &&
+		    (i+1) % a->dimincs[j+1]) ||
+		   j == a->ndims - 1)
+		    break;
+		pp -= a->vafftrans->incs[j] *
+		    a->dims[j];
+	    }
+	    ap ++;
+	}
 
 !WITH!SUBS!
+
+# XXX should there be another } before EOD ? XXX 
 
 } #### End of perl loop ####
 
@@ -117,6 +134,20 @@ void pdl_swap(pdl** a, pdl** b) {
 /* Change the type of all the data in a pdl struct, either changing the
    original perl structure or making a temporary copy  */
 
+/* XXX TODO XXX */
+/* does this have to be bad-value aware? *
+ * 
+ * sticking in a line at the top:
+ *  if( a->state & PDL_BADVAL ) fprintf(stderr,"blah")
+ *
+ * produces NO output after 'make test'
+ * HOWEVER, as only t/bad.t makes use of bad pdl's it's
+ * not too surprising ...
+ *
+ */
+
+/* fprintf(stderr,"pdl_converttype %d, %d, %d, %d\n", a, a->datatype, targtype, changePerl); */
+
 void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     pdl* a=*aa;  /* Point to cache */
     int intype;
@@ -129,6 +160,18 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     dXSARGS;
 #endif
 
+!NO!SUBS!
+
+    # XXX just a hack - needs removing
+    if ( $bvalflag ) {
+print OUT <<'!NO!SUBS!';
+    if ( a->state & PDL_BADVAL )
+      fprintf(stderr,"NOTE: pdl_converttype %d -> %d [%d] called with a bad pdl\n", 
+	      a->datatype, targtype, changePerl);
+!NO!SUBS!
+}
+
+print OUT <<'!NO!SUBS!';
 
     PDLDEBUG_f(printf("pdl_converttype %d, %d, %d, %d\n", a, a->datatype,
     	targtype, changePerl);)
@@ -158,13 +201,13 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
     }else{
 
+       die("Sorry, temporary type casting is not allowed now");
+
        b = a->data;          /* Ptr to old data */
        a = pdl_tmp();        /* Brand new scratch pdl */
 /*       pdl_clone(*aa,  a);  */ /* Copy old pdl entries */
        a->data     = pdl_malloc(nbytes); /* Space for changed data */
        *aa = a;              /* Change passed value to new address */
-
-       die("Sorry, temporary type casting is not allowed now");
     }
 
     /* Do the conversion */
@@ -176,14 +219,61 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
 
 ##### Generate code for each pair of data types #####
 
+# XXX BPIX XXX
+#
+# Note:
+#   checking bad pixels via == here - MAY not be sensible
+#
+# QUS: is a->state & PDL_BADVAL always going to be unset
+#      since a is the new piddle?
+#
+
 for my $in ( keys %PDL_DATATYPES ) { 
     for my $targ ( keys %PDL_DATATYPES ) {
 
     next if $in eq $targ; # Skip duplicates
 
-    my $intype = $PDL_DATATYPES{$in}; 
+    my $intype   = $PDL_DATATYPES{$in}; 
     my $targtype = $PDL_DATATYPES{$targ};
-    print OUT <<"!WITH!SUBS!";
+
+# NOTE: we currently do not handle bad values
+# (one reason is that bad values are NOT compile-time constants,
+# but can be changed by the user [or that's the plan])
+#
+    if ( 0 and $bvalflag ) {
+	my $inbad    = $PDL_DATATYPES_BADVAL{$in};
+	my $targbad  = $PDL_DATATYPES_BADVAL{$targ};
+	print OUT <<"!WITH!SUBS!";
+
+    } else if (intype == $in && targtype == $targ)  {
+	{
+	    $intype *bb = ($intype *) b;
+	    $targtype *aa = ($targtype *) a->data;
+	    int i = a->nvals;
+	    aa += i-1; bb += i-1;
+	    printf("DBG: copying data from $intype to $targtype -- nvals = %d\\n", i);
+	    printf("     a->state & PDL_BADVAL == %6d\\n", a->state & PDL_BADVAL );
+	    if ( a->state & PDL_BADVAL ) {
+		while (i--) {
+		    if ( *bb == $inbad ) {
+			/* get 'warning: dereferencing `void *' pointer' messages */
+	                *aa-- = $targbad;
+	                *b--;
+	            } else {
+	                *aa-- = ($targtype) *bb--;
+	            }
+	        }
+            } else {
+	        while (i--)
+	            *aa-- = ($targtype) *bb--;
+            }
+        }
+
+!WITH!SUBS!
+
+} else {
+
+	print OUT <<"!WITH!SUBS!";
 
     } else if (intype == $in && targtype == $targ)  {
        { $intype *bb = ($intype *) b;
@@ -192,9 +282,11 @@ for my $in ( keys %PDL_DATATYPES ) {
          aa += i-1; bb += i-1;
          while (i--)
                 *aa-- = ($targtype) *bb--;
-       }
+       }                                                                        
 
 !WITH!SUBS!
+
+} # if: $bvalflag
 
 }} #### End of perl loop ####
 
@@ -312,5 +404,5 @@ void ** pdl_twod( pdl* x ) {
    return (void**) p;
 }
 
-
 !NO!SUBS!
+

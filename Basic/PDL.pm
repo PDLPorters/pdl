@@ -19,6 +19,7 @@ if start-up time becomes an issue.
    use PDL::Primitive;
    use PDL::Basic;
    use PDL::Slices;
+   use PDL::Bad;
    use PDL::Version;
    use PDL::IO::Misc;
 
@@ -44,6 +45,7 @@ use PDL::Ops;
 use PDL::Primitive;
 use PDL::Basic;
 use PDL::Slices;
+use PDL::Bad;
 
 # Load these for TPJ compatibility
 

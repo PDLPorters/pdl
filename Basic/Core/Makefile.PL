@@ -44,27 +44,27 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 	print "\tNope, your perl was not linked against pthread library\n";
 	print "\tYou need to include -lpthread in your perl libs configuration\n";
 	$pthread_library = '';
-}
+    }
 
 $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_library;
 
 {
-my $conf = $PDL_CONFIG{WITH_POSIX_THREADS};
+    my $conf = $PDL_CONFIG{WITH_POSIX_THREADS};
 
-if ((!defined($conf) or $conf)
-	 and $pthread_include and $pthread_library) {
+    if ((!defined($conf) or $conf)
+	and $pthread_include and $pthread_library) {
 	print "\t==> Will build PDL with POSIX thread support. Gifts to TJL :-)\n";
 	$PDL_CONFIG{WITH_POSIX_THREADS} = 1;
-} elsif($conf) {
+    } elsif($conf) {
 	print "\t==> I couldn't find pthread support. However, you have
 \t    turned on the forcing option in PDL_CONFIG so I guess I gotta do it\n";
-} else {
+    } else {
 	print "\t==> PDL will be built without POSIX thread support.\n";
 	print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
-	print "\t==> Enabling perl threads will not help!\n";
+	print "\t==> Enabling perl threads will not help!\n";                   
 	$pthread_define = '';
 	$PDL_CONFIG{WITH_POSIX_THREADS} = 0;
-}
+    }
 }
 
 use ExtUtils::MakeMaker;
@@ -87,25 +87,26 @@ WriteMakefile(
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlbasicops$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) '.
+                   'pdlstats$(OBJ_EXT) pdlmoremaths$(OBJ_EXT) pdlbasicops.c '.
                    'pdlconv.c pdlsections.c pdlstats.c pdlmoremaths.c '.
-		   'pdl.h pdlsimple.h Types.pm Version.pm'},
+		   'pdl.h pdlsimple.h Types.pm Version.pm '.
+		       'Core.pm Core.c Core.xs Dev.pm Types.pm pdl.h pdlapi.c pdlconv.c pdlsimple.h '
+		   },
  'INC'          => "$mallocinc",
 );
 
 # Extra targets to build
-#
-# surely Dev.pm should handle the OS requirements when ?
-# processing generic (ie .g) code
-#
 
 sub MY::postamble {
 PDL::Core::Dev::postamble().
 '
 # Bits of C code we generate from special perl scripts
-#
+
+#pdlbasicops.c:  mkpdlbasicops.p
+#	$(PERL) mkpdlbasicops.p > pdlbasicops.c
+
 '.($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g
