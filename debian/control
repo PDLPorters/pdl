@@ -1,9 +1,9 @@
 Source: pdl
 Section: math
 Priority: optional
-Maintainer: Raul Miller <moth@debian.org>
+Maintainer: Henning Glawe <glaweh@debian.org>
 Standards-Version: 3.1.1
-Build-Depends: g77, xlibmesa-dev, xlib6g-dev, libncurses-dev, perl (>= 5.6.0-16), libextutils-f77-perl
+Build-Depends: g77, xlibmesa-dev, xlibs-dev, libncurses-dev, perl (>= 5.8.0-3), libextutils-f77-perl, debhelper (>= 3.0.18), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev
 
 Package: pdl
 Architecture: any
@@ -11,7 +11,7 @@ Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}
 Suggests: pgperl, libgl1, netpbm | imagemagick
 Conflicts: r-pdl
 Replaces: r-pdl
-Description: The perl data language. Perl extensions for numerics.
+Description: The perl data language: Perl extensions for numerics
  PDL (``Perl Data Language'') gives standard perl the ability to COMPACTLY
  store and SPEEDILY manipulate the large N-dimensional data arrays 
  which are the bread and butter of scientific computing.  The idea 

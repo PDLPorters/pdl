@@ -1,0 +1,31 @@
+#!/bin/sh
+# personal script for maintainer...
+
+
+case "$1" in 
+
+	build)
+dpkg-buildpackage -rfakeroot
+;;
+
+	check)
+for f in debian/*copyright; do
+	d=`pwd | xargs basename | sed 's/-.*//'`
+	p=`basename $f .copyright | sed "s/copyright/$d/"`
+	set ../${p}_`head -1 debian/changelog | sed 's/.*(//; s/).*//; s/[0-9]*://'`*.d??
+	echo lintian $*
+	lintian $*
+done
+;;
+
+	all|"")
+"$0" build
+"$0" check
+;;
+
+	*)
+>&2 echo $0 "[build|check|all]"
+;;
+
+esac
+

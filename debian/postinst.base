@@ -12,5 +12,3 @@ set -e
 #        fi
 #  fi
 
-/usr/bin/perl /usr/lib/perl5/PDL/Doc/scantree.pl >/dev/null 2>&1
-/usr/bin/perl /usr/lib/perl5/PDL/Doc/mkhtmldoc.pl >/dev/null 2>&1

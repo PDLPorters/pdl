@@ -17,7 +17,7 @@ sub runtime {
   my $libpath = `g77 -print-libgcc-file-name`;
   $libpath =~ s/libgcc[.]a$//;
   chomp $libpath;
-  "-L$libpath -L/usr/lib -lg2c -lm -lgcc";
+  "-L$libpath -L/usr/lib -lg2c-pic";
 }
 
 sub trail_ {
@@ -29,7 +29,7 @@ sub compiler {
 }
 
 sub cflags {
-  return '-O';
+  return '-O -fPIC';
 }
 
 sub testcompiler {

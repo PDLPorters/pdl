@@ -1,8 +1,85 @@
-pdl (1:2.3.1-0) unstable; urgency=low
+pdl (1:2.4.1-1) unstable; urgency=low
 
   * new upstream release
+  * don't print debug info in preinst (Closes: #69978)
+  * enable bad value support, the impact should be minimal on modern
+    hardware (Closes: #113607)
+  * took plplot from PDL HEAD
+  * clean up doc index and html docs in prerm (Closes: #160034)
 
- -- PDL Porters <pdl-porters@jach.hawaii.edu>  Wed, 21 Nov 2001 18:25:23 -0400
+ -- Henning Glawe <glaweh@debian.org>  Thu, 22 Jul 2004 19:16:24 +0200
+
+pdl (1:2.4.0-1) unstable; urgency=low
+
+  * new maintainer (Closes: #215543)
+  * acknowlege NMU (Closes: #141117, #104630, #140104, #170182)
+  * new upstream release.
+  * enable plplot support (Closes: #196185)
+  * enable gsl support
+  * enable fftw support
+  * swap out m51.fits and COPYING, taken from PDL CVS HEAD (Closes: #223793)
+
+ -- Henning Glawe <glaweh@debian.org>  Sat, 13 Dec 2003 22:25:41 +0100
+
+pdl (1:2.3.2-0.6) unstable; urgency=low
+
+  * NMU for xlib6g-dev dependency (Closes: #170182)
+
+ -- Joshua Kwan <joshk@triplehelix.org>  Sat, 15 Mar 2003 16:55:39 -0800
+
+pdl (1:2.3.2-0.5) unstable; urgency=low
+
+  * NMU for perl 5.8. Set build-dependency to perl 5.8.
+  * debian/rules: moved prefix selection to installation time.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 21 Aug 2002 22:39:24 +0200
+
+pdl (1:2.3.2-0.2) unstable; urgency=low
+
+  * Non-Maintainer Upload
+  * In postinst, specify path to /usr/bin/perl so that users with a conflicting
+    perl in /usr/local/bin do not get a blow-up.  (Closes: #141117)
+  * (Note that the above change was made in debian/rules, NOT debian/postinst,
+    because of the very strange way the original maintainer made the
+    debian/postinst be auto-generated..)
+
+ -- Ben Gertzfield <che@debian.org>  Mon,  8 Apr 2002 18:47:16 +0900
+
+pdl (1:2.3.2-0.1) unstable; urgency=low
+
+  * Non-Maintainer Upload
+  * Newest version needed to fix gimp-perl build problems (perl
+    segfaults on alpha otherwise).
+  * Use F77CONF=debian/f77conf.pl, signify hppa needed changes in
+    there instead of hacking Lib/Slatec/Makefile.PL .
+  * Include small patch to change $(INST_LIBDIR)/PDL to
+    $(INST_LIBDIR) in Basic/Gen/Makefile.PL (debian/rules has
+    a very long, strange find command that barfs if there are
+    multiple directories named PDL, and this looks like a typo
+    anyway)
+  * debian/rules was writing to file called "substvers", and
+    was missing a $ anyway when writing Perl depends substvars.
+    Commented out, added a call to dh_perl and tightened Build-Depends
+    on debhelper to (>= 3.0.18).
+  * Add call to dh_clean to clean up debhelper-generated files.
+
+ -- Ben Gertzfield <che@debian.org>  Tue,  2 Apr 2002 22:07:56 +0900
+
+pdl (1:2.2.1-7.1) unstable; urgency=low
+
+  * Non-Maintainer Upload
+  * Fix to build on hppa, patch in BTS. Closes: #104630
+
+ -- Matt Taggart <taggart@debian.org>  Wed,  5 Dec 2001 19:42:37 -0700
+
+pdl (1:2.2.1-7) unstable; urgency=low
+
+  * rebuild with dh_gencontrol instead of dpkg-gencontrol, new
+    perl policy seems to need this.
+  * include lintian override for non-pic code in Slatec.so
+  * include debian/all (build/check script) in source
+
+ -- Raul Miller <moth@debian.org>  Sun, 26 Aug 2001 21:44:51 -0400
 
 pdl (1:2.2.1-6) unstable; urgency=low
 
@@ -312,7 +389,4 @@ pdl (1.95.07-1) non-free; urgency=low
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 16 Jan 1998 19:32:22 -0700
 
-Local variables:
-mode: debian-changelog
-add-log-mailing-address: "lapeyre@physics.arizona.edu"
-End:
+
