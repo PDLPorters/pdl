@@ -407,13 +407,14 @@ Slicing is a basic, extremely common operation, and PDL's
 L<slice|PDL::Slices/slice> method would be cumbersome to use in many
 cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
-L<perlfilter|the perlfilter man page>).  NiceSlice adds no new functionality, only convenient
+L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient
 syntax.
 
 NiceSlice is loaded automatically in the perldl shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
-your standalone scripts, you can use the L<slice> method in those scripts,
+your standalone scripts, you can use the L<slice|PDL::Slices/slice>
+method in those scripts,
 rather than the more compact NiceSlice constructs.
 
 =head1 Use in scripts and C<perldl> shell
