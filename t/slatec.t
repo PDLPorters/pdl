@@ -9,7 +9,7 @@ BEGIN {
 # part of perl until 5.005]
 my $ntests = 37;
 my $n = 0;
-                                                                              
+
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 sub ok {
@@ -31,7 +31,7 @@ print "1..$ntests\n";
 unless ($loaded) {
 	#print STDERR "PDL::Slatec not installed. All tests are skipped.\n";
 	for (1..$ntests) {
-                print "ok $_ # Skipped: PDL::Slatec not available.\n";          
+                print "ok $_ # Skipped: PDL::Slatec not available.\n";
 	}
 	exit;
 }
@@ -188,11 +188,11 @@ $x   = float( 1, 2, 3, 5, 6, 7 );
 $f   = float( 1, 2, 3, 4, 3, 4 );
 $ans = long(  1, 1, 1, -1, 1, 2 );
 
-( $d, $err ) = chim $x, $f;
+( $d, $err ) = chim($x, $f);
 ok($err->getndims==0 & $err->sum == 2); # 2 switches in monotonicity
 
 my $ismon;
-( $ismon, $err ) = chcm $x, $f, $d, 1;
+( $ismon, $err ) = chcm($x, $f, $d, 1);
 
 ok($err->getndims==0 & $err->sum == 0);
 ok($ismon->get_datatype == 3);
@@ -202,10 +202,10 @@ ok(approx($ismon,$ans));
 #
 $x = float( sequence(11) - 0.3 );
 $f = $x * $x;
-( $d, $err ) = chim $x, $f;
+( $d, $err ) = chim($x, $f);
 
 $ans = pdl( 9.0**3, (8.0**3-1.0**3) ) / 3.0;
-( $int, $err ) = chia $x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0);
+( $int, $err ) = chia($x, $f, $d, 1, pdl(0.0,1.0), pdl(9.0,8.0));
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.04 ) );
 
