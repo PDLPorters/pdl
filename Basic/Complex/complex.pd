@@ -403,7 +403,7 @@ pp_def 'Carg',
 pp_def 'Csin',
 	Pars => 'a(m=2); [o]c(m=2)',
         GenericTypes => [F,D],
-        Doc => 'sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i))',
+        Doc => '  sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i))',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -417,7 +417,7 @@ pp_def 'Csin',
 pp_def 'Ccos',
 	Pars => 'a(m=2); [o]c(m=2)',
         GenericTypes => [F,D],
-        Doc => 'cos (a) = 1/2 * (exp (a*i) + exp (-a*i))',
+        Doc => '  cos (a) = 1/2 * (exp (a*i) + exp (-a*i))',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -432,7 +432,7 @@ pp_addpm <<'EOD';
 
 =head2 Ctan a [not inplace]
 
-tan (a) = -i * (exp (a*i) - exp (-a*i)) / (exp (a*i) + exp (-a*i))
+  tan (a) = -i * (exp (a*i) - exp (-a*i)) / (exp (a*i) + exp (-a*i))
 
 =cut
 
@@ -562,7 +562,7 @@ EOD
 pp_def 'Csinh',
 	Pars => 'a(m=2); [o]c(m=2)',
         GenericTypes => [F,D],
-        Doc => 'sinh (a) = (exp (a) - exp (-a)) / 2',
+        Doc => '  sinh (a) = (exp (a) - exp (-a)) / 2',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -576,7 +576,7 @@ pp_def 'Csinh',
 pp_def 'Ccosh',
 	Pars => 'a(m=2); [o]c(m=2)',
         GenericTypes => [F,D],
-        Doc => 'cosh (a) = (exp (a) + exp (-a)) / 2',
+        Doc => '  cosh (a) = (exp (a) + exp (-a)) / 2',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -806,7 +806,40 @@ use overload
         BEGIN {$warningFlag = $^W; # Temporarily disable warnings caused by 
                $^W = 0;            # redefining PDL's subs
               }
-        use overload ( map { $_ => $PDL::bop_sbclasschk{$_}} @PDL::biops1);
+
+  # Used in overriding standard PDL +, -, *, / ops in the complex subclass.
+  use overload (
+		 '+' => sub {my $foo; 
+		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'+'));
+		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'+'));
+			     if    ($ref0) { &$foo(@_); }
+		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
+	                     else          { PDL::plus (@_); }},
+
+		 '*' => sub {my $foo; 
+		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'*'));
+		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'*'));
+			     if    ($ref0) { &$foo(@_); }
+		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
+	                     else          { PDL::multiply (@_); }},
+
+	         '-' => sub {my $foo; 
+		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'-'));
+		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'-'));
+			     if    ($ref0) { &$foo(@_); }
+		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
+	                     else          { PDL::minus (@_); }},
+
+		 '/' => sub {my $foo; 
+		             my $ref0 = ref $_[0] && (ref $_[0] ne 'PDL') && defined ($foo = overload::Method($_[0],'/'));
+		             my $ref1 = ref $_[1] && (ref $_[1] ne 'PDL') && defined ($foo = overload::Method($_[1],'/'));
+			     if    ($ref0) { &$foo(@_); }
+		             elsif ($ref1) { &$foo($_[1], $_[0], !$_[2]); }
+	                     else          { PDL::divide (@_); }},
+		);
+
+
+
         BEGIN{ $^W = $warningFlag;} # Put Back Warnings  
 };
 

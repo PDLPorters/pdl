@@ -1,7 +1,9 @@
 (!!! = possible source of incompatibilities)
+Doug Hunt (4/19/2000)
+        - Cleaned up Ops to take advantage of new fast XS wrappers (experimental)
+
 John Cerney
 	- Added (psuedo)-support for variable-size strings in PDL::Char
-	
 
 2.005
 CS	- version to 2.005

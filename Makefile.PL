@@ -81,6 +81,7 @@ WriteMakefile(
  'NAME' => 'PDL',
  'VERSION_FROM' => 'Basic/Core/Version.pm',
  'EXE_FILES' => ['perldl'],
+ 'OPTIMIZE' => '-g',
 				  # If you want speed, remove this
  'linkext'  => {LINKTYPE => ''},  # No linking required in this directory
  'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
