@@ -373,7 +373,8 @@ sub {
 EOD
 
   %@ = (); # Workaround to prevent spurious loss of $@
-  PDL::Core::myeval( $__coderef ); # Do command with $@ keeping
+  PDL::Core::myeval( $__coderef )  # Do command with $@ keeping
+    unless($@);  # Check that sub compiled (avoids null coderef bug in myeval).
 
   if ($@) {
       my $mess = $@;
