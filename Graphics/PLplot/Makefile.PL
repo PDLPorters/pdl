@@ -22,7 +22,9 @@ unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 my $libname = "libplplotd.so";
 my $incname = "plplot.h";
 
-my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && $PDL_CONFIG{WITH_PLPLOT} == 0) ? 0 : 1;
+print "PDL_CONFIG{WITH_PLPLOT is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
+my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT})) ? 0 : 1;
+print "found_plolot is $found_plplot\n";
 unless ($found_plplot) {
   buildDummy ("User requested no PLplot interface!");
   return if (caller); exit;
