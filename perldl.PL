@@ -455,7 +455,7 @@ sub count_tags {
     # The whitespace works around a short-string bug in extract_bracketed.
     my $a;
     my @result;
-    $s =~ s/^\s*\#.*$//mg);  # Eliminate comment lines before extract.
+    $s =~ s/^\s*\#.*$//mg;  # Eliminate comment lines before extract.
 
     eval { @result = 
 	       Text::Balanced::extract_bracketed("{".$s, $delim, $prefix);
