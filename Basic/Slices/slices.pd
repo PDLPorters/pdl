@@ -1454,6 +1454,10 @@ The arguments to dice are arrays (or 1D PDLs) for each dimension
 in the PDL. These arrays are used as indexes to which rows/columns/cubes,etc
 to dice-out (or extract) from the C<$data> PDL. 
 
+Use C<X> to select all indices along a given dimension (compare also
+L<mslice|PDL::Core/mslice>). As usual (in slicing methods) trailing
+dimensions can be omitted implying C<X>'es for those.
+
 =for example 
 
  perldl> $a = sequence(10,4)
@@ -1469,9 +1473,21 @@ to dice-out (or extract) from the C<$data> PDL.
   [ 1  2]
   [31 32]
  ]
+ perldl> p $a->dice(X,[0,3])
+ [
+  [ 0  1  2  3  4  5  6  7  8  9]
+  [30 31 32 33 34 35 36 37 38 39]
+ ]
+ perldl> p $a->dice([0,2,5])
+ [
+  [ 0  2  5]
+  [10 12 15]
+  [20 22 25]
+  [30 32 35]
+ ]
 
 As this is an index function, any modifications to the
-slice change the parent.
+slice change the parent (use the C<.=> operator).
 
 =cut
 
@@ -1480,11 +1496,12 @@ sub PDL::dice {
 	my $self = shift;
 	my @dim_indexes = @_;  # array of dimension indexes
 	
-	#Check that the number of dim indexes = number of dimensions in the PDL
+	# Check that the number of dim indexes <=
+	#    number of dimensions in the PDL
 	my $no_indexes = scalar(@dim_indexes);
 	my $noDims = $self->getndims;
 	barf("PDL::dice: Number of index arrays ($no_indexes) not equal to the dimensions of the PDL ($noDims")
-			 if $no_indexes != $noDims;
+			 if $no_indexes > $noDims;
 	my $index;
 	my $pdlIndex;
 	my $outputPDL=$self;
@@ -1493,7 +1510,8 @@ sub PDL::dice {
 	# Go thru each index array and dice the input PDL:
 	foreach $index(@dim_indexes){
 
-		$outputPDL = $outputPDL->dice_axis($indexNo,$index);
+		$outputPDL = $outputPDL->dice_axis($indexNo,$index)
+			unless !ref $index && $index eq 'X';
 
 		$indexNo++;
 	}

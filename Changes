@@ -1,3 +1,4 @@
+CS  - added some features to dice
 Doug Burke 
     - rcols(): do not read an extra line with LINES option (Frank Samuelson)
     - added draw_wedge() (& DrawWedge option to imag()) to PGPLOT 
