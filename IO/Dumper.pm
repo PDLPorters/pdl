@@ -34,13 +34,6 @@ about a factor of 10 for typical small data structures.
 
 =head1 Bugs
 
-Using rfits in an eval (which is how you get back dumped variables)
-exercises a bug in perl or PDL that causes coredumps in pre-2002
-versions of PDL if you include PDL::NiceSlice explicitly in your
-.perldlrc.  It seems to work fine with late-model PDL distributions
-and no explicit 'use PDL::NiceSlice'.  (late-model distributions seem
-to use NiceSlice automagically).
-
 It's still possible to break this code and cause it to dump core, for
 the same reason that Data::Dumper crashes.  In particular, other
 external-hook variables aren't recognized (for that a more universal
@@ -48,9 +41,17 @@ Dumper would be needed) and will still exercise the Data::Dumper crash.
 This is by choice:  (A) it's difficult to recognize which objects
 are actually external, and (B) most everyday objects are quite safe.
 
+Another shortfall of Data::Dumper is that it doesn't recognize tied objects.
+This might be a Good Thing or a Bad Thing depending on your point of view, 
+but it means that PDL::IO::Dumper includes a kludge to handle the tied
+Astro::FITS::Header objects associated with FITS headers (see the rfits 
+documentation in PDL::IO::Misc for details).
+
 There's currently no reference recursion detection, so a non-treelike
 reference topology will cause Dumper to buzz forever.  That will
-likely be fixed in a future version.
+likely be fixed in a future version.  Meanwhile a warning message finds
+likely cases.
+
 
 =head1 Author, copyright, no warranty
 
@@ -75,6 +76,9 @@ This package comes with NO WARRANTY.
 =item * 1.2 (28-Feb-2002): Added deep_copy() -- exported convenience function
   for "eval sdump"
 
+=item * 1.3 (15-May-2002): Added checking for tied objects in gethdr()
+  [workaround for hole in Data::Dumper]
+
 =back
 
 =head1 FUNCTIONS
@@ -93,8 +97,7 @@ BEGIN{
   our @ISA = ( Exporter ) ;
   our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
   our @EXPORT = @EXPORT_OK;
-
-  our %EXPORT_TAGS = ( );
+  our %EXPORT_TAGS = ( Func=>[@EXPORT_OK]);
 
  use PDL;
  use PDL::Exporter;
@@ -128,7 +131,7 @@ convenience routine exists to use it.
 sub PDL::IO::Dumper::sdump {
 # Make an initial dump...
   my($s) = Data::Dumper->Dump([@_]);
-  my($pdls);
+  my(%pdls);
 # Find the bless(...,'PDL') lines
   while($s =~ s/bless\( do\{\\\(my \$o \= (\d+)\)\}\, \'PDL\' \)/\$PDL_$1/) {
     $pdls{$1}++;
@@ -258,6 +261,9 @@ it can be inserted.  Larger numbers yield larger scopes of PDL.
 1 implies that it should be broken out but can be handled with a couple
 of perl commands; 2 implies full uudecode treatment.
 
+PDLs with Astro::FITS::Header objects as headers are taken to be FITS
+files and are always treated as huge, regardless of size.
+
 =cut
 
 $PDL::IO::Dumper::small_thresh = 8;   # Smaller than this gets inlined
@@ -269,11 +275,12 @@ sub PDL::IO::Dumper::big_PDL {
   
   return 0 
     if($a->nelem <= $PDL::IO::Dumper::small_thresh 
-       && !defined $a->gethdr()
+       && !(keys %{$a->gethdr()})
        );
   
   return 1
     if($a->nelem <= $PDL::IO::Dumper::med_thresh
+       && ( !( ( (tied %{$a->gethdr()}) || '' ) =~ m/^Astro::FITS::Header\=/)  )
        );
 
   return 2;
@@ -420,26 +427,39 @@ sub PDL::IO::Dumper::dump_PDL {
       ##
       ## Unfortunately, FITS format mangles headers (and gives us one
       ## even if we don't want it).  Delete the FITS header if we don't
-      ## want one.
-      ## 
-      if(!defined ($_->gethdr())) {
+      ## want one.  
+      ##
+      if( !scalar(keys %{$_->gethdr()}) ) {
 	push(@s,"\$$pdlid->sethdr(undef);\n");
       }
     }
 
-
     ## 
     ## Generate commands to reconstitute the header
     ## information in the PDL -- common to midsized and huge case.
+    ##
+    ## We normally want to reconstitute, because FITS headers mangle
+    ## arbitrary hashes and we can reconsitute efficiently with a private 
+    ## sdump().  The one known exception to this is when there's a FITS
+    ## header object (Astro::FITS::Header) tied to the original 
+    ## PDL's header.  Other types of tied object will get handled just
+    ## like normal hashes.
+    ##
+    ## Ultimately, Data::Dumper will get fixed to handle tied objects, 
+    ## and this kludge will go away.
     ## 
 #    print "hdr: ",$_->gethdr()," keys:",scalar(keys(%{$_->gethdr()})),"\n";
 
-    if( (defined ($_->gethdr())) && scalar(keys(%{$_->gethdr()}))) {
-      push(@s,"\$$pdlid->sethdr( eval <<'FooBar${pdlid}'\n",
-	   &PDL::IO::Dumper::sdump($_->gethdr()),
-	   "\nFooBar${pdlid}\n);\n",
-	   "\$$pdlid->hdrcpy(".$_->hdrcpy().");\n"
-	   );
+    if( scalar(keys %{$_->gethdr()}) ) {
+      if( ((tied %{$_->gethdr()}) || '') =~ m/Astro::FITS::Header\=/) {
+	push(@s,"# (Header restored from FITS file)\n");
+      } else {
+	push(@s,"\$$pdlid->sethdr( eval <<'EndOfHeader_${pdlid}'\n",
+	     &PDL::IO::Dumper::sdump($_->gethdr()),
+	     "\nEndOfHeader_${pdlid}\n);\n",
+	     "\$$pdlid->hdrcpy(".$_->hdrcpy().");\n"
+	     );
+      }
     }
     
     @out = (join("",@s), undef);

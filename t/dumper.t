@@ -38,7 +38,6 @@ ok(1,!$@);
 
 eval '$s = sdump({a=>3,b=>pdl(4),c=>xvals(3,3),d=>xvals(4,4)});';
 ok(2,!$@);
-
 $a = eval $s;
 ok(3,!$@);
 ok(4,ref $a eq 'HASH');
