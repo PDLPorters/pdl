@@ -1,6 +1,6 @@
 #!/usr/bin/perl 
 #
-#  Tk::TriD - a Tk widget interface to the PDL::Graphics::TriD 
+#  PDL::Graphics::TriD::Tk - A Tk widget interface to the PDL::Graphics::TriD
 #  visualization package:  $Revision$  
 #
 #  James P. Edwards
@@ -11,19 +11,37 @@
 #  This distribution is free software; you can
 #  redistribute it and/or modify it under the same terms as Perl itself.
 #  
+
 =head1 NAME
 
 PDL::Graphics::TriD::Tk - A Tk widget interface to the PDL::Graphics::TriD.
 
+=head1 SYNOPSIS
+
+=for usage
+
+ #
+ # Opens a Tk window with an embedded TriD window - that's all
+ # see Demos/TkTriD_demo.pm for a better example
+ # 
+ use PDL;
+ use PDL::Graphics::TriD;
+ use PDL::Graphics::TriD::GL;
+ use Tk;
+ use PDL::Graphics::TriD::Tk;
+
+ my $MW = MainWindow->new();
+ my $TriDW = $MW->Tk( )->pack(-expand=>1, -fill=>'both');
+ $TriDW->MainLoop;
+
 =head1 DESCRIPTION
 
 The widget is composed of a Frame and the Display device of the TriD output.
-
-=head1 Author
-
-B<James P. Edwards, Instituto Nacional de Meteorologia>
-
-jedwards@inmet.gov.br
+It inherits all of the attributes of a Tk Frame.  All of the events associated 
+with this window are handled through Tk with the exception of the <expose> event
+which must be handled by TriD because the Frame is never exposed.  
+Default Mouse bindings, defined for button1 and button3, 
+control TriD object orientation and size respectively.  
 
 =cut
 
@@ -33,7 +51,7 @@ use PDL::Core;
 use PDL::Graphics::TriD;
 use PDL::Graphics::OpenGL;
 use strict;
-#use Data::Dumper;
+
 
 @PDL::Graphics::TriD::Tk::ISA = qw(Tk::Frame);
 
@@ -44,6 +62,16 @@ Tk::Widget->Construct('Tk');
 #$PDL::Graphics::TriD::Tk::VERSION = '$Revision$ ' ;
 #$PDL::Graphics::TriD::Tk::VERSION =~ s/\$Revision$\s*$/$1/;
 #sub Version {return $PDL::Graphics::TriD::Tk::VERSION;}
+
+=head1 FUNCTIONS
+
+=head2 Populate
+
+=for ref
+
+Used for widget initialization by Tk, this function should never be called directly
+
+=cut
 
 sub Populate {
   my($TriD, $args) = @_;
@@ -58,6 +86,14 @@ sub Populate {
   print "Populate complete\n" if($PDL::Graphics::TriD::Tk::verbose);
 }
 
+=head2 MainLoop
+
+=for ref
+
+Should be used in place of the Tk MainLoop.  Handles all of the Tk 
+callbacks and calls the appropriate TriD display functions.  
+
+=cut
 
 sub MainLoop
 {
@@ -91,7 +127,14 @@ sub MainLoop
   }
 }
 
+=head2 GLinit
 
+=for ref
+
+GLinit is called internally by a Configure callback in Populate.  This insures 
+that the required Tk::Frame is initialized before the TriD::GL window that will go inside.
+
+=cut
 
 sub GLinit{
   my($self,@args) = @_;
@@ -114,7 +157,7 @@ sub GLinit{
 
     $self->{GLwin}->clear_viewports();
 
-    $self->{Viewport}[0]=$self->{GLwin}->new_viewport(0,0,1,1);
+    $self->{Viewport}[0]=$self->{GLwin}->new_viewport(0,0, $self->width, $self->height);
 
     $self->{Viewport}[0]->clear_objects();
 
@@ -133,6 +176,14 @@ sub GLinit{
 
 }
 
+=head2 refresh
+
+=for ref
+
+refresh() causes a display event to be put at the top of the TriD work que.  
+This should be called at the end of each user defined TriD::Tk callback. 
+
+=cut
 
 sub refresh{
   my($self) = @_;
@@ -142,7 +193,14 @@ sub refresh{
   unshift(@{$self->{WorkQue}}, [\&{$dcall},$self->{GLwin}]);
 }
 
+=head2 AUTOLOAD
 
+=for ref 
+
+Trys to find a subroutine in PDL::Graphics::TriD when it is 
+not found in this package.  
+
+=cut
 
 #
 #  This AUTOLOAD allows the PDL::Graphics::TriD::Tk object to act as the PDL::Graphics::TriD
@@ -162,6 +220,15 @@ sub AUTOLOAD {
   }
 }
 
+=head2 buttonmotion
+
+=for ref
+
+Default bindings for mousemotion with buttons 1 and 3
+
+=cut
+
+
 
 sub buttonmotion{
   my($self,$but,$x,$y)=@_;
@@ -180,6 +247,13 @@ sub buttonmotion{
 }
 
 
+=head1 Author
+
+B<James P. Edwards, Instituto Nacional de Meteorologia Brasil>
+
+jedwards@inmet.gov.br
+
+=cut
 
 1;
 
