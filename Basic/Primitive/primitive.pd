@@ -570,6 +570,9 @@ The unique elements are returned in ascending order.
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
 
+See L<uniqind|uniqind> if you need the indices of the unique
+elements rather than the values.
+
 =cut
 
 *uniq = \&PDL::uniq;
@@ -606,6 +609,9 @@ with uniq
 
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
+
+See L<uniq|uniq> if you want the unique values instead of the
+indices.
 
 =cut
 
