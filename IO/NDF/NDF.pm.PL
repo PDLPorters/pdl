@@ -114,6 +114,13 @@ $VERSION = '1.02';
 
 $EXTNAME = 'NDF_EXT';
 
+# load NDF library
+sub _init_NDF {
+    return if $ndf_loaded++; # a bit pointless increasing each time?
+    eval 'use NDF';
+    croak 'Cannot use NDF library' if $@ ne "";
+}
+
 !NO!SUBS!
 
     if ( $bvalflag ) {
@@ -128,8 +135,8 @@ my $starbad = 0;  # flag
 use vars qw( @starbad );
 
 sub _init_starbad {
-    eval 'use NDF' unless $ndf_loaded++;
-    croak 'Cannot use NDF library' if $@ ne "";
+    return if $starbad;
+    _init_NDF();  # just to be safe
     @starbad = eval 
           "( &NDF::VAL__BADUB,
 	     &NDF::VAL__BADW,
@@ -139,18 +146,18 @@ sub _init_starbad {
 	     &NDF::VAL__BADD );
 ";
     croak 'Unable to initialise bad values from NDF library' if $@ ne "";
-    $starbad++;
+    $starbad = 1;
 }
 
 sub starlink_bad_value ($) { 
-    _init_starbad unless $starbad; 
+    _init_starbad();
     return $starbad[$_[0]]; 
 }
 
 # given a piddle, check if the Starlink bad value matches
 # the bad value used for this type
 sub compare_bad_values ($) { 
-    _init_starbad unless $starbad; 
+    _init_starbad();
     return ($starbad[$_[0]] == badvalue($_[0])); 
 }
 
@@ -238,6 +245,9 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   barf 'Usage: $a = rndf($file,[$nomask]); $a = PDL->rndf(...) '
     if ($#_!=0 && $#_!=1);
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   # Setup the Header Hash
   my $header = {};
 
@@ -248,9 +258,6 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   my $nomask = shift if $#_ > -1;
 
   my ($infile, $status, $indf, $entry, @info, $value);
-
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
 
   # Strip trailing .sdf if one is present
   # remove the trailing extension names
@@ -392,12 +399,13 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
 
   barf 'Usage: wndf($pdl,$file)' if $#_!=1;
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   my ($indf, $place, $status, $outndf);
   my (@lbnd, @ubnd);
 
   my ($pdl, $outfile) = @_;
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
 
   # Check that we are dealing with a PDL
   croak 'Argument is not a PDL variable' unless $pdl->isa('PDL');
@@ -437,20 +445,6 @@ sub PDL::wndf {  # Write a PDL to an NDF format file
   # Create a history extension
   ndf_hcre($outndf, $status);
 
-!NO!SUBS!
-
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
-  # set the bad value flag 
-  # XXX needs working on
-  my $badflag = $pdl->badflag;
-  ndf_sbad( $badflag, $outndf, 'Data', $status );
-
-!NO!SUBS!
-
-} # if: $bvalflag
-
-  print OUT <<'!NO!SUBS!';
   # Annul the identifier
   ndf_annul($outndf, $status);
 
@@ -486,11 +480,12 @@ sub PDL::propndfx {  # Write a PDL to a NDF format file
 
   barf 'Usage: propndfx($pdl, $infile, $outfile)' if $#_!=2;
 
+  # ensure we have the NDF module
+  _init_NDF();
+
   my ($indf, $in_place, $status, $outplace, $outndf);
 
   my ($pdl, $infile, $outfile) = @_;
-  eval 'use NDF' unless $ndf_loaded++;
-  croak 'Cannot use NDF library' if $@ ne "";
 
   # Set status
   $status = &NDF::SAI__OK;
@@ -684,8 +679,7 @@ sub rdata {
 	     !compare_bad_values($temppdl->get_datatype) ) {
 	    my $star_bad = starlink_bad_value($temppdl->get_datatype);
 	    print "Converting from STARLINK bad value ($star_bad)...\n" if $PDL::verbose;
-	    # is this inefficient? (unfortunately setbadif can't be done inplace)
-	    $temppdl = $temppdl->setbadif( $temppdl == $star_bad );
+	    $temppdl->inplace->setvaltobad( $star_bad );
 	}
 
 !NO!SUBS!
@@ -1144,6 +1138,29 @@ sub wdata {
         # Total number of bytes
         $nbytes *= $p1d->getdim(0);
 
+!NO!SUBS!
+
+    if ( $bvalflag ) {
+	print OUT <<'!NO!SUBS!';
+	# if badflag is true, convert any PDL bad values to STARLINK ones 
+	# note: we have to create a copy of the data to ensure that the
+	# bad data value of the original piddle does not get changed. 
+	# per-piddle bad values would obviate the need for this.
+	if ( $temppdl->badflag() ) {
+	    print "Setting bad flag for component $dcomp ...\n" if $PDL::verbose;
+	    ndf_sbad( 1, $outndf, $dcomp, $status );
+	    if ( !compare_bad_values($temppdl->get_datatype) ) {
+		my $star_bad = starlink_bad_value($temppdl->get_datatype);
+		print "Converting from PDL to STARLINK bad value ($star_bad)...\n" if $PDL::verbose;
+		$temppdl = $temppdl->setbadtoval( $star_bad ); # do NOT do inplace
+	    }
+	}
+
+!NO!SUBS!
+
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
         # Copy to disk
         string2mem(${$temppdl->get_dataref}, $nbytes, $pntr);
 

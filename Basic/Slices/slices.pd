@@ -1,4 +1,4 @@
-pp_addpm({At => Top},<< 'EOD');
+pp_addpm({At => 'Top'},<< 'EOD');
 
 =head1 NAME
 
@@ -1416,8 +1416,8 @@ EOD
 );
 
 
-pp_add_exported('', 'dice');
-pp_addpm({At => Bot},<< 'EOD');
+pp_add_exported('', 'dice dice_axis');
+pp_addpm(<<'EOD');
 
 =head2 dice
 
@@ -1560,7 +1560,6 @@ sub PDL::dice_axis {
 *dice_axis = \&PDL::dice_axis;
 
 EOD
-pp_add_exported('', 'dice_axis');
 
 pp_done();
 __DATA__

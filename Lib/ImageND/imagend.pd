@@ -1,5 +1,5 @@
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -18,6 +18,21 @@ are a bit funny.
 =head1 SYNOPSIS
 
  use PDL::ImageND;
+
+=cut
+
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHORS
+
+Copyright (C) Karl Glazebrook 1997.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
 
 =cut
 
@@ -78,8 +93,6 @@ use Carp;
 EOD
 
 pp_def('convolve',Doc=><<'EOD',
-=head2 convolve
-
 =for ref
 
 N-dimensional convolution algorithm.
@@ -93,7 +106,7 @@ which are N-dimensional.
 
 Note because of the algorithm used (writing N-dim routines is not easy on the
 brain!) the boundary conditions are a bit strange. They wrap, but up to the
-NEXT row/column/cube-slice/etc. If this is a problem consider using
+I<NEXT> row/column/cube-slice/etc. If this is a problem consider using
 zero-padding or something.
 
 =cut
@@ -238,8 +251,6 @@ sub PDL::ninterpol {
 EOD
 
 pp_def('rebin',Doc=><<'EOD',
-=head2 rebin
-
 =for ref
 
 N-dimensional rebinning algorithm
@@ -413,25 +424,7 @@ sub circ_mean {
 
 EOD
 
-pp_add_exported('','circ_mean');
-pp_add_exported('','circ_mean_p');
-
-pp_addpm({At=>Bot},<<'EOD');
-
-
-=head1 AUTHORS
-
-Copyright (C) Karl Glazebrook 1997.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
-EOD
+pp_add_exported('','circ_mean circ_mean_p');
 
 pp_done();
 
