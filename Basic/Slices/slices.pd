@@ -1045,7 +1045,7 @@ EOD-RedoDims
 			      for(dim=0;dim<($CHILD_P(ndims))-1;dim++) {
 				long pd = ctr[dim] + $COMP(lowerbound[item*$COMP(idim)+dim]);
 				if(pd < 0) /* Fold up to above zero */
-					pd += pd * $PARENT_P(dims[dim]);
+					pd += abs(pd * $PARENT_P(dims[dim]));
 				pd %= $PARENT_P(dims[dim]);
 				ptoff += ($PARENT_P(dimincs))[dim] * pd;
 				ctoff += ($CHILD_P(dimincs))[dim+1]*ctr[dim];
