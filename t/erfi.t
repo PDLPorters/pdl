@@ -19,6 +19,6 @@ sub approx {
         $d < 0.01;
 }
 
-ok(1, approx(erfi(0.01),-2.3263) && approx(erfi(0.5),0));
+ok(1, approx(erfi(0.01),0.00886) && approx(erfi(0.),0));
 
 

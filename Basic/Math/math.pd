@@ -49,6 +49,9 @@ doco( 'pow',"Synonym for `**'");
 doco ('erf',"The error function");
 doco ('erfc',"The complement of the error function");
 doco ('erfi',"The inverse of the error function");
+doco ('ndtri',"The value for which the area under the
+Gaussian probability density function (integrated from
+minus infinity) is equal to the argument (cf erfi)");
 
 doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
 
@@ -199,6 +202,15 @@ pp_def("erfi",
 	GenericTypes => [F,D],
 	Pars => 'a(); [o]b()',
 	Doc => $doco{"erfi"},
+	Code => '
+		extern double ndtri(double), SQRTH;
+		$b() = SQRTH*ndtri((1+(double)$a())/2);
+');
+
+pp_def("ndtri",
+	GenericTypes => [F,D],
+	Pars => 'a(); [o]b()',
+	Doc => $doco{"ndtri"},
 	Code => '
 		extern double ndtri(double);
 		$b() = ndtri((double)$a());
