@@ -1,3 +1,6 @@
+Doug Hunt (3-Mar-2003)
+    - Added PLplot interface to PDL/Graphics area.  This
+      had been a separate CPAN module (PDL-Graphics-PLplot)
 CED (25-Feb-2003)
     - Added 'piddle' constructor synonym :-)
 CED (24-Feb-2003)

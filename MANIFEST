@@ -252,6 +252,10 @@ Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
 Graphics/PGPLOT/Window/ppport.h
 Graphics/PGPLOT/Window/typemap
+Graphics/PLplot/Changes
+Graphics/PLplot/Makefile.PL
+Graphics/PLplot/README
+Graphics/PLplot/plplot.pd
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
@@ -645,6 +649,7 @@ t/picnorgb.pl
 t/picnorgb.t
 t/picrgb.pl
 t/picrgb.t
+t/plplot.t
 t/pnm.t
 t/poly.t
 t/polyroots.t

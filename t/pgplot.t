@@ -7,6 +7,23 @@ BEGIN{
 }
 
 use PDL;
+use Test;
+
+BEGIN{
+  eval " use PDL::Graphics::PGPLOT; ";
+  if ($@) {
+    plan tests => 1;
+    print "ok 1 # Skipped: PDL::Graphics::PGPLOT not installed\n";
+    exit;
+  }
+  unless ($ENV{'DISPLAY'}) {
+    plan tests => 1;
+    print "ok 1 # Skipped: DISPLAY environment variable not set\n";
+    exit;
+  }
+  plan tests => 12;
+}
+
 
 sub ok {
         my $no = shift ;
@@ -19,6 +36,13 @@ unless($ENV{'DISPLAY'}) {
 	print "1\n";
 	print "ok 1 # All tests skipped: DISPLAY environment var not set\n";
 	exit 0;
+}
+
+eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
+if($@) {
+   print "1\n";
+   print "ok 1 # All tests skipped: PGPLOT not installed or loading properly\n";
+   exit 0;
 }
 
 print "1..12\n";
