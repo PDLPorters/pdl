@@ -642,6 +642,7 @@ t/lut.t
 t/lvalue.t
 t/magic.t
 t/matmult.t
+t/matrix.t
 t/matrixops.t
 t/misc.t
 t/ndf.t
