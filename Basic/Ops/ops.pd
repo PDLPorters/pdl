@@ -306,7 +306,14 @@ sub PDL::log10 {
     if ( ! UNIVERSAL::isa($x,"PDL") ) { return log($x) / log(10); }
     my $y;
     if ( $x->is_inplace ) { $x->set_inplace(0); $y = $x; }
-    else                  { $y = PDL->nullcreate($x); }
+    elsif( ref($x) eq "PDL"){
+    	#PDL Objects, use nullcreate:
+	$y = PDL->nullcreate($x);
+    }else{
+    	#PDL-Derived Object, use copy: (Consistent with
+	#  Auto-creation docs in Objects.pod)
+	$y = $x->copy;
+    }
     &PDL::_log10_int( $x, $y );
     return $y;
 };

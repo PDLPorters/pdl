@@ -1,3 +1,10 @@
+John Cerney (5/12/00)
+    - Updated log10 in ops.pd to have consistent
+      copy behavior for subclassed objects as discussed
+      in Objects.pod.
+    - Expanded the tests in t/subclass4.t to test for log10
+      and other simple functions.
+      
 CS  - added some features to dice
 Doug Burke 
     - rcols(): do not read an extra line with LINES option (Frank Samuelson)
