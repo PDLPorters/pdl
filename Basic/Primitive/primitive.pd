@@ -583,7 +583,7 @@ sub PDL::uniq {
   my $srt = $arr->clump(-1)->qsort;
   my $uniq = $srt->where($srt != $srt->rotate(-1));
   # make sure we return something if there is only one value
-  return $uniq->nelem == 0 ? pdl($arr->at(0)) : $uniq;
+  return $uniq->nelem == 0 ? $srt->index(0)->sever : $uniq;
 }
 
 EOPM

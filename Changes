@@ -1,3 +1,8 @@
+CED (14-March-2003)
+    - Obscure bugfixes and improvements to Lib::Transform
+    - t/pgplot.t Avoid a perl bug (setting an alarm from inside
+	the alarm handler sometimes fails!).
+    - Primitive: uniq now always returns a PDL.
 AJ  (12-March-2003)
     - Minor changes to PDL::GSL::INTERP
 Doug Hunt (3-Mar-2003)

@@ -25,7 +25,7 @@ BEGIN{
 }
 
 
-sub ok {
+sub t_ok {
         my $no = shift ;
         my $result = shift ;
         print "not " unless $result ;
@@ -34,44 +34,40 @@ sub ok {
 
 unless($ENV{'DISPLAY'}) {
 	print "1\n";
-	print "ok 1 # All tests skipped: DISPLAY environment var not set\n";
+	print "t_ok 1 # All tests skipped: DISPLAY environment var not set\n";
 	exit 0;
 }
 
 eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
 if($@) {
    print "1\n";
-   print "ok 1 # All tests skipped: PGPLOT not installed or loading properly\n";
+   print "t_ok 1 # All tests skipped: PGPLOT not installed or loading properly\n";
    exit 0;
 }
-
-print "1..12\n";
 
 print STDERR '
 
 PGPLOT test includes interactive components.  Press <RETURN> within 
 10 seconds to not skip the interactive part of the test.
 ';
-$timer = 10; 
+$SIG{ALRM} = sub {die "alarm\n"};
 eval {
-	local $SIG{ALRM} = sub { print STDERR (--$timer,": ") if($timer > 0);
-	                         alarm 1 if($timer > 0);
-				 die "alarm\n" if($timer<=0);
-  	                       };
-	alarm 1;
+	alarm 10;
 	$a = <STDIN>;
 	alarm 0;
 };
+$SIG{ALRM} = undef;
+
 $interactive = ($@ ne "alarm\n");
 
 print STDERR "\nSkipping interactive tests...\n"
 unless($interactive);	
 
 eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
-ok(1,!$@);
+t_ok(1,!$@);
 
 eval '$w = new PDL::Graphics::PGPLOT::Window(Dev=>"/xw",Size=>[6,4],NX=>2,NY=>2,Ch=>2.5,HardCH=>2.5);';
-ok(2,!$@);
+t_ok(2,!$@);
 
 { no warnings;
   $a = rfits('m51.fits');
@@ -80,13 +76,13 @@ ok(2,!$@);
 ##############################
 # Page 1
 eval '$w->imag($a,{Title=>"\$w->imag(\$a);"} );';
-ok(3,!$@);
+t_ok(3,!$@);
 eval '$w->fits_imag($a,{Title=>"\$w->fits_imag(\$a);"});';
-ok(4,!$@);
+t_ok(4,!$@);
 eval '$w->imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});';
-ok(5,!$@);
+t_ok(5,!$@);
 eval '$w->fits_imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});';
-ok(6,!$@);
+t_ok(6,!$@);
 
 if($interactive) {
 print STDERR <<'EOD'
@@ -105,7 +101,7 @@ on the outside of the axes.
 EOD
 ."Does this look OK? :";
 $_ = <STDIN>;
-ok(7, ! m/n/i);
+t_ok(7, ! m/n/i);
 } else {
 print "ok 7 # Skipped: non-interactive\n";
 }
@@ -113,13 +109,13 @@ print "ok 7 # Skipped: non-interactive\n";
 ##############################
 # Page 2
 eval '$w->imag($a,{Pitch=>200,Align=>LB,Title=>"\$w->imag(\$a,{Pitch=>200,Align=>LB})"});';
-ok(8,!$@);
+t_ok(8,!$@);
 eval '$w->imag($a,{J=>.5,Pitch=>200,Align=>LB,Title=>"\$w->imag(\$a,{J=>.5,Pitch=>200,Align=>LB})"});';
-ok(9,!$@);
+t_ok(9,!$@);
 eval '$w->imag($a,{Pitch=>200,Align=>RT,Title=>"\$w->imag(\$a,{Pitch=>200,Align=>RT})"});';
-ok(10,!$@);
+t_ok(10,!$@);
 eval '$w->imag($a,{J=>2,Pitch=>400,Align=>RT,Title=>"\$w->imag(\$a,{J=>1,Pitch=>400,Align=>RT})                     ."});';
-ok(11,!$@);
+t_ok(11,!$@);
 
 if($interactive) {
 print STDERR <<'EOD'
@@ -141,7 +137,7 @@ box and cropped at the bottom.     ]     and placed at upper right of plot rgn]
 EOD
 ."Does this look OK? :";
 $_ = <STDIN>;
-ok(12,! m/n/i);
+t_ok(12,! m/n/i);
 } else {
  print("ok 12 # Skipped (non-interactive)\n");
 }

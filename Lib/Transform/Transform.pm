@@ -208,7 +208,7 @@ use overload 'x' => \&_compose_op;
 use overload '**' => \&_pow_op;
 use overload '!'  => \&t_inverse;
 
-$VERSION = "0.9";
+$VERSION = "1.0";
 
 BEGIN {
    use Exporter ();
@@ -452,11 +452,6 @@ The following options are interpreted:
 
 =over 3
 
-=item nf, nofits, NoFITS (default = 0)
-
-If you set this to a true value, then FITS headers and interpretation
-are ignored; the transformation is treated as being in raw pixel coordinates.
-
 =item b, bound, boundary, Boundary (default = 'truncate')
 
 This is the boundary condition to be applied to the input image; it is
@@ -465,6 +460,22 @@ sampling or interpolating stage.  Other values are 'forbid','extend', and
 'periodic'.  You can abbreviate this to a single letter.  The default 
 'truncate' causes the entire notional space outside the original image
 to be filled with 0.
+
+=item p, pix, Pixel, nf, nofits, NoFITS (default = 0)
+
+If you set this to a true value, then FITS headers and interpretation
+are ignored; the transformation is treated as being in raw pixel coordinates.
+
+=item j, J, just, justify, Justify (default = 0)
+
+If you set this to 1, then output pixels are autoscaled to have unit
+aspect ratio in the output coordinates.  If you set it to a non-1
+value, then it is the aspect ratio between the first dimension and all
+subsequent dimensions -- or, for a 2-D transformation, the scientific
+pixel aspect ratio.  Values less than 1 shrink the scale in the first
+dimension compared to the other dimensions; values greater than 1
+enlarge it compared to the other dimensions.  (This is the same sense
+as in the L<PDL::Graphics::PGPLOT::Window|"PGPLOT">interface.)
 
 =item ir, irange, input_range, Input_Range
 
@@ -660,8 +671,6 @@ sub map {
 
   $out->sethdr($ohdr) if defined($ohdr);
 
-
-
   ##############################
   ## Figure out the dimensionality of the 
   ## transform itself (extra dimensions come along for the ride)
@@ -671,7 +680,7 @@ sub map {
   splice @dd,$nd; # Cut out dimensions after the end
 
   # If necessary, generate an appropriate FITS header for the output.
-  my $nofits = _opt($opt, ['nf','nofits','NoFITS']);
+  my $nofits = _opt($opt, ['nf','nofits','NoFITS','p','pix','pixel','Pixel']);
   my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
     $me :
     $me x t_fits($in,{ignore_rgb=>1});
@@ -730,6 +739,7 @@ sub map {
 
 	my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
 	# discard non-finite entries
+
 	my $oc2  = $ocoords->range(
 				   which(
 					 $ocoords->
@@ -739,6 +749,7 @@ sub map {
 					 )
 				   ->dummy(0,1)
 				   );
+
 	$omin = $oc2->minimum;
 	$omax = $oc2->maximum;
 
@@ -748,11 +759,18 @@ sub map {
       
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);
 
+      my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
+      if($justify) {
+	$scale->(0) *= $justify;
+	$scale .= $scale->max;
+	$scale->(0) /= $justify;
+      }
+
       my $d;
       for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1;
+	  $out->hdr->{"CRPIX$d"} = 1+($out->dim($d-1))/2;
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
-	  $out->hdr->{"CRVAL$d"} = $omin->at($d-1);
+	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
 	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ? 
 				      $me->{otype}->[$d-1] : "") 
@@ -795,6 +813,7 @@ sub map {
     return $out;
   }
 
+
   ##############################
   ##############################
   ### Jacobian / integration code:
@@ -832,51 +851,37 @@ sub map {
     ##############################
     ### Generate the Jacobian everywhere, by enumerating all the 
     ### transformed coordinates and subtracting offset versions of them
+
     my $indices = $me->invert(
-	 (float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd)
-	  - 0.5)->inplace
-			      )->reshape($nd,(PDL->pdl(@sizes[0..$nd-1])+1)->list);
-    
+    (float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd) - 0.5)		            )
+      ->
+      reshape($nd,(PDL->pdl(@sizes[0..$nd-1])+1)->list);
+
     my $jr = $indices->mv(0,-1)->range(ndcoords( (2+zeroes($nd))->list ),
 				       pdl(@sizes[0..$nd-1]));   #0..n, s1..sn, index
 
     $center = $jr->clump($nd)->sumover->clump($nd) / (2.0 ** $nd);
     
     my $jac = PDL->zeroes($nd,$nd,pdl(@sizes[0..$nd-1])->prod); # (col, row, list)
-    
-    print "assigning to jac... (jac dims are ",join(",",$jac->dims),"\n";
+
+
     for my $k(0..$nd-1) {
-      print "k=$k\n";
       my $jrx = $jr->xchg($k,0);
-      print "jrx dims: ",join(",",$jrx->dims),"\n";
-#      my $a = (( $jrx->((1)) - $jrx->((0)) ) # 0..n (-k), s1..sn, ind
-#		       -> clump($nd-1)               # list, s1..sn, ind
-#		       -> sumover               # s1..sn, ind
-#		       -> clump($nd)            # list, ind
-#		       -> xchg(0,1)             # ind, list
-#		       ) / (2.0 ** ($nd - 1));     # (normalize)
-      my $a = ( $jrx->((1)) - $jrx->((0)) );# 0..n (-k), s1..sn, ind
-	       print "jrx-diff dims: ",join(",",$a->dims),"\n"; 
-	$a = $a	       -> clump($nd-1);               # list, s1..sn, ind
-       	       print "clumped dims: ",join(",",$a->dims),"\n"; 
-	$a = $a	       -> sumover               # s1..sn, ind
-	       ;print "summed dims: ",join(",",$a->dims),"\n"; 
-	$a = $a	       -> clump($nd)            # list, ind
-	       ;print "clumped dims: ",join(",",$a->dims),"\n"; 
-	$a = $a	       -> xchg(0,1)             # ind, list
-	       ;print "exchanged dims: ",join(",",$a->dims),"\n";
-      $a /=  (2.0 ** ($nd - 1));     # (normalize)
-      print "$a dims: ",join(",",$a->dims),"\n";
+      my $a = (( $jrx->((1)) - $jrx->((0)) )    # 0..n (-k), s1..sn, ind
+		       -> clump($nd-1)          # list, s1..sn, ind
+		       -> sumover               # s1..sn, ind
+		       -> clump($nd)            # list, ind
+		       -> xchg(0,1)             # ind, list
+		       ) / (2.0 ** ($nd - 1));  # (normalize)
       $jac->(($k)) .= $a
     }
-    print "loop ok...\n";
+
     $jdet = $jac->det;
     
     ###############
     ### Singular-value decompose the Jacobian and fatten it to ensure 
     ### at least one intersection with the grid.  Then save the size
     ### of the enclosing N-cube, for use down below. 
-    ### This is in a block to get rid of the temporary variables.
     ###
     ### smin gets the maximum of itself, unity, and the largest 
     ### singular value divided by the largest acceptable aspect ratio.
@@ -1272,15 +1277,18 @@ sub compose {
 
 Shift a transform into a different space by 'wrapping' it with a second.
 
-This is just a convenience function for two L<compose|Transform::compose> calls.
-It is useful to make a single transformation happen in some other space.
+This is just a convenience function for two
+L<compose|Transform::compose> calls. C<$a->wrap($b)> is the same as
+C<(!$b) x $a x $b>: the resulting transform first hits the data with
+$b, then with $a, then with the inverse of $b.  
+
 For example, to shift the origin of rotation, do this:
 
   $im = rfits('m51.fits');
   $tf = t_fits($im);
   $tr = t_linear({rot=>30});
-  $im1 = $tr->unmap($tr);               # Rotate around pixel origin
-  $im2 = $tr->unmap($tr->wrap($tf));    # Rotate round FITS scientific origin
+  $im1 = $tr->map($tr);               # Rotate around pixel origin
+  $im2 = $tr->map($tr->wrap($tf));    # Rotate round FITS scientific origin
 
 =cut
 
