@@ -63,7 +63,8 @@ sub run {
   foreach my $menu (@$menus){
     my $mew = $bframe->Menubutton(-text=>$menu->{Name},
 				  -relief=>'raised'
-				 )->pack(-side=>'left',-fill=>'y');
+				 )->pack(-side=>'left');
+    
     if($menu->{Type} eq "radio"){
       foreach(@{$menu->{Options}}){
 	
@@ -113,8 +114,8 @@ sub linedemos{
     my $data;
     my $size = 25;
     my $cz = (xvals zeroes $size+1) / $size;  # interval 0..1
-    my $cx = sin($cz*12.6);	# Corkscrew
-    my $cy = cos($cz*12.6);
+    my $cx = 0.5+sin($cz*12.6)/2;	# Corkscrew
+    my $cy = 0.5+cos($cz*12.6)/2;
     if($demo eq "B&W"){
       $graph->delete_data("LinesColor");
       $data=new PDL::Graphics::TriD::LineStrip([$cx,$cy,$cz]);
@@ -186,7 +187,9 @@ sub Contourdemos{
   $demo=$bh unless(ref($bh));
  
   return unless defined $TriDW->{GLwin};
+
   $TriDW->{GLwin}->delete_object($cgraph) if(defined $cgraph);
+
   undef $cgraph;
 
   if($demo ne "Off"){
@@ -198,17 +201,19 @@ sub Contourdemos{
     $z = (sin($x*6.3) * sin($y*6.3)) ** 3;
    
     if($demo eq "2DB&W"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals,$z->yvals,0]);
+      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
     }elsif($demo eq "2DColor"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals,$z->yvals,0]);
+      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,0]);
       $cgraph->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }elsif($demo eq "3DColor"){
-      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals,$z->yvals,$z]);
+      $cgraph=new PDL::Graphics::TriD::Contours($z,[$z->xvals/$size,$z->yvals/$size,$z]);
       $cgraph->set_colortable(\&PDL::Graphics::TriD::Contours::coldhot_colortable);
     }
   }
   if(defined $cgraph){
+    $cgraph->default_axes();
     $cgraph->addlabels(2,0.25);
+
     $cgraph->scalethings();
     $TriDW->{GLwin}->add_object($cgraph);
   }
@@ -238,15 +243,19 @@ sub Torusdemos{
     my $a=zeroes 2*$s,$s/2;
     my $t=$a->xlinvals(0,6.284);
     my $u=$a->ylinvals(0,6.284); 
-    my $o=5;
-    my $i=1;
+    my $o=0.5;
+    my $i=0.1;
     my $v=$o+$i*sin$u;
 
+    my $x = $v*sin $t;
+    my $y = $v*cos $t;
+    my $z = $i*cos($u)+$o*sin(3*$t);
+
     if($demo eq "Colors"){
-      $data=new PDL::Graphics::TriD::SLattice([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)],
+      $data=new PDL::Graphics::TriD::SLattice([$x,$y,$z],
 					      [0.5*(1+sin $t),0.5*(1+cos $t),0.25*(2+cos($u)+sin(3*$t))]);
     }else{
-      $data=new PDL::Graphics::TriD::SLattice_S([$v*sin$t,$v*cos$t,$i*cos($u)+$o*sin(3*$t)]);
+      $data=new PDL::Graphics::TriD::SLattice_S([$x,$y,$z]);
     }
     $graph->add_dataseries($data,"Torus$demo");
   }
