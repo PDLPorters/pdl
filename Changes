@@ -1,3 +1,9 @@
+CED 9-Mar-2005
+   pdl.h, pdlapi.c: Added guardrails to the dependency-loop
+   detector.  (1) error message is now more explanatory. 
+   (2) the detector now resets its counter when tripped, so that
+   you can continue to use PDL once it has been activated.  (formerly,
+   every operation following a trip caused another error message).
 SIS 28-Feb-2005
    At last - a fix for the MakeMaker bug affecting dmake (Win32). No
    longer any need for the ugly hack that enabled PDL to be built with

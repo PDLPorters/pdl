@@ -2122,16 +2122,19 @@ my $doc_which = <<'EOD';
 
 =for ref
 
-Returns piddle of indices of non-zero values.
+Returns indices of non-zero values from a 1-D PDL
 
 =for usage
 
  $i = which($mask);
 
-returns a pdl with indices for all those elements that are
-nonzero in the mask. Note that the returned indices will be 1D. If you want
-to index into the original mask or a similar piddle remember to flatten
-it before calling index:
+returns a pdl with indices for all those elements that are nonzero in
+the mask. Note that the returned indices will be 1D. If you feed in a
+multidimensional mask, it will be flattened before the indices are
+calculated.  See also L<whichND|/whichND> for multidimensional masks.
+
+If you want to index into the original mask or a similar piddle
+with output from C<which>, remember to flatten it before calling index:
 
   $data = random 5, 5;
   $idx = which $data > 0.5; # $idx is now 1D
@@ -2139,8 +2142,15 @@ it before calling index:
 
 Compare also L<where|/where> for similar functionality.
 
-If you want to return both the indices of non-zero values and the
-complement, use the function L<which_both|/which_both>.
+SEE ALSO: 
+
+L<which_both|/which_both> returns separately the indices of both
+zero and nonzero values in the mask.
+
+L<where|/where> returns associated values from a data PDL, rather than 
+indices into the mask PDL.
+
+L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 
 =for example
 
@@ -2155,7 +2165,7 @@ my $doc_which_both = <<'EOD';
 
 =for ref
 
-Returns piddle of indices of non-zero values and their complement
+Returns indices of zero and nonzero values in a mask PDL
 
 =for usage
 
@@ -2269,7 +2279,26 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Return the values from a piddle for whose indices a condition piddle is nonzero.
+Use a mask to select values from one or more data PDLs
+
+C<where> accepts one or more data piddles and a mask piddle.  It
+returns a list of output piddles, corresponding to the input data
+piddles.  Each output piddle is a 1-dimensional list of values in its
+corresponding data piddle. The values are drawn from locations where
+the mask is nonzero.
+
+The output PDLs are still connected to the original data PDLs, for the 
+purpose of dataflow.
+
+C<where> combines the functionality of L<which|/which> and L<index|/index>
+into a single operation.
+
+BUGS:
+
+There is no C<whereND>, and probably should be.  While C<where> works
+OK for most N-dimensional cases, it does not thread properly over (for
+example) the (N+1)th dimension in data that is compared to an
+N-dimensional mask.
 
 =for usage
 
@@ -2323,9 +2352,12 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns the coordinates for non-zero values. 
+Return the coordinates of non-zero values in a mask. 
 
 =for usage
+
+WhichND returns the N-dimensional coordinates of each nonzero value in a
+mask PDL with any number of dimensions. 
 
 For historical reasons the return value is different in list and scalar
 context.  In scalar context, you get back a PDL containing coordinates suitable
@@ -2347,6 +2379,13 @@ elements that are non-zero in C<$mask>.  Each element corresponds to a
 particular index dimension.  For example, if $mask has rank 4 and 100
 matching elements, then @coords has 4 elements, each of which is a pdl
 of size 100.
+
+SEE ALSO:
+
+L<which|/which> finds coordinates of nonzero values in a 1-D mask.
+
+L<where|/where> extracts values from a data PDL that are associated 
+with nonzero values in a mask PDL.
 
 =for example
 

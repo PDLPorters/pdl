@@ -968,6 +968,7 @@ void pdl_make_physical(pdl *it) {
 		goto mkphys_end;
 	}
 	if(!it->trans) {
+	        ABORT_RECURSE_GUARD;
 		die("PDL Not physical but doesn't have parent");
 	}
 #ifndef DONT_OPTIMIZE
