@@ -5215,6 +5215,7 @@ sub rgbi {
       $image = $image->mv(0,2);
     }
   }
+  $opt->{DrawWedge} = 0;
   _imag($me,\&pgrgbi,3,$image,@$in,$opt);
 }
 

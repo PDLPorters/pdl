@@ -379,7 +379,7 @@ sub earth_coast {
     my $fn = "PDL/Transform/Cartography/earth_coast.vec.fits";
     local $_;
     foreach(@INC) {
-	my $file = "$a/$fn";
+	my $file = "$_/$fn";
 	return rfits($file) if(-e $file);
     }
     barf("earth_coast: $fn not found in \@INC.\n");

@@ -599,7 +599,7 @@ sub map {
   unless(defined $out->gethdr || $nofits) {
       # Transform a subset of input points to get the output range...
       print "guessing output FITS header..." if($PDL::debug);
-      my $samp_ratio = 10;
+      my $samp_ratio = 30;
 
       my $ndims = $in->ndims;
       my $coords = ndcoords(($samp_ratio + 1) x $ndims);
@@ -608,6 +608,10 @@ sub map {
       my ($omin) = $ocoords->minimum;
       my ($omax) = $ocoords->maximum;
       my ($orange) = $omax - $omin;
+      $omin -= $orange / $samp_ratio;
+      $omax += $orange / $samp_ratio;
+      $orange *= (1 + 2/$samp_ratio);
+
       $orange->where($orange == 0) .= 1.0;
       
       my ($scale) = $orange / pdl($out->dims);
