@@ -24,10 +24,12 @@ require File::Spec->catfile( File::Spec->updir, File::Spec->updir, "Basic", "Cor
 my $file = "NDF.xs";
 
 # if we don't have bad value support, we don't need a
-# NDF.xs file
+# NDF.xs file, plus we delete NDF.c, NDF.o, NDF.bs if they exist
 if ( $bvalflag == 0 ) {
     print "No need to create $file (removing any old copies)\n";
-    unlink $file if -e $file;
+    foreach my $f ( $file, 'NDF.c', 'NDF.o', 'NDF.bs' ) {
+	unlink $f if -e $f;
+    }
     exit;
 }
  

@@ -1,6 +1,6 @@
 (!!! = possible source of incompatibilities)
 Doug Burke (09/06/00)
-    - more build clean ups: fixes for BAD*demo.pm.PL and pdldoc.PL
+    - more build clean ups: fixes for BAD*demo.pm.PL, pdldoc.PL and IO/NDF
     - changes to build of Basic/Core and Basic/Bad to try and get build to work
       if change WITH_BADVAL (doesn't fully work yet). 
     - exported several routines in PDL::Bad
