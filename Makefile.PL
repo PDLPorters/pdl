@@ -120,17 +120,16 @@ doctest ::
 	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
 		Doc/mkhtmldoc.pl 
 
-doc_install ::
-	@echo "doc_install: Building PDL documentation database ..."
+doc_site_install ::
+	@echo "doc_site_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLSITEARCH)
 	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
+  
+doc_perl_install ::
+	@echo "doc_perl_install: Building PDL documentation database ..."
+	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
+	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 
-pure_perl_install ::
-	@echo "pure_perl_install: Building PDL documentation database ..."
-	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLPRIVLIB)
-	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLPRIVLIB)/PDL
-
-		
 ';
 if( $] < 5.005 ){  # for perl5.004, docs go into INSTALLSITELIB
 	$text =~ s/INSTALLSITEARCH/INSTALLSITELIB/g;
