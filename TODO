@@ -2,6 +2,10 @@ CURRENT PRIORITIES:
 
 # = done
 
+- add GLOBALLIBS modifier to perldl.conf and
+  PDLWriteMakefile routine to Dev.pm that will
+  honour it. Then change WriteMakfile calls in
+  all Makefile>PLs in the dist into PDLWriteMakefile
 - better docs -> doc roadmap
    'sever' additional docs
 - fix some of the inaccuracies in PDL::Internals
