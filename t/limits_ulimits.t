@@ -1,7 +1,16 @@
-use Test::More tests => 26;
 
+use Test::More;
 use PDL;
-use PDL::Graphics::Limits;
+
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 26;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+};
 
 #####################################################################
 # test user override limits.  only need to worry about how they affect

@@ -8,7 +8,6 @@ PDL::IO::FITS -- Simple FITS support for PDL
  use PDL::IO::FITS;
 
  $a = rfits('foo.fits');          # read a FITS file
-
  $a->wfits('bar.fits');           # write a FITS file
 
 =head1 DESCRIPTION
@@ -49,32 +48,33 @@ PDL distribution, the copyright notice should be pasted into in this file.
 =cut
 
 use strict;
+
 BEGIN {
 
-package PDL::IO::FITS;
+  package PDL::IO::FITS;
 
-$PDL::IO::FITS::VERSION = 0.9; # Will be 1.0 when ascii table read/write works.
+  $PDL::IO::FITS::VERSION = 0.9; # Will be 1.0 when ascii table read/write works.
 
-our @EXPORT_OK = qw( rfits rfitshdr wfits );
-our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-our @ISA = ('PDL::Exporter');
+  our @EXPORT_OK = qw( rfits rfitshdr wfits );
+  our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+  our @ISA = ('PDL::Exporter');
 
-use PDL::Core;
-use PDL::IO::Misc;
-use PDL::Exporter;
-use PDL::Primitive;
-use PDL::Types;
-use PDL::Options;
-use PDL::Bad;
-use PDL::NiceSlice;
-use Carp;
-use strict;
+  use PDL::Core;
+  use PDL::IO::Misc;
+  use PDL::Exporter;
+  use PDL::Primitive;
+  use PDL::Types;
+  use PDL::Options;
+  use PDL::Bad;
+  use PDL::NiceSlice;
+  use Carp;
+  use strict;
 
-##############################
-#
-# Check if there's Astro::FITS::Header support, and set flag.
-# Kludgy but it only has to run once, on first load.  --CED
-#
+  ##############################
+  #
+  # Check if there's Astro::FITS::Header support, and set flag.
+  # Kludgy but it only has to run once, on first load.  --CED
+  #
   eval "use Astro::FITS::Header;";
   $PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
   if($PDL::Astro_FITS_Header) {
@@ -82,7 +82,7 @@ use strict;
     $a =~ s/[^0-9\.].*//;
     $PDL::Astro_FITS_Header = 0 if($a < 1.12);
   }
-
+  
 }
 
 package PDL::IO::FITS;
@@ -1067,7 +1067,7 @@ values representing integer types and negative values representing
 floating-point types).
 
 If C<$pdl> has a FITS header attached to it (actually, any hash that
-contains a SIMPLE=>T keyword), then that FITS header is written out to the
+contains a C<< SIMPLE=>T >> keyword), then that FITS header is written out to the
 file.  The image dimension tags are adjusted to the actual dataset.
 If there's a mismatch between the dimensions of the data and the 
 dimensions in the FITS header, then the header gets corrected and a 
@@ -1098,7 +1098,7 @@ over -- copied into all rows.
 Data dimensions higher than 2 are not possible in ordinary FITS
 tables, so dims higher than 1 are clumped.  (e.g. a 7x5x3 PDL will
 yield a single named column with 7 rows and 15 numerical entries per
-row).  If PDL::Verbose is set, this condition causes a warning message
+row).  If C<$PDL::Verbose> is set, this condition causes a warning message
 to be printed.  [There is a multidim extension that is not yet
 implemented but should be].
 
@@ -1143,6 +1143,23 @@ C<PCOUNT>, C<GCOUNT>, C<NAXIS>, and C<NAXISn> keywords are ignored:
 their values are calculated based on the hash that you supply.  Any
 other fields are passed into the final FITS header verbatim.
 
+As an example, the following
+
+  $a = long(1,2,4);
+  $b = double(1,2,4);
+  wfits { 'COLA'=>$a, 'COLB'=>$b }, "table1.fits";
+
+will create a binary FITS table called F<table1.fits> which
+contains two columns called C<COLA> and C<COLB>. The order
+of the columns is controlled by setting the C<TFORMn>
+keywords in the header array, so 
+
+  $h = { 'TFORM1'=>'Y', 'TFORM2'=>'X' };
+  wfits { 'X'=>$a, 'Y'=>$b, hdr=>$h }, "table2.fits";
+
+creates F<table2.fits> where the first column is
+called C<Y> and the second column is C<X>.
+
 =item * multi-value handling
 
 If you feed in a perl list rather than a PDL or a hash, then 
@@ -1156,6 +1173,8 @@ ASCII tables are not yet handled but should be.
 
 Binary tables currently only handle one vector (up to 1-D array) 
 per table entry; the standard allows more, and should be fully implemented.
+This means that PDL::Complex piddles currently can not be written to
+disk.
 
 Handling multidim arrays implies that perl multidim lists should also be
 handled.
@@ -1640,7 +1659,7 @@ our %bintable_types = (
   'longlong'=>['D', 8, sub {return double shift;}],
   'float'=>['E',4],
   'double'=>['D',8],
-  'complex'=>['M',8]  # Complex doubles are supported
+#  'complex'=>['M',8]  # Complex doubles are supported (actually, they aren't at the moment)
 );
 
 
@@ -1661,7 +1680,8 @@ sub _prep_table {
 
   $tbl = $hash->{tbl} unless defined($tbl);
 
-  return undef unless(ref $hash eq 'HASH');
+  barf "_prep_table called without a HASH reference as the first argument"
+    unless ref $hash eq 'HASH';
 
   #####
   # Figure out how many columns are in the table
@@ -1682,8 +1702,7 @@ sub _prep_table {
     my $r = _rows($hash->{$key});
     ($rows,$rkey) = ($r,$key) unless(defined($rows) && $rows != 1);
     if($r != $rows && $r != 1) {
-      print STDERR "_prep_table_hdr: inconsistent number of rows ($rkey: $rows vs. $key: $r)\n";
-      return undef;
+      barf "_prep_table: inconsistent number of rows ($rkey: $rows vs. $key: $r)\n";
     }
   }
   
@@ -1804,12 +1823,16 @@ sub _prep_table {
 
     my $rowlen = 0;
 
+    # NOTE:
+    #  the conversion from ushort to long below is a hack to work
+    #  around the issue that otherwise perl treats it as a 2-byte
+    #  NOT 4-byte string on writing out, which leads to data corruption
+    #  Really ushort arrays should be written out using SCALE/ZERO
+    #  so that it can be written as an Int2 rather than Int4
+    #
     for my $i(1..$cols) {
       $fieldvars[$i] = $hash->{$keysbyname{$colnames[$i]}};
       my $var = $fieldvars[$i];
-
-      $internaltype[$i] = 'P' 
-	if( UNIVERSAL::isa($var,'PDL') );
 
       $hdr->{"TTYPE$i"} = $colnames[$i];
       my $tform;
@@ -1818,24 +1841,37 @@ sub _prep_table {
       my $rpt;
       my $bytes;
       
-      if( $internaltype[$i] eq 'P' ) {
+      if( UNIVERSAL::isa($var,'PDL') ) {
+
+	$internaltype[$i] = 'P';
+
 	my $dims = pdl($var->dims); 
 	$dims->(0) .= 1;
 	$rpt = $dims->prod;
 	
 	my $t;
+
+=begin WHENCOMPLEXVALUESWORK
 	
 	if( UNIVERSAL::isa($var,'PDL::Complex') ) {
 	  $rpt = $var->dim(1);
 	  $t = 'complex'
-	  } else { 
-	    $t = type $var;
-	  }
-	
+	} else { 
+	  $t = type $var;
+	}
+
+=end WHENCOMPLEXVALUESWORK
+
+=cut
+
+	barf "Error: wfits() currently can not handle PDL::Complex arrays (column $colnames[$i])\n"
+	  if UNIVERSAL::isa($var,'PDL::Complex');
+	$t = $var->type;
+
 	$t = $bintable_types{$t};
 	
 	unless(defined($t)) {
-	  print "Warning: converting unknown type $t to double...\n"
+	  print "Warning: converting unknown type $t (column $colnames[$i]) to double...\n"
 	    if($PDL::verbose);
 	  $t = $bintable_types{'double'};
 	}
@@ -1843,6 +1879,8 @@ sub _prep_table {
 	($tstr, $bytes, $converters[$i]) = @$t;
 
       } elsif( ref $var eq 'ARRAY' ) {
+
+	$internaltype[$i] = 'A';
 	$bytes = 1;
 	
 	# Got an array (of strings) -- find the longest element 
@@ -1857,6 +1895,7 @@ sub _prep_table {
 	barf "You seem to be writing out a ".(ref $var)." as a table column.  I\ndon't know how to do that (yet).\n";
 	
       } else {   # Scalar
+	$internaltype[$i] = 'A';
 	($tstr, $bytes, $converters[$i])  = ('A',1,undef);
 	$rpt = length($var);
       }
@@ -1871,46 +1910,47 @@ sub _prep_table {
 
     my $table = "";
     
-    row: for my $r(0..$rows-1) {
+    for my $r(0..$rows-1) {
       my $row = "";
-     col: for my $c(1..$cols) {
-       my $tmp;
-       my $a = $fieldvars[$c];
+      for my $c(1..$cols) {
+	my $tmp;
+	my $a = $fieldvars[$c];
        
-       if($internaltype[$c] eq 'P') {  # PDL handling
-	 $tmp = $converters[$i]
-	   ? &{$converters[$i]}($a->($r)->flat->sever) 
-	   : $a->($r)->flat->sever ;
+	if($internaltype[$c] eq 'P') {  # PDL handling
+	  $tmp = $converters[$c]
+	    ? &{$converters[$c]}($a->($r)->flat->sever) 
+	      : $a->($r)->flat->sever ;
 
-	 ## This would go faster if moved outside the loop but I'm too
-	 ## lazy to do it Right just now.  Perhaps after it actually works.
-	 ##
-	 if(!isbigendian()) {
-	   bswap2($tmp) if($tmp->get_datatype == $PDL_S);
-	   bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
-			   $tmp->get_datatype == $PDL_F);
-	   bswap8($tmp) if($tmp->get_datatype == $PDL_D);
-	 }
+	  ## This would go faster if moved outside the loop but I'm too
+	  ## lazy to do it Right just now.  Perhaps after it actually works.
+	  ##
+	  if(!isbigendian()) {
+	    bswap2($tmp) if($tmp->get_datatype == $PDL_S);
+	    bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
+			    $tmp->get_datatype == $PDL_F);
+	    bswap8($tmp) if($tmp->get_datatype == $PDL_D);
+	  }
 
-	 my $t = $tmp->get_dataref;  
-	 $tmp = $$t;
-       } else {                          # Only other case is ASCII just now...
-	 $tmp = ( ref $a eq 'ARRAY' ) ?          # Switch on array or string
-	   ( $#$a == 0 ? $a->[0] : $a->[$r] )  # Thread arrays as needed
-	   : $a;
+	  my $t = $tmp->get_dataref;  
+	  $tmp = $$t;
+	} else {                          # Only other case is ASCII just now...
+	  $tmp = ( ref $a eq 'ARRAY' ) ?          # Switch on array or string
+	    ( $#$a == 0 ? $a->[0] : $a->[$r] )  # Thread arrays as needed
+	      : $a;
 	 
-	 $tmp .= " " x ($field_len[$c] - length($tmp));
-       }
+	  $tmp .= " " x ($field_len[$c] - length($tmp));
+	}
        
-       # Now $tmp contains the bytes to be written out...
-       $row .= substr($tmp,0,$field_len[$c]);
-     }
+	# Now $tmp contains the bytes to be written out...
+	#
+	$row .= substr($tmp,0,$field_len[$c]);
+      } # for: $c
       $table .= $row;
-    }
+    } # for: $r
 
     my $table_size = $rowlen * $rows;
     if( (length $table) != $table_size ) {
-	print "Warning: Table length is ".(length $table)."; expected $table_size\n";
+      print "Warning: Table length is ".(length $table)."; expected $table_size\n";
     }
 
     return ($hdr,$table);

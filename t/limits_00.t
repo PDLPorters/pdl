@@ -1,15 +1,15 @@
-# Before `make install' is performed this script should be runnable with
-# `make test'. After `make install' it should work as `perl PDL-Graphics-Limits.t'
 
-#########################
+use Test::More;
 
-# change 'tests => 1' to 'tests => last_test_to_print';
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 1;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+  use_ok('PDL::Graphics::Limits');
+};
 
-use Test::More tests => 1;
-BEGIN { use_ok('PDL::Graphics::Limits') };
-
-#########################
-
-# Insert your test code below, the Test::More module is use()ed here so read
-# its man page ( perldoc Test::More ) for help writing this test script.
-
+# end

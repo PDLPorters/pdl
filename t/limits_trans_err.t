@@ -1,7 +1,16 @@
-use Test::More tests => 3;
 
+use Test::More;
 use PDL;
-use PDL::Graphics::Limits;
+
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 3;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+};
 
 $x1 = pdl( 1, 2, 3 );
 $x2 = pdl( 2, 3, 4 );

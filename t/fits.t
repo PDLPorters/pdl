@@ -8,9 +8,11 @@ use PDL::LiteF;
 use PDL::Core ':Internal'; # For howbig()
 use PDL::Config;
 
+##use PDL::Complex;  # currently not supported
+
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-use Test::More tests => 53;
+use Test::More tests => 83;
 
 BEGIN {
       use_ok( "PDL::IO::FITS" );
@@ -24,6 +26,10 @@ sub cfile { return $fs->catfile(@_)}
 my $tempd = $PDL::Config{TEMPDIR} or
   die "TEMPDIR not found in %PDL::Config";
 my $file = cfile $tempd, "iotest$$";
+
+END {
+  unlink $file if defined $file and -e $file;
+}
 
 ################ Test rfits/wfits ########################
 
@@ -51,6 +57,12 @@ unlink $file;
 
 ########### Rudimentary table tests ################
 
+# note:
+#   the tests do not directly test the output file,
+#   instead they write out a file, read it back in, and
+#   compare to the data used to create the file.
+#   So it is more of a "self consistent" test.
+#
 sub compare_piddles ($$$) {
     my $orig  = shift;
     my $new   = shift;
@@ -106,6 +118,71 @@ is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );
 
 compare_piddles $a, $$table2{BAR}, "BAR";
 compare_piddles $b, $$table2{FOO}, "FOO";
+
+# try out more "exotic" data types
+
+$a = byte(12,45,23,0);
+$b = short(-99,100,0,32767);
+my $c = ushort(99,32768,65535,0);
+my $d = [ "A string", "b", "", "The last string" ];
+my $e = float(-999.0,0,0,12.3);
+##my $f = float(1,0,-1,2) + i * float( 0,1,2,-1 );
+$table = {
+       ACOL => $a, BCOL => $b, CCOL => $c, DCOL => $d, ECOL => $e,
+##	  FCOL => $f,
+};
+$table2 = {};
+
+wfits $table, $file;
+$table2 = rfits $file;
+#unlink $file;
+
+ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
+    "Read in the third binary table" );
+my @elem = sort keys %$table2;
+##my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL FCOL hdr tbl ) );
+##is ( $#elem+1, 8, "hash contains 8 elements" );
+my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ) );
+is ( $#elem+1, 7, "hash contains 7 elements" );
+ok( eq_array( \@elem, \@expected ), "hash contains expected keys" );
+
+# convert the string array so that each element has the same length
+# (and calculate the maximum length to use in the check below)
+#
+my $dlen = 0;
+foreach my $str ( @$d ) {
+  my $len = length($str);
+  $dlen = $len > $dlen ? $len : $dlen;
+}
+foreach my $str ( @$d ) {
+  $str .= ' ' x ($dlen-length($str));
+}
+
+# note that, for now, ushort data is written out as a long (Int4)
+# instead of being written out as an Int2 using TSCALE/TZERO
+#
+my $i = 1;
+foreach my $colinfo ( ( ["ACOL","1B",$a],
+			["BCOL","1I",$b],
+			["CCOL","1J",$c->long],
+			["DCOL","${dlen}A",$d],
+			["ECOL","1E",$e],
+##			["FCOL","1M",$f]
+		      ) ) {
+  is( $$table2{hdr}{"TTYPE$i"}, $$colinfo[0], "column $i is $$colinfo[0]" );
+  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" );
+  my $col = $$table2{$$colinfo[0]};
+  if ( UNIVERSAL::isa($col,"PDL") ) {
+    compare_piddles $col, $$colinfo[2], $$colinfo[0];
+  } else {
+    # Need to somehow handle the arrays since the data read in from the
+    # file all have 15-character length strings (or whatever the length is)
+    #
+    ok( eq_array($col, $$colinfo[2]),
+	"  $$colinfo[0] values agree (as an array reference)" );
+  }
+  $i++;
+}
 
 ########### Check if r/wfits bugs are fixed ################
 

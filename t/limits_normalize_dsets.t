@@ -1,7 +1,17 @@
-use Test::More tests => 21;
 
+use Test::More;
 use PDL;
-use PDL::Graphics::Limits;
+
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 21;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+};
+
 
 *normalize_dsets = \&PDL::Graphics::Limits::normalize_dsets;
 *parse_vecspecs = \&PDL::Graphics::Limits::parse_vecspecs;

@@ -1,6 +1,16 @@
-use Test::More tests => 37;
 
-use PDL::Graphics::Limits;
+use Test::More;
+
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 37;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+};
+
 *round_pow = \&PDL::Graphics::Limits::round_pow;
 
 @round_tests =

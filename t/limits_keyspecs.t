@@ -1,9 +1,17 @@
-use Test::More tests => 12;
 
 use strict;
 use warnings;
+use Test::More;
 
-use PDL::Graphics::Limits;
+BEGIN {
+  eval "use PDL::Slatec;";
+  if ( !$@ ) {
+    eval "use PDL::Graphics::Limits;";
+    plan tests => 12;
+  } else {
+    plan skip_all => 'PDL::Slatec not available';
+  }
+};
 
 *parse_vecspec = \&PDL::Graphics::Limits::parse_vecspec;
 
@@ -12,47 +20,47 @@ use PDL::Graphics::Limits;
 # test parsing of hash key specs
 
 my @good = (
-	    'x<n>p&f' => { data => 'x',
-			   errn   => 'n',
-			   errp   => 'p',
-			   trans => 'f' },
+            'x<n>p&f' => { data => 'x',
+      		     errn   => 'n',
+      		     errp   => 'p',
+      		     trans => 'f' },
+            
+            '<n>p&f' => { errn   => 'n',
+      		    errp   => 'p',
+      		    trans => 'f' },
+            
+            'x,<n,>p,&f' => { data => 'x',
+      			errn   => 'n',
+      			errp   => 'p',
+      			trans => 'f' },
 
-	    '<n>p&f' => { errn   => 'n',
-			  errp   => 'p',
-			  trans => 'f' },
+            'x <n >p &f' => { data => 'x',
+      			errn   => 'n',
+      			errp   => 'p',
+      			trans => 'f' },
 
-	    'x,<n,>p,&f' => { data => 'x',
-			      errn   => 'n',
-			      errp   => 'p',
-			      trans => 'f' },
+            
+            '<n>p&f'  => { errn   => 'n',
+      		     errp   => 'p',
+      		     trans => 'f' },
+            
+            '&f'      => { trans => 'f' },
 
-	    'x <n >p &f' => { data => 'x',
-			      errn   => 'n',
-			      errp   => 'p',
-			      trans => 'f' },
+            'x'       => { data => 'x' },
 
+            '&'       => { trans => '' },
 
-	    '<n>p&f'  => { errn   => 'n',
-			   errp   => 'p',
-			   trans => 'f' },
+            undef()   =>  { },
 
-	    '&f'      => { trans => 'f' },
+            '<>&'     => { errn   => '',
+      		     errp   => '',
+      		     trans => '' },
 
-	    'x'       => { data => 'x' },
-
-	    '&'       => { trans => '' },
-
-	    undef()   =>  { },
-
-	    '<>&'     => { errn   => '',
-			   errp   => '',
-			   trans => '' },
-
-	    '=s'  => { errn   => 's',
-		       errp   => 's' },
+            '=s'  => { errn   => 's',
+      	         errp   => 's' },
 
 
-	   );
+);
 
 while( my ( $spec, $exp ) = splice( @good, 0, 2 ) )
 {
@@ -67,3 +75,4 @@ for my $spec ( @bad )
   eval { parse_vecspec($spec) };
   ok( $@, "$spec" );
 }
+

@@ -1,3 +1,10 @@
+DJB 27-Oct-04
+   - fixed wfits() to write out ushort columns as Int4 (J) format
+     (ideally we should write out as Int4 (I) and use TSCALE/ZERO).
+     Added tests for this and other column types. Removed support for
+     writing out PDL::Complex piddles for this release.
+   - cleaned up the limits* tests so that they are skipped if PDL::Slatec
+     is not installed.
 DJB 21-Oct-04
    - clean up of code to fix remaining validation errors reported by fverify
      (the Type value passed to Astro::FITS::Header::Item must be in upper
