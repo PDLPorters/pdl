@@ -915,32 +915,38 @@ EOD
 	RedoDims => '
 		int i; int start; int end; int inc;
 		if ($COMP(nthintact) > $PARENT(ndims)) {
-			/* Slice has more dims than parent.  Check that the extra dims are 
-			 * all zero, and if they are then give back What You Probably Wanted,
-			 * which is a slice with a truncated dimension list.  (Note that there
-			 * are two ways to indicate a zero dimension: "0" and "-<w>",
-			 * where <w> happens to be the order of that dimension in the original
-			 * piddle.  The latter case still causes an error.  That is a feature.)
-			 *    --CED 15-March-2002
-			 */
-			int ii,ok;
+	/* Slice has more dims than parent.  Check that the extra dims are 		
+         * all zero, and if they are then give back What You Probably Wanted,
+	 * which is a slice with a truncated dimension list.  (Note that there
+	 * are two ways to indicate a zero dimension: "0" and "-<w>",
+	 * where <w> happens to be the order of that dimension in the original
+	 * piddle.  The latter case still causes an error.  That is a feature.)
+	 *    --CED 15-March-2002
+	 */
+			int ii,parentdim,ok;
 
-			   /* Check index for each extra dim */
-			fprintf(stderr,"\nExcessive slice detected.  Checking triviality...");fflush(stderr);
-			for(ok=1, ii = $PARENT(ndims); ok && ii < $COMP(nthintact) ; ii++) {
-				fprintf(stderr,"dim %d: ",ii);fflush(stderr);
-				ok = ( $COMP(start[ii]) == 0 ) && ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 );
-				fprintf(stderr,"ok=%d...",ok);fflush(stderr);
+			   /* Check index for each extra dim in the ordinary affine list */
+
+			for(ok=1, ii = 0; ok && ii < $COMP(intactnew) ; ii++) {
+				parentdim = $COMP(corresp[ii]);
+
+				ok = (parentdim < $PARENT(ndims)) ||
+					( ( $COMP(start[ii]) == 0 ) && 
+					  ( $COMP(end[ii]) == 0 || $COMP(end[ii])== -1 )
+					);
 			}	
-			fprintf(stderr,"\n");
-			if(ok) {
+			
+			  /* Check index for each indexed parent dimension */
+			for(ii=0; ok && ii < $COMP(nolddims); ii++) {
+				ok = ( $COMP(whichold[ii]) < $PARENT(ndims) ) ||
+					( $COMP(oldind[ii]) == 0 ) ||
+					( $COMP(oldind[ii]) == -1) ;
+			}	
 
+			if(ok) {
 			   /* Valid slice: all extra dims are zero. Adjust indices accordingly. */
-				fprintf(stderr,"\ntrivial excessive slice.  intactnew=%d; nthintact=%d; parent-dims=%d.  Setting intactnew to %d.\n",$COMP(intactnew),$COMP(nthintact),$PARENT(ndims),$COMP(intactnew)-$COMP(nthintact)+$PARENT(ndims)); fflush(stderr);
 			  $COMP(intactnew) -= $COMP(nthintact) - $PARENT(ndims);
 			  $COMP(nthintact) = $PARENT(ndims);
-			fprintf(stderr,"setting nthintact to ndims...\n\n"); fflush(stderr);
-
 			} else { 	
 
 			   /* Invalid slice: nonzero extra dimension.  Clean up and die.  */
@@ -949,7 +955,6 @@ EOD
 			 $PRIV(offs) = 0;	
 			 $SETDIMS();
 			 $CROAK("Too many dims in slice");
-
 			}
  	        }
 		$SETNDIMS($PARENT(ndims)-$COMP(nthintact)+$COMP(intactnew));
