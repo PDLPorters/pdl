@@ -1,7 +1,7 @@
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
 
-	PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
+ PDL::Graphics::TriD::Rout - Helper routines for Three-dimensional graphics
 
 
 =head1 DESCRIPTION
@@ -9,19 +9,6 @@ pp_addpm({At=>Top},<<'EOD');
 This module is for miscellaneous PP-defined utility routines for
 the PDL::Graphics::TriD module. Currently, there are
 
-=head1 AUTHOR
-
-Copyright (C) 2000 James P. Edwards
-Copyright (C) 1997 Tuomas J. Lukka.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-
-=cut
 EOD
 
 pp_def(
@@ -36,8 +23,6 @@ pp_def(
 		$coords(tri => 2) = $z();
 	',
 	Doc => <<EOT
-=head2 combcoords
-
 =for ref
 
 Combine three coordinates into a single piddle.
@@ -149,7 +134,7 @@ Repulsive potential for molecule-like constructs.
 
 C<repulse> uses a hash table of cubes to quickly calculate
 a repulsive force that vanishes at infinity for many
-objects. For use by the module PDL::Graphics::TriD::MathGraph.
+objects. For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
 
 =cut
@@ -200,7 +185,7 @@ C<attract> is used to calculate
 an attractive force for many
 objects, of which some attract each other (in a way
 like molecular bonds).
-For use by the module PDL::Graphics::TriD::MathGraph.
+For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::MathGraph>.
 For definition of the potential, see the actual function.
 
 =cut
@@ -241,35 +226,36 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-  This is the interface for the pp routine contour_segments_internal
-  it takes 3 piddles as input
+This is the interface for the pp routine contour_segments_internal
+- it takes 3 piddles as input
 
-$c is a contour value (or a list of contour values)
+C<$c> is a contour value (or a list of contour values)
 
-$data is an [m,n] array of values at each point
+C<$data> is an [m,n] array of values at each point
 
-$points is a list of [3,m,n] points, it should be a grid
-      monotonically increasing with m and n.  
+C<$points> is a list of [3,m,n] points, it should be a grid
+monotonically increasing with m and n.  
 
 contour_segments returns a reference to a Perl array of 
-line segments associated with each value of $c.  It does not (yet) handle
+line segments associated with each value of C<$c>.  It does not (yet) handle
 missing data values. 
 
-=head3 Algorthym
+=over 4
 
-=for ref 
+=item Algorthym
 
-  The data array represents samples of some field observed on the surface described 
-  by points.  For each contour value we look for intersections on the line segments
-  joining points of the data.  When an intersection is found we look to the adjoining 
-  line segments for the other end(s) of the line segment(s).  So suppose we find an
-  intersection on an x-segment.  We first look down to the left y-segment, then to the
-  right y-segment and finally across to the next x-segment.  Once we find one in a 
-  box (two on a point) we can quit because there can only be one.  After we are done
-  with a given x-segment, we look to the leftover possibilities for the adjoining y-segment.
-  Thus the contours are built as a collection of line segments rather than a set of closed
-  polygons.          
-     
+The data array represents samples of some field observed on the surface described 
+by points.  For each contour value we look for intersections on the line segments
+joining points of the data.  When an intersection is found we look to the adjoining 
+line segments for the other end(s) of the line segment(s).  So suppose we find an
+intersection on an x-segment.  We first look down to the left y-segment, then to the
+right y-segment and finally across to the next x-segment.  Once we find one in a 
+box (two on a point) we can quit because there can only be one.  After we are done
+with a given x-segment, we look to the leftover possibilities for the adjoining y-segment.
+Thus the contours are built as a collection of line segments rather than a set of closed
+polygons.          
+
+=back
 
 =cut
 
@@ -462,17 +448,34 @@ pp_def('contour_segments_internal',
 			%}
 			/*printf("p= %d \n",p); */
 			$cnt()=p-1;'
-, Doc => '
-=for ref
-
-Internal support for contour_segments above.
-
-=cut
-'
+, 
+       Doc => undef,
+#'
+#=for ref
+#
+#Internal support for contour_segments above.
+#
+#=cut
+#'
 
 
 );
+
 			
+pp_addpm({At=>Bot},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) 2000 James P. Edwards
+Copyright (C) 1997 Tuomas J. Lukka.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+EOD
 
 pp_done();
 
