@@ -1728,9 +1728,9 @@ they are calculated and put in the stash.
 
 =item b, bound, boundary, Boundary
 
-This option is passed unmodified into L<indexNDb|PDL::Slices/indexNDb>
-as its boundary-handling method. 
-Current allowed values are 'extend', 'periodic', and 'truncate' 
+This option is passed unmodified into L<indexND|PDL::Slices/indexND>, 
+which is used as the indexing engine for the interpolation.
+Some current allowed values are 'extend', 'periodic', 'truncate', and 'mirror'
 (default is 'truncate').
 
 =item bad
