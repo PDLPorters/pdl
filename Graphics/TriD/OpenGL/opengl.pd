@@ -636,20 +636,8 @@ field.  These attributes are:
 sub new {
   my($class,$options) = @_;
 
-  my $opt = new PDL::Options( {'x'     => 0,
-									 'y'     => 0,
-									 'width' => 500,
-									 'height'=> 500,
-									 'parent'=> 0,
-									 'mask'  => &PDL::Graphics::OpenGL::StructureNotifyMask,
-									 'attributes'=> [&PDL::Graphics::OpenGL::GLX_RGBA,
-                                            &PDL::Graphics::OpenGL::GLX_RED_SIZE,1,
-                                            &PDL::Graphics::OpenGL::GLX_GREEN_SIZE,1,
-                                            &PDL::Graphics::OpenGL::GLX_BLUE_SIZE,1,
-                                            &PDL::Graphics::OpenGL::GLX_DOUBLEBUFFER
-                                            ]
-									});
-	 
+  my $opt = new PDL::Options(default_options());
+  $opt->incremental(1);
   $opt->options($options) if(defined $options);
   my $p = $opt->options;
 
@@ -671,6 +659,28 @@ sub new {
   $self;
 }
 
+=head2 default_options
+
+default options for object oriented methods
+
+=cut
+#'
+sub default_options{
+  	{'x'     => 0,
+	 'y'     => 0,
+	 'width' => 500,
+	 'height'=> 500,
+	 'parent'=> 0,
+	 'mask'  => &PDL::Graphics::OpenGL::StructureNotifyMask,
+	 'attributes'=> [&PDL::Graphics::OpenGL::GLX_RGBA,
+                    &PDL::Graphics::OpenGL::GLX_RED_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_GREEN_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_BLUE_SIZE,1,
+                    &PDL::Graphics::OpenGL::GLX_DOUBLEBUFFER
+                   ]
+	 }	
+}
+	 
 =head2 XPending()
 
 OO interface to XPending
