@@ -1,3 +1,6 @@
+DJB (23/Oct/01)
+    - changes to bad.pd in order to clean up build slightly (for 
+      instance we longer need to create pdlapi.c from pdlapi.c.PL)
 DJB (15/Oct/01)
     - minor fix to ellipse (no longer requires options array) and to
       imag (will correctly handle transforms for axes with "-ve" pixel 

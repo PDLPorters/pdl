@@ -2,6 +2,11 @@
 # The contents of Bad.pm depend on whether we have
 # bad-value support in PDL.
 #
+# if we do not have bad support then the module just
+# contains a set of methods which essentially do nothing
+# (they may return 0 or undef or a copy of the input
+# piddle [thankfully PDL::copy handles inplace ops])
+#
 
 use strict;
 
@@ -16,7 +21,7 @@ my $author = '
 
 =head1 AUTHOR
 
-Doug Burke (burke@ifa.hawaii.edu), 2000.
+Doug Burke (djburke@cpan.org), 2000, 2001.
 
 All rights reserved. There is no warranty. You are allowed to
 redistribute this software / documentation under certain conditions. For
@@ -42,6 +47,9 @@ PDL::Bad - PDL does not process bad values
 
 PDL has been compiled with WITH_BADVAL either 0 or undef,
 so it does not contain any bad-value support code.
+Actually, a number of methods are defined, but they are only
+placeholders to make writing other code, that has to handle
+WITH_BADVAL being true or false, easier.
 
 Implementation details are given in
 L<PDL::BadValues>.
@@ -77,14 +85,77 @@ Set to 0
 $PDL::Bad::Status = 0;
 $PDL::Bad::UseNaN = 0;
 
+# dummy routines
+#
+*badflag         = \&PDL::badflag;
+*badvalue        = \&PDL::badvalue;
+*orig_badvalue   = \&PDL::orig_badvalue;
+
+sub PDL::badflag       { return 0; } # no piddles can contain bad values by design
+sub PDL::badvalue      { return undef; }
+sub PDL::orig_badvalue { return undef; }
+
+*check_badflag = \&PDL::check_badflag;
+sub PDL::check_badflag { return 0; } # no piddles can contain bad values by design
+
+# even polluting other modules' namespaces
+{
+    package PDL::Type;
+    sub badvalue { return undef; }
+    sub orig_badvalue { return undef; }
+}
+
+*isbad  = \&PDL::isbad;
+*isgood = \&PDL::isgood;
+
+sub PDL::isbad  { return 0; } # no piddles can contain bad values by design
+sub PDL::isgood { return 1; } # no piddles can contain bad values by design
+
+*nbadover  = \&PDL::nbadover;
+*ngoodover = \&PDL::ngoodover;
+*nbad      = \&PDL::nbad;
+*ngood     = \&PDL::ngood;
+
+#        Pars => 'a(n); int+ [o]b();',
+# collapse the input piddle along it's first dimension and set to 0's
+# - using sumover to do the projection as I'm too lazy to do it 
+#   myself
+#
+sub PDL::nbadover  { return PDL::sumover( $_[0] * 0 ); }
+sub PDL::ngoodover { return PDL::sumover( $_[0] * 0 + 1 ); }
+
+sub PDL::nbad  { return 0; }
+sub PDL::ngood { return $_[0]->nelem; }
+
+*setbadat = \&PDL::setbadat;
+*setbadif = \&PDL::setbadif;
+
+# As these can't be done inplace we try to keep the
+# same behaviour here
+#
+sub PDL::setbadat { $_[0]->set_inplace(0); return $_[0]->copy; }
+sub PDL::setbadif { $_[0]->set_inplace(0); return $_[0]->copy; }
+
+*setvaltobad = \&PDL::setvaltobad;
+*setbadtoval = \&PDL::setvaltobad;
+*setnantobad = \&PDL::setnantobad;
+*setbadtonan = \&PDL::setbadtonan;
+
+# this can be done inplace
+# fortunately PDL::copy handles inplace ops
+sub PDL::setvaltobad { return $_[0]->copy; }
+sub PDL::setbadtoval { return $_[0]->copy; }
+sub PDL::setnantobad { return $_[0]->copy; }
+sub PDL::setbadtonan { return $_[0]->copy; }
+
+*copybad = \&PDL::copybad;
+
+sub PDL::copybad { return $_[0]->copy; } # ignore the mask
+
 !NO!SUBS!
 
     ## Footer
     pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
-
-=head1 BUGS
-
-None - it does nothing perfectly!
 
 $author
 
@@ -92,7 +163,11 @@ $author
 
 !WITH!SUBS!
     
-    pp_export_nothing();
+    pp_add_exported( '', 
+		     'badflag check_badflag badvalue orig_badvalue nbad nbadover ngood ngoodover ' .
+		     'setbadat setbadif setvaltobad setbadtoval setnantobad setbadtonan copybad '.
+		     'isbad isgood ' );
+
     pp_done();
     exit;
 
@@ -196,10 +271,6 @@ use PDL::Primitive;
 
 ## Footer
 pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
-
-=head1 BUGS
-
-Loads, I'm sure.
 
 $author
 
@@ -613,8 +684,6 @@ foreach my $op (
 	  ['nbad','nbadover','bad'],
 	  ['ngood','ngoodover','good'],
 	  ) {
-    pp_add_exported('', $op->[0]);
-
     pp_addpm(<<"EOD");
 
 =head2 $op->[0]
@@ -679,7 +748,7 @@ Supports badvalues.
 =cut
 
 *setbadat = \&PDL::setbadat;
-sub PDL::setbadat{
+sub PDL::setbadat {
     barf 'Usage: setbadat($pdl, $x, $y, ...)' if $#_<1;
     my $self  = shift; 
     PDL::Core::set_c ($self, [@_], $self->badvalue);

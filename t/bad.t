@@ -10,17 +10,6 @@ use Test;
 
 my $fname = 'delme.fits';
 
-BEGIN {
-    use PDL::Config;
-    if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 70;
-    } else {
-	plan tests => 1;
-	print "ok 1 # Skipped: badvalue support not compiled\n";
-	exit;
-    }
-}
-
 END {
     unlink $fname if -e $fname;
 }
@@ -33,6 +22,42 @@ sub tapprox {
     my $d = abs( $a - $b );
     print "diff = [$d]\n";
     return $d <= 0.0001;
+}
+
+use PDL::Config;
+if ( $PDL::Config{WITH_BADVAL} ) {
+    plan tests => 70;
+} else {
+    # reduced testing
+    plan tests => 10;
+
+    my $a = pdl(1,2,3);
+    ok( $a->badflag(), 0 ); # 1
+    
+    my $b = pdl(4,5,6);
+    my $c = $a + $b;
+    ok( $c->badflag(), 0 ); # 2
+    ok( $c->sum(), 21 );    # 3
+    
+    # can not set the bad flag
+    $a->badflag(1);
+    ok( $a->badflag() == 0 );    
+
+    # and piddles do not have a bad value
+    ok( ! defined $a->badvalue );
+
+    # can not change a piddle to include bad values
+    ok( all( ($a->setbadif( $a == 2 ) - pdl(1,2,3)) == 0 ) );
+
+    $a = ones(3,2,4);
+    $b = zeroes(2,4);
+    $c = ones(2,4) * 3;
+    ok( $a->nbad  == 0 );
+    ok( $a->ngood == 24 );
+    ok( all( ($a->nbadover  - $b) == 0 ) );
+    ok( all( ($a->ngoodover - $c) == 0 ) );
+
+    exit;
 }
 
 # check default behaviour (ie no bad data)

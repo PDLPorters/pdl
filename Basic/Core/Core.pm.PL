@@ -1,6 +1,9 @@
 #
 # Create Core.pm
 # - needed since we allow bad pixel handling to be switched off
+#   (note this now only changes the documentation, since we
+#    have PDL::Bad supplying dummy functions -- eg a badvalue()
+#    which always returns 0).
 #
 
 use strict;
@@ -1037,9 +1040,7 @@ my %info = (
 				 !$_[0]->allocated; # apparently can be both?
 			       $state .= '-' if $state eq '';   # lazy eval
 			       $state .= 'C' if $_[0]->anychgd;
-!NO!SUBS!
-    print OUT "	       \$state .= 'B' if \$_[0]->badflag;\n" if $bvalflag;
-    print OUT <<'!NO!SUBS!';
+ 			       $state .= 'B' if $_[0]->badflag;
 			       $state;
 			     },
 		 },
@@ -1815,23 +1816,12 @@ sub PDL::string {
     	return "TOO LONG TO PRINT";
     }
     if ($ndims==0) {
-!NO!SUBS!
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
 	if ( $self->badflag() and $self->isbad() ) {
 	    return "BAD";
 	} else {
 	    my @x = $self->at();
 	    return ($format ? sprintf($format, $x[0]) : "$x[0]");
 	}
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-	 my @x = $self->at();
-	 return ($format ? sprintf($format, $x[0]) : "$x[0]");
-!NO!SUBS!
-} # if: $bvalflag
-print OUT <<'!NO!SUBS!';
     }
     return "Null" if $self->isnull;
     return "Empty" if $self->isempty; # Empty piddle
@@ -2025,7 +2015,7 @@ example above). Use
 
 to switch these checks off again (default setting);
 When called as a class method the resulting check mode is returned
-(0: no ckecking, 1: warn, 2: barf).
+(0: no checking, 1: warn, 2: barf).
 
 =cut
 
@@ -2098,15 +2088,9 @@ sub PDL::cat {
   my ($i,$t); my $s = ":,"x$_[0]->getndims;
   for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
 
-!NO!SUBS!
-	if ( $bvalflag ) {
-print OUT <<'!NO!SUBS!';
-        # propogate any bad flags
-	for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
-!NO!SUBS!
-} # if: $bvalflag
+   # propogate any bad flags
+   for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
 
-print OUT <<'!NO!SUBS!';
   return $res;
 }
 
@@ -2356,9 +2340,7 @@ sub str1D {
     my $dtype = $self->get_datatype();
     $dformat = $PDL::floatformat  if $dtype == $PDL_F;
     $dformat = $PDL::doubleformat if $dtype == $PDL_D;
-!NO!SUBS!
-    if ( $bvalflag ) {
-	print OUT <<'!NO!SUBS!';
+
     my $badflag = $self->badflag();
     for $t (@$x) {
 	if ( $badflag and $t eq "BAD" ) {
@@ -2372,23 +2354,7 @@ sub str1D {
 	}
        $ret .= $t.$sep;
     }
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-    for $t (@$x) {
-        if ($format) {
-	  $t = sprintf $format,$t;
-	} else{ # Default
-	    if ($dformat && length($t)>7) { # Try smaller
-		$t = sprintf $dformat,$t;
-	    }
-	}
-       $ret .= $t.$sep;
-    }
-!NO!SUBS!
-} # if: $bvalflag
 
-    print OUT <<'!NO!SUBS!';
     chop $ret; $ret.="]";
     return $ret;
 }
@@ -2404,22 +2370,13 @@ sub str2D{
     my ($i, $f, $t, $len, $ret);
 
     my $dtype = $self->get_datatype();
-!NO!SUBS!
-
-    if ( $bvalflag ) { print OUT 
-'    my $badflag = $self->badflag();
-';
-}
-    print OUT <<'!NO!SUBS!';
+    my $badflag = $self->badflag();
 
     my $findmax = 1;
     if (!defined $format || $format eq "") { 
 	# Format not given? - find max length of default
 	$len=0;
 
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
 	if ( $badflag ) {
 	    for (@$x) { 
 		if ( $_ eq "BAD" ) { $i = 3; } 
@@ -2429,14 +2386,7 @@ sub str2D{
 	} else {
 	    for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
 	}
-!NO!SUBS!
-} else {
-	print OUT <<'!NO!SUBS!';
-	for (@$x) {$i = length($_); $len = $i>$len ? $i : $len };
-!NO!SUBS!
-} # if: $bvalflag
 
-	print OUT <<'!NO!SUBS!';
 	$format = "%".$len."s";
 	
 	if ($len>7) { # Too long? - perhaps try smaller format
@@ -2458,9 +2408,7 @@ sub str2D{
     if($findmax) {
 	# Find max length of strings in final format
 	$len=0;
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
+
 	if ( $badflag ) {
 	    for (@$x) {
 		if ( $_ eq "BAD" ) { $i = 3; }
@@ -2472,16 +2420,6 @@ sub str2D{
 		$i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
 	    }
 	}
-!NO!SUBS!
-} else {
-    print OUT <<'!NO!SUBS!';
-	for (@$x) {
-	    $i = length(sprintf $format,$_); $len = $i>$len ? $i : $len;
-	}
-!NO!SUBS!
-} # if: $bvalflag
-	
-    print OUT <<'!NO!SUBS!';
     } # if: $findmax
 
     $ret = "\n" . " "x$level . "[\n";
@@ -2489,22 +2427,13 @@ sub str2D{
 	my $level = $level+1;
 	$ret .= " "x$level ."[";
 	for ($i=0; $i<=$#$x; $i++) {
-!NO!SUBS!
-    if ( $bvalflag ) { 
-	print OUT <<'!NO!SUBS!';
+
 	    if ( $badflag and $$x[$i] eq "BAD" ) {
 		$f = "BAD";
 	    } else {
 		$f = sprintf $format,$$x[$i];
 	    }
-!NO!SUBS!
-} else {
-    print OUT <<'!NO!SUBS!';
-            $f = sprintf $format,$$x[$i];
-!NO!SUBS!
-} # if: $bvalflag
 
-print OUT <<'!NO!SUBS!';
 	    $t = $len-length($f); $f = " "x$t .$f if $t>0;
 	    $ret .= $f;
 	    if (($i+1)%$dims[0]) {
