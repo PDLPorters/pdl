@@ -683,7 +683,8 @@ sub PDL::line3d { &checkargs;
 
 *contour3d=\&PDL::contour3d;
 sub PDL::contour3d { 
-  &checkargs;
+#  &checkargs;
+  require PDL::Graphics::TriD::Contours;
   &graph_object(new PDL::Graphics::TriD::Contours(@_));
 }
 

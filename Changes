@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Jim Edwards (08/25/00)
+    - minor bugfix in TriD contour3d 
+    - added Labels to TriD contour3d options
 Doug Burke (08/12/00-08/13/00; 08/17/00)
     - minor bugfix to Graphics/Karma/Makefile.PL
     - made qsort and qsort_ind C routines in primitive.pd available to all

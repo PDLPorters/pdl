@@ -54,43 +54,33 @@ value using the set_color_table function.
   ContourMin  => 0.0  # explicitly set a contour minimum
   ContourMax  => 10.0 # explicitly set a contour maximum
   ContourVals => $pdl # explicitly set all contour values
+  Label => [1,5,$myfont] # see addlabels below 
   Font =>  $font      # explicitly set the font for contour labels
 
   If ContourVals is specified ContourInt, ContourMin, and ContourMax
   are ignored.  If no options are specified, the algorthym tries to
   choose values based on the data supplied.  Font can also be specified or
-  overwritten by the add_labels() function below.
+  overwritten by the addlabels() function below.
 
 =cut
 
 sub new{
   my($type,$data,$points,$colors,$options) = @_;
 
+  if(! defined $points){
+	 $points = [$data->xvals,$data->yvals,$data->zvals];
+  }
+
   if(ref($colors) eq "HASH"){
     $options=$colors ;
     undef $colors;
   }
-  $colors = pdl[1,1,1] unless defined $colors;
 
-  if(!defined $colors) {
-    $colors = PDL->pdl(1,1,1);
-    $colors = $type->cdummies($colors,$points);
-    $options->{UseDefcols} = 1;  # for VRML efficiency
-  } else {
-    $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
-  }
-
-#  my $grid = PDL::Graphics::TriD::realcoords('SURF2D',$points);
+  $colors = PDL::Graphics::TriD::realcoords("COLOR",pdl[1,1,1]) unless defined $colors;
 
   my $this = $type->SUPER::new($points,$colors,$options);
 
-#  my $out = Dumper($this);
-#  print $out;
-#  exit;
-
-  
   my $grid = $this->{Points};
-    
 
   $this->{ContourSegCnt} = [];
 
@@ -107,20 +97,6 @@ sub new{
 
 
   my $fac=1;
-
-#  my $plane;
-#
-#  if(defined $this->{Options}{Surface}){
-#	 $plane=$_;
-#	 if($plane eq "XZ"){
-#		(my $t = $grid->slice("1:2")) .= $grid->slice("1:2")->rotate(1);
-#	 }elsif($plane eq "YZ"){
-#		$grid=$grid->rotate(1);
-#	 }
-#  }else{
-#	 $plane="XY";
-#  }
-
 
   unless(defined $this->{Options}{ContourMin}){
     while($fac*($max-$min)<10){
@@ -174,6 +150,8 @@ sub new{
   
   $this->contour_segments($cvals,$data,$grid);
 
+  $this->addlabels($this->{Options}{Labels}) if(defined $this->{Options}{Labels});
+
   return $this;
 }      
 
@@ -185,6 +163,7 @@ sub get_valid_options{
 			 ContourMax=>  undef, 
 			 ContourVals=> pdl->null,
 			 UseDefcols=>1,
+          Labels=> undef,
 			 Font=>$PDL::Graphics::TriD::GL::fontbase}
 }
 
