@@ -1,3 +1,6 @@
+CS 080503
+   - Makefile.PL now absolutely requires Filter::Util::Call & 
+     Text::Balanced for PDL::NiceSlice
 DJB 060503
    - Makefile.PL now enforces Perl >= v5.6.0 (+ removal of old code)
 CS 060503
