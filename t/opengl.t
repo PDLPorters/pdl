@@ -4,7 +4,7 @@ use Test;
 
 BEGIN { 
   use PDL::Config;
-  if( $PDL::Config{OPENGL_LIBS} ){
+  if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} ){
 	 plan tests => 3; 
 	 eval 'use PDL::Graphics::OpenGL';
 	 ok($@, ''); 
