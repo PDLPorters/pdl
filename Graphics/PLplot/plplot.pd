@@ -2188,7 +2188,7 @@ $func (x, y, grid)
 PPCODE:
   PLFLT tx, ty;
 
-  $func (x, y, &tx, &ty, 0);
+  $func (x, y, &tx, &ty, (PLPointer) grid);
 
   EXTEND (SP, 2);
   PUSHs (sv_2mortal (newSVnv ((double) tx)));
@@ -2236,9 +2236,9 @@ plFreeGrid (pg)
   int pg
 PPCODE:
   PLcGrid* grid = (PLcGrid*) pg;
-  free (pg->xg);
-  free (pg->yg);
-  free (pg);
+  free (grid->xg);
+  free (grid->yg);
+  free (grid);
 EOC
 
 pp_add_exported (plFreeGrid);
@@ -2282,9 +2282,9 @@ plFree2dGrid (pg)
   int pg
 PPCODE:
   PLcGrid2* grid = (PLcGrid2*) pg;
-  plFree2dGrid (&pg->xg);
-  plFree2dGrid (&pg->yg);
-  free (pg);
+  plFree2dGrid (grid->xg, grid->nx, grid->ny);
+  plFree2dGrid (grid->yg, grid->nx, grid->ny);
+  free (grid);
 EOC
 
 pp_add_exported (plFree2dGrid);
