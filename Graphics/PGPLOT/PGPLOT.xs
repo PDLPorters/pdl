@@ -9,7 +9,7 @@
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "XSUB.h"     /* XSUB include */
-//  #include "cpgplot.h"  /* CPGPLOT prototypes */ 
+/*  #include "cpgplot.h" */ /* CPGPLOT prototypes */ 
 
 struct PGPLOT_function_handle {
    void (*cpgmove) (float x, float y);
