@@ -379,6 +379,126 @@ plot in the wrong panel... The package tries to be smart and do this
 correctly, but might get it wrong at times.
 
 
+=head1 STATE and RECORDING
+
+A new addition to the graphics interface is the ability to record plot
+commands. This can be useful when you create a nice-looking plot on the
+screen that you want to re-create on paper for instance. Or if you want
+to redo it with slightly changed variables for instance. This is still
+under development and views on the interface are welcome.
+
+The functionality is somewhat detached from the plotting functions
+described below so I will discuss them and their use here.
+
+In general there is nothing you need to do to keep the module recording
+your every move, recording is on by default. To turn it off when you
+create a new device you can set the C<Recording> option to false (C<undef>,
+or 0 for instance).
+
+=head2 Use of recording
+
+The recording is meant to help you recreate a plot with new data or
+to a different device. The most typical situation is that you have
+created a beautiful plot on screen and want to have a Postscript file
+with it. In the dreary old world you needed to go back and execute all
+commands manually, but with this wonderful new contraption, the recorder,
+you can just replay your commands:
+
+  dev '/xs'
+  $x = sequence(10)
+  line $x, $x**2, {Linestyle => 'Dashed'}
+  $s = retrieve_state() # Get the current tape out of the recorder.
+  dev '/cps'
+  replay $s
+
+This should result in a C<pgplot.ps> file with a parabola drawn with a
+dashed line. Note the command C<retrieve_state> which retrieves the current
+state of the recorder and return an object (of type PDL::Graphics::State)
+that is used to replay commands later.
+
+=head2 Controlling the recording
+
+Like any self-respecting recorder you can turn the recorder on and off
+using the C<turn_on_recording> and C<turn_off_recording> respectively.
+Likewise you can clear the state using the C<clear_state> command.
+
+  $w=PDL::Graphics::PGPLOT::Window->new({Device => '/xs'})
+  $x=sequence(10); $y=$x*$x
+  $w->line($x, $y)
+  $w->turn_off_recording
+  $w->line($y, $x)
+  $w->turn_on_recording
+  $w->line($x, $y*$x)
+  $state = $w->retrieve_state()
+
+We can then replay C<$state> and get a parabola and a cubic plot.
+
+  $w->replay($state);
+
+=head2 Tips and Gotchas!
+
+The data are stored in the state object as references to the real
+data. This leads to one good and one potentially bad consequence:
+
+=over
+
+=item The good is that you can create the plot and then subsequently
+redo the same plot using a different set of data. This is best explained
+by an example. Let us first create a simple gradient image and get
+a copy of the recording:
+
+  $im = sequence(10,10)
+  imag $im
+  $s=retrieve_state
+
+Now this was a rather dull plot, and in reality we wanted to show an
+image using C<rvals>. Instead of re-creating the plot (which of course
+here would be the simplest option) we just change C<$im>:
+
+  $im -= sequence(10,10)
+  $im += rvals(10,10)
+
+Now replay the commands
+
+  replay $s
+
+And hey presto! A totally different plot. Note however the trickery
+required to avoid losing reference to C<$im>
+
+=item This takes us immediately to the major problem with the recording
+though. Memory leakage! Since the recording keeps references to the data
+it can keep data from being freed (zero reference count) when you expect
+it to be. For instance, in this example, we lose totally track of the
+original $im variable, but since there is a reference to it in the state
+it will not be freed
+
+  $im = sequence(1000,1000)
+  imag $im
+  $s = retrieve_state
+  $im = rvals(10,10)
+
+Thus after the execution of these commands we still have a reference to
+a 1000x1000 array which takes up a lot of memory...
+
+The solution is to call C<clear> on the state variable:
+
+  $s->clear()
+
+(This is done automatically if the variable goes out of scope). I forsee
+this problem to most acute when working on the C<perldl> command line,
+but since this is exactly where the recording is most useful the best
+advice is just to be careful and call clear on state variables.
+
+If you are working with scripts and use large images for instance I would
+instead recommend that you turn off recording if you do not need it:
+
+   dev '/xs', {Recording => 0};
+
+=back
+
+
+
+
 =head1 FUNCTIONS
 
 A more detailed listing of the functions and their usage follows. For
@@ -1503,6 +1623,7 @@ use PDL::Ufunc;
 use PDL::Primitive;
 use PDL::Types;
 use PDL::Options;
+use PDL::Graphics::State;
 use PDL::Graphics::PGPLOTOptions qw(default_options);
 use SelfLoader;
 use Exporter;
@@ -1540,6 +1661,7 @@ $WindowOptions->warnonmissing(0);
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
+
 
 sub new {
 
@@ -1591,7 +1713,9 @@ sub new {
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
 	      'CurrentPanel'  => 0,
-	      '_env_options'  => undef
+	      '_env_options'  => undef,
+	      'State'         => undef,
+	      'Recording'     => $opt->{Recording}        || 1
 	     };
 
   if (defined($self->{Options})) {
@@ -1602,7 +1726,8 @@ sub new {
   bless $self, ref($type) || $type;
 
   $self->_open_new_window($opt);
-
+  # This weird setup is required to create the object.
+  $self->turn_on_recording() if $self->{Recording};
 
   return $self;
 
@@ -1866,6 +1991,7 @@ sub _advance_panel {
   if ($new_panel > ($self->{NX}*$self->{NY})) {
     # We are at the end of the page..
     $new_panel = 1;
+    $self->clear_state();
     pgpage();
 #    $self->{_env_set}=[];
   }
@@ -1933,6 +2059,62 @@ sub _thread_options {
   return \@hashes;
 }
 
+############################
+# Replay related functions #
+############################
+
+my $DEBUGSTATE = 0;
+sub replay {
+  my $self = shift;
+  my $state = shift || $self->{State};
+
+  if (!defined($state)) {
+    die "A state object must be defined to play back commands!\n";
+  }
+
+  my @list = $state->get();
+  foreach my $arg (@list) {
+    my ($command, $arg, $opt)=@$arg;
+    &$command($self, @$arg, $opt);
+  }
+}
+
+
+sub clear_state {
+  my $self = shift;
+  print "Clearing state!\n" if $DEBUGSTATE;
+  $self->{State}->clear();
+}
+
+sub turn_off_recording {
+  my $self=shift;
+  # Turning off does _NOT_ clear the state at the moment!
+   $self->{Recording} =0;
+  print "Turning off state!\n" if $DEBUGSTATE;
+}
+sub turn_on_recording {
+  my $self=shift;
+  # Previous calls are not recorded of course..
+  print "Turning on state!\n" if $DEBUGSTATE;
+  $self->{Recording} = 1;
+  $self->{State}=PDL::Graphics::State->new() unless defined($self->{State});
+}
+
+sub _add_to_state {
+  my $self=shift;
+  my ($func, $arg, $opt)=@_;
+  # We only add if recording has been turned on.
+  print "Adding to state ! $func, $arg, $opt\n" if $DEBUGSTATE;
+  print "State = ".$self->{State}."\n" if $DEBUGSTATE;
+  $self->{State}->add($func, $arg, $opt) if $self->{Recording};
+}
+
+sub retrieve_state {
+  my $self=shift;
+  my $state_copy = $self->{State}->copy();
+  print "Retriving state!\n" if $DEBUGSTATE;
+  return $state_copy;
+}
 
 #####################################
 # Window related "public" routines. #
@@ -1947,6 +2129,7 @@ sub close {
       pgclos();
   }
   $self->{ID}=undef;
+  $self->clear_state();
 }
 
 =head2 options
@@ -2014,6 +2197,7 @@ sub focus {
 sub hold {
   my $self=shift;
   $self->{Hold}=1;
+  $self->_add_to_state(\&hold);
   return $self->{Hold};
 }
 
@@ -2021,6 +2205,7 @@ sub hold {
 sub release {
   my $self=shift;
   $self->{Hold}=0;
+  $self->_add_to_state(\&release);
   return $self->{Hold};
 }
 
@@ -2124,6 +2309,7 @@ EOD
   # We do not subtract 1 from X because we would need to add it again to
   # have a 1-offset numbering scheme.
   $self->{CurrentPanel} = ($ypos-1)*$self->{NX}+($xpos);
+  $self->_add_to_state(\&panel, $xpos, $ypos);
   pgpanl($xpos, $ypos);
 
 
@@ -2150,7 +2336,9 @@ EOD
     }
 
     $self->focus();
+    # What should I do with the state here????
     pgeras();
+    $self->_add_to_state(\&erase, [], $u_opt);
     # Remove hold.
     $self->{Hold}=0;
   }
@@ -2305,6 +2493,7 @@ sub _store {
 
     # store data
     $self->{_horrible_storage_space}{$name} = $object;
+
 
 } # sub: _store()
 
@@ -2515,7 +2704,9 @@ sub initenv{
   if (defined($o->{Erase}) && $o->{Erase}) {
     if ($self->{NX}*$self->{NY} > 1) {
       pgeras();
+      $self->clear_state(); # Added to deal with new pages.
     } else {
+      $self->clear_state(); # Added to deal with new pages.
       pgpage();
     }
   }
@@ -2594,6 +2785,10 @@ sub redraw_axes {
   }
   pgsci($col);
   pgsch($chsz);
+
+  $self->_add_to_state(\&redraw_axes);
+
+
 }
 
 
@@ -2601,6 +2796,11 @@ sub label_axes {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  # :STATE RELATED:
+  # THIS WILL PROBABLY NOT WORK as label_axes can be called both by
+  # the user directly and by env... Let's see.
+  $self->_add_to_state(\&label_axes, $in, $opt);
+
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
@@ -2620,6 +2820,8 @@ sub label_axes {
   $o->{YTitle}=$ytitle if defined($ytitle);
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
   $self->_restore_status;
+
+
 }
 
 
@@ -2651,6 +2853,7 @@ sub env {
   $self->release() if $self->held();
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&env, $in, $opt);
   $opt = {} if !defined($opt);
   my $o = $self->{PlotOptions}->options($opt);
 
@@ -2685,6 +2888,8 @@ sub env {
   }
   $self->initenv( @args );
   $self->hold();
+
+
   1;
 }
 
@@ -2701,6 +2906,9 @@ sub env {
       $bin_options->add_synonym({Center => 'Centre'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
+
     barf 'Usage: bin ( [$x,] $data, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $data)=@$in;
 
@@ -2909,6 +3117,8 @@ sub env {
     }
 
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&cont, $in, $opt);
+
     barf 'Usage: cont ( $image, %options )' if $#$in<0;
 
     # Parse input
@@ -3069,6 +3279,8 @@ EOD
       $errb_options->add_synonym({Terminator => 'Term'});
     }
     my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&bin, $in, $opt);
+
     $opt = {} if !defined($opt);
     barf <<'EOD' if $#$in<1 || $#$in==4 || $#$in>5;
  Usage: errb ( $y, $yerrors [, $options] )
@@ -3156,6 +3368,7 @@ sub tline {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tline, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tline ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
@@ -3195,6 +3408,7 @@ sub tpoints {
 
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
+  $self->_add_to_state(\&tpoints, $in, $opt);
   $opt={} if !defined($opt);
 
   barf 'Usage tpoints ([$x], $y, [, $options])' if $#$in < 0 || $#$in > 2;
@@ -3279,6 +3493,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       pgline($n, $x->get_dataref, $y->get_dataref);
     }
     $self->_restore_status();
+    $self->_add_to_state(\&line, $in, $opt);
+
     1;
   }
 }
@@ -3307,6 +3523,7 @@ sub arrow {
   $self->_standard_options_parser($u_opt);
   pgarro($x1, $y1, $x2, $y2);
   $self->_restore_status();
+  $self->_add_to_state(\&arrow, $in, $opt);
 
 }
 
@@ -3371,6 +3588,7 @@ sub arrow {
     pgline($n, $x->get_dataref, $y->get_dataref) if $o->{PlotLine}>0;
 
     $self->_restore_status();
+    $self->_add_to_state(\&points, $in, $opt);
     1;
   }
 }
@@ -3462,6 +3680,7 @@ sub arrow {
 
 	# restore character colour & size before returning
 	$self->_restore_status();
+	$self->_add_to_state(\&draw_wedge, $in, $opt);
 
 	1;
     } # sub: draw_wedge()
@@ -3507,6 +3726,7 @@ sub arrow {
     # Note that passing $u_opt is ok here since the two routines accept the
     # same options!
     $self->imag (@$in,$u_opt);
+    # This is not added to the state, because the imag command does that
   }
 
   sub imag {
@@ -3622,8 +3842,10 @@ sub arrow {
 	my $wo = $self->{Options}->options($opt);
 	print "Axis colour set to $$wo{AxisColour}\n";
 	if ($self->{NX}*$self->{NY} > 1) {
+	  $self->clear_state();
 	  pgeras();
 	} else {
+	  $self->clear_state();
 	  pgpage();
 	}
 	pgsci($wo->{AxisColour});
@@ -3679,7 +3901,9 @@ sub arrow {
 	$self->release() unless $hflag;
     }
 
+    $self->_add_to_state(\&imag, $in, $opt);
     1;
+
   } # sub: imag()
 
 }
@@ -3784,6 +4008,8 @@ EOD
 	      brightness => $brightness,
 	      contrast => $contrast
 	    };			# Loaded
+    $self->_add_to_state(\&ctab, $in, $opt);
+
     1;
   }
 
@@ -3847,6 +4073,7 @@ EOD
 	   $bias, 1, $work->get_dataref);
 
     $self->_restore_status();
+    $self->_add_to_state(\&hi2d, $in, $opt);
     1;
   }
 }
@@ -3873,6 +4100,7 @@ sub poly {
   my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
+  $self->_add_to_state(\&poly, $in, $opt);
   1;
 }
 
@@ -3906,6 +4134,7 @@ sub poly {
     $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
+    $self->_add_to_state(\&circle, $in, $opt);
   }
 }
 
@@ -3956,7 +4185,12 @@ sub poly {
     $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+
+    $self->_add_to_state(\&ellipse, $in, $opt);
+    # Now turn off recording so we don't get this one twice..
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 
@@ -4024,7 +4258,11 @@ sub poly {
     my $x = $o->{XCenter}+$xtmp*$costheta-$ytmp*$sintheta;
     my $y = $o->{YCenter}+$xtmp*$sintheta+$ytmp*$costheta;
 
+    $self->_add_to_state(\&rectangle, $in, $opt);
+    # Turn off recording temporarily.
+    $self->turn_off_recording();
     $self->poly($x, $y, $opt);
+    $self->turn_on_recording();
 
   }
 }
@@ -4081,6 +4319,7 @@ sub poly {
     pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
+    $self->_add_to_state(\&vect, $in, $opt);
     1;
   }
 }
@@ -4136,6 +4375,7 @@ sub poly {
 	   $o->{Text});
 #
     $self->_restore_status();
+    $self->_add_to_state(\&text, $in, $opt);
 
     1;
   }
@@ -4326,6 +4566,7 @@ sub poly {
 
 
     $self->_restore_status();
+    $self->_add_to_state(\&legend, $in, $opt);
   }
 
 }
@@ -4373,6 +4614,7 @@ sub poly {
     }
 
     my ($opt)=@_;
+
     $opt = {} unless defined($opt);
     my $place_cursor=1; # Since X&Y might be uninitialised.
     my $o = $cursor_options->options($opt);
@@ -4426,6 +4668,7 @@ sub poly {
     my $istat = pgband($o->{Type}, $place_cursor, $o->{XRef},
 		       $o->{YRef}, $x, $y, $ch);
 
+    $self->_add_to_state(\&cursor, [], $opt);
     return ($x, $y, $ch, $o->{XRef}, $o->{YRef});
 
   }

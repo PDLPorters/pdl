@@ -103,6 +103,7 @@ Basic/SourceFilter/README
 Basic/SourceFilter/README.head
 Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
+Basic/SourceFilter/test.pl
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
@@ -229,6 +230,7 @@ Graphics/Makefile.PL
 Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
 Graphics/PGPLOT/PGPLOTOptions.pm
+Graphics/PGPLOT/State.pm
 Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
