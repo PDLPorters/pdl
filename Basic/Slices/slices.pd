@@ -174,7 +174,8 @@ as collections of 1-D arrays, so that
 
 puts a single column from C<$a> into C<$b>, and puts a single element
 from each column of C<$a> into C<$c>.  If you want to extract multiple
-columns from an array in one operation, see L<dice|/dice> or L<indexND:/indexND>.
+columns from an array in one operation, see L<dice|/dice> or
+L<indexND|/indexND>.
 
 =cut
 EOD
@@ -368,7 +369,7 @@ the location(s) to extract.
 B<INPUTS>
 
 C<$index> and C<$size> can be piddles or array refs such as you would
-feed to L<zeroes|/zeroes> and its ilk.  If C<$index>'s 0th dimension
+feed to L<zeroes|PDL::Core/zeroes> and its ilk.  If C<$index>'s 0th dimension
 has order higher than the number of dimensions in C<$source>, then
 C<$source> is treated as though it had trivial dummy dimensions of
 order 1, up to the required size to be indexed by C<$index> -- so if
@@ -1516,10 +1517,10 @@ pp_def(
 Extract a rectangular slice of a piddle, from a string specifier.
 
 C<slice> was the original Swiss-army-knife PDL indexing routine, but is
-largely superseded by the L<NiceSlice|/PDL::NiceSlice> source prefilter
-and its associated L<nslice|/nslice> method.  It is still used as the
-basic underlying slicing engine for L<nslice|/nslice>, and is especially
-useful in particular niche applications.
+largely superseded by the L<NiceSlice|PDL::NiceSlice> source prefilter
+and its associated L<nslice|PDL::Core/nslice> method.  It is still used as the
+basic underlying slicing engine for L<nslice|PDL::Core/nslice>,
+and is especially useful in particular niche applications.
 
 =for example
 
@@ -1582,14 +1583,14 @@ Trivial out-of-bounds slicing is allowed: if you slice a source
 dimension that doesn't exist, but only index the 0th element, then
 C<slice> treats the source as if there were a dummy dimension there.
 The following are all equivalent:
-	
+
 	xvals(5)->dummy(1,1)->slice('(2),0')  # Add dummy dim, then slice
 	xvals(5)->slice('(2),0')              # Out-of-bounds slice adds dim.
 	xvals(5)->slice((2),0)                # NiceSlice syntax
 	xvals(5)->((2))->dummy(0,1) 	      # NiceSlice syntax
 
 This is an error:
-	
+
 	xvals(5)->slice('(2),1')	# nontrivial out-of-bounds slice dies
 
 Because slicing doesn't directly manipulate the source and destination 
@@ -2079,7 +2080,7 @@ pp_def(
 	Doc => <<'EOD',
 =for ref
 
-Splits a dimension in the parent piddle (opposite of L<clump|/clump>)
+Splits a dimension in the parent piddle (opposite of L<clump|PDL::Core/clump>)
 
 After
 
