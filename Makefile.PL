@@ -352,7 +352,7 @@ WriteMakefile(
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
-	      'EXE_FILES' => ['perldl', 'pdldoc'],
+	      'EXE_FILES' => ['pdl', 'perldl', 'pdldoc'],
 	      'PM' => { @podpms }, # so that the script docs are picked up
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
@@ -360,7 +360,7 @@ WriteMakefile(
                                                # in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
 	      'clean' => {
-		  'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
+		  'FILES' => 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
                       '_Inline/'

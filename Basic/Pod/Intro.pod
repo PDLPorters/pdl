@@ -24,7 +24,8 @@ specialized interactive shell (L<perldl(1)|perldl>) that allows you to
 issue PDL commands interactively and that includes a path-based
 subroutine autoloader similar to those found in MatLab and IDL (which
 are trademarks of MathWorks and Kodak, respectively).  The perldl
-shell allows you to quickly manipulate and "play with" your data.
+shell allows you to quickly manipulate and "play with" your data.  (You
+can also invoke it with the shorter command "pdl").
 
 The C<PDL> module is a complete Object-Oriented extension to Perl
 (although you don't have to know what an object is to use it) which
@@ -49,7 +50,7 @@ run at native compiled-language speed, while you work in the higher
 level perl language (which itself runs faster than many other
 JIT-compiled or interpreted languages).
 
-External modules that have been incorporated into PDL include 
+External modules that have been incorporated into PDL include the
 complete Gnu Scientific Library; CFITSIO for FITS file handling; FFTW;
 the Slatec matrix-handling package; and the PGPLOT, PLPLOT, Karma, and
 OpenGL graphics libraries.  Ancillary packages written in PDL itself

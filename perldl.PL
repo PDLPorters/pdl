@@ -117,6 +117,7 @@ sub preproc_del ($) {
 }
 
 # Parse ARGV
+my $read_from_file;
 
 while(defined($_ = shift @ARGV)) {
 	if($_ eq "-tk") {
@@ -167,6 +168,11 @@ while(defined($_ = shift @ARGV)) {
       } elsif (/^-V\s*$/) {
          print mypdlconfig();
          exit 0;
+       } elsif( /^-\s*$/) {
+
+	 $read_from_file = 1;
+	 last;
+
       } else {
             print << 'EOP';
 Usage: perldl [options]
@@ -178,15 +184,21 @@ Usage: perldl [options]
   -M <module> load module <module>
   -I <dir>    Add <dir> to include path.
   -V          print PDL version info (e.g. for a bug report)
+  -           Following arguments are files for input.
 
 EOP
           die("Unknown argument $_");
-      }
+	  }
 
 }
 
-eval "use Term::ReadLine";
-my $readlines = ($@ eq "");
+my $readlines;
+if(!$read_from_file  and  -t STDIN) {
+  eval "use Term::ReadLine";
+  $readlines = ($@ eq "");
+} else {
+  $readlines=0;
+}
 
 my @enabled = ();
 push @enabled, "ReadLines" if $readlines;
@@ -527,7 +539,7 @@ sub process_input {
 	 if ($readlines) {
 	     $_ = $term->readline($prompt);
 	 }else{
-	     print $prompt;
+	     print $prompt if(-t ARGV);  # Don't print prompt in pipes
 	     $_ = <>;
 	 }
 	 
@@ -576,7 +588,8 @@ sub process_input {
       $_ = join(' ',@t);
   }
   
-  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
+  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1) and
+      substr($_,0,2) ne '#!') {  # Allow escapes, avoid shebang
       my @lines = split /\n/;
       system(substr(shift @lines,1)); # Shell escape
       $_ = join("\n",@lines);
@@ -685,6 +698,10 @@ perldl - Simple shell for PDL
 
 	%> perldl
 	perldl> $a=sequence(10) # or any other PDL command
+
+        %> perldl - pdlscript
+
+        #!/usr/bin/pdl
 
 =head1 DESCRIPTION
 
@@ -981,6 +998,21 @@ PDL scripts.
 
 Finally note this is a very powerful facility - which means
 it should be used with caution!
+
+=head2 Executing perldl scripts from the command line
+
+PDL scripts are just perl scripts that happen to use PDL (and
+possibly PDL::NiceSlice).  But for the truly lazy, perldl can be
+invokes as a script interpreter.  Because perldl is itself an interpreted
+perl script, most unices won't allow you to say "#!/usr/bin/perldl" 
+at the top of your script.
+
+Instead, say "#!/usr/bin/pdl" and your script will be executed exactly
+as if you typed it, line-by-line, into the perldl shell.
+
+WARNING: perldl executes scripts slightly differently than perl would,
+and its behavior is dependent on your own quirky configuration.  Use with
+caution.
 
 =head2 Command preprocessing
 

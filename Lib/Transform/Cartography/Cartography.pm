@@ -429,12 +429,19 @@ sub earth_image {
   
   local $_;
   my $im;
+  my $found = 0;
   foreach(@INC) {
     my $file = "$_/$f";
-    $im = rpic($file)->mv(0,-1) if(-e $file);
+    if(-e $file) {
+      $found = 1;
+      $im = rpic($file)->mv(0,-1);
+    }
+    last if defined($im);
   }
 
-  barf("earth_image: $f not found in \@INC.\n")
+  barf("earth_image: $f not found in \@INC\n")
+    unless defined($found);
+  barf("earth_image: couldn't load $f; you may need to install netpbm.\n")
     unless defined($im);
 
   my $h = $im->fhdr;
