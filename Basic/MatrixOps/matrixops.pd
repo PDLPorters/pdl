@@ -132,9 +132,9 @@ EOD
 
 ######################################################################
 
-pp_add_exported('','m_identity');
+pp_add_exported('','identity');
 pp_addpm(<<'EOD');
-=head2 m_identity
+=head2 identity
 
 =for sig
 
@@ -148,7 +148,7 @@ dimensioned PDL, the 0th dimension is the size of the matrix.
 
 =cut
 
-sub m_identity {
+sub identity {
   my $n = shift;
   my $out = ((UNIVERSAL::isa($n,'PDL')) ? 
 	  (  ($n->getndims > 0) ? 
@@ -281,7 +281,7 @@ sub inv {
     barf("inverse: got a singular matrix or LU decomposition\n");
   }
 
-  my $out = lu_backsub($lu,$perm,$par,m_identity($a))->xchg(0,1)->sever;
+  my $out = lu_backsub($lu,$perm,$par,identity($a))->xchg(0,1)->sever;
 
   return $out
     unless($a->is_inplace);

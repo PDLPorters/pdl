@@ -125,7 +125,7 @@ pp_def(
 );
 
 pp_def(
-	'identity',
+	's_identity',
         HandleBad => 1,
 	P2Child => 1,
 	DefaultFlow => 1,
@@ -137,9 +137,7 @@ pp_def(
 	Doc => 
 '=for ref
 
-This is an internal slicing routine.
-
-If you want an identity matrix, see L<PDL::MatrixOps::m_identity>.
+Internal vaffine identity function.
 
 =cut
 ',

@@ -68,7 +68,7 @@ $det = $e->determinant;
 ok(13,all($det == pdl([48,1],[-1,-216])));
 
 ### Check identity and stretcher matrices...
-ok(14, (m_identity(2)->flat == pdl(1,0,0,1))->all);
+ok(14, (identity(2)->flat == pdl(1,0,0,1))->all);
 
 ok(15, (stretcher(pdl(2,3))->flat == pdl(2,0,0,3))->all);
 
