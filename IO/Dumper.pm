@@ -6,7 +6,8 @@ PDL::IO::Dumper -- data dumping for structs with PDLs
 
 This package allows you cleanly to save and restore complex data structures
 which include PDLs, as ASCII strings and/or transportable ASCII files.  It
-exports three functions into your namespace: sdump, fdump, and frestore.
+exports four functions into your namespace: sdump, fdump, frestore, and
+deep_copy.
 
 PDL::IO::Dumper traverses the same types of structure that Data::Dumper
 knows about, because it uses a call to Data::Dumper.  Unlike Data::Dumper
@@ -22,8 +23,8 @@ output is for non-PDL expressions. To that end, small PDLs (up to 8
 elements) are stored as inline perl expressions, midsized PDLs (up to
 200 elements) are stored as perl expressions above the main data
 structure, and large PDLs are stored as FITS files that are uuencoded
-and included in the dump string.  (You have to have the FITSIO module
-and uuencode(1) to make this work).
+and included in the dump string. (You have to have access to uuencode(1)
+for this to work).
 
 No attempt is made to shrink the output string -- for example, inlined
 PDL expressions all include explicit reshape() and typecast commands,
@@ -49,7 +50,7 @@ are actually external, and (B) most everyday objects are quite safe.
 
 There's currently no reference recursion detection, so a non-treelike
 reference topology will cause Dumper to buzz forever.  That will
-be fixed in a future version.
+likely be fixed in a future version.
 
 =head1 Author, copyright, no warranty
 
@@ -87,7 +88,7 @@ package PDL::IO::Dumper;
 BEGIN{
   use Exporter ();
 
-  our $VERSION = 1.2;
+  our $VERSION = 1.2.1;
   
   our @ISA = ( Exporter ) ;
   our @EXPORT_OK = qw( fdump sdump frestore deep_copy);
