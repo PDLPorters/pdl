@@ -1619,7 +1619,7 @@ pp_addpm(<<'EOD');
 
 =for ref 
 
-Interpolate values from an N-D piddle
+Interpolate values from an N-D piddle, with switchable method
 
 =for example
 
@@ -1628,19 +1628,21 @@ Interpolate values from an N-D piddle
   print $source->interpND( $index );
 
 InterpND acts like L<indexND|indexND>, collapsing C<$index> by lookup
-into C<$source>; but it does interpolation, rather than straight
-lookup, into C<$source>.  Several options may be passed in via an
-options hash. By default, linear or sample interpolation is used, with
-constant value outside the boundaries of the source pdl.  No flowback
-occurs, because the output is interpolated rather than indexed.
+into C<$source>; but it does interpolation rather than direct sampling.  
+The interpolation method and boundary condition are switchable via 
+an options hash. 
+
+By default, linear or sample interpolation is used, with constant
+value outside the boundaries of the source pdl.  No dataflow occurs,
+because in general the output is computed rather than indexed.
 
 All the interpolation methods treat the pixels as value-centered, so
 the C<sample> method will return $a->(0) for coordinate values on 
-the set [-0.5,0.5), and the C<linear> method will return $a->(1) for 
+the set [-0.5,0.5), and all methods will return $a->(1) for 
 a coordinate value of exactly 1.
 
 
-Allowable options:
+Recognized options:
    
 =over 3
 
@@ -1650,18 +1652,33 @@ Values can be:
 
 =over 3 
 
-=item * l, linear, Linear (default for floating point source types)
-
-The values are N-linearly interpolated.
-
 =item * s, sample, Sample (default for integer source types)
 
 The nearest value is taken. Pixels are regarded as centered on their
 respective integer coordinates (no offset from the linear case).
 
+=item * l, linear, Linear (default for floating point source types)
+
+The values are N-linearly interpolated from an N-dimensional cube of size 2.
+
+=item * c, cube, cubic, Cubic
+
+The values are N-cubic interpolated, using an N-dimensional cube of size 4.
+
+=item * f, fft, fourier, Fourier
+
+The source is Fourier transformed, and the interpolated values are
+explicitly calculated from the coefficients.  The boundary condition
+option is ignored -- periodic boundaries are imposed.
+
+If you pass in the option "fft", and it is a list (ARRAY) ref, then it
+is a stash for the magnitude and phase of the source FFT.  If the list
+has two elements then they are taken as already computed; otherwise
+they are calculated and put in the stash.
+
 =back
 
-=item bound  
+=item b, bound, boundary, Boundary
 
 This option is passed unmodified into L<indexNDb|indexNDb> as its 
 boundary-handling method.  Current allowed values are 'extend', 'periodic', 
@@ -1670,6 +1687,11 @@ and 'truncate'. (default is 'truncate')
 =item bad
 
 contains the fill value used for 'truncate' boundary.  (default 0)
+
+=item fft
+
+An array ref whose associated list is used to stash the FFT of the source
+data, for the FFT method.
 
 =back
 
@@ -1736,9 +1758,89 @@ sub PDL::interpND {
     $out = ($out * $samp)->sumover; # ith, sth
 
     return $out;
-  }  else {
-    barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
-  }
+
+  } elsif($method =~ m/^c(u(b(e|ic)?)?)?/i) {
+
+      my ($d,@di) = $index->dims;
+      my $di = $index->ndims - 1;
+      
+      # Grab a 4-on-a-side n-cube around each desired pixel
+      my $samp = $source->range($index->floor - 1,4,$boundary) #ith, cth, sth
+	  ->reorder( $di .. $di+$d-1, 0..$di-1, $di+d .. $source->ndims-1 );
+	                   # (cth, ith, sth)
+      
+      # Make a cube of the subpixel offsets, and expand its dims to 
+      # a 4-on-a-side N-1 cube, to match the slices of $samp (used below).
+      my $b = $index - $index->floor;
+      for my $i(1..$d-1) {
+	  $b = $b->dummy($i,4);
+      }
+
+      # Collapse by splining, one dimension at a time...
+      for my $i(0..$d-1) {
+	  my $a0 = $samp->slice("(1)");    # Just-under-sample
+	  my $a1 = $samp->slice("(2)");    # Just-over-sample
+	  my $a1a0 = $a1 - $a0;
+
+	  my $gradient = 0.5 * ($samp->slice("2:3")-$samp->slice("0:1"));
+	  my $s0 = $gradient->slice("(0)");   # Just-under-gradient
+	  my $s1 = $gradient->slice("(1)");   # Just-over-gradient
+
+	  $bb = $b->slice("($i)");
+
+	  # Collapse the sample...
+	  $samp = ( $a0 + 
+		    $bb * (
+			   $s0  +  
+			   $bb * ( (3 * $a1a0 - 2*$s0 - $s1) +  
+				   $bb * ( $s1 + $s0 - 2*$a1a0 ) 
+				   )
+			   )
+		    );
+	  
+	  # "Collapse" the subpixel offset...
+	  $b = $b->slice(":,($i)");
+      }
+      
+      return $samp;
+
+  } elsif($method =~ m/^f(ft|ourier)?/i) {
+
+     eval "use PDL::FFT;";
+     my $fftref = $opt->{fft};
+     $fftref = [] unless(ref $fftref eq 'ARRAY');
+     if(@$fftref != 2) {
+	 my $a = $source->copy;
+	 my $b = zeroes($source);
+	 fftnd($a,$b);
+	 $fftref->[0] = sqrt($a*$a+$b*$b) / $a->nelem;
+	 $fftref->[1] = - atan2($b,$a);
+     }
+
+     my $i;
+     my $c = PDL::Basic::ndcoords($source);               # (dim, source-dims)
+     for $i(1..$index->ndims-1) {
+	 $c = $c->dummy($i,$index->dim($i)) 
+     }
+     my $id = $index->ndims-1;
+     my $phase = (($c * $index * 3.14159 * 2 / pdl($source->dims))
+		  ->sumover) # (index-dims, source-dims)
+ 	          ->reorder($id..$id+$source->ndims-1,0..$id-1); # (src, index)
+
+     my $phref = $fftref->[1]->copy;        # (source-dims)
+     my $mag = $fftref->[0]->copy;          # (source-dims)
+
+     for $i(1..$index->ndims-1) {
+	 $phref = $phref->dummy(-1,$index->dim($i));
+	 $mag = $mag->dummy(-1,$index->dim($i));
+     }
+     my $out = cos($phase + $phref ) * $mag;
+     $out = $out->clump($source->ndims)->sumover;
+     
+     return $out;		
+ }  else {
+     barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
+ }
 }
 
 EOD
