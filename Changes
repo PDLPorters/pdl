@@ -1,3 +1,6 @@
+CED (16 May 02)
+    - Several minor changes to Dumper and RandVar for compatibility with
+	BSD and perl 5.005
 CS  - Makefile.PL: warning if mods for NiceSlice missing
     - IO/Misc: print warning at the end of the make output
     - Graphics/PGPLOT: small change to the (still undocumented) autolog func

@@ -250,14 +250,18 @@ sub PDL::RandVar::sample {
     my($j);
     for $i(0..$n-1) {
       for $j(0..$me->{size}-1) {
-	$out->slice("($i),($j)") .= rand;
+	  my($fmh) = $out->slice("($i),($j)");
+	  $fmh .= rand;
       }
       
-      ($out->("($i),:") *= $me->{scale}) += $me->{start};
+      my($fmh) = ($out->slice("($i),:"));
+      $fmh *= $me->{scale};
+      $fmh += $me->{start};
     }
   } else {
     for $i(0..$n-1) {
-      $out->slice("$i") .= rand;
+      my($fmh) = $out->slice("$i");
+      $fmh .= rand;
     }
     ($out *= $me->{scale}) += $me->{start};
   }
