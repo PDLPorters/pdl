@@ -242,6 +242,7 @@ Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/Window/Makefile.PL
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
+Graphics/PGPLOT/Window/ppport.h
 Graphics/PGPLOT/Window/typemap
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
