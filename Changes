@@ -1,4 +1,6 @@
-CED (17-Jun-02)
+CED (26-Jun-02)
+	PDL::Graphics::PGPLOT::Window::line() autoranging avoids infinity
+CED (25-Jun-02)
     Changes to PDL::Graphics::PGPLOT::Window:
 	- Added pgwin() -- exported constructor (less typing)
 	- Added =>Size option to constructor    (less typing)
