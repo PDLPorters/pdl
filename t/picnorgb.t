@@ -7,7 +7,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$mdiff) = @_;
 	$mdiff = 0.01 unless defined($mdiff);
 	$c = abs($a-$b);
@@ -49,9 +49,8 @@ $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
 %formats = ('PNM'  => ['pnm',1,0,0.01],
 	    'GIF'  => ['gif',256,0,1.01],
 	    'TIFF' => ['tif',1,0,0.01],
-	    'RAST' => ['rast',256,0,1.01],
-	    'IFF'  => ['iff',256,1,0.01],
-	    'SGI'  => ['rgb',1,0,0.01],
+#	    'RAST' => ['rast',256,0,1.01],
+#	    'SGI'  => ['rgb',1,0,0.01],
            );
 
 @allowed = ();
@@ -107,13 +106,13 @@ foreach $format (sort @allowed) {
     if ($format ne 'TIFF') {
       $scale = ($form->[2] || rgb($in1) ? $im1->dummy(0,3) : $im1);
       $comp = $scale / PDL::ushort($form->[1]);
-      ok($n++,$usherr || approx($comp,$in1,$form->[3]));
+      ok($n++,$usherr || tapprox($comp,$in1,$form->[3]));
     }
     $comp = ($form->[2] || rgb($in2) ? $im2->dummy(0,3) : $im2);
-    ok($n++,approx($comp,$in2));
+    ok($n++,tapprox($comp,$in2));
     $comp = ($form->[2] || rgb($in3) ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
     $comp = $comp->ushort*$in3->max if $format eq 'SGI' && $in3->max > 0;
-    ok($n++,approx($comp,$in3));
+    ok($n++,tapprox($comp,$in3));
 
     if ($PDL::debug) {
       print $in1->px unless $format eq 'TIFF';

@@ -7,7 +7,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
@@ -34,8 +34,8 @@ $res = $a x $b;
 print $c;
 print $res;
 
-ok(1,approx($c,$res));
+ok(1,tapprox($c,$res));
 
 $equiv = float [[1,1,1,1]];  # a 4,1-matrix ( 1 1 1 1 )
 print $equiv;
-ok(2,approx($equiv x $b,float(1) x $b)); # check promotion
+ok(2,tapprox($equiv x $b,float(1) x $b)); # check promotion

@@ -82,6 +82,9 @@ sub guessogllibs{
 	 $libs = '-lMesaGLU -lMesaGL -lpthread';
   }
 
+  # Add -lm to libs (Seems to be needed on Linux and Solaris, and shouldn't hurt for others)
+  # [only do if we've actually found anything]
+  $libs .= ' -lm' if defined $libs and $libs !~ /\-lm\b/;
   return $libs;
 }
 

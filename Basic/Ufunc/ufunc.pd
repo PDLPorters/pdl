@@ -1014,16 +1014,17 @@ otherwise the bad flag is cleared for the output piddle.',
 	    HandleBad => 0,   # just a marker 
 	    Pars => 'a(n); int[o]c(m);',
 	    Code =>
-	    '$GENERIC() cur; int curind;
+	    '$GENERIC() cur; int curind; register int ns = $SIZE(n);
 	     if($SIZE(m) > $SIZE(n)) $CROAK("n_ind: m_size > n_size");
 	     loop(m) %{
+		 curind = ns;
 		 loop(n) %{
 		 	int nm; int flag=0;
 		 	for(nm=0; nm<m; nm++) {
 				if($c(m=>nm) == n) {flag=1; break;}
 			}
 			if(!flag &&
-			   (n<=m || $a() '.$op.' cur || IsNaN(cur)))
+			   ((curind == ns) || $a() '.$op.' cur || IsNaN(cur)))
 				{cur = $a(); curind = n;}
 		 %}
 		 $c() = curind;

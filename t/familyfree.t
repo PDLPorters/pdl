@@ -8,7 +8,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$c,$d) = @_;
 	$c = abs($a-$b);
 	$d = max($c);

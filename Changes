@@ -1,3 +1,78 @@
+2.2.1
+John Cerney (4/25/01)
+    - Changes to Release_Notes, PDL.pm, TODO associated
+      with making release 2.2.1
+CS  - PDL::Lvalue -- PDL lvalue subs (added to loaders)
+    - PDL::Matrix -- added docs
+    - doc tidbits
+    - don't test raster and SGI formats any more (pic(no)*rgb.t)
+John Cerney (4/11/01)
+    - Modified t/opengl.t to turn-off the PERL_DL_NONLAZY env variable
+      when running this test. Due to some inconsistencies in the opengl
+      headers (gl.h, glu.h) and what functions are actually in the opengl
+      libs, PDL's OpenGL.so sometimes (When using Mesa 3.3 for instance)
+      gets built with interfaces to functions that aren't there. Setting
+      PDL_DL_NONLAZY=0 prevents the test case from failing in these
+      cases.
+ DJB (10/Apr/01)
+    - hacked Core/Dev.pm to work with perl 5.6.1 (ExtUtils::Liblist has
+      changed although its documentation has not)
+CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test
+CS  - fix mem leak patch so that core struct version croaking works
+    * NOTE: recent patches will require recompilation of any external
+    *       modules that use PDL::PP; PDL will tell you when using such
+    *       modules *
+    - barf is now really only an alias for croak; this is a test if we
+      can live with the original croak; we should be able to!
+    - update COPYING for the 21st century ;)
+John Cerney (4/3/01)
+    - Modified Makefile.PL in Graphics to add '-lm' to the libs.
+      This fixes a 'Can't locate auto/PDL/Graphics/OpenGL/glpcOpenWin.al'
+      error in make test during opengl.t for some platforms.
+      Shouldn't hurt otherwise.
+CS
+    - make_physvaffine is now a member of the core struct
+    - pdl_get is now vaffine aware (must be preceded by call to make_physvaffine)
+    - worke around bug in the core logic (pdl_make_physical et al.) that
+      cause index and others to leak memory; not the perfect solution yet
+      but core logic is just way too confusing to make sense of it!!!!!!
+      for details see comments in pdl_make_physical (pdlapi.c.PL) and
+      pdl_initthreadstruct (pdlthread.c)
+    - slatec: document the 'det' function
+DJB (26/Mar/01)
+    - PDL::Func now sets bc => 'simple' as the default for Hermite
+      interpolation.
+DJB (14/Mar/01)
+    - PGPLOT::Window changes: addressed "undefined window size" part
+      of bug #406858; added PosReference option + minor bug fix
+      to transform()
+    - renamed PosReference to RefPos. close() will print a message if
+      a hardcopy device and $PDL::verbose is set, hack to fix bug 
+      #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
+DJB (27/Feb/01)
+    - addressed PDL::Func bugs/doc issues as reported by 
+      Halldór Olafsson and Vince McIntyre (bug #233484)
+CS  - fix bug in pow in math.pd (reported on perldl mailing list)
+CS  - fixed bug in writing pnms (bug #127696)
+    - Core.pm: temporary fix to work around core bug (see comments
+      in pdl_make_physical in pdlapi.c) that made convert
+      leak memory (related to bug #116501)
+CS  - fixed diagonal bug that caused apparently random errors
+      (bug #116502)
+CS
+    - changes for win32 compatibility:
+        pdlcore.c: avoid die_where & co, use Perl_croak instead
+        Math/cpoly.c: win32 doesn't know about values.h
+        Lib/Image2D/resample.h: win32 doesn't know about M_PI
+        t/fastraw.t: skip mmap tests on win32
+    - slices.pd: possible rotate segfault fixed
+    - fix slight mslice problem (didn't make sure its inputs were
+      converted to int)
+    - new functions 'in' and 'uniq' in primitive.pd -> need tests
+    - image2d: a slightly faster median: med2df
+    - new function approx in Core.pm
+        **** attention: possible name clash; test scripts should *****
+        **** use tapprox from now on                             *****
 2.2
 John Cerney (20/12/00)
     - Minor changes to Makefile.PL and Reduce.pm for compatibility with

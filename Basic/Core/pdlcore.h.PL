@@ -6,7 +6,7 @@ use File::Basename qw(&basename &dirname);
 
 # version 2 is for versions after PDL 2.1.1
 use vars qw( $pdl_core_version );
-$pdl_core_version = 2;  
+$pdl_core_version = 3;  
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -61,13 +61,21 @@ print OUT <<'!NO!SUBS!';
 
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
 
-/* our croak replacement */
+/* for the moment we go back to the original croak
+ * since there seem to be quite a few problems with maintaining
+ * our own barf version
+ */
 
+#define barf croak
+
+/* our croak replacement */
+/* 
 #ifdef PDL_CORE
 #define barf pdl_barf
 #else
 #define barf PDL->pdl_barf
 #endif
+ */
 
 typedef int Logical;
 
@@ -266,6 +274,7 @@ void (*make_physical)(pdl *it);
 void (*make_physdims)(pdl *it);
 void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
+void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
   PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 

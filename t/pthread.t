@@ -19,7 +19,7 @@ sub ok {
 	}
 }
 
-sub approx {
+sub tapprox {
        my($a,$b,$mdiff) = @_;
        $mdiff = 0.01 unless defined($mdiff);
        my $c = abs($a-$b);
@@ -36,7 +36,7 @@ if (PDL::Core::pthreads_enabled) {
   
   timethese(50,{threaded => '$a += 1', unthreaded => '$b+= 1'});
   print $a->slice('0:20'),"\n";
-  ok(1,approx($a,$b));
+  ok(1,tapprox($a,$b));
 
   $a = sequence(3,10);
   $b = ones(3);
@@ -46,7 +46,7 @@ if (PDL::Core::pthreads_enabled) {
   $a->remove_threading_magic;
   $cc = $a->sumover;
   print $cc,"\n";
-  ok(2,approx($c,$cc));
+  ok(2,tapprox($c,$cc));
 } else {
   print "1..1\n";
   print "ok 1\n";

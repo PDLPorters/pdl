@@ -562,12 +562,16 @@ pdl_barf(pat, va_alist)
 	}
     }
     if (PL_in_eval) {
+#ifndef WIN32
 #if (PERL_VERSION > 5) || ((PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57))
        PL_restartop = die_where(message,strlen(message));
 #else
         PL_restartop = die_where(message);
 #endif
 	JMPENV_JUMP(3);
+#else
+	Perl_croak(aTHX_ message);  /* a quick win32 fix */
+#endif
     }
     PerlIO_puts(PerlIO_stderr(),message);
     (void)PerlIO_flush(PerlIO_stderr());

@@ -15,7 +15,7 @@ use File::Spec;
 
 kill 'INT',$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = max($c);
@@ -39,7 +39,7 @@ my $correct = log(float($x))/log(float($y));
 
 print "Try = $try\n";
 print "Correct = $correct\n";
-ok( approx($try, $correct) );
+ok( tapprox($try, $correct) );
 
 # Return log $x to base $y using callext() routine -
 # perl wrapper makes this nice and easy to use.

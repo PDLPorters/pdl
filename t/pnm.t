@@ -7,7 +7,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$mdiff) = @_;
 	$mdiff = 0.01 unless defined($mdiff);
 	$c = abs($a-$b);
@@ -75,13 +75,13 @@ for $raw (0,1) {
     if ($form->[0] ne 'TIFF') {
       $scale = ($form->[3] ? $im1->dummy(0,3) : $im1);
       $comp = $scale / $form->[2];
-      ok($n++,approx($comp,$in1,$form->[4]));
+      ok($n++,tapprox($comp,$in1,$form->[4]));
     }
     $comp = ($form->[3] ? $im2->dummy(0,3) : $im2);
-    ok($n++,approx($comp,$in2));
+    ok($n++,tapprox($comp,$in2));
     $comp = ($form->[3] ? ($im3->dummy(0,3)>0)*255 : ($im3 > 0));
     $comp = $comp->ushort*65535 if $form->[0] eq 'SGI'; # yet another format quirk
-    ok($n++,approx($comp,$in3));
+    ok($n++,tapprox($comp,$in3));
 
     if ($PDL::debug) {
       print $in1->px unless $form->[0] eq 'TIFF';

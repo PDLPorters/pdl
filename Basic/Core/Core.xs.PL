@@ -817,6 +817,7 @@ BOOT:
    PDL.trans_mallocfreeproc = pdl_trans_mallocfreeproc;
    PDL.make_physical = pdl_make_physical;
    PDL.make_physdims = pdl_make_physdims;
+   PDL.make_physvaffine = pdl_make_physvaffine;
    PDL.pdl_barf      = pdl_barf;
    PDL.allocdata     = pdl_allocdata;
    PDL.safe_indterm  = pdl_safe_indterm;
@@ -901,19 +902,33 @@ isnull(self)
 	OUTPUT:
 		RETVAL
 
-
-void
-pdl_make_physical(self)
+pdl *
+make_physical(self)
 	pdl *self;
+	CODE:
+		pdl_make_physical(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
-void
-pdl_make_physvaffine(self)
+pdl *
+make_physvaffine(self)
 	pdl *self;
+	CODE:
+		pdl_make_physvaffine(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
 
-void
-pdl_make_physdims(self)
+pdl *
+make_physdims(self)
 	pdl *self;
+	CODE:
+		pdl_make_physdims(self);
+		RETVAL = self;
+	OUTPUT:
+		RETVAL
 
 void
 pdl_dump(x)

@@ -9,7 +9,7 @@ sub ok {
         print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my ($c) = abs($a-$b);
         $d = max($c);
@@ -23,7 +23,7 @@ $a = rfits("m51.fits");
 
 $b = $a->copy;
 $c = $b->zeroes; fft($b,$c); ifft($b,$c);
-ok (1,approx($c,0));
+ok (1,tapprox($c,0));
 
 print "\n",$c->info("Type: %T Dim: %-15D State: %S"),"\n";
 print "Max: ",$c->max,"\n";
@@ -33,22 +33,22 @@ print "Min: ",$c->min,"\n";
 # oddity with PP's promotion of byte data for GenericTypes => [F,D]
 # routines
 #  Commented-out for now.
-#   ok (2,approx($a,$b));
+#   ok (2,tapprox($a,$b));
 
 $b = $a->copy;
 $c = $b->zeroes; fftnd($b,$c); ifftnd($b,$c);
-ok (2,approx($c,0));   ok (3,approx($a,$b));
+ok (2,tapprox($c,0));   ok (3,tapprox($a,$b));
 
 $b = $a->slice("1:35,1:69");
 $c = $b->copy; fftnd($b,$c); ifftnd($b,$c);
-ok (4,approx($c,$b));   ok (5,approx($a->slice("1:35,1:69"),$b));
+ok (4,tapprox($c,$b));   ok (5,tapprox($a->slice("1:35,1:69"),$b));
 
 # Now compare fft convolutions with direct method
 
 $b = conv2d($a,$k);
 $kk = kernctr($a,$k);   fftconvolve($i=$a->copy,$kk);
 
-ok (6,approx($kk,0));   ok (7,approx($i,$b));
+ok (6,tapprox($kk,0));   ok (7,tapprox($i,$b));
 
 $k = pdl[
  [ 0.51385498,  0.17572021,  0.30862427],
@@ -63,9 +63,9 @@ $b = conv2d($a,$k);
 
 $kk = kernctr($a,$k);  fftconvolve($i=$a->copy,$kk);
 
-ok (8,approx($kk,0));  ok (9,approx($i,$b));
+ok (8,tapprox($kk,0));  ok (9,tapprox($i,$b));
 
 $b = $a->copy;
 
 # Test real ffts
-realfft($b); realifft($b); ok(10,approx($a,$b));
+realfft($b); realifft($b); ok(10,tapprox($a,$b));

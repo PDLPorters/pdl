@@ -593,6 +593,7 @@ sub release { return if !defined($CW); $CW->release(); print "Graphics RELEASED\
 #sub held { return 0 if !defined($CW); return $CW->held()};
 #sub current_device { return $CW->device(); };
 
+sub get_current_window { return $CW; }  # return current window or undef if none exists
 
 1;				# Exit with OK status
 

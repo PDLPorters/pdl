@@ -23,12 +23,13 @@ if start-up time becomes an issue.
    use PDL::Bad;
    use PDL::Version;
    use PDL::IO::Misc;
+   use PDL::Lvalue;
 
 =cut
 
 
 # set the version: 
-$PDL::VERSION = '2.2'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.2.1'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
@@ -48,6 +49,7 @@ use PDL::Ufunc;
 use PDL::Basic;
 use PDL::Slices;
 use PDL::Bad;
+use PDL::Lvalue;
 
 # Load these for TPJ compatibility
 

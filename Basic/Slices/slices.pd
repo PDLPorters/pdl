@@ -1066,7 +1066,7 @@ pp_def(
 		for(nthp=0; nthp<$PARENT(ndims); nthp++)
 			if (nthd < $COMP(nwhichdims) &&
 			    nthp == $COMP(whichdims)[nthd]) {
-				if (!nthd++) {
+				if (!nthd) {
 					$CHILD(dims)[cd] = $PARENT(dims)[cd];
 					nthc++;
 					$PRIV(incs)[cd] = 0;
@@ -1074,6 +1074,7 @@ pp_def(
 				if (nthd && $COMP(whichdims)[nthd] ==
 				    $COMP(whichdims)[nthd-1])
 				       $CROAK("Diagonal: dims must be unique");
+				nthd++; /* advance pointer into whichdims */
 				if($CHILD(dims)[cd] !=
 				    $PARENT(dims)[nthp]) {
 					$CROAK("Different dims %d and %d",
@@ -1235,6 +1236,8 @@ EOD
         Code=>'
         int i,j;
         int n_size = $SIZE(n);
+	if (n_size == 0)
+          barf("can not shift zero size piddle (n_size is zero)");
         j = ($shift()) % n_size;
         if (j < 0)
                 j += n_size;

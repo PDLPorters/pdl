@@ -32,12 +32,14 @@ environment variable if set, otherwise to '?'.
 
 =item AxisColour
 
-The colour with which to draw axes
+The colour with which to draw axes. Default value=3 (Green)
 
-=item HardLW, HardCH, HardFont, HardAxisColour
+=item HardLW, HardCH, HardFont, HardAxisColour, HardColour
 
 The linewidth, character height, font and axis colour to use on hardcopy
-devices.
+devices. The default values are HardLW=4, HardCH=1.4, HardFont=2 (Roman),
+HardAxisColour=1 (Black) and HardColour=1 as well. The latter is the default
+plot colour to use on hardcopy devices.
 
 =item Axis
 
@@ -47,7 +49,7 @@ are 'Empty', 'Box', 'Normal', 'Axes', 'Grid', 'LogX', 'LogY', 'LogXY'.
 
 =item AspectRatio
 
-The aspect ratio of the output device it defaults to 0.618.
+The aspect ratio of the output device. The default value is device dependent.
 
 =item WindowWidth
 
@@ -84,7 +86,7 @@ L<PDL::Graphics::PGPLOT::Window> for details.
 =item CharSize
 
 The default charsize for the plot - used when annotating the axes for
-instance.
+instance. It defaults to 1.
 
 =item PlotPosition
 
@@ -135,9 +137,10 @@ sub default_options {
 	    HardCH      => 1.4,	 # Character height for hardcopy devices
 	    HardFont    => 2,	 # For for hardcopy devices
 	    HardAxisColour => 1,     # Black colour as default on hardcopy devices.
+	    HardColour => 1,     # Black as default plot colour on hardcopy devices.
 	    Axis        => 'BCNST',# The type of box
-	    AspectRatio => 0.618, # The aspect ratio of the plot window.
-	    WindowWidth => 10,    # The width of the plot window in inches.
+ 	    AspectRatio => undef, # The aspect ratio of the plot window.
+ 	    WindowWidth => undef,    # The width of the plot window in inches.
 	    WindowXSize => undef, # The X&Y size of a window, these will be
 	    WindowYSize => undef, # used to give the aspect ratio if defined.
 	    WindowName  => '',    # The window name given
@@ -186,7 +189,9 @@ sub default_options {
   # Now for the synonyms
   my $s = {Color => 'Colour', 'Line-style' => 'LineStyle',
 	   'Line-width' => 'LineWidth', 'Hatching' => 'Hatch',
-	   FillType => 'Fill', 'ArrowSize' => 'CharSize'};
+	   FillType => 'Fill', 'ArrowSize' => 'CharSize',
+	   AxisColor => 'AxisColour', HardAxisColor => 'HardAxisColour',
+	   HardColor => 'HardColor'};
   #
   # And now for the lookup tables..
   #

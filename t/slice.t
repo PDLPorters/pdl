@@ -13,14 +13,14 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
 	$d < 0.01;
 }
 
-print "1..35\n";
+print "1..38\n";
 
 if(1) {
 
@@ -62,16 +62,16 @@ print $a,$b,$c;
 
 # $c = $a->dummy(1,3);
 sumover($c->clump(-1),($sum=null));
-# check dimensions, sum of elements and correct order of els (using approx)
-ok(8,approx($b,$c));
+# check dimensions, sum of elements and correct order of els (using tapprox)
+ok(8,tapprox($b,$c));
 ok(9,$sum->at == 9);
 ok(10,(join ',',$c->dims) eq "2,3");
 
 $b = pdl [[1,1,1],[2,2,2]];
 $c = $a->slice('*3,');
 sumover($c->clump(-1),($sum=null));
-# check dimensions, sum of elements and correct order of els (using approx)
-ok(11,approx($b,$c));
+# check dimensions, sum of elements and correct order of els (using tapprox)
+ok(11,tapprox($b,$c));
 ok(12,$sum->at == 9);
 ok(13,(join ',',$c->dims) eq "3,2");
 
@@ -178,14 +178,14 @@ $im = byte [[0,1,255],[0,0,0],[1,1,1]];
 print $im1;
 print ($im2 = $im1->clump(2)->slice(':,0:2')->px);
 
-ok(21,!approx(ones(byte,9,3),$im2));
+ok(21,!tapprox(ones(byte,9,3),$im2));
 
 # here we encounter the problem
 print ($im2 = $im1->clump(2)->slice(':,-1:0')->px);
-ok(22,!approx(ones(byte,9,3),$im2));
+ok(22,!tapprox(ones(byte,9,3),$im2));
 
 $a = xvals( zeroes 10,10) + 0.1*yvals(zeroes 10,10);
-ok(23, approx($a->mslice('X',[6,7]),pdl([
+ok(23, tapprox($a->mslice('X',[6,7]),pdl([
   [0.6, 1.6, 2.6, 3.6, 4.6, 5.6, 6.6, 7.6, 8.6, 9.6],
   [0.7, 1.7, 2.7, 3.7, 4.7, 5.7, 6.7, 7.7, 8.7, 9.7]
 ])));
@@ -194,34 +194,34 @@ $lut = pdl [[1,0],[0,1]];
 $im = pdl [1];
 $in = $lut->xchg(0,1)->index($im->dummy(0));
 
-ok(24, approx($in,pdl([0,1])));
+ok(24, tapprox($in,pdl([0,1])));
 
 $in .= pdl 1;
 
-ok(25, approx($in,pdl([1,1])));
+ok(25, tapprox($in,pdl([1,1])));
 
-ok(26, approx($lut,pdl([[1,0],[1,1]])));
+ok(26, tapprox($lut,pdl([[1,0],[1,1]])));
 
 # can we catch indices which are to negative
 $a = PDL->sequence(10);
 $b = $a->slice('0:-10');
 
-ok(27, approx($b,pdl([0])));
+ok(27, tapprox($b,pdl([0])));
 $b = $a->slice('0:-14');
 eval 'print $b';
 ok(28, $@ =~ /Negative slice cannot start or end above limit/);
 
 # Test of dice and dice_axis
 $a = sequence(10,4);
-ok(29, approx( $a->dice([1,2],[0,3])->sum , pdl(66) ) );
-ok(30, approx $a->dice([0,1],'X')->sum, pdl(124));
+ok(29, tapprox( $a->dice([1,2],[0,3])->sum , pdl(66) ) );
+ok(30, tapprox $a->dice([0,1],'X')->sum, pdl(124));
 
 # Test of Reorder:
 $a = sequence(5,3,2);
 @newDimOrder = (2,1,0);
 $b = $a->reorder(@newDimOrder);
 
-ok(31, approx($b->average->average->sum , pdl(72.5) ) );
+ok(31, tapprox($b->average->average->sum , pdl(72.5) ) );
 
 $a = zeroes(3,4);
 $b = $a->dummy(-1,2);
@@ -230,15 +230,25 @@ ok(32,join(',',$b->dims) eq '3,4,2');
 $a = pdl(2);
 print "a\n";
 $b = $a->slice('');
-ok(33,approx $a, $b);
+ok(33,tapprox $a, $b);
 
 $a = pdl[1,1,1,3,3,4,4,1,1,2];
 $b = null;
 $c = null;
 rle($a,$b,$c);
-ok(34,approx $a, rld($b,$c));
+ok(34,tapprox $a, rld($b,$c));
+
+$b = $a->mslice(0.5);
+ok(35, tapprox $b, 1);
+
+$b = $a->mslice([0.5,2.11]);
+ok(36, tapprox $b, ones(3));
 
 $a = zeroes(3,3);
 $b = $a->splitdim(3,3);
 eval '$b->make_physdims';
-ok(35,$@ =~ /^Splitdim: nthdim/);
+ok(37,$@ =~ /^Splitdim: nthdim/);
+
+$a = sequence 5,5;
+$b = $a->diagonal(0,1);
+ok(38, tapprox $b, sequence(5)*6);

@@ -10,7 +10,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$c,$d) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
@@ -36,15 +36,22 @@ print $b;
 
 $b->dump;
 
-ok(1,approx($a,$b));
+ok(1,tapprox($a,$b));
 
 undef $b;
+
+if ($^O =~ /win32/i) {
+    for (2..5) {
+        print "ok $_ # Skipped: no mmap support on win32 yet.\n";
+    }
+  exit;
+}
 
 $c = mapfraw("tmp0");
 
 print $c;
 
-ok(2,approx($a,$c));
+ok(2,tapprox($a,$c));
 
 $c += 1;
 
@@ -56,7 +63,7 @@ $b = readfraw("tmp0");
 
 print $b;
 
-ok(3,approx($a+1,$b));
+ok(3,tapprox($a+1,$b));
 
 unlink "tmp0","tmp0.hdr";
 
@@ -70,7 +77,7 @@ undef $e;
 
 $f = readfraw("tmp1");
 
-ok(4,approx($f, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])));
+ok(4,tapprox($f, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])));
 
 ok(5, $f->type->[0] == (&float)->[0]);
 

@@ -12,9 +12,9 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 8;
+plan tests => 9;
 
-sub approx {
+sub tapprox {
     my($a,$b) = @_;
     print "APPROX: $a $b\n";
     if((join ',',$a->dims) ne (join ',',$b->dims)) {
@@ -30,9 +30,9 @@ sub approx {
 
 my $a = PDL->pdl([[5,4,3],[2,3,1.5]]);
 
-ok(approx($a->average(), PDL->pdl([4, 2.16666]))); # 1
-ok(approx($a->sumover(), PDL->pdl([12, 6.5])));    # 2
-ok(approx($a->prodover(), PDL->pdl([60, 9])));     # 3
+ok(tapprox($a->average(), PDL->pdl([4, 2.16666]))); # 1
+ok(tapprox($a->sumover(), PDL->pdl([12, 6.5])));    # 2
+ok(tapprox($a->prodover(), PDL->pdl([60, 9])));     # 3
 
 my $b = PDL->pdl(4,3,1,0,0,0,0,5,2,0,3,6);
 print "B: $b\n";
@@ -40,18 +40,23 @@ my $c = ($b->xvals) + 10;
 # print "C: $c\n";
 
 # print "BW: ", $b->where, "\n";
-ok(approx($b->where($b>4), PDL->pdl(5,6)));        # 4
-ok(approx($b->which, PDL->pdl(0,1,2,7,8,10,11)));  # 5
+ok(tapprox($b->where($b>4), PDL->pdl(5,6)));        # 4
+ok(tapprox($b->which, PDL->pdl(0,1,2,7,8,10,11)));  # 5
 
 # print "B, ",$b->which();
 # print "C: $c\n";
 # print "\nCI, ", $c->index($b->which());
 # print "D\n";
 
-ok(approx($c->where($b), PDL->pdl(10,11,12,17,18,20,21))); # 6
+ok(tapprox($c->where($b), PDL->pdl(10,11,12,17,18,20,21))); # 6
 
 # originally in pptest
 $a = ones(byte,3000);
 dsumover($a,($b=null));
 ok( $b->get_datatype, $PDL_D );   # 7
 ok( $b->at, 3000 );               # 8
+
+my $p = pdl [ 1, 2, 3, 4, 7, 9, 1, 1, 6, 2, 5];
+my $q = zeroes 5;
+minimum_n_ind $p, $q;
+ok(tapprox $q, pdl(0, 6, 7, 1, 9));

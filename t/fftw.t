@@ -26,7 +26,7 @@ sub ok {
         print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = max($c);
@@ -59,7 +59,7 @@ $ffi = $ffi->mv(2,0);
 $t = ($ffi-$fi)*($ffi-$fi);
 
 # print diff fftnd and ifftw: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 
 $orig = fftw $fi;
@@ -67,7 +67,7 @@ $orig /= $n*$m;
 
 $t = ($orig-$i)*($orig-$i);
 # print "diff ifftw fftw and orig: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 # Inplace FFT
 $i2 = $i->copy;
@@ -76,14 +76,14 @@ infftw($i2);
 
 $t = ($i2-$ffi)*($i2-$ffi);
 # print "diff fftnd and infftw: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 $i2 = nfftw $i2;
 $i2 /= $n*$m;
 
 $t = ($i-$i2)*($i-$i2);
 # print "diff infftw nfftw and orig: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 
 $ir = zeroes($n,$m)->$datatype();
@@ -102,14 +102,14 @@ $fi = rfftw $ir;
 
 $t = ($sffi-$fi)*($sffi-$fi);
 # print "diff rfftw and infft: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 $orig = irfftw $fi;
 $orig /= $n*$m;
 
 $t = ($orig-$ir)*($orig-$ir);
 # print "diff ifftw fftw and orig: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 
 $rin = zeroes(2*(int($n/2)+1),$m)->$datatype();
@@ -121,7 +121,7 @@ $rin = nrfftw $rin;
 
 $t = ($sffi-$rin)*($sffi-$rin);
 # print "diff nrfftw and infft: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 
 $rin = inrfftw $rin;
 $rin /= $n*$m;
@@ -131,5 +131,5 @@ $srin = $srin->mslice([0,$n-1],X);
 
 $t = ($srin-$rin)*($srin-$rin);
 # print "diff inrfftw nrfftw and orig: ",sqrt($t->sum),"\n";
-ok($testNo++, approx(sqrt($t->sum),pdl(0))  );
+ok($testNo++, tapprox(sqrt($t->sum),pdl(0))  );
 

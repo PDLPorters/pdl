@@ -27,6 +27,7 @@ use method syntax, viz:
    use PDL::Slices '';
    use PDL::Bad '';
    use PDL::Version;
+   use PDL::Lvalue;
 
 =cut
 
@@ -42,6 +43,7 @@ use PDL::Basic '';
 use PDL::Slices '';
 use PDL::Bad '';
 use PDL::Version ;  # Doesn't export anything - no need for ''
+use PDL::Lvalue;
 
 $PDL::Lite::VERSION = $PDL::Version::VERSION;
 

@@ -74,7 +74,7 @@ Device manipulation commands:
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
-zero-offset.
+zero-offset. The C<transform()> routine can be used to create this piddle.
 
 For completeness: The transformation array connect the pixel index to a
 world coordinate such that:
@@ -400,6 +400,8 @@ where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 
 =head2 Window control functions.
 
+=for ref Internal
+
 =head2 new
 
 =for ref
@@ -417,7 +419,11 @@ recognised are the following:
 
 =item AspectRatio
 
-The aspect ratio of the image, in the sense vertical/horisontal.
+=item AspectRatio
+
+The aspect ratio of the image, in the sense vertical/horisontal.  If both
+this and WindowWidth are set to zero, the default view surface is used.
+(This is the default case).
 
 =item Device
 
@@ -444,7 +450,9 @@ It would be great if it was possible to change the title of the window frame.
 =item WindowWidth
 
 The width of the window in inches. If this is set to 0.0, the biggest window
-consistent with the AspectRatio setting will be chosen.
+consistent with the AspectRatio setting will be chosen. If both this and
+AspectRatio are set to zero, the default view surface is used.
+(This is the default case).
 
 =item WindowXSize and WindowYSize
 
@@ -476,11 +484,15 @@ Close a plot window
 
 =for usage
 
-  Usage: $w->close()
+  Usage: $win->close()
 
 Close the current window. This does not necessarily mean that the
 window is removed from your screen, but it does ensure that the
 device is closed.
+
+A message will be printed to STDOUT giving the name of the 
+file created if the plot was made to a hardcopy device and
+C<$PDL::verbose> is true.
 
 =head2 held
 
@@ -490,7 +502,7 @@ Check if a window is on hold
 
 =for usage
 
-  $is_held = held();
+  $is_held = $win->held();
 
 Function to check whether the window is held or not.
 
@@ -503,7 +515,7 @@ Hold the present window.
 
 =for usage
 
- Usage: hold()
+ Usage: $win->hold()
 
 Holds the present window so that subsequent plot commands overplots.
 
@@ -516,7 +528,7 @@ Switch to a different panel
 
 =for usage
 
-  $w->panel(<num>);
+  $win->panel(<num>);
 
 Move to a different panel on the plotting surface. Note that you will need
 to erase it manually if that is what you require.
@@ -529,7 +541,7 @@ Release a plot window.
 
 =for usage
 
-   release()
+   $win->release()
 
 Release a plot window so that subsequent plot commands move to the next
 panel or erase the plot and create a new plot.
@@ -542,15 +554,15 @@ Erase plot
 
 =for usage
 
-  Usage: erase($opt);
+  $win->erase($opt);
 
 Erase a plot area. This accepts the option C<Panel> or alternatively a number
 or array reference which makes it possible to specify the panel to erase when
 working with several panels.
 
-
-
 =head2 Plotting functions
+
+=for ref Internal
 
 =head2 env
 
@@ -560,8 +572,8 @@ Define a plot window, and put graphics on 'hold'
 
 =for usage
 
- Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
-        env $xmin, $xmax, $ymin, $ymax, [$options];
+ $win->env( $xmin, $xmax, $ymin, $ymax, [$justify, $axis] );
+ $win->env( $xmin, $xmax, $ymin, $ymax, [$options] );
 
 C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
 C<$justify> is a boolean value (default is B<0>);
@@ -572,7 +584,8 @@ L</axis>) and defaults to B<0>.
 If the second form is used, $justify and $axis can be set in the options
 hash, for example:
 
- env 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', CHARSIZE => 0.7};
+ $win->env( 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', 
+			    CHARSIZE => 0.7} );
 
 In addition the following options can also be set for C<env>:
 
@@ -585,8 +598,8 @@ normalised coordinates as an anonymous array. The array should contain
 the lower and upper X-limits and then the lower and upper Y-limits. To
 place two plots above each other with no space between them you could do
 
-  env(0, 1, 0, 1, {PlotPosition => [0.1, 0.5, 0.1, 0.5]});
-  env(5, 9, 0, 8, {PlotPosition => [0.1, 0.5, 0.5, 0.9]});
+  $win->env(0, 1, 0, 1, {PlotPosition => [0.1, 0.5, 0.1, 0.5]});
+  $win->env(5, 9, 0, 8, {PlotPosition => [0.1, 0.5, 0.5, 0.9]});
 
 =item Axis, Justify, Border
 
@@ -602,7 +615,6 @@ Axes titles and the font and size to print them.
 
 =back
 
-
 =head2 label_axes
 
 =for ref
@@ -611,7 +623,7 @@ Label plot axes
 
 =for usage
 
-  Usage: label_axes(<xtitle>, <ytitle>, <plot title>, $options);
+  $win->label_axes(<xtitle>, <ytitle>, <plot title>, $options);
 
 Draw labels for each axis on a plot.
 
@@ -623,11 +635,12 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
 =for usage
 
- Usage: imag ( $image,  [$min, $max, $transform], [$opt] )
+ $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 There are several options related to scaling.  By default, the image
 is scaled to fit the PGPLOT default viewport on the screen.  Scaling,
@@ -679,18 +692,18 @@ The following standard options influence this command:
 
    To see an image with maximum size in the current window, but square
    pixels, say:
-         imag $a,{PIX=>1}
+         $win->imag( $a, { PIX=>1 } );
    An alternative approach is to try:
-         imag $a,{JUSTIFY=>1}
+         $win->imag( $a, { JUSTIFY=>1 } );
    To see the same image, scaled 1:1 with device pixels, say:
-         imag $a,{SCALE=>1}
+         $win->imag( $a, { SCALE=>1 } );
    To see an image made on a device with 1:2 pixel aspect ratio, with 
    X pixels the same as original image pixels, say
-         imag $a,{PIX=>0.5,SCALE=>2}
+         $win->imag( $a, { PIX=>0.5, SCALE=>2 } );
    To display an image at 100 dpi on any device, say:
-         imag $a,{PITCH=>100}
+         $win->imag( $a, { PITCH=>100 } );
    To display an image with 100 micron pixels, say:
-         imag $a,{PITCH=>10,UNIT=>'mm'}
+         $win->imag( $a, { PITCH=>10, UNIT=>'mm' } );
 
 =head2 imag1
 
@@ -700,9 +713,11 @@ Display an image with correct aspect ratio
 
 =for usage
 
- Usage:  imag1 ( $image, [$min, $max, $transform], [$opt] )
+ $win->imag1 ( $image, [$min, $max, $transform], [$opt] )
 
-Notes: This is syntactic sugar for imag({PIX=>1}).
+This is syntactic sugar for 
+
+  $win->imag( { PIX=>1 } );
 
 =head2 draw_wedge
 
@@ -712,7 +727,7 @@ Add a wedge (colour bar) to an image.
 
 =for usage
 
- Usage: $win->draw_wedge( [$opt] )
+ $win->draw_wedge( [$opt] )
 
 Adds a wedge - shows the mapping between colour and value for a pixel - to
 the current image.  This can also be achieved by setting C<DrawWedge> to 1
@@ -837,6 +852,13 @@ The following standard options influence this command:
 
  AXIS, BORDER, CHARSIZE, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
+The ColorValues option allows one to plot XYZ data with the
+Z axis mapped to a color value.  For example:
+
+ use PDL::Graphics::LUT;
+ ctab(lut_data('idl5')); # set up color palette to 'idl5' 
+ points ($x, $y, {ColorValues => $z});
+
 =for example
 
  $y = sequence(10)**2+random(10);
@@ -886,7 +908,8 @@ Display image as contour map
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 Options recognised:
 
@@ -1143,7 +1166,8 @@ Display 2 images as a vector field
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
-fortunately, zero-offset.
+fortunately, zero-offset. The C<transform()> routine can be used to 
+create this piddle.
 
 This routine will plot a vector field. C<$a> is the horizontal component
 and C<$b> the vertical component.
@@ -1178,7 +1202,7 @@ Create transform array for contour and image plotting
 
 =for usage
 
- Usage: transform([$xdim], [$ydim], $options);
+ $win->transform([$xdim,$ydim], $options);
 
 This function creates a transform array in the format required by the image
 and contouring routines. You must call it with the dimensions of your image
@@ -1193,18 +1217,38 @@ The rotation angle of the transform
 =item ImageDimensions
 
 The dimensions of the image the transform is required for. The dimensions
-should be passed as a reference to an anonymous hash.
+should be passed as a reference to an array.
 
 =item Pixinc
 
 The increment in output coordinate per pixel.
 
-=item ImageCenter
+=item ImageCenter (or ImageCentre)
 
-The centre of the image as an anonymous array  B<or> as a scalar. In the
+The centre of the image as an anonymous array B<or> as a scalar. In the
 latter case the x and y value for the center will be set equal to this
 scalar. This is particularly useful in the common case  when the center
 is (0, 0).
+
+=item RefPos (or ReferencePosition)
+
+If you wish to set a pixel other than the image centre to a given
+value, use this option. It should be supplied with a reference to an array
+containing 2 2-element array references, e.g.
+
+ RefPos => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
+
+This will label pixel C<($xpix,$ypix)> as being at position
+C<($xplot,$yplot)>. The C<ImageCentre> option can be considered
+to be a special case of this option, since the following are identical
+(although one is a lot easier to type ;)
+
+ ImageCentre => [ $xc, $yc ]
+ RefPos      => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
+
+The values supplied in C<ImageCentre> are used 
+if I<both> C<ImageCentre> and C<RefPos> are supplied in the
+options list.
 
 =back
 
@@ -1223,7 +1267,7 @@ Threaded line plotting
 
 =for usage
 
- Usage: tline($x, $y, $optionts);
+ $win->tline($x, $y, $options);
 
 This is a threaded interface to C<line>. This is convenient if you have
 a 2D array and want to plot out every line in one go. The routine will
@@ -1236,8 +1280,7 @@ Example:
   $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
   $tx=zeroes(100,5)->xlinvals(-5,5);
   $ty = $tx + $tx->yvals;
-  tline($tx, $ty, $h);
-
+  $win->tline($tx, $ty, $h);
 
 =head2 tpoints
 
@@ -1264,6 +1307,8 @@ Example:
 
 
 =head2 Text routines
+
+=for ref Internal
 
 
 =head2 text
@@ -1370,6 +1415,8 @@ legend box. The default value is 0.1.
 
 =head2 Cursor routines
 
+=for ref Internal
+
 =head2 cursor
 
 =for ref
@@ -1430,6 +1477,8 @@ To select a region of the X-axis:
 
 =head2 Internal routines
 
+=for ref Internal
+
 =cut
 
 
@@ -1456,6 +1505,23 @@ require DynaLoader;
 
 bootstrap PDL::Graphics::PGPLOT::Window;
 
+
+#
+# Note: Here the general and window creation specific options are read in
+# from PGPLOTOptions. The $GeneralOptions variable is most importantly
+# used in the new() routine to set the general options for the window.
+#
+# These are somewhat confusingly named perhaps. The WindowOptions are the
+# options that affect window creation and setup such as width, shape etc.
+# The GeneralOptions are options that affect all function calls in the package
+# (or at least most) since it affects the default colour, character size etc.
+# The problematic aspect here is the treatment of hardcopy settings. For
+# historical reasons these are set in the WindowOptions variable but they
+# should affect settings in the GeneralOptions variable...
+# Ideally this should be re-coded, but to save some time I have instead opted
+# for a patchy solution where they are specially treated in the new_window
+# routine.
+#
 my ($GeneralOptions, $WindowOptions) = default_options();
 # Turn off warnings for missing options...
 $GeneralOptions->warnonmissing(0);
@@ -1510,8 +1576,8 @@ sub new {
 	      'Hold'	      => $opt->{Hold}		  || 0,
 	      'Name'	      => $opt->{WindowName}	  || '',
 	      'ID'	      => undef,
-	      'AspectRatio'   => $opt->{AspectRatio}	  || 0.618,
-	      'WindowWidth'   => $opt->{WindowWidth}	  || 0.0,
+	      'AspectRatio'   => $opt->{AspectRatio},
+	      'WindowWidth'   => $opt->{WindowWidth},
 	      'NX'	      => $opt->{NXPanel}	  || 1,
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
@@ -1541,7 +1607,7 @@ sub new {
 sub DESTROY {
   my $self=shift;
 
-  $self->close();
+  $self->close() unless !defined($self->{ID});
 }
 
 
@@ -1572,9 +1638,30 @@ sub _open_new_window {
 =head2 _setup_window
 
 This routine sets up a new window with its shape and size. This is also where
-the two options C<WindowXSize> and C<WindowYSize> is parsed. These are then
+the two options C<WindowXSize> and C<WindowYSize> are parsed. These are then
 forgotten (well, they are stored in $self->{Options}, but forget that) and
 the corresponding aspect ratio and window width is stored.
+Alternatively, the C<AspectRatio> and C<WindowWidth> options are used to
+set the view surface.  The logic goes somewhat like this:
+
+=over 8
+
+=item 1
+
+If C<WindowXSize> and C<WindowYSize> are both non-zero, then those are used.
+
+=item 2
+
+If C<AspectRatio> is non-zero and C<WindowWidth> is zero, 
+C<WindowWidth> is calculated such that it a region with the given
+aspect ratio will fit within the device's view surface.
+
+=item 3
+
+If both C<AspectRatio> and C<WindowWidth> are zero, the device's
+default C<AspectRatio> and C<WindowWidth> is used.
+
+=back
 
 Finally the subpanels are set up using C<pgsubp> and colours and linewidth
 are adjusted according to whether we have a hardcopy device or not.
@@ -1599,12 +1686,58 @@ sub _setup_window {
       $width = $opt->{WindowXSize};
     }
   }
-  $self->{AspectRatio}=$aspect;
-  $self->{WindowWidth}=$width;
+#  $self->{AspectRatio}=$aspect;
+#  $self->{WindowWidth}=$width;
+
+  # stop perl complaining when 'use strict' is on.
+  # I am assuming that setting them to 0 is correct in this case
+  # (Doug 03/14/01)
+  $aspect = 0 unless defined $aspect;
+  $width  = 0 unless defined $width;
+
+  # grab whatever width fits the aspect ratio.
+  # for PGPLOT, pgpap() does this automatically.
+  # this is a place holder so we don't forget this case
+  if ( $aspect && 0 == $width )
+  {
+  }
+
+  # use the current view surface.  unfortunately, this isn't the
+  # default view surface, but the *current* view surface.
+  # PGPLOT doesn't provide a public routine to get the default view surface.
+  elsif ( 0 == $aspect &&  0 == $width )
+  {
+    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+
+    $width = $vs_x2 - $vs_x1;
+    $aspect = ( $vs_y2 - $vs_y1 ) / $width;
+  }
+
+  elsif ( 0 == $aspect && $width )
+  {
+    warn "The aspect must be specified if the window width is specified\n";
+    $aspect = 0.618;
+  }
+
+  $self->{AspectRatio} = $aspect;
+  $self->{WindowWidth} = $width;
 
   # Ok - call pgpap to set the size.
   # print "Window opened with Width=$width and AspectRatio=$aspect\n";
   pgpap($width, $aspect);
+
+  # if just the AspectRatio was set, we don't know the WindowWidth;
+  # grab that here.  don't do it by default to avoid resetting
+  # values (due to round off) and confusing the user
+  if ( $self->{AspectRatio} &&  0 == $self->{WindowWidth} )
+  {
+    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+
+    $self->{WindowWidth} = $vs_x2 - $vs_x1;
+  }
+
 
   # Now do the sub-division into panels.
   my $nx = $self->{NX};
@@ -1631,10 +1764,18 @@ sub _setup_window {
     $temp_wo->{Font}= $o->{HardFont};
     $temp_wo->{CharSize}= $o->{HardCH};
     $temp_wo->{LineWidth}= $o->{HardLW};
+    $temp_wo->{Colour}= $o->{HardColour};
     $self->{PlotOptions}->defaults($temp_wo);
     my $temp_o=$self->{Options}->defaults();
     $temp_o->{AxisColour}=$o->{HardAxisColour};
+    $temp_o->{CharSize}=$o->{HardCH};
     $self->{Options}->defaults($temp_o);
+  } else {
+    # Set the global properties as for the hardcopy device.
+    pgsch($o->{CharSize});
+    my $wo = $self->{PlotOptions}->defaults();
+    pgscf($wo->{Font});
+    pgslw($wo->{LineWidth});
   }
   my ($hcopy, $len);
   my $wo = $self->{PlotOptions}->defaults();
@@ -1716,6 +1857,7 @@ sub _advance_panel {
   if ($new_panel > ($self->{NX}*$self->{NY})) {
     # We are at the end of the page..
     $new_panel = 1;
+    pgpage();
 #    $self->{_env_set}=[];
   }
 
@@ -1789,7 +1931,12 @@ sub _thread_options {
 
 sub close {
   my $self=shift;
-  pgclos() if $self->_status() eq 'OPEN';
+  # let the user know that we've created a file
+  if ( $self->_status() eq 'OPEN' ) {
+      my @info = $self->info( 'HARDCOPY', 'FILE' );
+      print "Created: $info[1]\n" if $info[0] eq 'YES' and $PDL::verbose;
+      pgclos();
+  }
   $self->{ID}=undef;
 }
 
@@ -1801,8 +1948,7 @@ this is not updated when the window is changed later.
 =cut
 
 sub options {
-  my ($name)=@_;
-  return $self->{Options};
+  return $_[0]->{Options};
 }
 
 =head2 id
@@ -2055,6 +2201,8 @@ sub _parse_options {
   my $uo=$opt->current();
   $opt->full_options(1);
 
+  $opt->clear_current();
+
   return ($o, $uo);
 
 }
@@ -2291,10 +2439,17 @@ sub initenv{
 
   my ($in, $u_opt)=_extract_hash(@_);
   my ($xmin, $xmax, $ymin, $ymax, $just, $axis)=@$in;
+  $u_opt={} unless defined($u_opt);
+
+  # If the user specifies $just or $axis these values will
+  # override any options given. This actually changes the behaviour
+  # of the previous initenv() function when $just and/or $axis was
+  # specified in conjunction with an options hash.
+  $u_opt->{Justify} = $just if defined($just);
+  $u_opt->{Axis} = "$axis" if defined($axis);
 
 
   # Now parse the input options.
-  $u_opt={} unless defined($u_opt);
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
 
   # Save current colour and set the axis colours
@@ -2305,14 +2460,6 @@ sub initenv{
   my ($chsz);
   pgqch($chsz);
   pgsch($o->{CharSize});
-
-
-  # If the user specifies $just or $axis these values will
-  # override any options given. This actually changes the behaviour
-  # of the previous initenv() function when $just and/or $axis was
-  # specified in conjunction with an options hash.
-  $o->{Justify} = $just if defined($just);
-  $o->{Axis} = $axis if defined($axis);
 
   if (ref($o->{Border}) eq 'HASH' || $o->{Border} != 0) {
     my $type  = "REL";
@@ -2433,28 +2580,27 @@ sub redraw_axes {
 sub label_axes {
 
   my $self = shift;
-  my ($in, $u_opt)=_extract_hash(@_);
+  my ($in, $opt)=_extract_hash(@_);
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
   my ($xtitle, $ytitle, $title)=@$in;
 
-  $u_opt = {} if !defined($u_opt); # For safety.
+  $opt = {} if !defined($opt); # For safety.
 
   # Now the titles are set per plot so we use the general options to
   # parse the options (if they were set per window we would use
   # $self->{Options}
-  my $o = $self->{PlotOptions}->options($u_opt);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   $o->{Title}=$title if defined($title);
   $o->{XTitle}=$xtitle if defined($xtitle);
   $o->{YTitle}=$ytitle if defined($ytitle);
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
   $self->_restore_status;
 }
-
 
 
 ############ Exported functions #################
@@ -2477,10 +2623,12 @@ sub CtoF77coords{		# convert a transform array from zero-offset to unit-offset i
 
 # set the envelope for plots and put auto-axes on hold
 
-
 sub env {
   my $self=shift;
 
+  # Inserted 28/2/01 - JB to avoid having to call release whenever
+  # you want to move to the next panel after using env.
+  $self->release() if $self->held();
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
@@ -2496,6 +2644,7 @@ sub env {
   $self->hold();
   1;
 }
+
 # Plot a histogram with pgbin()
 
 {
@@ -2523,7 +2672,7 @@ sub env {
 
     # Parse options
     $opt={} unless defined($opt);
-    my $o = $bin_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($bin_options,$opt);
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     unless ( $self->held() ) {
@@ -2540,7 +2689,7 @@ sub env {
     # $bin_options->full_options(1);
 
     # Let's also parse the options if any.
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     pgbin($n, $x->get_dataref, $data->get_dataref, $centre);
     $self->_restore_status();
     1;
@@ -2551,28 +2700,38 @@ sub env {
 
 
 {
+    use strict;
     my $transform_options = undef;
 
     sub transform {
 	# Compute the transform array needed in contour and image plotting
 	my $self = shift;
-	my ($xpix, $ypix)=@_;
+
 	if (!defined($transform_options)) {
 	  $transform_options = 
 	    $self->{PlotOptions}->extend({Angle => undef,
 					  ImageDims => undef,
 					  Pixinc => undef,
-					  ImageCenter => undef});
-	  $transform_options->synonyms({ImageDimensions => 'ImageDims',
-					ImageCentre => 'ImageCenter'});
+					  ImageCenter => undef,
+					  RefPos => undef,
+					  });
+	  $transform_options->synonyms({
+	      ImageDimensions => 'ImageDims',
+	      ImageCentre => 'ImageCenter',
+	      ReferencePosition => 'RefPos',
+	      });
 	}
 
+	# parse the input
 	my ($in, $opt)=_extract_hash(@_);
+	my ($x_pix, $y_pix)= @$in; 
+
+	# handle options
 	$opt = {} if !defined($opt);
 	my ($o, $u_opt) = $self->_parse_options($transform_options, $opt);
-	$self->_standard_options_parser($o);
+	$self->_standard_options_parser($u_opt);
 
-	my ($angle, $x_pixinc, $y_pixinc, $x_cen, $y_cen);
+	my ($angle, $x_pixinc, $y_pixinc, $xref_pix, $yref_pix, $xref_wrld, $yref_wrld);
 	if (defined($o->{Angle})) {
 	    $angle = $o->{Angle};
 	}
@@ -2592,12 +2751,14 @@ sub env {
 	    $x_pixinc = $y_pixinc = 1;
 	}
 
-	if (defined $o->{ImageDims} && ref($o->{ImageDims}) eq 'ARRAY') {
-	    ($x_pix, $y_pix) = @{$o->{ImageDims}};
-	}
-	else {
-	    barf "Image dimensions must be given as an array reference!";
-	}
+	if ( defined $o->{ImageDims} ) {
+	    if ( ref($o->{ImageDims}) eq 'ARRAY' ) {
+		($x_pix, $y_pix) = @{$o->{ImageDims}};
+	    }
+	    else {
+		barf "Image dimensions must be given as an array reference!";
+	    }
+	} 
 	
 	# The user has to pass the dimensions of the image somehow, so this
 	# is a good point to check whether he/she/it has done so.
@@ -2605,32 +2766,77 @@ sub env {
 	  barf "You must pass the image dimensions to the transform routine\n";
 	}
 
+	# The RefPos option gives more flexibility than
+	# ImageCentre, since ImageCentre => [ a, b ] is the same 
+	# as PosReference => [ [(nx-1)/2,(ny-1/2)], [a,b] ].
+	# We use ImageCentre in preference to PosReference
+	#
 	if (defined $o->{ImageCenter}) {
-	    if (ref($o->{ImageCenter}) eq 'ARRAY') {
-	        ($x_cen, $y_cen) = @{$o->{ImageCenter}};
+	    print "transform() ignoring RefPos as seen ImageCentre\n"
+		if defined $o->{RefPos} and $PDL::verbose;
+	    my $ic = $o->{ImageCenter};
+	    if (ref($ic) eq 'ARRAY') {
+	        ($xref_wrld, $yref_wrld) = @{$ic};
 	    }
 	    else {
-		$x_cen = $y_cen = $o->{ImageCenter};
+		$xref_wrld = $yref_wrld = $ic;
 	    }
+	    $xref_pix = ($x_pix - 1)/2;
+	    $yref_pix = ($y_pix - 1)/2;
+	}
+	elsif ( defined $o->{RefPos} ) {
+	    my $aref = $o->{RefPos};
+	    barf "RefPos option must be sent an array reference.\n"
+		unless ref($aref) eq 'ARRAY';
+	    barf "RefPos must be a 2-element array reference\n"
+		unless $#$aref == 1;
+	    my $pixref  = $aref->[0];
+	    my $wrldref = $aref->[1];
+	    barf "Elements of RefPos must be 2-element array references\n"
+		unless $#$pixref == 1 and $#$wrldref == 1;
+
+	    ($xref_pix,  $yref_pix)  = @{$pixref};
+	    ($xref_wrld, $yref_wrld) = @{$wrldref};
 	}
 	else {
-	    $x_cen = $y_cen = 0;
+	    $xref_wrld = $yref_wrld = 0;
+	    $xref_pix = ($x_pix - 1)/2;
+	    $yref_pix = ($y_pix - 1)/2;
 	}
-	$tr = pdl(-($x_pix - 1)/2*$x_pixinc*cos($angle) -
-		  ($y_pix - 1)/2*$y_pixinc*sin($angle) + $x_cen,
-		  $x_pixinc*cos($angle),
-		  $y_pixinc*sin($angle),
-		  ($x_pix - 1)/2*$x_pixinc*sin($angle) -
-		  ($y_pix - 1)/2*$y_pixinc*cos($angle) + $y_cen,
-		  -$x_pixinc*sin($angle),
-		  $y_pixinc*cos($angle))
+
+	# The elements of the transform piddle,
+	# here labelled t0 to t5, relate to the
+	# following maxtix equation:
+	#   
+	#   world = zp + matrix * pixel
+	#
+	# world  - the position of the point in the world, 
+	#          ie plot, coordinate system
+	# pixel  - the position of the point in pixel
+	#          coordinates (bottom-left is 0,0 pixel)
+	# zp     - (t0)
+	#          (t3)
+	# matrix - (t1 t2)
+	#          (t4 t5)
+	#
+	my $ca = cos( $angle );
+	my $sa = sin( $angle );
+	my $t1 = $x_pixinc * $ca;
+	my $t2 = $y_pixinc * $sa;
+	my $t4 = - $x_pixinc * $sa;
+	my $t5 = $y_pixinc * $ca;
+
+	return pdl( 
+		   $xref_wrld - $t1 * $xref_pix - $t2 * $yref_pix,
+		   $t1, $t2,
+		   $yref_wrld - $t4 * $xref_pix - $t5 * $yref_pix,
+		   $t4, $t5
+		   ); 
     }
 }
 
 
-
 # display a contour map of an image using pgconb()
-
 
 {
 
@@ -2680,7 +2886,7 @@ sub env {
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     my ($labelcolour);
     pgqci($labelcolour);	# Default let the labels have the chosen colour.
 
@@ -2872,7 +3078,7 @@ EOD
     }
 
     # Parse other standard options.
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     if ($#t==1) {
       pgerrb(6,$n,$x->get_dataref,$y->get_dataref,$t[1]->get_dataref,$term);
     } elsif ($#t==2) {
@@ -3020,7 +3226,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     # If there is a missing value specified, use pggapline
     # to break the line around missing values.
@@ -3048,14 +3254,14 @@ sub arrow {
 
   my ($x1, $y1, $x2, $y2)=@$in;
 
-  my $o = $self->{PlotOptions}->options($opt);
+  my ($o, $u_opt) = $self->_parse_options($self->{PlotOptions}, $opt);
   $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
   unless ($self->held()) {
     $self->initenv($x1, $x2, $y1, $y2, $opt);
   }
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   pgarro($x1, $y1, $x2, $y2);
   $self->_restore_status();
 
@@ -3097,16 +3303,24 @@ sub arrow {
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
+    if (exists($opt->{ColorValues})) {
+      my $sym = $o->{Symbol} || 0;
+      my $z   = $opt->{ColorValues};
+      $self->_checkarg($z,1);    # make sure this is a float PDL
+      pgcolorpnts($n, $x->get_dataref, $y->get_dataref, $z->get_dataref, $sym);
+    } else {
 
-    # Set symbol if specified in the options hash.
-    ## $sym ||= $o->{Symbol};
-    $sym = $o->{Symbol} unless defined $sym;
+      # Set symbol if specified in the options hash.
+      ## $sym ||= $o->{Symbol};
+      $sym = $o->{Symbol} unless defined $sym;
+      
+      $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
+      
+      pgpnts($n, $x->get_dataref, $y->get_dataref, $sym->get_dataref, $ns);
 
-    $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
-
-    pgpnts($n, $x->get_dataref, $y->get_dataref, $sym->get_dataref, $ns);
+    }
 
     #
     # Sometimes you would like to plot a line through the points straight
@@ -3130,7 +3344,7 @@ sub arrow {
 #              Label        => default ''
 #            }
 #
-# - uses horrible _store()/_retireve() routines, which need to 
+# - uses horrible _store()/_retrieve() routines, which need to 
 #   know (but don't) about changing window focus/erasing/...
 #
 # Want to be able to specify a title (optional)
@@ -3159,7 +3373,7 @@ sub arrow {
 
 	my ( $in, $opt ) = _extract_hash(@_);
 	$opt = {} unless defined($opt);
-	barf 'Usage: draw_wedge( [$options] )'
+	barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
 
 	# check imag has been called, and get information
@@ -3180,7 +3394,12 @@ sub arrow {
 	$o->{BackGround} = $$iref{min} unless defined( $o->{BackGround} );
 
 	# do we really want this?
-	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+	# - (03/15/01 DJB) removed since I assume that draw_wedge()
+	#   will be called before the focus has been changed.
+	#   Not ideal, but I don't think the current implementation will 
+	#   handle such cases anyway (ie getting the correct min/max values 
+	#   for the wedge).
+#	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 	# get the options used to draw the axes
 	# note: use the window object, not the options hash, though we 
@@ -3410,10 +3629,15 @@ sub arrow {
     $self->redraw_axes unless $self->held(); # Redraw box
 
     # draw the wedge, if requested
-    $self->draw_wedge( $u_opt ) if $u_opt->{DrawWedge};
+    if ( $u_opt->{DrawWedge} ) {
+	my $hflag = $self->held();
+	$self->hold();
+	$self->draw_wedge( $u_opt );
+	$self->release() unless $hflag;
+    }
 
     1;
-  }
+  } # sub: imag()
 
 }
 
@@ -3572,7 +3796,7 @@ EOD
     my $work = float(zeroes($nx));
 
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     $self->initenv( 0 ,2*($nx-1), 0, 10*max($image), $opt ) unless $self->held();
 
@@ -3602,7 +3826,7 @@ sub poly {
   }
 
   $self->_save_status();
-  $self->_standard_options_parser($o);
+  $self->_standard_options_parser($u_opt);
   my $n = nelem($x);
   pgpoly($n, $x->get_dataref, $y->get_dataref);
   $self->_restore_status();
@@ -3628,7 +3852,7 @@ sub poly {
     $opt = {} if !defined($opt);
     my ($x, $y, $radius)=@$in;
 
-    my $o = $circle_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($circle_options, $opt);
     $o->{XCenter}=$x if defined($x);
     $o->{YCenter}=$y if defined($y);
     $o->{Radius} = $radius if defined($radius);
@@ -3636,7 +3860,7 @@ sub poly {
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
     $self->_save_status();
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
     $self->_restore_status();
   }
@@ -3810,7 +4034,7 @@ sub poly {
     print "Vectoring $nx x $ny images ...\n" if $PDL::verbose;
 
     $self->_save_status();
-    $self->_standard_options_parser($o); # For arrowtype and arrowhead
+    $self->_standard_options_parser($u_opt); # For arrowtype and arrowhead
     pgvect( $a->get_dataref, $b->get_dataref, $nx,$ny,1,$nx,1,$ny, $scale, $pos,
 	    $tr->get_dataref, $misval);
     $self->_restore_status();
@@ -3850,13 +4074,13 @@ sub poly {
     my ($text, $x, $y)=@$in;
 
     # Next - parse options
-    my $o = $text_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($text_options, $opt);
     # Check for change of panel or request to erase the panel
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     # Parse standard options such as colour
     $self->_save_status();
 
-    $self->_standard_options_parser($o);
+    $self->_standard_options_parser($u_opt);
 
     # Finally do what the routine needs to do.
     $o->{Text}=$text if defined($text);
@@ -3895,20 +4119,20 @@ sub poly {
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
-    my $o = $legend_options->options($opt);
+    my ($o, $u_opt) = $self->_parse_options($legend_options, $opt);
 
     #
     # In this function there are several options that we do not want
     # parsed by the standard options parsers so we deal with these
     # here - we translate the linestyles, symbols and colours below
     #
-    my $linestyle=$o->{LineStyle}; delete $o->{LineStyle};
+    my $linestyle=$u_opt->{LineStyle}; delete $u_opt->{LineStyle};
     $linestyle=[$linestyle] if !ref($linestyle) eq 'ARRAY';
-    my $linewidth=$o->{LineWidth}; delete $o->{LineWidth};
+    my $linewidth=$u_opt->{LineWidth}; delete $u_opt->{LineWidth};
     $linewidth=[$linewidth] if !ref($linewidth) eq 'ARRAY';
-    my $color = $o->{Colour}; delete $o->{Colour};
+    my $color = $u_opt->{Colour}; delete $u_opt->{Colour};
     $color=[$color] if !ref($color) eq 'ARRAY';
-    my $symbol = $o->{Symbol}; delete $o->{Symbol};
+    my $symbol = $u_opt->{Symbol}; delete $u_opt->{Symbol};
     $symbol=[$symbol] if !ref($symbol) eq 'ARRAY';
 
     my ($text, $x, $y, $width)=@$in;
@@ -3917,11 +4141,15 @@ sub poly {
     $o->{YPos} = $y if defined($y);
     $o->{Width} = $width if defined($width);
 
+    # We could keep accessing $o but this is more succint.
+    $text = $o->{Text};
+
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
       barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
     }
     $self->_save_status();
-    $self->_standard_options_parser($o); # Set font, charsize, colour etc.
+
+    $self->_standard_options_parser($u_opt); # Set font, charsize, colour etc.
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
@@ -3942,6 +4170,26 @@ sub poly {
     if ($o->{Width} eq 'Automatic' && $o->{Height} eq 'Automatic') {
       # Ok - we just continue with the given character size.
       $required_charsize = $chsz;
+      # We still need to calculate the width and height of the legend
+      # though. Fixed 20/3/01
+
+      my $t_width = -1; # Very short text...
+      my $t_height = -1; # And very low
+      foreach my $t (@$text) {
+	# Find the bounding box of left-justified text
+	my ($xbox, $ybox);
+	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
+	if (($$xbox[2]-$$xbox[0]) > $t_width) {
+	  # This is now the longest line.
+	  $t_width = $$xbox[2]-$$xbox[0];
+	}
+	if (($$ybox[2]-$$ybox[0]) > $t_height) {
+	  $t_height = $$ybox[2]-$$ybox[0];
+	}
+      }
+      
+      $o->{Width} = $t_width/$o->{Fraction};
+      $o->{Height} = $t_height*($#$text+1); # The height of all lines..
     } else {
       # We have some constraint on the size.
       my ($win_width, $win_height)=($xmax-$xmin, $ymax-$ymin);
@@ -3982,6 +4230,7 @@ sub poly {
     my ($xstart, $xend)=($o->{XPos}+$o->{Fraction}*$o->{Width}+
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
 
+    my $n_lines=$#$text+1;
     foreach (my $i=0; $i<=$#$text; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
@@ -4018,9 +4267,7 @@ sub poly {
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
-#      print "$i: Required charsize=$required_charsize Charsize=$chsz\n";
-#      print "$i: Ypos=$ypos\n";
-      $ypos -= $required_charsize*$chsz;
+      $ypos -= $o->{Height}/$n_lines;
     }
 
 

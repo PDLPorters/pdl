@@ -107,7 +107,9 @@ sub isbigendian {
     my $byteorder = $Config{byteorder} || 
 	die "ERROR: Unable to find 'byteorder' in perl's Config\n";
     return 1 if $byteorder eq "4321";
+    return 1 if $byteorder eq "87654321";
     return 0 if $byteorder eq "1234";
+    return 0 if $byteorder eq "12345678";
     die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n"; 
 }
 
@@ -524,7 +526,16 @@ sub trylink {
       require ExtUtils::MakeMaker;
       require ExtUtils::Liblist;
       my $self = new ExtUtils::MakeMaker {DIR =>  [],'NAME' => 'NONE'};
-      my @libs = ExtUtils::Liblist::ext($self, $libs, 0);
+
+      # ExtUtils::Liblist seems to have changed in perl5.6.1, although
+      # its documentation has not
+      my @libs;
+      if ( $] >= 5.006001 ) {
+	  @libs = ExtUtils::Liblist::Kid::ext($self, $libs, 0);
+      } else {
+	  @libs = ExtUtils::Liblist::ext($self, $libs, 0);
+      }
+
       print "processed LIBS: $libs[0]\n" unless $hide;
       $libs = $libs[0]; # replace by preprocessed libs
   }

@@ -42,10 +42,18 @@
 /* Replace: 0 */
 #endif
 
+/* Ifdefs used here for aTHX_ for compilation under perl 5.005 */
+#ifndef aTHX_
+#define aTHX_
+#endif
+
 struct PGPLOT_function_handle {
    I32 binversion;
    void (*cpgmove) (float x, float y);
    void (*cpgdraw) (float x, float y);
+   void (*cpgqcir) (int *icilo, int *icihi);
+   void (*cpgsci)  (int ci);
+   void (*cpgpt1)  (float x, float y, int sym);                                 
 };
 
 typedef struct PGPLOT_function_handle PGPLOT_function_handle;
@@ -79,6 +87,57 @@ pggapline(n,msgval,xpts,ypts)
         }
       }
     }
+
+
+
+void
+pgcolorpnts(n,x,y,z,sym)
+  int	n
+  float *	x
+  float *	y
+  float *	z
+  int   sym
+  CODE:
+    { 
+      /* find range of color pallette */
+      int icilo, icihi, i, cirange, ci;
+      float minz, maxz, zrange;
+
+      /* If the structure read from the PGPLOT module is too old */
+      if (myhandle->binversion < PGPLOT_structure_version) {
+	char msg[128];
+        sprintf (msg, "This function requires PGPLOT with a structure version at least %d.\nPlease upgrade your PGPLOT package.", 
+                       PGPLOT_structure_version);
+		       
+        Perl_croak(aTHX_ msg);
+      }
+
+      myhandle->cpgqcir(&icilo, &icihi);
+      
+      /* find min and max values of zpts variable */
+      minz =  9.99e30;
+      maxz = -9.99e30;
+      for (i=0;i<n;i++) {
+	if (z[i] < minz) minz = z[i];
+	if (z[i] > maxz) maxz = z[i];
+      }
+
+      /* determine range of available z indices and range of input 'z' values */
+      cirange = icihi - icilo;
+      zrange  = maxz  - minz;
+
+      /* printf ("cilo = %d, cihi = %d\n", icilo, icihi); */
+
+      /* for each input point, compute a scaled color index and plot the point */
+      for (i=0;i<n;i++) {
+	ci = (int)(icilo + (z[i] - minz) * (float)(cirange/zrange)); 
+	/* printf ("x = %f, y = %f, ci = %d\n", x[i], y[i], ci); */
+	myhandle->cpgsci(ci);
+	myhandle->cpgpt1(x[i], y[i], sym);
+      }
+    }
+
+
     
 BOOT:
 
@@ -91,12 +150,5 @@ BOOT:
 	  Perl_croak(aTHX_ "This module requires PGPLOT version 2.16 or later.\nPlease install/upgrade PGPLOTLOT (see the PDL/DEPENDENCIES file).");
 	myhandle = (PGPLOT_function_handle*) SvIV( ptr );  
 
-	/* If the structure read from the PGPLOT module is too old */
-	if (myhandle->binversion < PGPLOT_structure_version) {
-	  char msg[128];
-          sprintf (msg, "This module requires PGPLOT with a structure version at least %d", 
-                         PGPLOT_structure_version);
-          Perl_croak(aTHX_ msg);
-        }
 
 

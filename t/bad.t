@@ -28,7 +28,7 @@ END {
 use PDL::LiteF;
 $| = 1;
 
-sub approx {
+sub tapprox {
     my ( $a, $b ) = @_;
     my $d = abs( $a - $b );
     print "diff = [$d]\n";
@@ -169,8 +169,8 @@ $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
-ok( approx( $s[0], 61.9375 ) );       # 
-ok( approx( $s[1], 26.7312 ) );       # 
+ok( tapprox( $s[0], 61.9375 ) );       # 
+ok( tapprox( $s[1], 26.7312 ) );       # 
 ok( $s[2], 66.5 );                       # 
 ok( $s[3], 22 );                         # 
 ok( $s[4], 98 );                         # 40

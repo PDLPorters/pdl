@@ -12,7 +12,7 @@ PDL::Func - useful functions
  # but is shows that you can thread if you want to
  # (and the library lets you)
  #
- my $obj = init PDL::Func( Interpolate => "Hermite" );
+ my $obj = PDL::Func->init( Interpolate => "Hermite" );
  # 
  my $x = pdl( 0 .. 45 ) * 4 * 3.14159 / 180;
  my $y = cat( sin($x), cos($x) );
@@ -177,8 +177,8 @@ BEGIN {
 
 =for usage
 
- $obj = init PDL::Func( Interpolate => "Hermite", x => $x, y => $y );
- $obj = init PDL::Func( { x => $x, y => $y } );
+ $obj = PDL::Func->init( Interpolate => "Hermite", x => $x, y => $y );
+ $obj = PDL::Func->init( { x => $x, y => $y } );
 
 =for ref
 
@@ -191,6 +191,10 @@ L<PDL::Primitive::interpolate|PDL::Primitive/interpolate>.
 A value of C<Hermite> uses piecewise cubic Hermite functions,
 which also allows the integral and gradient of the data
 to be estimated.
+
+Options can either be provided directly to the method, as in the
+first example, or within a hash reference, as shown in the second
+example.
 
 =cut
 
@@ -211,7 +215,7 @@ my %attr =
      },
      Linear  => {},
      Hermite => {
-	 bc  => { settable => 1, gettable => 1, required => 1 },
+	 bc  => { settable => 1, gettable => 1, required => 1, default => "simple" },
 	 g   => { gettable => 1 },
      },
      );
@@ -284,7 +288,7 @@ sub _init_attr {
 	$self->{values}{$attr} = undef;
     }
 
-    # now set up for the particular inerpolation scheme
+    # now set up for the particular interpolation scheme
     $ref = $attr{$interpolate};
     foreach my $attr ( keys %{$ref} ) {
 	# set default values, if not known
@@ -296,11 +300,13 @@ sub _init_attr {
 
 	# change the values to those supplied
 	foreach my $type ( keys %{$ref->{$attr}} ) {
+	    next if $type eq "default";
 	    $self->{attributes}{$attr}{$type} = $ref->{$attr}{$type}
 		if exists $self->{types}{$type};
 	}
-	# set value to undef
-	$self->{values}{$attr} = undef;
+	# set value to default value/undef
+	$self->{values}{$attr} = 
+	    exists $ref->{$attr}{default} ? $ref->{$attr}{default} : undef;
     }
 } # sub: _init_attr()
 
@@ -841,8 +847,8 @@ sub integrate {
     croak 'Usage: $obj->integrate( $type => $limits )' . "\n"
 	unless $#_ == 1;
 
-    croak 'Error: can not call integrate for Integrate => "Linear".' ."\n"
-	unless $self->{flags}{Integrate} eq "Hermite";
+    croak 'Error: can not call integrate for Interpolate => "Linear".' ."\n"
+	unless $self->{flags}{scheme} eq "Hermite";
 
     # check everything is fine
     $self->_check_attr();
@@ -921,12 +927,19 @@ Amalgamated C<PDL::Interpolate> and C<PDL::Interpolate::Slatec>
 to form C<PDL::Func>. Comments greatly appreciated on the
 current implementation, as it is not too sensible.
 
+Thanks to Robin Williams, Halldór Olafsson, and Vince McIntyre.
+
+=head1 THE FUTURE
+
+Robin is working on a new version, that improves on the current version
+a lot. No time scale though!
+
 =head1 AUTHOR
 
-Copyright (C) 2000 Doug Burke (burke@ifa.hawaii.edu).
+Copyright (C) 2000,2001 Doug Burke (dburke@cfa.harvard.edu).
 All rights reserved. There is no warranty. 
 You are allowed to redistribute this software / documentation as 
-described in the file COPYING in the PDL distribution.                                    
+described in the file COPYING in the PDL distribution.
 
 =cut
 

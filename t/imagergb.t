@@ -5,7 +5,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b,$mdiff) = @_;
 	$mdiff = 0.01 unless defined($mdiff);
 	$c = abs($a-$b);
@@ -34,16 +34,16 @@ $im = float [1,2,3,4,5];
 vars_ipv;
 
 $out = bytescl($im,100);
-ok(1,approx($im,bytescl($im,100)));
+ok(1,tapprox($im,bytescl($im,100)));
 ok(2,$out->get_datatype == $PDL::Types::PDL_B);
 $out = bytescl($im,-100);
-ok(3,approx(pdl([0,25,50,75,100]),$out));
+ok(3,tapprox(pdl([0,25,50,75,100]),$out));
 
 p "$out\n";
 
 $rgb = double [[1,1,1],[1,0.5,0.7],[0.1,0.2,0.1]];
 $out = rgbtogr($rgb);
-ok(4,approx($out,pdl([1,0.67,0.16])));
+ok(4,tapprox($out,pdl([1,0.67,0.16])));
 ok(5,$out->get_datatype == $PDL::Types::PDL_D);
 
 vars_ipv;
@@ -68,4 +68,4 @@ $tmp = 0; # -w shut up!
 $out = interlrgb($im,$lut);
 vars_ipv;
 p $out;
-ok(6,approx($out,$interl));
+ok(6,tapprox($out,$interl));

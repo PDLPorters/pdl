@@ -1,4 +1,5 @@
 use strict;
+use PDL::Types;
 
 pp_addpm({At=>'Top'},<<'EOD');
 
@@ -43,6 +44,7 @@ the copyright notice should be included in the file.
 
 EOD
 
+
 pp_addhdr('
 
 #define IsNaN(x) (x != x)
@@ -58,6 +60,75 @@ pp_addhdr('
 #endif
 
 ');
+
+for (keys %PDL::Types::typehash) {
+    my $ctype = $PDL::Types::typehash{$_}{ctype};
+    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+
+  pp_addhdr << "EOH";
+
+/* 
+ * this routine is based on code referenced from
+ * http://www.eso.org/~ndevilla/median/
+ * the original algorithm is described in Numerical Recipes
+*/
+
+#define ELEM_SWAP(a,b) { register $ctype t=(a);(a)=(b);(b)=t; }
+
+$ctype quick_select_$ppsym($ctype arr[], int n) 
+{
+    int low, high ;
+    int median;
+    int middle, ll, hh;
+
+    low = 0 ; high = n-1 ; median = (low + high) / 2;
+    for (;;) {
+        if (high <= low) /* One element only */
+            return arr[median] ;
+
+        if (high == low + 1) {  /* Two elements only */
+            if (arr[low] > arr[high])
+                ELEM_SWAP(arr[low], arr[high]) ;
+            return arr[median] ;
+        }
+
+    /* Find median of low, middle and high items; swap into position low */
+    middle = (low + high) / 2;
+    if (arr[middle] > arr[high])    ELEM_SWAP(arr[middle], arr[high]) ;
+    if (arr[low] > arr[high])       ELEM_SWAP(arr[low], arr[high]) ;
+    if (arr[middle] > arr[low])     ELEM_SWAP(arr[middle], arr[low]) ;
+
+    /* Swap low item (now in position middle) into position (low+1) */
+    ELEM_SWAP(arr[middle], arr[low+1]) ;
+
+    /* Nibble from each end towards middle, swapping items when stuck */
+    ll = low + 1;
+    hh = high;
+    for (;;) {
+        do ll++; while (arr[low] > arr[ll]) ;
+        do hh--; while (arr[hh]  > arr[low]) ;
+
+        if (hh < ll)
+        break;
+
+        ELEM_SWAP(arr[ll], arr[hh]) ;
+    }
+
+    /* Swap middle item (in position low) back into correct position */
+    ELEM_SWAP(arr[low], arr[hh]) ;
+
+    /* Re-set active partition */
+    if (hh <= median)
+        low = ll;
+        if (hh >= median)
+        high = hh - 1;
+    }
+}
+
+#undef ELEM_SWAP
+EOH
+
+}
 
 my %init = 
     ( 
@@ -174,7 +245,7 @@ sub PDL::conv2d {
    die \'Usage: conv2d( a(m,n), kern(p,q), [o]b(m,n), {Options} )\'
       if $#_<1 || $#_>2;
    my($a,$kern) = @_;
-   my $c = $#_ == 2 ? $_[2] : PDL->null;
+   my $c = $#_ == 2 ? $_[2] : $a->nullcreate;
    &PDL::_conv2d_int($a,$kern,$c,
 	(!(defined $opt && exists $$opt{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
@@ -282,7 +353,7 @@ sub PDL::med2d {
    my($a,$kern) = @_;
    croak "med2d: kernel must contain some positive elements.\n" 
        if all( $kern <= 0 );
-   my $c = $#_ == 2 ? $_[2] : PDL->null;
+   my $c = $#_ == 2 ? $_[2] : $a->nullcreate;
    &PDL::_med2d_int($a,$kern,$c,
 	(!(defined $opt && exists $opt->{Boundary}))?0:
 	(($$opt{Boundary} eq "Reflect") +
@@ -370,6 +441,87 @@ sub PDL::med2d {
 '
 
 ); # pp_def: med2d
+
+pp_def('med2df', Doc=> <<'EOD',
+=for ref
+
+2D median-convolution of an array in a pxq window (smoothing)
+
+Note: this routine does the median over all points in a rectangular
+      window and is not quite as flexible as C<med2d> in this regard
+      but slightly faster instead
+
+=for usage
+
+ $new = med2df $old, $xwidth, $ywidth, {OPTIONS}
+
+=for example
+
+ $smoothed = med2df $image, 3, 3, {Boundary => Reflect}
+
+=for options
+
+ Boundary - controls what values are assumed for the image when kernel
+            crosses its edge:
+ 	    => Default  - periodic boundary conditions (i.e. wrap around axis)
+ 	    => Reflect  - reflect at boundary
+ 	    => Truncate - truncate at boundary
+
+EOD
+        Pars => 'a(m,n); [o]b(m,n);',
+	# funny parameter names to avoid special case in 'init_vars'
+        OtherPars => 'int __p_size; int __q_size; int opt;',
+        PMCode => '
+
+sub PDL::med2df {
+   my $opt; $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+   die \'Usage: med2df( a(m,n), [o]b(m,n), p, q, {Options} )\'
+      if $#_<2 || $#_>3;
+   my($a,$p,$q) = @_;
+   croak "med2df: kernel must contain some positive elements.\n" 
+       if $p == 0 && $q == 0;
+   my $c = $#_ == 3 ? $_[3] : $a->nullcreate;
+   &PDL::_med2df_int($a,$c,$p,$q,
+	(!(defined $opt && exists $opt->{Boundary}))?0:
+	(($$opt{Boundary} eq "Reflect") +
+	2*($$opt{Boundary} eq "Truncate")));
+   return $c;
+}
+
+',
+        Code => 
+           init_vars( { vars => '$GENERIC() *tmp, kk; int count;',
+                        malloc => 'tmp = malloc(p_size*q_size*sizeof($GENERIC()));',
+                        check => '(tmp==NULL) || ' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
+           threadloop %{
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 count = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
+
+                    if (j2 >= 0)
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0) {
+                                tmp[count++] = $a(m=>i2,n=>j2);
+                          } /* if: i2 >= 0 */
+		       } /* for: i1 */
+		 } /* for: j1 */
+
+                 $b(m=>i,n=>j) =
+                        quick_select_$TBSULFD(B,S,U,L,F,D) (tmp, count );
+
+              } /* for: i */
+           } /* for: j */
+           %}
+           free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
+',
+
+); # pp_def: med2df
 
 pp_def('patch2d', 
        Doc=><<'EOD',

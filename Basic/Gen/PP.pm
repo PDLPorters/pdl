@@ -157,8 +157,9 @@ static int __pdl_boundscheck = 0;
 SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
 /* we need to handle croak ourserlves */
-#undef croak
-#define croak barf
+/* #undef croak
+   #define croak barf
+ */
 
 #if ! $PP::boundscheck
 # define PP_INDTERM(max, at) at
@@ -207,7 +208,7 @@ BOOT:
      Perl_croak(aTHX_ "This module requires use of PDL::Core first");
    PDL = (Core*) (void*) SvIV( CoreSV );  /* Core* value */
    if (PDL->Version != PDL_CORE_VERSION)
-     croak("$::PDLMOD needs to be recompiled against the newly installed PDL");
+     Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
 %);
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";

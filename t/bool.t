@@ -14,7 +14,7 @@ sub ok {
 
 sub pok { print "ok $_[0]\n" }
 
-print "1..4\n";
+print "1..5\n";
 
 $a = zeroes 1,1,1;
 if ($a) { print "not " }
@@ -32,3 +32,6 @@ $a = pdl byte, [ 0, 0, 1 ];
 unless (any $a > 0) { print "not " };
 pok 4;
 
+$a = ones 3;
+$b = $a + 1e-4;
+ok(5, all PDL::approx $a, $b, 1e-3);

@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#ifndef WIN32
 #include <values.h>
+#endif
 #include <float.h>
 /* #define DEBUGMAIN */   /* Set up debugging main, etc. */
 #include "cpoly.h"
@@ -745,11 +747,16 @@ static void mcon()
      */
 {
   
-#ifndef FOO
+#ifndef WIN32
   base = 2;
   eta = DBL_EPSILON;
   smalno = MINDOUBLE;
   infin = MAXDOUBLE;
+#else
+  base = 2;
+  eta = DBL_EPSILON;
+  smalno = DBL_MIN;
+  infin = DBL_MAX;
 #endif
 
 #ifdef IBM360

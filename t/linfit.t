@@ -8,7 +8,7 @@ kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 print "1..2\n";
 
 unless ($loaded) {
-        for (1..1) {
+        for (1..2) {
                 print "ok $_ # Skipped: probably PDL::Slatec not available.\n";
         }
         exit;
@@ -33,7 +33,7 @@ my ($yfit, $coeffs) = PDL::linfit1d($data,$fitFuncs);
 
 my @coefs = $coeffs->list;
 
-ok( $testNo++, approx( $coefs[0], 3) && approx( $coefs[1], 2) && approx( $coefs[2], 3) );
+ok( $testNo++, tapprox( $coefs[0], 3) && tapprox( $coefs[1], 2) && tapprox( $coefs[2], 3) );
 
 
 # More Complex Example
@@ -105,14 +105,14 @@ my $fitFuncs = new PDL( \@functions);
 
 @coefs = $coeffs->list;
 
-ok( $testNo++, approx( $coefs[0], $expectedCoefs[0]) && 
-		approx( $coefs[1], $expectedCoefs[1]) &&
-		approx( $coefs[2], $expectedCoefs[2]) &&
-		approx( $coefs[3], $expectedCoefs[3]) 
+ok( $testNo++, tapprox( $coefs[0], $expectedCoefs[0]) && 
+		tapprox( $coefs[1], $expectedCoefs[1]) &&
+		tapprox( $coefs[2], $expectedCoefs[2]) &&
+		tapprox( $coefs[3], $expectedCoefs[3]) 
 	 );
 
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = ref($c) ? $c->{PDL}->max : $c ;  # don't do a make if were are dealing 

@@ -9,7 +9,7 @@ sub ok {
         print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
         my($a,$b) = @_;
         my $c = abs($a-$b);
         my $d = ref($c) ? max($c) : $c ;  # don't do a make if were are dealing 
@@ -48,11 +48,11 @@ ok($testNo++, ($im x $im)->sum == 3429 );
 
 my @statsRes = $im->stats;
 
-ok($testNo++, approx($statsRes[0],5.36) );
-ok($testNo++, approx($statsRes[1],4.4621) );
-ok($testNo++, approx($statsRes[2],3) );
-ok($testNo++, approx($statsRes[3],1) );
-ok($testNo++, approx($statsRes[4],13) );
+ok($testNo++, tapprox($statsRes[0],5.36) );
+ok($testNo++, tapprox($statsRes[1],4.4621) );
+ok($testNo++, tapprox($statsRes[2],3) );
+ok($testNo++, tapprox($statsRes[3],1) );
+ok($testNo++, tapprox($statsRes[4],13) );
 
 # print "StatRes = ".join(", ",@statsRes)."\n";
 
@@ -62,11 +62,11 @@ my $ones = ones(5,5);
 @statsRes = $im->stats($ones);
 
 # print "StatRes with moments = ".join(", ",@statsRes)."\n";
-ok($testNo++, approx($statsRes[0],5.36) );
-ok($testNo++, approx($statsRes[1],4.4621) );
-ok($testNo++, approx($statsRes[2],3) );
-ok($testNo++, approx($statsRes[3],1) );
-ok($testNo++, approx($statsRes[4],13) );
+ok($testNo++, tapprox($statsRes[0],5.36) );
+ok($testNo++, tapprox($statsRes[1],4.4621) );
+ok($testNo++, tapprox($statsRes[2],3) );
+ok($testNo++, tapprox($statsRes[3],1) );
+ok($testNo++, tapprox($statsRes[4],13) );
 
 
 # which ND test
@@ -83,16 +83,16 @@ ok($testNo++,int(sum($b))==12);
 
 
 # clip tests
-ok($testNo++, approx($im->hclip(5)->sum,83) );
+ok($testNo++, tapprox($im->hclip(5)->sum,83) );
 
-ok($testNo++, approx($im->lclip(5)->sum,176) );
+ok($testNo++, tapprox($im->lclip(5)->sum,176) );
 
 
-ok($testNo++, approx($im->clip(5,7)->sum,140) );
+ok($testNo++, tapprox($im->clip(5,7)->sum,140) );
 
 # indadd Test:
 $a = pdl( 1,2,3);
 $ind = pdl( 1,4,6);
 $sum = zeroes(10);
 indadd($a,$ind, $sum);
-ok($testNo++, approx($sum->sum,6) );
+ok($testNo++, tapprox($sum->sum,6) );

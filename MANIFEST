@@ -44,6 +44,7 @@ Basic/Gen/PP/XS.pm
 Basic/Gen/PP/dump.pp
 Basic/Lite.pm
 Basic/LiteF.pm
+Basic/Lvalue.pm
 Basic/Makefile.PL
 Basic/Math/Makefile.PL
 Basic/Math/NOTES
@@ -618,6 +619,7 @@ t/interp.t
 t/interp_slatec.t
 t/lut.t
 t/linfit.t
+t/lvalue.t
 t/magic.t
 t/matmult.t
 t/misc.t

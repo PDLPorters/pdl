@@ -1,8 +1,6 @@
 CURRENT PRIORITIES:
 
-- get rid of barf!
 - get rid of 'swap' parameter when calling bifuncs explicitly
-- lvalue stuff for perl 5.6
 - overhaul core interfaces, move drepecated interfaces into own module
 - improve OpenGL detection
 - sort out interface to different interpolation codes (PDL::Func

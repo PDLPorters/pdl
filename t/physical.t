@@ -10,7 +10,7 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub approx {
+sub tapprox {
 	my($a,$b) = @_;
 	$c = abs($a-$b);
 	$d = max($c);
@@ -39,6 +39,6 @@ $e = $c->physical();
 ok(4, $e != $c);
 ok(5, $e->isphysical());
 
-ok(6, approx($c,$e));
+ok(6, tapprox($c,$e));
 
 }
