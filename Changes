@@ -1,3 +1,5 @@
+CS  - NiceSlice doc additions
+    - PDL::Core: squeeze as reshape(-1) alias 
 CED (11-Nov-2002)
     - Transform.pm updates - conformal radial expansion, better 
 	documentation, better composition, several minor bug fixes

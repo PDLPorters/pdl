@@ -7,7 +7,7 @@ use strict;
 use Test;
 
 
-plan tests => 6;
+plan tests => 10;
 
 use PDL::LiteF;
 $| = 1;
@@ -41,3 +41,15 @@ ok $@ =~ /invalid dim size/;
 $a = ones 3,1,4;
 $b = $a->reshape;
 ok join(',',$b->dims) eq '3,4';
+
+# test reshape(-1) and squeeze
+$a = ones 3,1,4;
+$b = $a->reshape(-1);
+$c = $a->squeeze;
+ok join(',',$b->dims) eq '3,4';
+ok all $b == $c;
+
+$c++; # check dataflow
+print "a: $a\nb: $b\nc: $c\n";
+ok all $b == $c; # should flow back to b
+ok all $a == 2;

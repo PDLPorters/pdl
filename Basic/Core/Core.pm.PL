@@ -96,7 +96,7 @@ print OUT <<"!WITH!SUBS!";
    $convertfuncs
    convert inplace zeroes ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat sclr
+   dummy mslice approx flat sclr squeeze
    );
 
 \%EXPORT_TAGS = (
@@ -1808,6 +1808,28 @@ sub PDL::reshape{
   $_[0] = $pdl;
   return $pdl;
 }
+
+=head2 squeeze
+
+=for ref
+
+eliminate all singleton dimensions (dims of size 1)
+
+=for example
+
+ $b = $a(0,0)->squeeze;
+
+Alias for C<reshape(-1)>. Removes all singleton dimensions
+and preserves dataflow. A more concise interface is
+provided by L<PDL::NiceSlice|PDL::NiceSlice> via modifiers:
+
+ use PDL::NiceSlice;
+ $b = $a(0,0;-); # same as $a(0,0)->squeeze
+
+=cut
+
+*squeeze = \&PDL::squeeze;
+sub PDL::squeeze { return $_[0]->reshape(-1) }
 
 =head2 flat
 
