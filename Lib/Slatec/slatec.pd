@@ -492,8 +492,7 @@ sub PDL::polyvalue {
 
   # This one must be preallocated and must take into account
   # the size of $x if greater than 1
-  my $yp;                                                                     
-  print $_[2]->getdim(0),"\n";
+  my $yp;
   if ($_[2]->getdim(0) == 1) {
     $yp = $_[2]->zeroes($_[1]);
   } else {
