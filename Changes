@@ -1,3 +1,7 @@
+CED 11-Dec-2004
+   - transform.pd: added projective transforms (t_projective)
+   - slices.pd: added Miloslav's patch (patch #1083663)
+   
 CED 4-Dec-2004
    - DiskCache.pm: Fixed problem with syncing to disk on store (typo in code)
    - Lib/Opt/Simplex.pm: Fixed bug 1057022 (Opt::Simplex bug; thanks, Marcus)

@@ -232,14 +232,14 @@ sub isbigendian {
 #
 #     case PDL_L:
 #        {
-#           long *xx = x.data;
+#           PDL_Long *xx = x.data;
 #           for(i=0; i<nvals; i++)
 #              xx[i] = i/nvals;
 #        }break;
 #
 #     case PDL_F:
 #        {
-#           float *xx = x.data;
+#           PDL_Float *xx = x.data;
 #
 #       .... etc. .....
 #
