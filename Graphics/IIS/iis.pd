@@ -22,18 +22,19 @@ These programs should be familiar to astronomer's - they are used by
 the common IRAF system. The programs and their HTML documentation
 can be obtained from the following URLs:
 
-SAOimage: http://tdc-www.harvard.edu/software/saoimage.html
-Ximtool:  http://iraf.noao.edu/iraf/web/projects/x11iraf/x11iraf.html
+ SAOimage: http://tdc-www.harvard.edu/software/saoimage.html
+ Ximtool:  http://iraf.noao.edu/iraf/web/projects/x11iraf/x11iraf.html
 
 Non-astronomer's may find they quite nifty for displaying 2D data.
 
 The Perl variable C<$stdimage> is exported from the module and controls
 the frame buffer configuration currently in use. The default value
-is 'imt1024' which specifies a 1024x1024 frame buffer. Other
-values supported by the module are: imt512,imt800,imt1024,imt1600,imt2048,
-and imt4096.
+is C<imt1024> which specifies a C<1024x1024> frame buffer. Other
+values supported by the module are:
+ 
+ imt512, imt800, imt1024, imt1600, imt2048, and imt4096.
 
-If you have a C<$HOME/.imtoolrc> you can use it to specify other frame
+If you have a F<$HOME/.imtoolrc> you can use it to specify other frame
 buffer names and configurations in exactly the same way you can in
 IRAF. Here is a sample file:
 
@@ -53,7 +54,7 @@ IRAF. Here is a sample file:
 
 (Note: some versions of SAOimage may not even work if this file is not
 present. If you get funny error messages about 'imtoolrc' try copying
-the above to C<$HOME/.imtoolrc> or C</usr/local/lib/imtoolrc>)
+the above to F<$HOME/.imtoolrc> or F</usr/local/lib/imtoolrc>)
 
 The Perl variable C<$iisframe> is also exported from the module and controls
 which display frame number to use in programs such as Ximtool which supports
@@ -107,7 +108,7 @@ Displays an image on a IIS device (e.g. SAOimage/Ximtool)
 
 =for sig
 
- iis(image(m,n),[\%options]) or iis(image(m,n),[min(),max()])
+ (image(m,n),[\%options]) or (image(m,n),[min(),max()])
 
 Displays image on a IIS device. If C<min()> or C<max()> are omitted they
 are autoscaled. A good demonstration of PDL threading can be had
@@ -153,8 +154,9 @@ sub iis {
     $min = $image->min unless defined $min;
     $max = $image->max unless defined $max;
     print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
-    &PDL::_iis_int($image,$min,$max,$title);
-1;}
+    PDL::_iis($image,$min,$max,$title);
+    1;
+}
 
 =head2 iiscur
 
@@ -187,7 +189,7 @@ Draws a circle on a IIS device (e.g. SAOimage/Ximtool)
 
 =for sig
 
- Signature: iiscirc(x(),y(),radius(),colour())
+ (x(),y(),radius(),colour())
 
 =for usage
 
@@ -230,8 +232,9 @@ sub iiscirc {
    fbconfig($stdimage) if $stdimage ne $last_stdimage;
    $radius = 10 unless defined $radius;
    $colour = 204 unless defined $colour;
-   &PDL::_iiscirc_int($x, $y, $radius, $colour);
-1;}
+   PDL::_iiscirc($x, $y, $radius, $colour);
+   1;
+}
 
 =head2 saoimage
 
@@ -442,11 +445,10 @@ EOD
 
 pp_bless('PDL::Graphics::IIS');
 
-pp_def('iis',
-        PMCode=>'',
-	Doc => undef,
+pp_def('_iis',
         Pars => 'image(m,n); min(); max();',
         OtherPars => 'char *perl_title',
+	Doc  => undef,
         Code => '
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
@@ -594,10 +596,9 @@ pp_def('iis',
 
 '); # End of iis_c pp_def
 
-pp_def('iiscirc',
+pp_def( '_iiscirc',
         Pars => 'x(); y(); r(); colour();',
-        PMCode=>'',
-	Doc=>undef,
+	Doc  => undef,
         Code => '
 
    int   frame = (int)SvIV( perl_get_sv("iisframe", FALSE) );
