@@ -149,8 +149,11 @@ sub GLinit{
   my($self,@args) = @_;
   
   if(defined $self->{GLwin}){
-    print "NW= ",$self->width," NH= ",$self->height,"\n";
-    $self->update;
+#    print "OW= ",$self->width," OH= ",$self->height,"\n";
+#    $self->update;
+#    print "NW= ",$self->width," NH= ",$self->height,"\n";
+	 $self->{GLwin}{_GLObject}->XResizeWindow($self->width ,$self->height);
+
     $self->{GLwin}->reshape($self->width,$self->height);
     $self->refresh();
   }else{
