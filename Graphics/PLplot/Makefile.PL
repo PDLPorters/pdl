@@ -3,8 +3,10 @@
 use ExtUtils::MakeMaker;
 use Config;
 
-use PDL::Core::Dev;  # needed for stand-alone version of package.  May need to comment out
-                     # for package included in PDL distro. 
+# use PDL::Core::Dev;  # needed for stand-alone version of package.
+                       # Need to comment out
+                       # for package included in PDL distro.
+PDL::Core::Dev->import();
 
 use vars qw /$plplotvers/; # version of plplot used
 
