@@ -1,3 +1,5 @@
+CED (11-Dec-2002)
+    - Minor fix to Windows.pm in _FITS_tr.
 CED (10-Dec-2002)
     - Minor fixes to Windows.pm
     - First cut at pgplot.t -- test suite for pgplot windowing stuff.

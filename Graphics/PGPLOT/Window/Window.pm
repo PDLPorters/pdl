@@ -3630,9 +3630,10 @@ sub _FITS_tr {
     "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
     unless (scalar(keys %$hdr) || (!$PDL::debug));
 
+  my($ic);
   {
     no warnings; # don't complain about missing fields in fits headers
-    my($ic) = [ (   ($hdr->{CDELT1} || 1.0) *	 
+    $ic = [ (   ($hdr->{CDELT1} || 1.0) *	 
 		    (  ($hdr->{NAXIS1} || $pdl->getdim(0) )  /  2.0 
 		       -   
 		       ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
