@@ -1,3 +1,6 @@
+DJB 23-Feb-2005 (EST)
+   t/pgplot.t now uses $PGPLOT_DEV to set the output device, falling
+   back to "/xw", rather than forcing "/xw".
 CS 24-Feb-2005
    Remove 'use UNIVERSAL' for Core.pm.PL; shouldn't be needed anyway
    and gave strange import problems when using PDL with Net::SSH::Perl;
