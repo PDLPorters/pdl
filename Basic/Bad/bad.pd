@@ -432,17 +432,39 @@ sub PDL::check_badflag {
 
 !NO!SUBS!
 
+pp_addhdr <<'EOHDR';
+static pdl* new_pdlscalar(int datatype)
+       {
+         pdl *p = PDL->pdlnew();
+         PDL->setdims (p, NULL, 0);  /* set dims */
+         p->datatype = datatype;         /* and data type */
+         PDL->allocdata (p);             /* allocate the data chunk */
+
+         return p;
+       }
+EOHDR
+
 use PDL::Types;
 my $ntypes = $#PDL::Types::names;
 
 my $str;
 foreach my $i ( 0 .. $ntypes ) {
     my $type = PDL::Type->new( $i );
+    my $ctype = $type->ctype;
     my $realctype = $type->realctype;
+    my $typesym = $type->symbol;
 
     my $cname = $type->ctype;
     $cname =~ s/^PDL_//;
     my $storage = "PDL->bvals.$cname";
+
+    my $init_code = << "EOC";
+    pdl* p;
+    $ctype *data;
+    p = new_pdlscalar($typesym);
+    data = ($ctype *) p->data;
+
+EOC
 
     my $set_code = "if ( items > 0 ) { $storage = ($realctype) val; }";
 
@@ -456,19 +478,25 @@ foreach my $i ( 0 .. $ntypes ) {
 
     $str .=
 "
-$realctype
+pdl *
 _badvalue_int${i}(val=0)
     double val
   CODE:
+   {
+    $init_code
     $set_code
-    RETVAL = $storage;
+    *data = ($ctype) $storage;
+    RETVAL = p;
+   }
   OUTPUT:
     RETVAL
 
-$realctype
+pdl *
 _default_badvalue_int${i}()
   CODE:
-    RETVAL = PDL->bvals.default_$cname;
+    $init_code
+    *data = ($ctype) PDL->bvals.default_$cname;
+    RETVAL = p;
   OUTPUT:
     RETVAL
 
@@ -489,16 +517,16 @@ pp_addpm(<<'!NO!SUBS!');
 	my ( $self, $val ) = @_;
 	my $name = "PDL::_badvalue_int" . $self->enum();
 	if ( defined $val ) {
-	    return &{$name}( $val );
+	    return &{$name}( $val )->sclr;
 	} else {
-	    return &{$name}();
+	    return &{$name}()->sclr;
 	}
     }
 
     sub orig_badvalue {
 	my $self = shift;
 	my $name = "PDL::_default_badvalue_int" . $self->enum();
-	return &{$name}();
+	return &{$name}()->sclr;
     }
 
 } # end of package PDL::Type
@@ -532,9 +560,9 @@ sub PDL::badvalue {
 
     my $name = "PDL::_badvalue_int$num";
     if ( defined $val ) {
-	return &{$name}( $val );
+	return &{$name}( $val )->sclr;
     } else {
-	return &{$name}();
+	return &{$name}()->sclr;
     }
 
 } # sub: badvalue()

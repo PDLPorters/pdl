@@ -1,3 +1,6 @@
+CS
+   - changed handling of bad values to accommodate longlong types
+     general infrastructure overhaul to improve type handling
 CED 27-Mar-2003
    - Added XRange,YRange keys to image handling in Graphics::PGPLOT::Window.
 CED 25-Mar-2003

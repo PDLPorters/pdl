@@ -48,6 +48,7 @@ my @types = (
 	      ppforcetype => 'byte', # for some types different from ctype
 	      usenan => 0,           # do we need NaN handling for this type?
 	      packtype => 'C*',      # the perl pack type
+	      defaultbadval => 'UCHAR_MAX',
 	     },
 	     {
 	      identifier => 'S',
@@ -56,6 +57,7 @@ my @types = (
 	      ppforcetype => 'short',
 	      usenan => 0,
 	      packtype => 's*',
+	      defaultbadval => 'SHRT_MIN',
 	     },
 	     {
 	      identifier => 'US',
@@ -65,6 +67,7 @@ my @types = (
 	      ppforcetype => 'ushort',
 	      usenan => 0,
 	      packtype => 'S*',
+	      defaultbadval => 'USHRT_MAX',
 	     },
 	     {
 	      identifier => 'L',
@@ -73,6 +76,7 @@ my @types = (
 	      ppforcetype => 'int',
 	      usenan => 0,
 	      packtype => 'l*',
+	      defaultbadval => 'INT_MIN',
 	  });
 
 #
@@ -90,6 +94,9 @@ if ( $longlong_flag == 1 ) {
 	ppforcetype => 'longlong',
 	usenan => 0,
 	packtype => 'q*',
+	defaultbadval => 'LONG_MIN', # this is far from optimal
+		                     # but LLONG_MIN/LLONG_MAX are probably
+		                     # nonportable
     } );
 }
 
@@ -103,6 +110,7 @@ push @types, (
 		  ppforcetype => 'float',
 		  usenan => 1,
 		  packtype => 'f*',
+	          defaultbadval => '-FLT_MAX',
 	      },
 	      {
 		  identifier => 'D',
@@ -111,6 +119,7 @@ push @types, (
 		  ppforcetype => 'double',
 		  usenan => 1,
 		  packtype => 'd*',
+	          defaultbadval => '-DBL_MAX',
 	      },
 	      );
 
@@ -158,7 +167,8 @@ sub convertfunc {
 
 sub gentypehashentry ($$) {
   my ($type,$num) = @_;
-  for my $field (qw/identifier pdlctype realctype ppforcetype usenan/)
+  for my $field (qw/identifier pdlctype realctype ppforcetype usenan
+		 defaultbadval/)
     {checktypehas $field, $type}
   my $newhash = {
 		 ctype => $type->{pdlctype},
@@ -171,6 +181,7 @@ sub gentypehashentry ($$) {
 		 usenan => $type->{usenan},
 		 ioname => &convertfunc($type), # same as the name of the
 		                                # convertfunc
+		 defbval => $type->{defaultbadval},
 		};
   return $newhash;
 }
@@ -439,7 +450,7 @@ sub PDL::Types::types { # return all known types as type objects
 !NO!SUBS!
 
 foreach my $name ( qw( ctype ppsym realctype ppforcetype convertfunc
-		       sym numval usenan ioname) ) {
+		       sym numval usenan ioname defbval) ) {
   print OUT << "EOS";
 sub $name {
   return \$PDL::Types::typehash{\$_[0]->symbol}->{$name};

@@ -275,12 +275,25 @@ void propogate_badflag( pdl *it, int newval ) {
 double pdl_get_badvalue( int datatype ) {
     double retval;
     switch ( datatype ) {
-	case 0: retval = PDL.bvals.Byte;   break;
-	case 1: retval = PDL.bvals.Short;  break;
-	case 2: retval = PDL.bvals.Ushort; break;
-	case 3: retval = PDL.bvals.Long;   break;
-	case 4: retval = PDL.bvals.Float;  break;
-	case 5: retval = PDL.bvals.Double; break;
+!NO!SUBS!
+
+
+use PDL::Types;
+my $ntypes = $#PDL::Types::names;
+
+my $str;
+foreach my $i ( 0 .. $ntypes ) {
+    my $type = PDL::Type->new( $i );
+    my $typesym = $type->symbol;
+
+    my $cname = $type->ctype;
+    $cname =~ s/^PDL_//;
+    my $storage = "PDL.bvals.$cname";
+
+    print OUT "\tcase $typesym: retval = $storage; break;\n";
+}
+
+print OUT <<'!NO!SUBS!';
 
       default:
 	croak("Unknown type sent to pdl_get_badvalue\n");
@@ -289,7 +302,7 @@ double pdl_get_badvalue( int datatype ) {
 } /* pdl_get_badvalue() */
 
 !NO!SUBS!
-    
+
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -853,27 +866,26 @@ if ( $bvalflag ) {
 
     PDL.propogate_badflag = propogate_badflag;
 
-    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
-    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
-    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
-    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
 !NO!SUBS!
 
-    # note: no defaults if usenan
-    if ( $usenan ) {
-    print OUT 
-'
-    PDL.bvals.Float  = __pdl_nan.__d;
-    PDL.bvals.Double = (double) __pdl_nan.__d;
-';
-} else {
-    print OUT 
-'
-      PDL.bvals.Float  = PDL.bvals.default_Float  = -FLT_MAX;
-      PDL.bvals.Double = PDL.bvals.default_Double = -DBL_MAX;
-';
+  for my $type (PDL::Types::types) {
+    my $typename = $type->ctype;
+    $typename =~ s/^PDL_//;
+    my $bval = $type->defbval;
+    my $ctype = $type->ctype;
+    if ($usenan && $type->usenan) {
+      # note: no defaults if usenan
+      print OUT "\tPDL.bvals.$typename = ($ctype) __pdl_nan.__d;\n";
+    } else {
+      print OUT
+	"\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
+    }
+  }
+#    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
+#    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
+#    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
+#    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
 
-} # if: $usenan
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
