@@ -196,7 +196,7 @@ ok( abs($b->sum - 5.13147) < .01 );
 unlink $file;
 
 #######################################################
-# Tests of rcols() options: 29 to 33
+# Tests of rcols() options: 29 to 36
 #   EXCLUDE/INCLUDE/LINES/DEFTYPE/TYPES
 
 open(OUT, ">$file") || die "Can not open $file for writing\n";
@@ -228,7 +228,10 @@ ok( $a->nelem==4 && $a->get_datatype==$PDL_US && $b->get_datatype==$PDL_D ); # t
 ok( UNIVERSAL::isa($PDL::IO::Misc::deftype,"PDL::Type") ); # test: 34
 ok( $PDL::IO::Misc::deftype->[0] == double->[0] ); # test: 35
 
-$PDL::IO::Misc::deftype = byte;
-ok( $PDL::IO::Misc::deftype->[0] == byte->[0] ); # test: 36
+$PDL::IO::Misc::deftype = short;
+($a,$b) = rcols $file;
+ok( $a->get_datatype == short->[0] ); # test: 36
+
+unlink $file;
 
 1;
