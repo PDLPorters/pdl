@@ -1,3 +1,7 @@
+CS  - PP.pm: remove first '$this' arg from pp_add_exported!
+    - LM.pm: fix implementation bug; still not sure if it works properly
+             need more tests!
+    - apply Raul's debian patch
 DJB (7/Jun/01)
     - minor fix for rfits() with bad-value support
 John Cerney (6/4/01)

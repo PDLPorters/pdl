@@ -82,7 +82,8 @@ sub pp_addpm {
 }
 
 sub pp_add_exported {
-	my ($this,$exp) = @_;
+	# my ($this,$exp) = @_;
+        my $exp = join ' ', @_; # get rid of this silly $this argument
 	$::PDLPMROUT .= $exp." ";
 }
 

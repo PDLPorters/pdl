@@ -1,3 +1,73 @@
+pdl (1:2.2.1-6) unstable; urgency=low
+
+  * Introduced a build-depends on libextutils-f77-perl.  [Which
+    breaks cross compilation since I've not released that package yet --
+    waiting on DFSG copyright, but allows building with slatec.]
+
+ -- Raul Miller <moth@debian.org>  Sat,  9 Jun 2001 22:54:30 -0400
+
+pdl (1:2.2.1-5) unstable; urgency=low
+
+  * fix postinst.base -- postinst was missing set -e
+
+ -- Raul Miller <moth@debian.org>  Fri, 25 May 2001 11:09:44 -0400
+
+pdl (1:2.2.1-4) unstable; urgency=low
+
+  * Ok, found out how to resolve $Config{version}.
+
+ -- Raul Miller <moth@debian.org>  Fri, 25 May 2001 01:04:12 -0400
+
+pdl (1:2.2.1-3) unstable; urgency=low
+
+  * changed INSTALLDIRS=perl to INSTALLDIRS=vendor in debian/rules,
+    for the new perl policy, changed Build-Depends to match.
+    (fixes #95423)
+  * made other changes to debian/rules and debian/control as indicated
+    by this new policy.  I hope the OPTIMIZE attribute doesn't hose PDL...
+  * FIXME: I've backed out compliance with 3.4.2 of the new perl policy:
+    "Binary modules must specify a dependency on either perl or
+     perl-base with a minimum version of the perl package used to
+     build the module, and must additionally depend on the expansion of
+     perlapi-$Config{version}." 
+    This fails to indicate what context to use for that expansion. In
+    my initial tests, this broke the package, and `apt-cache search
+    perlapi` turns up nothing.
+
+ -- Raul Miller <moth@debian.org>  Thu, 24 May 2001 14:01:33 -0400
+
+pdl (1:2.2.1-2) unstable; urgency=low
+
+  * replaced mesag-dev with xlibmesa-dev in build depends.  (fixes #97508)
+    replaced mesag3 with libgl1 in depends.
+  * Rant: [None of this rant is immediately relevant to this version
+    of PDL, except through examining the implications of bug #97508.]
+    This whole "trash the old i/o-library interface" thing strikes
+    me as *really bad*.  Interfaces should be treated as sacred,
+    and maintaining backwards compatibility is important for long term
+    system survivability.  Basically, what we're saying here is that
+    these interfaces are immature, and people who built code against
+    the earlier (obsolete) libraries acted prematurely.  Either that,
+    or we're saying that distributing binary packages for debian is
+    a mistake on the part of anyone outside of debian.  
+  * I'm leaving the Build-Depends for libncurses-dev in the control file,
+    even though it's now a virutal package, to see if I get any bug
+    reports filed against pdl because of it (for the record, I'm using
+    version 5.2.20010318-1 of libncurses5-dev to build this instance).
+  * updated debian/rules (added prerm, minor cleanups)
+
+ -- Raul Miller <moth@debian.org>  Mon, 21 May 2001 10:18:55 -0400
+
+pdl (1:2.2.1-1) unstable; urgency=low
+
+  * renamed directory from PDL-2.2.1 to pdl-2.2.1, and chmod +x debian/rules
+    (required so that dpkg-buildpackage works).  
+  * changed Source-Depends: to Build-Depends: in control file, and restored
+    build dependency for libncurses-dev.
+  * restored debian/postinst.base and debian/prerm from debian 2.2
+
+ -- Raul Miller <moth@debian.org>  Sun, 20 May 2001 22:14:49 -0400
+
 pdl (1:2.2.1-0) unstable; urgency=low
 
   * new upstream release
