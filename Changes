@@ -1,3 +1,4 @@
+CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test
 CS  - fix mem leak patch so that core struct version croaking works
     * NOTE: recent patches will require recompilation of any external
     *       modules that use PDL::PP; PDL will tell you when using such

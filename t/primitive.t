@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 8;
+plan tests => 9;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -55,3 +55,8 @@ $a = ones(byte,3000);
 dsumover($a,($b=null));
 ok( $b->get_datatype, $PDL_D );   # 7
 ok( $b->at, 3000 );               # 8
+
+my $p = pdl [ 1, 2, 3, 4, 7, 9, 1, 1, 6, 2, 5];
+my $q = zeroes 5;
+minimum_n_ind $p, $q;
+ok(tapprox $q, pdl(0, 6, 7, 1, 9));
