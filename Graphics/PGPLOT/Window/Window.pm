@@ -1924,10 +1924,11 @@ The increment in output coordinate per pixel.
 
 =item ImageCenter (or ImageCentre)
 
-The centre of the image as an anonymous array B<or> as a scalar. In the
-latter case the x and y value for the center will be set equal to this
-scalar. This is particularly useful in the common case  when the center
-is (0, 0).
+The centre of the image as an anonymous array B<or> as a scalar, in
+scientific coordinates. In the latter case the x and y value for the
+center will be set equal to this scalar. This is particularly useful
+in the common case when the center is (0, 0).  (ImageCenter overrides
+RefPos if both are specified).
 
 =item RefPos (or ReferencePosition)
 
@@ -1938,16 +1939,13 @@ containing 2 2-element array references, e.g.
  RefPos => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
 
 This will label pixel C<($xpix,$ypix)> as being at position
-C<($xplot,$yplot)>. The C<ImageCentre> option can be considered
-to be a special case of this option, since the following are identical
-(although one is a lot easier to type ;)
+C<($xplot,$yplot)>.  For example
 
- ImageCentre => [ $xc, $yc ]
- RefPos      => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
+ RefPos      => [ [100,74], [ 0, 0 ] ]
 
-The values supplied in C<ImageCentre> are used 
-if I<both> C<ImageCentre> and C<RefPos> are supplied in the
-options list.
+sets the scientific coordinate origin to be at the center of the (100,74)
+pixel coordinate.  The pixel coordinates are pixel-centered, and start counting
+from 0 (as all good pixel coordinates should).
 
 =back
 
@@ -4179,16 +4177,11 @@ information on the Representation of World Coordinate Systems in FITS.
 
 	} # no warnings;
 
-	my $ic = [
-		  ( $cdelt1 * ( $n1/2.0 - $cpix1 + 1 ) + $cval1 ),
-		  ( $cdelt2 * ( $n2/2.0 - $cpix2 + 1 ) + $cval2 )
-		  ];
-
 	return transform( $pane, {
 	    ImageDimensions => [ $n1, $n2 ],
 	    Angle  => $angle,
 	    Pixinc => [ $cdelt1, $cdelt2 ],
-	    ImageCenter => $ic
+	    RefPos => [ [$cpix1-1, $cpix2-1], [$cval1,$cval2] ]
 	    } );
 
     } # sub: _FITS_tr

@@ -1,6 +1,8 @@
 CED 17-Mar-04
    - Transform:  added match() convenience routine
    - Demos:  added a rotating-coordinate-system demo to "demo transform"
+   - Window.pm: fixed up _fits_tr to actually line up right with the FITS
+	coordinate system.
 DJB 17-Mar-04
    - Updated PLplot build so that it works on OS-X, and will automatically
      pick up the library if installed via FINK [currently only in unstable]
