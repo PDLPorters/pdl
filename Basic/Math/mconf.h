@@ -65,7 +65,13 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 /* For PDL, use system defaults where possible */
 #include <math.h>
 #if !defined(WIN32) && !defined(_WIN32)
+/* values.h is gone on OpenBSD(?) and depracated on GNU systems */
+/* can we use values.h on all UN*X systems? */
+#if defined __GNUC__
+#include <limits.h>
+#else
 #include <values.h>
+#endif   /* __GNUC__ */
 #endif
 #if defined(_WIN32) || defined(WIN32)
 #include <float.h>

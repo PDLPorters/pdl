@@ -1,3 +1,8 @@
+DJB (8/May/01)
+    - OpenBSD doesn't seem to have values.h, which causes Basic/Math to fail:
+      see http://testers.cpan.org/search?request=dist&dist=PDL#2.2.1 
+      Now using limits.h in Basic/Math/mconf.h for GNU systems - only tested
+      on solaris and i386-linux.
 John Cerney (5/3/01)
     - Simple change to primitive.pd so that interpol sub
       makes it into the PDL namespace, and not just the
@@ -20,7 +25,7 @@ John Cerney (4/11/01)
       gets built with interfaces to functions that aren't there. Setting
       PDL_DL_NONLAZY=0 prevents the test case from failing in these
       cases.
- DJB (10/Apr/01)
+DJB (10/Apr/01)
     - hacked Core/Dev.pm to work with perl 5.6.1 (ExtUtils::Liblist has
       changed although its documentation has not)
 CS  - applied Christopher Marshall's minimum_n_ind patch (bug #413184) + test
