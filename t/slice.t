@@ -1,5 +1,6 @@
 # Test ->slice(). This is not yet good enough: we need
-# nasty test cases,
+# nasty test cases
+#
 
 use PDL::LiteF;
 # kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
@@ -45,7 +46,6 @@ ok(2,$b->at(0,0) == 22);
 ok(3,$b->at(1,0) == 24);
 ok(4,$b->at(0,1) == 42);
 ok(5,$b->at(1,1) == 44);
-
 
 $b .= 0.5 * double ones(2,2);
 
