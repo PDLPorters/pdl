@@ -1,0 +1,35 @@
+--------------------------------------------------------------------------------
+
+                        Bad value support in PDL
+
+ Doug Burke (burke@ifa.hawaii.edu) & ...
+ last update: 07/09/00
+
+--------------------------------------------------------------------------------
+
+What are bad values and why should I bother with them?
+======================================================
+
+Sometimes it's useful to be able to specify a certain value is 'bad' or 
+'missing'; for example CCDs used in astronomy produce 2D images which are not
+perfect, since certain areas contain invalid data. Whilst PDL's powerful index
+routines and all the complicated business with dataflow, slices, etc etc mean 
+that these regions can be ignored in processing, it's awkward to do. It would
+be much easier to be able to say '$c = $a + $b' and leave all the hassle to the
+computer.
+
+However, if you're not interested in this, then you may (rightly) be concerned 
+with how this affects the speed of PDL, since the overhead can be large.
+
+Enter PDL's WITH_BADVAL configuration option -  if set to 0 or undef, the 
+bad-value support is ignored and you won't see any slow-down of code.
+
+The routines which support bad values are written to be as fast as possible -
+particularly when operating on piddles which do not contain bad values.
+
+--------------------------------------------------------------------------------
+
+ README.bpix         - this file
+ IMPLEMENTATION.bpix - details of how the bad-value support in implemented 
+ TODO.bpix           - bugs/wish list/general thoughts
+
