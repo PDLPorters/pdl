@@ -4633,7 +4633,8 @@ sub arrow {
 						  Wedge => undef,
 						  XTitle => undef,
 						  YTitle => undef,
-						  Title  => undef
+						  Title  => undef,
+						  Justify => 1
 						 });
     }
 
@@ -4662,7 +4663,9 @@ sub arrow {
 						  Unit => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
-						  Align => 'BL'
+						  Align => 'BL',
+						  Justify => undef,
+						  Axis=>'BCINST'
 						 });
     }
 
@@ -4671,7 +4674,7 @@ sub arrow {
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
 
-
+    $self->_add_to_state(\&imag, $in, $opt);
     release_and_barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
 
     &catch_signals;
@@ -4709,11 +4712,11 @@ sub arrow {
     if (!$self->held()) {
       
       #########
-      # Set axis defaults -- this overrides the ('BCNST') default in 
-      # PGPLOTOptions.pm, but only for images!
-      #
-      $o = $self->{Options}->options({Axis=>'BCINST'})
-	unless($u_opt->{Axis});
+#      # Set axis defaults -- this overrides the ('BCNST') default in 
+#      # PGPLOTOptions.pm, but only for images!
+#      #
+#      $o = $self->{Options}->options({Axis=>'BCINST'})
+#	unless($u_opt->{Axis});
       
       #########
       # Parse out scaling options - this is pretty long because
@@ -4773,18 +4776,18 @@ sub arrow {
       
       my(@env_range) = (@xvals[0..1],@yvals[0..1]);
       
-      if ( $pix ) {
-
+      if ( $pix && !defined($o->{Justify})) {
 
 	##############################
 	# Set up the viewport so we can calibrate its size in display
 	# space and compare to data space.  
 	_SetupViewport($o);
-	
+
+	##############################
 	# Get size of viewport in screen units
 	my ( $x0,$x1,$y0,$y1 );
 	pgqvp(1,$x0,$x1,$y0,$y1);
-
+	
 	##############################
 	# pix is always defined if pitch is defined, but not vice
 	# versa.  Work out a suitable pitch if necessary.
@@ -4821,7 +4824,7 @@ sub arrow {
 
       # Here's the initenv call, after much ado.  JUSTIFY is set to 0 
       # explicitly, because it's handled through the PIX code above.
-      $self->initenv( @env_range, 0, $o->{Axis}  );
+      $self->initenv( @env_range, $o->{Justify}, $o->{Axis}  );
 
       # Label axes if necessary
       if(defined ($u_opt->{Title} || $u_opt->{XTitle} || $u_opt->{YTitle})) {
@@ -4857,7 +4860,6 @@ sub arrow {
 	$self->release() unless $hflag;
     }
 
-    $self->_add_to_state(\&imag, $in, $opt);
     &release_signals;
     1;
 
@@ -4967,8 +4969,6 @@ sub fits_imag {
 		    );
 
 }
-
-
 
 # Load a colour table using pgctab()
 
