@@ -225,7 +225,8 @@ the default colour map):
 
 =item filltype
 
-Set the fill type to be used by L<poly|/poly>. 
+Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
+L<ellipse|/ellipse> and L<rectangle|/rectangle>
 The fill can either be specified using numbers or name, according to the 
 following table, where the recognised name is shown in capitals - it is 
 case-insensitive, but the whole name must be specified.
@@ -1471,7 +1472,7 @@ These gives alternative ways to specify the text and position.
 
 The following standard options influence this command:
 
-   COLOUR
+   COLOUR, CHARSIZE
 
 =for example
 
@@ -1495,7 +1496,7 @@ C<$x> and C<$y> determines the upper left hand corner of the box in which
 the legend goes. If the width is specified either as an argument or as
 an option in the option hash this is used to determine the optimal character
 size to fit the text into part of this width (defaults to 0.5 - see the
-description of C<Fraction> below). The rest of the width is filled out with
+description of C<TextFraction> below). The rest of the width is filled out with
 either lines or symbols according to the content of the C<LineStyle>,
 C<Symbol>, C<Colour> and C<LineWidth> options.
 
@@ -1517,10 +1518,11 @@ The width and/or height of each line (including symbol/line). This is
 used to determine the character size. If any of these are set to 'Automatic'
 the current character size will be used.
 
-=item C<Fraction>
+=item C<TextFraction>
 
-The text and the symbol/line is set inside a box. C<Fraction> determines how
-much of this box should be devoted to text. THis defaults to 0.5.
+The text and the symbol/line is set inside a box. C<TextFraction>
+determines how much of this box should be devoted to text. This
+defaults to 0.5. You can also use C<Fraction> as a synonym to this.
 
 =item C<TextShift>
 
@@ -2078,6 +2080,11 @@ sub _thread_options {
 ############################
 
 my $DEBUGSTATE = 0;
+
+sub debug_state {
+  $DEBUGSTATE = !$DEBUGSTATE;
+}
+
 sub replay {
   my $self = shift;
   my $state = shift || $self->{State};
@@ -2098,7 +2105,7 @@ sub replay {
   }
 
   foreach my $arg (@list) {
-    my ($command, $arg, $opt)=@$arg;
+    my ($command, $commandname, $arg, $opt)=@$arg;
     &$command($self, @$arg, $opt);
   }
 }
@@ -2127,10 +2134,12 @@ sub turn_on_recording {
 sub _add_to_state {
   my $self=shift;
   my ($func, $arg, $opt)=@_;
+  my ($pkg, $fname, $line, $funcname, $hasargs, $wantarray,
+      $evaltext, $isrequire, $hints, $bitmask)=caller(1);
   # We only add if recording has been turned on.
   print "Adding to state ! $func, $arg, $opt\n" if $DEBUGSTATE;
   print "State = ".$self->{State}."\n" if $DEBUGSTATE;
-  $self->{State}->add($func, $arg, $opt) if $self->{Recording};
+  $self->{State}->add($func, $funcname, $arg, $opt) if $self->{Recording};
 }
 
 sub retrieve_state {
@@ -2139,6 +2148,7 @@ sub retrieve_state {
   print "Retriving state!\n" if $DEBUGSTATE;
   return $state_copy;
 }
+
 
 #####################################
 # Window related "public" routines. #
@@ -2883,7 +2893,6 @@ sub env {
   $self->release() if $self->held();
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
-  $self->_add_to_state(\&env, $in, $opt);
   $opt = {} if !defined($opt);
   my $o = $self->{PlotOptions}->options($opt);
 
@@ -2917,6 +2926,9 @@ sub env {
     @args = @_;
   }
   $self->initenv( @args );
+  ## The adding to state has to take place here to avoid being cleared
+  ## buy the call to initenv...
+  $self->_add_to_state(\&env, $in, $opt);
   $self->hold();
 
 
@@ -3414,7 +3426,7 @@ sub tline {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tline($x, $y, $x->yvals, $self, $o);
+  _tline($x, $y, $y->yvals, $self, $o);
   $self->release unless $tmp_hold;
 
 }
@@ -3454,7 +3466,7 @@ sub tpoints {
   # We need to keep track of the current status of hold or not since
   # the tline function automatically enforces a hold to allow for overplots.
   my $tmp_hold = $self->held();
-  _tpoints($x, $y, $x->yvals, $self, $o);
+  _tpoints($x, $y, $y->yvals, $self, $o);
   $self->release unless $tmp_hold;
 
 }
@@ -4426,11 +4438,12 @@ sub poly {
 						 YPos	   => undef,
 						 Width     => 'Automatic',
 						 Height    => 'Automatic',
-						 Fraction  => 0.5,
+						 TextFraction  => 0.5,
 						 TextShift => 0.1,
 						 VertSpace => 0,
 						     });
       $legend_options->synonyms({ VSpace => 'VertSpace' });
+      $legend_options->synonyms({ Fraction => 'TextFraction' });
     }
     my ($in, $opt)=_extract_hash(@_);
     $opt = {} if !defined($opt);
@@ -4464,12 +4477,15 @@ sub poly {
     }
     $self->_save_status();
 
+#    print "Setting character size to: ".$u_opt->{CharSize}."\n"
+#      if defined $u_opt->{CharSize};
     $self->_standard_options_parser($u_opt); # Set font, charsize, colour etc.
 
     # Ok, introductory stuff has been done, lets get down to the gritty
     # details. First let us save the current character size.
     my $chsz; pgqch($chsz);
 
+#    print "I found a character size of $chsz\n";
     # In the following we want to deal with an array of text.
     $text = [$text] unless ref($text) eq 'ARRAY';
 
@@ -4506,7 +4522,7 @@ sub poly {
 	}
       }
 
-      $o->{Width} = $t_width/$o->{Fraction};
+      $o->{Width} = $t_width/$o->{TextFraction};
       # we include an optional vspace (which is given as a fraction of the
       # height of a line)
       $o->{Height} = $t_height*(1+$vspace)*($#$text+1); # The height of all lines..
@@ -4519,7 +4535,7 @@ sub poly {
       # plot window - thus ensuring not too large a text size should the
       # user have done something stupid, but still large enough to
       # detect an error.
-      $o->{Width}=2*$win_width/$o->{Fraction} if $o->{Width} eq 'Automatic';
+      $o->{Width}=2*$win_width/$o->{TextFraction} if $o->{Width} eq 'Automatic';
       $o->{Height}=2*$win_height if $o->{Height} eq 'Automatic';
 
       my $n_lines = $#$text+1; # The number of lines.
@@ -4530,13 +4546,14 @@ sub poly {
 
 	# Find what charactersize is required to fit the height
 	# (accounting for vspace) or fraction*width:
-	my $t_width= $o->{Fraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
+	my $t_width= $o->{TextFraction}*$o->{Width}/($$xbox[2]-$$xbox[0]);
 	my $t_height = $o->{Height}/(1+$vspace)/$n_lines/($$ybox[2]-$$ybox[0]); # XXX is (1+$vspace) correct
 
 	$t_chsz = ($t_width < $t_height ? $t_width*$chsz : $t_height*$chsz);
 #	print "For text = $t the optimal size is $t_chsz ($t_width, $t_height)\n";
 	$required_charsize = $t_chsz if $t_chsz < $required_charsize;
 
+	pgsch($required_charsize*$chsz); # Since we measured relative to $chsz
       }
     }
 
@@ -4545,9 +4562,8 @@ sub poly {
     # text. The next step is to create the legend. We can set linestyle,
     # linewidth, colour and symbol for each of these texts.
     #
-    pgsch($required_charsize*$chsz); # Since we measured relative to $chsz
     my ($xpos, $ypos) = ($o->{XPos}, $o->{YPos});
-    my ($xstart, $xend)=($o->{XPos}+$o->{Fraction}*$o->{Width}+
+    my ($xstart, $xend)=($o->{XPos}+$o->{TextFraction}*$o->{Width}+
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
 
     my $n_lines=$#$text+1;
