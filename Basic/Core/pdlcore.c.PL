@@ -111,6 +111,8 @@ for my $type (typesrtkeys()) {
 
 print OUT <<'!NO!SUBS!';
 
+        if( !isfinite(nv) ) { return PDL_D; }
+
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
 		nv);
 }
@@ -120,6 +122,9 @@ print OUT <<'!NO!SUBS!';
 int pdl_whichdatatype_double (double nv) {
 	TESTTYPE(PDL_F,PDL_Float)
 	TESTTYPE(PDL_D,PDL_Double)
+
+        if( !isfinite(nv) ) { return PDL_D; }
+
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
 		nv);
 }

@@ -1015,15 +1015,28 @@ or the C<draw_wedge()> routine (once the image has been drawn).
 
 Options recognised:
 
-       ITF - the image transfer function applied to the pixel values. It
-             may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
+       ITF - the image transfer function applied to the pixel values. 
+             It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
              acceptable). It defaults to 'LINEAR'.
 
        MIN - Sets the minimum value to be used for calculation of the
-             display stretch
+             color-table stretch.
 
-       MAX - Sets the maximum value for the same
+       MAX - Sets the maximum value for the same.
 
+       RANGE - A more compact way to specify MIN and MAX, as a list:
+             you can say "Range=>[0,10]" to scale the color table for
+             brightness values between 0 and 10 in the iamge data.
+
+       CRANGE - Image values between MIN and MAX are scaled to an 
+               interval in normalized color domain space, on the 
+               interval [0,1], before lookup in the window's color 
+               table. CRANGE lets you use only a part of the color 
+               table by specifying your own range -- e.g. if you
+               say "CRange=>[0.25,0.75]" then only the middle half
+               of the pseudocolor space will be used.  (See the 
+               writeup on L<ctab|ctab>.)
+               
  TRANSFORM - The transform 'matrix' as a 6x1 vector for display
 
  DrawWedge - set to 1 to draw a colour bar (default is 0)
@@ -1088,22 +1101,25 @@ Display a FITS image with correct axes
 
 Notes: 
 
-Currently fits_imag also generates titles for you and appends the CTYPE
-units if they're present.  So if you say
+Currently fits_imag also generates titles for you by default and appends the 
+FITS header scientific units if they're present.  So if you say
 
-  $win->fits_imag($pdl, {xtitle=>"frobnitz"})
+  $pdl->hdr->{CTYPE1} = "Flamziness";
+  $pdl->hdr->{CUNIT1} = "milliBleems";
+  $win->fits_imag($pdl);
 
-you automagically get an X axis label that says "frobnitz (bleems)",
-if $pdl's CTYPE1 field contains "bleems".
+then you get an X title of "Flamziness (milliBleems)".  But you can (of course)
+override that by specifying the XTitle and YTitle switches:
+  
+  $win->fits_imag($pdl,{Xtitle=>"Arbitrary"});
 
-If you don't pass in an xtitle or ytitle parameter, you still get the 
-units designation.  But if there's no CTYPE1 or CTYPE2 then you get no
-units designation.  
+will give you "Arbitrary" as an X axis title, regardless of what's in the
+header.
 
 If CTYPE1 and CTYPE2 agree, then the default pixel aspect ratio is 1 
 (in scientific units, NOT in original pixels).  If they don't agree (as for
-a spectrum) then the default pixel aspect ratio is adjusted to match the 
-plot viewport.
+a spectrum) then the default pixel aspect ratio is adjusted automatically to 
+match the plot viewport and other options you've specified.
 
 You can override the image scaling using the SCALE, PIX, or PITCH
 options just as with L<the imag() method|PDL::Graphics::Window::imag> -- but 
@@ -1212,6 +1228,20 @@ Load an image colour table.
 
 Note: See L<PDL::Graphics::LUT|PDL::Graphics::LUT> for access to a large
 number of colour tables.
+
+Notionally, all non-RGB images and vectors have their colors looked up
+in the window's color table.  Colors in images and such are scaled to
+a normalized pseudocolor domain on the line segment [0,1]; the color
+table is a piecewise linear function that maps this one-dimensional 
+scale to the three-dimensional normalized RGB color space [0,1]^3.
+
+You can specify specific indexed colors by appropriate use of the 
+(levels,red,green,blue) syntax -- but that is deprecated, since the actual
+available number of colors can change depending on the output device. 
+(Someone needs to write a specific hardware-dependent lookup table interface).
+
+See also L<imag|imag> for a description of how to use only part of the
+color table for a particular image.
 
 =head2 line
 
@@ -2210,7 +2240,7 @@ sub checklog {
   return ($x,$y);
 }
 
-sub pgwin{
+sub pgwin {
     my(@a) = @_;
     # Since this is a convenience function, be convenient.  If only
     # one parameter is passed in, assume that it's a device.
@@ -2323,7 +2353,6 @@ sub new {
   return $self;
 
 }
-
 
 #
 # Graphics windows should be closed when they go out of scope.
@@ -5191,6 +5220,8 @@ sub arrow {
       $im_options = $self->{PlotOptions}->extend({
 						  Min => undef,
 						  Max => undef,
+						  Range => undef,
+						  CRange => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
 						  Justify => undef,
@@ -5213,16 +5244,16 @@ sub arrow {
 
     ##########
     # Default to putting tick marks outside the box, so that you don't
-    # scrozzle images.  (See kludge in imag, as well)
+    # scrozzle images.  
     
     $o->{Axis} = 'BCINST'
       unless (defined($opt->{Axis}) || ($o->{Axis} ne 'BCNST'));
-
 
     $self->_add_to_state(\&imag, $in, $opt);
     release_and_barf 'Usage: (imag|rgbi) ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
 
     my ($image,$min,$max,$tr) = @$in;
+    my ($cmin, $cmax) = (0,1);
 
     ## Make sure the image has the right number of dims...
     $self->_checkarg($image,$image_dims);
@@ -5236,6 +5267,21 @@ sub arrow {
     $tr = $u_opt->{Transform} if exists($u_opt->{Transform});
     $min = $u_opt->{Min} if exists($u_opt->{Min});
     $max = $u_opt->{Max} if exists($u_opt->{Max});
+
+    if ( exists($u_opt->{Range}) ) {
+      release_and_barf ( "Range option must be an array ref if specified.\n")
+	if( $u_opt->{Range} ne 'ARRAY' );
+      $min = $u_opt->{Range}->[0];
+      $max = $u_opt->{Range}->[1];
+    }
+
+    if ( exists($u_opt->{CRange}) ) {
+      release_and_barf( "CRange option must be an array ref if specified.\n")
+	if( ref $u_opt->{CRange} ne 'ARRAY' );
+      $cmin = $u_opt->{CRange}->[0];
+      $cmax = $u_opt->{CRange}->[1];
+    }
+
     $itf = $u_opt->{ITF} if exists($u_opt->{ITF});
 
     # Check on ITF value hardcoded in.
@@ -5243,8 +5289,7 @@ sub arrow {
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
-  
-    
+      
     if (defined($tr)) {
 	$self->_checkarg($tr,1);
 	release_and_barf '$transform incorrect' if nelem($tr)!=6;
@@ -5271,23 +5316,38 @@ sub arrow {
       }
     } 
 
-    print "Displaying $nx x $ny image from $min to $max ...\n" if $PDL::verbose;
     pgsitf( $itf );
     my ($i1, $i2);
-    pgqcir($i1, $i2); # Color range - if too small use pggray dithering.
+
+    pgqcir($i1, $i2); # Default color range
+
+    my($c1,$c2);
+    $c1 = int($i1 + ($i2-$i1) * $cmin + 0.5);
+    $c2 = int($i1 + ($i2-$i1) * $cmax + 0.5);
+
+    print "Displaying $nx x $ny image from $min to $max, using ".($c2-$c1+1)." colors ($c1-$c2)...\n" if $PDL::verbose;
+
 
     # Disable PS pggray output because the driver is busted.
     # pgimag seems to work OK for that output tho'.
-    if ($i2-$i1<16 || $self->{Device} =~ /^v?ps$/i) {
+    if ($c2-$c1<16 || $self->{Device} =~ /^v?ps$/i) {
+      print STDERR "_imag: Under 16 colors available; reverting to pggray\n" 
+	if($PDL::debug || $PDL::verbose);
       pggray( $image->get_dataref, 
 	      $nx,$ny,1,$nx,1,$ny, $min, $max, 
 	      $tr->get_dataref);
       $self->_store( imag => { routine => "G", min => $min, max => $max } );
     } else {
       $self->ctab('Grey') unless $self->_ctab_set(); # Start with grey
+
+      pgscir($c1,$c2);
+
       &$pgcall( $image->get_dataref, 
 	      $nx,$ny,1,$nx,1,$ny, $min, $max, 
 	      $tr->get_dataref);
+
+      pgscir($i1,$i2);
+
       $self->_store( imag => { routine => "I", min => $min, max => $max } );
     }
 
@@ -5382,7 +5442,18 @@ sub rgbi {
     }
   }
   $opt->{DrawWedge} = 0;
-  _imag($me,\&pgrgbi,3,$image,@$in,$opt);
+
+  # Get rid of nan elements...
+  my $im2;
+  my $m = !(isfinite $image);
+  if(zcheck($m)) {
+    $im2 = $image;
+  } else {
+    $im2 = $image->copy;
+    $im2->range(scalar(whichND $m)) .= 0;
+  }
+
+  _imag($me,\&pgrgbi,3,$im2,@$in,$opt);
 }
 
 

@@ -427,8 +427,8 @@ sub earth_image {
     NAXIS1=>2048, CRPIX1=>1024.5, CRVAL1=>0,
     NAXIS2=>1024, CRPIX2=>512.5,  CRVAL2=>0,
     NAXIS3=>3,    CRPIX3=>1,      CRVAL3=>0,
-    CTYPE1=>'Longitude', CUNIT1=>'degree', CDELT1=>180/1024.0,
-    CTYPE2=>'Latitude',  CUNIT2=>'degree', CDELT2=>180/1024.0,
+    CTYPE1=>'Longitude', CUNIT1=>'degrees', CDELT1=>180/1024.0,
+    CTYPE2=>'Latitude',  CUNIT2=>'degrees', CDELT2=>180/1024.0,
     CTYPE3=>'RGB',       CUNIT3=>'index',  CDELT3=>1.0,
     COMMENT=>'Plate Caree Projection Image',
     HISTORY=>'PDL Distribution Image, derived from NASA/MODIS data',
@@ -598,7 +598,7 @@ sub new {
     $or->(0) .= pdl($l) if defined($l);
     $or->(1) .= pdl($b) if defined($b);
 
-    my $roll = pdl(_opt($o,['r','roll','Roll','p','P'],0));
+    my $roll = pdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
 
     $me->{params}->{conv} = my $conv = _uconv($unit);
@@ -1739,8 +1739,9 @@ sub t_gnomonic {
 	$out->((0)) .= $k * $cph * sin($th);
 	$out->((1)) .= $k * sin($ph);
 
-	my $idx = whichND($k > $cl0  | ($k < 0));
+	my $idx = whichND($k > $cl0  | ($k < 0) | (!isfinite($k)));
 	if($idx->nelem) {
+	  print "found ".$idx->nelem."bad points...\n";
 	  $out->((0))->range($idx) .= $o->{bad};
 	  $out->((1))->range($idx) .= $o->{bad};
 	}
@@ -1949,6 +1950,9 @@ sub t_az_eqa {
     $ph .= asin($d->((1)) * sin($c) / $rho);
     $th .= atan2($x * sin($c),$rho * cos($c));
 
+    $ph /= $o->{conv};
+    $th /= $o->{conv};
+    
     $out;
   };
 
@@ -2210,6 +2214,9 @@ coordinate system with the origin pointing directly at the sphere and
 the pole pointing north in the pre-rolled coordinate system set by the
 standard origin.
 
+Be careful not to confuse 'p' (pointing) with 'P' (P angle, a standard
+synonym for roll).
+
 =item c, cam, camera, Camera (default undef) 
 
 Alternate way of specifying the camera pointing, using a spherical
@@ -2224,7 +2231,11 @@ option, above.
 
 The altitude of the point of view above the center of the sphere.
 The default places the point of view 1 radius aboove the surface.
-Do not confuse this with 'r', the standard origin roll angle!
+Do not confuse this with 'r', the standard origin roll angle!  Setting 
+r0 < 1 gives a viewpoint inside the sphere.  In that case, the images are
+mirror-reversed to preserve the chiralty of the perspective.  Setting 
+r0=0 gives gnomonic projections; setting r0=-1 gives stereographic projections.
+Setting r0 < -1 gives strange results.
 
 =item iu, im_unit, image_unit, Image_Unit (default 'degrees')
 
@@ -2234,22 +2245,32 @@ at the center of the image.
 =item mag, magnification, Magnification (default 1.0)
 
 This is the magnification factor applied to the optics -- it affects the
-output because it is applied to radial angles from the optic axis, before
-the focal-plane tangent operation.  1.0 yields the view from a simple
-optical system; higher values are telescopic, while lower values are 
-wide-angle (fisheye).  Higher magnification leads to higher angles within
-the optical system, and more tangent-plane distortion at the edges of the
-image.  The focal-plane angular values do not scale with 'mag': it is assumed
-to be compensated by the (implicit) focal length.
+amount of tangent-plane distortion within the telescope. 
+1.0 yields the view from a simple optical system; higher values are 
+telescopic, while lower values are wide-angle (fisheye).  Higher 
+magnification leads to higher angles within the optical system, and more 
+tangent-plane distortion at the edges of the image.  
+
+The magnification is applied to the incident angles themselves, rather than
+to their tangents (simple two-element telescopes magnify tan(theta) rather
+than theta itself); this is appropriate because wide-field optics more
+often conform to the equidistant azimuthal approximation than to the 
+tangent plane approximation.  If you need more detailed control of 
+the relationship between incident angle and focal-plane position, 
+use mag=1.0 and compose the transform with something else to tweak the
+angles.
 
 =item m, mask, Mask, h, hemisphere, Hemisphere [default 'near']
 
 'hemisphere' is by analogy to other cartography methods although the two 
 regions to be selected are not really hemispheres.
 
-=item f, fov, field_of_view, Field_Of_View [default 160 degrees]
+=item f, fov, field_of_view, Field_Of_View [default 60 degrees]
 
-The field of view of the telescope -- sets the crop diameter for t_gnomonic.
+The field of view of the telescope -- sets the crop radius on the
+focal plane.  If you pass in a scalar, you get a circular crop.  If you
+pass in a 2-element list ref, you get a rectilinear crop, with the
+horizontal 'radius' and vertical 'radius' set separately. 
 
 =back 3
 
@@ -2288,13 +2309,15 @@ is just an expensive modified-gnomonic projection).
 Draw an aerial-view map of the Chesapeake Bay, as seen from a sounding
 rocket at an altitude of 100km, looking NNE from ~200km south of
 Washington (the radius of Earth is 6378 km; Washington D.C. is at
-roughly 77W,38N).  This one is pretty wasteful since it uses the
-global coastline map and chucks everything but a tiny subset.
+roughly 77W,38N).  Superimpose a linear coastline map on a photographic map.
 
   $a = graticule(1,0.1)->glue(1,earth_coast());
   $t = t_perspective(r0=>6478/6378.0,fov=>60,cam=>[22.5,-20],o=>[-77,36])
   $w = pgwin(size=>[10,6],J=>1);
+  $w->fits_imag(earth_image()->map($t,[800,500],{m=>linear}));
+  $w->hold;
   $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees'});
+  $w->release;
 
 =cut
 
@@ -2326,127 +2349,237 @@ sub t_perspective {
 		     ['mag','magnification','Magnification'],
 		     1.0);
 
-    # Regular pointing vector -- make sure there are exactly 3 elements
+    # Regular pointing pseudovector -- make sure there are exactly 3 elements
     $p->{p} = (pdl(_opt($me->{options},
 			['p','ptg','pointing','Pointing'],
 			[0,0,0])
 		   )
 	       * $p->{tconv}
 	       )->append(zeroes(3))->(0:2);
-    $p->{pmat} = _rotmat($p->{p}->list);
-  
-    # Funky camera pointing vector
+
+    $p->{pmat} = _rotmat( (- $p->{p})->list );
+    
+    # Funky camera pointing pseudovector overrides normal pointing option 
     $p->{c} = _opt($me->{options},
 		   ['c','cam','camera','Camera'],
 		   undef
 		   );
+
     if(defined($p->{c})) {
       $p->{c} = (pdl($p->{c}) * $p->{tconv})->append(zeroes(3))->(0:2);
-      $p->{pmat} = pdl([0,0,-1],[0,1,0],[1,0,0]) x _rotmat($p->{c}->list);
+
+      $p->{pmat} = ( _rotmat( 0,-$PI/2,0 ) x 
+		     _rotmat( (-$p->{c})->list ) 
+		     );
     }
 
-    # Rotate 180 degrees if inside the sphere 
+    # Reflect X axis if we're inside the sphere.
     if($p->{r0}<1) {
-      $p->{pmat} = pdl([-1,0,0],[0,-1,0],[0,0,1]) x $p->{pmat};
+      $p->{pmat} = pdl([-1,0,0],[0,1,0],[0,0,1]) x $p->{pmat};
     }
 
     $p->{f} = ( _opt($me->{options},
 		     ['f','fov','field_of_view','Field_of_View'],
-		     pdl($PI*8/9.0) / $p->{tconv} / $p->{mag} )
+		     pdl($PI*2/3) / $p->{tconv} / $p->{mag} )
 		* $p->{tconv}
 		);
     
-    ### This is the actual transform;
-    ### the func and inv we define just call it.
-    ### (Kept separate for ease of filtering...)
-    $p->{pre} = 
-      t_compose( t_scale(1.0/$p->{mag}/$p->{tconv},d=>2),
-		 ( ($p->{mag} != 1.0) ? 
-		     ( t_gnomonic(u=>'radian',c=>$p->{f}/2),
-		       t_az_eqd(u=>'radian')->inverse,
-		       t_scale($p->{mag},d=>2),
-		       t_az_eqd(u=>'radian'),
-		       ) 
-		   :
-		   ( t_gnomonic(u=>'radian',c=>$p->{f}/2) )
-		   ),
-		 t_unit_sphere(u=>'radian')->inverse,
-		 t_linear(m=>$p->{pmat},d=>3),
-		 # Left-right are reversed if outside the sphere
-		 t_linear(m=>matmult(pdl([1,0,0],
-					 [0,(abs($p->{r0}<1)?1:-1),0],
-					 [0,0,1]),
-				     _rotmat($PI-$p->{o}->at(0),
-				     -$p->{o}->at(1),
-				     $p->{roll}->at(0)
-				     )
-				     ),
-			  post=>pdl($p->{r0},0,0),
-			  d=>3
-			  ),
-		 t_unit_sphere(u=>'radian')
-		 );
+    $me->{otype} = ['Tan X','Tan Y'];
+    $me->{ounit} = [$p->{iu},$p->{iu}];
 
-    $p->{post} = t_compose( t_gnomonic(u=>'radian',c=>$PI/2*0.999),
-			    t_scale(1.0/$p->{mag}/$p->{tconv},d=>2)
-			    );
+    # "Prefilter" -- subsidiary transform to convert the 
+    # spherical coordinates to 3-D coords in the viewer's 
+    # reference frame (Y,Z are more-or-less tangent-plane X and Y,
+    # and -X is the direction toward the planet, before rotation 
+    # to account for pointing).
 
-    $me->{otype} = ['Perspective X','Perspective Y'];
-    $me->{ounit} = [$p->{iu},$p->{io}];
+    $me->{params}->{prefilt} = 
+      t_compose(
+                # Offset for the camera pointing.
+		t_linear(m=>$p->{pmat},
+			 d=>3),
 
-    # func just does the hemispheric selection; all else is done externally.
+                # Rotate the sphere so the correct origin is at the 
+		# maximum-X point, then move the whole thing in the 
+		# -X direction  by r0.
+		t_linear(m=>(_rotmat($p->{o}->at(0),
+				     $p->{o}->at(1),
+				     $p->{roll}->at(0))
+			     ),
+			 d=>3,
+			 post=> pdl( - $me->{params}->{r0},0,0)
+			 ),
+
+                # Put initial sci. coords into Cartesian space
+		t_unit_sphere(u=>'radian')  
+		);
+
+    # Store the origin of the sphere -- useful for the inverse function
+    $me->{params}->{sph_origin} = (
+				   pdl(-$me->{params}->{r0},0,0) x 
+				   $p->{pmat}
+				   )->(:,(0));
+
+    #
+    # Finally, the meat -- the forward function!
+    #
     $me->{func} = sub {
       my($d,$o) = @_;
-      my($out);
 
-      my($dc) = $d->is_inplace ? $d : $d->copy;
-      $dc->(0:1) *= $o->{conv};
+      my($out) = $d->is_inplace ? $d : $d->copy;
+      $out->(0:1) *= $o->{conv};
       
       # If we're outside the sphere, do hemisphere filtering
-      if(abs($o->{r0})>=1) {
+      my $idx;
+      if(abs($o->{r0}) < 1 ) {
+	$idx = null;
+      } else {
 	# Great-circle distance to origin
-	my($cos_c) = ( sin($o->{o}->((1))) * sin($dc->((1)))
+	my($cos_c) = ( sin($o->{o}->((1))) * sin($out->((1)))
 		     +
-		     cos($o->{o}->((1))) * cos($dc->((1))) * 
-		     cos($dc->((0)) - $o->{o}->((0)))
+		     cos($o->{o}->((1))) * cos($out->((1))) * 
+		     cos($out->((0)) - $o->{o}->((0)))
 		     );
 
 	my($thresh) = (1.0/$o->{r0});
 	
-	my($idx);
 	if($o->{m}==1) {
 	  $idx = whichND($cos_c < $thresh);
 	} elsif($o->{m}==2) {
 	  $idx = whichND($cos_c > $thresh);
-	}
-	else {
+	} else {
 	  $idx = null;
 	}
-	
-	$out = $o->{pre}->apply($dc);
-	
-	if(defined $idx && ref $idx eq 'PDL' && $idx->nelem) {
-	  $out->((0))->range($idx) .= $o->{bad};
-	  $out->((1))->range($idx) .= $o->{bad};
-	}
+      }	
+
+      ### Transform everything -- just chuck out the bad points at the end.
+
+      ## convert to 3-D viewer coordinates (there's a dimension change!)
+      my $dc = $out->apply($o->{prefilt});
+
+      ## Apply the tangent-plane transform, and scale by the magnification.
+      my $dcyz = $dc->(1:2);
+
+      my $r = ( $dcyz * $dcyz ) -> sumover -> sqrt ;     
+      my $rscale;
+      if( $o->{mag} == 1.0 ) {
+	  $rscale = - 1.0 / $dc->((0));
+      } else {
+	  print "(using magnification...)\n" if $PDL::verbose;
+	  $rscale = - tan( $o->{mag} * atan( $r / $dc->((0)) ) ) / $r;
       }
-      else {
-	$out = $o->{pre}->apply($dc);
-      }      
+      $r *= $rscale;
+      $out->(0:1) .= $dcyz * $rscale->dummy(0,1);
+
+      # Chuck points that are outside the FOV: glue those points
+      # onto the removal list.   The conditional works around a bug 
+      # in 2.3.4cvs and earlier: null piddles make append() crash.
+      my $w;
+      if(ref $o->{f} eq 'ARRAY') {
+	$w = whichND( ( abs($dcyz->((0))) > $o->{f}->[0] ) |
+		      ( abs($dcyz->((1))) > $o->{f}->[1] ) |
+		      ($r < 0)
+		      );
+      } else {
+	$w = whichND( ($r > $o->{f}) | ($r < 0) );
+      }
+    
+      $idx = ($idx->nelem) ?  $idx->glue(1,$w)  : $w
+	if($w->nelem);
+
+      if($idx->nelem) {
+	$out->((0))->range($idx) .= $o->{bad};
+	$out->((1))->range($idx) .= $o->{bad};
+      }
+
+      ## Scale by the output conversion factor
+      $out->(0:1) /= $o->{tconv};
 
       $out;
     };
 
+    
+    #
+    # Inverse function
+    #
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->invert($o->{post})->invert($o->{pre});
+	my($out) = $d->is_inplace ? $d->copy : $d;
+	$out->(0:1) *= $o->{tconv};
 
-	if(abs($o->{r0}<1)) {
-	  $out->((0)) %= 2*$PI;  # wrap to 0 - 2*$PI
-	  $out->((0)) -= $PI;    # Shift down by $PI
+	my $oyz = $out->(0:1) ;
+
+	## Inverse-magnify if required
+	if($o->{mag} != 1.0) {
+	  my $r = ($oyz * $oyz)->sumover->sqrt;
+	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
+	  $out->(0:1) *= $scale;
 	}
+	
+	## Solve for the X coordinate of the surface.  
+	## This is a quadratic in the tangent-plane coordinates;
+	## so here we just figure out the coefficients and plug into
+	## the quadratic formula.  $b here is actually -B/2.
+	my $a = ($oyz * $oyz)->sumover + 1;
+	my $b = ( $o->{sph_origin}->((0)) 
+		  - ($o->{sph_origin}->(1:2) * $oyz)->sumover
+		  );
+	my $c = pdl($o->{r0}*$o->{r0} - 1);
+	
+	my $x;
+	if($o->{m} == 2) { 
+	    # Exceptional case: mask asks for the far hemisphere
+	    $x = - ( $b - sqrt($b*$b - $a * $c) ) / $a;
+	} else {
+	    # normal case: mask asks for the near hemisphere
+	    $x =   - ( $b + sqrt($b*$b - $a * $c) ) / $a;
+	}
+
+	## Assemble the 3-space coordinates of the points
+	my $int = $out->(0)->append($out);
+	$int->sever;
+	$int->((0)) .= -1.0;
+	$int->(0:2) *= $x->dummy(0,3);
+
+	## convert back to (lon,lat) coordinates...
+	$out .= $int->invert($o->{prefilt});	
+
+	# If we're outside the sphere, do hemisphere filtering
+	my $idx;
+	if(abs($o->{r0}) < 1 ) {
+	    $idx = null;
+	} else {
+	    # Great-circle distance to origin
+	    my($cos_c) = ( sin($o->{o}->((1))) * sin($out->((1)))
+			   +
+			   cos($o->{o}->((1))) * cos($out->((1))) * 
+			   cos($out->((0)) - $o->{o}->((0)))
+			   );
+	    
+	    my($thresh) = (1.0/$o->{r0});
+	    
+	    if($o->{m}==1) {
+		$idx = whichND($cos_c < $thresh);
+	    } elsif($o->{m}==2) {
+		$idx = whichND($cos_c > $thresh);
+	    }
+	    else {
+		$idx = null;
+	    }
+	}	
+
+	## Convert to the units the user requested
+	$out->(0:1) /= $o->{conv};
+
+	## Mark bad values
+	if($idx->nelem) {
+	    $out->((0))->range($idx) .= $o->{bad};
+	    $out->((1))->range($idx) .= $o->{bad};
+	}
+
 	$out;
+
     };
 	      
     $me;

@@ -1,3 +1,10 @@
+CED (21-Feb-2003)
+    - Modified whichdatatype and whichdatatype_double to represent nan with
+	a double, rather than barfing.
+    - Fixed a crash: append broke when appending on a dim of order 0
+    - Myriad small fixes to Transforms::Cartography
+	- Perspective works properly
+    - Changes to the documentation of Window.pm: axis() is better documented.
 CED (5-Feb-2003)
     - Window.pm: 
 	- ctab() selects window focus now (as it should).

@@ -581,7 +581,7 @@ generates a linear approximation to the transformation using the local
 discrete Jacobian.  The output pixels are treated as circles of radius
 1.0, and transformed via the linear approximation to ellipses in the
 input plane.  The singular values of the Jacobian are padded to a minimum
-of 1.4, ensuring that the transformed ellipses are fat enough to
+of 1.4 pixels, ensuring that the transformed ellipses are fat enough to
 encounter at least one sample point in the input plane.  
 
 To avoid numerical runaway, there are some limitations on the reverse-
@@ -638,14 +638,13 @@ sub map {
       $ohdr = \%b;
     }
   } elsif(ref $tmp eq 'HASH') {
-    if($tmp->{NAXIS}) {
-      for my $i(1..$tmp->{NAXIS}){
-	push(@odims,$tmp->{"NAXIS$i"});
-      }
-
-      my(%b) = %{$tmp};
-      $ohdr = \%b;
+    # (must be a fits header -- or would be filtered above)
+    for my $i(1..$tmp->{NAXIS}){
+      push(@odims,$tmp->{"NAXIS$i"});
     }
+    # deep-copy fits header into output
+    my %foo = %{$tmp};
+    $ohdr = \%foo;
   } elsif(ref $tmp eq 'ARRAY') {
     @odims = @$tmp;
   } else {
@@ -657,7 +656,6 @@ sub map {
     push(@odims, splice(@idims,scalar(@odims)));
   }
 
-  print "odims = @odims\n";
   $out = zeroes(@odims);
 
   $out->sethdr($ohdr) if defined($ohdr);
@@ -677,17 +675,15 @@ sub map {
   my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
     $me :
     $me x t_fits($in,{ignore_rgb=>1});
-  
 
   ##############################
   # Autoscale by transforming a subset of the input points' coordinates
   # to the output range, and pick a FITS header that fits the output
   # coordinates into the given template.
-  unless((ref $out eq 'HASH' && $out->{NAXIS}) ||
-	 (defined $out->gethdr && $out->hdr->{NAXIS}) ||
+  unless((defined $out->gethdr && $out->hdr->{NAXIS}) ||
 	 $nofits) {
       print "generating output FITS header..." if($PDL::debug);
-      my $samp_ratio = 100;
+      my $samp_ratio = 300;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
 			undef);
@@ -709,7 +705,7 @@ sub map {
 
       } else {
 	my $coords = ndcoords(($samp_ratio + 1) x $nd); # 'x' = perl repeat
-	my $ocoords;
+	$coords -= 0.5;
 	
 	my $t;
 	my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
@@ -732,12 +728,21 @@ sub map {
 	  $t = $f_tr;
 	}
 
-	$ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
-	$omin = $ocoords->minimum;
-	$omax = $ocoords->maximum;
+	my $ocoords = $t->apply($coords)->mv(0,-1)->clump($nd);
+	# discard non-finite entries
+	my $oc2  = $ocoords->range(
+				   which(
+					 $ocoords->
+					 xchg(0,1)->
+					 sumover->
+					 isfinite
+					 )
+				   ->dummy(0,1)
+				   );
+	$omin = $oc2->minimum;
+	$omax = $oc2->maximum;
+
 	$osize = $omax - $omin;
-	$omin -= $osize / $samp_ratio;
-	$omax += $osize / $samp_ratio;
 	$osize->where($osize == 0) .= 1.0;
       }
       
@@ -762,7 +767,7 @@ sub map {
       }
       $out->hdr->{"NAXIS"} = $nd;
       $out->hdr->{"SIMPLE"} = 'T';
-      $out->hdr->{"COMMENT"} = "Header written by PDL::Transform::Cartography::map; not authoritative";
+      $out->hdr->{"COMMENT"} = "Header written by PDL::Transform::Cartography::map";
     }
   
   $out->hdrcpy(1);
@@ -784,7 +789,6 @@ sub map {
   ## Non-Jacobian code:
   ## just transform and interpolate.
   if(!$integrate) {
-    print "dd=@dd\n";
     my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
     $out .= $a;
@@ -1162,9 +1166,10 @@ You can also compose transforms using the overloaded matrix-multiplication
 
 This is accomplished by inserting a splicing code ref into the C<func>
 and C<inv> slots.  It combines multiple compositions into a single
-list of transforms to be executed in orer.  If one of the functions is
+list of transforms to be executed in order, fram last to first (in 
+keeping with standard mathematical notation).  If one of the functions is
 itself a composition, it is interpolated into the list rather than left
-intact.  Ultimately, linear transformations may also be combined within
+separate.  Ultimately, linear transformations may also be combined within
 the list.
 
 No checking is done that the itype/otype and iunit/ounit fields are
@@ -1245,7 +1250,7 @@ sub compose {
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
       print "inverting $t..." if($PDL::debug);
-      $data = &{$t->{inv}}($data, $t->{params});
+      $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
       print "... ok.\n" if($PDL::debug);
     }
     $data;
