@@ -589,11 +589,20 @@ Exported constructor for PGPLOT object/device/plot window.
 
  Usage: pgwin($opt);
  Usage: pgwin($option->$value,...);
+ Usage: pgwin($device);
 
 Parameters are passed on to new() and can either be specified by hash
 reference or as a list.
 
 See the documentation fo PDL::Graphics::PGPLOT::Window::new for details.
+
+Because pgwin is a convenience function, you can specify the device by 
+passing in a single non-ref parameter.  For even further convenience, you
+can even omit the '/' in the device specifier, so these two lines
+deliver the same result:
+
+    $a = pgwin(gif);
+    $a = new PDL::Graphics::PGPLOT::Window({Dev=>'/gif'});
 
 =head2 new
 
@@ -1950,7 +1959,14 @@ sub checklog {
 }
 
 sub pgwin{
-  return PDL::Graphics::PGPLOT::Window->new(@_);
+    my(@a) = @_;
+    # Since this is a convenience function, be convenient.  If only
+    # one parameter is passed in, assume that it's a device.
+    if(!$#a && !(ref $a[0])){
+	$a[0] = "/$a[0]" unless($a[0] =~ m:/:);
+	unshift(@a,'Dev')
+	}
+    return PDL::Graphics::PGPLOT::Window->new(@a);
 }
   
 sub new {
