@@ -417,7 +417,11 @@ recognised are the following:
 
 =item AspectRatio
 
-The aspect ratio of the image, in the sense vertical/horisontal.
+=item AspectRatio
+
+The aspect ratio of the image, in the sense vertical/horisontal.  If both
+this and WindowWidth are set to zero, the default view surface is used.
+(This is the default case).
 
 =item Device
 
@@ -444,7 +448,9 @@ It would be great if it was possible to change the title of the window frame.
 =item WindowWidth
 
 The width of the window in inches. If this is set to 0.0, the biggest window
-consistent with the AspectRatio setting will be chosen.
+consistent with the AspectRatio setting will be chosen. If both this and
+AspectRatio are set to zero, the default view surface is used.
+(This is the default case).
 
 =item WindowXSize and WindowYSize
 
@@ -1463,6 +1469,23 @@ require DynaLoader;
 
 bootstrap PDL::Graphics::PGPLOT::Window;
 
+
+#
+# Note: Here the general and window creation specific options are read in
+# from PGPLOTOptions. The $GeneralOptions variable is most importantly
+# used in the new() routine to set the general options for the window.
+#
+# These are somewhat confusingly named perhaps. The WindowOptions are the
+# options that affect window creation and setup such as width, shape etc.
+# The GeneralOptions are options that affect all function calls in the package
+# (or at least most) since it affects the default colour, character size etc.
+# The problematic aspect here is the treatment of hardcopy settings. For
+# historical reasons these are set in the WindowOptions variable but they
+# should affect settings in the GeneralOptions variable...
+# Ideally this should be re-coded, but to save some time I have instead opted
+# for a patchy solution where they are specially treated in the new_window
+# routine.
+#
 my ($GeneralOptions, $WindowOptions) = default_options();
 # Turn off warnings for missing options...
 $GeneralOptions->warnonmissing(0);
@@ -1517,8 +1540,8 @@ sub new {
 	      'Hold'	      => $opt->{Hold}		  || 0,
 	      'Name'	      => $opt->{WindowName}	  || '',
 	      'ID'	      => undef,
-	      'AspectRatio'   => $opt->{AspectRatio}	  || 0.618,
-	      'WindowWidth'   => $opt->{WindowWidth}	  || 0.0,
+	      'AspectRatio'   => $opt->{AspectRatio},
+	      'WindowWidth'   => $opt->{WindowWidth},
 	      'NX'	      => $opt->{NXPanel}	  || 1,
 	      'NY'	      => $opt->{NYPanel}	  || 1,
 	      'Device'	      => $opt->{Device}		  || $DEV,
@@ -1579,9 +1602,30 @@ sub _open_new_window {
 =head2 _setup_window
 
 This routine sets up a new window with its shape and size. This is also where
-the two options C<WindowXSize> and C<WindowYSize> is parsed. These are then
+the two options C<WindowXSize> and C<WindowYSize> are parsed. These are then
 forgotten (well, they are stored in $self->{Options}, but forget that) and
 the corresponding aspect ratio and window width is stored.
+Alternatively, the C<AspectRatio> and C<WindowWidth> options are used to
+set the view surface.  The logic goes somewhat like this:
+
+=over 8
+
+=item 1
+
+If C<WindowXSize> and C<WindowYSize> are both non-zero, then those are used.
+
+=item 2
+
+If C<AspectRatio> is non-zero and C<WindowWidth> is zero, 
+C<WindowWidth> is calculated such that it a region with the given
+aspect ratio will fit within the device's view surface.
+
+=item 3
+
+If both C<AspectRatio> and C<WindowWidth> are zero, the device's
+default C<AspectRatio> and C<WindowWidth> is used.
+
+=back
 
 Finally the subpanels are set up using C<pgsubp> and colours and linewidth
 are adjusted according to whether we have a hardcopy device or not.
@@ -1606,12 +1650,52 @@ sub _setup_window {
       $width = $opt->{WindowXSize};
     }
   }
-  $self->{AspectRatio}=$aspect;
-  $self->{WindowWidth}=$width;
+#  $self->{AspectRatio}=$aspect;
+#  $self->{WindowWidth}=$width;
+
+  # grab whatever width fits the aspect ratio.
+  # for PGPLOT, pgpap() does this automatically.
+  # this is a place holder so we don't forget this case
+  if ( $aspect && 0 == $width )
+  {
+  }
+
+  # use the current view surface.  unfortunately, this isn't the
+  # default view surface, but the *current* view surface.
+  # PGPLOT doesn't provide a public routine to get the default view surface.
+  elsif ( 0 == $aspect &&  0 == $width )
+  {
+    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+
+    $width = $vs_x2 - $vs_x1;
+    $aspect = ( $vs_y2 - $vs_y1 ) / $width;
+  }
+
+  elsif ( 0 == $aspect && $width )
+  {
+    warn "The aspect must be specified if the window width is specified\n";
+    $aspect = 0.618;
+  }
+
+  $self->{AspectRatio} = $aspect;
+  $self->{WindowWidth} = $width;
 
   # Ok - call pgpap to set the size.
   # print "Window opened with Width=$width and AspectRatio=$aspect\n";
   pgpap($width, $aspect);
+
+  # if just the AspectRatio was set, we don't know the WindowWidth;
+  # grab that here.  don't do it by default to avoid resetting
+  # values (due to round off) and confusing the user
+  if ( $self->{AspectRatio} &&  0 == $self->{WindowWidth} )
+  {
+    my ( $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+    pgqvsz( 1, $vs_x1, $vs_x2, $vs_y1, $vs_y2 );
+
+    $self->{WindowWidth} = $vs_x2 - $vs_x1;
+  }
+
 
   # Now do the sub-division into panels.
   my $nx = $self->{NX};
@@ -1638,9 +1722,11 @@ sub _setup_window {
     $temp_wo->{Font}= $o->{HardFont};
     $temp_wo->{CharSize}= $o->{HardCH};
     $temp_wo->{LineWidth}= $o->{HardLW};
+    $temp_wo->{Colour}= $o->{HardColour};
     $self->{PlotOptions}->defaults($temp_wo);
     my $temp_o=$self->{Options}->defaults();
     $temp_o->{AxisColour}=$o->{HardAxisColour};
+    $temp_o->{CharSize}=$o->{HardCH};
     $self->{Options}->defaults($temp_o);
   }
   my ($hcopy, $len);
@@ -1723,6 +1809,7 @@ sub _advance_panel {
   if ($new_panel > ($self->{NX}*$self->{NY})) {
     # We are at the end of the page..
     $new_panel = 1;
+    pgpage();
 #    $self->{_env_set}=[];
   }
 
@@ -2490,6 +2577,9 @@ sub CtoF77coords{		# convert a transform array from zero-offset to unit-offset i
 sub env {
   my $self=shift;
 
+  # Inserted 28/2/01 - JB to avoid having to call release whenever
+  # you want to move to the next panel after using env.
+  $self->release() if $self->held();
   # The following is necessary to advance the panel if wanted...
   my ($in, $opt)=_extract_hash(@_);
   $opt = {} if !defined($opt);
