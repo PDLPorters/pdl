@@ -2037,7 +2037,22 @@ a sphere given (lon/lat) mapping or vector information.  In the reverse
 direction, t_perspective produces (lon/lat) maps from aerial or distant
 photographs of spherical objects.
 
-[EXAMPLES SHOULD GO HERE]
+Viewpoints outside the sphere treat the sphere as opaque by default,
+though you can use the 'm' option to specify either the near or far
+surface (relative to the origin).  Viewpoints below the surface treat
+the sphere as transparent and undergo a mirror reversal for
+consistency with projections that are special cases of the perspective
+projection (e.g. t_gnomonic for r0=0 or t_stereographic for r0=-1).
+
+Magnification correction handles the extra edge distortion due to
+higher angles between the focal plane and focused rays within the
+optical system of your camera.  If you do not happen to know the
+magnification of your camera, a simple rule of thumb is that the
+magnification of a reflective telescope is roughly its physical length
+divided by its focal length; and the magnification of a compound
+refractive telescope is roughly twice its physical length divided by
+its focal length.  Simple optical sytems with a single optic have
+magnification = 1.  Fisheye lenses have magnification < 1.
 
 OPTIONS
 
@@ -2045,32 +2060,35 @@ OPTIONS
 
 =item STANDARD POSITIONAL OPTIONS
 
-The 'origin' field specifies the sub-camera point on the sphere. 
+As always, the 'origin' field specifies the sub-camera point on the
+sphere.
 
 The 'roll' option is the roll angle about the sub-camera point, for
 consistency with the other projectons.
 
-=item p, pointing, Pointing (default (0,0,0))
+=item p, ptg, pointing, Pointing (default (0,0,0))
 
-The pointing direction, in (vert. offset, horiz. offset, roll) of the camera
-relative to the center of the sphere.  This is a spherical coordinate
-system with the origin pointing directly at the sphere.  The camera
-roll angle is relative to (N=up) in the pre-rolled coordinate system
-set by the standard origin.  
+The pointing direction, in (horiz. offset, vert. offset, roll) of the
+camera relative to the center of the sphere.  This is a spherical
+coordinate system with the origin pointing directly at the sphere and
+the pole pointing north in the pre-rolled coordinate system set by the
+standard origin.
 
 =item c, cam, camera, Camera (default undef) 
 
 Alternate way of specifying the camera pointing, using a spherical
-coordinate system with the south pole at the nadir -- this is useful
-for aerial photographs and such, where the point of view is near the
-surface of the sphere.  You specify (azimuth from N, altitude from
-horizontal, roll from vertical=up).  If you specify pointing by this
-method, it overrides the 'pointing' option, above.
+coordinate system with poles at the zenith (positive) and nadir
+(negative) -- this is useful for aerial photographs and such, where
+the point of view is near the surface of the sphere.  You specify
+(azimuth from N, altitude from horizontal, roll from vertical=up).  If
+you specify pointing by this method, it overrides the 'pointing'
+option, above.
 
 =item r0, R0, radius, d, dist, distance [default 2.0] 
 
 The altitude of the point of view above the center of the sphere.
 The default places the point of view 1 radius aboove the surface.
+Do not confuse this with 'r', the standard origin roll angle!
 
 =item iu, im_unit, image_unit, Image_Unit (default 'degrees')
 
@@ -2093,11 +2111,54 @@ to be compensated by the (implicit) focal length.
 'hemisphere' is by analogy to other cartography methods although the two 
 regions to be selected are not really hemispheres.
 
-=item f, fov, field_of_view, Field_Of_View [default 179.95]
+=item f, fov, field_of_view, Field_Of_View [default 160 degrees]
 
-The field of view of the telescope -- sets the crop radius for t_gnomonic.
+The field of view of the telescope -- sets the crop diameter for t_gnomonic.
 
 =back 3
+
+
+EXAMPLES
+
+Model a camera looking at the Sun through a 10x telescope from Earth
+(~230 solar radii from the Sun), with an 0.5 degree field of view and
+a solar P (roll) angle of 30 degrees, in February (sub-Earth solar
+latitude is 7 degrees south).  Convert a solar FITS image taken with
+that camera to a FITS lon/lat map of the Sun with 20 pixels/degree
+latitude:
+
+  # Define map output header (no need if you don't want a FITS output map)
+  $maphdr = {NAXIS1=>7200,NAXIS2=>3600,            # Size of image
+	     CTYPE1=>longitude,CTYPE2=>latitude,   # Type of axes
+	     CUNIT1=>deg,CUNIT2=>deg,              # Unit of axes
+	     CDELT1=>0.05,CDELT2=>0.05,            # Scale of axes
+	     CRPIX1=>3601,CRPIX2=>1801,            # Center of map
+	     CRVAL1=>0,CRVAL2=>0                   # (lon,lat) of center 
+	     };
+  
+  # Set up camera transformation
+  $t = t_perspective(r0=>229,fov=>0.5,mag=>10,P=>30,B=>-7);
+
+  # Use the compound transform to generate a pixel map, and set the header
+  $map = $im->map( !(t_fits($maphdr)) x $t x (t_fits($im->hdr)) );
+  $map->sethdr($maphdr);
+
+Model a 5x telescope looking at Betelgeuse with a 10 degree field of view
+(since the telescope is looking at the Celestial sphere, r is 0 and this
+is just an expensive modified-gnomonic projection).
+
+  $t = t_perspective(r0=>0,fov=>10,mag=>30,o=>[88.79,7.41])
+  
+Draw an aerial-view map of the Chesapeake Bay, as seen from a sounding
+rocket at an altitude of 100km, looking NNE from ~200km south of
+Washington (the radius of Earth is 6378 km; Washington D.C. is at
+roughly 77W,38N).  This one is pretty wasteful since it uses the
+global coastline map and chucks everything but a tiny subset.
+
+  $a = graticule(1,0.1)->glue(1,earth_coast());
+  $t = t_perspective(r0=>6478/6378.0,fov=>30,cam=>[22.5,-20],o=>[-77,36])
+  $w = pgwin(size=>[10,6],J=>1);
+  $w->lines($a->apply($t),{xt=>'Degrees',yt=>'Degrees');
 
 =cut
 
@@ -2108,16 +2169,10 @@ sub t_perspective {
     my $m= _opt($me->{options},
 		['m','mask','Mask','h','hemi','hemisphere','Hemisphere'],
 		1);
-
-    if($m=~m/^b/i) {
-	$p->{m} = 0;
-    } elsif($m=~m/^n/i) {
-	$p->{m} = 1;
-    } elsif($m=~m/^f/i) {
-	$p->{m} = 2;
-    } else {
-	$p->{m} = $m;
-    }
+    $p->{m} = $m;
+    $p->{m} = 0 if($m=~m/^b/i);
+    $p->{m} = 1 if($m=~m/^n/i);
+    $p->{m} = 2 if($m=~m/^f/i);
 
     $p->{r0} = _opt($me->{options},
 		    ['r0','R0','radius','Radius',
@@ -2137,7 +2192,7 @@ sub t_perspective {
 
     # Regular pointing vector -- make sure there are exactly 3 elements
     $p->{p} = (pdl(_opt($me->{options},
-			['p','pointing','Pointing'],
+			['p','ptg','pointing','Pointing'],
 			[0,0,0])
 		   )
 	       * $p->{tconv}
@@ -2154,9 +2209,16 @@ sub t_perspective {
       $p->{pmat} = pdl([0,0,-1],[0,1,0],[1,0,0]) x _rotmat($p->{c}->list);
     }
 
-    $p->{f} = _opt($me->{options},
-		   ['f','fov','field_of_view','Field_of_View'],
-		   pdl(34)) * $p->{tconv};
+    # Rotate 180 degrees if inside the sphere 
+    if($p->{r0}<1) {
+      $p->{pmat} = pdl([-1,0,0],[0,-1,0],[0,0,1]) x $p->{pmat};
+    }
+
+    $p->{f} = ( _opt($me->{options},
+		     ['f','fov','field_of_view','Field_of_View'],
+		     pdl($PI*8/9.0) / $p->{tconv} / $p->{mag} )
+		* $p->{tconv}
+		);
     
     ### This is the actual transform;
     ### the func and inv we define just call it.
@@ -2164,17 +2226,20 @@ sub t_perspective {
     $p->{pre} = 
       t_compose( t_scale(1.0/$p->{mag}/$p->{tconv},d=>2),
 		 ( ($p->{mag} != 1.0) ? 
-		     ( t_gnomonic(u=>'radian',c=>$p->{f}),
+		     ( t_gnomonic(u=>'radian',c=>$p->{f}/2),
 		       t_az_eqd(u=>'radian')->inverse,
 		       t_scale($p->{mag},d=>2),
 		       t_az_eqd(u=>'radian'),
 		       ) 
 		   :
-		   ( t_gnomonic(u=>'radian',c=>$p->{f}) )
+		   ( t_gnomonic(u=>'radian',c=>$p->{f}/2) )
 		   ),
 		 t_unit_sphere(u=>'radian')->inverse,
 		 t_linear(m=>$p->{pmat},d=>3),
-		 t_linear(m=>matmult(pdl([1,0,0],[0,-1,0],[0,0,1]),
+		 # Left-right are reversed if outside the sphere
+		 t_linear(m=>matmult(pdl([1,0,0],
+					 [0,(abs($p->{r0}<1)?1:-1),0],
+					 [0,0,1]),
 				     _rotmat($PI-$p->{o}->at(0),
 				     -$p->{o}->at(1),
 				     $p->{roll}->at(0)
@@ -2192,23 +2257,23 @@ sub t_perspective {
 
     # func just does the hemispheric selection; all else is done externally.
     $me->{func} = sub {
-	my($d,$o) = @_;
-	if($o->{r0} < 1) {
-	  print "t_perspective: not clipping for r<1 (to be implemented)\n";
-	  return $d;
-	}
+      my($d,$o) = @_;
+      my($out);
 
-	my($dc) = $d->is_inplace ? $d : $d->copy;
-	$dc->(0:1) *= $o->{conv};
-
-	# Great circle distance to origin (or its cosine anyway)
+      my($dc) = $d->is_inplace ? $d : $d->copy;
+      $dc->(0:1) *= $o->{conv};
+      
+      # If we're outside the sphere, do hemisphere filtering
+      if(abs($o->{r0})>=1) {
+	# Great-circle distance to origin
 	my($cos_c) = ( sin($o->{o}->((1))) * sin($dc->((1)))
-		      +
-		       cos($o->{o}->((1))) * cos($dc->((1))) * 
-		          cos($dc->((0)) - $o->{o}->((0)))
+		     +
+		     cos($o->{o}->((1))) * cos($dc->((1))) * 
+		     cos($dc->((0)) - $o->{o}->((0)))
 		     );
-	my($thresh) = (1.0/$o->{r0});
 
+	my($thresh) = (1.0/$o->{r0});
+	
 	my($idx);
 	if($o->{m}==1) {
 	  $idx = which($cos_c < $thresh);
@@ -2218,19 +2283,29 @@ sub t_perspective {
 	else {
 	  $idx = null;
 	}
-
-	my $out = $o->{pre}->apply($dc);
-
+	
+	$out = $o->{pre}->apply($dc);
+	
 	$out->(0:1,$idx) .= $o->{bad} 
-	  if($idx->nelem);
+	if($idx->nelem);
+      }
+      else {
+	$out = $o->{pre}->apply($dc);
+      }      
 
-	$out;
+      $out;
     };
 
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	$d->invert($o->{post})->invert($o->{pre});
+	my($out) = $d->invert($o->{post})->invert($o->{pre});
+
+	if(abs($o->{r0}<1)) {
+	  $out->((0)) %= 2*$PI;  # wrap to 0 - 2*$PI
+	  $out->((0)) -= $PI;    # Shift down by $PI
+	}
+	$out;
     };
 	      
     $me;
