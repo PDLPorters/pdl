@@ -62,7 +62,7 @@ WriteMakefile(
                    'pdlconv$(OBJ_EXT)  pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
   		(map {($_,'$(INST_LIBDIR)/'.$_)} (
-			qw/Core.pm Basic.pm Version.pm Types.pm
+			qw/Core.pm Basic.pm Version.pm Types.pm Char.pm
 						  Dbg.pm Exporter.pm Config.pm/
 		)),
   		(map {($_,'$(INST_LIBDIR)/Core/'.$_)} (
