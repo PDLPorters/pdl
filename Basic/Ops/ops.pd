@@ -38,7 +38,9 @@ EOPM
 pp_addhdr('
 #include <math.h>
 
-#define MOD(X,N)     ( (X) - (N)*((int)((X)/(N))) )
+/* MOD requires some hackage to achieve proper mapping into Z+, Z-, and 0. */
+/* --CED 6-Aug-2002 */
+#define MOD(X,N) ( (N != 0) ? ( (X) - (ABS(N)) * ((int)((X)/(ABS(N))) - ( ( ((X)<0) && ((X)/(N)) != (int)((X)/(N))) ? 1 : 0 )  + (((N)<0) && ((int)((X)/(N)) != ((X)/(N))) ? 1 : 0))) : 0 )
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 #define NOTHING
