@@ -3632,6 +3632,7 @@ sub initenv{
       release_and_barf "The PlotPosition must be given as an array reference!" unless
 	ref($o->{PlotPosition}) eq 'ARRAY';
       my ($x0, $x1, $y0, $y1)=@{$o->{PlotPosition}};
+      print "pgsvp($wx0,$wx1,$wy0,$wy1);\n" if($PDL::Graphics::PGPLOT::debug);
       pgsvp ($x0, $x1, $y0, $y1);
     }
     
@@ -3667,9 +3668,15 @@ sub initenv{
     
     ###
     # Figure out the stretched pitch, if it isn't set.
-    $pitch = max(pdl( ($xmax-$xmin) / ($x1-$x0),
-		      ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0)))
-      unless defined ($pitch);
+    # Tricky -- we want the pitch with the highest absolute value, but
+    # to preserve the sign.
+    unless(defined $pitch) {
+	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
+		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
+	my $ap = abs($p);
+	$pitch = $p->at($ap->maximum_ind);
+    }
+
     
     
     $pix = ($y1 - $y0) / ($ymax - $ymin) * $pitch 
@@ -3700,26 +3707,26 @@ sub initenv{
       local($_) = $o->{Align} || "CC";
       my($wx0,$wx1,$wy0,$wy1);
       
-      my($xrange) = abs($xmax-$xmin) / $pitch * $wxs;
+      my($xrange) = abs(($xmax-$xmin) * $wxs / $pitch );
       ($wx0,$wx1) = 
 	(m/L/i) ? ( $ox0, $ox0  +  $xrange ) :
 	(m/R/i) ? ( $ox1  -  $xrange ) :
 	  (0.5 * ( $ox0 + $ox1 - $xrange ), 0.5 * ( $ox0 + $ox1 + $xrange ));
 
-      my($yrange) = abs($ymax-$ymin) * $pix / $pitch * $wys;
+      my($yrange) = abs(($ymax-$ymin) * $wys * $pix / $pitch );
       ($wy0,$wy1) = 
 	(m/B/i) ? ( $oy0, $oy0 + $yrange ) :
 	(m/T/i) ? ( $oy1 - $yrange, $oy1 ) :
            (0.5 * ( $oy0 + $oy1 - $yrange ), 0.5 * ( $oy0 + $oy1 + $yrange ));
-      
-      pgsvp($wx0,$wx1,$wy0,$wy1);
-      print "calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
+
+      pgsvp(minmax(pdl($wx0,$wx1)),minmax(pdl($wy0,$wy1)));
+
       pgswin($xmin,$xmax,$ymin,$ymax);
       
-    } else {
+    } elsif($pix && $pitch) {
       
       ##########
-      # Non-justify case.  
+      # Non-justify case with specified pitch and pixel aspect.  
       
       my($xx0,$xx1,$yy0,$yy1); # These get the final data coords
       
@@ -3733,18 +3740,22 @@ sub initenv{
 	(m/R/i) ? ($xmax-($x1-$x0)*$pitch, $xmax) : 
 	      (0.5*($xmin+$xmax - ($x1-$x0)*$pitch),
 	       0.5*($xmin+$xmax + ($x1-$x0)*$pitch));
-      
+
       ($yy0,$yy1) = 
 	(m/B/i) ? ($ymin, $ymin+($y1-$y0)*$pitch/$pix) :
 	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
 
-      print "non-j: calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);
       pgswin($xx0, $xx1, $yy0, $yy1);
       
-    }
-    
+  } else {
+      ###
+      # Simplest case -- just do what the user originally said.
+      #
+      pgswin($xmin,$xmax,$ymin,$ymax);
+
+  }
     
     if (ref($o->{Axis}) eq 'ARRAY') {
       print "found array ref axis option...\n" if($PDL::Graphics::PGPLOT::debug);

@@ -1,3 +1,5 @@
+CED 5-Aug-2003
+   - Several minor fixes (bugs 777000, 783104, and 772492)
 CED 27-Jul-2003
    - Minor fix to Transform.pm (t_quadratic)
 CED 26-Jul-2003
