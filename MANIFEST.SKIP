@@ -134,3 +134,4 @@ so_locations
 ^perldl.pod
 ^pdldoc.pod
 ^podsel$
+^Demos/BAD_demo.pm$

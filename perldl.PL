@@ -281,6 +281,8 @@ Use:
 	                # *very* concise PDL scripts
         demo Tk3d       # Requires the perl Tk module
 	demo pgplot	# Requires the PGPLOT package
+        demo bad        # Requires bad value support to have been compiled in
+
 EOD
 	} elsif(/^pdl$/) {
 		require PDL::Demos::General;
@@ -300,6 +302,9 @@ EOD
 	} elsif(/^pgplot$/) {
 		require PDL::Demos::PGPLOT_demo;
 		PDL::Demos::PGPLOT_demo::run();
+	} elsif(/^bad$/) {
+		require PDL::Demos::BAD_demo;
+		PDL::Demos::BAD_demo::run();
 	} else {
 		print "No such demo!\n";
 	}

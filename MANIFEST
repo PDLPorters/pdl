@@ -97,6 +97,7 @@ Changes
 Changes.bpix
 DEPENDENCIES
 DEVELOPMENT
+Demos/BAD_demo.pm.PL
 Demos/General.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm

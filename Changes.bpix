@@ -3,6 +3,7 @@
 Doug Burke (07/27/00)
    - changed PP/PDLCode.pm to greatly improve the handling of 'bad' code. It's
      almost not a horrible hack now ;)
+   - added 'demo bad' to perldl - it doesn't do much at the moment
 Doug Burke (07/26/00)
    - PDL::Tests - routine names now begin with 'test_' (see t/pptest.t)
    - Added 'dsumover/dcumusumover/dsum' (and same for prod) to primitive.pd -
