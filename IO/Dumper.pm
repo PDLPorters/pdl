@@ -117,6 +117,7 @@ BEGIN{
 
   use PDL;
   use PDL::Exporter;
+  use PDL::Config;
   use Data::Dumper;
   use Carp;
 }
@@ -392,10 +393,18 @@ are supported).
 
 =cut
 
+# should we use OS/library-level routines for creating
+# a temporary filename?
+#
+sub _make_tmpname () {
+    # should we use File::Spec routines to create the file name?
+    return $PDL::Config{TEMPDIR} . "/tmp-$$.fits";
+}
+
 sub PDL::IO::Dumper::uudecode_PDL {
     my $lines = shift;
     my $out;
-    my $fname = "/tmp/tmp-$$.fits";
+    my $fname = _make_tmpname();
     if($PDL::IO::Dumper::uudecode_ok) {
 	open(FITS,"|uudecode");
 	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
@@ -458,9 +467,10 @@ sub PDL::IO::Dumper::dump_PDL {
     else { 
       
       ##
-      ## Write FITS file, uuencode it, snarf it up, and clean up /tmp
+      ## Write FITS file, uuencode it, snarf it up, and clean up the
+      ## temporary directory
       ##
-      my($fname) = "/tmp/$$.fits";
+      my $fname = _make_tmpname();
       wfits($_,$fname);
       my(@uulines);
 
