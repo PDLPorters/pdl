@@ -540,7 +540,7 @@ The kernel and the array are not quite interchangeable (as in mathematical
 convolution): the code is inplace-aware only for the array itself, and
 the only allowed boundary condition on the kernel is truncation.
 
-convolveND is inplace-aware: say C<convolveND($a->inplace,$k)> to modify
+convolveND is inplace-aware: say C<convolveND(inplace $a ,$k)> to modify
 a variable in-place.  You don't reduce the working memory that way -- only
 the final memory.
 
