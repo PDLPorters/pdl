@@ -1,37 +1,27 @@
+# Makefile.PL for a package defined by PP code.
 
-# should now be handled by ../Makefile.PL
-#
-#BEGIN {
-#  PDL::Core::Dev->import();
-#  $skip = 0;
-#  if ($^O =~ /win32/i) {
-#    write_dummy_make(unsupported('PDL::Graphics::OpenGL','win32'));
-#    $skip=1;
-#  }
-#}
-#
-#goto SKIP if $skip;
-
-# Makefile.PL for PDL::Graphics::OpenGL module.
-
-# Use this as a template for the Makefile.PL for
-# any external PDL module.
-
+use PDL::Core::Dev;            # Pick up development utilities
 use ExtUtils::MakeMaker;
+require '../../../perldl.conf';
+@pack = (["opengl.pd",OpenGL,PDL::Graphics::OpenGL]);
 
-# Add several possible places for -L.
+%hash = pdlpp_stdargs(@::pack);
 
-WriteMakefile(
-	NAME => 'PDL::Graphics::OpenGL',
-	VERSION => '0.5',
-    LIBS      => $PDL_CONFIG{OPENGL_LIBS},
-    DEFINE => $PDL_CONFIG{OPENGL_DEFINE},
-    INC => $PDL_CONFIG{OPENGL_INC},
-);
+push @{$hash{LIBS}}, $PDL_CONFIG{OPENGL_LIBS};
+$hash{INC} .= $PDL_CONFIG{OPENGL_INC};
+$hash{DEFINE} .= $PDL_CONFIG{OPENGL_DEFINE};
 
-#
-#      ['-L/usr/X11R6/lib -L/usr/lib/mesa/ -lGL -lGLU -lMesaGL -lMesaGLU -lXext -lX11 '],
-#
+#use Data::Dumper;
+#my $out = Dumper(\%hash);
+#print $out;
 
-#SKIP: return;
+WriteMakefile(%hash);
+
+# add a dependancy for the perldl.conf file
+
+sub MY::postamble {
+  my $amb = pdlpp_postamble_int(@::pack);
+  $amb =~ s/pm_to_blib$/pm_to_blib \.\.\/\.\.\/\.\.\/perldl.conf/m;
+  $amb;
+}  # Add genpp rule
 
