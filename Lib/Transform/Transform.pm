@@ -244,7 +244,7 @@ $VERSION = "1.0";
 BEGIN {
    use Exporter ();
    @ISA = ( Exporter );
-   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_offset t_shift t_pincushion t_spherical );
+   @EXPORT_OK = qw( t_identity t_lookup t_linear t_fits t_radial t_code t_inverse t_compose t_wrap t_scale t_rot t_offset t_shift t_quadratic t_spherical );
    @EXPORT = @EXPORT_OK;
    %EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 }
@@ -2450,22 +2450,28 @@ OPTIONS
 
 =item o,origin,Origin
 
-The origin of the pincushion.
+The origin of the pincushion. (default is the, er, origin).
 
 =item l,l0,length,Length,r0
 
 The fundamental scale of the transformation -- the radius that remains
-unchanged.
+unchanged.  (default=1)
 
 =item s,str,strength,Strength
 
-The relative strength of the pincushion.
+The relative strength of the pincushion. (default = 0.1)
+
+=item d, dim, dims, Dims
+
+The number of dimensions to quadratically scale (default is the 
+dimensionality of your input vectors)
+
 
 =back
 
 =cut
 
-sub t_pincushion { 
+sub t_quadratic { 
     my($class) = 'PDL::Transform';
     my($o) = $_[0];
     if(ref $o ne 'HASH') {
@@ -2473,40 +2479,42 @@ sub t_pincushion {
     }
     my($me) = PDL::Transform::new($class);
     
-    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0,0));
+    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
-
-    $me->{name} = "pincushion";
+    $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims']);
+    $me->{name} = "quadratic";
     
     $me->{func} = sub {
 	my($data,$o) = @_;
-	my($d) = $data->copy - $o->{origin};
+	my($dd) = $data->copy - $o->{origin};
+	my($d) =  (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
 	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
 	$d /= (abs($o->{str}) + 1);
 	$d += $o->{origin};
 	if($data->is_inplace) {
-	    $data .= $d;
+	    $data .= $dd;
 	    return $data;
 	}
-	$d;
+	$dd;
     };
     
     $me->{inv} = sub {
 	my($data,$opt) = @_;
-	my($d) = $data->copy ;
+	my($dd) = $data->copy ;
+	my($d) = (defined $opt->{dim}) ? $dd->(0:($opt->{dim}-1)) : $dd;
 	my($o) = $opt->{origin};
 	my($s) = $opt->{str};
 	my($l) = $opt->{l0};
 
-	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($data-$o) * (1+abs($s))))
-	    / 2 / $s * $l) * (1 - 2*($data < $o));
-	$d += $o->{origin};
+	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
+	    / 2 / $s * $l) * (1 - 2*($d < $o));
+	$d += $o;
 	if($data->is_inplace) {
-	    $data .= $d;
+	    $data .= $dd;
 	    return $data;
 	}
-	$d;
+	$dd;
     };
     $me;
 }
