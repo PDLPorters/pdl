@@ -1,3 +1,5 @@
+CS  - reshape behaviour like idl when no dim args are given
+    - niceslicing gets a new modifier: $a(;-) drops dims of size 1
 CED (16 May 02)
     - Several minor changes to Dumper and RandVar for compatibility with
 	BSD and perl 5.005
