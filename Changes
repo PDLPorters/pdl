@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+!!! - moved PDL::Type object from PDL::Core to PDL::Types. This shouldn't
+      affect most people.
 CS
 !!! - split primitive.pd into primitive.pd and ufunc stuff (ufunc.pd)
     - changed loaders to reflect this split (PDL.pm, Lite.pm, LiteF.pm)

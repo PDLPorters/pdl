@@ -1028,7 +1028,7 @@ sometimes run by names such as I<alias> or I<smart reference>.
 
 Typical functions that return such piddles are C<slice>, C<xchg>,
 C<index>, etc. Sometimes, however, you would like to separate the
-I<virtual piddle> from its parent's data and just give it a live of
+I<virtual piddle> from its parent's data and just give it a life of
 its own. This is simply achieved by using C<sever>. For example,
 
 =for example
@@ -1597,34 +1597,6 @@ for(
 		}');
 }
 
-{
-    package PDL::Type;
-    sub new {
-        my($type,$val) = @_;
-        if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
-        if(ref $val and $val->isa(PDL)) {
-            if($val->getndims != 0) {
-              PDL::Core::barf("Can't make a type out of non-scalar piddle $val!");
-            }
-            $val = $val->at;
-        }
-      PDL::Core::barf("Can't make a type out of non-scalar $val!".(ref $val)."!") if ref $val;
-        return bless [$val],$type;
-    }
- 
-sub enum   { return $_[0]->[0]; }
-sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
-!NO!SUBS!
-
-    foreach my $name ( qw( ctype ppsym realctype ) ) {
-	print OUT "sub $name { return \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }\n";
-    }
-
-print OUT <<'!NO!SUBS!';
-sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }                      
-
-} # package: PDL::Type                                                          
-
 =head2 type
 
 =for ref
@@ -1637,35 +1609,7 @@ A convenience function for use with the piddle constructors, e.g.
 
  $b = PDL->zeroes($a->type,$a->dims,3);
 
-The returned object (C<PDL::Type>) has several methods.  These are mainly of 
-use to internal routines, since they provide an easy way to access the 
-information stored in L<PDL::Types|PDL::Types>.
-
-=over 4
-
-=item enum
-
-Returns the number representing this datatype (see L<get_datatype|/PDL::get_datatype>).
-
-=item symbol
-
-Returns one of 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L', 'PDL_F' or 'PDL_D'. 
-
-=item ctype
-
-Returns the macro used to represent this type in C code (eg 'PDL_Long').
-
-=item ppsym
-
-The letter used to represent this type in PP code code (eg 'U' for L<ushort|/ushort>).
-
-=item realctype
-
-The actual C type used to store this type.
-
-=item shortctype
-
-The value returned by C<ctype> without the 'PDL_'.
+See the discussion of the C<PDL::Type> object in L<PDL::Types>.
 
 =cut
 

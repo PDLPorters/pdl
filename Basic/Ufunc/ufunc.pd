@@ -4,7 +4,7 @@ pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
-PDL::Primitive::Ufunc - primitive ufunc operations for pdl
+PDL::Ufunc - primitive ufunc operations for pdl
 
 =head1 DESCRIPTION
 
@@ -21,7 +21,7 @@ to many of the functions in this module.
 
 =head1 SYNOPSIS
 
- use PDL::Primitive::Ufunc;
+ use PDL::Ufunc;
 
 =cut
 

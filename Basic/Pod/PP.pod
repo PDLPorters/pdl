@@ -435,7 +435,7 @@ go through the list of qualifiers that change type conversion behaviour.
 
 The most important is the C<int> qualifier which comes in handy when a
 pdl argument represents indices into another pdl. Let's take a look at
-an example from C<PDL::Primitive>:
+an example from C<PDL::Ufunc>:
 
    pp_def('maximum_ind',
 	  Pars => 'a(n); int [o] b()',
@@ -1477,7 +1477,7 @@ of these routines deal with manipulating piddles, but some are more general:
 Sort the array C<xx> between the indices C<a> and C<b>.
 There are also versions for the other PDL datatypes,
 with postfix C<_S>, C<_U>, C<_L>, C<_F>, and C<_D>.
-Any module using this must ensure that C<PDL::Primitive>
+Any module using this must ensure that C<PDL::Ufunc>
 is loaded.
 
 =item PDL->qsort_ind_B( PDL_Byte *xx, int *ix, int a, int b )

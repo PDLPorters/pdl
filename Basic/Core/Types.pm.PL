@@ -47,6 +47,11 @@ PDL::Types - define fundamental PDL Datatypes
 
  use PDL::Types;
 
+ $pdl = ushort( 2.0, 3.0 );
+ print "The actual c type used to store ushort's is '" .
+    $pdl->type->realctype() . "'\n";
+ The actual c type used to store ushort's is 'unsigned short'
+
 =head1 DESCRIPTION
 
 Internal module - holds all the PDL Type info.  This can be
@@ -95,6 +100,76 @@ print OUT
  ["\$PDL_D",  "'PDL_D'",  "'PDL_Double'", "'D'", "'double'"         ]
  ); 
 
-print OUT ");\n\n1;\n";
+print OUT ");\n\n";
 
+# create the PDL::type package
+
+print OUT <<'!NO!SUBS!';
+
+=head1 OBJECTS
+
+This module contains one object - C<PDL::Type> - that is returned by the
+L<type|PDL::Core/type> method of a piddle.  It has several methods, listed below,
+which provide an easy way to access type infotmation:
+
+=over 4
+
+=item enum
+
+Returns the number representing this datatype (see L<get_datatype|PDL::Core/PDL::get_datatype>).
+
+=item symbol
+
+Returns one of 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L', 'PDL_F' or 'PDL_D'. 
+
+=item ctype
+
+Returns the macro used to represent this type in C code (eg 'PDL_Long').
+
+=item ppsym
+
+The letter used to represent this type in PP code code (eg 'U' for L<ushort|PDL::Core/ushort>).
+
+=item realctype
+
+The actual C type used to store this type.
+
+=item shortctype
+
+The value returned by C<ctype> without the 'PDL_'.
+
+=cut
+
+{
+    package PDL::Type;
+    sub new {
+        my($type,$val) = @_;
+        if("PDL::Type" eq ref $val) { return bless [@$val],$type; }
+        if(ref $val and $val->isa(PDL)) {
+            if($val->getndims != 0) {
+              PDL::Core::barf("Can't make a type out of non-scalar piddle $val!");
+            }
+            $val = $val->at;
+        }
+      PDL::Core::barf("Can't make a type out of non-scalar $val!".(ref $val)."!") if ref $val;
+        return bless [$val],$type;
+    }
+ 
+sub enum   { return $_[0]->[0]; }
+sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
+!NO!SUBS!
+
+    foreach my $name ( qw( ctype ppsym realctype ) ) {
+	print OUT "sub $name { return \$PDL::Types::typehash{\$_[0]->symbol}->{$name}; }\n";
+    }
+
+print OUT <<'!NO!SUBS!';
+sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }                      
+
+} # package: PDL::Type                                                          
+
+# Return
+1;
+
+!NO!SUBS!
 

@@ -1,11 +1,11 @@
 # TODO:
-# Authors section
 # threading? change to pp_defs
 # docs improvement
 # use PDL::Complex?
+
 require 'typespec';
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 =head1 NAME
 
 PDL::FFTW - PDL interface to the Fastest Fourier Transform in the West v2.x
@@ -36,7 +36,6 @@ which was the library was compiled (otherwise it must do conversions).
     cplx_pdl = Cconj(a_cplx_pdl);
     real_pdl = Cmod(a_cplx_pdl); 
     real_pdl = Cmod2(a_cplx_pdl); 
-
 
 =head1 FFTW documentation
 
@@ -166,7 +165,6 @@ EOD
 
 pp_addpm('
 
-
 use PDL;
 use strict;
 
@@ -181,24 +179,23 @@ $wisdom_loaded = 0;
 
 $PDL::FFTW::COMPILED_TYPE = "'.$fftwtype.'";
 
-
 sub load_wisdom {
-  ($wisdom_fname) = @_;
-  my ($wisdom, $ok);
-
-  if (!$wisdom_loaded) {
-  $wisdom_loaded = 1;
-  if (!open(TMPFILE,$wisdom_fname)) {
-    print STDERR "Warning: couldn\'t find wisdom file\n";
-    return;
-  }
-  $wisdom = <TMPFILE>;
-  close(TMPFILE);
-  $ok = PDL_fftw_import_wisdom_from_string($wisdom);
-  if (!$ok) {
-    print STDERR "Warning: couldn\'t import wisdom\n";
-  }
-  }
+    $wisdom_fname = shift;
+    
+    if (!$wisdom_loaded) {
+	my ($wisdom, $ok);
+	$wisdom_loaded = 1;
+	if (!open(TMPFILE,$wisdom_fname)) {
+	    print STDERR "Warning: couldn\'t find wisdom file\n";
+	    return;
+	}
+	$wisdom = <TMPFILE>;
+	close(TMPFILE);
+	$ok = PDL_fftw_import_wisdom_from_string($wisdom);
+	if (!$ok) {
+	    print STDERR "Warning: couldn\'t import wisdom\n";
+	}
+    }
 }
 
 sub save_wisdom {
@@ -231,9 +228,9 @@ sub END {
 }
 
 if (defined $PDL::FFT::wisdom) {
-	load_wisdom($PDL::FFT::Wisdom);
-	print "loading wisdom from $PDL::FFT::Wisdom\n" if $PDL::debug;
-      }
+    load_wisdom($PDL::FFT::wisdom);
+    print "loading wisdom from $PDL::FFT::wisdom\n" if $PDL::debug;
+}
 
 # real fftw
 *PDL::rfftw = \&rfftw;
@@ -1013,7 +1010,7 @@ nfftw infftw nrfftw inrfftw fftwconv rfftwconv');
 # I don't see a point in exporting these (CS)
 # 'PDL_rfftwnd_create_plan PDL_rfftwnd_one_real_to_complex PDL_rfftwnd_one_complex_to_real PDL_fftw_export_wisdom_to_string PDL_fftw_import_wisdom_from_string PDL_inplace_fftwnd_one PDL_fftwnd_one PDL_fftwnd_create_plan PDL_inplace_rfftwnd_one_real_to_complex PDL_inplace_rfftwnd_one_complex_to_real';
 
-pp_addpm({At => Bot},<< 'EOD');
+pp_addpm({At => 'Bot'},<< 'EOD');
 =head1 AUTHOR
 
 Copyright (C) 1999 Christian Pellegrin, 2000 Christian Soeller.
