@@ -1,12 +1,5 @@
 # -*-perl-*-
 
-##############################
-#
-# Be sure to increment $pdl_core_version (about 8 lines below this note)
-# if you change any prototypes or modify the Core structure!
-#
-##############################
-
 use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -15,9 +8,8 @@ require 'Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES );
 
 # version 2 is for versions after PDL 2.1.1
-# version 4 has pdl_hard_copy included in the Core structure.
 use vars qw( $pdl_core_version );
-$pdl_core_version = 4;  
+$pdl_core_version = 3;  
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -252,7 +244,6 @@ struct Core {
     void   (*destroy)     (pdl *it);
     pdl*   (*null)        ();
     SV*    (*copy)        ( pdl*, char* );
-    pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( int );

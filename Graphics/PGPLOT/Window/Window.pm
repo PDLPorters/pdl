@@ -354,16 +354,6 @@ Set the line width. It is specified as a integer multiple of 0.13 mm.
 
 The HardLW option should be used if you are plotting to a hardcopy device.
 
-=item Panel
-
-It is possible to define multiple plot ``panels'' with in a single
-window (see the L<NXPanel and NYPanel options in the
-constructor|PDL::Graphics::PGPLOT::Window>).  You can explicitly set
-in which panel most plotting commands occur, by passing either a
-scalar or an array ref into the C<Panel> option.  There is also a
-L<panel|PDL::Graphics::PGPLOT::panel> method, but its use is deprecated
-because of a wart with the PGPLOT interface.
-
 =item plotting range
 
 Explicitly set the plot range in x and y. X-range and Y-range are set
@@ -373,7 +363,6 @@ in general). These options are ignored if the window is on hold.
 
   line $x, $y, {xr => [0,5]}; # y-range uses default
   line $x, $y, {Xrange => [0,5], Yrange => [-1,3]}; # fully specified range
-
 
 =back
 
@@ -780,18 +769,7 @@ Switch to a different panel
   $win->panel(<num>);
 
 Move to a different panel on the plotting surface. Note that you will need
-to erase it manually if that is what you require.  
-
-This routine currently does something you probably don't want, and hence is
-deprecated for most use:  if you say
-
-  $win->panel(1);
-  $win->imag($image);
-
-then $image will actually be displayed in panel B<2>.  That's because
-the main plotting routines such as line and imag all advance the panel
-when necessary.  Instead, it's better to use the Panel option within
-plotting commands, if you want to set the panel explicitly.  
+to erase it manually if that is what you require.
 
 =head2 release
 
@@ -2753,16 +2731,13 @@ sub panel {
     # We have been given a single number... This can be converted
     # to a X&Y position with a bit of calculation. The code is taken
     # from one2nd.
-    release_and_barf("panel: Panel numbering starts at 1, not 0\n")
-      if($_[0]<=0);
-
-    my $i=$_[0]-1;	        # Offset code is 0-based (of course)
+    my $i=$_[0]-1;		# The code is 0 offset..
     $xpos = $i % $self->{NX};
     $i = long($i/$self->{NX});
     $ypos=$i % $self->{NY};
     $xpos++; $ypos++;		# Because PGPLOT starts at 1..
   } else {
-    release_and_barf <<'EOD';
+    release_and_barf <<'EOD'
  Usage: panel($xpos, $ypos);   or
         panel([$xpos, $ypos]); or
         panel($index);
@@ -3542,37 +3517,7 @@ sub label_axes {
       pgslw($o->{TextWidth});
   }
 
-  # pglab by default goes too far from the plot!  If NYPanels > 1
-  # then the bottom label of a higher plot tends to squash the plot 
-  # title for the plot below it.   To remedy this problem I've
-  # replaced the pglab call with a set of calls to pgmtxt, cribbed
-  # from the pglab.f file.  The parameters are shrunk inward if NYPanel > 1 
-  # or if the option "TightLabels" is set.  You can also explicitly set 
-  # it to 0 to get the original broken  behavior.  [CED 2002 Aug 29]
-
-  $label_params = [ [2.0,  3.2, 2.2], # default
-		    [1.0, 2.7, 2.2], # tightened
-		    ]
-		      unless defined($label_params);
-
-  my($p) = $label_params->[ ( ($self->{NY} > 1 && !defined $o->{TightLabels})
-			      || $o->{TightLabels} 
-			      ) ? 1 : 0 ];
-  my($sz);
-  pgqch($sz);
-
-  pgbbuf(); # Begin a buffered batch output to the device
-  pgsch($sz * ( $o->{TitleSize} || 1 ));
-             # The 'T' offset is computed so that the original 
-             # vertical center is maintained.
-  pgmtxt('T', ($p->[0]+0.5)/( $o->{TitleSize} || 1 ) - 0.5 , 0.5, 0.5, $o->{Title});  
-  pgsch($sz);
-  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
-  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
-  pgebuf();
-
-#    pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
-
+  pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
 
   pgslw($old_lw) if defined $old_lw;
   $self->_restore_status;
@@ -4622,9 +4567,6 @@ sub arrow {
 						  Unit => undef,
 						  DrawWedge => 0,
 						  Wedge => undef,
-						  XTitle => undef,
-						  YTitle => undef,
-						  Title  => undef
 						 });
     }
 
@@ -4864,24 +4806,8 @@ sub arrow {
 sub fits_imag {
   my($pane) = shift;
   my($pdl) = shift;
-  my($opt_in) = shift;
-  $opt_in = {} unless defined($opt_in);
-  if (!defined($f_im_options)) {
-    $f_im_options = $pane->{PlotOptions}->extend({
-      						  PIX => undef,
-						  Min => undef,
-						  Max => undef,
-						  Scale => undef,
-						  Pitch => undef,
-						  Unit => undef,
-						  DrawWedge => 0,
-						  Wedge => undef,
-						  XTitle => undef,
-						  YTitle => undef,
-						  Title  => undef
-						 });
-  }
-  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
+  my($opt) = shift;
+  $opt = {} unless defined($opt);
 
   my($hdr) = $pdl->gethdr();
 
@@ -4951,9 +4877,9 @@ sub fits_imag {
   } else {
     $pane->imag($pdl,\%opt2);
   }
-  $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
-		    $opt->{YTitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
-		    $opt->{Title}, $opt
+  $pane->label_axes($opt->{xtitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
+		    $opt->{ytitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
+		    $opt->{title}, $opt
 		    );
 
 }

@@ -78,19 +78,6 @@ A boolean value which, if true, causes both axes to drawn
 to the same scale; see
 the PGPLOT C<pgenv()> command for more information.
 
-=item TightLabels
-
-Boolean value which, if true, causes axis labels to be pulled
-slightly closer to the main viewport than usual.  That's handy
-for making multi-panel plots.  Undef (the default) is equivalent
-to 0 for panels with NYPanels <= 1 and 1 for panels with NYPanels > 1.
-
-=item TitleSize
-
-The relative size of a plot or image title, compared to other annotations.
-Defaults to 1.0 (original behavior) but can be set to, e.g., 1.5 to 
-emphasize graph titles in a multipanel plot.
-
 =item Border
 
 Adjust the spacing around the plot. See the documentation in
@@ -207,8 +194,6 @@ sub default_options {
 	    WindowName  => $options{WindowName}, # The window name given
 	    NXPanel     => $options{NXPanel}, # The number of plotting panels
 	    NYPanel     => $options{NYPanel}, # Ditto.
-	    TightLabels => undef,
-	    TitleSize   => 1.0,
 	    Justify     => $options{Justify},
 	    Border      => $options{Border},
 	    CharSize    => $options{CharSize}, # Character size for annotation
@@ -233,8 +218,6 @@ sub default_options {
 	   Axis	       => $options{Axis},	 # Standard axis-type
 	   Transform   => $options{Transform},   # The transform used for plots.
 	   LineWidth   => $options{LineWidth},
-	   TightLabels => $options{TightLabels},
-	   TitleSize   => $options{TitleSize},
 	   Xrange      => $options{Xrange},
 	   Yrange      => $options{Yrange},
 	   BackgroundColour => $options{BackgroundColour},
