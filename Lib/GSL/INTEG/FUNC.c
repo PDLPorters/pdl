@@ -1,4 +1,7 @@
-static SV* ext_funname;
+#define max_nested_integrals  20
+ 
+static SV* ext_funname[max_nested_integrals - 1];
+static int current_fun = -1;
 static gsl_function F;
 
 double FUNC(double x,void * p);
@@ -12,7 +15,7 @@ double FUNC(double x,void * p){
   SV* funname;
 
   /* get function name on the perl side */
-  funname = ext_funname;
+  funname = ext_funname[current_fun];
 
   ENTER;
   SAVETMPS;

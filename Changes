@@ -1,3 +1,5 @@
+AJ (01-Apr-2005)
+   Modified PDL::GSL::INTEG to enable the calculation of nested integrals
 DJB 9-Mar-2005
    Fixed dumn mistake in wfits docs I made; it is TTYPE<n> and not
    TFORM<n> that are used to specify the order of columns in FITS tables!
