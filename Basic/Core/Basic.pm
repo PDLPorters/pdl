@@ -419,11 +419,13 @@ sub PDL::rvals { # Return radial distance from given point and offset
     my $opt = pop @_ if ref($_[$#_]) eq "HASH";
     my %opt = defined $opt ? 
                iparse( {
+			CENTRE  => undef, # needed, otherwise centre/center handling painful
 			Squared => 0,
 		       }, $opt ) : ();
     my $r =  scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
-    
-    my (@pos) = @{$opt->{'Centre'}} if exists $opt->{'Centre'} ;
+
+    my @pos;
+    @pos = @{$opt{CENTRE}} if defined $opt{CENTRE};
     my $offset;
 
     $r .= 0.0;

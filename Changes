@@ -2,6 +2,7 @@ DJB (23/Oct/01)
     - changes to bad.pd in order to clean up build slightly (for 
       instance we longer need to create pdlapi.c from pdlapi.c.PL)
     - added Diab Jerius' patch [ #469110 ] for rvals/options
+    - added a test for this [and fixed a bug I'd introduced]
 DJB (15/Oct/01)
     - minor fix to ellipse (no longer requires options array) and to
       imag (will correctly handle transforms for axes with "-ve" pixel 
