@@ -1771,7 +1771,7 @@ sub PDL::interpND {
     return $source->range(PDL::Math::floor($index+0.5),0,$boundary);
   }
 
-  elsif ($method==1 || $method =~ m/^l(in(ear)?)?/i) {
+  elsif (($method eq 1) || $method =~ m/^l(in(ear)?)?/i) {
     ## key: (ith = index thread; cth = cube thread; sth = source thread)
     my $d = $index->dim(0);
     my $di = $index->ndims - 1;
@@ -1808,7 +1808,7 @@ sub PDL::interpND {
 
     return $out;
 
-  } elsif($method==3 || $method =~ m/^c(u(b(e|ic)?)?)?/i) {
+  } elsif(($method eq 3) || $method =~ m/^c(u(b(e|ic)?)?)?/i) {
 
       my ($d,@di) = $index->dims;
       my $di = $index->ndims - 1;

@@ -28,7 +28,6 @@ while(<MAP>) {
   push(@a,[$x,$y,$z,$color ? $color-1:0]);
   $nelem++;
 }
-shift @mainlist; # get rid of null first item
 
 print "Breaking up elements...\n";
 $elements = zeroes(4,$nelem);
