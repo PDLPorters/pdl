@@ -170,7 +170,7 @@ $fh->print(qq%
 static Core* PDL; /* Structure hold core C functions */
 static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
-SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
 /* we need to handle croak ourserlves */
 /* #undef croak

@@ -10,7 +10,7 @@ package PDL::NiceSlice;
 #   $pdl->mslice(processed_args);
 #
 
-$PDL::NiceSlice::VERSION = 0.4;
+$PDL::NiceSlice::VERSION = 0.5;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -403,9 +403,9 @@ Examples:
   $a(:-1:2); # this will select every 2nd element in the 1st dim
 
 Just as with L<slice|PDL::Slices/slice> negative indices count from the end of the dimension
-backwards with C<-1> being the last element. If the start index is smaller
+backwards with C<-1> being the last element. If the start index is larger
 than the stop index the resulting piddle will have the elements in reverse
-between those indices:
+order between these limits:
 
   print $a(-2:0:2);
  [8 6 4 2 0]

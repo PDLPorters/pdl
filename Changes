@@ -1,3 +1,8 @@
+CS  - slices.pd: fix lags bug #436823
+    - Fit/Polynomial.pm: normalization wasn't threaded (bug #438335)
+    - PP.pm: make CoreSv linkage static (MacOSX)
+    - Basic.pm: apply whist patch
+    - PDL::SFilter renamed to PDL::NiceSlice
 CS  - fix MANIFEST
     - fix 'reduce' docs
     - SFilter improvements

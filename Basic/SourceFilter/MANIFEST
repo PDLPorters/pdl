@@ -2,6 +2,7 @@ README
 README.head
 NiceSlice.pm
 MANIFEST
+INSTALL
 Makefile.PL
 t/niceslice.t
 local.perldlrc
