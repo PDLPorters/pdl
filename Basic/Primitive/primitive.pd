@@ -207,7 +207,7 @@ defpdl(
           break;
       default:
           threadloop %{
-        for (nn=3;nn<ns-3;nn++) { tmp += $a(n=>nn); }
+        for (nn=3,tmp=0;nn<ns-3;nn++) { tmp += $a(n=>nn); }
         tmp += (23./24.)*($a(n=>2)+$a(n=>nn));nn++;
         tmp += (7./6.)  *($a(n=>1)+$a(n=>nn));nn++;
         tmp += 0.375    *($a(n=>0)+$a(n=>nn));
