@@ -8,7 +8,7 @@ kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 print "1..2\n";
 
 unless ($loaded) {
-        for (1..1) {
+        for (1..2) {
                 print "ok $_ # Skipped: probably PDL::Slatec not available.\n";
         }
         exit;

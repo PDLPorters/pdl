@@ -28,7 +28,7 @@ if start-up time becomes an issue.
 
 
 # set the version: 
-$PDL::VERSION = '2.2'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.2cvs'; # delete 'cvs' bit for release !
 
 # Main loader of standard PDL package
 
