@@ -405,7 +405,11 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 #ifdef croak
 #define tcroak croak
 #define croak Perl_croak
+#ifdef aTHX_
 #define _extra aTHX_
+#else
+#define _extra
+#endif
 #else
 #define _extra
 #endif
