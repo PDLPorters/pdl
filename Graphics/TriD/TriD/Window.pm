@@ -22,10 +22,14 @@ sub new {
   $this->{Interactive} = $this->gdriver($options);
 
   # set default values
-  $this->{Ev} = $this->ev_defaults(); 
-
-  my $vp = $this->new_viewport(0,0,$this->{Width},$this->{Height});  
+  if($this->{Interactive}){
+	 $this->{Ev} = $this->ev_defaults(); 
+	 $this->new_viewport(0,0,$this->{Width},$this->{Height});  
+  }else{
+	 $this->new_viewport(0,0,1,1);  
+  }
   $this->current_viewport(0);
+
   return($this);
 }
 
@@ -47,6 +51,7 @@ sub new_viewport {
   my($this,$x0,$y0,$x1,$y1, $options) = @_;
   my $vp = new PDL::Graphics::TriD::ViewPort($x0,$y0,$x1,$y1);
 #
+  print "Adding viewport $x0,$y0,$x1,$y1\n";
   push @{$this->{_ViewPorts}}, $vp;
 #
 
@@ -73,7 +78,6 @@ sub new_viewport {
 		$vp->eventhandler($ev);
 	 }
   }
-
   print "new_viewport: ",ref($vp)," ",$#{$this->{_ViewPorts}},"\n" if($PDL::Graphics::TriD::verbose);
 
   return $vp;
@@ -176,6 +180,7 @@ sub AUTOLOAD {
 
   $sub =~ s/.*:://;
   for(@{$self->{_ViewPorts}}) {
+    next unless defined $_;
 	 $_->$sub(@args);
   }
 }

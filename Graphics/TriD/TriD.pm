@@ -497,8 +497,25 @@ method.
 
 package PDL::Graphics::TriD::Basic;
 package PDL::Graphics::TriD;
+
 use PDL::Exporter;
 use PDL::Core '';  # barf
+use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
+@ISA = qw/PDL::Exporter/;
+@EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
+  describe3d imagrgb imagrgb3d hold3d release3d
+  keeptwiddling3d nokeeptwiddling3d
+  twiddle3d grabpic3d tridsettings/;
+%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+
+use PDL::Graphics::TriD::Object;
+use PDL::Graphics::TriD::Window;
+use PDL::Graphics::TriD::ViewPort;
+use PDL::Graphics::TriD::Graph;
+use PDL::Graphics::TriD::Quaternion;
+use  PDL::Graphics::TriD::Objects;
+use PDL::Graphics::TriD::Rout;
+
 #use strict;
 
 # Then, see which display method are we using:
@@ -530,22 +547,6 @@ BEGIN {
         my $verbose;
 
 }
-
-use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
-@ISA = qw/PDL::Exporter/;
-@EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  describe3d imagrgb imagrgb3d hold3d release3d
-  keeptwiddling3d nokeeptwiddling3d
-  twiddle3d grabpic3d tridsettings/;
-%EXPORT_TAGS = (Func=>[@EXPORT_OK]);
-
-use PDL::Graphics::TriD::Object;
-use PDL::Graphics::TriD::Window;
-use PDL::Graphics::TriD::ViewPort;
-use PDL::Graphics::TriD::Graph;
-use PDL::Graphics::TriD::Quaternion;
-use  PDL::Graphics::TriD::Objects;
-use PDL::Graphics::TriD::Rout;
 
 
 # currently only used by VRML backend
@@ -677,6 +678,12 @@ sub PDL::imagrgb {
 *line3d=\&PDL::line3d;
 sub PDL::line3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::LineStrip(@_));
+}
+
+*contour3d=\&PDL::contour3d;
+sub PDL::contour3d { 
+  &checkargs;
+  &graph_object(new PDL::Graphics::TriD::Contours(@_));
 }
 
 # XXX Should enable different positioning...

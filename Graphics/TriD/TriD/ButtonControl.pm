@@ -16,6 +16,24 @@
 
 PDL::Graphics::TriD::ButtonControl - default event handler subroutines
 
+=head1 FUNCTIONS
+
+=head2 new()
+
+=for ref
+
+Bless an oject into the class ButtonControl, expects the associated
+Window object to be supplied as an argument.
+
+=for usage
+
+The ButtonControl class is a base class which all TriD event
+controllers should inherit from.  By itself it does not do much.  It
+defines ButtonPressed and ButtonRelease functions which are expected by
+the Event loop.
+
+
+
 =cut
 
 package PDL::Graphics::TriD::ButtonControl;
@@ -31,6 +49,7 @@ sub new{
 
   $self;
 }
+
 
 =head2 mouse_moved
 
@@ -60,7 +79,7 @@ sub ButtonRelease{
 
 =for ref
 
-  Activates the viewport the mouse inside when pressed
+  Activates the viewport the mouse is inside when pressed
 
 =cut
 
@@ -81,6 +100,14 @@ sub ButtonPress{
   }
   print "ButtonPress @_ ",ref($this->{Win}),"\n" if $PDL::Graphics::TriD::verbose;
 }
+
+=head2 set_wh
+
+=for ref
+
+  Define the width and Height of the window for button control
+
+=cut
 
 sub set_wh {
   my($this,$w,$h) = @_;

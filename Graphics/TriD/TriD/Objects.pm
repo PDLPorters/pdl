@@ -1,6 +1,28 @@
-# GObjects can be either stand-alone or in Graphs, scaled properly.
-# All the points used by the object must be in the member {Points}.
-# I guess we can afford to force data to be copied (X,Y,Z) -> (Points)...
+=head1 NAME
+
+  PDL::Graphics::TriD::Objects - Simple Graph Objects for TriD
+
+=head1 SYNOPSIS
+
+  Look in PDL/Demos/TkTriD_demo.pm for several examples, the code
+  in PDL/Demos/TriD1.pm and PDL/Demos/TriD2.pm also uses objects
+  but it hides them from the user.
+
+=head1 DESCRIPTION
+
+GObjects can be either stand-alone or in Graphs, scaled properly.
+All the points used by the object must be in the member {Points}.
+I guess we can afford to force data to be copied (X,Y,Z) -> (Points)...
+
+=head1 OBJECTS
+
+=head2 PDL::Graphics::TriD::GObject
+
+Inherits from base PDL::Graphics::TriD::Object and adds fields Points, Colors and
+Options.  Need lots more here...
+
+=cut
+
 package PDL::Graphics::TriD::GObject;
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Points Colors Options/;
