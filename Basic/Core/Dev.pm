@@ -6,6 +6,7 @@
 package PDL::Core::Dev;
 
 use English; use Exporter; use DynaLoader;
+use IO::File;
 @ISA    = qw( Exporter DynaLoader );
 
 @EXPORT = qw(genpp %PDL_DATATYPES PDL_INCLUDE PDL_TYPEMAP
@@ -342,13 +343,13 @@ sub unsupported {
 }
 
 sub write_dummy_make {
-  my ($msg) = @_;
-      open(OUT,">Makefile") or die "can't open Makefile";
-      print OUT <<"EOT";
+    my ($msg) = @_;
+    my $fh = new IO::File "> Makefile" or die "can't open Makefile";
+    print $fh <<"EOT";
 fred:
-	\@echo ****
+	\@echo \"****\"
 	\@echo \"$msg\"
-	\@echo ****
+	\@echo \"****\"
 
 all: fred
 
@@ -361,7 +362,7 @@ realclean ::
 	rm -rf Makefile Makefile.old
 
 EOT
-      close(OUT);
+    close($fh);
 }
 
 sub getcyglib {
