@@ -36,7 +36,7 @@ You find mpeg_encode at ftp://mm-ftp.cs.berkeley.edu/pub/multimedia/mpeg/encode 
 package PDL::IO::Pic;
 
 
-@EXPORT_OK = qw( wmpeg rpic wpic rpiccan wpiccan );
+@EXPORT_OK = qw( wmpeg rim wim rpic wpic rpiccan wpiccan );
 
 %EXPORT_TAGS = (Func => [@EXPORT_OK]);
 use PDL::Core;
@@ -201,6 +201,7 @@ sub PDL::rpiccan {splice @_,1,0,'R';
 		  return PDL::IO::Pic::piccan(@_)}
 sub PDL::wpiccan {splice @_,1,0,'W';
 		  return PDL::IO::Pic::piccan(@_)}
+
 
 =head2 rpic
 
@@ -477,6 +478,184 @@ sub PDL::wpic {
     wpnm($pdl, $cmd, $iform , $iraw);
 }
 
+=head2 rim
+
+=for usage
+
+  $a = rim($file);
+  rim($a,$file);
+
+=for ref
+
+Read images in most formats, with improved RGB handling.
+
+You specify a filename and get back a PDL with the image data in it.
+Any PNM handled format or FITS will work. In the second form, $a is an 
+existing PDL that gets loaded with the image data.  
+
+If the image is in one of the standard RGB formats, then you get back
+data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim 
+contains the color information.  That allows you to do simple indexing
+into the image without knowing whether it is color or not -- if present,
+the RGB information is silently threaded over.  (Contrast L<rpic>, which
+munges the information by putting the RGB index in the 0th dim, screwing
+up subsequent threading operations).
+
+If the image is in FITS format, then you get the data back in exactly
+the same order as in the file itself.
+
+Images with a ".Z" or ".gz" extension are assumed to be compressed with
+UNIX L<"compress"|compress> or L<"gzip"|gzip>, respecetively, and are 
+automatically uncompressed before reading.
+
+OPTIONS
+
+The same as L<rpic>, which is used as an engine:
+
+=over 3
+
+=item FORMAT
+
+If you don't specify this then formats are autodetected.  If you do specify
+it then only the specified interpreter is tried.  For example,
+
+  $a = rim("foo.gif",{FORMAT=>"JPEG"}) 
+
+forces JPEG interpretation.
+
+=item XTRAFLAGS
+
+Contains extra command line flags for the pnm interpreter.  For example,
+
+  $a = rim("foo.jpg",{XTRAFLAGS=>"-nolut"}) 
+
+prevents use of a lookup table in JPEG images.
+
+=back
+
+=cut
+
+use PDL::IO::Pic;
+
+sub rim {
+  my(@args) = @_;
+
+  if(@args == 2) {
+    my($dest) = $args[0];
+    if($dest->dim(0) == 3) {
+      $args[0] = $dest->reorder(1,2,0);
+    }
+    return rpic(@args);
+  } 
+
+  my $out = rpic(@args);
+
+  #
+  # Check for RGB and reorder dims if necessary.  The SIMPLE test is to check
+  # if the image has a FITS header.
+  #
+  # (What a kludge -- but rpic is historical and has to be kept at this point)
+  #
+  if($out->ndims == 3 && $out->dim(0) == 3 && 
+     !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
+     ) {
+    return $out->reorder(1,2,0);
+  } 
+  
+  $out;
+}
+  
+  
+
+=head2 wim
+
+=for usage
+
+  wim $pdl,$file;
+  $pdl->wim("foo.gif",{LUT=>$lut});
+
+=for ref
+
+Write out an image file.  You can specify the format explicitly as an
+option, or the function will try to guess the correct image
+format from the filename extension, e.g.
+
+  $pdl->wim("image.gif");
+  $pdl->wim("image.fits");
+
+will write a gif and a FITS file.  The data written out will be scaled
+to byte if the input if of type float/double.  Input data that is of a
+signed integer type and contains negative numbers will be rejected.
+
+If you append C<.gz> or C<.Z> to the end of the file name, the final
+file will be automatically compresed with L<"gzip"|gzip> |
+L<"compress"|compress>, respectively.
+
+OPTIONS
+
+You can pass in a hash ref whose keys are options.  The code uses the
+PDL::Options module so unique abbreviations are accepted.  Accepted
+keys are the same as for L<wpic|wpic>, which is used as an engine:
+
+=over 3
+
+=item CONVERTER
+
+Names the converter program to be used by pbmplus (e.g. "ppmtogif" to 
+output a gif file)
+
+=item FLAGS
+
+Flags that should be passed to the converter (replacing any default flag list)
+e.g. "-interlaced" to make an interlaced GIF
+
+=item IFORM
+
+Explicitly specifies the intermediate format (e.g. PGM, PPM, or PNM).
+
+=item XTRAFLAGS
+
+Flags that should be passed to the converter (in addition to any default
+flag list).  
+
+=item FORMAT
+
+Explicitly specifies the output image format (allowing pbmplus to pick an
+output converter)
+
+=item COLOR
+
+Specifies color conversion (e.g. 'bw' converts to black-and-white; see
+L<pbmplus> for details).
+
+=item LUT
+
+Use color-table information
+
+=back
+
+=cut
+
+use PDL::IO::Pic;
+
+sub wim {
+  my(@args) = @_;
+
+  my($im) = $args[0];
+
+  $args[0] = $im->reorder(2,0,1)
+    if(    $im->ndims == 3
+       and $im->dim(2)==3 
+       and !( 
+	      ( $args[1] =~ m/\.fits$/i ) 
+	      or 
+	      ( ref $args[2] eq 'HASH' and $args[2]->{FORMAT} =~ m/fits/i ) 
+	    )
+       );
+
+  wpic(@args);
+}
+	  
 =head2 wmpeg
 
 =for ref

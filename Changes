@@ -1,4 +1,5 @@
 CED 16-Mar-04
+   - IO::Pnm::Pic.pm: added wim() and rim() for more uniform RGB handling.
    - Doc::Perldl.pm: help module now gracefully handles multiple matches, 
 	and also ignores SIGPIPE if you quit the pager.
    - Graphics/PGPLOT/Window/Window.pd:  added DirAxis option to initenv().
