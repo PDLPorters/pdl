@@ -114,7 +114,7 @@ use PDL::Core '';
 use PDL::Slatec;
 use PDL::Primitive;
 use PDL::Slices;
-use PDL::Lib::LLSQRout;
+# use PDL::Lib::LLSQRout;
 
 sub new {
 	my($type,$ndims,$nfuncs) = @_;
