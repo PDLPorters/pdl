@@ -443,7 +443,7 @@ sub count_tags {
     # "quest" and "arquebus" properly.)
     our($prefix,$delim,%closers);
     unless(defined $prefix) {
-	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | (\wq) | (q($|\w)) )* /x;
+	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | ([^\s](q|tr|m)) | ((q|tr|m)($|\w)) )* /x;
 	$delim = '{[(`\'"q)]}';
 	%closers = ('{'=>'}','['=>']','('=>')');
     }

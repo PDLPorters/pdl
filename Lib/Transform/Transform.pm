@@ -536,9 +536,11 @@ This parameter overrides C<irange>, if both are specified.
 
 =item m, method, Method
 
-This option controls the interpolation method to be used.  Interpolation
-greatly affects both speed and quality of output.  Possible options, in order
-from fastest to slowest, are:
+This option controls the interpolation method to be used.
+Interpolation greatly affects both speed and quality of output.  For
+most cases the option is directly passed to
+L<interpND|PDL::Primitive/interpND> for interpolation.  Possible
+options, in order from fastest to slowest, are:
 
 =over 3
   
@@ -551,11 +553,23 @@ of integer type.
 
 =item * l, linear (default for floats)
 
-Pixel values are linearly interpolated from the closst data value in the 
+Pixel values are linearly interpolated from the closest data value in the 
 input plane.  This is reasonably fast but only accurate for magnification.
 Decimation (shrinking) of the image causes aliasing and loss of photometry
 as features fall between the samples.  It is the default for floating-point
 templates.
+
+=item * c, cubic
+
+Pixel values are interpolated using an N-cubic scheme from a 4-pixel
+N-cube around each coordinate value.  As with linear interpolation,
+this is only accurate for magnification.
+
+=item * f, fft
+
+Pixel values are interpolated using the term coefficients of the
+Fourier transform of the original data.  As with linear and cubic
+interpolation, this is only accurate for magnification.
 
 =item * j, jacobian
 
@@ -578,8 +592,9 @@ than others).
 =item blur, Blur
 
 This is the half-radius of the Gaussian filter used for the "jacobian"
-method, in units of output pixels.  It defaults to 0.4 pixel, which gives
-a good compromise between blurring (big filters) and aliasing (small filters).
+method, in units of output pixels.  It defaults to 0.5 pixel, which
+gives a reasonable compromise between blurring (big filters) and
+aliasing (small filters).
 
 =item big, Big
 
@@ -877,7 +892,7 @@ sub map {
   ### Interpret integration-specific options...
   my($ecc) = _opt($opt,['e','ecc','eccentricity','Eccentricity'],4.0);
   
-  my $blur  = _opt($opt,['blur','Blur']) || 0.4;
+  my $blur  = _opt($opt,['blur','Blur']) || 0.5;
   
   my $flux = scalar((_opt($opt,['p','phot','photometry','Photometry'])) =~
 		    m/[fF](lux)?/);
