@@ -44,15 +44,17 @@ sub new {
 	print "GENTYPES: ", @$generictypes, "\n";
 	print "HandleBad: $handlebad\n";
     }
-    my($this) = bless {
+    my $this = bless {
 	IndObjs => $indobjs,
 	ParNames => $parnames,
 	ParObjs => $parobjs,
 	Gencurtype => [], # stack to hold GenType in generic loops
 	HandleBad  => $handlebad,
-	BadCode => undef, # ugly: hacky way to pass data to ComplexThreadLoop->get_str()
-    },$type;
-
+	BadCode => undef, # ugly: hacky way to pass data to get_str
+        # ugly: see get_str() in BadBlock/ComplexThreadloop
+	processing_badcode => 0, 
+    }, $type;
+    
     my $inccode = join '',map {$_->get_incregisters();} (values %{$this->{ParObjs}});
 
     # First, separate the code into an array of C fragments (strings),
@@ -65,17 +67,13 @@ sub new {
     if ( $handlebad ) {
 	my ( $bad_threadloops, $bad_coderef, $bad_sizeprivs ) = 
 	    $this->separate_code( "{$inccode\n$badcode\n}" );
-	# I'm assuming that I can ignore $bad_threadloops and
-	# $bad_sizeprivs 
-	# XXX foolish XXX I'm sure
-	# - will possibly work for simple cases but fall down 
-	#   as we get more complicated
-	#
-	# yup - found a case when ignoring bad_sizeprivs is foolish
-	# --> PDL::Bad::nbadover.
-	# so, amalgamate the two here
+
+	# store bad code representation in object so that 
+	# ComplexThreadLoop can find it
+	# XXX NASTY XXX
 	$this->{BadCode} = $bad_coderef;
 
+	# amalgamate sizeprivs from Code/BadCode segmtents:
 	# fortunately sizeprivs is a simple hash, with each element 
 	# containing a string (see PDL::PP::Loop)
 	while ( my ( $bad_key, $bad_str ) = each %$bad_sizeprivs ) {
@@ -89,6 +87,13 @@ sub new {
 
 	die "ERROR: threadloops are not the same between Code and BadCode (BadVal stuff).\n"
 	    unless $bad_threadloops == $threadloops;
+
+	# re-bless $coderef, since we want it now to be in a PDL::PP::BadBlock
+	# - IFF it includes a threadloop
+	# NOTE: is this check sufficient
+	if ( $threadloops ) {
+	    $coderef = bless $coderef, "PDL::PP::BadBlock";
+	}
 
     } # if: $handlebad
 
@@ -180,6 +185,7 @@ sub get_str {
 
 sub get_str_int {
     my ( $this, $parent, $context ) = @_;
+
     my $nth=0;
     my $str = "";
   MYLOOP: while(1) {
@@ -192,6 +198,55 @@ sub get_str_int {
   }
     return $str;
 } # get_str_int()
+
+###########################
+#
+# Encapsulate a block
+# to deal with bad code
+#
+# this is to deal with bad code that uses the
+# threadloop %{ %} construct, since my
+# original hack doesn't work in this case
+# - XXX should really redesign the whole process
+#   but I don't understand it well enough...
+#
+package PDL::PP::BadBlock;
+@PDL::PP::BadBlock::ISA = "PDL::PP::Block";
+
+# reason for get_str_int() is shown in the 
+# horrible hacking done in PDL::PP::ComplexThreadLoop
+sub get_str {
+    my ($this,$parent,$context) = @_;
+
+    die "Programming error: found a BadBlock when not interested in bad code\n"
+	unless exists $parent->{HandleBad} and $parent->{HandleBad};
+
+    # just use the default value if we're not bothered
+    # with bad code
+#    return $this->SUPER::get_str($parent,$context) unless 
+#	exists $parent->{HandleBad} and $parent->{HandleBad};
+
+    die "PROGRAMMING ERROR: entered BadBlock's get_str() when already processing BadCode.\n"
+	if $parent->{processing_badcode};
+    $parent->{processing_badcode} = 1;
+
+    # NOTE: $badcode is going to be a PDL::PP::Block
+    my $badcode = $parent->{BadCode};
+    die "PROGRAMMING ERROR: expected \$parent->{BadCode} to contain data."
+	unless defined $badcode;
+
+    my $prelude  = $this->myprelude($parent,$context);
+    my $postlude = $this->mypostlude($parent,$context);
+
+    my $str = "if ( \$PRIV(bvalflag) ) {\n$prelude";
+    $str .= $badcode->get_str_int($parent,$context);
+    $str .= "$postlude\n} else { /*** else do 'good' Code ***/\n$prelude";
+    $str .= $this->get_str_int($parent,$context);
+    $str .= "$postlude}\n";
+
+    $parent->{processing_badcode} = 0;
+    return $str;
+}
 
 ###########################
 #
@@ -233,6 +288,10 @@ sub mypostlude { my($this,$parent,$context) = @_;
 #
 # Encapsulate a generic type loop
 
+#
+# I have commented out the #define/#undef of the THISISxxx macros
+# to reduce the size of the xs code (it got in my way)
+#
 package PDL::PP::GenericLoop;
 @PDL::PP::GenericLoop::ISA = "PDL::PP::Block";
 
@@ -248,9 +307,9 @@ sub myoffs {4}
 sub myprelude { my($this,$parent,$context) = @_;
 	push @{$parent->{Gencurtype}},'PDL_undef'; # so that $GENERIC can get at it
 	"/* Start generic loop */\n".
-	(join '',map{
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
-	}(qw/B S U L F D/)).
+#	(join '',map{
+#		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n"
+#	}(qw/B S U L F D/)).
 	"\tswitch($this->[3]) { case -42: /* Warning eater */ {1;\n";
 }
 
@@ -260,10 +319,10 @@ sub myitem { my($this,$parent,$nth) = @_;
 	if(!$item) {return "";}
 	$parent->{Gencurtype}->[-1] = $item->[1];
 	"\t} break; case $item->[0]: {\n".
-	(join '',map {
-		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
-	}(qw/B S U L F D/)).
-	"#undef THISIS$this->[1]_$item->[3]\n#define THISIS$this->[1]_$item->[3](a) a\n".
+#	(join '',map {
+#		"#undef THISIS$this->[1]_$_\n#define THISIS$this->[1]_$_(a)\n";
+#	}(qw/B S U L F D/)).
+#	"#undef THISIS$this->[1]_$item->[3]\n#define THISIS$this->[1]_$item->[3](a) a\n".
 	(join '',map{
 		# print "DAPAT: '$_'\n";
 		$parent->{ParObjs}{$_}->get_xsdatapdecl($item->[1]);
@@ -386,15 +445,27 @@ sub mypostlude {my($this,$parent,$context) = @_;
 # I thought $#$this == 0, but that's not true (eg see intover 
 # in primitive.pd)
 #
+# NOTE: to allow BadCode when using 'threadloop %{', I have
+# had to hack things further. It's now in a situation when a
+# re-write is required, but I don't have the time/energy to
+# do it. Now we fall back to the original behaviour (ie use
+# Block's get_str) IFF we are already processing bad values
+# - which will be if we have a BadBlock)
+#
 #   XXX this is truly nasty XXX
 #
 sub get_str {
     my ($this,$parent,$context) = @_;
 
     # just use the default value if we're not bothered
-    # with bad code
-    return $this->SUPER::get_str($parent,$context) unless 
-	exists $parent->{HandleBad} and $parent->{HandleBad};
+    # with bad code - INCLUDES if we're already processing
+    # bad values
+    return $this->SUPER::get_str($parent,$context) 
+	unless 
+	    exists $parent->{HandleBad} and $parent->{HandleBad} and 
+		$parent->{processing_badcode} == 0;
+
+    $parent->{processing_badcode} = 1;
 
     # NOTE: $badcode is going to be a PDL::PP::Block
     my $badcode = $parent->{BadCode};
@@ -404,24 +475,25 @@ sub get_str {
     my $prelude  = $this->myprelude($parent,$context);
     my $postlude = $this->mypostlude($parent,$context);
 
-    # as I don't think this text is going to have any more macros
-    # expanded (at least PP macros), then I'm hard-coding the
-    # access to the bad value flag
-    # (eg see XXX_badflag() routines in PP.pm)
-    #
-##    my $str = "if ( __privtrans->flags & PDL_ITRANS_HAVE_BADVAL ) {\n$prelude";
-    my $str = "if ( __privtrans->bvalflag ) {\n$prelude";
-    $str .= $parent->{BadCode}->get_str_int($parent,$context);
+    my $str = "if ( \$PRIV(bvalflag) ) {\n$prelude";
+    $str .= $badcode->get_str_int($parent,$context);
     $str .= "$postlude\n} else {\n$prelude";
     $str .= $this->get_str_int($parent,$context);
     $str .= "$postlude}\n";
 
+    $parent->{processing_badcode} = 0;
     return $str;
+
 } # get_str()
 
 ###########################
 #
 # Encapsulate a types() switch
+#
+# I've disabled this (any use will cause the compilation to die)
+# just to see if anyone uses it - if it's actually needed then
+# PDL::PP::GenericLoop (above) needs several lines uncommented
+#
 
 package PDL::PP::Types;
 use Carp;
@@ -431,8 +503,13 @@ sub new { my($type,$ts) = @_;
 	$ts =~ /[BSULFD]+/ or confess "Invalid type access with '$ts'!";
 	bless [$ts],$type; }
 sub myoffs { return 1; }
-sub myprelude {my($this,$parent,$context) = @_;
-	"\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
+sub myprelude {
+    my($this,$parent,$context) = @_;
+###
+    die "I have disabled PDL::PP::Types to see what happens\n DJB 07/16/00\n",
+     " need to remove die and comments in Gen/PP/PDLCode\n"; # XXX DBG
+###
+    "\n#if ". (join '||',map {"(THISIS_$_(1)+0)"} split '',$this->[0])."\n";
 }
 
 sub mypostlude {my($this,$parent,$context) = @_;
@@ -673,55 +750,55 @@ sub get_str {
 # NOTE: I doubt these are ever going to be used
 #
 
-package PDL::PP::StateBadAccess;
-use Carp;
-
-sub new { 
-    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
-
-    # $op  is one of: IS SET
-    # $val is one of: GOOD BAD
-
-    # trying to avoid auto creation of hash elements
-    my $check = $parent->{ParObjs};
-    die "\nIt looks like you have tried a \$STATE${op}${val}() macro on an\n" .
-	"  unknown piddle <$pdl_name>\n"
-	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
-
-    bless [$op, $val, $pdl_name], $type;
-}
-
-sub get_str {
-    my($this,$parent,$context) = @_;
-
-    my $op   = $this->[0];
-    my $val  = $this->[1];
-    my $name = $this->[2];
-
-    print "PDL::PP::StateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
-
-    my %ops  = ( 
-		 IS  => { GOOD => '==', BAD => '> 0' },
-		 SET => { GOOD => '&= ~', BAD => '|= ' },
-	     );
-
-    my $opcode = $ops{$op}{$val};
-    my $type = $op . $val;
-    die "ERROR: unknown check <$type> sent to PDL::PP::StateBadAccess\n"
-	unless defined $opcode;
-
-    my $state = "${name}->state";
-
-    my $str;
-    if ( $op eq 'IS' ) {
-	$str = "($state & PDL_BADVAL) $opcode";
-    } elsif ( $op eq 'SET' ) {
-	$str = "$state ${opcode}PDL_BADVAL";
-    }
-
-    print "DBG:  [$str]\n" if $::PP_VERBOSE;
-    return $str;
-}
+#package PDL::PP::StateBadAccess;
+#use Carp;
+#
+#sub new { 
+#    my ( $type, $op, $val, $pdl_name, $parent ) = @_;
+#
+#    # $op  is one of: IS SET
+#    # $val is one of: GOOD BAD
+#
+#    # trying to avoid auto creation of hash elements
+#    my $check = $parent->{ParObjs};
+#    die "\nIt looks like you have tried a \$STATE${op}${val}() macro on an\n" .
+#	"  unknown piddle <$pdl_name>\n"
+#	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+#
+#    bless [$op, $val, $pdl_name], $type;
+#}
+#
+#sub get_str {
+#    my($this,$parent,$context) = @_;
+#
+#    my $op   = $this->[0];
+#    my $val  = $this->[1];
+#    my $name = $this->[2];
+#
+#    print "PDL::PP::StateBadAccess sent [$op] [$val] [$name]\n" if $::PP_VERBOSE;
+#
+#    my %ops  = ( 
+#		 IS  => { GOOD => '==', BAD => '> 0' },
+#		 SET => { GOOD => '&= ~', BAD => '|= ' },
+#	     );
+#
+#    my $opcode = $ops{$op}{$val};
+#    my $type = $op . $val;
+#    die "ERROR: unknown check <$type> sent to PDL::PP::StateBadAccess\n"
+#	unless defined $opcode;
+#
+#    my $state = "${name}->state";
+#
+#    my $str;
+#    if ( $op eq 'IS' ) {
+#	$str = "($state & PDL_BADVAL) $opcode";
+#    } elsif ( $op eq 'SET' ) {
+#	$str = "$state ${opcode}PDL_BADVAL";
+#    }
+#
+#    print "DBG:  [$str]\n" if $::PP_VERBOSE;
+#    return $str;
+#}
 
 
 ###########################
@@ -1021,7 +1098,7 @@ sub separate_code {
     my $sizeprivs = {};
 
     $_ = $code;
-    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
+##    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
     while($_) {
 	# Parse next statement
 	
@@ -1032,7 +1109,7 @@ sub separate_code {
 	s/^(.*?) # First, some noise is allowed. This may be bad.
 	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
                 |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
-                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
+###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
                 |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]+\s*\([^)]*\)  # $a(...): access
 		|\bloop\s*\([^)]+\)\s*%{   # loop(..) %{
@@ -1071,8 +1148,8 @@ if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 		push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
+#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$[a-zA-Z_]+\s*\([^)]*\)/) {

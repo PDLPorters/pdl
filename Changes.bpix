@@ -1,9 +1,20 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (07/21/00)
+   - now works if use 'threadloop %{ .. %}' in Code/BadCode (PP/PDLCode.pm 
+     should really be rewritten as my hacks are horrible)
+   - began to convert image2d.pd
+   - brought up to date with recent changes to the main branch (see Changes)
 Doug Burke (07/16/00)
    - added setbadif() to PDL::Bad + minor doc updates
-   - what to do for any/or/... routines in primitive.pd when all elements
-     are bad?
+   - added SETPDLSTATE(BAD|GOOD) and ISPDLSTATE(BAD|GOOD) expansions to dosubst 
+     in PP.pm (useful for xxxxBadStatusCode)
+   - removed badvalue_as_pdl()
+   - removed inclusion of the 'THISISxxx' C pre-processor commands to the xs
+     files - since they were annoying me when I was looking at the code. 
+     If they are needed (I think likely only if someone uses the 'types'
+     command in Code, then PP.pm will die - remove this statement in 
+     PP/PDLCode.pm and undef the lines it mentions in a comment
 Doug Burke (07/15/00)
    - fixed qsorti() and perldl's badinfo command
    - added $ISBADVAR(foo,pdl) & other macros, improved/cleaned up 

@@ -1,4 +1,6 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -61,6 +63,82 @@ void pdl_lqsortD(double* xx, int a, int b) {
 
 ');
 
+my %init = 
+    ( 
+      i => { size => 'm_size', off => 'poff', init => '1-p_size' },
+      j => { size => 'n_size', off => 'qoff', init => '1-q_size' },
+      );
+	     
+# requires 'int $var, ${var}2' to have been declared in the c code
+# (along with [pq]off and [pq]_size)
+#
+sub init_map {
+    my $var = shift;
+
+    my $loop = $var;
+    my $loop2 = "${var}2";
+
+    my $href = $init{$var} ||
+	die "ERROR: unknown variable sent to init_map()\n";
+    my $size = $href->{size} || 
+	die "ERROR: unable to find size for $var\n";
+    my $off  = $href->{off} || 
+	die "ERROR: unable to find off for $var\n";
+    my $init = $href->{init} || 
+	die "ERROR: unable to find init for $var\n";
+
+    return
+"for ( $loop = $init; $loop< $size; ${loop}++) {
+    $loop2 = $loop + $off;
+    switch (opt) {
+       case 1:      /* REFLECT */
+          if (${loop2}<0)
+             $loop2 = -${loop2}-1;
+          else if ($loop2 >= $size)
+             $loop2 = 2*${size}-(${loop2}+1);
+          break;
+       case 2:      /* TRUNCATE */
+          if (${loop2}<0 || ${loop2} >= $size)
+             $loop2 = -1;
+          break;
+       default:
+           REALMOD($loop2,$size);
+    }
+    map${var}\[$loop] = $loop2;
+ }\n";
+   
+} # sub: init_map()
+
+sub init_vars {
+    my $href = shift || { };
+    $href->{vars}   = '' unless defined $href->{vars};
+    $href->{malloc} = '' unless defined $href->{malloc};
+    $href->{check}  = '' unless defined $href->{check};
+
+    my $str = $href->{vars};
+    $str .= "int i,j, i1,j1, i2,j2, poff, qoff;";
+    $str .=
+	'int opt = $COMP(opt);
+         int m_size = $COMP(__m_size);
+         int n_size = $COMP(__n_size);
+         int p_size = $COMP(__p_size);
+         int q_size = $COMP(__q_size);
+         int *mapi, *mapj;
+	 
+         mapi = (int *) malloc((p_size+m_size)*sizeof(int));
+         mapj = (int *) malloc((q_size+n_size)*sizeof(int));
+	 ';
+    $str .= $href->{malloc} . "\n";
+    $str .= "if ($href->{check} (mapi==NULL) || (mapj==NULL))\n";
+    $str .= '  barf("Out of Memory");
+	 
+         poff = p_size/2; mapi += p_size-1;
+         qoff = q_size/2; mapj += q_size-1;
+';
+
+    return $str;
+} # sub: init_vars()
+
 pp_def('conv2d', Doc=><<'EOD',
 =for ref
 
@@ -90,6 +168,10 @@ will be quicker.
 =cut
 
 EOD
+       BadDoc =>
+'Unlike the FFT routines, conv2d is able to process bad values.',
+       HandleBad => 1,
+       UseBadforNaN => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
         PMCode => '
@@ -108,81 +190,63 @@ sub PDL::conv2d {
 }
 
 ',
-        Code => '
-           int i,j, i1,j1, i2,j2, poff, qoff;
-           double tmp;
-           int opt = $COMP(opt);
-           int m_size = $COMP(__m_size);
-           int n_size = $COMP(__n_size);
-           int p_size = $COMP(__p_size);
-           int q_size = $COMP(__q_size);
-           int *mapi, *mapj;
-
-           mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-           mapj = (int *) malloc((q_size+n_size)*sizeof(int));
-
-           if ((mapi==NULL) || (mapj==NULL))
-               barf("Out of Memory");
-
-           poff = p_size/2; mapi += p_size-1;
-           qoff = q_size/2; mapj += q_size-1;
-
-	   for (i=1-p_size; i<m_size; i++) {
-              i2 = i+poff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (i2<0)
-                    i2 = -i2-1;
-                 else if (i2 >= m_size)
-                    i2 = 2*m_size-(i2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (i2<0 || i2 >= m_size)
-                    i2 = -1;
-                 break;
-	default:
-                 REALMOD(i2,m_size);
-               }
-               mapi[i] = i2;
-	   }
-	   for (j=1-q_size; j<n_size; j++) {
-              j2 = j+qoff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (j2<0)
-                    j2 = -j2-1;
-                 else if (j2 >= n_size)
-                    j2 = 2*n_size-(j2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (j2<0 || j2>=n_size)
-                    j2 = -1;
-                 break;
-	default:
-                 REALMOD(j2,n_size);
-               }
-               mapj[j] = j2;
-	   }
-
+        Code => 
+           init_vars( { vars => 'PDL_Double tmp;' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
            threadloop %{
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              tmp = 0;
-              for(j1=0; j1<q_size; j1++) {
-                  j2 = mapj[j-j1];
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 tmp = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
 
-                  if (j2 >= 0) {
-                     for(i1=0; i1<p_size; i1++) {
-                       i2 = mapi[i-i1];
-                       if (i2 >= 0)
-                          tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
-                     }
-                  }
-              }
-              $b(m=>i,n=>j) = tmp;
-           }} %}
-	   free(mapj+1-q_size); free(mapi+1-p_size);
-');
+                    if (j2 >= 0) {
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0)
+                             tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
+		       } /* for: i1 */
+		    } /* if: j2 >= 0 */
+		 } /* for: j1 */
+                 $b(m=>i,n=>j) = tmp;
+	      } /* for: i */
+           } /* for: j */ 
+           %}
+	   free(mapj+1-q_size); free(mapi+1-p_size);',
+        BadCode => 
+           init_vars( { vars => 'PDL_Double tmp; int flag;' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
+           threadloop %{
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 tmp = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
 
+                    if (j2 >= 0) {
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0) {
+			     if ( $ISGOOD(a(m=>i2,n=>j2)) && $ISGOOD(kern(p=>i1,q=>j1)) ) {
+                                tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
+                                flag = 1;
+			     } /* if: good */
+                          } /* if: i2 >= 0 */
+		       } /* for: i1 */
+		    } /* if: j2 >= 0 */
+		 } /* for: j1 */
+		 if ( flag ) { $b(m=>i,n=>j) = tmp; }
+		 else        { $SETBAD(b(m=>i,n=>j)); }
+	      } /* for: i */
+           } /* for: j */
+           %}
+	   free(mapj+1-q_size); free(mapi+1-p_size);',
+
+); # pp_def: conv2d
 
 pp_def('med2d', Doc=> <<'EOD',
 =for ref
@@ -212,6 +276,8 @@ is rather pointless)
 =cut
 
 EOD
+       HandleBad => 1,
+       UseBadforNaN => 1,
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
         PMCode => '
@@ -230,89 +296,84 @@ sub PDL::med2d {
 }
 
 ',
-        Code => '
-           int i,j, i1,j1, i2,j2, poff, qoff,
-           count;
-           PDL_Double *tmp;
-           PDL_Double kk;
-
-           int opt = $COMP(opt);
-           int m_size = $COMP(__m_size);
-           int n_size = $COMP(__n_size);
-           int p_size = $COMP(__p_size);
-           int q_size = $COMP(__q_size);
-           int *mapi, *mapj;
-
-           poff = p_size/2; qoff = q_size/2;
-
-           tmp = malloc(p_size*q_size*sizeof(PDL_Double));
-           mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-           mapj = (int *) malloc((q_size+n_size)*sizeof(int));
-           if ((tmp==NULL) || (mapi==NULL) || (mapj==NULL))
-               barf("Out of Memory");
-
-           poff = p_size/2; mapi += p_size-1;
-           qoff = q_size/2; mapj += q_size-1;
-
-	   for (i=1-p_size; i<m_size; i++) {
-              i2 = i+poff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (i2<0)
-                    i2 = -i2-1;
-                 else if (i2 >= m_size)
-                    i2 = 2*m_size-(i2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (i2<0 || i2 >= m_size)
-                    i2 = -1;
-                 break;
-	default:
-                 REALMOD(i2,m_size);
-               }
-               mapi[i] = i2;
-	   }
-	   for (j=1-q_size; j<n_size; j++) {
-              j2 = j+qoff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (j2<0)
-                    j2 = -j2-1;
-                 else if (j2 >= n_size)
-                    j2 = 2*n_size-(j2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (j2<0 || j2>=n_size)
-                    j2 = -1;
-                 break;
-	default:
-                 REALMOD(j2,n_size);
-               }
-               mapj[j] = j2;
-	   }
-
+        Code => 
+           init_vars( { vars => 'PDL_Double *tmp, kk; int count;',
+                        malloc => 'tmp = malloc(p_size*q_size*sizeof(PDL_Double));',
+                        check => '(tmp==NULL) || ' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
            threadloop %{
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              count = 0;
-              for(j1=0; j1<q_size; j1++) {
-                  j2 = mapj[j-j1];
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 count = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
 
-                  if (j2 >= 0)
-                     for(i1=0; i1<p_size; i1++) {
-                        i2 = mapi[i-i1];
-                        if (i2 >= 0) {
-                           kk = $kern(p=>i1,q=>j1);
-                           if (kk>0) {
-                              tmp[count++] = $a(m=>i2,n=>j2) * kk;
-                           }
-                        }
-              }}
-              pdl_lqsortD(tmp,0,count-1);
+                    if (j2 >= 0)
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0) {
+                             kk = $kern(p=>i1,q=>j1);
+                             if (kk>0) {
+                                tmp[count++] = $a(m=>i2,n=>j2) * kk;
+                             }
+                          } /* if: i2 >= 0 */
+		       } /* for: i1 */
+		 } /* for: j1 */
+                 pdl_lqsortD(tmp,0,count-1);
 
-              $b(m=>i,n=>j) = tmp[(count-1)/2];
-           }} %}
+                 $b(m=>i,n=>j) = tmp[(count-1)/2];
+              } /* for: i */
+           } /* for: j */
+           %}
            free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
-');
+',
+        BadCode => 
+           init_vars( { vars => 'PDL_Double *tmp, kk, aa; int count, flag;',
+                        malloc => 'tmp = malloc(p_size*q_size*sizeof(PDL_Double));',
+                        check => '(tmp==NULL) || ' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
+           threadloop %{
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 count = 0;
+                 flag = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
+
+                    if (j2 >= 0)
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0) {
+                             kk = $kern(p=>i1,q=>j1);
+                             aa = $a(m=>i2,n=>j2);
+                             if ( $ISGOODVAR(kk,kern) && $ISGOODVAR(aa,a) ) {
+				flag = 1;
+                                if ( kk > 0 ) {
+                                   tmp[count++] = aa * kk;
+			        }
+                             }
+                          } /* if: i2 >= 0 */
+		       } /* for: i1 */
+		 } /* for: j1 */
+		 if ( flag == 0 ) {
+		    $SETBAD(b(m=>i,n=>j));
+                 } else if ( count == 0 ) {
+		    $b(m=>i,n=>j) = 0;
+                 } else {
+                    pdl_lqsortD(tmp,0,count-1);
+                    $b(m=>i,n=>j) = tmp[(count-1)/2];
+		 }
+              } /* for: i */
+           } /* for: j */
+           %}
+           free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
+'
+
+); # pp_def: med2d
 
 pp_def('patch2d', Doc=><<'EOD',
 =for ref
@@ -329,6 +390,9 @@ of their non-bad neighbours.
 =cut
 
 EOD
+       BadDoc => 
+'despite the name, this function does not I<yet> handle bad values.',         
+       HandleBad => 0, # a marker
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
         Code => '
            int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
@@ -366,6 +430,7 @@ Contributed by Tim Jeness
 
 EOD
 
+       HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]val(); int [o]x(); int[o]y();',
         Code => '
         double cur; int curind1; int curind2;
@@ -394,6 +459,7 @@ is C<+/- $box/2>.
 =cut
 
 EOD
+       HandleBad => 0, # a marker
 	Pars => 'im(m,n); x(); y(); box(); [o]xcen(); [o]ycen();',
 	Code => '
    int i,j,i1,i2,j1,j2,m_size,n_size;
@@ -459,6 +525,7 @@ segmented objects and fill object pixels with object number
 =cut
 
 ',
+       HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]b(m,n);',
         Code => '
 
@@ -630,6 +697,7 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 ');
 
 pp_def('polyfill',
+       HandleBad => 0, # a marker
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',
 	Code => 'int ierr = 0, nerr;
 	         threadloop %{
@@ -719,7 +787,7 @@ pp_def('rot2d',
 			/* printf("o: %d, p: %d\n",ncols,nrows); */
 			$SIZE(p) = ncols;
 			$SIZE(q) = nrows;',
-	GenericTypes => [B],
+	GenericTypes => ['B'],
 	Doc => << 'EOD',
 =for ref
 
@@ -915,7 +983,7 @@ else if(ox < ix && oy >= iy) {
 else barf("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
   ');
 
-pp_addpm({At=>Bot},<<'EOD');
+pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHORS
 

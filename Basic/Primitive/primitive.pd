@@ -569,6 +569,11 @@ Return the $text of all elements in a piddle
 
 This routine handles bad values (see the
 documentation for L<$func|/$func>).
+I still need to decide how to handle the case when 
+the return value is a bad value (eg to make sure it
+has the same type as the input piddle OR 
+perhaps we should die - makes sense for the conditional
+ops but not things like sum)
 
 =cut
 
@@ -599,11 +604,8 @@ Useful in conditional expressions:
 
 =for bad
 
-If all elements of the check (C<$a > 15> above) are bad,
-then the bad value is returned. 
-Perhaps it should die/report an error an error in this case?
-I<BROKEN>: it does not necessarily return the bad value of the 
-type of the piddle (C<$a> above).
+See L<or|/or> for comments on what happens when all elements
+in the check are bad.
 
 =cut
 
@@ -624,11 +626,8 @@ Useful in conditional expressions:
 
 =for bad
 
-If all elements of the check (C<$a > 15> above) are bad,
-then the bad value is returned.
-Perhaps it should die/report an error an error in this case?
-I<BROKEN>: it does not necessarily return the bad value of the 
-type of the piddle (C<$a> above).
+See L<and|/and> for comments on what happens when all elements
+in the check are bad.
 
 =cut
 
@@ -2076,16 +2075,43 @@ EOD
        );
 
 pp_def('norm',
-	Pars => 'vec(n); [o] norm(n)',
-	Doc => 'Normalises a vector to unit Euclidean length',
-	Code => 'double sum=0;
-		 loop(n) %{ sum += $vec()*$vec(); %}
-		 if (sum > 0) {
-		   sum = sqrt(sum);
-		   loop(n) %{ $norm() = $vec()/sum; %}
-		 } else {
-		   loop(n) %{ $norm() = $vec(); %}
-		 }',
+       HandleBad => 1,
+       Pars => 'vec(n); [o] norm(n)',
+       Doc => 'Normalises a vector to unit Euclidean length',
+       Code => 
+       'double sum=0;
+	loop(n) %{ sum += $vec()*$vec(); %}
+	if (sum > 0) {
+	  sum = sqrt(sum);
+	  loop(n) %{ $norm() = $vec()/sum; %}
+	} else {
+	  loop(n) %{ $norm() = $vec(); %}
+	}',
+       BadCode => 
+       'double sum=0;
+        int flag = 0;
+	loop(n) %{ 
+           sum += $vec()*$vec(); 
+           flag = 1;
+        %}
+        if ( flag ) {
+	   if (sum > 0) {
+	      sum = sqrt(sum);
+	      loop(n) %{ 
+                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                 else                 { $norm() = $vec()/sum; }
+              %}
+	   } else {
+	      loop(n) %{ 
+                 if ( $ISBAD(vec()) ) { $SETBAD(norm()); }
+                 else                 { $norm() = $vec(); }
+              %}
+           }
+        } else {
+	   loop(n) %{ 
+              $SETBAD(norm());
+           %}
+	}',
 );
 
 pp_add_exported('','stats');

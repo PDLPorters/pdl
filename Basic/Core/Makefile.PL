@@ -100,13 +100,13 @@ WriteMakefile(
 
 sub MY::postamble {
 PDL::Core::Dev::postamble().
-'
+"
 # Bits of C code we generate from special perl scripts
+#
+pdl.h:: pdl.h.PL mymalloc.p
+\t\$(PERL) pdl.h.PL
 
-#pdlbasicops.c:  mkpdlbasicops.p
-#	$(PERL) mkpdlbasicops.p > pdlbasicops.c
-
-'.($^O =~ /MSWin/ ? q|
+".($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c

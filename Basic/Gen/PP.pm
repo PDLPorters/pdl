@@ -711,20 +711,25 @@ $PDL::PP::deftbl =
  [[NewXSCoerceMustSubs], [NewXSCoerceMustSub1,NewXSSymTab,Name],	"dosubst"],
  [[NewXSClearThread], [HaveThreading], sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}],
 
- [[NewXSFindBadStatus], [BadFlag,_FindBadStatusCode,NewXSArgs,USParObjs,OtherParTypes,NewXSSymTab], 
+ [[NewXSFindBadStatusNS], [BadFlag,_FindBadStatusCode,NewXSArgs,USParObjs,OtherParTypes,NewXSSymTab], 
     "findbadstatus",
     "Rule to find the bad value status of the input piddles"],
 
     # this can be removed once the default bad values are stored in a C structure
     # (rather than as a perl array in PDL::Types)
     # which it now is, hence the comments (DJB 07/10/00)
+    # - left around in case we move to per-piddle bad values
 # [[NewXSCopyBadValues], [BadFlag,NewXSSymTab], 
 #    "copybadvalues",
 #    "Rule to copy the default bad values into the trnas structure"],
 
- [[NewXSCopyBadStatus], [BadFlag,_CopyBadStatusCode,NewXSArgs,USParObjs,NewXSSymTab], 
+ [[NewXSCopyBadStatusNS], [BadFlag,_CopyBadStatusCode,NewXSArgs,USParObjs,NewXSSymTab], 
     "copybadstatus",
     "Rule to copy the bad value status to the output piddles"],
+
+ # expand macros in ...BadStatusCode
+ [[NewXSFindBadStatus], [NewXSFindBadStatusNS,NewXSSymTab,Name], "dousualsubsts"],
+ [[NewXSCopyBadStatus], [NewXSCopyBadStatusNS,NewXSSymTab,Name], "dousualsubsts"],
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
@@ -883,10 +888,13 @@ sub translate {
 
       print "$rule->[3]\n" if ($::PP_VERBOSE && (@$rule == 3));
 
+      # make output, when verbose, a bit more legible
+      my $rule_id = ref($rule->[2]) eq "CODE" ? "ANON SUBROUTINE" : $rule->[2];
+
       # If any of the rule[0]s exist, don't apply rule
       for(@{$rule->[0]}) {
 	  if(exists $pars->{$_}) {
-	      print "Not applying rule $rule->[2], resexist\n"
+	      print "Not applying rule $rule_id, resexist\n"
 		  if $::PP_VERBOSE;
 	      next RULE
 	      }
@@ -899,13 +907,13 @@ sub translate {
 	  if(/^_/) {
 	      $foo =~ s/^_//;
 	  } elsif(!exists $pars->{$_}) {
-	      print "Component $_ not found for $rule->[2], next rule\n" if $::PP_VERBOSE;
+	      print "Component $_ not found for $rule_id, next rule\n" if $::PP_VERBOSE;
 	      next RULE
 	      }
 	  push @args, $pars->{$foo};
       }
 #		print "Applying rule $rule->[2]\n",Dumper($rule);
-      print "Applying rule $rule->[2]\n" if $::PP_VERBOSE;
+      print "Applying rule $rule_id\n" if $::PP_VERBOSE;
       my @res = &{$rule->[2]}(@args);
       print "Setting " if $::PP_VERBOSE;
       for(@{$rule->[0]}) {
@@ -1291,6 +1299,12 @@ sub dosubst {
 		    CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
 		    NAME => sub {return $name},
 		    MODULE => sub {return $::PDLMOD},
+
+		    SETPDLSTATEBAD  => sub { return "$_[0]\->state |= PDL_BADVAL"; },
+		    SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
+		    ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
+		    ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
+
 		    SETREVERSIBLE => sub {
 			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
 			    "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
@@ -1937,19 +1951,22 @@ sub XSCHdrs {
 #
 sub set_badflag {
     my $sname = shift;
-    return "$sname\->bvalflag = 1;\n";
+    return "\$PRIV(bvalflag) = 1;\n";
+#    return "$sname\->bvalflag = 1;\n";
 ##    return "$sname\->flags |= PDL_ITRANS_HAVE_BADVAL;\n";
 }
 
 sub clear_badflag {
     my $sname = shift;
-    return "$sname\->bvalflag = 0;\n";
+    return "\$PRIV(bvalflag) = 0;\n";
+#    return "$sname\->bvalflag = 0;\n";
 ##    return "$sname\->flags &= ~PDL_ITRANS_HAVE_BADVAL;\n";
 }
 
 sub get_badflag {
     my $sname = shift;
-    return "$sname\->bvalflag";
+    return "\$PRIV(bvalflag)";
+#    return "$sname\->bvalflag";
 ##    return "($sname\->flags & PDL_ITRANS_HAVE_BADVAL)";
 }
 
@@ -1964,17 +1981,20 @@ sub get_badflag_priv {
 #
 sub set_badstate {
     my $pdl = shift;
-    return "${pdl}->state |= PDL_BADVAL";
+    return "\$SETPDLSTATEBAD($pdl)";
+#    return "${pdl}->state |= PDL_BADVAL";
 }
 
 sub clear_badstate {
     my $pdl = shift;
-    return "${pdl}->state &= ~PDL_BADVAL";
+    return "\$SETPDLSTATEGOOD($pdl)";
+#    return "${pdl}->state &= ~PDL_BADVAL";
 }
 
 sub get_badstate {
     my $pdl = shift;
-    return "((${pdl}->state & PDL_BADVAL) > 0)";
+    return "\$ISPDLSTATEBAD($pdl)";
+#    return "((${pdl}->state & PDL_BADVAL) > 0)";
 }
 
 # checks the input piddles to see if the routine
@@ -2017,9 +2037,9 @@ sub findbadstatus {
 	    } @args;
     my %other  = map { $_ => exists($$optypes{$_}) } @args;
 
-    my $clear_bad = clear_badflag($sname);
-    my $set_bad = set_badflag($sname);
-    my $get_bad = get_badflag($sname);
+    my $clear_bad = clear_badflag();
+    my $set_bad   = set_badflag();
+    my $get_bad   = get_badflag();
 
     my $str = $clear_bad;
     my $add = 0;
@@ -2031,10 +2051,8 @@ sub findbadstatus {
 	    my $state_is_bad = get_badstate($args[$i]);
 	    if ( $add ) {
 		# access to state information should be encapsulated
-#		$str .= "  if ( !($get_bad) && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
 		$str .= "  if ( !($get_bad) && $state_is_bad ) $set_bad";
 	    } else {
-#		$str .= "  if ( $args[$i]\->state & PDL_BADVAL ) $set_bad";
 		$str .= "  if ( $state_is_bad ) $set_bad";
 		$add = 1;
 	    }
@@ -2085,9 +2103,9 @@ sub copybadstatus {
 
     my $str = '';
 
-    $str = "if ( " . get_badflag($sname) . " ) {\n";
+#    $str = "if ( " . get_badflag($sname) . " ) {\n";
+    $str = "if ( " . get_badflag() . " ) {\n";
     foreach my $arg ( @outs ) {
-#	$str .= "  ${arg}->state |= PDL_BADVAL;\n";
 	$str .= "  " . set_badstate($arg) . ";\n";
     }
     $str .= "}\n";

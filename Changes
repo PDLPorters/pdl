@@ -1,5 +1,15 @@
 (!!! = possible source of incompatibilities)
 
+CS	- Core: pdl.h dependencies
+	- pdlapi.c: comments and debugging
+	- ops.pd: docs fixes
+	- PGPLtw.pd: doc fOT_demo: choose /GW on MSwin32
+	- mkpdlfuncpod: some experimentation
+	- Karma/Makefile.PL: malloc debugging support
+	- CallExt/Makefile.PL: malloc debugging support
+	- fftw.pd: doc fixes, exports and convolution
+	- slatec: error handler now calls croak (instead of being fatal)
+        - VRML: fix problem with prototype registration
 Doug Burke (7/02/00 - 7/9/00)
     - stopped some excess code generation & improve legibility of some code
       in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm

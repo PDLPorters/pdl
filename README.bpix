@@ -141,9 +141,6 @@ not have parents.
  To get the current bad value, use the badvalue() method - it has the same
  syntax as orig_badvalue().
 
- There's also badvalue_as_pdl(), which returns the bad value in a 0D piddle
- with badflag set to 1. This function may go away...
-
  To change the current bad value, supply the new number to badvalue - eg
    $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
  Note that the value is silently converted to the correct C type, and

@@ -1,23 +1,23 @@
 package PDL::IO::NDF;
- 
+
 =head1 NAME
 
 PDL::IO::NDF - PDL Module for reading and writing Starlink
-                 N-dimensional data structures as PDLs.
+N-dimensional data structures as PDLs.
 
 =head1 SYNOPSIS
 
-  use PDL::IO::NDF;
+ use PDL::IO::NDF;
 
-  $a = PDL->rndf($file);
+ $a = PDL->rndf($file);
 
-  $a = rndf('test_image');
-  $a = rndf('test_image', 1);
+ $a = rndf('test_image');
+ $a = rndf('test_image', 1);
 
-  $a->wndf($file);
-  wndf($a, 'out_image');
+ $a->wndf($file);
+ wndf($a, 'out_image');
 
-  propndfx($a, 'template', 'out_image');
+ propndfx($a, 'template', 'out_image');
 
 =head1 DESCRIPTION
 
@@ -27,7 +27,6 @@ files as N-dimensional PDLs.
 =head1 FUNCTIONS
 
 =cut
-
 
 @EXPORT_OK = qw/rndf wndf/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -77,39 +76,49 @@ Reads a piddle from a NDF format data file.
 
 =for example
 
-     $pdl = rndf('file.sdf');
-     $pdl = rndf('file.sdf',1);
+ $pdl = rndf('file.sdf');
+ $pdl = rndf('file.sdf',1);
 
 The '.sdf' suffix is optional. The optional second argument turns off
 automatic quality masking and returns a quality array as well.
+
+BUG? C<rndf('bob.sdf',1)> calls ndf_sqmf(1,...), which means that
+the quality array is turned into bad pixels - ie the I<opposite> of
+above. Or am I confused?
 
 Header information and NDF Extensions are stored in the piddle as a hash
 which can be retreived with the C<$pdl-E<gt>gethdr> command.
 Array extensions are stored in the header as follows:
 
-     $a - the base DATA_ARRAY
+ $a - the base DATA_ARRAY
 
 If C<$hdr = $a-E<gt>gethdr>;
 
 then:
 
-      %{$hdr}        contains all the FITS headers plus:
-      $$hdr{Error}   contains the Error/Variance PDL
-      $$hdr{Quality} The quality byte array (if reqeusted)
-      @{$$hdr{Axis}} Is an array of piddles containing the information
-                     for axis 0, 1, etc.
-      $$hdr{NDF_EXT} Contains all the NDF extensions
-      $$hdr{Hist}    Contains the history information
-      $$hdr{NDF_EXT}{_TYPES} - Data types for non-PDL NDF extensions so that
-                           wndf can reconstruct a NDF.
+ %{$hdr}        contains all the FITS headers plus:
+ $$hdr{Error}   contains the Error/Variance PDL
+ $$hdr{Quality} The quality byte array (if reqeusted)
+ @{$$hdr{Axis}} Is an array of piddles containing the information
+                for axis 0, 1, etc.
+ $$hdr{NDF_EXT} Contains all the NDF extensions
+ $$hdr{Hist}    Contains the history information
+ $$hdr{NDF_EXT}{_TYPES}
+                Data types for non-PDL NDF extensions so that
+                wndf can reconstruct a NDF.
 
 All extension information is stored in the header hash array.
 Extension structures are preserved in hashes, so that the PROJ_PARS
 component of the IRAS.ASTROMETRY extension is stored in
-$$hdr{NDF_EXT}{IRAS}{ASTROMETRY}{'PROJ_PARS'}. All array structures are
+C<$$hdr{NDF_EXT}{IRAS}{ASTROMETRY}{'PROJ_PARS'}>. All array structures are
 stored as arrays in the Hdr: numeric arrays are stored as PDLs,
 logical and character arrays are stored as plain Perl arrays. FITS
 arrays are a special case and are expanded as scalars into the header.
+
+=for bad
+
+I<This needs thinking about!> The current implementation is 
+too basic, in that it only looks at the C<'DATA'> array.
 
 =cut
 
@@ -130,7 +139,8 @@ sub PDL::rndf {  # Read a piddle from a NDF file
 
   # Read in the filename
   # And setup the new PDL
-  my $file = shift; my $pdl = $class->new;
+  my $file = shift; 
+  my $pdl = $class->new;
   my $nomask = shift if $#_ > -1;
 
   my ($infile, $status, $indf, $entry, @info, $value);
@@ -139,9 +149,12 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   croak 'Cannot use NDF library' if $@ ne "";
 
   # Strip trailing .sdf if one is present
-  # File is the first thing before a .
+  # remove the trailing extension names
+  # (anything after a `.' UNLESS it's part of a directory
+  # name, hence the check for ^/)
   $file =~ s/\.sdf$//;
-  $infile = (split(/\./,$file))[0];
+  $infile = $file;
+  $infile =~ s!\.[^/]*$!!;
 
   # If file is not there
   croak "Cannot find $infile.sdf" unless -e "$infile.sdf";
@@ -157,9 +170,15 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   ndf_find(&NDF::DAT__ROOT, $file, $indf, $status);
 
   # unset automatic quality masking if $nomask is defined
+  # I think the logic here is wrong (ie 0 and 1 should be swapped)
   $nomask = 0 unless (defined $nomask);
   $nomask = 1 if $nomask != 0;
   ndf_sqmf($nomask, $indf, $status);
+
+  # check for the bad value flag 
+  # XXX needs working on
+  my $badflag = 0;
+  ndf_bad($indf, 'Data', 0, $badflag, $status );
 
   # Read the data array (need to pass the header as well)
   rdata($indf, $pdl, $nomask, $header, $class, $status);
@@ -198,6 +217,10 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   # Put the header into the main pdl
   $pdl->sethdr($header);
 
+  # set the bad flag if it was set in the input file
+  print "Bad flag status is: $badflag\n" if $PDL::verbose;
+  $pdl->badflag(1) if $badflag;
+
   return $pdl;
 }
 
@@ -226,7 +249,7 @@ Header information is written to corresponding NDF extensions.
 NDF extensions can also be created in the {NDF} hash by using a key
 containing '.', ie {NDF}{'IRAS.DATA'} would write the information to
 an IRAS.DATA extension in the NDF. rndf stores this as
-$$hdr{NDF}{IRAS}{DATA} and the two systems are interchangeable.
+C<$$hdr{NDF}{IRAS}{DATA}> and the two systems are interchangeable.
 
 rndf stores type information in {NDF}{'_TYPES'} and below so that
 wndf can reconstruct the data type of non-PDL extensions. If no

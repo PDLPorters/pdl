@@ -26,15 +26,23 @@ pp_addhdr('
 #define NOTHING
 ');
 
+sub protect_chars {
+  my ($txt) = @_;
+  $txt =~ s/>/E;gt#/g;
+  $txt =~ s/</E;lt#/g;
+  $txt =~ s/;/</g;
+  $txt =~ s/#/>/g;
+  return $txt;
+}
+
 # simple binary operators
 
-sub biop_bad {
-	my ($name,$op,$swap,$doc,%extra) = @_;
-	my $optxt = $op;
-	if ($optxt =~ s/>/E<gt>/) {} else
-	{ $optxt =~ s/</E<lt>/}
-	if ($swap) {
-	  $extra{HdrCode} = << 'EOH';
+sub biop {
+    my ($name,$op,$swap,$doc,%extra) = @_;
+    my $optxt = protect_chars ref $op eq 'ARRAY' ? $op->[1] : $op;
+    $op = $op->[0] if ref $op eq 'ARRAY';
+    if ($swap) {
+	$extra{HdrCode} = << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -77,58 +85,17 @@ Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
 EOD
-} # sub: biop_bad()
-
-sub biop {
-	my ($name,$op,$swap,$doc,%extra) = @_;
-	my $optxt = $op;
-	if ($optxt =~ s/>/E<gt>/) {} else
-	{ $optxt =~ s/</E<lt>/}
-	if ($swap) {
-	  $extra{HdrCode} = << 'EOH';
-  pdl *tmp;
-  if (swap) {
-    tmp = a;
-    a = b;
-    b = tmp;
-  }
-EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}',
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = \$a() $op \$b();",
-		%extra,
-		Doc => << "EOD");
-=for ref
-
-$doc
-
-=for example
-
-   \$c = $name \$a, \$b, 0;     # explicit call with trailing 0
-   \$c = \$a $op \$b;           # overloaded call
-   \$a->inplace->$name(\$b,0);  # modify \$a inplace
-
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the binary C<$optxt> operator.
-Note that when calling this function explicitly you need to supply
-a third argument that should generally be zero (see first example).
-This restriction is expected to go away in future releases.
-EOD
 } # sub: biop()
 
 #simple binary functions
-sub bifunc_bad {
-	my ($name,$func,$swap,$doc,%extra) = @_;
-	if ($swap) {
-	  $extra{HdrCode} .= << 'EOH';
+sub bifunc {
+    my ($name,$func,$swap,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $isop=0; if ($funcov =~ s/^op//) { $isop = 1; }
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+    if ($swap) {
+	$extra{HdrCode} .= << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -143,6 +110,10 @@ EOH
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  c = a;  /* discard output value, leak? */
 				}';
+ 	my $ovcall;
+ 	# is this one to be used as a function or operator ?
+ 	if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
+ 	else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
 	pp_def($name,
 	       HandleBad => 1,
 	       Pars => 'a(); b(); [o]c();',
@@ -162,54 +133,11 @@ $doc
 =for example
 
    \$c = \$a->$name(\$b,0); # explicit function call
-   \$c = $name \$a, \$b;    # overloaded use
-   \$a->inplace(\$b,0);     # modify \$a inplace
+   $ovcall
+   \$a->inplace->$name(\$b,0);     # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the binary C<$func> function.
-Note that when calling this function explicitly you need to supply
-a third argument that should generally be zero (see first example).
-This restriction is expected to go away in future releases.
-EOD
-} # sub: bifunc_bad()
-
-#simple binary functions
-sub bifunc {
-	my ($name,$func,$swap,$doc,%extra) = @_;
-	if ($swap) {
-	  $extra{HdrCode} .= << 'EOH';
-  pdl *tmp;
-  if (swap) {
-    tmp = a;
-    a = b;
-    b = tmp;
-  }
-EOH
-        }
-	# quick and dirty solution to get ->inplace do its job
-	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  c = a;  /* discard output value, leak? */
-				}';
-	pp_def($name,
-		Pars => 'a(); b(); [o]c();',
-		OtherPars => 'int swap',
-		Code => "\$c() = $func(\$a(),\$b());",
-		%extra,
-		Doc => << "EOD");
-=for ref
-
-$doc
-
-=for example
-
-   \$c = \$a->$name(\$b,0); # explicit function call
-   \$c = $name \$a, \$b;    # overloaded use
-   \$a->inplace(\$b,0);     # modify \$a inplace
-
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the binary C<$func> function.
+This function is used to overload the binary C<$funcovp> function.
 Note that when calling this function explicitly you need to supply
 a third argument that should generally be zero (see first example).
 This restriction is expected to go away in future releases.
@@ -217,61 +145,38 @@ EOD
 } # sub: bifunc()
 
 # simple unary functions and operators
-sub ufunc_bad {
-	my ($name,$func,$doc,%extra) = @_;
-	pp_def($name,
-	       Pars => 'a(); [o]b()',
-	       HandleBad => 1,
-	       Code => 
-	       "\$b() = $func(\$a());",
-	       BadCode =>
-	       'if ( $ISBAD($a()) )
-	          $SETBAD($b());
-	       else' . "\n  \$b() = $func(\$a());\n",
-	       HdrCode => 'if (a->state & PDL_INPLACE)
-				{
-				  a->state &= ~PDL_INPLACE; /* unset */
-				  b = a;  /* discard output value, leak? */
-				}',
-	       %extra,
-	       Doc => << "EOD");
-=for ref
-
-$doc
-
-=for example
-
-   \$b = $func \$a;
-   \$a->inplace->$func;  # modify \$a inplace
-
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the unary C<$func> operator/function.
-EOD
-} # sub: ufunc_bad()
-
 sub ufunc {
-	my ($name,$func,$doc,%extra) = @_;
-	pp_def($name,
-		Pars => 'a(); [o]b()',
-		Code => "\$b() = $func(\$a());",
-		HdrCode => 'if (a->state & PDL_INPLACE)
+    my ($name,$func,$doc,%extra) = @_;
+    my $funcov = ref $func eq 'ARRAY' ? $func->[1] : $func;
+    my $funcovp = protect_chars $funcov;
+    $func = $func->[0] if ref $func eq 'ARRAY';
+    pp_def($name,
+	   Pars => 'a(); [o]b()',
+	   HandleBad => 1,
+	   Code => 
+	   "\$b() = $func(\$a());",
+	   BadCode =>
+	   'if ( $ISBAD($a()) )
+	      $SETBAD($b());
+	   else' . "\n  \$b() = $func(\$a());\n",
+	   HdrCode => 'if (a->state & PDL_INPLACE)
 				{
 				  a->state &= ~PDL_INPLACE; /* unset */
 				  b = a;  /* discard output value, leak? */
 				}',
-		%extra,
-		Doc => << "EOD");
+	   %extra,
+	   Doc => << "EOD");
 =for ref
 
 $doc
 
 =for example
 
-   \$b = $func \$a;
-   \$a->inplace->$func;  # modify \$a inplace
+   \$b = $funcov \$a;
+   \$a->inplace->$name;  # modify \$a inplace
 
 It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
-This function is used to overload the unary C<$func> operator/function.
+This function is used to overload the unary C<$funcovp> operator/function.
 EOD
 } # sub: ufunc()
 
@@ -287,50 +192,50 @@ EOD
 
 ## arithmetic ops
 # no swap
-biop_bad('plus','+',0,'add two piddles');
-biop_bad('mult','*',0,'multiply two piddles');
+biop('plus','+',0,'add two piddles');
+biop('mult','*',0,'multiply two piddles');
 
 # all those need swapping
-biop_bad('minus','-',1,'subtract two piddles');
-biop_bad('divide','/',1,'divide two piddles');
+biop('minus','-',1,'subtract two piddles');
+biop('divide','/',1,'divide two piddles');
 ## note: divide should perhaps trap division by zero as well
 
 ## comparison ops
 # need swapping
-biop_bad('gt','>',1,'the binary E<gt> (greater than) operation');
-biop_bad('lt','<',1,'the binary E<lt> (less than) operation');
-biop_bad('le','<=',1,'the binary E<lt>= (less equal) operation');
-biop_bad('ge','>=',1,'the binary E<gt>= (greater equal) operation');
+biop('gt','>',1,'the binary E<gt> (greater than) operation');
+biop('lt','<',1,'the binary E<lt> (less than) operation');
+biop('le','<=',1,'the binary E<lt>= (less equal) operation');
+biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
 # no swap required
-biop_bad('eq','==',0,'binary I<equal to> operation (==)');
-biop_bad('ne','!=',0,'binary I<not equal to> operation (!=)');
+biop('eq','==',0,'binary I<equal to> operation (C<==>)');
+biop('ne','!=',0,'binary I<not equal to> operation (C<!=>)');
 
 ## bit ops
 # those need to be limited to the right types
 my $T = [B,U,S,L]; # the sensible types here
-biop_bad('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop_bad('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop_bad('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
-biop_bad('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
-biop_bad('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
+biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
+biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
+biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 
 # really an ufunc
-ufunc_bad('bitnot','~','unary bit negation',GenericTypes => $T);
+ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
-bifunc_bad('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
-bifunc_bad('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
-bifunc_bad('modulo','MOD',1,'elementwise C<modulo> operation');
-bifunc_bad('spaceship','SPACE',1,'elementwise C<~> operation');
+bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
+bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
+bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
+bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc_bad('not','!','the elementwise I<not> operation');
-ufunc_bad('sqrt','sqrt','elementwise square root');
-ufunc_bad('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
-ufunc_bad('sin','sin','the sin function');
-ufunc_bad('cos','cos','the cos function');
-ufunc_bad('log','log','the natural logarithm',GenericTypes => [D]);
-ufunc_bad('exp','exp','the exponential function',GenericTypes => [D]);
+ufunc('sqrt','sqrt','elementwise square root');
+ufunc('abs',['ABS','abs'],'elementwise absolute value',GenericTypes => [D,F,S,L]);
+ufunc('sin','sin','the sin function');
+ufunc('cos','cos','the cos function');
+ufunc('not','!','the elementwise I<not> operation');
+ufunc('log','log','the natural logarithm',GenericTypes => [D]);
+ufunc('exp','exp','the exponential function',GenericTypes => [D]);
 
 pp_addpm({At=>Bot},<<'EOPM');
 

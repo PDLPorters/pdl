@@ -3,7 +3,7 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/15/00
+ last update: 07/20/00
 
 --------------------------------------------------------------------------------
 
@@ -151,10 +151,15 @@ leaving Code as it is. PP::PDLCode will then create a loop something like
 
 it's probably easier to just look at the .xs file to see what goes on.
 
+As of 07/20/00, it should now be able to handle BadCode which uses the 
+'threadloop %{ ... %}' construction (previously it would cause recursion
+until the VM was eaten up).
+
 NOTE: the above relies on horrible hacking of PDL::PP::Code and
 PDL::PP::ComplexThreadLoop (eg PP/PDLCode.pm), since I couldn't see a way, 
 using the current system, to get a loop like the above. If you can, 
-please implement!
+please implement! [it's got even worse with the changes necessary to
+support 'threadloop']
 
 Similar to BadCode, there's BadBackCode, and BadRedoDimsCode.
 
@@ -178,9 +183,13 @@ a pdl:
   '$PDLSTATESETBAD(a)'      '$PDL(a)->state |= PDL_BADVAL'
   '$PDLSTATESETGOOD(a)'     '$PDL(a)->state &= ~PDL_BADVAL'
 
-There are also '$STATE(IS|SET){GOOD|BAD)' macros, for when you
-don't need the $PDL() bit, but I don't think they'll be used (see the
-xxx_setstate() subs in PP.pm).
+For use in xxxxBadStatusCode (+ other stuff that goes into the INIT: section)
+there are:
+  '$SETPDLSTATEBAD(a)'       -> 'a->state |= PDL_BADVAL'
+  '$SETPDLSTATEGOOD(a)'      -> 'a->state &= ~PDL_BADVAL'
+
+  '$ISPDLSTATEBAD(a)'        -> '((a->state & PDL_BADVAL) > 0)'
+  '$ISPDLSTATEGOOD(a)'       -> '((a->state & PDL_BADVAL) == 0)'
 
 Please note that the current design is based on my failure to understand
 what the xxx_redodims(), xxx_copy(), xxx_free() functions that are 

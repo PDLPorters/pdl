@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 48;
+	plan tests => 47;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -141,46 +141,33 @@ ok( $a->check_badstatus, 0 );            # 32
 
 $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 
-$a = ushort($a);
-$b = $a->badvalue_as_pdl;
-print "b = <$b>  info = ", $b->info($i), "\n";
-ok( $b->badflag && $b->getndims == 0 && $b->get_datatype == 2, 1 );  # 33
-
-$b = long->badvalue_as_pdl;
-print "b = <$b>  info = ", $b->info($i), "\n";
-ok( $b->badflag && $b->getndims == 0 && $b->get_datatype == 3, 1 );  # 34
-
-$b = badvalue_as_pdl(0);
-print "b = <$b>  info = ", $b->info($i), "\n";
-ok( $b->badflag && $b->getndims == 0 && $b->get_datatype == 0, 1 );  # 35
-
 # check out stats, since it uses several routines
 # and setbadif
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 $b = $a->setbadif( $a < 20 ); 
 my @s = $b->stats();                     
-ok( approx( $s[0], 61.9375 ), 1 );       # 36
-ok( approx( $s[1], 26.7312 ), 1 );       # 37
-ok( $s[2], 66.5 );                       # 38
-ok( $s[3], 22 );                         # 39
-ok( $s[4], 98 );                         # 40
+ok( approx( $s[0], 61.9375 ), 1 );       # 33
+ok( approx( $s[1], 26.7312 ), 1 );       # 34
+ok( $s[2], 66.5 );                       # 35
+ok( $s[3], 22 );                         # 36
+ok( $s[4], 98 );                         # 37
 
 # test some of the qsort functions
 my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
-    );  # 41
+    );                                   # 38
 
 # check comparison/bit operators in ops.pd
 
 $a = pdl( 2, 4, double->badvalue );
 $a->badflag(1);
 $b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
-ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 42
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 39
 
 $b = byte(1,2,255,4);
 $b->badflag(1);
-ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 43
+ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 40
 
 # quick look at math.pd
 use PDL::Math;
@@ -188,21 +175,49 @@ use PDL::Math;
 $a = pdl(0.5,double->badvalue,0);
 $a->badflag(1);
 $b = bessj0($a);
-ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 44
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 41
 
 $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
 $b = bessjn($a,3);  # thread over n()
-ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 45
-ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 46
+ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 42
+ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 43
 
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
-ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 47
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 44
 
 # I haven't changed rotate, but it should work anyway
 $a = byte( 0, 1, 255, 4, 5 );
 $a->badflag(1);
-ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 48
+ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 45
 
-# check indadd
+# check indadd, norm
+
+# Image2D
+my $ans = pdl(
+ [ 3,  7, 11, 21, 27, 33, 39, 45, 51, 27],
+ [ 3,  5, 13, 21, 27, 33, 39, 45, 51, 27],
+ [ 3,  9, 15, 21, 27, 33, 39, 45, 51, 27]
+);
+
+$a = xvals zeroes 10,3;
+$a->badflag(1);
+$a->set(2,1,$a->badvalue);
+
+$b = pdl [1,2],[2,1];
+
+use PDL::Image2D;
+$c = conv2d($a, $b);
+
+ok( int(at(sum($c-$ans))), 0 ); # 46
+
+$a = zeroes(5,5);
+$a->badflag(1);
+my $t = $a->slice("1:3,1:3");
+$t.=ones(3,3);
+$a->set(2,2,$a->badvalue);
+
+$b = sequence(3,3);
+$ans = pdl ( [0,0,0,0,0],[0,0,2,0,0],[0,1,5,2,0],[0,0,4,0,0],[0,0,0,0,0]);
+ok( int(at(sum(med2d($a,$b)-$ans))), 0 );  # 47

@@ -12,8 +12,8 @@ Problems:
    d) ...
 
 .) improve the documentation support (such as get it working properly).
-   The logic needs tweaking for the automatic document creation,
-   and the output needs beautifying.
+   The logic may need tweaking for the automatic document creation,
+   and the output definitely needs beautifying.
 
 .) $pdl->badvalue(23) should change the bad value in $pdl to 23
    (as well as changing the default bad value, which it does)
@@ -22,9 +22,6 @@ Problems:
 
 Suggestions/To do:
 ================
-
-.) allow macros in Find/CopyBadStatusCode options - create a
-   xxxBadStatusCodeNS rule which calls dosubst or dousualsubst ...
 
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix
@@ -82,7 +79,4 @@ Suggestions/To do:
    is called, so I've included a check that prints a message to STDERR
    if it's called with a bad piddle. This will need removing at some
    point as it's wasted space...
-
-.) [not really bad pixel stuff] - are the #define THISIS... lines
-   necessary in type-looped PP code?
 

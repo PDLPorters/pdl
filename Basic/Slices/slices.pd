@@ -66,8 +66,8 @@ pp_add_boot(
 
 ## XXX Commenting out 'Dims => ' and 'ParentInds =>' lines since
 #      I can't find any rules that use them in PP.pm
-#      (two of the three pp_def() routines are enclosed in
-#      if (0) { } ...)
+#      (two of the three pp_def() routines that use them
+#      are enclosed in if (0) { } ...)
 #
 # Doug Burke (07/14/00)
 
