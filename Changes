@@ -1,3 +1,6 @@
+CED 9-Apr-2003
+   - slice.pd : Added permissive ranging to, er, range(). Missing source dims 
+	are treated as if they dummy dims of order 1.  
 DJB 09-Apr-2003
    - Fixed PDL::Graphics::PGPLOT::Window::legend to correctly handle
      synonyms (confusion between PDL::Option's synonyms()/add_synonym())
