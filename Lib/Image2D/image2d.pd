@@ -1083,22 +1083,59 @@ a coordinate transformation.
 
 =for usage
 
-  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, $nf )
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, $nf. { options } )
 
 Given a set of points in the output plane (C<$u,$v>), find
 the best-fit (using singular-value decomposition) 2D polynomial 
 to describe the mapping back to the image plane (C<$x,$y>).
 The order of the fit is controlled by the C<$nf> parameter
-(the maximum power of the polynomial is C<$nf - 1>),
-and there must be at least C<$nf*$nf> points for the fit to proceed.
+(the maximum power of the polynomial is C<$nf - 1>), and you
+can restrict the terms to fit using the C<FIT> option.
 
-The returned piddles (C<$px> and C<$py>) have a dimension of 
-C<$nfit> by C<$nfit>: a discussion of their format can be found 
-in the documentation of the L<warp2d|/warp2d> routine.
+C<$px> and C<$py> are C<np> by C<np> element piddles which describe
+a polynomial mapping (of order C<np-1>) 
+from the I<output> C<(u,v)> image to the I<input> C<(x,y)> image:
+
+  x = sum(j=0,np-1) sum(i=0,np-1) px(i,j) * u^i * v^j
+  y = sum(j=0,np-1) sum(i=0,np-1) py(i,j) * u^i * v^j
+
+Please note that this storage is the transpose of that used
+by the C<polywarp> routine in IDL.
 
 The transformation is returned for the reverse direction (ie
-output to input image) since that is what is required for the
-L<warp2d|/warp2d> routine.
+output to input image) since that is what is required by the
+L<warp2d()|/warp2d> routine.  The L<applywarp2d()|/applywarp2d>
+routine can be used to convert a set of C<$u,$v> points given
+C<$px> and C<$py>.
+
+Options:
+
+=for options
+
+  FIT     - which terms to fit? default ones(byte,$nf,$nf)
+  THRESH  - in svd, remove terms smaller than THRESH * max value
+            default is 1.0e-5
+
+=over 4
+
+=item FIT
+
+C<FIT> allows you to restrict which terms of the polynomial to fit:
+only those terms for which the FIT piddle evaluates to true will be
+evaluated.  If a 2D piddle is sent in, then it is
+used for the x and y polynomials; otherwise 
+C<$fit-E<gt>slice(":,:,(0)")> will be used for C<$px> and
+C<$fit-E<gt>slice(":,:,(1)")> will be used for C<$py>.
+
+=item THRESH
+
+Remove all singular values whose valus is less than C<THRESH>
+times the largest singular value.
+
+=back
+
+The number of points must be at least equal to the number of
+terms to fit (C<$nf*$nf> points for the default value of C<FIT>).
 
 =for example
 
@@ -1106,20 +1143,36 @@ L<warp2d|/warp2d> routine.
   $x = pdl( 0,   0, 100, 100 );
   $y = pdl( 0, 100, 100,   0 );
   # get warped to these positions
-  $u = pdl( 10,  5, 85, 90 );
-  $v = pdl( 15, 90, 80, 20 );
-  # so the reverse transformation is:
+  $u = pdl( 10, 10, 90, 90 );
+  $v = pdl( 10, 90, 90, 10 );
+  # 
+  # shift of origin + scale x/y axis only
+  $fit = byte( [ [1,1], [0,0] ], [ [1,0], [1,0] ] );
+  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2, { FIT => $fit } );
+  print "px = ${px}py = $py";
+  px = 
+  [
+   [-12.5  1.25]
+   [    0     0]
+  ]
+  py = 
+  [
+   [-12.5     0]
+   [ 1.25     0]
+  ]
+  #
+  # Compared to allowing all 4 terms
   ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2 );
   print "px = ${px}py = $py";
   px = 
   [
-   [   -13.658261     1.2395295]
-   [  0.081593681 0.00026040536]
+   [         -12.5           1.25]
+   [  1.110223e-16 -1.1275703e-17]
   ]
   py = 
   [
-   [  -18.532182  -0.16752745]
-   [   1.3054989 0.0041664858]
+   [         -12.5  1.6653345e-16]
+   [          1.25 -5.8546917e-18]
   ]
 
 =head2 applywarp2d
@@ -1134,17 +1187,16 @@ Transform a set of points using a 2-D polynomial mapping
 
 Convert a set of points (stored in 1D piddles C<$u,$v>)
 to C<$x,$y> using the 2-D polynomial with coefficients stored in C<$px>
-and C<$py>.  See L<warp2d|/warp2d> and L<fitwarp2d|/fitwarp2d>
+and C<$py>.  See L<fitwarp2d()|/fitwarp2d>
 for more information on the format of C<$px> and C<$py>.
 
 =cut
 
 # use SVD to fit data. Assuming no errors.
-sub _svd ($$) {
-    my $basis = shift;
-    my $y     = shift;
-
-    my $svd_thresh = 1.0e-5;  # should be configurable
+sub _svd ($$$) {
+    my $basis  = shift;
+    my $y      = shift;
+    my $thresh = shift;
 
     # if we had errors for these points, would normalise the
     # basis functions, and the output array, by these errors here
@@ -1153,7 +1205,7 @@ sub _svd ($$) {
     my ( $svd_u, $svd_w, $svd_v ) = svd( $basis );
 
     # remove any singular values
-    $svd_w *= ( $svd_w >= ($svd_w->max * $svd_thresh ) );
+    $svd_w *= ( $svd_w >= ($svd_w->max * $thresh ) );
 
     # perform the back substitution
     #
@@ -1174,10 +1226,34 @@ sub _svd ($$) {
 
 } # sub: _svd()
 
+sub _mkbasis ($$$$) {
+    my $fit    = shift;
+    my $npts   = shift;
+    my $u      = shift;
+    my $v      = shift;
+
+    my $n      = $fit->getdim(0) - 1;
+    my $ncoeff = sum( $fit );
+
+    my $basis = zeroes( $u->type, $ncoeff, $npts );
+    my $k = 0;
+    foreach my $j ( 0 .. $n ) {
+	my $tmp_v = $v**$j;
+	foreach my $i ( 0 .. $n ) {
+	    if ( $fit->at($i,$j) ) {
+		my $tmp = $basis->slice("($k),:");
+		$tmp .= $tmp_v * $u**$i;
+		$k++;
+	    }
+	}
+    }
+    return $basis;
+
+} # sub: _mkbasis()
 
 sub PDL::fitwarp2d {
-    croak "Usage: (\$px,\$py) = fitwarp2d(x(m);y(m);u(m);v(m);\$nf;)"
-	if $#_ != 4;
+    croak "Usage: (\$px,\$py) = fitwarp2d(x(m);y(m);u(m);v(m);\$nf; { options })"
+	if $#_ < 4 or ( $#_ >= 5 and ref($_[5]) ne "HASH" );
 
     my $x  = shift;
     my $y  = shift;
@@ -1185,32 +1261,84 @@ sub PDL::fitwarp2d {
     my $v  = shift;
     my $nf = shift;
 
-    # safety check
+    my $opts = PDL::Options->new( { FIT => ones(byte,$nf,$nf), THRESH => 1.0e-5 } );
+    $opts->options( $_[0] ) if $#_ > -1;
+    my $oref = $opts->current();
+
+    # safety checks
     my $npts = $x->nelem;
     croak "fitwarp2d: x, y, u, and v must be the same size (and 1D)"
 	unless $npts == $y->nelem and $npts == $u->nelem and $npts == $v->nelem
 	    and $x->getndims == 1 and $y->getndims == 1 and $u->getndims == 1 and $v->getndims == 1;
 
-    my $nf2 = $nf * $nf;
-    croak "fitwarp2d: number of points must be >= \$nf^2"
-	unless $npts >= $nf2;
+    my $svd_thresh = $$oref{THRESH};
+    croak "fitwarp2d: THRESH option must be >= 0."
+	if $svd_thresh < 0;
+
+    my $fit = $$oref{FIT};
+    my $fit_ndim = $fit->getndims();
+    croak "fitwarp2d: FIT option must be sent a (\$nf,\$nf[,2]) element piddle"
+	unless UNIVERSAL::isa($fit,"PDL") and 
+	    ($fit_ndim == 2 or ($fit_ndim == 3 and $fit->getdim(2) == 2)) and
+	    $fit->getdim(0) == $nf and $fit->getdim(1) == $nf;
+
+    # how many coeffs to fit (first we ensure $fit is either 0 or 1)
+    $fit = convert( $fit != 0, byte );
+
+    my ( $fitx, $fity, $ncoeffx, $ncoeffy, $ncoeff );
+    if ( $fit_ndim == 2 ) {
+	$fitx = $fit;
+	$fity = $fit;
+	$ncoeff = $ncoeffx = $ncoeffy = sum( $fit );
+    } else {
+	$fitx = $fit->slice(",,(0)");
+	$fity = $fit->slice(",,(1)");
+	$ncoeffx = sum($fitx);
+	$ncoeffy = sum($fity);
+	$ncoeff = $ncoeffx > $ncoeffy ? $ncoeffx : $ncoeffy;
+    }
+
+    croak "fitwarp2d: number of points must be >= \$ncoeff"
+	unless $npts >= $ncoeff;
 
     # create the basis functions for the SVD fitting
-    my $basis = zeroes( $nf2, $npts );
-    my $k = 0;
+    my ( $basisx, $basisy );
+    $basisx = _mkbasis( $fitx, $npts, $u, $v );
+    if ( $fit_ndim == 2 ) {
+	$basisy = $basisx;
+    } else {
+	$basisy = _mkbasis( $fity, $npts, $u, $v );
+    }
+
+    my $px = _svd( $basisx, $x, $svd_thresh );
+    my $py = _svd( $basisy, $y, $svd_thresh );
+
+    # convert into $nf x $nf element piddles, if necessary
+    my $nf2 = $nf * $nf;
+
+    return ( $px->reshape($nf,$nf), $py->reshape($nf,$nf) )
+	if $ncoeff == $nf2 and $ncoeffx == $ncoeffy;
+
+    # re-create the matrix
+    my $xtmp = zeroes( $nf, $nf );
+    my $ytmp = zeroes( $nf, $nf );
+    
+    my $kx = 0;
+    my $ky = 0;
     foreach my $i ( 0 .. ($nf - 1) ) {
-	my $tmp_v = $v**$i;
 	foreach my $j ( 0 .. ($nf - 1) ) {
-	    my $tmp = $basis->slice("($k),:");
-	    $tmp .= $u**$j * $tmp_v;
-	    $k++;
+	    if ( $fitx->at($i,$j) ) { 
+		$xtmp->set($i,$j, $px->at($kx) );
+		$kx++;
+	    }
+	    if ( $fity->at($i,$j) ) { 
+		$ytmp->set($i,$j, $py->at($ky) );
+		$ky++;
+	    }
 	}
     }
 
-    my $px = _svd( $basis, $x );
-    my $py = _svd( $basis, $y );
-
-    return ( $px->reshape($nf,$nf), $py->reshape($nf,$nf) );
+    return ( $xtmp, $ytmp )
 
 } # sub: fitwarp2d
 
@@ -1235,16 +1363,11 @@ sub PDL::applywarp2d {
     my $nf  = $px->getdim(0);
     my $nf2 = $nf * $nf;
 
-    my $mat = zeroes( $u->type, $nf2, $npts );
-    my $k = 0;
-    for my $i ( 0 .. ($nf - 1) ) {
-        my $tmp_v = $v**$i;
-	for my $j ( 0 .. ($nf - 1) ) {
-	    my $tmp = $mat->slice("($k),");
-	    $tmp .= $tmp_v * $u**$j;
-	    $k++;
-	}
-    }
+    # could remove terms with 0 coeff here
+    # (would also have to remove them from px/py for
+    #  the matrix multiplication below)
+    #
+    my $mat = _mkbasis( ones(byte,$nf,$nf), $npts, $u, $v );
     
     my $x = reshape( $mat x $px->clump(-1)->transpose(), $npts );
     my $y = reshape( $mat x $py->clump(-1)->transpose(), $npts );
@@ -1283,17 +1406,10 @@ Warp a 2D image given a polynomial describing the I<reverse> mapping.
 
 Apply the polynomial transformation encoded in the C<$px> and
 C<$py> piddles to warp the input image C<$img> into the output
-image C<$out>.  
+image C<$out>.  It is similar to the C<poly_2d> routine in IDL.
 
-C<$px> and C<$py> are C<np> by C<np> element piddles which describe
-a polynomial mapping (of order C<np-1>) 
-from the I<output> C<(u,v)> image to the I<input> C<(x,y)> image:
-
-  x = sum(i=0,np-1) sum(j=0,np-1) px(i,j) * u^i * v^j
-  y = sum(i=0,np-1) sum(j=0,np-1) py(i,j) * u^i * v^j
-
-The L<fitwarp2d|/fitwarp2d> and L<applywarp2d|/applywarp2d> routines
-may come in handy.  
+The format for the polynomial transformation is described in
+the documentation for the L<fitwarp2d()|/fitwarp2d> routine.
 
 At each point C<x,y>, the closest 16 pixel values are combined
 with an interpolation kernel to calculate the value at C<u,v>.
@@ -1303,57 +1419,15 @@ By default, a C<tanh> kernel is used, but this can be changed
 using the C<KERNEL> option discussed below
 (the choice of kernel depends on the frequency content of the input image).
 
-The routine is based on the C<warping> command from the version 3.6-0 
-of the Eclipse data-reduction package - see http://www.eso.org/eclipse/ - and
+The routine is based on the C<warping> command from 
+the Eclipse data-reduction package - see http://www.eso.org/eclipse/ - and
 for further details on image resampling see
 Wolberg, G., "Digital Image Warping", 1990, IEEE Computer
-Society Press (ISBN 0-8186-8944-7).  It is
-similar to the C<poly_2d> routine in IDL, but please
-note that the polynomials are stored using the transpose of those
-in IDL:
-
-  # PDL
-  $u = pdl( 1,   1, 100, 100 );
-  $v = pdl( 1, 100, 100,   1 );
-  $x = 1.2 * $u;
-  $y = 1.4 * $v;
-  ( $px, $py ) = fitwarp2d( $x, $y, $u, $v, 2 );
-  print "px = $px py = $py";
-  px = 
-  [
-   [-4.8398785e-16            1.2]
-   [ 9.7767931e-17 -9.7220324e-18]
-  ]
-  py = 
-  [
-   [-2.0816682e-17 -2.5532961e-17]
-   [           1.4 -6.5168597e-18]
-  ]
-  #
-  # to apply the transormation
-  $wrp = warp2d( $img, $px, $py );
-
-  ; IDL
-  u = [ 1, 1, 100, 100 ]
-  v = [ 1, 100, 100, 1 ]
-  x = 1.2 * u
-  y = 1.4 * v
-  polywarp,x,y,u,v,1,px,py
-  print,'px = '
-  print, px
-  -2.88992e-08  7.33788e-16
-       1.20000  6.93889e-18
-  print,'py = '
-  print, py
-  -2.40827e-08      1.40000
-   7.49401e-16  8.48388e-18
-  ;
-  ; to apply the transformation
-  wrp = poly_2d( img, px, py, missing = 0 )
+Society Press (ISBN 0-8186-8944-7).  
 
 Currently the output image is the same size as the input one,
 which means data will be lost if the transformation reduces
-the pixel scale.
+the pixel scale.  This will (hopefully) be changed soon.
 
 =for example
 
@@ -1371,16 +1445,16 @@ the pixel scale.
   # see the warped image
   imag $warp, { JUSTIFY => 1 };
 
-=for options
-
 The options are:
+
+=for options
 
   KERNEL - default value is tanh
   NOVAL  - default value is 0
 
 C<KERNEL> is used to specify which interpolation kernel to use
 (to see what these kernels look like, use the 
-L<warp2d_kernel|/warp2d_kernel> routine).
+L<warp2d_kernel()|/warp2d_kernel> routine).
 The options are:
 
 =over 4
@@ -1641,7 +1715,7 @@ Return the specified kernel, as used by L<warp2d|/warp2d>
   ( $x, $k ) = warp2d_kernel( $name )
 
 The valid values for C<$name> are the same as the C<KERNEL> option
-of L<warp2d|/warp2d>.
+of L<warp2d()|/warp2d>.
 
 =for example
 
@@ -1651,7 +1725,8 @@ of L<warp2d|/warp2d>.
 
 '); # pp_addpm
 
-# this is not very clever
+# this is not very clever, but it's a pain to create a valid
+# piddle in XS code
 #
 pp_def( 'warp2d_kernel',
     Doc => undef,
