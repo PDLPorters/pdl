@@ -42,7 +42,6 @@ ok($testNo++, tapprox($a-$b, 0));
 # to test Cabs, Cabs2, Carg (ref PDL)
 # Catan, Csinh, Ccosh, Catanh, Croots
 
-$apdl = real $a;
 $cabs = sqrt($a->re**2+$a->im**2);
 
 ok($testNo++, ref Cabs $a eq 'PDL');

@@ -6,12 +6,23 @@ use PDL::Graphics::Limits;
 *normalize_dsets = \&PDL::Graphics::Limits::normalize_dsets;
 *parse_vecspecs = \&PDL::Graphics::Limits::parse_vecspecs;
 
-# so can use eq_array w/ piddles. how does one turn off Perl's
-# redefinition warning?
+# temporarily disable warnings to turn off Perl's
+# redefinition warning
+my $oldw;
+BEGIN {
+  $oldw = $^W;
+  $^W=0;
+}
+
+# so can use eq_array w/ piddles. 
 {
   package PDL;
   use overload 'eq' => \&PDL::eq,
     'bool' => sub { $_[0]->and } ;
+}
+
+BEGIN {
+  $^W=$oldw;
 }
 
 $x1 = pdl( 1, 2 );
