@@ -1,3 +1,5 @@
+DJB (27 Feb 02)
+    - added finite fix for HP-UX systems to math.pd (by Albert Chin)
 CS  - slice fix
     - pdlcore.h.PL: gimp fix
     - perldl Ctrl-C handling (Ken Williams tip!)

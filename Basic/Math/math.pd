@@ -98,6 +98,9 @@ extern double fixy0(double a);
 extern double fixyn(int a, double b);
 #endif
 ');
+
+## handle various cases of 'finite'
+#
 if ($^O =~ /MSWin/) {
 # _finite in VC++ 4.0
 pp_addhdr('
@@ -105,6 +108,16 @@ pp_addhdr('
 #include <float.h>
 ');
 }
+
+# patch from Albert Chin
+if ($^O =~ /hpux/) {
+pp_addhdr('
+#ifdef isfinite
+#define finite isfinite
+#endif
+');
+}
+
 # Standard `-lm'
 my (@ufuncs1) = qw(acos asin atan cosh sinh tan tanh); # F,D only
 my (@ufuncs1g) = qw(ceil floor rint); # Any type
