@@ -337,15 +337,11 @@ EOD
 
 } # sub: demo
 
-$SIG{'INT'} = sub {print "Ctrl-C detected\n"; goto restart}; # Ctrl-C handler
+$SIG{'INT'} = sub {die "Ctrl-C detected\n"}; # Ctrl-C handler
 
-$|=1; my ($sep,$code,$mess);
-while(1) {
 
-restart:
-
-     { local $, = "";
-
+sub process_input { 
+  { local $, = "";
 	     if ($readlines) {
 		if (ref $PERLDL::PROMPT) {
 		     $_ = $term->readline(&$PERLDL::PROMPT);
@@ -385,7 +381,7 @@ restart:
      if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
         system(substr($_,1)); # Shell escape
         next;
-     }else{
+      } else {
         # Send code to pre-processor if defined
         $_ = &$PERLDL::PREPROCESS($_)
           if (defined $PERLDL::PREPROCESS && 
@@ -399,6 +395,19 @@ restart:
      print "\n";
 }
 
+$|=1;
+while(1) {
+  eval 'process_input()';
+  if ($@) {
+    if ($@ =~ /Ctrl-C detected/) {
+      print "Ctrl-C detected\n";
+      next;
+    } else {
+      print "Unknown error, exiting\n";
+      last;
+    }
+  }
+}
 
 # Work routine to eval code and post-process messages
 # Currently used by 'perldl' shell
