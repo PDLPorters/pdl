@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+CS	- fix for sever mem-leak -> ultimate source seems to be
+		a problem in destroytransform on un-physvaffined
+		piddle -- needs proper tracking down!!!!
+	- more types for Otherpars (PP.pm)
 Doug Burke
         - added PDL::Interpolate and PDL::Interpolate::Slatec which provide
           a (hopefully) simple, OO interface to interpolation methods

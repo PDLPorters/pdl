@@ -1391,11 +1391,16 @@ sub typemap {
   # This is done because it is simpler and I know that the otherpars
   # belong to a restricted set of types.  I know a char will really
   # be a char *, for example.  I also know that an SV will be an SV *.
-  my %typemap = (char   => "(char *)SvPV($arg,PL_na)",
-		 int    => "(int)SvIV($arg)",
-		 double => "(double)SvNV($arg)",
-		 float  => "(float)SvNV($arg)",
-		 SV     => "$arg",
+  #    yes, but how about catching syntax errors in OtherPars (CS)?
+  #    shouldn't we really parse the perl typemap (we can steal the code
+  #    from xsubpp)?
+  my %typemap = (char     => "(char *)SvPV($arg,PL_na)",
+		 short    => "(short)SvIV($arg)",
+		 int      => "(int)SvIV($arg)",
+		 long     => "(long)SvIV($arg)",
+		 double   => "(double)SvNV($arg)",
+		 float    => "(float)SvNV($arg)",
+		 SV       => "$arg",
 		);
 
   my $basetype = $type->{Base};

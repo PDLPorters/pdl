@@ -257,6 +257,7 @@ sever(src)
 	pdl *src;
 	CODE:
 		if(src->trans) {
+			pdl_make_physvaffine(src);
 			pdl_destroytransform(src->trans,1);
 		}
 		RETVAL=src;
