@@ -180,18 +180,18 @@ with the C<help> function
 
 =cut
 
-sub apropos  {
-    die "Usage: apropos \$funcname\n" unless $#_>-1;
-    die "no online doc database" unless defined $PDL::onlinedoc;
-    my $func = shift;
-    printmatch aproposover $func;
-}
-
 sub aproposover {
     die "Usage: aproposover \$funcname\n" unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $func = shift;
     return $PDL::onlinedoc->search($func,['Name','Ref','Module'],1);
+}
+
+sub apropos  {
+    die "Usage: apropos \$funcname\n" unless $#_>-1;
+    die "no online doc database" unless defined $PDL::onlinedoc;
+    my $func = shift;
+    printmatch aproposover $func;
 }
 
 sub finddoc  {
