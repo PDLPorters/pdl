@@ -32,7 +32,6 @@ This module provides some primitive and useful functions defined
 using PDL::PP and able to use the new indexing tricks.
 
 See L<PDL::Indexing|PDL::Indexing> for how to use indices creatively.
-
 For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 
 =head1 SYNOPSIS
@@ -602,7 +601,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: matmult(a(x,y),b(y,z),[o]c(x,z))
+ Signature: (a(x,y),b(y,z),[o]c(x,z))
 
 =for ref
 
@@ -1075,37 +1074,43 @@ cumulative probabilities from absolute probabilities.
 
 EOD
 
-pp_def('interpol',
-	Pars => 'i(); x(n); y(n); [o] ip()',
+pp_def('interpolate',
+	Pars => 'xi(); x(n); y(n); [o] yi(); int [o] err()',
 	GenericTypes => [F,D], # too restrictive ?
-	Code => 'int carp=0;
-		 threadloop %{
-		   long n1 = $SIZE(n)-1;
-                   long jl=-1, jh=n1, m;
-		   int up = ($x(n => n1) > $x(n => 0));
-		   $GENERIC() d;
+	Code => '
+		 $GENERIC() d;
+		 long n  = $SIZE(n);
+		 long n1 = n-1;
+		 int up = ($x(n => n1) > $x(n => 0));
+                 long jl, jh, m;
+                 int carp;
+
+                 threadloop %{
+                   jl = -1;
+                   jh = n;
+                   carp = 0;
   		   while (jh-jl > 1)  /* binary search */
     			{
       				m = (jh+jl) >> 1;
-      				if ($i() > $x(n => m) == up)
+      				if ($xi() > $x(n => m) == up)
 					jl = m;
       				else
 					jh = m;
     			}
 		   if (jl == -1) {
-			if ($i() != $x(n => 0)) carp = 1;
+			if ($xi() != $x(n => 0)) carp = 1;
 			jl = 0;
-                   } else if (jl == n1) {
-			if ($i() != $x(n => n1)) carp = 1;
+                   } else if (jh == n) {
+			if ($xi() != $x(n => n1)) carp = 1;
 			jl = n1-1;
 		   }
 		   jh = jl+1;
 		   if ((d = $x(n => jh)-$x(n => jl)) == 0)
 			barf("identical abscissas");
-		   d = ($x(n => jh)-$i())/d;
-		   $ip() = d*$y(n => jl) + (1-d)*$y(n => jh);
+		   d = ($x(n => jh)-$xi())/d;
+		   $yi() = d*$y(n => jl) + (1-d)*$y(n => jh);
+                   $err() = carp;
 		%}
-		if (carp) warn("some values had to be extrapolated");
 ', Doc=><<'EOD');
 
 =for ref
@@ -1114,18 +1119,71 @@ routine for 1D linear interpolation
 
 =for usage
 
- $interpolated_values = interpol($interpol_at, $ordered_abscissas, $yvalues)
+ ( $yi, $err ) = interpolate($xi, $x, $y)
 
-C<interpol> uses a binary search to find the suspects, er...,
-interpolation indices and therefore abscissas have to be strictly
-ordered (increasing or decreasing). For interpolation at lots of
+Given a set of points C<($x,$y)>, use linear interpolation
+to find the values C<$yi> at a set of points C<$xi>.
+
+C<interpolate> uses a binary search to find the suspects, er...,
+interpolation indices and therefore abscissas (ie C<$x>)
+have to be I<strictly> ordered (increasing or decreasing). 
+For interpolation at lots of
 closely spaced abscissas an approach that uses the last index found as
 a start for the next search can be faster (compare Numerical Recipes
 C<hunt> routine). Feel free to implement that on top of the binary
 search if you like. For out of bounds values it just does a linear
-extrapolation and issues a warning upon completion.
+extrapolation and sets the corresponding element of C<$err> to 1,
+which is otherwise 0.
+
+See also L<interpol|/interpol>, which uses the same routine,
+differing only in the handling of extrapolation - an error message
+is printed rather than returning an error piddle.
 
 =cut
+EOD
+
+pp_add_exported('', 'interpol');
+pp_addpm(<<'EOD');
+
+=head2 interpol
+
+=for sig
+
+ Signature: (xi(); x(n); y(n); [o] yi())
+
+=for ref
+
+routine for 1D linear interpolation
+
+=for usage
+
+ $yi = interpol($xi, $x, $y)
+
+C<interpol> uses the same search method as L<interpolate|/interpolate>,
+hence C<$x> must be I<strictly> ordered (either increasing or decreasing).
+The difference occurs in the handling of out-of-bounds values; here
+an error message is printed.
+
+=cut
+
+# kept in for backwards compatability
+sub interpol ($$$;$) {
+    my $xi = shift;
+    my $x  = shift;
+    my $y  = shift;
+
+    my $yi;
+    if ( $#_ == 0 ) { $yi = $_[0]; }
+    else            { $yi = PDL->null; }
+
+    interpolate( $xi, $x, $y, $yi, my $err = PDL->null );
+    print "some values had to be extrapolated\n"
+	if any $err;
+
+    return $yi if $#_ == -1;
+
+} # sub: interpol()
+
 EOD
 
 pp_add_exported("", one2nd);
