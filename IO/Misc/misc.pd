@@ -115,9 +115,6 @@ converted to bad (if necessary).
 
 #'
 
-# it would be good to allow the use of the Astro::FITS::Header
-# (on CPAN) if available.
-
 pp_addpm(<<'!NO!SUBS!');
 =cut
 
@@ -131,16 +128,11 @@ sub rfits {PDL->rfits(@_)}
 BEGIN {
 	eval "use Astro::FITS::Header;";
 	$PDL::Astro_FITS_Header = (defined $Astro::FITS::Header::VERSION);
-	if(!$PDL::Astro_FITS_Header) {
-		print STDERR "\n*** PDL::IO::Misc: Unable to load Astro::FITS::Header.  Falling back to\n*** FITS header legacy mode.  Please install Astro::FITS::Header (available\n*** via CPAN) for better FITS header support.\n";
-	} else {
-		no warnings;
-		my($a) = $Astro::FITS::Header::VERSION;
-		$a =~ s/\..*//;
-		if($a < 2) {
-			print STDERR "\n*** PDL::IO::Misc: Astro::FITS::Header version $ASTRO::FITS::Header::VERSION detected.\n***  Please update to 2.0beta or later for better FITS header support\n***  (falling back to PDL builtin support).\n";
-			$PDL::Astro_FITS_Header = 0;
-		}	
+	if($PDL::Astro_FITS_Header) {
+	  no warnings;
+	  my($a) = $Astro::FITS::Header::VERSION;
+	  $a =~ s/\..*//;
+	  $PDL::Astro_FITS_Header = 0 if($a < 2);
 	}
 	
 }
@@ -171,7 +163,7 @@ sub PDL::rfits {
   #
   # Switch here:  in case of legacy support, use the parser written
   # by KGB; otherwise, if Astro::FITS::Header exists, use that and 
-  # put a tied hash into the returned piddle.  (CED)
+  # put a tied hash into the returned piddle's header.  (CED)
   # 
    my $foo={};       # To go in pdl
    $$foo{"BSCALE"}=1;
@@ -213,7 +205,7 @@ sub PDL::rfits {
         $rest = substr($line,8);
 
 	if(!($PDL::Astro_FITS_Header)) { 
-	  # (No FITS header library -- do KGB parsing)
+	  # (No FITS header library -- do legacy parsing)
 	     
           # skip if the first eight characters are ' '
           # - as seen in headers from the DSS at STScI
@@ -227,13 +219,12 @@ sub PDL::rfits {
           } else {
              $$foo{$name} = "";
              undef $comment;
-             $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) *$| ;
-             $$foo{$name}=$1 if $rest =~ m|^= +(.*\S) +/(.*)$| ;
-             $$foo{$name}="'".$1."'" if $rest =~ m|^= '(.*)' *$| ;
-             $$foo{$name}="'".$1."'" if $rest =~ m|^= '(.*)' +/(.*)$| ;
-             $$foo{COMMENT}{$name} = $2 if defined($2);
+
+             $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
+ 	     $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
+             $$foo{COMMENT}{$name} = $3 if defined($3);
           }
-	} # End of KGB parsing
+	} # End of legacy parsing
 
         last if $name eq "END";
 
@@ -403,7 +394,7 @@ pp_addpm(<<'!NO!SUBS!');
 
 BEGIN {
   @PDL::IO::Misc::wfits_keyword_order = 
-    ('SIMPLE','BITPIX','NAXIS','BUNIT','BSCALE','BZERO');
+    ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
 }
 
 
@@ -477,7 +468,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      ##############################
      ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
      ## direct hash handler below, so I've more or less just copied and
-     ## pasted with minor translation.  --CED
+     ## pasted with some translation.  --CED
      ##
      my $hdr = tied %$h;
 
@@ -485,38 +476,48 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      # Put advertising comment in the SIMPLE field
      #
      $h->{SIMPLE} = 'T';
-     $hdr->itembyname('SIMPLE')->comment('Created with PDL (http://pdl.perl.org)');
+     my(@a) = $hdr->itembyname('SIMPLE');
+     $a[0]->comment('Created with PDL (http://pdl.perl.org)');
      
      #
      # Use tied interface to set all the keywords.  Note that this
-     # preserves existing per-line comments.
+     # preserves existing per-line comments, only changing the values.
      #
      $h->{BITPIX} = $BITPIX;
-     $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
      $h->{NAXIS} = pdl->getndims;
-
      for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
+
+     $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
      $hdr{BSCALE} = $bscale if($bscale != 1);
      $hdr{BZERO}  = $bzero  if($bzero  != 0);
+
      if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
        else               { delete $HDR{BLANK}; }
      }
      
      #
-     # Use object interface to sort the lines.
-     # Note that at this stage we're not checking for missing 
-     # required fields or for erroneous multiple copies -- all
-     # that should've been handled above.
-     #
+     # Use object interface to sort the lines. This is complicated by
+     # the need for an arbitrary number of NAXIS<n> lines in the middle
+     # of the sorting.  Keywords with a trailing '1' in the sorted-order
+     # list get looped over.
      my($kk) = 0; 
      for $k(0..$#PDL::IO::Misc::wfits_keyword_order) {
-       my $kw = $PDL::IO::Misc::wfits_keyword_order[$k];
-       my @index = $hdr->index($kw);
-
-       if((defined $index[0]) && ($index[0] != $kk)) {
-	 $hdr->insert($kk++, $hdr->remove($index[0])) ;
-       }
+       my($kn) = 0;
+       
+       my @index;
+       do {            # Loop over numericised keywords (e.g. NAXIS1)
+	 
+ 	 my $kw = $PDL::IO::Misc::wfits_keyword_order[$k]; # $kw get keyword
+ 	 $kw .= (++$kn) if( $kw =~ s/\d$//);               # NAXIS1 -> NAXIS<n>
+ 	 @index = $hdr->index($kw);
+	 
+	 if(defined $index[0]) {
+	     $hdr->insert($kk, $hdr->remove($index[0])) 
+	       unless ($index[0] == $kk) ;
+	     $kk++;
+	 }
+       } while((defined $index[0]) && $kn);
      }
 
      #
@@ -535,7 +536,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      #
      # Make sure the last card is an END
      #
-     $hdr->insert(-1,new Astro::FITS::Item(Keyword=>'END'));
+     $hdr->insert(-1,new Astro::FITS::Header::Item(Keyword=>'END'));
      
      #
      # Write out all the cards, and note how many bytes for later padding.
@@ -546,11 +547,11 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    } else {
 
      #
-     # Legacy KGB emitter (note different advertisement in the SIMPLE
+     # Legacy emitter (note different advertisement in the SIMPLE
      # comment, for debugging!)
      #
    
-     printf FITS "%-80s", "SIMPLE  =                    T / PDL (kgb) (http://pdl.perl.org)";
+     printf FITS "%-80s", "SIMPLE  =                    T / PDL::IO::Misc::wfits (http://pdl.perl.org)";
      
      $nbytes = 80; # Number of bytes written so far
      
@@ -676,42 +677,54 @@ sub wheader {     # Local utility routine of wfits()
    } else {
       # Check that we are dealing with a scalar value in the header
       # Need to make sure that the header does not include PDLs or
-      # other structures. Return unless $hdr{$k} is a scalar
+      # other structures. Return unless $hdr{$k} is a scalar.
+     my($hdrk) = $hdr{$k};
 
-      return unless not ref($hdr{$k});
+     if(ref $hdrk eq 'ARRAY') {
+       $hdrk = join("\n",@$hdrk);
+     }
 
-      if ($hdr{$k} eq "") {
+      return unless not ref($hdrk);
+
+      if ($hdrk eq "") {
          printf FITS "%-80s", substr($k,0,8);
       } else {
          printf FITS "%-8s= ", substr($k,0,8);
-         if ($hdr{$k} =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
+
+         if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
          my $cl=60-((exists($hdr{COMMENT}{$k})) ? 2 : 0);
          my $end=' ' x $cl;
          $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
-         printf FITS "%20s%-50s", substr($hdr{$k},0,20),
+         printf FITS "%20s%-50s", substr($hdrk,0,20),
          substr($end, 0, 50);
-        } elsif ($hdr{$k} eq 'F' or $hdr{$k} eq 'T') {
+        } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
           # Logical flags ?
-          printf FITS "%20s", $hdr{$k};
+          printf FITS "%20s", $hdrk;
           my $end=' ' x 50;
           $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
           printf FITS "%-50s", $end;
-        }
-         else {
-         $hdr{$k}=$1 if ($hdr{$k}=~m/'(.*)'/); # Take off surrounding ''
-         my $sl=length($hdr{$k})+2;
-         $sl=10 if $sl < 10;
-         my $cl=68-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
-         printf FITS "'%-$ {sl}s'", substr($hdr{$k},0,$sl);
-         if (exists($hdr{COMMENT}{$k})) {
-               printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
-           } else {
-             printf FITS "%-$ {cl}s", ' ' x $cl;
-            }
-         }
-      }
+        } else {
+	  # Handle strings, truncating as necessary
+	  # (doesn't do multicard strings like Astro::FITS::Header does)
+	  
+	  # Convert single quotes to doubled single quotes 
+	  # (per FITS standard)
+	  my($st) = $hdrk;
+	  $st =~ s/\'/\'\'/g;
+	  
+	  my $sl=length($st)+2;
+	  my $cl=70-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
+	  print FITS "'$st'";
+	  
+	  if (exists($hdr{COMMENT}{$k}) && defined($hdr{COMMENT}{$k})) {
+	    printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
+	  } else {
+	    printf FITS "%-$ {cl}s", ' ' x $cl;
+	  }
+	}
+       }
       $nbytes += 80; delete $hdr{$k};
-   }
+    }
    delete $hdr{COMMENT}{$k};
 1;}
 
