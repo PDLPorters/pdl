@@ -568,7 +568,7 @@ $PDL::IO::FITS_bintable_handlers = {
            , sub { 
                my( $pdl, $row, $strptr ) = @_;  # (ignore repeat and extra)
                my $n = $pdl->dim(0);
-               my $s =  unpack( "B".$n,  substr( $$strptr, 0, int(($n+7)/8)));
+               my $s =  unpack( "B".$n,  substr(${$strptr}, 0, int(($n+7)/8),''));
                $s =~ tr/[01]/[\000\001]/;
                substr(${$pdl->get_dataref},  $n * $row,  length($s)) = $s;
              }
@@ -585,7 +585,7 @@ $PDL::IO::FITS_bintable_handlers = {
   ,'A' => [  sub { # constructor               # String  - handle as perl list
                my($rowlen, $extra, $nrows, $szptr) = @_;
                my($i,@a);
-               if(ref $szptr eq 'SCALAR') {$$szptr += $rowlen;}
+               $$szptr += $rowlen;
                for $i(1..$nrows) { push(@a,' 'x$rowlen); }
                \@a;
             }
@@ -698,7 +698,10 @@ sub _rfits_bintable {
         . $hdr->{TTYPE$i}
       . ")\n";
     }
-    
+
+    # "A bit array consists of an integral number of bytes with trailing bits zero"
+    $tmpcol->{rpt} = PDL::ceil($tmpcol->{rpt}/8) if ($tmpcol->{type} eq 'X');
+
     $tmpcol->{handler} =  # sic - assignment
       $PDL::IO::FITS_bintable_handlers->{ $tmpcol->{type} }
     or 
@@ -720,7 +723,7 @@ sub _rfits_bintable {
       $tmpcol->{data} = $tbl->{$name} = 
         PDL->new_from_specification(
                                     $foo 
-                                    , $tmpcol->{rpt}, 
+                                    , $tmpcol->{rpt}||1, 
                                     , $hdr->{NAXIS2}||1
                                     );
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
@@ -763,9 +766,9 @@ sub _rfits_bintable {
           substr( $rawtable, 0, $rlen, '');
         $tmpcol->{data}->upd_data;
 
-    } else {
-      barf("Bug detected: inconsistent types in BINTABLE reader\n");
-    }
+      } else {
+        barf("Bug detected: inconsistent types in BINTABLE reader\n");
+      }
   }
   if(length($rawtable) ne $prelen - $hdr->{NAXIS1}) {
     barf "Something got screwed up -- expected a length of $prelen - $hdr->{NAXIS1}, got ".length($rawtable).".  Giving up.\n";
@@ -830,10 +833,10 @@ for my $i(1..$hdr->{TFIELDS}) {
 	
 	delete $hdr->{"TZERO$i"};
 	delete $hdr->{"TSCAL$i"};
-    }
+      }
     } # end of scaling section.
-
-    if($hdr->{NAXIS2} > 0) {
+    
+    if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
       $tbl->{$tmpcol->{name}} = 
 	( $tmpcol->{data}->dim(0) == 1 ) 
 	? $tmpcol->{data}->slice("(0)") 

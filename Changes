@@ -1,3 +1,6 @@
+CED 12-Feb-04
+   - FITS.pm: Applied patches 881870 and 880507 from Kaj Wiik -- zero size
+     field fix, and 'A' and 'X' type fixes.
 CED 5-Feb-04
    - Window.pm: fits_imag accepts CROTA if CROTA2 is not defined.
    - m51.fits: moved CRPIX1 to agree better with the galaxy center
