@@ -15,7 +15,7 @@ sub approx {
 	return $d < 0.01;
 }
 
-print "1..30\n";
+print "1..32\n";
 
 # $a0 = zeroes 3,5;
 # $b0 = xvals $a0;
@@ -106,3 +106,12 @@ ok (27, approx($a->or2($b,0), $a | $b));
 ok (28, approx($a->and2($b,0), $a & $b));
 ok (29, approx($b->minus($a,0), $b - $a));
 ok (30, approx($b - $a, ones(3,4)));
+
+# inplace tests
+
+$a = pdl 1;
+$sq2 = sqrt 2; # perl sqrt
+$a->inplace->plus(1,0);  # trailing 0 is ugly swap-flag
+ok(31, approx $a, pdl 2);
+$warning_shutup = $warning_shutup = sqrt $a->inplace;
+ok(32, approx $a, pdl($sq2));

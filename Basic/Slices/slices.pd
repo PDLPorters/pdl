@@ -383,9 +383,14 @@ pp_def(
 	Reversible => 1,
 	P2Child => 1,
 	XCHGOnly => 1,
-	EquivDimCheck => 'if($COMP(n1) >= $PARENT(threadids[0]) ||
+	EquivDimCheck => 'if ($COMP(n1) <0)
+				$COMP(n1) += $PARENT(threadids[0]);
+			  if ($COMP(n2) <0)
+				$COMP(n2) += $PARENT(threadids[0]);
+			  if ($COMP(n1) <0 ||$COMP(n2) <0 ||
+			     $COMP(n1) >= $PARENT(threadids[0]) ||
 			     $COMP(n2) >= $PARENT(threadids[0]))
-		barf("One of params %d, %d too large: %d",
+		barf("One of dims %d, %d out of range: should be 0<=dim<%d",
 			$COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
 	EquivPDimExpr => '(($CDIM == $COMP(n1)) ? $COMP(n2) : ($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM)',
 	EquivCDimExpr => '(($PDIM == $COMP(n1)) ? $COMP(n2) : ($PDIM == $COMP(n2)) ? $COMP(n1) : $PDIM)',
@@ -393,6 +398,8 @@ pp_def(
 =for ref
 
 exchange two dimensions
+
+Negative dimension indices count from the end.
 
 The command
 
@@ -521,10 +528,15 @@ pp_def(
 	Reversible => 1,
 	P2Child => 1,
 	XCHGOnly => 1,
-	EquivDimCheck => 'if($COMP(n1) >= $PARENT(ndims) ||
-			     $COMP(n2) >= $PARENT(ndims))
-		barf("One of params %d, %d too large: %d",
-			$COMP(n1),$COMP(n2),$PARENT(ndims));',
+	EquivDimCheck => 'if ($COMP(n1) <0)
+				$COMP(n1) += $PARENT(threadids[0]);
+			  if ($COMP(n2) <0)
+				$COMP(n2) += $PARENT(threadids[0]);
+			  if ($COMP(n1) <0 ||$COMP(n2) <0 ||
+			     $COMP(n1) >= $PARENT(threadids[0]) ||
+			     $COMP(n2) >= $PARENT(threadids[0]))
+		barf("One of dims %d, %d out of range: should be 0<=dim<%d",
+			$COMP(n1),$COMP(n2),$PARENT(threadids[0]));',
 	EquivPDimExpr => '(($COMP(n1) < $COMP(n2)) ?
 	(($CDIM < $COMP(n1) || $CDIM > $COMP(n2)) ?
 		$CDIM : (($CDIM == $COMP(n2)) ? $COMP(n1) : $CDIM+1))
@@ -556,7 +568,7 @@ place 1, so:
  $b->at(1,2,3,4,5,6) == $a->at(1,5,2,3,4,6);
 
 The other dimensions are moved accordingly.
-
+Negative dimension indices count from the end.
 =cut
 EOD
 );

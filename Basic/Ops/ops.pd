@@ -42,6 +42,11 @@ sub biop {
   }
 EOH
         }
+	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  c = a;  /* discard output value, leak? */
+				}',
 	pp_def($name,
 		Pars => 'a(); b(); [o]c();',
 		OtherPars => 'int swap',
@@ -57,7 +62,7 @@ $doc
    \$c = $name \$a, \$b;
    \$c = \$a $op \$b;
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the binary C<$optxt> operator.
 EOD
 }
@@ -66,7 +71,7 @@ EOD
 sub bifunc {
 	my ($name,$func,$swap,$doc,%extra) = @_;
 	if ($swap) {
-	  $extra{HdrCode} = << 'EOH';
+	  $extra{HdrCode} .= << 'EOH';
   pdl *tmp;
   if (swap) {
     tmp = a;
@@ -75,10 +80,16 @@ sub bifunc {
   }
 EOH
         }
+	$extra{HdrCode} .= 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  c = a;  /* discard output value, leak? */
+				}';
 	pp_def($name,
 		Pars => 'a(); b(); [o]c();',
 		OtherPars => 'int swap',
 		Code => "\$c() = $func(\$a(),\$b());",
+		%extra,
 		%extra,
 		Doc => << "EOD");
 =for ref
@@ -89,7 +100,7 @@ $doc
 
    \$c = $name \$a, \$b;
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the binary C<$func> function.
 EOD
 }
@@ -100,6 +111,11 @@ sub ufunc {
 	pp_def($name,
 		Pars => 'a(); [o]b()',
 		Code => "\$b() = $func(\$a());",
+		HdrCode => 'if (a->state & PDL_INPLACE)
+				{
+				  a->state &= ~PDL_INPLACE; /* unset */
+				  b = a;  /* discard output value, leak? */
+				}',
 		%extra,
 		Doc => << "EOD");
 =for ref
@@ -110,7 +126,7 @@ $doc
 
    \$b = $func \$a;
 
-It can be made to work inplace with the C<\$a-E<gt>inplace> syntax. NOT YET.
+It can be made to work inplace with the C<\$a-E<gt>inplace> syntax.
 This function is used to overload the unary C<$func> operator/function.
 EOD
 }
