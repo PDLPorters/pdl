@@ -1760,6 +1760,12 @@ sub _setup_window {
     $temp_o->{AxisColour}=$o->{HardAxisColour};
     $temp_o->{CharSize}=$o->{HardCH};
     $self->{Options}->defaults($temp_o);
+  } else {
+    # Set the global properties as for the hardcopy device.
+    pgsch($o->{CharSize});
+    my $wo = $self->{PlotOptions}->defaults();
+    pgscf($wo->{Font});
+    pgslw($wo->{LineWidth});
   }
   my ($hcopy, $len);
   my $wo = $self->{PlotOptions}->defaults();
