@@ -380,24 +380,42 @@ sub compose {
   my($g) = shift;
 
   Carp::croak("compose: undefined f or g\n") unless(defined $f and defined $g);
-
+  
   my($me) = PDL::Transform->new;
-  $me->{params} = {f=>$f, g=>$g};
   $me->{name} = $f->{name} . " o " . $g->{name};
 
-  $me->{func} = sub { 
-    my $data = shift; my $p = shift;
-    &{$p->{f}->{func}}(	&{$p->{g}->{func}}($data, $p->{g}->{params})
-			,$p->{f}->{params}
-			);
+  my(@clist);
+  if(UNIVERSAL::isa($f,"PDL::Transform::Composition")) {
+    push(@clist,@{$f->{params}->{clist}});
+  } else {
+    push(@clist,$f);
+  }
+
+  if(UNIVERSAL::isa($g,"PDL::Transform::Composition")) {
+    push(@clist,@{$g->{params}->{clist}});
+  } else {
+    push(@clist,$g);
+  }
+  $me->{params}->{clist} = \@clist;
+
+  $me->{func} = sub {
+    my ($data,$p) = @_;
+    my ($ip) = $data->is_inplace;
+    for my $t ( reverse(@{$p->{clist}}) ) {
+      $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
+    }
+    $data;
   };
 
   $me->{inv} = sub {
-    my $data = shift; my $p = shift;
-    &{$p->{g}->{inv}}( &{$p->{f}->{inv}}($data, $p->{f}->{params})
-		       ,$p->{g}->{params}
-		       );
+    my($data,$p) = @_;
+    my($ip) = $data->is_inplace;
+    for my $t ( @{$p->{clist}} ) {
+      $data = $t->{inv}($ip ? $data->inplace : $data, $t->{params});
+    }
+    $data;
   };
+
   return bless($me,'PDL::Transform::Composition');
 }
 

@@ -1,6 +1,6 @@
 CED (7-Nov-2002)
     - Several updates to Transform.pm -- wrap() method, rot option to Linear,
-	but NOT (just yet) jacobian support.
+	and improved composition -- but NOT (just yet) jacobian support.
     - Updated documentation for index() method in slices.pd
     - Minor tweaks to MatrixOps.
 CED (6-Nov-2002)
