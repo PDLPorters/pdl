@@ -641,7 +641,7 @@ use vars qw(%_constants %_actions);
      
      my @idx = @{$self->{COLORS}}; # map of color index (0-15) to RGB triples
      my $found = 0;
-     for (my $i=0;$i<@idx;$i++) {
+     for (my $i=2;$i<@idx;$i++) {  # map entries 0 and 1 are reserved for BACKGROUND and FRAMECOLOR
        if (_coloreq ($color, $idx[$i])) {
 	 $self->{CURRENT_COLOR_IDX} = $i;
 	 $found = 1;
@@ -651,8 +651,11 @@ use vars qw(%_constants %_actions);
      return if ($found);
      
      die "Too many colors used! (max 15)" if (@{$self->{COLORS}} > 14);
-     push (@{$self->{COLORS}}, $color);
-     $self->{CURRENT_COLOR_IDX} = @{$self->{COLORS}} - 1;
+
+     # add this color as index 2 or greater (entries 0 and 1 reserved)
+     my $idx = (@{$self->{COLORS}} > 1) ? @{$self->{COLORS}} : 2;
+     $self->{COLORS}[$idx]      = $color;
+     $self->{CURRENT_COLOR_IDX} = $idx;
      plscol0 ($self->{CURRENT_COLOR_IDX}, @$color);
    },
 
@@ -676,7 +679,7 @@ use vars qw(%_constants %_actions);
    sub {
      my $self  = shift;
      my $color = _color(shift);
-     $self->{COLORS}[0] = $color;
+     $self->{COLORS}[1] = $color;
      plscol0 (1, @$color);
    },
 
