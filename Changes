@@ -1,3 +1,7 @@
+SIS 12-FEB-2005
+   Tidy up some things relating to Win32. All alterations of a minor nature.
+   Files affected were Makefile.PL, Basic/Core/Dev.pm, Basic/Core/Makefile.PL,
+   Basic/MatrixOps/ssl/Makefile.PL and win32/INSTALL.
 SIS 10-FEB-2005
    Another change to Basic/Core/Makefile.PL to simplify build procedure
    on Win32.
