@@ -2011,7 +2011,7 @@ pp_def ('plsym',
 # Plot shaded 3-d surface plot
 
 pp_def ('plsurf3d',
-         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); int clevel(nlevel);',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel);',
          GenericTypes => [D],
          Code => '
            int i, j, size_x, size_y;
