@@ -81,10 +81,6 @@ struct Core {
     void** (*twod)        ( pdl ); 
     void*  (*malloc)      ( int );
     int    (*howbig)      ( int );
-    int*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
-    void   (*unpackdims)  ( SV* sv, int *dims,    /* Unpack */
-                            int ndims );
-    void   (*grow)        ( pdl* a, int newsize); /* Change pdl 'Data' size */
 };
 
 typedef struct Core Core;

@@ -5,8 +5,7 @@
 
 ****************************************************************/
 
-#include "pdl.h"      /* Data structure declarations */
-#include "pdlcore.h"  /* Core declarations */
+#include "pdl.h"
 
 double pdl_min(void*x, int n, int datatype) {
 

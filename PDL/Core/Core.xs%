@@ -369,9 +369,6 @@ BOOT:
    PDL.twod        = pdl_twod;
    PDL.malloc      = pdl_malloc;
    PDL.howbig      = pdl_howbig;
-   PDL.packdims    = pdl_packdims;
-   PDL.unpackdims  = pdl_unpackdims;
-   PDL.grow        = pdl_grow;
 
    /* 
       "Publish" pointer to this structure in perl variable for use

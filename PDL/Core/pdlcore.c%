@@ -117,7 +117,6 @@ SV* pdl_copy( pdl a, char* option ) {
    }
    else{
        XPUSHs(perl_get_sv("PDL::name",FALSE)); /* Default object */
-       XPUSHs((SV*)a.sv);   /* Value */
        strcpy(meth,"new");    
    }
 
