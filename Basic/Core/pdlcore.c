@@ -495,7 +495,7 @@ pdl_barf(pat, va_alist)
 	}
     }
     if (PL_in_eval) {
-#if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
+#if (PERL_VERSION > 6) || ((PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57))
        PL_restartop = die_where(message,strlen(message));
 #else
         PL_restartop = die_where(message);
