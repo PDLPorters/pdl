@@ -1,71 +1,114 @@
-INSTALLING on win32
+Installing on Win32
 -------------------
 
-This is a collection of tips if you are trying to compile PDL
-on win32. Your milage may vary. In general you might want to
-fall back on the binary windows version provided at
-http://pdl.perl.org .
+It's not (yet) as straightforward as it ought to be - but it's not all
+that difficult, either. If it's too much, then you can fall back on the
+binary windows version provided at http://pdl.perl.org .
 
-Supported compilers: MS Visual Studio 6 has been reported to work
 
-General procedure:
+To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
+----------------------------------------------------------------------
 
-   perl Makefile.PL
-   nmake
+1) If you want Slatec, install ExtUtils::F77, amending F77.pm according
+   to instructions given in 'F77.pm Corrections' (below).
 
-That should be it (in theory). Currently there are a number of niggles
-but work arounds exist.
+2) Make sure you have nmake and MinGW.
+   If you don't already have it, you can get nmake from either:
+   ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
+   or
+   http://download.microsoft.com/download/vc15/Patch/1.52/W95/EN-US/Nmake15.exe
+   or Google for 'nmake15.exe' if those links no longer work. Then run
+   the downloaded file to install nmake into the folder of your choice.
+   You can get MinGW from http://www.mingw.org. Simplest way to install
+   is to download the latest MinGW '.exe' from the Download page, and
+   then run the downloaded executable to install MinGW into the location
+   of your choice.
 
-Compilation report
+3) Make sure that 'perl -V:make' reports nmake. (Amend your perl's Config.pm
+   if necessary.)
+
+4) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
+
+5) If (and only if) you installed ExtUtils::FakeConfig run:
+    set perl5opt=-MConfig_m
+
+6) 'cd' to the top level PDL source directory and run, in succession:
+    perl Makefile.PL
+    nmake
+    cd Basic\Core
+    nmake Core.xs
+    del getdev.pl
+    cd ..\..
+    perl Makefile.PL
+    nmake
+    nmake test
+    nmake install
+
+
+To Build with MSVC compiler (MSVC-built perl only)
+--------------------------------------------------
+
+ The capability of building Slatec with f2c and associated
+ libraries libi77.lib and libf77.lib  probably still exists.
+ If you want to use f2c you need to edit win32/win32f77.pl to
+ reflect the location of f2c, the libs and the include file f2c.h.
+ You'll also need to run:
+    perl Makefile.PL F77CONF=win32/win32f77.pl
+ instead of simply:
+    perl Makefile.PL
+
+ However, the instructions that follow assume that Slatec support is
+ being provided by MinGW's fortran compiler (g77.exe):
+
+1) If you want Slatec, install ExtUtils::F77, amending F77.pm according
+   to instructions given in 'F77.pm Corrections' (below).
+   For Slatec you also need to install MinGW - this is for the g77.exe fortran
+   compiler and libs. (See the preceding section for the link to MinGW.) If
+   you're not interested in Slatec, then there's no need to install either
+   ExtUtils::F77 or MinGW. If you do install ExtUtils::F77 and MinGW, you
+   might consider also installing ExtUtils::FakeConfig, and building PDL with
+   the MinGW compiler, as per the instructions in the preceding section. But
+   if you really want to use the MSVC compiler, then read on.
+
+2) 'cd' to the top level PDL source directory and run, in succession:
+    perl Makefile.PL
+    nmake
+    cd Basic\Core
+    nmake Core.xs
+    del getdev.pl
+    cd ..\..
+    perl Makefile.PL
+    nmake
+    nmake test
+    nmake install
+
+ Tests 6 and 7 in conv.t fail. Safe to ignore for now.
+
+
+F77.pm Corrections
 ------------------
 
-Version:  PDL 2.2.1 (actually CVS snapshot 19/6/01)
+ In the F77.pm subroutine 'find_in_path', replace:
 
-If you want to use slatec you need the f77 support and need the
-F77CONF argument on the command line.
+   my @path = split(":",$ENV{PATH});
 
-       perl Makefile.PL F77CONF=win32/win32f77.pl
-       nmake
+ with:
 
-This will only work together with a working f2c and associated
-libraries libi77.lib and libf77.lib.  You need to edit
-win32/win32f77.pl to reflect the location of f2c, the libs and the
-include file f2c.h. If you have problems just omit the F77CONF
-argument from the 'perl Makefile.PL' command. In that case you won't
-have slatec support though.
+   my @path;
+   if($^O =~ /mswin32/i) {
+     for(@names) {$_ .= '.exe'}
+     @path = split(";", $ENV{PATH});
+     }
+   else {@path = split(":",$ENV{PATH})}
 
-Niggle:
 
-The first nmake stops with an error that Core.obj is not found.
-Workaround: once you get this error do the following:
+ The F77.pm subroutine 'testcompiler' begins with:
 
-   cd Basic\Core
-   nmake Core.xs
-   del getdev.pl # this one is important, otherwise you get a
-                 # circular Makefile dependence!
-   cd ..\..
-   perl Makefile.PL # with F77CONF=win32/win32f77.pl if you want slatec
-   nmake
+   my $file = "/tmp/testf77$$";
 
-Now it should work.
+ Make sure that the folder '/tmp' exists - or change '/tmp' to a folder
+ that does exist.
 
-Finish with
-
-   nmake test
-
-Should pass everything but test 6 in conv.t. Safe to ignore for now.
-
-Making an installable PPM
--------------------------
-
-Some pseudo code how to go about that
-is in the file makeppm.pl (which is currently
-really just comments).
-
-UPDATE: A target 'ppm' is now available
-from the makefile.
-
-  make ppm
-
-should do the job, however, it relies on
-a number of programs like cp, mv, tar, etc.
+ Some of the PDL tests generate some warnings in relation to the F77.pm code.
+ One way to eliminate those warnings is to place 'no warnings;' at the
+ beginning of the F77.pm 'import' subroutine.

@@ -385,11 +385,19 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	  );
 push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
+my @exe_files = ('perldl', 'pdldoc');
+my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
+
+if($^O !~ /mswin32/i) {
+   unshift @exe_files, 'pdl';
+   $cleanup = 'pdl ' . $cleanup;
+   }
+
 WriteMakefile(
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
-	      'EXE_FILES' => ['pdl', 'perldl', 'pdldoc'],
+	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, # so that the script docs are picked up
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
@@ -397,7 +405,7 @@ WriteMakefile(
                                                # in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
 	      'clean' => {
-		  'FILES' => 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
+		  'FILES' => $cleanup .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
                       '_Inline/'

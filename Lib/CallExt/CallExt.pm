@@ -184,17 +184,17 @@ sub callext_cc {
 	($ld_obj = $cc_obj) =~ s/\.o$/\.$Config{dlext}/ unless defined $output;
 
 	# Output flags for compiler depend on os.
-	# -o on unix or /Fo" " on WindowsNT
+	# -o on cc and gcc, or /Fo" " on MS Visual Studio
 	# Need a start and end string
-	my $do = ( $^O =~ /MSWin/i ? '/Fo"' : '-o ');
+	my $do = ( $Config{cc} eq 'cl' ? '/Fo"' : '-o ');
 	my $eo = ( $^O =~ /MSWin/i ? '"' : '' );
 
 	# Compiler command
 	my $cc_cmd = join(' ', map { $Config{$_} } qw(cc ccflags cccdlflags)) .
 		" -I$Config{installsitelib}/PDL/Core $ccflags -c $src $do$cc_obj$eo";
 
-	# The linker output flag is -o on unix and -out: on Windows
-	my $o = ( $^O =~ /MSWin/i ? '-out:' : '-o ');
+	# The linker output flag is -o on cc and gcc, and -out: on MS Visual Studio
+	my $o = ( $Config{cc} eq 'cl' ? '-out:' : '-o ');
 
 	# Setup the LD command. Do not want the env var on Windows
 	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
@@ -210,7 +210,12 @@ sub callext_cc {
 	# Run the command in two steps so that we can check status
 	# of each and also so that we dont have to rely on ';' command
 	# separator
-	system $cc_cmd and croak "Error compiling $src";
+
+	system $cc_cmd and croak " compiling $src";
+
+      # Fix up ActiveState-built perl. Is this a reliable fix ?
+      $ld_cmd =~ s/\-nodefaultlib//g if $Config{cc} eq 'cl';
+
 	system $ld_cmd and croak "Error linking $cc_obj";
 	return 1;
 }

@@ -14,6 +14,9 @@ my $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
+my $exec = $^O =~ /win32/i ? '.exe' : '';
+my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
+
 BEGIN{
 
     my $ntests = 29;
@@ -113,8 +116,14 @@ sub createData {
     # try and provide a modicum of safety, since we call
     # system with $head as the argument
     #
-    die '$head [' . $head . '] must start with a / or ./'
-      unless $head =~ /^(\/|\.\/)/;
+    if($^O =~ /mswin32/i) {
+      die '$head [' . $head . '] should match /^[A-Z]:\\/'
+            unless $head =~ /^[A-Z]:\\/;
+      }      
+    else {
+      die '$head [' . $head . '] must start with a / or ./'
+            unless $head =~ /^(\/|\.\/)/;
+      }
 
     my $file = "${head}.f";
     my $prog = $head;
@@ -125,15 +134,16 @@ sub createData {
     $fh->print( $code );
     $fh->close;
 
-    system("$F77 $F77flags -o $prog $file".
-	   (($Verbose || $DEBUG)?'':' 2>/dev/null'));
+    system("$F77 $F77flags -o $prog$exec $file".
+	     (($Verbose || $DEBUG)?'': $null));
+    
     unlink $data if -f $data;
     system( $prog );
 
     die "ERROR: code did not create data file $data\n"
       unless -e $data;
 
-    unlink $prog, $file;
+    unlink $prog.$exec, $file;
 
 } # sub: createData()
 
@@ -158,7 +168,10 @@ my $i = $j;
 my $c;
 
 my $tmpdir = $PDL::Config{TEMPDIR};
-my $head   = $tmpdir . "/tmpraw";
+$tmpdir =~ s/\\/\\\\/g;
+my $head;
+if($^O =~ /mswin32/i) {$head   = $tmpdir . "\\\\tmpraw"}
+else {$head   = $tmpdir . "/tmpraw"}
 my $data   = $head . "data";
 my $hdr    = $data . ".hdr";
 

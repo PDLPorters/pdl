@@ -80,6 +80,24 @@ return if $donot;
 %hash = pdlpp_stdargs_int(@::pack);
 
 $hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
+
+if($Config{cc} eq 'cl') {
+# Link to MinGW's libg2c.a and libgcc.a, if they're available
+
+  my @f = ();
+
+  for(split ' ', ExtUtils::F77->runtime) {
+     if($_ =~ /^\-L/) {
+       $_ =~ s#^\-L##;
+       if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
+       if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
+     }
+  }
+
+  for(@f) {$hash{OBJECT} .= ' ' . $_}
+
+}
+
 $hash{LIBS}[0] .= $f77->runtime ;
 $hash{clean}{FILES} .= " f77_underscore" .
   join '', map {" slatec/$_.o "} @slatecfiles;

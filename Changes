@@ -1,3 +1,13 @@
+SIS 4-FEB-2005
+   Enact some minor changes in the following files so that PDL will
+   build on Win32:
+   pdl.PL, Makefile.PL
+   Basic/MatrixOps/matrixops.pd
+   Basic/MatrixOps/ssl/Makefile.PL
+   Lib/CallExt/CallExt.pm
+   Lib/Slatec/Makefile.PL
+   t/callext.t, t/croak.t, t/flexraw.t, t/matrixops.t
+   win32/INSTALL (Rewrite to reflect changes in build procedure)
 CED 1-Feb-2005
    Fixed minor bug in convolveND with kernel threading
 CED 18-Jan-2005

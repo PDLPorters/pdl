@@ -1,5 +1,6 @@
 use PDL::LiteF;
 use Test;
+use Config;
 # sub ok {
 # 	my $no = shift;
 # 	my $result = shift;
@@ -16,10 +17,10 @@ sub near {
 }
 
 BEGIN { plan tests => 19,
-	  todo => $^O =~ /win32/i ? [12] : []
+	  todo => $Config{cc} eq 'cl' ? [12] : []
 }
 
-my $tol = ($^O =~ /win32/i) ? 1e-6 : 1e-14;
+my $tol = ($Config{cc} eq 'cl') ? 1e-6 : 1e-14;
 
 eval 'use PDL::MatrixOps;';
 ok(!$@);

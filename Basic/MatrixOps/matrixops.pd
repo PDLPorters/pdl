@@ -1,6 +1,7 @@
 pp_addhdr('
 #include <math.h>
 #include "protos.h"
+
 /* Change names when fixing glibc-2.1 bug */
 #ifdef MY_FIXY0
 #define y0(a) fixy0(a)
@@ -561,9 +562,21 @@ pp_def("eigens",
 		#include "ssl/eigen.h"
 
 		register int sn = $SIZE (n);
+		int i,j;
+
+      /* Allocate foo and bar dynamically with Microsoft compilers - coded by Sisyphus */
+#ifdef _MSC_VER
+            double dummy_nan = 0;
+            void **foo;
+            void **bar;
+            New(42, foo, $SIZE(n), void*);
+            New(111, bar, $SIZE(n), void*);
+            if(foo == NULL || bar == NULL)
+              croak("Failed to allocate memory for foo or bar");
+#else
 		void *foo[ $SIZE(n) ];
 		void *bar[ $SIZE(n) ];
-		int i,j;
+#endif
 
 		if($SIZE (l) != 2) {
 		        barf("eigens internal error...");
@@ -582,6 +595,10 @@ pp_def("eigens",
 		Eigen( sn, 0, foo, 20*sn, 1e-13, 0, 
 		       (SSL_Complex *)( $P(e) ), bar
 		       );
+#ifdef _MSC_VER
+            Safefree(foo);
+            Safefree(bar);
+#endif
 
 		/* Check for invalid values: convenience block */
 		{ 
@@ -616,11 +633,20 @@ pp_def("eigens",
                    }
 
                    /* Set column to NaN if necessary */
+                   /* No nan() function with Microsoft compilers - coded by Sisyphus */
+#ifdef _MSC_VER
+                   if( !ok  ) {
+		     for(j=0; j< $SIZE(n); j++) 
+		       ($P(ev))[2 * (i*$SIZE(n)+j)] = 0./dummy_nan;
+		     ($P(e))[i*2] = 0./dummy_nan;
+                   }
+#else
                    if( !ok  ) {
 		     for(j=0; j< $SIZE(n); j++) 
 		       ($P(ev))[2 * (i*$SIZE(n)+j)] = nan("");
 		     ($P(e))[i*2] = nan("");
                    }
+#endif
                 }
 	       }
 ',

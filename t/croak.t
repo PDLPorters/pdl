@@ -13,7 +13,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-$SIG{BUS} = \&not_ok;
+if($^O !~ /mswin32/i) {$SIG{BUS} = \&not_ok}
 $SIG{SEGV} = \&not_ok;
 
 sub not_ok {
