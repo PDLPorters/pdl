@@ -52,6 +52,7 @@ foreach my $incdir (
 		    '/usr/local/include',
 		    '/opt/local/include',
 		    '/usr/include',
+		    '/usr/include/plplot',
 		    '/opt/include',
 		    '/ops/tools/include/plplot',
 		    '/ops/tools/include',
