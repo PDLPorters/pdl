@@ -2484,7 +2484,7 @@ sub replay {
 sub clear_state {
   my $self = shift;
   print "Clearing state!\n" if $DEBUGSTATE;
-  $self->{State}->clear();
+  $self->{State}->clear() if(defined($self) && defined($self->{State}));
 }
 
 sub turn_off_recording {
@@ -4702,6 +4702,12 @@ sub arrow {
       # Here's the initenv call, after much ado.  JUSTIFY is set to 0 
       # explicitly, because it's handled through the PIX code above.
       $self->initenv( @env_range, 0, $o->{Axis}  );
+
+      # Label axes if necessary
+      if(defined ($u_opt->{Title} || $u_opt->{XTitle} || $u_opt->{YTitle})) {
+	$self->label_axes($u_opt->{XTitle},$u_opt->{YTitle},$u_opt->{Title},$u_opt);
+      }
+
 
     } # if ! hold
 
