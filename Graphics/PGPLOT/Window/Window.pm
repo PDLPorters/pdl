@@ -2486,26 +2486,36 @@ This routine checks and optionally alters the arguments given to it.
 
 sub _checkarg {			# Check/alter arguments utility
   my $self = shift;
-  my ($arg,$dims,$type) = @_;
+  my ($arg,$dims,$type,$nobarf) = @_;
   $type = $PDL_F unless defined $type;
+
+  # nobarf added so the end-user can choose whether to die or not..x
+  $nobarf = 0 unless defined($nobarf);
+  my $ok = 1;
+
   $arg = topdl($arg);		# Make into a pdl
   $arg = convert($arg,$type) if $arg->get_datatype != $type;
   if (($arg->getndims > $dims)) {
     # Get the dimensions, find out which are == 1. If it helps
     # chuck these off and return trimmed piddle.
     my $n=nelem(which(pdl($arg->dims)==1));
-    barf "Data is >".$dims."D" if ($arg->getndims-$n) > $dims;
-    my $count=0;      my $qq;
-    my $s=join ',',
-      map {if ($_ == 1 && $count<$arg->getndims-$dims) {$qq='(0)'; $count++}
-	   else {
-	     $qq= '';
-	   }
-	   ; $qq} $arg->dims;
-    $arg=$arg->slice($s);
+    if (($arg->getndims-$n) > $dims) {
+      $ok = 0;
+      barf "Data is >".$dims."D" unless $nobarf;
+    } else {
+      my $count=0;      my $qq;
+      my $s=join ',',
+	map {if ($_ == 1 && $count<$arg->getndims-$dims) {$qq='(0)'; $count++}
+	     else {
+	       $qq= '';
+	     }
+	     ; $qq} $arg->dims;
+      $arg=$arg->slice($s);
+    }
   }
-  $_[0] = $arg;			# Alter
-  1;
+  $_[0] = $arg if $ok;	# Alter
+
+  return $ok;
 }
 
 # a hack to store information in the object.  
@@ -3499,20 +3509,32 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
       $line_options=$self->{PlotOptions}->extend({Missing => undef});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $opt = {} if !defined($opt);
 
     barf 'Usage: line ( [$x,] $y, [$options] )' if $#$in<0 || $#$in>2;
     my($x,$y) = @$in;
     $self->_checkarg($x,1);
     my $n = nelem($x);
 
+    my ($is_1D, $is_2D);
     if ($#$in==1) {
-      $self->_checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
+      $is_1D = $self->_checkarg($y,1,undef,1);
+      if (!$is_1D) {
+	$is_2D = $self->_checkarg($y,2,undef,1);
+	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	
+	# Ok, let us use the threading possibility.
+	$self->tline(@$in, $opt);
+	
+	return;
+      } else {
+	barf '$x and $y must be same size' if $n!=nelem($y);
+      }
     } else {
       $y = $x; $x = float(sequence($n));
     }
 
     # Let us parse the options if any.
+    $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($line_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
@@ -3587,19 +3609,31 @@ sub arrow {
       $points_options = $self->{PlotOptions}->extend({PlotLine => 0});
     }
     my ($in, $opt)=_extract_hash(@_);
-    $opt = {} if !defined($opt);
     barf 'Usage: points ( [$x,] $y, $sym, [$options] )' if $#$in<0 || $#$in>2;
     my ($x, $y, $sym)=@$in;
     $self->_checkarg($x,1);
     my $n=nelem($x);
 
-    if ($#$in>=1) {
-      $self->_checkarg($y,1); barf '$x and $y must be same size' if $n!=nelem($y);
+    my ($is_1D, $is_2D);
+    if ($#$in==1) {
+      $is_1D = $self->_checkarg($y,1,undef,1);
+      if (!$is_1D) {
+	$is_2D = $self->_checkarg($y,2,undef,1);
+	barf '$y must be 1D (or 2D for threading!)'."\n" if !$is_2D;
+	
+	# Ok, let us use the threading possibility.
+	$self->tpoints(@$in, $opt);
+	return;
+
+      } else {
+	barf '$x and $y must be same size' if $n!=nelem($y);
+      }
     } else {
       $y = $x; $x = float(sequence($n));
     }
 
     # Let us parse the options if any.
+    $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($points_options, $opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
