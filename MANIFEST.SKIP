@@ -8,6 +8,8 @@ MANIFEST\.old
 .*\.0$
 \.(tmp|new|diff|ori)$
 ^Basic/SourceFilter/INSTALL
+^Basic/SourceFilter/MANIFEST
+^Basic/SourceFilter/README
 ^t/.*\.pnm$
 ^core
 ^pdldoc.db$

@@ -7,7 +7,7 @@ use Config;
 use Data::Dumper;
 use Carp;
 use Cwd qw(cwd abs_path);
-use PDL::Core::Dev;
+require PDL::Core::Dev;
 
 $Inline::Pdlpp::VERSION = '0.1';
 @Inline::Pdlpp::ISA = qw(Inline);
@@ -667,8 +667,10 @@ Specifies extra typemap files to use. Corresponds to the MakeMaker parameter.
 
 =head1 BUGS
 
-Maybe this is a Perl thing, but beware that you can't use
-the __DATA__ keyword style of Inline definition when you
+=head2 C<do>ing inline scripts
+
+Beware that there is a problem when you use
+the __DATA__ keyword style of Inline definition and
 want to C<do> your script containing inlined code. For example
 
    # myscript.pl contains inlined code
@@ -676,9 +678,21 @@ want to C<do> your script containing inlined code. For example
    perl -e 'do "myscript.pl";'
  One or more DATA sections were not processed by Inline.
 
-Use one of the alternative ways of defining inline code if
-you need to use C<do> with them (e.g. when calling your script from
-within L<perldl|perldl>).
+According to Brian Ingerson (of Inline fame) the workaround is
+to include an C<Inline-E<gt>init> call in your script, e.g.
+
+  use PDL;
+  use Inline Pdlpp;
+  Inline->init;
+
+  # perl code
+
+  __DATA__
+  __Pdlpp__
+
+  # pp code
+
+=head2 C<PDL::NiceSlice> and C<Inline::Pdlpp>
 
 There is currently an undesired interaction between
 L<PDL::NiceSlice|PDL::NiceSlice> and C<Inline::Pdlpp>.
@@ -705,7 +719,6 @@ the section of inlined Pdlpp code. For example:
 
   ppdef (...); # your full pp definition here
 
-
 =head1 ACKNOWLEDGEMENTS
 
 Brian Ingerson for creating the Inline infrastructure.
@@ -716,7 +729,13 @@ Christian Soeller <soellermail@excite.com>
 
 =head1 SEE ALSO
 
-PDL, PDL::PP, Inline, Inline::C
+L<PDL>
+
+L<PDL::PP>
+
+L<Inline>
+
+L<Inline::C>
 
 =head1 COPYRIGHT
 

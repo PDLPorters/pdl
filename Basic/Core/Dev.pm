@@ -25,9 +25,9 @@ PDL development and is often used from within Makefile.PL's.
 
 package PDL::Core::Dev;
 
-use English; use Exporter; use DynaLoader;
-use IO::File;
-@ISA    = qw( Exporter DynaLoader );
+use English; require Exporter;
+
+@ISA    = qw( Exporter );
 
 @EXPORT = qw( isbigendian genpp %PDL_DATATYPES 
 	     PDL_INCLUDE PDL_TYPEMAP
@@ -43,10 +43,15 @@ use IO::File;
 
 # The INST are here still just in case we want to change something later.
 
+# print STDERR "executing PDL::Core::Dev from",join(',',caller),"\n";
+
+# Return library locations
+
+
 sub PDL_INCLUDE { '-I'.whereami_any().'/Core' };
 sub PDL_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
-sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
-sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
+# sub PDL_INST_INCLUDE { '-I'.whereami_any().'/Core' };
+# sub PDL_INST_TYPEMAP { whereami_any().'/Core/typemap.pdl' };
 
 sub PDL_INST_INCLUDE {&PDL_INCLUDE}
 sub PDL_INST_TYPEMAP {&PDL_TYPEMAP}
@@ -80,14 +85,42 @@ sub PDL_BOOT {
 EOR
 }
 
+# whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
+use Cwd qw/abs_path/;
+sub whereami_any {
+	my $dir = (&whereami(1) or &whereami_inst(1) or
+          die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
+	return abs_path($dir);
+}
+
+sub whereami {
+   for $dir (@INC,qw|. .. ../.. ../../..|) {
+      return ($_[0] ? $dir . '/Basic' : $dir)
+	if -e "$dir/Basic/Core/Dev.pm";
+   }
+   die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
+    if !$_[0];
+    return undef;
+}
+
+sub whereami_inst {
+   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
+      return ($_[0] ? $dir . '/PDL' : $dir)
+	if -e "$dir/PDL/Core/Dev.pm";
+   }
+   die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
+    if !$_[0];
+   return undef;
+}
+
 # Data types to C types mapping
 # get the map from Types.pm
 {
-eval('do "'.whereami_any().'/Core/Types.pm"');
-if($@) {
+eval('require PDL::Types');
+if($@) {  # if PDL::Types doesn't work try with full path (during build)
   my $foo = $@;
   $@="";
-  do('require "'.whereami_any().'/Core/Types.pm"');
+  eval('require "'.whereami_any().'/Core/Types.pm"');
   if($@) {
    die "can't find PDL::Types.pm: $foo and $@" unless $@ eq "";
   }
@@ -130,6 +163,8 @@ perl's C<%Config> array.
    my $retval = isbigendian();
 
 =cut
+
+# ' emacs parsing dummy
 
 # big/little endian?
 sub isbigendian {
@@ -315,36 +350,6 @@ q~
 
 }
 
-# Return library locations
-
-# whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
-use Cwd qw/abs_path/;
-sub whereami_any {
-	my $dir = (&whereami(1) or &whereami_inst(1) or
-          die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
-	return abs_path($dir);
-}
-
-sub whereami {
-   for $dir (@INC,qw|. .. ../.. ../../..|) {
-      return ($_[0] ? $dir . '/Basic' : $dir)
-	if -e "$dir/Basic/Core/Dev.pm";
-   }
-   die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-    return undef;
-}
-
-sub whereami_inst {
-   for $dir (@INC,map {$_."/blib"} qw|. .. ../.. ../../..|) {
-      return ($_[0] ? $dir . '/PDL' : $dir)
-	if -e "$dir/PDL/Core/Dev.pm";
-   }
-   die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
-    if !$_[0];
-   return undef;
-}
-
 # Expects list in format:
 # [gtest.pd, GTest, PDL::GTest], [...]
 # source,    prefix,module/package
@@ -440,6 +445,7 @@ sub unsupported {
 }
 
 sub write_dummy_make {
+  require IO::File;
     my ($msg) = @_;
     my $fh = new IO::File "> Makefile" or die "can't open Makefile";
     print $fh <<"EOT";
@@ -548,8 +554,8 @@ sub trylink {
 
   require File::Spec;
   my $fs = 'File::Spec';
-  sub cdir { return $fs->catdir(@_)}
-  sub cfile { return $fs->catfile(@_)}
+  my $cdir = sub { return $fs->catdir(@_)};
+  my $cfile = sub { return $fs->catfile(@_)};
   use Config;
 
   # check if MakeMaker should be used to preprocess the libs
@@ -580,9 +586,9 @@ sub trylink {
   my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
   my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
             defined $ENV{TMP} ? $ENV{TMP} :
-                           cdir($fs->rootdir,$td);
+                           &$cdir($fs->rootdir,$td);
 
-  my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
+  my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "couldn't open testfile for writing";
   my $prog = <<"EOF";
 $inc
