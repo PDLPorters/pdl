@@ -1548,7 +1548,7 @@ sub new {
 sub DESTROY {
   my $self=shift;
 
-  $self->close();
+  $self->close() unless !defined($self->{ID});
 }
 
 
