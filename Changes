@@ -1,3 +1,5 @@
+DJB (01/08/02)
+    - PDL::IO::NDF::rndf() now accepts NDF sections
 CS  - INSTALL & DEPENDENCIES update (bug #488867)
     - FlexRaw: read/write from open file handles (by Dov Grobgeld)
     - IO::Misc: fix filehandle code for rcols etc.

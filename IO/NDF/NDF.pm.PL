@@ -263,10 +263,14 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   # Strip trailing .sdf if one is present
   # remove the trailing extension names
   # (anything after a `.' UNLESS it's part of a directory
-  # name, hence the check for ^/)
+  # name, hence the check for ^/) and any trailing (...)
+  # specifier (NDF sections, a la PDL slices)
+  #
   $file =~ s/\.sdf$//;
+
   $infile = $file;
   $infile =~ s!\.[^/]*$!!;
+  $infile =~ s/\(.*\)$//;
 
   # If file is not there
   croak "Cannot find $infile.sdf" unless -e "$infile.sdf";

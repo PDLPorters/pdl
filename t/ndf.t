@@ -2,9 +2,13 @@
 # Test of the NDF I/O system
 # Requires that the NDF module is available.
 
-use PDL::LiteF;
 use strict;
+
+use Test;
+
+use PDL::LiteF;
 $PDL::verbose = 1;
+
 my $loaded;
 
 # Check that we can load the module
@@ -16,31 +20,22 @@ BEGIN {
   $loaded = ( $@ ? 0 : 1 );
 }
 
-# Test counters
-my $plan = 6;
-my $n = 0;
-
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
-
-# Simple okay test
-sub ok {
-        $n++; # increment test counter
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $n\n" ;
-
+unless ( $loaded ) {
+    plan tests => 1;
+#    for ( 1 .. $ntests ) {
+	skip( "Skipped: PDL::IO::NDF requires the NDF module.", 1, 1 );
+#    }
+    exit;
 }
 
+plan tests => 10;
 
-print "1..$plan\n";
-unless ($loaded) {
-  for (1..$plan) {
-    print "ok $_ # Skipped: PDL::IO::NDF requires the NDF module.\n";
-  }
-  exit;
+sub tapprox ($$) {
+    my ( $a, $b ) = @_;
+    return abs($a-$b) <= 1.0e-5;
 }
-
 
 # Now start by creating a test PDL
 my $pdl = pdl( 1,5,10,8);
@@ -50,10 +45,11 @@ $pdl->sethdr(  { NDFTEST => 'yes' } );
 
 # output file name
 my $ndffile = "test.sdf";
+unlink $ndffile if -e $ndffile;
 
 # Write it out to disk
 $pdl->wndf( $ndffile );
-
+ok( -e $ndffile );
 
 # Set up an END block to remove the file
 END {
@@ -64,7 +60,7 @@ END {
 my $in = rndf( $ndffile );
 
 # Compare the number of entries
-ok( $in->dims == $pdl->dims  );
+ok( $in->dims == $pdl->dims );
 
 # Check each entry
 my $range = $pdl->getdim(0) - 1;
@@ -75,4 +71,18 @@ foreach ( 0 .. $range ) {
 # Now compare headers
 ok( $pdl->gethdr->{NDFTEST} eq $in->gethdr->{NDFTEST} );
 
+# try a 2D image
+$pdl = pdl( [1,5,10],[8,4,-4]);
+$pdl->wndf( $ndffile );
+$in = rndf( $ndffile );
 
+# Compare the number of entries
+ok( $in->dims == $pdl->dims );
+ok( tapprox( sum($in - $pdl), 0.0 ) );
+
+# try a subset of the 2D image
+# NOTE: NDF starts counting at 1, not 0
+$in = rndf( "test(1:2,2)" );
+ok( tapprox( sum($in - $pdl->slice('0:1,1') ), 0.0 ) );
+
+# end of test
