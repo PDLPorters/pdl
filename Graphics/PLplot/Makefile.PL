@@ -20,11 +20,16 @@ print "\nChecking PDL::Graphics::PLplot...\n";
 
 unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 
-my $libname = "libplplotd.so";
+# on OS-X the library is called libplplotd.dylib, so we
+# use $Config{"so"} to get the extension name
+#
+my $libname = "libplplotd." . $Config{"so"};
 my $incname = "plplot.h";
 
 print "\tPDL_CONFIG{WITH_PLPLOT} is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
-my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT})) ? 0 : 1;
+my $found_plplot =
+    (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT}))
+    ? 0 : 1;
 print "found_plplot is $found_plplot\n";
 
 unless ($found_plplot) {
@@ -38,6 +43,7 @@ foreach my $libdir (
 		    '/usr/lib',
 		    '/opt/lib',
 		    '/ops/tools/lib',
+                    '/sw/lib/',    # default FINK installation
 		    $PDL_CONFIG{WHERE_PLPLOT_LIBS},
 		                  # Add new library paths here!!
 		    ) {
@@ -66,6 +72,7 @@ foreach my $incdir (
 		    '/opt/include',
 		    '/ops/tools/include/plplot',
 		    '/ops/tools/include',
+                    '/sw/include/plplot/',    # default FINK installation
 		    $PDL_CONFIG{WHERE_PLPLOT_INCLUDE},
 		                  # Add new header paths here!!
 		    ) {
