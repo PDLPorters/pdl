@@ -55,7 +55,8 @@ EOM
 # but this uses the %PDL::Config variable to access the data.
 #
 # So, we try to avoid this dichotomy by creating a %PDL::Config during
-# the 'perl Makefile.PL' stage.
+# the 'perl Makefile.PL' stage and then making sure that PDL_CONFIG
+# is destroyed (so it can't be used by accident).
 #
 # Do we need to worry about Makefile.PL's hacking PDL_CONFIG?
 # Probably...
@@ -66,10 +67,8 @@ sub getpdl_config {
   my ($pdl_conf_file) = @_;
 
   # First read in distribution config file
-  # and convert y/n to 1/0
   #
   require './perldl.conf';
-  foreach (values %PDL_CONFIG) { s/^y.*/1/i; s/^n.*/0/i; }
 
   # Save standard values
   #
@@ -97,10 +96,34 @@ EOD
   }
 
   # Merge in default options where not supplied in users file
-
+  #
   for(keys %PDL_CONFIG_DIST) {
     $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
   }
+
+  # Set up the default TEMPDIR if it has not been set by the user
+  #
+  # set up the default directory we use for temporary files throughout
+  # PDL. These are mainly for files created during the build of PDL itself,
+  # but it can also invovle files created whilst building an external
+  # module that uses PDL (e.g. the trylink() function of PDL::Dev needs
+  # a temporary file) or when a module is actually being used (e.g.
+  # PDL::IO::Dumper may need a temporary file).
+  #
+  # We have no policy about what directory to use - the following is
+  # an amalgam of the different choices that have been used within PDL
+  # up to (and including) v2.4.1
+  #
+  require File::Spec;
+  my $fs = 'File::Spec';
+  my $cdir = sub { return $fs->catdir(@_)};
+  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
+  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
+    defined $ENV{TMP} ? $ENV{TMP} :
+      &$cdir($fs->rootdir,$td);
+
+  $PDL_CONFIG{TEMPDIR} = $tempd
+    unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
   # set up the default MALLOCDBG information (if not specified by the user)
   #
