@@ -2995,9 +2995,9 @@ is given in radians.
     my $o=$rect_opt->options($opt);
 
     $o->{XCenter}=$xc if defined($xc);
-    $o->{YCenter}=$xc if defined($yc);
+    $o->{YCenter}=$yc if defined($yc);
     $o->{XSide}=$xside if defined($xside);
-    $o->{YSide}=$xside if defined($yside);
+    $o->{YSide}=$yside if defined($yside);
     $o->{Angle}=$angle if defined($angle);
 
     ##
