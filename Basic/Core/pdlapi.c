@@ -824,6 +824,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 
   if(!pfflag && !(trans->flags & PDL_ITRANS_DO_DATAFLOW_ANY)) {
   	int *wd = malloc(sizeof(int) * trans->vtable->npdls);
+
 	/* mark this transform as non mutual in case we croak during
 	   ensuring it */
 	  trans->flags |= PDL_ITRANS_NONMUTUAL;
@@ -845,7 +846,9 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 		   PDL_PARENTDIMSCHANGED | PDL_PARENTDATACHANGED;
 #endif
 	if(!trans->vtable) {die("INVALID 0V TRANS\n");}
+
 	pdl__ensure_trans(trans,PDL_PARENTDIMSCHANGED); /* XXX Why? */
+
 	/* Es ist vollbracht */
 	for(i=trans->vtable->nparents; i<trans->vtable->npdls; i++) {
 #ifndef DONT_VAFFINE
@@ -863,6 +866,7 @@ void pdl_make_trans_mutual(pdl_trans *trans)
 	pdl_destroytransform_nonmutual(trans,0);
       free(wd);
   } else {
+
           PDLDEBUG_f(printf("make_trans_mutual flowing!\n"));
 	  for(i=0; i<trans->vtable->nparents; i++)
 		pdl_set_trans_childtrans(trans->pdls[i],trans,i);
@@ -1132,7 +1136,9 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 	int flag=0;
 	int par_pvaf=0;
 	flag |= what;
+
 	PDL_TR_CHKMAGIC(trans);
+
 	for(j=0; j<trans->vtable->nparents; j++) {
 #ifndef DONT_OPTIMIZE
 #ifndef DONT_VAFFINE
@@ -1148,6 +1154,7 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 			pdl_make_physical(trans->pdls[j]);
 		}
 	}
+
 	for(; j<trans->vtable->npdls; j++) {
 		if(trans->pdls[j]->trans != trans) {
 #ifndef DONT_OPTIMIZE
@@ -1163,12 +1170,14 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
                        {       if(!trans->pdls[j]) {return;} /* XXX!!! */
                        PDLDEBUG_f(printf("not vaffine ok: %d\n",
                                          trans->vtable->per_pdl_flags[j]));
-
+		       
 				pdl_make_physical(trans->pdls[j]);
+
                        }
 		}
 		flag |= trans->pdls[j]->state & PDL_ANYCHANGED;
 	}
+	
 	if(flag & PDL_PARENTDIMSCHANGED) {  /* redodims called here... */
 		trans->vtable->redodims(trans);
 	}
@@ -1176,8 +1185,10 @@ void pdl__ensure_trans(pdl_trans *trans,int what)
 		if(trans->pdls[j]->trans == trans)
 			PDL_ENSURE_ALLOCATED(trans->pdls[j]);
 	}
+
 	if(flag & PDL_PARENTDATACHANGED | flag & PDL_PARENTDIMSCHANGED) {
 		int i;
+
 		if(par_pvaf && (trans->flags & PDL_ITRANS_ISAFFINE)) {
 		  /* Attention: this assumes affine = p2child */
 		  /* need to signal that redodims has already been called */
@@ -1383,6 +1394,7 @@ void pdl_make_physvaffine(pdl *it)
 	PDLDEBUG_f(printf("Make_physvaffine %d\n",it));
 
 	pdl_make_physdims(it);
+
 	if(!it->trans) {
 		pdl_make_physical(it);
 		goto mkphys_vaff_end;
@@ -1392,6 +1404,7 @@ void pdl_make_physvaffine(pdl *it)
 		pdl_make_physical(it);
 		goto mkphys_vaff_end;
 	}
+
 	PDL_ENSURE_VAFFTRANS(it);
 	incsleft = malloc(sizeof(*incsleft)*it->ndims);
         PDLDEBUG_f(printf("vaff_malloc: got %d\n",incsleft));
@@ -1410,13 +1423,14 @@ void pdl_make_physvaffine(pdl *it)
 		/* For all dimensions of the childest piddle */
 		for(i=0; i<it->ndims; i++) {
 			int offset_left = it->vafftrans->offs;
+
 			/* inc = the increment at the current stage */
 			inc = it->vafftrans->incs[i];
 			incsign = (inc >= 0 ? 1:-1);
 			inc= abs(inc);
 			newinc = 0;
 			/* For all dimensions of the current piddle */
-			for(j=current->ndims-1; j>=0; j--) {
+			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
 				cur_offset = offset_left / current->dimincs[j];
 				offset_left -= cur_offset * current->dimincs[j];
 				if(incsign < 0) {
@@ -1457,6 +1471,7 @@ void pdl_make_physvaffine(pdl *it)
 			}
 			incsleft[i] = incsign*newinc;
 		}
+
 		if(flag) break;
 		for(i=0; i<it->ndims; i++) {
 			it->vafftrans->incs[i] = incsleft[i];
@@ -1465,7 +1480,7 @@ void pdl_make_physvaffine(pdl *it)
 			int offset_left = it->vafftrans->offs;
 			inc = it->vafftrans->offs;
 			newinc = 0;
-			for(j=current->ndims-1; j>=0; j--) {
+			for(j=current->ndims-1; j>=0 && current->dimincs[j] != 0; j--) {
 				cur_offset = offset_left / current->dimincs[j];
 				offset_left -= cur_offset * current->dimincs[j];
 				newinc += at->incs[j]*cur_offset;

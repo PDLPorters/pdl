@@ -2338,7 +2338,6 @@ sub PDL::dice {
 
 	# Go thru each index array and dice the input PDL:
 	foreach $index(@dim_indexes){
-
 		$outputPDL = $outputPDL->dice_axis($indexNo,$index)
 			unless !ref $index && $index eq 'X';
 
@@ -2409,6 +2408,7 @@ sub PDL::dice_axis {
   for ($a..$n-1) {
      $ix = $ix->dummy(0);
   }
+  	
   return $self->mv($axis,0)->index($ix)->mv($n-1,$axis);
 }  
 *dice_axis = \&PDL::dice_axis;

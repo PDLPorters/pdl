@@ -74,6 +74,7 @@ sub biop {
     tmp = a;
     a = b;
     b = tmp;
+ 
   }
 EOH
     }
@@ -332,12 +333,6 @@ sub PDL::log10 {
 # but it's very low priority.
 # It does add doc information though, and lets people know it's been
 # looked at for bad value support
-#
-# argh - using NaN/Inf for float/double bad values screws this up
-# (Something's gone wrong: nan cannot be converted by whichdatatype_double at ...
-# in a call to PDL::Primitive::assgn)
-# - unfortunately uncommenting BadCode/HandleBad doesn't help.
-# ---- NOTE: Not sure this is still a problem DJB 11/17/00
 #  
 # Can't this be handled in Core.pm when '.=' is overloaded ?
 #

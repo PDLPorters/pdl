@@ -512,8 +512,10 @@ sub topdl {PDL->topdl(@_)}
 		"="     =>  sub {$_[0]},          # Don't deep copy, just copy reference
 
 		".="    => sub {my @args = reverse &PDL::Core::rswap;
-				return $args[1]->info("%C (%A): %T %D %S %M")
-				  if !ref $args[0] && $args[0] eq '';
+# This strange undocumented behavior commented out by CED 18-Mar-2003;
+# remove it if you see it in current code after 18-Mar-2004!
+#				return $args[1]->info("%C (%A): %T %D %S %M")
+#				  if !ref $args[0] && $args[0] eq '';
 				PDL::Ops::assgn(@args);
 				return $args[1];},
 		 
