@@ -256,6 +256,27 @@ pdldoc.pod : pdldoc subdirs
 
 ";
 
+$text .= << 'EOT' if $^O =~ /MSWin/;
+
+DISTWIN32NAME=$(DISTVNAME)-win32
+
+ppm: doctest ppd
+	$(MV) blib/lib/PDL/HtmlDocs/PDL blib/html/lib/PDL
+	$(COMPRESS) -dc win32/pbmwin32.tar.gz | $(TAR) xf -
+	$(MKPATH) $(DISTWIN32NAME)
+	$(CP) win32/Readme $(DISTWIN32NAME)
+	$(CP) win32/install.ppm .
+	$(CP) PDL.ppd $(DISTWIN32NAME)
+	$(TAR) cf $(DISTWIN32NAME)/PDL.tar blib install.ppm
+	cd $(DISTWIN32NAME)
+	$(COMPRESS) PDL.tar
+	$(ZIP) $(DISTWIN32NAME).zip *
+	$(MV) $(DISTWIN32NAME).zip ..
+	cd ..
+	$(RM_RF) $(DISTWIN32NAME)
+
+EOT
+
 return $text
 
 }
