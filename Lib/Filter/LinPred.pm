@@ -220,13 +220,18 @@ sub _mk_mat {
 	$this->{Weights} = $tdw;
 }
 
+sub chkdefault ($$) {
+  my ($var,$def);
+  return $def if !ref $var && $var == 0;
+  return defined $var ? $var : $def;
+}
+
 sub new ($$) {
 	my($type,$pars) = @_;
 	my $this = bless {},$type;
-# None of the following can be zero so we can use or.
-	$this->{NLags} = ((delete $pars->{NLags}) or 2);
-	$this->{LagInterval} = ((delete $pars->{LagInterval}) or 1);
-	$this->{LagsBehind} = ((delete $pars->{LagsBehind}) or 1);
+	$this->{NLags} = chkdefault(delete $pars->{NLags}, 2);
+	$this->{LagInterval} = chkdefault(delete $pars->{LagInterval}, 1);
+	$this->{LagsBehind} = chkdefault(delete $pars->{LagsBehind}, 1);
 	$this->{Smooth} = (delete $pars->{Smooth});
 
 	$this->{NDeleted} = $this->{LagInterval} * ($this->{NLags} +

@@ -33,9 +33,9 @@ sub new($$) {
 	my($type,$pars) = @_;
 
 	my $this = bless {},$type;
-	$this->{Weights} = ((delete $pars->{Weights}) or
-		barf("Must specify weights\n"));
-	$this->{Point} = (delete $pars->{Point} or 0);
+        barf("Must specify weights\n") unless defined $pars->{Weights};
+	$this->{Weights} = delete $pars->{Weights};
+	$this->{Point} = defined $pars->{Point} ? $pars->{Point} : 0;
 	$this;
 }
 
