@@ -741,8 +741,12 @@ sub extrdoc {
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS/$func(\\(.*\\))*\\s*","OPERATORS/$func(\\(.*\\))*\\s*","CONSTRUCTORS/$func(\\(.*\\))*\\s*","METHODS/$func(\\(.*\\))*\\s*");
-  $parser->parse_from_filehandle($in,$out);
+#  $parser->select("\\(METHODS\\|OPERATORS\\|CONSTRUCTORS\\|FUNCTIONS\\|METHODS\\)/$func(\\(.*\\)*\\s*");
+  foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
+      seek $in,0,0;
+      $parser->select("$foo/$func(\\(.*\\))*\\s*");
+      $parser->parse_from_filehandle($in,$out);
+  }
 }
 
 1;

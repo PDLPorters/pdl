@@ -1182,7 +1182,11 @@ of single polylines to draw.
 Happily, there's extra meaning packed into the C<pen> piddle: it
 multiplies the COLO(U)R that you set, so if you feed in boolean 
 values you get what you expect -- but you can also feed in integer
-or floating-point values to get multicolored lines. 
+or floating-point values to get multicolored lines.  
+
+Furthermore, the sign bit of C<pen> can be used to draw hairline segments:
+if C<pen> is negative, then the segment is drawn as though it were 
+positive but with LineWidth and HardLW set to 1 (the minimum).
 
 Equally happily, even if you are using the array ref mechanism 
 to break your polylines you can feed in an array ref of C<pen> values to 
@@ -1191,6 +1195,10 @@ take advantage of the color functionality or further dice your polylines.
 Note that, unlike L<line|line>, C<lines> has no no specify-$y-only
 calling path.  That's because C<lines> is intended more for line art than for
 plotting, so you always have to specify both $x and $y. 
+
+Infinite or bad values are ignored -- that is to say, if your vector
+contains a non-finite point, that point breaks the vector just as if you 
+set pen=0 for both that point and the point before it.
 
 =for usage
 
@@ -2297,7 +2305,6 @@ sub _setup_window {
       $width = $opt->{Size}->[0];
       $height = $opt->{Size}->[1] || $width;
       $unit = _parse_unit($opt->{Size}->[2]) if defined($opt->{Size}->[2]);
-      print "Size = [",join(',',@{$opt->{Size}}),"]\n";
     } elsif(!(ref $opt->{Size})) {
       $width = $height = $opt->{Size};
     } else {
@@ -2507,6 +2514,10 @@ sub _check_move_or_erase {
   my ($panel, $erase)=@_;
 
   &catch_signals;
+
+  my $sid; pgqid($sid);
+  # Only perform a pgslct if necessary.
+  pgslct($self->{ID}) unless $sid == $self->{ID};
 
   if (defined($panel)) {
     $self->panel($panel);
@@ -4585,13 +4596,13 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     # vectors.  Set up pgplot (copy-and-pasted from line; this is probably
     # the Wrong thing to do -- we probably ought to call line directly).
     #
-
     &catch_signals;
     
     $opt = {} unless defined($opt);
     my($o,$u_opt) = $self->_parse_options($line_options,$opt);
     
     $self->_check_move_or_erase($o->{Panel},$o->{Erase});
+
     my $held = $self->held();
     unless ($held) {
       my($ymin,$ymax,$xmin,$xmax) = (
@@ -4602,22 +4613,26 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 				     );
       my $thunk = sub {
 	my($range) = shift; 
+	my($vals,$missing,$min,$max,$pp) = @_;
 	if(ref $range eq 'ARRAY') { 
-	  $min .= $range->[0]; 
-	  $max .= $range->[1];
-	  return;
+	    $min .= $range->[0]; 
+	    $max .= $range->[1];
+	    return;
 	}
-	my($vals,$missing,$min,$max) = @_;
 	my($mask) = (isfinite $vals);
 	$mask &= ($vals != missing) if(defined $missing);
+	$mask->(1:-1) &= (($pp->(0:-2) != 0) | ($pp->(1:-1) != 0));
 	my($a,$b) = minmax(where($vals,$mask));
 	$min .= $a;
 	$max .= $b;
       };
+
       for my $i(0..$#$x) {
+	my($pp) = $#$p ? $p->[$i] : $p->[0]; # allow scalar pen in array case
+        $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
 	my $miss = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
-	&$thunk($o->{XRange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)));
-	&$thunk($o->{YRange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)));
+	&$thunk($u_opt->{Xrange},$x->[$i],$miss,$xmin->(($i)),$xmax->(($i)),$pp);
+	&$thunk($u_opt->{Yrange},$y->[$i],$miss,$ymin->(($i)),$ymax->(($i)),$pp);
       }
 
       $xmin = $xmin->min;
@@ -4636,6 +4651,10 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
 
+    my($lw);    # Save the normal line width
+    pgqlw($lw);
+    my($hh) = 0; # Indicates local window hold
+
     # Loop over everything in the list
     for my $i(0..$#$x) {
       my($xx,$yy) = ($x->[$i],$y->[$i]);
@@ -4643,45 +4662,58 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
       my($miss) = defined $o->{Missing} ? $o->{Missing}->[$i] : undef;
       my($n) = $xx->nelem;
 
-
       $pp = pdl($pp) unless UNIVERSAL::isa($pp,'PDL');
+
       $pp = zeroes($xx)+$pp 
 	if($pp->nelem == 1);
       
+      $pp = $pp->copy; # Make a duplicate to scribble on
+      $pp->(0:-2) *= ($xx->(0:-2) + $xx->(1:-1))->isfinite;
+      $pp->(0:-2) *= ($yy->(0:-2) + $yy->(1:-1))->isfinite;
+
       my($pn,$pval) = rle($pp);
       my($pos,$run,$rl) = (0,0,0);
 
+
       # Within each list element loop over runs of pen value
       while($rl = $pn->at($run)) {  # assignment
-	my($pv);
-	if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
-	  my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
-	  my $x0 = float $xx->($pos:$top);
-	  my $y0 = float $yy->($pos:$top);
+	  my($pv);
+	  if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
+	      my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
+	      my $x0 = float $xx->($pos:$top);
+	      my $y0 = float $yy->($pos:$top);
+	      
+	      $self->_set_colour(abs($pv)*(defined $o->{Colour} ? $o->{Colour}:1));
+	      
+	      ($x0,$y0) = $self->checklog($x0,$y0) if $self->autolog;
 
-	  $self->_set_colour($pv * (defined $o->{Colour} ? $o->{Colour} : 1));
-
-	  ($x0,$y0) = $self->checklog($x0,$y0) if $self->autolog;
-	  
-	  if(defined($miss)) {
-	    my $mpt = defined $miss ? $miss->($pos:$top) : undef;
-	    pggapline($x0->nelem,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
-	  } else {
-	    pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref);
+	      if($pv > 0) {
+		  pgslw($lw);
+	      } else {
+		  pgslw(1);
+	      }
+		  
+	      if(defined($miss)) {
+		  my $mpt = defined $miss ? $miss->($pos:$top) : undef;
+		  pggapline($x0->nelem,$miss->($pos:$top),$x0->get_dataref, $y0->get_dataref);
+	      } else {
+		  pgline($x0->nelem,$x0->get_dataref,$y0->get_dataref,);
+	      }
+	      
+	      $self->hold() unless $hh++;
 	  }
 	  
-	  $self->hold();
-	}
-	
-	$pos += $rl;
-	$run++;
+	  $pos += $rl;
+	  $run++;
       } # end of within-piddle polyline loop
-    } # end of array ref loop
+  } # end of array ref loop
     
+    pgslw($lw); # undo incredible shrinking line width$
+
+    $self->release() unless($held);    
     $self->_restore_status();
     $self->_add_to_state(\&lines,$in,$opt);
 
-    $self->release() unless($held);
     &release_signals;
     1;
   }

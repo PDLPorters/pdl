@@ -1219,7 +1219,7 @@ pp_def('append',
 	Doc =>
 '=for ref
 
-append two piddles by concantening along their respective first dimensions
+append two or more piddles by concatenating along their first dimensions
 
 =for example
 
@@ -1234,6 +1234,55 @@ ie C<n + m>.
 
 '
    );
+
+pp_addpm(<<'EOD')
+
+=head2 glue
+
+=for usage
+
+  $c = $a->glue(<dim>,$b,...)
+
+=for ref
+	
+Glue two or more PDLs together along an arbitrary dimension (N-D L<append|append>).
+
+Sticks $a, $b, and all following arguments together using a combination
+of xchg() and append().  All other dimensions must be compatible in the 
+threading sense.  
+
+C<glue> is implemented in pdl, and should probably be updated (one day) to a 
+pure PP function.
+
+=cut
+
+sub PDL::glue{
+    my($a) = shift;
+    my($dim) = shift;
+    if($dim - $a->dim(0) > 100) {
+	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
+    }
+    while($dim > $a->ndims) {
+	$a = $a->dummy(-1,1);
+    }
+    $a = $a->xchg(0,$dim);
+
+    while(scalar(@_)){
+	my $b = shift;
+	while($dim > $b->ndims) {
+		$b = $b->dummy(-1,1);
+        }
+	$b = $b->xchg(0,$dim);
+	$a = $a->append($b);
+    }
+    $a->xchg(0,$dim);
+}
+	
+	
+	
+
+EOD
+;
 
 pp_def( 'axisvalues',
 	Pars => '[o,nc]a(n)',

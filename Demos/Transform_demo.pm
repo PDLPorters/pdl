@@ -79,11 +79,11 @@ act q|
     $win->label_axes("","","M51");
 
     # Shrink m51 by a factor of 3; origin is at lower left
-    $win->imag( $ts->map($m51), $just );
+    $win->imag( $ts->unmap($m51), $just );
     $win->label_axes("","","M51 shrunk by 3");
 
     # Grow m51 by a factor of 3; origin still at lower left.
-    $win->imag( $ts->unmap($m51), $just );
+    $win->imag( $ts->map($m51), $just );
     $win->label_axes("","","M51 grown by 3");
 
 |;
@@ -104,16 +104,16 @@ act q|
     $win->label_axes("","","M51");
 
     # Shrink m51 by a factor of 3; origin is at scientific origin.
-    $win->imag( $t->map($m51_float), $just );
+    $win->imag( $t->unmap($m51_float), $just );
     $win->label_axes("","","M51 shrunk by 3");
 
     # Grow m51 by a factor of 3; origin is still at sci. origin.
-    $win->imag( $t->unmap($m51_float), $just );
+    $win->imag( $t->map($m51_float), $just );
     $win->label_axes("","","M51 grown by 3 (slow)");
 
     # Grow m51 by a factor of 3; use sampling instead of bilinear interp.
     #  (much faster!)
-    $win->imag( $t->unmap($m51_float,{method=>"sample"}) );
+    $win->imag( $t->map($m51_float,{method=>"sample"}) );
     $win->label_axes("","","M51 grown by 3 (fast)");
 
 |;
@@ -149,12 +149,12 @@ act q|
     $win->label_axes("","","M51");
 
     # Stretched
-    $win->imag( $ts->compose($tu)->unmap($m51_float) );
+    $win->imag( $ts->compose($tu)->map($m51_float) );
     $win->label_axes("\\\\gh","r","M51");
 
     # Conformal
     $win->panel(3);
-    $win->imag( $ts_c->compose($tu_c)->unmap($m51_float) );
+    $win->imag( $ts_c->compose($tu_c)->map($m51_float) );
     $win->label_axes("\\\\gh","r","M51 (conformal)");
 
     $win->close();
