@@ -20,6 +20,44 @@ static void *strndup(void *ptr, int size) {
 	}
 }
 
+static void print_iarr(int *iarr, int n) {
+  int i;
+  printf("(");
+  for (i=0;i<n;i++)
+    printf("%s%d",(i?" ":""),iarr[i]);
+  printf(")");
+}
+
+#define psp printf("%s",spaces)
+void dump_thread(pdl_thread *thread) {
+  int i;
+  char spaces[] = "    ";
+  printf("DUMPTHREAD %d \n",thread);
+  if (0&& thread->einfo) {
+    psp; printf("Funcname: %s\n",thread->einfo->funcname);
+    psp; printf("Paramaters: ");
+    for (i=0;i<thread->einfo->nparamnames;i++)
+      printf("%s ",thread->einfo->paramnames[i]);
+    printf("\n");
+  }
+  psp; printf("Flags: %d, Ndims: %d, Nimplicit: %d, Npdls: %d, Nextra: %d\n",
+	 thread->gflags,thread->ndims,thread->nimpl,thread->npdls,thread->nextra);
+
+  psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
+  psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
+  psp; printf("Offs: "); print_iarr(thread->offs,thread->ndims); printf("\n");
+  psp; printf("Incs: "); print_iarr(thread->incs,thread->ndims); printf("\n");
+  psp; printf("Realdims: "); print_iarr(thread->realdims,thread->npdls); printf("\n");
+  psp; printf("Pdls: (");
+  for (i=0;i<thread->npdls;i++)
+    printf("%s%d",(i?" ":""),thread->pdls[i]);
+  printf(")\n");
+  psp; printf("Per pdl flags: (");
+  for (i=0;i<thread->npdls;i++)
+    printf("%s%d",(i?" ":""),thread->flags[i]);
+  printf(")\n");
+}
+
 int *pdl_get_threadoffsp(pdl_thread *thread)
 {
   if(thread->gflags & PDL_THREAD_MAGICKED) {
@@ -43,6 +81,9 @@ int *pdl_get_threadoffsp_int(pdl_thread *thread, int *nthr)
 }
 
 void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
+#ifdef PDL_THREAD_DEBUG
+	to->magicno = from->magicno;
+#endif
 	to->gflags = from->gflags;
 	to->einfo = from->einfo;
 	to->ndims = from->ndims;
@@ -80,6 +121,10 @@ void pdl_clearthreadstruct(pdl_thread *it) {
 	it->einfo = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
+	it->gflags=0; /* unsets PDL_THREAD_INITIALIZED among others */
+#ifdef PDL_THREAD_DEBUG
+	PDL_THR_CLRMAGIC(it);
+#endif
 }
 
 /* The assumptions this function makes:
@@ -107,6 +152,30 @@ void pdl_initthreadstruct(int nobl,
 	int nthr = 0; int nthrd;
 
 	PDLDEBUG_f(printf("Initthreadloop(%d)\n", thread);)
+#ifdef PDL_THREAD_DEBUG
+	  /* the following is a fix for a problem in the current core logic
+           * see comments in pdl_make_physical in pdlapi.c
+           * the if clause detects if this thread has previously been initialized
+           * if yes free the stuff that was allocated in the last run
+           * just returning is not! good enough (I tried it)
+           * CS
+           */
+	if (thread->magicno == PDL_THR_MAGICNO && 
+	    thread->gflags & PDL_THREAD_INITIALIZED) {
+	  PDLDEBUG_f(printf("REINITIALIZING already initialized thread\n");)	
+	  PDLDEBUG_f(dump_thread(thread);)	
+	  /* return; */ /* try again, should (!?) work */
+	  if (thread->inds) free(thread->inds);
+	  if (thread->dims) free(thread->dims);
+	  if (thread->offs) free(thread->offs);
+	  if (thread->incs) free(thread->incs);
+	  if (thread->flags) free(thread->flags);
+	  if (thread->pdls) free(thread->pdls);
+	  PDLDEBUG_f(warn("trying to reinitialize already initialized "
+	     "thread (mem-leak!); freeing...");)
+	}
+	PDL_THR_SETMAGIC(thread);
+#endif
 	thread->gflags = 0;
 
 	thread->npdls = npdls;
@@ -267,6 +336,8 @@ void pdl_initthreadstruct(int nobl,
 		}
 		thread->dims[thread->mag_nth] = n1;
 	}
+	thread->gflags |= PDL_THREAD_INITIALIZED;
+	PDLDEBUG_f(dump_thread(thread);)	
 }
 
 void pdl_thread_create_parameter(pdl_thread *thread,int j,int *dims,

@@ -930,7 +930,7 @@ pdl *pdl_make_now(pdl *it) {
 }
 
 void pdl_make_physical(pdl *it) {
-	int i;
+	int i, vaffinepar=0;
 	DECL_RECURSE_GUARD;
 
 	PDLDEBUG_f(printf("Make_physical %d\n",it));
@@ -967,14 +967,38 @@ void pdl_make_physical(pdl *it) {
 #ifndef DONT_OPTIMIZE
 #ifndef DONT_VAFFINE
 		if(it->trans->vtable->per_pdl_flags[i] &
-		    PDL_TPDL_VAFFINE_OK)
+		    PDL_TPDL_VAFFINE_OK) {
 		    	pdl_make_physvaffine(it->trans->pdls[i]);
+                        /* check if any of the parents is a vaffine */
+                        vaffinepar = vaffinepar || (it->trans->pdls[i]->data != PDL_REPRP(it->trans->pdls[i]));
+                }  
 		else
 #endif
 #endif
 			pdl_make_physical(it->trans->pdls[i]);
 	}
-	if(!(it->state & PDL_ALLOCATED) ||
+        /* the next one is really strange:
+         *
+         * why do we need to call redodims if   !(it->state & PDL_ALLOCATED)   ???
+         * this results in a) redodims called twice if make_physdims had already been
+         * called for this piddle and results in associated memory leaks!
+         * On the other hand, if I comment out  !(it->state & PDL_ALLOCATED)
+         * then we get errors for cases like 
+         *                  $in = $lut->xchg(0,1)->index($im->dummy(0));
+         *                  $in .= pdl -5;
+         * Currently ugly fix: detect in initthreadstruct that it has been called before
+         * and free all pdl_thread related memory before reallocating
+         * NOTE: this does not catch leaks when additional memory was allocated from with
+         *       redodims!!!!!
+         *
+         * The real question is: why do we need another call to
+         * redodims if !(it->state & PDL_ALLOCATED)??????
+         * changed it so that redodims only called if
+         *            (!(it->state & PDL_ALLOCATED) && vaffinepar)
+         * i.e. at least one of the parent piddles is a real vaffine
+         * CS
+         */
+	if((!(it->state & PDL_ALLOCATED) && vaffinepar) ||
 	   it->state & PDL_PARENTDIMSCHANGED ||
 	   it->state & PDL_PARENTREPRCHANGED) {
 		it->trans->vtable->redodims(it->trans);

@@ -1,3 +1,12 @@
+CS
+    - make_physvaffine is now a member of the core struct
+    - pdl_get is now vaffine aware (must be preceded by call to make_physvaffine)
+    - worke around bug in the core logic (pdl_make_physical et al.) that
+      cause index and others to leak memory; not the perfect solution yet
+      but core logic is just way too confusing to make sense of it!!!!!!
+      for details see comments in pdl_make_physical (pdlapi.c.PL) and
+      pdl_initthreadstruct (pdlthread.c)
+    - slatec: document the 'det' function
 DJB (26/Mar/01)
     - PDL::Func now sets bc => 'simple' as the default for Hermite
       interpolation.

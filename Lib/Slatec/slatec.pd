@@ -154,6 +154,30 @@ derivatives, at a specified point.
 
  ($yfit, $yp) = polyvalue($l, $nder, $x, $a);
 
+=head2 det
+
+=for ref
+
+compute the determinant of an invertible matrix
+
+=for example
+
+  $mat = zeroes(5,5); $mat->diagonal(0,1) .= 1; # unity matrix
+  $det = det $mat;
+
+Usage:
+
+=for usage
+
+  $determinant = det $matrix;
+
+=for sig
+
+  Signature: det(mat(n,m); [o] det())
+
+C<det> computes the determinant of an invertible matrix and barfs if
+the matrix argument provided is non-invertible. The matrix threads as usual.
+
 =cut
 
 END

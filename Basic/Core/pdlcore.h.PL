@@ -6,7 +6,7 @@ use File::Basename qw(&basename &dirname);
 
 # version 2 is for versions after PDL 2.1.1
 use vars qw( $pdl_core_version );
-$pdl_core_version = 2;  
+$pdl_core_version = 3;  
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -264,6 +264,7 @@ void (*trans_mallocfreeproc)(struct pdl_trans *tr);
 
 void (*make_physical)(pdl *it);
 void (*make_physdims)(pdl *it);
+void (*make_physvaffine)(pdl *it);
 void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*allocdata) (pdl *it);

@@ -817,6 +817,7 @@ BOOT:
    PDL.trans_mallocfreeproc = pdl_trans_mallocfreeproc;
    PDL.make_physical = pdl_make_physical;
    PDL.make_physdims = pdl_make_physdims;
+   PDL.make_physvaffine = pdl_make_physvaffine;
    PDL.pdl_barf      = pdl_barf;
    PDL.allocdata     = pdl_allocdata;
    PDL.safe_indterm  = pdl_safe_indterm;
