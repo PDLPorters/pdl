@@ -96,6 +96,11 @@ WriteMakefile(
  'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
  'clean' => {'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod tbyte.tif tmp0 tmp0.hdr tushort.tif MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1*'},
  'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
+  ($] ge '5.005') ? (
+            'AUTHOR' => 'PerlDL Developers (perldl@jach.hawaii.edu)',
+            'ABSTRACT' => 'Perl Data Language',
+        ) : (),
+
 );
 
 print STDERR "Writing Basic/Core/Config.pm\n";
