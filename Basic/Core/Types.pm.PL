@@ -164,7 +164,7 @@ sub symbol { return $PDL::Types::names[ $_[0]->enum ]; }
     }
 
 print OUT <<'!NO!SUBS!';
-sub shortctype { $_ = $_[0]->ctype; s/PDL_//; return $_; }                      
+sub shortctype { my $txt = $_[0]->ctype; $txt =~ s/PDL_//; return $txt; }                      
 
 } # package: PDL::Type                                                          
 
