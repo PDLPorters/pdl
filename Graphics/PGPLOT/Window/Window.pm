@@ -3140,7 +3140,7 @@ sub initenv{
   $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
   $self->label_axes($u_opt);
 
-  #  pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
+   pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
   $self->_set_colour($col);
   pgsch($chsz);
 
@@ -3971,21 +3971,26 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
     unless ( $self->held() ) {
 
-      # Make sure the missing value is used as the min or max value
+      # Make sure the missing value is used as the min or max value.
+      # Also, do autoscaling but avoid infinities.
       my ($ymin, $ymax, $xmin, $xmax);
-      if (defined $o->{Missing} ) {
-	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? 
-	  @{$o->{Yrange}} : minmax($y->where($y != $o->{Missing}));
-	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ?
-	   @{$o->{Xrange}} : minmax($x->where($x != $o->{Missing}));
-      } else {
-	($ymin, $ymax)=ref $o->{Yrange} eq 'ARRAY' ? @{$o->{Yrange}} :
-	  minmax($y);
-	($xmin, $xmax)=ref $o->{Xrange} eq 'ARRAY' ? @{$o->{Xrange}} :
-	  minmax($x);
-      }
+      
+      # Thunk for finding max and min X and Y ranges
+      my($thunk) = sub {
+	my($range) = shift;  return @{$range} if(ref $range eq 'ARRAY');
+	my($vals, $missing) = @_;
+	my($mask) = (isfinite $vals);
+	$mask &= ($vals != $missing) if(defined $missing);
+	minmax(where($vals,$mask));
+      };
+
+      ($xmin,$xmax) = &$thunk($o->{Xrange},$x,$o->{Missing});
+      ($ymin,$ymax) = &$thunk($o->{Yrange},$y,$o->{Missing});
+
       if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
       if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
+      print("line: xmin=$xmin; xmax=$max; ymin=$ymin; ymax=$ymax\n")
+	if($PDL::verbose);
       $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     }
     $self->_save_status();
