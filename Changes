@@ -1,3 +1,9 @@
+CED 17-Jun-04
+   - pdlcore.c.PL: av_ndcheck and pdl_setav_$type now support PDLs thrown
+	into the mix. 
+
+	I noticed that PDL::undefval doesn't seem to function (see
+	"help pdl[2]") but  left it that way for philosophical reasons.
 CED 16-Jun-04
    - perldl.PL: comment lines are filtered out before passing through 
 	Text::Balanced, and quotelike operators (e.g. "s/foo/bar/" or

@@ -170,7 +170,7 @@ sub barf;
 
 =for ref
 
-piddle constructor - creates new piddle from perl scalars/arrays
+piddle constructor - creates new piddle from perl scalars/arrays and piddles
 
 =for usage
 
@@ -190,6 +190,31 @@ piddle constructor - creates new piddle from perl scalars/arrays
 Note the last two are equivalent - a list is automatically
 converted to a list reference for syntactic convenience. i.e. you
 can omit the outer C<[]>
+
+You can mix and match arrays, array refs, and PDLs in your argument
+list, and C<pdl> will sort them out.  You get back a PDL whose last
+(slowest running) dim runs across the top level of the list you hand
+in, and whose first (fastest running) dim runs across the deepest
+level that you supply.
+
+Throwing a PDL into the mix has the same effect as throwing in a list ref:
+
+  pdl(pdl(1,2),[3,4])
+
+is the same as 
+  
+  pdl([1,2],[3,4]).
+
+All of the dimensions in the list are "padded-out" with undefval to
+meet the widest dim in the list, so (e.g.)
+
+  $a = pdl([[1,2,3],[2]])
+
+gives you the same answer as 
+  
+  $a = pdl([[1,2,3],[2,undef,undef]]);
+
+
 
 C<pdl()> is a functional synonym for the 'new' constructor,
 e.g.:
