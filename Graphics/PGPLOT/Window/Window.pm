@@ -1718,7 +1718,11 @@ sub initenv{
     pgwnad($xmin, $xmax, $ymin, $ymax);
   } else {
     pgswin($xmin, $xmax, $ymin, $ymax);
-    pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+    if (ref($o->{Axis}) eq 'ARRAY') {
+      pgbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
+    } else {
+      pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
+    }
   }
   $self->label_axes($u_opt);
 
