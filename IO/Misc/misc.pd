@@ -733,7 +733,7 @@ sub wheader {     # Local utility routine of wfits()
        }
       $nbytes += 80; delete $hdr{$k};
     }
-   delete $hdr{COMMENT}{$k};
+   delete $hdr{COMMENT}{$k} if(ref $hdr{COMMENT} eq 'HASH');
 1;}
 
 # ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
