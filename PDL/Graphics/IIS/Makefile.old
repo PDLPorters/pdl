@@ -1,0 +1,542 @@
+# This Makefile is for the PDL::Graphics::IIS extension to perl.
+#
+# It was generated automatically by MakeMaker version
+# 5.34 (Revision: 1.202) from the contents of
+# Makefile.PL. Don't edit this file, edit Makefile.PL instead.
+#
+#	ANY CHANGES MADE HERE WILL BE LOST!
+#
+#   MakeMaker Parameters:
+
+#	INC => q[-I../../../PDL/Core]
+#	LIBS => [q[]]
+#	NAME => q[PDL::Graphics::IIS]
+#	OBJECT => q[IIS$(OBJ_EXT) pdliisdisp$(OBJ_EXT)]
+#	TYPEMAPS => [q[../../../PDL/Core/typemap.pdl]]
+#	VERSION_FROM => q[../../Core/Core.pm]
+#	clean => { FILES=>q[IIS.c IIS$(OBJ_EXT) pdliisdisp.c pdliisdisp$(OBJ_EXT)] }
+
+# --- MakeMaker post_initialize section:
+
+
+# --- MakeMaker const_config section:
+
+# These definitions are from config.sh (via /usr/local/lib/perl5/sun4-solaris/5.003/Config.pm)
+
+# They may have been overridden via Makefile.PL or on the command line
+AR = ar
+CC = cc
+CCCDLFLAGS = -Kpic
+CCDLFLAGS =  
+DLEXT = so
+DLSRC = dl_dlopen.xs
+LD = cc
+LDDLFLAGS = -G -L/usr/local/lib -L/opt/gnu/lib
+LDFLAGS =  -L/usr/local/lib -L/opt/gnu/lib
+LIBC = /lib/libc.so
+LIB_EXT = .a
+OBJ_EXT = .o
+RANLIB = :
+SO = so
+
+
+# --- MakeMaker constants section:
+AR_STATIC_ARGS = cr
+NAME = PDL::Graphics::IIS
+DISTNAME = PDL-Graphics-IIS
+NAME_SYM = PDL_Graphics_IIS
+VERSION = 1.00
+VERSION_SYM = 1_00
+XS_VERSION = 1.00
+INST_BIN = ../../.././blib/bin
+INST_EXE = ../../.././blib/script
+INST_LIB = ../../.././blib/lib
+INST_ARCHLIB = ../../.././blib/arch
+INST_SCRIPT = ../../.././blib/script
+PREFIX = /usr/local
+INSTALLDIRS = site
+INSTALLPRIVLIB = $(PREFIX)/lib/perl5
+INSTALLARCHLIB = $(PREFIX)/lib/perl5/sun4-solaris/5.003
+INSTALLSITELIB = $(PREFIX)/lib/perl5/site_perl
+INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/sun4-solaris
+INSTALLBIN = $(PREFIX)/bin
+INSTALLSCRIPT = $(PREFIX)/bin
+PERL_LIB = /usr/local/lib/perl5
+PERL_ARCHLIB = /usr/local/lib/perl5/sun4-solaris/5.003
+SITELIBEXP = /usr/local/lib/perl5/site_perl
+SITEARCHEXP = /usr/local/lib/perl5/site_perl/sun4-solaris
+LIBPERL_A = libperl.a
+FIRST_MAKEFILE = Makefile
+MAKE_APERL_FILE = Makefile.aperl
+PERLMAINCC = $(CC)
+PERL_INC = /usr/local/lib/perl5/sun4-solaris/5.003/CORE
+PERL = /usr/local/bin/perl
+FULLPERL = /usr/local/bin/perl
+
+VERSION_MACRO = VERSION
+DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
+XS_VERSION_MACRO = XS_VERSION
+XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
+
+MAKEMAKER = /usr/local/lib/perl5/ExtUtils/MakeMaker.pm
+MM_VERSION = 5.34
+
+# FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
+# BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
+# ROOTEXT = Directory part of FULLEXT with leading slash (eg /DBD)  !!! Deprecated from MM 5.32  !!!
+# PARENT_NAME = NAME without BASEEXT and no trailing :: (eg Foo::Bar)
+# DLBASE  = Basename part of dynamic library. May be just equal BASEEXT.
+FULLEXT = PDL/Graphics/IIS
+BASEEXT = IIS
+PARENT_NAME = PDL::Graphics::
+DLBASE = $(BASEEXT)
+VERSION_FROM = ../../Core/Core.pm
+INC = -I../../../PDL/Core
+OBJECT = IIS$(OBJ_EXT) pdliisdisp$(OBJ_EXT)
+LDFROM = $(OBJECT)
+LINKTYPE = dynamic
+
+# Handy lists of source code files:
+XS_FILES= IIS.xs
+C_FILES = IIS.c \
+	pdliisdisp.c
+O_FILES = IIS.o \
+	pdliisdisp.o
+H_FILES = libiis.h
+MAN1PODS = 
+MAN3PODS = 
+INST_MAN1DIR = ../../.././blib/man1
+INSTALLMAN1DIR = $(PREFIX)/man/man1
+MAN1EXT = 1
+INST_MAN3DIR = ../../.././blib/man3
+INSTALLMAN3DIR = $(PREFIX)/lib/perl5/man/man3
+MAN3EXT = 3
+
+# work around a famous dec-osf make(1) feature(?):
+makemakerdflt: all
+
+.SUFFIXES: .xs .c .C .cpp .cxx .cc $(OBJ_EXT)
+
+# Nick wanted to get rid of .PRECIOUS. I don't remember why. I seem to recall, that
+# some make implementations will delete the Makefile when we rebuild it. Because
+# we call false(1) when we rebuild it. So make(1) is not completely wrong when it
+# does so. Our milage may vary.
+# .PRECIOUS: Makefile    # seems to be not necessary anymore
+
+.PHONY: all config static dynamic test linkext manifest
+
+# Where is the Config information that we are using/depend on
+CONFIGDEP = $(PERL_ARCHLIB)/Config.pm $(PERL_INC)/config.h
+
+# Where to put things:
+INST_LIBDIR      = $(INST_LIB)/PDL/Graphics
+INST_ARCHLIBDIR  = $(INST_ARCHLIB)/PDL/Graphics
+
+INST_AUTODIR     = $(INST_LIB)/auto/$(FULLEXT)
+INST_ARCHAUTODIR = $(INST_ARCHLIB)/auto/$(FULLEXT)
+
+INST_STATIC  = $(INST_ARCHAUTODIR)/$(BASEEXT)$(LIB_EXT)
+INST_DYNAMIC = $(INST_ARCHAUTODIR)/$(DLBASE).$(DLEXT)
+INST_BOOT    = $(INST_ARCHAUTODIR)/$(BASEEXT).bs
+
+EXPORT_LIST = 
+
+PERL_ARCHIVE = 
+
+TO_INST_PM = IIS.pm
+
+PM_TO_BLIB = IIS.pm \
+	$(INST_LIBDIR)/IIS.pm
+
+
+# --- MakeMaker tool_autosplit section:
+
+# Usage: $(AUTOSPLITFILE) FileToSplit AutoDirToSplitInto
+AUTOSPLITFILE = $(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -e 'use AutoSplit;autosplit($$ARGV[0], $$ARGV[1], 0, 1, 1) ;'
+
+
+# --- MakeMaker tool_xsubpp section:
+
+XSUBPPDIR = /usr/local/lib/perl5/ExtUtils
+XSUBPP = $(XSUBPPDIR)/xsubpp
+XSPROTOARG = 
+XSUBPPDEPS = $(XSUBPPDIR)/typemap ../../../PDL/Core/typemap.pdl
+XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap ../../../PDL/Core/typemap.pdl
+
+
+# --- MakeMaker tools_other section:
+
+SHELL = /bin/sh
+CHMOD = chmod
+CP = cp
+LD = cc
+MV = mv
+NOOP = sh -c true
+RM_F = rm -f
+RM_RF = rm -rf
+TOUCH = touch
+UMASK_NULL = umask 0
+
+# The following is a portable way to say mkdir -p
+# To see which directories are created, change the if 0 to if 1
+MKPATH = $(PERL) -wle '$$"="/"; foreach $$p (@ARGV){' \
+-e 'next if -d $$p; my(@p); foreach(split(/\//,$$p)){' \
+-e 'push(@p,$$_); next if -d "@p/"; print "mkdir @p" if 0;' \
+-e 'mkdir("@p",0777)||die $$! } } exit 0;'
+
+# This helps us to minimize the effect of the .exists files A yet
+# better solution would be to have a stable file in the perl
+# distribution with a timestamp of zero. But this solution doesn't
+# need any changes to the core distribution and works with older perls
+EQUALIZE_TIMESTAMP = $(PERL) -we 'open F, ">$$ARGV[1]"; close F;' \
+-e 'utime ((stat("$$ARGV[0]"))[8,9], $$ARGV[1])'
+
+
+# --- MakeMaker dist section skipped.
+
+# --- MakeMaker macro section:
+
+
+# --- MakeMaker depend section:
+
+
+# --- MakeMaker cflags section:
+
+CCFLAGS = -DDEBUGGING -DEMBED
+OPTIMIZE = -O
+PERLTYPE = 
+LARGE = 
+SPLIT = 
+
+
+# --- MakeMaker const_loadlibs section:
+
+# PDL::Graphics::IIS might depend on some other libraries:
+# See ExtUtils::Liblist for details
+#
+LD_RUN_PATH = 
+
+
+# --- MakeMaker const_cccmd section:
+CCCMD = $(CC) -c $(INC) $(CCFLAGS) $(OPTIMIZE) \
+	$(PERLTYPE) $(LARGE) $(SPLIT) $(DEFINE_VERSION) \
+	$(XS_DEFINE_VERSION)
+
+# --- MakeMaker post_constants section:
+
+
+# --- MakeMaker pasthru section:
+
+PASTHRU = LIBPERL_A="$(LIBPERL_A)"\
+	LINKTYPE="$(LINKTYPE)"\
+	PREFIX="$(PREFIX)"\
+	OPTIMIZE="$(OPTIMIZE)"
+
+
+# --- MakeMaker c_o section:
+
+.c$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+
+.C$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.C
+
+.cpp$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cpp
+
+.cxx$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cxx
+
+.cc$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cc
+
+
+# --- MakeMaker xs_c section:
+
+.xs.c:
+	$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs >$*.tc && mv $*.tc $@
+
+
+# --- MakeMaker xs_o section:
+
+.xs$(OBJ_EXT):
+	$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs >xstmp.c && mv xstmp.c $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+
+
+# --- MakeMaker top_targets section:
+
+#all ::	config $(INST_PM) subdirs linkext manifypods
+
+all :: pure_all manifypods
+	@$(NOOP)
+
+pure_all :: config pm_to_blib subdirs linkext
+	@$(NOOP)
+
+subdirs :: $(MYEXTLIB)
+	@$(NOOP)
+
+config :: Makefile $(INST_LIBDIR)/.exists
+	@$(NOOP)
+
+config :: $(INST_ARCHAUTODIR)/.exists
+	@$(NOOP)
+
+config :: $(INST_AUTODIR)/.exists
+	@$(NOOP)
+
+$(INST_AUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_AUTODIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_AUTODIR)
+
+$(INST_LIBDIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_LIBDIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_LIBDIR)
+
+$(INST_ARCHAUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_ARCHAUTODIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_ARCHAUTODIR)
+
+$(O_FILES): $(H_FILES)
+
+help:
+	perldoc ExtUtils::MakeMaker
+
+Version_check:
+	@$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) \
+		-MExtUtils::MakeMaker=Version_check \
+		-e 'Version_check("$(MM_VERSION)")'
+
+
+# --- MakeMaker linkext section:
+
+linkext :: $(LINKTYPE)
+	@$(NOOP)
+
+
+# --- MakeMaker dlsyms section:
+
+
+# --- MakeMaker dynamic section:
+
+## $(INST_PM) has been moved to the all: target.
+## It remains here for awhile to allow for old usage: "make dynamic"
+#dynamic :: Makefile $(INST_DYNAMIC) $(INST_BOOT) $(INST_PM)
+dynamic :: Makefile $(INST_DYNAMIC) $(INST_BOOT)
+	@$(NOOP)
+
+
+# --- MakeMaker dynamic_bs section:
+
+BOOTSTRAP = IIS.bs
+
+# As Mkbootstrap might not write a file (if none is required)
+# we use touch to prevent make continually trying to remake it.
+# The DynaLoader only reads a non-empty file.
+$(BOOTSTRAP): Makefile  $(INST_ARCHAUTODIR)/.exists
+	@echo "Running Mkbootstrap for $(NAME) ($(BSLOADLIBS))"
+	@$(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" \
+		-e 'use ExtUtils::Mkbootstrap;' \
+		-e 'Mkbootstrap("$(BASEEXT)","$(BSLOADLIBS)");'
+	@$(TOUCH) $(BOOTSTRAP)
+	$(CHMOD) 644 $@
+
+$(INST_BOOT): $(BOOTSTRAP) $(INST_ARCHAUTODIR)/.exists
+	@rm -rf $(INST_BOOT)
+	-cp $(BOOTSTRAP) $(INST_BOOT)
+	$(CHMOD) 644 $@
+
+
+# --- MakeMaker dynamic_lib section:
+
+# This section creates the dynamically loadable $(INST_DYNAMIC)
+# from $(OBJECT) and possibly $(MYEXTLIB).
+ARMAYBE = :
+OTHERLDFLAGS = 
+INST_DYNAMIC_DEP = 
+
+$(INST_DYNAMIC): $(OBJECT) $(MYEXTLIB) $(BOOTSTRAP) $(INST_ARCHAUTODIR)/.exists $(EXPORT_LIST) $(PERL_ARCHIVE) $(INST_DYNAMIC_DEP)
+	LD_RUN_PATH="$(LD_RUN_PATH)" $(LD) -o $@ $(LDDLFLAGS) $(LDFROM) $(OTHERLDFLAGS) $(MYEXTLIB) $(PERL_ARCHIVE) $(LDLOADLIBS) $(EXPORT_LIST)
+	$(CHMOD) 755 $@
+
+
+# --- MakeMaker static section:
+
+## $(INST_PM) has been moved to the all: target.
+## It remains here for awhile to allow for old usage: "make static"
+#static :: Makefile $(INST_STATIC) $(INST_PM)
+static :: Makefile $(INST_STATIC)
+	@$(NOOP)
+
+
+# --- MakeMaker static_lib section:
+
+$(INST_STATIC): $(OBJECT) $(MYEXTLIB) $(INST_ARCHAUTODIR)/.exists
+	$(RM_RF) $@
+	$(AR) $(AR_STATIC_ARGS) $@ $(OBJECT) && $(RANLIB) $@
+	@echo "$(EXTRALIBS)" > $(INST_ARCHAUTODIR)/extralibs.ld
+	$(CHMOD) 755 $@
+
+
+# --- MakeMaker manifypods section:
+
+manifypods :
+	@$(NOOP)
+
+
+# --- MakeMaker processPL section:
+
+
+# --- MakeMaker installbin section:
+
+
+# --- MakeMaker subdirs section:
+
+# none
+
+# --- MakeMaker clean section:
+
+# Delete temporary files but do not touch installed files. We don't delete
+# the Makefile here so a later make realclean still has a makefile to use.
+
+clean ::
+	-rm -rf IIS.c IIS.c IIS$(OBJ_EXT) pdliisdisp.c pdliisdisp$(OBJ_EXT) ./blib $(MAKE_APERL_FILE) $(INST_ARCHAUTODIR)/extralibs.all perlmain.c mon.out core so_locations pm_to_blib *~ */*~ */*/*~ *$(OBJ_EXT) *$(LIB_EXT) perl.exe $(BOOTSTRAP) $(BASEEXT).bso $(BASEEXT).def $(BASEEXT).exp
+	-mv Makefile Makefile.old 2>/dev/null
+
+
+# --- MakeMaker realclean section:
+
+# Delete temporary files (via clean) and also delete installed files
+realclean purge ::  clean
+	rm -rf $(INST_AUTODIR) $(INST_ARCHAUTODIR)
+	rm -f $(INST_DYNAMIC) $(INST_BOOT)
+	rm -f $(INST_STATIC)
+	rm -f $(INST_LIBDIR)/IIS.pm
+	rm -rf Makefile Makefile.old
+
+
+# --- MakeMaker dist_basics section skipped.
+
+# --- MakeMaker dist_core section skipped.
+
+# --- MakeMaker dist_dir section skipped.
+
+# --- MakeMaker dist_test section skipped.
+
+# --- MakeMaker dist_ci section skipped.
+
+# --- MakeMaker install section skipped.
+
+# --- MakeMaker force section:
+# Phony target to force checking subdirectories.
+FORCE:
+
+
+# --- MakeMaker perldepend section:
+
+PERL_HDRS = \
+$(PERL_INC)/EXTERN.h       $(PERL_INC)/gv.h           $(PERL_INC)/pp.h       \
+$(PERL_INC)/INTERN.h       $(PERL_INC)/handy.h        $(PERL_INC)/proto.h    \
+$(PERL_INC)/XSUB.h         $(PERL_INC)/hv.h           $(PERL_INC)/regcomp.h  \
+$(PERL_INC)/av.h           $(PERL_INC)/keywords.h     $(PERL_INC)/regexp.h   \
+$(PERL_INC)/config.h       $(PERL_INC)/mg.h           $(PERL_INC)/scope.h    \
+$(PERL_INC)/cop.h          $(PERL_INC)/op.h           $(PERL_INC)/sv.h	     \
+$(PERL_INC)/cv.h           $(PERL_INC)/opcode.h       $(PERL_INC)/unixish.h  \
+$(PERL_INC)/dosish.h       $(PERL_INC)/patchlevel.h   $(PERL_INC)/util.h     \
+$(PERL_INC)/embed.h        $(PERL_INC)/perl.h				     \
+$(PERL_INC)/form.h         $(PERL_INC)/perly.h
+
+$(OBJECT) : $(PERL_HDRS)
+
+IIS.c : $(XSUBPPDEPS)
+
+
+# --- MakeMaker makefile section:
+
+$(OBJECT) : $(FIRST_MAKEFILE)
+
+# We take a very conservative approach here, but it\'s worth it.
+# We move Makefile to Makefile.old here to avoid gnu make looping.
+Makefile : Makefile.PL $(CONFIGDEP)
+	@echo "Makefile out-of-date with respect to $?"
+	@echo "Cleaning current config before rebuilding Makefile..."
+	-@mv Makefile Makefile.old
+	-$(MAKE) -f Makefile.old clean >/dev/null 2>&1 || true
+	$(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" Makefile.PL "INSTALLSITELIB=~/lib/perl5" "INSTALLSITEARCH=~/lib/perl5" "INSTALLSCRIPT=~/bin" "INSTALLMAN3DIR=~/man/man3"
+	@echo ">>> Your Makefile has been rebuilt. <<<"
+	@echo ">>> Please rerun the make command.  <<<"; false
+
+# To change behavior to :: would be nice, but would break Tk b9.02
+# so you find such a warning below the dist target.
+#Makefile :: $(VERSION_FROM)
+#	@echo "Warning: Makefile possibly out of date with $(VERSION_FROM)"
+
+
+# --- MakeMaker staticmake section:
+
+# --- MakeMaker makeaperl section ---
+MAP_TARGET    = ../../../perl
+FULLPERL      = /usr/local/bin/perl
+
+
+# --- MakeMaker test section:
+
+TEST_VERBOSE=0
+TEST_TYPE=test_$(LINKTYPE)
+TEST_FILE = test.pl
+TESTDB_SW = -d
+
+testdb :: testdb_$(LINKTYPE)
+
+test :: $(TEST_TYPE)
+	@echo 'No tests defined for $(NAME) extension.'
+
+test_dynamic :: pure_all
+
+testdb_dynamic :: pure_all
+	PERL_DL_NONLAZY=1 $(FULLPERL) $(TESTDB_SW) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(TEST_FILE)
+
+test_ : test_dynamic
+
+test_static :: pure_all $(MAP_TARGET)
+
+testdb_static :: pure_all $(MAP_TARGET)
+	PERL_DL_NONLAZY=1 ./$(MAP_TARGET) $(TESTDB_SW) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(TEST_FILE)
+
+
+
+# --- MakeMaker pm_to_blib section:
+
+pm_to_blib: $(TO_INST_PM)
+	@$(PERL) "-I$(INST_ARCHLIB)" "-I$(INST_LIB)" \
+	"-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -MExtUtils::Install \
+        -e 'pm_to_blib({qw{$(PM_TO_BLIB)}},"$(INST_LIB)/auto")'
+	@$(TOUCH) $@
+
+
+# --- MakeMaker selfdocument section:
+
+
+# --- MakeMaker postamble section:
+
+
+# Rules for the generic preprocessor
+
+.SUFFIXES: .g
+.g.c:
+	$(PERL) -I../../.. -MPDL::Core::Dev -e genpp $<  > $@
+
+.g$(OBJ_EXT):
+	$(PERL) -I../../.. -MPDL::Core::Dev -e genpp $<  > $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+
+
+
+# End.

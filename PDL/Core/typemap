@@ -1,0 +1,9 @@
+TYPEMAP
+pdl	T_PDL
+Logical	T_IV
+
+INPUT
+
+T_PDL
+	$var = SvPDLV($arg)
+

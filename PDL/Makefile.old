@@ -1,0 +1,510 @@
+# This Makefile is for the PDL extension to perl.
+#
+# It was generated automatically by MakeMaker version
+# 5.34 (Revision: 1.202) from the contents of
+# Makefile.PL. Don't edit this file, edit Makefile.PL instead.
+#
+#	ANY CHANGES MADE HERE WILL BE LOST!
+#
+#   MakeMaker Parameters:
+
+#	DIR => [q[Core], q[Examples], q[Graphics], q[Io]]
+#	NAME => q[PDL]
+#	PM => { PDL_OO.pm=>q[$(INST_LIBDIR)/PDL/OO.pm], PDL.pm=>q[$(INST_LIBDIR)/PDL.pm] }
+#	VERSION_FROM => q[Core/Core.pm]
+
+# --- MakeMaker post_initialize section:
+
+
+# --- MakeMaker const_config section:
+
+# These definitions are from config.sh (via /usr/local/lib/perl5/sun4-solaris/5.003/Config.pm)
+
+# They may have been overridden via Makefile.PL or on the command line
+AR = ar
+CC = cc
+CCCDLFLAGS = -Kpic
+CCDLFLAGS =  
+DLEXT = so
+DLSRC = dl_dlopen.xs
+LD = cc
+LDDLFLAGS = -G -L/usr/local/lib -L/opt/gnu/lib
+LDFLAGS =  -L/usr/local/lib -L/opt/gnu/lib
+LIBC = /lib/libc.so
+LIB_EXT = .a
+OBJ_EXT = .o
+RANLIB = :
+SO = so
+
+
+# --- MakeMaker constants section:
+AR_STATIC_ARGS = cr
+NAME = PDL
+DISTNAME = PDL
+NAME_SYM = PDL
+VERSION = 1.00
+VERSION_SYM = 1_00
+XS_VERSION = 1.00
+INST_BIN = .././blib/bin
+INST_EXE = .././blib/script
+INST_LIB = .././blib/lib
+INST_ARCHLIB = .././blib/arch
+INST_SCRIPT = .././blib/script
+PREFIX = /usr/local
+INSTALLDIRS = site
+INSTALLPRIVLIB = $(PREFIX)/lib/perl5
+INSTALLARCHLIB = $(PREFIX)/lib/perl5/sun4-solaris/5.003
+INSTALLSITELIB = $(PREFIX)/lib/perl5/site_perl
+INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/sun4-solaris
+INSTALLBIN = $(PREFIX)/bin
+INSTALLSCRIPT = $(PREFIX)/bin
+PERL_LIB = /usr/local/lib/perl5
+PERL_ARCHLIB = /usr/local/lib/perl5/sun4-solaris/5.003
+SITELIBEXP = /usr/local/lib/perl5/site_perl
+SITEARCHEXP = /usr/local/lib/perl5/site_perl/sun4-solaris
+LIBPERL_A = libperl.a
+FIRST_MAKEFILE = Makefile
+MAKE_APERL_FILE = Makefile.aperl
+PERLMAINCC = $(CC)
+PERL_INC = /usr/local/lib/perl5/sun4-solaris/5.003/CORE
+PERL = /usr/local/bin/perl
+FULLPERL = /usr/local/bin/perl
+
+VERSION_MACRO = VERSION
+DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
+XS_VERSION_MACRO = XS_VERSION
+XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
+
+MAKEMAKER = /usr/local/lib/perl5/ExtUtils/MakeMaker.pm
+MM_VERSION = 5.34
+
+# FULLEXT = Pathname for extension directory (eg Foo/Bar/Oracle).
+# BASEEXT = Basename part of FULLEXT. May be just equal FULLEXT. (eg Oracle)
+# ROOTEXT = Directory part of FULLEXT with leading slash (eg /DBD)  !!! Deprecated from MM 5.32  !!!
+# PARENT_NAME = NAME without BASEEXT and no trailing :: (eg Foo::Bar)
+# DLBASE  = Basename part of dynamic library. May be just equal BASEEXT.
+FULLEXT = PDL
+BASEEXT = PDL
+DLBASE = $(BASEEXT)
+VERSION_FROM = Core/Core.pm
+OBJECT = 
+LDFROM = $(OBJECT)
+LINKTYPE = dynamic
+
+# Handy lists of source code files:
+XS_FILES= 
+C_FILES = 
+O_FILES = 
+H_FILES = 
+MAN1PODS = 
+MAN3PODS = 
+INST_MAN1DIR = .././blib/man1
+INSTALLMAN1DIR = $(PREFIX)/man/man1
+MAN1EXT = 1
+INST_MAN3DIR = .././blib/man3
+INSTALLMAN3DIR = $(PREFIX)/lib/perl5/man/man3
+MAN3EXT = 3
+
+# work around a famous dec-osf make(1) feature(?):
+makemakerdflt: all
+
+.SUFFIXES: .xs .c .C .cpp .cxx .cc $(OBJ_EXT)
+
+# Nick wanted to get rid of .PRECIOUS. I don't remember why. I seem to recall, that
+# some make implementations will delete the Makefile when we rebuild it. Because
+# we call false(1) when we rebuild it. So make(1) is not completely wrong when it
+# does so. Our milage may vary.
+# .PRECIOUS: Makefile    # seems to be not necessary anymore
+
+.PHONY: all config static dynamic test linkext manifest
+
+# Where is the Config information that we are using/depend on
+CONFIGDEP = $(PERL_ARCHLIB)/Config.pm $(PERL_INC)/config.h
+
+# Where to put things:
+INST_LIBDIR      = $(INST_LIB)
+INST_ARCHLIBDIR  = $(INST_ARCHLIB)
+
+INST_AUTODIR     = $(INST_LIB)/auto/$(FULLEXT)
+INST_ARCHAUTODIR = $(INST_ARCHLIB)/auto/$(FULLEXT)
+
+INST_STATIC  =
+INST_DYNAMIC =
+INST_BOOT    =
+
+EXPORT_LIST = 
+
+PERL_ARCHIVE = 
+
+TO_INST_PM = PDL.pm \
+	PDL_OO.pm
+
+PM_TO_BLIB = PDL_OO.pm \
+	$(INST_LIBDIR)/PDL/OO.pm \
+	PDL.pm \
+	$(INST_LIBDIR)/PDL.pm
+
+
+# --- MakeMaker tool_autosplit section:
+
+# Usage: $(AUTOSPLITFILE) FileToSplit AutoDirToSplitInto
+AUTOSPLITFILE = $(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -e 'use AutoSplit;autosplit($$ARGV[0], $$ARGV[1], 0, 1, 1) ;'
+
+
+# --- MakeMaker tool_xsubpp section:
+
+XSUBPPDIR = /usr/local/lib/perl5/ExtUtils
+XSUBPP = $(XSUBPPDIR)/xsubpp
+XSPROTOARG = 
+XSUBPPDEPS = $(XSUBPPDIR)/typemap
+XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap
+
+
+# --- MakeMaker tools_other section:
+
+SHELL = /bin/sh
+CHMOD = chmod
+CP = cp
+LD = cc
+MV = mv
+NOOP = sh -c true
+RM_F = rm -f
+RM_RF = rm -rf
+TOUCH = touch
+UMASK_NULL = umask 0
+
+# The following is a portable way to say mkdir -p
+# To see which directories are created, change the if 0 to if 1
+MKPATH = $(PERL) -wle '$$"="/"; foreach $$p (@ARGV){' \
+-e 'next if -d $$p; my(@p); foreach(split(/\//,$$p)){' \
+-e 'push(@p,$$_); next if -d "@p/"; print "mkdir @p" if 0;' \
+-e 'mkdir("@p",0777)||die $$! } } exit 0;'
+
+# This helps us to minimize the effect of the .exists files A yet
+# better solution would be to have a stable file in the perl
+# distribution with a timestamp of zero. But this solution doesn't
+# need any changes to the core distribution and works with older perls
+EQUALIZE_TIMESTAMP = $(PERL) -we 'open F, ">$$ARGV[1]"; close F;' \
+-e 'utime ((stat("$$ARGV[0]"))[8,9], $$ARGV[1])'
+
+
+# --- MakeMaker dist section skipped.
+
+# --- MakeMaker macro section:
+
+
+# --- MakeMaker depend section:
+
+
+# --- MakeMaker cflags section:
+
+CCFLAGS = -DDEBUGGING -DEMBED
+OPTIMIZE = -O
+PERLTYPE = 
+LARGE = 
+SPLIT = 
+
+
+# --- MakeMaker const_loadlibs section:
+
+# PDL might depend on some other libraries:
+# See ExtUtils::Liblist for details
+#
+LD_RUN_PATH = 
+
+
+# --- MakeMaker const_cccmd section:
+CCCMD = $(CC) -c $(INC) $(CCFLAGS) $(OPTIMIZE) \
+	$(PERLTYPE) $(LARGE) $(SPLIT) $(DEFINE_VERSION) \
+	$(XS_DEFINE_VERSION)
+
+# --- MakeMaker post_constants section:
+
+
+# --- MakeMaker pasthru section:
+
+PASTHRU = LIBPERL_A="$(LIBPERL_A)"\
+	LINKTYPE="$(LINKTYPE)"\
+	PREFIX="$(PREFIX)"\
+	OPTIMIZE="$(OPTIMIZE)"
+
+
+# --- MakeMaker c_o section:
+
+.c$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+
+.C$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.C
+
+.cpp$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cpp
+
+.cxx$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cxx
+
+.cc$(OBJ_EXT):
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.cc
+
+
+# --- MakeMaker xs_c section:
+
+.xs.c:
+	$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs >$*.tc && mv $*.tc $@
+
+
+# --- MakeMaker xs_o section:
+
+.xs$(OBJ_EXT):
+	$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs >xstmp.c && mv xstmp.c $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+
+
+# --- MakeMaker top_targets section:
+
+#all ::	config $(INST_PM) subdirs linkext manifypods
+
+all :: pure_all manifypods
+	@$(NOOP)
+
+pure_all :: config pm_to_blib subdirs linkext
+	@$(NOOP)
+
+subdirs :: $(MYEXTLIB)
+	@$(NOOP)
+
+config :: Makefile $(INST_LIBDIR)/.exists
+	@$(NOOP)
+
+config :: $(INST_ARCHAUTODIR)/.exists
+	@$(NOOP)
+
+config :: $(INST_AUTODIR)/.exists
+	@$(NOOP)
+
+$(INST_AUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_AUTODIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_AUTODIR)
+
+$(INST_LIBDIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_LIBDIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_LIBDIR)
+
+$(INST_ARCHAUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+	@$(MKPATH) $(INST_ARCHAUTODIR)
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
+
+	-@$(CHMOD) 755 $(INST_ARCHAUTODIR)
+
+help:
+	perldoc ExtUtils::MakeMaker
+
+Version_check:
+	@$(PERL) -I$(PERL_ARCHLIB) -I$(PERL_LIB) \
+		-MExtUtils::MakeMaker=Version_check \
+		-e 'Version_check("$(MM_VERSION)")'
+
+
+# --- MakeMaker linkext section:
+
+linkext :: $(LINKTYPE)
+	@$(NOOP)
+
+
+# --- MakeMaker dlsyms section:
+
+
+# --- MakeMaker dynamic section:
+
+## $(INST_PM) has been moved to the all: target.
+## It remains here for awhile to allow for old usage: "make dynamic"
+#dynamic :: Makefile $(INST_DYNAMIC) $(INST_BOOT) $(INST_PM)
+dynamic :: Makefile $(INST_DYNAMIC) $(INST_BOOT)
+	@$(NOOP)
+
+
+# --- MakeMaker dynamic_bs section:
+
+BOOTSTRAP =
+
+
+# --- MakeMaker dynamic_lib section:
+
+
+# --- MakeMaker static section:
+
+## $(INST_PM) has been moved to the all: target.
+## It remains here for awhile to allow for old usage: "make static"
+#static :: Makefile $(INST_STATIC) $(INST_PM)
+static :: Makefile $(INST_STATIC)
+	@$(NOOP)
+
+
+# --- MakeMaker static_lib section:
+
+
+# --- MakeMaker manifypods section:
+
+manifypods :
+	@$(NOOP)
+
+
+# --- MakeMaker processPL section:
+
+
+# --- MakeMaker installbin section:
+
+
+# --- MakeMaker subdirs section:
+
+# The default clean, realclean and test targets in this Makefile
+# have automatically been given entries for each subdir.
+
+
+
+subdirs ::
+	@cd Core && $(MAKE) all $(PASTHRU)
+
+
+
+subdirs ::
+	@cd Examples && $(MAKE) all $(PASTHRU)
+
+
+
+subdirs ::
+	@cd Graphics && $(MAKE) all $(PASTHRU)
+
+
+
+subdirs ::
+	@cd Io && $(MAKE) all $(PASTHRU)
+
+
+
+# --- MakeMaker clean section:
+
+# Delete temporary files but do not touch installed files. We don't delete
+# the Makefile here so a later make realclean still has a makefile to use.
+
+clean ::
+	-cd Core && test -f Makefile && $(MAKE) clean
+	-cd Examples && test -f Makefile && $(MAKE) clean
+	-cd Graphics && test -f Makefile && $(MAKE) clean
+	-cd Io && test -f Makefile && $(MAKE) clean
+	-rm -rf ./blib $(MAKE_APERL_FILE) $(INST_ARCHAUTODIR)/extralibs.all perlmain.c mon.out core so_locations pm_to_blib *~ */*~ */*/*~ *$(OBJ_EXT) *$(LIB_EXT) perl.exe $(BOOTSTRAP) $(BASEEXT).bso $(BASEEXT).def $(BASEEXT).exp
+	-mv Makefile Makefile.old 2>/dev/null
+
+
+# --- MakeMaker realclean section:
+
+# Delete temporary files (via clean) and also delete installed files
+realclean purge ::  clean
+	-cd Core && test -f Makefile.old && $(MAKE) -f Makefile.old realclean
+	-cd Core && test -f Makefile && $(MAKE)  realclean
+	-cd Examples && test -f Makefile.old && $(MAKE) -f Makefile.old realclean
+	-cd Examples && test -f Makefile && $(MAKE)  realclean
+	-cd Graphics && test -f Makefile.old && $(MAKE) -f Makefile.old realclean
+	-cd Graphics && test -f Makefile && $(MAKE)  realclean
+	-cd Io && test -f Makefile.old && $(MAKE) -f Makefile.old realclean
+	-cd Io && test -f Makefile && $(MAKE)  realclean
+	rm -rf $(INST_AUTODIR) $(INST_ARCHAUTODIR)
+	rm -f $(INST_LIBDIR)/PDL/OO.pm $(INST_LIBDIR)/PDL.pm
+	rm -rf Makefile Makefile.old
+
+
+# --- MakeMaker dist_basics section skipped.
+
+# --- MakeMaker dist_core section skipped.
+
+# --- MakeMaker dist_dir section skipped.
+
+# --- MakeMaker dist_test section skipped.
+
+# --- MakeMaker dist_ci section skipped.
+
+# --- MakeMaker install section skipped.
+
+# --- MakeMaker force section:
+# Phony target to force checking subdirectories.
+FORCE:
+
+
+# --- MakeMaker perldepend section:
+
+
+# --- MakeMaker makefile section:
+
+# We take a very conservative approach here, but it\'s worth it.
+# We move Makefile to Makefile.old here to avoid gnu make looping.
+Makefile : Makefile.PL $(CONFIGDEP)
+	@echo "Makefile out-of-date with respect to $?"
+	@echo "Cleaning current config before rebuilding Makefile..."
+	-@mv Makefile Makefile.old
+	-$(MAKE) -f Makefile.old clean >/dev/null 2>&1 || true
+	$(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" Makefile.PL "INSTALLSITELIB=~/lib/perl5" "INSTALLSITEARCH=~/lib/perl5" "INSTALLSCRIPT=~/bin" "INSTALLMAN3DIR=~/man/man3"
+	@echo ">>> Your Makefile has been rebuilt. <<<"
+	@echo ">>> Please rerun the make command.  <<<"; false
+
+# To change behavior to :: would be nice, but would break Tk b9.02
+# so you find such a warning below the dist target.
+#Makefile :: $(VERSION_FROM)
+#	@echo "Warning: Makefile possibly out of date with $(VERSION_FROM)"
+
+
+# --- MakeMaker staticmake section:
+
+# --- MakeMaker makeaperl section ---
+MAP_TARGET    = ../perl
+FULLPERL      = /usr/local/bin/perl
+
+
+# --- MakeMaker test section:
+
+TEST_VERBOSE=0
+TEST_TYPE=test_$(LINKTYPE)
+TEST_FILE = test.pl
+TESTDB_SW = -d
+
+testdb :: testdb_$(LINKTYPE)
+
+test :: $(TEST_TYPE)
+	@cd Core && test -f Makefile && $(MAKE) test $(PASTHRU)
+	@cd Examples && test -f Makefile && $(MAKE) test $(PASTHRU)
+	@cd Graphics && test -f Makefile && $(MAKE) test $(PASTHRU)
+	@cd Io && test -f Makefile && $(MAKE) test $(PASTHRU)
+
+test_dynamic :: pure_all
+
+testdb_dynamic :: pure_all
+	PERL_DL_NONLAZY=1 $(FULLPERL) $(TESTDB_SW) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(TEST_FILE)
+
+test_ : test_dynamic
+
+test_static :: pure_all $(MAP_TARGET)
+
+testdb_static :: pure_all $(MAP_TARGET)
+	PERL_DL_NONLAZY=1 ./$(MAP_TARGET) $(TESTDB_SW) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) $(TEST_FILE)
+
+
+
+# --- MakeMaker pm_to_blib section:
+
+pm_to_blib: $(TO_INST_PM)
+	@$(PERL) "-I$(INST_ARCHLIB)" "-I$(INST_LIB)" \
+	"-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" -MExtUtils::Install \
+        -e 'pm_to_blib({qw{$(PM_TO_BLIB)}},"$(INST_LIB)/auto")'
+	@$(TOUCH) $@
+
+
+# --- MakeMaker selfdocument section:
+
+
+# --- MakeMaker postamble section:
+
+
+# End.

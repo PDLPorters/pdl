@@ -1,0 +1,5 @@
+sub dotproduct { 
+    my ($a,$b) = @_;
+    return sum($a*$b) ;
+}
+1;

@@ -1,0 +1,83 @@
+
+                 perlDL TODO list
+                 ================
+
+   'This world, where much is to be done and little to be known.' 
+      - Samuel Johnson. Prayers and Meditations. Against inquisitive 
+                        and perplexing Thoughts.
+
+   Karl Glazebrook, AAO, 2/Oct/1996. [kgb@aaoepp.aao.gov.au]
+
+System
+------
+
+* Improve float() etc... memory management 
+
+* Interface to mmap() ?
+
+* overload array lookup with tie(...) ? (Does not
+  seem compatible with use of hv_fetch()) etc.
+
+* prototype some functions
+
+* overload ops: . for some thing
+
+* ***************** COMPLEX NUMBERS ******************
+
+IO
+---
+
+* file mapping ?
+
+* DSA writer/header handling
+
+Functions
+----------
+
+* where (COND) {EXPR} - e.g. where ($x>42) { $x = 1/$x } ?
+
+* select (COND) (PDL) - e.g. select ($x>42, $x) select values (output -> 1D)
+  (i.e. shrinks PDL) ?
+
+* sort ($x,$y,$z...) - 1D only
+
+* FFT
+
+* Grow list -> (N+1) Dim
+
+* Transpose function
+
+* Matrix inverse (via following:)
+
+* linear system solver
+
+* SVD algorithm
+
+* Interpolation/rebinning 
+
+* Projection - extend sum() e.g.: sum($x,1) for along Y axis - 
+  also median($x,1)?
+
+* easy extend($image,...) function ?
+
+
+Graphics
+--------
+
+* Karma interface?
+
+* Check outs AIPSVIEW
+
+Minor
+-----
+
+* set/at/sec etc should be able to take negative indices to refer
+  to from end. e.g. '-1' is the last element.
+
+* remove perldl 'cmd # comment' bug - use perl_eval_sv in 5.003_01?
+
+Always check
+------------
+  
+* Fold in highlights of PDLmisc/ directory
+

@@ -1,0 +1,741 @@
+<!-- $Id$ -->
+<HTML><HEAD>
+<CENTER><TITLE>PDL</TITLE>
+</HEAD>
+<BODY></CENTER><p><hr>
+
+<H1> 
+<A NAME="PDL_name_0">
+NAME</A>
+</H1>
+<p>
+<H2> 
+<A NAME="PDL_pdl_0">
+PDL - Perl Data Language extension module</A>
+</H2>
+Version 1.00 alpha
+<p>"Why is it that we entertain the belief that for every purpose odd
+numbers are the most effectual?" - Pliny the Elder.
+<p><EM>Karl Glazebrook, AAO, 4/10/1996. [<A HREF="MAILTO:kgb@aaoepp.aao.gov.au">kgb@aaoepp.aao.gov.au</A>]</EM>
+<p><p><hr>
+
+<H1> 
+<A NAME="PDL_description_0">
+DESCRIPTION</A>
+</H1>
+The perlDL concept is to give standard perl5 the ability to COMPACTLY
+store and SPEEDILY manipulate the large N-dimensional data sets which
+are the bread and butter of scientific computing. e.g. <CODE><STRONG>$a</STRONG>=<STRONG>$b</STRONG>+<STRONG>$c</STRONG></CODE> can
+add two 2048x2048 images in only a fraction of a second.
+<p>It is hoped to eventually provide tons of useful functionality for
+scientific and numeric analysis.
+<p>
+<H2> 
+<A NAME="PDL_introduction_0">
+Introduction</A>
+</H2>
+The fundamental perl data structures are scalar variables, e.g. <CODE><STRONG>$x</STRONG></CODE>,
+which can hold numbers or strings, lists or arrays of scalars, e.g. <CODE><STRONG>@x</STRONG></CODE>,
+and associative arrays/hashes of scalars, e.g. <CODE><STRONG>%x</STRONG></CODE>.
+<p>perl v5 introduces to perl data structures and objects. A simple
+scalar variable <CODE><STRONG>$x</STRONG></CODE> now be a user-defined data type or full blown
+object*.
+<p>The fundamental idea behind perlDL is to allow <STRONG>$x</STRONG> to hold a whole 1D
+spectrum, or a 2D image, a 3D data cube, and so on up to large
+N-dimensional data sets. These can be manipulated all at once, e.g.
+<CODE><STRONG>$a</STRONG> = <STRONG>$b</STRONG> + 2</CODE> does a vector operation on each value in the
+spectrum/image/etc.
+<p>You may well ask: "Why not just store a spectrum as a simple perl <CODE><STRONG>@x</STRONG></CODE>
+style list with each pixel being a list item?"  The two key answers to
+this are MEMORY and SPEED.  Because we know our spectrum consists of
+pure numbers we can compactly store them in a single block of memory
+corresponding to a C style numeric array. This takes up a LOT less
+memory than the equivalent perl list. It is then easy to pass this
+block of memory to a fast addition routine, or to any other C function
+which deals with arrays.  As a result perlDL is very fast --- for example
+one can mulitiply a 2048*2048 image in exactly the same time as it
+would take in C or FORTRAN (0.1 sec on my SPARC). A further advantage
+of this is that for simple operations (e.g. <CODE><STRONG>$x</STRONG> += 2</CODE>) one can manipulate
+the whole array without caring about its dimensionality.
+<p>I find when using perlDL it is most useful to think of standard perl
+<CODE><STRONG>@x</STRONG></CODE> variables as ``lists'' of generic ``things'' and PDL variables like
+<CODE><STRONG>$x</STRONG></CODE> as ``arrays'' which can be contained in lists or hashes. Quite
+often in my perlDL scripts I have <CODE><STRONG>@x</STRONG></CODE> contain a list of spectra, or a
+list of images (or even a mix!). Or perhaps one could have a hash
+(e.g.  <CODE><STRONG>%x</STRONG></CODE>) of images... the only limit is memory!
+<p>perlDL variables support a range of data types - arrays can be bytes,
+short intgers (signed or unsigned), long integers, floats or
+double precision floats.
+<p>* It actually holds a reference (a smart ``pointer'') to this 
+but that is not relevant for ordinary use of perlDL.
+<p>
+<H2> 
+<A NAME="PDL_usage_0">
+Usage</A>
+</H2>
+perlDL is loaded into your perl script using these commands:
+<p>
+<XMP>
+   use PDL;  # use the standard perlDL modules (Core Examples Io Graphics::PG)
+   
+   use PDL::Examples; # use only the Examples module (this will load 
+                      # internally whatever other modules it needs).
+   
+   % perldl  # Invoke interactive shell from system command line.
+
+</XMP>
+<p>The default is to import all the function names from a module. If you
+only want certain names imported just say:
+<p>
+<XMP>
+   use PDL::Io qw(rfits rgrep) # Get only rfits() and rgrep from PDL::Io
+
+</XMP>
+<p>Also see below on ``Object-Orientation''.
+<p>
+<H2> 
+<A NAME="PDL_to_0">
+To create a new PDL variable</A>
+</H2>
+Here are some ways of creating a PDL variable:
+<p>
+<XMP>
+   $a = pdl [1..10];             # 1D array
+   $a = pdl (1,2,3,4);           # Ditto
+   $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
+   $c = pdl $a;                  # Make a new copy
+   
+   $d = byte [1..10];            # See "Type conversion"
+   $e = zeroes(3,2,4);           # 3x2x4 zero-filled array
+   
+   $c = rfits $file;             # Read FITS file 
+   
+   @x = ( pdl(42), zeroes(3,2,4), rfits($file) ); # Is a LIST of PDL variables!
+
+</XMP>
+<p>The <CODE><EM>pdl()</EM></CODE> function is used to initialise a PDL variable from a scalar,
+list, list reference or another PDL variable.
+<p>In addition all PDL functions automatically convert normal perl scalars
+to PDL variables on-the-fly.
+<p>(also see ``Type Conversion'' and ``Input/Output'' sections below)
+<p>
+<H2> 
+<A NAME="PDL_arithmetic_0">
+Arithmetic</A>
+</H2>
+
+<XMP>
+ $a = $b + 2; $a++; $a = $b / $c; # Etc.
+ 
+ $c=sqrt($a); $d = log10($b+100); # Etc
+ 
+ $e = $a>42; # Vector condtional (like MATLAB) - 
+             # note I think this is much nicer than IDLs WHERE(), e.g.:
+ 
+ $e = 42*($a>42) + $a*($a<=42); # Cap top
+ 
+ $a = $a / ( max($a) - min($a) );
+ 
+ print $a; # $a in string context prints it in a N-dimensional format
+
+</XMP>
+<p>(and other perl operators/functions)
+<p>
+<H2> 
+<A NAME="PDL_matrix_0">
+Matrix functions</A>
+</H2>
+<CODE>'x'</CODE> is hijacked as the matrix multiplication operator. e.g. 
+<CODE><STRONG>$c</STRONG> = <STRONG>$a</STRONG> x <STRONG>$b</STRONG></CODE>;
+<p>perlDL is row-major not column major so this is actually
+<CODE>c(i,j) = sum_k a(k,j) b(i,k)</CODE> - but when matrices are printed the
+results will look right. Just remember the indices are reversed.
+e.g.:
+<p>
+<XMP>
+      $a = [                   $b = [
+            [ 1  2  3  0]            [1 1]
+            [ 1 -1  2  7]            [0 2]
+            [ 1  0  0  1]            [0 2]
+           ]                         [1 1]
+                                    ]
+      gives $c = [
+                  [ 1 11]
+                  [ 8 10]
+                  [ 2  2]
+                 ]
+
+</XMP>
+<p>Note: <EM>transpose()</EM> does what it says and is a convenient way
+to turn row vectors into column vectors. It is bound to
+the unary operator <CODE>'~'</CODE> for convenience.
+<p>
+<H2> 
+<A NAME="PDL_how_0">
+How to write a simple function</A>
+</H2>
+
+<XMP>
+   sub dotproduct { 
+       my ($a,$b) = @_;
+       return sum($a*$b) ;
+   }
+   1;
+
+</XMP>
+<p>If put in file dotproduct.pdl would be autoloaded (see below).
+ 
+<p>
+<H2> 
+<A NAME="PDL_type_0">
+Type Conversion</A>
+</H2>
+Default for <EM>pdl()</EM> is double. Conversions are:
+<p>
+<XMP>
+   $a = float($b); 
+   $c = long($d);   # "long" is 4 byte int
+   $d = byte($a);
+
+</XMP>
+<p>Also <EM>double()</EM>, <EM>short()</EM>, <EM>ushort()</EM>.
+<p>These routines also automatically convert perl lists to
+allow the convenient shorthand:
+<p>
+<XMP>
+   $a = byte [[1..10],[1..10]];  # Create 2D byte array
+   $a = float [1..1000];         # Create 1D float array
+
+</XMP>
+<p>etc.
+<p>Rules for automatic conversion during arithmetic:
+<p>
+<XMP>
+  If INT = any of byte/short/ushort/int and X is generic op
+  For VECTOR x SCALAR these rules avoid overpromotion of vector types:
+  VECTOR INT   X SCALAR INT            Return is same type as VECTOR
+  VECTOR INT   X SCALAR float/double   Return float
+  VECTOR float X SCALAR float/double   Return float
+  For other VECTORxSCALAR and VECTORxVECTOR returns "highest" of
+  two data types. i.e. VECTOR double x float returns float etc.
+
+</XMP>
+<p>
+<H2> 
+<A NAME="PDL_printing_0">
+Printing</A>
+</H2>
+Automatically expands array in N-dimensional format:
+<p>
+<XMP>
+   print $a;  
+    
+   $b = "Answer is = $a ";
+
+</XMP>
+<p>
+<H2> 
+<A NAME="PDL_sections_0">
+Sections</A>
+</H2>
+<p>perlDL betrays its perl/C heritage in that arrays are zero-offset.
+Thus a 100x100 image has indices <CODE>0..99,0..99</CODE>.
+<p>Further I adopt the convention that the center of the pixel (0,0)
+IS at coordinate (0.0,0.0). Thus the above image ranges from
+<CODE>-0.5..99.5, -0.5..99.5</CODE> in real space. All perlDL graphics functions
+conform to this defintion and hide away the unit-offsetness
+of, for example, the PGPLOT FORTRAN library.
+<p>Again following the usual convention coordinate (0,0) is displayed
+at the bottom left when displaying an image. It appears at the
+top right when using ``<CODE>print <STRONG>$a</STRONG></CODE>'' etc.
+<p>
+<XMP>
+   $b  = sec($a,  $x1, $x2, $y1, $y2, $z1, $z2, ... ) # Take subsection
+   $newimage = ins($bigimage,$smallimage,$x,$y,$z...) # Insert at x,y,z
+   
+   $c  = nelem ($a); # Number of pixels
+   
+   $val = at($object, $x,$y,$z...)    # Pixel value at position
+   set($myimage, $x, $y, ... $value)  # Set value in image 
+   
+   $b = xvals($a); # Fill array with X-coord values (also yvals(), zvals(),
+                   # axisvals($x,$axis) and rvals() for radial distance 
+                   # from centre).
+
+</XMP>
+<p>(Note: I hope to enable syntax like <CODE><STRONG>$$</STRONG>a{'0..200,3..200'}</CODE> using
+<CODE><EM>tie()</EM></CODE> but I am still thinking about the ramifications of this)
+<p>
+<H2> 
+<A NAME="PDL_input_output_0">
+Input/Output</A>
+</H2>
+The PDL::Io module currently implements the following useful I/O
+functions:
+<p>
+<XMP>
+   $a  = rfits($file)  # Read a FITS file into a PDL variable
+                       # (only IEEE float machines as yet)
+   wfits ($a, $file)  # Write FITS file 
+   
+   ([$xaxis],$data) = rdsa($file)   # Read a STARLINK/FIGARO file using
+                                    # perl DSA module (available seperately)
+   
+Read ASCII columns into $x, $y, etc.:
+   ($x,$y,...) = rcols($file,[[$pattern],[$col1, $col2,] ...)  
+
+</XMP>
+<p>Read <STRONG>$1</STRONG>, <STRONG>$2</STRONG>, etc. pattern matches into <STRONG>$x</STRONG>, <STRONG>$y</STRONG>, etc.
+<p>
+<XMP>
+   ($x,$y,...) = rgrep($file, $pattern)    
+   
+e.g.:
+   
+   ($x,$y) = rcols $file, '/Mumble/', 2,3;
+   ($a,$b) = rgrep $file, '/Foo (.*) Bar (.*) Mumble/';
+   
+
+</XMP>
+<p>
+<H2> 
+<A NAME="PDL_graphics_0">
+Graphics</A>
+</H2>
+The philosophy behind perlDL is to make it work with a variety of
+existing graphics libraries since no single package will satisfy all
+needs and all people and this allows one to work with packages one
+already knows and likes.  Obviously there will be some overlaps in
+functionality and some lack of consistency and uniformity. This also
+saves the author from too much work in time he doesn't have!
+<p>
+<OL>
+<LI>PGPLOT
+<p>PGPLOT provdes a simple library for line graphics and image display.
+<p>There is an easy interface to this in the interna;l module
+PDL::Graphics::PG. (This calls routines in the separately available
+PGPLOT top-level module.)
+<p>Current display commands:
+<p>
+<XMP>
+   imag         -  Display an image (uses pgimag()/pggray() as appropriate)
+   ctab         -  Load an image colour table
+   line         -  Plot vector as connected points
+   points       -  Plot vector as points
+   errb         -  Plot error bars
+   cont         -  Display image as contour map
+   bin          -  Plot vector as histogram ( e.g. bin(hist($data)) )
+   hi2d         -  Plot image as 2d histogram (not very good IMHO...)
+   poly         -  Draw a polygon
+   vect         -  Display 2 images as a vector field
+
+</XMP>
+<p>Device manipulation commands:
+<p>
+<XMP>
+   hold         -  Hold current plot window range - allows overlays etc.
+   release      -  Release back to autoscaling of new plot window for each command
+   rel          -  short alias for 'release'
+   env          -  Define a plot window, put on 'hold'
+   dev          -  Explicitly set a new PGPLOT graphics device
+   
+e.g:
+   perldl> $a = pdl [1..100]
+   perldl> $b = sqrt($a)
+   perldl> line $b      
+   perldl> hold
+   Graphics on HOLD
+   perldl> $c = sin($a/10)*2 + 4
+   perldl> line $c     
+
+</XMP>
+<p>Notes: <STRONG>$transform</STRONG> for image/cont etc. is used in the same way as the
+<EM>TR()</EM> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
+zero-offset.
+<p>It is also hoped to use other graphic libraries to enable more sophisticated
+plots then is possible with PGPLOT. Some ideas:
+<p>
+<LI>IIS
+<p>Many astronomers like to use SAOimage and Ximtool (or there
+derivations/clones). These are useful free widgets for inspection and
+visualisation of images. (They are not provided with perlDL but can
+easily be obtained from their official sites off the Net.)
+<p>The PDL::Graphics::IIS package provides allows one to display images
+in these (``IIS'' is the name of an ancient item of image display
+hardware whose protocols these tools conform to.)
+<p>Commands are:
+<p>
+<XMP>
+   iis         - display image
+   iiscur      - return a cursor position
+   iiscirc     - draw circles on image display
+   saoimage    - start SAOimage 
+   ximtool     - start Ximtool
+
+</XMP>
+<p>Variables are:
+<p>
+<XMP>
+   $stdimage  - frame buffer configuration
+   $iisframe  - frame buffer number to display in
+
+</XMP>
+<p>The frame buffer configuration is set by the variable <STRONG>$stdimage</STRONG>
+(analagous to iraf) whose default is ``imt1024''. System and user
+imtoolrc files are parsed so if you know about these you can do
+the same tricks as you can in with IRAF.
+<p>
+<LI>Karma
+<p>To come?
+<p>
+</OL>
+.
+<p>
+<H2> 
+<A NAME="PDL_autoloading_0">
+Autoloading</A>
+</H2>
+If a PDL function, e.g. <CODE><EM>foo()</EM></CODE>, is currently undefined a file
+``foo.pdl'' is searched for in the current directory, and any directories
+in <STRONG>$PDLLIB</STRONG>, <STRONG>$PERL5LIB</STRONG> and <STRONG>$PERLLIB</STRONG> enviroment variables.  (These are ``:''
+seperated lists of directories.)
+<p>If you want to change the path within perldl simply change the lists
+<STRONG>@PDLLIB</STRONG> and <STRONG>@INC</STRONG>.
+<p>Note: ``foo.pdl'' is require'd so it must return a true value (see
+``require'' perl documentation).
+<p>
+<H2> 
+<A NAME="PDL_call_0">
+Call External</A>
+</H2>
+This provides a simple way to pass the data arrays from pdl
+variables to external C routines. It uses perl's built-in
+dynamic loader to load compiled C code.
+<p>The syntax is:
+<p>
+<XMP>
+   callext($file,$symbol, @pdl_list) 
+
+</XMP>
+<p><STRONG>@pdl_list</STRONG> is a list of pdl variables. Numbers get converted
+automatically. The file must be dynamically loadable object code - how
+the C compiler generates this will be different from system to system
+so see your man pages.
+<p>The C routine takes args <CODE>(int nargs, pdl *args)</CODE>. The C type <CODE>``pdl''</CODE> is a
+simple data structure representing the perl pdl variable. It is defined
+in file ``pdl.h'' which is included in the perlDL distribution and has no
+perl dependencies.  It is trivial to cast the data array (pdl.data) to
+(float), (double) etc. and pass to any other C routine.
+<p>This is all demonstrated in the files ``testcallext.*'' in the perlDL
+distribution.
+<p>Note: This is only intended as a quick and dirty prototyping interface
+for the scientist/hacker. perlDL developers should write a module
+along the lines of the example PDL::Examples.
+<p>
+<H2> 
+<A NAME="PDL_perldl_0">
+perldl shell</A>
+</H2>
+The perl script <CODE>perldl</CODE> provides a simple command line - if the latest
+Readlines/ReadKey modules have beeen installed <CODE>perldl</CODE> detects this
+and enables command line recall and editing.
+<p>e.g.:
+<p>
+<XMP>
+   % perldl
+   ReadLines enabled
+   perldl> $a = rfits "foo.fits"
+   BITPIX =  -32  size = 88504 pixels 
+   Reading  354016 bytes
+   BSCALE =  &&  BZERO = 
+   
+   perldl> imag log($a+400)
+   Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
+
+</XMP>
+<p>You can also run it from the perl debugger (<CODE>perl -MPDL -d -e 1</CODE>)
+if you want.
+<p>Miscellaneous shell features:
+<p>
+<OL>
+<LI>The command <CODE>perldl -oo</CODE> starts perldl in Object-Oriented mode. It does 
+<CODE>use PDL::OO</CODE> instead of <CODE>use PDL</CODE>.
+<p>
+<LI>The shell aliases <CODE>p</CODE> to be a convenient short form of <CODE>print</CODE>, e.g.
+<p>
+<XMP>
+   perldl> p ones 5,3
+    
+   [
+    [1 1 1 1 1]
+    [1 1 1 1 1]
+    [1 1 1 1 1]
+   ]
+
+</XMP>
+<p>
+<LI>The files <CODE>~/.perldlrc</CODE> and <CODE>local.perldlrc</CODE> (in the current
+directory) are sourced if found. This allows the user to have global
+and local PDL code for startup.
+<p>
+<LI>Any line starting with the <CODE>#</CODE> character is treated as a shell
+escape. This character is configurable by setting the perl variable
+<STRONG>$PERLDL_ESCAPE</STRONG>. This could, for example, be set in <CODE>~/.perldlrc</CODE>.
+<p>
+</OL>
+.
+<p>
+<H2> 
+<A NAME="PDL_overload_0">
+Overload operators</A>
+</H2>
+I have overloaded the following builtin perl operators and
+functions in order that they work on PDL variables:
+<p>
+<PRE>
+   + - * / &gt; &lt; &gt;= &lt;= &lt;&lt; &gt;&gt; &amp; | ^ == != &lt;=&gt; ** % ! ~
+   sin log abs atan2 sqrt cos exp 
+
+</PRE>
+<p>[All the unary functions (sin etc.) may be used with <EM>inplace()</EM> - see
+``Memory'' below.]
+<p>
+<H2> 
+<A NAME="PDL_object_orientation_0">
+Object-Orientation and perlDL</A>
+</H2>
+[Astronomers can ignore this bit! :-)]
+<p>pdl variables such as <STRONG>$x</STRONG> are implemented via Perl objects. However
+I have chosen to use an all-functional approach to perlDL syntax yo
+be  more astronomer friendly.
+<p>However you can use perlDL in an OO fashion. In fact if you say:
+<p>
+<XMP>
+   use PDL::OO;
+
+</XMP>
+<p>It will load PDL functions as OO methods in the PDL class. This
+means you can say things like:
+<p>
+<XMP>
+   $a = PDL->rfits('m51.fits');
+   $b = PDL->new([1,2,2,1],[1,2,2,1],[1,2,2,1],[1,2,2,1]);
+   $smooth = $a->convolve($b);
+   $smooth->iis;
+
+</XMP>
+<p>You can start the perldl shell in this mode with ``perldl -oo''.
+<p>Note: as you can see from the above all functions which create pdl
+variables are used with construct syntax in the OO mode. Finally you
+can even use both forms by simply saying ``use PDL; use PDL::OO''.
+<p>You can inherit from PDL methods (e.g. to a class Foo)
+by simply saying:
+<p>
+<XMP>
+   @Foo::ISA = ('PDL');               # Method path
+   %Foo::OVERLOAD = %PDL::OVERLOAD;   # Copy overload
+
+</XMP>
+<p>Then PDL methods will work on Foo objects as long as you simply build
+on the existing PDL data structure (see below) components.
+<p>So it would be possible to provide USER written modules to do really
+cool stuff for specific application areas, e.g. PDL::Spectrum might
+provide a <STRONG>$a</STRONG> which understands X-axes and error bars and +-/+ etc.
+might be overriden to do the Right Thing (tm). And writing the module
+would not be rocket science - just some cool perl hacking.
+<p>And you would not have to even use method syntax - if <STRONG>$a</STRONG> came out of my
+hypothetical PDL::Spectrum all the standard pdl functions (like <EM>hist()</EM>
+to give a concreate example) would work on it in the standard way
+provided they simply built on the existing PDL data structure (which
+means simply containing a <STRONG>$$</STRONG>a{Data} etc. PDL::Spectrum could even
+export it's own <EM>hist()</EM> function to override the built-in which might do
+something more sophisticated using the X-axis for example.
+<p>If you were feeling really ambitious you might do PDL::Ir::Spectrum
+which understood about the gaps between the J H and K bands!
+<p>
+<H2> 
+<A NAME="PDL_memory_0">
+Memory usage and references</A>
+</H2>
+Messing around with really huge data arrays may require some care.
+perlDL provides some facilities to let you perform operations on big
+arrays without generating extra copies though this does require a bit
+more thought are care from the programmer.
+<p>NOTE: On some most systems it is better to configure perl (during the
+build options) to use the system <EM>malloc()</EM> function rather than perl's
+built-in one. This is because perl's one is optimised for speed rather
+than consumption of virtual memory - this can result in a factor of
+two improvement in the amount of memory storage you can use.
+<p>
+<OL>
+<LI>Simple arithmetic
+<p>If <STRONG>$a</STRONG> is a big image (e.g. occupying 10MB) and I say:
+<p>
+<XMP>
+   $a = $a + 1;
+
+</XMP>
+<p>then the total <EM>malloc()</EM>'d memory usage grows to 20MB. This is because
+the expression ``<STRONG>$a</STRONG>+1'' creates a temporary copy of <STRONG>$a</STRONG> to hold the
+result, then <STRONG>$a</STRONG> is assigned a reference to that. It is obviously done
+this way so ``<STRONG>$c</STRONG>=<STRONG>$a</STRONG>+1'' works as expected.
+<p>Also if one says:
+<p>
+<XMP>
+   $b = $a;     # $b and $a now point to same data
+   $a = $a + 1;
+
+</XMP>
+<p>Then <STRONG>$b</STRONG> and <STRONG>$a</STRONG> end up being different, as one naively expects,
+because a new reference is created and <STRONG>$a</STRONG> is assigned to it.
+<p>However if <STRONG>$a</STRONG> was a huge memory hog (e.g. a 3D volume) creating a copy
+of it may not be a good thing. One can avoid this memory overhead in
+the above example by saying:
+<p>
+<XMP>
+   $a++;
+
+</XMP>
+<p>The operations <CODE>++,+=,--,-=</CODE>, etc. all call a special ``in-place''
+version of the arithmetic subroutine. This means no more memory is
+needed - the downside of this is that if <STRONG>$b</STRONG>=<STRONG>$a</STRONG> then <STRONG>$b</STRONG> is also
+incremented. To force a copy explicitly:
+<p>
+<XMP>
+   $b = pdl $a; # Real copy
+
+</XMP>
+<p>
+<LI>Functions
+<p>Most functions, e.g. <EM>log()</EM>, return a result which is a transformation
+of their argument. This makes for good programming practice. However many 
+operations can be done ``in-place'' and this may be required when large
+arrays are in use and memory is at a premium. For these circumstances
+the operator <EM>inplace()</EM> is provided which prevents the extra copy and
+allows the argument to be modified. e.g.:
+<p>
+<XMP>
+   $x = log($array);          # $array unaffected
+   log( inplace($bigarray) ); # $bigarray changed in situ
+
+</XMP>
+<p>
+</OL>
+WARNINGS: .
+<p>
+<OL>
+<LI>The usual caveats about duplicate references apply. 
+<p>
+<LI>Obviously when used with some functions which can not be applied
+in situ (e.g. <EM>convolve()</EM>) unexpected effects may occur! I try to
+indicate <EM>inplace()</EM> safe functions below.
+<p>
+<LI>Type conversions [e.g. <EM>float()</EM>] may cause hidden copying.
+<p>
+</OL>
+.
+<p>
+<H2> 
+<A NAME="PDL_data_0">
+Data Structure Guts</A>
+</H2>
+(For born fiddlers only.)
+<p>The data structure for <STRONG>$a</STRONG> is implemented by a hash (associative array)
+which <STRONG>$a</STRONG> is a (blessed) reference too.
+<p>PDL reserves for it's own use:
+<p>
+<XMP>
+   $$a{Data} ; # The DATA (byte list) - can be passed directly to F77/C
+               # subroutine as long as type matches. e.g. line() does a
+               # float() and then calls PGPLOT::pgline_r (bypassing packing)
+   
+   $$a{Datatype}; # Holds numeric data type, $PDL_F, $PDL_D, etc...
+   
+   $$a{Dims} ; # List reference holding dimensions. 
+               # E.g. @mydims = @{ $$a{Dims} };
+   
+   $$a{Hdr}  ; # Optional extra hash reference holding header, e.g.
+               # $airmass = $$a{Hdr}{'AIRMASS'}; %myhdr = %{ $$a{Hdr} };
+               # rfits() populates this from the FITS header.
+   
+   $$a{Inplace}; # Flag - inplace() sets this. Next time a copy is attempted
+                 # it does not occur and the flag is unset.
+
+</XMP>
+<p>Anything else stored in the structure will be copied to new objects
+(e.g. by <STRONG>$b</STRONG> = <STRONG>$a</STRONG> + 1) automatically as long as PDL knows how to copy it.
+[If it is a reference to another object PDL tries the -&gt;copy method.]
+<p>If your perl routine manipulates the data structure guts directly, 
+you don't want it to blow up in your face if you pass it a simple
+number rather than a PDL variable. Simply call the function 
+<EM>topdl()</EM> first to make it safe. e.g.:
+<p>
+<XMP>
+   sub myfiddle { my $pdl = topdl(shift); $$pdl{Data} = ... }
+
+</XMP>
+<p><EM>topdl()</EM> does NOT perform a copy if a pdl variable is passed - it
+just falls through - which is obviosuly the desired behaviour. The
+routine is not of course necessary in normal user defined functions
+which do not care about internals.
+<p>Finally there is no reason why the data structure should not
+contain another PDL variable!
+<p>
+<H2> 
+<A NAME="PDL_complete_0">
+Complete List of Exported Functions</A>
+</H2>
+<p>Defined in PDL::Core
+ 
+<p>
+<XMP>
+ byte short ushort long float double convert   - Type Conversions
+ 
+ pdl          - Create/copy a pdl 
+ topdl        - Coerce to pdl if scalar
+ howbig       - Size of pdl datatype in bytes
+ nelem        - Number of elements 
+ dims         - Return list of dimensions, e.g. @mydims = dims($x);
+ list         - Convert pdl to list - e.g. for (list $x) {..}
+ listindices  - Return list of index values (1D) - e.g. for $i 
+                (listindices $x) {..}
+ log10*       - Take log base 10
+ min max sum  - Min/max/sum of pdl array
+ zeroes/ones  - Create zero/one-filled pdl array
+ sequence     - Create sequence-filled pdl array
+ reshape      - reshape the dimensions of a pdl array
+ sec          - subsection
+ ins* / set   - insertion / setting
+ at           - return pixel value at (x,y,z...)
+ 
+ axisvals* xvals* yvals* zvals* - Fill pdl with axis values
+ 
+ rvals        - Fill pdl with distance from it's center
+ callext      - Call external C routine in dynamically loadable object
+ convolve     - convolve image with kernel (real space)
+ inplace      - Flag for inplace operation
+ hist         - histogram of data 
+ stats        - return mean + standard deviation
+ transpose    - matrix transpose
+
+</XMP>
+<p>Defined in PDL::Examples
+<p>This contains examples of how to add C functiions via XS
+including use of the generic preprocessor (.g files are
+automatically converted to .c files with code automatically
+generated for each datatype).
+<p>
+<XMP>
+ fibonacci*    - Compute Fibonacci series (simple 1D example)
+ cc8compt*     - Connected 8-component labelling (2D example)
+
+</XMP>
+<p>Defined in PDL::Io
+<p>[See ``Io'' section above]
+<p>Defined in PDL::Graphics::*
+<p>[See ``Graphics'' section above]
+<p>Footnotes:
+<p>* = indicates <CODE><EM>inplace()</EM></CODE> safe &amp; useful with this function
+<p>
+</BODY>
+</HTML>

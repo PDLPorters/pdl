@@ -1,0 +1,36 @@
+BITPIX = -32 size = 88504 pixels 
+Reading 354016bytes
+BSCALE =  &&  BZERO = 
+DATAMAX = 2723.36425781
+ = 
+FILENAME = groj1744-28.bdf
+BUNIT = none given      
+NAXIS = 2
+HIERARCH = 
+ORIGIN = ESO-MIDAS
+EXTEND = T
+CRVAL1 = 110.
+CRVAL2 = 108.
+SIMPLE = T
+BITPIX = -32
+HISTORY = 
+NAXIS1 = 299
+BLOCKED = T
+NAXIS2 = 296
+CTYPE1 =                 
+END = 
+OBJECT = average frame
+CRPIX1 = 1.
+CTYPE2 =                 
+MIDASFTP = IMAGE   
+CRPIX2 = 1.
+CDELT1 = 1.
+DATE = 08/02/96
+DATAMIN = -290.715698242
+CDELT2 = 1.
+
+size = 354016 type = 4
+Dims = 299 296 
+Float:  Max =  15453.8798828125  min =  -290.715698242188 
+short:  Max =  15453  min =  -290 
+Displaying 299 x 296 image from 2.22832489013672 to 9.6648416519165 ...

@@ -1,0 +1,38 @@
+
+This is version 1.00 of perlDL.
+-------------------------------
+
+It demonsrates basic data processing functionality but has no where
+near the features I would like to eventually put in it. The current
+docs are in file PDL.pod.
+
+Comments are welcome - so are volunteers to write code! Please contact
+me (kgb@aaoepp.aao.gov.au) or mailing list perldl@jach.hawaii.edu
+(subscription address:  perldl-request@jach.hawaii.edu) with ideas and
+suggestions.
+
+Karl Glazebrook, Anglo-Australian Observatory. 6/Oct/1996.
+
+Requirements.
+-------------
+
+perl5.003 or later. (Probably OK with 5.002 but I can not test.)
+
+PGPLOT module must be installed to access PGPLOT graphics.
+
+saoimage or ximtool must be installed to display images with
+these programs.
+
+ReadLines/ReadKey modules must be installed for command line
+editing and recall in 'perldl' shell.
+
+Building and Installation
+--------------------------
+
+Should be simply a matter of:
+
+; perl Makefile.PL
+; make
+; make test
+; make install
+
