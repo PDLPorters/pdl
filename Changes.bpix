@@ -1,7 +1,7 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/16/00)
-   - added setbadif() to PDL::Bad
+   - added setbadif() to PDL::Bad + minor doc updates
 Doug Burke (07/15/00)
    - fixed qsorti() and perldl's badinfo command
    - added $ISBADVAR(foo,pdl) & other macros, improved/cleaned up 

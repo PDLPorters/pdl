@@ -603,6 +603,10 @@ Returns the number of $op->[2] values in a piddle
 
  \$x = $op->[0](\$data);
 
+=for bad
+
+Does support bad values.
+
 =cut
 
 *$op->[0] = \\&PDL::$op->[0];
@@ -647,9 +651,9 @@ Is this sensible?
  print "a badflag: ", $a->badflag, "\n";
  a badflag: 1
 
-=for bad
-
-The output always has its bad flag set, even if it does not contain
+',
+       BadDoc =>
+'The output always has its bad flag set, even if it does not contain
 any bad values. Any bad values in the input piddles are copied
 across to the output piddle.
 ',
