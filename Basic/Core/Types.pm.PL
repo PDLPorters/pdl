@@ -49,7 +49,9 @@ PDL::Types - define fundamental PDL Datatypes
 
 =head1 DESCRIPTION
 
-Internal module - holds all the PDL Type info
+Internal module - holds all the PDL Type info.  This can be
+accessed using the C<PDL::Type> object returned by
+the L<type|PDL::Core/type> method.
 
 =cut
 

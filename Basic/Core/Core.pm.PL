@@ -363,7 +363,7 @@ Internal: Return the numeric value identifying the piddle datatype
 Mainly used for internal routines.
 
 NOTE: get_datatype returns 'just a number' not any special
-type  object.
+type object, unlike L<type|/type>.
 
 =head2 howbig
 
@@ -1601,6 +1601,36 @@ A convenience function for use with the piddle constructors, e.g.
 
  $b = PDL->zeroes($a->type,$a->dims,3);
 
+The returned object (C<PDL::Type>) has several methods.  These are mainly of 
+use to internal routines, since they provide an easy way to access the 
+information stored in L<PDL::Types|PDL::Types>.
+
+=over 4
+
+=item enum
+
+Returns the number representing this datatype (see L<get_datatype|/PDL::get_datatype>).
+
+=item symbol
+
+Returns one of 'PDL_B', 'PDL_S', 'PDL_US', 'PDL_L', 'PDL_F' or 'PDL_D'. 
+
+=item ctype
+
+Returns the macro used to represent this type in C code (eg 'PDL_Long').
+
+=item ppsym
+
+The letter used to represent this type in PP code code (eg 'U' for L<ushort|/ushort>).
+
+=item realctype
+
+The actual C type used to store this type.
+
+=item shortctype
+
+The value returned by C<ctype> without the 'PDL_'.
+
 =cut
 
 sub PDL::type { return PDL::Type->new($_[0]->get_datatype); }
@@ -1824,6 +1854,17 @@ returns a single piddle of dimension N+1
   ]
  ]
 
+!NO!SUBS!
+	if ( $bvalflag ) {
+print OUT <<'!NO!SUBS!';
+=for bad
+
+The output piddle is set bad if any input piddles have their bad flag set.
+
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 =cut
 
 sub PDL::cat {
@@ -1831,6 +1872,16 @@ sub PDL::cat {
   $res->setdims([$_[0]->dims,scalar(@_)]);
   my ($i,$t); my $s = ":,"x$_[0]->getndims;
   for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
+
+!NO!SUBS!
+	if ( $bvalflag ) {
+print OUT <<'!NO!SUBS!';
+        # propogate any bad flags
+	for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
   return $res;
 }
 
@@ -1872,6 +1923,17 @@ e.g.:
 
  Break => 1   Break dataflow connection (new copy)
 
+!NO!SUBS!
+	if ( $bvalflag ) {
+print OUT <<'!NO!SUBS!';
+=for bad
+
+The output piddles are set bad if the original piddle has its bad flag set.
+
+!NO!SUBS!
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
 =cut
 
 sub PDL::dog {

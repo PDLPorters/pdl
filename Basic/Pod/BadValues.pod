@@ -569,7 +569,7 @@ but I doubt that would be any faster.
 
 =head2 Integration with NaN
 
-When C<BADVAL_USENAN> is true, the routines in C<PDL::Ops> shoud
+When C<BADVAL_USENAN> is true, the routines in C<PDL::Ops> should
 just fall through to the C<Code> section - ie don't use C<BadCode> -
 for C<float> and C<double> data types.
 
@@ -578,7 +578,8 @@ for C<float> and C<double> data types.
 I think all that's needed is to change the routines in
 C<Basic/Core/pdlconv.c.PL>, although there's bound to be complications.
 It would also mean that the pdl structure would need to have a
-variable to store its bad value, which would mean binary incompatability.
+variable to store its bad value, which would mean binary incompatability
+with previous versions of PDL with bad value support.
 
 =head2 What to do with boolean operations?
 
