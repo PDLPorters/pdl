@@ -415,7 +415,7 @@ The output has the same data type as the input.  This is a feature,
 but it can lead to strange-looking banding behaviors if you use
 interpolation on an integer input variable.
 
-The C<<template>> can be one of:
+The C<template> can be one of:
 
 =over 3
 
@@ -2108,21 +2108,34 @@ Options that are accepted are:
 The parameter hash that will be passed back to your code (defaults to the
 empty hash).
 
-=item j, jac, jacobian, Jacobian
-
-A code ref that returns the Jacobian of the transform (optional; it'll
-be calculated by multiple calls to func and/or by inverting ij if you
-need it and don't specify it).
-
-=item ij, j2, inv_jac, inv_jacobian, inverse_jacobian, Inverse_Jacobian
-
-A code ref that returns the Jacobian of the inverse transform
-(optional; it'll be calculated by multiple calls to inv and/or by
-inverting j2 if you need it and don't specify it).
-
 =item n,name
 
 The name of the transform (defaults to "code").
+
+=item i, idim (default 2)
+
+The number of input dimensions (additional ones should be passed through
+unchanged)
+
+=item o, odim (default 2)
+
+The number of output dimensions 
+
+=item itype 
+
+The type of the input dimensions, in an array ref (optional and advisiory)
+
+=item otype
+
+The type of the output dimension, in an array ref (optional and advisory)
+
+=item iunit
+
+The units that are expected for the input dimensions (optional and advisory)
+
+=item ounit
+
+The units that are returned in the output (optional and advisory).
 
 =back
 
@@ -2150,8 +2163,13 @@ sub t_code {
   $me->{func} = $func;
   $me->{inv} = $inv;
   $me->{params} = _opt($o,['p','params','Params']) || {};
-  $me->{jacobian} = _opt($o,['j','jac','jacobian','Jacobian']);
-  $me->{inv_jacobian}= _opt($o,['ij','j2','inv_jac','inv_jacobian','inverse_jacobian','Inverse_Jacobian']);
+  $me->{idim} = _opt($o,['i','idim']) || 2;
+  $me->{odim} = _opt($o,['o','odim']) || 2;
+  $me->{itype} = _opt($o,['itype']) || [];
+  $me->{otype} = _opt($o,['otype']) || [];
+  $me->{iunit} = _opt($o,['iunit']) || [];
+  $me->{ounit} = _opt($o,['ounit']) || [];
+  
   $me;
 }
 

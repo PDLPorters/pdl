@@ -1,3 +1,6 @@
+CED (5-Feb-2003)
+    - Fix to Window.pm -- ctab selects window focus now (as it should).
+    - 
 CED (30-Jan-2003)
     - Modified interpND linear method (30% faster!).
     - Added PNG interpretation to ::IO::Pic.

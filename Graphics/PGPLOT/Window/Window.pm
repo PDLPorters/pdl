@@ -1991,6 +1991,8 @@ $PDL::Graphics::PGPLOT::RECORDING = 0; # By default recording is off..
 
 =head2 signal_catcher, catch_signals, release_signals
 
+=for ref Internal PDL/PGPLOT signal handlers
+
 To prevent pgplot from doing a fandango on core, we have to block interrupts
 during PGPLOT calls.  Specifically, INT needs to get caught.  These internal 
 routines provide a mechanism for that.  
@@ -2006,11 +2008,17 @@ This includes calls to C<&barf> -- even barfs from someone you called!
 So avoid calling out of the local module if possible, and use 
 release_and_barf() instead of barf() from within this module.
 
+Perl 5.6.1 interrupt handling has a bug that this code tickles -- 
+sometimes the re-emitted signals vanish into hyperspace.  Perl 5.8
+seems NOT to have that problem.
+
 =cut
 
 my %sig_log;
 my %sig_handlers;
 my $sig_nest = 0;
+
+
 
 sub signal_catcher {
   my($sig) = shift;
@@ -2049,8 +2057,9 @@ sub signal_catcher {
   }
 }  
 
+
 sub catch_signals {
-  my(@sigs) = ('INT','__DIE__');
+  my(@sigs) = ('INT');
 
   local($_);
 
@@ -2066,6 +2075,8 @@ sub catch_signals {
   $sig_nest++; # Keep track of nested calls.
 }
 
+
+
 sub release_signals {
   local($_);
 
@@ -2078,22 +2089,15 @@ sub release_signals {
   foreach $_(keys %sig_handlers) {
     no warnings; # allow assignment even if sig_handlers{$_} is undef
     $SIG{$_}=$sig_handlers{$_};
+    print "set sig{$_} back to $sig_handlers{$_}\n";
     delete $sig_handlers{$_};
   }
 
   # release signals
   foreach $_(keys %sig_log) {
     next unless $sig_log{$_};
-    print "found a $_...\n" if($PDL::debug > 1);
     $sig_log{$_} = 0;
-    print "emitting signal...\n" if($PDL::debug > 1);
-    sleep 1;
-    my $z = $$;
-    if(!fork) {
-      sleep 1;    # daughter
-      kill $_,$$;
-      exit(0);    
-    }
+    kill $_,$$;
   }
 
 }
@@ -2162,6 +2166,23 @@ sub pgwin{
 	$a[0] = "/$a[0]" unless($a[0] =~ m:/:);
 	unshift(@a,'Dev')
 	}
+
+    # If two parameters are passed in, and the second one is a hash,
+    # then the first one is a device.
+    if(scalar(@a) == 2 && ref $a[1] eq 'HASH') {
+      $a[0] = "/$a[0]" unless($a[0] =~ m:/:);
+      $a[1]->{Dev} = $a[0];
+      @a = %{$a[1]};
+    }
+
+    # Furthermore, if an odd number of parameters are passed in, 
+    # then the first one is a device and the rest is intended to 
+    # be a parameters hash...
+    if(scalar(@a) % 2) {
+      $a[0] = "/$a[0]" unless($a[0] =~ m/:/);
+      unshift(@a,'Dev');
+    }
+
     return PDL::Graphics::PGPLOT::Window->new(@a);
 }
   
@@ -5224,6 +5245,8 @@ sub arrow {
 	$self->release() unless $hflag;
     }
 
+    $self->redraw_axes($u_opt) unless $self->held();
+
     &release_signals;
 
     1;
@@ -5513,6 +5536,8 @@ EOD
     $brightness = 0.5 unless defined $brightness;
 
     &catch_signals;
+
+    focus( $self ); 
 
     pgctab( $levels->get_dataref, $red->get_dataref, $green->get_dataref,
 	    $blue->get_dataref, $n, $contrast, $brightness );
