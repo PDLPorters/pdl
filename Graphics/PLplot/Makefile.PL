@@ -13,7 +13,7 @@ use vars qw /$plplotvers/; # version of plplot used
 # Pick up development utilities
 PDL::Core::Dev->import();
 
-# 
+#
 ## Search for plplot library and include file
 #
 print "\nChecking PDL::Graphics::PLplot...\n";
@@ -23,8 +23,8 @@ unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 my $libname = "libplplotd.so";
 my $incname = "plplot.h";
 
-print "\tPDL_CONFIG{WITH_PLPLOT} is '".$PDL_CONFIG{WITH_PLPLOT}."'   ";
-my $found_plplot = (defined($PDL_CONFIG{WITH_PLPLOT}) && (!$PDL_CONFIG{WITH_PLPLOT})) ? 0 : 1;
+print "\tPDL_CONFIG{WITH_PLPLOT} is '".$PDL::Config{WITH_PLPLOT}."'   ";
+my $found_plplot = (defined($PDL::Config{WITH_PLPLOT}) && (!$PDL::Config{WITH_PLPLOT})) ? 0 : 1;
 print "found_plplot is $found_plplot\n";
 
 unless ($found_plplot) {
@@ -38,7 +38,7 @@ foreach my $libdir (
 		    '/usr/lib',
 		    '/opt/lib',
 		    '/ops/tools/lib',
-		    $PDL_CONFIG{WHERE_PLPLOT_LIBS},
+		    $PDL::Config{WHERE_PLPLOT_LIBS},
 		                  # Add new library paths here!!
 		    ) {
 
@@ -66,7 +66,7 @@ foreach my $incdir (
 		    '/opt/include',
 		    '/ops/tools/include/plplot',
 		    '/ops/tools/include',
-		    $PDL_CONFIG{WHERE_PLPLOT_INCLUDE},
+		    $PDL::Config{WHERE_PLPLOT_INCLUDE},
 		                  # Add new header paths here!!
 		    ) {
 
@@ -149,7 +149,7 @@ if ($@) {
 
 $VERSION = '0.21';
 
-$PDL_CONFIG{WITH_PLPLOT} = 1;
+$PDL::Config{WITH_PLPLOT} = 1;
 $package = ["plplot.pd",PLplot,PDL::Graphics::PLplot];
 WriteMakefile(
 	      'NAME'  	     => 'PDL::Graphics::PLplot',
@@ -194,7 +194,7 @@ sub buildDummy {
   warn $msg . "\n";
   $msg =~ s/\n//g;
   write_dummy_make( $msg );
-  $PDL_CONFIG{WITH_PLPLOT} = 0;
+  $PDL::Config{WITH_PLPLOT} = 0;
 }
 
 

@@ -18,7 +18,7 @@ PDL development and is often used from within Makefile.PL's.
 
 =head1 FUNCTIONS
 
-=cut   
+=cut
 
 # Stuff used in development/install environment of PDL Makefile.PL's
 # - not part of PDL itself.
@@ -29,7 +29,7 @@ use English; require Exporter;
 
 @ISA    = qw( Exporter );
 
-@EXPORT = qw( isbigendian genpp %PDL_DATATYPES 
+@EXPORT = qw( isbigendian genpp %PDL_DATATYPES
 	     PDL_INCLUDE PDL_TYPEMAP
 	     PDL_AUTO_INCLUDE PDL_BOOT
 		 PDL_INST_INCLUDE PDL_INST_TYPEMAP
@@ -113,6 +113,22 @@ sub whereami_inst {
    return undef;
 }
 
+#
+# To access PDL's configuration use %PDL::Config. Makefile.PL has been set up
+# to create this variable so it is available during 'perl Makefile.PL' and
+# it can be eval-ed during 'make'
+#
+##print STDERR "{{{{ is PDL::Config defined [" . (defined %PDL::Config ? "yes" : "no" ). "] }}}}\n";
+unless ( defined %PDL::Config ) {
+
+    ##print STDERR "{{{{ Loading PDL::Config }}}}\n";
+    # this uses the distribution version before the installed version
+    eval 'require "' . whereami_any() . '/Core/Config.pm";';
+    die "Unable to find PDL's configuration info\n [$@]"
+      if $@;
+}
+##print STDERR "{{{{ is PDL::Config defined [" . (defined %PDL::Config ? "yes" : "no" ). "] }}}}\n";
+
 # Data types to C types mapping
 # get the map from Types.pm
 {
@@ -132,10 +148,10 @@ sub whereami_inst {
 }
 PDL::Types->import();
 
-my $inc = defined $::PDL_CONFIG{MALLOCDBG}->{include} ?
-  "$::PDL_CONFIG{MALLOCDBG}->{include}" : '';
-my $libs = defined $::PDL_CONFIG{MALLOCDBG}->{libs} ?
-  "$::PDL_CONFIG{MALLOCDBG}->{libs}" : '';
+my $inc = defined $PDL::Config{MALLOCDBG}->{include} ?
+  "$PDL::Config{MALLOCDBG}->{include}" : '';
+my $libs = defined $PDL::Config{MALLOCDBG}->{libs} ?
+  "$PDL::Config{MALLOCDBG}->{libs}" : '';
 
 %PDL_DATATYPES = ();
 foreach $key (keys %PDL::Types::typehash) {
@@ -409,10 +425,10 @@ sub pdlpp_stdargs_int {
  my($rec) = @_;
  my($src,$pref,$mod) = @$rec;
  my $w = whereami();
- my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
-   $PDL_CONFIG{MALLOCDBG}->{libs} : '';
- my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
-   $PDL_CONFIG{MALLOCDBG}->{include} : '';
+ my $malloclib = exists $PDL::Config{MALLOCDBG}->{libs} ?
+   $PDL::Config{MALLOCDBG}->{libs} : '';
+ my $mallocinc = exists $PDL::Config{MALLOCDBG}->{include} ?
+   $PDL::Config{MALLOCDBG}->{include} : '';
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
@@ -577,8 +593,8 @@ sub trylink {
   # check if MakeMaker should be used to preprocess the libs
   for my $key(keys %$opt) {$opt->{lc $key} = $opt->{$key}}
   my $mmprocess = exists $opt->{makemaker} && $opt->{makemaker};
-  my $hide = exists $opt->{hide} ? $opt->{hide} : 
-    exists $::PDL_CONFIG{HIDE_TRYLINK} ? $::PDL_CONFIG{HIDE_TRYLINK} : 1;
+  my $hide = exists $opt->{hide} ? $opt->{hide} :
+    exists $PDL::Config{HIDE_TRYLINK} ? $PDL::Config{HIDE_TRYLINK} : 1;
   my $clean = exists $opt->{clean} ? $opt->{clean} : 1;
   if ($mmprocess) {
       require ExtUtils::MakeMaker;
@@ -593,11 +609,10 @@ sub trylink {
 
   print "     Trying $txt...\n     " unless $txt =~ /^\s*$/;
 
-  my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1'; 
-  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
-  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
-            defined $ENV{TMP} ? $ENV{TMP} :
-                           &$cdir($fs->rootdir,$td);
+  my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1';
+
+  my $tempd = $PDL::Config{TEMPDIR} ||
+    die "TEMPDIR not found in \%PDL::CONFIG";
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";
@@ -617,7 +632,7 @@ EOF
   close FILE;
   # print "test prog:\n$prog\n";
   # make sure we can overwrite the executable. shouldn't need this,
-  # but if it fails and HIDE is on, the user will never see the error.	 
+  # but if it fails and HIDE is on, the user will never see the error.
   open(T, ">$te") or die( "unable to write to test executable `$te'");
   close T;
   print "$Config{cc} $cflags -o $te $tc $libs $HIDE ...\n" unless $hide;

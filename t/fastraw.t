@@ -17,8 +17,16 @@ sub tapprox {
 	$d < 0.01;
 }
 
+sub cleanup {
+    my $h = shift;
+    unlink $h, $h . ".hdr";
+}
+
 use PDL;
 use PDL::IO::FastRaw;
+use PDL::Config;
+
+my $tmpdir = $PDL::Config{TEMPDIR};
 
 print "1..5\n";
 
@@ -26,11 +34,13 @@ $a = pdl [2,3],[4,5],[6,7];
 
 print $a;
 
-unlink "tmp0","tmp0.hdr";
+my $name = $tmpdir . "/tmp0";
 
-writefraw($a,"tmp0");
+cleanup $name;
 
-$b = readfraw("tmp0");
+writefraw($a,$name);
+
+$b = readfraw($name);
 
 print $b;
 
@@ -47,7 +57,7 @@ if ($^O =~ /win32/i) {
   exit;
 }
 
-$c = mapfraw("tmp0");
+$c = mapfraw($name);
 
 print $c;
 
@@ -59,15 +69,16 @@ print $c;
 
 undef $c;
 
-$b = readfraw("tmp0");
+$b = readfraw($name);
 
 print $b;
 
 ok(3,tapprox($a+1,$b));
 
-unlink "tmp0","tmp0.hdr";
+cleanup $name;
 
-$e = mapfraw("tmp1", {Creat => 1, Datatype => &float, Dims => [3,2]});
+$name = $tmpdir . "/tmp1";
+$e = mapfraw($name, {Creat => 1, Datatype => &float, Dims => [3,2]});
 
 print $e;
 $e += xvals $e;
@@ -75,12 +86,12 @@ $e += 0.1 * yvals $e;
 
 undef $e;
 
-$f = readfraw("tmp1");
+$f = readfraw($name);
 
 ok(4,tapprox($f, PDL->pdl([[0,1,2],[0.1,1.1,2.1]])));
 
 ok(5, $f->type->[0] == (&float)->[0]);
 
-unlink "tmp1","tmp1.hdr";
+cleanup $name;
 
 

@@ -1,9 +1,7 @@
 
 # Makefile.PL for PDL::CallExt module
-my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
-  $PDL_CONFIG{MALLOCDBG}->{libs} : '';
-my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
-  $PDL_CONFIG{MALLOCDBG}->{include} : '';
+my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
+my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
 use ExtUtils::MakeMaker;
 WriteMakefile(

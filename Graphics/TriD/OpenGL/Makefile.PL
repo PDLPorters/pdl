@@ -8,9 +8,9 @@ use ExtUtils::MakeMaker;
 
 %hash = pdlpp_stdargs(@::pack);
 
-push @{$hash{LIBS}}, $PDL_CONFIG{OPENGL_LIBS};
-$hash{INC} .= $PDL_CONFIG{OPENGL_INC};
-$hash{DEFINE} .= $PDL_CONFIG{OPENGL_DEFINE};
+push @{$hash{LIBS}}, $PDL::Config{OPENGL_LIBS};
+$hash{INC} .= $PDL::Config{OPENGL_INC};
+$hash{DEFINE} .= $PDL::Config{OPENGL_DEFINE};
 $hash{clean}{FILES} .= ' tmp_*.h ppcode.out';
 
 #use Data::Dumper;
@@ -26,9 +26,9 @@ sub MY::postamble {
 #
 # Perls GetOpt::Long routine needs to have a space after the option name
 #
-  my $inc = $PDL_CONFIG{OPENGL_INC};
+  my $inc = $PDL::Config{OPENGL_INC};
   $inc =~ s/-I(\S)/-I $1/g;
-  my $def = $PDL_CONFIG{OPENGL_DEFINE};
+  my $def = $PDL::Config{OPENGL_DEFINE};
   $def =~ s/-D(\S)/-D $1/g;
 
   $amb =~ s/opengl.pd\s*$/opengl.pd $inc $def\n/m;

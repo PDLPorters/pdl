@@ -1,3 +1,15 @@
+DJB 12-30-03 [config-variable-cleanup branch]
+   - Initial attempt at cleaning up the use of config values in the build
+     process. We no longer use %PDL_CONFIG but use %PDL::Config in
+     Makefile.PL's and *.pm's (it unifies the code since we do not need
+     to check for one or the other). The config files (e.g. perldl.conf)
+     still use the PDL_CONFIG variable.
+   - added a TEMPDIR config entry which defines the location of the
+     temporary directory to use during the build and testing phases;
+     updated code to use this where spotted (may be other locations
+     lurking around, particularly in the tests)
+   - Moved configuration of MALLOCDBG-related variables into the top-level
+     Makefile.PL since the same bit of code was seen in several Makefile.PL's
 CED 12-29-03
    - PLPlot Makefile.PL prints more informative messages during configure
    - Added crash test to t/plplot.t

@@ -45,6 +45,7 @@ use PDL::Types;
 use PDL::ImageRGB;
 use PDL::IO::Pnm;
 use PDL::Options;
+use PDL::Config;
 use File::Basename;
 use SelfLoader;
 
@@ -762,15 +763,15 @@ sub chkpdl {
     return ($pdl, $iform);
 }
 
+# delegate setting the temporary directory to the config file
+# (so that it can either be OS-independent or at least
+#  easily controlled by the user).
+#
 sub gettmpdir {
-    # in the future an os indep. way
-    # are there already VMS or Windows NT/95 users ?
-  my $tmpdir = '/tmp';
-  $tmpdir  = $ENV{"TMP"} if defined $ENV{"TMP"};
-  $tmpdir  = $ENV{"TEMP"} if defined $ENV{"TEMP"};
-  $tmpdir =~ s|/$||;  # chop off a trailing '/'
-  barf "can't locate a temp dir" unless -d $tmpdir;
-  return $tmpdir;
+    my $tmpdir = $PDL::Config{TEMPDIR} ||
+      die "TEMPDIR not found in %PDL::Config";
+    barf "can't locate a temp dir called $tmpdir" unless -d $tmpdir;
+    return $tmpdir;
 }
 
 

@@ -2,6 +2,7 @@ BEGIN {
   print "1..4\n";
 }
 use PDL;
+use PDL::Config;
 
 sub ok($;$$){
   my $no=shift;
@@ -18,7 +19,7 @@ if($@) {print $@,"\n";}
 ok(1,!$@);
 
 ##2 Make a DiskCache object
-my($d) = "/tmp/test-$$/";
+my($d) = $PDL::Config{TEMPDIR} . "/test-$$/";
 `mkdir $d`;
 
 eval <<'BAR'
@@ -43,7 +44,4 @@ BAZ
   ;
 
 `rm -rf $d`;
-    
 
-    
-    
