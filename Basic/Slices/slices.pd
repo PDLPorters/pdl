@@ -163,6 +163,92 @@ pp_def(
 	Doc => $doc,
 );
 
+pp_def(
+	'rld',
+	Pars=>'int a(n); b(n); [o]c(m);',
+	PMCode =><<'EOD',
+sub PDL::rld {
+  my ($a,$b) = @_;
+  my ($c);
+  if ($#_ == 2) {
+    $c = $_[2];
+  } else {
+# XXX Need to improve emulation of threading in auto-generating c
+    my ($size) = $a->sumover->max;
+    my (@dims) = $a->dims;
+    shift @dims;
+    $c = $b->zeroes($size,@dims);
+  }
+  &PDL::_rld_int($a,$b,$c);
+  $c;
+}
+EOD
+	Code=>'
+	  int i,j=0,an;
+	  $GENERIC(b) bv;
+	  loop (n) %{
+	    an = $a();
+	    bv = $b();
+	    for (i=0;i<an;i++) {
+	      $c(m=>j) = bv;
+	      j++;
+	    }
+	  %}',
+	Doc => <<'EOD'
+=for ref
+
+Run-length decode a vector
+
+Given a vector $a of the numbers of instances of values $b, run-length
+decode to $c.
+
+=for example
+
+rld($a,$b,$c=null);
+
+=cut
+EOD
+);
+pp_def(
+	'rle',
+	Pars=>'c(n); int [o]a(n); [o]b(n);',
+	Code=>'
+	  int j=0,sn=$SIZE(n);
+	  $GENERIC(c) cv, clv;
+	  clv = $c(n=>0);
+	  $b(n=>0) = clv;
+	  $a(n=>0) = 0;
+	  loop (n) %{
+	    cv = $c();
+	    if (cv == clv) {
+	      $a(n=>j)++;
+	    } else {
+	      j++;
+	      $b(n=>j) = clv = cv;
+	      $a(n=>j) = 1;
+	    }
+	  %}
+	  for (j++;j<sn;j++) {
+	    $a(n=>j) = 0;
+	    $b(n=>j) = 0;
+	  }
+	',
+	Doc => <<'EOD'
+=for ref
+
+Run-length encode a vector
+
+Given vector $c, generate a vector $a with the number of each element,
+and a vector $b of the unique values.  Only the elements up to the
+first instance of `0' in $a should be considered.
+
+=for example
+
+rle($c,$a=null,$b=null);
+
+=cut
+EOD
+);
 
 # this one can convert vaffine piddles without(!) physicalising them
 # maybe it can replace 'converttypei' in the future?

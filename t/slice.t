@@ -20,7 +20,7 @@ sub approx {
 	$d < 0.01;
 }
 
-print "1..32\n";
+print "1..33\n";
 
 if(1) {
 
@@ -227,5 +227,12 @@ $b = $a->dummy(-1,2);
 ok(31,join(',',$b->dims) eq '3,4,2');
 
 $a = pdl(2);
+print "a\n";
 $b = $a->slice('');
 ok(32,approx $a, $b);
+
+$a = pdl[1,1,1,3,3,4,4,1,1,2];
+$b = null;
+$c = null;
+rle($a,$b,$c);
+ok(33,approx $a, rld($b,$c));
