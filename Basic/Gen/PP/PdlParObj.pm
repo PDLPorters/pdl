@@ -73,9 +73,9 @@ sub new {
 		/^((?:byte|short|ushort|int|float|double)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
 		confess("Invalid flag $_ given for $string\n");
 	}
-	if($this->{FlagPhys}) {
-		# warn("Warning: physical flag not implemented yet");
-	}
+#	if($this->{FlagPhys}) {
+#		# warn("Warning: physical flag not implemented yet");
+#	}
 	if ($this->{FlagTyped} && $this->{Type} =~ s/[+]$// ) {
 	  $this->{FlagTplus} = 1;
 		}
@@ -192,58 +192,68 @@ sub get_nnflag { my($this) = @_;
 
 
 # XXX There might be weird backprop-of-changed stuff for [phys].
-sub get_xsnormdimchecks { my($this) = @_;
-	my $pdl = $this->get_nname;
-	my $str = ""; my $ninds = 0+scalar(@{$this->{IndObjs}});
-	$str .= "if(!__creating[$this->{Number}]) {";
-	# Dimensional Promotion when number of dims is less than required:
-	#   Previous warning message now commented out.
-	$str .= "
-		if(($pdl)->ndims < $ninds) {
-                 ".join('', map {       
-		"if (($pdl)->ndims < $_ && ".$this->{IndObjs}[$_-1]->get_size()." <= 1)
-		".$this->{IndObjs}[$_-1]->get_size() ." = 1;\n"}
-                      (1..$ninds))."
-                /*      \$CROAK(\"Too few dimensions for argument \'$this->{Name}\'\\n\"); */
-		}
-	";
-# Now, the real check.
-	my $no = 0;
-	for(@{$this->{IndObjs}}) {
-		my $siz = $_->get_size();
-		my $dim = "($pdl)->dims[$no]";
-               my $ndims = "($pdl)->ndims";
-		$str .= "
-                 if($siz == -1 || ($ndims > $no && $siz == 1)) {
-			$siz = $dim;
-                 } else if($ndims > $no && $siz != $dim) {
-		  	if($dim == 1) {
-				/* Do nothing */ /* XXX Careful, increment? */
-			} else {
-				\$CROAK(\"Wrong dims\\n\");
-			}
-		  }
-		";
-		$no++;
-	}
-	if($this->{FlagPhys}) {
-		$str .= "PDL->make_physical(($pdl));";
-	}
-	$str .= "} else {";
-# We are creating this pdl.
-	if(!$this->{FlagCreat}) {
-		$str .= qq'\$CROAK("Cannot create non-output argument $this->{Name}!\\n");';
-	} else {
-		$str .= "int dims[".($ninds+1)."]; /* Use ninds+1 to avoid smart (stupid) compilers */";
-		$str .= join "",
-		   (map {"dims[$_] = ".$this->{IndObjs}[$_]->get_size().";"}
-		      0..$#{$this->{IndObjs}});
-		my $istemp = $this->{FlagTemp} ? 1 : 0;
-              $str .="\n PDL->thread_create_parameter(&\$PRIV(__pdlthread),$this->{Number},dims,$istemp);\n"
-	}
+#
+# Have changed code to assume that, if(!$this->{FlagCreat}) 
+# then __creating[] will == 0
+#  -- see make_redodims_thread() in ../PP.pm
+#
+sub get_xsnormdimchecks { 
+    my($this) = @_;
+    my $pdl   = $this->get_nname;
+    my $iref  = $this->{IndObjs};
+    my $ninds = 0+scalar(@$iref);
+
+    my $str = ""; 
+    $str .= "if(!__creating[$this->{Number}]) {\n" if $this->{FlagCreat};
+    
+    # Dimensional Promotion when number of dims is less than required:
+    #   Previous warning message now commented out,
+    #   which means we only need include the code if $ninds > 0
+    #
+    if ( $ninds > 0 ) {
+	$str .= "   if(($pdl)->ndims < $ninds) {\n" .
+	    join('', map { 
+		my $size = $iref->[$_-1]->get_size();      
+		"      if (($pdl)->ndims < $_ && $size <= 1) $size = 1;\n"
+		} (1..$ninds)) 
+##		."      /* \$CROAK(\"Too few dimensions for argument \'$this->{Name}\'\\n\"); */\n"
+		. "   }\n";
+    }
+
+    # Now, the real check.
+    my $no = 0;
+    for( @$iref ) {
+	my $siz = $_->get_size();
+	my $dim = "($pdl)->dims[$no]";
+	my $ndims = "($pdl)->ndims";
+	$str .= "   if($siz == -1 || ($ndims > $no && $siz == 1)) {\n" .
+	        "      $siz = $dim;\n" .
+		"   } else if($ndims > $no && $siz != $dim) {\n" .
+#		"      if($dim == 1) {\n" .
+#		"         /* Do nothing */ /* XXX Careful, increment? */" .
+#		"      } else {\n" .
+		"      if($dim != 1) {\n" .
+                "         \$CROAK(\"Wrong dims\\n\");\n" .
+		"      }\n   }\n";
+	$no++;
+    } 
+
+    $str .= "PDL->make_physical(($pdl));\n" if $this->{FlagPhys};
+
+    if ( $this->{FlagCreat} ) { 
+	$str .= "} else {\n";
+	
+	# We are creating this pdl.
+	$str .= " int dims[".($ninds+1)."]; /* Use ninds+1 to avoid smart (stupid) compilers */";
+	$str .= join "",
+	(map {"dims[$_] = ".$iref->[$_]->get_size().";"} 0 .. $#$iref);
+	my $istemp = $this->{FlagTemp} ? 1 : 0;
+	$str .="\n PDL->thread_create_parameter(&\$PRIV(__pdlthread),$this->{Number},dims,$istemp);\n";
 	$str .= "}";
-	$str
-}
+    }
+    return $str;
+    
+} # sub: get_xsnormdimchecks()
 
 sub get_incname {
 	my($this,$ind) = @_;

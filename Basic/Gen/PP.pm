@@ -969,7 +969,7 @@ sub hdrcheck {
   foreach ( 0 .. $nn ) {
       $str .= "   if (!hdrp && ";
       $str .= "!__creating[$_] && " if $pobjs->{$pnames->[$_]}{FlagCreat};
-      $str .= "$names[$_]\->hdrsv && ($names[_]\->state & PDL_HDRCPY))\n" .
+      $str .= "$names[$_]\->hdrsv && ($names[$_]\->state & PDL_HDRCPY))\n" .
 	  "      hdrp = $names[$_]\->hdrsv;\n";
   }
   $str .= "if (hdrp) {\n";

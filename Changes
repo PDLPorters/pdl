@@ -1,9 +1,10 @@
 (!!! = possible source of incompatibilities)
 
-Doug Burke (7/02/00; 7/05/00)
+Doug Burke (7/02/00; 7/05/00; 7/06/00)
     - stopped some excess code generation & improve legibility of some code
-      in Basic/Gen/PP.pm
+      in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm
     - minor doc cleanup in Graphics/TriD/Rout/rout.pd (lack of head3 in pod)
+    - added a test to t/hdrs.t to pick up a bug I'd introduced
 Tim Jenness (6/30/00)
     - PDL::CallExt now works on WinNT with VC++
 Doug Burke (6/29/00)
