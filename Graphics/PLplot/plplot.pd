@@ -1943,3 +1943,7 @@ pp_def ('plParseOpts',
 );
 
 pp_done();
+
+# Local Variables:
+# mode: cperl
+# End:
