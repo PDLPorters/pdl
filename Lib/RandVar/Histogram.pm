@@ -46,7 +46,7 @@ $VERSION = 1.0;
 }
 
 use PDL;
-use PDL::NiceSlice;
+# use PDL::NiceSlice;
 use Carp;
 
 
@@ -171,17 +171,17 @@ sub PDL::RandVar::Histogram::sample() {
     while($step > 0 && 
 	  ! ( ($i==0 || $b->slice($i-1) <= $r)
 	      &&
-	      ($b->($i) > $r)
+	      ($b->slice($i) > $r)
 	    )
 	  ) {
-      if($b->($i) < $r) {
+      if($b->slice($i) < $r) {
 	$i += $step;
       } else {
 	$i -= $step;
       }
       $step .= ($step/2)->floor;
     }
-    $o->($j) .= $i->clip(0);
+    $o->slice($j) .= $i->clip(0);
   }
 
   return $out;
