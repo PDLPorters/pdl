@@ -21,22 +21,22 @@
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/local/lib/perl5/sun4-solaris/5.003/Config.pm)
+# These definitions are from config.sh (via /usr/local/lib/perl5/sun4-sunos/5.003/Config.pm)
 
 # They may have been overridden via Makefile.PL or on the command line
 AR = ar
-CC = cc
-CCCDLFLAGS = -Kpic
+CC = gcc
+CCCDLFLAGS = -fpic
 CCDLFLAGS =  
 DLEXT = so
 DLSRC = dl_dlopen.xs
-LD = cc
-LDDLFLAGS = -G -L/usr/local/lib -L/opt/gnu/lib
-LDFLAGS =  -L/usr/local/lib -L/opt/gnu/lib
-LIBC = /lib/libc.so
+LD = ld
+LDDLFLAGS = -assert nodefinitions -L/usr/local/lib
+LDFLAGS =  -L/usr/local/lib
+LIBC = /lib/libc.so.1.9
 LIB_EXT = .a
 OBJ_EXT = .o
-RANLIB = :
+RANLIB = /usr/bin/ranlib
 SO = so
 
 
@@ -56,20 +56,20 @@ INST_SCRIPT = ../.././blib/script
 PREFIX = /usr/local
 INSTALLDIRS = site
 INSTALLPRIVLIB = $(PREFIX)/lib/perl5
-INSTALLARCHLIB = $(PREFIX)/lib/perl5/sun4-solaris/5.003
+INSTALLARCHLIB = $(PREFIX)/lib/perl5/sun4-sunos/5.003
 INSTALLSITELIB = $(PREFIX)/lib/perl5/site_perl
-INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/sun4-solaris
+INSTALLSITEARCH = $(PREFIX)/lib/perl5/site_perl/sun4-sunos
 INSTALLBIN = $(PREFIX)/bin
 INSTALLSCRIPT = $(PREFIX)/bin
 PERL_LIB = /usr/local/lib/perl5
-PERL_ARCHLIB = /usr/local/lib/perl5/sun4-solaris/5.003
+PERL_ARCHLIB = /usr/local/lib/perl5/sun4-sunos/5.003
 SITELIBEXP = /usr/local/lib/perl5/site_perl
-SITEARCHEXP = /usr/local/lib/perl5/site_perl/sun4-solaris
+SITEARCHEXP = /usr/local/lib/perl5/site_perl/sun4-sunos
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/local/lib/perl5/sun4-solaris/5.003/CORE
+PERL_INC = /usr/local/lib/perl5/sun4-sunos/5.003/CORE
 PERL = /usr/local/bin/perl
 FULLPERL = /usr/local/bin/perl
 
@@ -98,10 +98,8 @@ LINKTYPE = dynamic
 
 # Handy lists of source code files:
 XS_FILES= Examples.xs
-C_FILES = Examples.c \
-	pdlexamples.c
-O_FILES = Examples.o \
-	pdlexamples.o
+C_FILES = Examples.c
+O_FILES = Examples.o
 H_FILES = pdlexamples.h
 MAN1PODS = 
 MAN3PODS = 
@@ -169,7 +167,7 @@ XSUBPPARGS = -typemap $(XSUBPPDIR)/typemap -typemap ../../PDL/Core/typemap.pdl
 SHELL = /bin/sh
 CHMOD = chmod
 CP = cp
-LD = cc
+LD = ld
 MV = mv
 NOOP = sh -c true
 RM_F = rm -f
@@ -202,7 +200,7 @@ EQUALIZE_TIMESTAMP = $(PERL) -we 'open F, ">$$ARGV[1]"; close F;' \
 
 # --- MakeMaker cflags section:
 
-CCFLAGS = -DDEBUGGING -DEMBED
+CCFLAGS = -I/usr/local/include
 OPTIMIZE = -O
 PERLTYPE = 
 LARGE = 
@@ -286,21 +284,21 @@ config :: $(INST_ARCHAUTODIR)/.exists
 config :: $(INST_AUTODIR)/.exists
 	@$(NOOP)
 
-$(INST_AUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+$(INST_AUTODIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_AUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_AUTODIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_AUTODIR)
 
-$(INST_LIBDIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+$(INST_LIBDIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_LIBDIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_LIBDIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_LIBDIR)
 
-$(INST_ARCHAUTODIR)/.exists :: /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h
+$(INST_ARCHAUTODIR)/.exists :: /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h
 	@$(MKPATH) $(INST_ARCHAUTODIR)
-	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-solaris/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
+	@$(EQUALIZE_TIMESTAMP) /usr/local/lib/perl5/sun4-sunos/5.003/CORE/perl.h $(INST_ARCHAUTODIR)/.exists
 
 	-@$(CHMOD) 755 $(INST_ARCHAUTODIR)
 
@@ -469,7 +467,7 @@ Makefile : Makefile.PL $(CONFIGDEP)
 	@echo "Cleaning current config before rebuilding Makefile..."
 	-@mv Makefile Makefile.old
 	-$(MAKE) -f Makefile.old clean >/dev/null 2>&1 || true
-	$(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" Makefile.PL "INSTALLSITELIB=~/lib/perl5" "INSTALLSITEARCH=~/lib/perl5" "INSTALLSCRIPT=~/bin" "INSTALLMAN3DIR=~/man/man3"
+	$(PERL) "-I$(PERL_ARCHLIB)" "-I$(PERL_LIB)" Makefile.PL 
 	@echo ">>> Your Makefile has been rebuilt. <<<"
 	@echo ">>> Please rerun the make command.  <<<"; false
 
