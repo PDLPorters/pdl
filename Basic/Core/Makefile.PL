@@ -145,6 +145,22 @@ sub make_from_PL ($) {
 	    "${head}.PL $head\n";
 }
 
+sub MY::xs_o {
+    if($Config{make} eq 'nmake') {
+      return'
+.xs$(OBJ_EXT):
+        $(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
+        $(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+'
+      }
+    else {
+      package MY;
+      my $self = shift;
+      return $self->SUPER::xs_o;
+      }
+}
+
+
 sub MY::postamble {
 PDL::Core::Dev::postamble().
 "
