@@ -12,8 +12,35 @@ are supported.  Heap pointers, compiled code, and objects are not
 supported.  Of those three, only heap pointers are likely to be
 supported in the near future.
 
-IDL is a trademark of RSI Incorporated.  RSI is not affiliated with
-the PDL development team.
+=head1 NOTES
+
+These things are known to be not working but will be fixed RSN:
+
+=over 3
+
+=item BYTEs
+
+=item COMMON blocks
+
+=item COMPLEX numbers
+
+=item PTR types
+
+=item writing (not written yet)
+
+=back
+
+These things are known to be not working and will probably never be fixed
+
+=over 3
+
+=item Compiled code
+
+=item Objects
+
+=back
+
+=head1 FUNCTIONS
 
 =cut
 
@@ -45,10 +72,14 @@ $a = ridl("foo.sav");
 
 =for ref 
 
-Read an IDL save file from a file descriptor
+Read an IDL save file from a file. 
 
-Upon successful completion, $a is a hash ref containing all of the variables
-that are present in the save file.
+Upon successful completion, $a is a hash ref containing all of the
+variables that are present in the save file, indexed by original
+variable name.  
+
+Numeric arrays are stored as PDLs, structures are stored as hashes,
+and string and structure arrays are stored as perl lists.
 
 Because IDL identifiers can't contain special characters, some fields that
 start with '+' are used to store metadata about the file itself.
@@ -72,6 +103,10 @@ sub ridl {
 ############################################################
 ##
 ## Data structure definitions...
+##
+## This is a list, each element of which contains a description and
+## subroutine to read that particular record type.
+##
 
 our $types = [ ['START_MARKER',undef]     # 0      (start of SAVE file)
 	      ,['COMMON_BLOCK',undef]     # 1      (COMMON block definition)
@@ -93,13 +128,15 @@ our $types = [ ['START_MARKER',undef]     # 0      (start of SAVE file)
 	      ,['PROMOTE64',\&r_p64]      # 17     (Starts 64-bit file offsets)
 	      ];
 
-#
-# Vtypes -- Representations of IDL variable types.
-# The first element is the name, the second element is either a 
-# perl string (that should be fed to unpack) or a code ref to a 
-# sub that decodes the type.
-#
-#
+
+############################################################
+##
+## Vtypes -- Representations of IDL scalar variable types.
+## The first element is the name, the second element is either a 
+## perl string (that should be fed to unpack) or a code ref to a 
+## sub that decodes the type.
+##
+
 our $vtypes = [
 	   undef                                       #  0 
 	  ,["Byte",      'C',           1            ] #  1 
@@ -120,7 +157,11 @@ our $vtypes = [
 ];
      
 
+###
+# Cheesy way to check if 64-bit is OK
 our $quad_ok = eval { my @a = unpack "q","00000001"; $a[0]; };
+
+### Initialized in read_preamble.
 our $little_endian;
 
 ##############################
@@ -677,6 +718,8 @@ to do is with third-party save files sent to me by other scientists.
 Your mileage may vary.  Please send bug reports to
 "perldl-porters@jach.hawaii.edu".
 
+IDL is a trademark of Research Systems Incorporated.  
+RSI is not affiliated with the PDL development team.
 
 =cut
 
