@@ -9,6 +9,7 @@ CED 18-March-2003
     - ufunc.pd: Minmax now returns (0,0) when handed the null piddle,
 	unless bad values are supported in which case it returns (bad,bad).
 	(closes bug #659130)
+    - Window.pm: fix bug #626344 (retain old cursor position)
 CS 17/03/03
     - Core.pm.PL: fix topdl method (closes bug #681015)
     - gsl_integ.pd: fix for compliance with gcc

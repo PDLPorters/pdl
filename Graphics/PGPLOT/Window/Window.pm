@@ -6394,6 +6394,9 @@ sub poly {
     my ($xmin, $xmax, $ymax, $ymin);
     pgqwin($xmin, $xmax, $ymin, $ymax);
 
+    $x = $o->{XRef} if defined($o->{XRef});
+    $y = $o->{YRef} if defined($o->{YRef});
+
     $x = 0.5*($xmin+$xmax) if !defined($x);
     $y = 0.5*($ymin+$ymax) if !defined($y);
 
