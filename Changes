@@ -1,5 +1,6 @@
 (!!! = possible source of incompatibilities)
 CS
+	- added Matrix.pm (suggestion by Stefan Heuel)
 	- Core.xs.PL: getdim, at and set now support the 'infinite dim'
 	  piddle behaviour discussed on pdl-porters
 	- perldl: $bflag incorrect due to low 'and' precendence

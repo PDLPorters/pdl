@@ -72,6 +72,7 @@ Basic/Math/rint.c
 Basic/Math/simq.c
 Basic/Math/svd.c
 Basic/Math/yn.c
+Basic/Matrix.pm
 Basic/Ops/Makefile.PL
 Basic/Ops/ops.pd
 Basic/Options.pm
@@ -100,8 +101,8 @@ COPYING
 Changes
 DEPENDENCIES
 DEVELOPMENT
-Demos/BAD_demo.pm.PL
 Demos/BAD2_demo.pm.PL
+Demos/BAD_demo.pm.PL
 Demos/General.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
@@ -216,9 +217,10 @@ Graphics/PGPLOT/PGPLOT.xs
 Graphics/PGPLOT/typemap
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/Makefile.PL
+Graphics/TriD/OpenGL/README
+Graphics/TriD/OpenGL/examples/clip
 Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/test.pl
-Graphics/TriD/OpenGL/examples/clip
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/README
@@ -251,8 +253,8 @@ Graphics/TriD/TriD/SimpleScaler.pm
 Graphics/TriD/TriD/Surface.pm
 Graphics/TriD/TriD/TextObjects.pm
 Graphics/TriD/TriD/Tk.pm
-Graphics/TriD/TriD/ViewPort.pm
 Graphics/TriD/TriD/VRML.pm
+Graphics/TriD/TriD/ViewPort.pm
 Graphics/TriD/TriD/Window.pm
 Graphics/TriD/VRML/Makefile.PL
 Graphics/TriD/VRML/VRML.pm
@@ -619,6 +621,7 @@ t/picrgb.pl
 t/picrgb.t
 t/pnm.t
 t/poly.t
+t/polyroots.t
 t/pptest.t
 t/primitive.t
 t/primitive2.t

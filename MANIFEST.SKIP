@@ -1,9 +1,14 @@
 ~$
 \.BAK$
+^\.exists
+^Basic/Core/badsupport\.p
+.*\.0$
+^t/.*\.pnm$
 ^core
 ^pdldoc.db$
 \.cvsignore$
 .*\.orig$
+^test\.wis$
 .*\.rej$
 .*\#$
 manifypods

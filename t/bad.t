@@ -14,7 +14,7 @@ BEGIN {
 	plan tests => 62;
     } else {
 	plan tests => 1;
-	skip(1,1,1);
+	print "ok 1 # Skipped: badvalue support not compiled\n";
 	exit;
     }
 } 
