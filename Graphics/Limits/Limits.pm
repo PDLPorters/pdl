@@ -1454,3 +1454,8 @@ Diab Jerius, E<lt>djerius@cpan.orgE<gt>
 
 Copyright (C) 2004 by the Smithsonian Astrophysical Observatory
 
+
+This software is released under the GNU General Public License.
+You may find a copy at L<http://www.fsf.org/copyleft/gpl.html>.
+
+=cut
