@@ -7,6 +7,14 @@ $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 BEGIN{
     eval "use 5.005";
     die "PDL requires Perl v5.005 or later\n" if $@ ne "";
+
+    eval "use 5.6.0";
+    if ($@ ne ""){
+        warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
+	    "Building PDL without TriD (WITH_3D=>0)\n\n";
+    }else{
+        $perl_560=1;
+    }
 }
 
 END{
@@ -39,21 +47,13 @@ EOP
 ************************************************************
 EOP
 
-    warn << 'EOW' unless $perl_560;
+warn << 'EOW' unless $perl_560;
 
 * The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*
 * Upgrade your perl now for maximum PDL fun in the future!               *
 
 EOW
   }
-}
-
-eval "use 5.006";
-if ($@ ne ""){
-    warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
-	"Building PDL without TriD (WITH_3D=>0)\n\n";
-}else{
-    $perl_560=1;
 }
 
 $seen_pdlconf = 0;
