@@ -878,7 +878,7 @@ sub find_datatype {
     my $str = "$dtype = 0;";
     foreach ( @$parnames ) {
 	my $po = $parobjs->{$_};
-	next if $ignore{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
+	next if $ignore->{$_} or $po->{FlagTyped} or $po->{FlagCreateAlways};
 	
 	$str .= "if(";
 	$str .= "!(($_->state & PDL_NOMYDIMS) &&

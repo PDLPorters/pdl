@@ -1,6 +1,6 @@
 (!!! = possible source of incompatibilities)
 
-Doug Burke (7/02/00 - 7/8/00)
+Doug Burke (7/02/00 - 7/9/00)
     - stopped some excess code generation & improve legibility of some code
       in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm
     - minor doc cleanup in Graphics/TriD/Rout/rout.pd (lack of head3 in pod)
