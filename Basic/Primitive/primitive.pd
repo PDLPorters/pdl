@@ -1272,6 +1272,10 @@ excluding 1 itself). The arguments are the same as C<zeroes>
 (q.v.) - i.e. one can specify dimensions, types or give
 a template.
 
+You can use the perl function L<srand|perlfunc/srand> to seed the random
+generator. For further details consult Perl's  L<srand|perlfunc/srand>
+documentation.
+
 =head2 randsym
 
 =for ref
@@ -1289,15 +1293,27 @@ This is the uniform distribution between 0 and 1 (excluding both 0 and
 1, cf L<random|/random>). The arguments are the same as C<zeroes> (q.v.) -
 i.e. one can specify dimensions, types or give a template.
 
+You can use the perl function L<srand|perlfunc/srand> to seed the random
+generator. For further details consult Perl's  L<srand|perlfunc/srand>
+documentation.
+
 =cut
 EOD
+
+pp_addhdr(<<'EOH');
+
+#ifndef Drand01
+#define Drand01() (((double)rand()) / (RAND_MAX+1.0))
+#endif
+
+EOH
 
 pp_def(
 	'random',
 	Pars=>'a();',
 	PMFunc => '',
 	Code =>
-	'$a() = ((double)rand()) / (RAND_MAX+1.0);',
+	'$a() = Drand01();',
 	Doc=>undef,
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
@@ -1315,7 +1331,9 @@ pp_def(
 	Pars=>'a();',
 	PMFunc => '',
 	Code =>
-	'$a() = (0.5+(double)rand()) / (RAND_MAX+1.0);',
+	'double tmp;
+	 do tmp = Drand01(); while (tmp == 0.0); /* 0 < tmp < 1 */
+         $a() = tmp;',
 	Doc=>undef,
 	PMCode=><<'EOD',
 sub randsym { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->randsym : PDL->randsym(@_) }
@@ -1346,6 +1364,11 @@ etc (see L<zeroes|PDL::Core/zeroes>).
 This is generated using the math library routine C<ndtri>.
 
 Mean = 0, Stddev = 1
+
+
+You can use the perl function L<srand|perlfunc/srand> to seed the random
+generator. For further details consult Perl's  L<srand|perlfunc/srand>
+documentation.
 
 =cut
 

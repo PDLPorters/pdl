@@ -51,6 +51,11 @@ returns the list of PDL lvalue subs if no routine name is given, e.g.
 
   @lvfuncs = PDL::Lvalue->subs;
 
+It can be used in scalar context to find out if your
+PDL has lvalue subs:
+
+  print 'has lvalue subs' if PDL::Lvalue->subs;
+
 =cut
 
 sub subs {

@@ -1,3 +1,6 @@
+CS  - primitive.pd: fix random funcs so that they work with Perl's srand
+      * does it work on pre-5.6 perls? *
+    - update Lvalue documentation
 CS  - slices.pd: fix lags bug #436823
     - Fit/Polynomial.pm: normalization wasn't threaded (bug #438335)
     - PP.pm: make CoreSv linkage static (MacOSX)
