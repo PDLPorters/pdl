@@ -90,6 +90,7 @@ Basic/default.perldlrc
 COPYING
 Changes
 DEPENDENCIES
+DEVELOPMENT
 Demos/General.pm
 Demos/Makefile.PL
 Demos/PGPLOT_demo.pm

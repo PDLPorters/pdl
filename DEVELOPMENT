@@ -1,0 +1,29 @@
+This file has some information on how to get access
+to the latest PDL sources (mainly of interest
+for potential developers). This should not be confused
+with the latest public release which will always
+be available from CPAN (if you don't know what that
+is check the FAQ).
+
+Public CVS repository at www.sourceforge.org
+--------------------------------------------
+
+From version PDL-2.003 onwards the source distribution is
+in a publicly accessible CVS repository. The project is
+hosted at the sourceforge site at
+
+	http://www.sourceforge.org/project/?form_grp=612
+
+Starting from that URL you will find directions on how to check
+out the current sources, browse the CVS repository online, etc.
+
+If you would like to actively contribute to PDL development
+don't hesitate to contact one of the project admins (listed
+at the above URL) to apply for write access to the repository.
+We strongly believe in the power of open source development!
+
+If you do not know how to use CVS try 'man cvs' or 'info cvs'
+and/or have a look at some of the online tutorials available
+on the web. A nice concise one is at
+
+  http://www.cyclic.com/cvs/doc-blandy-text.html

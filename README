@@ -20,6 +20,7 @@ Basic/Pod/Impatient.pod
 PDL::Index		a guide to PDL documentation
 			!only available *after* successful installation!
 			try 'perldoc PDL::Index'
+DEVELOPMENT		how to participate in the development of PDL
 
 PDL -- the package
 ------------------
