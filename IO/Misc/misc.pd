@@ -67,7 +67,14 @@ Suffix magic:
   # Automatically uncompress via gunzip pipe
   $pdl = rfits('file.fits.gz');
   # Automatically uncompress via uncompress pipe 
-  $pdl = rfits('file.fits.Z');  
+  $pdl = rfits('file.fits.Z'); 
+   
+  $pdl = rfits('file.fits[2]'); # Read HDU extension #2
+
+The default is to read the primary HDU. One can read other
+HDU's by using the [n] syntax, the second one is [1]. This works
+as long as they are IMAGE extensions - this module does not
+do FITS tables!
 
 FITS Headers stored in piddle and can be retrived with $a->gethdr.
 
@@ -109,6 +116,13 @@ sub PDL::rfits {
    barf 'Usage: $a = rfits($file); $a = PDL->rfits("...")' if $#_!=0;
    my $file = shift; my $pdl  = $class->new;
    my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero);
+   my $extnum;
+   
+   if ($file =~ s/\[(\d+)\]$//) {
+      $extnum = $1;
+   }else{
+      $extnum = 0;
+   }
 
    $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
    $file = "uncompress -c $file |" if $file =~ /\.Z$/;
@@ -122,12 +136,39 @@ sub PDL::rfits {
    $$foo{"BSCALE"}=1;
    $$foo{"BZERO"}=0;
    my @history=();
+   my $currentext=0;
+   
    while( !eof(FITS)) {
+   
+      # Read first 80 bytes
       read(FITS,$line,80);
+      
       barf "file $file is not in FITS-format:\n$line\n"
                   if( $nbytes==0 && ($line !~ /^SIMPLE  = +T/));
       $nbytes += 80;
-
+      	             
+      # Now skip to required extension
+      
+      if ($currentext != $extnum) {
+          while(1) {
+      	    # Move to next record
+      	    read(FITS,$line,2880-80);
+	    barf "Unexpected end of FITS file\n" if eof(FITS);
+	    # Read start of next record
+      	    read(FITS,$line,80);
+	    barf "Unexpected end of FITS file\n" if eof(FITS);
+	    # Check if we have found the new extension
+	    # if not move on
+	    $currentext++ if  $line =~ /^XTENSION/;
+	    if ($currentext == $extnum) {
+	       print "Found extension $currentext \n" if $PDL::verbose;
+	       $line =~ /^XTENSION= \'(\w+)\s*\'/;
+	       barf "Can not handle $1 extensions\n" unless $1 eq "IMAGE";
+	       last;
+	    }   
+	  }
+      }	 
+ 
       # skip if the first eight characters are ' '
       # - as seen in headers from the DSS at STScI
       next if substr($line,0,8) eq " " x 8;
