@@ -3,8 +3,9 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
 		NAME	=> 'PDL::NiceSlice',
 		VERSION_FROM => 'NiceSlice.pm',
-		PREREQ_PM => { Filter::Simple => 0, 
-			       Text::Balanced => 0,
+		PREREQ_PM => {
+			      Filter::Util::Call => 0,
+			      Text::Balanced => 0,
 			     },
 	     );
 

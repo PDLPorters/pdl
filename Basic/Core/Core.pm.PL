@@ -450,8 +450,8 @@ sub topdl {PDL->topdl(@_)}
 		
 		"<<="   => sub { PDL::shiftleft ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		">>="   => sub { PDL::shiftright($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
-		"|="    => sub { PDL::orop      ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
-		"&="    => sub { PDL::andop     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"|="    => sub { PDL::or2      ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
+		"&="    => sub { PDL::and2     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 		"^="    => sub { PDL::xor       ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 	        "**="   => sub { PDL::power     ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
 	        "%="    => sub { PDL::modulo    ($_[0], $_[1], $_[0], 0); $_[0]; }, # in1, in2, out, swap if true
