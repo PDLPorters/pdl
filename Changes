@@ -1,3 +1,8 @@
+2.3.2
+CS  - change pdlcore.h.PL so that gimp-perl compiles
+      again
+    - Changes to Release_Notes, PDL.pm associated
+      with making release 2.3.2
 2.3.1
 John Cerney (11/21/01)
     - Changes to Release_Notes, PDL.pm associated

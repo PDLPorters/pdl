@@ -215,7 +215,11 @@ struct Core {
     I32    Version;
     pdl*   (*SvPDLV)      ( SV*  );
     void   (*SetSV_PDL)   ( SV *sv, pdl *it );
+#if defined(PDL_clean_namespace) || defined(PDL_OLD_API)
+    pdl*   (*new)      ( );     /* make it work with gimp-perl */
+#else
     pdl*   (*pdlnew)      ( );  /* renamed because of C++ clash */
+#endif
     pdl*   (*tmp)         ( );
     pdl*   (*create)      (int type);
     void   (*destroy)     (pdl *it);
