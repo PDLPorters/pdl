@@ -1,27 +1,36 @@
 package PDL::Graphics::TriD::Contours;
-
+use strict;
 use PDL;
-use PDL::Graphics::TriD::Graph;
-#use PDL::Graphics::TriD::MathGraph;
+use PDL::Graphics::TriD::Rout;
+use PDL::Graphics::TriD::Labels;
+use Data::Dumper;
 
-@ISA=qw/PDL::Graphics::TriD::Graph/;
+use base qw/PDL::Graphics::TriD::Graph/;
+use fields qw/ContourMin ContourMax ContourInt ContourVals 
+             _MaxDistance/;
 
 sub new{
   my($type,$data,$points,$colors,$options) = @_;
-#  my($type,$points,$colors,$options) = @_;
+
   if(ref($colors) eq "HASH"){
     $options=$colors ;
     undef $colors;
   }
   $colors = pdl[1,1,1] unless defined $colors;
+
+  if(!defined $colors) {
+    $colors = PDL->pdl(1,1,1);
+    $colors = $type->cdummies($colors,$points);
+    $options->{UseDefcols} = 1;  # for VRML efficiency
+  } else {
+    $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
+  }
+
+  my $grid = PDL::Graphics::TriD::realcoords('SURF2D',$points);
+
   my $this = $type->SUPER::new();
+
   my $zval;
-#  $this->default_axes();
-
-  $this->{Rawdata} = $data;
-
-  $points = PDL::Graphics::TriD::realcoords("",$points);
-
 
   my @lines;
   my($xmin,$dx,$ymin,$dy);
@@ -36,6 +45,8 @@ sub new{
 
 
   my $fac=1;
+  my $plane;
+
   if(defined $options->{Surface}){
       my $surf =  $options->{Surface};
       foreach(keys %{$options->{Surface}}){
@@ -46,14 +57,15 @@ sub new{
 	  $plane=$_;
       }
       if($plane eq "XZ"){
-	($t = $points->slice("1:2")) .= $points->slice("1:2")->rotate(1);
+	(my $t = $grid->slice("1:2")) .= $grid->slice("1:2")->rotate(1);
       }elsif($plane eq "YZ"){
-	$points=$points->rotate(1);
+	$grid=$grid->rotate(1);
       }
   }else{
       $plane="XY";
       $zval=0;
   }
+
 
   if(defined $options->{ContourInt}){
     $this->{ContourInt} = $options->{ContourInt};
@@ -68,7 +80,8 @@ sub new{
     if(int($fac*$min) == $fac*$min){
       $this->{ContourMin} = $min;
     }else{      
-      $this->{ContourMin} = (int($fac*$min)+1)/$fac;
+      $this->{ContourMin} = int($fac*$min+1)/$fac;
+      print "ContourMin =  ",$this->{ContourMin},"\n";
     }
   }
   if(defined $options->{ContourMax}){
@@ -84,11 +97,13 @@ sub new{
 	$this->{ContourMax} = $max;
       }else{
 	$this->{ContourMax} = (int($fac*$max)-1)/$fac;
+      print "ContourMax =  ",$this->{ContourMax},"\n";
       }
     }
   }
   unless(defined $this->{ContourInt}){
     $this->{ContourInt} = int($fac*($this->{ContourMax}-$this->{ContourMin}))/(10*$fac);
+    print "ContourInt =  ",$this->{ContourInt},"\n";
   }
 #
 # The user could also name cvals
@@ -99,61 +114,38 @@ sub new{
   }else{
     $cvals=zeroes(int(($this->{ContourMax}-$this->{ContourMin})/$this->{ContourInt}+1));
     $cvals = $cvals->xlinvals($this->{ContourMin},$this->{ContourMax});  
+    print $cvals;
   }
   $this->{ContourVals} = $cvals;
 
   
   
   my ($i,$j,$i1,$j1);
-  $i1=$dims[0]-2;
-  $j1=$dims[1]-2;
+#  $i1=$dims[0]-2;
+#  $j1=$dims[1]-2;
 
 #
-# Used to compute label spacing
+# Used to compute label spacing -3 assures that both arrays are the same size.
 #
 
-  $this->{MaxDistance} = vdistance($points->slice(":,0:$i1:2,0:$j1:2"),
-				   $points->slice(":,1:$i1:2,1:$j1:2"))->max;
+  $this->{_MaxDistance} = vdistance($grid->slice(":,0:-3:2,0:-3:2"),
+			 	   $grid->slice(":,1:-2:2,1:-2:2"))->max;
 
+  my $mpts = &PDL::Graphics::TriD::Rout::contour_segments($cvals,$data,$grid);
 
-  for($j=0;$j<$dims[1]-1;$j++){
-      $j1=$j+1;
-      for($i=0;$i<$dims[0]-1;$i++){
-	  $i1= $i+1;
-          $this->segments($data->slice("$i:$i1,$j:$j1"),
-                          $points->slice(":,$i:$i1,$j:$j1"),
-			  $cvals);
+  for($i=0;$i<$cvals->nelem;$i++){
+    my $cval = sprintf("%-6.6g",$cvals->slice("($i)"));
+#    print "cval = $cval, \n";
 
-      }
-  }
-  sub numerically{ $a<=>$b};
-  my $i=0;  
-
-  foreach (sort numerically keys %{$this->{RawLines}}){
-#    my $ans .= $this->{RawLines}{$_};
-    
-    $this->{RawLines}{$_} = $this->{RawLines}{$_}->reshape(3,$this->{RawLines}{$_}->nelem/3);
-    if($plane eq "XZ"){
-      ($t = $this->{RawLines}{$_}->slice("1:2")) .= $this->{RawLines}{$_}->slice("1:2")->rotate(1);
-    }elsif($plane eq "YZ"){
-      $this->{RawLines}{$_}=$this->{RawLines}{$_}->rotate(1);
-    }
-    my $color;
-    if(defined $options->{ColorTable}){
-      $color = $colors->slice(":,$i");
-    }else{
-      $color = $colors;
-    }
-    $this->add_dataseries(new PDL::Graphics::TriD::Lines($this->{RawLines}{$_},$color),"$_");
-#    undef  $this->{RawLines}{$_};
-    $i++;
-  }
-
-  $this->default_axes;
-  $this->scalethings;
+    $this->add_dataseries(new PDL::Graphics::TriD::Lines($mpts->[$i]
+				      ,$colors),"_CONTOUR_$cval")
+      unless($mpts->[$i]->isempty);
+  } 
 
   return $this;
 }      
+
+
 
 =head2 addlabels
 
@@ -169,6 +161,7 @@ by the length of the line segment with respect to the length of the
 longest possible line segment in the plot.  density defaults to 1.
 
 =back
+
 =cut
 
 
@@ -183,30 +176,29 @@ sub addlabels{
     $df = 1-$density;
   }else{
     $df=0;
-    
   }
 
   my $cnt=0;
 
   my $strlist;
-  my $lp;
+  my $lp=pdl->null;
 
-  foreach(sort keys %{$self->{RawLines}}){
+  foreach(sort keys %{$self->{Data}}){
     next if($cnt++ % $labelint);
+    next unless(/^_CONTOUR_(.*)$/);
+    my $val = $1;
 
-    my $max = $self->{RawLines}{$_}->getdim(1)-1;
-
-    my $lp1 = $self->{RawLines}{$_}->slice(":,0:$max:2");  
-    my $lp2 = $self->{RawLines}{$_}->slice(":,1:$max:2");  
-    
+    my $lp1 = $self->{Data}{$_}->get_points();
+    my $lp2 = $lp1->slice(":,1:-1:2");  
+    $lp1=$lp1->slice(":,0:-1:2");
 #
 # normalized length of line
 #
     my $dis;
     if($df>0){
-      $dis =  vdistance($lp1,$lp2)/$self->{MaxDistance} >= $df;
+      $dis =  vdistance($lp1,$lp2)/$self->{_MaxDistance} >= $df;
     }else{
-      $dis =  ones($lp1->getdim(1));
+      $dis =  ones($lp1->getdim(1))->dummy(0);
     }
 #    print "clump 1 ", $dis->info,"\n";
 
@@ -225,30 +217,20 @@ sub addlabels{
 
     next if($lp2->isempty);
 
-    if(defined $lp){
-      $lp = $lp->append($lp2);
-    }else{
-      $lp = $lp2;
-    }    
+    $lp = $lp->append($lp2);
 # need a label string for each point    
-
+    
     for(my $i=0;$i<$lp2->getdim(0)/3;$i++){
-      push(@$strlist,$_);
+      push(@$strlist,$val);
     }
 
   }
 
-  $PDL::Graphics::TriD::verbose=1;
-
-  use PDL::Graphics::TriD::Labels;
 
   my $l = new PDL::Graphics::TriD::Labels($lp->reshape(3,$lp->nelem/3),
 					  {Strings=>$strlist
 					   ,Font=>$font});
 
-
-
-  $PDL::Graphics::TriD::verbose=0;
   $self->add_dataseries($l,"Labels");
 
   $self->scalethings;
@@ -267,72 +249,6 @@ sub vdistance{
 
 
 
-sub segments{
-    my ($self,$data,$points,$cvals) = @_;
-
-    my ($min,$max) = $data->minmax();
-    
-    $cvals = $cvals->where($min<$cvals & $max>=$cvals);
-    $zval = 0 unless(defined $zval);
-     
-    return if($cvals->isempty);
-
-#    $ltcnt = $ltcnt+$ltcnt->orover->dummy(0);
-#    print "$ltcnt\n";
-#    exit;
-    my (@d, @x ,@y, @z);
-
-    for(my $i=0;$i<4;$i++){
-      my $i1 = $i%2;
-      my $j1 = int($i/2);
-      $d[$i] = $data->slice("$i1,$j1");
-
-      $x[$i] = $points->slice("0,$i1,$j1");
-      $y[$i] = $points->slice("1,$i1,$j1");
-      $z[$i] = $points->slice("2,$i1,$j1");
-    }
-
-    for(my $i=0;$i<$cvals->nelem;$i++){
-	my $cval = $cvals->slice("$i");
-        my $cname = $cvals->at($i);
-
-        $self->{RawLines}{$cname} = PDL->null 
-	  unless(defined $self->{RawLines}{$cname});
-
-	my $ltcnt = ($data<$cval);
-	if($ltcnt->slice(":,0")->sumover==1){
-            my $x = linear_interp($cval,$x[0],$x[1]-$x[0],$d[0],$d[1]);
-            my $y = linear_interp( $x,  $y[0],$y[1]-$y[0],$x[0],$x[1]);
-            my $z = linear_interp( $x,  $z[0],$z[1]-$z[0],$x[0],$x[1]);
-	    $self->{RawLines}{$cname} = $self->{RawLines}{$cname}->append($x->append($y->append($z)));
-	}
-	if($ltcnt->slice(":,1")->sumover==1){
-            my $x = linear_interp($cval,$x[2],$x[3]-$x[2],$d[2],$d[3]);
-            my $y = linear_interp( $x,  $y[2],$y[3]-$y[2],$x[2],$x[3]);
-            my $z = linear_interp( $x,  $z[2],$z[3]-$z[2],$x[2],$x[3]);
-	    $self->{RawLines}{$cname} = $self->{RawLines}{$cname}->append($x->append($y->append($z)));
-	}
-        $ltcnt=$ltcnt->xchg(0,1);
-	if($ltcnt->slice(":,0")->sumover==1){
-            my $y = linear_interp($cval,$y[0],$y[2]-$y[0],$d[0],$d[2]);
-            my $x = linear_interp( $y,  $x[0],$x[2]-$x[0],$y[0],$y[2]);
-            my $z = linear_interp( $y,  $z[0],$z[2]-$z[0],$y[0],$y[2]);
-	    $self->{RawLines}{$cname} = $self->{RawLines}{$cname}->append($x->append($y->append($z)));
-	}
-	if($ltcnt->slice(":,1")->sumover==1){
-            my $y = linear_interp($cval,$y[1],$y[3]-$y[1],$d[1],$d[3]);
-            my $x = linear_interp( $y,  $x[1],$x[3]-$x[1],$y[1],$y[3]);
-            my $z = linear_interp( $y,  $z[1],$z[3]-$z[1],$y[1],$y[3]);
-	    $self->{RawLines}{$cname} = $self->{RawLines}{$cname}->append($x->append($y->append($z)));
-	}
-    }	
-}
-
-
-sub linear_interp{
-    my ($cval,$xmin,$dx,$z1,$z2) = @_;
-    return ($dx*$cval+$xmin*$z2-($xmin+$dx)*$z1)/($z2-$z1);
-}
 
 
 sub get_valid_options{
@@ -367,15 +283,15 @@ sub set_colortable{
     $colors->reshape(3,$colors->nelem/3);
   }
 
-  for($i=0;$i<$ncolors;$i++){
+#  print "nc =",$ncolors," nelem = ",$colors->info,"\n";
+
+  for(my $i=0;$i<$ncolors;$i++){
     $self->{Objects}[$i]->set_colors($colors->slice(":,$i"));
   }
-    
 
 #  use Data::Dumper;
 #  my $out = Dumper($self);
 #  print $out;
-
 }
   
 sub coldhot_colortable{

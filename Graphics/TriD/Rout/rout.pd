@@ -234,6 +234,197 @@ pp_def('vrmlcoordsvert',
 		%}'
 );
 
+pp_addpm(<<'EOD');
+
+=head1 NAME
+
+PDL::Graphics::TriD::Rout::contour_segments
+
+=cut
+use strict;
+sub contour_segments {
+	my($c,$data,$points) = @_;
+# pre compute space for output of pp routine
+
+  my $segdim = ($data->getdim(0)-1)*($data->getdim(1)-1)*4;
+#  print "segdim = $segdim\n"; 
+  my $segs = zeroes(3,$segdim,$c->nelem);
+  my $cnt = zeroes($c->nelem);
+  contour_segments_internal($c,$data,$points,$segs,$cnt);
+
+#  print "here ",$segs->info,$cnt,"\n";
+	
+  my $segs_list=[];
+  for(my $i=0; $i<$c->nelem; $i++){
+		my $c = $cnt->at($i);
+#      print "c = $c\n";
+		$segs_list->[$i] = $segs->slice(":,0:$c,($i)");
+	}
+
+  return($segs_list);
+	
+}
+EOD
+
+
+pp_def('contour_segments_internal',
+	Pars => 'c(); 
+            data(m,n); 
+            points(d,m,n); 
+            float [o]segs(d,q);
+				int [o] cnt();',
+	GenericTypes => [F],
+	Code => '
+		int ds, ms, ns;
+		float dist;
+      float a_int[3];
+      int i, j, m1, n1,p, found,p1;
+   
+		ds = $SIZE(d);
+		ms = $SIZE(m);
+		ns = $SIZE(n);
+
+		if(ds != 3){
+			croak("Bad first dimension in contour_segments");
+		}	
+		p=0;
+		p1=1;
+		loop(m) %{
+				if(m<ms-1){
+					m1=m+1;
+					loop(n)%{
+                  if(n<ns-1){	
+							n1=n+1;
+							found=0;
+
+							if(($data() < $c() && $data(m=>m1) >= $c()) ||
+								($data() >= $c() && $data(m=>m1) < $c())){
+							/* found an x intersect */
+
+								dist = ($c()-$data())/($data(m=>m1)-$data());
+								loop(d) %{
+								  a_int[d]=$points()+dist*($points(m=>m1)-$points());
+								%}
+								/* now look for the connecting point */
+                     	/* First down and to the left */
+								if(($data() < $c() && $data(n=>n1) >= $c()) ||
+									        ($data() >= $c() && $data(n=>n1) < $c())){
+									found=1;
+									dist = ($c()-$data())/($data(n=>n1)-$data());
+									loop(d) %{
+  										$segs(q=>p1)=$points()+dist*($points(n=>n1)-$points());
+                              $segs(q=>p) = a_int[d];
+									%}
+		 							p+=2;
+		 							p1=p+1;
+								}else{
+	                     	/* down and to the right */
+									if(($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+										        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())){
+										found=-1;
+										dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+
+										loop(d) %{
+	  										$segs(q=>p1)=$points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+                              	$segs(q=>p) = a_int[d];
+										%}
+			 							p+=2;
+			 							p1=p+1;
+									}else{
+										/* straight down */
+										found=2;
+										if(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+											        ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())){
+											dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+											loop(d) %{
+	  											$segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
+                              		$segs(q=>p) = a_int[d];
+											%}
+				 							p+=2;
+				 							p1=p+1;
+
+										}/* straight down */
+									}	/* down and to the right */
+								}	/* First down and to the left */
+							}	/* found an x intersect */
+							if(found<=0){ /* need to check the y-pnt */
+								if(($data() < $c() && $data(n=>n1) >= $c()) ||
+									        ($data() >= $c() && $data(n=>n1) < $c())){
+									dist = ($c()-$data())/($data(n=>n1)-$data());
+									loop(d) %{
+										a_int[d]=$points()+dist*($points(n=>n1)-$points());
+									%}
+									if(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+									        ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())){
+											dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+
+											loop(d) %{
+												$segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
+                              		$segs(q=>p) = a_int[d];
+											%}
+				 							p+=2;
+				 							p1=p+1;
+											found = 3;
+									}else if(found==0){
+	  									if(($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+	  									        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())){
+											dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+
+											loop(d) %{
+  												$segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+                           	   	$segs(q=>p) = a_int[d];
+											%}
+				 							p+=2;
+				 							p1=p+1;
+											found = 4;
+										}
+									}
+								}
+				
+							} /* need to check the y-pnt */
+							if(found==0 || found==1 || found == 3){
+		  						if((($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
+	  									        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())) &&
+									(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||	
+	  									        ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c()))){
+											float dist2;
+											dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+											dist2 = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+
+											loop(d) %{
+  												$segs(q=>p) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+  												$segs(q=>p1)=$points(n=>n1)+dist2*($points(m=>m1,n=>n1)-$points(n=>n1));
+											%}
+											found=5;
+											p+=2;
+											p1=p+1;
+										}
+									}
+						}	 /* n<ns-1 */
+					%}
+				}
+			%}
+			$cnt()=p-1;'
+
+);
+			
+
+pp_addxs('','
+# helper function for contours
+
+float
+_find_point(float p1,float p2, float dist)
+	CODE:
+		float diff;
+		RETVAL=dist*(p2-p1)+p1;
+	OUTPUT:
+		RETVAL
+');
+
+
+
+
+
 pp_done();
 
 

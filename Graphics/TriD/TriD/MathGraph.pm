@@ -29,7 +29,7 @@ the copyright notice should be included in the file.
 
 =cut
 package PDL::Graphics::TriD::MathGraph;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 use PDL::Graphics::OpenGL;
 
 sub gdraw {

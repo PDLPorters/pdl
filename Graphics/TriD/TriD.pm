@@ -484,13 +484,6 @@ method.
 
 package PDL::Graphics::TriD::Basic;
 package PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Graph;
-use PDL::Graphics::TriD::Quaternion;
-# use PDL::Graphics::TriD::ArcBall;
-# use PDL::Graphics::TriD::SimpleScaler;
-# use PDL::Graphics::TriD::Control3D;
-use  PDL::Graphics::TriD::Objects;
-use PDL::Graphics::TriD::Rout;
 use PDL::Core '';  # barf
 
 # Then, see which display method are we using:
@@ -530,6 +523,23 @@ use PDL::Exporter;
 	twiddle3d grabpic3d tridsettings/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
+sub PDL::Graphics::TriD::import{
+  my $pkg = (caller())[0];
+  eval <<"EOD";
+
+  package $pkg;
+# Load the fundamental packages
+  use PDL::Graphics::TriD::Object;
+  use PDL::Graphics::TriD::Graph;
+  use PDL::Graphics::TriD::Quaternion;
+#  use  PDL::Graphics::TriD::GObject;
+  use  PDL::Graphics::TriD::Objects;
+  use PDL::Graphics::TriD::Rout;
+EOD
+
+die $@ if $@;
+
+}
 # currently only used by VRML backend
 sub tridsettings {return $PDL::Graphics::TriD::Settings}
 
@@ -727,12 +737,13 @@ sub get_current_graph {
 # $PDL::Graphics::TriD::cur = {};
 # $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
+        my $opts = shift @_;
 	my $win = $PDL::Graphics::TriD::cur;
 	if(!defined $win->{Window}) {
 		if(!$PDL::Graphics::TriD::create_window_sub) {
 			barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 		}
-		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub(@_);
+		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub($opts);
 		if ($win->{Window}->{Interactive}) {
        		  require PDL::Graphics::TriD::ArcBall;
 		  require PDL::Graphics::TriD::SimpleScaler;
@@ -798,10 +809,13 @@ sub new {
 }
 
 package PDL::Graphics::TriD::BoundingBox;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/Box/;
 
-sub new { my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
-	bless {Box => [$x0,$y0,$z0,$x1,$y1,$z1]},$type;
+sub new { 
+  my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
+  my $this = $type->SUPER::new();
+  $this->{Box} = [$x0,$y0,$z0,$x1,$y1,$z1];
 }
 
 sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
@@ -821,96 +835,22 @@ sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
 }
 
 
-###################################
-#
-#
-package PDL::Graphics::TriD::Object;
-
-sub clear_objects {
-	my($this) = @_;
-	$this->{Objects} = [];
-	$this->{ValidList} = 0;
-}
-
-
-sub delete_object {
-  my($this,$object) = @_;
-  return unless(defined $object && defined $this->{Objects});
-  for(0..$#{$this->{Objects}}){
-    if($object == $this->{Objects}[$_]){
-      splice(@{$this->{Objects}},$_,1);
-      redo;
-    }
-  }
-}
-
-# XXXXXXXXX sub {} makes all these objects and this window immortal!
-sub add_object {
-	my($this,$object) = @_;
-	push @{$this->{Objects}},$object;
-	$this->{ValidList} = 0;
-	for(@{$this->{ChangedSub}}) {
-		$object->add_changedsub($_);
-	}
-	if($this->i_keep_list) {
-		$object->add_changedsub(sub {$this->changed_from_above()});
-	}
-}
-
-sub changed_from_above {
-	my($this) = @_;
-	print "CHANGED_FROM_ABOVE\n" if $PDL::Graphics::TriD::verbose;
-	$this->changed();
-}
-
-sub add_changedsub {
-	my($this,$chsub) = @_;
-	push @{$this->{ChangedSub}}, $chsub;
-	for (@{$this->{Objects}}) {
-		$_->add_changedsub($chsub);
-	}
-}
-
-
-sub clear {
-	my($this) = @_;
-	# print "Clear: $this\n";
-	for(@{$this->{Objects}}) {
-		$_->clear();
-	}
-	$this->delete_displist();
-	delete $this->{ChangedSub};
-	delete $this->{Objects};
-}
-
-sub changed {
-	my($this) = @_;
-	print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
-	$this->{ValidList} = 0;
-	for(@{$this->{ChangedSub}}) {
-		&$_($this);
-	}
-}
-
-sub i_keep_list {
-	return 0;
-}
-
 ##################################
 #
 # Does nothing by itself except makes an orthogonal window transformation
 # to the provided size elsewhere.
 #
 package PDL::Graphics::TriD::ViewPort;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/ViewPorts W H X0 Y0/;
 sub i_keep_list {return 1} # For object.
 
-sub new {
-	my($type) = @_;
-	my $this = bless {},$type;
+#sub new {
+#	my($type) = @_;
+#	my $this = bless {},$type;
 #        print "CREATE VP $this\n";
-	return $this;
-}
+#	return $this;
+#}
 
 sub new_viewport {
 	my($this,$x0,$y0,$x1,$y1) = @_;
@@ -927,27 +867,31 @@ sub DESTROY {
 ###################################
 #
 #
+package PDL::Graphics::TriD::OneTransformation;
+use fields qw/Args/;
+
+sub new {
+  my($type,@args) = @_;
+  my $this = bless [\%{"$type\::FIELDS"}], $type;
+
+  $this->{Args} = [@args];
+  return $this;
+}
+
 package PDL::Graphics::TriD::Scale;
-@ISA = qw/PDL::Graphics::TriD::OneTransformation/;
+use base qw/PDL::Graphics::TriD::OneTransformation/;
 
 package PDL::Graphics::TriD::Translation;
-@ISA = qw/PDL::Graphics::TriD::OneTransformation/;
+use base qw/PDL::Graphics::TriD::OneTransformation/;
 
-package PDL::Graphics::TriD::OneTransformation;
-
-sub new {
-	my($type,@args) = @_;
-	my $this = {Args => [@args]};
-	bless $this,$type;
-}
 
 package PDL::Graphics::TriD::Transformation;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
 
-sub new {
-	my($type) = @_;
-	bless {},$type;
-}
+#sub new {
+#	my($type) = @_;
+#	bless {},$type;
+#}
 
 sub add_transformation {
 	my($this,$trans) = @_;
@@ -956,7 +900,7 @@ sub add_transformation {
 
 
 package PDL::Graphics::TriD::Window;
-@ISA = qw/PDL::Graphics::TriD::ViewPort/;
+use base qw/PDL::Graphics::TriD::ViewPort/;
 
 =head1 BUGS
 

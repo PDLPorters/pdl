@@ -10,7 +10,8 @@ use PDL::Graphics::OpenGL;
 use PDL::Graphics::OpenGLQ;
 
 $PDL::Graphics::TriD::create_window_sub = sub {
-	return new PDL::Graphics::TriD::GL::Window(@_);
+  print "@_ \n" ; 
+    return new PDL::Graphics::TriD::GL::Window(@_);
 };
 
 sub PDL::Graphics::TriD::Material::togl{
@@ -561,7 +562,7 @@ sub PDL::Graphics::TriD::EventHandler::new {
 
 sub PDL::Graphics::TriD::EventHandler::event {
 	my($this,$win,$type,@args) = @_;
-	print "EH: $type\n" ;#if($PDL::Graphics::TriD::verbose);
+	print "EH: $type\n" if($PDL::Graphics::TriD::verbose);
 	if($type == &MotionNotify) {
 #		print "MOTION\n";
 	  my $but = -1;
@@ -627,11 +628,6 @@ sub i_keep_list {return 1} # For Object, so I will be notified of changes.
 use strict;
 use FileHandle;
 
-#BEGIN {
-#	$PDL::Graphics::TriD::GL::xsize = 800;
-#	$PDL::Graphics::TriD::GL::ysize = 800;
-#}
-
 sub new {
   my($type, $options) = @_;
 
@@ -653,8 +649,8 @@ sub new {
 			 ExposureMask | StructureNotifyMask |
 			 PointerMotionMask) unless defined $options->{mask};
 
-  $options->{width} = 	$PDL::Graphics::TriD::GL::xsize unless defined $options->{width};
-  $options->{height} = 	$PDL::Graphics::TriD::GL::ysize unless defined $options->{height};
+  $options->{width} = 	800 unless defined $options->{width};
+  $options->{height} = 	800 unless defined $options->{height};
 
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
@@ -717,7 +713,7 @@ sub new {
   print "STARTED OPENGL!\n" if($PDL::Graphics::TriD::verbose);
   
   if($PDL::Graphics::TriD::offline) {
-    $this->doconfig($PDL::Graphics::TriD::GL::xsize, $PDL::Graphics::TriD::GL::ysize);
+    $this->doconfig($options->{width}, $options->{height});
   }
   
   return $this;

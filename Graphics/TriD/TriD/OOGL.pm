@@ -7,7 +7,6 @@ $PDL::Graphics::TriD::create_window_sub = sub {
 
 package PDL::Graphics::TriD::Object;
 use PDL::Graphics::OpenGL;
-
 sub tooogl {
 	my($this) = @_;
 	join "\n",map { $_->togl() } (@{$this->{Objects}})

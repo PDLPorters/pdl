@@ -32,7 +32,7 @@ the copyright notice should be included in the file.
 package PDL::Graphics::TriD::Labels;
 use PDL::Graphics::OpenGL;
 use PDL::Graphics::OpenGLQ;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 
 sub gdraw {
 	my($this,$points) = @_;

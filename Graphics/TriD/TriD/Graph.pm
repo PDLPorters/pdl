@@ -1,26 +1,25 @@
 package PDL::Graphics::TriD::Graph;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
 use PDL::LiteF; # XXX F needed?
 
-sub new {
-	my($type) = @_;
-	bless {},$type;
-}
+use fields qw(Data DataBind UnBound DefaultAxes Axis );
+
 
 sub add_dataseries {
-	my($this,$data,$name) = @_;
-	if(!defined $name) {
-		$name = "Data0";
-		while(defined $this->{Data}{$name}) {$name++;}
-	}
-        
-	$this->{Data}{$name} = $data;
-	$this->{DataBind}{$name} = [];
-	$this->add_object($data);
-	$this->changed();
-	$this->{UnBound}{$name} = 1;
+  my($this,$data,$name) = @_;
+  if(!defined $name) {
+    $name = "Data0";
+    while(defined $this->{Data}{$name}) {$name++;}
+  }
 
-	return $name;
+  $this->{Data}{$name} = $data;
+  $this->{DataBind}{$name} = [];
+  $this->{UnBound}{$name} = 1;
+
+  $this->add_object($data);
+  $this->changed();
+  
+  return $name;
 }
 
 sub bind_data {
@@ -68,7 +67,10 @@ sub scalethings {
 sub get_points {
 	my($this,$name) = @_;
 # 	print Dumper($this->{Axis});
+
 	my $d = $this->{Data}{$name}->get_points();
+
+
 	my @ddims = $d->dims; shift @ddims;
 	my $p = PDL->zeroes(&PDL::float(),3,@ddims);
 	my $pnew;
@@ -193,7 +195,6 @@ sub init_scale {
 sub add_scale {
   my($this,$data,$inds) = @_;
   my $i = 0;
-  
   for(@$inds) {
     my $d = $data->slice("($_)");
     my $max = $d->max;
@@ -309,13 +310,11 @@ sub init_scale {
 sub add_scale {
   my($this,$data,$inds) = @_;
   my $i = 0;
-  
+
   for(@$inds) {
     my $d = $data->slice("($_)");
     my $max = $d->max;
     my $min = $d->min;
-
-
 
     if($i==1){
       if($max > 89.9999 or $min < -89.9999){
@@ -413,4 +412,4 @@ sub transform {
 
   return $point;
 }
-
+1;
