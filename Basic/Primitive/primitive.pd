@@ -1,4 +1,4 @@
-oduse strict;
+use strict;
 
 # check for bad value support
 use PDL::Config;
