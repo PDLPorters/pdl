@@ -145,6 +145,8 @@ Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
+Example/PGPLOT/pgplot.pl
+Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
 Graphics/IIS/Makefile.PL

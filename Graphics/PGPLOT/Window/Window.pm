@@ -2896,7 +2896,8 @@ sub arrow {
 
 
     # Set symbol if specified in the options hash.
-    $sym ||= $o->{Symbol};
+    ## $sym ||= $o->{Symbol};
+    $sym = $o->{Symbol} unless defined $sym;
 
     $self->_checkarg($sym,1); my $ns = nelem($sym); $sym = long($sym);
 
