@@ -22,7 +22,7 @@ Implementation details
 ======================
 
 Various bits of code use either perldl.conf or PDL::Config to find out whether
-to support bad values.
+to support bad values (user code can examine the value of $PDL::Bad::Status).
 
 A new flag has been added to the state of a piddle - PDL_BADVAL. If unset, then
 the piddle does not contain bad values, and so all the support code can be 
@@ -102,7 +102,6 @@ corresponding pp_def options
    FindBadStatusCode and CopyBadStatusCode
 I've only just started to use this functionality - see zcover in primitive.pd
 and isbadover/isgoodover in bad.pd.
-(there's a problem with zcover but I don't think it's to do with this). 
 
 If the option
    HandleBad => 1
@@ -119,12 +118,19 @@ well, the $a(...) is expanded as well. Also, you can use a $ before the
 pdl name, if you so wish, but it begins to look like line noise -
 eg '$ISGOOD($a())'.
 
+If you cache a piddle value in a variable -- eg index in slices.pd --
+the following routines are useful:
+ 
+   '$ISBADVAR(c_var,pdl)'     'c_var == pdl_badval'
+   '$ISGOODVAR(c_var,pdl)'    'c_var != pdl_badval'
+   '$SETBADVAR(c_var,pdl)'    'c_var  = pdl_badval'
+
 The following have been introduced, They may need playing around with to 
 improve their use.
 
   '$PPISBAD(CHILD,[i])           'CHILD_physdatap[i] == CHILD_badval'
   '$PPISGOOD(CHILD,[i])          'CHILD_physdatap[i] != CHILD_badval'
-  '$PPSETBAD(CHILD,[i])          'CHILD_physdatap[i] = CHILD_badval'
+  '$PPSETBAD(CHILD,[i])          'CHILD_physdatap[i]  = CHILD_badval'
 
 This means that you can change
    Code => '$a() = $b() + $c();'
@@ -161,7 +167,7 @@ However, it does *appear* that 'bad code' can be automatically generated
 by a simple transform of 'good code' - the expansion of $EQUIVCPOFFS(i,j)
 just needs to deal with the possibility of bad values. Therefore, we do
 NOT have to specify a 'BadEquivCPOffsCode', and let the [EquivCPOffsCode]
-and [Code] rules handle it.
+and [Code] rules generate it automatically.
 
 Macros have been provided to provide access to the bad-flag status of 
 a pdl:
@@ -201,20 +207,18 @@ would then be added to the requirements for the rules which use BadCode/
 whatever and then it's just a case of updating the subroutines.
 
 Some routines would still need explicit code to handle NaN values (eg min, 
-max, median - see primitive.pd). In these cases I would suggest adding 
-something like 'BadtoNaN => 1' to the pp_def, in which case PP.pm would
-actually use the BadCode/BadBackCode/... sections (since they should work
-without modification - PP/PDLCode.pm would just need to be able to 
-produce different output fro the $ISBAD/... macros). If a routine has
-no BadtoNaN rule then we can just use the Code section, ignoring BadCode/etc.
+max, median - see primitive.pd). I have started adding the poorly-named
+option 'UseBadforNaN => 1' to these routines - although at present it is
+ignored. In the future, PP.pm should use the BadCode/... options with a
+different expansion for the $ISBAD() etc macros [if that's even necessary].
+If a routine has no 'UseBadforNaN' rule then we can just use the Code section, 
+ignoring BadCode/etc.
 
-The PDL::PP::BadAccess and PDL::PP::PPBadAccess objects in Basic/PP/PDLCore.pm
-would need updating to produce different code depending on whether NaN 
-support was available or not.
+The PDL::PP::BadAccess, PDL::PP::BadVarAccess, and PDL::PP::PPBadAccess objects 
+in Basic/PP/PDLCore.pm *MAY* need updating to produce different code depending 
+on whether NaN support was available or not.
 
-I'd love someone to try this. I've started labelling routines that I think will
-need to use the BadCode section when NaN's are used - look for the 
-'UseBadforNaN => 1' option (it currently does nothing).
+I'd love someone to try this. 
 
 --------------------------------------------------------------------------------
 

@@ -11,7 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 47;
+	plan tests => 48;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -207,5 +207,10 @@ ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 46
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
 ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 47
+
+# I haven't changed rotate, but it should work anyway
+$a = byte( 0, 1, 255, 4, 5 );
+$a->badflag(1);
+ok( PDL::Core::string( $a->rotate(2) ), "[4 5 0 1 BAD]" ); # 48
 
 # need to test primitive's minmaximum

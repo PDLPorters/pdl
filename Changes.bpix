@@ -1,9 +1,11 @@
 --------------------------------------------------------------------------------
 
 Doug Burke (07/15/00)
+   - added $ISBADVAR(foo,pdl) & other macros, improved/cleaned up 
+     EquivCPOffsCode support - see IMPLEMENTATION.bpix
+   - restored t/picnorgb.t to old (ie main branch) version; now works on linux
    - converted comparison & bit ops in ops.pd, so $a = ($b > 0.2) propogates
      bad values
-   - improved/cleaned up EquivCPOffsCode support - see IMPLEMENTATION.bpix
    - started labelling routines with 'UseBadforNaN => 1' in preparation for
      someone implementing NaN support, for more routines conv in primitive.pd
 Doug Burke (07/14/00)

@@ -544,6 +544,69 @@ sub get_str {
 
 ###########################
 #
+# Encapsulate a check on whether a value is good or bad
+# handles both checking (good/bad) and setting (bad)
+#
+# $ISBADVAR(foo,a)  -> foo == a_badval
+# $ISGOODVAR(foo,a)    foo != a_badval
+# $SETBADVAR(foo,a)    foo  = a_badval
+#
+# I've also got it so that the $ on the pdl name is not
+# necessary - so $ISBAD(a(n)) is also accepted, so as to reduce the
+# amount of line noise. This is actually done by the regexp
+# in the separate_code() sub at the end of the file.
+#
+# note: we also expand out $a(n) etc as well here
+#
+# IEEE NaN support - I'm assuming this would have to be
+#  changed to  $a() != $a() etc - which means 2 accesses to
+#  the data structure
+# 
+
+package PDL::PP::BadVarAccess;
+use Carp;
+
+sub new { 
+    my ( $type, $opcode, $var_name, $pdl_name, $parent ) = @_;
+
+    # trying to avoid auto creation of hash elements
+    my $check = $parent->{ParObjs};
+    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
+	"  unknown piddle <$pdl_name>\n"
+	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
+
+    bless [$opcode, $var_name, $pdl_name], $type;
+}
+
+sub get_str {
+    my($this,$parent,$context) = @_;
+
+    my $opcode   = $this->[0];
+    my $var_name = $this->[1];
+    my $pdl_name = $this->[2];
+
+    print "PDL::PP::BadVarAccess sent [$opcode] [$var_name] [$pdl_name]\n" if $::PP_VERBOSE;
+
+    my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+
+    my $op    = $ops{$opcode};
+    die "ERROR: unknown check <$opcode> sent to PDL::PP::BadVarAccess\n"
+	unless defined $op;
+
+    my $obj  = $parent->{ParObjs}{$pdl_name};
+    die "ERROR: something screwy in PDL::PP::BadVarAccess (PP/PDLCode.pm)\n"
+	unless defined( $obj );
+
+    my $lhs = $var_name;
+    my $rhs = "${pdl_name}_badval";
+
+    print "DBG:  [$lhs $op $rhs]\n" if $::PP_VERBOSE;
+    return "$lhs $op $rhs";
+}
+
+
+###########################
+#
 # Encapsulate a check on whether a value is good or bad using PP
 # handles both checking (good/bad) and setting (bad)
 
@@ -1001,6 +1064,8 @@ if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 		$threadloops ++;
 	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
+	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+		push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
 		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
 	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {

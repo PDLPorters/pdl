@@ -4,10 +4,6 @@ Problems:
 
 .) get the tests fixed
 
-.) t/picnorgb.t fails on linux (perl 5.005_03, gcc), okay on 
-   solaris (perl 5.6.0, cc).
-   Does it mean I've screwed up the internals somewhere?
-
 .) improve the documentation support (such as get it working properly).
    The logic needs tweaking for the automatic document creation,
    and the output needs beautifying.
