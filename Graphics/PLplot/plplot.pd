@@ -1,7 +1,7 @@
 use Config;
 use vars qw/$nomem $debug $plpoly3/;
 
-$debug = 1; # show generated pp_defs and other debug info
+$debug = 0; # show generated pp_defs and other debug info
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
 open (OPT, 'OPTIONS!');
