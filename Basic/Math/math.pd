@@ -376,13 +376,37 @@ pp_def(
               free(w);
 ',
       , Doc => '
-=for ref
-
-Singular value decomposition of array.
-
 =for usage
 
- ($u, $s, $v) = svd($a);
+ ($r1, $s, $r2) = svd($a);
+
+=for ref
+
+Singular value decomposition of an array.
+
+C<svd> is threadable.
+
+C<$r1> and C<$r2> are rotation matrices that convert from the original
+matrix\'s singular coordinates to final coordinates, and from original
+coordinates to singular coordinates, respectively.  C<$s> is the
+diagonal of the singular value matrix, so that, if C<$a> is square,
+then you can make an expensive copy of C<$a> by saying:
+
+ $ess = zeroes($r1); $ess->diagonal(0,1) .= $s;
+ $a_copy .= $r2 x $ess x $r1;
+
+EXAMPLE
+
+The computing literature has loads of examples of how to use SVD.
+Here\'s a trivial example (used in L<PDL::Transform::Map|PDL::Transform::map>)
+of how to make a matrix less, er, singular, without changing the 
+orientation of the ellipsoid of transformation:
+
+ { my($r1,$s,$r2) = svd $a;
+   $s++;             # fatten all singular values
+   $r2 *= $s;        # implicit threading for cheap mult.
+   $a .= $r2 x $r1;  # a gets r2 x ess x r1
+ }
 
 ',);
 

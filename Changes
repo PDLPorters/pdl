@@ -1,6 +1,10 @@
 CED (17-Nov-2002)
     - MatrixOps: improved inv and det can thread using lu_decomp2 
-    - Transform: use svd to characterize the jacobian in integrative mapping
+    - Transform: 
+	- use svd to characterize the jacobian in integrative mapping
+	- integrative ('jacobian') mapping works reasonably quickly and
+	  is correct.  Some changes to options.
+    - Better documentation for svd in math.pd
 CS  - yet another special case for NiceSlice, see NiceSlice Changes
 CED (15-Nov-2002)
     - photometric distortion appears to be correct -- but hogs memory like

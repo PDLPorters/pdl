@@ -542,40 +542,82 @@ so the output image matches the input image in size and sci-to-pixel mapping.
 
 OPTIONS:
 
-The options hash is sent directly to L<interpND|interpND>, so you can
-change the interpolation behavior (currently bilinear by default).  In
-particular, setting "method=>sample" will speed up the operation by a factor
-of 2-3.  
-
-Some options that are unused by L<interpND|interpND> are used here: 
+The following options are interpreted:
 
 =over 3
 
-=item nofits
+=item m, method, Method
 
-(boolean): prevent interpretation of FITS headers in the template
-input image. (default = false)
+This option controls the interpolation method to be used.  Interpolation
+greatly affects both speed and quality of output.  Possible options, in order
+from fastest to slowest, are:
+  
+=over 3
 
-=item i, int, integrate
+=item * s, sample
 
-If set, and if the data set is 2-D (an image), then do actual
-integration of each output pixels's mapped area on the input plane.
-This is pretty slow compared to sampling, but it's much more accurate.
+Pixel values in the output plane are sampled from the closest data value
+in the input plane.  This is very fast but not very accurate for either 
+magnfication or decimation (shrinking).
+
+=item * l, linear
+
+Pixel values are linearly interpolated from the closst data value in the 
+input plane.  This is reasonably fast but only accurate for magnification.
+Decimation (shrinking) of the image causes aliasing and loss of photometry
+as features fall between the samples.
+
+=item * j, jacobian
+
+Pixel values are filtered through a spatially-variable filter tuned to the
+computed Jacobian of the transformation.  This is the mathematically
+correct way to deform images and yields very good results -- but 
+at a cost.  It runs perhaps 10 times slower than linear interpolation.
+
+=back
+
+=item b, blur, Blur
+
+This is the half-radius of the Gaussian filter used for the "jacobian"
+method, in units of output pixels.  It defaults to 0.7 pixel, which provides
+a minimal amount of overlap with adjacent pixels while minimizing aliasing.
+
+=item big, Big
+
+This is the largest allowable input spot size which may be mapped to a
+single output pixel.  The default is 0.2 x the largest dimension of the 
+input array.  
+
+=item p,phot, photometry, Photometry
+
+This lets you set the style of photometric conversion to be used in the 
+"jacobian" method.  You may choose:
+
+=over 3
+
+=item * s, surf, surface, Surface
+
+(this is the default): surface brightness is preserved over the transformation,
+so features maintain their original intensity.
+
+=item * f, flux, Flux
+
+Total flux is preserved over the transformation, so that the brightness
+integral over image regions is preserved.  Parts of the image that are
+shrunk wind up brighter; parts that are enlarged end up fainter.
+
+=back
 
 =back
 
 NOTES:
 
-Map currently does simple interpolation only, so in places where
-incrementing an output pixel coordinate sweeps across several input
-pixels, some input pixels are ignored.  (For example, reducing a
-periodic image with high spatial frequencies gives strong Moire
-effects).  A future version should probably incorporate some sort of
-footprint mapping so that the output pixel is an appropriate average
-when it maps to more than one input pixel.
-
 Currently FITS headers are detected but not acted upon.  You must 
 handle your FITS transformations manually.
+
+Jacobian tracking is a memory hog, especially if the transformation includes
+very large regions off of the original input plane.  Some sort of memory
+guard needs to be put in place.
 
 =cut
 
@@ -625,14 +667,8 @@ sub map {
 
   $PDL::debugerooni_out = $out;
 
-  my($integrate) = _opt($opt,['i','int','integrate','Integrate']);
-  print "integrate=$integrate\n";
-
-  ## Half-width of the sampling gaussian -- should be at least 0.5.
-  my($blur) = _opt($opt,['b','blur','Blur']);
-  $blur = 0.7 unless($blur);
-  my $blur2 = 0.5 / $blur / $blur ; 
-
+  my($integrate) = scalar(_opt($opt,['m','method','Method']) =~ m/[jJ](ac(obian)?)?/);
+  print "integrate ='$integrate'\n";
   if(!$integrate) {
     
     ##############################
@@ -669,8 +705,21 @@ sub map {
       if($nd != $nd_in);
 
     ###############
+    ### Interprest integration-specific options...
+    my $big = _opt($opt,['big','Big']) || pdl($in->dims)->max / 5.0;
+    $big = pdl($big) unless UNIVERSAL::isa($big,'PDL');
+
+    my $blur  = _opt($opt,['b','blur','Blur']) || 0.5;
+    my $blur2 = 1.0 / $blur / $blur ; # used inside the Gaussian, below
+
+    my $flux = scalar((_opt($opt,['p','phot','photometry','Photometry'])) =~
+		m/[fF](lux)?/);
+
+    ###############
     ### Enumerate & warp the coordinates of all pixel corners.
-    print "enumerating indices...\n";
+    ### Then average the pixel corners together to get the 
+    ### transformed pixel centers, and difference them to get the jacobian.
+
     my($indices) = PDL->zeroes($nd, (PDL->pdl(@sizes)+1)->list );#(coord,dims)
     for my $dim(0..$out->ndims-1) {
       my($sl) = $indices->slice("(".($dim).")")->xchg(0,$dim);
@@ -679,14 +728,6 @@ sub map {
 
     $indices = $me->apply($indices->inplace); #(dim,list)
 
-    ###############
-    ### Generate the pixel-center map and flatten it into a single list of 
-    ### N-vectors for easier iteration.  List dim first, other stuff last.
-    ### This is a little time consuming but probably quicker than calling the 
-    ### whole transformation again on the pixel centers.  (the corners are
-    ### needed for the jacobian, below)
-
-    print "flattening maps...\n";
 
     my ($slstr1,$slstr2);
     chop ( $slstr1 = ":,".("0:-2," x $nd) );
@@ -699,11 +740,7 @@ sub map {
 		    )
 		  );  # center gets (list,coord)
 
-    ###############
-    ### Calculate the jacobian everywhere: nxn matrix with trailing index dims
-    ### for each pixel. 
     my($jacob) = PDL->zeroes($nd, $nd, @sizes); # (col, row, dims)
-
     my($slstr) = ",0:-2"x($nd-1);
     for($i=0;$i<$nd;$i++){
       my($ind) = $indices->xchg(1,$i+1);
@@ -714,46 +751,34 @@ sub map {
     
     my $jac  = $jacob->reorder(2..($nd+1),0,1)->clump($nd)
 		->mv(0,2);                              # (col, row, list)
-
+    $jacob = undef;
 
     ###############
     ### Determinant comes in handy for the photon-preserving case,
     ### but needs to be taken from the non-fattened Jacobian (see below)
-    my $jdet = $jacob->determinant->flat;
+    my $jdet = $jac->det;
 
     ###############
     ### Singular-value decompose the Jacobian and fatten it to ensure 
-    ### at least one intersection with the grid.
-    print "singular value of jac... (",join(",",$jac->dims),")\n";
-    my ($r1, $s, $r2) = svd $jac;
-    $s += sqrt($nd);                       # diagonal of an N-cube
-    print "ok\n";
+    ### at least one intersection with the grid.  Then save the size
+    ### of the enclosing N-cube, for use down below. 
+    ### This is in a block to get rid of the temporary variables.
+    my $sizes;
+    { 
+      my ($r1, $s, $r2) = svd $jac;
+      $s += sqrt($nd);          # diagonal of an N-cube
+      $r2 *= $s->dummy(1,$nd);  # cheap mult; dummy keeps threading right
+      $jac .= $r2 x $r1;
+
+      $sizes = $s->maximum->clip(undef,$big); 
+    }      
+
 
     ###############
-    ### Reconstruct the fattened Jacobian: jac = r1 x s x r2
-    $r1 *= $s->dummy(1,$nd); # scale by the singular values
-    $jac .= $r1 x $r2;
-
-    ###############
-    ### Use the fattened singular values to figure out how big 
-    ### a subregion needs to be considered.  Then we're done with 
-    ### the SVD stuff so we can free it up.
-    my $big = pdl($in->dims)->max / 10.0;
-    my $sizes = $s->maximum->clip(undef,$big);  # List of sizes of region to use
-
-    $s = $r1 = $r2 = undef;
-
-    ###############
-    ### Figure out the inverse Jacobian.  Always invertible -- we 
-    ### made sure the singular values were nonzero!
-    ###
-    ### Inverting like this is almost certainly wasteful -- it's
-    ### likely much easier to invert r1 & r2, knowing that they are
-    ### rotation matrices. 
-    ###
-    ### We're also done with $jac so we do this inplace and then 
-    ### (just to make sure) explicitly free up $jac.
-    my $ijac = $jac->inplace->inv;
+    ### We're done with the Jacobian but need the inverse Jacobian.
+    ### Fortunately, $jac is always invertible since we've constructed
+    ### its singular values to be nonzero.
+    my $ijac = $jac->inv;
     $jac = undef;
 
     ###############
@@ -763,24 +788,22 @@ sub map {
     my $last_size=0;
     my $outf = $out->flat;
     for($size=4; $size < $big*1.9999; $size *= 2){
-      print "size is $size...";
       $size = PDL->pdl($big)->floor + 1 
 	if($size > $big);
-      print "big is $big\n";
       my($pixels) = ($size < $big) ? 
 	which($sizes >= $last_size/2.0 & $sizes < $size/2.0) :
 	which($sizes >= $last_size/2.0);
 
-      print "found ",$pixels->nelem," points...";
+      print "found ",$pixels->nelem," points..." if($PDL::debug);
       next if($pixels->nelem == 0);
 
       ###############
       ### Enumerate a cube of coordinate offsets of the current size.
       ### float not double, to save space.
-      print "enumerating coordinates for a $size-on-a-side $nd-cube...";
+      print "enumerating $nd-cube, side $size..." if($PDL::debug);
       my @zlist = (zeroes($nd)+$size)->list;
       my($coords_in) = zeroes( float, $nd, (zeroes($nd)+$size)->list );
-      print "coords_in has dims ",$coords_in->dims,"\n";
+
       for my $i(0..$nd-1) {
 	$coords_in->index($i)->xchg(0,$i) .= xvals(@zlist);
       }
@@ -789,7 +812,7 @@ sub map {
       ### Duplicate the coordinate cube for each pixel.  This step
       ### is a real memory hog -- if crashes occur here, then subdivide
       ### down to reasonable memory sizes with a for loop.
-      print "duplicating ",$pixels->nelem," times...\n";
+      print "duplicating ",$pixels->nelem," times..." if($PDL::debug);
       $coords_in = $coords_in->                       # (coord,<dims>)
 		   reorder(1..$nd,0)->                # (<dims>,coord)
 		   clump($nd)->                       # (rgn-list,coord)
@@ -801,9 +824,8 @@ sub map {
       ### Offset to get an array of indices into the input
       ### the indexND call is used because of the double-threading.
       ###
-      print "offsetting...  center is ",join("x",$center->dims),"; pixels is ",join("x",$pixels->dims),"\n";
+      print "offsetting..." if($PDL::debug);
       my($points) = $center->indexND($pixels->dummy(0,1));  # (pix-list, coord)
-      print " points has dimension ",join("x",$points->dims),"\n";
       $coords_in += $points->floor - 0.5*$size + 1;         # (pix-list, coord, rgn-list)
 
       ###############
@@ -811,7 +833,7 @@ sub map {
       ### the appropriate pixel center, and convert to r^2;
       ###
       ### The intermediate variable ijac_p could be eliminated...
-      print "calculating offsets\n";
+      print "calculating offsets..." if($PDL::debug);
       my $ijac_p = ( $ijac->            # (col, row, list)
 		     reorder(2,0,1)->   # (list, col, row)
 		     indexND($pixels->dummy(0,1))->   # (pix-list, col, row)
@@ -823,7 +845,6 @@ sub map {
 		        xchg(0,1)->dummy(0,1)    # (null,coord,pix-list,rgn-list)
 		     )	->slice("(0)");          # (coord,pixlist,rgn-list)
        $offsets *= $offsets; # (coord, pixlist, rgn-list)
-
       
       ###############
       ### Calculate filter weighting values.  Since we scale at the 
@@ -831,17 +852,30 @@ sub map {
       ### bother to scale the weighting function here -- but we do accumulate
       ### the filter weighting total into f_norm.
 
-      print "calculating filter values\n";
+      print "calculating filter values..." if($PDL::debug);
       my $filt = $offsets->sumover->xchg(0,1);  # (rgn-list,pix-list) R^2
       $offsets = undef;    # free up memory    
-      $filt *= (-$blur2);               # Gaussian has HW of 2/3
+      $filt *= (-$blur2);                # blur width scale from above
       $filt->inplace->exp;               # make Gaussian. (rgn-list, pix-list)
       my $f_norm = $filt->sumover;       # (pix-list)
+
+      if(defined $PDL::debug::w && ($size >4)) {
+	print "Saving pixels...\n";
+	my $i;
+	for ($i=0;$i<$filt->dim(1);$i++) {
+	  $PDL::debug::w = new PDL::Graphics::PGPLOT::Window(Dev=>sprintf("%6.6d.gif/gif",++($PDL::debug::n)),
+				 Size=>[3,3]);
+	  $PDL::debug::w->imag($filt->slice(":,($i)")->reshape($size,$size));
+	  $PDL::debug::w->close;
+	  print " . " if(!($i%100));
+	}
+      }
       
       ###############
       ### Pedal to the metal -- accumulate input values and scale by their
       ### appropriate filter value.
-      print "grabbing inputs...\n";
+      print "grabbing inputs..." if($PDL::debug);
+
       my($input) = $in->range(
 			      $coords_in->         #(pix-list,coord,rgn-list)
 			        slice(":,:,(0)")-> #(pix-list,coord)
@@ -851,7 +885,6 @@ sub map {
 		      reorder(1..$nd,0)->          # (<dims>,pix-list)
 		      clump($nd)                   # (rgn-list,pix-list)
 		      ->sever;
-      print "input is ",join("x",$input->dims),"\n";
 
       $filt *= $input;  # (rgn-list, pix-list)
 
@@ -860,11 +893,16 @@ sub map {
       ### surface area preservation).
       ### range is used here because indexND doesn't preserve dataflow
       ### (it should and probably will sooner or later).
-      $out->flat->range($pixels->dummy(0,1)) .= 
-	($filt->sumover / $f_norm);  # (pix-list)
+      if($flux) {
+	my $p_jdet = $jdet->indexND($pixels->dummy(0,1));
+	$out->flat->range($pixels->dummy(0,1)) .=
+	  ($filt->sumover * $p_jdet / $f_norm);
+      } else {
+	$out->flat->range($pixels->dummy(0,1)) .= 
+	  ($filt->sumover / $f_norm);  # (pix-list)
+      }
 
-      print "\n";
-      $PDL::debug_w->imag($out) if(defined $PDL::debug_w);
+      print "ok\n" if($PDL::debug);
       $last_size = $size;
     }
   }
@@ -899,10 +937,6 @@ sub unmap {
   return $me->inverse->map(@_);
 }
 
-
-sub PDL::Transform::string {
-  print "Stringified a transform!\n";
-}
 
 ######################################################################
 
@@ -1228,8 +1262,6 @@ sub PDL::Transform::Linear::new {
   $me->{params}->{rot} = _opt($o,['r','rot','rota','rotation','Rotation']);
   $me->{params}->{rot} = 0 unless defined($me->{params}->{rot});
   $me->{params}->{rot} = pdl($me->{params}->{rot});
-
-  print "me->{params}->{rot} = ".$me->{params}->{rot}."\n";
 
   my $o_dims = _opt($o,['dims','Dims']);
   $o_dims = pdl($o_dims)
