@@ -3327,7 +3327,7 @@ sub initenv{
 
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
-
+  print "initenv: options are ",join(",",%$o),"\n";
   if ($self->autolog) {
     # print STDERR "Options: ",$o->{Axis},"\n";
     # use Data::Dumper; print Dumper $o->{Axis};
@@ -3414,7 +3414,9 @@ sub initenv{
   _SetupViewport($o);
 
   # This behaviour is taken from the PGPLOT manual.
-  if ($o->{Justify} == 1) {
+  # Note that PlotPosition overrides justify here, on the grounds
+  # that if the user specified the position then she knows what she wants.
+  if ($o->{Justify} == 1 && !defined($o->{PlotPosition})) {
     pgwnad($xmin, $xmax, $ymin, $ymax);
     if (ref($o->{Axis}) eq 'ARRAY') {
       pgtbox($o->{Axis}[0], 0.0, 0, $o->{Axis}[1], 0.0, 0);
@@ -4623,7 +4625,7 @@ sub arrow {
 
     if (!defined($im_options)) {
       $im_options = $self->{PlotOptions}->extend({
-						  PIX => undef,
+						  PIX => 1,
 						  Min => undef,
 						  Max => undef,
 						  Scale => undef,
@@ -4643,11 +4645,8 @@ sub arrow {
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
 
     release_and_barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
-    $u_opt->{'PIX'}=1 unless defined $u_opt->{'PIX'};
-    # Note that passing $u_opt is ok here since the two routines accept the
-    # same options!
-    $self->imag (@$in,$u_opt);
-    # This is not added to the state, because the imag command does that
+    $self->imag (@$in,$o);
+    # This is not added to the state, because the imag command does that.
   }
 
   sub imag {
@@ -4696,7 +4695,7 @@ sub arrow {
 
     $min = min($image) unless defined $min;
     $max = max($image) unless defined $max;
-    
+  
     if (defined($tr)) {
 	$self->_checkarg($tr,1);
 	release_and_barf '$transform incorrect' if nelem($tr)!=6;
@@ -4709,14 +4708,10 @@ sub arrow {
     # Set up coordinate transformation in the output window.
     
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+    my($old_plotposition) = $o->{PlotPosition};
+
+
     if (!$self->held()) {
-      
-      #########
-#      # Set axis defaults -- this overrides the ('BCNST') default in 
-#      # PGPLOTOptions.pm, but only for images!
-#      #
-#      $o = $self->{Options}->options({Axis=>'BCINST'})
-#	unless($u_opt->{Axis});
       
       #########
       # Parse out scaling options - this is pretty long because
@@ -4737,7 +4732,7 @@ sub arrow {
 	$unit = _parse_unit($_);
 	release_and_barf ("Unknown unit '$_'\n") unless defined($unit);
       }
-
+      $unit = 1 unless defined($unit);
       $pix = $o->{'Justify'} if ($o->{'Justify'});
       $pix = $u_opt->{'PIX'} if defined $u_opt->{'PIX'};
 
@@ -4775,8 +4770,8 @@ sub arrow {
       ## it's better to keep that all centralized...) (CED 15-Aug-2002)
       
       my(@env_range) = (@xvals[0..1],@yvals[0..1]);
-      
-      if ( $pix && !defined($o->{Justify})) {
+
+      if ( $pix ) {
 
 	##############################
 	# Set up the viewport so we can calibrate its size in display
@@ -4786,21 +4781,75 @@ sub arrow {
 	##############################
 	# Get size of viewport in screen units
 	my ( $x0,$x1,$y0,$y1 );
-	pgqvp(1,$x0,$x1,$y0,$y1);
-	
+	pgqvp($unit,$x0,$x1,$y0,$y1);
+
 	##############################
 	# pix is always defined if pitch is defined, but not vice
 	# versa.  Work out a suitable pitch if necessary.
 	$pitch = max(pdl( $xrange / ($x1-$x0) ,
 			  $yrange / ($y1-$y0) * $pix  ))
 	  unless defined($pitch);
+	print "pitch=$pitch\n";
+	##############################
+	# If justify is set, then the viewport size varies to fit the
+	# data, subject to the maximum size yielded by pgqvp.
+	# Figure the smallest window that can hold the data, and trim 
+	# it to the size of the maximum viewport, above.
+	if($o->{Justify}==1) {
+	  print "Justify...\n";
+	  # size of the data in viewport units
+	  my $xsize = $xrange/$pitch;
+	  my $ysize = $yrange/$pitch*$pix;
+	  print "xsize =$xsize; ysize=$ysize\n";
 
+	  if($xsize < ($x1 - $x0)) {
+	    my $xdiff = $x1-$x0-$xsize;
+	    print "xdiff=$xdiff; (x0,x1) was ($x0,$x1) ... ";
+	    $x0 += $xdiff/2;
+	    $x1 -= $xdiff/2;
+	    print "but is now ($x0,$x1) ... \n";
+	  }
+	  if($ysize < ($y1 - $y0)) {
+	    print "ydiff=$ydiff; (y0,y1) was ($y0,$y1) ...";
+	    my $ydiff = $y1-$y0-$ysize;
+	    $y0 += $ydiff/2;
+	    $y1 -= $ydiff/2;
+	    print "but is now ($y0,$y1) ... \n";
+	  }
+
+	  my($sx0,$sx1,$sy0,$sy1);
+	  pgqvsz($unit,$sx0,$sx1,$sy0,$sy1);
+
+	  my($w,$h) = (($sx1-$sx0),($sy1-$sy0));
+	  print"(sx0,sx1,sy0,sy1) = ($sx0,$sx1,$sy0,$sy1), w=$w,h=$h\n";
+
+	  if(defined $o->{PlotPosition} and ref $o->{PlotPosition} eq 'ARRAY'){
+	    my($ppx0,$ppx1,$ppy0,$ppy1) = @{$o->{PlotPosition}};
+	    $sx0 = $ppx0 * $w;
+	    $sx1 = $ppx1 * $w;
+	    $sy0 = $ppy0 * $h;
+	    $sy1 = $ppy1 * $h;
+	    }
+	
+	  my($rx0,$rx1,$ry0,$ry1) = (
+				     ($x0-$sx0) / $w,
+				     ($x1-$sx0) / $w,
+				     ($y0-$sy0) / $h,
+				     ($y1-$sy0) / $h
+				     );
+	  print "(rx0,rx1,ry0,ry1) = ($rx0,$rx1,$ry0,$ry1)\n";
+	  pgsvp($rx0,$rx1,$ry0,$ry1);
+	  
+	  $o->{PlotPosition} = [$rx0,$rx1,$ry0,$ry1];
+	}
+	  
 	##############################
 	# Work out the boundaries of the viewport in data space,
 	# given the pitch and requested pixel aspect ratio.
-	# This is complicated by the need to handle the ALIGN option.
+	# This is complicated by the need to handle the ALIGN option and
+	# justification.
 	local($_) = $u_opt->{Align};
-
+	
 	if( m/L/i ) {
 	  @env_range[0..1] = ($xvals[0], $xvals[0] + ($x1-$x0)*$pitch);
 	} elsif( m/R/i ) {
@@ -4809,7 +4858,7 @@ sub arrow {
 	  @env_range[0..1] = (0.5* ( $xvals[0]+$xvals[1] - ($x1-$x0)*$pitch ),
 			      0.5* ( $xvals[0]+$xvals[1] + ($x1-$x0)*$pitch));
 	}
-
+	
 	if( m/B/i ) {
 	  @env_range[2..3] = ($yvals[0], $yvals[0] + ($y1-$y0)*$pitch/$pix);
 	} elsif( m/T/i ) {
@@ -4818,13 +4867,14 @@ sub arrow {
 	  @env_range[2..3]=(0.5*($yvals[0]+$yvals[1] - ($y1-$y0)*$pitch/$pix),
 			    0.5*($yvals[0]+$yvals[1] + ($y1-$y0)*$pitch/$pix));
 	}
-
       } # if defined $pix
 
 
       # Here's the initenv call, after much ado.  JUSTIFY is set to 0 
       # explicitly, because it's handled through the PIX code above.
-      $self->initenv( @env_range, $o->{Justify}, $o->{Axis}  );
+      print "env_range=",join(",",@env_range),"\n";
+      print "plot position is ",join(",",@{$o->{PlotPosition}}),"\n";
+      $self->initenv( @env_range, $o ); 
 
       # Label axes if necessary
       if(defined ($u_opt->{Title} || $u_opt->{XTitle} || $u_opt->{YTitle})) {
@@ -4861,6 +4911,8 @@ sub arrow {
     }
 
     &release_signals;
+    $o->{PlotPosition} = $old_plotposition;
+
     1;
 
   } # sub: imag()
