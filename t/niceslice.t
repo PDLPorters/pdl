@@ -6,7 +6,7 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 34;
+	plan tests => 35;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -137,3 +137,10 @@ ok(!$@ and $a eq '1234');
 $a = '';
 eval translate_and_show 'for  our $b(1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');
+
+# block method access translation
+
+$a = pdl(5,3,2);
+my $method = 'dim';
+eval translate_and_show '$c = $a->$method(0)';
+ok(!$@ && $c == 0);
