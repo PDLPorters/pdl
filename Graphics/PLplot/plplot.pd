@@ -2593,7 +2593,33 @@ pp_def ('plshade1',
            free ((void *) a);'
         );
 
+# Plot gray-level image
 
+pp_def ('plimage',
+         GenericTypes => [D],
+         Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
+	         . 'zmin(); zmax(); Dxmin(); Dxmax(); Dymin(); Dymax();',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** idata;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&idata, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               idata[i][j] = $idata(nx => i, ny => j);
+
+           plimage (idata, size_x, size_y,
+	     $xmin(), $xmax(), $ymin(), $ymax(), $zmin(), $zmax(),
+             $Dxmin(), $Dxmax(), $Dymin(), $Dymax());
+
+           plFree2dGrid (idata, size_x, size_y);'
+	);
+	
+	
 pp_addpm (<<'EOPM');
 
 =pod
