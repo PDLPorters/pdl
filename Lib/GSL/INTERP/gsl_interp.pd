@@ -232,12 +232,14 @@ typedef gsl_interp_accel GslAccel;
 		
 pp_addpm('
 sub init{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Sort => 1}; }
   my ($class,$type,$x,$y) = @_;
   if( (ref($x) ne \'PDL\') || (ref($y) ne \'PDL\') ){
     barf("Have to pass piddles as arguments to init method\n");
   }
-  if(($$opt{Sort} != 0) || (!defined($$opt{Sort}))){
+  if($$opt{Sort} != 0){
     my $idx = PDL::Ufunc::qsorti($x);
     $x = $x->index($idx);
     $y = $y->index($idx);
@@ -261,11 +263,13 @@ GSLERR(gsl_spline_init,( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n)));'
 
 pp_addpm('
 sub eval{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
   my ($obj,$x) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
-  if(($$opt{Extrapolate} == 0) || (!defined($$opt{Extrapolate}))){
+  if($$opt{Extrapolate} == 0){
     return eval_meat($x,$$s_obj,$$a_obj);
   }
   else{
@@ -293,11 +297,13 @@ $out() = gsl_spline_eval( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) 
 
 pp_addpm('
 sub deriv{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
   my ($obj,$x) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
-  if(($$opt{Extrapolate} == 0) || (!defined($$opt{Extrapolate}))){
+  if($$opt{Extrapolate} == 0){
     return  eval_deriv_meat($x,$$s_obj,$$a_obj);
   }
   else{
@@ -323,11 +329,13 @@ $out() = gsl_spline_eval_deriv( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_acc
 
 pp_addpm('
 sub deriv2{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
   my ($obj,$x) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
-  if(($$opt{Extrapolate} == 0) || (!defined($$opt{Extrapolate}))){
+  if($$opt{Extrapolate} == 0){
     return  eval_deriv2_meat($x,$$s_obj,$$a_obj);
   }
   else{
@@ -353,11 +361,13 @@ $out() = gsl_spline_eval_deriv2( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_ac
 
 pp_addpm('
 sub integ{
-  my $opt = pop @_ if ref($_[$#_]) eq \'HASH\';
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
   my ($obj,$a,$b) = @_;
   my $s_obj = $$obj[0];
   my $a_obj = $$obj[1];
-  if(($$opt{Extrapolate} == 0) || (!defined($$opt{Extrapolate}))){
+  if($$opt{Extrapolate} == 0){
     return eval_integ_meat($a,$b,$$s_obj,$$a_obj);
   }
   else{
