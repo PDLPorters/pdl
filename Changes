@@ -1,3 +1,6 @@
+DJB (24/May/01)
+    - fixed bug in Image2D::centroid2d when (x+box/2) > m (ditto for the y 
+      axis). Added bad-value support to centroid2d and max2d_ind
 DJB (8/May/01)
     - OpenBSD doesn't seem to have values.h, which causes Basic/Math to fail:
       see http://testers.cpan.org/search?request=dist&dist=PDL#2.2.1 
