@@ -28,6 +28,7 @@ The list of currently availably commands:
 
  imag       -  Display an image (uses pgimag()/pggray() as appropriate)
  im         -  Shorthand to display an image with aspect ratio of 1
+ fits_imag  -  Display a FITS image with appropriate transforms & labels
  ctab       -  Load an image colour table
  ctab_info  -  Get information about currently loaded colour table
  line       -  Plot vector as connected points
@@ -566,6 +567,10 @@ sub tpoints {
 sub imag {
   dev() if !defined($CW);
   $CW->imag(@_);
+}
+sub fits_imag {
+  dev() if !defined($CW);
+  $CW->fits_imag(@_);
 }
 sub imag1 {
   dev() if !defined($CW);

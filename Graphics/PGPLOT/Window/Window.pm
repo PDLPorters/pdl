@@ -875,6 +875,37 @@ This is syntactic sugar for
 
   $win->imag( { PIX=>1 } );
 
+=head2 fits_imag
+
+=for ref
+
+Display a FITS image with correct axes
+
+=for usage
+
+  $win->fits_imag( image,  [$min, $max], [$opt] );
+
+Notes: 
+
+Because the point of fits_imag is to generate the transform array for
+you, you shouldn't pass in a TRANSFORM array, or a PIX, PITCH, UNIT,
+or SCALE specification (all they do is generate other transform
+arrays).  Currently passing one of these parameters into fits_imag does
+undefined things.  It's not likely to crash, but it's also not likely
+to be what you want, either.
+
+Currently fits_imag also generates titles for you and appends the CTYPE
+units if they're present.  So if you say
+
+  $win->fits_imag($pdl, {xtitle=>"frobnitz"})
+
+you automagically get an X axis label that says "frobnitz (bleems)",
+if $pdl's CTYPE1 field contains "bleems".
+
+If you don't pass in an xtitle or ytitle parameter, you still get the 
+units designation.  But if there's no CTYPE1 or CTYPE2 then you get no
+units designation.
+
 =head2 draw_wedge
 
 =for ref
@@ -4298,6 +4329,56 @@ sub arrow {
   } # sub: imag()
 
 }
+
+#
+# Complain to deforest@boulder.swri.edu if this one doesn't work for you.
+# Display an image with axes appropriate for its FITS header.
+#
+sub fits_imag {
+  my($pane) = shift;
+  my($pdl) = shift;
+  my($opt) = shift;
+  $opt = {} unless defined($opt);
+
+  my($hdr) = $pdl->gethdr();
+
+  print STDERR
+    "Warning: fits_imag got a null FITS header (didja set hdrcpy?)\n"
+      unless (scalar(keys %$hdr) || !$PDL::debug);
+
+  # $ic gets the image center, in data coordinates.  That's why the 
+  # $hdr->{NAXIS1}/2 is in there.  
+
+  my($ic) = [ defined($hdr->{CRPIX1}) ? 
+		    $hdr->{CDELT2} * ($hdr->{NAXIS1}/2 - $hdr->{CRPIX1} + 1 ) + ( $hdr->{CRVAL1} ) : 
+		    0
+		    ,
+		    
+		    defined($hdr->{CRPIX2}) ?
+		    $hdr->{CDELT2} * ($hdr->{NAXIS2}/2 - $hdr->{CRPIX2} + 1 ) + ( $hdr->{CRVAL2} ) : 
+		    0
+	      ];
+
+
+
+  my($transform) = $pane->transform(
+    {ImageDimensions=>[$pdl->dims],
+     Angle=>($hdr->{CROTA} || 0),
+     Pixinc=>($hdr->{CDELT1} || 1.0),  # This should, but can't, be a 2-array.
+     ImageCenter=>$ic
+     }
+   );
+  print "ok\n";
+  $opt->{Transform} = $transform;
+  %opt2 = %{$opt};
+  delete $opt2{xtitle};
+  delete $opt2{ytitle};
+  delete $opt2{title};
+  $pane->imag($pdl,\%opt2);
+  $pane->label_axes($opt->{xtitle} . " ($hdr->{CTYPE1}) ",$opt->{ytitle} . " ($hdr->{CTYPE2}) ",$opt->{title},$opt);
+}
+
+
 
 # Load a colour table using pgctab()
 
