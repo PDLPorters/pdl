@@ -42,7 +42,8 @@ for (['Byte',$PDL_B],
 my $hasTB = 0;
 eval 'use Text::Balanced';
 if ($@) {
-  warn "PDL::PP: can't load Text::Balanced, code parsing will be limited";
+  # this is too annoying
+  # warn "PDL::PP: can't load Text::Balanced, code parsing will be limited";
 } else {
   $hasTB = 1;
 }

@@ -63,7 +63,6 @@ type conversion, threading etc.
 
 package PDL::Core;
 use PDL::Types;
-use PDL::PP::Signature;
 
 $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
@@ -923,6 +922,7 @@ C<[t]> qualifier and all type qualifiers are ignored.
 
 sub PDL::over (&) { $_[0] }
 sub PDL::thread_define ($$) {
+  require PDL::PP::Signature;
   my ($str,$sub) = @_;
   my $others = 0;
   if ($str =~ s/[,]*\s*NOtherPars\s*=>\s*([0-9]+)\s*[,]*//) {$others = $1}
