@@ -1,3 +1,7 @@
+TJ  - Compatibility fixes for perl 5.005_03
+        + updated ppport.h from perl 5.8.0
+        + lvalue problems with slices.pd and primitive.pd
+        + Graphics/PGPLOT/Window/Window.xs now uses ppport.h
 TJ  - Core.xs.PL used invalid XS for hdr and gethdr
 DJB - Backported "_Inline removal to Makefile.PL & t/inlinepdlpp.t"
 CS  - version to 2.3.4

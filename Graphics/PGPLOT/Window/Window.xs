@@ -9,43 +9,7 @@
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "XSUB.h"     /* XSUB include */
-
-#ifndef PERL_PATCHLEVEL
-#      ifndef __PATCHLEVEL_H_INCLUDED__
-#              define PERL_PATCHLEVEL_H_IMPLICIT
-#              include "patchlevel.h"
-#      endif
-#endif
-#ifndef PERL_VERSION
-/* Replace: 1 */
-#      define PERL_VERSION PATCHLEVEL
-/* Replace: 0 */
-#endif
-#ifndef PERL_SUBVERSION
-/* Replace: 1 */
-#      define PERL_SUBVERSION SUBVERSION
-/* Replace: 0 */
-#endif
-
-#if (PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5))
-/* Replace: 1 */
-#      define PL_sv_undef      sv_undef
-#      define PL_sv_yes        sv_yes
-#      define PL_sv_no         sv_no
-#      define PL_na            na
-#      define PL_stdingv       stdingv
-#      define PL_hints         hints
-#      define PL_curcop        curcop
-#      define PL_curstash      curstash
-#      define PL_copline       copline
-#      define PL_Sv            Sv
-/* Replace: 0 */
-#endif
-
-/* Ifdefs used here for aTHX_ for compilation under perl 5.005 */
-#ifndef aTHX_
-#define aTHX_
-#endif
+#include "ppport.h"   /* for backwards comaptibility */
 
 struct PGPLOT_function_handle {
    I32 binversion;
