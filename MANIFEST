@@ -80,6 +80,7 @@ Basic/Ops/Makefile.PL
 Basic/Ops/ops.pd
 Basic/Options.pm
 Basic/PDL.pm
+Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/Delta.pod
