@@ -1656,7 +1656,12 @@ Test the in-place flag on a piddle
   $in->set_inplace(0)
 
 Provides access to the L<inplace:inplace> hint flag, within the perl millieu. 
-That way functions you write can be inplace aware...
+That way functions you write can be inplace aware... If given an
+argument the inplace flag will be set or unset depending on the value
+at the same time. Can be used for shortcut tests that delete the
+inplace flag while testing:
+
+  $out = ($in->is_inplace(0)) ? $in : zeroes($in); # test & unset!
 
 =head2 set_inplace
 

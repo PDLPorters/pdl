@@ -32,7 +32,7 @@ package PDL::Lvalue;
 # extend as necessary
 my @funcs = qw/slice mslice nslice index where px diagonal clump
   dummy index2d dice dice_axis xchg mv flat sever polyfillv range rangeb 
-  indexND indexNDb/;
+  indexND indexNDb reshape/;
 
 my $prots = join "\n", map {"use attributes 'PDL', \\&PDL::$_, 'lvalue';"}
   @funcs;

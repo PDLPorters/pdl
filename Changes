@@ -1,5 +1,9 @@
+CS 030503
+   - is_inplace: allow testing and unsetting inplace flag in one statement
+   - complex.pd: fiddling with namespaces and other bits
+   - add 'reshape' to lvalue funcs
 CS 190403
-   - excport pdl_changed, pdl_children_changesoon and pdl_vaffinechanged
+   - export pdl_changed, pdl_children_changesoon and pdl_vaffinechanged
      into PDL::Core struct (for usage in external modules)
      bumped up pdl_core_version to 5
    - use those funcs to fix inplace ffts in PFL::FFTW (fix bug #716449)

@@ -384,7 +384,8 @@ iscontig(x)
 
 !NO!SUBS!
 
-# access (read, if set is true then write as well)
+# access (read, if set is true then write as well; if postset true then
+#         read first and write new value after that)
 # to piddle's state
 #
 
@@ -393,7 +394,7 @@ my %flags =
       hdrcpy => { set => 1 },
       fflows => { FLAG => "DATAFLOW_F" },
       bflows => { FLAG => "DATAFLOW_B" },
-      is_inplace => { FLAG => "INPLACE" },
+      is_inplace => { FLAG => "INPLACE", postset => 1 },
       donttouch => { FLAG => "DONTTOUCHDATA" },
       allocated => { },
       vaffine => { FLAG => "OPT_VAFFTRANSOK" },
@@ -416,6 +417,22 @@ $name(x,mode=0)
 	if (items>1) 
 	   { setflag(x->state,$flag,mode); }
 	RETVAL = ((x->state & $flag) > 0);
+	OUTPUT:
+	RETVAL
+
+!WITH!SUBS!
+
+} elsif ($flags{$name}{postset}) {
+
+	print OUT <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+	pdl *x
+	int mode
+	CODE:
+	RETVAL = ((x->state & $flag) > 0);
+	if (items>1) 
+	   { setflag(x->state,$flag,mode); }
 	OUTPUT:
 	RETVAL
 
