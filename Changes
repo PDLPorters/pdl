@@ -1,3 +1,6 @@
+CS  12-19-03
+   - small release notes change
+   - t/primitive.t: test empty piddle handling
 CED 12-16-03
    - ufunc.pd: average() returns 0 when given an integer empty piddle
 	and nan when given a floating-point empty piddle (unless badvals

@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 16;
+plan tests => 19;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -103,3 +103,12 @@ ok(!$@);
 ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
                    [[0,1],[0,1],[0,0],[1,1],[1,1],[1,1]])));
 
+
+# test new empty piddle handling
+$a = which ones(4) > 2;
+$b = $a->long;
+$c = $a->double;
+
+ok(isempty $a);
+ok($b->avg == 0);
+ok(! any isfinite $c->average);

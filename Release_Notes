@@ -12,6 +12,10 @@ Summary of Changes:
 
      - Upgrade PLplot interface for plplot-5.2.1 and perl 5.8.2
 
+     - Improvement to documentation of autoloaded routines
+
+     - Added more universal `whatis' function to perldl
+
      - Numerous small fixes/additions to docs/functions
 
      - Improved handling of empty piddles
