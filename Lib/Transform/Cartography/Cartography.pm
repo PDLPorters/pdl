@@ -246,7 +246,7 @@ $VERSION = "0.5";
 
 BEGIN {
   use Exporter ();
-  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_sin_lat t_mercator t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer);
+  @EXPORT_OK = qw(graticule earth_image earth_coast clean_lines t_unit_sphere t_orthographic t_rot_sphere t_caree t_mercator t_sin_lat t_sinusoidal t_conic t_albers t_lambert t_stereographic t_gnomonic t_az_eqd t_az_eqa t_vertical t_perspective t_hammer);
   @EXPORT = @EXPORT_OK;
   %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 }
@@ -315,7 +315,7 @@ sub graticule {
     $step = $grid/2 unless defined($step);
     
     my $par_siz = ((floor(180/$grid)) * (floor(360/$step) + 1))->at(0);
-    my $mer_siz = (floor(360/$grid) * floor(180/$step + 1))->at(0);
+    my $mer_siz = ((floor(360/$grid)+ 1) * floor(180/$step + 1))->at(0);
     
     my $out = zeroes(2,$par_siz + $mer_siz);
     my $p = ones($par_siz + $mer_siz);
@@ -327,18 +327,24 @@ sub graticule {
 	$grid * (1+floor((xvals($par_siz) * $step) / (360+$step)));
     $p->(  ( xvals((floor(180/$grid)-1)->at(0)) + 1) * (floor(360/$step)+1)-1)
 	.= 0;
-    
-    
+
+    # Next, meridians.  Duplicate the 180 degree meridian, for cleaner
+    # default plots.
     $out->((0),$par_siz:-1) .=
 	$grid * floor(xvals($mer_siz) * $step / (180+$step));
+    $out->((0),-floor(180/$step + 1):-1) -= 1e-3;
+
     $out->((1),$par_siz:-1) .=
 	(xvals($mer_siz)*$step) % (180+$step) ;
-    $p->(  $par_siz + ( xvals(floor(360/$grid)->at(0))+1) * (floor(180/$step)+1)-1)
-	.= 0;
+      
+    $p->( $par_siz +
+	  ( xvals(floor(360/$grid + 1)->at(0))+1) * (floor(180/$step)+1)-1
+	  ) .=  0;
+
 
     $out->(0) -= 180;
     $out->(1) -= 90;
-    
+
     $out->append(-$p->dummy(0,1));
 }
 
@@ -1032,77 +1038,6 @@ sub t_caree {
 
 ######################################################################
 
-=head2 t_sin_lat
-
-=for usage
-
-    $t = t_sin_lat(<options>);
-
-=for ref
-
-(Cartography) Cyl. equal-area projection (cyl.; authalic)
-
-This projection is commonly used in solar Carrington plots; but not much
-for terrestrial mapping.
-
-OPTIONS
-
-=over 3
-
-=item STANDARD POSITIONAL OPTIONS
-
-=item s,std, Standard (default 0)
-
-This is the parallel at which the map is conformal.  It is also conformal
-at the parallel of opposite sign.  The conformality is achieved by matched
-vertical stretching and horizontal squishing (to achieve constant area).
-
-=back
-
-=cut
-
-@PDL::Transform::Cartography::SinLat::ISA = ('PDL::Transform::Cartography');
-sub t_sin_lat {
-    my($me) = _new(@_,"Sine-Latitude Projection");
-
-    $me->{params}->{std} = pdl(_opt($me->{options},
-				['s','std','standard','Standard'],
-				0))->at(0) * $me->{params}->{conv};
-
-    if($me->{params}->{std} == 0) {
-      $me->{otype} = ['longitude','sin latitude'];
-      $me->{ounit} = ['radians',' ']; # nonzero but blank!
-    } else {
-      $me->{otype} = ['proj. longitude','proj. sin latitude'];
-      $me->{ounit} = ['radians',' '];
-    }
-
-    $me->{params}->{stretch} = sqrt(cos($me->{params}->{std}));
-
-    $me->{func} = sub {
-	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
-
-	$out->(0:1) *= $me->{params}->{conv};
-	$out->((1)) .= sin($out->((1))) / $o->{stretch};
-	$out->((0)) *= $o->{stretch};
-	$out;
-    };
-
-    $me->{inv} = sub {
-	my($d,$o) = @_;
-	my($out) = $d->is_inplace ? $d : $d->copy;
-	$out->((1)) .= asin($out->((1)) * $o->{stretch});
-	$out->((0)) /= $o->{stretch};
-	$out->(0:1) /= $me->{params}->{conv};
-	$out;
-    };
-
-    $me->_finish;
-}
-
-######################################################################
-
 =head2 t_mercator
 
 =for usage
@@ -1212,6 +1147,141 @@ sub t_mercator {
 
     $me->_finish;
 }    
+
+######################################################################
+
+=head2 t_sin_lat
+
+=for usage
+
+    $t = t_sin_lat(<options>);
+
+=for ref
+
+(Cartography) Cyl. equal-area projection (cyl.; authalic)
+
+This projection is commonly used in solar Carrington plots; but not much
+for terrestrial mapping.
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+=item s,std, Standard (default 0)
+
+This is the parallel at which the map is conformal.  It is also conformal
+at the parallel of opposite sign.  The conformality is achieved by matched
+vertical stretching and horizontal squishing (to achieve constant area).
+
+=back
+
+=cut
+
+@PDL::Transform::Cartography::SinLat::ISA = ('PDL::Transform::Cartography');
+sub t_sin_lat {
+    my($me) = _new(@_,"Sine-Latitude Projection");
+
+    $me->{params}->{std} = pdl(_opt($me->{options},
+				['s','std','standard','Standard'],
+				0))->at(0) * $me->{params}->{conv};
+
+    if($me->{params}->{std} == 0) {
+      $me->{otype} = ['longitude','sin latitude'];
+      $me->{ounit} = ['radians',' ']; # nonzero but blank!
+    } else {
+      $me->{otype} = ['proj. longitude','proj. sin latitude'];
+      $me->{ounit} = ['radians',' '];
+    }
+
+    $me->{params}->{stretch} = sqrt(cos($me->{params}->{std}));
+
+    $me->{func} = sub {
+	my($d,$o) = @_;
+	my($out) = $d->is_inplace ? $d : $d->copy;
+
+	$out->(0:1) *= $me->{params}->{conv};
+	$out->((1)) .= sin($out->((1))) / $o->{stretch};
+	$out->((0)) *= $o->{stretch};
+	$out;
+    };
+
+    $me->{inv} = sub {
+	my($d,$o) = @_;
+	my($out) = $d->is_inplace ? $d : $d->copy;
+	$out->((1)) .= asin($out->((1)) * $o->{stretch});
+	$out->((0)) /= $o->{stretch};
+	$out->(0:1) /= $me->{params}->{conv};
+	$out;
+    };
+
+    $me->_finish;
+}
+
+######################################################################
+
+=head2 t_sinusoidal
+
+=for usage
+
+    $t = t_sinusoidal(<options>);
+
+=for ref
+
+(Cartography) Sinusoidal projection (authalic)
+
+Sinusoidal projection preserves the latitude scale but scales
+longitude according to sin(lat); in this respect it's the companion to
+L<t_sin_lat|t_sin_lat>, which is also authalic but preserves the
+longitude scale instead.  
+
+OPTIONS
+
+=over 3
+
+=item STANDARD POSITIONAL OPTIONS
+
+=back
+
+=cut
+
+sub t_sinusoidal {
+  my($me) = _new(@_,"Sinusoidal Projection");
+  $me->{otype} = ['longitude','latitude'];
+  $me->{ounit} = [' ','radians'];
+  
+  $me->{func} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    $out->(0:1) *= $o->{conv};
+
+    $out->((0)) *= cos($out->((1)));
+    $out;
+  };
+
+  $me->{inv} = sub {
+    my($d,$o) = @_;
+    my($out) = $d->is_inplace ? $d : $d->copy;
+    my($x) = $out->((0));
+    my($y) = $out->((1));
+    
+    $x /= cos($out->((1)));
+
+    my($rej) = ( (abs($x)>$PI) | (abs($y)>($PI/2)) )->flat;
+    $x->flat->($rej) .= $o->{bad};
+    $y->flat->($rej) .= $o->{bad};
+    
+    $out->(0:1) /= $o->{conv};
+    $out;
+  };
+
+  $me->_finish;
+}
+   
+
+
+
 
 ######################################################################
 #
@@ -1972,7 +2042,8 @@ sub t_az_eqa {
 The Hammer/Aitoff projection is often used to display the Celestial
 sphere.  It is mathematically related to the Lambert Azimuthal Equal-Area
 projection (L<t_az_eqa>), and maps the sphere to an ellipse of unit 
-eccentricity.
+eccentricity, with vertical radius sqrt(2) and horizontal radius of 
+2 sqrt(2).
 
 OPTIONS
 
@@ -1986,7 +2057,7 @@ sub t_hammer {
   my($me) = _new(@_,"Hammer/Aitoff Projection");
   
   $me->{otype} = ['Longitude','Latitude'];
-  $me->{ounit} = ['Proj. radians','Proj. radians'];
+  $me->{ounit} = [' ',' '];
   $me->{odim} = 2;
   $me->{idim} = 2;
 
@@ -2026,10 +2097,6 @@ sub t_hammer {
 
   $me->_finish;
 }
-    
-    
-    
-
 
 
 ######################################################################
