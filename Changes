@@ -1,3 +1,7 @@
+DCH 29-Jul-04
+   - Cleanup in plplot.d.  Fixed documentation bug 959902.  Fixed line
+     width specification (LINEWIDTH option).  Fixed test bug in
+     limits_ulimits.t (floating point comparison error in array_eq)
 CED 29-Jul-04
    - Fixed Makefile.PL for PLPlot, to pay attention to $PDL::Config hash
 	(was checking $PDL_CONFIG instead).  Ditto plplot.t
@@ -1129,7 +1133,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldBÂŽBBÂŽBBÂŽsr Olafsson and Vince McIntyre (bug #233484)
+      HalldBBŽBBBŽBBBŽsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

@@ -87,7 +87,7 @@ foreach my $test ( @tests )
   my ( $msg, $limits, $exp ) = @$test;
 
   my @range = limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( eq_array( \@range, $exp ), "array: $msg" );
+  ok( mostly_eq_array( \@range, $exp ), "array: $msg" );
 }
 
 
@@ -140,7 +140,7 @@ foreach my $test ( @tests )
   my ( $msg, $limits, $exp ) = @$test;
 
   my @range = limits( @udsets_hash, { %attr, Limits => $limits,  VecKeys => [ qw/ x y / ] } );
-  ok( eq_array( \@range, $exp ), "hash: $msg" );
+  ok( mostly_eq_array( \@range, $exp ), "hash: $msg" );
 }
 
 
@@ -200,8 +200,24 @@ foreach my $test ( @tests )
   my ( $msg, $limits, $exp ) = @$test;
 
   my @range = limits( @udsets_arr, { %attr, Limits => $limits } );
-  ok( eq_array( \@range, $exp ), "array: $msg" );
+  ok( mostly_eq_array( \@range, $exp ), "array: $msg" );
 }
+
+# check equality of array refs up to a tolerance
+sub mostly_eq_array {
+  my ($a, $b) = @_;
+
+  my $tol = 1e-9;
+
+  for (my $i=0;$i<@$a;$i++) {
+    return 0 unless (abs($$a[$i] - $$b[$i]) < $tol);
+  }
+
+  return 1;
+}
+
+
+
 
 
 
