@@ -1153,6 +1153,24 @@ override that by specifying the XTitle and YTitle switches:
 will give you "Arbitrary" as an X axis title, regardless of what's in the
 header.
 
+The default behaviour is to use the primary/default WCS information
+in the FITS header (i.e. the C<CRVAL1>,C<CRPIX1>,... keywords). The
+Greisen et al. standard (L<http://fits.cv.nrao.edu/documents/wcs/wcs.html>)
+allows alternative/additional mappings to be included in a header; these
+are denoted by the letters C<A> to C<Z>. If you know that your image contains
+such a mapping then you can use the C<WCS> option to select the appropriate
+letter. For example, if you had read in a Chandra image created by the CIAO
+software package then you can display the image in the C<physical>
+coordinate system by saying:
+
+  $win->fits_imag( $pdl, { wcs => 'p' } );
+
+The identity transform is used if you select a mapping for which there is 
+no information in the header.
+Please note that this suport is B<experimental> and is not guaranteed
+to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
+routine for more information.
+
 If CTYPE1 and CTYPE2 agree, then the default pixel aspect ratio is 1 
 (in scientific units, NOT in original pixels).  If they don't agree (as for
 a spectrum) then the default pixel aspect ratio is adjusted automatically to 
@@ -1183,8 +1201,22 @@ Display an RGB FITS image with correct axes
 
   $win->fits_rgbi( image, [$min,$max], [$opt] );
 
-Works exactly like L<fits_imag|fits_imag>, but the image must be in 
+Works exactly like L<fits_imag|/fits_imag>, but the image must be in 
 (X,Y,RGB) form.  Only the first two axes of the FITS header are examined.
+
+=head2 fits_cont
+
+=for ref
+
+Draw contours of an image, labelling the axes using the WCS information
+in the FITS header of the image.
+
+=for usage
+
+  $win->fits_cont( image, [$contours, $transform, $misval], [$opt] )
+
+Does the same thing for the L<cont|/cont> routine that
+L<fits_imag|/fits_imag> does for the L<imag|/imag> routins.
 
 =head2 draw_wedge
 
@@ -3941,65 +3973,120 @@ sub _image_xyrange {
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
 pixel coordinates to scientific coordinates.   Used by 
-fits_imag and fits_cont, but may come in handy for other methods.
+L<fits_imag|/fits_imag>, L<fits_rgbi|/fits_rgbi>, and
+L<fits_cont|/fits_cont>, but may come in handy for other methods.
+
+=for example
+
+  my $tr = _FITS_tr( $win, $img );
+  my $tr = _FITS_tr( $win, $img, $opts );
+
+The return value (C<$tr> in the examples above) is the same as
+returned by the L<transform()|/transform> routine, with values
+set up to convert the pixel to scientific coordinate values for the
+two-dimensional image C<$img>. The C<$opts> argument is optional
+and should be a HASH reference; currently it only understands
+one key (any others are ignored):
+
+  WCS => undef (default), "", or "A" to "Z"
+
+Both the key name and value are case insensitive. If left as C<undef>
+or C<""> then the primary coordinate mapping from the header is used, otherwise
+use the additional WCS mapping given by the appropriate letter. 
+We make B<no> checks that the given mapping is available; the routine
+falls back to the unit mapping if the specified system is not available.
+
+The WCS option has only been tested on images from the Chandra X-ray satellite
+(L<http://chandra.harvard.edu/>) created by the CIAO software
+package (L<http://cxc.harvard.edu/ciao/>), for which you should
+set C<WCS =E<gt> "P"> to use the C<PHYSICAL> coordinate system.
+
+See L<http://fits.cv.nrao.edu/documents/wcs/wcs.html> for further
+information on the Representation of World Coordinate Systems in FITS.
 
 =cut
 
-sub _FITS_tr {
-  my $pane = shift;
-  my $pdl = shift;
+{
+    my $_FITS_tr_opt = undef;
 
-  # Can either be sent a piddle or a hash reference for the header
-  # information
-  #
-  my $isapdl = UNIVERSAL::isa($pdl,'PDL');
-  my $hdr = $isapdl ? $pdl->hdr() : $pdl->hdr;
+    sub _FITS_tr {
+        my $pane = shift;
+	my $pdl  = shift;
+	my $opts = shift || {};
+
+	$_FITS_tr_opt = PDL::Options->new( { WCS => undef } )
+	    unless defined $_FITS_tr_opt;
+	my $user_opts = $_FITS_tr_opt->options( $opts );
+
+	# Can either be sent a piddle or a hash reference for the header
+	# information
+	#
+	my $isapdl = UNIVERSAL::isa($pdl,'PDL');
+	my $hdr = $isapdl ? $pdl->hdr() : $pdl->hdr;
     
-  print STDERR 
-    "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
-    unless (scalar(keys %$hdr) || (!$PDL::debug));
+	print STDERR 
+	    "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
+	    unless (scalar(keys %$hdr) || (!$PDL::debug));
 
-  my ( $cdelt1, $cpix1, $cval1, $n1 );
-  my ( $cdelt2, $cpix2, $cval2, $n2 );
-  my $angle;
+	my ( $cdelt1, $cpix1, $cval1, $n1 );
+	my ( $cdelt2, $cpix2, $cval2, $n2 );
+	my $angle;
 
-  {
-    # don't complain about missing fields in fits headers
-    no warnings;
+	# what WCS system to use? Not sure how well we are following the
+	# Greisen et al  proposal/standard here.
+	#
+	my $id = "";
+	if ( defined $$user_opts{WCS} ) {
+	    $id = uc( $$user_opts{WCS} );
+	    die "WCS option must either be 'undef' or A-Z, not $id\n"
+		unless $id =~ /^[A-Z]?$/;
+	}
+	print "Using the WCS '$id' mapping (if it exists)\n"
+	    if $PDL::verbose and $id ne "";
 
-    if ( $isapdl ) {
-	( $n1, $n2 ) = $pdl->dims;
-    } else {
-	$n1 = $hdr->{NAXIS1};
-	$n2 = $hdr->{NAXIS2};
-    }
+	{
+	    # don't complain about missing fields in fits headers
+	    no warnings;
 
-    $cdelt1 = $hdr->{CDELT1} || 1.0;
-    $cpix1  = $hdr->{CRPIX1} || 1;
-    $cval1  = $hdr->{CRVAL1} || 0.0; # should we die rather than default to 0?
+	    if ( $isapdl ) {
+		( $n1, $n2 ) = $pdl->dims;
+	    } else {
+		$n1 = $hdr->{NAXIS1};
+		$n2 = $hdr->{NAXIS2};
+	    }
 
-    $cdelt2 = $hdr->{CDELT2} || 1.0;
-    $cpix2  = $hdr->{CRPIX2} || 1;
-    $cval2  = $hdr->{CRVAL2} || 0.0; # should we die rather than default to 0?
+	    $cdelt1 = $hdr->{"CDELT1$id"} || 1.0;
+	    $cpix1  = $hdr->{"CRPIX1$id"} || 1;
+	    $cval1  = $hdr->{"CRVAL1$id"} || 0.0;
 
-    $angle  = ($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180;
+	    $cdelt2 = $hdr->{"CDELT2$id"} || 1.0;
+	    $cpix2  = $hdr->{"CRPIX2$id"} || 1;
+	    $cval2  = $hdr->{"CRVAL2$id"} || 0.0;
 
-  } # no warnings;
+	    # changed Jan 14 2004 DJB - previously used CROTA
+	    # keyword but that is not in the WCS standard
+	    # - I hope this doesn't break things
+	    #
+	    $angle  = ($hdr->{"CROTA2$id"} || 0) *
+		3.14159265358979323846264338/180;
 
-  my $ic = [
-	    ( $cdelt1 * ( $n1/2.0 - $cpix1 + 1 ) + $cval1 ),
-	    ( $cdelt2 * ( $n2/2.0 - $cpix2 + 1 ) + $cval2 )
-	    ];
+	} # no warnings;
 
-  return transform( $pane, {
-      ImageDimensions => [ $n1, $n2 ],
-      Angle  => $angle,
-      Pixinc => [ $cdelt1, $cdelt2 ],
-      ImageCenter => $ic
-      } );
+	my $ic = [
+		  ( $cdelt1 * ( $n1/2.0 - $cpix1 + 1 ) + $cval1 ),
+		  ( $cdelt2 * ( $n2/2.0 - $cpix2 + 1 ) + $cval2 )
+		  ];
 
-} # sub: _FITS_tr
+	return transform( $pane, {
+	    ImageDimensions => [ $n1, $n2 ],
+	    Angle  => $angle,
+	    Pixinc => [ $cdelt1, $cdelt2 ],
+	    ImageCenter => $ic
+	    } );
+
+    } # sub: _FITS_tr
   
+} # "closure" around _FITS_tr
 
 sub label_axes {
   # print "label_axes: got ",join(",",@_),"\n";
@@ -5713,15 +5800,24 @@ sub _fits_foo {
 						  CharThick=>undef,
 						  HardCH=>undef,
 						  HardLW=>undef,
- 					          TextThick=>undef
+ 					          TextThick=>undef,
+
+						  WCS => undef,
 						 });
   }
 
   my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
   my($hdr) = $pdl->gethdr();
 
+  # What WCS system are we using?
+  # we could check that the WCS is valid here but we delegate it
+  # to the _FITS_tr() routine.
+  #
+  my $wcs = $$u_opt{WCS} || "";
+
   %opt2 = %{$u_opt}; # copy options
-  $opt2{Transform} = _FITS_tr($pane,$pdl);
+  delete $opt2{WCS};
+  $opt2{Transform} = _FITS_tr($pane,$pdl,{WCS => $wcs});
 
   local($_);
   foreach $_(keys %opt2){
@@ -5731,16 +5827,19 @@ sub _fits_foo {
   $opt2{Align} = 'CC' unless defined($opt2{Align});
   $opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
 
-  my($min) = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
-  my($max) = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
-  my($unit)= $pdl->gethdr->{BUNIT} || "";
-  my($rangestr) = " ($min to $max $unit) ";
+  my $min  = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
+  my $max  = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
+  my $unit = $pdl->gethdr->{BUNIT} || "";
+  my $rangestr = " ($min to $max $unit) ";
 
+  # I am assuming here that CUNIT1<A-Z> is a valid keyword for
+  # 'alternative' WCS mappings (DJB)
+  #
   $opt2{Pix}=1.0 
     if( (!defined($opt2{Justify})) &&
 	(!defined($opt2{Pix})) && 
-	( $hdr->{CUNIT1} ? ($hdr->{CUNIT1} eq $hdr->{CUNIT2}) 
-                         : ($hdr->{CTYPE1} eq $hdr->{CTYPE2})
+	( $hdr->{"CUNIT1$wcs"} ? ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) 
+                         : ($hdr->{"CTYPE1$wcs"} eq $hdr->{"CTYPE2$wcs"})
 	  )
 	);
 
@@ -5761,12 +5860,13 @@ sub _fits_foo {
     $s;
   };
 
-  $pane->label_axes($opt->{XTitle} || &$mkaxis($hdr->{CTYPE1},$hdr->{CUNIT1}),
-		    $opt->{YTitle} || &$mkaxis($hdr->{CTYPE2},$hdr->{CUNIT2}),
-		    $opt->{Title}, $opt
+  $pane->label_axes(
+    $opt->{XTitle} || &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
+    $opt->{YTitle} || &$mkaxis($hdr->{"CTYPE2$wcs"},$hdr->{"CUNIT2$wcs"}),
+    $opt->{Title}, $opt
 		    );
 
-}
+} # sun: _fits_foo()
 
 sub fits_imag {
   my($self) = shift;

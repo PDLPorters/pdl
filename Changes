@@ -1,6 +1,15 @@
 DJB 14-01-04
    - moved FITS-header messages from IO/Misc/Makefile.PL to
      IO/FITS/Makefile.PL since rfits/wfits are no longer in IO/Misc
+   - added WCS as an option to the fits_imag/fits_rgbi routines in
+     PDL::Graphics::PGPLOT[::Window]. This allows you to use any alternate
+     WCS mappig stored in the FITS header. Only tested using images from the
+     Chandra X-ray satellite, so you can now say
+       fits_imag($img,{j=>1,wcs=>'p'});
+     to display the 'physical' coordinate system of the image
+   - added docs for fits_cont() [essentially just copied fits_rgbi]
+   - added fits_cont and fits_vect to PDL::Graphics::PGPLOT + internal updates
+     to reduce replicated code.
 DJB 13-01-04
    - t/dumper.t now passes on OS-X (10.3.2); needed to add '-s' option to
      uudecode call otherwise the directory name was being ignored.

@@ -29,16 +29,18 @@ The list of currently availably commands:
  imag       -  Display an image (uses pgimag()/pggray() as appropriate)
  im         -  Shorthand to display an image with aspect ratio of 1
  fits_imag  -  Display a FITS image with appropriate transforms & labels
+ cont       -  Display image as contour map
+ fits_cont  -  Display a FITS image in scientific coordinates as a contour map
+ vect       -  Display 2 images as a vector field
+ fits_vect  -  Display 2 FITS images in sci. coordinates as a vector field
  ctab       -  Load an image colour table
  ctab_info  -  Get information about currently loaded colour table
  line       -  Plot vector as connected points
  points     -  Plot vector as points
  errb       -  Plot error bars
- cont       -  Display image as contour map
  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
  poly       -  Draw a polygon
- vect       -  Display 2 images as a vector field
  text       -  Write text in the plot area
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
@@ -153,8 +155,9 @@ use vars qw (@ISA @EXPORT);
 
 @ISA = ('Exporter');
 
-@EXPORT = qw( dev hold release rel env bin cont errb line points
-	      fits_imag imag imag1 draw_wedge ctab ctab_info hi2d poly vect CtoF77coords
+@EXPORT = qw( dev hold release rel env bin errb line points
+	      fits_imag imag imag1 fits_cont cont fits_vect vect
+	      draw_wedge ctab ctab_info hi2d poly CtoF77coords
 	      new_window focus_window window_list close_window
 	      label_axes text legend cursor circle ellipse rectangle
 	      tpoints tline retrieve_state replay turn_off_recording
@@ -533,78 +536,6 @@ sub autolog { # for this one we use the class method to set autolog globally
   dev() if !defined($CW);
   PDL::Graphics::PGPLOT::Window->autolog(@_);
 }
-sub env {
-  dev() if !defined($CW);
-  $CW->env(@_);
-}
-sub bin {
-  dev() if !defined($CW);
-  $CW->bin(@_);
-}
-sub cont {
-  dev() if !defined($CW);
-  $CW->cont(@_);
-}
-sub errb {
-  dev() if !defined($CW);
-  $CW->errb(@_);
-}
-sub line {
-  dev() if !defined($CW);
-  $CW->line(@_);
-}
-sub tline {
-  dev() if !defined($CW);
-  $CW->tline(@_);
-}
-sub points {
-  dev() if !defined($CW);
-  $CW->points(@_);
-}
-sub tpoints {
-  dev() if !defined($CW);
-  $CW->tpoints(@_);
-}
-sub imag {
-  dev() if !defined($CW);
-  $CW->imag(@_);
-}
-sub fits_imag {
-  dev() if !defined($CW);
-  $CW->fits_imag(@_);
-}
-sub imag1 {
-  dev() if !defined($CW);
-  $CW->imag1(@_);
-}
-sub draw_wedge {
-  barf 'Open a plot window first!' if !defined($CW);
-  $CW->draw_wedge(@_);
-}
-sub ctab {
-  dev() if !defined($CW);
-  $CW->ctab(@_);
-}
-sub ctab_info {
-  dev() if !defined($CW);
-  $CW->ctab_info(@_);
-}
-sub hi2d {
-  dev() if !defined($CW);
-  $CW->hi2d(@_);
-}
-sub poly {
-  dev() if !defined($CW);
-  $CW->poly(@_);
-}
-sub vect {
-  dev() if !defined($CW);
-  $CW->vect(@_);
-}
-sub CtoF77coords {
-  dev() if !defined($CW);
-  $CW->CtoF77coords(@_);
-}
 
 sub text {
   barf 'Open a plot window first!' if !defined($CW);
@@ -621,19 +552,22 @@ sub legend {
   $CW->legend(@_);
 }
 
-sub circle {
-  dev(@_) if !defined($CW);
-  $CW->circle(@_);
+# should add these routines to EXPORT array as we create
+# each routine
+#
+foreach my $func (
+		  qw(
+		     env bin cont fits_cont errb line tline points tpoints
+		     imag fits_imag imag1 draw_wedge 
+		     ctab ctab_info hi2d poly vect fits_vect
+		     CtoF77coords circle ellipse rectangle 
+		     ) ) {
+    eval <<"ENDOFFUNC";
+sub $func {
+    dev() if !defined(\$CW);
+    \$CW->${func}(\@_);
 }
-
-sub ellipse {
-  dev(@_) if !defined($CW);
-  $CW->ellipse(@_);
-}
-
-sub rectangle {
-  dev(@_) if !defined($CW);
-  $CW->rectangle(@_);
+ENDOFFUNC
 }
 
 sub transform {
