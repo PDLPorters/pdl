@@ -690,6 +690,9 @@ BadCode is ignored.
 
 =back
 
+The value of C<HandleBad> is used to define the contents of
+the C<BadDoc> key, if it is not given.
+
 To handle bad values, code must be written somewhat differently;
 for instance, 
 
@@ -807,7 +810,8 @@ piddle, you can use the C<$PDLSTATExxxx()> macros:
 =back
 
 I<TODO:> mention the C<FindBadStatusCode> and
-C<CopyBadStatusCode> options to C<pp_def>.
+C<CopyBadStatusCode> options to C<pp_def>, as well as the
+C<BadDoc> key.
 
 =head2 Interfacing your own/library functions using PP
 
@@ -1141,7 +1145,16 @@ An incomplete list of the available keys:
 
 =item Inplace
 
-Setting this key (e.g. C<Inplace =E<gt> 1>) marks the routine as working inplace.
+Setting this key marks the routine as working inplace. Inplace should be sent
+an array reference, where the first element is the name of the input piddle
+and the second element the name of the output piddle (it should be clever
+enough to work this out by itself!). For instance, with
+
+ Pars => 'a(); [o]b();'
+
+then
+
+ Inplace => [ 'a', 'b' ]
 
 =back
 
@@ -1538,7 +1551,13 @@ Default: [qw/B S U L F D/]
 
 =item Inplace
 
-Mark a function as being able to work inplace (use C<Inplace =E<gt> 1>).
+Mark a function as being able to work inplace. The argument should be
+an array reference; the first element is the name of the input piddle,
+the second the output piddle (it should be made to work this out from the
+signature of the function!).
+
+ Pars => 'a(); [o] b();',
+ Inplace => [ 'a', 'b' ],
 
 =item Doc
 
