@@ -1364,20 +1364,27 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 sub PDL::nslice {
   my($pdl) = shift;
   my @args = @_;
-  my $i = 0;
+  my ($i,$noslice) = (0,0);
   for (@args) {
     if (UNIVERSAL::isa($_,'PDL')) {
       if ($_->nelem > 1) {
-	PDL::Core::barf 'piddle must be <= 1D' if $_->getndims > 1;
-	# dice this axis
-	$pdl = $pdl->dice_axis($i,$_);
-	# and keep resulting dim fully in slice
-	$_ = 'X'; } 
-      else { $_ = $_->flat->at(0) } # reduce this one-element piddle
-                                    # to a scalar for 'slice'
+	if ($_->getndims > 1) {
+	  # allow one multi-D arg which will imply flat addressing
+	  PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
+	  $pdl = $pdl->flat->index($_);
+	  $noslice = 1;
+	} else {
+	  # dice this axis
+	  $pdl = $pdl->dice_axis($i,$_);
+	  # and keep resulting dim fully in slice
+	  $_ = 'X'; 
+	}
+      } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+                                      # to a scalar for 'slice'
     }
     $i++;
-  }
+  }  
+  return $pdl if $noslice;
   # print STDERR 'processed arglist: ',join(',',@args);
   my $slstr = join ',',(map {
     !ref $_ && $_ eq "X" ? ":" :

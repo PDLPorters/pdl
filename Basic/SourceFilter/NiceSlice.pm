@@ -13,7 +13,7 @@ package PDL::NiceSlice;
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
 
-$PDL::NiceSlice::VERSION = 0.96;
+$PDL::NiceSlice::VERSION = 0.97;
 
 require PDL::Version; # get PDL version number
 if ("$PDL::Version::VERSION" !~ /cvs$/ and
@@ -37,20 +37,27 @@ eval << 'EOH';
     sub PDL::nslice {
       my($pdl) = shift;
       my @args = @_;
-      my $i = 0;
+      my ($i,$noslice) = (0,0);
       for (@args) {
 	if (UNIVERSAL::isa($_,'PDL')) {
 	  if ($_->nelem > 1) {
-	    PDL::Core::barf('piddle must be <= 1D') if $_->getndims > 1;
-	    # dice this axis
-	    $pdl = $pdl->dice_axis($i,$_);
-	    # and keep resulting dim fully in slice
-	    $_ = 'X'; } 
-	  else { $_ = $_->flat->at(0) } # reduce this one-element piddle
-	  # to a scalar for 'slice'
+	    if ($_->getndims > 1) {
+	      # allow one multi-D arg which will imply flat addressing
+	      PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
+	      $pdl = $pdl->flat->index($_);
+	      $noslice = 1;
+	    } else {
+	      # dice this axis
+	      $pdl = $pdl->dice_axis($i,$_);
+	      # and keep resulting dim fully in slice
+	      $_ = 'X'; 
+	    }
+	  } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
+					# to a scalar for 'slice'
 	}
 	$i++;
       }
+      return $pdl if $noslice;
       # print STDERR 'processed arglist: ',join(',',@args);
       my $slstr = join ',',(map {
 	!ref $_ && $_ eq "X" ? ":" :

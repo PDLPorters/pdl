@@ -1,3 +1,7 @@
+CS  - allow niceslice to use the syntax
+          $pdl($greater_1D_piddle)
+        which indexes into flattened $pdl; result has same shape
+        as $greater_1D_piddle
 CS  - allow PP Code to handle constructs like
             $arr(n => 3*i+1)
       when Text::Balanced is installed
