@@ -84,8 +84,11 @@ BOOT:
 
 	/* Get pointer to structure of core shared C routines */
 	ptr = perl_get_sv("PGPLOT::HANDLE",FALSE);  /* SV* value */
+#ifndef aTHX_
+#define aTHX_
+#endif
 	if (ptr==NULL)
-	  Perl_croak("This module requires PGPLOT version 2.16 or later.\nPlease install/upgrade PGPLOTLOT (see the PDL/DEPENDENCIES file).");
+	  Perl_croak(aTHX_ "This module requires PGPLOT version 2.16 or later.\nPlease install/upgrade PGPLOTLOT (see the PDL/DEPENDENCIES file).");
 	myhandle = (PGPLOT_function_handle*) SvIV( ptr );  
 
 	/* If the structure read from the PGPLOT module is too old */
@@ -93,7 +96,7 @@ BOOT:
 	  char msg[128];
           sprintf (msg, "This module requires PGPLOT with a structure version at least %d", 
                          PGPLOT_structure_version);
-          Perl_croak(msg);
+          Perl_croak(aTHX_ msg);
         }
 
 
