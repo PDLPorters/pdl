@@ -1,3 +1,4 @@
+TJ  - wfits now works correctly with Astro::FITS::Header
 TJ  - Paper over weirdness in PDL::GSL build when Slatec is disabled. 
 TJ  - func.t was failing if Slatec was not available. This was because
       PDL::Func was loaded before PDL::Slatec in t/func.t. Now fixed

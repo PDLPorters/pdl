@@ -397,12 +397,12 @@ BEGIN {
 
 
 sub PDL::wfits { # Write a PDL to a FITS format file
-
+   use strict;
    barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
 
    my ($pdl,$file,$BITPIX) = @_;
    my ($k, $buff, $off, $ndims, $sz);
-   local($nbytes, %hdr);
+   my ($nbytes);
 
    if ($file =~ /\.gz$/) {            # Handle compression
       $file = "|gzip -9 > $file";
@@ -433,7 +433,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
 
    # Automatically figure output scaling
 
-   $bzero = 0; $bscale = 1;
+   my $bzero = 0; my $bscale = 1;
    if ($BITPIX>0) {
       my $min = $pdl->min;
       my $max = $pdl->max;
@@ -460,7 +460,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    my($h) = $pdl->gethdr();
    if(defined($h) && 
       (defined (tied %$h)) && 
-      ((tied %$h) =~ m/Astro::FITS::Header/)) {
+      (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header"))) {
      my $k;
 
      ##############################
@@ -486,12 +486,12 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
 
      $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
-     $hdr{BSCALE} = $bscale if($bscale != 1);
-     $hdr{BZERO}  = $bzero  if($bzero  != 0);
+     $h->{BSCALE} = $bscale if($bscale != 1);
+     $h->{BZERO}  = $bzero  if($bzero  != 0);
 
      if ( $pdl->badflag() ) {
-       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
-       else               { delete $HDR{BLANK}; }
+       if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $h->{BLANK} = $a->badvalue(); }
+       else               { delete $h->{BLANK}; }
      }
      
      #
@@ -527,14 +527,15 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      # Make sure that the HISTORY lines all come at the end
      # 
      my @hindex = $hdr->index('HISTORY');
-     for $k(0..$#$hindex) {
+     for $k(0..$#hindex) {
        $hdr->insert(-1-$k, $hdr->remove($hindex[-1-$k]));
      }
 
      #
      # Make sure the last card is an END
      #
-     $hdr->insert(-1,new Astro::FITS::Header::Item(Keyword=>'END'));
+     $hdr->insert(scalar($hdr->cards),
+	new Astro::FITS::Header::Item(Keyword=>'END'));
      
      #
      # Write out all the cards, and note how many bytes for later padding.
@@ -555,7 +556,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      
      # Write FITS header
      
-     %hdr = ();
+     my %hdr = ();
      if (defined($h)) {
        for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
      }
@@ -586,7 +587,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      #   otherwise      - make sure the BLANK keyword is removed
      if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $hdr{BLANK} = $a->badvalue(); }
-       else               { delete $HDR{BLANK}; }
+       else               { delete $hdr{BLANK}; }
      }
      
      for $k (sort keys %hdr) { wheader($k) unless $k =~ m/HISTORY/}
