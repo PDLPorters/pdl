@@ -1528,7 +1528,7 @@ sub PDL::rasc {
   unless ($is_openhandle) {
     barf 'usage: rasc $pdl, "filename"|FILEHANDLE, [$num_to_read]'
        if !defined $file || ref $file;
-    $fi = new IO::File "<$file" || barf "Can't open $file";
+    $fi = new IO::File "<$file" or barf "Can't open $file";
   }
   $pdl->_rasc(my $ierr=null,$num,$fi);
   close $fi unless $is_openhandle;

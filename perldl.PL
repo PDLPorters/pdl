@@ -65,6 +65,27 @@ $,=" "; # Default
 
 $Modules = $Modules = "";	# pacify -w
 
+sub mypdlconfig {
+  require Config; # pick up perl version info
+  eval 'require PDL::Version' if not defined $PDL::Version::VERSION;
+  eval 'require PDL::Config';
+  eval "use Data::Dumper";
+  my $hasdumper = $@ eq "" ? 1 : 0;
+  eval "use PDL::Bad;";
+  my $bflag = defined($PDL::Bad::Status) && $PDL::Bad::Status;
+
+  my $txt = "\nSummary of my PDL configuration\n\n";
+  $txt .= "VERSION: PDL v$PDL::Version::VERSION";
+  $txt .= " (supports bad values)" if $bflag;
+  $txt .= "\n\n";
+  if ($hasdumper && defined %PDL::Config) {
+    $txt .= Data::Dumper->Dump([{%PDL::Config}],['%PDL::Config']);
+  } else {
+    $txt .= "Could not obtain \%PDL::Config\n";
+  }
+  $txt .= Config::myconfig(); # append perl config info
+}
+
 # Parse ARGV
 
 while(defined($_ = shift @ARGV)) {
@@ -113,18 +134,22 @@ while(defined($_ = shift @ARGV)) {
               unshift(@INC, "$FindBin::Bin/$dir");
             }
 
+      } elsif (/^-V\s*$/) {
+         print mypdlconfig();
+         exit 0;
       } else {
-            print "\n";
-          print "Usage: perldl [options]\n";
-          print "  -tk         try to load Tk module (Enables \n";
-          print "              readline event-loop processing).\n";
-          print "  -f <file>   execute file <file> before starting perldl\n";
-          print "  -w          run with warning messages turned-on \n";
-          print "  -m <module> unload module <module>\n";
-          print "  -M <module> load module <module>\n";
-          print "  -I <dir>    Add <dir> to include path.\n";
-            print "\n";
+            print << 'EOP';
+Usage: perldl [options]
+  -tk         try to load Tk module (Enables
+              readline event-loop processing).
+  -f <file>   execute file <file> before starting perldl
+  -w          run with warning messages turned-on 
+  -m <module> unload module <module>
+  -M <module> load module <module>
+  -I <dir>    Add <dir> to include path.
+  -V          print PDL version info (e.g. for a bug report)
 
+EOP
           die("Unknown argument $_");
       }
 

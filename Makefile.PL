@@ -60,9 +60,12 @@ if (!$forcebuild &&
 FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
 
 On this platform the combination of gcc and Perl's malloc
-are buggy. The optimizations lead to coredumps when PDL is run
-and make it unusable. We advise you to recompile Perl with
-'usemymalloc=n'.
+are buggy. The optimizations lead to random coredumps
+and make PDL essentially unusable.
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+WORKAROUND: YOU MUST RECOMPILE PERL WITH 'usemymalloc=n' !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 You may override and force the build by including the
 'FORCE' switch:
@@ -71,6 +74,7 @@ You may override and force the build by including the
 
 However, you will most likely end up with an unusable
 PDL build unless *all* optimizations are disabled!
+YOU HAVE BEEN WARNED!!
 
 EOM
 }
@@ -232,7 +236,7 @@ package PDL;
 for(keys %PDL_CONFIG) {
 	print OUT "\t$_\t=>\t";
 	if(defined $PDL_CONFIG{$_}) {
-		print OUT '"',quotemeta($PDL_CONFIG{$_}),'"';
+		print OUT myformat($PDL_CONFIG{$_});
 	} else {
 		print OUT "undef";
 	}
@@ -240,6 +244,22 @@ for(keys %PDL_CONFIG) {
 }
 print OUT ");\n1;";
 close OUT;
+
+# very simple formatter, assumes structures are *not* nested
+sub myformat {
+  my $entry = shift;
+  if (ref $entry eq 'ARRAY') {
+    my $list = join ',', (map {('"'.quotemeta($_).'"')} @$entry);
+    return "[$list]";
+  } elsif (ref $entry eq 'HASH') {
+    my $list = join ",\n", (map {('"'.quotemeta($_).'" => "'.
+			       quotemeta($entry->{$_}).'"')} keys %$entry);
+    $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
+    return "{$list}";
+  } else {
+     return join '', '"',quotemeta($PDL_CONFIG{$_}),'"';
+  }
+}
 
 # Extra build target to build the doc database
 

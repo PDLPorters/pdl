@@ -110,6 +110,7 @@ Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 Basic/default.perldlrc
+BUGS
 COPYING
 Changes
 DEPENDENCIES

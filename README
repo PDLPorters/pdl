@@ -11,6 +11,7 @@ INSTALL 		detailed installation instructions
 Known_problems	 	check before you report compilation problems
 DEPENDENCIES		Other software that PDL relies on (and where
 			to get it)
+BUGS			how to make a bug report and where to send it
 perldl.conf		PDL configuration options
 Basic/Pod/FAQ.pod 	the FAQ in pod format
 			try 'perldoc PDL::FAQ' after installation

@@ -5,7 +5,7 @@ PDL::Impatient - PDL for the impatient (quick overview)
 
 =head1 SYNOPSIS
 
-Executive summary of what PDL is about.
+A brief summary of the main PDL features and how to use them.
 
 =head1 DESCRIPTION
 

@@ -1712,6 +1712,30 @@ my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
 
+my $AUTOLOG = 0;
+
+sub autolog {
+  my $class = shift;
+  my $ret;
+  if (ref $class) {
+    $ret = $class->{Autolog} || $AUTOLOG;
+    $class->{Autolog} = shift if @_ > 0;
+  } else {
+    my $ret = $AUTOLOG;
+    $AUTOLOG = shift if @_ > 0;
+  }
+  return $ret;
+}
+
+sub checklog {
+  my ($self,$x,$y) = @_;
+  $x = $x->log10->float if defined $x && $self->autolog && $self->{Logx};
+  $y = $y->log10->float if defined $y && $self->autolog && $self->{Logy};
+  # print STDERR "Logx: ",$self->{Logx},"\n";
+  # print STDERR "Logy: ",$self->{Logy},"\n";
+  return ($x,$y);
+}
+
 sub new {
 
   my $type = shift;
@@ -2864,9 +2888,25 @@ sub initenv{
   $u_opt->{Justify} = $just if defined($just);
   $u_opt->{Axis} = "$axis" if defined($axis);
 
-
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
+
+  if ($self->autolog) {
+    # print STDERR "Options: ",$o->{Axis},"\n";
+    # use Data::Dumper; print Dumper $o->{Axis};
+    $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30 ||
+		    $o->{Axis}[0] =~ /BCLNST/) ? 1 : 0;
+    $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30 ||
+		    $o->{Axis}[1] =~ /BCLNST/) ? 1 : 0;
+    ($xmin,$xmax) = map {
+      barf "plot boundaries not positive in logx-mode" if $_ <= 0;
+      log($_)/log(10) } ($xmin,$xmax)
+	if $self->{Logx};
+    ($ymin,$ymax) = map { 
+      barf "plot boundaries not positive in logy-mode" if $_ <= 0;
+      log($_)/log(10) } ($ymin,$ymax)
+	if $self->{Logy};
+  }
 
   # Save current colour and set the axis colours
   my ($col);
@@ -3629,6 +3669,10 @@ sub tline {
     my ($o, $u_opt) = $self->_parse_options($line_options,$opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
     
+    # use Data::Dumper;
+    # print Dumper $o;
+    # print Dumper $u_opt;
+
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
@@ -3644,7 +3688,9 @@ sub tline {
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
     if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    # use Data::Dumper;
+    # print "tline options: ", Dumper($opt), "\n";
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     $self->hold; # we hold for the duration of the threaded plot
   }
   _tline($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
@@ -3695,7 +3741,11 @@ sub tpoints {
     }
     my ($o, $u_opt) = $self->_parse_options($points_options,$opt);
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
-    
+
+    # use Data::Dumper;
+    # print Dumper $o;
+    # print Dumper $u_opt;
+
     my ($ymin, $ymax, $xmin, $xmax);
     # Make sure the missing value is used as the min or max value
     if (defined $o->{Missing} ) {
@@ -3711,7 +3761,7 @@ sub tpoints {
     }
     if ($xmin == $xmax) { $xmin -= 0.5; $xmax += 0.5; }
     if ($ymin == $ymax) { $ymin -= 0.5; $ymax += 0.5; }
-    $self->initenv( $xmin, $xmax, $ymin, $ymax);
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
     $self->hold; # we hold for the duration of the threaded plot
   }
   _tpoints($x, $y, PDL->sequence($y->getdim(1)), $self, $o);
@@ -3790,6 +3840,8 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
     }
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
+
+    ($x,$y) = $self->checklog($x,$y) if $self->autolog;
 
     # If there is a missing value specified, use pggapline
     # to break the line around missing values.

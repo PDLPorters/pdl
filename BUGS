@@ -1,0 +1,52 @@
+BUG REPORTS
+-----------
+
+If you make a bug report please always include the full
+output of
+
+  perldl -V
+
+Submit your bug report to the bug database 
+
+   http://sourceforge.net/bugs/?group_id=612
+
+Be sure to include a way we can contact you for
+further information (especially if you posted your
+bug anonymously!).
+
+Alternatively, send a report (again including the output
+of 'perldl -V') to pdl-porters@jach.hawaii.edu . See
+
+   http://pdl.perl.org/maillists
+
+for info on how to subscribe to this list if necessary.
+
+BEFORE YOU SEND A REPORT
+------------------------
+
+BEFORE you report a bug make sure you got the latest
+release version of PDL (always available from CPAN,
+check http://search.cpan.org/search?dist=PDL). Also
+check the FAQ (http://pdl/sourceforge.net/FAQ) and
+the mailing list archives for hints. You can find
+links to the searchable archives at
+
+   http://pdl.perl.org/maillists
+
+PATCHES
+-------
+
+Patches can be send to the pdl-porters mailing list
+(see above) or can be directly submitted to the
+patch manager
+
+   http://sourceforge.net/patch/?group_id=612
+
+Patches should be made against the latest released
+PDL or, ideally, against the current CVS sources
+which you can browse and check out at
+
+  http://sourceforge.net/cvs/?group_id=612
+
+
+The pdl-porters team.

@@ -1,3 +1,13 @@
+CS  - doc updates
+    - box2d in image2d.pd
+    - some more PGPLOT tline fixes
+    - PGPLOT autolog stuff (as yet undocumented)
+    - perldl -V  (version info)
+    - remove 'use PDL::Core' from PdlParObj.pm (static linking)
+    - Makefile.PL: fix PDL::Config formatting,
+      	make solaris/usemymalloc/gcc message even more verbose
+    - misc.pd: fix rasc bug (|| vs or)
+    - add BUGS file
 DJB (27 Feb 02)
     - added finite fix for HP-UX systems to math.pd (by Albert Chin)
 CS  - slice fix

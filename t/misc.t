@@ -6,7 +6,7 @@ use PDL::IO::Misc;
 
 use PDL::Core ':Internal'; # For howbig()
 
-print "1..36\n";
+print "1..37\n";
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -194,7 +194,10 @@ $b = zeroes(float,20,2);
 $b->rasc($file);
 ok( abs($b->sum - 5.13147) < .01 );
 
-unlink $file;
+eval '$b->rasc("file_that_does_not_exist")';
+ok( $@ =~ /^Can't open/ );
+
+unlink $file; # clean up
 
 #######################################################
 # Tests of rcols() options: 29 to 36
