@@ -82,9 +82,6 @@ To Build with MSVC compiler (MSVC-built perl only)
     nmake test
     nmake install
 
- Tests 6 and 7 in conv.t fail. Safe to ignore for now.
-
-
 F77.pm Corrections
 ------------------
 

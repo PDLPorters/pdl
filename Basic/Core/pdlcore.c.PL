@@ -138,8 +138,13 @@ print OUT <<'!NO!SUBS!';
 }
 
 /* Check minimum datatype required to represent number */
-
+/* Microsoft compilers do some unbelievable things - hence 
+   another #ifdef inserted by Sisyphus */
+#ifdef _MSC_VER
+#define TESTTYPE(b,a) {a foo = nv; a bar = foo; if(nv == bar) return b;}
+#else
 #define TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
+#endif
 int pdl_whichdatatype (double nv) {
 !NO!SUBS!
 

@@ -1,3 +1,5 @@
+SIS 5-FEB-2005
+   Provide an alternative TESTTYPE() macro for Microsoft compilers.
 SIS 4-FEB-2005
    Enact some minor changes in the following files so that PDL will
    build on Win32:

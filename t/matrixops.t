@@ -17,10 +17,9 @@ sub near {
 }
 
 BEGIN { plan tests => 19,
-	  todo => $Config{cc} eq 'cl' ? [12] : []
 }
 
-my $tol = ($Config{cc} eq 'cl') ? 1e-6 : 1e-14;
+my $tol = 1e-14;
 
 eval 'use PDL::MatrixOps;';
 ok(!$@);
