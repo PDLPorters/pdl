@@ -43,6 +43,13 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 		print "\tPerls malloc has problems when perl is not linked with -lpthreads\n";
 		$pthread_library = '';
 	}
+} elsif ($^O eq 'freebsd'){
+	 if ($Config::Config{libs} =~ /-lc_r/) {
+		print "\tGood, found -lc_r on a freebsd system.\n";
+    }else{
+	   print "On FreeBSD try building perl with libc_r instead of libc\n";
+    }
+   	
 } else {
 	print "\tNope, your perl was not linked against pthread library\n";
 	print "\tYou need to include -lpthread in your perl libs configuration\n";
