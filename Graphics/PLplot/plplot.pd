@@ -1515,6 +1515,7 @@ EOD
 pp_addhdr(<<'EOH');
 #include <plplot.h>
 #include <plplotP.h>
+#include <plevent.h>
 #include <stdio.h>
 EOH
 
@@ -1528,9 +1529,10 @@ sub create_low_level_constants {
   my $defn = shift;
   my @lines = split (/\n/, $defn);
 
-  foreach my $const (@lines) {
-    next if (($const =~ /^\#/) or ($const =~ /^\s*$/));
-    my $func = <<"EOC";
+  foreach my $line (@lines) {
+    next if (($line =~ /^\#/) or ($line =~ /^\s*$/));
+    foreach my $const ($line =~ /([^\s]+)/g) {
+      my $func = <<"EOC";
 int
 $const()
 PROTOTYPE:
@@ -1541,6 +1543,7 @@ OUTPUT:
 EOC
     pp_addxs ($func);
     pp_add_exported ($const);
+    }
   }
 }
 
@@ -1570,6 +1573,29 @@ SURF_CONT
 DRAW_SIDES
 FACETED
 MESH
+
+# Input event (especially keyboard) definitions for use from plplot
+# event handlers.
+
+PLK_BackSpace PLK_Tab PLK_Linefeed PLK_Return PLK_Escape PLK_Delete
+PLK_Clear PLK_Pause PLK_Scroll_Lock PLK_Home PLK_Left PLK_Up PLK_Right
+PLK_Down PLK_Prior PLK_Next PLK_End PLK_Begin PLK_Select PLK_Print
+PLK_Execute PLK_Insert PLK_Undo PLK_Redo PLK_Menu PLK_Find PLK_Cancel
+PLK_Help PLK_Break PLK_Mode_switch PLK_script_switch PLK_Num_Lock
+PLK_KP_Space PLK_KP_Tab PLK_KP_Enter PLK_KP_F1 PLK_KP_F2 PLK_KP_F3
+PLK_KP_F4 PLK_KP_Equal PLK_KP_Multiply PLK_KP_Add PLK_KP_Separator
+PLK_KP_Subtract PLK_KP_Decimal PLK_KP_Divide PLK_KP_0 PLK_KP_1
+PLK_KP_2 PLK_KP_3 PLK_KP_4 PLK_KP_5 PLK_KP_6 PLK_KP_7 PLK_KP_8
+PLK_KP_9 PLK_F1 PLK_F2 PLK_F3 PLK_F4 PLK_F5 PLK_F6 PLK_F7 PLK_F8
+PLK_F9 PLK_F10 PLK_F11 PLK_L1 PLK_F12 PLK_L2 PLK_F13 PLK_L3 PLK_F14
+PLK_L4 PLK_F15 PLK_L5 PLK_F16 PLK_L6 PLK_F17 PLK_L7 PLK_F18 PLK_L8
+PLK_F19 PLK_L9 PLK_F20 PLK_L10 PLK_F21 PLK_R1 PLK_F22 PLK_R2 PLK_F23
+PLK_R3 PLK_F24 PLK_R4 PLK_F25 PLK_R5 PLK_F26 PLK_R6 PLK_F27 PLK_R7
+PLK_F28 PLK_R8 PLK_F29 PLK_R9 PLK_F30 PLK_R10 PLK_F31 PLK_R11 PLK_F32
+PLK_R12 PLK_R13 PLK_F33 PLK_F34 PLK_R14 PLK_F35 PLK_R15 PLK_Shift_L
+PLK_Shift_R PLK_Control_L PLK_Control_R PLK_Caps_Lock PLK_Shift_Lock
+PLK_Meta_L PLK_Meta_R PLK_Alt_L PLK_Alt_R PLK_Super_L PLK_Super_R
+PLK_Hyper_L PLK_Hyper_R
 
 EODEF
 
@@ -1813,7 +1839,7 @@ void c_plbin(PLINT nbin, PLFLT *x, PLFLT *y, PLINT center);
 void c_plbop(void);
 void c_plbox(const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
 void c_plbox3(const char *xopt, const char *xlabel, PLFLT xtick, PLINT nsubx, const char *yopt, const char *ylabel, PLFLT ytick, PLINT nsuby, const char *zopt, const char *zlabel, PLFLT ztick, PLINT nsubz);
-void c_plxormod(PLINT mode, PLINT *status);
+#void c_plxormod(PLINT mode, PLINT *status);
 void c_plcol0(PLINT icol0);
 void c_plcol1(PLFLT col1);
 void c_plcpstrm(PLINT iplsr, PLINT flags);
@@ -1845,7 +1871,7 @@ void c_plglevel(PLINT *p_level);
 void c_plgpage(PLFLT *p_xp, PLFLT *p_yp,PLINT *p_xleng, PLINT *p_yleng, PLINT *p_xoff, PLINT *p_yoff);
 void c_plgra(void);
 void c_plgspa(PLFLT *xmin, PLFLT *xmax, PLFLT *ymin, PLFLT *ymax);
-void c_plgstrm(PLINT *p_strm);
+#void c_plgstrm(PLINT *p_strm);
 void c_plgver(char *p_ver);
 void c_plgxax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgyax(PLINT *p_digmax, PLINT *p_digits);
@@ -1860,7 +1886,7 @@ void c_pllightsource(PLFLT x, PLFLT y, PLFLT z);
 #void c_plline3(PLINT n, PLFLT *x, PLFLT *y, PLFLT *z);
 void c_pllsty(PLINT lin);
 #void c_plmesh(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt); # must handle ** parms separately
-void c_plmkstrm(PLINT *p_strm);
+#void c_plmkstrm(PLINT *p_strm);
 void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *text);
 #void c_plot3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt, PLINT side); # must handle ** parms separately
 #void c_plotsh3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT side); # must handle ** parms separately
@@ -2139,7 +2165,7 @@ pp_def ('pltr0',
         Pars => 'double x(); double y(); double [o] tx(); double [o] ty()',
         GenericTypes => [D],
         OtherPars => 'SV* pltr_data;',
-        Doc => 'Mimics the pltr0 function of the PLplot C API.  
+        Doc => 'Mimics the pltr0 function of the PLplot C API.
                 It implements an identity transformation.',
         Code => '
           double tx, ty;
@@ -2317,7 +2343,7 @@ mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
   PDL->SetSV_PDL (x_sv, x_pdl);
 
   y_pdl = PDL->pdlnew ();
-  PDL->add_deletedata_magic(y_pdl, default_magic, 0);  
+  PDL->add_deletedata_magic(y_pdl, default_magic, 0);
   PDL->setdims (y_pdl, &dims, 1);
   y_pdl->datatype = PDL_D;
   y_pdl->data = y;
@@ -2344,7 +2370,7 @@ mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
 
   for (i = 0; i < n; i++) {
     *(x + i) = *(tx + i);
-    *(y + i) = *(ty + i);    
+    *(y + i) = *(ty + i);
   }
 
   PUTBACK;
@@ -2368,7 +2394,7 @@ pp_def ('plmap',
            plmap (SvTRUE ($COMP(mapform)) ? mapform_callback : NULL,
 	     $COMP(type), $minlong(), $maxlong(), $minlat(), $maxlat());'
        );
-       
+
 # Plot the latitudes and longitudes on the background
 
 pp_def ('plmeridians',
@@ -2398,7 +2424,7 @@ pp_def ('plshades',
            int nlvl  = $SIZE(l);
            int i, j;
            PLFLT **z;
-	   
+
            plAlloc2dGrid (&z, nx, ny);
 
            for (i = 0; i < nx; i++)
@@ -2410,7 +2436,7 @@ pp_def ('plshades',
 	     "plshades: defined must be either 0 or a subroutine pointer");
 
            pltr_subroutine = $COMP(pltr);
-	   check_sub_pointer (pltr_subroutine, 
+	   check_sub_pointer (pltr_subroutine,
 	     "plshades: pltr must be either 0 or a subroutine pointer");
 
            c_plshades (z, nx, ny,
@@ -2444,7 +2470,7 @@ pp_def ('plcont',
                ff[i][j] = $f(nx => i, ny => j);
 
            pltr_subroutine = $COMP(pltr);
-	   check_sub_pointer (pltr_subroutine, 
+	   check_sub_pointer (pltr_subroutine,
 	     "plcont: pltr must be either 0 or a subroutine pointer");
 
            c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
@@ -2578,7 +2604,7 @@ pp_def ('plshade1',
 	     "plshade1: defined must be either 0 or a subroutine pointer");
 
            pltr_subroutine = $COMP(pltr);
-	   check_sub_pointer (pltr_subroutine, 
+	   check_sub_pointer (pltr_subroutine,
 	     "plshade1: pltr must be either 0 or a subroutine pointer");
 
            c_plshade1 (a, size_x, size_y,
@@ -2618,8 +2644,135 @@ pp_def ('plimage',
 
            plFree2dGrid (idata, size_x, size_y);'
 	);
-	
-	
+
+# Set xor mode:
+# mode = 1-enter, 0-leave, status = 0 if not interactive device
+
+pp_addpm (<<'EOPM');
+=head2 plxormod
+=for sig
+  $status = plxormod ($mode)
+=for ref
+  (See the PLplot manual for reference.)
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+int
+plxormod (mode)
+  int mode
+CODE:
+  PLINT status;
+  c_plxormod (mode, &status);
+  RETVAL = status;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plxormod');
+
+# Wait for graphics input event and translate to world coordinates
+
+pp_addpm (<<'EOPM');
+=head2 plGetCursor
+=for sig
+  %gin = plGetCursor ()
+=for ref
+  plGetCursor waits for graphics input event and translate to world
+  coordinates and returns a hash with the following keys:
+
+    type:      of event (CURRENTLY UNUSED)
+    state:     key or button mask
+    keysym:    key selected
+    button:    mouse button selected
+    subwindow: subwindow (alias subpage, alias subplot) number
+    string:    translated string
+    pX, pY:    absolute device coordinates of pointer
+    dX, dY:    relative device coordinates of pointer
+    wX, wY:    world coordinates of pointer
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+void
+plGetCursor ()
+PPCODE:
+  PLGraphicsIn gin;
+  plGetCursor (&gin);
+  PUSHs (sv_2mortal (newSVpv ("type", 0)));
+  PUSHs (sv_2mortal (newSViv ((IV) gin.type)));
+  PUSHs (sv_2mortal (newSVpv ("state", 0)));
+  PUSHs (sv_2mortal (newSVuv ((UV) gin.state)));
+  PUSHs (sv_2mortal (newSVpv ("keysym", 0)));
+  PUSHs (sv_2mortal (newSVuv ((UV) gin.keysym)));
+  PUSHs (sv_2mortal (newSVpv ("button", 0)));
+  PUSHs (sv_2mortal (newSVuv ((UV) gin.button)));
+  PUSHs (sv_2mortal (newSVpv ("subwindow", 0)));
+  PUSHs (sv_2mortal (newSViv ((IV) gin.subwindow)));
+  PUSHs (sv_2mortal (newSVpv ("string", 0)));
+  PUSHs (sv_2mortal (newSVpv (gin.string, 0)));
+  PUSHs (sv_2mortal (newSVpv ("pX", 0)));
+  PUSHs (sv_2mortal (newSViv ((IV) gin.pX)));
+  PUSHs (sv_2mortal (newSVpv ("pY", 0)));
+  PUSHs (sv_2mortal (newSViv ((IV) gin.pY)));
+  PUSHs (sv_2mortal (newSVpv ("dX", 0)));
+  PUSHs (sv_2mortal (newSVnv ((double) gin.dX)));
+  PUSHs (sv_2mortal (newSVpv ("dY", 0)));
+  PUSHs (sv_2mortal (newSVnv ((double) gin.dY)));
+  PUSHs (sv_2mortal (newSVpv ("wX", 0)));
+  PUSHs (sv_2mortal (newSVnv ((double) gin.wX)));
+  PUSHs (sv_2mortal (newSVpv ("wY", 0)));
+  PUSHs (sv_2mortal (newSVnv ((double) gin.wY)));
+EOC
+
+pp_add_exported ('plGetCursor');
+
+pp_addpm (<<'EOPM');
+=head2 plgstrm
+=for sig
+  $strm = plgstrm ()
+=for ref
+  Gets the number of the current output stream.
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+int
+plgstrm ()
+CODE:
+  PLINT strm;
+  c_plgstrm (&strm);
+  RETVAL = strm;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plgstrm');
+
+pp_addpm (<<'EOPM');
+=head2 plmkstrm
+=for sig
+  $strm = plmkstrm ()
+=for ref
+  Creates a new stream and makes it the default.  Returns the number of
+  the created stream.
+=cut
+EOPM
+
+pp_addxs (<<"EOC");
+int
+plmkstrm ()
+CODE:
+  PLINT strm;
+  c_plmkstrm (&strm);
+  RETVAL = strm;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plmkstrm');
+
+
 pp_addpm (<<'EOPM');
 
 =pod
