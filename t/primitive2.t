@@ -19,7 +19,7 @@ sub approx {
 
 
 ###### Testing Begins #########
-print "1..18\n";  
+print "1..19\n";  
 
 
 use PDL::LiteF;
@@ -76,6 +76,11 @@ my $a= PDL->sequence(10,10,3,4);
 
 ok($testNo++,$a->at($x->list,$y->list,$z->list,$w->list) == 203 );
  
+$a = pdl(1,2,3,4);
+$b = append($a,2);
+ok($testNo++,int(sum($b))==12);
+
+
 
 # clip tests
 ok($testNo++, approx($im->hclip(5)->sum,83) );
