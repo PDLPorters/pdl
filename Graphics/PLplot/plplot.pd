@@ -1234,7 +1234,7 @@ sub xyplot {
     if (defined($z)) {  # if a color range plot requested
       plcolorpoints ($x, $y, $z, $c);
     } else {
-      plsym ($x->nelem, $x, $y, $c);
+      plsym ($x, $y, $c);
     }
   }
 
@@ -1791,7 +1791,7 @@ void c_plsvpa(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
 void c_plsxax(PLINT digmax, PLINT digits);
 void plsxwin(PLINT window_id);
 void c_plsyax(PLINT digmax, PLINT digits);
-void c_plsym(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
+#void c_plsym(PLINT n, PLFLT *x, PLFLT *y, PLINT code);
 void c_plszax(PLINT digmax, PLINT digits);
 void c_pltext(void);
 void c_plvasp(PLFLT aspect);
@@ -1964,6 +1964,14 @@ pp_def ('plfill',
          Pars => 'x(n); y(n)',
          GenericTypes => [D],
          Code => 'c_plfill($SIZE(n),$P(x),$P(y));'
+        );
+
+# Plots a symbol at the specified points
+
+pp_def ('plsym',
+         Pars => 'x(n); y(n); int code()',
+         GenericTypes => [D],
+         Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
 
 pp_done();
