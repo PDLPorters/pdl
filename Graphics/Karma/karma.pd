@@ -277,7 +277,7 @@ ENDOFPM
 
 # Add all the karma app startup commands
 
-for $app (qw(kview koords  kpvslice  krenzo  kshell xray kslice_3d)) {
+for $app (qw(kvis kview koords  kpvslice  krenzo  kshell xray kslice_3d)) {
 
    pp_add_exported('',$app);
 
@@ -303,7 +303,7 @@ $app([OPTIONS])
 sub $app {  # Start $app
    if( !(\$pid = fork)) {	# error or child
       exec("$app", \@_) if defined \$pid;
-      die "Can't start kview: \$!\n";
+      die "Can't start $app: \$!\n";
    }
    \$LASTAPP = "$app";
    return \$pid;
@@ -331,6 +331,9 @@ kconnect(app)
 pp_def('ksend2D',
 	Pars => 'im(m,n); byte lut(o,p)', Doc=>undef,
 	OtherPars => 'int haslut; char* karma_app; SV *bb; int verbose',
+        # the following one is only required when we use the
+        # more types than the standard PDL types (<= v2.3.4)
+        GenericTypes => ['B','S','U','L','F','D'], # no longlong karma type ??
 	Code => 'array_desc    *arrayd;
 	         array_pointer arrayp;
 		 multi_array   *arraym;
@@ -427,6 +430,7 @@ pp_def('ksend2D',
 pp_def('ksend3D',
 	Pars => 'im(m,n,z); byte lut(o,p)', Doc=>undef,
 	OtherPars => 'int haslut; char* karma_app; SV* bb',
+        GenericTypes => ['B','S','U','L','F','D'], # no longlong karma type ??
 	Code => 'array_desc    *arrayd;
 	         array_pointer arrayp;
 		 multi_array   *arraym;

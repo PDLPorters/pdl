@@ -1,94 +1,17 @@
-
 # Build the whole PDL distribtuion
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
-
-# Version test.
-BEGIN{
-    eval "use 5.005";
-    die "PDL requires Perl v5.005 or later\n" if $@ ne "";
-}
-
-END{
-  my @hasnt = ();
-  my @test = (['Filter::Util::Call','Filter'],
-	      ['Text::Balanced','Text::Balanced'],
-	     );
-  for my $mod (@test) {
-    eval "use $mod->[0]";
-    push @hasnt, $mod->[1] if $@;
-  }
-  if (@hasnt) {
-    print << 'EOP';
-
-************************************************************
-Your installation won't be fully functional since it lacks
-certain modules. As a result PDL::NiceSlice will not work.
-This will significantly reduce the usefulness of your
-installation.
-
-Please install the following module(s) [available from CPAN]
-
-EOP
-
-    for (@hasnt) { print "\t$_\n" }
-
-
-    print << 'EOP';
-
-************************************************************
-EOP
-
-    warn << 'EOW' unless $perl_560;
-
-* The next major version of PDL (v2.4) will require Perl v5.6.0 or later!*
-* Upgrade your perl now for maximum PDL fun in the future!               *
-
-EOW
-  }
-}
-
-eval "use 5.006";
-if ($@ ne ""){
-    warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
-	"Building PDL without TriD (WITH_3D=>0)\n\n";
-}else{
-    $perl_560=1;
-}
-
-$seen_pdlconf = 0;
-
-# Scan ARGV for config file argument
-@ARGV = map {
-	if(/^PDLCONF=(.*)$/) {
-		$seen_pdlconf=1;
-		$pdl_conf_file = $1; ();
-	} elsif (/^F77CONF=(.*)$/) {
-		$seen_f77conf=1;
-		$pdl_f77conf=$1; ();
-	} elsif (/^FORCE$/i) {
-		$forcebuild=1;
-		();
-        } else {
-		$_
-	}
-} @ARGV;
-
-if(!$seen_pdlconf) {
-	my $defname = "$ENV{HOME}/.perldl.conf";
-	if(-f $defname) {
-		$pdl_conf_file = $defname;
-	}
-}
-
-# detect buggy Perl setups
 use Config;
-if (!$forcebuild &&
-    $Config{osname} eq 'solaris' &&
-    ($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
-    $Config{usemymalloc} eq 'y'
-   ) {
-  die <<'EOM';
+use IO::File;
+
+sub checkbuggysetup {
+  # detect buggy Perl setups
+  if (!$forcebuild &&
+      $Config{osname} eq 'solaris' &&
+      ($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
+      $Config{usemymalloc} eq 'y'
+     ) {
+    die <<'EOM';
 
 FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
 
@@ -110,65 +33,68 @@ PDL build unless *all* optimizations are disabled!
 YOU HAVE BEEN WARNED!!
 
 EOM
+  }
 }
 
-warn "WARNING: forcing build...\n" if $forcebuild;
+sub getpdl_config {
+  my ($pdl_conf_file) = @_;
 
-# First read in distribution config file 
+  # First read in distribution config file
+  require './perldl.conf';
 
-require './perldl.conf';
+  %PDL_CONFIG_DIST = %PDL_CONFIG; # Save standard values
 
-%PDL_CONFIG_DIST = %PDL_CONFIG; # Save standard values
+  # Now read in the users config file if specified
 
-
-# Now read in the users config file if specified
-
-if (-f $pdl_conf_file) {
+  if (-f $pdl_conf_file) {
     warn "\nINFORMATION: using file $pdl_conf_file to set configuration defaults\n\n";
     require $pdl_conf_file;
-}
+  }
 
-# Sanity checking of user supplied keys (look for ones not defined in dist)
+  # Sanity checking of user supplied keys (look for ones not defined in dist)
 
-for(keys %PDL_CONFIG) {
-	if(!exists($PDL_CONFIG_DIST{$_})) {
-	   die << "EOD";
+  for(keys %PDL_CONFIG) {
+    if(!exists($PDL_CONFIG_DIST{$_})) {
+      die << "EOD";
 Invalid key $_ found in user supplied $pdl_conf_file
   - this key appears to be no longer in use.
   Please review configuration options and check the comments in
   the file perldl.conf that came with this distribution
 EOD
-	}
-}
-
-# Merge in default options where not supplied in users file
-
-for(keys %PDL_CONFIG_DIST) {
-   $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
-}
-
-if ($seen_f77conf) {
-  eval 'require File::Spec';
-  unless ($@ eq "") {
-    print STDERR "can't load File::Spec, skipping f77conf\n";
-    # skip if we don't have File::Spec
-    $seen_f77conf = 0;
-    last;
+    }
   }
-  $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
-    unless File::Spec->file_name_is_absolute($pdl_f77conf);
-  $PDL_CONFIG{F77CONF} = $pdl_f77conf;
+
+  # Merge in default options where not supplied in users file
+
+  for(keys %PDL_CONFIG_DIST) {
+    $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
+  }
 }
 
-$PDL_CONFIG{WITH_3D} = 0 unless $perl_560;
+sub check_f77conf {
+  my ($seen_f77conf) = @_;
+  if ($seen_f77conf) {
+    eval 'require File::Spec';
+    unless ($@ eq "") {
+      print STDERR "can't load File::Spec, skipping f77conf\n";
+      # skip if we don't have File::Spec
+      return 0;
+    }
+    $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
+      unless File::Spec->file_name_is_absolute($pdl_f77conf);
+    $PDL_CONFIG{F77CONF} = $pdl_f77conf;
+    return 1;
+  } else { return 0 }
+}
 
-# Get Version from Basic/PDL.pm and generated Basic/Core/Version.pm from it
-require 'Basic/PDL.pm';
+sub make_Version_pm {
+  # Get Version from Basic/PDL.pm and generated Basic/Core/Version.pm from it
+  require 'Basic/PDL.pm';
 
-my $versionFile = 'Basic/Core/Version.pm';
-open(VERSIONFILE, ">$versionFile") or 
-  die("Can't Open '$versionFile' for Writing!\n");
-print VERSIONFILE <<"EOVF";
+  my $versionFile = 'Basic/Core/Version.pm';
+  my $fh = IO::File->new( ">$versionFile" ) or 
+    die("Can't Open '$versionFile' for Writing!\n");
+  print $fh <<"EOVF";
 
 package PDL::Version;
 
@@ -182,45 +108,151 @@ package PDL::Version;
 1;
 
 EOVF
-close VERSIONFILE;
-
-# make sure we have Types.pm ready for prime time
-use Config; # for startperl
-die "Types.pm.PL not found in Basic/Core" unless -f 'Basic/Core/Types.pm.PL';
-system "$Config{perlpath} Basic/Core/Types.pm.PL";
-die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
-
-# Are we using bad values or not? Are we using NaN or not?
-# NOTE: 
-#  only create if there's been a change (or the file doesn't exist)
-#  since *.pd uses this as a dependency
-#
-{
-    my $badFile = "Basic/Core/badsupport.p";
-    my $create_badFile = 1;
-
-    if ( -e $badFile ) {
-	require $badFile;
-	if ( $bvalflag == $PDL_CONFIG{WITH_BADVAL} and
-	     $usenan   == $PDL_CONFIG{BADVAL_USENAN} ) {
-	    $create_badFile = 0;
-	}
-    }
-
-    if ( $create_badFile ) {
-	use IO::File;
-	my $fh = new IO::File ">$badFile"
-	    or die "Can't open '$badFile' for writing.!\n";
-	print $fh "# Autogenerated by top-level Makefile.PL ".(localtime)."\n";
-	print $fh "\$bvalflag = $PDL_CONFIG{WITH_BADVAL};\n";
-	print $fh "\$usenan   = $PDL_CONFIG{BADVAL_USENAN};\n";
-	print $fh "1;  # return true\n";
-	$fh->close;
-    }
+  $fh->close();
 }
 
+sub make_badval_dependencies {
+  # Are we using bad values or not? Are we using NaN or not?
+  # NOTE:	
+  #  only create if there's been a change (or the file doesn't exist)
+  #  since *.pd uses this as a dependency
+  #
+  my $badFile = "Basic/Core/badsupport.p";
+  my $create_badFile = 1;
+
+  if ( -e $badFile ) {
+    require $badFile;
+    if ( $bvalflag == $PDL_CONFIG{WITH_BADVAL} and
+	 $usenan   == $PDL_CONFIG{BADVAL_USENAN} ) {
+      $create_badFile = 0;
+    }
+  }
+
+  if ( $create_badFile ) {
+    my $fh = IO::File->new( ">$badFile" )
+      or die "Can't open '$badFile' for writing.!\n";
+    print $fh "# Autogenerated by top-level Makefile.PL ".(localtime)."\n";
+    print $fh "\$bvalflag = $PDL_CONFIG{WITH_BADVAL};\n";
+    print $fh "\$usenan   = $PDL_CONFIG{BADVAL_USENAN};\n";
+    print $fh "1;  # return true\n";
+    $fh->close;
+  }
+}
+
+sub make_Types_pm {
+  # make sure we have Types.pm ready for prime time
+  die "Types.pm.PL not found in Basic/Core"
+    unless -f 'Basic/Core/Types.pm.PL';
+  my $usebvals = $PDL_CONFIG{WITH_BADVAL} ? "BADVALS=1" : "";
+  system "$Config{perlpath} Basic/Core/Types.pm.PL $usebvals";
+  die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
+}
+
+# very simple formatter, assumes structures are *not* nested
+# used by make_PDL_Config_pm
+sub myformat {
+  my $entry = shift;
+  if (ref $entry eq 'ARRAY') {
+    my $list = join ',', (map {('"'.quotemeta($_).'"')} @$entry);
+    return "[$list]";
+  } elsif (ref $entry eq 'HASH') {
+    my $list = join ",\n", (map {('"'.quotemeta($_).'" => "'.
+			       quotemeta($entry->{$_}).'"')} keys %$entry);
+    $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
+    return "{$list}";
+  } else {
+     return join '', '"',quotemeta($PDL_CONFIG{$_}),'"';
+  }
+}
+
+sub make_PDL_Config_pm {
+  print STDERR "Writing Basic/Core/Config.pm\n";
+
+  my $fh = IO::File->new( ">Basic/Core/Config.pm" )
+    or die "Couldn't open Config.pm for writing";
+  print $fh "
+# AUTOMATICALLY GENERATED BY THE PDL TOPLEVEL Makefile.PL.
+# DO NOT HAND-EDIT - CHANGES WILL BE LOST UPON YOUR NEXT
+#  'perl Makefile.PL'!!!
+package PDL;
+\%PDL::Config = (\n";
+  for(keys %PDL_CONFIG) {
+    $fh->print( "\t$_\t=>\t" );
+    if(defined $PDL_CONFIG{$_}) {
+      $fh->print( myformat($PDL_CONFIG{$_}) );
+    } else {
+      $fh->print( "undef" );
+    }
+    $fh->print(",\n");
+  }
+  $fh->print( ");\n1;" );
+  $fh->close();
+}
+
+#
+# the actual script begins here
+#
+
+BEGIN{
+  # Version test.
+  eval "use 5.6.0";
+  die "\nPDL requires Perl v5.6.0 or later\n\n" if $@ ne "";
+  # test for critical modules
+  @hasnt = ();
+  my @test = (['Filter::Util::Call','Filter'],
+	      ['Text::Balanced','Text::Balanced'],
+	     );
+  for my $mod (@test) {
+    eval "use $mod->[0]";
+    push @hasnt, $mod->[1] if $@;
+  }
+} # end BEGIN
+
+$seen_pdlconf = 0;
+
+# Scan ARGV for config file argument
+@ARGV = map {
+	if(/^PDLCONF=(.*)$/) {
+		$seen_pdlconf=1;
+		$pdl_conf_file = $1; ();
+	} elsif (/^F77CONF=(.*)$/) {
+		$seen_f77conf=1;
+		$pdl_f77conf=$1; ();
+	} elsif (/^FORCE$/i) {
+		$forcebuild=1;
+		();
+        } else {
+		$_
+	}
+} @ARGV;
+
+warn "WARNING: forcing build...\n" if $forcebuild;
+
+checkbuggysetup(); # check for buggy Perl setups
+
+if(!$seen_pdlconf) {
+	my $defname = "$ENV{HOME}/.perldl.conf";
+	if(-f $defname) {
+		$pdl_conf_file = $defname;
+	}
+}
+
+# needs to be called before any of the make_XX routines
+getpdl_config($pdl_conf_file);
+$seen_f77conf = check_f77conf($seen_f77conf);
+
+make_Version_pm();
+
+make_badval_dependencies();
+
+make_Types_pm();
 
 use ExtUtils::MakeMaker;
+
+# only perform one test if required modules are missing
+# the test will print an informational message and fail
+my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
+  (test => {TESTS => 't/requiredmods.t'}) : ();
 
 my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"} 
   qw/perldl pdldoc/;
@@ -240,13 +272,13 @@ WriteMakefile(
 	      'EXE_FILES' => ['perldl', 'pdldoc'],
 	      'PM' => { @podpms }, # so that the script docs are picked up
 	      'MAN3PODS' => {}, # don't pick up the script pods again
-	      # 'OPTIMIZE'  => '-g',  # If you want to debug, uncomment this.
-	      'linkext'  => {LINKTYPE => ''},  # No linking required 
+	      'OPTIMIZE'  => $PDL_CONFIG{OPTIMIZE} || $Config{optimize},
+	      'linkext'  => {LINKTYPE => ''},  # No linking required
                                                # in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
 	      'clean' => {
 		  'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
-		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' . 
+		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
                       '_Inline/'
 		      },
@@ -257,51 +289,19 @@ WriteMakefile(
 				 'BINARY_LOCATION' => 'PDL.tar.gz',
 				 ) : (),
 
+	      %notestsifmodulesmissing,
 	      );
 
-print STDERR "Writing Basic/Core/Config.pm\n";
 
-open OUT, ">Basic/Core/Config.pm" or die "Couldn't open Config.pm for writing";
-print OUT "# AUTOMATICALLY GENERATED BY THE PDL TOPLEVEL Makefile.PL.
-# DO NOT HAND-EDIT - CHANGES WILL BE LOST UPON YOUR NEXT 
-#  'perl Makefile.PL'!!!
-package PDL;
-\%PDL::Config = (
-";
-for(keys %PDL_CONFIG) {
-	print OUT "\t$_\t=>\t";
-	if(defined $PDL_CONFIG{$_}) {
-		print OUT myformat($PDL_CONFIG{$_});
-	} else {
-		print OUT "undef";
-	}
-	print OUT ",\n";
-}
-print OUT ");\n1;";
-close OUT;
-
-# very simple formatter, assumes structures are *not* nested
-sub myformat {
-  my $entry = shift;
-  if (ref $entry eq 'ARRAY') {
-    my $list = join ',', (map {('"'.quotemeta($_).'"')} @$entry);
-    return "[$list]";
-  } elsif (ref $entry eq 'HASH') {
-    my $list = join ",\n", (map {('"'.quotemeta($_).'" => "'.
-			       quotemeta($entry->{$_}).'"')} keys %$entry);
-    $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
-    return "{$list}";
-  } else {
-     return join '', '"',quotemeta($PDL_CONFIG{$_}),'"';
-  }
-}
+# do *after* WriteMakefile since some options
+# are set by the recursively called Makefile.PLs
+make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
-
 sub MY::postamble {
-my $text = 
-' 
-doctest :: 
+my $text =
+'
+doctest ::
 	@echo "doctest: Building PDL documentation database in blib ..."
 	@$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) \
 		Doc/scantree.pl 
@@ -312,7 +312,7 @@ doc_site_install ::
 	@echo "doc_site_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLSITEARCH)
 	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
-  
+
 doc_perl_install ::
 	@echo "doc_perl_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
@@ -320,46 +320,13 @@ doc_perl_install ::
 
 ';
 
-# note: podselect wasn't in the perl distribution prior to 5.6.0
-my $podsel = "podselect";
-
-if ( $] < 5.006 ) {
-    # make your own podsel
-    $podsel = "podsel";
-    print "Building a simple version of podselect, called $podsel.\n";
-    unlink $podsel if -f $podsel;
-    my $fh = new IO::File "> $podsel" or die "Can't create $podsel: $!";
-    
-    use Config;
-    print $fh <<"!GROK!THIS!";
-$Config{'startperl'}
-    eval 'exec perl -S \$0 "\$@"'
-        if 0;
-!GROK!THIS!
-
-    # no variable substitution here
-    print $fh <<'!NO!SUBS!';                                                
-
-# script to emulate podselect (available in perl 5.6.0)
-use blib;
-use PDL::Pod::Select;
-
-die "Usage: $0 <file>\n" if $#ARGV == -1;
-podselect(@ARGV);
-exit;
-!NO!SUBS!
-    $fh->close;
-    chmod 0755, $podsel;
-    $podsel = "./$podsel"; # '.' may not be in our path (potential win32 problem?)
-} # if: perl version < 5.006
-
-$text .=                                                                      
+$text .=
 "
 perldl.pod : perldl subdirs
-\t$podsel perldl > perldl.pod
+\tpodselect perldl > perldl.pod
 
 pdldoc.pod : pdldoc subdirs
-\t$podsel pdldoc > pdldoc.pod
+\tpodselect pdldoc > pdldoc.pod
 
 ";
 
@@ -410,3 +377,31 @@ sub MY::test {
 	return join("\n", @new,"\n");
 }
 
+# warn if vital modules are missing
+END {
+    if (@hasnt) {
+      print << 'EOP';
+
+********************************************************
+* IMPORTANT: Your installation will not work since it  *
+* lacks critical modules.                              *
+* ALL TESTS WILL FAIL UNLESS YOU IMMEDIATELY           *
+* INSTALL THE FOLLOWING MODULES [available from CPAN]: *
+*
+EOP
+
+    for (@hasnt) { print "*\t$_\n" }
+
+
+    print << 'EOP';
+*                                                      *
+* Please install the missing module(s) and start the   *
+* PDL build process again (perl Makefile.PL; ....)     *
+*                                                      *
+********************************************************
+
+EOP
+
+  }
+
+}

@@ -4,6 +4,14 @@
     This code provides gaussian fitting routines.
 
     Copyright (C) 1997  Karl Glazebrook and Alison Offer Real code
+    
+    Note it is not clear to me that this code is fully debugged. The reason
+    I say that is because I tried using the linear eqn solving routines called
+    elsewhere and they were giving erroneous results. So steal from this
+    code with caution! However it does give good fits to reasonable looking 
+    gaussians and tests show correct parameters.
+    
+             KGB 29/Oct/2002
  */
 
 
@@ -104,6 +112,17 @@ static void funct (int npoints, int npar, double *x, double *yfit,
 
 /* These have been checked */
 
+
+/* 
+
+ IMPORTANT NOTE: I tried using decomp()+leneq() routines 
+    elsewhere and they were giving erroneous results. 
+    So steal from this code with caution! 
+    
+             KGB 29/Oct/2002
+ */
+
+
 /* =======================================================================
 
    LU decomposition of matrix x using Crouts algotithm with partial
@@ -183,6 +202,16 @@ static void decomp (int n, int ndim, double x[NPAR][NPAR], int iorder[NPAR])
     }
 }
 		   
+
+/* 
+
+ IMPORTANT NOTE: I tried using decomp()+leneq() routines 
+    elsewhere and they were giving erroneous results. 
+    So steal from this code with caution! 
+    
+             KGB 29/Oct/2002
+ */
+ 
 /* ======================================================================== 
 
     x[i<=j[]j] is U-matrix from LU-decomposition
@@ -314,6 +343,15 @@ static int marquardt (int npoints, int npar, double*x, double *y,
       
       /* Solve Matrix Equation: a'.delta = b */
       
+
+/* 
+
+ IMPORTANT NOTE: I tried using decomp()+leneq() routines 
+    elsewhere and they were giving erroneous results. 
+    So steal from this code with caution! 
+    
+             KGB 29/Oct/2002
+ */
       decomp(npar ,npar,  aprime, iorder);
       lineq(npar, npar,  aprime, b, delta, iorder); 
       

@@ -513,7 +513,7 @@ sub PDL::med2df {
 		 } /* for: j1 */
 
                  $b(m=>i,n=>j) =
-                        quick_select_$TBSULFD(B,S,U,L,F,D) (tmp, count );
+                        quick_select_$TBSULQFD(B,S,U,L,Q,F,D) (tmp, count );
 
               } /* for: i */
            } /* for: j */
@@ -536,11 +536,12 @@ pp_def('box2d',
                 register int ys = $SIZE(m);
 		register int ez = $COMP(edgezero);
                 double div, sum, lsum;
-                int xx,yy,y,ind1,ind2,first=1;
+                int xx,yy,y,ind1,ind2,first;
 
 		div = 1/((2.0*nx+1)*(2.0*ny+1));
 		
 		threadloop %{
+		  first = 1;
 		  for (y=0;y<ys;y++)
 		    for (xx=0; xx<nx; xx++) {
 			ind1 = xs-1-xx;  /* rightmost strip */

@@ -47,12 +47,17 @@ void pdl_grow (pdl* a, int newsize) {
    if (ncurr>nbytes)  /* Nuke back to zero */
       sv_setpvn(foo,"",0);
 #endif
-
    if(nbytes > (1024*1024*1024)) {
-   	die("Probably false alloc of over 1Gb piddle!");
+     SV *sv = get_sv("PDL::BIGPDL",0);
+     if(sv == NULL || !(SvTRUE(sv)))
+   	die("Probably false alloc of over 1Gb PDL! (set $PDL::BIGPDL = 1 to enable)");
+     fflush(stdout);
    }
-
-   SvGROW ( foo, nbytes );   SvCUR_set( foo, nbytes );
+   
+   {
+     void *p;
+     p = SvGROW ( foo, nbytes );   SvCUR_set( foo, nbytes );
+   }
    a->data = (void *) SvPV( foo, len ); a->nvals = newsize;
 }
 

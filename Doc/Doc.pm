@@ -48,7 +48,7 @@ use PDL::Pod::Parser;
 sub new {
   my ($type) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS|NAME");
+  $parser->select("METHODS|OPERATORS|CONTRUCTORS|FUNCTIONS|NAME");
   $parser->{CURFUNC} = undef;
   $parser->{SYMHASH} = {};
   $parser->{INBLOCK} = 0;
@@ -217,7 +217,7 @@ Individual functions in this section are introduced by
 
 where signature is the argumentlist for a PP defined function
 as explained in L<PDL::PP>. Generally, PDL documentation is in
-valid POD format (see L<perlpod>) but uses the C<=for> directive
+valid POD format (see L</perlpod>) but uses the C<=for> directive
 in a special way. The C<=for> directive is used to flag to the
 PDL Pod parser that information is following that will be used
 to generate online help.
@@ -741,8 +741,12 @@ sub extrdoc {
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS/$func(\\(.*\\))*\\s*");
-  $parser->parse_from_filehandle($in,$out);
+#  $parser->select("\\(METHODS\\|OPERATORS\\|CONSTRUCTORS\\|FUNCTIONS\\|METHODS\\)/$func(\\(.*\\)*\\s*");
+  foreach my $foo(qw/FUNCTIONS OPERATORS CONSTRUCTORS METHODS/) {
+      seek $in,0,0;
+      $parser->select("$foo/$func(\\(.*\\))*\\s*");
+      $parser->parse_from_filehandle($in,$out);
+  }
 }
 
 1;

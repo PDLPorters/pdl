@@ -1,0 +1,77 @@
+PDL::Graphics::PLplot
+
+This is a simple perl/PDL interface to the PLplot plotting library.
+
+http://plplot.sourceforge.net/
+
+I wrote this primarily for web graphics as an alternative to PDL::Graphics::PGPLOT.
+
+The advantages of PLplot over PGPLOT are these:
+
+-- It is written all in (generally well structured, comprehensible) C
+   (so you don't need a FORTRAN compiler as for PGPLOT).
+-- It is in current development
+-- It has a simple autoconf installation with built-in PNG support
+
+(The disadvantage is that it is missing some of PGPLOT's many features).
+
+The interface consists of two levels.  A low level interface which maps closely to
+the PLplot C interface, and a high level, object-oriented interface which is easier to 
+use.
+
+Examples:
+
+use PDL:
+use PDL::Graphics::PLplot;
+
+# Line plot of two 1D PDLs $x and $y
+my $pl = PDL::Graphics::PLplot->new (DEV => "png", FILE => "test1.png");
+$pl->xyplot($x, $y, PLOTTYPE => 'LINE', COLOR => 'GREEN', 
+	            TITLE => 'Sample plot', XLAB => 'frobnitz', YLAB => 'widgets/sec');
+$pl->close;
+
+# Shade plot of a 2D PDL in $z
+my $pl = PDL::Graphics::PLplot->new (DEV => 'png', FILE => "test2.png");
+$pl->shadeplot ($z, $nsteps, BOX => [-1, 1, -1, 1], PALETTE => 'RAINBOW');
+$pl->colorkey ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
+$pl->close;
+
+For more examples, see the test.pl file.
+
+PREREQUISITES:
+
+perl 5.6 or higher
+PDL 2.3 or more recent
+PLplot 5.1.0 (5.2.0 support is in the works...)
+
+------------------------------------------------------------------------
+Important:  plplot *must* be compiled --with-double so that all floating
+  point numbers used are doubles.  Install plplot similar to this:
+
+# ./configure --with-double
+# make
+# make install
+
+On some systems (IRIX, for one) it may be necessary to compile plplot
+without fortran support:  --disable-f77.
+------------------------------------------------------------------------
+
+INSTALLATION:
+ 
+Installation should be the normal:
+ 
+perl Makefile.PL
+make
+make test
+ 
+(as root)
+make install
+ 
+Best of luck!
+ 
+Doug Hunt
+dhunt@ucar.edu
+Software Engineer III
+UCAR - GPS/MET
+
+

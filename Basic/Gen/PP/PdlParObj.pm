@@ -25,19 +25,33 @@ $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
 # }
 
 %PDL::PP::PdlParObj::Typemap = ();
-my $type;
-for (['Byte',$PDL_B],
-      ['Short',$PDL_S],
-      ['Ushort',$PDL_US],
-      ['Long',$PDL_L],
-      ['Float',$PDL_F],
-      ['Double',$PDL_D]) {
-  $type = ($_->[0] =~ /Long/ ? 'int' : lc $_->[0]);
-  $Typemap{$type} = { Ctype => "PDL_$_->[0]",
-		      Cenum => ($type =~ /ushort/ ? "PDL_US" :
-		                   "PDL_".substr($_->[0],0,1)),
-		      Val => $_->[1]  };
+use PDL::Types ':All';
+
+# build a typemap for our translation purposes
+# again from info in PDL::Types
+for my $typ (typesrtkeys) {
+  $Typemap{typefld($typ,'ppforcetype')} = {
+					  Ctype => typefld($typ,'ctype'),
+					  Cenum => typefld($typ,'sym'),
+					  Val =>   typefld($typ,'numval'),
+					 };
 }
+
+# my $type;
+# for (['Byte',$PDL_B],
+#       ['Short',$PDL_S],
+#       ['Ushort',$PDL_US],
+#       ['Long',$PDL_L],
+#       ['LongLong',$PDL_LL],
+#       ['Float',$PDL_F],
+#       ['Double',$PDL_D]) {
+#   $type = ($_->[0] =~ /^Long$/ ? 'int' : lc $_->[0]);
+#   $Typemap{$type} = { Ctype => "PDL_$_->[0]",
+# 		      Cenum => ($type =~ /ushort/ ? "PDL_US" :
+# 				$type =~ /longlong/ ? "PDL_LL" :
+# 				"PDL_".substr($_->[0],0,1)),
+# 		      Val => $_->[1]  };
+# }
 
 my $hasTB = 0;
 eval 'use Text::Balanced';
@@ -97,18 +111,19 @@ __DATA__
 #
 sub new {
 	my($type,$string,$number,$badflag) = @_;
+	my $typeregex = join '|', map {typefld($_,'ppforcetype')} typesrtkeys;
 	$badflag ||= 0;
 	my $this = bless {Number => $number, BadFlag => $badflag},$type;
 # Parse the parameter string
 	$string =~
 		/^
-		 \s*((?:byte|short|ushort|int|float|double)[+]*|)\s*	# $1: first option
+		 \s*((?:$typeregex)[+]*|)\s*	# $1: first option
 		 (?:
 			\[([^]]*)\]   	# $2: The initial [option] part
 	         )?\s*
 		 (\w+)          	# $3: The name
 		 \(([^)]*)\)  		# $4: The indices
-		/x or confess "Invalid pdl def $string\n";
+		/x or confess "Invalid pdl def $string (regex $typeregex)\n";
 	my($opt1,$opt2,$name,$inds) = ($1,$2,$3,$4);
 	map {$_ = '' unless defined($_)} ($opt1,$opt2,$inds); # shut up -w
 	print "PDL: '$opt1', '$opt2', '$name', '$inds'\n"
@@ -124,7 +139,7 @@ sub new {
 			and $this->{FlagCreateAlways}=1 or
 		/^t$/ and $this->{FlagTemp}=1 and $this->{FlagCreat}=1 and $this->{FlagW}=1 or
 		/^phys$/ and $this->{FlagPhys} = 1 or
-		/^((?:byte|short|ushort|int|float|double)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
+		/^((?:$typeregex)[+]*)$/ and $this->{Type} = $1 and $this->{FlagTyped} = 1 or
 		confess("Invalid flag $_ given for $string\n");
 	}
 #	if($this->{FlagPhys}) {
@@ -209,7 +224,11 @@ sub getcreatedims {
 sub typeval {
   my $ctype = shift;
   my @match = grep {$Typemap{$_}->{Ctype} =~ /^$ctype$/} keys(%Typemap);
-  croak "unknown PDL type '$ctype'" if $#match < 0;
+  if ($#match < 0) {
+    use Data::Dumper;
+    print Dumper \%Typemap;
+    croak "unknown PDL type '$ctype'" ;
+  }
   return $Typemap{$match[0]}->{Val};
 }
 

@@ -1,0 +1,10 @@
+Revision history for Perl extension PDL::Graphics::PLPLOT
+
+0.01  1/23/2002
+	- original version
+
+0.11  First version released to CPAN.  Does line and point plots and Shade plots.
+      Still missing support for 3D plots (but this could easily be added).
+
+0.19  1/31/2003 First version integrated into the PDL distribution.  Includes
+      Support for 'mem' driver for in-memory plotting on top of RGB images.

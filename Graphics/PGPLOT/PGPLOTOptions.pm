@@ -37,7 +37,7 @@ The colour with which to draw axes. Default value=3 (Green)
 =item HardLW, HardCH, HardFont, HardAxisColour, HardColour
 
 The linewidth, character height, font and axis colour to use on hardcopy
-devices. The default values are HardLW=4, HardCH=1.4, HardFont=2 (Roman),
+devices. The default values are HardLW=1, HardCH=1.4, HardFont=2 (Roman),
 HardAxisColour=1 (Black) and HardColour=1 as well. The latter is the default
 plot colour to use on hardcopy devices.
 
@@ -77,6 +77,19 @@ The number of panels in the Y-direction - defaults to 1
 A boolean value which, if true, causes both axes to drawn
 to the same scale; see
 the PGPLOT C<pgenv()> command for more information.
+
+=item TightLabels
+
+Boolean value which, if true, causes axis labels to be pulled
+slightly closer to the main viewport than usual.  That's handy
+for making multi-panel plots.  Undef (the default) is equivalent
+to 0 for panels with NYPanels <= 1 and 1 for panels with NYPanels > 1.
+
+=item TitleSize
+
+The relative size of a plot or image title, compared to other annotations.
+Defaults to 1.0 (original behavior) but can be set to, e.g., 1.5 to 
+emphasize graph titles in a multipanel plot.
 
 =item Border
 
@@ -127,12 +140,12 @@ my %options = (
 	       Device => undef,
 	       AxisColour => 3,
 	       BackgroundColour => -1, # Text background colour
-	       HardLW => 4,
+	       HardLW => 1,
 	       HardCH => 1.4,
 	       HardFont => 2,
 	       HardAxisColour => 1,
 	       HardColour => 1,
-	       Axis => 'BCNST',
+	       Axis => 'BCNST', # see kludge in Window::imag if you change this
 	       AspectRatio => undef,
 	       WindowWidth => undef,
 	       WindowXSize => undef,
@@ -142,7 +155,12 @@ my %options = (
 	       WindowName => '',
 	       NXPanel => 1,
 	       NYPanel => 1,
-	       Justify => 0,
+	       Justify => 0,   # Justification of boxes & axes
+               Scale=> undef,  # device pixels per data pixel
+               Pitch=> undef,  # Horizontal data pixels per <unit>
+               Unit => undef,  # Unit for pitch 
+               Pix => undef,   # Pixel aspect ratio
+ 	       Align => undef, # Alignment of viewport within plot area
 	       Border => 0,
 	       CharSize => 1,
 	       Symbol => 17,
@@ -154,14 +172,14 @@ my %options = (
 	       ITF => 0,
 	       Transform => undef,
 	       LineWidth => 1,
-	       Xrange => undef,
-	       Yrange => undef,
+	       XRange => undef,
+	       YRange => undef,
 	       Arrow => {FS => 1, Angle => 45.0, Vent => 0.3,
 			   ArrowSize => undef},
 	       Hatch => {Angle => 45.0, Separation => 1.0, Phase => 0.0},
 	       XTitle => '',
 	       YTitle => '',
-	       Title => ''
+	       Title => '',
 	      );
 
 
@@ -194,14 +212,20 @@ sub default_options {
 	    WindowName  => $options{WindowName}, # The window name given
 	    NXPanel     => $options{NXPanel}, # The number of plotting panels
 	    NYPanel     => $options{NYPanel}, # Ditto.
-	    Justify     => $options{Justify},
+	    TightLabels => undef,
+	    TitleSize   => 1.0,
+	    Justify     => $options{Justify}, # Justification of boxes & axes
+	    Scale       => $options{Justify}, # device pixels per data pixel
+	    Pitch       => $options{Pitch},   # Horizontal data pixels per unit
+	    Unit        => $options{Unit},    # PGPLOT unit for pitch
+	    Pix         => $options{Pix},     # Pixel aspect ratio
+	    Align       => $options{Align},   # Alignment of vp in plot area
 	    Border      => $options{Border},
 	    CharSize    => $options{CharSize}, # Character size for annotation
 	    Erase       => 0,
 	    Recording   => 0,	# Off by default.
 	    PlotPosition => 'Default' # The position of the plot on the page.
 	   };
-
 
   # Options specific to plotting commands
   my $o = {
@@ -216,10 +240,20 @@ sub default_options {
 	   Fill	       => $options{Fill},	 # Solid fill
 	   ITF	       => $options{ITF},	 # Linear ITF
 	   Axis	       => $options{Axis},	 # Standard axis-type
+
 	   Transform   => $options{Transform},   # The transform used for plots.
+           Justify     => $options{Justify}, # Justification of boxes & axes
+	   Scale       => $options{Justify}, # device pixels per data pixel
+	   Pitch       => $options{Pitch},   # Horizontal data pixels per unit
+	   Unit        => $options{Unit},    # PGPLOT unit for pitch
+	   Pix         => $options{Pix},     # Pixel aspect ratio
+	   Align       => $options{Align},   # Alignment of vp in plot area
+
 	   LineWidth   => $options{LineWidth},
-	   Xrange      => $options{Xrange},
-	   Yrange      => $options{Yrange},
+	   TightLabels => $options{TightLabels},
+	   TitleSize   => $options{TitleSize},
+	   XRange      => $options{XRange},
+	   YRange      => $options{YRange},
 	   BackgroundColour => $options{BackgroundColour},
 	   # The following two should really be implemented as an Options
 	   # object, but that will make I/O of options somewhat difficult.

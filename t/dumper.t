@@ -15,12 +15,13 @@ sub inpath {
   return 0;
 }
 
-$hasuuencode = inpath('uuencode') && inpath('uudecode');
+eval "use Convert::UU;";
+$hasuuencode = !$@ || (inpath('uuencode') && inpath('uudecode'));
 print "1..16\n";
 
 unless ($hasuuencode) {
 	for (1..16) {
-		print "ok $_ # Skipped: uuencode/decode not available\n";
+		print "ok $_ # Skipped: neither uuencode/decode nor Convert:UU is available\n";
 	}
 	exit;
 }
@@ -53,9 +54,12 @@ ok(8,(ref $a->{d} eq 'PDL') && ($a->{d}->nelem == 16)
 eval '$s = sdump({e=>xvals(25,25)});';
 ok(9,!$@);
 
+print $s,"\n";
+
 $a = eval $s;
 ok(10,!$@);
 print $@ if($@);
+print "string was $s" if($@);
 ok(11,(ref $a eq 'HASH'));
 ok(12,(ref $a->{e} eq 'PDL') 
 	&& ($a->{e}->nelem==625)

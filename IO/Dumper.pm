@@ -23,14 +23,13 @@ output is for non-PDL expressions. To that end, small PDLs (up to 8
 elements) are stored as inline perl expressions, midsized PDLs (up to
 200 elements) are stored as perl expressions above the main data
 structure, and large PDLs are stored as FITS files that are uuencoded
-and included in the dump string. (You have to have access to uuencode(1)
-for this to work).
+and included in the dump string. (You have to have access to either 
+uuencode(1) or the CPAN module Convert::UU for this to work).
 
 No attempt is made to shrink the output string -- for example, inlined
 PDL expressions all include explicit reshape() and typecast commands,
-and uuencode() is notoriously inefficient.  So your data structures
-will grow when you dump them.  Gzip will shrink the output by
-about a factor of 10 for typical small data structures.
+and uuencoding expands stuff by a factor of about 1.5.  So your data
+structures will grow when you dump them. 
 
 =head1 Bugs
 
@@ -79,6 +78,9 @@ This package comes with NO WARRANTY.
 =item * 1.3 (15-May-2002): Added checking for tied objects in gethdr()
   [workaround for hole in Data::Dumper]
 
+=item * 1.4 (15-Jan-2003): Added support for Convert::UU as well as
+  command-line uu{en|de}code
+
 =back
 
 =head1 FUNCTIONS
@@ -100,6 +102,18 @@ BEGIN{
   @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
   @PDL::IO::Dumper::EXPORT = @EXPORT_OK;
   %PDL::IO::Dumper::EXPORT_TAGS = ( Func=>[@EXPORT_OK]);
+
+  eval "use Convert::UU;";
+  $PDL::IO::Dumper::convert_ok = !$@;
+
+  my $a = sub {
+      my($prog) = 'uudecode';
+      my $pathsep = $^O =~ /win32/i ? ';' : ':';
+      my $exe = $^O =~ /win32/i ? '.exe' : '';
+      for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
+      return 0;
+  };
+  $PDL::IO::Dumper::uudecode_ok = &$a('uudecode');
 
   use PDL;
   use PDL::Exporter;
@@ -143,7 +157,6 @@ sub PDL::IO::Dumper::sdump {
   my($v);
   my($dups);
   foreach $v(keys %pdls) {
-##    print STDERR "Hey! $v->".(defined $pdls{$v} ? $pdls{$v} : "[empty]" )."!\n";
     $dups++ if($pdls{$v} >1);
   }
   print STDERR "Warning: duplicated PDL ref.  If sdump hangs, you have a circular reference.\n"  if($dups);
@@ -269,7 +282,7 @@ files and are always treated as huge, regardless of size.
 =cut
 
 $PDL::IO::Dumper::small_thresh = 8;   # Smaller than this gets inlined
-$PDL::IO::Dumper::med_thresh   = 200; # Smaller than this gets eval'ed
+$PDL::IO::Dumper::med_thresh   = 400; # Smaller than this gets eval'ed
                                       # Any bigger gets uuencoded
 
 sub PDL::IO::Dumper::big_PDL {
@@ -366,6 +379,44 @@ sub PDL::IO::Dumper::stringify_PDL{
 
 ######################################################################
 
+=head2 PDL::IO::Dumper::uudecode_PDL
+
+=for ref
+
+Recover a PDL from a uuencoded string [Internal routine]
+
+This routine encapsulates uudecoding of the dumped string for large piddles. 
+It's separate to encapsulate the decision about which method of uudecoding
+to try (both the built-in Convert::UU and the shell command uudecode(1) 
+are supported).
+
+=cut
+
+sub PDL::IO::Dumper::uudecode_PDL {
+    my $lines = shift;
+    my $out;
+    my $fname = "/tmp/tmp-$$.fits";
+    if($PDL::IO::Dumper::uudecode_ok) {
+	open(FITS,"|uudecode");
+	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
+	print FITS $lines;
+	close(FITS);
+    }
+    elsif($PDL::IO::Dumper::convert_ok) {
+	open(FITS,">$fname");
+	my $fits = Convert::UU::uudecode($lines);
+	print FITS $fits;
+	close(FITS);
+    } else {
+      barf("Need either uudecode(1) or Convert::UU to decode dumped PDL.\n");
+  }
+
+  $out = rfits($fname);
+  unlink($fname);
+
+  $out;
+}
+ 
 =head2 PDL::IO::Dumper::dump_PDL
 
 =for ref
@@ -411,18 +462,25 @@ sub PDL::IO::Dumper::dump_PDL {
       ##
       my($fname) = "/tmp/$$.fits";
       wfits($_,$fname);
-      open(FITSFILE,"uuencode $fname $fname |");
-      my(@uulines) = <FITSFILE>;
+      my(@uulines);
+
+      if($PDL::IO::Dumper::uudecode_ok) {
+	open(FITSFILE,"uuencode $fname $fname |");
+	@uulines = <FITSFILE>;
+    } elsif($PDL::IO::Dumper::convert_ok) {
+	open(FITSFILE,"<$fname");
+	@uulines = ( Convert::UU::uuencode(*FITSFILE) );
+    } else {
+	barf("dump_PDL: Requires either uuencode or Convert:UU");
+    }
       unlink $fname;
       
       ## 
       ## Generate commands to uudecode the FITS file and resnarf it
       ##
-      @s = ("open DuMPERFILE,'|(cd /tmp; uudecode)'; print DuMPERFILE <<'blat'\n",
+      @s = ("my(\$$pdlid) = PDL::IO::Dumper::uudecode_PDL(<<'DuMPERFILE'\n",
 	    @uulines,
-	    "blat\n;\n",
-	    "close DuMPERFILE;\n",
-	    "my(\$$pdlid) = rfits('$fname'); unlink '$fname';\n",
+	    "\nDuMPERFILE\n);\n",
 	    "\$$pdlid->hdrcpy(".$_->hdrcpy().");\n"
 	    );
 
@@ -450,7 +508,6 @@ sub PDL::IO::Dumper::dump_PDL {
     ## Ultimately, Data::Dumper will get fixed to handle tied objects, 
     ## and this kludge will go away.
     ## 
-#    print "hdr: ",$_->hdr()," keys:",scalar(keys(%{$_->hdr()})),"\n";
 
     if( scalar(keys %{$_->hdr()}) ) {
       if( ((tied %{$_->hdr()}) || '') =~ m/Astro::FITS::Header\=/) {

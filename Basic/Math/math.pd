@@ -15,18 +15,22 @@ PDL::Math - extended mathematical operations and special functions
 
 =head1 DESCRIPTION
 
-This module extends PDL with more advanced mathematical
-functions than provided by standard Perl.
+This module extends PDL with more advanced mathematical functions than
+provided by standard Perl.  
 
 All the functions have one input pdl, and one output, unless otherwise
 stated.
 
-The functions are usually available from the system
-maths library, however if they are not (determined
-when PDL is compiled) a version from the Cephes math
-library is used.
+Many of the functions are linked from the system maths library or the 
+Cephes maths library (determined when PDL is compiled); a few are implemented
+entirely in PDL.
 
 =cut
+
+### Kludge for backwards compatibility with older scripts
+### This should be deleted at some point later than 21-Nov-2003.
+BEGIN {use PDL::MatrixOps;}
+
 EOD
 
 # Internal doc util
@@ -342,50 +346,6 @@ pp_def(
 	else { $b() = ndtri((double)$a()); }',
        );
 
-pp_def(
-       "svd",
-       HandleBad => 0,
-       Pars => 'a(n,m); [o]u(n,m); [o,phys]z(n); [o]v(n,n);',
-       GenericTypes => ['D'],
-       Code => '
-              extern void SVD( double *W, double *Z, int nRow, int nCol );
-              int sm = $SIZE(m), sn = $SIZE(n), i;
-              double *w, *t, zv;
-              t = w = (double *) malloc(sn*(sm+sn)*sizeof(double));
-              loop (m) %{
-                loop(n) %{
-                  *t++ = $a();
-                %}
-              %}
-              SVD(w, $P(z), sm, sn);
-              t = w;
-              loop (n) %{
-                zv = sqrt($z());
-                $z() = zv;
-              %}
-              loop (m) %{
-                loop (n) %{
-                  $u() = *t++/$z();
-                %}
-              %}
-              loop (n) %{
-                for (i=0;i<sn;i++) {
-                  $v(n0=>i, n1=>n) = *t++;
-                }
-              %}
-              free(w);
-',
-      , Doc => '
-=for ref
-
-Singular value decomposition of array.
-
-=for usage
-
- ($u, $s, $v) = svd($a);
-
-',);
-
 pp_def("polyroots",
       Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
       RedoDimsCode => 'int sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
@@ -410,132 +370,7 @@ of decreasing powers.
 
 ',);
 
-# XXX The next two really need driver routines...
-
-pp_def("eigens",
-       HandleBad => 0,
-	Pars => '[phys]a(m); [o,phys]ev(n,n); [o,phys]e(n)',
-	GenericTypes => ['D'],
-	Code => '
-		extern void eigens( double *A, double *RR, double *E, int N );
-		register int sn = $SIZE(n);
-		if($SIZE(m) != (sn * (sn + 1))/2) {
-			barf("Wrong sized args for eigens");
-		}
-		eigens($P(a), $P(ev), $P(e), sn);
-',
-      PMCode =>'
-sub PDL::eigens {
-      my ($a) = @_;
-      my (@d) = $a->dims;
-      barf "Need real square matrix for eigens" 
-            if $#d != 1 or $d[0] != $d[1];
-      my ($n) = $d[0];
-      my ($sym) = 0.5*($a + $a->mv(0,1));
-      my ($err) = PDL::max(abs($sym));
-      barf "Need symmetric component non-zero for eigens"
-          if $err == 0;
-      $err = PDL::max(abs($a-$sym))/$err;
-      warn "Using symmetrized version of the matrix in eigens"
-          if $err > 1e-5;
-      # Get lower triangular form -- 
-      my ($lt) = PDL::where($sym,$sym->xvals <= $sym->yvals)->copy;
-      my ($ev) = PDL->zeroes($n,$n);
-      my ($e)  = PDL->zeroes($n);
-      &PDL::_eigens_int($lt, $ev, $e);
-      return $ev, $e;
-}
-'
-      , Doc => '
-=for ref
-
-Eigenvalues and -vectors of a symmetric square matrix.  If passed
-an asymmetric matrix, the routine will warn and symmetrize it.
-
-=for usage
-
- ($e, $ev) = eigens($a);
-
-',);
-
-# XXX Destroys a!!!
-# To use the new a again, must store both a and ips.
-pp_def("simq",
-       HandleBad => 0,
-	Pars => '[phys]a(n,n); [phys]b(n); [o,phys]x(n); int [o,phys]ips(n)',
-	OtherPars => 'int flag;',
-	GenericTypes => ['D'],
-	Code => '
-		extern int simq( double *A, double *B, double *X,
-			int n, int flag, int *IPS );
-		simq($P(a),$P(b),$P(x),$SIZE(n),$COMP(flag),$P(ips));
-',
-      Doc => '
-=for ref
-
-Solution of simultaneous linear equations, C<a x = b>.
-
-C<$a> is an C<n x n> matrix (i.e., a vector of length C<n*n>), stored row-wise:
-that is, C<a(i,j) = a[ij]>, where C<ij = i*n + j>.  
-While this is the
-transpose of the normal column-wise storage, this corresponds to
-normal PDL usage.  The contents of matrix a may be altered (but may be
-required for subsequent calls with flag = -1).
-
-C<$b>, C<$x>, C<$ips> are vectors of length C<n>.
-
-Set C<flag=0> to solve.  
-Set C<flag=-1> to do a new back substitution for
-different C<$b> vector using the same a matrix previously reduced when
-C<flag=0> (the C<$ips> vector generated in the previous solution is also
-required).
-
-');
-
-# this doesn't need to be changed to support bad values
-# I could put 'HandleBad => 1', but it would just cause an
-# unnescessary increase (admittedly small) in the amount of 
-# code
-#
-pp_def("squaretotri",
-	Pars => 'a(n,n); b(m)',
-	Code => '
-             register int mna=0, nb=0, ns = $SIZE(n);
-            #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
-            dXSARGS;
-             #endif
-
-	    if($SIZE(m) != (ns * (ns+1))/2) {
-	       barf("Wrong sized args for squaretotri");
-	    }
-            threadloop %{
-		loop(m) %{
-                       $b() = $a(n0 => mna, n1 => nb);
-                      mna++; if(mna > nb) {mna = 0; nb ++;}
-		%}
-             %}
-	',
-	Doc => '
-=for ref
-
-Convert a symmetric square matrix to triangular vector storage
-
-',
-);
-
 pp_addpm({At=>'Bot'},<<'EOD');
-
-sub eigen_c {
-	my($mat) = @_;
-	my $s = $mat->getdim(0);
-	my $z = zeroes($s * ($s+1) / 2);
-	my $ev = zeroes($s);
-	squaretotri($mat,$z);
-	my $k = 0 * $mat;
-	PDL::eigens($z, $k, $ev);
-	return ($ev, $k);
-}
-
 
 =head1 BUGS
 
@@ -546,13 +381,15 @@ versions are picked up automatically and used correctly.
 
 Copyright (C) R.J.R. Williams 1997 (rjrw@ast.leeds.ac.uk), Karl Glazebrook
 (kgb@aaoepp.aao.gov.au) and Tuomas J. Lukka (Tuomas.Lukka@helsinki.fi).
+Portions (C) Craig DeForest 2002 (deforest@boulder.swri.edu).
 
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
+the PDL copyright notice should be included in the file.
 
 =cut
+
 EOD
 pp_done();

@@ -3,6 +3,12 @@ $VERSION = 0.7;
 # pp_setversion $VERSION;  # haven't worked out why it breaks my system (CS)
 pp_beginwrap; # required for overload to work
 
+# pp_def functions go into the PDL::Complex namespace
+# to avoid clashing with PDL::FFTW funcs of the same name that go
+# into the PDL namespace
+# it should be of no effect to the user of the module but you
+# never know....
+pp_bless('PDL::Complex');
 pp_addpm {At => Top}, <<'EOD';
 =head1 NAME
 
@@ -220,21 +226,38 @@ operators.  Dataflow to the complex parent works. Use C<sever> on the result
 if you don't want this.
 
 
+=head2 complex real-valued-pdl
+
+Cast a real-valued piddle to the complex datatype I<without> dataflow
+and I<inplace>. Achieved by merely reblessing a piddle. The first dimension of
+the piddle must be of size 2.
+
 =head2 real cplx-valued-pdl
 
-Cast a complex vlaued pdl back to the "normal" pdl datatype. Afterwards
+Cast a complex valued pdl back to the "normal" pdl datatype. Afterwards
 the normal elementwise pdl operators are used in operations. Dataflow
 to the real parent works. Use C<sever> on the result if you don't want this.
 
 =cut
 
+use Carp;
 sub cplx($) {
+  return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+  croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
    bless $_[0]->slice('');
 }
 
+sub complex($) {
+  return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+  croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
+  bless $_[0];
+}
+
 *PDL::cplx = \&cplx;
+*PDL::complex = \&complex;
 
 sub real($) {
+  return $_[0] unless UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP unless complex
    bless $_[0]->slice(''), 'PDL';
 }
 
@@ -243,7 +266,16 @@ EOP
 pp_def 'r2C',
        Pars => 'r(); [o]c(m=2)',
        Doc => 'convert real to complex, assuming an imaginary part of zero',
-       PMCode => 'sub PDL::r2C($) { my $r = __PACKAGE__->initialize; &PDL::_r2C_int($_[0], $r); $r }',
+       PMCode => << 'EOPM',
+
+*PDL::r2C = \&PDL::Complex::r2C;
+sub PDL::Complex::r2C($) {
+  return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex');
+  my $r = __PACKAGE__->initialize;
+  &PDL::Complex::_r2C_int($_[0], $r);
+  $r }
+
+EOPM
        Code => q!
           $c(m=>0) = $r();
           $c(m=>1) = 0;
@@ -253,7 +285,7 @@ pp_def 'r2C',
 pp_def 'i2C',
        Pars => 'r(); [o]c(m=2)',
        Doc => 'convert imaginary to complex, assuming a real part of zero',
-       PMCode => 'sub PDL::i2C($) { my $r = __PACKAGE__->initialize; &PDL::_i2C_int($_[0], $r); $r }',
+       PMCode => '*PDL::i2C = \&PDL::Complex::i2C; sub PDL::Complex::i2C($) { my $r = __PACKAGE__->initialize; &PDL::Complex::_i2C_int($_[0], $r); $r }',
        Code => q!
           $c(m=>0) = 0;
           $c(m=>1) = $r();
@@ -357,7 +389,7 @@ pp_def 'Cdiv',
 pp_def 'Ccmp',
 	Pars => 'a(m=2); b(m=2); [o]c()',
         GenericTypes => [F,D],
-        Doc => 'Complex comparison oeprator (spaceship). It orders by real first, then by imaginary.',
+        Doc => 'Complex comparison oeprator (spaceship). It orders by real first, then by imaginary. Hm, but it is mathematical nonsense! Complex numbers cannot be ordered.',
         Code => q^
            $GENERIC() a, b;
            
@@ -687,10 +719,10 @@ pp_def 'Croots',
         OtherPars => 'int n => n',
         GenericTypes => [F,D],
         Doc => 'Compute the C<n> roots of C<a>. C<n> must be a positive integer. The result will always be a complex type!',
-        PMCode => q^sub PDL::Croots($$) {
+        PMCode => q^sub PDL::Complex::Croots($$) {
            my ($pdl, $n) = @_;
            my $r = PDL->null;
-           &PDL::_Croots_int($pdl, $r, $n);
+           &PDL::Complex::_Croots_int($pdl, $r, $n);
            bless $r;
         }^,
         Code => q^
@@ -723,8 +755,11 @@ are returned as piddles (ref eq PDL).
 
 =cut
 
-sub re($) { bless $_[0]->slice("(0)"), 'PDL' }
-sub im($) { bless $_[0]->slice("(1)"), 'PDL' }
+sub re($) { bless $_[0]->slice("(0)"), 'PDL'; }
+sub im($) { bless $_[0]->slice("(1)"), 'PDL'; }
+
+*PDL::Complex::re = \&re;
+*PDL::Complex::im = \&im;
 
 EOD
 
@@ -795,6 +830,7 @@ sub initialize {
    bless PDL->null, $_[0];
 }
 
+my $i;
 BEGIN { $i = bless pdl 0,1 }
 sub i () { $i->copy };
 

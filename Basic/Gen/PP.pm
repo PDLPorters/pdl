@@ -7,7 +7,7 @@
 ## This is way too messy and uncommented. Still. :(
 #
 package PDL::PP;
-use PDL::Types;
+use PDL::Types ':All';
 use FileHandle;
 use Exporter;
 @ISA = qw(Exporter);
@@ -396,7 +396,7 @@ $PDL::PP::deftbl =
  [[OtherPars],	[],	sub {""}],
 # [[Comp],	[],	sub {""}],
 # some defaults
- [[GenericTypes],	[],	sub {[B,S,U,L,F,D]}],
+ [[GenericTypes],	[],	sub {[ppdefs]}],
  [[ExtraGenericLoops],	[FTypes],	sub {return $_[0]}],
  [[ExtraGenericLoops],	[],	sub {return {}}],
 # Naming of the struct and the virtual table.
@@ -591,10 +591,10 @@ $PDL::PP::deftbl =
  [[NewXSSetTrans],	[ParNames,ParObjs,NewXSSymTab],	"makesettrans"],
 
  [["ParsedCode"],	[Code,_BadCode,ParNames,ParObjs,DimObjs,GenericTypes,
- 			 ExtraGenericLoops,HaveThreading],
+ 			 ExtraGenericLoops,HaveThreading,Name],
  				sub {new PDL::PP::Code(@_)}],
  [["ParsedBackCode"],	[BackCode,_BadBackCode,ParNames,ParObjs,DimObjs,GenericTypes,
- 			 ExtraGenericLoops,HaveThreading],
+ 			 ExtraGenericLoops,HaveThreading,Name],
  				sub {new PDL::PP::Code(@_)}],
 
 # Compiled representations i.e. what the xsub function leaves
@@ -637,7 +637,7 @@ $PDL::PP::deftbl =
   'Code that can be inserted to set the size of output piddles
    dynamically based on input piddles; is parsed'],
  [[RedoDimsParsedCode], [RedoDimsCode,_BadRedoDimsCode,ParNames,ParObjs,DimObjs,
-                         GenericTypes,ExtraGenericLoops,HaveThreading],
+                         GenericTypes,ExtraGenericLoops,HaveThreading,Name],
  				sub { return "/* no RedoDimsCode */"
 					if $_[0] =~ m|^/[*] none [*]/$|;
 				      new PDL::PP::Code(@_,1)},
@@ -1120,6 +1120,35 @@ sub make_redodims_thread {
 
 } # sub: make_redodims_thread()
 
+
+##############################
+# 
+# hdrcheck -- examine the various PDLs that form the output PDL,
+# and copy headers as necessary.  The last header found with the hdrcpy
+# bit set is used.  This used to do just a simple ref copy but now 
+# it uses the perl routine PDL::_hdr_copy to do the dirty work.  That
+# routine makes a deep copy of the header.  Copies of the deep copy
+# are distributed to all the names of the piddle that are not the source
+# of the header.  I believe that is the Right Thing to do but I could be
+# wrong.
+#
+# It's hard to read this sort of macro stuff so here's the flow: 
+#   - Check the hdrcpy flag.  If it's set, then check the header
+#     to see if it exists.  If it doees, we need to call the 
+#     perl-land PDL::_hdr_copy routine.  There are some shenanigans
+#     to keep the return value from evaporating before we've had a 
+#     chance to do our bit with it.
+#   - For each output argument in the function signature, try to put 
+#     a reference to the new header into that argument's header slot.
+#     (For functions with multiple outputs, this produces multiple linked
+#     headers -- that could be Wrong; fixing it would require making 
+#     yet more explicit copies!) 
+#   - Remortalize the return value from PDL::_hdr_copy, so that we don't
+#     leak memory.
+#     
+#   --CED 12-Apr-2003
+#
+
 sub hdrcheck {
   my ($pnames,$pobjs) = @_;
 
@@ -1129,21 +1158,79 @@ sub hdrcheck {
   # from make_redodims_thread() we know that __creating[] == 0 unless
   # ...{FlagCreat} is true
   #
-  my $str = "{ void *hdrp = NULL;\n";
+  my $str = "
+{ /* convenience block */
+  void *hdrp = NULL;
+  char propagate_hdrcpy = 0;
+  SV *hdr_copy = NULL;
+";
+
+  # Find a header among the possible names 
   foreach ( 0 .. $nn ) {
-      $str .= "   if (!hdrp && ";
-      $str .= "!__creating[$_] && " if $pobjs->{$pnames->[$_]}{FlagCreat};
-      $str .= "$names[$_]\->hdrsv && ($names[$_]\->state & PDL_HDRCPY))\n" .
-	  "      hdrp = $names[$_]\->hdrsv;\n";
-  }
-  $str .= "if (hdrp) {\n";
-  foreach ( 0 .. $nn ) {
-      if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
-	  $str .= "   if ( $names[$_]\->hdrsv != hdrp )\n" .
-	      "      $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n";
+    my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] && \n" : "";
+    $str .= <<"HdRCHECK1"
+      if(!hdrp && 
+	 $aux     $names[$_]\->hdrsv && 
+	 ($names[$_]\->state & PDL_HDRCPY) 
+	 ) {
+	hdrp = $names[$_]\->hdrsv;
+	propagate_hdrcpy = (($names[$_]\->state & PDL_HDRCPY) != 0);
       }
+HdRCHECK1
+  ;
   }
-  $str .= "}}\n";
+
+  $str .= << 'DeePcOPY'
+if (hdrp) {
+  if(hdrp == &PL_sv_undef) 
+    hdr_copy = &PL_sv_undef;
+  else  {  /* Call the perl routine _hdr_copy... */
+    int count;
+    /* Call the perl routine PDL::_hdr_copy(hdrp) */
+    dSP;
+    ENTER ;
+    SAVETMPS ;
+    PUSHMARK(SP) ;
+    XPUSHs( hdrp );
+    PUTBACK ;
+    count = call_pv("PDL::_hdr_copy",G_SCALAR);
+    SPAGAIN ;
+    if(count != 1) 
+	croak("PDL::_hdr_copy didn't return a single value - please report this bug (A).");
+    
+    hdr_copy = (SV *)POPs;
+    SvREFCNT_inc(hdr_copy); /* Keep hdr_copy from evaporating from FREETMPS */
+
+    FREETMPS ;
+    LEAVE ;
+} /* end of callback convenience block */
+
+DeePcOPY
+    ;
+# if(hdrp) block is still open -- now reassign all the aliases...
+
+
+  # Found the header -- now copy it into all the right places.
+  foreach ( 0 .. $nn ) {
+     $str .= <<"HdRCHECK2"
+       if ( $names[$_]\->hdrsv != hdrp ){
+	 if( $names[$_]\->hdrsv && $names[$_]\->hdrsv != &PL_sv_undef)  
+             SvREFCNT_dec( $names[$_]\->hdrsv ); 
+	 if( hdr_copy != &PL_sv_undef ) 
+             SvREFCNT_inc(hdr_copy); 
+	 $names[$_]\->hdrsv = hdr_copy;
+       }
+     if(propagate_hdrcpy)
+       $names[$_]\->state |= PDL_HDRCPY;
+HdRCHECK2
+      if ( $pobjs->{$pnames->[$_]}{FlagCreat} );
+   }
+
+  $str .= 
+"    if(hdr_copy != &PL_sv_undef) \n".
+"      SvREFCNT_dec(hdr_copy); /* make hdr_copy mortal again */\n".
+"   } /* end of if(hdrp) block */\n} /* end of conv. block */\n";
+
   return $str;
 
 } # sub: hdrcheck()
@@ -1200,9 +1287,34 @@ sub wrap_vfn {
 	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
 	    $p2decl .= '
-	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY))
-		  __it->hdrsv = (void*)
-		      newRV((SV*) SvRV((SV*)__parent->hdrsv));';
+	     if (__parent->hdrsv && (__parent->state & PDL_HDRCPY)) {
+                  /* call the perl routine _hdr_copy. */
+                  int count;
+
+                  dSP;
+                  ENTER ;
+                  SAVETMPS ;
+                  PUSHMARK(SP) ;
+                  XPUSHs( sv_mortalcopy((SV*)__parent->hdrsv) );
+                  PUTBACK ;
+                  count = call_pv("PDL::_hdr_copy",G_SCALAR);
+                  SPAGAIN ;
+                  if(count != 1) 
+                      croak("PDL::_hdr_copy didn\'t return a single value - please report this bug (B).");
+  
+                  { /* convenience block for tmp var */
+                    SV *tmp = (SV *) POPs ;
+		    __it->hdrsv = (void*) tmp;
+                    if(tmp != &PL_sv_undef ) 
+                       SvREFCNT_inc(tmp);
+                  }
+
+                  __it->state |= PDL_HDRCPY;
+
+                  FREETMPS ;
+                  LEAVE ;
+             }
+        ';
 	}
     } # if: $p2child == 1
 
@@ -2198,7 +2310,22 @@ sub InplaceCode {
 # values from one to the other - we have to check for the presence
 # of bad values, hence the expansion for the $bad code
 #
+# Some operators (notably range) also have an out-of-range flag; they use
+# the macro EQUIVCPTRUNC instead of EQUIVCPOFFS. 
+# $EQUIVCPTRUNC does the same as EQUIVCPOFFS but accepts a child-out-of-bounds
+# flag.  If the out-of-bounds flag is set, the forward code puts BAD/0 into 
+# the child, and reverse code refrains from copying. 
+#                    --CED 27-Jan-2003
+#
 # sent [EquivCPOffsCode,BadFlag]
+
+#
+# NOTE: EQUIVCPOFFS and EQUIVCPTRUNC both suffer from the macro-block
+# wart of C preprocessing.  They look like statements but sometimes 
+# process into blocks, so if/then/else constructs can get broken.
+# Either (1) use blocks for if/then/else, or (2) get excited and 
+# use the "do {BLOCK} while(0)" block-to-statement conversion construct 
+# in the substitution.  I'm too Lazy. --CED 27-Jan-2003
 #
 sub CodefromEquivCPOffsCode {
     my $good  = shift;
@@ -2208,12 +2335,14 @@ sub CodefromEquivCPOffsCode {
 
     # parse 'good' code
     $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = \$PP(PARENT)[$2]/g;
+    $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/\$PP(CHILD)[$1] = ($3) ? 0 : \$PP(PARENT)[$2]/g;
 
     my $str = $good;
 
     if ( defined $bflag and $bflag ) {
 	# parse 'bad' code
 	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else { \$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
+	$bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/ if( ($3) || \$PPISBAD(PARENT,[$2]) ) { \$PPSETBAD(CHILD,[$1]); } else {\$PP(CHILD)[$1] = \$PP(PARENT)[$2]; }/g;
 
 	$str = 'if( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
     }
@@ -2233,12 +2362,14 @@ sub BackCodefromEquivCPOffsCode {
 
     # parse 'good' code
     $good =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/\$PP(PARENT)[$2] = \$PP(CHILD)[$1]/g;
+    $good =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) \$PP(PARENT)[$2] = \$PP(CHILD)[$1] /g;
 
     my $str = $good;
 
     if ( defined $bflag and $bflag ) {
 	# parse 'bad' code
 	$bad  =~ s/\$EQUIVCPOFFS\(([^()]+),([^()]+)\)/if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; }/g;
+	$bad =~ s/\$EQUIVCPTRUNC\(([^()]+),([^()]+),([^()]+)\)/if(!($3)) { if( \$PPISBAD(CHILD,[$1]) ) { \$PPSETBAD(PARENT,[$2]); } else { \$PP(PARENT)[$2] = \$PP(CHILD)[$1]; } } /g;
 
 	$str = 'if ( $PRIV(bvalflag) ) { ' . $bad . ' } else { ' . $good . '}';
     }

@@ -583,7 +583,7 @@ sub PDL::uniq {
   my $srt = $arr->clump(-1)->qsort;
   my $uniq = $srt->where($srt != $srt->rotate(-1));
   # make sure we return something if there is only one value
-  return $uniq->nelem == 0 ? pdl($arr->at(0)) : $uniq;
+  return $uniq->nelem == 0 ? $srt->index(0)->sever : $uniq;
 }
 
 EOPM
@@ -1219,7 +1219,7 @@ pp_def('append',
 	Doc =>
 '=for ref
 
-append two piddles by concantening along their respective first dimensions
+append two or more piddles by concatenating along their first dimensions
 
 =for example
 
@@ -1234,6 +1234,55 @@ ie C<n + m>.
 
 '
    );
+
+pp_addpm(<<'EOD')
+
+=head2 glue
+
+=for usage
+
+  $c = $a->glue(<dim>,$b,...)
+
+=for ref
+	
+Glue two or more PDLs together along an arbitrary dimension (N-D L<append|append>).
+
+Sticks $a, $b, and all following arguments together using a combination
+of xchg() and append().  All other dimensions must be compatible in the 
+threading sense.  
+
+C<glue> is implemented in pdl, and should probably be updated (one day) to a 
+pure PP function.
+
+=cut
+
+sub PDL::glue{
+    my($a) = shift;
+    my($dim) = shift;
+    if($dim - $a->dim(0) > 100) {
+	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
+    }
+    while($dim > $a->ndims) {
+	$a = $a->dummy(-1,1);
+    }
+    $a = $a->xchg(0,$dim);
+
+    while(scalar(@_)){
+	my $b = shift;
+	while($dim > $b->ndims) {
+		$b = $b->dummy(-1,1);
+        }
+	$b = $b->xchg(0,$dim);
+	$a = $a->append($b);
+    }
+    $a->xchg(0,$dim);
+}
+	
+	
+	
+
+EOD
+;
 
 pp_def( 'axisvalues',
 	Pars => '[o,nc]a(n)',
@@ -1566,8 +1615,6 @@ EOD
 pp_add_exported('','interpND');
 pp_addpm(<<'EOD');
 
-
-
 =head2 interpND 
 
 =for ref 
@@ -1580,13 +1627,18 @@ Interpolate values from an N-D piddle
   $index = pdl([[2.2,3.5],[4.1,5.0]],[[6.0,7.4],[8,9]]);
   print $source->interpND( $index );
 
-InterpND acts like L<indexNDb|indexNDb>, collapsing C<$index> by
-lookup into C<$source>; but it does interpolation, rather than
-straight lookup, into C<$source>.  Several options may be passed in
-via an options hash; by default, linear interpolation is used, with
-constant value outside the boundaries of the source pdl.  Because the
-output is interpolated, rather than indexed values, no flowback
-occurs.
+InterpND acts like L<indexND|indexND>, collapsing C<$index> by lookup
+into C<$source>; but it does interpolation, rather than straight
+lookup, into C<$source>.  Several options may be passed in via an
+options hash. By default, linear or sample interpolation is used, with
+constant value outside the boundaries of the source pdl.  No flowback
+occurs, because the output is interpolated rather than indexed.
+
+All the interpolation methods treat the pixels as value-centered, so
+the C<sample> method will return $a->(0) for coordinate values on 
+the set [-0.5,0.5), and the C<linear> method will return $a->(1) for 
+a coordinate value of exactly 1.5.
+
 
 Allowable options:
    
@@ -1594,7 +1646,20 @@ Allowable options:
 
 =item method 
 
-Values are 'linear' and 'sample' (for now). (default linear)
+Values can be:
+
+=over 3 
+
+=item * l, linear, Linear (default for floating point source types)
+
+The values are N-linearly interpolated.
+
+=item * s, sample, Sample (default for integer source types)
+
+The nearest value is taken. Pixels are regarded as centered on their
+respective integer coordinates (no offset from the linear case).
+
+=back
 
 =item bound  
 
@@ -1621,57 +1686,58 @@ sub PDL::interpND {
 
   my($opt) = (defined $options) ? $options : {};
 
-  my($method)   = $opt->{method} || $opt->{Method} || 'linear';
-  my($boundary) = $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
-  my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
-
-  if($method =~ m/samp/) {
-    return $source->indexNDb(PDL::Math::floor($index+0.5),$boundary);
+  my($method)   = $opt->{m} || $opt->{meth} || $opt->{method} || $opt->{Method};
+  if(!defined $method) {
+	$method = ($source->type <= zeroes(long,1)->type) ? 
+	   	   'sample' : 
+	           'linear';
   }
 
-  elsif ($method =~ m/linear/) {
-    # Generate a table of offsets to look up
-    my($offsets) = ( long((PDL::Basic::yvals($index->dim(0),2 ** $index->dim(0))) 
-		      / 2**(PDL::Basic::xvals($index->dim(0))))
-		     ->xchg(0,1)->sever
-		     )
-                   % 2;
+  my($boundary) = $opt->{b} || $opt->{boundary} || $opt->{Boundary} || $opt->{bound} || $opt->{Bound} || 'extend';
+  my($bad) = $opt->{bad} || $opt->{Bad} || 0.0;
 
-    # alpha gets coefficients.  Dims:
-    #   0   - 0 or 1                    (coeff. for below or above)
-    #   1   - index dimension           (0th dim of index) 
-    #   ... - echo of $index extra dims 
-    my($intind) = PDL::Math::floor($index);
+  if($method =~ m/^s(am(p(le)?)?)?/i) {
+    return $source->range(PDL::Math::floor($index+0.5),0,$boundary);
+  }
 
-    my($alpha) = ( cat(1 - $index + PDL::Math::floor($index),
-		       $index - $intind
-		       )
-		   ->reorder(
-			     $index->getndims,
-			     PDL::Basic::xvals($index->getndims)->list
-			     )->sever
-		   );
-    my($i);
-    $out = zeroes($index->slice("(0)"));
-    
-    for ($i=0;$i<$offsets->dim(0);$i++){
-      my($coeff) = ($alpha->indexND(cat($offsets->slice("($i)"),
-				 PDL::Basic::xvals($index->dim(0)))->xchg(0,1)
-				    ))->sever->prodover ;
-      
-      if( ($coeff==0)->and ) {
-	print "interpND: Skip case $i of ".$offsets->dim(0)."\n" 
-	  if($PDL::debug);
-	next;
-      }
-      $out += $coeff * $source->indexNDb($intind + $offsets->slice("($i)")
-					 , $boundary);
+  elsif ($method =~ m/^l(in(ear)?)?/i) {
+    ## key: (ith = index thread; cth = cube thread; sth = source thread)
+    my $d = $index->dim(0);
+    my $di = $index->ndims - 1;
+
+    # Grab a 2-on-a-side n-cube around each desired pixel
+    my $samp = $source->range($index,2,$boundary); # (ith, cth, sth)
+
+    # Reorder to put the cube dimensions in front and convert to a list
+    $samp = $samp->reorder( $di .. $di+$d-1,
+			    0 .. $di-1,
+			    $di+$d .. $samp->ndims-1) # (cth, ith, sth)
+                  ->clump($d); # (clst, ith, sth)
+
+    # Enumerate the corners of an n-cube and convert to a list
+    # (the 'x' is the normal perl repeat operator)
+    my $crnr = PDL::Basic::ndcoords( (2) x $index->dim(0) ) # (index,cth)
+             ->mv(0,-1)->clump($index->dim(0))->mv(-1,0); # (index, clst)
+
+    # a & b are the weighting coefficients.
+    my($a,$b);
+    {
+      my $bb = PDL::Math::floor($index);
+      $a = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
+      $b = ($bb + 1 - $index) -> dummy(1,$crnr->dim(1)); # index, clst, ith
     }
-    
-    return $out;
 
+    # Use 1/0 corners to select which multiplier happens, multiply
+    # 'em all together to get sample weights, and sum to get the answer.
+    my $out =  ( ($a * ($crnr==1) + $b * ($crnr==0)) #index, clst, ith
+		 -> prodover                          #clst, ith
+		 );
+
+    $out = ($out * $samp)->sumover; # ith, sth
+
+    return $out;
   }  else {
-    barf("interp_nd: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
+    barf("interpND: unknown method '$method'; valid ones are 'linear' and 'sample'.\n");
   }
 }
 
@@ -1714,7 +1780,7 @@ but is useful on its own occasionally.
 
 *one2nd = \&PDL::one2nd;
 sub PDL::one2nd {
-  barf "Usage: one2nd $array $indices\n" if $#_ != 1;
+  barf "Usage: one2nd \$array \$indices\n" if $#_ != 1;
   my ($a, $ind)=@_;
   my @dimension=$a->dims;
   my(@index);
@@ -1879,7 +1945,7 @@ the same call:
 =cut
 
 sub PDL::where {
-    barf "Usage: where( $pdl1, ..., $pdlN, $mask )\n" if $#_ == 0;
+    barf "Usage: where( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
 
     if($#_ == 1) {
 	my($data,$mask) = @_;
@@ -1912,13 +1978,10 @@ Returns the coordinates for non-zero values.
 
 =for usage
 
- @coords=whichND($mask);
-
-returns a perl list of piddles containing the coordinates of the
-elements that are non-zero in C<$mask>.  Each element corresponds to a
-particular index dimension.  For example, if $mask has rank 4 and 100
-matching elements, then @coords has 4 elements, each of which is a pdl
-of size 100.
+For historical reasons the return value is different in list and scalar
+context.  In scalar context, you get back a PDL containing coordinates suitable
+for use in L<indexND|/indexND> or L<range|/range>; in list context, the
+coordinates are broken out into separate PDLs.
 
  $coords = whichND($mask);
 
@@ -1927,6 +1990,14 @@ in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
 full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
+
+ @coords=whichND($mask);
+
+returns a perl list of piddles containing the coordinates of the
+elements that are non-zero in C<$mask>.  Each element corresponds to a
+particular index dimension.  For example, if $mask has rank 4 and 100
+matching elements, then @coords has 4 elements, each of which is a pdl
+of size 100.
 
 =for example
 
@@ -1950,19 +2021,26 @@ sub PDL::whichND {
 
   # Scalar context: generate an N-D index piddle
 
-  my $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+
+  return null() unless ($mask->getndims);
+
+  $ind = $mask->flat->which->dummy(0,$mask->getndims)->long->make_physical;
+
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
   my $i;
+
   for $i(0..$#mdims-1) {
    # use $tmp for 5.005_03 compatibility
    (my $tmp = $mult->index($i+1)) .= $mult->index($i)*$mdims[$i];
   }
+
   for $i(0..$#mdims) {
-   my($s) = $ind->slice("($i),:");
+   my($s) = $ind->index($i);
    $s /= $mult->index($i);
    $s %= $mdims[$i];
   }
+
   return $ind;
 }
 

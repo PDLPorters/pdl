@@ -1,3 +1,379 @@
+CED 22-May-2003
+   - Better fallbacks for RGB images if PGPLOT-RGB support isn't installed
+         (Window.pm)
+   - pgplot.t test cleans up its own window.
+CED 21-May-2003
+   - Revamped tranforms demo
+   - Added cartography demo
+   - Fixed justification logic in Graphics::PGPLOT::Window::fits_foo
+   - Fixed a bunch of documentation
+   - Removed debugging prints from Cartography.pm
+CED 20-May-2003
+   - "arbitary" -> "arbitrary" in Window.pm
+   - Fixed-up Transform demo
+JC 19-May-2003
+   - Updated Release Notes
+CED 19-May-2003
+   - Fixed FlexRaw to use binmode() on file handles.  Also fixed flexraw.t
+ 	to use binmode() in its byte-swapper.
+CS 170503
+   - Makefile.PL cleanup + restrict tests when vital modules missing
+CS 140503
+   - further Makefile.PL fiddling
+CED 12-05-2003
+   - Lib/Transform now doesn't complain with -w (addressing DJB's objection)
+   - wfits now corrects the size of the output header.
+   - Shrunk Cartography sample data
+CS 080503
+   - Makefile.PL now absolutely requires Filter::Util::Call & 
+     Text::Balanced for PDL::NiceSlice
+DJB 060503
+   - Makefile.PL now enforces Perl >= v5.6.0 (+ removal of old code)
+CS 060503
+   - set OPTIMIZE via perldl.conf
+   - PDL.pm: version @ 2.4.0
+   - Inline::Pdlpp: new NOISY flag (show compilation output)
+CS 030503
+   - is_inplace: allow testing and unsetting inplace flag in one statement
+   - complex.pd: fiddling with namespaces and other bits
+   - add 'reshape' to lvalue funcs
+CS 190403
+   - export pdl_changed, pdl_children_changesoon and pdl_vaffinechanged
+     into PDL::Core struct (for usage in external modules)
+     bumped up pdl_core_version to 5
+   - use those funcs to fix inplace ffts in PFL::FFTW (fix bug #716449)
+   - pdlapi.c, pdlthread.c, pdl.h.PL: changes to help debugging the
+     PDL Core; all pointers are now dumped in hex in the pdl_dump_XX
+     routines
+   - pdlapi.c: delete one statement in pdl_changed that broke, for
+	example, calling fft with certain kind of slices (see comments)
+        fixes bug #716447 (but note that I wasn't sure what this statement
+        was required for in the first place; so breakages in other places
+        as a result are not inconceivable)
+   - disabled foomethod tests (foo.t) since foomethod broke as a result of
+     removing the statement in pdlapi.c (see above). I assume that the
+     statement in question was only introduced to make the foomethod work
+CED 15-Apr-2003
+   - Cleaned up a lot of documentation
+CED 14-Apr-2003
+   - By request, headers are now deep-copied recursively.
+   - Removed a debugging printf in PP.pm
+CED 12-Apr-2003
+   - Various: Modified header copying to be quasi-deep, rather than 
+	by reference only.  Changes to PP.pm, Core.pm.PL, and some
+	test files.
+CED 9-Apr-2003
+   - slice.pd : Added permissive ranging to, er, range(). Missing source dims 
+	are treated as if they dummy dims of order 1.  
+DJB 09-Apr-2003
+   - Fixed PDL::Graphics::PGPLOT::Window::legend to correctly handle
+     synonyms (confusion between PDL::Option's synonyms()/add_synonym())
+CED 8-Apr-2003
+   - Minor fix to Transform::map: if you supply a destination FITS header it
+	replaces the original FITS header in the remapped output.
+CS  Dev.pm: apply Michael Schwern's fix for ExtUtils::LibList
+    Makefile.PL, Types.pm.PL: fix race where Types.pm.PL tries to use
+        PDL::Config before it is written
+    discovered bug in FFTW inplace code: breaks inplace routines with
+    	slices; added TODO test to fftw.t
+DJB 02-Apr-2003
+   - moved code from Basic/Bad/bad.pd to Basic/Core/Types.pm.PL: should
+     never really have been adding to the PDL::Type namespace from a
+     different module! (no change to the user)
+CED 30-Mar-2003
+   - range now allows using the empty piddle as an index; the resulting
+	range is the empty piddle.
+DJB 28-Mar-2003
+   - removed TYPES_LONGLONG hack from perldl.conf
+CS
+   - changed handling of bad values to accommodate longlong types
+     general infrastructure overhaul to improve type handling
+CED 27-Mar-2003
+   - Added XRange,YRange keys to image handling in Graphics::PGPLOT::Window.
+CED 25-Mar-2003
+   - Fixed pgplot.t test to not use broken asynchronous I/O in perl5.
+	Switches interactivity on an environment variable instead.
+CS 25/03/03
+   - karma.pd: added 'kvis' command to start new kvis app
+CS 22/03/03
+   - renamed det in slatec.pd to detsclatec; avoids name clash with
+     PDL::MatrixOps::det; I tried to make the change backwards compatible
+   - PDL::ImageND, PDL::FFT, PDL::FFTW: moved kernctr from PDL::FFT into
+     PDL::ImageND so it can be used by both PDL::FFT and PDL::FFTW; both
+     PDL::FFT and PDL::FFTW export it now by default
+CED 20-March-2003
+    - pdlhash.c: if PDL::BIGPDL is true, then ignore the 1-Gb limit on PDLs.
+    - Window.pm: 
+	- Fix labeling bug that affected some output devices (titles
+	   were doubled in ppm device due to a pgplot buffering bug).
+	- Fix handling of FITS headers in _fits_foo -- let PDL dimensions
+	   override NAXIS<n>.
+    - PP.pm:
+	- hdrcpy bit is sticky, so that headers make their way down 
+	   pipelines of operations.  
+CED 18-March-2003
+    - Core.pm.PL: fix '.=' closure (closes bug #630793)
+    - pdlapi.c: Check that a dimension is nonzero before dividing by it,
+	in pdl_make_physvaffine.  This bug might exist elsewhere too, 
+	causing random crashes with Empty and Null piddles.  But at
+	least this closes bug #671891.
+    - perldl.PL: Put code to execute inside a trivial block (diverts
+	runaway 'last' and 'next' commands, closes bug #573841)
+    - ufunc.pd: Minmax now returns (0,0) when handed the null piddle,
+	unless bad values are supported in which case it returns (bad,bad).
+	(closes bug #659130)
+    - Window.pm: fix bug #626344 (retain old cursor position)
+CS 17/03/03
+    - Core.pm.PL: fix topdl method (closes bug #681015)
+    - gsl_integ.pd: fix for compliance with gcc
+AJ  (17-March-2003)
+    - Added PDL::GSL::INTEG
+CED (15-March-2003)
+    - perldl: Added multi-line string processing (using Text::Balanced) 
+	and EOF protection to the shell.
+CED (14-March-2003)
+    - Obscure bugfixes and improvements to Lib::Transform
+    - t/pgplot.t Avoid a perl bug (setting an alarm from inside
+	the alarm handler sometimes fails!).
+    - Primitive: uniq now always returns a PDL.
+AJ  (12-March-2003)
+    - Minor changes to PDL::GSL::INTERP
+Doug Hunt (3-Mar-2003)
+    - Added PLplot interface to PDL/Graphics area.  This
+      had been a separate CPAN module (PDL-Graphics-PLplot)
+CED (25-Feb-2003)
+    - Added 'piddle' constructor synonym :-)
+CED (24-Feb-2003)
+    - slices.pd:
+        - range(), indexND, & interpND now accept multiple boundary conditions
+	- fixed up indexNDb and indexND documentation
+	- portability fix to whichdatatype_double mod
+CED (21-Feb-2003)
+    - Modified whichdatatype and whichdatatype_double to represent nan with
+	a double, rather than barfing.
+    - Myriad small fixes to Transforms::Cartography
+	- Perspective works properly
+    - Changes to the documentation of Window.pm: axis() is better documented.
+CED (5-Feb-2003)
+    - Window.pm: 
+	- ctab() selects window focus now (as it should).
+	- lines() doesn't barf on trivial vector
+	- pgwin() is much more forgiving in its syntax.  In particular,
+	  you can say "pgwin(xs,J=>1)" and it'll know what you mean.
+    - Basic:
+	New ->fhdr method makes a tied FITS header if possible
+CED (30-Jan-2003)
+    - Modified interpND linear method (30% faster!).
+    - Added PNG interpretation to ::IO::Pic.
+    - Cleaned up RGB support in Transform/Cartography; fixed many bugs.
+	in threaded transforming (mv(<n>,-1) is deprecated!)
+    - Added FITS header support to transformations.
+    - Added automagic RGB recognition to ->imag.
+AJ  (29-Jan-2003)
+    - Added PDL::GSL::INTERP and PDL::GSL::DIFF and corresponding 
+	tests t/gsl_interp.t and t/gsl_diff.t
+CED (28-Jan-2003)
+    - Added fits_vect method to Window
+    - Improved Transform demo (whizzy despiraling demo at end)
+    - Fixed MANIFEST.
+CED (27-Jan-2003)
+    - Rearranged Lib/Transform to be more like the rest of the source tree.
+    - Several bug fixes in Transform code
+    - Improvements to ->map() method
+    - Added truncation to ->range operator
+    - Switched ->indexND to use ->range (for better data flow)
+    - Added EQUIVCPTRUNC macro to PP, for permissive slicing operators 
+	(like ->range) that can extend out-of-bounds.
+CED (20-Jan-2003)
+    - Added rgbi to Window.pm (requires newer pgplot & PGPLOT).
+    - Added earth_image() to PDL::Transform::Cartography::Earth
+	(this may not be the Right Way to do it)
+CED (17-Jan-2003)
+    - PDL::IO::Dumper uses more standard uuencode/uudecode than before,
+	and uses external uuencode/uudecode by preference (faster than
+	Convert::UU)
+CED (16-Jan-2003)
+    - Minor fixes to Transform.
+    - PDL::IO::Pic is auto-used.
+CED (15-Jan-2003)
+    - fix to Dumper -- uses Convert::UU (instead of uudecode) if available.
+    - Transform::Cartography::Earth -- update dumped info
+CED (3-Jan-2003)
+    - primitive: added glue() method -- arbitrary-dimension append
+    - Transform: 
+	- renamed Projection.pm to Cartography.pm
+        - Added operator overloads to Transform.pm
+	- Added "dual-method" functionality to map() and apply()
+	- Reversed sense of map() and unmap() to make them more intuitive.
+	- Added many map projections and helper routines to Cartography.pm
+	- Added Transform::Cartography::Earth with local earth-map
+	   (autoloaded by "earth_coast" helper in Transform::Cartography)
+    - Window: 
+	- Several minor fixes to lines
+CS  - NiceSlice parser updates, see Changes in NiceSlice dir
+    - .cvsignore files for the dist (autogenerated so hopefully
+      no screwups, please let me know if you notice any problems)
+CED (19-Dec-2002)
+    - window.pm: Fixed off-by-one bug in ->lines
+    - Transform.pm: Fixed some stuff in t_linear
+    - Added Lib/Transform/Projection.pm
+CED (17-Dec-2002)
+    - Minor fixes to Transform.pm
+    - Added "lines" to Window.pm
+    - Added Earth map data file to the top level of the distro.
+    - temporarily added "earth-interp.pl" to the top level of the distro.
+    - Allowed "Methods" as well as "Functions" for func list in Doc.pm
+CED (11-Dec-2002)
+    - Minor fix to Windows.pm in _FITS_tr.
+CED (10-Dec-2002)
+    - Minor fixes to Windows.pm
+    - First cut at pgplot.t -- test suite for pgplot windowing stuff.
+    - Fixed up some Transform documentation.
+CED (09-Dec-2002)
+    Fixes to Windows.pm:
+	- all Pix/Scale/Pitch parsing is now in initenv() (so, e.g., 
+	  those options work on ->line and ->points).
+	- initenv() knows about self->held for more convenient wrapping
+	    (and fixing of the old doesn't-switch-windows-when-held bug)
+	- _fits_foo implements generic fits_<foo> processing for easier
+	  addition of fits stuff.
+        - fits transformations are in _fits_tr
+	- image range finding is in _fits_xyvals
+	- justify works in a generalized way.  Justify=>1 works like you
+	  expect, but Justify=><r> also sets the pixel aspect ratio, 
+	  for more juicy flavor.
+CED (06-Dec-2002)
+    - Minor fix to range documentation
+    - Shut up warnings in Window.pm sig handler and fix fits_imag (bug #649630)
+    - Fixed bugs #633385, #634257
+    - attempted to regularize justify option (in progress)
+CED (05-Dec-2002)
+    - Numerous fixes to PDL::Transform
+    - Minor tweak to MatrixOps
+    - Some cosmetic improvements to InterpND (better option control)
+CED (03-Dec-2002)
+    - Completely rewrote range code -- it's more elegant, faster, and
+	more general now.
+CED (02-Dec-2002)
+    - added ndcoords (new index piddle constructor) to Basic.pm
+    - indexND now uses range call instead of index call (works faster)
+    - many mods to Transform
+CED (21-Nov-2002)
+    - PDL::Math loads PDL::MatrixOps by default for backwards compatibility.
+CED (19-Nov-2002) 
+    - PDL::Slices::identity -> s_identity; identity is now 
+	exported from MatrixOps and constructs an identity matrix.
+    - Ported MatrixOps to PP; moved to subdir of Basic; split the 
+	matrix ops from math.pd and moved into matrixops.pd  MatrixOps
+	is now autoloaded by "use PDL;".
+    - Minor mods & cross-refs added to documentation in several modules
+CED (18-Nov-2002)
+    - Transform: improvements to t_lookup
+CED (17-Nov-2002)
+    - MatrixOps: improved inv and det can thread using lu_decomp2 
+    - Transform: 
+	- use svd to characterize the jacobian in integrative mapping
+	- integrative ('jacobian') mapping works reasonably quickly and
+	  is correct.  Some changes to options.
+    - Better documentation for svd in math.pd
+CS  - yet another special case for NiceSlice, see NiceSlice Changes
+CED (15-Nov-2002)
+    - photometric distortion appears to be correct -- but hogs memory like
+	crazy.  One more iteration to make it usable!
+CED (14-Nov-2002)
+    - interpND defaults to 'sample' if its input is an integer type
+    - Math::eigens is quiet about symmetrizing unless PDL::debug is set
+    - photometric distortion (not correct yet but functional) in PDL::Transform
+    - updates to MatrixOps.pm   
+DJB (14-Nov-2002)
+    - Added 'demo transform' to perldl to showcase PDL::Transform
+CED (14-Nov-2002)
+    - Math::eigens is now threadable.
+DJB (12-Nov-2002)
+    - Added the TYPES_LONGLONG option to perldl.conf: by default it is set to 1
+      which means that PDL will try and compile support for a 64 bit type. Set
+      to 0 if make fails (or fix the code to work with PDL_LongLong types!)
+CS  - NiceSlice doc additions
+    - PDL::Core: squeeze as reshape(-1) alias
+CED (11-Nov-2002)
+    - Transform.pm updates - conformal radial expansion, better 
+	documentation, better composition, several minor bug fixes
+CS  - NiceSlice.pm v0.99: fix modifier parsing + allow several modifiers
+CED (7-Nov-2002)
+    - Several updates to Transform.pm -- wrap() method, rot option to Linear,
+	and improved composition -- but NOT (just yet) jacobian support.
+    - Updated documentation for index() method in slices.pd
+    - Minor tweaks to MatrixOps.
+CED (6-Nov-2002)
+    - Added MatrixOps.pm version 0.5
+    - Added t/matrixopt.t
+CED (30-10-2002)
+    - Added Transform.pm version 0.5
+CED (29-10-2002)
+    - m51.fits: hand-edited the file to fix bad NAXIS tag (was 0)
+CED (25-10-2002)
+    - IO/Misc.pm: removed not-so-spurious warnings from rfits (bug #626342)
+    - PGPLOT/Window.pm: fixed spinlocks for PGPLOT -- now faster,
+	clearer, and actually functional (see bug #615277). 
+    - Primitive/primitive.pd: fix to interpND behavior -- it now threads 
+	correctly in the bilinear dual-threading case.
+    - Lib/Slatec/slatec.pd: added nonsquare-array check to matinv.
+	Similar checks are probably needed throughout to keep FORTRAN
+	from dying.
+CS  - PDL::IO::FlexRaw now understands all types
+    - uncommented type longlong -- let's see how many installations
+      break ;)
+    - added t/iotypes.t
+CS  ******** merged in type extension stuff
+    - example of extending data types: add longlong type (64bit integer)
+    - that type is disabled by default but you can uncomment the
+      section in Types.pm.PL to try it out
+    *** no modification of IO modules yet
+    *** just the core changes to add the type + other changes to
+    *** make all modules compile
+    *** may serve as a testbed for type extensions
+    *** needs testing with BADVALUE support
+CS  - preparations for type extension: concentrate all type-dependent info
+      in Types.pm.PL
+CS  - cpoly.c: try to fix values.h problem on BSDs etc
+CS  - patch for cygwin by Christopher Marshall (Bugs item #597985)
+CS  - fix box2d threading bug
+CS (25/9/2002)
+    - 2.3.4 release branch merged into trunk
+TJ (13-Sep-02)
+    - Basic/Core/Core.xs hdr and gethdr XS functions did not strictly
+      adhere to XS syntax. (5.005_03 xsubpp complains loudly)
+DJB/CS (11-Sep-02)
+    - 'make clean' now removes _Inline/ as does t/inlinepdlpp.pl when its
+      run (to make sure that we're testing the latest&greatest code)
+TJ (09-Sep-02)
+    - Fix valgrind warning in pdlapi.c (use of uninitialised variable in dump)
+    - PDL::IO::Storable now uses PTR2IV
+TJ/CS (09-Sep-02)
+    - Fix memory leak associated with magic
+CED (30-Aug-02)
+    - Fix to Window.pm documentation -- explains wart about panel()
+CED (29-Aug-02)
+    - minor fix to fits_imag -- axis labels
+    - Added TightLabels (boolean) and TitleSize (float) standard options
+	to control window labeling. 
+CED (28-Aug-02)
+    - minor fix to rangeb - physicalize index before checking its size
+CED (27-Aug-02)
+    - range() is now an lvalue, as are indexND and indexNDb.
+    - pdl_malloc call is now via PDL Core structure, avoiding
+	complete failure of the test suite :-)
+    - extra debugging fprintf() calls deleted.
+    - range() is a front-end to rangeb(), allowing omission of optional
+	arguments.
+    - rangeb handles boundary conditions.
+CED (26-Aug-02)
+    - slices.pd: added range (PP implementation)
+    - Incremented core_version in pdlcore.h.PL
+    - ->range doesn't spew debugging now (commented out)
+CED (20-Aug-02)
+    - slices.pd: added rangeND (first-cut implementation)
+---- 2.3.4 release merged into trunk on 25/9/2002 (see above)
 2.3.4
 JC (23 Sep 02)
     - Changes to Release_Notes associated
@@ -24,6 +400,7 @@ CS  - backported a number of patches from the main branch
       		Fix valgrind warning in pdlapi.c
 			(use of uninitialised variable in dump)
       		Fix memory leak associated with magic
+----- branched off 2.3.4 release at this point
 CED (19-Aug-02)
     - Window.pm spinlock includes special release_and_barf to unlock signals.
 	(the Right Answer is to fix barf() to throw a __DIE__ signal;
@@ -419,7 +796,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      Halldór Olafsson and Vince McIntyre (bug #233484)
+      HalldÂŽÂÂŽÂÂŽór Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

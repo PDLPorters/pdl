@@ -42,7 +42,7 @@ if ($^O =~ /win32/i) {
 
 
 if (($skip && !$forcebuild) ||
-    !gsl_sf_links_ok($GSL_includes, $GSL_libs)) {
+    !gsl_sf_links_ok($GSL_libs, $GSL_includes)) {
   warn "trying to force GSL build but link test failed\n".
     "\t -- aborting GSL build\n" if $forcebuild;
   $msg ||=

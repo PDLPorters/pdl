@@ -33,8 +33,8 @@ required steps.
      my $pdl  = $class->new;
      $pdl->set_datatype($PDL_B);
      my @dims = (1,3,4);
-     my $sz = 1;
-     for (@dims) { $sz *= $_ }
+     my $size = 1;
+     for (@dims) { $size *= $_ }
      $pdl->setdims([@dims]);
      my $dref = $pdl->get_dataref();
 
@@ -270,6 +270,8 @@ above tests for this
 
    if (PDL->Version != PDL_CORE_VERSION)
      ....
+
+For more information on the Core struct see L<PDL::Internals|PDL::Internals>.
 
 With these preparations your code can now access the
 core routines as already shown in some of the examples above, e.g.

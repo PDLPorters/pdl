@@ -275,12 +275,25 @@ void propogate_badflag( pdl *it, int newval ) {
 double pdl_get_badvalue( int datatype ) {
     double retval;
     switch ( datatype ) {
-	case 0: retval = PDL.bvals.Byte;   break;
-	case 1: retval = PDL.bvals.Short;  break;
-	case 2: retval = PDL.bvals.Ushort; break;
-	case 3: retval = PDL.bvals.Long;   break;
-	case 4: retval = PDL.bvals.Float;  break;
-	case 5: retval = PDL.bvals.Double; break;
+!NO!SUBS!
+
+
+use PDL::Types;
+my $ntypes = $#PDL::Types::names;
+
+my $str;
+foreach my $i ( 0 .. $ntypes ) {
+    my $type = PDL::Type->new( $i );
+    my $typesym = $type->symbol;
+
+    my $cname = $type->ctype;
+    $cname =~ s/^PDL_//;
+    my $storage = "PDL.bvals.$cname";
+
+    print OUT "\tcase $typesym: retval = $storage; break;\n";
+}
+
+print OUT <<'!NO!SUBS!';
 
       default:
 	croak("Unknown type sent to pdl_get_badvalue\n");
@@ -289,7 +302,7 @@ double pdl_get_badvalue( int datatype ) {
 } /* pdl_get_badvalue() */
 
 !NO!SUBS!
-    
+
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -371,7 +384,8 @@ iscontig(x)
 
 !NO!SUBS!
 
-# access (read, if set is true then write as well)
+# access (read, if set is true then write as well; if postset true then
+#         read first and write new value after that)
 # to piddle's state
 #
 
@@ -380,13 +394,13 @@ my %flags =
       hdrcpy => { set => 1 },
       fflows => { FLAG => "DATAFLOW_F" },
       bflows => { FLAG => "DATAFLOW_B" },
-      is_inplace => { FLAG => "INPLACE" },
+      is_inplace => { FLAG => "INPLACE", postset => 1 },
       donttouch => { FLAG => "DONTTOUCHDATA" },
       allocated => { },
       vaffine => { FLAG => "OPT_VAFFTRANSOK" },
       anychgd => { FLAG => "ANYCHANGED" },
       dimschgd => { FLAG => "PARENTDIMSCHANGED" },
-
+      tracedebug => { FLAG => "TRACEDEBUG", set => 1},
      );
 
 #if ( $bvalflag ) { $flags{baddata} = { set => 1, FLAG => "BADVAL" }; }
@@ -403,6 +417,22 @@ $name(x,mode=0)
 	if (items>1) 
 	   { setflag(x->state,$flag,mode); }
 	RETVAL = ((x->state & $flag) > 0);
+	OUTPUT:
+	RETVAL
+
+!WITH!SUBS!
+
+} elsif ($flags{$name}{postset}) {
+
+	print OUT <<"!WITH!SUBS!";
+int
+$name(x,mode=0)
+	pdl *x
+	int mode
+	CODE:
+	RETVAL = ((x->state & $flag) > 0);
+	if (items>1) 
+	   { setflag(x->state,$flag,mode); }
 	OUTPUT:
 	RETVAL
 
@@ -804,6 +834,7 @@ BOOT:
    PDL.destroy     = pdl_destroy;
    PDL.null        = pdl_null;
    PDL.copy        = pdl_copy;
+   PDL.hard_copy   = pdl_hard_copy;
    PDL.converttype = pdl_converttype;
    PDL.twod        = pdl_twod;
    PDL.smalloc     = pdl_malloc;
@@ -844,6 +875,9 @@ BOOT:
    PDL.pdl_barf      = pdl_barf;
    PDL.allocdata     = pdl_allocdata;
    PDL.safe_indterm  = pdl_safe_indterm;
+   PDL.children_changesoon = pdl_children_changesoon;
+   PDL.changed       = pdl_changed;
+   PDL.vaffinechanged = pdl_vaffinechanged;
 
 !NO!SUBS!
 
@@ -852,27 +886,26 @@ if ( $bvalflag ) {
 
     PDL.propogate_badflag = propogate_badflag;
 
-    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
-    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
-    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
-    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
 !NO!SUBS!
 
-    # note: no defaults if usenan
-    if ( $usenan ) {
-    print OUT 
-'
-    PDL.bvals.Float  = __pdl_nan.__d;
-    PDL.bvals.Double = (double) __pdl_nan.__d;
-';
-} else {
-    print OUT 
-'
-      PDL.bvals.Float  = PDL.bvals.default_Float  = -FLT_MAX;
-      PDL.bvals.Double = PDL.bvals.default_Double = -DBL_MAX;
-';
+  for my $type (PDL::Types::types) {
+    my $typename = $type->ctype;
+    $typename =~ s/^PDL_//;
+    my $bval = $type->defbval;
+    my $ctype = $type->ctype;
+    if ($usenan && $type->usenan) {
+      # note: no defaults if usenan
+      print OUT "\tPDL.bvals.$typename = ($ctype) __pdl_nan.__d;\n";
+    } else {
+      print OUT
+	"\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";
+    }
+  }
+#    PDL.bvals.Byte   = PDL.bvals.default_Byte   = UCHAR_MAX;
+#    PDL.bvals.Short  = PDL.bvals.default_Short  = SHRT_MIN;
+#    PDL.bvals.Ushort = PDL.bvals.default_Ushort = USHRT_MAX;
+#    PDL.bvals.Long   = PDL.bvals.default_Long   = INT_MIN;
 
-} # if: $usenan
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -1219,6 +1252,10 @@ hdr(p)
 
 	OUTPUT:
 	 RETVAL
+
+# fhdr(p) is implemented in perl; see Core.pm.PL if you're looking for it 
+#   --CED 9-Feb-2003  
+#
 
 SV *
 gethdr(p)

@@ -28,7 +28,7 @@ use PDL::Exporter;
 use PDL::Options;
 
 @ISA=qw/PDL::Exporter/;
-@EXPORT_OK = qw/ rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
+@EXPORT_OK = qw/ ndcoords rvals axisvals allaxisvals xvals yvals zvals sec ins hist whist
 	similar_assign transpose sequence xlinvals ylinvals
 	zlinvals axislinvals/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -215,6 +215,63 @@ sub PDL::zlinvals {
 	barf "Must have at least two elements in dimension for zlinvals"
 		if $dim <= 1;
 	return $_[0]->zvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
+}
+
+=head2 ndcoords
+
+=for ref
+
+Enumerate pixel coordinates for an N-D piddle
+
+=for usage
+
+$indices = ndcoords($pdl)
+$indices = ndcoords(@dimlist)
+
+Returns an enumerated list of coordinates suitable for use in 
+L<indexND|indexND> or L<range|range>:  you feed in a dimension list
+and get out a piddle whose 0th dimension runs over dimension index
+and whose 1st through Nth dimensions are the dimensions given in the 
+input.  If you feed in a piddle instead of a perl list, then the 
+dimension list is used, as in L<xvals|xvals> etc.
+
+=for example
+
+  perldl> print ndcoords(2,3)
+  [
+   [
+    [0 0]
+    [1 0] 
+    [2 0]
+   ]
+   [
+    [0 1]
+    [1 1]
+    [2 1]
+   ]
+  ]
+
+=cut
+
+sub ndcoords { 
+  my $type;
+  if(ref $_[0] eq 'PDL::Type') {
+    $type = shift;
+  }
+  
+  my @dims = (ref $_[0]) ? (shift)->dims : @_;
+  my @d = @dims;
+  unshift(@d,scalar(@dims));
+  unshift(@d,$type) if defined($type);
+
+  $out = PDL->zeroes(@d);
+  
+  for my $d(0..$#dims) {
+    my $a = $out->index($d)->mv($d,0);
+    $a .= xvals($a);
+  }
+
+  $out;
 }
 
 =head2 hist

@@ -35,13 +35,9 @@ PDL::Core::Dev->import();
 	      yn yn
 	      erfi ndtri
 	      ndtri ndtri
-	      blas blas
-	      eigens eigens
-	      simq simq
 	      rint rint
 	      nan quiet_nan
 	      infinity infinity
-	      svd svd
 	      polyroots cpoly
 	    );
 @keys = sort keys %source;

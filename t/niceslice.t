@@ -6,7 +6,8 @@ use PDL::LiteF;
 BEGIN { 
     eval 'require PDL::NiceSlice';
     unless ($@) {
-	plan tests => 25;
+	plan tests => 41,
+	# todo => [37..40],
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: no sourcefilter support\n";
@@ -73,17 +74,52 @@ eval translate_and_show '$b = $twod(-1:0,$idx);';
 ok (!$@);
 ok(all $b == $cmp);
 
+#
 # modifiers
+#
 
 $a = sequence 10;
-eval translate_and_show '$b = $a($a<3;?)';
+eval translate_and_show '$b = $a($a<3;?)' ;
 ok (!$@);
 ok(all $b == pdl(0,1,2));
 
+# flat modifier
 $a = sequence 3,3;
 eval translate_and_show '$b = $a(0:-2;_);';
 ok (!$@);
 ok(all $b == sequence 8);
+
+# where modifier cannot be mixed with other modifiers
+$a = sequence 10;
+eval { translate_and_show '$b = $a($a<3;?_)' };
+ok ($@ =~ 'more than 1');
+
+# more than one identifier
+$a = sequence 3,3;
+eval translate_and_show '$b = $a(0;-|)';
+print "Error was: $@\n" if $@;
+ok (!$@);
+eval {$b++};
+print "\$b = $b\n";
+ok($b->dim(0) == 3 && all $b == 3*sequence(3)+1);
+ok($a->at(0,0) == 0);
+
+# do we ignore whitspace correctly?
+eval translate_and_show '$c = $a(0; - | )';
+print "Error was: $@\n" if $@;
+ok (!$@);
+ok (all $c == $b-1);
+
+# empty modifier block
+$a = sequence 10;
+eval translate_and_show '$b = $a(0;   )';
+ok (!$@);
+ok ($b == $a->at(0));
+
+# modifiers repeated
+eval 'translate_and_show "\$b = \$a(0;-||)"';
+print "Error was: $@\n" if $@;
+ok ($@ =~ 'twice or more');
 
 # foreach/for blocking
 
@@ -102,3 +138,70 @@ ok(!$@ and $a eq '1234');
 $a = '';
 eval translate_and_show 'for  our $b(1,2,3,4) {$a .= $b;}';
 ok(!$@ and $a eq '1234');
+
+$a = ''; # foreach and whitespace
+eval translate_and_show 'foreach  my $b (1,2,3,4) {$a .= $b;}';
+ok(!$@ and $a eq '1234');
+
+# block method access translation
+
+$a = pdl(5,3,2);
+my $method = 'dim';
+eval translate_and_show '$c = $a->$method(0)';
+print "c: $c\n";
+ok(!$@ && $c == $a->dim(0));
+
+#
+# todo ones
+#
+
+# whitespace tolerance
+
+$a= sequence 10;
+eval translate_and_show '$c = $a (0)';
+ok(!$@ && $c == $a->at(0));
+
+# comment tolerance
+
+eval translate_and_show << 'EOT';
+
+$c = $a-> # comment
+	 (0);
+EOT
+
+ok(!$@ && $c == $a->at(0));
+
+eval translate_and_show << 'EOT';
+
+$c = $a-> # comment
+          # comment line 2
+	 (0);
+EOT
+
+ok(!$@ && $c == $a->at(0));
+
+$a = ''; # foreach and whitespace + comments
+eval translate_and_show << 'EOT';
+
+foreach  my $b # a random comment thrown in
+
+(1,2,3,4) {$a .= $b;}
+
+EOT
+
+ok(!$@ and $a eq '1234');
+
+# test for correct header propagation
+$a = ones(10,10);
+my $h = {NAXIS=>2,
+	 NAXIS1=>100,
+	 NAXIS=>100,
+	 COMMENT=>"Sample FITS-style header"};
+$a->sethdr($h);
+$a->hdrcpy(1);
+eval translate_and_show '$b = $a(1:2,pdl(0,2));';
+
+# Old hdrcpy test (for copy-by-reference); this is obsolete
+# with quasi-deep copying.  --CED 11-Apr-2003
+#   ok (!$@ and $b->gethdr() == $h);
+ok(!$@ and join("",%{$b->gethdr}) eq join("",%{$h}));

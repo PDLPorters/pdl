@@ -14,6 +14,8 @@ use vars qw( %PDL_DATATYPES );
 # check for bad value support
 use vars qw( $bvalflag $usenan );
 require "badsupport.p";
+require 'Types.pm';
+PDL::Types->import(':All');
 
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
@@ -38,12 +40,34 @@ print OUT <<"!WITH!SUBS!";
 /*           - bad value support = $bvalflag */
 
 !WITH!SUBS!
- 
-print OUT <<'!NO!SUBS!';
+  ;
 
+
+print OUT <<'!HEADER!'
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
+!HEADER!
+  ;
+
+if($^O =~ /MSWin/) {
+  # _finite in CV++ 4.0 
+  print <<'FOO'
+#define finite _finite
+#include <float.h>
+FOO
+;
+}
+
+print OUT <<'!NO!SUBS!'
+
+#ifndef finite
+#ifdef isfinite
+#define finite isfinite
+#else
+#define finite(a) (((a) * 0) != (0))
+#endif
+#endif
 
 static SV *getref_pdl(pdl *it) {
 	SV *newref;
@@ -72,18 +96,21 @@ void SetSV_PDL ( SV *sv, pdl *it ) {
 
 int pdl_howbig (int datatype) {
     switch (datatype) {
-    case PDL_B:
-      return sizeof(PDL_Byte);
-    case PDL_S:
-      return sizeof(PDL_Short);
-    case PDL_US:
-      return sizeof(PDL_Ushort);
-    case PDL_L:
-      return sizeof(PDL_Long);
-    case PDL_F:
-      return sizeof(PDL_Float);
-    case PDL_D:
-      return sizeof(PDL_Double);
+
+!NO!SUBS!
+  ;
+# generate the cases for the various types
+
+for my $type (typesrtkeys()) {
+   my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+   print OUT << "!WITH!SUBS!";
+    case $sym:
+      return sizeof($ctype);
+!WITH!SUBS!
+}
+
+print OUT <<'!NO!SUBS!';
+
     default:
       croak("Unknown datatype code = %d",datatype);
     }
@@ -93,12 +120,21 @@ int pdl_howbig (int datatype) {
 
 #define TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
 int pdl_whichdatatype (double nv) {
-	TESTTYPE(PDL_B,PDL_Byte)
-	TESTTYPE(PDL_S,PDL_Short)
-	TESTTYPE(PDL_US,PDL_Ushort)
-	TESTTYPE(PDL_L,PDL_Long)
-	TESTTYPE(PDL_F,PDL_Float)
-	TESTTYPE(PDL_D,PDL_Double)
+!NO!SUBS!
+
+# generate the cases for the various types
+
+for my $type (typesrtkeys()) {
+   my ($sym,$ctype) = map {typefld($type,$_)} qw/sym ctype/;
+   print OUT << "!WITH!SUBS!";
+	TESTTYPE($sym,$ctype)
+!WITH!SUBS!
+}
+
+print OUT <<'!NO!SUBS!';
+
+        if( !finite(nv) ) { return PDL_D; }
+
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype",
 		nv);
 }
@@ -108,6 +144,9 @@ int pdl_whichdatatype (double nv) {
 int pdl_whichdatatype_double (double nv) {
 	TESTTYPE(PDL_F,PDL_Float)
 	TESTTYPE(PDL_D,PDL_Double)
+
+        if( !finite(nv) ) { return PDL_D; }
+
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
 		nv);
 }

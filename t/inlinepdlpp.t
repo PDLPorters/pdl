@@ -20,13 +20,18 @@ BEGIN {
 	print "ok 1 # Skipped: Inline not installed\n";
 	exit;
     }
+    require ExtUtils::Command;
+    local @ARGV = '_Inline';
+    &ExtUtils::Command::rm_rf;
 }
 
 sub shape { join ',', $_[0]->dims }
 
 # use Inline 'INFO'; # use to generate lots of info
+# use Inline;
 use Inline 'Pdlpp';
 
+print "Inline Version: $Inline::VERSION\n";
 ok(1); # ok, we made it so far
 
 $a = sequence(3,3);

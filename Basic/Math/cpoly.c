@@ -8,9 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__)
-#include <values.h>
-#endif
+/* 
+   #if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__) && !defined(__CYGWIN__)
+   #include <values.h>
+   #endif
+*/
 #include <float.h>
 /* #define DEBUGMAIN */   /* Set up debugging main, etc. */
 #include "cpoly.h"
@@ -747,17 +749,19 @@ static void mcon()
      */
 {
   
-#if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__)
-  base = 2;
-  eta = DBL_EPSILON;
-  smalno = MINDOUBLE;
-  infin = MAXDOUBLE;
-#else
+  /* 
+     #if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__) && !defined(__CYGWIN__)
+     base = 2;
+     eta = DBL_EPSILON;
+     smalno = MINDOUBLE;
+     infin = MAXDOUBLE;
+     #else
+  */
   base = 2;
   eta = DBL_EPSILON;
   smalno = DBL_MIN;
   infin = DBL_MAX;
-#endif
+  /* #endif */
 
 #ifdef IBM360
   /* These values for base,t,m,n correspond to the ibm/360. */

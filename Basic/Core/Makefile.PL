@@ -84,6 +84,8 @@ print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
 
 # badsupport.p is made by the top-level Makefile, but placed
 # into Basic/Core, so we clean it up here
+sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
+
 use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
@@ -101,6 +103,7 @@ WriteMakefile(
 				pdlthread.h ppport.h/
 		)),
 		},
+ 'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
  'DEFINE' 	=> $pthread_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
@@ -130,15 +133,36 @@ PDL::Core::Dev::postamble().
 # there must be a more elegant way of saying that
 # certain files have additional dependencies!
 
-pdl.h:: pdl.h.PL mymalloc.p\n"
+Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
+. make_from_PL('Core.pm')
+."
+
+pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
 . make_from_PL( 'pdl.h' )
-. 
+."
+
+pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
+. make_from_PL( 'pdlsimple.h' )
+."
+
+pdlconv.c:: pdlconv.c.PL Types.pm\n"
+. make_from_PL( 'pdlconv.c' )
+."
+
+pdlcore.c:: pdlcore.c.PL Types.pm\n"
+. make_from_PL( 'pdlcore.c' )
+."
+
+pdlcore.h:: pdlcore.h.PL Types.pm\n"
+. make_from_PL( 'pdlcore.h' )
+.
+
     join( "", map { "\n$_ :: ${_}.PL badsupport.p\n" . make_from_PL($_) }
     qw( Core.pm Core.xs pdlcore.c ) )
 .
 ($^O =~ /MSWin/ ? q|
 
-pdlsections.c: pdlsections.g
+pdlsections.c: pdlsections.g Types.pm
        $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 | : '');
 }

@@ -225,7 +225,7 @@ sub PDL::rfits {
           }
 	} # End of legacy parsing
 
-        last if $name eq "END";
+        last if ((defined $name) && $name && $name eq "END");
 
    }
  
@@ -268,8 +268,8 @@ sub PDL::rfits {
 
    # Slurp the FITS binary data
 
-   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" if
-   $PDL::verbose;
+   print "Reading ",$size*PDL::Core::howbig($pdl->get_datatype) , " bytes\n" 
+	if $PDL::verbose;
 
    read( FITS, $$dref, $size*PDL::Core::howbig($pdl->get_datatype) );
 
@@ -287,7 +287,7 @@ sub PDL::rfits {
        # do we have bad values? - needs to be done before BSCALE/BZERO
        # (at least for integers)
        #
-       if ( $foo->{BITPIX} > 0 and exists $foo->{BLANK} ) {
+       if ( $$foo{BITPIX} > 0 and exists $$foo{BLANK} ) {
 	   # integer, so bad value == BLANK keyword
 	   my $blank = $foo->{BLANK};
 	   # do we have to do any conversion?
@@ -372,6 +372,15 @@ Suffix magic:
   wfits $pdl, 'filename.fits.Z';  
 
 $BITPIX is optional and coerces the output format.
+
+Header handling:
+ 
+If C<$pdl> has a FITS header attached to it (actually, any hash that
+contains a SIMPLE=>T keyword), then that FITS header is written out to the
+file.  The image dimension tags are adjusted to the actual dataset.
+If there's a mismatch between the dimensions of the data and the 
+dimensions in the FITS header, then the header gets corrected and a 
+warning is printed.
 
 !NO!SUBS!
 
@@ -461,11 +470,12 @@ sub PDL::wfits { # Write a PDL to a FITS format file
 
    my($h) = $pdl->gethdr();
    if(defined($h) && 
-      (defined (tied %$h)) && 
-      (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header"))) {
+      ( (defined (tied %$h)) && 
+        (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
+      ){
      my $k;
 
-     ##############################
+     ##n############################
      ## Tied-hash code -- I'm too lazy to incorporate this into KGB's
      ## direct hash handler below, so I've more or less just copied and
      ## pasted with some translation.  --CED
@@ -474,7 +484,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
 
      #
      # Put advertising comment in the SIMPLE field
-     #
+     #n
      $h->{SIMPLE} = 'T';
      my(@a) = $hdr->itembyname('SIMPLE');
      $a[0]->comment('Created with PDL (http://pdl.perl.org)');
@@ -489,13 +499,22 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      #
      $h->{BITPIX} = $BITPIX;
      $h->{NAXIS} = $pdl->getndims;
-     for $k(1..$ndims) { $h->{"NAXIS$k"} = $pdl->getdim($k-1); }
+     my $correction = 0;
+     for $k(1..$h->{NAXIS}) { 
+	$correction |= (exists $h->{"NAXIS$k"} and 
+	                $h->{"NAXIS$k"} != $pdl->dim($k-1)
+	               );
+	$h->{"NAXIS$k"} = $pdl->getdim($k-1); 
+     }
+     carp("Warning: wfits corrected dimensions of FITS header") 
+	if($correction);
 
      $h->{BUNIT} = "Data Value" unless exists $h->{BUNIT};
      $h->{BSCALE} = $bscale if($bscale != 1);
      $h->{BZERO}  = $bzero  if($bzero  != 0);
 
-     if ( $pdl->badflag() ) {
+ 
+    if ( $pdl->badflag() ) {
        if ( $BITPIX > 0 ) { my $a = &$convert(pdl(0.0)); $h->{BLANK} = $a->badvalue(); }
        else               { delete $h->{BLANK}; }
      }
@@ -547,10 +566,10 @@ sub PDL::wfits { # Write a PDL to a FITS format file
      # Write out all the cards, and note how many bytes for later padding.
      #
      my $s = join("",$hdr->cards);
+
      print FITS $s;
      $nbytes = length $s;
    } else {
-
      #
      # Legacy emitter (note different advertisement in the SIMPLE
      # comment, for debugging!)
@@ -696,17 +715,20 @@ sub wheader {     # Local utility routine of wfits()
       } else {
          printf FITS "%-8s= ", substr($k,0,8);
 
+	 my $com = ( ref $hdr{COMMENT} eq 'HASH' ) ? $hdr{COMMENT}{$k} : undef;
+
+
          if ($hdrk =~ /^ *([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))? *$/) { # Number?
-         my $cl=60-((exists($hdr{COMMENT}{$k})) ? 2 : 0);
+         my $cl=60-($com ? 2 : 0);
          my $end=' ' x $cl;
-         $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
+         $end =' /'. $com if($com);
          printf FITS "%20s%-50s", substr($hdrk,0,20),
          substr($end, 0, 50);
         } elsif ($hdrk eq 'F' or $hdrk eq 'T') {
           # Logical flags ?
           printf FITS "%20s", $hdrk;
           my $end=' ' x 50;
-          $end =' /'.$hdr{COMMENT}{$k} if (exists($hdr{COMMENT}{$k}));
+          $end =' /'.$com if($com);
           printf FITS "%-50s", $end;
         } else {
 	  # Handle strings, truncating as necessary
@@ -718,11 +740,11 @@ sub wheader {     # Local utility routine of wfits()
 	  $st =~ s/\'/\'\'/g;
 	  
 	  my $sl=length($st)+2;
-	  my $cl=70-$sl-(exists($hdr{COMMENT}{$k}) ? 2 : 0);
+	  my $cl=70-$sl-($com ? 2 : 0);
 	  print FITS "'$st'";
 	  
-	  if (exists($hdr{COMMENT}{$k}) && defined($hdr{COMMENT}{$k})) {
-	    printf FITS " /%-$ {cl}s", substr($hdr{COMMENT}{$k}, 0, $cl);
+	  if (defined $com) {
+	    printf FITS " /%-$ {cl}s", substr($com, 0, $cl);
 	  } else {
 	    printf FITS "%-$ {cl}s", ' ' x $cl;
 	  }
@@ -730,7 +752,7 @@ sub wheader {     # Local utility routine of wfits()
        }
       $nbytes += 80; delete $hdr{$k};
     }
-   delete $hdr{COMMENT}{$k};
+   delete $hdr{COMMENT}{$k} if(ref $hdr{COMMENT} eq 'HASH');
 1;}
 
 # ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack

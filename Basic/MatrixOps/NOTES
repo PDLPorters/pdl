@@ -1,0 +1,9 @@
+19-Nov-2002
+
+This is intended to be a useful repository of self-contained linear
+algebra routines.  Some of the stuff has been stolen from ../Math,
+which in turn used the Cephes maths library sources.  Some of it was
+ported to PDL from the algorithms in _Numerical_Recipes_, but the
+original C code should probably be used if the copyrights allow it.
+
+--Craig DeForest 19-Nov-2002

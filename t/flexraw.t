@@ -82,6 +82,8 @@ sub byte4swap {
     my ($word);
     open (IN, "<$file") or die "Can't open $file to read";
     open (OUT, ">$ofile") or die "Can't open $file to write";
+    binmode(IN);
+    binmode(OUT);
     while (!eof(IN)) {
 	read (IN, $word,4);
 	$word = pack 'c4',reverse unpack 'c4',$word;

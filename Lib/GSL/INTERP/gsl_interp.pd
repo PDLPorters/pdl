@@ -1,0 +1,456 @@
+pp_bless('PDL::GSL::INTERP');  # make the functions generated go into our namespace     
+
+pp_addpm({At=>Top},<<'EOD');
+=head1 NAME
+
+PDL::GSL::INTERP - PDL interface to Interpolation routines in GSL
+
+=head1 DESCRIPTION
+
+This is an interface to the interpolation package present in the 
+GNU Scientific Library.
+
+=head1 SYNOPSIS
+
+   use PDL;
+   use PDL::GSL::INTERP;
+
+   my $x = sequence(10);
+   my $y = exp($x);
+
+   my $spl = PDL::GSL::INTERP->init('cspline',$x,$y);
+
+   my $res = $spl->eval(4.35);
+   $res = $spl->deriv(4.35);
+   $res = $spl->deriv2(4.35);
+   $res = $spl->integ(2.1,7.4);
+
+=head1 FUNCTIONS
+
+=head2 init()
+
+=for ref 
+
+The init method initializes a new instance of INTERP. It needs as 
+input an interpolation type and two piddles holding the x and y 
+values to be interpolated. The GSL routines require that x be
+monotonically increasing and a quicksort is performed by default to 
+ensure that. You can skip the quicksort by passing the option 
+{Sort => 0}.
+
+The available interpolation types are :
+
+=over 2
+
+=item 
+
+linear
+
+=item 
+
+polynomial
+
+=item 
+
+cspline (natural cubic spline)
+
+=item 
+
+cspline_periodic  (periodic cubic spline)
+
+=item 
+
+akima (natural akima spline)
+
+=item 
+
+akima_periodic  (periodic akima spline)
+
+=back
+
+Please check the GSL documentation for more information.
+
+=for usage
+
+Usage:
+
+    $blessed_ref = PDL::GSL::INTERP->init($interp_method,$x,$y,$opt);
+
+=for example
+
+Example:
+
+    $x = sequence(10);
+    $y = exp($x);
+
+    $spl = PDL::GSL::INTERP->init('cspline',$x,$y)
+    $spl = PDL::GSL::INTERP->init('cspline',$x,$y,{Sort => 1}) #same as above
+
+    # no sorting done on x, user is certain that x is monotonically increasing
+    $spl = PDL::GSL::INTERP->init('cspline',$x,$y,{Sort => 0});
+
+=head2 eval()
+
+=for ref 
+
+The function eval returns the interpolating function at a given point. By default
+it will barf if you try to extrapolate, to comply silently if the point to be
+evaluated is out of range pass the option {Extrapolate => 1}
+
+=for usage
+
+Usage:
+
+    $result = $spl->eval($points,$opt);
+
+=for example
+
+Example:
+
+    my $res = $spl->eval($x)
+    $res = $spl->eval($x,{Extrapolate => 0}) #same as above
+
+    # silently comply if $x is out of range
+    $res = $spl->eval($x,{Extrapolate => 1})
+
+=head2 deriv()
+
+=for ref 
+
+The deriv function returns the derivative of the 
+interpolating function at a given point. By default
+it will barf if you try to extrapolate, to comply silently if the point to be
+evaluated is out of range pass the option {Extrapolate => 1}
+
+=for usage
+
+Usage:
+
+    $result = $spl->deriv($points,$opt);
+
+=for example
+
+Example:
+
+    my $res = $spl->deriv($x)
+    $res = $spl->deriv($x,{Extrapolate => 0}) #same as above
+
+    # silently comply if $x is out of range
+    $res = $spl->deriv($x,{Extrapolate => 1})
+
+
+=head2 deriv2()
+
+=for ref 
+
+The deriv2 function returns the second derivative 
+of the interpolating function at a given point. By default
+it will barf if you try to extrapolate, to comply silently if the point to be
+evaluated is out of range pass the option {Extrapolate => 1}
+
+
+=for usage
+
+Usage:
+
+    $result = $spl->deriv2($points,$opt);
+
+=for example
+
+Example:
+
+    my $res = $spl->deriv2($x)
+    $res = $spl->deriv2($x,{Extrapolate => 0}) #same as above
+
+    # silently comply if $x is out of range
+    $res = $spl->deriv2($x,{Extrapolate => 1})
+
+=head2 integ()
+
+=for ref 
+
+The integ function returns the integral 
+of the interpolating function between two points.
+By default it will barf if you try to extrapolate, 
+to comply silently if one of the integration limits
+is out of range pass the option {Extrapolate => 1}
+
+
+=for usage
+
+Usage:
+
+    $result = $spl->integ($a,$b,$opt);
+
+=for example
+
+Example:
+
+    my $res = $spl->integ($a,$b)
+    $res = $spl->integ($a,$b,{Extrapolate => 0}) #same as above
+
+    # silently comply if $a or $b are out of range
+    $res = $spl->eval($a,$b,{Extrapolate => 1})
+
+=head1 BUGS
+
+Feedback is welcome. 
+
+=head1 SEE ALSO
+
+L<PDL>
+
+The GSL documentation is online at
+
+  http://sources.redhat.com/gsl/ref/gsl-ref_toc.html
+
+=head1 AUTHOR
+
+This file copyright (C) 2003 Andres Jordan <andresj@physics.rutgers.edu>
+All rights reserved. There is no warranty. You are allowed to redistribute this 
+software/documentation under certain conditions. For details, see the file
+COPYING in the PDL distribution. If this file is separated from the
+PDL distribution, the copyright notice should be included in the file.
+
+The GSL interpolation module was written by Gerard Jungman.
+
+=cut
+
+EOD
+		      
+pp_addhdr('
+#include<string.h>
+#include<math.h>
+#include<gsl/gsl_errno.h>
+#include<gsl/gsl_spline.h>
+#include "gslerr.h"
+
+typedef gsl_spline GslSpline;
+typedef gsl_interp_accel GslAccel;
+
+');      
+		
+pp_addpm('
+sub init{
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Sort => 1}; }
+  my ($class,$type,$x,$y) = @_;
+  if( (ref($x) ne \'PDL\') || (ref($y) ne \'PDL\') ){
+    barf("Have to pass piddles as arguments to init method\n");
+  }
+  if($$opt{Sort} != 0){
+    my $idx = PDL::Ufunc::qsorti($x);
+    $x = $x->index($idx);
+    $y = $y->index($idx);
+  }
+  my $ene = nelem($x);
+  my $obj1 = new_spline($type,$ene);
+  my $obj2 = new_accel();
+  init_meat($x,$y,$$obj1);
+  my @ret_a = ($obj1,$obj2);
+  return bless(\@ret_a, $class);
+}
+');
+
+pp_def('init_meat',
+        Pars => 'double x(n); double y(n);',
+        OtherPars => 'int spl',
+        Doc => undef,
+        Code =>'
+GSLERR(gsl_spline_init,( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n)));'
+);
+
+pp_addpm('
+sub eval{
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  if($$opt{Extrapolate} == 0){
+    return eval_meat($x,$$s_obj,$$a_obj);
+  }
+  else{
+    return eval_meat_ext($x,$$s_obj,$$a_obj);
+  }
+}
+');
+
+pp_def('eval_meat',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+        Code =>'	     
+GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+');
+pp_def('eval_meat_ext',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+        Code =>'	     
+$out() = gsl_spline_eval( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+');
+
+
+
+pp_addpm('
+sub deriv{
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  if($$opt{Extrapolate} == 0){
+    return  eval_deriv_meat($x,$$s_obj,$$a_obj);
+  }
+  else{
+    return  eval_deriv_meat_ext($x,$$s_obj,$$a_obj);
+  }
+}
+');
+
+pp_def('eval_deriv_meat',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+GSLERR(gsl_spline_eval_deriv_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+');
+pp_def('eval_deriv_meat_ext',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+$out() = gsl_spline_eval_deriv( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+');
+
+pp_addpm('
+sub deriv2{
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
+  my ($obj,$x) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  if($$opt{Extrapolate} == 0){
+    return  eval_deriv2_meat($x,$$s_obj,$$a_obj);
+  }
+  else{
+    return  eval_deriv2_meat_ext($x,$$s_obj,$$a_obj);
+  }
+}
+');
+
+pp_def('eval_deriv2_meat',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+GSLERR(gsl_spline_eval_deriv2_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+');
+pp_def('eval_deriv2_meat_ext',
+        Pars => 'double x(); double [o] out();',
+        OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+$out() = gsl_spline_eval_deriv2( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+');
+
+pp_addpm('
+sub integ{
+  my $opt;
+  if (ref($_[$#_]) eq \'HASH\'){ $opt = pop @_; }
+  else{ $opt = {Extrapolate => 0}; }
+  my ($obj,$a,$b) = @_;
+  my $s_obj = $$obj[0];
+  my $a_obj = $$obj[1];
+  if($$opt{Extrapolate} == 0){
+    return eval_integ_meat($a,$b,$$s_obj,$$a_obj);
+  }
+  else{
+    return eval_integ_meat_ext($a,$b,$$s_obj,$$a_obj);
+  }
+}
+');
+
+pp_def('eval_integ_meat',
+        Pars => 'double a(); double b(); double [o] out();',
+	OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+GSLERR(gsl_spline_eval_integ_e,( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc),$P(out)));
+');
+pp_def('eval_integ_meat_ext',
+        Pars => 'double a(); double b(); double [o] out();',
+	OtherPars => 'int spl;int acc;',
+        Doc => undef,
+	Code =>'
+$out() = gsl_spline_eval_integ( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc));
+');
+
+
+# XS functions for the INTERP objects
+
+pp_addxs('','
+MODULE = PDL::GSL::INTERP PACKAGE = PDL::GSL::INTERP
+
+#define DEF_INTERP(X) if (!strcmp(TYPE,#X)) spline=gsl_spline_alloc( gsl_interp_ ## X , ene); strcat(ula,#X ", ");
+
+GslSpline *
+new_spline (TYPE,ene)
+  char *TYPE
+  int ene
+ CODE:
+  GslSpline * spline = NULL;
+  char ula[100];
+strcpy(ula,"");
+DEF_INTERP(linear);
+DEF_INTERP(polynomial);
+DEF_INTERP(cspline);
+DEF_INTERP(cspline_periodic);
+DEF_INTERP(akima);
+DEF_INTERP(akima_periodic);
+  if (spline==NULL) {
+    barf("Unknown interpolation type, please use one of the following: %s", ula);
+  }
+  else
+  RETVAL = spline;
+ OUTPUT:
+  RETVAL
+
+GslAccel *
+new_accel ()
+ CODE:
+  GslAccel * accel = NULL;
+  accel = gsl_interp_accel_alloc();
+  if (accel == NULL){
+    barf("Problem allocating accelerator object\n");
+  }
+  RETVAL = accel;
+ OUTPUT:
+  RETVAL
+ 
+MODULE = PDL::GSL::INTERP PACKAGE = GslSplinePtr PREFIX = spl_
+
+void
+spl_DESTROY(spline)
+  GslSpline * spline
+ CODE:
+  gsl_spline_free(spline);
+
+MODULE = PDL::GSL::INTERP PACKAGE = GslAccelPtr PREFIX = acc_
+
+void
+acc_DESTROY(accel)
+  GslAccel * accel
+ CODE:
+  gsl_interp_accel_free(accel);
+
+');        
+
+pp_export_nothing;  
+pp_done();  
+

@@ -1,5 +1,12 @@
 # -*-perl-*-
 
+##############################
+#
+# Be sure to increment $pdl_core_version (about 8 lines below this note)
+# if you change any prototypes or modify the Core structure!
+#
+##############################
+
 use strict;
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -8,8 +15,9 @@ require 'Dev.pm'; PDL::Core::Dev->import;
 use vars qw( %PDL_DATATYPES );
 
 # version 2 is for versions after PDL 2.1.1
+# version 4 has pdl_hard_copy included in the Core structure.
 use vars qw( $pdl_core_version );
-$pdl_core_version = 3;  
+$pdl_core_version = 5;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -39,6 +47,9 @@ print OUT <<'!NO!SUBS!';
 /*
  * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
  */
+
+#ifndef __PDLCORE_H
+#define __PDLCORE_H
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
@@ -244,6 +255,7 @@ struct Core {
     void   (*destroy)     (pdl *it);
     pdl*   (*null)        ();
     SV*    (*copy)        ( pdl*, char* );
+    pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
     void*  (*smalloc)      ( int );
@@ -324,12 +336,18 @@ print OUT <<'!NO!SUBS!';
 
   badvals bvals;  /* store the default bad values */
   void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+  void (*children_changesoon)(pdl *it, int what);
+  void (*changed)(pdl *it, int what, int recursing);
+  void (*vaffinechanged)(pdl *it, int what);
 
 };
 
 typedef struct Core Core;
 
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
+
+/* __PDLCORE_H */
+#endif
 
 !NO!SUBS!
 

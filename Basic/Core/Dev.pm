@@ -367,9 +367,11 @@ sub pdlpp_postamble_int {
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
+	my $core = "$w/Basic/Core";
+	my $gen = "$w/Basic/Gen";
 qq|
 
-$pref.pm: $src $w/Basic/Gen/pm_to_blib $w/Basic/Core/badsupport.p
+$pref.pm: $src $gen/pm_to_blib $core/badsupport.p $core/Types.pm
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
@@ -583,14 +585,7 @@ sub trylink {
       require ExtUtils::Liblist;
       my $self = new ExtUtils::MakeMaker {DIR =>  [],'NAME' => 'NONE'};
 
-      # ExtUtils::Liblist seems to have changed in perl5.6.1, although
-      # its documentation has not
-      my @libs;
-      if ( $] >= 5.006001 ) {
-	  @libs = ExtUtils::Liblist::Kid::ext($self, $libs, 0);
-      } else {
-	  @libs = ExtUtils::Liblist::ext($self, $libs, 0);
-      }
+      my @libs = $self->ext($libs, 0);
 
       print "processed LIBS: $libs[0]\n" unless $hide;
       $libs = $libs[0]; # replace by preprocessed libs

@@ -259,32 +259,43 @@ Automatically expands array in N-dimensional format:
 
 =head2 Sections
 
-perlDL betrays its perl/C heritage in that arrays are zero-offset.
-Thus a 100x100 image has indices C<0..99,0..99>.
+PDL has very powerful multidimensional slicing and sectioning
+operators; see L<the PDL::Slices(3) man page|PDL::Slices> for details;
+we'll describe the most imporant one here.
 
-Furthermore [Which modules!?!],
- the convention is that the center of the pixel (0,0)
-IS at coordinate (0.0,0.0). Thus the above image ranges from
-C<-0.5..99.5, -0.5..99.5> in real space. All perlDL graphics functions
-conform to this defintion and hide away the unit-offsetness
+PDL shows its perl/C heritage in that arrays are zero-offset.  Thus a
+100x100 image has indices C<0..99,0..99>.  (The convention is that the
+I<center> of pixel (0,0) is at coordinate (0.0,0.0). All PDL graphics
+functions conform to this definition and hide away the unit-offsetness
 of, for example, the PGPLOT FORTRAN library.
 
-Again following the usual convention coordinate (0,0) is displayed
+Following the usual convention coordinate (0,0) is displayed
 at the bottom left when displaying an image. It appears at the
 top left when using "C<print $a>" etc.
 
- $b = $a->slice("$x1:$x2,$y1:$y1,$z1:$z2"); # Take subsection
+Simple sectioning uses a syntax extension to perl, L<PDL::NiceSlice>,
+that allows you to specify subranges via a null-method modifier
+to a PDL:
 
- # Set part of $bigimage to values from $smallimage
- ($tmp = $bigimage->slice("$xa:$xb,$ya:$yb")) .= $smallimage;
+  $b = $a->($x1:$x2,$y1:$y2,($z1)); # Take subsection
 
- $newimage = ins($bigimage,$smallimage,$x,$y,$z...) # Insert at x,y,z
+Here, C<$a> is a 3-dimensional variable, and C<$b> gets a planar
+cutout that is defined by the limits $x1, $x2, $y1, $y2, at the location
+$z1.  The parenthesis around C<$z1> cause the trivial index to be omitted --
+otherwise C<$b> would be three-dimensional with a third dimension of order 1.
 
- $c  = nelem ($a); # Number of pixels
+You can put PDL slices on either side of the elementwise-assignment 
+operator C<.=>, like so:
 
- $val = at($object, $x,$y,$z...)    # Pixel value at position
- $val = $object->at($x,$y,$z...)    # equivalent
- set($myimage, $x, $y, ... $value)  # Set value in image
+  # Set part of $bigimage to values from $smallimage
+  $bigimage->($xa:$xb,$ya:$yb) .= $smallimage;
+
+Some other miscellany:
+
+ $c  = nelem($a); # Number of pixels
+
+ $val = at($object, $x,$y,$z...)    # Pixel value at position, as a perl scalar
+ $val = $object->at($x,$y,$z...)    # equivalent (method syntax OK)
 
  $b = xvals($a); # Fill array with X-coord values (also yvals(), zvals(),
                  # axisvals($x,$axis) and rvals() for radial distance

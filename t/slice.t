@@ -23,7 +23,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..58\n";
+print "1..63\n";
 
 if(1) {
 
@@ -291,14 +291,14 @@ ok(50,eval '$e->ndims == 6 && ((pdl($e->dims) == pdl(5,5,1,1,1,2))->sumover==6)'
 
 
 ##############################
-# Tests of indexND
+# Tests of indexND (Nowadays this is just another call to range)
 
 # Basic indexND operation
 $source = 10*xvals(10,10) + yvals(10,10);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval '$a = $source->indexND( $index )';
 ok(51,!$@);
-ok(52,eval 'sum($a != pdl([23,45],[67,89]))==0');
+ok(52,eval 'zcheck($a != pdl([23,45],[67,89]))');
 
 
 # Threaded indexND operation
@@ -306,18 +306,41 @@ $source = 100*xvals(10,10,2)+10*yvals(10,10,2)+zvals(10,10,2);
 $index  = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
 eval '$a = $source->indexND($index)';
 ok(53,!$@);
-ok(54,eval 'sum($a != pdl([[230,450],[670,890]],[[231,451],[671,891]]))==0');
+ok(54,eval 'zcheck($a != pdl([[230,450],[670,890]],[[231,451],[671,891]]))');
 
-# Permissive indexND operation
-$source = xvals(10);
-$index = pdl([3,0,0,0],[4,0,0,0]);
-eval '$a = $source->indexND( $index )';
+
+##############################
+# Tests of range operator
+
+# Basic range operation
+$source = 10*xvals(10,10) + yvals(10,10);
+$index = pdl([[2,3],[4,5]],[[6,7],[8,9]]);
+
+eval '$dest = $source->range($index);';
 ok(55,!$@);
-ok(56,eval 'sum($a != pdl(3,4))==0');
+ok(56,eval 'zcheck($dest != pdl([23,45],[67,89]));');
 
-# A trivial case
-$source = pdl(5);
-$index = 0;
-eval '$a = $source->indexND( $index )';
+# Make a 3x3 range at each index
+eval '$dest = $source->range($index,3);';
 ok(57,!$@);
-ok(58,eval '$a == 5');
+
+# Check that the range has the correct size
+ok(58,$dest->ndims == 4 && zcheck(pdl($dest->dims) != pdl(2,2,3,3)));
+
+#### Check boundary conditions
+eval '$z = $dest->copy;'; # Should throw range-out-of-bounds error
+ok(59,$@);
+
+## Truncation
+eval '$z = $source->range($index,3,"t")->copy;';
+ok(60,!$@);  # Should NOT throw range-out-of-bounds error.
+ok(61, zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[0,0,0],[0,0,0]])));
+
+## Truncation on one axis, periodic on another; string syntax
+eval '$z = $source->range($index,3,"tp")';
+ok(62, zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[80,90,0],[81,91,0]])));
+
+## Periodic on first axis, extension on another; list syntax
+eval '$z = $source->range($index,3,["e","p"]);';
+ok(63, zcheck($z->slice("(1),(1)") != pdl([[89,99,99],[80,90,90],[81,91,91]])));
+

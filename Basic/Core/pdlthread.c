@@ -32,7 +32,7 @@ static void print_iarr(int *iarr, int n) {
 void dump_thread(pdl_thread *thread) {
   int i;
   char spaces[] = "    ";
-  printf("DUMPTHREAD %d \n",thread);
+  printf("DUMPTHREAD 0x%x \n",thread);
   if (0&& thread->einfo) {
     psp; printf("Funcname: %s\n",thread->einfo->funcname);
     psp; printf("Paramaters: ");
@@ -45,12 +45,12 @@ void dump_thread(pdl_thread *thread) {
 
   psp; printf("Dims: "); print_iarr(thread->dims,thread->ndims); printf("\n");
   psp; printf("Inds: "); print_iarr(thread->inds,thread->ndims); printf("\n");
-  psp; printf("Offs: "); print_iarr(thread->offs,thread->ndims); printf("\n");
+  psp; printf("Offs: "); print_iarr(thread->offs,thread->npdls); printf("\n");
   psp; printf("Incs: "); print_iarr(thread->incs,thread->ndims); printf("\n");
   psp; printf("Realdims: "); print_iarr(thread->realdims,thread->npdls); printf("\n");
   psp; printf("Pdls: (");
   for (i=0;i<thread->npdls;i++)
-    printf("%s%d",(i?" ":""),thread->pdls[i]);
+    printf("%s0x%x",(i?" ":""),thread->pdls[i]);
   printf(")\n");
   psp; printf("Per pdl flags: (");
   for (i=0;i<thread->npdls;i++)
@@ -101,7 +101,7 @@ void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
 }
 
 void pdl_freethreadloop(pdl_thread *thread) {
-	PDLDEBUG_f(printf("Freethreadloop(%d, %d %d %d %d %d %d)\n",
+	PDLDEBUG_f(printf("Freethreadloop(0x%x, 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x)\n",
 		thread,
 		thread->inds, thread->dims, thread->offs, thread->incs,
 		thread->flags, thread->pdls);)
@@ -117,7 +117,7 @@ void pdl_freethreadloop(pdl_thread *thread) {
 }
 
 void pdl_clearthreadstruct(pdl_thread *it) {
-	PDLDEBUG_f(printf("Clearthreadloop(%d)\n", it);)
+	PDLDEBUG_f(printf("Clearthreadloop(0x%x)\n", it);)
 	it->einfo = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
@@ -151,7 +151,7 @@ void pdl_initthreadstruct(int nobl,
 	int *nthreadids;
 	int nthr = 0; int nthrd;
 
-	PDLDEBUG_f(printf("Initthreadloop(%d)\n", thread);)
+	PDLDEBUG_f(printf("Initthreadloop(0x%x)\n", thread);)
 #ifdef PDL_THREAD_DEBUG
 	  /* the following is a fix for a problem in the current core logic
            * see comments in pdl_make_physical in pdlapi.c
@@ -246,6 +246,7 @@ void pdl_initthreadstruct(int nobl,
 	/* populate the per_pdl_flags */
 
 	for (i=0;i<npdls; i++) {
+	  thread->offs[i] = 0; /* initialize offsets */
 	  thread->flags[i] = 0;
 	  if (PDL_VAFFOK(pdls[i]) && VAFFINE_FLAG_OK(flags,i))
 	    thread->flags[i] |= PDL_THREAD_VAFFINE_OK;

@@ -1,3 +1,72 @@
+Release notes for PDL 2.4.0 -------------------------------
+
+General Notes:
+     - Perl 5.6.0 or later is now required, along with the modules
+       Filter and Text::Balanced.
+
+     - After installing PDL 2.4.0 external PDL modules will need to re-built.
+       (any such modules will refuse to load until they have been re-built)
+       
+     - New demos of the PDL::Transform and PDL::Transform::Cartography
+	modules have been added to perldl.
+       Type 'demo transform' or 'demo cartography' in the perldl shell. 
+	( Note that PGPLOT is required to run )
+
+Summary of Changes:
+
+     - The NiceSlice syntax comes of age
+       (Nice slicing has been around a while, but really needs to be 
+	acknowledged as the main way of slicing PDLs...)
+
+     - New GSL functionality: greatly improved access to the Gnu Scientific
+       Library, including interpolation, finite-difference, random
+       variable, and other routines.
+
+     - New, very powerful indexing and slicing operators allow boundary 
+	  conditions   (range, indexND)
+
+     - N-dimensional indexing (indexND) and selection (whichND) methods
+
+     - Powerful syntax for coordinate transformation and arbitrary image
+       resampling and coordinate transformations -- including high powered
+       spatially-variable filtering (PDL::Transform module)
+
+     - Support for major cartographic transformations
+       (PDL::Transform::Cartography module)
+
+     - New PLPlot graphics interface ( cleaner and faster than PGPLOT )
+
+     - Many improvements to the PGPlot interface:
+       * Strong FITS support (easy display of images, vectors, & contours in
+            science coordinates)
+       * Better vector graphic support [including improvements to line() and
+	 a new routine, lines()]
+       * Much cleanup of errors and bugs
+       * Spinlocks prevent interrupt-related PGPLOT crashes (requires Perl 5.8)
+       * RGB output to truecolor devices (requires PGPLOT-5.3devel)
+
+     - Improvements to the perldl shell:
+       * Many bug fixes
+       * Multi-line inputs to the perldl shell for easier cut-n-paste
+       * ^D blocking on demand (controlled by perl variable or command-line 
+	  switch)
+       * Autoloading detects error conditions on compile
+       * New demos
+
+    - Header copying is now explicit rather than by reference -- so that,
+      e.g., FITS file manipulation is more intuitive and natural.
+
+    - Improved support for Astro::FITS::Header
+
+    - Bad value support is improved
+
+    - Several new utility routines, including glue(), zcheck(), and ndcoords().
+
+    - Better matrix operation support: matrix operations are now in 
+	PDL::MatrixOps, and are all threadable.  Singular value decomposition,
+	determinant, linear equation solving, matrix inversion, 
+	eigenvalue decomposition, and LU-decomposition.
+
 Release notes for PDL 2.3.4 -------------------------------
 
      - Now should compile using perl 5.8.0

@@ -53,7 +53,8 @@ sub validate {
 	my ($key, $value) = (shift, shift);
 	if ($key eq 'MAKE' or
 	    $key eq 'INTERNAL' or
-	    $key eq 'BLESS'
+	    $key eq 'BLESS' or
+	    $key eq 'NOISY'
 	   ) {
 	    $o->{ILSM}{$key} = $value;
 	    next;
@@ -334,10 +335,11 @@ sub compile {
       or croak "Can't locate your make binary";
     $cwd = &cwd;
     ($cwd) = $cwd =~ /(.*)/ if $o->UNTAINT;
-    for $cmd ("$perl Makefile.PL > out.Makefile_PL 2>&1",
+    my $noisy = $o->{ILSM}{NOISY} ? '| tee' : '';
+    for $cmd ("$perl Makefile.PL $noisy > out.Makefile_PL 2>&1",
 	      \ &fix_make,   # Fix Makefile problems
-	      "$make > out.make 2>&1",
-	      "$make pure_install > out.make_install 2>&1",
+	      "$make $noisy > out.make 2>&1",
+	      "$make pure_install $noisy > out.make_install 2>&1",
 	     ) {
 	if (ref $cmd) {
 	    $o->$cmd();
@@ -678,6 +680,11 @@ C code using a debugger like gdb.
 Specifies extra typemap files to use. Corresponds to the MakeMaker parameter.
 
     use Inline Pdlpp => Config => TYPEMAPS => '/your/path/typemap';
+
+=head2 NOISY
+
+Show the output of any compilations going on behind the scenes. Uses
+C<tee> which must be available on your computer. Default is off.
 
 =head1 BUGS
 

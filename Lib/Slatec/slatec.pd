@@ -175,7 +175,7 @@ derivatives, at a specified point.
 
  ($yfit, $yp) = polyvalue($l, $nder, $x, $a);
 
-=head2 det
+=head2 detslatec
 
 =for ref
 
@@ -184,25 +184,31 @@ compute the determinant of an invertible matrix
 =for example
 
   $mat = zeroes(5,5); $mat->diagonal(0,1) .= 1; # unity matrix
-  $det = det $mat;
+  $det = detslatec $mat;
 
 Usage:
 
 =for usage
 
-  $determinant = det $matrix;
+  $determinant = detslatec $matrix;
 
 =for sig
 
-  Signature: det(mat(n,m); [o] det())
+  Signature: detslatec(mat(n,m); [o] det())
 
-C<det> computes the determinant of an invertible matrix and barfs if
+C<detslatec> computes the determinant of an invertible matrix and barfs if
 the matrix argument provided is non-invertible. The matrix threads as usual.
+
+This routine was previously known as C<det> which clashes now with
+L<det:PDL::MatrixOps/det> which is provided by
+L<PDL::MatrixOps|PDL::MatrixOps>. For the moment L<PDL::Slatec> will
+also load L<PDL::MatrixOps> thereby making sure that older scripts work.
 
 =cut
 
 END
 
+use PDL::MatrixOps;
 use strict;
 
 # for MDim, ld[str] is interpreted as "leading dimension of ..."
@@ -457,6 +463,12 @@ sub PDL::eigsys {
 
 sub PDL::matinv {
 	my($m) = @_;
+	my(@dims) = $m->dims;
+
+	# Keep from dumping core (FORTRAN does no error checking)
+	barf("matinv requires a 2-D square matrix")
+		unless( @dims == 2 && $dims[0] == $dims[1] );
+  
 	$m = $m->copy(); # Make sure we don't overwrite :(
 	gefa($m,(my $ipvt=null),(my $info=null));
 	if(sum($info) > 0) {
@@ -466,8 +478,8 @@ sub PDL::matinv {
 	$m;
 }
 
-*det = \&PDL::det;
-sub PDL::det {
+*detslatec = \&PDL::detslatec;
+sub PDL::detslatec {
 	my($m) = @_;
 	$m = $m->copy(); # Make sure we don't overwrite :(
 	gefa($m,(my $ipvt=null),(my $info=null));

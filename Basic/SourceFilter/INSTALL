@@ -1,0 +1,29 @@
+Build the module in the usual way:
+
+Unpack the distribution, cd into the
+PDL-NiceSlice-XXX directory and start
+the build process:
+
+  perl Makefile.PL
+  make test
+  make install
+
+You probably want to merge the contents of local.perldlrc
+into your default startup file ~/.perldlrc (~ means your home
+directory). A simple text editor should allow you to do that.
+Read the docs to find out what the code in local.perldlrc
+will allow you to do.
+
+*NOTE*: PDL::NiceSlice relies on several modules from CPAN that make
+source filtering and parsing easier. In particular it requires
+the Filter distribution and Text::Balanced. To make your life easier it is
+recommended that you use the CPAN module to resolve dependencies during
+installation automatically.
+
+Using the cpan installation shell installing PDL::NiceSlice should
+be as easy as
+
+   $ perl -MCPAN -e shell
+   cpan> install PDL::NiceSlice
+
+  Christian Soeller <soellermail@excite.com>

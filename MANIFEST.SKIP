@@ -7,6 +7,7 @@ MANIFEST\.old
 ^_Inline
 ^[.]Inline
 ^Basic/Core/badsupport\.p
+.*/TAGS$
 .*\.0$
 \.(tmp|new|diff|ori)$
 ^Basic/SourceFilter/INSTALL
@@ -15,6 +16,7 @@ MANIFEST\.old
 ^t/.*\.pnm$
 ^core
 ^pdldoc.db$
+^patch
 \.cvsignore$
 .*\.orig$
 ^test\.wis$
@@ -53,6 +55,9 @@ pdlexamples\.c$
 ^Basic/Math/Math\.c$
 ^Basic/Math/Math\.pm$
 ^Basic/Math/Math\.xs$
+^Basic/MatrixOps/MatrixOps\.pm
+^Basic/MatrixOps/MatrixOps\.xs
+^Basic/MatrixOps/MatrixOps\.c
 ^Basic/Core/Config\.pm
 ^Basic/Core/Version\.pm
 ^Basic/Core/Core\.c$
@@ -98,6 +103,13 @@ pdlexamples\.c$
 ^Lib/Fit/Gaussian/Gaussian\.xs
 ^Lib/CallExt/CallExt\.c$
 ^Lib/Opt/Golden
+^Lib/GSL/RNG/.*\.c$
+^Lib/GSL/SF/.*\.c$
+^Lib/GSL/INTERP/.*\.c$
+^Lib/GSL/DIFF/D.*\.c$
+^Lib/GSL/INTEG/I.*\.c$
+^Lib/GSL/.*\.pm$
+^Lib/GSL/.*\.xs$
 ^Lib/FFTW/typespec
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm
@@ -114,9 +126,14 @@ MANIFEST\.bak$
 CVS
 Benchmark/Bench.c
 Benchmark/blib/
-IO/Misc/Misc.*
-IO/tmp0
-IO/tmp0.hdr
+^IO/Misc/Misc.*
+^IO/Pnm/converters/pnmtotiff$
+^IO/Pnm/converters/tifftopnm$
+^IO/Storable/Storable\.c
+^IO/Storable/Storable\.pm
+^IO/Storable/Storable\.xs
+^IO/tmp0
+^IO/tmp0.hdr
 Lib/PCA/PCA*
 ^Lib/Genetic
 ^Graphics/TriD/OpenGL/OpenGL\.c$

@@ -115,7 +115,7 @@ sub PDL::lmfit {
   do {
     if ($iter>0) {
       $cov .= $al;
-      local $PDL::debug = 1;
+      # local $PDL::debug = 1;
       $codiag .= $aldiag*(1+$lambda);
       gefa $cov, $pivt, $info;     # gefa + gesl = solution by Gaussian elem.
       gesl $cov, $pivt, $bet, 0;   # solution returned in $bet

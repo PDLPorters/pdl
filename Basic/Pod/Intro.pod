@@ -2,30 +2,36 @@
 
 PDL::Intro - Introduction to the Perl Data Language
 
-Version 2.0 
+Version 2.4
 
 "Why is it that we entertain the belief that for every purpose odd
 numbers are the most effectual?" - Pliny the Elder.
 
-I<Karl Glazebrook [karlglazebrook@yahoo.com]>
+I<Karl Glazebrook [karlglazebrook@yahoo.com]> and 
+I<Craig DeForest  [deforest@boulder.swri.edu>
 
 =head1 DESCRIPTION
 
-Perl is an extremely good and versatile scripting language, well suited to
-beginners and allows rapid prototyping. However until recently it did not
-support data structures which allowed it to do fast number crunching.
+Perl Data Language (PDL) is a perl extension that is designed for scientific
+and bulk numeric data processing and display.  It extends perl's syntax and
+includes fully vectorized, multidimensional array handling, plus several 
+paths for device-independent graphics output. 
 
-However with the development of Perl v5, Perl acquired I<Objects>. To put
-it simply users can define their own special data types, and write
-custom routines to manipulate them either in low level languages (C and
-Fortran) or in Perl itself.
+Because PDL is a modular extension to perl, it is accessible to
+ordinary perl scripts: to write a command-line PDL script you just say
+"use PDL;" at the top of an ordinary perl script.  There is also a
+specialized interactive shell (L<perldl(1)|perldl>) that allows you to
+issue PDL commands interactively and that includes a path-based
+subroutine autoloader similar to those found in MatLab and IDL (which
+are trademarks of MathWorks and Kodak, respectively).  The perldl
+shell allows you to quickly manipulate and "play with" your data.
 
-This has been fully exploited by the PDL developers. The C<PDL> module is a
-complete Object-Oriented extension to Perl (although you don't have to know
-what an object is to use it) which allows large N-dimensional data sets, such
-as large images, spectra, time series, etc to be stored  B<efficiently> and
-manipulated B<en masse>.  For example  with the PDL module we can write the
-perl code C<$a=$b+$c>, where C<$b> and C<$c> are large datasets (e.g. 2048x2048
+The C<PDL> module is a complete Object-Oriented extension to Perl
+(although you don't have to know what an object is to use it) which
+allows large N-dimensional data sets, such as large images, spectra,
+time series, etc to be stored B<efficiently> and manipulated B<en
+masse>.  For example with the PDL module we can write the perl code
+C<$a=$b+$c>, where C<$b> and C<$c> are large datasets (e.g. 2048x2048
 images), and get the result in only a fraction of a second.
 
 PDL variables (or I<piddles> as they have come to be known)
@@ -34,10 +40,24 @@ short integers (signed or unsigned), long integers, floats or
 double precision floats. And because of the Object-Oriented nature
 of PDL new customised datatypes can be derived from them.
 
-As well as the PDL modules, that can be used by normal perl programs, PerlDL
-comes with a command line perl shell, called L<perldl|perldl>, which
-supports command line editing. In combination with the various PDL
-graphics modules this allows data to be easily played with and visualised.
+Perl is an extremely good and versatile scripting language, well
+suited to beginners, and allows rapid prototyping.  The PDL extensions
+to the language use Perl's object-oriented capabilities to seamlessly
+add high-speed scientific capabilities that are themselves written in
+perl, C and/or FORTRAN as appropriate -- so your code's "hot spots"
+run at native compiled-language speed, while you work in the higher
+level perl language (which itself runs faster than many other
+JIT-compiled or interpreted languages).
+
+External modules that have been incorporated into PDL include 
+complete Gnu Scientific Library; CFITSIO for FITS file handling; FFTW;
+the Slatec matrix-handling package; and the PGPLOT, PLPLOT, Karma, and
+OpenGL graphics libraries.  Ancillary packages written in PDL itself
+include image handling, curve fitting, matrix manipulation, coordinate
+transformation, nonlinear data resampling, graphics I/O, and extensive
+file I/O utilities.  Because PDL programs are "just" perl with
+additional modules loaded, the entire CPAN archive is also available
+to your PDL scripts.
 
 =head1 SYNOPSIS
 

@@ -529,6 +529,64 @@ trans is performed in agreement with PDL's threading semantics.
 Please, see L<PDL::PP> and examples in the PDL distribution. Implementation
 and syntax are currently far from perfect but it does a good job!
 
+=head2 The Core struct
+
+As discussed in L<PDL::API|PDL::API>, PDL uses a pointer to a structure
+to allow PDL modules access to its core routines. The definition of this
+structure (the C<Core> struct) is in F<pdlcore.h> (created by 
+F<pdlcore.h.PL> in F<Basic/Core>) and looks something like
+
+ /* Structure to hold pointers core PDL routines so as to be used by 
+  * many modules
+  */
+ struct Core {
+    I32    Version;
+    pdl*   (*SvPDLV)      ( SV*  );
+    void   (*SetSV_PDL)   ( SV *sv, pdl *it );
+ #if defined(PDL_clean_namespace) || defined(PDL_OLD_API)
+    pdl*   (*new)      ( );     /* make it work with gimp-perl */
+ #else
+    pdl*   (*pdlnew)      ( );  /* renamed because of C++ clash */
+ #endif
+    pdl*   (*tmp)         ( );
+    pdl*   (*create)      (int type);
+    void   (*destroy)     (pdl *it);
+    ...
+ }
+ typedef struct Core Core;
+
+The first field of the structure (C<Version>) is used to ensure 
+consistency between modules at run time; the following code
+is placed in the BOOT section of the generated xs code:
+
+ if (PDL->Version != PDL_CORE_VERSION)
+   Perl_croak(aTHX_ "Foo needs to be recompiled against the newly installed PDL");
+
+If you add a new field to the F<Core> struct you should:
+
+=over 5
+
+=item *
+
+discuss it on the pdl porters email list (pdl-porters@jach.hawaii.edu)
+[with the possibility of making your changes to a separate
+branch of the CVS tree if it's a change that will take time to complete]
+
+=item *
+
+increase by 1 the value of the C<$pdl_core_version> variable in 
+F<pdlcore.h.PL>. This sets the value of the
+C<PDL_CORE_VERSION> C macro used to populate the Version field
+
+=item *
+
+add documentation (eg to L<PDL::API|PDL::API>) if it's a
+"useful" function for external module writers (as well as
+ensuring the code is as well documented as the rest of PDL
+;)
+
+=back
+
 =head1 BUGS
 
 This description is far from perfect. If you need more details
@@ -538,7 +596,7 @@ mailing list (pdl-porters@jach.hawaii.edu).
 =head1 AUTHOR
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu),
-2000 Doug Burke (burke@ifa.hawaii.edu), 2002 Christian Soeller.
+2000 Doug Burke (djburke@cpan.org), 2002 Christian Soeller & Doug Burke.
 
 Redistribution in the same form is allowed but reprinting requires
 a permission from the author.

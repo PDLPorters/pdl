@@ -127,6 +127,8 @@ print OUT <<'!NO!SUBS!';
 
 #define PDL_BADVAL                              0x0400
 
+#define PDL_TRACEDEBUG                          0x0800
+
 #define PDL_CR_SETDIMSCOND(wtrans,pdl) (((pdl)->state & PDL_MYDIMS_TRANS) \
 		&& (pdl)->trans == (pdl_trans *)(wtrans))
 
@@ -367,9 +369,6 @@ struct pdl {
 		} while(1);
 
 
-
-/* For ease */
-#define PDL_U PDL_US
 
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 

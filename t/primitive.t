@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => 14;
+plan tests => 16;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -78,7 +78,7 @@ ok(tapprox $r1, $r2);
 # Test that whichND works OK...
 my $r = xvals(10,10)+10*yvals(10,10);
 $a = whichND( $r % 12 == 0 );
-print $a;
+
 ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0');
 
 ##############################
@@ -89,4 +89,15 @@ my($z) = 73+xvals(5,5)*0.25+2.5*yvals(5,5);
 eval '$b = $a->interpND($index);';
 ok(!$@);
 ok(sum($b != $z) == 0);
+
+##############################
+# Test glue...
+$a = xvals(2,2,2);
+$b = yvals(2,2,2);
+$c = zvals(2,2,2);
+our $d;
+eval '$d = $a->glue(1,$b,$c);';
+ok(!$@);
+ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
+                   [[0,1],[0,1],[0,0],[1,1],[1,1],[1,1]])));
 

@@ -459,8 +459,8 @@ for (keys %PDL::Types::typehash) {
 
 sub generic_qsort {
     my $pdl = shift;
-    return '$TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
+    return '$TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
 }
 
 # should use threadloop ?
@@ -562,8 +562,8 @@ I<any> dimension.
            double pp1, pp2;
 	   loop(n) %{ $tmp() = $a(); %}
            nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
 
            nn1 = (nn + 1)*$p() - 1 + 0.5; nn2 = nn1+1;
            if (nn2 > nn) nn2 = nn;
@@ -610,8 +610,8 @@ I<any> dimension.
            int nn, nn1;
 	   loop(n) %{ $tmp() = $a(); %}
            nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
 
            nn1 = (nn + 1)*$p() - 1 + 0.5;
            if (nn1 > nn) nn1 = nn;
@@ -892,8 +892,8 @@ Bad values are moved to the end of the array:
     ); # pp_def qsort
 
 sub generic_qsort_ind {
-    return '$TBSULFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
-            pdl_qsort_ind_L,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
+    return '$TBSULQFD(pdl_qsort_ind_B,pdl_qsort_ind_S,pdl_qsort_ind_U,
+            pdl_qsort_ind_L,pdl_qsort_ind_Q,pdl_qsort_ind_F,pdl_qsort_ind_D) ($P(a), $P(indx),
             0, nn);';
 }
 
@@ -1051,6 +1051,9 @@ pp_def(
 	Code => 
 	'$GENERIC() curmin, curmax;
          int curmin_ind, curmax_ind;
+
+ 	 curmin = curmax = 0; /* Handle null piddle --CED */
+
 	 loop(n) %{
             if ( !n ) {
                curmin = curmax = $a();
@@ -1066,6 +1069,7 @@ pp_def(
 	BadCode => 
 	'$GENERIC() curmin, curmax;
          int curmin_ind, curmax_ind, flag = 0;
+	
 	 loop(n) %{
             if ( $ISGOOD(a()) ) {
                if ( !flag ) {
@@ -1078,7 +1082,7 @@ pp_def(
                }
             } /* ISGOOD */
 	 %}
-         if ( flag ) {
+         if ( flag ) { /* Handle null piddle */
             $cmin() = curmin; $cmin_ind() = curmin_ind;
             $cmax() = curmax; $cmax_ind() = curmax_ind;
          } else {

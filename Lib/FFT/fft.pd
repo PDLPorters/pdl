@@ -79,6 +79,7 @@ use Carp;
 use PDL::Core qw/:Func/;
 use PDL::Basic qw/:Func/;
 use PDL::Types;
+use PDL::ImageND qw/kernctr/; # moved to ImageND since FFTW uses it too
 
 END {
   # tidying up required after using fftn
@@ -306,29 +307,13 @@ N-dimensional convolution
 fftconvolve works inplace, and returns an error array in kernel as an
 accuracy check -- all the values in it should be negligible.
 
-The sizes of the image and the kernel must be the same.  
-L<kernctr|/kernctr>
-centres a small kernel to emulate the behaviour of the direct
-convolution routines.
+The sizes of the image and the kernel must be the same.
+L<kernctr|PDL::ImageND/kernctr> centres a small kernel to emulate the
+behaviour of the direct convolution routines.
 
 The speed cross-over between using straight convolution 
 (L<PDL::Image2D::conv2d()|PDL::Image2D/conv2d>) and
 these fft routines is for kernel sizes roughly 7x7.
-
-=head2 kernctr()
-
-=for ref
-
-`centre' a kernel (auxiliary routine to fftconvolve)
-
-=for usage
-
-	$kernel = kernctr($image,$smallk);
-	fftconvolve($image,$kernel);
-
-kernctr
-centres a small kernel to emulate the behaviour of the direct
-convolution routines.
 
 =cut
 
@@ -366,44 +351,6 @@ sub PDL::fftconvolve {
     ($hr,$hi);
 }
 
-*kernctr = \&PDL::kernctr;
-
-sub PDL::kernctr {
-    # `centre' the kernel, to match kernel & image sizes and
-    # emulate convolve/conv2d.  FIX: implement with phase shifts
-    # in fftconvolve, with option tag
-    barf "Must have image & kernel for kernctr" if $#_ != 1;
-    my ($imag, $kern) = @_;
-    my (@ni) = $imag->dims;
-    my (@nk) = $kern->dims;
-    barf "Kernel and image must have same number of dims" if $#ni != $#nk;
-    my ($newk) = zeroes(double,@ni);
-    my ($k,$n,$d,$i,@stri,@strk,@b);
-    for ($i=0; $i <= $#ni; $i++) {
-	$k = $nk[$i];
-	$n = $ni[$i];
-	barf "Kernel must be smaller than image in all dims" if ($n < $k);
-	$d = int(($k-1)/2);
-        $stri[$i][0] = "0:$d,";
-        $strk[$i][0] = (-$d-1).":-1,";
-        $stri[$i][1] = $d == 0 ? '' : ($d-$k+1).':-1,';
-        $strk[$i][1] = $d == 0 ? '' : '0:'.($k-$d-2).',';
-    }
-    # kernel is split between the 2^n corners of the cube
-    my ($nchunk) = 2 << $#ni;
-    CHUNK:
-      for ($i=0; $i < $nchunk; $i++) {
-	my ($stri,$strk);
-	for ($n=0, $b=$i; $n <= $#ni; $n++, $b >>= 1) {
-        next CHUNK if $stri[$n][$b & 1] eq '';
-	  $stri .= $stri[$n][$b & 1];
-	  $strk .= $strk[$n][$b & 1];
-	}
-	chop ($stri); chop ($strk);
-	($t = $newk->slice($stri)) .= $kern->slice($strk);
-    }
-    $newk;
-}
 
 =cut
 

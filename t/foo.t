@@ -17,7 +17,7 @@ sub ok {
 	}
 }
 
-print "1..9\n";
+print "1..3\n";
 
 # PDL::Core::set_debugging(1);
 
@@ -30,6 +30,12 @@ $b = $a->oneslice(2,10,2,5);
 ok(1,$b->at(0,0,0) == 10);
 ok(2,$b->at(0,0,1) == 12);
 ok(3,$b->at(0,0,4) == 18);
+
+# we don't test the foomethod
+# had to disable some code that
+# is required for foomethod since
+# it caused another bug in more important code (see pdl_changed in pdlapi.c)
+exit(0);
 
 $t = $b->get_trans;
 
