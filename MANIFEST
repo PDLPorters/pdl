@@ -18,7 +18,6 @@ Basic/Core/pdlapi.c
 Basic/Core/pdlconv.c.PL
 Basic/Core/pdlcore.c.PL
 Basic/Core/pdlcore.h.PL
-Basic/Core/pdlfamily.c
 Basic/Core/pdlhash.c
 Basic/Core/pdlmagic.c
 Basic/Core/pdlmagic.h

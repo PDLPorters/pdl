@@ -156,7 +156,7 @@ sub onearg ($) {
   # recursively process args for slice syntax
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
   # no doubles colon are matched to avoid confusion with Perl's C<::>
-  if ($arg =~ /(?<!:):(?!:)/) {
+  if ($arg =~ /(?<!:):(?!:)/) { # a start:stop:delta range
     my @args = splitprotected $arg, '(?<!:):(?!:)';
     filterdie "invalid range in slice expression '".curarg()."'"
       if @args > 3;
@@ -167,7 +167,7 @@ sub onearg ($) {
   }
   # the (pos) syntax, i.e. 0D slice
   return "[$arg,0,0]" if $arg =~ s/^\s*\((.*)\)\s*$/$1/; # use the new [x,x,0]
-  # we don't allow [] syntax (although that's what mslice uses)
+  # we don't allow [] syntax (although that's what nslice internally uses)
   filterdie "invalid slice expression containing '[', expression was '".
     curarg()."'" if $arg =~ /^\s*\[/;
   # this must be a simple position, leave as is
@@ -187,7 +187,7 @@ sub procargs {
 }
 
 # this is the real workhorse that translates occurences
-# of $a(args) into $args->mslice(processed_arglist)
+# of $a(args) into $args->nslice(processed_arglist)
 #
 sub findslice {
   my ($src,$verb) = @_;

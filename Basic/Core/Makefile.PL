@@ -89,7 +89,7 @@ WriteMakefile(
  'NAME'	        => 'PDL::Core',
  'VERSION_FROM' => 'Version.pm',
  'OBJECT'       => 'Core$(OBJ_EXT) pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
-                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) pdlfamily$(OBJ_EXT) '.
+                   'pdlhash$(OBJ_EXT) pdlthread$(OBJ_EXT) '.
                    'pdlconv$(OBJ_EXT) pdlmagic$(OBJ_EXT) pdlsections$(OBJ_EXT) ',
   'PM'          => {
   		(map {($_,'$(INST_LIBDIR)/'.$_)} (

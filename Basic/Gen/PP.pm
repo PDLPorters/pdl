@@ -712,7 +712,7 @@ $PDL::PP::deftbl =
     [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
-     NewXSMakeNow, 
+#     NewXSMakeNow,  # this is unnecessary since families never got implemented
      NewXSFindDatatype,NewXSTypeCoerce,
      NewXSStructInit1,
      NewXSStructInit2,
@@ -730,7 +730,7 @@ $PDL::PP::deftbl =
     [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
-     NewXSMakeNow, 
+#     NewXSMakeNow, # this is unnecessary since families never got implemented
      NewXSFindDatatype,NewXSTypeCoerce,
      NewXSStructInit1,
      NewXSStructInit2,

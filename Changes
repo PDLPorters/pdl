@@ -1,3 +1,17 @@
+CS  - perldl v1.32: changed preprocess interface -> pipeline
+    - Lvalue.pm : use attributes interface (fixes lvalues with bleadperl)
+    - Core: remove pdlfamily.c dependencies and delete the file
+            pdlapi.c: make_now noop, future_me etc stuff in pdl_destroy
+    - PP: make_now is really a noop with above family changes - removed
+    - doc updates
+    - box2d in image2d.pd
+    - some more PGPLOT tline fixes
+    - PGPLOT autolog stuff (as yet undocumented)
+    - perldl -V  (version info)
+    - remove 'use PDL::Core' from PdlParObj.pm (static linking)
+      ## hope this doesn't break anything ##
+    - Makefile.PL: fix PDL::Config formatting,
+      	make solaris/usemymalloc/gcc message even more verbose
 DJB (09 Apr 02)
     - added 'use PDL::Math' to PDL.pm (but not Lite/LiteF versions)
     (22 Apr 02)

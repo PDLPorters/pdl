@@ -87,7 +87,6 @@ PDL::IO::Pic
                                         Module builds
                                         ok without converters
 
-PDL::Slatec
 PDL::Slatec	ExtUtils::F77		linear algebra routines
 					several other modules use PDL::Slatec
                 Slatec fortran lib is included but requires a
@@ -117,6 +116,7 @@ PDL::FFTW
 PDL::IO::Browser
 		Requires a 'curses'-compatible library
 		not built by default (edit perldl.conf to enable)
+
 PDL::IO::NDF
                 Requires the perl/NDF interface (NDFPERL).
                 (which also requires a fortran compiler and the

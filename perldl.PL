@@ -40,7 +40,9 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.31'; print "perlDL shell v$VERSION
+$VERSION = '1.32';
+
+print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
  'COPYING' in the PDL distribution. This is free software and you
  are welcome to redistribute it under certain conditions, see
@@ -55,7 +57,8 @@ $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 $PERLDL::PAGE   = 0;
 $PERLDL::PAGING = 0;
 @PERLDL::AUTO   = ();
-$PERLDL::PREPROCESS  = undef;   # user supplied code to pre-process shell input
+$PERLDL::PREPROCESS  = undef;   # old interface -- disabled
+@PERLDL::PREPROCESS = ();       # new preprocessor pipeline
 $HOME = $ENV{HOME};             # Useful in shell
 
 $HOME = 'c:/Temp' if $HOME eq "" # For want of somewhere better..
@@ -84,6 +87,31 @@ sub mypdlconfig {
     $txt .= "Could not obtain \%PDL::Config\n";
   }
   $txt .= Config::myconfig(); # append perl config info
+}
+
+sub preproc_registered ($) {
+  my ($sub) = @_;
+  die "preprocessors must be code references"
+     unless ref $sub eq 'CODE';
+  return grep ($_ == $sub, @PERLDL::PREPROCESS) > 0;
+}
+
+sub preproc_add ($) {
+  my ($sub) = @_;
+  die "preprocessors must be code references"
+     unless ref $sub eq 'CODE';
+  push @PERLDL::PREPROCESS, $sub;
+  return $sub;
+}
+
+sub preproc_del ($) {
+  my ($sub) = @_;
+  die "preprocessors must be code references"
+     unless ref $sub eq 'CODE';
+  die "preprocessor can't be deleted: not installed"
+    unless preproc_registered $sub;
+  @PERLDL::PREPROCESS = grep ($_ != $sub, @PERLDL::PREPROCESS);
+  return $sub;
 }
 
 # Parse ARGV
@@ -174,8 +202,11 @@ unless ($@) {
 	  print STDERR "processed $new\n" if report && $new ne $txt;
 	  return $new;
   };
-  sub trans { $PERLDL::PREPROCESS  = $preproc;
-     $PERLDL::PREPROCESS = undef if $#_ > -1 && !$_[0];}
+  sub trans {
+     preproc_add $preproc unless preproc_registered $preproc;
+     preproc_del $preproc if $#_ > -1 && !$_[0] &&
+        preproc_registered $preproc;
+  }
   sub notrans { trans 0 }
   trans; # switch on by default
   push @enabled, "NiceSlice";
@@ -364,6 +395,20 @@ EOD
 $SIG{'INT'} = sub {die "Ctrl-C detected\n"}; # Ctrl-C handler
 
 
+my $preproc_warned = 0;
+sub preproc_oldwarn {
+  warn << 'EOW';
+
+ Deprecated usage: $PERLDL::PREPROCESS was set.
+ Usage of this variable is now strongly deprecated.
+ To enable preprocessing with recent versions of perldl
+ you should use the 'preproc_add' function. For details
+ check the perldl manpage.
+
+EOW
+  $preproc_warned = 1; # warn only once
+}
+
 sub process_input { 
   { local $, = "";
 	     if ($readlines) {
@@ -406,10 +451,16 @@ sub process_input {
         system(substr($_,1)); # Shell escape
         next;
       } else {
-        # Send code to pre-processor if defined
-        $_ = &$PERLDL::PREPROCESS($_)
-          if (defined $PERLDL::PREPROCESS && 
-              ref($PERLDL::PREPROCESS) eq 'CODE');
+        # Send code to pre-processor filters if defined
+        for my $filter (@PERLDL::PREPROCESS) {
+          $_ = $filter->($_);
+        }
+        # honor the deprecated interface for now
+        if (defined $PERLDL::PREPROCESS && 
+              ref($PERLDL::PREPROCESS) eq 'CODE') {
+          preproc_oldwarn() unless $preproc_warned;
+          $_ = &$PERLDL::PREPROCESS($_);
+        }
 
 	startpage;
 	my $mess = eval_and_report($_);
@@ -417,6 +468,11 @@ sub process_input {
 	endpage;
      }
      print "\n";
+}
+
+# check for old usage of PERLDL::PREPROCESS
+if (defined $PERLDL::PREPROCESS) {
+  preproc_oldwarn();
 }
 
 $|=1;
@@ -535,12 +591,32 @@ Unloads the module before processing any user input.
 Adds directory to the include path. (i.e. the @INC array)
 Compare corresponding C<perl> switch.
 
+=item -V
+
+Prints a summary of PDL config. This information should
+be included with any PDL bug report. Compare corresponding
+C<perl> switch.
+
 =back
 
 =head2 Terminating C<perldl>
 
 A C<perldl> session can be terminated with any of the commands
 C<quit>, C<exit> or the shorthands C<x> or C<q>.
+
+=head2 Terminating commands (Ctrl-C handling)
+
+Commands executed within C<perldl> can be terminated prematurely
+using C<Ctrl-C> (or whichever key sequence sends an INT signal
+to the process on your terminal). Provided your PDL code does not
+ignore C<sigint>s this should throw you back at the C<perldl>
+command prompt:
+
+  perldl> $result = start_lengthy_computation()
+   <Ctrl-C>
+ Ctrl-C detected
+
+  perldl>
 
 =head2 Shortcuts and aliases
 
@@ -612,7 +688,7 @@ directory) is sourced if found. This lets you load modules and define
 subroutines for the project in the current directory.
 
 The name is chosen specfically because it was found hidden files were
-NOT wanted in this circumstances.
+NOT wanted in these circumstances.
 
 =head2 Shell variables
 
@@ -657,7 +733,7 @@ The user's home directory
 $PERLDL::TERM
 
 This is the Term::ReadLine object associated with the perldl
-shell. This can be used by routines called from perldl if your
+shell. It can be used by routines called from perldl if your
 command is interactive.
 
 =back
@@ -731,15 +807,34 @@ shell is being presented to people unfamiliar with perl but who wish
 to take advantage of commands added locally (eg by automatically 
 quoting arguments to certain commands).
 
-The variable $PERLDL::PREPROCESS can be set to a code reference
-(usually in a local configuration file) that will be called, with the
-current string as argument, just prior to the string being executed by
-the shell. The modified string should be returned.
+*I<NOTE>*: The preprocessing interface has changed from earlier
+versions! The old way using C<$PERLDL::PREPROCESS> will still
+work but is strongly deprecated and might go away in the future.
+
+You can enable preprocessing by registering a filter with the
+C<preproc_add> function. C<preproc_add> takes one argument which
+is the filter to be installed. A filter is a Perl code reference (usually
+set in a local configuration file) that will be called, with the
+current command string as argument, just prior to the string being
+executed by the shell. The modified string should be returned. Note
+that you can make C<perldl> completely unusable if you fail to
+return the modified string; quitting is then your only option.
+
+Filters can be removed from the preprocessing pipeline by calling
+C<preproc_del> with the filter to be removed as argument.  To find out
+if a filter is currently installed in the preprocessing pipeline use
+C<preproc_registered>:
+
+  perldl> preproc_add $myfilter unless preproc_registered $myfilter;
+
+Previous versions of C<perldl> used the variable C<$PERLDL::PREPROCESS>.
+This will still work but should be avoided. Please change your scripts
+to use the C<preproc_add> etc functions.
 
 The following code would check for a call to function 'mysub'
 and bracket arguments with qw.
 
- $PERLDL::PREPROCESS = sub {
+ $filter = preproc_add sub {
    my $str = shift;
    $str =~ s/^\s+//;  # Strip leading space
    if ($str =~ /^mysub/) {
@@ -759,10 +854,20 @@ to
 
   perldl> mysub qw( arg1 arg2 )
 
-which perl will understand as a list.  Obviously, a little more effort
+which Perl will understand as a list.  Obviously, a little more effort
 is required to check for cases where the caller has supplied a normal
 list (and so does not require automatic quoting) or variable
 interpolation is required.
+
+You can remove this preprocessor using the C<preproc_del> function
+which takes one argument (the filter to be removed, it must be the
+same coderef that was returned from a previous C<preproc_add> call):
+
+  perldl> preproc_del $filter;
+
+An example of actual usage can be found in the C<perldl> script. Look
+at the function C<trans> to see how the niceslicing preprocessor is
+enabled/disabled.
 
 =head2 C<perldl> and L<PDL::NiceSlice|PDL::NiceSlice>
 
@@ -794,7 +899,7 @@ you can use the enhanced slicing syntax:
 For details consult L<PDL::NiceSlice>.
 
 L<PDL::NiceSlice|PDL::NiceSlice> installs a filter in the
- C<$PERLDL::PREPROCESS> variable (see above) to enable the enhanced slicing
+preprocessing pipeline (see above) to enable the enhanced slicing
 syntax. You can use a few commands in the C<perldl> shell to
 switch this preprocessing on or off and also explicitly check
 the substitutions that the NiceSlice filter makes.
