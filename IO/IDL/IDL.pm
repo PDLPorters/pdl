@@ -18,8 +18,6 @@ These things are known to be not working but will be fixed RSN:
 
 =over 3
 
-=item COMMON blocks
-
 =item COMPLEX numbers
 
 =item PTR types
@@ -53,7 +51,7 @@ These things are known to be not working and will probably never be fixed
     @EXPORT = @EXPORT_OK;
     @EXPORT_TAGS = ( Func=>[@EXPORT_OK] );
 
-    $VERSION = 0.2;
+    $VERSION = 0.3;
     
     use PDL;
     use PDL::Exporter;
@@ -109,7 +107,7 @@ sub ridl {
 ##
 
 our $types = [ ['START_MARKER',undef]     # 0      (start of SAVE file)
-	      ,['COMMON_BLOCK',undef]     # 1      (COMMON block definition)
+	      ,['COMMON_BLOCK',\&r_com]   # 1      (COMMON block definition)
 	      ,['VARIABLE',\&r_var]       # 2      (Variable data)
 	      ,['SYSTEM_VARIABLE',undef]  # 3      (System variable data)
 	      ,undef                      # 4        (??)
@@ -274,6 +272,32 @@ sub read_records {
 
 
 
+##############################
+# r_com
+#
+# Jumptable entry for the COMMONBLOCK keyword -- this loads 
+# the variable names that belong in the COMMON block into a
+# metavariable.
+
+sub r_com { 
+  my $hash = shift;
+  my $buf;
+
+  sysread(IDLSAV,$buf,4);
+  my $nvars = unpack "N",$buf;
+
+  my $name = r_string();
+  $hash->{"+common"}->{$name} = [];
+  
+  for my $i(1..$nvars) {
+    push(@{$hash->{"+common"}->{$name}},r_string());
+  }
+
+  return 1;
+}
+
+    
+  
 
 ##############################
 # r_end
@@ -333,8 +357,8 @@ sub r_v {
   $version = $hash->{"+meta"}->{v_fmt} = unpack "N",$buf;
 
 #  barf("Unknown IDL save file version ".$version)
-  print STDERR "Warning: unknown IDL save file version $version; winging it!"
-    if($version != 5);
+  print STDERR "Warning: IDL file is v$version (neither 5 nor 6); winging it. Check results!\n"
+    if($version != 5 && $version != 6);
 
   $hash->{"+meta"}->{v_arch} = r_string();
   $hash->{"+meta"}->{v_os} = r_string();

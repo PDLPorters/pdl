@@ -250,14 +250,19 @@ sub finddoc  {
     my $topic = shift;
 
     # See if it matches a PDL function name
-    print "topic: $topic\n";
+
     (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
 
     my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
 
 
-    die "Unable to find PDL docs on $topic\n"
-	unless(@match);
+    unless(@match) {
+      
+      print "Unable to find PDL docs on '$topic' -- using whatis instead...\n\n";
+      whatis($topic);
+      return;
+
+    }
 
     # print out the matches
     # - do not like this solution when have multiple matches
@@ -539,11 +544,27 @@ sub whatis_r {
     return;
   }
 
+  if(ref $a eq 'SCALAR' | ref $a eq 'REF') {
+    whatis_r($prefix." Ref -> ",$indent+8,$$a);
+    return;
+  }
+
   if(UNIVERSAL::can($a,'px')) {
+    my $b;
     local $PDL::debug = 1;
-    $a->px($prefix.(ref $a));
+
+    $b = ( (UNIVERSAL::isa($a,'PDL') && $a->nelem < 5 && $a->ndims < 2)
+	   ? 
+	   ": $a" :
+	   ": *****"
+	   );
+
+    $a->px($prefix.(ref $a)." %7T (%D) ".$b);
+
   } else {
+
     print "${prefix}Object: ".ref($a)."\n";
+
   }
 }
 
@@ -625,11 +646,11 @@ The following commands support online help in the perldl shell:
  help vars      -- print information about all current piddles
  help url       -- locate the HTML version of the documentation
  help www       -- View docs with default web browser (set by env: PERLDL_WWW)
- help www:<foo> -- View docs with web browser <foo>.
+
+ whatis <expr>  -- Describe the type and structure of an expression or piddle.
  apropos 'word' -- search for keywords/function names 
  usage          -- print usage information for a given PDL function
  sig            -- print signature of PDL function
- whatis <expr>  -- Describe the type and structure of an expression or piddle.
 
  ('?' is an alias for 'help';  '??' is an alias for 'apropos'.)
 EOH
@@ -639,8 +660,7 @@ print "  badinfo         -- information on the support for bad values\n"
 
 print <<'EOH';
 
-  Quick start:
-
+Quick start:
   apropos 'manual:' -- Find all the manual documents
   apropos 'module:' -- Quick summary of all PDL modules
   help 'help'       -- details about PDL help system
