@@ -351,6 +351,12 @@ $PDL::IO::FITS_Extension = {
 # If a writer is specified it should accept:
 #   ($thing, $row, $rpt, $extra)
 # and return the generated binary string.
+#
+#
+# The magic numbers in the table (1,2,4,8, etc.) are kludgey -- they break
+# the isolation of PDL size and local code -- but they are a part of the FITS
+# standard.  The code will break anyway (damn) on machines that have other 
+# sizes for these datatypes.
 # 
 
 $PDL::IO::FITS_bintable_handlers = {
@@ -391,12 +397,12 @@ $PDL::IO::FITS_bintable_handlers = {
            } 
            , undef # no swapper
           ]             
- ,'B' => [ byte,    1,     1,     1    ] # byte
- ,'L' => [ byte,    1,     1,     1    ] # logical - treat as byte
- ,'I' => [ short,   2,     2,     2 ] # short (no unsigned shorts?)
- ,'J' => [ long,    4,     4,     4 ] # long
- ,'E' => [ float,   4,     4,     4 ] # single-precision
- ,'D' => [ double,  8,     89,    8 ] # double-precision
+ ,'B' => [ byte,    1,     1,     1  ] # byte
+ ,'L' => [ byte,    1,     1,     1  ] # logical - treat as byte
+ ,'I' => [ short,   2,     2,     2  ] # short (no unsigned shorts?)
+ ,'J' => [ long,    4,     4,     4  ] # long
+ ,'E' => [ float,   4,     4,     4  ] # single-precision
+ ,'D' => [ double,  8,     8,     8  ] # double-precision
  ,'C' => [ sub { # constructor
 	        my($rowlen, $extra, $nrows, $szptr) = @_;
 	        $szptr += PDL::Core::howbig(float) * $nrows * 2;
