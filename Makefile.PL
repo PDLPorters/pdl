@@ -266,6 +266,9 @@ ppm: doctest ppd
 	$(MKPATH) $(DISTWIN32NAME)
 	$(CP) win32/Readme $(DISTWIN32NAME)
 	$(CP) win32/install.ppm .
+	$(PERL) -pe "s|</IMPLEMENTATION>|<INSTALL EXEC=\"perl\">install.ppm</INSTALL></IMPLEMENTATION>|" PDL.ppd > PDL.ppd.new
+	$(RM) PDL.ppd
+	$(MV) PDL.ppd.new PDL.ppd
 	$(CP) PDL.ppd $(DISTWIN32NAME)
 	$(TAR) cf $(DISTWIN32NAME)/PDL.tar blib install.ppm
 	cd $(DISTWIN32NAME)
@@ -274,7 +277,6 @@ ppm: doctest ppd
 	$(MV) $(DISTWIN32NAME).zip ..
 	cd ..
 	$(RM_RF) $(DISTWIN32NAME)
-
 EOT
 
 return $text
