@@ -17,6 +17,7 @@ BEGIN {
 
 sub shape { join ',', $_[0]->dims }
 
+# use Inline 'INFO'; # use to generate lots of info
 use Inline 'Pdlpp';
 
 ok(1); # ok, we made it so far
@@ -39,3 +40,5 @@ pp_def('testinc',
 	Pars => 'a(); [o] b()',
 	Code => '$b() = $a() + 1;' # wow, that's complicated
 );
+
+# this tests the bug with a trailing comment and *no* newline

@@ -9,7 +9,7 @@ use Carp;
 use Cwd qw(cwd abs_path);
 require PDL::Core::Dev;
 
-$Inline::Pdlpp::VERSION = '0.1';
+$Inline::Pdlpp::VERSION = '0.2';
 @Inline::Pdlpp::ISA = qw(Inline);
 
 #==============================================================================
@@ -161,10 +161,20 @@ sub build {
 #==============================================================================
 sub info {
     my $o = shift;
-    return <<END;
-No information is currently generated when using inline pdlpp.
+
+#     return <<END;
+#No information is currently generated when using inline pdlpp.
+#
+#END
+
+    my $txt = <<END;
+The following PP code was generated (caution, can be long)...
+
+*** start PP file ****
 
 END
+
+    return $txt . $o->pd_generate . "\n*** end PP file ****\n";
 }
 
 sub config {
@@ -190,12 +200,12 @@ sub write_PD {
 #==============================================================================
 sub pd_generate {
     my $o = shift;
-    return join '', ($o->pd_includes,
-		     $o->pd_code,
-		     $o->pd_boot,
-		     $o->pd_bless,
-		     $o->pd_done,
-		    );
+    return join "\n", ($o->pd_includes,
+		       $o->pd_code,
+		       $o->pd_boot,
+		       $o->pd_bless,
+		       $o->pd_done,
+		      );
 }
 
 sub pd_includes {

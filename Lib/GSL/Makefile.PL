@@ -49,7 +49,7 @@ $donot = 1 unless defined $lib && defined $inc &&
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 EOI
-  << 'EOB', $lib, $inc, {Hide=>1};
+  << 'EOB', $lib, $inc;
 
   const gsl_rng_type * T;
   gsl_rng * r;

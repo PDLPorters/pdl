@@ -1,3 +1,10 @@
+CS  - applied Diab's patch #559860: improve trylink, Math/Makefile.PL
+    - applied Diab's patch #559885: overload 'eq'
+    - Inline::Pdlpp: fix join-bug, add MakePdlppInstallable to allow
+      installation of modules with Inline Pdlpp calls, update test
+      and INFO method
+    - allow to set trylink 'Hide' behaviour from perldl.conf (suggested
+      by Diab)
 DJB (04 Jun 02)
     - minor fixes to the build highlighted by warnings from perl 5.8.0
 TJ (31 May 02)

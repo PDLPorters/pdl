@@ -30,6 +30,7 @@ Basic/Core/pdlthread.h
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/typemap.pdl
+Basic/Gen/Inline/MakePdlppInstallable.pm
 Basic/Gen/Inline/Makefile.PL
 Basic/Gen/Inline/Pdlpp.pm
 Basic/Gen/Makefile.PL

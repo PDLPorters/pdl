@@ -440,6 +440,7 @@ sub topdl {PDL->topdl(@_)}
 		"<="    => \&PDL::le,       # in1, in2, swap if true
 		">="    => \&PDL::ge,       # in1, in2, swap if true
 		"=="    => \&PDL::eq,       # in1, in2
+		"eq"    => \&PDL::eq,       # in1, in2
 		"!="    => \&PDL::ne,       # in1, in2
 		
 		"<<"    => \&PDL::shiftleft,  # in1, in2, swap if true

@@ -8,5 +8,5 @@ ANY_OBJ
 
 INPUT
 ANY_OBJ
-	$var = ($type) SvIV((SV*)SvRV($arg))
+	$var = INT2PTR($type, SvIV((SV*)SvRV($arg)))
 

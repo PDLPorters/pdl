@@ -14,15 +14,8 @@ sub cdir { return $fs->catdir(@_)}
 sub cfile { return $fs->catfile(@_)}
 
 sub is_sys_func {
-  my ( $comp, $file, $code ) = @_;
-    open FILE,">$file";
-    print FILE <<"EOF";
-#include <stdio.h>
-#include "mconf.h"
-main() {printf("%lg",$code); exit(0); }
-EOF
- close FILE;
- return ! system( $comp );
+  my ( $code, $libs ) = @_;
+  trylink( '', qq{#include "$dir/mconf.h"}, $code, $libs );
 }
 
 PDL::Core::Dev->import();
@@ -117,23 +110,18 @@ $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
             defined $ENV{TMP} ? $ENV{TMP} :
                            cdir($fs->rootdir,$td);
 
-my $testfile = "pdl$$";
-my ($tc,$te) = map {cfile($tempd,"testfile$_")} ('.c','');
-my $HIDE = $^O =~ /MSWin/ ? '' : '>/dev/null 2>&1';
-my $COMP = "$Config{cc} -I$dir -o $te $tc $libs $HIDE";
-
 foreach (@sfuncs) {
-    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_()" );
+    $source{$_} = 'system' if is_sys_func( "$_();", $libs );
 }
 
 foreach (@ufuncs2) {
-    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_(1.)" );
+    $source{$_} = 'system' if is_sys_func( "$_(1.);", $libs );
 }
 
 # Test for absence of besfuncs
 
 foreach (@besufuncs) {
-    if ( is_sys_func( $COMP, $tc, "$_(1.)" ) ) {
+    if ( is_sys_func( "$_(1.);", $libs ) ) {
         $source{$_} = 'system';
         next if $_ ne 'y0';
 # Need to test for buggy glibc
@@ -155,9 +143,8 @@ foreach (@besufuncs) {
 
 foreach (@besbifuncs) {
     next if ! exists $source{$_};     # May have been deleted in buggy case
-    $source{$_} = 'system' if is_sys_func( $COMP, $tc, "$_(1,1.)" );
+    $source{$_} = 'system' if is_sys_func( "$_(1,1.);", $libs );
 }
-unlink "$te","$tc";
 
 print "Source of functions\nSystem:      ";
 foreach (@keys) {
