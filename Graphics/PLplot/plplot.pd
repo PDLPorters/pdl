@@ -19,7 +19,7 @@ $plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
 pp_addpm({At => Top}, <<'EOD');
 =head1 NAME
 
-  PDL::Graphics::PLplot - Object-oriented interface from perl/PDL to the PLPLOT plotting library
+PDL::Graphics::PLplot - Object-oriented interface from perl/PDL to the PLPLOT plotting library
 
 =head1 SYNOPSIS
 
@@ -34,9 +34,9 @@ pp_addpm({At => Top}, <<'EOD');
 
 For more information on PLplot, see
 
- http://www.plplot.org
+ http://www.plplot.org/
 
-Also see the test file, test.pl in this distribution for some working examples.
+Also see the test file, F<t/plplot.pl> in this distribution for some working examples.
 
 =head1 DESCRIPTION
 
@@ -51,11 +51,11 @@ with any function.  A few are only supported on the call to 'new'.
 
 =head2 Options used upon creation of a PLplot object (with 'new'):
 
-=head2 BACKGROUND
+=head3 BACKGROUND
 
 Set the color for index 0, the plot background
 
-=head2 DEV
+=head3 DEV
 
 Set the output device type.  To see a list of allowed types, try:
 
@@ -65,23 +65,23 @@ Set the output device type.  To see a list of allowed types, try:
 
    PDL::Graphics::PLplot->new(DEV => 'png', FILE => 'test.png');
 
-=head2 FILE
+=head3 FILE
 
 Set the output file or display.  For file output devices, sets
-the output file name.  For graphical displays (like 'xwin') sets
-the name of the display, eg ('hostname.foobar.com:0')
+the output file name.  For graphical displays (like C<'xwin'>) sets
+the name of the display, eg (C<'hostname.foobar.com:0'>)
 
 =for example
 
    PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png');
    PDL::Graphics::PLplot->new(DEV => 'xwin', FILE => ':0');
 
-=head2 MEM
+=head3 MEM
 
-This option is used in conjunction with DEV => 'mem'.  This option
+This option is used in conjunction with C<< DEV => 'mem' >>.  This option
 takes as input a PDL image and allows one to 'decorate' it using PLplot.
 The 'decorated' PDL image can then be written to an image file using,
-for example, PDL::IO::Pic.  This option may not be available if
+for example, L<PDL::IO::Pic|PDL::IO::Pic>.  This option may not be available if
 plplot does not include the 'mem' driver.
 
 =for example
@@ -97,11 +97,11 @@ plplot does not include the 'mem' driver.
               PLOTTYPE => 'LINE');
   $pl->close;
 
-=head2 FRAMECOLOR
+=head3 FRAMECOLOR
 
 Set color index 1, the frame color
 
-=head2 JUST
+=head3 JUST
 
 A flag used to specify equal scale on the axes.  If this is
 not specified, the default is to scale the axes to fit best on
@@ -111,9 +111,10 @@ the page.
 
   PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', JUST => 1);
 
-=head2 ORIENTATION
+=head3 ORIENTATION
 
 The orientation of the plot:
+
   0 --   0 degrees (landscape mode)
   1 --  90 degrees (portrait mode)
   2 -- 180 degrees (seascape mode)
@@ -126,7 +127,7 @@ Intermediate values (0.2) are acceptable if you are feeling daring.
   # portrait orientation
   PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', ORIENTATION => 1);
 
-=head2 PAGESIZE
+=head3 PAGESIZE
 
 Set the size in pixels of the output page.
 
@@ -135,7 +136,7 @@ Set the size in pixels of the output page.
   # PNG 500 by 600 pixels
   PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', PAGESIZE => [500,600]);
 
-=head2 SUBPAGES
+=head3 SUBPAGES
 
 Set the number of sub pages in the plot, [$nx, $ny]
 
@@ -148,7 +149,7 @@ Set the number of sub pages in the plot, [$nx, $ny]
 
 =head2 Options used after initialization (after 'new')
 
-=head2 BOX
+=head3 BOX
 
 Set the plotting box in world coordinates.  Used to explicitly
 set the size of the plotting area.
@@ -158,12 +159,12 @@ set the size of the plotting area.
  my $pl = PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png');
  $pl->xyplot ($x, $y, BOX => [0,100,0,200]);
 
-=head2 CHARSIZE
+=head3 CHARSIZE
 
-Set the size of text in multiples of the default size.  CHARSIZE => 1.5
-gives characters %150 the normal size.
+Set the size of text in multiples of the default size.
+C<< CHARSIZE => 1.5 >> gives characters 1.5 times the normal size.
 
-=head2 COLOR
+=head3 COLOR
 
 Set the current color for plotting and character drawing.
 Colors are specified not as color indices but as RGB triples.
@@ -180,36 +181,36 @@ Some pre-defined triples are included:
  $pl->xyplot ($x, $y, COLOR => 'YELLOW');
  $pl->xyplot ($x, $y, COLOR => [0,255,0]);
 
-=head2 LINEWIDTH
+=head3 LINEWIDTH
 
 Set the line width for plotting.  Values range from 1 to a device dependent maximum.
 
-=head2 LINESTYLE
+=head3 LINESTYLE
 
 Set the line style for plotting.  Pre-defined line styles use values 1 to 8, one being
 a solid line, 2-8 being various dashed patterns.
 
-=head2 MAJTICKSIZE
+=head3 MAJTICKSIZE
 
 Set the length of major ticks as a fraction of the default setting.
 One (default) means leave these ticks the normal size.
 
-=head2 MINTICKSIZE
+=head3 MINTICKSIZE
 
 Set the length of minor ticks (and error bar terminals) as a fraction of the default setting.
 One (default) means leave these ticks the normal size.
 
-=head2 NXSUB
+=head3 NXSUB
 
 The number of minor tick marks between each major tick mark on the X axis.
 Specify zero (default) to let PLplot compute this automatically.
 
-=head2 NYSUB
+=head3 NYSUB
 
 The number of minor tick marks between each major tick mark on the Y axis.
 Specify zero (default) to let PLplot compute this automatically.
 
-=head2 PALETTE
+=head3 PALETTE
 
 Load pre-defined color map 1 color ranges.  Currently, values include:
 
@@ -225,7 +226,7 @@ Load pre-defined color map 1 color ranges.  Currently, values include:
  # Plot x/y points with the z axis in color
  $pl->xyplot ($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
 
-=head2 PLOTTYPE
+=head3 PLOTTYPE
 
 Specify which type of XY plot is desired:
 
@@ -233,10 +234,11 @@ Specify which type of XY plot is desired:
   POINTS     -- A bunch of symbols
   LINEPOINTS -- both
 
-=head2 SUBPAGE
+=head3 SUBPAGE
 
 Set which subpage to plot on.  Subpages are numbered 1 to N.
-A zero can be specified meaning 'advance to the next subpage' (just a call to pladv()).
+A zero can be specified meaning 'advance to the next subpage' (just a call to
+L<pladv()|/pladv>).
 
 =for example
 
@@ -247,31 +249,36 @@ A zero can be specified meaning 'advance to the next subpage' (just a call to pl
   $pl->xyplot ($a, $b, SUBPAGE => 2);
 
 
-=head2 SYMBOL
+=head3 SYMBOL
 
-Specify which symbol to use when plotting PLOTTYPE => 'POINTS'.
+Specify which symbol to use when plotting C<< PLOTTYPE => 'POINTS' >>.
 A large variety of symbols are available, see:
 http://plplot.sourceforge.net/examples-data/demo07/x07.*.png, where * is 01 - 17.
 
-=head2 SYMBOLSIZE
+=head3 SYMBOLSIZE
 
 Specify the size of symbols plotted in multiples of the default size (1).
 Value are real numbers from 0 to large.
 
-=head2 TEXTPOSITION
+=head3 TEXTPOSITION
 
 Specify the placement of text.  Either relative to border, specified as:
+
  [$side, $disp, $pos, $just]
 
- Where side = 't', 'b', 'l', or 'r' for top, bottom, left and right
-       disp is the number of character heights out from the edge
-       pos  is the position along the edge of the viewport, from 0 to 1.
-       just tells where the reference point of the string is: 0 = left, 1 = right, 0.5 = center.
+Where
+
+  side = 't', 'b', 'l', or 'r' for top, bottom, left and right
+  disp is the number of character heights out from the edge
+  pos  is the position along the edge of the viewport, from 0 to 1.
+  just tells where the reference point of the string is: 0 = left, 1 = right, 0.5 = center.
 
 or inside the plot window, specified as:
+
  [$x, $y, $dx, $dy, $just]
 
- Where:
+Where
+
   x  = x coordinate of reference point of string.
   y  = y coordinate of reference point of string.
   dx   Together with dy, this specifies the inclination of the string.
@@ -290,7 +297,7 @@ or inside the plot window, specified as:
  # Plot text in plotting area
  $pl->text ("Line label", TEXTPOSITION => [50, 60, 5, 5, 0.5]);
 
-=head2 TITLE
+=head3 TITLE
 
 Add a title on top of a plot.
 
@@ -299,15 +306,15 @@ Add a title on top of a plot.
  # Plot text on top of plot
  $pl->xyplot ($x, $y, TITLE => 'X vs. Y');
 
-=head2 VIEWPORT
+=head3 VIEWPORT
 
 Set the location of the plotting window on the page.
 Takes a four element array ref specifying:
 
- xmin The coordinate of the left-hand edge of the viewport. (0 to 1)
- xmax The coordinate of the right-hand edge of the viewport. (0 to 1)
- ymin The coordinate of the bottom edge of the viewport. (0 to 1)
- ymax The coordinate of the top edge of the viewport. (0 to 1)
+ xmin -- The coordinate of the left-hand edge of the viewport. (0 to 1)
+ xmax -- The coordinate of the right-hand edge of the viewport. (0 to 1)
+ ymin -- The coordinate of the bottom edge of the viewport. (0 to 1)
+ ymax -- The coordinate of the top edge of the viewport. (0 to 1)
 
 =for example
 
@@ -318,7 +325,7 @@ Takes a four element array ref specifying:
  $pl->xyplot   ($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
  $pl->colorkey ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 
-=head2 XBOX
+=head3 XBOX
 
 Specify how to label the X axis of the plot as a string of option letters:
 
@@ -339,63 +346,65 @@ Specify how to label the X axis of the plot as a string of option letters:
   s: Enables subticks between major ticks, only valid if t is also specified.
   t: Draws major ticks.
 
-The default is 'BCNST' which draws lines around the plot, draws major and minor
+The default is C<'BCNST'> which draws lines around the plot, draws major and minor
 ticks and labels major ticks.
 
 =for example
 
  # plot two lines in a box with independent X axes labeled
  # differently on top and bottom
-$pl->xyplot($x1, $y, XBOX  => 'bnst',  # bottom line, bottom numbers, ticks, subticks
-	             YBOX  => 'bnst'); # left line, left numbers, ticks, subticks
-$pl->xyplot($x2, $y, XBOX => 'cmst', # top line, top numbers, ticks, subticks
-	             YBOX => 'cst',  # right line, ticks, subticks
-	             BOX => [$x2->minmax, $y->minmax]);
+ $pl->xyplot($x1, $y, XBOX  => 'bnst',  # bottom line, bottom numbers, ticks, subticks
+	              YBOX  => 'bnst'); # left line, left numbers, ticks, subticks
+ $pl->xyplot($x2, $y, XBOX => 'cmst', # top line, top numbers, ticks, subticks
+	              YBOX => 'cst',  # right line, ticks, subticks
+	              BOX => [$x2->minmax, $y->minmax]);
 
-=head2 XERRORBAR
+=head3 XERRORBAR
 
-Used only for xyplot.  Draws horizontal error bars at all points ($x, $y) in the plot.
-Specify a PDL containing the same number of points as $x and $y
-which specifies the width of the error bar, which will be centered at ($x, $y).
+Used only with L</xyplot>.  Draws horizontal error bars at all points (C<$x>, C<$y>) in the plot.
+Specify a PDL containing the same number of points as C<$x> and C<$y>
+which specifies the width of the error bar, which will be centered at (C<$x>, C<$y>).
 
-=head2 XLAB
+=head3 XLAB
 
 Specify a label for the X axis.
 
-=head2 XTICK
+=head3 XTICK
 
 Interval (in graph units/world coordinates) between major x axis tick marks.
 Specify zero (default) to allow PLplot to compute this automatically.
 
-=head2 YBOX
+=head3 YBOX
 
 Specify how to label the Y axis of the plot as a string of option letters.
-See XBOX.
+See L</XBOX>.
 
-=head2 YERRORBAR
+=head3 YERRORBAR
 
-Used only for xyplot.  Draws vertical error bars at all points ($x, $y) in the plot.
-Specify a PDL containing the same number of points as $x and $y
-which specifies the width of the error bar, which will be centered at ($x, $y).
+Used only for xyplot.  Draws vertical error bars at all points (C<$x>, C<$y>) in the plot.
+Specify a PDL containing the same number of points as C<$x> and C<$y>
+which specifies the width of the error bar, which will be centered at (C<$x>, C<$y>).
 
-=head2 YLAB
+=head3 YLAB
 
 Specify a label for the Y axis.
 
-=head2 YTICK
+=head3 YTICK
 
 Interval (in graph units/world coordinates) between major y axis tick marks.
 Specify zero (default) to allow PLplot to compute this automatically.
 
-=head2 ZRANGE
+=head3 ZRANGE
 
-For xyplot (when COLORMAP is specified), for shadeplot and for colorkey.  Normally, the
-range of the Z variable (color) is taken as $z->minmax.  If a different range is desired,
-specify it in ZRANGE, like so:
+For L</xyplot> (when C<COLORMAP> is specified), for
+L</shadeplot> and for L</colorkey>.
+Normally, the range of the Z variable (color) is taken as
+C<< $z->minmax >>.  If a different range is desired,
+specify it in C<ZRANGE>, like so:
 
   $pl->shadeplot ($z, $nlevels, PALETTE => 'GREENRED', ZRANGE => [0,100]);
 
-  ...or...
+or
 
   $pl->xyplot ($x, $y, PALETTE  => 'RAINBOW', PLOTTYPE => 'POINTS',
 	               COLORMAP => $z,        ZRANGE => [-90,-20]);
@@ -465,8 +474,8 @@ Plot XY lines and/or points.  Also supports color scales for points.
 This function works with bad values.  If a bad value is specified for
 a points plot, it is omitted.  If a bad value is specified for a line
 plot, the bad value makes a gap in the line.  This is useful for
-drawing maps--$x and $y can be continent boundary lat and lon, for
-example.
+drawing maps; for example C<$x> and C<$y> can be the continent boundary
+latitude and longitude.
 
 =for usage
 
@@ -532,7 +541,7 @@ Plot a color key showing which color represents which value
 
 Create a shaded contour plot of 2D PDL 'z' with 'nsteps' contour levels.
 Linear scaling is used to map the coordinates of Z(X, Y) to world coordinates
-via the BOX option.
+via the L</BOX> option.
 
 =for usage
 
@@ -595,7 +604,7 @@ Create a histogram of a 1-D variable.
 
 Write text on a plot.  Text can either be written
 with respect to the borders or at an arbitrary location and angle
-(see the TEXTPOSITION entry).
+(see the L</TEXTPOSITION> entry).
 
 =for usage
 
@@ -1814,14 +1823,14 @@ pp_addpm (<<'EOPM');
 =pod
 
 The PDL low-level interface to the PLplot library closely mimics the C API.
-Users are referred to the PLplot User\'s Manual, distributed with the source
+Users are referred to the PLplot User's Manual, distributed with the source
 PLplot tarball.  This manual is also available on-line at the PLplot web
-site (http://www.plplot.org).
+site (L<http://www.plplot.org/>).
 
 There are though two differences in way the functions are called.  The first
 one is due to a limitation in the pp_def wrapper of PDL, which forces all
 the non-piddle arguments to be at the end of the arguments list.  It is
-the case of strings (char *) arguments in the C API.  This affects the
+the case of strings (C<char *>) arguments in the C API.  This affects the
 following functions [shown below with their prototypes in PDL, with
 arguments preceded by "(pdl)" are piddle-convertible; see the PLplot manual
 for the meaning of the arguments]:
@@ -2812,10 +2821,15 @@ pp_def ('plimage',
 
 pp_addpm (<<'EOPM');
 =head2 plxormod
+
 =for sig
+
   $status = plxormod ($mode)
+
 =for ref
-  (See the PLplot manual for reference.)
+
+See the PLplot manual for reference.
+
 =cut
 EOPM
 
@@ -2837,11 +2851,15 @@ pp_add_exported ('plxormod');
 
 pp_addpm (<<'EOPM');
 =head2 plGetCursor
+
 =for sig
+
   %gin = plGetCursor ()
+
 =for ref
-  plGetCursor waits for graphics input event and translate to world
-  coordinates and returns a hash with the following keys:
+
+plGetCursor waits for graphics input event and translate to world
+coordinates and returns a hash with the following keys:
 
     type:      of event (CURRENTLY UNUSED)
     state:     key or button mask
@@ -2853,7 +2871,8 @@ pp_addpm (<<'EOPM');
     dX, dY:    relative device coordinates of pointer
     wX, wY:    world coordinates of pointer
 
-  Returns an empty hash if no translation to world coordinates is possible.
+Returns an empty hash if no translation to world coordinates is possible.
+
 =cut
 EOPM
 
@@ -2895,10 +2914,15 @@ pp_add_exported ('plGetCursor');
 
 pp_addpm (<<'EOPM');
 =head2 plgstrm
+
 =for sig
+
   $strm = plgstrm ()
+
 =for ref
-  Gets the number of the current output stream.
+
+Returns the number of the current output stream.
+
 =cut
 EOPM
 
@@ -2917,10 +2941,15 @@ pp_add_exported ('plgstrm');
 
 pp_addpm (<<'EOPM');
 =head2 plgsdev
+
 =for sig
+
   $driver = plgdev ()
+
 =for ref
-  Gets the current driver name.
+
+Returns the current driver name.
+
 =cut
 EOPM
 
@@ -2939,11 +2968,16 @@ pp_add_exported ('plgdev');
 
 pp_addpm (<<'EOPM');
 =head2 plmkstrm
+
 =for sig
+
   $strm = plmkstrm ()
+
 =for ref
-  Creates a new stream and makes it the default.  Returns the number of
-  the created stream.
+
+Creates a new stream and makes it the default.  Returns the number of
+the created stream.
+
 =cut
 EOPM
 
@@ -2964,10 +2998,15 @@ pp_add_exported ('plmkstrm');
 
 pp_addpm (<<'EOPM');
 =head2 plgver
+
 =for sig
+
   $version = plgver ()
+
 =for ref
-  (See the PLplot manual for reference.)
+
+See the PLplot manual for reference.
+
 =cut
 EOPM
 
@@ -3117,7 +3156,7 @@ pp_addpm (<<'EOPM');
 
 =head1 SEE ALSO
 
-perl(1), PDL(1), http://www.plplot.org/
+perl(1), PDL(1), L<http://www.plplot.org/>
 
 =cut
 
