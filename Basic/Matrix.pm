@@ -221,16 +221,16 @@ for my $func (qw /zeroes ones sequence/) {
 sub $func {
   my \$class = shift;
   my \@arg = \@_;
-  ref(\$arg[0]) ne 'PDL::Type' ? (\@arg >  1 ? (\@arg[1,0] = \@arg[0,=
-1]) : (\@arg[0,1] = (1,\$arg[0])) ) :
-                                 (\@arg >  2 ? (\@arg[2,1] = \@arg[1,=
-2]) : (\@arg[1,2] = (1,\$arg[1])) );
+  ref(\$arg[0]) ne 'PDL::Type' ? (\@arg >  1 ? (\@arg[1,0] = \@arg[0,1]) : 
+				  (\@arg[0,1] = (1,\$arg[0])) ) :
+	   (\@arg >  2 ? (\@arg[2,1] = \@arg[1,2]) :
+	    (\@arg[1,2] = (1,\$arg[1])) );
   my \$pdl = \$class->SUPER::$func(\@arg);
   bless \$pdl, ref \$class || \$class;
 }
 
 EOE
-# print "evaluating $code\n";
+  # print "evaluating $code\n";
   eval $code;
 }
 
@@ -266,9 +266,8 @@ sub dice {
   my @arg = @_;
 
   
-  @arg >=2 ? @arg[1,0] = @arg[0,1] : ( (@arg == 1 && $self->dim=
-s == 2)  ?
-=09=09=09=09       @arg = (0,$arg[0]) : 1 );
+  @arg >=2 ? @arg[1,0] = @arg[0,1] : ( (@arg == 1 && $self->dims == 2)  ?
+				       @arg = (0,$arg[0]) : 1 );
   $self->SUPER::dice(@arg);
 }
 
@@ -279,9 +278,8 @@ s == 2)  ?
 sub at {
   my $self = shift;
   my @arg = @_;
-  @arg >=2 ? @arg[1,0] = @arg[0,1] : ( (@arg == 1 && $self->dim=
-s == 2)  ?
-=09=09=09=09       @arg = (0,$arg[0]) : 1 );
+  @arg >=2 ? @arg[1,0] = @arg[0,1] : ( (@arg == 1 && $self->dims == 2)  ?
+       @arg = (0,$arg[0]) : 1 );
   $self->SUPER::at(@arg);
 }
 
@@ -317,9 +315,8 @@ sub inv {
 sub dummy($$;$) {
    my ($pdl,$dim) = @_;
    $dim = $pdl->getndims+1+$dim if $dim < 0;
-   barf ("too high/low dimension in call to dummy, allowed min/max=0/=
-"
- =09 . $_[0]->getndims)
+   barf ("too high/low dimension in call to dummy, allowed min/max=0/"
+  . $_[0]->getndims)
      if $dim>$pdl->getndims || $dim < 0;
    $_[2] = 1 if ($#_ < 2);
    $pdl->PDL::slice((','x$dim)."*$_[2]");
@@ -339,8 +336,8 @@ sub stringifymaple {
     for(my $i=0;$i<$dimR;++$i) {
       $s .= "[";
       for(my $j=0;$j<$dimC;++$j) {
-=09$s .= $self->at($i,$j);
-=09$s .= "," if $j+1<$dimC;
+	$s .= $self->at($i,$j);
+	$s .= "," if $j+1<$dimC;
       }
       $s .= "]";
       $s .= "," if $i+1<$dimR;
