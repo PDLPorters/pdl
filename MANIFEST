@@ -159,6 +159,9 @@ Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
 Example/Fit/lmfit_example.pl
+Example/InlinePdlpp/Module/Makefile.PL
+Example/InlinePdlpp/Module/MyInlineMod.pm
+Example/InlinePdlpp/Module/t/myinlinemod.t
 Example/InlinePdlpp/inlpp.pl
 Example/InlinePdlpp/inlpp_link.pl
 Example/InlinePdlpp/inlppminimal.pl
