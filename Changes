@@ -1,3 +1,4 @@
+CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments
       in pdl_make_physical in pdlapi.c) that made convert

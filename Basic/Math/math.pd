@@ -130,12 +130,14 @@ sub badcode_ufunc {
 
 sub code_bifunc { 
     my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
-    return "\$b() = $name(\$$a(),\$$b());"; 
+    my $c = $_[3] || 'c';
+    return "\$$c() = $name(\$$a(),\$$b());"; 
 }
 sub badcode_bifunc { 
     my $name = $_[0]; my $a = $_[1] || 'a'; my $b = $_[2] || 'b';
-    return 'if ( $ISBAD('.$a.'()) || $ISBAD('.$b.'()) ) { $SETBAD(b()); } else { ' .
-	"\$b() = $name(\$$a(),\$$b()); }"; 
+    my $c = $_[3] || 'c';
+    return 'if ( $ISBAD('.$a.'()) || $ISBAD('.$b.'()) ) { $SETBAD('.$c.'()); } else { ' .
+	"\$$c() = $name(\$$a(),\$$b()); }"; 
 }
 
 sub inplace_doc {
@@ -218,8 +220,8 @@ foreach $func (@besbifuncs) {
 	   Pars => 'a(); int n(); [o]b();',
 	   Inplace => [ 'a' ],
 	   Doc => inplace_doc( $fname ),
-	   Code => code_bifunc($func,'n','a'),
-	   BadCode => badcode_bifunc($func,'n','a'),
+	   Code => code_bifunc($func,'n','a','b'),
+	   BadCode => badcode_bifunc($func,'n','a','b'),
 	   );
 }
 
