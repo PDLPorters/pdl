@@ -42,25 +42,25 @@ beginning with 'ch', and accept either float or double piddles.
 Most of the routines require an integer parameter called C<check>;
 if set to 0, then no checks on the validity of the input data are
 made, otherwise these checks are made.
-The value of C<check> can be set to 0 if a routine,
-such as L<chim|/chim>, has already been successfully called.
+The value of C<check> can be set to 0 if a routine
+such as L<chim|/chim> has already been successfully called.
 
 =over 4
 
-=item 1 
+=item * 
 
 If not known, estimate derivative values for the points
 using the L<chim|/chim>, L<chic|/chic>, or L<chsp|/chsp> routines
 (the following routines require both the function (C<f>)
 and derivative (C<d>) values at a set of points (C<x>)). 
 
-=item 2 
+=item * 
 
 Evaluate, integrate, or differentiate the resulting PCH
 function using the routines:
 L<chfd|/chfd>; L<chfe|/chfe>; L<chia|/chia>; L<chid|/chid>.
 
-=item 3 
+=item * 
 
 If desired, you can check the monotonicity of your
 data using L<chcm|/chcm>. 
@@ -745,11 +745,28 @@ and if the data are only piecewise monotonic, the interpolant
 will have an extremum at the switch points; for more control
 over these issues use L<chic|/chic>. 
 
-On successful completion, C<$ierr = 0>, otherwise:
-  >0 - there were C<ierr> switches in the direction of 
-       monotonicity (data still valid).
-  -1 - C<nelem($x) < 2>
-  -3 - C<$x> is not strictly increasing.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt> 0 if there were C<ierr> switches in the direction of 
+monotonicity (data still valid).
+
+=item *
+
+-1 if C<nelem($x) < 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=back
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -791,15 +808,34 @@ L<chim|/chim>, is adopted.
 If greater than zero, no adjustment for monotonicity is made,
 otherwise if less than zero the derivative will be adjusted.
 The allowed magnitudes for C<ic(0)> are:
-  B<1>  if first derivative at C<x(0)> is given in C<vc(0)>.
-  B<2>  if second derivative at C<x(0)> is given in C<vc(0)>.
-  B<3>  to use the 3-point difference formula for C<d(0)>.
-     (Reverts to the default b.c. if C<n < 3>)
-  B<4>  to use the 4-point difference formula for C<d(0)>.
-     (Reverts to the default b.c. if C<n < 4>)
-  B<5>  to set C<d(0)> so that the second derivative is 
-     continuous at C<x(1)>.
-     (Reverts to the default b.c. if C<n < 4>) 
+
+=over 4
+
+=item *  
+
+1 if first derivative at C<x(0)> is given in C<vc(0)>.
+
+=item *
+
+2 if second derivative at C<x(0)> is given in C<vc(0)>.
+
+=item *
+
+3 to use the 3-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n < 3>)
+
+=item *
+
+4 to use the 4-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if C<n < 4>)
+
+=item *
+
+5 to set C<d(0)> so that the second derivative is 
+continuous at C<x(1)>.
+(Reverts to the default b.c. if C<n < 4>) 
+
+=back
 
 The values for C<ic(1)> are the same as above, except that
 the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
@@ -820,18 +856,53 @@ The piddle C<$wk> is only needed for work space. However, I could
 not get it to work as a temporary variable, so you must supply
 it; it is a 1D piddle with C<2*n> elements.
 
-On a sucessful return, C<$ierr = 0>, otherwise:
-   1  if C<ic(0) < 0> and C<d(0)> had to be adjusted for
-      monotonicity.
-   2  if C<ic<1) < 0> and C<d(n-1)> had to be adjusted
-      for monotonicity.
-   3  if both of the above are true.
-  -1  if C<n < 2>.
-  -3  if C<$x> is not strictly increasing.
-  -4  if C<abs(ic(0)) E<gt> 5>.
-  -5  if C<abs(ic(1)) E<gt> 5>.
-  -6  if both of the above are true.
-  -7  if C<nwk < 2*(n-1)>.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+1 if C<ic(0) < 0> and C<d(0)> had to be adjusted for
+monotonicity.
+
+=item *
+
+2 if C<ic(1) < 0> and C<d(n-1)> had to be adjusted
+for monotonicity.
+
+=item * 
+
+3 if both 1 and 2 are true.
+
+=item *
+
+-1 if C<n < 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<abs(ic(0)) E<gt> 5>.
+
+=item *
+
+-5 if C<abs(ic(1)) E<gt> 5>.
+
+=item *
+
+-6 if both -4 and -5  are true.
+
+=item *
+
+-7 if C<nwk < 2*(n-1)>.
+
+=back
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -862,14 +933,33 @@ Hermite function.
 The first and second elements of C<$ic> determine the boundary
 conditions at the start and end of the data respectively.
 The allowed values for C<ic(0)> are:
-  B<0>  to set C<d(0)> so that the third derivative is 
-     continuous at C<x(1)>.
-  B<1>  if first derivative at C<x(0)> is given in C<vc(0>).
-  B<2>  if second derivative at C<x(0>) is given in C<vc(0)>.
-  B<3>  to use the 3-point difference formula for C<d(0)>.
-     (Reverts to the default b.c. if N.LT.3 .)
-  B<4>  to use the 4-point difference formula for C<d(0)>.
-     (Reverts to the default b.c. if N.LT.4 .)                 
+
+=over 4
+
+=item *
+
+0 to set C<d(0)> so that the third derivative is 
+continuous at C<x(1)>.
+
+=item *
+
+1 if first derivative at C<x(0)> is given in C<vc(0>).
+
+=item *
+
+2 if second derivative at C<x(0>) is given in C<vc(0)>.
+
+=item *
+
+3 to use the 3-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if N.LT.3 .)
+
+=item *
+
+4 to use the 4-point difference formula for C<d(0)>.
+(Reverts to the default b.c. if N.LT.4 .)                 
+
+=back
 
 The values for C<ic(1)> are the same as above, except that
 the first-derivative value is stored in C<vc(1)> for cases 1 and 2.
@@ -880,15 +970,44 @@ The piddle C<$wk> is only needed for work space. However, I could
 not get it to work as a temporary variable, so you must supply
 it; it is a 1D piddle with C<2*n> elements.
 
-On a successful return, C<$ierr = 0>, otherwise:
-  -1  if C<nelem($x) < 2>.
-  -3  if C<$x> is not strictly increasing.
-  -4  if C<ic(0) < 0 or ic(0) > 4>.
-  -5  if C<ic(1) < 0 or ic(1) > 4>.
-  -6  if both of the above are true.
-  -7  if C<nwk < 2*n>.
-  -8  in case of trouble solving the linear system
-      for the interior derivative values.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-1  if C<nelem($x) < 2>.
+
+=item *
+
+-3  if C<$x> is not strictly increasing.
+
+=item *
+
+-4  if C<ic(0) < 0> or C<ic(0) E<gt> 4>.
+
+=item *
+
+-5  if C<ic(1) < 0> or C<ic(1) E<gt> 4>.
+
+=item *
+
+-6  if both of the above are true.
+
+=item *
+
+-7  if C<nwk < 2*n>.
+
+=item *
+
+-8  in case of trouble solving the linear system
+for the interior derivative values.
+
+=back
 ',
 'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
 );	  
@@ -913,14 +1032,37 @@ derivative (C<$de>) at a set of points (C<$xe>).
 If function values alone are required, use L<chfe|/chfe>.
 Set C<check> to 0 to skip checks on the input data.
 
-On successful completion, C<$ierr = 0>, otherwise:
-  >0 - extrapolation was performed at C<ierr> points
-       (data still valid).
-  -1 - C<nelem($x) < 2>
-  -3 - C<$x> is not strictly increasing.
-  -4 - C<nelem($xe) < 1>.
-  -5 - an error has occurred in a lower-level routine,
-       this should never happen.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt>0 if extrapolation was performed at C<ierr> points
+(data still valid).
+
+=item *
+
+-1 if C<nelem($x) < 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<nelem($xe) < 1>.
+
+=item *
+
+-5 if an error has occurred in a lower-level routine,
+which should never happen.
+
+=back
 ',
 'Interpolate function and derivative values.'
 );	  
@@ -944,12 +1086,32 @@ a set of points (C<$xe>).
 If derivative values are also required, use L<chfd|/chfd>.
 Set C<check> to 0 to skip checks on the input data.
 
-On successful completion, C<$ierr = 0>, otherwise:
-  >0 - extrapolation was performed at C<ierr> points
-       (data still valid).
-  -1 - C<nelem($x) < 2>
-  -3 - C<$x> is not strictly increasing.
-  -4 - C<nelem($xe) < 1>.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+E<gt>0 if extrapolation was performed at C<ierr> points
+(data still valid).
+
+=item *
+
+-1 if C<nelem($x) < 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<nelem($xe) < 1>.
+
+=back
 ',
 'Interpolate function values.'
 );	  
@@ -978,14 +1140,40 @@ The values of C<$a> and C<$b> do not have
 to lie within C<$x>, although the resulting integral
 value will be highly suspect if they are not.
 
-On successful completion, C<$ierr = 0>, otherwise:
-   1 - C<$a> lies outside C<$x>.
-   2 - C<$b> lies outside C<$x>.
-   3 - both of the above are true.
-  -1 - C<nelem($x) < 2>
-  -3 - C<$x> is not strictly increasing.
-  -4 - an error has occurred in a lower-level routine,
-       this should never happen.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+1 if C<$a> lies outside C<$x>.
+
+=item *
+
+2 if C<$b> lies outside C<$x>.
+
+=item *
+
+3 if both 1 and 2 are true.
+
+=item *
+
+-1 if C<nelem($x) < 2>
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if an error has occurred in a lower-level routine,
+which should never happen.
+
+=back
 ',
 'Integrate (x,f(x)) over arbitrary limits.'
 );
@@ -1014,10 +1202,27 @@ Although using a fortran routine, the values of
 C<$ia> and C<$ib> are zero offset.
 Set C<check> to 0 to skip checks on the input data.
 
-On successful completion, C<$ierr = 0>, otherwise:
-  -1 - C<nelem($x) < 2>
-  -3 - C<$x> is not strictly increasing.
-  -4 - C<$ia> or C<$ib> is out of range.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-1 if C<nelem($x) < 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=item *
+
+-4 if C<$ia> or C<$ib> is out of range.
+
+=back
 ',
 'Integrate (x,f(x)) between data points.'
 );
@@ -1039,21 +1244,61 @@ Set C<check> to 0 to skip checks on the input data.
 
 For the data interval C<[x(i),x(i+1)]>, the
 values of C<ismon(i)> can be:
-  -3  if function is probably decreasing
-  -1  if function is strictly decreasing
-   0  if function is constant
-   1  if function is strictly increasing
-   2  if function is non-monotonic
-   3  if function is probably increasing
+
+=over 4
+
+=item *
+
+-3 if function is probably decreasing
+
+=item *
+
+-1 if function is strictly decreasing
+
+=item *
+
+0  if function is constant
+
+=item *
+
+1  if function is strictly increasing
+
+=item *
+
+2  if function is non-monotonic
+
+=item *
+
+3  if function is probably increasing
+
+=back
 
 If C<abs(ismon(i)) == 3>, the derivative values are
 near the boundary of the monotonicity region. A small
-increase produces non-monotonicity; decrease, strict
-monotonicity.
+increase produces non-monotonicity, whereas a decrease
+produces strict monotonicity.
 
 The above applies to C<i = 0 .. nelem($x)-1>. The last element of
 C<$ismon> indicates whether
 the entire function is monotonic over $x.
+
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-1 if C<n < 2>.
+
+=item *
+
+-3 if C<$x> is not strictly increasing.
+
+=back
 ',
 'Check the given piecewise cubic Hermite function for monotonicity.'
 );	  
@@ -1095,14 +1340,28 @@ C<knotyp> is a flag which controls the knot sequence.
 The knot sequence C<t> is normally computed from C<$x> 
 by putting a double knot at each C<x> and setting the end knot pairs
 according to the value of C<knotyp> (where C<m = ndim = 2*n>):
-   B<0>   Quadruple knots at the first and last points.
-   B<1>   Replicate lengths of extreme subintervals:
-       C<t( 0 ) = t( 1 ) = x(0) - (x(1)-x(0))>
-       C<t(m+3) = t(m+2) = x(n-1) + (x(n-1)-x(n-2))>
-   B<2>   Periodic placement of boundary knots:
-       C<t( 0 ) = t( 1 ) = x(0) - (x(n-1)-x(n-2))>
-       C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
-   B<<0>  Assume the C<nknots> and C<t> were set in a previous call.
+
+=item *
+
+0 -   Quadruple knots at the first and last points.
+
+=item *
+
+1 -   Replicate lengths of extreme subintervals:
+C<t( 0 ) = t( 1 ) = x(0) - (x(1)-x(0))> and
+C<t(m+3) = t(m+2) = x(n-1) + (x(n-1)-x(n-2))>
+
+=item *
+
+2 -   Periodic placement of boundary knots:
+C<t( 0 ) = t( 1 ) = x(0) - (x(n-1)-x(n-2))> and
+C<t(m+3) = t(m+2) = x(n) + (x(1)-x(0))>
+
+=item *
+
+<0 - Assume the C<nknots> and C<t> were set in a previous call.
+
+=back
 
 C<nknots> is the number of knots and may be changed by the routine. 
 If C<knotyp E<gt>= 0>, C<nknots> will be set to C<ndim+4>,
@@ -1118,9 +1377,23 @@ otherwise it is assumed that C<t> was set by a
 previous call (no check is made to verify that the data
 forms a legitimate knot sequence). 
 
-On successful completion, C<$ierr = 0>, otherwise:
-  -4 - C<knotyp E<gt> > 2>.
-  -5 - C<knotyp < 0> and C<nknots != 2*n + 4>.
+Error status returned by C<$ierr>:
+
+=over 4
+
+=item *
+
+0 if successful.
+
+=item *
+
+-4 if C<knotyp E<gt> 2>.
+
+=item *
+
+-5 if C<knotyp < 0> and C<nknots != 2*n + 4>.
+
+=back
 ',
 'Piecewise Cubic Hermite function to B-Spline converter.'
 );	  
