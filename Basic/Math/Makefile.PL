@@ -18,7 +18,7 @@ PDL::Core::Dev->import();
 
 %source = qw( acosh acosh asinh asinh atanh atanh
              	 erf ndtr erfc ndtr j0 j0 j1 j1 jn jn
-	     	 y0 j0 y1 j1 yn yn erfi ndtri ndtri ndtri
+                 y0 j0 y1 j1 yn yn erfi ndtri ndtri ndtri
 		 blas blas eigens eigens simq simq rint rint
                nan quiet_nan infinity infinity svd svd
 	       );
@@ -35,7 +35,7 @@ if ($^O eq 'solaris' or $^O eq 'sunos') {
     # try to guess where is sunmath
     my @d = split /:+/, $ENV{LD_LIBRARY_PATH};
     for my $d (@d) {
-       if (-e "$d/libsunmath.so") {
+       if (-e "$d/libsunmath.so" or -e "$d/libsunmath.a" ) {
            $libs = "-L$d -lsunmath $libs";
            last;
        }

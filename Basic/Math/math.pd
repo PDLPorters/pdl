@@ -51,7 +51,7 @@ doco ('erfc',"The complement of the error function");
 doco ('erfi',"The inverse of the error function");
 doco ('ndtri',"The value for which the area under the
 Gaussian probability density function (integrated from
-minus infinity) is equal to the argument (cf erfi)");
+minus infinity) is equal to the argument (cf L<erfi|/erfi>)");
 
 doco(qw/bessj0 bessj1 bessy0 bessy1 bessjn bessyn/, <<'EOD');
 
@@ -192,7 +192,7 @@ pp_def("lgamma",
 
 pp_def('badmask',
       Pars => 'a(); b(); [o]c();',
-      Doc => 'Clears all infs and nans in a to the corresponding value in b',
+      Doc => 'Clears all C<infs> and C<nans> in C<$a> to the corresponding value in C<$b>',
       Code => '
               $c() = finite($a()) ? $a() : $b();
 ');
@@ -254,7 +254,7 @@ Singular value decomposition of array.
 
 =for usage
 
-      ($u, $s, $v) = svd($a);
+ ($u, $s, $v) = svd($a);
 
 ',);
 
@@ -302,7 +302,7 @@ an asymmetric matrix, the routine will warn and symmetrize it.
 
 =for usage
 
-      ($e, $ev) = eigens($a);
+ ($e, $ev) = eigens($a);
 
 ',);
 
@@ -320,19 +320,21 @@ pp_def("simq",
       Doc => '
 =for ref
 
-Solution of simultaneous linear equations, a x = b.
+Solution of simultaneous linear equations, C<a x = b>.
 
-a is an n x n matrix (i.e., a vector of length n*n), stored row-wise:
-that is, a(i,j) = a[ij], where ij = i*n + j.  While this is the
+C<$a> is an C<n x n> matrix (i.e., a vector of length C<n*n>), stored row-wise:
+that is, C<a(i,j) = a[ij]>, where C<ij = i*n + j>.  
+While this is the
 transpose of the normal column-wise storage, this corresponds to
 normal PDL usage.  The contents of matrix a may be altered (but may be
 required for subsequent calls with flag = -1).
 
-b, x, ips are vectors of length n.
+C<$b>, C<$x>, C<$ips> are vectors of length C<n>.
 
-Set flag=0 to solve.  Set flag=-1 to do a new back substitution for
-different b vector using the same a matrix previously reduced when
-flag=0 (the ips vector generated in the previous solution is also
+Set C<flag=0> to solve.  
+Set C<flag=-1> to do a new back substitution for
+different C<$b> vector using the same a matrix previously reduced when
+C<flag=0> (the C<$ips> vector generated in the previous solution is also
 required).
 
 ');
@@ -393,7 +395,6 @@ to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
-
 
 =cut
 EOD

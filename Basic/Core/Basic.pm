@@ -9,13 +9,13 @@ This module contains basic utility functions for
 creating and manipulating piddles. Most of these functions
 are simplified interfaces to the more flexible functions in
 the modules 
-L<PDL::Primitive|PDL/Primitive> 
+L<PDL::Primitive|PDL::Primitive> 
 and 
-L<PDL::Slices|PDL/Slices>.
+L<PDL::Slices|PDL::Slices>.
 
 =head1 SYNOPSIS
 
-use PDL::Basic;
+ use PDL::Basic;
 
 =head1 FUNCTIONS
 
@@ -55,13 +55,11 @@ Fills a piddle with X index values
  $x = xvals($somearray);
  $x = xvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see L<zeroes|PDL/Core/zeroes>.
+etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
   perldl> print xvals zeroes(5,10)
-  Dims:  5,10  DLen:  400
-
   [
    [0 1 2 3 4]
    [0 1 2 3 4]
@@ -86,13 +84,11 @@ Fills a piddle with Y index values
  $x = yvals($somearray); yvals(inplace($somearray));
  $x = yvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see L<zeroes|PDL/Core/zeroes>.
+etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
  perldl> print yvals zeroes(5,10)
- Dims:  5,10  DLen:  400
-
  [
   [0 0 0 0 0]
   [1 1 1 1 1]
@@ -117,13 +113,11 @@ Fills a piddle with Z index values
  $x = zvals($somearray); zvals(inplace($somearray));
  $x = zvals([OPTIONAL TYPE],$nx,$ny,$nz...);
 
-etc. see L<zeroes|PDL/Core/zeroes>.
+etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
  perldl> print zvals zeroes(3,4,2)
- Dims:  3,4,2  DLen:  192
-
  [
   [
    [0 0 0]
@@ -220,7 +214,7 @@ Create histogram of a piddle
 If requested, C<$xvals> gives the computed bin centres
 
 A nice idiom (with 
-L<PDL::Graphics::PGPLOT|PDL/Graphics/PGPLOT>) is
+L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
 
  bin hist $data;  # Plot histogram
 
@@ -228,9 +222,7 @@ L<PDL::Graphics::PGPLOT|PDL/Graphics/PGPLOT>) is
 
  perldl> p $y
  [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
- perldl> $h = hist $y,0,20,1
- hist with step 1, min 0 and 20 bins
-
+ perldl> $h = hist $y,0,20,1; # hist with step 1, min 0 and 20 bins
  perldl> p $h
  [0 0 0 0 0 0 2 3 1 3 5 4 4 4 0 0 0 0 0 0]
 
@@ -268,22 +260,19 @@ Create array filled with a sequence of values
 
  $a = sequence($b); $a = sequence [OPTIONAL TYPE], @dims;
 
-etc. see L<zeroes|PDL/Core/zeroes>.
+etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
-  perldl> p sequence(10)
-  Dims:  10  DLen:  80
-  [0 1 2 3 4 5 6 7 8 9]
-  perldl> p sequence(3,4)
-  Dims:  12  DLen:  96
-
-  [
-   [ 0  1  2]
-   [ 3  4  5]
-   [ 6  7  8]
-   [ 9 10 11]
-  ]
+ perldl> p sequence(10)
+ [0 1 2 3 4 5 6 7 8 9]
+ perldl> p sequence(3,4)
+ [
+  [ 0  1  2]
+  [ 3  4  5]
+  [ 6  7  8]
+  [ 9 10 11]
+ ]
 
 =cut
 
@@ -317,8 +306,6 @@ Fills a piddle with radial distance values from some centre.
 =for example
 
  perldl> print rvals long,7,7,{Centre=>[2,2]}
- Dims:  7,7  DLen:  196
-
  [
   [2 2 2 2 2 3 4]
   [2 1 1 1 2 3 4]
@@ -329,7 +316,7 @@ Fills a piddle with radial distance values from some centre.
   [4 4 4 4 4 5 5]
  ]
 
- For a more general metric, one can define, e.g.,
+For a more general metric, one can define, e.g.,
 
  sub distance {
    my ($a,$centre,$f) = @_;
@@ -340,12 +327,12 @@ Fills a piddle with radial distance values from some centre.
  sub euclid { use PDL::Math 'pow'; pow(sumover(pow($_[0],2)),0.5); }
  sub linfty { maximum(abs($_[0])); }
 
- so now
+so now
 
  distance($a, $centre, \&euclid);
 
- will emulate rvals, while '\&l1' and '\&linfty' will generate other
- well-known norms. 
+will emulate rvals, while '\&l1' and '\&linfty' will generate other
+well-known norms. 
 
 =cut
 
@@ -386,7 +373,7 @@ This is the routine, for which L<xvals|/xvals>, L<yvals|/yvals> etc
 are mere shorthands. C<axisvals> can be used to fill
 along any dimension.
 
-Note the 'from specification' style (see L<zeroes|PDL/Core/zeroes>) is
+Note the 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
 not available here, for obvious reasons.
 
 =cut
@@ -493,6 +480,35 @@ sub PDL::similar_assign {
 	}
 	$to .= $from;
 }
+
+=head2 transpose
+
+=for ref
+
+transpose rows and columns. 
+
+=for usage
+
+ $b = transpose($a); $b = ~$a;
+
+Also bound to the C<~> unary operator.
+
+=for example
+
+ perldl> $a = sequence(3,2)
+ perldl> p $a
+ [
+  [0 1 2]
+  [3 4 5]
+ ]                                                                               
+ perldl> p transpose( $a )
+ [
+  [0 3]
+  [1 4]
+  [2 5]                                                                          
+ ]
+
+=cut
 
 sub PDL::transpose {
 	my($this) = @_;

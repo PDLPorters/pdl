@@ -31,9 +31,9 @@ PDL::Primitive - primitive operations for pdl
 This module provides some primitive and useful functions defined
 using PDL::PP and able to use the new indexing tricks.
 
-See L<PDL::Indexing|PDL/Indexing> for how to use indices creatively.
+See L<PDL::Indexing|PDL::Indexing> for how to use indices creatively.
 
-For explanation of the signature format, see L<PDL::PP|PDL/PP>.
+For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 
 =head1 SYNOPSIS
 
@@ -57,7 +57,7 @@ Project via $name to N-1 dimensions
 This function reduces the dimensionality of a piddle
 by one by taking the $name along the 1st dimension.
 
-By using L<xchg|PDL/Slices/xchg> etc. it is possible to use
+By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
 =for usage
@@ -88,7 +88,7 @@ Cumulative $name
 This function calculates the cumulative $name
 along the 1st dimension.
 
-By using L<xchg|PDL/Slices/xchg> etc. it is possible to use
+By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
 The sum is started so that the first element in the cumulative $name
@@ -930,7 +930,7 @@ Constructor which returns piddle of random numbers
  $a = randsym([type], $nx, $ny, $nz,...);
  $a = randsym $b;
 
-etc (see L<zeroes|PDL/Core/zeroes>).
+etc (see L<zeroes|PDL::Core/zeroes>).
 
 This is the uniform distribution between 0 and 1 (excluding both 0 and
 1, cf L<random|/random>). The arguments are the same as C<zeroes> (q.v.) -
@@ -988,7 +988,7 @@ Constructor which returns piddle of Gaussian random numbers
  $a = grandom([type], $nx, $ny, $nz,...);
  $a = grandom $b;
 
-etc (see L<zeroes|PDL/Core/zeroes>).
+etc (see L<zeroes|PDL::Core/zeroes>).
 
 This is generated using the math library routine C<ndtri>.
 

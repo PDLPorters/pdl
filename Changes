@@ -1,5 +1,9 @@
 (!!! = possible source of incompatibilities)
 Doug Burke
+        - changes to pod to HTML conversion. Links between modules - eg 
+          L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT> - should now work.
+          See Doc/mkhtmldoc.pl and Doc/scantree.pl
+        - minor doc changes to a number of files
         - Improved output from apropos (aka ??) in the perldl shell:
           1) ref string is now cleaned of any pod directives (eg C<$a> -> '$a')
           2) the formatting has been improved, so that it fills the screen,

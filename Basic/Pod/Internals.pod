@@ -9,7 +9,7 @@ PDL::Internals - description of the current internals
 This document explains various aspects of the current implementation
 of PDL. If you just want to use PDL for something, you definitely
 do not need to read this. Even if you want to interface your C routines
-to PDL or create new PDL::PP functions, you do not need to read this
+to PDL or create new L<PDL::PP|PDL::PP> functions, you do not need to read this
 (though it may be informative). This document is primarily
 intended for people interested in debugging or changing the internals
 of PDL. To read this, a good understanding of the C language
@@ -17,7 +17,7 @@ and programming and data structures in general is required, as well
 as some perl understanding. If you read through this document
 and understand all of it and are able to point what any part of
 this document refers to in the PDL core sources and additionally
-struggle to understand PDL::PP, you will be awarded the title
+struggle to understand L<PDL::PP|PDL::PP>, you will be awarded the title
 "PDL Guru" (of course, the current version of this document
 is so incomplete that this is not yet the case).
 
@@ -29,10 +29,10 @@ file) about it. This may well happen.
 
 Currently, a pdl data object is a hash ref which contains the element
 PDL, which is a pointer to a pdl structure, as well as some other fields.
-The file Core.pm uses some of these fields and the file pdlhash.c converts
+The file C<Core.pm> uses some of these fields and the file C<pdlhash.c> converts
 these to C when necessary.
 
-The pdl struct is defined in pdl.h and the meanings of the fields
+The pdl struct is defined in C<pdl.h> and the meanings of the fields
 are
 
 =over 8
@@ -53,11 +53,12 @@ Where this pdl was obtained from. This pointer may be null, in which
 case this pdl is not getting any dataflow from anywhere.
 Note, however that being non-null does not mean that data is flowing:
 
-	$a = pdl 2,3,4; $b = pdl 4,5,6;
-	$c = $a + $b;     # Note: no dataflow (not asked for)
+ $a = pdl 2,3,4; 
+ $b = pdl 4,5,6;
+ $c = $a + $b;     # Note: no dataflow (not asked for)
 
-here, the trans field in $c contains a pointer to a transformation.
-Only when $a or $b is changed, is the transformation destroyed and
+here, the trans field in C<$c> contains a pointer to a transformation.
+Only when C<$a> or C<$b> is changed, is the transformation destroyed and
 the field cleared. To see whether data is flowing, check the flags
 field of the trans struct.
 
@@ -101,11 +102,11 @@ use the trans or vtrans.
 This is where the threading tags are stored. The way this works
 is that ndims and dims hold I<all> dimensions of the pdl, including
 threaded dimensions. The real dimensions of the pdl extend from 0 to
-threadids[0]-1, the thread dimensions with id 0 extend from
-threadids[0] to threadids[1]-1 and the thread dimensions with the last id
-extend from threadids[nthreadids-1] to threadids[nthreadids]-1.
-For example, if a pdl has dimensions (2,3,4,5) (= 120 elements)
-and nthreadids==2 and threadids={1,3,4}, there is one "real" dimensions
+C<threadids[0]-1>, the thread dimensions with id 0 extend from
+C<threadids[0]> to C<threadids[1]-1> and the thread dimensions with the last id
+extend from C<threadids[nthreadids-1]> to C<threadids[nthreadids]-1>.
+For example, if a pdl has dimensions C<(2,3,4,5)> (= 120 elements)
+and C<nthreadids==2> and C<threadids={1,3,4}>, there is one "real" dimensions
 with size 2, two dimensions with threadid 0 (3 and 4) and the dimensions
 with size 5 has threadid 1.
 
@@ -139,11 +140,14 @@ routines when using the pdl.
 A ``header'' SV * that can be set and accessed from outside.
 Can be used to include any perl object in a piddle.
 
+=back
+
 =head2 Transformations
 
 Each transformation has a virtual table which contains
 various information about that transformation. Usually
-transformations are generated with PDL::PP so it's better to see
+transformations are generated with 
+L<PDL::PP|PDL::PP> so it's better to see
 that documentation.
 
 =head2 Freeing
@@ -153,8 +157,8 @@ This is bound to change pretty soon.
 
 =head2 Threading
 
-The file pdlthread.c handles most of the threading matters.
-The threading is encapsulated in the structure pdlthread.h.
+The file C<pdlthread.c> handles most of the threading matters.
+The threading is encapsulated in the structure C<pdlthread.h>.
 
 =head1 AUTHOR
 

@@ -6,9 +6,9 @@ PDL - Main loader of PDL default modules
 
 Loads the default set of modules associated
 with PDL, making the functions available in
-the current namespace. See also L<PDL::Lite>,
-L<PDL::LiteF> if start-up time becomes an
-issue.
+the current namespace. See also 
+L<PDL::Lite|PDL::Lite> or L<PDL::LiteF|PDL::LiteF> 
+if start-up time becomes an issue.
 
 =head1 SYNOPSIS
 

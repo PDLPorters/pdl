@@ -5,18 +5,18 @@ PDL::Graphics::LUT - provides access to a number of look-up tables
 
 =head1 SYNOPSIS
 
-   use PDL::Graphics::PGPLOT;
-   use PDL::Graphics::LUT;
+ use PDL::Graphics::PGPLOT;
+ use PDL::Graphics::LUT;
 
-   # what tables are available
-   my @tables = lut_names();
+ # what tables are available
+ my @tables = lut_names();
 
-   # get the reversed colour table 'smooth',
-   # with the gamma intensity ramp
-   my ( $l, $r, $g, $b ) = lut_data( 'smooth', 1, 'gamma' );
+ # get the reversed colour table 'smooth',
+ # with the gamma intensity ramp
+ my ( $l, $r, $g, $b ) = lut_data( 'smooth', 1, 'gamma' );
 
-   # use the table idl5 in ctab
-   ctab( lut_data('idl5') );
+ # use the table idl5 in ctab
+ ctab( lut_data('idl5') );
 
 =head1 DESCRIPTION
 
@@ -43,7 +43,7 @@ Return, as a list, the names of the available colour tables.
 
 =for usage
 
-  @tables = lut_names();
+ @tables = lut_names();
 
 =head2 lut_ramps()
 
@@ -53,7 +53,7 @@ Return, as a list, the names of the available intensity ramps.
 
 =for usage
 
-  @ramps = lut_names();
+ @ramps = lut_names();
 
 =head2 lut_data()
 
@@ -63,10 +63,10 @@ Load in the requested colour table and intensity ramp.
 
 =for usage
 
-  ( $l, $r, $g, $b ) = lut_data( $table, [ $reverse, [ $ramp ] ] );
+ ( $l, $r, $g, $b ) = lut_data( $table, [ $reverse, [ $ramp ] ] );
 
 Returns the levels and r, g, b components of the colour table
-C<$table>. If C<$reverse> is true/1 (defaults to B<false/0> 
+C<$table>. If C<$reverse> is 1 (defaults to B<0> 
 if not supplied),
 then the r, g, and b components are reversed before being 
 returned.

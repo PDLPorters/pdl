@@ -11,8 +11,8 @@ see Numerical Recipes, chapter 15 "Modeling of data".
 
 =head1 SYNOPSIS
 
-  use PDL::Fit::LM;
-  $ym = lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300};
+ use PDL::Fit::LM;
+ $ym = lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300};
 
 =head1 FUNCTIONS
 
@@ -38,8 +38,8 @@ Levenberg-Marquardt fitting of a user supplied model function
 
 =for example
 
-  ($ym,$a,$covar,$iters) =
-       lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300, Eps => 1e-3};
+ ($ym,$a,$covar,$iters) =
+      lmfit $x, $y, $sig, \&expfunc, $a, {Maxiter => 300, Eps => 1e-3};
 
 Options:
 
@@ -75,17 +75,17 @@ that will be assigned upon return
 As an example take this definition of a single exponential with
 3 parameters (width, amplitude, offset):
 
-   sub expdec {
-     my ($x,$par,$ym,$dyda) = @_;
-     my ($a,$b,$c) = map {$par->slice("($_)")} (0..2);
-     my $arg = $x/$a;
-     my $ex = exp($arg);
-     $ym .= $b*$ex+$c;
-     my (@dy) = map {$dyda->slice(",($_)")} (0..2);
-     $dy[0] .= -$b*$ex*$arg/$a;
-     $dy[1] .= $ex;
-     $dy[2] .= 1;
-   }
+ sub expdec {
+   my ($x,$par,$ym,$dyda) = @_;
+   my ($a,$b,$c) = map {$par->slice("($_)")} (0..2);
+   my $arg = $x/$a;
+   my $ex = exp($arg);
+   $ym .= $b*$ex+$c;
+   my (@dy) = map {$dyda->slice(",($_)")} (0..2);
+   $dy[0] .= -$b*$ex*$arg/$a;
+   $dy[1] .= $ex;
+   $dy[2] .= 1;
+ }
 
 Note usage of the C<.=> operator for assignment 
 
@@ -94,7 +94,6 @@ variable. In list context returns fitted y-values, vector
 of fitted parameters, an estimate of the covariance matrix
 (as an indicator of goodness of fit) and number of iterations
 performed.
-
 
 =cut
 
@@ -164,15 +163,15 @@ threaded version of Levenberg-Marquardt fitting routine mfit
 
 =for example
 
-    tlmfit $x, $y, float(1)->dummy(0), $na, float(200), float(1e-4),
-          $ym=null, $afit=null, \&expdec;
+ tlmfit $x, $y, float(1)->dummy(0), $na, float(200), float(1e-4),
+       $ym=null, $afit=null, \&expdec;
 
 Signature:
 
 =for sig
 
-  tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m);
-            OtherPar => subref)
+ tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m);
+           OtherPar => subref)
 
 a threaded version of C<lmfit> by using perl threading. Direct
 threading in C<lmfit> seemed difficult since we have an if condition
@@ -211,4 +210,7 @@ under certain conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution, the
 copyright notice should be included in the file.
 
+=cut
+
+# return true
 1;

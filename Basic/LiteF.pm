@@ -7,7 +7,7 @@ PDL::LiteF - minimum PDL module function loader
 Loads the smallest possible set of modules for
 PDL to work, making the functions available in
 the current namespace. If you want something even
-smaller see the C<PDL::Lite> module.
+smaller see the L<PDL::Lite|PDL::Lite> module.
 
 =head1 SYNOPSIS
 

@@ -1,15 +1,15 @@
 
 =head1 NAME
 
-PDL::AutoLoader -  MatLab style AutoLoader for PDL
+PDL::AutoLoader - MatLab style AutoLoader for PDL
 
 =head1 SYNOPSIS
 
-   use PDL::AutoLoader;
-   $a = func1(...);   # Load file func1.pdl
-   $b = func2(...);   # Load file func2.pdl
+ use PDL::AutoLoader;
+ $a = func1(...);   # Load file func1.pdl
+ $b = func2(...);   # Load file func2.pdl
 
-   $PDL::AutoLoader::Rescan = 1; # Enable re-scanning
+ $PDL::AutoLoader::Rescan = 1; # Enable re-scanning
 
 =head1 DESCRIPTION
 
@@ -17,19 +17,19 @@ This module implements a MatLab style AutoLoader for PDL. If a unknown
 function 'func()' is called then a file 'func.pdl' is searched for and
 if found is read in to define 'func()' which is then executed.
 
-Files are seached for using the directories in seach path @PDLLIB, which
-is initialised from the shell environment variable PDLLIB which is a
+Files are seached for using the directories in seach path C<@PDLLIB>, which
+is initialised from the shell environment variable C<PDLLIB> which is a
 colon seperated list of directories.
 
 e.g. in csh
 
-setenv PDLLIB "/home/kgb/pdllib:/local/pdllib"
+ setenv PDLLIB "/home/kgb/pdllib:/local/pdllib"
 
-Note this is kept seperate from PERL5LIB just in case....
+Note this is kept seperate from C<PERL5LIB> just in case....
 
 =head2 AUTO-SCANNING
 
-The variable $PDL::AutoLoader::Rescan controls whether files
+The variable C<$PDL::AutoLoader::Rescan> controls whether files
 are automatically re-scanned for changes at the C<perldl> command
 line.
 
@@ -57,7 +57,6 @@ No doubt this interface could be improved upon some more. :-)
    return sqrt($x**2 + $x**3 + 2);
  }
  1; # File returns true (i.e. loaded successfully)
-
 
 =head1 AUTHOR
 
