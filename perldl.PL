@@ -268,6 +268,7 @@ if ($PDL_OK) {
       eval << 'EOD'; # Fallback eval routine - proper one defined in PDL::Core
 
 sub eval_and_report {
+   $@ = '';  # Forget previous errors.
    my $__code = shift; # Can be code ref or string
    my $__string;
    $__string = (ref $__code eq "CODE") ? '&$__code()' : $__code;
