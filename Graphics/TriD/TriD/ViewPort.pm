@@ -92,4 +92,25 @@ sub transformer {
   return $this->{Transformer};
 }
 
+
+#
+# restore the image view to a known value
+#
+sub setview{
+  my($vp,$view) = @_;
+
+  my $transformer = $vp->transformer();
+
+  if($view eq "Top"){
+	 $transformer->set({WRotation=>[1,0,0,0]});
+  }elsif($view eq "East"){
+	 $transformer->set({WRotation=>[0.5,-0.5,-0.5,-0.5]});
+  }elsif($view eq "South"){
+	 $transformer->set({WRotation=>[0.6,-0.6,0,0]});
+  }
+
+}
+
+
+
 1;

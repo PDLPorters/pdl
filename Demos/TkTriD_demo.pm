@@ -106,7 +106,7 @@ my  $e_button = $bframe->Button(-text => "Exit",
 #
 
   $e_button->bind("<Configure>",[ sub { my $but = shift; 
-													 Torusdemos(0); 
+													 Torusdemos(); 
 													 $but->bind("<Configure>",'') }]);
 
   $TriDW->MainLoop;
@@ -123,12 +123,12 @@ sub linedemos{
   my $graph;
 
   $graph = $TriDW->{GLwin}->current_viewport->graph();
+  $demo="B&W" unless(defined $demo);
 
   unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
-    $demo="B&W";
   }
   $graph->delete_data("LinesB&W");
   $graph->delete_data("LinesColor");
@@ -170,12 +170,12 @@ sub Linesdemos{
   my $graph;
 
   $graph = $TriDW->{GLwin}->current_viewport->graph();
+  $demo="Lattice" unless(defined $demo);
 
   unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
-    $demo="Lattice";
   }
   $graph->delete_data("LinesPoints");
   $graph->delete_data("LinesLines");
@@ -215,12 +215,12 @@ sub Contourdemos{
   my $graph;
 
   $graph = $TriDW->{GLwin}->current_viewport->graph();
+  $demo="3DColor" unless(defined $demo);
 
   unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
-    $demo="3DColor";
   }
   $graph->delete_data("Contours2DB&W");
   $graph->delete_data("Contours2DColor");
@@ -264,12 +264,12 @@ sub Torusdemos{
   my $graph;
 
   $graph = $TriDW->{GLwin}->current_viewport->graph();
+  $demo="Lighting" unless defined $demo;
   
   unless(defined $graph){
     # define the graph object
     $graph = new PDL::Graphics::TriD::Graph();
     $graph->default_axes();
-    $demo="Lighting";
   }
 
   $graph->delete_data("TorusColors");
@@ -305,25 +305,19 @@ sub Torusdemos{
   $TriDW->refresh();
 }
 
+
 #
 # restore the image view to a known value
 #
 sub setview{
   my($menu,$view) = @_;
 
-  my $transformer = $TriDW->current_viewport()->transformer();
-
-  if($view eq "Top"){
-	 $transformer->set({WRotation=>[1,0,0,0]});
-  }elsif($view eq "East"){
-	 $transformer->set({WRotation=>[0.5,-0.5,-0.5,-0.5]});
-  }elsif($view eq "South"){
-	 $transformer->set({WRotation=>[0.6,-0.6,0,0]});
-  }
+  my $transformer = $TriDW->current_viewport()->setview($view);
 
   $TriDW->refresh();
 
 }
+
 
 
 sub setviewports{
