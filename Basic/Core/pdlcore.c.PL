@@ -883,7 +883,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 
   {
      SV *sv = get_sv("PDL::undefval",0);
-     undefval = (sv_undef(sv)) ? 0 : (char)SvNV(sv);
+     undefval = (sv_undef(sv)) ? 0 : (double)SvNV(sv);
 
      sv = get_sv("PDL::debug",0);
      debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
