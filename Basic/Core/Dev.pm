@@ -107,7 +107,9 @@ sub isbigendian {
     my $byteorder = $Config{byteorder} || 
 	die "ERROR: Unable to find 'byteorder' in perl's Config\n";
     return 1 if $byteorder eq "4321";
+    return 1 if $byteorder eq "87654321";
     return 0 if $byteorder eq "1234";
+    return 0 if $byteorder eq "12345678";
     die "ERROR: PDL does not understand your machine's byteorder ($byteorder)\n"; 
 }
 
