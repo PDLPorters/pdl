@@ -929,7 +929,6 @@ sub PDL::dummy($$;$) {
    $s .= '*,' x ( $dim-$pdl->getndims-1 );
    $s .= "*$size";
 
-#   print "slice string is '$s'\n";
    $pdl->slice($s);
 }  
 

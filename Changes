@@ -1,3 +1,7 @@
+CED 12-05-2003
+   - Lib/Transform now doesn't complain with -w (addressing DJB's objection)
+   - wfits now corrects the size of the output header.
+   - Shrunk Cartography sample data
 CS 080503
    - Makefile.PL now absolutely requires Filter::Util::Call & 
      Text::Balanced for PDL::NiceSlice

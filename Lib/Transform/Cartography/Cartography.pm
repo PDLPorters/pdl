@@ -417,7 +417,7 @@ sub earth_image {
   my($nd) = shift;
   my $f;
   my $dir = "PDL/Transform/Cartography/earth_";
-  $f = ($nd =~ m/^n/i) ? "${dir}night.png" : "${dir}day.png";
+  $f = ($nd =~ m/^n/i) ? "${dir}night.jpg" : "${dir}day.jpg";
   
   local $_;
   my $im;
@@ -425,6 +425,7 @@ sub earth_image {
     my $file = "$_/$f";
     $im = rpic($file)->mv(0,-1) if(-e $file);
   }
+
   barf("earth_image: $f not found in \@INC.\n")
     unless defined($im);
 

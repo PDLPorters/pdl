@@ -22,12 +22,12 @@ use PDL::Transform;
 
 =head1 DESCRIPTION
 
-PDL::Transform is a convenient way to represent image coordinate
-transformations.  It embodies functions mapping R^N -> R^M, both with
-and without inverses.  Provision exists for parametrizing functions,
-and for composing them.  You can use this part of the Transform
-object to keep track of arbitrary functions mapping R^N -> R^M
-with or without inverses.  
+PDL::Transform is a convenient way to represent coordinate
+transformations and resample images.  It embodies functions mapping
+R^N -> R^M, both with and without inverses.  Provision exists for
+parametrizing functions, and for composing them.  You can use this
+part of the Transform object to keep track of arbitrary functions
+mapping R^N -> R^M with or without inverses.
 
 The simplest way to use a Transform object is to transform vector
 data between coordinate systems.  The L<apply|/apply> method 
@@ -56,6 +56,9 @@ into the current package with the name C<t_<transform>>, so the following
 
   $t = t_radial();                    # Short way
 
+Several math operators are overloaded, so that you can compose and
+invert functions with expression syntax instead of method syntax (see below).
+
 =head1 EXAMPLE
 
 Coordinate transformations and mappings are a little counterintuitive
@@ -69,11 +72,11 @@ at first.  Here are some examples of transforms in action:
    $w->imag($a);
 
    ## Grow m51 by a factor of 3; origin is at lower left.
-   $b = $ts->map($a,{nf=>1});    # nf option uses direct pixel coord system
+   $b = $ts->map($a,{pix=>1});    # pix option uses direct pixel coord system
    $w->imag($b);
 
    ## Shrink m51 by a factor of 3; origin still at lower left.
-   $c = $ts->unmap($a, {nf=>1});
+   $c = $ts->unmap($a, {pix=>1});
    $w->imag($c);
 
    ## Grow m51 by a factor of 3; origin is at scientific origin.
@@ -86,6 +89,35 @@ at first.  Here are some examples of transforms in action:
 
    ## A no-op: shrink m51 by a factor of 3, then autoscale back to size
    $f = $ts->map($a);            # No template causes autoscaling of output
+
+=head1 OPERATOR OVERLOADS
+
+=over 3
+
+=item '!'
+
+The bang operator is a unary inversion operator.  It binds exactly as
+tightly as the normal bang operator.
+
+=item 'x' 
+
+By analogy to matrix multiplication, 'x' is the compose operator, so these 
+two expressions are equivalent:
+
+  $f->inverse()->compose($g)->compose($f) # long way
+  !$f x $g x $f                           # short way
+
+Both of those expressions are equivalent to the mathematical expression
+f^-1 o g o f, or f^-1(g(f(x))).
+
+=item '**'
+
+By analogy to numeric powers, you can apply an operator a positive 
+integer number of times with the ** operator:
+  $f->compose($f)->compose($f)  # long way
+  $f**3                         # short way
+
+=back
 
 =head1 INTERNALS
 
@@ -200,7 +232,6 @@ and L<unmap|/unmap> methods are also exported to the C<PDL> package: they
 are both Transform methods and PDL methods.
 
 =cut
-
 
 package PDL::Transform;
 use overload '""' => \&_strval;
@@ -591,9 +622,9 @@ and the x_j are the output-plane coordinates.  At each pixel, the code
 generates a linear approximation to the transformation using the local
 discrete Jacobian.  The output pixels are treated as circles of radius
 1.0, and transformed via the linear approximation to ellipses in the
-input plane.  The singular values of the Jacobian are padded to a minimum
-of 1.4 pixels, ensuring that the transformed ellipses are fat enough to
-encounter at least one sample point in the input plane.  
+input plane.  The singular values of the Jacobian are padded to a
+minimum of 1.4 pixels, ensuring that the transformed ellipses are fat
+enough to encounter at least one sample point in the input plane.
 
 To avoid numerical runaway, there are some limitations on the reverse-
 transformed ellipses.  In particular, the computational efficiency
@@ -601,6 +632,17 @@ scales inversely as the ratio between the largest and smallest
 eigenvalues, so the ellipses are not allowed to get too eccentric.  The
 maximum eccentricity is given in the C<eccentricity> option, and 
 defaults to 4.0.
+
+A caveat about Jacobian remapping is that it assumes the
+transformation is continuous.  Transformations that contain
+discontinuities will give incorrect results near the discontinuity.
+In particular, the 180th meridian isn't handled well in lat/lon
+mapping transformations (see L<PDL::Transform::Cartography>) -- pixels
+along the 180th meridian get the average value of everything along the
+parallel occupied by the pixel.  This flaw is inherent in the assumptions
+that underly creating a Jacobian matrix.  Maybe someone will write code to 
+work around it.  Maybe that someone is you.
+
 
 NOTES:
 
@@ -692,7 +734,7 @@ sub map {
   # coordinates into the given template.
   unless((defined $out->gethdr && $out->hdr->{NAXIS}) ||
 	 $nofits) {
-      print "generating output FITS header..." if($PDL::debug);
+      print "generating output FITS header..." if($PDL::Transform::debug);
       my $samp_ratio = 300;
 
       my $orange = _opt($opt, ['or','orange','output_range','Output_Range'],
@@ -703,7 +745,7 @@ sub map {
       my $osize;
 
       if (defined $orange) {
-	print "using user's orange..." if($PDL::debug);
+	print "using user's orange..." if($PDL::Transform::debug);
 	$orange = pdl($orange) unless(UNIVERSAL::isa($orange,'PDL'));
 	barf "map: orange must be 2xN for an N-D transform"
 	  unless ( (($orange->dim(1)) == $nd )
@@ -724,7 +766,7 @@ sub map {
 	# If input range is defined, sample that quadrilateral -- else 
 	# sample the quad defined by the boundaries of the input image.
 	if(defined $irange) {
-	  print "using user's irange..." if($PDL::debug);
+	  print "using user's irange..." if($PDL::Transform::debug);
 	  $irange = pdl($irange) unless(UNIVERSAL::isa($irange,'PDL'));
 	  barf "map: irange must be 2xN for an N-D transform"
 	    unless ( (($irange->dim(1)) == $nd ) 
@@ -782,7 +824,6 @@ sub map {
 				     || $in->hdr->{"CUNIT$d"}
 				     || $in->hdr->{"CTYPE$d"}
 				     || "");
-	  $out->hdr->{"CDELT$d"}
       }
       $out->hdr->{"NAXIS"} = $nd;
       $out->hdr->{"SIMPLE"} = 'T';
@@ -923,13 +964,13 @@ sub map {
   for($size=4; $size < $maxdim*2; $size *= 2){
     $size = $maxdim	if($size > $maxdim);
     
-    print "size=$size; " if($PDL::debug);
+    print "size=$size; " if($PDL::Transform::debug);
     
     my($pixels) = ($size < $maxdim) ? 
       which(($sizes >= $last_size/2.0) & ($sizes < $size/2.0)) :
       which($sizes >= $last_size/2.0);
     
-    print "found ",$pixels->nelem," points..." if($PDL::debug);
+    print "found ",$pixels->nelem," points..." if($PDL::Transform::debug);
     next if($pixels->nelem == 0);
     
     ###############
@@ -940,8 +981,6 @@ sub map {
     }
     
     if($reduce > $reduction) {
-      print "reduction...\n";
-
       # Scale down the dimensions that we're actually operating on
       my @rdims = $in->dims;
       my @rd = ( pdl( splice(@rdims,0,$nd) ) / $reduce ) ->ceil -> list;
@@ -949,9 +988,7 @@ sub map {
 
       # Enumerate the coordinates and grab the range for each pixel, then
       # sum over them
-      print "rd = @rd\n";
       my $r2dex = ndcoords(@rd) * $reduce / $reduction;
-      print "ok; summing...\n";
       my $r2 = $reduced->range($r2dex,$reduce/$reduction,'t')
 	->clump($nd..$nd*2-1)
 	->mv($nd,0)
@@ -959,17 +996,17 @@ sub map {
       $reduction = $reduce;
       $reduced = $r2;
     }
-    print "  [ reduction = $reduction ]  \n" if($PDL::debug);
+    print "  [ reduction = $reduction ]  \n" if($PDL::Transform::debug);
     
     ###############
     ### Enumerate a cube of coordinate offsets of the current size in
     ### input space.  It is float not double, to save space.
-    print "enumerating $nd-cube, side $size..." if($PDL::debug);
+    print "enumerating $nd-cube, side $size..." if($PDL::Transform::debug);
     my($coords_in) = float(ndcoords((zeroes($nd)+$size/$reduction)->list));
     
     ###############
     ### Duplicate the coordinate cube for each pixel. 
-    print "duplicating ",$pixels->nelem," times..." if($PDL::debug);
+    print "duplicating ",$pixels->nelem," times..." if($PDL::Transform::debug);
     $coords_in = $coords_in->                    # (coord,<dims>)
       mv(0,-1)->                      # (<dims>,coord)
       clump($nd)->                    # (rgn-list,coord)
@@ -979,7 +1016,7 @@ sub map {
     
     ###############
     ### Offset to get an array of indices into the input.
-    print "offsetting..." if($PDL::debug);
+    print "offsetting..." if($PDL::Transform::debug);
     
     my($points) = $center->range($pixels->dummy(0,1)); # (pix-list, coord)
     $coords_in += ($points->floor -  0.5*$size)/$reduction + 1;     
@@ -990,12 +1027,12 @@ sub map {
     ### the appropriate pixel center, and convert to r^2;
     ###
     ### The intermediate variable ijac_p could be eliminated...
-    print "calculating offsets..." if($PDL::debug);
+    print "calculating offsets..." if($PDL::Transform::debug);
     my $ijac_p = ( $ijac->                          # (col, row, list)
 		   mv(2,0)->                        # (list, col, row)
 		   range($pixels->dummy(0,1))->     # (pix-list, col, row)
 		   mv(0,-1));                       # (col, row, pix-list)
-    print " . " if($PDL::debug);
+    print " . " if($PDL::Transform::debug);
     
     my $offsets = ($ijac_p x                        # (col, row, pix-list)
 		   ($coords_in-$points/$reduction)->#(pixlist,coord,rgn-list)
@@ -1011,7 +1048,7 @@ sub map {
     ### bother to scale the weighting function here -- but we do accumulate
     ### the filter weighting total into f_norm.
     
-    print "calculating filter values..." if($PDL::debug);
+    print "calculating filter values..." if($PDL::Transform::debug);
     my $filt = $offsets->sumover->xchg(0,1);  # (rgn-list,pix-list) R^2
     $offsets = undef;    # free up memory    
     $filt *= - $reduction * $reduction / $blur / $blur;
@@ -1021,7 +1058,7 @@ sub map {
     ###############
     ### Pedal to the metal -- accumulate input values and scale by their
     ### appropriate filter value.
-    print "grabbing data..." if($PDL::debug);
+    print "grabbing data..." if($PDL::Transform::debug);
 
     my $input = $reduced->range(
 				  $coords_in         #(pix-list,coord,rgn-list)
@@ -1048,7 +1085,7 @@ sub map {
 	double($input->sumover / $f_norm / ($reduction ** $nd));  # (pix-list)
     }
     
-    print "ok\n" if($PDL::debug);
+    print "ok\n" if($PDL::Transform::debug);
     $last_size = $size;
   }
   $out;
@@ -1245,9 +1282,9 @@ sub compose {
     my ($data,$p) = @_;
     my ($ip) = $data->is_inplace;
     for my $t ( reverse @{$p->{clist}} ) {
-      print "applying $t\n" if($PDL::debug);
+      print "applying $t\n" if($PDL::Transform::debug);
       $data = $t->{func}($ip ? $data->inplace : $data, $t->{params});
-      print "... ok.\n" if($PDL::debug);
+      print "... ok.\n" if($PDL::Transform::debug);
     }
     $data;
   };
@@ -1256,9 +1293,9 @@ sub compose {
     my($data,$p) = @_;
     my($ip) = $data->is_inplace;
     for my $t ( @{$p->{clist}} ) {
-      print "inverting $t..." if($PDL::debug);
+      print "inverting $t..." if($PDL::Transform::debug);
       $data = &{$t->{inv}}($ip ? $data->inplace : $data, $t->{params});
-      print "... ok.\n" if($PDL::debug);
+      print "... ok.\n" if($PDL::Transform::debug);
     }
     $data;
   };
@@ -1716,7 +1753,7 @@ sub PDL::Transform::Linear::new {
     } elsif(defined($o_dims)) {
       $me->{idim} = $me->{odim} = $o_dims;
     } else {
-      print "PDL::Transform::Linear: assuming 2-D transform (set dims option to change)\n" if($PDL::debug);
+      print "PDL::Transform::Linear: assuming 2-D transform (set dims option to change)\n" if($PDL::Transform::debug);
       $me->{idim} = $me->{odim} = 2;
     }
     
@@ -2015,7 +2052,7 @@ sub t_fits {
       $matrix->(($1),($2)) .= $hdr->{h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
-      if($PDL::debug);
+      if($PDL::Transform::debug);
   
   } else {
     
@@ -2040,7 +2077,7 @@ sub t_fits {
 	$cpm->(($1),($2)) .= $hdr->{h};
       }
       print "PDL::Transform::FITS: Detected CPi_j matrix: \n",$cpm,"\n"
-	if($PDL::debug && @hgrab);
+	if($PDL::Transform::debug && @hgrab);
 
     } elsif($n==2 && ( defined $hdr->{CROTA} || defined $hdr->{CROTA1} ) ) {
 
@@ -2299,7 +2336,7 @@ sub t_radial {
   $me->{params}->{u} = _opt($o,['u','unit','Unit'],'radians');
   ### Replace this kludge with a units call
   $me->{params}->{angunit} = ($me->{params}->{u} =~ m/^d/i) ? $RAD2DEG : 1.0;
-  print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::debug);
+  print "radial: conversion is $me->{params}->{angunit}\n" if($PDL::Transform::debug);
   
   $me->{name} = "radial (direct)";
 
@@ -2423,10 +2460,10 @@ sub t_pincushion {
     
     $me->{func} = sub {
 	my($data,$o) = @_;
-	my($d) = $data->copy - $me->{params}->{origin};
-	$d += $me->{params}->{str} * ($d * abs($d)) / $me->{params}->{l0};
-	$d /= (abs($me->{params}->{str}) + 1);
-	$d += $me->{params}->{origin};
+	my($d) = $data->copy - $o->{origin};
+	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
+	$d /= (abs($o->{str}) + 1);
+	$d += $o->{origin};
 	if($data->is_inplace) {
 	    $data .= $d;
 	    return $data;
@@ -2435,15 +2472,15 @@ sub t_pincushion {
     };
     
     $me->{inv} = sub {
-	my($data,$o) = @_;
+	my($data,$opt) = @_;
 	my($d) = $data->copy ;
-	my($o) = $me->{params}->{origin};
-	my($s) = $me->{params}->{str};
-	my($l) = $me->{params}->{l0};
+	my($o) = $opt->{origin};
+	my($s) = $opt->{str};
+	my($l) = $opt->{l0};
 
 	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($data-$o) * (1+abs($s))))
 	    / 2 / $s * $l) * (1 - 2*($data < $o));
-	$d += $me->{params}->{origin};
+	$d += $o->{origin};
 	if($data->is_inplace) {
 	    $data .= $d;
 	    return $data;
