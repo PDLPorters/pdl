@@ -2761,12 +2761,12 @@ sub initenv{
       pgbox($o->{Axis}, 0.0, 0, $o->{Axis}, 0.0, 0);
     }
   }
+  $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
   $self->label_axes($u_opt);
 
   #  pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
   pgsci($col);
   pgsch($chsz);
-  $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
 
 #  $self->{_env_set}[$self->{CurrentPanel}]=1;
   1;
