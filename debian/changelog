@@ -1,3 +1,40 @@
+pdl (1:2.4.2-2) unstable; urgency=low
+
+  * use dpatch for patch management
+  * split out Makefile clean target patch
+  * split out patch preventing the generation of an empty manpage pdl.1p
+  * get fix for transform.pd from cvs (problem reported on pdl mailing list)
+  * fix a second problem with PDL_Double used not in C code in transform.pd
+  * patch mkhtmldoc.pl to generate relative links instead of absolute ones;
+    absolute pathnames confused dhelp sometimes.
+  * move debhelper template in prerm up, so the doc-base remove call is done
+    before the dynamically generated html files are removed
+  * patch remove obsolete upstream debian files until these changes are
+    checked in.
+  * mention new pdl htmldoc location in README.Debian
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 16 Jan 2005 18:42:29 +0100
+
+pdl (1:2.4.2-1) unstable; urgency=low
+
+  * new upstream release
+  * remove comment about not including m51.fits from debian/copyright
+  * re-import COPYING to debian/copyright
+  * include perldl.conf used in "official" package as debian/perldl.conf
+  * install Known_problems to docdir
+  * fix clean target in upstream makefiles
+  * use upstream makefile distclean target in debian/rules clean target
+  * fix description+synopsis
+  * remove references to obsolete websites from README
+  * rework packaging with debhelper
+  * build html docs in /usr/share/doc/pdl/html/PDL and install doc-base 
+    entry for this
+  * remove lintian override, slatec is now built with -fPIC
+  * disable building of pdl.1p from pdl.PL, so the correct pdl.1p from
+    Basic/Pod/Intro.pod is included
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 10 Jan 2005 15:59:25 +0100
+
 pdl (1:2.4.1-1) unstable; urgency=low
 
   * new upstream release

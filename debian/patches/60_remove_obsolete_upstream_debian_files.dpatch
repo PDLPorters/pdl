@@ -1,0 +1,47 @@
+#! /bin/sh /usr/share/dpatch/dpatch-run
+## 60_remove_obsolete_upstream_debian_files.dpatch by Henning Glawe <glaweh@physik.fu-berlin.de>
+##
+## All lines beginning with `## DP:' are a description of the patch.
+## DP: No description.
+
+@DPATCH@
+diff -urNad pdl-2.4.2/debian/README.debian /tmp/dpep.a2woJN/pdl-2.4.2/debian/README.debian
+--- pdl-2.4.2/debian/README.debian	2000-05-07 07:33:26.000000000 +0200
++++ /tmp/dpep.a2woJN/pdl-2.4.2/debian/README.debian	1970-01-01 01:00:00.000000000 +0100
+@@ -1,20 +0,0 @@
+-pdl for DEBIAN
+-----------------------
+-version number
+-1.99999-2.001-2.0-1 
+-1.99999 is to ensure upgrade when getting an official
+-debian version of pdl 2.x .  
+-2.001 is the pdl version
+-2.0 is the debian distribution on which it was built
+-
+-pdl or perlDL
+-pdl is the perl data language.  Try "man PDL", or , for more man pages,
+-"man -k PDL" .   More information can be found at.
+-Html documents are found in /usr/lib/perl5/PDL .
+-
+-http://pdl.perl.org/
+-
+-http://www.aao.gov.au/local/www/kgb/perldl/
+-http://www.jach.hawaii.edu/~frossie/pdl-mirror/
+-
+-John Lapeyre <lapeyre@homey.physics.arizona.edu>, Fri, 16 Jan 1998 02:56:53 -0700
+diff -urNad pdl-2.4.2/debian/buildnotes /tmp/dpep.a2woJN/pdl-2.4.2/debian/buildnotes
+--- pdl-2.4.2/debian/buildnotes	2000-05-07 07:33:26.000000000 +0200
++++ /tmp/dpep.a2woJN/pdl-2.4.2/debian/buildnotes	1970-01-01 01:00:00.000000000 +0100
+@@ -1,3 +0,0 @@
+-perl module File/Spec.pm is missing.
+-it is probably in perl 5.005
+-Yes. This is now taken care of.
+diff -urNad pdl-2.4.2/debian/pdl-menu /tmp/dpep.a2woJN/pdl-2.4.2/debian/pdl-menu
+--- pdl-2.4.2/debian/pdl-menu	2004-07-26 10:55:30.000000000 +0200
++++ /tmp/dpep.a2woJN/pdl-2.4.2/debian/pdl-menu	1970-01-01 01:00:00.000000000 +0100
+@@ -1,5 +0,0 @@
+-?package(pdl):\
+- needs="text"\
+- section="Apps/Math"\
+- title="PerlDl"\
+- command="/usr/bin/perldl"
