@@ -1978,13 +1978,10 @@ Returns the coordinates for non-zero values.
 
 =for usage
 
- @coords=whichND($mask);
-
-returns a perl list of piddles containing the coordinates of the
-elements that are non-zero in C<$mask>.  Each element corresponds to a
-particular index dimension.  For example, if $mask has rank 4 and 100
-matching elements, then @coords has 4 elements, each of which is a pdl
-of size 100.
+For historical reasons the return value is different in list and scalar
+context.  In scalar context, you get back a PDL containing coordinates suitable
+for use in L<indexND|/indexND> or L<range|/range>; in list context, the
+coordinates are broken out into separate PDLs.
 
  $coords = whichND($mask);
 
@@ -1993,6 +1990,14 @@ in C<$mask>, suitable for use in indexND.  The 0th dimension contains the
 full coordinate listing of each point; the 1st dimension lists all the points.
 For example, if $mask has rank 4 and 100 matching elements, then $coords has
 dimension 4x100.
+
+ @coords=whichND($mask);
+
+returns a perl list of piddles containing the coordinates of the
+elements that are non-zero in C<$mask>.  Each element corresponds to a
+particular index dimension.  For example, if $mask has rank 4 and 100
+matching elements, then @coords has 4 elements, each of which is a pdl
+of size 100.
 
 =for example
 
@@ -2017,7 +2022,9 @@ sub PDL::whichND {
   # Scalar context: generate an N-D index piddle
 
 
-  $ind = ($mask->clump(-1))->which->dummy(0,$mask->getndims)->long->make_physical;
+  return null() unless ($mask->getndims);
+
+  $ind = $mask->flat->which->dummy(0,$mask->getndims)->long->make_physical;
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
