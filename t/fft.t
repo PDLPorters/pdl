@@ -1,29 +1,30 @@
+
+use strict;
+
 use PDL;
 use PDL::Image2D;
 use PDL::FFT;
 
-sub ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
-}
+use Test;
+BEGIN { plan tests => 10; }
 
 sub tapprox {
         my($a,$b) = @_;
         my ($c) = abs($a-$b);
-        $d = max($c);
+        my $d = max($c);
         $d < 0.01;
 }
 
-print "1..10\n";
+my ( $a, $b, $c, $i, $k, $kk );
 
 $k = ones(5,5);
 $a = rfits("m51.fits");
 
 $b = $a->copy;
-$c = $b->zeroes; fft($b,$c); ifft($b,$c);
-ok (1,tapprox($c,0));
+$c = $b->zeroes;
+fft($b,$c);
+ifft($b,$c);
+ok (tapprox($c,0));
 
 print "\n",$c->info("Type: %T Dim: %-15D State: %S"),"\n";
 print "Max: ",$c->max,"\n";
@@ -37,18 +38,22 @@ print "Min: ",$c->min,"\n";
 
 $b = $a->copy;
 $c = $b->zeroes; fftnd($b,$c); ifftnd($b,$c);
-ok (2,tapprox($c,0));   ok (3,tapprox($a,$b));
+ok ( tapprox($c,0) );
+ok ( tapprox($a,$b) );
 
 $b = $a->slice("1:35,1:69");
 $c = $b->copy; fftnd($b,$c); ifftnd($b,$c);
-ok (4,tapprox($c,$b));   ok (5,tapprox($a->slice("1:35,1:69"),$b));
+ok ( tapprox($c,$b) );
+ok ( tapprox($a->slice("1:35,1:69"),$b) );
 
 # Now compare fft convolutions with direct method
 
 $b = conv2d($a,$k);
-$kk = kernctr($a,$k);   fftconvolve($i=$a->copy,$kk);
+$kk = kernctr($a,$k);
+fftconvolve( $i=$a->copy, $kk );
 
-ok (6,tapprox($kk,0));   ok (7,tapprox($i,$b));
+ok ( tapprox($kk,0) );
+ok ( tapprox($i,$b) );
 
 $k = pdl[
  [ 0.51385498,  0.17572021,  0.30862427],
@@ -61,11 +66,17 @@ $k = pdl[
 ];
 $b = conv2d($a,$k);
 
-$kk = kernctr($a,$k);  fftconvolve($i=$a->copy,$kk);
+$kk = kernctr($a,$k);
+fftconvolve( $i=$a->copy, $kk );
 
-ok (8,tapprox($kk,0));  ok (9,tapprox($i,$b));
+ok ( tapprox($kk,0) );
+ok ( tapprox($i,$b) );
 
 $b = $a->copy;
 
 # Test real ffts
-realfft($b); realifft($b); ok(10,tapprox($a,$b));
+realfft($b);
+realifft($b);
+ok( tapprox($a,$b) );
+
+# End

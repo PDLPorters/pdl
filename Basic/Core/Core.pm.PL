@@ -170,7 +170,7 @@ sub barf;
 
 =for ref
 
-piddle constructor - creates new piddle from perl scalars/arrays
+piddle constructor - creates new piddle from perl scalars/arrays and piddles
 
 =for usage
 
@@ -190,6 +190,31 @@ piddle constructor - creates new piddle from perl scalars/arrays
 Note the last two are equivalent - a list is automatically
 converted to a list reference for syntactic convenience. i.e. you
 can omit the outer C<[]>
+
+You can mix and match arrays, array refs, and PDLs in your argument
+list, and C<pdl> will sort them out.  You get back a PDL whose last
+(slowest running) dim runs across the top level of the list you hand
+in, and whose first (fastest running) dim runs across the deepest
+level that you supply.
+
+Throwing a PDL into the mix has the same effect as throwing in a list ref:
+
+  pdl(pdl(1,2),[3,4])
+
+is the same as 
+  
+  pdl([1,2],[3,4]).
+
+All of the dimensions in the list are "padded-out" with undefval to
+meet the widest dim in the list, so (e.g.)
+
+  $a = pdl([[1,2,3],[2]])
+
+gives you the same answer as 
+  
+  $a = pdl([[1,2,3],[2,undef,undef]]);
+
+
 
 C<pdl()> is a functional synonym for the 'new' constructor,
 e.g.:
@@ -674,10 +699,19 @@ sub PDL::new {
    return $this->copy if ref($this);
    my $type = ref($_[0]) eq 'PDL::Type' ? ${shift @_}[0]  : $PDL_D;
    my $value = (@_ >1 ? [@_] : shift);  # ref thyself
-   $value = 0 unless defined $value;
+
+   unless(defined $value) {
+       if($PDL::debug && $PDL::undefval) {
+	   print STDERR "Warning: PDL::new converted undef to $PDL::undefval ($PDL::undefval)\n";
+       }
+       $value = $PDL::undefval+0
+   }
+
    return pdl_avref($value,$this,$type) if ref($value) eq "ARRAY";
    my $new = $this->initialize();
    $new->set_datatype($type);
+
+
    if (ref(\$value) eq "SCALAR") {
        $new->setdims([]);
        ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
@@ -744,10 +778,10 @@ optimization happens:
 
 If the header is a tied array or a blessed hash ref with an associated
 method called C<copy>, then that ->copy method is called.  Otherwise, all
-elements of the hash are explicitly copied, resulting in a "first-level" 
-copy of the header: actual scalars are physically copied, but if elements
-of the header are refs to something else, those something elses aren not 
-copied.
+elements of the hash are explicitly copied.  References are recursively
+deep copied.
+
+This routine seems to leak memory.
 
 =cut
 
@@ -825,14 +859,17 @@ sub PDL::_deep_hdr_copy {
     for $z(@$val) {
       push(@a,(ref $z) ? PDL::_deep_hdr_copy($z) : $z);
     }
+    return \@a;
   }
   
   if(ref $val eq 'SCALAR') {
-    return $$val;
+    my $a = $$val;
+    return \$a;
   }
   
   if(ref $val eq 'REF') {
-    return PDL::_deep_hdr_copy($$val);
+    my $a = PDL::_deep_hdr_copy($$val);
+    return \$a;
   }
   
   # Special case for PDLs avoids potential nasty header recursion...
@@ -1575,7 +1612,7 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		  die "multielement piddle where only one allowed" :
 		    die "non piddle ref '".ref $_[0]."'"
-		      : int $_[0] }
+		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
   my($pdl) = shift;
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
@@ -2846,6 +2883,15 @@ sub str2D{
     return $ret;
 }
 
+
+#
+# Sleazy hcpy saves me time typing
+#
+sub PDL::hcpy {
+  $_[0]->hdrcpy($_[1]);
+  $_[0];
+}
+
 ########## Docs for functions in Core.xs ##################
 # Pod docs for functions that are imported from Core.xs and are
 #  not documented elsewhere. Currently this is not a complete
@@ -3001,18 +3047,19 @@ switch on/off/examine automatic header copying
 =for example
 
  print "hdrs will be copied" if $a->hdrcpy;
- $a->hdrcpy(1);       # switch on hdr copying
+ $a->hdrcpy(1);       # switch on automatic header copying 
  $b = $a->sumover;    # and $b will inherit $a's hdr
  $a->hdrcpy(0);       # and now make $a non-infectious again
 
 C<hdrcpy> without an argument just returns the current setting of the
-flag.
+flag.  See also "hcpy" which returns its PDL argument (and so is useful
+in method-call pipelines).
 
-Normally, the optional header of a piddle is not copied
-automatically in pdl operations. Switching on the hdrcpy
-flag using the C<hdrcpy> method will enable automatic hdr
-copying. Note that an actual deep copy gets made, which is
-somewhat inefficient -- plan accordingly.
+Normally, the optional header of a piddle is not copied automatically
+in pdl operations. Switching on the hdrcpy flag using the C<hdrcpy>
+method will enable automatic hdr copying. Note that an actual deep
+copy gets made, which is rather processor-inefficient -- so avoid 
+using header copying in tight loops!
 
 Most PDLs have the C<hdrcpy> flag cleared by default; however, some
 routines (notably L<rfits|PDL::IO::FITS/rfits>) set it by default
@@ -3035,6 +3082,21 @@ will print:
 
   bar - bar
   bar - baz - bar
+
+=head2 hcpy
+
+=for ref
+
+Switch on/off automatic header copying, with PDL pass-through
+
+=for example
+  
+  $a = rfits('foo.fits')->hcpy(0);
+  $a = rfits('foo.fits')->hcpy(1);
+
+C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
+itself.  That makes it convenient for inline use in expressions.
+
 
 =head1 AUTHOR
 

@@ -13,6 +13,8 @@ perldl
 pdldoc
 pdldoc.pod
 perldl.pod
+pdl
+pdl.c
 *.orig
 tmp*
 pm_to_blib
@@ -21,4 +23,5 @@ patch*
 *.rej
 Makefile
 blib
+*.xfig
 

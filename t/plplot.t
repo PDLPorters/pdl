@@ -7,16 +7,18 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use PDL;
+use PDL::Config;
 use Test::More;
 
 BEGIN{
-  eval " use PDL::Graphics::PLplot; ";
-  unless ($@){
-    plan tests => 25;
+  use PDL::Config;
+  if($PDL::Config{WITH_PLPLOT}) {
+    plan tests => 27;
+    use_ok( "PDL::Graphics::PLplot" );
   }
   else {
     plan tests => 1;
-    ok (1, "PDL::Graphics::PLplot not installed");
+    pass ("PDL::Graphics::PLplot not installed");
     exit;
   }
 }
@@ -49,16 +51,20 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 # PLplot errors, control never returns to us.  FMH.
 #   --CED
 ###
+
+my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
+my $tmpfile = $tmpdir . "/foo$$.xfig";
+
 if($pid = fork()) {
 	$a = waitpid($pid,0);
 } else {
 	sleep 1;
-	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>"/tmp/foo$$.xfig");
+	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>$tmpfile);
 	exit(0);	
 }
 
 ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
-unlink "/tmp/foo$pid.xfig";
+unlink $tmpfile;
 
 if($not_ok) {
 	printf SAVEERR <<"EOERR" ;
@@ -68,7 +74,7 @@ Return value $not_ok; a is $a; pid is $pid
 ************************************************************************
 * PLplot failed the crash test: it appears to crash its owner process. *
 * This is probably due to a misconfiguration of the PLplot libraries.  *
-* Next we'll try creating a test window from which will probably dump  *
+* Next we\'ll try creating a test window from which will probably dump  *
 * some (hopefully helpful) error messages and then die.                *
 ************************************************************************
 
@@ -171,19 +177,26 @@ $pl->text("Test string inside window",     TEXTPOSITION => [0, 0, 0.5, 0.5, 0]);
 $pl->close;
 ok (-s "test9.xfig" > 0, "Printing text inside and outside of plot window");
 
-# test rainbow point plotting with color key
-$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
-
 my $pi = atan2(1,1)*4;
 my $a  = (sequence(20)/20) * 2 * $pi;
 my $b  = sin($a);
 my $c  = cos($a);
 
-$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
+# test rainbow point plotting with color key
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10.xfig");
+#$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
 $pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
 $pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
 $pl->close;
 ok (-s "test10.xfig" > 0, "Colored symbol plot with key");
+
+# test reverse rainbow point plotting with color key
+$pl = PDL::Graphics::PLplot->new (DEV => 'xfig', FILE => "test10a.xfig");
+$pl->xyplot ($a, $b, SYMBOL => 850, SYMBOLSIZE => 1.5, PALETTE => 'REVERSERAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $c);
+$pl->colorkey ($c, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
+$pl->colorkey ($c, 'h', VIEWPORT => [0.15, 0.85, 0.92, 0.95]);
+$pl->close;
+ok (-s "test10a.xfig" > 0, "Colored symbol plot with key: reverse rainbow");
 
 # Test plot and color key (low level interface)
 plsdev ("xfig");
@@ -197,14 +210,14 @@ plvpor(0.1,0.85,0.1,0.9);
 plwind (0, 10, 0, 100);
 plcol0(1);
 plbox (0, 0, 0, 0, 'BCNST', 'BCNST');
-plpoin(10, $x, $y, 2);
+plpoin($x, $y, 2);
 plvpor(0.86,0.90,0.1,0.9);
 plwind (0, 10, 0, 100);
 plbox (0, 0, 0, 0, '', 'TM');
-plscmap1l (0, 2, PDL->new(0,1), PDL->new(0,360), PDL->new(0.5, 0.5), PDL->new(1,1), PDL->new(0));
+plscmap1l (0, PDL->new(0,1), PDL->new(0,360), PDL->new(0.5, 0.5), PDL->new(1,1), pdl []);
 for (my $i=0;$i<10;$i++) {
   plcol1($i/10);
-  plfill (4, PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
+  plfill (PDL->new(0,10,10,0), PDL->new($i*10,$i*10,($i+1)*10,($i+1)*10));
 }
 plend1();
 
@@ -224,8 +237,8 @@ my $nx = 35;
 my $ny = 46;
 $x = (sequence($nx) - ($nx/2))/($nx/2);
 $y = (sequence($ny) - ($ny/2))/(($ny/2) - 1.0);
-my $xv = $x->dummy(0, $y->nelem);
-my $yv = $y->dummy(1, $x->nelem);
+my $xv = $x->dummy(1, $y->nelem);
+my $yv = $y->dummy(0, $x->nelem);
 my $z = -sin(7*$xv) * cos (7*$yv) + $xv**2 - $yv**2;
 my $nsteps = 15;
 my ($zmin, $zmax) = $z->minmax;
@@ -235,9 +248,11 @@ my $cont_color = 0;
 my $cont_width = 0;
 my $xmap = ((sequence($nx)*(2/($nx-1))) + -1); # map X coords linearly to -1 to 1
 my $ymap = ((sequence($ny)*(2/($ny-1))) + -1);
+my $grid = plAllocGrid ($xmap, $ymap);
 plshades($z, -1, 1, -1, 1,
          $clevel, $fill_width,
-         $cont_color, $cont_width, 1, $xmap, $ymap);
+         $cont_color, $cont_width, 1, 
+	 0, \&pltr1, $grid);
 plend1();
 
 ok (-s "test12.xfig" > 0, "3D color plot, low level interface");
@@ -264,7 +279,7 @@ $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 plend1();
 
 ok (-s "test14.xfig" > 0, "Histogram plotting, low level interface");
@@ -289,7 +304,7 @@ $nbins = 15;
 $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 
 pladv (2);
 plvpor(0.1, 0.9, 0.1, 0.9); 
@@ -301,7 +316,7 @@ $oldwin = 1; # dont call plenv
 plwind ($min, $max, 0, 100);
 plbox (0, 0, 0, 0, 'bcnst', 'bcnst');
 
-plhist (100, $x, $min, $max, $nbins, $oldwin);
+plhist ($x, $min, $max, $nbins, $oldwin);
 
 plend1();
 
@@ -400,9 +415,6 @@ print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
 $txt =~ s/Opened test\d*\.xfig\n//sg;
 warn $txt unless $txt =~ /\s*/;
 
-
-
-
-
-
-
+# Local Variables:
+# mode: cperl
+# End:

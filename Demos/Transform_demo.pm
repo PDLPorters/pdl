@@ -79,7 +79,7 @@ act q|
     # work well with FITS images that contain WCS scientific coordinate
     # information, but works equally well in pixel space.
 
-    $m51 = rfits "$m51path/m51.fits";
+    $m51 = rfits("$m51path/m51.fits",{hdrcpy=>1});
   
     # we use a floating-point version of the image in some of the demos 
     # to highlight the interpolation schemes.  (Note that the FITS
@@ -97,9 +97,9 @@ act q|
   #### Resampling with ->map and no FITS interpretation works in pixel space.
 
   ### Create a PGPLOT window, and display the original image
-    $win = pgwin( nx=>2, ny=>2, Charsize=>2, Justify=>1 );
+    $win = pgwin( nx=>2, ny=>2, Charsize=>2, Justify=>1, Size=>[8,6] );
 
-    $win->fits_imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
+    $win->imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
 
   ### Grow m51 by a factor of 3; origin is at lower left
   #   (the "pix" makes the resampling happen in pixel coordinate 
@@ -126,7 +126,7 @@ act q|
     ### Clear the panel and start over
 
     $win->panel(4);                 # (Clear whole window on next plot)
-    $win->fits_imag( $m51, { Title=>"M51" } );
+    $win->imag( $m51, { Title=>"M51" } );
 
     ### Scale in scientific coordinates.
     #   Here's a way to scale in scientific coordinates:
@@ -245,6 +245,75 @@ act q|
         { Title => "M51 unspiraled (\\\\gp / r\\\\ds\\\\u; antialiased)" } );
 |;
 
+
+$win->close;
+
+act q|
+    ###   Native FITS interpretation makes it easy to view your data in
+    ###   your preferred coordinate system.  Here we zoom in on a 0.2x0.2
+    ###   arcmin region of M51, sampling it to 100x100 pixels resolution.
+  
+    $m51 = float $m51;
+    $data = $m51->match([100,100],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+    $s = "M51 closeup ("; $ss=" coords)";
+    $ps = " (pixels)";
+
+    $w1 = pgwin( xw, size=>[4,4], charsize=>1.5 );
+    $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}", 
+				  xtitle=>"X$ps", ytitle=>"Y$ps" } );
+    $w1->hold;
+
+    $w2 = pgwin( xw, size=>[4,4], charsize=>1.5 );
+    $w2->fits_imag( $data, 600, 750, { title=>"${s}sci.${ss}", dr=>0 } );
+    $w2->hold;
+
+    # Now please separate the two X windows on your screen, and press ENTER.
+    ###############################
+|;
+
+act q|
+    ###   Now rotate the image 360 degrees in 10 degree increments.
+    ###   The 'match' method resamples $data to the rotated scientific
+    ###   coordinate system in $hdr.  The "pixel coordinates" window shows 
+    ###   the resampled data in their new pixel coordinate system. 
+    ###   The "sci. coordinates" window shows the data remaining fixed in 
+    ###   scientific space, even though the pixels that represent them are 
+    ###   moving and rotating.
+
+  $hdr = $data->hdr_copy;
+  
+  for( $rot=0; $rot<=360; $rot += 10 ) {
+    $hdr->{CROTA2} = $rot;
+
+    $d = $data->match($hdr);
+    
+    $w1->imag( $d, 600, 750 );
+    $w2->fits_imag($d, 600, 750, {dr=>0});
+  }
+|;
+
+act q|
+   ###   You can do the same thing even with nonsquare coordinates.
+   ###   Here, we resample the same region in scientific space into a 
+   ###   150x50 pixel array.
+   
+  $data = $m51->match([150,50],{or=>[[-0.05,0.15],[-0.05,0.15]]});
+  $hdr = $data->hdr_copy;
+
+  $w1->release; 
+  $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}", 
+		                xtitle=>"X$ps", ytitle=>"Y$ps", pix=>1 } );
+  $w1->hold;
+
+  for( $rot=0; $rot<=750; $rot += 5 ) {
+    $hdr->{CROTA2} = $rot;
+    $d = $data->match($hdr);
+    $w1->imag($d, 600, 750);    $w2->fits_imag($d, 600, 750, {dr=>0});
+  }
+
+  |;
+
+
 comment q|
 
  This concludes the PDL::Transform demo.
@@ -256,7 +325,8 @@ comment q|
 
 |;
 
-  $win->close;
+  $w1->release; $w1->close; undef $w1;
+  $w2->release; $w2->close; undef $w2;
   undef $win;
 } 
 

@@ -19,10 +19,10 @@ use ExtUtils::MakeMaker;
 @pack = (["openglq.pd",OpenGLQ,PDL::Graphics::OpenGLQ]);
 %hash = pdlpp_stdargs_int(@::pack);
 foreach (@{$hash{LIBS}}) {
-	$_ .= ' '.$PDL_CONFIG{OPENGL_LIBS};
+	$_ .= ' '.$PDL::Config{OPENGL_LIBS};
 }
-$hash{DEFINE} .= ' '.$PDL_CONFIG{OPENGL_DEFINE};
-$hash{INC} .= ' '.$PDL_CONFIG{OPENGL_INC};
+$hash{DEFINE} .= ' '.$PDL::Config{OPENGL_DEFINE};
+$hash{INC} .= ' '.$PDL::Config{OPENGL_INC};
 ${$hash{LIBS}}[0] .= ' -lm';
 WriteMakefile(%hash);
 

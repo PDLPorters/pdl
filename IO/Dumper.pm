@@ -96,7 +96,7 @@ BEGIN{
 
   package PDL::IO::Dumper;
 
-  $PDL::IO::Dumper::VERSION = 1.3.1;
+  $PDL::IO::Dumper::VERSION = '1.3.1';
   
   @PDL::IO::Dumper::ISA = ( Exporter ) ;
   @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
@@ -117,8 +117,10 @@ BEGIN{
 
   use PDL;
   use PDL::Exporter;
+  use PDL::Config;
   use Data::Dumper;
   use Carp;
+  use IO::File;
 }
 
 ######################################################################
@@ -139,7 +141,7 @@ Dump a data structure to a string.
 =for description
 
 sdump dumps a single complex data structure into a string.  You restore
-the data structure by eval'ing the string.  Since eval is a builtin, no
+the data structure by eval-ing the string.  Since eval is a builtin, no
 convenience routine exists to use it.
 
 =cut
@@ -188,27 +190,28 @@ Dump a data structure to a file
 =for description
 
 fdump dumps a single complex data structure to a file.  You restore the
-data structure by eval'ing the perl code put in the file.  A convenience
+data structure by eval-ing the perl code put in the file.  A convenience
 routine (frestore) exists to do it for you.
 
 I suggest using the extension '.pld' or (for non-broken OS's) '.pdld'
-to distinguish Dumper files.  That way they're reminiscent of .pl
+to distinguish Dumper files.  That way they are reminiscent of .pl
 files for perl, while still looking a little different so you can pick
 them out.  You can certainly feed a dump file straight into perl (for
-syntax checking) but it won't do much for you, just build your data
+syntax checking) but it will not do much for you, just build your data
 structure and exit.
 
 =cut
 
 sub PDL::IO::Dumper::fdump { 
   my($struct,$file) = @_;
-  if(!open(FDuMPFILE,">$file")) {
-    Carp::cluck ("fdump: couldn't open '$file'\n");
-     return undef;
+  my $fh = IO::File->new( ">$file" );
+  unless ( defined $fh ) {
+      Carp::cluck ("fdump: couldn't open '$file'\n");
+      return undef;
   }
-  print FDuMPFILE "####################\n## PDL::IO::Dumper dump file -- eval this in perl/PDL.\n\n";
-  print FDuMPFILE sdump($struct);
-  close FDuMPFILE;
+  $fh->print( "####################\n## PDL::IO::Dumper dump file -- eval this in perl/PDL.\n\n" );
+  $fh->print( sdump($struct) );
+  $fh->close();
   return $struct;
 }
 
@@ -238,13 +241,17 @@ sub PDL::IO::Dumper::frestore {
   local($_);
   my($fname) = shift;
 
-  if(!open(fREsTOrE,"<$fname")){
+  my $fh = IO::File->new( "<$fname" );
+  unless ( defined $fh ) {
     Carp::cluck("frestore:  couldn't open '$file'\n");
-      return undef;
-    }
+    return undef;
+  }
 
-  my($file) = join("",<fREsTOrE>);
-  eval $file;
+  my($file) = join("",<$fh>);
+  
+  $fh->close;
+
+  return eval $file;
 }
 
 ######################################################################
@@ -392,21 +399,41 @@ are supported).
 
 =cut
 
+# should we use OS/library-level routines for creating
+# a temporary filename?
+#
+sub _make_tmpname () {
+    # should we use File::Spec routines to create the file name?
+    return $PDL::Config{TEMPDIR} . "/tmp-$$.fits";
+}
+
+# For uudecode_PDL:
+#
+# uudecode on OS-X needs the -s option otherwise it strips off the
+# path of the data file - which messes things up. We could change the
+# logic so that we explicitly tell uudecode where to create the output
+# file, except that this is also OS-dependent (-o <filename> on OS-X/linux,
+# -p on solaris/OS-X to write to stdout, any others?),
+# so we go this way for now as it is less-likely to break things
+#
+my $uudecode_string = "|uudecode";
+$uudecode_string .= " -s" if $^O eq "darwin";
+
 sub PDL::IO::Dumper::uudecode_PDL {
     my $lines = shift;
     my $out;
-    my $fname = "/tmp/tmp-$$.fits";
+    my $fname = _make_tmpname();
     if($PDL::IO::Dumper::uudecode_ok) {
-	open(FITS,"|uudecode");
+	my $fh = IO::File->new( $uudecode_string );
 	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
-	print FITS $lines;
-	close(FITS);
+	$fh->print( $lines );
+	$fh->close;
     }
     elsif($PDL::IO::Dumper::convert_ok) {
-	open(FITS,">$fname");
+	my $fh = IO::File->open(">$fname");
 	my $fits = Convert::UU::uudecode($lines);
-	print FITS $fits;
-	close(FITS);
+	$fh->print( $fits );
+	$fh->close();
     } else {
       barf("Need either uudecode(1) or Convert::UU to decode dumped PDL.\n");
   }
@@ -458,16 +485,21 @@ sub PDL::IO::Dumper::dump_PDL {
     else { 
       
       ##
-      ## Write FITS file, uuencode it, snarf it up, and clean up /tmp
+      ## Write FITS file, uuencode it, snarf it up, and clean up the
+      ## temporary directory
       ##
-      my($fname) = "/tmp/$$.fits";
+      my $fname = _make_tmpname();
       wfits($_,$fname);
       my(@uulines);
 
       if($PDL::IO::Dumper::uudecode_ok) {
-	open(FITSFILE,"uuencode $fname $fname |");
-	@uulines = <FITSFILE>;
+	  my $fh = IO::File->new( "uuencode $fname $fname |" );
+	  @uulines = <$fh>;
+	  $fh->close;
     } elsif($PDL::IO::Dumper::convert_ok) {
+	# Convert::UU::uuencode does not accept IO::File handles
+        # (at least in version 0.52 of the module)
+	#
 	open(FITSFILE,"<$fname");
 	@uulines = ( Convert::UU::uuencode(*FITSFILE) );
     } else {

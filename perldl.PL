@@ -117,6 +117,7 @@ sub preproc_del ($) {
 }
 
 # Parse ARGV
+my $read_from_file;
 
 while(defined($_ = shift @ARGV)) {
 	if($_ eq "-tk") {
@@ -167,6 +168,11 @@ while(defined($_ = shift @ARGV)) {
       } elsif (/^-V\s*$/) {
          print mypdlconfig();
          exit 0;
+       } elsif( /^-\s*$/) {
+
+	 $read_from_file = 1;
+	 last;
+
       } else {
             print << 'EOP';
 Usage: perldl [options]
@@ -178,15 +184,21 @@ Usage: perldl [options]
   -M <module> load module <module>
   -I <dir>    Add <dir> to include path.
   -V          print PDL version info (e.g. for a bug report)
+  -           Following arguments are files for input.
 
 EOP
           die("Unknown argument $_");
-      }
+	  }
 
 }
 
-eval "use Term::ReadLine";
-my $readlines = ($@ eq "");
+my $readlines;
+if(!$read_from_file  and  -t STDIN) {
+  eval "use Term::ReadLine";
+  $readlines = ($@ eq "");
+} else {
+  $readlines=0;
+}
 
 my @enabled = ();
 push @enabled, "ReadLines" if $readlines;
@@ -219,17 +231,16 @@ my $multi_ok = ($@ eq "");
 $PERLDL::MULTI = 0 unless($multi_ok);
 push @enabled,"MultiLines" if $multi_ok;
 
+
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
-my($term);
 if ( $readlines ){
-    $term = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
-    $PERLDL::TERM = $term;
+    $PERLDL::TERM = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
-        if(${$term->Features}{tkRunning}) {
+        if(${$PERLDL::TERM->Features}{tkRunning}) {
 		print "Using Tk event loop\n";
-		$term->tkRunning(1);
+		$PERLDL::TERM->tkRunning(1);
 	} else {
 		warn("Sorry, cannot use Tk with this version of ReadLine\n");
 	}
@@ -240,7 +251,7 @@ if ( $readlines ){
 	close HIST;
 	map s/\n//g , @allhist ;
 	foreach (@allhist) {
-	    $term->addhistory($_);
+	    $PERLDL::TERM->addhistory($_);
 	}
     }
     eval <<'EOEND';
@@ -248,7 +259,7 @@ sub END {
 
     # Save History in $ENV{'HOME'}/.perldl_hist
     # GetHistory doesn't work on all versions...
-    my @a= $term->GetHistory() if $term->can('GetHistory');
+    my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
 
     $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
     @a= @a[($#a-50)..($#a)] if $#a > 50 ;
@@ -265,7 +276,7 @@ EOEND
 sub l {
   if ($readlines) {
     my $n = $#_ > -1 ? shift : 20;
-    my @h = $term->GetHistory();
+    my @h = $PERLDL::TERM->GetHistory();
     my $min = $#h < $n-1 ? 0 : $#h-$n+1;
     map {print "$_: $h[$_]\n"} ($min..$#h);
   }
@@ -341,6 +352,9 @@ EOD
 
    }
 }
+
+print "\nNote: AutoLoader not enabled ('use PDL::AutoLoader' recommended)\n\n"
+  unless defined($PDL::AutoLoader::Rescan);
 
 if (-e 'local.perldlrc') {
     print "Reading local.perldlrc ...\n";
@@ -438,13 +452,11 @@ sub count_tags {
 
     return undef unless($s =~ m/[^\s]/);
     
-    # Anything but a delimiter ('q' is a string begin delimiter in perl,
-    # meaning we have to do a little shenanigan to treat things like 
-    # "quest" and "arquebus" properly.)
+    # [Ignore quotelike operators: they cause more trouble than they're worth!]
+
     our($prefix,$delim,%closers);
     unless(defined $prefix) {
-	$prefix = qr/ ( [^\{\}\[\]\(\)\'\"\`q] | ([^\s](q|tr|m)) | ((q|tr|m)($|\w)) )* /x;
-	$delim = '{[(`\'"q)]}';
+	$delim = '{[(`\'")]}';
 	%closers = ('{'=>'}','['=>']','('=>')');
     }
 
@@ -453,10 +465,13 @@ sub count_tags {
     # The whitespace works around a short-string bug in extract_bracketed.
     my $a;
     my @result;
+    $s =~ s/^\s*\#.*$//mg;  # Eliminate comment lines before extract.
+
     eval { @result = 
 	       Text::Balanced::extract_bracketed("{".$s, $delim, $prefix);
 	   $a = $@;
        };
+
     print "a = $a\nreturn = '",join("','",@result),"'\n" 
 	if($PERLDL::debug);
 
@@ -520,9 +535,9 @@ sub process_input {
 	     ((ref $PERLDL::PROMPT) ? &$PERLDL::PROMPT : $PERLDL::PROMPT);
 
 	 if ($readlines) {
-	     $_ = $term->readline($prompt);
+	     $_ = $PERLDL::TERM->readline($prompt);
 	 }else{
-	     print $prompt;
+	     print $prompt if(-t ARGV);  # Don't print prompt in pipes
 	     $_ = <>;
 	 }
 	 
@@ -571,8 +586,11 @@ sub process_input {
       $_ = join(' ',@t);
   }
   
-  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1)) {
-      system(substr($_,1)); # Shell escape
+  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1) and
+      substr($_,0,2) ne '#!') {  # Allow escapes, avoid shebang
+      my @lines = split /\n/;
+      system(substr(shift @lines,1)); # Shell escape
+      $_ = join("\n",@lines);
       next;
   } else {
       # Send code to pre-processor filters if defined
@@ -678,6 +696,10 @@ perldl - Simple shell for PDL
 
 	%> perldl
 	perldl> $a=sequence(10) # or any other PDL command
+
+        %> perldl - pdlscript
+
+        #!/usr/bin/pdl
 
 =head1 DESCRIPTION
 
@@ -836,6 +858,9 @@ subroutines for the project in the current directory.
 The name is chosen specfically because it was found hidden files were
 NOT wanted in these circumstances.
 
+The startup file should normally include "use PDL::AutoLoader;", as 
+many of the nicer interactive features won't work without it.
+
 =head2 Shell variables
 
 Shell variables: (I<Note>: if you don't like the defaults change
@@ -971,6 +996,21 @@ PDL scripts.
 
 Finally note this is a very powerful facility - which means
 it should be used with caution!
+
+=head2 Executing perldl scripts from the command line
+
+PDL scripts are just perl scripts that happen to use PDL (and
+possibly PDL::NiceSlice).  But for the truly lazy, perldl can be
+invokes as a script interpreter.  Because perldl is itself an interpreted
+perl script, most unices won't allow you to say "#!/usr/bin/perldl" 
+at the top of your script.
+
+Instead, say "#!/usr/bin/pdl" and your script will be executed exactly
+as if you typed it, line-by-line, into the perldl shell.
+
+WARNING: perldl executes scripts slightly differently than perl would,
+and its behavior is dependent on your own quirky configuration.  Use with
+caution.
 
 =head2 Command preprocessing
 

@@ -55,17 +55,19 @@ print OUT <<'!NO!SUBS!';
 for(['readdata_vaffine', "*ap = *pp"],
     ['writebackdata_vaffine', "*pp = *ap"]) {
 
+    my $name = $_->[0];
+    my $code = $_->[1];
+
 print OUT <<"!WITH!SUBS!";
 
-void pdl_$_->[0](pdl *a) {
+void pdl_${name}(pdl *a) {
 	int i,j;
 	int intype = a->datatype;
 	if(!PDL_VAFFOK(a)) {
-		die("pdl_$_ without vaffine");
+		die("pdl_$name without vaffine");
 	}
 	PDL_ENSURE_ALLOCATED(a);
-	if(0) {
-
+	switch ( intype ) {
 !WITH!SUBS!
 
 ##### Generate code for each data type #####
@@ -74,13 +76,13 @@ for my $in ( keys %PDL_DATATYPES ) {
 
     my $intype = $PDL_DATATYPES{$in};
     print OUT <<"!WITH!SUBS!";
-
-    } else if (intype == $in)  {
+    case ${in}:
+      {
 	$intype *ap = ($intype *) a->data;
 	$intype *pp = ($intype *) a->vafftrans->from->data;
 	pp += a->vafftrans->offs;
 	for(i=0; i<a->nvals; i++) {
-	    $_->[1];
+	    ${code};
 	    for(j=0; j<a->ndims; j++) {
 		pp += a->vafftrans->incs[j];
 		if((j < a->ndims - 1 &&
@@ -92,14 +94,19 @@ for my $in ( keys %PDL_DATATYPES ) {
 	    }
 	    ap ++;
 	}
+      }
+      break;
 
 !WITH!SUBS!
 
 } #### End of perl loop ####
 
+#    default:
+#      die("pdl_$name does not recognise the datatype");
+
 print OUT <<'!NO!SUBS!';
 
-	}
+    } /* switch( intype ) */
 
 /***	free(inds); ***/
 }
@@ -135,6 +142,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     HV*   hash;
     int   nbytes;
     int   diffsize;
+    int   i;
 #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)
     dXSARGS;
 #endif
@@ -175,43 +183,61 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
        *aa = a;              /* Change passed value to new address */
     }
 
-    /* Do the conversion */
+    /* Do the conversion as nested switch statements */
 
-    if (0) {
-        /* Nothing */
-
+    switch ( intype ) {
 !NO!SUBS!
 
 ##### Generate code for each pair of data types #####
 
 for my $in ( keys %PDL_DATATYPES ) { 
-    for my $targ ( keys %PDL_DATATYPES ) {
 
-    next if $in eq $targ; # Skip duplicates
-
-    my $intype   = $PDL_DATATYPES{$in}; 
-    my $targtype = $PDL_DATATYPES{$targ};
+    my $intype = $PDL_DATATYPES{$in}; 
 
     print OUT <<"!WITH!SUBS!";
+      case ${in}:
+        {
+         $intype *bb = ($intype *) b;
+         i = a->nvals;
+      
+         switch ( targtype ) {
+!WITH!SUBS!
 
-    } else if (intype == $in && targtype == $targ)  {
-       { $intype *bb = ($intype *) b;
-         $targtype *aa = ($targtype *) a->data;
-         int i = a->nvals;
-         aa += i-1; bb += i-1;
-         while (i--)
+    for my $targ ( keys %PDL_DATATYPES ) {
+
+	next if $in eq $targ; # Skip duplicates
+	my $targtype = $PDL_DATATYPES{$targ};
+
+	print OUT <<"!WITH!SUBS!";
+	   case ${targ}:
+             {
+              $targtype *aa = ($targtype *) a->data;
+              aa += i-1; bb += i-1;
+              while (i--)
                 *aa-- = ($targtype) *bb--;
-       }                                                                        
+             }
+             break;
 
 !WITH!SUBS!
 
-}} #### End of perl loop ####
+    } # for: $targ
+
+    print OUT <<"!WITH!SUBS!";
+           default:
+             croak("Don't know how to convert datatype $in to #%d", targtype);
+         } /* switch targtype */
+         break;
+        } /* case: $in */
+
+!WITH!SUBS!
+
+} # for: $in
+
 
 #### Trailer ####
 
 print OUT <<'!NO!SUBS!';
-
-    } else {
+    default:
       croak("Don't know how to convert datatype %d to %d", intype, targtype);
     }
 

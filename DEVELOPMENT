@@ -1,34 +1,32 @@
-This file has some information on how to get access
-to the latest PDL sources (mainly of interest
-for potential developers). This should not be confused
-with the latest public release which will always
-be available from CPAN (if you don't know what that
-is check the FAQ).
+This file has some information on how to get access to the latest PDL
+sources (mainly of interest for potential developers). This should not
+be confused with the latest public release which will always be
+available from CPAN (if you don't know what that is check the FAQ).
 
 Public CVS repository at www.sourceforge.org
 --------------------------------------------
 
-From version PDL-2.003 onwards the source distribution is
-in a publicly accessible CVS repository. The project is
-hosted at the sourceforge site at
+From version PDL-2.003 onwards the source distribution is in a
+publicly accessible CVS repository. The project is hosted at the
+sourceforge site at
 
-	http://www.sourceforge.org/project/?form_grp=612
+  http://www.sourceforge.org/project/?form_grp=612
 
-Starting from that URL you will find directions on how to check
-out the current sources, browse the CVS repository online, etc.
+Starting from that URL you will find directions on how to check out
+the current sources, browse the CVS repository online, etc.
 
-If you would like to actively contribute to PDL development
-don't hesitate to contact one of the project admins (listed
-at the above URL) to apply for write access to the repository.
-We strongly believe in the power of open source development!
+If you would like to actively contribute to PDL development don't
+hesitate to contact one of the project admins (listed at the above
+URL) to apply for write access to the repository. We strongly believe
+in the power of open source development!
 
-If you do not know how to use CVS try 'man cvs' or 'info cvs'
-and/or have a look at some of the online tutorials available
-on the web. A nice concise one is at
+If you do not know how to use CVS try 'man cvs' or 'info cvs' and/or
+have a look at some of the online tutorials available on the web. A
+nice concise one is at
 
   http://www.cyclic.com/cvs/doc-blandy-text.html
 
-Very good and complete is the online version of the CVS book at
+and a very good/complete one is the online version of the CVS book at
 
   http://cvsbook.red-bean.com/cvsbook.html
 
@@ -36,38 +34,79 @@ Very good and complete is the online version of the CVS book at
 PDL Developer Guidelines:
 -------------------------
 
-The following guidelines are for any developer that has access
-to the PDL CVS repository.
+The following guidelines are for any developer that has access to the
+PDL CVS repository.
 
 1) Before committing a change to the repository you should update:
     - CHANGES file with a description of the change made. 
-    - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files
-      if applicable.
+    - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files if
+      applicable.
 
-2) Remember to include POD documentation for any functions you add to
+2) Remember to include POD documentation for any functions you add to 
    the distribution. 
-    - See Basic/Core/Core.pm for an example of 
-      including POD documentation in .pm files. 
-    - See Basic/Core/Primitive/Primitive.pd for
-      an example of including POD documentation
-      in PDL .pd files. 
-    - read the documentation in PDL::Doc for a detailed
-      description of the PDL documentation conventions
+    - See Basic/Core/Core.pm for an example of including POD
+      documentation in .pm files. 
+    - See Basic/Core/Primitive/Primitive.pd for an example of 
+      including POD documentation in PDL .pd files.
+    - read the documentation in PDL::Doc for a detailed description of
+      the PDL documentation conventions.
 
-2) Make sure you add a test case in the 't' directory for any 
-   significant additional capability you add to the PDL
-   package.
-
-3) Don't commit before you successfully built and passed
-   'make test'. But then again, don't keep your changes
-   private for too long to avoid conflicts with other
-   developers.
+2) Make sure you add a test case in the 't' directory for any
+   significant additional capability you add to the PDL package.
+   Please use one the Test module available within Perl - ie
+   "use Test;" - rather than doing-it-yourself as most of our tests
+   do!
+   
+3) Don't commit before you successfully built and passed 'make
+   test'. But then again, don't keep your changes private for too long
+   to avoid conflicts with other developers.
  
-4) Bugs reported on the list should be entered into the bug
-   database and bugs closed when a patch has been committed as
-   a fix. (Primary responsibility for this task is the pumpking,
-   but other devels should be able to help.)
+4) Bugs reported on the list should be entered into the bug database
+   and bugs closed when a patch has been committed as a fix. (Primary
+   responsibility for this task is the pumpking, but other devels
+   should be able to help.)
   
+PDL Developer Notes:
+--------------------
+
+A (small) collection of random musings to note if you feel the need to
+improve or add to PDL (please do):
+
+*) Need help?
+
+See the pdl-porters email list; details for subscription and access to
+the archives can be found on the PDL web page at:
+
+  http://pdl.perl.org/maillists/index_en.html
+  http://pdl.perl.org/maillists/index_de.html
+ 
+*) Access to PDL's configuration
+
+If you need to access the configuration for PDL then use the
+%PDL::Config variable. Prior to 2.4.1 this was a mess since you
+had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
+*.pm/tests. The build process has been changed (I hesitate to say
+"cleaned up" ;) to just use %PDL::Config.
+
+- %PDL::Config is automatically available to you when you are in a
+  Makefile.PL within the PDL distribution. You can change the hash
+  and these changes will be stored in the PDL::Config module. You
+  should only change values when it makes sense (e.g. if the user
+  has specified that a module should be built but you find out this
+  is not possible).
+- otherwise you can say 'use PDL::Config;' or - perhaps something like
+    eval 'require "' . whereami_any() . '/Core/Config.pm";';
+  where whereami_any() is from PDL::Core::Dev;
+
+*) Location of temporary files
+
+Please use $PDL::Config{TEMPDIR} for the directory in which to
+place temporary files (e.g. when IO::File::new_tmpfile() is not
+appropriate). This will make it easier for distributions to package
+PDL since there will only be one place they need to change if the
+default value causes problems.
+
+This *includes* test cases as well as for Makefile.PL's!
 
 Creating a new CVS branch:
 --------------------------
@@ -75,9 +114,9 @@ Creating a new CVS branch:
 (or how to avoid ridiculous branch names like 
    'badval_experimental_branchpoint')
 
-This is a first draft, so it may not entirely be correct, and 
-I've missed out the initial options you'd supply to cvs (or
-put in an env variable)
+This is a first draft, so it may not entirely be correct, and I've
+missed out the initial options you'd supply to cvs (or put in an env
+variable).
 
 0) see what the current set of tags is:
 
@@ -117,8 +156,51 @@ put in an env variable)
 
    > cvs update -r make-cup-of-tea_experimental 
 
-As I haven't yet closed a branch, I can't tell you how! The online
-CVS documentation (eg http://cvsbook.red-bean.com/cvsbook.html) is
-pretty good.
+4) Make changes to this branch as normal (CVS knows that you are in
+   a branch, so 'cvs update' will now only merge in updates made to this
+   branch.).
 
+5) When it comes time to merge your changes back into the main branch,
+   check out a copy of PDL and merge in the updates:
 
+   > cvs co -d PDL.merged PDL
+   > cd PDL.merged
+   > cvs update -j make-cup-of-tea_experimental
+
+   If you are lucky (or you manually went along and merged in the
+   main-branch updates to your branch as they were made) then you
+   do not have to do anything else. In this case the output when the
+   merges are made will look something like:
+
+     RCS file: /cvsroot/pdl/PDL/t/misc.t,v
+     retrieving revision 1.12
+     retrieving revision 1.12.2.1
+     Merging differences between 1.12 and 1.12.2.1 into misc.t
+
+   However, in the real world you are likely to find out that there are
+   conflicts in the merge, in which case you will see something like:
+
+     RCS file: /cvsroot/pdl/PDL/Makefile.PL,v
+     retrieving revision 1.44
+     retrieving revision 1.44.2.1
+     Merging differences between 1.44 and 1.44.2.1 into Makefile.PL
+     rcsmerge: warning: conflicts during merge
+
+   The file in question will then contain text within "<<<<<" and ">>>>>"
+   markers (I forget how many of them there are), separated by a line
+   of "=====" which indicate the conflicting parts of the file. The
+   main-branch version of the file is stored as .#<filename> for easy
+   comparison (or you could do a 'cvs diff').
+
+   These differences should be resolved and then the changes commited to
+   the main branch [CVS will either not allow you to merge - or will
+   complain about it, depending on the version - if there are any of these
+   lines left in the text].
+
+   > cvs commit -m "Merged in make-cup-of-tea branch"
+   > cvs tag make-cup-of-tea_experimental_merge1
+
+   The reason for tagging the main branch after the merge is to make
+   it easier to merge back any new changes made to the branch (if they
+   occur). The CVS manual contains more details on this.
+  

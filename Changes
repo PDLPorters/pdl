@@ -1,3 +1,284 @@
+CED 27-Dec-2004
+   - Window.pm: fixed bug 1091534 (problem with rect())
+DJB 23-Dec-2004
+   - Set the WITH_3D option in perldl.conf to be 0 rather than undef on OS-X
+     since there are still problems with the build. Also added a path to the
+     GL headers to Graphics/Makefile.PL and opengl.pd for OS-X (in case the
+     problem gets fixed). I think the whole build process for the 3D stuff
+     should be re-worked if anyone has enough tuit's.
+CED 17-Dec-2004
+   - PDL 5.6 is now deprecated by the Makefile.PL
+   - Fix problems with test suite when Astro::FITS::Heder is not installed.
+CED 13-Dec-2004
+   - uninitialized memory patch 1083663 (thanks, Miloslav!)
+
+CED 11-Dec-2004
+   - transform.pd: added projective transforms (t_projective)
+   - slices.pd: added Miloslav's patch (patch #1083663)
+   
+CED 4-Dec-2004
+   - DiskCache.pm: Fixed problem with syncing to disk on store (typo in code)
+   - Lib/Opt/Simplex.pm: Fixed bug 1057022 (Opt::Simplex bug; thanks, Marcus)
+   - slatec.pd: Fixed bug 1076817 (matinv doesn't thread).
+                Fixed bug 1075203 (trailing underscores; thanks, Luc).
+   - Makefile.PL: Made bad-@INC problems more apparent when found.
+     ('.' at front of @INC causes trouble for build; this is now detected
+     and the user gets warned.)
+DJB 28-Oct-04
+   - removed some header comments which caused problems with (presumably older)
+     versions of Astro::FITS::Header (for PDL::IO::FITS::wfits)
+DJB 27-Oct-04
+   - fixed wfits() to write out ushort columns as Int4 (J) format
+     (ideally we should write out as Int4 (I) and use TSCALE/ZERO).
+     Added tests for this and other column types. Removed support for
+     writing out PDL::Complex piddles for this release.
+   - cleaned up the limits* tests so that they are skipped if PDL::Slatec
+     is not installed.
+DJB 21-Oct-04
+   - clean up of code to fix remaining validation errors reported by fverify
+     (the Type value passed to Astro::FITS::Header::Item must be in upper
+     case to get correct format for each card). Not 100% convinced caught all
+     cases.
+DJB 20-Oct-04
+   - PDL::IO::FITS::wfits updates for table writing: BITPIX must be the second
+     card (or else fverify from FTOOLS throws a wobbly); fixed writing a
+     comment card (caused messages under use strict/-w); the data area is
+     now filled with \0 rather than " " (both tables and images).
+     Note that fverify still complains that the keywords are not written
+     out correctly (the comments do not start in column #32 I think).
+     Removed the use of the FITS file handle from the whole module (now uses
+     IO::File throughout).
+     Added some very basic table tests to t/fits.t.
+CED 15-Oct-04
+   - fix a few oddball cases in permissive constructor
+CS  07-Oct-04
+   - fix warnings in some test scripts
+DJB 06-Oct-04
+   - PDL::Graphics::PLplot doc. updates: include internal and external links;
+     use of head3 elements for options; added blank lines between pod
+     statements (if not included these statements are treated as text);
+     addition of "extra" markup (C<> and F<> items).
+CED 17-Sep-04
+   - primitive.pd: stats updated to use statsover for better agreement
+   - statsover modified to promote mean etc. to floating-point.
+   - removed "$temp" magic variable from perldl -- now it's only available in 
+     the "PERLDL" package.  (assigning to $temp crashed perldl; this fixes that.)
+CS 15-Sep-04
+   - complex.pd: applied Vanuxem Gr‚©gory's patch and added some tests;
+                 should close bug 1010164
+CED 15-Sep-04
+   - primitive.pd: Fix to statsover
+   - Makefile.PL, etc.: Added HTML_DOCS configuration option
+   - Fixed non-portability issue in t/diskcache.t
+CS  07-Sep-04
+   - make the reduce function a bit more flexible: reduce over
+     list of dims and allow code references
+CED 19-Aug-04
+   - Fixed OpenGL build to work with Mandrake 10 (this will need
+     better fixing later, but should work OK with all current distros).
+DCH 30-Jul-04
+   - Cleaned up plplot.t a bit.  Made compilation of plplot routines
+     plsvect and plvect dependent upon a recent enough version of plplot.
+DCH 29-Jul-04
+   - Cleanup in plplot.d.  Fixed documentation bug 959902.  Fixed line
+     width specification (LINEWIDTH option).  Fixed test bug in
+     limits_ulimits.t (floating point comparison error in array_eq)
+CED 29-Jul-04
+   - Fixed Makefile.PL for PLPlot, to pay attention to $PDL::Config hash
+	(was checking $PDL_CONFIG instead).  Ditto plplot.t
+DJB 29-Jul-04
+   - added tests to t/core.t for $PDL::undefval fix (bug#886263 fixed
+     by Craig) and cleaned up the test to use Test::More (was Test).
+CED 28-Jul-04
+   - updated constructor and conversion routines to handle 
+     $PDL::undefval properly.  Since I don't like
+     action-at-a-distance, I also added tripwires to this activity
+     if $PDL::debug is set -- hopefully that mitigates the horror 
+     somewhat.
+CED 21-Jul-04
+   - changes to perldl.PL to allow script handling.
+   - introducing "pdl", a byte-compiled trampoline that spawns off a perldl.
+	"pdl"'s advantages: (a) it's two characters shorter to type,
+	and (b) you can use in in a shebang.
+CED 15-Jul-04
+   - Modified flexraw.t test to not overrun 80-column card images
+     for reasonably sized file names (it will still break if fed a file
+     name that is unreasonable).
+CED 07-Jul-04
+   - Modified Pic.pm to look for alternate JPEG converters where
+   appropriate.  This allows use of netpbm instead of pbmplus.
+DJB 01-Jul-04
+   - pdlcore.c.PL/pdl_kludge_copy_<>() issues: changed \n to \\n in some error
+     messages (would not compile otherwise) and a switch statement is now
+     auto-generated from %PDL::Types::typehash rather than hard-coded
+CED 17-Jun-04
+   - pdlcore.c.PL: av_ndcheck and pdl_setav_$type now support PDLs thrown
+	into the mix. 
+
+	I noticed that PDL::undefval doesn't seem to function (see
+	"help pdl[2]") but  left it that way for philosophical reasons.
+CED 16-Jun-04
+   - perldl.PL: comment lines are filtered out before passing through 
+	Text::Balanced, and quotelike operators (e.g. "s/foo/bar/" or
+	"qq/foo/") are ignored for line parsing.  Those constructs 
+	rarely cross lines in common usage, and they cause lots of trouble
+	with Text::Balanced.
+CED 1-Jun-04
+   - PP.pm: fixed deep header copying -- now neither crashes nor leaks memory.
+   - slices.pd - added a paragraph to the range() documentation
+   - FITS.pm - added a couple of minor notes to the rfits() documentation.
+CED 28-May-04
+   - primitive.pd: fixes to glue()
+DJ  21-May-04
+   - added Graphics::Limits, which determines display ranges for
+     multiple concurrent data sets
+   - Primitive: fix to which/which_both bad value code to make it work when 
+     BADVAL_USENAN = 1
+CED 30-Apr-04
+   - perldl: warns if AutoLoader is not loaded by perldlrc; avoids
+     a suite of installation follies.
+   - FITS.pm: rfits() clears hdrcpy flag by default
+   - pdlapi.c, PP.pm: minor readability cleanup
+   - Core.pm.PL: introducing hcpy, a pass-through hdrcpy clone.  Also,
+	minor fixes to deep copying.  Deep header copying still leaks
+	memory; it's not (yet) obvious why.  [ Removing the refcnt increment
+	in PP.pm causes crashes, so, er, that's not it. ]
+CED 15-Apr-04
+   - FITS.pm: minor fix for all-BAD case.
+CED 08-Apr-04
+   - NiceSlice.pm, Core.pm.PL: added dummy syntax to NiceSlice.
+   - slices.pd: minor improvements to documentation
+CED 04-04-04 (heh).
+   - slices.pd: range - Added extra speedbump to avoid common programming error
+      (more than five implicit dims throws a warning)
+   - transform.pd: map - Added some extra dimensionality checks
+CED 26-Mar-04
+   - Primitive: which() now ignores bad-value entries (before it always
+	selected the BAD value).
+   - Primitive: uniqvec() now works properly if you feed in a lone vector.
+   - added tests for these cases.
+CED 17-Mar-04
+   - Transform:  added match() convenience routine
+   - Demos:  added a rotating-coordinate-system demo to "demo transform"
+   - Window.pm: fixed up _fits_tr to actually line up right with the FITS
+	coordinate system.
+   - Doc::Perldl.pm: fix for perl 5.8.0 compatibility (string interpolation
+     is a little more agressive in the earlier versions)
+DJB 17-Mar-04
+   - Updated PLplot build so that it works on OS-X, and will automatically
+     pick up the library if installed via FINK [currently only in unstable]
+CS  17-Mar-04
+   - Basic.pm: add (x|y|z)logvals
+CED 16-Mar-04
+   - IO::Pnm::Pic.pm: added wim() and rim() for more uniform RGB handling.
+   - Doc::Perldl.pm: help module now gracefully handles multiple matches, 
+	and also ignores SIGPIPE if you quit the pager.
+   - Graphics/PGPLOT/Window/Window.pd:  added DirAxis option to initenv().
+RL 16-Mar-04
+   - Graphics/PLplot/plplot.pd: Defined low-level interfaces for plmesh,
+     plmeshc, plot3d and plscmap1l in which the size arguments are deduced
+     from the piddles.  Example x11.pl in the PLplot sources is completely
+     ported to PerlDL now. 
+RL 15-Mar-04
+   - Graphics/PLplot/plplot.pd: Implemented the low-level PLplot API
+     functions pltr0, pltr1, pltr2, and plcont.  Added some 'Doc' place
+     holders in the pp_def's.
+RL 13-Mar-04
+   - Graphics/PLplot/plplot.pd: Define our own plstyl subroutine, where the
+     first argument of c_plstyl (the length of the mark and space vectors)
+     is deduced from the piddle.
+RL 11-Mar-04
+   - Graphics/PLplot/plplot.pd: Use the here-document operator (<<) for
+     multi-line strings.  This makes the style of code more close to Doug's
+     original style.
+RL 8-Mar-04
+   Graphics/PLplot/plplot.pd:
+   - Implement the #define'd constants in plplot.h as functions in Perl,
+     whose pp_def's are automatically generated by the
+     create_low_level_constants function.
+   - Added interface for the PLplot function plsurf3d.  This has been tested
+     with the example x08.pl, recently added to the PLplot CVS sources.
+RL 5-Mar-04
+   - Graphics/PLplot/plplot.pd, t/plplot.t: Define our own plfill and plsym
+     subroutines, where the first argument of c_plfill and c_plsym (the
+     length of the data vector) is deduced from the piddle. 
+RL 4-Mar-04
+   - Graphics/PLplot/plplot.pd, t/plplot.t: Define our own plhist perl
+     subroutine, where the first argument of c_plhist (the length of the
+     data vector) is deduced from the piddle. 
+CED 4-Mar-04
+   Minor fixes to PDL::Transform - slightly better handling of hanning and
+	gaussian cases; tweaks to documentation.
+RL (for DH) 2-Mar-04
+   - New version of Graphics/PLplot/Makefile.PL that allows build of PDL
+     on a totally fresh system.
+RL 1-Mar-04
+   - Graphics/PLplot/plplot.pd, t/plplot.t: Define our own plpoin perl
+     subroutine, where the first argument of c_plpoin (the length of the x
+     and y vectors) is deduced from the piddle. 
+CED 1-Mar-04
+   Minor fixes to PDL::IO::FITS
+CED 29-Feb-04
+   PDL::IO::FITS
+     - Some more refinements to rfits (see docs).
+     - wfits now allows write of binary tables.
+   primitive.pd: fix to glue() makes it properly permissive with dims.
+CED 25-Feb-04
+   - Further changes to PDL::IO::FITS:
+	* More cleanup of header handling code
+	* Split out image-reading code into its own XTENSION handler
+		[part of transition to more modular FITS handling]
+	* No test cases yet.
+DJB 24-Feb-04
+   - 'use strict' fix for PDL::IO::FITS::rfits (when reading a binary table)
+     (needs test cases added to t/fits.t)
+   - FITS checks moved from t/misc.t into t/fits.t (new file)
+   - t/misc.t and t/fits.t now use the Test module
+CED 12-Feb-04
+   - FITS.pm: Applied patches 881870 and 880507 from Kaj Wiik -- zero size
+     field fix, and 'A' and 'X' type fixes.
+CED 5-Feb-04
+   - Window.pm: fits_imag accepts CROTA if CROTA2 is not defined.
+   - m51.fits: moved CRPIX1 to agree better with the galaxy center
+CED 4-Feb-04
+   - Frestore again returns the eval'ed value rather than TRUE
+CS 28-01-04
+   - win32 fixes in several testfiles
+     and updated INSTALL instructions for win32
+DJB 15-01-04
+   - Hack to get fits_imag($img) to look like fits_imag($img,{j=>0}) when
+     the RA axis is in descending order [+ internal changes to make the two
+     go through the same code when setting limits].
+DJB 14-01-04
+   - moved FITS-header messages from IO/Misc/Makefile.PL to
+     IO/FITS/Makefile.PL since rfits/wfits are no longer in IO/Misc
+   - added WCS as an option to the fits_imag/fits_rgbi routines in
+     PDL::Graphics::PGPLOT[::Window]. This allows you to use any alternate
+     WCS mappig stored in the FITS header. Only tested using images from the
+     Chandra X-ray satellite, so you can now say
+       fits_imag($img,{j=>1,wcs=>'p'});
+     to display the 'physical' coordinate system of the image
+   - added docs for fits_cont() [essentially just copied fits_rgbi]
+   - added fits_cont and fits_vect to PDL::Graphics::PGPLOT + internal updates
+     to reduce replicated code.
+DJB 13-01-04
+   - t/dumper.t now passes on OS-X (10.3.2); needed to add '-s' option to
+     uudecode call otherwise the directory name was being ignored.
+CS  13-01-04
+   - Basic/Makefile.PL: override MakeMaker clean to *not* delete
+     files named 'core' (problem on case insensitive platforms)
+DJB 12-01-04 [merge of config-variable-cleanup branch]
+   - Clean up the use of config values in the build
+     process. We no longer use %PDL_CONFIG but use %PDL::Config in
+     Makefile.PL's and *.pm's (it unifies the code since we do not need
+     to check for one or the other). The config files (e.g. perldl.conf)
+     still use the PDL_CONFIG variable.
+   - added a TEMPDIR config entry which defines the location of the
+     temporary directory to use during the build and testing phases;
+     updated code to use this where spotted (may be other locations
+     lurking around, particularly in the tests)
+   - Moved configuration of MALLOCDBG-related variables into the top-level
+     Makefile.PL since the same bit of code was seen in several Makefile.PL's
 2.4.1 released
 CS  6-01-04
    - PDL.pm: version to 2.4.1
@@ -933,7 +1214,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldBÂŽBBÂŽBBÂŽsr Olafsson and Vince McIntyre (bug #233484)
+      HalldBBŽBBBŽBBBŽsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

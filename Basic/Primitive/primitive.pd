@@ -126,7 +126,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(x,y),b(y,z),[o]c(x,z))
+ Signature: (a(i,x),b(z,i),[o]c(x,z))
 
 =for ref
 
@@ -570,6 +570,9 @@ The unique elements are returned in ascending order.
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
 
+See L<uniqind|uniqind> if you need the indices of the unique
+elements rather than the values.
+
 =cut
 
 *uniq = \&PDL::uniq;
@@ -585,6 +588,55 @@ sub PDL::uniq {
   # make sure we return something if there is only one value
   return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
 }
+
+EOPM
+
+pp_add_exported '', 'uniqind';
+pp_addpm << 'EOPM';
+
+=head2 uniqind
+
+=for ref
+
+return the indices of all unique elements of a piddle
+The order is in the order of the values to be consistent
+with uniq
+
+=for example
+
+  print pdl(2,2,2,4,0,-1,6,6)->uniqind;
+	 [5, 4, 1, 3, 6]
+
+Note: The returned pdl is 1D; any structure of the input
+piddle is lost.
+
+See L<uniq|uniq> if you want the unique values instead of the
+indices.
+
+=cut
+
+*uniqind = \&PDL::uniqind;
+# return unique elements of array
+# find as jumps in the sorted array
+# flattens in the process
+sub PDL::uniqind {
+  use PDL::Core 'barf';
+  my ($arr) = @_;
+  return $arr if($arr->nelem == 0); # The null list is unique (CED)
+  # Different from uniq we sort and store the result in an intermediary
+  my $i_srt = $arr->clump(-1)->qsorti;
+  my $srt = $arr->index($i_srt);
+  my $uniqind = which($srt != $srt->rotate(-1));
+  # Now map back to the original space
+  $uniqind = $i_srt->index($uniqind);	
+  # make sure we return something if there is only one value
+  return $uniqind->nelem == 0 ? 0 : $uniqind;
+}
+EOPM
+
+
+pp_add_exported '', 'uniqvec';
+pp_addpm << 'EOPM';
 
 =head2 uniqvec
 
@@ -607,7 +659,7 @@ lexicographcally.
 
 sub PDL::uniqvec {
   my($pdl) = shift;
-  return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 );
+  return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 || $pdl->slice("(0)")->nelem < 2);  # slice is not cheap but uniqvec isn't either -- shouldn't cost too much.
 
   my $srt = $pdl->mv(0,-1)->
 	clump($pdl->ndims - 1)->
@@ -779,15 +831,14 @@ have its bad flag set if the output contains any bad data.',
 
 pp_def('statsover',
 	HandleBad => 1,
-	Pars => 'a(n); w(n); int+ [o]avg(); int+ [o]rms(); int+ [o]min(); int+ [o]max(); int+ [o]adev()',
+	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => 
 	'$GENERIC(avg) tmp = 0;
-         $GENERIC(rms) tmp1 = 0;         
-         $GENERIC(adev) tmp2 = 0;
-         $GENERIC(rms) diff = 0;
+         $GENERIC(avg) tmp1 = 0;         
+         $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
 	 $GENERIC(w) norm = 0;
-	 loop(n) %{ 
+	 loop(n) %{             /* Accumulate sum and summed weight. */
             tmp += $a()*$w();
             norm += $w();
             if (!n) { curmin = $a(); curmax = $a();}
@@ -797,24 +848,25 @@ pp_def('statsover',
                 curmax = $a();
              } 
          %}
-	 $avg() = tmp / norm;
+	 $avg() = tmp / norm;  /* Find mean */
          $min() = curmin;
          $max() = curmax;
-         /* Calculate the RMS using the corrected two-pass algorithm */
+
+         /* Calculate the RMS and standard deviation. */
          tmp = 0; 
 	 loop(n) %{
-            diff = ($a()*$w() - $avg());
-            tmp += diff*diff;
-            tmp1 += diff;
-            tmp2 += abs(diff);
+            diff = ($a() - $avg());
+            tmp += diff * diff * $w();
+            tmp1 += fabs(diff) * $w();
          %}
-         $rms() = sqrt ( (tmp - tmp1*tmp1/norm)/((norm - ($GENERIC(rms)) 1)) );
-         $adev() = sqrt( tmp2/ norm );',
+	 $rms()  = sqrt ( tmp/norm );
+	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
+         $adev() = tmp1/norm;
+',
 	BadCode => 
 	'$GENERIC(avg) tmp = 0;
-         $GENERIC(rms) tmp1 = 0;         
-         $GENERIC(adev) tmp2 = 0;
-         $GENERIC(rms) diff = 0;
+         $GENERIC(avg) tmp1 = 0;         
+         $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
 	 $GENERIC(w) norm = 0;
          int flag = 0;
@@ -833,44 +885,51 @@ pp_def('statsover',
          %}
          /* have at least one valid point if flag == 1 */
          if ( flag ) { 
-           $avg() = tmp / norm;
-           $min() = curmin;
+           $avg() = tmp / norm; /* Find mean */
+           $min() = curmin;     
            $max() = curmax;
+
+	   /* Calculate the RMS and standard deviation. */
            tmp = 0; 
            loop(n) %{
               if ($ISGOOD(a())) { 
-                 diff = ($a()*$w() - $avg());
-                 tmp += diff*diff;
-                 tmp1 += diff;
-                 tmp2 += abs(diff);
+                 diff = $a()-$avg();
+                 tmp += diff * diff * $w();
+                 tmp1 += fabs(diff) * $w();
               }
            %}
-           $rms() = sqrt ( (tmp - tmp1*tmp1/norm)/( (norm - ($GENERIC(rms)) 1)));
-           $adev() = sqrt ( tmp2 / norm);
+	   $rms() = sqrt( tmp/norm );
+	   if(norm>1)	  
+	   	   $prms() =  sqrt( tmp/(norm-1) );
+	   else
+	           $SETBAD(prms());
+           $adev() = sqrt ( tmp1 / norm );
          } else       { 
            $SETBAD(avg()); 
            $SETBAD(rms());
            $SETBAD(adev());
            $SETBAD(min());
            $SETBAD(max());
+	   $SETBAD(prms());
          }',
       PMCode => '
 
 sub PDL::statsover {
-   barf(\'Usage: ($mean,[$rms, $median, $min, $max, $adev]) = statsover($data,[$weights])\') if $#_>1;
+   barf(\'Usage: ($mean,[$prms, $median, $min, $max, $adev, $rms]) = statsover($data,[$weights])\') if $#_>1;
    my ($data, $weights) = @_;
    $weights = $data->ones() if !defined($weights);
-   
+
    my $median = $data->medover();
    my $mean = PDL->nullcreate($data);
    my $rms = PDL->nullcreate($data);
    my $min = PDL->nullcreate($data);
    my $max = PDL->nullcreate($data);
    my $adev = PDL->nullcreate($data);
-   &PDL::_statsover_int($data, $weights, $mean, $rms, $min, $max, $adev);
+   my $prms = PDL->nullcreate($data);
+   &PDL::_statsover_int($data, $weights, $mean, $prms, $min, $max, $adev, $rms);
 
    return $mean unless wantarray;
-   return ($mean, $rms, $median, $min, $max, $adev);
+   return ($mean, $prms, $median, $min, $max, $adev, $rms);
 }
 
 ',
@@ -885,24 +944,46 @@ Calculate useful statistics over a dimension of a piddle
   ($mean, $rms, $median, $min, $max, $adev) = statover($piddle, $weights);
 
 This utility function calculates various useful
-quantities of a piddle. These are the mean:
+quantities of a piddle. These are:
+
+=over 3
+
+=item * the mean:
 
   MEAN = sum (x)/ N
 
-with C<N> being the number of elements in x, the root mean
-square deviation from the mean, RMS, given as,
+with C<N> being the number of elements in x
 
-  RMS = sqrt(sum( (x-mean(x))^2 )/(N-1));
+=item * RMS deviation from the mean:
 
-Note the use of C<N-1> which for almost all cases should be
-the right normalisation factor. The routine also returns 
-the median, minimum and maximum of the piddle as well as
-the mean absolute deviation, defined as:
+  RMS = sqrt(sum( (x-mean(x))^2 )/N)
+
+(also known as the root-mean-square deviation, or the square root of the
+variance)
+
+=item * the median
+
+The median is the 50th percentile data value.  Median is found by 
+L</medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATION.
+
+=item * the minimum
+
+=item * the maximum
+
+=item * the absolute deviation:
 
   ADEV = sqrt(sum( abs(x-mean(x)) )/N)
 
-note here that we use the mean and not the median. This could
-possibly be changed in future versions of the code. 
+(This is also called the standard deviation)
+
+=item * the population RMS deviation from the mean:
+
+  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
+
+The population deviation is the best-estimate of the deviation 
+of the population from which a sample is drawn.
+
+=back
 
 This operator is a projection operator so the calculation
 will take place over the final dimension. Thus if the input 
@@ -914,8 +995,8 @@ use C<clump(-1)> directly on the piddle or call C<stats>.
 ',
      BadDoc =>
 '
-Bad values are simply ignored in the calculation and if all data are
-bad the results will also be bad.
+Bad values are simply ignored in the calculation, effectively reducing
+the sample size.  If all data are bad then the output data are marked bad.
 ',
 );
 
@@ -930,14 +1011,12 @@ Calculates useful statistics on a piddle
 
 =for usage
 
- ($mean,$rms,$median,$min,$max) = stats($piddle,[$weights]);
+ ($mean,$prms,$median,$min,$max,$adev,$rms) = stats($piddle,[$weights]);
 
-This utility calculates all the most useful
-quantities in one call.
-
-B<Note:> The RMS value that this function returns in the RMS 
-deviation from the mean, also known as the population standard-
-deviation:  $rms = sqrt(sum(($val-$mean)**2)) / ($n-1)
+This utility calculates all the most useful quantities in one call.
+It works the same way as L</statsover>, except that the quantities are
+calculated considering the entire input PDL as a single sample, rather
+than as a collection of rows.
 
 EOD
 
@@ -945,8 +1024,8 @@ EOD
 	pp_addpm(<<'EOD');
 =for bad
 
-The return values if all elements are bad is currently poorly
-defined.
+Bad values are handled; if all input values are bad, then all of the output
+values are flagged bad.
 
 EOD
 } # if: bvalflag
@@ -957,43 +1036,20 @@ pp_addpm(<<'EOD');
 sub PDL::stats {
     barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
     my ($data,$weights) = @_;
-    my ($mean,$rms);
-    if ($#_==0) {
-EOD
 
-    if ( $bvalflag ) {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->ngood;
-!NO!SUBS!
-} else {
-	pp_addpm(<<'!NO!SUBS!');
-	my $npts = $data->nelem;
-!NO!SUBS!
-
-} # if: $bvalflag
-
-       pp_addpm(<<'EOD');
-       if ( $npts == 0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = $data->dsum / $npts;
-	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / ($npts-1) );
-       }
-    }
-    else {
-       my $wtsum = $weights->dsum;
-       if ( $wtsum == 0.0 ) {
-	   $mean = 0.0; $rms = 0.0;
-       } else {
-	   $mean = (($weights*$data)->dsum) / $wtsum;
-	   $rms = sqrt( ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
-       }
-    }
-    my ($median,$min,$max) = ($data->median,$data->min,$data->max);
-    print "Mean = $mean, RMS = $rms, Median = $median\n".
-          "Min  = $min, Max = $max\n" if $PDL::verbose;
-    return $mean unless wantarray;
-    return ($mean,$rms,$median,$min,$max);
+    # Ensure that $weights is properly threaded over; this could be
+    # done rather more efficiently...
+    if(defined $weights) {
+	$weights = pdl($weights) unless UNIVERSAL::isa($weights,'PDL');
+	if( ($weights->ndims != $data->ndims) or 
+	    (pdl($weights->dims) != pdl($data->dims))->or
+	  ) {
+		$weights = $weights + zeroes($data)
+	}
+	$weights = $weights->flat;
+    } 
+	
+    return PDL::statsover($data->flat,$weights);
 }
 EOD
 
@@ -1285,31 +1341,61 @@ pp_addpm(<<'EOD')
 
 =for ref
 
-Glue two or more PDLs together along an arbitrary dimension (N-D L<append|append>).
+Glue two or more PDLs together along an arbitrary dimension 
+(N-D L<append|append>).
 
-Sticks $a, $b, and all following arguments together using a combination
-of xchg() and append().  All other dimensions must be compatible in the 
+Sticks $a, $b, and all following arguments together along the
+specified dimension.  All other dimensions must be compatible in the 
 threading sense.  
 
-C<glue> is implemented in pdl, and should probably be updated (one day) to a 
-pure PP function.
+Glue is permissive, in the sense that every PDL is treated as having an
+infinite number of trivial dimensions of order 1 -- so C<$a->glue(3,$b)>
+works, even if $a and $b are only one dimensional.
+
+If one of the PDLs has no elements, it is ignored.  Likewise, if one
+of them is actually the undefined value, it is treated as if it had no
+elements.
+
+If the first parameter is a defined perl scalar rather than a pdl,
+then it is taken as a dimension along which to glue everything else,
+so you can say C<$cube = PDL::glue(3,@image_list);> if you like.
+
+C<glue> is implemented in pdl, using a combination of L<xchg|xchg> and
+L<append|append>.  It should probably be updated (one day) to a pure PP
+function.
 
 =cut
 
 sub PDL::glue{
     my($a) = shift;
     my($dim) = shift;
+
+    if(defined $a && !(ref $a)) {
+	my $b = $dim;
+	$dim = $a;
+	$a = $b;
+    }
+
+    if(!defined $a || $a->nelem==0) {
+	return $a unless(@_);
+	return shift() if(@_<=1);
+	$a=shift;
+	return PDL::glue($a,$dim,@_);
+    }
+
     if($dim - $a->dim(0) > 100) {
 	print STDERR "warning:: PDL::glue allocating >100 dimensions!\n";
     }
-    while($dim > $a->ndims) {
+    while($dim >= $a->ndims) {
 	$a = $a->dummy(-1,1);
     }
     $a = $a->xchg(0,$dim);
 
     while(scalar(@_)){
 	my $b = shift;
-	while($dim > $b->ndims) {
+	next unless(defined $b && $b->nelem);
+
+	while($dim >= $b->ndims) {
 		$b = $b->dummy(-1,1);
         }
 	$b = $b->xchg(0,$dim);
@@ -1792,6 +1878,7 @@ sub PDL::interpND {
 
     # a & b are the weighting coefficients.
     my($a,$b);
+    $index->where( 0 * $index ) .= -10; # Change NaN to invalid
     {
       my $bb = PDL::Math::floor($index);
       $a = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
@@ -2038,16 +2125,25 @@ EOD
 	 )
 {
     pp_def($_->{Name},
+	   HandleBad => 1,
 	   Doc => $_->{Doc},
 	   Pars => $_->{Pars},
 	   PMCode => $_->{PMCode},
 	   Code => $_->{Variables} .
-                 'loop(n) %{
-			if ($mask()) {
+                 'loop(n) %{ 
+		       if($mask()) {
 				$inds(m => dm) = n;
 				dm++;
 			}'.$_->{Elseclause} . "\n".
 		' %}',
+	   BadCode => $_->{Variables} .
+                 'loop(n) %{ 		
+			if ( $mask() && $ISGOOD($mask()) ) {
+				$inds(m => dm) = n;
+				dm++;
+			}'.$_->{Elseclause} . "\n".
+		' %}',
+
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
@@ -2063,11 +2159,21 @@ EOD
 		if (dpdl->ndims != 1)
 		  barf("dimflag currently works only with 1D pdls");
 
+'.
+($bvalflag ? '
+		if(dpdl->state & PDL_BADVAL)
+		  for (i=0; i<dpdl->dims[0]; i++) {
+	 	 	$GENERIC() foo = *(m_datap+inc*i+offs);
+	 	        if(foo && $ISGOODVAR(foo,mask) )sum++;
+		}
+	        else
+':'').'
 		for (i=0; i<dpdl->dims[0]; i++) {
-		       if ( *(m_datap+inc*i+offs)) sum++;
+ 	 		$GENERIC() foo = *(m_datap+inc*i+offs);
+	 	                if(foo) sum++;
 		}
 
-		'.$_->{Autosize} . '
+                '. $_->{Autosize} . '
 		/* printf("RedoDimsCode: setting dim m to %ld\n",sum); */'
 	   );
 }

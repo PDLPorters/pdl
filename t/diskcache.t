@@ -1,25 +1,26 @@
-BEGIN {
-  print "1..4\n";
-}
-use PDL;
 
-sub ok($;$$){
-  my $no=shift;
-  my $result = shift;
-  print "not " unless $result;
-  print "ok $no\n";
-}
+use strict;
+
+use PDL;
+use PDL::Config;
+use File::Temp 'tempdir';
+use File::Spec;
+
+# Temp directory name.  The catfile() call adds a trailing dir
+# separator (e.g. "/" on POSIX).
+my $d = File::Spec->catfile(tempdir(CLEANUP=>1),"");
+
+use Test;
+BEGIN { plan tests => 4; }
 
 ##1 Make sure the library loads
-my($n);
-print STDERR ++$n,"...";
+
 eval 'use PDL::DiskCache;';
 if($@) {print $@,"\n";}
-ok(1,!$@);
+ok( !$@ );
 
 ##2 Make a DiskCache object
-my($d) = "/tmp/test-$$/";
-`mkdir $d`;
+
 
 eval <<'BAR'
   do {
@@ -30,20 +31,18 @@ eval <<'BAR'
   } while(0);
 BAR
   ;
-ok(2,!$@);
+ok( !$@ );
 
-ok(3, (-e "${d}1") && (-e "${d}2") && (-e "${d}3"));
+ok( (-e "${d}1") && (-e "${d}2") && (-e "${d}3") );
 
 eval <<'BAZ'
   do {
     my($b) = diskcache(["${d}1","${d}2","${d}3"],{ro=>1});
-    ok(4,($b->[0]->sum == 0) && ($b->[1]->sum == xvals(10,10)->sum));
+    ok( ($b->[0]->sum == 0) && ($b->[1]->sum == xvals(10,10)->sum) );
   }
 BAZ
   ;
 
-`rm -rf $d`;
-    
 
-    
-    
+# end
+

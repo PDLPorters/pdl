@@ -13,7 +13,7 @@ BEGIN {
 
   $karmabase = "/usr/local/karma";
   $karmabase = $ENV{KARMABASE} if -d $ENV{KARMABASE};
-  $karmabase = $PDL_CONFIG{WHERE_KARMA} if defined $PDL_CONFIG{WHERE_KARMA};
+  $karmabase = $PDL::Config{WHERE_KARMA} if defined $PDL::Config{WHERE_KARMA};
 
   # Check Karma version
 
@@ -45,8 +45,8 @@ BEGIN {
      }
   }
 
-  if (defined ($PDL_CONFIG{WITH_KARMA})) {
-     $withkarma = $PDL_CONFIG{WITH_KARMA};
+  if (defined ($PDL::Config{WITH_KARMA})) {
+     $withkarma = $PDL::Config{WITH_KARMA};
   }
   else { # Build Karma if can find it
      if (-d $karmabase && $version_ok) {
@@ -57,14 +57,14 @@ BEGIN {
   if ($withkarma) {
 
      print "\n         Building Karma extension.  Turn off WITH_KARMA if there are problem\n\n";
-     $PDL_CONFIG{WITH_KARMA} = 1;
+     $PDL::Config{WITH_KARMA} = 1;
   }
   else{
       my $msg = "\n      Not building PDL::Graphics::Karma, turn on WITH_KARMA if this is incorrect\n";
       warn $msg . "\n";
       $msg =~ s/\n//g;
       write_dummy_make( $msg );
-      $PDL_CONFIG{WITH_KARMA} = 0;
+      $PDL::Config{WITH_KARMA} = 0;
   }
 
 
@@ -77,10 +77,8 @@ use ExtUtils::MakeMaker;
 #use PDL::Core::Dev;
 PDL::Core::Dev->import();
 
-my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
-  $PDL_CONFIG{MALLOCDBG}->{libs} : '';
-my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
-  $PDL_CONFIG{MALLOCDBG}->{include} : '';
+my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
+my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
 @pack = (["karma.pd",Karma,PDL::Graphics::Karma]);
 

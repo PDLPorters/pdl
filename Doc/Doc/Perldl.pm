@@ -245,57 +245,75 @@ Internal interface to the PDL documentation searcher
 =cut
 
 sub finddoc  {
+    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
+
     die 'Usage: doc $topic' unless $#_>-1;
     die "no online doc database" unless defined $PDL::onlinedoc;
     my $topic = shift;
 
     # See if it matches a PDL function name
 
+    my $subfield = $1
+      if( $topic =~ s/\[(\d*)\]$// );
+
     (my $t2 = $topic) =~ s/([^a-zA-Z0-9_])/\\$1/g;  
 
     my @match = search_docs("m/^(PDL::)?".$t2."\$/",['Name'],0);
 
-
     unless(@match) {
       
-      print "Unable to find PDL docs on '$topic' -- using whatis instead...\n\n";
+      print "No PDL docs for '$topic'. Using 'whatis'. (Try 'apropos $topic'?)\n\n";
       whatis($topic);
       return;
 
     }
 
     # print out the matches
-    # - do not like this solution when have multiple matches
-    #   but looping through each match didn't seem right either
+
+    my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
+    
+    if($subfield) {
+      if($subfield <= @match) {
+	@match = ($match[$subfield-1]);
+	$subfield = 0;
+      } else {
+	print $out "\n\n=head1 PDL HELP: Ignoring out-of-range selector $subfield\n\n=head1\n\n=head1 --------------------------------\n\n";
+	$subfield = undef;
+      }
+    }
+    
+    if (  @match > 1   and   !$subfield  ) {
+      print $out "\n\n=head1 MULTIPLE MATCHES FOR HELP TOPIC '$topic':\n\n=head1\n\n=over 3\n\n";
+      my $i=0;
+      for my $m ( @match ) {
+	printf $out "\n=item [%d]\t%-30s %s%s\n\n", ++$i, $m->[0], $m->[1]{Module} && "in ", $m->[1]{CustomFile} || $m->[1]{Module};
+      }
+      print $out "\n=back\n\n=head1\n\n To see item number \$n, use 'help ${topic}\[\$n\]'. \n\n=head1 Displaying item 1:\n\n=head1 --------------------------------------\n\n=cut\n\n";
+    }
+    
     my $m = shift @match;
+    
     my $Ref = $m->[1]{Ref};
     if ( $Ref =~ /^(Module|Manual|Script): / ) {
-	system("pod2text $m->[1]{File} | $PDL::Doc::pager");
+      my $in = IO::File->new("<$m->[1]{File}");
+      print $out join("",<$in>);
     } else {
-	my $out = IO::File->new( "| pod2text | $PDL::Doc::pager" );
-
-	if(defined $m->[1]{CustomFile}) {
-
-	    my $parser= new PDL::Pod::Parser;
-	    print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
-	    $parser->parse_from_file($m->[1]{CustomFile},$out);
-	    print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
-
-	} else {
-
-	    print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
-	    $PDL::onlinedoc->funcdocs($m->[0],$out);
-
-	}
-
+      if(defined $m->[1]{CustomFile}) {
+	
+	my $parser= new PDL::Pod::Parser;
+	print $out "=head1 Autoload file \"".$m->[1]{CustomFile}."\"\n\n";
+	$parser->parse_from_file($m->[1]{CustomFile},$out);
+	print $out "\n\n=head2 Docs from\n\n".$m->[1]{CustomFile}."\n\n";
+	
+      } else {
+	
+	print $out "=head1 Module ",$m->[1]{Module}, "\n\n";
+	$PDL::onlinedoc->funcdocs($m->[0],$out);
+	
+      }
+      
     }
-    if ( $#match > -1 ) {
-	print "\nFound other matches for $topic:\n";
-	foreach my $m ( @match ) {
-	    printf "  %-30s in %s\n", $m->[0], $m->[1]{Module};
-	}
-    }
-}
+  }
 
 
 =head2 find_autodoc

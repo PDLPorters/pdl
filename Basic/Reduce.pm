@@ -108,27 +108,54 @@ data/array languages hopefully feel more at home.
 
 =for usage
 
- $result = $pdl->reduce($operation [,$dim]);
+ $result = $pdl->reduce($operation [,@dims]);
 
 C<reduce> applies the named operation along the specified
-dimension reducing the input piddle dimension by one. If the
-dimension is omitted the operation is applied along the first
+dimension(s) reducing the input piddle dimension by as many
+dimensions as supplied as arguments. If the
+dimension(s) argument is omitted the operation is applied along the first
 dimension. To get a list of valid operations see L<canreduce>.
+
+NOTE - new power user feature: you can now supply a code
+reference as operation to reduce with.
+
+=for example
+
+  # reduce by summing over dims 0 and 2
+  $result = $pdl->reduce(\&sumover, 0, 2);
+
+It is your responsibility to ensure that this is indeed a
+PDL projection operation that turns vectors into scalars!
+You have been warned.
 
 =cut
 
 *reduce = \&PDL::reduce;
 sub PDL::reduce ($$;$) {
-  my ($pdl, $op, $dim) = @_;
+  my ($pdl, $op, @dims) = @_;
   barf "trying to reduce using unknown operation"
-    unless exists $reduce{$op};
+    unless exists $reduce{$op} || ref $op eq 'CODE';
+  my $dim;
+  if (@dims > 1) {
+    my $n = $pdl->getndims;
+    @dims = map { $_ < 0 ? $_ + $n : $_ } @dims;
+    my $min = $n;
+    my $max = 0;
+    for (@dims) { $min = $_ if $_ < $min; $max = $_ if $_ > $max }
+    barf "dimension out of bounds (one of @dims >= $n)"
+      if $min >= $n || $max >= $n;
+    $dim = $min; # this will be the resulting dim of the clumped piddle
+    $pdl = $pdl->clump(@dims);
+  } else {
+    $dim = @dims > 0 ? $dims[0] : 0;
+  }
   if (defined $dim && $dim != 0) { # move the target dim to the front
     my $n = $pdl->getndims;
     $dim += $n if $dim < 0;
     barf "dimension out of bounds" if $dim <0 || $dim >= $n;
     $pdl = $pdl->mv($dim,0);
   }
-  my $method = $reduce{$op};
+  my $method = ref $op eq 'CODE' ? $op : $reduce{$op};
   return $pdl->$method();
 }
 

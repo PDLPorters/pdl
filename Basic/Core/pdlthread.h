@@ -23,7 +23,9 @@ typedef struct pdl_errorinfo {
 #ifdef PDL_THREAD_DEBUG
 #define PDL_THR_MAGICNO 0x92314764
 #define PDL_THR_SETMAGIC(it) it->magicno = PDL_THR_MAGICNO
-#define PDL_THR_CLRMAGIC(it) it->magicno = 0x99876134
+#define PDL_THR_CLRMAGIC(it) (it)->magicno = 0x99876134
+#else
+#define PDL_THR_CLRMAGIC(it) (void)0
 #endif
 
 /* XXX To avoid mallocs, these should also have "default" values */

@@ -1,27 +1,40 @@
 The following issues have been reported with this version of
 PDL. 
 
-- Some bus errors have been reported with PDL and perl 5.005
-  built with the threading option.
+- Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
+  because of the removal of the magic pm_to_blib target.  Current
+  versions (such as 6.17, bundled with the current perl, v5.8.6) work OK. 
+  With PDL 2.4.2, we have followed the core perl team in our use of
+  earlier MakeMaker versions.
 
-- SGI format failure on some machines in t/picnorgb.t and t/picrgb.t
-(Jarle Brinchmann reported this on 11/3/98).
-
-- The html docs for the modules in IO/Misc aren't being built during 'make
-  install' (this one seems to be fixed now). 
-
-- Some problems have been reported with PDL and perl5.005/5.6.0 (core dumps, 
-   and/or regression tests failing) when perl is compiled with the perl-
-   provided malloc. This has been reported on the following platforms:
-     * R5000 Indy machine running Irix 6.2
-     * Sun Solaris 2.5, gcc.
-     * HPUX
-     * Sun Solaris 2.6, gcc, perl5.6.0 (ActivePerl)
+- FFTW 3.0.1 is now out but is not supported (yet). You can use 2.x versions
+  of FFTW, fall back on the built-in fft routines, or (best of all) submit a 
+  patch. 
 
 - If @INC has '.' at the front of the search path part of the build will
   fail (specifically mkpdlconv will not be able to 'use English' since
   it uses Exporter.pm from Basic/Core and not the system Exporter.pm).
     [added by Tim Jenness on 15 Apr 2000]
+    [This appears to be fixed but this note is left FYI for the 2.4.2 release
+	-- CED 16-Dec-2004 ]
+
+- PDL::Graphics::TriD doesn't seem to link correctly on the Mac, under 
+  MacOS 10.5 & 10.6.  It has not been fixed in part because TriD needs an 
+  overhaul anyway, and in part because the code is cryptic.  If you'd like 
+  to fix it, please do!  Patches welcome.  (PDL::Graphics::TriD is disabled
+  by default on Mac installs, thanks, Doug)
+
+- The t/fits.t test and PDL::IO::FITS module can show problems when
+  used with old versions of the Astro::FITS::Header module. If you have
+  problems then please install the latest version from
+
+    http://search.cpan.org/~aallan/Astro-FITS-Header/
+
+  (it is v2.8.1 at the time of writing) and see if this stops the problems.
+  Note that Astro::FITS::Header has a somewhat esoteric numbering scheme
+  (all the individual components have their own version number) which can
+  make it hard to work out what version of  the package have installed.
+
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 

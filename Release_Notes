@@ -1,3 +1,52 @@
+Release notes for PDL 2.4.2 ------------------------------
+
+General Notes:
+
+     - again, mainly a bugfix and polishing release.
+     
+     - perl 5.6.x is now deprecated; 5.8.x is recommended.  Support
+       for 5.6.x may go away in future versions.  
+
+     - a little too late for Christmas; but happy new year 2005!
+
+Summary of Changes:
+
+ - Overhaul of FITS I/O.  FITS binary tables are now supported,
+   for both reading and writing.
+
+ - Many improvements to PLplot handling
+
+ - New Graphics::Limits package determines display range for multiple 
+   concurrent data sets
+
+ - Better PDL::reduce function
+
+ - Improvements to PDL::Transform
+
+ - pdl() constructor is more permissive -- you can feed it PDLs and 
+  it does the Right Thing most of the time.
+
+ - Cleaner handling of config files
+
+ - Improvements to multi-line parsing in the perldl shell
+
+ - New 'pdl' command-line entry to perldl shell allows #!-style
+   scripting (so you can re-use your journal files verbatim)
+
+ - Several fixes for Microsoft Windows operation
+
+ - PDL::undefval works properly, also has warning tripwires
+
+ - statsover finally seems to produce meaningful, consistent RMS values
+
+ - Several 64-bit compatibility issues (this work is probably not yet
+  complete).
+
+- Many small bug-fixes too numerous to list (see the Changes file).
+
+
+
+
 Release notes for PDL 2.4.1 -------------------------------
 
 General Notes:

@@ -20,12 +20,11 @@ or if you don't have the cpan script try
 
 MODULE          DEPENDS ON                  COMMENT
 
-PDL (all)	perl 5.005		you need at least this version
-					of perl to succeed.
+PDL (all)	perl >= 5.6.x		you need at least this version
+		(5.8.x recommended)	of perl to succeed.
+
 		File::Spec		version >= 0.6 required, included
 					with recent perls (5.6.x and higher)
-
-PDL::Lvalue    	perl 5.6		not supported in pre 5.6
 
 PDL::NiceSlice  Text::Balanced		a nicer way to index piddles
 		Filter			a must-have!!
@@ -57,6 +56,12 @@ PDL::Graphics::PGPLOT
 
                                         Module builds ok without
                                         PGPLOT module and library
+
+PDL::Graphics::PLplot
+                The PLplot graphics library. See http://plplot.sourceforge.net 
+
+                                        Module builds ok without
+                                        PLplot module and library
 
 PDL::Graphics::IIS
                 To be useful an application that supports the

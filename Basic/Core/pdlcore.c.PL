@@ -4,7 +4,7 @@
 #
  
 use strict;
- 
+
 use Config;
 use File::Basename qw(&basename &dirname);
  
@@ -47,6 +47,9 @@ print OUT <<'!HEADER!'
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
+
+#define sv_undef(sv) (!(sv) || ((sv)==&PL_sv_undef) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)))
+
 !HEADER!
   ;
 
@@ -205,8 +208,8 @@ void pdl_makescratchhash(pdl *ret,double data, int datatype) {
 
 /*
   "Convert" a perl SV into a pdl (alright more like a mapping as
-   the data block isn't actually copied)  - scalars are automatically
-   converted
+   the data block is not actually copied)  - scalars are automatically
+   converted.
 */
 
 pdl* SvPDLV ( SV* sv ) {
@@ -226,8 +229,15 @@ pdl* SvPDLV ( SV* sv ) {
 
 /* Scratch hash for the pdl :( - slow but safest. */
 
-       /* Figure datatype to use */
+	/* handle undefined values */		       
+        if( sv_undef(sv) ) {
+            sv = get_sv("PDL::undefval",1);
+	    if(SvIV(get_sv("PDL::debug",1))){
+		fprintf(stderr,"Warning: SvPDLV converted undef to $PDL::undefval (%g).\n",SvNV(sv));
+		}
+	}
 
+       /* Figure datatype to use */
        if ( !SvIOK(sv) && SvNOK(sv) && SvNIOK(sv)  )  {/* Perl Double (e.g. 2.0) */
           data = SvNV(sv);
 
@@ -241,7 +251,7 @@ if ( $bvalflag and $usenan ) {
    print OUT <<'!NO!SUBS!';
 
           /*
-           * default NaN/Inf's to double
+           * default NaN/Infs to double
            * XXX sensible ?
            */
           if ( finite(data) == 0 ) {
@@ -501,7 +511,7 @@ void* pdl_malloc ( int nbytes ) {
 /*********** Stuff for barfing *************/
 
 /* Version of perl's mess_alloc - we need this copy
-here because it is defined static in util.c! */
+here because it's defined static in util.c! */
 
 static SV *
 pdl_mess_alloc()
@@ -607,51 +617,89 @@ pdl_barf(pat, va_alist)
    i.e. we can make piddles from 'sparse' array refs
 
 */
+
 int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 {
   int i, len, oldlen, newdepth, depth = 0;
   int hasref = 0, hasnonref=0;
   SV *el;
+  pdl *pdl;           /* Stores PDL argument */
+  int num_nulls = 0;  /* keeps track of null PDLs (if any) */
 
-  len = av_len(av);
+  /* Start with a clean slate */
+   if(level==0) {
+    av_clear(dims);
+  }
+
+  len = av_len(av);                         /* Loop over elements of the AV */
   for (i=0; i<= len; i++) {
-    newdepth = 0;
-    el = *(av_fetch(av,i,0));
-    if (SvROK(el)) {
-      if (SvTYPE(SvRV(el)) != SVt_PVAV)
-	croak("av_ndcheck: non-array ref in structure");
-      hasref = 1;
-      if (hasnonref)
-         croak("av_ndcheck: mixed array-ref and non array-refs");
-      newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
-    }
-    else {
-     hasnonref = 1;
-     if (hasref)
-       croak("av_ndcheck: mixed array-ref and non array-refs");
-     if (*datalevel > 0 && *datalevel != level)
-       croak("av_ndcheck: mixing data and array_refs on level %d", 
-	     *datalevel > level ? level : *datalevel);
-     *datalevel = level;
+    newdepth = 0;                           /* Each element - find depth */
+    el = *(av_fetch(av,i,0));               /* Get the ith element */
+
+    if (SvROK(el)) {                        /* It is a reference */
+      if (SvTYPE(SvRV(el)) == SVt_PVAV) {   /* It is an array reference */
+         hasref = 1;                
+
+         /* Recurse to find depth inside the array reference */
+         newdepth = 1 + av_ndcheck((AV *) SvRV(el), dims, level+1, datalevel);
+      
+      } else if ( pdl = SvPDLV(el) ) {
+	int j;
+	
+	/* It is a PDL - walk down its dimension list, exactly as if it
+         * were a bunch of nested array refs. 
+         */
+
+	 pdl_make_physdims(pdl);
+
+        if(pdl->nvals==0) {
+	   num_nulls++;
+        }
+
+        for(j=0;j<pdl->ndims;j++) {
+           int jl = pdl->ndims-j+level;
+           if(  av_len(dims) >= jl && 
+                av_fetch(dims,jl,0) != NULL &&
+                SvIOK(*(av_fetch(dims,jl,0)))) {
+
+              oldlen=(int)SvIV(*(av_fetch(dims,jl,0)));
+
+              if(pdl->dims[j] > oldlen) {
+                sv_setiv(*(av_fetch(dims,jl,0)),(IV)(pdl->dims[j]));
+              }
+	    } else {
+              av_store(dims, jl, newSViv((IV)pdl->dims[j]));
+	    }
+        }
+        
+	newdepth= pdl->ndims;
+
+      } else {
+	croak("av_ndcheck: non-array, non-PDL ref in structure\n\t(this is usually a problem with a pdl() call)");
+      }
     }
     if (newdepth > depth)
-      depth = newdepth;
+    depth = newdepth;
   }
-  len++;
+
+  len++; /* Increment from last-element address to number of elements */
+  len -= num_nulls; /* Null PDLs contribute no elements. */
+
   if (dims != NULL) {
-    /* printf("Length is %d\n",av_len(dims)); */
     if (av_len(dims) >= level && av_fetch(dims, level, 0) != NULL
 	&& SvIOK(*(av_fetch(dims, level, 0)))) {
       oldlen = (int) SvIV(*(av_fetch(dims, level, 0)));
+
       if (len > oldlen)
 	sv_setiv(*(av_fetch(dims, level, 0)), (IV) len);
     }
-    else
+    else 
       av_store(dims,level,newSViv((IV) len));
   }
-  /* printf("level/datalevel are %d/%d\n",level,*datalevel); */
+
   return depth;
 }
+
 
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 {
@@ -724,42 +772,205 @@ static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
     pdata[i] = 0;
 }
 
-void pdl_setav_$type(PDL_$type* pdata, AV* av,
+/* 
+ * pdl_kludge_copy  - copy a PDL into a part of a being-formed PDL.
+ * It is only used by pdl_setav, to handle the case where a PDL is part
+ * of the argument list. Ideally this would use the existing threadloop 
+ * code but that seems too hard.  
+ *
+ * kludge_copy recursively walks down the dim list of both the source and dest
+ * pdls, copying values in as we go.  It differs from PP copy in that it operates
+ * on only a portion of the input pdl.
+ * 
+ * (If I were Lazier I would have popped up into the perl level and used threadloops to
+ * assign to a slice of the output pdl -- but this is probably a little faster.)
+ *
+ * -CED 17-Jun-2004
+ */
+
+void pdl_kludge_copy_$type(PDL_$type* pdata, 
+                           PDL_Long* pdims, 
+                           PDL_Long ndims, 
+                           int level, 
+                           long stride, 
+                           pdl* pdl, 
+                           int plevel, 
+                           void* pptr) {
+  int i;
+
+/*   printf("kludge_copying: stride=%d, pdata=%d, level=%d, plevel=%d; pptr=%d; pdl->data=%d\n",stride,pdata, level, plevel, pptr,pdl->data);
+ */
+
+  if(plevel > pdl->ndims || level > ndims)
+   croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; plevel (%d) > pdl->ndims (%d)",plevel,pdl->ndims-1);
+  
+  if(plevel <= pdl->ndims-1 ) {
+   
+    if(ndims-2-level < 0) 
+       croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; ndims-2-level (%d) < 0!.",ndims-2-level);
+
+    stride /= pdims[ndims-2-level];  
+
+    for(i=0;i<pdl->dims[pdl->ndims-1-plevel];i++) {
+      pdl_kludge_copy_$type(pdata + stride*i,
+                            pdims,
+                            ndims,
+                            level+1,
+                            stride,
+                            pdl,
+                            plevel+1,
+                            pptr+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
+                           );
+    }
+
+    /* pad this level to zero if there are not enough elements */
+    if(i < pdims[level]) 
+	if(level<ndims-1) {
+	    pdata += stride*i;
+	    pdims[level] -= i;
+	    pdl_setzero_$type(pdata,pdims,ndims,level);
+	    pdims[level] += i;
+	} else {
+	    pdata += stride * i;
+	    for(;i<pdims[level];i++) {
+		*pdata = 0;
+		pdata += stride;
+	    }
+	}
+  } else {
+      switch(pdl->datatype) {
+!WITH!SUBS!
+
+# loop through all the types
+#
+foreach my $switch_type (keys %PDL::Types::typehash) {
+
+    my $ctype = $PDL::Types::typehash{$switch_type}{ctype};
+
+print OUT <<"!WITH!SUBS!";
+       case ${switch_type}:
+          *pdata = (PDL_$type) (*((${ctype} *)pptr));
+          break;
+!WITH!SUBS!
+}
+
+print OUT <<"!WITH!SUBS!";
+        default: 
+          croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: unknown type of %d.",pdl->datatype);
+          break;
+     }
+
+      /* Pad subtree to zero if the PDL is not deep enough */
+	  if(level < ndims-1) {
+	      pdata += stride/pdims[level];
+	      pdl_setzero_$type(pdata,pdims,ndims,level+1);
+	  }
+    
+  }
+}
+
+
+/*
+ * Recent changes to setav_$type:
+ * - Look for PDLs and deep copy them with pdl_kludge_copy just as if they were
+ *    array refs.
+ * - Allow multiple depths in different elements.  The max depth should have been
+ *    determined by pdl_av_ndcheck (it comes in as the ndims parameter), so other
+ *    depths are descended to and extra elements are filled in with zeroes.
+ *    In the Best of All Possible Worlds this would be badval compliant and 
+ *    the extra elements would get filled in with BAD.  Soon, soon.
+ * --CED, 17-Jun-2004
+ *
+ * - Check for undef values and set the PDL element to PDL::undefval for those
+ *   elements.
+ * - Keep track of how many undef values were encountered, for debugging
+ *   (I am wary of action-at-a-distance)
+ *
+ *  -CED, 28-Jul-2004
+ */
+ 
+long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	PDL_Long* pdims, PDL_Long ndims, int level)
 {
-/* this thing will need to be recursive and fill up missing bits
-   with zeroes
-*/
   int cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
                                        inwards */
   int len = av_len(av);
   int i,stride=1;
+
   SV* el;
+  double undefval; 
+  char debug_flag;
+  long undef_count = 0;
+
+  {
+     SV *sv = get_sv("PDL::undefval",0);
+     undefval = (sv_undef(sv)) ? 0 : (double)SvNV(sv);
+
+     sv = get_sv("PDL::debug",0);
+     debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+ }
 
   for (i=0;i<ndims-1-level;i++)
     stride *= pdims[i];
-  /* printf("level, cursz, stride: %d, %d, %d\n",level, cursz, stride); */
+
   for (i=0;i<=len;i++,pdata += stride) {
-    /* printf("pdata = %d\n",pdata); */
+
     el = *(av_fetch(av,i,0));
     if (SVavref(el))
-       pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
-    else
-       *pdata = (PDL_$type) SvNV(el);
-  }
-  /* in case this dim is incomplete set remaining elements to zero */
+       undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
+    else if( SvROK(el) ) {
+      pdl *pdl;
+      if( pdl = SvPDLV(el) ) {
+
+	pdl_make_physical(pdl);
+
+	if(pdl->nvals==0) { /* Ignore null PDLs */
+	  pdata -= stride; 
+
+	} else if(pdl->nvals==1) {      /* 1-element PDLs get handled correctly by SvNV */
+	  *pdata = (PDL_$type) SvNV(el);
+
+	} else {                        /* Multi-element PDLs must be recursively copied */
+	  pdl_kludge_copy_$type(pdata,pdims,ndims,level,stride,pdl,0,pdl->data);
+
+        }
+	  
+      } else {
+	croak("Non-array, non-PDL element in list");
+      }
+    } else { /* SvROK(el)==0; scalar element */
+       if(level < ndims-1) 
+	 pdl_setzero_$type(pdata,pdims,ndims,level+1);
+
+         if( sv_undef(el) ) {
+	     *pdata = (PDL_$type) undefval; /* undef case */
+	     undef_count++;
+	 } else {
+	    *pdata = (PDL_$type) SvNV(el);
+	}
+    }
+
+  } /* end of i loop */
+  
+  /* in case this dim is incomplete set remaining elements to undefval */
+  
   for (i=len+1, pdata;i<cursz;i++,pdata += stride) {
-    /* printf("pdata = %d\n",pdata); */
     if (level < ndims-1) /* ndims-1 is datalevel */
         pdl_setzero_$type(pdata,pdims, ndims, level+1); /* set whole subtree
                                                           * to zero
                                                           */
     else {
-      /* printf("extra element at %d\n",i); */
-      *pdata = 0;
+	*pdata = 0;
     }
   }
+  
+  if(level==0 && debug_flag && undefval && undef_count) {
+      fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %d time%s\\n",undefval,undef_count,undef_count==1?"":"s");
+  }
+
+  return undef_count;
 }
+
 
 !WITH!SUBS!
 

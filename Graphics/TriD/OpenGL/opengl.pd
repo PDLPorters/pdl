@@ -7,6 +7,31 @@
 #
 # Jim Edwards 7/18/2000
 #
+#
+# Notes assembled 19-Aug-2004, CED:
+# What a crock!  Krufty and klever but oh-so-open-loop.
+# The general flow: (remember, .pd files like this one get executed to create
+# appropriate .xs files):
+#   - Find "gl.h", "glu.h", and "glx.h" in the appropriate /usr/include
+#     type directory
+#   - Preprocess them to remove extraneous "API" phrase at the beginning
+#     of each function declaration
+#   - Run them through cpp to get honest-to-Bog function declarations
+#   - Parse the function declarations to determine how to declare each
+#     function in the XS file.
+#
+# This broke under Mandrake 10, because the Mandrake glu.h file includes
+# function declarations of the form "<type> <name> (<arg1>,<arg2>...)"
+# rather than "extern <type> <name> (<arg1>,<arg2>...)".  Similar 
+# strangenesses may hassle you -- if you're looking here because of
+# undefined function calls in "demo 3d", you've probably come to the right
+# place.
+#
+# TO DO: ensure that at least a particular subset of functions are found,
+# or else barf the compile.
+#
+#
+
 use Getopt::Long;
 use strict;
 
@@ -19,7 +44,7 @@ GetOptions("I=s@" => \@incs,
 #
 my @funcs = qw|gl.h glx.h glu.h|;
 my @types = qw|X.h gl.h glx.h glu.h glxtokens.h|;
-my $verbose;
+my $verbose = 1;
 my $pmdocs;
 #
 # These are prototypes which for one reason or another (hopefully documented 
@@ -45,8 +70,16 @@ foreach(@defines){
   $_ = "-D$_";
 }
 
-
-push(@path,"/usr/include");
+# The '/usr/X11R6/include' path is where GL/glx.h etc are found
+# on my OS-X 10.3 machine. It seems to me that the Makefile.PL's should
+# have set the paths up by now, rather than having the logic in the *pd
+# file; I think the whole build of the TriD stuff needs reworking...
+#
+# Doug
+#
+push @path, "/usr/include";
+push @path, "/usr/X11R6/include"
+    if $^O eq "darwin";
 
 my %consts; # filled by sub getconsts
 my @subnames;  # filled by sub getfuncs
@@ -71,14 +104,17 @@ select TYPEMAP;
 
 foreach my $file (@types){
   my @file;
+
+  print STDERR "\n******PROCESSING FILE $file.....";
+
   if($file=~/^gl/){
 	 my $found;
-	 foreach my $path (@path){
+	 glpath: foreach my $path (@path){
 		if(-e "$path/GL/$file"){
 		  &getconsts("$path/GL/$file");
 		  @file = &cpp("$path/GL/$file");
 		  $found=1;
-		  last;
+		  last glpath;
 		}
 	 }
 	 unless($found){
@@ -86,23 +122,25 @@ foreach my $file (@types){
 	 }
   }elsif($file=~/^X/){
 	 my $found;
-	 foreach my $path (@path){
+	 xpath: foreach my $path (@path){
 		if(-e "$path/X11/$file"){
 		  &getconsts("$path/X11/$file");
 		  @file = &cpp("$path/X11/$file");
 		  $found=1;
-		  last;
+		  last xpath;
 		}elsif(-e "/usr/include/X11/$file"){
 		  &getconsts("/usr/include/X11/$file");
 		  @file = &cpp("/usr/include/X11/$file");
 		  $found=1;
-		  last;
+		  last xpath;
 		}
 	 }
 	 unless($found){
 		die "ERROR: Could not find $file in @path";
 	 }
   }
+
+  print STDERR ":::::::::::::::::::::::::::::::::\n";
   print STDERR "Calling gettypes for $file ",$#file,"\n" if($verbose);
   gettypes(@file);
   print "GLXContext T_PTR\n";
@@ -142,6 +180,7 @@ $ppcode .= glpcopenwindow();
 $ppcode .= "\n');\n\n";
 
 foreach my $file (@funcs){
+print STDERR "XXXXXXXXXX Processing $file\n";
   my @file;
   if($file=~/^gl/){
 	 my $found;
@@ -196,6 +235,7 @@ sub cpp {
 
   open(TFILE,">$nfile")  || die "Could not write $nfile";
   foreach(@file){
+#  print STDERR "from $file:  ",$_ ;
 	 next if(/^\s*\#include\s+/);  # this is dangerous
 		# as a consequence APIENTRY is undefined and glu routines are ignored
 	 print TFILE $_;
@@ -209,6 +249,8 @@ sub cpp {
 	 $com .= " $_" if(/-D/);
   }
   $com .= " -D_LANGUAGE_C -DAPIENTRY=''";  # forces prototypes of SGI GL 
+
+  print STDERR "*** CPP command: $com $nfile |\n";
 
   open(FILE,"$com $nfile |") || die "cant open $com $nfile|\n";
   @file = <FILE>;
@@ -263,10 +305,10 @@ sub getfuncs {
   my $str = join ' ',@file;
   #  while($str =~ /extern\s+(\S[^\;]*)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
   #  my @vfuncs;
-  while($str =~ /extern\s+(\w+)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
-	 my $rt=$1;
-	 my $name=$2;
-	 my $args=$3;
+  while($str =~ /(extern\s)?\s*(\w+)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
+	 my $rt=$2;
+	 my $name=$3;
+	 my $args=$4;
 	 #    $rt =~ s/^\s*const\s+//;
 	 if($dontfuncs{$name}) { next }
     

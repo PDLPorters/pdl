@@ -1,21 +1,22 @@
 # Build the whole PDL distribtuion
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
+
 use Config;
 use IO::File;
 
 sub checkbuggysetup {
-  # detect buggy Perl setups
-  if (!$forcebuild &&
-      $Config{osname} eq 'solaris' &&
-      ($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
-      $Config{usemymalloc} eq 'y'
-     ) {
-    die <<'EOM';
+    # detect buggy Perl setups
+    if (!$forcebuild &&
+	$Config{osname} eq 'solaris' &&
+	($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
+	$Config{usemymalloc} eq 'y'
+	) {
+	die <<'EOM';
 
 FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
 
-On this platform the combination of gcc and Perl's malloc
+On this platform the combination of gcc and the Perl malloc
 are buggy. The optimizations lead to random coredumps
 and make PDL essentially unusable.
 
@@ -35,24 +36,77 @@ YOU HAVE BEEN WARNED!!
 EOM
   }
 
-  # check for red hat 5.8.0 problem described at
-  # http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
-  if ($^V eq v5.8.0 &&
-      $Config{config_args} =~ m/-Dcf_by=Red Hat/) {
-    $redhat580problem = 1;
-  }
+    # check for red hat 5.8.0 problem described at
+    # http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
+    if ($^V eq v5.8.0 &&
+	$Config{config_args} =~ m/-Dcf_by=Red Hat/) {
+	$redhat580problem = 1;
+    }
+
+    my($dot);
+    for(@INC) {$dot += $_ eq '.'}
+    $dot-- if(@INC[-1] eq '.');
+    if($dot) {
+	$INC = join(":",@INC);
+	die << "EOM"
+
+**********************************************************************
+BUGGY \@INC DETECTED.  BUILD TERMINATED.
+Your Perl \@INC path is:
+
+$INC
+
+That seems to include the directory '.' before the last entry in the
+path.  Configurations like that are arguably broken, because they
+prevent strict division of hierarchy in the module name space.
+In particular, adding a module Foo::Bar::Baz can cause trouble
+if Baz exists in the top level elsewhere, and if you run from the 
+Foo/Bar directory.  
+
+This happens with the PDL::Config and some other modules.  You may
+not be able to build PDL with this \@INC setup.  
+
+You can fix your \@INC, or you can try to build anyway.  To build anyway,
+set the environment variable PDL_INC_OK to a true value and re-run.
+**********************************************************************
+
+
+EOM
+unless $ENV{PDL_INC_OK};
 }
+	
+}
+
+# The user specifies configuration options using the PDL_CONFIG
+# array in perldl.conf - or ~/.perldl.conf or via the PDLCONF command-line
+# argument.
+#
+# We need to use this information during the 'perl Makefile.PL' process,
+# and historically this has been done by directly accessing %PDL_CONFIG
+# (or %::PDL_CONFIG) variable. However, there are times that this information
+# is also needed during the actual build (ie 'make' cycle), at which point
+# the variable is not available. However Basic/Core/Config.pm is available,
+# but this uses the %PDL::Config variable to access the data.
+#
+# So, we try to avoid this dichotomy by creating a %PDL::Config during
+# the 'perl Makefile.PL' stage and then making sure that PDL_CONFIG
+# is destroyed (so it can't be used by accident).
+#
+# Do we need to worry about Makefile.PL's hacking PDL_CONFIG?
+# Probably...
+#
+%PDL::Config = ();
 
 sub getpdl_config {
   my ($pdl_conf_file) = @_;
 
   # First read in distribution config file
-  # and convert y/n to 1/0
   #
   require './perldl.conf';
-  foreach (values %PDL_CONFIG) { s/^y.*/1/i; s/^n.*/0/i; }
 
-  %PDL_CONFIG_DIST = %PDL_CONFIG; # Save standard values
+  # Save standard values
+  #
+  %PDL_CONFIG_DIST = %PDL_CONFIG;
 
   # Now read in the users config file if specified
   # and convert y/n to 1/0
@@ -60,7 +114,6 @@ sub getpdl_config {
   if (-f $pdl_conf_file) {
     warn "\nINFORMATION: using file $pdl_conf_file to set configuration defaults\n\n";
     require $pdl_conf_file;
-    foreach(values %PDL_CONFIG){ s/^y.*/1/i; s/^n.*/0/i; }
   }
 
   # Sanity checking of user supplied keys (look for ones not defined in dist)
@@ -77,26 +130,81 @@ EOD
   }
 
   # Merge in default options where not supplied in users file
-
+  #
   for(keys %PDL_CONFIG_DIST) {
     $PDL_CONFIG{$_} = $PDL_CONFIG_DIST{$_} unless exists $PDL_CONFIG{$_};
   }
+
+  # Set up the default TEMPDIR if it has not been set by the user
+  #
+  # set up the default directory we use for temporary files throughout
+  # PDL. These are mainly for files created during the build of PDL itself,
+  # but it can also invovle files created whilst building an external
+  # module that uses PDL (e.g. the trylink() function of PDL::Dev needs
+  # a temporary file) or when a module is actually being used (e.g.
+  # PDL::IO::Dumper may need a temporary file).
+  #
+  # We have no policy about what directory to use - the following is
+  # an amalgam of the different choices that have been used within PDL
+  # up to (and including) v2.4.1
+  #
+  require File::Spec;
+  my $fs = 'File::Spec';
+  my $cdir = sub { return $fs->catdir(@_)};
+  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
+  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
+    defined $ENV{TMP} ? $ENV{TMP} :
+      &$cdir($fs->rootdir,$td);
+
+  $PDL_CONFIG{TEMPDIR} = $tempd
+    unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
+
+  # set up the default MALLOCDBG information (if not specified by the user)
+  #
+  if ( exists $PDL_CONFIG{MALLOCDBG} and defined $PDL_CONFIG{MALLOCDBG} ) {
+      my $val = $PDL_CONFIG{MALLOCDBG};
+      my $rval = ref($val);
+      die "ERROR: MALLOCDBG must be set to an associative array, not to a " .
+	( $rval ? $rval : "SCALAR" ) unless $rval eq "HASH";
+  } else {
+      $PDL_CONFIG{MALLOCDBG} = ();
+  }
+  foreach my $item ( qw( libs include ) ) {
+      $PDL_Config{MALLOCDBG}->{$item} = ""
+	unless exists $PDLConfig{MALLOCDBG}->{$item};
+  }
+
+  # create a PDL::Config variable matching the PDL_CONFIG structure
+  # and convert yes/no answers to 1/0
+  #
+  for my $key ( keys %PDL_CONFIG ) {
+      my $val = $PDL_CONFIG{$key};
+      $val =~ s/^y.*/1/i;
+      $val =~ s/^n.*/0/i;
+      $PDL::Config{$key} = $val;
+  }
+
+  # destroy PDL_CONFIG/PDL_CONFIG_DIST so that we can catch any accesses
+  # to them in other Makefile.PL's
+  #
+  %PDL_CONFIG = undef;
+  %PDL_CONFIG_DIST = undef;
 }
 
 sub check_f77conf {
   my ($seen_f77conf) = @_;
-  if ($seen_f77conf) {
-    eval 'require File::Spec';
-    unless ($@ eq "") {
+  return 0 unless $seen_f77conf;
+
+  eval 'require File::Spec';
+  unless ($@ eq "") {
       print STDERR "can't load File::Spec, skipping f77conf\n";
       # skip if we don't have File::Spec
       return 0;
-    }
-    $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
-      unless File::Spec->file_name_is_absolute($pdl_f77conf);
-    $PDL_CONFIG{F77CONF} = $pdl_f77conf;
-    return 1;
-  } else { return 0 }
+  }
+  $pdl_f77conf = File::Spec->rel2abs($pdl_f77conf)
+    unless File::Spec->file_name_is_absolute($pdl_f77conf);
+  $PDL::Config{F77CONF} = $pdl_f77conf;
+  return 1;
 }
 
 sub make_Version_pm {
@@ -125,7 +233,7 @@ EOVF
 
 sub make_badval_dependencies {
   # Are we using bad values or not? Are we using NaN or not?
-  # NOTE:	
+  # NOTE:
   #  only create if there's been a change (or the file doesn't exist)
   #  since *.pd uses this as a dependency
   #
@@ -134,18 +242,17 @@ sub make_badval_dependencies {
 
   if ( -e $badFile ) {
     require $badFile;
-    if ( $bvalflag == $PDL_CONFIG{WITH_BADVAL} and
-	 $usenan   == $PDL_CONFIG{BADVAL_USENAN} ) {
-      $create_badFile = 0;
-    }
+    $create_badFile = 0
+      if $bvalflag == $PDL::Config{WITH_BADVAL} and
+	 $usenan   == $PDL::Config{BADVAL_USENAN};
   }
 
   if ( $create_badFile ) {
     my $fh = IO::File->new( ">$badFile" )
       or die "Can't open '$badFile' for writing.!\n";
     print $fh "# Autogenerated by top-level Makefile.PL ".(localtime)."\n";
-    print $fh "\$bvalflag = $PDL_CONFIG{WITH_BADVAL};\n";
-    print $fh "\$usenan   = $PDL_CONFIG{BADVAL_USENAN};\n";
+    print $fh "\$bvalflag = $PDL::Config{WITH_BADVAL};\n";
+    print $fh "\$usenan   = $PDL::Config{BADVAL_USENAN};\n";
     print $fh "1;  # return true\n";
     $fh->close;
   }
@@ -155,7 +262,7 @@ sub make_Types_pm {
   # make sure we have Types.pm ready for prime time
   die "Types.pm.PL not found in Basic/Core"
     unless -f 'Basic/Core/Types.pm.PL';
-  my $usebvals = $PDL_CONFIG{WITH_BADVAL} ? "BADVALS=1" : "";
+  my $usebvals = $PDL::Config{WITH_BADVAL} ? "BADVALS=1" : "";
   system "$Config{perlpath} Basic/Core/Types.pm.PL $usebvals";
   die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
 }
@@ -173,7 +280,7 @@ sub myformat {
     $list = "\n$list\n\t\t" unless $list =~ /^\s*$/;
     return "{$list}";
   } else {
-     return join '', '"',quotemeta($PDL_CONFIG{$_}),'"';
+     return join '', '"',quotemeta($PDL::Config{$_}),'"';
   }
 }
 
@@ -188,10 +295,10 @@ sub make_PDL_Config_pm {
 #  'perl Makefile.PL'!!!
 package PDL;
 \%PDL::Config = (\n";
-  for(keys %PDL_CONFIG) {
+  for(keys %PDL::Config) {
     $fh->print( "\t$_\t=>\t" );
-    if(defined $PDL_CONFIG{$_}) {
-      $fh->print( myformat($PDL_CONFIG{$_}) );
+    if(defined $PDL::Config{$_}) {
+      $fh->print( myformat($PDL::Config{$_}) );
     } else {
       $fh->print( "undef" );
     }
@@ -207,8 +314,11 @@ package PDL;
 
 BEGIN{
   # Version test.
+  # (See also warning note in the END block)
+
   eval "use 5.6.0";
   die "\nPDL requires Perl v5.6.0 or later\n\n" if $@ ne "";
+  
   # test for critical modules
   @hasnt = ();
   my @test = (['Filter::Util::Call','Filter'],
@@ -242,11 +352,9 @@ warn "WARNING: forcing build...\n" if $forcebuild;
 
 checkbuggysetup(); # check for buggy Perl setups
 
-if(!$seen_pdlconf) {
-	my $defname = "$ENV{HOME}/.perldl.conf";
-	if(-f $defname) {
-		$pdl_conf_file = $defname;
-	}
+unless ( $seen_pdlconf ) {
+    my $defname = "$ENV{HOME}/.perldl.conf";
+    $pdl_conf_file = $defname if -f $defname;
 }
 
 # needs to be called before any of the make_XX routines
@@ -281,15 +389,15 @@ WriteMakefile(
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
-	      'EXE_FILES' => ['perldl', 'pdldoc'],
+	      'EXE_FILES' => ['pdl', 'perldl', 'pdldoc'],
 	      'PM' => { @podpms }, # so that the script docs are picked up
 	      'MAN3PODS' => {}, # don't pick up the script pods again
-	      'OPTIMIZE'  => $PDL_CONFIG{OPTIMIZE} || $Config{optimize},
+	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'linkext'  => {LINKTYPE => ''},  # No linking required
                                                # in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
 	      'clean' => {
-		  'FILES' => 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
+		  'FILES' => 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
                       '_Inline/'
@@ -311,26 +419,36 @@ make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
 sub MY::postamble {
-my $text =
+  my  $text =               
 '
 doctest ::
 	@echo "doctest: Building PDL documentation database in blib ..."
 	@$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) \
 		Doc/scantree.pl 
-	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
-		Doc/mkhtmldoc.pl 
+%HTML%	@echo "doctest: Building PDL documentation web pages in blib ..."
+%HTML%	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
+%HTML%		Doc/mkhtmldoc.pl 
 
 doc_site_install ::
 	@echo "doc_site_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLSITEARCH)
-	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
+%HTML%	@echo "doc_site_install: Building PDL documentation web pages ..."
+%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
 
 doc_perl_install ::
 	@echo "doc_perl_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
-	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
+%HTML%	@echo "doc_perl_install: Building PDL documentation web pages ..."
+%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 
 ';
+  
+  if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
+    $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
+  } else {
+    $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
+  }
+    
 
 $text .=
 "
@@ -435,4 +553,19 @@ EOP
 
 EOP
   }
-}
+
+    eval "use 5.8.0";
+    if($@ ne "") {
+      $vstring = sprintf("%vd",$^V);
+    print <<"DEPRECATED-EOM"
+******************************
+* 
+* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.2, 
+* perl version 5.8 or greater is recommended.  Most stuff will
+* probably still work, but perl versions earlier than 5.8 are
+* deprecated and may stop working in future.
+* 
+******************************
+DEPRECATED-EOM
+   } # end of deprecation case
+} # end of END block

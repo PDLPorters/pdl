@@ -25,5 +25,3 @@ WriteMakefile( %hash );
 sub MY::postamble {
   pdlpp_postamble_int(@::pack);
 }
-
-

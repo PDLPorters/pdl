@@ -1,28 +1,34 @@
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import(); # for trylink
 
-@subdirs = ("PGPLOT", "LUT", "IIS", "Karma", "PLplot");
+@subdirs = ("PGPLOT", "LUT", "IIS", "Karma", "PLplot", "Limits");
 
 # we try and build unless WITH_3d == 0
-$t = $PDL_CONFIG{WITH_3D};
+$t = $PDL::Config{WITH_3D};
 if( defined($t) and $t == 0 ) {
-	print "\n   Not building TriD or OpenGL. Turn on WITH_3D if this is incorrect.\n\n";
+    print "\n   Not building TriD or OpenGL. Turn on WITH_3D if this is incorrect.\n\n";
 } else {
-  print  "\n   Trying OpenGL configuration $PDL_CONFIG{OPENGL_LIBS}\n\n";
-  
-  $PDL_CONFIG{OPENGL_LIBS} = guessogllibs($PDL_CONFIG{OPENGL_LIBS});
+  print  "\n   Trying OpenGL configuration $PDL::Config{OPENGL_LIBS}\n\n";
 
-  if(defined $PDL_CONFIG{OPENGL_LIBS}){
-	 unshift @subdirs,"TriD";
-    if($PDL_CONFIG{OPENGL_LIBS} =~ /Mesa/){
-		$PDL_CONFIG{OPENGL_DEFINE} .= ' -DGL_GLEXT_LEGACY';
-	 }
-	 $PDL_CONFIG{WITH_3D}=1;
-    print "\n    Success using $PDL_CONFIG{OPENGL_LIBS} $PDL_CONFIG{OPENGL_DEFINE}\n\n";
-  }else{
-	 warn "\n     COULD NOT link OpenGL \n".
-		"    Not building OpenGL and TriD options!\n\n";
-	 $PDL_CONFIG{WITH_3D}=0;
+  $PDL::Config{OPENGL_LIBS} = guessogllibs($PDL::Config{OPENGL_LIBS});
+
+  if ( defined $PDL::Config{OPENGL_LIBS} ) {
+      unshift @subdirs,"TriD";
+      if ( $PDL::Config{OPENGL_LIBS} =~ /Mesa/ ) {
+	  $PDL::Config{OPENGL_DEFINE} .= ' -DGL_GLEXT_LEGACY';
+      }
+      $PDL::Config{WITH_3D} = 1;
+
+      # hack for OS-X
+      if ($^O eq "darwin" and not defined $PDL::Config{OPENGL_INC}) {
+	  $PDL::Config{OPENGL_INC} = "-I/usr/X11R6/include";
+      }
+
+      print "\n    Success using $PDL::Config{OPENGL_LIBS} $PDL::Config{OPENGL_DEFINE}\n\n";
+  } else {
+      warn "\n     COULD NOT link OpenGL \n".
+	"    Not building OpenGL and TriD options!\n\n";
+      $PDL::Config{WITH_3D}=0;
   }
 }
 

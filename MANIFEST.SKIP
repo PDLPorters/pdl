@@ -118,6 +118,9 @@ pdlexamples\.c$
 ^Lib/Slatec/slatec/.*\.c$
 ^Lib/Slatec/SlatecProtos.h$
 ^Lib/Slatec/f77_underscore$
+^Lib/Transform/Transform\.c
+^Lib/Transform/Transform\.pm
+^Lib/Transform/Transform\.xs
 ^Basic/OLD
 ^Gen
 MANIFEST\.bak$
@@ -185,3 +188,4 @@ so_locations
 ^IO/NDF/NDF.pm$
 ^win32/pbmwin32.tar.gz
 ^Lib/GSL/RNG\.(pm|xs|c)
+\.bundle$

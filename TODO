@@ -1,6 +1,32 @@
-CURRENT PRIORITIES:
+CURRENT PRIORITIES 
+- Please include dates and PDL version numbers on entries!
 
 # = done
+
+
+-- PDL 2.4.1, 25-Oct-2004 (CED) 
+Think about subclassed PDLs and how to stop them from breaking
+indexing operations.  For example, PDL::Char types can't be diced
+properly with dice() because the input variables seem to be promoted
+to PDL::Char.  (workaround: use niceslice instead).  Myriad other
+problems with complex numbers and quaternions.
+This relates to bug #974581.
+
+-- PDL 2.4.1, 25-Oct-2004 (CED) 
+Issues with pointer casting (bug 1051810) in some of the redodims
+code.  The "uninitialized memory read errors" mentioned in that bug
+are especially troubling, and indicate some fallacious logic in the
+deep guts of PP-generated code. (They're part of the generated
+_redodims code; see the bug).  There are other hints of trouble in PP,
+notably the need in some of the trans code to inspect the PDL
+"signature" at the beginning of a block of memory to see if it has been
+initialized already.  Such signatures of course become more common in 
+random bits of memory as a process runs.  That stuff needs looking into.
+
+
+
+===============
+Older stuff (probably still needs work)
 
 - add GLOBALLIBS modifier to perldl.conf and
   PDLWriteMakefile routine to Dev.pm that will
@@ -28,7 +54,7 @@ lower priorities
 - get rid of 'swap' parameter when calling bifuncs explicitly
 - overhaul core interfaces, move drepecated interfaces into own module
 # - improve OpenGL detection ## seems more or less done (trylink)
-- sort out interface to different interpolation codes (PDL::Func
+# sort out interface to different interpolation codes (PDL::Func
   and the old PDL::Interpolate/PDL::Interpolate::Slatec modules which are
   included in the distribution but are not installed)
 - make more routines 'bad value' aware
@@ -39,22 +65,7 @@ lower priorities
 # PDL::PP::Inline !!!
 
 
-CED notes
-- Fix t_perspective: R0/B parameters unfairly demand non-piddles.
-- Non-inplacify t_perspective, t_radial, and/or t_az_eqd
-- Add arithmetic (and scalar arithmetic) to PDL::Transform
-- Fixes to PGPLOT::Window
-	- Duplicate titles in pixel drivers; e.g. 
-		$w=pgwin("foo.gif/gif"); $w->imag(rvals(10,10),{Title=>"Foo"});
-	- LineWidth sets both line width of plot and of titles.  Ick.
-
-
-
-
-
 OLDER STUFF (still valid?):
-
-Change?: tridgallery depends on m51.fits
 
                  perlDL TODO list
                  ================
@@ -88,7 +99,7 @@ Missing Features:
 
 "#" = should work now.
 
-**** Quick: SV * must be allowed for OtherPars.
+# **** Quick: SV * must be allowed for OtherPars.
 
 Building:
 --------

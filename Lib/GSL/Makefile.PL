@@ -2,18 +2,24 @@ use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
 # the real stuff happens in the subdirs
-
+#
+# DJB (12/30/03)
+# - would it not make sense to do all the checks here and just
+#   write a dummy makefile if GSL support is not available
+#   (as done with some of the other modules; or is it possible/desireable
+#    to compile only some of the GSL modules here?)
+#
 sub get_gsl_libs {
-  warn << 'EOW' if ref $PDL_CONFIG{GSL_LIBS};
+  warn << 'EOW' if ref $PDL::Config{GSL_LIBS};
  The GSL_LIBS config variable must be a string (!)
  not a reference. You should probably leave it undefined
  and rely on gsl-config. Build will likely fail.
 EOW
 
-  my $lib = ($PDL_CONFIG{GSL_LIBS} or
+  my $lib = ($PDL::Config{GSL_LIBS} or
 	  `gsl-config --libs` or
 	  warn "\tno GSL link info (libgsl probably not available)\n");
-  my $inc = ($PDL_CONFIG{GSL_INC} or
+  my $inc = ($PDL::Config{GSL_INC} or
 	  `gsl-config --cflags` or 
 	  warn "\tno GSL include info (libgsl probably not available)\n\n");
   chomp $lib; chomp $inc;

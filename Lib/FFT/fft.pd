@@ -151,7 +151,7 @@ sub PDL::realifft {
     ($t=$b->slice("-$n:-1")) .= -$b->slice("$n:1");
     ifft($a,$b);
 # Sanity check -- shouldn't happen
-    carp "Bad inverse transform in realifft" if max($b) > 1e-6*max($a);
+    carp "Bad inverse transform in realifft" if max(abs($b)) > 1e-6*max(abs($a));
     undef;
 }
 

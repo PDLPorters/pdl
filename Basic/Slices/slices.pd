@@ -2,7 +2,7 @@ pp_addpm({At => 'Top'},<< 'EOD');
 
 =head1 NAME
 
-PDL::Slices -- Stupid index tricks
+PDL::Slices -- Indexing, slicing, and dicing
 
 =head1 SYNOPSIS
 
@@ -15,45 +15,47 @@ PDL::Slices -- Stupid index tricks
 =head1 DESCRIPTION
 
 This package provides many of the powerful PerlDL core index
-manipulation routines. These routines mostly contain two-way data flow 
-so you can get a unit matrix by
+manipulation routines.  These routines mostly allow two-way data flow,
+so you can modify your data in the most convenient representation.
+For example, you can make a 1000x1000 unit matrix with 
 
  $a = zeroes(1000,1000);
  $a->diagonal(0,1) ++;
 
 which is quite efficient. See L<PDL::Indexing> and L<PDL::Tips> for
-more examples.
-
-These functions are usually two-way:
-
- $b = $a->slice("1:3");
- $b += 5;   		# $a is changed!
-
-If you want to force a copy and no "flow" backwards, you need
-
- $b = $a->slice("1:3")->copy;
- $b += 5;		# $a is not changed.
-
-alternatively, you can use
-
- $b = $a->slice("1:3")->sever;
-
-which does not copy the struct but beware that after
-
- $b = $a->slice("1:3");
- $c = $b->sever;
-
-the variables C<$b> and C<$c> point to the same object but with 
-C<-E<gt>copy> they do not.
-
-The fact that there is this kind of flow makes PDL a very
-powerful language in many ways: since you can alter the original
-data by altering some easier-to-use representation of it, many things are
-much easier to accomplish, just like making the above unit matrix.
+more examples.  
 
 Slicing is so central to the PDL language that a special compile-time
 syntax has been introduced to handle it compactly; see L<PDL::NiceSlice> 
 for details.
+
+PDL indexing and slicing functions usually include two-way data flow, 
+so that you can separate the actions of reshaping your data structures
+and modifying the data themselves.  Two special methods, L<copy|copy> and
+L<sever|sever>, help you control the data flow connection between related 
+variables.
+
+ $b = $a->slice("1:3"); # Slice maintains a link between $a and $b.
+ $b += 5;   		# $a is changed!
+
+If you want to force a physical copy and no data flow, you can copy or
+sever the slice expression:
+
+ $b = $a->slice("1:3")->copy;
+ $b += 5;		# $a is not changed.
+
+ $b = $a->slice("1:3")->sever;
+ $b += 5;               # $a is not changed.
+
+The difference between C<sever> and C<copy> is that sever acts on (and
+returns) its argument, while copy produces a disconnected copy.  If you
+say
+
+ $b = $a->slice("1:3");
+ $c = $b->sever;
+
+then the variables C<$b> and C<$c> point to the same object but with 
+C<-E<gt>copy> they would not.
 
 =head1 BUGS 
 
@@ -103,6 +105,7 @@ pp_def(
        AffinePriv => 1,
        DefaultFlow => 1,
        P2Child => 1,
+       NoPdlThread => 1,
        ReadDataFuncName => "pdl_readdata_affineinternal",
        WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
        MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
@@ -128,6 +131,7 @@ pp_def(
 	's_identity',
         HandleBad => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	OtherPars => '',
 	Reversible => 1,
@@ -366,6 +370,9 @@ a piddle whose first dimension has order up to N.  Each row of C<$index> is
 treated as coordinates of a single value or chunk from C<$source>, specifying 
 the location(s) to extract.  
 
+If you specify a single index location, then range is essentially an expensive
+slice, with controllable boundary conditions.
+
 B<INPUTS>
 
 C<$index> and C<$size> can be piddles or array refs such as you would
@@ -549,15 +556,35 @@ B<PERMISSIVE RANGING>: If C<$index> has too many dimensions compared
 to C<$source>, then $source is treated as though it had dummy
 dimensions of order 1, up to the required number of dimensions.  These
 virtual dummy dimensions have the usual boundary conditions applied to
-them.
+them.  
 
-B<Efficiency>: Because C<range> isn't an affine transformation (it
+If the 0 dimension of C<$index> is ludicrously large (if its order is
+more than 5 greater than the number of dims in the source PDL) then
+range will insist that you specify a size in every dimension, to make
+sure that you know what you're doing.  That catches a common error with
+range usage: confusing the initial dim (usually of low order) with another
+index dim (perhaps of order 1000).
+
+B<EFFICIENCY>: Because C<range> isn't an affine transformation (it
 involves lookup into a list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
-is somewhat slower than for affine transformations (which don't have
-to copy data around).  Thus, if you have a few very large (order of
-10^4 element) chunks, you might find that perl lists of ordinary
-slices are faster.
+is much slower than for affine transformations (which don't have to copy
+data around).  
+
+Doing operations on small subfields of a large range is inefficient
+because the engine must flow the entire range back into the original
+PDL with every atomic perl operation, even if you only touch a single element.
+One way to speed up such code is to sever your range, so that PDL
+doesn't have to copy the data with each operation, then copy the
+elements explicitly at the end of your loop.  Here's an example that
+labels each region in a range sequentially, using many small
+operations rather than a single xvals assignment:
+
+  ### How to make a collection of small ops run fast with range...
+  $a =  $data->range($index, $sizes, $bound)->sever; 
+  $aa = $data->range($index, $sizes, $bound);        
+  map { $a($_ - 1) .= $_; } (1..$a->nelem);    # Lots of little ops
+  $aa .= $a;
 
 C<range> is a perl front-end to a PP function, C<rangeb>.  Calling
 C<rangeb> is marginally faster but requires that you include all arguments.
@@ -579,6 +606,7 @@ EOD
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	OtherPars => 'SV *index; SV *size; SV *boundary',
 
 
@@ -595,16 +623,19 @@ EOD
 # itdims: Size of each index thread dimension, indexed (0..itdim-1)
 # 
 # bsize: Number of independently specified boundary conditions
+# nsizes: Number of independently specified range dim sizes
 # boundary: Array containing all the boundary condition specs
+# indord: Order of the indexing dim (0th dim of $index)
 
-	Comp => 'long rdim;
-                 long nitems;
-                 long itdim;
-                 long ntsize;
-                 long bsize;
-		 long sizes[$COMP(rdim)];
-		 long itdims[$COMP(itdim)];
-		 long corners[$COMP(rdim) * $COMP(nitems)];
+	Comp => 'PDL_Long rdim;
+                 PDL_Long nitems;
+                 PDL_Long itdim;
+                 PDL_Long ntsize;
+                 PDL_Long bsize;
+		 PDL_Long nsizes;
+		 PDL_Long sizes[$COMP(rdim)];
+		 PDL_Long itdims[$COMP(itdim)];
+		 PDL_Long corners[$COMP(rdim) * $COMP(nitems)];
 	         char boundary[$COMP(rdim)];
 		 ',
 	MakeComp => <<'EOD-MakeComp',
@@ -622,12 +653,6 @@ if(!(ind_pdl = PDL->SvPDLV(index))) /* assignment */
    { $CROAK("unable to convert index to a PDL in range"); }
   
 PDL->make_physdims(ind_pdl);
-
-
-/*
- * if(ind_pdl->nvals == 0)
- *  { $CROAK("Cannot use the empty PDL as an index in range"); }
- */
 
 /***
  * Ensure that the index is a long.  If there's no loss of information,
@@ -647,7 +672,7 @@ switch(ind_pdl->datatype) {
  * Figure sizes of the COMP arrrays and allocate them.
  */
 {
-  long i,nitems;
+  PDL_Long i,nitems;
 
   $COMP(rdim) = ind_pdl->ndims ? ind_pdl->dims[0] : 1;
   for(i=nitems=1; i < ind_pdl->ndims; i++)  /* Accumulate item list size */
@@ -709,8 +734,8 @@ switch(ind_pdl->datatype) {
  * Store the sizes of the index-thread dims
  */
 {
-  long i;
-  long nd = ind_pdl->ndims - 1;
+  PDL_Long i;
+  PDL_Long nd = ind_pdl->ndims - 1;
   for(i=0; i < nd ; i++)
     $COMP(itdims[i]) = ind_pdl->dims[i+1];
 }
@@ -719,7 +744,7 @@ switch(ind_pdl->datatype) {
  * Check and condition the size piddle, and store sizes of the ranges
  */
 {
-  long i,ntsize;
+  PDL_Long i,ntsize;
 
   if( (size == NULL) || (size == &PL_sv_undef) ) 
     for(i=0;i<$COMP(rdim);i++)
@@ -741,19 +766,21 @@ switch(ind_pdl->datatype) {
 	break;
       }
       
+      $COMP(nsizes) = size_pdl->nvals; /* Store for later permissiveness check */
+
       /* Copy the sizes, or die if they're the wrong shape */
       if(size_pdl->nvals == 1) 
 	for(i=0;i<$COMP(rdim);i++) 
-	  $COMP(sizes[i]) = *((long *)(size_pdl->data));
+	  $COMP(sizes[i]) = *((PDL_Long *)(size_pdl->data));
 
-      else if( size_pdl->nvals <= $COMP(rdim) &&size_pdl->ndims == 1) 
+      else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) 
 	for(i=0;i<$COMP(rdim);i++)
 	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
-	                    	((long *)(size_pdl->data))[i] :
+	                    	((PDL_Long *)(size_pdl->data))[i] :
 		                0
 			    );
       else {
-	$CROAK("Size must match index's 0th dim in range");
+	$CROAK(" Size must match index's 0th dim in range\n");
       }
 	
 
@@ -772,9 +799,9 @@ switch(ind_pdl->datatype) {
  */
 
 {
-  long i,j,k,ioff;
-  long *cptr;
-  long *iter = (long *)(PDL->smalloc(sizeof(long) * ($COMP(itdim))));
+  PDL_Long i,j,k,ioff;
+  PDL_Long *cptr;
+  PDL_Long *iter = (PDL_Long *)(PDL->smalloc(sizeof(PDL_Long) * ($COMP(itdim))));
   
   /* initialize iterator to loop over index threads */
   cptr = iter;
@@ -792,13 +819,17 @@ switch(ind_pdl->datatype) {
     /* bad we don't have access to the parent piddle here... */
 	
     for(j=0;j<$COMP(rdim);j++) 
-        *(cptr++) = ((long *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
+        *(cptr++) = ((PDL_Long *)(ind_pdl->data))[ioff + ind_pdl->dimincs[0] * j];
     
     /* Increment the iterator -- the test increments, the body carries. */
     for(k=0; k<$COMP(itdim) && (++(iter[k]))>=($COMP(itdims)[k]) ;k++)
       iter[k] = 0;
   } while(k<$COMP(itdim));
+
+
+
 }
+
 
 $SETREVERSIBLE(1);
 
@@ -806,10 +837,16 @@ EOD-MakeComp
 
 	RedoDims => <<'EOD-RedoDims' ,
 {		      
-  long stdim = $PARENT(ndims) - $COMP(rdim);
-  long dim,inc;
-  long i;
+  PDL_Long stdim = $PARENT(ndims) - $COMP(rdim);
+  PDL_Long dim,inc;
+  PDL_Long i;
 
+  if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
+	char buf[512];
+	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
+	barf(buf);
+  }
+  	
   if(stdim < 0) 
 	stdim = 0;
 
@@ -848,21 +885,21 @@ EOD-RedoDims
 
 	EquivCPOffsCode => <<'EOD-EquivCPOffsCode',
 {
-  long *iter, *ip;  /* vector iterator */
-  long *sizes, *sp; /* size vector including stdims */
-  long *coords;     /* current coordinates */
+  PDL_Long *iter, *ip;  /* vector iterator */
+  PDL_Long *sizes, *sp; /* size vector including stdims */
+  PDL_Long *coords;     /* current coordinates */
 
-  long k;           /* index */
-  long item;        /* index thread iterator */
-  long pdim = $PARENT_P(ndims);
-  long rdim = $COMP(rdim);
-  long prdim = (rdim < pdim) ? rdim : pdim;
-  long stdim = pdim - prdim;
-  	
+  PDL_Long k;           /* index */
+  PDL_Long item;        /* index thread iterator */
+  PDL_Long pdim = $PARENT_P(ndims);
+  PDL_Long rdim = $COMP(rdim);
+  PDL_Long prdim = (rdim < pdim) ? rdim : pdim;
+  PDL_Long stdim = pdim - prdim;
+
   /* Allocate iterator and larger size vector -- do it all in one foop 
    * to avoid extra calls to smalloc.
    */
-    if(!(iter = (long *)(PDL->smalloc(sizeof(long) * ($PARENT_P(ndims) * 2 + rdim))))) {
+    if(!(iter = (PDL_Long *)(PDL->smalloc(sizeof(PDL_Long) * ($PARENT_P(ndims) * 2 + rdim))))) {
     barf("couldn't get memory for range iterator");
   }
   sizes  = iter + $PARENT_P(ndims);
@@ -883,15 +920,15 @@ EOD-RedoDims
       *(ip++) = 0;
     
     do {
-      long poff = 0;
-      long coff;
-      long k2;
+      PDL_Long poff = 0;
+      PDL_Long coff;
+      PDL_Long k2;
       char trunc = 0;       /* Flag used to skip truncation case */
 
       /* Collect and boundary-check the current N-D coords */
       for(k=0; k < prdim; k++){
 
-	long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+	PDL_Long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
      	/* normal case */
     	  if(ck < 0 || ck >= $PARENT_P(dims[k])) {
@@ -935,12 +972,12 @@ EOD-RedoDims
       for( ; k < rdim ; k++) {
         /* Check for indexing off the end of the dimension list */
 
-	long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
+	PDL_Long ck = iter[k] + $COMP(corners[ item * rdim + k  ]) ;
 
   	switch($COMP(boundary[k])) {
 	    case 0: /* No boundary breakage allowed -- nonzero corners cause barfage */
 	      if(ck != 0)
-		 barf("too many dims in range index");
+		 barf("Too many dims in range index (and you've forbidden boundary violations)");
               break;
             case 1: /* truncation - just truncate if the corner is nonzero */
 	      trunc |= (ck != 0);
@@ -971,8 +1008,8 @@ EOD-RedoDims
 
       /* Loop the copy over all the source thread dims (above rdim). */
       do {
-	long poff1 = poff;
-	long coff1 = coff;
+	PDL_Long poff1 = poff;
+	PDL_Long coff1 = coff;
 	
 	/* Accumulate the offset due to source threading */
 	for(k2 = $COMP(itdim) + $COMP(ntsize), k = rdim; 
@@ -1137,6 +1174,7 @@ pp_def(
 	GlobalNew => 'converttypei_new',
 	OtherPars => 'int totype;',
 	P2Child => 1,
+        NoPdlThread => 1,
 	Identity => 1,
 	Reversible => 1,
 # Forced types
@@ -1197,6 +1235,7 @@ pp_def(
 pp_def(
 	'_clump_int',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -1250,6 +1289,7 @@ pp_def(
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	XCHGOnly => 1,
 	EquivDimCheck => 'if ($COMP(n1) <0)
 				$COMP(n1) += $PARENT(threadids[0]);
@@ -1395,6 +1435,7 @@ pp_def(
 	DefaultFlow => 1,
 	Reversible => 1,
 	P2Child => 1,
+        NoPdlThread => 1,
 	XCHGOnly => 1,
 	EquivDimCheck => 'if ($COMP(n1) <0)
 				$COMP(n1) += $PARENT(threadids[0]);
@@ -1459,6 +1500,7 @@ However, the mechanism is not yet finalized and this is just a demonstration.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	OtherPars => 'int nth; int from; int step; int nsteps;',
@@ -1601,6 +1643,7 @@ depending on whether you prefer error-reporting clarity or speed of execution.
 =cut
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	OtherPars => 'char* str',
 	Comp => 'int nnew; int nthintact; int intactnew; int ndum;
@@ -1884,6 +1927,7 @@ END
 
 pp_def( 'affine',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -1925,6 +1969,7 @@ pp_def( 'affine',
 pp_def(
 	'diagonalI',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2037,6 +2082,7 @@ in the usual way (-1 = last dim).
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1, # XXX Not really
 	AffinePriv => 1,
@@ -2096,6 +2142,7 @@ is always true (C<x> has to be less than 3).
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1, # XXX Not really
 	OtherPars => 'int nthdim; int nsp;',
@@ -2186,6 +2233,7 @@ Put some dimensions to a threadid.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2222,7 +2270,7 @@ EOD
 		nthc=0;
 		for(i=0; i<$PARENT(ndims); i++) {
 			flag=0;
-			if($PARENT(nthreadids) > $COMP(id) &&
+			if($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0 &&
 			   i == $PARENT(threadids[$COMP(id)])) {
 			   nthc += $COMP(nwhichdims);
 			}
@@ -2239,7 +2287,7 @@ EOD
 		for(i=0; i<$COMP(nwhichdims); i++) {
 			int cdim,pdim;
 			cdim = i +
-			 ($PARENT(nthreadids) > $COMP(id) ?
+			 ($PARENT(nthreadids) > $COMP(id) && $COMP(id) >= 0?
 			  $PARENT(threadids[$COMP(id)]) : $PARENT(ndims))
 			  - $COMP(nrealwhichdims);
 			pdim = $COMP(whichdims[i]);
@@ -2271,6 +2319,7 @@ EOD
 # a ->threadI(-1,[])
 pp_def('identvaff',
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,
@@ -2309,6 +2358,7 @@ See [TBD Doc] for details and examples.
 
 EOD
 	P2Child => 1,
+        NoPdlThread => 1,
 	DefaultFlow => 1,
 	Reversible => 1,
 	AffinePriv => 1,

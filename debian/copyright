@@ -74,3 +74,7 @@ notice:
 EXCEPTIONS:
 
   m51.fits (see README)
+
+  On Debian GNU/Linux systems, the complete text of the GNU General
+  Public License can be found in `/usr/share/common-licenses/GPL' and
+  the Artistic Licence in `/usr/share/common-licenses/Artistic'.

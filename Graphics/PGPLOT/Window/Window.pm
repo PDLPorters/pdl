@@ -33,6 +33,7 @@ libraries.  It currently supports PGPLOT-5.2 and PGPLOT-5.2-cd2.  The
 -cd2 version includes RGB output and anti-aliasing.
 
 High-level plotting commands:
+
  imag       -  Display an image (uses pgimag/pggray/pgrgbi as appropriate)
  fits_imag  -  Display a FITS image in scientific coordinates
  cont       -  Display image as contour map
@@ -53,6 +54,7 @@ High-level plotting commands:
  legend     -  Create a legend with different texts, linestyles etc.
 
 Low-level plotting commands:
+
  arrow      -  Draw an arrow
  poly       -  Draw a polygon
  rectangle  -  Draw a rectangle
@@ -62,6 +64,7 @@ Low-level plotting commands:
  ellipse    -  Draw an ellipse.
 
 Device manipulation commands:
+
  new           -  Construct a new output device 
  pgwin         -  Exported hook to new()
  close         -  Close a PGPLOT output device.
@@ -346,15 +349,39 @@ C<rgb.txt> that came with PGPLOT.
 For more details on the handling of colour it is best that the user
 consults the PGPLOT documentation. Further details on the handling of
 colour can be found in the documentation for the internal routine
-L<_set_colour|/_set_colour>.
+L</_set_colour>.
 
 The HardColour option should be used if you are plotting to a hardcopy device
 [this may be untrue?].
 
+=item diraxis
+
+This sets the direction of the axes of a plot or image, when you don't explitly
+set them with the XRange and YRange options.  It's particularly useful when
+you want (for example) to put long wavelengths (larger numbers) on the left
+hand side of your plot, or when you want to plot an image in (RA,dec) 
+coordinates.
+
+You can use either a scalar or a two-element perl array.  If you set it to
+0 (the default) then PDL will guess which direction you want to go.  If you
+set it to a positive number, the axis will always increase to the right. If 
+you set it to a negative number, the axis will always increase to the left.
+
+For example, [0,0] is the default, which is usually right.  [1,1] tells
+PGPLOT to always increase the axis values up and to the right.  For a 
+plot of intensity (y-axis) versus wavelength (x-axis) you could say 
+[-1,1].
+
+This option is really only useful if you want to allow autoranging but 
+need to set the direction that the axis goes.  If you use the ranging
+options (C<XRange> and C<YRange>), you can change the direction by changing
+the order of the maximum and minimum values.  That direction will 
+override C<DirAxis>.
+
 =item filltype
 
-Set the fill type to be used by L<poly|/poly>, L<circle|/circle>,
-L<ellipse|/ellipse>, and L<rectangle|/rectangle>
+Set the fill type to be used by L</poly>, L</circle>,
+L</ellipse>, and L</rectangle>
 The fill can either be specified using numbers or name, according to the
 following table, where the recognised name is shown in capitals - it is
 case-insensitive, but the whole name must be specified.
@@ -451,7 +478,7 @@ The HardLW option should be used if you are plotting to a hardcopy device.
 Sets the number of data pixels per inch on the output device.
 You can set the C<unit> (see below) to change this to any other
 PGPLOT unit (millimeters, pixels, etc.).   Pitch is device independent,
-so an image should appear exactly the same size (e.g. C<Pitch=>100>
+so an image should appear exactly the same size (e.g. C<Pitch=E<gt>100>
 is 100 dpi) regardless of output device.
 
 =item pix
@@ -468,17 +495,17 @@ the C<unit> (see below) to change this to number of PGPLOT units
 (inches, millimeters, etc.) per data pixel.  C<scale> is deprecated,
 as it is not device-independent; but it does come in handy for quick
 work on digital displays, where aliasing might otherwise interfere
-with image interpretation.  For example, C<scale=>1> displays 
+with image interpretation.  For example, C<scale=E<gt>1> displays 
 images at their native resolution.
 
 =item Panel
 
 It is possible to define multiple plot ``panels'' with in a single
 window (see the L<NXPanel and NYPanel options in the
-constructor|PDL::Graphics::PGPLOT::Window>).  You can explicitly set
+constructor|/new>).  You can explicitly set
 in which panel most plotting commands occur, by passing either a
 scalar or an array ref into the C<Panel> option.  There is also a
-L<panel|PDL::Graphics::PGPLOT::panel> method, but its use is deprecated
+L<panel|PDL::Graphics::PGPLOT/panel> method, but its use is deprecated
 because of a wart with the PGPLOT interface.
 
 =item plotting & imaging range
@@ -496,7 +523,7 @@ in general). These options are ignored if the window is on hold.
 Imaging requires some thought if you don't want to lose a pixel off
 the edge of the image.  Pixels are value-centered (they are centered
 on the coordinate whose value they represent), so the appropriate
-range to plot the entirety of a 100x100 pixel image is [-0.5,99.5] on
+range to plot the entirety of a 100x100 pixel image is C<[-0.5,99.5]> on
 each axis.
 
 =back
@@ -788,9 +815,10 @@ The number of panels in the Y-direction
 
 Yet another way to identify the plot window size -- this takes a scalar
 or an array ref containing one, two, or three numbers.  One number gives
-you a square window.  Two gives you a rectangular window (X,Y).  Three
-lets you specify the unit compactly (e.g. [<X>,<Y>,1] for inches,
-[<X>,<Y>,2] for mm) but is deprecated in favor of using the Unit option.
+you a square window.  Two gives you a rectangular window C<(X,Y)>.  Three
+lets you specify the unit compactly (e.g. C<< [<X>,<Y>,1] >> for inches,
+C<< [<X>,<Y>,2] >> for mm) but is deprecated in favor of using the 
+C<Unit> option.
 See the discussion on size setting.
 
 =item Unit
@@ -836,9 +864,10 @@ linestyle.
 
 Size setting: There are a gazillion ways to set window size, in
 keeping with TIMTOWTDI.  In general you can get away with passing any
-unique combination of an <X> size, a <Y> size, and/or an aspect ratio.
-In increasing order of precedence, the options are: (Units,
-AspectRatio, WindowWidth, Window<X,Y>Size, Size). 
+unique combination of an C<< <X> >> size, a C<< <Y> >>size,
+and/or an aspect ratio.
+In increasing order of precedence, the options are: (C<Units>,
+C<AspectRatio>, C<WindowWidth>, C<< Window<X,Y>Size >>, C<Size>). 
 
 So if you specify an AspectRatio *and* an X and a Y coordinate, the
 AspectRatio is ignored.  Likewise, if you specify Units and a
@@ -1020,7 +1049,9 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
  $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
-Notes: C<$transform> for image/cont etc. is used in the same way as the
+NOTES
+
+C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
@@ -1039,7 +1070,8 @@ recommended for final output as it's not device-independent.)
 Here's an additional complication: the "pixel" stuff refers not
 (necessarily) to normal image pixels, but rather to I<transformed>
 image pixels.  That is to say, if you feed in a transform matrix
-via the TRANSFORM option, the PIX, SCALE, etc. options all refer to the
+via the C<TRANSFORM> option, the C<PIX>, C<SCALE>,
+etc. options all refer to the
 transformed coordinates and not physical image pixels.  That is a Good 
 Thing because it, e.g., lets you specify plate scales of your output
 plots directly!  See fits_imag for an example application.  If you
@@ -1051,33 +1083,53 @@ or the C<draw_wedge()> routine (once the image has been drawn).
 
 Options recognised:
 
-       ITF - the image transfer function applied to the pixel values. 
-             It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
-             acceptable). It defaults to 'LINEAR'.
+=over 3
 
-       MIN - Sets the minimum value to be used for calculation of the
-             color-table stretch.
+=item ITF 
 
-       MAX - Sets the maximum value for the same.
+the image transfer function applied to the pixel values. 
+It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
+acceptable). It defaults to 'LINEAR'.
 
-       RANGE - A more compact way to specify MIN and MAX, as a list:
-             you can say "Range=>[0,10]" to scale the color table for
-             brightness values between 0 and 10 in the iamge data.
+=item MIN
 
-       CRANGE - Image values between MIN and MAX are scaled to an 
-               interval in normalized color domain space, on the 
-               interval [0,1], before lookup in the window's color 
-               table. CRANGE lets you use only a part of the color 
-               table by specifying your own range -- e.g. if you
-               say "CRange=>[0.25,0.75]" then only the middle half
-               of the pseudocolor space will be used.  (See the 
-               writeup on L<ctab|ctab>.)
+Sets the minimum value to be used for calculation of the
+color-table stretch.
+
+=item MAX 
+
+Sets the maximum value for the same.
+
+=item RANGE 
+
+A more compact way to specify MIN and MAX, as a list:
+you can say "Range=>[0,10]" to scale the color table for
+brightness values between 0 and 10 in the iamge data.
+
+=item CRANGE 
+
+Image values between MIN and MAX are scaled to an 
+interval in normalized color domain space, on the 
+interval [0,1], before lookup in the window's color 
+table. CRANGE lets you use only a part of the color 
+table by specifying your own range -- e.g. if you
+say "CRange=>[0.25,0.75]" then only the middle half
+of the pseudocolor space will be used.  (See the 
+writeup on ctab().)
                
- TRANSFORM - The transform 'matrix' as a 6x1 vector for display
+=item TRANSFORM 
 
- DrawWedge - set to 1 to draw a colour bar (default is 0)
+The PGPLOT transform 'matrix' as a 6x1 vector for display
 
-     Wedge - see the draw_wedge() routine
+=item DrawWedge 
+
+set to 1 to draw a colour bar (default is 0)
+
+=item Wedge 
+
+see the draw_wedge() routine
+
+=back
 
 The following standard options influence this command:
 
@@ -1120,9 +1172,9 @@ This is syntactic sugar for
 
 Display an RGB color image 
 
-The calling sequence is exactly like L<imag|imag>, except that the input
-image must have three dimensions: N x M x 3.  The last dimension is the 
-(R,G,B) color value.  This routine requires pgplot 5.3devel or above.
+The calling sequence is exactly like L</imag>, except that the input
+image must have three dimensions: C<N x M x 3>.  The last dimension is the 
+(R,G,B) color value.  This routine requires B<pgplot 5.3devel> or later.
 Calling rgbi explicitly is not necessary, as calling image with an
 appropriately dimensioned RGB triplet makes it fall through to rgbi.
 
@@ -1136,7 +1188,11 @@ Display a FITS image with correct axes
 
   $win->fits_imag( image,  [$min, $max], [$opt] );
 
-Notes: 
+NOTES
+
+=over 3
+
+=item Titles:
 
 Currently fits_imag also generates titles for you by default and appends the 
 FITS header scientific units if they're present.  So if you say
@@ -1153,25 +1209,70 @@ override that by specifying the XTitle and YTitle switches:
 will give you "Arbitrary" as an X axis title, regardless of what's in the
 header.
 
-If CTYPE1 and CTYPE2 agree, then the default pixel aspect ratio is 1 
-(in scientific units, NOT in original pixels).  If they don't agree (as for
-a spectrum) then the default pixel aspect ratio is adjusted automatically to 
+=item Scaling and aspect ratio:
+
+If CUNIT1 and CUNIT2 (or, if they're missing, CTYPE1 and CTYPE2)
+agree, then the default pixel aspect ratio is 1 (in scientific units,
+NOT in original pixels).  If they don't agree (as for a spectrum)
+then the default pixel aspect ratio is adjusted automatically to
 match the plot viewport and other options you've specified.
 
 You can override the image scaling using the SCALE, PIX, or PITCH
-options just as with L<the imag() method|PDL::Graphics::Window::imag> -- but 
+options just as with L<the imag() method|/imag> -- but 
 those parameters refer to the scientific coordinate system rather than 
-to the pixel coordinate system (e.g. C<PITCH=>100> means "100 scientific units 
-per inch", and C<SCALE=>1> means "1 scientific unit per device pixel".  See
-L<the imag() writeup|PDL::Graphics::Window::imag> for more info on these 
+to the pixel coordinate system (e.g. C<PITCH=E<gt>100> means "100 scientific units 
+per inch", and C<SCALE=E<gt>1> means "1 scientific unit per device pixel".  See
+L<the imag() writeup|/imag> for more info on these 
 options.  
 
 The default value of the C<ALIGN> option is 'CC' -- centering the image 
 both vertically and horizontally.
 
+=item Axis direction:
+
+By default, fits_imag tries to guess which direction your axes are meant
+to go (left-to-right or right-to-left) using the CDELT keywords:
+if C<< CDELT<n> >>
+is negative, then rather than reflecting the image fits_imag will plot the
+X axis so that the highest values are on the left.  
+
+This is the most convenient behavior for folks who use calibrated
+(RA,DEC) images, but it is technically incorrect.  To force the direction,
+use the DirAxis option.  Setting
+C<< DirAxis=>1 >> (abbreviated C<< di=>1 >>)
+will force the scientific axes to increase to the right, reversing the image
+as necessary.
+
+=item Color wedge:
+
 By default fits_imag draws a color wedge on the right; you can explicitly
 set the C<DrawWedge> option to 0 to avoid this.  Use the C<WTitle> option
 to set the wedge title.
+
+
+=item Alternate WCS coordinates:
+
+The default behaviour is to use the primary/default WCS information
+in the FITS header (i.e. the C<CRVAL1>,C<CRPIX1>,... keywords). The
+Greisen et al. standard (L<http://fits.cv.nrao.edu/documents/wcs/wcs.html>)
+allows alternative/additional mappings to be included in a header; these
+are denoted by the letters C<A> to C<Z>. If you know that your image contains
+such a mapping then you can use the C<WCS> option to select the appropriate
+letter. For example, if you had read in a Chandra image created by the CIAO
+software package then you can display the image in the C<physical>
+coordinate system by saying:
+
+  $win->fits_imag( $pdl, { wcs => 'p' } );
+
+The identity transform is used if you select a mapping for which there is 
+no information in the header.
+Please note that this suport is B<experimental> and is not guaranteed
+to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
+routine for more information.
+
+=back
+
+
 
 =head2 fits_rgbi
 
@@ -1183,8 +1284,22 @@ Display an RGB FITS image with correct axes
 
   $win->fits_rgbi( image, [$min,$max], [$opt] );
 
-Works exactly like L<fits_imag|fits_imag>, but the image must be in 
+Works exactly like L<fits_imag|/fits_imag>, but the image must be in 
 (X,Y,RGB) form.  Only the first two axes of the FITS header are examined.
+
+=head2 fits_cont
+
+=for ref
+
+Draw contours of an image, labelling the axes using the WCS information
+in the FITS header of the image.
+
+=for usage
+
+  $win->fits_cont( image, [$contours, $transform, $misval], [$opt] )
+
+Does the same thing for the L<cont|/cont> routine that
+L<fits_imag|/fits_imag> does for the L<imag|/imag> routins.
 
 =head2 draw_wedge
 
@@ -1565,7 +1680,7 @@ for details about this option (and the example below):
 
 Example:
 
-  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
+  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 1, Vent => 0.3, Size => 5}});
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
 
@@ -1797,7 +1912,8 @@ as arguments or pass these as an anonymous hash - see the example below.
 
 =item Angle
 
-The rotation angle of the transform
+The rotation angle of the transform, in radians.  Positive numbers rotate the 
+image clockwise on the screen.
 
 =item ImageDimensions
 
@@ -1810,10 +1926,11 @@ The increment in output coordinate per pixel.
 
 =item ImageCenter (or ImageCentre)
 
-The centre of the image as an anonymous array B<or> as a scalar. In the
-latter case the x and y value for the center will be set equal to this
-scalar. This is particularly useful in the common case  when the center
-is (0, 0).
+The centre of the image as an anonymous array B<or> as a scalar, in
+scientific coordinates. In the latter case the x and y value for the
+center will be set equal to this scalar. This is particularly useful
+in the common case when the center is (0, 0).  (ImageCenter overrides
+RefPos if both are specified).
 
 =item RefPos (or ReferencePosition)
 
@@ -1824,16 +1941,13 @@ containing 2 2-element array references, e.g.
  RefPos => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
 
 This will label pixel C<($xpix,$ypix)> as being at position
-C<($xplot,$yplot)>. The C<ImageCentre> option can be considered
-to be a special case of this option, since the following are identical
-(although one is a lot easier to type ;)
+C<($xplot,$yplot)>.  For example
 
- ImageCentre => [ $xc, $yc ]
- RefPos      => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
+ RefPos      => [ [100,74], [ 0, 0 ] ]
 
-The values supplied in C<ImageCentre> are used 
-if I<both> C<ImageCentre> and C<RefPos> are supplied in the
-options list.
+sets the scientific coordinate origin to be at the center of the (100,74)
+pixel coordinate.  The pixel coordinates are pixel-centered, and start counting
+from 0 (as all good pixel coordinates should).
 
 =back
 
@@ -3714,18 +3828,14 @@ sub initenv{
     
     ###
     # Figure out the stretched pitch, if it isn't set.
-    # Tricky -- we want the pitch with the highest absolute value, but
-    # to preserve the sign.
+    #
     unless(defined $pitch) {
 	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
 		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
-	my $ap = abs($p);
-	$pitch = $p->at($ap->maximum_ind);
+	$pitch = $p->abs->max;
     }
 
-    
-    
-    $pix = ($y1 - $y0) / ($ymax - $ymin) * $pitch 
+    $pix = abs(($y1 - $y0) / ($ymax - $ymin)) * $pitch 
       unless defined($pix);
     
     ##########
@@ -3792,6 +3902,31 @@ sub initenv{
 	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
+
+      #
+      # Sort out the direction that each axis runs...
+      #
+      my ( $dax, $day );
+      unless(defined $o->{DirAxis}) {
+	($dax,$day) = (0,0);
+      } elsif( ! ref $o->{DirAxis} ) {
+	$dax=$day=$o->{DirAxis};
+      } elsif( ref $o->{DirAxis} eq 'ARRAY' ) {
+	($dax,$day) = @{$o->{DirAxis}};
+      } else {
+	release_and_barf "DirAxis option must be a scalar or array\n";
+      }
+
+      ##print "dax=$dax; day=$day\n";
+      ( $xx0, $xx1 ) = ( $xx1, $xx0 ) 
+	if (  ( $dax==0   and   ($xmin-$xmax)*($xx0-$xx1)<0 )
+	      or ( $dax < 0 ) 
+	      );
+
+      ( $yy0, $yy1 ) = ( $yy1, $yy0 ) 
+	if (  ( $day==0   and   ($ymin-$ymax)*($yy0-$yy1)<0 )
+	      or ( $day < 0 ) 
+	      );
 
       pgswin($xx0, $xx1, $yy0, $yy1);
       
@@ -3936,70 +4071,140 @@ sub _image_xyrange {
   
   return (@xvals,@yvals);
 }
-  
+
+
 =head2 _FITS_tr
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
 pixel coordinates to scientific coordinates.   Used by 
-fits_imag and fits_cont, but may come in handy for other methods.
+L<fits_imag|/fits_imag>, L<fits_rgbi|/fits_rgbi>, and
+L<fits_cont|/fits_cont>, but may come in handy for other methods.
+
+=for example
+
+  my $tr = _FITS_tr( $win, $img );
+  my $tr = _FITS_tr( $win, $img, $opts );
+
+The return value (C<$tr> in the examples above) is the same as
+returned by the L<transform()|/transform> routine, with values
+set up to convert the pixel to scientific coordinate values for the
+two-dimensional image C<$img>. The C<$opts> argument is optional
+and should be a HASH reference; currently it only understands
+one key (any others are ignored):
+
+  WCS => undef (default), "", or "A" to "Z"
+
+Both the key name and value are case insensitive. If left as C<undef>
+or C<""> then the primary coordinate mapping from the header is used, otherwise
+use the additional WCS mapping given by the appropriate letter. 
+We make B<no> checks that the given mapping is available; the routine
+falls back to the unit mapping if the specified system is not available.
+
+The WCS option has only been tested on images from the Chandra X-ray satellite
+(L<http://chandra.harvard.edu/>) created by the CIAO software
+package (L<http://cxc.harvard.edu/ciao/>), for which you should
+set C<WCS =E<gt> "P"> to use the C<PHYSICAL> coordinate system.
+
+See L<http://fits.cv.nrao.edu/documents/wcs/wcs.html> for further
+information on the Representation of World Coordinate Systems in FITS.
 
 =cut
 
-sub _FITS_tr {
-  my ($pane) = shift;
-  my ($pdl) = shift;
-  my $hdr = (ref $pdl eq 'HASH') ? $pdl : $pdl->hdr();
+{
+    my $_FITS_tr_opt = undef;
+
+    sub _FITS_tr {
+        my $pane = shift;
+	my $pdl  = shift;
+	my $opts = shift || {};
+
+	$_FITS_tr_opt = PDL::Options->new( { WCS => undef } )
+	    unless defined $_FITS_tr_opt;
+	my $user_opts = $_FITS_tr_opt->options( $opts );
+
+	# Can either be sent a piddle or a hash reference for the header
+	# information
+	#
+	my $isapdl = UNIVERSAL::isa($pdl,'PDL');
+	my $hdr = $isapdl ? $pdl->hdr() : $pdl->hdr;
     
-  print STDERR 
-    "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
-    unless (scalar(keys %$hdr) || (!$PDL::debug));
+	print STDERR 
+	    "Warning: null FITS header in _FITS_tr (do you need to set hdrcpy?)\n"
+	    unless (scalar(keys %$hdr) || (!$PDL::debug));
 
-  my($ic);
-  my($isapdl) = UNIVERSAL::isa($pdl,'PDL');
+	my ( $cdelt1, $cpix1, $cval1, $n1 );
+	my ( $cdelt2, $cpix2, $cval2, $n2 );
+	my $angle;
 
-  {
-    no warnings; # don't complain about missing fields in fits headers
-    $ic = [ (   ($hdr->{CDELT1} || 1.0) *	 
-		    (  ($isapdl ? $pdl->dim(0) : $hdr->{NAXIS1} )  /  2.0 
-		       -   
-		       ( defined $hdr->{CRPIX1} ? $hdr->{CRPIX1} : 1 ) 
-		       + 
-		       1 
-		       ) 
-		    +
-		    ( $hdr->{CRVAL1} )
-		    )
-		,
-		(   ($hdr->{CDELT2} || 1.0) * 
-		    (  ($isapdl ? $pdl->dim(1) : $hdr->{NAXIS2} )  / 2.0
-		       - 
-		       ( defined $hdr->{CRPIX2} ? $hdr->{CRPIX2} : 1 )
-		       +
-		       1
-		       )
-		    +
-		    ( $hdr->{CRVAL2} )
-		    )
-		];
-  }
-  my(@dims);
-  if($isapdl) {
-    @dims = $pdl->dims;
-  } else {
-    for my $i(1..$hdr->{NAXIS}) {
-      push(@dims,$hdr->{"NAXIS$i"});
-    }
-  }
+	# what WCS system to use? Not sure how well we are following the
+	# Greisen et al  proposal/standard here.
+	#
+	my $id = "";
+	if ( defined $$user_opts{WCS} ) {
+	    $id = uc( $$user_opts{WCS} );
+	    die "WCS option must either be 'undef' or A-Z, not $id\n"
+		unless $id =~ /^[A-Z]?$/;
+	}
+	print "Using the WCS '$id' mapping (if it exists)\n"
+	    if $PDL::verbose and $id ne "";
 
-  transform($pane,
-	    {ImageDimensions=>[@dims],
-	     Angle=>($hdr->{CROTA} || 0) * 3.14159265358979323846264338/180,
-	     Pixinc=> [($hdr->{CDELT1} || 1.0), ($hdr->{CDELT2} || 1.0)],
-	     ImageCenter=>$ic
-	     }
-	    );
-}
+	{
+	    # don't complain about missing fields in fits headers
+	    no warnings;
+
+	    if ( $isapdl ) {
+		( $n1, $n2 ) = $pdl->dims;
+	    } else {
+		$n1 = $hdr->{NAXIS1};
+		$n2 = $hdr->{NAXIS2};
+	    }
+
+	    $cdelt1 = $hdr->{"CDELT1$id"} || 1.0;
+	    $cpix1  = $hdr->{"CRPIX1$id"} || 1;
+	    $cval1  = $hdr->{"CRVAL1$id"} || 0.0;
+
+	    $cdelt2 = $hdr->{"CDELT2$id"} || 1.0;
+	    $cpix2  = $hdr->{"CRPIX2$id"} || 1;
+	    $cval2  = $hdr->{"CRVAL2$id"} || 0.0;
+
+	    # changed Jan 14 2004 DJB - previously used CROTA
+	    # keyword but that is not in the WCS standard
+	    # - I hope this doesn't break things
+	    # -- This broke a few things because CROTA is a pseudostandard
+	    #    in the solar physics community.  I added a fallback to 
+	    #    CROTA in case CROTA2 doesn't exist. --CED
+	    $angle  = ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
+			(defined $hdr->{"CROTA"}) ? $hdr->{"CROTA"} : 0)   *
+		3.14159265358979323846264338/180;
+
+	} # no warnings;
+
+	#
+	# Here's what we would do if PGPLOT worked as advertised...
+	#
+	return transform( $pane, {
+	    ImageDimensions => [ $n1, $n2 ],
+	    Angle  => $angle,
+	    Pixinc => [ $cdelt1, $cdelt2 ],
+	    RefPos => [ [$cpix1-1, $cpix2-1], [$cval1,$cval2] ]
+	    } );
+	# 
+	# Here's a failed attempt to compensate for the PGPLOT-induced jitter
+	# (look closely at the "demo transform" rotating screens and you'll
+	# see a small movement...)
+	#
+	# $offset = sqrt(0.5)* max abs cos ( $angle + pdl(-1,1)*0.25*3.14159 );
+	# return transform( $pane, {
+	#    ImageDimensions => [ $n1, $n2 ],
+	#    Angle  => $angle,
+	#    Pixinc => [ $cdelt1, $cdelt2 ],
+	#    RefPos => [ [$cpix1-1-$offset, $cpix2-1-$offset], [$cval1,$cval2] ]
+	#    } );
+
+
+    } # sub: _FITS_tr
   
+} # "closure" around _FITS_tr
 
 sub label_axes {
   # print "label_axes: got ",join(",",@_),"\n";
@@ -4245,7 +4450,7 @@ sub env {
 					  ImageDims => undef,
 					  Pixinc => undef,
 					  ImageCenter => undef,
-					  RefPos => undef,
+					  RefPos => undef
 					  });
 	  $transform_options->synonyms({
 	      ImageDimensions => 'ImageDims',
@@ -4313,8 +4518,10 @@ sub env {
 	    else {
 		$xref_wrld = $yref_wrld = $ic;
 	    }
+
 	    $xref_pix = ($x_pix - 1)/2;
 	    $yref_pix = ($y_pix - 1)/2;
+
 	}
 	elsif ( defined $o->{RefPos} ) {
 	    my $aref = $o->{RefPos};
@@ -4355,7 +4562,7 @@ sub env {
 	my $sa = sin( $angle );
 	my $t1 = $x_pixinc * $ca;
 	my $t2 = $y_pixinc * $sa;
-	my $t4 = - $x_pixinc * $sa;
+	my $t4 = -$x_pixinc * $sa;
 	my $t5 = $y_pixinc * $ca;
 
 	return pdl( 
@@ -5423,6 +5630,7 @@ sub arrow {
 						  DrawWedge => 0,
 						  Wedge => undef,
 						  Justify => undef,
+						  Transform => undef
 						 });
     }
 
@@ -5494,6 +5702,7 @@ sub arrow {
 	$tr = float [0,1,0, 0,0,1];
     }
     $tr = $self->CtoF77coords($tr);
+
 
     &catch_signals;
     
@@ -5683,17 +5892,19 @@ sub rgbi {
 #
 # by fits_imag, fits_rgbi, and fits_cont.
 #
-sub _fits_foo {
-  my $pane = shift;
-  my $cmd = shift;
-  my ($in,$opt_in) = _extract_hash(@_);
-  my ($pdl,@rest) = @$in;
+{
+    my $f_im_options = undef;
 
+    sub _fits_foo {
+	my $pane = shift;
+	my $cmd = shift;
+	my ($in,$opt_in) = _extract_hash(@_);
+	my ($pdl,@rest) = @$in;
 
-  $opt_in = {} unless defined($opt_in);
+	$opt_in = {} unless defined($opt_in);
 
-  if (!defined($f_im_options)) {
-    $f_im_options = $pane->{PlotOptions}->extend({
+	unless ( defined($f_im_options) ) {
+	    $f_im_options = $pane->{PlotOptions}->extend({
                                                   Contours=>undef,
 						  Follow=>0,
 						  Labels=>undef,
@@ -5714,80 +5925,98 @@ sub _fits_foo {
 						  CharThick=>undef,
 						  HardCH=>undef,
 						  HardLW=>undef,
- 					          TextThick=>undef
+ 					          TextThick=>undef,
+
+						  WCS => undef,
 						 });
-  }
+	}
 
-  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
-  my($hdr) = $pdl->gethdr();
+	my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
+	my $hdr = $pdl->gethdr();
 
-  %opt2 = %{$u_opt}; # copy options
-  $opt2{Transform} = _FITS_tr($pane,$pdl);
+	# What WCS system are we using?
+	# we could check that the WCS is valid here but we delegate it
+	# to the _FITS_tr() routine.
+	#
+	my $wcs = $$u_opt{WCS} || "";
 
-  local($_);
-  foreach $_(keys %opt2){
-    delete $opt2{$_} if(m/title/i);
-  }
+	%opt2 = %{$u_opt}; # copy options
+	delete $opt2{WCS};
+	$opt2{Transform} = _FITS_tr($pane,$pdl,{WCS => $wcs});
 
-  $opt2{Align} = 'CC' unless defined($opt2{Align});
-  $opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
+	local($_);
+	foreach $_(keys %opt2){
+	    delete $opt2{$_} if (m/title/i);
+	}
 
-  my($min) = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
-  my($max) = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
-  my($unit)= $pdl->gethdr->{BUNIT} || "";
-  my($rangestr) = " ($min to $max $unit) ";
+	$opt2{Align} = 'CC' unless defined($opt2{Align});
+	$opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
 
-  $opt2{Pix}=1.0 
-    if( (!defined($opt2{Justify})) &&
-	(!defined($opt2{Pix})) && 
-	( $hdr->{CUNIT1} ? ($hdr->{CUNIT1} eq $hdr->{CUNIT2}) 
-                         : ($hdr->{CTYPE1} eq $hdr->{CTYPE2})
-	  )
-	);
+	my $min  = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
+	my $max  = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
+	my $unit = $pdl->gethdr->{BUNIT} || "";
+	my $rangestr = " ($min to $max $unit) ";
 
-  my($o2) = \%opt2;
+	# I am assuming here that CUNIT1<A-Z> is a valid keyword for
+	# 'alternative' WCS mappings (DJB)
+	#
+	$opt2{Pix}=1.0 
+	    if( (!defined($opt2{Justify}) || !$opt{Justify}) &&
+		(!defined($opt2{Pix})) && 
+		( $hdr->{"CUNIT1$wcs"} ?
+		  ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) :
+		  ($hdr->{"CTYPE1$wcs"} eq $hdr->{"CTYPE2$wcs"})
+		  )
+		);
 
-  my $cmdstr =   '$pane->' . $cmd . 
-		 '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
-		 '$o2);';
+	my $o2 = \%opt2;
 
-  eval $cmdstr;
+	my $cmdstr =   '$pane->' . $cmd . 
+	    '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
+	    '$o2);';
 
-  my $mkaxis = sub {
-    my ($typ,$unit) = @_;
-    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
-    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
-    $s =~ s/\%u/$unit/;
-    $s =~ s/\%t/$typ/;
-    $s;
-  };
+	eval $cmdstr;
 
-  $pane->label_axes($opt->{XTitle} || &$mkaxis($hdr->{CTYPE1},$hdr->{CUNIT1}),
-		    $opt->{YTitle} || &$mkaxis($hdr->{CTYPE2},$hdr->{CUNIT2}),
-		    $opt->{Title}, $opt
-		    );
+        my $mkaxis = sub {
+	    my ($typ,$unit) = @_;
+	    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
+	    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+	    $s =~ s/\%u/$unit/;
+	    $s =~ s/\%t/$typ/;
+	    $s;
+	  } unless defined ($mkaxis);
 
-}
+	$pane->label_axes(
+			  $opt->{XTitle} || 
+			  &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
+			  $opt->{YTitle} || 
+			  &$mkaxis($hdr->{"CTYPE2$wcs"},$hdr->{"CUNIT2$wcs"}),
+			  $opt->{Title}, $opt
+			  );
 
-sub fits_imag {
-  my($self) = shift;
-  _fits_foo($self,'imag',@_);
-}
+    } # sub: _fits_foo()
 
-sub fits_rgbi {
-  my($self) = shift;
-  _fits_foo($self,'rgbi',@_);
-}
+    sub fits_imag {
+	my($self) = shift;
+	_fits_foo($self,'imag',@_);
+    }
 
-sub fits_cont {
-  my($self) = shift;
-  _fits_foo($self,'cont',@_);
-}
+    sub fits_rgbi {
+	my($self) = shift;
+	_fits_foo($self,'rgbi',@_);
+    }
 
-sub fits_vect {
-  my($self) = shift;
-  _fits_vect($self,'vect',@_);
-}
+    sub fits_cont {
+	my($self) = shift;
+	_fits_foo($self,'cont',@_);
+    }
+
+    sub fits_vect {
+	my($self) = shift;
+	_fits_vect($self,'vect',@_);
+    }
+
+} # closure around _fits_foo and fits_XXXX routines
 
 # Load a colour table using pgctab()
 
@@ -6001,7 +6230,7 @@ sub rect {
 
   $self->_save_status();
   $self->_standard_options_parser($u_opt);
-  my $n = nelem($x);
+
   pgrect($x1, $x2, $y1, $y2);
   $self->_restore_status();
   $self->_add_to_state(\&poly, $in, $opt);

@@ -12,14 +12,15 @@ INSTALL=/usr/bin/install
 
 build:
 	$(checkdir)
-	HOME=$$(pwd)/debian perl Makefile.PL INSTALLDIRS=vendor PREFIX=$(ddir)/usr 
-	$(MAKE) OPTIMIZE="-O2 -g -Wall"
+	HOME=$$(pwd)/debian perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor
+	$(MAKE) LD_RUN_PATH="" OPTIMIZE="-O2 -g -Wall -ffunction-sections"
 	#make test	## disabled until doesn't require X
 #	make doctest   dont make the docs do it in postinst
 	touch build
 
 clean:
 	$(checkdir)
+	dh_clean
 	touch deleteme
 	(find . -type f | sed 's}^\./}}' | egrep -v ^debian; cat MANIFEST MANIFEST) | sort | uniq -u | xargs rm 
 	-rm -rf blib
@@ -28,7 +29,8 @@ clean:
 
 binary-indep: checkroot build
 	$(checkdir)
-	perl -MConfig -le 'print "perl:Depends=perlapi-$Config{version}"' >>debian/substvers
+	# now using dh_perl
+	#perl -MConfig -le 'print "perl:Depends=perlapi-$$Config{version}"' >>debian/substvars
 
 binary-arch: checkroot build
 	$(checkdir)
@@ -36,12 +38,13 @@ binary-arch: checkroot build
 	-rm -rf $(ddir)
 	$(INSTALL) -d $(ddir)/DEBIAN
 	$(INSTALL) -d $(ddir)/usr/share/doc/$(package)
-	export BUILDROOTPREFIX=${ddir}; make  pure_install 
+	make install PREFIX=$(ddir)/usr
 # these scripts are not part of the distribution, but we need them for
 # postinst [use sort -u to give me an error if this is ever ambiguous]
 	set -vx; d=$$(find $(ddir)/usr -type d -name PDL | sed 's}/auto/}/}' | sort -u)/Doc && mkdir -p $$d; cp Doc/scantree.pl Doc/mkhtmldoc.pl $$d/.
-	set -vx; (d=/$$(cd $(ddir); find usr -type d -name PDL | sed 's}/auto/}/}' | sort -u)/Doc; cat debian/postinst.base; q='>/dev/null 2>&1'; echo perl $$d/scantree.pl $$q; echo perl $$d/mkhtmldoc.pl $$q) > debian/postinst
+	set -vx; (d=/$$(cd $(ddir); find usr -type d -name PDL | sed 's}/auto/}/}' | sort -u)/Doc; cat debian/postinst.base; q='>/dev/null 2>&1'; echo /usr/bin/perl $$d/scantree.pl $$q; echo /usr/bin/perl $$d/mkhtmldoc.pl $$q) > debian/postinst
 	rm -f $$(find $(ddir)/usr/lib/perl5 -name perllocal.pod)
+	rm -f $(ddir)/usr/share/man/man3/PDL\:\:{BAD_demo,BAD2_demo,Config,'Doc::Config'}.3pm
 	find $(ddir)/usr/share/man -type f | xargs gzip -9
 	# remove packlist files
 	find $(ddir) -type f -name .packlist | xargs -r rm -f
@@ -54,6 +57,7 @@ binary-arch: checkroot build
 
 	-cd $(ddir)/usr/share/doc/$(package);  gzip -9v README TODO  README.debian changelog changelog.Debian
 	cp debian/copyright $(ddir)/usr/share/doc/$(package)/copyright
+	d=$(ddir)/usr/share/lintian/overrides; mkdir -p $$d && cp debian/lintian.overrides $$d/pdl
 
 	chmod 755 $(ddir)/usr/bin/*
 
@@ -68,8 +72,9 @@ binary-arch: checkroot build
 	done
 
 #	debstd Changes README TODO 
+	dh_perl
 	dpkg-shlibdeps $$(find blib -name '*.so')
-	dpkg-gencontrol
+	dh_gencontrol
 	chown -R root.root $(ddir)
 	chmod -R go=rX $(ddir)
 # fix up some rather odd permissions issues

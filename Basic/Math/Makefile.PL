@@ -101,10 +101,9 @@ $mmdir = $mdir = cdir 'Basic','Math';
 $mmdir =~ s/\\/\\\\/g;
 $dir = $fs->canonpath(cwd);
 $dir = cdir $dir, $mdir unless $dir =~ /$mmdir$/;
-$td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
-$tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
-            defined $ENV{TMP} ? $ENV{TMP} :
-                           cdir($fs->rootdir,$td);
+
+my $tempd = $PDL::Config{TEMPDIR} ||
+  die "TEMPDIR not found in %PDL::Config";
 
 foreach (@sfuncs) {
     $source{$_} = 'system' if is_sys_func( "$_();", $libs );

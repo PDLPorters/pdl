@@ -56,7 +56,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.1'; # delete 'cvs' bit for release !
+$PDL::VERSION = '2.4.2'; # 2.4.2 released 27-Dec-2004 happy new year!
 
 # Main loader of standard PDL package
 

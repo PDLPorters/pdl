@@ -34,3 +34,14 @@ WriteMakefile(
      'DIR'      => ['Pod','Gen','SourceFilter','Core','Bad','Ops','Ufunc',
 		    'Primitive','Slices','Test','Math','MatrixOps','Complex'],
 );
+
+# modify clean method not to delete files named 'core'
+package MY; # so that "SUPER" works right
+sub clean {
+  my $inherited = shift->SUPER::clean(@_);
+  $inherited =~ s/\s+core\s/ /;
+  # print STDERR "processed list :\n$inherited\n";
+  $inherited;
+}
+package main;
+

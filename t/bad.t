@@ -26,7 +26,7 @@ sub tapprox {
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 70;
+    plan tests => 71;
 } else {
     # reduced testing
     plan tests => 10;
@@ -199,7 +199,8 @@ ok( tapprox( $s[0], 61.9375 ) );       # 36
 ok( tapprox( $s[1], 27.6079 ) );       # 37
 ok( $s[2], 66.5 );                       # 38
 ok( $s[3], 22 );                         # 
-ok( $s[4], 98 );                         # 40
+ok( $s[4], 98 );                         # 
+ok( tapprox( $s[6], 26.7312 ) );       # 
 
 # how about setbadtoval (was replacebad)
 $a = $b->setbadtoval(20) - pdl(qw(42 47 98 20 22 96 74 41 79 76 96 20 32 76 25 59 20 96 32 20));
@@ -240,7 +241,7 @@ $a = sequence( byte, 2, 3 );
 $a = $a->setbadif( $a == 3 );
 $b = $a->slice("(1),:");
 $a->inplace->setbadtoval(3);
-ok( $b->badflag, 0 );                  # 45
+ok( $b->badflag, 0 );                  # 
 
 $a = sequence( byte, 2, 3 );
 $b = $a->slice("(1),:");
@@ -277,7 +278,7 @@ use PDL::Math;
 $a = pdl(0.5,double->badvalue,0);
 $a->badflag(1);
 $b = bessj0($a);
-ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 50
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 
 
 $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
@@ -311,7 +312,7 @@ $b = pdl [1,2],[2,1];
 use PDL::Image2D;
 $c = conv2d($a, $b);
 
-ok( int(at(sum($c-$ans))), 0 ); # 55
+ok( int(at(sum($c-$ans))), 0 ); 
 
 $a = zeroes(5,5);
 $a->badflag(1);
@@ -356,7 +357,7 @@ ok( PDL::Core::string($b), "[0 2 2 2 2 1]" ); #
 
 $a->inplace->isfinite;
 #print "A: datatype = [",$a->get_datatype,"]\n";
-ok( PDL::Core::string($a), "[1 0 1 1 1 1 1 1 1 1]" ); # 60
+ok( PDL::Core::string($a), "[1 0 1 1 1 1 1 1 1 1]" ); #
 #print "A: datatype = [",$a->get_datatype,"]\n";
 
 # histogram2d
@@ -407,7 +408,7 @@ $a->wfits($fname);
 $b = rfits($fname);
 print "Read from fits:  $b  type = (", $b->get_datatype, ")\n";
 
-ok( $b->slice('0:0')->isbad );      # 65
+ok( $b->slice('0:0')->isbad );      # 
 ok( sum(abs($a-$b)) < 1.0e-5 );      # 
 
 # now force to integer
@@ -427,6 +428,6 @@ if ( $PDL::Config{BADVAL_USENAN} || 0 ) {
     skip( "Skipped: test only valid when not using NaN's as bad values", 1, 1 ); # 70
 } else {
     ok( float->badvalue, float->orig_badvalue );  #
-    ok( float->badvalue(23), 23 );                # 70
+    ok( float->badvalue(23), 23 );                # 
     float->badvalue( float->orig_badvalue );
 }

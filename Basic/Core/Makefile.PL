@@ -10,25 +10,26 @@ use IO::File;
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
 my $pthread_define  = '-DPDL_PTHREAD';
-my $malloclib = exists $PDL_CONFIG{MALLOCDBG}->{libs} ?
-  $PDL_CONFIG{MALLOCDBG}->{libs} : '';
-my $mallocinc = exists $PDL_CONFIG{MALLOCDBG}->{include} ?
-  $PDL_CONFIG{MALLOCDBG}->{include} : '';
+my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
+my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
-open HFILE, ">mymalloc.p" or die "couldn't open mymalloc.p";
-print HFILE defined $PDL_CONFIG{MALLOCDBG}->{define} ?
-  "\$mymalloc = <<'EOM';\n$PDL_CONFIG{MALLOCDBG}->{define}\nEOM\n" :
-   "\$mymalloc = '';\n";
-print HFILE "1;\n";
-close HFILE;
+my $fh = IO::File->new( "> mymalloc.p" )
+  or die "couldn't open mymalloc.p";
+if ( defined $PDL::Config{MALLOCDBG}->{define} ) {
+    $fh->print( "\$mymalloc = <<'EOM';\n$PDL::Config{MALLOCDBG}->{define}\nEOM\n" );
+} else {
+    $fh->print( "\$mymalloc = '';\n" );
+}
+$fh->print( "1;\n" );
+$fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
 
-if(-e $pthread_include) {
-	print "\tSaw pthread.h. Fine.\n";
+if ( -e $pthread_include) {
+    print "\tSaw pthread.h. Fine.\n";
 } else {
-	print "\tEhh. Didn't see include file 'pthread.h'.\n";
-	$pthread_include = '';
+    print "\tEhh. Didn't see include file 'pthread.h'.\n";
+    $pthread_include = '';
 }
 
 # For SGI, I had to link a new perl - cannot dlopen libpthread...
@@ -60,21 +61,21 @@ if ($Config::Config{libs} =~ /-lpthread/) {
 $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_library;
 
 {
-    my $conf = $PDL_CONFIG{WITH_POSIX_THREADS};
+    my $conf = $PDL::Config{WITH_POSIX_THREADS};
 
     if ((!defined($conf) or $conf)
 	and $pthread_include and $pthread_library) {
 	print "\t==> Will build PDL with POSIX thread support. Gifts to TJL :-)\n";
-	$PDL_CONFIG{WITH_POSIX_THREADS} = 1;
+	$PDL::Config{WITH_POSIX_THREADS} = 1;
     } elsif($conf) {
-	print "\t==> I couldn't find pthread support. However, you have
-\t    turned on the forcing option in PDL_CONFIG so I guess I gotta do it\n";
+	print "\t==> I couldn't find pthread support. However, you have\n";
+	print "\t    turned on the forcing option in PDL_CONFIG so I guess I gotta do it\n";
     } else {
 	print "\t==> PDL will be built without POSIX thread support.\n";
 	print "\t==> *NOTE*: PDL threads are unrelated to perl threads (usethreads=y)!\n";
-	print "\t==> Enabling perl threads will not help!\n";                   
+	print "\t==> Enabling perl threads will not help!\n";
 	$pthread_define = '';
-	$PDL_CONFIG{WITH_POSIX_THREADS} = 0;
+	$PDL::Config{WITH_POSIX_THREADS} = 0;
     }
 }
 

@@ -1303,6 +1303,7 @@ threadover_n(...)
 		pdl_make_physical(pdls[i]);
 		realdims[i] = 0;
 	    }
+	    PDL_THR_CLRMAGIC(&pdl_thr);
 	    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL);
 	    pdl_startthreadloop(&pdl_thr,NULL,NULL);
 	    sd = pdl_thr.ndims;
@@ -1378,6 +1379,7 @@ threadover(...)
 		printf("]\n");
 	        }
 #endif
+	    PDL_THR_CLRMAGIC(&pdl_thr);
 	    pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
 				NULL,&pdl_thr,NULL);
 	    for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */

@@ -41,6 +41,8 @@ Workaround: once you get this error do the following:
 
    cd Basic\Core
    nmake Core.xs
+   del getdev.pl # this one is important, otherwise you get a
+                 # circular Makefile dependence!
    cd ..\..
    perl Makefile.PL # with F77CONF=win32/win32f77.pl if you want slatec
    nmake

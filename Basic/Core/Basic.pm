@@ -170,6 +170,41 @@ Z axis values between endpoints (see L<zvals|/zvals>).
 
 See L<xlinvals|/xlinvals> for more information.
 
+=head2 xlogvals
+
+=for ref
+
+X axis values logarithmicly spaced between endpoints (see L<xvals|/xvals>).
+
+=for usage
+
+ $a = zeroes(100,100);
+ $x = $a->xlogvals(1e-6,1e-3);
+ $y = $a->ylinvals(1e-4,1e3);
+ # calculate Z for X between 1e-6 and 1e-3 and
+ # Y between 1e-4 and 1e3.
+ $z = f($x,$y);            
+
+C<xlogvals>, C<ylogvals> and C<zlogvals> return a piddle with the same shape
+as their first argument and logarithmicly scaled values between the two other
+arguments along the given axis.
+
+=head2 ylogvals
+
+=for ref
+
+Y axis values logarithmicly spaced between endpoints (see L<yvals|/yvals>).
+
+See L<xlogvals|/xlogvals> for more information.
+
+=head2 zlogvals
+
+=for ref
+
+Z axis values logarithmicly spaced between endpoints (see L<zvals|/zvals>).
+
+See L<xlogvals|/xlogvals> for more information.
+
 =cut
 
 # Conveniently named interfaces to axisvals()
@@ -216,6 +251,41 @@ sub PDL::zlinvals {
 		if $dim <= 1;
 	return $_[0]->zvals * (($_[2] - $_[1]) / ($dim-1)) + $_[1];
 }
+
+sub PDL::xlogvals {
+	my $dim = $_[0]->getdim(0);
+	barf "Must have at least two elements in dimension for xlogvals"
+		if $dim <= 1;
+	my ($xmin,$xmax) = @_[1,2];
+	barf "xmin and xmax must be positive"
+	  if $xmin <= 0 || $xmax <= 0;
+	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
+	return exp($_[0]->xvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+}
+
+sub PDL::ylogvals {
+	my $dim = $_[0]->getdim(1);
+	barf "Must have at least two elements in dimension for xlogvals"
+		if $dim <= 1;
+	my ($xmin,$xmax) = @_[1,2];
+	barf "xmin and xmax must be positive"
+	  if $xmin <= 0 || $xmax <= 0;
+	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
+	return exp($_[0]->yvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+}
+
+sub PDL::zlogvals {
+	my $dim = $_[0]->getdim(2);
+	barf "Must have at least two elements in dimension for xlogvals"
+		if $dim <= 1;
+	my ($xmin,$xmax) = @_[1,2];
+	barf "xmin and xmax must be positive"
+	  if $xmin <= 0 || $xmax <= 0;
+	my ($lxmin,$lxmax) = (log($xmin), log($xmax));
+	return exp($_[0]->zvals * (($lxmax - $lxmin) / ($dim-1)) + $lxmin);
+}
+
+
 
 =head2 ndcoords
 
