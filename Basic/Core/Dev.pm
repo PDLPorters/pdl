@@ -624,8 +624,14 @@ sub trylink {
 
   my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1';
 
-  my $tempd = $PDL::Config{TEMPDIR} ||
+  my $tempd;
+
+  # Using dmake on Win32 requires special consideration.
+  if($Config{make} eq 'dmake') {$tempd = File::Spec->tmpdir()}
+  else {
+    $tempd = $PDL::Config{TEMPDIR} ||
     die "TEMPDIR not found in \%PDL::CONFIG";
+    }
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";

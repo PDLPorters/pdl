@@ -1,5 +1,10 @@
+SIS 6-FEB-2005
+   Minor changes to Basic/Core/Makefile.PL and Basic/Core/Dev.pm
+   to simplify build requirements/procedures on Win32.
 SIS 5-FEB-2005
-   Provide an alternative TESTTYPE() macro for Microsoft compilers.
+   Provide an alternative TESTTYPE() macro (in pdlcore.c.PL)for
+   Microsoft compilers. (Addresses failures in conv.t and matrixops.t
+   tests.)
 SIS 4-FEB-2005
    Enact some minor changes in the following files so that PDL will
    build on Win32:

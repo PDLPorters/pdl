@@ -87,6 +87,15 @@ print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
 # into Basic/Core, so we clean it up here
 sub nopl { my $txt = shift; $txt =~ s/[.]PL$//; return $txt}
 
+# Ouch .... there should be a better fix than this ??
+if($^O =~ /mswin32/i) {
+  if(system "perl Core.xs.PL") {die "Failed to extract Core.xs"}
+  }
+if($Config{make} eq 'dmake') {
+  if(system "perl pdlcore.c.PL") {die "Failed to extract pdlcore.c"}
+  if(system "perl pdlconv.c.PL") {die "Failed to extract pdlconv.c"}
+  }
+
 use ExtUtils::MakeMaker;
 WriteMakefile(
  'NAME'	        => 'PDL::Core',
