@@ -1,4 +1,4 @@
-use strict;
+oduse strict;
 
 # check for bad value support
 use PDL::Config;
@@ -1667,7 +1667,8 @@ Interpolate values from an N-D piddle, with switchable method
   $index = pdl([[2.2,3.5],[4.1,5.0]],[[6.0,7.4],[8,9]]);
   print $source->interpND( $index );
 
-InterpND acts like L<indexND|indexND>, collapsing C<$index> by lookup
+InterpND acts like L<indexND|PDL::Slices/indexND>,
+collapsing C<$index> by lookup
 into C<$source>; but it does interpolation rather than direct sampling.  
 The interpolation method and boundary condition are switchable via 
 an options hash. 
