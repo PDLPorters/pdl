@@ -273,6 +273,7 @@ Use:
 			# your window fairly small.
 	demo 3dgal      # the 3D gallery: generate interesting images with
 	                # *very* concise PDL scripts
+        demo Tk3d       # Requires the perl Tk module
 	demo pgplot	# Requires the PGPLOT package
 EOD
 	} elsif(/^pdl$/) {
@@ -287,6 +288,9 @@ EOD
 	} elsif(/^3dgal$/) {
 		require PDL::Demos::TriDGallery;
 		PDL::Demos::TriDGallery::run();
+	} elsif(/^tk3d$/) {
+		require PDL::Demos::TkTriD_demo;
+		PDL::Demos::TkTriD_demo::run();
 	} elsif(/^pgplot$/) {
 		require PDL::Demos::PGPLOT_demo;
 		PDL::Demos::PGPLOT_demo::run();

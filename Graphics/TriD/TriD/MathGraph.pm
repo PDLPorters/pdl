@@ -28,27 +28,9 @@ the copyright notice should be included in the file.
 
 
 =cut
-
-package PDL::Graphics::TriD::Labels;
-use PDL::Graphics::OpenGL;
-use PDL::Graphics::OpenGLQ;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
-
-sub gdraw {
-	my($this,$points) = @_;
-	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
-	glDisable(&GL_LIGHTING);
-	glColor3d(1,1,1);
-	PDL::Graphics::OpenGLQ::gl_texts($points,$fontbase,$this->{Options}{Strings});
-	glEnable(&GL_LIGHTING);
-}
-
-sub get_valid_options {
-	return {UseDefcols => 0,Strings => []}
-}
-
 package PDL::Graphics::TriD::MathGraph;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
+use fields qw/ArrowLen ArrowWidth/;
 use PDL::Graphics::OpenGL;
 
 sub gdraw {

@@ -28,7 +28,7 @@ sub import {
    my $pkg = shift;
    return if $pkg eq 'PDL::Exporter'; # Module don't export thyself :)
    my $callpkg = caller($Exporter::ExportLevel);
-   #print "DBG: pkg=$pkg callpkg = $callpkg\n";
+   print "DBG: pkg=$pkg callpkg = $callpkg :@_\n" if($PDL::Exporter::Verbose);
    push @_, ':Func' unless @_;
    @_=() if scalar(@_)==1 and $_[0] eq '';
    Exporter::export($pkg, $callpkg, @_);

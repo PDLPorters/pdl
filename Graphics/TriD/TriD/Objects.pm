@@ -1,23 +1,33 @@
-
 # GObjects can be either stand-alone or in Graphs, scaled properly.
 # All the points used by the object must be in the member {Points}.
 # I guess we can afford to force data to be copied (X,Y,Z) -> (Points)...
 package PDL::Graphics::TriD::GObject;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/Points Colors Options/;
+
 sub new {
 	my($type,$points,$colors,$options) = @_;
+	
+	my $this = $type->SUPER::new();
+
 	if(!defined $options and ref $colors eq "HASH") {
 		$options = $colors;
 		undef $colors;
 	}
+
 	$points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+
 	if(!defined $colors) {$colors = PDL->pdl(1,1,1);
 		$colors = $type->cdummies($colors,$points);
 	        $options->{UseDefcols} = 1;  # for VRML efficiency
 	} else {
 		$colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
 	}
-	my $this = bless {Points => $points, Colors => $colors, Options => $options},$type;
+
+        $this->{Options} = $options;
+	$this->{Points}  = $points;
+	$this->{Colors}  = $colors;
+
 	$this->check_options();
 	return $this;
 }
@@ -39,6 +49,16 @@ sub check_options {
 		die("Invalid options left: ".(join ',',%{$this->{Options}}));
 	}
 	$this->{Options} = \%newopts;
+}
+
+
+sub set_colors {
+  my($this,$colors) = @_;
+  if(ref($colors) eq "ARRAY"){
+    $colors = PDL::Graphics::TriD::realcoords("COLOR",$colors);
+  }
+  $this->{Colors}=$colors;
+  $this->data_changed;
 }
 
 sub get_valid_options {
@@ -64,26 +84,37 @@ sub defcols {
   return defined($_[0]->{Options}->{UseDefcols}) &&
     $_[0]->{Options}->{UseDefcols};
 }
-
+1;
 package PDL::Graphics::TriD::Points;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 
 package PDL::Graphics::TriD::Lattice;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 
 sub r_type {return "SURF2D";}
 
 sub cdummies { return $_[1]->dummy(1)->dummy(1); }
 
 package PDL::Graphics::TriD::Lines;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 
 sub cdummies { return $_[1]->dummy(1); }
 
 sub r_type { return "SURF2D";}
 
+sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
+
+package PDL::Graphics::TriD::LineStrip;
+use base qw/PDL::Graphics::TriD::GObject/;
+
+sub cdummies { return $_[1]->dummy(1); }
+
+sub r_type { return "SURF2D";}
+
+sub get_valid_options { return {UseDefcols => 0, LineWidth => 1}; }
+
 package PDL::Graphics::TriD::GObject_Lattice;
-@ISA=qw/PDL::Graphics::TriD::GObject/;
+use base qw/PDL::Graphics::TriD::GObject/;
 
 sub r_type {return "SURF2D";}
 
@@ -91,14 +122,14 @@ sub get_valid_options { return {UseDefcols => 0,Lines => 1}; }
 
 # colors associated with vertices, smooth
 package PDL::Graphics::TriD::SLattice;
-@ISA=qw/PDL::Graphics::TriD::GObject_Lattice/;
+use base qw/PDL::Graphics::TriD::GObject_Lattice/;
 
 sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
 			-> dummy(1,$_[2]->getdim(1)); }
 
 # colors associated with surfaces
 package PDL::Graphics::TriD::SCLattice;
-@ISA=qw/PDL::Graphics::TriD::GObject_Lattice/;
+use base qw/PDL::Graphics::TriD::GObject_Lattice/;
 
 sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2)-1)
 			-> dummy(1,$_[2]->getdim(1)-1); }
@@ -106,7 +137,8 @@ sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2)-1)
 
 # colors associated with vertices
 package PDL::Graphics::TriD::SLattice_S;
-@ISA=qw/PDL::Graphics::TriD::GObject_Lattice/;
+use base qw/PDL::Graphics::TriD::GObject_Lattice/;
+use fields qw/Normals/;
 
 sub cdummies { return $_[1]->dummy(1,$_[2]->getdim(2))
 			-> dummy(1,$_[2]->getdim(1)); }
@@ -143,3 +175,5 @@ sub smoothn {
   $aver->norm($aver);
   return $aver;
 }
+
+1;

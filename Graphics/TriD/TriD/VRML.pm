@@ -194,7 +194,7 @@ sub PDL::Graphics::TriD::Points::vdraw {
 					     DefColors => $this->defcols}));
 }
 
-sub PDL::Graphics::TriD::Lines::vdraw {
+sub PDL::Graphics::TriD::LineStrip::vdraw {
 	my($this,$points) = @_;
 	new PDL::Graphics::VRMLNode('Shape',
 			 'geometry' =>

@@ -6,15 +6,18 @@
 # Also Go players will not find this to look too much like a real go board.
 
 package PDL::Graphics::TriD::GoBoard;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw /Data InLays BG/;
 use PDL::Graphics::OpenGL;
 use PDL::Lite;
 
+
 sub new {
 	my($type,$opts) = @_;
-	my $this = bless {
-		Data => $opts->{Data}
-	},$type;
+	my $this = $type->SUPER::new();
+	$this->{Data} = $opts->{Data};
+
 	my $d = $opts->{Data};
 	my $eo = ($d->slice("(3)")+0.000005) /
 		($d->slice("(2)") + $d->slice("(3)") + 0.00001);

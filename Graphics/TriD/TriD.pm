@@ -4,23 +4,23 @@ PDL::Graphics::TriD -- PDL 3D interface
 
 =head1 SYNOPSIS
 
- use PDL::Graphics::TriD;
+use PDL::Graphics::TriD;
 
- # After each graph, let the user rotate is and
- # wait for him to press 'q', then make new graph
- line3d($coords);       # $coords = (3,n,...)
- line3d($coords,$colors);  # $colors = (3,n,...)
- line3d([$x,$y,$z]);
- imagrgb([$r,$g,$b]);
- lattice3d([$x,$y,$z]); # 2-d piddles
- points3d([$x,$y,$z]);
+# After each graph, let the user rotate is and
+# wait for him to press 'q', then make new graph
+line3d($coords);       # $coords = (3,n,...)
+line3d($coords,$colors);  # $colors = (3,n,...)
+line3d([$x,$y,$z]);
+imagrgb([$r,$g,$b]);
+lattice3d([$x,$y,$z]); # 2-d piddles
+points3d([$x,$y,$z]);
 
- hold3d(); # the following graphs are on top of each other and the previous
- line3d([$x,$y,$z]);
- line3d([$x,$y,$z+1]);
- $pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float piddle (0..1).
+hold3d(); # the following graphs are on top of each other and the previous
+line3d([$x,$y,$z]);
+line3d([$x,$y,$z+1]);
+$pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float piddle (0..1).
 
- release3d(); # the next graph will again wipe out things.
+release3d(); # the next graph will again wipe out things.
 
 
 =head1 WARNING
@@ -93,13 +93,13 @@ interpretation.
 
 The alternative syntaxes for specifying a set of coordinates (or colors) are
 
-	$piddle                             # MUST have 3 as first dim.
-	[$piddle]
-	[$piddle1,$piddle2]
-	[$piddle1,$piddle2,$piddle3]
-	[CONTEXT,$piddle]
-	[CONTEXT,$piddle1,$piddle2]
-	[CONTEXT,$piddle1,$piddle2,$piddle3]
+$piddle                             # MUST have 3 as first dim.
+  [$piddle]
+  [$piddle1,$piddle2]
+  [$piddle1,$piddle2,$piddle3]
+  [CONTEXT,$piddle]
+  [CONTEXT,$piddle1,$piddle2]
+  [CONTEXT,$piddle1,$piddle2,$piddle3]
 
 where C<CONTEXT> is a string describing in which context you wish these
 piddles to be interpreted. Each routine specifies a default context
@@ -138,7 +138,7 @@ A line made of 1 or 2 coordinates. [$piddle] is interpreted as
 What makes contexts useful is that if you want to plot points
 instead of the full surface you plotted with
 
-	imag3d([$zcoords]);
+  imag3d([$zcoords]);
 
 you don't need to start thinking about where to plot the points:
 
@@ -420,10 +420,18 @@ an object like
 
 	$a = new PDL::Graphics::TriD::Scale($x,$y,$z);
 
+=head2 PDL::Graphics::TriD::LineStrip
+
+This is just a line or a set of lines. The arguments are 3 1-or-more-D
+piddles which describe the vertices of a continuous line and an 
+optional color piddle (which is 1-D also and simply
+defines the color between red and blue. This will probably change).
+
 =head2 PDL::Graphics::TriD::Lines
 
 This is just a line or a set of lines. The arguments are 3 1-or-more-D
-piddles and an optional color piddle (which is 1-D also and simply
+piddles where each contiguous pair of vertices describe a line segment 
+and an optional color piddle (which is 1-D also and simply
 defines the color between red and blue. This will probably change).
 
 =head2 PDL::Graphics::TriD::Image
@@ -476,13 +484,7 @@ method.
 
 package PDL::Graphics::TriD::Basic;
 package PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Graph;
-use PDL::Graphics::TriD::Quaternion;
-# use PDL::Graphics::TriD::ArcBall;
-# use PDL::Graphics::TriD::SimpleScaler;
-# use PDL::Graphics::TriD::Control3D;
-use  PDL::Graphics::TriD::Objects;
-use PDL::Graphics::TriD::Rout;
+use PDL::Exporter;
 use PDL::Core '';  # barf
 
 # Then, see which display method are we using:
@@ -505,21 +507,30 @@ BEGIN {
 		(/^GL$/  and $dv="PDL::Graphics::TriD::GL") or
 		(/^GLpic$/  and $dv="PDL::Graphics::TriD::GL" and $PDL::Graphics::TriD::offline=1) or
 		(/^VRML$/  and $dv="PDL::Graphics::TriD::VRML" and $PDL::Graphics::TriD::offline=1) or
-		(die "Invalid PDL 3D device '$_' specified!");
+		(barf "Invalid PDL 3D device '$_' specified!");
 	}
 	my $mod = $dv;
 	$mod =~ s|::|//|g;
 	require "$mod.pm";
 	$dv->import;
+        my $verbose;
+
 }
 
-use PDL::Exporter;
+
 @ISA = qw/PDL::Exporter/;
 @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-	describe3d imagrgb imagrgb3d hold3d release3d
-	keeptwiddling3d nokeeptwiddling3d
-	twiddle3d grabpic3d tridsettings/;
+  describe3d imagrgb imagrgb3d hold3d release3d
+  keeptwiddling3d nokeeptwiddling3d
+  twiddle3d grabpic3d tridsettings/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
+
+use PDL::Graphics::TriD::Object;
+use PDL::Graphics::TriD::Graph;
+use PDL::Graphics::TriD::Quaternion;
+use  PDL::Graphics::TriD::Objects;
+use PDL::Graphics::TriD::Rout;
+
 
 # currently only used by VRML backend
 sub tridsettings {return $PDL::Graphics::TriD::Settings}
@@ -530,13 +541,13 @@ sub realcoords {
 	my($type,$c) = @_;
 	if(ref $c ne "ARRAY") {
 		if($c->getdim(0) != 3) {
-			die "If one piddle given for coordinate, must be (3,...) or have default interpretation";
+			barf "If one piddle given for coordinate, must be (3,...) or have default interpretation";
 		}
 		return $c ;
 	}
 	if(!ref $c->[0]) {$type = shift @$c}
 	if($#$c < 0 || $#$c>2) {
-		die "Must have 1..3 array members for coordinates";
+		barf "Must have 1..3 array members for coordinates";
 	}
 	if($#$c == 0 and $type =~ /^SURF2D$/) {
 		# surf2d -> this is z axis
@@ -555,7 +566,13 @@ sub realcoords {
 	}
 	# XXX
 	if($#$c != 2) {
-		die("Must have 3 coordinates if no interpretation (here '$type')");
+		barf("Must have 3 coordinates if no interpretation (here '$type')");
+	}
+	# allow a constant (either pdl or not) to be introduced in one dimension
+        foreach(0..2){  
+	  if(ref($c->[$_]) ne "PDL" or $c->[$_]->nelem==1){
+	    $c->[$_] = $c->[$_]*(PDL->ones($c->[($_+1)%3]->dims));
+	  }
 	}
 	my $g = PDL->null;
 	&PDL::Graphics::TriD::Rout::combcoords(@$c,$g);
@@ -596,7 +613,7 @@ sub PDL::twiddle3d {
 sub graph_object {
 	my($obj) = @_;
 	if(!defined $obj or !ref $obj) {
-		die("Invalid object to TriD::graph_object");
+		barf("Invalid object to TriD::graph_object");
 	}
 	my $g = get_new_graph();
 	my $name = $g->add_dataseries($obj);
@@ -636,7 +653,7 @@ sub PDL::imagrgb {
 # Call: line3d([$x,$y,$z],[$color]);
 *line3d=\&PDL::line3d;
 sub PDL::line3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::Lines(@_));
+	&graph_object(new PDL::Graphics::TriD::LineStrip(@_));
 }
 
 # XXX Should enable different positioning...
@@ -712,12 +729,13 @@ sub get_current_graph {
 # $PDL::Graphics::TriD::cur = {};
 # $PDL::Graphics::TriD::create_window_sub = undef;
 sub get_current_window {
+        my $opts = shift @_;
 	my $win = $PDL::Graphics::TriD::cur;
 	if(!defined $win->{Window}) {
 		if(!$PDL::Graphics::TriD::create_window_sub) {
 			barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 		}
-		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub();
+		$win->{Window} = & $PDL::Graphics::TriD::create_window_sub($opts);
 		if ($win->{Window}->{Interactive}) {
        		  require PDL::Graphics::TriD::ArcBall;
 		  require PDL::Graphics::TriD::SimpleScaler;
@@ -725,6 +743,8 @@ sub get_current_window {
    		  $win->{EventHandler} = new PDL::Graphics::TriD::EventHandler();
 		  $win->{Window}->set_eventhandler($win->{EventHandler});
 		  $win->{Control} = new PDL::Graphics::TriD::SimpleController();
+		  $win->{Window}->set_transformer($win->{Control});
+
 		  $win->{ArcBall1} = new PDL::Graphics::TriD::ArcCone(
 			$win->{Window}, 0,
 			$win->{Control}{WRotation});
@@ -733,7 +753,6 @@ sub get_current_window {
 			\$win->{Control}{CDistance});
 		  $win->{EventHandler}->set_button(0,$win->{ArcBall1});
 		  $win->{EventHandler}->set_button(2,$win->{Scaler});
-		  $win->{Window}->set_transformer($win->{Control});
 		}
 		$win->{Window}->set_material(new PDL::Graphics::TriD::Material);
 		$PDL::Graphics::TriD::current_window = $win->{Window};
@@ -782,10 +801,13 @@ sub new {
 }
 
 package PDL::Graphics::TriD::BoundingBox;
-@ISA=qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/Box/;
 
-sub new { my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
-	bless {Box => [$x0,$y0,$z0,$x1,$y1,$z1]},$type;
+sub new { 
+  my($type,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
+  my $this = $type->SUPER::new();
+  $this->{Box} = [$x0,$y0,$z0,$x1,$y1,$z1];
 }
 
 sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
@@ -805,84 +827,22 @@ sub normalize {my($this,$x0,$y0,$z0,$x1,$y1,$z1) = @_;
 }
 
 
-###################################
-#
-#
-package PDL::Graphics::TriD::Object;
-
-sub clear_objects {
-	my($this) = @_;
-	$this->{Objects} = [];
-	$this->{ValidList} = 0;
-}
-
-# XXXXXXXXX sub {} makes all these objects and this window immortal!
-sub add_object {
-	my($this,$object) = @_;
-	push @{$this->{Objects}},$object;
-	$this->{ValidList} = 0;
-	for(@{$this->{ChangedSub}}) {
-		$object->add_changedsub($_);
-	}
-	if($this->i_keep_list) {
-		$object->add_changedsub(sub {$this->changed_from_above()});
-	}
-}
-
-sub changed_from_above {
-	my($this) = @_;
-	print "CHANGED_FROM_ABOVE\n" if $PDL::Graphics::TriD::verbose;
-	$this->changed();
-}
-
-sub add_changedsub {
-	my($this,$chsub) = @_;
-	push @{$this->{ChangedSub}}, $chsub;
-	for (@{$this->{Objects}}) {
-		$_->add_changedsub($chsub);
-	}
-}
-
-
-sub clear {
-	my($this) = @_;
-	# print "Clear: $this\n";
-	for(@{$this->{Objects}}) {
-		$_->clear();
-	}
-	$this->delete_displist();
-	delete $this->{ChangedSub};
-	delete $this->{Objects};
-}
-
-sub changed {
-	my($this) = @_;
-	print "VALID0 $this\n" if $PDL::Graphics::TriD::verbose;
-	$this->{ValidList} = 0;
-	for(@{$this->{ChangedSub}}) {
-		&$_($this);
-	}
-}
-
-sub i_keep_list {
-	return 0;
-}
-
 ##################################
 #
 # Does nothing by itself except makes an orthogonal window transformation
 # to the provided size elsewhere.
 #
 package PDL::Graphics::TriD::ViewPort;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
+use fields qw/ViewPorts W H X0 Y0/;
 sub i_keep_list {return 1} # For object.
 
-sub new {
-	my($type) = @_;
-	my $this = bless {},$type;
-	# print "CREATE VP $this\n";
-	return $this;
-}
+#sub new {
+#	my($type) = @_;
+#	my $this = bless {},$type;
+#        print "CREATE VP $this\n";
+#	return $this;
+#}
 
 sub new_viewport {
 	my($this,$x0,$y0,$x1,$y1) = @_;
@@ -899,27 +859,31 @@ sub DESTROY {
 ###################################
 #
 #
+package PDL::Graphics::TriD::OneTransformation;
+use fields qw/Args/;
+
+sub new {
+  my($type,@args) = @_;
+  my $this = bless [\%{"$type\::FIELDS"}], $type;
+
+  $this->{Args} = [@args];
+  return $this;
+}
+
 package PDL::Graphics::TriD::Scale;
-@ISA = qw/PDL::Graphics::TriD::OneTransformation/;
+use base qw/PDL::Graphics::TriD::OneTransformation/;
 
 package PDL::Graphics::TriD::Translation;
-@ISA = qw/PDL::Graphics::TriD::OneTransformation/;
+use base qw/PDL::Graphics::TriD::OneTransformation/;
 
-package PDL::Graphics::TriD::OneTransformation;
-
-sub new {
-	my($type,@args) = @_;
-	my $this = {Args => [@args]};
-	bless $this,$type;
-}
 
 package PDL::Graphics::TriD::Transformation;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::Object/;
 
-sub new {
-	my($type) = @_;
-	bless {},$type;
-}
+#sub new {
+#	my($type) = @_;
+#	bless {},$type;
+#}
 
 sub add_transformation {
 	my($this,$trans) = @_;
@@ -928,7 +892,7 @@ sub add_transformation {
 
 
 package PDL::Graphics::TriD::Window;
-@ISA = qw/PDL::Graphics::TriD::Object/;
+use base qw/PDL::Graphics::TriD::ViewPort/;
 
 =head1 BUGS
 

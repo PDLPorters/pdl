@@ -1,4 +1,8 @@
 (!!! = possible source of incompatibilities)
+Jim Edwards (5/19/2000) TriD (cvs brance trid_experimental) (merged 6/7/00)
+        - several changes in TriD including a new Tk widget, 
+          see the file PDL/Graphics/TriD/README  
+        - added TkTriD demo to perldl.PL
 2.1
 Marc Lehmann (6/7/00)
     - enable sincos optimization only for glibc >= 2.1

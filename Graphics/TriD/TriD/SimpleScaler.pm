@@ -7,7 +7,10 @@
 ##############################################################
 package PDL::Graphics::TriD::SimpleScaler;
 
-@ISA = qw/PDL::Graphics::TriD::ScaleController/;
+use PDL::Graphics::TriD::ButtonControl;
+@ISA = qw/PDL::Graphics::TriD::ScaleController 
+          PDL::Graphics::TriD::ButtonControl/;
+
 
 # x,y to distance from center
 sub xy2fac {
@@ -35,6 +38,8 @@ sub set_wh {
 	my($this,$w,$h) = @_;
 	print "SCALESETWH: $w,$h\n" if $PDL::Graphics::TriD::verbose;
 	$this->{W} = $w; $this->{H} = $h;
+        $w = 0 unless defined $w;
+        $h = 0 unless defined $h;
 	if($w > $h) {
 		$this->{SC} = $h/2;
 	} else {

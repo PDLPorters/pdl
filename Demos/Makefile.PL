@@ -12,6 +12,7 @@ WriteMakefile(
                     'TriD1.pm'    => '$(INST_LIBDIR)/Demos/TriD1.pm',
                     'TriD2.pm'    => '$(INST_LIBDIR)/Demos/TriD2.pm',
                     'TriDGallery.pm'    => '$(INST_LIBDIR)/Demos/TriDGallery.pm',
+		    'TkTriD_demo.pm'	=> '$(INST_LIBDIR)/Demos/TkTriD_demo.pm',
 		    'PGPLOT_demo.pm'	=> '$(INST_LIBDIR)/Demos/PGPLOT_demo.pm',
 		   }
 );
@@ -22,7 +23,7 @@ PDL::Core::Dev::postamble().
 q~
 
 test_tjl :
-	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' t/*.t
+	PERL_DL_NONLAZY=1 $(FULLPERL) -I$(INST_ARCHLIB) -I$(INST_LIB) -I$(PERL_ARCHLIB) -I$(PERL_LIB) -e 'use Test::Harness qw(&runtests $$verbose); $$verbose=$(TEST_VERBOSE); runtests @ARGV;' *.pl
 
 ~
 }
