@@ -1,3 +1,6 @@
+CS  - Makefile.PL: warning if mods for NiceSlice missing
+    - IO/Misc: print warning at the end of the make output
+    - Graphics/PGPLOT: small change to the (still undocumented) autolog func
 CED (15 May 02)
     - Added Astro::FITS::Header recognition to PDL::IO::Dumper.
 CED (14 May 02)

@@ -527,9 +527,9 @@ sub clear_state {
 }
 
 
-sub autolog {
+sub autolog { # for this one we use the class method to set autolog globally
   dev() if !defined($CW);
-  $CW->autolog(@_);
+  PDL::Graphics::PGPLOT::Window->autolog(@_);
 }
 sub env {
   dev() if !defined($CW);

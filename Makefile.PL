@@ -9,6 +9,39 @@ BEGIN{
     die "PDL requires Perl v5.005 or later\n" if $@ ne "";
 }
 
+END{
+  my @hasnt = ();
+  my @test = (['Filter::Util::Call','Filter'],
+	      ['Text::Balanced','Text::Balanced'],
+	     );
+  for my $mod (@test) {
+    eval "use $mod->[0]";
+    push @hasnt, $mod->[1] if $@;
+  }
+  if (@hasnt) {
+    print << 'EOP';
+
+************************************************************
+Your installation won't be fully functional since it lacks
+certain modules. As a result PDL::NiceSlice will not work.
+This will significantly reduce the usefulness of your
+installation.
+
+Please install the following module(s) [available from CPAN]
+
+EOP
+
+    for (@hasnt) { print "\t$_\n" }
+
+
+    print << 'EOP';
+
+************************************************************
+
+EOP
+  }
+}
+
 eval "use 5.6.0";
 if ($@ ne ""){
     warn "\nThe TriD and OpenGL packages now require Perl 5.6.0 or later!\n".
