@@ -1,3 +1,5 @@
+CS  - preparations for type extension: concentrate all type-dependent info
+      in Types.pm.PL
 CS  - fix mem leak patch so that core struct version croaking works
     * NOTE: recent patches will require recompilation of any external
     *       modules that use PDL::PP; PDL will tell you when using such

@@ -662,12 +662,14 @@ void pdl_print(pdl *it) {
 #endif
 }
 
+/* pdl_get is now vaffine aware */
 double pdl_get(pdl *it,int *inds) {
-	int i;
-	int offs=0;
+	int i, *incs;
+	int offs=PDL_REPROFFS(it);
+	incs = PDL_VAFFOK(it) ? it->vafftrans->incs : it->dimincs;
 	for(i=0; i<it->ndims; i++)
-		offs += it->dimincs[i] * inds[i];
-	return pdl_get_offs(it,offs);
+		offs += incs[i] * inds[i];
+	return pdl_get_offs(PDL_REPRP(it),offs);
 }
 
 double pdl_get_offs(pdl *it, PDL_Long offs) {

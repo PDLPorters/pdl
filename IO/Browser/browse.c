@@ -30,22 +30,22 @@ char *str_value(int x, int y,
 		int type, int nx, void *data, char *str)
 {
   switch (type) {
-  case 0:
+  case PDL_B:
     sprintf(str,format[type],*(((char *)data)+y*nx+x));
     break;
-  case 1:
+  case PDL_S:
     sprintf(str,format[type],*(((short *)data)+y*nx+x));
     break;
-  case 2:
+  case PDL_US:
     sprintf(str,format[type],*(((unsigned short *)data)+y*nx+x));
     break;
-  case 3:
+  case PDL_L:
     sprintf(str,format[type],*(((int *)data)+y*nx+x));
     break;
-  case 4:
+  case PDL_F:
     sprintf(str,format[type],*(((float *)data)+y*nx+x));
     break;
-  case 5:
+  case PDL_D:
     sprintf(str,format[type],*(((double *)data)+y*nx+x));
     break;
   }
@@ -56,22 +56,22 @@ void set_value(int x, int y,
 		int type, int nx, void *data, char *str)
 {
   switch (type) {
-  case 0:
+  case PDL_B:
     *(((PDL_Byte *)data)+y*nx+x) = atol(str);
     break;
-  case 1:
+  case PDL_S:
     *(((PDL_Short *)data)+y*nx+x) = atol(str);
     break;
-  case 2:
+  case PDL_US:
     *(((PDL_Ushort *)data)+y*nx+x) = atol(str);
     break;
-  case 3:
+  case PDL_L:
     *(((PDL_Long *)data)+y*nx+x) = atol(str);
     break;
-  case 4:
+  case PDL_F:
     *(((PDL_Float *)data)+y*nx+x) = atof(str);
     break;
-  case 5:
+  case PDL_D:
     *(((PDL_Double *)data)+y*nx+x) = atof(str);
     break;
   }

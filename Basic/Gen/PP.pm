@@ -7,7 +7,7 @@
 ## This is way too messy and uncommented. Still. :(
 #
 package PDL::PP;
-use PDL::Types;
+use PDL::Types ':All';
 use FileHandle;
 use Exporter;
 @ISA = qw(Exporter);
@@ -361,7 +361,7 @@ $PDL::PP::deftbl =
  [[OtherPars],	[],	sub {""}],
 # [[Comp],	[],	sub {""}],
 # some defaults
- [[GenericTypes],	[],	sub {[B,S,U,L,F,D]}],
+ [[GenericTypes],	[],	sub {[ppdefs]}],
  [[ExtraGenericLoops],	[FTypes],	sub {return $_[0]}],
  [[ExtraGenericLoops],	[],	sub {return {}}],
 # Naming of the struct and the virtual table.
@@ -556,10 +556,10 @@ $PDL::PP::deftbl =
  [[NewXSSetTrans],	[ParNames,ParObjs,NewXSSymTab],	"makesettrans"],
 
  [["ParsedCode"],	[Code,_BadCode,ParNames,ParObjs,DimObjs,GenericTypes,
- 			 ExtraGenericLoops,HaveThreading],
+ 			 ExtraGenericLoops,HaveThreading,Name],
  				sub {new PDL::PP::Code(@_)}],
  [["ParsedBackCode"],	[BackCode,_BadBackCode,ParNames,ParObjs,DimObjs,GenericTypes,
- 			 ExtraGenericLoops,HaveThreading],
+ 			 ExtraGenericLoops,HaveThreading,Name],
  				sub {new PDL::PP::Code(@_)}],
 
 # Compiled representations i.e. what the xsub function leaves
@@ -602,7 +602,7 @@ $PDL::PP::deftbl =
   'Code that can be inserted to set the size of output piddles
    dynamically based on input piddles; is parsed'],
  [[RedoDimsParsedCode], [RedoDimsCode,_BadRedoDimsCode,ParNames,ParObjs,DimObjs,
-                         GenericTypes,ExtraGenericLoops,HaveThreading],
+                         GenericTypes,ExtraGenericLoops,HaveThreading,Name],
  				sub { return "/* no RedoDimsCode */"
 					if $_[0] =~ m|^/[*] none [*]/$|;
 				      new PDL::PP::Code(@_,1)},
