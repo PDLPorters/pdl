@@ -234,7 +234,7 @@ sub new ($$) {
 	$this->{NTotLags} = $this->_ntotlags();
 	(my $data = delete $pars->{Data}) ;
 	my ($auc,$auc1);
-	if($data) {
+	if(defined $data) {
 		my $atmp;
 		my $n = $this->{NTotLags};
 		my $da = avg($data);
@@ -246,7 +246,7 @@ sub new ($$) {
 		$auc /= $ldata->getdim(0) * $data->getdim(1);
 		$auc -= $da ** 2;
 #		print "AUC: $auc\n";
-	} elsif(($auc1 = delete $pars->{AutoCovar})) {
+	} elsif(defined ($auc1 = delete $pars->{AutoCovar})) {
 		if($this->{LagInterval} != 1) {
 			$auc = $auc1->slice("0:$this->{LagInterval}:-1");
 		} else {

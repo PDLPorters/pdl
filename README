@@ -22,6 +22,12 @@ PDL::Index		a guide to PDL documentation
 			try 'perldoc PDL::Index'
 DEVELOPMENT		how to participate in the development of PDL
 
+Release_Notes		a list of issues with regard to the current version
+			always worth checking!
+
+*Note* that most PDL documentation is available online within the
+perldl shell. Try the help command within the shell!
+
 PDL -- the package
 ------------------
 

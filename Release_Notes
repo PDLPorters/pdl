@@ -1,0 +1,21 @@
+
+Release notes for PDL 2.005
+
+A bugfix release to fix 2.004 problems with PGPLOT changes
+and perl 5.6.0.
+
+The following notes from 2.004 still apply:
+                                             
+*IMPORTANT NOTE*: Due to changes to the PGPLOT module, 'use
+PDL::Graphics::PGPLOT' has been removed from PDL.pm (i.e. in scripts
+and within perldl you now need to explicitly say 'use
+PDL::Graphics::PGPLOT'). Additionally, it needs Karl's new 2.16
+release of the PGPLOT module (available from CPAN).
+
+Notable additions are a module for operations on complex piddles
+(PDL::Complex), a subtype of PDL which allows manipulation of byte
+type PDLs as N dimensional arrays of fixed length strings (PDL::Char)
+and a Levenberg-Marquardt fitting module (PDL::Fit::LM).
+
+Bug reports and patches to the relevant places on sourceforge, please.
+
