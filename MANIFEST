@@ -352,6 +352,9 @@ Lib/Func.pm
 Lib/GSL/DIFF/FUNC.c
 Lib/GSL/DIFF/Makefile.PL
 Lib/GSL/DIFF/gsl_diff.pd
+Lib/GSL/INTEG/FUNC.c
+Lib/GSL/INTEG/Makefile.PL
+Lib/GSL/INTEG/gsl_integ.pd
 Lib/GSL/INTERP/Makefile.PL
 Lib/GSL/INTERP/gsl_interp.pd
 Lib/GSL/INTERP/gslerr.h
@@ -614,6 +617,7 @@ t/func.pdl
 t/func.t
 t/gauss.t
 t/gsl_diff.t
+t/gsl_integ.t
 t/gsl_interp.t
 t/gsl_rng.t
 t/gsl_sf.t
