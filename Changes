@@ -1,3 +1,5 @@
+DJB (20/Jun/01)
+    - make bad.pd compile with PDL::Type changes and fix minor bug
 CS  - fix rvals bug (annoying one!)
     - syntactical sugar: convenience operators for PDL::Type
 CS  - Basic/SourceFilter (see also L<PDL::SFilter>)

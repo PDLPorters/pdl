@@ -10,16 +10,16 @@ use Test;
 
 my $fname = 'delme.fits';
 
-BEGIN { 
+BEGIN {
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-	plan tests => 68;
+	plan tests => 70;
     } else {
 	plan tests => 1;
 	print "ok 1 # Skipped: badvalue support not compiled\n";
 	exit;
     }
-} 
+}
 
 END {
     unlink $fname if -e $fname;
@@ -389,3 +389,17 @@ $b = rfits($fname);
 print "BITPIX 16: datatype == ", $b->get_datatype, " badvalue == ", $b->badvalue(), "\n";
 ok( $b->slice('0:0')->isbad );      # 
 ok( sum(abs(convert($a,short)-$b)) < 1.0e-5 );      # 
+
+# check that we can change the value used to represent
+# missing elements for floating points (earlier tests only did integer types)
+# IF we are not using NaN's
+#
+if ( $PDL::Config{BADVAL_USENAN} || 0 ) {
+    # perhaps should check that the value can't be changed?
+    skip( "Skipped: test only valid when not using NaN's as bad values", 1, 1 ); #
+    skip( "Skipped: test only valid when not using NaN's as bad values", 1, 1 ); # 70
+} else {
+    ok( float->badvalue, float->orig_badvalue );  #
+    ok( float->badvalue(23), 23 );                # 70
+    float->badvalue( float->orig_badvalue );
+}
