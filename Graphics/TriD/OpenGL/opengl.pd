@@ -20,6 +20,7 @@ GetOptions("I=s@" => \@incs,
 my @funcs = qw|gl.h glx.h glu.h|;
 my @types = qw|X.h gl.h glx.h glu.h glxtokens.h|;
 my $verbose;
+my $pmdocs;
 #
 # These are prototypes which for one reason or another (hopefully documented 
 # further below) we dont want to generate.
@@ -162,13 +163,17 @@ foreach my $file (@funcs){
 
 $ppcode .= pmstuff(@oosubs);
 
-#$ppcode .= xsstuff();
-
 $ppcode .= exports(\%consts);
 #
 # print the code out so that we can refer to this
 # file in the case of any errors
 #
+$ppcode .= "pp_addpm(<<'EODOCS');\n";
+$ppcode .= "\n=head2 OpenGL Interface Functions\n\n";
+$ppcode .= "=for ref\n\nThe following is a list of OpenGL functions for which an interface was created.  Please refer to the OpenGL documentation for descriptions.\n\n";
+$ppcode .= $pmdocs;
+$ppcode .= "=cut\n\nEODOCS\n";
+
 $ppcode .= "pp_done();";
 open(F,">ppcode.out");
 print F $ppcode;
@@ -248,6 +253,8 @@ sub getfuncs {
 	 my $args=$3;
 	 #    $rt =~ s/^\s*const\s+//;
 	 if($dontfuncs{$name}) { next }
+    
+    if($args =~ /GLvoid\*\s+\*/) { next }
 
 	 push @subnames,$name;
 	 #	print "Gen: $rt $name $args\n";
@@ -269,6 +276,7 @@ sub getfuncs {
 	 my @args = split(/\,/,$args);
 	 @args=() if (($args =~ /^\s*void\s*$/) || ($args =~ /^\s*$/));
 
+    $pmdocs .= "=for ref \n\n$name\n\n";
 
 	 $outstr .= "pp_addxs('','\n";
 	 $outstr .= "$rt\n";
@@ -583,12 +591,47 @@ sub pmstuff {
 
   $outstr .=  sprintf <<'END';
 pp_addpm(<<'EOD');
+=head1 NAME
+
+PDL::Graphics::OpenGL -- a PDL interface to the OpenGL graphics library.
+PDL::Graphics::OpenGLOO - an Object Oriented interface to the interface.
+
+=head1 DESCRIPTION
+
+This package implements an interface to various OpenGL or OpenGL
+emulator libraries.  Most of the interface is generated at PDL compile
+time by the script opengl.pd which runs the c preprocessor on various
+OpenGL include files to determine the correct C prototypes for each
+configuration.  The object oriented interface defines an Object which
+contains the Display, Window and Context properties of the defined
+OpenGL device.  Any OpenGL function called from the OO interface will
+recieve these fields from the object, they should not be passed explicitly.
+
+This package is primarily intended for internal use by the
+PDL::Graphics::TriD package, but should also be usable in its own right.
+
+=head1 FUNCTIONS
+
+=cut
 
 package PDL::Graphics::OpenGL::OO;
 use PDL::Options;
 use strict;
 my $debug;
 use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
+
+=head2 new($class,$options)
+
+Returns a new OpenGL object with attributes specified in the options
+field.  These attributes are:
+=for ref
+  x,y - the position of the upper left corner of the window (0,0)
+  width,height - the width and height of the window in pixels (500,500)
+  parent - the parent under which the new window should be opened (root)
+  mask - the user interface mask (StructureNotifyMask)
+  attributes - attributes to pass to glXChooseVisual
+
+=cut
 
 sub new {
   my($class,$options) = @_;
@@ -628,21 +671,49 @@ sub new {
   $self;
 }
 
+=head2 XPending()
+
+OO interface to XPending
+
+=cut
+
 sub XPending {
 	my($self) = @_;
    PDL::Graphics::OpenGL::XPending($self->{Display});
 }
+
+=head2 glpXNextEvent()
+
+OO interface to glpXNextEvent
+
+=cut
+
 
 sub glpXNextEvent {
 	my($self) = @_;
    PDL::Graphics::OpenGL::glpXNextEvent($self->{Display});
 }
 
-#
-# If the function is not prototyped in OO we assume there is
-# no explicit mention of the three identifying parameters (Display, Window, Context)
-# and try to load the OpenGL function.
-#
+=head2 glpRasterFont()
+
+OO interface to the glpRasterFont function
+
+=cut
+
+sub glpRasterFont{
+	my($this,@args) = @_;
+   PDL::Graphics::OpenGL::glpRasterFont($args[0],$args[1],$args[2],$this->{Display});
+}
+
+
+=head2 AUTOLOAD
+
+If the function is not prototyped in OO we assume there is
+no explicit mention of the three identifying parameters (Display, Window, Context)
+and try to load the OpenGL function.
+
+=cut
+
 sub AUTOLOAD {
   my($self,@args) = @_;
   use vars qw($AUTOLOAD);
@@ -657,16 +728,17 @@ sub AUTOLOAD {
   return(&{$sub}(@args));
 }
 
-sub glpRasterFont{
-	my($this,@args) = @_;
-   PDL::Graphics::OpenGL::glpRasterFont($args[0],$args[1],$args[2],$this->{Display});
-}
+
 
 
 END
   
   foreach(@oosubs){
 	 my($rt,$name,$args) = @$_;
+
+
+    $outstr .= "\n=head2 $name\n\n";
+    $outstr .= "OO interface to the $name function\n\n=cut\n\n";
 	 
 	 $outstr .= "sub $name {\n";
 	 $outstr .= "\tmy(\$this,\@args) = \@_;\n";
@@ -728,3 +800,4 @@ sub exports{
   $outstr .= "');\n";
   return $outstr;
 }
+
