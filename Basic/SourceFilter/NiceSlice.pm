@@ -170,11 +170,11 @@ sub onearg ($) {
 # process the arg list
 sub procargs {
   my ($txt) = @_;
-  $txt =~ s/\((.*)\)/$1/;
+  $txt =~ s/\((.*)\)/$1/s;
   push @callstack, $txt; # for later error reporting
-  my $args = $txt =~ /^\s*$/ ? '' :
+  my $args = $txt =~ /^\s*$/s ? '' :
     join ',', map {onearg $_} splitprotected $txt, ',';
-  $args =~ s/\s//g; # get rid of whitespace
+  $args =~ s/\s//sg; # get rid of whitespace
   pop @callstack; # remove from call stack
   return "($args)";
 }
