@@ -58,6 +58,8 @@ comment q|
 
 !NO!SUBS!
 
+#'
+
 } else {
     print OUT <<'!NO!SUBS!';
 
@@ -158,7 +160,7 @@ act q|
 
     print "We can even label certain values as bad!\n";
     $a = sequence(3,3);
-    $a = $a->setbadif( $a % 2 );
+    $a = $a->setbadif( $a % 2 ); # unfortunately can not be done inplace
     print $a;
 
 |;
@@ -175,6 +177,18 @@ act q|
 
     $a->inplace->setbadtoval(3);
     print "b = $b\tbadflag = ", $b->badflag, "\n\n";
+
+|;
+
+act q|
+
+    # Note that "boolean" operators return a bad value if either of the
+    # operands are bad: one way around this is to replace all bad values
+    # by 0 or 1. 
+
+    $a = sequence(3,3); $a = $a->setbadif( $a % 2 );
+    print $a > 5;
+    print setbadtoval($a > 5,0);  # set all bad values to false
 
 |;
 
