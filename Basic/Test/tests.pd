@@ -23,9 +23,11 @@ Strictly speaking this module shouldn't be installed with a
 EOPM
 
 sub pp_deft {
-	my ($name,%hash) = @_;
-	$hash{Doc} = "=for ref\n\ninternal\n\nonly for internal testing purposes\n";
-	pp_def($name,%hash);
+    my ($name,%hash) = @_;
+##    $hash{Doc} = "=for ref\n\ninternal\n\nonly for internal testing purposes\n";
+    $hash{Doc} = undef;
+    $name = "test_$name";  # prepend test_ to name
+    pp_def($name,%hash);
 }
 
 pp_addhdr('
@@ -47,14 +49,16 @@ pp_deft('foop',
 	Code => 'ppcp($P(b),$P(a),$SIZE(n));',
 );
 
+# now in primitive.pd
+#
 # double qualifier
-pp_deft(
-	'dsumover',
-	Pars => 'a(n); double [o]b();',
-	Code => 'PDL_Double tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp;'
-);
+#pp_deft(
+#	'dsumover',
+#	Pars => 'a(n); double [o]b();',
+#	Code => 'PDL_Double tmp = 0;
+#	 loop(n) %{ tmp += $a(); %}
+#	 $b() = tmp;'
+#);
 
 # float qualifier
 pp_deft(

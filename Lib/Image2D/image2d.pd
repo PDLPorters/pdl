@@ -1,4 +1,6 @@
-pp_addpm({At=>Top},<<'EOD');
+use strict;
+
+pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
@@ -12,6 +14,25 @@ of anywhere else to put them
 =head1 SYNOPSIS
 
  use PDL::Image2D;
+
+=cut
+
+use PDL::Primitive;  # ensure qsort routine available
+use Carp;
+
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHORS
+
+Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
+(rjrw@ast.leeds.ac.uk) and Tim Jeness (timj@jach.hawaii.edu).
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
 
 =cut
 
@@ -31,35 +52,83 @@ pp_addhdr('
 #define rint(X) floor( X + 0.5 )
 #endif
 
-
-/* Local quick-sort routine for doubles */
-
-void pdl_lqsortD(double* xx, int a, int b) {
-
-   int i,j;
-
-   double t, median;
-
-   i = a; j = b;
-   median = xx[(i+j) / 2];
-   do {
-      while (xx[i] < median)
-	 i++;
-      while (median < xx[j])
-	 j--;
-      if (i <= j) {
-	 t = xx[i]; xx[i] = xx[j]; xx[j] = t;
-	 i++; j--;
-      }
-   } while (i <= j);
-
-   if (a < j)
-      pdl_lqsortD(xx,a,j);
-   if (i < b)
-      pdl_lqsortD(xx,i,b);
- }
-
 ');
+
+my %init = 
+    ( 
+      i => { size => 'm_size', off => 'poff', init => '1-p_size' },
+      j => { size => 'n_size', off => 'qoff', init => '1-q_size' },
+      );
+	     
+# requires 'int $var, ${var}2' to have been declared in the c code
+# (along with [pq]off and [pq]_size)
+#
+sub init_map {
+    my $var = shift;
+
+    my $loop = $var;
+    my $loop2 = "${var}2";
+
+    my $href = $init{$var} ||
+	die "ERROR: unknown variable sent to init_map()\n";
+    my $size = $href->{size} || 
+	die "ERROR: unable to find size for $var\n";
+    my $off  = $href->{off} || 
+	die "ERROR: unable to find off for $var\n";
+    my $init = $href->{init} || 
+	die "ERROR: unable to find init for $var\n";
+
+    return
+"for ( $loop = $init; $loop< $size; ${loop}++) {
+    $loop2 = $loop + $off;
+    switch (opt) {
+       case 1:      /* REFLECT */
+          if (${loop2}<0)
+             $loop2 = -${loop2}-1;
+          else if ($loop2 >= $size)
+             $loop2 = 2*${size}-(${loop2}+1);
+          break;
+       case 2:      /* TRUNCATE */
+          if (${loop2}<0 || ${loop2} >= $size)
+             $loop2 = -1;
+          break;
+       default:
+           REALMOD($loop2,$size);
+    }
+    map${var}\[$loop] = $loop2;
+ }\n";
+   
+} # sub: init_map()
+
+sub init_vars {
+    my $href = shift || { };
+    $href->{vars}   = '' unless defined $href->{vars};
+    $href->{malloc} = '' unless defined $href->{malloc};
+    $href->{check}  = '' unless defined $href->{check};
+
+    my $str = $href->{vars};
+    $str .= "int i,j, i1,j1, i2,j2, poff, qoff;";
+    $str .=
+	'int opt = $COMP(opt);
+         int m_size = $COMP(__m_size);
+         int n_size = $COMP(__n_size);
+         int p_size = $COMP(__p_size);
+         int q_size = $COMP(__q_size);
+         int *mapi, *mapj;
+	 
+         mapi = (int *) malloc((p_size+m_size)*sizeof(int));
+         mapj = (int *) malloc((q_size+n_size)*sizeof(int));
+	 ';
+    $str .= $href->{malloc} . "\n";
+    $str .= "if ($href->{check} (mapi==NULL) || (mapj==NULL))\n";
+    $str .= '  barf("Out of Memory");
+	 
+         poff = p_size/2; mapi += p_size-1;
+         qoff = q_size/2; mapj += q_size-1;
+';
+
+    return $str;
+} # sub: init_vars()
 
 pp_def('conv2d', Doc=><<'EOD',
 =for ref
@@ -87,8 +156,6 @@ will be quicker.
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
 
-=cut
-
 EOD
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
@@ -108,80 +175,33 @@ sub PDL::conv2d {
 }
 
 ',
-        Code => '
-           int i,j, i1,j1, i2,j2, poff, qoff;
-           double tmp;
-           int opt = $COMP(opt);
-           int m_size = $COMP(__m_size);
-           int n_size = $COMP(__n_size);
-           int p_size = $COMP(__p_size);
-           int q_size = $COMP(__q_size);
-           int *mapi, *mapj;
-
-           mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-           mapj = (int *) malloc((q_size+n_size)*sizeof(int));
-
-           if ((mapi==NULL) || (mapj==NULL))
-               barf("Out of Memory");
-
-           poff = p_size/2; mapi += p_size-1;
-           qoff = q_size/2; mapj += q_size-1;
-
-	   for (i=1-p_size; i<m_size; i++) {
-              i2 = i+poff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (i2<0)
-                    i2 = -i2-1;
-                 else if (i2 >= m_size)
-                    i2 = 2*m_size-(i2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (i2<0 || i2 >= m_size)
-                    i2 = -1;
-                 break;
-	default:
-                 REALMOD(i2,m_size);
-               }
-               mapi[i] = i2;
-	   }
-	   for (j=1-q_size; j<n_size; j++) {
-              j2 = j+qoff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (j2<0)
-                    j2 = -j2-1;
-                 else if (j2 >= n_size)
-                    j2 = 2*n_size-(j2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (j2<0 || j2>=n_size)
-                    j2 = -1;
-                 break;
-	default:
-                 REALMOD(j2,n_size);
-               }
-               mapj[j] = j2;
-	   }
-
+        Code => 
+           init_vars( { vars => 'PDL_Double tmp;' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
            threadloop %{
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              tmp = 0;
-              for(j1=0; j1<q_size; j1++) {
-                  j2 = mapj[j-j1];
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 tmp = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
 
-                  if (j2 >= 0) {
-                     for(i1=0; i1<p_size; i1++) {
-                       i2 = mapi[i-i1];
-                       if (i2 >= 0)
-                          tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
-                     }
-                  }
-              }
-              $b(m=>i,n=>j) = tmp;
-           }} %}
-	   free(mapj+1-q_size); free(mapi+1-p_size);
-');
+                    if (j2 >= 0) {
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0)
+                             tmp += $a(m=>i2,n=>j2) * $kern(p=>i1,q=>j1);
+		       } /* for: i1 */
+		    } /* if: j2 >= 0 */
+		 } /* for: j1 */
+                 $b(m=>i,n=>j) = tmp;
+	      } /* for: i */
+           } /* for: j */ 
+           %}
+	   free(mapj+1-q_size); free(mapi+1-p_size);',
+
+); # pp_def: conv2d
 
 
 pp_def('med2d', Doc=> <<'EOD',
@@ -209,8 +229,6 @@ is rather pointless)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
 
-=cut
-
 EOD
         Pars => 'a(m,n); kern(p,q); [o]b(m,n);',
         OtherPars => 'int opt;',
@@ -230,129 +248,104 @@ sub PDL::med2d {
 }
 
 ',
-        Code => '
-           int i,j, i1,j1, i2,j2, poff, qoff,
-           count;
-           PDL_Double *tmp;
-           PDL_Double kk;
-
-           int opt = $COMP(opt);
-           int m_size = $COMP(__m_size);
-           int n_size = $COMP(__n_size);
-           int p_size = $COMP(__p_size);
-           int q_size = $COMP(__q_size);
-           int *mapi, *mapj;
-
-           poff = p_size/2; qoff = q_size/2;
-
-           tmp = malloc(p_size*q_size*sizeof(PDL_Double));
-           mapi = (int *) malloc((p_size+m_size)*sizeof(int));
-           mapj = (int *) malloc((q_size+n_size)*sizeof(int));
-           if ((tmp==NULL) || (mapi==NULL) || (mapj==NULL))
-               barf("Out of Memory");
-
-           poff = p_size/2; mapi += p_size-1;
-           qoff = q_size/2; mapj += q_size-1;
-
-	   for (i=1-p_size; i<m_size; i++) {
-              i2 = i+poff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (i2<0)
-                    i2 = -i2-1;
-                 else if (i2 >= m_size)
-                    i2 = 2*m_size-(i2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (i2<0 || i2 >= m_size)
-                    i2 = -1;
-                 break;
-	default:
-                 REALMOD(i2,m_size);
-               }
-               mapi[i] = i2;
-	   }
-	   for (j=1-q_size; j<n_size; j++) {
-              j2 = j+qoff;
-              switch (opt) {
-	case 1:      /* REFLECT */
-                 if (j2<0)
-                    j2 = -j2-1;
-                 else if (j2 >= n_size)
-                    j2 = 2*n_size-(j2+1);
-                 break;
-	case 2:      /* TRUNCATE */
-                 if (j2<0 || j2>=n_size)
-                    j2 = -1;
-                 break;
-	default:
-                 REALMOD(j2,n_size);
-               }
-               mapj[j] = j2;
-	   }
-
+        Code => 
+           init_vars( { vars => 'PDL_Double *tmp, kk; int count;',
+                        malloc => 'tmp = malloc(p_size*q_size*sizeof(PDL_Double));',
+                        check => '(tmp==NULL) || ' } ) .
+           init_map("i") . 
+           init_map("j") .
+'
            threadloop %{
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              count = 0;
-              for(j1=0; j1<q_size; j1++) {
-                  j2 = mapj[j-j1];
+           for(j=0; j<n_size; j++) { 
+              for(i=0; i<m_size; i++) {
+                 count = 0;
+                 for(j1=0; j1<q_size; j1++) {
+                    j2 = mapj[j-j1];
 
-                  if (j2 >= 0)
-                     for(i1=0; i1<p_size; i1++) {
-                        i2 = mapi[i-i1];
-                        if (i2 >= 0) {
-                           kk = $kern(p=>i1,q=>j1);
-                           if (kk>0) {
-                              tmp[count++] = $a(m=>i2,n=>j2) * kk;
-                           }
-                        }
-              }}
-              pdl_lqsortD(tmp,0,count-1);
+                    if (j2 >= 0)
+                       for(i1=0; i1<p_size; i1++) {
+                          i2 = mapi[i-i1];
+                          if (i2 >= 0) {
+                             kk = $kern(p=>i1,q=>j1);
+                             if (kk>0) {
+                                tmp[count++] = $a(m=>i2,n=>j2) * kk;
+                             }
+                          } /* if: i2 >= 0 */
+		       } /* for: i1 */
+		 } /* for: j1 */
 
-              $b(m=>i,n=>j) = tmp[(count-1)/2];
-           }} %}
+                 PDL->qsort_D( tmp, 0, count-1 );
+                 $b(m=>i,n=>j) = tmp[(count-1)/2];
+
+              } /* for: i */
+           } /* for: j */
+           %}
            free(mapj+1-q_size); free(mapi+1-p_size); free(tmp);
-');
+',
+
+); # pp_def: med2d
 
 pp_def('patch2d', Doc=><<'EOD',
 =for ref
 
-patch bad pixels out of 2D images,
+patch bad pixels out of 2D images using a mask
 
 =for usage
 
  $patched = patch2d $data, $bad;
 
-C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel. Pixels are replaced by the average
-of their non-bad neighbours.
-
-=cut
+C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel. 
+Pixels are replaced by the average of their non-bad neighbours;
+if all neighbours are bad, the original data value is
+copied across.
 
 EOD
         Pars => 'a(m,n); int bad(m,n); [o]b(m,n);',
-        Code => '
-           int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
-           double tmp;
+        Code => 
+        'int m_size, n_size,  i,j, i1,j1, i2,j2, norm;
+         double tmp;
+	 
+         m_size = $COMP(__m_size); n_size = $COMP(__n_size);
 
-           m_size = $COMP(__m_size); n_size = $COMP(__n_size);
+      threadloop %{
+	 
+         for(j=0; j<n_size; j++) { 
+            for(i=0; i<m_size; i++) {
 
-           for(j=0; j<n_size; j++) { for(i=0; i<m_size; i++) {
-              $b(m=>i,n=>j) = $a(m=>i,n=>j);
-              if ($bad(m=>i,n=>j)==1) {
-                 tmp = 0; norm=0;
-                 for(j1=-1; j1<=1; j1++) { for(i1=-1; i1<=1; i1++) {
-                     i2 = i+i1; j2 = j+j1;
-                     if (j2>0 && i2>0 && i2<m_size && j2<n_size &&
-                        $bad(m=>i2,n=>j2)!=1)
-                        tmp += $a(m=>i2,n=>j2); norm++;
-                 }}
-                 if (norm>0) {  /* Patch */
-                    $b(m=>i,n=>j) = tmp/norm;
-                 }
+               $b(m=>i,n=>j) = $a(m=>i,n=>j);
 
-              } /* Next pixel */
-           }}
-');
+               if ( $bad(m=>i,n=>j)==1 ) {
+                  tmp = 0; norm=0;
+                  for(j1=-1; j1<=1; j1++) { 
+		     j2 = j+j1;
+		     if ( j2>=0 && j2<n_size ) {
+                        for(i1=-1; i1<=1; i1++) {
+                           /* ignore central pixel, which we know is bad */
+			   if ( i1!=0 || j1!=0 ) {
+                              i2 = i+i1; 
+                              if ( i2>=0 && i2<m_size && $bad(m=>i2,n=>j2)!=1 ) {
+                                 tmp += $a(m=>i2,n=>j2); 
+                                 norm++;
+			      }
+			   } /* if: i1!=0 || j1!=0 */
+		        } /* for: i1 */
+		     }
+		  } /* for: j1 */
+
+                  if (norm>0) {  /* Patch */
+                     $b(m=>i,n=>j) = tmp/norm;
+		  }
+	 
+               } /* if: bad() */
+
+	    } /* for: i */
+         } /* for: j */
+
+      %} /* threadloop */
+
+         ', # Code
+
+); # pp_def: patch2d
 
 
 pp_def('max2d_ind',Doc=><<'EOD',
@@ -361,8 +354,6 @@ pp_def('max2d_ind',Doc=><<'EOD',
 Return value/position of maximum value in 2D image
 
 Contributed by Tim Jeness
-
-=cut
 
 EOD
 
@@ -390,8 +381,6 @@ Refine a list of object positions in 2D image by centroiding in a box
 
 C<$box> is the full-width of the box, i.e. the window
 is C<+/- $box/2>.
-
-=cut
 
 EOD
 	Pars => 'im(m,n); x(); y(); box(); [o]xcen(); [o]ycen();',
@@ -645,7 +634,6 @@ fill the area inside the given polygon with a given colour
 
 This function works inplace, i.e. modifies C<im>.
 
-=cut
 EOD
 );
 
@@ -719,7 +707,7 @@ pp_def('rot2d',
 			/* printf("o: %d, p: %d\n",ncols,nrows); */
 			$SIZE(p) = ncols;
 			$SIZE(q) = nrows;',
-	GenericTypes => [B],
+	GenericTypes => ['B'],
 	Doc => << 'EOD',
 =for ref
 
@@ -914,21 +902,5 @@ else if(ox < ix && oy >= iy) {
 }
 else barf("I am not supposed to be here, please report the bug to <chri@infis.univ.ts.it>");
   ');
-
-pp_addpm({At=>Bot},<<'EOD');
-
-=head1 AUTHORS
-
-Copyright (C) Karl Glazebrook 1997 with additions by Robin Williams
-(rjrw@ast.leeds.ac.uk) and Tim Jeness (timj@jach.hawaii.edu).
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-=cut
-
-EOD
 
 pp_done();

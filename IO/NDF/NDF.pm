@@ -1,5 +1,5 @@
 package PDL::IO::NDF;
- 
+
 =head1 NAME
 
 PDL::IO::NDF - PDL Module for reading and writing Starlink
@@ -130,7 +130,8 @@ sub PDL::rndf {  # Read a piddle from a NDF file
 
   # Read in the filename
   # And setup the new PDL
-  my $file = shift; my $pdl = $class->new;
+  my $file = shift; 
+  my $pdl = $class->new;
   my $nomask = shift if $#_ > -1;
 
   my ($infile, $status, $indf, $entry, @info, $value);
@@ -139,9 +140,12 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   croak 'Cannot use NDF library' if $@ ne "";
 
   # Strip trailing .sdf if one is present
-  # File is the first thing before a .
+  # remove the trailing extension names
+  # (anything after a `.' UNLESS it's part of a directory
+  # name, hence the check for ^/)
   $file =~ s/\.sdf$//;
-  $infile = (split(/\./,$file))[0];
+  $infile = $file;
+  $infile =~ s!\.[^/]*$!!;
 
   # If file is not there
   croak "Cannot find $infile.sdf" unless -e "$infile.sdf";
@@ -157,6 +161,8 @@ sub PDL::rndf {  # Read a piddle from a NDF file
   ndf_find(&NDF::DAT__ROOT, $file, $indf, $status);
 
   # unset automatic quality masking if $nomask is defined
+  #
+  # XXX shouldn't the 1 and 0 be swapped here ??? (DJB)
   $nomask = 0 unless (defined $nomask);
   $nomask = 1 if $nomask != 0;
   ndf_sqmf($nomask, $indf, $status);

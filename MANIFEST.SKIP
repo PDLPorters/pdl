@@ -25,6 +25,7 @@ RCS
 %$
 pdlbasicops\.c$
 pdlconv\.c$
+pdlcore\.h$
 pdlmoremaths\.c$
 pdlsections\.c$
 pdlstats\.c$

@@ -1,4 +1,5 @@
-#!/usr/local/bin/perl
+
+use strict;
 
 use Config;
 use File::Basename qw(&basename &dirname);
@@ -11,7 +12,7 @@ sub typeofPDLLong {
    die "Can not find an integer datatype of size 4 bytes!!!\n";
 }
 
-$itype = &typeofPDLLong;
+my $itype = &typeofPDLLong;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -23,13 +24,14 @@ $itype = &typeofPDLLong;
 # This forces PL files to create target in same directory as PL file.
 # This is so that make depend always knows where to find PL derivatives.
 chdir(dirname($0));
+my $file;
 ($file = basename($0)) =~ s/\.PL$//;
 $file =~ s/\.pl$//
 	if ($Config{'osname'} eq 'VMS' or
 	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
 open OUT,">$file" or die "Can't create $file: $!";
 
-print "Extracting $file (with variable substitutions)\n";
+print "Extracting $file\n";
 chmod 0644, $file;
 
 # In this section, perl variables will be expanded during extraction.
@@ -59,7 +61,6 @@ require Exporter;
 @EXPORT = qw( $PDL_B $PDL_S $PDL_US $PDL_L $PDL_F $PDL_D @pack %typehash );
 @ISA    = qw( Exporter );
 
-
 # Data types/sizes (bytes) [must be in order of complexity]
 
 # Enum
@@ -69,25 +70,29 @@ require Exporter;
 @PDL::Types::pack=("C*", "s*", "S*", "l*", "f*", "d*");
 @PDL::Types::names= qw/PDL_B PDL_S PDL_US PDL_L PDL_F PDL_D/;
 
-
 # should be usable in a couple of places, e.g. Dev.pm (how to locate
 # during compilation?) and PDL::PP::PDLCode, also used in PDL::Dbg
-%PDL::Types::typehash = ();
-map {$key = $_; $PDL::Types::typehash{$key->[1]} = {'numval' => $key->[0],
-                                                    'sym' => $key->[1],
-						    'ctype' => $key->[2],
-						    'ppsym' => $key->[3],
-						    'realctype' => $key->[4]} }
-    ([$PDL_B,'PDL_B','PDL_Byte','B','unsigned char'],
-     [$PDL_S,'PDL_S','PDL_Short','S','short'],
-     [$PDL_US,'PDL_US','PDL_Ushort','U','unsigned short'],
+#
+%PDL::Types::typehash = (
 !NO!SUBS!
-print OUT <<"!GROK!THIS!";
-     [\$PDL_L,'PDL_L','PDL_Long','L', '$itype'],
-!GROK!THIS!
-print OUT <<'!NO!SUBS!';
-     [$PDL_F,'PDL_F','PDL_Float','F','float'],
-     [$PDL_D,'PDL_D','PDL_Double','D','double']);
-1;
-!NO!SUBS!
+
+print OUT 
+    map {
+	my $key = $_;
+	"   $key->[1] => {\n" .
+	"     numval => $key->[0], sym => $key->[1], ctype => $key->[2],\n" .
+	"     ppsym => $key->[3], realctype => $key->[4]\n" .
+	"             },\n";
+    }
+(
+ ["\$PDL_B",  "'PDL_B'",  "'PDL_Byte'",   "'B'", "'unsigned char'"  ],
+ ["\$PDL_S",  "'PDL_S'",  "'PDL_Short'",  "'S'", "'short'"          ],
+ ["\$PDL_US", "'PDL_US'", "'PDL_Ushort'", "'U'", "'unsigned short'" ],
+ ["\$PDL_L",  "'PDL_L'",  "'PDL_Long'",   "'L'", "'".$itype."'"     ],
+ ["\$PDL_F",  "'PDL_F'",  "'PDL_Float'",  "'F'", "'float'"          ],
+ ["\$PDL_D",  "'PDL_D'",  "'PDL_Double'", "'D'", "'double'"         ]
+ ); 
+
+print OUT ");\n\n1;\n";
+
 

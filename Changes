@@ -1,7 +1,16 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (08/12/00)
+Doug Burke (08/12/00-08/13/00)
+    - made qsort and qsort_ind C routines in primitive.pd available to all
+      modules via the PDL Core structure (pdlcore.h is now created by pdlcore.h.PL)
+    - updated image2d.pd to use primitive's qsort rather than its own and
+      fixed a bug in patch2d
+    - added double precision versions of sum, sumover, cumusumover (same for prod)
+      and average (eg dsum, daverage). Added prodover routine
+      Changed stats to use this (+ changed PDL::Tests to avoid name clashes)
+    - revamped Types.pm.PL
     - made Inplace option for pp_def a bit more sensible
-    - marked several functions in math.pd as inplace
+    - marked several functions in math.pd as inplace (needs documenting)
+    - fixed rndf() so that can use rndf('../bob')
 Jim Edwards (08/08/00)
     - Major changes to the TriD code (requires perl 5.6.0)
 Doug Burke (08/02/00)

@@ -1,4 +1,40 @@
+# -*-perl-*-
 
+use Config;
+use File::Basename qw(&basename &dirname);
+
+# List explicitly here the variables you want Configure to
+# generate.  Metaconfig only looks for shell variables, so you
+# have to mention them as if they were shell variables, not
+# %Config entries.  Thus you write
+#  $startperl
+# to ensure Configure will look for $Config{startperl}.
+
+# This forces PL files to create target in same directory as PL file.
+# This is so that make depend always knows where to find PL derivatives.
+chdir(dirname($0));
+my $file;
+($file = basename($0)) =~ s/\.PL$//;
+$file =~ s/\.pl$//
+	if ($Config{'osname'} eq 'VMS' or
+	    $Config{'osname'} eq 'OS2');  # "case-forgiving"
+open OUT,">$file" or die "Can't create $file: $!";
+
+print "Extracting $file\n";
+chmod 0644, $file;
+
+# In this section, perl variables will be expanded during extraction.
+# You can use $Config{...} to use Configure variables.
+
+print OUT <<"!WITH!SUBS!";
+
+/*
+ * THIS FILE IS GENERATED FROM pdlcore.h.PL! Do NOT edit!
+ */
+
+!WITH!SUBS!
+
+print OUT <<"!NO!SUBS!";
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
 #include "ppport.h"
@@ -239,10 +275,29 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*allocdata) (pdl *it);
   PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+
+!NO!SUBS!
+
+# set up the qsort routines
+
+    # fortunately it looks like Types.pm.PL is processed before this
+    # file
+    require "Types.pm";  # ie PDL::Types
+
+for (keys %PDL::Types::typehash) {
+   my $ctype = $PDL::Types::typehash{$_}{ctype};
+   my $ppsym = $PDL::Types::typehash{$_}{ppsym};
+
+   print OUT "void (*qsort_${ppsym}) (${ctype} *xx, int a, int b );\n";
+   print OUT "void (*qsort_ind_${ppsym}) (${ctype} *xx, int *ix, int a, int b );\n";
+}
+
+print OUT <<'!NO!SUBS!';
+
 };
 
 typedef struct Core Core;
 
 Core *pdl__Core_get_Core(); /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
-
+!NO!SUBS!

@@ -8,6 +8,9 @@ sub defpdl {
 	pp_def($_[0],%hash);
 }
 
+# should we use the finite() routine in libm ?
+# (is the Windows version _finite() ?)
+#
 pp_addhdr(<<'EOD');
 #define IsNaN(x) (x != x)
 
@@ -17,7 +20,7 @@ pp_addhdr(<<'EOD');
 
 EOD
 
-pp_addpm({At=>Top},<<'EOD');
+pp_addpm({At=>'Top'},<<'EOD');
 
 use PDL::Slices;
 use Carp;
@@ -37,6 +40,23 @@ For explanation of the signature format, see L<PDL::PP|PDL::PP>.
 =head1 SYNOPSIS
 
  use PDL::Primitive;
+
+=cut
+
+EOD
+
+pp_addpm({At=>'Bot'},<<'EOD');
+
+=head1 AUTHOR
+
+Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
+by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
+(kgb@aaoepp.aao.gov.au).
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
 
 =cut
 
@@ -68,7 +88,6 @@ I<any> dimension.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
-=cut
 
 EOD
 
@@ -102,73 +121,136 @@ is the first element of the parameter.
  \$spectrum = $op \$image->xchg(0,1)
 
 $extras
-=cut
 
 EOD
 
 }
 
+my %over = 
+    (
+     sumover  => { name => 'sum',     op => '+=', init => 0, },
+     prodover => { name => 'product', op => '*=', init => 1, },
+     );
 
-defpdl(
-	'sumover',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a(); %}
-	 $b() = tmp;',
-	 projectdocs('sum','sumover','')
-);
+foreach my $func ( keys %over ) {
+    
+    # creates $func and cumu$func functions
+    # and d$func and dcumu$func functions, which
+    # perform the calculations in double precision
+    
+    my $name = $over{$func}{name};
+    my $op   = $over{$func}{op};
+    my $init = $over{$func}{init};
 
-defpdl(
-      'zcover',
-      'a(n); int+ [o]b();',
-      '',
-      '$GENERIC(b) tmp = 1;
-       loop(n) %{ tmp = tmp && $a() == 0; if (!tmp) break; %}
-       $b() = tmp;',
-       projectdocs('== 0','zcover','')   # it's checking for zeroes, so shouldn't be !=0
-#       projectdocs('!= 0','zcover','')   
-);
+    pp_def(
+	   $func,
+	   Pars => 'a(n); int+ [o]b();',
+	   Code => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+	    loop(n) %{ tmp ' . $op . ' $a(); %}
+	    $b() = tmp;',
+	   Doc => projectdocs( $name, $func, '' ),
+	   );
 
-pp_def(
-      'andover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 1;
-       loop(n) %{ tmp = tmp && $a(); if (!tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('and','andover','')
-);
+    # as above, but in double precision
+    pp_def(
+	   "d$func",
+	   Pars => 'a(n); double [o]b();',
+	   Code => 
+	   'double tmp = ' . $init . ';
+	    loop(n) %{ tmp ' . $op . ' $a(); %}
+	    $b() = tmp;',
+	   Doc => projectdocs( $name, "d$func", 
+"Unlike L<$func|/$func>, the calculations are performed in double\n" .
+"precision." ),
+	   );
 
-pp_def(
-      'bandover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = ~ 0 ;
-       loop(n) %{ tmp &= $a(); if (!tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('bitwise and','bandover','')
-);
+    my $cfunc = "cumu${func}";
+    pp_def(
+	   $cfunc,
+	   Pars => 'a(n); int+ [o]b(n);',
+	   Code => 
+           '$GENERIC(b) tmp = ' . $init . ';
+	    loop(n) %{ 
+               tmp ' . $op . ' $a();
+	       $b() = tmp;
+	    %}',
+	   Doc => cumuprojectdocs( $name, $cfunc, '' ),
+	   );
 
-pp_def(
-      'orover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 0;
-       loop(n) %{ tmp = tmp || $a(); if (tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('or','orover','')
-);
+    # as above but in double precision
+    pp_def(
+	   "d$cfunc",
+	   Pars => 'a(n); double [o]b(n);',
+	   Code => 
+           'double tmp = ' . $init . ';
+	    loop(n) %{ 
+               tmp ' . $op . ' $a();
+	       $b() = tmp;
+	    %}',
+	   Doc => cumuprojectdocs( $name, $cfunc, 
+"Unlike L<cumu$func|/cumu$func>, the calculations are performed in double\n" .
+"precision." ),
+	   );
 
-pp_def(
-      'borover',
-      Pars => 'a(n); int+ [o]b();',
-      GenericTypes => [B,S,U,L],
-      Code => '$GENERIC(b) tmp = 0;
-       loop(n) %{ tmp |= $a(); if (!~tmp) break; %}
-       $b() = tmp;',
-      Doc => projectdocs('bitwise or','borover','')
-);
+} # foreach: my $func
+
+
+%over = 
+    (
+     zcover   => { txt => '== 0', init => 1, alltypes => 1,
+		   op => 'tmp = tmp && $a() == 0;', check => '!tmp' },
+     andover  => { txt => 'and', init => 1, 
+		   op => 'tmp = tmp && $a();', check => '!tmp' },
+     bandover => { txt => 'bitwise and', init => '~0', 
+		   op => 'tmp &= $a();', check => '!tmp' },
+     orover   => { txt => 'or', init => 0, 
+		   op => 'tmp = tmp || $a();', check => 'tmp' },
+     borover  => { txt => 'bitwise or', init => 0, 
+		   op => 'tmp |= $a();', check => '!~tmp' },
+     
+     );
+
+foreach my $func ( keys %over ) {
+#foreach my $func ( qw( zcover andover bandover orover borover ) ) {
+
+    my $txt   = $over{$func}{txt};
+    my $init  = $over{$func}{init};
+    my $op    = $over{$func}{op};
+    my $check = $over{$func}{check};
+
+    my %extra = {};
+    unless ( defined $over{$func}{alltypes} and $over{$func}{alltypes} ) {
+	$extra{GenericTypes} = ['B','S','U','L'];
+    }
+
+    pp_def(
+	   $func,
+	   HandleBad => 1,
+	   %extra,
+	   Pars => 'a(n); int+ [o]b();',
+	   Code =>
+	   '$GENERIC(b) tmp = ' . $init . ';
+            loop(n) %{ ' . $op . ' if (' . $check . ') break; %}
+            $b() = tmp;',
+	   BadCode => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+            int flag = 0;
+            loop(n) %{
+               if ( $ISGOOD(a()) ) { ' . $op . ' flag = 1; if (' . $check . ') break; }
+            %}
+            if ( flag ) { $b() = tmp; }
+            else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
+	   CopyBadStatusCode => '',
+	   Doc => projectdocs( $txt, $func,''), 
+	   BadDoc => 
+'If C<a()> contains only bad data (and its bad flag is set), 
+C<b()> is set bad. Otherwise C<b()> will have its bad flag cleared,
+as it will not contain any bad values.',
+	   );
+    
+} # foreach: $func
+
 
 defpdl(
       'intover',
@@ -225,62 +307,44 @@ is the natural (and correct) choice for binned data, of course.
 ~)
 );
 
+# XXX Why not threadloop for efficiency
+pp_def(
+       'average',
+       Pars => 'a(n); int+ [o]b();',
+       Code =>
+       '$GENERIC(b) tmp = 0;
+	loop(n) %{ tmp += $a(); %}
+	$b() = tmp / ($GENERIC(b)) $SIZE(n);',
+       Doc => projectdocs('average','average',''),
+       );
 
-defpdl(
-	'cumusumover',
-	'a(n); int+ [o]b(n);',
-	'',
-	'$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a();
-		 $b() = tmp;
-	 %}
-	',
-	 cumuprojectdocs('sum','cumusumover','')
-);
-
-
-defpdl(
-	'prodover',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 1;
-	 loop(n) %{ tmp *= $a(); %}
-	 $b() = tmp;',
-	 projectdocs('product','prodover','')
-);
-
-defpdl(
-	'cumuprodover',
-	'a(n); int+ [o]b(n);',
-	'',
-	'$GENERIC(b) tmp = 1;
-	 loop(n) %{ tmp *= $a();
-		 $b() = tmp;
-	 %}
-	 ',
-	 cumuprojectdocs('product','cumuprodover','')
-);
-
-
-# XXX why cnt? Why not size(n)? Why not threadloop for efficiency
-defpdl(
-	'average',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 0, cnt;
-	 cnt = 0;
+# do the above calculation, but in double precision
+pp_def( 
+	'daverage',
+	Pars => 'a(n); double [o]b();',
+	Code => 
+	'double tmp = 0;
+         long cnt = 0;
 	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp/cnt;',
-	 projectdocs('average','average','')
-);
+	 $b() = tmp / cnt;',
+	Doc => projectdocs( 'average', 'daverage', 
+"Unlike L<average|/average>, the calculation is performed in double\n" .
+"precision." ),
+	);
 
 # Internal utility sorting routine for median/qsort routines.
+#
+# note: we export them to the PDL Core structure for use in
+#       other modules (eg Image2D)
 
 for (keys %PDL::Types::typehash) {
-   $ctype = $PDL::Types::typehash{$_}{ctype};
-   $ppsym = $PDL::Types::typehash{$_}{ppsym};
+    my $ctype = $PDL::Types::typehash{$_}{ctype};
+    my $ppsym = $PDL::Types::typehash{$_}{ppsym};
 
-   pp_addhdr("
+    pp_add_boot( " PDL->qsort_${ppsym} = pdl_qsort_${ppsym};" .
+		 " PDL->qsort_ind_${ppsym} = pdl_qsort_ind_${ppsym};\n" );
+
+    pp_addhdr("
 
       void pdl_qsort_$ppsym($ctype* xx, int a, int b) {
 
@@ -339,28 +403,42 @@ for (keys %PDL::Types::typehash) {
    ");
 }
 
-pp_def('medover',
-        Pars => 'a(n); [o]b(); [t]tmp(n);',
-	Doc => projectdocs('median','medover',''),
-        Code => '
-           int nn, nn1, nn2;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+sub generic_qsort {
+    my $pdl = shift;
+    return '$TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
+             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(' . $pdl . '), 0, nn);';
+}
 
+my $copy_to_temp = '
+           int nn, nn1;
+	   loop(n) %{ $tmp() = $a(); %}
+           nn = $COMP(__n_size)-1; ' .
+       generic_qsort('tmp');
+
+my $find_median_average = '
            nn1 = nn/2; nn2 = nn1+1;
            if (nn%2==0) {
 	      $b() = $tmp(n => nn1);
            }
            else {
 	      $b() = 0.5*( $tmp(n => nn1) + $tmp(n => nn2)  );
-           }
-');
+           }';
+
+my $find_median_lower = '
+        nn1 = nn/2;
+	$b() = $tmp(n => nn1);';
+
+pp_def('medover',
+       Pars => 'a(n); [o]b(); [t]tmp(n);',
+       Doc => projectdocs('median','medover',''),
+       Code =>
+       "int nn2;\n" . $copy_to_temp . $find_median_average,
+
+       ); # pp_def: medover
 
 pp_def('oddmedover',
-        Pars => 'a(n); [o]b(); [t]tmp(n);',
-	Doc => projectdocs('oddmedian','oddmedover','
+       Pars => 'a(n); [o]b(); [t]tmp(n);',
+       Doc => projectdocs('oddmedian','oddmedover','
 
 The median is sometimes not a good choice as if the array has
 an even number of elements it lies half-way between the two
@@ -369,34 +447,33 @@ value. The lower-odd median is just the lower of these two values
 and so it ALWAYS sits on an actual data value which is useful in
 some circumstances.
 	'),
-        Code => '
-           int nn, nn1;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+       Code => 
+       $copy_to_temp . $find_median_lower,
 
-           nn1 = nn/2;
-	   $b() = $tmp(n => nn1);
-');
+       ); # pp_def: oddmedover
 
 
 # Generate small ops functions to do entire array
 
-for $op ( ['avg','average','average'],
-          ['sum','sumover','sum'],
-          ['zcheck','zcover','check for zero'],
-          ['and','andover','logical and'],
-          ['band','bandover','bitwise and'],
-          ['or','orover','logical or'],
-          ['bor','borover','bitwise or'],
-	  ['min','minimum','minimum'],
-	  ['max','maximum','maximum'],
-	  ['median', 'medover', 'median'],
-	  ['oddmedian','oddmedover','oddmedian']) {
-   pp_add_exported('', $op->[0]);
+for my $op ( ['avg','average','average'],
+	     ['sum','sumover','sum'],
 
-   pp_addpm(<<"EOD");
+	     ['prod','prodover','product'],
+	     ['dprod','dprodover','product (in double precision)'],
+	     ['dsum','dsumover','sum (in double precision)'],
+
+	     ['zcheck','zcover','check for zero'],
+	     ['and','andover','logical and'],
+	     ['band','bandover','bitwise and'],
+	     ['or','orover','logical or'],
+	     ['bor','borover','bitwise or'],
+	     ['min','minimum','minimum'],
+	     ['max','maximum','maximum'],
+	     ['median', 'medover', 'median'],
+	     ['oddmedian','oddmedover','oddmedian']) {
+    pp_add_exported('', $op->[0]);
+
+    pp_addpm(<<"EOD");
 
 =head2 $op->[0]
 
@@ -497,16 +574,15 @@ pp_add_exported('', 'minmax');
 #pp_add_exported('', 'minmax_ind');
 
 
-pp_def('qsort',
-        Pars => 'a(n); [o]b(n);',
-        Code => '
-           int nn;
-	   loop(n) %{ $b() = $a(); %}
-           nn = $COMP(__n_size)-1;
-           $TBSULFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_F,pdl_qsort_D) ($P(b), 0, nn);
-
-', Doc=>'
+pp_def(
+    'qsort',
+    Pars => 'a(n); [o]b(n);',
+    Code => 
+    'int nn;
+     loop(n) %{ $b() = $a(); %}
+     nn = $COMP(__n_size)-1;
+    ' . generic_qsort('b'),
+    Doc=>'
 =for ref
 
 Quicksort a vector into ascending order.
@@ -515,8 +591,8 @@ Quicksort a vector into ascending order.
 
  print qsort random(10);
 
-=cut
-');
+',
+    ); # pp_def qsort
 
 
 pp_def('qsorti',
@@ -1605,7 +1681,6 @@ After
 the inner product C<$c*$a> and C<$c*$b> will be zero, i.e. C<$c> is
 orthogonal to C<$a> and C<$b>
 
-=cut
 EOD
 	Pars => 'a(tri=3); b(tri); [o] c(tri)',
 	Code => crassgn(0,1,2)."\n".
@@ -1648,19 +1723,20 @@ deviation.
 
 =cut
 
-
 *stats	  = \&PDL::stats;
 sub PDL::stats {
     barf('Usage: ($mean,[$rms]) = stats($data,[$weights])') if $#_>1;
     my ($data,$weights) = @_;
     my ($mean,$rms);
     if ($#_==0) {
-       $mean = ($data->sum)/($data->nelem);
-       $rms = sqrt(  ((($data-$mean)**2 )->sum) / ($data->nelem) );
+       my $npts = $data->nelem;
+       $mean = ($data->sum)/ $npts;
+       $rms = sqrt(  ((($data-$mean)**2 )->dsum) / $npts );
     }
     else {
-       $mean = (($weights*$data)->sum) / (($weights)->sum);
-       $rms = sqrt(  ( ( $weights*(($data-$mean)**2) )->sum )  / ($weights->sum) );
+       my $wtsum = $weights->dsum;
+       $mean = (($weights*$data)->dsum) / $wtsum;
+       $rms = sqrt(  ( ( $weights*(($data-$mean)**2) )->dsum )  / $wtsum );
     }
     my ($median,$min,$max) = ($data->median,$data->min,$data->max);
     print "Mean = $mean, RMS = $rms, Median = $median\n".
@@ -1773,23 +1849,5 @@ Threaded Example:
 
 =cut
 ');
-
-pp_addpm({At=>Bot},<<'EOD');
-
-=head1 AUTHOR
-
-Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
-by Christian Soeller (c.soeller@auckland.ac.nz) and Karl Glazebrook
-(kgb@aaoepp.aao.gov.au).
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
-
-=cut
-
-EOD
 
 pp_done();
