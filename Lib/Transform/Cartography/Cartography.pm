@@ -241,8 +241,10 @@ auxiliary functions (no leading 't_').
 use PDL::Transform;
 
 package PDL::Transform::Cartography;
+use PDL::Core ':Internal'; # Load 'topdl' (internal routine)
+
 @ISA = ( 'Exporter','PDL::Transform' );
-$VERSION = "0.5";
+$VERSION = "0.6";
 
 BEGIN {
   use Exporter ();
@@ -616,10 +618,10 @@ sub new {
     my($l) = _opt($o,['l','L']);
     my($b) = _opt($o,['b','B']);
 
-    $or->(0) .= pdl($l) if defined($l);
-    $or->(1) .= pdl($b) if defined($b);
+    $or->(0) .= topdl($l) if defined($l);
+    $or->(1) .= topdl($b) if defined($b);
 
-    my $roll = pdl(_opt($o,['r','roll','Roll','P'],0));
+    my $roll = topdl(_opt($o,['r','roll','Roll','P'],0));
     my $unit = _opt($o,['u','unit','Unit'],'degrees');
 
     $me->{params}->{conv} = my $conv = _uconv($unit);
@@ -636,7 +638,7 @@ sub new {
       } else {
 	my @oconv;
 	map {push(@oconv,_uconv($_))} @$ou;
-	$me->{params}->{oconv} = pdl(@oconv);
+	$me->{params}->{oconv} = topdl([@oconv]);
       }
     } else {
       $me->{params}->{oconv} = undef;
@@ -647,11 +649,11 @@ sub new {
     $me->{params}->{roll} = $roll * $conv;
 
     $me->{params}->{bad} = _opt($o,['b','bad','Bad','missing','Missing'],
-			      asin(pdl(1.2)));
+			      asin(topdl(1.2)));
 
     # Get the standard parallel (in general there's only one; the conics
     # have two but that's handled by _c_new)
-    $me->{params}->{std} = pdl(_opt($me->{options},
+    $me->{params}->{std} = topdl(_opt($me->{options},
 			 ['s','std','standard','Standard'],
 			 0))->at(0) * $me->{params}->{conv};
 
@@ -744,7 +746,7 @@ sub t_unit_sphere {
   $me->{params}->{otype} = ['X','Y','Z'];
   $me->{params}->{ounit} = ['body radii','body radii','body radii'];
 
-  $me->{params}->{r} = pdl(_opt($me->{options},
+  $me->{params}->{r} = topdl(_opt($me->{options},
 				['r','radius','Radius'],
 				1.0)
 			   )->at(0);
@@ -845,11 +847,11 @@ sub _rotmat {
        [ sin($th) ,   cos($th),    0  ],
        [  0,          0,           1  ] )
     x
-    pdl( [ cos($ph),    0,  -sin($ph)  ], # apply phi
+  pdl( [ cos($ph),    0,  -sin($ph)  ], # apply phi
 	 [ 0,           1,    0       ],
 	 [ sin($ph),   0,  cos($ph)  ] )
     x
-    pdl( [ 1,         0 ,       0      ], # apply roll last
+  pdl( [ 1,         0 ,       0      ], # apply roll last
 	 [ 0,    cos($r),   -sin($r)   ], 
 	 [ 0,    sin($r),    cos($r)   ])
     ;
@@ -1129,16 +1131,17 @@ sub t_mercator {
 		   ['c','clip','Clip'],
 		   undef);
     if(defined($p->{c})) {
-	$p->{c} = pdl($p->{c});
+	$p->{c} = topdl($p->{c});
 	$p->{c} *= $p->{conv};
     } else {
-	$p->{c} = pdl($DEG2RAD * 75);
+	$p->{c} = topdl($DEG2RAD * 75);
     }
     $p->{c} = abs($p->{c}) * pdl(-1,1) if($p->{c}->nelem == 1);
+
     $p->{c} = log(tan(($p->{c}/2) + $PI/4));       
     $p->{c} = [$p->{c}->list];
 
-    $p->{std} = pdl(_opt($me->{options},
+    $p->{std} = topdl(_opt($me->{options},
 			 ['s','std','standard','Standard'],
 			 0))->at(0) * $p->{conv};
 
@@ -1339,7 +1342,7 @@ vertical stretching and horizontal squishing (to achieve constant area).
 sub t_sin_lat {
     my($me) = _new(@_,"Sine-Latitude Projection");
 
-    $me->{params}->{std} = pdl(_opt($me->{options},
+    $me->{params}->{std} = topdl(_opt($me->{options},
 				['s','std','standard','Standard'],
 				0))->at(0) * $me->{params}->{conv};
 
@@ -1457,8 +1460,8 @@ sub _c_new {
     my($p) = $me->{params};
     $p->{std} = _opt($me->{options},['s','std','standard','Standard'],
 		     $def_std);
-    $p->{std} = pdl($p->{std}) * $me->{params}->{conv};
-    $p->{std} = pdl([$PI/2 * ($p->{std}<0 ? -1 : 1), $p->{std}->at(0)])
+    $p->{std} = topdl($p->{std}) * $me->{params}->{conv};
+    $p->{std} = topdl([$PI/2 * ($p->{std}<0 ? -1 : 1), $p->{std}->at(0)])
 	if($p->{std}->nelem == 1);
     
     $me->{params}->{cylindrical} = 1
@@ -1749,11 +1752,11 @@ sub t_lambert {
     # Find clipping parallels
     $p->{c} = _opt($me->{options},['c','clip','Clip'],undef);
     if(defined($p->{c})) {
-	$p->{c} = pdl($p->{c});
+	$p->{c} = topdl($p->{c});
     } else {
-	$p->{c} = pdl(-75,75);
+	$p->{c} = topdl(-75,75);
     }
-    $p->{c} = abs($p->{c}) * pdl(-1,1) if($p->{c}->nelem == 1);
+    $p->{c} = abs($p->{c}) * topdl([-1,1]) if($p->{c}->nelem == 1);
     $p->{c} = [$p->{c}->list];
 
     # Prefrobnicate
@@ -1942,7 +1945,7 @@ sub t_gnomonic {
     
     $me->{params}->{k0} = 1.0;  # Useful for standard parallel (TBD: add one)
 
-    $me->{params}->{c} = pdl(_opt($me->{options},
+    $me->{params}->{c} = topdl(_opt($me->{options},
 			      ['c','clip','Clip'],
 			      75) * $me->{params}->{conv});
 
@@ -2044,7 +2047,7 @@ The largest angle relative to the origin.  Default is the whole sphere.
 sub t_az_eqd {
   my($me) = _new(@_,"Equidistant Azimuthal Projection");
 
-  $me->{params}->{c} = pdl(_opt($me->{options},
+  $me->{params}->{c} = topdl(_opt($me->{options},
 				['c','clip','Clip'],
 				180) * $me->{params}->{conv});
 
@@ -2132,7 +2135,7 @@ The largest angle relative to the origin.  Default is the whole sphere.
 sub t_az_eqa {
   my($me) = _new(@_,"Equal-Area Azimuthal Projection");
   
-  $me->{params}->{c} = pdl(_opt($me->{options},
+  $me->{params}->{c} = topdl(_opt($me->{options},
 				['c','clip','Clip'],
 				180) * $me->{params}->{conv});
 
@@ -2651,7 +2654,7 @@ sub t_perspective {
 		     1.0);
 
     # Regular pointing pseudovector -- make sure there are exactly 3 elements
-    $p->{p} = (pdl(_opt($me->{options},
+    $p->{p} = (topdl(_opt($me->{options},
 			['p','ptg','pointing','Pointing'],
 			[0,0,0])
 		   )
@@ -2667,7 +2670,7 @@ sub t_perspective {
 		   );
 
     if(defined($p->{c})) {
-      $p->{c} = (pdl($p->{c}) * $p->{tconv})->append(zeroes(3))->(0:2);
+      $p->{c} = (topdl($p->{c}) * $p->{tconv})->append(zeroes(3))->(0:2);
 
       $p->{pmat} = ( _rotmat( 0,-$PI/2,0 ) x 
 		     _rotmat( (-$p->{c})->list ) 
@@ -2676,12 +2679,12 @@ sub t_perspective {
 
     # Reflect X axis if we're inside the sphere.
     if($p->{r0}<1) {
-      $p->{pmat} = pdl([-1,0,0],[0,1,0],[0,0,1]) x $p->{pmat};
+      $p->{pmat} = topdl([[-1,0,0],[0,1,0],[0,0,1]]) x $p->{pmat};
     }
 
     $p->{f} = ( _opt($me->{options},
 		     ['f','fov','field_of_view','Field_of_View'],
-		     pdl($PI*2/3) / $p->{tconv} / $p->{mag} )
+		     topdl($PI*2/3) / $p->{tconv} / $p->{mag} )
 		* $p->{tconv}
 		);
     
@@ -2708,7 +2711,7 @@ sub t_perspective {
 				     $p->{roll}->at(0))
 			     ),
 			 d=>3,
-			 post=> pdl( - $me->{params}->{r0},0,0)
+			 post=> topdl( [- $me->{params}->{r0},0,0] )
 			 ),
 
                 # Put initial sci. coords into Cartesian space
@@ -2717,7 +2720,7 @@ sub t_perspective {
 
     # Store the origin of the sphere -- useful for the inverse function
     $me->{params}->{sph_origin} = (
-				   pdl(-$me->{params}->{r0},0,0) x 
+				   topdl([-$me->{params}->{r0},0,0]) x 
 				   $p->{pmat}
 				   )->(:,(0));
 
@@ -2826,7 +2829,7 @@ sub t_perspective {
 	my $b = ( $o->{sph_origin}->((0)) 
 		  - ($o->{sph_origin}->(1:2) * $oyz)->sumover
 		  );
-	my $c = pdl($o->{r0}*$o->{r0} - 1);
+	my $c = topdl($o->{r0}*$o->{r0} - 1);
 	
 	my $x;
 	if($o->{m} == 2) { 

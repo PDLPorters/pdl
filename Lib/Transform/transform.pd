@@ -51,7 +51,7 @@ FROM the destination dataspace (or image plane) TO the source dataspace;
 hence PDL::Transform keeps track of both the forward and inverse transform.
 
 For terseness and convenience, most of the constructors are exported
-into the current package with the name C<t_<transform>>, so the following
+into the current package with the name C<t_\<transform\>>, so the following
 (for example) are synonyms:
 
   $t = new PDL::Transform::Radial();  # Long way
@@ -3113,9 +3113,9 @@ sub t_spherical {
 	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
 	my($out) =   ($d->is_inplace) ? $data : $data->copy;
 
-	$out->((0)) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-	$out->((1)) .= atan2($d1, $d0);
-	$out->((2)) .= asin($d2 / $out->((0)));
+	$out->((0)) .= atan2($d1, $d0);
+	$out->((1)) .= asin($d2 / $out->((0)));
+	$out->((2)) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
 
 
 	$out->(1:2) /= $o->{angunit}
