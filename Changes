@@ -1,3 +1,6 @@
+CED 08-Apr-04
+   - NiceSlice.pm, Core.pm.PL: added dummy syntax to NiceSlice.
+   - slices.pd: minor improvements to documentation
 CED 04-04-04 (heh).
    - slices.pd: range - Added extra speedbump to avoid common programming error
       (more than five implicit dims throws a warning)

@@ -835,7 +835,7 @@ EOD-MakeComp
 
   if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
 	char buf[512];
-	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n\t (%d implicit dims is > 5; index has %d dims; source has %d dims.)\n\tIf you really wanted this, use %d dims in the range size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),$COMP(rdim));
+	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
 	barf(buf);
   }
   	

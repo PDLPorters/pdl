@@ -1575,7 +1575,7 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		$_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		  die "multielement piddle where only one allowed" :
 		    die "non piddle ref '".ref $_[0]."'"
-		      : int $_[0] }
+		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
   my($pdl) = shift;
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;

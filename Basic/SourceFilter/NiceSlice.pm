@@ -29,6 +29,12 @@ eval << 'EOF' unless PDL->can('flat');
     }
 EOF
 
+##
+## As near as I can tell the code in this next eval is now vestigial -- 
+## it gets overwritten by the PDL::nslice definition in Core.pm. 
+##         -- CED 08-April-2004
+##
+
 eval << 'EOH';
   {
     package PDL;
@@ -36,39 +42,42 @@ eval << 'EOH';
 		    $_[0]->nelem == 1 ? $_[0]->flat->at(0) :
 		      die "multielement piddle where only one allowed" :
 			die "non piddle ref '".ref $_[0]."'"
-			  : int $_[0] }
+			: ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
     sub PDL::nslice {
       my($pdl) = shift;
       my @args = @_;
       my ($i,$noslice) = (0,0);
+
       for (@args) {
 	if (UNIVERSAL::isa($_,'PDL')) {
 	  if ($_->nelem > 1) {
 	    if ($_->getndims > 1) {
-	      # allow one multi-D arg which will imply flat addressing
+	      ## allow one multi-D arg which will imply flat addressing
 	      PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
 	      $pdl = $pdl->flat->index($_);
 	      $noslice = 1;
 	    } else {
-	      # dice this axis
+	      ## dice this axis
 	      $pdl = $pdl->dice_axis($i,$_);
-	      # and keep resulting dim fully in slice
+	      ## and keep resulting dim fully in slice
 	      $_ = 'X'; 
 	    }
-	  } else { $_ = $_->flat->at(0) } # reduce this one-element piddle
-					# to a scalar for 'slice'
+	  } else { $_ = $_->flat->at(0) } ## reduce this one-element piddle
+					## to a scalar for 'slice'
 	}
 	$i++;
       }
+
       return $pdl if $noslice;
-      # print STDERR 'processed arglist: ',join(',',@args);
+      ## print STDERR 'processed arglist: ',join(',',@args);
       my $slstr = join ',',(map {
 	!ref $_ && $_ eq "X" ? ":" :
 	  ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
 	    "("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
 	      _intpar $_
 	    } @args);
-      # print STDERR "slicestr: $slstr\n";
+      print STDERR "slicestr: $slstr\n";
+      print "slicestr: '$slstr'!\n";
       return $pdl->slice($slstr);
     }
   }
@@ -186,6 +195,11 @@ sub onearg ($) {
   # we don't allow [] syntax (although that's what nslice internally uses)
   filterdie "invalid slice expression containing '[', expression was '".
     curarg()."'" if $arg =~ /^\s*\[/;
+
+  # If the arg starts with '*' it's a dummy call -- force stringification
+  # and prepend a '*' for handling by slice.
+  return "(q(*).($arg))" if($arg =~ s/^\*//);
+
   # this must be a simple position, leave as is
   return "$arg";
 }
@@ -386,6 +400,8 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $a(myfunc(0,$var),1:4)++; # when using functions in slice expressions
                             # use parentheses around args!
 
+  $b = $a(*3);              # Add dummy dimension of order 3
+
   # modifiers are specified in a ;-separated trailing block
   $a($a!=3;?)++;            # short for $a->where($a!=3)++
   $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
@@ -407,8 +423,7 @@ Slicing is a basic, extremely common operation, and PDL's
 L<slice|PDL::Slices/slice> method would be cumbersome to use in many
 cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
-L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient
-syntax.
+L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
 NiceSlice is loaded automatically in the perldl shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
@@ -429,7 +444,7 @@ how to enable the new slicing syntax within older L<perldl|perldl>.
 
 But now back to scripts and modules.
 Everything after C<use PDL::NiceSlice> will be translated
-and you can use the snew slicing syntax. Source filtering
+and you can use the new slicing syntax. Source filtering
 will continue until the end of the file is encountered.
 You can stop sourcefiltering before the end of the file
 by issuing a C<no PDL::NiceSlice> statement.
@@ -916,6 +931,12 @@ these dimensions will be fully kept in the sliced piddle:
  PDL: Double D [4,5]
   print $a((0),,)->info;    # similar
  PDL: Double D [4,5]
+
+=item * dummy dimensions
+
+As in L<slice|slice>, you can insert a dummy dimension by preceding a
+single index argument with '*'.  A lone '*' inserts a dummy dimension of 
+order 1; a '*' followed by a number inserts a dummy dimension of that order.
 
 =item * piddle index lists
 
