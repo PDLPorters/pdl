@@ -4125,6 +4125,9 @@ sub poly {
     $o->{YPos} = $y if defined($y);
     $o->{Width} = $width if defined($width);
 
+    # We could keep accessing $o but this is more succint.
+    $text = $o->{Text};
+
     if (!defined($o->{XPos}) || !defined($o->{YPos}) || !defined($o->{Text})) {
       barf 'Usage: legend $text, $x, $y [,$width, $opt] (styles are given in $opt)';
     }
@@ -4151,6 +4154,26 @@ sub poly {
     if ($o->{Width} eq 'Automatic' && $o->{Height} eq 'Automatic') {
       # Ok - we just continue with the given character size.
       $required_charsize = $chsz;
+      # We still need to calculate the width and height of the legend
+      # though. Fixed 20/3/01
+
+      my $t_width = -1; # Very short text...
+      my $t_height = -1; # And very low
+      foreach my $t (@$text) {
+	# Find the bounding box of left-justified text
+	my ($xbox, $ybox);
+	pgqtxt($xmin, $ymin, 0.0, 0.0, $t, $xbox, $ybox);
+	if (($$xbox[2]-$$xbox[0]) > $t_width) {
+	  # This is now the longest line.
+	  $t_width = $$xbox[2]-$$xbox[0];
+	}
+	if (($$ybox[2]-$$ybox[0]) > $t_height) {
+	  $t_height = $$ybox[2]-$$ybox[0];
+	}
+      }
+      
+      $o->{Width} = $t_width/$o->{Fraction};
+      $o->{Height} = $t_height*($#$text+1); # The height of all lines..
     } else {
       # We have some constraint on the size.
       my ($win_width, $win_height)=($xmax-$xmin, $ymax-$ymin);
@@ -4191,6 +4214,7 @@ sub poly {
     my ($xstart, $xend)=($o->{XPos}+$o->{Fraction}*$o->{Width}+
 			 $o->{TextShift}*$o->{Width}, $o->{XPos}+$o->{Width});
 
+    my $n_lines=$#$text+1;
     foreach (my $i=0; $i<=$#$text; $i++) {
       $self->text($text->[$i], $xpos, $ypos);
       # Since the parsing of options does not go down array references
@@ -4227,9 +4251,7 @@ sub poly {
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
-#      print "$i: Required charsize=$required_charsize Charsize=$chsz\n";
-#      print "$i: Ypos=$ypos\n";
-      $ypos -= $required_charsize*$chsz;
+      $ypos -= $o->{Height}/$n_lines;
     }
 
 
