@@ -585,6 +585,10 @@ sub rectangle {
   $CW->rectangle(@_);
 }
 
+sub transform {
+  barf 'Open a plot window first!' if !defined($CW);
+  $CW->transform(@_);
+}
 
 sub hold    { return if !defined($CW); $CW->hold(); print "Graphics on HOLD\n" if $PDL::verbose;};
 sub release { return if !defined($CW); $CW->release(); print "Graphics RELEASED\n" if $PDL::verbose;};

@@ -174,7 +174,9 @@ be used.
 
 The arrowsize can be specified separately using this option to the
 options hash. It is useful if an arrowstyle has been set up and one
-wants to plot the same arrow with several sizes.
+wants to plot the same arrow with several sizes. Please note that it is
+B<not> possible to set arrowsize and character size in the same call to
+a plotting function. This should not be a problem in most cases.
 
  $opt = {ARROWSIZE => 2.5};
 
@@ -395,6 +397,161 @@ as:
 
 where C<$win> is a PDL::Graphics::PGPLOT::Window object. That is all.
 
+
+=head2 Window control functions.
+
+=head2 new
+
+=for ref
+
+Constructor for PGPLOT object/device/plot window.
+
+=for usage
+
+Usage: PDL::Graphics::PGPLOT::Window->new($opt);
+
+C<$opt> is a reference to a hash with options for the new device. The options
+recognised are the following:
+
+=over
+
+=item AspectRatio
+
+The aspect ratio of the image, in the sense vertical/horisontal.
+
+=item Device
+
+The type of device to use. The syntax of this is the one used by PGPLOT.
+
+=item Hold
+
+Hold the plot window so that subsequent plots can plot over existing plots.
+This can be adjusted with the C<hold()> and C<release()> methods.
+
+=item NXPanel
+
+The number of panels in the X-direction
+
+=item NYPanel
+
+The number of panels in the Y-direction
+
+=item WindowName
+
+The name to give to the window. No particular use is made of this at present.
+It would be great if it was possible to change the title of the window frame.
+
+=item WindowWidth
+
+The width of the window in inches. If this is set to 0.0, the biggest window
+consistent with the AspectRatio setting will be chosen.
+
+=item WindowXSize and WindowYSize
+
+These two options allow an alternative setting of WindowWidth and AspectRatio.
+Their values are actually not parsed here, but rather subsequently in the
+C<_setup_window> routine below.
+
+=back
+
+An important point to note is that the default values of most options can be
+specified by passing these to the constructor. All general options (common to
+several functions) can be adjusted in such a way, but function specific
+options can not be set in this way (this is a design limitation which is
+unlikely to be changed).
+
+Thus the following call will set up a window where the default axis colour
+will be yellow and where plot lines normally have red colour and dashed
+linestyle.
+
+  $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs',
+          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed'});
+
+
+=head2 close
+
+=for ref
+
+Close a plot window
+
+=for usage
+
+  Usage: $w->close()
+
+Close the current window. This does not necessarily mean that the
+window is removed from your screen, but it does ensure that the
+device is closed.
+
+=head2 held
+
+=for ref
+
+Check if a window is on hold
+
+=for usage
+
+  $is_held = held();
+
+Function to check whether the window is held or not.
+
+
+=head2 hold
+
+=for ref
+
+Hold the present window.
+
+=for usage
+
+ Usage: hold()
+
+Holds the present window so that subsequent plot commands overplots.
+
+
+=head2 panel
+
+=for ref
+
+Switch to a different panel
+
+=for usage
+
+  $w->panel(<num>);
+
+Move to a different panel on the plotting surface. Note that you will need
+to erase it manually if that is what you require.
+
+=head2 release
+
+=for ref
+
+Release a plot window.
+
+=for usage
+
+   release()
+
+Release a plot window so that subsequent plot commands move to the next
+panel or erase the plot and create a new plot.
+
+=head2 erase
+
+=for ref
+
+Erase plot
+
+=for usage
+
+  Usage: erase($opt);
+
+Erase a plot area. This accepts the option C<Panel> or alternatively a number
+or array reference which makes it possible to specify the panel to erase when
+working with several panels.
+
+
+
+=head2 Plotting functions
+
 =head2 env
 
 =for ref
@@ -444,6 +601,19 @@ Set the colour of the coordinate axes.
 Axes titles and the font and size to print them.
 
 =back
+
+
+=head2 label_axes
+
+=for ref
+
+Label plot axes
+
+=for usage
+
+  Usage: label_axes(<xtitle>, <ytitle>, <plot title>, $options);
+
+Draw labels for each axis on a plot.
 
 =head2 imag
 
@@ -731,6 +901,29 @@ a similar command - see L<PDL::Graphics::TriD>.
  $y=exp(-$r**2)*transpose(exp(-$r**2))
  hi2d $y, {IOFF => 1.5, BIAS => 0.07};
 
+=head2 arrow
+
+=for ref
+
+Plot an arrow
+
+=for usage
+
+ Usage: arrow($x1, $y1, $x2, $y2, [, $opt]);
+
+Plot an arrow from C<$x1, $y1> to C<$x2, $y2>. The arrow shape can be
+set using the option C<Arrow>. See the documentation for general options
+for details about this option (and the example below):
+
+=for example
+
+Example:
+
+  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
+
+which draws a broad, large arrow from (0, 1) to (1, 2).
+
+
 =head2 poly
 
 =for ref
@@ -758,6 +951,117 @@ The following standard options influence this command:
  # Then do it over again with the hatching offset in phase:
  poly $x, $x**2, {COLOR=>6, FILL=>3, HATCH=>{PHASE=>0.5}};
  release;
+
+=head2 circle
+
+=for ref
+
+Plot a circle on the display using the fill setting.
+
+=for usage
+
+ Usage: circle($x, $y, $radius [, $opt]);
+
+All arguments can alternatively be given in the options hash using the
+following options:
+
+=over
+
+=item XCenter and YCenter
+
+The position of the center of the circle
+
+=item Radius
+
+The radius of the circle.
+
+
+=back
+
+=head2 ellipse
+
+=for ref
+
+Plot an ellipse, optionally using fill style.
+
+=for usage
+
+ Usage: ellipse($x, $y, $a, $b, $theta [, $opt]);
+
+All arguments can alternatively be given in the options hash using the
+following options:
+
+=over
+
+=item MajorAxis
+
+The major axis of the ellipse - this must be defined or C<$a> must be given.
+
+=item MinorAxis
+
+The minor axis, like A this is required.
+
+=item Theta (synonym Angle)
+
+The orientation of the ellipse - defaults to 0.0. This is given in
+radians.
+
+=item XCenter and YCenter
+
+The coordinates of the center of the ellipse. These must be specified or
+C<$x> and C<$y> must be given.
+
+=item NPoints
+
+The number of points used to draw the ellipse. This defaults to 100 and
+might need changing in the case of very large ellipses.
+
+
+=back
+
+
+=head2 rectangle
+
+=for ref
+
+Draw a rectangle.
+
+=for usage
+
+ Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
+
+This routine draws a rectangle with the chosen fill style. Internally
+it calls L<poly> which is somewhat slower than C<pgrect> but which
+allows for rotated rectangles as well. The routine recognises the same
+options as poly and in addition the following
+
+=over
+
+=item XCenter and YCenter
+
+The position of the center of the rectangle. XCentre and YCentre are
+valid synonyms.
+
+=item XSide and YSide
+
+The length of the X and Y sides. If only one is specified the
+shape is taken to be square with that as the side-length, alternatively
+the user can set Side
+
+=item Side
+
+The length of the sides of the rectangle (in this case a square) - syntactic
+sugar for setting XSide and YSide identical. This is overridden by XSide
+or YSide if any of those are set.
+
+=item Angle (synonym Theta)
+
+The angle at which the rectangle is to be drawn. This defaults to 0.0 and
+is given in radians.
+
+
+=back
+
 
 =head2 vect
 
@@ -798,7 +1102,270 @@ The following standard options influence this command:
  vect $a, $b, {COLOR=>YELLOW, ARROWSIZE=>0.5, LINESTYLE=>dashed};
 
 
+=head2 transform
+
+=for ref
+
+Create transform array for contour and image plotting
+
+=for usage
+
+ Usage: transform([$xdim], [$ydim], $options);
+
+This function creates a transform array in the format required by the image
+and contouring routines. You must call it with the dimensions of your image
+as arguments or pass these as an anonymous hash - see the example below.
+
+=over
+
+=item Angle
+
+The rotation angle of the transform
+
+=item ImageDimensions
+
+The dimensions of the image the transform is required for. The dimensions
+should be passed as a reference to an anonymous hash.
+
+=item Pixinc
+
+The increment in output coordinate per pixel.
+
+=item ImageCenter
+
+The centre of the image as an anonymous array  B<or> as a scalar. In the
+latter case the x and y value for the center will be set equal to this
+scalar. This is particularly useful in the common case  when the center
+is (0, 0).
+
+=back
+
+Example:
+
+   $im = rvals(100, 100);
+   $w = PDL::Graphics::PGPLOT::Window->new({Device => '/xs'});
+   $t = $w->transform(dims($im), {ImageCenter => 0,  Pixinc => 5});
+   $w->imag($im, {Transform => $t});
+
+=head2 tline
+
+=for ref
+
+Threaded line plotting
+
+=for usage
+
+ Usage: tline($x, $y, $optionts);
+
+This is a threaded interface to C<line>. This is convenient if you have
+a 2D array and want to plot out every line in one go. The routine will
+apply any options you apply in a "reasonable" way. In the sense that it
+will loop over the options wrapping over if there are less options than
+lines.
+
+Example:
+
+  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
+  $tx=zeroes(100,5)->xlinvals(-5,5);
+  $ty = $tx + $tx->yvals;
+  tline($tx, $ty, $h);
+
+
+=head2 tpoints
+
+=for ref
+
+A threaded interface to points
+
+=for usage
+
+ Usage: tpoints($x, $y, $options);
+
+This is a threaded interface to C<points>. This is convenient if you have
+a 2D array and want to plot out every line in one go. The routine will
+apply any options you apply in a "reasonable" way. In the sense that it
+will loop over the options wrapping over if there are less options than
+lines.
+
+Example:
+
+  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
+  $tx=zeroes(100,5)->xlinvals(-5,5);
+  $ty = $tx + $tx->yvals;
+  tpoints($tx, $ty, $h);
+
+
+=head2 Text routines
+
+
+=head2 text
+
+=for ref
+
+Write text in a plot window at a specified position.
+
+=for usage
+
+ Usage: text ($text, $x, $y [, $opt])
+
+Options recognised:
+
+=over
+
+=item C<ANGLE>
+
+The angle in degrees between the baseline of the text and
+the horisontal (increasing counter-clockwise). This defaults to 0.
+
+=item C<JUSTIFICATION>
+
+The justification of the text relative to the position specified. It
+defaults to 0.0 which gives left-justified text. A value of 0.5 gives
+centered text and a value of 1.0 gives right-justified text.
+
+=item C<XPos>, C<YPos>, C<Text>
+
+These gives alternative ways to specify the text and position.
+
+=back
+
+The following standard options influence this command:
+
+   COLOUR
+
+=for example
+
+  line sequence(10), sequence(10)**2;
+  text 'A parabola', 3, 9, {Justification => 1, Angle=>atan2(6,1)};
+
+
+=head2 legend
+
+=for ref
+
+Add a legend to a plot
+
+=for usage
+
+ Usage: legend($text, $x, $y, [, $width], $opt]);
+
+This function adds a legend to an existing plot. The action is primarily
+controlled by information in the options hash, and the basic idea is that
+C<$x> and C<$y> determines the upper left hand corner of the box in which
+the legend goes. If the width is specified either as an argument or as
+an option in the option hash this is used to determine the optimal character
+size to fit the text into part of this width (defaults to 0.5 - see the
+description of C<Fraction> below). The rest of the width is filled out with
+either lines or symbols according to the content of the C<LineStyle>,
+C<Symbol>, C<Colour> and C<LineWidth> options.
+
+The local options recognised are as follows:
+
+=over
+
+=item C<Text>
+
+An anonymous array of annotations, can also be specified directly.
+
+=item C<XPos> and C<YPos>
+
+The X and Y position of the upper left-hand corner of the text.
+
+=item C<Width> and C<Height>
+
+The width and/or height of each line (including symbol/line). This is
+used to determine the character size. If any of these are set to 'Automatic'
+the current character size will be used.
+
+=item C<Fraction>
+
+The text and the symbol/line is set inside a box. C<Fraction> determines how
+much of this box should be devoted to text. THis defaults to 0.5.
+
+=item C<TextShift>
+
+This option allows for fine control of the spacing between the text and the
+start of the line/symbol. It is given in fractions of the total width of the
+legend box. The default value is 0.1.
+
+=back
+
+=for example
+
+  line $x, $y, {Color => 'Red', LineStyle => 'Solid'};
+  line $x2, $y2, {Color => 'Blue', 'LineStyle' => 'Dashed', LineWidth => 10};
+
+  legend 5, 5, ['A red line', 'A blue line'],
+      {LineStyle => ['Solid', 'Dashed'], Colour => ['Red', 'Blue']
+       LineWidth => [undef, 10]}; # undef gives default.
+
+
+=head2 Cursor routines
+
+=head2 cursor
+
+=for ref
+
+Interactively read cursor positions.
+
+=for usage
+
+ Usage: ($x, $y, $ch, $xref, $yref) = cursor($opt)
+
+This routine has no standard input parameters, but the type of cursor
+can be set by setting the option C<Type> as a key in the anonymous hash
+C<$opt>. The first three return values from the function are always
+defined and gives the position selected by the user and the character
+pressed.
+
+Depending on the cursor type selected the last two arguments might also
+be defined and these give a reference position. For instance if the cursor
+is selected to be C<Rectangle> then the reference position gives one of
+the corners of the rectangle and C<$x> and C<$y> the diagonally opposite
+one.
+
+Options recognised:
+
+=over
+
+=item XRef, YRef
+
+The reference position to be used
+
+=item Type
+
+The type of cursor. This can be selected using a number between 0 and 7 as
+in PGPLOT, or alternatively you can specify these as, C<Default> (0),
+C<RadialLine> (1), C<Rectangle> (2), C<TwoHorizontalLines> (3),
+C<TwoVerticalLines> (4), C<HorizontalLine> (5), C<VerticalLine> (6)
+and C<CrossHair> (7) respectively. The default cursor is just the normal
+mouse cursor.
+
+For the C<RadialLine> you I<must> specify the reference point, whereas for
+the C<Two(Vertical|Horizontal)Lines> cursor the X or Y reference point,
+respectively, must be specified.
+
+=back
+
+=for example
+
+To select a region on a plot, use the rectangle cursor:
+
+  ($x, $y, $ch, $xref, $yref) = cursor({Type => 'Rectangle'});
+  poly pdl($x, $xref, $xref, $x, $x), pdl($y, $y, $yref, $yref, $y);
+
+To select a region of the X-axis:
+
+  ($x1, $y1, $ch) = cursor({Type => 'VerticalLine'});
+  ($x2, $y2, $ch) = cursor({Type => 'TwoVerticalLines', XRef => $x1});
+
+
+=head2 Internal routines
+
 =cut
+
+
+
 
 #'
 
@@ -830,76 +1397,6 @@ $WindowOptions->warnonmissing(0);
 my $PREVIOUS_DEVICE = undef;
 my $PI = 4*atan2(1,1);
 
-
-=head2 new
-
-=for ref
-
-Constructor for PGPLOT object/device/plot window.
-
-=for usage
-
-Usage: PDL::Graphics::PGPLOT::Window->new($opt);
-
-C<$opt> is a reference to a hash with options for the new device. The options
-recognised are the following:
-
-=over
-
-=item AspectRatio
-
-The aspect ratio of the image, in the sense vertical/horisontal.
-
-=item Device
-
-The type of device to use. The syntax of this is the one used by PGPLOT.
-
-=item Hold
-
-Hold the plot window so that subsequent plots can plot over existing plots.
-This can be adjusted with the C<hold()> and C<release()> methods.
-
-=item NXPanel
-
-The number of panels in the X-direction
-
-=item NYPanel
-
-The number of panels in the Y-direction
-
-=item WindowName
-
-The name to give to the window. No particular use is made of this at present.
-It would be great if it was possible to change the title of the window frame.
-
-=item WindowWidth
-
-The width of the window in inches. If this is set to 0.0, the biggest window
-consistent with the AspectRatio setting will be chosen.
-
-=item WindowXSize and WindowYSize
-
-These two options allow an alternative setting of WindowWidth and AspectRatio.
-Their values are actually not parsed here, but rather subsequently in the
-C<_setup_window> routine below.
-
-=back
-
-An important point to note is that the default values of most options can be
-specified by passing these to the constructor. All general options (common to
-several functions) can be adjusted in such a way, but function specific
-options can not be set in this way (this is a design limitation which is
-unlikely to be changed).
-
-Thus the following call will set up a window where the default axis colour
-will be yellow and where plot lines normally have red colour and dashed
-linestyle.
-
-  $win = PDL::Graphics::PGPLOT::Window->new({Device => '/xs',
-          AxisColour => 'Yellow', Colour => 'Red', LineStyle => 'Dashed'});
-
-
-=cut
 
 sub new {
 
@@ -1200,14 +1697,6 @@ sub _thread_options {
 # Window related "public" routines. #
 #####################################
 
-=head2 close
-
-Close the current window. This does not necessarily mean that the
-window is removed from your screen, but it does ensure that the
-device is closed.
-
-=cut
-
 sub close {
   my $self=shift;
   pgclos() if $self->_status() eq 'OPEN';
@@ -1274,11 +1763,6 @@ sub focus {
 
 }
 
-=head2 hold
-
-Hold the present window so that subsequent plot commands overplots.
-
-=cut
 
 sub hold {
   my $self=shift;
@@ -1286,12 +1770,6 @@ sub hold {
   return $self->{Hold};
 }
 
-=head2 release
-
-Opposite to C<hold()> - this releases the present window so new commands
-will create a new plot.
-
-=cut
 
 sub release {
   my $self=shift;
@@ -1299,11 +1777,6 @@ sub release {
   return $self->{Hold};
 }
 
-=head2 held
-
-Function to check whether the window is held or not.
-
-=cut
 
 sub held {
   my $self = shift;
@@ -1312,13 +1785,6 @@ sub held {
 
 
 
-
-=head2 panel
-
-Move to a different panel on the plotting surface. Note that you will need
-to erase it manually if that is what you require.
-
-=cut
 
 sub panel {
 
@@ -1356,13 +1822,6 @@ EOD
 
 }
 
-=head2 erase
-
-Erase a plot area. This accepts the option C<Panel> or alternatively a number
-or array reference which makes it possible to specify the panel to erase when
-working with several panels.
-
-=cut
 
 {
   # To save space and time..
@@ -1385,9 +1844,7 @@ working with several panels.
 
     $self->focus();
     pgeras();
-    # Say that the axis have not been setup.
-#    $self->{_env_set}[$self->{CurrentPanel}] = undef;
-    # And remove hold.
+    # Remove hold.
     $self->{Hold}=0;
   }
 
@@ -1541,9 +1998,10 @@ sub _standard_options_parser {
   pgsls($o->{LineStyle})  if exists($o->{LineStyle});
   pgslw($o->{LineWidth})  if exists($o->{LineWidth});
   pgscf($o->{Font})	  if exists($o->{Font});
+#  print "The character size is $$o{CharSize}\n";
   pgsch($o->{CharSize})	  if exists($o->{CharSize});
   pgsfs($o->{Fill})	  if exists($o->{Fill});
-  pgsch($o->{ArrowSize})  if exists($o->{ArrowSize});
+#  pgsch($o->{ArrowSize})  if exists($o->{ArrowSize});
   # Two new options..
 
 
@@ -1558,9 +2016,9 @@ sub _standard_options_parser {
     # using ARROWSIZE or in the hash
     #
     # Note the use of $wo to get the true default values here!
-    my ($fs, $angle, $vent)=($wo->{Arrow}{FS}, $wo->{Arrow}{Angle}, 
+    my ($fs, $angle, $vent)=($wo->{Arrow}{FS}, $wo->{Arrow}{Angle},
 			     $wo->{Arrow}{Vent});
-    my $arrowsize = $o->{ArrowSize};
+    my $arrowsize = $o->{CharSize}; # Default to the character size..
     if (ref($o->{Arrow}) eq 'HASH') {
       while (my ($var, $value)=each %{$o->{Arrow}}) {
 	$fs=$value if $var =~ m/^F/i;
@@ -1574,7 +2032,7 @@ sub _standard_options_parser {
       $vent=$o->{Arrow}[2] if defined $o->{Arrow}[2];
       $arrowsize=$o->{Arrow}[3] if defined $o->{Arrow}[3];
     }
-    pgsch($arrowsize);
+    pgsch($arrowsize) if defined($arrowsize);
     pgsah($fs, $angle, $vent);
   }
 
@@ -1698,10 +2156,12 @@ sub initenv{
   #
   # To give a consistent system and to tidy up we will call
   # erase if there are several panels, and pgpage otherwise.
-  if ($self->{NX}*$self->{NY} > 1) {
-    pgeras();
-  } else {
-    pgpage();
+  if (!defined($o->{NoErase}) || $o->{NoErase} == 0) {
+    if ($self->{NX}*$self->{NY} > 1) {
+      pgeras();
+    } else {
+      pgpage();
+    }
   }
 
   if (!defined($o->{PlotPosition}) || $o->{PlotPosition} eq 'Default') {
@@ -1883,6 +2343,87 @@ sub env {
 }
 
 
+
+
+{
+    my $transform_options = undef;
+
+    sub transform {
+	# Compute the transform array needed in contour and image plotting
+	my $self = shift;
+	my ($xpix, $ypix)=@_;
+	if (!defined($transform_options)) {
+	  $transform_options = 
+	    $self->{PlotOptions}->extend({Angle => undef,
+					  ImageDims => undef,
+					  Pixinc => undef,
+					  ImageCenter => undef});
+	  $transform_options->synonyms({ImageDimensions => 'ImageDims',
+					ImageCentre => 'ImageCenter'});
+	}
+
+	my ($in, $opt)=_extract_hash(@_);
+	$opt = {} if !defined($opt);
+	my ($o, $u_opt) = $self->_parse_options($transform_options, $opt);
+	$self->_standard_options_parser($o);
+
+	my ($angle, $x_pixinc, $y_pixinc, $x_cen, $y_cen);
+	if (defined($o->{Angle})) {
+	    $angle = $o->{Angle};
+	}
+	else {
+	    $angle = 0;
+	}
+
+	if (defined($o->{Pixinc})) {
+	    if (ref($o->{Pixinc}) eq 'ARRAY') {
+		($x_pixinc, $y_pixinc) = @{$o->{Pixinc}};
+	    }
+	    else {
+		$x_pixinc = $y_pixinc = $o->{Pixinc};
+	    }
+	}
+	else {
+	    $x_pixinc = $y_pixinc = 1;
+	}
+
+	if (defined $o->{ImageDims} && ref($o->{ImageDims}) eq 'ARRAY') {
+	    ($x_pix, $y_pix) = @{$o->{ImageDims}};
+	}
+	else {
+	    barf "Image dimensions must be given as an array reference!";
+	}
+	
+	# The user has to pass the dimensions of the image somehow, so this
+	# is a good point to check whether he/she/it has done so.
+	unless (defined($x_pix) && defined($y_pix)) {
+	  barf "You must pass the image dimensions to the transform routine\n";
+	}
+
+	if (defined $o->{ImageCenter}) {
+	    if (ref($o->{ImageCenter}) eq 'ARRAY') {
+	        ($x_cen, $y_cen) = @{$o->{ImageCenter}};
+	    }
+	    else {
+		$x_cen = $y_cen = $o->{ImageCenter};
+	    }
+	}
+	else {
+	    $x_cen = $y_cen = 0;
+	}
+	$tr = pdl(-($x_pix - 1)/2*$x_pixinc*cos($angle) -
+		  ($y_pix - 1)/2*$y_pixinc*sin($angle) + $x_cen,
+		  $x_pixinc*cos($angle),
+		  $y_pixinc*sin($angle),
+		  ($x_pix - 1)/2*$x_pixinc*sin($angle) -
+		  ($y_pix - 1)/2*$y_pixinc*cos($angle) + $y_cen,
+		  -$x_pixinc*sin($angle),
+		  $y_pixinc*cos($angle))
+    }
+}
+
+
+
 # display a contour map of an image using pgconb()
 
 
@@ -1895,12 +2436,12 @@ sub env {
     my $self=shift;
     if (!defined($cont_options)) {
       $cont_options = $self->{PlotOptions}->extend({Contours => undef,
-					       Follow => 0,
-					       Labels => undef,
-					       LabelColour => undef,
-					       Missing => undef,
-					       NContours => undef}
-					     );
+						    Follow => 0,
+						    Labels => undef,
+						    LabelColour => undef,
+						    Missing => undef,
+						    NContours => undef,
+						    FillContours => undef});
       my $t = {
 	       LabelColour => {
 			       'White' => 0, 'Black' => 1, 'Red' => 2,
@@ -1922,8 +2463,6 @@ sub env {
     my($nx,$ny) = $image->dims;
     my ($ncont)=9;		# The number of contours by default
 
-    $self->initenv( 0,$nx-1, 0, $ny-1, $opt ) unless ( $self->held() );
-
     # First save the present status
     $self->_save_status();
 
@@ -1941,7 +2480,7 @@ sub env {
     pgqci($labelcolour);	# Default let the labels have the chosen colour.
 
 
-    my ($labels);
+    my ($labels, $fillcontours, $angle);
     my $usepgcont = 0;
 
     $contours = $o->{Contours} if defined($o->{Contours});
@@ -1951,14 +2490,8 @@ sub env {
     $labelcolour = $o->{LabelColour} if defined($o->{LabelColour});
     $labels = $o->{Labels} if defined($o->{Labels});
     $usepgcont = $o->{Follow} if defined($o->{Follow});
+    $fillcontours = $o->{FillContours} if defined($o->{FillContours});
 
-
-    if (!defined($contours)) {
-      my($minim, $maxim)=minmax($image);
-      $contours = xlinvals(zeroes($ncont), $minim, $maxim)
-    }
-
-    $self->_checkarg($contours,1);
     if (defined($tr)) {
       $self->_checkarg($tr,1);
       barf '$transform incorrect' if nelem($tr)!=6;
@@ -1967,10 +2500,60 @@ sub env {
     }
 
     $tr = $self->CtoF77coords($tr);
+
+    if (!$self->held()) {
+	# Scale the image correctly even with rotation by calculating the new 
+	# corner points
+	$self->initenv(($tr->slice("0:2")*pdl[
+					      [1, 0, 0],
+					      [1, 0, $nx],
+					      [1, $nx, 0],
+					      [1, $nx, $nx]])->sumover->minmax,
+		       ($tr->slice("3:5")*pdl[
+					      [1, 0, 0],
+					      [1, 0, $ny],
+					      [1, $ny, 0],
+					      [1, $ny, $ny]])->sumover->minmax,
+		       $opt);
+    }
+
+    if (!defined($contours)) {
+      my($minim, $maxim)=minmax($image);
+      $contours = xlinvals(zeroes($ncont), $minim, $maxim)
+    }
+    else {
+	$ncont = nelem($contours);
+    }
+
+    $self->_checkarg($contours,1);
+
     print "Contouring $nx x $ny image from ",min($contours), " to ",
       max($contours), " in ",nelem($contours)," steps\n" if $PDL::verbose;
 
-    if (defined($misval)) {
+    if (defined($fillcontours)) {
+      pgbbuf();
+      if (ref $fillcontours ne PDL) {
+	$fillcontours = zeroes($ncont - 1)->xlinvals(0,1)->dummy(0,3);
+      } elsif ($fillcontours->getndims == 1) {
+	$fillcontours = $fillcontours->dummy(0,3);
+      } elsif (($fillcontours->getdim(1) != $ncont - 1) ||
+	       ($fillcontours->getdim(0) != 3)) {
+	barf "Argh, wrong dims in filled contours!";
+      }
+      my ($cr, $cg, $cb, $i);
+      pgqcr(16, $cr, $cg, $cb); # Save color index 16
+      # Loop over filled contours (perhaps should be done in PP for speed)
+      # Do not shade negative and 0-levels
+      for ($i = 0; $i < ($ncont - 1); $i++) {
+	pgscr(16, list $fillcontours->slice(":,$i"));
+	pgsci(16);
+	pgconf($image->get_dataref, $nx, $ny,
+               1, $nx, 1, $ny,
+	       list($contours->slice($i.':'.($i + 1))), $tr->get_dataref);
+      }
+      pgscr(16, $cr, $cg, $cb); # Restore color index 16
+      pgebuf();
+    } elsif (defined($misval)) {
       pgconb( $image->get_dataref, $nx,$ny,1,$nx,1,$ny,
 	      $contours->get_dataref,
 	      nelem($contours), $tr->get_dataref, $misval);
@@ -2013,7 +2596,8 @@ EOD
     }
 
     # Restore attributes
-    $self->_restore_status();
+      $self->redraw_axes unless $self->held(); # Redraw box
+      $self->_restore_status();
     1;
   }
 }
@@ -2113,31 +2697,6 @@ EOD
 # this without re-coding bits of thread_over but it might very well be
 # that you may :)
 #
-=head2 tline
-
-=for ref
-
-Threaded line plotting
-
-=for usage
-
- Usage: tline($x, $y, $optionts);
-
-This is a threaded interface to C<line>. This is convenient if you have
-a 2D array and want to plot out every line in one go. The routine will
-apply any options you apply in a "reasonable" way. In the sense that it
-will loop over the options wrapping over if there are less options than
-lines.
-
-Example:
-
-  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
-  $tx=zeroes(100,5)->xlinvals(-5,5);
-  $ty = $tx + $tx->yvals;
-  tline($tx, $ty, $h);
-
-
-=cut
 
 sub tline {
 
@@ -2177,31 +2736,6 @@ PDL::thread_define('_tline(a(n);b(n);ind(n)), NOtherPars => 2',
 # this without re-coding bits of thread_over but it might very well be
 # that you may :)
 #
-=head2 tpoints
-
-=for ref
-
-A threaded interface to points
-
-=for usage
-
- Usage: tpoints($x, $y, $options);
-
-This is a threaded interface to C<points>. This is convenient if you have
-a 2D array and want to plot out every line in one go. The routine will
-apply any options you apply in a "reasonable" way. In the sense that it
-will loop over the options wrapping over if there are less options than
-lines.
-
-Example:
-
-  $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
-  $tx=zeroes(100,5)->xlinvals(-5,5);
-  $ty = $tx + $tx->yvals;
-  tpoints($tx, $ty, $h);
-
-
-=cut
 
 sub tpoints {
 
@@ -2296,30 +2830,6 @@ PDL::thread_define('_tpoints(a(n);b(n);ind(n)), NOtherPars => 2',
 }
 # Plot points with pgpnts()
 
-
-=head2 arrow
-
-=for ref
-
-Plot an arrow
-
-=for usage
-
- Usage: arrow($x1, $y1, $x2, $y2, [, $opt]);
-
-Plot an arrow from C<$x1, $y1> to C<$x2, $y2>. The arrow shape can be
-set using the option C<Arrow>. See the documentation for general options
-for details about this option (and the example below):
-
-=for example
-
-Example:
-
-  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
-
-which draws a broad, large arrow from (0, 1) to (1, 2).
-
-=cut
 
 
 sub arrow {
@@ -2572,13 +3082,19 @@ sub arrow {
 #	$self->{_env_set}[$self->{CurrentPanel}]=1;
 	pgsci($col);
       } else {
-	$self->initenv(
-		       at($tr,0) + 0.5 * $tr->slice('1:2')->sum,
-		       at($tr,0) + ($nx + 0.5) * $tr->slice('1:2')->sum,
-		       at($tr,3) + 0.5 * $tr->slice('4:5')->sum,
-		       at($tr,3) + ($ny + 0.5) * $tr->slice('4:5')->sum,
-		       $opt
-		      );
+	# Scale the image correctly even with rotation by calculating the new
+	# corner points
+	$self->initenv(($tr->slice("0:2")*pdl[
+					      [1, 0, 0],
+					      [1, 0, $nx],
+					      [1, $nx, 0],
+					      [1, $nx, $nx]])->sumover->minmax,
+		       ($tr->slice("3:5")*pdl[
+					      [1, 0, 0],
+					      [1, 0, $ny],
+					      [1, $ny, 0],
+					      [1, $ny, $ny]])->sumover->minmax,
+		       $opt);
       }
     }				# if ! hold
 
@@ -2793,34 +3309,6 @@ sub poly {
 
 # Plot a circle using pgcirc
 
-=head2 circle
-
-=for ref
-
-Plot a circle on the display using the fill setting.
-
-=for usage
-
- Usage: circle($x, $y, $radius [, $opt]);
-
-All arguments can alternatively be given in the options hash using the
-following options:
-
-=over
-
-=item XCenter and YCenter
-
-The position of the center of the circle
-
-=item Radius
-
-The radius of the circle.
-
-
-=back
-
-
-=cut
 
 
 
@@ -2855,49 +3343,6 @@ The radius of the circle.
 # Plot an ellipse using poly.
 
 
-=head2 ellipse
-
-=for ref
-
-Plot an ellipse, optionally using fill style.
-
-=for usage
-
- Usage: ellipse($x, $y, $a, $b, $theta [, $opt]);
-
-All arguments can alternatively be given in the options hash using the
-following options:
-
-=over
-
-=item MajorAxis
-
-The major axis of the ellipse - this must be defined or C<$a> must be given.
-
-=item MinorAxis
-
-The minor axis, like A this is required.
-
-=item Theta (synonym Angle)
-
-The orientation of the ellipse - defaults to 0.0. This is given in
-radians.
-
-=item XCenter and YCenter
-
-The coordinates of the center of the ellipse. These must be specified or
-C<$x> and C<$y> must be given.
-
-=item NPoints
-
-The number of points used to draw the ellipse. This defaults to 100 and
-might need changing in the case of very large ellipses.
-
-
-=back
-
-
-=cut
 
 
 
@@ -2949,52 +3394,6 @@ might need changing in the case of very large ellipses.
 }
 
 
-=head2 rectangle
-
-=for ref
-
-Draw a rectangle.
-
-=for usage
-
- Usage: rectangle($xcenter, $ycenter, $xside, $yside, [, $angle, $opt]);
-
-This routine draws a rectangle with the chosen fill style. Internally
-it calls L<poly> which is somewhat slower than C<pgrect> but which
-allows for rotated rectangles as well. The routine recognises the same
-options as poly and in addition the following
-
-=over
-
-=item XCenter and YCenter
-
-The position of the center of the rectangle. XCentre and YCentre are
-valid synonyms.
-
-=item XSide and YSide
-
-The length of the X and Y sides. If only one is specified the
-shape is taken to be square with that as the side-length, alternatively
-the user can set Side
-
-=item Side
-
-The length of the sides of the rectangle (in this case a square) - syntactic
-sugar for setting XSide and YSide identical. This is overridden by XSide
-or YSide if any of those are set.
-
-=item Angle (synonym Theta)
-
-The angle at which the rectangle is to be drawn. This defaults to 0.0 and
-is given in radians.
-
-
-=back
-
-
-=cut
-
-
 {
   my $rect_opt = undef;
   sub rectangle {
@@ -3011,6 +3410,7 @@ is given in radians.
       $rect_opt->warnonmissing(0);
     }
     my ($in, $opt)=_extract_hash(@_);
+    $opt={} if !defined($opt);
     my ($xc, $yc, $xside, $yside, $angle)=@$in;
     my $o=$rect_opt->options($opt);
 
@@ -3119,49 +3519,6 @@ is given in radians.
 # ############ Text routines #############
 
 
-=head2 text
-
-=for ref
-
-Write text in a plot window at a specified position.
-
-=for usage
-
- Usage: text ($text, $x, $y [, $opt])
-
-Options recognised:
-
-=over
-
-=item C<ANGLE>
-
-The angle in degrees between the baseline of the text and
-the horisontal (increasing counter-clockwise). This defaults to 0.
-
-=item C<JUSTIFICATION>
-
-The justification of the text relative to the position specified. It
-defaults to 0.0 which gives left-justified text. A value of 0.5 gives
-centered text and a value of 1.0 gives right-justified text.
-
-=item C<XPos>, C<YPos>, C<Text>
-
-These gives alternative ways to specify the text and position.
-
-=back
-
-The following standard options influence this command:
-
-   COLOUR
-
-=for example
-
-  line sequence(10), sequence(10)**2;
-  text 'A parabola', 3, 9, {Justification => 1, Angle=>atan2(6,1)};
-
-
-=cut
-
 
 {
   # Do not create this object unless necessary.
@@ -3214,70 +3571,6 @@ The following standard options influence this command:
     1;
   }
 }
-
-
-=head2 legend
-
-=for ref
-
-Add a legend to a plot
-
-=for usage
-
- Usage: legend($text, $x, $y, [, $width], $opt]);
-
-This function adds a legend to an existing plot. The action is primarily
-controlled by information in the options hash, and the basic idea is that
-C<$x> and C<$y> determines the upper left hand corner of the box in which
-the legend goes. If the width is specified either as an argument or as
-an option in the option hash this is used to determine the optimal character
-size to fit the text into part of this width (defaults to 0.5 - see the
-description of C<Fraction> below). The rest of the width is filled out with
-either lines or symbols according to the content of the C<LineStyle>,
-C<Symbol>, C<Colour> and C<LineWidth> options.
-
-The local options recognised are as follows:
-
-=over
-
-=item C<Text>
-
-An anonymous array of annotations, can also be specified directly.
-
-=item C<XPos> and C<YPos>
-
-The X and Y position of the upper left-hand corner of the text.
-
-=item C<Width> and C<Height>
-
-The width and/or height of each line (including symbol/line). This is
-used to determine the character size. If any of these are set to 'Automatic'
-the current character size will be used.
-
-=item C<Fraction>
-
-The text and the symbol/line is set inside a box. C<Fraction> determines how
-much of this box should be devoted to text. THis defaults to 0.5.
-
-=item C<TextShift>
-
-This option allows for fine control of the spacing between the text and the
-start of the line/symbol. It is given in fractions of the total width of the
-legend box. The default value is 0.1.
-
-=back
-
-=for example
-
-  line $x, $y, {Color => 'Red', LineStyle => 'Solid'};
-  line $x2, $y2, {Color => 'Blue', 'LineStyle' => 'Dashed', LineWidth => 10};
-
-  legend 5, 5, ['A red line', 'A blue line'],
-      {LineStyle => ['Solid', 'Dashed'], Colour => ['Red', 'Blue']
-       LineWidth => [undef, 10]}; # undef gives default.
-
-
-=cut
 
 
 
@@ -3423,6 +3716,8 @@ legend box. The default value is 0.1.
       # in a sensible colour
       pgsls($ls); # And line style
       pgslw($lw); # And line width
+#      print "$i: Required charsize=$required_charsize Charsize=$chsz\n";
+#      print "$i: Ypos=$ypos\n";
       $ypos -= $required_charsize*$chsz;
     }
 
@@ -3439,64 +3734,6 @@ legend box. The default value is 0.1.
 ############## Cursor routine ##################
 
 
-=head2 cursor
-
-=for ref
-
-Interactively read cursor positions.
-
-=for usage
-
- Usage: ($x, $y, $ch, $xref, $yref) = cursor($opt)
-
-This routine has no standard input parameters, but the type of cursor
-can be set by setting the option C<Type> as a key in the anonymous hash
-C<$opt>. The first three return values from the function are always
-defined and gives the position selected by the user and the character
-pressed.
-
-Depending on the cursor type selected the last two arguments might also
-be defined and these give a reference position. For instance if the cursor
-is selected to be C<Rectangle> then the reference position gives one of
-the corners of the rectangle and C<$x> and C<$y> the diagonally opposite
-one.
-
-Options recognised:
-
-=over
-
-=item XRef, YRef
-
-The reference position to be used
-
-=item Type
-
-The type of cursor. This can be selected using a number between 0 and 7 as
-in PGPLOT, or alternatively you can specify these as, C<Default> (0),
-C<RadialLine> (1), C<Rectangle> (2), C<TwoHorizontalLines> (3),
-C<TwoVerticalLines> (4), C<HorizontalLine> (5), C<VerticalLine> (6)
-and C<CrossHair> (7) respectively. The default cursor is just the normal
-mouse cursor.
-
-For the C<RadialLine> you I<must> specify the reference point, whereas for
-the C<Two(Vertical|Horizontal)Lines> cursor the X or Y reference point,
-respectively, must be specified.
-
-=back
-
-=for example
-
-To select a region on a plot, use the rectangle cursor:
-
-  ($x, $y, $ch, $xref, $yref) = cursor({Type => 'Rectangle'});
-  poly pdl($x, $xref, $xref, $x, $x), pdl($y, $y, $yref, $yref, $y);
-
-To select a region of the X-axis:
-
-  ($x1, $y1, $ch) = cursor({Type => 'VerticalLine'});
-  ($x2, $y2, $ch) = cursor({Type => 'TwoVerticalLines', XRef => $x1});
-
-=cut
 
 {
   $cursor_options = undef;
@@ -3600,8 +3837,10 @@ the routine. This is to avoid collisions between different variables.
 =head1 AUTHOR
 
 Karl Glazebrook [kgb@aaoepp.aao.gov.au] modified by Jarle Brinchmann
-(jarle@astro.ox.ac.uk), docs mangled by Tuomas J. Lukka
-(lukka@fas.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz).
+(jarle@astro.ox.ac.uk) who is also responsible for the OO interface,
+docs mangled by Tuomas J. Lukka (lukka@fas.harvard.edu) and
+Christian Soeller (c.soeller@auckland.ac.nz). Further contributions and
+bugfixes from Kaj Wiik, Doug Burke and many others.
 
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain

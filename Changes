@@ -1,3 +1,8 @@
+Jarle Brinchmann (22/10/00)
+    - Further bug fixes to PGPLOT added (courtesy of Kaj Wiik). Also a
+      convenience function to calculate transforms (transform, courtesy
+      of Kaj Wiik).
+    - Examples/tests for the PGPLOT interface added in Example/PGPLOT
 Jarle Brinchmann (21/10/00)
     - Considerable re-write of PGPLOT. This now uses PDL::Option to 
       set options. There is also now a OO interface 
@@ -8,6 +13,7 @@ Jarle Brinchmann (21/10/00)
       - Interactive cursors (cursor)
       - Text on plots       (text)
       - Legends             (legend)
+      - Circles, Rectangles, Ellipses
       - Multiple plot windows, oone can jump from panel to panel when
         the window is divided in several.
       - More control over options - see PDL::Graphics::PGPLOTOptions for
