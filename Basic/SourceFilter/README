@@ -1,4 +1,4 @@
-A source filter for PDL: take the pain out of slicing !
+A source filter for PDL -- take the pain out of slicing !
 
 Perl source filtering is a way to experiment with new syntax
 and the power is only limited by the sophistication of the
@@ -10,11 +10,6 @@ Build the module in the usual way:
   make test
   make install
 
-Everything is still experimental but the
-approach seems promising.
-
-The file 'local.perldc' contains some useful definitions to
-experiment with the new syntax within the perldl shell.
 
 NAME
     PDL::NiceSlice - toward a nicer slicing syntax for PDL
@@ -32,15 +27,17 @@ SYNOPSYS
       $a(myfunc(0,$var),1:4)++; # when using functions in slice expressions
                                 # use parentheses around args!
 
-      # modifiers
+      # modifiers are specified in a ;-separated trailing block
       $a($a!=3;?)++;            # short for $a->where($a!=3)++
       $a(0:1114;_) .= 0;        # short for $a->flat->(0:1114)
       $b = $a(0:-1:3;|);        # short for $a(0:-1:3)->sever
-      $new = sequence 3,1,4,1;
-      $b = $n(;-);              # drop all dimensions of size 1
+      $n = sequence 3,1,4,1;
+      $b = $n(;-);              # drop all dimensions of size 1 (AKA squeeze)
+      $b = $n(0,0;-|);          # squeeze *and* sever
+      $c = $a(0,3,0;-);         # more compact way of saying $a((0),(3),(0))
 
       # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
-      perldl> use PDL::NiceSlice; 
+      perldl> use PDL::NiceSlice;
       # next one is required, see below
       perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
       perldl> $a(4:5) .= xvals(2);
@@ -152,12 +149,12 @@ Use in scripts and "perldl" shell
     below).
 
   Usage with perldl
-    *NOTE*: This information only applies to versions of perldl smaller than
-    1.31 . From v1.31 onwards niceslicing is enabled by default. See perldl
-    for details.
+    *NOTE*: This information only applies to versions of perldl earlier than
+    1.31 . From v1.31 onwards niceslicing is enabled by default, i.e. *it
+    should just work*. See perldl for details.
 
-    To use the filter in the "perldl" shell you need to add the following
-    two lines to your .perldlrc file:
+    For pre v1.31 "perldl"s you need to add the following two lines to your
+    .perldlrc file:
 
        use PDL::NiceSlice;
        $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
@@ -176,7 +173,8 @@ Use in scripts and "perldl" shell
       perldl> report 0;
 
     Note that these commands will only work if you included the contents of
-    local.perldlrc in your perldl startup file.
+    local.perldlrc in your perldl startup file. In "perldl" v1.31 and later
+    these commands are available by default.
 
   evals and "PDL::NiceSlice"
     Due to "PDL::NiceSlice" being a source filter it won't work in the usual
@@ -416,20 +414,29 @@ The new slicing syntax
         It also provides a unique opportunity to have smileys in your code!
         Yes, PDL gives new meaning to smileys.
 
-  combining modifiers
-    Several modifiers can be used simultaneously, e.g.
+  Combining modifiers
+    Several modifiers can be used in the same expression, e.g.
 
       $c = $a(0;-|); # squeeze and sever
 
-    The notable exception is the "where" modifier ("?") which must not be
+    Other combinations are just as useful, e.g. ";_|" to flatten and sever.
+    The sequence in which modifiers are specified is not important.
+
+    A notable exception is the "where" modifier ("?") which must not be
     combined with other flags (let me know if you see a good reason to relax
-    this rule). Repeating a modifier will raise an error:
+    this rule).
+
+    Repeating any modifier will raise an error:
 
       $c = $a(-1:1;|-|); # will cause error
+     NiceSlice error: modifier | used twice or more
 
-    Modifiers are a new and experimental feature of "PDL::NiceSlice". So
-    don't be surprised if things don't work quite as expected. Feedback is
-    welcome as usual. The modifier syntax may change in the future.
+    Modifiers are still a new and experimental feature of "PDL::NiceSlice".
+    I am not sure how many of you are actively using them. *Please do so and
+    experiment with the syntax*. I think modifiers are very useful and make
+    life a lot easier. Feedback is welcome as usual. The modifier syntax
+    will likely be further tuned in the future but we will attempt to ensure
+    backwards compatibility whenever possible.
 
   Argument formats
     In slice expressions you can use ranges and secondly, piddles as 1D
@@ -642,7 +649,7 @@ BUGS
     <pdl-porters@jach.hawaii.edu>.
 
 COPYRIGHT
-    Copyright (c) 2001, Christian Soeller. All Rights Reserved. This module
-    is free software. It may be used, redistributed and/or modified under
-    the same terms as PDL itself (see http://pdl.perl.org).
+    Copyright (c) 2001, 2002 Christian Soeller. All Rights Reserved. This
+    module is free software. It may be used, redistributed and/or modified
+    under the same terms as PDL itself (see http://pdl.perl.org).
 

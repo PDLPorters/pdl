@@ -215,8 +215,10 @@ sub findslice {
 #  Do final check for "for $avar(LIST)" and "foreach $avar(LIST)" syntax. 
 #  Process into an 'nslice' call only if it's not that.
 
-    if($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s) {
+    if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+$/s ||
       # foreach statement: Don't translate
+	$prefix =~ m/->\s*$/s)
+      # method invocation via string
       $processed .= "$prefix".$found;
     } else {      # statement is a real slice and not a foreach
 

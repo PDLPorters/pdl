@@ -18,10 +18,12 @@ will allow you to do.
 source filtering and parsing easier. In particular it requires
 the Filter distribution and Text::Balanced. To make your life easier it is
 recommended that you use the CPAN module to resolve dependencies during
-installation automatically. Using the cpan installation shell
-installing PDL::NiceSlice should be as easy as
+installation automatically.
+
+Using the cpan installation shell installing PDL::NiceSlice should
+be as easy as
 
    $ perl -MCPAN -e shell
-   cpan> i PDL::NiceSlice
+   cpan> install PDL::NiceSlice
 
   Christian Soeller <soellermail@excite.com>
