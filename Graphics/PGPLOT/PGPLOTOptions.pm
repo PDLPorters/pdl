@@ -161,6 +161,7 @@ my %options = (
                Unit => undef,  # Unit for pitch 
                Pix => undef,   # Pixel aspect ratio
  	       Align => undef, # Alignment of viewport within plot area
+               DirAxis=> undef, # Default direction of axes
 	       Border => 0,
 	       CharSize => 1,
 	       Symbol => 17,
@@ -220,6 +221,7 @@ sub default_options {
 	    Unit        => $options{Unit},    # PGPLOT unit for pitch
 	    Pix         => $options{Pix},     # Pixel aspect ratio
 	    Align       => $options{Align},   # Alignment of vp in plot area
+	    DirAxis     => $options{DirAxis}, # The default axis direction
 	    Border      => $options{Border},
 	    CharSize    => $options{CharSize}, # Character size for annotation
 	    Erase       => 0,
@@ -248,6 +250,7 @@ sub default_options {
 	   Unit        => $options{Unit},    # PGPLOT unit for pitch
 	   Pix         => $options{Pix},     # Pixel aspect ratio
 	   Align       => $options{Align},   # Alignment of vp in plot area
+	   DirAxis     => $options{DirAxis}, # The default axis direction
 
 	   LineWidth   => $options{LineWidth},
 	   TightLabels => $options{TightLabels},

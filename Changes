@@ -1,3 +1,7 @@
+CED 16-Mar-04
+   - Doc::Perldl.pm: help module now gracefully handles multiple matches, 
+	and also ignores SIGPIPE if you quit the pager.
+   - Graphics/PGPLOT/Window/Window.pd:  added DirAxis option to initenv().
 RL 8-Mar-04
    Graphics/PLplot/plplot.pd: 
    - Implement the #define'd constants in plplot.h as functions in Perl,

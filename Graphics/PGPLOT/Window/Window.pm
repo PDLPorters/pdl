@@ -354,6 +354,30 @@ L</_set_colour>.
 The HardColour option should be used if you are plotting to a hardcopy device
 [this may be untrue?].
 
+=item diraxis
+
+This sets the direction of the axes of a plot or image, when you don't explitly
+set them with the XRange and YRange options.  It's particularly useful when
+you want (for example) to put long wavelengths (larger numbers) on the left
+hand side of your plot, or when you want to plot an image in (RA,dec) 
+coordinates.
+
+You can use either a scalar or a two-element perl array.  If you set it to
+0 (the default) then PDL will guess which direction you want to go.  If you
+set it to a positive number, the axis will always increase to the right. If 
+you set it to a negative number, the axis will always increase to the left.
+
+For example, [0,0] is the default, which is usually right.  [1,1] tells
+PGPLOT to always increase the axis values up and to the right.  For a 
+plot of intensity (y-axis) versus wavelength (x-axis) you could say 
+[-1,1].
+
+This option is really only useful if you want to allow autoranging but 
+need to set the direction that the axis goes.  If you use the ranging
+options (C<XRange> and C<YRange>), you can change the direction by changing
+the order of the maximum and minimum values.  That direction will 
+override C<DirAxis>.
+
 =item filltype
 
 Set the fill type to be used by L</poly>, L</circle>,
@@ -1025,7 +1049,9 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
  $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
-Notes: C<$transform> for image/cont etc. is used in the same way as the
+NOTES
+
+C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is,
 fortunately, zero-offset. The L<transform()|/transform> routine can be used to
 create this piddle.
@@ -1057,33 +1083,53 @@ or the C<draw_wedge()> routine (once the image has been drawn).
 
 Options recognised:
 
-       ITF - the image transfer function applied to the pixel values. 
-             It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
-             acceptable). It defaults to 'LINEAR'.
+=over 3
 
-       MIN - Sets the minimum value to be used for calculation of the
-             color-table stretch.
+=item ITF 
 
-       MAX - Sets the maximum value for the same.
+the image transfer function applied to the pixel values. 
+It may be one of 'LINEAR', 'LOG', 'SQRT' (lower case is 
+acceptable). It defaults to 'LINEAR'.
 
-       RANGE - A more compact way to specify MIN and MAX, as a list:
-             you can say "Range=>[0,10]" to scale the color table for
-             brightness values between 0 and 10 in the iamge data.
+=item MIN
 
-       CRANGE - Image values between MIN and MAX are scaled to an 
-               interval in normalized color domain space, on the 
-               interval [0,1], before lookup in the window's color 
-               table. CRANGE lets you use only a part of the color 
-               table by specifying your own range -- e.g. if you
-               say "CRange=>[0.25,0.75]" then only the middle half
-               of the pseudocolor space will be used.  (See the 
-               writeup on ctab().)
+Sets the minimum value to be used for calculation of the
+color-table stretch.
+
+=item MAX 
+
+Sets the maximum value for the same.
+
+=item RANGE 
+
+A more compact way to specify MIN and MAX, as a list:
+you can say "Range=>[0,10]" to scale the color table for
+brightness values between 0 and 10 in the iamge data.
+
+=item CRANGE 
+
+Image values between MIN and MAX are scaled to an 
+interval in normalized color domain space, on the 
+interval [0,1], before lookup in the window's color 
+table. CRANGE lets you use only a part of the color 
+table by specifying your own range -- e.g. if you
+say "CRange=>[0.25,0.75]" then only the middle half
+of the pseudocolor space will be used.  (See the 
+writeup on ctab().)
                
- TRANSFORM - The transform 'matrix' as a 6x1 vector for display
+=item TRANSFORM 
 
- DrawWedge - set to 1 to draw a colour bar (default is 0)
+The PGPLOT transform 'matrix' as a 6x1 vector for display
 
-     Wedge - see the draw_wedge() routine
+=item DrawWedge 
+
+set to 1 to draw a colour bar (default is 0)
+
+=item Wedge 
+
+see the draw_wedge() routine
+
+=back
 
 The following standard options influence this command:
 
@@ -1142,7 +1188,11 @@ Display a FITS image with correct axes
 
   $win->fits_imag( image,  [$min, $max], [$opt] );
 
-Notes: 
+NOTES
+
+=over 3
+
+=item Titles:
 
 Currently fits_imag also generates titles for you by default and appends the 
 FITS header scientific units if they're present.  So if you say
@@ -1158,6 +1208,47 @@ override that by specifying the XTitle and YTitle switches:
 
 will give you "Arbitrary" as an X axis title, regardless of what's in the
 header.
+
+=item Scaling and aspect ratio:
+
+If CUNIT1 and CUNIT2 (or, if they're missing, CTYPE1 and CTYPE2)
+agree, then the default pixel aspect ratio is 1 (in scientific units,
+NOT in original pixels).  If they don't agree (as for a spectrum)
+then the default pixel aspect ratio is adjusted automatically to
+match the plot viewport and other options you've specified.
+
+You can override the image scaling using the SCALE, PIX, or PITCH
+options just as with L<the imag() method|/imag> -- but 
+those parameters refer to the scientific coordinate system rather than 
+to the pixel coordinate system (e.g. C<PITCH=E<gt>100> means "100 scientific units 
+per inch", and C<SCALE=E<gt>1> means "1 scientific unit per device pixel".  See
+L<the imag() writeup|/imag> for more info on these 
+options.  
+
+The default value of the C<ALIGN> option is 'CC' -- centering the image 
+both vertically and horizontally.
+
+=item Axis direction:
+
+By default, fits_imag tries to guess which direction your axes are meant
+to go (left-to-right or right-to-left) using the CDELT keywords:  if CDELT<n>
+is negative, then rather than reflecting the image fits_imag will plot the
+X axis so that the highest values are on the left.  
+
+This is the most convenient behavior for folks who use calibrated
+(RA,DEC) images, but it is technically incorrect.  To force the direction,
+use the DirAxis option.  Setting C<DirAxis=E<gt>1> (abbreviated C<di=E<gt>1>)
+will force the scientific axes to increase to the right, reversing the image
+as necessary.
+
+=item Color wedge:
+
+By default fits_imag draws a color wedge on the right; you can explicitly
+set the C<DrawWedge> option to 0 to avoid this.  Use the C<WTitle> option
+to set the wedge title.
+
+
+=item Alternate WCS coordinates:
 
 The default behaviour is to use the primary/default WCS information
 in the FITS header (i.e. the C<CRVAL1>,C<CRPIX1>,... keywords). The
@@ -1177,25 +1268,9 @@ Please note that this suport is B<experimental> and is not guaranteed
 to work correctly; please see the documentation for the L<_FITS_tr|/_FITS_tr>
 routine for more information.
 
-If CTYPE1 and CTYPE2 agree, then the default pixel aspect ratio is 1 
-(in scientific units, NOT in original pixels).  If they don't agree (as for
-a spectrum) then the default pixel aspect ratio is adjusted automatically to 
-match the plot viewport and other options you've specified.
+=back
 
-You can override the image scaling using the SCALE, PIX, or PITCH
-options just as with L<the imag() method|/imag> -- but 
-those parameters refer to the scientific coordinate system rather than 
-to the pixel coordinate system (e.g. C<PITCH=>100> means "100 scientific units 
-per inch", and C<SCALE=>1> means "1 scientific unit per device pixel".  See
-L<the imag() writeup|/imag> for more info on these 
-options.  
 
-The default value of the C<ALIGN> option is 'CC' -- centering the image 
-both vertically and horizontally.
-
-By default fits_imag draws a color wedge on the right; you can explicitly
-set the C<DrawWedge> option to 0 to avoid this.  Use the C<WTitle> option
-to set the wedge title.
 
 =head2 fits_rgbi
 
@@ -1603,7 +1678,7 @@ for details about this option (and the example below):
 
 Example:
 
-  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 60, Vent => 0.3, Size => 5}});
+  arrow(0, 1, 1, 2, {Arrow => {FS => 1, Angle => 1, Vent => 0.3, Size => 5}});
 
 which draws a broad, large arrow from (0, 1) to (1, 2).
 
@@ -1835,7 +1910,8 @@ as arguments or pass these as an anonymous hash - see the example below.
 
 =item Angle
 
-The rotation angle of the transform
+The rotation angle of the transform, in radians.  Positive numbers rotate the 
+image clockwise on the screen.
 
 =item ImageDimensions
 
@@ -3829,16 +3905,32 @@ sub initenv{
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
 
-      # DJB - the following is a hack to try and preserve the sense
-      # of the axes. It was needed to get fits_imag($img) to work
-      # correctly [ie have RA decreasing to the right, as
-      # fits_imag($img,{j=>1}) - or even fits_imag($img,{j=>0}) !! -
-      # does].
-      # I do not know if it will break anything and I worry that it
-      # should really be sorted out prior to this point.
       #
-      ( $xx0, $xx1 ) = ( $xx1, $xx0 ) if $xmin > $xmax and $xx0 < $xx1;
-      ( $yy0, $yy1 ) = ( $yy1, $yy0 ) if $ymin > $ymax and $yy0 < $yy1;
+      # Sort out the direction that each axis runs...
+      #
+      my $dax,$day;
+      unless(defined $o->{DirAxis}) {
+	($dax,$day) = (0,0);
+      } elsif( ! ref $o->{DirAxis} ) {
+	$dax=$day=$o->{DirAxis};
+      } elsif( ref $o->{DirAxis} eq 'ARRAY' ) {
+	($dax,$day) = @{$o->{DirAxis}};
+      } else {
+	release_and_barf "DirAxis option must be a scalar or array\n";
+      }
+
+      #
+      # No specification: keep the same order 
+      #
+      ( $xx0, $xx1 ) = ( $xx1, $xx0 ) 
+	if (  ( $dax==0   and   ($xmin-$xmax)*($xx0-$xx1)<0 )
+	      or ( $dax < 0 ) 
+	      );
+
+      ( $yy0, $yy1 ) = ( $yy1, $yy0 ) 
+	if (  ( $day==0   and   ($ymin-$ymax)*($yy0-$yy1)<0 )
+	      or ( $day < 0 ) 
+	      );
 
       pgswin($xx0, $xx1, $yy0, $yy1);
       
@@ -4084,7 +4176,7 @@ information on the Representation of World Coordinate Systems in FITS.
 	    # - I hope this doesn't break things
 	    # -- This broke a few things because CROTA is a pseudostandard
 	    #    in the solar physics community.  I added a fallback to 
-	    #    CROTA in case CROTA2 doesn't exist.
+	    #    CROTA in case CROTA2 doesn't exist. --CED
 	    $angle  = ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
 			(defined $hdr->{"CROTA"}) ? $hdr->{"CROTA"} : 0)   *
 		3.14159265358979323846264338/180;
@@ -4351,7 +4443,7 @@ sub env {
 					  ImageDims => undef,
 					  Pixinc => undef,
 					  ImageCenter => undef,
-					  RefPos => undef,
+					  RefPos => undef
 					  });
 	  $transform_options->synonyms({
 	      ImageDimensions => 'ImageDims',
@@ -5529,6 +5621,7 @@ sub arrow {
 						  DrawWedge => 0,
 						  Wedge => undef,
 						  Justify => undef,
+						  Transform => undef
 						 });
     }
 
@@ -5600,6 +5693,7 @@ sub arrow {
 	$tr = float [0,1,0, 0,0,1];
     }
     $tr = $self->CtoF77coords($tr);
+    print "tr=$tr\n";
 
     &catch_signals;
     
@@ -5874,14 +5968,14 @@ sub rgbi {
 
 	eval $cmdstr;
 
-	my $mkaxis = sub {
+        my $mkaxis = sub {
 	    my ($typ,$unit) = @_;
 	    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
 	    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
 	    $s =~ s/\%u/$unit/;
 	    $s =~ s/\%t/$typ/;
 	    $s;
-	};
+	  } unless defined ($mkaxis);
 
 	$pane->label_axes(
 			  $opt->{XTitle} || 
