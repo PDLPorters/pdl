@@ -236,8 +236,8 @@ my $nx = 35;
 my $ny = 46;
 $x = (sequence($nx) - ($nx/2))/($nx/2);
 $y = (sequence($ny) - ($ny/2))/(($ny/2) - 1.0);
-my $xv = $x->dummy(0, $y->nelem);
-my $yv = $y->dummy(1, $x->nelem);
+my $xv = $x->dummy(1, $y->nelem);
+my $yv = $y->dummy(0, $x->nelem);
 my $z = -sin(7*$xv) * cos (7*$yv) + $xv**2 - $yv**2;
 my $nsteps = 15;
 my ($zmin, $zmax) = $z->minmax;
@@ -247,9 +247,11 @@ my $cont_color = 0;
 my $cont_width = 0;
 my $xmap = ((sequence($nx)*(2/($nx-1))) + -1); # map X coords linearly to -1 to 1
 my $ymap = ((sequence($ny)*(2/($ny-1))) + -1);
+my $grid = append (pdl ([$nx]), append ($xmap, $ymap));
 plshades($z, -1, 1, -1, 1,
          $clevel, $fill_width,
-         $cont_color, $cont_width, 1, $xmap, $ymap);
+         $cont_color, $cont_width, 1, 
+	 0, \&pltr1, $grid);
 plend1();
 
 ok (-s "test12.xfig" > 0, "3D color plot, low level interface");

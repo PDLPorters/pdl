@@ -526,14 +526,13 @@ Plot a color key showing which color represents which value
 =for ref
 
 Create a shaded contour plot of 2D PDL 'z' with 'nsteps' contour levels.
-Linear scaling is used to map the coordinates of Z(Y, X) to world coordinates
+Linear scaling is used to map the coordinates of Z(X, Y) to world coordinates
 via the BOX option.
 
 =for usage
 
  Arguments:
  $z : A 2D PDL which contains surface values at each XY coordinate.
-      This PDL is stored in Y, X order, as this is how the C code of PLplot requires it.
  $nsteps : The number of contour levels requested for the plot.
 
  Supported options:
@@ -1353,7 +1352,7 @@ sub shadeplot {
   # apply options
   $self->setparm(%opts);
 
-  my ($ny, $nx) = $z->dims;
+  my ($nx, $ny) = $z->dims;
 
   unless (exists($self->{BOX})) {
     $self->{BOX} = [0, $nx, 0, $ny];
@@ -1384,8 +1383,13 @@ sub shadeplot {
   my $xmap = ((PDL->sequence($nx)*(($self->{BOX}[1] - $self->{BOX}[0])/($nx - 1))) + $self->{BOX}[0]);
   my $ymap = ((PDL->sequence($ny)*(($self->{BOX}[3] - $self->{BOX}[2])/($ny - 1))) + $self->{BOX}[2]);
 
+  my $grid = PDL->new ($nx);
+  $grid = $grid->append ($xmap);
+  $grid = $grid->append ($ymap);
+
   plshades($z, @{$self->{BOX}}, $clevel, $fill_width,
-           $cont_color, $cont_width, $rectangular, $xmap, $ymap);
+           $cont_color, $cont_width, $rectangular,
+	   0, \&pltr1, $grid);
 }
 
 # handle histograms
@@ -1976,36 +1980,6 @@ pp_def ('plcolorpoints',
 
 
 
-#
-## simplified interfaces to plshades: shade and contour plots
-#
-
-# shade plot with linear mapping of z coords to world XY coords
-# NOTE:  the Z grid is indexed in C fashion (Y, X) instead of FORTRAN fashion (X, Y)!
-pp_def ('plshades',
-         Pars => 'z(y,x); xmin(); xmax(); ymin(); ymax(); clevel(l); int fill_width();
-                  int cont_color(); int cont_width(); int rectangular(); xmap(x); ymap(y)',
-         GenericTypes => [D],
-         Code => 'int nx    = $SIZE(x);
-                  int ny    = $SIZE(y);
-                  int nlvl  = $SIZE(l);
-                  int i,j;
-                  PLcGrid  cgrid1;
-                  PLFLT *z = $P(z);
-                  PLFLT **vz = calloc(nx, sizeof(PLFLT *)); // allocate pointers to rows of z
-                  for (i=0;i<nx;i++) vz[i] = z + ny*i; // fill in ptrs to rows of z
-
-                  cgrid1.xg = $P(xmap);
-                  cgrid1.yg = $P(ymap);
-                  cgrid1.nx = nx;
-                  cgrid1.ny = ny;
-
-                  c_plshades (vz, nx, ny, NULL, $xmin(), $xmax(), $ymin(), $ymax(),
-                              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
-                              plfill, $rectangular(), pltr1, (void *) &cgrid1);
-                  free(vz);',
-       );
-
 pp_def ('plsmem',
 	     GenericTypes => [B],
              Pars => 'int maxx();int maxy();image(3,x,y)',
@@ -2139,7 +2113,8 @@ pp_def ('pltr0',
         Pars => 'double x(); double y(); double [o] tx(); double [o] ty()',
         GenericTypes => [D],
         OtherPars => 'SV* pltr_data;',
-        Doc => 'FIXME: documentation here!',
+        Doc => 'Mimics the pltr0 function of the PLplot C API.  
+                It implements an identity transformation.',
         Code => '
           double tx, ty;
 
@@ -2155,7 +2130,12 @@ pp_def ('pltr1',
         Pars => 'double x(); double y(); grid(n); '
                 . 'double [o] tx(); double [o] ty()',
         GenericTypes => [D],
-        Doc => 'FIXME: documentation here!',
+        Doc => 'Mimics the pltr1 function of the PLplot C API, implementing '
+	       . 'a linear interpolation.  The grid argument is equivalent '
+	       . 'to the PLcGrid type of the C API.  It is a pdl vector of '
+	       . 'length (nx + ny + 1) containing a concatenation of the x '
+	       . 'and y interpolation vectors.   The first element of grid '
+	       . 'contains the length nx of the x vector.',
         Code => '
           PLcGrid grid;
           double tx, ty;
@@ -2212,6 +2192,11 @@ pp_def ('pltr2',
         );
 
 pp_addhdr (<<'EOH');
+
+#define check_sub_pointer(subptr, errmsg) \
+  if (SvTRUE (subptr) \
+      && (! SvROK (subptr) || SvTYPE (SvRV (subptr)) != SVt_PVCV)) \
+    croak (errmsg);
 
 static SV* pltr_subroutine;
 
@@ -2279,6 +2264,45 @@ defined_callback (PLFLT x, PLFLT y)
 
 EOH
 
+# Shade regions on the basis of value
+pp_def ('plshades',
+         Pars => 'z(x,y); xmin(); xmax(); ymin(); ymax();
+                  clevel(l); int fill_width(); int cont_color();
+                  int cont_width(); int rectangular()',
+         OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
+         GenericTypes => [D],
+         Code => '
+           int nx    = $SIZE(x);
+           int ny    = $SIZE(y);
+           int nlvl  = $SIZE(l);
+           int i, j;
+           PLFLT **z;
+	   
+           plAlloc2dGrid (&z, nx, ny);
+
+           for (i = 0; i < nx; i++)
+             for (j = 0; j < ny; j++)
+               z[i][j] = (PLFLT) $z(x => i, y => j);
+
+           defined_subroutine = $COMP(defined);
+	   check_sub_pointer (defined_subroutine,
+	     "plshades: defined must be either 0 or a subroutine pointer");
+
+           pltr_subroutine = $COMP(pltr);
+	   check_sub_pointer (pltr_subroutine, 
+	     "plshades: pltr must be either 0 or a subroutine pointer");
+
+           c_plshades (z, nx, ny,
+             SvTRUE ($COMP(defined)) ? defined_callback : NULL,
+             $xmin(), $xmax(), $ymin(), $ymax(),
+             $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
+             plfill, $rectangular(),
+             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
+             (PLPointer) $COMP(pltr_data));
+
+           free(z);',
+       );
+
 pp_def ('plcont',
          GenericTypes => [D],
          Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); '
@@ -2299,6 +2323,8 @@ pp_def ('plcont',
                ff[i][j] = $f(nx => i, ny => j);
 
            pltr_subroutine = $COMP(pltr);
+	   check_sub_pointer (pltr_subroutine, 
+	     "plcont: pltr must be either 0 or a subroutine pointer");
 
            c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
                      $P(clevel), $SIZE(nlevel),
@@ -2427,7 +2453,12 @@ pp_def ('plshade1',
                a[i * size_y + j] = (PLFLT) $a(nx => i, ny => j);
 
            defined_subroutine = $COMP(defined);
+	   check_sub_pointer (defined_subroutine,
+	     "plshade1: defined must be either 0 or a subroutine pointer");
+
            pltr_subroutine = $COMP(pltr);
+	   check_sub_pointer (pltr_subroutine, 
+	     "plshade1: pltr must be either 0 or a subroutine pointer");
 
            c_plshade1 (a, size_x, size_y,
              SvTRUE ($COMP(defined)) ? defined_callback : NULL,
