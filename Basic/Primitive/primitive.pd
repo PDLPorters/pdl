@@ -1047,11 +1047,59 @@ otherwise the bad flag is cleared for the output piddle.',
 } # foreach: $which
 
 
-pp_addpm(<<'EOD'
-
-=cut
-=head2 minmaximum
-
+# removed IsNaN handling, even from Code section
+# I think it was wrong, since it was
+#
+#   if (!n || ($a() < curmin) || IsNaN(curmin)) {curmin = $a(); curmin_ind = n;};
+#   if (!n || ($a() > curmax) || IsNaN(curmax)) {curmax = $a(); curmax_ind = n;};
+#
+# surely this succeeds if cur... is a NaN??
+#
+pp_def( 
+	'minmaximum',
+	HandleBad => 1,
+	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
+	Code => 
+	'$GENERIC() curmin, curmax;
+         int curmin_ind, curmax_ind;
+	 loop(n) %{
+            if ( !n ) {
+               curmin = curmax = $a();
+               curmin_ind = curmax_ind = n;
+            } else {
+               if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
+	       if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+            }
+	 %}
+	 $cmin() = curmin; $cmin_ind() = curmin_ind;
+         $cmax() = curmax; $cmax_ind() = curmax_ind;',
+	CopyBadStatusCode => '',
+	BadCode => 
+	'$GENERIC() curmin, curmax;
+         int curmin_ind, curmax_ind, flag = 0;
+	 loop(n) %{
+            if ( $ISGOOD(a()) ) {
+               if ( !flag ) {
+                  curmin = curmax = $a();
+                  curmin_ind = curmax_ind = n;
+                  flag = 1;
+               } else {
+                  if ( $a() < curmin ) { curmin = $a(); curmin_ind = n; }
+                  if ( $a() > curmax ) { curmax = $a(); curmax_ind = n; }
+               }
+            } /* ISGOOD */
+	 %}
+         if ( flag ) {
+            $cmin() = curmin; $cmin_ind() = curmin_ind;
+            $cmax() = curmax; $cmax_ind() = curmax_ind;
+         } else {
+            $SETBAD(cmin()); $SETBAD(cmin_ind());
+            $SETBAD(cmax()); $SETBAD(cmax_ind());
+            $PDLSTATESETBAD(cmin); $PDLSTATESETBAD(cmin_ind);
+            $PDLSTATESETBAD(cmax); $PDLSTATESETBAD(cmax_ind);
+         }',
+	Doc =>
+'
 =for ref
 
 Find minimum and maximum and their indices for a given piddle;
@@ -1065,44 +1113,49 @@ Find minimum and maximum and their indices for a given piddle;
 
 See also L<minmax|/minmax>, which clumps the piddle together.
 
-=cut
-EOD
-);
-
-pp_def( 'minmaximum',
-	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
-	Code => '$GENERIC() curmin, curmax;
-                 int curmin_ind, curmax_ind;
-	 loop(n) %{
-	 	if (!n || ($a() < curmin) || IsNaN(curmin)) {curmin = $a(); curmin_ind = n;};
-	 	if (!n || ($a() > curmax) || IsNaN(curmax)) {curmax = $a(); curmax_ind = n;};
-	 %}
-	 $cmin() = curmin;
-         $cmax() = curmax;
-	 $cmin_ind() = curmin_ind;
-         $cmax_ind() = curmax_ind;'
-	);
+',
+	BadDoc =>
+'If C<a()> contains only bad data, then the output piddles will
+be set bad, along with their bad flag.
+Otherwise they will have their bad flags cleared,
+since they will not contain any bad values.',
+	); # pp_def minmaximum
 
 
-for (['hclip','>'],['lclip','<']) {
-    pp_def($_->[0],
-          Pars => 'a(); b(); [o] c()',
-          Code => '$c() = ($a() '.$_->[1].' $b()) ? $b() : $a();',
-          Doc =>  'clip C<$a> by C<$b> (C<$b> is '.($_->[0] eq 'hclip' ? 'upper' :
-                  'lower').' bound)',
+for my $opt (
+	     ['hclip','>'],
+	     ['lclip','<']
+	     ) {
+    my $name = $opt->[0];
+    my $op   = $opt->[1];
+    pp_def(
+	   $name,
+	   HandleBad => 1,
+	   Pars => 'a(); b(); [o] c()',
+	   Code => 
+	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
+	   BadCode =>
+	   'if ( $ISBAD(a()) || $ISBAD(b()) ) {
+               $SETBAD(c());
+            } else {
+	       $c() = ($a() '.$op.' $b()) ? $b() : $a();
+            }',
+	   Doc =>  'clip C<$a> by C<$b> (C<$b> is '.
+	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
-sub PDL::$_->[0] {
+sub PDL::$name {
    my (\$a,\$b) = \@_;
    my \$c;
    if (\$a->is_inplace) {
        \$a->set_inplace(0); \$c = \$a;
    } elsif (\$#_ > 1) {\$c=\$_[2]} else {\$c=PDL->nullcreate(\$a)}
-   &PDL::_$_->[0]_int(\$a,\$b,\$c);
+   &PDL::_${name}_int(\$a,\$b,\$c);
    return \$c;
 }
 EOD
-    );
-}
+    ); # pp_def $name
+
+} # for: my $opt
 
 pp_add_exported('', clip);
 
@@ -1561,6 +1614,9 @@ This works just as which, but the complement of C<$i> will be in C<$c_i>.
  [0 1 2 3 4]
 
 EOD
+
+# we want something like
+#   whichbad( $a < 20 ) which is like which
 
 for ({Name=>'which',
       Pars => 'mask(n); int [o] inds(m);',

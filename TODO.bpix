@@ -25,6 +25,9 @@ Suggestions/To do:
    set bad, otherwise 0 (and has it's bad flag set). This 
    would allow you to replace values less than 20 with the bad value 
    by '$a += badwhere($a < 20)'
+      EXCEPT THAT it shouldn't be called 'where', and probably won't
+      work like this at all...
+   See t/bad.t for foofoobad() --- This needs thinking about
 
 .) NaN support - this would make it *much* faster on machines which
    support it. See the section in IMPLEMENTATION.bpix

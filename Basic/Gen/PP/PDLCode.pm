@@ -508,7 +508,8 @@ sub new {
 
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
-    die "do not understand this! (BadAccess in PDL::PP::PDLCode.pm)\n" 
+    die "\nIt looks like you have tried a \$${opcode}() macro on an\n" .
+	"  unknown piddle <$pdl_name($inds)>\n"
 	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
 
     bless [$opcode, $pdl_name, $inds], $type;
@@ -617,7 +618,8 @@ sub new {
 
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
-    die "do not understand this! (StateBadAccess in PDL::PP::PDLCode.pm)\n" 
+    die "\nIt looks like you have tried a \$STATE${op}${val}() macro on an\n" .
+	"  unknown piddle <$pdl_name>\n"
 	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
 
     bless [$op, $val, $pdl_name], $type;
@@ -679,7 +681,8 @@ sub new {
 
     # trying to avoid auto creation of hash elements
     my $check = $parent->{ParObjs};
-    die "do not understand this! (PDLStateBadAccess in PDL::PP::PDLCode.pm)\n" 
+    die "\nIt looks like you have tried a \$PDLSTATE${op}${val}() macro on an\n" .
+	"  unknown piddle <$pdl_name>\n"
 	unless exists($check->{$pdl_name}) and defined($check->{$pdl_name});
 
     bless [$op, $val, $pdl_name], $type;

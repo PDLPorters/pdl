@@ -159,8 +159,8 @@ ok( $b->badflag && $b->getndims == 0 && $b->get_datatype == 0, 1 );  # 35
 $a = pdl( qw(42 47 98 13 22 96 74 41 79 76 96 3 32 76 25 59 5 96 32 6) );
 
 # this would be much easier if we could say
-#   $b = $a + badwhere($a < 20);
-# ie something like badwhere replaces those elements which pass the
+#   $b = $a + foofoobad($a < 20);
+# ie something like foofoobad() replaces those elements which pass the
 #    condition by the bad value, 0 otherwise...
 # 
 $b = ($a < 20) * $a->badvalue;
@@ -179,3 +179,5 @@ my $ix = qsorti( $b );
 ok( PDL::Core::string( $b->index($ix) ), 
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
     );  # 41
+
+# need to test primitive's minmaximum

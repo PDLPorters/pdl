@@ -1925,7 +1925,7 @@ sub clear_badflag {
 
 sub get_badflag {
     my $sname = shift;
-    return "$sname\->bvalflag\n";
+    return "$sname\->bvalflag";
 ##    return "($sname\->flags & PDL_ITRANS_HAVE_BADVAL)";
 }
 
