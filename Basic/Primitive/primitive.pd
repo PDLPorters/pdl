@@ -586,6 +586,52 @@ sub PDL::uniq {
   return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
 }
 
+EOPM
+
+pp_add_exported '', 'uniqind';
+pp_addpm << 'EOPM';
+
+=head2 uniqind
+
+=for ref
+
+return the indices of all unique elements of a piddle
+The order is in the order of the values to be consistent
+with uniq
+
+=for example
+
+  print pdl(2,2,2,4,0,-1,6,6)->uniqind;
+	 [5, 4, 1, 3, 6]
+
+Note: The returned pdl is 1D; any structure of the input
+piddle is lost.
+
+=cut
+
+*uniqind = \&PDL::uniqind;
+# return unique elements of array
+# find as jumps in the sorted array
+# flattens in the process
+sub PDL::uniqind {
+  use PDL::Core 'barf';
+  my ($arr) = @_;
+  return $arr if($arr->nelem == 0); # The null list is unique (CED)
+  # Different from uniq we sort and store the result in an intermediary
+  my $i_srt = $arr->clump(-1)->qsorti;
+  my $srt = $arr->index($i_srt);
+  my $uniqind = which($srt != $srt->rotate(-1));
+  # Now map back to the original space
+  $uniqind = $i_srt->index($uniqind);	
+  # make sure we return something if there is only one value
+  return $uniqind->nelem == 0 ? 0 : $uniqind;
+}
+EOPM
+
+
+pp_add_exported '', 'uniqvec';
+pp_addpm << 'EOPM';
+
 =head2 uniqvec
 
 =for ref
