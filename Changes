@@ -1,5 +1,9 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke (4/29/00)
+        - fixed interpol failing to recognise extrapolation at 'high' x +
+          added interpolate with slightly different error handling
+        - commented out 'use PDL::Lib::LLSQRout' in PDL/Lib/Gaussian.pm
 Tim Jenness (4/26/00)
         - Patch mconf.h so that it works on Alphas running Linux
 Doug Burke
