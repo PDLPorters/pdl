@@ -3975,8 +3975,8 @@ sub label_axes {
   pgbbuf();  # doubled titles for some devices (notably the ppm device).
 
   pgsch($sz);
-#  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
-#  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
+  pgmtxt('B', $p->[1],  0.5, 0.5, $o->{XTitle});
+  pgmtxt('L', $p->[2],  0.5, 0.5, $o->{YTitle});
   pgebuf();
 
 #    pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});

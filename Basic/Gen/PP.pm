@@ -1129,21 +1129,46 @@ sub hdrcheck {
   # from make_redodims_thread() we know that __creating[] == 0 unless
   # ...{FlagCreat} is true
   #
-  my $str = "{ void *hdrp = NULL;\n";
+  my $str = "
+{ /* convenience block */
+  void *hdrp = NULL;
+  char propagate_hdrcpy = 0;
+";
   foreach ( 0 .. $nn ) {
-      $str .= "   if (!hdrp && ";
-      $str .= "!__creating[$_] && " if $pobjs->{$pnames->[$_]}{FlagCreat};
-      $str .= "$names[$_]\->hdrsv && ($names[$_]\->state & PDL_HDRCPY))\n" .
-	  "      hdrp = $names[$_]\->hdrsv;\n";
-  }
-  $str .= "if (hdrp) {\n";
-  foreach ( 0 .. $nn ) {
-      if ( $pobjs->{$pnames->[$_]}{FlagCreat} ) {
-	  $str .= "   if ( $names[$_]\->hdrsv != hdrp )\n" .
-	      "      $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );\n";
+    my $aux = $pobjs->{$pnames->[$_]}{FlagCreat} ? "!__creating[$_] && \n" : "";
+    $str .= <<"HdRCHECK1"
+      if(!hdrp && 
+	 $aux     $names[$_]\->hdrsv && 
+	 ($names[$_]\->state & PDL_HDRCPY) 
+	 ) {
+	hdrp = $names[$_]\->hdrsv;
+	propagate_hdrcpy = (($names[$_]\->state & PDL_HDRCPY) != 0);
       }
+HdRCHECK1
+  ;
   }
-  $str .= "}}\n";
+
+#      $str .= "   if (!hdrp && ";
+#      $str .= "!__creating[$_] && " if $pobjs->{$pnames->[$_]}{FlagCreat};
+#      $str .= "$names[$_]\->hdrsv && ($names[$_]\->state & PDL_HDRCPY)) {\n" .
+#	  "      hdrp = $names[$_]\->hdrsv;\n" .
+#	  "      propagate_hdrcpy = (($names[$_]\->state & PDL_HDRCPY) != 0);".
+#	  "    }\n";
+#  }
+
+  $str .= "if (hdrp) {\n";
+
+  foreach ( 0 .. $nn ) {
+     $str .= <<"HdRCHECK2"
+         if ( $names[$_]\->hdrsv != hdrp )
+            $names[$_]\->hdrsv = (void*) newRV( (SV*) SvRV((SV*) hdrp) );
+         if(propagate_hdrcpy)
+            $names[$_]\->state |= PDL_HDRCPY;
+HdRCHECK2
+      if ( $pobjs->{$pnames->[$_]}{FlagCreat} );
+   }
+  $str .= "\n  }\n} /* end of convenience block */\n";
+
   return $str;
 
 } # sub: hdrcheck()
