@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Tim Jenness
+        - Added polynomial fitting routines to PDL::Slatec (polfit, 
+	  pvalue and pcoef)
 John Cerney
 	- Added (psuedo)-support for variable-size strings in PDL::Char
 	
