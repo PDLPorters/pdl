@@ -579,6 +579,7 @@ sub process_input {
       for my $filter (@PERLDL::PREPROCESS) {
           $_ = $filter->($_);
       }
+
       # honor the deprecated interface for now
       if (defined $PERLDL::PREPROCESS && 
 	  ref($PERLDL::PREPROCESS) eq 'CODE') {

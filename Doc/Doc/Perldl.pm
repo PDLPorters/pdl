@@ -479,6 +479,16 @@ and the remaining commands listed, along with the names of their modules.
 
 =cut
 
+sub help_url {
+    local $_;
+    foreach(@INC) {
+	my $a = "$_/PDL/HtmlDocs/PDL/Index.html";
+	if(-e $a) {
+	    return "file://$a";
+	}
+    }
+}
+
 sub help {
   if ($#_>-1) {
       require PDL::Dbg;
@@ -490,6 +500,28 @@ sub help {
 	  $topic = 'PDL::Doc::Perldl' if $topic =~ /^\s*help\s*$/i;
 	  if ($topic =~ /^\s*vars\s*$/i) {
 	      PDL->px((caller)[0]);
+	  } elsif($topic =~ /^\s*url\s*/i) {
+	      my $a = help_url();
+	      if($a) {
+		  print $a;
+	      } else {
+		  print "Hmmm. Curious: I couldn't find the HTML docs anywhere in \@INC...\n";
+	      }
+	  } elsif($topic =~ /^\s*www(:([^\s]+))?\s*/i) {
+	      my $browser;
+	      my $url = help_url();
+	      if($2) {
+		  $browser = $2;
+	      } elsif($ENV{PERLDL_WWW}) {
+		  $browser = $ENV{PERLDL_WWW};
+	      } else {
+		  $browser = 'mozilla';
+	      }
+	      chomp($browser = `which $browser`);
+	      if(-e $browser && -x $browser) {
+		  print "Spawning \"$browser $url\"...\n";
+		  `$browser $url`;
+	      }
 	  } else {
 	      finddoc($topic);
 	  }
@@ -503,8 +535,10 @@ The following four commands support online help in the perldl shell:
  help 'thing'   -- print docs on 'thing' (func, module, manual, autoload-file)
  help $a        -- print information about $a (if it's a piddle)
  help vars      -- print information about all current piddles
- apropos 'word' -- search for keywords/function names in the list of
-                   documented PDL functions
+ help url       -- locate the HTML version of the documentation
+ help www       -- View the documentation with a web browser
+ help www:<foo> -- View the documentation with web browser <foo>.
+ apropos 'word' -- search for keywords/function names 
  ?              -- alias for 'help'
  ??             -- alias for 'apropos'
  usage          -- print usage information for a given PDL function
