@@ -117,18 +117,23 @@ every expression, explaining what you think each dimension means:
 	$rot = cat(cat(cos($a),sin($a)),    # rotmat: (col,row,angle)
 	           cat(-sin($a),cos($a)));
 
+=head1 ACKNOWLEDGEMENTS
+
+MatrixOps includes algorithms and pre-existing code from several origins.
+In particular, C<eigens_sym> is the work of Stephen Moshier, C<svd> 
+uses an SVD subroutine written by Bryant Marks, and C<eigens> uses a 
+subset of the Small Scientific Library by Kenneth Geisshirt.  All are
+free software, distributable under same terms as PDL itself. 
+
 =head1 NOTES
 
-This is intended as a general-purpose linear algebra package.  
-If there is something you want that is not here, please add and document it!
+This is intended as a general-purpose linear algebra package for
+small-to-mid sized matrices.  The algorithms may not scale well to
+large matrices (hundreds by hundreds) or to near singular matrices.
 
-=head1 TO DO
+If there is something you want that is not here, please add and
+document it!
 
-=over 3
-
-=item * Link into GSL?
-
-=back
 =cut
 
 use Carp;
