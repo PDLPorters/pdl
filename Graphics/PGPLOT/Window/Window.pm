@@ -3700,17 +3700,17 @@ sub initenv{
       local($_) = $o->{Align} || "CC";
       my($wx0,$wx1,$wy0,$wy1);
       
+      my($xrange) = abs($xmax-$xmin) / $pitch * $wxs;
       ($wx0,$wx1) = 
-	(m/L/i) ? ( $ox0, $ox0  +  ($xmax - $xmin) / $pitch * $wxs ) :
-	(m/R/i) ? ( $ox1  -  ($xmax - $xmin) / $pitch * $wxs, $ox1 ) :
-	      (0.5 * ( $ox0 + $ox1  -  ($xmax - $xmin) / $pitch * $wxs ),
-	       0.5 * ( $ox0 + $ox1  +  ($xmax - $xmin) / $pitch * $wxs ));
-      
+	(m/L/i) ? ( $ox0, $ox0  +  $xrange ) :
+	(m/R/i) ? ( $ox1  -  $xrange ) :
+	  (0.5 * ( $ox0 + $ox1 - $xrange ), 0.5 * ( $ox0 + $ox1 + $xrange ));
+
+      my($yrange) = abs($ymax-$ymin) * $pix / $pitch * $wys;
       ($wy0,$wy1) = 
-	(m/B/i) ? ( $oy0, $oy0 + ($ymax - $ymin) * $pix / $pitch * $wys ) :
-	(m/T/i) ? ( $oy1 -  ($ymax - $ymin) * $pix / $pitch * $wys, $oy1 ) :
-              (0.5 * ( $oy0 + $oy1 -  ($ymax - $ymin) * $pix * $wys / $pitch ),
-	       0.5 * ( $oy0 + $oy1 +  ($ymax - $ymin) * $pix * $wys / $pitch ));
+	(m/B/i) ? ( $oy0, $oy0 + $yrange ) :
+	(m/T/i) ? ( $oy1 - $yrange, $oy1 ) :
+           (0.5 * ( $oy0 + $oy1 - $yrange ), 0.5 * ( $oy0 + $oy1 + $yrange ));
       
       pgsvp($wx0,$wx1,$wy0,$wy1);
       print "calling pgswin($xx0,$xx1,$yy0,$yy1)" if($PDL::Graphics::PGPLOT::debug);

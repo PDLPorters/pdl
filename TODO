@@ -16,6 +16,8 @@ CURRENT PRIORITIES:
 # - more Inline::Pdlpp docs
 - AutoLoader import hash => can wait
 
+- Overarching graphics object -- would be nice to have high level 
+	functionality in PLPLOT.
 
 lower priorities
 
@@ -27,7 +29,15 @@ lower priorities
   included in the distribution but are not installed)
 - make more routines 'bad value' aware
 - tests for new features of at, set, getdim
-- tests for PDL::Matrix
+# - tests for PDL::Matrix
+
+CED notes
+- Add arithmetic (and scalar arithmetic) to PDL::Transform
+- Fix up DiskCache object
+- Fixes to PGPLOT::Window
+	- Duplicate titles in pixel drivers; e.g. 
+		$w=pgwin("foo.gif/gif"); $w->imag(rvals(10,10),{Title=>"Foo"});
+	- LineWidth sets both line width of plot and of titles.  Ick.
 
 
 # implement the new NiceSlice ideas (trailing modifiers, '/' diag,

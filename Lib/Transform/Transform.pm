@@ -1099,14 +1099,13 @@ sub map {
     ### Stick the summed, filtered output back into the output array!
     ### Whew!  
     
-    if($flux) {
-      my $p_jdet = $jdet->indexND($pixels->dummy(0,1));
-      $out->clump($nd)->range($pixels->dummy(0,1)) .=
-	($input->sumover * $p_jdet / $f_norm / ($reduction ** $nd));
-    } else {
-      $out->clump($nd)->range($pixels->dummy(0,1)) .= 
-	double($input->sumover / $f_norm / ($reduction ** $nd));  # (pix-list)
-    }
+    $out->clump($nd)->range($pixels->dummy(0,1)) .=
+      ($flux 
+       ?
+       double($input->sumover * $p_jdet / $f_norm / ($reduction ** $nd)); 
+       :
+       double($input->sumover / $f_norm / ($reduction ** $nd));
+       );
     
     print "ok\n" if($PDL::Transform::debug);
     $last_size = $size;
