@@ -1,5 +1,9 @@
 (!!! = possible source of incompatibilities)
 2.004
+Doug Hunt (3/23/00)
+        - Improved error messages in PDL::Graphics::PGPLOT for the case when the
+          correct version of PGPLOT (v2.16 or later) is not installed.
+
 John Cerney (3/16/00)
 	- Added -lm to the Lib/Image2D/Makefile.PL suggested by Doug Burke
 	  to fix a compile problem on Solaris 2.7.

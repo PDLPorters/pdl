@@ -16,7 +16,6 @@ struct PGPLOT_function_handle {
    void (*cpgdraw) (float x, float y);
 };
 
-
 typedef struct PGPLOT_function_handle PGPLOT_function_handle;
 
 static I32 PGPLOT_structure_version = 20000302;  /* The date the PGPLOT structure changed */
@@ -54,11 +53,15 @@ BOOT:
 	/* Get pointer to structure of core shared C routines */
 	ptr = perl_get_sv("PGPLOT::HANDLE",FALSE);  /* SV* value */
 	if (ptr==NULL)
-	  Perl_croak("This module requires use of PGPLOT first");
+	  Perl_croak("This module requires PGPLOT version 2.16 or later./nPlease install/upgrade PGPLOT (see the PDL/DEPENDENCIES file).");
 	myhandle = (PGPLOT_function_handle*) SvIV( ptr );  
 
 	/* If the structure read from the PGPLOT module is too old */
-	if (myhandle->binversion < PGPLOT_structure_version)
-          Perl_croak("This module requires PGPLOT with a newer structure version");
+	if (myhandle->binversion < PGPLOT_structure_version) {
+	  char msg[128];
+          sprintf (msg, "This module requires PGPLOT with a structure version at least %d", 
+                         PGPLOT_structure_version);
+          Perl_croak(msg);
+        }
 
 
