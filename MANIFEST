@@ -50,6 +50,8 @@ Basic/Math/asinh.c
 Basic/Math/atanh.c
 Basic/Math/blas.c
 Basic/Math/const.c
+Basic/Math/cpoly.c
+Basic/Math/cpoly.h
 Basic/Math/eigens.c
 Basic/Math/infinity.c
 Basic/Math/j0.c

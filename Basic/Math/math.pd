@@ -259,6 +259,31 @@ Singular value decomposition of array.
 ',);
 
 
+pp_def("polyroots",
+      Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
+      RedoDimsCode => 'int sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
+      GenericTypes => [D],
+      Code => '
+              extern int cpoly( double *cr, double *ci, int deg,
+                    double *rr, double *ri );
+              int deg = $SIZE(n)-1, i;
+              if (cpoly($P(cr), $P(ci), deg, $P(rr), $P(ri)))
+                 barf("PDL::Math::polyroots failed");
+',
+      , Doc => '
+
+=for ref
+
+Complex roots of a complex polynomial, given coefficients in order
+of decreasing powers.
+
+=for usage
+
+ ($rr, $ri) = polyroots($cr, $ci);
+
+',);
+
+
 # XXX The next two really need driver routines...
 
 pp_def("eigens",
