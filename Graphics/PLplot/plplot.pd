@@ -2328,6 +2328,10 @@ pp_addhdr (<<'EOH');
 
 static SV* pltr_subroutine;
 
+static IV pltr0_iv;
+static IV pltr1_iv;
+static IV pltr2_iv;
+
 static void
 pltr_callback (PLFLT x, PLFLT y, PLFLT* tx, PLFLT* ty, PLPointer pltr_data)
 {
@@ -2356,6 +2360,21 @@ pltr_callback (PLFLT x, PLFLT y, PLFLT* tx, PLFLT* ty, PLPointer pltr_data)
   PUTBACK;
   FREETMPS;
   LEAVE;
+}
+
+static void*
+get_standard_pltrcb (SV* cb)
+{
+  IV sub = (IV) SvRV (cb);
+
+  if (sub == pltr0_iv)
+    return (void*) pltr0;
+  else if (sub == pltr1_iv)
+    return (void*) pltr1;
+  else if (sub == pltr2_iv)
+    return (void*) pltr2;
+  else
+    return SvTRUE (cb) ? (void*) pltr_callback : NULL;
 }
 
 static SV* defined_subroutine;
@@ -2456,6 +2475,27 @@ mapform_callback (PLINT n, PLFLT* x, PLFLT* y)
 
 EOH
 
+# The init_pltr is used internally by the PLD::Graphics::PLplot
+# module to set the variables pltr{0,1,2}_iv to the "pointers"
+# of the Perl subroutines pltr{1,2,3}.  These variables are later used by
+# get_standard_pltrcb to provide the pointers to the C function pltr{0,1,2}.
+# This accelerates functions like plcont and plshades when those standard
+# transformation functions are used.
+
+pp_def ('init_pltr',
+         GenericTypes => [D],
+         Pars => '',
+         OtherPars => 'SV* p0; SV* p1; SV* p2;',
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           pltr0_iv = (IV) SvRV ($COMP(p0));
+           pltr1_iv = (IV) SvRV ($COMP(p1));
+           pltr2_iv = (IV) SvRV ($COMP(p2));');
+
+pp_addpm (<<'EOPM');
+init_pltr (\&pltr0, \&pltr1, \&pltr2);
+EOPM
+
 # plot continental outline in world coordinates
 
 pp_def ('plmap',
@@ -2500,6 +2540,8 @@ pp_def ('plshades',
            int nlvl  = $SIZE(l);
            int i, j;
            PLFLT **z;
+ 	   void (*pltrcb) ();
+           PLPointer pltrdt;
 
            plAlloc2dGrid (&z, nx, ny);
 
@@ -2515,13 +2557,17 @@ pp_def ('plshades',
 	   check_sub_pointer (pltr_subroutine,
 	     "plshades: pltr must be either 0 or a subroutine pointer");
 
+	   pltrcb = get_standard_pltrcb ($COMP(pltr));
+           if (pltrcb != pltr_callback)
+             pltrdt = (PLPointer) SvIV ($COMP(pltr_data));
+           else
+             pltrdt = $COMP(pltr_data);
+
            c_plshades (z, nx, ny,
              SvTRUE ($COMP(defined)) ? defined_callback : NULL,
              $xmin(), $xmax(), $ymin(), $ymax(),
              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
-             plfill, $rectangular(),
-             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
-             (PLPointer) $COMP(pltr_data));
+             plfill, $rectangular(), pltrcb, pltrdt);
 
            free(z);',
        );
@@ -2535,6 +2581,8 @@ pp_def ('plcont',
          Code => '
            int i, j, size_x, size_y;
            PLFLT** ff;
+	   void (*pltrcb) ();
+           PLPointer pltrdt;
 
            size_x = $SIZE(nx);
            size_y = $SIZE(ny);
@@ -2549,9 +2597,15 @@ pp_def ('plcont',
 	   check_sub_pointer (pltr_subroutine,
 	     "plcont: pltr must be either 0 or a subroutine pointer");
 
+	   pltrcb = get_standard_pltrcb ($COMP(pltr));
+           if (pltrcb != pltr_callback)
+             pltrdt = (PLPointer) SvIV ($COMP(pltr_data));
+           else
+             pltrdt = $COMP(pltr_data);
+
            c_plcont (ff, size_x, size_y, $kx(), $lx(), $ky(), $ly(),
                      $P(clevel), $SIZE(nlevel),
-                     pltr_callback, (PLPointer) $COMP(pltr_data));
+                     pltrcb, pltrdt);
 
            plFree2dGrid (ff, size_x, size_y);'
         );
@@ -2691,6 +2745,8 @@ pp_def ('plshade1',
          Code => '
            int i, j, size_x, size_y;
            PLFLT* a;
+	   void (*pltrcb) ();
+           PLPointer pltrdt;
 
            size_x = $SIZE(nx);
            size_y = $SIZE(ny);
@@ -2709,14 +2765,18 @@ pp_def ('plshade1',
 	   check_sub_pointer (pltr_subroutine,
 	     "plshade1: pltr must be either 0 or a subroutine pointer");
 
+	   pltrcb = get_standard_pltrcb ($COMP(pltr));
+           if (pltrcb != pltr_callback)
+             pltrdt = (PLPointer) SvIV ($COMP(pltr_data));
+           else
+             pltrdt = $COMP(pltr_data);
+
            c_plshade1 (a, size_x, size_y,
              SvTRUE ($COMP(defined)) ? defined_callback : NULL,
              $left(), $right(), $bottom(), $top(),
              $shade_min(), $shade_max(), $sh_cmap(), $sh_color(), $sh_width(),
              $min_color(), $min_width(), $max_color(), $max_width(),
-             plfill, $rectangular(),
-             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
-             (PLPointer) $COMP(pltr_data));
+             plfill, $rectangular(), pltrcb, pltrdt);
 
            free ((void *) a);'
         );
@@ -3008,6 +3068,8 @@ unless ($novect) {
            int i, j, size_x, size_y;
            PLFLT** u;
            PLFLT** v;
+	   void (*pltrcb) ();
+           PLPointer pltrdt;
 
            size_x = $SIZE(nx);
            size_y = $SIZE(ny);
@@ -3025,14 +3087,18 @@ unless ($novect) {
 	   check_sub_pointer (pltr_subroutine,
 	     "plvect: pltr must be either 0 or a subroutine pointer");
 
-           plvect (u, v, size_x, size_y, $scale(),
-             SvTRUE ($COMP(pltr)) ? pltr_callback : NULL,
-             (PLPointer) $COMP(pltr_data));
+	   pltrcb = get_standard_pltrcb ($COMP(pltr));
+           if (pltrcb != pltr_callback)
+             pltrdt = (PLPointer) SvIV ($COMP(pltr_data));
+           else
+             pltrdt = $COMP(pltr_data);
+
+           plvect (u, v, size_x, size_y, $scale(), pltrcb, pltrdt);
 
            plFree2dGrid (u, size_x, size_y);
            plFree2dGrid (v, size_x, size_y);'
 	 );
-  
+
   pp_def ('plsvect',
 	  Pars => 'arrowx(npts); arrowy(npts); int fill()',
 	  GenericTypes => [D],
