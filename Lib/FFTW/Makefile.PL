@@ -9,38 +9,36 @@ BEGIN {
 
 
 	$msg = ""; $forcebuild=0;  # Note: forcebuild not used
-	
-	if (defined $PDL_CONFIG{WITH_FFTW} && $PDL_CONFIG{WITH_FFTW}==0) {
+
+	if (defined $PDL::Config{WITH_FFTW} && $PDL::Config{WITH_FFTW}==0) {
 	   $msg = "\n   Will skip build of PDL::FFTW on this system   \n";
 	   goto skip;
 	}
-	
-	if (defined $PDL_CONFIG{WITH_FFTW} && $PDL_CONFIG{WITH_FFTW}==1) {
+
+	if (defined $PDL::Config{WITH_FFTW} && $PDL::Config{WITH_FFTW}==1) {
 	   print "\n   Will forcibly try and build PDL::FFTW on this system   \n\n";
 	   $forcebuild=1;
 	}
-	
-	
+
 	# Setup the FFTW library we will link to: (single/double precision)
 	#  Default is double precision
 	$want_float = 0;
 	$want_double = 1;
-	if (defined $PDL_CONFIG{FFTW_TYPE} && $PDL_CONFIG{FFTW_TYPE} =~ /single/i ) {
+	if (defined $PDL::Config{FFTW_TYPE} && $PDL::Config{FFTW_TYPE} =~ /single/i ) {
 		$want_float = 1;
 		$want_double = 0;
 	}
-	
+
 	$found_float = $found_double = 'none';
 
 	# Look for FFTW includes/libs
 	# default locations:
 	@FFTW_inc_locations = ('/usr/local/include'); 
-	@FFTW_lib_locations = ('/lib','/usr/lib','/usr/local/lib'); 
+	@FFTW_lib_locations = ('/lib','/usr/lib','/usr/local/lib');
 
 	# get locations from perldl.conf, if specified there:
-	@FFTW_inc_locations = @{$PDL_CONFIG{FFTW_INC}} if( defined $PDL_CONFIG{FFTW_INC} ); 
-	@FFTW_lib_locations = @{$PDL_CONFIG{FFTW_LIBS}} if( defined $PDL_CONFIG{FFTW_LIBS} ); 
-
+	@FFTW_inc_locations = @{$PDL::Config{FFTW_INC}} if( defined $PDL::Config{FFTW_INC} );
+	@FFTW_lib_locations = @{$PDL::Config{FFTW_LIBS}} if( defined $PDL::Config{FFTW_LIBS} );
 
 	foreach $i (@FFTW_inc_locations) {
 	  if (-e "$i/dfftw.h") {
@@ -102,7 +100,7 @@ BEGIN {
         if ($found_float ne 'none' && $want_float ) {
             $include = $found_float;
             print "Building single version\n";
-            $pdltype = 'PDL_F'; 
+            $pdltype = 'PDL_F';
             $lib = $single_lib;
             $rinclude = $single_rinclude;
             $out = '$fftwtype=\'float\'';
@@ -113,7 +111,7 @@ BEGIN {
         elsif ($found_double ne 'none' && $want_double ) {
             $include = $found_double;
             print "Building double version\n";
-            $pdltype = 'PDL_D'; 
+            $pdltype = 'PDL_D';
             $lib = $double_lib;
             $rinclude = $double_rinclude;
             $out = '$fftwtype=\'double\'';

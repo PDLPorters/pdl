@@ -6,6 +6,7 @@ use PDL::IO::Misc;
 use PDL::IO::FITS;
 
 use PDL::Core ':Internal'; # For howbig()
+use PDL::Config;
 
 print "1..39\n";
 
@@ -30,10 +31,9 @@ require File::Spec;
 $fs = 'File::Spec';
 sub cdir { return $fs->catdir(@_)}
 sub cfile { return $fs->catfile(@_)}
-$td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
-$tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
-            defined $ENV{TMP} ? $ENV{TMP} :
-                           cdir($fs->rootdir,$td);
+
+my $tempd = $PDL::Config{TEMPDIR} or
+  die "TEMPDIR not found in %PDL::Config";
 $file = cfile $tempd, "iotest$$";
 
 ############# Test rcols with filename and pattern #############

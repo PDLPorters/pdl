@@ -9,25 +9,25 @@ PDL::Core::Dev->import();
 
 BEGIN {
    $msg = ""; $forcebuild=0;
-   
-   if (defined $PDL_CONFIG{WITH_SLATEC} && $PDL_CONFIG{WITH_SLATEC}==0) {
+
+   if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==0) {
       $msg = "\n   Will skip build of PDL::Slatec on this system   \n";
       goto skip;
    }
-   
-   if (defined $PDL_CONFIG{WITH_SLATEC} && $PDL_CONFIG{WITH_SLATEC}==1) {
+
+   if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==1) {
       print "\n   Will forcibly try and build PDL::Slatec on this system   \n\n";
       $forcebuild=1;
    }
-   
+
 #    if ($^O =~ /win32/i) {
 #       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
 #       goto skip unless $forcebuild;
 #    }
 
-   if (exists $PDL_CONFIG{F77CONF} && -f $PDL_CONFIG{F77CONF}) {
-     print "loading F77 configuration from $PDL_CONFIG{F77CONF}...\n";
-     eval "require '$PDL_CONFIG{F77CONF}'";
+   if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
+     print "loading F77 configuration from $PDL::Config{F77CONF}...\n";
+     eval "require '$PDL::Config{F77CONF}'";
      if ($@ ne "") {
        $msg = "\n".$@.
 	 "\n\tF77CONF file not loaded. Ought not build PDL::Slatec\n" ;
@@ -48,19 +48,19 @@ BEGIN {
 	 goto skip unless $forcebuild;
        }
      }  # end if ($@ ne "")
-   } # if (exists $PDL_CONFIG{F77CONF}...
+   } # if (exists $PDL::Config{F77CONF}...
 
    $compiler_available = $f77->testcompiler;
 
    if (!$compiler_available) {
       $msg = "\n   No f77 compiler found. Ought to skip PDL::Slatec on this system    \n";
-      $PDL_CONFIG{WITH_SLATEC} = 0;
+      $PDL::Config{WITH_SLATEC} = 0;
    } else {
-      $PDL_CONFIG{WITH_SLATEC} = 1;
+      $PDL::Config{WITH_SLATEC} = 1;
    }
-        
+
    skip:
-   
+
    if ($msg ne "" && $forcebuild==0) {
        warn $msg . "\n";
        $msg =~ s/\n//g;

@@ -40,6 +40,7 @@ package PDL::Graphics::TriD::VRML;
 use PDL::Core '';  # barf
 use PDL::Graphics::VRML;
 use PDL::LiteF;
+use PDL::Config;
 PDL::Graphics::VRMLNode->import();
 PDL::Graphics::VRMLProto->import();
 
@@ -536,8 +537,8 @@ sub new {
   $this->{'Type'} = $types{$mime};
   &{$this->{'Type'}->{'setup'}} if defined $this->{'Type'}->{'setup'};
   $this->{'Binding'} = 'local';
-  $this->{'Filestem'} = ($ENV{'TMP'} || $ENV{'TEMP'} || '/tmp') .
-    "/tridim_$urlnum"; $urlnum++;
+  $this->{'Filestem'} = $PDL::Config{TEMPDIR} . "/tridim_$urlnum";
+  $urlnum++;
   return $this;
 }
 
@@ -565,7 +566,8 @@ $PDL::Graphics::TriD::create_window_sub = sub {
 };
 
 # set up the default parameters for VRML
-my $tmpdir = $ENV{'TMP'} || $ENV{'TEMP'} || '/tmp';
+my $tmpdir = $PDL::Config{TEMPDIR} ||
+  die "TEMPDIR not found in %PDL::Config";
 my $tmpname = "$tmpdir/tridvrml_$$.wrl";
 my $para = $PDL::Graphics::TriD::Settings =
   PDL::Graphics::TriD::VRML::Parameter->new() ;

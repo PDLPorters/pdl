@@ -2,6 +2,8 @@ use PDL::LiteF;
 use PDL::Types ':All';
 
 use PDL::IO::FlexRaw;
+use PDL::Config;
+
 use Test;
 use strict;
 
@@ -14,18 +16,20 @@ BEGIN {
   plan tests => scalar @ntypes;
 }
 
-our @types = map { print "making type $_\n"; 
+our @types = map { print "making type $_\n";
 		   new PDL::Type typefld($_,'numval') } typesrtkeys();
+
+my $data = $PDL::Config{TEMPDIR} . "/tmprawdata";
 
 for my $type (@types) {
   print "checking type $type...\n";
   my $pdl = sequence $type, 10;
-  my $hdr = writeflex 'tmprawdata', $pdl;
-  writeflexhdr('tmprawdata',$hdr);
-  my $npdl = eval {readflex 'tmprawdata'};
+  my $hdr = writeflex $data, $pdl;
+  writeflexhdr($data,$hdr);
+  my $npdl = eval {readflex $data};
   ok ($pdl->type == $npdl->type && 
      all $pdl == $npdl);
 }
 
-unlink qw/ tmprawdata tmprawdata.hdr /;
+unlink $data, "${data}.hdr";
 

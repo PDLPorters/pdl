@@ -7,6 +7,7 @@
 # (It may become useful if the test is moved to ./t subdirectory.)
 
 use PDL;
+use PDL::Config;
 use Test::More;
 
 BEGIN{
@@ -49,16 +50,19 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 # PLplot errors, control never returns to us.  FMH.
 #   --CED
 ###
+
+my $tmpfile = $PDL::Config{TEMPDIR} . "/foo$$.xfig";
+
 if($pid = fork()) {
 	$a = waitpid($pid,0);
 } else {
 	sleep 1;
-	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>"/tmp/foo$$.xfig");
+	$pl = PDL::Graphics::PLplot->new(DEV=>"xfig",FILE=>$tmpfile);
 	exit(0);	
 }
 
 ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
-unlink "/tmp/foo$pid.xfig";
+unlink $tmpfile;
 
 if($not_ok) {
 	printf SAVEERR <<"EOERR" ;

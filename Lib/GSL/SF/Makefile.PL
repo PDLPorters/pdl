@@ -27,10 +27,10 @@ $skip = 0;
 $msg = undef;
 $forcebuild=0;
 
-if (defined $PDL_CONFIG{WITH_GSL} && $PDL_CONFIG{WITH_GSL}==0) {
+if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
   $msg = "\n   Will skip build of PDL::GSLSF on this system   \n";
   $skip = 1;
-} elsif (defined $PDL_CONFIG{WITH_GSL} && $PDL_CONFIG{WITH_GSL}==1) {
+} elsif (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==1) {
   print "\n   Will forcibly try and build PDL::GSLSF on this system   \n\n";
   $forcebuild=1;
 }
