@@ -86,7 +86,7 @@ $PDL::Core::FOO_FOO_::VERSION = '1.56';
 
 # Functions exportable in this part of the module
 
-@EXPORT = qw( pdl null barf ); # Only stuff always exported!
+@EXPORT = qw( piddle pdl null barf ); # Only stuff always exported!
 
 !NO!SUBS!
 
@@ -103,7 +103,7 @@ print OUT <<"!WITH!SUBS!";
    Func=>[qw/nelem dims null
     $convertfuncs
     convert inplace zeroes ones list listindices
-    set at flows thread_define over reshape pdl null dog cat barf type
+    set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
     /],
    Internal=>[qw/howbig threadids topdl/]
@@ -214,6 +214,8 @@ C<$PDL::undefval> defaults to zero.
 =cut
 
 sub pdl {PDL->pdl(@_)}
+
+sub piddle {PDL->pdl(@_)}
 
 =head2 null
 

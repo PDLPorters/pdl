@@ -1,3 +1,5 @@
+CED (25-Feb-2003)
+    - Added 'piddle' constructor synonym :-)
 CED (24-Feb-2003)
     - slices.pd:
         - range(), indexND, & interpND now accept multiple boundary conditions
