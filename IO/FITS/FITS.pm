@@ -781,6 +781,8 @@ sub _rfits_bintable {
 
     if( ($hdr->{"TFORM$i"}) =~ m/(\d*)(.)(.*)/ ) {
       ($tmpcol->{rpt},  $tmpcol->{type},  $tmpcol->{extra}) = ($1,$2,$3);
+      # added by DJB 03.18/04 - works for my data file but is it correct?
+      $tmpcol->{rpt} ||= 1;
     } else {
       barf "Couldn't parse BINTABLE form '"
         . $hdr->{"TFORM$i"}
@@ -814,7 +816,7 @@ sub _rfits_bintable {
       $tmpcol->{data} = $tbl->{$name} = 
         PDL->new_from_specification(
                                     $foo 
-                                    , $tmpcol->{rpt}||1, 
+                                    , $tmpcol->{rpt}, 
                                     , $hdr->{NAXIS2}||1
                                     );
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
