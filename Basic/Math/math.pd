@@ -455,7 +455,7 @@ sub PDL::eigens {
 
       return $ev, $e
 	if(wantarray);
-      $e;
+      $e;                #just eigenvalues
 }
 '
       , Doc => '
@@ -473,8 +473,8 @@ eigenvectors is wasteful).
 
 =for usage
 
- ($e, $ev) = eigens($a);
- $e = eigens($a);
+ ($ev, $e) = eigens($a); # e\'vects & e\'vals
+ $e = eigens($a);        # just eigenvalues
 
 ',);
 

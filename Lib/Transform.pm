@@ -628,6 +628,11 @@ sub map {
   my($integrate) = _opt($opt,['i','int','integrate','Integrate']);
   print "integrate=$integrate\n";
 
+  ## Half-width of the sampling gaussian -- should be at least 0.5.
+  my($blur) = _opt($opt,['b','blur','Blur']);
+  $blur = 0.7 unless($blur);
+  my $blur2 = 0.5 / $blur / $blur ; 
+
   if(!$integrate) {
     
     ##############################
@@ -715,15 +720,15 @@ sub map {
     my $jac  = $jacob->reorder(2..($nd+1),0,1)->clump($nd); # (list, col, row)
 
     ###############
-    ### Pad the eigenvalues of the jacobian out to 1, and generate
-    ### the inverse of the padded version.  We lose information about
-    ### rotations (by symmetrizing in eigens) and reflection (by 
-    ### taking the absolute value of the eigenvalue), but all of that 
-    ### stuff takes place inside each pixel anyhow, so it's no big deal.
+    ### Figure out the footprint size of each outpus pixel, in 
+    ### input coordinates.  This relies on the peculiar coincidence 
+    ### (or whatever) that the eigenvalues of the squared Jacobian are 
+    ### the squared lengths of the principal axes of the ellipsoid formed 
+    ### by transforming the pixel.  We just grab a cube as big as the 
+    ### longest axis.
 
     my ($ev, $e) = (eigens ($jac->reorder(2,1,0) x 
 			    $jac->reorder(1,2,0)));
-#    my($ev,$e) = eigens($jac->reorder(2,1,0))
     $e = $e->inplace->abs; # (eig, list)
 
     # Figure out the size needed for each subfield.  Don't allow any
@@ -732,13 +737,14 @@ sub map {
     my $big = PDL->pdl($in->dims)->max * 0.1;
 
     my $sizes = $e->maximum->sqrt->clip(undef,$big);    # (list)
-#    my $sizes = $e->maximum->clip(undef,$big);    # (list)
 
-    $PDL::debug::sizes = $sizes->copy;
-    $PDL::debug::e = $e->copy;
-    $PDL::debug::jac = $jac->copy;
-    # This is the cheapass inverse jacobian -- it gets used to scale
-    # offsets within each playing field.
+
+    ###############
+    ### Pad the eigenvalues of the jacobian out to 1, and generate
+    ### the inverse of the padded version.  We lose information about
+    ### rotations (by symmetrizing in eigens) and reflection (by 
+    ### taking the absolute value of the eigenvalue), but all of that 
+    ### stuff takes place inside each pixel anyhow, so it's no big deal.
     ($ev, $e) = (eigens ($jac->reorder(1,2,0)));
     $e = $e->inplace->clip(1,undef); 
     my $ijac = $ev->xchg(0,1)->sever;   # (row, col, list)
@@ -823,7 +829,7 @@ sub map {
       print "calculating filter values\n";
       my $filt = $offsets->sumover->xchg(0,1);  # (rgn-list,pix-list) R^2
       $offsets = undef;    # free up memory    
-      $filt *= (-9/4);               # Gaussian has HW of 2/3
+      $filt *= (-$blur2);               # Gaussian has HW of 2/3
       $filt->inplace->exp;               # make Gaussian. (rgn-list, pix-list)
       my $f_norm = $filt->sumover;       # (pix-list)
       
@@ -841,6 +847,14 @@ sub map {
 		      clump($nd)                   # (rgn-list,pix-list)
 		      ->sever;
       print "input is ",join("x",$input->dims),"\n";
+
+      $PDL::debug::filterpanel->range($coords_in->
+				      slice(":,:,(0)")->
+				      xchg(0,1)
+				      ,
+				      $size,'e') += $filt
+				      if(defined $PDL::debug::filterpanel);
+
       $filt *= $input;  # (rgn-list, pix-list)
 
       ### Stick the summed, filtered output back into the output array!
