@@ -23,6 +23,10 @@ modules automatically, making their functions available in the current
 perl namespace.  See also L<PDL::Lite|PDL::Lite> or
 L<PDL::LiteF|PDL::LiteF> if start-up time becomes an issue.
 
+Note that the L<PDL::NiceSlice|PDL::NiceSlice> syntax is NOT automatically
+loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
+a standalone script, you must also say C<use PDL::NiceSlice;>.
+
 The PDL::Math module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
 I<not> included in the

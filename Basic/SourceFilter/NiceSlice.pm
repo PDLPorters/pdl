@@ -397,22 +397,18 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
 
 =head1 DESCRIPTION
 
-C<PDL>'s L<slice|PDL::Slices/slice> syntax sucks. This module tries to rectify the
-situation to some degree. Using Perl's ability to use I<source
-filtering> (which you can think of as a very powerful macro facility,
-see L<perlfilter>) it introduces a more reasonable syntax
-for slicing PDL objects (AKA piddles).  C<PDL::NiceSlice> implements
-the source filter that provides this new feature.
+Slicing is a basic, extremely common operation, and PDL's
+L<slice|PDL::Slices/slice> method would be cumbersome to use in many
+cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
+syntax directly into the language via a perl I<source filter> (see
+L<perlfilter|the perlfilter man page>).  NiceSlice adds no new functionality, only convenient
+syntax.
 
-I<NOTE>: C<PDL::NiceSlice> relies on several modules from CPAN that make
-source filtering and parsing easier. In particular it requires
-the F<Filter> distribution and F<Text::Balanced>. To make your life easier it is
-recommended that you use the F<CPAN> module to resolve dependencies
-during installation automatically. Using the cpan installation shell
-installation should be as easy as this:
-
-   $ perl -MCPAN -e shell
-   cpan> install PDL::NiceSlice
+NiceSlice is loaded automatically in the perldl shell, but (to avoid
+conflicts with other modules) must be loaded automatically in standalone
+perl/PDL scripts (see below).  If you prefer not to use a prefilter on
+your standalone scripts, you can use the L<slice> method in those scripts,
+rather than the more compact NiceSlice constructs.
 
 =head1 Use in scripts and C<perldl> shell
 
