@@ -78,15 +78,6 @@ print OUT <<'!NO!SUBS!';
 
 #define barf croak
 
-/* our croak replacement */
-/* 
-#ifdef PDL_CORE
-#define barf pdl_barf
-#else
-#define barf PDL->pdl_barf
-#endif
- */
-
 typedef int Logical;
 
 /*************** Function prototypes *********************/

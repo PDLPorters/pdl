@@ -116,13 +116,13 @@ sub whereami_inst {
 # Data types to C types mapping
 # get the map from Types.pm
 {
-eval('require PDL::Types');
+eval('require "'.whereami_any().'/Core/Types.pm"'); # lets dist Types.pm win
 if($@) {  # if PDL::Types doesn't work try with full path (during build)
   my $foo = $@;
   $@="";
-  eval('require "'.whereami_any().'/Core/Types.pm"');
+  eval('require PDL::Types');
   if($@) {
-   die "can't find PDL::Types.pm: $foo and $@" unless $@ eq "";
+   die "can't find PDL::Types: $foo and $@" unless $@ eq "";
   }
 }
 }

@@ -1,3 +1,9 @@
+pdl (1:2.3.1-0) unstable; urgency=low
+
+  * new upstream release
+
+ -- PDL Porters <pdl-porters@jach.hawaii.edu>  Wed, 21 Nov 2001 18:25:23 -0400
+
 pdl (1:2.2.1-6) unstable; urgency=low
 
   * Introduced a build-depends on libextutils-f77-perl.  [Which
