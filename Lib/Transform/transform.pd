@@ -610,7 +610,6 @@ pp_def('map',
 	OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
 	            SV *big; SV *blur; SV *sv_min; SV *flux',
 	Code=><<'==EOD_map_c_code==',
-
 /*
  * Pixel interpolation & averaging code
  * 
@@ -640,7 +639,7 @@ pp_def('map',
  char flux;             /* Flag to indicate flux conservation       */
  double *map_ptr;
  long i, j;
- $GENERIC() badval = nan("");
+ $GENERIC() badval = sqrt(-1);
 
  pdl *in  = PDL->SvPDLV($COMP(in));
  pdl *out = PDL->SvPDLV($COMP(out));

@@ -937,7 +937,7 @@ quantities in one call.
 
 B<Note:> The RMS value that this function returns in the RMS 
 deviation from the mean, also known as the population standard-
-deviation.
+deviation:  $rms = sqrt(sum(($val-$mean)**2)) / ($n-1)
 
 EOD
 
@@ -977,7 +977,7 @@ EOD
 	   $mean = 0.0; $rms = 0.0;
        } else {
 	   $mean = $data->dsum / $npts;
-	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / $npts );
+	   $rms  = sqrt( ((($data-$mean)**2 )->dsum) / ($npts-1) );
        }
     }
     else {
