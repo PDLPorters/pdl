@@ -29,6 +29,72 @@ particularly when operating on piddles which do not contain bad values.
 
 --------------------------------------------------------------------------------
 
+A quick overview
+================
+
+The intention is to:
+ a) not significantly affect PDL for users who don't want bad value support
+ b) be as fast as possible when bad value support is required
+
+If you never want bad value support, then you set WITH_BADVAL to 0 in 
+perldl.conf; PDL then has no bad value support compiled in, so will be as fast
+as it used to be.
+
+However, in most cases, the bad value support has a negligible affect on speed,
+so you should set WITH_CONFIG to 1! One exception is if you are low on memory,
+since the amount of code produced is larger (I haven't checked to see by how
+much, so it may actually not be a significant amount).
+
+Each piddle contains a flag - accessible via $pdl->badvalue - to say whether
+there's bad data present: 
+
+  If false/0, which means there's no bad data here, the code supplied by the 
+  CODE option to pp_def() is executed. This means that the speed should be 
+  very close to that obtained with WITH_BADVAL=0, since the only overhead is 
+  several accesses to a bit in the piddles state variable.
+
+  If true/1, then this says there MAY be bad data in the piddle, so use the
+  code in the BADCODE option (assuming that the pp_def() has been updated to
+  have a BADCODE option). You get all the advantages of threading, a with the
+  CODE option, but it will run slower since you are going to have to handle
+  the presence of bad values.
+
+If you create a piddle, it will have its bad-value flag set to 0. To change 
+this, use $pdl->badvalue($new_bad_status), where $new_bad_status can be 0 or 1.
+When a routine creates a piddle, it's bad-value flag will depend on the input
+piddles: unless over-ridden (see the CopyBadStatusCode option to pp_def), the 
+bad-value flag will be set true if any of the input piddles contain bad values.
+
+Currently, there is one bad value for each datatype. This may well change to
+allow a per-piddle bad value, since it shouldn't affect the code speed, but 
+shouldn't affect the following (indeed it will solve one problem).
+
+ The orig_badvalue() method returns the compile-time value for a given 
+ datatype. It works on piddles, PDL::Type objects, and numbers - eg
+   $pdl->orig_badvalue(), byte->orig_badvalue(), and orig_badvalue(4).
+ It also has a horrible name...
+
+ To get the current bad value, use the badvalue() method - it has the same
+ syntax as orig_badvalue().
+
+ To change the current bad value, supply the new number to badvalue - eg
+   $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
+ Note that the value is silently converted to the correct C type, and
+ returned - ie byte->badvalue(2.3e34) returns 255 on my solaris machine.
+ 
+TODO:
+   $pdl->badvalue(2.3) should update $pdl to use 2.3 as it's bad value. 
+   Currently $pdl will be left using the old bad value.
+
+Note that changes to the bad value are NOT propogated to previously-created
+piddles - they will still have the bad value set, but suddenly the elements
+that were bad will become 'good', but containing the old bad value.
+This would NOT be a problem with a per-piddle bad value.
+
+See PDL::Bad for useful routines for working with bad values.
+
+--------------------------------------------------------------------------------
+
  README.bpix         - this file
  IMPLEMENTATION.bpix - details of how the bad-value support in implemented 
  TODO.bpix           - bugs/wish list/general thoughts

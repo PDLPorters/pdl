@@ -1968,7 +1968,7 @@ sub findbadstatus {
 	my $x = $args[$i];
 	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
 	    if ( $add ) {
-		$str .= "  if ( $get_bad && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
+		$str .= "  if ( !($get_bad) && ($args[$i]\->state & PDL_BADVAL) ) $set_bad";
 	    } else {
 		$str .= "  if ( $args[$i]\->state & PDL_BADVAL ) $set_bad";
 		$add = 1;
