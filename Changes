@@ -1,4 +1,9 @@
 (!!! = possible source of incompatibilities)
+John Cerney 5/25/00)
+    - Modified PP.pm to call $arg1->copy for subclassed
+      objects in some simple cases, otherwise call
+      $class->initialize. See Basic/Pod/Objects.pod
+      for a detailed discussion.
 Doug Burke (5/23/00,5/24/00)
     - corrected faulty t/interp.t and t/interp_slatec.t scripts
     - minor doc changes to Indexing.pod, image2d.pd, fft.pd & NDF.pm

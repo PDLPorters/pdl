@@ -387,6 +387,29 @@ $PDL::PP::deftbl =
 # fixed nos of real, unthreaded-over dims.
  [[USParNames,USParObjs,DimmedPars], 	[Pars], 		"Pars_nft"],
  [[DimObjs],		[USParNames,USParObjs],	"ParObjs_DimObjs"],
+ 
+ # Set CallCopy flag for simple functions (2-arg with 0-dim signatures)
+ #   This will copy the $object->copy method, instead of initialize
+ #   for PDL-subclassed objects
+ [[CallCopy], [DimObjs, USParNames, USParObjs, Name], 
+ 	sub{ 
+		my ($dimObj, $USParNames, $USParObjs, $Name) = @_;
+
+		my $noDimmedArgs = scalar(keys %$dimObj);		
+		my $noArgs = scalar(@$USParNames);		
+		if( $noDimmedArgs == 0 && $noArgs == 2  ){   # Check for 2-arg functgion with 0-dim signatures
+			# Check to see if output arg is _not_ explicitly typed:
+			my $arg2 = $USParNames->[1];
+			my $ParObj = $USParObjs->{$arg2};
+			if( $ParObj->ctype('generic') eq 'generic'){
+				# print "Calling Copy for function '$Name'\n";
+				return 1;
+			}
+		}
+		return 0;
+	    }
+		],
+
 
 # "Other pars", the parameters which are usually not pdls.
  [[OtherParNames,
@@ -423,7 +446,8 @@ $PDL::PP::deftbl =
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
  [[VarArgsXSHdr],
-  [Name,NewXSArgs,USParObjs,OtherParTypes,HASP2Child,PMCode,HdrCode,_GlobalNew],
+  [Name,NewXSArgs,USParObjs,OtherParTypes,HASP2Child,PMCode,HdrCode,_GlobalNew,
+   _CallCopy],
   "VarArgsXSHdr", 'creates xs code to process arguments on stack based on supplied
    Pars argument to pp_def; GlobalNew has implications how/if this is done'],
  ## Added new line for returning (or not returning) variables.  D. Hunt 4/7/00
@@ -1346,11 +1370,11 @@ sub indent($$) {
 sub callPerlInit {
   my $names = shift; # names of variables to initialize
   my $ci    = shift; # current indenting
-  
+  my $callcopy = $#_ > -1 ? shift : 0;
   my $ret = '';
   
   foreach my $name (@$names) {
-    $ret .= << "EOC";
+    unless ($callcopy) { $ret .= << "EOC"}
 
 if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
    $name\_SV = sv_newmortal();
@@ -1359,7 +1383,7 @@ if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
    if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
 } else {
    PUSHMARK(SP);
-   XPUSHs(sv_2mortal(newSVpv(objname, 0))); 
+   XPUSHs(sv_2mortal(newSVpv(objname, 0)));
    PUTBACK;
    perl_call_method(\"initialize\", G_SCALAR);
    SPAGAIN;                                                
@@ -1369,6 +1393,30 @@ if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
 }
 
 EOC
+
+  else { $ret .= << "EOD" }
+
+if (strcmp(objname,"PDL") == 0) { /* shortcut if just PDL */
+   $name\_SV = sv_newmortal();
+   $name = PDL->null();
+   PDL->SetSV_PDL($name\_SV,$name);
+   if (bless_stash) $name\_SV = sv_bless($name\_SV, bless_stash);
+} else {
+   /* warn("possibly relying on deprecated automatic copy call in derived class\n")
+   warn("please modify your initialize method to avoid future problems\n"); 
+   */
+   PUSHMARK(SP);
+   XPUSHs(parent); 
+   PUTBACK;
+   perl_call_method(\"copy\", G_SCALAR);
+   /* perl_call_method(\"initialize\", G_SCALAR); */
+   SPAGAIN;                                                
+   $name\_SV = POPs; 
+   PUTBACK;
+   $name = PDL->SvPDLV($name\_SV);
+}
+EOD
+
   }
 
   return indent($ret,$ci);
@@ -1416,8 +1464,9 @@ sub typemap {
 # This writes an XS header which handles variable argument lists, 
 # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
 sub VarArgsXSHdr {
-  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,$hdrcode,$globalnew) = @_;
-  
+  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,$hdrcode,$globalnew,
+    $callcopy) = @_;
+
   # Don't do var args processing if 'has p2 child' whatever *that* means
   # the p2child restriction has been removed; CS 4/15/00
   # return 'DO NOT SET!!' if ($hasp2child);
@@ -1479,7 +1528,7 @@ sub VarArgsXSHdr {
   }
 
   # Add code for creating output variables via call to 'initialize' perl routine
-  $clause1 .= callPerlInit (\@create, $ci); @create = ();
+  $clause1 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
 
   # clause for reading in input and output vars and creating temps
   my $clause2;
@@ -1507,7 +1556,7 @@ sub VarArgsXSHdr {
     }
 
     # Add code for creating output variables via call to 'initialize' perl routine
-    $clause2 .= callPerlInit (\@create, $ci); @create = ();
+    $clause2 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
 
     $clause2 .= "}\n";
 
@@ -1531,7 +1580,7 @@ sub VarArgsXSHdr {
   }
 
   # Add code for creating output variables via call to 'initialize' perl routine
-  $clause3 .= callPerlInit (\@create, $ci); @create = ();
+  $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
 
   return<<END;
 
@@ -1542,6 +1591,7 @@ $name(...)
   char *objname = "PDL"; /* maybe that class should actually depend on the value set
                             by pp_bless ? (CS) */
   HV *bless_stash = 0;
+  SV *parent = 0;
   int   nreturn;
 $svdecls
 $pars
@@ -1552,6 +1602,7 @@ $pars
   /* Check if you can get a package name for this input value.  It can be either a PDL (SVt_PVMG) or 
      a hash which is a derived PDL subclass (SVt_PVHV) */
   if (SvROK(ST(0)) && ((SvTYPE(SvRV(ST(0))) == SVt_PVMG) || (SvTYPE(SvRV(ST(0))) == SVt_PVHV))) {
+    parent = ST(0);
     objname = HvNAME((bless_stash = SvSTASH(SvRV(ST(0)))));  /* The package to bless output vars into is taken from the first input var */
   }
   if (items == $nmaxonstack) { /* all variables on stack, read in output and temp vars */

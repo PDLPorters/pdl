@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Objects -- Object-Orientation, what is it how to exploit it
+PDL::Objects -- Object-Orientation, what is it and how to exploit it
 
 =head1 DESCRIPTION
 
@@ -48,7 +48,7 @@ named PDL and redefine the method initialize().
         bless $self, $class;
     }
 
-All PDL constructor will call initialize() to make sure that your
+All PDL constructors will call initialize() to make sure that your
 extentions are added by I<all> PDL constructors automaticly.   The
 C<PDL> attribute is used by perlDL to store the PDL object and
 all PDL methods use this attribute automaticly if they are called
@@ -60,10 +60,53 @@ you need to call SUPER::initialize.
 
 NEED STUFF ABOUT CODE REFs!!
 
+=head2 Examples
+
+You can find some simple examples of PDL subclassing in the PDL distribution
+test-case files. Look in C<t/subclass2.t>, C<t/subclass3.t>, etc.
+
+=head2 Output Auto-Creation and Subclassed Objects
+
+For PDL Functions where the output is created and returned, PDL will either
+call the subclassed object's C<initialize> or C<copy> method to create the
+output object. (See L<PDL::Indexing|PDL::Indexing/"Output autocreation and PP-function calling conventions"> 
+for a discussion on Output Auto-Creation.) This behavior is summarized as follows:
+
+=over 1
+
+=item *
+
+For I<Simple> functions, defined as having a signature of 
+
+ func( a(), [o]b() )
+
+PDL will call $a->copy to create the output object. 
+
+In the spirit of the perl philosophy of making I<Easy Things Easy>,
+This behavior enables PDL-subclassed objects to be written without having to
+overload the many simple PDL functions in this category.
+
+The file t/subclass4.t in the PDL Distribution tests for this behavior.
+See that file for an example. 
+
+=item *
+
+For other functions, PDL will call $class->initialize to create the output object.
+Where $class is the class name of the first argument supplied to the function.
+
+For these more complex cases, it is difficult to second-guess the subclassed-object's 
+designer to know if a C<copy> or a C<initialize> is appropriate. So for these cases,
+$class->initialize is called by default. If this is not appropriate for you,
+overload the function in your subclass and do whatever is appropriate is the overloaded
+function's code.
+
+=back
+
+
 =head1 AUTHOR
 
 Copyright (C) Karl Glazebrook (kgb@aaoepp.aao.gov.au), Tuomas J. Lukka,
-(lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 1997.
+(lukka@husc.harvard.edu) and Christian Soeller (c.soeller@auckland.ac.nz) 2000.
 Commercial reproduction of this documentation in a different format is forbidden.
 
 =cut
