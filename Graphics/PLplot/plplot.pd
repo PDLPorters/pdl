@@ -30,7 +30,7 @@ pp_addpm({At => Top}, <<'EOD');
 
 For more information on PLplot, see
 
- http://plplot.sourceforge.net
+ http://www.plplot.org
 
 Also see the test file, test.pl in this distribution for some working examples.
 
@@ -638,14 +638,6 @@ close whenever the PLplot object passes out of scope.
 =for example
 
   $pl->close;
-
-=head1 AUTHOR
-
-Doug Hunt, dhunt\@ucar.edu.
-
-=head1 SEE ALSO
-
-perl(1), PDL(1), http://plplot.sourceforge.net/
 
 =cut
 
@@ -1522,7 +1514,6 @@ pp_addhdr(<<'EOH');
 #include <stdio.h>
 EOH
 
-
 # The create_low_level_constants function is used to make the #define'd
 # constants in plplot.h available in Perl in the form of functions.  It
 # should be then possible to write code like this:
@@ -1749,6 +1740,59 @@ EOC
 
 }
 
+pp_addpm (<<'EOPM');
+
+=pod
+
+The PDL low-level interface to the PLplot library closely mimics the C API.
+Users are referred to the PLplot User's Manual, distributed with the source
+PLplot tarball.  This manual is also available on-line at the PLplot web
+site (http://www.plplot.org).
+
+There are though two differences in way the functions are called.  The first
+one is due to a limitation in the pp_def wrapper of PDL, which forces all
+the non-piddle arguments to be at the end of the arguments list.  It is
+the case of strings (char *) arguments in the C API.  This affects the
+following functions [shown below with their prototypes in PDL, with
+arguments preceded by "(pdl)" are piddle-convertible; see the PLplot manual
+for the meaning of the arguments]:
+
+  plaxes ((pdl) x0, (pdl) y0, (pdl) xtick, (pdl) nxsub, (pdl) ytick, 
+          (pdl) nysub, (string) xopt, (string (yopt))
+  plbox ((pdl) xtick, (pdl) nxsub, (pdl) ytick, (pdl) nysub, 
+         (string) xopt, (string) yopt)
+  plbox3 ((pdl) xtick, (pdl) nsubx, (pdl) ytick, (pdl) nsuby, 
+          (pdl) ztick, (pdl) nsubz, (string) xopt, (string) xlabel, 
+	  (string) yopt, (string) ylabel, (string) zopt, 
+	  (string) zlabel)
+  plmtex ((pdl) disp, (pdl) pos, (pdl) just, (string) side), 
+          (string) text);
+  plstart ((pdl) nx, (pdl) ny, (string) devname);
+  
+The second notable different between the C and the PDL APIs is that many of
+the PDL calls do not need arguments to specify the size of the the vectors
+and/or matrices being passed.  This size parameters are deduced from the
+size of the piddles, when possible.  For now, the following interfaces are
+affected:  
+
+  plcont (f, kx, lx, ky, ly, clevel)
+  plfill (x, y)
+  plhist (data, datmin, datmax, nbin, oldwin)
+  plline (x, y)
+  plmesh (x, y, z, opt)
+  plmeshc (x, y, z, opt, clevel)
+  plot3d (x, y, z, opt, side)
+  plpoin (x, y, code)
+  plscmap1l (itype, intensity, coord1, coord2, coord3, rev)
+  plstyl (mark, space)
+  plsym (x, y, code)
+
+Some of the API functions implemented in PDL have other specificities in
+comparison with the C API and will be discussed below.
+
+=cut
+
+EOPM
 
 #-------------------------------------------------------------------------
 # Create low level interface from edited PLplot header file.
@@ -2326,6 +2370,23 @@ pp_def ('plscmap1l',
 	   c_plscmap1l ($itype(), $SIZE(n), $P(isty), $P(coord1),
 	                       $P(coord2), $P(coord3), rev);'
         );
+
+pp_addpm (<<'EOPM');
+
+=pod
+
+=head1 AUTHORS
+
+  Doug Hunt <dhunt@ucar.edu>
+  Rafael Laboissiere <rlaboiss@users.sourceforge.net>
+
+=head1 SEE ALSO
+
+perl(1), PDL(1), http://www.plplot.org/
+
+=cut
+
+EOPM
 
 pp_done();
 
