@@ -1,3 +1,7 @@
+JB  (07 Apr 02)
+    - Moved $CTAB to become part of the $self object in PGPLOT/Window.pm 
+      This fixes the error that caused the second image plotted to hard-
+      copy devices to become blank.
 DJB (02 Apr 02)
     - added Ben Gertzfield's patch for bug #538283 (pptemplate.pod location)
 CS  - doc updates
