@@ -1,3 +1,5 @@
+DJB 060503
+   - Makefile.PL now enforces Perl >= v5.6.0 (+ removal of old code)
 CS 060503
    - set OPTIMIZE via perldl.conf
    - PDL.pm: version @ 2.4.0
