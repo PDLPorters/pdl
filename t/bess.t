@@ -2,7 +2,7 @@
 
 use Test;
 
-BEGIN { plan tests => 5; }
+BEGIN { plan tests => 6; }
 
 use PDL::LiteF;
 use PDL::Math;
@@ -28,3 +28,5 @@ ok( tapprox($a,pdl(0.9384,1)) );
 $a = pdl(0.2);
 $a->inplace->bessyn(2);
 ok( tapprox( $a, -32.15714 ) );   # 5
+
+ok( tapprox( pow(2,3),8)); # test for the pow bug
