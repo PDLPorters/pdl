@@ -25,9 +25,11 @@ While there is a procedural interface available (C<$a/$b*$c <=> Cmul
 C<PDL::Complex> datatype, which works just like your normal piddles, but
 with all the normal perl operators overloaded.
 
-The latter means that C<sin($a) + $b/$c> will be evaluated using the nromal rules of complex numbers, while other
-pdl functions (like C<max>) just treat the piddle as a real-valued piddle with a lowest dimension of size 2, so C<max> will return
-the maximum of all real and imaginary parts, not the "highest" (for some definition) 
+The latter means that C<sin($a) + $b/$c> will be evaluated using the
+normal rules of complex numbers, while other pdl functions (like C<max>)
+just treat the piddle as a real-valued piddle with a lowest dimension of
+size 2, so C<max> will return the maximum of all real and imaginary parts,
+not the "highest" (for some definition)
 
 =head1 TIPS, TRICKS & CAVEATS
 
@@ -161,12 +163,8 @@ pp_addhdr <<'EOH';
   }
 #endif
 
-#if __GLIBC__ > 1 && defined __USE_GNU
-/* needs a proper fix in the next version */
-/* # define SINCOS(x,s,c) sincos ((x), &(s), &(c)) */
-# define SINCOS(x,s,c)                  \
-        (s) = sin (x);                  \
-        (c) = cos (x);
+#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1 && defined __USE_GNU
+# define SINCOS(x,s,c) sincos ((x), &(s), &(c))
 #else
 # define SINCOS(x,s,c)                  \
         (s) = sin (x);                  \

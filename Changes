@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
 2.1
+Marc Lehmann (6/7/00)
+    - enable sincos optimization only for glibc >= 2.1
 CS  - warn if 5.004 that next version will require 5.005
     - PL_na issue in PGPLOT.xs
     - disable sincos optimization in complex.pd until glibc issues sorted
