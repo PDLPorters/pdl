@@ -1,3 +1,11 @@
+CED 4-Dec-2004
+   - DiskCache.pm: Fixed problem with syncing to disk on store (typo in code)
+   - Lib/Opt/Simplex.pm: Fixed bug 1057022 (Opt::Simplex bug; thanks, Marcus)
+   - slatec.pd: Fixed bug 1076817 (matinv doesn't thread).
+                Fixed bug 1075203 (trailing underscores; thanks, Luc).
+   - Makefile.PL: Made bad-@INC problems more apparent when found.
+     ('.' at front of @INC causes trouble for build; this is now detected
+     and the user gets warned.)
 DJB 28-Oct-04
    - removed some header comments which caused problems with (presumably older)
      versions of Astro::FITS::Header (for PDL::IO::FITS::wfits)

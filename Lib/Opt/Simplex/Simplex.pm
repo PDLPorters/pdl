@@ -157,14 +157,14 @@ sub PDL::simplex {
 		$ssum /= $nd;
 		$new = 2*$ssum - $worst;
 		my $valv = &{$sub}($new);
-		my $val = $valv->at();
+		my $val = $valv->at(0);
 		if($t) {
 			$val = $val - $t*(-log(rand()+0.00001));
 		}
 		if(($val) < $bestvals[0]) {
 			my $newnew = $new + $ssum-$worst;
 			my $val2 = &{$sub}($newnew);
-			if($val2->at() < $val) {
+			if($val2->at(0) < $val) {
 #				print "CASE1\n";
 				$realnew = $newnew;
 			} else {

@@ -126,7 +126,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(x,y),b(y,z),[o]c(x,z))
+ Signature: (a(i,x),b(z,i),[o]c(x,z))
 
 =for ref
 
@@ -1826,6 +1826,7 @@ sub PDL::interpND {
 
     # a & b are the weighting coefficients.
     my($a,$b);
+    $index->where( 0 * $index ) .= -10; # Change NaN to invalid
     {
       my $bb = PDL::Math::floor($index);
       $a = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith

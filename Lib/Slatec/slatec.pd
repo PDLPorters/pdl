@@ -467,7 +467,7 @@ sub PDL::matinv {
 
 	# Keep from dumping core (FORTRAN does no error checking)
 	barf("matinv requires a 2-D square matrix")
-		unless( @dims == 2 && $dims[0] == $dims[1] );
+		unless( @dims >= 2 && $dims[0] == $dims[1] );
   
 	$m = $m->copy(); # Make sure we don't overwrite :(
 	gefa($m,(my $ipvt=null),(my $info=null));
@@ -1469,7 +1469,7 @@ Error status returned by C<$ierr>:
 pp_def('polfit',
   Pars => 'x(n);y(n);w(n);int maxdeg();int [o]ndeg();[o]eps();[o]r(n);int [o]ierr();[o]a(foo);[t]xtmp(n);[t]ytmp(n);[t]wtmp(n);[t]rtmp(n)',
   OtherPars => '',
-  Code => '$TFD(polfit_,dpolft_)  (&$PRIV(__n_size),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));',
+  Code => '$TFD(polfit'.$uscore.',dpolft'.$uscore.')  (&$PRIV(__n_size),$P(x),$P(y),$P(w),$P(maxdeg),$P(ndeg),$P(eps),$P(r),$P(ierr),$P(a));',
   GenericTypes => ['F','D'],
   HandleBad => 1, 
   NoBadifNaN => 1,

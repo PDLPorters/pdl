@@ -1502,6 +1502,9 @@ sub map {
   ## Figure out the interpND options
   my $method = _opt($opt,['m','method','Method']);
   my $bound = _opt($opt,['b','bound','boundary','Boundary'],'t');
+  my $bad = _opt($opt,['bad'],undef);
+  ##
+  
 
 
   ##############################
@@ -1521,7 +1524,7 @@ sub map {
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
 
-    my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
+    my $a = $in->interpND($idx,{method=>$method, bound=>$bound, bad=>$bad});
     $out->(:) .= $a; # trivial slice prevents header overwrite...
     return $out;
   }

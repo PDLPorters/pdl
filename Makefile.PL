@@ -1,21 +1,22 @@
 # Build the whole PDL distribtuion
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
+
 use Config;
 use IO::File;
 
 sub checkbuggysetup {
-  # detect buggy Perl setups
-  if (!$forcebuild &&
-      $Config{osname} eq 'solaris' &&
-      ($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
-      $Config{usemymalloc} eq 'y'
-     ) {
-    die <<'EOM';
+    # detect buggy Perl setups
+    if (!$forcebuild &&
+	$Config{osname} eq 'solaris' &&
+	($Config{cc} =~ /gcc/ || $Config{gccversion} ne '') &&
+	$Config{usemymalloc} eq 'y'
+	) {
+	die <<'EOM';
 
 FATAL BUG IN YOUR PERL SETUP DETECTED. BUILD TERMINATED.
 
-On this platform the combination of gcc and Perl's malloc
+On this platform the combination of gcc and the Perl malloc
 are buggy. The optimizations lead to random coredumps
 and make PDL essentially unusable.
 
@@ -35,12 +36,45 @@ YOU HAVE BEEN WARNED!!
 EOM
   }
 
-  # check for red hat 5.8.0 problem described at
-  # http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
-  if ($^V eq v5.8.0 &&
-      $Config{config_args} =~ m/-Dcf_by=Red Hat/) {
-    $redhat580problem = 1;
-  }
+    # check for red hat 5.8.0 problem described at
+    # http://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=87682
+    if ($^V eq v5.8.0 &&
+	$Config{config_args} =~ m/-Dcf_by=Red Hat/) {
+	$redhat580problem = 1;
+    }
+
+    my($dot);
+    for(@INC) {$dot += $_ eq '.'}
+    $dot-- if(@INC[-1] eq '.');
+    if($dot) {
+	$INC = join(":",@INC);
+	die << "EOM"
+
+**********************************************************************
+BUGGY \@INC DETECTED.  BUILD TERMINATED.
+Your Perl \@INC path is:
+
+$INC
+
+That seems to include the directory '.' before the last entry in the
+path.  Configurations like that are arguably broken, because they
+prevent strict division of hierarchy in the module name space.
+In particular, adding a module Foo::Bar::Baz can cause trouble
+if Baz exists in the top level elsewhere, and if you run from the 
+Foo/Bar directory.  
+
+This happens with the PDL::Config and some other modules.  You may
+not be able to build PDL with this \@INC setup.  
+
+You can fix your \@INC, or you can try to build anyway.  To build anyway,
+set the environment variable PDL_INC_OK to a true value and re-run.
+**********************************************************************
+
+
+EOM
+unless $ENV{PDL_INC_OK};
+}
+	
 }
 
 # The user specifies configuration options using the PDL_CONFIG

@@ -302,6 +302,7 @@ sub PDL::DiskCache::STORE {
 
   if( $me->{slot}->[$i] ) {
     print "Storing index $i, in cache\n" if($me->{opt}->{verbose});
+    $me->sync;
     return $me->{cache}->[$me->{slot}->[$i]] = $val;
   } else {
     print "Storing index $i, not in cache\n" if($me->{opt}->{verbose});
@@ -315,7 +316,7 @@ sub PDL::DiskCache::STORE {
     $me->{fdex}->[$a] = $i;
     $me->{cache_next}++;
     $me->{cache_next} %= $me->{mem};
-
+    $me->sync;
     return $me->{cache}->[$a] = $val;
   }
 
