@@ -12,37 +12,24 @@ To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
 1) If you want Slatec, install ExtUtils::F77, amending F77.pm according
    to instructions given in 'F77.pm Corrections' (below).
 
-2) Make sure you have nmake and MinGW.
-   If you don't already have it, you can get nmake from either:
-   ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe
-   or
-   http://download.microsoft.com/download/vc15/Patch/1.52/W95/EN-US/Nmake15.exe
-   or Google for 'nmake15.exe' if those links no longer work. Then run
-   the downloaded file to install nmake into the folder of your choice.
+2) Make sure you have MinGW.
    You can get MinGW from http://www.mingw.org. Simplest way to install
    is to download the latest MinGW '.exe' from the Download page, and
    then run the downloaded executable to install MinGW into the location
    of your choice.
 
-3) Make sure that 'perl -V:make' reports nmake. (Amend your perl's Config.pm
-   if necessary.)
+3) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
 
-4) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
-
-5) If (and only if) you installed ExtUtils::FakeConfig run:
+4) If (and only if) you installed ExtUtils::FakeConfig run:
     set perl5opt=-MConfig_m
 
-6) 'cd' to the top level PDL source directory and run, in succession:
+5) 'cd' to the top level PDL source directory and run, in succession:
     perl Makefile.PL
-    nmake
-    cd Basic\Core
-    nmake Core.xs
-    del getdev.pl
-    cd ..\..
-    perl Makefile.PL
-    nmake
-    nmake test
-    nmake install
+    make test
+    make install
+    (Instead of 'make', specify whatever it is that 'perl -V:make' reports - which,
+    it's assumed, will be either 'nmake' or 'dmake'.)
+
 
 
 To Build with MSVC compiler (MSVC-built perl only)
@@ -65,25 +52,19 @@ To Build with MSVC compiler (MSVC-built perl only)
    For Slatec you also need to install MinGW - this is for the g77.exe fortran
    compiler and libs. (See the preceding section for the link to MinGW.) If
    you're not interested in Slatec, then there's no need to install either
-   ExtUtils::F77 or MinGW. If you do install ExtUtils::F77 and MinGW, you
-   might consider also installing ExtUtils::FakeConfig, and building PDL with
-   the MinGW compiler, as per the instructions in the preceding section. But
-   if you really want to use the MSVC compiler, then read on.
+   ExtUtils::F77 or MinGW.
 
 2) 'cd' to the top level PDL source directory and run, in succession:
     perl Makefile.PL
-    nmake
-    cd Basic\Core
-    nmake Core.xs
-    del getdev.pl
-    cd ..\..
-    perl Makefile.PL
-    nmake
     nmake test
     nmake install
 
+
 F77.pm Corrections
 ------------------
+
+ These corrections should become unnecessary with the release of
+ ExtUtils-F77-1.15.
 
  In the F77.pm subroutine 'find_in_path', replace:
 
