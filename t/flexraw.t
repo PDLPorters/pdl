@@ -7,10 +7,9 @@ $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
-print "1..27\n";
+$ntests = 27;
+print "1..$netsts\n";
 BEGIN{
-	$ntests = 26;
-
 	$|=1;
 	use PDL::Config;
 	$compiler_available = $PDL::Config{WITH_SLATEC};

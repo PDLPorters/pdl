@@ -47,15 +47,10 @@ for(['readdata_vaffine', "*ap = *pp"],
 print OUT <<"!WITH!SUBS!";
 
 void pdl_$_->[0](pdl *a) {
-	PDL_Long *inds ;
 	int i,j;
 	int intype = a->datatype;
 	if(!PDL_VAFFOK(a)) {
 		die("Pdl_make_phys_from_vaffine without vaffine");
-	}
-	inds = malloc(sizeof(PDL_Long) * a->ndims);
-	for(i=0; i<a->ndims; i++) {
-		inds[i] = 0;
 	}
 	PDL_ENSURE_ALLOCATED(a);
 	if(0) {
@@ -96,7 +91,6 @@ print OUT <<'!NO!SUBS!';
 
 	}
 
-	free(inds);
 }
 
 !NO!SUBS!

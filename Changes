@@ -1,6 +1,8 @@
 (!!! = possible source of incompatibilities)
 
 Doug Burke
+    - removed unused memory allocation code in pdl_*_vaffine() routines in
+      pdlconv.c.PL
     - added a few notes to DEVELOPMENT on how (not) to create a CVS branch 
     - added a quick section on accessing children/parents of a piddle
       to Internals.pod
