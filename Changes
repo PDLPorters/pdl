@@ -1,3 +1,6 @@
+DJB 13-01-04
+   - t/dumper.t now passes on OS-X (10.3.2); needed to add '-s' option to
+     uudecode call otherwise the directory name was being ignored.
 CS  13-01-04
    - Basic/Makefile.PL: override MakeMaker clean to *not* delete
      files named 'core' (problem on case insensitive platforms)
