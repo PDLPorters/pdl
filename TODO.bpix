@@ -1,8 +1,28 @@
 
-Some suggestions:
+Problems:
+=========
 
-.) $pdl->baddata() should update all the children of this piddle
-   as well. Unsure what to do with parents, since:
+.) get the tests fixed
+
+.) Trying to make zcover() (primitive.pd) work with bad values (if all
+   values are bad, return bad, otherwise ignore the bad values). For
+   some reason it doesn't work properly -- see primitive.pd for details.
+   Something similar with nbadover/ngoodover (see t/bad,t).
+
+.) t/picnorgb.t fails on linux (perl 5.005_03, gcc), okay on 
+   solaris (perl 5.6.0, cc).
+   Does it mean I've screwed up the internals somewhere?
+
+Suggestions/To do:
+================
+
+.) 'bad-ify' the rest of the code...
+
+.) $pdl->badvalue(23) should change the bad value in $pdl to 23
+   (as well as changing the default bad value, which it does)
+
+.) $pdl->baddata() now updates all the children of this piddle
+   as well. However, not sure what to do with parents, since:
      $b = $a->slice(); 
      $b->baddata(0)
    doesn't mean that $a shouldn't have it's badvalue cleared.
@@ -32,94 +52,42 @@ Some suggestions:
    slowed down (and to check that I haven't messed things up if
    WITH_BADVAL is 0/undef).
 
-.) get the tests fixed
-
-.) 'bad-ify' the rest of the code...
-
-.) $pdl->badvalue(23) should not only set the default value for the
-   piddles type to 23 (with approproate casting), but it should
-   change the bad values in $pdl to 23 as well.
-
 .) it would be nice to have the online documentation system be able
    to produce information on whether a given routine processes
    bad values (HandleBad => 1), explicitly doesn't (HandleBad => 0),
    or hasn't been converted yet so just passes on the bad value flag
    to output piddles (no HandleBad option)
 
-Some notes/comments/random musings:
+.) divide in ops.pd should trap '/ 0' cases as well. also special cases 
+   for sqrt(), log ... 
+   Qus: how does this integrate with NaN handling (which we don't do
+        at the moment anyway)?
 
-some of the names aren't appealing - I'm thinking of orig_badvalue()
-in Basic/Bad/bad.pd in particular. Any suggestions appreciated.
+.) some of the names aren't appealing - I'm thinking of orig_badvalue()
+   in Basic/Bad/bad.pd in particular. Any suggestions appreciated.
 
-Basic/Core/pdlconv.c.PL - I don't understand when pdl_converttype()
-is called, so I've included a check that prints a message to STDERR
-if it's called with a bad piddle. 
+.) Basic/Core/pdlconv.c.PL - I don't understand when pdl_converttype()
+   is called, so I've included a check that prints a message to STDERR
+   if it's called with a bad piddle. This will need removing at some
+   point as it's wasted space...
 
-Trying to make zcover() (primitive.pd) work with bad values (if all
-values are bad, return bad, otherwise ignore the bad values). For
-some reason it doesn't work properly -- see primitive.pd for details.
-Something similar with nbadover/ngoodover (see t/bad,t).
-see t/bad.t
+.) With the current scheme, it would be possible to have a per-piddle
+   bad value. However, new piddles would use the default values.
+   All it would need (I think) is for newly-created piddles to have
+   their badvalue set to the default value -- I'm just not sure
+   when new piddles are created within the C code! Then PdlParObj's
+   get_xsdatapdecl() method needs changing to access the per-piddle
+   bad value rather than the values stored in the PDL->bvals
+   structure. The actual code wouldn't need changing, as long as it 
+   was written using the $ISGOOD/ISBAD/SETBAD macros.
 
-t/picnorgb.t wants to fail; in fact it seems a little flaky
-since 'make test' reports 4-6, 10 and 15 failing, whereas
-'perm -Mblib t/picnorgb.t' has 15 as passing...
-Had something similar in t/primitive.t which I managed to make go
-away just by messiong with the script (but not actually changing any
-of the tests). 
- This suggests something's screwed up in the internals
- note: on my solaris machine (perl v5.6.0) 'make test' reports that
-       only tests 11, 17, 23 and 24 of bad.t fail
-       whereas my linux machine (perl 5.005_03) also reports that
-       tests 4-6 of picnorgb.t fail. (maybe the changes I made to 
-       this test are screwing things up, but I doubt it)
+.) comparison operators in ops.pd - how should they handle bad pixels?
+   ie is (a > badval) true, false, or what. Well, we could have
+   it return a bad value. However, this would cause unpredictable
+   results (eg if( any $a > 0 ) and any $a returns a bad value, then
+   if the bad value is 0, the check fails, otherwise it succeeds...)
+   NASTY. - see zcover in primitive.pd for some comments
 
-divide in ops.pd should trap '/ 0' cases as well. 
-also special cases for sqrt(), log ... 
+.) [not really bad pixel stuff] - are the #define THISIS... lines
+   necessary in type-looped PP code?
 
-With the current scheme, it would be possible to have a per-piddle
-bad value. However, new piddles would use the default values.
-All it would need (I think) is for newly-created piddles to have
-their badvalue set to the default value -- I'm just not sure
-when new piddles are created within the C code! Then PdlParObj's
-get_xsdatapdecl() method needs changing to access the per-piddle
-bad value rather than the values stored in the PDL->bvals
-structure. The actual code wouldn't need changing, as long as it 
-was written using the $ISGOOD/ISBAD/SETBAD macros.
-
-Qus: how does this integrate with NaN handling?
-
-Qus: comparison operators in ops.pd - how should they handle bad pixels?
-ie is (a > badval) true, false, or what. Well, we could have
-it return a bad value. However, this would cause unpredictable
-results (eg if( any $a > 0 ) and any $a returns a bad value, then
-if the bad value is 0, the check fails, otherwise it succeeds...)
-NASTY. - see zcover in primitive.pd for some comments
-
-Qus: [not really bad pixel stuff] - are the #define THISIS... lines
-necessary in type-looped PP code?
-
-Done
-****
-
-Some routines (eg many in slices.pd) just need to ensure that 
-the PDL_BADDATA flag is copied across to the output piddle
-(eg rotate()). This needs handling - will HandleBad => 1
-do the trick, or does it provide too much overhead?
-Similarly, should the bad data stuff in the
-trans structure be propogated by redodims/copy/whatever routines?
-Perhaps all routines should copy across the badflag, and only
-copy over bad value for each type if HandleBad is specified.
---> have implemented this.
-
-This has been done:
-
-   Implement storage of default bad values in a C struct, rather
-   than the perl array + copy into trans structure used now.
-   Plus look at introducing a per-piddle bad value (it shouldn't  
-   be much more, if any, code overhead than now).
-
-Perhaps we should have a 'reset' method to restore the bad values
-to their original (ie Types.pm) state. 
---> well, there's no reset method, but orig_badvalue( <type> )
-returns the origin badvalue, so you can set it if desired.

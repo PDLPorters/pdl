@@ -20,7 +20,13 @@ to support bad values.
 A new flag has been added to the state of a piddle - PDL_BADVAL. If unset, then
 the piddle does not contain bad values, and so all the support code can be 
 ignored. If set, it does not guarantee that bad values are present, just that
-they should be checked for.
+they should be checked for. Thanks to help from Christian, baddata() - which 
+sets/clears this flag (see Bad/bad.pd) - will update ALL the 
+children/grandchildren/etc of a piddle if its state changes (see 
+propogate_badflag in Bad/bad.pd). It's not clear what to do with parents: I can 
+see the reason for propogating a 'set badflag' request to parents, but I think 
+a child should NOT be able to clear the badflag of a parent. 
+  Suggestions welcome.
 
 The pdl_trans structure has been extended to include an integer value,
 bvalflag, which acts as a switch to tell the code whether to handle bad values
@@ -77,8 +83,7 @@ corresponding pp_def options
    FindBadStatusCode and CopyBadStatusCode
 I've only just started to use this functionality - see zcover in primitive.pd
 and isbadover/isgoodover in bad.pd.
-(there's a problem with zcover but I don't think it's to do with this since it
-also affects other routines such as ngoodover/nbadover in Basic/Bad/bad.pd). 
+(there's a problem with zcover but I don't think it's to do with this). 
 
 If the option
    HandleBad => 1

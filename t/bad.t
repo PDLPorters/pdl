@@ -12,7 +12,7 @@ BEGIN {
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
 #	plan tests => 24, todo => [11,17];
-	plan tests => 28;
+	plan tests => 29;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -58,6 +58,7 @@ ok( $b->baddata, 1 );   # 9
 
 $a->baddata(0);
 $b = $a->slice('2:5,3:4');
+$c = $b->slice('0:1,(0)'); 
 ok( $b->baddata, 0 );   # 10
 
 $a->baddata(1);
@@ -65,8 +66,10 @@ $a->baddata(1);
 my $i = "Type: %T Dim: %-15D State: %5S  Dataflow: %F";
 print "Info: a = ", $a->info($i), "\n";
 print "Info: b = ", $b->info($i), "\n";
+print "Info: c = ", $b->info($i), "\n";
 
-ok( $b->baddata, 1 );   # 11
+# let's check that it gets through to a child of a child
+ok( $c->baddata, 1 );   # 11
 
 # can we change bad values
 ok( byte->badvalue, byte->orig_badvalue ); # 12
@@ -115,10 +118,10 @@ $b++;
 ok( PDL::Core::string($a), "\n[\n [  1   2 BAD   4   5]\n [BAD   1   2   3 BAD]\n]\n" ); # 26 
 
 $a = byte->badvalue * ones(byte,3,2);
-ok( $a->get_datatype, 0 );  # 26
+ok( $a->get_datatype, 0 );                           # 27
 $a->baddata(1);
-ok( PDL::Core::string( zcover($a) ), "[BAD BAD]" );  # 27
+ok( PDL::Core::string( zcover($a) ), "[BAD BAD]" );  # 28
 $a->set(1,1,1); $a->set(2,1,1);
-ok( PDL::Core::string( zcover($a) ), "[BAD 1]" );  # 28
+ok( PDL::Core::string( zcover($a) ), "[BAD 1]" );  # 29
 
 

@@ -122,24 +122,93 @@ EOD
 #
 # This may NOT be sensible. Only time, and comments, will tell...
 #
-pp_def(
-       'sumover',
-       HandleBad => 1,
-       Pars => 'a(n); int+ [o]b();',
-       Code => 
-       '$GENERIC(b) tmp = 0;
-	loop(n) %{ tmp += $a(); %}
-	$b() = tmp;',
-       BadCode => 
-       '$GENERIC(b) tmp = 0;
-        register int flag = 0;
-	loop(n) %{ 
-           if ( $ISGOOD($a()) ) { tmp += $a(); flag = 1; }
-        %}
-        if ( flag ) { $b() = tmp; }
-        else { $SETBAD($b()); }',
-       Docs => projectdocs('sum','sumover',''),
-       );
+
+my %over = 
+    (
+     sumover  => { name => 'sum',     op => '+=', init => 0, },
+     prodover => { name => 'product', op => '*=', init => 1, },
+     );
+
+foreach my $func ( keys %over ) {
+
+    # creates $func and cumu$func functions
+    
+    my $name = $over{$func}{name};
+    my $op   = $over{$func}{op};
+    my $init = $over{$func}{init};
+
+    pp_def( 
+	    $func,
+	    HandleBad => 1,
+	    Pars => 'a(n); int+ [o]b();',
+	    Code => 
+	    '$GENERIC(b) tmp = ' . $init . ';
+	     loop(n) %{ tmp ' . $op . ' $a(); %}
+	     $b() = tmp;',
+	    BadCode => 
+	    '$GENERIC(b) tmp = ' . $init . ';
+             register int flag = 0;
+	     loop(n) %{ 
+                if ( $ISGOOD($a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+             %}
+             if ( flag ) { $b() = tmp; }
+             else { $SETBAD($b()); }',
+	    Docs => projectdocs( $name, $func, '' ),
+	    );
+
+    my $cfunc = "cumu${func}";
+    pp_def(
+	   $cfunc,
+	   HandleBad => 1,
+	   Pars => 'a(n); int+ [o]b(n);',
+	   Code => 
+           '$GENERIC(b) tmp = ' . $init . ';
+	    loop(n) %{ 
+               tmp ' . $op . ' $a();
+	       $b() = tmp;
+	    %}',
+	   BadCode => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+	    loop(n) %{ 
+               if ( $ISBAD($a()) ) { $SETBAD($b()); }
+               else {
+                  tmp ' . $op . ' $a();
+	          $b() = tmp;
+               }
+	    %}',
+	   Docs => cumuprojectdocs( $name, $cfunc, '' ),
+	   );
+
+} # foreach: my $func
+
+
+# XXX why cnt? Why not size(n)? Why not threadloop for efficiency
+#
+# I should address these, but can't be bothered...
+#
+# have changed cnt to be a long - it's needed for BadCode,
+# but isn't for Code.
+#
+pp_def( 
+	'average',
+	HandleBad => 1,
+	Pars => 'a(n); int+ [o]b();',
+	Code => 
+	'$GENERIC(b) tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ tmp += $a(); cnt++; %}
+	 $b() = tmp / ($GENERIC(b)) cnt;',
+	BadCode => 
+	'$GENERIC(b) tmp = 0;
+         long cnt = 0;
+	 loop(n) %{ 
+            if ( $ISGOOD($a()) ) { tmp += $a(); cnt++; }
+         %}
+         if ( cnt ) { $b() = tmp / ($GENERIC(b)) cnt; }
+         else { $SETBAD($b()); }',
+	Docs => projectdocs( 'average', 'average', '' ),
+	);
+
 
 # zcover doesn't work()
 # 
@@ -322,53 +391,6 @@ is the natural (and correct) choice for binned data, of course.
 ); # intover
 
 # XXX BADVAL got to here
-
-defpdl(
-       'cumusumover',
-       'a(n); int+ [o]b(n);',
-       '',
-       '$GENERIC(b) tmp = 0;
-	 loop(n) %{ tmp += $a();
-		 $b() = tmp;
-	 %}
-	',
-       cumuprojectdocs('sum','cumusumover','')
-       );
-       
-defpdl(
-       'prodover',
-       'a(n); int+ [o]b();',
-       '',
-       '$GENERIC(b) tmp = 1;
-	 loop(n) %{ tmp *= $a(); %}
-	 $b() = tmp;',
-       projectdocs('product','prodover','')
-       );
-
-defpdl(
-       'cumuprodover',
-       'a(n); int+ [o]b(n);',
-       '',
-       '$GENERIC(b) tmp = 1;
-	 loop(n) %{ tmp *= $a();
-		 $b() = tmp;
-	 %}
-	 ',
-       cumuprojectdocs('product','cumuprodover','')
-);
-
-
-# XXX why cnt? Why not size(n)? Why not threadloop for efficiency
-defpdl(
-	'average',
-	'a(n); int+ [o]b();',
-	'',
-	'$GENERIC(b) tmp = 0, cnt;
-	 cnt = 0;
-	 loop(n) %{ tmp += $a(); cnt++; %}
-	 $b() = tmp/cnt;',
-	 projectdocs('average','average','')
-);
 
 # Internal utility sorting routine for median/qsort routines.
 

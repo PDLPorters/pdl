@@ -6,6 +6,9 @@ Doug Burke (07/11/00)
    - changed internal access to bad value data (see badvalue subs in bad.pd)
      to ensure that '$a = byte->badvalue * ones(byte,3,4)' returns a piddle
      of type byte.
+   - Wahay - thanks to Christian, I've managed to get baddata() to propogate
+     itself along to any children of a piddle. Now, what to do with the 
+     parents of a piddle (see IMPLEMENTATION.bpix)?
 Doug Burke (07/11/00)
    - tried using flags field in trans structure rather than adding a
      new element (ie bvalflag). didn't really work - see 

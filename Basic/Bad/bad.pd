@@ -103,52 +103,77 @@ use PDL::Primitive;
 
 !NO!SUBS!
 
-pp_addxs( "#define setflag(reg,flagval,val) (val?(reg |= flagval):(reg &= ~flagval))\n" );
+    pp_addhdr( <<'!NO!SUBS!');
 
-my %flags = 
-    ( 
-      baddata => { set => 1, FLAG => "BADVAL" },
-      );
+/* newval = 1 means set flag, 0 means clear it */
+/* thanks to Christian Soeller for this */
+
+void propogate_badflag( pdl *it, int newval ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls;
+	     i++ ) {
+	    
+	    pdl *child = trans->pdls[i];
+
+/* for my dbg purposes */
+if ( child == it ) barf("ERROR in propogate_badflag (Basic/Bad/bad.pd): child == parent.\n");
+
+	    if ( newval ) child->state |=  PDL_BADVAL;
+            else          child->state &= ~PDL_BADVAL;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badflag( child, newval );
+
+        } /* for: i */
+
+    }
+
+    PDL_END_CHILDLOOP(it)
+
+} /* propogate_badflag */
+
+!NO!SUBS!
 
 # we want the following to be in PDL, not PDL::Bad, hence
 my $xshdr = "MODULE = PDL::Bad PACKAGE = PDL";
 
-foreach my $name ( keys %flags ) {
-    my $flag = "PDL_" . ($flags{$name}{FLAG} || uc($name));
-    if ( $flags{$name}{set} ) {
-	pp_addxs( <<"!WITH!SUBS!");
+# 
+# we want baddata() to avoid unnecessary calls to propogate_badflag(), 
+# since it has to recurse through all the children of a piddle
+#
+
+pp_addxs( <<"!WITH!SUBS!");
 $xshdr
 
 int
-$name(x,mode=0)
-	pdl *x
-	int mode
-	CODE:
-	if (items>1) 
-	   { setflag(x->state,$flag,mode); }
-	RETVAL = ((x->state & $flag) > 0);
-	OUTPUT:
-	RETVAL
+baddata(x,newval=0)
+    pdl *x
+    int newval
+  CODE:
+    if (items>1) { 
+	int oldval = ((x->state & PDL_BADVAL) > 0);
+        if ( !newval && oldval ) { 
+	    /* asked to unset, present value is set */
+	    x->state &= ~PDL_BADVAL;
+            propogate_badflag( x, 0 );
+        } else if ( newval && !oldval ) {
+	    /* asked to set, present value is unset */
+	    x->state |= PDL_BADVAL;
+            propogate_badflag( x, 1 );
+	}
+    }
+    RETVAL = ((x->state & PDL_BADVAL) > 0);
+  OUTPUT:
+    RETVAL
 
 !WITH!SUBS!
-
-} else {
-	pp_addxs( <<"!WITH!SUBS!");
-$xshdr
-
-int
-$name(self)
-	pdl *self
-	CODE:
-	RETVAL = ((self->state & $flag) > 0);
-	OUTPUT:
-	RETVAL
-
-!WITH!SUBS!
-
-} # if: $flags{name}{set}
-
-} # foreach: keys %flags 
 
 pp_addpm(<<'!NO!SUBS!');
 ############################################################
