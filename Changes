@@ -1,3 +1,6 @@
+CS 28-01-04
+   - win32 fixes in several testfiles
+     and updated INSTALL instructions for win32
 DJB 15-01-04
    - Hack to get fits_imag($img) to look like fits_imag($img,{j=>0}) when
      the RA axis is in descending order [+ internal changes to make the two

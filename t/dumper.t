@@ -4,7 +4,14 @@ use strict;
 use Test;
 
 BEGIN {
-	plan tests => 16;
+
+ 	if ($^O =~ /win32/i) {
+	  print "1..1\n";
+	  print "ok 1 # Skipped: use PDL::IO::Storable instead\n";
+	  exit;
+	} else {
+	  plan tests => 16;
+	}
 }
 
 use PDL;
