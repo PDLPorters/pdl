@@ -722,7 +722,7 @@ sub extrdoc {
 sub getfuncdocs {
   my ($func,$in,$out) = @_;
   my $parser = new PDL::Pod::Parser;
-  $parser->select("FUNCTIONS/$func(\\(.*\\))*\s*");
+  $parser->select("FUNCTIONS/$func(\\(.*\\))*\\s*");
   $parser->parse_from_filehandle($in,$out);
 }
 
