@@ -125,13 +125,14 @@ more control over card order, comment fields, and variable types.
 
 The header keywords are converted to I<uppercase> per the FITS
 standard.  Access is case-insensitive on the perl side, provided that
-Astro::FITS::Header is installed.
+Astro::FITS::Header is installed. 
 
-Keyword-associated comments in the headers are stored as under the
-hash key C<E<lt>keywordE<gt>_COMMENT>.  All HISTORY cards in the 
-header are collected into a single multiline string stored in the 
-C<HISTORY> key.  All COMMENT cards are similarly collected under
-the C<COMMENT> key.
+If Astro::FITS::Header is not installed, then a built-in legacy parser
+is used to generate the header hash.  Keyword-associated comments in
+the headers are stored under the hash key
+C<E<lt>keywordE<gt>_COMMENT>.  All HISTORY cards in the header are
+collected into a single multiline string stored in the C<HISTORY> key.
+All COMMENT cards are similarly collected under the C<COMMENT> key.
 
 BSCALE/BZERO
 
