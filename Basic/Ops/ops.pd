@@ -297,25 +297,25 @@ biop_bad('divide','/',1,'divide two piddles');
 
 ## comparison ops
 # need swapping
-biop('gt','>',1,'the binary E<gt> (greater than) operation');
-biop('lt','<',1,'the binary E<lt> (less than) operation');
-biop('le','<=',1,'the binary E<lt>= (less equal) operation');
-biop('ge','>=',1,'the binary E<gt>= (greater equal) operation');
+biop_bad('gt','>',1,'the binary E<gt> (greater than) operation');
+biop_bad('lt','<',1,'the binary E<lt> (less than) operation');
+biop_bad('le','<=',1,'the binary E<lt>= (less equal) operation');
+biop_bad('ge','>=',1,'the binary E<gt>= (greater equal) operation');
 # no swap required
-biop('eq','==',0,'binary I<equal to> operation (==)');
-biop('ne','!=',0,'binary I<not equal to> operation (!=)');
+biop_bad('eq','==',0,'binary I<equal to> operation (==)');
+biop_bad('ne','!=',0,'binary I<not equal to> operation (!=)');
 
 ## bit ops
 # those need to be limited to the right types
 my $T = [B,U,S,L]; # the sensible types here
-biop('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
-biop('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
-biop('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
-biop('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
+biop_bad('shiftleft','<<',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop_bad('shiftright','>>',1,'leftshift C<a$> by C<$b>',GenericTypes => $T);
+biop_bad('or2','|',0,'binary I<or> of two piddles',GenericTypes => $T);
+biop_bad('and2','&',0,'binary I<and> of two piddles',GenericTypes => $T);
+biop_bad('xor','^',0,'binary I<exclusive or> of two piddles',GenericTypes => $T);
 
 # really an ufunc
-ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
+ufunc_bad('bitnot','~','unary bit negation',GenericTypes => $T);
 
 # some standard binary functions
 bifunc_bad('power','pow',1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
@@ -324,7 +324,7 @@ bifunc_bad('modulo','MOD',1,'elementwise C<modulo> operation');
 bifunc_bad('spaceship','SPACE',1,'elementwise C<~> operation');
 
 # some standard unary functions
-ufunc('not','!','the elementwise I<not> operation');
+ufunc_bad('not','!','the elementwise I<not> operation');
 ufunc_bad('sqrt','sqrt','elementwise square root');
 ufunc_bad('abs','ABS','elementwise absolut value',GenericTypes => [D,F,S,L]);
 ufunc_bad('sin','sin','the sin function');
@@ -338,8 +338,9 @@ pp_addpm({At=>Bot},<<'EOPM');
 
 Tuomas J. Lukka (lukka@fas.harvard.edu),
 Karl Glazebrook (kgb@aaoepp.aao.gov.au), 
-Doug Hunt (dhunt@ucar.edu), and 
-Christian Soeller (c.soeller@auckland.ac.nz).
+Doug Hunt (dhunt@ucar.edu), 
+Christian Soeller (c.soeller@auckland.ac.nz),
+and Doug Burke (burke@ifa.hawaii.edu).
 
 =cut
 

@@ -137,29 +137,31 @@ foreach my $func ( keys %over ) {
     my $op   = $over{$func}{op};
     my $init = $over{$func}{init};
 
-    pp_def( 
-	    $func,
-	    HandleBad => 1,
-	    Pars => 'a(n); int+ [o]b();',
-	    Code => 
-	    '$GENERIC(b) tmp = ' . $init . ';
-	     loop(n) %{ tmp ' . $op . ' $a(); %}
-	     $b() = tmp;',
-	    BadCode => 
-	    '$GENERIC(b) tmp = ' . $init . ';
-             int flag = 0;
-	     loop(n) %{ 
-                if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
-             %}
-             if ( flag ) { $b() = tmp; }
-             else        { $SETBAD(b()); }',
-	    Docs => projectdocs( $name, $func, '' ),
-	    );
+    pp_def(
+	   $func,
+	   HandleBad => 1,
+	   UseBadforNaN => 1,
+	   Pars => 'a(n); int+ [o]b();',
+	   Code => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+	    loop(n) %{ tmp ' . $op . ' $a(); %}
+	    $b() = tmp;',
+	   BadCode => 
+	   '$GENERIC(b) tmp = ' . $init . ';
+            int flag = 0;
+	    loop(n) %{ 
+               if ( $ISGOOD(a()) ) { tmp ' . $op . ' $a(); flag = 1; }
+            %}
+            if ( flag ) { $b() = tmp; }
+            else        { $SETBAD(b()); }',
+	   Docs => projectdocs( $name, $func, '' ),
+	   );
 
     my $cfunc = "cumu${func}";
     pp_def(
 	   $cfunc,
 	   HandleBad => 1,
+	   UseBadforNaN => 1,
 	   Pars => 'a(n); int+ [o]b(n);',
 	   Code => 
            '$GENERIC(b) tmp = ' . $init . ';
@@ -192,6 +194,7 @@ foreach my $func ( keys %over ) {
 pp_def( 
 	'average',
 	HandleBad => 1,
+	UseBadforNaN => 1,
 	Pars => 'a(n); int+ [o]b();',
 	Code => 
 	'$GENERIC(b) tmp = 0;
@@ -215,6 +218,7 @@ pp_def(
 pp_def(
        'zcover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int+ [o]b();',
        Code =>
        '$GENERIC(b) tmp = 1;
@@ -224,11 +228,8 @@ pp_def(
        '$GENERIC(b) tmp = 1;
         int flag = 0;
         loop(n) %{
-/*** fprintf(stderr, "in loop %d flag = %d\n", n, flag ); ***/
            if ( $ISGOOD(a()) ) { tmp = tmp && $a() == 0; flag = 1; if (!tmp) break; }
         %}
-/*** fprintf(stderr, "finished loop flag = %d  %d\n", flag, tmp ); ***/
-/* for some reason, even though flag == 1, b is getting set to the bad value (see above) */
         if ( flag ) { $b() = tmp; }
         else        { $SETBAD(b()); $PDLSTATESETBAD(b); }',
        CopyBadStatusCode => '',
@@ -242,6 +243,7 @@ as it will not contain any bad values.',
 pp_def(
        'andover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int+ [o]b();',
        GenericTypes => [B,S,U,L],
        Code => 
@@ -262,6 +264,7 @@ pp_def(
 pp_def(
        'bandover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int+ [o]b();',
        GenericTypes => [B,S,U,L],
        Code => 
@@ -282,6 +285,7 @@ pp_def(
 pp_def(
        'orover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int+ [o]b();',
        GenericTypes => [B,S,U,L],
        Code => 
@@ -302,6 +306,7 @@ pp_def(
 pp_def(
        'borover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int+ [o]b();',
        GenericTypes => [B,S,U,L],
        Code => 
@@ -488,6 +493,7 @@ my $find_median_lower = '
 pp_def(
        'medover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('median','medover',''),
        Code => 
@@ -504,6 +510,7 @@ pp_def(
 pp_def(
        'oddmedover',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); [o]b(); [t]tmp(n);',
        Doc => projectdocs('oddmedian','oddmedover','
 
@@ -646,6 +653,7 @@ pp_add_exported('', 'minmax');
 pp_def(
     'qsort',
     HandleBad => 1,
+    UseBadforNaN => 1,
     Pars => 'a(n); [o]b(n);',
     Code => 
     'int nn;
@@ -694,6 +702,7 @@ sub generic_qsort_ind {
 pp_def(
        'qsorti',
        HandleBad => 1,
+       UseBadforNaN => 1,
        Pars => 'a(n); int [o]indx(n);',
        Code => 
        'int nn = $COMP(__n_size)-1;
@@ -734,7 +743,8 @@ Quicksort a vector and return index of elements in ascending order.
  $ix = qsorti $a;
  print $a->index($ix); # Sorted list
 
-    '); # pp_def( qsorti
+'
+       ); # pp_def( qsorti
 
 
 defpdl(
@@ -751,29 +761,29 @@ C<axisvalues> is the internal primitive that implements
 L<axisvals|PDL::Basic/axisvals> 
 and alters its argument.
 
-=cut
 '
-);
+       );
 
 
-pp_def( 
-    'inner',
-    HandleBad => 1,
-    Pars => 'a(n); b(n); [o]c();', 
-    Code => 
-    'double tmp = 0;
-     loop(n) %{ tmp += $a() * $b(); %}
-     $c() = tmp;',
-    BadCode => 
-    'double tmp = 0;
-     int flag = 0;
-     loop(n) %{ 
-        if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); flag = 1; }
-     %}
-     if ( flag ) { $c() = tmp; }
-     else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
-    CopyBadStatusCode => '',
-    Doc => '
+pp_def(
+       'inner',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(n); b(n); [o]c();', 
+       Code => 
+       'double tmp = 0;
+        loop(n) %{ tmp += $a() * $b(); %}
+        $c() = tmp;',
+       BadCode => 
+       'double tmp = 0;
+        int flag = 0;
+        loop(n) %{ 
+           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); flag = 1; }
+        %}
+        if ( flag ) { $c() = tmp; }
+        else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+       CopyBadStatusCode => '',
+       Doc => '
 =for ref
 
 Inner product over one dimension
@@ -785,26 +795,27 @@ Inner product over one dimension
 'If C<a() * b()> contains only bad data,
 C<c()> is set bad. Otherwise C<c()> will have its bad flag cleared,
 as it will not contain any bad values.',
-	); # pp_def( inner )
+       ); # pp_def( inner )
 
 
-pp_def( 
-    'outer',
-    HandleBad => 1,
-    Pars => 'a(n); b(m); [o]c(n,m);',
-    Code => 
-    'loop(n,m) %{ 
-       $c() = $a() * $b(); 
-     %}',
-    BadCode => 
-    'loop(n,m) %{ 
-       if ( $ISBAD(a()) || $ISBAD(b()) ) {
-          $SETBAD(c());
-       } else {
+pp_def(
+       'outer',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(n); b(m); [o]c(n,m);',
+       Code => 
+       'loop(n,m) %{ 
           $c() = $a() * $b(); 
-       }
-     %}',
-    Doc => '
+        %}',
+       BadCode => 
+       'loop(n,m) %{ 
+          if ( $ISBAD(a()) || $ISBAD(b()) ) {
+             $SETBAD(c());
+          } else {
+             $c() = $a() * $b(); 
+          }
+        %}',
+       Doc => '
 =for ref
 
 outer product over one dimension
@@ -848,35 +859,65 @@ EOD
 
 pp_add_exported('', 'matmult');
 
-# XXX these need converting
-
-defpdl(
-	'innerwt',
-	'a(n); b(n); c(n); [o]d(); ', '',
-	'double tmp = 0;
-	 loop(n) %{ tmp += $a() * $b() * $c(); %}
-	 $d() = tmp;','
-=for ref
+pp_def(
+       'innerwt',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(n); b(n); c(n); [o]d();',
+       Code => 
+       'double tmp = 0;
+	loop(n) %{ 
+           tmp += $a() * $b() * $c(); 
+        %}
+	$d() = tmp;',
+       BadCode => 
+       'double tmp = 0;
+        int flag = 0;
+	loop(n) %{ 
+           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
+              tmp += $a() * $b() * $c(); 
+              flag = 1;
+           }
+        %}
+        if ( flag ) { $d() = tmp; }
+        else        { $SETBAD(d()); }',
+       Doc => 
+'=for ref
 
 Weighted (i.e. triple) inner product
 
  d = sum_i a(i) b(i) c(i)
 
-=cut
-');
+'
+       );
+
+# XXX these need converting
 
 
-defpdl(
-	'inner2',
-	'a(n); b(n,m); c(m); [o]d();',
-	'',
-	'double tmp=0;
-	 loop(n,m) %{
-		tmp += $a() * $b() * $c();
-	 %}
-	 $d() = tmp;
-	 ','
-=for ref
+pp_def(
+       'inner2',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(n); b(n,m); c(m); [o]d();',
+       Code => 
+       'double tmp=0;
+	loop(n,m) %{
+           tmp += $a() * $b() * $c();
+        %}
+	$d() = tmp;',
+       BadCode => 
+       'double tmp = 0;
+        int flag = 0;
+	loop(n,m) %{ 
+           if ( $ISGOOD(a()) && $ISGOOD(b()) && $ISGOOD(c()) ) { 
+              tmp += $a() * $b() * $c(); 
+              flag = 1;
+           }
+        %}
+        if ( flag ) { $d() = tmp; }
+        else        { $SETBAD(d()); }',
+       Doc =>
+'=for ref
 
 Inner product of two vectors and a matrix
 
@@ -885,21 +926,34 @@ Inner product of two vectors and a matrix
 Note that you should probably not thread over C<a> and C<c> since that would be  
 very wasteful. Instead, you should use a temporary for C<b*c>.
 
-=cut
-');
+'
+       );
 
 
-defpdl(
-	'inner2d',
-	'a(n,m); b(n,m); [o]c()',
-	'',
-	'double tmp=0;
-	 loop(n,m) %{
-	 	tmp += $a() * $b();
-	 %}
-	 $c() = tmp;
-	','
-=for ref
+pp_def(
+       'inner2d',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(n,m); b(n,m); [o]c();',
+       Code => 
+       'double tmp=0;
+	loop(n,m) %{
+           tmp += $a() * $b();
+        %}
+	$c() = tmp;',
+       BadCode => 
+       'double tmp = 0;
+        int flag = 0;
+	loop(n,m) %{ 
+           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { 
+              tmp += $a() * $b(); 
+              flag = 1;
+           }
+        %}
+        if ( flag ) { $c() = tmp; }
+        else        { $SETBAD(c()); }',
+       Doc =>
+'=for ref
 
 Inner product over 2 dimensions.
 
@@ -908,27 +962,61 @@ Equivalent to
  $c = inner($a->clump(2), $b->clump(2))
 
 '
-);
+       );
 
-defpdl(
-	'inner2t',
-	'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
-	'',
-	'
-	 loop(n,k) %{ double tmp0 = 0;
-	 	loop(m) %{ tmp0 += $b() * $c(); %}
-		$tmp() = tmp0;
-	 %}
-	 loop(j,k) %{ double tmp1 = 0;
-	 	loop(n) %{ tmp1 += $a() * $tmp(); %}
-		$d() = tmp1;
-	%}',<<'EOD');
-=for ref
+pp_def(
+       'inner2t',
+       HandleBad => 1,
+       UseBadforNaN => 1,
+       Pars => 'a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k));',
+       Code => 
+       'loop(n,k) %{ 
+           double tmp0 = 0;
+	   loop(m) %{ 
+              tmp0 += $b() * $c(); 
+           %}
+	   $tmp() = tmp0;
+	%}
+	loop(j,k) %{ 
+           double tmp1 = 0;
+	   loop(n) %{ 
+              tmp1 += $a() * $tmp(); 
+           %}
+           $d() = tmp1;
+	%}',
+       BadCode => 
+       'loop(n,k) %{ 
+           double tmp0 = 0;
+           int flag = 0;
+	   loop(m) %{ 
+              if ( $ISGOOD(b()) && $ISGOOD(c()) ) {
+                 tmp0 += $b() * $c(); 
+                 flag = 1;
+              }
+           %}
+           if ( flag ) { $tmp() = tmp0; }
+           else        { $SETBAD(tmp()); }
+	%}
+	loop(j,k) %{ 
+           double tmp1 = 0;
+           int flag = 0;
+	   loop(n) %{ 
+              if ( $ISGOOD(a()) && $ISGOOD(tmp()) ) {
+                 tmp1 += $a() * $tmp(); 
+                 flag = 1;
+              }
+           %}
+           if ( flag ) { $d() = tmp1; }
+           else        { $SETBAD(d()); }
+	%}',
+       Doc =>
+'=for ref
 
 Efficient Triple matrix product C<a*b*c>
 
-Efficiency comes from by using the temporary C<tmp>. This operation only scales as
-C<N**3> whereas threading using L<inner2|/inner2> would scale as C<N**4>.
+Efficiency comes from by using the temporary C<tmp>. This operation only 
+scales as C<N**3> whereas threading using L<inner2|/inner2> would scale 
+as C<N**4>.
 
 The reason for having this routine is that you do not need to
 have the same thread-dimensions for C<tmp> as for the other arguments,
@@ -938,9 +1026,8 @@ memory-efficient.
 It is hoped that things like this could be taken care of as a kind of
 closures at some point.
 
-=cut
-EOD
-
+'
+       ); # pp_def inner2t()
 
 
 =item minimum_ind(a(n),int [o]c()), maximum_ind(a(n),int [o]c())
@@ -972,6 +1059,7 @@ for $which (
     pp_def( 
 	    $name,
 	    HandleBad => 1,
+	    UseBadforNaN => 1,
 	    Pars => 'a(n); [o]c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -997,6 +1085,7 @@ otherwise the bad flag is cleared for the output piddle.',
     pp_def( 
 	    "${name}_ind",
 	    HandleBad => 1,
+	    UseBadforNaN => 1,
 	    Pars => 'a(n); int [o] c();', 
 	    Code => 
 	    '$GENERIC() cur;
@@ -1058,6 +1147,7 @@ otherwise the bad flag is cleared for the output piddle.',
 pp_def( 
 	'minmaximum',
 	HandleBad => 1,
+	UseBadforNaN => 1,
 	Pars => 'a(n); [o]cmin(); [o] cmax(); int [o]cmin_ind(); int [o]cmax_ind();',
 	Code => 
 	'$GENERIC() curmin, curmax;
@@ -1131,6 +1221,7 @@ for my $opt (
     pp_def(
 	   $name,
 	   HandleBad => 1,
+	   UseBadforNaN => 1,
 	   Pars => 'a(); b(); [o] c()',
 	   Code => 
 	   '$c() = ($a() '.$op.' $b()) ? $b() : $a();',
@@ -1191,6 +1282,8 @@ sub PDL::clip {
 }
 
 EOD
+
+# XXX to do 
 
 defpdl(
 	'wtstat',
@@ -1618,25 +1711,27 @@ EOD
 # we want something like
 #   whichbad( $a < 20 ) which is like which
 
-for ({Name=>'which',
-      Pars => 'mask(n); int [o] inds(m);',
-      Variables => 'int dm=0;',
-      Elseclause => "",
-      Autosize => '$SIZE(m) = sum;',
-      Doc => $doc_which
-      },
-     {Name => 'which_both',
-      Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
-      Variables => 'int dm=0; int dm2=0;',
-      Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
-      Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
-      Doc => $doc_which_both
-      })
+    for (
+	 {Name=>'which',
+	  Pars => 'mask(n); int [o] inds(m);',
+	  Variables => 'int dm=0;',
+	  Elseclause => "",
+	  Autosize => '$SIZE(m) = sum;',
+	  Doc => $doc_which
+	  },
+	 {Name => 'which_both',
+	  Pars => 'mask(n); int [o] inds(m); int [o]notinds(q)',
+	  Variables => 'int dm=0; int dm2=0;',
+	  Elseclause => "else { \n          \$notinds(q => dm2)=n; \n           dm2++;\n     }",
+	  Autosize => '$SIZE(m) = sum;'."\n".'  	  $SIZE(q) = dpdl->dims[0]-sum;',
+	  Doc => $doc_which_both
+	  }
+	 )
 {
-pp_def($_->{Name},
-       Doc => $_->{Doc},
-	Pars => $_->{Pars},
-	Code => $_->{Variables} .
+    pp_def($_->{Name},
+	   Doc => $_->{Doc},
+	   Pars => $_->{Pars},
+	   Code => $_->{Variables} .
                  'loop(n) %{
 			if ($mask()) {
 				$inds(m => dm) = n;
@@ -1646,7 +1741,7 @@ pp_def($_->{Name},
 #		the next one is currently a dirty hack
 #               this will probably break once dataflow is enabled again
 #               *unless* we have made sure that mask is physical by now!!!
-	RedoDimsCode => '
+	   RedoDimsCode => '
 		PDL_Long sum = 0;
 		/* not sure if this is necessary */
 		pdl * dpdl = $PDL(mask);
@@ -1664,7 +1759,7 @@ pp_def($_->{Name},
 
 		'.$_->{Autosize} . '
 		/* printf("RedoDimsCode: setting dim m to %ld\n",sum); */'
-);
+	   );
 }
 
 pp_addpm(<<'EOD'
@@ -1743,8 +1838,8 @@ pp_def('append',
                        loop(n) %{ $c(mn => n) = $a(); %}
 		       loop(m) %{ mnp = m+ns; $c(mn => mnp) = $b(); %}
 		 %}',
-	Doc => << 'EOD',
-=for ref
+	Doc =>
+'=for ref
 
 append two piddles by concantening along their respective first dimensions
 
@@ -1756,21 +1851,23 @@ append two piddles by concantening along their respective first dimensions
 
 C<append> appends two piddles along their first dims. Rest of the dimensions
 must be compatible in the threading sense. Resulting size of first dim is
-sum of sizes of the two argument piddles' first dims.
+the sum of the sizes of the first dims of the two argument piddles -
+ie C<n + m>.
 
-EOD
-);
+'
+   );
 
-
-for({Name => 'histogram',
-    WeightPar => '',
+for(
+    {Name => 'histogram',
+     WeightPar => '',
      HistType => 'int+',
      HistOp => '++',
      Doc1 => "",
      Doc2 => "",
      Doc3 => "number of\n",
      Doc4 => "\nUse L<hist|PDL::Basic/hist> instead for a high-level interface.\n",
-     Doc5 => "histogram(pdl(1,1,2),1,0,3)\n [0 2 1]"},
+     Doc5 => "histogram(pdl(1,1,2),1,0,3)\n [0 2 1]"
+     },
     {Name => 'whistogram',
      WeightPar => 'float+ wt(n);',
      HistType => 'float+',
@@ -1779,7 +1876,9 @@ for({Name => 'histogram',
      Doc2 => "\$weights, ",
      Doc3 => "sum of the values in C<\$weights>\nthat correspond to ",
      Doc4 => "",
-     Doc5 => "whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)\n [0 0.2 0.5 0]"})
+     Doc5 => "whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)\n [0 0.2 0.5 0]"
+     }
+    )
 {
 pp_def($_->{Name},
 	Pars => 'in(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(m)',
@@ -1823,16 +1922,17 @@ The output is reset in a different threadloop so that you
 can take a histogram of C<\$a(10,12)> into C<\$b(15)> and get the result
 you want.
 $_->{Doc4}
+
 =for example
 
  perldl> p $_->{Doc5}
 
-=cut
 EOD
 }
 
-for({Name => 'histogram2d',
-    WeightPar => '',
+for(
+    {Name => 'histogram2d',
+     WeightPar => '',
      HistType => 'int+',
      HistOp => '++',
      Doc1 => "",
@@ -1860,7 +1960,8 @@ for({Name => 'histogram2d',
   [  0 0.1   0]
  ]
 
-"})
+"}
+    )
 {
 pp_def($_->{Name},
 	Pars => 'ina(n); inb(n); '.$_->{WeightPar}.$_->{HistType}.  '[o] hist(ma,mb)',
@@ -1915,7 +2016,6 @@ upper limit is put in the last bin.
 
  perldl> p $_->{Doc5}
 
-=cut
 EOD
 }
 
@@ -1925,7 +2025,7 @@ sub crassgn {
 }
 
 pp_def('crossp',
-        Doc => <<'EOD',
+       Doc => <<'EOD',
 =for ref
 
 Cross product of two 3D vectors
@@ -1941,11 +2041,12 @@ orthogonal to C<$a> and C<$b>
 
 =cut
 EOD
-	Pars => 'a(tri=3); b(tri); [o] c(tri)',
-	Code => crassgn(0,1,2)."\n".
-		crassgn(1,2,0)."\n".
-		crassgn(2,0,1),
-);
+       Pars => 'a(tri=3); b(tri); [o] c(tri)',
+       Code => 
+       crassgn(0,1,2)."\n". 
+       crassgn(1,2,0)."\n".
+       crassgn(2,0,1),
+       );
 
 pp_def('norm',
 	Pars => 'vec(n); [o] norm(n)',
@@ -1981,13 +2082,6 @@ deviation from the mean, also known as the population standard-
 deviation.
 
 =cut
-
-# I need to think about this, but I think that
-#   $data->sum / $data->ngood need not == $data->avg
-#
-# $b = double->badvalue
-# $data = pdl( [1,2,3],[$b,$b,1] )
-#   $data->sum / $
 
 *stats	  = \&PDL::stats;
 sub PDL::stats {

@@ -11,8 +11,7 @@ use Test;
 BEGIN { 
     use PDL::Config;
     if ( $PDL::Config{WITH_BADVAL} ) {
-#	plan tests => 24, todo => [11,17];
-	plan tests => 46;
+	plan tests => 47;
     } else {
 	plan tests => 1;
 	skip(1,1,1);
@@ -180,12 +179,16 @@ ok( PDL::Core::string( $b->index($ix) ),
     "[22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]" 
     );  # 41
 
-# pointer to needed work comparison ops in ops.pd
+# check comparison/bit operators in ops.pd
+
 $a = pdl( 2, 4, double->badvalue );
 $a->badflag(1);
 $b = abs( $a - pdl(2.001,3.9999,234e23) ) > 0.01;
-print "Not decided whether this failure is actually not what we want...\n";
-ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 44
+ok( PDL::Core::string( $b ), "[0 0 BAD]" );  # 42
+
+$b = byte(1,2,255,4);
+$b->badflag(1);
+ok( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]" );  # 43
 
 # quick look at math.pd
 use PDL::Math;
@@ -193,16 +196,16 @@ use PDL::Math;
 $a = pdl(0.5,double->badvalue,0);
 $a->badflag(1);
 $b = bessj0($a);
-ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 43
+ok( PDL::Core::string( isbad($b) ), "[0 1 0]" );   # 44
 
 $a = pdl(double->badvalue,0.8);
 $a->badflag(1);
 $b = bessjn($a,3);  # thread over n()
-ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 44
-ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 45
+ok( PDL::Core::string( isbad($b) ), "[1 0]" );  # 45
+ok( abs($b->at(1)-0.010) < 0.001, 1 );      # 46
 
 $a = pdl( 0.01, 0.0 );
 $a->badflag(1);
-ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 46
+ok( all( abs(erfi($a)-pdl(0.00886,0)) < 0.001 ), 1 );  # 47
 
 # need to test primitive's minmaximum

@@ -15,11 +15,14 @@ Problems:
 .) $pdl->badvalue(23) should change the bad value in $pdl to 23
    (as well as changing the default bad value, which it does)
 
-.) decide how to implement the comparison operators in ops.pd -
-   eg see test 42 in t/bad.t
-
 Suggestions/To do:
 ================
+
+.) NaN support - this would make it *much* faster on machines which
+   support it. See the section in IMPLEMENTATION.bpix
+   I've started labelling routines which will have to use the BadCode
+   section even when using NaN's by 'UseBadforNaN => 1' - this
+   doesn't yet do anything.
 
 .) 'bad-ify' the rest of the code...
 
@@ -42,18 +45,8 @@ Suggestions/To do:
 
    Comments?
 
-.) NaN support - this would make it *much* faster on machines which
-   support it. See the section in IMPLEMENTATION.bpix
-
 .) divide in ops.pd should trap '/ 0' cases as well. also special cases 
    for sqrt(), log ... and integration with NaN support
-
-.) comparison operators in ops.pd - how should they handle bad pixels?
-   ie is (a > badval) true, false, or what. Well, we could have
-   it return a bad value. However, this would cause unpredictable
-   results (eg if( any $a > 0 ) and any $a returns a bad value, then
-   if the bad value is 0, the check fails, otherwise it succeeds...)
-   NASTY. - see zcover in primitive.pd for some comments
 
 .) With the current scheme, it would be possible to have a per-piddle
    bad value. However, new piddles would use the default values.
@@ -68,6 +61,9 @@ Suggestions/To do:
    It would be redundant if we used NaN support - so maybe we should 
    put this on the back-burner until we get Nan support.
 
+   I'm moving away from the idea of per-piddle bad values, as I think
+   it would increase the amount of code in certain cases.
+
 .) $pdl->baddata() now updates all the children of this piddle
    as well. However, not sure what to do with parents, since:
      $b = $a->slice(); 
@@ -81,6 +77,10 @@ Suggestions/To do:
    PERHAPS you can only clear the bad value flag if you are NOT
    a child of another piddle, whereas if you set the flag then all
    children AND parents should be set as well?
+
+   Similarly, if you change the bad value in a piddle, should this
+   be propogated to parent & children? Or hsould you only be able to do
+   this on the 'top-level' piddle?
 
 .) get some code set up to do benchmarks to see how much things are
    slowed down (and to check that I haven't messed things up if

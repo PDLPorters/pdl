@@ -208,7 +208,7 @@ if ($^O !~ /win32/i) {
 	   Code =>
 	   'extern int signgam;
 	    $b() = lgamma($a());
-	    $s() = signgam;',
+	    $s() = signgam;',     # what happens to signgam if $a() is bad?
 	   BadCode => 
 	   'extern int signgam;
             if ( $ISBAD(a()) ) {

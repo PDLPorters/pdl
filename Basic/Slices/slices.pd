@@ -64,16 +64,24 @@ pp_add_boot(
 "     PDL->writebackdata_affine = pdl_writebackdata_affineinternal;\n"
 );
 
+## XXX Commenting out 'Dims => ' and 'ParentInds =>' lines since
+#      I can't find any rules that use them in PP.pm
+#      (two of the three pp_def() routines are enclosed in
+#      if (0) { } ...)
+#
+# Doug Burke (07/14/00)
+
 pp_def(
-	'affineinternal',
-	AffinePriv => 1,
-	DefaultFlow => 1,
-	P2Child => 1,
-	ReadDataFuncName => "pdl_readdata_affineinternal",
-	WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
-	MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
-	RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
-	EquivCPOffsCode => '
+       'affineinternal',
+       HandleBad => 1,
+       AffinePriv => 1,
+       DefaultFlow => 1,
+       P2Child => 1,
+       ReadDataFuncName => "pdl_readdata_affineinternal",
+       WriteBackDataFuncName => "pdl_writebackdata_affineinternal",
+       MakeComp => '$CROAK("AFMC MUSTNT BE CALLED");',
+       RedoDims => '$CROAK("AFRD MUSTNT BE CALLED");',
+       EquivCPOffsCode => '
 		int i; int poffs=$PRIV(offs); int nd;
 		for(i=0; i<$CHILD_P(nvals); i++) {
 			$EQUIVCPOFFS(i,poffs);
@@ -86,9 +94,8 @@ pp_def(
 				poffs -= $PRIV(incs[nd]) *
 					$CHILD_P(dims[nd]);
 			}
-		}
-	',
-	Doc => 'internal',
+                }',
+       Doc => undef,    # 'internal',
 );
 
 pp_def(
@@ -98,8 +105,8 @@ pp_def(
 	DefaultFlow => 1,
 	OtherPars => '',
 	Reversible => 1,
-	Dims => '$COPYDIMS();',
-	ParentInds => '$COPYINDS();',
+##	Dims => '$COPYDIMS();',
+##	ParentInds => '$COPYINDS();',
 	Identity => 1,
 	Doc => 'internal',
 );
@@ -259,6 +266,7 @@ EOD
 #
 pp_def('flowconvert',
        HandleBad => 1,
+       UseBadforNaN => 1,
        DefaultFlow => 1,
        Reversible => 1,	
        Pars => 'PARENT(); [oca]CHILD()',
@@ -269,15 +277,15 @@ pp_def('flowconvert',
        Code => 
        '$CHILD() = $PARENT();',
        BadCode => 
-       'if ( $ISBAD($PARENT()) ) { 
-           $SETBAD($CHILD());
+       'if ( $ISBAD(PARENT()) ) { 
+           $SETBAD(CHILD());
         } else {
            $CHILD() = $PARENT();
         }',
        BackCode => '$PARENT() = $CHILD();',
        BadBackCode => 
-       'if ( $ISBAD($CHILD()) ) { 
-           $SETBAD($PARENT());
+       'if ( $ISBAD(CHILD()) ) { 
+           $SETBAD(PARENT());
         } else {
            $PARENT() = $CHILD();
         }',
@@ -1543,17 +1551,17 @@ deftrans(
 		$COMP(whichind) = whichind;
 		$SETREVERSIBLE($COMP(howmany)==1);
 		',
-	Dims => '
-		$SETNDIMS($PARENT(ndims));
-		LOOPDIMS %{
-			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
-		%}
-		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
-		$SETDIMS();
-		',
-	ParentInds =>
-		'$COPYINDS();
-		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
+#	Dims => '
+#		$SETNDIMS($PARENT(ndims));
+#		LOOPDIMS %{
+#			$CHILD(dims[$DIM]) = $PARENT(dims[$DIM]);
+#		%}
+#		$CHILD(dims[$COMP(whichind)]) *= $PRIV(howmany);
+#		$SETDIMS();
+#		',
+#	ParentInds =>
+#		'$COPYINDS();
+#		 $PARENTINDS($COMP(whichind)) %= $PARENT(dims[$PRIV(whichind)]);',
 	Print => 'printf("REPEAT: %d, %d\n",
 			$COMP(whichind), $COMP(howmany));'
 );
@@ -1565,15 +1573,15 @@ if(0) {
 deftrans(
 	Name => 'indexed',
 	Pars => 'pdl* indices',
-	Dims => '
-		$SETNDIMS($COMP(indices)->ndims);
-		LOOPDIMS %{
-			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
-		%}
-		',
-	ParentInds =>
-		'$COPYINDS();
-		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
+#	Dims => '
+#		$SETNDIMS($COMP(indices)->ndims);
+#		LOOPDIMS %{
+#			$CHILD(dims[$DIM]) = $COMP(indices)->dims[$DIM];
+#		%}
+#		',
+#	ParentInds =>
+#		'$COPYINDS();
+#		 $PARENTINDS(0) = PDL->get($COMP(indices),&($MYINDS(0)));'
 );
 }
 

@@ -494,6 +494,7 @@ Returns a 1 if the value is $name, 0 otherwise.
 pp_def(
        'isbad',
        HandleBad => 1,
+       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(); int [o]b();',
        Code => 
        '$b() = 0;',
@@ -506,6 +507,7 @@ pp_def(
 pp_def(
        'isgood',
        HandleBad => 1,
+       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(); int [o]b();',
        Code => 
        '$b() = 0;',
@@ -548,14 +550,10 @@ EOD
 
 } # sub: projectdocs()
 
-# see tests 23 and 24 in t/bad.t
-# - WHY DO THEY FAIL?
-#   and is it machine specific 
-#   (ie fail on linux, succeed on solaris)
-#   - needs checking
 pp_def(
        'nbadover',
        HandleBad => 1,
+       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(n); int+ [o]b();',
        Code => 
        '$b() = 0;',
@@ -571,6 +569,7 @@ pp_def(
 pp_def(
        'ngoodover',
        HandleBad => 1,
+       UseBadforNaN => 1,           # NOP at the moment
        Pars => 'a(n); int+ [o]b();',
        Code => 
        '$b() = ($GENERIC(b)) $SIZE(n);',

@@ -1,9 +1,15 @@
 --------------------------------------------------------------------------------
 
+Doug Burke (07/15/00)
+   - converted comparison & bit ops in ops.pd, so $a = ($b > 0.2) propogates
+     bad values
+   - improved/cleaned up EquivCPOffsCode support - see IMPLEMENTATION.bpix
+   - started labelling routines with 'UseBadforNaN => 1' in preparation for
+     someone implementing NaN support, for more routines conv in primitive.pd
 Doug Burke (07/14/00)
    - converted math.pd - badmask needs thinking about, all the rest are either
      converted (and need testing), or flagged as not supporting bad values
-     - eg svd
+     (eg svd)
 Doug Burke (07/13/00)
    - added $PDL::Bad::Status variable to PDL::Bad - 1 for support, 0 for
      no support (boo, hiss)

@@ -3,7 +3,20 @@
                         Bad value support in PDL
 
  Doug Burke (burke@ifa.hawaii.edu) & ...
- last update: 07/12/00
+ last update: 07/14/00
+
+--------------------------------------------------------------------------------
+
+ README.bpix         - this file
+ IMPLEMENTATION.bpix - details of how the bad-value support in implemented 
+ TODO.bpix           - bugs/wish list/general thoughts
+
+--------------------------------------------------------------------------------
+
+Sections:
+  What are bad values and why should I bother with them?
+  A quick overview
+  A bad value for each piddle, and related issues
 
 --------------------------------------------------------------------------------
 
@@ -29,7 +42,7 @@ particularly when operating on piddles which do not contain bad values.
 
 You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
 Well, yes and no - many routines, such as y=sin(x), will propogate NaN's 
-without the user haveing to code differently, but routines such as qsort, or
+without the user having to code differently, but routines such as qsort, or
 finding the median of an array, need to be re-coded to handle bad values.
 Currently we do not use NaN values, but it's a high priority to allow this, 
 since it will speed up the code. See the section in IMPLEMENTATION.bpix for
@@ -39,6 +52,9 @@ more details.
 
 A quick overview
 ================
+
+See PDL::Bad for useful routines for working with bad values and t/bad.t
+to see them in action.
 
 The intention is to:
  a) not significantly affect PDL for users who don't want bad value support
@@ -109,11 +125,11 @@ NOTE: propogation of the badflag
    b) $a->badflag(1) should propogate the badflag to BOTH parents and
       children.
 
- This wouldn't be hard to implement. Does it make sense though?
-
-Currently, there is one bad value for each datatype. This may well change to
-allow a per-piddle bad value, since it shouldn't affect the code speed, but 
-shouldn't affect the following (indeed it will solve one problem).
+This wouldn't be hard to implement. Does it make sense though? There's also
+the issue of what happens if you change the badvalue of a piddle - should
+these propogate to children/parents (yes) or whether you should only be
+able to change the badvalue at the 'top' level - ie those piddles which do
+not have parents.
 
  The orig_badvalue() method returns the compile-time value for a given 
  datatype. It works on piddles, PDL::Type objects, and numbers - eg
@@ -138,13 +154,39 @@ TODO:
 Note that changes to the bad value are NOT propogated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
-This would NOT be a problem with a per-piddle bad value.
-
-See PDL::Bad for useful routines for working with bad values.
+See discussion below.
 
 --------------------------------------------------------------------------------
 
- README.bpix         - this file
- IMPLEMENTATION.bpix - details of how the bad-value support in implemented 
- TODO.bpix           - bugs/wish list/general thoughts
+A bad value for each piddle, and related issues
+===============================================
+
+Currently, there is one bad value for each datatype. The code is written so 
+that we could have a separate bad value for each piddle (stored in the 
+pdl structure) - this would then remove the current problem of:
+
+ $a = byte( 1, 2, byte->badvalue, 4, 5 );
+ p $a;
+ [1 2 255 4 5]
+ $a->badflag(1)
+ p $a;
+ [1 2 BAD 4 5]
+ byte->badvalue(0);
+ p $a;
+ [1 2 255 4 5]
+
+ie the bad value in $a has lost its 'bad' status using the current 
+implementation. The overhead would be too large to have 
+   byte->badvalue($newval)
+propogaste through all bad piddles and update their bad values. We could
+save a 'time' value in the pdl and then automatically update the bad value
+of a piddle if we find it's 'time' is older than the 'time' of the default bad
+value. But that would be slow and probably rather painful.
+
+However, I think that having a per-piddle bad value would cause too much
+code overhead (not in the current implementation but this needs looking at).
+
+Bottom line - per-piddle bad values are low on the list of my priorities.
+
+--------------------------------------------------------------------------------
 
