@@ -136,7 +136,11 @@ sub hasbiggrays {
   my ($checked,$form) = (0,'');
   require IO::File;
   for (&rpiccan()) { next if /^PNM$/; $form = $_; $checked=1; last }
-  unless ($checked) {warn "PDL::IO::Pic - couldn't find any pbm converter"; return 1};
+  unless ($checked) {
+    warn "PDL::IO::Pic - couldn't find any pbm converter"
+      if $PDL::IO::Pic::debug;
+    return 0;
+  }
   *SAVEERR = *SAVEERR;  # stupid fix to shut up -w (AKA pain-in-the-...-flag)
   open(SAVEERR, ">&STDERR");
   my $tmp = new_tmpfile IO::File or barf "couldn't open tmpfile";
