@@ -30,6 +30,8 @@ Basic/Core/pdlthread.h
 Basic/Core/ppport.h
 Basic/Core/typemap
 Basic/Core/typemap.pdl
+Basic/Gen/Inline/Makefile.PL
+Basic/Gen/Inline/Pdlpp.pm
 Basic/Gen/Makefile.PL
 Basic/Gen/PP.pm
 Basic/Gen/PP/CType.pm
@@ -96,6 +98,7 @@ Basic/Primitive/primitive.pd
 Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
+Basic/SourceFilter/Changes
 Basic/SourceFilter/MANIFEST
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/NiceSlice.pm

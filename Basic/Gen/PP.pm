@@ -20,6 +20,8 @@ use Exporter;
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
 
+$PDL::PP::VERSION = 2.2;
+
 use Carp;
 
 # check for bad value support
@@ -32,9 +34,12 @@ my $ntypes = $#PDL::Types::names;
 
 use strict;
 
+sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
+
 sub import {
-	my ($mod,$modname, $packname, $prefix) = @_;
+	my ($mod,$modname, $packname, $prefix, $callpack) = @_;
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
+	$::CALLPACK = defined $callpack ? $callpack : $::PDLMOD;
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package
 	$::PDLXS="";
 	$::PDLBEGIN="";
@@ -142,7 +147,7 @@ sub printxs {
 }
 
 sub pp_addxs {
-	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::PDLMOD\n\n",
+	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::CALLPACK\n\n",
                          @_,
                          "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
 }
@@ -156,6 +161,7 @@ sub pp_done {
         $::FUNCSPOD = $::DOCUMENTED ? "\n\n=head1 FUNCTIONS\n\n\n\n=cut\n\n\n"
 	  : '';
 	print "DONE!\n" if $::PP_VERBOSE;
+	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
 	(my $fh = new FileHandle(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
 
 $fh->print(qq%
@@ -227,12 +233,14 @@ BOOT:
      Perl_croak(aTHX_ "$::PDLMOD needs to be recompiled against the newly installed PDL");
    $::PDLXSBOOT
 %);
+
+unless (nopm) {	
 	$::PDLPMISA = "'".join("','",@::PDLPMISA)."'";
 	$::PDLBEGIN = "BEGIN {\n$::PDLBEGIN\n}"
 		unless $::PDLBEGIN =~ /^\s*$/;
-($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
+	($fh = new FileHandle(">$::PDLPREF.pm")) or die "Couldn't open pm file\n";
 
-$fh->print(qq%
+	$fh->print(qq%
 #
 # GENERATED WITH PDL::PP! Don't modify!
 #
@@ -267,8 +275,8 @@ $::PDLPM{Bot}
 
 1;
 
-%);
-
+		   %);  # end of print
+      }  # unless (nopm) {...
 }
 
 sub pp_def {

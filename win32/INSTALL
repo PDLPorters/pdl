@@ -59,3 +59,11 @@ Making an installable PPM
 Some pseudo code how to go about that
 is in the file makeppm.pl (which is currently
 really just comments).
+
+UPDATE: A target 'ppm' is now available
+from the makefile.
+
+  make ppm
+
+should do the job, however, it relies on
+a number of programs like cp, mv, tar, etc.

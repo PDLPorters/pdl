@@ -4,6 +4,8 @@ MANIFEST\.old
 ^\.exists
 ^Basic/Core/badsupport\.p
 .*\.0$
+\.(tmp|new|diff|ori)$
+^Basic/SourceFilter/INSTALL
 ^t/.*\.pnm$
 ^core
 ^pdldoc.db$

@@ -1,8 +1,13 @@
 CURRENT PRIORITIES:
 
+- implement the new NiceSlice ideas (trailing modifiers, '/' diag,
+		'<-> xchg', etc)
+- PDL::PP::Inline !!!
+- AUtoLoader import hash
+
 - get rid of 'swap' parameter when calling bifuncs explicitly
 - overhaul core interfaces, move drepecated interfaces into own module
-- improve OpenGL detection
+ # - improve OpenGL detection ## seems more or less done (trylink)
 - sort out interface to different interpolation codes (PDL::Func
   and the old PDL::Interpolate/PDL::Interpolate::Slatec modules which are
   included in the distribution but are not installed)
