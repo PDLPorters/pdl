@@ -1,4 +1,7 @@
 (!!! = possible source of incompatibilities)
+Doug Burke
+        - added PDL::Interpolate and PDL::Interpolate::Slatec which provide
+          a (hopefully) simple, OO interface to interpolation methods
 CS	- correct PDL::Ops docs
 	- fix problem in pdl_croak_param (pdlthread.c) due to changes
 		in Perl_mess in perl 5.6

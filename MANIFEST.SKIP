@@ -36,6 +36,7 @@ pdlexamples\.c$
 ^Basic/Math/Math\.pm$
 ^Basic/Math/Math\.xs$
 ^Basic/Core/Core\.c$
+^Basic/Core/mymalloc.p$
 ^Basic/Core/pdl\.h$
 ^Basic/Core/pdlsimple\.h$
 ^Basic/Core/Types\.pm$
