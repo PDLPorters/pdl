@@ -1500,10 +1500,17 @@ sub create_low_level_constants {
 
   foreach my $const (@lines) {
     next if (($const =~ /^\#/) or ($const =~ /^\s*$/));
-    pp_def ($const,
-            Pars => 'int [o] retval()',
-            Code => "\$retval() = $const;"
-           );
+    my $func = "  
+int
+$const()
+PROTOTYPE:
+CODE:
+  RETVAL = $const;
+OUTPUT:
+  RETVAL
+";
+    pp_addxs ($func);
+    pp_add_exported ($const);
   }
 }
 
@@ -2000,7 +2007,6 @@ pp_def ('plsym',
          GenericTypes => [D],
          Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
-
 
 pp_done();
 
