@@ -81,7 +81,7 @@ ok((ref $a->{e} eq 'PDL')
 
 ########## Check header dumping...
 eval '$a = xvals(2,2); $a->sethdr({ok=>1}); $a->hdrcpy(1); $b = xvals(25,25); $b->sethdr({ok=>2}); $b->hdrcpy(0); $s = sdump([$a,$b,yvals(25,25)]);';
-ok(13,!$@);
+ok(!$@);
 
 $a = eval $s;
 ok(!$@ && (ref $a eq 'ARRAY'));
