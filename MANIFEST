@@ -459,6 +459,7 @@ t/clump.t
 t/complex.t
 t/conv.t
 t/croak.t
+t/erf.t
 t/erfi.t
 t/familyfree.t
 t/fastraw.t
