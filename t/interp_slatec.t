@@ -1,3 +1,8 @@
+# NOTE: 
+#  currently not in use anymore
+#  - see PDL::Func (in Lib/) and t/func.t
+print "1..1\nok 1 # Skipped: see PDL::Func\n";
+exit;
 
 use PDL::LiteF;
 

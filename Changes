@@ -1,4 +1,9 @@
 (!!! = possible source of incompatibilities)
+Doug Burke (5/19/00)
+        - Amalgated Interpolate & Interpolate::Slatec into PDL::Func (found
+          in Lib/). I've left the old files in the distribution, although they're
+          no longer made/installed, in case anyone wants to do a better job.
+        - minor doc changes to Image2D
 zowie   - Changed PGPLOT::im to PGPLOT::imag1 (1:1 aspect ratio shortcut).
 	  Avoids conflict with the imaginary-component sub by the same name.
 

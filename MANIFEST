@@ -288,6 +288,7 @@ Lib/Fit/Gaussian/gaussian.pd
 Lib/Fit/LM.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
+Lib/Func.pm
 Lib/GSL/Makefile.PL
 Lib/GSL/README
 Lib/GSL/gsl_random.pd
@@ -579,6 +580,7 @@ t/flexraw.t
 t/flow.t
 t/foo.t
 t/func.pdl
+t/func.t
 t/gauss.t
 t/gsl_rng.t
 t/hdrs.t
