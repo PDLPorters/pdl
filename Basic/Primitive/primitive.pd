@@ -1637,7 +1637,7 @@ occurs, because the output is interpolated rather than indexed.
 All the interpolation methods treat the pixels as value-centered, so
 the C<sample> method will return $a->(0) for coordinate values on 
 the set [-0.5,0.5), and the C<linear> method will return $a->(1) for 
-a coordinate value of exactly 1.5.
+a coordinate value of exactly 1.
 
 
 Allowable options:
@@ -1706,7 +1706,7 @@ sub PDL::interpND {
     my $di = $index->ndims - 1;
 
     # Grab a 2-on-a-side n-cube around each desired pixel
-    my $samp = $source->range($index,2,$boundary); # (ith, cth, sth)
+    my $samp = $source->range($index->floor,2,$boundary); # (ith, cth, sth)
 
     # Reorder to put the cube dimensions in front and convert to a list
     $samp = $samp->reorder( $di .. $di+$d-1,

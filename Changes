@@ -1,3 +1,7 @@
+CED 28-Jun-2003
+   - Transform.pm: fix autoranging of map()
+   - primitive.pd: fix negative-index case in linear interpolation 
+	(floor is required to prevent round *up* for negative indices)
 CS
    - fix NiceSlice foreach bug; v to 1.0.0
    - fix fftwconv

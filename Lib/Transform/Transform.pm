@@ -756,7 +756,11 @@ sub map {
 	$osize = $omax - $omin;
 
       } else {
-	my $coords = ndcoords(($samp_ratio + 1) x $nd); # 'x' = perl repeat
+	  print "foo\n";
+	my $samps = (pdl(($in->dims)[0..$nd-1]))->clip(0,$samp_ratio);
+	print "samps=$samps\n";
+	my $coords = ndcoords(($samps + 1)->list); 
+	print "coords=$coords\n";
 	$coords -= 0.5;
 	
 	my $t;
@@ -772,11 +776,11 @@ sub map {
 	    unless ( (($irange->dim(1)) == $nd ) 
 		     && $irange->ndims == 2);
 
-	  $coords *= ($irange->((1)) - $irange->((0))) / $samp_ratio;
+	  $coords *= ($irange->((1)) - $irange->((0))) / $samps;
 	  $coords += $irange->((0));
 	  $t = $me;
 	} else {
-	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samp_ratio;
+	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
 	  $t = $f_tr;
 	}
 
@@ -795,6 +799,8 @@ sub map {
 
 	$omin = $oc2->minimum;
 	$omax = $oc2->maximum;
+	print "omin=$omin; omax=$omax\n";
+	print "coords=$coords\n";
 
 	$osize = $omax - $omin;
 	$osize->where($osize == 0) .= 1.0;
@@ -811,9 +817,9 @@ sub map {
 
       my $d;
       for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1+($out->dim($d-1))/2;
+	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1))/2 ;
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
-	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2;
+	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
 	  $out->hdr->{"CTYPE$d"} = ( (defined($me->{otype}) ? 
 				      $me->{otype}->[$d-1] : "") 
@@ -850,7 +856,8 @@ sub map {
   ## just transform and interpolate. 
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
-    my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float->inplace);
+    my $idx = $me->invert(PDL::Basic::ndcoords(@dd)->float + 0.5);
+
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
     $out->(:) .= $a; # trivial slice prevents header overwrite...
     return $out;
@@ -896,9 +903,10 @@ sub map {
     ### transformed coordinates and subtracting offset versions of them
 
     my $indices = $me->invert(
-    (float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd) - 0.5)		            )
-      ->
-      reshape($nd,(PDL->pdl(@sizes[0..$nd-1])+1)->list);
+	 float(PDL::Basic::ndcoords((PDL->pdl(@dd)+1)->list))->clump(1..$nd) 
+	)
+	->
+	reshape($nd,(PDL->pdl(@sizes[0..$nd-1])+1)->list);
 
     my $jr = $indices->mv(0,-1)->range(ndcoords( (2+zeroes($nd))->list ),
 				       pdl(@sizes[0..$nd-1]));   #0..n, s1..sn, index
