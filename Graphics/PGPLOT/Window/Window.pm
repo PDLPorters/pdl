@@ -1177,7 +1177,7 @@ a spectrum) then the default pixel aspect ratio is adjusted automatically to
 match the plot viewport and other options you've specified.
 
 You can override the image scaling using the SCALE, PIX, or PITCH
-options just as with L<the imag() method|PDL::Graphics::Window::imag> -- but 
+options just as with L<the imag() method|/imag> -- but 
 those parameters refer to the scientific coordinate system rather than 
 to the pixel coordinate system (e.g. C<PITCH=>100> means "100 scientific units 
 per inch", and C<SCALE=>1> means "1 scientific unit per device pixel".  See
@@ -3755,8 +3755,6 @@ sub initenv{
 	$pitch = $p->at($ap->maximum_ind);
     }
 
-    
-    
     $pix = ($y1 - $y0) / ($ymax - $ymin) * $pitch 
       unless defined($pix);
     
@@ -3824,6 +3822,17 @@ sub initenv{
 	(m/T/i) ? ($ymax-($y1-$y0)*$pitch/$pix, $ymax) :
    	      (0.5*($ymin+$ymax - ($y1-$y0)*$pitch/$pix),
 	       0.5*($ymin+$ymax + ($y1-$y0)*$pitch/$pix));
+
+      # DJB - the following is a hack to try and preserve the sense
+      # of the axes. It was needed to get fits_imag($img) to work
+      # correctly [ie have RA decreasing to the right, as
+      # fits_imag($img,{j=>1}) - or even fits_imag($img,{j=>0}) !! -
+      # does].
+      # I do not know if it will break anything and I worry that it
+      # should really be sorted out prior to this point.
+      #
+      ( $xx0, $xx1 ) = ( $xx1, $xx0 ) if $xmin > $xmax and $xx0 < $xx1;
+      ( $yy0, $yy1 ) = ( $yy1, $yy0 ) if $ymin > $ymax and $yy0 < $yy1;
 
       pgswin($xx0, $xx1, $yy0, $yy1);
       
@@ -3968,7 +3977,8 @@ sub _image_xyrange {
   
   return (@xvals,@yvals);
 }
-  
+
+
 =head2 _FITS_tr
 
 Given a FITS image, return the PGPLOT transformation matrix to convert
@@ -5770,16 +5780,19 @@ sub rgbi {
 #
 # by fits_imag, fits_rgbi, and fits_cont.
 #
-sub _fits_foo {
-  my $pane = shift;
-  my $cmd = shift;
-  my ($in,$opt_in) = _extract_hash(@_);
-  my ($pdl,@rest) = @$in;
+{
+    my $f_im_options = undef;
 
-  $opt_in = {} unless defined($opt_in);
+    sub _fits_foo {
+	my $pane = shift;
+	my $cmd = shift;
+	my ($in,$opt_in) = _extract_hash(@_);
+	my ($pdl,@rest) = @$in;
 
-  if (!defined($f_im_options)) {
-    $f_im_options = $pane->{PlotOptions}->extend({
+	$opt_in = {} unless defined($opt_in);
+
+	unless ( defined($f_im_options) ) {
+	    $f_im_options = $pane->{PlotOptions}->extend({
                                                   Contours=>undef,
 						  Follow=>0,
 						  Labels=>undef,
@@ -5804,89 +5817,94 @@ sub _fits_foo {
 
 						  WCS => undef,
 						 });
-  }
+	}
 
-  my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
-  my($hdr) = $pdl->gethdr();
+	my($opt,$u_opt) = $pane->_parse_options($f_im_options,$opt_in);
+	my $hdr = $pdl->gethdr();
 
-  # What WCS system are we using?
-  # we could check that the WCS is valid here but we delegate it
-  # to the _FITS_tr() routine.
-  #
-  my $wcs = $$u_opt{WCS} || "";
+	# What WCS system are we using?
+	# we could check that the WCS is valid here but we delegate it
+	# to the _FITS_tr() routine.
+	#
+	my $wcs = $$u_opt{WCS} || "";
 
-  %opt2 = %{$u_opt}; # copy options
-  delete $opt2{WCS};
-  $opt2{Transform} = _FITS_tr($pane,$pdl,{WCS => $wcs});
+	%opt2 = %{$u_opt}; # copy options
+	delete $opt2{WCS};
+	$opt2{Transform} = _FITS_tr($pane,$pdl,{WCS => $wcs});
 
-  local($_);
-  foreach $_(keys %opt2){
-    delete $opt2{$_} if(m/title/i);
-  }
+	local($_);
+	foreach $_(keys %opt2){
+	    delete $opt2{$_} if (m/title/i);
+	}
 
-  $opt2{Align} = 'CC' unless defined($opt2{Align});
-  $opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
+	$opt2{Align} = 'CC' unless defined($opt2{Align});
+	$opt2{DrawWedge} = 1 unless defined($opt2{DrawWedge}); 
 
-  my $min  = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
-  my $max  = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
-  my $unit = $pdl->gethdr->{BUNIT} || "";
-  my $rangestr = " ($min to $max $unit) ";
+	my $min  = (defined $opt->{min}) ? $opt->{min} : $pdl->min;
+	my $max  = (defined $opt->{max}) ? $opt->{max} : $pdl->max;
+	my $unit = $pdl->gethdr->{BUNIT} || "";
+	my $rangestr = " ($min to $max $unit) ";
 
-  # I am assuming here that CUNIT1<A-Z> is a valid keyword for
-  # 'alternative' WCS mappings (DJB)
-  #
-  $opt2{Pix}=1.0 
-    if( (!defined($opt2{Justify})) &&
-	(!defined($opt2{Pix})) && 
-	( $hdr->{"CUNIT1$wcs"} ? ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) 
-                         : ($hdr->{"CTYPE1$wcs"} eq $hdr->{"CTYPE2$wcs"})
-	  )
-	);
+	# I am assuming here that CUNIT1<A-Z> is a valid keyword for
+	# 'alternative' WCS mappings (DJB)
+	#
+	$opt2{Pix}=1.0 
+	    if( (!defined($opt2{Justify}) || !$opt{Justify}) &&
+		(!defined($opt2{Pix})) && 
+		( $hdr->{"CUNIT1$wcs"} ?
+		  ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) :
+		  ($hdr->{"CTYPE1$wcs"} eq $hdr->{"CTYPE2$wcs"})
+		  )
+		);
 
-  my($o2) = \%opt2;
+	my $o2 = \%opt2;
 
-  my $cmdstr =   '$pane->' . $cmd . 
-		 '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
-		 '$o2);';
+	my $cmdstr =   '$pane->' . $cmd . 
+	    '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
+	    '$o2);';
 
-  eval $cmdstr;
+	eval $cmdstr;
 
-  my $mkaxis = sub {
-    my ($typ,$unit) = @_;
-    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
-    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
-    $s =~ s/\%u/$unit/;
-    $s =~ s/\%t/$typ/;
-    $s;
-  };
+	my $mkaxis = sub {
+	    my ($typ,$unit) = @_;
+	    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
+	    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+	    $s =~ s/\%u/$unit/;
+	    $s =~ s/\%t/$typ/;
+	    $s;
+	};
 
-  $pane->label_axes(
-    $opt->{XTitle} || &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
-    $opt->{YTitle} || &$mkaxis($hdr->{"CTYPE2$wcs"},$hdr->{"CUNIT2$wcs"}),
-    $opt->{Title}, $opt
-		    );
+	$pane->label_axes(
+			  $opt->{XTitle} || 
+			  &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
+			  $opt->{YTitle} || 
+			  &$mkaxis($hdr->{"CTYPE2$wcs"},$hdr->{"CUNIT2$wcs"}),
+			  $opt->{Title}, $opt
+			  );
 
-} # sun: _fits_foo()
+    } # sub: _fits_foo()
 
-sub fits_imag {
-  my($self) = shift;
-  _fits_foo($self,'imag',@_);
-}
+    sub fits_imag {
+	my($self) = shift;
+	_fits_foo($self,'imag',@_);
+    }
 
-sub fits_rgbi {
-  my($self) = shift;
-  _fits_foo($self,'rgbi',@_);
-}
+    sub fits_rgbi {
+	my($self) = shift;
+	_fits_foo($self,'rgbi',@_);
+    }
 
-sub fits_cont {
-  my($self) = shift;
-  _fits_foo($self,'cont',@_);
-}
+    sub fits_cont {
+	my($self) = shift;
+	_fits_foo($self,'cont',@_);
+    }
 
-sub fits_vect {
-  my($self) = shift;
-  _fits_vect($self,'vect',@_);
-}
+    sub fits_vect {
+	my($self) = shift;
+	_fits_vect($self,'vect',@_);
+    }
+
+} # closure around _fits_foo and fits_XXXX routines
 
 # Load a colour table using pgctab()
 

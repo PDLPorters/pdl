@@ -1,3 +1,7 @@
+DJB 15-01-04
+   - Hack to get fits_imag($img) to look like fits_imag($img,{j=>0}) when
+     the RA axis is in descending order [+ internal changes to make the two
+     go through the same code when setting limits].
 DJB 14-01-04
    - moved FITS-header messages from IO/Misc/Makefile.PL to
      IO/FITS/Makefile.PL since rfits/wfits are no longer in IO/Misc
