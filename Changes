@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
 
+Tim Jenness (6/30/00)
+    - PDL::CallExt now works on WinNT with VC++
 Doug Burke (6/29/00)
     - added methods to PDL::Type - enum, symbol, ctype, ppsym, realctype
       and shortctype - which provide access to information in PDL::Types 
