@@ -4,7 +4,8 @@ use ExtUtils::MakeMaker;
 # # the contents of the Makefile that is written.
 
 WriteMakefile(
-     'NAME'     => 'PDL::IO::NDF',
-     'VERSION_FROM' => 'NDF.pm',
+	      NAME => 'PDL::IO::NDF',
+#     'VERSION_FROM' => 'NDF.pm',
+	      clean => { Files => 'NDF.pm' },
 );
 
