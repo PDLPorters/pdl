@@ -269,7 +269,9 @@ use Filter::Simple sub {
   # print STDERR;
   # print STDERR "status: $@\n";
   # print STDERR "leaving Filter...\n";
- };
+};
+# stay clear of __END__ and __DATA__ sections
+# => qr/^\s*(__(END|DATA)__)|(no\s+PDL::NiceSlice\s*;)\s*$/;
 
 # well it is not quite that simple ;)
 #  since Filter::Simple doesn't have all the bells and whistles yet
@@ -792,6 +794,31 @@ Error checking is probably not yet foolproof.
 
 The conditional operator can't be used in slice expressions (see
 above).
+
+There is currently an undesired interaction between C<PDL::NiceSlice>
+and the new L<Inline::Pdlpp|Inline::Pdlpp> module (currently only in 
+PDL CVS). Since PP code generally
+contains expressions of the type C<$var()> (to access piddles, etc)
+C<PDL::NiceSlice> recognizes those incorrectly as
+slice expressions and does its substitutions. For the moment
+(until hopefully the parser can deal with that) it is best to
+explicitly switch C<PDL::NiceSlice> off before the section of
+inlined Pdlpp code. For example:
+
+  use PDL::NiceSlice;
+  use Inline::Pdlpp;
+
+  $a = sequence 10;
+  $a(0:3)++;
+  $a->inc;
+
+  no PDL::NiceSlice;
+
+  __DATA__
+
+  __C__
+
+  ppdef (...); # your full pp definition here
 
 Feedback and bug reports are welcome. Please include an example
 that demonstrates the problem. Log bug reports in the PDL

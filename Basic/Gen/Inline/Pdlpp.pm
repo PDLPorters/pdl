@@ -48,6 +48,7 @@ sub validate {
       $o->{ILSM}{MAKEFILE}{INC} = "-I$w/Core";
     }
     $o->{ILSM}{AUTO_INCLUDE} ||= '';
+    $o->{ILSM}{PPFLAGS} ||= '';
     while (@_) {
 	my ($key, $value) = (shift, shift);
 	if ($key eq 'MAKE' or
@@ -83,7 +84,8 @@ sub validate {
 	    $o->add_list($o->{ILSM}{MAKEFILE}, $key, $value, []);
 	    next;
 	}
-	if ($key eq 'AUTO_INCLUDE') {
+	if ($key eq 'AUTO_INCLUDE' or
+            $key eq 'PPFLAGS') {
 	    $o->add_text($o->{ILSM}, $key, $value, '');
 	    next;
 	}
@@ -335,6 +337,7 @@ sub compile {
 	    chdir $build_dir;
 	    system($cmd) and do {
 #		$o->error_copy;
+                chdir $cwd; # back to original dir
 		croak <<END;
 
 A problem was encountered while attempting to compile and install your Inline
@@ -374,16 +377,19 @@ sub compile_pd {
   if ($o->{ILSM}{INTERNAL}) {
     my $w = abs_path(PDL::Core::Dev::whereami_any());
     $w =~ s%/((PDL)|(Basic))$%%; # remove the trailing subdir
-    $inc = "-I$w/blib/lib -I$w/blib/arch"; # make sure we find the PP stuff
+    $w .= '/blib/lib' unless $w =~ m|/blib/lib|;
+    $inc = "-I$w"; # make sure we find the PP stuff
   } else { $inc = '' }
 
+  my $ppflags = $o->{ILSM}{PPFLAGS};
   my $cmd = << "EOC";
-$perl $inc "-MPDL::PP qw[$module NONE $modfname $pkg]" $modfname.pd
+$perl $ppflags $inc "-MPDL::PP qw[$module NONE $modfname $pkg]" $modfname.pd > out.pdlpp 2>&1
 EOC
   # print STDERR "executing\n\t$cmd...\n";
   $cwd = &cwd;
   chdir $bdir;
   system($cmd) and do {
+                chdir $cwd; # back to original dir
 		croak <<END;
 
 A problem was encountered while attempting to compile and install your Inline
@@ -658,6 +664,47 @@ C code using a debugger like gdb.
 Specifies extra typemap files to use. Corresponds to the MakeMaker parameter.
 
     use Inline Pdlpp => Config => TYPEMAPS => '/your/path/typemap';
+
+=head1 BUGS
+
+Maybe this is a Perl thing, but beware that you can't use
+the __DATA__ keyword style of Inline definition when you
+want to C<do> your script containing inlined code. For example
+
+   # myscript.pl contains inlined code
+   # in the __DATA__ section
+   perl -e 'do "myscript.pl";'
+ One or more DATA sections were not processed by Inline.
+
+Use one of the alternative ways of defining inline code if
+you need to use C<do> with them (e.g. when calling your script from
+within L<perldl|perldl>).
+
+There is currently an undesired interaction between
+L<PDL::NiceSlice|PDL::NiceSlice> and C<Inline::Pdlpp>.
+Since PP code generally contains expressions
+of the type C<$var()> (to access piddles, etc)
+L<PDL::NiceSlice|PDL::NiceSlice> recognizes those incorrectly as
+slice expressions and does its substitutions. For the moment
+(until hopefully the parser can deal with that) it is best to
+explicitly switch L<PDL::NiceSlice|PDL::NiceSlice> off before
+the section of inlined Pdlpp code. For example:
+
+  use PDL::NiceSlice;
+  use Inline::Pdlpp;
+
+  $a = sequence 10;
+  $a(0:3)++;
+  $a->inc;
+
+  no PDL::NiceSlice;
+
+  __DATA__
+
+  __C__
+
+  ppdef (...); # your full pp definition here
+
 
 =head1 ACKNOWLEDGEMENTS
 
