@@ -1,3 +1,4 @@
+CS  - version to 2.3.4
 CS  - backported a number of patches from the main branch
       DB 9/11:	Lite.pm typo
       TJ 9/02:	PDL::IO::Storable now uses PTR2IV
