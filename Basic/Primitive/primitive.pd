@@ -696,9 +696,6 @@ sub generic_qsort_ind {
             0, nn);';
 }
 
-# XXX this does not fully work - see t/bad.t
-#     it could require a bit of a rethink of the algorithm...
-#
 pp_def(
        'qsorti',
        HandleBad => 1,
@@ -706,32 +703,26 @@ pp_def(
        Pars => 'a(n); int [o]indx(n);',
        Code => 
        'int nn = $COMP(__n_size)-1;
-        int i=0;
         loop(n) %{ 
-           $indx() = i++; 
+           $indx() = n; 
         %}
        ' . generic_qsort_ind(),
        BadCode =>
        'register int nn = 0, nb = $SIZE(n) - 1;
         loop(n) %{ 
-           if ( $ISGOOD(a()) ) { $indx(n=>nn) = nn; nn++; } /* play safe since nn used > 1 */ 
-           else                { $indx(n=>nb) = nn; nb--; }
+           if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used > 1 */ 
+           else                { $indx(n=>nb) = n; nb--; }
         %}
         if ( nn != 0 ) {
            nn -= 1;
         ' . generic_qsort_ind() . ' }',
        BadDoc => 
-'It should I<move> all the bad elements to the end of the array.
-Currently it does not:
+'Bad elements are moved to the end of the array:
 
  perldl> p $b
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
  perldl> p $b->index( qsorti($b) )
- [BAD BAD 22 25 32 41 42 47 59 74 76 76 79 96 96 98 BAD 25 96 BAD]
-
-Whilst the elements are in order, I think it would be better if
-all the bad values were lumped at the end of the array - eg
-L<qsort|/qsort>.
+ [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
        Doc => '
 =for ref
@@ -890,9 +881,6 @@ Weighted (i.e. triple) inner product
 
 '
        );
-
-# XXX these need converting
-
 
 pp_def(
        'inner2',
@@ -1285,20 +1273,25 @@ EOD
 
 # XXX to do 
 
-defpdl(
-	'wtstat',
-	'a(n); wt(n); avg(); [o]b();',
-	'int deg',
-	'double wtsum = 0;
-	 double statsum=0;
-	 loop(n) %{
-		 register double tmp; register int i;
-		 wtsum += $wt();
-		tmp=1; for(i=0; i<$COMP(deg); i++) tmp*=$a();
-	 	statsum += $wt() * (tmp - $avg()); %}
-	 $b() = statsum / wtsum;
-	',<<'EOD');
-=for ref
+pp_def(
+       'wtstat',
+       Pars => 'a(n); wt(n); avg(); [o]b();',
+       OtherPars => 'int deg',
+       Code =>
+       'double wtsum = 0;
+	double statsum = 0;
+	loop(n) %{
+	   register double tmp; 
+           register int i;
+	   wtsum += $wt();
+	   tmp=1; 
+           for(i=0; i<$COMP(deg); i++) 
+              tmp *= $a();
+	   statsum += $wt() * (tmp - $avg()); 
+        %}
+	$b() = statsum / wtsum;',
+       Doc => 
+'=for ref
 
 Weighted statistical moment of given degree
 
@@ -1307,9 +1300,8 @@ The formula is
 
  b() = (sum_i wt_i * (a_i ** degree - avg)) / (sum_i wt_i)
 
-=cut
-EOD
-
+'
+       );
 
 pp_addpm(<<'EOD');
 
@@ -2170,7 +2162,6 @@ sub PDL::fibonacci{
 }
 EOD
      Code => '
-
         PDL_Long i=0;
         $GENERIC() x1, x2;
 
@@ -2185,13 +2176,24 @@ EOD
         %}
 ');
 
-pp_def('indadd',
-       Pars => 'a(); int ind(); [o] sum(m)',
-       Code => 'register int foo = $ind();
-                if(foo<0 || foo>=$SIZE(m))
-                  {barf("PDL::indadd: invalid index");}
-                $sum(m => foo) += $a();',
-       Doc=>'
+pp_def(
+    'indadd',
+    HandleBad => 1,
+    UseBadforNaN => 1,
+    Pars => 'a(); int ind(); [o] sum(m)',
+    Code => 
+    'register int foo = $ind();
+     if( foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     $sum(m => foo) += $a();',
+    BadCode => 
+    'register int foo = $ind();
+     if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(m) ) {
+       barf("PDL::indadd: invalid index");
+     }
+     $sum(m => foo) += $a();',
+    Doc=>'
 =for ref
 
 Threaded Index Add: Add C<a> to the C<ind> element of C<sum>, i.e:

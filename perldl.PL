@@ -344,7 +344,7 @@ restart:
      s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
      s/^\s*\?\s*/help /; # Make lone '?' = 'help'
 
-     if (/^\s*(help|usage|apropos|sig|demo)\s+/) { # Allow help foo (no quotes)
+     if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
         @t = split;
         foreach (@t) { s/^["']+//; s/['"]+$//; };
 	$t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));

@@ -138,6 +138,17 @@ the changes in C<$c> will flow back to C<$a>.
 =cut
 EOD
 
+my $index_init_good = 
+       'register int foo = $ind(); 
+        if( foo<0 || foo>=$SIZE(n) ) {
+	   barf("PDL::index: invalid index");
+        }';
+my $index_init_bad = 
+       'register int foo = $ind(); 
+        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
+	   barf("PDL::index: invalid index");
+        }';
+
 pp_def(
        'index',
        HandleBad => 1,
@@ -146,33 +157,38 @@ pp_def(
        Reversible => 1,	
        Pars => 'a(n); int ind(); [oca] c();',
        Code => 
-       'register int foo = $ind(); 
-        if( foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
-        }
-	$c() = $a(n => foo);',
+       $index_init_good . ' $c() = $a(n => foo);',
        BadCode => 
-       'register int foo = $ind(); 
-        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
-        }
-	$c() = $a(n => foo);',
+       $index_init_bad . ' $c() = $a(n => foo);',
        BackCode => 
-       'register int foo = $ind(); 
-        if( foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
-        }
-	$a(n => foo) = $c();',
+       $index_init_good . ' $a(n => foo) = $c();',
        BadBackCode => 
-       'register int foo = $ind(); 
-        if( $ISBADVAR(foo,ind) || foo<0 || foo>=$SIZE(n) ) {
-	   barf("PDL::index: invalid index");
-        }
-	$a(n => foo) = $c();',
+       $index_init_bad . ' $a(n => foo) = $c();',
        Doc => $doc,
        BadDoc =>
        'index halts if any of the index values are bad.',
        );
+
+my $index2d_init_good =
+       'register int fooa,foob;
+	fooa = $inda(); 
+        if( fooa<0 || fooa>=$SIZE(na) ) {
+           barf("PDL::index: invalid index 1");
+        }
+	foob = $indb(); 
+        if( foob<0 || foob>=$SIZE(nb) ) {
+	   barf("PDL::index: invalid index 2");
+        }';
+my $index2d_init_bad =
+       'register int fooa,foob;
+	fooa = $inda(); 
+        if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
+           barf("PDL::index: invalid index 1");
+        }
+	foob = $indb(); 
+        if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
+	   barf("PDL::index: invalid index 2");
+        }';
 
 pp_def(
        'index2d',
@@ -182,50 +198,14 @@ pp_def(
        Reversible => 1,	
        Pars => 'a(na,nb); int inda(); int indb(); [oca] c();',
        Code => 
-       'register int fooa,foob;
-	fooa = $inda(); 
-        if( fooa<0 || fooa>=$SIZE(na) ) {
-           barf("PDL::index: invalid index 1");
-        }
-	foob = $indb(); 
-        if( foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
-        }
-	$c() = $a(na => fooa, nb => foob);',
+       $index2d_init_good . ' $c() = $a(na => fooa, nb => foob);',
        BadCode => 
-       'register int fooa,foob;
-	fooa = $inda(); 
-        if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
-           barf("PDL::index: invalid index 1");
-        }
-	foob = $indb(); 
-        if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
-        }
-	$c() = $a(na => fooa, nb => foob);',
-	BackCode => 
-       'register int fooa,foob;
-	fooa = $inda(); 
-        if( fooa<0 || fooa>=$SIZE(na) ) {
-	   barf("PDL::index: invalid index 1");
-        }
-	foob = $indb(); 
-        if( foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
-        }
-	$a(na => fooa, nb => foob) = $c();',
-	BadBackCode => 
-       'register int fooa,foob;
-	fooa = $inda(); 
-        if( $ISBADVAR(fooa,inda) || fooa<0 || fooa>=$SIZE(na) ) {
-	   barf("PDL::index: invalid index 1");
-        }
-	foob = $indb(); 
-        if( $ISBADVAR(foob,indb) || foob<0 || foob>=$SIZE(nb) ) {
-	   barf("PDL::index: invalid index 2");
-        }
-	$a(na => fooa, nb => foob) = $c();',
-	Doc => $doc,
+       $index2d_init_bad . '$c() = $a(na => fooa, nb => foob);',
+       BackCode => 
+       $index2d_init_good . ' $a(na => fooa, nb => foob) = $c();',
+       BadBackCode => 
+       $index2d_init_bad . '$a(na => fooa, nb => foob) = $c();',
+       Doc => $doc,
        BadDoc =>
        'index2d halts if either of the index values are bad.',
 );
