@@ -213,7 +213,6 @@ Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/test.pl
 Graphics/TriD/OpenGL/examples/clip
-Graphics/TriD/OpenGL/hints/solaris_2.pl
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/README
