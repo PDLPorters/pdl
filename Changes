@@ -1,3 +1,15 @@
+CED 09-Jan-2005
+   - Core.pm.PL: Restored original barf behavior: reports error where
+     it occured in user code, not within PDL.
+   - primitive.pd: Matrix multiplication now requires that the second
+     argument's second dim equal the first argument's first dim 
+     (as required for matrix multiplication; previous threading case
+     made no sense).
+   - Core.pm.PL: restored barf() to its documented behavior (had been
+     commented out and replaced with Carp::croak()...)
+   - t/matmult.t, t/misc.t: added more matrix multiplication tests; 
+     fixed test in misc.t to accept error messages with "PDL:" in front.
+    
 CED 07-Jan-2005
    - Updated PDL version to '2.4.2cvs'
    - In a fit of insomnia, lifted code for non-symmetric eigenvalue

@@ -37,7 +37,7 @@ pp_addpm({At=>'Top'},<<'EOD');
 
 =head1 NAME
 
-PDL::MatrixOps
+PDL::MatrixOps -- Some Useful Matrix Operations
 
 =head1 SYNOPSIS
 
@@ -50,14 +50,26 @@ PDL::MatrixOps
 
 =head1 DESCRIPTION
 
-PDL::Math::MatrixOps contains a bunch of operations for handling
-matrices -- LU decomposition, inversion, determinant, etc.  Except as
-noted, the matrices are PDLs whose 0th dimension ranges over column
-and whose 1st dimension ranges over row.  The matrices appear
-correctly when printed.  
+PDL::MatrixOps is PDL's built-in matrix manipulation code.  It
+contains utilities for many common matrix operations: inversion,
+determinant finding, eigenvalue/vector finding, singular value
+decomposition, etc.  PDL::MatrixOps routines are written in a mixture
+of Perl and C, so that they are reliably present even when there no
+FORTRAN compiler or external library available (e.g.
+L<PDL::Slatec|/PDL::Slatec> or L<PDL::GSL>).
 
-It should work OK with L<PDL::Matrix|PDL::Matrix> objects as well as with
-normal PDLs.
+Matrix manipulation, particularly with large matrices, is a
+challenging field and no one algorithm is suitable in all cases.  The
+utilities here use general-purpose algorithms that work acceptably for
+many cases but might not scale well to very large or pathological
+(near-singular) matrices.
+
+Except as noted, the matrices are PDLs whose 0th dimension ranges over
+column and whose 1st dimension ranges over row.  The matrices appear
+correctly when printed.
+
+These routines should work OK with L<PDL::Matrix|PDL::Matrix> objects
+as well as with normal PDLs.
 
 =head1 TIPS ON MATRIX OPERATIONS
 
@@ -65,12 +77,12 @@ Like most computer languages, PDL addresses matrices in (column,row)
 order in most cases; this corresponds to (X,Y) coordinates in the
 matrix itself, counting rightwards and downwards from the upper left
 corner.  This means that if you print a PDL that contains a matrix,
-the matrix appears correctly on the screen.  (Contrast this with, e.g.,
-IDL's treatment of matrices -- which appear like their own transposes in
-that language).  If you prefer your matrices indexed in (column, row)
-order, you can try using the L<PDL::Matrix|PDL::Matrix> object,
-which includes an implicit xchange of the first two dimensions but should
-be compatible with most of these matrix operations.  TIMTOWDTI.)  
+the matrix appears correctly on the screen, but if you index a matrix
+element, you use the indices in the reverse order that you would in a
+math textbook.  If you prefer your matrices indexed in (row, column)
+order, you can try using the L<PDL::Matrix|PDL::Matrix> object, which
+includes an implicit exchange of the first two dimensions but should
+be compatible with most of these matrix operations.  TIMTOWDTI.)
 
 Matrices, row vectors, and column vectors can be multiplied with the 'x'
 operator (which is, of course, threadable):
@@ -82,8 +94,13 @@ operator (which is, of course, threadable):
 
 Because of the (column,row) addressing order, 1-D PDLs are treated as
 _row_ vectors; if you want a _column_ vector you must add a dummy dimension:
-
-	$col_vec2 = $m1 x $mypdl->(0,1); # mypdl used as a 1xn column vector
+      
+      $rowvec  = pdl(1,2);            # row vector
+      $colvec  = $rowvec->(*1);	      # 1x2 column vector
+      $matrix  = pdl([[3,4],[6,2]]);  # 2x2 matrix
+      $rowvec2 = $rowvec x $matrix;   # right-multiplication by matrix
+      $colvec  = $matrix x $colvec;   # left-multiplication by matrix
+      $m2      = $matrix x $rowvec;   # Throws an error
 
 Implicit threading works correctly with most matrix operations, but
 you must be extra careful that you understand the dimensionality.  In 

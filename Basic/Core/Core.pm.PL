@@ -2630,9 +2630,9 @@ by PDL::Core
 
 =cut
 
-# sub barf { die barf_msg(@_) };
+ sub barf { die barf_msg(@_) };
 use Carp;
-sub barf { croak @_ };
+#sub barf { croak barf_msg(@_) };
 
 # This sub is called by Perl barf() and pdl_barf in pdlcore.c
 
@@ -2641,7 +2641,7 @@ sub barf_msg {
   my $i = 0;
   my($pack,$file,$line);
   my $msg="";
-  $msg .= "PDL barfed: $err\nStack trace:\n" if $PDL::Debugging;
+  $msg .= "PDL: $err\nStack trace:\n" if $PDL::Debugging;
   while(1) { # Unwind the stack
     ($pack,$file,$line) = caller($i);
     last unless $pack;
@@ -2653,14 +2653,14 @@ sub barf_msg {
   if ($err =~ /^Usage:\s+(PDL.*::)_(\w+)_int/ or $err =~ /^Usage:\s+(PDL.*::)?\s*(\w+)/) {
      local $match = $2;
      eval << "EOD";
-     \$msg .= "PDL barfed: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
+     \$msg .= "PDL: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
      \$msg .= "Usage information from PDL docs database:\n";
      use PDL::Doc::Perldl;
      \$msg .= PDL::Doc::Perldl::usage_string ('$match');
 EOD
   }
   else{
-     $msg .= "PDL barfed: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
+     $msg .= "PDL: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
   }
   $msg .= "\n" if substr($msg,-1,1) ne "\n";
   return $msg;

@@ -122,6 +122,77 @@ operator but this function is provided for convenience.
 
 
 pp_addpm(<<'EOD');
+=head2 x
+
+ Signature: (a(i,x), b(z,i),[o]c(x,z))
+
+=for ref
+
+Matrix multiplication
+
+PDL overloads the C<x> operator (normally the repeat operator) for
+matrix multiplication.  The number of columns (size of the 0
+dimension) in the left-hand argument must normally equal the number of 
+rows (size of the 1 dimension) in the right-hand argument. 
+
+Row vectors are represented as (N x 1) two-dimensional PDLs, or you
+may be sloppy and use a one-dimensional PDL.  Column vectors are 
+represented as (1 x N) two-dimensional PDLs.
+
+Threading occurs in the usual way, but as both the 0 and 1 dimension
+(if present) are included in the operation, you must be sure that 
+you don't try to thread over either of those dims.
+
+EXAMPLES
+
+Here are some simple ways to define vectors and matrices:
+
+ perldl> $r = pdl(1,2);                # A row vector 
+ perldl> $c = pdl([[3],[4]]);          # A column vector 
+ perldl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
+ perldl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
+
+Now that we have a few objects prepared, here is how to
+matrix-multiply them:
+
+ perldl> print $r x $m                 # row x matrix = row
+ [
+  [ 7 10]
+ ]
+
+ perldl> print $m x $r                 # matrix x row = ERROR
+ PDL: Dim mismatch in matmult of [2x2] x [2x1]: 2 != 1
+
+ perldl> print $m x $c                 # matrix x column = column
+ [
+  [ 5]
+  [11]
+ ]
+ 
+ perldl> print $m x 2                  # Trivial case: scalar mult.
+ [
+  [2 4]
+  [6 8]
+ ]
+ 
+ perldl> print $r x $c                 # row x column = scalar
+ [
+  [11]
+ ]
+
+ perldl> print $c x $r                 # column x row = matrix
+ [
+  [3 6]
+  [4 8]
+ ]
+
+
+INTERNALS
+
+The mechanics of the multiplication are carried out by the
+L<matmult|/matmult> method in L<PDL::Primitive|/PDL::Primitive>.
+
+
 =head2 matmult
 
 =for sig
@@ -133,15 +204,28 @@ pp_addpm(<<'EOD');
 Matrix multiplication
 
 We peruse the inner product to define matrix multiplication
-via a threaded inner product
+via a threaded inner product.
+
+For usage, see L<x|'/x'>, a description of the overloaded 'x' operator
 
 =cut
 
   sub PDL::matmult {
     barf "Invalid number of arguments for matmult" if $#_ < 1;
     my ($a,$b,$c) = @_;
+
+    $b=pdl($b) unless UNIVERSAL::isa($b,'PDL'); # Make sure 2nd arg's a PDL
+
     while ($a->getndims < 2) {$a = $a->dummy(-1)} # promote if necessary
-    while ($b->getndims < 2) {$b = $b->dummy(-1)}
+    while ($b->getndims < 2) {$b = $b->dummy(-1)} 
+
+    return ($c .= $a * $b) if ( ($a->dim(0)==1 && $a->dim(1)==1) ||
+	                        ($b->dim(0)==1 && $b->dim(1)==1) ) ;
+
+    if($b->dim(1) != $a->dim(0)) {
+	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+    }
+
     if(!defined $c) {$c = PDL->nullcreate($a)}
     $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
     return $c;
