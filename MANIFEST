@@ -314,9 +314,6 @@ IO/FastRaw/FastRaw.pm
 IO/FastRaw/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
-IO/IDL/IDL.pm
-IO/IDL/Makefile.PL
-IO/IDL/savefmt.pdf
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd

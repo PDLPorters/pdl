@@ -673,7 +673,7 @@ sub lu_decomp {
   my($sing_ok) = shift;
 
   my $TINY = 1e-30;
-  
+
   barf('lu_decomp requires a square (2D) PDL\n')
     if(!UNIVERSAL::isa($in,'PDL') || 
        $in->ndims < 2 || 

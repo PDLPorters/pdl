@@ -411,6 +411,9 @@ operators may be applied to piddle-matrices. The inner product is not
 redefined. We might have missed some functions/methods. Internal
 consistency of our approach needs yet to be established.
 
+Because PDL::Matrix changes the way slicing behaves, it breaks many
+operators, notably those in MatrixOps.  
+
 =head1 TODO
 
 check all PDL functions, benchmarks, optimization, lots of other things ...
