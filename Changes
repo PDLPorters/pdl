@@ -1,5 +1,7 @@
 (!!! = possible source of incompatibilities)
 
+Tim Jenness (4/26/00)
+        - Patch mconf.h so that it works on Alphas running Linux
 Doug Burke
         - fixed apropos command to work with perl 5.6.0
         - t/poly.t failed on solaris 2.7 with new PP code. Changed check
