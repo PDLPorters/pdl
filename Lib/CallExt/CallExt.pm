@@ -193,7 +193,7 @@ sub callext_cc {
 
 	$ld_cmd .=
 		join(' ', map { $Config{$_} } qw(ld lddlflags)) .
-		" $ldflags $o$ld_obj $cc_obj";
+		" $Config{libs} $ldflags $o$ld_obj $cc_obj";
 	my $cmd = "$cc_cmd; $ld_cmd";
 	print $cmd,"\n";
 
