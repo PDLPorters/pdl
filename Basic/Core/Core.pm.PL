@@ -3010,18 +3010,19 @@ switch on/off/examine automatic header copying
 =for example
 
  print "hdrs will be copied" if $a->hdrcpy;
- $a->hdrcpy(1);       # switch on hdr copying
+ $a->hdrcpy(1);       # switch on automatic header copying 
  $b = $a->sumover;    # and $b will inherit $a's hdr
  $a->hdrcpy(0);       # and now make $a non-infectious again
 
 C<hdrcpy> without an argument just returns the current setting of the
-flag.
+flag.  See also "hcpy" which returns its PDL argument (and so is useful
+in method-call pipelines).
 
-Normally, the optional header of a piddle is not copied
-automatically in pdl operations. Switching on the hdrcpy
-flag using the C<hdrcpy> method will enable automatic hdr
-copying. Note that an actual deep copy gets made, which is
-somewhat inefficient -- plan accordingly.
+Normally, the optional header of a piddle is not copied automatically
+in pdl operations. Switching on the hdrcpy flag using the C<hdrcpy>
+method will enable automatic hdr copying. Note that an actual deep
+copy gets made, which is rather processor-inefficient -- so avoid 
+using header copying in tight loops!
 
 Most PDLs have the C<hdrcpy> flag cleared by default; however, some
 routines (notably L<rfits|PDL::IO::FITS/rfits>) set it by default
@@ -3056,8 +3057,8 @@ Switch on/off automatic header copying, with PDL pass-through
   $a = rfits('foo.fits')->hcpy(0);
   $a = rfits('foo.fits')->hcpy(1);
 
-C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL itself.  That
-makes it convenient for inline use in expressions.
+C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
+itself.  That makes it convenient for inline use in expressions.
 
 
 =head1 AUTHOR

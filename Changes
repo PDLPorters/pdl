@@ -1,3 +1,7 @@
+CED 1-Jun-04
+   - PP.pm: fixed deep header copying -- now neither crashes nor leaks memory.
+   - slices.pd - added a paragraph to the range() documentation
+   - FITS.pm - added a couple of minor notes to the rfits() documentation.
 CED 28-May-04
    - primitive.pd: fixes to glue()
 DJ  21-May-04

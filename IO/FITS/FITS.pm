@@ -105,6 +105,8 @@ Suffix magic:
   $pdl = rfits('file.fits.gz[3]'); # Read 3rd extension
   @pdls = rfits('file.fits');      # Read primary data and extensions
 
+  $hdr = rfits('file.fits',{data=>0});  # Options hash changes behavior
+
 In list context, C<rfits> reads the primary image and all possible
 extensions, returning them in the same order that they occurred in the
 file.  In scalar context, the default is to read the primary HDU. One
@@ -112,7 +114,8 @@ can read other HDU's by using the [n] syntax, the second one is [1].
 Currently recognized extensions are IMAGE and BINTABLE.  (See the
 addendum on EXTENSIONS for details).
 
-C<rfits> accepts several options that may be passed in as a hash ref if desired:
+C<rfits> accepts several options that may be passed in as a hash ref
+if desired:
 
 =over 3
 
@@ -141,7 +144,9 @@ in many circumstances but also causes a hit in speed.
 FITS image headers are stored in the output PDL and can be retrieved
 with L<hdr|PDL::Core/hdr> or L<gethdr|PDL::Core/gethdr>.  The
 L<hdrcpy|PDL::Core/hdrcpy> flag of the PDL is set so that the header
-is copied to derived piddles by default.
+is copied to derived piddles by default.  (This is inefficient if you
+are planning to do lots of small operations on the data; clear
+the flag with "->hcpy(0)" or via the options hash if that's the case.)
 
 The header is a hash whose keys are the keywords in the FITS header.
 If you have the "Astro::FITS::Header" module installed, the header is

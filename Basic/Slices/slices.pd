@@ -368,6 +368,9 @@ a piddle whose first dimension has order up to N.  Each row of C<$index> is
 treated as coordinates of a single value or chunk from C<$source>, specifying 
 the location(s) to extract.  
 
+If you specify a single index location, then range is essentially an expensive
+slice, with controllable boundary conditions.
+
 B<INPUTS>
 
 C<$index> and C<$size> can be piddles or array refs such as you would
@@ -560,15 +563,15 @@ sure that you know what you're doing.  That catches a common error with
 range usage: confusing the initial dim (usually of low order) with another
 index dim (perhaps of order 1000).
 
-B<Efficiency>: Because C<range> isn't an affine transformation (it
+B<EFFICIENCY>: Because C<range> isn't an affine transformation (it
 involves lookup into a list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
-is slower than for affine transformations (which don't have to copy
+is much slower than for affine transformations (which don't have to copy
 data around).  
 
 Doing operations on small subfields of a large range is inefficient
 because the engine must flow the entire range back into the original
-PDL with every operation, even if you only touch a single element.
+PDL with every atomic perl operation, even if you only touch a single element.
 One way to speed up such code is to sever your range, so that PDL
 doesn't have to copy the data with each operation, then copy the
 elements explicitly at the end of your loop.  Here's an example that

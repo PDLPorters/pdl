@@ -1207,12 +1207,14 @@ if (hdrp) {
     
     hdr_copy = (SV *)POPs;
 
-    SvREFCNT_inc(hdr_copy); /* Keep hdr_copy from evaporating from FREETMPS */
-
+    SvREFCNT_inc(hdr_copy); /* Keep hdr_copy from vanishing during FREETMPS */
 
     FREETMPS ;
     LEAVE ;
-} /* end of callback convenience block */
+
+    SvREFCNT_dec(hdr_copy); /* make it ephemeral again */
+
+  } /* end of callback  block */
 
 DeePcOPY
     ;
