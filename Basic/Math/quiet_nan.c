@@ -1,4 +1,5 @@
 #include "mconf.h"
+/* Patch NaN function where no system NaN is available */
 double quiet_nan(void)
 {
 #ifdef NaN
