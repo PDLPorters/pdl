@@ -1,4 +1,0 @@
-extern int sgefa_(real *a, integer *lda, integer *n, integer *ipvt, integer *info);
-/*:ref: isamax_ 4 3 4 6 4 */
-/*:ref: sscal_ 14 4 4 6 6 4 */
-/*:ref: saxpy_ 14 6 4 6 6 4 6 4 */

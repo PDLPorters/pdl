@@ -1,2 +1,0 @@
-extern doublereal dpchdf_(integer *k, doublereal *x, doublereal *s, integer *ierr);
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

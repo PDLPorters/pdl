@@ -1,1 +1,0 @@
-extern int dpolft_(integer *n, doublereal *x, doublereal *y, doublereal *w, integer *maxdeg, integer *ndeg, doublereal *eps, doublereal *r, integer *ierr, doublereal *a);

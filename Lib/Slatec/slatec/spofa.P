@@ -1,2 +1,0 @@
-extern int spofa_(real *a, integer *lda, integer *n, integer *info);
-/*:ref: sdot_ 6 5 4 6 4 6 4 */

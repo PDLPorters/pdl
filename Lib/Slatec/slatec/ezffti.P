@@ -1,2 +1,0 @@
-extern int ezffti_(integer *n, real *wsave);
-/*:ref: ezfft1_ 14 3 4 6 6 */

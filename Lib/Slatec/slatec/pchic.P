@@ -1,5 +1,0 @@
-extern int pchic_(integer *ic, real *vc, real *switch__, integer *n, real *x, real *f, real *d, integer *incfd, real *wk, integer *nwk, integer *ierr);
-/*:ref: pchci_ 14 5 4 6 6 6 4 */
-/*:ref: pchcs_ 14 7 6 4 6 6 6 4 4 */
-/*:ref: pchce_ 14 9 4 6 4 6 6 6 6 4 4 */
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

@@ -1,3 +1,5 @@
+DJB (09 May 02)
+    - removed *.P files from Lib/Slatec/slatec/ (no longer needed)
 CS  - fix wcols bug #541847
     - remove $Config{libs} from callext_cc to make callect work on
 	recent debian systems

@@ -1,2 +1,0 @@
-extern int rfftf_(integer *n, real *r__, real *wsave);
-/*:ref: rfftf1_ 14 5 4 6 6 6 6 */

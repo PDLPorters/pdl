@@ -1,6 +1,0 @@
-extern int rfftf1_(integer *n, real *c__, real *ch, real *wa, integer *ifac);
-/*:ref: radf4_ 14 7 4 4 6 6 6 6 6 */
-/*:ref: radf2_ 14 5 4 4 6 6 6 */
-/*:ref: radf3_ 14 6 4 4 6 6 6 6 */
-/*:ref: radf5_ 14 8 4 4 6 6 6 6 6 6 */
-/*:ref: radfg_ 14 10 4 4 4 4 6 6 6 6 6 6 */

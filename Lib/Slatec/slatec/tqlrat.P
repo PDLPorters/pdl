@@ -1,3 +1,0 @@
-extern int tqlrat_(integer *n, real *d__, real *e2, integer *ierr);
-/*:ref: r1mach_ 6 1 4 */
-/*:ref: pythag_ 6 2 6 6 */

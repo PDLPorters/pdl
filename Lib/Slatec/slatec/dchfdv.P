@@ -1,2 +1,0 @@
-extern int dchfdv_(doublereal *x1, doublereal *x2, doublereal *f1, doublereal *f2, doublereal *d1, doublereal *d2, integer *ne, doublereal *xe, doublereal *fe, doublereal *de, integer *next, integer *ierr);
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

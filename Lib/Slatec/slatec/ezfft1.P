@@ -1,1 +1,0 @@
-extern int ezfft1_(integer *n, real *wa, integer *ifac);

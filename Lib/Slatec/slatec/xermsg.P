@@ -1,7 +1,0 @@
-extern int xermsg_(char *librar, char *subrou, char *messg, integer *nerr, integer *level, ftnlen librar_len, ftnlen subrou_len, ftnlen messg_len);
-/*:ref: j4save_ 4 3 4 4 12 */
-/*:ref: xerprn_ 14 6 13 4 13 4 124 124 */
-/*:ref: xersve_ 14 10 13 13 13 4 4 4 4 124 124 124 */
-/*:ref: xerhlt_ 14 2 13 124 */
-/*:ref: xercnt_ 14 9 13 13 13 4 4 4 124 124 124 */
-/*:ref: fdump_ 14 0 */

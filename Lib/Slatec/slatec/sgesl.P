@@ -1,3 +1,0 @@
-extern int sgesl_(real *a, integer *lda, integer *n, integer *ipvt, real *b, integer *job);
-/*:ref: saxpy_ 14 6 4 6 6 4 6 4 */
-/*:ref: sdot_ 6 5 4 6 4 6 4 */

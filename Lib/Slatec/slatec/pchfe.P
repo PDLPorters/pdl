@@ -1,3 +1,0 @@
-extern int pchfe_(integer *n, real *x, real *f, real *d, integer *incfd, logical *skip, integer *ne, real *xe, real *fe, integer *ierr);
-/*:ref: chfev_ 14 11 6 6 6 6 6 6 4 6 6 4 4 */
-/*:ref: xermsg_ 14 8 13 13 13 4 4 124 124 124 */

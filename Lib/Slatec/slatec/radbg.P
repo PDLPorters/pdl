@@ -1,1 +1,0 @@
-extern int radbg_(integer *ido, integer *ip, integer *l1, integer *idl1, real *cc, real *c1, real *c2, real *ch, real *ch2, real *wa);

@@ -117,7 +117,7 @@ sub MY::postamble {
 	$orig .join "\n",map {
 ("
 
-slatec/$_\$(OBJ_EXT): slatec/$_.f slatec/$_.P
+slatec/$_\$(OBJ_EXT): slatec/$_.f 
 	$mycompiler -c -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
 " )} @slatecfiles;
  

@@ -1,3 +1,0 @@
-extern int xersve_(char *librar, char *subrou, char *messg, integer *kflag, integer *nerr, integer *level, integer *icount, ftnlen librar_len, ftnlen subrou_len, ftnlen messg_len);
-/*:ref: xgetua_ 14 2 4 4 */
-/*:ref: i1mach_ 4 1 4 */
