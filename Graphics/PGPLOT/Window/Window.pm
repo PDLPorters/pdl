@@ -5096,8 +5096,6 @@ sub arrow {
 
   sub _imag {
     my $self = shift;
-    my $pgcall = shift;
-    my $image_dims = shift;
 
     if (!defined($im_options)) {
       $im_options = $self->{PlotOptions}->extend({
@@ -5109,21 +5107,36 @@ sub arrow {
 						 });
     }
 
+    ##############################
+    # Unwrap first two arguments:  the PGPLOT call and the 
+    # dimensions of the image variable (2 or 3 depending 
+    # on whether this is called by imag or rgbi)
+    my $pgcall = shift;
+    my $image_dims = shift;
+
+    ##############################
+    # Pull out the rest of the arg list, and parse the options (if any).
     my ($in, $opt)=_extract_hash(@_);
-    # Let us parse the options if any.
+
     $opt = {} if !defined($opt);
     my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
-    
+
+    ##########
     # Default to putting tick marks outside the box, so that you don't
     # scrozzle images.  (See kludge in imag, as well)
+    
     $o->{Axis} = 'BCINST'
       unless (defined($opt->{Axis}) || ($o->{Axis} ne 'BCNST'));
 
+
     $self->_add_to_state(\&imag, $in, $opt);
-    release_and_barf 'Usage: imag ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+    release_and_barf 'Usage: (imag|rgbi) ( $image,  [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
 
     my ($image,$min,$max,$tr) = @$in;
+
+    ## Make sure the image has the right number of dims...
     $self->_checkarg($image,$image_dims);
+
     my($nx,$ny) = $image->dims;
     $nx = 1 unless($nx);
     $ny = 1 unless($ny);
@@ -5204,32 +5217,23 @@ sub arrow {
 
 }
 
+######################################################################
+# Here are the `top-level' imaging routines -- they call _imag to get
+# the job done.  
+
+
+##########
+# image - the basic image plotter
+
 sub imag {
   my $me = shift;
   my @a = @_;
   _imag($me,\&pgimag,2,@a);
 }
 
-sub rgbi {
-  release_and_barf("rgbi: RGB-enabled PGPLOT is not present\n")
-    unless($PGPLOT::RGB_OK);
 
-  my $me = shift;
-  my @a = @_;
-  my($in,$opt) = _extract_hash(@_);
-  my($image) = shift @$in;
-  if(UNIVERSAL::isa($image,'PDL')) {
-    @dims = $image->dims;
-    if($dims[0] == 3 && $dims[1] > 3 && $dims[2] > 3) {
-      print "rgbi: Hmmm... Found (rgb,X,Y) [deprecated] rather than (X,Y,rgb) [approved]."
-	if($PDL::debug || $PDL::verbose);
-      $image = $image->mv(0,2);
-    }
-  }
-  $opt->{DrawWedge} = 0;
-  _imag($me,\&pgrgbi,3,$image,@$in,$opt);
-}
-
+##########
+# imag1 - Plot an image with Justify = 1
 
 sub imag1 {
   my $self = shift;
@@ -5252,21 +5256,51 @@ sub imag1 {
   $opt = {} if !defined($opt);
   my ($o, $u_opt) = $self->_parse_options($im_options, $opt);
   
-  release_and_barf 'Usage: im ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
+  release_and_barf 'Usage: imag1 ( $image, [$min, $max, $transform] )' if $#$in<0 || $#$in>3;
   $o->{Pix} = 1 unless defined($o->{Pix});
   $self->imag (@$in,$o);
   # This is not added to the state, because the imag command does that.
 }
 
 
+##########
+# rgbi - Plot an image with 3 color planes
 
+sub rgbi {
+  release_and_barf("rgbi: RGB-enabled PGPLOT is not present\n")
+    unless($PGPLOT::RGB_OK);
+
+  my $me = shift;
+  my @a = @_;
+  my($in,$opt) = _extract_hash(@_);
+  my($image) = shift @$in;
+  if(UNIVERSAL::isa($image,'PDL')) {
+    @dims = $image->dims;
+    if($dims[0] == 3 && $dims[1] > 3 && $dims[2] > 3) {
+      print "rgbi: Hmmm... Found (rgb,X,Y) [deprecated] rather than (X,Y,rgb) [approved]."
+	if($PDL::debug || $PDL::verbose);
+      $image = $image->mv(0,2);
+    }
+  }
+  $opt->{DrawWedge} = 0;
+  _imag($me,\&pgrgbi,3,$image,@$in,$opt);
+}
+
+
+######################################################################
+# Here are the FITS subroutines
 #
-# Make a plot command that's suitable for a FITS image.  Called
-# by fits_imag and fits_cont.
+# They all use _fits_foo as a ``pre-call'' to set up the appropriate
+# image transformations and plot command.
+#
+# by fits_imag, fits_rgbi, and fits_cont.
 #
 sub _fits_foo {
-  my($in,$opt_in) = _extract_hash(@_);
-  my($pane,$cmd,$pdl,@rest) = @$in;
+  my $pane = shift;
+  my $cmd = shift;
+  my ($in,$opt_in) = _extract_hash(@_);
+  my ($pdl,@rest) = @$in;
+
 
   $opt_in = {} unless defined($opt_in);
 
@@ -5310,8 +5344,14 @@ sub _fits_foo {
 
   $opt2{pix}=1.0 
     if( (!defined($opt2{Pix})) && ($hdr->{CTYPE1} eq $hdr->{CTYPE2}));
-  my($o2) = \$opt2;
-  eval '$pane->'.$cmd.'($pdl,@rest,$o2);';
+
+  my($o2) = \%opt2;
+
+  my $cmdstr =   '$pane->' . $cmd . 
+		 '($pdl,' . (scalar(@rest) ? '@rest,' : '') .
+		 '$o2);';
+
+  eval $cmdstr;
 
   $pane->label_axes($opt->{XTitle} . " (". ($hdr->{CTYPE1} || "pixels") .") ",
 		    $opt->{YTitle} . " (". ($hdr->{CTYPE2} || "pixels") .") ",
