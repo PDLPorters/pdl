@@ -482,11 +482,15 @@ Close a plot window
 
 =for usage
 
-  Usage: $w->close()
+  Usage: $win->close()
 
 Close the current window. This does not necessarily mean that the
 window is removed from your screen, but it does ensure that the
 device is closed.
+
+A message will be printed to STDOUT giving the name of the 
+file created if the plot was made to a hardcopy device and
+C<$PDL::verbose> is true.
 
 =head2 held
 
@@ -496,7 +500,7 @@ Check if a window is on hold
 
 =for usage
 
-  $is_held = held();
+  $is_held = $win->held();
 
 Function to check whether the window is held or not.
 
@@ -509,7 +513,7 @@ Hold the present window.
 
 =for usage
 
- Usage: hold()
+ Usage: $win->hold()
 
 Holds the present window so that subsequent plot commands overplots.
 
@@ -522,7 +526,7 @@ Switch to a different panel
 
 =for usage
 
-  $w->panel(<num>);
+  $win->panel(<num>);
 
 Move to a different panel on the plotting surface. Note that you will need
 to erase it manually if that is what you require.
@@ -535,7 +539,7 @@ Release a plot window.
 
 =for usage
 
-   release()
+   $win->release()
 
 Release a plot window so that subsequent plot commands move to the next
 panel or erase the plot and create a new plot.
@@ -548,13 +552,11 @@ Erase plot
 
 =for usage
 
-  Usage: erase($opt);
+  $win->erase($opt);
 
 Erase a plot area. This accepts the option C<Panel> or alternatively a number
 or array reference which makes it possible to specify the panel to erase when
 working with several panels.
-
-
 
 =head2 Plotting functions
 
@@ -566,8 +568,8 @@ Define a plot window, and put graphics on 'hold'
 
 =for usage
 
- Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
-        env $xmin, $xmax, $ymin, $ymax, [$options];
+ $win->env( $xmin, $xmax, $ymin, $ymax, [$justify, $axis] );
+ $win->env( $xmin, $xmax, $ymin, $ymax, [$options] );
 
 C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
 C<$justify> is a boolean value (default is B<0>);
@@ -578,7 +580,8 @@ L</axis>) and defaults to B<0>.
 If the second form is used, $justify and $axis can be set in the options
 hash, for example:
 
- env 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', CHARSIZE => 0.7};
+ $win->env( 0, 100, 0, 50, {JUSTIFY => 1, AXIS => 'GRID', 
+			    CHARSIZE => 0.7} );
 
 In addition the following options can also be set for C<env>:
 
@@ -591,8 +594,8 @@ normalised coordinates as an anonymous array. The array should contain
 the lower and upper X-limits and then the lower and upper Y-limits. To
 place two plots above each other with no space between them you could do
 
-  env(0, 1, 0, 1, {PlotPosition => [0.1, 0.5, 0.1, 0.5]});
-  env(5, 9, 0, 8, {PlotPosition => [0.1, 0.5, 0.5, 0.9]});
+  $win->env(0, 1, 0, 1, {PlotPosition => [0.1, 0.5, 0.1, 0.5]});
+  $win->env(5, 9, 0, 8, {PlotPosition => [0.1, 0.5, 0.5, 0.9]});
 
 =item Axis, Justify, Border
 
@@ -608,7 +611,6 @@ Axes titles and the font and size to print them.
 
 =back
 
-
 =head2 label_axes
 
 =for ref
@@ -617,7 +619,7 @@ Label plot axes
 
 =for usage
 
-  Usage: label_axes(<xtitle>, <ytitle>, <plot title>, $options);
+  $win->label_axes(<xtitle>, <ytitle>, <plot title>, $options);
 
 Draw labels for each axis on a plot.
 
@@ -629,7 +631,7 @@ Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
 =for usage
 
- Usage: imag ( $image,  [$min, $max, $transform], [$opt] )
+ $win->imag ( $image,  [$min, $max, $transform], [$opt] )
 
 Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
@@ -686,18 +688,18 @@ The following standard options influence this command:
 
    To see an image with maximum size in the current window, but square
    pixels, say:
-         imag $a,{PIX=>1}
+         $win->imag( $a, { PIX=>1 } );
    An alternative approach is to try:
-         imag $a,{JUSTIFY=>1}
+         $win->imag( $a, { JUSTIFY=>1 } );
    To see the same image, scaled 1:1 with device pixels, say:
-         imag $a,{SCALE=>1}
+         $win->imag( $a, { SCALE=>1 } );
    To see an image made on a device with 1:2 pixel aspect ratio, with 
    X pixels the same as original image pixels, say
-         imag $a,{PIX=>0.5,SCALE=>2}
+         $win->imag( $a, { PIX=>0.5, SCALE=>2 } );
    To display an image at 100 dpi on any device, say:
-         imag $a,{PITCH=>100}
+         $win->imag( $a, { PITCH=>100 } );
    To display an image with 100 micron pixels, say:
-         imag $a,{PITCH=>10,UNIT=>'mm'}
+         $win->imag( $a, { PITCH=>10, UNIT=>'mm' } );
 
 =head2 imag1
 
@@ -707,9 +709,11 @@ Display an image with correct aspect ratio
 
 =for usage
 
- Usage:  imag1 ( $image, [$min, $max, $transform], [$opt] )
+ $win->imag1 ( $image, [$min, $max, $transform], [$opt] )
 
-Notes: This is syntactic sugar for imag({PIX=>1}).
+This is syntactic sugar for 
+
+  $win->imag( { PIX=>1 } );
 
 =head2 draw_wedge
 
@@ -719,7 +723,7 @@ Add a wedge (colour bar) to an image.
 
 =for usage
 
- Usage: $win->draw_wedge( [$opt] )
+ $win->draw_wedge( [$opt] )
 
 Adds a wedge - shows the mapping between colour and value for a pixel - to
 the current image.  This can also be achieved by setting C<DrawWedge> to 1
@@ -1194,7 +1198,7 @@ Create transform array for contour and image plotting
 
 =for usage
 
- Usage: transform([$xdim,$ydim], $options);
+ $win->transform([$xdim,$ydim], $options);
 
 This function creates a transform array in the format required by the image
 and contouring routines. You must call it with the dimensions of your image
@@ -1222,13 +1226,13 @@ latter case the x and y value for the center will be set equal to this
 scalar. This is particularly useful in the common case  when the center
 is (0, 0).
 
-=item PosReference
+=item RefPos (or ReferencePosition)
 
 If you wish to set a pixel other than the image centre to a given
 value, use this option. It should be supplied with a reference to an array
 containing 2 2-element array references, e.g.
 
- PosReference => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
+ RefPos => [ [ $xpix, $ypix ], [ $xplot, $yplot ] ]
 
 This will label pixel C<($xpix,$ypix)> as being at position
 C<($xplot,$yplot)>. The C<ImageCentre> option can be considered
@@ -1236,10 +1240,10 @@ to be a special case of this option, since the following are identical
 (although one is a lot easier to type ;)
 
  ImageCentre => [ $xc, $yc ]
- PosReference => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
+ RefPos      => [ [($nx-1)/2,($ny-1)/2], [ $xc, $yc ] ]
 
 The values supplied in C<ImageCentre> are used 
-if I<both> C<ImageCentre> and C<PosReference> are supplied in the
+if I<both> C<ImageCentre> and C<RefPos> are supplied in the
 options list.
 
 =back
@@ -1259,7 +1263,7 @@ Threaded line plotting
 
 =for usage
 
- Usage: tline($x, $y, $optionts);
+ $win->tline($x, $y, $options);
 
 This is a threaded interface to C<line>. This is convenient if you have
 a 2D array and want to plot out every line in one go. The routine will
@@ -1272,8 +1276,7 @@ Example:
   $h={Colour => ['Red', '1', 4], Linestyle => ['Solid' ,'Dashed']};
   $tx=zeroes(100,5)->xlinvals(-5,5);
   $ty = $tx + $tx->yvals;
-  tline($tx, $ty, $h);
-
+  $win->tline($tx, $ty, $h);
 
 =head2 tpoints
 
@@ -1912,7 +1915,12 @@ sub _thread_options {
 
 sub close {
   my $self=shift;
-  pgclos() if $self->_status() eq 'OPEN';
+  # let the user know that we've created a file
+  if ( $self->_status() eq 'OPEN' ) {
+      my @info = $self->info( 'HARDCOPY', 'FILE' );
+      print "Created: $info[1]\n" if $info[0] eq 'YES' and $PDL::verbose;
+      pgclos();
+  }
   $self->{ID}=undef;
 }
 
@@ -2416,6 +2424,7 @@ sub initenv{
 
   my ($in, $u_opt)=_extract_hash(@_);
   my ($xmin, $xmax, $ymin, $ymax, $just, $axis)=@$in;
+  $u_opt={} unless defined($u_opt);
 
   # If the user specifies $just or $axis these values will
   # override any options given. This actually changes the behaviour
@@ -2426,7 +2435,6 @@ sub initenv{
 
 
   # Now parse the input options.
-  $u_opt={} unless defined($u_opt);
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
 
   # Save current colour and set the axis colours
@@ -2437,8 +2445,6 @@ sub initenv{
   my ($chsz);
   pgqch($chsz);
   pgsch($o->{CharSize});
-
-
 
   if (ref($o->{Border}) eq 'HASH' || $o->{Border} != 0) {
     my $type  = "REL";
@@ -2602,7 +2608,6 @@ sub CtoF77coords{		# convert a transform array from zero-offset to unit-offset i
 
 # set the envelope for plots and put auto-axes on hold
 
-
 sub env {
   my $self=shift;
 
@@ -2624,6 +2629,7 @@ sub env {
   $self->hold();
   1;
 }
+
 # Plot a histogram with pgbin()
 
 {
@@ -2692,10 +2698,13 @@ sub env {
 					  ImageDims => undef,
 					  Pixinc => undef,
 					  ImageCenter => undef,
-					  PosReference => undef,
+					  RefPos => undef,
 					  });
-	  $transform_options->synonyms({ImageDimensions => 'ImageDims',
-					ImageCentre => 'ImageCenter'});
+	  $transform_options->synonyms({
+	      ImageDimensions => 'ImageDims',
+	      ImageCentre => 'ImageCenter',
+	      ReferencePosition => 'RefPos',
+	      });
 	}
 
 	# parse the input
@@ -2742,14 +2751,14 @@ sub env {
 	  barf "You must pass the image dimensions to the transform routine\n";
 	}
 
-	# The PosReference option gives more flexibility than
+	# The RefPos option gives more flexibility than
 	# ImageCentre, since ImageCentre => [ a, b ] is the same 
 	# as PosReference => [ [(nx-1)/2,(ny-1/2)], [a,b] ].
 	# We use ImageCentre in preference to PosReference
 	#
 	if (defined $o->{ImageCenter}) {
-	    print "transform() ignoring PosReference as seen ImageCentre\n"
-		if defined $o->{PosReference} and $PDL::verbose;
+	    print "transform() ignoring RefPos as seen ImageCentre\n"
+		if defined $o->{RefPos} and $PDL::verbose;
 	    my $ic = $o->{ImageCenter};
 	    if (ref($ic) eq 'ARRAY') {
 	        ($xref_wrld, $yref_wrld) = @{$ic};
@@ -2760,15 +2769,15 @@ sub env {
 	    $xref_pix = ($x_pix - 1)/2;
 	    $yref_pix = ($y_pix - 1)/2;
 	}
-	elsif ( defined $o->{PosReference} ) {
-	    my $aref = $o->{PosReference};
-	    barf "PosReference option must be sent an array reference.\n"
+	elsif ( defined $o->{RefPos} ) {
+	    my $aref = $o->{RefPos};
+	    barf "RefPos option must be sent an array reference.\n"
 		unless ref($aref) eq 'ARRAY';
-	    barf "PosReference must be a 2-element array reference\n"
+	    barf "RefPos must be a 2-element array reference\n"
 		unless $#$aref == 1;
 	    my $pixref  = $aref->[0];
 	    my $wrldref = $aref->[1];
-	    barf "Elements of PosReference must be 2-element array references\n"
+	    barf "Elements of RefPos must be 2-element array references\n"
 		unless $#$pixref == 1 and $#$wrldref == 1;
 
 	    ($xref_pix,  $yref_pix)  = @{$pixref};
@@ -2780,6 +2789,21 @@ sub env {
 	    $yref_pix = ($y_pix - 1)/2;
 	}
 
+	# The elements of the transform piddle,
+	# here labelled t0 to t5, relate to the
+	# following maxtix equation:
+	#   
+	#   world = zp + matrix * pixel
+	#
+	# world  - the position of the point in the world, 
+	#          ie plot, coordinate system
+	# pixel  - the position of the point in pixel
+	#          coordinates (bottom-left is 0,0 pixel)
+	# zp     - (t0)
+	#          (t3)
+	# matrix - (t1 t2)
+	#          (t4 t5)
+	#
 	my $ca = cos( $angle );
 	my $sa = sin( $angle );
 	my $t1 = $x_pixinc * $ca;
@@ -2797,9 +2821,7 @@ sub env {
 }
 
 
-
 # display a contour map of an image using pgconb()
-
 
 {
 
@@ -3307,7 +3329,7 @@ sub arrow {
 #              Label        => default ''
 #            }
 #
-# - uses horrible _store()/_retireve() routines, which need to 
+# - uses horrible _store()/_retrieve() routines, which need to 
 #   know (but don't) about changing window focus/erasing/...
 #
 # Want to be able to specify a title (optional)
@@ -3336,7 +3358,7 @@ sub arrow {
 
 	my ( $in, $opt ) = _extract_hash(@_);
 	$opt = {} unless defined($opt);
-	barf 'Usage: draw_wedge( [$options] )'
+	barf 'Usage: $win->draw_wedge( [$options] )'
 	    unless $#$in == -1;
 
 	# check imag has been called, and get information
@@ -3357,7 +3379,12 @@ sub arrow {
 	$o->{BackGround} = $$iref{min} unless defined( $o->{BackGround} );
 
 	# do we really want this?
-	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
+	# - (03/15/01 DJB) removed since I assume that draw_wedge()
+	#   will be called before the focus has been changed.
+	#   Not ideal, but I don't think the current implementation will 
+	#   handle such cases anyway (ie getting the correct min/max values 
+	#   for the wedge).
+#	$self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
 	# get the options used to draw the axes
 	# note: use the window object, not the options hash, though we 
@@ -3587,10 +3614,15 @@ sub arrow {
     $self->redraw_axes unless $self->held(); # Redraw box
 
     # draw the wedge, if requested
-    $self->draw_wedge( $u_opt ) if $u_opt->{DrawWedge};
+    if ( $u_opt->{DrawWedge} ) {
+	my $hflag = $self->held();
+	$self->hold();
+	$self->draw_wedge( $u_opt );
+	$self->release() unless $hflag;
+    }
 
     1;
-  }
+  } # sub: imag()
 
 }
 
