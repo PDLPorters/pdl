@@ -1477,7 +1477,30 @@ sub close {
   plend1 ();
   return;
 }
+
+# The following are definitions used in plParseOpts
+
+*PL_PARSE_PARTIAL   = \0x0000;
+*PL_PARSE_FULL      = \0x0001;
+*PL_PARSE_QUIET     = \0x0002;
+*PL_PARSE_NODELETE  = \0x0004;
+*PL_PARSE_SHOWALL   = \0x0008;
+*PL_PARSE_OVERRIDE  = \0x0010;
+*PL_PARSE_NOPROGRAM = \0x0020;
+*PL_PARSE_NODASH    = \0x0040;
+*PL_PARSE_SKIP      = \0x0080;
 EOD
+
+pp_add_exported('', join (' ', map {"\$$_"} ('PL_PARSE_PARTIAL',
+                                             'PL_PARSE_FULL',
+                                             'PL_PARSE_QUIET',
+                                             'PL_PARSE_NODELETE',
+                                             'PL_PARSE_SHOWALL',
+                                             'PL_PARSE_OVERRIDE',
+                                             'PL_PARSE_NOPROGRAM ',
+                                             'PL_PARSE_NODASH',
+                                             'PL_PARSE_SKIP')));
+
 
 # Necessary includes for .xs file
 pp_addhdr(<<'EOH');
@@ -1880,11 +1903,43 @@ pp_def ('plfbox',
                   plfill(4, x, y);',
         );
 
+#
+## Parse PLplot options given in @ARGV-like arrays
+#
+
+pp_def ('plParseOpts',
+        GenericTypes => [D],
+        Pars => 'int [o] retval()',
+        OtherPars => 'SV* argv; int mode',
+        Code => '
+                SV* sv = $COMP (argv);
+                AV* arr;
+                int argc, newargc, i, retval;
+                char** args;
+
+                if ( !(SvROK (sv) && SvTYPE (SvRV (sv)) == SVt_PVAV)) {
+                        barf("plParseOpts requires an array ref");
+                }
+
+                arr = (AV*) SvRV (sv);
+                newargc = argc = av_len (arr) + 1;
+                args = calloc (argc , sizeof (char*));
+
+                for (i = 0; i < argc; i++) {
+                        STRLEN len;
+                        args[i] = SvPV (* av_fetch (arr, i, 0), len);
+                }
+
+                $retval() = plParseOpts (&newargc, args, $COMP (mode));
+
+                for (i = 0; i < newargc; i++)
+                        av_push (arr, newSVpv (args[i], 0));
+
+                for (i = 0; i < argc; i++)
+                        av_shift (arr);
+
+                free (args);
+        ',
+);
+
 pp_done();
-
-
-
-
-
-
-
