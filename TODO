@@ -1,8 +1,8 @@
 CURRENT PRIORITIES:
 
-- implement the new NiceSlice ideas (trailing modifiers, '/' diag,
-		'<-> xchg', etc)
-- PDL::PP::Inline !!!
+# = done
+
+- perldl docs on builtin niceslicing
 - AUtoLoader import hash
 
 - get rid of 'swap' parameter when calling bifuncs explicitly
@@ -14,6 +14,11 @@ CURRENT PRIORITIES:
 - make more routines 'bad value' aware
 - tests for new features of at, set, getdim
 - tests for PDL::Matrix
+
+
+# implement the new NiceSlice ideas (trailing modifiers, '/' diag,
+		'<-> xchg', etc)
+# PDL::PP::Inline !!!
 
 OLDER STUFF (still valid?):
 

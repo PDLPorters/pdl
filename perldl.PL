@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.30'; print "perlDL shell v$VERSION
+$VERSION = '1.31'; print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
  'COPYING' in the PDL distribution. This is free software and you
  are welcome to redistribute it under certain conditions, see
@@ -138,10 +138,10 @@ push @enabled, "ReadLines" if $readlines;
 
 eval 'use PDL::NiceSlice';
 unless ($@) {
-  $PERLDL::report = 0;
+  my $report = 0;
   sub report {
-    my $ret = $PERLDL::report;
-    $PERLDL::report = $_[0] if $#_ > -1;
+    my $ret = $report;
+    $report = $_[0] if $#_ > -1;
     return $ret;
   }
   my $preproc = sub { my ($txt) = @_;
@@ -149,8 +149,9 @@ unless ($@) {
 	  print STDERR "processed $new\n" if report && $new ne $txt;
 	  return $new;
   };
-  sub trans { $PERLDL::PREPROCESS  = $preproc }
-  sub notrans { $PERLDL::PREPROCESS  = undef }
+  sub trans { $PERLDL::PREPROCESS  = $preproc;
+     $PERLDL::PREPROCESS = undef if $#_ > -1 && !$_[0];}
+  sub notrans { trans 0 }
   trans; # switch on by default
   push @enabled, "NiceSlice";
 }

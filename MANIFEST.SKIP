@@ -71,6 +71,9 @@ pdlexamples\.c$
 ^Basic/Slices/Slices\.c$
 ^Basic/Slices/Slices\.xs$
 ^Basic/Slices/Slices\.pm$
+^Basic/SourceFilter/MANIFEST
+^Basic/SourceFilter/README
+^Basic/SourceFilter/README\.head
 ^Basic/GTest/GTest\.c$
 ^Basic/GTest/GTest\.xs$
 ^Basic/GTest/GTest\.pm$

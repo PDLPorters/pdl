@@ -320,8 +320,8 @@ q~
 # whereami_any returns appended 'Basic' or 'PDL' dir as appropriate
 use Cwd qw/abs_path/;
 sub whereami_any {
-	my $dir = &whereami(1) or &whereami_inst(1) or
-          die "Unable to determine ANY directory path to PDL::Core::Dev module\n";
+	my $dir = (&whereami(1) or &whereami_inst(1) or
+          die "Unable to determine ANY directory path to PDL::Core::Dev module\n");
 	return abs_path($dir);
 }
 
@@ -332,6 +332,7 @@ sub whereami {
    }
    die "Unable to determine UNINSTALLED directory path to PDL::Core::Dev module\n"
     if !$_[0];
+    return undef;
 }
 
 sub whereami_inst {
@@ -341,6 +342,7 @@ sub whereami_inst {
    }
    die "Unable to determine INSTALLED directory path to PDL::Core::Dev module\n"
     if !$_[0];
+   return undef;
 }
 
 # Expects list in format:

@@ -100,11 +100,8 @@ Basic/Reduce.pm
 Basic/Slices/Makefile.PL
 Basic/Slices/slices.pd
 Basic/SourceFilter/Changes
-Basic/SourceFilter/MANIFEST
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/NiceSlice.pm
-Basic/SourceFilter/README
-Basic/SourceFilter/README.head
 Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
 Basic/SourceFilter/test.pl

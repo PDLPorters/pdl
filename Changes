@@ -1,3 +1,6 @@
+CS  - fix bug in Dev.pm that I introduced
+    - change misleading topdl docs (fooled me!)
+    - macosx patch
 CS  - Tim's TERM patch
     - Stefan's Matrix patch
     - added PDL::API manpage

@@ -108,8 +108,11 @@ runtime execution.
 Sometimes you obtain a chunk of data from another
 source, for example an image processing library, etc.
 All you want to do in that case is wrap your data
-into a piddle struct at the C level. The following script
-demonstrates a simplified example case:
+into a piddle struct at the C level. Examples using this approach
+can be found in the IO modules (where FastRaw and FlexRaw
+use it for mmapped access) and the Gimp Perl module (that
+uses it to wrap Gimp pixel regions into piddles).
+The following script demonstrates a simple example:
 
    use PDL::LiteF;
    use PDL::Core::Dev;
@@ -245,9 +248,8 @@ the C<Core> struct. It looks something like this:
  static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
 The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
-and initializes the pointer to the C<Core> struct (by default the C variable
-C<PDL> is used). For those who know their way around the Perl API here
-is the code:
+and initializes the pointer to the C<Core> struct. For those who know
+their way around the Perl API here is the code:
 
    print PDL_BOOT;
 
@@ -262,17 +264,40 @@ is the code:
    if (PDL->Version != PDL_CORE_VERSION)
      Perl_croak(aTHX_ "The code needs to be recompiled against the newly installed PDL");
 
+The C<Core> struct contains version info to ensure that the structure defined
+in F<pdlcore.h> really corresponds to the one obtained at runtime. The code
+above tests for this
 
-With these preparations your code can now access the core routines
-as already shown in some of the examples above, e.g.
+   if (PDL->Version != PDL_CORE_VERSION)
+     ....
+
+With these preparations your code can now access the
+core routines as already shown in some of the examples above, e.g.
 
   pdl *p = PDL->pdlnew();
+
+By default the C variable named C<PDL> is used to hold the pointer to the
+C<Core> struct. If that is (for whichever reason) a problem you can
+explicitly specify a name for the variable with the C<PDL_AUTO_INCLUDE>
+and the C<PDL_BOOT> routines:
+
+   use Inline C => Config =>
+     INC           => &PDL_INCLUDE,
+     TYPEMAPS      => &PDL_TYPEMAP,
+     AUTO_INCLUDE  => &PDL_AUTO_INCLUDE 'PDL_Corep',
+     BOOT          => &PDL_BOOT 'PDL_Corep';
+
+Make sure you use the same identifier with C<PDL_AUTO_INCLUDE>
+and C<PDL_BOOT> and use that same identifier in your own code.
+E.g., continuning from the example above:
+
+  pdl *p = PDL_Corep->pdlnew();
 
 =head2 Some selected core routines explained
 
 The full definition of the C<Core> struct can be found in the file
 F<pdlcore.h>. In the following the most frequently used member
-function of this struct are briefly explained.
+functions of this struct are briefly explained.
 
 =over 5
 
@@ -292,8 +317,8 @@ C<pdlnew> returns an empty pdl object that needs further initialization
 to turn it into a proper piddle. Example:
 
   pdl *p = PDL->pdlnew();
-  p->setdims(dims,ndims);
-  p->set_datatype(PDL_B);
+  PDL->setdims(p,dims,ndims);
+  p->datatype = PDL_B;
 
 =item *
 
@@ -333,7 +358,7 @@ C<void make_physvaffine(pdl *p)>
 
 =item *
 
-C<void qsort_X(PDL_Xtype *data, int a, int b)>
+C<void qsort_X(PDL_Xtype *data, int a, int b)> and
 C<void qsort_ind_X(PDL_Xtype *data, int *ix, int a, int b)>
 
 where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,

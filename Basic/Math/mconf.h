@@ -64,7 +64,7 @@ Copyright 1984, 1987, 1989, 1995 by Stephen L. Moshier
 
 /* For PDL, use system defaults where possible */
 #include <math.h>
-#if !defined(WIN32) && !defined(_WIN32)
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__APPLE__)
 /* values.h is gone on OpenBSD(?) and depracated on GNU systems */
 /* can we use values.h on all UN*X systems? */
 #if defined __GNUC__
