@@ -1,4 +1,6 @@
 CED 30-Apr-04
+   - perldl: warns if AutoLoader is not loaded by perldlrc; avoids
+     a suite of installation follies.
    - FITS.pm: rfits() clears hdrcpy flag by default
    - pdlapi.c, PP.pm: minor readability cleanup
    - Core.pm.PL: introducing hcpy, a pass-through hdrcpy clone.  Also,

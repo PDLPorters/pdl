@@ -219,6 +219,7 @@ my $multi_ok = ($@ eq "");
 $PERLDL::MULTI = 0 unless($multi_ok);
 push @enabled,"MultiLines" if $multi_ok;
 
+
 print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 my($term);
@@ -341,6 +342,9 @@ EOD
 
    }
 }
+
+print "\nNote: AutoLoader not enabled ('use PDL::AutoLoader' recommended)\n\n"
+  unless defined($PDL::AutoLoader::Rescan);
 
 if (-e 'local.perldlrc') {
     print "Reading local.perldlrc ...\n";
@@ -835,6 +839,9 @@ subroutines for the project in the current directory.
 
 The name is chosen specfically because it was found hidden files were
 NOT wanted in these circumstances.
+
+The startup file should normally include "use PDL::AutoLoader;", as 
+many of the nicer interactive features won't work without it.
 
 =head2 Shell variables
 
