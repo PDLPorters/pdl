@@ -1,3 +1,6 @@
+CED 31-Aug-2003
+   - Added 'mirror' boundary condition to range()
+   - Added qsortvec() to ufunc -- lexicographically sort a bunch of vectors.
 CED 8-Aug-2003
    - DiskCache now accepts a "bless" option that blesses the tied array
 	into the PDL::DiskCache class for easier access to the "sync" and

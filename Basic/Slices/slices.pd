@@ -414,14 +414,20 @@ dataflow operation, but execution continues.
 =item 2 (synonyms: 'e','x','extend')
 
 Values that would be outside the original piddle point instead to the 
-nearest allowed value within the piddle.  See the CAVEAT below on reverse 
+nearest allowed value within the piddle.  See the CAVEAT below on 
 mappings that are not single valued.
 
 =item 3 (synonyms: 'p','periodic')
 
 Periodic boundary conditions apply: the numbers in $index are applied,
 strict-modulo the corresponding dimensions of $source.  This is equivalent to
-duplicating the $source piddle throughout N-D space.
+duplicating the $source piddle throughout N-D space.  See the CAVEAT below 
+about mappings that are not single valued.
+
+=item 4 (synonyms: 'm','mirror')
+
+Mirror-reflection periodic boundary conditions apply.  See the CAVEAT
+below about mappings that are not single valued.
 
 =back
 
@@ -679,6 +685,9 @@ switch(ind_pdl->datatype) {
       case '3': case 'p': case 'P':               /* periodic */
 	$COMP(boundary[i]) = 3;
 	break;
+      case '4': case 'm': case 'M':               /* mirror */
+	$COMP(boundary[i]) = 4;
+	break;
       default:
 	{
 	  char buf[BUFSIZ];
@@ -900,6 +909,17 @@ EOD-RedoDims
  	      if(ck < 0)   /* Fix mod breakage in C */
  	        ck += $PARENT_P(dims[k]);
  	      break;
+	    case 4: /* mirror -- reflect off the edges */
+	      ck += $PARENT_P(dims[k]);
+	      ck %= ($PARENT_P(dims[k]) * 2);
+	      if(ck < 0) /* Fix mod breakage in C */
+		ck += $PARENT_P(dims[k])*2;
+	      ck -= $PARENT_P(dims[k]);
+	      if(ck < 0) {
+		ck *= -1;
+	        ck -= 1;
+	      }
+	      break;
  	    default:
  	      barf("Unknown boundary condition in range -- bug alert!");
  	      break;
