@@ -244,11 +244,11 @@ pp_addpm(<<'EOD');
   This is the interface for the pp routine contour_segments_internal
   it takes 3 piddles as input
 
-=item $c is a contour value (or a list of contour values)
+$c is a contour value (or a list of contour values)
 
-=item $data is an [m,n] array of values at each point
+$data is an [m,n] array of values at each point
 
-=item $points is a list of [3,m,n] points, it should be a grid
+$points is a list of [3,m,n] points, it should be a grid
       monotonically increasing with m and n.  
 
 contour_segments returns a reference to a Perl array of 
@@ -258,6 +258,7 @@ missing data values.
 =head3 Algorthym
 
 =for ref 
+
   The data array represents samples of some field observed on the surface described 
   by points.  For each contour value we look for intersections on the line segments
   joining points of the data.  When an intersection is found we look to the adjoining 
@@ -283,9 +284,10 @@ sub PDL::Graphics::TriD::Contours::contour_segments {
   my $cnt = zeroes($c->nelem);
   contour_segments_internal($c,$data,$points,$segs,$cnt);
 
+#  print "contour segments done ",$points->info,"\n";
+
   $this->{Points} = pdl->null;
 
-#  my $segs_list=[];
   my $pcnt=0;
   my $ncnt;
   for(my $i=0; $i<$c->nelem; $i++){
@@ -315,7 +317,7 @@ pp_def('contour_segments_internal',
 		int ds, ms, ns;
 		float dist;
       float a_int[3];
-      int i, j, m1, n1,p, found,p1;
+      int i, j, m1, n1, mr, ml, p, found,p1;
    
 		ds = $SIZE(d);
 		ms = $SIZE(m);
@@ -332,6 +334,16 @@ pp_def('contour_segments_internal',
 					loop(n)%{
                   if(n<ns-1){	
 							n1=n+1;
+
+							/* alternate prefered direction of intersection to avoid sweeping effect */
+			            if((n+m)%2){
+   		            	ml=m;	
+      		         	mr=m1;
+							}else{
+								ml=m1;
+								mr=m;
+               		}	
+							/* printf("found %d %d %d\n",found,ml,mr); */
 							found=0;
 
 							if(($data() < $c() && $data(m=>m1) >= $c()) ||
@@ -343,30 +355,34 @@ pp_def('contour_segments_internal',
 								  a_int[d]=$points()+dist*($points(m=>m1)-$points());
 								%}
 								/* now look for the connecting point */
-                     	/* First down and to the left */
-								if(($data() < $c() && $data(n=>n1) >= $c()) ||
-									        ($data() >= $c() && $data(n=>n1) < $c())){
-									found=1;
-									dist = ($c()-$data())/($data(n=>n1)-$data());
+                     	/* First down and to the left (right) */
+                       
+                        
+								if(($data(m=>ml) < $c() && $data(m=>ml,n=>n1) >= $c()) ||
+									        ($data(m=>ml) >= $c() && $data(m=>ml,n=>n1) < $c())){
+									found=(m==ml)? 1:-1;
+									dist = ($c()-$data(m=>ml))/($data(m=>ml,n=>n1)-$data(m=>ml));
 									loop(d) %{
-  										$segs(q=>p1)=$points()+dist*($points(n=>n1)-$points());
+  										$segs(q=>p1)=$points(m=>ml)+dist*($points(m=>ml,n=>n1)-$points(m=>ml));
                               $segs(q=>p) = a_int[d];
 									%}
 		 							p+=2;
 		 							p1=p+1;
+									/* printf("found1 %d %d %d\n",found,ml,mr); 	*/
 								}else{
-	                     	/* down and to the right */
-									if(($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-										        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())){
-										found=-1;
-										dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+	                     	/* down and to the right (left)*/
+									if(($data(m=>mr) < $c() && $data(m=>mr,n=>n1) >= $c()) ||
+										        ($data(m=>mr) >= $c() && $data(m=>mr,n=>n1) < $c())){
 
+										dist = ($c()-$data(m=>mr))/($data(m=>mr,n=>n1)-$data(m=>mr));
+										found=(m==mr)? 1:-1;
 										loop(d) %{
-	  										$segs(q=>p1)=$points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+	  										$segs(q=>p1)=$points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
                               	$segs(q=>p) = a_int[d];
 										%}
 			 							p+=2;
 			 							p1=p+1;
+										/* printf("found2 %d %d %d\n",found,ml,mr);*/
 									}else{
 										/* straight down */
 										found=2;
@@ -391,34 +407,35 @@ pp_def('contour_segments_internal',
 									loop(d) %{
 										a_int[d]=$points()+dist*($points(n=>n1)-$points());
 									%}
-									if(($data(n=>n1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-									        ($data(n=>n1) >= $c() && $data(m=>m1,n=>n1) < $c())){
-											dist = ($c()-$data(n=>n1))/($data(m=>m1,n=>n1)-$data(n=>n1));
+									if(($data(m=>ml,n=>n1) < $c() && $data(m=>mr,n=>n1) >= $c()) ||
+									   ($data(m=>ml,n=>n1)>= $c() && $data(m=>mr,n=>n1) <  $c())){
+											dist = ($c()-$data(m=>ml,n=>n1))/($data(m=>mr,n=>n1)-$data(m=>ml,n=>n1));
 
 											loop(d) %{
-												$segs(q=>p1)=$points(n=>n1)+dist*($points(m=>m1,n=>n1)-$points(n=>n1));
+												$segs(q=>p1)=$points(m=>ml,n=>n1)+dist*($points(m=>mr,n=>n1)-$points(m=>ml,n=>n1));
                               		$segs(q=>p) = a_int[d];
 											%}
 				 							p+=2;
 				 							p1=p+1;
-											found = 3;
+											found = (m==ml)?3:4;
 									}else if(found==0){
-	  									if(($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
-	  									        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())){
-											dist = ($c()-$data(m=>m1))/($data(m=>m1,n=>n1)-$data(m=>m1));
+	  									if(($data(m=>mr) < $c() && $data(m=>mr,n=>n1) >= $c()) ||
+	  									        ($data(m=>mr) >= $c() && $data(m=>mr,n=>n1) < $c())){
+											dist = ($c()-$data(m=>mr))/($data(m=>mr,n=>n1)-$data(m=>mr));
 
 											loop(d) %{
-  												$segs(q=>p1) = $points(m=>m1)+dist*($points(m=>m1,n=>n1)-$points(m=>m1));
+  												$segs(q=>p1) = $points(m=>mr)+dist*($points(m=>mr,n=>n1)-$points(m=>mr));
                            	   	$segs(q=>p) = a_int[d];
 											%}
 				 							p+=2;
 				 							p1=p+1;
-											found = 4;
+											found = (m==mr)?3:4;
 										}
 									}
 								}
 				
 							} /* need to check the y-pnt */
+
 							if(found==0 || found==1 || found == 3){
 		  						if((($data(m=>m1) < $c() && $data(m=>m1,n=>n1) >= $c()) ||
 	  									        ($data(m=>m1) >= $c() && $data(m=>m1,n=>n1) < $c())) &&
@@ -441,6 +458,7 @@ pp_def('contour_segments_internal',
 					%}
 				}
 			%}
+			/*printf("p= %d \n",p); */
 			$cnt()=p-1;'
 , Doc => '
 =for ref
