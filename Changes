@@ -1,3 +1,5 @@
+CS  - fix rvals bug (annoying one!)
+    - syntactical sugar: convenience operators for PDL::Type
 CS  - Basic/SourceFilter (see also L<PDL::SFilter>)
     - generate PP templates with pptemplate
     - PP: pp_boundscheck (see PP.pm)
