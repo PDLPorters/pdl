@@ -44,7 +44,7 @@ Device manipulation commands:
 The actual PGPLOT module is loaded only when the first of these
 commands is executed.
 
-Notes: $transform for image/cont etc. is used in the same way as the
+Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, fortunately,
 zero-offset.
 
@@ -99,7 +99,7 @@ say, with pgslw() are preserved.
 
 The following options are always parsed. Whether they have any importance
 depend on the routine invoked - e.g. line style is irrelevant for C<imag>, 
-or the justify option is irrelevant if the display is on 'hold'.
+or the C<justify> option is irrelevant if the display is on 'hold'.
 This is indicated in the help text for the commands below.
 
 The options are not case sensitive and will match for unique substrings,
@@ -150,7 +150,7 @@ wants to plot the same arrow with several sizes.
 
 =item axis
 
-Set the axis value (see L</env()>).
+Set the axis value (see L</env>).
 It can either be specified as a number, or by one of the following names:
 
  EMPTY  (-2) draw no box, axes or labels
@@ -192,10 +192,10 @@ the default colour map):
 
 =item filltype
 
-Set the fill type to be used by C<poly>. The fill
-can either be specified using numbers or name, according to the following
-table, where the recognised name is shown in capitals - it is case-
-insensitive, but the whole name must be specified.
+Set the fill type to be used by L<poly|/poly>. 
+The fill can either be specified using numbers or name, according to the 
+following table, where the recognised name is shown in capitals - it is 
+case-insensitive, but the whole name must be specified.
 
    1 - SOLID
    2 - OUTLINE
@@ -216,7 +216,7 @@ the PGPLOT numbering or name as follows (name in capitals):
    4 - SCRIPT
 
 (Note that in a string, the font can be changed using the escape sequences
- \fn, \fr, \fi and \fs respectively)
+C<\fn>, C<\fr>, C<\fi> and C<\fs> respectively)
 
    $opt = {FONT => 'ROMAN'};
 
@@ -232,9 +232,9 @@ Set the hatching to be used if either fillstyle 3 or 4 is selected
 arrows.  The arguments for the hatching is either given using a hash
 with the key ANGLE to set the angle that the hatch lines will make
 with the horizontal, SEPARATION to set the spacing of the hatch lines
-in units of 1% of min(height, width) of the view surface, and PHASE to
+in units of 1% of C<min(height, width)> of the view surface, and PHASE to
 set the offset the hatching. Alternatively this can be specified as a
-1x3 piddle $hatch=pdl[$angle, $sep, $phase].
+1x3 piddle C<$hatch=pdl[$angle, $sep, $phase]>.
 
    $opt = {FILLTYPE => 'HATCHED', 
            HATCHING => {ANGLE=>30, SEPARATION=>4}};
@@ -249,7 +249,7 @@ For another example of hatching, see L</poly>.
 
 A boolean value which, if true, causes both axes to drawn
 to the same scale; see
-the PGPLOT pgenv() command for more information.
+the PGPLOT C<pgenv()> command for more information.
 
 =item linestyle
 
@@ -285,10 +285,10 @@ Open PGPLOT graphics device
 
   Usage: dev $device, [$nx,$ny];
 
-$device is a PGPLOT graphics device such as "/xserve" or "/ps",
+C<$device> is a PGPLOT graphics device such as "/xserve" or "/ps",
 if omitted defaults to last used device (or value of env
 var PGPLOT_DEV if first time).
-$nx, $ny specify sub-panelling.
+C<$nx>, C<$ny> specify sub-panelling.
 
 =head2 env
 
@@ -300,23 +300,23 @@ Define a plot window, and put graphics on 'hold'
 
   Usage: env $xmin, $xmax, $ymin, $ymax, [$justify, $axis];
 
-$xmin, $xmax, $ymin, $ymax are the plot boundaries.  
-$justify is a boolean value (default is 0);
+C<$xmin>, C<$xmax>, C<$ymin>, C<$ymax> are the plot boundaries.  
+C<$justify> is a boolean value (default is 0);
 if true the axes scales will be the same (see L</justify>).
-$axis describes how the axes should be drawn (see
+C<$axis> describes how the axes should be drawn (see
 L</axis>) and defaults to 0.
 
 =head2 imag
 
 =for ref
 
-Display an image (uses pgimag()/pggray() as appropriate)
+Display an image (uses C<pgimag()>/C<pggray()> as appropriate)
 
 =for usage
 
   Usage: imag ( $image,  [$min, $max, $transform], [$opt] )
 
-Notes: $transform for image/cont etc. is used in the same way as the
+Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
 fortunately, zero-offset.
 
@@ -414,7 +414,7 @@ Plot vector as points
 
 =for ref
 
-Plot error bars (using pgerrb())
+Plot error bars (using C<pgerrb()>)
 
 Usage:
 
@@ -451,7 +451,7 @@ Display image as contour map
 
  Usage: cont ( $image,  [$contours, $transform, $misval], [$opt] )
 
-Notes: $transform for image/cont etc. is used in the same way as the
+Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
 fortunately, zero-offset.
 
@@ -496,6 +496,10 @@ Plot vector as histogram ( e.g. C<bin(hist($data))> )
 
  Options recognised:
 
+    CENTRE - if true, the x values denote the centre of the bin 
+             otherwise they give the lower-edge (in x) of the bin
+    CENTER - as CENTRE
+
     The following standard options influence this command:
     AXIS, BORDER, COLOUR, JUSTIFY, LINESTYLE, LINEWIDTH
 
@@ -519,10 +523,10 @@ Plot image as 2d histogram (not very good IMHO...)
     The following standard options influence this command:
     AXIS, BORDER, JUSTIFY
 
- Note that meddling with the ioffset and bias often will require you to
- change the default plot range somewhat. It is also worth noting that if
- you have TriD working you will probably be better off using mesh3d or
- a similar command - see 'help TriD'
+Note that meddling with the ioffset and bias often will require you to
+change the default plot range somewhat. It is also worth noting that if
+you have TriD working you will probably be better off using C<mesh3d> or
+a similar command - see C<help TriD>.
 
 =for example
 
@@ -538,7 +542,7 @@ Draw a polygon
 
 =for usage
 
-Usage: poly ( $x, $y )
+   Usage: poly ( $x, $y )
 
  Options recognised:
 
@@ -567,12 +571,12 @@ Display 2 images as a vector field
 
    Usage: vect ( $a, $b, [$scale, $pos, $transform, $misval] )
 
-Notes: $transform for image/cont etc. is used in the same way as the
+Notes: C<$transform> for image/cont etc. is used in the same way as the
 C<TR()> array in the underlying PGPLOT FORTRAN routine but is, 
 fortunately, zero-offset.
 
-This routine will plot a vector field. $a is the horizontal component
-and $b the vertical component.
+This routine will plot a vector field. C<$a> is the horizontal component
+and C<$b> the vertical component.
 
  Options recognised:
 
@@ -619,7 +623,8 @@ package PDL::Graphics::PGPLOT;
 # Just a plain function exporting package
 
 @EXPORT = qw( dev hold release rel env bin cont errb line points
-                 imag image ctab ctab_info hi2d poly vect CtoF77coords
+	      imag image ctab ctab_info hi2d poly vect
+	      CtoF77coords
 );
 
 use PDL::Core qw/:Func :Internal/;    # Grab the Core names
@@ -819,7 +824,7 @@ sub initenv{ # Default box
 
 sub redraw_axes {
     pgqci($col); pgsci($AXISCOLOUR);
-    my $axval = @last[5]; $axval = 0 unless defined $axval; # safety check
+    my $axval = $last[5]; $axval = 0 unless defined $axval; # safety check
     $labs = $_pgbox{$axval};
     barf "Unknown axis value '$axval'." unless defined $labs;
     unless ( $hold ) {
@@ -1010,9 +1015,17 @@ sub bin {
 	initenv( $xmin, $xmax, $ymin, $ymax, $opt );
     }
     save_status();
+
+    # look for specific options
+    my $centre = 1;
+    while (my ($key, $val) = each %{$opt}) {
+	$key = uc($key); 
+	if ($key =~ m/^CENT/) { $centre = $val ? 1 : 0; } # CENT(RE|ER)
+    }
+
     # Let's also parse the options if any.
-    standard_options_parser($opt);
-    pgbin($n, $x->get_dataref, $data->get_dataref, 1);
+    standard_options_parser($opt); 
+    pgbin($n, $x->get_dataref, $data->get_dataref, $centre);
     restore_status();
 1;}
 
