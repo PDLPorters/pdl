@@ -20,7 +20,7 @@ print "1..5\n";
 
 ##########################################################
 
-use PDL::Interpolate;
+eval "use PDL::Interpolate;";
 
 my $x = float( 1, 2, 3, 4, 5, 6, 8, 10 );
 my $y = ($x * 3) * ($x - 2);

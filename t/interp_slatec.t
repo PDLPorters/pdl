@@ -29,7 +29,8 @@ unless ($loaded) {
 }                                                                               
 
 use strict;
-use PDL::Interpolate::Slatec;
+
+eval "use PDL::Interpolate::Slatec";
 
 ########### First test normal subclassing ###########
 

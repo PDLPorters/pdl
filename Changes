@@ -1,5 +1,6 @@
 (!!! = possible source of incompatibilities)
-Doug Burke (5/23/00)
+Doug Burke (5/23/00,5/24/00)
+    - corrected faulty t/interp.t and t/interp_slatec.t scripts
     - minor doc changes to Indexing.pod, image2d.pd, fft.pd & NDF.pm
     - added FRAME option to iis (Graphics::IIS)
 CS      - hopefully the PDL::Filter modules will work now
