@@ -1810,6 +1810,66 @@ sub held {
 
 
 
+=head2 info
+
+=for ref
+
+Get general information about the PGPLOT environment.
+
+=for usage
+
+ @ans = $self->info( @item );
+
+The valid values of C<@item> are as below, where case is not
+important:
+
+  VERSION     - What PGPLOT version is in use
+  STATE       - The status of the output device, this is returns 'OPEN'
+                if the device is open and 'CLOSED' otherwise.
+  USER        - The username of the owner of the spawning program.
+  NOW         - The current date and time in the format 'dd-MMM-yyyy hh:mm'.
+                Most people are likely to use Perl functions for this.
+  DEVICE    * - The current PGPLOT device or file, see also C<device>
+  FILE      * - The filename for the current device
+  TYPE      * - And the device type for the current device
+  DEV/TYPE  * - This combines DEVICE and TYPE in a form that can be used
+                as input to C<new>.
+  HARDCOPY  * - This is flag which is set to 'YES' if the current device is
+                a hardcopy device and 'NO' otherwise.
+  TERMINAL  * - This flag is set to 'YES' if the current device is the user's
+                terminal and 'NO' otherwise.
+  CURSOR    * - A flag ('YES' or 'NO') to inform whether the current device
+                has a cursor.
+
+Those items marced with a C<*> only return a valid answer if
+the window is open.  A question mark (C<?>) is returned
+if the item is not recognised or the information is not available.
+
+=cut
+
+#'
+
+sub info {
+    my $self = shift;
+    my @inq;
+    if ( wantarray() ) { @inq = @_; }
+    else               { push @ing, $_[0]; }
+
+    $self->focus();
+    my @ans;
+    foreach my $inq ( @inq ) {
+	my ( $state, $len );
+	pgqinf( uc($inq), $state, $len );
+	push @ans, $state;
+    }
+    return wantarray() ? @ans : $ans[0];
+} # info()
+
+
+
+
+
+
 sub panel {
 
   my $self = shift;
