@@ -78,6 +78,7 @@ ok( (sum($a)==15 && max($b)==66 && $b->getdim(0)==5) );
 
 $t = long xvals(zeroes(11,20))-5;
 
+# note: keywords are converted to uppercase
 %hdr = ('Foo'=>'foo', 'Bar'=>42);
 $t->sethdr(\%hdr);
 
@@ -89,7 +90,7 @@ ok( (sum($t->slice('0:4,:')) == -sum($t2->slice('5:-1,:')) ));
 
 $h = $t2->gethdr;
 
-ok($$h{'Foo'} eq "'foo       '" && $$h{'Bar'} == 42);
+ok($$h{'FOO'} eq "'foo       '" && $$h{'BAR'} == 42);
 
 unlink $file;
 

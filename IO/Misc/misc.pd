@@ -66,8 +66,8 @@ Suffix magic:
 
   # Automatically uncompress via gunzip pipe
   $pdl = rfits('file.fits.gz');
-  # Automatically uncompress via uncompress pipe 
-  $pdl = rfits('file.fits.Z');  
+  # Automatically uncompress via uncompress pipe
+  $pdl = rfits('file.fits.Z');
 
   $pdl = rfits('file.fits[2]'); # Read HDU extension #2
   $pdl = rfits('file.fits.gz[3]'); # Read HDU extension #3
@@ -81,14 +81,15 @@ FITS Headers stored in piddle and can be retrived with $a->gethdr.
 The L<hdrcpy|PDL::Core/hdrcpy> flag of the piddle is set so that the
 header is copied to new piddles.
 
-This header is a reference to a hash where the hash keys are the 
-keywords in the FITS header. It is important to note that for strings, 
+This header is a reference to a hash where the hash keys are the
+keywords in the FITS header. It is important to note that for strings,
 the surrounding quotes are kept to ensure that strings that look like
-numbers are kept as strings. This is also of importance if you create 
-your own header information and you want the value to be printed out 
+numbers are kept as strings. This is also of importance if you create
+your own header information and you want the value to be printed out
 as a string. Each record (comprising keyword, value, and
 any comment string) must fit within 80 characters; any value that
-is too long is truncated (silently).
+is too long is truncated (silently). Also, keywords are converted to
+I<uppercase>; this is part of the FITS standard.
 
 Comments in headers are stored as C<$$h{COMMENT}{E<lt>KeywordE<gt>}> where C<$h> is
 the header retrieved with C<$a-E<gt>gethdr>.
@@ -110,6 +111,9 @@ converted to bad (if necessary).
 } # if: $bvalflag
 
 #'
+
+# it would be good to allow the use of the Astro::FITS::Header
+# (on CPAN) if available.
 
 pp_addpm(<<'!NO!SUBS!');
 =cut
@@ -422,7 +426,7 @@ sub PDL::wfits { # Write a PDL to a FITS format file
    %hdr = ();
    my $h = $pdl->gethdr;
    if (defined($h)) {
-      for (keys %$h) { $hdr{$_} = $$h{$_} } # Copy
+      for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
    }
 
    delete $hdr{SIMPLE}; delete $hdr{'END'};
