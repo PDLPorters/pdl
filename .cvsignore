@@ -21,4 +21,5 @@ patch*
 *.rej
 Makefile
 blib
+*.xfig
 
