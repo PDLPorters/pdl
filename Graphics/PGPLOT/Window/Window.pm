@@ -2015,6 +2015,12 @@ my $sig_nest = 0;
 sub signal_catcher {
   my($sig) = shift;
 
+  if($sig_nest == 0) {
+    $sig_nest = 1;
+    print STDERR "PDL::Graphics::PGPLOT: Warning - who left the light on when they left?\n";
+    &release_signals;
+  }
+
   if($sig eq '__DIE__') {
     return unless defined $^S;  # Don't do anything during parsing of an eval
     $sig_nest = 1;              # Unwrap all nests when dying
@@ -2063,6 +2069,7 @@ sub catch_signals {
 sub release_signals {
   local($_);
 
+  print "sig_log: ",join(",",%sig_log),"\n" if($PDL::debug > 1);
   $sig_nest-- if($sig_nest > 0);
   print "release_signals: sig_nest=$sig_nest\n" if($PDL::debug>1);
   return if($sig_nest > 0);
@@ -2077,8 +2084,16 @@ sub release_signals {
   # release signals
   foreach $_(keys %sig_log) {
     next unless $sig_log{$_};
-    delete $sig_log{$_};
-    kill $_,$$;
+    print "found a $_...\n" if($PDL::debug > 1);
+    $sig_log{$_} = 0;
+    print "emitting signal...\n" if($PDL::debug > 1);
+    sleep 1;
+    my $z = $$;
+    if(!fork) {
+      sleep 1;    # daughter
+      kill $_,$$;
+      exit(0);    
+    }
   }
 
 }

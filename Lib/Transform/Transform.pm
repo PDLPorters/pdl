@@ -1347,8 +1347,8 @@ sub new {
   my $me = {name=>'identity', 
 	    idim => 0,
 	    odim => 0,
-	    func=>{\&PDL::Transform::_identity}, 
-	    inv=>{\&PDL::Transform::_identity},
+	    func=>\&PDL::Transform::_identity, 
+	    inv=>\&PDL::Transform::_identity,
 	    params=>{}
 	  };
   
