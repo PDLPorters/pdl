@@ -144,8 +144,8 @@ In particular, the perspective transformation is useful for ingesting
 scientific image data of the Earth or other planets, and converting to
 a map of the imaged body.
 
-Similarly scanned images of map data can easily be converted into 
-lat/lon coordinates.
+Similarly, scanned images of map data can easily be converted into 
+lat/lon coordinates or reprojected to make other projections. 
 
 Be sure to view "demo transform" if you haven't already.
 |;
