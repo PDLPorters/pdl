@@ -68,3 +68,57 @@ to the PDL CVS repository.
    a fix. (Primary responsibility for this task is the pumpking,
    but other devels should be able to help.)
   
+
+Creating a new CVS branch:
+--------------------------
+
+(or how to avoid ridiculous branch names like 
+   'badval_experimental_branchpoint')
+
+This is a first draft, so it may not entirely be correct, and 
+I've missed out the initial options you'd supply to cvs (or
+put in an env variable)
+
+0) see what the current set of tags is:
+
+   > cvs status -v Changes 
+
+   The important part of the output looks like:
+
+   Existing Tags:
+        badval_experimental_branchpoint (branch: 1.76.2)
+        trid_experimental2              (branch: 1.69.2)
+        trid_branchpoint2               (revision: 1.69)
+     etc
+
+   The badval_experimental branch wasn't created using the
+   following rules - I didn't do step 1, so ended up
+   with a branch name called 'badval_experimental_branchpoint'
+   when I meant it to be 'badval_experimental'.
+
+1) tag the current CVS with a label to indicate the state of
+   PDL before the branch:
+
+   > cvs tag make-cup-of-tea_experimental_branchpoint
+
+   (this is the step I didn't do above)
+
+2) create a branchpoint
+
+   > cvs tag -b make_cup_of_tea_experimental
+
+3) you can then either check out a new version, using this branch
+ 
+   > cvs co -d PDL.tea -r make-cup-of-tea_experimental PDL
+
+   this creates a directory PDL.tea/ and stores the files there,
+
+   or convert a current version
+
+   > cvs update -r make-cup-of-tea_experimental 
+
+As I haven't yet closed a branch, I can't tell you how! The online
+CVS documentation (eg http://cvsbook.red-bean.com/cvsbook.html) is
+pretty good.
+
+

@@ -1,5 +1,11 @@
 (!!! = possible source of incompatibilities)
 
+Doug Burke
+    - added a few notes to DEVELOPMENT on how (not) to create a CVS branch 
+    - added a quick section on accessing children/parents of a piddle
+      to Internals.pod
+Xavier Calbet
+    - rasc can now handle doubles as well as floats
 Doug Burke (7/02/00 - 7/9/00)
     - stopped some excess code generation & improve legibility of some code
       in Basic/Gen/PP.pm and Basic/Gen/PP/PdlParObj.pm
