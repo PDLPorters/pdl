@@ -1,3 +1,8 @@
+DJB (8-Aug-02)
+    - changed behaviour of TextWidth option in PDL::Graphics::PGPLOT::Window
+      It is now only applied if specified (ie doesn't default to 1 and so
+      clobber the LineWidth/HardLW settings). Added a little documentation
+      but it needs to be improved.
 CED (7-Aug-02)
     - Slightly cleaner MOD in ops.pd
     - added interpND (to primitive.pd) and indexNDb (to slices.pd).

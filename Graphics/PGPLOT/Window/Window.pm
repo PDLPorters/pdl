@@ -145,6 +145,18 @@ E.g:
  $opt={COLOR=>2};
  line $x, $y, $opt; # This will plot a line with red color
 
+If you are plotting to a hardcopy device then a number of
+options use a different name:
+
+  HardLW   instead of LineWidth
+  HardCH   instead of CharSize
+  HardFont instead of Font
+
+  HardAxisColour instead of AxisColour
+  HardColour     instead of Colour
+
+[although I'm not sure when HardColour is actually used]
+
 =over 4
 
 =item arrow
@@ -213,6 +225,8 @@ Set the character/symbol size as a multiple of the standard size.
 
  $opt = {CHARSIZE => 1.5}
 
+The HardCH option should be used if you are plotting to a hardcopy device.
+
 =item colour (or color)
 
 Set the colour to be used for the subsequent plotting. This can be
@@ -240,6 +254,9 @@ For more details on the handling of colour it is best that the user
 consults the PGPLOT documentation. Further details on the handling of
 colour can be found in the documentation for the internal routine
 L<_set_colour|/_set_colour>.
+
+The HardColour option should be used if you are plotting to a hardcopy device
+[this may be untrue?].
 
 =item filltype
 
@@ -276,6 +293,8 @@ C<\fn>, C<\fr>, C<\fi> and C<\fs> respectively)
 gives the same result as
 
  $opt = {FONT => 2};
+
+The HardFont option should be used if you are plotting to a hardcopy device.
 
 =item hatching
 
@@ -327,6 +346,8 @@ The names are not case sensitive, but the full name is required.
 Set the line width. It is specified as a integer multiple of 0.13 mm.
 
  $opt = {LINEWIDTH => 10}; # A rather fat line
+
+The HardLW option should be used if you are plotting to a hardcopy device.
 
 =item plotting range
 
@@ -3231,16 +3252,26 @@ sub label_axes {
   $o->{XTitle}=$xtitle if defined($xtitle);
   $o->{YTitle}=$ytitle if defined($ytitle);
 
-  $o->{TextWidth}=1 unless defined($o->{TextWidth});
-  my($old_lw);
-  pgqlw($old_lw);
-  pgslw($o->{TextWidth});
+  # what width do we use?
+  # - things are somewhat confused since we have
+  #   LineWidth and TextWidth (a recent addition)
+  #   and LineWidth is set by _setup_window() - so
+  #   _standard_options_parser() uses it - but
+  #   TextWidth isn't.
+  #
+  # so for now we over-ride the _standard_options_parser
+  # setting if TextWidth exists
+  # [DJB 2002 Aug 08]
+  my $old_lw;
+  if ( defined($o->{TextWidth}) ) {
+      pgqlw($old_lw);
+      pgslw($o->{TextWidth});
+  }
 
   pglab($o->{XTitle}, $o->{YTitle}, $o->{Title});
 
-  pgslw($old_lw);
+  pgslw($old_lw) if defined $old_lw;
   $self->_restore_status;
-
 
 }
 
@@ -5020,12 +5051,26 @@ sub poly {
       $self->_set_colour($o->{BackgroundColour}, 1);
     }
 
-    my($old_lw);
-    pgqlw($old_lw);
-    pgslw($o->{TextWidth} || 1);
+    # what width do we use?
+    # - things are somewhat confused since we have
+    #   LineWidth and TextWidth (a recent addition)
+    #   and LineWidth is set by _setup_window() - so
+    #   _standard_options_parser() uses it - but
+    #   TextWidth isn't.
+    #
+    # so for now we over-ride the _standard_options_parser
+    # setting if TextWidth exists
+    # [DJB 2002 Aug 08]
+    my $old_lw;
+    if ( defined($o->{TextWidth}) ) {
+	pgqlw($old_lw);
+	pgslw($o->{TextWidth});
+    }
+
     pgptxt($o->{XPos}, $o->{YPos}, $o->{Angle}, $o->{Justification},
 	   $o->{Text});
-    pgslw($old_lw);
+
+    pgslw($old_lw) if defined $old_lw;
 #
     $self->_restore_status();
     $self->_add_to_state(\&text, $in, $opt);
