@@ -1829,7 +1829,7 @@ void c_plscmap0n(PLINT ncol0);
 void c_plscmap1n(PLINT ncol1);
 void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
 void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
-void c_plscmap1l(PLINT itype, PLINT npts, PLFLT *intensity, PLFLT *coord1, PLFLT *coord2, PLFLT *coord3, PLINT *rev);
+#void c_plscmap1l(PLINT itype, PLINT npts, PLFLT *intensity, PLFLT *coord1, PLFLT *coord2, PLFLT *coord3, PLINT *rev);
 void c_plscol0(PLINT icol0, PLINT r, PLINT g, PLINT b);
 void c_plscolbg(PLINT r, PLINT g, PLINT b);
 void c_plscolor(PLINT color);
@@ -2229,6 +2229,102 @@ pp_def ('plcont',
                      plcont_pltr_callback, (PLPointer) $COMP(pltr_data));
 
            plFree2dGrid (ff, size_x, size_y);'
+        );
+
+
+# Surface mesh
+
+pp_def ('plmesh',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt()',
+         GenericTypes => [D],
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zz;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&zz, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               zz[i][j] = $z(nx => i, ny => j);
+
+           c_plmesh ($P(x), $P(y), zz, size_x, size_y, $opt());
+
+           plFree2dGrid (zz, size_x, size_y);'
+        );
+
+# Magnitude colored plot surface mesh with contour
+
+pp_def ('plmeshc',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
+         GenericTypes => [D],
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zz;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&zz, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               zz[i][j] = $z(nx => i, ny => j);
+
+           c_plmeshc ($P(x), $P(y), zz, size_x, size_y, $opt(),
+                      $P(clevel), $SIZE(nlevel));
+
+           plFree2dGrid (zz, size_x, size_y);'
+        );
+
+# 3-d surface plot
+
+pp_def ('plot3d',
+         Pars => 'x(nx); y(ny); z(nx,ny); int opt(); int side()',
+         GenericTypes => [D],
+         Doc => 'FIXME: documentation here!',
+         Code => '
+           int i, j, size_x, size_y;
+           PLFLT** zz;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           plAlloc2dGrid (&zz, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               zz[i][j] = $z(nx => i, ny => j);
+
+           c_plot3d ($P(x), $P(y), zz, size_x, size_y, $opt(), $side());
+
+           plFree2dGrid (zz, size_x, size_y);'
+        );
+
+
+# Set color map1 colors using a piece-wise linear relationship
+
+pp_def ('plscmap1l',
+         Pars => 'int itype(); isty(n); coord1(n); coord2(n); coord3(n);'
+	         . ' int rev(nrev)',
+         GenericTypes => [D],
+         Doc => 'FIXME: documentation here!',
+         Code => '
+	   PLINT* rev;
+
+	   if ($SIZE(nrev) == 0)
+	     rev = NULL;
+	   else if ($SIZE(nrev) == $SIZE(n))
+   	     rev = $P(rev);
+           else
+             croak ("plscmap1l: rev must have either lenght == 0 or have the same length of the other input arguments");
+
+	   c_plscmap1l ($itype(), $SIZE(n), $P(isty), $P(coord1),
+	                       $P(coord2), $P(coord3), rev);'
         );
 
 pp_done();
