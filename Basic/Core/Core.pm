@@ -1816,7 +1816,7 @@ sub barf_msg {
     $i++;
   }
 
-  if ($err =~ /^Usage: (PDL.*::)_(\w+)_int/ or $err =~ /^Usage: (PDL.*::)?\s*(\w+)/) {
+  if ($err =~ /^Usage:\s+(PDL.*::)_(\w+)_int/ or $err =~ /^Usage:\s+(PDL.*::)?\s*(\w+)/) {
      local $match = $2;
      eval << "EOD";
      \$msg .= "PDL barfed: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
