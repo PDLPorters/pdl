@@ -1,4 +1,5 @@
 CS  - remove remaining call to pdl_family funcs in pdlapi.c
+    - apply perldl patch for -M switch (bug #530441)
 CS  - perldl v1.32: changed preprocess interface -> pipeline
     - Pic.pm: make option parsing case insensitive
     - Lvalue.pm : use attributes interface (fixes lvalues with bleadperl)

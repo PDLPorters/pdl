@@ -141,7 +141,7 @@ while(defined($_ = shift @ARGV)) {
 	} elsif(/^-w$/){ 
 		$^W = 1;
 		next;
-        } elsif (/^ \- (M|m) (\w+) (\=\w+)? $/x ) {
+        } elsif (/^-(M|m)([\w:]+)(\=\w+)?$/x) {
                 my ($way,$m,@im) = ($1,$2,$3?substr($3,1):());
                 eval "require $m";
                 warn, next if $@;
