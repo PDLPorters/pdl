@@ -714,7 +714,6 @@ sub map {
     my $jdet = $jacob->determinant->flat; # original determinant
     my $jac  = $jacob->reorder(2..($nd+1),0,1)->clump($nd); # (list, col, row)
 
-
     ###############
     ### Pad the eigenvalues of the jacobian out to 1, and generate
     ### the inverse of the padded version.  We lose information about
@@ -722,20 +721,26 @@ sub map {
     ### taking the absolute value of the eigenvalue), but all of that 
     ### stuff takes place inside each pixel anyhow, so it's no big deal.
 
-    print "padding jacobian & finding inverse...\n";
-    my ($ev, $e) = eigens ($jac->mv(0,2)); # $jac->mv(0,2): (col, row, list)
+    my ($ev, $e) = (eigens ($jac->reorder(2,1,0) x 
+			    $jac->reorder(1,2,0)));
+#    my($ev,$e) = eigens($jac->reorder(2,1,0))
     $e = $e->inplace->abs; # (eig, list)
 
     # Figure out the size needed for each subfield.  Don't allow any
     # sizes larger than half the largest dimension of the source field.
 
     my $big = PDL->pdl($in->dims)->max * 0.1;
-    my $sizes = $e->maximum->clip(undef,$big);    # (list)
 
-    $e = $e->inplace->clip(1,undef); 
+    my $sizes = $e->maximum->sqrt->clip(undef,$big);    # (list)
+#    my $sizes = $e->maximum->clip(undef,$big);    # (list)
 
+    $PDL::debug::sizes = $sizes->copy;
+    $PDL::debug::e = $e->copy;
+    $PDL::debug::jac = $jac->copy;
     # This is the cheapass inverse jacobian -- it gets used to scale
     # offsets within each playing field.
+    ($ev, $e) = (eigens ($jac->reorder(1,2,0)));
+    $e = $e->inplace->clip(1,undef); 
     my $ijac = $ev->xchg(0,1)->sever;   # (row, col, list)
     $ijac->mv(0,2) /= $e;               # safe since $e is padded to 1.
     $ijac x= $ev;                       # (col, row, list)
@@ -748,11 +753,11 @@ sub map {
     my $outf = $out->flat;
     for($size=4; $size < $big*1.9999; $size *= 2){
       print "size is $size...";
-      $size = $big 
+      $size = PDL->pdl($big)->floor + 1 
 	if($size > $big);
       print "big is $big\n";
       my($pixels) = ($size < $big) ? 
-	which($sizes > $last_size/2.0 & $sizes <= $size/2.0) :
+	which($sizes >= $last_size/2.0 & $sizes < $size/2.0) :
 	which($sizes >= $last_size/2.0);
 
       print "found ",$pixels->nelem," points...";
@@ -800,11 +805,14 @@ sub map {
 		     reorder(2,0,1)->   # (list, col, row)
 		     indexND($pixels->dummy(0,1))->   # (pix-list, col, row)
 		     reorder(1,2,0) );  # (col, row, pix-list)
+#      my $of0 = ($coords_in - $points);
+#      $of0 *= $of0;
       my $offsets = ($ijac_p x                   # (col, row, pix-list)
 		     ($coords_in - $points)->    #    (pix-list,coord,rgn-list)
 		        xchg(0,1)->dummy(0,1)    # (null,coord,pix-list,rgn-list)
 		     )	->slice("(0)");          # (coord,pixlist,rgn-list)
-      $offsets *= $offsets; # (coord, pixlist, rgn-list)
+       $offsets *= $offsets; # (coord, pixlist, rgn-list)
+
       
       ###############
       ### Calculate filter weighting values.  Since we scale at the 
@@ -815,7 +823,7 @@ sub map {
       print "calculating filter values\n";
       my $filt = $offsets->sumover->xchg(0,1);  # (rgn-list,pix-list) R^2
       $offsets = undef;    # free up memory    
-      $filt *= (-9.0/4.0);               # Gaussian has HW of 2/3
+      $filt *= (-9/4);               # Gaussian has HW of 2/3
       $filt->inplace->exp;               # make Gaussian. (rgn-list, pix-list)
       my $f_norm = $filt->sumover;       # (pix-list)
       

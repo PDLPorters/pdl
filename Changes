@@ -1,3 +1,6 @@
+CED (15-Nov-2002)
+    - photometric distortion appears to be correct -- but hogs memory like
+	crazy.  One more iteration to make it usable!
 CED (14-Nov-2002)
     - interpND defaults to 'sample' if its input is an integer type
     - Math::eigens is quiet about symmetrizing unless PDL::debug is set
