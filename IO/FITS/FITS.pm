@@ -43,6 +43,25 @@ this software under certain conditions.  For details, see the file
 COPYING in the PDL distribution.  If this file is separated from the 
 PDL distribution, the copyright notice should be pasted into in this file.
 
+=head1 TO DO
+
+=over 3
+
+=item binary tables
+
+Table length calculation is wrong for the check, so the writer always
+spews an error message.
+
+=item binary tables
+
+If you specify header fields sometimes the output file is screwed up.
+Example: write out four floating-point PDLs as four named columns, 
+'foo','bar','baz', and 'quux'.  Try to enter a 'hdr=>{TTYPE1=>"quux"}'
+to force quux to column 1. The emitted header will have the correct
+first three columns, but the fourth column is screwed up.
+
+=back
+
 =head1 FUNCTIONS
 
 =cut
