@@ -1,3 +1,7 @@
+CED 15-Sep-04
+   - primitive.pd: Fix to statsover
+   - Makefile.PL, etc.: Added HTML_DOCS configuration option
+   - Fixed non-portability issue in t/diskcache.t
 CS  07-Sep-04
    - make the reduce function a bit more flexible: reduce over
      list of dims and allow code references

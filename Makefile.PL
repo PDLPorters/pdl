@@ -382,26 +382,36 @@ make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
 sub MY::postamble {
-my $text =
+  my  $text =               
 '
 doctest ::
 	@echo "doctest: Building PDL documentation database in blib ..."
 	@$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) \
 		Doc/scantree.pl 
-	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
-		Doc/mkhtmldoc.pl 
+%HTML%	@echo "doctest: Building PDL documentation web pages in blib ..."
+%HTML%	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
+%HTML%		Doc/mkhtmldoc.pl 
 
 doc_site_install ::
 	@echo "doc_site_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLSITEARCH)
-	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
+%HTML%	@echo "doc_site_install: Building PDL documentation web pages ..."
+%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLSITEARCH)/PDL
 
 doc_perl_install ::
 	@echo "doc_perl_install: Building PDL documentation database ..."
 	@$(PERL) -Mblib Doc/scantree.pl $(INSTALLARCHLIB)
-	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
+%HTML%	@echo "doc_perl_install: Building PDL documentation web pages ..."
+%HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 
 ';
+  
+  if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
+    $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
+  } else {
+    $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
+  }
+    
 
 $text .=
 "
