@@ -20,7 +20,7 @@ sub tapprox {
 	$d < 0.01;
 }
 
-print "1..37\n";
+print "1..38\n";
 
 if(1) {
 
@@ -248,3 +248,7 @@ $a = zeroes(3,3);
 $b = $a->splitdim(3,3);
 eval '$b->make_physdims';
 ok(37,$@ =~ /^Splitdim: nthdim/);
+
+$a = sequence 5,5;
+$b = $a->diagonal(0,1);
+ok(38, tapprox $b, sequence(5)*6);

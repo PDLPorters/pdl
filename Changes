@@ -1,3 +1,5 @@
+CS  - fixed diagonal bug that caused apparently random errors
+      (bug #116502)
 CS
     - changes for win32 compatibility:
         pdlcore.c: avoid die_where & co, use Perl_croak instead
