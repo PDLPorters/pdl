@@ -141,6 +141,7 @@ Set the number of sub pages in the plot, [$nx, $ny]
   # Two subpages stacked on top of one another.
   PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png', PAGESIZE => [300,600], 
                                               SUBPAGES => [1,2]);
+
 =head2 Options used after initialization (after 'new')
 
 =head2 BOX
