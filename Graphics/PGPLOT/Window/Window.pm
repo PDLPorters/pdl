@@ -1749,8 +1749,6 @@ To select a region of the X-axis:
 =cut
 
 
-
-
 #'
 
 package PDL::Graphics::PGPLOT::Window;
@@ -2028,13 +2026,14 @@ sub _setup_window {
 					]}($aspect,$width,$height);
   $self->{AspectRatio} = $aspect;
   $self->{WindowWidth} = $width;
-  print "unit=$unit\n";
-  # 
+  ##print "unit=$unit\n";
+
+  #
   # PGPLOT seems not to include full unit support in (e.g.) the pgpap 
   # command -- so check here and convert mm->inches if necessary.
   # This is a real kludge that should be replaced with Real Units Conversion
   # at a future date.
-  # 
+  #
   if($unit==2) {         # mm -> inches
     $width /= 25.4;
     $height /= 25.4;
@@ -2598,23 +2597,21 @@ Convert a unit string or number into a PGPLOT-certified length unit
 specification, or return undef if it won't go.
 
 =cut
+
 @__unit_match = (
   qr/^\s*0|(n(orm(al(ized)?)?)?)\s*$/i,
   qr/^\s*1|(i(n(ch(es)?)?)?)\s*$/i,
   qr/^\s*2|(m(m|(illimeter))?s?)\s*$/i,
   qr/^\s*3|(p(ix(el)?)?s?)\s*$/i
 );
-  
+
 sub _parse_unit {
-  my($u) = shift;
-  print "parse_unit: got '$u'\n";
-
-  my($i);
-
-  for $i(0..$#__unit_match) {
+  # I'm assuming returning undef when $u is undefined is a good thing to do (DJB; 06/28/02)
+  my $u = shift || return undef;
+  # print "parse_unit: got '$u'\n";
+  for my $i (0..$#__unit_match) {
     return $i if($u =~ m/$__unit_match[$i]/);
   }
-
   return undef;
 }
 
@@ -3140,7 +3137,16 @@ sub initenv{
   $self->_set_env_options($xmin, $xmax, $ymin, $ymax, $o);
   $self->label_axes($u_opt);
 
-   pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
+  # we don't need to call pgenv() since we've done all it does above
+  # and, as written, the $o->{Axis} can be non numeric, which causes
+  # error messages like:
+  #   %PGPLOT, PGENV: illegal AXIS argument.
+  # after
+  #    $a = 1+sequence(10);
+  #    $b = $a*2;
+  #    line log10($a), $b, { AXIS => 'LOGX' };
+  # DJB 06/26/02
+  ##pgenv($xmin, $xmax, $ymin, $ymax, $o->{Justify}, $o->{Axis});
   $self->_set_colour($col);
   pgsch($chsz);
 
@@ -3193,14 +3199,13 @@ sub redraw_axes {
 
 
 sub label_axes {
-  print "label_axes: got ",join(",",@_),"\n";
+  # print "label_axes: got ",join(",",@_),"\n";
   my $self = shift;
   my ($in, $opt)=_extract_hash(@_);
   # :STATE RELATED:
   # THIS WILL PROBABLY NOT WORK as label_axes can be called both by
   # the user directly and by env... Let's see.
   $self->_add_to_state(\&label_axes, $in, $opt);
-
 
   barf 'Usage: label_axes( [$xtitle, $ytitle, $title], [$opt])' if $#$in > 2;
 
@@ -4428,8 +4433,7 @@ sub arrow {
 
 	$self->_set_colour($col);
       } else {
-	print "no PIX defined...\n";
-
+	## print "no PIX defined...\n";
 	$self->initenv( $xvals[0], $xvals[1], $yvals[0], $yvals[1], $opt);
       }
     }				# if ! hold
