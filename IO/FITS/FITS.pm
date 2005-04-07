@@ -82,7 +82,12 @@ BEGIN {
     $a =~ s/[^0-9\.].*//;
     $PDL::Astro_FITS_Header = 0 if($a < 1.12);
   }
-  
+
+  unless($PDL::Astro_FITS_Header) {
+    unless($ENV{"PDL_FITS_LEGACY"} || $PDL::FITS_LEGACY) {
+      print(STDERR "\n\nWARNING: Can't find the Astro::FITS::Header module, limiting FITS support.\n\n  PDL will use the deprecated legacy perl hash handling code but will not\n  properly support tables, FITS extensions, or COMMENT cards. You really\n  ought to install the Astro::FITS::Header module, available from\n  'http://www.cpan.org'.  (You can also get rid of this message by setting\n  the environment variable 'PDL_FITS_LEGACY' or the global perl variable\n  \$PDL::FITS_LEGACY to 1.\n\n");
+    }
+  }
 }
 
 package PDL::IO::FITS;

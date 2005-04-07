@@ -1,3 +1,6 @@
+CED (7-Apr-2005)
+   Added warning message to FITS module load, if Astro::FITS::Header is not
+   available.
 AJ (01-Apr-2005)
    Modified PDL::GSL::INTEG to enable the calculation of nested integrals
 DJB 9-Mar-2005
