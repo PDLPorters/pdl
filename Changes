@@ -1,3 +1,5 @@
+SIS (9-Apr-2005)
+   In perldl.PL, set $HOME more appropriately for Win32.
 CED (7-Apr-2005)
    Added warning message to FITS module load, if Astro::FITS::Header is not
    available.
