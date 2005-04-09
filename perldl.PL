@@ -63,8 +63,10 @@ $PERLDL::PREPROCESS  = undef;   # old interface -- disabled
 @PERLDL::PREPROCESS = ();       # new preprocessor pipeline
 $HOME = $ENV{HOME};             # Useful in shell
 
-$HOME = 'c:/Temp' if $HOME eq "" # For want of somewhere better..
-   and ($^O =~ /win32/i);
+if ($^O =~ /win32/i and $HOME eq ""){
+   $HOME = $ENV{USERPROFILE};
+   $HOME =~ s/\\/\//g;
+   }
 
 $,=" "; # Default
 
