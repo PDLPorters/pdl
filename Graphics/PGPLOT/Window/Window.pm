@@ -3863,6 +3863,8 @@ sub initenv{
     ###
     # Figure out the stretched pitch, if it isn't set.
     #
+    my $have_pitch_and_pix = (defined($pix) & defined($pitch));
+
     unless(defined $pitch) {
 	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
 		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
@@ -3913,7 +3915,7 @@ sub initenv{
 
       pgswin($xmin,$xmax,$ymin,$ymax);
       
-    } elsif($pix && $pitch) {
+    } elsif($have_pitch_and_pix) {
       
       ##########
       # Non-justify case with specified pitch and pixel aspect.  
