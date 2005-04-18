@@ -732,6 +732,28 @@ sub PDL::swcols{
 
 Read columns into piddles using full regexp pattern matching.
 
+Options:
+
+UNDEFINED: This option determines what will be done for undefined 
+values. For instance when reading a comma-separated file of the type 
+C<1,2,,4> where the C<,,> indicates a missing value. 
+
+The default value is to assign C<$PDL::undefval> to undefined values,
+but if C<UNDEFINED> is set this is used instead. This would normally 
+be set to a number, but if it is set to C<Bad> and PDL is compiled
+with Badvalue support (see L<PDL::Bad/>) then undefined values are set to
+the appropriate badvalue and the column is marked as bad.
+
+DEFTYPE: Sets the default type of the columns - see the documentation for
+ L</rcols()>
+
+TYPES:   A reference to a Perl array with types for each column - see 
+the documentation for L</rcols()>
+
+BUFFERSIZE: The number of lines to extend the piddle by. It might speed
+up the reading a little bit by setting this to the number of lines in the
+file, but in general L</rasc()> is a better choice
+
 Usage
 
 =for usage
@@ -750,8 +772,8 @@ of C<$1>, C<$2> etc.
 =cut
 
   sub rgrep (&@) {
-     barf 'Usage ($x,$y,...) = rgrep(sub, *HANDLE|"filename")'
-         if $#_!=1;
+     barf 'Usage ($x,$y,...) = rgrep(sub, *HANDLE|"filename", [{OPTIONS}])'
+         if $#_ > 2;
 
      my (@ret,@v,$nret); my ($m,$n)=(-1,0); # Count/PDL size
      my $pattern = shift;
@@ -764,26 +786,72 @@ of C<$1>, C<$2> etc.
          die "Got a ".ref($pattern)." for rgrep?!";
      }
 
+	
+     # set up default options
+     my $opt = new PDL::Options( {
+         DEFTYPE => $deftype,
+         TYPES => [],
+         UNDEFINED => $PDL::undefval,
+	 BUFFERSIZE => 10000
+         } );
+     # Check if the user specified options
+     my $u_opt = $_[1] || {};
+     $opt->options( $u_opt);
+
+     my $options = $opt->current();   
+
+     # If UNDEFINED is set to .*bad.* then undefined are set to
+     # bad - unless we have a Perl that is not compiled with Bad support
+     my $undef_is_bad = ($$options{UNDEFINED} =~ /bad/i);
+     if ($undef_is_bad && !$PDL::Bad::Status) {
+	carp "UNDEFINED cannot be set to Badvalue when PDL hasn't been compiled with Bad value support - \$PDL::undefval used instead\n";
+        $undef_is_bad = 0;
+     }        
+     barf "Unknown PDL type given for DEFTYPE.\n"
+        unless ref($$options{DEFTYPE}) eq "PDL::Type";
+
+
      while(<$fh>) {
          next unless @v = &$pattern;
 
          $m++;  # Count got
          if ($m==0) {
            $nret = $#v;   # Last index of values to return
+
+	   # Handle various columns as in rcols - added 18/04/05
+           my @types = _handle_types( $nret, $$options{DEFTYPE}, $$options{TYPES} );	
            for (0..$nret) {
-               $ret[$_] = double(pdl([0])); # Create PDLs
+                # Modified 18/04/05 to use specified precision.
+	 	$ret[$_] = PDL->zeroes($types[$_], 1);
            }
        } else { # perhaps should only carp once...
            carp "Non-rectangular rgrep" if $nret != $#v;
        }
        if ($n<$m) {
            for (0..$nret) {
-               ext1D( $ret[$_], 10000 ); # Extend PDL in buffered manner
+               ext1D( $ret[$_], $$options{BUFFERSIZE} ); # Extend PDL in buffered manner
            }
-           $n += 10000;
+           $n += $$options{BUFFERSIZE};
       }
-       for(0..$nret) { set $ret[$_], $m, 1*$v[$_] } # Set values - '1*' is
-   }                                                      # ensures numeric
+       for(0..$nret) { 
+	# Set values - '1*' is to ensure numeric
+	# We now (JB - 18/04/05) also check for defined values or not
+	# Ideally this should include Badvalue support..
+	if ($v[$_] eq '') {
+	   # Missing value - let us treat this specially
+	   if ($undef_is_bad) {
+	       set $ret[$_], $m, $$options{DEFTYPE}->badvalue();
+               # And set bad flag on $ref[$_]!
+               $ret[$_]->badflag(1);
+           } else {
+               set $ret[$_], $m, $$options{UNDEFINED};
+           } 
+	} else {
+    	   set $ret[$_], $m, 1*$v[$_];
+	}
+     } 
+   }
+                                 
    close($fh) unless $is_handle;
    for (@ret) { $_ = $_->slice("0:$m")->copy; }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
