@@ -216,7 +216,7 @@ pp_def('vrmlcoordsvert',
 			formchar,formchar,formchar);
 
 		threadloop %{
-			PerlIO_fprint(fp,formatstr,@.trid(vertices,n).');
+			PerlIO_printf(fp,formatstr,@.trid(vertices,n).');
 		%}'
 );
 

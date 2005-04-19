@@ -1,3 +1,5 @@
+CED (19-Apr-2005)
+    Checked in Alexey Tourbin's patch in rout.pd
 SIS (9-Apr-2005)
    In perldl.PL, set $HOME more appropriately for Win32.
 CED (7-Apr-2005)
