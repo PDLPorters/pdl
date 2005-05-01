@@ -1,3 +1,5 @@
+HG (1-May-2005)
+   Fix MANIFEST to include the current debian/* files
 HG (30-Apr-2005)
    Apply debian/patches/60_remove_obsolete_upstream_debian_files.dpatch 
    and remove the file
