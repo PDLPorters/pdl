@@ -1,3 +1,6 @@
+HG (30-Apr-2005)
+   Apply debian/patches/60_remove_obsolete_upstream_debian_files.dpatch 
+   and remove the file
 CED (19-Apr-2005)
     Checked in Alexey Tourbin's patch in rout.pd
 SIS (9-Apr-2005)
