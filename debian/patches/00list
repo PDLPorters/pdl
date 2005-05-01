@@ -1,5 +1,3 @@
 10_fix_clean_target
 20_dont_overwrite_pdl_1p
-30_stolen-from-head_fix_transform
-40_additional_transform_fixes
 50_relative_paths_in_htmldoc
