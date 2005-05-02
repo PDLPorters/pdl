@@ -1,3 +1,6 @@
+SIS (2-May-2005)
+   Fix Slatec/Makefile.PL so that it doesn't break for Win32 users
+   building with MS compilers and f2c.
 HG (1-May-2005)
    Remove debian-patches which are already in PDL cvs
 HG (1-May-2005)
