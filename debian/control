@@ -8,7 +8,7 @@ Build-Depends: g77, xlibmesa-dev, xlibs-dev, libncurses-dev, perl (>= 5.8.0-3), 
 Package: pdl
 Architecture: any
 Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}
-Suggests: pgperl, libgl1, netpbm | imagemagick, libastro-fits-header-perl
+Suggests: pgperl, libgl1, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libterm-readline-gnu-perl | libterm-readline-perl-perl
 Conflicts: r-pdl
 Replaces: r-pdl
 Description: perl data language: Perl extensions for numerics
