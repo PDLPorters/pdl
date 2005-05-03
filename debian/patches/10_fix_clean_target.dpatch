@@ -5,23 +5,21 @@
 ## DP: Fix clean target in Makefile.PLs
 
 @DPATCH@
-diff -urNad pdl-2.4.2/Basic/Core/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Core/Makefile.PL
---- pdl-2.4.2/Basic/Core/Makefile.PL	2004-01-12 21:00:05.000000000 +0100
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Core/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
-@@ -109,8 +109,8 @@
-  'LIBS'         => ["$pthread_library $malloclib"],
+diff -urNad pdl-2.4.2+cvs.20050501/Basic/Core/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Core/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Basic/Core/Makefile.PL	2005-05-03 09:18:00.562118240 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Core/Makefile.PL	2005-05-03 09:27:29.213670064 +0200
+@@ -110,7 +110,7 @@
   'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                     'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
--                   'pdlconv.c pdlsections.c pdlcore.c'.
+                    'pdlconv.c pdlsections.c pdlcore.c '.
 -		   'pdl.h pdlsimple.h pdlcore.h '.
-+                   'pdlconv.c pdlsections.c pdlcore.c '.
 +		   'pdl.h pdlsimple.h pdlcore.h Config.pm '.
  		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
  		   'mymalloc.p badsupport.p'
  		   },
-diff -urNad pdl-2.4.2/Basic/Gen/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Gen/Makefile.PL
---- pdl-2.4.2/Basic/Gen/Makefile.PL	2002-04-02 16:12:37.000000000 +0200
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Gen/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
+diff -urNad pdl-2.4.2+cvs.20050501/Basic/Gen/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Gen/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Basic/Gen/Makefile.PL	2005-05-02 09:42:28.000000000 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Gen/Makefile.PL	2005-05-03 09:26:31.785400488 +0200
 @@ -13,7 +13,7 @@
  WriteMakefile(NAME => "PDL::PP",
  	PM => {@pms},
@@ -31,9 +29,9 @@ diff -urNad pdl-2.4.2/Basic/Gen/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Gen
  );
  
  sub MY::postamble {
-diff -urNad pdl-2.4.2/Basic/Pod/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Pod/Makefile.PL
---- pdl-2.4.2/Basic/Pod/Makefile.PL	2001-11-21 15:30:54.000000000 +0100
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Pod/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
+diff -urNad pdl-2.4.2+cvs.20050501/Basic/Pod/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Pod/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Basic/Pod/Makefile.PL	2005-05-02 09:42:28.000000000 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Basic/Pod/Makefile.PL	2005-05-03 09:26:31.786400336 +0200
 @@ -28,7 +28,7 @@
   'MAN1PODS' =>  { @man1 },
   'MAN3PODS' =>  { },
@@ -43,9 +41,9 @@ diff -urNad pdl-2.4.2/Basic/Pod/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Basic/Pod
   'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
  );
  
-diff -urNad pdl-2.4.2/Demos/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Demos/Makefile.PL
---- pdl-2.4.2/Demos/Makefile.PL	2003-05-22 04:03:03.000000000 +0200
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Demos/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
+diff -urNad pdl-2.4.2+cvs.20050501/Demos/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Demos/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Demos/Makefile.PL	2005-05-02 09:42:28.000000000 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Demos/Makefile.PL	2005-05-03 09:26:31.788400032 +0200
 @@ -25,7 +25,8 @@
                      'Transform_demo.pm' => '$(INST_LIBDIR)/Demos/Transform_demo.pm',
                      'Cartography_demo.pm' => '$(INST_LIBDIR)/Demos/Cartography_demo.pm',
@@ -56,9 +54,9 @@ diff -urNad pdl-2.4.2/Demos/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Demos/Makefil
  );
  
  # For the lazy people
-diff -urNad pdl-2.4.2/Graphics/TriD/OpenGL/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Graphics/TriD/OpenGL/Makefile.PL
---- pdl-2.4.2/Graphics/TriD/OpenGL/Makefile.PL	2004-01-12 21:00:05.000000000 +0100
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Graphics/TriD/OpenGL/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
+diff -urNad pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL	2005-05-02 09:42:28.000000000 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL	2005-05-03 09:26:31.789399880 +0200
 @@ -11,7 +11,7 @@
  push @{$hash{LIBS}}, $PDL::Config{OPENGL_LIBS};
  $hash{INC} .= $PDL::Config{OPENGL_INC};
@@ -68,27 +66,15 @@ diff -urNad pdl-2.4.2/Graphics/TriD/OpenGL/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.
  
  #use Data::Dumper;
  #my $out = Dumper(\%hash);
-diff -urNad pdl-2.4.2/Lib/Slatec/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Lib/Slatec/Makefile.PL
---- pdl-2.4.2/Lib/Slatec/Makefile.PL	2004-01-12 21:00:07.000000000 +0100
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Lib/Slatec/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
-@@ -81,7 +81,7 @@
+diff -urNad pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL
+--- pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL	2005-05-03 09:18:21.413948280 +0200
++++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL	2005-05-03 09:26:31.791399576 +0200
+@@ -101,7 +101,7 @@
+ }
  
- $hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
  $hash{LIBS}[0] .= $f77->runtime ;
 -$hash{clean}{FILES} .= " f77_underscore" .
 +$hash{clean}{FILES} .= " SlatecProtos.h f77_underscore" .
    join '', map {" slatec/$_.o "} @slatecfiles;
  
  # Handle multiple compilers
-diff -urNad pdl-2.4.2/Makefile.PL /tmp/dpep.M6E0HN/pdl-2.4.2/Makefile.PL
---- pdl-2.4.2/Makefile.PL	2004-12-17 21:05:25.000000000 +0100
-+++ /tmp/dpep.M6E0HN/pdl-2.4.2/Makefile.PL	2005-01-15 13:32:48.000000000 +0100
-@@ -397,7 +397,7 @@
-                                                # in this directory
- 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
- 	      'clean' => {
--		  'FILES' => 'pdl perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
-+		  'FILES' => 'pdl pdl.c perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ' .
- 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
- 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
-                       '_Inline/'
