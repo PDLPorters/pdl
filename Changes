@@ -1,3 +1,5 @@
+HG (3-May-2005)
+   Apply some of the 'make clean' fixes from debian/patches
 SIS (2-May-2005)
    Fix Slatec/Makefile.PL so that it doesn't break for Win32 users
    building with MS compilers and f2c.
