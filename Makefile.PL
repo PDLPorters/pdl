@@ -390,7 +390,7 @@ my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
    unshift @exe_files, 'pdl';
-   $cleanup = 'pdl ' . $cleanup;
+   $cleanup = 'pdl pdl.c ' . $cleanup;
    }
 
 WriteMakefile(
