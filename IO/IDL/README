@@ -1,0 +1,13 @@
+5-May-2005
+
+Some time ago, I wrote a PDL::IO::IDL module and uplinked it to CVS.
+Due to administrative hassles with my company, I was forced to not
+release a final version of the code. At their request, I have removed
+IDL.pm from this directory.  The in-progress code is still present in
+the CVS attic at Sourceforge.net, together with the reverse-engineered
+specification published by Craig Markwardt.  If you have not signed
+the IDL license agreement, please feel free to examine the file
+specification and the prototype code in the attic, fix them up, and
+add them back in.
+
+Craig DeForest
