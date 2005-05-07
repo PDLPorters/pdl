@@ -1022,6 +1022,9 @@ That should do it.
 
 =back
 
+
+
+
 The only PP function that we have used in the examples so far is C<loop>.
 Additionally, there are currently two other functions which are recognised
 in the C<Code> section:
@@ -1122,6 +1125,81 @@ argument to C<type>, e.g.
              ...'
 
 =back
+
+=head2 Typemap handling in the C<OtherPars> section
+
+The C<OtherPars> section discussed above is very often absolutely
+crucial when you interface external libraries with PDL. However in
+many cases the external libraries either use derived types or
+pointers of various types.
+
+The standard way to handle this in Perl is to use a C<typemap> file.
+This is discussed in some detail in L<perlxs|perlxs> in the standard
+Perl documentation. In PP the functionality is very similar, so you can
+create a C<typemap> file in the directory where your PP file resides and
+when it is built it is automatically read in to figure out the appropriate
+translation between the C type and Perl's built-in type.
+
+That said, there are a couple of important differences from the general 
+handling of types in XS. The first, and probably most important, is that
+at the moment pointers to types are not allowed in the C<OtherPars>
+section. To get around this limitation you must use the C<IV> type
+(thanks to Judd Taylor for pointing out that this is necessary for
+portability).
+
+It is probably best to illustrate this with a couple of code-snippets:
+
+For instance the C<gsl_spline_init> function has the following C 
+declaration:
+
+    int  gsl_spline_init(gsl_spline * spline,
+          const double xa[], const double ya[], size_t size);
+
+Clearly the C<xa> and C<ya> arrays are candidates for being passed
+in as piddles and the C<size> argument is just the length of these
+piddles so that can be handled by the C<$SIZE()> macro in PP. The
+problem is the pointer to the C<gsl_spline> type. The natural solution
+would be to write an C<OtherPars> declaration of the form
+
+    OtherPars => 'gsl_spline *spl'
+
+and write a short C<typemap> file which handled this type. This does
+not work at present however! So what you have to do is to go around
+the problem slightly (and in some ways this is easier too!):
+
+
+The solution is to declare C<spline> in the C<OtherPars> section using
+an "Integer Value", C<IV>. This hides the nature of the variable from
+PP and you then need to (well to avoid compiler warnings at least!) 
+perform a type cast when you use the variable in your code. Thus
+C<OtherPars> should take the form:
+
+    OtherPars => 'IV spl'
+
+and when you use it in the code you will write
+
+    (gsl_spline *) $COMP(spl)
+ 
+so putting this together as Andres Jordan has done (with the modification
+using C<IV> by Judd Taylor) in the C<gsl_interp.pd> in the distribution
+source you get:
+ 
+     pp_def('init_meat',
+            Pars => 'double x(n); double y(n);',
+            OtherPars => 'IV spl',
+            Code =>'
+         gsl_spline_init( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n));'
+    );
+
+where I have removed a macro wrapper call, but that would obscure the
+discussion.
+
+The other minor difference as compared to the standard typemap handling
+in Perl, is that the user cannot specify non-standard typemap locations or
+typemap filenames using the C<TYPEMAPS> option in MakeMaker... Thus you
+can only use a file called C<typemap> and/or the C<IV> trick above.
+
+
 
 =head2 Other useful PP keys in data operation definitions
 
