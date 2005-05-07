@@ -1,3 +1,9 @@
+JB (6-May-2005) Improved version of typemap handling in OtherPars in PP.pm checked in and
+   documentation for PP updated to include a discussion of typemap handling
+   in OtherPars. I also realised I forgot a few updates earlier: I fixed a 
+   problem in the FITS reader which kept you from reading in only the header
+   from files with empty primary arrays. And a few other small bug fixes around.
+   I am awful at Changelogs....
 HG (3-May-2005)
    Apply some of the 'make clean' fixes from debian/patches
 SIS (2-May-2005)
