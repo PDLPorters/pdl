@@ -43,7 +43,8 @@ pp_addpm({At=>'Bot'},<<'EOD');
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
 by Christian Soeller (c.soeller@auckland.ac.nz), Karl Glazebrook
-(kgb@aaoepp.aao.gov.au), and Craig DeForest (deforest@boulder.swri.edu).
+(kgb@aaoepp.aao.gov.au), Craig DeForest (deforest@boulder.swri.edu)
+and Jarle Brinchmann (jarle@astro.up.pt)
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -790,7 +791,7 @@ for my $opt (
             } else {
 	       $c() = ($a() '.$op.' $b()) ? $b() : $a();
             }',
-	   Doc =>  'clip C<$a> by C<$b> (C<$b> is '.
+	   Doc =>  'clip (threshold) C<$a> by C<$b> (C<$b> is '.
 	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
 sub PDL::$name {
@@ -815,7 +816,7 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-Clip a piddle by (optional) upper or lower bounds.
+Clip (threshold) a piddle by (optional) upper or lower bounds.
 
 =for usage
 
@@ -2436,6 +2437,239 @@ EOD
 );
 
 pp_add_exported("", 'whichND');
+
+#
+# Set operations suited for manipulation of the operations above.
+#
+
+
+pp_addpm(<<'EOD'
+
+=head2 setops
+
+=for ref
+
+Implements simple set operations like union and intersection
+
+=for usage
+
+   Usage: $set = setops($a, <OPERATOR>, $b);
+
+The operator can be C<OR>, C<XOR> or C<AND>. This is then applied
+to C<$a> viewed as a set and C<$b> viewed as a set. The functioning
+is as follows:
+
+=over
+
+=item C<OR>
+
+The resulting vector will contain the elements that are either in C<$a>
+EM<or> in C<$b> or both. This is the union in set operation terms
+
+=item C<XOR>
+
+The resulting vector will contain the elements that are either in C<$a>
+or C<$b>, but not in both. This is
+
+     Union($a, $b) - Intersection($a, $b)
+
+in set operation terms.
+
+=item C<AND>
+
+The resulting vector will contain the intersection of C<$a> and C<$b>, so
+the elements that are in both C<$a> and C<$b>. Note that for convenience
+this operation is also aliased to L<intersect|intersect>
+
+=back
+
+It should be emphasized that these routines are used when one or both of
+the sets C<$a>, C<$b> are hard to calculate or that you get from a separate
+subroutine.
+
+Finally IDL users might be familiar with Craig Markwardt's C<cmset_op.pro>
+routine which has inspired this routine although it was written independently
+However the present routine has a few less options (but see the exampels)
+
+=for example
+
+You will very often use these functions on an index vector, so that is
+what we will show here. We will in fact something slightly silly. First
+we will find all squares that are also cubes below 10000.
+
+Create a sequence vector:
+
+  perldl> $x = sequence(10000)
+
+Find all odd and even elements:
+
+  perldl> ($even, $odd) = which_both( ($x % 2) == 0)
+
+Find all squares
+
+  perldl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
+
+Find all cubes (being careful with roundoff error!)
+
+  perldl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
+
+Then find all squares that are cubes:
+
+  perldl> $both = setops($squares, 'AND', $cubes)
+
+And print these (assumes that C<PDL::NiceSlice> is loaded!)
+
+  perldl> p $x($both)
+   [0 1 64 729 4096]
+
+Then find all numbers that are either cubes or squares, but not both:
+
+  perldl> $cube_xor_square = setops($squares, 'XOR', $cubes)
+
+  perldl> p $cube_xor_square->nelem()
+   112
+
+So there are a total of 112 of these!
+
+Finally find all odd squares:
+
+  perldl> $odd_squares = setops($squares, 'AND', $odd)
+
+
+Another common occurance is to want to get all objects that are
+in C<$a> and in the complement of C<$b>. But it is almost always best
+to create the complement explicitly since the universe that both are
+taken from is not known. Thus use L<which_both|which_both> if possible
+to keep track of complements.
+
+If this is impossible the best approach is to make a temporary:
+
+This creates an index vector the size of the universe of the sets and
+set all elements in C<$b> to 0
+
+  perldl> $tmp = ones($n_universe); $tmp($b)=0;
+
+This then finds the complement of C<$b>
+
+  perldl> $C_b = which($tmp == 1);
+
+and this does the final selection:
+
+  perldl> $set = setops($a, 'AND', $C_b)
+
+=cut
+
+*setops = \&PDL::setops;
+
+sub PDL::setops {
+
+  my ($a, $op, $b)=@_;
+
+  # Check that $a and $b are 1D.
+  if ($a->ndims() > 1 || $b->ndims() > 1) {
+     warn 'setops: $a and $b must be 1D - flattening them!'."\n";
+     $a = $a->flat;
+     $b = $b->flat;
+  }
+
+  my $result;
+
+  if ($op eq 'OR') {
+    # Easy...
+    $result = uniq(cat($a, $b));
+  } elsif ($op eq 'XOR') {
+    # Make ordered list of set union.
+    my $union = append($a, $b)->qsort;
+    # Index lists.
+    my $s1=zeroes(byte, $union->nelem());
+    my $s2=zeroes(byte, $union->nelem());
+
+    # Find indices which are duplicated - these are to be excluded
+    #
+    # We do this by comparing x with x shifted each way.
+    my $i1 = which($union != rotate($union, 1));
+    my $i2 = which($union != rotate($union, -1));
+    #
+    # We then mark/mask these in the s1 and s2 arrays to indicate which ones
+    # are not equal to their neighbours.
+    #
+    $s1->index($i1) .= 1 if $i1->nelem() > 0;
+    $s2->index($i2) .= 1 if $i2->nelem() > 0;
+
+    my $inds=which($s1 == $s2);
+
+    if ($inds->nelem() > 0) {
+      return $union->index($inds);
+    } else {
+      return $inds;
+    }
+
+  } elsif ($op eq 'AND') {
+    # The intersection of the arrays.
+
+    # Make ordered list of set union.
+    my $union = append($a, $b)->qsort;
+
+    return $union->where($union == rotate($union, -1));
+  } else {
+    print "The operation $op is not known!";
+    return -1;
+  }
+
+}
+EOD
+);
+
+
+pp_add_exported("", 'setops');
+
+
+
+pp_addpm(<<'EOD'
+
+=head2 intersect
+
+=for ref
+
+Calculate the intersection of two piddles
+
+=for usage
+
+   Usage: $set = intersect($a, $b);
+
+This routine is merely a simple interface to L<setops|setops>. See
+that for more information
+
+=for example
+
+Find all numbers less that 100 that are of the form 2*y and 3*x
+
+perldl> $x=sequence(100)
+
+perldl> $factor2 = which( ($x % 2) == 0)
+
+perldl> $factor3 = which( ($x % 3) == 0)
+
+perldl> $ii=intersect($factor2, $factor3)
+
+perldl> p $x($ii)
+
+   [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
+
+=cut
+
+*intersect = \&PDL::intersect;
+
+sub PDL::intersect {
+
+   return setops($_[0], 'AND', $_[1]);
+
+}
+
+EOD
+);
+
+pp_add_exported("", 'intersect');
 
 
 
