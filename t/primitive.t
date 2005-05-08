@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => $PDL::Bad::Status ? 24 : 21 ;
+plan tests => $PDL::Bad::Status ? 25 : 22 ;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -133,3 +133,12 @@ if($PDL::Bad::Status) {
   setbadat $b, 2;
   ok($b->which->nelem,0);
 }
+
+############################
+# Test intersect & setops
+my $x = sequence(10);
+$a = which(($x % 2) == 0);
+$b = which(($x % 3) == 0);
+$c = setops($a, 'AND', $b);
+ok(tapprox($c, pdl([0, 6])));
+
