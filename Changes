@@ -1,3 +1,5 @@
+AJ (10-May-2005) Modified gsl_interp.pd and gsl_random.pd to pass pointers
+   as IVs in OtherPars following Judd Taylor's suggestion.
 JB (9-May 2005) Added set operation routines - setops in primitive.pd as well as 
    intersect which is just an alias. Also updated the docs so that apropos threshold
    will bring up clip..
