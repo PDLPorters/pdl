@@ -1,3 +1,6 @@
+CED (19-May-2005) Fixed minor bug in Windows.pm, updated MANIFEST to 
+	remove Debian patches (so "make dist" works), smoothed demos
+	a bit.
 AJ (10-May-2005) Modified gsl_interp.pd and gsl_random.pd to pass pointers
    as IVs in OtherPars following Judd Taylor's suggestion.
 JB (9-May 2005) Added set operation routines - setops in primitive.pd as well as 
