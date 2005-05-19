@@ -140,10 +140,6 @@ debian/f77conf.pl
 debian/README.Debian
 debian/postrm
 debian/pdl.menu
-debian/patches/50_relative_paths_in_htmldoc.dpatch
-debian/patches/00list
-debian/patches/20_dont_overwrite_pdl_1p.dpatch
-debian/patches/10_fix_clean_target.dpatch
 debian/copyright
 debian/perldl.conf
 debian/preinst

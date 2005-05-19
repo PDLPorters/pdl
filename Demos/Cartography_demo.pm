@@ -82,11 +82,11 @@ act q&
 ### say "??cartography" in the perldl shell.  Here are four of them:
 
 undef $w;   # Close old window
-$w = pgwin(Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;
+$w = pgwin( Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;
 
 sub draw {
- ($tx, $t, $pix, $opt ) = @_;
- $w->fits_imag( $map->map( $tx, $pix, $opt ), {Title=>$t, CharSize=>1.5} );
+ ($tx, $t, $px, $opt ) = @_;
+ $w->fits_imag( $map->map( $tx, $px, $opt ),{Title=>$t, CharSize=>1.5, J=>1} );
  $w->hold;   $w->lines( $coast -> apply( $tx ) -> clean_lines ); $w->release;
 }
 
@@ -147,7 +147,6 @@ a map of the imaged body.
 Similarly, scanned images of map data can easily be converted into 
 lat/lon coordinates or reprojected to make other projections. 
 
-Be sure to view "demo transform" if you haven't already.
 |;
 
 $w->close;

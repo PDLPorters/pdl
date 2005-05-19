@@ -5735,6 +5735,7 @@ sub arrow {
     ## Option checker thunk gets defined only on first run-through.
     our $checker = sub {
       my($name,$opt,$min,$max) = @_;
+      delete $opt->{$name} unless(defined $opt->{$name});
       return unless exists($opt->{$name});
       release_and_barf("$name option must be an array ref if specified.\n")
 	if( ref ($opt->{$name}) ne 'ARRAY' );
@@ -6032,14 +6033,14 @@ sub rgbi {
 	eval $cmdstr;
 
         my $mkaxis = sub {
-	    my ($typ,$unit) = @_;
-	    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
-	    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
-	    $s =~ s/\%u/$unit/;
-	    $s =~ s/\%t/$typ/;
-	    $s;
-	  } unless defined ($mkaxis);
-
+	  my ($typ,$unit) = @_;
+	  our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
+	  $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+	  $s =~ s/\%u/$unit/;
+	  $s =~ s/\%t/$typ/;
+	  $s;
+	};
+	
 	$pane->label_axes(
 			  $opt->{XTitle} || 
 			  &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
