@@ -282,6 +282,17 @@ pp_def('eval_meat',
         Pars => 'double x(); double [o] out();',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
+
+        # BadCode added 5/31/2005, D. Hunt
+	HandleBad => 1,
+        BadCode => '
+        if ($ISBAD($x())) {
+          $out() = $x(); 
+	} else { 
+   	  GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+        }
+        ',
+
         Code =>'	     
 GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
 ');
