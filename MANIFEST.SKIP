@@ -4,6 +4,7 @@ MANIFEST\.old
 \.BAK$
 \.patch$
 \.out$
+-stamp$
 ^\.exists
 ^_Inline
 ^[.]Inline
@@ -186,6 +187,7 @@ so_locations
 ^Demos/BAD_demo.pm$
 ^Demos/BAD2_demo.pm$
 ^IO/NDF/NDF.pm$
+^debian/patched/
 ^win32/pbmwin32.tar.gz
 ^Lib/GSL/RNG\.(pm|xs|c)
 \.bundle$
