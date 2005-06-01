@@ -13,7 +13,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},
 	'EXE_FILES' => ['pptemplate'],
-	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate"},
+	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
 );
 
 sub MY::postamble {
