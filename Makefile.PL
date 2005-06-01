@@ -399,6 +399,8 @@ WriteMakefile(
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, # so that the script docs are picked up
+              'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
+                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'linkext'  => {LINKTYPE => ''},  # No linking required
