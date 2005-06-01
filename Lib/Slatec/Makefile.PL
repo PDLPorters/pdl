@@ -101,7 +101,7 @@ if($Config{cc} eq 'cl') {
 }
 
 $hash{LIBS}[0] .= $f77->runtime ;
-$hash{clean}{FILES} .= " f77_underscore" .
+$hash{clean}{FILES} .= " SlatecProtos.h f77_underscore" .
   join '', map {" slatec/$_.o "} @slatecfiles;
 
 # Handle multiple compilers
