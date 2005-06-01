@@ -54,27 +54,3 @@ diff -urNad pdl-2.4.2+cvs.20050501/Demos/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+
  );
  
  # For the lazy people
-diff -urNad pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL
---- pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL	2005-05-02 09:42:28.000000000 +0200
-+++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Graphics/TriD/OpenGL/Makefile.PL	2005-05-03 09:26:31.789399880 +0200
-@@ -11,7 +11,7 @@
- push @{$hash{LIBS}}, $PDL::Config{OPENGL_LIBS};
- $hash{INC} .= $PDL::Config{OPENGL_INC};
- $hash{DEFINE} .= $PDL::Config{OPENGL_DEFINE};
--$hash{clean}{FILES} .= ' tmp_*.h ppcode.out';
-+$hash{clean}{FILES} .= ' *.h.cpp tmp_*.h ppcode.out typemap';
- 
- #use Data::Dumper;
- #my $out = Dumper(\%hash);
-diff -urNad pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL
---- pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL	2005-05-03 09:18:21.413948280 +0200
-+++ /tmp/dpep.0Odhl6/pdl-2.4.2+cvs.20050501/Lib/Slatec/Makefile.PL	2005-05-03 09:26:31.791399576 +0200
-@@ -101,7 +101,7 @@
- }
- 
- $hash{LIBS}[0] .= $f77->runtime ;
--$hash{clean}{FILES} .= " f77_underscore" .
-+$hash{clean}{FILES} .= " SlatecProtos.h f77_underscore" .
-   join '', map {" slatec/$_.o "} @slatecfiles;
- 
- # Handle multiple compilers
