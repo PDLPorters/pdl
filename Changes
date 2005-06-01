@@ -1,3 +1,5 @@
+HG (1-June-2005) Apply most of the 'make clean' from 
+   debian/patches/10_fix_clean_target.dpatch
 HG (1-June-2005) Apply debian/patches/50_relative_paths_in_htmldoc.dpatch, which 
    changes paths in HTML docs to relative instead of absolute ones.
 HG (1-June-2005) Apply debian/patches/20_dont_overwrite_pdl_1p.dpatch, which prevents
