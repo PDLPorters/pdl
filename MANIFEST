@@ -133,7 +133,6 @@ debian/dirs
 debian/docs
 debian/f77conf.pl
 debian/patches/00list
-debian/patches/10_fix_clean_target.dpatch
 debian/pdl.doc-base
 debian/pdl.install
 debian/pdl.menu
