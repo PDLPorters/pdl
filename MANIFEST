@@ -87,6 +87,7 @@ Basic/MatrixOps/ssl/eigen.h
 Basic/MatrixOps/ssl/Makefile.PL
 Basic/MatrixOps/ssl/matrix.c
 Basic/MatrixOps/ssl/matrix.h
+Basic/MatrixOps/ssl/README
 Basic/MatrixOps/ssl/sslib.c
 Basic/MatrixOps/ssl/sslib.h
 Basic/MatrixOps/svd.c
@@ -344,6 +345,7 @@ IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
+IO/IDL/README
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd
