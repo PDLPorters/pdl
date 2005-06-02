@@ -45,5 +45,12 @@ all: complex.o eigen.o matrix.o sslib.o
 %.o: %.c Makefile
 	cc -c -O3 $<
 
+clean:
+	-mv Makefile Makefile.old
+	rm -f complex.o eigen.o matrix.o sslib.o
+
+realclean:
+	rm -f Makefile.old Makefile complex.o eigen.o matrix.o sslib.o
+
 FOO
 }
