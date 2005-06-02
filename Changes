@@ -1,3 +1,4 @@
+HG (2-June-2005) Fix PLplot's Makefile.PL to clean up temporary files
 HG (2-June-2005) add 'clean' and 'realclean' targets to the non-windows version
    of Basic/MatrixOps/ssl/Makefile
 HG (2-June-2005) remove the now unneeded debian/patches/10_fix_clean_target.dpatch
