@@ -1,3 +1,6 @@
+HG (2-June-2005) add 'clean' and 'realclean' targets to the non-windows version
+   of Basic/MatrixOps/ssl/Makefile
+HG (2-June-2005) remove the now unneeded debian/patches/10_fix_clean_target.dpatch
 HG (1-June-2005) Apply most of the 'make clean' from 
    debian/patches/10_fix_clean_target.dpatch
 HG (1-June-2005) Apply debian/patches/50_relative_paths_in_htmldoc.dpatch, which 
