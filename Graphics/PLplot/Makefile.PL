@@ -222,11 +222,12 @@ sub compileAndRun {
   my $ccflags = $Config{ccflags};
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
   system "$cc $ccflags $flags temp.c -o temp > /dev/null 2>&1";
+  unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp');
   return unless ($run);
 
   my $res = `./temp`;
-  unlink ('./temp', './temp.c');
+  unlink ('./temp');
   return $res;
 }
 
