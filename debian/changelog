@@ -1,10 +1,10 @@
-pdl (1:2.4.2+cvs.20050601-1) unstable; urgency=low
+pdl (1:2.4.2+cvs.20050602-1) unstable; urgency=low
 
   * build deb directly from cvs
   * add libinline-perl to suggests
   * add perl readline modules to suggests
 
- -- Henning Glawe <glaweh@debian.org>  Wed,  1 Jun 2005 09:16:05 +0200
+ -- Henning Glawe <glaweh@debian.org>  Thu,  2 Jun 2005 10:18:23 +0200
 
 pdl (1:2.4.2-2) unstable; urgency=low
 
