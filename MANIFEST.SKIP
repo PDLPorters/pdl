@@ -180,6 +180,7 @@ so_locations
 ^Basic/Pod/PP-Inline\.pod$
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
+^Graphics/PLplot/OPTIONS!
 ^Graphics/PGPLOT/PGPLOT.c
 ^perldl.pod
 ^pdldoc.pod
