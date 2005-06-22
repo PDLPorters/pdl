@@ -924,10 +924,10 @@ pp_def('statsover',
          $GENERIC(avg) tmp1 = 0;         
          $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
-	 $GENERIC(w) norm = 0;
+	 $GENERIC(avg) norm = 0;
 	 loop(n) %{             /* Accumulate sum and summed weight. */
             tmp += $a()*$w();
-            norm += $w();
+            norm += ($GENERIC(avg)) $w();
             if (!n) { curmin = $a(); curmax = $a();}
             if ($a() < curmin) { 
                 curmin = $a(); 
