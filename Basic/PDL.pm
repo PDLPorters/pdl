@@ -23,15 +23,29 @@ modules automatically, making their functions available in the current
 perl namespace.  See also L<PDL::Lite|PDL::Lite> or
 L<PDL::LiteF|PDL::LiteF> if start-up time becomes an issue.
 
+=over 3
+
+=item EXPORTS: 
+
+C<use PDL;> exports a large number of routines into the calling
+namespace.  If you want to avoid namespace pollution, you must instead 
+C<use PDL::Lite>, and include any additional modules explicitly.
+
+=item NICESLICE: 
+
 Note that the L<PDL::NiceSlice|PDL::NiceSlice> syntax is NOT automatically
 loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
 a standalone script, you must also say C<use PDL::NiceSlice;>.
+
+=item PDL::Math:
 
 The PDL::Math module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
 I<not> included in the
 L<Lite|PDL::Lite> and L<LiteF|PDL::LiteF>
 start-up modules.
+
+=back
 
 =head1 SYNOPSIS
 

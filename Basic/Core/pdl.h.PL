@@ -373,7 +373,7 @@ struct pdl {
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define DECL_RECURSE_GUARD static int __nrec=0;
-#define START_RECURSE_GUARD __nrec++; if(__nrec > 100) {die("PerlDL:Internal Error:Recursion exceeded\n");}
+#define START_RECURSE_GUARD __nrec++; if(__nrec > 1000) {__nrec=0; die("PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");}
 #define ABORT_RECURSE_GUARD __nrec=0;
 #define END_RECURSE_GUARD __nrec--;
 
