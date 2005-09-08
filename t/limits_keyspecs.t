@@ -48,13 +48,13 @@ my @good = (
 
             'x'       => { data => 'x' },
 
-            '&'       => { trans => '' },
+            '&'       => { trans => undef },
 
             undef()   =>  { },
 
-            '<>&'     => { errn   => '',
-      		     errp   => '',
-      		     trans => '' },
+            '<>&'     => { errn   => undef,
+      		     errp   => undef,
+      		     trans => undef },
 
             '=s'  => { errn   => 's',
       	         errp   => 's' },
