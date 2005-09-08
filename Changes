@@ -1,3 +1,5 @@
+SIS (8-SEP-2005) Enter Chris Marshall's patched version of t/limits_keyspecs.t.
+    Fixes one of the #1221742 bugs. 
 CED (1-Aug-2005) update docs for PDL.pm; re-fix recursion error message
 HG (2-June-2005) Fix PLplot's Makefile.PL to clean up temporary files
 HG (2-June-2005) add 'clean' and 'realclean' targets to the non-windows version
