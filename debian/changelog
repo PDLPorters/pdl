@@ -3,6 +3,8 @@ pdl (1:2.4.2-4) unstable; urgency=low
   * make the xlibs-dev transition for x.org 6.9 (closes: #346926):
     - build-depending on x-dev should be enough according to 
       http://www.inutil.org/jmm/xlibs/xlibs-split-2005-11-15.tar-bz2
+  * Suggest libplplot-dev and tell about the PDL::Graphics::PLplot 
+    examples it contains in pdl's README.Debian
 
  -- Henning Glawe <glaweh@debian.org>  Mon,  9 Jan 2006 09:15:31 +0100
 
