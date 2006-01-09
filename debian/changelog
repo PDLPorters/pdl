@@ -1,8 +1,10 @@
-pdl (1:2.4.2+cvs.20050602-1) unstable; urgency=low
+pdl (1:2.4.2-4) unstable; urgency=low
 
-  * build deb directly from cvs
+  * make the xlibs-dev transition for x.org 6.9 (closes: #346926):
+    - build-depending on x-dev should be enough according to 
+      http://www.inutil.org/jmm/xlibs/xlibs-split-2005-11-15.tar-bz2
 
- -- Henning Glawe <glaweh@debian.org>  Thu,  2 Jun 2005 10:18:23 +0200
+ -- Henning Glawe <glaweh@debian.org>  Mon,  9 Jan 2006 09:15:31 +0100
 
 pdl (1:2.4.2-3) unstable; urgency=low
 
