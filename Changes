@@ -1,3 +1,7 @@
+DAL (12-Jan-2006) Set correct x-y bounds for circle in PGPLOT/Window.pm.
+    Added function tcircle based on tpoints and tline.
+    Fixed convolveND method selection, bug #1323973.
+    Fixed docs (usage and signature) bug in statsover to show correct number and order of returned quantities.
 SIS (8-SEP-2005) Enter Chris Marshall's patched version of t/limits_keyspecs.t.
     Fixes one of the #1221742 bugs. 
 CED (1-Aug-2005) update docs for PDL.pm; re-fix recursion error message

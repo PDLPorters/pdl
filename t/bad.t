@@ -39,7 +39,7 @@ if ( $PDL::Config{WITH_BADVAL} ) {
     
     # can not set the bad flag
     $a->badflag(1);
-    is( $a->badflag(), 0 );    
+    is( $a->badflag(), 0 );
 
     # and piddles do not have a bad value
     ok( ! defined $a->badvalue );

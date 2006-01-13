@@ -918,7 +918,7 @@ have its bad flag set if the output contains any bad data.',
 
 pp_def('statsover',
 	HandleBad => 1,
-	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
+	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => 
 	'$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;         
@@ -1013,7 +1013,7 @@ sub PDL::statsover {
    my $max = PDL->nullcreate($data);
    my $adev = PDL->nullcreate($data);
    my $prms = PDL->nullcreate($data);
-   &PDL::_statsover_int($data, $weights, $mean, $prms, $min, $max, $adev, $rms);
+   &PDL::_statsover_int($data, $weights, $mean, $prms, $median, $min, $max, $adev, $rms);
 
    return $mean unless wantarray;
    return ($mean, $prms, $median, $min, $max, $adev, $rms);
@@ -1028,7 +1028,7 @@ Calculate useful statistics over a dimension of a piddle
 
 =for usage
 
-  ($mean, $rms, $median, $min, $max, $adev) = statover($piddle, $weights);
+  ($mean,$prms,$median,$min,$max,$adev,$rms) = statsover($piddle, $weights);
 
 This utility function calculates various useful
 quantities of a piddle. These are:
@@ -1103,7 +1103,9 @@ Calculates useful statistics on a piddle
 This utility calculates all the most useful quantities in one call.
 It works the same way as L</statsover>, except that the quantities are
 calculated considering the entire input PDL as a single sample, rather
-than as a collection of rows.
+than as a collection of rows. See L</statsover> for definitions of the
+returned quantities.
+
 
 EOD
 

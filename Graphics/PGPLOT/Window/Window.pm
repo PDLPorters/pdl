@@ -50,6 +50,7 @@ High-level plotting commands:
  errb       -  Plot error bars
  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
+ tcircle    -  Plot vectors as circles [threadable]
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
 
@@ -2029,6 +2030,31 @@ Example:
   $ty = $tx + $tx->yvals;
   tpoints($tx, $ty, $h);
 
+=head2 tcircle
+
+=for ref
+
+A threaded interface to circle
+
+=for usage
+
+ Usage: tcircle($x, $y, $r, $options);
+
+This is a threaded interface to C<circle>. This is convenient if you have
+a list of circle centers and radii and want to draw every circle in one go. 
+The routine will apply any options you apply in a "reasonable" way, 
+in the sense that it will loop over the options wrapping over if there are less
+options than circles.
+
+Example:
+
+ $x=sequence(5);
+ $y=random(5);
+ $r=sequence(5)/10 + 0.1;
+ $h={justify => 1,Color => ['red','green','blue'], filltype => ['solid','outline','hatched','cross_hatched']};
+ tcircle($x, $y, $r, $h);
+
+Note that C<$x> and C<$y> must be the same size (>1D is OK, though meaningless as far as C<tcircle> is concerned). C<$r> can be the same size as C<$x> OR a 1-element piddle OR a single perl scalar.
 
 =head2 Text routines
 
@@ -6363,6 +6389,16 @@ sub poly {
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
+##DAL added this to properly set environment
+  unless ( $self->held() ) {
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : ($x-$radius,$x+$radius);
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : ($y-$radius,$y+$radius);
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
+##end DAL addition
+
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
@@ -6372,6 +6408,67 @@ sub poly {
     &release_signals;
   }
 }
+
+
+my $circle_options = undef;
+sub tcircle {
+
+    my $self = shift;
+    my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&tcircle,$in,$opt);
+    $opt = {} if !defined($opt);
+
+    release_and_barf 'Usage tcircle ($x,$y,$r,[$options])'
+	if $#$in < 0 || $#$in > 3;
+
+    my ($x, $y, $radius)=@$in;
+    $x=$x->flat;$y=$y->flat;$radius=$radius->flat;
+
+    if (!defined($circle_options)){
+      $circle_options=$self->{PlotOptions}->extend({Missing => undef});
+    }
+
+    &catch_signals;
+
+    my $o = _thread_options($x->nelem,$opt); 
+    my $tmp_hold = $self->held();
+
+    unless ( $self->held() ) {
+      my ($o,$u_opt) = $self->_parse_options($circle_options,$opt);
+      $self->_check_move_or_erase($o->{Panel},$o->{Erase});
+
+    my ($ymin, $ymax, $xmin, $xmax);
+
+    if ( defined $o->{Missing} ) {
+	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+	    @{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
+	($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	    @{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? @{$o->{YRange}} :
+	    (min($y-$radius),max($y+$radius));
+	($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ? @{$o->{XRange}} :
+	    (min($x-$radius),max($x+$radius));
+    }
+      if ($xmin == $xmax) { $xmin-=0.5; $xmax +=0.5; }
+      if ($ymin == $ymax) { $ymin-=0.5; $ymax +=0.5; }
+
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
+    $self->hold;
+      }
+    _tcircle($x,$y,$radius,PDL->sequence($x->nelem),$self,$o);
+    $self->release unless $tmp_hold;
+
+    &release_signals;
+
+}
+
+PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2', 
+   PDL::over {
+     my ($x,$y,$r,$ind,$self,$opt)=@_;
+     $self->circle($x,$y,$r,$opt->[$ind->at(0)] || {} );
+ };
+
 
 # Plot an ellipse using poly.
 
@@ -6537,6 +6634,10 @@ sub poly {
     $pos = $o->{Position} if exists($u_opt->{Scale});
     $tr = $o->{Transform} if exists($u_opt->{Transform});
     $misval = $o->{Missing} if exists($u_opt->{Missing});
+    #What if there's no Missing option supplied and one of the input piddles
+    #contain zero? Then that location will have no arrow, instead of a
+    #horizontal or vertical line. So define $misval, but make it meaningless:
+    $misval = 1 + $a->glue(0,$b)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
 
     $scale = 0 unless defined $scale;
     $pos   = 0 unless defined $pos;
