@@ -1,9 +1,7 @@
 Installing on Win32
 -------------------
 
-It's not (yet) as straightforward as it ought to be - but it's not all
-that difficult, either. If it's too much, then you can fall back on the
-binary windows version provided at http://pdl.perl.org .
+It's dead easy !!
 
 To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
 ----------------------------------------------------------------------
@@ -14,8 +12,7 @@ To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
    then run the downloaded executable to install MinGW into the location
    of your choice.
 
-2) If you want Slatec, install ExtUtils::F77, amending F77.pm according
-   to instructions given in 'F77.pm Corrections' (below).
+2) If you want Slatec, install ExtUtils::F77-1.15 (or later) from CPAN.
 
 3) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
 
@@ -48,8 +45,7 @@ To Build with MSVC compiler (MSVC-built perl only)
 
 1) If you want Slatec you need to install MinGW - this is for the g77.exe fortran
    compiler and libs. (See the preceding section for the link to MinGW.)
-   You also need to install ExtUtils::F77, amending F77.pm according
-   to the instructions given in 'F77.pm Corrections' (below).
+   You also need to install ExtUtils::F77-1.15 (or later) from CPAN.
    If you're not interested in Slatec, then there's no need to install either
    ExtUtils::F77 or MinGW.
 
@@ -57,35 +53,3 @@ To Build with MSVC compiler (MSVC-built perl only)
     perl Makefile.PL
     nmake test
     nmake install
-
-
-F77.pm Corrections
-------------------
-
- These corrections should become unnecessary with the release of
- ExtUtils-F77-1.15.
-
- In the F77.pm subroutine 'find_in_path', replace:
-
-   my @path = split(":",$ENV{PATH});
-
- with:
-
-   my @path;
-   if($^O =~ /mswin32/i) {
-     for(@names) {$_ .= '.exe'}
-     @path = split(";", $ENV{PATH});
-     }
-   else {@path = split(":",$ENV{PATH})}
-
-
- The F77.pm subroutine 'testcompiler' begins with:
-
-   my $file = "/tmp/testf77$$";
-
- Make sure that the folder '/tmp' exists - or change '/tmp' to a folder
- that does exist.
-
- Some of the PDL tests generate some warnings in relation to the F77.pm code.
- One way to eliminate those warnings is to place 'no warnings;' at the
- beginning of the F77.pm 'import' subroutine.
