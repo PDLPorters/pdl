@@ -1,3 +1,7 @@
+SIS (14-Feb-2006) Changes to top level Makefile.PL, Core/Basic/Makefile.PL, and 
+    Core/Gen/Makefile.PL to override EU::MM's processPL() which is continually being 
+    broken on Win32.
+    Also rewrite limits_normalize_dsets.t so that it's not broken by Test::More bug.
 DAL (12-Jan-2006) Set correct x-y bounds for circle in PGPLOT/Window.pm.
     Added function tcircle based on tpoints and tline.
     Fixed convolveND method selection, bug #1323973.
