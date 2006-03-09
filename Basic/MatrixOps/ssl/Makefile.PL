@@ -1,24 +1,25 @@
 use warnings;
 use Config;
 
+
 if($^O =~ /mswin32/i) {
   $cc = $Config{cc};
 
   if($cc eq 'cl') {
      $opt = '-O2';
      $obj = '.obj';
-     }
-
+ }
+  
   else {
-     $opt = '-O3';
-     $obj = '.o';
-     }
-
+      $opt = '-O3';
+      $obj = '.o';
+  }
+  
   if($Config{make} eq 'nmake') {$line = ".c$obj:\n\t$cc -c $opt \$*.c"}
   else {$line = "\%.o: \%.c Makefile\n\t$cc -c $opt \$<"}
-
-open(FOO, ">Makefile") or die "Can't open ssl/Makefile for writing: $!";
-print FOO "
+  
+  open(FOO, ">Makefile") or die "Can't open ssl/Makefile for writing: $!";
+  print FOO "
 
 all: complex$obj eigen$obj matrix$obj sslib$obj
 
@@ -36,14 +37,20 @@ realclean ::
 close(FOO) or die "Can't close ssl/Makefile after writing: $!";
 }
 
+
 else {
+
+my $ccflags = $Config{cflags};
+
+$ccflags .= " -fPIC" if($ENV{HOSTTYPE} =~ m/x86_64/);
+
 open(FOO, ">Makefile");
-print FOO <<'FOO';
+print FOO <<"FOO";
 
 all: complex.o eigen.o matrix.o sslib.o
 
 %.o: %.c Makefile
-	cc -c -O3 $<
+	cc $ccflags -c -O3 \$<
 
 clean:
 	-mv Makefile Makefile.old

@@ -308,9 +308,14 @@ package PDL;
   $fh->close();
 }
 
+##############################
+##############################
 #
+# START: 
 # the actual script begins here
 #
+##############################
+##############################
 
 BEGIN{
   # Version test.
@@ -383,7 +388,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   Text::Balanced     => 0, # for PDL::NiceSlice
 	   Inline             => 0.43,
 	  );
-push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
+ push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
@@ -392,6 +397,17 @@ if($^O !~ /mswin32/i) {
    unshift @exe_files, 'pdl';
    $cleanup = 'pdl pdl.c ' . $cleanup;
    }
+
+
+##############################
+# Hack to include fPIC on x86_64 systems - 
+# use similar mods to affect CCFLAGS on other systems as needed...
+# 
+
+my $ccflags =  $Config{ccflags};
+if($ENV{HOSTTYPE} =~ m/x86_64/) {
+    $ccflags .= " -fPIC";
+}
 
 WriteMakefile(
 	      'PREREQ_PM' => { @prereq },
@@ -403,6 +419,7 @@ WriteMakefile(
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
+	      'CCFLAGS' => $ccflags,
 	      'linkext'  => {LINKTYPE => ''},  # No linking required
                                                # in this directory
 	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},

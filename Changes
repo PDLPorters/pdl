@@ -1,3 +1,6 @@
+CED (8-Mar-2006) Added -fPIC to Makefile.PL on 64-bit platforms;
+	attempted to make TriD work on 64 bit platforms (not yet successful --
+	will check in fix later).
 SIS (14-Feb-2006) Changes to top level Makefile.PL, Core/Basic/Makefile.PL, and 
     Core/Gen/Makefile.PL to override EU::MM's processPL() which is continually being 
     broken on Win32.
