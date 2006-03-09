@@ -1,3 +1,12 @@
+CED (9-Mar-2006) 
+	Finished fixing the TriD code.  The problem had to do with the 
+	codewalker that harvests function definitions and typedefs from the
+	GL header files. The solution involves passing the header files through
+	the C preprocessor to handle compile-time switching, autogenerating
+	simple typemap declarations from typedefs, and fencing the header
+	files so that function definitions from included files are not
+	detected by the harvester.  Blech.  Someone really needs to overhaul
+	this stuff.  I really hope it's not me.
 CED (8-Mar-2006) Added -fPIC to Makefile.PL on 64-bit platforms;
 	attempted to make TriD work on 64 bit platforms (not yet successful --
 	will check in fix later).

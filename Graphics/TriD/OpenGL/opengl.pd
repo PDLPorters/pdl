@@ -299,9 +299,12 @@ sub cpp {
 
   my @includes = map { "\n#include <$_>\n" } @$include_list;
 
+  my $open_fencestr =  "11HdyTbIVg6s"; # some gibberish output by DES
+  my $close_fencestr = "23Cnba1nbf31"; # some gibberish I type
+
   print STDERR "Running cpp on $file\n"if($verbose);
   open(FILE,"$file") || die "Could not open file $file";
-  my @file = (@includes, <FILE>);
+  my @rawfile = (@includes, "Start of $file ($close_fencestr)....\n", <FILE>);
   close(FILE);
 
   my $nfile = $file;
@@ -311,16 +314,23 @@ sub cpp {
 
   ##############################
   # Walk through the file and mark the last instance of #include with a fence
-  my $fenceloc = -1;
-  for my $line(0..$#file) {
-      $fenceloc = $line 
-	  if($file[$line] =~ m/^\s*\#include\s/);
-  }
-  my $fencestr =  "11HdyTbIVg6s"; # some gibberish output by DES
-  @file = (@file[0..$fenceloc],
-	   "FENCE ($fencestr): Ignore definitions above here when autogenerating calls",
-	   @file[$fenceloc+1..$#file]);
+  my @file;
+  
 
+  while(@rawfile) {
+      my $line = shift @rawfile;
+      if($line =~ m/\s*\#include\s/) {
+	$line =~ s/\n/\\n/g;
+	  push(@file,"\nFENCE ($open_fencestr): Ignore stuff till the next fence ($line)\n\n");
+	  push(@file,$line);
+	  push(@file,"\nFENCE ($close_fencestr): Stop ignoring stuff\n\n");
+      } else {
+	  push(@file,$line);
+      }
+  }
+
+  ##############################
+  # Now dump the processed array to a temp file for cpp to crunch on
   foreach(@file){
 #      print STDERR "from $file:  ",$_ ;
 	 print TFILE $_;
@@ -339,25 +349,61 @@ sub cpp {
 
   print STDERR "*** CPP command: $com $nfile |\n";
 
-  open(FILE,"$com $nfile |") || die "cant open $com $nfile|\n";
-  @file = <FILE>;
-  print STDERR "File returned ".(0+@file)." lines...\n";
-  while(@file && $file[0] !~ m/$fencestr/o) {
-      push(@prefile,shift @file);
-  }
-  print STDERR "After fence clearing: ".(0+@file)." lines...\n";
+  ##############################
+  # Execute cpp and snarf up its output
+  open(CPP_PIPE,"$com $nfile |") || die "cant open $com $nfile|\n";
+  @rawfile = <CPP_PIPE>;
+  close CPP_PIPE;
 
-  close(FILE);
+#  print STDERR "CPP call returned ".(0+@rawfile)." lines...\n";
+
   if ($verbose) {
 	use File::Basename;
 	my $out = basename($file).".cpp";
 	open FI, ">$out" ||
 	     die "can't open temp output file $out";
-	print STDERR "outputting to $out...\n";
+#	print STDERR "outputting to $out...\n";
 	print FI "/* command: $com */\n";
-	print FI join('',@file);
+	print FI join('',@rawfile);
 	close FI;
   }
+
+  ##############################
+  # Edit out the sections to be ignored...
+  my @file;
+  my $ignoring=0;
+	print STDERR "open_fencestr = '$open_fencestr'; close_fencestr = '$close_fencestr'\n";
+	print STDERR "rawfile has ".(0+@rawfile)." lines...\n";
+	my $lineno = 0;
+  for my $line(@rawfile) {
+	$lineno++;
+      if($line =~ m/$open_fencestr/o) {
+#	print "Starting to ignore - trigger line was '$line' (line $lineno)\n";
+	  $ignoring = 1;
+	  next;
+      }
+      if($line =~ m/$close_fencestr/o) {
+#	print "Ending ignorance   - trigger line was '$line (line $lineno);'\n";
+	  $ignoring = 0;
+	  next;
+      }
+	chomp $line;
+	unless($ignoring) {
+		push (@file,"$line\n"); 
+#		print STDERR "Keeping: $line\n";
+	}
+#	if($ignoring) {
+#		print STDERR "*******: $line\n";
+#	}
+  }
+
+	my $str = join("\n",@file);
+	@file = split /\n/,$str;
+
+	open(FILE,">${nfile}-out");
+	print FILE @file;
+	close FILE;
+	print STDERR "SUB CPP: Returning ".(0+@file)." lines...\n";
   return @file;
 
 }
@@ -393,9 +439,10 @@ sub gettypes {
 
 sub getfuncs {
   my(@file) = @_;
-
   my $outstr;
   my $str = join ' ',@file;
+
+
   #  while($str =~ /extern\s+(\S[^\;]*)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
   #  my @vfuncs;
   while($str =~ /(extern\s)?\s*(\w+)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){

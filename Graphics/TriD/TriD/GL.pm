@@ -574,6 +574,8 @@ use strict;
 
 sub gdriver {
   my($this, $options) = @_;
+  
+  print "GL gdriver...\n" if($PDL::debug_trid);
 
   if(defined $this->{_GLObject}){
 	 print "WARNING: Graphics Driver already defined for this window \n";
@@ -598,12 +600,17 @@ sub gdriver {
 
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
-  
+
+  print "gdriver: Calling OpengGL::OO($options)...\n" if($PDL::debug_trid);
+
   $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
 
 #glpOpenWindow(%$options);
   
+  print "gdriver: Calling glClearColor...\n" if($PDL::debug_trid);
   glClearColor(0,0,0,1);
+
+  print "gdriver: Calling glpRasterFont...\n" if($PDL::debug_trid);
   my $lb =  $this->{_GLObject}->glpRasterFont(
 						($ENV{PDL_3D_FONT} or "5x8"),0,256);
   $PDL::Graphics::TriD::GL::fontbase = $lb;
