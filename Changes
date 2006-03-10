@@ -1,4 +1,6 @@
 CED (10-Mar-2006)
+	1220830 (problems with $#$-type scalars in SvPDLV)
+CED (10-Mar-2006)
   Fixed bugs:
 	1435138 (problems with compress on Suse 9.3)
 	1386260 (installation fixes for 64bit linux)

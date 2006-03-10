@@ -48,7 +48,12 @@ print OUT <<'!HEADER!'
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define sv_undef(sv) (!(sv) || ((sv)==&PL_sv_undef) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)))
+/***************
+ * Paranoid check is commented out because SvPOK breaks some kinds of perl scalars.
+ * (blessed scalars like '$#$foo' get set to zero in perl 5.8.x)
+ */
+/*   #define sv_undef(sv) (  (!(sv) || ((sv)==&PL_sv_undef) ) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)) )  */
+#define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) )
 
 !HEADER!
   ;
@@ -282,7 +287,7 @@ print OUT <<'!NO!SUBS!';
 
 	  }
        else { /* Perl Int (e.g. 2) */
-          data = SvNV(sv);
+          data = SvNV(sv);  
           datatype = pdl_whichdatatype(data);
        }
        pdl_makescratchhash(ret,data,datatype);
