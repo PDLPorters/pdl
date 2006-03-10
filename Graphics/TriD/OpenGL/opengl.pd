@@ -139,10 +139,13 @@ my @post_includes = ("stdio.h");
 
 open(TYPEMAP,">typemap") or die "Can not write typemap\n";;
 
+
+print STDERR "\nPDL::Graphics::TriD::OpenGL : Detecting GL API from system headers...\n";
+
 foreach my $file (@types){
   my @file;
 
-  print STDERR "\n******PROCESSING FILE $file.....";
+  print STDERR "\nPDL::Graphics::TriD::OpenGL: PROCESSING FILE $file.....";
 
   my $found;
  glpath: foreach my $path (@path){
@@ -153,7 +156,7 @@ foreach my $file (@types){
 
 	     @prefile = ();
 	     @file = &cpp("$path/$subdir$file",[@pre_includes,@gl_includes]);
-	     print STDERR "Got back from cpp - file has ".(0+@file)." lines...\n";
+#	     print STDERR "Got back from cpp - file has ".(0+@file)." lines...\n";
 
 	     
 	     # Hack to identify XID-equivalent types and add them to the TYPEMAP.
@@ -164,7 +167,7 @@ foreach my $file (@types){
 		 next hack unless(m/^\s*typedef\s+XID\s+(\w+)\;/);
 		 my $k = $1;
 		 $t{$k} = $t{'XID'};
-		 print STDERR "TYPEMAP ENTRY FOR $file: $k->XID\n";
+#		 print STDERR "TYPEMAP ENTRY FOR $file: $k->XID\n";
 	     }
 
 	     # Hack to identify simple GL types and add them to the TYPEMAP.
@@ -172,10 +175,10 @@ foreach my $file (@types){
 	   hack2: for( @prefile,@file ) {
 #	       print STDERR "\t-$_";
 	       next hack2 unless( m/^\s*typedef\s(.*)\s(GL\w+)\s*\;\s*$/);
-	       print STDERR "\t-$_";
+#	       print STDERR "\t-$_";
 	       my($ctype,$gltype) = ($1,$2);
 	       map { s/^\s*//; s/\s*$//; s/\s+/ /g; } ($ctype,$gltype);
-	       print "\nTypedef sorting: $gltype is a $ctype\n";
+#	       print "\nTypedef sorting: $gltype is a $ctype\n";
 	       
 	       unless($t{$ctype}) {
 		   print STDERR "(Probably harmless): Sorting typedefs, but my little mind is blown! (ctype was '$ctype')\n";
@@ -187,10 +190,10 @@ foreach my $file (@types){
 	   hack3: for( @prefile,@file ) {
 #	       print STDERR "\t-$_";
 	       next hack3 unless( m/^\s*typedef\s.*\*(_*GL\w+).*\;\s*$/);
-	       print STDERR "\t:$_";
+#	       print STDERR "\t:$_";
 	       my($gltype) = ($1);
 	       map { s/^\s*//; s/\s*$//; s/\s+/ /g; } ($gltype);
-	       print "\nTypedef sorting: $gltype is a ptr\n";
+#	       print "\nTypedef sorting: $gltype is a ptr\n";
 	       
 	       $t{$gltype} = "T_PTR";
 	   }
@@ -206,11 +209,9 @@ foreach my $file (@types){
   }
   
   
-  print STDERR ":::::::::::::::::::::::::::::::::\n";
-  print STDERR "Calling gettypes for $file (",$#file,")\n" ;
-  gettypes(@file);
-  print "GLXContext T_PTR\n";
-  print "GLXFBConfigSGIX T_PTR\n";
+#  print STDERR ":::::::::::::::::::::::::::::::::\n";
+#  print STDERR "PDL::Graphics::TriD::OpenGL: Calling gettypes for $file (",$#file,")\n" ;
+#  gettypes(@file);
 
 }
 
@@ -320,9 +321,10 @@ sub cpp {
   while(@rawfile) {
       my $line = shift @rawfile;
       if($line =~ m/\s*\#include\s/) {
-	$line =~ s/\n/\\n/g;
+	$line =~ s/\n(.)/\\n$1/g;
+	chomp $line;
 	  push(@file,"\nFENCE ($open_fencestr): Ignore stuff till the next fence ($line)\n\n");
-	  push(@file,$line);
+	  push(@file,$line."\n");
 	  push(@file,"\nFENCE ($close_fencestr): Stop ignoring stuff\n\n");
       } else {
 	  push(@file,$line);
