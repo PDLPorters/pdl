@@ -131,10 +131,12 @@ unless ( defined %PDL::Config ) {
 	$dir = abs_path($dir . "/PDL");
     }
 
-    eval 'require "' . $dir . '/Config.pm";';
-    die "Unable to find PDL's configuration info\n [$@]"
-      if $@;
+    my $dir2 = $dir;
+    $dir2 =~ s/\}/\\\}/g;
+    eval sprintf('require q{%s/Config.pm};', $dir2);
 
+    die "Unable to find PDL's configuration info\n [$@]"
+	if $@;
 }
 
 # Data types to C types mapping

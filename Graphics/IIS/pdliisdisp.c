@@ -29,7 +29,7 @@ void iis_cur(float*x, float*y, char* ch) {
 
    /* Send read request */
 
-   hdr[TRANSFER_ID] = IREAD;
+   hdr[TRANSFER_ID] = PDL_IIS_IREAD;
    hdr[THING_COUNT] = 0;
    hdr[SUB_UNIT]   = IMCURSOR;
    hdr[CHECK_SUM]  = 0;
@@ -75,7 +75,7 @@ void iis_drawcirc(float xcen, float ycen, float radius, int colour, int frame) {
 
    /* Send WCS read request */
 
-   hdr[TRANSFER_ID] = -IREAD;
+   hdr[TRANSFER_ID] = -PDL_IIS_IREAD;
    hdr[THING_COUNT] = 0;
    hdr[SUB_UNIT]   = WCS;
    hdr[CHECK_SUM]  = 0;
@@ -132,7 +132,7 @@ void iis_drawcirc(float xcen, float ycen, float radius, int colour, int frame) {
 
       /* Read data */
 
-      hdr[TRANSFER_ID] = -IREAD | PACKED | BLOCKXFER;
+      hdr[TRANSFER_ID] = -PDL_IIS_IREAD | PACKED | BLOCKXFER;
       hdr[THING_COUNT] = -nlines*frameX;
       hdr[SUB_UNIT] = REFRESH;
       hdr[CHECK_SUM] = 0;
@@ -146,7 +146,7 @@ void iis_drawcirc(float xcen, float ycen, float radius, int colour, int frame) {
 
       /* Write data */
 
-      hdr[TRANSFER_ID] = IWRITE | PACKED | BLOCKXFER;
+      hdr[TRANSFER_ID] = PDL_IIS_IWRITE | PACKED | BLOCKXFER;
       hdr[THING_COUNT] = -nlines*frameX;
       hdr[SUB_UNIT] = REFRESH;
       hdr[CHECK_SUM] = 0;

@@ -1,3 +1,12 @@
+CED (10-Mar-2006)
+  Fixed bugs:
+	1435138 (problems with compress on Suse 9.3)
+	1386260 (installation fixes for 64bit linux)
+	1350149 (fatal typo in Graphic::TriD::Rout)
+	1350130 (conflicting defines in Graphics/IIS)
+	1262194 (bad quoting in Core/Dev.pm require statment)
+	1209924 (range() truncate is not setting values bad when truncating)
+
 CED (9-Mar-2006) 
 	Finished fixing the TriD code.  The problem had to do with the 
 	codewalker that harvests function definitions and typedefs from the

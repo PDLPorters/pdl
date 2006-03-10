@@ -34,8 +34,8 @@
 
 /* Transfer ID definitions */
 
-#define  IREAD             0100000
-#define  IWRITE                 00
+#define  PDL_IIS_IREAD             0100000
+#define  PDL_IIS_IWRITE                 00
 #define  PACKED             040000
 #define  BYPASSIFM          020000
 #define  BYTE               010000
