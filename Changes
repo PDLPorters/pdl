@@ -1,4 +1,5 @@
 CED (10-Mar-2006)
+	1338982 (obscure bug reading a FITS file)
 	1220830 (problems with $#$-type scalars in SvPDLV)
 CED (10-Mar-2006)
   Fixed bugs:

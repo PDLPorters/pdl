@@ -386,7 +386,7 @@ sub PDL::rfits {
      do {
        $nbytes += $fh->read($line, 80);
        push(@cards,$line);
-     } while(!$fh->eof() && $line !~ m/^END/);
+     } while(!$fh->eof() && $line !~ m/^END(\s|\000)/);
 
      $nbytes += $fh->read(my $dummy, 2879 - ($nbytes-1)%2880);
 
