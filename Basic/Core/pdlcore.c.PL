@@ -53,7 +53,7 @@ print OUT <<'!HEADER!'
  * (blessed scalars like '$#$foo' get set to zero in perl 5.8.x)
  */
 /*   #define sv_undef(sv) (  (!(sv) || ((sv)==&PL_sv_undef) ) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)) )  */
-#define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) )
+#define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
 !HEADER!
   ;

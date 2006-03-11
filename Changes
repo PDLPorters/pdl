@@ -1,6 +1,7 @@
 CED (10-Mar-2006)
 	1338982 (obscure bug reading a FITS file)
 	1220830 (problems with $#$-type scalars in SvPDLV)
+		- take 2
 CED (10-Mar-2006)
   Fixed bugs:
 	1435138 (problems with compress on Suse 9.3)
