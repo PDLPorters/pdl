@@ -1,3 +1,6 @@
+CED (14-Mar-2006)
+	IO/Dumper.pm: Fix bug in dumper.t in UU:convert-only case
+	t/slatec.t: instrument Slatec test 
 DAL (14-Mar-2006) 
       In Primitive.pd, the uniq family of functions now behave properly when 
       the input piddle has bad values.
