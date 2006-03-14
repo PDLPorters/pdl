@@ -660,6 +660,24 @@ piddle is lost.
 See L<uniqind|uniqind> if you need the indices of the unique
 elements rather than the values.
 
+EOPM
+
+if ( $bvalflag ) {
+	pp_addpm(<<'EOPM');
+=for bad
+
+Bad values are not considered unique by uniq and are ignored.
+
+ $a=sequence(10);
+ $a=$a->setbadif($a%3);
+ print $a->uniq;
+ [0 3 6 9]
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 *uniq = \&PDL::uniq;
@@ -671,6 +689,7 @@ sub PDL::uniq {
   my ($arr) = @_;
   return $arr if($arr->nelem == 0); # The null list is unique (CED)
   my $srt = $arr->clump(-1)->qsort;
+  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
   my $uniq = $srt->where($srt != $srt->rotate(-1));
   # make sure we return something if there is only one value
   return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
@@ -700,6 +719,20 @@ piddle is lost.
 See L<uniq|uniq> if you want the unique values instead of the
 indices.
 
+EOPM
+
+if ($bvalflag ) {
+	pp_addpm(<<'EOPM');
+
+=for bad
+
+Bad values are not considered unique by uniqind and are ignored.
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 *uniqind = \&PDL::uniqind;
@@ -713,14 +746,15 @@ sub PDL::uniqind {
   # Different from uniq we sort and store the result in an intermediary
   my $i_srt = $arr->clump(-1)->qsorti;
   my $srt = $arr->index($i_srt);
+  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
   my $uniqind = which($srt != $srt->rotate(-1));
   # Now map back to the original space
   $uniqind = $i_srt->index($uniqind);	
   # make sure we return something if there is only one value
   return $uniqind->nelem == 0 ? 0 : $uniqind;
 }
-EOPM
 
+EOPM
 
 pp_add_exported '', 'uniqvec';
 pp_addpm << 'EOPM';
@@ -742,6 +776,23 @@ See also L<uniq|uniq> for a uniqe list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
 lexicographcally.
 
+EOPM
+
+if ( $bvalflag ) {
+pp_addpm(<<'EOPM');
+
+=for bad
+
+If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
+If some of the values are good, it is treated as a normal vector. For
+example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
+could not.
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 sub PDL::uniqvec {
@@ -752,7 +803,8 @@ sub PDL::uniqvec {
 	clump($pdl->ndims - 1)->
 	mv(-1,0)->qsortvec->
 	mv(0,-1);
-
+  $srt=$srt->dice($srt->mv(0,-1)->ngoodover->which) if ($PDL::Bad::Status && $srt->badflag);
+##use dice instead of nslice since qsortvec might be packing the badvals to the front of the array instead of the end like the docs say. If that is the case and it gets fixed, it won't bust uniqvec. DAL 14-March 2006
   my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
 
   return $uniq->nelem==0 ? 
