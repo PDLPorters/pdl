@@ -1,3 +1,6 @@
+DAL (14-Mar-2006) 
+      In Primitive.pd, the uniq family of functions now behave properly when 
+      the input piddle has bad values.
 CED (10-Mar-2006)
 	1338982 (obscure bug reading a FITS file)
 	1220830 (problems with $#$-type scalars in SvPDLV)
@@ -10,7 +13,6 @@ CED (10-Mar-2006)
 	1350130 (conflicting defines in Graphics/IIS)
 	1262194 (bad quoting in Core/Dev.pm require statment)
 	1209924 (range() truncate is not setting values bad when truncating)
-
 CED (9-Mar-2006) 
 	Finished fixing the TriD code.  The problem had to do with the 
 	codewalker that harvests function definitions and typedefs from the
