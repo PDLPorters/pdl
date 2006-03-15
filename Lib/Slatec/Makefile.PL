@@ -133,12 +133,13 @@ sub MY::postamble {
         $mycompiler     = $f77->compiler();
         $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@::pack);
+	$hack_64bit = ($ENV{HOSTTYPE}=~m/x86_64/?" -fPIC " : "");
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map {
 ("
 
 slatec/$_\$(OBJ_EXT): slatec/$_.f 
-	$mycompiler -c -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
+	$mycompiler -c $hack_64bit -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
 " )} @slatecfiles;
  
 }

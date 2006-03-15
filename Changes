@@ -1,3 +1,6 @@
+CED (15-Mar-2006)
+	Fix bug 1151418, problems with bad values in matrix multiplication (actually inner).
+	Also: try to debug slatec under 64 bits...
 CED (14-Mar-2006)
 	IO/Dumper.pm: Fix bug in dumper.t in UU:convert-only case
 	t/slatec.t: instrument Slatec test 

@@ -87,6 +87,27 @@ sub byte4swap {
     rename $ofile, $file;
 }
 
+sub byte8swap {
+    my ($file) = @_;
+    my ($ofile) = $file.'~';
+    my ($word);
+
+    my $ifh = IO::File->new( "<$file" )
+      or die "Can't open $file to read";
+    my $ofh = IO::File->new( ">$ofile" )
+      or die "Can't open $ofile to write";
+    binmode $ifh;
+    binmode $ofh;
+    while ( !$ifh->eof ) {
+	$ifh->read( $word, 8 );
+	$word = pack 'c8',reverse unpack 'c8',$word;
+	$ofh->print( $word );
+    }
+    $ofh->close;
+    $ifh->close;
+    rename $ofile, $file;
+}
+
 sub inpath {
   my ($prog) = @_;
   my $pathsep = $^O =~ /win32/i ? ';' : ':';
@@ -210,7 +231,6 @@ EOT
 
     createData $head, $code;
     byte4swap($data);
-
     open(FILE, "> $hdr");
     print FILE <<"EOT";
 # FlexRaw file header
@@ -220,7 +240,7 @@ long 1 1
 $pdltype 1 $ndata
 EOT
     close(FILE);
-
+	
     my @a = readflex($data);
     # print "@a\n";
     my $ok = ($a[0]->at(0) == $ndata);

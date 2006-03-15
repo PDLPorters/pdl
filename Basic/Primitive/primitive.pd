@@ -68,16 +68,18 @@ pp_def(
        Pars => 'a(n); b(n); [o]c();', 
        Code => 
        'double tmp = 0;
+	printf("inner: goodcode\n");
         loop(n) %{ tmp += $a() * $b(); %}
         $c() = tmp;',
        BadCode => 
        'double tmp = 0;
-        int flag = 0;
+        int badflag = 0;
+	printf("inner: badcode\n");
         loop(n) %{ 
-           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); flag = 1; }
+           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); } else { badflag = 1; }
         %}
-        if ( flag ) { $c() = tmp; }
-        else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+        if ( badflag ) { $SETBAD(c()); $PDLSTATESETBAD(c); }
+        else        { $c() = tmp;  }',
        CopyBadStatusCode => '',
        Doc => '
 =for ref
