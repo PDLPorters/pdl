@@ -1,3 +1,6 @@
+CED (16-Mar-2006)
+	Fix bug 1176634 (zeroes/ones from derived classes, e.g. Complex)
+	Test & Incorporate patch 1176619 (formatting of Complex values)
 CED (15-Mar-2006)
 	Fix bug 1151418, problems with bad values in matrix multiplication (actually inner).
 	Also: try to debug slatec under 64 bits...

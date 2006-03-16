@@ -1925,7 +1925,7 @@ for details on using piddles in the dimensions list.
 
 =cut
 
-sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zeroes : PDL->zeroes(@_) }
+sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::zeroes($_[0]) : PDL->zeroes(@_) }
 sub PDL::zeroes {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
@@ -1953,7 +1953,7 @@ for details on using piddles in the dimensions list.
 
 =cut
 
-sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->ones : PDL->ones(@_) }
+sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::ones($_[0]) : PDL->ones(@_) }
 sub PDL::ones {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
