@@ -653,6 +653,74 @@ at_c(x,position)
     OUTPUT:
      RETVAL
 
+SV *
+at_bad_c(x,position)
+   pdl*	x
+   PDL_Long *	pos = NO_INIT
+   CODE:
+    int npos, ipos;
+    double result;
+
+      pdl_make_physvaffine( x );
+
+    pos = pdl_packdims( ST(1), &npos);
+    
+    if (pos == NULL || npos < x->ndims)
+       croak("Invalid position");
+
+    /*  allow additional trailing indices
+     *  which must be all zero, i.e. a
+     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim piddle
+     */
+    for (ipos=x->ndims; ipos<npos; ipos++)
+      if (pos[ipos] != 0)
+         croak("Invalid position");
+
+    result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
+        (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
+	x->ndims);
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT 
+'
+   int badflag = (x->state & PDL_BADVAL) > 0;
+
+';
+
+    # do we have to bother about NaN's?
+    if ( $usenan ) { 
+       print OUT
+'
+   if ( badflag &&
+        ( ( x->datatype < 4 && ( result == pdl_get_badvalue( x->datatype ) ) ) ||
+          ( x->datatype >= 4 && ( finite(result) == 0 ) )
+        )
+      ) {
+	 RETVAL = newSVpvn( "BAD", 3 );
+   } else
+';
+   } else {
+       print OUT
+'
+   if ( badflag && 
+        ( pdl_get_badvalue( x->datatype ) == result )
+      ) {
+	 RETVAL = newSVpvn( "BAD", 3 );
+   } else
+';
+
+   } # if: $usenan
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+    SET_RETVAL_NV(x) ;
+
+    OUTPUT:
+     RETVAL
+
+
 void
 list_c(x)
 	pdl *x

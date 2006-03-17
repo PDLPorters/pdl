@@ -2401,12 +2401,24 @@ in a general context, quite useful too inside PDL internals.
  perldl> p $x->at(1,2)
  7
 
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT<<'!NO!SUBS!';
+=for bad
+
+at converts any bad values into the string 'BAD'.
+
+!NO!SUBS!
+}
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
     barf 'Usage: at($pdl, $x, $y, ...)' if $#_<0;
     my $self = shift;
-    at_c ($self, [@_]);
+    at_bad_c ($self, [@_]);
 }
 
 =head2 sclr

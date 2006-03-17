@@ -1,3 +1,7 @@
+CED (17-Mar-2006)
+	Test & Incorporate patch 1093515 - Marshall's fits.t mod 
+	Test & Incorporate patch 1095517 - Klein's badval support
+
 CED (16-Mar-2006)
 	Fix bug 1176634 (zeroes/ones from derived classes, e.g. Complex)
 	Test & Incorporate patch 1176619 (formatting of Complex values)
