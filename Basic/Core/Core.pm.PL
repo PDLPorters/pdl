@@ -12,7 +12,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use vars qw( $bvalflag $usenan );
+use vars qw( $bvalflag $usenan $bvalPerPdl );
 require "badsupport.p";
 require 'Types.pm';
 PDL::Types->import(':All');

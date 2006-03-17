@@ -1,7 +1,10 @@
 CED (17-Mar-2006)
 	Test & Incorporate patch 1093515 - Marshall's fits.t mod 
 	Test & Incorporate patch 1095517 - Klein's badval support
-
+	Test & Incorporate patch 1099405 - Klein's per-PDL badval support.
+		(per-PDL badval support currently breaks the test suite and should be
+		considered experimental only.)
+	Remove debugging lines from 1151418 fix (yesterday)
 CED (16-Mar-2006)
 	Fix bug 1176634 (zeroes/ones from derived classes, e.g. Complex)
 	Test & Incorporate patch 1176619 (formatting of Complex values)

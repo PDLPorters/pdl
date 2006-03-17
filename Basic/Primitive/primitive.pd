@@ -68,13 +68,11 @@ pp_def(
        Pars => 'a(n); b(n); [o]c();', 
        Code => 
        'double tmp = 0;
-	printf("inner: goodcode\n");
         loop(n) %{ tmp += $a() * $b(); %}
         $c() = tmp;',
        BadCode => 
        'double tmp = 0;
         int badflag = 0;
-	printf("inner: badcode\n");
         loop(n) %{ 
            if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); } else { badflag = 1; }
         %}

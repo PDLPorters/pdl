@@ -19,6 +19,7 @@ use strict;
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
+my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 #########################################################
 
@@ -491,6 +492,31 @@ _badvalue_int${i}(val=0)
     RETVAL
 
 pdl *
+_badvalue_per_pdl_int${i}(pdl_val, val=0)
+    pdl* pdl_val
+    double val
+  CODE:
+   {
+    $init_code
+    if ( items > 1 ) {
+       pdl_val->badvalue = val;
+       pdl_val->has_badvalue = 1;
+       PDL->propogate_badvalue( pdl_val );
+    }
+
+    if (pdl_val->has_badvalue == 0) {
+       *data = ($ctype) $storage;
+    } else {
+       *data = ($ctype) pdl_val->badvalue;
+    }
+
+    RETVAL = p;
+   }
+  OUTPUT:
+    RETVAL
+
+
+pdl *
 _default_badvalue_int${i}()
   CODE:
     $init_code
@@ -500,6 +526,8 @@ _default_badvalue_int${i}()
     RETVAL
 
 ";
+
+
 
 } # foreach: $i = 0 .. $ntypes
 
@@ -527,6 +555,16 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
+
+	if ($PDL::Config{BADVAL_PER_PDL}) {
+	    my $name = "PDL::_badvalue_per_pdl_int$num";
+	    if ( defined $val ) {
+		return &{$name}($self, $val )->sclr;
+	    } else {
+		return &{$name}($self)->sclr;
+	    }
+	}
+
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {

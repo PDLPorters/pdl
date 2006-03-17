@@ -5,10 +5,13 @@ use File::Basename qw(&basename &dirname);
 
 require "pdl_hfiles.p";
 require "mymalloc.p";
+require "badsupport.p";
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
+
+
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -222,6 +225,8 @@ typedef struct pdl_transvtable {
 					(means whether malloced or not) */ \
         pdl *pdls[np]; /* The pdls involved in the transformation */ \
         int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
+        int has_badvalue; \
+        double badvalue; \
 	int __datatype
 
 #define PDL_TR_MAGICNO 0x91827364
@@ -312,6 +317,11 @@ struct pdl {
 
    void *datasv;	/* Pointer to SV containing data. Refcnt inced */
    void *data;		  /* Null: no data alloced for this one */
+
+   /* bad value stored as double, since get_badvalue returns a double */
+   double badvalue;
+   int has_badvalue;    /* required by pdlapi.c */
+
    int nvals;		/* How many values allocated */
    int datatype;
    PDL_Long   *dims;      /* Array of data dimensions */

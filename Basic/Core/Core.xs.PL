@@ -9,7 +9,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use vars qw( $bvalflag $usenan );
+use vars qw( $bvalflag $usenan $bvalPerPdl );
 require "badsupport.p";
 
 # are we big or little endian?
@@ -270,6 +270,29 @@ void propogate_badflag( pdl *it, int newval ) {
 
 #endif    /* FOOFOO_PROPOGATE_BADFLAG */
 
+void propogate_badvalue( pdl *it ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; i++ ) {
+	    
+	    pdl *child = trans->pdls[i];
+
+            child->has_badvalue = 1;
+            child->badvalue = it->badvalue;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badvalue( child );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* propogate_badvalue */
+
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
 double pdl_get_badvalue( int datatype ) {
@@ -300,6 +323,33 @@ print OUT <<'!NO!SUBS!';
     }
     return retval;
 } /* pdl_get_badvalue() */
+
+
+double pdl_get_pdl_badvalue( pdl *it ) {
+    double retval;
+    int datatype;
+
+!NO!SUBS!
+
+	if ($bvalPerPdl) {
+	    print OUT '
+    if (it->has_badvalue) {
+        retval = it->badvalue;
+    } else {
+        datatype = it->datatype;
+        retval = pdl_get_badvalue( datatype );
+    }
+';
+	} else {
+    print OUT '
+    datatype = it->datatype;
+    retval = pdl_get_badvalue( datatype );
+';
+        }
+print OUT <<'!NO!SUBS!';
+    return retval;
+} /* pdl_get_pdl_badvalue() */
+
 
 !NO!SUBS!
 
@@ -781,14 +831,14 @@ if ( $bvalflag ) {
        print OUT
 '
    if ( badflag && x->datatype < 4 ) {
-      pdl_badval = pdl_get_badvalue( x->datatype ); 
+      pdl_badval = pdl_get_pdl_badvalue( x ); 
    }
 ';
    } else {
        print OUT
 '
    if ( badflag ) {
-      pdl_badval = pdl_get_badvalue( x->datatype ); 
+      pdl_badval = pdl_get_pdl_badvalue( x ); 
    }
 ';
 
@@ -953,7 +1003,8 @@ if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
 
     PDL.propogate_badflag = propogate_badflag;
-
+    PDL.propogate_badvalue = propogate_badvalue;
+    PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
 !NO!SUBS!
 
   for my $type (PDL::Types::types) {

@@ -665,6 +665,8 @@ $PDL::PP::deftbl =
  			= malloc(sizeof($_[2]));" .
 			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);") .
 "			PDL_TR_CLRMAGIC(__copy);
+                        __copy->has_badvalue = \$PRIV(has_badvalue);
+                        __copy->badvalue = \$PRIV(badvalue);
 			__copy->flags = \$PRIV(flags);
 			__copy->vtable = \$PRIV(vtable);
 			__copy->__datatype = \$PRIV(__datatype);
@@ -961,7 +963,8 @@ sub coerce_types {
 	die "ERROR: expected $child to be [oca]\n"
 	    unless $parobjs->{$child}{FlagCreateAlways};
 	
-	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
+#	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
+	return "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n" if $hasp2child;
     }
 
     my $str = "";
@@ -1015,7 +1018,8 @@ sub find_datatype {
     die "ERROR: gentypes != $ntypes with p2child\n"
 	if $hasp2child and $#$gentypes != $ntypes;
     
-    return "$dtype = $$parnames[0]\->datatype;\n"
+#    return "$dtype = $$parnames[0]\->datatype;\n"
+    return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
 	if $hasp2child;
     
     my $str = "$dtype = 0;";

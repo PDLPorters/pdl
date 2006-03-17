@@ -24,7 +24,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 72;
+    plan tests => 75;
 } else {
     # reduced testing
     plan tests => 10;
@@ -449,6 +449,26 @@ if ( $PDL::Config{BADVAL_USENAN} || 0 ) {
     is( float->badvalue, float->orig_badvalue, "default bad value for floats matches" );
     is( float->badvalue(23), 23, "changed floating-point bad value" );
     float->badvalue( float->orig_badvalue );
+}
+
+if ( $PDL::Config{BADVAL_PER_PDL} ) {
+    $a = sequence(4);
+    $a->badvalue(3);
+    $a->badflag(1);
+    $b = $a->slice('2:3');
+    is( $b->badvalue, 3 );
+    is( $b->sum, 2);
+
+    $a = sequence(4);
+    is ($a->badvalue, double->orig_badvalue);
+} else {
+    $a = double(4);
+    double->badvalue(3);
+    is($a->badvalue, double->badvalue);
+    double->badvalue(double->orig_badvalue);
+    SKIP: {
+	skip ("Skipped: test only valid when enabling bad values per pdl", 2);
+    }
 }
 
 # end

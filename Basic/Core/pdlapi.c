@@ -127,6 +127,7 @@ pdl* pdl_create(int type) {
      it->sv = NULL;
      it->datasv = 0;
      it->data = 0;
+     it->has_badvalue = 0;
 
      it->dims = it->def_dims;
      it->dimincs = it->def_dimincs;
