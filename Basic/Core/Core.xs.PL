@@ -708,7 +708,7 @@ at_bad_c(x,position)
    pdl*	x
    PDL_Long *	pos = NO_INIT
    CODE:
-    int npos, ipos;
+    int npos, ipos, badflag;
     double result;
 
       pdl_make_physvaffine( x );
@@ -735,7 +735,7 @@ at_bad_c(x,position)
 if ( $bvalflag ) {
     print OUT 
 '
-   int badflag = (x->state & PDL_BADVAL) > 0;
+   badflag = (x->state & PDL_BADVAL) > 0;
 
 ';
 
