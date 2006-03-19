@@ -1,6 +1,9 @@
+SIS (19-Mar-2006)
+      Alteration to Basic/Core/Makefile.PL to enable proper inclusion
+      of badvalues on nmake-built PDL (Win32 only).
 SIS (18-Mar-2006)
-        Small change to Basic/Core/Core.xs.PL's at_bad_c function so
-        it will compile with Microsoft compilers.
+      Small change to Basic/Core/Core.xs.PL's at_bad_c function so
+      it will compile with Microsoft compilers.
 CED (17-Mar-2006)
 	Test & Incorporate patch 1093515 - Marshall's fits.t mod 
 	Test & Incorporate patch 1095517 - Klein's badval support
