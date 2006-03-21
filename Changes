@@ -1,3 +1,6 @@
+SIS (21-Mar-2006)
+      'use blib;' added to Demos/BAD_demo.pm.PL and Demos/BAD2_demo.pm.PL to work around
+      EU::MM-6.30 bug.
 SIS (19-Mar-2006)
       Alteration to Basic/Core/Makefile.PL to enable proper inclusion
       of badvalues on nmake-built PDL (Win32 only).
