@@ -16,7 +16,7 @@ sub tapprox {
 }
 
 # more tests required; anybody?
-print "1..11\n";
+print "1..12\n";
 $testNo = 1;
 
 $ref = pdl([[-2,1],[-3,1]]);
@@ -49,4 +49,12 @@ ok($testNo++, ref Cabs2 $a eq 'PDL');
 ok($testNo++, ref Carg $a eq 'PDL');
 ok($testNo++, tapprox($cabs, Cabs $a));
 ok($testNo++, tapprox($cabs**2, Cabs2 $a));
+
+# Check cat'ing of PDL::Complex
+# This was broken before Mar-06 in CVS, due
+#   to a bug in PDL::Complex::initialize
+$b = $a->copy + 1;
+my $bigArray = $a->cat($b);
+ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
+
 

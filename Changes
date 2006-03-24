@@ -1,3 +1,7 @@
+JLC (23-Mar-2006)
+     Fixed bug in PDL::Complex::initialize that caused problems when
+     using PDL->cat with PDL::Complex objects. Added to the complex.t
+     test case to check for this condition.
 SIS (21-Mar-2006)
       'use blib;' added to Demos/BAD_demo.pm.PL and Demos/BAD2_demo.pm.PL to work around
       EU::MM-6.30 bug.

@@ -869,7 +869,9 @@ sub _gen_cpop {
 }
 
 sub initialize {
-   bless PDL->null, $_[0];
+   # Bless a null PDL into the supplied 1st arg package
+   #   If 1st arg is a ref, get the package from it
+   bless PDL->null, ref($_[0]) ? ref($_[0]) : $_[0];
 }
 
 use overload
