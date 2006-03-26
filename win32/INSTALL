@@ -3,16 +3,20 @@ Installing on Win32
 
 It's dead easy !!
 
+First up - if you don't want to accept a "default" build of PDL, edit (the
+self-documenting) perldl.conf accordingly. You'll find that file in the top
+level folder.
+
 To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
 ----------------------------------------------------------------------
 
-1) Make sure you have MinGW.
-   You can get MinGW from http://www.mingw.org. Simplest way to install
+1) You can get MinGW from http://www.mingw.org. Simplest way to install
    is to download the latest MinGW '.exe' from the Download page, and
    then run the downloaded executable to install MinGW into the location
    of your choice.
 
-2) If you want Slatec, install ExtUtils::F77-1.15 (or later) from CPAN.
+2) If you want to build PDL with Slatec support, install ExtUtils::F77-1.15
+   (or later) from CPAN.
 
 3) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
 
