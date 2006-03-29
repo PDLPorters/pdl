@@ -1,3 +1,11 @@
+JT (29-Mar-2006)
+    Added in the PDL::IO::HDF module, version 2.0, which has been
+    extensively reworked (see the Changes doc in that dir for more
+    info on those changes). Added new entries to the perldl.conf file, 
+    modified some of the Makefile.PL's to have that build, and added
+    test files to the t/ directory.
+    This also fixes bugs 1432707 and 1432720.
+
 JLC (23-Mar-2006)
      Fixed bug in PDL::Complex::initialize that caused problems when
      using PDL->cat with PDL::Complex objects. Added to the complex.t
@@ -282,7 +290,7 @@ CED 17-Sep-04
    - removed "$temp" magic variable from perldl -- now it's only available in 
      the "PERLDL" package.  (assigning to $temp crashed perldl; this fixes that.)
 CS 15-Sep-04
-   - complex.pd: applied Vanuxem Gr‚©gory's patch and added some tests;
+   - complex.pd: applied Vanuxem Grgory's patch and added some tests;
                  should close bug 1010164
 CED 15-Sep-04
    - primitive.pd: Fix to statsover
@@ -1432,7 +1440,7 @@ DJB (14/Mar/01)
       #408589 (draw_wedge() erasing plot) for simple cases (15/Mar/01)
 DJB (27/Feb/01)
     - addressed PDL::Func bugs/doc issues as reported by 
-      HalldBBŽBBBŽBBBŽsr Olafsson and Vince McIntyre (bug #233484)
+      HalldBBBBBBBBsr Olafsson and Vince McIntyre (bug #233484)
 CS  - fix bug in pow in math.pd (reported on perldl mailing list)
 CS  - fixed bug in writing pnms (bug #127696)
     - Core.pm: temporary fix to work around core bug (see comments

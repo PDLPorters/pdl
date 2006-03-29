@@ -1,0 +1,39 @@
+#
+# PDL::IO::HDF
+#
+# Version 2.0 TODO:
+#    We get there and it'll be included in the main PDL distribution!
+#
+# Judd Taylor, USF IMaRS
+# 17 March 2006
+#
+
+############
+# General: #
+############
+    
+    Internally, everything should be using Class::Accessor methods, to seperate the naming semantics...
+    
+    I've always wanted better error handling, but that's a little ambitious for this version.
+    The current error handling is to just die, but that's a major pain, since you may just want
+        to open HDF files as a test and do something else if it fails.
+        If the sub doesn't just die(), then it returns alls sorts of things currently (0, [], undef)
+        
+    I prefer lazy population of information, as it speeds up doing simple things on the files 
+        greatly. [NOTE: I've also written my own HDF4 C++ lib, and it works great there].
+        
+    Real OO re-design and re-implementation (not for this version, though).
+        
+
+##########
+# Tests: #
+##########
+
+
+##################
+# Documentation: #
+##################
+    
+    The VS.pd file needs a lot more documentation.
+    
+    

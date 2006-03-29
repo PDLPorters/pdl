@@ -50,7 +50,7 @@ print FOO <<"FOO";
 all: complex.o eigen.o matrix.o sslib.o
 
 %.o: %.c Makefile
-	cc $ccflags -c -O3 \$<
+	cc $ccflags -fPIC -c -O3 \$<
 
 clean:
 	-mv Makefile Makefile.old
