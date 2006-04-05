@@ -37,14 +37,18 @@ use Test;
 BEGIN
 {   
     eval( " use PDL::Transform::Proj4; " );
-    if( !($@) && hasDISPLAY() )
+    if( !($@) 
+      && $PDL::Config{OPENGL_LIBS} 
+      && $PDL::Config{WITH_3D} 
+      && $PDL::Config{GL_BUILD} 
+      && hasDISPLAY() )
     {
-        plan tests => 1;
+        plan tests => 3;
     }
     else
     {
         plan tests => 1;
-        skip( "Skipped: PDL::Transform::Proj4 requires the Proj4 module.", 1, 1 );
+        skip( "Skipped: PDL::Transform::Proj4 requires the Proj4 & TridD module.", 1, 1 );
         exit;
     }
 }
@@ -87,16 +91,16 @@ sub draw
 
 my $cyl_eq = "+proj=eqc +lon_0=0";
 draw( t_proj( proj_params => $cyl_eq ), "Proj4 - \'$cyl_eq\'", $map_size );
+ok(1);
 
 my $ortho = "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40";
 draw( t_proj( proj_params => $ortho ), "Proj4 - \'$ortho\'", $map_size );
+ok(1);
 
 #
 # Test the auto-generated methods:
 #
 draw( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), "Proj4 - t_proj_orhto()", $map_size );
-
-#sleep 600;
-
 ok(1);
+
 
