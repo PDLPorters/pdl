@@ -106,49 +106,16 @@ BEGIN
     my $cpu = `uname -m`;
     chomp $cpu;
     my $hdf_defs;
-    my $optimize = "-O3";
     if ($cpu eq 'x86_64') {
         $hdf_defs = "-DSWAP -DNDEBUG -DHDF -DBIG_LONGS -DIA64 " .
                     "-D_BSD_SOURCE -DLINUX -DGCC32";
-        $optimize .= " -m64";
     }
     elsif ($cpu eq 'i686') {
         $hdf_defs = "-DNDEBUG -D_BSD_SOURCE -DLINUX -DGCC32";
     }
     else {
-        print "WARNING: Unknown cpu type $cpu! Not setting \$optimize or \$hdf_defs. (This may not be a bad thing)\n";
+        print "WARNING: Unknown cpu type $cpu! Not setting \$hdf_defs. (This may not be a bad thing)\n";
     }
-    if ( -e "/proc/cpuinfo" )
-    {
-        open(CPUINFO, "/proc/cpuinfo") 
-            or die "Can't open /proc/cpuinfo for reading!\n";
-        my $end = $/; 
-        $/ = undef;
-        $cpuinfo = <CPUINFO>;
-        close CPUINFO; 
-        $/ = $end;
-    
-        if ( $cpuinfo =~ /Intel\(R\)\ XEON\(TM\)\ CPU/ ) 
-        {
-            $optimize .= " -march=pentium4";
-        }
-        elsif ( $cpuinfo =~ /AMD\ Athlon\(tm\)\ XP/ ) 
-        {
-            $optimize .= " -march=athlon-xp";
-        }
-        if ( $cpuinfo =~ /\ sse\ / ) 
-        {
-            $optimize .= " -msse -mfpmath=sse";
-        }
-        foreach my $flag ( 'sse2', 'mmx', '3dnow' )
-        {
-            if ($cpuinfo =~ /\ $flag\ /) 
-            {
-                $optimize .= " -m$flag";
-            }
-        }
-    }
-    print "\nFinal \$optimize flags: \'$optimize\'\n";
     print "Final \$hdf_defs flags: \'$hdf_defs\'\n\n";
     
     
@@ -187,7 +154,7 @@ WriteMakefile(
     NAME => 'PDL::IO::HDF',
     CCFLAGS => $define_bool,
     DEFINE => $hdf_defs,
-    OPTIMIZE => "$optimize $hdf_defs",
+    #OPTIMIZE => "$hdf_defs",
     VERSION_FROM => 'HDF.pm',
     TYPEMAPS => [ &PDL_TYPEMAP() ],
     PM => {
