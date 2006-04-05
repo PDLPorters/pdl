@@ -8,6 +8,7 @@ PDL::Core::Dev->import();
 # Depends on ExtUtils::F77
 
 BEGIN {
+   $donot = 0;
    $msg = ""; $forcebuild=0;
 
    if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==0) {
@@ -19,11 +20,6 @@ BEGIN {
       print "\n   Will forcibly try and build PDL::Slatec on this system   \n\n";
       $forcebuild=1;
    }
-
-#    if ($^O =~ /win32/i) {
-#       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
-#       goto skip unless $forcebuild;
-#    }
 
    if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
      print "loading F77 configuration from $PDL::Config{F77CONF}...\n";
