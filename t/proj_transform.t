@@ -56,10 +56,8 @@ BEGIN
 #
 
 ### Load the necessary modules
-#use PDL::Graphics::PGPLOT::Window;
 use PDL::Graphics::TriD;
-use PDL::Graphics::TriD::Image;
-$PDL::Graphics::TriD::verbose = 1;
+#$PDL::Graphics::TriD::verbose = 1;
 
 use PDL::Transform::Cartography;
 use PDL::Transform::Proj4;
@@ -68,19 +66,13 @@ use PDL::Transform::Proj4;
 ### RGB daytime image -- both of these are built-in to the module. The
 ### coastline map is a set of (X,Y,Pen) vectors.
 my $coast = earth_coast()->glue( 1, graticule(15,1) );
-print STDERR "Coastline data are a collection of vectors:  " . join("x",$coast->dims) . "\n";
 
-my $map_full = earth_image( 'day' );
-
-# I think the dims are too large for TriD!
-#my $map = $map_full->slice("0:-1:2,0:-1:2,:")->sever();
-my $map = $map_full;
-print STDERR "Map data are RGB:   " . join("x",$map->dims) . "\n\n";
+my $map = earth_image( 'day' );
 
 $map->badflag(1);
 
 #my $screen_size = [15,8];
-my $map_size = [800,600];
+my $map_size = [500,500];
 
 sub draw 
 {
