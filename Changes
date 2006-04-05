@@ -1,3 +1,9 @@
+SIS (2-Apr-2006)
+     Fix bug that in Lib/Slatec/Makefile.PL that could prevent the
+     Makefile from being written.
+     Have Basic/Core/Dev.pm's pdlpp_postamble() return nothing for dmake.
+     (A call to pdlpp_postamble() was breaking dmake - but dmake has not yet
+     needed such a postamble anyway.)
 JT (29-Mar-2006)
     Added in the PDL::IO::HDF module, version 2.0, which has been
     extensively reworked (see the Changes doc in that dir for more
