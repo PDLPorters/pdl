@@ -1,3 +1,6 @@
+DAL (5-Apr-2006)
+     FAQ update. Perl/PDL versions, links, etc.  No new questions added. 
+     Fixes bug 88964.
 SIS (2-Apr-2006)
      Fix bug that in Lib/Slatec/Makefile.PL that could prevent the
      Makefile from being written.
