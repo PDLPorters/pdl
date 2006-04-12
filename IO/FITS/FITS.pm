@@ -401,6 +401,7 @@ sub PDL::rfits {
      ## Deprecated but preserved.
      
      hdr_legacy: { do {
+       no strict 'refs';
        # skip if the first eight characters are ' '
        # - as seen in headers from the DSS at STScI
        next if substr($line,0,8) eq " " x 8;
