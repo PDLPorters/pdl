@@ -192,3 +192,15 @@ so_locations
 ^win32/pbmwin32.tar.gz
 ^Lib/GSL/RNG\.(pm|xs|c)
 \.bundle$
+^IO/HDF/SD/SD\.c
+^IO/HDF/SD/SD\.pm
+^IO/HDF/SD/SD\.xs
+^IO/HDF/VS/VS\.c
+^IO/HDF/VS/VS\.pm
+^IO/HDF/VS/VS\.xs
+^IO/GD/GD\.c
+^IO/GD/GD\.pm
+^IO/GD/GD\.xs
+^Lib/GIS/Proj/Proj\.c
+^Lib/GIS/Proj/Proj\.pm
+^Lib/GIS/Proj/Proj\.xs

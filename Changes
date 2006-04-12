@@ -1,3 +1,5 @@
+JT  (12-Apr-2006)
+    Added the PDL::IO::GD module, and tests.
 JT  (5-Apr-2006)
     Added the PDL::GIS::Proj and PDL::Transform::Proj4 modules and
     matching tests to t/ directory.

@@ -1,0 +1,1861 @@
+#
+# GD.pd
+#
+# PDL interface to the GD c library
+#   ('cos looping over a piddle in perl and using the perl GD lib is too slow...)
+#
+# Judd Taylor, USF IMaRS
+# 13 March 2003
+#
+
+use strict;
+use PDL;
+use vars qw( $VERSION );
+
+$VERSION = "2.0";
+
+#####################################
+# Start the General Interface Docs: #
+#####################################
+
+pp_addpm({ At => 'Top' }, <<'ENDPM');
+=head1 NAME
+
+PDL::IO::GD - Interface to the GD image library.
+
+=head1 SYNOPSIS
+
+ my $pdl = sequence(byte, 30, 30);
+ write_png($pdl, load_lut($lutfile), "test.png");
+
+ write_true_png(sequence(100, 100, 3), "test_true.png");
+
+ my $image = read_png("test.png");
+
+ my $image = read_true_png("test_true_read.png");
+ write_true_png($image, "test_true_read.out.png");
+
+ my $lut = read_png_lut("test.png");
+
+ $pdl = sequence(byte, 30, 30);
+ write_png_ex($pdl, load_lut($lutfile), "test_nocomp.png", 0);
+ write_png_ex($pdl, load_lut($lutfile), "test_bestcomp1.png", 9);
+ write_png_best($pdl, load_lut($lutfile), "test_bestcomp2.png");
+
+ $pdl = sequence(100, 100, 3);
+ write_true_png_ex($pdl, "test_true_nocomp.png", 0);
+ write_true_png_ex($pdl, "test_true_bestcomp1.png", 9);
+ write_true_png_best($pdl, "test_true_bestcomp2.png");
+
+ recompress_png_best("test_recomp_best.png");
+
+=head1 DESCRIPTION
+
+This is the "General Interface" for the PDL::IO::GD library, and is actually several
+years old at this point (read: stable). If you're feeling frisky, try the new OO 
+interface described below.
+
+The general version just provides several image IO utility functions you can use with
+piddle variables. It's deceptively useful, however.
+
+=cut
+ENDPM
+
+
+###########################
+# General Interface Code: #
+###########################
+
+
+# needed header files:
+pp_addhdr(<<'EOH');
+
+#include "gd.h"
+
+#include "gdfontl.h"
+#include "gdfonts.h"
+#include "gdfontmb.h"
+#include "gdfontg.h"
+#include "gdfontt.h"
+
+#include <stdio.h>
+
+#define PKG "PDL::IO::GD"
+
+EOH
+
+# Function to write a PNG image from a piddle variable:
+pp_def( 'write_png',
+        Pars => 'byte img(x,y); byte lut(i,j);',
+        OtherPars => 'char* filename',
+        Doc => <<'ENDDOC',
+Writes a 2-d PDL varable out to a PNG file, using the supplied color look-up-table piddle
+(hereafter referred to as a LUT).
+
+The LUT contains a line for each value 0-255 with a corresponding R, G, and B value.
+ENDDOC
+        Code => <<'EOC' );
+
+gdImagePtr im;
+int xsize, ysize, tmp, ind, x2, y2;
+char str[255];
+FILE *out;
+
+if ($SIZE(i) != 3 || $SIZE(j) > 256)
+{
+    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+
+im = gdImageCreate(xsize, ysize);
+
+/* Set up the color palette */
+for(ind = 0; ind < $SIZE(j); ind++)
+{
+    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    if (tmp != ind)
+    {
+        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        croak(str);
+    }
+}
+
+/* render the data */
+for( y2 = 0; y2 < $SIZE(y); y2++ )
+{
+    for( x2 = 0; x2 < $SIZE(x); x2++ )
+    {
+        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
+    }
+}
+
+/* write the image to the file */
+out = fopen($COMP(filename), "wb");
+
+gdImagePng(im, out);
+
+fclose(out);
+
+gdImageDestroy(im);
+
+EOC
+
+# Function to write a PNG image from a piddle variable, accepting a compression
+#    level argument:
+pp_def( 'write_png_ex',
+        Pars => 'img(x,y); lut(i,j);',
+        OtherPars => 'char* filename; int level',
+        Doc => <<'ENDDOC',
+Same as write_png(), except you can specify the compression level (0-9) as the last arguement.
+ENDDOC
+        Code => <<'EOC' );
+
+gdImagePtr im;
+int xsize, ysize, tmp, ind, x2, y2;
+char str[255];
+FILE *out;
+
+if( $COMP(level) < -1 || $COMP(level) > 9 )
+{
+    sprintf(str, "Invalid compression level %d, should be [-1,9]!\n", 
+        $COMP(level) );
+    croak(str);
+}
+
+if ($SIZE(i) != 3 || $SIZE(j) > 256)
+{
+    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+
+im = gdImageCreate(xsize, ysize);
+
+/* Set up the color palette */
+for(ind = 0; ind < $SIZE(j); ind++)
+{
+    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    if (tmp != ind)
+    {
+        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        croak(str);
+    }
+}
+
+/* render the data */
+for( y2 = 0; y2 < $SIZE(y); y2++ )
+{
+    for( x2 = 0; x2 < $SIZE(x); x2++ )
+    {
+        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
+    }
+}
+
+/* write the image to the file */
+out = fopen($COMP(filename), "wb");
+
+gdImagePngEx(im, out, $COMP(level));
+
+fclose(out);
+
+gdImageDestroy(im);
+
+EOC
+
+# Function to write a TRUE COLOR PNG image from a piddle variable:
+pp_def( 'write_true_png',
+        Pars => 'img(x,y,z);',
+        OtherPars => 'char* filename',
+        Doc => <<'ENDDOC',
+Writes an (x, y, z(3)) PDL varable out to a PNG file, using a true color format.
+
+This means a larger file on disk, but can contain more than 256 colors.
+ENDDOC
+        Code => <<'EOC' );
+
+gdImagePtr im;
+int xsize, ysize, x2, y2;
+char str[255];
+FILE *out;
+
+if ($SIZE(z) != 3)
+{
+    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+            $SIZE(x), $SIZE(y), $SIZE(z) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+im = gdImageCreateTrueColor(xsize, ysize);
+
+/* render the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        gdImageSetPixel(im, x2, y2,
+            gdImageColorResolve(im,
+                $img(x=>x2,y=>y2,z=>0),
+                $img(x=>x2,y=>y2,z=>1),
+                $img(x=>x2,y=>y2,z=>2)
+            )
+        );
+    }
+}
+/* write the image to the file */
+out = fopen($COMP(filename), "wb");
+gdImagePng(im, out);
+fclose(out);
+gdImageDestroy(im);
+EOC
+
+# Function to write a TRUE COLOR PNG image from a piddle variable, 
+#    with the specified compression level:
+pp_def( 'write_true_png_ex',
+        Pars => 'img(x,y,z);',
+        OtherPars => 'char* filename; int level',
+        Doc => <<'ENDDOC',
+Same as write_true_png(), except you can specify the compression level (0-9) as the last arguement.
+ENDDOC
+        Code => <<'EOC' );
+
+gdImagePtr im;
+int xsize, ysize, x2, y2;
+char str[255];
+FILE *out;
+
+if( $COMP(level) < -1 || $COMP(level) > 9 )
+{
+    sprintf(str, "Invalid compression level %d, should be [-1,9]!\n", 
+        $COMP(level) );
+    croak(str);
+}
+
+if ($SIZE(z) != 3)
+{
+    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+            $SIZE(x), $SIZE(y), $SIZE(z) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+im = gdImageCreateTrueColor(xsize, ysize);
+
+/* render the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        gdImageSetPixel(im, x2, y2,
+            gdImageColorResolve(im,
+                $img(x=>x2,y=>y2,z=>0),
+                $img(x=>x2,y=>y2,z=>1),
+                $img(x=>x2,y=>y2,z=>2)
+            )
+        );
+    }
+}
+/* write the image to the file */
+out = fopen($COMP(filename), "wb");
+gdImagePngEx( im, out, $COMP(level) );
+fclose(out);
+gdImageDestroy(im);
+EOC
+
+#
+# Add some perl level alias functions to automatically use the best compression
+#
+pp_addpm(<<'ENDPM');
+
+=head2 write_png_best( $img(piddle), $lut(piddle), $filename )
+
+Like write_png(), but it assumes the best PNG compression (9).
+
+=cut
+sub write_png_best
+{
+    my $img = shift;
+    my $lut = shift;
+    my $filename = shift;
+    return write_png_ex( $img, $lut, $filename, 9 );
+} # End of write_png_best()...
+
+=head2 write_true_png_best( $img(piddle), $filename )
+
+Like write_true_png(), but it assumes the best PNG compression (9).
+
+=cut
+sub write_true_png_best
+{
+    my $img = shift;
+    my $filename = shift;
+    return write_true_png_ex( $img, $filename, 9 );
+} # End of write_true_png_best()...
+
+ENDPM
+# End of best copression aliases
+pp_add_exported( '', 'write_png_best write_true_png_best' );
+
+#
+# Function to recompress PNG files with the best compression available:
+#    NOTE: libgd doesn't return anything, so there's nothing to check!
+pp_addpm( '', <<'ENDPM' );
+=head2 recompress_png_best( $filename )
+
+Recompresses the given PNG file using the best compression (9).
+
+=cut
+ENDPM
+pp_addxs( '', <<'ENDXS' );
+
+void
+recompress_png_best(char* filename)
+    CODE:
+        gdImagePtr im;
+        FILE* file;
+        file = fopen(filename, "rb");
+        im = gdImageCreateFromPng(file);
+        fclose(file);
+        file = fopen(filename, "wb");
+        gdImagePngEx( im, file, 9 );
+        fclose(file);
+        gdImageDestroy(im);
+
+ENDXS
+pp_add_exported( '', 'recompress_png_best' );
+# End of recompress_png_best() XS code...
+
+pp_addpm(<<'EOPM');
+
+=head2 load_lut( $filename )
+
+Loads a color look up table from an ASCII file. returns a piddle
+
+=cut
+sub load_lut
+{
+    return xchg(byte(cat(rcols(shift))), 0, 1);
+} # end of load_lut()...
+
+=head2 read_png( $filename )
+
+Reads a (palette) PNG image into a (new) PDL variable.
+
+=cut
+sub read_png
+{
+    my $filename = shift;
+
+    # Get the image dims...
+    my $x = _get_png_xs($filename);
+    my $y = _get_png_ys($filename);
+    #print "\$x=$x\t\$y=$y\n";
+
+    my $temp = zeroes(long, $x, $y);
+    _read_png($temp, $filename);
+    return byte($temp);
+} # End of read_png()...
+
+=head2 read_png_true( $filename )
+
+Reads a true color PNG image into a (new) PDL variable.
+
+=cut
+sub read_true_png
+{
+    my $filename = shift;
+
+    # Get the image dims...
+    my $x = _get_png_xs($filename);
+    my $y = _get_png_ys($filename);
+    #print "\$x=$x\t\$y=$y\n";
+
+
+    my $temp = zeroes(long, $x, $y, 3);
+    _read_true_png($temp, $filename);
+    return byte($temp);
+} # End of read_png()...
+
+
+EOPM
+
+pp_add_exported('', 'load_lut read_png read_true_png');
+
+pp_addxs('', <<'EOXS');
+int
+_get_png_xs(char* filename)
+    CODE:
+        gdImagePtr im;
+        FILE* in;
+
+        in = fopen(filename, "rb");
+        im = gdImageCreateFromPng(in);
+        fclose(in);
+        RETVAL = gdImageSX(im);
+        gdImageDestroy(im);
+    OUTPUT:
+        RETVAL
+
+int
+_get_png_ys(char* filename)
+    CODE:
+        gdImagePtr im;
+        FILE* in;
+
+        in = fopen(filename, "rb");
+        im = gdImageCreateFromPng(in);
+        fclose(in);
+        RETVAL = gdImageSY(im);
+        gdImageDestroy(im);
+    OUTPUT:
+        RETVAL
+EOXS
+
+# Function to read a TRUE COLOR PNG image into a piddle variable:
+pp_def( '_read_true_png',
+        Pars => 'int [o] img(x,y,z);',
+        OtherPars => 'char* filename',
+        Doc => <<'ENDDOC',
+Internal use only! 
+
+Use read_true_png() instead! 
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'EOC' );
+gdImagePtr im;
+int xsize, ysize, x2, y2, z2;
+char* func = "PDL::IO::GD::_read_png(): ";
+char str[255];
+FILE *in = NULL;
+
+in = fopen($COMP(filename), "rb");
+if ( in == NULL )
+{
+    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
+    croak(str);
+}
+
+im = gdImageCreateFromPng(in);
+if ( im == NULL )
+{
+    sprintf(str, "%sError reading PNG data!\n", func);
+    croak(str);
+}
+fclose(in);
+
+xsize = gdImageSX(im);
+ysize = gdImageSY(im);
+
+/* Check the dims... */
+if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
+{
+    sprintf(str, "%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+            func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
+    croak(str);
+}
+
+/* read the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        int tpixel = gdImageTrueColorPixel(im, x2, y2);
+        $img(x=>x2,y=>y2,z=>0) = gdTrueColorGetRed(tpixel);
+        $img(x=>x2,y=>y2,z=>1) = gdTrueColorGetGreen(tpixel);
+        $img(x=>x2,y=>y2,z=>2) = gdTrueColorGetBlue(tpixel);
+    }
+}
+gdImageDestroy(im);
+EOC
+
+# Function to read PNG image into a piddle variable:
+pp_def( '_read_png',
+        Pars => 'int [o] img(x,y);',
+        OtherPars => 'char* filename',
+        Doc => <<'ENDDOC',
+Internal use only! 
+
+Use read_png() instead! 
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'EOC' );
+gdImagePtr im;
+int xsize, ysize, x2, y2;
+char* func = "PDL::IO::GD::_read_png(): ";
+char str[255];
+FILE *in = NULL;
+
+in = fopen($COMP(filename), "rb");
+if ( in == NULL )
+{
+    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
+    croak(str);
+}
+
+im = gdImageCreateFromPng(in);
+if ( im == NULL )
+{
+    sprintf(str, "%sError reading PNG data!\n", func);
+    croak(str);
+}
+fclose(in);
+
+xsize = gdImageSX(im);
+ysize = gdImageSY(im);
+
+/* Check the dims... */
+if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
+{
+    sprintf(str, "%sDims of %s (%dx%d) and piddle (%dx%d) do not match!\n",
+            func, $COMP(filename), xsize, ysize, $SIZE(x), $SIZE(y));
+    croak(str);
+}
+
+/* read the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        $img(x=>x2,y=>y2) = gdImageGetPixel(im, x2, y2);
+    }
+}
+/* write the image to the file */
+gdImageDestroy(im);
+EOC
+
+pp_def( '_gd_image_to_pdl_true',
+        Pars => 'byte [o] img(x,y,z);',
+        OtherPars => 'IV img_ptr',
+        Doc => <<'ENDDOC',
+B<Seriously> Internal use only!
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'ENDCODE' );
+int xsize, ysize, x2, y2, z2;
+gdImagePtr im = (gdImagePtr) $COMP(img_ptr);
+char* func = "PDL::IO::GD::_gd_image_to_pdl_true(): ";
+char str[255];
+
+xsize = gdImageSX(im);
+ysize = gdImageSY(im);
+
+/* Check the dims... */
+if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
+{
+    sprintf(str, "%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+            func, xsize, ysize, $SIZE(x), $SIZE(y));
+    croak(str);
+}
+
+/* read the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        int tpixel = gdImageTrueColorPixel(im, x2, y2);
+        $img(x=>x2,y=>y2,z=>0) = gdTrueColorGetRed(tpixel);
+        $img(x=>x2,y=>y2,z=>1) = gdTrueColorGetGreen(tpixel);
+        $img(x=>x2,y=>y2,z=>2) = gdTrueColorGetBlue(tpixel);
+    }
+}
+ENDCODE
+
+pp_def( '_gd_image_to_pdl',
+        Pars => 'byte [o] img(x,y);',
+        OtherPars => 'IV img_ptr',
+        Doc => <<'ENDDOC',
+B<Seriously> Internal use only!
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'ENDCODE' );
+int xsize, ysize, x2, y2;
+char* func = "PDL::IO::GD::_gd_image_to_pdl(): ";
+gdImagePtr im = (gdImagePtr) $COMP(img_ptr);
+char str[255];
+
+xsize = gdImageSX(im);
+ysize = gdImageSY(im);
+
+/* Check the dims... */
+if ( !( ($SIZE(x)==xsize) && ($SIZE(y)==ysize) ) )
+{
+    sprintf(str, "%sDims of gdImage (%dx%d) and piddle (%dx%d) do not match!\n",
+            func, xsize, ysize, $SIZE(x), $SIZE(y));
+    croak(str);
+}
+
+/* read the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        $img(x=>x2,y=>y2) = gdImageGetPixel(im, x2, y2);
+    }
+}
+ENDCODE
+
+pp_def( '_pdl_to_gd_image_true',
+        Pars => 'byte img(x,y,z); longlong [o] img_ptr(i)',
+        Doc => <<'ENDDOC',
+B<Seriously> Internal use only!
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'ENDCODE' );
+gdImagePtr im;
+int xsize, ysize, x2, y2;
+char str[255];
+
+if ($SIZE(z) != 3)
+{
+    sprintf(str, "Wrong dimensions (%d, %d, %d)! (should be (X,Y,3))\n",
+            $SIZE(x), $SIZE(y), $SIZE(z) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+im = gdImageCreateTrueColor(xsize, ysize);
+
+/* render the data */
+for( y2 = 0; y2 < ysize; y2++ )
+{
+    for( x2 = 0; x2 < xsize; x2++ )
+    {
+        gdImageSetPixel(im, x2, y2,
+            gdImageColorResolve(im,
+                $img(x=>x2,y=>y2,z=>0),
+                $img(x=>x2,y=>y2,z=>1),
+                $img(x=>x2,y=>y2,z=>2)
+            )
+        );
+    }
+}
+$img_ptr(i=>0) = (PDL_LongLong) im;
+ENDCODE
+
+pp_def( '_pdl_to_gd_image_lut',
+        Pars => 'byte img(x,y); byte lut(i,j); longlong [o] img_ptr(q)',
+        Doc => <<'ENDDOC',
+B<Seriously> Internal use only!
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'ENDCODE' );
+
+gdImagePtr im;
+int xsize, ysize, tmp, ind, x2, y2;
+char str[255];
+
+if ($SIZE(i) != 3 || $SIZE(j) > 256)
+{
+    sprintf(str, "Wrong LUT dimensions (%d, %d)! (should be (3, X), where X <= 256)\n",
+            $SIZE(i), $SIZE(j) );
+    croak(str);
+}
+
+xsize = $SIZE(x);
+ysize = $SIZE(y);
+
+im = gdImageCreate(xsize, ysize);
+
+/* Set up the color palette */
+for(ind = 0; ind < $SIZE(j); ind++)
+{
+    tmp = gdImageColorAllocate(im, $lut(i=>0,j=>ind), $lut(i=>1,j=>ind), $lut(i=>2,j=>ind));
+    if (tmp != ind)
+    {
+        sprintf(str, "palette mismatch on index %d (mapped to %d)!\n", ind, tmp);
+        croak(str);
+    }
+}
+
+/* render the data */
+for( y2 = 0; y2 < $SIZE(y); y2++ )
+{
+    for( x2 = 0; x2 < $SIZE(x); x2++ )
+    {
+        gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
+    }
+}
+$img_ptr(q=>0) = (PDL_LongLong) im;
+ENDCODE
+
+# Function to write Read PNG LUT Table into a piddle variable:
+pp_addpm(<<'EOPM');
+
+=head2 my $lut = read_png_lut( $filename )
+
+Reads a color LUT from an already-existing palette PNG file.
+
+=cut
+sub read_png_lut
+{
+    my $filename = shift;
+    my $lut = zeroes(byte, 3, 256);
+    _read_png_lut($lut, $filename);
+    return $lut;
+} # End of read_png_lut()...
+EOPM
+
+pp_add_exported('', 'read_png_lut');
+
+pp_def( '_read_png_lut',
+        Pars => 'byte [o] lut(c,i);',
+        OtherPars => 'char* filename',
+        Doc => <<'ENDDOC',
+Internal use only!
+
+use read_png_lut() instead!
+
+PS: Let me know how to turn off the autogenerated docs through PDL::PP if you know how!  
+ENDDOC
+        Code => <<'EOC' );
+gdImagePtr im;
+int ind;
+char* func = "PDL::IO::GD::_read_png_lut(): ";
+char str[255];
+FILE *in = NULL;
+
+/* Check dims: */
+if ( $SIZE(c) != 3 )
+{
+    sprintf(str, "%sLUT dims should be 3,256!\n", func);
+    croak(str);
+}
+
+in = fopen($COMP(filename), "rb");
+if ( in == NULL )
+{
+    sprintf(str, "%sError opening %s!\n", func, $COMP(filename));
+    croak(str);
+}
+
+im = gdImageCreateFromPng(in);
+if ( im == NULL )
+{
+    sprintf(str, "%sError reading PNG data!\n", func);
+    croak(str);
+}
+fclose(in);
+
+/* read the data */
+for( ind = 0; ind < 256; ind++ )
+{
+    $lut(c=>0,i=>ind) = gdImageRed(im, ind);
+    $lut(c=>1,i=>ind) = gdImageGreen(im, ind);
+    $lut(c=>2,i=>ind) = gdImageBlue(im, ind);
+}
+gdImageDestroy(im);
+EOC
+
+####################
+# NEW OO Interface #
+####################
+
+##############################################
+# Autogeneration of the low level interface: #
+##############################################
+
+##################################################
+# Process functions to create images from files: #
+##################################################
+
+#########################################
+# Start the PDL::IO::GD OO module code: #
+#########################################
+pp_addpm( { At => 'Bot' }, <<'ENDPM' );
+
+=head1 OO INTERFACE
+ 
+Object Oriented interface to the GD image library.
+
+=head1 SYNOPSIS
+
+ # Open an existing file:
+ # 
+ my $gd = PDL::IO::GD->new( { filename => "test.png" } );
+ 
+ # Query the x and y sizes:
+ my $x = $gd->SX();
+ my $y = $gd->SY();
+
+ # Grab the PDL of the data:
+ my $pdl = $gd->to_pdl();
+
+ # Kill this thing:
+ $gd->DESTROY();
+
+ # Create a new object:
+ # 
+ my $im = PDL::IO::GD->new( { x => 300, y => 300 } );
+
+ # Allocate some colors:
+ #
+ my $black = $im->ColorAllocate( 0, 0, 0 );
+ my $red = $im->ColorAllocate( 255, 0, 0 );
+ my $green = $im->ColorAllocate( 0, 255, 0 );
+ my $blue = $im->ColorAllocate( 0, 0, 255 );
+
+ # Draw a rectangle:
+ $im->Rectangle( 10, 10, 290, 290, $red );
+
+ # Add some text:
+ $im->String( gdFontGetLarge(), 20, 20, "Test Large Font!", $green );
+
+ # Write the output file:
+ $im->write_Png( "test2.png" );
+
+=head1 DESCRIPTION
+
+This is the Object-Oriented interface from PDL to the GD image library.
+
+See L<http://www.boutell.com/gd/> for more information on the GD library and how it works.
+
+=head2 IMPLEMENTATION NOTES
+
+Surprisingly enough, this interface has nothing to do with the other Perl->GD interface module, 
+aka 'GD' (as in 'use GD;'). This is done from scratch over the years.
+
+Requires at least version 2.0.22 of the GD library, but it's only been thoroughly tested with
+gd-2.0.33, so it would be best to use that. The 2.0.22 requirement has to do with a change in
+GD's font handling functions, so if you don't use those, then don't worry about it.
+
+I should also add, the statement about "thoroughly tested" above is mostly a joke. This is the 
+first version of the OO interface, and it has I<barely> been tested at all, so if something 
+breaks, email me and I'll get it fixed ASAP (for me).
+
+Functions that manipulate and query the image objects generally have a 'gdImage' prefix on the
+function names (ex: gdImageString()). I've created aliases here for all of those member 
+functions so you don't have to keep typing 'gdImage' in your code, but the long version are in 
+there as well.
+
+=head1 FUNCTIONS
+
+=cut
+
+use PDL;
+use PDL::Slices;
+use PDL::IO::Misc;
+
+#
+# Some helper functions:
+#
+sub _pkg_name
+    { return "PDL::IO::GD::" . (shift) . "()"; }
+
+# ID a file type from it's filename:
+sub _id_image_file
+{
+    my $filename = shift;
+    
+    return 'png'
+        if( $filename =~ /\.png$/ );
+    
+    return 'jpg'
+        if( $filename =~ /\.jpe?g$/ );
+    
+    return 'wbmp'
+        if( $filename =~ /\.w?bmp$/ );
+    
+    return 'gd'
+        if( $filename =~ /\.gd$/ );
+    
+    return 'gd2'
+        if( $filename =~ /\.gd2$/ );
+    
+    return 'gif'
+        if( $filename =~ /\.gif$/ );
+    
+    return 'xbm'
+        if( $filename =~ /\.xbm$/ );
+        
+    return undef;
+} # End of _id_image_file()...
+
+# Load a new file up (don't read it yet):
+sub _img_ptr_from_file
+{
+    my $filename = shift;
+    my $type = shift;
+    
+    return _gdImageCreateFromPng( $filename )
+        if( $type eq 'png' );
+    
+    return _gdImageCreateFromJpeg( $filename )
+        if( $type eq 'jpg' );
+        
+    return gdImageCreateFromWBMP( $filename )
+        if( $type eq 'wbmp' );
+        
+    return gdImageCreateFromGd( $filename )
+        if( $type eq 'gd' );
+    
+    return gdImageCreateFromGd2( $filename )
+        if( $type eq 'gd2' );
+    
+    return gdImageCreateFromGif( $filename )
+        if( $type eq 'gif' );
+            
+    return gdImageCreateFromXbm( $filename )
+        if( $type eq 'xbm' );
+    
+    return undef;
+} # End of _img_ptr_from_file()...
+
+=head2 new
+
+Creates a new PDL::IO::GD object.
+
+Accepts an anonymous hash describing how to create it. Use curly braces here!
+
+If the hash has:
+
+ pdl => $pdl_var (lut => $lut_piddle)
+    Then a new GD is created from that PDL variable.
+
+ filename => $file
+    Then a new GD is created from the image file.
+    
+ x => $num, y => $num
+    Then a new GD is created as a palette image, with size x, y
+    
+ x => $num, y => $num, true_color => 1
+    Then a new GD is created as a true color image, with size x, y
+
+Example:
+ 
+ my $gd = PDL::IO::GD->new({ pdl => $pdl_var });
+    
+ my $gd = PDL::IO::GD->new({ pdl => $pdl_var, lut => $lut_piddle });
+ 
+ my $gd = PDL::IO::GD->new({ filename => "image.png" });
+ 
+ my $gd = PDL::IO::GD->new({ x => 100, y => 100 });
+ 
+ my $gd = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
+ 
+=cut 
+sub new
+{
+    my $proto = shift;
+    my $class = ref($proto) || $proto;
+    #my $self  = $class->SUPER::new( @_ );
+    my $self = {};
+    
+    my $sub = _pkg_name( "new" );
+    
+    # Figure out our options:
+    #
+    my $options = shift;
+    
+    if( defined( $options->{pdl} ) )
+    {   # Create it from a PDL variable:
+        my $pdl = $options->{pdl};
+        my $num_dims = scalar( $pdl->dims() );
+        if( $num_dims == 2 )
+        {
+            if( defined( $options->{lut} ) )
+            {
+                my $ptr = zeroes( long, 1 );
+                _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
+                $self->{IMG_PTR} = $ptr->at(0);
+                $ptr = null;
+            }
+            else
+            {
+                my $ptr = zeroes( long, 1 );
+                _pdl_to_gd_image( $pdl, $ptr );
+                $self->{IMG_PTR} = $ptr->at(0);
+                $ptr = null;
+            }
+        }
+        elsif( $num_dims == 3 )
+        {
+            my $ptr = zeroes( long, 1 );
+            _pdl_to_gd_true( $pdl, $ptr );
+            $self->{IMG_PTR} = $ptr->at(0);
+            $ptr = null;
+        }
+        else
+        {
+            die "Can't create a PDL::IO::GDImage from a PDL with bad dims!\n";
+        }
+    }
+    elsif( defined( $options->{filename} ) )
+    {   # Create it from a file:
+        
+        # Figure out what type of file it is:
+        $self->{input_type} = _id_image_file( $options->{filename} )
+            or die "$sub: Can't determine image type of filename => \'$options->{filename}\'!\n";
+        
+        # Read in the file:
+        $self->{IMG_PTR} = _img_ptr_from_file( $options->{filename}, $self->{input_type} )
+            or die "$sub: Can't read in the input file!\n";
+    }
+    elsif( defined( $options->{x} ) && defined( $options->{y} ) )
+    {   # Create an empty image:
+        my $done = 0;
+        if( defined( $options->{true_color} ) )
+        {
+            if( $options->{true_color} )
+            {   # Create an empty true color image:
+                $self->{IMG_PTR} = _gdImageCreateTrueColor( $options->{x}, $options->{y} );
+                $done = 1;
+            }
+        }
+        unless( $done )
+        {   # Create an empty palette image:
+            $self->{IMG_PTR} = _gdImageCreatePalette( $options->{x}, $options->{y} );
+        }
+    }
+    
+    # Bless and return:
+    #
+    bless ($self, $class);    
+    return $self;
+} # End of new()...
+
+=head2 to_pdl
+
+When you're done playing with your GDImage and want a piddle back, use this function to return one.
+
+=cut
+sub to_pdl
+{
+    my $self = shift;
+
+    my $sub = _pkg_name( "to_pdl" );
+    
+    my $x = $self->gdImageSX();
+    my $y = $self->gdImageSY();
+    
+    if( $self->gdImageTrueColor() )
+    {
+        my $pdl = zeroes(byte, $x, $y, 3);
+        _gd_image_to_pdl_true( $pdl, $self->{IMG_PTR} );
+        return $pdl;
+    }
+    
+    my $pdl = zeroes(byte, $x, $y);
+    _gd_image_to_pdl( $pdl, $self->{IMG_PTR} );
+    return $pdl;
+} # End of to_pdl()...
+
+=head2 apply_lut( $lut(piddle) )
+
+Does a $im->ColorAllocate() for and entire LUT piddle at once.
+
+The LUT piddle format is the same as for the general interface above.
+
+=cut
+sub apply_lut
+{
+    my $self = shift;
+    my $lut = shift;
+    
+    # Let the PDL threading engine sort this out:
+    $self->ColorAllocates( $lut->slice("(0),:"), $lut->slice("(1),:"), $lut->slice("(2),:") );
+} # End of apply_lut()...
+
+sub DESTROY
+{
+    if( defined( $self->{IMG_PTR} ) )
+    {
+        gdImageDestroy( $self->{IMG_PTR} );
+        delete( $self->{IMG_PTR} );
+    }
+} # End of DESTROY()...
+
+=head2 WARNING:
+
+All of the docs below this point are auto-generated (not to mention the actual code), 
+so read with a grain of salt, and B<always> check the main GD documentation about how 
+that function works and what it does.
+
+=cut
+
+ENDPM
+
+generate_create_functions( <<'ENDCREATE' );
+gdImagePtr gdImageCreateFromPng (FILE * fd);
+gdImagePtr gdImageCreateFromWBMP (FILE * inFile);
+gdImagePtr gdImageCreateFromJpeg (FILE * infile);
+gdImagePtr gdImageCreateFromGd (FILE * in);
+gdImagePtr gdImageCreateFromGd2 (FILE * in);
+gdImagePtr gdImageCreateFromXbm (FILE * in);
+gdImagePtr gdImageCreateFromGif (FILE * fd);
+gdImagePtr gdImageCreate (int sx, int sy);
+gdImagePtr gdImageCreatePalette (int sx, int sy);
+gdImagePtr gdImageCreateTrueColor (int sx, int sy);
+ENDCREATE
+
+generate_write_functions( <<'ENDWRITE' );
+void gdImagePng (gdImagePtr im, FILE * out);
+void gdImagePngEx (gdImagePtr im, FILE * out, int level);
+void gdImageWBMP (gdImagePtr image, int fg, FILE * out);
+void gdImageJpeg (gdImagePtr im, FILE * out, int quality);
+void gdImageGd (gdImagePtr im, FILE * out);
+void gdImageGd2 (gdImagePtr im, FILE * out, int cs, int fmt);
+void gdImageGif (gdImagePtr im, FILE * out);
+ENDWRITE
+
+generate_member_functions( <<'ENDMEMBERS' );
+void gdImageDestroy (gdImagePtr im);
+void gdImageSetPixel (gdImagePtr im, int x, int y, int color);
+int gdImageGetPixel (gdImagePtr im, int x, int y);
+void gdImageAABlend (gdImagePtr im);
+void gdImageLine (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageDashedLine (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageFilledRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageSetClip(gdImagePtr im, int x1, int y1, int x2, int y2);
+void gdImageGetClip(gdImagePtr im, int *x1P, int *y1P, int *x2P, int *y2P);
+int gdImageBoundsSafe (gdImagePtr im, int x, int y);
+void gdImageChar (gdImagePtr im, gdFontPtr f, int x, int y, int c, int color);
+void gdImageCharUp (gdImagePtr im, gdFontPtr f, int x, int y, int c, int color);
+void gdImageString (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color);
+void gdImageStringUp (gdImagePtr im, gdFontPtr f, int x, int y, unsigned char *s, int color);
+void gdImageString16 (gdImagePtr im, gdFontPtr f, int x, int y, unsigned short *s, int color);
+void gdImageStringUp16 (gdImagePtr im, gdFontPtr f, int x, int y, unsigned short *s, int color);
+void gdImagePolygon (gdImagePtr im, gdPointPtr p, int n, int c);
+void gdImageFilledPolygon (gdImagePtr im, gdPointPtr p, int n, int c);
+int gdImageColorAllocate (gdImagePtr im, int r, int g, int b);
+int gdImageColorAllocateAlpha (gdImagePtr im, int r, int g, int b, int a);
+int gdImageColorClosest (gdImagePtr im, int r, int g, int b);
+int gdImageColorClosestAlpha (gdImagePtr im, int r, int g, int b, int a);
+int gdImageColorClosestHWB (gdImagePtr im, int r, int g, int b);
+int gdImageColorExact (gdImagePtr im, int r, int g, int b);
+int gdImageColorExactAlpha (gdImagePtr im, int r, int g, int b, int a);
+int gdImageColorResolve (gdImagePtr im, int r, int g, int b);
+int gdImageColorResolveAlpha (gdImagePtr im, int r, int g, int b, int a);
+void gdImageColorDeallocate (gdImagePtr im, int color);
+void gdImageTrueColorToPalette (gdImagePtr im, int ditherFlag, int colorsWanted);
+void gdImageColorTransparent (gdImagePtr im, int color);
+void gdImageFilledArc (gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color, int style);
+void gdImageArc (gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
+void gdImageFilledEllipse (gdImagePtr im, int cx, int cy, int w, int h, int color);
+void gdImageFillToBorder (gdImagePtr im, int x, int y, int border, int color);
+void gdImageFill (gdImagePtr im, int x, int y, int color);
+void gdImageCopyRotated (gdImagePtr dst, gdImagePtr src, double dstX, double dstY, int srcX, int srcY, int srcWidth, int srcHeight, int angle);
+void gdImageSetBrush (gdImagePtr im, gdImagePtr brush);
+void gdImageSetTile (gdImagePtr im, gdImagePtr tile);
+void gdImageSetAntiAliased (gdImagePtr im, int c);
+void gdImageSetAntiAliasedDontBlend (gdImagePtr im, int c, int dont_blend);
+void gdImageSetStyle (gdImagePtr im, int *style, int noOfPixels);
+void gdImageSetThickness (gdImagePtr im, int thickness);
+void gdImageInterlace (gdImagePtr im, int interlaceArg);
+void gdImageAlphaBlending (gdImagePtr im, int alphaBlendingArg);
+void gdImageSaveAlpha (gdImagePtr im, int saveAlphaArg);
+int gdImageTrueColor (gdImagePtr im);
+int gdImageColorsTotal (gdImagePtr im);
+int gdImageRed (gdImagePtr im, int c);
+int gdImageGreen (gdImagePtr im, int c);
+int gdImageBlue (gdImagePtr im, int c);
+int gdImageAlpha (gdImagePtr im, int c);
+int gdImageGetTransparent (gdImagePtr im);
+int gdImageGetInterlaced (gdImagePtr im);
+int gdImageSX (gdImagePtr im);
+int gdImageSY (gdImagePtr im);
+char* gdImageStringTTF (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
+char* gdImageStringFT (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
+ENDMEMBERS
+
+# Allow operation on these member function on piddles as well:
+#int gdImageGetPixel (gdImagePtr im, int x, int y);
+generate_pp_def_members( <<'ENDMEMBERS' );
+int gdImageColorAllocate (gdImagePtr im, int r, int g, int b);
+int gdImageColorAllocateAlpha (gdImagePtr im, int r, int g, int b, int a);
+void gdImageSetPixel (gdImagePtr im, int x, int y, int color);
+void gdImageLine (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageDashedLine (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageFilledRectangle (gdImagePtr im, int x1, int y1, int x2, int y2, int color);
+void gdImageFilledArc (gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color, int style);
+void gdImageArc (gdImagePtr im, int cx, int cy, int w, int h, int s, int e, int color);
+void gdImageFilledEllipse (gdImagePtr im, int cx, int cy, int w, int h, int color);
+ENDMEMBERS
+
+generate_class_functions( <<'ENDCLASS' );
+void gdImageCopy (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int srcX, int srcY, int w, int h);
+void gdImageCopyMerge (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int srcX, int srcY, int w, int h, int pct);
+void gdImageCopyMergeGray (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int srcX, int srcY, int w, int h, int pct);
+void gdImageCopyResized (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int srcX, int srcY, int dstW, int dstH, int srcW, int srcH);
+void gdImageCopyResampled (gdImagePtr dst, gdImagePtr src, int dstX, int dstY, int srcX, int srcY, int dstW, int dstH, int srcW, int srcH);
+int gdImageCompare (gdImagePtr im1, gdImagePtr im2);
+void gdImagePaletteCopy (gdImagePtr dst, gdImagePtr src);
+ENDCLASS
+
+generate_general_functions( <<'ENDGENERAL' );
+int gdAlphaBlend (int dest, int src);
+int gdTrueColor (int r, int g, int b);
+int gdTrueColorAlpha (int r, int g, int b, int a);
+void gdFree (void *m);
+gdFontPtr gdFontGetLarge ( );
+gdFontPtr gdFontGetSmall ( );
+gdFontPtr gdFontGetMediumBold ( );
+gdFontPtr gdFontGetGiant ( );
+gdFontPtr gdFontGetTiny ( );
+ENDGENERAL
+
+#
+# Keep these in here for later:
+#
+my $unused_funcs = <<'ENDUNUSED';
+# These have disappeared in later versions of GD:
+void gdFreeFontCache ();
+void gdImageEllipse (gdImagePtr im, int cx, int cy, int w, int h, int color);
+
+
+BGD_DECLARE(gdImagePtr) gdImageCreateFromGifCtx (gdIOCtxPtr in);
+BGD_DECLARE(gdImagePtr) gdImageCreateFromGifPtr (int size, void *data);
+void gdImagePngCtx (gdImagePtr im, gdIOCtx * out);
+void gdImagePngCtxEx (gdImagePtr im, gdIOCtx * out, int level);
+void gdImageWBMPCtx (gdImagePtr image, int fg, gdIOCtx * out);
+void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
+void gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality);
+void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
+void gdImagePngToSink (gdImagePtr im, gdSinkPtr out);
+void *gdImagePngPtr (gdImagePtr im, int *size);
+void *gdImagePngPtrEx (gdImagePtr im, int *size, int level);
+void *gdImageGdPtr (gdImagePtr im, int *size);
+void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
+gdIOCtx *gdNewFileCtx (FILE *);
+gdIOCtx *gdNewDynamicCtx (int, void *);
+gdIOCtx *gdNewSSCtx (gdSourcePtr in, gdSinkPtr out);
+void *gdDPExtractData (struct gdIOCtx *ctx, int *size);
+gdImagePtr gdImageCreateFromPngSource (gdSourcePtr in);
+gdImagePtr gdImageCreateFromGd2Part (FILE * in, int srcx, int srcy, int w, int h);
+char* gdImageStringFTEx (gdImage * im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string, gdFTStringExtraPtr strex);
+ENDUNUSED
+
+pp_done();
+
+exit(0);
+#########
+# SUBS: #
+#########
+
+use Data::Dumper;
+
+#
+# Member functions to create a new object (or populate it from data):
+#
+sub generate_create_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_read_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating read function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+         
+        # If it wants a FILE*, we need to do something different in the XS code:   
+        if( $info->{ARGS}->{1}->{TYPE} =~ /FILE\s*\*/ )
+        {
+            my $function_name = $info->{NAME};
+            my $return_type = $info->{RETURN_TYPE};
+        
+            pp_addxs(<<"ENDXS");
+$return_type
+_$function_name( char* filename )
+    CODE:
+        FILE* file;
+        file = fopen( filename, "rb");
+        RETVAL = $function_name( file );
+        fclose(file);
+    OUTPUT:
+        RETVAL
+ENDXS
+        }
+        # Otherwise, it should be pretty easy:
+        else
+        {
+            add_basic_xs( $info, '_' );
+        }
+    }
+} # End of generate_create_functions()...
+
+
+#void gdImagePng (gdImagePtr im, FILE * out);
+#void gdImageWBMP (gdImagePtr image, int fg, FILE * out);
+sub generate_write_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_write_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating write function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+        
+        my $function_name = $info->{NAME};
+        my $return_type = $info->{RETURN_TYPE};
+        
+        my @arg_names = ();
+        my @call_args = ();
+        my $arg_decl_string = "";
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        {
+            my $type = $info->{ARGS}->{$num}->{TYPE};
+            my $name = $info->{ARGS}->{$num}->{NAME};
+            if( $type =~ /FILE/ )
+            {
+                push( @arg_names, "filename" );
+                push( @call_args, "file" );
+                $arg_decl_string.= "\t\tchar *\t\tfilename\n";
+                next;
+            }
+            push(@arg_names, $name );
+            push(@call_args, $name );
+            $arg_decl_string .= "\t\t$type\t\t$name\n";
+        }
+        my $arg_list = join(", ", @arg_names);
+        my $call_arg_list = join(", ", @call_args);
+        
+        pp_addxs(<<"ENDXS");
+$return_type
+_$function_name ( $arg_list )
+$arg_decl_string
+    CODE:
+        FILE* file;
+        file = fopen( filename, "wb");
+        $function_name ( $call_arg_list );
+        fclose( file );
+ENDXS
+        
+        # Add the OO code:
+        #
+        
+        # Use template method here to avoid escaping everything:
+        my $pmcode = <<'ENDPM';
+=head2 INSERT_NAME_HERE
+
+$image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+=cut
+sub INSERT_NAME_HERE
+{
+    my $self = shift;
+    return INSERT_XS_FUNC_HERE ( $self->{IMG_PTR}, @_ );
+} # End of INSERT_NAME_HERE()...
+ENDPM
+        my $name = "write_" . $function_name;
+        $name =~ s/gdimage//;
+        $name =~ s/gdImage//;
+        $pmcode =~ s/INSERT_NAME_HERE/$name/sg;
+        $pmcode =~ s/INSERT_XS_FUNC_HERE/_$function_name/sg;
+        
+        my @arg_names2;
+        my @doc_args;
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        { 
+            next if ( $info->{ARGS}->{$num}->{TYPE} eq 'gdImagePtr' );
+            
+            if( $info->{ARGS}->{$num}->{TYPE} =~ /FILE/ )
+            {
+                push( @arg_names2, "filename" );
+                push(@doc_args, "\$filename" );
+                next;
+            }
+            push(@arg_names2, $info->{ARGS}->{$num}->{NAME}); 
+            push(@doc_args, "\$" . $info->{ARGS}->{$num}->{NAME} );
+        }
+        my $arg_list2 = join( ", ", @arg_names2 );
+        $pmcode =~ s/INSERT_ARG_LIST_HERE/$arg_list2/sg;
+        
+        my $doc_arg_list = join( ", ", @doc_args );
+        $pmcode =~ s/INSERT_DOC_ARG_LIST_HERE/$doc_arg_list/sg;
+        
+        pp_addpm( { At => 'Bot' }, $pmcode );
+    }
+}  # End of generate_write_functions()...
+
+#
+# Here, we also need to add PM code for the OO side:
+#
+sub generate_member_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_member_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating member function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+        
+        # Add the XS portion of the code:
+        my @macro_list = qw(
+            gdImageSX
+            gdImageSY
+            gdImageTrueColor
+        );
+        if( scalar( grep( /$info->{NAME}/, @macro_list ) ) )
+        {   # Special functions that are actually definitions:
+            add_basic_def_xs( $info, '_' );
+        }
+        else
+        {   # Normal function
+            add_basic_xs( $info, '_' );
+        }
+        
+        # Add the OO code:
+        
+        # Use template method here to avoid escaping everything:
+        my $pmcode = <<'ENDPM';
+INSERT_SHORT_CODE_HERE
+
+=head2 INSERT_NAME_HERE
+
+$image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+=cut
+sub INSERT_NAME_HERE
+{
+    my $self = shift;
+    return INSERT_XS_FUNC_HERE ( $self->{IMG_PTR}, @_ );
+} # End of INSERT_NAME_HERE()...
+ENDPM
+
+        my $short_code_template = <<'ENDSHORTCODE';
+=head2 INSERT_SHORT_NAME_HERE
+
+$image->INSERT_SHORT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+Alias for INSERT_NAME_HERE.
+
+=cut
+sub INSERT_SHORT_NAME_HERE
+{
+    return INSERT_NAME_HERE ( @_ );
+} # End of INSERT_SHORT_NAME_HERE()...
+ENDSHORTCODE
+
+        my $name = $info->{NAME};
+        my $short_name = $name;
+        $short_name =~ s/gdImage//;
+        my $short_code = '';
+        if( $short_name ne $name )
+        {
+            $short_code = $short_code_template;
+            $short_code =~ s/INSERT_SHORT_NAME_HERE/$short_name/sg;
+        }
+        $pmcode =~ s/INSERT_SHORT_CODE_HERE/$short_code/sg;
+        
+        $pmcode =~ s/INSERT_NAME_HERE/$name/sg;
+        $pmcode =~ s/INSERT_XS_FUNC_HERE/_$name/sg;
+        
+        my @arg_names;
+        my @doc_args;
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        { 
+            next if ( $info->{ARGS}->{$num}->{TYPE} eq 'gdImagePtr' );
+            push(@arg_names, $info->{ARGS}->{$num}->{NAME}); 
+            push( @doc_args, "\$" . $info->{ARGS}->{$num}->{NAME} );
+        }
+        my $arg_list = join( ", ", @arg_names );
+        $pmcode =~ s/INSERT_ARG_LIST_HERE/$arg_list/sg;
+        my $doc_arg_list = join( ", ", @doc_args );
+        $pmcode =~ s/INSERT_DOC_ARG_LIST_HERE/$doc_arg_list/sg;
+        
+        pp_addpm( { At => 'Bot' }, $pmcode );
+    }
+} # End of generate_member_functions()...
+
+#
+# Add some member functions that can function on piddles:
+#
+sub generate_pp_def_members
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_pp_def_members()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating member function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+        
+        my $orig_name = $info->{NAME};
+        my $name = $orig_name . "s";
+        my $short_name = $name;
+        $short_name =~ s/gdImage//;
+        my $pdlpp_name = "_$name";
+        
+        my @arg_names;
+        my @doc_args;
+        my $pdlpp_arg_list = "";
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        { 
+            my $type = $info->{ARGS}->{$num}->{TYPE};
+            my $arg_name = $info->{ARGS}->{$num}->{NAME};
+            next if ( $type eq 'gdImagePtr' );
+            push(@arg_names, $arg_name ); 
+            push( @doc_args, "\$" . $arg_name . "(pdl)" );
+            $pdlpp_arg_list .= "$type $arg_name(); ";
+        }
+        my $arg_list = join( ", ", @arg_names );
+        my $doc_arg_list = join( ", ", @doc_args );
+        my $pdlpp_call_arg_list = "\$" . join( "(), \$", @arg_names ) . "()";
+        
+        # Add the PDL::PP code:
+        #
+        pp_def( $pdlpp_name,
+            Pars => $pdlpp_arg_list,
+            OtherPars => 'IV img_ptr;',
+            Doc => 'Internal use only!',
+            Code => "$orig_name( (gdImagePtr) \$COMP(img_ptr), $pdlpp_call_arg_list );" );
+
+        # Add the OO code:
+        
+        # Use template method here to avoid escaping everything:
+        my $pmcode = <<'ENDPM';
+INSERT_SHORT_CODE_HERE
+
+=head2 INSERT_NAME_HERE
+
+$image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+=cut
+sub INSERT_NAME_HERE
+{
+    my $self = shift;
+    return INSERT_PP_FUNC_HERE ( @_, $self->{IMG_PTR} );
+} # End of INSERT_NAME_HERE()...
+ENDPM
+
+        my $short_code_template = <<'ENDSHORTCODE';
+=head2 INSERT_SHORT_NAME_HERE
+
+$image->INSERT_SHORT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+Alias for INSERT_NAME_HERE.
+
+=cut
+sub INSERT_SHORT_NAME_HERE
+{
+    return INSERT_NAME_HERE ( @_ );
+} # End of INSERT_SHORT_NAME_HERE()...
+ENDSHORTCODE
+
+        my $short_code = '';
+        if( $short_name ne $name )
+        {
+            $short_code = $short_code_template;
+            $short_code =~ s/INSERT_SHORT_NAME_HERE/$short_name/sg;
+        }
+        $pmcode =~ s/INSERT_SHORT_CODE_HERE/$short_code/sg;
+        
+        $pmcode =~ s/INSERT_NAME_HERE/$name/sg;
+        $pmcode =~ s/INSERT_PP_FUNC_HERE/$pdlpp_name/sg;
+        
+       
+        $pmcode =~ s/INSERT_ARG_LIST_HERE/$arg_list/sg;
+        
+        $pmcode =~ s/INSERT_DOC_ARG_LIST_HERE/$doc_arg_list/sg;
+        
+        pp_addpm( { At => 'Bot' }, $pmcode );
+    }
+} # End of generate_pp_def_members...
+
+#
+# Functions not specific to one object, but that need to take objects as arguements:
+#
+sub generate_class_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_class_functions()";
+    
+    pp_addpm( {At => 'Bot'}, <<'ENDPM' );
+=head1 CLASS FUNCTIONS
+
+=cut
+ENDPM
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating class function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+
+        # Add the XS portion of the code:
+        add_basic_xs( $info, '_' );
+        
+        # Add the Class functions code:
+        
+        # Figure out the perl arg list where it needs PDL::IO::GDImage objects:
+        #
+        my @perl_arg_names;
+        my @arg_names;
+        my @doc_args;
+        my $arg_shift_string = "";
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        { 
+            my $type = $info->{ARGS}->{$num}->{TYPE};
+            my $name = $info->{ARGS}->{$num}->{NAME};
+            
+            push(@arg_names, $name);
+            $arg_shift_string .= "    my \$$name = shift;\n";
+            
+            if ( $type eq 'gdImagePtr' )
+            {
+                push(@perl_arg_names, "\$" . $name . "->{IMG_PTR}" );
+                push(@doc_args, "\$" . $name . "(PDL::IO::GD)" );
+                next;
+            }
+            push(@doc_args, "\$" . $name);
+            push(@perl_arg_names, "\$" . $name);
+        }
+        
+        # Use template method here to avoid escaping everything:
+        my $pmcode = <<'ENDPM';
+=head2 INSERT_NAME_HERE
+
+INSERT_NAME_HERE ( INSERT_DOC_ARG_LIST_HERE )
+
+=cut
+sub INSERT_NAME_HERE
+{
+INSERT_ARG_SHIFT_HERE
+    return INSERT_XS_FUNC_HERE ( INSERT_PERL_ARG_LIST_HERE );
+} # End of INSERT_NAME_HERE()...
+ENDPM
+        my $function_name = $info->{NAME};
+        $pmcode =~ s/INSERT_NAME_HERE/$function_name/sg;
+        $pmcode =~ s/INSERT_XS_FUNC_HERE/_$function_name/sg;
+        $pmcode =~ s/INSERT_ARG_SHIFT_HERE/$arg_shift_string/sg;
+        
+        my $perl_arg_list = join(", ", @perl_arg_names);
+        $pmcode =~ s/INSERT_PERL_ARG_LIST_HERE/$perl_arg_list/sg;
+        
+        my $doc_arg_list = join( ", ", @doc_args );
+        $pmcode =~ s/INSERT_DOC_ARG_LIST_HERE/$doc_arg_list/sg;
+        
+        pp_addpm( { At => 'Bot' }, $pmcode );
+    }
+
+} # End of generate_class_functions()...
+
+# 
+# These functions are not specific to and object instance:
+#
+sub generate_general_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_general_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating general function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+
+        # Add the XS portion of the code:
+        my @macro_list = qw(
+            gdTrueColor
+            gdTrueColorAlpha
+        );
+        
+        if( scalar( grep( /$info->{NAME}/, @macro_list ) ) )
+        {   # Special functions that are actually definitions:
+            add_basic_def_xs( $info );
+        }
+        else
+        {   # Normal function
+            add_basic_xs( $info );
+        }
+        
+        pp_add_exported(" $info->{NAME} ");
+    }
+} # End of generate_general_functions()...
+
+sub add_basic_xs
+{
+    my $info = shift;
+    my $prefix = shift || '';
+    
+    my $return_type = $info->{RETURN_TYPE};
+    
+    my $orig_name = $info->{NAME};
+    my $name = $prefix . $orig_name;
+    my @arg_names;
+    my @arg_call_names;
+    my @out_arg_names;
+    my $arg_decl_string = "";
+    foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+    {
+        my $name = $info->{ARGS}->{$num}->{NAME};
+        my $type = $info->{ARGS}->{$num}->{TYPE};
+        
+        # Handle perl's handling of pointers:
+        my $call_name = $name;
+        if( $type =~ /(\S+)\s*\*/ 
+            && $type !~ /void/ 
+            && $type !~ /char/ )
+        {
+            $type = $1;
+            $call_name = "&$name";
+            push( @out_arg_names, $name );
+        }
+        
+        push(@arg_names, $name );
+        push(@arg_call_names, $call_name );
+        $arg_decl_string .= "\t\t$type\t\t$name\n";
+    }
+    chomp( $arg_decl_string );
+    my $arg_string = join(", ", @arg_names );
+    
+    my $arg_call_string = join(", ", @arg_call_names);
+    
+    my $retval_output = "\t\tRETVAL\n";
+    my $retval_input = "RETVAL =";
+    if( $return_type =~ /void/ )
+    {
+        $retval_output = '';
+        $retval_input = '';
+    }
+    
+    my $arg_output_string = $retval_output . "\t\t" . join("\n\t\t", @out_arg_names);
+    
+    pp_addxs( <<"ENDXS" );
+$return_type
+$name( $arg_string )
+$arg_decl_string
+\tCODE:
+\t\t$retval_input $orig_name ( $arg_call_string );
+\tOUTPUT:
+$arg_output_string
+ENDXS
+} # End of add_basic_xs()...
+
+sub add_basic_def_xs
+{
+    my $info = shift;
+    my $prefix = shift || '';
+    
+    my $return_type = $info->{RETURN_TYPE};
+    my $orig_name = $info->{NAME};
+    my $name = $prefix . $orig_name;
+    my @arg_names;
+    my $arg_decl_string = "";
+    foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+    {
+        my $name = $info->{ARGS}->{$num}->{NAME};
+        my $type = $info->{ARGS}->{$num}->{TYPE};
+        push(@arg_names, $name );
+        $arg_decl_string .= "\t\t$type\t\t$name\n";
+    }
+    chomp( $arg_decl_string );
+    my $arg_string = join(", ", @arg_names );
+    
+    pp_addxs( <<"ENDXS" );
+$return_type
+$name( $arg_string )
+$arg_decl_string
+\tCODE:
+\t\tRETVAL = $orig_name ( $arg_string );
+\tOUTPUT:
+\t\tRETVAL
+ENDXS
+} # End of add_basic_def_xs()...
+
+sub parse_prototype
+{
+    my $proto = shift;
+    
+    return undef
+        unless( $proto =~ /(\w+\s*\*?)\s*(\w+)\s*\((.*)\)/ );
+    
+    my $args = $3;
+    
+    my $hash = {
+        RETURN_TYPE => $1,    
+        NAME => $2,
+    };
+    
+    # Figure out the args:
+    my $arg_count = 1;
+    foreach my $arg ( split (/,/, $args) ) 
+    {
+        my ($name) = ($arg =~ /(\w+)$/);
+        $arg =~ s/$name$//; # arg now contains the full C type
+        $arg =~ s/const //;  # get rid of 'const' in C type
+        $arg =~ s/^\s+//;
+        $arg =~ s/\s+$//;    # pare off the variable type from 'arg'
+        $hash->{ARGS}->{$arg_count} = {
+            NAME => $name,
+            TYPE => $arg,
+        };
+        $arg_count++;
+    }
+    
+    #use Data::Dumper;
+    #my $dd = Data::Dumper->new( [$hash], [ 'hash' ] );
+    #$dd->Indent(1);
+    #print STDERR $dd->Dump();
+    
+    return $hash;
+} # End of parse_prototype()...

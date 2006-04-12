@@ -1,0 +1,18 @@
+
+PDL::IO::GD Changes:
+    
+1.3: 19 Feb 2004 (Judd Taylor)
+    - Added support to write only chunks of PNG images.
+    - Started changelog!
+    
+1.6: 12 Oct 2005 (Judd Taylor)
+    - Added functions to set level of compression on PNG images
+        (write_png_ex, write_true_png_ex, write_png_best, write_true_png_best)
+    - Added function recompress_png_best, to open a PNG file, and write it out
+        using the best PNG compression available.
+
+2.0: 30 Mar 2006 (Judd Taylor)
+    - Transferred to new name PDL::IO::GD, and modified for inclusion to the 
+        PDL CVS tree.
+
+

@@ -1,0 +1,10 @@
+
+PDL::IO::GD TODO:
+
+Documentation
+
+Jpeg/etc.. input/output functions (autogenerate?)
+
+Read true color images...
+
+Decide whether that OO interface I was going to mess with is worth leaving in there

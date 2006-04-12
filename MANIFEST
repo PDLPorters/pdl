@@ -345,6 +345,11 @@ IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
 IO/FlexRaw/FlexRaw.pm
 IO/FlexRaw/Makefile.PL
+IO/GD/Changes
+IO/GD/GD.pd
+IO/GD/Makefile.PL
+IO/GD/TODO
+IO/GD/typemap
 IO/HDF/buildfunc.pm
 IO/HDF/Changes
 IO/HDF/HDF.pm
@@ -619,7 +624,10 @@ Lib/Transform/Cartography/earth_night.jpg
 Lib/Transform/Cartography/Makefile.PL
 Lib/Transform/Makefile.PL
 Lib/Transform/Proj4/Makefile.PL
+Lib/Transform/Proj4/Proj4.c
 Lib/Transform/Proj4/Proj4.pd
+Lib/Transform/Proj4/Proj4.pm
+Lib/Transform/Proj4/Proj4.xs
 Lib/Transform/Proj4/README
 Lib/Transform/Proj4/TODO
 Lib/Transform/transform.pd
@@ -627,6 +635,8 @@ m51.fits
 Makefile.PL
 MANIFEST			This list of files
 MANIFEST.SKIP
+pdl
+pdl.c
 pdl.PL
 pdldoc.PL
 perldl.conf
@@ -662,6 +672,8 @@ t/foo.t
 t/func.pdl
 t/func.t
 t/gauss.t
+t/gd_oo_tests.t
+t/gd_tests.t
 t/gis_proj.t
 t/gsl_diff.t
 t/gsl_integ.t
