@@ -207,3 +207,5 @@ so_locations
 ^Lib/Transform/Proj4/Proj4\.c
 ^Lib/Transform/Proj4/Proj4\.pm
 ^Lib/Transform/Proj4/Proj4\.xs
+^pdl$
+^pdl\.c$
