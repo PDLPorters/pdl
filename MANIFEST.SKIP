@@ -204,3 +204,6 @@ so_locations
 ^Lib/GIS/Proj/Proj\.c
 ^Lib/GIS/Proj/Proj\.pm
 ^Lib/GIS/Proj/Proj\.xs
+^Lib/Transform/Proj4/Proj4\.c
+^Lib/Transform/Proj4/Proj4\.pm
+^Lib/Transform/Proj4/Proj4\.xs

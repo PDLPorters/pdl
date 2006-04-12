@@ -624,10 +624,7 @@ Lib/Transform/Cartography/earth_night.jpg
 Lib/Transform/Cartography/Makefile.PL
 Lib/Transform/Makefile.PL
 Lib/Transform/Proj4/Makefile.PL
-Lib/Transform/Proj4/Proj4.c
 Lib/Transform/Proj4/Proj4.pd
-Lib/Transform/Proj4/Proj4.pm
-Lib/Transform/Proj4/Proj4.xs
 Lib/Transform/Proj4/README
 Lib/Transform/Proj4/TODO
 Lib/Transform/transform.pd
