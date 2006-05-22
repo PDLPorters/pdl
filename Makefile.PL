@@ -395,9 +395,14 @@ my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
-   unshift @exe_files, 'pdl';
-   $cleanup = 'pdl pdl.c ' . $cleanup;
+   if($^O =~ /cygwin/) {
+      unshift @exe_files, 'pdl.exe';
+      $cleanup = 'pdl.exe pdl.c ' . $cleanup;
+   } else {
+      unshift @exe_files, 'pdl';
+      $cleanup = 'pdl pdl.c ' . $cleanup;
    }
+}
 
 
 ##############################
@@ -487,6 +492,12 @@ pdldoc.pod : pdldoc subdirs
 \tpodselect pdldoc > pdldoc.pod
 
 ";
+
+$text .= << 'EOT' if $^O =~ /cygwin/;
+
+pdl.exe: pdl
+
+EOT
 
 $text .= << 'EOT' if $^O =~ /MSWin/;
 
