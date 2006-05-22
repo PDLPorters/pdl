@@ -7,6 +7,9 @@ PDL::GSLSF::POLY - PDL interface to GSL Special Functions
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
+NOTE: this should actually be PDL::POLY for consistency but I don't want to get into edits
+changing the directory structure at this time.  These fixes should allow things to build.
+
 =head1 SYNOPSIS
 
 =head1 Functions
@@ -18,17 +21,17 @@ EOD
 
 pp_addhdr('
 
-#include <gsl/gsl_sf.h>
+#include <gsl/gsl_poly.h>
 
 #include "../gslerr.h"
 
 ');
 
-pp_def('gsl_sf_poly_eval',
+pp_def('gsl_poly_eval',
        GenericTypes => [D],
        Pars=>'double x(); double c(m); double [o]y()',
        Code =>'
-$y() = gsl_sf_poly_eval($P(c),$SIZE(m),$x());
+$y() = gsl_poly_eval($P(c),$SIZE(m),$x());
 ',
        Doc =>'c[0] + c[1] x + c[2] x^2 + ... + c[m-1] x^(m-1)'
       );
