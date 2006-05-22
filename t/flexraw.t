@@ -108,6 +108,51 @@ sub byte8swap {
     rename $ofile, $file;
 }
 
+# utility to fold long lines preventing problems with 72
+# char limit and long text parameters (e.g. filenames)
+sub codefold {
+   my $oldcode = shift;
+   my $newcode = '';
+
+   # to simplify loop processing, introduces dependence
+   use IO::String;
+
+   my $in = IO::String->new($oldcode);
+   my $out = IO::String->new($newcode);
+
+   # find non-comment lines longer than 72 columns and fold
+   my $line = '';
+   while ($line = <$in>) {
+
+      # clean off line-feed stuff
+      chomp $line;
+
+      # pass comments to output
+      print $out "$line\n" if $line =~ /^\S/;
+
+      # output code lines (by 72-char chunks if needed)
+      while ($line ne '') {
+
+	 # output first 72 columns of the line
+	 print $out substr($line,0,72) . "\n";	# print first 72 cols
+
+	 if ( length($line) > 72 ) {
+	    # make continuation line of the rest of the line
+	    substr($line,0,72) = '     $';
+	 } else {
+	    $line = '';
+	 }
+
+      }
+   }
+
+   # close "files" and return folded code
+   close($in);
+   close($out);
+
+   return $newcode;
+}
+
 sub inpath {
   my ($prog) = @_;
   my $pathsep = $^O =~ /win32/i ? ';' : ':';
@@ -229,7 +274,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
     byte4swap($data);
     open(FILE, "> $hdr");
     print FILE <<"EOT";
@@ -308,7 +353,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE, ">$hdr" );
     print FILE <<"EOT";
@@ -357,7 +402,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE,">$hdr");
     print FILE <<"EOT";
@@ -412,7 +457,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE,">$hdr");
     print FILE <<"EOT";
@@ -462,7 +507,7 @@ c Choose bad boundaries...
 
 EOT
 
-createData $head, $code;
+    createData $head, codefold($code);
 
 open(FILE,">$hdr");
 print FILE <<"EOT";
@@ -494,8 +539,8 @@ foreach (@req) {
 }
 ok( $ok );
 
-my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes
-# don't have compress
+my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
+$compress = 'gzip' if $^O eq 'cygwin';                   # fix bogus compress script prob
 
 # Try compressed data
 $ok = 1;
