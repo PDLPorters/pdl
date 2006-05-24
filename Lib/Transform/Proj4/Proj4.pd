@@ -243,13 +243,18 @@ sub new
     $self->{params}->{proj_params} = PDL::Transform::_opt( $o, ['proj_params','params'] );
 
     # Projection options available to all projections:
-    $self->{general_params} = [ qw( proj x_0 y_0 lat_0 lon_0 units init no_defs over geoc ) ];
+    $self->{general_params} = [ qw( proj x_0 y_0 lat_0 lon_0 units init ) ];
     foreach my $param ( @{ $self->{general_params} } )
         { $self->{params}->{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
     
+    # Options that have no value (like "+over"):
+    $self->{bool_params} = [ qw( no_defs over geoc ) ];
+    foreach my $param ( @{ $self->{bool_params} } )
+        { $self->{params}->{$param} = ( PDL::Transform::_opt( $o, [ $param ] ) ) ? 'ON' : undef; }
+    
     # Options for the Earth figure: (ellipsoid, etc):
     $self->{earth_params} = [ qw( ellps R R_A R_V R_a R_g R_h R_lat_a R_lat_g b f rf e es ) ];
-    foreach my $param ( @{ $self->{general_params} } )
+    foreach my $param ( @{ $self->{earth_params} } )
         { $self->{params}->{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
     
     # First process the old params that may already be in the string:
@@ -261,20 +266,26 @@ sub new
         my @params = split( /\s+/, $self->{orig_proj_params} );
         foreach my $param ( @params )
         {
-            next unless( $param =~ /^\+(\S+)=(\S+)/ );
-            my ($name, $val) = ($1, $2);
-            $self->{params}->{$name} = $val;
-            #print STDERR "$sub: $name => $val\n";
+            if( $param =~ /^\+(\S+)=(\S+)/ )
+            {
+                my ($name, $val) = ($1, $2);
+                $self->{params}->{$name} = $val;
+                #print STDERR "$sub: $name => $val\n";
+            }
+            elsif( $param =~ /^\+(\S+)/ )
+            {   # Boolean option
+                $self->{params}->{$1} = 'ON';
+            }                
         }
     }
-    
-    #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
-    #$dd->Indent(1);
-    #print STDERR $dd->Dump();
     
     # Update the proj_string to current options:
     #
     $self->update_proj_string();
+    
+    #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
+    #$dd->Indent(1);
+    #print STDERR $dd->Dump();
     
     ##############################
     # The meat -- just copy and paste from Transform.pm :)
@@ -328,7 +339,9 @@ sub update_proj_string
     foreach my $param ( keys %{ $self->{params} } )
     {
         next unless defined( $self->{params}->{$param} );
-        $proj_string .= " +$param=" . $self->{params}->{$param} . " ";
+        
+        $proj_string .= ( $self->{params}->{$param} eq 'ON' ) 
+                        ? "+$param " : " +$param=" . $self->{params}->{$param} . " ";
         #print STDERR "$sub: Adding \'$proj_string\'...\n";
     }
     
@@ -336,6 +349,13 @@ sub update_proj_string
     
     $self->{params}->{proj_params} = $proj_string;
 } # End of update_proj_string()...
+
+sub proj_params
+{
+    my $self = shift;
+    $self->update_proj_string();
+    return $self->{params}->{proj_params};
+} # End of proj_params()...
 
 sub t_proj 
 { 
@@ -411,11 +431,11 @@ sub new
     foreach my $param ( @{ $self->{projection_params} } )
         { $self->{params}->{$param} = PDL::Transform::_opt( $o, [ $param ] ); }
     
+    $self->update_proj_string();
+    
     #my $dd = Data::Dumper->new( [$self->{params}], ["$sub: params"] );
     #$dd->Indent(1);
     #print STDERR $dd->Dump();
-        
-    $self->update_proj_string();
     
     #print STDERR "$sub: Final proj_params: \'" . $self->{params}->{proj_params} . "\'\n";
         
