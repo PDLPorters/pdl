@@ -43,7 +43,7 @@ BEGIN
       && $PDL::Config{GL_BUILD} 
       && hasDISPLAY() )
     {
-        plan tests => 3;
+        plan tests => 4;
     }
     else
     {
@@ -103,4 +103,5 @@ ok(1);
 draw( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), "Proj4 - t_proj_orhto()", $map_size );
 ok(1);
 
-
+draw( t_proj_robin( ellps => 'WGS84', over => 1 ), "Proj4 - t_proj_robin()", $map_size );
+ok(1);
