@@ -1026,7 +1026,7 @@ sub new
         elsif( $num_dims == 3 )
         {
             my $ptr = zeroes( long, 1 );
-            _pdl_to_gd_true( $pdl, $ptr );
+            _pdl_to_gd_image_true( $pdl, $ptr );
             $self->{IMG_PTR} = $ptr->at(0);
             $ptr = null;
         }
@@ -1281,6 +1281,19 @@ gdImagePtr gdImageCreateFromPngSource (gdSourcePtr in);
 gdImagePtr gdImageCreateFromGd2Part (FILE * in, int srcx, int srcy, int w, int h);
 char* gdImageStringFTEx (gdImage * im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string, gdFTStringExtraPtr strex);
 ENDUNUSED
+
+# Add the final docs:
+#
+pp_addpm({At => 'Bot'}, <<'ENDPM');
+
+=head1 AUTHOR
+
+Judd Taylor, USF IMaRS
+judd at marine dot usf dot edu
+
+=cut
+
+ENDPM
 
 pp_done();
 

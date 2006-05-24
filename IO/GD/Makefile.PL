@@ -11,9 +11,10 @@ PDL::Core::Dev->import();
 BEGIN
 {
     # Generic descripton of how to optionally add this package to the PDL Tree:
+    $ppfile = "GD.pd";
     $package_name = "PDL::IO::GD";
     $lib_name = "GD";
-    $find_libs = [ 'libgd.so', 'libgd.a' ];
+    $find_libs = [ 'libgd.so', 'libgd.a', 'bgd.dll' ];
     $find_incs = [ 'gd.h' ];
     $config_flag = 'WITH_GD';
     $config_libs = 'GD_LIBS';
@@ -24,11 +25,13 @@ BEGIN
         '/lib64',
         '/usr/lib',
         '/usr/local/lib',
-        '/lib'
+        '/lib',
+        'D:/gd/gdwin32'
     );
     @inc_locations = (
         '/usr/include',
-        '/usr/local/include'
+        '/usr/local/include',
+        'D:/gd/gdwin32/include'
     ); 
     
     #
@@ -36,7 +39,7 @@ BEGIN
     #
 
     $msg = "";
-    $forcebuild=0;  # Note: forcebuild not used
+    $forcebuild=0; 
 
     if (defined $PDL::Config{$config_flag} && $PDL::Config{$config_flag}==0) 
     {
@@ -71,6 +74,8 @@ BEGIN
             {
                 $lib_path = $libdir;
                 $found = 1;
+                # The lib name is different on windows, so we need to adjust the LIBS, below:
+                $linkname = ( $find_lib =~ /bgd.dll/ ) ? 'bgd' : 'gd';
             }
             last if $found;
         }
@@ -111,6 +116,8 @@ BEGIN
         $donot = 0;
     }
     
+    $donot = 0 if( $forcebuild );
+    
     if ( $donot )
     {
         $msg .= "\n Skipping build of $package_name.\n";
@@ -134,14 +141,16 @@ skip:
 
 return if $donot;
 
-$ppfile = "GD.pd";
-$package = [$ppfile, GD, $package_name];
+$package = [$ppfile, $lib_name, $package_name];
 %hash = pdlpp_stdargs($package);
 $hash{VERSION_FROM} = $ppfile;
-$hash{LIBS} = ["-L$lib_path -lgd"];
+$hash{LIBS} = ["-L$lib_path -l$linkname"];
 $hash{INC} = PDL_INCLUDE() . " -I$include_path";
 push( @{ $hash{TYPEMAPS} }, 'typemap' );
 
 WriteMakefile(%hash);
 
 sub MY::postamble { pdlpp_postamble( $package ); }
+
+#@pack = ( $package );
+#sub MY::postamble { pdlpp_postamble_int(@::pack); }
