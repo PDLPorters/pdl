@@ -51,6 +51,11 @@ foreach my $libdir (
     $plplot_lib_path = $libdir;
     $ENV{LD_LIBRARY_PATH} .= ":$libdir";
     last;
+  } elsif (-e "$libdir/$libname.a") {
+    $plplot_lib_path = $libdir;
+    $ENV{LD_LIBRARY_PATH} .= ":$libdir";
+    $libname = $libname . ".a";
+    last;
   }
 
 }
@@ -217,13 +222,14 @@ sub compileAndRun {
   print OUT $code;
   close OUT;
   unlink './temp'; # since we work out whether the compile succeeds by presence of this
+  unlink './temp.exe'; # since we work out whether the compile succeeds by presence of this
   
   my $cc = $Config{cc};
   my $ccflags = $Config{ccflags};
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
-  system "$cc $ccflags $flags temp.c -o temp > /dev/null 2>&1";
+  system "$cc $ccflags $flags temp.c $flags -o temp > /dev/null 2>&1";
   unlink('./temp.c');
-  die "Cannot compile test program: $code" unless (-e 'temp');
+  die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');
   return unless ($run);
 
   my $res = `./temp`;

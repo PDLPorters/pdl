@@ -1,3 +1,5 @@
+CHM (28-May-2006)
+	Fix Graphics/PLplot/Makefile.PL to allow plplot to build on cygwin.
 Chris Marshall-a.k.a. CHM or marshallch (28-May-2006)
     Updated Changes file to reflect CVS submissions on 22-May-2006 to
     incorporate accumulated patches to allow PDL to build on cygwin
