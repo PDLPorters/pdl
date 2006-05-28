@@ -1,3 +1,19 @@
+Chris Marshall-a.k.a. CHM or marshallch (28-May-2006)
+    Updated Changes file to reflect CVS submissions on 22-May-2006 to
+    incorporate accumulated patches to allow PDL to build on cygwin
+    unix environment.  The patches close bug 1093510 and affect the
+    following files:
+        - Makefile.PL (fixed to specify .exe extension for binary file installs)
+        - Lib/GSL/SF/coulomb/gsl_sf_coulomb.pd  (fixed typo)
+        - Lib/GSL/SF/poly/gsl_sf_poly.pd        (fixed typo)
+        - t/flexraw.t  (added line wrap into f77 continuation lines to handle cases
+            where lines longer than 72 chars were being generated; worked around a
+            problem with a subtest using the compress command---on cygwin this is a
+            non-functional "reminder" script---gzip was used instead)
+        - perldl.conf (set cygwin default to skip new GD and Proj modules until a
+            build issue can be investigated, a bug report has been submitted)
+    Base PDL now builds with the default CVS code.  Work continues to fix issues
+    with TriD(OpenGL), PLplot, FFTW, and PGPLOT.
 JT  (12-Apr-2006)
     Added the PDL::IO::GD module, and tests.
 JT  (5-Apr-2006)
