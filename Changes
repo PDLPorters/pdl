@@ -1,5 +1,13 @@
+CHM (29-May-2006)
+    Fix perl Makefile.PL build process to allow TriD (OpenGL) to build on
+    cygwin.
+      - Graphics/Makefile.PL -- set OPENGL_LIBS, OPENGL_DEFINE, OPENGL_INC
+      - Graphics/TriD/Makefile.PL -- add *.dll.a to @patterns to test
+    Cygwin now builds out of the box with base modules and TriD(OpenGL)
+    and PLplot (need to have plplot bin directory in PATH for tests to
+    pass).
 CHM (28-May-2006)
-	Fix Graphics/PLplot/Makefile.PL to allow plplot to build on cygwin.
+    Fix Graphics/PLplot/Makefile.PL to allow plplot to build on cygwin.
 Chris Marshall-a.k.a. CHM or marshallch (28-May-2006)
     Updated Changes file to reflect CVS submissions on 22-May-2006 to
     incorporate accumulated patches to allow PDL to build on cygwin
