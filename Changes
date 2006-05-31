@@ -1,3 +1,8 @@
+CHM (30-May-2006)
+    Fix t/flexraw.t to use eval to prevent a missing IO::String module
+    from preventing the test to run.  IO::String is required for perls
+    before 5.8.0.  The perlio for 5.8.0 and later perls supports the
+    same functionality with the native open call.
 CHM (29-May-2006)
     Fix perl Makefile.PL build process to allow TriD (OpenGL) to build on
     cygwin.

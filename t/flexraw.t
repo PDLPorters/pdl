@@ -114,42 +114,45 @@ sub codefold {
    my $oldcode = shift;
    my $newcode = '';
 
-   # to simplify loop processing, introduces dependence
-   use IO::String;
+   eval {
+      # to simplify loop processing, introduces dependence
+      require IO::String;
 
-   my $in = IO::String->new($oldcode);
-   my $out = IO::String->new($newcode);
+      my $in = IO::String->new($oldcode);
+      my $out = IO::String->new($newcode);
 
-   # find non-comment lines longer than 72 columns and fold
-   my $line = '';
-   while ($line = <$in>) {
+      # find non-comment lines longer than 72 columns and fold
+      my $line = '';
+      while ($line = <$in>) {
 
-      # clean off line-feed stuff
-      chomp $line;
+          # clean off line-feed stuff
+         chomp $line;
 
-      # pass comments to output
-      print $out "$line\n" if $line =~ /^\S/;
+         # pass comments to output
+         print $out "$line\n" if $line =~ /^\S/;
 
-      # output code lines (by 72-char chunks if needed)
-      while ($line ne '') {
+         # output code lines (by 72-char chunks if needed)
+         while ($line ne '') {
 
-	 # output first 72 columns of the line
-	 print $out substr($line,0,72) . "\n";	# print first 72 cols
+            # output first 72 columns of the line
+            print $out substr($line,0,72) . "\n";	# print first 72 cols
 
-	 if ( length($line) > 72 ) {
-	    # make continuation line of the rest of the line
-	    substr($line,0,72) = '     $';
-	 } else {
-	    $line = '';
-	 }
+               if ( length($line) > 72 ) {
+                  # make continuation line of the rest of the line
+                  substr($line,0,72) = '     $';
+               } else {
+                  $line = '';
+               }
 
+         }
       }
-   }
 
-   # close "files" and return folded code
-   close($in);
-   close($out);
+      # close "files" and return folded code
+      close($in);
+      close($out);
+   };
 
+   $newcode = $oldcode if $@;
    return $newcode;
 }
 
