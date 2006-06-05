@@ -62,14 +62,19 @@ BEGIN
     # Do the search:
     #
     # Look for the libs:
+    local($lib_path) = undef;  #local because I'm not sure what lib_path is used for elsewhere --CD
+    my $fl;                    #fl stores find_lib iterator for use in $msg
+
     foreach my $libdir ( @lib_locations ) 
     {
         my $found = 0;
         foreach my $find_lib ( @$find_libs )
         {
+	    $fl = $find_lib;
             if ( -e "$libdir/$find_lib" ) 
             {
                 $lib_path = $libdir;
+		print "\tPDL::GIS::Proj: Found $libdir/$find_lib\n";
                 $found = 1;
             }
             last if $found;
@@ -79,15 +84,18 @@ BEGIN
 
     unless( defined( $lib_path ) )
     {
-        $msg .= "Cannot find $lib_name library, $find_lib.\n"
-              . "Please add the correct library path to Makefile.PL or install $lib_name\n.";
+        $msg .= "\tCannot find $lib_name library, $fl.\n"
+              . "\tPlease add the correct library path to Makefile.PL or install $lib_name.\n";
     }
 
+
     # Look for the include files:
+    my $fi;
     foreach my $incdir ( @inc_locations ) 
     {
         foreach my $find_inc ( @$find_incs )
         {
+	  $fi = $find_inc;
             if ( -e "$incdir/$find_inc" ) 
             {
                 $include_path = $incdir;
@@ -98,36 +106,30 @@ BEGIN
 
     unless( defined( $include_path ) )
     {
-        $msg .= "Cannot find $lib_name header file, $find_inc.\n"
-              . "Please add the correct library path to Makefile.PL or install $lib_name.\n";
+        $msg .= "\tCannot find $lib_name header file, $fi.\n"
+              . "\tPlease add the correct library path to Makefile.PL or install $lib_name.\n";
     }
     
     #
     # Make sure everything we wanted is found:
     #
-    $donot = 1;
-    if( defined( $include_path ) && defined( $lib_path ) )
+    unless( defined( $include_path ) && defined( $lib_path ) )
     {
-        $donot = 0;
-    }
-    
-    if ( $donot )
-    {
-        $msg .= "\n Skipping build of $package_name.\n";
+        $msg .= " Skipping build of $package_name.\n";
     }
     
 skip:
     
-    if ($msg ne "" && $forcebuild==0) 
+    if ($msg && $forcebuild==0) 
     {
-        warn $msg . "\n";
+        warn " Testing support libraries for $package_name:\n$msg\n";
         $msg =~ s/\n//g;
         write_dummy_make( $msg );
         $donot = 1;
     } 
     else 
     {
-        print "\n   Building $package_name. Turn off $config_flag if there are any problems\n\n";
+        print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
     }
 
 } # BEGIN...

@@ -19,6 +19,22 @@ sub run {
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
 
+
+  unless( PDL->rpiccan('JPEG') ) {
+    comment q|
+This demo illustrates the PDL::Transform::Cartography module.  
+
+It requires PGPLOT and also the ability to read/write JPEG images.
+
+You don't seem to have that ability at the moment -- this is likely
+because you do not have NetPBM installed.  See the man page for PDL::IO::Pic.
+
+I'll continue with the demo anyway, but it will likely crash on the 
+earth_image('day') call on the next screen.
+
+|
+}
+
 comment q|
 
  This demo illustrates the PDL::Transform::Cartography module.
@@ -47,7 +63,7 @@ act q|
     print "Coastline data are a collection of vectors:  ",
              join("x",$coast->dims),"\n";
 
-    $map = earth_image(day);
+    $map = earth_image('day');
     print "Map data are RGB:   ",join("x",$map->dims),"\n\n";
 |;
 
