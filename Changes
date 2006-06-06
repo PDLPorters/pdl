@@ -1,3 +1,5 @@
+CED (6-Jun-2006)
+    (finally) fix TriD rotation bug.  What an evil crock that module is!
 CED (4-Jun-2006)
     Fix Makefile.PL for Proj -- now doesn't attempt to build proj modules
     when proj is not present on the system.

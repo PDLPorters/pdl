@@ -36,7 +36,20 @@ sub xy2qua {
 sub mouse_moved {
 	my($this,$x0,$y0,$x1,$y1) = @_;
 
-#	print "ARCBALL: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n";
+	# Copy the size of the owning viewport to our size, in case it changed...
+	$this->{H} = $this->{Win}->{H};
+	$this->{W} = $this->{Win}->{W};
+
+	if($PDL::Graphics::TriD::verbose) {
+	  print "QuaterController: mouse-moved: $this: $x0,$y0,$x1,$y1,$this->{W},$this->{H},$this->{SC}\n" if($PDL::Graphics::TriD::verbose);
+	  if($PDL::Graphics::TriD::verbose > 1) {
+	    print "\tthis is:\n";
+	    foreach my $k(sort keys %$this) {
+	      print "\t$k\t=>\t$this->{$k}\n";
+	    }
+	  }
+	}
+
 # Convert both to quaternions.
 
 	my ($qua0,$qua1) = ($this->xy2qua($x0,$y0),$this->xy2qua($x1,$y1));
