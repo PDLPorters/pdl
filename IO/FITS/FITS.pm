@@ -404,21 +404,23 @@ sub PDL::rfits {
        no strict 'refs';
        # skip if the first eight characters are ' '
        # - as seen in headers from the DSS at STScI
-       next if substr($line,0,8) eq " " x 8;
+       if (substr($line,0,8) ne " " x 8) { # If non-blank
        
-       $name = (split(' ',substr($line,0,8)))[0]; 
+          $name = (split(' ',substr($line,0,8)))[0]; 
 
-       $rest = substr($line,8);
+          $rest = substr($line,8);
+          print "###$line###\n";
        
-       if ($name =~ m/^HISTORY/) {
-	 push @history, $rest;
-       } else {
-	 $$foo{$name} = "";
+          if ($name =~ m/^HISTORY/) {
+	         push @history, $rest;
+          } else {
+	         $$foo{$name} = "";
 	 
-	 $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
-	 $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
-	 $$foo{COMMENT}{$name} = $3 if defined($3);
-       }
+	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
+	         $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
+	         $$foo{COMMENT}{$name} = $3 if defined($3);
+          }
+       } # non-blank
        last hdr_legacy if ((defined $name) && $name eq "END");
        $nbytes += $fh->read($line, 80);
      } while(!$fh->eof()); }
