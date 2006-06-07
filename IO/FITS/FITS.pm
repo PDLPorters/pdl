@@ -409,7 +409,6 @@ sub PDL::rfits {
           $name = (split(' ',substr($line,0,8)))[0]; 
 
           $rest = substr($line,8);
-          print "###$line###\n";
        
           if ($name =~ m/^HISTORY/) {
 	         push @history, $rest;
