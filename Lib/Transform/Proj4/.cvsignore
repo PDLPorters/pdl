@@ -1,0 +1,8 @@
+.cvsignore
+.vsignore.old
+Makefile
+pm_to_blib
+Proj4.xs
+Proj4.pm
+Proj4.c
+Proj4.bs
