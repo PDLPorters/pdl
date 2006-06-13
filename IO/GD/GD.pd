@@ -9,7 +9,7 @@
 #
 
 use strict;
-use PDL;
+#use PDL;
 use vars qw( $VERSION );
 
 $VERSION = "2.0";

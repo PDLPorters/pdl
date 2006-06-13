@@ -150,7 +150,7 @@ push( @{ $hash{TYPEMAPS} }, 'typemap' );
 
 WriteMakefile(%hash);
 
-sub MY::postamble { pdlpp_postamble( $package ); }
+sub MY::postamble { pdlpp_postamble_int( $package ); }
 
 #@pack = ( $package );
 #sub MY::postamble { pdlpp_postamble_int(@::pack); }

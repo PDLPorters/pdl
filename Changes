@@ -1,3 +1,12 @@
+CHM (12-Jun-2006)
+    Fix to GD portion [only] re sourceforge bug #1493056:
+    - Replace pdlpp_postamble() call in PDL/IO/GD/Makefile.PL with the
+      same call to pdlpp_postamble_int().  Don't know the details but this
+      puts the right blib path includes for PDL::IO::GD to build on clean
+      perl (no previous PDL install).
+    - Removed "use PDL;" from GD.pd which broke the GD build process
+      without a pre-existing PDL install.
+    - Removed cygwin workaround for WITH_GD setting in perldl.conf.
 CED (6-Jun-2006)
     (finally) fix TriD rotation bug.  What an evil crock that module is!
 CED (4-Jun-2006)
