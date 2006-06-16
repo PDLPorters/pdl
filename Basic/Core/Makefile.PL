@@ -9,7 +9,10 @@ use IO::File;
 
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
-my $pthread_define  = '-DPDL_PTHREAD';
+my $pthread_define  = ' -DPDL_PTHREAD ';
+
+my $macos_braindamage_define = ($ENV{'OSTYPE'} eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
@@ -105,7 +108,7 @@ WriteMakefile(
 		)),
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
- 'DEFINE' 	=> $pthread_define,
+ 'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.

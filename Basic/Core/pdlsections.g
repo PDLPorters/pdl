@@ -226,6 +226,11 @@ double pdl_at( void* x, int datatype, PDL_Long* pos, PDL_Long* dims,
 
    ENDGENERICLOOP
 
+#ifdef MACOS_MZERO_BRAINDAMAGE
+    if(!result)
+        result=0;
+#endif
+
    return result;
 }
 

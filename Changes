@@ -1,3 +1,10 @@
+CED (16-Jun-2006)
+    Work around -0 problem on macOS 10.4 PPC: some numbers (notably 
+    constructions of the form "pdl( 5 ) % 5") yield a value of 
+    "-0" rather than "0" under that OS.  Fix is in the pdl_at routine 
+    in core/pdlsections.g: forces 'c'-false values to be truly 0 during
+    export to perl.  The hack is accomplished via -DMACOS_MZERO_BRAINDAMAGE,
+    so the (infinitesimal) CPU cost doesn't affect other platforms.
 CHM (12-Jun-2006)
     Fix to GD portion [only] re sourceforge bug #1493056:
     - Replace pdlpp_postamble() call in PDL/IO/GD/Makefile.PL with the
