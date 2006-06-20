@@ -32,6 +32,18 @@ pp_addhdr('
 ');
 }
 
+# Solaris doesn't seem to have the nan() function, but it
+# does have atof("NaN"). Microsoft compilers also do
+# not support nan() but this is handled by conditional
+# compilation below (look for _MSC_VER)
+#
+my $nanfunc;
+if ($^O =~ /solaris/i) {
+    $nanfunc = 'atof ("NaN")';
+} else {
+    $nanfunc = 'nan("")';
+}
+
 use strict;
 
 pp_addpm({At=>'Top'},<<'EOD');
@@ -643,8 +655,8 @@ pp_def("eigens",
 #else
                    if( !ok  ) {
 		     for(j=0; j< $SIZE(n); j++) 
-		       ($P(ev))[2 * (i*$SIZE(n)+j)] = nan("");
-		     ($P(e))[i*2] = nan("");
+		       ($P(ev))[2 * (i*$SIZE(n)+j)] = ' . $nanfunc . ';
+		     ($P(e))[i*2] = ' . $nanfunc . ';
                    }
 #endif
                 }
