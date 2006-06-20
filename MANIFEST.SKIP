@@ -181,6 +181,9 @@ so_locations
 ^LOG$
 ^Graphics/Karma/\.tx\.defaults
 ^Graphics/PLplot/OPTIONS!
+^Graphics/PLplot/PLplot.c
+^Graphics/PLplot/PLplot.xs
+^Graphics/PLplot/PLplot.pm
 ^Graphics/PGPLOT/PGPLOT.c
 ^perldl.pod
 ^pdldoc.pod
