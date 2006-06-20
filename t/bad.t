@@ -24,7 +24,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 75;
+    plan tests => 76;
 } else {
     # reduced testing
     plan tests => 10;
@@ -57,6 +57,9 @@ if ( $PDL::Config{WITH_BADVAL} ) {
 
     exit;
 }
+
+my $usenan = $PDL::Config{BADVAL_USENAN} || 0;
+my $perpdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 # check default behaviour (ie no bad data)
 # - probably overkill
@@ -441,34 +444,52 @@ ok( sum(abs(convert($a,short)-$b)) < 1.0e-5, "  and the values" );
 # missing elements for floating points (earlier tests only did integer types)
 # IF we are not using NaN's
 #
-if ( $PDL::Config{BADVAL_USENAN} || 0 ) {
-    # perhaps should check that the value can't be changed?
-    skip( "Skipped: test only valid when not using NaN's as bad values", 1, 1 ); #
-    skip( "Skipped: test only valid when not using NaN's as bad values", 1, 1 ); # 70
-} else {
+SKIP: {
+    skip( "Skipped: test only valid when not using NaN's as bad values", 2 )
+      if $usenan;
+
+    # perhaps should check that the value can't be changed when NaN's are
+    # being used.
+    #
+
     is( float->badvalue, float->orig_badvalue, "default bad value for floats matches" );
     is( float->badvalue(23), 23, "changed floating-point bad value" );
     float->badvalue( float->orig_badvalue );
 }
 
-if ( $PDL::Config{BADVAL_PER_PDL} ) {
+SKIP: {
+
+    skip ("Skipped: test only valid when enabling bad values per pdl", 3)
+      unless $perpdl;
+
     $a = sequence(4);
     $a->badvalue(3);
     $a->badflag(1);
     $b = $a->slice('2:3');
-    is( $b->badvalue, 3 );
-    is( $b->sum, 2);
+    is( $b->badvalue, 3, "can propogate per-piddle bad value");
+    is( $b->sum, 2, "and the propogated value is recognised as bad");
 
     $a = sequence(4);
-    is ($a->badvalue, double->orig_badvalue);
-} else {
+    is ($a->badvalue, double->orig_badvalue, "no long-term affects of per-piddle changes [1]");
+
+}
+
+SKIP: {
+    skip ("Skipped: test not valid if per-piddle bad values are used", 1)
+      if $perpdl;
+
     $a = double(4);
     double->badvalue(3);
-    is($a->badvalue, double->badvalue);
+    is($a->badvalue, double->badvalue, "no long-term affects of per-piddle changes [2]");
     double->badvalue(double->orig_badvalue);
-    SKIP: {
-	skip ("Skipped: test only valid when enabling bad values per pdl", 2);
-    }
+
 }
+
+# At the moment we do not allow per-piddle bad values
+# and the use of NaN's.
+#TODO: {
+#    local $TODO = "Need to work out whan NaN and per-piddle bad values means";
+#    is (0, 1);
+#}
 
 # end

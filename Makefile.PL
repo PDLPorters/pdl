@@ -174,6 +174,20 @@ EOD
 	unless exists $PDLConfig{MALLOCDBG}->{$item};
   }
 
+  # filter out incompatible options for the 'bad' code.
+  # At present we can not have the experimental per-piddle
+  # code turned on (the BADVAL_PER_PDL option) and use
+  # NaN's for floating-point bad values (the BADVAL_USENAN
+  # option).
+  #
+  my $flag_bad     = $PDL_CONFIG{WITH_BADVAL} || 0;
+  my $flag_per_pdl = $PDL_CONFIG{BADVAL_PER_PDL} || 0;
+  my $flag_use_nan = $PDL_CONFIG{BADVAL_USENAN} || 0;
+  if ( $flag_bad and $flag_per_pdl and $flag_use_nan ) {
+      print "WARNING: Setting BADVAL_USENAN=0 as BADVAL_PER_PDL option is set!\n\n";
+      $PDL_CONFIG{BADVAL_USENAN} = 0;
+  }
+
   # create a PDL::Config variable matching the PDL_CONFIG structure
   # and convert yes/no answers to 1/0
   #
@@ -240,11 +254,16 @@ sub make_badval_dependencies {
   my $badFile = "Basic/Core/badsupport.p";
   my $create_badFile = 1;
 
+  # The file '$badFile' sets up bvalflag, usenan, and bvalPerPdl
+  # variables, which is why we can use them once the file has been
+  # loaded via require.
+  #
   if ( -e $badFile ) {
     require $badFile;
     $create_badFile = 0
       if $bvalflag == $PDL::Config{WITH_BADVAL} and
-	 $usenan   == $PDL::Config{BADVAL_USENAN};
+	 $usenan   == $PDL::Config{BADVAL_USENAN} and
+	 $bvalPerPdl == $PDL::Config{BADVAL_PER_PDL};
   }
 
   if ( $create_badFile ) {

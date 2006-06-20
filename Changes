@@ -1,3 +1,8 @@
+DJB 19-Jun-2006
+    The experimental BADVAL_PER_PDL feature can not (currently) be
+    combined with BADVAL_USENAN. The build now detects this conflict
+    and turns off BADVAL_USENAN. The docs need updating to discuss
+    this option!
 CED (16-Jun-2006)
     Work around -0 problem on macOS 10.4 PPC: some numbers (notably 
     constructions of the form "pdl( 5 ) % 5") yield a value of 
