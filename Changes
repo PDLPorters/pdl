@@ -1,3 +1,10 @@
+DJB 20-Jun-2006
+    Attempt to clean up building of Basic/MatrixOps:
+      - fix a nan issue on Solaris (use atof("NaN") ratehr than nan(""))
+      - moved source code from ssl/ sub-directory into parent so that
+        we do not have to try and write our own Makefile for these
+        files (with attendant OS/system complexities) but let Perl
+        worry about it all
 DJB 19-Jun-2006
     The experimental BADVAL_PER_PDL feature can not (currently) be
     combined with BADVAL_USENAN. The build now detects this conflict

@@ -1,3 +1,13 @@
+20-Jun-2006
+
+Moved the "Small Science Libraty" code from ssl/ into this directory
+to avoid having to deal with OS/system-specific make files.
+
+Changed nan("") to atof("NaN") on Solaris machines (done in a quick
+way; should be handled in Basic/Core/ or top-level Makefile.PL).
+
+--Doug Burke
+
 7-Jan-2004
 
 Added a subset of the "Small Science Library" available from

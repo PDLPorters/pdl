@@ -570,8 +570,8 @@ pp_def("eigens",
 	Pars => '[phys]a(m); [o,phys]ev(l,n,n); [o,phys]e(l,n)',
 	GenericTypes => ['D'],
 	Code => '
-		#include "ssl/complex.h"
-		#include "ssl/eigen.h"
+		#include "complex.h"
+		#include "eigen.h"
 
 		register int sn = $SIZE (n);
 		int i,j;
@@ -604,8 +604,9 @@ pp_def("eigens",
 			j++;
 		}
 
-		Eigen( sn, 0, foo, 20*sn, 1e-13, 0, 
-		       (SSL_Complex *)( $P(e) ), bar
+		Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0, 
+		       (SSL_Complex *)( $P(e) ),
+                       (SSL_Complex **) bar
 		       );
 #ifdef _MSC_VER
             Safefree(foo);
