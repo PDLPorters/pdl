@@ -1,3 +1,7 @@
+HG  (22-Jun-2006)
+    Fix the TriD::OpenGL build issue with newer X installations by 
+	importing Bill Coffman's patch for Graphics/TriD/OpenGL/opengl.pd
+	(closes bug #1505132)
 DJB 20-Jun-2006
     Attempt to clean up building of Basic/MatrixOps:
       - fix a nan issue on Solaris (use atof("NaN") ratehr than nan(""))

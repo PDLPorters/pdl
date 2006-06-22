@@ -189,7 +189,7 @@ foreach my $file (@types){
 	     
 	   hack3: for( @prefile,@file ) {
 #	       print STDERR "\t-$_";
-	       next hack3 unless( m/^\s*typedef\s.*\*(_*GL\w+).*\;\s*$/);
+	       next hack3 unless( m/^\s*typedef\s.*\*\s*(_*GL\w+).*\;\s*$/);
 #	       print STDERR "\t:$_";
 	       my($gltype) = ($1);
 	       map { s/^\s*//; s/\s*$//; s/\s+/ /g; } ($gltype);
@@ -320,7 +320,7 @@ sub cpp {
 
   while(@rawfile) {
       my $line = shift @rawfile;
-      if($line =~ m/\s*\#include\s/) {
+      if($line =~ m/\A\#\s*include\s/) {
 	$line =~ s/\n(.)/\\n$1/g;
 	chomp $line;
 	  push(@file,"\nFENCE ($open_fencestr): Ignore stuff till the next fence ($line)\n\n");
@@ -403,7 +403,7 @@ sub cpp {
 	@file = split /\n/,$str;
 
 	open(FILE,">${nfile}-out");
-	print FILE @file;
+	print FILE join "\n",@file,"";
 	close FILE;
 	print STDERR "SUB CPP: Returning ".(0+@file)." lines...\n";
   return @file;
