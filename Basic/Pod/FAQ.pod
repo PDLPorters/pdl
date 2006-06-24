@@ -588,27 +588,24 @@ it might not always be the latest version.
 =head2 Q: 4.8    Can I get PDL via CVS?   
   
 
-Yes, as of December 1999, PDL is available at the CVS
-repository on http://www.sourceforge.net . The tree is updated by
-developers who have accounts on Sourceforge and snapshots of
-the tree are released regularly by the pumpkin holder (the
-pumpking).
+Yes, as of December 1999, PDL is available at the CVS repository on
+http://www.sourceforge.net . The tree is updated by developers who
+have accounts on Sourceforge and snapshots of the tree are released
+regularly by the pumpkin holder (the pumpking).
 
-If you wish to access the CVS repository and install PDL
-from there all you need are two simple commands, however
-make sure you read some of the documentation on Sourceforge
-as well for full information, but the basic command is:
+If you wish to access the CVS repository and install PDL from there
+all you need are two simple commands, however make sure you read some
+of the documentation on Sourceforge as well for full information, but
+the basic command is case sensitive and is:
 
-    cvs -d:pserver:anonymous@cvs.PDL.sourceforge.net:/cvsroot/PDL login 
-    cvs -z3 -d:pserver:anonymous@cvs.PDL.sourceforge.net:/cvsroot/PDL co PDL
+    cvs -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl login 
+    cvs -z3 -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl co PDL
    	  
 
-
-When prompted for a password just press the Enter key.  Note
-however that the CVS tree is to be considered a development
-release and as such you are very welcome to try it out, but
-it is not recommended for mission critical use and might
-crash unexpectedly.
+When prompted for a password just press the Enter key.  Note however
+that the CVS tree is to be considered a development release and as
+such you are very welcome to try it out, but it is not recommended for
+mission critical use and might crash unexpectedly.
 
 
 
@@ -641,7 +638,7 @@ Glazebrook:
    In a clean directory:
    
    setenv CVS_RSH          ssh
-   setenv CVSROOT          kgb@cvs.PDL.sourceforge.net:/cvsroot/PDL
+   setenv CVSROOT          kgb@pdl.cvs.sourceforge.net:/cvsroot/pdl
    
    cvs co PDL
    
@@ -1262,7 +1259,39 @@ not with
 C< apropos> .
 
 
+=head2 Q: 6.22 PGPLOT does not write out PNG files.
 
+
+There are a few sources of trouble with PGPLOT and PNG files. First,
+when compiling the pgplot libraries, make sure you uncommented the PNG
+entries in the drivers.list file. Then when running 'make' you
+probably got an error like
+
+C<make: *** No rule to make target `png.h', needed by `pndriv.o'.  Stop.>
+
+To fix this, find the line in the 'makefile' that starts with
+'pndriv.o:' (it's near the bottom). Change, for example, ./png.h to
+/usr/include/png.h, if that is where your header files are (you do
+have the libpng and libz devel packages, don't you?).  Do this for all
+four entries on that line, then go back and run C<make>.
+
+Second, if you already have the PGPLOT Perl module and PDL installed,
+you probably tried to write out a png file and got fatal error message
+like:
+
+C<undefined symbol: png_create_write_struct>
+
+This is because the PGPLOT perl module does not automatically link
+against the png and z libraries. So when you are installing the PGPLOT
+perl module (version 2.19) from CPAN, don't do C<install PGPLOT>, but
+just do C<get PGPLOT>. Then exit from CPAN and manually install
+PGPLOT, calling the makefile thusly:
+
+C<perl Makefile.PL EXLIB=png,z EXDIR=/usr/lib>
+
+assuming that there exist files such as /usr/lib/libpng.so.*,
+/usr/lib/libz.so.*. Then do the standard C<make;make test;make
+install;> sequence. Now you can write png files from PDL!
 
 =head1 EXTENSIONS OF PDL
 

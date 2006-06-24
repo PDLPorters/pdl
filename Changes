@@ -1,3 +1,6 @@
+DAL (24-Jun-2006)
+    Added FAQ question (#6.22) showing how to get PGPLOT to write PNG files.
+    Also updated the CVS commands in the FAQ.
 HG  (22-Jun-2006)
     Fix the TriD::OpenGL build issue with newer X installations by 
 	importing Bill Coffman's patch for Graphics/TriD/OpenGL/opengl.pd
