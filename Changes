@@ -1,3 +1,12 @@
+DJB 29-Jun-2006
+    Updated $pdl_core_version in pdlcore.h.PL to 6 since the code for the
+    experimental BADVAL_PER_PDL feature added fields to the Core struct
+    (see 'pdldoc Internals' for info on why the variable needs to be
+    updated).
+    *** Warning: this means that - once this change is built and
+    installed - any external module that uses the C interface of PDL will
+    have to be re-built/installed (they'll complain and refuse to run until
+    you do so).
 DAL (24-Jun-2006)
     Added FAQ question (#6.22) showing how to get PGPLOT to write PNG files.
     Also updated the CVS commands in the FAQ.

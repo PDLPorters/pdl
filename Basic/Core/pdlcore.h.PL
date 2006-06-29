@@ -16,8 +16,11 @@ use vars qw( %PDL_DATATYPES );
 
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
+# version 6 is introduced after 2.4.2, due to the experimental
+#   per-piddle bad values code (the BADVAL_PER_PDL option)
+#
 use vars qw( $pdl_core_version );
-$pdl_core_version = 5;
+$pdl_core_version = 6;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
