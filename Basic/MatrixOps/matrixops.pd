@@ -32,17 +32,6 @@ pp_addhdr('
 ');
 }
 
-# Solaris doesn't seem to have the nan() function, but it
-# does have atof("NaN"). Microsoft compilers also do
-# not support nan() but this is handled by conditional
-# compilation below (look for _MSC_VER)
-#
-my $nanfunc;
-if ($^O =~ /solaris/i) {
-    $nanfunc = 'atof ("NaN")';
-} else {
-    $nanfunc = 'nan("")';
-}
 
 use strict;
 
@@ -537,7 +526,8 @@ pp_def("eigens_sym",
 =for ref
 
 Eigenvalues and -vectors of a symmetric square matrix.  If passed
-an asymmetric matrix, the routine will warn and symmetrize it.  
+an asymmetric matrix, the routine will warn and symmetrize it, by taking
+the average value.  That is, it will solve for 0.5*($a+$a->mv(0,1)).
 
 It\'s threadable, so if $a is 3x3x100, it\'s treated as 100 separate 3x3
 matrices, and both $ev and $e get extra dimensions accordingly.
@@ -545,6 +535,9 @@ matrices, and both $ev and $e get extra dimensions accordingly.
 If called in scalar context it hands back only the eigenvalues.  Ultimately,
 it should switch to a faster algorithm in this case (as discarding the 
 eigenvectors is wasteful).
+
+The algorithm used is due to J. vonNeumann, which was a rediscovery of
+Jacobi\'s method.  http://en.wikipedia.org/wiki/Jacobi_eigenvalue_algorithm
 
 The eigenvectors are returned in COLUMNS of the returned PDL.  That
 makes it slightly easier to access individual eigenvectors, since the
@@ -570,114 +563,124 @@ pp_def("eigens",
 	Pars => '[phys]a(m); [o,phys]ev(l,n,n); [o,phys]e(l,n)',
 	GenericTypes => ['D'],
 	Code => '
-		#include "complex.h"
-		#include "eigen.h"
+	    #include "complex.h"
+	    #include "eigen.h"
 
-		register int sn = $SIZE (n);
-		int i,j;
+	    register int sn = $SIZE(n);
+	    int i,j;
 
-      /* Allocate foo and bar dynamically with Microsoft compilers - coded by Sisyphus */
-#ifdef _MSC_VER
-            double dummy_nan = 0;
             void **foo;
             void **bar;
-            New(42, foo, $SIZE(n), void*);
-            New(111, bar, $SIZE(n), void*);
-            if(foo == NULL || bar == NULL)
-              croak("Failed to allocate memory for foo or bar");
-#else
-		void *foo[ $SIZE(n) ];
-		void *bar[ $SIZE(n) ];
-#endif
+            New(42, foo, sn, void*);
+            New(111, bar, sn, void*);
 
-		if($SIZE (l) != 2) {
-		        barf("eigens internal error...");
-		}
-		if($SIZE (m) != (sn * sn )) {
-			fprintf(stderr,"m=%d, sn=%d\n",$SIZE(m),sn);
-			barf("Wrong sized args for eigens");
-		}
+            if($SIZE (l) != 2) {
+	        barf("eigens internal error...");
+            }
+            if($SIZE (m) != (sn * sn )) {
+		fprintf(stderr,"m=%d, sn=%d\n",$SIZE(m),sn);
+		barf("Wrong sized args for eigens");
+	    }
 
-		for(  i=j=0;  i<$SIZE(m);  i += $SIZE(n)  ) {
-			foo[j] = &( ($P(a))[ i ] );
-			bar[j] = &( ($P(ev))[ i+i ] );
-			j++;
-		}
+	    for(  i=j=0;  i<$SIZE(m);  i += sn  ) {
+		foo[j] = &( ($P(a))[ i ] );
+		bar[j] = &( ($P(ev))[ i+i ] );
+		j++;
+	    }
 
-		Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0, 
-		       (SSL_Complex *)( $P(e) ),
-                       (SSL_Complex **) bar
-		       );
-#ifdef _MSC_VER
+	    Eigen( sn, 0, (double **) foo, 20*sn, 1e-13, 0, 
+		   (SSL_Complex *)( $P(e) ),
+                   (SSL_Complex **) bar
+		 );
             Safefree(foo);
             Safefree(bar);
-#endif
 
-		/* Check for invalid values: convenience block */
-		{ 
-		  int k;
-		  char ok, flag;
-		  PDL_Double eps = 0;
+            /* Check for invalid values: convenience block */
+            { 
+                int k;
+                char ok, flag;
+                PDL_Double eps = 0;
 
   		/* First: find maximum eigenvalue */
-		  for(i=0; i< $SIZE(n); i++ ) {
-		     PDL_Double z = fabs (  ($P(e))[i*2]  );
-		     if( z > eps )
-		       eps = z;
-		  }    
-		  eps *= 1e-10;
+                for(i=0; i< sn; i++ ) {
+                    PDL_Double z = fabs (  ($P(e))[i*2]  );
+                    if( z > eps )
+                        eps = z;
+                }    
+                eps *= 1e-10;
 
-		/* Next: scan for non-real terms or parallel vectors */
-
-                for( i=0;  i< $SIZE(n);  i++ ) {
+		/* Next: scan for non-real terms and parallel vectors */
+                for( i=0;  i < sn;  i++ ) {
                    ok = ( fabs( ($P(e))[i*2+1] ) < eps );
-                   for(  j=0; ok && j< $SIZE(n);  j++) 
-                      ok |= fabs( ($P(ev))[ 2* (i*$SIZE(n) + j) + 1] ) < eps;
+                   for(  j=0; ok && j< sn;  j++) 
+                      ok &= fabs( ($P(ev))[ 2* (i*sn + j) + 1] ) < eps;
                    for(  k=0; ok && k < i; k++ ) {
-                     if( finite( ($P(ev))[ 2 * (k*$SIZE(n)) ] ) ) { 
-                       for( flag=1, j=0; ok && j< $SIZE(n); j++) 
-                         flag &= (  fabs(  ($P(ev))[ 2 * (i*$SIZE(n) + j) ] - 
-                                           ($P(ev))[ 2 * (k*$SIZE(n) + j) ] 
-                                      ) * 1e-10 
-                                    < fabs( ($P(ev))[2*(i*$SIZE(n)+j)])
-                                  );
-                       ok |= flag;
+                     if( finite( ($P(ev))[ 2 * (k*sn) ] ) ) { 
+                       for( flag=1, j=0; ok && flag && j< sn; j++) 
+                         flag &= ( fabs( ($P(ev))[ 2 * (i*sn + j) ] -
+                                         ($P(ev))[ 2 * (k*sn + j) ] 
+                                       )
+                                   < 1e-10 * (
+                                      fabs(($P(ev))[ 2 * (k*sn + j) ]) +
+                                      fabs(($P(ev))[ 2 * (i*sn + j) ]) )
+                                 );
+                       ok &= !flag;
                      }
+                   }
+                   if (ok) {
+                       for(j=0; ok && j<sn; j++) {
+                           double ex = ($P(e))[i*2] * ($P(ev))[2 * (i*sn + j)];
+                           double ac = 0.0; /*actual matrix product*/
+                           for(k=0; k<sn; k++)
+                               ac += ($P(a))[i*sn + k] * ($P(ev))[2 * (i*sn + k)];
+                           ok &= fabs(ac-ex)<eps;
+                       }
                    }
 
                    /* Set column to NaN if necessary */
-                   /* No nan() function with Microsoft compilers - coded by Sisyphus */
-#ifdef _MSC_VER
                    if( !ok  ) {
-		     for(j=0; j< $SIZE(n); j++) 
-		       ($P(ev))[2 * (i*$SIZE(n)+j)] = 0./dummy_nan;
-		     ($P(e))[i*2] = 0./dummy_nan;
+                     /* TODO: We should set the badval bit if in use. */
+		     for(j=0; j< sn; j++) 
+		       ($P(ev))[2 * (i*sn+j)] = NaN_double;
+		     ($P(e))[i*2] = NaN_double;
                    }
-#else
-                   if( !ok  ) {
-		     for(j=0; j< $SIZE(n); j++) 
-		       ($P(ev))[2 * (i*$SIZE(n)+j)] = ' . $nanfunc . ';
-		     ($P(e))[i*2] = ' . $nanfunc . ';
-                   }
-#endif
                 }
-	       }
+            }
 ',
       PMCode =>'
    sub PDL::eigens {
       my ($a) = @_;
       my (@d) = $a->dims;
+      my $n = $d[0];
       barf "Need real square matrix for eigens" 
             if $#d < 1 or $d[0] != $d[1];
+      my $deviation = PDL::max(abs($a - $a->mv(0,1)))/PDL::max(abs($a));
+      if ( $deviation <= 1e-5 ) {
+          #taken from eigens_sym code
 
-      my $ev  = PDL->zeroes(2, $a->dims);
-      my $e   = PDL->zeroes(2, $a->index(0)->dims);
+          my $lt  = PDL::indexND($a,
+			     scalar(PDL::whichND(PDL->xvals($n,$n) <=
+						 PDL->yvals($n,$n)))
+			     )->copy;
+          my $ev  = PDL->zeroes($a->dims);
+          my $e   = PDL->zeroes($a->index(0)->dims);
       
-      &PDL::_eigens_int($a->clump(0,1), $ev, $e);
+          &PDL::_eigens_sym_int($lt, $ev, $e);
 
-      return $ev->index(0)->xchg(0,1)->sever, $e->index(0)->sever
-	if(wantarray);
-      $e->index(0)->sever;           #just eigenvalues
+          return $ev->xchg(0,1), $e   if wantarray;
+          return $e;  #just eigenvalues
+      }
+      else {
+          barf "eigens currently disabled for asymmatric matrices\n";
+          my $ev  = PDL->zeroes(2, $a->dims);
+          my $e   = PDL->zeroes(2, $a->index(0)->dims);
+
+          &PDL::_eigens_int($a->clump(0,1), $ev, $e);
+
+          return $ev->index(0)->xchg(0,1)->sever, $e->index(0)->sever
+              if(wantarray);
+          return $e->index(0)->sever;  #just eigenvalues
+      }
    }
 '
       , Doc => '
@@ -687,6 +690,27 @@ Real eigenvalues and -vectors of a real square matrix.
 
 (See also L<"eigens_sym"|/eigens_sym>, for eigenvalues and -vectors
 of a real, symmetric, square matrix).
+
+PLEASE NOTE: THE EIGENS FUNCTION HAS BEEN DISABLED FOR ASYMMETRIC MATRICES
+PENDING FIX TO THE CODE.
+
+The eigens function will attempt to compute the eigenvalues and eigenvectors
+of a square matrix with real components.  If the matrix is symmetric, the
+same underlying code as L<"eigens_sym"|/eigens_sym> is used.  If asymmetric,
+the eigenvalues and eigenvectors are computed with algorithms from the
+sslib library (anyone know what algorithm is used?).  If any imaginary
+components exist in the eigenvalues, the results are currently considered
+to be invalid, and such eigenvalues are returned as "NaN"s.  This is true
+for eigenvectors also.  That is if there are imaginary components to any
+of the values in the eigenvector, the eigenvalue and corresponding eigenvectors
+are all set to "NaN".  Finally, if there are any repeated eigenvectors, they
+are replaced with all "NaN"s.
+
+Use of the eigens function on asymmetric matrices should be considered
+experimental!  For asymmetric matrices, nearly all observed matrices with real
+eigenvalues produce incorrect results, due to errors of the sslib algorithm.
+If your assymmetric matrix returns all NaNs, do not assume that the values
+are complex.  Also, problems with memory access is known in this library.
 
 Not all square matrices are diagonalizable.  If you feed in a
 non-diagonalizable matrix, then one or more of the eigenvectors will

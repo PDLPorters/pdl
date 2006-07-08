@@ -69,19 +69,6 @@ print OUT <<'!NO!SUBS!';
 	print OUT "#include <float.h>\n" unless $usenan;
 	print OUT "#include <limits.h>\n";
 
-	# set up the NaN value, if necessary
-	# based on the GNU version of /usr/include/bits/nan.h
-	# - need to work out whether we're big/little endian here
-	#
-	if ( $usenan ) {
-	    print OUT 
-		"static union { unsigned char __c[4]; float __d; } __pdl_nan = { ";
-	    if ( $isbigendian ) {
-		print OUT "{ 0x7f, 0xc0, 0, 0 } };\n\n";
-	    } else {
-		print OUT "{ 0, 0, 0xc0, 0x7f } };\n\n";
-	    }
-	} # if: $usenan
     } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -941,7 +928,7 @@ set_c(x,position,value)
 
 BOOT:
 
-   /* Initialise structure of pointers to core C routines */
+   /* Initialize structure of pointers to core C routines */
 
    PDL.Version     = PDL_CORE_VERSION;
    PDL.SvPDLV      = SvPDLV;
@@ -1014,7 +1001,7 @@ if ( $bvalflag ) {
     my $ctype = $type->ctype;
     if ($usenan && $type->usenan) {
       # note: no defaults if usenan
-      print OUT "\tPDL.bvals.$typename = ($ctype) __pdl_nan.__d;\n";
+      print OUT "\tPDL.bvals.$typename = NaN_$type;\n"; #pdlcore.h NaN macros
     } else {
       print OUT
 	"\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";

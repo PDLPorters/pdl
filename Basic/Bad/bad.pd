@@ -194,7 +194,7 @@ pp_add_exported( '',
 		 'setbadat ' );
 
 # If UseNaN == 0, we need to have a variable containing the
-# value for NaN. This is taken from Basoc/Core/Core.xs.PL
+# value for NaN. This is taken from Basic/Core/Core.xs.PL
 #
 if ( $usenan == 0 ) {
     require PDL::Core::Dev; PDL::Core::Dev->import;

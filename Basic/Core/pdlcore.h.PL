@@ -2,7 +2,7 @@
 
 ##############################
 #
-# Be sure to increment $pdl_core_version (about 8 lines below this note)
+# Be sure to increment $pdl_core_version (about 20 lines below this note)
 # if you change any prototypes or modify the Core structure!
 #
 ##############################
@@ -72,7 +72,7 @@ print OUT <<'!NO!SUBS!';
 
 !NO!SUBS!
 
-    print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
+print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
 
 print OUT <<'!NO!SUBS!' if ($^O =~ /MSWin/);
  
@@ -88,6 +88,23 @@ print OUT <<'!NO!SUBS!';
 
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
 #define SVavref(x) (SvROK(x) && SvTYPE(SvRV(x))==SVt_PVAV)
+
+/* Create portable NaN's with the NaN_float and NaN_double macros.
+ * The end values are 7f to turn off sign bit to avoid printing "-NaN".
+ * Below produces QNaN's or quiet nan's on architectures that support it.
+ *
+ * The below uses IEEE-754, so it should be portable.  Also note the symmetry
+ * which makes the bigendian vs little-endian issue moot.  If platforms should
+ * arise which require further consideration, use the pdl function,
+ * PDL::Core::Dev::isbigendian() which returns a boolean value (a false value
+ * garantees little-endian), and #ifdef's for exotic architectures.  You'll be
+ * hard pressed to find an architecture that doesn't support ieee-754 but does
+ * support NaN.  See http://en.wikipedia.org/wiki/NaN to understand why
+ * this works. */
+#define NaN_float (((union {unsigned char c[4]; float d;})   \
+        {{0x7f, 0xff, 0xff, 0x7f}}) . d)
+#define NaN_double (((union {unsigned char c[8]; double d;}) \
+        {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}}) . d)
 
 /* for the moment we go back to the original croak
  * since there seem to be quite a few problems with maintaining
@@ -315,7 +332,7 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
-  PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 
 !NO!SUBS!
 
