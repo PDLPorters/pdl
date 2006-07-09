@@ -1,3 +1,5 @@
+CHM 09-Jul-2006
+         Fix skip_all output for t/fftw.t and plplot.t.
 CHM 08-Jul-2006
          Update flexraw.t, gd_oo_tests.t, gd_tests.t,
     gis_proj.t, hdf_sd.t, hdf_vdata.t, hdf_vgroup.t,

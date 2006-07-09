@@ -17,9 +17,7 @@ BEGIN{
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
-    plan tests => 1;
-    pass ("PDL::Graphics::PLplot not installed");
-    exit;
+    plan skip_all => "PDL::Graphics::PLplot not installed";
   }
 }
 
