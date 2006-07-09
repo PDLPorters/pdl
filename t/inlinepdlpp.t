@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 use blib;  # otherwise possible error on virgin systems not finding PDL::Core
 
 use PDL::LiteF;
@@ -15,9 +15,7 @@ BEGIN {
     unless ($@) {
 	plan tests => 3;
     } else {
-	plan tests => 1;
-	print "ok 1 # Skipped: Inline not installed\n";
-	exit;
+	plan skip_all => "Skipped: Inline not installed";
     }
 }
 

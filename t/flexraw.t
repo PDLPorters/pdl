@@ -2,7 +2,7 @@ use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use PDL::Config;
 
-use Test;
+use Test::More;
 
 use strict;
 
@@ -20,11 +20,11 @@ my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
 BEGIN{
 
     my $ntests = 29;
-    plan tests => $ntests;
 
     unless ( $PDL::Config{WITH_SLATEC} ) {
-	for ( 1..$ntests ) { skip( "Skip tests as F77 compiler not found" ); }
-	exit 0;
+        plan skip_all => "Skipped tests as F77 compiler not found";
+    } else {
+       plan tests => $ntests;
     }
 
     # Configuration

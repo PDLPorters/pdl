@@ -9,27 +9,23 @@ BEGIN{
 use strict;
 
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN{
-  eval "use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;";
-  if ($@) {
-    plan tests => 1;
-    print "ok 1 # Skipped: PDL::Graphics::PGPLOT not installed\n";
-    exit;
-  }
-
-  # We have this after the PGPLOT module is loaded so that we test whether the
-  # module will at least load, even if we do not test it's
-  # functionality.
-  #
-  unless ($ENV{'DISPLAY'}) {
-    plan tests => 1;
-    print "ok 1 # Skipped: DISPLAY environment variable not set\n";
-    exit;
-  }
-
-  plan tests => 12;
+   eval "use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;";
+   if ($@) {
+      plan skip_all => "Skipped: PDL::Graphics::PGPLOT not installed";
+   } elsif (!exists($ENV{'DISPLAY'})) {
+      # We have this after the PGPLOT module is loaded so that we test whether the
+      # module will at least load, even if we do not test it's
+      # functionality.
+      #
+      plan tests => 1;
+      print "ok 1 # skip -- DISPLAY environment variable not set\n";
+      exit;
+   } else {
+      plan tests => 12;
+   }
 }
 
 sub get_answer () {
@@ -82,19 +78,9 @@ EOD
     return get_answer();
 }
 
-my $interactive = $ENV{'PDL_INT'};
+my $interactive = exists($ENV{'PDL_INT'});
 my $skip_interactive_msg = "interactive test since env. var PDL_INT not set";
-
-{
-    my $ctr = 0;
-    sub interactive_test () {
-	$ctr++;
-	skip(
-	     $interactive ? '' : $skip_interactive_msg,
-	     interactive($interactive, $ctr)
-	     );
-    }
-}
+my $interactive_ctr = 0;
 
 ###
 ### Test code
@@ -124,7 +110,11 @@ foreach my $str ( (
     ok (!$@);
 }
 
-interactive_test ();
+$interactive_ctr++;
+SKIP: {
+   skip $skip_interactive_msg, 1 unless $interactive;
+   ok(interactive($interactive, $interactive_ctr), "interactive tests");
+}
   
 ##############################
 # Page 2
@@ -139,7 +129,11 @@ foreach my $str ( (
     ok (!$@);
 }
 
-interactive_test ();
+$interactive_ctr++;
+SKIP: {
+   skip $skip_interactive_msg, 1 unless $interactive;
+   ok(interactive($interactive, $interactive_ctr), "interactive tests");
+}
   
 eval '$w->close';
 ok (!$@);

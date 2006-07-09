@@ -12,16 +12,14 @@
 
 use strict;
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN
 {
     eval( " use PDL::GIS::Proj; " );
     if( $@ )
     {
-        plan tests => 1;
-        skip( "Skipped: PDL::GIS::Proj requires the Proj module.", 1, 1 );
-        exit;
+        plan skip_all => "Skipped: PDL::GIS::Proj requires the Proj module.";
     }  
     else
     {

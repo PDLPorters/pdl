@@ -29,28 +29,26 @@ sub hasDISPLAY
 }
 
 use PDL;
-use Test;
+use Test::More;
 
 #use lib '../blib/lib';
 #use lib '../blib/arch';
 
 BEGIN
 {   
-    eval( " use PDL::Transform::Proj4; " );
-    if( !($@) 
+   eval( " use PDL::Transform::Proj4; " );
+   if( !($@) 
       && $PDL::Config{OPENGL_LIBS} 
       && $PDL::Config{WITH_3D} 
       && $PDL::Config{GL_BUILD} 
       && hasDISPLAY() )
-    {
-        plan tests => 4;
-    }
-    else
-    {
-        plan tests => 1;
-        skip( "Skipped: PDL::Transform::Proj4 requires the Proj4 & TridD module.", 1, 1 );
-        exit;
-    }
+   {
+      plan tests => 4;
+   }
+   else
+   {
+      plan skip_all => "Skipped: PDL::Transform::Proj4 requires the Proj4 & TridD module.";
+   }
 }
 
 

@@ -9,16 +9,14 @@
 #
 use strict;
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN
 {
     eval( " use PDL::IO::HDF; " );
     if( $@ )
     {
-        plan tests => 1;
-        skip( "Skipped: PDL::IO::HDF requires the HDF module.", 1, 1 );
-        exit;
+        plan skip_all => "Skipped: PDL::IO::HDF requires the HDF module.";
     }  
     else
     {

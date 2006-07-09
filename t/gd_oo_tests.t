@@ -9,16 +9,14 @@
 
 use strict;
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN
 {
     eval( " use PDL::IO::GD; " );
     if( $@ )
     {
-        plan tests => 1;
-        skip( "Skipped: PDL::IO::GD requires the gd image library.", 1, 1 );
-        exit;
+        plan skip_all => "Skipped: PDL::IO::GD requires the gd image library.";
     }  
     else
     {
