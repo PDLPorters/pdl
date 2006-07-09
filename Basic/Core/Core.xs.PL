@@ -984,6 +984,9 @@ BOOT:
    PDL.changed       = pdl_changed;
    PDL.vaffinechanged = pdl_vaffinechanged;
 
+   PDL.NaN_float  = union_nan_float.f;
+   PDL.NaN_double = union_nan_double.d;
+
 !NO!SUBS!
 
 if ( $bvalflag ) {
@@ -1001,7 +1004,7 @@ if ( $bvalflag ) {
     my $ctype = $type->ctype;
     if ($usenan && $type->usenan) {
       # note: no defaults if usenan
-      print OUT "\tPDL.bvals.$typename = NaN_$type;\n"; #pdlcore.h NaN macros
+      print OUT "\tPDL.bvals.$typename = PDL.NaN_$type;\n"; #Core NaN value
     } else {
       print OUT
 	"\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";

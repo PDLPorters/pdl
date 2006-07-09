@@ -91,7 +91,7 @@ print OUT <<'!NO!SUBS!';
 
 /* Create portable NaN's with the NaN_float and NaN_double macros.
  * The end values are 7f to turn off sign bit to avoid printing "-NaN".
- * Below produces QNaN's or quiet nan's on architectures that support it.
+ * This produces QNaN's or quiet nan's on architectures that support it.
  *
  * The below uses IEEE-754, so it should be portable.  Also note the symmetry
  * which makes the bigendian vs little-endian issue moot.  If platforms should
@@ -101,10 +101,10 @@ print OUT <<'!NO!SUBS!';
  * hard pressed to find an architecture that doesn't support ieee-754 but does
  * support NaN.  See http://en.wikipedia.org/wiki/NaN to understand why
  * this works. */
-#define NaN_float (((union {unsigned char c[4]; float d;})   \
-        {{0x7f, 0xff, 0xff, 0x7f}}) . d)
-#define NaN_double (((union {unsigned char c[8]; double d;}) \
-        {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}}) . d)
+static const union {unsigned char c[4]; float f;}
+   union_nan_float = {{0x7f, 0xff, 0xff, 0x7f}};
+static const union {unsigned char c[8]; double d;}
+   union_nan_double = {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}};
 
 /* for the moment we go back to the original croak
  * since there seem to be quite a few problems with maintaining
@@ -333,6 +333,9 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
 void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
 PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+
+float NaN_float;
+double NaN_double;
 
 !NO!SUBS!
 

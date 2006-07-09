@@ -641,8 +641,8 @@ pp_def("eigens",
                    if( !ok  ) {
                      /* TODO: We should set the badval bit if in use. */
 		     for(j=0; j< sn; j++) 
-		       ($P(ev))[2 * (i*sn+j)] = NaN_double;
-		     ($P(e))[i*2] = NaN_double;
+		       ($P(ev))[2 * (i*sn+j)] = PDL->NaN_double;
+		     ($P(e))[i*2] = PDL->NaN_double;
                    }
                 }
             }

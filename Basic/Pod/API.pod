@@ -366,6 +366,12 @@ C<void qsort_ind_X(PDL_Xtype *data, int *ix, int a, int b)>
 where X is one of B,S,U,L,F,D and Xtype is one of Byte, Short, Ushort,
 Long, Float or Double.
 
+=item *
+
+C<float NaN_float> and
+C<double NaN_double>
+
+These are constants to produce the required NaN values.
 
 =back
 
