@@ -169,13 +169,13 @@ matrix-multiply them:
   [ 5]
   [11]
  ]
- 
+
  perldl> print $m x 2                  # Trivial case: scalar mult.
  [
   [2 4]
   [6 8]
  ]
- 
+
  perldl> print $r x $c                 # row x column = scalar
  [
   [11]
@@ -191,7 +191,7 @@ matrix-multiply them:
 INTERNALS
 
 The mechanics of the multiplication are carried out by the
-L<matmult|/matmult> method in L<PDL::Primitive|/PDL::Primitive>.
+L<matmult|/matmult> method.
 
 
 =head2 matmult
@@ -207,7 +207,7 @@ Matrix multiplication
 We peruse the inner product to define matrix multiplication
 via a threaded inner product.
 
-For usage, see L<x|'/x'>, a description of the overloaded 'x' operator
+For usage, see L<x|/x>, a description of the overloaded 'x' operator
 
 =cut
 
@@ -1102,8 +1102,8 @@ variance)
 
 =item * the median
 
-The median is the 50th percentile data value.  Median is found by 
-L</medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATION.
+The median is the 50th percentile data value.  Median is found by
+L<medover|PDL::Ufunc/medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATION.
 
 =item * the minimum
 
@@ -2342,10 +2342,10 @@ piddles.  Each output piddle is a 1-dimensional list of values in its
 corresponding data piddle. The values are drawn from locations where
 the mask is nonzero.
 
-The output PDLs are still connected to the original data PDLs, for the 
+The output PDLs are still connected to the original data PDLs, for the
 purpose of dataflow.
 
-C<where> combines the functionality of L<which|/which> and L<index|/index>
+C<where> combines the functionality of L<which|/which> and L<index|PDL::Slices/index>
 into a single operation.
 
 BUGS:
@@ -2518,7 +2518,7 @@ is as follows:
 =item C<OR>
 
 The resulting vector will contain the elements that are either in C<$a>
-EM<or> in C<$b> or both. This is the union in set operation terms
+I<or> in C<$b> or both. This is the union in set operation terms
 
 =item C<XOR>
 

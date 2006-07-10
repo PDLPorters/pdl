@@ -127,6 +127,20 @@ static SV* pdl_unpackint ( PDL_Long *dims, int ndims ) {
    return (SV*) array;
 }
 
+/*
+ * Free the data if possible; used by mmapper
+ * Moved from pdlhash.c July 10 2006 DJB
+ */
+static void pdl_freedata (pdl *a) {
+	if(a->datasv) {
+		SvREFCNT_dec(a->datasv);
+		a->datasv=0;
+		a->data=0;
+	} else if(a->data) {
+		die("Trying to free data of untouchable (mmapped?) pdl");
+	}
+}
+
 !NO!SUBS!
 
     if ( $bvalflag ) {

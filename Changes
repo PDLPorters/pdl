@@ -1,3 +1,9 @@
+DJB 10-Jul-2006
+    Fix up compile warnings in Core/ seen on Solaris
+    - moved pdl_freedata from pdlhash.c to Core.xs.PL
+    - added pdl__print_magic to pdlmagic.h (for pdlapi.c)
+    - include sys/mman.h for pdlmagic.c (if USE_MMAP defined)
+    Minor pod fixes to primitive.pd
 CHM 09-Jul-2006
          Fix skip_all output for t/fftw.t and plplot.t.
 CHM 08-Jul-2006

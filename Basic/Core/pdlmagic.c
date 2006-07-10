@@ -7,6 +7,10 @@
 
 #include "pdlcore.h"
 
+#ifdef USE_MMAP
+#include <sys/mman.h>
+#endif
+
 /* Singly linked list */
 /* Note that this zeroes ->next!) */
 
