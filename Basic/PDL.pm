@@ -4,10 +4,13 @@ PDL - the Perl Data Language
 
 =head1 DESCRIPTION
 
+(For the exported PDL constructor, pdl(), see L<PDL::Core> or pdl[2])
+
 PDL is the Perl Data Language, a perl extension that is designed for
 scientific and bulk numeric data processing and display.  It extends
 perl's syntax and includes fully vectorized, multidimensional array
 handling, plus several paths for device-independent graphics output.
+
 
 For basic information on the PDL language, see L<the pdl(1)
 (lowercase) man page|pdl>.

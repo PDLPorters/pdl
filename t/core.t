@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 23;
+use Test::More tests => 26;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -102,5 +102,20 @@ ok all( $b == $c ), "undef converted to -999 (dbl)";
 $b = pdl( long, $a );
 $c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
 ok all( $b == $c ), "undef converted to -999 (long)";
+
+##############
+# Funky constructor cases
+
+# pdl of a pdl
+$a = pdl(pdl(5));
+ok all( $a== pdl(5));
+
+# pdl of mixed-dim pdls: pad within a dimension
+$a = pdl( zeroes(5), ones(3) );
+ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0]));
+
+# pdl of mixed-dim pdls: pad a whole dimension
+$a = pdl( [[9,9],[8,8]], xvals(3)+1 );
+ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ]));
 
 # end

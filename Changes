@@ -1,4 +1,7 @@
 CED 18-Jul-2006
+	- PDL.pm: added help cross-reference to pdl()
+	- t/core.t: add three constructor tests
+	- pdlcore.c.PL: Fix a more obscure problem with constructor
 	- pdlcore.c.PL: Fix problem with constructor 
 		(pdl( zeroes(100), ones(10)) case)
 DJB 10-Jul-2006

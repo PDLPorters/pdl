@@ -44,6 +44,8 @@ print OUT <<"!WITH!SUBS!";
 
 
 print OUT <<'!HEADER!'
+#undef FOODEB
+
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
@@ -295,7 +297,7 @@ print OUT <<'!NO!SUBS!';
        return ret;
    } /* End of scalar case */
 
-#undef FOODEB
+
 #ifdef FOODEB
 	printf("SvPDLV\n");
 	printf("SV: %d\n",sv);
@@ -855,7 +857,10 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
     }
 
     /* pad this level to zero if there are not enough elements */
-    if(i < pdims[level]) 
+      if(i < pdims[level]) {
+#ifdef FOODEB
+	printf("kludge_copy_$type: looks like we're padding... i=%d, level=%d,pdims[level]=%d,stride=%d\\n",i,level,pdims[level],stride);
+#endif
 	if(level<ndims-1) {
 	    pdata += stride*i;
 	    pdims[level] -= i;
@@ -868,6 +873,7 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
 		pdata += stride;
 	    }
 	}
+      }
   } else {
       switch(pdl->datatype) {
 !WITH!SUBS!
@@ -893,8 +899,17 @@ print OUT <<"!WITH!SUBS!";
 
       /* Pad subtree to zero if the PDL is not deep enough */
 	  if(level < ndims-1) {
-	      pdata += stride/pdims[level];
-	      pdl_setzero_$type(pdata,pdims,ndims,level+1);
+	    int ii, ss;
+	    ss=stride/pdims[level+1];
+#ifdef FOODEB
+	    printf("kludge_copy: padding complete dimension... stride=%d, level=%d, pdims[%d]=%d, plevel=%d, pdl->dims[%d]=%d, ss=%d\\n",
+		   stride,level,level,pdims[level],
+		   plevel,0,pdl->dims[0],ss);
+#endif
+	    for(ii=1;ii<pdims[level+1];ii++)
+	      pdl_setzero_$type(pdata + ii * ss, pdims, ndims, level+2);
+
+//	      pdl_setzero_$type(pdata+1,pdims,ndims,level+1);
 	  }
     
   }
