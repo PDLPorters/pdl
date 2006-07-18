@@ -1,3 +1,6 @@
+CED 18-Jul-2006
+	- pdlcore.c.PL: Fix problem with constructor 
+		(pdl( zeroes(100), ones(10)) case)
 DJB 10-Jul-2006
     Fix up compile warnings in Core/ seen on Solaris
     - moved pdl_freedata from pdlhash.c to Core.xs.PL

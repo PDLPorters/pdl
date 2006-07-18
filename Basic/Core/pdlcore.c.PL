@@ -789,9 +789,16 @@ static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
                                PDL_Long ndims, int level)
 {
   int i, nels=1;
-  
+
   for (i=0; i<ndims-level;i++)
      nels *= pdims[i];
+
+#ifdef FOODEB
+  printf("pdl_setzero_$type: pdata=%d (0x%x), level=%d, ndims=%d\\n",
+	 pdata,pdata, level, ndims);
+  printf("nels = %d\\n",nels);
+#endif  
+
   for (i=0; i<nels; i++)
     pdata[i] = 0;
 }
@@ -852,7 +859,7 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
 	if(level<ndims-1) {
 	    pdata += stride*i;
 	    pdims[level] -= i;
-	    pdl_setzero_$type(pdata,pdims,ndims,level);
+	    pdl_setzero_$type(pdata,pdims,ndims,level+1);
 	    pdims[level] += i;
 	} else {
 	    pdata += stride * i;
@@ -911,6 +918,13 @@ print OUT <<"!WITH!SUBS!";
  *   (I am wary of action-at-a-distance)
  *
  *  -CED, 28-Jul-2004
+ *
+ *
+ *   -  pdata is the data pointer from a PDL
+ *   -  av is the array ref (or PDL) to use to fill the data with,
+ *   -  pdims is the dimlist
+ *   -  ndims is the size of the dimlist
+ *   -  level is the recursion level, which is also the dimension that we are filling 
  */
  
 long pdl_setav_$type(PDL_$type* pdata, AV* av,
@@ -930,14 +944,27 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
      SV *sv = get_sv("PDL::undefval",0);
      undefval = (sv_undef(sv)) ? 0 : (double)SvNV(sv);
 
+#ifdef FOODEB
      sv = get_sv("PDL::debug",0);
      debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+#endif
  }
 
   for (i=0;i<ndims-1-level;i++)
     stride *= pdims[i];
 
   for (i=0;i<=len;i++,pdata += stride) {
+
+
+#ifdef FOODEB
+    if(debug_flag>=3) {
+      int j;
+      for(j=0;j<level;j++) {
+	printf("  ");
+      }
+      printf("i=%d; stride=%d; pdata=%d (0x%x)\\n",i,stride,pdata, pdata);
+    }
+#endif
 
     el = *(av_fetch(av,i,0));
     if (SVavref(el))
