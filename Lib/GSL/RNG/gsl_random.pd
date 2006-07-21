@@ -341,18 +341,18 @@ Example:
 
 =for ref
 
-This method is similar to L<ran_[distrib]()|ran_gaussian()> except that it
+This method is similar to L<ran_[distrib]()|/ran_gaussian()> except that it
 takes the
 parameters of the distribution as a piddle and returns a piddle of equal
 dimensions. Of course, you can use the same set of distributions as in
-the previous method (see also the L<ran_gaussian|ran_gaussian()> entry above).
+the previous method (see also the L<ran_gaussian|/ran_gaussian()> entry above).
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_[distribution]($distr_parameters_list,$piddle_dim_list);
-   $rng->ran_[distribution]($distr_parameters_list,$piddle);
+   $piddle = $rng->ran_[distribution]_var($distr_parameters_list,$piddle_dim_list);
+   $rng->ran_[distribution]_var($distr_parameters_list,$piddle);
 
 Example:
 
@@ -495,8 +495,6 @@ Example:
    $ddh = $rng->ran_discrete_preproc($prob);
    $o = $rng->ran_discrete($discrete_dist_handle,100);
 
-# =head1 Shuffling and choosing.
-
 =head2 ran_shuffle()
 
 =for ref
@@ -521,7 +519,7 @@ Usage:
 
    $rng->ran_shuffle_vec(@vec);
 
-=head2 ran_choose_vec()
+=head2 ran_choose()
 
 =for ref 
 
@@ -544,8 +542,6 @@ Usage:
 =for usage
 
    @choosen = $rng->ran_choose_vec($n,@vec);
-
-# =head1 Caotic maps.
 
 =head2 ran_ver()
 
@@ -576,15 +572,14 @@ Usage:
 =head1 BUGS
 
 Feedback is welcome. Log bugs in the PDL bug database (the
-database is always linked from http://pdl.perl.org).
+database is always linked from L<http://pdl.perl.org/>).
 
 =head1 SEE ALSO
 
 L<PDL>
 
 The GSL documentation is online at
-
-  http://sources.redhat.com/gsl/ref/gsl-ref_toc.html
+L<http://www.gnu.org/software/gsl/manual/html_node/>
 
 =head1 AUTHOR
 
