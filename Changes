@@ -1,3 +1,10 @@
+DJB 22-Jul-2006
+    Fix to pdlcore.h.PL to avoid valgrind warning: rev1.26 put the
+    setting of the debug_flag inside an ifdef but the variable is used
+    to decide whether to print out a warning about pdl_setav_<type>
+    converting undef's to $PDL::undefval. Easiest solution is to remove
+    the ifdef (could have removed the use of debug_flag in the if statement
+    instead).
 CED 18-Jul-2006
 	- PDL.pm: added help cross-reference to pdl()
 	- t/core.t: add three constructor tests
