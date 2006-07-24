@@ -400,18 +400,25 @@ corresponding C<pp_def> options:
 =item FindBadStatusCode 
 
 By default, C<FindBadStatusCode> creates code which sets 
-C<__privtrans-E<gt>bvalflag> depending on the state of the bad flag
+C<$PRIV(bvalflag)> depending on the state of the bad flag
 of the input piddles: see C<findbadstatus> in F<Basic/Gen/PP.pm>.
+User-defined code should also store the value of C<bvalflag>
+in the C<$BADFLAGCACHE()> variable.
 
 =item CopyBadStatusCode
 
 The default code here is a bit simpler than for C<FindBadStatusCode>:
 the bad flag of the output piddles are set if 
-C<__privtrans-E<gt>bvalflag> is true after the code has been
+C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
 with the responsibility of setting the badflag of the output piddle
 left to the C<BadCode> section (e.g. the C<xxxover> routines
 in F<Basic/Primitive/primitive.pd>).
+
+Prior to PDL 2.4.3 we used C<$PRIV(bvalflag)>
+instead of C<$BADFLAGCACHE()>. This is dangerous since the C<$PRIV()>
+structure is not guaranteed to be valid at this point in the
+code.
 
 =back
 
@@ -517,6 +524,9 @@ there are:
 
   '$ISPDLSTATEBAD(a)'        -> '((a->state & PDL_BADVAL) > 0)'
   '$ISPDLSTATEGOOD(a)'       -> '((a->state & PDL_BADVAL) == 0)'
+
+In PDL 2.4.3 the C<$BADFLAGCACHE()> macro was introduced for use in
+C<FindBadStatusCode> and C<CopyBadStatusCode>.
 
 =head2 Handling NaN values
 

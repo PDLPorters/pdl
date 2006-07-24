@@ -555,6 +555,15 @@ $PDL::PP::deftbl =
  [[IsAffineFlag],	[],	sub {return "0"}],
  [[NoPdlThread],	[],	sub {0}],
 
+# hmm, need to check on conditional check here (or rather, other bits of code prob need
+# to include it too; see Ops.xs, PDL::assgn)
+##
+##           sub { return (defined $_[0]) ? "int \$BADFLAGCACHE() = 0;" : ""; } ],
+##
+ [[CacheBadFlagInitNS], [_HandleBad],
+           sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; } ],
+ [[CacheBadFlagInit], [CacheBadFlagInitNS,NewXSSymTab,Name], "dousualsubsts"],
+
     # need special cases for
     # a) bad values
     # b) bad values + GlobalNew
@@ -724,7 +733,9 @@ $PDL::PP::deftbl =
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
-    [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
+    [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,
+     CacheBadFlagInit,
+     NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
 #     NewXSMakeNow,  # this is unnecessary since families never got implemented
@@ -742,7 +753,9 @@ $PDL::PP::deftbl =
  # This rule will fail if the preceding rule succeeds 
  # D. Hunt 4/11/00
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
-    [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
+    [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,
+     CacheBadFlagInit,
+     NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
 #     NewXSMakeNow, # this is unnecessary since families never got implemented
@@ -1416,6 +1429,7 @@ sub dosubst {
 		    SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
 		    ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
 		    ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
+		    BADFLAGCACHE    => sub { return "badflag_cache"; },
 
 		    SETREVERSIBLE => sub {
 			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
@@ -2327,22 +2341,32 @@ sub findbadstatus {
     my $get_bad   = get_badflag();
 
     my $str = $clear_bad;
-    my $add = 0;
 
-    # set bvalflag if any input variable is bad
+    # set the badflag_cache variable if any input piddle has the bad flag set
+    #
+    my $add = 0;
+    my $badflag_str = "  \$BADFLAGCACHE() = ";
     foreach my $i ( 0 .. $#args ) {
 	my $x = $args[$i];
 	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
-	    my $state_is_bad = get_badstate($args[$i]);
-	    if ( $add ) {
-		# access to state information should be encapsulated
-		$str .= "  if ( !($get_bad) && $state_is_bad ) $set_bad";
-	    } else {
-		$str .= "  if ( $state_is_bad ) $set_bad";
-		$add = 1;
-	    }
+	    if ($add) { $badflag_str .= " || "; }
+	    else      { $add = 1; }
+	    $badflag_str .= get_badstate($args[$i]);
 	}
-    } # foreach: my $i
+    }
+
+    # It is possible, at present, for $add to be 0. I think this is when
+    # the routine has no input piddles, such as fibonacci in primitive.pd,
+    # but there may be other cases. These routines could/should (?)
+    # be marked as NoBadCode to avoid this, or maybe the code here made
+    # smarter. Left as is for now as do not want to add instability into
+    # the 2.4.3 release if I can help it - DJB 23 Jul 2006
+    #
+    if ($add != 0) {
+	$str .= $badflag_str . ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
+    } else {
+	print "\nNOTE: $name has no input bad piddles.\n\n" if $::PP_VERBOSE;
+    }
 
     if ( defined($badflag) and $badflag == 0 ) {
 	$str .= 
@@ -2372,7 +2396,20 @@ sub copybadstatus {
 ##    return '' unless $bvalflag or $badflag == 0;
     return '' unless $bvalflag;
 
-    return $badcode if defined $badcode;
+    if (defined $badcode) {
+	# realised in 2.4.3 testing that use of $PRIV at this stage is
+	# dangerous since it may have been freed. So I introduced the
+	# $BFLACACHE variable which stores the $PRIV(bvalflag) value
+	# for use here.
+	# For now make the substitution automatic but it will likely become an
+	# error to use $PRIV(bvalflag) here.
+	#
+	if ($badcode =~ m/\$PRIV(bvalflag)/) {
+	    $badcode =~ s/\$PRIV(bvalflag)/\$BADFLAGCACHE()/;
+	    print "\nPDL::PP WARNING: copybadstatus contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n";
+	}
+	return $badcode;
+    }
 
     # names of output variables    (in calling order)
     my @outs;
@@ -2389,8 +2426,12 @@ sub copybadstatus {
 
     my $str = '';
 
-#    $str = "if ( " . get_badflag($sname) . " ) {\n";
-    $str = "if ( " . get_badflag() . " ) {\n";
+# It appears that some code in Bad.xs sets the cache value but then
+# this bit of code never gets called. Is this an efficiency issue (ie
+# should we try and optimise away those ocurrences) or does it perform
+# some purpose?
+#
+    $str = "if (\$BADFLAGCACHE()) {\n";
     foreach my $arg ( @outs ) {
 	$str .= "  " . set_badstate($arg) . ";\n";
     }

@@ -1177,7 +1177,7 @@ pp_def(
         $b() = $a();
      }',
     CopyBadStatusCode =>
-    'if ( $PRIV(bvalflag) ) {
+    'if ( $BADFLAGCACHE() ) {
         if ( a == b && $ISPDLSTATEGOOD(a) ) {
            PDL->propogate_badflag( b, 1 ); /* have inplace op AND badflag has changed */
         }
