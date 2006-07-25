@@ -56,8 +56,8 @@ print OUT <<'!NO!SUBS!';
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
-#include "ppport.h"
 #include "XSUB.h"  /* for the win32 perlCAPI crap */
+#include "ppport.h"  /* include this AFTER XSUB.h */
 
 #if defined(CONTEXT) && defined(__osf__)
 #undef CONTEXT

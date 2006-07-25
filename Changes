@@ -5,6 +5,10 @@ DJB 24-Jul-2006
     The code changes (e.g. see copybadstatus in PP.pm) indicate there is
     some future code cleanup/optimisations that could be made, but leave
     for post 2.4.3 work.
+
+    Stop the "re-defining PERL_UNUSED_DECL" warnings from perl 5.8.8 by
+    updating the ppport.h from the latest Devel::PPPort (v3.09). Removed
+    ppport.h copy in Graphics/PGPLOT/Window/.
 DJB 22-Jul-2006
     Fix to pdlcore.h.PL to avoid valgrind warning: rev1.26 put the
     setting of the debug_flag inside an ifdef but the variable is used

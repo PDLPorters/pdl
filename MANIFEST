@@ -277,7 +277,6 @@ Graphics/PGPLOT/Makefile.PL
 Graphics/PGPLOT/PGPLOT.pm
 Graphics/PGPLOT/PGPLOTOptions.pm
 Graphics/PGPLOT/Window/Makefile.PL
-Graphics/PGPLOT/Window/ppport.h
 Graphics/PGPLOT/Window/typemap
 Graphics/PGPLOT/Window/Window.pm
 Graphics/PGPLOT/Window/Window.xs
