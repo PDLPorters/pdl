@@ -1,3 +1,6 @@
+CHM 26-Jul-2006
+    Minor wording changes to skip_all messages for test output
+    to improve readability.
 DJB 24-Jul-2006
     Fix for valgrind-detected error when WITH_BADVAL option selected.
     There was an invalid read due to $PRIV(bvalflag) being checked after

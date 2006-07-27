@@ -47,7 +47,7 @@ BEGIN
    }
    else
    {
-      plan skip_all => "Skipped: PDL::Transform::Proj4 requires the Proj4 & TridD module.";
+      plan skip_all => "PDL::Transform::Proj4 requires the Proj4 & TridD module.";
    }
 }
 

@@ -79,7 +79,7 @@ EOD
 }
 
 my $interactive = exists($ENV{'PDL_INT'});
-my $skip_interactive_msg = "interactive test since env. var PDL_INT not set";
+my $skip_interactive_msg = "interactive tests not run since environment var PDL_INT not set";
 my $interactive_ctr = 0;
 
 ###

@@ -19,7 +19,7 @@ BEGIN
     eval( " use PDL::GIS::Proj; " );
     if( $@ )
     {
-        plan skip_all => "Skipped: PDL::GIS::Proj requires the Proj module.";
+        plan skip_all => "PDL::GIS::Proj requires the Proj module.";
     }  
     else
     {

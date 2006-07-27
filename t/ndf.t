@@ -23,7 +23,7 @@ BEGIN {
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 unless ( $loaded ) {
-   plan skip_all => "Skipped: PDL::IO::NDF requires the NDF module.";
+   plan skip_all => "PDL::IO::NDF requires the NDF module.";
 } else {
    plan tests => 10;
 }
