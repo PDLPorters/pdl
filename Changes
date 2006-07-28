@@ -1,3 +1,6 @@
+CHM 27-Jul-2006
+    Created cygwin/ directory with first drafts of README and
+    INSTALL files for Cygwin users.
 CHM 26-Jul-2006
     Minor wording changes to skip_all messages for test output
     to improve readability.

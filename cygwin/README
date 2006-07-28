@@ -1,0 +1,80 @@
+Created on: Thu 27 Jul 2006 09:43:26 PM
+Last saved: Thu 27 Jul 2006 09:48:05 PM
+
+=================================================================
+                            Overview
+=================================================================
+This directory contains supplemental build information to
+configure and install PDL on a windows system with the cygwin
+toolset (http://www.cygwin.com).
+
+The cygwin library provides the missing unix/posix functionality
+to allow unix applications to be more easily ported to windows.
+A windows PC with cygwin looks like different flavor of unix.
+Since cygwin looks like a unix, [almost] all of the standard
+perl functionality works and PDL can build pretty much as it
+does on other unix systems.
+
+See the INSTALL file for instructions on building and
+installing PDL on cygwin and for notes on building the external
+dependencies.
+
+See the PDL/win32 subdirectory for instructions on building a
+native windows PDL.
+
+
+=================================================================
+                             WORKING
+=================================================================
+The cygwin PDL includes all the base PDL functionality          
+including bad values support (if configured) as well as the     
+following modules which depend on the presence of various       
+external dependencies:                                          
+
+ PDL::FFTW
+  (Builds if FFTW version 2 has been built and installed)
+
+ PDL::Graphics::PGPLOT
+  (Builds if pgplot library has been built and installed)
+
+ PDL::Graphics::PLplot
+  (Builds if plplot library has been built and installed)
+
+ PDL::Graphics::TriD
+  (Builds automatically if you have X11 and OpenGL installed.
+   It seems to work with native OpenGL as well as Mesa.)                 
+
+ PDL::GSL::*
+ PDL::GSLSF::*
+  (Builds if GSL is installed)
+
+ PDL::IO::GD
+  (Builds if the gd lib is installed in cygwin)
+
+ PDL::Slatec
+  (Builds if ExtUtils::F77 has been installed)
+
+
+
+=================================================================
+                           NOT WORKING
+=================================================================
+These modules with external dependencies are not yet available
+for cygwin:
+
+ PDL::GIS::Proj         (PROJ4 builds/installs on cygwin but
+                         the PDL build process does not complete)
+
+ PDL::Graphics::IIS
+  
+ PDL::Graphics::Karma   (Karma has not been ported to cygwin)
+  
+ PDL::IO::Browser       (Build fails)
+
+ PDL::IO::HDF           (HDF has not been ported to cygwin)
+  
+ PDL::IO::NDF           (Builds ok but needs cygwin port of NDF)
+
+ PDL::Transform::Proj4  (PROJ4 builds/installs on cygwin but the
+                         PDL build process does not complete)
+
