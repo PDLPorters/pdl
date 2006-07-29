@@ -125,6 +125,8 @@ Basic/Ufunc/ufunc.pd
 BUGS
 Changes
 COPYING
+cygwin/INSTALL
+cygwin/README
 debian/changelog
 debian/compat
 debian/control
