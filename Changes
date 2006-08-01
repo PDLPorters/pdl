@@ -1,3 +1,5 @@
+DAL 01-Aug-2006
+    Fixed typo in t_spherical of transform.pd (closes bug 1530666).
 CHM 30-Jul-2006
     Updated release notes in preparation for 2.4.3 release.
     Known_Problems will follow.
