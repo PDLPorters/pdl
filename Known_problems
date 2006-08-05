@@ -1,40 +1,58 @@
 The following issues have been reported with this version of
-PDL. 
-
-- Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
-  because of the removal of the magic pm_to_blib target.  Current
-  versions (such as 6.17, bundled with the current perl, v5.8.6) work OK. 
-  With PDL 2.4.2, we have followed the core perl team in our use of
-  earlier MakeMaker versions.
+PDL:
 
 - FFTW 3.0.1 is now out but is not supported (yet). You can use 2.x versions
   of FFTW, fall back on the built-in fft routines, or (best of all) submit a 
   patch. 
 
-- If @INC has '.' at the front of the search path part of the build will
-  fail (specifically mkpdlconv will not be able to 'use English' since
-  it uses Exporter.pm from Basic/Core and not the system Exporter.pm).
-    [added by Tim Jenness on 15 Apr 2000]
-    [This appears to be fixed but this note is left FYI for the 2.4.2 release
-	-- CED 16-Dec-2004 ]
+? PDL::GIS::Proj and PDL::Transform::Proj4 build fails on cygwin for
+? clean install on system with no PDL already installed.  Currently
+? the building of these PROJ4 modules is disabled for cygwin.  This
+? problem may occur for other hardware/os combinations on a clean
+? install.
 
-- PDL::Graphics::TriD doesn't seem to link correctly on the Mac, under 
-  MacOS 10.5 & 10.6.  It has not been fixed in part because TriD needs an 
-  overhaul anyway, and in part because the code is cryptic.  If you'd like 
-  to fix it, please do!  Patches welcome.  (PDL::Graphics::TriD is disabled
-  by default on Mac installs, thanks, Doug)
+? Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
+? because of the removal of the magic pm_to_blib target.  Current
+? versions (such as 6.17, bundled with the current perl, v5.8.6) work OK. 
+? With PDL 2.4.2, we have followed the core perl team in our use of
+? earlier MakeMaker versions.
 
-- The t/fits.t test and PDL::IO::FITS module can show problems when
-  used with old versions of the Astro::FITS::Header module. If you have
-  problems then please install the latest version from
+? If @INC has '.' at the front of the search path part of the build will
+? fail (specifically mkpdlconv will not be able to 'use English' since
+? it uses Exporter.pm from Basic/Core and not the system Exporter.pm).
+?   [added by Tim Jenness on 15 Apr 2000]
+?   [This appears to be fixed but this note is left FYI for the 2.4.2 release -- CED 16-Dec-2004 ]
 
-    http://search.cpan.org/~aallan/Astro-FITS-Header/
+? PDL::Graphics::TriD doesn't seem to link correctly on the Mac, under 
+? MacOS 10.5 & 10.6.  It has not been fixed in part because TriD needs an 
+? overhaul anyway, and in part because the code is cryptic.  If you'd like 
+? to fix it, please do!  Patches welcome.  (PDL::Graphics::TriD is disabled
+? by default on Mac installs, thanks, Doug)
 
-  (it is v2.8.1 at the time of writing) and see if this stops the problems.
-  Note that Astro::FITS::Header has a somewhat esoteric numbering scheme
-  (all the individual components have their own version number) which can
-  make it hard to work out what version of  the package have installed.
+? The t/fits.t test and PDL::IO::FITS module can show problems when
+? used with old versions of the Astro::FITS::Header module. If you have
+? problems then please install the latest version from
+?
+?   http://search.cpan.org/~aallan/Astro-FITS-Header/
+?
+? (it is v2.8.1 at the time of writing) and see if this stops the problems.
+? Note that Astro::FITS::Header has a somewhat esoteric numbering scheme
+? (all the individual components have their own version number) which can
+? make it hard to work out what version of  the package have installed.
 
+? SourceForge bugs as follows:
+?
+?   1530666  bugs in Transform.pm
+?   1505171  failure in MatrixOps::eigens in CVS
+?   1476324  How to force a completely clean installation
+?   1465864  limits_round.t test failure
+?   1465603  flexraw fails on Intel OS X with gfortran
+?   1465414  Need lib64 version in various lib search paths for AMD64
+?   1435189  Installation with cpan2rpm
+?   1356282  RNC.c warning during compile on Cygwin w/XP
+?   1339530  pdlcore.c fails to build on IRIX and AIX
+?   1205359  PGPLOT Window does not store full state info
+?   1059020  Problem with FFTW version 3.0.1
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
