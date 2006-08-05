@@ -53,8 +53,9 @@ PDL CVS repository.
 
 2) Make sure you add a test case in the 't' directory for any
    significant additional capability you add to the PDL package.
-   Please use one the Test module available within Perl - ie
-   "use Test;" - rather than doing-it-yourself as most of our tests
+   Please use one the Test modules available within Perl - ie
+   "use Test::More;" - rather than doing-it-yourself as most of
+   our tests
    do!
    
 3) Don't commit before you successfully built and passed 'make
