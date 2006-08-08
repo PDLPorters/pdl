@@ -24,6 +24,8 @@ BEGIN
     }
 }
 
+use ExtUtils::testlib;
+
 sub tapprox
 {
     my $a = shift;
@@ -51,43 +53,43 @@ my $data = sequence(short, 500, 5);
 # TEST 1:
 #Put data in file as 'myData' dataset
 #with the names of dimensions ('dim1' and 'dim2')
-ok( $SDobj->SDput("myData", $data , ['dim1','dim2']), 1 );
+ok( $SDobj->SDput("myData", $data , ['dim1','dim2']) );
 
 # TEST 2:
 #Put some local attributs in 'myData'
 #Set the fill value as 0
-ok( $SDobj->SDsetfillvalue("myData", 0), 1 );
+ok( $SDobj->SDsetfillvalue("myData", 0) );
 
 # TEST 3:
 #Set the valid range from 0 to 2000
-ok( $SDobj->SDsetrange("myData", [0, 2000]), 1 );
+ok( $SDobj->SDsetrange("myData", [0, 2000]) );
 
 # TEST 4:
 #Set the default calibration for 'myData' (scale factor = 1, other = 0)
-ok( $SDobj->SDsetcal("myData"), 1 );
+ok( $SDobj->SDsetcal("myData") );
 
 # TEST 5:
 #Set a global text attribut
-ok( $SDobj->SDsettextattr('This is a global text test!!', "myGText" ), 1 );
+ok( $SDobj->SDsettextattr('This is a global text test!!', "myGText" ) );
 
 # TEST 6:
 #Set a local text attribut for 'myData'
-ok( $SDobj->SDsettextattr('This is a local text testl!!', "myLText", "myData" ), 1 );
+ok( $SDobj->SDsettextattr('This is a local text testl!!', "myLText", "myData" ) );
 
 # TEST 7:
 #Set a global value attribut (you can put all values you want)
-ok( $SDobj->SDsetvalueattr( PDL::short( 20 ), "myGValue"), 1 );
+ok( $SDobj->SDsetvalueattr( PDL::short( 20 ), "myGValue") );
 
 # TEST 8:
 #Set a local value attribut (you can put all values you want)
-ok( $SDobj->SDsetvalueattr( PDL::long( [20, 15, 36] ), "myLValues", "myData" ), 1 );
+ok( $SDobj->SDsetvalueattr( PDL::long( [20, 15, 36] ), "myLValues", "myData" ) );
 
 #Close the file
 $SDobj->close;
 
 # TEST 9:
 # Test Hishdf:
-ok( PDL::IO::HDF::SD::Hishdf( $testfile ), 1 );
+ok( PDL::IO::HDF::SD::Hishdf( $testfile ) );
     
 ### Reading from a HDF file
 
@@ -202,8 +204,11 @@ $hdf = PDL::IO::HDF::SD->new( $testfile );
 my $dataset_test = $hdf->SDget( "NO_CHUNK" );
 my $good = ($dataset_test->nelem() > 0) ? 1 : 0;
 ok( $good );
-my $skip = $good ? '' : 'Skip if failed previous test!';
-skip( $skip, sub{ tapprox( $dataset, $dataset_test ) } );
+my $do_skip = $good ? '' : 'Skip if failed previous test!';
+SKIP: {
+    skip( "Previous test failed!", 1 ) if $do_skip;
+    ok( tapprox( $dataset, $dataset_test ) );
+}
 
 $hdf->close();
 undef($hdf);
@@ -235,15 +240,21 @@ $hdf = PDL::IO::HDF::SD->new( $testfile );
 my $dataset2d_test = $hdf->SDget( "CHUNK_2D" );
 $good = $dataset2d_test->nelem() > 0;
 ok( $good );
-$skip = $good ? '' : 'Skip if failed previous test!';
-skip( $skip, sub{ tapprox( $dataset2d, $dataset2d_test ) } );
+$do_skip = $good ? '' : 'Skip if failed previous test!';
+SKIP: {
+    skip( "Previous test failed!", 1 ) if $do_skip;
+    ok( tapprox( $dataset2d, $dataset2d_test ) );
+}
 
 # TEST 30 & 31:
 my $dataset3d_test = $hdf->SDget( "CHUNK_3D" );
 $good = $dataset3d_test->nelem() > 0;
 ok( $good );
-$skip = $good ? '' : 'Skip if failed previous test!';
-skip( $skip, sub{ tapprox( $dataset3d, $dataset3d_test ) } );
+$do_skip = $good ? '' : 'Skip if failed previous test!';
+SKIP: {
+    skip( "Previous test failed!", 1 ) if $do_skip;
+    ok( tapprox( $dataset3d, $dataset3d_test ) );
+}
 
 $hdf->close();
 undef($hdf);
