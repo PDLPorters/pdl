@@ -1,9 +1,10 @@
 #
 # Makefile.PL for PDL::IO::HDF::SD module.
 #
-use PDL::Core::Dev;
 use ExtUtils::MakeMaker;
 use Config;
+
+PDL::Core::Dev->import();
 
 $package = [ "SD.pd", SD , PDL::IO::HDF::SD ];
 WriteMakefile(
@@ -24,4 +25,4 @@ WriteMakefile(
     }, 
 );
 
-sub MY::postamble { pdlpp_postamble($package); }
+sub MY::postamble { pdlpp_postamble_int($package); }

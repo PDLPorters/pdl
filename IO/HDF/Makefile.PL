@@ -150,8 +150,7 @@ skip:
 
 return if $donot;
 
-WriteMakefile(
-    NAME => 'PDL::IO::HDF',
+WriteMakefile(     NAME => 'PDL::IO::HDF',
     CCFLAGS => $define_bool,
     DEFINE => $hdf_defs,
     #OPTIMIZE => "$hdf_defs",
@@ -169,4 +168,5 @@ WriteMakefile(
     DIR => [ 'SD', 'VS' ],
 );
 
-sub MY::postamble { pdlpp_postamble($package); }
+sub MY::postamble { pdlpp_postamble_int($package); }
+

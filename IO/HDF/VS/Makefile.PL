@@ -2,9 +2,10 @@
 # Makefile.PL for PDL::IO::HDF::VS module.
 #
 
-use PDL::Core::Dev;
 use ExtUtils::MakeMaker;
 use Config;
+
+PDL::Core::Dev->import();
 
 $package = [ "VS.pd" , VS , PDL::IO::HDF::VS ];
 WriteMakefile(
@@ -25,4 +26,4 @@ WriteMakefile(
     }, 
 );
 
-sub MY::postamble { pdlpp_postamble($package); }        
+sub MY::postamble { pdlpp_postamble_int($package); }        
