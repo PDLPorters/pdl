@@ -10,11 +10,12 @@
 use strict;
 
 # It won't build without this:
-use lib '../../../blib/lib';
-use lib '../../../blib/arch';
+# 8 Aug 2006 - JT - Well, I guess it can!
+#use lib '../../../blib/lib';
+#use lib '../../../blib/arch';
 
 use PDL;
-use PDL::Transform;
+#use PDL::Transform; # This is not needed, and just causes trouble!
 use PDL::GIS::Proj;
 
 use vars qw( $VERSION );
@@ -494,6 +495,7 @@ ENDTEMPLATE
 } # for each projection...
 
 pp_add_exported('', join(' ', @export_funcs ) );
+
 
 # Empty pp_def(), so it will actually generate the code below in the output file!
 #
