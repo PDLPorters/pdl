@@ -70,11 +70,11 @@ BEGIN
         my $found = 0;
         foreach my $find_lib ( @$find_libs )
         {
-	    $fl = $find_lib;
+            $fl = $find_lib;
             if ( -e "$libdir/$find_lib" ) 
             {
                 $lib_path = $libdir;
-		print "\tPDL::GIS::Proj: Found $libdir/$find_lib\n";
+                print "\t$package_name: Found $libdir/$find_lib\n";
                 $found = 1;
             }
             last if $found;
@@ -95,7 +95,7 @@ BEGIN
     {
         foreach my $find_inc ( @$find_incs )
         {
-	  $fi = $find_inc;
+            $fi = $find_inc;
             if ( -e "$incdir/$find_inc" ) 
             {
                 $include_path = $incdir;
@@ -130,6 +130,7 @@ skip:
     else 
     {
         print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
+        $donot = 0;
     }
 
 } # BEGIN...
@@ -145,4 +146,4 @@ $hash{LIBS} = ["-L$lib_path -lproj -lm"];
 $hash{INC} = PDL_INCLUDE() . " -I$include_path";
 WriteMakefile(%hash);
 
-sub MY::postamble { pdlpp_postamble( $package ); }
+sub MY::postamble { pdlpp_postamble_int( $package ); }
