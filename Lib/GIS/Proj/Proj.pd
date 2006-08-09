@@ -20,7 +20,7 @@ $VERSION = "1.32";
 pp_addpm(<<'EODOC');
 =head1 NAME
 
-PDL::GIS::Proj
+PDL::GIS::Proj - PDL interface to the Proj4 projection library.
 
 =head1 DESCRIPTION
 
