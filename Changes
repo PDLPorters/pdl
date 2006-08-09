@@ -1,3 +1,5 @@
+CHM 09-Aug-2006
+    Updated Known_problems and minor doc fix.
 CHM 08-Aug-2006
     Fixed t/proj_transform.t to skip_all if WITH_BADVAL not set so
     with Judd Taylor fixes from earlier today all PROJ4 modules

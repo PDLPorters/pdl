@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Fit::LM -- Levenber-Marquardt fitting routine for PDL
+PDL::Fit::LM -- Levenberg-Marquardt fitting routine for PDL
 
 =head1 DESCRIPTION
 

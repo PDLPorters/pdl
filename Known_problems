@@ -5,11 +5,12 @@ PDL:
   of FFTW, fall back on the built-in fft routines, or (best of all) submit a 
   patch. 
 
-? PDL::GIS::Proj and PDL::Transform::Proj4 build fails on cygwin for
-? clean install on system with no PDL already installed.  Currently
-? the building of these PROJ4 modules is disabled for cygwin.  This
-? problem may occur for other hardware/os combinations on a clean
-? install.
+- Overly verbose but not particularly helpful text output from configure,
+  built, test process.  This is especially confusing for beginning users.
+
+- Compiler warnings from external code interfaces for several modules
+  including for the following files: PLplot.xs, GD.xs, GD.c, INTERP.xs,
+  RNG.xs, and RNG.c.
 
 ? Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
 ? because of the removal of the magic pm_to_blib target.  Current
@@ -49,10 +50,8 @@ PDL:
 ?   1465603  flexraw fails on Intel OS X with gfortran
 ?   1465414  Need lib64 version in various lib search paths for AMD64
 ?   1435189  Installation with cpan2rpm
-?   1356282  RNC.c warning during compile on Cygwin w/XP
 ?   1339530  pdlcore.c fails to build on IRIX and AIX
 ?   1205359  PGPLOT Window does not store full state info
-?   1059020  Problem with FFTW version 3.0.1
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
