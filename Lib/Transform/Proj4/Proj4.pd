@@ -372,6 +372,8 @@ ENDPM
 #
 pp_addpm( { At => 'Middle' }, <<'ENDPM' );
 
+=head1 FUNCTIONS
+
 =head2 t_proj
 
 This is the main entry point for the generalized interface. See above on its usage.
