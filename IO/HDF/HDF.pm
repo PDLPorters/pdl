@@ -282,7 +282,8 @@ sub DESTROY
 
 =head1 CURRENT AUTHOR & MAINTAINER
 
-Judd Taylor (judd.t@orbitalsystems.com)
+Judd Taylor, Orbital Systems, Ltd.
+judd dot t at orbitalsystems dot com
 
 =head1 PREVIOUS AUTHORS
 
