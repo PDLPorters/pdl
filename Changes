@@ -1,3 +1,7 @@
+CHM 08-Aug-2006
+    Fixed t/proj_transform.t to skip_all if WITH_BADVAL not set so
+    with Judd Taylor fixes from earlier today all PROJ4 modules
+    now build and test on PDLrc1.  Thanks all for testing a fixes!
 DAL 01-Aug-2006
     Fixed typo in t_spherical of transform.pd (closes bug 1530666).
 CHM 30-Jul-2006
