@@ -59,6 +59,7 @@ The general version just provides several image IO utility functions you can use
 piddle variables. It's deceptively useful, however.
 
 =cut
+
 ENDPM
 
 
@@ -953,8 +954,9 @@ Example:
  my $gd = PDL::IO::GD->new({ x => 100, y => 100 });
  
  my $gd = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
- 
-=cut 
+
+=cut
+
 sub new
 {
     my $proto = shift;
