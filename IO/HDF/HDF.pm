@@ -1,7 +1,7 @@
 package PDL::IO::HDF;
 
 
-=head1 NAME 
+=head1 NAME
 
 PDL::IO::HDF - A PDL interface to the HDF4 library.
 
