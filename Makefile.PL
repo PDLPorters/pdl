@@ -430,7 +430,7 @@ if($^O !~ /mswin32/i) {
 # 
 
 my $ccflags =  $Config{ccflags};
-if($ENV{HOSTTYPE} =~ m/x86_64/) {
+if($Config{archname}=~m/x86_64/) {
     $ccflags .= " -fPIC";
 }
 

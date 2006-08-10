@@ -1,3 +1,6 @@
+DCH 10-Aug-2006
+    Changed from $ENV{HOSTTYPE} to $Config{archname} for x86_64 check
+    in order to set -fPIC compiler flag.
 CHM 09-Aug-2006
     Updated Known_problems and minor doc fix.
 CHM 08-Aug-2006
