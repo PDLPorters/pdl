@@ -253,7 +253,7 @@ ok(tapprox($ismon,$ans));
 
 ## Test: chia
 #
-$x = float( sequence(11) - 0.3 );
+$x = double( sequence(11) - 0.3 );
 $f = $x * $x;
 ( $d, $err ) = chim($x, $f);
 

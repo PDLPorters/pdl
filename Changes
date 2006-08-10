@@ -1,4 +1,13 @@
 DCH 10-Aug-2006
+    Changed slatec.t test from:
+    ## Test: chia
+    $x = float( sequence(11) - 0.3 );
+    to
+    ## Test: chia
+    $x = double( sequence(11) - 0.3 );
+    This allows this test to work on a 64 bit machine (AMD x86_64)
+    Also, skip the flexraw.t tests for x86_64 (these tests only apply to 32 bit machines)
+DCH 10-Aug-2006
     Changed from $ENV{HOSTTYPE} to $Config{archname} for x86_64 check
     in order to set -fPIC compiler flag.
 CHM 09-Aug-2006
