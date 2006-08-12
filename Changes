@@ -1,3 +1,10 @@
+CHM 11-Aug-2006
+    Fix Graphics/Makefile.PL be more conservative in deciding to
+    build OpenGL and TriD when WITH_3D => undef. Now choose not
+    to build if the xdpyinfo command does not indicate available
+    GLX extensions for the current X server display.  This
+    should prevent test failures due to some OpenGL X config
+    problems.
 DCH 10-Aug-2006
     Changed slatec.t test from:
     ## Test: chia
@@ -6,7 +13,8 @@ DCH 10-Aug-2006
     ## Test: chia
     $x = double( sequence(11) - 0.3 );
     This allows this test to work on a 64 bit machine (AMD x86_64)
-    Also, skip the flexraw.t tests for x86_64 (these tests only apply to 32 bit machines)
+    Also, skip the flexraw.t tests for x86_64 (these tests only
+    apply to 32 bit machines)
 DCH 10-Aug-2006
     Changed from $ENV{HOSTTYPE} to $Config{archname} for x86_64 check
     in order to set -fPIC compiler flag.
