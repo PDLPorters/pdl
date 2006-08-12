@@ -1,4 +1,10 @@
 CHM 11-Aug-2006
+    - Added Astro::FITS::Header as a PREREQ_PM in main Makefile.PL
+    - Added to DEPENDENCY file list
+    - Put preliminary notes on how to migrate an externally
+      developed PDL module into the source tree for distribution
+      with PDL
+CHM 11-Aug-2006
     Fix Graphics/Makefile.PL be more conservative in deciding to
     build OpenGL and TriD when WITH_3D => undef. Now choose not
     to build if the xdpyinfo command does not indicate available

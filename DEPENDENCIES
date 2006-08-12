@@ -122,6 +122,9 @@ PDL::IO::Browser
 		Requires a 'curses'-compatible library
 		not built by default (edit perldl.conf to enable)
 
+PDL::IO::FITS   Needs Astro::FITS::Header for full support of all FITS
+                header features.  Will build ok, and run, without it.
+
 PDL::IO::NDF
                 Requires the perl/NDF interface (NDFPERL).
                 (which also requires a fortran compiler and the

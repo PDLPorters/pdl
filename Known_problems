@@ -6,7 +6,7 @@ PDL:
   patch. 
 
 - Overly verbose but not particularly helpful text output from configure,
-  built, test process.  This is especially confusing for beginning users.
+  built, test process.  This can be confusing for first time users.
 
 - Compiler warnings from external code interfaces for several modules
   including for the following files: PLplot.xs, GD.xs, GD.c, INTERP.xs,
@@ -30,18 +30,7 @@ PDL:
 ? to fix it, please do!  Patches welcome.  (PDL::Graphics::TriD is disabled
 ? by default on Mac installs, thanks, Doug)
 
-? The t/fits.t test and PDL::IO::FITS module can show problems when
-? used with old versions of the Astro::FITS::Header module. If you have
-? problems then please install the latest version from
-?
-?   http://search.cpan.org/~aallan/Astro-FITS-Header/
-?
-? (it is v2.8.1 at the time of writing) and see if this stops the problems.
-? Note that Astro::FITS::Header has a somewhat esoteric numbering scheme
-? (all the individual components have their own version number) which can
-? make it hard to work out what version of  the package have installed.
-
-? SourceForge bugs as follows:
+? SourceForge bugs outstanding at time of release:
 ?
 ?   1530666  bugs in Transform.pm
 ?   1505171  failure in MatrixOps::eigens in CVS

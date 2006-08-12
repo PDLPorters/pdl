@@ -1,7 +1,8 @@
-This file has some information on how to get access to the latest PDL
-sources (mainly of interest for potential developers). This should not
-be confused with the latest public release which will always be
-available from CPAN (if you don't know what that is check the FAQ).
+This file has some information on how to get access to
+the latest PDL sources (mainly of interest for potential
+developers). This should not be confused with the latest
+public release which will always be available from CPAN (if
+you don't know what that is check the FAQ).
 
 Public CVS repository at www.sourceforge.org
 --------------------------------------------
@@ -205,3 +206,66 @@ variable).
    it easier to merge back any new changes made to the branch (if they
    occur). The CVS manual contains more details on this.
   
+
+-------------------------------------------------------------
+Notes on transferring an external PDL module to the PDL
+        source tree for distribution with PDL.
+-------------------------------------------------------------
+
+Suppose you have developed a PDL module that resides in a
+standalone source tree. You typically will need to have PDL
+installed on your system before you can build this module.
+
+If you wish to migrate the module into the PDL distribution
+you will need to make certain changes to the module source
+in order to built in the PDL distribution. You will need to
+removed dependecies on a pre-existing PDL installation for
+configuration and build of your module. This is because as
+part of the PDL distribution, it is possible that PDL has
+never been installed. Build processes based on PDL will then
+fail.
+
+Following is some specific advice that can help you do this.
+
+[ These notes are very preliminary and are expected to be ]
+[ revised and/or replaced by improved documentation.      ]
+
+Changes that must be made to files in your module source tree
+if you are building the module from a .pd file :
+
+Makefile.PL:
+-- You must remove the line 'use PDL::Core::Dev;'.
+
+-- The line 'PDL::Core::Dev->import();' must be present
+
+-- You must change the call from 'pdlpp_postamble' to a call to
+   'pdlpp_postamble_int' (with the same arguments.)
+
+-- It seems that most modules in the PDL source use 
+   VERSION_FROM => '../../Basic/Core/Version.pm',
+   but not all of them in order that their version tracks
+   the PDL release version.  It is possible to maintain
+   separate versioning even within the PDL source tree but
+   it may make things confusing.
+
+Make certain that you make these changes to each 'Makefile.PL' in
+your source tree.
+
+
+Changes to the existing PDL source tree:
+
+-- Edit the 'Makefile.PL' in the directory above your module source
+   to add your module directory name to
+   'DIR => [ qw/Module1 AnotherModule / ]'.
+
+-- Add your test files (.t files) to the PDL/t directory renaming if
+   required to avoid namespace conflicts.
+
+-- Does your module depend on any libraries or external
+   programs ?  If so, doocument the required programs with version
+   numbers in PDL/DEPENDENCIES and add the PREREQ_* option to the
+   main Makefile.PL if required.
+
+-- If your module requires external libraries or header files,
+   add a section to perldl.conf.  The hash values with be available
+   in your module's 'Makefile.PL' as $PDL::Config{WITH_MYMODULE},...
