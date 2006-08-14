@@ -9,6 +9,8 @@ upgrade get at least this version.
 
 See win32/INSTALL for details on installing PDL on windows platforms.
 
+See cygwin/INSTALL for details on installing PDL on cygwin platforms.
+
 The file DEPENDENCIES summarizes the dependencies of various
 PDL modules on libraries/other packages. The location of
 some of these files needs to be specified in the file perldl.conf.
@@ -24,6 +26,10 @@ or if you don't have the cpan script try
 
   perl -MCPAN -e shell
   cpan> install PDL
+
+NOTE: if this is your first time running the cpan shell, you'll be
+propted to configure the running environment.
+
 
 perldl.conf
 -----------
@@ -72,6 +78,7 @@ There is also another make item:
 
 creates the documentation database for use in the perldl shell.
 
+
 f77 configuration
 -----------------
 
@@ -88,6 +95,7 @@ similar to the PDLCONF variable, e.g.
 Note that almost always it is better to use ExtUtils::F77. Only use the
 F77CONF mechanism if you have a good reason to. Win32 is special. See
 win32/INSTALL.
+
 
 COMMON PROBLEMS
 ---------------

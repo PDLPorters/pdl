@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Thu 27 Jul 2006 09:48:05 PM
+Last saved: Mon 14 Aug 2006 05:37:48 PM
 
 =================================================================
                             Overview
@@ -51,6 +51,12 @@ external dependencies:
  PDL::IO::GD
   (Builds if the gd lib is installed in cygwin)
 
+ PDL::GIS::Proj         (PROJ4 builds/installs on cygwin but
+                         the PDL build process does not complete)
+
+ PDL::Transform::Proj4  (PROJ4 builds/installs on cygwin but the
+                         PDL build process does not complete)
+
  PDL::Slatec
   (Builds if ExtUtils::F77 has been installed)
 
@@ -62,19 +68,14 @@ external dependencies:
 These modules with external dependencies are not yet available
 for cygwin:
 
- PDL::GIS::Proj         (PROJ4 builds/installs on cygwin but
-                         the PDL build process does not complete)
-
  PDL::Graphics::IIS
   
  PDL::Graphics::Karma   (Karma has not been ported to cygwin)
   
- PDL::IO::Browser       (Build fails)
+ PDL::IO::Browser       (Build will fail if enabled, disabled
+                         by default for all OSes)
 
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
  PDL::IO::NDF           (Builds ok but needs cygwin port of NDF)
-
- PDL::Transform::Proj4  (PROJ4 builds/installs on cygwin but the
-                         PDL build process does not complete)
 

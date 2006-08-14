@@ -1,3 +1,4 @@
+
 This file has some information on how to get access to
 the latest PDL sources (mainly of interest for potential
 developers). This should not be confused with the latest
@@ -11,7 +12,7 @@ From version PDL-2.003 onwards the source distribution is in a
 publicly accessible CVS repository. The project is hosted at the
 sourceforge site at
 
-  http://www.sourceforge.org/project/?form_grp=612
+  http://sourceforge.net/projects/pdl/
 
 Starting from that URL you will find directions on how to check out
 the current sources, browse the CVS repository online, etc.
@@ -22,12 +23,13 @@ URL) to apply for write access to the repository. We strongly believe
 in the power of open source development!
 
 If you do not know how to use CVS try 'man cvs' or 'info cvs' and/or
-have a look at some of the online tutorials available on the web. A
-nice concise one is at
+have a look at some of the online tutorials available on the web.
+The main CVS home page is at
 
-  http://www.cyclic.com/cvs/doc-blandy-text.html
+  http://www.nongnu.org/cvs/
 
-and a very good/complete one is the online version of the CVS book at
+and a very good/complete CVS reference is the online version of the
+CVS book at
 
   http://cvsbook.red-bean.com/cvsbook.html
 
@@ -54,20 +56,21 @@ PDL CVS repository.
 
 2) Make sure you add a test case in the 't' directory for any
    significant additional capability you add to the PDL package.
-   Please use one the Test modules available within Perl - ie
-   "use Test::More;" - rather than doing-it-yourself as most of
-   our tests
-   do!
+   Please use one the of the Test modules available within Perl
+   rather than doing-it-yourself as many of our tests do!  The
+   recommended testing module is Test::More which now distributed
+   with the perl distribution.
    
 3) Don't commit before you successfully built and passed 'make
-   test'. But then again, don't keep your changes private for too long
-   to avoid conflicts with other developers.
+   test'. But then again, don't keep your changes private for too
+   long to avoid conflicts with other developers.
  
 4) Bugs reported on the list should be entered into the bug database
    and bugs closed when a patch has been committed as a fix. (Primary
    responsibility for this task is the pumpking, but other devels
    should be able to help.)
   
+
 PDL Developer Notes:
 --------------------
 
@@ -79,8 +82,8 @@ improve or add to PDL (please do):
 See the pdl-porters email list; details for subscription and access to
 the archives can be found on the PDL web page at:
 
-  http://pdl.perl.org/maillists/index_en.html
-  http://pdl.perl.org/maillists/index_de.html
+  http://pdl.perl.org/maillists/index_en.html  (English)
+  http://pdl.perl.org/maillists/index_de.html  (German)
  
 *) Access to PDL's configuration
 
@@ -88,7 +91,7 @@ If you need to access the configuration for PDL then use the
 %PDL::Config variable. Prior to 2.4.1 this was a mess since you
 had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
 *.pm/tests. The build process has been changed (I hesitate to say
-"cleaned up" ;) to just use %PDL::Config.
+"cleaned up" ;) to just use %PDL::Config consistently throughout.
 
 - %PDL::Config is automatically available to you when you are in a
   Makefile.PL within the PDL distribution. You can change the hash

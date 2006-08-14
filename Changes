@@ -1,4 +1,9 @@
-CED 13-AUg-2006
+CHM 14-Aug-2006
+    Touch up top level documentation files and add some config
+    files to PDL/cygwin/.  Files changed: BUGS, COPYING,
+    DEPENDENCIES, DEVELOPMENT, INSTALL, Known_problems, README,
+    Release_Notes, cygwin/INSTALL, cygwin/README.
+CED 13-Aug-2006
     - Minor fixes to Transform -- t_fits CI_J header notation;
       also: dims copied between params and main object in 
       t_spherical and t_projective.

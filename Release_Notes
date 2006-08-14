@@ -15,7 +15,7 @@ Summary of Changes:
 
      - PDL now builds under cygwin on windows PC including
        TriD(OpenGL) 3D graphics and PGPLOT and PLplot 2D graphics
-       support. See PDL/cygwin files README and INSTALL for
+       support. See PDL/cygwin/ and files README and INSTALL for
        details and how to build/install external dependencies.
      
      - The win32 build has been improved.  See PDL/win32/INSTALL
@@ -75,7 +75,6 @@ Summary of Changes:
 
      - Multiple fixes and additions to PDL documentation as well
        as the PDL::FAQ.
-
 
 
 
