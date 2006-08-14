@@ -2631,7 +2631,7 @@ sub t_fits {
 
       for my $h(@hgrab) {
 	$h =~ m/CP(\d{1,3})_(\d{1,3})/;  # Should always match
-	$cpm->(($1),($2)) .= $hdr->{h};
+	$cpm->(($1-1),($2-1)) .= $hdr->{h};
       }
       print "PDL::Transform::FITS: Detected CPi_j matrix: \n",$cpm,"\n"
 	if($PDL::Transform::debug && @hgrab);
@@ -3293,7 +3293,7 @@ sub t_projective {
   ### Set options...
 
 
-  $me->{params}->{idim} = _opt($o,['d','dim','Dim']);
+  $me->{params}->{idim} = $me->{idim} = _opt($o,['d','dim','Dim']);
 
   my $matrix;
   if(defined ($matrix=_opt($o,['m','matrix','Matrix']))) {
@@ -3303,6 +3303,8 @@ sub t_projective {
 
     $me->{params}->{idim} = $matrix->dim(0)-1 
       unless(defined($me->{params}->{idim}));
+
+    $me->{idim} = $me->{params}->{idim};
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless($me->{params}->{idim}==$matrix->dim(0)-1);
@@ -3343,7 +3345,8 @@ sub t_projective {
 
   $me->{params}->{idim} = 2 unless defined $me->{params}->{idim};
   $me->{params}->{odim} = $me->{params}->{idim};
-  
+  $me->{idim} = $me->{params}->{idim};
+  $me->{odim} = $me->{params}->{odim};
   
   $me->{func} = sub {
     my($data,$o) = @_;

@@ -1,3 +1,7 @@
+CED 13-Aug-2006
+    Fixed typo with CI_J matrix declaration in t_fits code
+    (transform.pd); allows use of CI_J matrices in FITS headers as per 
+    the newer WCS standard) 
 DAL 01-Aug-2006
     Fixed typo in t_spherical of transform.pd (closes bug 1530666).
 CHM 30-Jul-2006
