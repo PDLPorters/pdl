@@ -1,3 +1,7 @@
+CED 13-AUg-2006
+    - Minor fixes to Transform -- t_fits CI_J header notation;
+      also: dims copied between params and main object in 
+      t_spherical and t_projective.
 CHM 11-Aug-2006
     - Added Astro::FITS::Header as a PREREQ_PM in main Makefile.PL
     - Added to DEPENDENCY file list
