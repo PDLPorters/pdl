@@ -1,3 +1,21 @@
+pdl (1:2.4.2-6) unstable; urgency=low
+
+  * Graphics::TriD did not compile anymore. Backport this module from HEAD.
+  * update standarts-version to 3.7.2
+  * build-depend on libxext-dev, as the TriD GL needs it
+  * incorporate OpenGL build fix from upstream BTS 1505132
+
+ -- Henning Glawe <glaweh@debian.org>  Tue, 13 Jun 2006 10:14:39 +0200
+
+pdl (1:2.4.2-5) unstable; urgency=low
+
+  * add workaround for broken ExtUtils::MakeMaker in perl 5.8.8 
+  	(closes: #356975):
+    - as EU::MM generated Makefiles reference PERLRUN instead of PERLRUNINST,
+      explicitly "use blib;" in the BAD{,2}_demo.pm.PL
+
+ -- Henning Glawe <glaweh@debian.org>  Fri,  2 Jun 2006 10:17:39 +0200
+
 pdl (1:2.4.2-4) unstable; urgency=low
 
   * make the xlibs-dev transition for x.org 6.9 (closes: #346926):
