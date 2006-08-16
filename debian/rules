@@ -30,7 +30,6 @@ configure-stamp: patch
 
 
 build: build-stamp
-
 build-stamp: configure-stamp 
 	dh_testdir
 
@@ -38,6 +37,12 @@ build-stamp: configure-stamp
 	$(MAKE) LD_RUN_PATH="" OPTIMIZE="$(CFLAGS)"
 
 	touch build-stamp
+
+test: test-stamp
+test-stamp: build-stamp
+	dh_testdir
+	$(MAKE) test
+	touch test-stamp
 
 clean: clean-patched unpatch
 clean-patched:
@@ -50,7 +55,7 @@ clean-patched:
 	# Add here commands to clean up after the build process.
 	-$(MAKE) distclean
 
-install: build
+install: build test
 	dh_testdir
 	dh_testroot
 	dh_clean -k 
