@@ -1,15 +1,11 @@
-pdl (1:2.4.3~pre3-1) unstable; urgency=low
-
-  * update to latest prerelease
-
- -- Henning Glawe <glaweh@debian.org>  Thu, 17 Aug 2006 09:44:53 +0200
-
-pdl (1:2.4.3~pre-1) unstable; urgency=low
+pdl (1:2.4.3-1) unstable; urgency=low
 
   * new upstream
   * enable gd, proj and HDF support
+  * force-enable WITH_3D, as on debian autobuilders, there is no 
+    $DISPLAY and therefore the autodetection does not work
 
- -- Henning Glawe <glaweh@debian.org>  Tue, 15 Aug 2006 15:03:20 +0200
+ -- Henning Glawe <glaweh@debian.org>  Thu, 17 Aug 2006 12:27:03 +0200
 
 pdl (1:2.4.2-6) unstable; urgency=low
 
