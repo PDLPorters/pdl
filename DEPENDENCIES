@@ -146,3 +146,31 @@ PDL::IO::NDF
                                         Module builds ok without
                                         NDF module and library
 
+PDL::IO::HDF    
+                Needs the HDF4 library, version >= 4.1. 
+                See: http://hdf.ncsa.uiuc.edu/. 
+                The build will attempt to auto-detect an installed  version,
+                and enable the build if one is found. Otherwise, the build is
+                disabled. Overrides and library and include locations can be
+                manually added to the perldl.conf file.
+
+PDL::IO::GD
+                Needs the GD graphics library, Requires at least version 
+                2.0.22, although it's only been thoroughly tested with version
+                2.0.33.  The 2.0.22 requirement has to do with a change in
+                GD's font handling functions, so if you don't use those, then 
+                don't worry about it.
+                See: http://www.boutell.com/gd/
+                The build will attempt to auto-detect an installed  version,
+                and enable the build if one is found. Otherwise, the build is
+                disabled. Overrides and library and include locations can be
+                manually added to the perldl.conf file.
+                
+PDL::GIS::Proj
+PDL::Transform::Proj4
+                Needs the Proj reprojection library, version >= 4.4.5
+                See: http://www.remotesensing.org/proj/.
+                The build will attempt to auto-detect an installed  version,
+                and enable the build if one is found. Otherwise, the build is
+                disabled. Overrides and library and include locations can be
+                manually added to the perldl.conf file.
