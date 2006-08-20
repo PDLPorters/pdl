@@ -1,5 +1,3 @@
-CHM 20-Aug-2006
-    Merged 2.4.3 development fixes into main CVS trunk.
 CHM 17-Aug-2006
     Updated rel_2_4_3pre_branch with debian fixes by HG and
     added the decided upon fix for HDF/Makefile.PL for the
@@ -19,10 +17,6 @@ CHM 14-Aug-2006
     files to PDL/cygwin/.  Files changed: BUGS, COPYING,
     DEPENDENCIES, DEVELOPMENT, INSTALL, Known_problems, README,
     Release_Notes, cygwin/INSTALL, cygwin/README.
-CED 13-Aug-2006
-    Fixed typo with CI_J matrix declaration in t_fits code
-    (transform.pd); allows use of CI_J matrices in FITS headers as per 
-    the newer WCS standard) 
 CED 13-Aug-2006
     - Minor fixes to Transform -- t_fits CI_J header notation;
       also: dims copied between params and main object in 
