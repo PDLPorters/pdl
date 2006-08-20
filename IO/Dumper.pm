@@ -430,7 +430,7 @@ sub PDL::IO::Dumper::uudecode_PDL {
 	$fh->close;
     }
     elsif($PDL::IO::Dumper::convert_ok) {
-	my $fh = IO::File->open(">$fname");
+	my $fh = IO::File->new(">$fname");
 	my $fits = Convert::UU::uudecode($lines);
 	$fh->print( $fits );
 	$fh->close();

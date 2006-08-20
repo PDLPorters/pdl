@@ -8,21 +8,30 @@ Please check the following files for further information
 *BEFORE* sending us your questions:
 
 INSTALL 		detailed installation instructions
+
 Known_problems	 	check before you report compilation problems
+
 DEPENDENCIES		Other software that PDL relies on (and where
 			to get it)
+
 BUGS			how to make a bug report and where to send it
+
 perldl.conf		PDL configuration options
+
 Basic/Pod/FAQ.pod 	the FAQ in pod format
 			try 'perldoc PDL::FAQ' after installation
+
 Basic/Pod/Impatient.pod
 			a quick overview of PDL
 			try 'perldoc PDL::Impatient' after installation
+
 Basic/Pod/BadValues.pod
                         a discussion of the bad value support in PDL
+
 PDL::Index		a guide to PDL documentation
 			!only available *after* successful installation!
 			try 'perldoc PDL::Index'
+
 DEVELOPMENT		how to participate in the development of PDL
 
 Release_Notes		a list of issues with regard to the current version
@@ -30,6 +39,7 @@ Release_Notes		a list of issues with regard to the current version
 
 *Note* that most PDL documentation is available online within the
 perldl shell. Try the help command within the shell!
+
 
 PDL -- the package
 ------------------
@@ -92,14 +102,4 @@ Compilation Reports:
 The CPAN Testers' result page provides a database showing the results
 of compiling PDL and many other CPAN packages on multiple platforms.
 See http://www.perl.org/cpan-testers/results.cgi	
-
-Acknowledgement
----------------
-
-m51.fits is included as a demonstration by kind permission of IRAF
-group at the National Optical and Astronomical Observatories, in particular
-Pat Seitzer, who retain ownership.
-
-
-
 

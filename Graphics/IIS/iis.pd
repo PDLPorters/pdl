@@ -506,7 +506,7 @@ pp_def('_iis',
 
       /* Send WCS info */
 
-      hdr[TRANSFER_ID] = IWRITE | PACKED;
+      hdr[TRANSFER_ID] = PDL_IIS_IWRITE | PACKED;
       hdr[THING_COUNT] = -SZ_WCSTEXT;
       hdr[SUB_UNIT]   = WCS;
       hdr[CHECK_SUM]  = 0;
@@ -564,7 +564,7 @@ pp_def('_iis',
                  nlines = ny2 - y;
 
               /* create header */
-              hdr[TRANSFER_ID] = IWRITE | PACKED | BLOCKXFER;
+              hdr[TRANSFER_ID] = PDL_IIS_IWRITE | PACKED | BLOCKXFER;
               hdr[THING_COUNT] = -nlines*frameX;
               hdr[SUB_UNIT] = REFRESH;
               hdr[CHECK_SUM] = 0;

@@ -1,71 +1,59 @@
-INSTALLING on win32
+Installing on Win32
 -------------------
 
-This is a collection of tips if you are trying to compile PDL
-on win32. Your milage may vary. In general you might want to
-fall back on the binary windows version provided at
-http://pdl.perl.org .
+It's dead easy !!
 
-Supported compilers: MS Visual Studio 6 has been reported to work
+First up - if you don't want to accept a "default" build of PDL, edit (the
+self-documenting) perldl.conf accordingly. You'll find that file in the top
+level folder.
 
-General procedure:
+To Build with MinGW compiler (on both MinGW-built and MSVC-built perl)
+----------------------------------------------------------------------
 
-   perl Makefile.PL
-   nmake
+1) You can get MinGW from http://www.mingw.org. Simplest way to install
+   is to download the latest MinGW '.exe' from the Download page, and
+   then run the downloaded executable to install MinGW into the location
+   of your choice.
 
-That should be it (in theory). Currently there are a number of niggles
-but work arounds exist.
+2) If you want to build PDL with Slatec support, install ExtUtils::F77-1.15
+   (or later) from CPAN.
 
-Compilation report
-------------------
+3) If (and only if) 'perl -V:cc' reports 'cl', then install ExtUtils::FakeConfig.
 
-Version:  PDL 2.2.1 (actually CVS snapshot 19/6/01)
+4) If (and only if) you installed ExtUtils::FakeConfig run:
+    set perl5opt=-MConfig_m
 
-If you want to use slatec you need the f77 support and need the
-F77CONF argument on the command line.
+5) 'cd' to the top level PDL source directory and run, in succession:
+    perl Makefile.PL
+    make test
+    make install
+    (Instead of 'make', specify whatever it is that 'perl -V:make' reports - which,
+    it's assumed, will be either 'nmake' or 'dmake'.)
 
-       perl Makefile.PL F77CONF=win32/win32f77.pl
-       nmake
 
-This will only work together with a working f2c and associated
-libraries libi77.lib and libf77.lib.  You need to edit
-win32/win32f77.pl to reflect the location of f2c, the libs and the
-include file f2c.h. If you have problems just omit the F77CONF
-argument from the 'perl Makefile.PL' command. In that case you won't
-have slatec support though.
 
-Niggle:
+To Build with MSVC compiler (MSVC-built perl only)
+--------------------------------------------------
 
-The first nmake stops with an error that Core.obj is not found.
-Workaround: once you get this error do the following:
+ The capability of building Slatec with f2c and associated
+ libraries libi77.lib and libf77.lib probably still exists.
+ If you want to use f2c you need to edit win32/win32f77.pl to
+ reflect the location of f2c, the libs and the include file f2c.h.
+ You'll also need to run:
+    perl Makefile.PL F77CONF=win32/win32f77.pl
+ instead of simply:
+    perl Makefile.PL
 
-   cd Basic\Core
-   nmake Core.xs
-   del getdev.pl # this one is important, otherwise you get a
-                 # circular Makefile dependence!
-   cd ..\..
-   perl Makefile.PL # with F77CONF=win32/win32f77.pl if you want slatec
-   nmake
+ However, the instructions that follow assume that Slatec support is
+ being provided by MinGW's fortran compiler (g77.exe):
 
-Now it should work.
+1) If you want Slatec you need to install MinGW - this is for the g77.exe fortran
+   compiler and libs. (See the preceding section for the link to MinGW.)
+   You also need to install ExtUtils::F77-1.15 (or later) from CPAN.
+   If you're not interested in Slatec, then there's no need to install either
+   ExtUtils::F77 or MinGW.
 
-Finish with
-
-   nmake test
-
-Should pass everything but test 6 in conv.t. Safe to ignore for now.
-
-Making an installable PPM
--------------------------
-
-Some pseudo code how to go about that
-is in the file makeppm.pl (which is currently
-really just comments).
-
-UPDATE: A target 'ppm' is now available
-from the makefile.
-
-  make ppm
-
-should do the job, however, it relies on
-a number of programs like cp, mv, tar, etc.
+2) 'cd' to the top level PDL source directory and run, in succession:
+    perl Makefile.PL
+    nmake test
+    nmake install

@@ -28,7 +28,7 @@ WriteMakefile(
  'MAN1PODS' =>  { @man1 },
  'MAN3PODS' =>  { },
  'PM'    =>     { @pms },
- 'clean' => {FILES => ""},
+ 'clean' => {FILES => "PP-Inline.pod"},
  'linkext' =>   {LINKTYPE => ''},  # No linking required in this directory
 );
 

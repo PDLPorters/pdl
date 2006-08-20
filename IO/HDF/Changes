@@ -1,0 +1,76 @@
+Revision history for Perl extension PDL::HDF
+0.01  13/02/01
+	- original version
+
+2.0    27 March 2006 (Judd Taylor, judd@marine.usf.edu)
+    
+    - New version I've taken over from the previous authors.
+    
+    - There has been several minor fixes to the old version that I have fixed over the years,
+        and I can't remember them all to document here. Any new functionality has been documented,
+        however.
+    
+    - "Chunking" functionality added. This is an internal tiling and compression on the SD 
+        datasets done by the HDF library. This is on by default, and can be 
+        inquired/changed through ->Chunking() member function (pass it 0 for off, true for on).
+        The actual chunking section automatically determines a tile size for the dataset, but 
+        this may not be optimal for some datasets. Down the road I'll provide better control of
+        this feature.
+        
+    - I've defuncted several functions that had strange (perhaps French) spellings. The originals 
+        are still there for the time being, but a future version will come with warnings, and
+        finally be removed from the library even further out.
+        
+        SDgetvariablename -> SDgetvariablenames
+        SDgetattribut -> SDgetattribute
+        SDgetattributname -> SDgetattributenames
+        SDgetdimsizeunlimit -> SDgetunlimiteddimsize
+        SDgetdimname -> SDgetdimnames
+        Vgetchilds -> Vgetchildren
+        VSgetfieldsnames -> VSgetfieldnames
+        
+    - Umm... I don't like fortran array dim order, so I use C order. This may be a concern for 
+        you, but I can't verify the problem for everyone since all of my code works fine. 
+        I generally save things as X, Y, Z in my code (think an image, for instance), and then
+        when I open the HDF with image viewers, everything is fine. That's not how HDF saves
+        the data, however, so there's a dim reverse in the code for SDget and SDput, but that
+        should (theoretically) be transparent to you. NOTE: there is no reformatting of memory
+        necessary (it's time consuming, and has been avoided), since the C style dim order
+        is how a linear array maps into memory anyways (that's the main reason I like C style
+        over fortran).
+        If this causes _huge_ problems for you, then maybe I can make the ordering optional and
+        you can have it your backwards way if you want :)
+        
+    - I migrated all of the failure codes to return 'undef' instead of the mix they were returning
+        before. This should allow old code to be left alone.
+        
+    - I migrated all of the perl hashes to anonymous hashes.
+    
+    - I removed and internally doc'd several places where buffer overflows are possible, and did
+        my best shot at making the buffer overflows impossible, using the new constants below.
+        NOTE: this is not total elimination of the problem! Look for that in a later version with
+        updates perlXS code on those function to use the C constants. 
+        The constants used in the code are cool with the HDF4.2r1 version, assuming you didn't 
+        change anything before you compiled the HDF library. The HDF people could theoretically
+        change those values at a later point, so they should be read directly from the HDF system
+        headers, rather than hard coded in this module.
+        
+    - I moved the constants over to 'use constant', so instead of using '$PDL::IO::HDF:DFACC_CREATE', 
+        you now would use : 'PDL::IO::HDF->DFACC_CREATE'. This is how constants work in Perl, so get
+        over it and fix your old code that uses things the old way.
+        
+    - I added a couple of constants (all only usefull for allocating memory internally):
+        MAX_NC_NAME => HDF's constant to hold the max name length for an attr/sds/dim
+        MAX_VAR_DIMS => HDF's constant to hold the max number of dims for a HDF variable
+        VNAMELENMAX => HDF's constant for the max length of VS interface names
+        FAIL => HDF's constant failure return code
+        
+    - I moved all of the tests over to 'use Test', for easier clarity and to get them working again. I
+        also modified the tests to clean up their test files when they are no longer needed (some tests
+        use outputs from earlier tests).
+    
+    - I added tests for the SDS chunking features.
+    
+    
+    
+    

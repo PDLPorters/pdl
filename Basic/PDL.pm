@@ -4,10 +4,13 @@ PDL - the Perl Data Language
 
 =head1 DESCRIPTION
 
+(For the exported PDL constructor, pdl(), see L<PDL::Core> or pdl[2])
+
 PDL is the Perl Data Language, a perl extension that is designed for
 scientific and bulk numeric data processing and display.  It extends
 perl's syntax and includes fully vectorized, multidimensional array
 handling, plus several paths for device-independent graphics output.
+
 
 For basic information on the PDL language, see L<the pdl(1)
 (lowercase) man page|pdl>.
@@ -23,15 +26,29 @@ modules automatically, making their functions available in the current
 perl namespace.  See also L<PDL::Lite|PDL::Lite> or
 L<PDL::LiteF|PDL::LiteF> if start-up time becomes an issue.
 
+=over 3
+
+=item EXPORTS: 
+
+C<use PDL;> exports a large number of routines into the calling
+namespace.  If you want to avoid namespace pollution, you must instead 
+C<use PDL::Lite>, and include any additional modules explicitly.
+
+=item NICESLICE: 
+
 Note that the L<PDL::NiceSlice|PDL::NiceSlice> syntax is NOT automatically
 loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
 a standalone script, you must also say C<use PDL::NiceSlice;>.
+
+=item PDL::Math:
 
 The PDL::Math module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
 I<not> included in the
 L<Lite|PDL::Lite> and L<LiteF|PDL::LiteF>
 start-up modules.
+
+=back
 
 =head1 SYNOPSIS
 
@@ -56,7 +73,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.2'; # 2.4.2 released 27-Dec-2004 happy new year!
+$PDL::VERSION = '2.4.3'; # Remember to remove the 'cvs' for releases...
 
 # Main loader of standard PDL package
 

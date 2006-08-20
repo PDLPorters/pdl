@@ -4,7 +4,7 @@
 
 use strict;
 
-use Test;
+use Test::More;
 
 use PDL::LiteF;
 $PDL::verbose = 1;
@@ -23,14 +23,10 @@ BEGIN {
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 unless ( $loaded ) {
-    plan tests => 1;
-#    for ( 1 .. $ntests ) {
-	skip( "Skipped: PDL::IO::NDF requires the NDF module.", 1, 1 );
-#    }
-    exit;
+   plan skip_all => "PDL::IO::NDF requires the NDF module.";
+} else {
+   plan tests => 10;
 }
-
-plan tests => 10;
 
 sub tapprox ($$) {
     my ( $a, $b ) = @_;

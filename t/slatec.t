@@ -253,7 +253,7 @@ ok(tapprox($ismon,$ans));
 
 ## Test: chia
 #
-$x = float( sequence(11) - 0.3 );
+$x = double( sequence(11) - 0.3 );
 $f = $x * $x;
 ( $d, $err ) = chim($x, $f);
 
@@ -268,6 +268,8 @@ $ans = ($hi**3 - $lo**3) / 3;
 ( $int, $err ) = chid( $x, $f, $d, 1, pdl(0,1), pdl(9,7) );
 ok(all($err == 0));
 ok(all( abs($int-$ans) < 0.06 ) );
+print "int=$int; ans=$ans; int-ans=".($int-$ans)."\n";
+print "ref ans=".(ref $ans)."\n";
 
 =pod ignore as have commented out chbs interface
 
@@ -279,7 +281,7 @@ my $bcoef  = zeroes( float, 2*$x->nelem );
 my $ndim = PDL->null;
 my $kord = PDL->null;
 $err = PDL->null;
-chbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
+echbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
 ok(all($err == 0));
 
 =cut

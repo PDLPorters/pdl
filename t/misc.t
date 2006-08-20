@@ -115,7 +115,7 @@ $b->rasc($file);
 ok( abs($b->sum - 5.13147) < .01, 1, "rasc on existing piddle" );
 
 eval '$b->rasc("file_that_does_not_exist")';
-ok( $@, qr/^Can't open/, "rasc on non-existant file" );
+ok( $@, qr/Can't open/, "rasc on non-existant file" );
 
 unlink $file; # clean up
 

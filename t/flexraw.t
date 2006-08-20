@@ -1,8 +1,9 @@
 use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use PDL::Config;
+use Config;
 
-use Test;
+use Test::More;
 
 use strict;
 
@@ -14,14 +15,19 @@ my $DEBUG = 0;
 $PDL::Verbose = 0;
 $Verbose |= $PDL::Verbose;
 
+my $exec = $^O =~ /win32/i ? '.exe' : '';
+my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
+
 BEGIN{
 
     my $ntests = 29;
-    plan tests => $ntests;
 
     unless ( $PDL::Config{WITH_SLATEC} ) {
-	for ( 1..$ntests ) { skip( "Skip tests as F77 compiler not found" ); }
-	exit 0;
+        plan skip_all => "Skipped tests as F77 compiler not found";
+    } elsif ($Config{archname} =~ /x86_64/) {
+        plan skip_all => "Skipped tests for 64 bit architecture: x86_64";
+    } else {
+       plan tests => $ntests;
     }
 
     # Configuration
@@ -84,6 +90,75 @@ sub byte4swap {
     rename $ofile, $file;
 }
 
+sub byte8swap {
+    my ($file) = @_;
+    my ($ofile) = $file.'~';
+    my ($word);
+
+    my $ifh = IO::File->new( "<$file" )
+      or die "Can't open $file to read";
+    my $ofh = IO::File->new( ">$ofile" )
+      or die "Can't open $ofile to write";
+    binmode $ifh;
+    binmode $ofh;
+    while ( !$ifh->eof ) {
+	$ifh->read( $word, 8 );
+	$word = pack 'c8',reverse unpack 'c8',$word;
+	$ofh->print( $word );
+    }
+    $ofh->close;
+    $ifh->close;
+    rename $ofile, $file;
+}
+
+# utility to fold long lines preventing problems with 72
+# char limit and long text parameters (e.g. filenames)
+sub codefold {
+   my $oldcode = shift;
+   my $newcode = '';
+
+   eval {
+      # to simplify loop processing, introduces dependence
+      require IO::String;
+
+      my $in = IO::String->new($oldcode);
+      my $out = IO::String->new($newcode);
+
+      # find non-comment lines longer than 72 columns and fold
+      my $line = '';
+      while ($line = <$in>) {
+
+          # clean off line-feed stuff
+         chomp $line;
+
+         # pass comments to output
+         print $out "$line\n" if $line =~ /^\S/;
+
+         # output code lines (by 72-char chunks if needed)
+         while ($line ne '') {
+
+            # output first 72 columns of the line
+            print $out substr($line,0,72) . "\n";	# print first 72 cols
+
+               if ( length($line) > 72 ) {
+                  # make continuation line of the rest of the line
+                  substr($line,0,72) = '     $';
+               } else {
+                  $line = '';
+               }
+
+         }
+      }
+
+      # close "files" and return folded code
+      close($in);
+      close($out);
+   };
+
+   $newcode = $oldcode if $@;
+   return $newcode;
+}
+
 sub inpath {
   my ($prog) = @_;
   my $pathsep = $^O =~ /win32/i ? ';' : ':';
@@ -113,8 +188,14 @@ sub createData {
     # try and provide a modicum of safety, since we call
     # system with $head as the argument
     #
-    die '$head [' . $head . '] must start with a / or ./'
-      unless $head =~ /^(\/|\.\/)/;
+    if($^O =~ /mswin32/i) {
+      die '$head [' . $head . '] should match /^[A-Z]:\\/'
+            unless $head =~ /^[A-Z]:\\/;
+      }      
+    else {
+      die '$head [' . $head . '] must start with a / or ./'
+            unless $head =~ /^(\/|\.\/)/;
+      }
 
     my $file = "${head}.f";
     my $prog = $head;
@@ -125,15 +206,16 @@ sub createData {
     $fh->print( $code );
     $fh->close;
 
-    system("$F77 $F77flags -o $prog $file".
-	   (($Verbose || $DEBUG)?'':' 2>/dev/null'));
+    system("$F77 $F77flags -o $prog$exec $file".
+	     (($Verbose || $DEBUG)?'': $null));
+    
     unlink $data if -f $data;
     system( $prog );
 
     die "ERROR: code did not create data file $data\n"
       unless -e $data;
 
-    unlink $prog, $file;
+    unlink $prog.$exec, $file;
 
 } # sub: createData()
 
@@ -158,7 +240,10 @@ my $i = $j;
 my $c;
 
 my $tmpdir = $PDL::Config{TEMPDIR};
-my $head   = $tmpdir . "/tmpraw";
+$tmpdir =~ s/\\/\\\\/g;
+my $head;
+if($^O =~ /mswin32/i) {$head   = $tmpdir . "\\\\tmpraw"}
+else {$head   = $tmpdir . "/tmpraw"}
 my $data   = $head . "data";
 my $hdr    = $data . ".hdr";
 
@@ -195,9 +280,8 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
     byte4swap($data);
-
     open(FILE, "> $hdr");
     print FILE <<"EOT";
 # FlexRaw file header
@@ -207,7 +291,7 @@ long 1 1
 $pdltype 1 $ndata
 EOT
     close(FILE);
-
+	
     my @a = readflex($data);
     # print "@a\n";
     my $ok = ($a[0]->at(0) == $ndata);
@@ -275,7 +359,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE, ">$hdr" );
     print FILE <<"EOT";
@@ -324,7 +408,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE,">$hdr");
     print FILE <<"EOT";
@@ -379,7 +463,7 @@ c Program to test i/o of F77 unformatted files
 
 EOT
 
-    createData $head, $code;
+    createData $head, codefold($code);
 
     open(FILE,">$hdr");
     print FILE <<"EOT";
@@ -429,7 +513,7 @@ c Choose bad boundaries...
 
 EOT
 
-createData $head, $code;
+    createData $head, codefold($code);
 
 open(FILE,">$hdr");
 print FILE <<"EOT";
@@ -461,8 +545,8 @@ foreach (@req) {
 }
 ok( $ok );
 
-my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes
-# don't have compress
+my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
+$compress = 'gzip' if $^O eq 'cygwin';                   # fix bogus compress script prob
 
 # Try compressed data
 $ok = 1;

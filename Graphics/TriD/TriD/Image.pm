@@ -79,8 +79,8 @@ sub flatten {
 # R because the final texture must be 2**x-aligned ;(
 	my ($txd ,$tyd, $xxd, $yyd);
 	if ($bin_align) {
-	  for($txd = 0; $txd < 10 and 2**$txd < $xdr; $txd++) {};
-	  for($tyd = 0; $tyd < 10 and 2**$tyd < $ydr; $tyd++) {};
+	  for($txd = 0; $txd < 12 and 2**$txd < $xdr; $txd++) {};
+	  for($tyd = 0; $tyd < 12 and 2**$tyd < $ydr; $tyd++) {};
 	  $txd = 2**$txd; $tyd = 2**$tyd;
 	  $xxd = ($xdr > $txd ? $xdr : $txd);
 	  $yyd = ($ydr > $tyd ? $ydr : $tyd);

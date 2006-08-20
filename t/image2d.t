@@ -121,7 +121,7 @@ if ( $PDL::Bad::Status ) {
     tapprox( $ans[1], 11.756724 );
 
 } else { 
-    my $msg = "Skipped: PDL::Bad support not available.";
+    my $msg = "PDL::Bad support not available.";
     for (0..4) { skip($msg,1,1) } # skip 5 tests
 }
 # box2d bug test

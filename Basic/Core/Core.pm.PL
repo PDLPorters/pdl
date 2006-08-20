@@ -12,7 +12,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use vars qw( $bvalflag $usenan );
+use vars qw( $bvalflag $usenan $bvalPerPdl );
 require "badsupport.p";
 require 'Types.pm';
 PDL::Types->import(':All');
@@ -515,7 +515,7 @@ sub topdl {PDL->topdl(@_)}
 ####################### Overloaded operators #######################
 
 { package PDL;
-  use UNIVERSAL 'isa'; # need that later in info function
+  # use UNIVERSAL 'isa'; # need that later in info function
   use Carp;
 
   use overload (
@@ -1925,7 +1925,7 @@ for details on using piddles in the dimensions list.
 
 =cut
 
-sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->zeroes : PDL->zeroes(@_) }
+sub zeroes { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::zeroes($_[0]) : PDL->zeroes(@_) }
 sub PDL::zeroes {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
@@ -1953,7 +1953,7 @@ for details on using piddles in the dimensions list.
 
 =cut
 
-sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->ones : PDL->ones(@_) }
+sub ones { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? PDL::ones($_[0]) : PDL->ones(@_) }
 sub PDL::ones {
     my $class = shift;
     my $pdl = scalar(@_)? $class->new_from_specification(@_) : $class->new_or_inplace;
@@ -2401,12 +2401,24 @@ in a general context, quite useful too inside PDL internals.
  perldl> p $x->at(1,2)
  7
 
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT<<'!NO!SUBS!';
+=for bad
+
+at converts any bad values into the string 'BAD'.
+
+!NO!SUBS!
+}
+
+print OUT<<'!NO!SUBS!';
 =cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
     barf 'Usage: at($pdl, $x, $y, ...)' if $#_<0;
     my $self = shift;
-    at_c ($self, [@_]);
+    at_bad_c ($self, [@_]);
 }
 
 =head2 sclr
@@ -2630,9 +2642,9 @@ by PDL::Core
 
 =cut
 
-# sub barf { die barf_msg(@_) };
+ sub barf { die barf_msg(@_) };
 use Carp;
-sub barf { croak @_ };
+#sub barf { croak barf_msg(@_) };
 
 # This sub is called by Perl barf() and pdl_barf in pdlcore.c
 
@@ -2641,7 +2653,7 @@ sub barf_msg {
   my $i = 0;
   my($pack,$file,$line);
   my $msg="";
-  $msg .= "PDL barfed: $err\nStack trace:\n" if $PDL::Debugging;
+  $msg .= "PDL: $err\nStack trace:\n" if $PDL::Debugging;
   while(1) { # Unwind the stack
     ($pack,$file,$line) = caller($i);
     last unless $pack;
@@ -2653,14 +2665,14 @@ sub barf_msg {
   if ($err =~ /^Usage:\s+(PDL.*::)_(\w+)_int/ or $err =~ /^Usage:\s+(PDL.*::)?\s*(\w+)/) {
      local $match = $2;
      eval << "EOD";
-     \$msg .= "PDL barfed: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
+     \$msg .= "PDL: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
      \$msg .= "Usage information from PDL docs database:\n";
      use PDL::Doc::Perldl;
      \$msg .= PDL::Doc::Perldl::usage_string ('$match');
 EOD
   }
   else{
-     $msg .= "PDL barfed: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
+     $msg .= "PDL: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
   }
   $msg .= "\n" if substr($msg,-1,1) ne "\n";
   return $msg;

@@ -574,6 +574,8 @@ use strict;
 
 sub gdriver {
   my($this, $options) = @_;
+  
+  print "GL gdriver...\n" if($PDL::debug_trid);
 
   if(defined $this->{_GLObject}){
 	 print "WARNING: Graphics Driver already defined for this window \n";
@@ -598,12 +600,17 @@ sub gdriver {
 
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
-  
+
+  print "gdriver: Calling OpengGL::OO($options)...\n" if($PDL::debug_trid);
+
   $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
 
 #glpOpenWindow(%$options);
   
+  print "gdriver: Calling glClearColor...\n" if($PDL::debug_trid);
   glClearColor(0,0,0,1);
+
+  print "gdriver: Calling glpRasterFont...\n" if($PDL::debug_trid);
   my $lb =  $this->{_GLObject}->glpRasterFont(
 						($ENV{PDL_3D_FONT} or "5x8"),0,256);
   $PDL::Graphics::TriD::GL::fontbase = $lb;
@@ -648,8 +655,8 @@ sub ev_defaults{
 
 sub reshape {
 	my($this,$x,$y) = @_;
-   my $pw = $this->{Width};
-   my $ph = $this->{Height};
+	my $pw = $this->{Width};
+	my $ph = $this->{Height};
 	$this->{Width} = $x; $this->{Height} = $y;
 
 	for my $vp (@{$this->{_ViewPorts}}){
@@ -657,8 +664,8 @@ sub reshape {
 	  my $nx0 = $vp->{X0} + ($x-$pw) * $vp->{X0}/$pw;
 	  my $nh = $vp->{H} + ($y-$ph) * $vp->{H}/$ph;
 	  my $ny0 = $vp->{Y0} + ($y-$ph) * $vp->{Y0}/$ph;
+	  print "reshape: resizing viewport to $nx0,$ny0,$nw,$nh\n" if($PDL::Graphics::TriD::verbose);
 	  $vp->resize($nx0,$ny0,$nw,$nh);
-	  
 	}
 
 }
@@ -691,7 +698,7 @@ sub twiddle {
   
   $this->display();
  TWIDLOOP: while(1) {
-	 #		print "EVENT!\n";
+   print "EVENT!\n" if($PDL::Graphics::TriD::verbose);
 	 my $hap = 0;
 	 my $gotev = 0;
 
@@ -699,6 +706,8 @@ sub twiddle {
 		@e = $this->{_GLObject}->glpXNextEvent();
 		$gotev=1;
 	 }
+   print "e= ".join(",",@e)."\n" if($PDL::Graphics::TriD::verbose);
+	
 	 if(@e){
 		if($e[0] == &VisibilityNotify or $e[0] == &Expose) {
 		  $hap = 1;
@@ -806,9 +815,12 @@ sub read_picture {
 	return $res;
 }
 
+######################################################################
+######################################################################
+# EVENT HANDLER MINIPACKAGE FOLLOWS!
 
 package PDL::Graphics::TriD::EventHandler;
-use PDL::Graphics::OpenGL qw/MotionNotify ButtonPress ButtonRelease 
+use PDL::Graphics::OpenGL qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease 
                              Button1Mask Button2Mask Button3Mask/;
 use fields qw/X Y Buttons VP/;
 use strict;
@@ -827,40 +839,55 @@ sub new {
 sub event {
   my($this,$type,@args) = @_;
 
-  #  print "EH: ",ref($this)," $type\n" if($PDL::Graphics::TriD::verbose);
+    print "EH: ",ref($this)," $type (",join(",",@args),")\n" if($PDL::Graphics::TriD::verbose);
   my $retval;
+
   if($type == &MotionNotify) {
 	 my $but = -1;
-  
+	 
   SWITCH: { 
 		$but = 0, last SWITCH if ($args[0] & (Button1Mask));
 		$but = 1, last SWITCH if ($args[0] & (Button2Mask));
 		$but = 2, last SWITCH if ($args[0] & (Button3Mask));
+		print "No button pressed...\n" if($PDL::Graphics::TriD::verbose);
 		goto NOBUT;
 	 }
 
-#	 print "MOTION $but $args[0]\n";
+	 print "MOTION $but $args[0]\n" if($PDL::Graphics::TriD::verbose);
 	 if($this->{Buttons}[$but]) {
 		if($this->{VP}->{Active}){
+		  print "calling ".($this->{Buttons}[$but])."->mouse_moved ($this->{X},$this->{Y},$args[1],$args[2])...\n" if($PDL::Graphics::TriD::verbose);
 		  $retval = $this->{Buttons}[$but]->mouse_moved(
-														  $this->{X},$this->{Y},
-														  $args[1],$args[2]);
+								$this->{X},$this->{Y},
+								$args[1],$args[2]);
 		}
 	 }
 	 $this->{X} = $args[1]; $this->{Y} = $args[2];
   NOBUT:
-  } elsif($type == &ButtonPress) {
+
+       } elsif($type == &ButtonPress) {
+
 	 my $but = $args[0]-1;
-#	 print "BUTTONPRESS $but\n";
+	 print "BUTTONPRESS $but\n" if($PDL::Graphics::TriD::verbose);
 	 $this->{X} = $args[1]; $this->{Y} = $args[2];
 	 $retval = $this->{Buttons}[$but]->ButtonPress($args[1],$args[2]) 
-		if($this->{Buttons}[$but]);
-  } elsif($type == &ButtonRelease) {
+	   if($this->{Buttons}[$but]);
+
+       } elsif($type == &ButtonRelease) {
+
 	 my $but = $args[0]-1;
-#	 print "BUTTONRELEASE $but\n";
+	 print "BUTTONRELEASE $but\n" if($PDL::Graphics::TriD::verbose);
 	 $retval = $this->{Buttons}[$but]->ButtonRelease($args[1],$args[2]) 
-		if($this->{Buttons}[$but]);
-  }
+	   if($this->{Buttons}[$but]);
+
+       } elsif($type== &ConfigureNotify) {
+
+	 # Kludge to force reshape of the viewport associated with the window -CD
+	 print "ConfigureNotify (".join(",",@args).")\n" if($PDL::Graphics::TriD::verbose);
+	 print "viewport is $this->[4]\n" if($PDL::Graphics::TriD::verbose);
+#	 $retval = $this->reshape(@args);
+
+       }
   $retval;
 }
 
@@ -870,7 +897,9 @@ sub set_button {
 }
 
   
-
+######################################################################
+######################################################################
+# VIEWPORT MINI_PACKAGE FOLLOWS!
 
 package PDL::Graphics::TriD::ViewPort;
 use base qw/PDL::Graphics::TriD::Object/;
@@ -917,6 +946,16 @@ sub do_perspective {
 	my($this) = @_;
 
 	print "do_perspective ",$this->{W}," ",$this->{H} ,"\n" if($PDL::Graphics::TriD::verbose);
+
+	if($PDL::Graphics::TriD::verbose>1){
+	  my ($i,$package,$filename,$line);
+	  do { 
+	    ($package,$filename,$line) = caller($i++);
+	    print "$package ($filename, line $line)\n";
+	  } while($package);
+	  print "\n";
+	}
+	      
 
         unless($this->{W}>0 and $this->{H}>0) {return;}
 #	if($this->{W}==0 or $this->{H}==0) {return;}

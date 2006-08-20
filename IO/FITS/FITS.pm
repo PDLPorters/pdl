@@ -60,6 +60,7 @@ BEGIN {
   our @ISA = ('PDL::Exporter');
 
   use PDL::Core;
+  use PDL::Config;
   use PDL::IO::Misc;
   use PDL::Exporter;
   use PDL::Primitive;
@@ -82,7 +83,12 @@ BEGIN {
     $a =~ s/[^0-9\.].*//;
     $PDL::Astro_FITS_Header = 0 if($a < 1.12);
   }
-  
+
+  unless($PDL::Astro_FITS_Header) {
+    unless($ENV{"PDL_FITS_LEGACY"} || $PDL::Config{FITS_LEGACY}) {
+      print(STDERR "\n\nWARNING: Can't find the Astro::FITS::Header module, limiting FITS support.\n\n  PDL will use the deprecated legacy perl hash handling code but will not\n  properly support tables, FITS extensions, or COMMENT cards. You really\n  ought to install the Astro::FITS::Header module, available from\n  'http://www.cpan.org'.  (You can also get rid of this message by setting\n  the environment variable 'PDL_FITS_LEGACY' or the global PDL config value (in perldl.conf)\n  \$PDL::Config{FITS_LEGACY} to 1.\n\n");
+    }
+  }
 }
 
 package PDL::IO::FITS;
@@ -281,6 +287,10 @@ sub PDL::rfits {
   my($nbytes, $line, $name, $rest, $size, $i, $bscale, $bzero, $extnum);
 
   $nbytes = 0;
+
+  # Modification 02/04/2005 - JB. Earlier version stripped the extension
+  # indicator which cancelled the check for empty primary data array at the end.
+  my $explicit_extension = ($file =~ m/\[\d+\]$/ ? 1 : 0);
   $extnum = ( ($file =~ s/\[(\d+)\]$//) ? $1 : 0 );
   
   $file = "gunzip -c $file |" if $file =~ /\.gz$/;    # Handle compression
@@ -377,7 +387,7 @@ sub PDL::rfits {
      do {
        $nbytes += $fh->read($line, 80);
        push(@cards,$line);
-     } while(!$fh->eof() && $line !~ m/^END/);
+     } while(!$fh->eof() && $line !~ m/^END(\s|\000)/);
 
      $nbytes += $fh->read(my $dummy, 2879 - ($nbytes-1)%2880);
 
@@ -392,23 +402,25 @@ sub PDL::rfits {
      ## Deprecated but preserved.
      
      hdr_legacy: { do {
+       no strict 'refs';
        # skip if the first eight characters are ' '
        # - as seen in headers from the DSS at STScI
-       next if substr($line,0,8) eq " " x 8;
+       if (substr($line,0,8) ne " " x 8) { # If non-blank
        
-       $name = (split(' ',substr($line,0,8)))[0]; 
+          $name = (split(' ',substr($line,0,8)))[0]; 
 
-       $rest = substr($line,8);
+          $rest = substr($line,8);
        
-       if ($name =~ m/^HISTORY/) {
-	 push @history, $rest;
-       } else {
-	 $$foo{$name} = "";
+          if ($name =~ m/^HISTORY/) {
+	         push @history, $rest;
+          } else {
+	         $$foo{$name} = "";
 	 
-	 $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
-	 $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
-	 $$foo{COMMENT}{$name} = $3 if defined($3);
-       }
+	         $$foo{$name}=$1 if $rest =~ m|^= +([^\/\' ][^\/ ]*) *( +/(.*))?$| ;
+	         $$foo{$name}=$1 if $rest =~ m|^= \'(.*)\' *( +/(.*))?$| ;
+	         $$foo{COMMENT}{$name} = $3 if defined($3);
+          }
+       } # non-blank
        last hdr_legacy if ((defined $name) && $name eq "END");
        $nbytes += $fh->read($line, 80);
      } while(!$fh->eof()); }
@@ -433,7 +445,7 @@ sub PDL::rfits {
    if( !(defined $foo->{XTENSION})  # Primary header
        and $foo->{NAXIS} == 0       # No data
        and !wantarray               # Scalar context
-       and $file !~ m/\[\d+\]$/     # No HDU specifier
+       and !$explicit_extension     # No HDU specifier
        ) {
      print "rfits: Skipping null primary HDU (use [0] to force read of primary)...\n" 
        if($PDL::verbose);
@@ -1154,10 +1166,10 @@ As an example, the following
 
 will create a binary FITS table called F<table1.fits> which
 contains two columns called C<COLA> and C<COLB>. The order
-of the columns is controlled by setting the C<TFORMn>
+of the columns is controlled by setting the C<TTYPEn>
 keywords in the header array, so 
 
-  $h = { 'TFORM1'=>'Y', 'TFORM2'=>'X' };
+  $h = { 'TTYPE1'=>'Y', 'TTYPE2'=>'X' };
   wfits { 'X'=>$a, 'Y'=>$b, hdr=>$h }, "table2.fits";
 
 creates F<table2.fits> where the first column is
@@ -1594,7 +1606,7 @@ fits_field_cmp
 
 Sorting comparison routine that makes proper sense of the digits at the end
 of some FITS header fields.  Sort your hash keys using "fits_field_cmp" and 
-you will get (e.g.) your "TFORM" fields in the correct order even if there
+you will get (e.g.) your "TTYPE" fields in the correct order even if there
 are 140 of them.
 
 This is a standard kludgey perl comparison sub -- it uses the magical

@@ -32,7 +32,7 @@ eval 'PDL::Ufunc::sumover($a,$b)';
 
 eprint $@;
 
-ok(1,$@ =~ /Error - argument is not a recognised data structure/);
+ok(1,$@ =~ /Error - tried to use an unknown/);
 
 eval { PDL::Ufunc::sumover({}) };
 eprint $@;
@@ -44,6 +44,6 @@ $c = 0;
 eval { PDL::Ufunc::sumover(\$c) };
 eprint $@;
 
-ok 3, $@ =~ /Error - argument is not a recognised data structure/;
+ok 3, $@ =~ /Error - tried to use an unknown/;
 
 

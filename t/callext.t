@@ -4,11 +4,9 @@
 
 use strict;
 use Test;
+use Config;
+
 BEGIN { plan tests => 1;
-	if ($^O =~ /win32/i) {
-	    print "ok 1 # Skipped: callext is currently broken on win32\n";
-	    exit;
-	}
 }
 use PDL;
 use PDL::CallExt;

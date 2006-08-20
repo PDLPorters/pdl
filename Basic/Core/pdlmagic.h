@@ -99,6 +99,8 @@ int pdl__magic_isundestroyable(pdl *);
 void *pdl__call_magic(pdl *,int which);
 int pdl__ismagic(pdl *);
 
+pdl_magic *pdl__print_magic(pdl *it);
+
 pdl_magic *pdl_add_svmagic(pdl *,SV *);
 
 /* A kind of "dowhenidle" system */

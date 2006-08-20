@@ -1,3 +1,4 @@
+if($^O =~ /mswin32/i) {exit}
 open(FOO,">pdl.c");
 print FOO <<'nosubs';
 

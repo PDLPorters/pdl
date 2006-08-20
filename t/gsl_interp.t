@@ -11,7 +11,11 @@ use Test;
 BEGIN{
   eval " use PDL::GSL::INTERP; ";
   unless ($@){
-    plan tests => 10;
+    if ($PDL::Config{WITH_BADVAL}) {
+      plan tests => 11;
+    } else {
+      plan tests => 10;
+    }
   }
   else {
     plan tests => 1;
@@ -38,3 +42,8 @@ ok(abs($spl->eval(5.5,{Extrapolate => 1})-237.641810667697) < 1e-6 );
 ok(abs($spl->deriv(5.5,{Extrapolate => 1})-237.669424604497) < 1e-6 );
 ok(abs($spl->deriv2(5.5,{Extrapolate => 1})-306.23332503967) < 1e-6 );
 ok(abs($spl->integ(3.2,8.5,{Extrapolate => 1})-4925.23555581654) < 1e-6 );   
+
+# Bad value test added 5/31/2005 D. Hunt
+if ($PDL::Config{WITH_BADVAL}) {
+  ok ($spl->eval(pdl(0)->setbadat(0))->isbad);
+}

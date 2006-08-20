@@ -2,17 +2,17 @@ Source: pdl
 Section: math
 Priority: optional
 Maintainer: Henning Glawe <glaweh@debian.org>
-Standards-Version: 3.1.1
-Build-Depends: g77, xlibmesa-dev, xlibs-dev, libncurses-dev, perl (>= 5.8.0-3), libextutils-f77-perl, debhelper (>= 3.0.18), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev
+Standards-Version: 3.7.2
+Build-Depends: g77, xlibmesa-gl-dev, libglu1-xorg-dev | xlibmesa-glu-dev, x-dev, libncurses-dev, perl (>= 5.8.0-3), libextutils-f77-perl, debhelper (>= 4.0.0), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev, dpatch, libxext-dev, libhdf4g-dev, proj, libgd2-xpm-dev, libastro-fits-header-perl
 
 Package: pdl
 Architecture: any
 Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}
-Suggests: pgperl, libgl1, netpbm | imagemagick
+Suggests: pgperl, libgl1, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libterm-readline-gnu-perl | libterm-readline-perl-perl, libplplot-dev
 Conflicts: r-pdl
 Replaces: r-pdl
-Description: The perl data language: Perl extensions for numerics
- PDL (``Perl Data Language'') gives standard perl the ability to COMPACTLY
+Description: perl data language: Perl extensions for numerics
+ gives standard perl the ability to COMPACTLY
  store and SPEEDILY manipulate the large N-dimensional data arrays 
  which are the bread and butter of scientific computing.  The idea 
  is to turn perl in to a free, array-oriented, numerical language 

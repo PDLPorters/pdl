@@ -8,6 +8,7 @@
 #
 package PDL::PP;
 use PDL::Types ':All';
+use Config;
 use FileHandle;
 use Exporter;
 @ISA = qw(Exporter);
@@ -554,6 +555,15 @@ $PDL::PP::deftbl =
  [[IsAffineFlag],	[],	sub {return "0"}],
  [[NoPdlThread],	[],	sub {0}],
 
+# hmm, need to check on conditional check here (or rather, other bits of code prob need
+# to include it too; see Ops.xs, PDL::assgn)
+##
+##           sub { return (defined $_[0]) ? "int \$BADFLAGCACHE() = 0;" : ""; } ],
+##
+ [[CacheBadFlagInitNS], [_HandleBad],
+           sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; } ],
+ [[CacheBadFlagInit], [CacheBadFlagInitNS,NewXSSymTab,Name], "dousualsubsts"],
+
     # need special cases for
     # a) bad values
     # b) bad values + GlobalNew
@@ -664,6 +674,8 @@ $PDL::PP::deftbl =
  			= malloc(sizeof($_[2]));" .
 			($_[3] ? "" : "PDL_THR_CLRMAGIC(&__copy->__pdlthread);") .
 "			PDL_TR_CLRMAGIC(__copy);
+                        __copy->has_badvalue = \$PRIV(has_badvalue);
+                        __copy->badvalue = \$PRIV(badvalue);
 			__copy->flags = \$PRIV(flags);
 			__copy->vtable = \$PRIV(vtable);
 			__copy->__datatype = \$PRIV(__datatype);
@@ -721,7 +733,9 @@ $PDL::PP::deftbl =
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
-    [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,NewXSStructInit0,
+    [_GlobalNew,_NewXSCHdrs,VarArgsXSHdr, NewXSLocals,
+     CacheBadFlagInit,
+     NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
 #     NewXSMakeNow,  # this is unnecessary since families never got implemented
@@ -739,7 +753,9 @@ $PDL::PP::deftbl =
  # This rule will fail if the preceding rule succeeds 
  # D. Hunt 4/11/00
  [[NewXSCode,BootSetNewXS,NewXSInPrelude],
-    [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,NewXSStructInit0,
+    [_GlobalNew,_NewXSCHdrs,NewXSHdr,NewXSLocals,
+     CacheBadFlagInit,
+     NewXSStructInit0,
      NewXSFindBadStatus,
 #     NewXSCopyBadValues,
 #     NewXSMakeNow, # this is unnecessary since families never got implemented
@@ -960,7 +976,8 @@ sub coerce_types {
 	die "ERROR: expected $child to be [oca]\n"
 	    unless $parobjs->{$child}{FlagCreateAlways};
 	
-	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
+#	return "$child\->datatype = \$PRIV(__datatype);\n" if $hasp2child;
+	return "$child\->datatype = \$PRIV(__datatype);\n$child\->has_badvalue = \$PRIV(has_badvalue);\n$child\->badvalue = \$PRIV(badvalue);\n" if $hasp2child;
     }
 
     my $str = "";
@@ -1014,7 +1031,8 @@ sub find_datatype {
     die "ERROR: gentypes != $ntypes with p2child\n"
 	if $hasp2child and $#$gentypes != $ntypes;
     
-    return "$dtype = $$parnames[0]\->datatype;\n"
+#    return "$dtype = $$parnames[0]\->datatype;\n"
+    return "$dtype = $$parnames[0]\->datatype;\n\$PRIV(has_badvalue) = $$parnames[0]\->has_badvalue;\n\$PRIV(badvalue) = $$parnames[0]\->badvalue;\n"
 	if $hasp2child;
     
     my $str = "$dtype = 0;";
@@ -1411,6 +1429,7 @@ sub dosubst {
 		    SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
 		    ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
 		    ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
+		    BADFLAGCACHE    => sub { return "badflag_cache"; },
 
 		    SETREVERSIBLE => sub {
 			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
@@ -1789,39 +1808,216 @@ EOD
 
     
   
+#
+# This is ripped from xsubpp to ease the parsing of the typemap.
+#
+our $proto_re = "[" . quotemeta('\$%&*@;[]') . "]" ;
 
+sub ValidProtoString ($)
+{
+    my($string) = @_ ;
+
+    if ( $string =~ /^$proto_re+$/ ) {
+        return $string ;
+    }
+
+    return 0 ;
+}
+
+sub C_string ($)
+{
+    my($string) = @_ ;
+
+    $string =~ s[\\][\\\\]g ;
+    $string ;
+}
+
+sub TrimWhitespace
+{
+    $_[0] =~ s/^\s+|\s+$//go ;
+}
+sub TidyType
+{
+    local ($_) = @_ ;
+
+    # rationalise any '*' by joining them into bunches and removing whitespace
+    s#\s*(\*+)\s*#$1#g;
+    s#(\*+)# $1 #g ;
+
+    # change multiple whitespace into a single space
+    s/\s+/ /g ;
+
+    # trim leading & trailing whitespace
+    TrimWhitespace($_) ;
+
+    $_ ;
+}
+
+
+
+#------------------------------------------------------------------------------
+# Typemap handling in PP.
+#
 # This subroutine does limited input typemap conversion.
 # Given a variable name (to set), its type, and the source
 # for the variable, returns the correct input typemap entry.
-# D. Hunt 4/13/00
+# Original version: D. Hunt 4/13/00  - Current version J. Brinchmann (06/05/05)
+#
+# This is an extended typemap handler from the one earlier written by
+# Doug Hunt. It should work exactly as the older version, but with extensions.
+# Instead of handling a few special cases explicitly we now use Perl's
+# built-in typemap handling using code taken straight from xsubpp.
+#
+# I have infact kept the old part of the code here because I belive any
+# subsequent hackers might find it very helpful to refer to this code to
+# understand what the following does. So here goes:
+#
+# ------------ OLD TYPEMAP PARSING: ------------------------
+#
+#   # Note that I now just look at the basetype.  I don't
+#   # test whether it is a pointer to the base type or not.
+#   # This is done because it is simpler and I know that the otherpars
+#   # belong to a restricted set of types.  I know a char will really
+#   # be a char *, for example.  I also know that an SV will be an SV *.
+#   #    yes, but how about catching syntax errors in OtherPars (CS)?
+#   #    shouldn't we really parse the perl typemap (we can steal the code
+#   #    from xsubpp)?
+#
+#   my $OLD_PARSING=0;
+#   if ($OLD_PARSING) {
+#     my %typemap = (char     => "(char *)SvPV($arg,PL_na)",
+# 		   short    => "(short)SvIV($arg)",
+# 		   int      => "(int)SvIV($arg)",
+# 		   long     => "(long)SvIV($arg)",
+# 		   double   => "(double)SvNV($arg)",
+# 		   float    => "(float)SvNV($arg)",
+# 		   SV       => "$arg",
+# 		  );
+#     my $basetype = $type->{Base};
+#     $basetype =~ s/\s+//g;  # get rid of whitespace
+#
+#     die "Cannot find $basetype in my (small) typemap" unless exists($typemap{$basetype});
+#     return ($typemap{$basetype});
+#   }
+#
+#--------- END OF THE OLD CODE ---------------
+#
+# The code loads the typemap from the Perl typemap using the loading logic of 
+# xsubpp. Do note that I  made the assumption that
+# $Config{}installprivlib}/ExtUtils was the right root directory for the search.
+# This could break on some systems?
+#
+# Also I do _not_ parse the Typemap argument from ExtUtils::MakeMaker because I don't
+# know how to catch it here! This would be good to fix! It does look for a file
+# called typemap in the current directory however.
+#
+# The parsing of the typemap is mechanical and taken straight from xsubpp and
+# the resulting hash lookup is then used to convert the input type to the
+# necessary outputs (as seen in the old code above)
+#
+# JB 06/05/05
+#
 sub typemap {
   my $oname  = shift;
   my $type   = shift;
   my $arg    = shift;
 
-  # Note that I now just look at the basetype.  I don't
-  # test whether it is a pointer to the base type or not.
-  # This is done because it is simpler and I know that the otherpars
-  # belong to a restricted set of types.  I know a char will really
-  # be a char *, for example.  I also know that an SV will be an SV *.
-  #    yes, but how about catching syntax errors in OtherPars (CS)?
-  #    shouldn't we really parse the perl typemap (we can steal the code
-  #    from xsubpp)?
-  my %typemap = (char     => "(char *)SvPV($arg,PL_na)",
-		 short    => "(short)SvIV($arg)",
-		 int      => "(int)SvIV($arg)",
-		 long     => "(long)SvIV($arg)",
-		 double   => "(double)SvNV($arg)",
-		 float    => "(float)SvNV($arg)",
-		 SV       => "$arg",
-		);
 
-  my $basetype = $type->{Base};
-  $basetype =~ s/\s+//g;  # get rid of whitespace
 
-  die "Cannot find $basetype in my (small) typemap" unless exists($typemap{$basetype});
-  
-  return ($typemap{$basetype});
+  #
+  # Modification to parse Perl's typemap here.
+  #
+  # The default search path for the typemap taken from xsubpp. It seems it is
+  # necessary to prepend the installprivlib/ExtUtils directory to find the typemap.
+  # It is not clear to me how this is to be done.
+  #
+  my ($typemap, $mode, $junk, $current, %input_expr,
+      %proto_letter, %output_expr, %type_kind);
+
+  # A slightly edited version of the search path in xsubpp with a $installprivlib/ExtUtils
+  # directory prepended. 
+  my $_rootdir=$Config{installprivlib}."/ExtUtils/";
+  # First the system typemaps..
+  my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
+	    $_rootdir.'../../../lib/ExtUtils/typemap',
+	    $_rootdir.'../../lib/ExtUtils/typemap',
+	    $_rootdir.'../../../typemap',
+	    $_rootdir.'../../typemap', $_rootdir.'../typemap',
+	    $_rootdir.'typemap');
+  # Finally tag onto the end, the current directory typemap. Ideally we should here pick
+  # up the TYPEMAPS flag from ExtUtils::MakeMaker, but a) I don't know how and b)
+  # it is only a slight inconvenience hopefully!
+  #
+  # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
+  # the source code from xsubpp for tidiness.
+  push @tm, 'typemap';
+  foreach $typemap (@tm) {
+    next unless -f $typemap ;
+    # skip directories, binary files etc.
+    warn("Warning: ignoring non-text typemap file '$typemap'\n"), next
+      unless -T $typemap ;
+    open(TYPEMAP, $typemap)
+      or warn ("Warning: could not open typemap file '$typemap': $!\n"), next;
+    $mode = 'Typemap';
+    $junk = "" ;
+    $current = \$junk;
+    while (<TYPEMAP>) {
+	next if /^\s*#/;
+        my $line_no = $. + 1;
+	if (/^INPUT\s*$/)   { $mode = 'Input';   $current = \$junk;  next; }
+	if (/^OUTPUT\s*$/)  { $mode = 'Output';  $current = \$junk;  next; }
+	if (/^TYPEMAP\s*$/) { $mode = 'Typemap'; $current = \$junk;  next; }
+	if ($mode eq 'Typemap') {
+	    chomp;
+	    my $line = $_ ;
+            TrimWhitespace($_) ;
+	    # skip blank lines and comment lines
+	    next if /^$/ or /^#/ ;
+	    my($t_type,$kind, $proto) = /^\s*(.*?\S)\s+(\S+)\s*($proto_re*)\s*$/ or
+		warn("Warning: File '$typemap' Line $. '$line' TYPEMAP entry needs 2 or 3 columns\n"), next;
+            $t_type = TidyType($t_type) ;
+	    $type_kind{$t_type} = $kind ;
+            # prototype defaults to '$'
+            $proto = "\$" unless $proto ;
+            warn("Warning: File '$typemap' Line $. '$line' Invalid prototype '$proto'\n")
+                unless ValidProtoString($proto) ;
+            $proto_letter{$t_type} = C_string($proto) ;
+	}
+	elsif (/^\s/) {
+	    $$current .= $_;
+	}
+	elsif ($mode eq 'Input') {
+	    s/\s+$//;
+	    $input_expr{$_} = '';
+	    $current = \$input_expr{$_};
+	}
+	else {
+	    s/\s+$//;
+	    $output_expr{$_} = '';
+	    $current = \$output_expr{$_};
+	}
+      }
+    close(TYPEMAP);
+  }
+
+  #
+  # Do checks...
+  #
+  # First reconstruct the type declaration to look up in type_kind
+  my $full_type=TidyType($type->get_decl('')); # Skip the variable name
+  die "The type =$full_type= does not have a typemap entry!\n" unless exists($type_kind{$full_type});
+  my $typemap_kind = $type_kind{$full_type};
+  # Look up the conversion from the INPUT typemap. Note that we need to do some
+  # massaging of this.
+  my $input = $input_expr{$typemap_kind};
+  # Remove all before =:
+  $input =~ s/^(.*?)=\s*//; # This should not be very expensive
+  # Replace $arg with $arg
+  $input =~ s/\$arg/$arg/;
+  # And type with $full_type
+  $input =~ s/\$type/$full_type/;
+
+  return ($input);
 }
 		 
 
@@ -2145,22 +2341,32 @@ sub findbadstatus {
     my $get_bad   = get_badflag();
 
     my $str = $clear_bad;
-    my $add = 0;
 
-    # set bvalflag if any input variable is bad
+    # set the badflag_cache variable if any input piddle has the bad flag set
+    #
+    my $add = 0;
+    my $badflag_str = "  \$BADFLAGCACHE() = ";
     foreach my $i ( 0 .. $#args ) {
 	my $x = $args[$i];
 	unless ( $other{$x} or $out{$x} or $tmp{$x} or $outca{$x}) {
-	    my $state_is_bad = get_badstate($args[$i]);
-	    if ( $add ) {
-		# access to state information should be encapsulated
-		$str .= "  if ( !($get_bad) && $state_is_bad ) $set_bad";
-	    } else {
-		$str .= "  if ( $state_is_bad ) $set_bad";
-		$add = 1;
-	    }
+	    if ($add) { $badflag_str .= " || "; }
+	    else      { $add = 1; }
+	    $badflag_str .= get_badstate($args[$i]);
 	}
-    } # foreach: my $i
+    }
+
+    # It is possible, at present, for $add to be 0. I think this is when
+    # the routine has no input piddles, such as fibonacci in primitive.pd,
+    # but there may be other cases. These routines could/should (?)
+    # be marked as NoBadCode to avoid this, or maybe the code here made
+    # smarter. Left as is for now as do not want to add instability into
+    # the 2.4.3 release if I can help it - DJB 23 Jul 2006
+    #
+    if ($add != 0) {
+	$str .= $badflag_str . ";\n  if (\$BADFLAGCACHE()) ${set_bad}\n";
+    } else {
+	print "\nNOTE: $name has no input bad piddles.\n\n" if $::PP_VERBOSE;
+    }
 
     if ( defined($badflag) and $badflag == 0 ) {
 	$str .= 
@@ -2190,7 +2396,20 @@ sub copybadstatus {
 ##    return '' unless $bvalflag or $badflag == 0;
     return '' unless $bvalflag;
 
-    return $badcode if defined $badcode;
+    if (defined $badcode) {
+	# realised in 2.4.3 testing that use of $PRIV at this stage is
+	# dangerous since it may have been freed. So I introduced the
+	# $BFLACACHE variable which stores the $PRIV(bvalflag) value
+	# for use here.
+	# For now make the substitution automatic but it will likely become an
+	# error to use $PRIV(bvalflag) here.
+	#
+	if ($badcode =~ m/\$PRIV(bvalflag)/) {
+	    $badcode =~ s/\$PRIV(bvalflag)/\$BADFLAGCACHE()/;
+	    print "\nPDL::PP WARNING: copybadstatus contains '\$PRIV(bvalflag)'; replace with \$BADFLAGCACHE()\n\n";
+	}
+	return $badcode;
+    }
 
     # names of output variables    (in calling order)
     my @outs;
@@ -2207,8 +2426,12 @@ sub copybadstatus {
 
     my $str = '';
 
-#    $str = "if ( " . get_badflag($sname) . " ) {\n";
-    $str = "if ( " . get_badflag() . " ) {\n";
+# It appears that some code in Bad.xs sets the cache value but then
+# this bit of code never gets called. Is this an efficiency issue (ie
+# should we try and optimise away those ocurrences) or does it perform
+# some purpose?
+#
+    $str = "if (\$BADFLAGCACHE()) {\n";
     foreach my $arg ( @outs ) {
 	$str .= "  " . set_badstate($arg) . ";\n";
     }

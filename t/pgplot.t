@@ -6,70 +6,41 @@ BEGIN{
 	  $ENV{'PERL_DL_NONLAZY'}=0;
 }
 
+use strict;
+
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN{
-  eval " use PDL::Graphics::PGPLOT; ";
-  if ($@) {
-    plan tests => 1;
-    print "ok 1 # Skipped: PDL::Graphics::PGPLOT not installed\n";
-    exit;
-  }
-  unless ($ENV{'DISPLAY'}) {
-    plan tests => 1;
-    print "ok 1 # Skipped: DISPLAY environment variable not set\n";
-    exit;
-  }
-  plan tests => 12;
+   eval "use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;";
+   if ($@) {
+      plan skip_all => "Skipped: PDL::Graphics::PGPLOT not installed";
+   } elsif (!exists($ENV{'DISPLAY'})) {
+      # We have this after the PGPLOT module is loaded so that we test whether the
+      # module will at least load, even if we do not test it's
+      # functionality.
+      #
+      plan tests => 1;
+      print "ok 1 # skip -- DISPLAY environment variable not set\n";
+      exit;
+   } else {
+      plan tests => 12;
+   }
 }
 
-
-sub t_ok {
-        my $no = shift ;
-        my $result = shift ;
-        print "not " unless $result ;
-        print "ok $no\n" ;
+sub get_answer () {
+    print STDERR "Does this look OK (y/n, y is default)? :";
+    my $answer = <STDIN>;
+    return $answer !~ m/n/i;
 }
 
-unless($ENV{'DISPLAY'}) {
-	print "1\n";
-	print "t_ok 1 # All tests skipped: DISPLAY environment var not set\n";
-	exit 0;
-}
+sub interactive ($$) {
+    my $flag = shift;
+    my $num  = shift;
+    return unless $flag; # ie not interactive
 
-eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
-if($@) {
-   print "1\n";
-   print "t_ok 1 # All tests skipped: PGPLOT not installed or loading properly\n";
-   exit 0;
-}
-
-$interactive = $ENV{'PDL_INT'};
-
-eval 'use PDL::Graphics::PGPLOT; use PDL::Graphics::PGPLOT::Window;';
-t_ok(1,!$@);
-
-eval '$w = new PDL::Graphics::PGPLOT::Window(Dev=>"/xw",Size=>[6,4],NX=>2,NY=>2,Ch=>2.5,HardCH=>2.5);';
-t_ok(2,!$@);
-
-{ no warnings;
-  $a = rfits('m51.fits');
-}
-
-##############################
-# Page 1
-eval '$w->imag($a,{Title=>"\$w->imag(\$a);"} );';
-t_ok(3,!$@);
-eval '$w->fits_imag($a,{Title=>"\$w->fits_imag(\$a);"});';
-t_ok(4,!$@);
-eval '$w->imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});';
-t_ok(5,!$@);
-eval '$w->fits_imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});';
-t_ok(6,!$@);
-
-if($interactive) {
-print STDERR <<'EOD'
+    if (1 == $num) {
+    print STDERR <<'EOD';
 PGPLOT X device... you should see a 6 inch (153 mm) x 4 inch (102 mm)
 X window with four plots in it.  All four images should have tick marks 
 on the outside of the axes.
@@ -83,26 +54,8 @@ on the outside of the axes.
   ``shrinkwrapped'' ]
 
 EOD
-."Does this look OK? :";
-$_ = <STDIN>;
-t_ok(7, ! m/n/i);
-} else {
-print "ok 7 # Skipped: interactive tests since env var PDL_INT not set\n";
-}
-
-##############################
-# Page 2
-eval '$w->imag($a,{Pitch=>200,Align=>LB,Title=>"\$w->imag(\$a,{Pitch=>200,Align=>LB})"});';
-t_ok(8,!$@);
-eval '$w->imag($a,{J=>.5,Pitch=>200,Align=>LB,Title=>"\$w->imag(\$a,{J=>.5,Pitch=>200,Align=>LB})"});';
-t_ok(9,!$@);
-eval '$w->imag($a,{Pitch=>200,Align=>RT,Title=>"\$w->imag(\$a,{Pitch=>200,Align=>RT})"});';
-t_ok(10,!$@);
-eval '$w->imag($a,{J=>2,Pitch=>400,Align=>RT,Title=>"\$w->imag(\$a,{J=>1,Pitch=>400,Align=>RT})                     ."});';
-t_ok(11,!$@);
-
-if($interactive) {
-print STDERR <<'EOD'
+    } elsif (2 == $num) {
+    print STDERR <<'EOD';
 ==============================================================
 
 You should see four plots demonstrating pitch setting, justification,
@@ -119,13 +72,72 @@ to upper right corner of rect. plot      and height 1.25 inch, shrinkwrapped
 box and cropped at the bottom.     ]     and placed at upper right of plot rgn]
 
 EOD
-."Does this look OK? :";
-$_ = <STDIN>;
-t_ok(12,! m/n/i);
-} else {
- print("ok 12 # Skipped: interactive tests since env var PDL_INT not set\n");
+    } else {
+      die "Internal error: unknown test number $num for interactive()!\n";
+    }
+    return get_answer();
 }
 
+my $interactive = exists($ENV{'PDL_INT'});
+my $skip_interactive_msg = "interactive tests not run since environment var PDL_INT not set";
+my $interactive_ctr = 0;
+
+###
+### Test code
+###
+
+my $dev = $ENV{'PGPLOT_DEV'} ? $ENV{'PGPLOT_DEV'} : "/xw";
+
+my $w = PDL::Graphics::PGPLOT::Window->new(
+					   Dev => $dev,
+					   Size=> [6,4],
+                                           NX=>2, NY=>2,
+                                           Ch=>2.5, HardCH=>2.5);
+ok( UNIVERSAL::isa($w, "PDL::Graphics::PGPLOT::Window") );
+
+my $a = rfits('m51.fits');
+
+##############################
+# Page 1
+#
+foreach my $str ( (
+    '$w->imag($a,{Title=>"\$w->imag(\$a);"} );',
+    '$w->fits_imag($a,{Title=>"\$w->fits_imag(\$a);"});',
+    '$w->imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});',
+    '$w->fits_imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});'
+    ) ) {
+    eval $str;
+    ok (!$@);
+}
+
+$interactive_ctr++;
+SKIP: {
+   skip $skip_interactive_msg, 1 unless $interactive;
+   ok(interactive($interactive, $interactive_ctr), "interactive tests");
+}
+  
+##############################
+# Page 2
+#
+foreach my $str ( (
+    '$w->imag($a,{Pitch=>200,Align=>"LB",Title=>"\$w->imag(\$a,{Pitch=>200,Align=>LB})"});',
+    '$w->imag($a,{J=>.5,Pitch=>200,Align=>"LB",Title=>"\$w->imag(\$a,{J=>.5,Pitch=>200,Align=>LB})"});',
+    '$w->imag($a,{Pitch=>200,Align=>"RT",Title=>"\$w->imag(\$a,{Pitch=>200,Align=>RT})"});',
+    '$w->imag($a,{J=>2,Pitch=>400,Align=>"RT",Title=>"\$w->imag(\$a,{J=>1,Pitch=>400,Align=>RT})                     ."});',
+    ) ) {
+    eval $str;
+    ok (!$@);
+}
+
+$interactive_ctr++;
+SKIP: {
+   skip $skip_interactive_msg, 1 unless $interactive;
+   ok(interactive($interactive, $interactive_ctr), "interactive tests");
+}
+  
 eval '$w->close';
+ok (!$@);
+
+# End
 
 

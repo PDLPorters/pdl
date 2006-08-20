@@ -43,7 +43,8 @@ pp_addpm({At=>'Bot'},<<'EOD');
 
 Copyright (C) Tuomas J. Lukka 1997 (lukka@husc.harvard.edu). Contributions
 by Christian Soeller (c.soeller@auckland.ac.nz), Karl Glazebrook
-(kgb@aaoepp.aao.gov.au), and Craig DeForest (deforest@boulder.swri.edu).
+(kgb@aaoepp.aao.gov.au), Craig DeForest (deforest@boulder.swri.edu)
+and Jarle Brinchmann (jarle@astro.up.pt)
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL
@@ -71,12 +72,12 @@ pp_def(
         $c() = tmp;',
        BadCode => 
        'double tmp = 0;
-        int flag = 0;
+        int badflag = 0;
         loop(n) %{ 
-           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); flag = 1; }
+           if ( $ISGOOD(a()) && $ISGOOD(b()) ) { tmp += $a() * $b(); } else { badflag = 1; }
         %}
-        if ( flag ) { $c() = tmp; }
-        else        { $SETBAD(c()); $PDLSTATESETBAD(c); }',
+        if ( badflag ) { $SETBAD(c()); $PDLSTATESETBAD(c); }
+        else        { $c() = tmp;  }',
        CopyBadStatusCode => '',
        Doc => '
 =for ref
@@ -122,6 +123,77 @@ operator but this function is provided for convenience.
 
 
 pp_addpm(<<'EOD');
+=head2 x
+
+ Signature: (a(i,x), b(z,i),[o]c(x,z))
+
+=for ref
+
+Matrix multiplication
+
+PDL overloads the C<x> operator (normally the repeat operator) for
+matrix multiplication.  The number of columns (size of the 0
+dimension) in the left-hand argument must normally equal the number of 
+rows (size of the 1 dimension) in the right-hand argument. 
+
+Row vectors are represented as (N x 1) two-dimensional PDLs, or you
+may be sloppy and use a one-dimensional PDL.  Column vectors are 
+represented as (1 x N) two-dimensional PDLs.
+
+Threading occurs in the usual way, but as both the 0 and 1 dimension
+(if present) are included in the operation, you must be sure that 
+you don't try to thread over either of those dims.
+
+EXAMPLES
+
+Here are some simple ways to define vectors and matrices:
+
+ perldl> $r = pdl(1,2);                # A row vector 
+ perldl> $c = pdl([[3],[4]]);          # A column vector 
+ perldl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
+ perldl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
+
+Now that we have a few objects prepared, here is how to
+matrix-multiply them:
+
+ perldl> print $r x $m                 # row x matrix = row
+ [
+  [ 7 10]
+ ]
+
+ perldl> print $m x $r                 # matrix x row = ERROR
+ PDL: Dim mismatch in matmult of [2x2] x [2x1]: 2 != 1
+
+ perldl> print $m x $c                 # matrix x column = column
+ [
+  [ 5]
+  [11]
+ ]
+
+ perldl> print $m x 2                  # Trivial case: scalar mult.
+ [
+  [2 4]
+  [6 8]
+ ]
+
+ perldl> print $r x $c                 # row x column = scalar
+ [
+  [11]
+ ]
+
+ perldl> print $c x $r                 # column x row = matrix
+ [
+  [3 6]
+  [4 8]
+ ]
+
+
+INTERNALS
+
+The mechanics of the multiplication are carried out by the
+L<matmult|/matmult> method.
+
+
 =head2 matmult
 
 =for sig
@@ -133,15 +205,28 @@ pp_addpm(<<'EOD');
 Matrix multiplication
 
 We peruse the inner product to define matrix multiplication
-via a threaded inner product
+via a threaded inner product.
+
+For usage, see L<x|/x>, a description of the overloaded 'x' operator
 
 =cut
 
   sub PDL::matmult {
     barf "Invalid number of arguments for matmult" if $#_ < 1;
     my ($a,$b,$c) = @_;
+
+    $b=pdl($b) unless UNIVERSAL::isa($b,'PDL'); # Make sure 2nd arg's a PDL
+
     while ($a->getndims < 2) {$a = $a->dummy(-1)} # promote if necessary
-    while ($b->getndims < 2) {$b = $b->dummy(-1)}
+    while ($b->getndims < 2) {$b = $b->dummy(-1)} 
+
+    return ($c .= $a * $b) if ( ($a->dim(0)==1 && $a->dim(1)==1) ||
+	                        ($b->dim(0)==1 && $b->dim(1)==1) ) ;
+
+    if($b->dim(1) != $a->dim(0)) {
+	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+    }
+
     if(!defined $c) {$c = PDL->nullcreate($a)}
     $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
     return $c;
@@ -365,8 +450,10 @@ pp_def('norm',
        'double sum=0;
         int flag = 0;
 	loop(n) %{ 
-           sum += $vec()*$vec(); 
-           flag = 1;
+           if ( $ISGOOD(vec()) ) {
+              sum += $vec()*$vec(); 
+              flag = 1;
+           }
         %}
         if ( flag ) {
 	   if (sum > 0) {
@@ -573,6 +660,24 @@ piddle is lost.
 See L<uniqind|uniqind> if you need the indices of the unique
 elements rather than the values.
 
+EOPM
+
+if ( $bvalflag ) {
+	pp_addpm(<<'EOPM');
+=for bad
+
+Bad values are not considered unique by uniq and are ignored.
+
+ $a=sequence(10);
+ $a=$a->setbadif($a%3);
+ print $a->uniq;
+ [0 3 6 9]
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 *uniq = \&PDL::uniq;
@@ -584,6 +689,7 @@ sub PDL::uniq {
   my ($arr) = @_;
   return $arr if($arr->nelem == 0); # The null list is unique (CED)
   my $srt = $arr->clump(-1)->qsort;
+  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
   my $uniq = $srt->where($srt != $srt->rotate(-1));
   # make sure we return something if there is only one value
   return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
@@ -613,6 +719,20 @@ piddle is lost.
 See L<uniq|uniq> if you want the unique values instead of the
 indices.
 
+EOPM
+
+if ($bvalflag ) {
+	pp_addpm(<<'EOPM');
+
+=for bad
+
+Bad values are not considered unique by uniqind and are ignored.
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 *uniqind = \&PDL::uniqind;
@@ -626,14 +746,15 @@ sub PDL::uniqind {
   # Different from uniq we sort and store the result in an intermediary
   my $i_srt = $arr->clump(-1)->qsorti;
   my $srt = $arr->index($i_srt);
+  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
   my $uniqind = which($srt != $srt->rotate(-1));
   # Now map back to the original space
   $uniqind = $i_srt->index($uniqind);	
   # make sure we return something if there is only one value
   return $uniqind->nelem == 0 ? 0 : $uniqind;
 }
-EOPM
 
+EOPM
 
 pp_add_exported '', 'uniqvec';
 pp_addpm << 'EOPM';
@@ -655,6 +776,23 @@ See also L<uniq|uniq> for a uniqe list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
 lexicographcally.
 
+EOPM
+
+if ( $bvalflag ) {
+pp_addpm(<<'EOPM');
+
+=for bad
+
+If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
+If some of the values are good, it is treated as a normal vector. For
+example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
+could not.
+
+EOPM
+} # if: $bvalflag
+
+pp_addpm(<<'EOPM');
+
 =cut
 
 sub PDL::uniqvec {
@@ -665,7 +803,8 @@ sub PDL::uniqvec {
 	clump($pdl->ndims - 1)->
 	mv(-1,0)->qsortvec->
 	mv(0,-1);
-
+  $srt=$srt->dice($srt->mv(0,-1)->ngoodover->which) if ($PDL::Bad::Status && $srt->badflag);
+##use dice instead of nslice since qsortvec might be packing the badvals to the front of the array instead of the end like the docs say. If that is the case and it gets fixed, it won't bust uniqvec. DAL 14-March 2006
   my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
 
   return $uniq->nelem==0 ? 
@@ -704,7 +843,7 @@ for my $opt (
             } else {
 	       $c() = ($a() '.$op.' $b()) ? $b() : $a();
             }',
-	   Doc =>  'clip C<$a> by C<$b> (C<$b> is '.
+	   Doc =>  'clip (threshold) C<$a> by C<$b> (C<$b> is '.
 	   ($name eq 'hclip' ? 'upper' : 'lower').' bound)',
           PMCode=><<"EOD",
 sub PDL::$name {
@@ -729,7 +868,7 @@ pp_addpm(<<'EOD');
 
 =for ref
 
-Clip a piddle by (optional) upper or lower bounds.
+Clip (threshold) a piddle by (optional) upper or lower bounds.
 
 =for usage
 
@@ -831,16 +970,16 @@ have its bad flag set if the output contains any bad data.',
 
 pp_def('statsover',
 	HandleBad => 1,
-	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
+	Pars => 'a(n); w(n); float+ [o]avg(); float+ [o]prms(); int+ [o]median(); int+ [o]min(); int+ [o]max(); float+ [o]adev(); float+ [o]rms()',
 	Code => 
 	'$GENERIC(avg) tmp = 0;
          $GENERIC(avg) tmp1 = 0;         
          $GENERIC(avg) diff = 0;
          $GENERIC(min) curmin, curmax;
-	 $GENERIC(w) norm = 0;
+	 $GENERIC(avg) norm = 0;
 	 loop(n) %{             /* Accumulate sum and summed weight. */
             tmp += $a()*$w();
-            norm += $w();
+            norm += ($GENERIC(avg)) $w();
             if (!n) { curmin = $a(); curmax = $a();}
             if ($a() < curmin) { 
                 curmin = $a(); 
@@ -926,7 +1065,7 @@ sub PDL::statsover {
    my $max = PDL->nullcreate($data);
    my $adev = PDL->nullcreate($data);
    my $prms = PDL->nullcreate($data);
-   &PDL::_statsover_int($data, $weights, $mean, $prms, $min, $max, $adev, $rms);
+   &PDL::_statsover_int($data, $weights, $mean, $prms, $median, $min, $max, $adev, $rms);
 
    return $mean unless wantarray;
    return ($mean, $prms, $median, $min, $max, $adev, $rms);
@@ -941,7 +1080,7 @@ Calculate useful statistics over a dimension of a piddle
 
 =for usage
 
-  ($mean, $rms, $median, $min, $max, $adev) = statover($piddle, $weights);
+  ($mean,$prms,$median,$min,$max,$adev,$rms) = statsover($piddle, $weights);
 
 This utility function calculates various useful
 quantities of a piddle. These are:
@@ -963,8 +1102,8 @@ variance)
 
 =item * the median
 
-The median is the 50th percentile data value.  Median is found by 
-L</medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATION.
+The median is the 50th percentile data value.  Median is found by
+L<medover|PDL::Ufunc/medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATION.
 
 =item * the minimum
 
@@ -1016,7 +1155,9 @@ Calculates useful statistics on a piddle
 This utility calculates all the most useful quantities in one call.
 It works the same way as L</statsover>, except that the quantities are
 calculated considering the entire input PDL as a single sample, rather
-than as a collection of rows.
+than as a collection of rows. See L</statsover> for definitions of the
+returned quantities.
+
 
 EOD
 
@@ -2036,16 +2177,19 @@ my $doc_which = <<'EOD';
 
 =for ref
 
-Returns piddle of indices of non-zero values.
+Returns indices of non-zero values from a 1-D PDL
 
 =for usage
 
  $i = which($mask);
 
-returns a pdl with indices for all those elements that are
-nonzero in the mask. Note that the returned indices will be 1D. If you want
-to index into the original mask or a similar piddle remember to flatten
-it before calling index:
+returns a pdl with indices for all those elements that are nonzero in
+the mask. Note that the returned indices will be 1D. If you feed in a
+multidimensional mask, it will be flattened before the indices are
+calculated.  See also L<whichND|/whichND> for multidimensional masks.
+
+If you want to index into the original mask or a similar piddle
+with output from C<which>, remember to flatten it before calling index:
 
   $data = random 5, 5;
   $idx = which $data > 0.5; # $idx is now 1D
@@ -2053,8 +2197,15 @@ it before calling index:
 
 Compare also L<where|/where> for similar functionality.
 
-If you want to return both the indices of non-zero values and the
-complement, use the function L<which_both|/which_both>.
+SEE ALSO: 
+
+L<which_both|/which_both> returns separately the indices of both
+zero and nonzero values in the mask.
+
+L<where|/where> returns associated values from a data PDL, rather than 
+indices into the mask PDL.
+
+L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 
 =for example
 
@@ -2069,7 +2220,7 @@ my $doc_which_both = <<'EOD';
 
 =for ref
 
-Returns piddle of indices of non-zero values and their complement
+Returns indices of zero and nonzero values in a mask PDL
 
 =for usage
 
@@ -2183,7 +2334,26 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Return the values from a piddle for whose indices a condition piddle is nonzero.
+Use a mask to select values from one or more data PDLs
+
+C<where> accepts one or more data piddles and a mask piddle.  It
+returns a list of output piddles, corresponding to the input data
+piddles.  Each output piddle is a 1-dimensional list of values in its
+corresponding data piddle. The values are drawn from locations where
+the mask is nonzero.
+
+The output PDLs are still connected to the original data PDLs, for the
+purpose of dataflow.
+
+C<where> combines the functionality of L<which|/which> and L<index|PDL::Slices/index>
+into a single operation.
+
+BUGS:
+
+There is no C<whereND>, and probably should be.  While C<where> works
+OK for most N-dimensional cases, it does not thread properly over (for
+example) the (N+1)th dimension in data that is compared to an
+N-dimensional mask.
 
 =for usage
 
@@ -2237,9 +2407,12 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-Returns the coordinates for non-zero values. 
+Return the coordinates of non-zero values in a mask. 
 
 =for usage
+
+WhichND returns the N-dimensional coordinates of each nonzero value in a
+mask PDL with any number of dimensions. 
 
 For historical reasons the return value is different in list and scalar
 context.  In scalar context, you get back a PDL containing coordinates suitable
@@ -2261,6 +2434,13 @@ elements that are non-zero in C<$mask>.  Each element corresponds to a
 particular index dimension.  For example, if $mask has rank 4 and 100
 matching elements, then @coords has 4 elements, each of which is a pdl
 of size 100.
+
+SEE ALSO:
+
+L<which|/which> finds coordinates of nonzero values in a 1-D mask.
+
+L<where|/where> extracts values from a data PDL that are associated 
+with nonzero values in a mask PDL.
 
 =for example
 
@@ -2311,6 +2491,239 @@ EOD
 );
 
 pp_add_exported("", 'whichND');
+
+#
+# Set operations suited for manipulation of the operations above.
+#
+
+
+pp_addpm(<<'EOD'
+
+=head2 setops
+
+=for ref
+
+Implements simple set operations like union and intersection
+
+=for usage
+
+   Usage: $set = setops($a, <OPERATOR>, $b);
+
+The operator can be C<OR>, C<XOR> or C<AND>. This is then applied
+to C<$a> viewed as a set and C<$b> viewed as a set. The functioning
+is as follows:
+
+=over
+
+=item C<OR>
+
+The resulting vector will contain the elements that are either in C<$a>
+I<or> in C<$b> or both. This is the union in set operation terms
+
+=item C<XOR>
+
+The resulting vector will contain the elements that are either in C<$a>
+or C<$b>, but not in both. This is
+
+     Union($a, $b) - Intersection($a, $b)
+
+in set operation terms.
+
+=item C<AND>
+
+The resulting vector will contain the intersection of C<$a> and C<$b>, so
+the elements that are in both C<$a> and C<$b>. Note that for convenience
+this operation is also aliased to L<intersect|intersect>
+
+=back
+
+It should be emphasized that these routines are used when one or both of
+the sets C<$a>, C<$b> are hard to calculate or that you get from a separate
+subroutine.
+
+Finally IDL users might be familiar with Craig Markwardt's C<cmset_op.pro>
+routine which has inspired this routine although it was written independently
+However the present routine has a few less options (but see the exampels)
+
+=for example
+
+You will very often use these functions on an index vector, so that is
+what we will show here. We will in fact something slightly silly. First
+we will find all squares that are also cubes below 10000.
+
+Create a sequence vector:
+
+  perldl> $x = sequence(10000)
+
+Find all odd and even elements:
+
+  perldl> ($even, $odd) = which_both( ($x % 2) == 0)
+
+Find all squares
+
+  perldl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
+
+Find all cubes (being careful with roundoff error!)
+
+  perldl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
+
+Then find all squares that are cubes:
+
+  perldl> $both = setops($squares, 'AND', $cubes)
+
+And print these (assumes that C<PDL::NiceSlice> is loaded!)
+
+  perldl> p $x($both)
+   [0 1 64 729 4096]
+
+Then find all numbers that are either cubes or squares, but not both:
+
+  perldl> $cube_xor_square = setops($squares, 'XOR', $cubes)
+
+  perldl> p $cube_xor_square->nelem()
+   112
+
+So there are a total of 112 of these!
+
+Finally find all odd squares:
+
+  perldl> $odd_squares = setops($squares, 'AND', $odd)
+
+
+Another common occurance is to want to get all objects that are
+in C<$a> and in the complement of C<$b>. But it is almost always best
+to create the complement explicitly since the universe that both are
+taken from is not known. Thus use L<which_both|which_both> if possible
+to keep track of complements.
+
+If this is impossible the best approach is to make a temporary:
+
+This creates an index vector the size of the universe of the sets and
+set all elements in C<$b> to 0
+
+  perldl> $tmp = ones($n_universe); $tmp($b)=0;
+
+This then finds the complement of C<$b>
+
+  perldl> $C_b = which($tmp == 1);
+
+and this does the final selection:
+
+  perldl> $set = setops($a, 'AND', $C_b)
+
+=cut
+
+*setops = \&PDL::setops;
+
+sub PDL::setops {
+
+  my ($a, $op, $b)=@_;
+
+  # Check that $a and $b are 1D.
+  if ($a->ndims() > 1 || $b->ndims() > 1) {
+     warn 'setops: $a and $b must be 1D - flattening them!'."\n";
+     $a = $a->flat;
+     $b = $b->flat;
+  }
+
+  my $result;
+
+  if ($op eq 'OR') {
+    # Easy...
+    $result = uniq(cat($a, $b));
+  } elsif ($op eq 'XOR') {
+    # Make ordered list of set union.
+    my $union = append($a, $b)->qsort;
+    # Index lists.
+    my $s1=zeroes(byte, $union->nelem());
+    my $s2=zeroes(byte, $union->nelem());
+
+    # Find indices which are duplicated - these are to be excluded
+    #
+    # We do this by comparing x with x shifted each way.
+    my $i1 = which($union != rotate($union, 1));
+    my $i2 = which($union != rotate($union, -1));
+    #
+    # We then mark/mask these in the s1 and s2 arrays to indicate which ones
+    # are not equal to their neighbours.
+    #
+    $s1->index($i1) .= 1 if $i1->nelem() > 0;
+    $s2->index($i2) .= 1 if $i2->nelem() > 0;
+
+    my $inds=which($s1 == $s2);
+
+    if ($inds->nelem() > 0) {
+      return $union->index($inds);
+    } else {
+      return $inds;
+    }
+
+  } elsif ($op eq 'AND') {
+    # The intersection of the arrays.
+
+    # Make ordered list of set union.
+    my $union = append($a, $b)->qsort;
+
+    return $union->where($union == rotate($union, -1));
+  } else {
+    print "The operation $op is not known!";
+    return -1;
+  }
+
+}
+EOD
+);
+
+
+pp_add_exported("", 'setops');
+
+
+
+pp_addpm(<<'EOD'
+
+=head2 intersect
+
+=for ref
+
+Calculate the intersection of two piddles
+
+=for usage
+
+   Usage: $set = intersect($a, $b);
+
+This routine is merely a simple interface to L<setops|setops>. See
+that for more information
+
+=for example
+
+Find all numbers less that 100 that are of the form 2*y and 3*x
+
+perldl> $x=sequence(100)
+
+perldl> $factor2 = which( ($x % 2) == 0)
+
+perldl> $factor3 = which( ($x % 3) == 0)
+
+perldl> $ii=intersect($factor2, $factor3)
+
+perldl> p $x($ii)
+
+   [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
+
+=cut
+
+*intersect = \&PDL::intersect;
+
+sub PDL::intersect {
+
+   return setops($_[0], 'AND', $_[1]);
+
+}
+
+EOD
+);
+
+pp_add_exported("", 'intersect');
 
 
 

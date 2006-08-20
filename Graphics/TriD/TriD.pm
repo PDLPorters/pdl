@@ -638,7 +638,10 @@ sub graph_object {
 	if(!defined $obj or !ref $obj) {
 		barf("Invalid object to TriD::graph_object");
 	}
+	print "graph_object: calling get_new_graph\n" if($PDL::debug_trid);
 	my $g = get_new_graph();
+	print "graph_object: back from get_new_graph\n" if($PDL::debug_trid);
+
 	my $name = $g->add_dataseries($obj);
 	$g->bind_default($name);
 	$g->scalethings();
@@ -677,8 +680,11 @@ sub PDL::imagrgb {
 
 # Call: line3d([$x,$y,$z],[$color]);
 *line3d=\&PDL::line3d;
-sub PDL::line3d { &checkargs;
-	&graph_object(new PDL::Graphics::TriD::LineStrip(@_));
+sub PDL::line3d { 
+    &checkargs;
+    my $obj = new PDL::Graphics::TriD::LineStrip(@_);
+    print "line3d: object is $obj\n" if($PDL::debug_trid);
+    &graph_object($obj);
 }
 
 *contour3d=\&PDL::contour3d;
@@ -735,9 +741,12 @@ sub PDL::release3d {$PDL::Graphics::TriD::hold_on = 0;}
 *release3d=\&PDL::release3d;
 
 sub get_new_graph {
+    print "get_new_graph: calling PDL::Graphics::TriD::get_current_window...\n" if($PDL::debug_trid);
 	my $win = PDL::Graphics::TriD::get_current_window();
 
+    print "get_new_graph: calling get_current_graph...\n" if($PDL::debug_trid);
 	my $g = get_current_graph($win);
+    print "get_new_graph: back get_current_graph returned $g...\n" if($PDL::debug_trid);
 
 	if(!$PDL::Graphics::TriD::hold_on) {
 		$g->clear_data();
@@ -772,8 +781,10 @@ sub get_current_window {
 	 if(!$PDL::Graphics::TriD::create_window_sub) {
 		barf("PDL::Graphics::TriD must be used with a display mechanism: for example PDL::Graphics::TriD::GL!\n");
 	 }
+	 print "get_current_window - creating window...\n" if($PDL::debug_trid);
 	 $win = new PDL::Graphics::TriD::Window($opts);
 
+	 print "get_current_window - calling set_material...\n" if($PDL::debug_trid);
 	 $win->set_material(new PDL::Graphics::TriD::Material);
 	 $PDL::Graphics::TriD::current_window = $win;
 	 $PDL::Graphics::TriD::cur = $win

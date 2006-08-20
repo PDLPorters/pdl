@@ -193,7 +193,7 @@ $sub = sub {
     my $verbopts = $verbose ? "--verbose" : "--quiet";
     pod2html("--podpath=PDL:.",
 	     "--podroot=$topPerlDir",
-	     "--htmlroot=$htmlrootdir",
+	     "--htmldir=$htmlrootdir",
 	     "--libpods=perlfaq",
 	     "--recurse",
 	     "--infile=$file",

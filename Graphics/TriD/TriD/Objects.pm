@@ -29,15 +29,19 @@ use fields qw/Points Colors Options/;
 
 sub new {
 	my($type,$points,$colors,$options) = @_;
-	
+
+	print "GObject new.. calling SUPER::new...\n" if($PDL::debug_trid);
 	my $this = $type->SUPER::new();
+	print "GObject new - back (SUPER::new returned $this)\n" if($PDL::debug_trid);
 
 	if(!defined $options and ref $colors eq "HASH") {
 		$options = $colors;
 		undef $colors;
 	}
 
+	print "GObject new - calling realcoords\n" if($PDL::debug_trid);
 	$points = PDL::Graphics::TriD::realcoords($type->r_type,$points);
+	print "GObject new - back from  realcoords\n" if($PDL::debug_trid);
 
 	if(!defined $colors) {$colors = PDL->pdl(1,1,1);
 		$colors = $type->cdummies($colors,$points);
@@ -51,6 +55,8 @@ sub new {
 	$this->{Colors}  = $colors;
 
 	$this->check_options();
+	
+	print "GObject new - returning\n" if($PDL::debug_trid);
 	return $this;
 }
 

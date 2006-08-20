@@ -2,7 +2,7 @@
 
 ##############################
 #
-# Be sure to increment $pdl_core_version (about 8 lines below this note)
+# Be sure to increment $pdl_core_version (about 20 lines below this note)
 # if you change any prototypes or modify the Core structure!
 #
 ##############################
@@ -16,8 +16,11 @@ use vars qw( %PDL_DATATYPES );
 
 # version 2 is for versions after PDL 2.1.1
 # version 4 has pdl_hard_copy included in the Core structure.
+# version 6 is introduced after 2.4.2, due to the experimental
+#   per-piddle bad values code (the BADVAL_PER_PDL option)
+#
 use vars qw( $pdl_core_version );
-$pdl_core_version = 5;
+$pdl_core_version = 6;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -53,8 +56,8 @@ print OUT <<'!NO!SUBS!';
 
 #include "EXTERN.h"   /* std perl include */
 #include "perl.h"     /* std perl include */
-#include "ppport.h"
 #include "XSUB.h"  /* for the win32 perlCAPI crap */
+#include "ppport.h"  /* include this AFTER XSUB.h */
 
 #if defined(CONTEXT) && defined(__osf__)
 #undef CONTEXT
@@ -69,7 +72,7 @@ print OUT <<'!NO!SUBS!';
 
 !NO!SUBS!
 
-    print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
+print OUT "#define PDL_CORE_VERSION $pdl_core_version\n";
 
 print OUT <<'!NO!SUBS!' if ($^O =~ /MSWin/);
  
@@ -85,6 +88,23 @@ print OUT <<'!NO!SUBS!';
 
 #define BIGGESTOF(a,b) ( a->nvals>b->nvals ? a->nvals : b->nvals )
 #define SVavref(x) (SvROK(x) && SvTYPE(SvRV(x))==SVt_PVAV)
+
+/* Create portable NaN's with the NaN_float and NaN_double macros.
+ * The end values are 7f to turn off sign bit to avoid printing "-NaN".
+ * This produces QNaN's or quiet nan's on architectures that support it.
+ *
+ * The below uses IEEE-754, so it should be portable.  Also note the symmetry
+ * which makes the bigendian vs little-endian issue moot.  If platforms should
+ * arise which require further consideration, use the pdl function,
+ * PDL::Core::Dev::isbigendian() which returns a boolean value (a false value
+ * garantees little-endian), and #ifdef's for exotic architectures.  You'll be
+ * hard pressed to find an architecture that doesn't support ieee-754 but does
+ * support NaN.  See http://en.wikipedia.org/wiki/NaN to understand why
+ * this works. */
+static const union {unsigned char c[4]; float f;}
+   union_nan_float = {{0x7f, 0xff, 0xff, 0x7f}};
+static const union {unsigned char c[8]; double d;}
+   union_nan_double = {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}};
 
 /* for the moment we go back to the original croak
  * since there seem to be quite a few problems with maintaining
@@ -312,7 +332,10 @@ void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
 void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
-  PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);
+
+float NaN_float;
+double NaN_double;
 
 !NO!SUBS!
 
@@ -336,10 +359,11 @@ print OUT <<'!NO!SUBS!';
 
   badvals bvals;  /* store the default bad values */
   void (*propogate_badflag) (pdl *it, int newval );  /* defined in bad.pd */
+  void (*propogate_badvalue) (pdl *it);
   void (*children_changesoon)(pdl *it, int what);
   void (*changed)(pdl *it, int what, int recursing);
   void (*vaffinechanged)(pdl *it, int what);
-
+  double (*get_pdl_badvalue)(pdl *it);
 };
 
 typedef struct Core Core;

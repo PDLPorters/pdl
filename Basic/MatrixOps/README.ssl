@@ -1,0 +1,37 @@
+Files in this directory are a subset, slightly modified, of the Small
+Scientific Library by Kenneth Geisshirt.  They may be distributed and
+modified under the same terms as PDL itself.
+
+------------------------------
+
+From kenneth@geisshirt.dk Thu Jan 13 14:40:30 2005
+Message-ID: <41E6EACE.6010600@geisshirt.dk>
+Date: Thu, 13 Jan 2005 22:40:30 +0100
+From: Kenneth Geisshirt <kenneth@geisshirt.dk>
+To: deforest@boulder.swri.edu
+Subject: Re: Small Scientific Library use within Perl/PDL?
+
+Craig DeForest wrote:
+
+> I notice that, while you have made SSL available for download, there is no 
+> indication that it is free software.  Are you willing to distribute SSL under 
+> the Perl Artistic License (or some other free software license)?  
+
+That's my mistake: SSLib is free software. I'll create a new tar ball 
+this weekend (including a license). I'll probably use the MIT X License 
+since it's the less restricted license I know.
+
+If you decide to use some of my routines in PDL I'll be very happy. And 
+if you need any help please let me know.
+
+SSLib is a very simple library - not that the routines are simple but 
+the API is on a basic level and the application programmer must be very 
+aware of how to call routines and use the data structure.
+
+/kneth
+
+-- 
+Kenneth Geisshirt, M.Sc., Ph.D.   --   http://kenneth.geisshirt.dk/
+GPG Fingerprint: CEC4 7449 1B9B C8A5 7679  F062 DDDF 020E F812 4EE3
+
+

@@ -1,0 +1,15 @@
+Document: pdl
+Title: PDL online manual
+Author: Various
+Abstract: Perl Data Language is an extension to perl for numerics.
+ It allows high-speed manipulation of multidimensional data arrays
+ and includes bindings to a lot of external libraries for data 
+ processing and representation (plotting). This manual includes
+ both introductory documents and a command reference.
+Section: Apps/Math
+
+Format: HTML
+Index: /usr/share/doc/pdl/html/Index.html
+Files: /usr/share/doc/pdl/html/*.html
+
+  

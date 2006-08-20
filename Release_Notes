@@ -1,3 +1,83 @@
+Release notes for PDL 2.4.3 ------------------------------
+
+General Notes:
+
+     - again, mainly a bugfix and polishing release.
+
+     - builds out-of-the-box on cygwin and win32 build environment
+       has been significantly improved
+     
+     - perl 5.6.x is now deprecated; 5.8.x is recommended.  Support
+       for 5.6.x may go away in future versions.  
+
+
+Summary of Changes:
+
+     - PDL now builds under cygwin on windows PC including
+       TriD(OpenGL) 3D graphics and PGPLOT and PLplot 2D graphics
+       support. See PDL/cygwin/ and files README and INSTALL for
+       details and how to build/install external dependencies.
+     
+     - The win32 build has been improved.  See PDL/win32/INSTALL
+       for details.
+     
+     - Many fixes from the Debian build patches have been
+       incorporated.  See PDL/debian for specifics.
+     
+     - 64bit platform build has been improved.
+     
+     - New functionality, functions and modules:
+         
+         * Bad value support has been extended to per-PDL bad
+           values as an experimental feature. To use, configure
+           WITH_BADVAL => 1 and BADVAL_PER_PDL => 1 in perldl.conf
+           before building.
+
+         * PDL::GSL::INTEG now supports the calculation of
+           nested integrals
+
+         * New function tcircle (threaded circle) added to 
+           PDL::Graphics::PGPLOT This draws multiple circles in
+           one go (see also tpoints and tline)
+
+         * Added set operation routines for pdls treated as sets
+           (help setops).
+
+         * PDL::IO::GD module interface to the GD runtime image
+           libaray (http://www.boutell.com/gd/) has been integrated.
+
+         * The PDL::GIS::Proj and PDL::Transform::Proj4 modules
+           to interface to the PROJ4 Cartographic Projections
+           Library (http://proj.maptools.org/) have been added.
+
+         * PDL::IO::HDF provides an interface to the HDF4
+           library (http://hdf.ncsa.uiuc.edu/).
+     
+     
+     - The PDL test suite (i.e. tests in in PDL/t) has been
+       enhanced. Coverage has improved and output diagnostic
+       messages are more useful. Test::More is becoming the
+       preferred test module. The vanilla Test and Test::Simple
+       may be deprecated in the future.
+
+     - PDL core code has been fixed to address valgrind-detected
+       errors and to enable better bad value support including the
+       new experimental per-PDL bad values. These changes will
+       require a re-build/install of any external modules using
+       the C interface of PDL. See perldl.conf to configure the
+       new bad value support.
+
+     - Several TriD graphics build problems have been resolved.
+       The TriD rotation bug has been fixed.
+
+     - Many other bug fixes too numerous to mention. See the
+       PDL/Changes file for details.
+
+     - Multiple fixes and additions to PDL documentation as well
+       as the PDL::FAQ.
+
+
+
 Release notes for PDL 2.4.2 ------------------------------
 
 General Notes:
@@ -83,22 +163,22 @@ General Notes:
        (any such modules will refuse to load until they have been re-built)
        
      - New demos of the PDL::Transform and PDL::Transform::Cartography
-	modules have been added to perldl.
+        modules have been added to perldl.
        Type 'demo transform' or 'demo cartography' in the perldl shell. 
-	( Note that PGPLOT is required to run )
+        ( Note that PGPLOT is required to run )
 
 Summary of Changes:
 
      - The NiceSlice syntax comes of age
        (Nice slicing has been around a while, but really needs to be 
-	acknowledged as the main way of slicing PDLs...)
+        acknowledged as the main way of slicing PDLs...)
 
      - New GSL functionality: greatly improved access to the Gnu Scientific
        Library, including interpolation, finite-difference, random
        variable, and other routines.
 
      - New, very powerful indexing and slicing operators allow boundary 
-	  conditions   (range, indexND)
+          conditions   (range, indexND)
 
      - N-dimensional indexing (indexND) and selection (whichND) methods
 
@@ -115,7 +195,7 @@ Summary of Changes:
        * Strong FITS support (easy display of images, vectors, & contours in
             science coordinates)
        * Better vector graphic support [including improvements to line() and
-	 a new routine, lines()]
+         a new routine, lines()]
        * Much cleanup of errors and bugs
        * Spinlocks prevent interrupt-related PGPLOT crashes (requires Perl 5.8)
        * RGB output to truecolor devices (requires PGPLOT-5.3devel)
@@ -124,7 +204,7 @@ Summary of Changes:
        * Many bug fixes
        * Multi-line inputs to the perldl shell for easier cut-n-paste
        * ^D blocking on demand (controlled by perl variable or command-line 
-	  switch)
+          switch)
        * Autoloading detects error conditions on compile
        * New demos
 
@@ -138,9 +218,9 @@ Summary of Changes:
     - Several new utility routines, including glue(), zcheck(), and ndcoords().
 
     - Better matrix operation support: matrix operations are now in 
-	PDL::MatrixOps, and are all threadable.  Singular value decomposition,
-	determinant, linear equation solving, matrix inversion, 
-	eigenvalue decomposition, and LU-decomposition.
+        PDL::MatrixOps, and are all threadable.  Singular value decomposition,
+        determinant, linear equation solving, matrix inversion, 
+        eigenvalue decomposition, and LU-decomposition.
 
 Release notes for PDL 2.3.4 -------------------------------
 
@@ -151,7 +231,7 @@ Release notes for PDL 2.3.4 -------------------------------
      - Added  PDL::GSL::SF (Gnu Scientific Library, Special Functions) hierarchy
      - New % operator follows (mathematically correct) perl % operator behavior
      - Numerous Bug Fixes
-	
+        
   See the Changes file for a detailed list of changes.
 
 Release notes for PDL 2.3.3 -------------------------------
@@ -161,7 +241,7 @@ Release notes for PDL 2.3.3 -------------------------------
         data structures including PDLs.  
      - Support for the new Astro::FITS::Header module
        (availiable on CPAN).
-	
+        
   See the Changes file for a detailed list of changes.
 
 Release notes for PDL 2.3.2 ------------------------------
@@ -189,25 +269,25 @@ Release notes for PDL 2.3 -------------------------------
   Note:Support for perl version 5.005 and previous is 
   limited in this release. Perl 5.6.0 or greater is
   recommended for full PDL functionality.
-	
+        
   See the Changes file for a detailed list of changes.
   
 Release notes for PDL 2.2.1 -------------------------------
  
  Summary of Changes
     Bugs Fixed:
-	  - 'pow' function fixed in math.pd
-  	  - Misc memory leaks fixed.
-  	  - PGPLOT 'undefined window size' 
-	     bug fixed.
-	  - Test failures with opengl.t fixed.
-	  - Error in output of 'minimum_n_ind' function
-	    fixed.
-	    
+          - 'pow' function fixed in math.pd
+          - Misc memory leaks fixed.
+          - PGPLOT 'undefined window size' 
+             bug fixed.
+          - Test failures with opengl.t fixed.
+          - Error in output of 'minimum_n_ind' function
+            fixed.
+            
     Misc Changes:
-  	- Documentation updates.
-	- Updates to work with perl5.6.1
-	
+        - Documentation updates.
+        - Updates to work with perl5.6.1
+        
   See the Changes file for a detailed list of changes.
   
 Release notes for PDL 2.2 -------------------------------

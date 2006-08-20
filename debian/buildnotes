@@ -1,3 +1,0 @@
-perl module File/Spec.pm is missing.
-it is probably in perl 5.005
-Yes. This is now taken care of.

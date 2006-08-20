@@ -19,6 +19,22 @@ sub run {
 ##$ENV{PGPLOT_XW_WIDTH}=0.6;
 $ENV{PGPLOT_DEV}=$^O =~ /MSWin32/ ? '/GW' : "/XWIN";
 
+
+  unless( PDL->rpiccan('JPEG') ) {
+    comment q|
+This demo illustrates the PDL::Transform::Cartography module.  
+
+It requires PGPLOT and also the ability to read/write JPEG images.
+
+You don't seem to have that ability at the moment -- this is likely
+because you do not have NetPBM installed.  See the man page for PDL::IO::Pic.
+
+I'll continue with the demo anyway, but it will likely crash on the 
+earth_image('day') call on the next screen.
+
+|
+}
+
 comment q|
 
  This demo illustrates the PDL::Transform::Cartography module.
@@ -47,7 +63,7 @@ act q|
     print "Coastline data are a collection of vectors:  ",
              join("x",$coast->dims),"\n";
 
-    $map = earth_image(day);
+    $map = earth_image('day');
     print "Map data are RGB:   ",join("x",$map->dims),"\n\n";
 |;
 
@@ -82,11 +98,11 @@ act q&
 ### say "??cartography" in the perldl shell.  Here are four of them:
 
 undef $w;   # Close old window
-$w = pgwin(Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;
+$w = pgwin( Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;
 
 sub draw {
- ($tx, $t, $pix, $opt ) = @_;
- $w->fits_imag( $map->map( $tx, $pix, $opt ), {Title=>$t, CharSize=>1.5} );
+ ($tx, $t, $px, $opt ) = @_;
+ $w->fits_imag( $map->map( $tx, $px, $opt ),{Title=>$t, CharSize=>1.5, J=>1} );
  $w->hold;   $w->lines( $coast -> apply( $tx ) -> clean_lines ); $w->release;
 }
 
@@ -147,7 +163,6 @@ a map of the imaged body.
 Similarly, scanned images of map data can easily be converted into 
 lat/lon coordinates or reprojected to make other projections. 
 
-Be sure to view "demo transform" if you haven't already.
 |;
 
 $w->close;

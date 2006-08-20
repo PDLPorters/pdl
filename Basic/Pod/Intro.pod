@@ -17,6 +17,9 @@ and bulk numeric data processing and display.  It extends perl's syntax and
 includes fully vectorized, multidimensional array handling, plus several 
 paths for device-independent graphics output. 
 
+C<pdl> is an interactive command shell that is supplied with PDL; for
+more information, see L<perldl(1)|perldl>.
+
 Because PDL is a modular extension to perl, it is accessible to
 ordinary perl scripts: to write a command-line PDL script you just say
 "use PDL;" at the top of an ordinary perl script.  There is also a

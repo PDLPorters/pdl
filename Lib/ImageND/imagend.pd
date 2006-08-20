@@ -646,7 +646,7 @@ sub PDL::convolveND {
   # If the kernel has too few dimensions, we thread over the other
   # dims -- this is the same as supplying the kernel with dummy dims of
   # order 1, so, er, we do that.
-  $k = $k->dummy($adims->nelem,1)
+  $k = $k->dummy($a->dims - 1, 1)
     if($a->ndims > $k->ndims);
   my $kdims = pdl($k->dims); 
 
@@ -654,7 +654,7 @@ sub PDL::convolveND {
   # Decide whether to FFT or directly convolve: if we're in auto mode,
   # choose based on the relative size of the image and kernel arrays.
   my $fft = ( ($opt->{Method} =~ m/^a/i) ?
-	       ( $a->nelem > 2500 and ($a->nelem) <= ($kdims->nelem * 500) ) :
+	       ( $a->nelem > 2500 and ($a->nelem) <= ($k->nelem * 500) ) :
   	       ( $opt->{Method} !~ m/^[ds]/i )
 	      );
 

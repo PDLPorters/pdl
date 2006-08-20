@@ -1,0 +1,53 @@
+NAME
+
+    PDL::Transform::Proj
+
+DESCRIPTION
+
+    This is a port of the Proj library to PDL.
+
+COPYRIGHT NOTICE
+
+    Copyright 2003 Judd Taylor, USF Institute for Marine Remote Sensing (judd@marine.usf.edu).
+    
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+    
+    I'm making it GPL now, so I should probably update the above notice!
+
+PREREQUISITES
+
+    Proj4 C library (tested with 4.4.5)
+    Perl            (tested with 5.8.0)
+    PDL             (tested with 2.3.4 with BadVals)
+
+BUILD INSTRUCTIONS
+
+    1. Install the Proj4 library if you haven't already.
+
+    2. Edit the Makefile.PL to point the $proj4_include_path and $proj4_lib_path variables
+        to your installation of the Proj4 library.
+
+    3. Make the makefiles with the command:
+        shell> perl Makefile.PL
+
+    4. Build the software with the command:
+        shell> make
+
+    5. Install the software with the command:
+        shell> make install
+
+    6. Test the software (option) using the included script test_proj4.pl.
+        NOTE: There are no regression tests yet, but if something is wrong with the install,
+        it will probably break the test script.
+
+USAGE
+
+    See the POD in the lib itself, and check out the test script.
+
+CHANGES
+
+    1.0: Inital version
+
+

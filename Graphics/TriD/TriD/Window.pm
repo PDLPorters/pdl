@@ -11,23 +11,30 @@ use strict;
 sub new {
   my($arg,$options) = @_;
 
+  print "PDL::Graphics::TriD::Window - calling SUPER::new...\n" if($PDL::debug_trid);
   my $this = $arg->SUPER::new();
 
+  print "PDL::Graphics::TriD::Window - got back $this\n" if($PDL::debug_trid);
   # Make sure the Graphics has been initialized
   $options->{width} = 	300 unless defined $options->{width};
   $options->{height} = 	300 unless defined $options->{height};
   $this->{Width} = $options->{width};
   $this->{Height} = $options->{height};
 
+  print "PDL::Graphics::TriD::Window: calling gdriver....\n" if($PDL::debug_trid);
   $this->{Interactive} = $this->gdriver($options);
+  print "PDL::Graphics::TriD::Window: gdriver gave back $this->{Interactive}....\n" if($PDL::debug_trid);
 
   # set default values
   if($this->{Interactive}){
+      print "\tIt's interactive... calling ev_defaults...\n" if($PDL::debug_trid);
 	 $this->{Ev} = $this->ev_defaults(); 
+      print "\tcalling new_viewport...\n" if($PDL::debug_trid);
 	 $this->new_viewport(0,0,$this->{Width},$this->{Height});  
   }else{
 	 $this->new_viewport(0,0,1,1);  
   }
+
   $this->current_viewport(0);
 
   return($this);
@@ -216,6 +223,8 @@ sub AUTOLOAD {
 
   print "AUTOLOAD: $sub at ",__FILE__," line ", __LINE__  ,".\n" 
 	 if($PDL::Graphics::TriD::verbose);
+
+  print "Window AUTOLOADing '$sub': self=$self, args='".join("','",@args),"'\n" if($PDL::debug_trid);
 
   if($sub =~ /^gl/ && defined  $self->{_GLObject}){
 	 return  $self->{_GLObject}->$sub(@args);

@@ -19,6 +19,7 @@ use strict;
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 my $usenan   = $PDL::Config{BADVAL_USENAN} || 0;
+my $bvalPerPdl = $PDL::Config{BADVAL_PER_PDL} || 0;
 
 #########################################################
 
@@ -26,7 +27,9 @@ my $author = '
 
 =head1 AUTHOR
 
-Doug Burke (djburke@cpan.org), 2000, 2001, 2003.
+Doug Burke (djburke@cpan.org), 2000, 2001, 2003, 2006.
+
+The per-piddle bad value support is by Heiko Klein (2006).
 
 All rights reserved. There is no warranty. You are allowed to
 redistribute this software / documentation under certain conditions. For
@@ -69,7 +72,7 @@ L<PDL::BadValues>.
 
 =head1 VARIABLES
 
-There are currently two variables that this module defines
+There are currently three variables that this module defines
 which may be of use.
 
 =over 4
@@ -82,6 +85,10 @@ Set to 0
 
 Set to 0
 
+=item $PDL::Bad::PerPdl
+
+Set to 0
+
 =back
 
 =cut
@@ -89,6 +96,7 @@ Set to 0
 # really should be a constant
 $PDL::Bad::Status = 0;
 $PDL::Bad::UseNaN = 0;
+$PDL::Bad::PerPdl = 0;
 
 # dummy routines
 #
@@ -186,7 +194,7 @@ pp_add_exported( '',
 		 'setbadat ' );
 
 # If UseNaN == 0, we need to have a variable containing the
-# value for NaN. This is taken from Basoc/Core/Core.xs.PL
+# value for NaN. This is taken from Basic/Core/Core.xs.PL
 #
 if ( $usenan == 0 ) {
     require PDL::Core::Dev; PDL::Core::Dev->import;
@@ -232,7 +240,7 @@ L<PDL::BadValues>.
 
 =head1 VARIABLES
 
-There are currently two variables that this module defines
+There are currently three variables that this module defines
 which may be of use.
 
 =over 4
@@ -246,6 +254,11 @@ Set to 1
 Set to 1 if PDL was compiled with C<BADVAL_USENAN> set,
 0 otherwise.
 
+=item $PDL::Bad::PerPdl
+
+Set to 1 if PDL was compiled with the I<experimental>
+C<BADVAL_PER_PDL> option set, 0 otherwise.
+
 =back
 
 =cut
@@ -257,6 +270,7 @@ pp_addpm(<<"!WITH!SUBS!");
 # really should be constants
 \$PDL::Bad::Status = 1;
 \$PDL::Bad::UseNaN = $usenan;
+\$PDL::Bad::PerPdl = $bvalPerPdl;
 
 use strict;
 
@@ -270,6 +284,14 @@ use PDL::Primitive;
 
 ## Footer
 pp_addpm({At=>'Bot'},<<"!WITH!SUBS!");
+
+=head1 CHANGES
+
+The I<experimental> C<BADVAL_PER_PDL> configuration option,
+which - when set - allows per-piddle bad values, was added
+after the 2.4.2 release of PDL.
+The C<$PDL::Bad::PerPdl> variable can be
+inspected to see if this feature is available.
 
 $author
 
@@ -372,6 +394,20 @@ Currently there is no way of automatically converting the bad
 values of already existing piddles. This could be supported - e.g.
 by having a per-piddle bad value or by storing a time index in the piddle
 structure - if required.
+
+If the C<$PDL::Bad::PerPdl> flag is set then it is possible to
+change the bad value on a per-piddle basis, so
+
+    $a = sequence (10);
+    $a->badvalue (3); $a->badflag (1);
+    $b = sequence (10);
+    $b->badvalue (4); $b->badflag (1);
+
+will set $a to be C<[0 1 2 BAD 4 5 6 7 8 9]> and $b to be
+C<[0 1 2 3 BAD 5 6 7 8 9]>. If the flag is not set then both
+$a and $b will be set to C<[0 1 2 3 BAD 5 6 7 8 9]>. Please
+note that the code to support per-piddle bad values is
+I<experimental> in the current release.
 
 =for bad
 
@@ -491,6 +527,31 @@ _badvalue_int${i}(val=0)
     RETVAL
 
 pdl *
+_badvalue_per_pdl_int${i}(pdl_val, val=0)
+    pdl* pdl_val
+    double val
+  CODE:
+   {
+    $init_code
+    if ( items > 1 ) {
+       pdl_val->badvalue = val;
+       pdl_val->has_badvalue = 1;
+       PDL->propogate_badvalue( pdl_val );
+    }
+
+    if (pdl_val->has_badvalue == 0) {
+       *data = ($ctype) $storage;
+    } else {
+       *data = ($ctype) pdl_val->badvalue;
+    }
+
+    RETVAL = p;
+   }
+  OUTPUT:
+    RETVAL
+
+
+pdl *
 _default_badvalue_int${i}()
   CODE:
     $init_code
@@ -500,6 +561,8 @@ _default_badvalue_int${i}()
     RETVAL
 
 ";
+
+
 
 } # foreach: $i = 0 .. $ntypes
 
@@ -527,6 +590,16 @@ sub PDL::badvalue {
 	    $self->inplace->setbadtoval( $val );
 	    $self->badflag(1);
 	}
+
+	if ($PDL::Config{BADVAL_PER_PDL}) {
+	    my $name = "PDL::_badvalue_per_pdl_int$num";
+	    if ( defined $val ) {
+		return &{$name}($self, $val )->sclr;
+	    } else {
+		return &{$name}($self)->sclr;
+	    }
+	}
+
     } elsif ( UNIVERSAL::isa($self,"PDL::Type") ) {
 	$num = $self->enum;
     } else {
@@ -1104,7 +1177,7 @@ pp_def(
         $b() = $a();
      }',
     CopyBadStatusCode =>
-    'if ( $PRIV(bvalflag) ) {
+    'if ( $BADFLAGCACHE() ) {
         if ( a == b && $ISPDLSTATEGOOD(a) ) {
            PDL->propogate_badflag( b, 1 ); /* have inplace op AND badflag has changed */
         }

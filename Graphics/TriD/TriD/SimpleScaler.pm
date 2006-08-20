@@ -1,3 +1,10 @@
+######################################################################
+######################################################################
+## ScaleController -- this is the module that controls 3-D window scaling
+## when you drag the mouse in the display window.
+
+
+
 package PDL::Graphics::TriD::ScaleController;
 use base qw/PDL::Graphics::TriD::ButtonControl/;
 use fields qw/Dist/;
@@ -8,13 +15,14 @@ sub new {
   my $this = $type->SUPER::new( $win);
 
   $this->{Dist} = $dist;				  
-  $win->add_resizecommand(sub {$this->set_wh(@_)});
+  $win->add_resizecommand(sub {print "Resized window: ",join(",",@_),"\n";  $this->set_wh(@_); });
   return $this;
 }
 
 # coordinates normalised relative to center
 sub xy2norm {
 	my($this,$x,$y) = @_;
+	print "xy2norm: this->{W}=$this->{W}; this->{H}=$this->{H}; this->{SC}=$this->{SC}\n" if($PDL::Graphics::TriD::verbose);
 	$x -= $this->{W}/2; $y -= $this->{H}/2;
 	$x /= $this->{SC}; $y /= $this->{SC};
 	return ($x,$y);

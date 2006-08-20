@@ -10,11 +10,6 @@ PDL development and is often used from within Makefile.PL's.
 =head1 SYNOPSIS
 
    use PDL::Core::Dev;
-   if ($^O =~ /win32/i) {
-    warn "Win32 systems not yet supported. Will not build PDL::IO::Browser";
-    write_dummy_make(unsupported('PDL::XXX','win32'));
-    return;
-   }
 
 =head1 FUNCTIONS
 
@@ -136,10 +131,12 @@ unless ( defined %PDL::Config ) {
 	$dir = abs_path($dir . "/PDL");
     }
 
-    eval 'require "' . $dir . '/Config.pm";';
-    die "Unable to find PDL's configuration info\n [$@]"
-      if $@;
+    my $dir2 = $dir;
+    $dir2 =~ s/\}/\\\}/g;
+    eval sprintf('require q{%s/Config.pm};', $dir2);
 
+    die "Unable to find PDL's configuration info\n [$@]"
+	if $@;
 }
 
 # Data types to C types mapping
@@ -416,6 +413,9 @@ $pref\$(OBJ_EXT): $pref.c
 
 # This is the function to be used outside the PDL tree.
 sub pdlpp_postamble {
+      # This sub breaks dmake if called. Thankfully, so far, dmake has not needed this
+	# sub (even when it does get called) - so simply have it return nothing:
+	if($Config{make} eq 'dmake') {return ""}
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
@@ -482,7 +482,9 @@ sub write_dummy_make {
   require IO::File;
     my ($msg) = @_;
     print STDERR "writing dummy Makefile\n";
-    my $fh = new IO::File "> Makefile" or die "can't open Makefile";
+    my $fh = new IO::File "> Makefile" or die "Can't open dummy Makefile: $!";
+
+if($^O !~ /mswin32/i) {
     print $fh <<"EOT";
 fred:
 	\@echo \"****\"
@@ -500,7 +502,28 @@ realclean ::
 	rm -rf Makefile Makefile.old
 
 EOT
-    close($fh);
+}
+
+else { # It's Win32
+    print $fh <<"EOT";
+fred:
+	\@echo \"****\"
+	\@echo \"$msg\"
+	\@echo \"****\"
+
+all: fred
+
+test: fred
+
+clean ::
+	-ren Makefile Makefile.old <NUL
+
+realclean ::
+	del /F /Q Makefile Makefile.old <NUL
+
+EOT
+}
+   close($fh) or die "Can't close dummy Makefile: $!";
 }
 
 sub getcyglib {
@@ -622,10 +645,17 @@ sub trylink {
 
   print "     Trying $txt...\n     " unless $txt =~ /^\s*$/;
 
-  my $HIDE = ($^O =~ /MSWin/) || !$hide ? '' : '>/dev/null 2>&1';
+  my $HIDE = !$hide ? '' : '>/dev/null 2>&1';
+  if($^O =~ /mswin32/i) {$HIDE = '>NUL 2>&1'}
 
-  my $tempd = $PDL::Config{TEMPDIR} ||
+  my $tempd;
+
+  # Using dmake on Win32 requires special consideration.
+  if($Config{make} eq 'dmake') {$tempd = File::Spec->tmpdir()}
+  else {
+    $tempd = $PDL::Config{TEMPDIR} ||
     die "TEMPDIR not found in \%PDL::CONFIG";
+    }
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
   open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";

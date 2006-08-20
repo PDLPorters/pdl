@@ -3,6 +3,36 @@ CURRENT PRIORITIES
 
 # = done
 
+-- PDL 2.4.2, 25-Jul-2006 (DJB)
+
+Basic/Gen/PP.pm could do with a good clean out/re-factoring. On the
+larger, architectural, scale it would be good to decide how to handle
+some of the "families"-related code (i.e. those ideas that were never
+quite implemented). There's plenty of ifdef-fed code in Basic/Core/
+that could be reviewed/implemented/removed.
+
+-- PDL 2.4.2, 25-Jul-2006 (DJB)
+
+Post 2.4.3, need to look at the "badvalue" code to see how to improve
+routines like fibonacci (i.e. those that have no input piddles). At present
+the code is doing stuff it needn't. It probably won't save much execution
+time, but might reduce code size/build time/...
+
+-- PDL 2.4.2, 25-Jul-2006 (DJB)
+
+It would be great if, post 2.4.3, we could move from using
+ExtUtils::MakeMaker to Module::Build (inspired by reading
+http://mungus.schwern.org/~schwern/talks/MakeMaker_Is_DOOMED/slides/slide001.html
+).
+
+At the very least we could do with an overhaul of the build processr:
+ 1) there are a number of optional modules that have slightly-different
+    ways of determining whether to be built or not. 
+ 2) there's too much screen output during the 'perl Makefile.PL' phase.
+    This info is useful for testing/debugginh/developing but:
+    a) should be made optional
+    b) could be output at the end of the run rather than during it, to
+       make it easier to track down what has/has not been decided
 
 -- PDL 2.4.1, 25-Oct-2004 (CED) 
 Think about subclassed PDLs and how to stop them from breaking

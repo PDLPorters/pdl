@@ -4,14 +4,15 @@ Fri, 16 Jan 1998 02:56:53 -0700.
 Pdl source and information is available at 
 http://pdl.perl.org/
 
-The file mfits.51, refered to in the copyright is included in neither
-debian source nor the debian binary distribution of PDL
-
 Following is the PDL copyright:
 
-  Copyright (c) 1997,1998 by the contributors named in the individual
-  files. All rights reserved.  This distribution is free software; you can
+  Copyright (c) 1997-2004 by the contributors named in the individual files. 
+  All rights reserved.  This distribution is free software; you can
   redistribute it and/or modify it under the same terms as Perl itself.
+
+  The demonstration image m51.fits is derived from the Hubble Heritage
+  project archival images; its creation was funded in part by a grant
+  from NASA.  The image is in the public domain.
 
   Inline documentation in any module files (pod format) and documentation
   files (.pod files) in this distribution are additionally protected by
@@ -19,25 +20,23 @@ Following is the PDL copyright:
 
   Permission is granted for verbatim copying (and formatting) of this
   documentation as part of the PDL distribution. Permission is granted to
-  freely distribute verbatim copies of this documentation only if 
-  the following conditions are met: 1. that the copyright notice remains 
-  intact 2. the original authors' names are clearly displayed, 3. that 
-  any changes made to the documentation outside the official PDL 
-  distribution (as released by either Karl Glazebrook, Tuomas Lukka, 
-  or Christian Soeller) are clearly marked as such and 4. That this
-  copyright notice is distributed with the copied version so that it
-  may be easily found.
+  freely distribute verbatim copies of this documentation only if
+  the following conditions are met: 1. that the copyright notice remains
+  intact 2. the original authors' names are clearly displayed, 3. that
+  any changes made to the documentation outside the official PDL
+  distribution (as released by the current release manager) are clearly
+  marked as such and 4. That this copyright notice is distributed with
+  the copied version so that it may be easily found.
 
-All the files in the distribution should have the following copyright
-notice:
-  
+  All the files in the distribution should have a copyright notice
+  according to the following template:
+
 	Copyright (C) 199X Author1, Author2.
         All rights reserved. There is no warranty. You are allowed
-        to redistribute this software / documentation as described 
+        to redistribute this software / documentation as described
         in the file COPYING in the PDL distribution.
 
-(the following paragraphs are borrowed from the BSD copyright and
- the GNU copyleft)
+  In addition, the following disclaimers apply:
 
   THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND ANY EXPRESS
   OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
@@ -70,10 +69,6 @@ notice:
   INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF
   THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER
   OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
-
-EXCEPTIONS:
-
-  m51.fits (see README)
 
   On Debian GNU/Linux systems, the complete text of the GNU General
   Public License can be found in `/usr/share/common-licenses/GPL' and

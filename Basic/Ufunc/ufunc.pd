@@ -472,7 +472,7 @@ for (keys %PDL::Types::typehash) {
 	/* Compare a vector in lexicographic order, returning the
 	 *  equivalent of "<=>". 
  	 */
-      char pdl_cmpvec_$ppsym($ctype *a, $ctype *b, int n) {
+      signed char pdl_cmpvec_$ppsym($ctype *a, $ctype *b, int n) {
 	int i;
 	for(i=0; i<n; a++,b++,i++) {
 	 if( *a < *b ) return -1;

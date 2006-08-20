@@ -13,6 +13,9 @@ etc.) and functions (C<sin sqrt> etc.)
 It also includes the function C<log10>, which should
 be a perl function so that we can overload it!
 
+Matrix multiplication (the operator C<x>) is handled
+by the module L<PDL::Primitive|/PDL::Primitive>.
+
 =head1 SYNOPSIS
 
 none
@@ -100,7 +103,7 @@ EOH
 	       $SETBAD(c());
 	    else' . "\n  \$c() = \$a() $op \$b();\n",
 	   CopyBadStatusCode =>
-	   'if ( $PRIV(bvalflag) ) {
+	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
                   PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
@@ -160,7 +163,7 @@ EOH
 	       $SETBAD(c());
 	    else' . "\n  \$c() = $func(\$a(),\$b());\n",
 	   CopyBadStatusCode =>
-	   'if ( $PRIV(bvalflag) ) {
+	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
                   PDL->propogate_badflag( c, 1 ); /* have inplace op AND badflag has changed */
                }
@@ -333,7 +336,10 @@ sub PDL::log10 {
 # but it's very low priority.
 # It does add doc information though, and lets people know it's been
 # looked at for bad value support
-#  
+# DJB adds: not completely sure about this now that I have added code
+# to avoid a valgrind-reported error (see the CacheBadFlagInit rule
+# in PP.pm)
+#
 # Can't this be handled in Core.pm when '.=' is overloaded ?
 #
 pp_def(

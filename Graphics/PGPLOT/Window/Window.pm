@@ -50,6 +50,7 @@ High-level plotting commands:
  errb       -  Plot error bars
  bin        -  Plot vector as histogram (e.g. bin(hist($data)) )
  hi2d       -  Plot image as 2d histogram (not very good IMHO...)
+ tcircle    -  Plot vectors as circles [threadable]
  label_axes -  Print axis titles
  legend     -  Create a legend with different texts, linestyles etc.
 
@@ -1403,6 +1404,31 @@ color table for a particular image.
 
 Return information about the currently loaded color table
 
+=head2 autolog
+
+=for ref
+
+Turn on automatic logarithmic scaling in C<line> and C<points>
+
+=for usage
+
+  Usage:  autolog([0|1]);
+
+Setting the argument to 1 turns on automatic log scaling and setting it to
+zero turns it off again. The function can be used in both the object
+oriented and standard interface. To learn more, see the documentation for
+L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window>.
+
+=for example
+
+   my $win = PDL::Graphics::PGPLOT::Window->new(dev=>'/xserve'); 
+   my $x=sequence(10);
+   my $y=$x*$x+1;
+
+   $win->autolog(1);
+   $win->line($x,$y, {Axis => 'LogY'});
+
+
 =head2 line
 
 =for ref
@@ -2004,6 +2030,31 @@ Example:
   $ty = $tx + $tx->yvals;
   tpoints($tx, $ty, $h);
 
+=head2 tcircle
+
+=for ref
+
+A threaded interface to circle
+
+=for usage
+
+ Usage: tcircle($x, $y, $r, $options);
+
+This is a threaded interface to C<circle>. This is convenient if you have
+a list of circle centers and radii and want to draw every circle in one go. 
+The routine will apply any options you apply in a "reasonable" way, 
+in the sense that it will loop over the options wrapping over if there are less
+options than circles.
+
+Example:
+
+ $x=sequence(5);
+ $y=random(5);
+ $r=sequence(5)/10 + 0.1;
+ $h={justify => 1,Color => ['red','green','blue'], filltype => ['solid','outline','hatched','cross_hatched']};
+ tcircle($x, $y, $r, $h);
+
+Note that C<$x> and C<$y> must be the same size (>1D is OK, though meaningless as far as C<tcircle> is concerned). C<$r> can be the same size as C<$x> OR a 1-element piddle OR a single perl scalar.
 
 =head2 Text routines
 
@@ -2401,6 +2452,7 @@ my $PI = 4*atan2(1,1);
 my $PREVIOUS_ENV = undef;
 
 my $AUTOLOG = 0;
+
 
 sub autolog {
   my $class = shift;
@@ -3705,10 +3757,18 @@ sub initenv{
   # Now parse the input options.
   my $o = $self->{Options}->options($u_opt); # Merge in user options...
   if ($self->autolog) {
-    $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30 ||
-		    $o->{Axis}[0] =~ /L/) ? 1 : 0; #/BCLNST/) ? 1 : 0;
-    $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30 ||
-		    $o->{Axis}[1] =~ /L/) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+    # Bug fix JB, 03/03/05 - logging noisy/failed when running with -w or strict.
+    # Hence the extra check on the content of Axis
+    if (ref($o->{Axis}) eq 'ARRAY') {
+      $self->{Logx} = ($o->{Axis}[0] =~ /L/) ? 1 : 0;
+      $self->{Logy} = ($o->{Axis}[1] =~ /L/) ? 1 : 0;
+    } elsif (ref($o->{Axis})) {
+      release_and_barf "The axis option must be an array ref or a scalar!\n";
+    } else {
+      $self->{Logx} = ($o->{Axis} == 10 || $o->{Axis} == 30) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+      $self->{Logy} = ($o->{Axis} == 20 || $o->{Axis} == 30) ? 1 : 0; #/BCLNST/) ? 1 : 0;
+    }
+
     ($xmin,$xmax) = map {
       release_and_barf "plot boundaries not positive in logx-mode" if $_ <= 0;
       log($_)/log(10) } ($xmin,$xmax)
@@ -3829,6 +3889,8 @@ sub initenv{
     ###
     # Figure out the stretched pitch, if it isn't set.
     #
+    my $have_pitch_and_pix = (defined($pix) & defined($pitch));
+
     unless(defined $pitch) {
 	my $p = pdl( ($xmax-$xmin) / ($x1-$x0),
 		     ($ymax-$ymin) / ($y1-$y0) * (defined($pix)?$pix:0));
@@ -3879,7 +3941,7 @@ sub initenv{
 
       pgswin($xmin,$xmax,$ymin,$ymax);
       
-    } elsif($pix && $pitch) {
+    } elsif($have_pitch_and_pix) {
       
       ##########
       # Non-justify case with specified pitch and pixel aspect.  
@@ -4813,8 +4875,26 @@ EOD
       # Allow for the error bars
       my ( $xmin, $xmax, $ymin, $ymax );
 
+
+      # Bug fix, JB 03/03/05 - user input ranges were not considered.
+      my @axes_to_do = ();
+
+      if (ref($o->{XRange})) {
+	($d{'x'}{min}, $d{'x'}{max})=@{$o->{XRange}};
+	if ($d{'x'}{xmin} == $d{'x'}{max}) { $d{'x'}{min} -= 0.5; $d{'x'}{max} += 0.5; }
+      } else {
+	push @axes_to_do, 'x';
+      }
+      if (ref($o->{YRange})) {
+	($d{'y'}{min}, $d{'y'}{max})=@{$o->{YRange}};
+	 if ($d{'y'}{xmin} == $d{'y'}{max}) { $d{'y'}{min} -= 0.5; $d{'y'}{max} += 0.5; }
+      } else {
+	push @axes_to_do, 'y';
+      }
+
+
       # loop over the axes to calculate plot limits
-      for my $ax ( qw( x y ) )
+      for my $ax (@axes_to_do)
 	{
 	  $axis = $d{$ax};
 	  $range = uc $ax . 'range';
@@ -5681,6 +5761,7 @@ sub arrow {
     ## Option checker thunk gets defined only on first run-through.
     our $checker = sub {
       my($name,$opt,$min,$max) = @_;
+      delete $opt->{$name} unless(defined $opt->{$name});
       return unless exists($opt->{$name});
       release_and_barf("$name option must be an array ref if specified.\n")
 	if( ref ($opt->{$name}) ne 'ARRAY' );
@@ -5978,14 +6059,14 @@ sub rgbi {
 	eval $cmdstr;
 
         my $mkaxis = sub {
-	    my ($typ,$unit) = @_;
-	    our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
-	    $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
-	    $s =~ s/\%u/$unit/;
-	    $s =~ s/\%t/$typ/;
-	    $s;
-	  } unless defined ($mkaxis);
-
+	  my ($typ,$unit) = @_;
+	  our @templates = ("(arbitrary units)","%u","%t","%t (%u)");
+	  $s = $templates[2 * (defined $typ) + (defined $unit && $unit !~ m/^\s+$/)];
+	  $s =~ s/\%u/$unit/;
+	  $s =~ s/\%t/$typ/;
+	  $s;
+	};
+	
 	$pane->label_axes(
 			  $opt->{XTitle} || 
 			  &$mkaxis($hdr->{"CTYPE1$wcs"},$hdr->{"CUNIT1$wcs"}),
@@ -6308,6 +6389,16 @@ sub poly {
 
     $self->_check_move_or_erase($o->{Panel}, $o->{Erase});
 
+##DAL added this to properly set environment
+  unless ( $self->held() ) {
+      my ($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	   @{$o->{XRange}} : ($x-$radius,$x+$radius);
+      my ($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ?
+	   @{$o->{YRange}} : ($y-$radius,$y+$radius);
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt );
+  }
+##end DAL addition
+
     $self->_save_status();
     $self->_standard_options_parser($u_opt);
     pgcirc($o->{XCenter}, $o->{YCenter}, $o->{Radius});
@@ -6317,6 +6408,67 @@ sub poly {
     &release_signals;
   }
 }
+
+
+my $circle_options = undef;
+sub tcircle {
+
+    my $self = shift;
+    my ($in, $opt)=_extract_hash(@_);
+    $self->_add_to_state(\&tcircle,$in,$opt);
+    $opt = {} if !defined($opt);
+
+    release_and_barf 'Usage tcircle ($x,$y,$r,[$options])'
+	if $#$in < 0 || $#$in > 3;
+
+    my ($x, $y, $radius)=@$in;
+    $x=$x->flat;$y=$y->flat;$radius=$radius->flat;
+
+    if (!defined($circle_options)){
+      $circle_options=$self->{PlotOptions}->extend({Missing => undef});
+    }
+
+    &catch_signals;
+
+    my $o = _thread_options($x->nelem,$opt); 
+    my $tmp_hold = $self->held();
+
+    unless ( $self->held() ) {
+      my ($o,$u_opt) = $self->_parse_options($circle_options,$opt);
+      $self->_check_move_or_erase($o->{Panel},$o->{Erase});
+
+    my ($ymin, $ymax, $xmin, $xmax);
+
+    if ( defined $o->{Missing} ) {
+	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? 
+	    @{$o->{YRange}} : minmax($y->where($y != $o->{Missing}));
+	($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ?
+	    @{$o->{XRange}} : minmax($x->where($x != $o->{Missing}));
+    } else {
+	($ymin, $ymax)=ref $o->{YRange} eq 'ARRAY' ? @{$o->{YRange}} :
+	    (min($y-$radius),max($y+$radius));
+	($xmin, $xmax)=ref $o->{XRange} eq 'ARRAY' ? @{$o->{XRange}} :
+	    (min($x-$radius),max($x+$radius));
+    }
+      if ($xmin == $xmax) { $xmin-=0.5; $xmax +=0.5; }
+      if ($ymin == $ymax) { $ymin-=0.5; $ymax +=0.5; }
+
+    $self->initenv( $xmin, $xmax, $ymin, $ymax, $opt);
+    $self->hold;
+      }
+    _tcircle($x,$y,$radius,PDL->sequence($x->nelem),$self,$o);
+    $self->release unless $tmp_hold;
+
+    &release_signals;
+
+}
+
+PDL::thread_define '_tcircle(a();b();c();ind()), NOtherPars => 2', 
+   PDL::over {
+     my ($x,$y,$r,$ind,$self,$opt)=@_;
+     $self->circle($x,$y,$r,$opt->[$ind->at(0)] || {} );
+ };
+
 
 # Plot an ellipse using poly.
 
@@ -6482,6 +6634,10 @@ sub poly {
     $pos = $o->{Position} if exists($u_opt->{Scale});
     $tr = $o->{Transform} if exists($u_opt->{Transform});
     $misval = $o->{Missing} if exists($u_opt->{Missing});
+    #What if there's no Missing option supplied and one of the input piddles
+    #contain zero? Then that location will have no arrow, instead of a
+    #horizontal or vertical line. So define $misval, but make it meaningless:
+    $misval = 1 + $a->glue(0,$b)->flat->maximum unless defined $misval; #DAL added 02-Jan-2006
 
     $scale = 0 unless defined $scale;
     $pos   = 0 unless defined $pos;

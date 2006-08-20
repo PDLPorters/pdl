@@ -27,9 +27,21 @@
 # undefined function calls in "demo 3d", you've probably come to the right
 # place.
 #
+##############################
+# Notes 6-March-2006 CED - preparing for 2.4.3
+#
+# Fuck.  This is even worse than I thought.  The latest is that it stopped compiling
+# under recent (2005) Fedora releases.  The problem is that gl.h (and other headers)
+# now contain #ifdefs that make it practically impossible to parse them before
+# compile time.  So now we spend a great deal of time assembling all the precursor
+# .h's for each .h, so that they are preprocessed in context.  That means we need 
+# a fence in the source files we feed to the preprocessor, so that we don't detect and
+# declare definitions that are already included from other .h files, or that are irrelevant
+# to GL (e.g. printf()).  The previous solution was to simply ignore all #includes but there
+# is now enough compile-time switching that we have to preprocess the whole batch.
+#
 # TO DO: ensure that at least a particular subset of functions are found,
 # or else barf the compile.
-#
 #
 
 use Getopt::Long;
@@ -70,6 +82,12 @@ foreach(@defines){
   $_ = "-D$_";
 }
 
+# This next seems to be important to keep some extraneous mesa debugging definitions
+# from being caught.  Blech.
+push(@defines,"-DGL_MESA_program_debug=0");
+
+
+
 # The '/usr/X11R6/include' path is where GL/glx.h etc are found
 # on my OS-X 10.3 machine. It seems to me that the Makefile.PL's should
 # have set the paths up by now, rather than having the logic in the *pd
@@ -85,81 +103,132 @@ my %consts; # filled by sub getconsts
 my @subnames;  # filled by sub getfuncs
 
 my %t=(
-       'int'    => 'INT',
-       'float'  => 'FLOAT',
-       'double' => 'DOUBLE',
-       'short'  => 'SHORT',
-       'long'   => 'LONG',
-       'char'   => 'CHAR',
-       'XID'    => 'U_LONG',
-       'GLenum'    => 'U_LONG',
-       'void *' => 'PTR',
-       'GLXFBConfig' => 'PTR',
-       'Display *' => 'PTR',
-       'Bool'    => 'U_CHAR'
+       'unsigned long'  => 'T_U_LONG',
+       'signed long'    => 'T_LONG',
+       'long'           => 'T_LONG',
+
+       'unsigned int' => 'T_U_INT',
+       'signed int'   => 'T_INT',
+       'int'          => 'T_INT',
+
+       'unsigned short'=> 'T_U_SHORT',
+       'signed short'  => 'T_SHORT',
+       'short'         => 'T_SHORT',
+       
+       'unsigned char'=> 'T_U_CHAR',
+       'signed char'  => 'T_CHAR',
+       'char'         => 'T_CHAR',
+       
+       'void'         => 'T_VOID',
+       
+       'float'  => 'T_FLOAT',
+       'double' => 'T_DOUBLE',
+
+       'XID'    => 'T_U_LONG',
+       'void *' => 'T_PTR',
+       'GLXFBConfig' => 'T_PTR',
+       'Display *' => 'T_PTR',
+       'Bool'    => 'T_U_CHAR',
       );
 
+my @prefile;
+
+my @pre_includes = ();
+my @gl_includes;
+my @post_includes = ("stdio.h");
+
 open(TYPEMAP,">typemap") or die "Can not write typemap\n";;
-select TYPEMAP;
+
+
+print STDERR "\nPDL::Graphics::TriD::OpenGL : Detecting GL API from system headers...\n";
 
 foreach my $file (@types){
   my @file;
 
-  print STDERR "\n******PROCESSING FILE $file.....";
+  print STDERR "\nPDL::Graphics::TriD::OpenGL: PROCESSING FILE $file.....";
 
-  if($file=~/^gl/){
-	 my $found;
-	 glpath: foreach my $path (@path){
-		if(-e "$path/GL/$file"){
-		  &getconsts("$path/GL/$file");
-		  @file = &cpp("$path/GL/$file");
-		  $found=1;
-		  last glpath;
-		}
+  my $found;
+ glpath: foreach my $path (@path){
+     foreach my $subdir("GL/","X11/","") {
+	 if(-e "$path/$subdir$file"){
+	     &getconsts("$path/$subdir$file");
+	     push(@gl_includes,"$subdir$file");
+
+	     @prefile = ();
+	     @file = &cpp("$path/$subdir$file",[@pre_includes,@gl_includes]);
+#	     print STDERR "Got back from cpp - file has ".(0+@file)." lines...\n";
+
+	     
+	     # Hack to identify XID-equivalent types and add them to the TYPEMAP.
+	     # This generates typemap lines of the form "Window\tXID", because some perl
+	     # versions (e.g. 5.8.6) don't ship with typemap entries for the X types.
+	     #   -CED 7-Mar-2006
+	     hack:for(  @prefile,@file  ) {
+		 next hack unless(m/^\s*typedef\s+XID\s+(\w+)\;/);
+		 my $k = $1;
+		 $t{$k} = $t{'XID'};
+#		 print STDERR "TYPEMAP ENTRY FOR $file: $k->XID\n";
+	     }
+
+	     # Hack to identify simple GL types and add them to the TYPEMAP.
+
+	   hack2: for( @prefile,@file ) {
+#	       print STDERR "\t-$_";
+	       next hack2 unless( m/^\s*typedef\s(.*)\s(GL\w+)\s*\;\s*$/);
+#	       print STDERR "\t-$_";
+	       my($ctype,$gltype) = ($1,$2);
+	       map { s/^\s*//; s/\s*$//; s/\s+/ /g; } ($ctype,$gltype);
+#	       print "\nTypedef sorting: $gltype is a $ctype\n";
+	       
+	       unless($t{$ctype}) {
+		   print STDERR "(Probably harmless): Sorting typedefs, but my little mind is blown! (ctype was '$ctype')\n";
+		   next hack2;
+	       }
+	       $t{$gltype} = $t{$ctype};
+	   }
+	     
+	   hack3: for( @prefile,@file ) {
+#	       print STDERR "\t-$_";
+	       next hack3 unless( m/^\s*typedef\s.*\*\s*(_*GL\w+).*\;\s*$/);
+#	       print STDERR "\t:$_";
+	       my($gltype) = ($1);
+	       map { s/^\s*//; s/\s*$//; s/\s+/ /g; } ($gltype);
+#	       print "\nTypedef sorting: $gltype is a ptr\n";
+	       
+	       $t{$gltype} = "T_PTR";
+	   }
+	     
+	     
+	     $found=1;
+	     last glpath;
 	 }
-	 unless($found){
-		print STDERR "WARNING: could not find file $file in $0 (may be okay)\n";
-	 }
-  }elsif($file=~/^X/){
-	 my $found;
-	 xpath: foreach my $path (@path){
-		if(-e "$path/X11/$file"){
-		  &getconsts("$path/X11/$file");
-		  @file = &cpp("$path/X11/$file");
-		  $found=1;
-		  last xpath;
-		}elsif(-e "/usr/include/X11/$file"){
-		  &getconsts("/usr/include/X11/$file");
-		  @file = &cpp("/usr/include/X11/$file");
-		  $found=1;
-		  last xpath;
-		}
-	 }
-	 unless($found){
-		die "ERROR: Could not find $file in @path";
-	 }
+     }
+ }
+  unless($found){
+      print STDERR "WARNING: could not find file $file in path '".join(":",@path)."'. (may be okay)\n";
   }
-
-  print STDERR ":::::::::::::::::::::::::::::::::\n";
-  print STDERR "Calling gettypes for $file ",$#file,"\n" if($verbose);
-  gettypes(@file);
-  print "GLXContext T_PTR\n";
-  print "GLXFBConfigSGIX T_PTR\n";
+  
+  
+#  print STDERR ":::::::::::::::::::::::::::::::::\n";
+#  print STDERR "PDL::Graphics::TriD::OpenGL: Calling gettypes for $file (",$#file,")\n" ;
+#  gettypes(@file);
 
 }
 
+print (STDERR "\n\n\n\n\n\n\n\n\n\n\n\n\n\n************************************\n***********************************\n*****************************\nPre-processed files.  gl_includes is now ",join(",",@gl_includes),"...\n\n\n\n\n\n\n\n");
+
+
 while ( my ($key, $val) = each %t ) {
-  print "$key T_$val\n" 
+    print TYPEMAP "$key $val\n" ;
 };
 close TYPEMAP;
 select STDOUT;
 
-pp_addhdr('
-#include <X11/X.h>
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/glu.h>
-#include <stdio.h>
+my @typemap_lines = map { "$_\t$t{$_}\n" } keys %t;
+
+pp_addhdr(
+join("\n",map {"#include <$_>"} (@pre_includes,@gl_includes,@post_includes)) . 
+'
 
 #define NUM_ARG 6
 static int debug=0;
@@ -169,13 +238,16 @@ static Bool WaitForNotify(Display *d, XEvent *e, char *arg) {
     return (e->type == MapNotify) && (e->xmap.window == (Window)arg);
 }
 
-');
+'
+);
 
 
 #
 # generate the xs code
 #
+#
 my $ppcode = "pp_addxs('','\n";
+
 $ppcode .= glpcopenwindow();
 $ppcode .= "\n');\n\n";
 
@@ -223,48 +295,117 @@ eval $ppcode;
 
 
 sub cpp {
-  my ($file) = @_;
+  my ($file) = shift;
+  my ($include_list) = shift || [];
+
+  my @includes = map { "\n#include <$_>\n" } @$include_list;
+
+  my $open_fencestr =  "11HdyTbIVg6s"; # some gibberish output by DES
+  my $close_fencestr = "23Cnba1nbf31"; # some gibberish I type
 
   print STDERR "Running cpp on $file\n"if($verbose);
   open(FILE,"$file") || die "Could not open file $file";
-  my @file = <FILE>;
+  my @rawfile = (@includes, "Start of $file ($close_fencestr)....\n", <FILE>);
   close(FILE);
 
   my $nfile = $file;
   $nfile =~ s/.*\//tmp_/;
 
   open(TFILE,">$nfile")  || die "Could not write $nfile";
+
+  ##############################
+  # Walk through the file and mark the last instance of #include with a fence
+  my @file;
+  
+
+  while(@rawfile) {
+      my $line = shift @rawfile;
+      if($line =~ m/\A\#\s*include\s/) {
+	$line =~ s/\n(.)/\\n$1/g;
+	chomp $line;
+	  push(@file,"\nFENCE ($open_fencestr): Ignore stuff till the next fence ($line)\n\n");
+	  push(@file,$line."\n");
+	  push(@file,"\nFENCE ($close_fencestr): Stop ignoring stuff\n\n");
+      } else {
+	  push(@file,$line);
+      }
+  }
+
+  ##############################
+  # Now dump the processed array to a temp file for cpp to crunch on
   foreach(@file){
-#  print STDERR "from $file:  ",$_ ;
-	 next if(/^\s*\#include\s+/);  # this is dangerous
-		# as a consequence APIENTRY is undefined and glu routines are ignored
+#      print STDERR "from $file:  ",$_ ;
 	 print TFILE $_;
   }
   close(TFILE);
+
 #
 # Put together a preprocessor command  
 #
+
   my $com="$Config{cpprun} -P @defines";
-  foreach(split ' ', $Config{cppflags}){
-	 $com .= " $_" if(/-D/);
+  foreach(split ' ', $Config{cppflags}.' '.$Config{cflags} . ' ' . $Config{ccflags}){
+	 $com .= " $_" if(1 || /-D/);
   }
   $com .= " -D_LANGUAGE_C -DAPIENTRY=''";  # forces prototypes of SGI GL 
 
   print STDERR "*** CPP command: $com $nfile |\n";
 
-  open(FILE,"$com $nfile |") || die "cant open $com $nfile|\n";
-  @file = <FILE>;
-  close(FILE);
+  ##############################
+  # Execute cpp and snarf up its output
+  open(CPP_PIPE,"$com $nfile |") || die "cant open $com $nfile|\n";
+  @rawfile = <CPP_PIPE>;
+  close CPP_PIPE;
+
+#  print STDERR "CPP call returned ".(0+@rawfile)." lines...\n";
+
   if ($verbose) {
 	use File::Basename;
 	my $out = basename($file).".cpp";
 	open FI, ">$out" ||
 	     die "can't open temp output file $out";
-	print "outputting to $out...\n";
+#	print STDERR "outputting to $out...\n";
 	print FI "/* command: $com */\n";
-	print FI join('',@file);
+	print FI join('',@rawfile);
 	close FI;
   }
+
+  ##############################
+  # Edit out the sections to be ignored...
+  my @file;
+  my $ignoring=0;
+	print STDERR "open_fencestr = '$open_fencestr'; close_fencestr = '$close_fencestr'\n";
+	print STDERR "rawfile has ".(0+@rawfile)." lines...\n";
+	my $lineno = 0;
+  for my $line(@rawfile) {
+	$lineno++;
+      if($line =~ m/$open_fencestr/o) {
+#	print "Starting to ignore - trigger line was '$line' (line $lineno)\n";
+	  $ignoring = 1;
+	  next;
+      }
+      if($line =~ m/$close_fencestr/o) {
+#	print "Ending ignorance   - trigger line was '$line (line $lineno);'\n";
+	  $ignoring = 0;
+	  next;
+      }
+	chomp $line;
+	unless($ignoring) {
+		push (@file,"$line\n"); 
+#		print STDERR "Keeping: $line\n";
+	}
+#	if($ignoring) {
+#		print STDERR "*******: $line\n";
+#	}
+  }
+
+	my $str = join("\n",@file);
+	@file = split /\n/,$str;
+
+	open(FILE,">${nfile}-out");
+	print FILE join "\n",@file,"";
+	close FILE;
+	print STDERR "SUB CPP: Returning ".(0+@file)." lines...\n";
   return @file;
 
 }
@@ -300,9 +441,10 @@ sub gettypes {
 
 sub getfuncs {
   my(@file) = @_;
-
   my $outstr;
   my $str = join ' ',@file;
+
+
   #  while($str =~ /extern\s+(\S[^\;]*)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
   #  my @vfuncs;
   while($str =~ /(extern\s)?\s*(\w+)\s+(\w+)\s*\(([^\(\)]*)\)\s*\;/gs){
@@ -315,7 +457,7 @@ sub getfuncs {
     if($args =~ /GLvoid\s*\*\s*\*/) { next }
 
 	 push @subnames,$name;
-	 print "Gen: $rt $name $args\n" if $verbose;
+#	 print "Gen: $rt $name $args\n" if $verbose;
 	 #    push @vfuncs,"$rt,$name,V_$name,($args)";
 	 #
 	 # Ignore Display * when looking for pointers

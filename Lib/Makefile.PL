@@ -7,7 +7,7 @@ WriteMakefile(
 	      'NAME' => 'PDL::Lib',
 	      VERSION_FROM => '../Basic/Core/Version.pm',
 	      DIR =>  [ qw/Opt ImageRGB Fit FFT Filter Image2D ImageND
-			CallExt Slatec GSL FFTW Transform
+			CallExt Slatec GSL FFTW GIS Transform
 			/ ],
 #			Interpolate
 );

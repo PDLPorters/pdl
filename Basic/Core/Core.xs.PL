@@ -9,7 +9,7 @@ use Config;
 use File::Basename qw(&basename &dirname);
 
 # check for bad value support
-use vars qw( $bvalflag $usenan );
+use vars qw( $bvalflag $usenan $bvalPerPdl );
 require "badsupport.p";
 
 # are we big or little endian?
@@ -69,19 +69,6 @@ print OUT <<'!NO!SUBS!';
 	print OUT "#include <float.h>\n" unless $usenan;
 	print OUT "#include <limits.h>\n";
 
-	# set up the NaN value, if necessary
-	# based on the GNU version of /usr/include/bits/nan.h
-	# - need to work out whether we're big/little endian here
-	#
-	if ( $usenan ) {
-	    print OUT 
-		"static union { unsigned char __c[4]; float __d; } __pdl_nan = { ";
-	    if ( $isbigendian ) {
-		print OUT "{ 0x7f, 0xc0, 0, 0 } };\n\n";
-	    } else {
-		print OUT "{ 0, 0, 0xc0, 0x7f } };\n\n";
-	    }
-	} # if: $usenan
     } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
@@ -138,6 +125,20 @@ static SV* pdl_unpackint ( PDL_Long *dims, int ndims ) {
          av_store( array, i, newSViv( (IV)dims[i] ) );
 
    return (SV*) array;
+}
+
+/*
+ * Free the data if possible; used by mmapper
+ * Moved from pdlhash.c July 10 2006 DJB
+ */
+static void pdl_freedata (pdl *a) {
+	if(a->datasv) {
+		SvREFCNT_dec(a->datasv);
+		a->datasv=0;
+		a->data=0;
+	} else if(a->data) {
+		die("Trying to free data of untouchable (mmapped?) pdl");
+	}
 }
 
 !NO!SUBS!
@@ -270,6 +271,29 @@ void propogate_badflag( pdl *it, int newval ) {
 
 #endif    /* FOOFOO_PROPOGATE_BADFLAG */
 
+void propogate_badvalue( pdl *it ) {
+    PDL_DECL_CHILDLOOP(it)
+    PDL_START_CHILDLOOP(it)
+    {
+	pdl_trans *trans = PDL_CHILDLOOP_THISCHILD(it);
+	int i;
+
+	for( i = trans->vtable->nparents;
+	     i < trans->vtable->npdls; i++ ) {
+	    
+	    pdl *child = trans->pdls[i];
+
+            child->has_badvalue = 1;
+            child->badvalue = it->badvalue;
+
+	    /* make sure we propogate to grandchildren, etc */
+	    propogate_badvalue( child );
+
+        } /* for: i */
+    }
+    PDL_END_CHILDLOOP(it)
+} /* propogate_badvalue */
+
 
 /* this is horrible - the routines from bad should perhaps be here instead ? */
 double pdl_get_badvalue( int datatype ) {
@@ -300,6 +324,33 @@ print OUT <<'!NO!SUBS!';
     }
     return retval;
 } /* pdl_get_badvalue() */
+
+
+double pdl_get_pdl_badvalue( pdl *it ) {
+    double retval;
+    int datatype;
+
+!NO!SUBS!
+
+	if ($bvalPerPdl) {
+	    print OUT '
+    if (it->has_badvalue) {
+        retval = it->badvalue;
+    } else {
+        datatype = it->datatype;
+        retval = pdl_get_badvalue( datatype );
+    }
+';
+	} else {
+    print OUT '
+    datatype = it->datatype;
+    retval = pdl_get_badvalue( datatype );
+';
+        }
+print OUT <<'!NO!SUBS!';
+    return retval;
+} /* pdl_get_pdl_badvalue() */
+
 
 !NO!SUBS!
 
@@ -653,6 +704,74 @@ at_c(x,position)
     OUTPUT:
      RETVAL
 
+SV *
+at_bad_c(x,position)
+   pdl*	x
+   PDL_Long *	pos = NO_INIT
+   CODE:
+    int npos, ipos, badflag;
+    double result;
+
+      pdl_make_physvaffine( x );
+
+    pos = pdl_packdims( ST(1), &npos);
+    
+    if (pos == NULL || npos < x->ndims)
+       croak("Invalid position");
+
+    /*  allow additional trailing indices
+     *  which must be all zero, i.e. a
+     *  [3,1,5] piddle is treated as an [3,1,5,1,1,1,....]
+     *  infinite dim piddle
+     */
+    for (ipos=x->ndims; ipos<npos; ipos++)
+      if (pos[ipos] != 0)
+         croak("Invalid position");
+
+    result=pdl_at(PDL_REPRP(x), x->datatype, pos, x->dims,
+        (PDL_VAFFOK(x) ? x->vafftrans->incs : x->dimincs), PDL_REPROFFS(x),
+	x->ndims);
+!NO!SUBS!
+
+if ( $bvalflag ) {
+    print OUT 
+'
+   badflag = (x->state & PDL_BADVAL) > 0;
+
+';
+
+    # do we have to bother about NaN's?
+    if ( $usenan ) { 
+       print OUT
+'
+   if ( badflag &&
+        ( ( x->datatype < 4 && ( result == pdl_get_badvalue( x->datatype ) ) ) ||
+          ( x->datatype >= 4 && ( finite(result) == 0 ) )
+        )
+      ) {
+	 RETVAL = newSVpvn( "BAD", 3 );
+   } else
+';
+   } else {
+       print OUT
+'
+   if ( badflag && 
+        ( pdl_get_badvalue( x->datatype ) == result )
+      ) {
+	 RETVAL = newSVpvn( "BAD", 3 );
+   } else
+';
+
+   } # if: $usenan
+} # if: $bvalflag
+
+print OUT <<'!NO!SUBS!';
+    SET_RETVAL_NV(x) ;
+
+    OUTPUT:
+     RETVAL
+
+
 void
 list_c(x)
 	pdl *x
@@ -713,14 +832,14 @@ if ( $bvalflag ) {
        print OUT
 '
    if ( badflag && x->datatype < 4 ) {
-      pdl_badval = pdl_get_badvalue( x->datatype ); 
+      pdl_badval = pdl_get_pdl_badvalue( x ); 
    }
 ';
    } else {
        print OUT
 '
    if ( badflag ) {
-      pdl_badval = pdl_get_badvalue( x->datatype ); 
+      pdl_badval = pdl_get_pdl_badvalue( x ); 
    }
 ';
 
@@ -823,7 +942,7 @@ set_c(x,position,value)
 
 BOOT:
 
-   /* Initialise structure of pointers to core C routines */
+   /* Initialize structure of pointers to core C routines */
 
    PDL.Version     = PDL_CORE_VERSION;
    PDL.SvPDLV      = SvPDLV;
@@ -879,13 +998,17 @@ BOOT:
    PDL.changed       = pdl_changed;
    PDL.vaffinechanged = pdl_vaffinechanged;
 
+   PDL.NaN_float  = union_nan_float.f;
+   PDL.NaN_double = union_nan_double.d;
+
 !NO!SUBS!
 
 if ( $bvalflag ) {
     print OUT <<'!NO!SUBS!';
 
     PDL.propogate_badflag = propogate_badflag;
-
+    PDL.propogate_badvalue = propogate_badvalue;
+    PDL.get_pdl_badvalue = pdl_get_pdl_badvalue;
 !NO!SUBS!
 
   for my $type (PDL::Types::types) {
@@ -895,7 +1018,7 @@ if ( $bvalflag ) {
     my $ctype = $type->ctype;
     if ($usenan && $type->usenan) {
       # note: no defaults if usenan
-      print OUT "\tPDL.bvals.$typename = ($ctype) __pdl_nan.__d;\n";
+      print OUT "\tPDL.bvals.$typename = PDL.NaN_$type;\n"; #Core NaN value
     } else {
       print OUT
 	"\tPDL.bvals.$typename = PDL.bvals.default_$typename = $bval;\n";

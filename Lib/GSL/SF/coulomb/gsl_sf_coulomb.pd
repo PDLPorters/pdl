@@ -41,7 +41,7 @@ pp_def('gsl_sf_coulomb_wave_FGp_array',
        Pars=>'double x(); double [o]fc(n); double [o]fcp(n); double [o]gc(n); double [o]gcp(n); int [o]ovfw(); double [o]fe(n); double [o]ge(n);',
        Code =>'
 int s;
-s = gsl_sf_coulomb_wave_FGp_array_e($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$PP(fc),$PP(fcp),$PP(gc),$PP(gcp),$PP(fe),$PP(ge));
+s = gsl_sf_coulomb_wave_FGp_array($COMP(lam_min),$COMP(kmax),$COMP(eta),$x(),$PP(fc),$PP(fcp),$PP(gc),$PP(gcp),$PP(fe),$PP(ge));
 if (s==GSL_EOVRFLW) {
 $ovfw()=1;
 }
@@ -68,12 +68,12 @@ else {$ovfw()=0;}}
        Doc =>' Coulomb wave function divided by the argument, F(xi, eta)/xi. This is the function which reduces to spherical Bessel functions in the limit eta->0. '
       );
 
-pp_def('gsl_sf_coulomb_CL',
+pp_def('gsl_sf_coulomb_CL_e',
        GenericTypes => [D],
        Pars=>'double L(); double eta();  double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
-GSLERR(gsl_sf_coulomb_CL,($L(),$eta(),&r))
+GSLERR(gsl_sf_coulomb_CL_e,($L(),$eta(),&r))
 $y() = r.val;
 $e() = r.err; 
 ',

@@ -7,6 +7,7 @@ use strict;
  
 use Config;
 use File::Basename qw(&basename &dirname);
+use blib;
  
 # check for bad value support
 use PDL::Config;

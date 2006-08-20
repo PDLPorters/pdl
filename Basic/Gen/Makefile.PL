@@ -13,7 +13,7 @@ use ExtUtils::MakeMaker;
 WriteMakefile(NAME => "PDL::PP",
 	PM => {@pms},
 	'EXE_FILES' => ['pptemplate'],
-	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate"},
+	clean => {FILES => "PP/Dump.pm PP/Dump.pm.tmp pptemplate pptemplate.pod"},
 );
 
 sub MY::postamble {
@@ -33,3 +33,47 @@ EOT
   }
   $text;
 }
+
+#EU::MM's processPL() is continually broken on Win32 ... hence:
+sub MY::processPL {
+    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    my($self) = shift;
+    return "" unless $self->{PL_FILES};
+    my(@m, $plfile);
+    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+        my $list = ref($self->{PL_FILES}->{$plfile})
+                ? $self->{PL_FILES}->{$plfile}
+                : [$self->{PL_FILES}->{$plfile}];
+        my $target;
+        if($Config{make} eq 'dmake') {
+          foreach $target (@$list) {
+          push @m, "
+all :: $target
+	\$(NOECHO) \$(NOOP)
+
+$target :
+	\$(PERLRUNINST) $plfile $target
+";
+          } # close foreach
+        }
+        else {
+          foreach $target (@$list) {
+          push @m, "
+all :: $target
+	\$(NOECHO) \$(NOOP)
+
+$target ::
+	\$(PERLRUNINST) $plfile $target
+";
+          } # close foreach
+        }  
+    }
+    join "", @m;
+    }
+   else {
+    package MY;
+    my $self = shift;
+    return $self->SUPER::processPL;
+    }
+}
+

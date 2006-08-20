@@ -1,5 +1,6 @@
 use PDL::LiteF;
 use Test;
+use Config;
 # sub ok {
 # 	my $no = shift;
 # 	my $result = shift;
@@ -15,11 +16,10 @@ sub near {
 	return ($dist <= $tol)->all;
 }
 
-BEGIN { plan tests => 19,
-	  todo => $^O =~ /win32/i ? [12] : []
+BEGIN { plan tests => 22,
 }
 
-my $tol = ($^O =~ /win32/i) ? 1e-6 : 1e-14;
+my $tol = 1e-14;
 
 eval 'use PDL::MatrixOps;';
 ok(!$@);
@@ -97,3 +97,46 @@ ok(all($c->slice(":,0") == $c->slice(":,1")));
 ### Check that the eigenvalues are correct for this matrix
 ok((float($val->slice("0")) == - float($val->slice("1")) and 
 	float($val->slice("0") * $val->slice("1")) == float(-25)));
+
+### Check computations on larger matrix with known eigenvalue sum.
+my $m = pdl(
+   [ 1.638,  2.153,  1.482,  1.695, -0.557, -2.443,  -0.71,  1.983],
+   [ 2.153,  3.596,  2.461,  2.436, -0.591, -3.711, -0.493,  2.434],
+   [ 1.482,  2.461,    2.5,  2.834, -0.665, -2.621,  0.248,  1.738],
+   [ 1.695,  2.436,  2.834,  4.704, -0.629, -2.913,  0.576,  2.471],
+   [-0.557, -0.591, -0.665, -0.629,     19,  0.896,  8.622, -0.254],
+   [-2.443, -3.711, -2.621, -2.913,  0.896,  5.856,  1.357, -2.915],
+   [ -0.71, -0.493,  0.248,  0.576,  8.622,  1.357,   20.8, -0.622],
+   [ 1.983,  2.434,  1.738,  2.471, -0.254, -2.915, -0.622,  3.214]);
+
+my $esum=0;
+eval {
+    ($vec,$val) = eigens($m);
+    $esum=sprintf "%.3f", sum($val); #signature of eigenvalues
+};
+#print STDERR "eigensum for the 8x8: $esum\n";
+ok($esum == 61.308);
+
+if(0){ #fails because of bad eigenvectors
+#Check an assymmetric matrix:
+$a = pdl ([4,-1], [2,1]);
+eval {
+    ($vec,$val) = eigens $a;
+    $esum=sprintf "%.3f", sum($val);
+};
+ok(!$@);
+ok($esum == 5);
+}
+
+$esum=0;
+eval {
+    $esum = sprintf "%.3f", sum scalar eigens_sym($m);
+};
+ok(!$@);
+ok($esum == 61.308);
+
+if(0){ #eigens for asymmetric matrices disbled
+#The below matrix has complex eigenvalues
+my $should_be_nan = eval { sum(scalar eigens(pdl([1,1],[-1,1]))) };
+ok( ! ($should_be_nan == $should_be_nan)); #only NaN is not equal to itself
+}

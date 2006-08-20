@@ -1,3 +1,19 @@
+20-Jun-2006
+
+Moved the "Small Science Libraty" code from ssl/ into this directory
+to avoid having to deal with OS/system-specific make files.
+
+Changed nan("") to atof("NaN") on Solaris machines (done in a quick
+way; should be handled in Basic/Core/ or top-level Makefile.PL).
+
+--Doug Burke
+
+7-Jan-2004
+
+Added a subset of the "Small Science Library" available from
+geisshirt.dk, to handle eigens work.  The former 'eigens.c' is
+now relegated to 'eigens_sym'.
+
 19-Nov-2002
 
 This is intended to be a useful repository of self-contained linear
@@ -6,4 +22,7 @@ which in turn used the Cephes maths library sources.  Some of it was
 ported to PDL from the algorithms in _Numerical_Recipes_, but the
 original C code should probably be used if the copyrights allow it.
 
---Craig DeForest 19-Nov-2002
+--Craig DeForest
+
+
+

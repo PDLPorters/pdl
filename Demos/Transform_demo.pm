@@ -97,7 +97,7 @@ act q|
   #### Resampling with ->map and no FITS interpretation works in pixel space.
 
   ### Create a PGPLOT window, and display the original image
-    $win = pgwin( nx=>2, ny=>2, Charsize=>2, Justify=>1, Size=>[8,6] );
+    $win = pgwin( dev=>'/xw', nx=>2, ny=>2, Charsize=>2, J=>1, Size=>[8,6] );
 
     $win->imag( $m51 , { DrawWedge=>0, Title=>"M51" }  );
 
@@ -258,12 +258,12 @@ act q|
     $s = "M51 closeup ("; $ss=" coords)";
     $ps = " (pixels)";
 
-    $w1 = pgwin( xw, size=>[4,4], charsize=>1.5 );
+    $w1 = pgwin( dev=>'/xw', size=>[4,4], charsize=>1.5, justify=>1 );
     $w1->imag( $data, 600, 750, { title=>"${s}pixel${ss}", 
 				  xtitle=>"X$ps", ytitle=>"Y$ps" } );
     $w1->hold;
 
-    $w2 = pgwin( xw, size=>[4,4], charsize=>1.5 );
+    $w2 = pgwin( dev=>'/xw', size=>[4,4], charsize=>1.5, justify=>1 );
     $w2->fits_imag( $data, 600, 750, { title=>"${s}sci.${ss}", dr=>0 } );
     $w2->hold;
 

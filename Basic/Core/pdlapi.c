@@ -127,6 +127,7 @@ pdl* pdl_create(int type) {
      it->sv = NULL;
      it->datasv = 0;
      it->data = 0;
+     it->has_badvalue = 0;
 
      it->dims = it->def_dims;
      it->dimincs = it->def_dimincs;
@@ -968,6 +969,7 @@ void pdl_make_physical(pdl *it) {
 		goto mkphys_end;
 	}
 	if(!it->trans) {
+	        ABORT_RECURSE_GUARD;
 		die("PDL Not physical but doesn't have parent");
 	}
 #ifndef DONT_OPTIMIZE

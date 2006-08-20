@@ -9,7 +9,10 @@ use IO::File;
 
 my $pthread_include = '/usr/include/pthread.h';
 my $pthread_library = '-lpthread';
-my $pthread_define  = '-DPDL_PTHREAD';
+my $pthread_define  = ' -DPDL_PTHREAD ';
+
+my $macos_braindamage_define = ($ENV{'OSTYPE'} eq 'darwin') ? " -DMACOS_MZERO_BRAINDAMAGE " : "";
+
 my $malloclib = $PDL::Config{MALLOCDBG}->{libs};
 my $mallocinc = $PDL::Config{MALLOCDBG}->{include};
 
@@ -105,11 +108,11 @@ WriteMakefile(
 		)),
 		},
  'PL_FILES'     => {map {($_ => nopl $_)} grep {!/^Core.pm.PL|Makefile.PL$/} <*.PL>},
- 'DEFINE' 	=> $pthread_define,
+ 'DEFINE' 	=> $pthread_define.$macos_braindamage_define,
  'LIBS'         => ["$pthread_library $malloclib"],
  'clean'        => {'FILES'  => 'pdlcore$(OBJ_EXT) pdlapi$(OBJ_EXT) '.
                    'pdlhash$(OBJ_EXT) pdlconv$(OBJ_EXT) pdlsections$(OBJ_EXT) '.
-                   'pdlconv.c pdlsections.c pdlcore.c'.
+                   'pdlconv.c pdlsections.c pdlcore.c '.
 		   'pdl.h pdlsimple.h pdlcore.h '.
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
@@ -126,7 +129,79 @@ sub make_from_PL ($) {
 	    "${head}.PL $head\n";
 }
 
+sub MY::xs_o {
+    if($Config{make} eq 'nmake') {
+      return'
+.xs$(OBJ_EXT):
+	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
+	$(CCCMD) $(CCCDLFLAGS) -I$(PERL_INC) $(DEFINE) $*.c
+'
+      }
+    else {
+      package MY;
+      my $self = shift;
+      return $self->SUPER::xs_o;
+      }
+}
+
+sub MY::processPL {
+    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    if($Config{make} eq 'nmake'){return ''}
+    my($self) = shift;
+    return "" unless $self->{PL_FILES};
+    my(@m, $plfile);
+    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+        my $list = ref($self->{PL_FILES}->{$plfile})
+                ? $self->{PL_FILES}->{$plfile}
+                : [$self->{PL_FILES}->{$plfile}];
+        my $target;
+        foreach $target (@$list) {
+          push @m, "
+all :: $target
+	\$(NOECHO) \$(NOOP)
+
+$target :
+	\$(PERLRUNINST) $plfile $target
+";
+          } # close foreach
+    }
+    join "", @m;
+    }
+   else {
+    package MY;
+    my $self = shift;
+    return $self->SUPER::processPL;
+    }
+}
+
 sub MY::postamble {
+
+if($Config{make} eq 'dmake') { return
+
+PDL::Core::Dev::postamble().
+"
+
+Core.pm :: Core.pm.PL Types.pm badsupport.p\n"
+. make_from_PL('Core.pm')
+."
+
+pdl.h:: pdl.h.PL mymalloc.p Types.pm\n"
+. make_from_PL( 'pdl.h' )
+."
+
+pdlsimple.h:: pdlsimple.h.PL Types.pm\n"
+. make_from_PL( 'pdlsimple.h' )
+."
+
+pdlcore.h:: pdlcore.h.PL Types.pm\n"
+. make_from_PL( 'pdlcore.h' )
+.
+q|
+
+pdlsections.c: pdlsections.g Types.pm
+       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
+|;
+}else { return
 PDL::Core::Dev::postamble().
 "
 # Bits of C code we generate from special perl scripts
@@ -164,8 +239,7 @@ pdlcore.h:: pdlcore.h.PL Types.pm\n"
 ($^O =~ /MSWin/ ? q|
 
 pdlsections.c: pdlsections.g Types.pm
-       $(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
+	$(PERL) -e "require './getdev.pl'" pdlsections.g > pdlsections.c
 | : '');
 }
-
-
+}

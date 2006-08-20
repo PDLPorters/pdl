@@ -5,17 +5,10 @@ use ExtUtils::MakeMaker;
 
 PDL::Core::Dev->import();
 
-%source = qw(blas blas
-	     eigens eigens
-	     simq simq
-	     svd svd
-	     );
+$hash{OBJECT} = "" unless exists $hash{OBJECT};
 
-foreach $func(sort keys %source) {
-  $file = $source{$func};
-  next if $file eq 'system';
-  $hash{OBJECT} .= " $file\$(OBJ_EXT)" unless $seen{$file}++;
-  $hash{DEFINE} .= ' -DMY_'.uc($func);
+foreach my $file (qw (blas eigens simq svd eigen complex matrix sslib)) {
+    $hash{OBJECT} .= " $file\$(OBJ_EXT)";
 }
 
 $hash{LIBS}->[0] .= " -lm ";

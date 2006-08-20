@@ -341,18 +341,18 @@ Example:
 
 =for ref
 
-This method is similar to L<ran_[distrib]()|ran_gaussian()> except that it
+This method is similar to L<ran_[distrib]()|/ran_gaussian()> except that it
 takes the
 parameters of the distribution as a piddle and returns a piddle of equal
 dimensions. Of course, you can use the same set of distributions as in
-the previous method (see also the L<ran_gaussian|ran_gaussian()> entry above).
+the previous method (see also the L<ran_gaussian|/ran_gaussian()> entry above).
 
 Usage:
 
 =for usage
 
-   $piddle = $rng->ran_[distribution]($distr_parameters_list,$piddle_dim_list);
-   $rng->ran_[distribution]($distr_parameters_list,$piddle);
+   $piddle = $rng->ran_[distribution]_var($distr_parameters_list,$piddle_dim_list);
+   $rng->ran_[distribution]_var($distr_parameters_list,$piddle);
 
 Example:
 
@@ -495,8 +495,6 @@ Example:
    $ddh = $rng->ran_discrete_preproc($prob);
    $o = $rng->ran_discrete($discrete_dist_handle,100);
 
-# =head1 Shuffling and choosing.
-
 =head2 ran_shuffle()
 
 =for ref
@@ -521,7 +519,7 @@ Usage:
 
    $rng->ran_shuffle_vec(@vec);
 
-=head2 ran_choose_vec()
+=head2 ran_choose()
 
 =for ref 
 
@@ -544,8 +542,6 @@ Usage:
 =for usage
 
    @choosen = $rng->ran_choose_vec($n,@vec);
-
-# =head1 Caotic maps.
 
 =head2 ran_ver()
 
@@ -576,15 +572,14 @@ Usage:
 =head1 BUGS
 
 Feedback is welcome. Log bugs in the PDL bug database (the
-database is always linked from http://pdl.perl.org).
+database is always linked from L<http://pdl.perl.org/>).
 
 =head1 SEE ALSO
 
 L<PDL>
 
 The GSL documentation is online at
-
-  http://sources.redhat.com/gsl/ref/gsl-ref_toc.html
+L<http://www.gnu.org/software/gsl/manual/html_node/>
 
 =head1 AUTHOR
 
@@ -676,7 +671,7 @@ pp_defnd(
        'gsl_get_uniform_meat',
        Pars => '[o]a()',
        GenericTypes => [F,D],
-       OtherPars => 'int rng',
+       OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_uniform((gsl_rng *) $COMP(rng));');
 
@@ -684,21 +679,21 @@ pp_defnd(
        'gsl_get_uniform_pos_meat',
        Pars => '[o]a()',
        GenericTypes => [F,D],
-       OtherPars => 'int rng',
+       OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_uniform_pos((gsl_rng *) $COMP(rng));');
 
 pp_defnd(
        'gsl_get_meat',
        Pars => '[o]a()',
-       OtherPars => 'int rng',
+       OtherPars => 'IV rng',
        Code => '
 $a() = gsl_rng_get((gsl_rng *) $COMP(rng));');
 
 pp_defnd(
        'gsl_get_int_meat',
        Pars => '[o]a()',
-       OtherPars => 'int n; int rng',
+       OtherPars => 'int n; IV rng',
        Code => '
 $a() = gsl_rng_uniform_int((gsl_rng *) $COMP(rng),$COMP(n));');
 
@@ -709,21 +704,21 @@ sub add_randist {
   my ($pars1,$fcall1,$arglist);
   
   if ($npar==1) {
-    $pars1='double a; int rng';
+    $pars1='double a; IV rng';
     $fcall1='$COMP(a)';
     $arglist='$a,';
     $pars2='a()';
     $fcall2='$a()';
   }
   if ($npar==2) {
-    $pars1='double a; double b; int rng';
+    $pars1='double a; double b; IV rng';
     $fcall1='$COMP(a),$COMP(b)';
     $arglist='$a,$b,';
     $pars2='a();b()';
     $fcall2='$a(),$b()';
   }
   if ($npar==3) {
-    $pars1='double a; double b; double c; int rng';
+    $pars1='double a; double b; double c; IV rng';
     $fcall1='$COMP(a),$COMP(b),$COMP(c)';
     $arglist='$a,$b,$c,';
     $pars2='a();b();c()';
@@ -757,7 +752,7 @@ else {
   pp_defnd(
 	 'ran_' . $name . '_var_meat',
 	 Pars => $pars2 . ';[o]x()',
-	 OtherPars => 'int rng',
+	 OtherPars => 'IV rng',
 	 Code =>'
 $x() = gsl_ran_' . $name . '((gsl_rng *) $COMP(rng),' . $fcall2 . ');');
 
@@ -793,7 +788,7 @@ my ($obj,@var) = @_;
 #    pp_defnd(
 #	   'ran_' . $name . '_feed_meat',
 #	   Pars => '[o]x()',
-#	   OtherPars => 'int rng',
+#	   OtherPars => 'IV rng',
 #	   Code =>'
 #$x() = gsl_ran_' . $name . '((gsl_rng *) $COMP(rng), $x());');
 
@@ -848,7 +843,7 @@ add_randist('logarithmic',1);
 pp_defnd(
        'ran_additive_gaussian_meat',
        Pars => ';[o]x()',
-       OtherPars => 'double sigma; int rng',
+       OtherPars => 'double sigma; IV rng',
        Code =>'$x() += gsl_ran_gaussian((gsl_rng *) $COMP(rng), $COMP(sigma));');
 
 pp_addpm('
@@ -867,7 +862,7 @@ pp_addpm('
 pp_defnd(
        'ran_additive_poisson_meat',
        Pars => ';[o]x()',
-       OtherPars => 'double sigma; int rng',
+       OtherPars => 'double sigma; IV rng',
        Code =>'$x() += gsl_ran_poisson((gsl_rng *) $COMP(rng), $COMP(sigma));');
 
 pp_addpm('
@@ -886,7 +881,7 @@ pp_addpm('
 pp_defnd(
        'ran_feed_poisson_meat',
        Pars => ';[o]x()',
-       OtherPars => 'int rng',
+       OtherPars => 'IV rng',
        Code =>'$x() = gsl_ran_poisson((gsl_rng *) $COMP(rng), $x());');
 
 pp_addpm('
@@ -905,7 +900,7 @@ pp_addpm('
 pp_defnd(
 	'ran_bivariate_gaussian_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'double sigma_x; double sigma_y; double rho; int rng',
+	OtherPars => 'double sigma_x; double sigma_y; double rho; IV rng',
         Code =>'
 double xx,yy;
 gsl_ran_bivariate_gaussian((gsl_rng *) $COMP(rng), $COMP(sigma_x), $COMP(sigma_y),$COMP(rho), &xx, &yy);
@@ -930,7 +925,7 @@ pp_addpm('
 pp_defnd(
 	'ran_dir_2d_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'int rng',
+	OtherPars => 'IV rng',
         Code =>'
 double xx,yy;
 gsl_ran_dir_2d((gsl_rng *) $COMP(rng), &xx, &yy);
@@ -941,7 +936,7 @@ $x(n=>1)=yy;
 pp_defnd(
 	'ran_dir_3d_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'int rng',
+	OtherPars => 'IV rng',
         Code =>'
 double xx,yy,zz;
 gsl_ran_dir_3d((gsl_rng *) $COMP(rng), &xx, &yy, &zz);
@@ -955,7 +950,7 @@ $MAX_DIMENSIONS = 100;
 pp_defnd(
 	'ran_dir_nd_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'int ns => n; int rng',
+	OtherPars => 'int ns => n; IV rng',
         Code =>'
 double xxx[' . $MAX_DIMENSIONS .']; 
 gsl_ran_dir_nd((gsl_rng *) $COMP(rng), $COMP(ns), xxx);
@@ -981,7 +976,7 @@ pp_addpm('
 pp_defnd(
 	'ran_discrete_meat',
 	Pars => ';[o]x()',
-	OtherPars => 'int rng_discrete; int rng',
+	OtherPars => 'IV rng_discrete; IV rng',
         Code =>'
 $x()=gsl_ran_discrete((gsl_rng *) $COMP(rng), (gsl_ran_discrete_t *) $COMP(rng_discrete)); ');	
 
@@ -1035,7 +1030,7 @@ return @out;
 pp_defnd(
 	'ran_ver_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'double x0; double r;int ns => n; int rng',
+	OtherPars => 'double x0; double r;int ns => n; IV rng',
         Code =>'
 double xx=$COMP(x0);
 
@@ -1044,7 +1039,7 @@ loop (n) %{ $x() = xx; xx = $COMP(r)*(1-xx)*xx; %}');
 pp_defnd(
 	'ran_caos_meat',
 	Pars => ';[o]x(n)',
-	OtherPars => 'double m; int ns => n; int rng',
+	OtherPars => 'double m; int ns => n; IV rng',
         Code =>'
 double xx=gsl_ran_gaussian((gsl_rng *) $COMP(rng),0.1)+0.5;
 

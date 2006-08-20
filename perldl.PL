@@ -63,8 +63,10 @@ $PERLDL::PREPROCESS  = undef;   # old interface -- disabled
 @PERLDL::PREPROCESS = ();       # new preprocessor pipeline
 $HOME = $ENV{HOME};             # Useful in shell
 
-$HOME = 'c:/Temp' if $HOME eq "" # For want of somewhere better..
-   and ($^O =~ /win32/i);
+if ($^O =~ /win32/i and $HOME eq ""){
+   $HOME = $ENV{USERPROFILE};
+   $HOME =~ s/\\/\//g;
+   }
 
 $,=" "; # Default
 
@@ -692,25 +694,74 @@ __END__
 
 perldl - Simple shell for PDL
 
+
 =head1 SYNOPSIS
 
-	%> perldl
-	perldl> $a=sequence(10) # or any other PDL command
+	Use PDL interactively:
 
-        %> perldl - pdlscript
+		%> perldl
+		perldl> $a=sequence(10) # or any other perl or PDL command
 
-        #!/usr/bin/pdl
+		%> pdl
+		perldl> print "Hello, world!\n"; 
+
+	Run a script:
+
+	        %> perldl - pdlscript 
+
+	        #!/usr/bin/pdl
 
 =head1 DESCRIPTION
 
 The program B<perldl> is a simple shell (written in perl) for
-interactive use of PDL.  perl/PDL commands can simply be typed in - and
-edited if you have appropriate version of the ReadLines and ReadKeys
-modules installed. In that case B<perldl> also supports a history
-mechanism where the last 50 commands are always stored in the file
-F<.perldl_hist> in your home directory between sessions. The command
-C<l [number]> shows you the last C<number> commands you typed where
-C<number> defaults to 20.
+interactive use of PDL.  It consists of a command-line interface that
+supports immediate interpretation of perl commands and expressions.
+Perl expressions, including PDL constructs, can be entered directly at
+the keyboard and are compiled and executed immediately.  The syntax is
+not exactly identical to Perl, in that under most circumstances ending
+a line causes immediate execution of the command entered so far (no
+trailing ';' is required).
+
+The synonym B<pdl> is a compiled executable that is useful as a script
+interpreter using UNIX shebang (C<#!>) syntax.  This is useful for generating
+and re-executing command-journal files from B<perldl>.
+
+The B<perldl> shell runs an initial startup file (C<~/.perldlrc>) that can
+be used to pre-load perl modules or configure the global perl environment.  It 
+features a path mechanism for autoloading perl subroutines.  There is a
+command-history mechanism, and several other useful features such as command 
+preprocessing, shortcuts for commonly used commands such as "print", 
+and the ability to execute arbitrary code whenever a prompt is printed.
+
+Depending on your configuration settings, B<perldl> can be set to
+honor or ignore the ^D (end-of-file) character when sent from a
+terminal, or to attempt to do the Right Thing when a block construct
+spanning multiple lines is encountered.
+
+B<perldl> and B<pdl> support several command-line options, which are
+discussed near the end of this document.
+
+=head2 Reference manual & online help
+
+The PDL reference manual and online help are available from within 
+B<perldl>, using the B<help> and B<apropos> commands (which may also
+be abbreviated B<?> and B<??>.)   The B<help> command alone prints a summary of
+help syntax, and B<help  E<lt>module-nameE<gt>> will print POD documentation
+from the module you mention (POD is the Perl format for embedding 
+documentation in your perl code; see L<perlpod> for details).
+
+If you include POD documentation in your autoload subroutines (see
+B<path mechanism> below), then both B<help> and B<apropos> will find it 
+and be able to format and display it on demand.
+
+=head2 History mechanism
+
+If you have the perl modules ReadLines and ReadKeys installed, then
+B<perldl> supports a history and line-editing mechanism using editing
+keys similar to L<emacs(1)>. The last 50 commands are always stored in
+the file F<.perldl_hist> in your home directory between sessions. The
+command C<l [number]> shows you the last C<number> commands you typed
+where C<number> defaults to 20.
 
 e.g.:
 
@@ -724,53 +775,80 @@ e.g.:
    perldl> imag log($a+400)
    Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
 
+=head2 Command execution
 
-=head2 Command-line options
+If you enter a simple command at the B<perldl> command line, it is
+immediately executed in a Perl eval().  The environment is almost identical
+to that within a perl script, with some important exceptions:
 
-=over 4
+=over 3
 
-=item -tk
+=item * $_ is not preserved across lines
 
-Load Tk when starting the shell (the perl Tk module, which is
-available from CPAN must be installed). This enables readline
-event loop processing.
+$_ is used to hold the command line for initial processing, so at the
+beginning of processing of each command line, $_ contains the command itself.
+Use variables other than $_ to store values across lines.
 
-=item -f file
+=item * Scope is not preserved across lines
 
-Loads the file before processing any user input. Any errors
-during the execution of the file are fatal.
+Each command line is executed in a separate C<eval> block within perl,
+so scoping commands such as C<my> and C<local> may not perform exactly
+as expected -- in particular, if you declare a variable with C<my>, it
+is local to the particular command line on which you typed the C<my>
+command, which means that it will evaporate before the next prompt is printed.
+(You can use C<my> variables in a multi-line block or to isolate values within 
+a single command line, of course).
 
-=item -w
+=item * Execution is immediate
 
-Runs with warning messages (i.e. the normal perl C<-w> warnings)
-turned-on.
+Under most circumstances, as soon as you end a line of input the line
+is parsed and executed.  This breaks Perl's normal dependence on
+semicolons as command delimiters.  For example, the two-line expression
 
-=item -M module
+  print "Hello ",
+     "world";
 
-Loads the module before processing any user input.
-Compare corresponding C<perl> switch.
+prints the phrase C<Hello world> in Perl, but (under most circumstances) 
+C<Hello > in B<perldl>. 
 
-=item -m module
+=item * Multi-line execution
 
-Unloads the module before processing any user input.
+In multiline mode (which is enabled by default, see B<Shell
+variables>, below), B<perldl> searches for searches for block-like
+constructs with curly braces, parentheses, quotes, and related
+delimiters.  If you leave such a construct open, B<perldl> accepts more
+lines of input until you close the construct or explictly end the multi-line
+expression with ^D.   Following the example above, the phrase
 
-=item -I directory
+  { print "Hello ",
+       "world"; }
 
-Adds directory to the include path. (i.e. the @INC array)
-Compare corresponding C<perl> switch.
+will print "Hello world" from either Perl or (in multi-line mode)
+B<perldl>.  
 
-=item -V
-
-Prints a summary of PDL config. This information should
-be included with any PDL bug report. Compare corresponding
-C<perl> switch.
+B<Warning>: The multi-line parsing uses Damian Conway's
+L<Text::Balanced> module, which contains some flaws -- so it can be
+fooled by quote-like operators such as C<q/.../>, included POD
+documentation, multi-line C<E<lt>E<lt>> quotes, and some
+particularly bizarre-but-valid C<m/.../> matches and C<s/.../.../>
+substitutions.  In such cases, use ^D to close out the multi-line construct and
+force compilation-and-execution.
 
 =back
+
+If you want to preserve this behavior in a script (for example to replay a command
+journal file; see below on how to create one), you can use B<pdl> instead of B<perl>
+as the interpreter in the script's initial shebang line.
+
 
 =head2 Terminating C<perldl>
 
 A C<perldl> session can be terminated with any of the commands
-C<quit>, C<exit> or the shorthands C<x> or C<q>.
+C<quit>, C<exit> or the shorthands C<x> or C<q>.  If EOF handling is
+switched on (the default) you can also type ^D at the command prompt.
+
+If the command input is NOT a terminal (for example if you are running
+from a command journal file), then EOF will always terminate B<perldl>.
 
 =head2 Terminating commands (Ctrl-C handling)
 
@@ -841,6 +919,52 @@ instead of
 
 =back
 
+
+=head2 Command-line options
+
+B<perldl> and B<pdl> support several command-line options to adjust the behavior of the
+session.  Most of them are equivalent to commands that can be entered at the B<perldlE<gt>>
+prompt.  They are:
+
+=over 4
+
+=item -tk
+
+Load Tk when starting the shell (the perl Tk module, which is
+available from CPAN must be installed). This enables readline
+event loop processing.
+
+=item -f file
+
+Loads the file before processing any user input. Any errors
+during the execution of the file are fatal.
+
+=item -w
+
+Runs with warning messages (i.e. the normal perl C<-w> warnings)
+turned-on.
+
+=item -M module
+
+Loads the module before processing any user input.
+Compare corresponding C<perl> switch.
+
+=item -m module
+
+Unloads the module before processing any user input.
+
+=item -I directory
+
+Adds directory to the include path. (i.e. the @INC array)
+Compare corresponding C<perl> switch.
+
+=item -V
+
+Prints a summary of PDL config. This information should
+be included with any PDL bug report. Compare corresponding
+C<perl> switch.
+
+=back
 
 =head2 The startup file F<~/.perldlrc>
 
@@ -954,49 +1078,6 @@ also need to change the '&' on non-Unix systems).
 Running "do 'script'" again updates any variables and function
 definitions from the current version of 'script'.
 
-=head2 Automatically execute your own hooks
-
-The variable @PERLDL::AUTO is a simple list of perl code strings
-and/or code reference. It is used to define code to be
-executed automatically every time the user enters a new line.
-
-A simple example would be to print the time of each command:
-
- perldl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
-
- perldl> print zeroes(3,3)
- Sun May  3 04:49:05 1998
-
- [
-  [0 0 0]
-  [0 0 0]
-  [0 0 0]
- ]
-
- perldl> print "Boo"
- Sun May  3 04:49:18 1998
- Boo
- perldl>
-
-Or to make sure any changes in the file 'local.perldlrc' are
-always picked up :-
-
- perldl> push @PERLDL::AUTO,"do 'local.perldlrc'"
-
-This code can of course be put *in* 'local.perldlrc', but
-be careful :-) [Hint: add C<unless ($started++)> to above
-to ensure it only gets done once!]
-
-Another example application is as a hook for Autoloaders
-(e.g. PDL::AutoLoader) to add code too which allows them to
-automatically re-scan their files for changes. This is
-extremely convenient at the interactive command line. Since
-this hook is only in the shell it imposes no inefficiency on
-PDL scripts.
-
-Finally note this is a very powerful facility - which means
-it should be used with caution!
-
 =head2 Executing perldl scripts from the command line
 
 PDL scripts are just perl scripts that happen to use PDL (and
@@ -1007,10 +1088,6 @@ at the top of your script.
 
 Instead, say "#!/usr/bin/pdl" and your script will be executed exactly
 as if you typed it, line-by-line, into the perldl shell.
-
-WARNING: perldl executes scripts slightly differently than perl would,
-and its behavior is dependent on your own quirky configuration.  Use with
-caution.
 
 =head2 Command preprocessing
 
@@ -1146,6 +1223,51 @@ Similarly, switch reporting off as needed
  [3 5 7]
 
 Reporting is off by default.
+
+=head2 Automatically execute your own hooks
+
+The variable @PERLDL::AUTO is a simple list of perl code strings
+and/or code reference. It is used to define code to be
+executed automatically every time the user enters a new line.
+
+A simple example would be to print the time of each command:
+
+ perldl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
+
+ perldl> print zeroes(3,3)
+ Sun May  3 04:49:05 1998
+
+ [
+  [0 0 0]
+  [0 0 0]
+  [0 0 0]
+ ]
+
+ perldl> print "Boo"
+ Sun May  3 04:49:18 1998
+ Boo
+ perldl>
+
+Or to make sure any changes in the file 'local.perldlrc' are
+always picked up :-
+
+ perldl> push @PERLDL::AUTO,"do 'local.perldlrc'"
+
+This code can of course be put *in* 'local.perldlrc', but
+be careful :-) [Hint: add C<unless ($started++)> to above
+to ensure it only gets done once!]
+
+Another example application is as a hook for Autoloaders
+(e.g. PDL::AutoLoader) to add code too which allows them to
+automatically re-scan their files for changes. This is
+extremely convenient at the interactive command line. Since
+this hook is only in the shell it imposes no inefficiency on
+PDL scripts.
+
+Finally note this is a very powerful facility - which means
+it should be used with caution!
+
+
 
 =cut
 

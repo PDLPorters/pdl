@@ -255,7 +255,7 @@ sub init{
 
 pp_def('init_meat',
         Pars => 'double x(n); double y(n);',
-        OtherPars => 'int spl',
+        OtherPars => 'IV spl',
         Doc => undef,
         Code =>'
 GSLERR(gsl_spline_init,( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n)));'
@@ -280,14 +280,25 @@ sub eval{
 
 pp_def('eval_meat',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
+
+        # BadCode added 5/31/2005, D. Hunt
+	HandleBad => 1,
+        BadCode => '
+        if ($ISBAD($x())) {
+          $out() = $x(); 
+	} else { 
+   	  GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+        }
+        ',
+
         Code =>'	     
 GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
 ');
 pp_def('eval_meat_ext',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
         Code =>'	     
 $out() = gsl_spline_eval( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
@@ -314,14 +325,14 @@ sub deriv{
 
 pp_def('eval_deriv_meat',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 GSLERR(gsl_spline_eval_deriv_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
 ');
 pp_def('eval_deriv_meat_ext',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 $out() = gsl_spline_eval_deriv( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
@@ -346,14 +357,14 @@ sub deriv2{
 
 pp_def('eval_deriv2_meat',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 GSLERR(gsl_spline_eval_deriv2_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
 ');
 pp_def('eval_deriv2_meat_ext',
         Pars => 'double x(); double [o] out();',
-        OtherPars => 'int spl;int acc;',
+        OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 $out() = gsl_spline_eval_deriv2( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
@@ -378,14 +389,14 @@ sub integ{
 
 pp_def('eval_integ_meat',
         Pars => 'double a(); double b(); double [o] out();',
-	OtherPars => 'int spl;int acc;',
+	OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 GSLERR(gsl_spline_eval_integ_e,( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc),$P(out)));
 ');
 pp_def('eval_integ_meat_ext',
         Pars => 'double a(); double b(); double [o] out();',
-	OtherPars => 'int spl;int acc;',
+	OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
 $out() = gsl_spline_eval_integ( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc));

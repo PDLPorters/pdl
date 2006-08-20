@@ -1,0 +1,345 @@
+Created on: Thu 27 Jul 2006 09:43:26 PM
+Last saved: Wed 16 Aug 2006 10:26:36 PM
+
+=================================================================
+                 Installing with CPAN on Cygwin
+=================================================================
+If you already have a full cygwin install on your PC, the
+simplest way to get a basic PDL is to use the cpan shell.
+
+This will get you all the functionality that is supported
+by existing cygwin package functionality (i.e. available
+from the standard Setup.exe installs).
+
+!! NOTE: you will be asked to answer some configuration
+!! questions the first time you use cpan on your system.
+!! Most should be self-explanatory.
+
+Just start up an xterm and run cpan from the bash prompt:
+
+  bash$ cpan
+  cpan> install ExtUtils::F77
+  cpan> install Astro::FITS::Header
+  cpan> install Inline
+  cpan> install PDL
+
+This should install a PDL with the following functionality:
+
+  - base PDL modules
+
+  - PDL::IO::GD
+  - PDL::GIS::Proj
+  - PDL::Graphics::TriD
+  - PDL::GSL::*
+  - PDL::Slatec
+  - PDL::Transform::Proj4
+
+
+
+=================================================================
+                Manual Configuration and Install
+=================================================================
+In general, the standard install process for perl modules
+should work on cygwin.  If you don't want to accept the
+default build options for PDL, edit the perldl.conf file.
+You'll find that file in the top level PDL folder/directory.
+
+The remaining PDL functionality depends on external libraries
+and packages that must be pre-installed before installing PDL.
+
+If you want to use other modules with external dependencies
+not available through the Setup.exe from http://www.cygwin.com
+then you'll need to get, build, and install the desired
+libraries yourself (see the HOW-TO notes below).
+
+The manual configure/build/install process is:
+
+ Edit the PDL/perldl.conf file as desired
+
+
+ From the bash$ prompt in the top level PDL/ directory:
+
+   perl Makefile.PL	# configures all the Makefile
+
+   make		        # builds/compiles everything
+
+   make test            # run test suite
+
+   make doctest         # builds online documentation
+                        # and html docs
+
+
+ If any tests fail (rather than skipped) you can run them
+ by hand for more detailed diagnostic messages.  For
+ example:
+
+   perl -Mblib t/plplot.t 
+   1..27
+   ok 1 - use PDL::Graphics::PLplot;
+   # Looks like you planned 27 tests but only ran 1.
+
+   perl -Mblib t/proj_transform.t 
+   1..4
+   # Looks like your test died before it could output anything.
+
+   These test failures with the number of planned tests not
+   equal to the number of tests run (1) or if a test died
+   before it could output anything indicate a problem with
+   the DLL base addresses.  See the instructions for REBASEALL
+   below.
+
+
+ If PDL built ok and passed tests, you can test the interactive
+ PDL shell before actually installing PDL by running from the
+ PDL/ top level directory:
+
+   perl -Mblib perldl   # quit to exit the PDL shell
+
+
+ To finally install the PDL into your system run:
+
+   make install
+
+
+=================================================================
+                              FFTW
+=================================================================
+!! You'll need to build *version 2* of the FFTW library for PDL.
+!! Version 3 has a new API and is not compatible with this PDL.
+
+  # download the source code if needed, I used wget
+  wget http://www.fftw.org/fftw-2.1.5.tar.gz
+
+  # extract the source files
+  tar xzf fftw-2.1.5.tar.gz 
+
+  # change to the source directory
+  cd fftw-2.1.5/
+
+  # this is the standard GNU build process
+  ./configure 
+  make
+  make check
+  make install
+
+The FFTW library built without a hitch and installed in
+/usr/local as the default (/usr/local/lib, /usr/local/include,
+and /usr/local/info). A clean build of PDL should pick it up.
+
+NOTE: if problems see rebaseall below.
+ 
+
+=================================================================
+                             PGPLOT
+=================================================================
+1. build the pgplot library and install.
+
+  Download from http://astro.caltech.edu/~tjp/pgplot
+
+  # Extract the archive file into a source location, I used ~
+  $ tar xzf pgplot5.2.tar.gz 
+  $ cd ~/pgplot
+
+  # Make an install directory, this is a typical default location
+  $ mkdir /usr/local/pgplot
+
+  $ cp drivers.list /usr/local/pgplot/
+  $ cd /usr/local/pgplot
+  $ vi drivers.list 
+  
+  Edit drivers.list to enable the drivers you wish but
+  uncommenting desired drivers by removing the leading ! on the
+  line. Here are the ones I used (see PDL/cygwin/driver.list):
+
+  $ grep -v '^!' drivers.list
+    LXDRIV 0 /LATEX     LaTeX picture environment
+    NUDRIV 0 /NULL      Null device (no output)                           Std F77
+    PPDRIV 1 /PPM       Portable Pixel Map file, landscape
+    PPDRIV 2 /VPPM      Portable PIxel Map file, portrait
+    PSDRIV 1 /PS        PostScript printers, monochrome, landscape        Std F77
+    PSDRIV 2 /VPS       Postscript printers, monochrome, portrait         Std F77
+    PSDRIV 3 /CPS       PostScript printers, color, landscape             Std F77
+    PSDRIV 4 /VCPS      PostScript printers, color, portrait              Std F77
+    TTDRIV 5 /XTERM     XTERM Tektronix terminal emulator                 Std F77
+    WDDRIV 1 /WD        X Window dump file, landscape
+    WDDRIV 2 /VWD       X Window dump file, portrait
+    XWDRIV 1 /XWINDOW   Workstations running X Window System              C
+    XWDRIV 2 /XSERVE    Persistent window on X Window System              C
+  
+  Edit the sys_cygwin configuration file to work with the
+  current version of cygwin. (TBD, update this file and pass on
+  to pgplot distribution for inclusion, for now see
+  PDL/cygwin/g77_gcc.conf)
+
+  $ vi sys_cygwin/g77_gcc.conf 
+
+  # This diff command shows the lines that need changing
+  $ diff g77_gcc.conf*
+  12c12
+  <    XINCL="-I/usr/X11R6/include"
+  ---
+  >    XINCL="-I/usr/X11R6.4/include"
+  48c48
+  <    FFLAGD="-fno-backslash -I/usr/include"
+  ---
+  >    FFLAGD="-fno-backslash"
+  58c58
+  <    CFLAGC="-DPG_PPU -O2 -DNOMALLOCH -I. -I/usr/include"
+  ---
+  >    CFLAGC="-DPG_PPU -O2 -DNOMALLOCH -I."
+  75c75
+  <    LIBS="-L/usr/X11R6/lib -lX11 -lpng -lz"
+  ---
+  >    LIBS="-L/usr/X11R6.4/lib -lX11"
+  
+  $ ~/pgplot/makemake ~/pgplot cygwin
+  $ make
+  $ make clean
+  $ make cpg
+  $ PGPLOT_DIR="/usr/local/pgplot/"; export PGPLOT_DIR
+
+  Be sure to add PGPLOT_DIR to your environment and add it to
+  your PATH as well. Now we can build the PGPLOT module for
+  perl. Download from www.cpan.org if needed.
+
+2. Now install the PGPLOT perl module. This is used by
+PDL::Graphics::PGPLOT.
+
+  $ tar xzf PGPLOT-2.19.tar.gz
+  $ cd PGPLOT-2.19
+
+  # Be sure to set the environment!
+  $ export PGPLOT_DIR=/usr/local/pgplot
+  $ export PATH=$PGPLOT_DIR:$PATH
+
+  $ perl Makefile.PL
+
+  Hand edit the Makefile generated by Makefile.PL and correct
+  the link line (TBD: fix the Makefile.PL build process and
+  propagate cygwin fixes back to the module author.  Sorry,
+  you'll have to edit this one).
+
+  $ vi Makefile
+     
+  Edit the EXTRALIBS = ... and LDLOADLIBS = ... lines to change
+  "-lpgplot -lcpgplot" to "-lcpgplot -lpgplot -lpng -lz" 
+
+  The first part of the modified lines look like this:
+
+  EXTRALIBS = -L/usr/X11R6/lib -L/usr/local/pgplot -lcpgplot -lpgplot -lpng -lz -lX11 ...
+  LDLOADLIBS = -L/usr/X11R6/lib -L/usr/local/pgplot -lcpgplot -lpgplot -lpng -lz -lX11 ...
+
+  Build it now:
+
+  $ make
+
+  # Lots of tests!
+  $ make test
+
+  $ make install
+
+  pgplot library is installed and working. PGPLOT module is
+  installed and working.
+
+3. Build PDL configured to use PGPLOT (in perldl.conf file).
+   If your pgplot installation worked, it should be picked up
+   automatically.
+
+NOTE: if problems see rebaseall below.
+
+
+=================================================================
+                             PLplot
+=================================================================
+Now download, build, and install the PLplot library. The LASi
+library is a new dependency for plplot which may be either
+installed as below or the appropriate option to disable its
+build can be used for ./configure.
+
+  $ wget http://www.unifont.org/lasi/download/lasi-1.0.5.tar.gz
+  $ tar xzf lasi-1.0.5.tar.gz 
+  $ cd lasi-1.0.5
+  $ ./configure
+  $ make
+  $ make check
+  $ make install
+
+Now LASi library is in /usr/local default locations. Now
+download and build plplot:
+
+  $ wget http://superb-east.dl.sourceforge.net/sourceforge/plplot/plplot-5.6.1.tar.gz
+  $ tar xzf plplot-5.6.1.tar.gz 
+  $ ./configure --prefix=/usr/local/plplot --disable-tcl --without-qhull --disable-cgm \
+                --disable-dyndrivers --disable-octave --disable-gcw 
+  $ make
+  $ make check
+  $ make install
+
+NOTES:
+
+  (1) be sure to add /usr/local/plplot/bin to your path!
+
+  (2) I had some font artifacts that have not been resolved
+      Your mileage may vary...
+
+
+Now you should be able to build PDL and have it pick up the
+plplot install. WARNING: If t/plplot.t fails with no messages,
+the problem may be DLL address conflicts. If so, you'll need to
+run rebaseall per the instructions below.
+
+
+=================================================================
+                            REBASEALL
+=================================================================
+There is a known issue on cygwin where DLLs have to have their
+base addresses fixed so that runtime conflicts do not occur.  The
+problems occur for the external modules and their interfaces using
+DLLs.  Specifically, the DLLs in /usr/lib/perl5 and the DLLs in
+the PLplot bin directory at least.  The usual sign for this is
+that some tests fail mysteriously.  If you run the failing test
+by hand (for example):
+
+  perl -Mblib t/plplot.t
+
+You'll see no error but only 1 test run or even a message saying
+that the test failed before generating any output.  If so, you'll
+need to run rebaseall:
+
+  0. Generate a list of additional DLLs to check:
+
+     find /usr/lib/perl5 /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
+
+  1. Exit all cygwin processes, windows, shells, X server,...
+
+  2. Start up a windows CMD shell window (Start->Run cmd)
+
+  3. cd to the cygwin /bin directory (cd c:\cygwin\bin by default)
+
+  4. Run ash in that directory (ash)
+
+  5. Run rebaseall (./rebaseall -T fixit.list)
+
+       Note that we created the fixit.list file in the c:\cygwin\bin
+       folder to begin with.  If you put it elsewhere, you'll need
+       to use the appropriate pathnames.
+
+After the rebaseall command has completed, you should be able to
+start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
+or all tests (make test).
+
+
+=================================================================
+                               HDF
+=================================================================
+TBD
+
+
+
+=================================================================
+                               NDF
+=================================================================
+TBD
+
+
+

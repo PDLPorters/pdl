@@ -2,12 +2,14 @@
 # Slatec module
 
 use ExtUtils::MakeMaker;
+use Config;
 PDL::Core::Dev->import();
 
 # This mess sorts out the Fortran availability - KGB.
 # Depends on ExtUtils::F77
 
 BEGIN {
+   $donot = 0;
    $msg = ""; $forcebuild=0;
 
    if (defined $PDL::Config{WITH_SLATEC} && $PDL::Config{WITH_SLATEC}==0) {
@@ -19,11 +21,6 @@ BEGIN {
       print "\n   Will forcibly try and build PDL::Slatec on this system   \n\n";
       $forcebuild=1;
    }
-
-#    if ($^O =~ /win32/i) {
-#       $msg = "\n    Win32 systems not yet supported. Will not build PDL::Slatec    \n";
-#       goto skip unless $forcebuild;
-#    }
 
    if (exists $PDL::Config{F77CONF} && -f $PDL::Config{F77CONF}) {
      print "loading F77 configuration from $PDL::Config{F77CONF}...\n";
@@ -80,8 +77,28 @@ return if $donot;
 %hash = pdlpp_stdargs_int(@::pack);
 
 $hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
+
+if($Config{cc} eq 'cl') {
+# Link to MinGW's libg2c.a and libgcc.a, if appropriate
+# First check that ExtUtils::F77 is available
+  eval{require ExtUtils::F77};
+  unless($@) {
+    my @f = ();
+
+    for(split ' ', ExtUtils::F77->runtime) {
+       if($_ =~ /^\-L/) {
+         $_ =~ s#^\-L##;
+         if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
+         if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
+       }
+    }
+
+    for(@f) {$hash{OBJECT} .= ' ' . $_}
+  }
+}
+
 $hash{LIBS}[0] .= $f77->runtime ;
-$hash{clean}{FILES} .= " f77_underscore" .
+$hash{clean}{FILES} .= " SlatecProtos.h f77_underscore" .
   join '', map {" slatec/$_.o "} @slatecfiles;
 
 # Handle multiple compilers
@@ -113,12 +130,13 @@ sub MY::postamble {
         $mycompiler     = $f77->compiler();
         $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@::pack);
+	$hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map {
 ("
 
 slatec/$_\$(OBJ_EXT): slatec/$_.f 
-	$mycompiler -c -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
+	$mycompiler -c $hack_64bit -o slatec/$_\$(OBJ_EXT) $mycflags slatec/$_.f
 " )} @slatecfiles;
  
 }

@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 use blib;  # otherwise possible error on virgin systems not finding PDL::Core
 
 use PDL::LiteF;
@@ -8,21 +8,15 @@ BEGIN {
     # clean out the _Inline directory on every test
     # (may be OTT but ensures that we're always testing the latest code)
     #
-    require ExtUtils::Command;
-    local @ARGV = '_Inline';
-    &ExtUtils::Command::rm_rf;
+    require File::Path;
+    File::Path::rmtree (["_Inline"], 0, 0);
 
     eval 'use Inline 0.43';
     unless ($@) {
 	plan tests => 3;
     } else {
-	plan tests => 1;
-	print "ok 1 # Skipped: Inline not installed\n";
-	exit;
+	plan skip_all => "Skipped: Inline not installed";
     }
-    require ExtUtils::Command;
-    local @ARGV = '_Inline';
-    &ExtUtils::Command::rm_rf;
 }
 
 sub shape { join ',', $_[0]->dims }

@@ -55,6 +55,11 @@ ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
 
 unlink $file;
 
+SKIP: {
+   eval { require Astro::FITS::Header };
+
+   skip "Astro::FITS::Header not installed", 79 if $@;
+
 ########### Rudimentary table tests ################
 
 # note:
@@ -246,5 +251,7 @@ unless($PDL::Astro_FITS_Header) {
     }
     unlink 'x.fits';
 };
+
+}; # end of SKIP block
 
 1;

@@ -1507,7 +1507,7 @@ sub map {
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
   my $ndc = PDL::Basic::ndcoords(@dd);
-  my $idx = $me->invert($ndc->PDL_Double + 0.5);
+  my $idx = $me->invert($ndc->double + 0.5);
 
   barf "map: Transformation had no inverse\n" unless defined($idx);
 	
@@ -1588,7 +1588,7 @@ sub map {
 
 
   ### The first argument is a dummy to set $GENERIC.
-  $idx = PDL_Double($idx) unless($idx->type == PDL_Double);
+  $idx = double($idx) unless($idx->type == double);
   &PDL::_map_int( $in2->flat->index(0), 
 	$in2, $o2, $idx, 
 	$bound, $method, $big, $blur, $svmin, $flux );
@@ -2589,7 +2589,7 @@ sub t_fits {
   $n = 2 
     if($opt->{ignore_rgb} && $n==3 && $hdr->{NAXIS3} == 3);
 
-  my($matrix) = PDL->zeroes($hdr->{NAXIS});
+  my($matrix) = PDL->zeroes($hdr->{NAXIS},$hdr->{NAXIS});
   my($pre) = PDL->zeroes($n);
   my($post) = PDL->zeroes($n);
 
@@ -2606,7 +2606,7 @@ sub t_fits {
     #
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
-      $matrix->(($1),($2)) .= $hdr->{h};
+      $matrix->(($1-1),($2-1)) .= $hdr->{h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
@@ -2631,7 +2631,7 @@ sub t_fits {
 
       for my $h(@hgrab) {
 	$h =~ m/CP(\d{1,3})_(\d{1,3})/;  # Should always match
-	$cpm->(($1),($2)) .= $hdr->{h};
+	$cpm->(($1-1),($2-1)) .= $hdr->{h};
       }
       print "PDL::Transform::FITS: Detected CPi_j matrix: \n",$cpm,"\n"
 	if($PDL::Transform::debug && @hgrab);
@@ -3144,8 +3144,8 @@ sub t_spherical {
 
     my($me) = PDL::Transform::new($class);
 
-    $me->{params}->{idim} = 3;
-    $me->{params}->{odim} = 3;
+    $me->{idim}=3;
+    $me->{odim}=3;
 
     $me->{params}->{origin} = _opt($o,['o','origin','Origin']);
     $me->{params}->{origin} = PDL->zeroes(3)
@@ -3293,7 +3293,7 @@ sub t_projective {
   ### Set options...
 
 
-  $me->{params}->{idim} = _opt($o,['d','dim','Dim']);
+  $me->{params}->{idim} = $me->{idim} = _opt($o,['d','dim','Dim']);
 
   my $matrix;
   if(defined ($matrix=_opt($o,['m','matrix','Matrix']))) {
@@ -3303,6 +3303,8 @@ sub t_projective {
 
     $me->{params}->{idim} = $matrix->dim(0)-1 
       unless(defined($me->{params}->{idim}));
+
+    $me->{idim} = $me->{params}->{idim};
 
     die "t_projective: matrix not compatible with given dimension (should be N+1xN+1)\n"
       unless($me->{params}->{idim}==$matrix->dim(0)-1);
@@ -3343,7 +3345,8 @@ sub t_projective {
 
   $me->{params}->{idim} = 2 unless defined $me->{params}->{idim};
   $me->{params}->{odim} = $me->{params}->{idim};
-  
+  $me->{idim} = $me->{params}->{idim};
+  $me->{odim} = $me->{params}->{odim};
   
   $me->{func} = sub {
     my($data,$o) = @_;

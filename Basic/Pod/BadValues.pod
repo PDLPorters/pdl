@@ -39,7 +39,14 @@ I<IF> the option C<BADVAL_USENAN> is set to 1 in your config file.  Otherwise
 special values are used (L<Default bad values|/Default bad values>).  I
 do not have any benchmarks to see which option is faster.
 
+There is an experimental feadture C<BADVAL_PER_PDL> which, if set,
+allows you to have different bad values for separate piddles of the
+same type. This currently does not work with the C<BADVAL_USENAN> option;
+if both are set then PDL will ignore the C<BADVAL_USENAN> value.
+
 =head2 Code increase due to bad values
+
+The following comparison is out of date!
 
 On an i386 machine running linux and perl 5.005_03, I measured the 
 following sizes (the Slatec code was compiled in, but none of the other 
@@ -229,8 +236,8 @@ It is also a C<nop> for floating-point types when C<BADVAL_USENAN> is true.
 Note that changes to the bad value are I<NOT> propogated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
-See discussion below.  It's not a problem for floating-point types, since
-you can't change their badvalue.
+See discussion below.  It's not a problem for floating-point types
+which use NaN, since you can not change their badvalue.
 
 =head2 Bad values and boolean operators
 
@@ -256,8 +263,12 @@ all elements are bad).
 
 =head2 A bad value for each piddle, and related issues
 
-The following is relevant only for integer types, where there is a choice
-of value to use as the bad flag.
+An B<experimental> option C<BADVAL_PER_PDL> has been added to F<perldl.conf>
+to allow per-piddle bad values. The documentation has not been updated
+to account for this change.
+
+The following is relevant only for integer types, and for floating-point
+types if C<BADVAL_USENAN> was not set when PDL was built.
 
 Currently, there is one bad value for each datatype. The code is written so 
 that we could have a separate bad value for each piddle (stored in the 
@@ -279,8 +290,9 @@ implementation.  It would almost certainly cause problems elsewhere though!
 =head1 IMPLEMENTATION DETAILS
 
 During a C<perl Makefile.PL>, the file F<Basic/Core/badsupport.p> is created;
-this file contains the values of the C<WITH_BADVAL> and C<BADVAL_USENAN>
-variables, and should be used by code that is executed before the F<PDL::Config>
+this file contains the values of the C<WITH_BADVAL>, C<BADVAL_USENAN>
+and C<BADVAL_PER_PDL> variables, and should be used by code that is
+executed before the F<PDL::Config>
 file is created (e.g. F<Basic/Core/pdlcore.c.PL>.  
 However, most PDL code will just need to access the C<%PDL::Config>
 array (e.g. F<Basic/Bad/bad.pd>) to find out whether bad-value support is required.
@@ -315,8 +327,8 @@ BOOT code of F<Basic/Core/Core.xs.PL> where the values are initialised to
 (hopefully) sensible values.
 See F<PDL/Bad/bad.pd> for read/write routines to the values.
 
-All this means that the internals of PDL are not binary compatible with
-PDL 2.1.1 and earlier; external modules will need to be recompiled.
+The addition of the C<BADVAL_PER_PDL> option has resulted in additional
+changes to the internals of piddles. These changes are not documented yet.
 
 =head2 Why not make a PDL subclass?
 
@@ -388,18 +400,25 @@ corresponding C<pp_def> options:
 =item FindBadStatusCode 
 
 By default, C<FindBadStatusCode> creates code which sets 
-C<__privtrans-E<gt>bvalflag> depending on the state of the bad flag
+C<$PRIV(bvalflag)> depending on the state of the bad flag
 of the input piddles: see C<findbadstatus> in F<Basic/Gen/PP.pm>.
+User-defined code should also store the value of C<bvalflag>
+in the C<$BADFLAGCACHE()> variable.
 
 =item CopyBadStatusCode
 
 The default code here is a bit simpler than for C<FindBadStatusCode>:
 the bad flag of the output piddles are set if 
-C<__privtrans-E<gt>bvalflag> is true after the code has been
+C<$BADFLAGCACHE()> is true after the code has been
 evaluated.  Sometimes C<CopyBadStatusCode> is set to an empty string,
 with the responsibility of setting the badflag of the output piddle
 left to the C<BadCode> section (e.g. the C<xxxover> routines
 in F<Basic/Primitive/primitive.pd>).
+
+Prior to PDL 2.4.3 we used C<$PRIV(bvalflag)>
+instead of C<$BADFLAGCACHE()>. This is dangerous since the C<$PRIV()>
+structure is not guaranteed to be valid at this point in the
+code.
 
 =back
 
@@ -506,6 +525,9 @@ there are:
   '$ISPDLSTATEBAD(a)'        -> '((a->state & PDL_BADVAL) > 0)'
   '$ISPDLSTATEGOOD(a)'       -> '((a->state & PDL_BADVAL) == 0)'
 
+In PDL 2.4.3 the C<$BADFLAGCACHE()> macro was introduced for use in
+C<FindBadStatusCode> and C<CopyBadStatusCode>.
+
 =head2 Handling NaN values
 
 There are two issues:
@@ -557,6 +579,9 @@ both F<Basic/Core/Core.xs.PL> and F<Basic/Bad/bad.pd>):
   /* for little-endian machines */
   static union { unsigned char __c[4]; float __d; } 
         __pdl_nan = { { 0, 0, 0xc0, 0x7f } };
+
+This approach should probably be replaced by library routines such as
+C<nan("")> or C<atof("NaN")>.
 
 To find out whether a particular machine is big endian, use the
 routine C<PDL::Core::Dev::isbigendian()>.
@@ -612,10 +637,15 @@ It would also mean that the pdl structure would need to have a
 variable to store its bad value, which would mean binary incompatability
 with previous versions of PDL with bad value support.
 
+As of 17 March 2006, PDL contains the B<experimental> C<BADVAL_PER_PDL>
+configuration option which, if selected, adds per-piddle bad values.
+
 =head2 Dataflow of the badflag
 
 Currently changes to the bad flag are propogated to the children of a piddle,
-but perhaps they should also be passed on to the parents as well.
+but perhaps they should also be passed on to the parents as well. With the
+advent of per-piddle bad values we need to consider how to handle changes
+to the value used to represent bad items too.
 
 =head1 EVERYTHING ELSE
 
@@ -652,6 +682,8 @@ Look at using per-piddle bad values.  Would mean a change to the pdl structure
 (ie binary incompatability) and the routines in C<Basic/Core/pdlconv.c.PL>
 would need changing to handle this.  Most other routines I<should not>
 need to be changed ...
+
+See the B<experimental> C<BADVAL_PER_PDL> option.
 
 =item *
 
@@ -703,8 +735,12 @@ in F<Basic/Bad/bad.pd> in particular. Any suggestions appreciated.
 
 =head1 AUTHOR
 
-Copyright (C) Doug Burke (burke@ifa.hawaii.edu), 2000.
-Commercial reproduction of this documentation in a different format is forbidden.
+Copyright (C) Doug Burke (djburke@cpan.org), 2000, 2006.
+
+The per-piddle bad value support is by Heiko Klein (2006).
+
+Commercial reproduction of this documentation in a different format
+is forbidden.
 
 =cut
 

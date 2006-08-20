@@ -76,6 +76,17 @@ the name of the display, eg (C<'hostname.foobar.com:0'>)
    PDL::Graphics::PLplot->new(DEV => 'png',  FILE => 'test.png');
    PDL::Graphics::PLplot->new(DEV => 'xwin', FILE => ':0');
 
+=head3 OPTS
+
+Set plotting options.  See the PLplot documentation for the complete
+listing of available options.  The value of C<'OPTS'> must be a hash
+reference, whose keys are the names of the options.  For instance, to obtain
+PostScript fonts with the ps output device, use:
+
+=for example
+
+   PDL::Graphics::PLplot->new(DEV => 'ps', OPTS => {drvopt => 'text=1'});
+
 =head3 MEM
 
 This option is used in conjunction with C<< DEV => 'mem' >>.  This option
@@ -1888,6 +1899,7 @@ void c_plbop(void);
 void c_plbox(const char *xopt, PLFLT xtick, PLINT nxsub, const char *yopt, PLFLT ytick, PLINT nysub);
 void c_plbox3(const char *xopt, const char *xlabel, PLFLT xtick, PLINT nsubx, const char *yopt, const char *ylabel, PLFLT ytick, PLINT nsuby, const char *zopt, const char *zlabel, PLFLT ztick, PLINT nsubz);
 #void c_plxormod(PLINT mode, PLINT *status);
+void c_plclear(void);
 void c_plcol0(PLINT icol0);
 void c_plcol1(PLFLT col1);
 void c_plcpstrm(PLINT iplsr, PLINT flags);

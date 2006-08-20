@@ -1,3 +1,85 @@
+pdl (1:2.4.3-1) unstable; urgency=low
+
+  * new upstream
+  * enable gd, proj and HDF support
+  * force-enable WITH_3D, as on debian autobuilders, there is no 
+    $DISPLAY and therefore the autodetection does not work
+
+ -- Henning Glawe <glaweh@debian.org>  Thu, 17 Aug 2006 12:27:03 +0200
+
+pdl (1:2.4.2-6) unstable; urgency=low
+
+  * Graphics::TriD did not compile anymore. Backport this module from HEAD.
+  * update standarts-version to 3.7.2
+  * build-depend on libxext-dev, as the TriD GL needs it
+  * incorporate OpenGL build fix from upstream BTS 1505132
+
+ -- Henning Glawe <glaweh@debian.org>  Tue, 13 Jun 2006 10:14:39 +0200
+
+pdl (1:2.4.2-5) unstable; urgency=low
+
+  * add workaround for broken ExtUtils::MakeMaker in perl 5.8.8 
+  	(closes: #356975):
+    - as EU::MM generated Makefiles reference PERLRUN instead of PERLRUNINST,
+      explicitly "use blib;" in the BAD{,2}_demo.pm.PL
+
+ -- Henning Glawe <glaweh@debian.org>  Fri,  2 Jun 2006 10:17:39 +0200
+
+pdl (1:2.4.2-4) unstable; urgency=low
+
+  * make the xlibs-dev transition for x.org 6.9 (closes: #346926):
+    - build-depending on x-dev should be enough according to 
+      http://www.inutil.org/jmm/xlibs/xlibs-split-2005-11-15.tar-bz2
+  * Suggest libplplot-dev and tell about the PDL::Graphics::PLplot 
+    examples it contains in pdl's README.Debian
+
+ -- Henning Glawe <glaweh@debian.org>  Mon,  9 Jan 2006 09:15:31 +0100
+
+pdl (1:2.4.2-3) unstable; urgency=low
+
+  * change Build-dependencies to build with xorg (closes: #318258)
+  * add libinline-perl to suggests
+  * add perl readline modules to suggests
+
+ -- Henning Glawe <glaweh@debian.org>  Thu, 14 Jul 2005 14:49:42 +0000
+
+pdl (1:2.4.2-2) unstable; urgency=low
+
+  * use dpatch for patch management
+  * split out Makefile clean target patch
+  * split out patch preventing the generation of an empty manpage pdl.1p
+  * get fix for transform.pd from cvs (problem reported on pdl mailing list)
+  * fix a second problem with PDL_Double used not in C code in transform.pd
+  * patch mkhtmldoc.pl to generate relative links instead of absolute ones;
+    absolute pathnames confused dhelp sometimes.
+  * move debhelper template in prerm up, so the doc-base remove call is done
+    before the dynamically generated html files are removed
+  * patch remove obsolete upstream debian files until these changes are
+    checked in.
+  * mention new pdl htmldoc location in README.Debian
+
+ -- Henning Glawe <glaweh@debian.org>  Sun, 16 Jan 2005 18:42:29 +0100
+
+pdl (1:2.4.2-1) unstable; urgency=low
+
+  * new upstream release
+  * remove comment about not including m51.fits from debian/copyright
+  * re-import COPYING to debian/copyright
+  * include perldl.conf used in "official" package as debian/perldl.conf
+  * install Known_problems to docdir
+  * fix clean target in upstream makefiles
+  * use upstream makefile distclean target in debian/rules clean target
+  * fix description+synopsis
+  * remove references to obsolete websites from README
+  * rework packaging with debhelper
+  * build html docs in /usr/share/doc/pdl/html/PDL and install doc-base 
+    entry for this
+  * remove lintian override, slatec is now built with -fPIC
+  * disable building of pdl.1p from pdl.PL, so the correct pdl.1p from
+    Basic/Pod/Intro.pod is included
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 10 Jan 2005 15:59:25 +0100
+
 pdl (1:2.4.1-1) unstable; urgency=low
 
   * new upstream release

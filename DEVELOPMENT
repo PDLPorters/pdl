@@ -1,7 +1,9 @@
-This file has some information on how to get access to the latest PDL
-sources (mainly of interest for potential developers). This should not
-be confused with the latest public release which will always be
-available from CPAN (if you don't know what that is check the FAQ).
+
+This file has some information on how to get access to
+the latest PDL sources (mainly of interest for potential
+developers). This should not be confused with the latest
+public release which will always be available from CPAN (if
+you don't know what that is check the FAQ).
 
 Public CVS repository at www.sourceforge.org
 --------------------------------------------
@@ -10,7 +12,7 @@ From version PDL-2.003 onwards the source distribution is in a
 publicly accessible CVS repository. The project is hosted at the
 sourceforge site at
 
-  http://www.sourceforge.org/project/?form_grp=612
+  http://sourceforge.net/projects/pdl/
 
 Starting from that URL you will find directions on how to check out
 the current sources, browse the CVS repository online, etc.
@@ -21,12 +23,13 @@ URL) to apply for write access to the repository. We strongly believe
 in the power of open source development!
 
 If you do not know how to use CVS try 'man cvs' or 'info cvs' and/or
-have a look at some of the online tutorials available on the web. A
-nice concise one is at
+have a look at some of the online tutorials available on the web.
+The main CVS home page is at
 
-  http://www.cyclic.com/cvs/doc-blandy-text.html
+  http://www.nongnu.org/cvs/
 
-and a very good/complete one is the online version of the CVS book at
+and a very good/complete CVS reference is the online version of the
+CVS book at
 
   http://cvsbook.red-bean.com/cvsbook.html
 
@@ -53,19 +56,21 @@ PDL CVS repository.
 
 2) Make sure you add a test case in the 't' directory for any
    significant additional capability you add to the PDL package.
-   Please use one the Test module available within Perl - ie
-   "use Test;" - rather than doing-it-yourself as most of our tests
-   do!
+   Please use one the of the Test modules available within Perl
+   rather than doing-it-yourself as many of our tests do!  The
+   recommended testing module is Test::More which now distributed
+   with the perl distribution.
    
 3) Don't commit before you successfully built and passed 'make
-   test'. But then again, don't keep your changes private for too long
-   to avoid conflicts with other developers.
+   test'. But then again, don't keep your changes private for too
+   long to avoid conflicts with other developers.
  
 4) Bugs reported on the list should be entered into the bug database
    and bugs closed when a patch has been committed as a fix. (Primary
    responsibility for this task is the pumpking, but other devels
    should be able to help.)
   
+
 PDL Developer Notes:
 --------------------
 
@@ -77,8 +82,8 @@ improve or add to PDL (please do):
 See the pdl-porters email list; details for subscription and access to
 the archives can be found on the PDL web page at:
 
-  http://pdl.perl.org/maillists/index_en.html
-  http://pdl.perl.org/maillists/index_de.html
+  http://pdl.perl.org/maillists/index_en.html  (English)
+  http://pdl.perl.org/maillists/index_de.html  (German)
  
 *) Access to PDL's configuration
 
@@ -86,7 +91,7 @@ If you need to access the configuration for PDL then use the
 %PDL::Config variable. Prior to 2.4.1 this was a mess since you
 had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
 *.pm/tests. The build process has been changed (I hesitate to say
-"cleaned up" ;) to just use %PDL::Config.
+"cleaned up" ;) to just use %PDL::Config consistently throughout.
 
 - %PDL::Config is automatically available to you when you are in a
   Makefile.PL within the PDL distribution. You can change the hash
@@ -204,3 +209,66 @@ variable).
    it easier to merge back any new changes made to the branch (if they
    occur). The CVS manual contains more details on this.
   
+
+-------------------------------------------------------------
+Notes on transferring an external PDL module to the PDL
+        source tree for distribution with PDL.
+-------------------------------------------------------------
+
+Suppose you have developed a PDL module that resides in a
+standalone source tree. You typically will need to have PDL
+installed on your system before you can build this module.
+
+If you wish to migrate the module into the PDL distribution
+you will need to make certain changes to the module source
+in order to built in the PDL distribution. You will need to
+removed dependecies on a pre-existing PDL installation for
+configuration and build of your module. This is because as
+part of the PDL distribution, it is possible that PDL has
+never been installed. Build processes based on PDL will then
+fail.
+
+Following is some specific advice that can help you do this.
+
+[ These notes are very preliminary and are expected to be ]
+[ revised and/or replaced by improved documentation.      ]
+
+Changes that must be made to files in your module source tree
+if you are building the module from a .pd file :
+
+Makefile.PL:
+-- You must remove the line 'use PDL::Core::Dev;'.
+
+-- The line 'PDL::Core::Dev->import();' must be present
+
+-- You must change the call from 'pdlpp_postamble' to a call to
+   'pdlpp_postamble_int' (with the same arguments.)
+
+-- It seems that most modules in the PDL source use 
+   VERSION_FROM => '../../Basic/Core/Version.pm',
+   but not all of them in order that their version tracks
+   the PDL release version.  It is possible to maintain
+   separate versioning even within the PDL source tree but
+   it may make things confusing.
+
+Make certain that you make these changes to each 'Makefile.PL' in
+your source tree.
+
+
+Changes to the existing PDL source tree:
+
+-- Edit the 'Makefile.PL' in the directory above your module source
+   to add your module directory name to
+   'DIR => [ qw/Module1 AnotherModule / ]'.
+
+-- Add your test files (.t files) to the PDL/t directory renaming if
+   required to avoid namespace conflicts.
+
+-- Does your module depend on any libraries or external
+   programs ?  If so, doocument the required programs with version
+   numbers in PDL/DEPENDENCIES and add the PREREQ_* option to the
+   main Makefile.PL if required.
+
+-- If your module requires external libraries or header files,
+   add a section to perldl.conf.  The hash values with be available
+   in your module's 'Makefile.PL' as $PDL::Config{WITH_MYMODULE},...

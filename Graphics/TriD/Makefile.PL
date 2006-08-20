@@ -30,7 +30,7 @@ if ($^O =~ /win32/i) {
 	 ) if defined $PDL::Config{OPENGL_LIBS};
 
     my $lib = ""; # Gets the first lib found...
-    my @patterns = qw( GL.a GL.so MesaGL.a MesaGL.so );
+    my @patterns = qw( GL.a GL.so GL.dll.a MesaGL.a MesaGL.so Mesa.dll.a );
 
     my %Ldirs = ();
     foreach my $dir (@check_dirs) {

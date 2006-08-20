@@ -44,18 +44,25 @@ print OUT <<"!WITH!SUBS!";
 
 
 print OUT <<'!HEADER!'
+#undef FOODEB
+
 #define PDL_CORE      /* For certain ifdefs */
 #include "pdl.h"      /* Data structure declarations */
 #include "pdlcore.h"  /* Core declarations */
 
-#define sv_undef(sv) (!(sv) || ((sv)==&PL_sv_undef) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)))
+/***************
+ * Paranoid check is commented out because SvPOK breaks some kinds of perl scalars.
+ * (blessed scalars like '$#$foo' get set to zero in perl 5.8.x)
+ */
+/*   #define sv_undef(sv) (  (!(sv) || ((sv)==&PL_sv_undef) ) || !(SvNIOK(sv) || SvPOK(sv) || SvROK(sv)) )  */
+#define sv_undef(sv)  ( (!(sv) || ((sv)==&PL_sv_undef)) || !(SvNIOK(sv) || (SvTYPE(sv)==SVt_PVMG) || SvPOK(sv) || SvROK(sv)))
 
 !HEADER!
   ;
 
-if($^O =~ /MSWin/) {
-  # _finite in CV++ 4.0 
-  print <<'FOO'
+if($Config{cc} eq 'cl') {
+  # _finite in CV++ 4.0
+  print OUT <<'FOO';
 #define finite _finite
 #include <float.h>
 FOO
@@ -138,8 +145,16 @@ print OUT <<'!NO!SUBS!';
 }
 
 /* Check minimum datatype required to represent number */
-
+/* Microsoft compilers do some unbelievable things - hence 
+   some #ifdef's inserted by Sisyphus */
+#ifdef _MSC_VER
+#define TESTTYPE(b,a) {a foo = nv; a bar = foo; foo += 0; if(nv == bar) return b;}
+#else
 #define TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
+#endif
+#ifdef _MSC_VER
+#pragma optimize("", off)
+#endif
 int pdl_whichdatatype (double nv) {
 !NO!SUBS!
 
@@ -171,6 +186,11 @@ int pdl_whichdatatype_double (double nv) {
 	croak("Something's gone wrong: %lf cannot be converted by whichdatatype_double",
 		nv);
 }
+
+#ifdef _MSC_VER
+#pragma optimize("", on)
+#endif
+
 /* Make a scratch data existence for a pdl */
 
 void pdl_makescratchhash(pdl *ret,double data, int datatype) {
@@ -225,8 +245,6 @@ pdl* SvPDLV ( SV* sv ) {
 
       ret = pdl_new();  /* Scratch pdl */
 
-/*       ret->sv = (void*) sv; !! */
-
 /* Scratch hash for the pdl :( - slow but safest. */
 
 	/* handle undefined values */		       
@@ -271,15 +289,15 @@ print OUT <<'!NO!SUBS!';
 
 	  }
        else { /* Perl Int (e.g. 2) */
-          data = SvNV(sv);
+          data = SvNV(sv);  
           datatype = pdl_whichdatatype(data);
        }
        pdl_makescratchhash(ret,data,datatype);
 
        return ret;
-   }
+   } /* End of scalar case */
 
-#undef FOODEB
+
 #ifdef FOODEB
 	printf("SvPDLV\n");
 	printf("SV: %d\n",sv);
@@ -348,15 +366,24 @@ print OUT <<'!NO!SUBS!';
 	printf("SvRV2: %d\n",SvRV(sv));
 	printf("SvTYPE2: %d\n",SvTYPE(SvRV(sv)));
 #endif
-   }
+    }
 
-
-   if (SvTYPE(SvRV(sv)) != SVt_PVMG)
-      croak("Error - argument is not a recognised data structure");
+    if (SvTYPE(SvRV(sv)) != SVt_PVMG) 
+      croak("Error - tried to use an unknown data structure as a PDL");
+    else if( !( sv_derived_from( sv, "PDL") ) )
+      croak("Error - tried to use an unknown Perl object type as a PDL");
 
    sv2 = (SV*) SvRV(sv);
 
-#ifdef FOIJFSOEFJSEOFJSOEIJFOISJFEFSF
+
+/* The below "CRUFTY" code is, I believe, intended to make (e.g.)
+ * "$a = $b" copy the underlying PDL for $b, rather than simply
+ * generating a reference to the same PDL.  It is commented out because
+ * dataflow is the current default (you have to ask for a copy explicitly,
+ * if you want one).
+ *   --CED 16-Jan-2005
+ */
+#ifdef OLD_CRUFTY_CODE_FOR_ASSIGNMENT_AVOIDANCE
    /* Now, do magic: check if there are more than this one ref
       to this internal sv. If there are, we've been "="'ed
       (assigned) elsewhere and therefore must copy to keep
@@ -372,13 +399,12 @@ print OUT <<'!NO!SUBS!';
 	SetSV_PDL(sv,pnew);
 	ret = pnew;
    } else {
-#else
 	   ret = INT2PTR(pdl *,SvIV(sv2));
-#endif
-#ifdef FOOOOOOOO
    }
+#else
+    ret = INT2PTR(pdl *, SvIV(sv2));
 #endif
-
+   
    if(ret->magicno != PDL_MAGICNO) {
    	croak("Fatal error: argument is probably not a piddle, or\
  magic no overwritten. You're in trouble, guv: %d %d %d\n",sv2,ret,ret->magicno);
@@ -765,9 +791,16 @@ static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
                                PDL_Long ndims, int level)
 {
   int i, nels=1;
-  
+
   for (i=0; i<ndims-level;i++)
      nels *= pdims[i];
+
+#ifdef FOODEB
+  printf("pdl_setzero_$type: pdata=%d (0x%x), level=%d, ndims=%d\\n",
+	 pdata,pdata, level, ndims);
+  printf("nels = %d\\n",nels);
+#endif  
+
   for (i=0; i<nels; i++)
     pdata[i] = 0;
 }
@@ -819,16 +852,19 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                             stride,
                             pdl,
                             plevel+1,
-                            pptr+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
+                            ((PDL_Byte *)pptr)+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
                            );
     }
 
     /* pad this level to zero if there are not enough elements */
-    if(i < pdims[level]) 
+      if(i < pdims[level]) {
+#ifdef FOODEB
+	printf("kludge_copy_$type: looks like we're padding... i=%d, level=%d,pdims[level]=%d,stride=%d\\n",i,level,pdims[level],stride);
+#endif
 	if(level<ndims-1) {
 	    pdata += stride*i;
 	    pdims[level] -= i;
-	    pdl_setzero_$type(pdata,pdims,ndims,level);
+	    pdl_setzero_$type(pdata,pdims,ndims,level+1);
 	    pdims[level] += i;
 	} else {
 	    pdata += stride * i;
@@ -837,6 +873,7 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
 		pdata += stride;
 	    }
 	}
+      }
   } else {
       switch(pdl->datatype) {
 !WITH!SUBS!
@@ -862,8 +899,17 @@ print OUT <<"!WITH!SUBS!";
 
       /* Pad subtree to zero if the PDL is not deep enough */
 	  if(level < ndims-1) {
-	      pdata += stride/pdims[level];
-	      pdl_setzero_$type(pdata,pdims,ndims,level+1);
+	    int ii, ss;
+	    ss=stride/pdims[level+1];
+#ifdef FOODEB
+	    printf("kludge_copy: padding complete dimension... stride=%d, level=%d, pdims[%d]=%d, plevel=%d, pdl->dims[%d]=%d, ss=%d\\n",
+		   stride,level,level,pdims[level],
+		   plevel,0,pdl->dims[0],ss);
+#endif
+	    for(ii=1;ii<pdims[level+1];ii++)
+	      pdl_setzero_$type(pdata + ii * ss, pdims, ndims, level+2);
+
+//	      pdl_setzero_$type(pdata+1,pdims,ndims,level+1);
 	  }
     
   }
@@ -887,6 +933,13 @@ print OUT <<"!WITH!SUBS!";
  *   (I am wary of action-at-a-distance)
  *
  *  -CED, 28-Jul-2004
+ *
+ *
+ *   -  pdata is the data pointer from a PDL
+ *   -  av is the array ref (or PDL) to use to fill the data with,
+ *   -  pdims is the dimlist
+ *   -  ndims is the size of the dimlist
+ *   -  level is the recursion level, which is also the dimension that we are filling 
  */
  
 long pdl_setav_$type(PDL_$type* pdata, AV* av,
@@ -906,14 +959,27 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
      SV *sv = get_sv("PDL::undefval",0);
      undefval = (sv_undef(sv)) ? 0 : (double)SvNV(sv);
 
+/* #ifdef FOODEB */
      sv = get_sv("PDL::debug",0);
      debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+/* #endif */
  }
 
   for (i=0;i<ndims-1-level;i++)
     stride *= pdims[i];
 
   for (i=0;i<=len;i++,pdata += stride) {
+
+
+#ifdef FOODEB
+    if(debug_flag>=3) {
+      int j;
+      for(j=0;j<level;j++) {
+	printf("  ");
+      }
+      printf("i=%d; stride=%d; pdata=%d (0x%x)\\n",i,stride,pdata, pdata);
+    }
+#endif
 
     el = *(av_fetch(av,i,0));
     if (SVavref(el))

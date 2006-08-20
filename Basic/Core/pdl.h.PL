@@ -5,10 +5,13 @@ use File::Basename qw(&basename &dirname);
 
 require "pdl_hfiles.p";
 require "mymalloc.p";
+require "badsupport.p";
 
 # how many variable types (ie PDL_Byte, ...) are there?
 require 'Types.pm';
 my $ntypes = $#PDL::Types::names;
+
+
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -222,6 +225,8 @@ typedef struct pdl_transvtable {
 					(means whether malloced or not) */ \
         pdl *pdls[np]; /* The pdls involved in the transformation */ \
         int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
+        int has_badvalue; \
+        double badvalue; \
 	int __datatype
 
 #define PDL_TR_MAGICNO 0x91827364
@@ -312,6 +317,11 @@ struct pdl {
 
    void *datasv;	/* Pointer to SV containing data. Refcnt inced */
    void *data;		  /* Null: no data alloced for this one */
+
+   /* bad value stored as double, since get_badvalue returns a double */
+   double badvalue;
+   int has_badvalue;    /* required by pdlapi.c */
+
    int nvals;		/* How many values allocated */
    int datatype;
    PDL_Long   *dims;      /* Array of data dimensions */
@@ -373,7 +383,8 @@ struct pdl {
 #define PDLMAX(a,b) ((a) > (b) ? (a) : (b))
 
 #define DECL_RECURSE_GUARD static int __nrec=0;
-#define START_RECURSE_GUARD __nrec++; if(__nrec > 100) {die("PerlDL:Internal Error:Recursion exceeded\n");}
+#define START_RECURSE_GUARD __nrec++; if(__nrec > 1000) {__nrec=0; die("PDL:Internal Error: data structure recursion limit exceeded (max 1000 levels)\n\tThis could mean that you have found an infinite-recursion error in PDL, or\n\tthat you are building data structures with very long dataflow dependency\n\tchains.  You may want to try using sever() to break the dependency.\n");}
+#define ABORT_RECURSE_GUARD __nrec=0;
 #define END_RECURSE_GUARD __nrec--;
 
 #define PDL_ENSURE_ALLOCATED(it) ((it->state & PDL_ALLOCATED) ||  \
