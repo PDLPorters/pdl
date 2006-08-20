@@ -403,10 +403,11 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/perldl pdldoc/;
 
 @prereq = (
-	   File::Spec       => 0.6,
-	   Filter::Util::Call => 0, # for PDL::NiceSlice
-	   Text::Balanced     => 0, # for PDL::NiceSlice
-	   Inline             => 0.43,
+	   'Astro::FITS::Header' => 0,
+	   'File::Spec'          => 0.6,
+	   'Filter::Util::Call'  => 0, # for PDL::NiceSlice
+	   'Text::Balanced'      => 0, # for PDL::NiceSlice
+	   'Inline'              => 0.43,
 	  );
  push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
@@ -430,7 +431,7 @@ if($^O !~ /mswin32/i) {
 # 
 
 my $ccflags =  $Config{ccflags};
-if($ENV{HOSTTYPE} =~ m/x86_64/) {
+if($Config{archname}=~m/x86_64/) {
     $ccflags .= " -fPIC";
 }
 

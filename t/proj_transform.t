@@ -41,13 +41,14 @@ BEGIN
       && $PDL::Config{OPENGL_LIBS} 
       && $PDL::Config{WITH_3D} 
       && $PDL::Config{GL_BUILD} 
+      && $PDL::Config{WITH_BADVAL}
       && hasDISPLAY() )
    {
       plan tests => 4;
    }
    else
    {
-      plan skip_all => "PDL::Transform::Proj4 requires the Proj4 & TridD module.";
+      plan skip_all => "PDL::Transform::Proj4 requires the Proj4 & TridD module and Bad Values enabled.";
    }
 }
 

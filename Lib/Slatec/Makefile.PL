@@ -2,6 +2,7 @@
 # Slatec module
 
 use ExtUtils::MakeMaker;
+use Config;
 PDL::Core::Dev->import();
 
 # This mess sorts out the Fortran availability - KGB.
@@ -129,7 +130,7 @@ sub MY::postamble {
         $mycompiler     = $f77->compiler();
         $mycflags       = $f77->cflags();
 	my $orig = pdlpp_postamble_int(@::pack);
-	$hack_64bit = ($ENV{HOSTTYPE}=~m/x86_64/?" -fPIC " : "");
+	$hack_64bit = ($Config{archname}=~m/x86_64/ ?" -fPIC " : "");
 	$orig =~ s/:\s*slatec\.pd/: slatec.pd/;
 	$orig .join "\n",map {
 ("

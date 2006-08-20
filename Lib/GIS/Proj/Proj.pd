@@ -20,7 +20,7 @@ $VERSION = "1.32";
 pp_addpm(<<'EODOC');
 =head1 NAME
 
-PDL::GIS::Proj
+PDL::GIS::Proj - PDL interface to the Proj4 projection library.
 
 =head1 DESCRIPTION
 
@@ -30,8 +30,8 @@ For more information on the proj library, see: http://www.remotesensing.org/proj
 
 =head1 AUTHOR
 
-Judd Taylor, USF IMaRS
-judd@marine.usf.edu
+Judd Taylor, Orbital Systems, Ltd.
+judd dot t at orbitalsystems dot com
 
 =head1 DATE
 
@@ -39,28 +39,28 @@ judd@marine.usf.edu
 
 =head1 CHANGES
 
-=item 1.32 (29 March 2006) Judd Taylor
+=head2 1.32 (29 March 2006) Judd Taylor
 
     - Getting ready to merge this into the PDL CVS. 
     
-=item 1.31 (???) Judd Taylor
+=head2 1.31 (???) Judd Taylor
 
     - Can't remember what was in that version
 
-=item 1.30 (16 September 2003) Judd Taylor
+=head2 1.30 (16 September 2003) Judd Taylor
 
     - The get_proj_info() function actually works now.
 
-=item 1.20 (24 April 2003) Judd Taylor
+=head2 1.20 (24 April 2003) Judd Taylor
 
     - Added get_proj_info().
 
-=item 1.10 (23 April 2003) Judd Taylor
+=head2 1.10 (23 April 2003) Judd Taylor
 
     - Changed from using the proj_init() type API in projects.h to the
     - proj_init_plus() API in proj_api.h. The old one was not that stable...
 
-=item 1.00 (18 March 2003) Judd Taylor
+=head2 1.00 (18 March 2003) Judd Taylor
 
     - Initial version
 
@@ -75,8 +75,6 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 =head1 SUBROUTINES
-
-=over 4
 
 =cut
 EODOC
@@ -94,9 +92,7 @@ EOHDR
 
 pp_addpm(<<'EOPM');
 
-=item fwd_transform($lon(pdl), $lat(pdl), $params)
-
-=over 4
+=head2 fwd_transform($lon(pdl), $lat(pdl), $params)
 
 Proj4 forward transformation $params is a string of the projection transformation
 parameters.
@@ -104,7 +100,8 @@ parameters.
 Returns two pdls for x and y values respectively. The units are dependant on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-=back
+BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
+of $x and $y to BAD
 
 =cut
 sub fwd_transform
@@ -120,9 +117,7 @@ sub fwd_transform
     return ($x, $y);
 } # End of fwd_transform()...
 
-=item inv_transform($x(pdl), $y(pdl), $params)
-
-=over 4
+=head2 inv_transform($x(pdl), $y(pdl), $params)
 
 Proj4 inverse transformation $params is a string of the projection transformation
 parameters.
@@ -130,7 +125,8 @@ parameters.
 Returns two pdls for lat and lon values respectively. The units are dependant on Proj4
 behavior. They will be PDL->null if an error has occurred.
 
-=back
+BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elements 
+of $x and $y to BAD
 
 =cut
 sub inv_transform
@@ -145,16 +141,12 @@ sub inv_transform
     return ($lon, $lat);
 } # End of fwd_transform()...
 
-=item get_proj_info($params_string)
-
-=over 4
+=head2 get_proj_info($params_string)
 
 Returns a string with information about what parameters proj will
 actually use, this includes defaults, and +init=file stuff. It's 
 the same as running 'proj -v'. It uses the proj command line, so
 it might not work with all shells. I've tested it with bash.
-
-=back
 
 =cut
 sub get_proj_info
@@ -181,8 +173,9 @@ pp_def( '_fwd_trans',
         Inplace => ['lon', 'x', 'lat', 'y'],
         OtherPars => 'char* params;',
         HandleBad => 1,
-        BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
-                  . 'the corresponding elements of $x and $y to BAD',
+        Doc => undef,
+        #BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
+        #          . 'the corresponding elements of $x and $y to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans()";
@@ -290,8 +283,9 @@ pp_def( '_fwd_trans_inplace',
         GenericTypes => ['F', 'D'],
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
-        BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
-                  . 'the corresponding elements of $x and $y to BAD',
+        Doc => undef,
+        #BadDoc => 'Ignores bad elements of $lat and $lon, and sets '
+        #          . 'the corresponding elements of $x and $y to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_fwd_trans_inplace()";
@@ -388,8 +382,9 @@ pp_def( '_inv_trans',
         GenericTypes => ['D'],
         OtherPars => 'char* params;',
         HandleBad => 1,
-        BadDoc => 'Ignores bad elements of $x and $y, and sets '
-                  . 'the corresponding elements of $lon and $lat to BAD',
+        Doc => undef,
+        #BadDoc => 'Ignores bad elements of $x and $y, and sets '
+        #          . 'the corresponding elements of $lon and $lat to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char errstr[255];
@@ -496,8 +491,9 @@ pp_def( '_inv_trans_inplace',
         GenericTypes => ['F','D'],
         OtherPars => 'char* params; int quiet;',
         HandleBad => 1,
-        BadDoc => 'Ignores bad elements of $x and $y, and sets '
-                  . 'the corresponding elements of $lon and $lat to BAD',
+        Doc => undef,
+        #BadDoc => 'Ignores bad elements of $x and $y, and sets '
+        #          . 'the corresponding elements of $lon and $lat to BAD',
         Code => <<'EOCODE',
 /* vars needed: */
 char* func = "_inv_trans_inplace()";

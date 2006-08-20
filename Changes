@@ -1,7 +1,64 @@
+CHM 20-Aug-2006
+    Merged 2.4.3 development fixes into main CVS trunk.
+CHM 17-Aug-2006
+    Updated rel_2_4_3pre_branch with debian fixes by HG and
+    added the decided upon fix for HDF/Makefile.PL for the
+    PM location.
+CHM 16-Aug-2006
+    perldl.conf, IO/FITS/FITS.pm
+    - fixes for $PDL::Config{FITS_LEGACY} to turn off all
+      the zillion Astro::FITS::Header warning messages
+    Graphics/Makefile.PL
+    - fix GLX test not to ignore user forced WITH_3D=>1
+    cygwin/INSTALL, cygwin/README
+    - update some of the cygwin/ install notes based on
+      recent testing and module fixes
+    will be tagging these fixes as rel_2_4_3pre2
+CHM 14-Aug-2006
+    Touch up top level documentation files and add some config
+    files to PDL/cygwin/.  Files changed: BUGS, COPYING,
+    DEPENDENCIES, DEVELOPMENT, INSTALL, Known_problems, README,
+    Release_Notes, cygwin/INSTALL, cygwin/README.
 CED 13-Aug-2006
     Fixed typo with CI_J matrix declaration in t_fits code
     (transform.pd); allows use of CI_J matrices in FITS headers as per 
     the newer WCS standard) 
+CED 13-Aug-2006
+    - Minor fixes to Transform -- t_fits CI_J header notation;
+      also: dims copied between params and main object in 
+      t_spherical and t_projective.
+CHM 11-Aug-2006
+    - Added Astro::FITS::Header as a PREREQ_PM in main Makefile.PL
+    - Added to DEPENDENCY file list
+    - Put preliminary notes on how to migrate an externally
+      developed PDL module into the source tree for distribution
+      with PDL
+CHM 11-Aug-2006
+    Fix Graphics/Makefile.PL be more conservative in deciding to
+    build OpenGL and TriD when WITH_3D => undef. Now choose not
+    to build if the xdpyinfo command does not indicate available
+    GLX extensions for the current X server display.  This
+    should prevent test failures due to some OpenGL X config
+    problems.
+DCH 10-Aug-2006
+    Changed slatec.t test from:
+    ## Test: chia
+    $x = float( sequence(11) - 0.3 );
+    to
+    ## Test: chia
+    $x = double( sequence(11) - 0.3 );
+    This allows this test to work on a 64 bit machine (AMD x86_64)
+    Also, skip the flexraw.t tests for x86_64 (these tests only
+    apply to 32 bit machines)
+DCH 10-Aug-2006
+    Changed from $ENV{HOSTTYPE} to $Config{archname} for x86_64 check
+    in order to set -fPIC compiler flag.
+CHM 09-Aug-2006
+    Updated Known_problems and minor doc fix.
+CHM 08-Aug-2006
+    Fixed t/proj_transform.t to skip_all if WITH_BADVAL not set so
+    with Judd Taylor fixes from earlier today all PROJ4 modules
+    now build and test on PDLrc1.  Thanks all for testing a fixes!
 DAL 01-Aug-2006
     Fixed typo in t_spherical of transform.pd (closes bug 1530666).
 CHM 30-Jul-2006

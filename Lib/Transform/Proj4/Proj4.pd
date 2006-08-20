@@ -372,6 +372,8 @@ ENDPM
 #
 pp_addpm( { At => 'Middle' }, <<'ENDPM' );
 
+=head1 FUNCTIONS
+
 =head2 t_proj
 
 This is the main entry point for the generalized interface. See above on its usage.
@@ -501,7 +503,21 @@ pp_add_exported('', join(' ', @export_funcs ) );
 #
 pp_def( '_proj4_dummy',
         Pars => 'i(); [o] o();',
+        Doc => undef,
         Code => ';' );
 
+# Add the end docs:
+#
+pp_addpm( {At => 'Bot'}, <<'ENDDOC');
+
+=head1 AUTHOR & MAINTAINER
+
+Judd Taylor, Orbital Systems, Ltd.
+judd dot t at orbitalsystems dot com
+
+=cut
+
+ENDDOC
+        
 pp_done();
 

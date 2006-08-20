@@ -125,6 +125,8 @@ Basic/Ufunc/ufunc.pd
 BUGS
 Changes
 COPYING
+cygwin/drivers.list
+cygwin/g77_gcc.conf
 cygwin/INSTALL
 cygwin/README
 debian/changelog
@@ -756,3 +758,4 @@ win32/makeppm.pl
 win32/PDL.ppd
 win32/Readme
 win32/win32f77.pl
+META.yml                                 Module meta-data (added by MakeMaker)

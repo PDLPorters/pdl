@@ -1,6 +1,7 @@
 use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use PDL::Config;
+use Config;
 
 use Test::More;
 
@@ -23,6 +24,8 @@ BEGIN{
 
     unless ( $PDL::Config{WITH_SLATEC} ) {
         plan skip_all => "Skipped tests as F77 compiler not found";
+    } elsif ($Config{archname} =~ /x86_64/) {
+        plan skip_all => "Skipped tests for 64 bit architecture: x86_64";
     } else {
        plan tests => $ntests;
     }

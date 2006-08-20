@@ -1,7 +1,7 @@
 package PDL::IO::HDF;
 
 
-=head1 NAME 
+=head1 NAME
 
 PDL::IO::HDF - A PDL interface to the HDF4 library.
 
@@ -58,6 +58,8 @@ See constant(1) for more info on how to use these in your code.
 
 =head2 Access Modes
 
+=over 8
+
 =item DFACC_READ
 
 Open the file in read-only mode.
@@ -82,6 +84,8 @@ Same as DFACC_READ
 
 Open the file in read-write mode.
 
+=back
+
 =cut
 
 # Access modes:
@@ -96,9 +100,13 @@ use constant {
 
 =head2 VS Interface Interlacing Modes
 
+=over 8
+
 =item FULL_INTERLACE
 
 =item NO_INTERLACE
+
+=back
 
 =cut
 # VS interlace modes:
@@ -108,6 +116,8 @@ use constant {
 };
 
 =head2 HDF4 Data Type Codes:
+
+=over 8
 
 =item DFNT_UCHAR
 
@@ -149,6 +159,8 @@ HDF's 32-bit integer ~= PDL's long
 
 HDF's 32-bit integer ~= PDL's long
 
+=back
+
 =cut 
 # HDF Data type numbers:
 use constant {
@@ -166,6 +178,8 @@ use constant {
 
 =head2 Misc. HDF Library Constants:
 
+=over 8
+
 =item MAX_NC_NAME
 
 This is the max name length for SDS variables, attribtues, and just about anything else.
@@ -177,6 +191,8 @@ This is the max number of dims a HDF variable can have.
 =item VNAMELENMAX
 
 Max length of V interface names.
+
+=back
 
 =cut 
 
@@ -266,7 +282,8 @@ sub DESTROY
 
 =head1 CURRENT AUTHOR & MAINTAINER
 
-Judd Taylor (judd@marine.usf.edu)
+Judd Taylor, Orbital Systems, Ltd.
+judd dot t at orbitalsystems dot com
 
 =head1 PREVIOUS AUTHORS
 
