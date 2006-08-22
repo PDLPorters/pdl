@@ -1,3 +1,5 @@
+DAL 22-Aug-2006
+    Fixed a minor typo in FAQ.pod and a small doc change to Fit::Gaussian.
 DJB 22-Aug-2006
     Cleaned up t/slice.t to use Test::More. This was in an attempt
     to help track down the message reported during 'make test':
