@@ -1,3 +1,8 @@
+DJB 22-Aug-2006
+    Cleaned up t/slice.t to use Test::More. This was in an attempt
+    to help track down the message reported during 'make test':
+    "(in cleanup) index out-of-bounds in range during global destruction."
+    However, the conversion seems to have removed this message...
 CHM 20-Aug-2006
     Merged 2.4.3 development fixes into main CVS trunk.
 CHM 17-Aug-2006
