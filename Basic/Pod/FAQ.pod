@@ -966,7 +966,7 @@ which is equivalent to
        
 
 If this seems still a bit murky check 
-L<PDL::Indexing|PDL:Indexing> and 
+L<PDL::Indexing|PDL::Indexing> and 
 L<PDL::PP|PDL::PP> for details about calling
 conventions, the I< signature> and 
 I< threading> (see also below).
