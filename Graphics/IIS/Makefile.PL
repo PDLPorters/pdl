@@ -7,7 +7,7 @@ BEGIN {
   }
 }
 
-goto SKIP if $skip;
+return if $skip;
 
 # Makefile.PL for PDL::Graphics::IIS module.
 
@@ -35,4 +35,4 @@ sub MY::postamble {
 	pdlpp_postamble_int(@::pack);
 }  # Add genpp rule
 
-SKIP: return;
+
