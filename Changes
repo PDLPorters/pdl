@@ -1,3 +1,6 @@
+DJB 24-Aug-2006
+    Changed Basic/Gen/PP.pm so that it is now all run under ;use strict'.
+    There should only be an internal change (this is revision 1.45)
 DAL 22-Aug-2006
     Fixed a minor typo in FAQ.pod and a small doc change to Fit::Gaussian.
 DJB 22-Aug-2006
