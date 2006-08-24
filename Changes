@@ -1,3 +1,6 @@
+SIS 25-Aug-2006
+    Remove the 'goto' in Graphics/IIS/Makefile.PL - was causing a problem
+    on some builds of Win32 perl. (Revision 1.2)
 DJB 24-Aug-2006
     Changed Basic/Gen/PP.pm so that it is now all run under ;use strict'.
     There should only be an internal change (this is revision 1.45)
