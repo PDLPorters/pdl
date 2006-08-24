@@ -1,3 +1,7 @@
+CHM 24-Aug-2006
+    Fix qsortvec function resolving bug #1544590 on sourceforge.
+    Really need to add tests corresponding to bugs with the fixes.
+    TBD.
 SIS 25-Aug-2006
     Remove the 'goto' in Graphics/IIS/Makefile.PL - was causing a problem
     on some builds of Win32 perl. (Revision 1.2)

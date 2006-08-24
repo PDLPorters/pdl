@@ -483,17 +483,18 @@ for (keys %PDL::Types::typehash) {
 	
       void pdl_qsortvec_$ppsym($ctype *xx, int n, int a, int b) {
 		
-	int i,j;
-	$ctype t, *median;
+	int i,j, median_ind;
+
+	$ctype t;
 	i = a; 
 	j = b;
 
-	median = &xx[n*((i+j)/2)];
+	median_ind = (i+j)/2;
 
 	do {
-	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), median, n )  <  0 ) 
+	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), &(xx[n*median_ind]), n )  <  0 ) 
 		i++;
-	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), median, n )  >  0 ) 
+	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 ) 
 		j--;
 	  if(i<=j) {
 		int k;
@@ -505,6 +506,12 @@ for (keys %PDL::Types::typehash) {
 		  *aa = *bb;
 		  *bb = z;	
 		}
+
+                if (median_ind==i)
+                  median_ind=j;
+                else if (median_ind==j)
+                  median_ind=i;
+
 	        i++; 
 		j--;
 	  }
