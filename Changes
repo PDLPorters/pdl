@@ -1,3 +1,10 @@
+DJB 31-Aug-2006
+    Re-worked Basic/Gen/PP.pm to use objects for the $PDL::PP::deftbl
+    array rather than array references, since using objects just has
+    to make things easier to read :-) There should be purely an internal
+    change. This is revision 1.46.
+    Basic/Gen/PP/PDLCode.pm has also seen a few minor changes (again
+    purely internal). This is revision 1.7
 CHM 24-Aug-2006
     Fix qsortvec function resolving bug #1544590 on sourceforge.
     Really need to add tests corresponding to bugs with the fixes.
