@@ -1,6 +1,5 @@
-SIS 1-Sep-2006
-    Remove dmake clause from pdlpp_postamble() in Basic/Core/Dev.pm.
-    Revision 1.31.    
+AJ  01-Sep-2006
+    Added PDL::GSL::MROOT
 DJB 31-Aug-2006
     Re-worked Basic/Gen/PP.pm to use objects for the $PDL::PP::deftbl
     array rather than array references, since using objects just has
