@@ -110,6 +110,7 @@ pdlexamples\.c$
 ^Lib/GSL/INTERP/.*\.c$
 ^Lib/GSL/DIFF/D.*\.c$
 ^Lib/GSL/INTEG/I.*\.c$
+^Lib/GSL/MROOT/M.*\.c$
 ^Lib/GSL/.*\.pm$
 ^Lib/GSL/.*\.xs$
 ^Lib/FFTW/typespec
