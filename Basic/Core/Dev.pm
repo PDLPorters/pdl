@@ -413,9 +413,6 @@ $pref\$(OBJ_EXT): $pref.c
 
 # This is the function to be used outside the PDL tree.
 sub pdlpp_postamble {
-      # This sub breaks dmake if called. Thankfully, so far, dmake has not needed this
-	# sub (even when it does get called) - so simply have it return nothing:
-	if($Config{make} eq 'dmake') {return ""}
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
