@@ -78,15 +78,15 @@
 #
 
 # todo:
-#   PDL::PP::Rule::Substitution
-#     -- check whether we need any of the "*NS" versions of the targets
-#        other than to create the substitution. If not could
-#        amalgate "*" and "*NS" rules.
-#
-#   a couple of other rules are very repititive and should be
-#   factored out into their own objects
+#   subst_makecomp and wrap_vfn could propbably be moved into their
+#   own classes. any other rules that could br factored out
+#   into their own objects?
 #
 #   move the PDL::PP::Rule and subclasses into their own file?
+#
+#   DJB thinks that the code fragments themselves could be objects
+#   since they should 'know' what needs doing to them (eg the
+#   substitutions). Not sure whether it would really clarify things.
 #
 
 package PDL::PP::Rule;
@@ -289,13 +289,13 @@ sub apply {
       " items and expected " . (1+$#$targets)
 	unless $#retval == $#$targets;
 
-    report("--setting: ");
+    report "--setting:";
     foreach my $target (@$targets) {
-	report "$target ";
+	report " $target";
 	confess "Cannot have multiple meanings for target $target!"
 	  if exists $pars->{$target};
 	my $res = shift @retval;
-	#
+
 	# The following test suggests that things could/should be
 	# improved in the code generation.
 	#
@@ -473,6 +473,156 @@ sub apply {
     $pars->{$target} = eval "return \"" . $self->{"insertname.value"} . "\";";
 }
 
+# Poor name. This is the old "dosubst" routine
+#
+#   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
+#	 	      \&dosubst),
+#
+# PDL::PP::Rule::Substitute->new($target,$condition)
+#   $target and $condition must be scalars.
+#
+#   Implicit conditions are NewXSSymTab and Name
+#
+package PDL::PP::Rule::Substitute;
+
+use strict;
+
+use Carp;
+
+##use PDL::PP::Rule;
+our @ISA = qw (PDL::PP::Rule);
+
+# Probably want this directly in the apply routine but leave as is for now
+#
+sub dosubst_private {
+    my ($src,$symtab,$name) = @_;
+    my $ret = (ref $src ? $src->[0] : $src);
+    my %syms = (
+		((ref $src) ? %{$src->[1]} : ()),
+		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
+			       "->$_[0]"},
+		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
+		NAME => sub {return $name},
+		MODULE => sub {return $::PDLMOD},
+
+		SETPDLSTATEBAD  => sub { return "$_[0]\->state |= PDL_BADVAL"; },
+		SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
+		ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
+		ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
+		BADFLAGCACHE    => sub { return "badflag_cache"; },
+
+		SETREVERSIBLE => sub {
+		    return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
+		      "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
+		  },
+	       );
+    while(
+	  $ret =~ s/\$(\w+)\(([^()]*)\)/
+	  (defined $syms{$1} or
+	   confess("$1 not defined in '$ret'!")) and
+	  (&{$syms{$1}}($2))/ge
+	 ) {};
+    $ret;
+}
+
+sub new {
+    my $class = shift;
+
+    die "Usage: PDL::PP::Rule::Substitute->new(\$target,\$condition);"
+      unless $#_ == 1;
+
+    my $target = shift;
+    my $condition = shift;
+
+    die "\$target must be a scalar for PDL::PP::Rule->Substitute" if ref $target;
+    die "\$condition must be a scalar for PDL::PP::Rule->Substitute" if ref $condition;
+
+    my $self = $class->SUPER::new($target, [$condition, "NewXSSymTab", "Name"],
+				  \&dosubst_private);
+    bless $self, $class;
+
+    return $self;
+}
+
+# Poor name. This is the old "dousualsubsts" routine
+#
+#   PDL::PP::Rule->new("CacheBadFlagInit", ["CacheBadFlagInitNS","NewXSSymTab","Name"],
+#		      \&dousualsubsts),
+#
+# PDL::PP::Rule::Substitute::Usual->new($target, $condition)
+#   $target and $condition must be scalars.
+#
+#   Implicit conditions are NewXSSymTab and Name
+#
+# Need to think about @std_childparent as it is also used by
+# other bits of code. At the moment provide a class method
+# to access the array but there has to be better ways of
+# doing this.
+#
+package PDL::PP::Rule::Substitute::Usual;
+
+use strict;
+
+use Carp;
+
+##use PDL::PP::Rule;
+our @ISA = qw (PDL::PP::Rule::Substitute);
+
+# This is a copy of the main one for now. Need a better solution.
+#
+my @std_childparent = (
+	CHILD => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
+	PARENT => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
+	CHILD_P => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
+	PARENT_P => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
+	CHILD_PTR => sub {return '$PRIV(pdls[1])'},
+	PARENT_PTR => sub {return '$PRIV(pdls[0])'},
+	COMP => sub {return '$PRIV('.(join ',',@_).")"}
+);
+
+sub get_std_childparent { return @std_childparent; }
+
+sub new {
+    my $class = shift;
+
+    my @args = @_;
+    my $self = $class->SUPER::new(@args);
+    bless $self, $class;
+
+    return $self;
+}
+
+# We modify the arguments from the conditions to include the
+# extra information
+#
+# We simplify the base-class version since we assume that all
+# conditions are required here.
+#
+sub extract_args {
+    my $self = shift;
+    my $pars = shift;
+
+    # The conditions are [<code>, NewXSSymTab, Name]
+    #
+    my $code   = $pars->{$self->{conditions}[0]};
+    my $symtab = $pars->{$self->{conditions}[1]};
+    my $name   = $pars->{$self->{conditions}[2]};
+
+    return ([$code,{@std_childparent}],$symtab,$name);
+}
+
+# Add a class that handles calls to subst_makecomp:
+#
+#  PDL::PP::Rule->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
+#		      sub {subst_makecomp("COMP",@_)}),
+#  PDL::PP::Rule->new("NewXSCoerceMustSub1", "NewXSCoerceMust", sub{subst_makecomp("FOO",@_)}),
+#  PDL::PP::Rule->new("RedoDimsSub", ... needs to be refactored to allow
+#      subst_makecomp to be handled separately
+#   PDL::PP::Rule->new("ReadDataSub", "ParsedCode", sub {subst_makecomp("FOO",@_)}),
+#   PDL::PP::Rule->new("WriteBackDataSub", "ParsedBackCode", sub {subst_makecomp("FOO",@_)}),
+#
+#
+
 package PDL::PP;
 
 use strict;
@@ -639,7 +789,7 @@ sub pp_done {
 	  : '';
 	print "DONE!\n" if $::PP_VERBOSE;
 	print "Inline running PDL::PP version $PDL::PP::VERSION...\n" if nopm();
-	(my $fh = new FileHandle(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
+	(my $fh = FileHandle->new(">$::PDLPREF.xs")) or die "Couldn't open xs file\n";
 
 $fh->print(qq%
 /*
@@ -805,10 +955,6 @@ use Carp;
 $SIG{__DIE__} = sub {print Carp::longmess(@_); die;}
   if $::PP_VERBOSE;  # seems to give us trouble with 5.6.1
 
-# Rule table syntax:
-# make  $_->[0] from $_->[1].
-# use "=" to assign to 1. unless "_" appended to parname, then use ".="
-
 use PDL::PP::Signature;
 use PDL::PP::Dims;
 use PDL::PP::CType;
@@ -931,8 +1077,6 @@ sub typemap {
   my $oname  = shift;
   my $type   = shift;
   my $arg    = shift;
-
-
 
   #
   # Modification to parse Perl's typemap here.
@@ -1089,14 +1233,14 @@ sub equivcpoffscode {
 #   PDL::PP::Signature (Doug Burke 07/08/00)
 sub Pars_nft {
 	my($str,$badflag) = @_;
-	my $sig = new PDL::PP::Signature($str,$badflag);
+	my $sig = PDL::PP::Signature->new($str,$badflag);
 	return ($sig->names,$sig->objs,1);
 }
 
 # ParNames,Parobjs -> DimObjs
 sub ParObjs_DimObjs {
 	my($pnames,$pobjs) = @_;
-	my ($dimobjs) = new PDL::PP::PdlDimsObj;
+	my ($dimobjs) = PDL::PP::PdlDimsObj->new();
 	for(@$pnames) {
 		$pobjs->{$_}->add_inds($dimobjs);
 	}
@@ -1115,7 +1259,7 @@ sub OtherPars_nft {
 	    my ($ctype,$dim) = ($1,$2);
 	    $ctype =~ s/(\S+)\s+$/$1/; # get rid of trailing ws
 	    print "OtherPars: setting dim '$dim' from '$ctype'\n" if $::PP_VERBOSE;
-	    $type = new C::Type(undef,$ctype);
+	    $type = C::Type->new(undef,$ctype);
 	    croak "can't set unknown dimension"
 		unless defined($dimobjs->{$dim});
 	    $dimobjs->{$dim}->set_from($type);
@@ -1123,7 +1267,7 @@ sub OtherPars_nft {
 	    # It is a piddle -> make it a controlling one.
 	    die("Not supported yet");
 	} else {
-	    $type = new C::Type(undef,$_);
+	    $type = C::Type->new(undef,$_);
 	}
 	my $name = $type->protoname;
 	push @names,$name;
@@ -1134,7 +1278,7 @@ sub OtherPars_nft {
 
 sub NXArgs {
 	my($parnames,$parobjs,$onames,$oobjs) = @_;
-	my $pdltype = new C::Type(undef,"pdl *__foo__");
+	my $pdltype = C::Type->new(undef,"pdl *__foo__");
 	my $nxargs = [
 		( map {[$_,$pdltype]} @$parnames ),
 		( map {[$_,$oobjs->{$_}]} @$onames )
@@ -1429,13 +1573,11 @@ EOD
 # This writes an XS header which handles variable argument lists, 
 # thus avoiding the perl layer in calling the routine. D. Hunt 4/11/00
 #
+# The use of 'DO NOT SET!!' looks ugly.
+#
 sub VarArgsXSHdr {
   my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,
      $hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
-
-  # Don't do var args processing if 'has p2 child' whatever *that* means
-  # the p2child restriction has been removed; CS 4/15/00
-  # return 'DO NOT SET!!' if ($hasp2child);
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
@@ -1499,7 +1641,8 @@ sub VarArgsXSHdr {
   }
 
   # Add code for creating output variables via call to 'initialize' perl routine
-  $clause1 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
+  $clause1 .= callPerlInit (\@create, $ci, $callcopy);
+  @create = ();
 
   # clause for reading in input and output vars and creating temps
   my $clause2;
@@ -1524,14 +1667,14 @@ sub VarArgsXSHdr {
 	      $cnt++;
 	  }
       }
-      
+
       # Add code for creating output variables via call to 'initialize' perl routine
-      $clause2 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
-      
+      $clause2 .= callPerlInit (\@create, $ci, $callcopy);
       $clause2 .= "}\n";
+      @create = ();
 
   }
-  
+
   # clause for reading in input and creating output and temp vars
   my $clause3 = '';
   $cnt = 0;
@@ -1552,7 +1695,6 @@ sub VarArgsXSHdr {
   $clause3 .= callPerlInit (\@create, $ci, $callcopy); @create = ();
 
   return<<END;
-
 
 void
 $name(...)
@@ -1604,7 +1746,7 @@ sub VarArgsXSReturn {
 
     # don't generate a HDR if globalnew is set
     # globalnew implies internal usage, not XS
-    return undef if $globalnew; 
+    return undef if $globalnew;
 
     # names of output variables    (in calling order)
     my @outs;
@@ -1618,12 +1760,12 @@ sub VarArgsXSReturn {
     }
 
     my $ci = '  ';  # Current indenting
-    
+
     my $clause1 = '';
     foreach my $i ( 0 .. $#outs ) {
 	$clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
     }
-  
+
 return <<"END"
 if (nreturn) {
   if (nreturn - items > 0) EXTEND (SP, nreturn - items);
@@ -1653,24 +1795,11 @@ sub XSCHdrs {
 # it's also used in one place in PP/PDLCode.pm
 # -- there it's hard-coded
 #
-sub set_badflag {
-    my $sname = shift;
-    return "\$PRIV(bvalflag) = 1;\n";
-}
+sub set_badflag   { return '$PRIV(bvalflag) = 1;' . "\n"; }
+sub clear_badflag { return '$PRIV(bvalflag) = 0;' . "\n"; }
+sub get_badflag   { return '$PRIV(bvalflag)'; }
 
-sub clear_badflag {
-    my $sname = shift;
-    return "\$PRIV(bvalflag) = 0;\n";
-}
-
-sub get_badflag {
-    my $sname = shift;
-    return "\$PRIV(bvalflag)";
-}
-
-sub get_badflag_priv {
-    return '$PRIV(bvalflag)';
-}
+sub get_badflag_priv { return '$PRIV(bvalflag)'; }
 
 sub set_badstate {
     my $pdl = shift;
@@ -1889,7 +2018,7 @@ sub InplaceCode {
 	unless defined $out;
 
     my $instate = $in . "->state";
-    return 
+    return
 	"\tif ( $instate & PDL_INPLACE ) {
               $instate &= ~PDL_INPLACE; /* unset */
               $out = $in;             /* discard output value, leak ? */
@@ -2030,45 +2159,6 @@ $baddoc
 =cut
 
 EOD
-}
-
-sub dousualsubsts {
-	my($src,$symtab,$name) = @_;
-	return dosubst([$src,
-		{@::std_childparent}
-	     ],$symtab,$name);
-}
-
-sub dosubst {
-	my($src,$symtab,$name) = @_;
-#	print "DOSUBST on ",Dumper($src),"\n";
-	my $ret = (ref $src ? $src->[0] : $src);
-	my %syms = (
-		    ((ref $src) ? %{$src->[1]} : ()),
-		    PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
-				     "->$_[0]"},
-		    CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
-		    NAME => sub {return $name},
-		    MODULE => sub {return $::PDLMOD},
-
-		    SETPDLSTATEBAD  => sub { return "$_[0]\->state |= PDL_BADVAL"; },
-		    SETPDLSTATEGOOD => sub { return "$_[0]\->state &= ~PDL_BADVAL"; },
-		    ISPDLSTATEBAD   => sub { return "(($_[0]\->state & PDL_BADVAL) > 0)"; },
-		    ISPDLSTATEGOOD  => sub { return "(($_[0]\->state & PDL_BADVAL) == 0)"; },
-		    BADFLAGCACHE    => sub { return "badflag_cache"; },
-
-		    SETREVERSIBLE => sub {
-			return "if($_[0]) \$PRIV(flags) |= PDL_ITRANS_REVERSIBLE;\n" .
-			    "   else \$PRIV(flags) &= ~PDL_ITRANS_REVERSIBLE;\n"
-			    },
-		    );
-	while(
-		$ret =~ s/\$(\w+)\(([^()]*)\)/
-			(defined $syms{$1} or
-				confess("$1 not defined in '$ret'!")) and
-			(&{$syms{$1}}($2))/ge
-	) {};
-	$ret;
 }
 
 sub ToIsReversible {
@@ -2376,6 +2466,9 @@ DeePcOPY
      if(propagate_hdrcpy)
        $names[$_]\->state |= PDL_HDRCPY;
 HdRCHECK2
+
+      # QUESTION: what is the following line doing?
+      #
       if ( $pobjs->{$pnames->[$_]}{FlagCreat} );
    }
 
@@ -2450,7 +2543,8 @@ sub XSHdr {
 sub subst_makecomp {
 	my($which,$mc,$cn,$co) = @_;
 	return [$mc,{
-		@::std_childparent,
+#		@::std_childparent,
+		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
 		($cn ?
 			(('DO'.$which.'DIMS') => sub {return join '',
 				map{$$co{$_}->need_malloc ?
@@ -2537,9 +2631,6 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", sub {return $_[0]}),
    PDL::PP::Rule::Returns->new("ExtraGenericLoops", {}),
 
-# Naming of the struct and the virtual table.
-##   PDL::PP::Rule->new("StructName", "Name", sub {return "pdl_$_[0]_struct"; }),
-##   PDL::PP::Rule->new("VTableName", "Name", sub {return "pdl_$_[0]_vtable"; }),
    PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
 
@@ -2584,16 +2675,13 @@ $PDL::PP::deftbl =
 		      sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
 			     "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
 
-#   PDL::PP::Rule->new("ReadDataFuncName", "Name", sub {"pdl_$_[0]_readdata"}),
-#   PDL::PP::Rule->new("CopyFuncName",     "Name", sub {"pdl_$_[0]_copy"}),
-#   PDL::PP::Rule->new("FreeFuncName",     "Name", sub {"pdl_$_[0]_free"}),
-#   PDL::PP::Rule->new("RedoDimsFuncName", "Name", sub {"pdl_$_[0]_redodims"}),
-
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule::InsertName->new("CopyFuncName",     'pdl_${name}_copy'),
    PDL::PP::Rule::InsertName->new("FreeFuncName",     'pdl_${name}_free'),
    PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
 
+   # QUS: do we need the join as there is only one condition here?
+   #
    PDL::PP::Rule->new("XSBootCode", "BootStruct", sub {join '',@_}),
 
 # Parameters in the form 'parent and child(this)'.
@@ -2601,13 +2689,14 @@ $PDL::PP::deftbl =
 #
 # P2Child implicitly means "no data type changes".
 
- PDL::PP::Rule->new(["USParNames","USParObjs","FOOFOONoConversion","HaveThreading","NewXSName"],
-		    ["P2Child","Name","BadFlag"],
-		    \&NewParentChildPars),
+   PDL::PP::Rule->new(["USParNames","USParObjs","FOOFOONoConversion","HaveThreading","NewXSName"],
+		      ["P2Child","Name","BadFlag"],
+		      \&NewParentChildPars),
 
- PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
+   PDL::PP::Rule::InsertName->new("NewXSName", '_${name}_int'),
 
- PDL::PP::Rule::Returns->new("EquivPThreadIdExpr", "P2Child", '$CTID-$PARENT(ndims)+$CHILD(ndims)'),
+   PDL::PP::Rule::Returns->new("EquivPThreadIdExpr", "P2Child",
+			       '$CTID-$PARENT(ndims)+$CHILD(ndims)'),
 
    PDL::PP::Rule::Returns::One->new("HaveThreading"),
 
@@ -2670,16 +2759,6 @@ $PDL::PP::deftbl =
 					    'Code that will be inserted at the end of the autogenerated xs argument processing code VargArgsXSHdr'),
 
 
-# I think this is an OLD rule
-#  [[HdrParsedCode],      [HdrCode,ParNames,ParObjs,DimObjs,
-#                          GenericTypes,ExtraGenericLoops,HaveThreading],
-#   sub { print "parsing extra code...\n";return "/* no extra argument processing */"
-# 	  if $_[0] =~ m|^/s*$|;
-# 	# trailing 1,1 means no threadloop and no generic loop
-# 	new PDL::PP::Code(@_,1,1)},  
-#   'makes the parsed representation from the supplied processing code, L<HdrCode>'],
-#  [[HdrParsedCodeSubst],  [HdrParsedCode,NewXSSymTab,Name], "dousualsubsts"],
-
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
@@ -2712,7 +2791,7 @@ $PDL::PP::deftbl =
 ##
    PDL::PP::Rule->new("CacheBadFlagInitNS", "_HandleBad",
 		      sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
-   PDL::PP::Rule->new("CacheBadFlagInit", ["CacheBadFlagInitNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS"),
 
     # need special cases for
     # a) bad values
@@ -2731,22 +2810,21 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns->new("IgnoreTypesOf", {}),
 
    PDL::PP::Rule->new("NewXSCoerceMustNS", "FTypes", \&make_newcoerce),
-   PDL::PP::Rule->new("NewXSCoerceMust", ["NewXSCoerceMustNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSCoerceMust", "NewXSCoerceMustNS"),
 
-   PDL::PP::Rule->new("DefaultFlowCode", ["DefaultFlowCodeNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
 		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","HASP2Child"],
 		      \&find_datatype),
-   PDL::PP::Rule->new("NewXSFindDatatype", ["NewXSFindDatatypeNS","NewXSSymTab","Name"],
-		      \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
 		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","HASP2Child"],
 		      \&coerce_types),
-   PDL::PP::Rule->new("NewXSTypeCoerce", ["NewXSTypeCoerceNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSStructInit1", ["ParNames","NewXSSymTab"]),
 
@@ -2834,12 +2912,14 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("NTPrivFreeCode", ["PrivNames","PrivObjs"], \&NT2Free_p),
 
    PDL::PP::Rule->new("IsReversibleCodeNS", "Reversible", \&ToIsReversible),
-   PDL::PP::Rule->new("IsReversibleCode",
-		      ["IsReversibleCodeNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("IsReversibleCode", "IsReversibleCodeNS"),
 
-   PDL::PP::Rule->new("NewXSStructInit2",
-		      ["MakeCompiledRepr","NewXSSymTab","Name"],
-		      sub { return "{".dosubst(@_)."}"; }),
+   # Needs cleaning up. NewXSStructInit2DJB has been added to make use
+   # of the PDL::PP::Rule::Substitute class.
+   #
+   PDL::PP::Rule::Substitute->new("NewXSStructInit2DJB", "MakeCompiledRepr"),
+   PDL::PP::Rule->new("NewXSStructInit2", "NewXSStructInit2DJB",
+ 		      sub { return "{".$_[0]."}"; }),
 
    PDL::PP::Rule->new("CopyCodeNS",
 		      ["PrivCopyCode","CompCopyCode","StructName","NoPdlThread"],
@@ -2877,15 +2957,15 @@ $PDL::PP::deftbl =
 			}
 			"; }),
 
-   PDL::PP::Rule->new("CopyCode", ["CopyCodeNS","NewXSSymTab","Name"], \&dousualsubsts),
-   PDL::PP::Rule->new("FreeCode", ["FreeCodeNS","NewXSSymTab","Name"], \&dousualsubsts),
-   PDL::PP::Rule->new("FooCodeSub", ["FooCode","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("CopyCode", "CopyCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("FreeCode", "FreeCodeNS"),
+   PDL::PP::Rule::Substitute::Usual->new("FooCodeSub", "FooCode"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
 
    PDL::PP::Rule->new("NewXSCoerceMustSub1", "NewXSCoerceMust", sub{subst_makecomp("FOO",@_)}),
-   PDL::PP::Rule->new("NewXSCoerceMustSubs", ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
-		      \&dosubst),
+   PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
+
    PDL::PP::Rule->new("NewXSClearThread", "HaveThreading",
 		      sub {$_[0] ? "__privtrans->__pdlthread.inds = 0;" : ""}),
 
@@ -2911,8 +2991,8 @@ $PDL::PP::deftbl =
 
  # expand macros in ...BadStatusCode
  #
-   PDL::PP::Rule->new("NewXSFindBadStatus", ["NewXSFindBadStatusNS","NewXSSymTab","Name"], \&dousualsubsts),
-   PDL::PP::Rule->new("NewXSCopyBadStatus", ["NewXSCopyBadStatusNS","NewXSSymTab","Name"], \&dousualsubsts),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSFindBadStatus", "NewXSFindBadStatusNS"),
+   PDL::PP::Rule::Substitute::Usual->new("NewXSCopyBadStatus", "NewXSCopyBadStatusNS"),
 
  # Generates XS code with variable argument list.  If this rule succeeds, the next rule
  # will not be executed. D. Hunt 4/11/00
@@ -2927,7 +3007,7 @@ $PDL::PP::deftbl =
 		       "NewXSFindDatatype","NewXSTypeCoerce",
 		       "NewXSStructInit1",
 		       "NewXSStructInit2",
-		       "NewXSCoerceMustSubs","_IsReversibleCode","DefaultFlowCode",
+		       "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
 		       "NewXSClearThread",
 		       "NewXSSetTrans",
 		       "NewXSCopyBadStatus",
@@ -2949,7 +3029,7 @@ $PDL::PP::deftbl =
 		       "NewXSFindDatatype","NewXSTypeCoerce",
 		       "NewXSStructInit1",
 		       "NewXSStructInit2",
-		       "NewXSCoerceMustSubs","_IsReversibleCode","DefaultFlowCode",
+		       "NewXSCoerceMustSub1d","_IsReversibleCode","DefaultFlowCode",
 		       "NewXSClearThread",
 		       "NewXSSetTrans",
 		       "NewXSCopyBadStatus"
@@ -2973,38 +3053,34 @@ $PDL::PP::deftbl =
 			 };
 			 return $r;
 		     }),
-  PDL::PP::Rule->new("RedoDimsSubd",
-		     ["RedoDimsSub","NewXSSymTab","Name"],
-		     \&dosubst),
-  PDL::PP::Rule->new("RedoDimsFunc",
-		     ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
-		     sub {wrap_vfn(@_,"redodims")}),
+   PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
+   PDL::PP::Rule->new("RedoDimsFunc",
+		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
+		      sub {wrap_vfn(@_,"redodims")}),
 
 
    PDL::PP::Rule->new("ReadDataSub", "ParsedCode", sub {subst_makecomp("FOO",@_)}),
-   PDL::PP::Rule->new("ReadDataSubd",
-		      ["ReadDataSub","NewXSSymTab","Name"],
-		      \&dosubst),
+   PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
 		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","HASP2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
-  PDL::PP::Rule->new("WriteBackDataSub", "ParsedBackCode", sub {subst_makecomp("FOO",@_)}),
-  PDL::PP::Rule->new("WriteBackDataSubd", ["WriteBackDataSub","NewXSSymTab","Name"], \&dosubst),
+   PDL::PP::Rule->new("WriteBackDataSub", "ParsedBackCode", sub {subst_makecomp("FOO",@_)}),
+   PDL::PP::Rule::Substitute->new("WriteBackDataSubd", "WriteBackDataSub"),
 
    PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
-  PDL::PP::Rule->new("WriteBackDataFunc",
-		     ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","HASP2Child"],
-		     sub {wrap_vfn(@_,"writebackdata")}),,
+   PDL::PP::Rule->new("WriteBackDataFunc",
+		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","HASP2Child"],
+		      sub {wrap_vfn(@_,"writebackdata")}),,
 
-  PDL::PP::Rule->new("CopyFunc",
-		     ["CopyCode","FHdrInfo","CopyFuncName","HASP2Child"],
-		     sub {wrap_vfn(@_,"copy")}),
-  PDL::PP::Rule->new("FreeFunc",
-		     ["FreeCode","FHdrInfo","FreeFuncName","HASP2Child"],
-		     sub {wrap_vfn(@_,"free")}),
+   PDL::PP::Rule->new("CopyFunc",
+		      ["CopyCode","FHdrInfo","CopyFuncName","HASP2Child"],
+		      sub {wrap_vfn(@_,"copy")}),
+   PDL::PP::Rule->new("FreeFunc",
+		      ["FreeCode","FHdrInfo","FreeFuncName","HASP2Child"],
+		      sub {wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule::Returns->new("FoofName", "FooCodeSub", "foomethod"),
    PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","HASP2Child"],
@@ -3042,15 +3118,15 @@ sub translate {
 } # sub: translate()
 
 BEGIN {
-@::std_childparent = (
-	CHILD => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
-	PARENT => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
-	CHILD_P => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
-	PARENT_P => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
-	CHILD_PTR => sub {return '$PRIV(pdls[1])'},
-	PARENT_PTR => sub {return '$PRIV(pdls[0])'},
-	COMP => sub {return '$PRIV('.(join ',',@_).")"},
-);
+#@::std_childparent = (
+#	CHILD => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
+#	PARENT => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
+#	CHILD_P => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
+#	PARENT_P => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
+#	CHILD_PTR => sub {return '$PRIV(pdls[1])'},
+#	PARENT_PTR => sub {return '$PRIV(pdls[0])'},
+#	COMP => sub {return '$PRIV('.(join ',',@_).")"},
+#);
 @::std_redodims = (
 	SETNDIMS => sub {return "PDL->reallocdims(__it,$_[0])"},
 	SETDIMS => sub {return "PDL->setdims_careful(__it)"},

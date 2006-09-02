@@ -1,6 +1,17 @@
 CURRENT PRIORITIES 
 - Please include dates and PDL version numbers on entries!
 
+in 2.4.3, PLplot.xs gives
+
+PLplot.xs: In function `pdl_plParseOpts_readdata':
+PLplot.xs:21297: warning: ignoring return value of `Perl_av_shift', declared with attribute warn_unused_result
+
+which is
+
+ 21296                  for (i = 0; i < argc; i++)
+ 21297                          av_shift (arr);
+
+
 # = done
 
 -- PDL 2.4.2, 25-Jul-2006 (DJB)
