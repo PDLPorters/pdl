@@ -6,17 +6,19 @@
 #  do not want to duplicate that effort here.
 
 use PDL;
-use Test;
+use Test::More;
 
 BEGIN{
+  # would be nice to use the 'use_ok' routine here
+  # instead of the following logic, but that needs
+  # an easy way to find out of the GSL lib is
+  # available
+  #
   eval " use PDL::GSL::MROOT; ";
-  unless ($@){
+  if ($@) {
+    plan skip_all => "PDL::GSL::MROOT not installed";
+  } else {
     plan tests => 2;
-  }
-  else {
-    plan tests => 2;
-    print "ok 1 # Skipped: PDL::GSL::MROOT not installed\n";
-    exit;
   }
 }
 
