@@ -24,7 +24,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 76;
+    plan tests => 78;
 } else {
     # reduced testing
     plan tests => 10;
@@ -288,6 +288,13 @@ is( PDL::Core::string( $b ), "[0 0 BAD]", "abs() and >" );
 $b = byte(1,2,byte->badvalue,4);
 $b->badflag(1);
 is( PDL::Core::string( $b << 2 ), "[4 8 BAD 16]", "<<" );
+
+$a = pdl([1,2,3]);
+$a->badflag(1);
+$b = $a->assgn;
+is( $b->badflag, 1, "assgn propogated badflag");
+$a->badflag(0);
+is( $b->badflag, 1, "assgn is not a deep copy for the badflag");
 
 # quick look at math.pd
 use PDL::Math;
