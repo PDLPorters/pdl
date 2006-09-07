@@ -1,3 +1,6 @@
+DJB 07-Sep-2006
+    Continued work on Basic/Gen/PP.pm (revision 1.48). This deals with the old
+    subst_makecomp routine moving to PDL::PP::Rule::MakeComp.
 DJB 06-Sep-2006
     Converted t/gsl_mroot.t to use Test::More and fixed a bug that
     caused it to fail when PDL::GSL::MROOT is not installed.

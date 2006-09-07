@@ -76,17 +76,54 @@
 # it does not need to be supplied, and the return value should be
 # given as a single-quoted string and use the $name variable
 #
-
-# todo:
-#   subst_makecomp and wrap_vfn could propbably be moved into their
-#   own classes. any other rules that could br factored out
-#   into their own objects?
+# The Substitute class replaces the dosubst rule. The old rule
+#   [["NewXSCoerceMustSubs"], ["NewXSCoerceMustSub1","NewXSSymTab","Name"],
+#	 	      \&dosubst]
+# becomes
+#   PDL::PP::Rule::Substitute("NewXSCoerceMustSubs", "NewXSCoerceMustSub1")
 #
-#   move the PDL::PP::Rule and subclasses into their own file?
+# PDL::PP::Rule::Substitute->new($target,$condition)
+#   $target and $condition must be scalars.
+#
+#   Implicit conditions are NewXSSymTab and Name
+#
+# The Substitute:Usual class replaces the dousualsubsts rule. The old rule
+#   [["CacheBadFlagInit"], ["CacheBadFlagInitNS","NewXSSymTab","Name"],
+#		      \&dousualsubsts],
+# becomes
+#   PDL::PP::Rule::Substityte::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS")
+#
+# PDL::PP::Rule::Substitute::Usual->new($target, $condition)
+#   $target and $condition must be scalars.
+#
+#   Implicit conditions are NewXSSymTab and Name
+#
+# The MakeComp rule replaces the subst_makecomp routine. The old rule
+#  [["MakeCompiledRepr"], ["MakeComp","CompNames","CompObjs"],
+#		      sub {subst_makecomp("COMP",@_)}]
+# becomes
+#  PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
+#		      "COMP")
+# PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
+#   $target and $symbol must be scalars.
+#
+
+# Notes:
+#   InsertName could become a subclass of Insert since there are
+#   a few rules that just insert conditions into a text string.
+#
+#   Substitute, Substitute::Usual, MakeComp classes feel a bit
+#   ugly. See next point. Also the get_std_childparent method is
+#   a bit of a hack.
 #
 #   DJB thinks that the code fragments themselves could be objects
 #   since they should 'know' what needs doing to them (eg the
 #   substitutions). Not sure whether it would really clarify things.
+#
+# To do:
+#   wrap_vfn could propbably be moved into a class.
+#
+#   move the PDL::PP::Rule and subclasses into their own file?
 #
 
 package PDL::PP::Rule;
@@ -611,17 +648,100 @@ sub extract_args {
     return ([$code,{@std_childparent}],$symtab,$name);
 }
 
-# Add a class that handles calls to subst_makecomp:
+# Poor name. This is the old "subst_makecomp" routine
 #
 #  PDL::PP::Rule->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
 #		      sub {subst_makecomp("COMP",@_)}),
-#  PDL::PP::Rule->new("NewXSCoerceMustSub1", "NewXSCoerceMust", sub{subst_makecomp("FOO",@_)}),
-#  PDL::PP::Rule->new("RedoDimsSub", ... needs to be refactored to allow
-#      subst_makecomp to be handled separately
-#   PDL::PP::Rule->new("ReadDataSub", "ParsedCode", sub {subst_makecomp("FOO",@_)}),
-#   PDL::PP::Rule->new("WriteBackDataSub", "ParsedBackCode", sub {subst_makecomp("FOO",@_)}),
 #
+# PDL::PP::Rule::MakeComp->new($target,$conditions,$symbol)
+#   $target and $symbol must be scalars.
 #
+package PDL::PP::Rule::MakeComp;
+
+use strict;
+
+use Carp;
+
+##use PDL::PP::Rule;
+our @ISA = qw (PDL::PP::Rule);
+
+# This is a copy of the main one for now. Need a better solution.
+#
+my @std_redodims = (
+		    SETNDIMS => sub {return "PDL->reallocdims(__it,$_[0])"},
+		    SETDIMS => sub {return "PDL->setdims_careful(__it)"},
+		    SETDELTATHREADIDS => sub {return '
+		{int __ind; PDL->reallocthreadids($CHILD_PTR(),
+			$PARENT(nthreadids));
+		for(__ind=0; __ind<$PARENT(nthreadids)+1; __ind++) {
+			$CHILD(threadids[__ind]) =
+				$PARENT(threadids[__ind]) + ('.$_[0].');
+		}
+		}
+		'});
+
+##sub get_std_redodims { return @std_redodims; }
+
+# Probably want this directly in the apply routine but leave as is for now
+#
+sub subst_makecomp_private {
+	my($which,$mc,$cn,$co) = @_;
+	return [$mc,{
+#		@::std_childparent,
+		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
+		($cn ?
+			(('DO'.$which.'DIMS') => sub {return join '',
+				map{$$co{$_}->need_malloc ?
+				    $$co{$_}->get_malloc('$PRIV('.$_.')') :
+				    ()} @$cn}) :
+			()
+		),
+		($which eq "PRIV" ?
+			@std_redodims : ()),
+		},
+	];
+}
+
+sub new {
+    my $class = shift;
+
+    die "Usage: PDL::PP::Rule::MakeComp->new(\$target,\$conditions,\$symbol);"
+      unless $#_ == 2;
+
+    my $target = shift;
+    my $condition = shift;
+    my $symbol = shift;
+
+    die "\$target must be a scalar for PDL::PP::Rule->MakeComp" if ref $target;
+    die "\$symbol must be a scalar for PDL::PP::Rule->MakeComp" if ref $symbol;
+
+    my $self = $class->SUPER::new($target, $condition,
+				  \&subst_makecomp_private);
+    bless $self, $class;
+    $self->{"makecomp.value"} = $symbol;
+
+    return $self;
+}
+
+# We modify the arguments from the conditions to include the
+# extra information
+#
+# We simplify the base-class version since we assume that all
+# conditions are required here.
+#
+sub extract_args {
+    my $self = shift;
+    my $pars = shift;
+
+    # The conditions are [<symbol>, conditions...]
+    # - could use slicing here
+    #
+    my @args = ($self->{"makecomp.value"});
+    foreach my $condition (@{$self->{conditions}}) {
+      push @args, $pars->{$condition};
+    }
+    return @args;
+}
 
 package PDL::PP;
 
@@ -910,21 +1030,20 @@ $::PDLPM{Bot}
 } # end pp_done
 
 sub pp_def {
-	my($name,%hash) = @_;
+	my($name,%obj) = @_;
 
 	print "*** Entering pp_def for $name\n" if $::PP_VERBOSE;
 
-	$hash{Name} = $name;
-	translate(\%hash,$PDL::PP::deftbl);
-	my $obj = \%hash;
+	$obj{Name} = $name;
+	translate(\%obj,$PDL::PP::deftbl);
 
-	print "Output of translate for $name:\n" . Dumper($obj) . "\n"
-	  if exists $hash{Dump} and $hash{Dump} and $::PP_VERBOSE;
+	print "Output of translate for $name:\n" . Dumper(\%obj) . "\n"
+	  if exists $obj{Dump} and $obj{Dump} and $::PP_VERBOSE;
 
 	croak("ERROR: No FreeFunc for pp_def=$name!\n")
-	  unless exists $obj->{FreeFunc}; # and $obj->{FreeFunc};
+	  unless exists $obj{FreeFunc}; # and $obj{FreeFunc};
 
-	PDL::PP->printxsc(join "\n\n",@$obj{'StructDecl','RedoDimsFunc',
+	PDL::PP->printxsc(join "\n\n",@obj{'StructDecl','RedoDimsFunc',
 		'CopyFunc',
 		'ReadDataFunc','WriteBackDataFunc',
 		'FreeFunc',
@@ -932,13 +1051,13 @@ sub pp_def {
 		'VTableDef','NewXSInPrelude',
 		}
 		);
-	PDL::PP->printxs($$obj{NewXSCode});
-	pp_add_boot($$obj{XSBootCode} . $$obj{BootSetNewXS});
+	PDL::PP->printxs($obj{NewXSCode});
+	pp_add_boot($obj{XSBootCode} . $obj{BootSetNewXS});
 	PDL::PP->pp_add_exported($name);
-	PDL::PP::pp_addpm("\n".$$obj{PdlDoc}."\n") if $$obj{PdlDoc};
-	PDL::PP::pp_addpm($$obj{PMCode});
-	if(defined($$obj{PMFunc})) {
-		pp_addpm($$obj{PMFunc}."\n");
+	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
+	PDL::PP::pp_addpm($obj{PMCode});
+	if(defined($obj{PMFunc})) {
+		pp_addpm($obj{PMFunc}."\n");
 	}else{
                 pp_addpm($::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
                          '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]);
@@ -2538,26 +2657,6 @@ sub XSHdr {
 	return XS::mkproto($xsname,$nxargs);
 }
 
-# This is used by several anonymous subroutines in deftbl below
-#
-sub subst_makecomp {
-	my($which,$mc,$cn,$co) = @_;
-	return [$mc,{
-#		@::std_childparent,
-		PDL::PP::Rule::Substitute::Usual::get_std_childparent(),
-		($cn ?
-			(('DO'.$which.'DIMS') => sub {return join '',
-				map{$$co{$_}->need_malloc ?
-				    $$co{$_}->get_malloc('$PRIV('.$_.')') :
-				    ()} @$cn}) :
-			()
-		),
-		($which eq "PRIV" ?
-			@::std_redodims : ()),
-		},
-	];
-}
-
 # Set up the rules for translating the pp_def contents.
 #
 $PDL::PP::deftbl =
@@ -2671,18 +2770,17 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::NULL->new("ReadDataFuncName", "AffinePriv"),
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "AffinePriv"),
 
-   PDL::PP::Rule->new("BootStruct", ["AffinePriv","VTableName"],
-		      sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
-			     "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
-
    PDL::PP::Rule::InsertName->new("ReadDataFuncName", 'pdl_${name}_readdata'),
    PDL::PP::Rule::InsertName->new("CopyFuncName",     'pdl_${name}_copy'),
    PDL::PP::Rule::InsertName->new("FreeFuncName",     'pdl_${name}_free'),
    PDL::PP::Rule::InsertName->new("RedoDimsFuncName", 'pdl_${name}_redodims'),
 
-   # QUS: do we need the join as there is only one condition here?
+   # There used to be a BootStruct rule which just became copied to the XSBootCode
+   # rule, so it has been removed.
    #
-   PDL::PP::Rule->new("XSBootCode", "BootStruct", sub {join '',@_}),
+   PDL::PP::Rule->new("XSBootCode", ["AffinePriv","VTableName"],
+		      sub {return "   $_[1].readdata = PDL->readdata_affine;\n" .
+			     "   $_[1].writebackdata = PDL->writebackdata_affine;\n"}),
 
 # Parameters in the form 'parent and child(this)'.
 # The names are PARENT and CHILD.
@@ -2789,8 +2887,20 @@ $PDL::PP::deftbl =
 ##
 ##           sub { return (defined $_[0]) ? "int \$BADFLAGCACHE() = 0;" : ""; } ],
 ##
-   PDL::PP::Rule->new("CacheBadFlagInitNS", "_HandleBad",
+## why have I got a "_HandleBad" condition here? it isn't used in the routine
+## and isn't required to fire the rule. Or should we actually check the value of
+## HandleBad (ie to optimize for code that explicitly doesn't handle bad code)? 
+## TO DO: Check assgn in ops for this? Not obvious, or at least we need other
+## bits of code work with us (eg the checking of $BADFLAGCACHE in some other
+## rule)
+##
+##    PDL::PP::Rule->new("CacheBadFlagInitNS", "_HandleBad",
+##		      sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
+    PDL::PP::Rule->new("CacheBadFlagInitNS",
 		      sub { return $bvalflag ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
+# The next rule, if done in place of the above, causes Ops.xs to fail to compile
+#    PDL::PP::Rule->new("CacheBadFlagInitNS", "BadFlag",
+#		      sub { return $_[0] ? "\n  int \$BADFLAGCACHE() = 0;\n" : ""; }),
    PDL::PP::Rule::Substitute::Usual->new("CacheBadFlagInit", "CacheBadFlagInitNS"),
 
     # need special cases for
@@ -2853,8 +2963,8 @@ $PDL::PP::deftbl =
 #
    PDL::PP::Rule->new(["CompNames","CompObjs"], "Comp", \&OtherPars_nft),
    PDL::PP::Rule->new("CompiledRepr", ["CompNames","CompObjs"], \&NT2Decls_p),
-   PDL::PP::Rule->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
-		      sub {subst_makecomp("COMP",@_)}),
+   PDL::PP::Rule::MakeComp->new("MakeCompiledRepr", ["MakeComp","CompNames","CompObjs"],
+				"COMP"),
 
    PDL::PP::Rule->new("CompCopyCode", ["CompNames","CompObjs","CopyName"], \&NT2Copies_p),
    PDL::PP::Rule->new("CompFreeCode", ["CompNames","CompObjs"], \&NT2Free_p),
@@ -2963,7 +3073,7 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSCoerceMust"),
 
-   PDL::PP::Rule->new("NewXSCoerceMustSub1", "NewXSCoerceMust", sub{subst_makecomp("FOO",@_)}),
+   PDL::PP::Rule::MakeComp->new("NewXSCoerceMustSub1", "NewXSCoerceMust", "FOO"),
    PDL::PP::Rule::Substitute->new("NewXSCoerceMustSub1d", "NewXSCoerceMustSub1"),
 
    PDL::PP::Rule->new("NewXSClearThread", "HaveThreading",
@@ -3041,31 +3151,39 @@ $PDL::PP::deftbl =
 		      ["ParNames","ParObjs","CompiledRepr","PrivateRepr","StructName"],
 		      \&mkstruct),
 
-  PDL::PP::Rule->new("RedoDimsSub",
-		     ["RedoDims","PrivNames","PrivObjs","_DimObjs"],
-		     sub {
-			 my $do = $_[3];
-			 my $r = subst_makecomp("PRIV","$_[0] \$PRIV(__ddone) = 1;",@_[1,2]);
-			 $r->[1]{SIZE} = sub {
-			     croak "can't get SIZE of undefined dimension (RedoDims=$_[0])."
-			       unless defined($do->{$_[0]});
-			     return $do->{$_[0]}->get_size();
-			 };
-			 return $r;
-		     }),
+   # The RedoDimsSub rule is a bit weird since it takes in the RedoDims target
+   # twice (directly and via RedoDims-PostComp). Can this be cleaned up?
+   #
+   PDL::PP::Rule->new("RedoDims-PreComp", "RedoDims",
+		      sub { return $_[0] . ' $PRIV(__ddone) = 1;'; }),
+   PDL::PP::Rule::MakeComp->new("RedoDims-PostComp",
+				["RedoDims-PreComp", "PrivNames", "PrivObjs"], "PRIV"),
+   PDL::PP::Rule->new("RedoDimsSub",
+		      ["RedoDims", "RedoDims-PostComp", "_DimObjs"],
+		      sub {
+			my $redodims = $_[0];
+			my $result   = $_[1];
+			my $dimobjs  = $_[2];
+
+			$result->[1]{"SIZE"} = sub {
+			  croak "can't get SIZE of undefined dimension (RedoDims=$redodims)."
+			    unless defined $dimobjs->{$redodims};
+			  return $dimobjs->{$redodims}->get_size();
+			};
+			return $result;
+		      }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
    PDL::PP::Rule->new("RedoDimsFunc",
 		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
 		      sub {wrap_vfn(@_,"redodims")}),
 
-
-   PDL::PP::Rule->new("ReadDataSub", "ParsedCode", sub {subst_makecomp("FOO",@_)}),
+   PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
 		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","HASP2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
-   PDL::PP::Rule->new("WriteBackDataSub", "ParsedBackCode", sub {subst_makecomp("FOO",@_)}),
+   PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
    PDL::PP::Rule::Substitute->new("WriteBackDataSubd", "WriteBackDataSub"),
 
    PDL::PP::Rule::InsertName->new("WriteBackDataFuncName", "BackCode", 'pdl_${name}_writebackdata'),
@@ -3116,32 +3234,6 @@ sub translate {
     print "GOING OUT!\n" if $::PP_VERBOSE;
     return $pars;
 } # sub: translate()
-
-BEGIN {
-#@::std_childparent = (
-#	CHILD => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
-#	PARENT => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
-#	CHILD_P => sub {return '$PRIV(pdls[1]->'.(join ',',@_).")"},
-#	PARENT_P => sub {return '$PRIV(pdls[0]->'.(join ',',@_).")"},
-#	CHILD_PTR => sub {return '$PRIV(pdls[1])'},
-#	PARENT_PTR => sub {return '$PRIV(pdls[0])'},
-#	COMP => sub {return '$PRIV('.(join ',',@_).")"},
-#);
-@::std_redodims = (
-	SETNDIMS => sub {return "PDL->reallocdims(__it,$_[0])"},
-	SETDIMS => sub {return "PDL->setdims_careful(__it)"},
-	SETDELTATHREADIDS => sub {return '
-		{int __ind; PDL->reallocthreadids($CHILD_PTR(),
-			$PARENT(nthreadids));
-		for(__ind=0; __ind<$PARENT(nthreadids)+1; __ind++) {
-			$CHILD(threadids[__ind]) =
-				$PARENT(threadids[__ind]) + ('.$_[0].');
-		}
-		}
-		'}
-
-);
-}
 
 ## End
 #
