@@ -1,3 +1,9 @@
+SIS 11-Sep-2006
+    Enable building of GSL on Win32.
+    Changes to Lib/GSL/DIFF/Makefile.PL (rev 1.3), Lib/GSL/INTEG/Makefile.PL 
+    (rev 1.3), Lib/GSL/INTERP/Makefile.PL (rev 1.3), Lib/GSL/RNG/Makefile.PL
+    (rev 1.5). Also needed a slight tweak to Basic/Core/Dev.pm's
+    pdlpp_stdargs_int (rev 1.32).   
 DJB 07-Sep-2006
     Continued work on Basic/Gen/PP.pm (revision 1.48). This deals with the old
     subst_makecomp routine moving to PDL::PP::Rule::MakeComp.
