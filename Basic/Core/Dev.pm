@@ -439,6 +439,7 @@ sub pdlpp_stdargs_int {
    $PDL::Config{MALLOCDBG}->{libs} : '';
  my $mallocinc = exists $PDL::Config{MALLOCDBG}->{include} ?
    $PDL::Config{MALLOCDBG}->{include} : '';
+my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
@@ -448,7 +449,7 @@ sub pdlpp_stdargs_int {
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
 	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
-	 'LIBS'         => ["$libs $malloclib "],
+	 'LIBS'         => [$libsarg],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
