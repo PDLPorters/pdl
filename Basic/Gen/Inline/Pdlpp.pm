@@ -335,11 +335,20 @@ sub compile {
       or croak "Can't locate your make binary";
     $cwd = &cwd;
     ($cwd) = $cwd =~ /(.*)/ if $o->UNTAINT;
-    my $noisy = $o->{ILSM}{NOISY} ? '| tee' : '';
-    for $cmd ("$perl Makefile.PL $noisy > out.Makefile_PL 2>&1",
+    my $noisy = $o->{ILSM}{NOISY} || $o->{CONFIG}{BUILD_NOISY} ? '| tee' : '';
+    my $suffix1 = '> out.Makefile_PL 2>&1';
+    my $suffix2 = '> out.make 2>&1';
+    my $suffix3 = '> out.make_install 2>&1';
+
+    if($^O =~ /mswin/i && $noisy){
+      $noisy = ''; # no 'tee' on MS Windows. 
+      ($suffix1, $suffix2, $suffix3) = ('', '', '');
+      } 
+
+    for $cmd ("$perl Makefile.PL $noisy $suffix1",
 	      \ &fix_make,   # Fix Makefile problems
-	      "$make $noisy > out.make 2>&1",
-	      "$make pure_install $noisy > out.make_install 2>&1",
+	      "$make $noisy $suffix2",
+	      "$make pure_install $noisy $suffix3",
 	     ) {
 	if (ref $cmd) {
 	    $o->$cmd();
