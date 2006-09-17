@@ -149,14 +149,8 @@ EOD
   # up to (and including) v2.4.1
   #
   require File::Spec;
-  my $fs = 'File::Spec';
-  my $cdir = sub { return $fs->catdir(@_)};
-  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
-  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
-    defined $ENV{TMP} ? $ENV{TMP} :
-      &$cdir($fs->rootdir,$td);
 
-  $PDL_CONFIG{TEMPDIR} = $tempd
+  $PDL_CONFIG{TEMPDIR} = File::Spec->tmpdir()
     unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
   # set up the default MALLOCDBG information (if not specified by the user)
