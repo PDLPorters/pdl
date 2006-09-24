@@ -1,3 +1,6 @@
+SIS 24-Sep-2006
+    Minor re-arrangement to the code in Lib/GSL/MROOT.c required for
+    Microsoft compilers (rev 1.2).
 SIS 17-Sep-2006
     Enable 'BUILD_NOISY' in Pdlpp.pm on Win32 (rev 1.10).
     Small cleanup of the code that sets the temp directory in the top level
