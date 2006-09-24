@@ -22,11 +22,6 @@ void DFF(int* n, double* xval, double* vector){
    //this version tries just to get the output
   SV* funname;
 
-  dSP;
-  ENTER;
-  SAVETMPS;
-
-
   double* xpass; int i;
   int count;
   I32 ax ; 
@@ -39,6 +34,10 @@ void DFF(int* n, double* xval, double* vector){
 
   int ndims;
   PDL_Long *pdims;
+
+  dSP;
+  ENTER;
+  SAVETMPS;
 
   ndims = 1;
   pdims = (PDL_Long *)  PDL->smalloc( (ndims) * sizeof(*pdims) );
