@@ -41,7 +41,7 @@ build-stamp: configure-stamp
 test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
-	$(MAKE) test
+	-$(MAKE) test
 	touch test-stamp
 
 clean: clean-patched unpatch
