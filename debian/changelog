@@ -1,3 +1,11 @@
+pdl (1:2.4.3-2) unstable; urgency=low
+
+  * upstream: enhance the 64bit-excludelist for the flexraw-test
+  * let the build continue anyways if problems are found in the
+    testsuite, so its output is only informational
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 25 Sep 2006 10:43:58 +0200
+
 pdl (1:2.4.3-1) unstable; urgency=low
 
   * new upstream
