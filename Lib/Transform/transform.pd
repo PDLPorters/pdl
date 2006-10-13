@@ -1468,7 +1468,7 @@ sub map {
 
       my $d;
       for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1))/2 ;
+	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
 	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
@@ -1507,7 +1507,7 @@ sub map {
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
   my $ndc = PDL::Basic::ndcoords(@dd);
-  my $idx = $me->invert($ndc->double + 0.5);
+  my $idx = $me->invert($ndc->double);
 
   barf "map: Transformation had no inverse\n" unless defined($idx);
 	

@@ -1,3 +1,6 @@
+CED 13-Oct-2006
+    Fix Transform off-by-1/2 bug with pixel addressing; add transform.t
+    Fix uniqvec bug in primitive.pd
 DAL 11-Oct-2006
     Minor PGPLOT/PGPLOT.pm and PGPLOT/Window/Window.pm documentation fixes.
 SIS 24-Sep-2006
