@@ -1,3 +1,5 @@
+DAL 23-Oct-2006
+    Fixed annoying operator precedence warning in Cartography.pm
 CED 13-Oct-2006
     Fix Transform off-by-1/2 bug with pixel addressing; add transform.t
     Fix uniqvec bug in primitive.pd
