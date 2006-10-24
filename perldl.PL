@@ -707,9 +707,11 @@ perldl - Simple shell for PDL
 
 	Run a script:
 
-	        %> perldl - pdlscript 
-
+	        %> cat > pdlscript
 	        #!/usr/bin/pdl
+                print "Hello, world!\n";
+                ...
+
 
 =head1 DESCRIPTION
 

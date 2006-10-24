@@ -2,21 +2,106 @@
 
 PDL::Indexing - how to index piddles.
 
-=head1 DESCRIPTION
+=head1 OVERVIEW
 
 This manpage should serve as a first tutorial on the indexing and
 threading features of I<PDL>.
 
-This manpage is still in alpha
-development and not yet complete. "Meta" comments that point out
-deficiencies/omissions of this document will be surrounded by
-square brackets ([]), e.g. [ Hopefully I will be able to remove this paragraph
-at some time in the future ]. Furthermore, it is possible that
-there are errors in the code examples. Please report any errors to
-Christian Soeller (c.soeller@auckland.ac.nz).
+Like all vectorized languages, PDL automates looping over arrays using
+a variant of mathematical vector notation.  The automatic looping is called
+"threading", in part because ultimately PDL will implement parallel processing
+to speed up the loops.
 
-Still to be done are (please bear with us and/or ask on the mailing list,
-see L<PDL::FAQ|PDL::FAQ>):
+A lot of the flexibility and power of PDL relies on the indexing and threading
+features of the perl extension.  Indexing allows access to the data of a piddle
+in a very flexible way.  Threading provides efficient vectorization of simple
+operations.  
+
+The values of a piddle are stored compactly as typed values in a single block of memory, 
+not (as in a normal Perl list-of-lists) as individual Perl scalars.
+
+In the sections that follow many "methods" are called out -- these are Perl operators
+that apply to PDLs.  From the L<perldl|perldl> shell, you can find out more about each
+method by typing "?" followed by the method name.
+
+=head2 Dimension lists 
+
+A piddle (PDL variable), in general, is an N-dimensional array where N can be 
+0 (for a scalar), 1 (e.g. for a sound sample), or higher values for images 
+and more complex structures.  Each dimension of the piddle has a positive 
+integer size.  The C<perl> interpreter treats each piddle as a special type of 
+Perl scalar (a blessed perl object, actually -- but you don't have to know that
+to use them) that can be used anywhere you can put a normal scalar.  
+
+You can access the dimensions of a piddle as a Perl list and otherwise determine
+the size of a piddle with several methods.  The important ones are:
+
+=over 3
+
+=item nelem - the total number of elements in a PDL
+
+=item ndims - returns the number of dimensions in a PDL
+
+=item dims - returns the dimension list of a PDL as a Perl list
+
+=item dim - returns the size of a particular dimension of a PDL
+
+=back
+
+=head2 Indexing and Dataflow
+
+PDL maintains a notion of "dataflow" between a piddle and indexed subfields of 
+that piddle.  When you produce an indexed subfield or single element of a parent
+piddle, the child and parent remain attached until you manually disconnect them.
+This lets you represent the same data different ways within your code -- for example,
+you can consider an RGB image simultaneously as a collection of (R,G,B) values 
+in a 3 x 1000 x 1000 image, and as three separate 1000 x 1000 color planes stored in 
+different variables.  Modifying any of the variables changes the underlying memory, and 
+the changes are reflected in all representations of the data.
+
+There are two important methods that let you control dataflow connections between a 
+child and parent PDL:
+
+=over 3
+
+=item copy - forces an explicit copy of a PDL
+
+=item sever - breaks the dataflow connection between a PDL and its parents (if any)
+
+=back
+
+=head2 Threading and Dimension Order
+
+Most PDL operations act on the first few dimensions of their piddle arguments.  For
+example, C<sumover> sums all elements along the first dimension in the list (dimension 0).
+If you feed in a three-dimensional piddle, then the first dimension is considered the 
+"active" dimension and the later dimensions are "thread" dimensions because they are simply
+looped over.  There are several ways to transpose or re-order the dimension list of a PDL.
+Those techniques are very fast since they don't touch the underlying data, only change the
+way that PDL accesses the data.  The main dimension ordering functions are:
+
+=over 3
+
+=item mv - moves a particular dimension somewhere else in the dimension list
+
+=item xchg - exchanges two dimensions in the dimension list, leaving the rest alone
+
+=item reorder - allows wholesale mixing of the dimensions 
+
+=item clump - clumps together two or more small dimensions into one larger one
+
+=item squeeze - eliminates any dimensions of size 1
+
+
+=back
+
+=head2 Physical and Dummy Dimensions
+
+
+
+
+
+
 
 =over 5
 

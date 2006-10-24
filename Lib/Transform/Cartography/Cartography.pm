@@ -2821,7 +2821,7 @@ sub t_perspective {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->is_inplace ? $d->copy : $d;
+	my($out) = $d->is_inplace ? $d : $d->copy;
 	$out->(0:1) *= $o->{tconv};
 
 	my $oyz = $out->(0:1) ;
