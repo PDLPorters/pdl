@@ -1,3 +1,5 @@
+DAL 21-Nov-2006
+    Fixed window-closing bug in the regular PGPLOT demo. Small documentation 	   fix for convolveND in Lib/ImageND/imagend.pd.
 CED 24-Oct-2006
     fix inverted logic bug in t_perspective inplace access (Transform/Cartography)
 DAL 23-Oct-2006
