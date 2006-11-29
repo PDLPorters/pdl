@@ -7,7 +7,7 @@ use Test;
 
 BEGIN {
 #    plan tests => 1, todo => [1];
-    plan tests => 1;
+    plan tests => 2;
 }
 
 use PDL::LiteF;
@@ -23,3 +23,8 @@ my $y = func($x);
 
 ok( sum($y), 4*29 );
 
+#check that tilde expansion works
+my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
+my $get = (getpwuid($>))[7];
+
+ok($tilde,$get);

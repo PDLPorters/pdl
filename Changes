@@ -1,3 +1,5 @@
+DAL 28-Nov-2006
+    Fixed AutoLoader tilde expansion bug, added test to t/autoload.t
 DAL 21-Nov-2006
     Fixed window-closing bug in the regular PGPLOT demo. Small documentation 	   fix for convolveND in Lib/ImageND/imagend.pd.
 CED 24-Oct-2006

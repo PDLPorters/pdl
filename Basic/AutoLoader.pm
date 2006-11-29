@@ -259,7 +259,7 @@ sub PDL::AutoLoader::expand_path {
     foreach $_(@PDLLIB) {
 	# Expand ~{name} and ~ conventions
 	s/^(\+?)~([a-zA-Z0-9]*)// && 
-	    ($_ = $1.((getpwnam($2 || getlogin))[7]).$_ );
+	    ($_ = $1.((getpwnam($2 || getlogin || getpwuid($<)))[7]).$_ );
 	
 	# If there's a leading '+', include all subdirs too.
 	push(@PDLLIB_EXPANDED,
