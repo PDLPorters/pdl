@@ -1,3 +1,5 @@
+SIS 30-Dec-2006
+    Skip the second test in autoload.t on Microsoft Windows (autoload.t rev 1.4)
 DAL 28-Nov-2006
     Fixed AutoLoader tilde expansion bug, added test to t/autoload.t
 DAL 21-Nov-2006
