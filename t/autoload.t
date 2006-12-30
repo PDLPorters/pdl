@@ -23,8 +23,11 @@ my $y = func($x);
 
 ok( sum($y), 4*29 );
 
-#check that tilde expansion works
-my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
-my $get = (getpwuid($>))[7];
+#check that tilde expansion works (not applicable on MS Windows)
+my ($tilde, $get);
+unless($^O =~ /mswin/i) {
+  $tilde = (PDL::AutoLoader::expand_path('~'))[0];
+  $get = (getpwuid($>))[7];
+}
 
-ok($tilde,$get);
+skip($^O =~ /mswin/i,$tilde,$get);
