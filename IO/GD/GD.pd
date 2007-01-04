@@ -1178,9 +1178,10 @@ int gdImageGetTransparent (gdImagePtr im);
 int gdImageGetInterlaced (gdImagePtr im);
 int gdImageSX (gdImagePtr im);
 int gdImageSY (gdImagePtr im);
-char* gdImageStringTTF (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
-char* gdImageStringFT (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
 ENDMEMBERS
+#char* gdImageStringTTF (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
+#char* gdImageStringFT (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
+#ENDMEMBERS
 
 # Allow operation on these member function on piddles as well:
 #int gdImageGetPixel (gdImagePtr im, int x, int y);
@@ -1249,6 +1250,105 @@ gdImagePtr gdImageCreateFromPngSource (gdSourcePtr in);
 gdImagePtr gdImageCreateFromGd2Part (FILE * in, int srcx, int srcy, int w, int h);
 char* gdImageStringFTEx (gdImage * im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string, gdFTStringExtraPtr strex);
 ENDUNUSED
+
+# Add functions that the code gen doesn't handle properly:
+#
+#char* gdImageStringTTF (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);
+pp_addxs( <<"ENDXS" );
+char*
+_gdImageStringTTF( im, brect, fg, fontlist, ptsize, angle, x, y, string )
+		gdImagePtr		im
+		int *		brect
+		int		fg
+		char *		fontlist
+		double		ptsize
+		double		angle
+		int		x
+		int		y
+		char *		string
+	CODE:
+		int c_brect[8];
+		RETVAL = gdImageStringTTF ( im, &c_brect, fg, fontlist, ptsize, angle, x, y, string );
+                brect = &c_brect;
+	OUTPUT:
+		RETVAL
+		brect
+ENDXS
+
+pp_addpm( { At => 'Bot' }, <<'ENDPM' );
+=head2 StringTTF
+
+$image->StringTTF( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
+
+Alias for gdImageStringTTF.
+
+=cut
+sub StringTTF
+{
+    return gdImageStringTTF ( @_ );
+} # End of StringTTF()...
+
+
+=head2 gdImageStringTTF
+
+$image->gdImageStringTTF( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
+
+=cut
+sub gdImageStringTTF
+{
+    my $self = shift;
+    return _gdImageStringTTF ( $self->{IMG_PTR}, @_ );
+} # End of gdImageStringTTF()...
+ENDPM
+
+
+#char* gdImageStringFT (gdImagePtr im, int *brect, int fg, char *fontlist, double ptsize, double angle, int x, int y, char *string);=
+pp_addxs(<<"ENDXS");
+char*
+_gdImageStringFT( im, brect, fg, fontlist, ptsize, angle, x, y, string )
+		gdImagePtr		im
+		int *		brect
+		int		fg
+		char *		fontlist
+		double		ptsize
+		double		angle
+		int		x
+		int		y
+		char *		string
+	CODE:
+		int c_brect[8];
+		RETVAL = gdImageStringFT ( im, &c_brect, fg, fontlist, ptsize, angle, x, y, string );
+		brect = &c_brect;
+	OUTPUT:
+		RETVAL
+		brect
+ENDXS
+
+pp_addpm({At => 'Bot'}, <<'ENDPM' );
+=head2 StringFT
+
+$image->StringFT( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
+
+Alias for gdImageStringFT.
+
+=cut
+sub StringFT
+{
+    return gdImageStringFT ( @_ );
+} # End of StringFT()...
+
+
+=head2 gdImageStringFT
+
+$image->gdImageStringFT( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
+
+=cut
+sub gdImageStringFT
+{
+    my $self = shift;
+    return _gdImageStringFT ( $self->{IMG_PTR}, @_ );
+} # End of gdImageStringFT()...
+ENDPM
 
 # Add the final docs:
 #
