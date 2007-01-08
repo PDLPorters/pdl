@@ -841,8 +841,8 @@ Requires at least version 2.0.22 of the GD library, but it's only been thoroughl
 gd-2.0.33, so it would be best to use that. The 2.0.22 requirement has to do with a change in
 GD's font handling functions, so if you don't use those, then don't worry about it.
 
-I should also add, the statement about "thoroughly tested" above is mostly a joke. This is the 
-first version of the OO interface, and it has I<barely> been tested at all, so if something 
+I should also add, the statement about "thoroughly tested" above is mostly a joke. This OO 
+interface is very young, and it has I<barely> been tested at all, so if something 
 breaks, email me and I'll get it fixed ASAP (for me).
 
 Functions that manipulate and query the image objects generally have a 'gdImage' prefix on the
@@ -923,6 +923,62 @@ sub _img_ptr_from_file
     return undef;
 } # End of _img_ptr_from_file()...
 
+# ID a file type from it's "magic" header in the image data:
+sub _id_image_data 
+{
+    my $data = shift;
+    my $magic = substr($data,0,4);
+    
+    return 'png'
+        if( $magic eq "\x89PNG" );
+    
+    return 'jpg'
+        if( $magic eq "\377\330\377\340" );
+    return 'jpg'
+        if( $magic eq "\377\330\377\341" );
+    return 'jpg'
+        if( $magic eq "\377\330\377\356" );
+        
+    return 'gif'
+        if( $magic eq "GIF8" );
+    
+    return 'gd2'
+        if( $magic eq "gd2\000" );
+        
+    # Still need filters for WBMP and .gd!
+    
+    return undef;
+} # End of _id_image_data()...
+
+
+# Load a new data scalar up:
+sub _img_ptr_from_data
+{
+    my $data = shift;
+    my $type = shift;
+    
+    return _gdImageCreateFromPngPtr( $data )
+        if( $type eq 'png' );
+    
+    return _gdImageCreateFromJpegPtr( $data )
+        if( $type eq 'jpg' );
+        
+    return _gdImageCreateFromWBMPPtr( $data )
+        if( $type eq 'wbmp' );
+        
+    return _gdImageCreateFromGdPtr( $data )
+        if( $type eq 'gd' );
+    
+    return _gdImageCreateFromGd2Ptr( $data )
+        if( $type eq 'gd2' );
+    
+    return _gdImageCreateFromGifPtr( $data )
+        if( $type eq 'gif' );
+    
+    return undef;
+} # End of _img_ptr_from_data()...
+
+
 =head2 new
 
 Creates a new PDL::IO::GD object.
@@ -943,6 +999,13 @@ If the hash has:
  x => $num, y => $num, true_color => 1
     Then a new GD is created as a true color image, with size x, y
 
+ data => $scalar (type => $typename)
+    Then a new GD is created from the file data stored in $scalar. 
+    If no type is given, then it will try to guess the type of the data, but 
+        this will not work for WBMP and gd image types. For those types, you 
+        _must_ specify the type of the data, or the operation will fail.
+    Valid types are: 'jpg', 'png', 'gif', 'gd', 'gd2', 'wbmp'.
+    
 Example:
  
  my $gd = PDL::IO::GD->new({ pdl => $pdl_var });
@@ -954,6 +1017,10 @@ Example:
  my $gd = PDL::IO::GD->new({ x => 100, y => 100 });
  
  my $gd = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
+ 
+ my $gd = PDL::IO::GD->new({ data => $imageData });
+ 
+ my $gd = PDL::IO::GD->new({ data => $imageData, type => 'wbmp' });
 
 =cut
 
@@ -1029,6 +1096,30 @@ sub new
         {   # Create an empty palette image:
             $self->{IMG_PTR} = _gdImageCreatePalette( $options->{x}, $options->{y} );
         }
+    }
+    elsif( defined( $options->{data} ) )
+    {   # Create an image from the given image data:
+    
+        # Figure out what type of file it is:
+        if( defined( $options->{type} ) && 
+            (      $options->{type} eq 'jpg'
+                || $options->{type} eq 'png'
+                || $options->{type} eq 'gif'
+                || $options->{type} eq 'wbmp'
+                || $options->{type} eq 'gd'
+                || $options->{type} eq 'gd2' ) )
+        {
+            $self->{input_type} = $options->{type};
+        }
+        else
+        {
+            $self->{input_type} = _id_image_data( $options->{data} )
+                or die "$sub: Can't determine image type given data!\n";
+        }
+        
+        # Load the data:
+        $self->{IMG_PTR} = _img_ptr_from_data( $options->{data}, $self->{input_type} )
+            or die "$sub: Can't load the input image data!\n";
     }
     
     # Bless and return:
@@ -1110,6 +1201,16 @@ gdImagePtr gdImageCreate (int sx, int sy);
 gdImagePtr gdImageCreatePalette (int sx, int sy);
 gdImagePtr gdImageCreateTrueColor (int sx, int sy);
 ENDCREATE
+
+generate_create_from_data_functions( <<'ENDCDATA' );
+gdImagePtr gdImageCreateFromPngPtr  (int size, void * data);
+gdImagePtr gdImageCreateFromWBMPPtr (int size, void * data);
+gdImagePtr gdImageCreateFromJpegPtr (int size, void * data);
+gdImagePtr gdImageCreateFromGdPtr   (int size, void * data);
+gdImagePtr gdImageCreateFromGd2Ptr  (int size, void * data);
+gdImagePtr gdImageCreateFromGifPtr  (int size, void * data);
+ENDCDATA
+
 
 generate_write_functions( <<'ENDWRITE' );
 void gdImagePng (gdImagePtr im, FILE * out);
@@ -1227,21 +1328,19 @@ my $unused_funcs = <<'ENDUNUSED';
 # These have disappeared in later versions of GD:
 void gdFreeFontCache ();
 void gdImageEllipse (gdImagePtr im, int cx, int cy, int w, int h, int color);
-
-
-BGD_DECLARE(gdImagePtr) gdImageCreateFromGifCtx (gdIOCtxPtr in);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromGifPtr (int size, void *data);
+void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
+void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
+void *gdImagePngPtr (gdImagePtr im, int *size);
+void *gdImageGdPtr (gdImagePtr im, int *size);
+void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
+BGD_DECLARE(gdImagePtr) gdImageCreateFromGifCtx (gdIOCtxPtr in);
 void gdImagePngCtx (gdImagePtr im, gdIOCtx * out);
 void gdImagePngCtxEx (gdImagePtr im, gdIOCtx * out, int level);
 void gdImageWBMPCtx (gdImagePtr image, int fg, gdIOCtx * out);
-void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
 void gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality);
-void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
 void gdImagePngToSink (gdImagePtr im, gdSinkPtr out);
-void *gdImagePngPtr (gdImagePtr im, int *size);
 void *gdImagePngPtrEx (gdImagePtr im, int *size, int level);
-void *gdImageGdPtr (gdImagePtr im, int *size);
-void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
 gdIOCtx *gdNewFileCtx (FILE *);
 gdIOCtx *gdNewDynamicCtx (int, void *);
 gdIOCtx *gdNewSSCtx (gdSourcePtr in, gdSinkPtr out);
@@ -1268,8 +1367,8 @@ _gdImageStringTTF( im, brect, fg, fontlist, ptsize, angle, x, y, string )
 		char *		string
 	CODE:
 		int c_brect[8];
-		RETVAL = gdImageStringTTF ( im, &c_brect, fg, fontlist, ptsize, angle, x, y, string );
-                brect = &c_brect;
+		RETVAL = gdImageStringTTF ( im, c_brect, fg, fontlist, ptsize, angle, x, y, string );
+                brect = c_brect;
 	OUTPUT:
 		RETVAL
 		brect
@@ -1317,8 +1416,8 @@ _gdImageStringFT( im, brect, fg, fontlist, ptsize, angle, x, y, string )
 		char *		string
 	CODE:
 		int c_brect[8];
-		RETVAL = gdImageStringFT ( im, &c_brect, fg, fontlist, ptsize, angle, x, y, string );
-		brect = &c_brect;
+		RETVAL = gdImageStringFT ( im, c_brect, fg, fontlist, ptsize, angle, x, y, string );
+		brect = c_brect;
 	OUTPUT:
 		RETVAL
 		brect
@@ -1378,7 +1477,7 @@ use Data::Dumper;
 sub generate_create_functions
 {
     my @funcs = split( /\n/, shift );
-    my $sub = "generate_read_functions()";
+    my $sub = "generate_create_functions()";
     
     foreach my $func ( @funcs )
     {
@@ -1412,6 +1511,45 @@ ENDXS
         }
     }
 } # End of generate_create_functions()...
+
+
+#
+# Member functions to create a new object from a data scalar:
+#
+# gdImagePtr gdImageCreateFromPngPtr  (int size, void * data);
+#
+sub generate_create_from_data_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_create_from_data_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating read function for $func...\n";
+    
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+        
+        my $function_name = $info->{NAME};
+        my $return_type = $info->{RETURN_TYPE};
+         
+        pp_addxs(<<"ENDXS");
+$return_type
+_$function_name( imageData )
+        SV *    imageData
+    PREINIT:
+        char*   data;
+        STRLEN  len;
+    CODE:
+        data = SvPV( imageData, len );
+        RETVAL = $function_name( len, (void*)data );
+    OUTPUT:
+        RETVAL
+        
+ENDXS
+    }
+} # End of generate_create_from_data_functions()...
+
 
 
 #void gdImagePng (gdImagePtr im, FILE * out);
