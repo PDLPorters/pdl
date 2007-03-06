@@ -2487,7 +2487,7 @@ sub PDL::sclr {
 
 =for ref
 
-concatentate piddles to N+1 dimensional piddle
+concatenate piddles to N+1 dimensional piddle
 
 Takes a list of N piddles of same shape as argument,
 returns a single piddle of dimension N+1
