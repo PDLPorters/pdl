@@ -1,3 +1,9 @@
+DAL 06-Mar-2006
+    Fixed bug in setops (Basic/Primitive/primitive.pd) which broke 'OR'. Added 
+    support for sets with non-unique elements, which broke all set operations.
+    Added tests in t/primitive.t for setops.
+    Fixed t/pgplot.t interactive tests.
+    Fixed typo in cat docs (Basic/Core/Core.pm.PL).
 SIS 30-Dec-2006
     Skip the second test in autoload.t on Microsoft Windows (autoload.t rev 1.4)
 DAL 28-Nov-2006
