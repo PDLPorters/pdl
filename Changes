@@ -1,3 +1,5 @@
+DAL 09-Mar-2006
+    PDL::Transform::t_fits now returns t_identity if there is no good xform.
 DAL 06-Mar-2006
     Fixed bug in setops (Basic/Primitive/primitive.pd) which broke 'OR'. Added 
     support for sets with non-unique elements, which broke all set operations.
