@@ -2655,9 +2655,9 @@ sub t_fits {
     for my $i(1..$n) {
       $cd->(($i-1)) .= $hdr->{"CDELT$i"};
     }
-#If there are no CDELTs, then there's not much of a transform. 
-#Just return the identity
-    if (all($cd==0)){return &t_identity();}
+#If there are no CDELTs, then we assume they are all 1.0,
+#as in PDL::Graphics::PGPLOT::Window::_FITS_tr.
+    $cd+=1 if (all($cd==0));
 
     $matrix = $cdm x $cpm;
   }
