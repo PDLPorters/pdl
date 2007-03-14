@@ -1,3 +1,5 @@
+DAL 14-Mar-2006
+    Fixed previous (09-Mar) fix; t_identity was not the right solution.
 DAL 09-Mar-2006
     PDL::Transform::t_fits now returns t_identity if there is no good xform.
 DAL 06-Mar-2006
