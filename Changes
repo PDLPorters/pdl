@@ -1,8 +1,13 @@
-DAL 14-Mar-2006
+DJB 18-Mar-2007
+    Internal clean up of Basic/Core/pdlthread.c; v1.6 used its own copy
+    of strndup to copy arrays whereas we now (v1.7) use the Perl C API
+    (Newx/CopyD/Safefree). This should be invisible to the user.
+    + changed dates below from 2006 to 2007:-)
+DAL 14-Mar-2007
     Fixed previous (09-Mar) fix; t_identity was not the right solution.
-DAL 09-Mar-2006
+DAL 09-Mar-2007
     PDL::Transform::t_fits now returns t_identity if there is no good xform.
-DAL 06-Mar-2006
+DAL 06-Mar-2007
     Fixed bug in setops (Basic/Primitive/primitive.pd) which broke 'OR'. Added 
     support for sets with non-unique elements, which broke all set operations.
     Added tests in t/primitive.t for setops.
