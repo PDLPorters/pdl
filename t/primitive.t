@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => $PDL::Bad::Status ? 27 : 25 ;
+plan tests => $PDL::Bad::Status ? 27 : 24 ;
 
 sub tapprox {
     my($a,$b) = @_;
