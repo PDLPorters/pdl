@@ -1,3 +1,5 @@
+DAL 13-Apr-2007
+    Fixed subtraction error (previously introduced by me) in t/primitive.t.
 CED 12-Apr-2007
     Add qsortveci to ufunc.pd, to round out the complement of qsort 
     methods.
