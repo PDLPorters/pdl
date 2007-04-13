@@ -524,6 +524,44 @@ for (keys %PDL::Types::typehash) {
 	
       }
 
+      void pdl_qsortvec_ind_$ppsym($ctype *xx, int *ix, int n, int a, int b) {
+		
+	int i,j, median_ind;
+
+	$ctype t;
+	i = a; 
+	j = b;
+
+	median_ind = (i+j)/2;
+
+	do {
+	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[i]]), &(xx[n*ix[median_ind]]), n )  <  0 ) 
+		i++;
+	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[j]]), &(xx[n*ix[median_ind]]), n )  >  0 ) 
+		j--;
+	  if(i<=j) {
+		int k;
+	        k = ix[i];
+	        ix[i] = ix[j];
+		ix[j] = k;	        
+
+                if (median_ind==i)
+                  median_ind=j;
+                else if (median_ind==j)
+                  median_ind=i;
+
+	        i++; 
+		j--;
+	  }
+	} while (i <= j);
+	
+	if (a < j)
+	  pdl_qsortvec_ind_$ppsym( xx, ix, n, a, j );
+	if (i < b)
+	  pdl_qsortvec_ind_$ppsym( xx, ix, n, i, b );
+	
+      }
+
 FOO
    );
 }
@@ -1063,6 +1101,48 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
 Vectors with bad components should be moved to the end of the array:
 ',
     ); # pp_def qsort
+
+sub generic_qsortvec_ind {
+    my $pdl = shift;
+    my $ndim = shift;
+    return '$TBSULQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,
+             pdl_qsortvec_ind_L,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+}
+
+pp_def(
+    'qsortveci',
+    HandleBad => 1,
+    Pars => 'a(n,m); int [o]indx(m);',
+    Code => 
+    'int nd;
+     int nn=$COMP(__m_size)-1;
+     loop(m) %{
+        $indx()=m;
+     %}
+     nd = $COMP(__n_size);
+    ' . generic_qsortvec_ind('a','nd'),
+    Doc => '
+=for ref
+
+Sort a list of vectors lexicographically, returning the indices of the
+sorted vectors rather than the sorted list itself.
+
+As with C<qsortvec>, the input PDL should be an NxM array containing M
+separate N-dimensional vectors.  The return value is an integer M-PDL 
+containing the M-indices of original array rows, in sorted order.
+
+As with C<qsortvec>, the zeroth element of the vectors runs slowest in the
+sorted list.  
+
+Additional dimensions are threaded over: each plane is sorted separately,
+so qsortveci may be thought of as a collapse operator of sorts (groan).
+
+',
+    BadDoc =>
+'
+Vectors with bad components should be moved to the end of the array:
+',
+    ); 
 
 
 

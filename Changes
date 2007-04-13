@@ -1,3 +1,6 @@
+CED 12-Apr-2007
+    Add qsortveci to ufunc.pd, to round out the complement of qsort 
+    methods.
 DJB 18-Mar-2007
     Internal clean up of Basic/Core/pdlthread.c; v1.6 used its own copy
     of strndup to copy arrays whereas we now (v1.7) use the Perl C API
