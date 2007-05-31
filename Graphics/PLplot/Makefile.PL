@@ -6,7 +6,6 @@ use Config;
 # use PDL::Core::Dev;  # needed for stand-alone version of package.
                        # Need to comment out
                        # for package included in PDL distro.
-PDL::Core::Dev->import();
 
 use vars qw /$plplotvers/; # version of plplot used
 
@@ -181,11 +180,16 @@ $PDL::Config{WITH_PLPLOT} = 1;
 ## new way to get writemakefile args...
 #
 @pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
-%hash = pdlpp_stdargs_int(@::pack);
+
+%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
+### %hash = pdlpp_stdargs(@::pack);          # use this for separate module          
 
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
-$hash{'VERSION'}   = '0.21';
+$hash{'VERSION'}   = '0.31';
 $hash{'LIBS'}      = [$libs];
+# add this to allow one to use the /ops/tools/lib plplot libs even when
+# another plplot is installed in /usr/local/lib. D. Hunt 6/4/2004
+$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib "; 
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
 			  'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'};
@@ -194,24 +198,9 @@ WriteMakefile(%hash);
 
 # Add genpp rule
 sub MY::postamble {
-    pdlpp_postamble_int(@::pack);
+    pdlpp_postamble_int(@::pack);  # use this for module inside PDL source 
+### pdlpp_postamble(@::pack);	   # use this for separate module          
 }
-
-### $package = ["plplot.pd",PLplot,PDL::Graphics::PLplot];
-### WriteMakefile(
-### 	      'NAME'  	     => 'PDL::Graphics::PLplot',
-### 	      'CCFLAGS'      => "-g",
-### 	      'VERSION_FROM' => 'Makefile.PL',
-### 	      'TYPEMAPS'     => [&PDL_TYPEMAP()],
-### 	      'OBJECT'       => 'PLplot.o ',
-### 	      'PM'           => { 'PLplot.pm'   => '$(INST_LIBDIR)/PLplot.pm' },
-### 	      'INC'          => &PDL_INCLUDE()." $plplot_include_path", 
-### 	      'LIBS'         => [$libs],  
-### 	      'clean'        => {'FILES'  => 
-### 				   'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'},
-### 	      );
-### 
-### sub MY::postamble { pdlpp_postamble($package); }	
 
 sub compileAndRun {
   my $flags = shift;

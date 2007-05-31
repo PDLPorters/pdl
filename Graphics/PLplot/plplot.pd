@@ -609,6 +609,42 @@ Create a histogram of a 1-D variable.
 
   $pl->histogram ($x, $nbins, BOX => [$min, $max, 0, 100]);
 
+=head2 bargraph
+
+=for ref
+
+Simple utility to plot a bar chart with labels on the X axis.
+The usual options can be specified, plus one other:  MAXBARLABELS
+specifies the maximum number of labels to allow on the X axis.
+The default is 20.  If this value is exceeded, then every other
+label is plotted.  If twice MAXBARLABELS is exceeded, then only
+every third label is printed, and so on.
+
+=for usage
+
+ Arguments:
+ $labels -- A reference to a perl list of strings.
+ $values -- A PDL of values to be plotted.
+
+ Supported options:
+ All options except:
+
+ BACKGROUND
+ DEV
+ FILE
+ FRAMECOLOR
+ JUST
+ PAGESIZE
+ SUBPAGES
+
+ (These must be set in call to 'new'.)
+
+=for example
+
+  $labels = ['one', 'two', 'three'];
+  $values = pdl(1, 2, 3);
+  $pl->bargraph($labels, $values, MAXBARLABELS => 30);
+
 =head2 text
 
 =for ref
@@ -746,7 +782,11 @@ use vars qw(%_constants %_actions);
    },
 
    # set output device type
-   DEV        => sub { plsdev   ($_[1]) },   # this must be specified with call to new!
+   DEV        => sub { my $self = shift;
+                       my $dev  = shift;
+                       $self->{DEV} = $dev;
+                       plsdev   ($dev)
+                     },   # this must be specified with call to new!
 
    # set PDL to plot into (alternative to specifying DEV)
    MEM        => sub { my $self = shift;
@@ -1312,6 +1352,8 @@ sub xyplot {
     plerry ($y->nelem, $x, $y - $yeb/2, $y + $yeb/2);
   }
 
+  # Flush the PLplot stream.
+  plflush();
 }
 
 
@@ -1355,7 +1397,11 @@ sub colorkey {
   # restore color setting
   plcol0  ($self->{CURRENT_COLOR_IDX});
 
-  my $ncols = 128;  # set when PALETTE set
+  # This is the number of colors shown in the color wedge.  Make
+  # this smaller for gif images as these are limited to 256 colors total.
+  # D. Hunt 8/9/2006
+  my $ncols = ($self->{DEV} =~ /gif/) ? 32 : 128;
+
   if ($orientation eq 'v') {
     my $yinc = ($box[3] - $box[2])/$ncols;
     my $y0 = $box[2];
@@ -1363,8 +1409,15 @@ sub colorkey {
       $y0 = $box[2] + ($i * $yinc);
       my $y1 = $y0 + $yinc;
       PDL::Graphics::PLplot::plcol1($i/$ncols);
-      PDL::Graphics::PLplot::plfill (PDL->new($box[0],$box[1],$box[1],$box[0]),
-				     PDL->new($y0,$y0,$y1,$y1));
+
+      # Instead of using plfill (which is not supported on some devices)
+      # use multiple calls to plline to color in the space. D. Hunt 8/9/2006
+      foreach my $inc (0..9) {
+        my $frac = $inc * 0.1;
+        my $y = $y0 + (($y1 - $y0) * $frac);
+        PDL::Graphics::PLplot::plline (PDL->new(0,1), PDL->new($y,$y));
+      }
+
     }
   } else {
     my $xinc = ($box[1] - $box[0])/$ncols;
@@ -1373,10 +1426,20 @@ sub colorkey {
       $x0 = $box[0] + ($i * $xinc);
       my $x1 = $x0 + $xinc;
       PDL::Graphics::PLplot::plcol1($i/$ncols);
-      PDL::Graphics::PLplot::plfill (PDL->new($x0,$x0,$x1,$x1),
-				     PDL->new($box[2],$box[3],$box[3],$box[2]));
+
+      # Instead of using plfill (which is not supported on some devices)
+      # use multiple calls to plline to color in the space. D. Hunt 8/9/2006
+      foreach my $inc (0..9) {
+        my $frac = $inc * 0.1;
+        my $x = $x0 + (($x1 - $x0) * $frac);
+        PDL::Graphics::PLplot::plline (PDL->new($x,$x), PDL->new(0,1));
+      }
+
     }
   }
+
+  # Flush the PLplot stream.
+  plflush();
 }
 
 # handle shade plots of gridded (2D) data
@@ -1428,6 +1491,9 @@ sub shadeplot {
 	   0, \&pltr1, $grid);
 
   plFreeGrid ($grid);
+
+  # Flush the PLplot stream.
+  plflush();
 }
 
 # handle histograms
@@ -1472,6 +1538,8 @@ sub histogram {
   # set line width back
   plwid  (0);
 
+  # Flush the PLplot stream.
+  plflush();
 }
 
 # Draw bar graphs
@@ -1481,6 +1549,10 @@ sub bargraph {
   my $values = shift; # pdl of values for bars
 
   my %opts = @_;
+
+  # max number of readable labels on x axis
+  my $maxlab = defined($opts{MAXBARLABELS}) ? $opts{MAXBARLABELS} : 20;
+  delete ($opts{MAXBARLABELS});
 
   my $xmax = scalar(@$labels);
 
@@ -1507,7 +1579,6 @@ sub bargraph {
   # plot labels
   plschr   (0, $self->{CHARSIZE} * 0.7); # use smaller characters
   my $pos = 0;
-  my $maxlab = 20;  # max number of readable labels on x axis
   my $skip   = int($xmax/$maxlab) + 1;
   for (my $i=0;$i<$xmax;$i+=$skip) {
     my $lab = $$labels[$i];
@@ -1528,6 +1599,11 @@ sub bargraph {
   # set line width back
   plwid  (0);
 
+  # set char size back
+  plschr (0, $self->{CHARSIZE});
+
+  # Flush the PLplot stream.
+  plflush();
 }
 
 # Add text to a plot
@@ -1550,8 +1626,30 @@ sub text {
     plptex ($x, $y, $dx, $dy, $just, $text);
   }
 
+  # Flush the PLplot stream.
+  plflush();
 }
 
+# Clear the current page. This should only be used with interactive devices!
+sub clear {
+  my $self = shift;
+  plclear();
+  return;
+}
+
+# Get mouse click coordinates (OO version). This should only be used with interactive devices!
+sub cursor {
+  my $self = shift;
+
+  # Flush the stream, to make sure the plot is visible & current
+  plflush();
+
+  # Get the cursor position
+  my %gin = plGetCursor();
+
+  # Return an array with the coordinates of the mouse click
+  return ($gin{"wX"}, $gin{"wY"}, $gin{"pX"}, $gin{"pY"}, $gin{"dX"}, $gin{"dY"});
+}
 
 # Explicitly close a plot and free the object
 sub close {
@@ -2041,13 +2139,11 @@ pp_def ('plcolorpoints',
 
                   zrange  = $maxz() - $minz();
 
-                  for (i=1;i<ns;i++) {
+                  for (i=0;i<ns;i++) {
                     ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
-                    // ci = (ci * 0.875) + 0.125;           /* scale to 0.125-1 range (long story) */
                     if (ci < 0) ci = 0; /* enforce bounds */
                     if (ci > 1) ci = 1;
                     c_plcol1 (ci); /* set current color */
-                    // printf ("ci(%d) = %f\n", i, ci);
                     c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
                   }',
          BadCode =>
@@ -2058,7 +2154,7 @@ pp_def ('plcolorpoints',
 
                   zrange  = $maxz()  - $minz();
 
-                  for (i=1;i<ns;i++) {
+                  for (i=0;i<ns;i++) {
                     if ($ISBAD(z(n=>i))) continue;
                     ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
                     if (ci < 0) ci = 0; /* enforce bounds */
