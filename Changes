@@ -1,3 +1,6 @@
+AJ  21-Jun-2007
+    Added PDL::Minuit
+    Modified recovery mechanism in PDL::GSL::INTEG
 DAL 13-Apr-2007
     Fixed subtraction error (previously introduced by me) in t/primitive.t.
 CED 12-Apr-2007
