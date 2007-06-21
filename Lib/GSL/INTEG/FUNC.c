@@ -8,17 +8,22 @@ double FUNC(double x,void * p);
 
 double FUNC(double x,void * p){
 
+  SV* funname;
+  dSP;
+  ENTER;
+  SAVETMPS;
+
+
   double res;
+  double* resp;
+  resp = &res;
   int count;
 
-  dSP;
-  SV* funname;
+  I32 ax ; 
 
   /* get function name on the perl side */
   funname = ext_funname[current_fun];
 
-  ENTER;
-  SAVETMPS;
 
   PUSHMARK(SP);
 
@@ -29,12 +34,15 @@ double FUNC(double x,void * p){
   count=call_sv(funname,G_SCALAR);
 
   SPAGAIN; 
+  SP -= count ;
+  ax = (SP - PL_stack_base) + 1 ;
 
   if (count!=1)
     croak("error calling perl function\n");
 
   /* recover output value */
-  res = POPn;
+  /*res = POPn;*/
+  *resp = SvNV(ST(0));
 
   PUTBACK;
   FREETMPS;
