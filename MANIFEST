@@ -505,11 +505,11 @@ Lib/Interpolate/Makefile.PL
 Lib/Interpolate/Slatec/Makefile.PL
 Lib/Interpolate/Slatec/Slatec.pm
 Lib/Makefile.PL
+Lib/Minuit/FCN.c
 Lib/Minuit/Makefile.PL
 Lib/Minuit/minuit.pd
-Lib/Minuit/FCN.c
-Lib/Minuit/minuitlib/futils.f  
-Lib/Minuit/minuitlib/intracfalse.f  
+Lib/Minuit/minuitlib/futils.f
+Lib/Minuit/minuitlib/intracfalse.f
 Lib/Minuit/minuitlib/minuit.f
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
@@ -718,6 +718,7 @@ t/magic.t
 t/matmult.t
 t/matrix.t
 t/matrixops.t
+t/minuit.t
 t/misc.t
 t/ndf.t
 t/niceslice.t
@@ -756,6 +757,7 @@ t/subclass3.t
 t/subclass4.t
 t/thread.t
 t/thread_def.t
+t/transform.t
 t/trig.t
 t/vaffine.t
 t/xvals.t
