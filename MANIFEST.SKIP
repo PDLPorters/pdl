@@ -114,6 +114,10 @@ pdlexamples\.c$
 ^Lib/GSL/.*\.pm$
 ^Lib/GSL/.*\.xs$
 ^Lib/FFTW/typespec
+^Lib/Minuit/M.*\.c$
+^Lib/Minuit/.*\.pm$
+^Lib/Minuit/.*\.xs$
+^Lib/Minuit/.*\.a$
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm
 ^Lib/Slatec/Slatec.xs
