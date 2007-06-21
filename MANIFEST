@@ -505,6 +505,12 @@ Lib/Interpolate/Makefile.PL
 Lib/Interpolate/Slatec/Makefile.PL
 Lib/Interpolate/Slatec/Slatec.pm
 Lib/Makefile.PL
+Lib/Minuit/Makefile.PL
+Lib/Minuit/minuit.pd
+Lib/Minuit/FCN.c
+Lib/Minuit/minuitlib/futils.f  
+Lib/Minuit/minuitlib/intracfalse.f  
+Lib/Minuit/minuitlib/minuit.f
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
