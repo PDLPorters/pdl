@@ -9,10 +9,6 @@ double FUNC(double x,void * p);
 double FUNC(double x,void * p){
 
   SV* funname;
-  dSP;
-  ENTER;
-  SAVETMPS;
-
 
   double res;
   double* resp;
@@ -21,9 +17,12 @@ double FUNC(double x,void * p){
 
   I32 ax ; 
 
+  dSP;
+  ENTER;
+  SAVETMPS;
+
   /* get function name on the perl side */
   funname = ext_funname[current_fun];
-
 
   PUSHMARK(SP);
 
