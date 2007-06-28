@@ -42,18 +42,11 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
 void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* futil){
 
   SV* funname;
-  dSP;
-  ENTER;
-  SAVETMPS;
-
 
   int count,i;
   double* x;
 
   I32 ax ; 
-  
-  /* get name of function on the Perl side */
-  funname = mnfunname;
   
   pdl* pgrad;
   SV* pgradsv;
@@ -63,6 +56,13 @@ void FCN(int* npar,double* grad,double* fval,double* xval,int* iflag,double* fut
   
   int ndims;
   PDL_Long *pdims;
+
+  dSP;
+  ENTER;
+  SAVETMPS;
+
+  /* get name of function on the Perl side */
+  funname = mnfunname;
 
   ndims = 1;
   pdims = (PDL_Long *)  PDL->smalloc( (ndims) * sizeof(*pdims) );

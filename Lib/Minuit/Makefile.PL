@@ -124,7 +124,7 @@ if (defined($PDL::Config{MINUIT_LIB})){
     $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
 }
 else{
-    $hash{MYEXTLIB} .= " ./minuitlib/libminuit.a ";
+    $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
 }
 
 
@@ -145,14 +145,25 @@ sub MY::postamble {
 minuitlib/$_\$(OBJ_EXT): minuitlib/$_.f 
 	$mycompiler -c $hack_64bit -o minuitlib/$_\$(OBJ_EXT) $mycflags minuitlib/$_.f
 " )} @minuitfiles;
-	
+
 	if (!defined($PDL::Config{MINUIT_LIB})){
-	    my $libbuild = "
+          my $libbuild;
+          if($Config::Config{cc} eq 'cl') {
+            $libbuild = "
+
+minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
+	\$(AR) -out:minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
+	\$(RANLIB) minuitlib/libminuit\$(LIB_EXT)
+";
+          }
+          else {
+	      $libbuild = "
 
 minuitlib/libminuit\$(LIB_EXT): minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
 	\$(AR) rv minuitlib/libminuit\$(LIB_EXT) minuitlib/minuit\$(OBJ_EXT) minuitlib/intracfalse\$(OBJ_EXT)
 	\$(RANLIB) minuitlib/libminuit\$(LIB_EXT)
 ";
+          }
 	    $orig .= $libbuild;
 	}
 	return $orig;
