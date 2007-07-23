@@ -2615,7 +2615,7 @@ sub t_fits {
     
     #
     # CPi_j + CDELTi formalism
-    # If CPi_j arent present, and N=2, then try using CROTA or
+    # If CPi_j aren't present, and N=2, then try using CROTA or
     # CROTA2 to generate a rotation matrix instea.  
     #
   
@@ -2646,9 +2646,9 @@ sub t_fits {
       $cr = $hdr->{CROTA1} unless defined $cr;
 
       $cr *= $DEG2RAD;
-	# Rotation matrix rotates clockwise to get from sci to pixel coords
-	# (image has been rotated ccw, according to FITS standard)
-      $cpm .= pdl( [cos($cr), -sin($cr)],[sin($cr),cos($cr)] );
+	# Rotation matrix rotates counterclockwise to get from sci to pixel coords
+	# (detector has been rotated ccw, according to FITS standard)
+      $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
 
     }
       

@@ -771,16 +771,24 @@ switch(ind_pdl->datatype) {
       $COMP(nsizes) = size_pdl->nvals; /* Store for later permissiveness check */
 
       /* Copy the sizes, or die if they're the wrong shape */
-      if(size_pdl->nvals == 1) 
+      if(size_pdl->nvals == 1) {
 	for(i=0;i<$COMP(rdim);i++) 
 	  $COMP(sizes[i]) = *((PDL_Long *)(size_pdl->data));
-
-      else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) 
-	for(i=0;i<$COMP(rdim);i++)
+	
+	if($COMP(sizes[0]) < 0) {
+	$CROAK("  Negative range size is not allowed in range\n");
+        }
+      }
+      else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
+	for(i=0;i<$COMP(rdim);i++) {
 	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
 	                    	((PDL_Long *)(size_pdl->data))[i] :
 		                0
 			    );
+        }
+	  if($COMP(sizes[i]) < 0) 
+		$CROAK("  Negative range sizes are not allowed in range\n");
+      }
       else {
 	$CROAK(" Size must match index's 0th dim in range\n");
       }

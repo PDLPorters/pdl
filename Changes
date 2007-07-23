@@ -1,3 +1,9 @@
+CED 23-July-2007
+    slices.pd: Fixed negative-range problem (bug 1758614): disallow negative
+    sizes in ranges.
+    transform.pd: fixed bug in t_lookup table declaration
+CED 13-Jun-2007
+    Fixed sign error in t_fits (transform.pd) CROTA interpretation
 AJ  21-Jun-2007
     Added PDL::Minuit
     Modified recovery mechanism in PDL::GSL::INTEG
