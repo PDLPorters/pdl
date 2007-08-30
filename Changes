@@ -1,3 +1,5 @@
+DAL 30-Aug-2007
+    slices.pd: Fixed bug in range's negative size handling for ND piddles.
 CED 23-July-2007
     slices.pd: Fixed negative-range problem (bug 1758614): disallow negative
     sizes in ranges.

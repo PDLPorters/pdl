@@ -785,9 +785,9 @@ switch(ind_pdl->datatype) {
 	                    	((PDL_Long *)(size_pdl->data))[i] :
 		                0
 			    );
-        }
 	  if($COMP(sizes[i]) < 0) 
 		$CROAK("  Negative range sizes are not allowed in range\n");
+        }
       }
       else {
 	$CROAK(" Size must match index's 0th dim in range\n");
