@@ -26,6 +26,7 @@ reasonable looking gaussians and tests show correct parameters.
 
 =head1 SYNOPSIS
 
+        use PDL;
         use PDL::Fit::Gaussian;
         ($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
         ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr($r, $data);
