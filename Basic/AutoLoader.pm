@@ -203,7 +203,7 @@ sub PDL::AutoLoader::autoloader_do {
     print "AutoLoader: NiceSlice enabled...\n" if($PDL::debug);
     
     if(open(AUTOLOAD_FILE,"<$file")) {
-      my($script) = &PDL::NiceSlice::perldlpp(join("",<AUTOLOAD_FILE>));
+      my($script) = &PDL::NiceSlice::perldlpp("PDL::NiceSlice", join("",<AUTOLOAD_FILE>));
       eval $script;
     }
   } else {
