@@ -566,8 +566,6 @@ sub process_input {
 
  } 
   
-  ##$_ = $lines;
-
   # Execute the list of auto-code
   
   for my $c (@PERLDL::AUTO) {
@@ -580,14 +578,15 @@ sub process_input {
   
   $lines =~ s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
   $lines =~ s/^\s*\?\s*/help /;      # Make lone '?' = 'help'
-  
+
   if ( $lines =~ /^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
-      @t = split $lines;
-      foreach (@t) { s/^["']+//; s/['"]+$//; };
+      @t = split(/\s+/,$lines);
+      my $a;
+      foreach $a(@t) { $a=~s/^["']+//; $a=~s/['"]+$//; };
       $t[1] = "'".$t[1]."'"  if ($#t == 1 && !($t[1] =~ /^\$/));
       $lines = join(' ',@t);
   }
-  
+
   if (substr($lines,0,1) eq substr($PERLDL::ESCAPE,0,1) and
       substr($lines,0,2) ne '#!') {  # Allow escapes, avoid shebang
       my @lines = split /\n/, $lines;
@@ -650,6 +649,7 @@ while(1) {
 
 sub eval_and_report {
   my $__code = shift; # Can be code ref or string
+
   $@ = ""; # clear $@ since we might not execute the eval below
 
 
