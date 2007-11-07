@@ -135,6 +135,7 @@ push @PERLDL::AUTO, \&PDL::AutoLoader::reloader;
 
 sub AUTOLOAD {
     local @INC = @INC;
+    my @args = @_;
     $AUTOLOAD =~ /::([^:]*)$/;
     my $func = $1;
 
@@ -174,7 +175,7 @@ sub AUTOLOAD {
 	  }
 	  
 	  # Now go to the autoload function
-	  goto &$AUTOLOAD unless ($@ || !defined(&{$AUTOLOAD}));
+	  return &$AUTOLOAD(@args) unless ($@ || !defined(&{$AUTOLOAD}));
 
 	  die $s."\tWhile parsing file `$file':\n$@\n" if($@);
 	  die $s."\tFile `$file' doesn't \n\tdefine ${AUTOLOAD}().\n"

@@ -1,3 +1,11 @@
+CED 6-Nov-2007
+    PDL::AutoLoader - changed goto to a pass-through sub call, to avoid problems with 
+	    autoload files that leave stuff on the stack (e.g. subs with Inline or XS definitions).
+	    By not goto'ing, we avoid scrozzling the stack in such cases.
+    PDL::NiceSlice - add some (masked-out) debug prints in perldlpp()
+    perldl - make the acquire/filter/execute loop $_-safe by using $lines instead of $_ 
+	    for all the central modifications.  Avoids problems with some AUTOLOAD 
+	    functions that leaked $_.
 CED 5-Nov-2007
     PDL::NiceSlice - fixed use/no problems, both in eval and non-eval cases (I think).
 HG  16-Oct-2007

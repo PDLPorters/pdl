@@ -214,7 +214,7 @@ unless ($@) {
     return $ret;
   }
   my $preproc = sub { my ($txt) = @_;
-	  my $new = PDL::NiceSlice::perldlpp($txt);
+	  my $new = PDL::NiceSlice::perldlpp('main',$txt);
 	  print STDERR "processed $new\n" if report && $new ne $txt;
 	  return $new;
   };
@@ -566,7 +566,7 @@ sub process_input {
 
  } 
   
-  $_ = $lines;
+  ##$_ = $lines;
 
   # Execute the list of auto-code
   
@@ -575,40 +575,40 @@ sub process_input {
       warn $mess if $mess;
   }
   
-  if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x' || lc $_ eq 'quit') {exit};
-  next if /^\s*$/; # Blank line - do nothing
+  if(!defined $lines || lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'quit') {exit};
+  next if $lines =~/^\s*$/; # Blank line - do nothing
   
-  s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
-  s/^\s*\?\s*/help /; # Make lone '?' = 'help'
+  $lines =~ s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
+  $lines =~ s/^\s*\?\s*/help /;      # Make lone '?' = 'help'
   
-  if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
-      @t = split;
+  if ( $lines =~ /^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
+      @t = split $lines;
       foreach (@t) { s/^["']+//; s/['"]+$//; };
-      $t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));
-      $_ = join(' ',@t);
+      $t[1] = "'".$t[1]."'"  if ($#t == 1 && !($t[1] =~ /^\$/));
+      $lines = join(' ',@t);
   }
   
-  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1) and
-      substr($_,0,2) ne '#!') {  # Allow escapes, avoid shebang
-      my @lines = split /\n/;
+  if (substr($lines,0,1) eq substr($PERLDL::ESCAPE,0,1) and
+      substr($lines,0,2) ne '#!') {  # Allow escapes, avoid shebang
+      my @lines = split /\n/, $lines;
       system(substr(shift @lines,1)); # Shell escape
-      $_ = join("\n",@lines);
+      $lines = join("\n",@lines);
       next;
   } else {
       # Send code to pre-processor filters if defined
       for my $filter (@PERLDL::PREPROCESS) {
-          $_ = $filter->($_);
+          $lines = $filter->($lines);
       }
 
       # honor the deprecated interface for now
       if (defined $PERLDL::PREPROCESS && 
 	  ref($PERLDL::PREPROCESS) eq 'CODE') {
           preproc_oldwarn() unless $preproc_warned;
-          $_ = &$PERLDL::PREPROCESS($_);
+          $lines = &$PERLDL::PREPROCESS($_);
       }
       
       startpage;
-      my $mess = eval_and_report($_);
+      my $mess = eval_and_report($lines);
       warn $mess if $mess;
       endpage;
   }

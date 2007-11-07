@@ -347,13 +347,27 @@ sub reinstator_regexp{
 # save eval of findslice that should be used within perldl as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
- 
+
  ##############################
  # Backwards compatibility to before the two-parameter form. The only
  # call should be around line 206 of PDL::AutoLoader, but one never
  # knows....
  #    -- CED 5-Nov-2007
- if(!defined($txt)) { $txt = $class; $class = "PDL::NiceSlice"; }
+ if(!defined($txt)) { 
+     print "PDL::NiceSlice::perldlpp -- got deprecated one-argument form, from ".(join("; ",caller))."...\n";
+     $txt = $class; 
+     $class = "PDL::NiceSlice";
+ }
+
+ ## Debugging to track exactly what is going on -- left in, in case it's needed again
+ if($PDL::debug > 1) {
+     print "PDL::NiceSlice::perldlpp - got:\n$txt\n";
+     my $i;
+     for $i(0..5){
+	 my($package,$filename,$line,$subroutine, $hasargs) = caller($i);
+	 printf("layer %d: %20s, %40s, line %5d, sub %20s, args: %d\n",$i,$package,$filename,$line,$subroutine,$hasargs);
+     }
+ }
 
  my $new;
 
@@ -420,6 +434,10 @@ sub perldlpp {
     }
    return "print q{NiceSlice error: $err}"; # if this doesn't work
                                                # we're stuffed
+ }
+
+ if($PDL::debug > 1) {
+     print "PDL::NiceSlice::perldlpp - returning:\n$new\n";
  }
  return $new;
 }
