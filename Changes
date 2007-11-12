@@ -1,3 +1,5 @@
+DAL 12-Nov-2007
+    Inserted logic to suppress warnings from PDL::Transform during 'make test'.
 CED 6-Nov-2007
     PDL::AutoLoader - changed goto to a pass-through sub call, to avoid problems with 
 	    autoload files that leave stuff on the stack (e.g. subs with Inline or XS definitions).
