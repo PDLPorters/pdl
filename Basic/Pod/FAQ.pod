@@ -250,12 +250,10 @@ to get a Perl installation can be found at the Perl home page
 http://www.perl.org and at many CPAN sites (if you do
 not know what I< CPAN> is check the answer to the next question).
 
-To build PDL you also need a working C compiler and support
-for Xsubs the package Extutils::MakeMaker.  See also 
-http://pdl.perl.org/ports.html for a list of machines
-where PDL has been tested. If you don't have a compiler there
-might be a binary distribution availabe, see "Binary
-distributions" below.
+To build PDL you also need a working C compiler and support for Xsubs
+the package Extutils::MakeMaker. If you don't have a compiler there
+might be a binary distribution availabe, see "Binary distributions"
+below.
 
 If you can (or cannot) get PDL working on a new (previously
 unsupported) platform we would like to hear about it. Please,
@@ -359,70 +357,56 @@ http://pdl.perl.org . It has tons of goodies for anyone interested in PDL:
 
 =over 4
 
-=item *
+=item * 
 
 PDL distributions 
 
-=item *
+=item * 
 
 Online documentation 
 
-=item *
+=item * 
 
 Pointers to an HTML archive of the PDL mailing lists
 
-=item *
+=item * 
 
-A list of platforms on which PDL has been successfully
-tested. 
+A list of platforms on which PDL has been successfully tested. 
 
-=item *
+=item * 
 
-News about recently added features, ported libraries,
-etc.
+News about recently added features, ported libraries, etc.
 
-=item *
+=item * 
 
 Name of the current pumpkin holders for the different PDL modules (if
 you want to know what that means you better had a look at the web
 pages).
-
-
 
 =back
 
 If you are interested in PDL in general you can join the PDL mailing
 list perldl@jach.hawaii.edu. This is a forum to discuss programming
 issues in PDL, report bugs, seek assistance with PDL related problems,
-etc. To subscribe, send a message to perldl-request@jach.hawaii.edu 
-containing a string in the following format:
+etc. To subscribe, fill out the form at
+http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
 
-   
-   	subscribe me@my.email.address
-         
-
-where you should replace the string 
-C< me@my.email.address> with your email address. A searchable archive 
-and a hypertext version of the traffic on this list (1997-2004) can be 
-found at http://www.xray.mpe.mpg.de/mailing-lists/perldl/ . More
-recent messages (since June 2005) can be found at 
-http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
+A searchable archive and a hypertext version of the traffic on this
+list (1997-2004) can be found at
+http://www.xray.mpe.mpg.de/mailing-lists/perldl/ . More recent
+messages (since June 2005) can be found at
+http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
 
 If you are interested in all the technical details of the ongoing PDL
 development you can join the PDL developers mailing list
-pdl-porters@jach.hawaii.edu . To subscribe, send a message to 
-pdl-porters-request@jach.hawaii.edu containing a string in the following format:
+pdl-porters@jach.hawaii.edu . To subscribe, fill out the form at
+http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
 
-   
-   	subscribe me@my.email.address
-         
-
-where you should replace the string C< me@my.email.address> 
-with your email address. A searchable archive and a hypertext version
+A searchable archive and a hypertext version
 of the traffic on this list (1997-2004) can be found at 
 http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ . More recent messages 
 (since June 2005) can be found at 
-http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters
+http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
 
 Crossposting between these lists should be avoided unless there is a
 I< very> good reason for doing that.
