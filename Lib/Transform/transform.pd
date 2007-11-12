@@ -1500,7 +1500,7 @@ sub map {
 
   ##############################
   ## Figure out the interpND options
-  my $method = _opt($opt,['m','method','Method']);
+  my $method = _opt($opt,['m','method','Method'],undef);
   my $bound = _opt($opt,['b','bound','boundary','Boundary'],'t');
 
 
@@ -1513,7 +1513,7 @@ sub map {
 	
   ##############################
   ## Integrate ?  (Jacobian, Gaussian, Hanning)  
-  my $integrate = ($method =~ m/^[jghJGH]/);
+  my $integrate = ($method =~ m/^[jghJGH]/) if defined($method);
 
   ##############################
   ## Sampling code:
@@ -2230,6 +2230,10 @@ sub t_linear { new PDL::Transform::Linear(@_); }
 sub PDL::Transform::Linear::new {
   my($class) = shift;
   my($o) = $_[0];
+  pop @_ if (($#_ % 2 ==0) && !defined($_[-1]));
+  #suppresses a warning if @_ has an odd number of elements and the
+  #last is undef
+
   if(!(ref $o)) {
     $o = {@_};
   }
