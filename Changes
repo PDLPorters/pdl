@@ -1,3 +1,5 @@
+AJ  17-Nov-2007
+    Fixes to PDL::Minuit
 DAL 12-Nov-2007
     Inserted logic to suppress warnings from PDL::Transform during 'make test'.
     Updated the FAQ with new mailing list info.
