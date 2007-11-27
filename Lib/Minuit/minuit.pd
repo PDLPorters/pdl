@@ -129,7 +129,7 @@ It returns an integer variable which is 0 upon success.
 
 Usage:
 
- $iflag = mn_def_pars($pars, $stapes,{Names => \@names, 
+ $iflag = mn_def_pars($pars, $steps,{Names => \@names, 
 			Lower_bounds => $lbounds,
 			Upper_bounds => $ubounds})
 
@@ -336,11 +336,9 @@ sub mn_init{
 		};
 
   if ( @_ ){
-    my %args = @_;
+    my $args = $_[0];
     for my $key (qw/ Log Title Unit/){
-        #print "$key $args{$key}\n";
-	$mn_options->{$key} = $args{$key} if exists $args{$key};
-        #print "$args{$key}\n" if exists $args{$key};
+	$mn_options->{$key} = $args->{$key} if exists $args->{$key};
     }
   }
 	
@@ -406,13 +404,15 @@ sub mn_def_pars{
   my $up_bounds = zeroes($n);
 
   if ( @_ ) {
-     my %opts = @_;
-     $lo_bounds = $opts{Lower_bounds} if defined $opts{Lower_bounds};
-     $up_bounds = $opts{Upper_bounds} if defined $opts{Upper_bounds};
-     $names_t = $opts{Names} if defined $opts{Names};
-     barf " Names has to be an array reference" unless ref($names_t) eq \'ARRAY\';
-     @names = @$names_t;
-     barf " Names has to have as many elements as there are parameters " unless ( @names == $n);
+     my $opts = $_[0];
+     $lo_bounds = $opts->{Lower_bounds} if defined $opts->{Lower_bounds};
+     $up_bounds = $opts->{Upper_bounds} if defined $opts->{Upper_bounds};
+     if (defined($opts->{Names})){
+     	$names_t = $opts->{Names};
+     	barf " Names has to be an array reference" unless ref($names_t) eq \'ARRAY\';
+     	@names = @$names_t;
+     	barf " Names has to have as many elements as there are parameters " unless ( @names == $n);
+     }
   }
 
   my $iflag = 0;
