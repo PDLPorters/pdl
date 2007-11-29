@@ -105,8 +105,8 @@ extern "C" {
 		     const int /* dims */[],
 		     float /* Re */[],
 		     float /* Im */[],
-		     int /* isign */,
-		     double /* scaling */);
+		     int   /* isign */,
+		     float /* scaling */);
 
 #ifdef __cplusplus
 }

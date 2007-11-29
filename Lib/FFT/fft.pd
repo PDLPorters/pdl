@@ -59,7 +59,9 @@ fft_free()
 pp_def('fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	GenericTypes => [F,D],
-	Code => '$TFD(fftnf,fftn)
+	Code => '
+	printf("fft: calling $TFD(fftnf,fftn)\n");
+	$TFD(fftnf,fftn)
 	  ($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
 	Doc=>'Complex FFT of the "real" and "imag" arrays [inplace]'
 );

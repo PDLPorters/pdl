@@ -1,3 +1,5 @@
+CED & DAL 29-Nov-2007
+    Lib/FFT - fixed problem with floating-point ffts
 AJ  17-Nov-2007
     Fixes to PDL::Minuit
 DAL 12-Nov-2007
