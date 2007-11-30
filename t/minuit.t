@@ -18,8 +18,8 @@ $x = sequence(10);
 $y = 3.0 + 4.0*$x;
 
 mn_init(\&chi2,
-        Log => $logfile, 
-        Title => 'test title');
+        {Log => $logfile, 
+        Title => 'test title'});
 
 $pars = pdl(2.5,3.0);
 $steps = pdl(0.3,0.5);
@@ -27,7 +27,7 @@ $steps = pdl(0.3,0.5);
 
 mn_def_pars($pars,
             $steps,
-            Names => \@names);
+            {Names => \@names});
 
 $arglis = pdl (3.0);
 
