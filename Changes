@@ -1,3 +1,6 @@
+SIS 10-Dec-2007
+    Some versions of EU::MM want to write a postamble in Lib/Makefile that kills dmake.
+    Add a sub MY::postamble to Lib/Makefile.PL that takes care of the issue. (rev 1.9)
 AJ 30-Nov-2007
     syntax update in minuit.t
 CED & DAL 29-Nov-2007
