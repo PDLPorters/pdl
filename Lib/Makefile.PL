@@ -12,3 +12,5 @@ WriteMakefile(
 #			Interpolate
 );
 
+sub MY::postamble { '' }
+
