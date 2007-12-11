@@ -1,3 +1,5 @@
+DAL 11-Dec-2007
+    Removed print statement in Lib/FFT/fft.pd that crept in during debugging.
 SIS 10-Dec-2007
     Some versions of EU::MM want to write a postamble in Lib/Makefile that kills dmake.
     Add a sub MY::postamble to Lib/Makefile.PL that takes care of the issue. (rev 1.9)
