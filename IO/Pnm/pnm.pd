@@ -173,7 +173,7 @@ sub PDL::rpnm {
     }
 
     my $type = $PDL_B;
-    if (!$israw) {
+    do {
 TYPES:	{  my $pdlt;
 	   foreach $pdlt ($PDL_B,$PDL_US,$PDL_L){
 	     if ($dims[2] <= dmax($pdlt))
@@ -183,7 +183,7 @@ TYPES:	{  my $pdlt;
 	   }
 	   rbarf $efile, "rraw: data from ascii pnm file out of range";
         }
-    }
+    };
 
     # the file ended prematurely
     rbarf $efile, "no valid header info in pnm" if $pgot < $params;
@@ -256,11 +256,11 @@ sub PDL::wpnm {
     barf "wpnm: user should convert float and double data to appropriate type"
 	if ($pdl->get_datatype == $PDL_F) || ($pdl->get_datatype == $PDL_D);
     barf "wpnm: exspecting prescaled data"
-	if ($pdl->get_datatype != $PDL_B) && ($pdl->get_datatype != $PDL_US) &&
+	if (($pdl->get_datatype != $PDL_B) || ($pdl->get_datatype != $PDL_US)) &&
 	    ($pdl->min < 0);
 
     # check for raw format
-    $israw = 1 if (($pdl->get_datatype == $PDL_B) || ($type =~ /PBM/));
+    $israw = 1 if (($pdl->get_datatype == $PDL_B) || ($pdl->get_datatype == $PDL_US) || ($type =~ /PBM/));
     $israw = 0 if (defined($raw) && !$raw);
 
 
@@ -289,8 +289,19 @@ sub PDL::wpnm {
     # write header
     print PNM "$magic\n";
     print PNM "$Dims[-2] $Dims[-1]\n";
-    print PNM ($max < 255 ? "255\n": "$max\n") unless $type =~ /PBM/;
+    if ($type !~ /PBM/) {	# fix maxval for raw output formats
+       my $outmax = 0;
 
+       if ($max < 256) {
+          $outmax =   "255";
+       } elsif ($max < 65536) {
+          $outmax = "65535";
+       } else {
+          $outmax = $max;
+       };
+
+       print PNM "$outmax\n" unless $type =~ /PBM/;
+    };
 
     # if rgb clump first two dims together
     my $out = ($isrgb ? $pdl->slice(':,:,-1:0')->clump(2)
@@ -343,17 +354,18 @@ pp_def('pnminraw',
 	Pars => 'type(); byte+ [o] im(m,n)',
 	OtherPars => 'int ms => m; int ns => n;
 			int isbin; char* fd',
-	GenericTypes => [B],
+	GenericTypes => [B,U,L],
 	Code => 'int ms, ns, i,j,k,bit,llen;
 		 PerlIO *fp;
 		 IO *io;
 		 PDL_Byte *buf, *bp;
+		 $GENERIC() *gbp;
 
 		 io = GvIO(gv_fetchpv($COMP(fd),FALSE,SVt_PVIO));
 		 if (!io || !(fp = IoIFP(io)))
 			barf("Can\'t figure out FP");
 		 ms = $SIZE(m); ns = $SIZE(n);
-		 llen = ($COMP(isbin) ? (ms+7) / 8 : ms);
+		 llen = ($COMP(isbin) ? ((ms+7) / 8) : (ms * sizeof($GENERIC())));
 		 /* allocate a buffer of length llen */
 		 if ((buf = (PDL_Byte*) malloc(llen*sizeof(PDL_Byte)))
 		      == NULL)
@@ -371,9 +383,9 @@ pp_def('pnminraw',
 					k = k << 1;
       				}
 			   else {
-				bp = buf;
+				gbp = ($GENERIC()*)buf;
 				loop(m) %{
-					$im(n=>i,m=>m) = *bp++;
+					$im(n=>i,m=>m) = *(gbp++);
 				%}
 			   }
 			}
@@ -550,7 +562,7 @@ pp_def(	'pnmout',
 			  }
 		       %}
 		    } else {
-		      int len = $SIZE(m);
+		      int len = $SIZE(m) * sizeof($GENERIC());
 		      threadloop %{
 		 	if (PerlIO_write(fp,$P(a),len) != len)
 				barf("Error writing pnm file");

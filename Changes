@@ -1,3 +1,7 @@
+CHM 14-Dec-2007
+    Fixed IO/Pnm/pnm.pd to support 16-bit image format IO with rpic()
+    and wpic().  Added basic t/pic_16bit.t to test the functionality
+    with PNM and PNG grayscale images.
 DAL 11-Dec-2007
     Removed print statement in Lib/FFT/fft.pd that crept in during debugging.
 SIS 10-Dec-2007
