@@ -1,3 +1,5 @@
+SIS 17-Dec-2007
+    In Lib/Minuit/Makefile.PL remove the MYEXTLIB assignment (for win32 only) - rev 1.3
 CHM 14-Dec-2007
     Fixed IO/Pnm/pnm.pd to support 16-bit image format IO with rpic()
     and wpic().  Added basic t/pic_16bit.t to test the functionality
