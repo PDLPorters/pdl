@@ -120,11 +120,13 @@ $g2cbased = ($f77->runtime =~ /-lg2c/) unless $f2cbased;
 
 $hash{DEFINE} .= $f77->trail_ ? "" : "-DNO_TRAILING_USCORE";
 
-if (defined($PDL::Config{MINUIT_LIB})){
-    $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
-}
-else{
-    $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+unless($^O =~ /mswin32/i) {
+  if (defined($PDL::Config{MINUIT_LIB})){
+      $hash{MYEXTLIB} .= (" ".$PDL::Config{MINUIT_LIB}." ");
+  }
+  else{
+      $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+  }
 }
 
 
