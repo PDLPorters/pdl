@@ -1,3 +1,8 @@
+DAL 13-Jan-2008 
+    Fixed bug in Basic/Primitive/primitive.pd that caused uniqvec to
+    fail if all the input vectors were the same. Fixes bug #1869760,
+    which duplicated bug #1544352, which was resolved by CHM patch
+    #1548824.  Added test case to t/primitive.t to test for this bug.
 SIS 17-Dec-2007
     In Lib/Minuit/Makefile.PL remove the MYEXTLIB assignment (for win32 only) - rev 1.3
 CHM 14-Dec-2007

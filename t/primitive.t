@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => $PDL::Bad::Status ? 27 : 24 ;
+plan tests => $PDL::Bad::Status ? 28 : 25 ;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -126,16 +126,20 @@ eval '$c = all($b==pdl([[0,1],[2,2]]))';  ok(!$@ && $c);
 $a = pdl([[0,1]])->uniqvec;
 eval '$c = all($a==pdl([[0,1]]))';  ok(!$@ && $c);  #21
 
+$a = pdl([[0,1,2]]); $a = $a->glue(1,$a,$a);
+$b = $a->uniqvec;
+eval '$c = all($b==pdl([0,1,2]))';  ok(!$@ && $c);  #22
+
 ##############################
 # Test bad handling in selector
 if($PDL::Bad::Status) {
   $b = xvals(3);
-  ok(tapprox($b->which,PDL->pdl(1,2)));             #22.BAD
+  ok(tapprox($b->which,PDL->pdl(1,2)));             #23.BAD
   setbadat $b, 1;
-  ok(tapprox($b->which,PDL->pdl([2])));             #23.BAD
+  ok(tapprox($b->which,PDL->pdl([2])));             #24.BAD
   setbadat $b, 0;
   setbadat $b, 2;
-  ok($b->which->nelem,0);                           #24.BAD
+  ok($b->which->nelem,0);                           #25.BAD
 }
 
 ############################
@@ -144,8 +148,8 @@ my $x = sequence(10);
 $a = which(($x % 2) == 0);
 $b = which(($x % 3) == 0);
 $c = setops($a, 'AND', $b);
-ok(tapprox($c, pdl([0, 6])));                       #25
+ok(tapprox($c, pdl([0, 6])));                       #26
 $c = setops($a,'OR',$b);
-ok(tapprox($c, pdl([0,2,3,4,6,8,9])));              #26
+ok(tapprox($c, pdl([0,2,3,4,6,8,9])));              #27
 $c = setops($a,'XOR',$b);
-ok(tapprox($c, pdl([2,3,4,8,9])));                  #27
+ok(tapprox($c, pdl([2,3,4,8,9])));                  #28
