@@ -5320,7 +5320,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
 
       # Within each list element loop over runs of pen value
-      while($rl = $pn->at($run)) {  # assignment
+      while(($run<$pn->nelem) && ($rl = $pn->at($run))) {  # assignment
 	  my($pv);
 	  if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
 	      my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));
