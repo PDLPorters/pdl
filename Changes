@@ -1,3 +1,6 @@
+CED 3-Apr-2008
+    Basic.pm: transpose() is nicer now (fixed bug 1750912)
+    complex.pd: fixed several dependency issues to other modules (3 bugs).
 DAL 08-Feb-2008
     Small fix to lines in Graphics/PGPLOT/Window/Window.pm if the
     run-length-encoded pen piddle was as long as the piddle itself.

@@ -9,6 +9,14 @@ pp_beginwrap; # required for overload to work
 # it should be of no effect to the user of the module but you
 # never know....
 pp_bless('PDL::Complex');
+
+pp_addpm {At => Top}, <<'EOD';
+	 use PDL::Slices;
+	 use PDL::Types;
+	 use PDL::Bad;
+EOD
+
+
 pp_addpm {At => Top}, <<'EOD';
 =head1 NAME
 

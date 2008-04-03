@@ -722,11 +722,14 @@ Also bound to the C<~> unary operator in PDL::Matrix.
 
 sub PDL::transpose {
 	my($this) = @_;
-	if($this->getndims == 1) {
-# 1-Dim: add dummy
+	if($this->getndims <= 1) {
+	    if($this->getndims==0) {
+		return pdl $this->dummy(0)->dummy(0);
+	    } else {
 		return pdl $this->dummy(0);
+	    }
 	}
-	return $this->xchg(0,1)->sever;
+	return $this->xchg(0,1);
 }
 
 1;

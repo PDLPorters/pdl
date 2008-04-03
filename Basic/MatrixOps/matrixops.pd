@@ -56,7 +56,7 @@ PDL::MatrixOps is PDL's built-in matrix manipulation code.  It
 contains utilities for many common matrix operations: inversion,
 determinant finding, eigenvalue/vector finding, singular value
 decomposition, etc.  PDL::MatrixOps routines are written in a mixture
-of Perl and C, so that they are reliably present even when there no
+of Perl and C, so that they are reliably present even when there is no
 FORTRAN compiler or external library available (e.g.
 L<PDL::Slatec|/PDL::Slatec> or L<PDL::GSL>).
 
@@ -903,7 +903,7 @@ sub lu_decomp {
 
   my $TINY = 1e-30;
 
-  barf('lu_decomp requires a square (2D) PDL\n')
+  barf("lu_decomp requires a square (2D) PDL\n")
     if(!UNIVERSAL::isa($in,'PDL') || 
        $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));
@@ -1061,7 +1061,7 @@ sub lu_decomp2 {
 
   my $TINY = 1e-30;
   
-  barf('lu_decomp2 requires a square (2D) PDL\n')
+  barf("lu_decomp2 requires a square (2D) PDL\n")
     if(!UNIVERSAL::isa($in,'PDL') || 
        $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));
