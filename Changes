@@ -1,3 +1,7 @@
+DAL 05-Apr-2008
+    Lib/FFT/fft.pd: fixed overflow error for integer input data.
+    t/fft.t: Uncommented a test that was a victim of this problem.
+    Added Lib/Minuit/.cvsignore
 CED 3-Apr-2008
     Basic.pm: transpose() is nicer now (fixed bug 1750912)
     complex.pd: fixed several dependency issues to other modules (3 bugs).
