@@ -549,8 +549,8 @@ sub _rfits_image($$$$) {
   my $bscale;
   my $bzero;
 
-
-  while(defined( $$foo{"NAXIS$i"} )) {
+##second part of the conditional guards against a poorly-written hdr.
+  while(defined( $$foo{"NAXIS$i"} ) && $i <= $$foo{"NAXIS"}) {
     $size *= $$foo{"NAXIS$i"};
     push @dims, $$foo{"NAXIS$i"} ; $i++;
   }
@@ -1082,11 +1082,20 @@ values representing integer types and negative values representing
 floating-point types).
 
 If C<$pdl> has a FITS header attached to it (actually, any hash that
-contains a C<< SIMPLE=>T >> keyword), then that FITS header is written out to the
-file.  The image dimension tags are adjusted to the actual dataset.
-If there's a mismatch between the dimensions of the data and the 
-dimensions in the FITS header, then the header gets corrected and a 
-warning is printed.
+contains a C<< SIMPLE=>T >> keyword), then that FITS header is written
+out to the file.  The image dimension tags are adjusted to the actual
+dataset.  If there's a mismatch between the dimensions of the data and
+the dimensions in the FITS header, then the header gets corrected and
+a warning is printed.
+
+If C<$pdl> is a slice of another PDL with a FITS header already
+present (and header copying enabled), then you must be careful.
+C<wfits> will remove any extraneous C<NAXISn> keywords (per the FITS
+standard), and also remove the other keywords associated with that
+axis: C<CTYPEn>, C<CRPIXn>, C<CRVALn>, C<CDELTn>, and C<CROTAn>.  This
+may cause confusion if the slice is NOT out of the last dimension:
+C<wfits($a(:,(0),:),'file.fits');> and you would be best off adjusting
+the header yourself before calling C<wfits>.
 
 =item * Table handling:
 
@@ -1209,6 +1218,8 @@ converted to NaN (if necessary) before writing.
 BEGIN {
   @PDL::IO::FITS::wfits_keyword_order = 
     ('SIMPLE','BITPIX','NAXIS','NAXIS1','BUNIT','BSCALE','BZERO');
+  @PDL::IO::FITS::wfits_numbered_keywords =
+    ('CTYPE','CRPIX','CRVAL','CDELT','CROTA');
 }
 
 # Until we do a rewrite these have to be file global since they
@@ -1423,6 +1434,7 @@ sub PDL::wfits {
     # of the sorting.  Keywords with a trailing '1' in the sorted-order
     # list get looped over.
     my($kk) = 0; 
+    my(@removed_naxis) = ();
     for $k(0..$#PDL::IO::FITS::wfits_keyword_order) {
       my($kn) = 0;
       
@@ -1434,13 +1446,26 @@ sub PDL::wfits {
         @index = $hdr->index($kw);
         
         if(defined $index[0]) {
-          $hdr->insert($kk, $hdr->remove($index[0])) 
-            unless ($index[0] == $kk) ;
-          $kk++;
-        }
+	    if($kn <= $pdl->getndims){
+		$hdr->insert($kk, $hdr->remove($index[0])) 
+		    unless ($index[0] == $kk) ;
+		$kk++;
+	    } 
+	    else{ #remove e.g. NAXIS3 from hdr if NAXIS==2
+		$hdr->removebyname($kw);
+		push(@removed_naxis,$kw);
+	    }
+	}
       } while((defined $index[0]) && $kn);
     }
-    
+
+    foreach my $naxis(@removed_naxis){
+	$naxis =~ m/(\d)$/;
+	my $n = $1;
+	foreach my $kw(@PDL::IO::FITS::wfits_numbered_keywords){
+	    $hdr->removebyname($kw . $n);
+	}
+    }
     #
     # Delete the END card if necessary (for later addition at the end)
     #

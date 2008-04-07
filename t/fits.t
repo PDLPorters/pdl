@@ -15,7 +15,7 @@ kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 use Test::More tests => 83;
 
 BEGIN {
-      use_ok( "PDL::IO::FITS" );
+      use_ok( "PDL::IO::FITS" ); #1
 }
 
 require File::Spec;
@@ -44,14 +44,14 @@ print "#file is $file\n";
 my $t2 = rfits $file;
 
 is( sum($t->slice('0:4,:')), -sum($t2->slice('5:-1,:')),
-    "r/wfits: slice check" );
+    "r/wfits: slice check" );				#2
 
 my $h = $t2->gethdr;
 ok( $$h{'FOO'} eq "foo" && $$h{'BAR'} == 42,
-    "header check on FOO/BAR" );
+    "header check on FOO/BAR" );			#3     
 
 ok( $$h{'NUM'}+1 == 124 && $$h{'NUMSTR'} eq '0123',
-    "header check on NUM/NUMSTR" );
+    "header check on NUM/NUMSTR" );			#4
 
 unlink $file;
 
@@ -99,18 +99,18 @@ unless($PDL::Astro_FITS_Header) {
 	my $table2 = rfits $file;
 	unlink $file;
 	
-	ok( defined $table2, "Read of table returned something" );
-	is( ref($table2), "HASH", "which is a hash reference" );
-	is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );
+	ok( defined $table2, "Read of table returned something" );	#5
+	is( ref($table2), "HASH", "which is a hash reference" );	#6
+	is( $$table2{tbl}, "binary", "and appears to be a binary TABLE" );#7
 	
-	ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" );
-	is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );
-	is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );
-	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );
-	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );
+	ok( exists $$table2{COLA} && exists $$table2{COLB}, "columns COLA and COLB exist" ); #8
+	is( $$table2{hdr}{TTYPE1}, "COLA", "column #1 is COLA" );	  #9
+	is( $$table2{hdr}{TFORM1}, "1J", "  stored as 1J" );		  #10
+	is( $$table2{hdr}{TTYPE2}, "COLB", "column #2 is COLB" );	  #11
+	is( $$table2{hdr}{TFORM2}, "1D", "  stored as 1D" );		  #12
 	
-	compare_piddles $a, $$table2{COLA}, "COLA";
-	compare_piddles $b, $$table2{COLB}, "COLB";
+	compare_piddles $a, $$table2{COLA}, "COLA";			#13-16
+	compare_piddles $b, $$table2{COLB}, "COLB";			#17-20
 	
 	$table = { BAR => $a, FOO => $b,
 		   hdr => { TTYPE1 => 'FOO', TTYPE2 => 'BAR' } };
@@ -120,14 +120,14 @@ unless($PDL::Astro_FITS_Header) {
 	$table2 = rfits $file;
 	
 	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
-	    "Read in the second binary table" );
-	is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );
-	is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );
-	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );
-	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );
+	    "Read in the second binary table" );		       #21
+	is( $$table2{hdr}{TTYPE1}, "FOO", "column #1 is FOO" );	       #22
+	is( $$table2{hdr}{TFORM1}, "1D", "  stored as 1D" );	       #23
+	is( $$table2{hdr}{TTYPE2}, "BAR", "column #2 is BAR" );	       #24
+	is( $$table2{hdr}{TFORM2}, "1J", "  stored as 1J" );	       #25
 	
-	compare_piddles $a, $$table2{BAR}, "BAR";
-	compare_piddles $b, $$table2{FOO}, "FOO";
+	compare_piddles $a, $$table2{BAR}, "BAR";			#26-29
+	compare_piddles $b, $$table2{FOO}, "FOO";			#30-33
 	
 	# try out more "exotic" data types
 	
@@ -148,13 +148,14 @@ unless($PDL::Astro_FITS_Header) {
 	#unlink $file;
 	
 	ok( defined $table2 && ref($table2) eq "HASH" && $$table2{tbl} eq "binary",
-	    "Read in the third binary table" );
+	    "Read in the third binary table" );			       #34
 	my @elem = sort keys %$table2;
 	##my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL FCOL hdr tbl ) );
 	##is ( $#elem+1, 8, "hash contains 8 elements" );
 	my @expected = sort( qw( ACOL BCOL CCOL DCOL ECOL hdr tbl ) );
-	is ( $#elem+1, 7, "hash contains 7 elements" );
-	ok( eq_array( \@elem, \@expected ), "hash contains expected keys" );
+	is ( $#elem+1, 7, "hash contains 7 elements" );			#35
+	ok( eq_array( \@elem, \@expected ), "hash contains expected
+	    keys" );							#36
 	
 	# convert the string array so that each element has the same length
 	# (and calculate the maximum length to use in the check below)
@@ -179,17 +180,17 @@ unless($PDL::Astro_FITS_Header) {
 				["ECOL","1E",$e],
 	##			["FCOL","1M",$f]
 			      ) ) {
-	  is( $$table2{hdr}{"TTYPE$i"}, $$colinfo[0], "column $i is $$colinfo[0]" );
-	  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" );
+	  is( $$table2{hdr}{"TTYPE$i"}, $$colinfo[0], "column $i is $$colinfo[0]" ); #37,43,49,55,58
+	  is( $$table2{hdr}{"TFORM$i"}, $$colinfo[1], "  and is stored as $$colinfo[1]" ); #38,44,50,56,59
 	  my $col = $$table2{$$colinfo[0]};
 	  if ( UNIVERSAL::isa($col,"PDL") ) {
-	    compare_piddles $col, $$colinfo[2], $$colinfo[0];
+	    compare_piddles $col, $$colinfo[2], $$colinfo[0]; #39-42,45-48,51-54,60-63
 	  } else {
 	    # Need to somehow handle the arrays since the data read in from the
 	    # file all have 15-character length strings (or whatever the length is)
 	    #
 	    ok( eq_array($col, $$colinfo[2]),
-		"  $$colinfo[0] values agree (as an array reference)" );
+		"  $$colinfo[0] values agree (as an array reference)" );#57
 	  }
 	  $i++;
 	}
@@ -216,7 +217,7 @@ unless($PDL::Astro_FITS_Header) {
                   print "\tq:", unpack("c" x ($q->nelem*howbig($q->get_datatype)), ${$q->get_dataref}),"\n";
 		}
             }
-	    ok($flag,"hash reference - type check: " . &$cref );
+	    ok($flag,"hash reference - type check: " . &$cref ); #64-73
         }
     }
     unlink 'x.fits';
@@ -246,7 +247,7 @@ unless($PDL::Astro_FITS_Header) {
 	     print "\tq:", unpack("c" x abs($i/8*$q->nelem), ${$q->get_dataref}),"\n";
            }
         }
-	ok($flag,"piddle - bitpix=$i" );
+	ok($flag,"piddle - bitpix=$i" ); #74-83
     }
     }
     unlink 'x.fits';

@@ -1,3 +1,8 @@
+DAL 07-Apr-2008
+    IO/FITS/FITS.pm: Fixed rfits so if NAXIS3!=0 && NAXIS==2 it
+    doesn't create an empty dim. Fixed wfits so if writing a slice of
+    a pdl it doesn't create header fields for the extra dims.
+    t/fits.t: added test numbers to help in debugging
 DAL 05-Apr-2008
     Lib/FFT/fft.pd: fixed overflow error for integer input data.
     t/fft.t: Uncommented a test that was a victim of this problem.
