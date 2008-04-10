@@ -1037,7 +1037,7 @@ print OUT <<'!NO!SUBS!';
        by other modules
    */
 
-   sv_setiv(perl_get_sv("PDL::SHARE",TRUE), PTR2IV(&PDL));
+   sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
 
 # version of eval() which propogates errors encountered in
 # any internal eval(). Must be passed a code reference - could
