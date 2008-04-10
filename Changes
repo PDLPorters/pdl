@@ -1,3 +1,10 @@
+SIS 10-Apr-2008
+    In Basic/Core/Core.xs.PL, create $PDL::SHARE multiply defined.
+    Changed:
+    sv_setiv(Perl_get_sv("PDL::SHARE",TRUE), PTR2IV(&PDL));
+    to: 
+    sv_setiv(get_sv("PDL::SHARE",TRUE|GV_ADDMULTI), PTR2IV(&PDL));
+    (rev 1.32)
 DAL 07-Apr-2008
     IO/FITS/FITS.pm: Fixed rfits so if NAXIS3!=0 && NAXIS==2 it
     doesn't create an empty dim. Fixed wfits so if writing a slice of
