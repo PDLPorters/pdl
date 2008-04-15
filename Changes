@@ -1,3 +1,6 @@
+CED 19-Apr-2008
+    Added basic table-inversion to t_lookup.  It's craptacularly slow but 
+    it works.
 SIS 10-Apr-2008
     In Basic/Core/Core.xs.PL, create $PDL::SHARE multiply defined.
     Changed:
