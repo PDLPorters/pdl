@@ -1046,6 +1046,7 @@ sub new
             if( defined( $options->{lut} ) )
             {
                 my $ptr = zeroes( long, 1 );
+                my $lut = $options->{lut};
                 _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
                 $self->{IMG_PTR} = $ptr->at(0);
                 $ptr = null;
@@ -1053,7 +1054,8 @@ sub new
             else
             {
                 my $ptr = zeroes( long, 1 );
-                _pdl_to_gd_image( $pdl, $ptr );
+                my $lut = sequence(byte, 255)->slice("*3,:");
+                _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
                 $self->{IMG_PTR} = $ptr->at(0);
                 $ptr = null;
             }
@@ -1067,7 +1069,7 @@ sub new
         }
         else
         {
-            die "Can't create a PDL::IO::GDImage from a PDL with bad dims!\n";
+            die "Can't create a PDL::IO::GD from a PDL with bad dims!\n";
         }
     }
     elsif( defined( $options->{filename} ) )
