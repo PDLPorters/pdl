@@ -1190,6 +1190,9 @@ sub _drawlabels {
 ## user-visible routines
 #
 
+# Internal record of what PLplot stream number to associate with the the next new plot object.
+my $next_plplot_stream = 0;
+
 # This routine starts out a plot.  Generally one specifies
 # DEV and FILE (device and output file name) as options.
 sub new {
@@ -1202,6 +1205,11 @@ sub new {
   $self->{COLORS} = [];
 
   bless $self, $type;
+
+  # set stream number first
+  $self->{STREAMNUMBER} = $next_plplot_stream;
+  $next_plplot_stream++;
+  plsstrm($self->{STREAMNUMBER});
 
   # set background and frame color first
   $self->setparm(BACKGROUND => 'WHITE',
@@ -1255,6 +1263,9 @@ sub setparm {
 
   my %opts = @_;
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   # apply all options
  OPTION:
   foreach my $o (keys %opts) {
@@ -1273,6 +1284,9 @@ sub xyplot {
   my $y    = shift;
 
   my %opts = @_;
+
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
 
   # only process COLORMAP entries once
   my $z = $opts{COLORMAP};
@@ -1365,6 +1379,9 @@ sub colorkey {
 
   my %opts = @_;
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   # apply options
   $self->setparm(%opts);
 
@@ -1450,6 +1467,9 @@ sub shadeplot {
 
   my %opts = @_;
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   # apply options
   $self->setparm(%opts);
 
@@ -1504,6 +1524,9 @@ sub histogram {
 
   my %opts = @_;
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   # apply options
   $self->setparm(%opts);
 
@@ -1554,6 +1577,8 @@ sub bargraph {
   my $maxlab = defined($opts{MAXBARLABELS}) ? $opts{MAXBARLABELS} : 20;
   delete ($opts{MAXBARLABELS});
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
   my $xmax = scalar(@$labels);
 
   # apply options
@@ -1611,6 +1636,9 @@ sub text {
   my $self = shift;
   my $text = shift;
 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   # apply options
   $self->setparm(@_);
 
@@ -1633,6 +1661,10 @@ sub text {
 # Clear the current page. This should only be used with interactive devices!
 sub clear {
   my $self = shift;
+
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+
   plclear();
   return;
 }
@@ -1640,6 +1672,9 @@ sub clear {
 # Get mouse click coordinates (OO version). This should only be used with interactive devices!
 sub cursor {
   my $self = shift;
+
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
 
   # Flush the stream, to make sure the plot is visible & current
   plflush();
@@ -1654,6 +1689,10 @@ sub cursor {
 # Explicitly close a plot and free the object
 sub close {
   my $self = shift;
+ 
+  # Set PLplot to right output stream
+  plsstrm($self->{STREAMNUMBER});
+ 
   plend1 ();
   return;
 }

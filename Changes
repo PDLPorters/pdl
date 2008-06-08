@@ -1,3 +1,6 @@
+DAL 08-Jun-2008 
+    Incorporated Hazen Babcock's 18-May-2007 PLplot patch for drawing
+    several windows simultaneously.
 CED 19-Apr-2008
     Added basic table-inversion to t_lookup.  It's craptacularly slow but 
     it works.
