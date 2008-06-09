@@ -40,30 +40,13 @@ use vars qw(@ISA @EXPORT);
 
 use PDL::Doc;
 use IO::File;
-use Pod::Text;
+use Pod::PlainText;
 
 $PDL::onlinedoc = undef;
 $PDL::onlinedoc = new PDL::Doc (FindStdFile());
 
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
-
-# pod commands are stripped from the ref string before printing.
-# How we do this depends on the version of Pod::Text installed.
-#
-# I'm guessing the difference in behaviour is between versions
-# 1 and 2 of Pod::Text (it's certainly true for 
-# version 1.0203 (perl5.005_03) and 2.03 (perl 5.6.0))
-#
-# version 1:
-#  we use a private routine from Pod::Text
-#  (prepare_for_output) in printmatch() in order
-#  to strip away pod directives from the ref
-#  string
-#
-# version 2: (Thanks to Tim Jenness)
-#  create an object and use the interpol() method
-#
 
 # Find std file
 
@@ -97,9 +80,6 @@ sub screen_width() {
        || 72;
 }
 
-# the $^W assignment stops Pod::Text::fill() from 
-# generating "Use of uninitialised values" errors
-#
 sub printmatch {
     my @match = @_;
     if (@match) {
@@ -113,58 +93,34 @@ sub printmatch {
 # for the given matches
 #
 sub format_ref {
-    my @match = @_;
-    my @text = ();
+  my @match = @_;
+  my @text = ();
 
-    # XXX this is NASTY
-    my $width = screen_width()-17;
-    if ( $Pod::Text::VERSION < 2 ) {
-	$Pod::Text::indent = 0;
-	$Pod::Text::SCREEN = $width;
-	local $^W = 0;
-	for my $m (@match) { 
-	    $_ = $m->[1]{Ref} || 
-		( (defined $m->[1]{CustomFile})
-		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
-		  : "[No reference available]"
-		  );
-	  Pod::Text::prepare_for_output(); # adds a '\n' to $_
-	    $_ = Pod::Text::fill $_; # try and get `nice' wrapping 
-	    s/\n*$//; # remove last new lines (so substitution doesn't append spaces at end of text)
-	    s/\n/\n                /g;
-	    my $name = $m->[0];
-	    if ( length($name) > 15 ) { 
-	        push @text, sprintf "%s ...\n                %s\n", $name, $_; 
-	    } else {
-		push @text, sprintf "%-15s %s\n", $name, $_; 
-	    }
-	}
+  my $width = screen_width()-17;
+  my $parser = new Pod::PlainText( width => $width, indent => 0, sentence => 0 );
+
+  for my $m (@match) { 
+    my $ref = $m->[1]{Ref} || 
+      ( (defined $m->[1]{CustomFile})
+        ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
+        : "[No reference available]"
+     );
+
+    $ref = $parser->interpolate( $ref );
+    $ref = $parser->reformat( $ref );
+
+    # remove last new lines (so substitution doesn't append spaces at end of text)
+    $ref =~ s/\n*$//;
+    $ref =~ s/\n/\n                /g;
+
+    my $name = $m->[0];
+    if ( length($name) > 15 ) { 
+      push @text, sprintf "%s ...\n                %s\n", $name, $ref;
     } else {
-	my $parser = new Pod::Text( width => $width, indent => 0, sentence => 0 );
-	
-	for my $m (@match) { 
-	    my $ref = $m->[1]{Ref} || 
-		( (defined $m->[1]{CustomFile})
-		  ? "[No ref avail. for `".$m->[1]{CustomFile}."']"
-		  : "[No reference available]"
-		  );
-
-	    $ref = $parser->interpolate( $ref );
-	    $ref = $parser->reformat( $ref );
-	    
-	    # remove last new lines (so substitution doesn't append spaces at end of text)
-	    $ref =~ s/\n*$//; 
-	    $ref =~ s/\n/\n                /g;
-
-	    my $name = $m->[0];
-	    if ( length($name) > 15 ) { 
-		push @text, sprintf "%s ...\n                %s\n", $name, $ref; 
-	    } else {
-		push @text, sprintf "%-15s %s\n", $name, $ref; 
-	    }
-	}
+      push @text, sprintf "%-15s %s\n", $name, $ref;
     }
-    return wantarray ? @text : $text[0];
+  }
+  return wantarray ? @text : $text[0];
 
 } # sub: format_ref()
 

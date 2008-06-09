@@ -1,3 +1,5 @@
+DAL 09-Jun-2008
+    Incorporated Doug Hunt's 02-Apr-2008 Perldl.pm patch (bug 1552208).
 SIS 09-Jun-2008
     Some minor win32-specific changes to t/pic_16bit.t (rev 1.2)
 DAL 08-Jun-2008 
