@@ -1,3 +1,5 @@
+DAL 12-Jun-2008
+    Prevent PDL::IO::Storable from clobbering %PDL::Config.
 DAL 09-Jun-2008
     Incorporated Doug Hunt's 02-Apr-2008 Perldl.pm patch (bug 1552208).
 SIS 09-Jun-2008

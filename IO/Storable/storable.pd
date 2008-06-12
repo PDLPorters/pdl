@@ -92,9 +92,9 @@ sub pdlpack {
 }
 
 sub pdlunpack {
-  use Config;
+  use Config ();
   my ($pdl,$pack) = @_;
-  my $stride = $Config{intsize};
+  my $stride = $Config::Config{intsize};
   my ($type,$ndims) = unpack 'i2', $pack;
   my @dims = $ndims > 0 ? unpack 'i*', substr $pack, 2*$stride,
      $ndims*$stride : ();
