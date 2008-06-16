@@ -1,3 +1,15 @@
+CED 15-Jun-2008
+    Lib/Gaussian.pm - updated sumover calling (bug 166107)
+CED 15-Jun-2008
+    Graphics/Makefile.PL - hacked openGL search path for (net|open|free)bsd, following Chris Marshall's path in bug 1573215.
+CED 15-Jun-2008
+    IO/Dumper.pm: fixed uudecode flags for (net|open|free)bsd, following 1573217.
+CED 15-Jun-2008
+    Graphics/Makefile.PL; Lib/Transform/Proj4/Makefile.PL; Lib/GIS/Proj/Makefile.PL: added references to lib64 directories... (bug 1465414)
+CED 15-Jun-2008
+    pdlcore.c.PL: fix comment style (fix bug 1339530)
+CED 10-Jun-2008
+    Minor fix to boundary conditions in transform.pd; stand by for more fixes to a bug Derek just discovered.
 DAL 12-Jun-2008
     Prevent PDL::IO::Storable from clobbering %PDL::Config.
 DAL 09-Jun-2008

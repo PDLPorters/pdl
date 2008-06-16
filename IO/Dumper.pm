@@ -417,7 +417,7 @@ sub _make_tmpname () {
 # so we go this way for now as it is less-likely to break things
 #
 my $uudecode_string = "|uudecode";
-$uudecode_string .= " -s" if $^O eq "darwin";
+$uudecode_string .= " -s" if $^O =~ m/darwin|((free|open|net)bsd)/;
 
 sub PDL::IO::Dumper::uudecode_PDL {
     my $lines = shift;

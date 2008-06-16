@@ -109,7 +109,6 @@ the copyright notice should be included in the file.
 =cut
 
 package PDL::Gaussian;
-
 use PDL::Core '';
 use PDL::Slatec;
 use PDL::Primitive;
@@ -218,7 +217,7 @@ sub _pref {
 	my($this) = @_;
 	print "IPREF\n";
 	my $tmp = (log($this->{EigVal}));
-	PDL::Primitive::sumover($tmp,$this->{lnPrefactor});
+	$tmp->sumover($this->{lnPrefactor});
 	$this->{lnPrefactor} *= -0.5;
 	$this->{lnPrefactor} -= 0.5 * $this->{NDims}[0] * log (2*3.14);
 	print "OPREF\n";
@@ -317,7 +316,7 @@ sub calc_qavg {
 	$diag *= $this->{EigVal};
 # Return the sum
 	$diag = $diag->unthread(1);
-	PDL::Primitive::sumover($diag,$res);
+	$diag->sumover($res);
 }
 
 # [(nvars,nvars[,npolys]), (nvars[,npolys])] =>

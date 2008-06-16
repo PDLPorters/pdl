@@ -1,3 +1,4 @@
+
 pp_addpm({At=>'Top'},<<'======EOD======');
 
 =head1 NAME
@@ -858,7 +859,7 @@ pp_def('map',
          i_off += in->dimincs[i] * j;
        }
   
-        if(bound_ok) {
+       {  /* convenience block for bounds handling and data weighting */
          PDL_Double alpha = 1.0;
          PDL_Double *ap = tvec;
          PDL_Double *bp = dvec;
@@ -901,8 +902,8 @@ pp_def('map',
   	             dd += *(ap++) * *(cp++);
   	          dd /= blur;
   	 	  sum += dd * dd;
-  		  if(sum > 4)  /* 2 pixels -- four half-widths */
-  		    i = ndims;
+  		  if(sum > 4) /* 2 pixels -- four half-widths */
+  		    i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
   	       }
   	       
    	       if(sum > 4)	
@@ -923,6 +924,7 @@ pp_def('map',
         /* We've got the weighting, now accumulate the values as needed... */
          wgt += alpha;
        
+       if(bound_ok)
          { 
           PDL_Double *ac = acc;
           $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
@@ -930,8 +932,9 @@ pp_def('map',
                *(ac++) += *dat * alpha;
                dat += in->dimincs[ndims];
           }
-         }
-       } /* end of bound_ok check */
+         }/* end of bound_ok check */
+
+       }  /* end of data collection convenience block */
        
        /* Advance input accumulation loop */
        for(i=0; 
@@ -940,7 +943,7 @@ pp_def('map',
            i++) {
           ivec[i] = -psize;
        }
-     } while(i<ndims);
+     } while(i<ndims);  /* end of total data accumulation loop */
      
      {
        PDL_Double *ac = acc;

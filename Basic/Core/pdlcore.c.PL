@@ -909,7 +909,7 @@ print OUT <<"!WITH!SUBS!";
 	    for(ii=1;ii<pdims[level+1];ii++)
 	      pdl_setzero_$type(pdata + ii * ss, pdims, ndims, level+2);
 
-//	      pdl_setzero_$type(pdata+1,pdims,ndims,level+1);
+/*	      pdl_setzero_$type(pdata+1,pdims,ndims,level+1);*/
 	  }
     
   }

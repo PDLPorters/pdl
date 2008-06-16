@@ -35,11 +35,15 @@ unless ($found_plplot) {
   return if (caller); exit;
 }
 foreach my $libdir (
+                    '/usr/local/plplot/lib64',
                     '/usr/local/plplot/lib',
+		    '/usr/local/lib64',
 		    '/usr/local/lib',
-		    '/opt/local/lib',
+		    '/usr/lib64',
 		    '/usr/lib',
+		    '/opt/lib64',
 		    '/opt/lib',
+		    '/ops/tools/lib64',
 		    '/ops/tools/lib',
                     '/sw/lib/',    # default FINK installation
 		    $PDL::Config{WHERE_PLPLOT_LIBS},

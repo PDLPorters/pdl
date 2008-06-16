@@ -67,6 +67,13 @@ if ( defined($t) and $t == 0 ) {
              $PDL::Config{OPENGL_INC} = "-I/usr/X11R6/include";
           }
 
+          # hack for FreeBSD 
+          #   chm: Need to add include path check that #include <GL/gl.h> works
+          #
+          if ($^O eq "freebsd" and not defined $PDL::Config{OPENGL_INC}) {
+             $PDL::Config{OPENGL_INC} = "-I/usr/X11R6/include";
+          }
+
           print "\n   WITH_3D: Success using $PDL::Config{OPENGL_LIBS} $PDL::Config{OPENGL_DEFINE}\n".
           "\n   WITH_3D: Set WITH_3D => 1 and build OpenGL and TriD\n\n";
        } else {
@@ -144,7 +151,7 @@ sub libs ($) {
   require ExtUtils::MakeMaker;
   require ExtUtils::Liblist;
   my ($libs) = @_;
-  my $lpath = '-L/usr/X11R6/lib -L/usr/lib/mesa';
+  my $lpath = '-L/usr/X11R6/lib64 -L/usr/X11R6/lib -L/usr/lib64/mesa -L/usr/lib/mesa';
   my $extra = '-lXext -lX11 -lm';
   return ${[ExtUtils::Liblist->ext("$lpath $libs $extra")]}[0];
 }
