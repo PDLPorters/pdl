@@ -383,6 +383,13 @@ sub printTeX {
   print stringifyTeX(@_)."\n";
 }
 
+=pod 
+
+=begin comment
+
+DAL commented this out 17-June-2008. It didn't work, it used the
+outmoded (and incorrect) ~-is-transpose convention, and it wasn't
+necessary since the regular cross product worked fine.
 
 =head2  vcrossp, PDL::Matrix::crossp
 
@@ -390,15 +397,19 @@ sub printTeX {
 
 similar to PDL::crossp, however reflecting PDL::Matrix notations
 
-=cut
+#=cut
 
 # crossp for my special vectors
 sub crossp {
   my ($pdl1,$pdl2) = @_;
-  return transpose(PDL::crossp(~$pdl1,~$pdl2));
+  return PDL::transpose(PDL::crossp(~$pdl1,~$pdl2));
 }
 sub vcrossp { PDL::Matrix->crossp(\@_) }
 push @EXPORT_OK, "vcrossp";
+
+=end comment
+
+=cut
 
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
 
