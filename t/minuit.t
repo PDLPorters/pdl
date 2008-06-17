@@ -1,5 +1,6 @@
 use PDL;
 use Test;
+use File::Temp qw(tempfile);
         
 BEGIN{
   eval " use PDL::Minuit; ";
@@ -13,7 +14,8 @@ BEGIN{
   }
 }
 
-$logfile = 'log.out';
+(undef,$logfile) = tempfile(UNLINK=>1);
+
 $x = sequence(10);
 $y = 3.0 + 4.0*$x;
 
