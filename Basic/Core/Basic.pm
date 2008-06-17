@@ -699,9 +699,7 @@ transpose rows and columns.
 
 =for usage
 
- $b = transpose($a); $b = ~$a;
-
-Also bound to the C<~> unary operator in PDL::Matrix.
+ $b = transpose($a); 
 
 =for example
 
