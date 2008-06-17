@@ -292,7 +292,7 @@ ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
 bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
-bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<~> operation');
+bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<<=>> operation');
 
 # some standard unary functions
 ufunc('sqrt','sqrt','elementwise square root', Exception => '$a() < 0' );
