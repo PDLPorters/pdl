@@ -77,6 +77,13 @@ are automatically set to C<$small_covariance> to avoid singularities.
 
 =head1 BUGS
 
+Some of the routines (upd_covariance in particular, but likely others)
+cause segmentation faults and stack traces with current versions of
+PDL, which renders this module essentially unusable.  That is why this
+module is no longer included in the main PDL distribution (but is
+available in the CVS version). Fixes are always welcome, so that we
+may re-include it.
+
 Stupid interface.
 
 Limitation to 1 x-dimensions is questionable (although

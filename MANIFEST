@@ -406,7 +406,6 @@ Lib/Fit/LM.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
 Lib/Func.pm
-Lib/Gaussian.pm
 Lib/GIS/Makefile.PL
 Lib/GIS/Proj/Makefile.PL
 Lib/GIS/Proj/Proj.pd
@@ -729,6 +728,7 @@ t/ops.t
 t/pdlchar.t
 t/pgplot.t
 t/physical.t
+t/pic_16bit.t
 t/picnorgb.pl
 t/picnorgb.t
 t/picrgb.pl
@@ -770,3 +770,4 @@ win32/makeppm.pl
 win32/PDL.ppd
 win32/Readme
 win32/win32f77.pl
+META.yml                                 Module meta-data (added by MakeMaker)

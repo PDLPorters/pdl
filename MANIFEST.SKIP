@@ -217,3 +217,4 @@ so_locations
 ^Lib/Transform/Proj4/Proj4\.xs
 ^pdl$
 ^pdl\.c$
+^Lib/Gaussian\.pm
