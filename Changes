@@ -1,3 +1,12 @@
+DAL 17-Jun-2008
+    Lib/Slatec/slatec.pd - avoided namespace collision with PDL::FFT.
+    Basic/Matrix.pm - commented out buggy vcrossp & crossp functions. 
+	Built-in crossp works fine for PDL::Matrix objects.
+    Basic/Core/Basic.pm, Basic/Pod/Impatient.pod - finally removed docs error which said '~' overloaded transpose.
+    Basic/Ops/ops.pd - fixed documentation for spaceship operator
+    t/minuit.t - output goes to temp (deleted) file instead of log.out
+    Lib/Gaussian.pm - Added note to Bugs section calling the module unusable.
+    MANIFEST, MANIFEST.SKIP - removed, added Lib/Gaussian.pm
 CED 15-Jun-2008
     Lib/Gaussian.pm - updated sumover calling (bug 166107)
 CED 15-Jun-2008
