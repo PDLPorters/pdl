@@ -84,6 +84,7 @@ exit:
 nosubs
   ;
 
-`gcc -o pdl pdl.c`;
+use Config;
+`$Config{cc} -o blib/bin/pdl pdl.c`;
 
 exit 0;
