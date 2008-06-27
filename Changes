@@ -1,3 +1,8 @@
+DAL 27-Jun-2008
+    Lib/Func.pm - fixed small typo in documentation
+    Basic/Ops/ops.pd - re-fixed spaceship operator docs.  Also added BU_MOD macro for byte, ushorts to squash compile warnings (bug 1998037).
+    pdl.PL - use $Config{cc} to compile, output now goes to blib/bin
+    Makefile.PL - modified @exe_files and $cleanup to account for new pdl binary executable build location (bug 1747307)
 DAL 17-Jun-2008
     Lib/Slatec/slatec.pd - avoided namespace collision with PDL::FFT.
     Basic/Matrix.pm - commented out buggy vcrossp & crossp functions. 
