@@ -409,13 +409,7 @@ my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
-   if($^O =~ /cygwin/) {
-      unshift @exe_files, 'pdl.exe';
-      $cleanup = 'pdl.exe pdl.c ' . $cleanup;
-   } else {
-      unshift @exe_files, 'pdl';
-      $cleanup = 'pdl pdl.c ' . $cleanup;
-   }
+      $cleanup = 'pdl.c ' . $cleanup;
 }
 
 
