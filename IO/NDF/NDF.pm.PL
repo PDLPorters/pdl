@@ -91,7 +91,7 @@ use strict;
 # Starlink data type conversion
 use vars qw/%pdltypes %startypes $ndf_loaded $VERSION $EXTNAME/;
 
-$VERSION = '1.02';
+$VERSION = '1.03';
 
 # Set PDL -> Starlink data types
 %pdltypes = ("$PDL_B"  => "_UBYTE",     # was "_BYTE"
@@ -120,8 +120,9 @@ $EXTNAME = 'NDF_EXT';
 # load NDF library
 sub _init_NDF {
     return if $ndf_loaded++; # a bit pointless increasing each time?
-    eval 'use NDF';
-    croak 'Cannot use NDF library' if $@ ne "";
+    # Sometimes $@ can give the wrong answer for test. Be explicit.
+    my $retval = eval 'use NDF; 1;';
+    croak "Cannot use NDF library: $@" if $retval != 1;
 }
 
 !NO!SUBS!
