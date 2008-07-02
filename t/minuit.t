@@ -1,6 +1,5 @@
 use PDL;
 use Test;
-use File::Temp qw(tempfile);
         
 BEGIN{
   eval " use PDL::Minuit; ";
@@ -14,7 +13,13 @@ BEGIN{
   }
 }
 
-(undef,$logfile) = tempfile(UNLINK=>1);
+my $tempd = $PDL::Config{TEMPDIR} or die "TEMPDIR not found in %PDL::Config";
+require File::Spec;
+my $logfile = File::Spec->catfile($tempd, 'minuit.log.' . $$);
+
+END {
+  unlink $logfile if defined $logfile and -e $logfile;
+}
 
 $x = sequence(10);
 $y = 3.0 + 4.0*$x;

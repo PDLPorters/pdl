@@ -1,3 +1,5 @@
+DAL 02-Jul-2008
+    t/minuit.t - fix to get around win32 logfile unlinking problem.
 DAL 27-Jun-2008
     Lib/Func.pm - fixed small typo in documentation
     Basic/Ops/ops.pd - re-fixed spaceship operator docs.  Also added BU_MOD macro for byte, ushorts to squash compile warnings (bug 1998037).
