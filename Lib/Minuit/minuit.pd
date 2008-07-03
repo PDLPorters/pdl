@@ -360,7 +360,7 @@ sub mn_init{
   PDL::Minuit::mnseti($mn_options->{Title});
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_cierra($mn_options{Unit});
+    PDL::Minuit::mn_cierra($mn_options->{Unit});
   }
 
 }
@@ -432,7 +432,7 @@ sub mn_def_pars{
   }
   
   if (defined (my $logfile = $mn_options->{Log})){
-     PDL::Minuit::mn_cierra($mn_options{Unit});
+     PDL::Minuit::mn_cierra($mn_options->{Unit});
   }
 }
 ');
@@ -468,7 +468,7 @@ sub mn_excm{
   warn "Problem executing command \'$command\' " unless ($iflag == 0);
 
   if (defined (my $logfile = $mn_options->{Log})){
-    PDL::Minuit::mn_cierra($mn_options{Unit});
+    PDL::Minuit::mn_cierra($mn_options->{Unit});
   }
 
   return $iflag;
@@ -506,7 +506,7 @@ pp_addpm('
     PDL::Minuit::mnpout($par_num,$val,$err,$bnd1,$bnd2,$ivarbl,\$par_name);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options{Unit});
+      PDL::Minuit::mn_cierra($mn_options->{Unit});
     }
 
     return ($val,$err,$bnd1,$bnd2,$ivarbl,$par_name);    
@@ -533,7 +533,7 @@ pp_addpm('
      my ($fmin,$fedm,$errdef,$npari,$nparx,$istat) = PDL::Minuit::mnstat();
 
      if (defined (my $logfile = $mn_options->{Log})){
-       PDL::Minuit::mn_cierra($mn_options{Unit});
+       PDL::Minuit::mn_cierra($mn_options->{Unit});
      }
 
      return ($fmin,$fedm,$errdef,$npari,$nparx,$istat);
@@ -559,7 +559,7 @@ pp_addpm('
     PDL::Minuit::mnemat($mat);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options{Unit});
+      PDL::Minuit::mn_cierra($mn_options->{Unit});
     }
     
     return $mat;
@@ -589,7 +589,7 @@ pp_addpm('
     my ($eplus,$eminus,$eparab,$globcc) = PDL::Minuit::mnerrs($par_num);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options{Unit});
+      PDL::Minuit::mn_cierra($mn_options->{Unit});
     }
 
     return ($eplus,$eminus,$eparab,$globcc);
@@ -622,7 +622,7 @@ pp_addpm('
     PDL::Minuit::mncont($par_num_1,$par_num_2,$npt,$xpt,$ypt,$nfound,$fun_ref,$n);
 
     if (defined (my $logfile = $mn_options->{Log})){
-      PDL::Minuit::mn_cierra($mn_options{Unit});
+      PDL::Minuit::mn_cierra($mn_options->{Unit});
     }
 
     return ($xpt,$ypt,$nfound);
