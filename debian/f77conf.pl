@@ -14,10 +14,10 @@ sub config {
 }
 
 sub runtime {
-  my $libpath = `g77 -print-libgcc-file-name`;
+  my $libpath = `gfortran -print-libgcc-file-name`;
   $libpath =~ s/libgcc[.]a$//;
   chomp $libpath;
-  "-L$libpath -L/usr/lib -lg2c-pic";
+  "-L$libpath -L/usr/lib -lgcc";
 }
 
 sub trail_ {
@@ -25,7 +25,7 @@ sub trail_ {
 }
 
 sub compiler {
-  return 'g77';
+  return 'gfortran';
 }
 
 sub cflags {
