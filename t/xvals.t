@@ -27,11 +27,11 @@ $dummy = PDL::Core::new_or_inplace($a0);
 print $dummy;
 $dummy2 = $dummy->xchg(0,0);
 print $dummy2;
-$dummy2->dump();
-$dummy->dump();
+# $dummy2->dump();
+# $dummy->dump();
 PDL::Primitive::axisvalues($dummy2);
-$dummy2->dump();
-$dummy->dump();
+# $dummy2->dump();
+# $dummy->dump();
 print $dummy2;
 print $dummy;
 
