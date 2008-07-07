@@ -1,5 +1,5 @@
 ?package(pdl):\
  needs="text"\
- section="Apps/Math"\
+ section="Applications/Science/Mathematics"\
  title="PerlDl"\
  command="/usr/bin/perldl"
