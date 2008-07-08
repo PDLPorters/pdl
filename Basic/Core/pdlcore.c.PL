@@ -726,11 +726,11 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
   return depth;
 }
 
-
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 {
   int ndims, i, level=0;
   PDL_Long *pdims;
+     double undefval; 
 
   ndims = av_len(dims)+1;
   pdims = (PDL_Long *) pdl_malloc( (ndims) * sizeof(*pdims) );
@@ -747,28 +747,36 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
    * %PDL_DATATYPES to make it compatible with future changes
    * in PDL data types
    */
+
+  {
+    /****** 
+     * Copy the undefval to fill empty spots in the piddle...
+     */
+    SV *sv = get_sv("PDL::undefval",0);
+    undefval = ((!sv) || (sv==&PL_sv_undef)) ? 0 : (double)SvNV(sv);
+  }
   switch (type) {
-   case PDL_D:
-      pdl_setav_Double(p->data,av,pdims,ndims,level);
-      break;
-   case PDL_F:
-      pdl_setav_Float(p->data,av,pdims,ndims,level);
-      break;
-   case PDL_L:
-      pdl_setav_Long(p->data,av,pdims,ndims,level);
-      break;
-   case PDL_S:
-      pdl_setav_Short(p->data,av,pdims,ndims,level);
-      break;
-   case PDL_U:
-      pdl_setav_Ushort(p->data,av,pdims,ndims,level);
-      break;
-   case PDL_B:
-      pdl_setav_Byte(p->data,av,pdims,ndims,level);
-      break;
-   default:
-      croak("pdl_from_array: internal error: got type %d",type);
-      break;
+  case PDL_D:
+    pdl_setav_Double(p->data,av,pdims,ndims,level, undefval);
+    break;
+  case PDL_F:
+    pdl_setav_Float(p->data,av,pdims,ndims,level, undefval);
+    break;
+  case PDL_L:
+    pdl_setav_Long(p->data,av,pdims,ndims,level, undefval);
+    break;
+  case PDL_S:
+    pdl_setav_Short(p->data,av,pdims,ndims,level, undefval);
+    break;
+  case PDL_U:
+    pdl_setav_Ushort(p->data,av,pdims,ndims,level, undefval);
+    break;
+  case PDL_B:
+    pdl_setav_Byte(p->data,av,pdims,ndims,level, undefval);
+    break;
+  default:
+    croak("pdl_from_array: internal error: got type %d",type);
+    break;
   }
   p->state &= ~PDL_NOMYDIMS;
   return p;
@@ -777,33 +785,17 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
 
 !NO!SUBS!
 
+######################################################################
 # these are helper functions for fast assignment from array refs
 # mainly used by pdl_avref in Core.xs which implements converting
 # array refs to piddles
+
 
 for my $in ( keys %PDL_DATATYPES ) {
 
   (my $type = $PDL_DATATYPES{$in}) =~ s/^PDL_//;
 
 print OUT <<"!WITH!SUBS!";
-
-static void pdl_setzero_$type(PDL_$type* pdata, PDL_Long* pdims,
-                               PDL_Long ndims, int level)
-{
-  int i, nels=1;
-
-  for (i=0; i<ndims-level;i++)
-     nels *= pdims[i];
-
-#ifdef FOODEB
-  printf("pdl_setzero_$type: pdata=%d (0x%x), level=%d, ndims=%d\\n",
-	 pdata,pdata, level, ndims);
-  printf("nels = %d\\n",nels);
-#endif  
-
-  for (i=0; i<nels; i++)
-    pdata[i] = 0;
-}
 
 /* 
  * pdl_kludge_copy  - copy a PDL into a part of a being-formed PDL.
@@ -828,11 +820,13 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                            long stride, 
                            pdl* pdl, 
                            int plevel, 
-                           void* pptr) {
+                           void* pptr,
+			   double undefval
+			   ) {
   int i;
 
-/*   printf("kludge_copying: stride=%d, pdata=%d, level=%d, plevel=%d; pptr=%d; pdl->data=%d\n",stride,pdata, level, plevel, pptr,pdl->data);
- */
+  //  printf("kludge_copying: stride=%d, pdata=%d, level=%d, plevel=%d; pptr=%d; pdl->data=%d\\n",stride,pdata, level, plevel, pptr,pdl->data);
+
 
   if(plevel > pdl->ndims || level > ndims)
    croak("Internal error - please submit a bug report at http://sourceforge.net/projects/pdl/:\\n  pdl_kludge_copy: Assertion failed; plevel (%d) > pdl->ndims (%d)",plevel,pdl->ndims-1);
@@ -845,6 +839,9 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
     stride /= pdims[ndims-2-level];  
 
     for(i=0;i<pdl->dims[pdl->ndims-1-plevel];i++) {
+
+      //      printf("kc, plev %d: i=%d  ",plevel,i);
+
       pdl_kludge_copy_$type(pdata + stride*i,
                             pdims,
                             ndims,
@@ -852,29 +849,25 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                             stride,
                             pdl,
                             plevel+1,
-                            ((PDL_Byte *)pptr)+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype)
+                            ((PDL_Byte *)pptr)+pdl->dimincs[pdl->ndims-1-plevel]* i * pdl_howbig(pdl->datatype),
+			    undefval
                            );
     }
-
-    /* pad this level to zero if there are not enough elements */
-      if(i < pdims[level]) {
-#ifdef FOODEB
-	printf("kludge_copy_$type: looks like we're padding... i=%d, level=%d,pdims[level]=%d,stride=%d\\n",i,level,pdims[level],stride);
-#endif
-	if(level<ndims-1) {
-	    pdata += stride*i;
-	    pdims[level] -= i;
-	    pdl_setzero_$type(pdata,pdims,ndims,level+1);
-	    pdims[level] += i;
-	} else {
-	    pdata += stride * i;
-	    for(;i<pdims[level];i++) {
-		*pdata = 0;
-		pdata += stride;
-	    }
+    /* pad tree to zero if there are not enough elements... */
+      if(i < pdims[pdl->ndims - 1 - level]) {
+	//		printf("i=%d, pdims[%d - 1 - %d]=%d....\\n",i,pdl->ndims,level,pdims[pdl->ndims - 1 - level]);
+	int j = (pdims[pdl->ndims - 1 - level] - i)*stride;
+	PDL_$type *target = pdata + pdims[pdl->ndims - 1 - level]*stride;
+	PDL_$type *cursor = pdata + i * stride;
+	
+	for(j=0; cursor < target; cursor++,j++) {
+	  *cursor = undefval;
+	  //  	  printf("*** kludge Assigning to %d (pad)\\n",cursor);
 	}
       }
+
   } else {
+
       switch(pdl->datatype) {
 !WITH!SUBS!
 
@@ -886,6 +879,7 @@ foreach my $switch_type (keys %PDL::Types::typehash) {
 
 print OUT <<"!WITH!SUBS!";
        case ${switch_type}:
+       //              printf("*** kludge Assigning to %d (num - %g)\\n",pdata, (double)( *((${ctype} *)pptr) ));
           *pdata = (PDL_$type) (*((${ctype} *)pptr));
           break;
 !WITH!SUBS!
@@ -898,20 +892,14 @@ print OUT <<"!WITH!SUBS!";
      }
 
       /* Pad subtree to zero if the PDL is not deep enough */
-	  if(level < ndims-1) {
-	    int ii, ss;
-	    ss=stride/pdims[level+1];
-#ifdef FOODEB
-	    printf("kludge_copy: padding complete dimension... stride=%d, level=%d, pdims[%d]=%d, plevel=%d, pdl->dims[%d]=%d, ss=%d\\n",
-		   stride,level,level,pdims[level],
-		   plevel,0,pdl->dims[0],ss);
-#endif
-	    for(ii=1;ii<pdims[level+1];ii++)
-	      pdl_setzero_$type(pdata + ii * ss, pdims, ndims, level+2);
-
-/*	      pdl_setzero_$type(pdata+1,pdims,ndims,level+1);*/
-	  }
-    
+      if(level < ndims-1) {
+	PDL_$type *target = pdata + stride;
+	*pdata++;
+	for(; pdata<target; pdata++) {
+	  *pdata = undefval;
+	  //	  	  printf("*** kludge: assigning to %d (final pad)\\n",pdata);
+	}
+      }
   }
 }
 
@@ -943,7 +931,7 @@ print OUT <<"!WITH!SUBS!";
  */
  
 long pdl_setav_$type(PDL_$type* pdata, AV* av,
-	PDL_Long* pdims, PDL_Long ndims, int level)
+		     PDL_Long* pdims, PDL_Long ndims, int level, double undefval)
 {
   int cursz = pdims[ndims-1-level]; /* we are starting from the highest dim
                                        inwards */
@@ -951,87 +939,82 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
   int i,stride=1;
 
   SV* el;
-  double undefval; 
-  char debug_flag;
   long undef_count = 0;
-
-  {
-     SV *sv = get_sv("PDL::undefval",0);
-     undefval = (sv_undef(sv)) ? 0 : (double)SvNV(sv);
-
-/* #ifdef FOODEB */
-     sv = get_sv("PDL::debug",0);
-     debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
-/* #endif */
- }
 
   for (i=0;i<ndims-1-level;i++)
     stride *= pdims[i];
 
   for (i=0;i<=len;i++,pdata += stride) {
 
-
-#ifdef FOODEB
-    if(debug_flag>=3) {
-      int j;
-      for(j=0;j<level;j++) {
-	printf("  ");
-      }
-      printf("i=%d; stride=%d; pdata=%d (0x%x)\\n",i,stride,pdata, pdata);
-    }
-#endif
-
     el = *(av_fetch(av,i,0));
-    if (SVavref(el))
-       undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1);
-    else if( SvROK(el) ) {
+    if (SVavref(el)) {
+      undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1, undefval);
+
+    } else if( SvROK(el) ) {
       pdl *pdl;
       if( pdl = SvPDLV(el) ) {
-
+	
 	pdl_make_physical(pdl);
-
+	
 	if(pdl->nvals==0) { /* Ignore null PDLs */
 	  pdata -= stride; 
-
-	} else if(pdl->nvals==1) {      /* 1-element PDLs get handled correctly by SvNV */
-	  *pdata = (PDL_$type) SvNV(el);
-
-	} else {                        /* Multi-element PDLs must be recursively copied */
-	  pdl_kludge_copy_$type(pdata,pdims,ndims,level,stride,pdl,0,pdl->data);
-
-        }
+	    
+	} else {                     /* PDLs must be recursively copied/padded */   
+	  pdl_kludge_copy_$type(pdata,pdims,ndims,level,stride,pdl,0,pdl->data,undefval);
 	  
+        }
       } else {
 	croak("Non-array, non-PDL element in list");
       }
     } else { /* SvROK(el)==0; scalar element */
-       if(level < ndims-1) 
-	 pdl_setzero_$type(pdata,pdims,ndims,level+1);
+      if( sv_undef(el) ) {
+	//		printf("*** setav Assigning to %d (pad)\\n",pdata);
+	*pdata = (PDL_$type) undefval; /* undef case */
+	undef_count++;
 
-         if( sv_undef(el) ) {
-	     *pdata = (PDL_$type) undefval; /* undef case */
-	     undef_count++;
-	 } else {
-	    *pdata = (PDL_$type) SvNV(el);
+      } else {
+	//		printf("*** setav Assigning to %d (num)\\n",pdata);
+	*pdata = (PDL_$type) SvNV(el);
+
+      }
+      /* Pad dim if we're not deep enough */
+      if(level < ndims-1) {
+	PDL_$type *cursor = pdata;
+	PDL_$type *target = pdata + stride;
+	for( cursor++;  cursor < target; cursor++ ) {
+	  //	  	  printf("*** setav assigning to %d (long pad)\\n",cursor);
+	  *cursor = (PDL_$type)undefval;
+	  undef_count++;
 	}
+      }
     }
-
+    
   } /* end of i loop */
   
-  /* in case this dim is incomplete set remaining elements to undefval */
-  
-  for (i=len+1, pdata;i<cursz;i++,pdata += stride) {
-    if (level < ndims-1) /* ndims-1 is datalevel */
-        pdl_setzero_$type(pdata,pdims, ndims, level+1); /* set whole subtree
-                                                          * to zero
-                                                          */
-    else {
-	*pdata = 0;
+  /* in case this dim is incomplete set remaining elements to zero */
+
+  //  printf("len=%d; cursz=%d\\n",len,cursz);
+  if(len < cursz -1 ) {
+    PDL_$type *target = pdata + stride * (cursz - 1 - len);
+    for( ;
+	 pdata < target;
+	 pdata++
+	 ) {
+      //            printf("*** setav assigning to %d (final pad)\\n",pdata);
+      *pdata = (PDL_$type) undefval;
+      undef_count++;
     }
   }
-  
-  if(level==0 && debug_flag && undefval && undef_count) {
+
+  if(level==0 && undef_count) {
+    char debug_flag;
+    SV *sv;
+    sv = get_sv("PDL::debug",0);
+    debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
+    
+    if(debug_flag) {
       fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %d time%s\\n",undefval,undef_count,undef_count==1?"":"s");
+    }
   }
 
   return undef_count;

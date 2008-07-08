@@ -1,3 +1,8 @@
+CED 08-Jul-2008
+    update pdlcore.c.PL - fix the pdl_setav_$type and pdl_kludge_copy routines to fix bug 1540548.  Add appropriate tests.
+CED 07-Jul-2008
+    update matrixops.pd - simple switcher to semi-broken SSL eigens function in non-symmetric case,
+    together with a warning message.
 DAL 03-Jul-2008
     Lib/Minuit/minuit.pd - fix call to mn_cierra (close) which prevented the log file from being closed.
 DAL 02-Jul-2008
