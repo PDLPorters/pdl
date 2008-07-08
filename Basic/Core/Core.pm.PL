@@ -1757,6 +1757,11 @@ conveniently.
 
 =head2 new_or_inplace
 
+=for usage
+
+    $a = new_or_inplace(shift());
+    $a = new_or_inplace(shift(),$preferred_type);
+
 =for ref
 
 Return back either the argument pdl or a copy of it depending on whether
