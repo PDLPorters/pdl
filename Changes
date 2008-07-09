@@ -2,6 +2,8 @@ DAL 09-Jul-2008
     pdl.PL - manually create blib/bin directory. Old EU::MM's don't make it.
     pdlcore.h.PL - update prototypes for pdl_setav_$type.
 CED 09-Jul-2008
+    Makefile.PL, Basic/Gen/Makefile.PL - fix bug #1994598 - circular dependency problems.  
+CED 09-Jul-2008
     Basic.pm - update documentation for xvals, yvals, zvals, allaxisvals.  Merge allaxisvals and ndcoords.  Fixes bug 1968382.
 CED 08-Jul-2008
     update pdlcore.c.PL - fix the pdl_setav_$type and pdl_kludge_copy routines to fix bug 1540548.  Add appropriate tests.

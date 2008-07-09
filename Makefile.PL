@@ -423,15 +423,15 @@ if($Config{archname}=~m/x86_64/) {
     $ccflags .= " -fPIC";
 }
 
-WriteMakefile(
+%makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
-	      'PM' => { @podpms }, # so that the script docs are picked up
+	      'PM' => {},
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
-	      'MAN3PODS' => {}, # don't pick up the script pods again
+	      'MAN3PODS' => { @podpms }, # so that the script docs are picked up
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'CCFLAGS' => $ccflags,
 	      'linkext'  => {LINKTYPE => ''},  # No linking required
@@ -451,7 +451,29 @@ WriteMakefile(
 				 ) : (),
 
 	      %notestsifmodulesmissing,
-	      );
+    );
+print "makefile hash is:\n";
+for $k(sort keys %makefile_hash) {
+    print "\t$k\t";
+    $v = $makefile_hash{$k};
+    unless(ref $v) {
+	print $v,"\n";
+    } elsif(ref $v eq 'HASH') {
+	print "HASH:\n";
+	for $vk(sort keys %$v) {
+	    print "\t\t$vk\t$v->{$vk}\n";
+	}
+    } elsif(ref $v eq 'ARRAY') {
+	print "ARRAY:\n";
+	for $vv(@$v) {
+	    print "\t\t$vv\n";
+	}
+    } else {print "$v\n";}
+
+}
+
+
+WriteMakefile(%makefile_hash);
 
 
 # do *after* WriteMakefile since some options
@@ -536,44 +558,46 @@ return $text
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
-    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
-    my($self) = shift;
-    return "" unless $self->{PL_FILES};
-    my(@m, $plfile);
-    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
-        my $list = ref($self->{PL_FILES}->{$plfile})
+    ### This fix seems necessary with current versions of MM - otherwise it creates circular
+    ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
+    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+	my($self) = shift;
+	return "" unless $self->{PL_FILES};
+	my(@m, $plfile);
+	foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+	    my $list = ref($self->{PL_FILES}->{$plfile})
                 ? $self->{PL_FILES}->{$plfile}
-                : [$self->{PL_FILES}->{$plfile}];
-        my $target;
-        if($Config{make} eq 'dmake') {
-          foreach $target (@$list) {
-          push @m, "
+	    : [$self->{PL_FILES}->{$plfile}];
+	    my $target;
+	    if($Config{make} eq 'dmake') {
+		foreach $target (@$list) {
+		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target :
 	\$(PERLRUNINST) $plfile $target
 ";
-          } # close foreach
-        }
-        else {
-          foreach $target (@$list) {
-          push @m, "
+		} # close foreach
+	    }
+	    else {
+		foreach $target (@$list) {
+		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target ::
 	\$(PERLRUNINST) $plfile $target
 ";
-          } # close foreach
-        }  
+		} # close foreach
+	    }  
+	}
+	join "", @m;
     }
-    join "", @m;
-    }
-   else {
-    package MY;
-    my $self = shift;
-    return $self->SUPER::processPL;
+    else {
+	package MY;
+	my $self = shift;
+	return $self->SUPER::processPL;
     }
 }
 
