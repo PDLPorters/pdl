@@ -55,7 +55,8 @@ clean-patched:
 	# Add here commands to clean up after the build process.
 	[ ! -f Makefile ] || $(MAKE) distclean
 	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out
-	chmod a-x debian/patches/*
+	mkdir -p debian/patches
+	-chmod a-x debian/patches/*
 
 
 install: build test
