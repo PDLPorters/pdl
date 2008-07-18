@@ -105,8 +105,8 @@ if($Config{cc} eq 'cl') {
          if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
        }
     }
-
-    for(@f) {$hash{OBJECT} .= ' ' . $_}
+    $hash{LDFROM} = $hash{OBJECT};
+    for(@f) {$hash{LDFROM} .= ' ' . $_}
   }
 }
 
