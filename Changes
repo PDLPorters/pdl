@@ -1,4 +1,9 @@
 CHM 19-Jul-2008
+    Fixed Basic/Pod/FAQ.pod: updated version to 0.8 and added an entry on
+    installing PDL into non-standard locations.  Yes, it is just a standard
+    perl module in that respect but this should make it easier for first
+    time perl users to configure.
+CHM 19-Jul-2008
     Fixed VERSION in Basic/PDL.pm to indicate cvs
 CHM 18-Jul-2008
     Proj.pd, Lib/GIS/Proj/Proj.pd, fix undefined reference to _pj_list.
