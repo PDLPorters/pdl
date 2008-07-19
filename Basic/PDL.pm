@@ -73,7 +73,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.3'; # Remember to remove the 'cvs' for releases...
+$PDL::VERSION = '2.4.3cvs'; # Remember to remove the 'cvs' for releases...
 
 # Main loader of standard PDL package
 
