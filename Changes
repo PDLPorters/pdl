@@ -1,4 +1,9 @@
 CHM 19-Jul-2008
+    Basic/Ufunc/ufunc.pd - Fixed bug #2019651 in the pctover() routine, some minor
+    changes to the index calculations and some bounds checks to avoid out-of-range
+    indexing problems.  Added a doc ref to the algorithm used.
+    t/ufunc.t - added new test to verify the reported bug
+CHM 19-Jul-2008
     Fixed Basic/Pod/FAQ.pod: updated version to 0.8 and added an entry on
     installing PDL into non-standard locations.  Yes, it is just a standard
     perl module in that respect but this should make it easier for first
