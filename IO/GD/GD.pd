@@ -569,7 +569,7 @@ pp_def( '_gd_image_to_pdl_true',
         Doc => undef,
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2, z2;
-gdImagePtr im = (gdImagePtr) $COMP(img_ptr);
+gdImagePtr im = INT2PTR(gdImagePtr, $COMP(img_ptr));
 char* func = "PDL::IO::GD::_gd_image_to_pdl_true(): ";
 char str[255];
 
@@ -604,7 +604,7 @@ pp_def( '_gd_image_to_pdl',
         Code => <<'ENDCODE' );
 int xsize, ysize, x2, y2;
 char* func = "PDL::IO::GD::_gd_image_to_pdl(): ";
-gdImagePtr im = (gdImagePtr) $COMP(img_ptr);
+gdImagePtr im = INT2PTR(gdImagePtr, $COMP(img_ptr));
 char str[255];
 
 xsize = gdImageSX(im);
@@ -661,7 +661,7 @@ for( y2 = 0; y2 < ysize; y2++ )
         );
     }
 }
-$img_ptr(i=>0) = (PDL_LongLong) im;
+$img_ptr(i=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
 pp_def( '_pdl_to_gd_image_lut',
@@ -704,7 +704,7 @@ for( y2 = 0; y2 < $SIZE(y); y2++ )
         gdImageSetPixel(im, x2, y2, $img(x=>x2,y=>y2));
     }
 }
-$img_ptr(q=>0) = (PDL_LongLong) im;
+$img_ptr(q=>0) = (PDL_LongLong) PTR2IV(im);
 ENDCODE
 
 # Function to write Read PNG LUT Table into a piddle variable:
@@ -1786,7 +1786,7 @@ sub generate_pp_def_members
             Pars => $pdlpp_arg_list,
             OtherPars => 'IV img_ptr;',
             Doc => undef,
-            Code => "$orig_name( (gdImagePtr) \$COMP(img_ptr), $pdlpp_call_arg_list );" );
+            Code => "$orig_name( INT2PTR(gdImagePtr, \$COMP(img_ptr)), $pdlpp_call_arg_list );" );
 
         # Add the OO code:
         

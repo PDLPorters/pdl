@@ -1,3 +1,7 @@
+CHM 20-Jul-2008
+    IO/GD/GD.pd - Fixed warning messages about 'cast to pointer from integer
+    of different size' by use of INT2PTR() and PTR2IV() Perl API macros rather
+    that a raw typecast.  No warnings now and all tests still pass on cygwin.
 CHM 19-Jul-2008
     Basic/Ufunc/ufunc.pd - Fixed bug #2019651 in the pctover() routine, some minor
     changes to the index calculations and some bounds checks to avoid out-of-range
