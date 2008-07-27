@@ -1,3 +1,8 @@
+CHM 27-Jul-2008
+    t/matrixops.t - Added tests for SF bug #2023711 as an active placeholder for
+    the problem.  It was threading that allowed two piddles such as: [5,2] and
+    [[5,2],[5,2]] to test as equal with a check such as abs($a - $b) since the
+    result was [[0,0],[0,0]] with all elements suitably small...
 CHM 20-Jul-2008
     IO/GD/GD.pd - Fixed warning messages about 'cast to pointer from integer
     of different size' by use of INT2PTR() and PTR2IV() Perl API macros rather
