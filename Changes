@@ -1,3 +1,7 @@
+CHM 10-Sep-2008
+    t/pic_16bit.t - Added test for pnmtopng with corresponding skips to prevent
+    PDL test failure due to NetPBM not being installed with a diagnostic to
+    point out the possible problem.
 CHM 27-Jul-2008
     t/matrixops.t - Added tests for SF bug #2023711 as an active placeholder for
     the problem.  It was threading that allowed two piddles such as: [5,2] and

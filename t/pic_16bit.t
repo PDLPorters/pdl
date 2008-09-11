@@ -1,5 +1,5 @@
 # Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Fri 14 Dec 2007 08:11:13 PM 
+# Last saved: Wed 10 Sep 2008 10:49:35 PM
 #
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
@@ -12,17 +12,20 @@ use PDL;
 use PDL::NiceSlice;
 
 BEGIN {
-  eval "use PDL::IO::Pic;";
-  if ( !$@ ) {
-    $test_pnmtopng = 1;
-    plan tests => 5;
-    if($^O =~ /MSWin32/i) {
-      $test_pnmtopng = `pnmtopng --help 2>&1`;
-      $test_pnmtopng = $test_pnmtopng =~ /is not recognized as an internal or external command/ ? 0 : 1;
-    } 
-  }
-  else {plan skip_all => 'PDL::IO::Pic not available'}
-  use_ok('PDL::IO::Pic');
+   eval "use PDL::IO::Pic;";
+   if ( !$@ ) {
+      $test_pnmtopng = 1;
+      plan tests => 5;
+      if($^O =~ /MSWin32/i) {
+         $test_pnmtopng = `pnmtopng --help 2>&1`;
+         $test_pnmtopng = $test_pnmtopng =~ /is not recognized as an internal or external command/ ? 0 : 1;
+      } elsif ( !defined( scalar( qx(pnmtopng --help 2>&1) ) ) ) {
+         $test_pnmtopng = 0;
+      } 
+   } else {
+      plan skip_all => 'PDL::IO::Pic not available'
+   }
+   use_ok('PDL::IO::Pic');
 };
 
 # test save/restore of 8-bit image
@@ -33,7 +36,7 @@ ok(sum(abs($a-$a_pnm)) == 0, 'pnm byte image save+restore');
 unlink 'tbyte_a.pnm';
 
 SKIP: {
-  skip ": pnmtopng not found", 1 unless $test_pnmtopng; 
+  skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng; 
   $a->wpic('tbyte_a.png');
   my $a_png;
   unless($^O =~ /MSWin32/i) {$a_png = rpic('tbyte_a.png')}
@@ -50,7 +53,7 @@ ok(sum(abs($a16-$a16_pnm)) == 0, 'pnm ushort image save+restore'); # test 4
 unlink 'tushort_a16.pnm';
 
 SKIP : {
-  skip ": pnmtopng not found", 1 unless $test_pnmtopng;
+  skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng;
   $a16->wpic('tushort_a16.png');
   my $a16_png;
   unless($^O =~ /MSWin32/i) {$a16_png = rpic('tushort_a16.png')}
