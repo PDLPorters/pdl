@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.33';
+$VERSION = '1.34';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -51,6 +51,7 @@ print "perlDL shell v$VERSION
 # Useful shell variables
 
 $PERLDL::ESCAPE = '#'; 		# Default shell escape
+$PERLDL::HISTFILESIZE = 50;     # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::PROMPT = "perldl> ";
@@ -264,7 +265,7 @@ sub END {
     my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
 
     $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
-    @a= @a[($#a-50)..($#a)] if $#a > 50 ;
+    @a= @a[($#a-$PERLDL::HISTFILESIZE)..($#a)] if $#a > $PERLDL::HISTFILESIZE ;
     if( open HIST, ">$HOME/.perldl_hist" ) {
 	print HIST join("\n",@a);
 	close HIST;
@@ -761,9 +762,10 @@ and be able to format and display it on demand.
 If you have the perl modules ReadLines and ReadKeys installed, then
 B<perldl> supports a history and line-editing mechanism using editing
 keys similar to L<emacs(1)>. The last 50 commands are always stored in
-the file F<.perldl_hist> in your home directory between sessions. The
-command C<l [number]> shows you the last C<number> commands you typed
-where C<number> defaults to 20.
+the file F<.perldl_hist> in your home directory between sessions.
+Set C<$PERLDL::HISTFILESIZE> to change the number of lines saved.
+The command C<l [number]> shows you the last C<number> commands you
+typed where C<number> defaults to 20.
 
 e.g.:
 
@@ -1001,6 +1003,13 @@ $PERLDL::ESCAPE  - default value '#'
 Any line starting with this character is treated as a shell
 escape. The default value is chosen because it escapes the
 code from the standard perl interpreter.
+
+=item *
+
+$PERLDL::HISTFILESIZE  - default value 50
+
+This is the number of lines of perldl shell command history
+to keep.
 
 =item *
 

@@ -1,3 +1,6 @@
+CHM 14-Sep-2008
+    perldl.PL - added $PERLDL::HISTFILESIZE to control the number of lines
+    history saved.  Updated docs and incremented VERSION to 1.34.
 CHM 10-Sep-2008
     t/pic_16bit.t - Added test for pnmtopng with corresponding skips to prevent
     PDL test failure due to NetPBM not being installed with a diagnostic to
