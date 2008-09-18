@@ -1,3 +1,6 @@
+CHM 17-Sep-2008
+    Lib/GSL/RNG/gsl_random.pd, Lib/GSL/RNG/typemap - added INT2PTR() macros
+    to prevent typecast warnings (sourceforge bug tracker #1356282)
 CHM 14-Sep-2008
     perldl.PL - added $PERLDL::HISTFILESIZE to control the number of lines
     history saved.  Updated docs and incremented VERSION to 1.34.
