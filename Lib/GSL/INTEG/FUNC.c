@@ -10,14 +10,18 @@ double FUNC(double x,void * p){
 
   SV* funname;
 
-  double res;
-  double* resp;
-  resp = &res;
   int count;
 
   I32 ax ; 
 
+  double res;
+  double* resp;
+
   dSP;
+
+  resp = &res;
+
+
   ENTER;
   SAVETMPS;
 

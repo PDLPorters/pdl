@@ -1,3 +1,7 @@
+CHM 18-Sep-2008
+    Lib/GSL/INTEG/FUNC.c, Lib/GSL/INTERP/gsl_interp.pd, Lib/GSL/MROOT/FUNC.c
+    Quieted pointer cast compiler warnings by replacing with calls to the
+    INT2PTR() macro of the Perl API.  This fixes sf.net tracker bug #1356282.
 CHM 17-Sep-2008
     Lib/GSL/RNG/gsl_random.pd, Lib/GSL/RNG/typemap - added INT2PTR() macros
     to prevent typecast warnings (sourceforge bug tracker #1356282)

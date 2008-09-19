@@ -16,7 +16,7 @@ static SV* ext_funname1;
 static int ene;
 
 void DFF(int* n, double* x, double* vector);
-int my_f (gsl_vector *v, void *params, gsl_vector *df);
+int my_f (const gsl_vector * v, void * params, gsl_vector * df);
 
 void DFF(int* n, double* xval, double* vector){
    //this version tries just to get the output
@@ -103,7 +103,7 @@ void DFF(int* n, double* xval, double* vector){
 }
 
 
-int my_f (gsl_vector *v, void *params, gsl_vector *df)
+int my_f (const gsl_vector * v, void * params, gsl_vector * df)
 {
   double *dp = (double *)params;
   int* nelem; int i;
@@ -179,10 +179,10 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
   
 
   switch (method){
-  case 0 : T = gsl_multiroot_fsolver_hybrids; break;
-  case 1 : T = gsl_multiroot_fsolver_hybrid; break;
-  case 2 : T = gsl_multiroot_fsolver_dnewton; break;
-  case 3 : T = gsl_multiroot_fsolver_broyden; break;
+  case 0 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_hybrids; break;
+  case 1 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_hybrid;  break;
+  case 2 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_dnewton; break;
+  case 3 : T = (gsl_multiroot_fsolver_type *) gsl_multiroot_fsolver_broyden; break;
   default: barf("Something is wrong: could not assing fsolver type...\n"); break;
   }
   

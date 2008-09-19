@@ -258,7 +258,7 @@ pp_def('init_meat',
         OtherPars => 'IV spl',
         Doc => undef,
         Code =>'
-GSLERR(gsl_spline_init,( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n)));'
+GSLERR(gsl_spline_init,( INT2PTR(gsl_spline *, $COMP(spl)), $P(x),$P(y),$SIZE(n)));'
 );
 
 pp_addpm('
@@ -289,19 +289,19 @@ pp_def('eval_meat',
         if ($ISBAD($x())) {
           $out() = $x(); 
 	} else { 
-   	  GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+   	  GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
         }
         ',
 
         Code =>'	     
-GSLERR(gsl_spline_eval_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+GSLERR(gsl_spline_eval_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
 ');
 pp_def('eval_meat_ext',
         Pars => 'double x(); double [o] out();',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
         Code =>'	     
-$out() = gsl_spline_eval( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+$out() = gsl_spline_eval( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)));
 ');
 
 
@@ -328,14 +328,14 @@ pp_def('eval_deriv_meat',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-GSLERR(gsl_spline_eval_deriv_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+GSLERR(gsl_spline_eval_deriv_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
 ');
 pp_def('eval_deriv_meat_ext',
         Pars => 'double x(); double [o] out();',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-$out() = gsl_spline_eval_deriv( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+$out() = gsl_spline_eval_deriv( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)));
 ');
 
 pp_addpm('
@@ -360,14 +360,14 @@ pp_def('eval_deriv2_meat',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-GSLERR(gsl_spline_eval_deriv2_e,( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc), $P(out)));
+GSLERR(gsl_spline_eval_deriv2_e,( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)), $P(out)));
 ');
 pp_def('eval_deriv2_meat_ext',
         Pars => 'double x(); double [o] out();',
         OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-$out() = gsl_spline_eval_deriv2( (gsl_spline *) $COMP(spl), $x(), (gsl_interp_accel *) $COMP(acc));
+$out() = gsl_spline_eval_deriv2( INT2PTR(gsl_spline *, $COMP(spl)), $x(), INT2PTR(gsl_interp_accel *, $COMP(acc)));
 ');
 
 pp_addpm('
@@ -392,14 +392,14 @@ pp_def('eval_integ_meat',
 	OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-GSLERR(gsl_spline_eval_integ_e,( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc),$P(out)));
+GSLERR(gsl_spline_eval_integ_e,( INT2PTR(gsl_spline *, $COMP(spl)), $a(), $b(), INT2PTR(gsl_interp_accel *, $COMP(acc)),$P(out)));
 ');
 pp_def('eval_integ_meat_ext',
         Pars => 'double a(); double b(); double [o] out();',
 	OtherPars => 'IV spl;IV acc;',
         Doc => undef,
 	Code =>'
-$out() = gsl_spline_eval_integ( (gsl_spline *) $COMP(spl), $a(), $b(), (gsl_interp_accel *) $COMP(acc));
+$out() = gsl_spline_eval_integ( INT2PTR(gsl_spline *, $COMP(spl)), $a(), $b(), INT2PTR(gsl_interp_accel *, $COMP(acc)));
 ');
 
 
