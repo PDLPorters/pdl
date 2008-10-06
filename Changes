@@ -1,3 +1,6 @@
+SIS 06-Oct-2008
+    ExtUtils::F77->runtime not providing the required format for MSVC compilers.
+    A minor fix put in place in Lib/Slatec/Makefile.PL to correct this. Rev 1.16
 CHM 18-Sep-2008
     Lib/GSL/INTEG/FUNC.c, Lib/GSL/INTERP/gsl_interp.pd, Lib/GSL/MROOT/FUNC.c
     Quieted pointer cast compiler warnings by replacing with calls to the
