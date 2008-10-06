@@ -85,9 +85,13 @@ if($Config{cc} eq 'cl') {
   unless($@) {
     my @f = ();
 
+    my $drive = (split /:/, `gcc -v 2>&1`)[0];
+    $drive = substr($drive, -1, 1);
+
     for(split ' ', ExtUtils::F77->runtime) {
        if($_ =~ /^\-L/) {
          $_ =~ s#^\-L##;
+         unless($_ =~ /:/) {$_ = $drive . ':' . $_}
          if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
          if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
        }
