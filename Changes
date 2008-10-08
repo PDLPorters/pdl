@@ -1,3 +1,7 @@
+SIS 08-Oct-2008
+    Amend top-level Makefile.PL so that File::Temp->tmpdir() is assigned to
+    Config.pm's $PDL::Config{TEMPDIR}. (This is so that Windows PPM packages
+    will function correctly). Rev 1.67
 CHM 07-Oct-2008
     Basic/Core/Core.pm.PL: fixed alias creation to avoid compile warnings
 CHM 07-Oct-2008
