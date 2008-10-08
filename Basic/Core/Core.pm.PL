@@ -1948,10 +1948,7 @@ construct a zero filled piddle (see zeroes for usage)
 
 =cut
 
-sub zeros { return }
 *zeros = \&zeroes;
-
-sub PDL::zeros { return }
 *PDL::zeros = \&PDL::zeroes;
 
 =head2 ones
