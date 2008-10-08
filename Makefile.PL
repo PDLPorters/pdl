@@ -148,9 +148,8 @@ EOD
   # an amalgam of the different choices that have been used within PDL
   # up to (and including) v2.4.1
   #
-  require File::Spec;
-
-  $PDL_CONFIG{TEMPDIR} = File::Spec->tmpdir()
+  
+  $PDL_CONFIG{TEMPDIR} = 'File::Spec->tmpdir()'
     unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
   # set up the default MALLOCDBG information (if not specified by the user)
@@ -308,11 +307,13 @@ sub make_PDL_Config_pm {
 # DO NOT HAND-EDIT - CHANGES WILL BE LOST UPON YOUR NEXT
 #  'perl Makefile.PL'!!!
 package PDL;
+use File::Spec;
 \%PDL::Config = (\n";
   for(keys %PDL::Config) {
     $fh->print( "\t$_\t=>\t" );
     if(defined $PDL::Config{$_}) {
-      $fh->print( myformat($PDL::Config{$_}) );
+      if($PDL::Config{$_} eq 'File::Spec->tmpdir()') {$fh->print( $PDL::Config{$_} )}
+      else {$fh->print( myformat($PDL::Config{$_}) )}
     } else {
       $fh->print( "undef" );
     }
