@@ -94,7 +94,7 @@ print OUT <<"!WITH!SUBS!";
 
 \@EXPORT_OK = qw( howbig threadids topdl nelem dims null
    $convertfuncs
-   convert inplace zeroes ones list listindices
+   convert inplace zeroes zeros ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
    dummy mslice approx flat sclr squeeze
    );
@@ -102,7 +102,7 @@ print OUT <<"!WITH!SUBS!";
 \%EXPORT_TAGS = (
    Func=>[qw/nelem dims null
     $convertfuncs
-    convert inplace zeroes ones list listindices
+    convert inplace zeroes zeros ones list listindices
     set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
     /],
@@ -1937,6 +1937,22 @@ sub PDL::zeroes {
     $pdl.=0;
     return $pdl;
 }
+
+# Create convenience aliases for zeroes
+
+=head2 zeros
+
+=for ref
+
+construct a zero filled piddle (see zeroes for usage)
+
+=cut
+
+sub zeros { return }
+*zeros = \&zeroes;
+
+sub PDL::zeros { return }
+*PDL::zeros = \&PDL::zeroes;
 
 =head2 ones
 

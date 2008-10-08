@@ -1,3 +1,7 @@
+CHM 07-Oct-2008
+    Basic/Core/Core.pm.PL: Added zeros convenience aliases for zeroes.
+    This is matches common American English and Matlab usages and is
+    one letter shorter to type.
 SIS 06-Oct-2008
     ExtUtils::F77->runtime not providing the required format for MSVC compilers.
     A minor fix put in place in Lib/Slatec/Makefile.PL to correct this. Rev 1.16
