@@ -1454,11 +1454,13 @@ sub def_vtable {
     my $nparents = 0 + grep {! $pobjs->{$_}->{FlagW}} @$pnames;
     my $aff = ($affine_ok ? "PDL_TPDL_VAFFINE_OK" : 0);
     my $npdls = scalar @$pnames;
+    my $join_flags = join",",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
+				      0 : $aff} 0..$npdls-1;
+    if($Config{cc} eq 'cl') {
+       $join_flags = '""' if $join_flags eq '';
+    }
     return "static char ${vname}_flags[] =
-	 	{ ".
-		    (join",",map {$pobjs->{$pnames->[$_]}->{FlagPhys} ?
-				      0 : $aff} 0..$npdls-1).
-					  "};
+	 	{ ". $join_flags . "};
 	 pdl_transvtable $vname = {
 		0,0, $nparents, $npdls, ${vname}_flags,
 		$rdname, $rfname, $wfname,
@@ -2469,10 +2471,14 @@ sub make_parnames {
 	my($pnames,$pobjs,$dobjs) = @_;
 	my @pdls = map {$pobjs->{$_}} @$pnames;
 	my $npdls = $#pdls+1;
-	return("static char *__parnames[] = {".
-			(join ",",map {qq|"$_"|} @$pnames)."};
-		static int __realdims[] = {".
-			(join ",",map {$#{$_->{IndObjs}}+1} @pdls). "};
+      my $join__parnames = join ",",map {qq|"$_"|} @$pnames;
+      my $join__realdims = join ",",map {$#{$_->{IndObjs}}+1} @pdls;
+      if($Config{cc} eq 'cl') {
+         $join__parnames = '""' if $join__parnames eq '';
+         $join__realdims = '0' if $join__realdims eq '';
+      }
+	return("static char *__parnames[] = {". $join__parnames ."};
+		static int __realdims[] = {". $join__realdims . "};
 		static char __funcname[] = \"\$MODULE()::\$NAME()\";
 		static pdl_errorinfo __einfo = {
 			__funcname, __parnames, $npdls
@@ -2606,7 +2612,7 @@ sub make_redodims_thread {
     
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
-    $str .= "int __creating[$npdls];\n";
+    $str .= $npdls ? "int __creating[$npdls];\n" : "int __creating[1];\n";
     $str .= join '',map {$_->get_initdim."\n"} values %$dobjs;
     
     # if FlagCreat is NOT true, then we set __creating[] to 0
