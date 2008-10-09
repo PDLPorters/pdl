@@ -1,3 +1,9 @@
+SIS 09-Oct-2008
+    Amend Lib/Slatec/Makefile.PL (rev 1.17) so that '*make realclean' doesn't 
+    clobber libg2c.a and libgcc.a when a Microsoft compiler is in use.
+    Amend Lib/Minuit/Makefile.PL (rev 1.5), Basic/Core/pdl.h.PL (rev 1.13)
+    and Basic/Gen/PP.pm (rev 1.49) to enable Minuit to build with Microsoft 
+    compilers. (All of these changes should be invisible to other compilers.)
 SIS 08-Oct-2008
     Amend top-level Makefile.PL so that File::Temp->tmpdir() is assigned to
     Config.pm's $PDL::Config{TEMPDIR}. (This is so that Windows PPM packages
