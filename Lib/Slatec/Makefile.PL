@@ -76,7 +76,7 @@ return if $donot;
 
 %hash = pdlpp_stdargs_int(@::pack);
 
-$hash{OBJECT} .= join '', map {" slatec/$_.o "} @slatecfiles;
+$hash{OBJECT} .= join '', map {" slatec/${_}$Config{obj_ext} "} @slatecfiles;
 
 if($Config{cc} eq 'cl') {
 # Link to MinGW's libg2c.a and libgcc.a, if appropriate
@@ -96,8 +96,8 @@ if($Config{cc} eq 'cl') {
          if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
        }
     }
-
-    for(@f) {$hash{OBJECT} .= ' ' . $_}
+    $hash{LDFROM} = $hash{OBJECT};
+    for(@f) {$hash{LDFROM} .= ' ' . $_}
   }
 }
 

@@ -89,7 +89,7 @@ else{
 
 %hash = pdlpp_stdargs_int(@::pack);
 
-$hash{OBJECT} .= join '', map {" minuitlib/$_.o "} @minuitfiles;
+$hash{OBJECT} .= join '', map {" minuitlib/${_}$Config{obj_ext} "} @minuitfiles;
 
 if($Config{cc} eq 'cl') {
 # Link to MinGW's libg2c.a and libgcc.a, if appropriate
@@ -98,9 +98,13 @@ if($Config{cc} eq 'cl') {
   unless($@) {
     my @f = ();
 
+    my $drive = (split /:/, `gcc -v 2>&1`)[0];
+    $drive = substr($drive, -1, 1);
+
     for(split ' ', ExtUtils::F77->runtime) {
        if($_ =~ /^\-L/) {
          $_ =~ s#^\-L##;
+         unless($_ =~ /:/) {$_ = $drive . ':' . $_}
          if(-e $_ . '/libg2c.a') {push @f, $_ . '/libg2c.a'}
          if(-e $_ . '/libgcc.a') {push @f, $_ . '/libgcc.a'}
        }
