@@ -148,8 +148,10 @@ EOD
   # an amalgam of the different choices that have been used within PDL
   # up to (and including) v2.4.1
   #
+
+  require File::Spec;
   
-  $PDL_CONFIG{TEMPDIR} = 'File::Spec->tmpdir()'
+  $PDL_CONFIG{TEMPDIR} = $^O =~ /MSWin32/i ? 'File::Spec->tmpdir()' : File::Spec->tmpdir()
     unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
   # set up the default MALLOCDBG information (if not specified by the user)
@@ -404,7 +406,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Text::Balanced'      => 0, # for PDL::NiceSlice
 	   'Inline'              => 0.43,
 	  );
- push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
+# push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
