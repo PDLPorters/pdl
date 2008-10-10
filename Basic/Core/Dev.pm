@@ -648,8 +648,7 @@ sub trylink {
 
   my $tempd;
 
-  # Using dmake on Win32 requires special consideration.
-  if($Config{make} eq 'dmake') {$tempd = File::Spec->tmpdir()}
+  if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
   else {
     $tempd = $PDL::Config{TEMPDIR} ||
     die "TEMPDIR not found in \%PDL::CONFIG";
