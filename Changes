@@ -1,3 +1,9 @@
+SIS 11-Oct-2008
+    In top level Makefile.PL remove EU::F77 from PREREQ_PM, and fix 
+    $PDL::Config{TEMPDIR}, which I broke for non-Windows systems with the 
+    changes made on 8 Oct.(This latest change is rev 1.68 )
+    Also a Windows-only change to Basic/Core/Dev.pm (rev 1.33) as part of the
+    change to $PDL::Config{TEMPDIR}.
 SIS 09-Oct-2008
     Amend Lib/Slatec/Makefile.PL (rev 1.17) so that '*make realclean' doesn't 
     clobber libg2c.a and libgcc.a when a Microsoft compiler is in use.
