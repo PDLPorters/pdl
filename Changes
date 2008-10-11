@@ -1,3 +1,6 @@
+SIS 12-Oct-2008
+    Addition of link to bufferoverflowu.lib in CallExt.pm's callext_cc()
+    for Windows x64 builds only (rev 1.9).
 SIS 11-Oct-2008
     In top level Makefile.PL remove EU::F77 from PREREQ_PM, and fix 
     $PDL::Config{TEMPDIR}, which I broke for non-Windows systems with the 
