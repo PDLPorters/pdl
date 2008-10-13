@@ -75,7 +75,7 @@ eval '$xx = lu_backsub($lu,$perm,$bb)';
 ok(!$@);                                 # ran OK
 my $xx_shape = pdl($xx->dims);
 my $bb_shape = pdl($bb->dims);
-ok(all($xx_shape == $bb_shapes));        # check that soln and input have same shape
+ok(all($xx_shape == $bb_shape));        # check that soln and input have same shape
 ok(near($xx,pdl([2/3, -1/3]),$tol));     # LU = A (after depermutation)
 
 
