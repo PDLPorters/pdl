@@ -199,8 +199,8 @@ sub callext_cc {
 	# Setup the LD command. Do not want the env var on Windows
 	my $ld_cmd = ( $^O =~ /MSWin/i ? ' ' : 'LD_RUN_PATH="" ');
 
-	my $libs = $Config{cc} eq 'cl' && $Config{ivsize} == 8 ? 
-                 ' bufferoverflowU.lib ' :
+	my $libs = $^O =~ /MSWin/i ? 
+                 $Config{libs} :
                  ''; # used to be $Config{libs} but that bombs
 	               # on recent debian platforms
 	$ld_cmd .=
