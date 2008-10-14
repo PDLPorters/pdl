@@ -48,16 +48,15 @@ EOM
     $dot-- if(@INC[-1] eq '.');
     if($dot) {
 	$INC = join(":",@INC);
-	die << "EOM"
+	warn << "EOM"
 
 **********************************************************************
-BUGGY \@INC DETECTED.  BUILD TERMINATED.
 Your Perl \@INC path is:
 
 $INC
 
 That seems to include the directory '.' before the last entry in the
-path.  Configurations like that are arguably broken, because they
+path.  Configurations like that might be broken, because they may
 prevent strict division of hierarchy in the module name space.
 In particular, adding a module Foo::Bar::Baz can cause trouble
 if Baz exists in the top level elsewhere, and if you run from the 
@@ -66,8 +65,7 @@ Foo/Bar directory.
 This happens with the PDL::Config and some other modules.  You may
 not be able to build PDL with this \@INC setup.  
 
-You can fix your \@INC, or you can try to build anyway.  To build anyway,
-set the environment variable PDL_INC_OK to a true value and re-run.
+If you strike trouble, you may need to fix your \@INC.
 **********************************************************************
 
 
