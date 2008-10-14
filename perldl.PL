@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.34';
+$VERSION = '1.35';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -51,7 +51,7 @@ print "perlDL shell v$VERSION
 # Useful shell variables
 
 $PERLDL::ESCAPE = '#'; 		# Default shell escape
-$PERLDL::HISTFILESIZE = 50;     # Number of lines to keep in history
+$PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::PROMPT = "perldl> ";
@@ -133,6 +133,17 @@ while(defined($_ = shift @ARGV)) {
                    print ", sorry can't load module Tk\n";
                 }
 		next;
+        } elsif($_ eq "-glut") {
+		print "Using OpenGL for GLUT support";
+		eval "use OpenGL;";
+                if ($@ eq "") {
+                   print " v$OpenGL::VERSION\n"
+                      if defined $OpenGL::VERSION; # make -w happy
+                } else {
+                   print ", sorry can't load module OpenGL\n";
+                }
+                OpenGL::glutInit() unless OpenGL::done_glutInit();
+		next;
 	} elsif(/^-f(.*)/) {
 		my $file = $1;
 		if(0 == length $1) {
@@ -179,6 +190,8 @@ while(defined($_ = shift @ARGV)) {
       } else {
             print << 'EOP';
 Usage: perldl [options]
+  -glut       try to load OpenGL module (Enables
+              readline event-loop processing).
   -tk         try to load Tk module (Enables
               readline event-loop processing).
   -f <file>   execute file <file> before starting perldl
@@ -239,6 +252,15 @@ print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 if ( $readlines ){
     $PERLDL::TERM = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
+    if(defined &OpenGL::done_glutInit ) {
+    	# Attempt to use with FreeGLUT
+        if(${$PERLDL::TERM->Features}{glutRunning}) {
+		print "Using FreeGLUT event loop\n";
+		$PERLDL::TERM->glutRunning(1);
+	} else {
+		warn("Sorry, cannot use FreeGLUT with this version of ReadLine\n");
+	}
+    }
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
         if(${$PERLDL::TERM->Features}{tkRunning}) {
@@ -1006,7 +1028,7 @@ code from the standard perl interpreter.
 
 =item *
 
-$PERLDL::HISTFILESIZE  - default value 50
+$PERLDL::HISTFILESIZE  - default value 500
 
 This is the number of lines of perldl shell command history
 to keep.
