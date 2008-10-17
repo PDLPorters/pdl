@@ -13,7 +13,7 @@ use Test::More;
 BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
-    plan tests => 29;
+    plan tests => 34;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -54,6 +54,9 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 
 my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
 my $tmpfile = $tmpdir . "/foo$$.$dev";
+
+# comment this out for testing!!!
+#my $pid = 0; my $a = 'foo';
 
 if($pid = fork()) {
 	$a = waitpid($pid,0);
@@ -217,10 +220,17 @@ pladv (0);
 plvsta();
 plwind (0, 1, 0, 1);
 plvpor(0.1,0.85,0.1,0.9);
+
 plwind (0, 10, 0, 100);
 plcol0(1);
 plbox (0, 0, 0, 0, 'BCNST', 'BCNST');
 plpoin($x, $y, 2);
+
+# view port dimensions in normalized device coordinates
+my ($dev_xmin, $dev_xmax, $dev_ymin, $dev_ymax) = plgvpd();
+
+# view port dimensions in world coordinates
+my ($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax) = plgvpw();
 plvpor(0.86,0.90,0.1,0.9);
 plwind (0, 10, 0, 100);
 plbox (0, 0, 0, 0, '', 'TM');
@@ -232,6 +242,11 @@ for (my $i=0;$i<10;$i++) {
 plend1();
 
 ok (-s "test11.$dev" > 0, "Colored symbol plot with key, via low level interface");
+
+ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin, $dev_xmax, $dev_ymin, $dev_ymax)) == 0, 
+    "plgvpd call works correctly");
+ok (sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax)) == 0, 
+    "plgvpw call works correctly");
 
 # Test shade plotting (low level interface)
 plsdev ($dev);
@@ -409,6 +424,12 @@ $pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN', MAXBARLAB
 $pl->close;
 ok (-s "test23a.$dev" > 0, "Bar graph part 3");
 
+$pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test23b.$dev");
+@labels = ((map { sprintf ("2001.%03d", $_) } (240..365)), (map { sprintf ("2002.%03d", $_) } (1..100)));
+$pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN', TEXTPOSITION => ['tv', 0.5, 0.0, 0.0]);
+$pl->close;
+ok (-s "test23b.$dev" > 0, "Bar graph part 4");
+
 $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test24.$dev");
 $x  = sequence(10);
 $y  = $x**2;
@@ -418,6 +439,46 @@ $pl->xyplot($x, $y, PLOTTYPE => 'LINE', XERRORBAR => ones(10)*0.5, XTICK => 2,  
 $pl->close;
 ok (-s "test24.$dev" > 0, "Setting error bars and tick size");
 
+$pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test25.$dev");
+$x1  = sequence(20);
+my $y1  = $x1**2;
+
+$x2  = sequence(22);
+my $y2  = sqrt($x2);
+
+my $x3  = sequence(30);
+my $y3  = $x3**3;
+
+my $xs  = [$x1, $x2, $x3];
+my $ys  = [$y1, $y2, $y3];
+
+$pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions', YLAB => ['x**2', 'sqrt(x)', 'x**3']);
+$pl->close;
+ok (-s "test25.$dev" > 0, "Basic stripplots");
+
+$pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test26.$dev");
+$x1  = sequence(20);
+$y1  = $x1**2;
+
+$x2  = sequence(18);
+$y2  = sqrt($x2);
+
+$x3  = sequence(24);
+$y3  = $x3**3;
+
+my $x4  = sequence(27);
+$a  = ($x4/20) * 2 * $pi;
+my $y4  = sin($a);
+
+$xs  = [$x1, $x2, $x3, $x4];
+$ys  = [$y1, $y2, $y3, $y4];
+$pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
+                YLAB => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
+                         COLOR => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
+$pl->close;
+ok (-s "test26.$dev" > 0, "Multi-color stripplots");
+
+# comment this out for testing!!!
 unlink glob ("test*.$dev");
 
 # stop STDERR redirection and examine output

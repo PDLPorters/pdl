@@ -17,4 +17,25 @@ Revision history for Perl extension PDL::Graphics::PLPLOT
 0.21  11/21/2003 Fixed test suite to use Test::More, updated to work with plplot-5.2.1.
       Back-ported to main PDL distro.
 
+0.29  6/22/05 Fixed bug in plcolorpoints in the "bad" code for loop
+
+0.30  8/9/06  No longer use plfill for color wedge--this does not work with some
+      drivers including the 'mem' driver.  Also use fewer colors in the color wedge
+      for GIF device plots because of GIF's 256 color limitation
+
+0.31  May 2007 Merge changes from PDL mailing list
+
+0.32  Add TEXTPOSITION support for bargraph
+
+0.33  Added stripplot function for multiple plots with a common X axis.  Added extra colors.
+
+0.34  Added Y_BASE and Y_GUTTER options to stripplot.
+
+0.35  Added new low level functions supporting alpha channels.
+
+0.36  Added pltimefmt call for plplot 5.9.0
+
+0.37  10/15/2008 Handle case of missing PDL better
+
+0.38  10/16/2008 Fixed typo in Makefile.PL that broke build, added plgvpd and plgvpw interfaces
 

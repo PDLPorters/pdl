@@ -185,6 +185,11 @@ Some pre-defined triples are included:
   RED          AQUAMARINE   GREY         BLUEVIOLET
   YELLOW       PINK         BROWN        CYAN
   TURQUOISE    MAGENTA      SALMON       WHITE
+  ROYALBLUE    DEEPSKYBLUE  VIOLET       STEELBLUE1
+  DEEPPINK     MAGENTA      DARKORCHID1  PALEVIOLETRED2
+  TURQUOISE1   LIGHTSEAGREEN SKYBLUE     FORESTGREEN
+  CHARTREUSE3  GOLD2        SIENNA1      CORAL
+  HOTPINK      LIGHTCORAL   LIGHTPINK1   LIGHTGOLDENROD
 
 =for example
 
@@ -512,6 +517,51 @@ latitude and longitude.
   $pl->xyplot($x, $y, PLOTTYPE => 'LINEPOINTS', COLOR => [50,230,30]);
   $pl->xyplot($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
 
+=head2 stripplots
+
+=for ref
+
+Plot a set of strip plots with a common X axis, but with different Y axes.
+Looks like a stack of long, thin XY plots, all line up on the same X axis.
+
+=for usage
+
+ Arguments:
+ $x  -- 1D PDL with common X axis values, length = N
+ $ys -- 2D PDL with M Y-axis values: N x M
+ %opts -- Options hash
+
+ Supported options:
+ All options except:
+
+ BACKGROUND
+ DEV
+ FILE
+ FRAMECOLOR
+ JUST
+ PAGESIZE
+ SUBPAGES
+
+ (These must be set in call to 'new'.)
+
+=for example
+
+  my $x  = sequence(20);
+  my $y1  = $x**2;
+  my $y2  = sqrt($x);
+  my $y3  = $x**3;
+  my $y4  = sin(($x/20) * 2 * $pi);
+  $ys  = cat($y1, $y2, $y3, $y4);
+  $pl->stripplots($x, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
+                           YLAB     => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
+                           COLOR    => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
+
+  In addition, COLOR may be specified as a reference to a list of colors.  If
+  this is done, the colors are applied separately to each plot.
+
+  Also, the options Y_BASE and Y_GUTTER can be specified.  Y_BASE gives the Y offset
+  of the bottom of the lowest plot (0-1, specified like a VIEWPORT, defaults to 0.1) and Y_GUTTER
+  gives the gap between the graphs (0-1, default = 0.02).
 
 =head2 colorkey
 
@@ -643,7 +693,19 @@ every third label is printed, and so on.
 
   $labels = ['one', 'two', 'three'];
   $values = pdl(1, 2, 3);
-  $pl->bargraph($labels, $values, MAXBARLABELS => 30);
+
+  # Note if TEXTPOSITION is specified, it must be in 4 argument mode (border mode):
+  # [$side, $disp, $pos, $just]
+  #
+  # Where side = 't', 'b', 'l', or 'r' for top, bottom, left and right
+  #              'tv', 'bv', 'lv' or 'rv' for top, bottom, left or right perpendicular to the axis.
+  #
+  #     disp is the number of character heights out from the edge
+  #     pos  is the position along the edge of the viewport, from 0 to 1.
+  #     just tells where the reference point of the string is: 0 = left, 1 = right, 0.5 = center.
+  #
+  # The '$pos' entry will be ignored (computed by the bargraph routine)
+  $pl->bargraph($labels, $values, MAXBARLABELS => 30, TEXTPOSITION => ['bv', 0.5, 1.0, 1.0]);
 
 =head2 text
 
@@ -706,23 +768,44 @@ use vars qw(%_constants %_actions);
 
 # Colors (from rgb.txt) are stored as RGB triples
 # with each value from 0-255
+sub cc2t { [map {hex} split ' ', shift] }
 %_constants = (
-	       BLACK      => [  0,  0,  0],
-	       RED        => [240, 50, 50],
-	       YELLOW     => [255,255,  0],
-	       GREEN      => [  0,255,  0],
-	       AQUAMARINE => [127,255,212],
-	       PINK       => [255,192,203],
-	       WHEAT      => [245,222,179],
-	       GREY       => [190,190,190],
-	       BROWN      => [165, 42, 42],
-	       BLUE       => [  0,  0,255],
-	       BLUEVIOLET => [138, 43,226],
-	       CYAN       => [  0,255,255],
-	       TURQUOISE  => [ 64,224,208],
-	       MAGENTA    => [255,  0,255],
-	       SALMON     => [250,128,114],
-	       WHITE      => [255,255,255],
+	       BLACK          => [  0,  0,  0],
+	       RED            => [240, 50, 50],
+	       YELLOW         => [255,255,  0],
+	       GREEN          => [  0,255,  0],
+	       AQUAMARINE     => [127,255,212],
+	       PINK           => [255,192,203],
+	       WHEAT          => [245,222,179],
+	       GREY           => [190,190,190],
+	       BROWN          => [165, 42, 42],
+	       BLUE           => [  0,  0,255],
+	       BLUEVIOLET     => [138, 43,226],
+	       CYAN           => [  0,255,255],
+	       TURQUOISE      => [ 64,224,208],
+	       MAGENTA        => [255,  0,255],
+	       SALMON         => [250,128,114],
+	       WHITE          => [255,255,255],
+               ROYALBLUE      => cc2t('2B 60 DE'),
+               DEEPSKYBLUE    => cc2t('3B B9 FF'),
+               VIOLET         => cc2t('8D 38 C9'),
+               STEELBLUE1     => cc2t('5C B3 FF'),
+               DEEPPINK       => cc2t('F5 28 87'),
+               MAGENTA        => cc2t('FF 00 FF'),
+               DARKORCHID1    => cc2t('B0 41 FF'),
+               PALEVIOLETRED2 => cc2t('E5 6E 94'),
+               TURQUOISE1     => cc2t('52 F3 FF'),
+               LIGHTSEAGREEN  => cc2t('3E A9 9F'),
+               SKYBLUE        => cc2t('66 98 FF'),
+               FORESTGREEN    => cc2t('4E 92 58'),
+               CHARTREUSE3    => cc2t('6C C4 17'),
+               GOLD2          => cc2t('EA C1 17'),
+               SIENNA1        => cc2t('F8 74 31'),
+               CORAL          => cc2t('F7 65 41'),
+               HOTPINK        => cc2t('F6 60 AB'),
+               LIGHTCORAL     => cc2t('E7 74 71'),
+               LIGHTPINK1     => cc2t('F9 A7 B0'),
+               LIGHTGOLDENROD => cc2t('EC D8 72'),
 	      );
 
 # a hash of subroutines to invoke when certain keywords are specified
@@ -1371,6 +1454,101 @@ sub xyplot {
 }
 
 
+# Handle sets of 2D strip plots sharing one X axis.  Input is
+# $self -- PLplot object with existing options
+# $xs   -- Ref to list of 1D PDLs with X values
+# $ys   -- Ref to list of 1D PDLs with Y values
+# %opts -- Options values
+sub stripplots {
+
+  my $self = shift;
+  my $xs   = shift;
+  my $ys   = shift;
+
+  my %opts = @_;
+
+  # NYTICK => number of y axis ticks
+  my $nytick = $opts{NYTICK} || 2;
+  delete ($opts{NYTICK});
+
+  # only process COLORMAP entries once
+  my $zs = $opts{COLORMAP};
+  delete ($opts{COLORMAP});
+
+  # handle XLAB, YLAB and TITLE options
+  my $title = $opts{TITLE} || '';
+  my $xlab  = $opts{XLAB}  || '';
+  my @ylabs = defined($opts{YLAB}) && (ref($opts{YLAB}) =~ /ARRAY/) ? @{$opts{YLAB}} : ();
+  delete @opts{qw(TITLE XLAB YLAB)};
+
+  my $nplots = @$ys;
+
+  # Use list of colors, or single color.  If COLOR not specified, default to BLACK for each graph
+  my @colors = (defined ($opts{COLOR}) && ref($opts{COLOR}) =~ /ARRAY/) ? @{$opts{COLOR}}
+             :  defined ($opts{COLOR})                                  ? ($opts{COLOR}) x $nplots
+             : ('BLACK') x $nplots;
+  delete @opts{qw(COLOR)};
+
+  my $y_base   = defined($opts{Y_BASE})   ? $opts{Y_BASE}   : 0.1;  # Y offset to start bottom plot
+  my $y_gutter = defined($opts{Y_GUTTER}) ? $opts{Y_GUTTER} : 0.02; # Y gap between plots
+  delete @opts{qw(Y_BASE Y_GUTTER)};
+
+  # apply options
+  $self->setparm(%opts);
+
+  my $xmin = pdl(map { $_->min } @$xs)->min;
+  my $xmax = pdl(map { $_->max } @$xs)->max;
+
+  SUBPAGE:
+    for (my $subpage=0;$subpage<$nplots;$subpage++) {
+
+      my $y = $ys->[$subpage];
+      my $x = $xs->[$subpage];
+      my $mask = $y->isgood;
+      $y = $y->where($mask);
+      $x = $x->where($mask);
+      my $z = $zs->slice(":,($subpage)")->where($mask)      if (defined($zs));
+      my $yeb  = $yebs->slice(":,($subpage)")->where($mask) if (defined($yebs));
+      my $ylab = $ylabs[$subpage];
+
+      my $bottomplot = ($subpage == 0);
+      my $topplot    = ($subpage == $nplots-1);
+
+      my $xbox = 'bc';
+      $xbox = 'cstnb' if ($bottomplot);
+
+      my $box = $opts{BOX};
+      my $yrange = defined($box) ? $$box[3] - $$box[2] : $y->max - $y->min;
+      my $del = $yrange ? $yrange * 0.05 : 1;
+      my @ybounds = ($y->min - $del, $y->max + $del);
+      my $ytick = ($yrange/$nytick);
+      my @COLORMAP  = (COLORMAP => $z)    if defined($z);
+      $self->xyplot($x, $y,
+		  COLOR     => $colors[$subpage],
+		  BOX       => defined($box) ? $box : [$xmin, $xmax, @ybounds],
+		  XBOX      => $xbox,
+		  YBOX      => 'BCNT',
+                  YTICK     => $ytick,
+                  MAJTICKSIZE => 0.6,
+		  CHARSIZE  => 0.4,
+                  @COLORMAP,
+		  VIEWPORT  => [
+				0.15,
+				0.9,
+                                $y_base             + ($subpage     * (0.8/$nplots)),
+                                $y_base - $y_gutter + (($subpage+1) * (0.8/$nplots)),
+				],
+		  );
+
+      $self->text($ylab,  TEXTPOSITION => ['L', 4, 0.5, 0.5], COLOR => 'BLACK', CHARSIZE => 0.6) if (defined($ylab));
+      $self->text($xlab,  TEXTPOSITION => ['B', 3, 0.5, 0.5], COLOR => 'BLACK', CHARSIZE => 0.6) if ($xlab && $bottomplot);
+      $self->text($title, TEXTPOSITION => ['T', 2, 0.5, 0.5], COLOR => 'BLACK', CHARSIZE => 1.3) if ($title && $topplot);
+
+    }
+
+}
+
+
 # Draw a color key or wedge showing the scale of map1 colors
 sub colorkey {
   my $self = shift;
@@ -1601,13 +1779,21 @@ sub bargraph {
   plbox ($self->{XTICK}, $self->{NXSUB}, $self->{YTICK}, $self->{NYSUB},
 	 'bc', $self->{YBOX}); # !!! note out of order call
 
+  # Now respect TEXTPOSITION setting if TEXTMODE eq 'border'
+  # This allows the user to tweak the label placement.  D. Hunt 9/4/2007
+  my ($side, $disp, $foo, $just) = ('BV', 0.2, 0, 1.0);
+  if (defined($self->{TEXTMODE}) && $self->{TEXTMODE} eq 'border') {
+    ($side, $disp, $foo, $just) = @{$self->{TEXTPOSITION}};
+  }
+
   # plot labels
   plschr   (0, $self->{CHARSIZE} * 0.7); # use smaller characters
   my $pos = 0;
   my $skip   = int($xmax/$maxlab) + 1;
   for (my $i=0;$i<$xmax;$i+=$skip) {
+    $pos = ((0.5+$i)/$xmax);
     my $lab = $$labels[$i];
-    plmtex (0.2, ((0.5+$i)/$xmax), 1.0, "BV", $lab); # !!! out of order parms
+    plmtex ($disp, $pos, $just, $side, $lab); # !!! out of order parms
   }
 
   plcol0  ($self->{CURRENT_COLOR_IDX}); # set back to line color
@@ -1895,7 +2081,7 @@ sub create_low_level {
       my $type = $types[$i];
       my $dim  = ($type =~ tr/*/*/); # count of stars in type (PLFLT ** = 2D)
       my $dimstr;
-      if    ($dim == 0) { $dimstr = '()'; }
+      if    ($output || $dim == 0) { $dimstr = '()'; }
       elsif ($dim == 1) { $dimstr = '(dima)'; }
       elsif ($dim == 2) { $dimstr = '(dima,dimb)'; }
 
@@ -2057,7 +2243,9 @@ void c_plfont(PLINT ifont);
 void c_plfontld(PLINT fnt);
 void c_plgchr(PLFLT *p_def, PLFLT *p_ht);
 void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
+void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
 void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
+void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
 void c_plgcompression(PLINT *compression);
 #void c_plgdev(char *p_dev);
 void c_plgdidev(PLFLT *p_mar, PLFLT *p_aspect, PLFLT *p_jx, PLFLT *p_jy);
@@ -2069,6 +2257,8 @@ void c_plglevel(PLINT *p_level);
 void c_plgpage(PLFLT *p_xp, PLFLT *p_yp,PLINT *p_xleng, PLINT *p_yleng, PLINT *p_xoff, PLINT *p_yoff);
 void c_plgra(void);
 void c_plgspa(PLFLT *xmin, PLFLT *xmax, PLFLT *ymin, PLFLT *ymax);
+void c_plgvpd(PLFLT *p_xmin, PLFLT *p_xmax, PLFLT *p_ymin, PLFLT *p_ymax);
+void c_plgvpw(PLFLT *p_xmin, PLFLT *p_xmax, PLFLT *p_ymin, PLFLT *p_ymax);
 #void c_plgstrm(PLINT *p_strm);
 #void c_plgver(char *p_ver);
 void c_plgxax(PLINT *p_digmax, PLINT *p_digits);
@@ -2102,10 +2292,14 @@ void c_plschr(PLFLT def, PLFLT scale);
 void c_plscmap0n(PLINT ncol0);
 void c_plscmap1n(PLINT ncol1);
 void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
+void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
 void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
+void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
 #void c_plscmap1l(PLINT itype, PLINT npts, PLFLT *intensity, PLFLT *coord1, PLFLT *coord2, PLFLT *coord3, PLINT *rev);
 void c_plscol0(PLINT icol0, PLINT r, PLINT g, PLINT b);
+void c_plscol0a(PLINT icol0, PLINT r, PLINT g, PLINT b, PLFLT a);
 void c_plscolbg(PLINT r, PLINT g, PLINT b);
+void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
 void c_plscolor(PLINT color);
 void c_plscompression(PLINT compression);
 void c_plsdev(const char *devname);
@@ -2147,6 +2341,7 @@ void c_plwid(PLINT width);
 void c_plwind(PLFLT xmin, PLFLT xmax, PLFLT ymin, PLFLT ymax);
 void c_plsetopt(char *opt, char *optarg);
 void plP_gpixmm(PLFLT *p_x, PLFLT *p_y);
+void c_pltimefmt(const char *fmt);
 EODEF
 
 # C routine to draw lines with gaps.  This is useful for map continents and other things.

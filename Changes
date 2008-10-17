@@ -1,3 +1,9 @@
+DCH 17-Oct-2008
+    Updated PLplot:  Added several new low-level functions, added the
+    'stripplots' high level function.  Also enhanced the Makefile.PL
+    to make the stand-alone version of PDL::Graphics::PLplot work better
+    for CPAN installs.  Finally, applied a patch to Basic/Primitive/Makefile.PL
+    to allow proper srand behavior, permitting the primitive.t tests to work.
 CHM 14-Oct-2008
     perldl: Added FreeGLUT event loop support to perldl in analogy with
     the existing Tk event loop support.
