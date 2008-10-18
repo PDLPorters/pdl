@@ -248,12 +248,22 @@ void pdl_initthreadstruct(int nobl,
 
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
-	thread->inds = malloc(sizeof(int) * thread->ndims);
-	thread->dims = malloc(sizeof(int) * thread->ndims);
-	thread->offs = malloc(sizeof(int) * thread->npdls
-			* (nthr>0 ? nthr : 1));
-	thread->incs = malloc(sizeof(int) * thread->ndims * npdls);
-	thread->flags = malloc(sizeof(char) * npdls);
+
+      Newx(thread->inds, thread->ndims, int);
+      if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c"); 
+
+      Newx(thread->dims, thread->ndims, int);
+      if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c"); 
+
+      Newx(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), int);
+      if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c"); 
+
+      Newx(thread->incs, thread->ndims * npdls, int);
+      if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c"); 
+
+      Newx(thread->flags, npdls, char);
+      if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c"); 
+
 	nth=0; /* Index to dimensions */
 
 	/* populate the per_pdl_flags */
