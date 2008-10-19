@@ -1,11 +1,9 @@
-
 INSTALLATION
 ------------
 
 To install PDL on your machine, first check that you have a high
-enough version of Perl. 5.005 is adequate for most of PDL, however the
-OpenGL, TriD and Lvalue packages now require 5.6.x, if you need to
-upgrade get at least this version.
+enough version of Perl, 5.6.x is required and 5.8.x and above is
+recommended.
 
 See win32/INSTALL for details on installing PDL on windows platforms.
 
@@ -58,7 +56,7 @@ and if that seems ok, try:
 	make
 
 If there are any strange error messages, please contact the developers
-with a full bug report; response is often rapid (we really like to have
+with a full bug report; response is often rapid (we would like to have
 PDL work right out of the box on as many platforms as possible).
 
 If make worked correctly, try
@@ -100,97 +98,14 @@ win32/INSTALL.
 COMMON PROBLEMS
 ---------------
 
-There are some more common error messages and problems, which
-are included here for your convenience
+The build process has been significantly cleaned up since
+PDL-2.4.3.  If you have any problems, please submit a bug
+report (see the BUGS file for directions).
 
-Q: "Can't find include file GL.h" or somesuch.
+You may also contact the PDL users and developers via the
+PDL mailing lists.  See
 
-A: If you dont' have either OpenGL or Mesa installed, you need to
-edit perldl.conf (see above) and set WITH_3D to 0. Then, start the
-build process again as described above (from the toplevel):
+   http://pdl.sourceforge.net/maillists/
 
-   perl Makefile.PL
-
-etc...
-
-Q: I want TriD, but include files are not found.
-
-A: You need to add -I/usr/openwin/include etc. (or whatever is appropriate
-on your platform) to the relevant entry in perldl.conf (see above),
-i.e. something like
-
-      OPENGL_INC => '-I/usr/openwin/include',
-
-Additionally, you might have to specify name and location of the appropriate
-library on your platform, e.g.
-
-      OPENGL_LIBS =>
-	   '-L/usr/openwin/lib -L/usr/X11R6/lib -L/usr/lib/mesa -lGL'.
-	 ' -lGLU -lXext -lX11',
-
-You may also need to pass some flags to cpp, see the README in the
-PDL/Graphics/TriD/OpenGL directory for details.
-
-      OPENGL_DEFINE => '-DGL_GLEXT_LEGACY',
-
-Then, start the build process again as described above
-(from the toplevel):
-
-   perl Makefile.PL
-
-etc...
-
-Q: Compilation of TriD complains about undefined functions or somesuch.
-
-A: Please see the file Graphics/TriD/OpenGL/README.  If that doesn't help
-   please report this problem to pdl-porters@jach.hawaii.edu, include the
-   appropriate platform and GL version information.
-
-
-Q: When running tests, complaints about pthread_* symbols not
-being defined
-
-A: This shouldn't happen any more. If it does, please inform the mailing
-list. However, on certain platforms (notably Digital and IRIX), you will
-not get pthread support in PDL unless your perl executable was linked
-with -lpthread.
-
-
-Q: Make fails at some point with "can't find pdl.h" or somesuch or
-alternatively everything compiles fine and then, when trying to do
-something, PDL complains about finding a "PDL/Primitive/assgn.al"
-for autoloading.
-
-A: Please try recompiling, turning off all make options that parallelize
-the compilations - sometimes something is not correctly done in sequence
-and that bothers other parts. We're working on a fix. Also, please report
-this condition.
-
-Also, it might be worth a try to get a different 'make' - gmake seems
-to work well.
-
-
-Q: What does
-> Converting input file
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/PP.pod: cannot resolve
-> L<PDL::Indexing> in paragraph 8: no such page 'PDL/Indexing'
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/PP.pod: cannot resolve
-> L<perlxs> in paragraph 9: no such page 'perlxs'
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/PP.pod: cannot resolve
-> L<PDL::Indexing> in paragraph 11: no such page 'PDL/Indexing'
->
-> [....]
->
-> loading directory cache
-> Converting input file
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/Indexing.pod: cannot
-> resolve L<PDL> in paragraph 4: no such page 'PDL'
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/Indexing.pod: cannot
-> resolve L<PDL::FAQ> in paragraph 6: no such page 'PDL/FAQ'
-> Doc/mkhtmldoc.pl: /usr/lib/perl5/site_perl/PDL/Indexing.pod: cannot
-> resolve L<PDL::Internals> in paragraph 35: no such page 'PDL/Internals'
-mean?
-
-A: the html documentation is experimental - nothing is wrong
-with your system.
-
+to get started.  Searchable archives of the lists are
+linked to from the same page.

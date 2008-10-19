@@ -1,4 +1,12 @@
 CHM 19-Oct-2008
+    TODO: this file is out-of-date and is so noted for PDL-2.4.4
+    README: added pointers for bug reporting via sf.net for PDL-2.4.4
+    Known_Problems: updated for PDL-2.4.4 release
+    INSTALL: updated general install notes and added bug report info
+    DEVELOPMENT: fixed reference to mailing lists locations
+    DEPENDENCIES: updated list of dependencies for PDL-2.4.4.
+    BUGS: updated the bug reporting information.
+CHM 19-Oct-2008
     PDL/Graphics/TriD{TriD.pm,TriD/{ButtonControl.pm,Control3D.pm,GL.pm,Object.pm}}
     Removed explicit return calls in TriD constructors fixed to use
     fields::new() construction.  This was the original coding style

@@ -1,43 +1,17 @@
 CURRENT PRIORITIES 
 - Please include dates and PDL version numbers on entries!
 
-in 2.4.3, GD.xs gives
+-- PDL 2.4.4, 19-Oct-2008 (CHM)
 
-GD.xs: In function 'pdl__pdl_to_gd_image_true_readdata':
-GD.xs:6113: warning: cast from pointer to integer of different size
-GD.xs:6188: warning: cast from pointer to integer of different size
-GD.xs:6263: warning: cast from pointer to integer of different size
-GD.xs:6338: warning: cast from pointer to integer of different size
-GD.xs:6413: warning: cast from pointer to integer of different size
-GD.xs:6488: warning: cast from pointer to integer of different size
-GD.xs:6563: warning: cast from pointer to integer of different size
-GD.xs: In function 'pdl__pdl_to_gd_image_lut_readdata':
-GD.xs:6893: warning: cast from pointer to integer of different size
-GD.xs:6986: warning: cast from pointer to integer of different size
-GD.xs:7079: warning: cast from pointer to integer of different size
-GD.xs:7172: warning: cast from pointer to integer of different size
-GD.xs:7265: warning: cast from pointer to integer of different size
-GD.xs:7358: warning: cast from pointer to integer of different size
-GD.xs:7451: warning: cast from pointer to integer of different size
-GD.xs: In function 'XS_PDL__IO__GD__gdImageString16':
-GD.xs:16560: warning: pointer targets in passing argument 5 of 'gdImageString16' differ in signedness
-GD.xs: In function 'XS_PDL__IO__GD__gdImageStringUp16':
-GD.xs:16578: warning: pointer targets in passing argument 5 of 'gdImageStringUp16' differ in signedness
-
-at least on my OS-X 10.4 box with gd v2.0.33
-
-in 2.4.3, PLplot.xs gives
-
-PLplot.xs: In function `pdl_plParseOpts_readdata':
-PLplot.xs:21297: warning: ignoring return value of `Perl_av_shift', declared with attribute warn_unused_result
-
-which is
-
- 21296                  for (i = 0; i < argc; i++)
- 21297                          av_shift (arr);
-
-
-# = done
+   ****************************************************************
+   *                                                              *
+   *   THE PDL DEVELOPMENT NEEDS AND PRIORITIES WILL BE REVISED   *
+   *                                                              *
+   *   FOLLOWING the PDL-2.4.4 RELEASE.  THE ITEMS BELOW ARE      *
+   *                                                              *
+   *   (MOSTLY) OUT-OF-DATE AND KEPT FOR DISCUSSION POINTS ONLY!  *
+   *                                                              *
+   ****************************************************************
 
 -- PDL 2.4.2, 25-Jul-2006 (DJB)
 

@@ -1,43 +1,44 @@
 The following issues have been reported with this version of
 PDL:
 
-- FFTW 3.0.1 is now out but is not supported (yet). You can use 2.x versions
-  of FFTW, fall back on the built-in fft routines, or (best of all) submit a 
-  patch. 
+- FFTW 3.1.3 is now out but is not supported by PDL::FFTW (yet).
+  You can use version 2.1.5 of FFTW, fall back on the built-in
+  fft routines, or (best of all) submit a patch. 
 
-- Overly verbose but not particularly helpful text output from configure,
-  built, test process.  This can be confusing for first time users.
+- Overly verbose but not particularly helpful text output from
+  configure, built, test process.  This can be confusing for first
+  time users.
 
-- Compiler warnings from external code interfaces for several modules
-  including for the following files: PLplot.xs, GD.xs, GD.c, INTERP.xs,
-  RNG.xs, and RNG.c.
+- Because of build dependency resolution, the make process will
+  repeat compiles multiple times for the various steps.  This
+  will produce a correct build in the end but you'll just have
+  to wait.  Sorry.
 
-- Modern versions of MakeMaker (e.g. 6.22) fail to compile PDL, apparently
-  because of the removal of the magic pm_to_blib target.  Current
-  versions (such as 6.17, bundled with the current perl, v5.8.6) work OK. 
-  With PDL 2.4.2, we have followed the core perl team in our use of
-  earlier MakeMaker versions.  As of PDL 2.4.3 this may have been resolved.
-  If it works for you, please let us know!  Thanks.
+- PDL::Graphics::TriD is in the process of being refactored.
+  Only minor fixes have occurred since PDL-2.4.3.  Please check
+  for releases of PDL::Graphics::OpenGL::Perl for the new implementation.
 
-- PDL::Graphics::TriD doesn't seem to link correctly on the Mac, under 
-  MacOS 10.5 & 10.6.  It has not been tested for the 2.4.3 release.  The
-  TriD build has been cleaned so this problem may have been resolved.
-  If you'd like to test/fix it, please do!  Patches welcome.
-  (PDL::Graphics::TriD is disabled by default on Mac installs, edit
-   the perldl.conf file if you wish to test this feature)
-
-- The following SourceForge bugs are outstanding at time of the 2.4.3
+- The following SourceForge bugs are outstanding at time of the 2.4.4
   point release:
 
-  1530666  bugs in Transform.pm
-  1505171  failure in MatrixOps::eigens in CVS
-  1476324  How to force a completely clean installation
-  1465864  limits_round.t test failure
-  1465603  flexraw fails on Intel OS X with gfortran
-  1465414  Need lib64 version in various lib search paths for AMD64
-  1435189  Installation with cpan2rpm
-  1339530  pdlcore.c fails to build on IRIX and AIX
-  1205359  PGPLOT Window does not store full state info
+  2153898    default PDL build output too long
+  1999467    multiple PDL module CPAN testers failures
+  1999466    PDL::IO::HDF5 fails CPAN testers
+  1999461    PDL::Graphics::PLplot::Map fails CPAN testers
+  1999457    PDL::Fit::Levmar CPAN testers failure
+  1999455    PDL::Graphics::PLplot stand alone CPAN tester failure
+  1999453    Graphics::PLplot CPAN testers failure
+  1994610    TriD build problem w pthreads
+  1994584    PDL Has no signed 8-bit integer datatype
+  1994442    imagrgb problems
+  1938096    PDL::Graphics::PLplot::plParseOpts segv's on empty @ARGV
+  1931606    Problems with PLplot interface and perl 5.10
+  1582350    badflag called in PDL::Core and PDL::Complex
+  1505171    failure in MatrixOps::eigens in CVS
+  1476324    How to force a completely clean installation
+  1435189    Installation with cpan2rpm
+  1205359    PGPLOT Window does not store full state info
+  1059020    Problem with FFTW version 3.0.1
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
