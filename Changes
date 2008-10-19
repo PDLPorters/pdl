@@ -1,3 +1,10 @@
+CHM 19-Oct-2008
+    PDL/Graphics/TriD{TriD.pm,TriD/{ButtonControl.pm,Control3D.pm,GL.pm,Object.pm}}
+    Removed explicit return calls in TriD constructors fixed to use
+    fields::new() construction.  This was the original coding style
+    and may be required for Lvalue subroutine support.  Tests still
+    passed but in returning to the original usage without a return
+    just in case for 2.4.4.
 SIS 19-Oct-2008
     Switch off 3D in perldl.conf for Win32 (rev 1.49). Otherwise, the latest
     changes to Graphics/Makefile.PL break the build process for some versions
