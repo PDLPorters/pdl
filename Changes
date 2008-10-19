@@ -1,4 +1,8 @@
-CHM 18-Oct-2008 EDT
+CHM 19-Oct-2008
+    t/proj_transform.t: added test skip if PDL not configured with bad value
+    support since the test appears to require bad value processing to succeed.
+    This addresses sourceforge bug #2022265.
+CHM 18-Oct-2008
     PDL::Graphics::Makefile.PL: folded in patch from rt.cpan.org PDL bug
     #30276 reporter which improves the logic for finding the xdpyinfo command
     for TriD configuration.  The sourceforge bug corresponding is #1994614.

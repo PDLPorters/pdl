@@ -19,11 +19,16 @@ BEGIN
     eval( " use PDL::Transform::Proj4; " );
     if( !($@) )
     {
-        plan tests => 20;
+       if ( $PDL::Bad::Status ) {
+          plan tests => 20;
+       }
+       else {
+          plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
+       }
     }
     else
     {
-        plan skip_all => "PDL::Transform::Proj4 requires the Proj4::Transform::Proj4 module!";
+        plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
     }
 }
 
