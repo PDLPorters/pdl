@@ -868,7 +868,8 @@ sub new {
   my $this = fields::new($type);
 
   $this->{Args} = [@args];
-  return $this;
+
+  $this;
 }
 
 package PDL::Graphics::TriD::Scale;

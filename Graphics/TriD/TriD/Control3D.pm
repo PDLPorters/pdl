@@ -22,7 +22,7 @@ sub new{
   my $self = fields::new($class);
   $self->reset();
 
-  return $self;
+  $self;
 }
 
 sub normalize { my($this) = @_;

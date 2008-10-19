@@ -9,7 +9,8 @@ use fields qw(Objects ValidList ChangedSub List VRML);
 sub new{
   my $class = shift;
   my $self = fields::new($class);
-  return $self;
+
+  $self;
 }
 
 sub clear_objects {

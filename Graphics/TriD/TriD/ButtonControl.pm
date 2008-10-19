@@ -40,13 +40,13 @@ package PDL::Graphics::TriD::ButtonControl;
 use strict;
 use fields qw/Win W H SC/;
 
-sub new{
+sub new {
   my ($class,$win) = @_;
   
   my $self = fields::new($class);
   $self->{Win} = $win;
 
-  return $self;
+  $self;
 }
 
 

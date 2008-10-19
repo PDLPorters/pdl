@@ -833,7 +833,8 @@ sub new {
   $self->{Y} = -1;
   $self->{Buttons} = [];
   $self->{VP} = $vp;
-  return $self;
+
+  $self;
 }
 
 sub event {
