@@ -1,4 +1,8 @@
 CHM 18-Oct-2008 EDT
+    PDL::Graphics::Makefile.PL: folded in patch from rt.cpan.org PDL bug
+    #30276 reporter which improves the logic for finding the xdpyinfo command
+    for TriD configuration.  The sourceforge bug corresponding is #1994614.
+CHM 18-Oct-2008 EDT
     PDL/Graphics/TriD{TriD.pm,TriD/{ButtonControl.pm,Control3D.pm,GL.pm,Object.pm}}
     Replaced direct FIELDS access in field based constructors with fields::new() to
     fix problem with 5.10 where the pseudohash implementation has been eliminated.
