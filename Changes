@@ -1,4 +1,8 @@
-SIS 19-OCT-2008
+CHM 18-Oct-2008 EDT
+    PDL/Graphics/TriD{TriD.pm,TriD/{ButtonControl.pm,Control3D.pm,GL.pm,Object.pm}}
+    Replaced direct FIELDS access in field based constructors with fields::new() to
+    fix problem with 5.10 where the pseudohash implementation has been eliminated.
+SIS 19-Oct-2008
     In Basic/Core/pdlthread.c, replace the few remaining malloc calls with Newx.
     (Rev 1.8)
 DCH 17-Oct-2008
