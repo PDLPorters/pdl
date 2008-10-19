@@ -1,3 +1,5 @@
+SIS 19-Oct-2008
+    Switch off 3D in perldl.conf for Win32 (rev 1.49).
 CHM 19-Oct-2008
     t/proj_transform.t: added test skip if PDL not configured with bad value
     support since the test appears to require bad value processing to succeed.
