@@ -1,4 +1,7 @@
 CHM 19-Oct-2008
+    Basic/PDL.pm: change VERSION to 2.4.3_02 to indicate mods beyond
+    the PDL-2.4.3_01 developers release just posted to CPAN
+CHM 19-Oct-2008
     Basic/PDL.pm: change VERSION to 2.4.3_01 for developers release
 CHM 19-Oct-2008
     TODO: this file is out-of-date and is so noted for PDL-2.4.4

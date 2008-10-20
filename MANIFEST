@@ -136,9 +136,12 @@ debian/copyright
 debian/dirs
 debian/docs
 debian/f77conf.pl
+debian/fix_man_encoding.sed
+debian/fix_man_name.sed
 debian/patches/00list
 debian/pdl.doc-base
 debian/pdl.install
+debian/pdl.lintian-overrides
 debian/pdl.menu
 debian/pdl.remove
 debian/perldl.conf
@@ -294,7 +297,6 @@ Graphics/TriD/OpenGL/examples/clip
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/README
-Graphics/TriD/OpenGL/test.pl
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/README
@@ -759,6 +761,7 @@ t/thread.t
 t/thread_def.t
 t/transform.t
 t/trig.t
+t/ufunc.t
 t/vaffine.t
 t/xvals.t
 TestTools/Mem/foobar
@@ -770,4 +773,3 @@ win32/makeppm.pl
 win32/PDL.ppd
 win32/Readme
 win32/win32f77.pl
-META.yml                                 Module meta-data (added by MakeMaker)
