@@ -39,20 +39,30 @@ my $libname = "libplplotd." . $Config{"so"};
 my $libname_static = "libplplotd.a";
 my $incname = "plplot.h";
 
+
+# require bad value support.  D. Hunt 10/20/2008
+unless ($PDL::Config{WITH_BADVAL}) {
+  buildDummy ("Bad value support required!  (Turn on WITH_BADVAL in perldl.conf)");
+  return if (caller); exit;
+}
+
 my $found_plplot =
     (defined($PDL::Config{WITH_PLPLOT}) && (!$PDL::Config{WITH_PLPLOT}))
     ? 0 : 1;
 print "found_plplot is $found_plplot\n";
-
 unless ($found_plplot) {
   buildDummy ("User requested no PLplot interface!");
   return if (caller); exit;
 }
 foreach my $libdir (
+		    '/usr/local/plplot/lib64',
                     '/usr/local/plplot/lib',
+		    '/usr/local/lib64',
 		    '/usr/local/lib',
 		    '/opt/local/lib',
+		    '/usr/lib64',
 		    '/usr/lib',
+		    '/opt/lib64',
 		    '/opt/lib',
 		    '/ops/tools/lib',
                     '/sw/lib/',    # default FINK installation
