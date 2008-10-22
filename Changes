@@ -1,3 +1,8 @@
+DCH 22-Oct-2008
+    Made change to MY::test to only run toplevel tests for 'make test'
+    Do not attempt to build all of PDL, or attempt to look for and run subdirs tests.
+    Also commented out some debug print statements in t/storable.t which caused warnings
+    during 'make test'.
 CHM 19-Oct-2008
     Basic/PDL.pm: change VERSION to 2.4.3_02 to indicate mods beyond
     the PDL-2.4.3_01 developers release just posted to CPAN
