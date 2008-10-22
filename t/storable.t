@@ -29,9 +29,9 @@ $serialized = freeze $a;
 
 $olda = thaw $serialized;
 # $olda->showsv('oldasv');
-printf "olda: %d\n",\$$olda;
+#printf "olda: %d\n",\$$olda;
 $olda->dump;
-printf "a: %d\n", \$$a;
+#printf "a: %d\n", \$$a;
 $a->dump;
 
 #print "restored value : $olda\n";
