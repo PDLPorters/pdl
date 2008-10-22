@@ -1,3 +1,7 @@
+CHM 22-Oct-2008
+    IO/Dumper.pm: the fix to use 'uudecode -s' with *bsd coming from bug #1573217
+    does not apply to NetBSD as that uudecode does not strip leading slashes.
+    Removed the "fix" code for the case of netbsd
 DCH 22-Oct-2008
     Made change to MY::test to only run toplevel tests for 'make test'
     Do not attempt to build all of PDL, or attempt to look for and run subdirs tests.
