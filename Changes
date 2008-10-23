@@ -1,4 +1,7 @@
 CHM 22-Oct-2008
+    t/inlinepdlpp.t: use non-standard Inline working directory for testing
+    and force builds to fix problem with out-of-synch Inline cache and config
+CHM 22-Oct-2008
     IO/Dumper.pm: the fix to use 'uudecode -s' with *bsd coming from bug #1573217
     does not apply to NetBSD as that uudecode does not strip leading slashes.
     Removed the "fix" code for the case of netbsd
