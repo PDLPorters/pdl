@@ -1,7 +1,24 @@
 Installing on Win32
 -------------------
 
-It's dead easy !!
+To install via ppm:
+
+First up install Astro::FITS::Header by running: 
+  ppm install Astro-FITS-Header
+
+Then install the PGPLOT and PDL modules from the uwinnipeg rep by running:
+For perl 5.8: 
+  ppm install http://theoryx5.uwinnipeg.ca/ppms/PGPLOT.ppd
+  ppm install http://theoryx5.uwinnipeg.ca/ppms/PDL.ppd
+Or for perl 5.10: 
+  ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PGPLOT.ppd
+  ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PDL.ppd
+
+(Note that PGPLOT is not available as a ppm from the ActiveState rep, and 
+that the ActiveState ppm for PDL lacks some of the functionality that is
+available in the PDL ppm package from uwinnipeg.)
+
+If you would like, instead, to build PDL from source, that's also dead easy !!
 
 First up - if you don't want to accept a "default" build of PDL, edit (the
 self-documenting) perldl.conf accordingly. You'll find that file in the top
