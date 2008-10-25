@@ -1,3 +1,7 @@
+CHM 25-Oct-2008
+    t/autoloader.t, t/dumper.t: switched code from Test to Test::More and
+    added better diagnostic messages in the hopes of tracking down the
+    problems on darwin and freebsd.
 CHM 22-Oct-2008
     t/inlinepdlpp.t: use non-standard Inline working directory for testing
     and force builds to fix problem with out-of-synch Inline cache and config
