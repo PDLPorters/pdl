@@ -1,3 +1,8 @@
+CHM 26-Oct-2008
+    Modified t/bad.t test to use like() with a regexp rather
+    than is() for some tests where the value returned had
+    -0 and the test was checking with 0.
+    Basic/PDL.pm: updated VERSION to 2.4.3_04
 CHM 25-Oct-2008
     Basic/PDL.pm: update VERSION for PDL-2.4.4 pre-release 3
 CHM 25-Oct-2008

@@ -417,16 +417,16 @@ is( PDL::Core::string($a), "[0 1 0 3 4]", "inplace badmask()" );
 # setvaltobad
 $a = sequence(10) % 4;
 $a->inplace->setvaltobad( 1 );
-is( PDL::Core::string( $a->clump(-1) ), 
-    "[0 BAD 2 3 0 BAD 2 3 0 BAD]", "inplace setvaltobad()" );
+like( PDL::Core::string( $a->clump(-1) ), 
+    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
 
 # simple test for setnantobad
 # - could have a 1D FITS image containing
 #   NaN's and then a simple version of rfits
 #   (can't use rfits as does conversion!)
 $a->inplace->setnantobad;
-is( PDL::Core::string( $a->clump(-1) ), 
-    "[0 BAD 2 3 0 BAD 2 3 0 BAD]", "inplace setnantobad()" );
+like( PDL::Core::string( $a->clump(-1) ), 
+    qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setnantobad()" );
 
 # test r/wfits
 use PDL::IO::FITS;
