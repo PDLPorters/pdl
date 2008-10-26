@@ -1,4 +1,9 @@
 CHM 25-Oct-2008
+    Makefile.PL: enabled bad value options when built within an
+    automated testing framework such as used by CPAN Testers.
+    This should improve the test coverage and allow us to better
+    evaluate whether BADVAL can be enabled by default.
+CHM 25-Oct-2008
     Lib/GIS/Proj/Makefile.PL: added trylink to verify PROJ4 version is
     recent enough, skip build otherwise.
     Makefile.PL: explicitly require 5.6.x or above perl version now.

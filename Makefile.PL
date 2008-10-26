@@ -104,6 +104,14 @@ sub getpdl_config {
   #
   require './perldl.conf';
 
+  # Add BAD_VAL tests if CPAN testers
+  #
+  if ($ENV{AUTOMATED_TESTING} == 1) {
+     print "Automated testing environment: enabling WITH_BADVAL and BADVAL_PER_PDL config options\n";
+     $PDL_CONFIG{WITH_BADVAL}    = 1;
+     $PDL_CONFIG{BADVAL_PER_PDL} = 1;
+  }
+
   # Save standard values
   #
   %PDL_CONFIG_DIST = %PDL_CONFIG;
