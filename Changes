@@ -1,3 +1,6 @@
+SIS 27-Oct-2008
+    Small fix to autoload.t so that it passes on Win32. (Only
+    2 tests were planned for Win32, but 3 were being run.)
 CHM 26-Oct-2008
     Modified t/bad.t test to use like() with a regexp rather
     than is() for some tests where the value returned had
