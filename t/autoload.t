@@ -13,9 +13,6 @@ BEGIN {
    if ( ! -f 't/func.pdl' ) {
       plan skip_all => 'This test must be run from ../t';
    }
-   elsif ($^O =~ /mswin/i) {
-      plan tests => 2;
-   }
    else {
       plan tests => 3;
    }
@@ -35,12 +32,12 @@ my $y = func($x);
 ok( (sum($y) == 4*29), 'Check autoload of func.pdl' );
 
 #check that tilde expansion works (not applicable on MS Windows)
-my ($tilde, $get, $echo);
-unless($^O =~ /mswin/i) {
-   $tilde = (PDL::AutoLoader::expand_path('~'))[0];
-   $get = (getpwuid($>))[7];
-   $echo = qx(echo ~);
-   chomp $echo;
-}
+SKIP: {
+  skip "Inapplicable to MS Windows", 1 if $^O =~ /MSWin/i;
+  my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
+  my $get = (getpwuid($>))[7];
+  my $echo = qx(echo ~);
+  chomp $echo;
 
 is($tilde, $get, "Check tilde expansion ($echo from 'echo ~')");
+}
