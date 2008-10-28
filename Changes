@@ -1,3 +1,14 @@
+CED 28-Oct-2008
+    Removed "Gen/pm_to_blib" dependence in Dev.pm - this should fix the 
+    Makefile repeated-compile woes.  Added some explanatory notes in other
+    Makefile.PL's.
+CED 27-Oct-2008
+    Update Autoload.pm to match bash's (advertised) ~ expansion: 
+      - "~+" now expands to current working directory;
+      - "~" now expands to $ENV{HOME} if present, *then* system-advertised
+      	    home directory;
+      - "~name" expands to system home dir for user "name" (previous behavior).
+    No support for "~-", since Perl doesn't keep an $OLDPWD around.
 SIS 27-Oct-2008
     Small fix to autoload.t so that it passes on Win32. (Only
     2 tests were planned for Win32, but 3 were being run.)

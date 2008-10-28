@@ -22,6 +22,7 @@ BEGIN {
 }
 
 use vars qw( @PDLLIB );
+$PDL::debug = 1;
 
 @PDLLIB = ("t/"); # this means you have to run the test from ../t
 

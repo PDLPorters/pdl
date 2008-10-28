@@ -164,3 +164,4 @@ if ( defined($t) and $t == 0 ) {
          my $extra = '-lXext -lX11 -lm';
          return ${[ExtUtils::Liblist->ext("$lpath $libs $extra")]}[0];
       }
+print "exiting graphics...\n";

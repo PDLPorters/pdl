@@ -567,6 +567,13 @@ return $text
 
 }
 
+##############################
+# processPL: generate Makefile lines for top-level components that are created by just perling a .PL file.
+# This currently (28-October) includes pdl, pdldoc, and perldl.
+# 
+# Nomininally MakeMaker is supposed to just handle this, but seems to create circular dependencies when 
+# left to its own devices. (CED 28-Oct-2008)
+
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
     ### This fix seems necessary with current versions of MM - otherwise it creates circular
@@ -577,8 +584,8 @@ sub MY::processPL {
 	my(@m, $plfile);
 	foreach $plfile (sort keys %{$self->{PL_FILES}}) {
 	    my $list = ref($self->{PL_FILES}->{$plfile})
-                ? $self->{PL_FILES}->{$plfile}
-	    : [$self->{PL_FILES}->{$plfile}];
+                         ?  $self->{PL_FILES}->{$plfile}
+	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
 	    if($Config{make} eq 'dmake') {
 		foreach $target (@$list) {
@@ -603,7 +610,7 @@ $target ::
 		} # close foreach
 	    }  
 	}
-	join "", @m;
+	return join "", @m;
     }
     else {
 	package MY;

@@ -255,19 +255,31 @@ sub PDL::AutoLoader::expand_path {
     my @PDLLIB = @_;
     my @PDLLIB_EXPANDED;
     
-    print "Expanding directories from ".join(':',@PDLLIB)."...\n"
-	if($PDL::verbose);
+    print "AutoLoader: Expanding directories from ".join(':',@PDLLIB)."...\n"
+	if($PDL::debug);
     local $_;
     foreach $_(@PDLLIB) {
-	# Expand ~{name} and ~ conventions
-	s/^(\+?)~([a-zA-Z0-9]*)// && 
-	    ($_ = $1.((getpwnam($2 || getlogin || getpwuid($<)))[7]).$_ );
+	# Expand ~{name} and ~ conventions.
+	if(s/^(\+?)\~(\+||[a-zA-Z0-9]*)//) {
+	    if($2 eq '+') {
+		# Expand shell '+' to CWD.
+		$_= $1 . ($ENV{'PWD'} || '.');
+	    } elsif(!$2) {
+		# No name mentioned -- use current user.
+		$_ = $1 . ( $ENV{'HOME'} ||((getpwnam($2 || getlogin || getpwuid($<)))[7])  )  . $_;
+	    } else {
+		# Name mentioned - try to get that user's home directory.
+		$_ = $1 . (getpwnam(getpwuid($<)))[7];
+	    }
+	}
 	
 	# If there's a leading '+', include all subdirs too.
 	push(@PDLLIB_EXPANDED,
 	     s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
 	     );
     }
+
+    print "AutoLoader: returning ",join(",",@PDLLIB_EXPANDED),"\n" if($PDL::debug);
     @PDLLIB_EXPANDED;
 }
 
