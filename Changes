@@ -1,3 +1,6 @@
+DAL 29-Oct-2008
+    Graphics/PLplot: changed Makefile.PL and plplot.pd so new 5.9.0
+    (devel release) funcs aren't linked if older PLplot is installed.
 SIS 29-Oct-2008
     Added a "sub MY::postamble{return ''}" to IO/Dicom/Makefile.PL
     to prevent the writing of a postamble section which was sometimes

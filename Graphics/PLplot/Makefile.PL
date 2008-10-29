@@ -180,6 +180,21 @@ if ($@) {
   print "\tplsvect function found, vector plotting available!\n";
 }
 
+# Test if PLplot has support for alpha transparency, found in versions 5.9.0 and higher
+eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd",0,<<'EOC');
+#include <plplot.h>
+main () { c_plgcol0a(0, 0, 0, 0, NULL);}
+EOC
+};
+if ($@){
+    print "\tc_plgcol0a function not found, no alpha transparency available (need PLplot 5.9.0 or higher)!\n";
+    open (OPT,">>OPTIONS!");
+    print OPT "NOALPHA!\n";
+    close OPT;
+} else {
+    print "\tc_plgcol0a function found, alpha transparency available!\n";
+}
+
 # Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)
 eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
 #include <plplot.h>
