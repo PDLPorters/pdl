@@ -1,3 +1,7 @@
+SIS 29-Oct-2008
+    Added a "sub MY::postamble{return ''}" to IO/Dicom/Makefile.PL
+    to prevent the writing of a postamble section which was sometimes
+    happening (with dmake only).
 CED 28-Oct-2008
     Removed "Gen/pm_to_blib" dependence in Dev.pm - this should fix the 
     Makefile repeated-compile woes.  Added some explanatory notes in other
