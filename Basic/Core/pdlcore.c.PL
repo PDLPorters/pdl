@@ -762,6 +762,9 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
   case PDL_F:
     pdl_setav_Float(p->data,av,pdims,ndims,level, undefval);
     break;
+  case PDL_LL:
+    pdl_setav_LongLong(p->data,av,pdims,ndims,level, undefval);
+    break;
   case PDL_L:
     pdl_setav_Long(p->data,av,pdims,ndims,level, undefval);
     break;
