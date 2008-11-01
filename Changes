@@ -1,3 +1,6 @@
+CHM 01-Nov-2008
+    Added dragonfly OS to list of BSD flavors requiring the
+    -s flag to uudecode in IO/Dumper.pm.
 CHM 31-Oct-2008
     Modified t/ufunc.t to use ok() and approximate numerical
     equality rather than string eq via is() for the tests.
