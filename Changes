@@ -1,3 +1,6 @@
+CHM 31-Oct-2008
+    Modified t/ufunc.t to use ok() and approximate numerical
+    equality rather than string eq via is() for the tests.
 DAL 29-Oct-2008
     Graphics/PLplot: changed Makefile.PL and plplot.pd so new 5.9.0
     (devel release) funcs aren't linked if older PLplot is installed.
