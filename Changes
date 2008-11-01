@@ -1,4 +1,6 @@
 CHM 01-Nov-2008
+    t/ufunc.t: fixed typo in conversion from is() to ok()
+CHM 01-Nov-2008
     Basic/Core/pdlcore.c.PL: added case to support creation of
     longlong piddles with pdl_from_array from patch #2107905
     on the SF PDL site.  Thanks to Pete Ratzlaff.

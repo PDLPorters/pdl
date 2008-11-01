@@ -30,8 +30,8 @@ my $c = cat($a,$a);
 my $c_sort = $c->qsort;
 
 # Test a range of values
-ok( tapprox($a->pctover(-0.5), $a_sort->at(0))), "pct below 0 for 25-elem pdl";
-ok( tapprox($a->pctover( 0.0), $a_sort->at(0))), "pct equal 0 for 25-elem pdl";
-ok( tapprox($a->pctover( 0.9),             19)), "pct equal 0.9 for 25-elem pdl (bug num 2019651)";
-ok( tapprox($a->pctover( 1.0), $a_sort->at($a->dim(0)-1))), "pct equal 1 for 25-elem pdl";
-ok( tapprox($a->pctover( 2.0), $a_sort->at($a->dim(0)-1))), "pct above 1 for 25-elem pdl";
+ok( tapprox($a->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
+ok( tapprox($a->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );
+ok( tapprox($a->pctover( 0.9),             19), "pct equal 0.9 for 25-elem pdl (bug num 2019651)" );
+ok( tapprox($a->pctover( 1.0), $a_sort->at($a->dim(0)-1)), "pct equal 1 for 25-elem pdl" );
+ok( tapprox($a->pctover( 2.0), $a_sort->at($a->dim(0)-1)), "pct above 1 for 25-elem pdl" );
