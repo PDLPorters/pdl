@@ -429,11 +429,12 @@ void
 _iiscur_int()
    PPCODE:
     STRLEN n_a;
+    STRLEN n_b;
     float x,y;
     char ch;
     int   frame       = (int)SvIV( perl_get_sv("iisframe", FALSE) );
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
+    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_b),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
@@ -470,13 +471,14 @@ pp_def('_iis',
    char title[33];  /* 32 chars + null terminator */
    int chan;
    STRLEN n_a;
+   STRLEN n_b;
 
    /* Open pipes etc */
 
    if (frame<1 || frame>4)
        barf("$iisframe must be in range 1--4");
 
-    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_a),
+    iis_open(SvPV(perl_get_sv("fifi",FALSE),n_a),SvPV(perl_get_sv("fifo",FALSE),n_b),
        (int)SvIV( perl_get_sv("fbconfig", FALSE) ),
        (int)SvIV( perl_get_sv("fb_x", FALSE) ),
        (int)SvIV( perl_get_sv("fb_y", FALSE) ) );
