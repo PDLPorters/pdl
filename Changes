@@ -1,4 +1,7 @@
 CHM 01-Nov-2008
+    Updated Known_Problems and Release_Notes for PDL-2.4.4
+    release to come.
+CHM 01-Nov-2008
     Graphics/IIS/iis.pd: fixes from patch #1908629 to quiet
     some gcc udefined operations warnings.
 CHM 01-Nov-2008

@@ -1,6 +1,94 @@
 Release notes for PDL 2.4.4 ------------------------------
 
-	TO DO
+General Notes:
+
+     - This release includes significant improvments
+       in portability, enhancements in functionality,
+       and *many* bugs fixed.
+
+     - PDL::Graphics::TriD modules for 3-D and image
+       visualization are being refactored for improved
+       portability and performance.  Preliminary hooks
+       are in PDL-2.4.4 to support the new functionality.
+       
+       Announcements to the perldl mailing list will be
+       made when the PDL::Graphics::OpenGL::Perl and
+       Term::ReadLine::FreeGLUT suport is on CPAN.
+
+     - builds out-of-the-box on cygwin and win32
+     
+     - perl 5.6.x is explicitly required to configure and
+       will go away in future versions.  5.8.x and above
+       are the recommended versions
+
+Summary of Changes:
+
+     - Improve uuencode support in Dumper for additional OSes
+       such as *BSD varieties that may need additional options
+       to prevent stripping of the leading slash in pathnames
+       including: darwin, netbsd, openbsd, freebsd, and dragonfly.
+      
+     - Updated more PDL tests to use the recommended Test::More
+      
+     - Updated PDL::Graphics::PLplot build support for more 5.9.0
+       specific features
+      
+     - AutoLoader ~ expansion has been updated to conform more
+       closely to the ~ expansion in the bash shell
+      
+     - Better checks for a valid PROJ4 build environment are now
+       performed before attempting to compile PDL modules using it
+      
+     - PDL now builds and runs on perl-5.10.x
+      
+     - The perldl shell has added support for using FreeGLUT for
+       display in analogy with the existing Tk event loop support.
+       This enables refactoring of the TriD modules to use the
+       Perl OpenGL module (a.k.a. POGL) instead of the internal,
+       and deprecated, PDL::Graphics::OpenGL et. al.
+      
+     - The perldl acquire/filter/execute loop is now $_-safe by
+       using $lines instead of $_ for all the central modifications.
+       Avoids problems with some AUTOLOAD functions that leaked $_.
+      
+     - Removed ExtUtils::F77 from the required prerequisites for
+       PDL to improve the buildability on platforms without an
+       available fortran compiler.  If you have a fortran compiler
+       and EU::F77 installed, PDL::Slatec will be built.
+      
+     - zeros function added as an alias for the zeroes function
+         
+     - Many warning messages that were not actually problems have
+       been quieted, especially many pointer to int conversion messages
+      
+     - Added $PERLDL::HISTFILESIZE to allow configuration of the number
+       of lines of history to be saved by the interactive PDL shell.
+      
+     - Fixed implementation of the pctover() function to address bug
+       #2019651 on sf.net.  Added explicit documentation in the code
+       on the algorithm being used.
+      
+     - Various updates to the PDL FAQ
+      
+     - Implemented a PDL interface to the Minuit minimization library
+       from CERN
+      
+     - Removed circular dependency in PDL Makefile.PL Makefile generation
+       process which caused builds with some versions of make to fail
+      
+     - Multiple fixes to enhance configuration and build for win32
+     
+     - Added basic table-inversion to t_lookup for PDL::Transform
+      
+     - Fixed problem in uniqvec() where it failed to generate a correct
+       result if all the input vectors were the same, fixed bug #1869760
+      
+     - Add improved 16-bit image support for IO with rpic() and wpic()
+       provided you have a recent version of the NetPBM library that
+       supports 16-bit images
+      
+     - Enabled building of GSL on Win32.
+    
 
 Release notes for PDL 2.4.3 ------------------------------
 

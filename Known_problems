@@ -5,6 +5,10 @@ PDL:
   You can use version 2.1.5 of FFTW, fall back on the built-in
   fft routines, or (best of all) submit a patch. 
 
+- Solarix x86 fails to compile for some versions of the Sun
+  C compiler.  gcc is recommended at this time although it
+  appears that a fully patch C 5.8 will also build correctly.
+
 - Overly verbose but not particularly helpful text output from
   configure, built, test process.  This can be confusing for first
   time users.
@@ -22,12 +26,6 @@ PDL:
   point release:
 
   2153898    default PDL build output too long
-  1999467    multiple PDL module CPAN testers failures
-  1999466    PDL::IO::HDF5 fails CPAN testers
-  1999461    PDL::Graphics::PLplot::Map fails CPAN testers
-  1999457    PDL::Fit::Levmar CPAN testers failure
-  1999455    PDL::Graphics::PLplot stand alone CPAN tester failure
-  1999453    Graphics::PLplot CPAN testers failure
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1994442    imagrgb problems
