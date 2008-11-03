@@ -2466,22 +2466,24 @@ pp_def ('plParseOpts',
 
                 arr = (AV*) SvRV (sv);
                 newargc = argc = av_len (arr) + 1;
-                args = calloc (argc , sizeof (char*));
+                if (argc > 0) {
+                  args = calloc (argc , sizeof (char*));
 
-                for (i = 0; i < argc; i++) {
-                        STRLEN len;
-                        args[i] = SvPV (* av_fetch (arr, i, 0), len);
+                  for (i = 0; i < argc; i++) {
+                          STRLEN len;
+                          args[i] = SvPV (* av_fetch (arr, i, 0), len);
+                  }
+
+                  $retval() = plParseOpts (&newargc, args, $COMP (mode));
+
+                  for (i = 0; i < newargc; i++)
+                          av_push (arr, newSVpv (args[i], 0));
+
+                  for (i = 0; i < argc; i++)
+                          av_shift (arr);
+
+                  free (args);
                 }
-
-                $retval() = plParseOpts (&newargc, args, $COMP (mode));
-
-                for (i = 0; i < newargc; i++)
-                        av_push (arr, newSVpv (args[i], 0));
-
-                for (i = 0; i < argc; i++)
-                        av_shift (arr);
-
-                free (args);
         ',
 );
 

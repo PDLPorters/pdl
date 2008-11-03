@@ -13,7 +13,7 @@ use Test::More;
 BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
-    plan tests => 34;
+    plan tests => 35;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -477,6 +477,16 @@ $pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
                          COLOR => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
 $pl->close;
 ok (-s "test26.$dev" > 0, "Multi-color stripplots");
+
+# Test calling plParseOpts with no options
+if($pid = fork()) {
+	$a = waitpid($pid,0);
+} else {
+	sleep 1;
+	plParseOpts ([], PL_PARSE_FULL);
+	exit(0);	
+}
+ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
 
 # comment this out for testing!!!
 unlink glob ("test*.$dev");

@@ -1,4 +1,8 @@
 DCH 03-Nov-2008
+    Added code to XS for PDL::Graphics::PLplot::plParseOpts to 
+    avoid a segfault when it is called with no options.  Also added
+    test case to plplot.t.
+DCH 03-Nov-2008
     Took out MY::test subroutine in top-level Makefile.PL.
     This should restore the complete 'make test' functionality
     which now works properly after Craig Deforest's fix of 
