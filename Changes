@@ -1,4 +1,11 @@
 CHM 01-Nov-2008
+    perldl.conf: changed default build options to enable bad
+    value support and updated the Release_Notes to advertise
+    the new capability.
+    Basic/PDL.pm: updated VERSION to 2.4.3_05 which will be
+    the official 2.4.4 release once the final updates are
+    complete.  Changes updated to reflect these changes.
+CHM 01-Nov-2008
     Updated Known_Problems and Release_Notes for PDL-2.4.4
     release to come.
 CHM 01-Nov-2008

@@ -2,6 +2,17 @@ Release notes for PDL 2.4.4 ------------------------------
 
 General Notes:
 
+     - Bad value support is now enabled by default for
+       PDL builds.  This feature allows simpler handling
+       of missing or invalid data during processing.
+
+       For example, missing pixels could be interpolated
+       across.  Calculations could be skipped for
+       missing data points...
+       
+       Edit the perldl.conf file to turn off bad value
+       support before compiling if needed.
+
      - This release includes significant improvments
        in portability, enhancements in functionality,
        and *many* bugs fixed.
@@ -15,7 +26,7 @@ General Notes:
        made when the PDL::Graphics::OpenGL::Perl and
        Term::ReadLine::FreeGLUT suport is on CPAN.
 
-     - builds out-of-the-box on cygwin and win32
+     - Builds out-of-the-box on cygwin and win32
      
      - perl 5.6.x is explicitly required to configure and
        will go away in future versions.  5.8.x and above
