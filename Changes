@@ -1,3 +1,8 @@
+DCH 03-Nov-2008
+    Took out MY::test subroutine in top-level Makefile.PL.
+    This should restore the complete 'make test' functionality
+    which now works properly after Craig Deforest's fix of 
+    28-Oct-2008.
 CHM 01-Nov-2008
     perldl.conf: changed default build options to enable bad
     value support and updated the Release_Notes to advertise

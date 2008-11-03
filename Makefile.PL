@@ -620,25 +620,6 @@ $target ::
 }
 
 
-# This subroutine re-writes the 'test' section
-# to get rid of 'pure_all' as a dependency for 
-# certain test targets.  This causes 'make test' to 
-# re-run the entire 'make' target instead of just testing
-# PDL.  
-#
-# It also gets rid of the 'subdirs-test' section, which
-# attempts to run tests in individual sub-directories.
-# This is also causing a significant rebuild after the main
-# test is done.
-# D. Hunt 10/20/2008
-sub MY::test {
-  package MY; # so that "SUPER" works right
-  my $inherited = shift->SUPER::test(@_);
-  $inherited =~ s/pure_all//g;
-  $inherited =~ s/subdirs\-test$//mg;
-  return $inherited;
-}
-
 # warn if vital modules are missing
 END {
     if (@hasnt) {
