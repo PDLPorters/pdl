@@ -1,3 +1,7 @@
+DAL 05-Nov-2008 
+    In top-level Makefile.PL: removed debugging print statement; moved
+    @podpms back to 'pm' so tht the perldl and pdldoc script manuals
+    appear in PDL::Index.
 DCH 03-Nov-2008
     Added code to XS for PDL::Graphics::PLplot::plParseOpts to 
     avoid a segfault when it is called with no options.  Also added

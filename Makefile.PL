@@ -439,10 +439,10 @@ if($Config{archname}=~m/x86_64/) {
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
-	      'PM' => {},
+	      'PM' => { @podpms }, #so that the script docs are picked up
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
-	      'MAN3PODS' => { @podpms }, # so that the script docs are picked up
+	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'CCFLAGS' => $ccflags,
 	      'linkext'  => {LINKTYPE => ''},  # No linking required
@@ -463,6 +463,9 @@ if($Config{archname}=~m/x86_64/) {
 
 	      %notestsifmodulesmissing,
     );
+
+=begin comment
+
 print "makefile hash is:\n";
 for $k(sort keys %makefile_hash) {
     print "\t$k\t";
@@ -482,6 +485,10 @@ for $k(sort keys %makefile_hash) {
     } else {print "$v\n";}
 
 }
+
+=end comment
+
+=cut
 
 
 WriteMakefile(%makefile_hash);
