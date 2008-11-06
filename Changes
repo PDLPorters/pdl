@@ -1,3 +1,6 @@
+CHM 06-Nov-2008
+    Basic/PDL.pm: changed version to 2.4.3_06 for quick
+    check release of final Makefile.PL mods.
 DAL 05-Nov-2008 
     In top-level Makefile.PL: removed debugging print statement; moved
     @podpms back to 'pm' so tht the perldl and pdldoc script manuals
