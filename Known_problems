@@ -5,21 +5,16 @@ PDL:
   You can use version 2.1.5 of FFTW, fall back on the built-in
   fft routines, or (best of all) submit a patch. 
 
-- Solarix x86 fails to compile for some versions of the Sun
-  C compiler.  gcc is recommended at this time although it
-  appears that a fully patch C 5.8 will also build correctly.
-
 - Overly verbose but not particularly helpful text output from
   configure, built, test process.  This can be confusing for first
   time users.
 
-- Because of build dependency resolution, the make process will
-  repeat compiles multiple times for the various steps.  This
-  will produce a correct build in the end but you'll just have
-  to wait.  Sorry.
+- There is a problem on some Solaris systems where the t/pic_16bit
+  test fails apparently due to a bug in that system's pnmtopng.
 
-- 'make test' does not run make before running the tests.  You'll
-   have to do make first before running 'make test'
+- Lvalue subroutine errors have been reported for perl 5.6.2
+  installation on a linux 2.4 kernel system.  Perl versions 5.8
+  and above are *really* recommended.
 
 - PDL::Graphics::TriD is in the process of being refactored.
   Only minor fixes have occurred since PDL-2.4.3.  Please check
@@ -32,8 +27,6 @@ PDL:
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1994442    imagrgb problems
-  1938096    PDL::Graphics::PLplot::plParseOpts segv's on empty @ARGV
-  1931606    Problems with PLplot interface and perl 5.10
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
   1476324    How to force a completely clean installation
