@@ -1,4 +1,7 @@
 CHM 13-Nov-2008
+    PDL/Basic/PDL.pm: updated VERSION to 2.4.4cvs for
+    post release development.
+CHM 13-Nov-2008
     PDL/Basic/PDL.pm: updated VERSION to 2.4.4 for release
     Known_Problems: updated for release
     This is PDL-2.4.4 as released to CPAN
