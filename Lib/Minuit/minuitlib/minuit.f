@@ -4269,7 +4269,7 @@ c                           make diagonal error matrix
     8 continue
       dcovar = 1.
       if (ldebug) write (isyswr,'(a,a/(1x,10g10.2))') ' debug mnmigr,',
-     +  ' starting matrix diagonal,  vhmat=', (vhmat(kk),kk=1,vlen)
+     +  ' starting matrix diagonal,  vhmat=', (vhmat(kk),kk=1,int(vlen))
 c                                         ready to start first iteration
    10 continue
       impruv = 0
