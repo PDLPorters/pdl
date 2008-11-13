@@ -5,6 +5,7 @@
 # any external PDL module.
 
 use ExtUtils::MakeMaker;
+use Config;
 
 PDL::Core::Dev->import();
 
@@ -43,6 +44,13 @@ EOT
 #);
 %hash = pdlpp_stdargs_int(@::pack);
 $hash{LIBS}->[0] .= ' -lm';
+
+# If we don't do this, and Perl core is using the wrapped API, then it will
+# call (say) srand48_r(), and get its random numbers from drand48_r(), but we
+# will get ours from drand48(), and srand48() never gets called.
+$hash{CCFLAGS} ||= $Config{ccflags};
+$hash{CCFLAGS} .= ' -DPERL_REENTR_API';
+
 WriteMakefile(%hash);
 
 sub MY::postamble {

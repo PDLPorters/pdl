@@ -483,17 +483,18 @@ for (keys %PDL::Types::typehash) {
 	
       void pdl_qsortvec_$ppsym($ctype *xx, int n, int a, int b) {
 		
-	int i,j;
-	$ctype t, *median;
+	int i,j, median_ind;
+
+	$ctype t;
 	i = a; 
 	j = b;
 
-	median = &xx[n*((i+j)/2)];
+	median_ind = (i+j)/2;
 
 	do {
-	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), median, n )  <  0 ) 
+	  while( pdl_cmpvec_$ppsym( &(xx[n*i]), &(xx[n*median_ind]), n )  <  0 ) 
 		i++;
-	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), median, n )  >  0 ) 
+	  while( pdl_cmpvec_$ppsym( &(xx[n*j]), &(xx[n*median_ind]), n )  >  0 ) 
 		j--;
 	  if(i<=j) {
 		int k;
@@ -505,6 +506,12 @@ for (keys %PDL::Types::typehash) {
 		  *aa = *bb;
 		  *bb = z;	
 		}
+
+                if (median_ind==i)
+                  median_ind=j;
+                else if (median_ind==j)
+                  median_ind=i;
+
 	        i++; 
 		j--;
 	  }
@@ -514,6 +521,44 @@ for (keys %PDL::Types::typehash) {
 	  pdl_qsortvec_$ppsym( xx, n, a, j );
 	if (i < b)
 	  pdl_qsortvec_$ppsym( xx, n, i, b );
+	
+      }
+
+      void pdl_qsortvec_ind_$ppsym($ctype *xx, int *ix, int n, int a, int b) {
+		
+	int i,j, median_ind;
+
+	$ctype t;
+	i = a; 
+	j = b;
+
+	median_ind = (i+j)/2;
+
+	do {
+	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[i]]), &(xx[n*ix[median_ind]]), n )  <  0 ) 
+		i++;
+	  while( pdl_cmpvec_$ppsym( &(xx[n*ix[j]]), &(xx[n*ix[median_ind]]), n )  >  0 ) 
+		j--;
+	  if(i<=j) {
+		int k;
+	        k = ix[i];
+	        ix[i] = ix[j];
+		ix[j] = k;	        
+
+                if (median_ind==i)
+                  median_ind=j;
+                else if (median_ind==j)
+                  median_ind=i;
+
+	        i++; 
+		j--;
+	  }
+	} while (i <= j);
+	
+	if (a < j)
+	  pdl_qsortvec_ind_$ppsym( xx, ix, n, a, j );
+	if (i < b)
+	  pdl_qsortvec_ind_$ppsym( xx, ix, n, i, b );
 	
       }
 
@@ -608,56 +653,71 @@ some circumstances.
            nn -= 1; '.
        $find_median_lower . '}',
 
-       ); # pp_def: oddmedover
+); # pp_def: oddmedover
 
 pp_def('pctover',
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
-	Doc => '
+        Doc => '
 
 Project via percentile to N-1 dimensions
 
 This function reduces the dimensionality of a piddle by one by finding
 the specified percentile (p) along the 1st dimension.  The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
-falls between data points, the result is interpolated.
+falls between data points, the result is interpolated.  Values outside
+the allowed range are clipped to 0.0 or 1.0 respectively.  The algorithm
+implemented here is based on the interpolation variant described at
+L< http://en.wikipedia.org/wiki/Percentile>.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
 
 =for usage
 
- $a = pctover($b, $p);
+$a = pctover($b, $p);
 
 =for example
 
- $spectrum = pctover $image->xchg(0,1) $p
+$spectrum = pctover $image->xchg(0,1) $p
 
 =cut
 ',
         Code => '
            int nn, nn1, nn2;
-           double pp1, pp2;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
+           double np, pp1, pp2;
+           loop(n) %{ $tmp() = $a(); %}
+           nn = $COMP(__n_size);
            $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
-
-           nn1 = (nn + 1)*$p() - 1 + 0.5; nn2 = nn1+1;
-           if (nn2 > nn) nn2 = nn;
-           if (nn1 > nn) nn1 = nn;
-           pp1 = (double)nn1/(double)nn; 
+             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
+           
+           np = nn*$p()-0.5;
+           nn1 = np;
+           nn2 = nn1+1;
+           
+           nn1 = (nn1 < 0) ? 0 : nn1;
+           nn2 = (nn2 < 0) ? 0 : nn2;
+           
+           nn1 = (nn1 > nn - 1) ? nn - 1 : nn1;
+           nn2 = (nn2 > nn - 1) ? nn - 1 : nn2;
+           
+           pp1 = (double)nn1/(double)nn;
            pp2 = (double)nn2/(double)nn;
-           if ($tmp(n => nn2) == $tmp(n => nn1)) {
-	          $b() = $tmp(n => nn1);
+           
+           if ( np < 0.5 ) {
+              $b() = $tmp(n => 0);
+           } else if ( np > nn - 0.5 ) {
+              $b() = $tmp(n => nn-1);
+           } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
+              $b() = $tmp(n => nn1);
            } else if ($p() == pp1) {
-	          $b() = $tmp(n => nn1);
+              $b() = $tmp(n => nn1);
            } else if ($p() == pp2) {
-	          $b() = $tmp(n => nn2);
+              $b() = $tmp(n => nn2);
            } else {
-              $b() = ($p() - pp1)/(pp2 - pp1)*
-                     ( $tmp(n => nn2) - $tmp(n => nn1) ) + $tmp(n => nn1);
+              $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
            }
-');
+'); 
+
 
 pp_def('oddpctover',
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
@@ -1056,6 +1116,48 @@ the 1st dimension is list order.  Higher dimensions are threaded over.
 Vectors with bad components should be moved to the end of the array:
 ',
     ); # pp_def qsort
+
+sub generic_qsortvec_ind {
+    my $pdl = shift;
+    my $ndim = shift;
+    return '$TBSULQFD(pdl_qsortvec_ind_B,pdl_qsortvec_ind_S,pdl_qsortvec_ind_U,
+             pdl_qsortvec_ind_L,pdl_qsortvec_ind_Q,pdl_qsortvec_ind_F,pdl_qsortvec_ind_D) ($P(' . $pdl . '), $P(indx), '. $ndim.', 0, nn);';
+}
+
+pp_def(
+    'qsortveci',
+    HandleBad => 1,
+    Pars => 'a(n,m); int [o]indx(m);',
+    Code => 
+    'int nd;
+     int nn=$COMP(__m_size)-1;
+     loop(m) %{
+        $indx()=m;
+     %}
+     nd = $COMP(__n_size);
+    ' . generic_qsortvec_ind('a','nd'),
+    Doc => '
+=for ref
+
+Sort a list of vectors lexicographically, returning the indices of the
+sorted vectors rather than the sorted list itself.
+
+As with C<qsortvec>, the input PDL should be an NxM array containing M
+separate N-dimensional vectors.  The return value is an integer M-PDL 
+containing the M-indices of original array rows, in sorted order.
+
+As with C<qsortvec>, the zeroth element of the vectors runs slowest in the
+sorted list.  
+
+Additional dimensions are threaded over: each plane is sorted separately,
+so qsortveci may be thought of as a collapse operator of sorts (groan).
+
+',
+    BadDoc =>
+'
+Vectors with bad components should be moved to the end of the array:
+',
+    ); 
 
 
 

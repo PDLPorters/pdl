@@ -110,9 +110,14 @@ pdlexamples\.c$
 ^Lib/GSL/INTERP/.*\.c$
 ^Lib/GSL/DIFF/D.*\.c$
 ^Lib/GSL/INTEG/I.*\.c$
+^Lib/GSL/MROOT/M.*\.c$
 ^Lib/GSL/.*\.pm$
 ^Lib/GSL/.*\.xs$
 ^Lib/FFTW/typespec
+^Lib/Minuit/M.*\.c$
+^Lib/Minuit/.*\.pm$
+^Lib/Minuit/.*\.xs$
+^Lib/Minuit/.*\.a$
 ^Lib/Slatec/Slatec.c
 ^Lib/Slatec/Slatec.pm
 ^Lib/Slatec/Slatec.xs
@@ -212,3 +217,4 @@ so_locations
 ^Lib/Transform/Proj4/Proj4\.xs
 ^pdl$
 ^pdl\.c$
+^Lib/Gaussian\.pm

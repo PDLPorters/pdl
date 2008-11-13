@@ -354,7 +354,7 @@ FFTN (int ndim,
       REAL Re [],
       REAL Im [],
       int iSign,
-      double scaling)
+      REAL scaling)
 {
    size_t nTotal;
    int maxFactors, maxPerm;
@@ -452,6 +452,7 @@ FFTN (int ndim,
 	if (iSign < 0) iSign = -iSign;
 	if (scaling < 0.0)
 	  scaling = (scaling < -1.0) ? sqrt (nTotal) : nTotal;
+
 	scaling = 1.0 / scaling;	/* multiply is often faster */
 	for (i = 0; i < nTotal; i += iSign)
 	  {

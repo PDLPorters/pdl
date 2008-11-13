@@ -36,12 +36,23 @@ EOW
 my $MINVERSION = "1.3";
 my $version = `gsl-config --version`;
 chomp $version;
+my $new_enough = 0;
 
 if ($version =~ /^\s*$/) {
   warn "\tno GSL version info found (gsl-config not installed?)\n\n";
   $version = 'UNKNOWN VERSION';
+} else {
+  my @is_parts =split /\./,$version;
+  my @needed_parts=split /\./,$MINVERSION;
+  
+  $needed_parts[-1]--;
+  for (my $i=0; $i<=$#needed_parts; $i++) {
+    my $is_part=(exists $is_parts[$i] ? $is_parts[$i] : 0);
+    $new_enough=($is_part > $needed_parts[$i]);
+    last if ($new_enough);
+  }
 }
-if ($version =~ /UNKNOWN VERSION/ || $version lt "$MINVERSION") {
+if (! $new_enough) {
   warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
   write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
 } else {

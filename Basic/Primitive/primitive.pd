@@ -808,7 +808,7 @@ sub PDL::uniqvec {
   my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
 
   return $uniq->nelem==0 ? 
-	$srt->slice(":,(0)") :
+	$srt->slice("(0),:")->mv(0,-1) :
 	$srt->dice($uniq)->mv(0,-1);
 }
 
@@ -2510,7 +2510,9 @@ Implements simple set operations like union and intersection
    Usage: $set = setops($a, <OPERATOR>, $b);
 
 The operator can be C<OR>, C<XOR> or C<AND>. This is then applied
-to C<$a> viewed as a set and C<$b> viewed as a set. The functioning
+to C<$a> viewed as a set and C<$b> viewed as a set. Set theory says
+that a set may not have two or more identical elements, but setops 
+takes care of this for you, so C<$a=pdl(1,1,2)> is OK. The functioning 
 is as follows:
 
 =over
@@ -2626,11 +2628,15 @@ sub PDL::setops {
      $b = $b->flat;
   }
 
+  #Make sure there are no duplicate elements.
+  $a=$a->uniq;
+  $b=$b->uniq;
+
   my $result;
 
   if ($op eq 'OR') {
     # Easy...
-    $result = uniq(cat($a, $b));
+    $result = uniq(append($a, $b));
   } elsif ($op eq 'XOR') {
     # Make ordered list of set union.
     my $union = append($a, $b)->qsort;

@@ -1,16 +1,15 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         PDL
-version:      2.4.3
+version:      2.4.4
 version_from: Basic/Core/Version.pm
 installdirs:  site
 requires:
     Astro::FITS::Header:           0
-    ExtUtils::F77:                 1.1
     File::Spec:                    0.6
     Filter::Util::Call:            0
     Inline:                        0.43
     Text::Balanced:                0
 
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+generated_by: ExtUtils::MakeMaker version 6.30

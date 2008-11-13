@@ -563,7 +563,7 @@ conditions for different axes -- see L<range|PDL::Slices/range> for more
 detail.
 
 The (default) truncate option marks all the near-boundary pixels as BAD if
-you have bad values compiled into your PDL. 
+you have bad values compiled into your PDL and the array's badflag is set. 
 
 =item method (default: 'auto')
 

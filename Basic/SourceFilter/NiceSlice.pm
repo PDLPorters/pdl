@@ -12,6 +12,8 @@ package PDL::NiceSlice;
 #
 # Modified 2-Oct-2001: don't modify $var(LIST) if it's part of a
 # "for $var(LIST)" or "foreach $var(LIST)" statement.  CED.
+#
+# Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
 $PDL::NiceSlice::VERSION = '1.0.1';
 $PDL::NiceSlice::debug = 0;
@@ -325,12 +327,105 @@ sub findslice {
   $processed .= $ct > 0 ? substr $src, pos($src) : $src;
 }
 
+##############################
+# termstr - generate a regexp to find turn-me-off strings
+# CED 5-Nov-2007
+sub terminator_regexp{
+    my $clstr = shift;
+    $clstr =~ s/([^a-zA-Z0-9])/\\$1/g;
+    my $termstr = '^\s*no\s+'.$clstr.'\s*;\s*(#.*)*$';
+    return qr/$termstr/o; # allow trailing comments
+}
+
+sub reinstator_regexp{
+    my $clstr = shift;
+    $clstr =~ s/([^a-zA-Z0-9])/\\$1/g;
+    my $reinstr = '^\s*use\s+'.$clstr.'\s*;\s*(#.*)*$';
+    return qr/$reinstr/o; # allow trailing comments
+}
 
 # save eval of findslice that should be used within perldl as a preprocessor
 sub perldlpp {
- my ($txt) = @_;
+ my ($class, $txt) = @_;
+
+ ##############################
+ # Backwards compatibility to before the two-parameter form. The only
+ # call should be around line 206 of PDL::AutoLoader, but one never
+ # knows....
+ #    -- CED 5-Nov-2007
+ if(!defined($txt)) { 
+     print "PDL::NiceSlice::perldlpp -- got deprecated one-argument form, from ".(join("; ",caller))."...\n";
+     $txt = $class; 
+     $class = "PDL::NiceSlice";
+ }
+
+ ## Debugging to track exactly what is going on -- left in, in case it's needed again
+ if($PDL::debug > 1) {
+     print "PDL::NiceSlice::perldlpp - got:\n$txt\n";
+     my $i;
+     for $i(0..5){
+	 my($package,$filename,$line,$subroutine, $hasargs) = caller($i);
+	 printf("layer %d: %20s, %40s, line %5d, sub %20s, args: %d\n",$i,$package,$filename,$line,$subroutine,$hasargs);
+     }
+ }
+
  my $new;
- eval '$new = PDL::NiceSlice::findslice $txt';
+
+ ##############################
+ ## This block sort-of echoes import(), below...
+ ## Crucial difference: we don't give up the ghost on termination conditions, only
+ ## mask out current findslices.  That's because future uses won't be processed
+ ## (for some reason source filters don't work on evals).
+
+ my @lines= split /\n/,$txt;
+
+ my $terminator = terminator_regexp($class);
+ my $reinstator = reinstator_regexp($class);
+
+ my($status, $off, $end);
+ eval {
+     do {
+	 my $data = "";
+	 while(@lines) {
+	     $_= shift @lines;
+	     if(defined($terminator) && m/$terminator/) {
+		 $_ = "## $_";
+		 $off = 1;
+		 last;
+	     }
+	     if(defined($reinstator) && m/$reinstator/) {
+		 $_ = "## $_";
+	     }
+	     if(m/^\s*(__END__|__DATA__)\s*$/) {
+		 $end=$1; $off = 1;
+		 last;
+	     }
+	     $data .= "$_\n";
+	     $count++;
+	     $_="";
+	 }
+	 $_ = $data;
+	 $_ = findslice $_ ;
+	 $_ .= "no $class;\n" if $off;
+	 $_ .= "$end\n" if $end;
+	 $new .= "$_";
+	 
+	 while($off && @lines) {
+	     $_ = shift @lines;
+	     if(defined($reinstator) && m/$reinstator/) {
+		 $off = 0;
+		 $_ = "## $_";
+	     }
+	     if(defined($terminator) && m/$terminator/) {
+		 $_ = "## $_";
+	     }
+
+	     $new .= "$_\n";
+
+	 }
+     } while(@lines && !$end);
+ };
+     
  if ($@) {
    my $err = $@;
    for (split '','#!|\'"%~/') {
@@ -340,24 +435,39 @@ sub perldlpp {
    return "print q{NiceSlice error: $err}"; # if this doesn't work
                                                # we're stuffed
  }
+
+ if($PDL::debug > 1) {
+     print "PDL::NiceSlice::perldlpp - returning:\n$new\n";
+ }
  return $new;
 }
 
 use Filter::Util::Call;
 
+
+##############################
+# If you mess with the import filter, please also change the pdlpp importer 
+# just above this comment!  They both do similar things, but one to an eval string
+# and one to an import file.
+#   --CED 5-Nov-2007
+#
 sub import {
-  my ($class) = @_;
-  ($file,$offset) = (caller)[1,2];  # for error reporting
-  $offset++;
-  my $terminator = qr/^\s*no\s+$class\s*;\s*(#.*)*$/; # allow trailing comments
-	filter_add(
+    my ($class) = @_;
+    ($file,$offset) = (caller)[1,2];  # for error reporting
+    $offset++;
+    
+    ## Parse class name into a regexp suitable for filtration
+    my $terminator = terminator_regexp($class);
+
+    filter_add(
 		sub {
-			my ($status, $off, $end);
-			my $count = 0;
-			my $data = "";
+		    my ($status, $off, $end);
+		    my $count = 0;
+		    my $data = "";
 			while ($status = filter_read()) {
 				return $status if $status < 0;
-				if ($terminator && m/$terminator/) {
+		
+				if (defined($terminator) && m/$terminator/) {
 					$off=1;
 					last;
 				}

@@ -8,8 +8,8 @@ use strict;
 use fields qw(Objects ValidList ChangedSub List VRML);
 sub new{
   my $class = shift;
-  no strict 'refs';
-  my $self = bless [ \%{"$class\::FIELDS"}], $class;
+  my $self = fields::new($class);
+
   $self;
 }
 

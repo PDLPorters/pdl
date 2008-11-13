@@ -1,4 +1,3 @@
-
 This file has some information on how to get access to
 the latest PDL sources (mainly of interest for potential
 developers). This should not be confused with the latest
@@ -82,8 +81,7 @@ improve or add to PDL (please do):
 See the pdl-porters email list; details for subscription and access to
 the archives can be found on the PDL web page at:
 
-  http://pdl.perl.org/maillists/index_en.html  (English)
-  http://pdl.perl.org/maillists/index_de.html  (German)
+  http://pdl.sourceforge.net/maillists/
  
 *) Access to PDL's configuration
 
@@ -99,6 +97,7 @@ had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
   should only change values when it makes sense (e.g. if the user
   has specified that a module should be built but you find out this
   is not possible).
+
 - otherwise you can say 'use PDL::Config;' or - perhaps something like
     eval 'require "' . whereami_any() . '/Core/Config.pm";';
   where whereami_any() is from PDL::Core::Dev;

@@ -36,7 +36,8 @@ EOT
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
-    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    ## Fix appears to be necessary on all MM platforms now, to avoid circular references :-( -- CED 9-July-2008
+    if(1) { ## if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
     my($self) = shift;
     return "" unless $self->{PL_FILES};
     my(@m, $plfile);

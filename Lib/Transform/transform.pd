@@ -1,3 +1,4 @@
+
 pp_addpm({At=>'Top'},<<'======EOD======');
 
 =head1 NAME
@@ -858,7 +859,7 @@ pp_def('map',
          i_off += in->dimincs[i] * j;
        }
   
-        if(bound_ok) {
+       {  /* convenience block for bounds handling and data weighting */
          PDL_Double alpha = 1.0;
          PDL_Double *ap = tvec;
          PDL_Double *bp = dvec;
@@ -901,8 +902,8 @@ pp_def('map',
   	             dd += *(ap++) * *(cp++);
   	          dd /= blur;
   	 	  sum += dd * dd;
-  		  if(sum > 4)  /* 2 pixels -- four half-widths */
-  		    i = ndims;
+  		  if(sum > 4) /* 2 pixels -- four half-widths */
+  		    i = ndims; /* exit early if this pixel is too far outside the footprint of the ideal point */
   	       }
   	       
    	       if(sum > 4)	
@@ -923,6 +924,7 @@ pp_def('map',
         /* We've got the weighting, now accumulate the values as needed... */
          wgt += alpha;
        
+       if(bound_ok)
          { 
           PDL_Double *ac = acc;
           $GENERIC() *dat = (($GENERIC() *)(in->data)) + i_off;
@@ -930,8 +932,9 @@ pp_def('map',
                *(ac++) += *dat * alpha;
                dat += in->dimincs[ndims];
           }
-         }
-       } /* end of bound_ok check */
+         }/* end of bound_ok check */
+
+       }  /* end of data collection convenience block */
        
        /* Advance input accumulation loop */
        for(i=0; 
@@ -940,7 +943,7 @@ pp_def('map',
            i++) {
           ivec[i] = -psize;
        }
-     } while(i<ndims);
+     } while(i<ndims);  /* end of total data accumulation loop */
      
      {
        PDL_Double *ac = acc;
@@ -1468,7 +1471,7 @@ sub map {
 
       my $d;
       for $d(1..$nd) {
-	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1))/2 ;
+	  $out->hdr->{"CRPIX$d"} = 1 + ($out->dim($d-1)-1)/2 ;
 	  $out->hdr->{"CDELT$d"} = $scale->at($d-1);
 	  $out->hdr->{"CRVAL$d"} = ( $omin->at($d-1) + $omax->at($d-1) ) /2 ;
 	  $out->hdr->{"NAXIS$d"} = $out->dim($d-1);
@@ -1500,27 +1503,26 @@ sub map {
 
   ##############################
   ## Figure out the interpND options
-  my $method = _opt($opt,['m','method','Method']);
+  my $method = _opt($opt,['m','method','Method'],undef);
   my $bound = _opt($opt,['b','bound','boundary','Boundary'],'t');
 
 
   ##############################
   ## Rubber meets the road: calculate the inverse transformed points.
   my $ndc = PDL::Basic::ndcoords(@dd);
-  my $idx = $me->invert($ndc->double + 0.5);
+  my $idx = $me->invert($ndc->double);
 
   barf "map: Transformation had no inverse\n" unless defined($idx);
 	
   ##############################
   ## Integrate ?  (Jacobian, Gaussian, Hanning)  
-  my $integrate = ($method =~ m/^[jghJGH]/);
+  my $integrate = ($method =~ m/^[jghJGH]/) if defined($method);
 
   ##############################
   ## Sampling code:
   ## just transform and interpolate. 
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
-
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
     $out->(:) .= $a; # trivial slice prevents header overwrite...
     return $out;
@@ -1981,7 +1983,12 @@ that last index threading dimension -- if necessary, use C<dummy(-1,1)>.
 
 The lookup index scaling is: out = lookup[ (scale * data) + offset ].
 
-The inverse transform is calculated. 
+A simplistic table inversion routine is included.  This means that
+you can (for example) use the C<map> method with C<t_lookup> transformations.
+But the table inversion is exceedingly slow, and not practical for tables
+larger than about 100x100.  The inversion table is calculated in its
+entirety the first time it is needed, and then cached until the object is
+destroyed.
 
 Options are listed below; there are several synonyms for each.
 
@@ -2014,8 +2021,8 @@ EXAMPLE
 
 To scale logarithmically the Y axis of m51, try:
 
-  $a = rfits('m51.fits');
-  $lookup = xvals(256,256) -> cat( 10**(yvals(256,256)/100) * 256/10**2.55 );
+  $a = float rfits('m51.fits');
+  $lookup = xvals(128,128) -> cat( 10**(yvals(128,128)/50) * 256/10**2.55 );
   $t = t_lookup($lookup);
   $b = $t->map($a);
 
@@ -2058,7 +2065,7 @@ sub t_lookup {
   my($method)= _opt($o,['m','meth','method','Method']);
 
   $me->{idim} = $source->ndims - 1;
-  $me->{odim} = $source->dims($source->ndims-1);
+  $me->{odim} = $source->dim($source->ndims-1);
 
   $me->{params} = {
       table => $source,
@@ -2073,18 +2080,18 @@ sub t_lookup {
 
   
    my $lookup_func = sub {
-     my($data,$p,$table_name) = @_;
+     my($data,$p,$table,$scale,$offset) = @_;
+
+    $data = pdl($data) 
+      unless ((ref $data) && (UNIVERSAL::isa($data,'PDL')));
+      $main::foo = $data;
 
     if($data->dim(0) > $me->{idim}) {
       barf("Too many dims (".$data->dim(0).") for your table (".$me->{idim}.")\n");
     };
 
-    $data = pdl($data) 
-      unless ((ref $data) && (UNIVERSAL::isa($data,'PDL')));
-
-    my($a)= ($p
-	     ->{$table_name}
-	     ->interpND(float($data) * $p->{scale} + $p->{offset},
+    my($a)= ($table
+	     ->interpND(float($data) * $scale + $offset,
 			$p->{interpND_opt}
 			)
 	     );
@@ -2094,22 +2101,85 @@ sub t_lookup {
     # the dimension list.
     my($dnd) = $data->ndims - 1;
     return ($a -> ndims > $data->ndims - 1) ? 
-      ($a->reorder( $dnd..($dnd + $p->{$table_name}->ndims - $data->dim(0)-1)
+      ($a->reorder( $dnd..($dnd + $table->ndims - $data->dim(0)-1)
 		    , 0..$data->ndims-2
 		    )
        ) : $a;
   };
 
-  $me->{func} = sub {my($data,$p) = @_;  &$lookup_func($data,$p,'table')};
+  $me->{func} = sub {my($data,$p) = @_;  &$lookup_func($data,$p,$p->{table},$p->{scale},$p->{offset})};
 
   #######
   ## Lazy inverse -- find it if and only if we need it...
   $me->{inv} = sub {
+      my $data = shift;
       my $p = shift;
       if(!defined($p->{'itable'})) {
-	barf "Inversion of lookup transforms is not yet implemented\n";
+        if($me->{idim} != $me->{odim}) {
+	 barf("t_lookup: can't calculate an inverse of a projection operation! (idim != odim)");
+	}
+       print "t_lookup: Warning, table inversion is only weakly supported.  \n   I'll try to invert it using a pretty boneheaded algorithm...\n  (If it takes too long, consider writing a faster algorithm!)\n   Calculating inverse table (will be cached)...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
+        my $itable = zeroes($p->{table});
+	my $minvals = $p->{table}->clump($me->{idim})->minimum;
+	my $maxvals = $p->{table}->clump($me->{idim})->maximum;
+	
+	# Scale so that the range runs from 0 through the top pixel in the table
+	my $scale = (  pdl(  $itable->dims  )->(0:-2)-1  ) / 
+	   	    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
+        my $offset = - ($minvals/$scale);
+
+	$p->{iscale} = $scale;
+	$p->{ioffset} = $offset;
+		      
+     	my $enl_scale = $p->{'enl_scale'} || 10;
+	my $smallcoords = ndcoords((pdl($enl_scale * 2 + 1)->at(0)) x $me->{idim})/ $enl_scale - 1;
+
+	# $oloop runs over (point, index) for all points in the output table, in 
+	# $p->{table} output space
+	$oloop = ndcoords($itable->mv(-1,0)->((0)))->
+	                mv(0,-1)->
+			clump($itable->ndims-1);  # oloop: (pixel, index)
+	$oloop->mv(-1,0) -= $offset;
+	$oloop->mv(-1,0) /= $scale;
+
+	# The Right Thing to do here is to take the outer product of $itable and $otable, then collapse 
+	# to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an 
+	# elementwise calculation.
+
+	print "t_lookup: inverting ".$oloop->dim(0)." points...\n" if($PDL::verbose || $PDL::debug || $PDL::Transform::debug);
+	my $pt = $p->{table}->mv(-1,0); # pt runs (index, x,y,...)
+
+	my $itable_flattened = zeroes($oloop);
+
+	for $i(0..$oloop->dim(0)-1) {
+
+	    my $olp = $oloop->(($i));                # olp runs (index)
+	    my $diff = ($pt - $olp);                 # diff runs (index, x, y, ...)
+	    my $r2 = ($diff * $diff)->sumover;       # r2 runs (x,y,...)
+	    my $c = whichND($r2==$r2->min)->(:,(0)); # c runs (index)
+
+	    # Now zero in on the neighborhood around the point of closest approach.
+	    my $neighborhood = $p->{table}->interpND($c + $smallcoords,{method=>'linear',bound=>'t'})->
+	             mv(-1,0); # neighborhood runs (index, dx, dy,...)
+	    $diff = $neighborhood - $olp;        # diff runs (index, dx, dy, ...)
+	    $r2 = ($diff * $diff)->sumover;      # r2 runs (dx,dy,...)
+	    my $dc = $smallcoords->mv(0,-1)->indexND(0+whichND($r2==$r2->min)->(:,(0)));
+	    
+
+	    my $coord = $c + $dc;
+	    # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
+	    # Back it out to input-science coordinates, and stuff it in the inverse table.
+	    $itable_flattened->(($i)) .= $coord;
+	    
+	    print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
+        }
+	$itable->clump($itable->ndims-1) .= $itable_flattened;
+	$itable->mv(-1,0) -= $p->{offset};
+	$itable->mv(-1,0) /= $p->{scale};
+
+	$p->{itable} = $itable;
       }
-      &$lookup_func(@_[0..1], 'itable') ;
+      &$lookup_func($data,$p, $p->{itable},$p->{iscale},$p->{ioffset}) ;
     };
 
 
@@ -2230,6 +2300,10 @@ sub t_linear { new PDL::Transform::Linear(@_); }
 sub PDL::Transform::Linear::new {
   my($class) = shift;
   my($o) = $_[0];
+  pop @_ if (($#_ % 2 ==0) && !defined($_[-1]));
+  #suppresses a warning if @_ has an odd number of elements and the
+  #last is undef
+
   if(!(ref $o)) {
     $o = {@_};
   }
@@ -2615,7 +2689,7 @@ sub t_fits {
     
     #
     # CPi_j + CDELTi formalism
-    # If CPi_j arent present, and N=2, then try using CROTA or
+    # If CPi_j aren't present, and N=2, then try using CROTA or
     # CROTA2 to generate a rotation matrix instea.  
     #
   
@@ -2646,16 +2720,19 @@ sub t_fits {
       $cr = $hdr->{CROTA1} unless defined $cr;
 
       $cr *= $DEG2RAD;
-	# Rotation matrix rotates clockwise to get from sci to pixel coords
-	# (image has been rotated ccw, according to FITS standard)
-      $cpm .= pdl( [cos($cr), -sin($cr)],[sin($cr),cos($cr)] );
+	# Rotation matrix rotates counterclockwise to get from sci to pixel coords
+	# (detector has been rotated ccw, according to FITS standard)
+      $cpm .= pdl( [cos($cr), sin($cr)],[-sin($cr),cos($cr)] );
 
     }
       
     for my $i(1..$n) {
       $cd->(($i-1)) .= $hdr->{"CDELT$i"};
     }
-    
+#If there are no CDELTs, then we assume they are all 1.0,
+#as in PDL::Graphics::PGPLOT::Window::_FITS_tr.
+    $cd+=1 if (all($cd==0));
+
     $matrix = $cdm x $cpm;
   }
 

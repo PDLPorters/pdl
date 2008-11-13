@@ -48,11 +48,6 @@ if (defined $PDL::Config{WITH_GSL} && $PDL::Config{WITH_GSL}==0) {
   $forcebuild=1;
 }
 
-if ($^O =~ /win32/i) {
-  $msg = "\n\tWin32 systems not yet supported. Will not build PDL::GSL::DIFF\n";
-  $skip=1 unless $forcebuild;
-}
-
 if (($skip && !$forcebuild) ||
     !gsl_diff_links_ok($GSL_libs, $GSL_includes)) {
   warn "trying to force GSL build but link test failed\n".

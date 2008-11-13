@@ -1,3 +1,56 @@
+pdl (1:2.4.3-7) unstable; urgency=low
+
+  * patch upstream IO/Makefile.PL to also install Dicom IO module 
+    (closes: #474751)
+
+ -- Henning Glawe <glaweh@physik.fu-berlin.de>  Tue,  8 Apr 2008 11:56:17 +0200
+
+pdl (1:2.4.3-6) unstable; urgency=low
+
+  [ Rafael Laboissiere ]
+  * Switch from g77 to gfortran
+
+  [ Henning Glawe ]
+  * apply Rafael's patch (closes: #468637)
+
+ -- Henning Glawe <glaweh@debian.org>  Tue,  4 Mar 2008 09:05:08 +0100
+
+pdl (1:2.4.3-4) unstable; urgency=low
+
+  * clean up leftover files not caught by pdl's distclean target
+    (closes: #424345)
+  * clearly state in PDL::Fit::Gaussian synopsis that PDL has to be loaded
+    first (closes: #379932)
+  * apply patch for uniqvec/qsortvec from upstream BTS (closes: #415426)
+  * encode Latin1 characters in POD documentation as roff
+  * postprocess the "reduce" manpage's NAME section to remove roff macros
+    (closes: #304217)
+  * remove misplaced whitespace characters from changelog
+  * fix the menu entry to reflect current menu policy
+  * add lintian override to ignore the missing html files; they are
+    generated in the postinst script, so lintian can not see them
+  * fix the gsl version check
+  * comment out the dump() calls in t/xvals.t test, as this seems to confuse
+    the test result parser
+  * rebuild for the ldbl128 transition (closes: #430319)
+
+ -- Henning Glawe <glaweh@debian.org>  Tue, 16 Oct 2007 10:25:18 +0200
+
+pdl (1:2.4.3-3) unstable; urgency=low
+
+  * add -DGLvoid=void in the cpp call for setting up the OpenGL typemaps in
+    order to make PDL build with newer mesa versions (closes: #390122)
+
+ -- Henning Glawe <glaweh@debian.org>  Mon,  9 Oct 2006 18:07:41 +0200
+
+pdl (1:2.4.3-2) unstable; urgency=low
+
+  * upstream: enhance the 64bit-excludelist for the flexraw-test
+  * let the build continue anyways if problems are found in the
+    testsuite, so its output is only informational
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 25 Sep 2006 10:43:58 +0200
+
 pdl (1:2.4.3-1) unstable; urgency=low
 
   * new upstream
@@ -325,10 +378,10 @@ pdl (2.002-3) unstable; urgency=low
 pdl (2.002-2) unstable; urgency=low
 
   * added depends on libterm-readkey-perl
-  
+ 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Sun,  8 Aug 1999 14:25:39 -0700
   
-  pdl (2.002-1) unstable; urgency=low
+pdl (2.002-1) unstable; urgency=low
 
   * New upstream
   * Build with new perl 5.005 package
@@ -338,7 +391,7 @@ pdl (2.002-2) unstable; urgency=low
     with dpkg --purge. Also previous cruft from old versions is purged 
     in preinst.
   * Fixes #38429, typo in Depends
-  
+ 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 25 Jun 1999 17:52:33 -0700
   
 pdl (2.001-1) unstable; urgency=low
@@ -385,7 +438,7 @@ pdl (1.99988-2) unstable; urgency=low
   * Make rules less i386-centric
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Tue,  6 Oct 1998 11:44:39 -0700
-	
+
 pdl (1.99988-1) unstable; urgency=low
 
   * New minor revision
@@ -397,7 +450,7 @@ pdl (1.99985-1) unstable; urgency=low
   * New minor revision
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 31 Jul 1998 14:24:09 -0700
-	
+
 pdl (1.9906-1) frozen unstable; urgency=low
 
   * New minor revision
@@ -437,7 +490,6 @@ pdl (1.9901-2) unstable; urgency=low
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Sat, 14 Mar 1998 18:21:28 -0700
 
-
 pdl (1.9901-1) unstable; urgency=low
 
   * New upstream minor version including ...
@@ -451,7 +503,6 @@ pdl (1.9900-1) non-free; urgency=low
   * New upstream release
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 27 Feb 1998 16:42:27 -0700
-
 
 pdl (1.95.07-3) non-free; urgency=low
 
@@ -470,5 +521,3 @@ pdl (1.95.07-1) non-free; urgency=low
   * Initial Release.
 
  -- John Lapeyre <lapeyre@physics.arizona.edu>  Fri, 16 Jan 1998 19:32:22 -0700
-
-

@@ -35,8 +35,11 @@ WriteMakefile(
 		    'Primitive','Slices','Test','Math','MatrixOps','Complex'],
 );
 
-# modify clean method not to delete files named 'core'
+# modify clean method not to delete files named 'core' 
+# (required for MacOSX, where "Core" and "core" are 
+# indistinguishable)
 package MY; # so that "SUPER" works right
+
 sub clean {
   my $inherited = shift->SUPER::clean(@_);
   $inherited =~ s/\s+core\s/ /;

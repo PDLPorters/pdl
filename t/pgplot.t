@@ -1,3 +1,4 @@
+# -*-perl-*-
 BEGIN{
 	  # Set perl to not try to resolve all symbols at startup
 	  # The default behavior causes some problems because 
@@ -45,8 +46,8 @@ PGPLOT X device... you should see a 6 inch (153 mm) x 4 inch (102 mm)
 X window with four plots in it.  All four images should have tick marks 
 on the outside of the axes.
 
-[ Scaled image of m51; scale        [Square image of m51 with scale from
-  in pixels on both axes ]           -3.5 - +3.5 arcmin on both axes, 
+[ Scaled image of m51; scale        [Scaled image of m51 with scale from
+  in pixels on both axes ]           X=[-1.8, 2.0],Y=[-1.9, 1.9] arcmin, 
 				     with cal. wedge, centered in rect. frame]
 
 [ Square image of m51; scale        [Square image of m51 with scale as above,
@@ -62,12 +63,12 @@ You should see four plots demonstrating pitch setting, justification,
 and alignment:
 
 [ Square image of m51 scaled to         [Short, squat image of m51 with
-200 ppi (1.25 inches wide), aligned      aspect ratio 1:2, width 1.25 inch,
+300 ppi (1.25 inches wide), aligned      aspect ratio 1:2, width 1.25 inch,
 to bottom left corner of rect. plot      and height 0.625 inch, shrinkwrapped
 box and cropped at the top.        ]     and placed at lower left of plot rgn]
 
 [ Square image of m51 scaled to         [Tall, narrow image of m51 with
-200 ppi (1.25 inches wide), aligned      aspect ratio 2:1, width 0.625 inch,
+300 ppi (1.25 inches wide), aligned      aspect ratio 2:1, width 0.625 inch,
 to upper right corner of rect. plot      and height 1.25 inch, shrinkwrapped
 box and cropped at the bottom.     ]     and placed at upper right of plot rgn]
 
@@ -104,7 +105,7 @@ foreach my $str ( (
     '$w->imag($a,{Title=>"\$w->imag(\$a);"} );',
     '$w->fits_imag($a,{Title=>"\$w->fits_imag(\$a);"});',
     '$w->imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});',
-    '$w->fits_imag($a,{J=>1,Title=>"\$w->imag(\$a,{J=>1});"});'
+    '$w->fits_imag($a,{J=>1,Title=>"\$w->fits_imag(\$a,{J=>1});"});'
     ) ) {
     eval $str;
     ok (!$@);
@@ -120,10 +121,10 @@ SKIP: {
 # Page 2
 #
 foreach my $str ( (
-    '$w->imag($a,{Pitch=>200,Align=>"LB",Title=>"\$w->imag(\$a,{Pitch=>200,Align=>LB})"});',
-    '$w->imag($a,{J=>.5,Pitch=>200,Align=>"LB",Title=>"\$w->imag(\$a,{J=>.5,Pitch=>200,Align=>LB})"});',
-    '$w->imag($a,{Pitch=>200,Align=>"RT",Title=>"\$w->imag(\$a,{Pitch=>200,Align=>RT})"});',
-    '$w->imag($a,{J=>2,Pitch=>400,Align=>"RT",Title=>"\$w->imag(\$a,{J=>1,Pitch=>400,Align=>RT})                     ."});',
+    '$w->imag($a,{Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$a,{Pitch=>300,Align=>LB})"});',
+    '$w->imag($a,{J=>.5,Pitch=>300,Align=>"LB",Title=>"\$w->imag(\$a,{J=>.5,Pitch=>300,Align=>LB})"});',
+    '$w->imag($a,{Pitch=>300,Align=>"RT",Title=>"\$w->imag(\$a,{Pitch=>300,Align=>RT})"});',
+    '$w->imag($a,{J=>2,Pitch=>600,Align=>"RT",Title=>"\$w->imag(\$a,{J=>2,Pitch=>600,Align=>RT})                     ."});',
     ) ) {
     eval $str;
     ok (!$@);

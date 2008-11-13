@@ -41,7 +41,7 @@ act q|
     # The size of the window can be specified
     $ENV{PGPLOT_XW_WIDTH}=0.3;
     # You can set your device explicitly
-    dev($^O =~ /MSWin32/ ? '/GW' : '/XSERVE');
+    $id=dev($^O =~ /MSWin32/ ? '/GW' : '/XSERVE');
 |;
 
 act q|
@@ -214,7 +214,8 @@ act q|
   $c =  zeroes(300)->xlinvals(0,12)+i*zeroes(300)->xlinvals(2,10);
   $sin = sin $c;
   line $sin->im, $sin->re;   # look at the result in the complex plane
-  
+  #close the window--we're done!
+  close_window($id); 
 |;
 
 }

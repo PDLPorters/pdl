@@ -27,6 +27,60 @@ the in-place flag.  That should be fixed.
 	$kernel = kernctr($image,$smallk);
 	fftconvolve($image,$kernel);
 
+=head1 DATA TYPES
+
+The underlying C library upon which this module is based performs FFTs
+on both single precision and double precision floating point piddles.
+Performing FFTs on integer data types is not reliable.  Consider the
+following FFT on piddles of type 'double':
+
+	$r = pdl(0,1,0,1);
+	$i = zeroes($r);
+	fft($r,$i);
+	print $r,$i;
+	[2 0 -2 0] [0 0 0 0]
+
+But if $r and $i are unsigned short integers (ushorts):
+
+	$r = pdl(ushort,0,1,0,1);
+	$i = zeroes($r);
+	fft($r,$i);
+	print $r,$i;
+	[2 0 65534 0] [0 0 0 0]
+
+This used to occur because L<PDL::PP|PDL::PP> converts the ushort
+piddles to floats or doubles, performs the FFT on them, and then
+converts them back to ushort, causing the overflow where the amplitude
+of the frequency should be -2.
+
+Therefore, if you pass in a piddle of integer datatype (byte, short,
+ushort, long) to any of the routines in PDL::FFT, your data will be
+promoted to a double-precision piddle.  If you pass in a float, the
+single-precision FFT will be performed.
+
+=head1 FREQUENCIES
+
+For even-sized input arrays, the frequencies are packed like normal
+for FFTs (where N is the size of the array and D is the physical step
+size between elements):
+
+0, 1/ND, 2/ND, ..., (N/2-1)/ND, 1/2D, -(N/2-1)/ND, ..., -1/ND.
+
+which can easily be obtained (taking the Nyquist frequency to be
+positive) using
+
+$kx = $real->xlinvals(-($N/2-1)/$N/$D,1/2/$D)->rotate(-($N/2 -1));
+
+For odd-sized input arrays the Nyquist frequency is not directly
+acessible, and the frequencies are
+
+0, 1/ND, 2/ND, ..., (N/2-0.5)/ND, -(N/2-0.5)/ND, ..., -1/ND.
+
+which can easily be obtained using
+
+$kx = $real->xlinvals(-($N/2-0.5)/$N/$D,($N/2-0.5)/$N/$D)->rotate(-($N-1)/2);
+
+
 =head1 ALTERNATIVE FFT PACKAGES
 
 Various other modules - such as 
@@ -56,23 +110,23 @@ fft_free()
    OUTPUT:
      RETVAL
 ');
-pp_def('fft',
+pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
-	  ($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
-	Doc=>'Complex FFT of the "real" and "imag" arrays [inplace]'
+	($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
+	Doc=>undef
 );
 
-pp_def('ifft',
+pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
-	  ($SIZE(n), NULL , $P(real),$P(imag), -1, -1.);',
-	Doc=>'Complex Inverse FFT of the "real" and "imag" arrays [inplace]'
+	($SIZE(n), NULL , $P(real),$P(imag), -1, -1.);',
+	Doc=>undef
 );
 
-pp_add_exported('',"fftnd ifftnd fftconvolve realfft realifft kernctr");
+pp_add_exported('',"fft ifft fftnd ifftnd fftconvolve realfft realifft kernctr");
 
 pp_addpm(<<'EOD');
 
@@ -88,11 +142,53 @@ END {
   fft_free();
 }
 
-sub todouble {
+sub todecimal {
     my ($arg) = @_;
-    $arg = $arg->double if $arg->get_datatype != $PDL_D;
+    $arg = $arg->double if (($arg->get_datatype != $PDL_F) && 
+			   ($arg->get_datatype != $PDL_D));
     $_[0] = $arg;
 1;}
+
+=head2 fft()
+
+=for ref
+
+Complex FFT of the "real" and "imag" arrays [inplace].
+
+=for usage
+
+fft($real,$imag);
+
+=cut
+
+*fft = \&PDL::fft;
+
+sub PDL::fft {
+todecimal($_[0]);
+todecimal($_[1]);
+_fft($_[0],$_[1]);
+}
+
+
+=head2 ifft()
+
+=for ref
+
+Complex inverse FFT of the "real" and "imag" arrays [inplace].
+
+=for usage
+
+ifft($real,$imag);
+
+=cut
+
+*ifft = \&PDL::ifft;
+
+sub PDL::ifft {
+todecimal($_[0]);
+todecimal($_[1]);
+_ifft($_[0],$_[1]);
+}
 
 =head2 realfft()
 
@@ -115,7 +211,7 @@ the array.
 sub PDL::realfft {
     barf("Usage: realfft(real(*)") if $#_ != 0;
     my ($a) = @_;
-    todouble($a);
+    todecimal($a);
 # FIX: could eliminate $b
     my ($b) = 0*$a;
     fft($a,$b);
@@ -142,7 +238,7 @@ sub PDL::realifft {
     use PDL::Ufunc 'max';
     barf("Usage: realifft(xfm(*)") if $#_ != 0;
     my ($a) = @_;
-    todouble($a);
+    todecimal($a);
     my ($n) = int((($a->dims)[0]-1)/2); my($t);
 # FIX: could eliminate $b
     my ($b) = 0*$a;
@@ -176,8 +272,8 @@ sub PDL::fftnd {
     barf "Dimensions of real and imag must be the same for fft"
         if ($n != $i->getndims);
     $n--;
-    todouble($r);
-    todouble($i);
+    todecimal($r);
+    todecimal($i);
     # need the copy in case $r and $i point to same memory
     $i = $i->copy;
     foreach (0..$n) {
@@ -209,8 +305,8 @@ sub PDL::ifftnd {
     my ($n) = $r->getndims;
     barf "Dimensions of real and imag must be the same for ifft"
         if ($n != $i->getndims);
-    todouble($r);
-    todouble($i);
+    todecimal($r);
+    todecimal($i);
     # need the copy in case $r and $i point to same memory
     $i = $i->copy;
     $n--;
@@ -327,8 +423,8 @@ sub PDL::fftconvolve {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
     my ($hr, $hi) = @_;
     my ($n) = $hr->getndims;
-    todouble($hr);
-    todouble($hi);
+    todecimal($hr);
+    todecimal($hi);
     # need the copy in case $r and $i point to same memory
     $hi = $hi->copy;
     $hr = $hr->copy;

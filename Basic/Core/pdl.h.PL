@@ -217,6 +217,20 @@ typedef struct pdl_transvtable {
  both the relationship with our current parent and, if necessary, the
  virtual parent. */
 
+#ifdef _MSC_VER
+#define PDL_TRANS_START(np) \
+	int magicno; \
+	short flags; \
+	pdl_transvtable *vtable; \
+	void (*freeproc)(struct pdl_trans *);  /* Call to free this  \
+					(means whether malloced or not) */ \
+        pdl *pdls[np ? np : 1]; /* The pdls involved in the transformation */ \
+        int bvalflag;  /* required for binary compatability even if WITH_BADVAL=0 */ \
+        int has_badvalue; \
+        double badvalue; \
+	int __datatype
+
+#else
 #define PDL_TRANS_START(np) \
 	int magicno; \
 	short flags; \
@@ -228,6 +242,8 @@ typedef struct pdl_transvtable {
         int has_badvalue; \
         double badvalue; \
 	int __datatype
+
+#endif
 
 #define PDL_TR_MAGICNO 0x91827364
 #define PDL_TR_SETMAGIC(it) it->magicno = PDL_TR_MAGICNO

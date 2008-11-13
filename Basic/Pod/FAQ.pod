@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  0.7
+Current FAQ version:  0.8
 
 
 =head1 DESCRIPTION
 
-This is version  0.7 of the PDL FAQ, a collection of  frequently 
+This is version  0.8 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -58,11 +58,11 @@ I< Perl Data  Language> . To say it with the words of Karl Glazebrook,
 initiator of the PDL project:
 
    
-   	The PDL concept is to give standard perl5 the ability
-   	to COMPACTLY store and SPEEDILY manipulate the large
-   	N-dimensional data sets which are the bread and butter
-   	of scientific computing. e.g. $a=$b+$c can add two
-   	2048x2048 images in only a fraction of a second.
+        The PDL concept is to give standard perl5 the ability
+        to COMPACTLY store and SPEEDILY manipulate the large
+        N-dimensional data sets which are the bread and butter
+        of scientific computing. e.g. $a=$b+$c can add two
+        2048x2048 images in only a fraction of a second.
          
 
 It provides tons of useful
@@ -250,12 +250,10 @@ to get a Perl installation can be found at the Perl home page
 http://www.perl.org and at many CPAN sites (if you do
 not know what I< CPAN> is check the answer to the next question).
 
-To build PDL you also need a working C compiler and support
-for Xsubs the package Extutils::MakeMaker.  See also 
-http://pdl.perl.org/ports.html for a list of machines
-where PDL has been tested. If you don't have a compiler there
-might be a binary distribution availabe, see "Binary
-distributions" below.
+To build PDL you also need a working C compiler and support for Xsubs
+the package Extutils::MakeMaker. If you don't have a compiler there
+might be a binary distribution availabe, see "Binary distributions"
+below.
 
 If you can (or cannot) get PDL working on a new (previously
 unsupported) platform we would like to hear about it. Please,
@@ -326,18 +324,18 @@ session of a PDL beginner (lengthy output is only symbolically
 reproduced in braces ( <... ...> ) ):
 
    
-   	unix> perldl
-   	perldl> help
-   	<.... help output ....>
-   	perldl> help PDL::Impatient
-   	<.... man page ....>
-   	perldl> $a = pdl (1,5,7.3,1.0)
-   	perldl> $b = sequence float, 4, 4
-   	perldl> help inner
-   	<.... help on the 'inner' function ....>
-   	perldl> $c = inner $a, $b
-   	perldl> p $c
-   	[22.6 79.8 137 194.2]
+        unix> perldl
+        perldl> help
+        <.... help output ....>
+        perldl> help PDL::Impatient
+        <.... man page ....>
+        perldl> $a = pdl (1,5,7.3,1.0)
+        perldl> $b = sequence float, 4, 4
+        perldl> help inner
+        <.... help on the 'inner' function ....>
+        perldl> $c = inner $a, $b
+        perldl> p $c
+        [22.6 79.8 137 194.2]
          
 
 For further sources of information that are accessible through the
@@ -359,70 +357,56 @@ http://pdl.perl.org . It has tons of goodies for anyone interested in PDL:
 
 =over 4
 
-=item *
+=item * 
 
 PDL distributions 
 
-=item *
+=item * 
 
 Online documentation 
 
-=item *
+=item * 
 
 Pointers to an HTML archive of the PDL mailing lists
 
-=item *
+=item * 
 
-A list of platforms on which PDL has been successfully
-tested. 
+A list of platforms on which PDL has been successfully tested. 
 
-=item *
+=item * 
 
-News about recently added features, ported libraries,
-etc.
+News about recently added features, ported libraries, etc.
 
-=item *
+=item * 
 
 Name of the current pumpkin holders for the different PDL modules (if
 you want to know what that means you better had a look at the web
 pages).
-
-
 
 =back
 
 If you are interested in PDL in general you can join the PDL mailing
 list perldl@jach.hawaii.edu. This is a forum to discuss programming
 issues in PDL, report bugs, seek assistance with PDL related problems,
-etc. To subscribe, send a message to perldl-request@jach.hawaii.edu 
-containing a string in the following format:
+etc. To subscribe, fill out the form at
+http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
 
-   
-   	subscribe me@my.email.address
-         
-
-where you should replace the string 
-C< me@my.email.address> with your email address. A searchable archive 
-and a hypertext version of the traffic on this list (1997-2004) can be 
-found at http://www.xray.mpe.mpg.de/mailing-lists/perldl/ . More
-recent messages (since June 2005) can be found at 
-http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
+A searchable archive and a hypertext version of the traffic on this
+list (1997-2004) can be found at
+http://www.xray.mpe.mpg.de/mailing-lists/perldl/ . More recent
+messages (since June 2005) can be found at
+http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
 
 If you are interested in all the technical details of the ongoing PDL
 development you can join the PDL developers mailing list
-pdl-porters@jach.hawaii.edu . To subscribe, send a message to 
-pdl-porters-request@jach.hawaii.edu containing a string in the following format:
+pdl-porters@jach.hawaii.edu . To subscribe, fill out the form at
+http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
 
-   
-   	subscribe me@my.email.address
-         
-
-where you should replace the string C< me@my.email.address> 
-with your email address. A searchable archive and a hypertext version
+A searchable archive and a hypertext version
 of the traffic on this list (1997-2004) can be found at 
 http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ . More recent messages 
 (since June 2005) can be found at 
-http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters
+http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
 
 Crossposting between these lists should be avoided unless there is a
 I< very> good reason for doing that.
@@ -433,11 +417,10 @@ I< very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
   
 
-As of this writing (FAQ version 0.7 of April 2006) version 2.4.3 is
-nearing release. The latest stable version
-should always be available from a CPAN mirror site near you (see 
-L<Question 2.7|"Q: 2.7    Where do I get it?"> for info on where to
-get PDL.
+As of this writing (FAQ version 0.8 of July 2008) version 2.4.4 is
+nearing release. The latest stable version should always be available
+from a CPAN mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?">
+for info on where to get PDL.
 
 The most current (possibly unstable) version of PDL can be obtained 
 from the CVS repository, see L<Question 4.8|"Q: 4.8    Can I get PDL via CVS?">
@@ -524,7 +507,7 @@ on how to get these.
 
 
 
-=head2 Q: 4.4   PDL compilation ends with C< Error:  PL_na not declared>  or similar
+=head2 Q: 4.4    PDL compilation ends with C< Error:  PL_na not declared>  or similar
   
 
 You have probably upgraded perl to 5.6 and tried to recompile
@@ -539,10 +522,23 @@ interfering, you should post a message to the mailing-list.
 
 
 
+=head2 Q: 4.5    How can I install PDL in a non-standard location?
+
+To install PDL in a non-standard location, use the PREFIX and LIB
+options in the C< perl Makefile.PL> configure step.  For example,
+C< perl Makefile.PL PREFIX=/myprefix LIB=/myprefix/lib/perl5> will
+configure PDL to install the perl code into the /myprefix/lib/perl5
+and the system install files like binary executables in the
+directories C< /myprefix/bin, /myprefix/lib, /myprefix/include...>.
+
+
+
+
+
 =head1 BINARY DISTRIBUTIONS
 
 
-=head2 Q: 4.5    What binary distributions are available?  
+=head2 Q: 4.6    What binary distributions are available?  
   
 
 Information about binary distributions of PDL can be found on
@@ -555,7 +551,7 @@ pdl-porters@jach.hawaii.edu mailing list. Also check your Linux
 distibution's package manager as many now include PDL.
 
 
-=head2 Q: 4.6    Does PDL run on Linux? (And what about packages?)  
+=head2 Q: 4.7    Does PDL run on Linux? (And what about packages?)  
   
 
 Yes, PDL does run on Linux and indeed much of the development
@@ -567,7 +563,7 @@ as PDL is now found by many of these.
 
 
 
-=head2 Q: 4.7    Does PDL run under Windows?  
+=head2 Q: 4.8    Does PDL run under Windows?  
   
 
 PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
@@ -585,7 +581,7 @@ it might not always be the latest version.
 =head1 CVS AND ON-GOING DEVELOPMENT
 
 
-=head2 Q: 4.8    Can I get PDL via CVS?   
+=head2 Q: 4.9    Can I get PDL via CVS?   
   
 
 Yes, as of December 1999, PDL is available at the CVS repository on
@@ -600,7 +596,7 @@ the basic command is case sensitive and is:
 
     cvs -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl login 
     cvs -z3 -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl co PDL
-   	  
+          
 
 When prompted for a password just press the Enter key.  Note however
 that the CVS tree is to be considered a development release and as
@@ -610,7 +606,7 @@ mission critical use and might crash unexpectedly.
 
 
 
-=head2 Q: 4.9  I had a problem with the CVS version, how do I check if  someone has submitted a patch?  
+=head2 Q: 4.10   I had a problem with the CVS version, how do I check if  someone has submitted a patch?  
 
 The Sourceforge system contains a patch-manager which contains
 patches that have not yet been applied to the
@@ -624,7 +620,7 @@ check the archive of the C< pdl-porters> and C< perldl> mailing lists.
 
 
 
-=head2 Q: 4.10    I have gotten developer access to CVS, but I have trouble  committing uploads.  
+=head2 Q: 4.11   I have gotten developer access to CVS, but I have trouble  committing uploads.  
   
 
 The first you should do is to read the Sourceforge 
@@ -651,7 +647,7 @@ Glazebrook:
    You will continue to have to type your password until you upload
    a key to the sourcefourge web page. Once you have done this it
    becomes painless.
-   	  
+          
 
 
 
@@ -757,12 +753,12 @@ Ok, you are right in a way. The docs say that pdls can be
 thought of arrays.  More specifically, it says (
 L<PDL::Impatient|PDL::Impatient> ):
 
-   	    I find when using perlDL it is most useful to think of
-   	    standard perl @x variables as "lists" of generic
-   	    "things" and PDL variables like $x as
-   	    "arrays" which can be contained in lists or
-   	    hashes.
-   	
+            I find when using perlDL it is most useful to think of
+            standard perl @x variables as "lists" of generic
+            "things" and PDL variables like $x as
+            "arrays" which can be contained in lists or
+            hashes.
+        
 
 So, while pdls can be thought of as some kind of
 multi-dimensional array they are 
@@ -866,22 +862,22 @@ C< .=> for certain types of assignments.
 With versions of Perl prior to 5.6 this has to be done using
 a temporary variable. 
 
-   	    perldl> $a = sequence(5); p $a
+            perldl> $a = sequence(5); p $a
                [0 1 2 3 4]
-   	    perldl> $tmp = $a->slice('1:2'); p $tmp;
+            perldl> $tmp = $a->slice('1:2'); p $tmp;
                [1 2]
                perldl> $tmp .= pdl([5, 6]);    # Note .= !!
-   	    perldl> p $a
+            perldl> p $a
                [0 5 6 3 4]
-   	  
+          
 
 This can also be made into one expression, which is often
 seen in PDL code:
 
-   	    perldl> ($tmp = $a->slice('1:2')) .= pdl([5,6])
-   	    perldl> p $a
+            perldl> ($tmp = $a->slice('1:2')) .= pdl([5,6])
+            perldl> p $a
                [0 5 6 3 4]
-   	  
+          
 
 In Perl 5.6 this assignment can be simplified using lvalue
 subroutines, and this is now incorporated into PDL by 
@@ -890,7 +886,7 @@ requiring at least Perl 5.6.
 
 
 
-=head2 Q: 6.10    Can I use a piddle in a conditional expression?  
+=head2 Q: 6.10   Can I use a piddle in a conditional expression?  
   
 
 Yes you can, but not in the way you probably tried first. It
@@ -907,13 +903,13 @@ all elements in a piddle fulfils some criterion:
    
    perldl> print '$a is not positive definite' unless (all $a > 0);
    $a is not positive definite
-   	  
+          
 
 
 
 
 
-=head2 Q: 6.11    Logical operators and piddles -  '||' and ' & & ' doesn't work!  
+=head2 Q: 6.11   Logical operators and piddles -  '||' and ' & & ' doesn't work!  
   
 
 It is a common problem that you try to make a mask array or something 
@@ -941,7 +937,7 @@ which works correctly.
 =head1 ADVANCED TOPICS
 
 
-=head2 Q: 6.12    What is a null pdl ?  
+=head2 Q: 6.12   What is a null pdl ?  
   
 
 C< null> is a special token for 'empty piddle'. A null pdl 
@@ -966,7 +962,7 @@ which is equivalent to
        
 
 If this seems still a bit murky check 
-L<PDL::Indexing|PDL:Indexing> and 
+L<PDL::Indexing|PDL::Indexing> and 
 L<PDL::PP|PDL::PP> for details about calling
 conventions, the I< signature> and 
 I< threading> (see also below).
@@ -974,7 +970,7 @@ I< threading> (see also below).
 
 
 
-=head2 Q: 6.13    What is the signature of a PDL function ?  
+=head2 Q: 6.13   What is the signature of a PDL function ?  
   
 
 The I< signature> of a function is an important concept in PDL.
@@ -999,7 +995,7 @@ L<PDL::Indexing|PDL::Indexing> and L<PDL::PP|PDL::PP> .
 
 
 
-=head2 Q: 6.14    How can I subclass (inherit from) piddles?  
+=head2 Q: 6.14   How can I subclass (inherit from) piddles?  
   
 
 The short answer is: read 
@@ -1039,7 +1035,7 @@ t/subclass.t in the PDL distribution.
 
 
 
-=head2 Q: 6.15    What on earth is this dataflow stuff ?  
+=head2 Q: 6.15   What on earth is this dataflow stuff ?  
   
 
 Dataflow is an experimental project that you don't need to concern
@@ -1052,7 +1048,7 @@ at work behind the scenes).
 
 
 
-=head2 Q: 6.16    What is PDL::PP?  
+=head2 Q: 6.16   What is PDL::PP?  
   
 
 Simple answer: PDL::PP is both a glue between external
@@ -1071,7 +1067,7 @@ section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 
 
 
-=head2 Q: 6.17    What happens when I have several references to the same PDL object in different variables (cloning, etc?) ?  
+=head2 Q: 6.17   What happens when I have several references to the same PDL object in different variables (cloning, etc?) ?  
   
 
 Piddles behave like perl references in many respects. So when you say
@@ -1120,7 +1116,7 @@ inplace, assuming your routine can work inplace):
          $pdl->set(0,0);
          return $pdl;
          }
-   	
+        
 
 
 
@@ -1128,7 +1124,7 @@ inplace, assuming your routine can work inplace):
 =head1 MISCELLANEOUS
 
 
-=head2 Q: 6.18    What I/O formats are supported by PDL ?  
+=head2 Q: 6.18   What I/O formats are supported by PDL ?  
   
 
 The current versions of PDL already support quite a number of different
@@ -1185,7 +1181,7 @@ For further details consult the documentation in the individual modules.
 
 
 
-=head2 Q: 6.19    How can I stack a set of 2D arrays (images) into a 3D piddle?  
+=head2 Q: 6.19   How can I stack a set of 2D arrays (images) into a 3D piddle?  
   
 
 Assuming all arrays are of the same size and in some format recognised by
@@ -1207,7 +1203,7 @@ approriate slices of the 3D piddle C< $cube> .
 
 
 
-=head2 Q: 6.20    Where are testfiles for the graphics modules?  
+=head2 Q: 6.20   Where are testfiles for the graphics modules?  
   
 
 This answer applies mainly to PDL::Graphics::TriD (PDL's device
@@ -1235,7 +1231,7 @@ the C< demo> command within the perldl shell.
 
 
 
-=head2 Q: 6.21    What is TriD or PDL::TriD or PDL::Graphics::TriD?  
+=head2 Q: 6.21   What is TriD or PDL::TriD or PDL::Graphics::TriD?  
   
 
 Questions like this should be a thing of the past with the PDL
@@ -1259,7 +1255,9 @@ not with
 C< apropos> .
 
 
-=head2 Q: 6.22 PGPLOT does not write out PNG files.
+
+
+=head2 Q: 6.22   PGPLOT does not write out PNG files.
 
 
 There are a few sources of trouble with PGPLOT and PNG files. First,
@@ -1293,6 +1291,9 @@ assuming that there exist files such as /usr/lib/libpng.so.*,
 /usr/lib/libz.so.*. Then do the standard C<make;make test;make
 install;> sequence. Now you can write png files from PDL!
 
+
+
+
 =head1 EXTENSIONS OF PDL
 
 =head2 Q: 7.1    I am looking for a package to do XXX in PDL. Where shall I look for it?  
@@ -1302,12 +1303,12 @@ The first stop is again C< perldl> or the PDL documentation. There is
 already a lot of functionality in PDL which you might be aware of. 
 The easiest way to look for functionality is to use the C< apropos> command:
 
-   	  perldl> apropos 'integral'
-   	  ceil            Round to integral values in floating-point format
-   	  floor           Round to integral values in floating-point format
-   	  intover         Project via integral to N-1 dimensions
-   	  rint            Round to integral values in floating-point format
-   	
+          perldl> apropos 'integral'
+          ceil            Round to integral values in floating-point format
+          floor           Round to integral values in floating-point format
+          intover         Project via integral to N-1 dimensions
+          rint            Round to integral values in floating-point format
+        
 
 
 Since the apropos command is no sophisticated search engine make sure that 
@@ -1324,7 +1325,7 @@ also the next question.
 
 
 
-=head2 Q: 7.2   Can I access my C/Fortran library routines in  PDL?  
+=head2 Q: 7.2    Can I access my C/Fortran library routines in  PDL?  
    
 
 Yes, you can, in fact it is very simple for many simple
@@ -1353,7 +1354,7 @@ example here.
         } 
         return 1.0/sum;
    }
-   	  
+          
 
 We will here show you an example of how you interface C
 code with PDL. This is the first example and will show
@@ -1396,7 +1397,7 @@ C< eight.pd> .
    
    pp_def (
            'eight',
-   	Pars => 'int a(); double [o]b();',
+        Pars => 'int a(); double [o]b();',
            Code => '$b()=eight_sum($a());'
           );
    
@@ -1406,7 +1407,7 @@ C< eight.pd> .
    pp_done();
    
    
-   	  
+          
 
 A peculiarity with our example is that we have included
 the entire code with 
@@ -1480,7 +1481,7 @@ Makefile.
    WriteMakefile( %hash );
    
    sub MY::postamble {pdlpp_postamble($package)};
-   	  
+          
 
 The code above should go in a file called Makefile.PL,
 which should subsequently be called in  the standard
@@ -1538,23 +1539,23 @@ C< quickstats.pd> )
    
    #
    pp_def('quickstats',
-   	Pars => 'a(n); [o]avg(); [o]max(); [o]min()',
-   	Code => '$GENERIC(a) curmax, curmin;
-   	         $GENERIC(a) tmp=0;
+        Pars => 'a(n); [o]avg(); [o]max(); [o]min()',
+        Code => '$GENERIC(a) curmax, curmin;
+                 $GENERIC(a) tmp=0;
                     loop(n) %{
                       tmp += $a();
                       if (!n || $a() > curmax) { curmax = $a();}
                       if (!n || $a() < curmin) { curmin = $a();}
                     %}
                     $avg() = tmp/$SIZE(n);
-   	         $max() = curmax;
-   	         $min() = curmin;
+                 $max() = curmax;
+                 $min() = curmin;
                    '
-   	);
+        );
    
    pp_done();
    
-   	  
+          
 
 The above might look like a confusing mixture of C and
 Perl, but behind the peculiar syntax lies a very
@@ -1614,7 +1615,7 @@ an earlier question.
    WriteMakefile( %hash );
    
    sub MY::postamble {pdlpp_postamble($package)};
-   	  
+          
 
 An example Makefile.PL
 

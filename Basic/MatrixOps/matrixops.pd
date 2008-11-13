@@ -56,7 +56,7 @@ PDL::MatrixOps is PDL's built-in matrix manipulation code.  It
 contains utilities for many common matrix operations: inversion,
 determinant finding, eigenvalue/vector finding, singular value
 decomposition, etc.  PDL::MatrixOps routines are written in a mixture
-of Perl and C, so that they are reliably present even when there no
+of Perl and C, so that they are reliably present even when there is no
 FORTRAN compiler or external library available (e.g.
 L<PDL::Slatec|/PDL::Slatec> or L<PDL::GSL>).
 
@@ -121,11 +121,12 @@ every expression, explaining what you think each dimension means:
 
 =head1 ACKNOWLEDGEMENTS
 
-MatrixOps includes algorithms and pre-existing code from several origins.
-In particular, C<eigens_sym> is the work of Stephen Moshier, C<svd> 
-uses an SVD subroutine written by Bryant Marks, and C<eigens> uses a 
-subset of the Small Scientific Library by Kenneth Geisshirt.  All are
-free software, distributable under same terms as PDL itself. 
+MatrixOps includes algorithms and pre-existing code from several
+origins.  In particular, C<eigens_sym> is the work of Stephen Moshier,
+C<svd> uses an SVD subroutine written by Bryant Marks, and C<eigens>
+uses a subset of the Small Scientific Library by Kenneth Geisshirt.
+They are free software, distributable under same terms as PDL itself.
+
 
 =head1 NOTES
 
@@ -671,7 +672,18 @@ pp_def("eigens",
           return $e;  #just eigenvalues
       }
       else {
-          barf "eigens currently disabled for asymmatric matrices\n";
+          if($PDL::verbose || $PDL::debug) {
+   	    print "eigens: using the asymmetric case from SSL\n";
+	  }
+	  if( !$PDL::eigens_bug_ack && !$ENV{PDL_EIGENS_ACK} ) {
+	    print STDERR "WARNING: using sketchy algorithm for PDL::eigens asymmetric case -- you might\n".
+	          "    miss an eigenvector or two\nThis should be fixed in PDL v2.5 (due 2009), \n".
+		  "    or you might fix it yourself (hint hint).  You can shut off this warning\n".
+		  "    by setting the variable $PDL::eigens_bug_ack, or the environment variable\n".
+		  "    PDL_EIGENS_HACK prior to calling eigens() with a non-symmetric matrix.\n";
+		  $PDL::eigens_bug_ack = 1;
+	  }
+	  
           my $ev  = PDL->zeroes(2, $a->dims);
           my $e   = PDL->zeroes(2, $a->index(0)->dims);
 
@@ -691,30 +703,28 @@ Real eigenvalues and -vectors of a real square matrix.
 (See also L<"eigens_sym"|/eigens_sym>, for eigenvalues and -vectors
 of a real, symmetric, square matrix).
 
-PLEASE NOTE: THE EIGENS FUNCTION HAS BEEN DISABLED FOR ASYMMETRIC MATRICES
-PENDING FIX TO THE CODE.
-
-The eigens function will attempt to compute the eigenvalues and eigenvectors
-of a square matrix with real components.  If the matrix is symmetric, the
-same underlying code as L<"eigens_sym"|/eigens_sym> is used.  If asymmetric,
-the eigenvalues and eigenvectors are computed with algorithms from the
-sslib library (anyone know what algorithm is used?).  If any imaginary
-components exist in the eigenvalues, the results are currently considered
-to be invalid, and such eigenvalues are returned as "NaN"s.  This is true
-for eigenvectors also.  That is if there are imaginary components to any
-of the values in the eigenvector, the eigenvalue and corresponding eigenvectors
-are all set to "NaN".  Finally, if there are any repeated eigenvectors, they
-are replaced with all "NaN"s.
+The eigens function will attempt to compute the eigenvalues and
+eigenvectors of a square matrix with real components.  If the matrix
+is symmetric, the same underlying code as L<"eigens_sym"|/eigens_sym>
+is used.  If asymmetric, the eigenvalues and eigenvectors are computed
+with algorithms from the sslib library.  If any imaginary components
+exist in the eigenvalues, the results are currently considered to be
+invalid, and such eigenvalues are returned as "NaN"s.  This is true
+for eigenvectors also.  That is if there are imaginary components to
+any of the values in the eigenvector, the eigenvalue and corresponding
+eigenvectors are all set to "NaN".  Finally, if there are any repeated
+eigenvectors, they are replaced with all "NaN"s.
 
 Use of the eigens function on asymmetric matrices should be considered
-experimental!  For asymmetric matrices, nearly all observed matrices with real
-eigenvalues produce incorrect results, due to errors of the sslib algorithm.
-If your assymmetric matrix returns all NaNs, do not assume that the values
-are complex.  Also, problems with memory access is known in this library.
+experimental!  For asymmetric matrices, nearly all observed matrices
+with real eigenvalues produce incorrect results, due to errors of the
+sslib algorithm.  If your assymmetric matrix returns all NaNs, do not
+assume that the values are complex.  Also, problems with memory access
+is known in this library.
 
 Not all square matrices are diagonalizable.  If you feed in a
 non-diagonalizable matrix, then one or more of the eigenvectors will
-be set to NaN, along with the corresponding eigenvalues.  
+be set to NaN, along with the corresponding eigenvalues.
 
 C<eigens> is threadable, so you can solve 100 eigenproblems by 
 feeding in a 3x3x100 array. Both $ev and $e get extra dimensions accordingly.
@@ -903,7 +913,7 @@ sub lu_decomp {
 
   my $TINY = 1e-30;
 
-  barf('lu_decomp requires a square (2D) PDL\n')
+  barf("lu_decomp requires a square (2D) PDL\n")
     if(!UNIVERSAL::isa($in,'PDL') || 
        $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));
@@ -1061,7 +1071,7 @@ sub lu_decomp2 {
 
   my $TINY = 1e-30;
   
-  barf('lu_decomp2 requires a square (2D) PDL\n')
+  barf("lu_decomp2 requires a square (2D) PDL\n")
     if(!UNIVERSAL::isa($in,'PDL') || 
        $in->ndims < 2 || 
        $in->dim(0) != $in->dim(1));

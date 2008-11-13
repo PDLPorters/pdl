@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 26;
+use Test::More tests => 28;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -93,29 +93,44 @@ $b = pdl( long, $a );
 $c = pdl( long, [ 2, 0, 3, 4 ] )->reshape(2,2);
 ok all( $b == $c ), "undef converted to 0 (long)";
 
-$PDL::undefval = -999;
-$a = [ [ 2, undef ], [3, 4 ] ];
-$b = pdl( $a );
-$c = pdl( [ 2, -999, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to -999 (dbl)";
-
-$b = pdl( long, $a );
-$c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
-ok all( $b == $c ), "undef converted to -999 (long)";
+do { 
+    local($PDL::undefval) = -999;
+    $a = [ [ 2, undef ], [3, 4 ] ];
+    $b = pdl( $a );
+    $c = pdl( [ 2, -999, 3, 4 ] )->reshape(2,2);
+    ok all( $b == $c ), "undef converted to -999 (dbl)";
+    
+    $b = pdl( long, $a );
+    $c = pdl( long, [ 2, -999, 3, 4 ] )->reshape(2,2);
+    ok all( $b == $c ), "undef converted to -999 (long)";
+} while(0);
 
 ##############
 # Funky constructor cases
 
 # pdl of a pdl
 $a = pdl(pdl(5));
-ok all( $a== pdl(5));
+ok all( $a== pdl(5)), "pdl() can piddlify a piddle";
 
 # pdl of mixed-dim pdls: pad within a dimension
 $a = pdl( zeroes(5), ones(3) );
-ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0]));
+print "a=$a\n";
+ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifing two piddles catenates them and pads to length";
 
 # pdl of mixed-dim pdls: pad a whole dimension
 $a = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ]));
+ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles";
+print "a=$a\n";
 
+# pdl of mixed-dim pdls: a hairier case
+$c = pdl [1], pdl[2,3,4], pdl[5];
+ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case";
+
+# same thing, with undefval set differently
+do {
+    local($PDL::undefval) = 99;
+    $c = pdl [1], pdl[2,3,4], pdl[5];
+    ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding";
+} while(0);
+    
 # end

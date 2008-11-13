@@ -673,7 +673,7 @@ pp_defnd(
        GenericTypes => [F,D],
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_uniform((gsl_rng *) $COMP(rng));');
+$a() = gsl_rng_uniform(INT2PTR(gsl_rng *, $COMP(rng)));');
 
 pp_defnd(
        'gsl_get_uniform_pos_meat',
@@ -681,21 +681,21 @@ pp_defnd(
        GenericTypes => [F,D],
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_uniform_pos((gsl_rng *) $COMP(rng));');
+$a() = gsl_rng_uniform_pos(INT2PTR(gsl_rng *, $COMP(rng)));');
 
 pp_defnd(
        'gsl_get_meat',
        Pars => '[o]a()',
        OtherPars => 'IV rng',
        Code => '
-$a() = gsl_rng_get((gsl_rng *) $COMP(rng));');
+$a() = gsl_rng_get(INT2PTR(gsl_rng *, $COMP(rng)));');
 
 pp_defnd(
        'gsl_get_int_meat',
        Pars => '[o]a()',
        OtherPars => 'int n; IV rng',
        Code => '
-$a() = gsl_rng_uniform_int((gsl_rng *) $COMP(rng),$COMP(n));');
+$a() = gsl_rng_uniform_int(INT2PTR(gsl_rng *, $COMP(rng)),$COMP(n));');
 
 # randist stuff
 
@@ -730,7 +730,7 @@ sub add_randist {
 	 Pars => '[o]x()',
 	 OtherPars => $pars1,
 	 Code =>'
-$x() = gsl_ran_' . $name . '((gsl_rng *) $COMP(rng),' . $fcall1 . ');');
+$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
 
   pp_addpm('
 sub ran_' . $name . ' {
@@ -754,7 +754,7 @@ else {
 	 Pars => $pars2 . ';[o]x()',
 	 OtherPars => 'IV rng',
 	 Code =>'
-$x() = gsl_ran_' . $name . '((gsl_rng *) $COMP(rng),' . $fcall2 . ');');
+$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall2 . ');');
 
   pp_addpm('
 sub ran_' . $name . '_var {
@@ -769,7 +769,7 @@ my ($obj,@var) = @_;
 #	 Pars => '[o]x()',
 #	 OtherPars => $pars1,
 #	 Code =>'
-#$x() += gsl_ran_' . $name . '((gsl_rng *) $COMP(rng),' . $fcall1 . ');');
+#$x() += gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)),' . $fcall1 . ');');
 
 #  pp_addpm('
 #sub ran_' . $name . '_add {
@@ -790,7 +790,7 @@ my ($obj,@var) = @_;
 #	   Pars => '[o]x()',
 #	   OtherPars => 'IV rng',
 #	   Code =>'
-#$x() = gsl_ran_' . $name . '((gsl_rng *) $COMP(rng), $x());');
+#$x() = gsl_ran_' . $name . '(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
 
 #    pp_addpm('
 #sub ran_' . $name . '_feed {
@@ -844,7 +844,7 @@ pp_defnd(
        'ran_additive_gaussian_meat',
        Pars => ';[o]x()',
        OtherPars => 'double sigma; IV rng',
-       Code =>'$x() += gsl_ran_gaussian((gsl_rng *) $COMP(rng), $COMP(sigma));');
+       Code =>'$x() += gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
 
 pp_addpm('
        sub ran_additive_gaussian {
@@ -863,7 +863,7 @@ pp_defnd(
        'ran_additive_poisson_meat',
        Pars => ';[o]x()',
        OtherPars => 'double sigma; IV rng',
-       Code =>'$x() += gsl_ran_poisson((gsl_rng *) $COMP(rng), $COMP(sigma));');
+       Code =>'$x() += gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma));');
 
 pp_addpm('
        sub ran_additive_poisson {
@@ -882,7 +882,7 @@ pp_defnd(
        'ran_feed_poisson_meat',
        Pars => ';[o]x()',
        OtherPars => 'IV rng',
-       Code =>'$x() = gsl_ran_poisson((gsl_rng *) $COMP(rng), $x());');
+       Code =>'$x() = gsl_ran_poisson(INT2PTR(gsl_rng *, $COMP(rng)), $x());');
 
 pp_addpm('
        sub ran_feed_poisson {
@@ -903,7 +903,7 @@ pp_defnd(
 	OtherPars => 'double sigma_x; double sigma_y; double rho; IV rng',
         Code =>'
 double xx,yy;
-gsl_ran_bivariate_gaussian((gsl_rng *) $COMP(rng), $COMP(sigma_x), $COMP(sigma_y),$COMP(rho), &xx, &yy);
+gsl_ran_bivariate_gaussian(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(sigma_x), $COMP(sigma_y),$COMP(rho), &xx, &yy);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
 ');	
@@ -928,7 +928,7 @@ pp_defnd(
 	OtherPars => 'IV rng',
         Code =>'
 double xx,yy;
-gsl_ran_dir_2d((gsl_rng *) $COMP(rng), &xx, &yy);
+gsl_ran_dir_2d(INT2PTR(gsl_rng *, $COMP(rng)), &xx, &yy);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
 ');	
@@ -939,7 +939,7 @@ pp_defnd(
 	OtherPars => 'IV rng',
         Code =>'
 double xx,yy,zz;
-gsl_ran_dir_3d((gsl_rng *) $COMP(rng), &xx, &yy, &zz);
+gsl_ran_dir_3d(INT2PTR(gsl_rng *, $COMP(rng)), &xx, &yy, &zz);
 $x(n=>0)=xx;
 $x(n=>1)=yy;
 $x(n=>2)=zz;
@@ -953,7 +953,7 @@ pp_defnd(
 	OtherPars => 'int ns => n; IV rng',
         Code =>'
 double xxx[' . $MAX_DIMENSIONS .']; 
-gsl_ran_dir_nd((gsl_rng *) $COMP(rng), $COMP(ns), xxx);
+gsl_ran_dir_nd(INT2PTR(gsl_rng *, $COMP(rng)), $COMP(ns), xxx);
 loop (n) %{ $x() = xxx[n]; %}');	
 
 pp_addpm('
@@ -978,7 +978,7 @@ pp_defnd(
 	Pars => ';[o]x()',
 	OtherPars => 'IV rng_discrete; IV rng',
         Code =>'
-$x()=gsl_ran_discrete((gsl_rng *) $COMP(rng), (gsl_ran_discrete_t *) $COMP(rng_discrete)); ');	
+$x()=gsl_ran_discrete(INT2PTR(gsl_rng *, $COMP(rng)), INT2PTR(gsl_ran_discrete_t *, $COMP(rng_discrete))); ');	
 
   pp_addpm('
 sub ran_discrete {
@@ -1041,7 +1041,7 @@ pp_defnd(
 	Pars => ';[o]x(n)',
 	OtherPars => 'double m; int ns => n; IV rng',
         Code =>'
-double xx=gsl_ran_gaussian((gsl_rng *) $COMP(rng),0.1)+0.5;
+double xx=gsl_ran_gaussian(INT2PTR(gsl_rng *, $COMP(rng)),0.1)+0.5;
 
 loop (n) %{ $x() = (xx-0.5)*$COMP(m); xx = 4.0*(1-xx)*xx; %}');	
 
@@ -1175,7 +1175,7 @@ void
 DESTROY(sv)
   SV * sv
  CODE:
-  gsl_rng *rng = (gsl_rng *) SvIV((SV*)SvRV(sv));
+  gsl_rng *rng = INT2PTR(gsl_rng *, SvIV((SV*)SvRV(sv)));
   /* fprintf(stderr,"Freeing %d\n",rng); */
   gsl_rng_free((gsl_rng *) rng);
 

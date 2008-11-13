@@ -366,7 +366,7 @@ Extract selected chunks from a source piddle, with boundary conditions
 
 Returns elements or rectangular slices of the original piddle, indexed by 
 the C<$index> piddle.  C<$source> is an N-dimensional piddle, and C<$index> is 
-a piddle whose first dimension has order up to N.  Each row of C<$index> is 
+a piddle whose first dimension has size up to N.  Each row of C<$index> is 
 treated as coordinates of a single value or chunk from C<$source>, specifying 
 the location(s) to extract.  
 
@@ -377,11 +377,11 @@ B<INPUTS>
 
 C<$index> and C<$size> can be piddles or array refs such as you would
 feed to L<zeroes|PDL::Core/zeroes> and its ilk.  If C<$index>'s 0th dimension
-has order higher than the number of dimensions in C<$source>, then
+has size higher than the number of dimensions in C<$source>, then
 C<$source> is treated as though it had trivial dummy dimensions of
-order 1, up to the required size to be indexed by C<$index> -- so if
+size 1, up to the required size to be indexed by C<$index> -- so if
 your source array is 1-D and your index array is a list of 3-vectors, 
-you get two dummy dimensions of order 1 on the end of your source array.
+you get two dummy dimensions of size 1 on the end of your source array.
 
 You can extract single elements or N-D rectangular ranges from C<$source>,
 by setting C<$size>.  If C<$size> is undef or zero, then you get a single
@@ -556,16 +556,16 @@ doesn't get incremented twice.  (That may get fixed in a later version...)
 
 B<PERMISSIVE RANGING>: If C<$index> has too many dimensions compared
 to C<$source>, then $source is treated as though it had dummy
-dimensions of order 1, up to the required number of dimensions.  These
+dimensions of size 1, up to the required number of dimensions.  These
 virtual dummy dimensions have the usual boundary conditions applied to
 them.  
 
-If the 0 dimension of C<$index> is ludicrously large (if its order is
+If the 0 dimension of C<$index> is ludicrously large (if its size is
 more than 5 greater than the number of dims in the source PDL) then
 range will insist that you specify a size in every dimension, to make
 sure that you know what you're doing.  That catches a common error with
-range usage: confusing the initial dim (usually of low order) with another
-index dim (perhaps of order 1000).
+range usage: confusing the initial dim (which is usually small) with another
+index dim (perhaps of size 1000).
 
 B<EFFICIENCY>: Because C<range> isn't an affine transformation (it
 involves lookup into a list of N-D indices), it is somewhat
@@ -627,7 +627,7 @@ EOD
 # bsize: Number of independently specified boundary conditions
 # nsizes: Number of independently specified range dim sizes
 # boundary: Array containing all the boundary condition specs
-# indord: Order of the indexing dim (0th dim of $index)
+# indord: Order/size of the indexing dim (0th dim of $index)
 
 	Comp => 'PDL_Long rdim;
                  PDL_Long nitems;
@@ -771,16 +771,24 @@ switch(ind_pdl->datatype) {
       $COMP(nsizes) = size_pdl->nvals; /* Store for later permissiveness check */
 
       /* Copy the sizes, or die if they're the wrong shape */
-      if(size_pdl->nvals == 1) 
+      if(size_pdl->nvals == 1) {
 	for(i=0;i<$COMP(rdim);i++) 
 	  $COMP(sizes[i]) = *((PDL_Long *)(size_pdl->data));
-
-      else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) 
-	for(i=0;i<$COMP(rdim);i++)
+	
+	if($COMP(sizes[0]) < 0) {
+	$CROAK("  Negative range size is not allowed in range\n");
+        }
+      }
+      else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
+	for(i=0;i<$COMP(rdim);i++) {
 	  $COMP(sizes[i]) = ( 	(i < size_pdl->nvals) ? 
 	                    	((PDL_Long *)(size_pdl->data))[i] :
 		                0
 			    );
+	  if($COMP(sizes[i]) < 0) 
+		$CROAK("  Negative range sizes are not allowed in range\n");
+        }
+      }
       else {
 	$CROAK(" Size must match index's 0th dim in range\n");
       }

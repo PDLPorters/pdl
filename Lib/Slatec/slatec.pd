@@ -200,9 +200,44 @@ C<detslatec> computes the determinant of an invertible matrix and barfs if
 the matrix argument provided is non-invertible. The matrix threads as usual.
 
 This routine was previously known as C<det> which clashes now with
-L<det:PDL::MatrixOps/det> which is provided by
-L<PDL::MatrixOps|PDL::MatrixOps>. For the moment L<PDL::Slatec> will
-also load L<PDL::MatrixOps> thereby making sure that older scripts work.
+L<det|PDL::MatrixOps/det> which is provided by
+L<PDL::MatrixOps|PDL::MatrixOps>. For the moment
+L<PDL::Slatec|PDL::Slatec> will also load
+L<PDL::MatrixOps|PDL::MatrixOps> thereby making sure that older
+scripts work.
+
+=head2 PDL::Slatec::fft
+
+=for ref
+
+Fast Fourier Transform
+
+=for example
+
+  $v_in = pdl(1,0,1,0);
+  ($azero,$a,$b) = PDL::Slatec::fft($v_in);
+
+C<PDL::Slatec::fft> is a convenience wrapper for L<ezfftf|ezfftf>, and
+performs a Fast Fourier Transform on an input vector C<$v_in>. The
+return values are the same as for L<ezfftf|ezfftf>.
+
+=head2 PDL::Slatec::rfft
+
+=for ref
+
+reverse Fast Fourier Transform
+
+=for example
+
+  $v_out = PDL::Slatec::rfft($azero,$a,$b);
+  print $v_in, $vout
+  [1 0 1 0] [1 0 1 0]
+
+C<PDL::Slatec::rfft> is a convenience wrapper for L<ezfftb|ezfftb>,
+and performs a reverse Fast Fourier Transform. The input is the same
+as the output of L<PDL::Slatec::fft|/PDL::Slatec::fft>, and the output
+of C<rfft> is a data vector, similar to what is input into
+L<PDL::Slatec::fft|/PDL::Slatec::fft>.
 
 =cut
 
@@ -429,7 +464,7 @@ void slatecbarf$uscore() {
 
 |);
 
-pp_add_exported('',"eigsys matinv fft fftb polyfit polycoef polyvalue");
+pp_add_exported('',"eigsys matinv polyfit polycoef polyvalue");
 
 pp_addpm(<<'END');
 
@@ -499,8 +534,7 @@ sub prepfft {
 	return $tmp;
 }
 
-*fft = \&PDL::fft;
-sub PDL::fft (;@) {
+sub fft (;@) {
 	my($v) = @_;
 	my $ws = prepfft($v->getdim(0));
 	ezfftf($v,(my $az = PDL->null), (my $a = PDL->null),

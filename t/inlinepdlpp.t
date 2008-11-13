@@ -5,24 +5,30 @@ use blib;  # otherwise possible error on virgin systems not finding PDL::Core
 use PDL::LiteF;
 
 BEGIN {
-    # clean out the _Inline directory on every test
-    # (may be OTT but ensures that we're always testing the latest code)
-    #
-    require File::Path;
-    File::Path::rmtree (["_Inline"], 0, 0);
+   # clean out the _Inline directory on every test
+   # (may be OTT but ensures that we're always testing the latest code)
+   #
+   # require File::Path;
+   # File::Path::rmtree (["_Inline", ".Inline"], 0, 0);
 
-    eval 'use Inline 0.43';
-    unless ($@) {
-	plan tests => 3;
-    } else {
-	plan skip_all => "Skipped: Inline not installed";
-    }
+   # Test for Inline and set options
+   my $inline_test_dir = './.inlinepdlpp';
+   mkdir $inline_test_dir unless -d $inline_test_dir;
+   eval 'use Inline (Config => DIRECTORY => $inline_test_dir , FORCE_BUILD => 1)';
+   if ( ! $@ ) {       # have Inline
+      eval 'use Inline 0.43';
+      if ( ! $@ ) {
+         plan tests => 3;
+      }
+   }
+   else {
+      plan skip_all => "Skipped: Inline not installed";
+   }
 }
 
 sub shape { join ',', $_[0]->dims }
 
 # use Inline 'INFO'; # use to generate lots of info
-# use Inline;
 use Inline 'Pdlpp';
 
 print "Inline Version: $Inline::VERSION\n";

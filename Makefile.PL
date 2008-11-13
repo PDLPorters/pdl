@@ -1,5 +1,7 @@
 # Build the whole PDL distribtuion
 
+use 5.006;      # explicitly require 5.6.x or above
+
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
 use Config;
@@ -48,16 +50,15 @@ EOM
     $dot-- if(@INC[-1] eq '.');
     if($dot) {
 	$INC = join(":",@INC);
-	die << "EOM"
+	warn << "EOM"
 
 **********************************************************************
-BUGGY \@INC DETECTED.  BUILD TERMINATED.
 Your Perl \@INC path is:
 
 $INC
 
 That seems to include the directory '.' before the last entry in the
-path.  Configurations like that are arguably broken, because they
+path.  Configurations like that might be broken, because they may
 prevent strict division of hierarchy in the module name space.
 In particular, adding a module Foo::Bar::Baz can cause trouble
 if Baz exists in the top level elsewhere, and if you run from the 
@@ -66,8 +67,7 @@ Foo/Bar directory.
 This happens with the PDL::Config and some other modules.  You may
 not be able to build PDL with this \@INC setup.  
 
-You can fix your \@INC, or you can try to build anyway.  To build anyway,
-set the environment variable PDL_INC_OK to a true value and re-run.
+If you strike trouble, you may need to fix your \@INC.
 **********************************************************************
 
 
@@ -103,6 +103,14 @@ sub getpdl_config {
   # First read in distribution config file
   #
   require './perldl.conf';
+
+  # Add BAD_VAL tests if CPAN testers
+  #
+  if ($ENV{AUTOMATED_TESTING} == 1) {
+     print "Automated testing environment: enabling WITH_BADVAL and BADVAL_PER_PDL config options\n";
+     $PDL_CONFIG{WITH_BADVAL}    = 1;
+     $PDL_CONFIG{BADVAL_PER_PDL} = 1;
+  }
 
   # Save standard values
   #
@@ -148,15 +156,10 @@ EOD
   # an amalgam of the different choices that have been used within PDL
   # up to (and including) v2.4.1
   #
-  require File::Spec;
-  my $fs = 'File::Spec';
-  my $cdir = sub { return $fs->catdir(@_)};
-  my $td = $^O =~ /MSWin/ ? 'TEMP' : 'tmp';
-  my $tempd = defined $ENV{TEMP} ? $ENV{TEMP} :
-    defined $ENV{TMP} ? $ENV{TMP} :
-      &$cdir($fs->rootdir,$td);
 
-  $PDL_CONFIG{TEMPDIR} = $tempd
+  require File::Spec;
+  
+  $PDL_CONFIG{TEMPDIR} = $^O =~ /MSWin32/i ? 'File::Spec->tmpdir()' : File::Spec->tmpdir()
     unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
   # set up the default MALLOCDBG information (if not specified by the user)
@@ -314,11 +317,13 @@ sub make_PDL_Config_pm {
 # DO NOT HAND-EDIT - CHANGES WILL BE LOST UPON YOUR NEXT
 #  'perl Makefile.PL'!!!
 package PDL;
+use File::Spec;
 \%PDL::Config = (\n";
   for(keys %PDL::Config) {
     $fh->print( "\t$_\t=>\t" );
     if(defined $PDL::Config{$_}) {
-      $fh->print( myformat($PDL::Config{$_}) );
+      if($PDL::Config{$_} eq 'File::Spec->tmpdir()') {$fh->print( $PDL::Config{$_} )}
+      else {$fh->print( myformat($PDL::Config{$_}) )}
     } else {
       $fh->print( "undef" );
     }
@@ -409,19 +414,13 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Text::Balanced'      => 0, # for PDL::NiceSlice
 	   'Inline'              => 0.43,
 	  );
- push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
+# push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
-   if($^O =~ /cygwin/) {
-      unshift @exe_files, 'pdl.exe';
-      $cleanup = 'pdl.exe pdl.c ' . $cleanup;
-   } else {
-      unshift @exe_files, 'pdl';
-      $cleanup = 'pdl pdl.c ' . $cleanup;
-   }
+      $cleanup = 'pdl.c ' . $cleanup;
 }
 
 
@@ -435,12 +434,12 @@ if($Config{archname}=~m/x86_64/) {
     $ccflags .= " -fPIC";
 }
 
-WriteMakefile(
+%makefile_hash = (
 	      'PREREQ_PM' => { @prereq },
 	      'NAME' => 'PDL',
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
-	      'PM' => { @podpms }, # so that the script docs are picked up
+	      'PM' => { @podpms }, #so that the script docs are picked up
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
 	      'MAN3PODS' => {}, # don't pick up the script pods again
@@ -463,7 +462,36 @@ WriteMakefile(
 				 ) : (),
 
 	      %notestsifmodulesmissing,
-	      );
+    );
+
+=begin comment
+
+print "makefile hash is:\n";
+for $k(sort keys %makefile_hash) {
+    print "\t$k\t";
+    $v = $makefile_hash{$k};
+    unless(ref $v) {
+	print $v,"\n";
+    } elsif(ref $v eq 'HASH') {
+	print "HASH:\n";
+	for $vk(sort keys %$v) {
+	    print "\t\t$vk\t$v->{$vk}\n";
+	}
+    } elsif(ref $v eq 'ARRAY') {
+	print "ARRAY:\n";
+	for $vv(@$v) {
+	    print "\t\t$vv\n";
+	}
+    } else {print "$v\n";}
+
+}
+
+=end comment
+
+=cut
+
+
+WriteMakefile(%makefile_hash);
 
 
 # do *after* WriteMakefile since some options
@@ -546,69 +574,58 @@ return $text
 
 }
 
+##############################
+# processPL: generate Makefile lines for top-level components that are created by just perling a .PL file.
+# This currently (28-October) includes pdl, pdldoc, and perldl.
+# 
+# Nomininally MakeMaker is supposed to just handle this, but seems to create circular dependencies when 
+# left to its own devices. (CED 28-Oct-2008)
+
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
-    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
-    my($self) = shift;
-    return "" unless $self->{PL_FILES};
-    my(@m, $plfile);
-    foreach $plfile (sort keys %{$self->{PL_FILES}}) {
-        my $list = ref($self->{PL_FILES}->{$plfile})
-                ? $self->{PL_FILES}->{$plfile}
-                : [$self->{PL_FILES}->{$plfile}];
-        my $target;
-        if($Config{make} eq 'dmake') {
-          foreach $target (@$list) {
-          push @m, "
+    ### This fix seems necessary with current versions of MM - otherwise it creates circular
+    ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
+    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+	my($self) = shift;
+	return "" unless $self->{PL_FILES};
+	my(@m, $plfile);
+	foreach $plfile (sort keys %{$self->{PL_FILES}}) {
+	    my $list = ref($self->{PL_FILES}->{$plfile})
+                         ?  $self->{PL_FILES}->{$plfile}
+	                 : [$self->{PL_FILES}->{$plfile}];
+	    my $target;
+	    if($Config{make} eq 'dmake') {
+		foreach $target (@$list) {
+		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target :
 	\$(PERLRUNINST) $plfile $target
 ";
-          } # close foreach
-        }
-        else {
-          foreach $target (@$list) {
-          push @m, "
+		} # close foreach
+	    }
+	    else {
+		foreach $target (@$list) {
+		    push @m, "
 all :: $target
 	\$(NOECHO) \$(NOOP)
 
 $target ::
 	\$(PERLRUNINST) $plfile $target
 ";
-          } # close foreach
-        }  
-    }
-    join "", @m;
-    }
-   else {
-    package MY;
-    my $self = shift;
-    return $self->SUPER::processPL;
-    }
-}
-
-
-sub MY::test {
-        package MY; # so that "SUPER" works right
-        my $inherited = shift->SUPER::test(@_);
-	my @lines = split "\n", $inherited;
-	my @new = ();
-	my $pass = 1;
-	foreach (@lines) {
-		if ($pass) {
-			push @new, $_;
-			$pass = 0 if /^test\b/;
-		} else {
-			if (/^\s*$/) {
-				push @new, '';
-				$pass = 1;
-			}
-		}
+		} # close foreach
+	    }  
 	}
-	return join("\n", @new,"\n");
+	return join "", @m;
+    }
+    else {
+	package MY;
+	my $self = shift;
+	return $self->SUPER::processPL;
+    }
 }
+
 
 # warn if vital modules are missing
 END {

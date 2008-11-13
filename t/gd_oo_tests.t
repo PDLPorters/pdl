@@ -20,7 +20,7 @@ BEGIN
     }  
     else
     {
-        plan tests => 18;
+        plan tests => 27;
     }
 }
 
@@ -152,6 +152,68 @@ ok( 1 );
 # Write the output file:
 $im->write_Png( $testfile2 );
 ok( 1 );
+$im->DESTROY(); $im = undef;
+
+#
+# New tests on object creation:
+#
+
+# TEST 19:
+# Create from a 2d PDL without a LUT:
+my $pic = sequence(100, 100);
+$im = PDL::IO::GD->new({ pdl => $pic });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 20:
+# Create from a 2d PDL and a LUT:
+$im = PDL::IO::GD->new({ pdl => $pic, lut => $lut });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 21:
+# Create from a RGB PDL:
+my $pic3d = $pic->dummy(3,3);
+$im = PDL::IO::GD->new({ pdl => $pic3d });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 22:
+# Create an RGB from scratch:
+$im = PDL::IO::GD->new({ x => 100, y => 100, true_color => 1 });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 23-24:
+# Create from a 2d PNG data glob:
+my $rc = open( TF1, $testfile1 );
+ok( $rc );
+binmode( TF1 );
+$/ = undef;
+my $blob = <TF1>;
+close( TF1 );
+$im = PDL::IO::GD->new({ data => $blob });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 25:
+# Create from a 2d PNG data glob, with the type given:
+$im = PDL::IO::GD->new({ data => $blob, type => 'png' });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
+# TEST 26-27:
+# Create from a 3d PNG data glob:
+$rc = open( TF3, $testfile3 );
+ok( $rc );
+binmode( TF3 );
+$/ = undef;
+my $blob3d = <TF3>;
+close( TF3 );
+$im = PDL::IO::GD->new({ data => $blob3d });
+ok( defined( $im ) );
+$im->DESTROY(); $im = undef;
+
 
 # Remove our test files:
 #

@@ -828,11 +828,12 @@ sub new {
   my $class = shift;
   my $vp = shift;
   no strict 'refs';
-  my $self = bless [ \%{"$class\::FIELDS"}], $class;
+  my $self = fields::new($class);
   $self->{X} = -1;
   $self->{Y} = -1;
   $self->{Buttons} = [];
   $self->{VP} = $vp;
+
   $self;
 }
 

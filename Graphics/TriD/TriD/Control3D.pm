@@ -19,11 +19,10 @@ use fields qw/WOrigin WRotation CDistance CRotation/;
 sub new{
   my ($class) = @_;
   
-  no strict 'refs';
-  my $self = bless [ \%{"$class\::FIELDS"}], $class;
+  my $self = fields::new($class);
   $self->reset();
 
-  return $self;
+  $self;
 }
 
 sub normalize { my($this) = @_;

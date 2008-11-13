@@ -26,6 +26,7 @@ reasonable looking gaussians and tests show correct parameters.
 
 =head1 SYNOPSIS
 
+        use PDL;
         use PDL::Fit::Gaussian;
         ($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
         ($pk, $fwhm, $back, $err, $fit) = fitgauss1dr($r, $data);
@@ -40,11 +41,11 @@ Fit 1D Gassian to data piddle
 
 =for example
 
-($cen, $pk, $fwhm2, $back, $err, $fit) = fitgauss1d($x, $data);
+($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
 
 =for usage
 
-($cen, $pk, $fwhm2, $back, $err, $fit) = fitgauss1d($x, $data);
+($cen, $pk, $fwhm, $back, $err, $fit) = fitgauss1d($x, $data);
 
 =for signature
 
@@ -52,7 +53,7 @@ xval(n); data(n); [o]xcentre();[o]peak_ht(); [o]fwhm();
 [o]background();int [o]err(); [o]datafit(n); 
 [t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
 
-Fit's a 1D Gaussian robustly free parameters are the centre, peak height,
+Fits a 1D Gaussian robustly free parameters are the centre, peak height,
 FWHM. The background is NOT fit, because I find this is generally
 unreliable, rather a median is determined in the 'outer' 10% of
 pixels (i.e. those at the start/end of the data piddle). The initial
@@ -82,7 +83,7 @@ xval(n); data(n); [o]peak_ht(); [o]fwhm();
 [o]background();int [o]err(); [o]datafit(n); 
 [t]sig(n);  [t]xtmp(n); [t]ytmp(n); [t]yytmp(n); [t]rtmp(n);
 
-Fit's a 1D radial Gaussian robustly free parameters are the peak height,
+Fits a 1D radial Gaussian robustly free parameters are the peak height,
 FWHM. Centre is assumed to be X=0 (i.e. start of piddle).
 The background is NOT fit, because I find this is generally
 unreliable, rather a median is determined in the 'outer' 10% of

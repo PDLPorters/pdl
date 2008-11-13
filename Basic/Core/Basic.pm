@@ -50,12 +50,21 @@ use PDL::Options;
 
 =for ref
 
-Fills a piddle with X index values
+Fills a piddle with X index values.  Uses similar specifications to
+L<zeroes|zeroes> and L<new_from_specification|new_from_specification>.
+
+CAVEAT: 
+
+If you use the single argument piddle form (top row
+in the usage table) the output will have the same type as the input;
+this may give surprising results if, e.g., you have a byte array with
+a dimension of size greater than 256.  To force a type, use the third form.
 
 =for usage
 
  $x = xvals($somearray);
  $x = xvals([OPTIONAL TYPE],$nx,$ny,$nz...);
+ $x = xvals([OPTIONAL TYPE], $somarray->dims);
 
 etc. see L<zeroes|PDL::Core/zeroes>.
 
@@ -79,7 +88,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Y index values
+Fills a piddle with Y index values.  See the CAVEAT for L<xvals|xvals>.
 
 =for usage
 
@@ -108,7 +117,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for ref
 
-Fills a piddle with Z index values
+Fills a piddle with Z index values.  See the CAVEAT for L<xvals|xvals>.
 
 =for usage
 
@@ -286,6 +295,22 @@ sub PDL::zlogvals {
 }
 
 
+=head2 allaxisvals
+
+=for ref
+
+Synonym for L<ndcoords|ndcoords> - enumerates all coordinates in a
+PDL or dim list, adding an extra dim on the front to accomodate
+the vector coordinate index (the form expected by L<indexND|indexND>,
+L<range|range>, and L<interpND|interpND>).  See L<ndcoords|ndcoords> for more detail.
+
+=for usage
+
+$indices = allaxisvals($pdl);
+$indices = allaxisvals(@dimlist);
+$indices = allaxisvals($type,@dimlist);
+
+=cut
 
 =head2 ndcoords
 
@@ -293,18 +318,24 @@ sub PDL::zlogvals {
 
 Enumerate pixel coordinates for an N-D piddle
 
+Returns an enumerated list of coordinates suitable for use in
+L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: you feed
+in a dimension list and get out a piddle whose 0th dimension runs over
+dimension index and whose 1st through Nth dimensions are the
+dimensions given in the input.  If you feed in a piddle instead of a
+perl list, then the dimension list is used, as in L<xvals|xvals> etc.
+
+As with L<xvals|xvals> etc., if you supply a piddle input, you get 
+out a piddle of the same type.  This could yield surprising results
+if you feed in (e.g.) a byte array with a dimension of size greater
+than 256.  To force a type, you should always fall back on the 
+($type,@dimlist) form; see the example below.
+
 =for usage
 
-$indices = ndcoords($pdl)
-$indices = ndcoords(@dimlist)
-
-Returns an enumerated list of coordinates suitable for use in 
-L<indexND|PDL::Slices/indexND> or L<range|PDL::Slices/range>: 
-you feed in a dimension list
-and get out a piddle whose 0th dimension runs over dimension index
-and whose 1st through Nth dimensions are the dimensions given in the 
-input.  If you feed in a piddle instead of a perl list, then the 
-dimension list is used, as in L<xvals|xvals> etc.
+$indices = ndcoords($pdl);
+$indices = ndcoords(@dimlist);
+$indices = ndcoords($type,@dimlist);
 
 =for example
 
@@ -321,10 +352,18 @@ dimension list is used, as in L<xvals|xvals> etc.
     [2 1]
    ]
   ]
+  perldl> $a = zeroes(byte,2,3);        # $a is a 2x3 byte piddle
+  perldl> $b = ndcoords($a);            # $b inherits $a's type
+  perldl> $c = ndcoords(long,$a->dims); # $c is a long piddle, same dims as $b
+  perldl> help $b;
+  This variable is   Byte D [2,2,3]              P            0.01Kb
+  perldl> help $c;
+  This variable is   Long D [2,2,3]              P            0.05Kb
+
 
 =cut
 
-sub ndcoords { 
+sub PDL::ndcoords { 
   my $type;
   if(ref $_[0] eq 'PDL::Type') {
     $type = shift;
@@ -344,7 +383,10 @@ sub ndcoords {
 
   $out;
 }
-
+*ndcoords = \&PDL::ndcoords;
+*allaxisvals = \&PDL::ndcoords;
+*PDL::allaxisvals = \&PDL::ndcoords;
+ 
 =head2 hist
 
 =for ref
@@ -580,8 +622,12 @@ Fills a piddle with index values on Nth dimension
  $z = axisvals ($piddle, $nth);
 
 This is the routine, for which L<xvals|/xvals>, L<yvals|/yvals> etc
-are mere shorthands. C<axisvals> can be used to fill
-along any dimension.
+are mere shorthands. C<axisvals> can be used to fill along any dimension,
+using a parameter.
+
+See also L<allaxisvals|allaxisvals>, which generates all axis values 
+simultaneously in a form useful for L<range|range>, L<interpND|interpND>, 
+L<indexND|indexND>, etc.
 
 Note the 'from specification' style (see L<zeroes|PDL::Core/zeroes>) is
 not available here, for obvious reasons.
@@ -616,40 +662,6 @@ sub axisvals2 {
 	PDL::Primitive::axisvalues($bar);
 	return $dummy;
 }
-
-=head2 allaxisvals
-
-=for ref
-
-Generates a piddle with index values
-
-=for usage
-
- $z = allaxisvals ($piddle);
-
-C<allaxisvals> produces an array with axis values along each dimension,
-adding an extra dimension at the start.
-
-C<allaxisvals($piddle)-E<gt>slice("($nth)")> will produce the same result
-as C<axisvals($piddle,$nth)> (although with extra work and not inplace).
-
-It's useful when all the values will be required, as in the example
-given of a generalized L<rvals|/rvals>.
-
-=cut
-
-sub PDL::allaxisvals {
-	my($this) = @_;
-	my($dims) = $this->getndims;
-	my($dummy) = $this->dummy(0,$dims)->new;
-	my(@dums) = $dummy->mv(0,$dims)->dog;
-	foreach (0 .. $dims-1) {
-	  my $bar = $dums[$_]->xchg(0,$_);
-	  PDL::Primitive::axisvalues($bar);
-	}
-	return $dummy;
-}
-
 sub PDL::sec {
 	my($this,@coords) = @_;
 	my $i; my @maps;
@@ -699,9 +711,7 @@ transpose rows and columns.
 
 =for usage
 
- $b = transpose($a); $b = ~$a;
-
-Also bound to the C<~> unary operator in PDL::Matrix.
+ $b = transpose($a); 
 
 =for example
 
@@ -722,11 +732,14 @@ Also bound to the C<~> unary operator in PDL::Matrix.
 
 sub PDL::transpose {
 	my($this) = @_;
-	if($this->getndims == 1) {
-# 1-Dim: add dummy
+	if($this->getndims <= 1) {
+	    if($this->getndims==0) {
+		return pdl $this->dummy(0)->dummy(0);
+	    } else {
 		return pdl $this->dummy(0);
+	    }
 	}
-	return $this->xchg(0,1)->sever;
+	return $this->xchg(0,1);
 }
 
 1;

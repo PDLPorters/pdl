@@ -1,0 +1,4 @@
+# HG: the html doc is generated in the postinst maintainer script, so lintian
+#     just does not see it
+pdl: doc-base-file-references-missing-file pdl:12 /usr/share/doc/pdl/html/Index.html
+pdl: doc-base-file-references-missing-file pdl:13 /usr/share/doc/pdl/html/*.html

@@ -395,9 +395,17 @@ sub pdlpp_postamble_int {
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
 	my $core = "$w/Basic/Core";
 	my $gen = "$w/Basic/Gen";
+
+## I diked out a "$gen/pm_to_blib" dependency (between $core/badsupport.p and 
+# $core/Types.pm below), because it appears to be causing excessive recompiles.
+# I don't think that the .pm files themselves should depend on Gen/pm_to_blib, 
+# so this should be OK.  But perhaps the requirement had to do with the build chaing
+# itself???  If so, we'll have to put it back in, but then modify the build order
+# so that Gen is built first.  CED 28-Oct-2008
+
 qq|
 
-$pref.pm: $src $gen/pm_to_blib $core/badsupport.p $core/Types.pm
+$pref.pm: $src $core/badsupport.p $core/Types.pm
 	\$(PERL) -I$w/blib/lib -I$w/blib/arch \"-MPDL::PP qw/$mod $mod $pref/\" $src
 
 $pref.xs: $pref.pm
@@ -413,9 +421,6 @@ $pref\$(OBJ_EXT): $pref.c
 
 # This is the function to be used outside the PDL tree.
 sub pdlpp_postamble {
-      # This sub breaks dmake if called. Thankfully, so far, dmake has not needed this
-	# sub (even when it does get called) - so simply have it return nothing:
-	if($Config{make} eq 'dmake') {return ""}
 	join '',map { my($src,$pref,$mod) = @$_;
 	my $w = whereami_any();
 	$w =~ s%/((PDL)|(Basic))$%%;  # remove the trailing subdir
@@ -442,6 +447,7 @@ sub pdlpp_stdargs_int {
    $PDL::Config{MALLOCDBG}->{libs} : '';
  my $mallocinc = exists $PDL::Config{MALLOCDBG}->{include} ?
    $PDL::Config{MALLOCDBG}->{include} : '';
+my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
  return (
  	%::PDL_OPTIONS,
 	 'NAME'  	=> $mod,
@@ -451,7 +457,7 @@ sub pdlpp_stdargs_int {
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
 	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
-	 'LIBS'         => ["$libs $malloclib "],
+	 'LIBS'         => [$libsarg],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
@@ -650,8 +656,7 @@ sub trylink {
 
   my $tempd;
 
-  # Using dmake on Win32 requires special consideration.
-  if($Config{make} eq 'dmake') {$tempd = File::Spec->tmpdir()}
+  if($^O =~ /MSWin32/i) {$tempd = File::Spec->tmpdir()}
   else {
     $tempd = $PDL::Config{TEMPDIR} ||
     die "TEMPDIR not found in \%PDL::CONFIG";

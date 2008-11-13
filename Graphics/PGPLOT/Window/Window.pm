@@ -1417,7 +1417,7 @@ Turn on automatic logarithmic scaling in C<line> and C<points>
 Setting the argument to 1 turns on automatic log scaling and setting it to
 zero turns it off again. The function can be used in both the object
 oriented and standard interface. To learn more, see the documentation for
-L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window>.
+the L<axis option|axis>.
 
 =for example
 
@@ -5320,7 +5320,7 @@ PDL::thread_define('_tpoints(a(n);b(n);ind()), NOtherPars => 2',
 
 
       # Within each list element loop over runs of pen value
-      while($rl = $pn->at($run)) {  # assignment
+      while(($run<$pn->nelem) && ($rl = $pn->at($run))) {  # assignment
 	  my($pv);
 	  if($pv = $pval->at($run)) { # (assignment) Skip runs with pen value=0
 	      my $top = $pos+$rl;   $top-- if($top == $xx->dim(0));

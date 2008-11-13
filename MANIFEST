@@ -136,9 +136,12 @@ debian/copyright
 debian/dirs
 debian/docs
 debian/f77conf.pl
+debian/fix_man_encoding.sed
+debian/fix_man_name.sed
 debian/patches/00list
 debian/pdl.doc-base
 debian/pdl.install
+debian/pdl.lintian-overrides
 debian/pdl.menu
 debian/pdl.remove
 debian/perldl.conf
@@ -294,7 +297,6 @@ Graphics/TriD/OpenGL/examples/clip
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/README
-Graphics/TriD/OpenGL/test.pl
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/README
@@ -406,7 +408,6 @@ Lib/Fit/LM.pm
 Lib/Fit/Makefile.PL
 Lib/Fit/Polynomial.pm
 Lib/Func.pm
-Lib/Gaussian.pm
 Lib/GIS/Makefile.PL
 Lib/GIS/Proj/Makefile.PL
 Lib/GIS/Proj/Proj.pd
@@ -423,6 +424,9 @@ Lib/GSL/INTERP/gslerr.h
 Lib/GSL/INTERP/Makefile.PL
 Lib/GSL/INTERP/typemap
 Lib/GSL/Makefile.PL
+Lib/GSL/MROOT/FUNC.c
+Lib/GSL/MROOT/gsl_mroot.pd
+Lib/GSL/MROOT/Makefile.PL
 Lib/GSL/RNG/gsl_random.pd
 Lib/GSL/RNG/Makefile.PL
 Lib/GSL/RNG/README
@@ -502,6 +506,12 @@ Lib/Interpolate/Makefile.PL
 Lib/Interpolate/Slatec/Makefile.PL
 Lib/Interpolate/Slatec/Slatec.pm
 Lib/Makefile.PL
+Lib/Minuit/FCN.c
+Lib/Minuit/Makefile.PL
+Lib/Minuit/minuit.pd
+Lib/Minuit/minuitlib/futils.f
+Lib/Minuit/minuitlib/intracfalse.f
+Lib/Minuit/minuitlib/minuit.f
 Lib/Opt/Makefile.PL
 Lib/Opt/Simplex/Makefile.PL
 Lib/Opt/Simplex/Simplex.pm
@@ -675,6 +685,7 @@ t/gis_proj.t
 t/gsl_diff.t
 t/gsl_integ.t
 t/gsl_interp.t
+t/gsl_mroot.t
 t/gsl_rng.t
 t/gsl_sf.t
 t/hdf_sd.t
@@ -708,6 +719,7 @@ t/magic.t
 t/matmult.t
 t/matrix.t
 t/matrixops.t
+t/minuit.t
 t/misc.t
 t/ndf.t
 t/niceslice.t
@@ -718,6 +730,7 @@ t/ops.t
 t/pdlchar.t
 t/pgplot.t
 t/physical.t
+t/pic_16bit.t
 t/picnorgb.pl
 t/picnorgb.t
 t/picrgb.pl
@@ -746,7 +759,9 @@ t/subclass3.t
 t/subclass4.t
 t/thread.t
 t/thread_def.t
+t/transform.t
 t/trig.t
+t/ufunc.t
 t/vaffine.t
 t/xvals.t
 TestTools/Mem/foobar

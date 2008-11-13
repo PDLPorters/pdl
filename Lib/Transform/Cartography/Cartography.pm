@@ -532,7 +532,7 @@ sub clean_lines {
 	}
     }
 
-    my $pok = ($p != 0 & isfinite($p));
+    my $pok = (($p != 0) & isfinite($p));
     # Kludge to work around minmax bug (nans confuse it!)
     my($l0) = $l->((0));
     my($x0,$x1) = $l0->where(isfinite($l0) & $pok)->minmax;
@@ -1693,7 +1693,7 @@ sub t_albers  {
 	$out->((1)) .= asin( ( $o->{C} - ( $rho * $rho ) ) / (2 * $o->{n}) );
 
 	$out->((0)) .= $theta / $o->{n};
-	$out->((0))->where($out->((0))>$PI | $out->((0))<-$PI) .= $o->{bad};
+	$out->((0))->where(($out->((0))>$PI) | ($out->((0))<-$PI)) .= $o->{bad};
 
 	$out->(0:1) /= $o->{conv};
 
@@ -1824,11 +1824,11 @@ sub t_lambert {
 
 
 	$out->((0)) .= $theta / $o->{n};
-	$out->((0))->where($out->((0)) > $PI | $out->((0)) < -$PI) .= $o->{bad};
+	$out->((0))->where(($out->((0)) > $PI) | ($out->((0)) < -$PI)) .= $o->{bad};
 
 
 	$out->((1)) .= 2 * atan(($o->{F}/$rho)**(1.0/$o->{n})) - $PI/2;
-	$out->((1))->where($out->((1)) > $PI/2 | $out->((1)) < -$PI/2) .= $o->{bad};
+	$out->((1))->where(($out->((1)) > $PI/2) | ($out->((1)) < -$PI/2)) .= $o->{bad};
 
 	$out->(0:1) /= $o->{conv};
 
@@ -1981,7 +1981,7 @@ sub t_gnomonic {
 	$out->((0)) .= $k * $cph * sin($th);
 	$out->((1)) .= $k * sin($ph);
 
-	my $idx = whichND($k > $cl0  | ($k < 0) | (!isfinite($k)));
+	my $idx = whichND(($k > $cl0)  | ($k < 0) | (!isfinite($k)));
 	if($idx->nelem) {
 	  $out->((0))->range($idx) .= $o->{bad};
 	  $out->((1))->range($idx) .= $o->{bad};
@@ -2821,7 +2821,7 @@ sub t_perspective {
     $me->{inv} = sub {
 	my($d,$o) = @_;
 
-	my($out) = $d->is_inplace ? $d->copy : $d;
+	my($out) = $d->is_inplace ? $d : $d->copy;
 	$out->(0:1) *= $o->{tconv};
 
 	my $oyz = $out->(0:1) ;

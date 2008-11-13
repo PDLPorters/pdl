@@ -41,19 +41,23 @@ build-stamp: configure-stamp
 test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
-	$(MAKE) test
+	-$(MAKE) DISPLAY="" test
 	touch test-stamp
 
 clean: clean-patched unpatch
 clean-patched:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	rm -f build-stamp configure-stamp test-stamp
 
 	dh_clean 
 
 	# Add here commands to clean up after the build process.
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) distclean
+	rm -f t/callext.o t/callext.so Graphics/TriD/OpenGL/tmp*.h-out
+	mkdir -p debian/patches
+	-chmod a-x debian/patches/*
+
 
 install: build test
 	dh_testdir
@@ -63,7 +67,11 @@ install: build test
 
 	# Add here commands to install the package into debian/pdl.
 	$(MAKE) install PREFIX=$(CURDIR)/debian/pdl/usr
+	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Reduce.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_name.sed old.3pm > PDL\:\:Reduce.3pm ; rm old.3pm
+	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Func.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Func.3pm ; rm old.3pm
+	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Complex.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Complex.3pm ; rm old.3pm
 	cd debian/pdl; while read f ; do rm -f "$$f" ; done < ../pdl.remove
+	install -m 644 debian/pdl.lintian-overrides $(CURDIR)/debian/pdl/usr/share/lintian/overrides/pdl
 
 
 # Build architecture-independent files here.

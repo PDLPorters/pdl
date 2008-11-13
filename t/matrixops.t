@@ -16,7 +16,7 @@ sub near {
 	return ($dist <= $tol)->all;
 }
 
-BEGIN { plan tests => 22,
+BEGIN { plan tests => 28,
 }
 
 my $tol = 1e-14;
@@ -59,6 +59,25 @@ $identity = zeroes(3,3); $identity->diagonal(0,1)++;
 ok(defined $a1);
 ok(ref ($opt->{lu}->[0]) eq 'PDL');
 ok(near(matmult($a1,$a),$identity,$tol));
+
+
+### Check LU backsubstitution (bug #2023711 on sf.net)
+
+$a = pdl([[2,1],[1,2]]);
+eval '($lu,$perm,$par) = lu_decomp($a)';
+
+ok(!$@);                                 # ran OK
+ok($par==1);                             # parity is right
+ok(all($perm == pdl(0,1)));              # permutation is right
+
+$bb = pdl([1,0]);
+eval '$xx = lu_backsub($lu,$perm,$bb)';
+ok(!$@);                                 # ran OK
+my $xx_shape = pdl($xx->dims);
+my $bb_shape = pdl($bb->dims);
+ok(all($xx_shape == $bb_shape));        # check that soln and input have same shape
+ok(near($xx,pdl([2/3, -1/3]),$tol));     # LU = A (after depermutation)
+
 
 ### Check attempted inversion of a singular matrix
 $b2=undef; # avoid warning from compiler

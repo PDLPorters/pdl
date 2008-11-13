@@ -20,7 +20,7 @@
 
 C<PDL::Graphics::PGPLOT> is a convenience interface to the PGPLOT commands,
 implemented using the object oriented PGPLOT plotting package in
-L<PDL::Graphics::PGPLOT::Window>. See the documentation for that package
+L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window>. See the documentation for that package
 for in-depth information about the usage of these commands and the options
 they accept.
 
@@ -65,7 +65,7 @@ Device manipulation commands:
 =head1 FUNCTIONS
 
 The following is a list of the functions that are private to this package,
-for the other functions please read the L<PDL::Graphics::PGPLOT::Window>
+for the other functions please read the L<PDL::Graphics::PGPLOT::Window|PDL::Graphics::PGPLOT::Window>
 documentation.
 
 =head2 dev
@@ -88,7 +88,7 @@ C<focus_window> to select the window.
 The result of this command can be modified using options. The options
 recognised are the same as for C<new_window> - which primarily and in
 addition it is possible to set the default values for a window that are
-defined in L<PDL::PGPLOTOptions>, see this for details but see below for
+defined in L<PDL::Graphics::PGPLOTOptions|PDL::Graphics::PGPLOTOptions>, see this for details but see below for
 a synopsis.
 
 In addition C<dev> recognises the option C<NewWindow> which allows the
@@ -117,7 +117,7 @@ The width of the plot window in inches
 
 The axis colour to be used as default for plots in this window. In the same
 way it is possible to set the default character size (C<CharSize>) and axis
-and box styles. See L<PDL::Graphics::PGPLOTOptions> for details.
+and box styles. See L<PDL::Graphics::PGPLOTOptions|PDL::Graphics::PGPLOTOptions> for details.
 
 =item WindowName
 
@@ -224,10 +224,10 @@ Open a PGPLOT graphics device
 
   $win = new_window($dev, $nx, $ny, $opt);
 
-This function is identical to L<dev> except that it always creates a new
+This function is identical to L<dev|dev> except that it always creates a new
 window. This means that the user is required to close all windows
-explicitly using L<close_window>. All functionality is otherwise like C<dev>
-so see the documentation for L<dev> for details of use.
+explicitly using L<close_window|close_window>. All functionality is otherwise like C<dev>
+so see the documentation for L<dev|dev> for details of use.
 
 =cut
 
@@ -290,7 +290,7 @@ C<new_window>. It requires the id of the window to close. If C<$id> is
 left undefined, the currently focussed window is deleted and focus is
 transferred to the lowest numbered window in existence. If many windows
 have been created and deleted this might not be what you expect, so
-it is recommended to make an explicit call to L<focus_window> after
+it is recommended to make an explicit call to L<focus_window|focus_window> after
 any call to C<close_window>.
 
 =cut
@@ -426,7 +426,7 @@ Switch to another output window.
  Usage: focus_window($id);
 
 This command is used to switch output focus to another window created by
-L<dev> or L<new_window>. The window can be referred to either by its
+L<dev|dev> or L<new_window|new_window>. The window can be referred to either by its
 ID or by its name.
 
 =for example
@@ -458,7 +458,7 @@ sub focus_window {
 =for ref
 
 Return a list of ID numbers and names of the windows currently opened using
-L<dev> or C<new_window>.
+L<dev|dev> or L<new_window|new_window>.
 
 =for usage
 

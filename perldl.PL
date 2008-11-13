@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.33';
+$VERSION = '1.35';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -51,6 +51,7 @@ print "perlDL shell v$VERSION
 # Useful shell variables
 
 $PERLDL::ESCAPE = '#'; 		# Default shell escape
+$PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::PROMPT = "perldl> ";
@@ -132,6 +133,17 @@ while(defined($_ = shift @ARGV)) {
                    print ", sorry can't load module Tk\n";
                 }
 		next;
+        } elsif($_ eq "-glut") {
+		print "Using OpenGL for GLUT support";
+		eval "use OpenGL;";
+                if ($@ eq "") {
+                   print " v$OpenGL::VERSION\n"
+                      if defined $OpenGL::VERSION; # make -w happy
+                } else {
+                   print ", sorry can't load module OpenGL\n";
+                }
+                OpenGL::glutInit() unless OpenGL::done_glutInit();
+		next;
 	} elsif(/^-f(.*)/) {
 		my $file = $1;
 		if(0 == length $1) {
@@ -178,6 +190,8 @@ while(defined($_ = shift @ARGV)) {
       } else {
             print << 'EOP';
 Usage: perldl [options]
+  -glut       try to load OpenGL module (Enables
+              readline event-loop processing).
   -tk         try to load Tk module (Enables
               readline event-loop processing).
   -f <file>   execute file <file> before starting perldl
@@ -214,7 +228,7 @@ unless ($@) {
     return $ret;
   }
   my $preproc = sub { my ($txt) = @_;
-	  my $new = PDL::NiceSlice::perldlpp($txt);
+	  my $new = PDL::NiceSlice::perldlpp('main',$txt);
 	  print STDERR "processed $new\n" if report && $new ne $txt;
 	  return $new;
   };
@@ -238,6 +252,15 @@ print join(', ',@enabled)," enabled\n" if @enabled > 0;
 
 if ( $readlines ){
     $PERLDL::TERM = new Term::ReadLine 'perlDL', \*STDIN, \*STDOUT ;
+    if(defined &OpenGL::done_glutInit ) {
+    	# Attempt to use with FreeGLUT
+        if(${$PERLDL::TERM->Features}{glutRunning}) {
+		print "Using FreeGLUT event loop\n";
+		$PERLDL::TERM->glutRunning(1);
+	} else {
+		warn("Sorry, cannot use FreeGLUT with this version of ReadLine\n");
+	}
+    }
     if(defined &Tk::DoOneEvent) {
     	# Attempt to use with Tk
         if(${$PERLDL::TERM->Features}{tkRunning}) {
@@ -264,7 +287,7 @@ sub END {
     my @a= $PERLDL::TERM->GetHistory() if $PERLDL::TERM->can('GetHistory');
 
     $#a-- if $a[-1] =~ /^(q$|x$|\s*exit\b|\s*quit\b)/; # chop off the exit command
-    @a= @a[($#a-50)..($#a)] if $#a > 50 ;
+    @a= @a[($#a-$PERLDL::HISTFILESIZE)..($#a)] if $#a > $PERLDL::HISTFILESIZE ;
     if( open HIST, ">$HOME/.perldl_hist" ) {
 	print HIST join("\n",@a);
 	close HIST;
@@ -566,8 +589,6 @@ sub process_input {
 
  } 
   
-  $_ = $lines;
-
   # Execute the list of auto-code
   
   for my $c (@PERLDL::AUTO) {
@@ -575,40 +596,41 @@ sub process_input {
       warn $mess if $mess;
   }
   
-  if(!defined $_ || lc $_ eq 'q' || lc $_ eq 'x' || lc $_ eq 'quit') {exit};
-  next if /^\s*$/; # Blank line - do nothing
+  if(!defined $lines || lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'quit') {exit};
+  next if $lines =~/^\s*$/; # Blank line - do nothing
   
-  s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
-  s/^\s*\?\s*/help /; # Make lone '?' = 'help'
-  
-  if (/^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
-      @t = split;
-      foreach (@t) { s/^["']+//; s/['"]+$//; };
-      $t[1] = "'".$t[1]."'" if ($#t == 1 && !($t[1] =~ /^\$/));
-      $_ = join(' ',@t);
+  $lines =~ s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
+  $lines =~ s/^\s*\?\s*/help /;      # Make lone '?' = 'help'
+
+  if ( $lines =~ /^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
+      @t = split(/\s+/,$lines);
+      my $a;
+      foreach $a(@t) { $a=~s/^["']+//; $a=~s/['"]+$//; };
+      $t[1] = "'".$t[1]."'"  if ($#t == 1 && !($t[1] =~ /^\$/));
+      $lines = join(' ',@t);
   }
-  
-  if (substr($_,0,1) eq substr($PERLDL::ESCAPE,0,1) and
-      substr($_,0,2) ne '#!') {  # Allow escapes, avoid shebang
-      my @lines = split /\n/;
+
+  if (substr($lines,0,1) eq substr($PERLDL::ESCAPE,0,1) and
+      substr($lines,0,2) ne '#!') {  # Allow escapes, avoid shebang
+      my @lines = split /\n/, $lines;
       system(substr(shift @lines,1)); # Shell escape
-      $_ = join("\n",@lines);
+      $lines = join("\n",@lines);
       next;
   } else {
       # Send code to pre-processor filters if defined
       for my $filter (@PERLDL::PREPROCESS) {
-          $_ = $filter->($_);
+          $lines = $filter->($lines);
       }
 
       # honor the deprecated interface for now
       if (defined $PERLDL::PREPROCESS && 
 	  ref($PERLDL::PREPROCESS) eq 'CODE') {
           preproc_oldwarn() unless $preproc_warned;
-          $_ = &$PERLDL::PREPROCESS($_);
+          $lines = &$PERLDL::PREPROCESS($_);
       }
       
       startpage;
-      my $mess = eval_and_report($_);
+      my $mess = eval_and_report($lines);
       warn $mess if $mess;
       endpage;
   }
@@ -650,6 +672,7 @@ while(1) {
 
 sub eval_and_report {
   my $__code = shift; # Can be code ref or string
+
   $@ = ""; # clear $@ since we might not execute the eval below
 
 
@@ -707,9 +730,11 @@ perldl - Simple shell for PDL
 
 	Run a script:
 
-	        %> perldl - pdlscript 
-
+	        %> cat > pdlscript
 	        #!/usr/bin/pdl
+                print "Hello, world!\n";
+                ...
+
 
 =head1 DESCRIPTION
 
@@ -759,9 +784,10 @@ and be able to format and display it on demand.
 If you have the perl modules ReadLines and ReadKeys installed, then
 B<perldl> supports a history and line-editing mechanism using editing
 keys similar to L<emacs(1)>. The last 50 commands are always stored in
-the file F<.perldl_hist> in your home directory between sessions. The
-command C<l [number]> shows you the last C<number> commands you typed
-where C<number> defaults to 20.
+the file F<.perldl_hist> in your home directory between sessions.
+Set C<$PERLDL::HISTFILESIZE> to change the number of lines saved.
+The command C<l [number]> shows you the last C<number> commands you
+typed where C<number> defaults to 20.
 
 e.g.:
 
@@ -999,6 +1025,13 @@ $PERLDL::ESCAPE  - default value '#'
 Any line starting with this character is treated as a shell
 escape. The default value is chosen because it escapes the
 code from the standard perl interpreter.
+
+=item *
+
+$PERLDL::HISTFILESIZE  - default value 500
+
+This is the number of lines of perldl shell command history
+to keep.
 
 =item *
 

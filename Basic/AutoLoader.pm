@@ -135,6 +135,7 @@ push @PERLDL::AUTO, \&PDL::AutoLoader::reloader;
 
 sub AUTOLOAD {
     local @INC = @INC;
+    my @args = @_;
     $AUTOLOAD =~ /::([^:]*)$/;
     my $func = $1;
 
@@ -174,7 +175,8 @@ sub AUTOLOAD {
 	  }
 	  
 	  # Now go to the autoload function
-	  goto &$AUTOLOAD unless ($@ || !defined(&{$AUTOLOAD}));
+	  ##goto &$AUTOLOAD(@args) unless ($@ || !defined(&{$AUTOLOAD}));
+	  return &$AUTOLOAD(@args) unless ($@ || !defined(&{$AUTOLOAD}));
 
 	  die $s."\tWhile parsing file `$file':\n$@\n" if($@);
 	  die $s."\tFile `$file' doesn't \n\tdefine ${AUTOLOAD}().\n"
@@ -203,7 +205,7 @@ sub PDL::AutoLoader::autoloader_do {
     print "AutoLoader: NiceSlice enabled...\n" if($PDL::debug);
     
     if(open(AUTOLOAD_FILE,"<$file")) {
-      my($script) = &PDL::NiceSlice::perldlpp(join("",<AUTOLOAD_FILE>));
+      my($script) = &PDL::NiceSlice::perldlpp("PDL::NiceSlice", join("",<AUTOLOAD_FILE>));
       eval $script;
     }
   } else {
@@ -253,19 +255,31 @@ sub PDL::AutoLoader::expand_path {
     my @PDLLIB = @_;
     my @PDLLIB_EXPANDED;
     
-    print "Expanding directories from ".join(':',@PDLLIB)."...\n"
-	if($PDL::verbose);
+    print "AutoLoader: Expanding directories from ".join(':',@PDLLIB)."...\n"
+	if($PDL::debug);
     local $_;
     foreach $_(@PDLLIB) {
-	# Expand ~{name} and ~ conventions
-	s/^(\+?)~([a-zA-Z0-9]*)// && 
-	    ($_ = $1.((getpwnam($2 || getlogin))[7]).$_ );
+	# Expand ~{name} and ~ conventions.
+	if(s/^(\+?)\~(\+||[a-zA-Z0-9]*)//) {
+	    if($2 eq '+') {
+		# Expand shell '+' to CWD.
+		$_= $1 . ($ENV{'PWD'} || '.');
+	    } elsif(!$2) {
+		# No name mentioned -- use current user.
+		$_ = $1 . ( $ENV{'HOME'} ||((getpwnam($2 || getlogin || getpwuid($<)))[7])  )  . $_;
+	    } else {
+		# Name mentioned - try to get that user's home directory.
+		$_ = $1 . (getpwnam(getpwuid($<)))[7];
+	    }
+	}
 	
 	# If there's a leading '+', include all subdirs too.
 	push(@PDLLIB_EXPANDED,
 	     s/^\+// ? &PDL::AutoLoader::expand_dir($_) : $_
 	     );
     }
+
+    print "AutoLoader: returning ",join(",",@PDLLIB_EXPANDED),"\n" if($PDL::debug);
     @PDLLIB_EXPANDED;
 }
 

@@ -94,7 +94,7 @@ print OUT <<"!WITH!SUBS!";
 
 \@EXPORT_OK = qw( howbig threadids topdl nelem dims null
    $convertfuncs
-   convert inplace zeroes ones list listindices
+   convert inplace zeroes zeros ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
    dummy mslice approx flat sclr squeeze
    );
@@ -102,7 +102,7 @@ print OUT <<"!WITH!SUBS!";
 \%EXPORT_TAGS = (
    Func=>[qw/nelem dims null
     $convertfuncs
-    convert inplace zeroes ones list listindices
+    convert inplace zeroes zeros ones list listindices
     set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
     /],
@@ -1757,6 +1757,11 @@ conveniently.
 
 =head2 new_or_inplace
 
+=for usage
+
+    $a = new_or_inplace(shift());
+    $a = new_or_inplace(shift(),$preferred_type);
+
 =for ref
 
 Return back either the argument pdl or a copy of it depending on whether
@@ -1932,6 +1937,19 @@ sub PDL::zeroes {
     $pdl.=0;
     return $pdl;
 }
+
+# Create convenience aliases for zeroes
+
+=head2 zeros
+
+=for ref
+
+construct a zero filled piddle (see zeroes for usage)
+
+=cut
+
+*zeros = \&zeroes;
+*PDL::zeros = \&PDL::zeroes;
 
 =head2 ones
 
@@ -2487,7 +2505,7 @@ sub PDL::sclr {
 
 =for ref
 
-concatentate piddles to N+1 dimensional piddle
+concatenate piddles to N+1 dimensional piddle
 
 Takes a list of N piddles of same shape as argument,
 returns a single piddle of dimension N+1

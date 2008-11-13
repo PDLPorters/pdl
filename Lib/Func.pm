@@ -480,8 +480,8 @@ sub _get_value {
 
 =for usage
 
- my $nset = $obj->set( x = $newx, $y => $newy );
- my $nset = $obj->set( { x = $newx, $y => $newy } );
+ my $nset = $obj->set( x => $newx, $y => $newy );
+ my $nset = $obj->set( { x => $newx, $y => $newy } );
 
 =for ref
 

@@ -46,9 +46,11 @@ pp_addhdr('
 /* Note that this code causes some warning messages in the compile, because */
 /* the unsigned data types always fail the ((foo)<0) tests.  I believe that */
 /* gcc optimizes those tests away for those data types.  --CED 7-Aug-2002   */
+/* Resurrect the old MOD operator as the unsigned US_MOD to get around this. --DAL 27-Jun-2008 */
 
 #define MOD(X,N) (  ((N) == 0)   ?    0   :   (   (X) - (ABS(N))  *  ((int)((X)/(ABS(N))) + (   ( ((N) * ((int)((X)/(N)))) != (X) )   ?   ( ( ((N)<0) ? 1 : 0 )  +  ( (((X)<0) ? -1 : 0)))  :  0 ))))
 
+#define BU_MOD(X,N) ( (X)-(N)*((int)((X)/(N))) )
 #define SPACE(A,B)   ( ((A)<(B)) ? -1 : ((A)!=(B)) )
 #define ABS(A)       ( (A)>=0 ? (A) : -(A) )
 #define NOTHING
@@ -150,18 +152,38 @@ EOH
     # is this one to be used as a function or operator ?
     if ($isop) { $ovcall = "\$c = \$a $funcov \$b;    # overloaded use"; }
     else       { $ovcall = "\$c = $funcov \$a, \$b;    # overloaded use"; }
+
+
+#a little dance to avoid the MOD macro warnings for byte & ushort datatypes
+    my $codestr;
+    my $badcodestr;
+    if ($extra{unsigned}){
+    $codestr = << "ENDCODE";
+  types(BU) %{
+  \$c() = BU_$func(\$a(),\$b());
+  %}
+  types(SLFD) %{
+  \$c() = $func(\$a(),\$b());
+  %}
+ENDCODE
+} else { 
+   $codestr = "\$c() = $func(\$a(),\$b());";
+   }
+ delete $extra{unsigned}; #remove the key so it doesn't get added in pp_def.
+
+ $badcodestr = 'if ( $ISBAD(a()) || $ISBAD(b()) )
+	       $SETBAD(c());
+	       else {' . $codestr . " } \n";
+#end dance
+
     pp_def($name,
 	   HandleBad => 1,
 	   NoBadifNaN => 1,
 	   Pars => 'a(); b(); [o]c();',
 	   OtherPars => 'int swap',
 	   Inplace => [ 'a' ], # quick and dirty solution to get ->inplace do its job
-	   Code => 
-	   "\$c() = $func(\$a(),\$b());",
-	   BadCode =>
-	   'if ( $ISBAD(a()) || $ISBAD(b()) )
-	       $SETBAD(c());
-	    else' . "\n  \$c() = $func(\$a(),\$b());\n",
+	   Code => $codestr,
+	   BadCode => $badcodestr, 
 	   CopyBadStatusCode =>
 	   'if ( $BADFLAGCACHE() ) {
                if ( a == c && $ISPDLSTATEGOOD(a) ) {
@@ -291,8 +313,8 @@ ufunc('bitnot','~','unary bit negation',GenericTypes => $T);
 # some standard binary functions
 bifunc('power',['pow','op**'],1,'raise piddle C<$a> to the power C<b>',GenericTypes => [D]);
 bifunc('atan2','atan2',1,'elementwise C<atan2> of two piddles',GenericTypes => [D]);
-bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation');
-bifunc('spaceship',['SPACE','op<=>'],1,'elementwise C<~> operation');
+bifunc('modulo',['MOD','op%'],1,'elementwise C<modulo> operation',unsigned=>1);
+bifunc('spaceship',['SPACE','op<=>'],1,'elementwise "<=>" operation');
 
 # some standard unary functions
 ufunc('sqrt','sqrt','elementwise square root', Exception => '$a() < 0' );

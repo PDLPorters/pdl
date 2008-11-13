@@ -83,7 +83,6 @@ EODOC
 # Header files:
 #
 pp_addhdr(<<'EOHDR');
-
 #include "projects.h"
 #include "proj_api.h"
 #include <string.h>
@@ -591,8 +590,8 @@ load_projection_descriptions()
         struct PJ_LIST *lp;
         SV* scalar_val;
         RETVAL = newHV();
-        
-        for (lp = pj_list ; lp->id ; ++lp) 
+
+        for (lp = pj_get_list_ref() ; lp->id ; ++lp) 
         {
             scalar_val  = newSVpv( *lp->descr, 0 );
             hv_store( RETVAL, lp->id, strlen( lp->id ), scalar_val, 0 );

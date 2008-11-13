@@ -211,8 +211,7 @@ e.g.:
 
 Note: L<transpose()|PDL::Basic::transpose> 
 does what it says and is a convenient way
-to turn row vectors into column vectors. It is bound to
-the unary operator C<'~'> for convenience.
+to turn row vectors into column vectors.
 
 =head2 How to write a simple function
 

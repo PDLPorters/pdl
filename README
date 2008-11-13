@@ -78,6 +78,24 @@ help' for more about this) and 'demo' gives you some basic
 examples of what you can do.
 
 
+Bug Reports
+-----------
+
+You can check the existing PDL bugs on sourceforge at
+
+	http://sourceforge.net/tracker/?group_id=612&atid=100612
+
+The mailing list archives can be searched/read at
+
+	http://mailman.jach.hawaii.edu/pipermail/perldl/
+	http://mailman.jach.hawaii.edu/pipermail/pdl-porters/
+
+If you need to post a problem report, please use the sourceforge.net
+bug tracker system following the guidance in the BUGS file:
+
+	http://sourceforge.net/bugs/?group_id=612
+
+
 Notes
 -----
 

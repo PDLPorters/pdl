@@ -8,16 +8,26 @@
 
 #define MAX2(a,b) if((b)>(a)) a=b;
 
-#define strndup strndup_mine
+/*
+ * We used to use our own copy of strndup but there were
+ * compiler warnings about redefining the symbol, so I have
+ * changed to using the Perl C API - see 'perldoc perlapi'
+ * and 'perldoc perlcapi' - and created the copy_int/pdl_array
+ * routines . The returned arrays should be released using
+ * Perl's Safefree call.
+ *
+ * DJB 2007 March 18. Previous version is v1.6 of pdlthread.c
+ */
+static int *copy_int_array (int *from, int size) {
+  int *to;
+  Newx (to, size, int);
+  return (int *) CopyD (from, to, size, int);
+}
 
-static void *strndup(void *ptr, int size) {
-	if(size == 0) return 0; else
-	{
-	void *newptr = malloc(size);
-	int i;
-	for(i=0; i<size; i++) ((char *)newptr)[i] = ((char *)ptr)[i];
-	return newptr;
-	}
+static pdl **copy_pdl_array (pdl **from, int size) {
+  pdl **to;
+  Newx (to, size, pdl*);
+  return (pdl **) CopyD (from, to, size, pdl*);
 }
 
 static void print_iarr(int *iarr, int n) {
@@ -89,13 +99,15 @@ void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
 	to->ndims = from->ndims;
 	to->nimpl = from->nimpl;
 	to->npdls = from->npdls;
-	to->inds = strndup(from->inds,sizeof(*to->inds)*to->ndims);
-	to->dims = strndup(from->dims,sizeof(*to->dims)*to->ndims);
-	to->offs = strndup(from->offs,sizeof(*to->offs)*to->npdls);
-	to->incs = strndup(from->incs,sizeof(*to->offs)*to->npdls*to->ndims);
+
+	to->inds = copy_int_array(from->inds,to->ndims);
+	to->dims = copy_int_array(from->dims,to->ndims);
+	to->offs = copy_int_array(from->offs,to->npdls);
+	to->incs = copy_int_array(from->incs,to->npdls*to->ndims);
 	to->realdims = from->realdims;
-	to->flags = strndup(from->flags,to->npdls);
-	to->pdls = strndup(from->pdls,sizeof(*to->pdls)*to->npdls); /* XX MEMLEAK */
+	to->flags = savepvn(from->flags,to->npdls);
+	to->pdls = copy_pdl_array(from->pdls,to->npdls); /* XX MEMLEAK */
+
 	to->mag_nthpdl = from->mag_nth;
 	to->mag_nthpdl = from->mag_nthpdl;
 }
@@ -106,13 +118,12 @@ void pdl_freethreadloop(pdl_thread *thread) {
 		thread->inds, thread->dims, thread->offs, thread->incs,
 		thread->flags, thread->pdls);)
 	if(!thread->inds) {return;}
-	free(thread->inds);
-	free(thread->dims);
-	free(thread->offs);
-	free(thread->incs);
-/*	free(thread->realdims); */
-	free(thread->flags);
-	free(thread->pdls);
+	Safefree(thread->inds);
+	Safefree(thread->dims);
+	Safefree(thread->offs);
+	Safefree(thread->incs);
+	Safefree(thread->flags);
+	Safefree(thread->pdls);
 	pdl_clearthreadstruct(thread);
 }
 
@@ -165,12 +176,14 @@ void pdl_initthreadstruct(int nobl,
 	  PDLDEBUG_f(printf("REINITIALIZING already initialized thread\n");)	
 	  PDLDEBUG_f(dump_thread(thread);)	
 	  /* return; */ /* try again, should (!?) work */
-	  if (thread->inds) free(thread->inds);
-	  if (thread->dims) free(thread->dims);
-	  if (thread->offs) free(thread->offs);
-	  if (thread->incs) free(thread->incs);
-	  if (thread->flags) free(thread->flags);
-	  if (thread->pdls) free(thread->pdls);
+
+	  if (thread->inds) Safefree(thread->inds);
+	  if (thread->dims) Safefree(thread->dims);
+	  if (thread->offs) Safefree(thread->offs);
+	  if (thread->incs) Safefree(thread->incs);
+	  if (thread->flags) Safefree(thread->flags);
+	  if (thread->pdls) Safefree(thread->pdls);
+
 	  PDLDEBUG_f(warn("trying to reinitialize already initialized "
 	     "thread (mem-leak!); freeing...");)
 	}
@@ -179,7 +192,7 @@ void pdl_initthreadstruct(int nobl,
 	thread->gflags = 0;
 
 	thread->npdls = npdls;
-	thread->pdls = strndup(pdls,sizeof(*pdls)*npdls);
+	thread->pdls = copy_pdl_array(pdls,npdls);
 	thread->realdims = realdims;
 	thread->ndims = 0;
 
@@ -235,12 +248,22 @@ void pdl_initthreadstruct(int nobl,
 
 	thread->ndims = ndims;
 	thread->nimpl = nimpl;
-	thread->inds = malloc(sizeof(int) * thread->ndims);
-	thread->dims = malloc(sizeof(int) * thread->ndims);
-	thread->offs = malloc(sizeof(int) * thread->npdls
-			* (nthr>0 ? nthr : 1));
-	thread->incs = malloc(sizeof(int) * thread->ndims * npdls);
-	thread->flags = malloc(sizeof(char) * npdls);
+
+      Newx(thread->inds, thread->ndims, int);
+      if(thread->inds == NULL) croak("Failed to allocate memory for thread->inds in pdlthread.c"); 
+
+      Newx(thread->dims, thread->ndims, int);
+      if(thread->dims == NULL) croak("Failed to allocate memory for thread->dims in pdlthread.c"); 
+
+      Newx(thread->offs, thread->npdls * (nthr>0 ? nthr : 1), int);
+      if(thread->offs == NULL) croak("Failed to allocate memory for thread->offs in pdlthread.c"); 
+
+      Newx(thread->incs, thread->ndims * npdls, int);
+      if(thread->incs == NULL) croak("Failed to allocate memory for thread->incs in pdlthread.c"); 
+
+      Newx(thread->flags, npdls, char);
+      if(thread->flags == NULL) croak("Failed to allocate memory for thread->flags in pdlthread.c"); 
+
 	nth=0; /* Index to dimensions */
 
 	/* populate the per_pdl_flags */
@@ -440,7 +463,6 @@ void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
 	static char mesgbuf[200];
       static char argsbuf[256], *argb;
       int i, k, l;
-      SV *msv;
 
 	va_start(args,pat);
 	/* was Perl_mess before; Perl_mess has changed between 5.00X and 5.6 */

@@ -865,10 +865,11 @@ use fields qw/Args/;
 
 sub new {
   my($type,@args) = @_;
-  my $this = bless [\%{"$type\::FIELDS"}], $type;
+  my $this = fields::new($type);
 
   $this->{Args} = [@args];
-  return $this;
+
+  $this;
 }
 
 package PDL::Graphics::TriD::Scale;

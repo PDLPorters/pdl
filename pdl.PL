@@ -84,6 +84,11 @@ exit:
 nosubs
   ;
 
-`gcc -o pdl pdl.c`;
+use Config;
+my $dir = 'blib/bin';
+#manually create directory. Older versions of EU::MM (at least as late
+#as 6.17 which ships with perl 5.8.6) don't automatically create it.
+mkdir $dir unless -e $dir && -d $dir;
+`$Config{cc} -o $dir/pdl pdl.c`;
 
 exit 0;

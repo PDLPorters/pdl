@@ -1,11 +1,11 @@
 #
 # Extra type mappings for Judd::PDL::IO::GD
 #
-gdImagePtr   T_IV
-gdImage *    T_IV
-gdFontPtr    T_IV
-gdFont *     T_IV
-gdPointPtr   T_IV
+gdImagePtr   T_PTR
+gdImage *    T_PTR
+gdFontPtr    T_PTR
+gdFont *     T_PTR
+gdPointPtr   T_PTR
 
-int *        T_PV
-unsigned short *    T_PV
+int *        T_PTR
+unsigned short *    T_PTR

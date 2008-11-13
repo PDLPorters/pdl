@@ -1,4 +1,3 @@
-
 PDL Module Dependencies
 =======================
 
@@ -22,6 +21,7 @@ or if you don't have the cpan script try
   cpan> install PDL
 
 
+
 MODULE          DEPENDS ON                  COMMENT
 
 PDL (all)       perl >= 5.6.x           you need at least this version
@@ -41,6 +41,28 @@ perldl (shell)  Term::ReadLine          perl provides a stub but if you
                                         compile and install a better one
                                         (Term::ReadLine or Term::ReadLine::Gnu)
                                         you get proper command line editing
+
+
+
+PDL::FFTW
+                Needs the FFTW version 2 installed.  FFTW is A free C
+		FFT library including multi-dimensional, real, and
+		parallel transforms.  NOTE: the released version of
+		FFTW is currently FFTW3.  You'll need to explicitly
+		install the FFTW v2 library to build PDL::FFTW!
+		See http://www.fftw.org/
+
+                                        Will not be built unless
+                                        FFTW is installed.
+
+PDL::GIS::Proj
+PDL::Transform::Proj
+		A PDL interface to the PROJ4 geographic projection
+		library and the PDL::Transform interface to the same.
+		See http://www.remotesensing.org/proj
+
+					Module will be built if the
+					PROJ4 library is installed.
 
 PDL::Graphics::TriD
                 perl 5.6 &
@@ -84,29 +106,6 @@ PDL::Graphics::Karma
                                         if library is installed on
                                         system.
 
-PDL::IO::Pic
-                rpic/wpic: pbm+ or netpbm converters
-                 http://netpbm.sourceforge.net/
-                 and ftp://ftp.uu.net/graphics/jpeg for jpeg converter
-
-                wmpeg: mpeg_encode program,
-                  see http://bmrc.berkeley.edu/ftp/pub/multimedia/mpeg/encode/
-
-                                        Module builds
-                                        ok without converters
-
-PDL::Slatec     ExtUtils::F77           linear algebra routines
-                                        several other modules use PDL::Slatec
-
-                Slatec fortran lib is included but requires a
-                fortran compiler and the perl module ExtUtils::F77
-                (version >= 1.03) to be installed.
-
-                                        Will not be built unless
-                                        ExtUtils::F77 (version >= 1.03)
-                                        is installed and Extutils::F77
-                                        supports your platform.
-
 PDL::GSL modules
                 Needs the GSL (Gnu Scientific Library) to build.
                 Version >= 1.0 is required
@@ -115,13 +114,12 @@ PDL::GSL modules
                                         Will not be built unless
                                         GSL is installed.
 
-PDL::FFTW
-                Needs the FFTW version 2 (not 3!) to build. (A free C
-                FFT library including multi-dimensional, real, and parallel
-                transforms) See http://www.fftw.org/
-
-                                        Will not be built unless
-                                        FFTW is installed.
+PDL::IO::GD
+		PDL interface to the GD image library.
+		See http://www.libgd.org
+					
+					Will not be built unless libgd is
+					already installed.
 
 PDL::IO::Browser
                 Requires a 'curses'-compatible library
@@ -145,4 +143,27 @@ PDL::IO::NDF
 
                                         Module builds ok without
                                         NDF module and library
+
+PDL::IO::Pic
+                rpic/wpic: pbm+ or netpbm converters
+                 http://netpbm.sourceforge.net/
+                 and ftp://ftp.uu.net/graphics/jpeg for jpeg converter
+
+                wmpeg: mpeg_encode program,
+                  see http://bmrc.berkeley.edu/ftp/pub/multimedia/mpeg/encode/
+
+                                        Module builds
+                                        ok without converters
+
+PDL::Slatec     ExtUtils::F77           linear algebra routines
+                                        several other modules use PDL::Slatec
+
+                Slatec fortran lib is included but requires a
+                fortran compiler and the perl module ExtUtils::F77
+                (version >= 1.03) to be installed.
+
+                                        Will not be built unless
+                                        ExtUtils::F77 (version >= 1.03)
+                                        is installed and Extutils::F77
+                                        supports your platform.
 

@@ -28,9 +28,18 @@ sub new {
        $extrageneric,$havethreading,$name,
        $dont_add_thrloop, $nogeneric_loop) = @_;
 
+    die "Error: missing name argument to PDL::PP::Code->new call!\n"
+      unless defined $name;
+
     # simple way of handling bad code check
     $badcode = undef unless $bvalflag;
     my $handlebad = defined($badcode);
+
+    # last two arguments may not be supplied
+    # (in fact, the nogeneric_loop argument may never be supplied now?)
+    #
+    $dont_add_thrloop = 0 unless defined $dont_add_thrloop;
+    $nogeneric_loop = 0 unless defined $nogeneric_loop;
 
     # C++ style comments
     #
@@ -39,11 +48,13 @@ sub new {
     #
     $code =~ s,//.*?\n,,g;
 
-    if($::PP_VERBOSE) {
-	if($dont_add_thrloop) {
-	    print "DONT_ADD_THRLOOP!\n";
-	}
-	print "EXTRAGEN: $extrageneric ",%$extrageneric,"\n";
+    if ($::PP_VERBOSE) {
+	print "Processing code for $name\n";
+	print "DONT_ADD_THRLOOP!\n" if $dont_add_thrloop;
+	print "EXTRAGEN: {" .
+	  join(" ",
+	       map { "$_=>" . $$extrageneric{$_}} keys %$extrageneric)
+	    . "}\n";
 	print "ParNAMES: ",(join ',',@$parnames),"\n";
 	print "GENTYPES: ", @$generictypes, "\n";
 	print "HandleBad: $handlebad\n";
@@ -73,7 +84,7 @@ sub new {
     if(!$threadloops && !$dont_add_thrloop && $havethreading) {
 	print "Adding threadloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
-	$coderef = new PDL::PP::ThreadLoop();
+	$coderef = PDL::PP::ThreadLoop->new();
 	push @{$coderef},$nc;
     }
 
@@ -91,12 +102,12 @@ sub new {
 	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
-	    $bad_coderef = new PDL::PP::ThreadLoop();
+	    $bad_coderef = PDL::PP::ThreadLoop->new();
 	    push @{$bad_coderef},$nc;
 	}
 
 	my $good_coderef = $coderef;
-	$coderef = new PDL::PP::BadSwitch( $good_coderef, $bad_coderef );
+	$coderef = PDL::PP::BadSwitch->new( $good_coderef, $bad_coderef );
 
 	# amalgamate sizeprivs from Code/BadCode segments
 	# (sizeprivs is a simple hash, with each element 
@@ -118,7 +129,7 @@ sub new {
     unless ($nogeneric_loop) {
 	# XXX Make genericloop understand denied pointers;...
 	my $nc = $coderef;
-	$coderef = new PDL::PP::GenericLoop($generictypes,"",
+	$coderef = PDL::PP::GenericLoop->new($generictypes,"",
 	      [grep {!$extrageneric->{$_}} @$parnames],'$PRIV(__datatype)');
 	push @{$coderef},$nc;
     }
@@ -132,7 +143,7 @@ sub new {
     my $no = 0;
     for(keys %glh) {
 	my $nc = $coderef;
-	$coderef = new PDL::PP::GenericLoop($generictypes,$no++,
+	$coderef = PDL::PP::GenericLoop->new($generictypes,$no++,
 					    $glh{$_},$_);
 	push @$coderef,$nc;
     }
