@@ -1,9 +1,0 @@
-DILOG.pm
-.cvsignore
-Makefile
-DILOG.bs
-pm_to_blib
-DILOG.c
-.cvsignore.old
-DILOG.xs
-

@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-Browser.bs
-.cvsignore.old
-Browser.c
-Browser.pm
-Browser.xs
-pm_to_blib
-

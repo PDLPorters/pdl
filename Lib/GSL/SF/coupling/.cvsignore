@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-COUPLING.pm
-COUPLING.c
-.cvsignore.old
-COUPLING.xs
-COUPLING.bs
-pm_to_blib
-

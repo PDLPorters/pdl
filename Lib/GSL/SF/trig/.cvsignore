@@ -1,9 +1,0 @@
-TRIG.xs
-.cvsignore
-Makefile
-TRIG.bs
-.cvsignore.old
-TRIG.c
-TRIG.pm
-pm_to_blib
-

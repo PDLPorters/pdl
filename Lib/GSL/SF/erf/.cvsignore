@@ -1,9 +1,0 @@
-ERF.bs
-.cvsignore
-Makefile
-ERF.pm
-.cvsignore.old
-ERF.xs
-ERF.c
-pm_to_blib
-

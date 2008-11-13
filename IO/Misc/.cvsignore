@@ -1,9 +1,0 @@
-Misc.bs
-.cvsignore
-Makefile
-pm_to_blib
-Misc.xs
-.cvsignore.old
-Misc.pm
-Misc.c
-

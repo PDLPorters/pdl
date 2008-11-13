@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-EXP.xs
-EXP.c
-EXP.bs
-.cvsignore.old
-EXP.pm
-pm_to_blib
-

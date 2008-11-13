@@ -1,9 +1,0 @@
-POW_INT.c
-.cvsignore
-Makefile
-POW_INT.xs
-POW_INT.pm
-pm_to_blib
-.cvsignore.old
-POW_INT.bs
-

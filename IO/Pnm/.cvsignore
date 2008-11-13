@@ -1,9 +1,0 @@
-.cvsignore
-Pnm.pm
-Makefile
-.cvsignore.old
-Pnm.xs
-Pnm.c
-Pnm.bs
-pm_to_blib
-

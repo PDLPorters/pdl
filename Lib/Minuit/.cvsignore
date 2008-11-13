@@ -1,7 +1,0 @@
-.cvsignore
-Makefile
-Minuit.bs
-Minuit.c
-Minuit.pm
-Minuit.xs
-pm_to_blib

@@ -1,8 +1,0 @@
-.cvsignore
-.vsignore.old
-Makefile
-pm_to_blib
-GD.xs
-GD.pm
-GD.c
-GD.bs

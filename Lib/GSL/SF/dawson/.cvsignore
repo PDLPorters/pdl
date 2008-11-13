@@ -1,9 +1,0 @@
-DAWSON.bs
-.cvsignore
-Makefile
-pm_to_blib
-DAWSON.xs
-.cvsignore.old
-DAWSON.pm
-DAWSON.c
-

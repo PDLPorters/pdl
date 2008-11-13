@@ -1,8 +1,0 @@
-.cvsignore
-INTERP.xs
-INTERP.bs
-INTERP.c
-INTERP.o
-INTERP.pm
-Makefile
-pm_to_blib

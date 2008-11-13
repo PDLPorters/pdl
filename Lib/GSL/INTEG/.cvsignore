@@ -1,8 +1,0 @@
-.cvsignore
-INTEG.xs
-INTEG.bs
-INTEG.c
-INTEG.o
-INTEG.pm
-Makefile
-pm_to_blib
