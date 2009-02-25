@@ -110,6 +110,9 @@ if ($^O =~ /MSWin/) {
 pp_addhdr('
 #define finite _finite
 #include <float.h>
+#ifdef _MSC_VER
+double rint (double);
+#endif
 ');
 }
 
