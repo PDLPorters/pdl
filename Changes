@@ -1,3 +1,8 @@
+SIS 25-2-2009
+    Amend Basic/Math/math.pd so that Math.xs contains a prototype for
+    the (distro version of) the rint function when (and only when) a
+    Microsoft Compiler is being used. (Rev 1.17 of math.pd)
+    This ifxes sourceforge bug 2630402.
 CHM 13-Nov-2008
     PDL/Basic/PDL.pm: updated VERSION to 2.4.4cvs for
     post release development.
