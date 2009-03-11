@@ -1,3 +1,11 @@
+CED 11-3-2009
+    mkhtmldoc.pl: suddenly stopped making docs, preventing me from 
+    executing "Make install".  Traced the problem down to a nonexistent
+    directory in the POD scan path (".../HtmlDocs/pdl/PDL"), which for
+    some reason is now crashing the POD builder stuff that came with 
+    my MacOS-standard Perl.  Since .../pdl/PDL seems like a silly place to 
+    look (the docs are build into just .../pdl), I dked out the "PDL" from
+    the pod path, fixing the problem.
 CED 10-3-2009
     Fix problem with reorder() - formerly required that all dimensions
     be set; now allows specification of a leading subset of dims in 

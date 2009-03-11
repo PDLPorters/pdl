@@ -191,7 +191,14 @@ $sub = sub {
     $htmlrootdir =~ s|PDL$||;
     
     my $verbopts = $verbose ? "--verbose" : "--quiet";
-    pod2html("--podpath=PDL:.",
+
+# Cut out "PDL" from the podpath as it crashes the podscan(!) - It doesn't 
+# seem to help either -- it looks for cached docs in .../HtmlDocs/pdl/PDL, 
+# which is silly.  I left this note because pod paths are pretty arcane to
+# me.  CED 11-Mar-2009
+#    pod2html("--podpath=PDL:.",
+
+    pod2html("--podpath=.",
 	     "--podroot=$topPerlDir",
 	     "--htmldir=$htmlrootdir",
 	     "--libpods=perlfaq",
