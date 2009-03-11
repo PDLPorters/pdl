@@ -1,3 +1,7 @@
+CED 10-3-2009
+    Fix problem with reorder() - formerly required that all dimensions
+    be set; now allows specification of a leading subset of dims in 
+    the target.  Additional dims are threaded over (i.e. ignored).
 SIS 25-2-2009
     Amend Basic/Math/math.pd so that Math.xs contains a prototype for
     the (distro version of) the rint function when (and only when) a
