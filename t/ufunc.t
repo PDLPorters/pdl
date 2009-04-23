@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -32,6 +32,12 @@ my $c_sort = $c->qsort;
 # Test a range of values
 ok( tapprox($a->pctover(-0.5), $a_sort->at(0)), "pct below 0 for 25-elem pdl" );
 ok( tapprox($a->pctover( 0.0), $a_sort->at(0)), "pct equal 0 for 25-elem pdl" );
-ok( tapprox($a->pctover( 0.9),             19), "pct equal 0.9 for 25-elem pdl (bug num 2019651)" );
+ok( tapprox($a->pctover( 0.9),             17), "pct equal 0.9 for 25-elem pdl [SF bug 2019651]" );
 ok( tapprox($a->pctover( 1.0), $a_sort->at($a->dim(0)-1)), "pct equal 1 for 25-elem pdl" );
 ok( tapprox($a->pctover( 2.0), $a_sort->at($a->dim(0)-1)), "pct above 1 for 25-elem pdl" );
+
+# test for sf.net bug report 2753869
+#
+my $x = sequence(10);
+ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percential of 10-elem piddle [SF bug 2753869]");
+ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem piddle [SF bug 2753869]");

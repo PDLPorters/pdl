@@ -1,3 +1,9 @@
+CHM 22-Apr-2009
+    Fixed bug #2753869 in the interpolation part of the pctover()
+    routine in ufunc.pd.  The computation of pctover() and
+    oddpctover() were corrected to improve consistency and
+    agreement with other apps (e.g. MS Excel).
+    and fixed the calculations of the pctover() and oddpctover()
 CED 11-3-2009
     mkhtmldoc.pl: suddenly stopped making docs, preventing me from 
     executing "Make install".  Traced the problem down to a nonexistent

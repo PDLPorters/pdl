@@ -667,7 +667,8 @@ percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between data points, the result is interpolated.  Values outside
 the allowed range are clipped to 0.0 or 1.0 respectively.  The algorithm
 implemented here is based on the interpolation variant described at
-L< http://en.wikipedia.org/wiki/Percentile>.
+L< http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
+and recommended by NIST.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
@@ -690,22 +691,27 @@ $spectrum = pctover $image->xchg(0,1) $p
            $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
              pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
            
-           np = nn*$p()-0.5;
+           np = (nn - 1) * $p();
            nn1 = np;
            nn2 = nn1+1;
            
            nn1 = (nn1 < 0) ? 0 : nn1;
            nn2 = (nn2 < 0) ? 0 : nn2;
            
-           nn1 = (nn1 > nn - 1) ? nn - 1 : nn1;
-           nn2 = (nn2 > nn - 1) ? nn - 1 : nn2;
+           nn1 = (nn1 > nn-1) ? nn-1 : nn1;
+           nn2 = (nn2 > nn-1) ? nn-1 : nn2;
            
-           pp1 = (double)nn1/(double)nn;
-           pp2 = (double)nn2/(double)nn;
+	   if (nn == 1) {
+	      pp1 = 0;
+	      pp2 = 0;
+	   } else {
+	      pp1 = (double)nn1/(double)(nn-1);
+	      pp2 = (double)nn2/(double)(nn-1);
+	   }
            
-           if ( np < 0.5 ) {
+           if ( np <= 0.0 ) {
               $b() = $tmp(n => 0);
-           } else if ( np > nn - 0.5 ) {
+           } else if ( np >= nn-1 ) {
               $b() = $tmp(n => nn-1);
            } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
               $b() = $tmp(n => nn1);
@@ -729,6 +735,8 @@ This function reduces the dimensionality of a piddle by one by finding
 the specified percentile along the 1st dimension.  The specified
 percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between two values, the nearest data value is the result.
+The algorithm implemented is from the textbook version described
+first at L< http://en.wikipedia.org/wiki/Percentile>.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
 I<any> dimension.
@@ -744,16 +752,16 @@ I<any> dimension.
 =cut
 ',
         Code => '
-           int nn, nn1;
+           int nn, np;
 	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size)-1;
+           nn = $COMP(__n_size);
            $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn);
+             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
 
-           nn1 = (nn + 1)*$p() - 1 + 0.5;
-           if (nn1 > nn) nn1 = nn;
-           if (nn1 < 0) nn1 = 0;
-	   $b() = $tmp(n => nn1);
+           np = nn*$p();
+           if (np > nn-1) np = nn-1;
+           if (np < 0) np = 0;
+	   $b() = $tmp(n => np);
 ');
 
 pp_add_exported('', 'pct');
