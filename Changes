@@ -1,3 +1,6 @@
+CHM 23-Apr-2009
+    Fixed test 17 in t/plplot.t to use a magnitude difference test
+    rather than equality for the floating point quanitities.
 CHM 22-Apr-2009
     Applied fix to t/autoload.t per the bug report sf bug #2339726
     by zowie.
