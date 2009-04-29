@@ -1,3 +1,7 @@
+CHM 29-Apr-2009
+    Fixed bug number 2784016 in t/pic_16bit.t reported via
+    rt.cpan.org.  I note that the Changes file might be replaced
+    by the log list from git commits at some point.
 CHM 23-Apr-2009
     Fixed test 17 in t/plplot.t to use a magnitude difference test
     rather than equality for the floating point quanitities.
