@@ -479,6 +479,7 @@ sub _hist_bin_calc {
     $min = $pdl->min() unless defined $min;
     $max = $pdl->max() unless defined $max;
     my $ntype = $pdl->get_datatype;
+    barf "empty piddle, no values to work with" if $pdl->nelem == 0;
     unless (defined $step) {
 	my $defbins = 100 < $pdl->nelem ? 100 : $pdl->nelem;
 	$step = ($max-$min)/$defbins;
