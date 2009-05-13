@@ -9,9 +9,6 @@ PDL:
   configure, built, test process.  This can be confusing for first
   time users.
 
-- There is a problem on some Solaris systems where the t/pic_16bit
-  test fails apparently due to a bug in that system's pnmtopng.
-
 - Lvalue subroutine errors have been reported for perl 5.6.2
   installation on a linux 2.4 kernel system.  Perl versions 5.8
   and above are *really* recommended.
@@ -23,6 +20,10 @@ PDL:
 - The following SourceForge bugs are outstanding at time of the 2.4.4
   point release:
 
+  2780046    make does not make docs 
+  2630369    PDL::FFT::fftconvolve - bad scaling?  
+  2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
+  2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype

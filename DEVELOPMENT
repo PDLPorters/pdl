@@ -4,40 +4,44 @@ developers). This should not be confused with the latest
 public release which will always be available from CPAN (if
 you don't know what that is check the FAQ).
 
-Public CVS repository at www.sourceforge.org
+Public Git repository at sourceforge.net
 --------------------------------------------
 
-From version PDL-2.003 onwards the source distribution is in a
-publicly accessible CVS repository. The project is hosted at the
+From version PDL-2.4.4 onwards the source distribution is in a
+publicly accessible Git repository. The project is hosted at the
 sourceforge site at
 
   http://sourceforge.net/projects/pdl/
 
 Starting from that URL you will find directions on how to check out
-the current sources, browse the CVS repository online, etc.
+the current sources, browse the Git repository online, etc.
 
 If you would like to actively contribute to PDL development don't
 hesitate to contact one of the project admins (listed at the above
 URL) to apply for write access to the repository. We strongly believe
 in the power of open source development!
 
-If you do not know how to use CVS try 'man cvs' or 'info cvs' and/or
-have a look at some of the online tutorials available on the web.
-The main CVS home page is at
+If you do not know how to use Git try 'man git' or have a look at
+some of the online tutorials available on the web.
 
-  http://www.nongnu.org/cvs/
+The main Git home page is at
 
-and a very good/complete CVS reference is the online version of the
-CVS book at
+  http://www.git-scm.org/
 
-  http://cvsbook.red-bean.com/cvsbook.html
+and two good online Git references are the Git User's Manual at
+
+  http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
+
+and Git Magic at
+
+  http://www-cs-students.stanford.edu/~blynn/gitmagic/
 
 
 PDL Developer Guidelines:
 -------------------------
 
 The following guidelines are for any developer that has access to the
-PDL CVS repository.
+PDL Git repository.
 
 1) Before committing a change to the repository you should update:
     - CHANGES file with a description of the change made. 
@@ -112,101 +116,6 @@ default value causes problems.
 
 This *includes* test cases as well as for Makefile.PL's!
 
-Creating a new CVS branch:
---------------------------
-
-(or how to avoid ridiculous branch names like 
-   'badval_experimental_branchpoint')
-
-This is a first draft, so it may not entirely be correct, and I've
-missed out the initial options you'd supply to cvs (or put in an env
-variable).
-
-0) see what the current set of tags is:
-
-   > cvs status -v Changes 
-
-   The important part of the output looks like:
-
-   Existing Tags:
-        badval_experimental_branchpoint (branch: 1.76.2)
-        trid_experimental2              (branch: 1.69.2)
-        trid_branchpoint2               (revision: 1.69)
-     etc
-
-   The badval_experimental branch wasn't created using the
-   following rules - I didn't do step 1, so ended up
-   with a branch name called 'badval_experimental_branchpoint'
-   when I meant it to be 'badval_experimental'.
-
-1) tag the current CVS with a label to indicate the state of
-   PDL before the branch:
-
-   > cvs tag make-cup-of-tea_experimental_branchpoint
-
-   (this is the step I didn't do above)
-
-2) create a branchpoint
-
-   > cvs tag -b make_cup_of_tea_experimental
-
-3) you can then either check out a new version, using this branch
- 
-   > cvs co -d PDL.tea -r make-cup-of-tea_experimental PDL
-
-   this creates a directory PDL.tea/ and stores the files there,
-
-   or convert a current version
-
-   > cvs update -r make-cup-of-tea_experimental 
-
-4) Make changes to this branch as normal (CVS knows that you are in
-   a branch, so 'cvs update' will now only merge in updates made to this
-   branch.).
-
-5) When it comes time to merge your changes back into the main branch,
-   check out a copy of PDL and merge in the updates:
-
-   > cvs co -d PDL.merged PDL
-   > cd PDL.merged
-   > cvs update -j make-cup-of-tea_experimental
-
-   If you are lucky (or you manually went along and merged in the
-   main-branch updates to your branch as they were made) then you
-   do not have to do anything else. In this case the output when the
-   merges are made will look something like:
-
-     RCS file: /cvsroot/pdl/PDL/t/misc.t,v
-     retrieving revision 1.12
-     retrieving revision 1.12.2.1
-     Merging differences between 1.12 and 1.12.2.1 into misc.t
-
-   However, in the real world you are likely to find out that there are
-   conflicts in the merge, in which case you will see something like:
-
-     RCS file: /cvsroot/pdl/PDL/Makefile.PL,v
-     retrieving revision 1.44
-     retrieving revision 1.44.2.1
-     Merging differences between 1.44 and 1.44.2.1 into Makefile.PL
-     rcsmerge: warning: conflicts during merge
-
-   The file in question will then contain text within "<<<<<" and ">>>>>"
-   markers (I forget how many of them there are), separated by a line
-   of "=====" which indicate the conflicting parts of the file. The
-   main-branch version of the file is stored as .#<filename> for easy
-   comparison (or you could do a 'cvs diff').
-
-   These differences should be resolved and then the changes commited to
-   the main branch [CVS will either not allow you to merge - or will
-   complain about it, depending on the version - if there are any of these
-   lines left in the text].
-
-   > cvs commit -m "Merged in make-cup-of-tea branch"
-   > cvs tag make-cup-of-tea_experimental_merge1
-
-   The reason for tagging the main branch after the merge is to make
-   it easier to merge back any new changes made to the branch (if they
-   occur). The CVS manual contains more details on this.
   
 
 -------------------------------------------------------------

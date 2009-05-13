@@ -1,3 +1,23 @@
+Release notes for PDL 2.4.4_01 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+Summary of Changes:
+
+     - Several SF.net bugs have been fixed
+
+     - pctover() and oddpctover() should generate more accurate
+       results with greater consistency to MS Excel calculations
+
+     - PDL should pass automated build tests on more platforms
+
+
 Release notes for PDL 2.4.4 ------------------------------
 
 General Notes:
