@@ -20,7 +20,7 @@ BEGIN
     if( !($@) )
     {
        if ( $PDL::Bad::Status ) {
-          plan tests => 20;
+          plan tests => 22;
        }
        else {
           plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
@@ -36,89 +36,103 @@ BEGIN
 # Test integration with PDL::Transform
 #
 
-use PDL::Transform::Cartography;
-use PDL::Transform::Proj4;
+BEGIN
+{   
+    use_ok(PDL::Transform::Cartography);                 # TEST 1
+}
 
 ### Get the vector coastline map (and a lon/lat grid), and load the Earth
 ### RGB daytime image -- both of these are built-in to the module. The
 ### coastline map is a set of (X,Y,Pen) vectors.
-my $coast = earth_coast()->glue( 1, graticule(15,1) );
+###
+### This doesn't seem to be used.  # chm 14-May-2009
+### my $coast = earth_coast()->glue( 1, graticule(15,1) );
 
-my $map = earth_image( 'day' );
-$map->badflag(1);
+SKIP: {
 
-my $map_size = [500,500];
+   eval { my $map = earth_image( 'day' ) };
 
-my @slices = ( 
-    "245:254,68:77,(0)",
-    "128:137,272:281,(0)",
-    "245:254,262:271,(0)",
-    "390:399,245:254,(0)",
-    "271:280,464:473,(0)" 
-);
+   if ($@) {
+      fail("earth_image() can not load data: $@");  # TEST 2
+      skip('no data to process', 20);
+   }
+
+   my $map = earth_image( 'day' );
+   $map->badflag(1);
+
+   my $map_size = [500,500];
+
+   my @slices = ( 
+      "245:254,68:77,(0)",
+      "128:137,272:281,(0)",
+      "245:254,262:271,(0)",
+      "390:399,245:254,(0)",
+      "271:280,464:473,(0)" 
+   );
 
 
 ##############
-# TESTS 1-5: #
+# TESTS 3-7: #
 ##############
 # Get EQC reference data:
-my @ref_eqc_slices = get_ref_eqc_slices();
+   my @ref_eqc_slices = get_ref_eqc_slices();
 
 # Check EQC map against reference:
-my $eqc_opts = "+proj=eqc +lon_0=0";
-my $eqc = $map->map( t_proj( proj_params => $eqc_opts ), $map_size );
-foreach my $i ( 0 .. $#slices )
-{
-    my $str = $slices[$i];
-    my $slice = $eqc->slice($str);
-    ok( "$slice" eq $ref_eqc_slices[$i] );
-}
+   my $eqc_opts = "+proj=eqc +lon_0=0";
+   my $eqc = $map->map( t_proj( proj_params => $eqc_opts ), $map_size );
+   foreach my $i ( 0 .. $#slices )
+   {
+      my $str = $slices[$i];
+      my $slice = $eqc->slice($str);
+      ok( "$slice" eq $ref_eqc_slices[$i] );
+   }
 
 ###############
-# TESTS 6-10: #
+# TESTS 8-12: #
 ###############
 # Get Ortho reference data:
-my @ref_ortho_slices = get_ref_ortho_slices();
+   my @ref_ortho_slices = get_ref_ortho_slices();
 
 # Check Ortho map against reference:
-my $ortho_opts = "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40";
-my $ortho = $map->map( t_proj( proj_params => $ortho_opts ), $map_size );
-foreach my $i ( 0 .. $#slices )
-{
-    my $str = $slices[$i];
-    my $slice = $ortho->slice($str);
-    ok( "$slice" eq $ref_ortho_slices[$i] );
-}
+   my $ortho_opts = "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40";
+   my $ortho = $map->map( t_proj( proj_params => $ortho_opts ), $map_size );
+   foreach my $i ( 0 .. $#slices )
+   {
+      my $str = $slices[$i];
+      my $slice = $ortho->slice($str);
+      ok( "$slice" eq $ref_ortho_slices[$i] );
+   }
 
-#
+   #
 # Test the auto-generated methods:
-#
+   #
 ################
-# TESTS 11-15: #
+# TESTS 13-17: #
 ################
-my $ortho2 = $map->map( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), $map_size );
-foreach my $i ( 0 .. $#slices )
-{
-    my $str = $slices[$i];
-    my $slice = $ortho2->slice($str);
-    ok( "$slice" eq $ref_ortho_slices[$i] );
-}
+   my $ortho2 = $map->map( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), $map_size );
+   foreach my $i ( 0 .. $#slices )
+   {
+      my $str = $slices[$i];
+      my $slice = $ortho2->slice($str);
+      ok( "$slice" eq $ref_ortho_slices[$i] );
+   }
 
 ################
-# TESTS 16-20: #
+# TESTS 18-22: #
 ################
 # Get Robinson reference data:
-my @ref_robin_slices = get_ref_robin_slices();
+   my @ref_robin_slices = get_ref_robin_slices();
 
 # Check Robinson map against reference:
-my $robin = $map->map( t_proj_robin( ellps => 'WGS84', over => 1 ), $map_size );
-foreach my $i ( 0 .. $#slices )
-{
-    my $str = $slices[$i];
-    my $slice = $robin->slice($str);
-    ok( "$slice" eq $ref_robin_slices[$i] );
-}
+   my $robin = $map->map( t_proj_robin( ellps => 'WGS84', over => 1 ), $map_size );
+   foreach my $i ( 0 .. $#slices )
+   {
+      my $str = $slices[$i];
+      my $slice = $robin->slice($str);
+      ok( "$slice" eq $ref_robin_slices[$i] );
+   }
 
+}
 
 exit(0);
 
