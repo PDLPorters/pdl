@@ -660,7 +660,7 @@ sub load_projection_information
                 foreach my $param (@params)
                 {
                     $param =~ s/=//;
-                    $param =~ s/[\[\]]//sg;
+                    $param =~ s/[,\[\]]//sg;
                     next if $param =~ /^and$/;
                     next if $param =~ /^or$/;
                     next if $param =~ /^Special$/;
