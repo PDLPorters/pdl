@@ -1,5 +1,5 @@
 # Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Thu 23 Apr 2009 09:33:22 PM
+# Last saved: Fri 15 May 2009 09:40:50 AM 
 #
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
@@ -27,6 +27,8 @@ BEGIN {
    }
    use_ok('PDL::IO::Pic');
 };
+
+$PDL::IO::Pic::debug=20;
 
 # test save/restore of 8-bit image
 my $a = sequence(16, 16);

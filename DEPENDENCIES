@@ -152,8 +152,11 @@ PDL::IO::Pic
                 wmpeg: mpeg_encode program,
                   see http://bmrc.berkeley.edu/ftp/pub/multimedia/mpeg/encode/
 
-                                        Module builds
-                                        ok without converters
+                                        Module builds ok without
+					converters but t/pic_16bit
+					will fail without a current
+					version of netpbm.
+
 
 PDL::Slatec     ExtUtils::F77           linear algebra routines
                                         several other modules use PDL::Slatec
