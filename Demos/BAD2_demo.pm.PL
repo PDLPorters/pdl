@@ -10,6 +10,7 @@ use File::Basename qw(&basename &dirname);
 use blib;
 
 # check for bad value support
+use lib '../Basic/Core';  # so Config.pm is found during build
 use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
