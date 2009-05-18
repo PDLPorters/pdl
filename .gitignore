@@ -41,7 +41,7 @@ Makefile
 # Directory specific build files
 # These can either be in the specific directories or specified
 # with full patch in the top level directory (as here).
-
+.inlinepdlpp
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
 Basic/Bad/Bad.xs
@@ -114,6 +114,9 @@ Lib/FFT/FFT.xs
 Lib/Fit/Gaussian/Gaussian.c
 Lib/Fit/Gaussian/Gaussian.pm
 Lib/Fit/Gaussian/Gaussian.xs
+Lib/GIS/Proj/Proj.c
+Lib/GIS/Proj/Proj.pm
+Lib/GIS/Proj/Proj.xs
 Lib/GSL/DIFF/DIFF.c
 Lib/GSL/DIFF/DIFF.pm
 Lib/GSL/DIFF/DIFF.xs
@@ -231,11 +234,16 @@ Lib/Slatec/Slatec.pm
 Lib/Slatec/Slatec.xs
 Lib/Slatec/SlatecProtos.h
 Lib/Slatec/f77_underscore
+Lib/Transform/Proj4/Proj4.c
+Lib/Transform/Proj4/Proj4.pm
+Lib/Transform/Proj4/Proj4.xs
 Lib/Transform/Transform.c
 Lib/Transform/Transform.pm
 Lib/Transform/Transform.xs
+MANIFEST.bak
 pdl.c
 pdldoc
 pdldoc.pod
 perldl
 perldl.pod
+t/*.dll*
