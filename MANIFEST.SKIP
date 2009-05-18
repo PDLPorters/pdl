@@ -203,6 +203,7 @@ RCS
 ^pm_to_blib$
 ^podsel$
 ^t/.*\.pnm$
+^t/.*\.dll(.a)?$
 ^tbyte\.tif$
 ^test\.wis$
 ^tmp.*
