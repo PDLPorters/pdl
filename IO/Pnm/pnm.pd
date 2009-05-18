@@ -145,7 +145,7 @@ sub PDL::rpnm {
     # redirection now in effect for child
     # close(STDERR);
     open(STDERR, ">&PDL::IO::Pnm::SAVEERR");
-    rbarf $efile,"Can't open pnm file" unless $succeed;
+    rbarf $efile,"Can't open pnm file '$file'" unless $succeed;
     binmode PNM;
 
     read(PNM,(my $magic),2);
