@@ -663,7 +663,7 @@ sub trylink {
     }
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
-  open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";
+  open FILE,">$tc" or die "trylink: couldn't open testfile `$tc' for writing";
   my $prog = <<"EOF";
 $inc
 
