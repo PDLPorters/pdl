@@ -1,3 +1,64 @@
+Release notes for PDL 2.4.4_03 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+     t/proj_transform fails due to problem
+     loading the input data via the
+     earth_image() routine. Debugging has
+     been added.
+
+     t/pic_16bit fails because of an old
+     netpbm version. Clean up by adding
+     a config variable whether 16bit raw
+     PNM are allowed and honor that in
+     the rpic/wpic code. Skip tests if
+     appropriate.  TODO
+
+     t/storable.t failure to load compiled
+     module waiting on detailed test run from
+     reporter.  TODO
+
+     CPAN sets PERL5OPT=-MDevel::Autoflush
+     but this is problematic with perl
+     scripts run under controlled
+     environments. Need to figure out a way
+     around this.  TODO
+
+     "No rule to make target pptemplate
+     needed by pptemplate.pod" which may be
+     a make specific problem, related to the
+     version of EU::MM or something else...
+     Need to request Basic/Gen Makefile
+     output and make program and EU::MM info
+     from reporter.  TODO
+
+
+Summary of Changes:
+
+     TBD
+
+
+Release notes for PDL 2.4.4_02 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+Summary of Changes:
+
+     TBD
+
+
 Release notes for PDL 2.4.4_01 ---------------------------
 
 General Notes:
