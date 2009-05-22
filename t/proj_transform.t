@@ -53,10 +53,9 @@ SKIP: {
    eval { my $map = earth_image( 'day' ) };
 
    if ($@) {
-      fail("earth_image() can not load data: $@");  # TEST 2
-      skip('no data to process', 20);
+      skip("earth_image() can not load test data", 21);
    } else {
-      pass("earth_image() loaded");
+      pass("earth_image() loaded");                     # TEST 2
    }
 
    my $map = earth_image( 'day' );
