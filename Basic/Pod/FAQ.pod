@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  0.8
+Current FAQ version:  0.9
 
 
 =head1 DESCRIPTION
 
-This is version  0.8 of the PDL FAQ, a collection of  frequently 
+This is version  0.9 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -417,13 +417,13 @@ I< very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
   
 
-As of this writing (FAQ version 0.8 of July 2008) version 2.4.4 is
-nearing release. The latest stable version should always be available
+As of this writing (FAQ version 0.9 of May 2009) the latest version is 2.4.4. 
+The latest stable version should always be available
 from a CPAN mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?">
 for info on where to get PDL.
 
 The most current (possibly unstable) version of PDL can be obtained 
-from the CVS repository, see L<Question 4.8|"Q: 4.8    Can I get PDL via CVS?">
+from the Git repository, see L<Question 4.10|"Q: 4.10    How do I get PDL via Git?">
 
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
@@ -578,78 +578,69 @@ it might not always be the latest version.
 
 
 
-=head1 CVS AND ON-GOING DEVELOPMENT
+=head1 CVS, GIT, AND ON-GOING DEVELOPMENT
 
 
 =head2 Q: 4.9    Can I get PDL via CVS?   
   
 
-Yes, as of December 1999, PDL is available at the CVS repository on
-http://www.sourceforge.net . The tree is updated by developers who
-have accounts on Sourceforge and snapshots of the tree are released
-regularly by the pumpkin holder (the pumpking).
-
-If you wish to access the CVS repository and install PDL from there
-all you need are two simple commands, however make sure you read some
-of the documentation on Sourceforge as well for full information, but
-the basic command is case sensitive and is:
-
-    cvs -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl login 
-    cvs -z3 -d:pserver:anonymous@pdl.cvs.sourceforge.net:/cvsroot/pdl co PDL
-          
-
-When prompted for a password just press the Enter key.  Note however
-that the CVS tree is to be considered a development release and as
-such you are very welcome to try it out, but it is not recommended for
-mission critical use and might crash unexpectedly.
+No. PDL development was conducted with a CVS repository from December
+1999 to April 2009.  In April 2009 the project switched to the
+L<Git|http://git-scm.com> source control management system.  Note that
+some auxiliary project repositories (the project website, some books,
+etc.) are still available via CVS.
 
 
+=head2 Q: 4.10    How do I get PDL via Git?
+
+Assume you have Git installed on your system and want to download the
+project source code into the directory C<PDL>. To get read-only access
+to the repository, you type at the command line
+
+   git clone git://pdl.git.sourceforge.net/gitroot/pdl PDL
+
+To get developer read/write access to the repository type at the
+command line
+
+   git clone ssh://USERNAME@pdl.git.sourceforge.net/gitroot/pdl PDL
 
 
-=head2 Q: 4.10   I had a problem with the CVS version, how do I check if  someone has submitted a patch?  
+=head2 Q: 4.11   I had a problem with the Git version, how do I check if  someone has submitted a patch?  
 
-The Sourceforge system contains a patch-manager which contains
-patches that have not yet been applied to the
-distribution. This can be accessed by first accessing the
-Sourceforge web site and search for PDL. This will show you
-the project page for PDL and will give you access to the Patch
-manager. 
+The Sourceforge system contains a patch-manager which contains patches
+that have not yet been applied to the distribution. This can be
+accessed via the Tracker at PDL's Sourceforge project page
+http://sourceforge.net/projects/pdl .
 
 In addition, if you are not subscribing to the mailing list,
 check the archive of the C< pdl-porters> and C< perldl> mailing lists.
 
 
 
-=head2 Q: 4.11   I have gotten developer access to CVS, but I have trouble  committing uploads.  
+=head2 Q: 4.12   I have gotten developer access to Git, how do I upload my changes?
   
 
-The first you should do is to read the Sourceforge 
-documentation and learn the basics about CVS. But
-assuming you know this here is a quick intro from Karl
-Glazebrook:
+The first thing you should do is to read the Git documentation and
+learn the basics about Git. There are links to this information from
+PDL's SF Git page http://sourceforge.net/scm/?type=git&group_id=612
+. But here are the basics:
 
-   Delete your entire CVS directory structure and START AGAIN
-   (there is state)
-   
-   In a clean directory:
-   
-   setenv CVS_RSH          ssh
-   setenv CVSROOT          kgb@pdl.cvs.sourceforge.net:/cvsroot/pdl
-   
-   cvs co PDL
-   
-   You will need to type your password. every time you issue a cvs
-   command. there is no way around this if you use non-anon
-   access and you can't mix the two.
-   
-   However cvs commits will now work and write back to the server.
-   
-   You will continue to have to type your password until you upload
-   a key to the sourcefourge web page. Once you have done this it
-   becomes painless.
-          
+Before you upload your changes, commit them to YOUR repository
 
+   git add <file1> <file2> ...
+   git commit
 
+or combine these two with 
+
+   git commit -a
+
+Then pull in any changes others have made
+
+   git pull origin
+
+Then update the shared repository (at SF) with your changes
+
+   git push origin master
 
 
 
