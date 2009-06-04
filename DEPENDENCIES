@@ -24,7 +24,7 @@ or if you don't have the cpan script try
 
 MODULE          DEPENDS ON                  COMMENT
 
-PDL (all)       perl >= 5.6.x           you need at least this version
+PDL (all)       perl >= 5.6.2           you need at least this version
                 (5.8.x recommended)     of perl to succeed.
 
                 File::Spec              version >= 0.6 required, included

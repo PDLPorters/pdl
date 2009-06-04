@@ -1,6 +1,6 @@
 # Build the whole PDL distribtuion
 
-use 5.006;      # explicitly require 5.6.x or above
+use 5.006_002;      # explicitly require 5.6.2 or above
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
