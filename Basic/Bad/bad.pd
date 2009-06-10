@@ -925,7 +925,7 @@ pp_def(
      $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
     ',
     Code =>
-    'if ( $a() == $COMP(value) ) {
+    'if ( $a() == ($GENERIC(a)) $COMP(value) ) {
         $SETBAD(b());
      } else {
         $b() = $a();
