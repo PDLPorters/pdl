@@ -45,7 +45,7 @@ perldl (shell)  Term::ReadLine          perl provides a stub but if you
 
 
 PDL::FFTW
-                Needs the FFTW version 2 installed.  FFTW is A free C
+                Needs the FFTW version 2 installed.  FFTW is a free C
 		FFT library including multi-dimensional, real, and
 		parallel transforms.  NOTE: the released version of
 		FFTW is currently FFTW3.  You'll need to explicitly
@@ -62,16 +62,16 @@ PDL::Transform::Proj
 		See http://www.remotesensing.org/proj
 
 					Module will be built if the
-					PROJ4 library is installed.
+					PROJ4 library is installed and
+					detected.
 
 PDL::Graphics::TriD
-                perl 5.6 &
-                Requires OpenGL implementation. For free implementation
-                check out Mesa at http://www.mesa3d.org/
+                Requires an OpenGL implementation. For a free software
+		implementation check out Mesa at http://www.mesa3d.org/
 
-                                        Required. Module won't build
-                                        without libraries. To disable
-                                        edit perldl.conf (see INSTALL).
+                                        OpenGL is required.  The module
+					won't build without libraries.
+					To disable edit perldl.conf (see INSTALL).
 
 PDL::Graphics::PGPLOT
                 PGPLOT perl module and PGPLOT fortran library,
