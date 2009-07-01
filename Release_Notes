@@ -13,7 +13,29 @@ General Notes:
 
 Summary of Changes:
 
-     TBD
+        Add cast to $GENERIC(a) for setvaltonan() to improve support
+	for non-double piddles.
+
+	Continue to clean up the default release and development files
+	following the migration from cvs to git.
+
+	PDL now explicitly requires perl 5.6.2 or above.
+	
+	  No PASSes have been reported to CPAN Testers
+	  for PDL with perl 5.6.0 or 5.6.1, ever.  This
+	  modification sets better expectations for PDL users.
+
+	Update FAQ for CVS->Git migration
+
+	Change $PDL::VERSION to 2.4.4_03git for devel
+
+        Fix t/proj_transform to skip when no earth_image()
+
+	  Missing jpegtopnm functionality in NetPBM or other
+	  causes earth_image() to fail on some platforms.
+	  This modifies the test to skip the remaining tests
+	  if earth_image() can not be loaded.
+
 
 
 Release notes for PDL 2.4.4_03 ---------------------------
