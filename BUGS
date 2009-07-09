@@ -47,16 +47,16 @@ you may be able to run
 
 from the top level of the PDL build directory.
 
-Submit your bug report to the bug database 
+Submit your bug report to the bug database tracker at
+http://sourceforge.net/tracker/?func=add&group_id=612&atid=100612
 
 Alternatively, send an e-mail report with the above
 information (including the output of 'perldl -V')
 to pdl-porters@jach.hawaii.edu . See
 
-   http://pdl.perl.org/maillists
+   http://pdl.sourceforge.net/maillists/
 
-for info on how to subscribe to this list
-if necessary.
+for info on how to subscribe to this list.
 
 
 
@@ -70,7 +70,7 @@ check the FAQ (http://pdl/sourceforge.net/FAQ) and
 the mailing list archives for hints. You can find
 links to the searchable archives at
 
-   http://pdl.perl.org/maillists
+   http://pdl.sourceforge.net/maillists/
 
 
 
@@ -81,13 +81,13 @@ Patches can be sent to the pdl-porters mailing list
 (see above) or can be directly submitted to the
 patch manager
 
-   http://sourceforge.net/patch/?group_id=612
+   http://sourceforge.net/tracker/?atid=300612&group_id=612
 
 Patches should be made against the latest released
-PDL or, ideally, against the current CVS sources
+PDL or, ideally, against the current git sources
 which you can browse and check out at
 
-  http://sourceforge.net/cvs/?group_id=612
+   git://pdl.git.sourceforge.net/gitroot/pdl
 
 
 Thanks,
