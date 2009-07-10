@@ -39,7 +39,7 @@ sub MY::postamble {
     $text .= << 'EOT';
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-	podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
+        PERL5OPT='' podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
 
 EOT
   }
