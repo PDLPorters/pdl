@@ -36,7 +36,7 @@ ok( (sum($y) == 4*29), 'Check autoload of func.pdl' );
 SKIP: {
   skip "Inapplicable to MS Windows", 1 if $^O =~ /MSWin/i;
   my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
-  my $get = (getpwuid($<))[7];
+  my $get = (getpwnam(getpwuid($<)))[7];
   my $echo = qx(echo ~);
   chomp $echo;
 

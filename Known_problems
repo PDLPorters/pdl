@@ -18,6 +18,11 @@ PDL:
   Only minor fixes have occurred since PDL-2.4.3.  Please check
   for releases of PDL::Graphics::OpenGL::Perl for the new implementation.
 
+- make problems with build:
+  - Using parallel make causes the build to fail so don't use -j # options.
+  - Make fails with message like
+    "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
+
 - The following SourceForge bugs are outstanding at time of the 2.4.4
   point release:
 
