@@ -534,10 +534,10 @@ doc_perl_install ::
 $text .=
 "
 perldl.pod : perldl subdirs
-\tpodselect perldl > perldl.pod
+\tPERL5OPT='' podselect perldl > perldl.pod
 
 pdldoc.pod : pdldoc subdirs
-\tpodselect pdldoc > pdldoc.pod
+\tPERL5OPT='' podselect pdldoc > pdldoc.pod
 
 ";
 
