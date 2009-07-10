@@ -1,4 +1,4 @@
-Release notes for PDL 2.4.4_03git ---------------------------
+Release notes for PDL 2.4.4_04 ---------------------------
 
 General Notes:
 
@@ -9,6 +9,10 @@ General Notes:
      *************************************
 
      PDL now requires perl 5.6.2 or higher.
+
+     More incremental bug fixes along the way to a
+     PDL-2.4.5 release which is planned to have the
+     reworked 3D graphics support.
 
 
 Summary of Changes:
