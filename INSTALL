@@ -52,14 +52,16 @@ After editing the configuration options just say
 in the directory this file is in. (See 'perldoc ExtUtils::MakeMaker'
 for info on how to configure the installation location, etc.)
 and if that seems ok, try:
-
 	make
 
 If there are any strange error messages, please contact the developers
 with a full bug report; response is often rapid (we would like to have
 PDL work right out of the box on as many platforms as possible).
 
-If make worked correctly, try
+NOTE: Build failures have been reported with parallel
+      make options such as -j # and their ilk.
+
+If make completed correctly, try doing
 
 	make test
 
