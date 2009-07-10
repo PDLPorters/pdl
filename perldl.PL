@@ -999,7 +999,9 @@ modules, set shell variables, etc. If it is NOT found the distribution file
 F<PDL/default.perldlrc> is read instead. This loads various modules
 considered useful by default, and which ensure compatibility with
 v1.11. If you don't like this and want a more streamlined set of your
-own favourite modules simple create your own F<~/.perldlrc>
+own favourite modules simple create your own F<~/.perldlrc>.  You may
+wish to start from the existing F<PDL/default.perldlrc> as a template
+since it will not be sourced once you replace it with your own version.
 
 To set even more local defaults the file  F<local.perldlrc> (in the current
 directory) is sourced if found. This lets you load modules and define
