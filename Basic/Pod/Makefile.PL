@@ -36,10 +36,10 @@ sub MY::postamble {
   my $text = '';
   eval 'require Pod::Select';
   if (!$@ && $] >= 5.005 ) {
-    $text .= << 'EOT';
+    $text .= << "EOT";
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-        PERL5OPT='' podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
+\tPERL5OPT='' podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
 
 EOT
   }
