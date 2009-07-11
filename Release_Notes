@@ -1,4 +1,4 @@
-Release notes for PDL 2.4.4_05git ---------------------------
+Release notes for PDL 2.4.4_05 ---------------------------
 
 General Notes:
 
@@ -11,7 +11,9 @@ General Notes:
 
 Summary of Changes:
 
-     TBD
+     This is a quick release to fix a missing TAB
+     in the Makefile.PL generation for the podselect
+     problem.  All else is the same as PDL-2.4.4_04.
 
 
 
