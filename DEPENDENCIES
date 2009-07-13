@@ -53,7 +53,7 @@ PDL::FFTW
 		See http://www.fftw.org/
 
                                         Will not be built unless
-                                        FFTW is installed.
+                                        FFTW version 2 is installed.
 
 PDL::GIS::Proj
 PDL::Transform::Proj
@@ -154,7 +154,7 @@ PDL::IO::Pic
 
                                         Module builds ok without
 					converters but t/pic_16bit
-					will fail without a current
+					will fail without a recent
 					version of netpbm.
 
 
@@ -169,4 +169,3 @@ PDL::Slatec     ExtUtils::F77           linear algebra routines
                                         ExtUtils::F77 (version >= 1.03)
                                         is installed and Extutils::F77
                                         supports your platform.
-

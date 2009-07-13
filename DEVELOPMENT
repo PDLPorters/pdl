@@ -1,34 +1,40 @@
-This file has some information on how to get access to
-the latest PDL sources (mainly of interest for potential
-developers). This should not be confused with the latest
-public release which will always be available from CPAN (if
-you don't know what that is check the FAQ).
+This file has some information on how to get
+access to the latest PDL sources (mainly of
+interest for potential developers). This should
+not be confused with the latest public release
+which will always be available from CPAN (if you
+don't know what that is check the FAQ).
 
 Public Git repository at sourceforge.net
 --------------------------------------------
 
-From version PDL-2.4.4 onwards the source distribution is in a
-publicly accessible Git repository. The project is hosted at the
+From version PDL-2.4.4 onwards the source
+distribution is in a publicly accessible Git
+repository. The project is hosted at the
 sourceforge site at
 
   http://sourceforge.net/projects/pdl/
 
-Starting from that URL you will find directions on how to check out
-the current sources, browse the Git repository online, etc.
+Starting from the above URL you will find
+directions on how to check out the current
+sources, browse the Git repository online, etc.
 
-If you would like to actively contribute to PDL development don't
-hesitate to contact one of the project admins (listed at the above
-URL) to apply for write access to the repository. We strongly believe
-in the power of open source development!
+If you would like to actively contribute to PDL
+development don't hesitate to contact one of the
+project admins (listed at the above URL) to apply
+for write access to the repository. We strongly
+believe in the power of open source development!
 
-If you do not know how to use Git try 'man git' or have a look at
-some of the online tutorials available on the web.
+If you do not know how to use Git try 'man git'
+or have a look at some of the online tutorials
+available on the web.
 
 The main Git home page is at
 
   http://www.git-scm.org/
 
-and two good online Git references are the Git User's Manual at
+and two good online Git references are the Git
+User's Manual at
 
   http://www.kernel.org/pub/software/scm/git/docs/user-manual.html
 
@@ -40,15 +46,18 @@ and Git Magic at
 PDL Developer Guidelines:
 -------------------------
 
-The following guidelines are for any developer that has access to the
-PDL Git repository.
+The following guidelines are for any developer
+that has access to the PDL Git repository.
 
 1) Before committing a change to the repository you should update:
     - CHANGES file with a description of the change made. 
+     [ or equivalently, put clear descriptions in your git   ]
+     [ commit log entries.  Work is underway to autogenerate ]
+     [ CHANGES from the git log output                       ]
     - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files if
       applicable.
 
-2) Remember to include POD documentation for any functions you add to 
+2) Please include POD documentation for any functions you add to 
    the distribution. 
     - See Basic/Core/Core.pm for an example of including POD
       documentation in .pm files. 
@@ -57,12 +66,11 @@ PDL Git repository.
     - read the documentation in PDL::Doc for a detailed description of
       the PDL documentation conventions.
 
-2) Make sure you add a test case in the 't' directory for any
-   significant additional capability you add to the PDL package.
-   Please use one the of the Test modules available within Perl
-   rather than doing-it-yourself as many of our tests do!  The
-   recommended testing module is Test::More which now distributed
-   with the perl distribution.
+3) Make sure you add a test case in the 't' directory for any
+   significant additional capability you add to PDL.  Please
+   use one the of the Test modules available within Perl
+   rather than doing-it-yourself!  The preferred testing module
+   is Test::More which now distributed with the perl distribution.
    
 3) Don't commit before you successfully built and passed 'make
    test'. But then again, don't keep your changes private for too
