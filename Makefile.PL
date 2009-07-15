@@ -531,13 +531,22 @@ doc_perl_install ::
   }
     
 
-$text .=
+$text .= $^O !~ /MSWin32/i ?
 "
 perldl.pod : perldl subdirs
 \tPERL5OPT='' podselect perldl > perldl.pod
 
 pdldoc.pod : pdldoc subdirs
 \tPERL5OPT='' podselect pdldoc > pdldoc.pod
+
+"
+:
+"
+perldl.pod : perldl subdirs
+\tpodselect perldl > perldl.pod
+
+pdldoc.pod : pdldoc subdirs
+\tpodselect pdldoc > pdldoc.pod
 
 ";
 
