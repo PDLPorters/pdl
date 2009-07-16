@@ -43,7 +43,6 @@ Makefile
 # with full patch in the top level directory (as here).
 
 
-_Inline/
 .inlinepdlpp
 Basic/Bad/Bad.c
 Basic/Bad/Bad.pm
@@ -252,6 +251,8 @@ Lib/Slatec/Slatec.pm
 Lib/Slatec/Slatec.xs
 Lib/Slatec/SlatecProtos.h
 Lib/Slatec/f77_underscore
+Lib/Transform/Cartography/earth_day.ppm
+Lib/Transform/Cartography/earth_night.ppm
 Lib/Transform/Proj4/Proj4.c
 Lib/Transform/Proj4/Proj4.pm
 Lib/Transform/Proj4/Proj4.xs
@@ -259,9 +260,13 @@ Lib/Transform/Transform.c
 Lib/Transform/Transform.pm
 Lib/Transform/Transform.xs
 MANIFEST.bak
+_Inline/
+gsl.pl
 pdl.c
 pdldoc
 pdldoc.pod
 perldl
+perldl.conf-fast
+perldl.conf-orig
 perldl.pod
 t/*.dll*

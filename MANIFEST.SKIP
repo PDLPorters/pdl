@@ -221,3 +221,8 @@ pure_all
 so_locations
 subdirs
 ~$
+^Lib/Transform/Cartography/earth_day.ppm
+^Lib/Transform/Cartography/earth_night.ppm
+^perldl.conf-fast
+^perldl.conf-orig
+^gsl.pl
