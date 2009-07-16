@@ -335,7 +335,7 @@ sub readchunk {
     my ($d, $pdl, $len, $name) = @_;
     print "Reading $len at $offset from $name\n"
       if $PDL::FlexRaw::verbose;
-    $d->read($ {$pdl->get_dataref},$len) == $len
+    read($d, ${$pdl->get_dataref}, $len) == $len
 	or barf "Couldn't read enough data from '$name'";
     $pdl->upd_data();
     $offset += $len;
