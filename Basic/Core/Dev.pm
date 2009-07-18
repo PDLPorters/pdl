@@ -336,7 +336,7 @@ sub flushgeneric {  # Construct the generic code switch
 sub postamble {
 
   if ($^O =~ /win32/i) {
-    open FI,'>./getdev.pl' or die "couldn't open getdev.pl";
+    open FI,'>./getdev.pl' or die "couldn't open getdev.pl: $!";
     my $location = whereami_any();
     print FI << "EOD";
 
