@@ -40,5 +40,5 @@ SKIP: {
   my $echo = qx(echo ~);
   chomp $echo;
 
-is($tilde, $get, "Check tilde expansion ($echo from 'echo ~')");
+is($tilde, $echo, "Check tilde expansion (Got '$get' from (getpwnam(getpwuid(\$<)))[7] )");
 }
