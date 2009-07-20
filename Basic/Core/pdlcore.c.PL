@@ -147,12 +147,12 @@ print OUT <<'!NO!SUBS!';
 /* Check minimum datatype required to represent number */
 /* Microsoft compilers do some unbelievable things - hence 
    some #ifdef's inserted by Sisyphus */
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1400
 #define TESTTYPE(b,a) {a foo = nv; a bar = foo; foo += 0; if(nv == bar) return b;}
 #else
 #define TESTTYPE(b,a) {a foo = nv; if(nv == foo) return b;}
 #endif
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1400
 #pragma optimize("", off)
 #endif
 int pdl_whichdatatype (double nv) {
@@ -187,7 +187,7 @@ int pdl_whichdatatype_double (double nv) {
 		nv);
 }
 
-#ifdef _MSC_VER
+#if defined _MSC_VER && _MSC_VER < 1400
 #pragma optimize("", on)
 #endif
 
