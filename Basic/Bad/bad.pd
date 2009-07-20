@@ -913,6 +913,16 @@ Any bad values in the input piddles are copied across to the output piddle.
 # is common and that can't be done inplace
 #
 # this doesn't need a BadCode section
+
+if ($^O =~ /MSWin/) {
+pp_addhdr('
+#if defined _MSC_VER && _MSC_VER < 1400
+#pragma optimize("", off)
+#endif
+
+');
+}
+
 pp_def(
     'setvaltobad',
     HandleBad => 1,
@@ -925,7 +935,12 @@ pp_def(
      $SETPDLSTATEBAD(b);          /* always make sure the output is "bad" */
     ',
     Code =>
-    'if ( $a() == ($GENERIC(a)) $COMP(value) ) {
+    '#if defined _MSC_VER && _MSC_VER < 1400
+$GENERIC(a) dummy1 = ($GENERIC(a)) $COMP(value);
+if ( $a() == dummy1 ) {
+#else
+if ( $a() == ($GENERIC(a)) $COMP(value) ) {
+#endif
         $SETBAD(b());
      } else {
         $b() = $a();
@@ -955,6 +970,15 @@ whether there are any bad values in the output).
 Any bad values in the input piddles are copied across to the output piddle.
 ',
        ); # pp_def: setvaltobad
+
+if ($^O =~ /MSWin/) {
+pp_addhdr('
+#if defined _MSC_VER && _MSC_VER < 1400
+#pragma optimize("", on)
+#endif
+
+');
+}
 
 # setnantobad \ are straight copies if $PDL::Bad::UseNaN == 1
 # setbadtonan /
