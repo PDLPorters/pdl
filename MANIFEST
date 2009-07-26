@@ -124,6 +124,7 @@ Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 BUGS
 Changes
+Changes_CVS
 COPYING
 cygwin/drivers.list
 cygwin/g77_gcc.conf
