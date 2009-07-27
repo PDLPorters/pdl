@@ -8,10 +8,94 @@ General Notes:
      *                                   *
      *************************************
 
+     This is another developers release of the latest git PDL.
+     More code cleanup, added diagnostics, and updating the
+     various documentation.
+
+     The old (pre-git) Changes file has been renamed Changes_CVS
+     and the new Changes file is generated from the output of the
+     git log --stat command.  This should make it easier to keep
+     the changes file up to date.  Any developer or interested
+     user can download the full repository and run git log to see
+     all the history in its glory.
 
 Summary of Changes:
 
-     TBD
+   Move Changes to Changes_CVS to prep for git log
+
+     We plan to move from a manual Changes file to an automatically
+     generated one extracted from the git log messages.  The initial
+     command is "git log --stat" and will be added to the make dist
+     command eventually.  For now, just generate by hand before making
+     a CPAN distribution.
+
+   Added PERL5OPT unset for podselect command
+
+     Missed the podselect in Basic/Gen/Makefile.PL.
+     This unsets PERL5OPT before running podselect
+     in the generated Makefile.  That should prevent
+     false failures due to Devel::Autoflush not being
+     available...
+
+   Make tilde test check against `echo ~` result
+
+     Since the goal is to give the same result as the
+     shell (i.e. bash) expansion of ~, and since all the
+     false test failures had the PDL::AutoLoader giving
+     the same result as `echo ~`, I've just made that
+     the result to check against.
+
+   Win32 - MSVC-specific fix for setvaltobad() for PDL_Float
+   
+     In Basic/Bad/bad.pd:
+     Provide special handling for setvaltobad() wrt PDL_Float piddles.
+     Applies only to MSVC++ compilers prior to version 8.0.
+     Thanks to creamygoodness, BrowserUk, ig and ELISHEVA:
+     http://www.perlmonks.org/index.pl?node_id=781347
+
+   Win32 - Reduce scope of MSVC-specific bugfix
+
+     Some MS compiler bugs have been fixed in later
+     versions of the compiler.
+     This allows us to change each occurrence of:
+     #ifdef _MSC_VER
+       to:
+     #if defined _MSC_VER && _MSC_VER < 1400
+
+   Basic/Core/Dev.pm - tweak setting of WriteMakefile() LIBS
+
+     Instead of specifying LIBS=>[] (on those occasions when LIBS
+     should be empty) pdlpp_stdargs_int() and pdlpp_stdargs() would
+     have LIBS=>[''] and LIBS=>[' '] respectively.
+     Minor rewrite to pdlpp_stdargs_int() and pdlpp_stdargs() to fix this.
+
+   Added $! to another Basic/Core/Dev.pm die message
+   Added $! to Basic/Core/Dev.pm tempfile error
+
+     The die when trylink failed to open its temporary
+     output file did not include the system error reported.
+     That has been added to the output to improve debugging.
+
+   Added diag print for t/dumper.t small sdump()
+
+     There have been persistent t/dumper.t failures
+     on some BSD platforms.  Adding a diag() to print
+     the result of the first sdump() string to give
+     a clue as to what the problem is.
+
+   Fix readflex() to work with File::LinearRaid
+
+     readflex() in IO/FlexRaw/FlexRaw.pm use method syntax for
+     read with an input file handle.  This failed with a tied
+     file handle as is used by File::LinearRaid.  Replacing the
+     usage $d->read(...) by read($d, ...) fixed the incompatibility.
+     I don't know if it should have worked the other way or not.
+
+   Fold in [dn]make correction to PERL5OPT fix
+
+     The "fix" for the -MDevel::Autoflush did not
+     work with dmake or nmake (presumably because of
+     the non-sh command shell).
 
 
 

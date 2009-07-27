@@ -50,12 +50,9 @@ The following guidelines are for any developer
 that has access to the PDL Git repository.
 
 1) Before committing a change to the repository you should update:
-    - CHANGES file with a description of the change made. 
-     [ or equivalently, put clear descriptions in your git   ]
-     [ commit log entries.  Work is underway to autogenerate ]
-     [ CHANGES from the git log output                       ]
-    - MANIFEST (using 'make manifest'), MANIFEST.SKIP, TODO files if
-      applicable.
+    - MANIFEST (using 'make manifest')
+    - MANIFEST.SKIP (if applicable)
+    - TODO (if applicable)
 
 2) Please include POD documentation for any functions you add to 
    the distribution. 
@@ -68,9 +65,8 @@ that has access to the PDL Git repository.
 
 3) Make sure you add a test case in the 't' directory for any
    significant additional capability you add to PDL.  Please
-   use one the of the Test modules available within Perl
-   rather than doing-it-yourself!  The preferred testing module
-   is Test::More which now distributed with the perl distribution.
+   use Test::More or one the of the Test modules available via
+   perl modules rather than doing-it-yourself!
    
 3) Don't commit before you successfully built and passed 'make
    test'. But then again, don't keep your changes private for too

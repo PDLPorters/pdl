@@ -21,7 +21,21 @@ PDL:
 - make problems with build:
   - Using parallel make causes the build to fail so don't use -j # options.
   - Make fails with message like
-    "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
+      "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
+      If you have this error, please contact the PDL developers via the perldl
+      mailing list and help us track this one down.  Thanks!
+
+- PDL::IO::Dumper has test failures on some systems that appear to result
+  from an incorrectly detected/use flavor of uuencode or uudecode.  Work
+  is underway to diagnose this further but if you install Convert::UU that
+  should resolve the problem.  Patches welcome.
+
+- PDL configuration failures have come about because needed temp files
+  are not creatable.  This appears to be a result of platform misconfiguration
+  but we need data points to understand the issue.
+
+- 16bit image file IO fails in t/pic_16bit.t apparently due to an
+  older version of NetPBM which does not support the raw 16bit formats.
 
 - The following SourceForge bugs are outstanding at time of the 2.4.4
   point release:
