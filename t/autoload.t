@@ -34,11 +34,15 @@ ok( (sum($y) == 4*29), 'Check autoload of func.pdl' );
 
 #check that tilde expansion works (not applicable on MS Windows)
 SKIP: {
-  skip "Inapplicable to MS Windows", 1 if $^O =~ /MSWin/i;
-  my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
-  my $get = (getpwnam(getpwuid($<)))[7];
-  my $echo = qx(echo ~);
-  chomp $echo;
+   skip "Inapplicable to MS Windows", 1 if $^O =~ /MSWin/i;
+   my $tilde = (PDL::AutoLoader::expand_path('~'))[0];
+   my $get = (getpwnam(getpwuid($<)))[7];
+   my $echo = qx(echo ~);
+   chomp $echo;
 
-is($tilde, $echo, "Check tilde expansion (Got '$get' from (getpwnam(getpwuid(\$<)))[7] )");
+   if ($echo !~ /^~/) {
+      is($tilde, $echo, "Check tilde expansion (Got '$get' from (getpwnam(getpwuid(\$<)))[7] )");
+   } else {
+      is($tilde, $get, "Check tilde expansion (Got '$echo' from echo ~");
+   }
 }
