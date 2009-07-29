@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Wed 16 Aug 2006 10:26:36 PM
+Last saved: Tue 28 Jul 2009 10:20:46 PM
 
 =================================================================
                  Installing with CPAN on Cygwin
@@ -18,12 +18,20 @@ from the standard Setup.exe installs).
 Just start up an xterm and run cpan from the bash prompt:
 
   bash$ cpan
-  cpan> install ExtUtils::F77
-  cpan> install Astro::FITS::Header
-  cpan> install Inline
   cpan> install PDL
 
-This should install a PDL with the following functionality:
+This should pull in installs of
+
+  Astro::FITS::Header
+  Data::Dumper
+  File::Spec
+  Filter::Util::Call
+  Text::Balanced
+  Inline
+
+if they are not already installed or of a recent enough version.
+
+This should finish with a PDL with the following functionality:
 
   - base PDL modules
 

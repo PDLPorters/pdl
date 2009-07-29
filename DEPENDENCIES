@@ -37,6 +37,10 @@ Inline::Pdlpp   Inline                  version >= 0.43 required
                                         module allows to define fast PP code
                                         inline in your scripts
 
+PDL::IO::Dumper Data::Dumper            version >=2.122 is required to avoid
+                                        a bug in earlier Data::Dumper releases
+					which breaks PDL::IO::Dumper
+
 perldl (shell)  Term::ReadLine          perl provides a stub but if you
                                         compile and install a better one
                                         (Term::ReadLine or Term::ReadLine::Gnu)

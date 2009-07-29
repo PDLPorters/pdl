@@ -1,3 +1,28 @@
+Release notes for PDL 2.4.4_07 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+   TBD
+
+
+Summary of Changes:
+
+   Data::Dumper 2.122 is not an official prerequisite for PDL since it
+   is used to implement PDL::IO::Dumper and thus should have been
+   listed.  As a side effect, this should resolve a failure of the
+   t/dumper.t where Data::Dumper::Dump was returning invalid perl
+   code constructs to recreate the structures being dumped.
+
+   TBD
+
+
+
 Release notes for PDL 2.4.4_06 ---------------------------
 
 General Notes:
