@@ -37,7 +37,7 @@ Inline::Pdlpp   Inline                  version >= 0.43 required
                                         module allows to define fast PP code
                                         inline in your scripts
 
-PDL::IO::Dumper Data::Dumper            version >=2.122 is required to avoid
+PDL::IO::Dumper Data::Dumper            version >=2.121 is required to avoid
                                         a bug in earlier Data::Dumper releases
 					which breaks PDL::IO::Dumper
 

@@ -13,7 +13,7 @@ General Notes:
 
 Summary of Changes:
 
-   Data::Dumper 2.122 is not an official prerequisite for PDL since it
+   Data::Dumper 2.121 is not an official prerequisite for PDL since it
    is used to implement PDL::IO::Dumper and thus should have been
    listed.  As a side effect, this should resolve a failure of the
    t/dumper.t where Data::Dumper::Dump was returning invalid perl
