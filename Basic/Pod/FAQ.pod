@@ -850,7 +850,7 @@ C< .=> for certain types of assignments.
 =head2 Q: 6.9    How do I set a set of values in a piddle?  
   
 
-With versions of Perl prior to 5.6 this has to be done using
+With versions of Perl prior to 5.6.7 this has to be done using
 a temporary variable. 
 
             perldl> $a = sequence(5); p $a
@@ -870,9 +870,8 @@ seen in PDL code:
                [0 5 6 3 4]
           
 
-In Perl 5.6 this assignment can be simplified using lvalue
-subroutines, and this is now incorporated into PDL by 
-requiring at least Perl 5.6.
+In Perl 5.6.7 and higher this assignment can be simplified
+using lvalue subroutines, see L<PDL::Lvalue> for more info.  
 
 
 

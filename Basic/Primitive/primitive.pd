@@ -2653,8 +2653,9 @@ sub PDL::setops {
     # We then mark/mask these in the s1 and s2 arrays to indicate which ones
     # are not equal to their neighbours.
     #
-    $s1->index($i1) .= 1 if $i1->nelem() > 0;
-    $s2->index($i2) .= 1 if $i2->nelem() > 0;
+    my $ts;
+    ($tx = $s1->index($i1)) .= 1 if $i1->nelem() > 0;
+    ($tx = $s2->index($i2)) .= 1 if $i2->nelem() > 0;
 
     my $inds=which($s1 == $s2);
 

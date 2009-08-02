@@ -1003,7 +1003,8 @@ sub lu_decomp {
 	if(abs($big) < $TINY);
       
       # Divide by the diagonal element (which is now the largest element)
-      $out->(($col),$col+1:$n1) /= $big;
+      my $tout;
+      ($tout = $out->(($col),$col+1:$n1)) /= $big;
     } # end of pivoting part
   } # end of column loop
 
