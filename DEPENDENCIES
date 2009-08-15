@@ -41,6 +41,9 @@ PDL::IO::Dumper Data::Dumper            version >=2.121 is required to avoid
                                         a bug in earlier Data::Dumper releases
 					which breaks PDL::IO::Dumper
 
+PDL::IO::Storable Storable              version >=1.03 is now listed as a
+                                        required dependency
+
 perldl (shell)  Term::ReadLine          perl provides a stub but if you
                                         compile and install a better one
                                         (Term::ReadLine or Term::ReadLine::Gnu)

@@ -8,19 +8,28 @@ General Notes:
      *                                   *
      *************************************
 
-   TBD
+   The original, pre-CVS to git migration changes are listed in
+   Changes_CVS and Changes contains the output from git log --stat
+   since April 2009.
+
+   Data::Dumper v2.121 and Storable v1.03 are now explicit
+   prerequisites to the PDL build.  This should give better
+   diagnostics and makes clear that these modules are essential
+   to PDL IO functionality.
+
+   Continue minor fixes and cleanup to main PDL file tree.
 
 
 Summary of Changes:
 
-   Data::Dumper 2.121 is not an official prerequisite for PDL since it
-   is used to implement PDL::IO::Dumper and thus should have been
-   listed.  As a side effect, this should resolve a failure of the
-   t/dumper.t where Data::Dumper::Dump was returning invalid perl
-   code constructs to recreate the structures being dumped.
+    Make Data::Dumper v 2.121 the minimum required
 
-   TBD
-
+    Avoid lvalue sub syntax requirements
+    
+    Rework storable test to use Test::More
+    
+    Fix t/autoload.t test when echo ~ gives ~
+    
 
 
 Release notes for PDL 2.4.4_06 ---------------------------
