@@ -59,17 +59,23 @@ if ( defined($t) and $t == 0 ) {
                # by adding explicit X11 include locations for all cases
                #
                if ($^O eq 'cygwin' and not defined $PDL::Config{OPENGL_INC}) {
-                  $PDL::Config{OPENGL_INC} = '-I/usr/X11R6/include -I/usr/X11R6/include/GL';
+                  $PDL::Config{OPENGL_INC} = '';
+                  if ( -d '/usr/X11R6/include') {
+                    $PDL::Config{OPENGL_INC} = $PDL::Config{OPENGL_INC} . '-I/usr/X11R6/include ';
+                  }
+                  if ( -d '/usr/X11R6/include/GL') {
+                    $PDL::Config{OPENGL_INC} = $PDL::Config{OPENGL_INC} . '-I/usr/X11R6/include/GL ';
+                  }
                }
 
-               if ($^O eq 'cygwin' and not defined $PDL::Config{OPENGL_DEFINE}) {
-                  $PDL::Config{OPENGL_DEFINE} =
-                  '-DGL_MESA_trace ' .
-                  '-DGLX_ARB_render_texture ' .
-                  '-DGLX_GLEXT_LEGACY ' .
-                  '-DGLX_MESA_agp_offset ' .
-                  '-DGLX_NV_vertex_array_range';
-               }
+               ### if ($^O eq 'cygwin' and not defined $PDL::Config{OPENGL_DEFINE}) {
+               ###    $PDL::Config{OPENGL_DEFINE} =
+               ###    '-DGL_MESA_trace ' .
+               ###    '-DGLX_ARB_render_texture ' .
+               ###    '-DGLX_GLEXT_LEGACY ' .
+               ###    '-DGLX_MESA_agp_offset ' .
+               ###    '-DGLX_NV_vertex_array_range';
+               ### }
 
                # hack for OS-X
                if ($^O eq "darwin" and not defined $PDL::Config{OPENGL_INC}) {

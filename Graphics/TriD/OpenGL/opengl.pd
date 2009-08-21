@@ -84,7 +84,12 @@ foreach(@defines){
 
 # This next seems to be important to keep some extraneous mesa debugging definitions
 # from being caught.  Blech.
-push(@defines,"-DGL_MESA_program_debug=0");
+push(@defines,"-DGL_MESA_program_debug");
+push(@defines,"-DGL_MESA_shader_debug");
+push(@defines,"-DGL_ATI_blend_equation_separate");
+push(@defines,"-DGLX_MESA_swap_frame_usage");
+push(@defines,"-DGLX_MESA_swap_control");
+push(@defines,"-DGLX_ARB_render_texture");
 
 
 
