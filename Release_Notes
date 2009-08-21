@@ -1,3 +1,22 @@
+Release notes for PDL 2.4.4_08 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+
+Summary of Changes:
+
+   PDL::Graphics::TriD builds on current cygwin systems.
+   The locations of include files and the MESA functionality
+   work arounds changed since the PDL-2.4.3 release.
+
+
+
 Release notes for PDL 2.4.4_07 ---------------------------
 
 General Notes:

@@ -1,9 +1,9 @@
 INSTALLATION
 ------------
 
-To install PDL on your machine, first check that you have a high
-enough version of Perl, 5.6.2+ is required and 5.8.x and above is
-recommended.
+To install PDL on your machine, first check that you have a recent
+enough version of Perl, 5.8.x and above is recommended. Absolute
+minimum is 5.6.2+ but this is deprecated.
 
 See win32/INSTALL for details on installing PDL on windows platforms.
 

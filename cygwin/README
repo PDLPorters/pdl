@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Wed 16 Aug 2006 10:33:33 PM
+Last saved: Fri 21 Aug 2009 03:13:45 PM
 
 =================================================================
                             Overview
@@ -43,9 +43,10 @@ external dependencies:
   (Builds if plplot library has been hand built and installed)
 
  PDL::Graphics::TriD
-  (Builds automatically if you have X11 and OpenGL installed.
-   It seems to work with native OpenGL as well as Mesa.  Both
-   X11 and OpenGL support are installed via cygwin setup.exe)                 
+  (Builds automatically if you have X11 and OpenGL installed)
+  There is a known problem with PDL::Graphics::TriD::Tk and
+  Tk v804.028 where the embedded OpenGL window widget fails
+  to be configured.  Running under the debugger makes it work.
 
  PDL::GSL::*
  PDL::GSLSF::*
