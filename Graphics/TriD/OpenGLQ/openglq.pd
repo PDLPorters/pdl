@@ -27,7 +27,7 @@ EOD
 pp_addhdr('
 #include <GL/gl.h>
 #include <GL/glu.h>
-#include <GL/glx.h>
+/* #include <GL/glx.h> */
 
 /* #include "../OpenGL/OpenGL.m" */
 /* D_OPENGL; */
