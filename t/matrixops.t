@@ -35,7 +35,8 @@ ok($par==-1);                            # parity is right
 ok(all($perm == pdl(2,1,0)));            # permutation is right
 
 $l = $lu->copy; 
-$l->diagonal(0,1) .= 1; 
+my $ldiag;
+($ldiag = $l->diagonal(0,1)) .= 1; 
 $l->slice("1:2,0") .= $l->slice("2,1") .= 0;
 
 $u = $lu->copy; 
