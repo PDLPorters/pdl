@@ -596,7 +596,7 @@ return $text
 sub MY::processPL {
     ### This fix seems necessary with current versions of MM - otherwise it creates circular
     ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
-    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
 	my($self) = shift;
 	return "" unless $self->{PL_FILES};
 	my(@m, $plfile);
@@ -605,7 +605,7 @@ sub MY::processPL {
                          ?  $self->{PL_FILES}->{$plfile}
 	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
-	    if($Config{make} eq 'dmake') {
+	    if($Config{make} =~ /\bdmake/i) {
 		foreach $target (@$list) {
 		    push @m, "
 all :: $target

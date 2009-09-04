@@ -130,7 +130,7 @@ sub make_from_PL ($) {
 }
 
 sub MY::xs_o {
-    if($Config{make} eq 'nmake') {
+    if($Config{make} =~ /\bnmake/i) {
       return'
 .xs$(OBJ_EXT):
 	$(PERLRUN) $(XSUBPP) $(XSPROTOARG) $(XSUBPPARGS) $*.xs > $*.c
@@ -145,8 +145,8 @@ sub MY::xs_o {
 }
 
 sub MY::processPL {
-    if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
-    if($Config{make} eq 'nmake'){return ''}
+    if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
+    if($Config{make} =~ /\bnmake/i){return ''}
     my($self) = shift;
     return "" unless $self->{PL_FILES};
     my(@m, $plfile);
@@ -176,7 +176,7 @@ $target :
 
 sub MY::postamble {
 
-if($Config{make} eq 'dmake') { return
+if($Config{make} =~ /\bdmake/i) { return
 
 PDL::Core::Dev::postamble().
 "
