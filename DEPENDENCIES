@@ -73,8 +73,10 @@ PDL::Transform::Proj
 					detected.
 
 PDL::Graphics::TriD
-                Requires an OpenGL implementation. For a free software
-		implementation check out Mesa at http://www.mesa3d.org/
+                Requires OpenGL-0.58 or higher for USE_POGL
+
+                Both require the OpenGL graphics libraries. For a free
+		software implementation check out Mesa at http://www.mesa3d.org/
 
                                         OpenGL is required.  The module
 					won't build without libraries.

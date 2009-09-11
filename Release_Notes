@@ -1,3 +1,24 @@
+Release notes for PDL 2.4.4_09 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+
+Summary of Changes:
+
+   Now has Perl OpenGL-0.58 or greater as a CPAN prerequisite for
+   testing the new TriD refactoring.  For the first official release
+   the hard requirement will be modified to a "smart requirement"
+   where we'll build using POGL if it is installed, and the old style
+   direct PP build if not.
+
+
+
 Release notes for PDL 2.4.4_08 ---------------------------
 
 General Notes:
