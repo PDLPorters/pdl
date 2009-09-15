@@ -49,7 +49,9 @@ package PDL::Graphics::TriD::Tk;
 use Tk;
 use PDL::Core;
 use PDL::Graphics::TriD;
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use OpenGL 0.58003 qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use strict;
 
 

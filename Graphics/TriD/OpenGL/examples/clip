@@ -33,7 +33,9 @@
 
 use blib "../../../..";
 
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use OpenGL 0.58003 qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 
 
 sub tacky_cube {

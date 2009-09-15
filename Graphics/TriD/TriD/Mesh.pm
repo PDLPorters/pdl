@@ -21,7 +21,9 @@
 # Smooth: normal(3,(),      vertex, @)
 
 package PDL::Graphics::TriD::Mesh;
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use OpenGL 0.58003 qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::LiteF;
 @ISA=qw/PDL::Graphics::TriD::Object/;
 
@@ -141,7 +143,8 @@ sub togl {
 }
 
 package PDL::Graphics::TriD;
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Core '';
 
 sub pdltotrianglemesh {
