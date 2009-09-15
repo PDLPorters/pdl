@@ -55,7 +55,7 @@ interface and build environment matures
 
 =head1 AUTHOR
 
-Chris Marshall, C<< <chm at alum.mit.edu> >>
+Chris Marshall, C<< <devel dot chm dot 01 at gmail.com> >>
 
 =head1 BUGS
 
@@ -75,6 +75,7 @@ To subscribe see the page at L<http://mailman.jach.hawaii.edu/mailman/listinfo/p
 
 =head1 ACKNOWLEDGEMENTS
 
+TBD including PDL TriD developers and POGL developers...thanks to all.
 
 =head1 COPYRIGHT & LICENSE
 

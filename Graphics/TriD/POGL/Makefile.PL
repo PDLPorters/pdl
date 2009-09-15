@@ -4,7 +4,7 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile(
     NAME                => 'PDL::Graphics::OpenGL::Perl::OpenGL',
-    AUTHOR              => q{Chris Marshall <chm@alum.mit.edu>},
+    AUTHOR              => q{Chris Marshall <devel dot chm dot 01 at gmail.com>},
     VERSION_FROM        => 'OpenGL.pm',
     ABSTRACT_FROM       => 'OpenGL.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
