@@ -225,7 +225,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nc = $s->[0];
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
-			PDL::Graphics::OpenGL::glpPrintString($fontbase,
+                        OpenGL::glpPrintString($fontbase,
 				sprintf("%.3f",$nc));
 			glBegin(GL_LINES);
 			&glVertex3f(@coords0);
@@ -238,7 +238,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		}
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
-		PDL::Graphics::OpenGL::glpPrintString($fontbase,
+                OpenGL::glpPrintString($fontbase,
 			$this->{Names}[$dim]);
 	}
 	glEnable(GL_LIGHTING);
@@ -514,7 +514,7 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my($this,$vert) = @_;
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	glColor3d(1,1,1);
-	glTexImage2D(GL_TEXTURE_2D,
+	glTexImage2D_s(GL_TEXTURE_2D,
 		0,
 		GL_RGB,
 		$txd,
@@ -637,7 +637,7 @@ sub gdriver {
 #  $this->reshape($options->{width},$options->{height});
 
   my $light = pack "f*",1.0,1.0,1.0,0.0;
-  glLightfv(GL_LIGHT0,GL_POSITION,$light);
+  glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
 
   glColor3f(1,1,1);
   
@@ -713,13 +713,13 @@ sub twiddle {
    print "e= ".join(",",@e)."\n" if($PDL::Graphics::TriD::verbose);
 	
 	 if(@e){
-		if($e[0] == VisibilityNotify or $e[0] == Expose) {
+		if ($e[0] == VisibilityNotify || $e[0] == Expose) {
 		  $hap = 1;
-		}elsif($e[0] == ConfigureNotify) {
+		} elsif ($e[0] == ConfigureNotify) {
 		  print "CONFIGNOTIFE\n" if($PDL::Graphics::TriD::verbose);
 		  $this->reshape($e[1],$e[2]);
 		  $hap=1;
-		}elsif($e[0] == KeyPress) {
+		} elsif($e[0] == KeyPress) {
 		  print "KEYPRESS: '$e[1]'\n" if($PDL::Graphics::TriD::verbose);
 		  if((lc $e[1]) eq "q") {
 			 $quit = 1;
@@ -814,7 +814,7 @@ sub read_picture {
 	my $res = PDL->zeroes(PDL::byte,3,$w,$h);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
-	glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,
+	glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,
 		${$res->get_dataref});
 	return $res;
 }
@@ -890,7 +890,7 @@ sub event {
 
 	 # Kludge to force reshape of the viewport associated with the window -CD
 	 print "ConfigureNotify (".join(",",@args).")\n" if($PDL::Graphics::TriD::verbose);
-	 print "viewport is $this->[4]\n" if($PDL::Graphics::TriD::verbose);
+	 print "viewport is $this->{VP}\n" if($PDL::Graphics::TriD::verbose);
 #	 $retval = $this->reshape(@args);
 
        }
@@ -957,6 +957,7 @@ sub do_perspective {
 
 	if($PDL::Graphics::TriD::verbose>1){
 	  my ($i,$package,$filename,$line);
+          $i = 0;
 	  do { 
 	    ($package,$filename,$line) = caller($i++);
 	    print "$package ($filename, line $line)\n";

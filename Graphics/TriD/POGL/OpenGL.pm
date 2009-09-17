@@ -165,7 +165,7 @@ OO interface to XResizeWindow
 
 sub XResizeWindow {
   my($self,$x,$y) = @_;
-  OpenGL::XResizeWindow($self->{Display},$self->{Window},$x,$y);
+  OpenGL::glpResizeWindow($x,$y,$self->{Window},$self->{Display});
 }
 
 
