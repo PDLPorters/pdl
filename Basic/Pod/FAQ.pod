@@ -597,12 +597,12 @@ Assume you have Git installed on your system and want to download the
 project source code into the directory C<PDL>. To get read-only access
 to the repository, you type at the command line
 
-   git clone git://pdl.git.sourceforge.net/gitroot/pdl PDL
+   git clone git://pdl.git.sourceforge.net/gitroot/pdl/pdl PDL
 
 To get developer read/write access to the repository type at the
 command line
 
-   git clone ssh://USERNAME@pdl.git.sourceforge.net/gitroot/pdl PDL
+   git clone ssh://USERNAME@pdl.git.sourceforge.net/gitroot/pdl/pdl PDL
 
 
 =head2 Q: 4.11   I had a problem with the Git version, how do I check if  someone has submitted a patch?  

@@ -73,7 +73,7 @@ PDL::Transform::Proj
 					detected.
 
 PDL::Graphics::TriD
-                Requires OpenGL-0.58 or higher for USE_POGL
+                Requires OpenGL-0.58_004 or higher for USE_POGL
 
                 Both require the OpenGL graphics libraries. For a free
 		software implementation check out Mesa at http://www.mesa3d.org/

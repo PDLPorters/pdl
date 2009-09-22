@@ -1209,7 +1209,20 @@ sub typemap {
 
   # A slightly edited version of the search path in xsubpp with a $installprivlib/ExtUtils
   # directory prepended. 
-  my $_rootdir=$Config{installprivlib}."/ExtUtils/";
+  my $_rootdir;
+  # new code to find the ExtUtils directory
+  # this is hopefully portable and will work for the forseeable future
+  use File::Basename;
+  require ExtUtils::MakeMaker;
+  
+  my @res = grep /ExtUtils.*MakeMaker.pm/, keys %INC;
+  if (@res >= 1) {
+      $_rootdir = dirname($INC{$res[0]}) . '/';
+      # print "_rootdir set to '$_rootdir'\n";
+  } else {
+      croak "couldn't find ExtUtils::MakeMaker in %INC hash while searching for typemap";
+  }
+
   # First the system typemaps..
   my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
 	    $_rootdir.'../../../lib/ExtUtils/typemap',
@@ -1224,11 +1237,13 @@ sub typemap {
   # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
   # the source code from xsubpp for tidiness.
   push @tm, 'typemap';
+  my $foundtm = 0;
   foreach $typemap (@tm) {
     next unless -f $typemap ;
     # skip directories, binary files etc.
     warn("Warning: ignoring non-text typemap file '$typemap'\n"), next
       unless -T $typemap ;
+    $foundtm = 1;
     open(TYPEMAP, $typemap)
       or warn ("Warning: could not open typemap file '$typemap': $!\n"), next;
     $mode = 'Typemap';
@@ -1272,6 +1287,8 @@ sub typemap {
       }
     close(TYPEMAP);
   }
+  carp "PP found no typemap in $_rootdir/typemap; this will cause problems..."
+      unless $foundtm;
 
   #
   # Do checks...
