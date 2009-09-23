@@ -107,9 +107,10 @@ sub getpdl_config {
   # Add BAD_VAL tests if CPAN testers
   #
   if ($ENV{AUTOMATED_TESTING} == 1) {
-     print "Automated testing environment: enabling WITH_BADVAL and BADVAL_PER_PDL config options\n";
+     print "Automated testing environment: enabling WITH_BADVAL, BADVAL_PER_PDL, and USE_POGL config options\n";
      $PDL_CONFIG{WITH_BADVAL}    = 1;
      $PDL_CONFIG{BADVAL_PER_PDL} = 1;
+     $PDL_CONFIG{USE_POGL} = 1;
   }
 
   # Save standard values
@@ -409,13 +410,13 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 
 @prereq = (
 	   'Astro::FITS::Header' => 0,
-           'Data::Dumper'        => 2.121, # for PDL::IO::Dumper
+           'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
 	   'File::Spec'          => 0.6,
-	   'Filter::Util::Call'  => 0,     # for PDL::NiceSlice
+	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Inline'              => 0.43,
-           'OpenGL'              => 0.58,  # for PDL::Graphics::TriD
-           'Storable'            => 1.03,  # for PDL::IO::Storable
-	   'Text::Balanced'      => 0,     # for PDL::NiceSlice
+           'OpenGL'              => 0.58004,   # for PDL::Graphics::TriD
+           'Storable'            => 1.03,      # for PDL::IO::Storable
+	   'Text::Balanced'      => 0,         # for PDL::NiceSlice
 	  );
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
