@@ -9,7 +9,9 @@ package PDL::Graphics::TriD::GoBoard;
 
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw /Data InLays BG/;
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use OpenGL 0.58003 qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
 use PDL::Lite;
 
 

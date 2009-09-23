@@ -1,0 +1,40 @@
+PDL-Graphics-OpenGL-Perl-OpenGL
+
+This module provides an alternative OpenGL API interface
+to the internal PDL::Graphics::OpenGL one.  It curently
+requires that you have a recent version of the Perl OpenGL
+module (a.k.a. POGL) install.
+
+
+INSTALLATION
+
+The current source for this module resides in the PDL
+source tree.  To have it build, edit the perldl.conf file
+and set the USE_POGL option to 1.
+
+To install this module separately via CPAN, run the
+following commands:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+
+SUPPORT AND DOCUMENTATION
+
+After installing, you can find documentation for this module with the
+perldoc command.
+
+    perldoc PDL::Graphics::OpenGL::Perl::OpenGL
+
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2009 Chris Marshall
+
+This program is free software; you can redistribute it and/or modify it
+under the terms of either: the GNU General Public License as published
+by the Free Software Foundation; or the Artistic License.
+
+See http://dev.perl.org/licenses/ for more information.
+

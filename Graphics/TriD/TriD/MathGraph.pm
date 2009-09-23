@@ -31,7 +31,10 @@ the copyright notice should be included in the file.
 package PDL::Graphics::TriD::MathGraph;
 use base qw/PDL::Graphics::TriD::GObject/;
 use fields qw/ArrowLen ArrowWidth/;
-use PDL::Graphics::OpenGL;
+#use PDL::Graphics::OpenGL;
+use OpenGL 0.58003 qw(:all);
+use PDL::Graphics::OpenGL::Perl::OpenGL;
+
 
 sub gdraw {
 	my($this,$points) = @_;

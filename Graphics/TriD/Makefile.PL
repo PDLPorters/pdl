@@ -56,7 +56,7 @@ if ($^O =~ /win32/i) {
 	unless $gl_build;
 } # if: OS == win32
 
-my @subdirs = qw( Rout VRML );
+my @subdirs = qw( POGL Rout VRML );
 if ( $gl_build ) { @subdirs = ( @subdirs, qw( OpenGL OpenGLQ ) ); }
 else             { print "   $gl_msg\n\n" unless $gl_build; }
 $PDL::Config{GL_BUILD} = $gl_build; # record for Config.pm
