@@ -169,7 +169,7 @@ PDL::IO::Pic
 
 PDL::Minuit     ExtUtils::F77           PDL interface to Minuit minimization
                                         routines in CERN library, see the link at
-                                        http://seal.web.cern.ch/seal/snapshot/work-packages/mathlibs/minuit/index.html
+                                        http://wwwasdoc.web.cern.ch/wwwasdoc/minuit/minmain.html
 
 	        The Minuit library code is included but requires a
 		fortran compiler and the ExtUtils::F77 (version >= 1.03)
