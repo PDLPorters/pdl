@@ -14,8 +14,8 @@ Summary of Changes:
    Now has Perl OpenGL-0.58_004 or greater as a CPAN prerequisite for
    testing the new TriD refactoring.  Due to to changes and testing
    for TriD development, this release may be less stable than usual.
-   Please use PDL-2.4.4_08 in that case.
 
+   NOTE: USE_POGL is enabled by default for testing purposes.
 
 
 Release notes for PDL 2.4.4_08 ---------------------------
