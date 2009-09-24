@@ -1,3 +1,4 @@
+3dtest.pl
 Basic/AutoLoader.pm
 Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
@@ -300,6 +301,12 @@ Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/README
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
+Graphics/TriD/POGL/ignore.txt
+Graphics/TriD/POGL/Makefile.PL
+Graphics/TriD/POGL/MANIFEST
+Graphics/TriD/POGL/OpenGL.pm
+Graphics/TriD/POGL/README
+Graphics/TriD/POGL/t/00-load.t
 Graphics/TriD/README
 Graphics/TriD/Rout/Makefile.PL
 Graphics/TriD/Rout/rout.pd

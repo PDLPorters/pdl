@@ -19,8 +19,8 @@ PDL:
 
 
 - PDL::Graphics::TriD is in the process of being refactored.
-  Only minor fixes have occurred since PDL-2.4.3.  Announcements
-  of the new version will be made to the perldl mailing list.
+  This is the first CPAN developers release with support for
+  the Perl OpenGL module (POGL) rather than the PDL PP one.
 
   See http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
   for more information.
