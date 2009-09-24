@@ -6,10 +6,15 @@
 #
 #package PDL::Graphics::TriD::GL;
 
-#use PDL::Graphics::OpenGL;
-use OpenGL 0.58003 qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
-use PDL::Graphics::OpenGLQ;
+
+BEGIN {
+   if ( $PDL::Config{USE_POGL} ) {
+      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
+   } else {
+      eval 'use PDL::Graphics::OpenGL';
+   }
+}
 
 $PDL::Graphics::TriD::create_window_sub = sub {
   return new PDL::Graphics::TriD::GL::Window(@_);
@@ -225,8 +230,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		my $nc = $s->[0];
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
-                        OpenGL::glpPrintString($fontbase,
-				sprintf("%.3f",$nc));
+                        if ( $PDL::Config{USE_POGL} ) {
+                           OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+                        } else {
+                           PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+                        }
 			glBegin(GL_LINES);
 			&glVertex3f(@coords0);
 			&glVertex3f(@coords);
@@ -238,8 +246,11 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		}
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
-                OpenGL::glpPrintString($fontbase,
-			$this->{Names}[$dim]);
+                if ( $PDL::Config{USE_POGL} ) {
+                   OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+                } else {
+                   PDL::Graphics::OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+                }
 	}
 	glEnable(GL_LIGHTING);
 }
@@ -514,16 +525,11 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my($this,$vert) = @_;
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	glColor3d(1,1,1);
-	glTexImage2D_s(GL_TEXTURE_2D,
-		0,
-		GL_RGB,
-		$txd,
-		$tyd,
-		0,
-		GL_RGB,
-		GL_FLOAT,
-		${$p->get_dataref()}
-	);
+        if ( $PDL::Config{USE_POGL} ) {
+           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+        } else {
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+        }
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	       glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
@@ -566,9 +572,16 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 #
 #
 package PDL::Graphics::TriD::Window;
-#use PDL::Graphics::OpenGL;
-use OpenGL 0.58003 qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
+
+BEGIN {
+   if ( $PDL::Config{USE_POGL} ) {
+      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
+   } else {
+      eval 'use PDL::Graphics::OpenGL';
+   }
+}
+
 use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/Ev Width Height Interactive _GLObject 
               _ViewPorts _CurrentViewPort /;
@@ -637,7 +650,11 @@ sub gdriver {
 #  $this->reshape($options->{width},$options->{height});
 
   my $light = pack "f*",1.0,1.0,1.0,0.0;
-  glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
+  if ( $PDL::Config{USE_POGL} ) {
+     glLightfv_s(GL_LIGHT0,GL_POSITION,$light);
+  } else {
+     glLightfv(GL_LIGHT0,GL_POSITION,$light);
+  }
 
   glColor3f(1,1,1);
   
@@ -814,8 +831,13 @@ sub read_picture {
 	my $res = PDL->zeroes(PDL::byte,3,$w,$h);
 	glPixelStorei(GL_UNPACK_ALIGNMENT,1);
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
-	glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,
-		${$res->get_dataref});
+
+        if ( $PDL::Config{USE_POGL} ) {
+           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+        } else {
+           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+        }
+
 	return $res;
 }
 
@@ -824,9 +846,16 @@ sub read_picture {
 # EVENT HANDLER MINIPACKAGE FOLLOWS!
 
 package PDL::Graphics::TriD::EventHandler;
-#use PDL::Graphics::OpenGL qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/;
-use OpenGL 0.58003 qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/;
-use PDL::Graphics::OpenGL::Perl::OpenGL;
+
+BEGIN {
+   if ( $PDL::Config{USE_POGL} ) {
+      eval 'use OpenGL 0.58_004 qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/';
+      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
+   } else {
+      eval 'use PDL::Graphics::OpenGL';
+   }
+}
+
 use fields qw/X Y Buttons VP/;
 use strict;
 sub new {
@@ -912,9 +941,15 @@ use base qw/PDL::Graphics::TriD::Object/;
 use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands 
               DefMaterial AspectRatio Graphs/;
 
-#use PDL::Graphics::OpenGL;
-use OpenGL 0.58003 qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
+BEGIN {
+   if ( $PDL::Config{USE_POGL} ) {
+      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
+   } else {
+      eval 'use PDL::Graphics::OpenGL';
+   }
+}
+
 use PDL::Graphics::OpenGLQ;
 
 

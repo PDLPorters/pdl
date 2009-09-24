@@ -21,9 +21,16 @@
 # Smooth: normal(3,(),      vertex, @)
 
 package PDL::Graphics::TriD::Mesh;
-#use PDL::Graphics::OpenGL;
-use OpenGL 0.58003 qw(:all);
-use PDL::Graphics::OpenGL::Perl::OpenGL;
+
+BEGIN {
+   if ( $PDL::Config{USE_POGL} ) {
+      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
+   } else {
+      eval 'use PDL::Graphics::OpenGL';
+   }
+}
+
 use PDL::LiteF;
 @ISA=qw/PDL::Graphics::TriD::Object/;
 
