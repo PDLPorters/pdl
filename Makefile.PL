@@ -392,6 +392,13 @@ unless ( $seen_pdlconf ) {
 getpdl_config($pdl_conf_file);
 $seen_f77conf = check_f77conf($seen_f77conf);
 
+# Add check for POGL if USE_POGL is enabled
+eval 'use OpenGL 0.58_004 qw();';
+if ($@) {
+   warn "DEPENDENCY ERROR: USE_POGL requires at least OpenGL-0.58_004!";
+   exit 0;
+}
+
 make_Version_pm();
 
 make_badval_dependencies();
