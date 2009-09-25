@@ -73,7 +73,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.4_09'; # Remember to remove the 'git' for releases...
+$PDL::VERSION = '2.4.4_10'; # Remember to remove the 'git' for releases...
 
 # Main loader of standard PDL package
 
