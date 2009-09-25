@@ -3,7 +3,7 @@ PDL-Graphics-OpenGL-Perl-OpenGL
 This module provides an alternative OpenGL API interface
 to the internal PDL::Graphics::OpenGL one.  It curently
 requires that you have a recent version of the Perl OpenGL
-module (a.k.a. POGL) install.
+module (a.k.a. POGL) installed.
 
 
 INSTALLATION

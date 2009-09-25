@@ -4,5 +4,3 @@ Makefile.PL
 README
 OpenGL.pm
 t/00-load.t
-t/pod-coverage.t
-t/pod.t

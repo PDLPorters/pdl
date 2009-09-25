@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 #
+# This program is a simple diagnostic example to
+# check if TriD is working (or at least imagrgb() is)
+#
 use PDL;
 use PDL::NiceSlice;
 use PDL::Graphics::TriD;

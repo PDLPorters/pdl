@@ -1,7 +1,6 @@
 package PDL::Graphics::OpenGL::Perl::OpenGL;
 
-use OpenGL 0.58003 qw();
-use PDL::Graphics::OpenGL::Perl::OpenGL;
+use OpenGL 0.58004 qw();
 
 use warnings;
 use strict;
@@ -16,7 +15,7 @@ Version 0.01_07
 
 =cut
 
-our $VERSION = '0.01_07';
+our $VERSION = '0.01_08';
 
 
 =head1 SYNOPSIS
@@ -27,7 +26,7 @@ PDL::Graphics::OpenGL one. It also supports any
 miscellaneous OpenGL or GUI related functionality to
 support PDL::Graphics::TriD refactoring.
 
-You should be able to replace:
+You should eventually be able to replace:
 
     use PDL::Graphics::OpenGL
 by
