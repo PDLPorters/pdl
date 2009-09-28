@@ -1,6 +1,6 @@
 package PDL::Graphics::OpenGL::Perl::OpenGL;
 
-use OpenGL 0.58004 qw();
+use OpenGL 0.58_005 qw();
 
 use warnings;
 use strict;
@@ -15,7 +15,7 @@ Version 0.01_07
 
 =cut
 
-our $VERSION = '0.01_08';
+our $VERSION = '0.01_09';
 
 
 =head1 SYNOPSIS
@@ -63,6 +63,7 @@ package PDL::Graphics::OpenGL::OO;
 use PDL::Options;
 use strict;
 my $debug;
+my (@fakeXEvents) = ();
 #
 # This is a list of all the fields of the opengl object and one could create a 
 # psuedo hash style object but I want to use multiple inheritence with Tk...
@@ -110,17 +111,23 @@ sub new {
   }
 
   # Use GLUT windows and event handling as the TriD default
-  # $window_type ||= 'glut';
-  $window_type ||= 'x11';       # use X11 default until glut code is ready
+  $window_type ||= 'glut';
+  # $window_type ||= 'x11';       # use X11 default until glut code is ready
 
   my $self;
   if ( $window_type =~ /x11/i ) {       # X11 windows
-     print "Creating X11 OO window\n";
+     print STDERR "Creating X11 OO window\n";
      $self =  OpenGL::glpcOpenWindow(
         $p->{x},$p->{y},$p->{width},$p->{height},
         $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
   } else {                              # GLUT or FreeGLUT windows
-     print "Creating GLUT OO window\n";
+     print STDERR "Creating GLUT OO window\n";
+     OpenGL::glutInit();        # make sure glut is initialized
+     OpenGL::glutInitWindowPosition($p->{x},$p->{y});
+     OpenGL::glutInitWindowSize($p->{width},$p->{height});      
+     OpenGL::glutInitDisplayMode(OpenGL::GLUT_RGBA|OpenGL::GLUT_DOUBLE);        # hardwire for now
+     my($glutwin) = OpenGL::glutCreateWindow("GLUT TriD");
+     $self = { 'glutwindow' => $glutwin, 'xevents' => \@fakeXEvents };
   }
   if(ref($self) ne 'HASH'){
      die "Could not create OpenGL window";
@@ -170,7 +177,12 @@ OO interface to XPending
 
 sub XPending {
    my($self) = @_;
-   OpenGL::XPending($self->{Display});
+   if ( $PDL::Config{USE_POGL} ) {
+      # monitor state of @fakeXEvents, return number on queue
+      scalar( @{$self->{xevents} );
+   } else {
+      OpenGL::XPending($self->{Display});
+   }
 }
 
 

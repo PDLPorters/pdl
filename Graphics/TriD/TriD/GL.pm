@@ -8,6 +8,7 @@
 
 
 BEGIN {
+   use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
       eval 'use OpenGL 0.58_004 qw(:all)';
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
@@ -231,7 +232,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
                         if ( $PDL::Config{USE_POGL} ) {
-                           OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+                           OpenGL::glutPrintString($fontbase, sprintf("%.3f",$nc));
                         } else {
                            PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
                         }
@@ -247,7 +248,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
                 if ( $PDL::Config{USE_POGL} ) {
-                   OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+                   OpenGL::glutPrintString($fontbase, $this->{Names}[$dim]);
                 } else {
                    PDL::Graphics::OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
                 }
@@ -628,9 +629,13 @@ sub gdriver {
   glClearColor(0,0,0,1);
 
   print "gdriver: Calling glpRasterFont...\n" if($PDL::debug_trid);
-  my $lb =  $this->{_GLObject}->glpRasterFont(
-						($ENV{PDL_3D_FONT} or "5x8"),0,256);
-  $PDL::Graphics::TriD::GL::fontbase = $lb;
+  if ( $PDL::Config{USE_POGL} ) {
+     print STDERR "gdriver: USE_POGL so not actually setting the rasterfont\n";
+     $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
+  } else {
+     my $lb =  $this->{_GLObject}->glpRasterFont( ($ENV{PDL_3D_FONT} or "5x8"), 0, 256 );
+     $PDL::Graphics::TriD::GL::fontbase = $lb;
+  }
   #	glDisable(GL_DITHER);
   glShadeModel (GL_FLAT);
   glEnable(GL_DEPTH_TEST);
@@ -722,6 +727,12 @@ sub twiddle {
    print "EVENT!\n" if($PDL::Graphics::TriD::verbose);
 	 my $hap = 0;
 	 my $gotev = 0;
+
+         # Run a MainLoop event if GLUT windows
+         # this pumps the system allowing callbacks to populate
+         # the fake XEvent queue.
+         #
+         glutMainLoopEvent() if $PDL::Config{USE_POGL};
 
 	 if($this->{_GLObject}->XPending() or !$getout) {
 		@e = $this->{_GLObject}->glpXNextEvent();
@@ -820,7 +831,11 @@ sub display {
 
   }
 
-  $this->{_GLObject}->glXSwapBuffers();
+  if ( $PDL::Config{USE_POGL} ) {
+     glutSwapBuffers();
+  } else {
+     $this->{_GLObject}->glXSwapBuffers();
+  }
 #  $this->{Angle}+= 3;
 }
 
