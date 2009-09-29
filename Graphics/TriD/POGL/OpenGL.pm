@@ -125,9 +125,14 @@ sub new {
      OpenGL::glutInit();        # make sure glut is initialized
      OpenGL::glutInitWindowPosition($p->{x},$p->{y});
      OpenGL::glutInitWindowSize($p->{width},$p->{height});      
-     OpenGL::glutInitDisplayMode(OpenGL::GLUT_RGBA|OpenGL::GLUT_DOUBLE);        # hardwire for now
+     OpenGL::glutInitDisplayMode(OpenGL::GLUT_RGBA()|OpenGL::GLUT_DOUBLE());        # hardwire for now
+
      my($glutwin) = OpenGL::glutCreateWindow("GLUT TriD");
      $self = { 'glutwindow' => $glutwin, 'xevents' => \@fakeXEvents };
+
+     OpenGL::glutReshapeFunc(\&_pdl_fake_ConfigureNotify);
+     OpenGL::glutCloseFunc(\&_pdl_fake_exit_handler);
+
   }
   if(ref($self) ne 'HASH'){
      die "Could not create OpenGL window";
@@ -151,6 +156,25 @@ sub new {
   bless $self,$class_or_hash;
 }
 
+=head2 default GLUT callbacks
+
+These routines are set as the default GLUT callbacks for when GLUT windows
+are used for PDL/POGL.  Their only function at the moment is to drive an
+fake XEvent queue to feed the existing TriD GUI controls.  At some point,
+the X11 stuff will the deprecated and we can rewrite this more cleanly.
+
+=cut
+
+sub _pdl_fake_exit_handler {
+   print "_pdl_fake_exit_handler: got (@_)\n";
+   OpenGL::glutDestroyWindow(OpenGL::glutGetWindow());
+}
+
+sub _pdl_fake_ConfigureNotify {
+   print "_pdl_fake_ConfigureNotify: got (@_)\n";
+   push @fakeXEvents, [ 22, @_ ];
+}
+
 =head2 default_options
 
 default options for object oriented methods
@@ -163,9 +187,9 @@ sub default_options{
       'width' => 500,
       'height'=> 500,
       'parent'=> 0,
-      'mask'  => &OpenGL::StructureNotifyMask,
+      'mask'  => eval '&OpenGL::StructureNotifyMask',
       'steal' => 0,
-      'attributes' => [ &OpenGL::GLX_DOUBLEBUFFER, &OpenGL::GLX_RGBA ],
+      'attributes' => eval '[ &OpenGL::GLX_DOUBLEBUFFER, &OpenGL::GLX_RGBA ]',
    }	
 }
 
@@ -179,7 +203,8 @@ sub XPending {
    my($self) = @_;
    if ( $PDL::Config{USE_POGL} ) {
       # monitor state of @fakeXEvents, return number on queue
-      scalar( @{$self->{xevents} );
+      print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n";
+      scalar( @{$self->{xevents}} );
    } else {
       OpenGL::XPending($self->{Display});
    }
@@ -207,7 +232,17 @@ OO interface to glpXNextEvent
 
 sub glpXNextEvent {
    my($self) = @_;
-   OpenGL::glpXNextEvent($self->{Display});
+   if ( $PDL::Config{USE_POGL} ) {
+      while (1) {
+         # Wait for events if none on the queue
+         last if scalar( @{$self->{xevents}} );
+         glutMainLoopEvent();
+      }
+      # Extract first event from fake event queue and return
+      @{ shift @{$self->{xevents}} }; 
+   } else {
+      OpenGL::glpXNextEvent($self->{Display});
+   }
 }
 
 
