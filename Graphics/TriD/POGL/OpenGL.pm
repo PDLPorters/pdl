@@ -152,7 +152,7 @@ sub new {
      OpenGL::glutInit();        # make sure glut is initialized
      OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
      OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
-     OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() );        # hardwire for now
+     OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
 
      my($glutwin) = OpenGL::glutCreateWindow( "GLUT TriD" );
      $self = { 'glutwindow' => $glutwin, 'xevents' => \@fakeXEvents };
