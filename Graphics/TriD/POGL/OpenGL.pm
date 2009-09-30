@@ -111,8 +111,8 @@ sub new {
   }
 
   # Use GLUT windows and event handling as the TriD default
-  $window_type ||= 'glut';
-  # $window_type ||= 'x11';       # use X11 default until glut code is ready
+  # $window_type ||= 'glut';
+  $window_type ||= 'x11';       # use X11 default until glut code is ready
 
   my $self;
   if ( $window_type =~ /x11/i ) {       # X11 windows
@@ -146,6 +146,7 @@ sub new {
 #  my $self = bless [ \%{"$class\::FIELDS"}], $class;
 #
   $self->{Options} = $p;
+  $self->{window_type} = $window_type;
   if($isref){
      if(defined($class_or_hash->{Options})){
        return bless $self,ref($class_or_hash);
@@ -223,6 +224,7 @@ sub default_options{
    }	
 }
 
+
 =head2 XPending()
 
 OO interface to XPending
@@ -231,7 +233,7 @@ OO interface to XPending
 
 sub XPending {
    my($self) = @_;
-   if ( $PDL::Config{USE_POGL} ) {
+   if ( $self->{window_type} eq 'glut' ) {
       # monitor state of @fakeXEvents, return number on queue
       print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n";
       scalar( @{$self->{xevents}} );
@@ -262,7 +264,7 @@ OO interface to glpXNextEvent
 
 sub glpXNextEvent {
    my($self) = @_;
-   if ( $PDL::Config{USE_POGL} ) {
+   if ( $self->{window_type} eq 'glut' ) {
       while (1) {
          # Wait for events if none on the queue
          last if scalar( @{$self->{xevents}} );

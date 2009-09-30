@@ -204,6 +204,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my($this,$graph) = @_;
 
+        print "togl_axis: got object type " . ref($this) . "\n";
 #	print "TOGLAX\n";
 	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 #	print "TOGL EUCLID\n";
@@ -232,10 +233,14 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
                         if ( $PDL::Config{USE_POGL} ) {
-                           OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
-                        } else {
-                           PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
-                        }
+                              if ( OpenGL::done_glutInit() ) {
+                                 OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
+                              } else {
+                                 OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+                              }
+                           } else {
+                              PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
+                           }
 			glBegin(GL_LINES);
 			&glVertex3f(@coords0);
 			&glVertex3f(@coords);
@@ -248,11 +253,15 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
                 if ( $PDL::Config{USE_POGL} ) {
-                   OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
+                   if ( OpenGL::done_glutInit() ) {
+                      OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
+                   } else {
+                      OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
+                   }
                 } else {
                    PDL::Graphics::OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
                 }
-	}
+             }
 	glEnable(GL_LIGHTING);
 }
 
@@ -629,8 +638,8 @@ sub gdriver {
   glClearColor(0,0,0,1);
 
   print "gdriver: Calling glpRasterFont...\n" if($PDL::debug_trid);
-  if ( $PDL::Config{USE_POGL} ) {
-     print STDERR "gdriver: USE_POGL so not actually setting the rasterfont\n";
+  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
+     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n";
      $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
   } else {
      my $lb =  $this->{_GLObject}->glpRasterFont( ($ENV{PDL_3D_FONT} or "5x8"), 0, 256 );
@@ -732,7 +741,7 @@ sub twiddle {
          # this pumps the system allowing callbacks to populate
          # the fake XEvent queue.
          #
-         glutMainLoopEvent() if $PDL::Config{USE_POGL};
+         glutMainLoopEvent() if $this->{_GLObject}->{window_type} eq 'glut';
 
 	 if($this->{_GLObject}->XPending() or !$getout) {
 		@e = $this->{_GLObject}->glpXNextEvent();
@@ -832,7 +841,13 @@ sub display {
   }
 
   if ( $PDL::Config{USE_POGL} ) {
-     glutSwapBuffers();
+
+     if ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
+        $this->{_GLObject}->glXSwapBuffers();
+     } else {
+        OpenGL::glutSwapBuffers();
+     }
+
   } else {
      $this->{_GLObject}->glXSwapBuffers();
   }
