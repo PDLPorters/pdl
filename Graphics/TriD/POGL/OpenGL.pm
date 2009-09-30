@@ -2,6 +2,27 @@ package PDL::Graphics::OpenGL::Perl::OpenGL;
 
 use OpenGL 0.58_005 qw();
 
+BEGIN {
+   eval 'OpenGL::ConfigureNotify()';
+   if ($@) {
+      # Set up some X11 and GLX constants for fake XEvent emulation
+      sub ButtonPressMask       { (1<<2 ) };
+      sub ButtonReleaseMask     { (1<<3 ) };
+      sub Button1Mask           { (1<<8 ) };
+      sub Button2Mask           { (1<<9 ) };
+      sub Button3Mask           { (1<<10) };
+      sub ExposureMask          { (1<<15) };
+      sub StructureNotifyMask   { (1<<17) };
+      sub ButtonPress           { 4 };
+      sub ButtonRelease         { 5 };
+      sub MotionNotify          { 6 };
+      sub Expose                { 12 };
+      sub GraphicsExpose        { 13 };
+      sub NoExpose              { 14 };
+      sub VisibilityNotify      { 15 };
+      sub ConfigureNotify       { 22 };
+   }
+}
 use warnings;
 use strict;
 
@@ -111,8 +132,8 @@ sub new {
   }
 
   # Use GLUT windows and event handling as the TriD default
-  # $window_type ||= 'glut';
-  $window_type ||= 'x11';       # use X11 default until glut code is ready
+  $window_type ||= 'glut';
+  # $window_type ||= 'x11';       # use X11 default until glut code is ready
 
   my $self;
   if ( $window_type =~ /x11/i ) {       # X11 windows
@@ -186,15 +207,19 @@ sub _pdl_fake_KeyPress {
 }
 
 {
-   my @Button2Mask = (256,512,1024);
-   my $fake_mouse_state = 0;
+   my @button_to_mask = (256,512,1024);
+   my $fake_mouse_state = 16;  # default have EnterWindowMask set;
+   my $last_fake_mouse_state;
 
    sub _pdl_fake_button_event {
       print "_pdl_fake_button_event: got (@_)\n";
+      $last_fake_mouse_state = $fake_mouse_state;
       if ( $_[1] == 0 ) {       # a press
-         push @fakeXEvents, [ 4, $_[0], $_[1], @_[2,3], -1, -1, -1 ];
+         $fake_mouse_state |= $button_to_mask[$_[0]];
+         push @fakeXEvents, [ 4, $_[0]+1, @_[2,3], -1, -1, $last_fake_mouse_state ];
       } elsif ( $_[1] == 1 ) {  # a release
-         push @fakeXEvents, [ 5, $_[0], $_[1], @_[2,3], -1, -1, -1 ];
+         $fake_mouse_state &= ~$button_to_mask[$_[0]];
+         push @fakeXEvents, [ 5, $_[0]+1 , @_[2,3], -1, -1, $last_fake_mouse_state ];
       } else {
          die "ERROR: _pdl_fake_button_event got unexpected value!";
       }
@@ -202,6 +227,7 @@ sub _pdl_fake_KeyPress {
 
    sub _pdl_fake_MotionNotify {
       print "_pdl_fake_MotionNotify: got (@_)\n";
+      push @fakeXEvents, [ 6, $fake_mouse_state, @_ ];
    }
 
 }
