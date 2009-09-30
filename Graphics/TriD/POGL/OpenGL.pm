@@ -123,15 +123,18 @@ sub new {
   } else {                              # GLUT or FreeGLUT windows
      print STDERR "Creating GLUT OO window\n";
      OpenGL::glutInit();        # make sure glut is initialized
-     OpenGL::glutInitWindowPosition($p->{x},$p->{y});
-     OpenGL::glutInitWindowSize($p->{width},$p->{height});      
-     OpenGL::glutInitDisplayMode(OpenGL::GLUT_RGBA()|OpenGL::GLUT_DOUBLE());        # hardwire for now
+     OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
+     OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
+     OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() );        # hardwire for now
 
-     my($glutwin) = OpenGL::glutCreateWindow("GLUT TriD");
+     my($glutwin) = OpenGL::glutCreateWindow( "GLUT TriD" );
      $self = { 'glutwindow' => $glutwin, 'xevents' => \@fakeXEvents };
 
-     OpenGL::glutReshapeFunc(\&_pdl_fake_ConfigureNotify);
-     OpenGL::glutCloseFunc(\&_pdl_fake_exit_handler);
+     OpenGL::glutReshapeFunc( \&_pdl_fake_ConfigureNotify );
+     OpenGL::glutCloseFunc( \&_pdl_fake_exit_handler );
+     OpenGL::glutKeyboardFunc( \&_pdl_fake_KeyPress );
+     OpenGL::glutMouseFunc( \&_pdl_fake_button_event );
+     OpenGL::glutMotionFunc( \&_pdl_fake_MotionNotify );
 
   }
   if(ref($self) ne 'HASH'){
@@ -166,13 +169,40 @@ the X11 stuff will the deprecated and we can rewrite this more cleanly.
 =cut
 
 sub _pdl_fake_exit_handler {
-   print "_pdl_fake_exit_handler: got (@_)\n";
+   print "_pdl_fake_exit_handler: clicked\n";
+   # Need to clean up better and exit/transition cleanly
    OpenGL::glutDestroyWindow(OpenGL::glutGetWindow());
 }
 
 sub _pdl_fake_ConfigureNotify {
    print "_pdl_fake_ConfigureNotify: got (@_)\n";
    push @fakeXEvents, [ 22, @_ ];
+}
+
+sub _pdl_fake_KeyPress {
+   print "_pdl_fake_KeyPress: got (@_)\n";
+   push @fakeXEvents, [ 2, chr($_[0]) ];
+}
+
+{
+   my @Button2Mask = (256,512,1024);
+   my $fake_mouse_state = 0;
+
+   sub _pdl_fake_button_event {
+      print "_pdl_fake_button_event: got (@_)\n";
+      if ( $_[1] == 0 ) {       # a press
+         push @fakeXEvents, [ 4, $_[0], $_[1], @_[2,3], -1, -1, -1 ];
+      } elsif ( $_[1] == 1 ) {  # a release
+         push @fakeXEvents, [ 5, $_[0], $_[1], @_[2,3], -1, -1, -1 ];
+      } else {
+         die "ERROR: _pdl_fake_button_event got unexpected value!";
+      }
+   }
+
+   sub _pdl_fake_MotionNotify {
+      print "_pdl_fake_MotionNotify: got (@_)\n";
+   }
+
 }
 
 =head2 default_options
