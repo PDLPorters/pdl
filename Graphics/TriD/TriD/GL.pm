@@ -232,7 +232,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		for(0..$ndiv) {
 			&glRasterPos3f(@coords);
                         if ( $PDL::Config{USE_POGL} ) {
-                           OpenGL::glutPrintString($fontbase, sprintf("%.3f",$nc));
+                           OpenGL::glutBitmapString($fontbase, sprintf("%.3f",$nc));
                         } else {
                            PDL::Graphics::OpenGL::glpPrintString($fontbase, sprintf("%.3f",$nc));
                         }
@@ -248,7 +248,7 @@ sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 		$coords0[$dim] = 1.1;
 		&glRasterPos3f(@coords0);
                 if ( $PDL::Config{USE_POGL} ) {
-                   OpenGL::glutPrintString($fontbase, $this->{Names}[$dim]);
+                   OpenGL::glutBitmapString($fontbase, $this->{Names}[$dim]);
                 } else {
                    PDL::Graphics::OpenGL::glpPrintString($fontbase, $this->{Names}[$dim]);
                 }
