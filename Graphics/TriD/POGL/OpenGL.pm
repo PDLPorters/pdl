@@ -12,6 +12,8 @@ BEGIN {
       sub OpenGL::GLX_GREEN_SIZE        { 9 };
       sub OpenGL::GLX_BLUE_SIZE         { 10 };
       sub OpenGL::GLX_DEPTH_SIZE        { 12 };
+      sub OpenGL::KeyPressMask          { (1<<0 ) };
+      sub OpenGL::KeyReleaseMask        { (1<<1 ) };
       sub OpenGL::ButtonPressMask       { (1<<2 ) };
       sub OpenGL::ButtonReleaseMask     { (1<<3 ) };
       sub OpenGL::Button1Mask           { (1<<8 ) };
@@ -19,6 +21,8 @@ BEGIN {
       sub OpenGL::Button3Mask           { (1<<10) };
       sub OpenGL::ExposureMask          { (1<<15) };
       sub OpenGL::StructureNotifyMask   { (1<<17) };
+      sub OpenGL::KeyPress              { 2 };
+      sub OpenGL::KeyRelease            { 3 };
       sub OpenGL::ButtonPress           { 4 };
       sub OpenGL::ButtonRelease         { 5 };
       sub OpenGL::MotionNotify          { 6 };
