@@ -16,9 +16,11 @@ BEGIN {
       sub OpenGL::KeyReleaseMask        { (1<<1 ) };
       sub OpenGL::ButtonPressMask       { (1<<2 ) };
       sub OpenGL::ButtonReleaseMask     { (1<<3 ) };
+      sub OpenGL::PointerMotionMask     { (1<<6 ) };
       sub OpenGL::Button1Mask           { (1<<8 ) };
       sub OpenGL::Button2Mask           { (1<<9 ) };
       sub OpenGL::Button3Mask           { (1<<10) };
+      sub OpenGL::ButtonMotionMask      { (1<<13) };
       sub OpenGL::ExposureMask          { (1<<15) };
       sub OpenGL::StructureNotifyMask   { (1<<17) };
       sub OpenGL::KeyPress              { 2 };
