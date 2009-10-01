@@ -155,7 +155,7 @@ sub new {
         $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
   } else {                              # GLUT or FreeGLUT windows
      print STDERR "Creating GLUT OO window\n";
-     OpenGL::glutInit();        # make sure glut is initialized
+     OpenGL::glutInit() unless OpenGL::done_glutInit();        # make sure glut is initialized
      OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
      OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
      OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
