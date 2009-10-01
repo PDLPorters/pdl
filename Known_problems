@@ -1,5 +1,5 @@
-The following issues have been reported with this version of
-PDL:
+The following issues have been reported with this version of PDL:
+
 
 - FFTW 3.2.2 is the current release version of the FFTW library
   but is not yet supported by PDL::FFTW.  You may install version
@@ -16,14 +16,6 @@ PDL:
 - Lvalue subroutine errors have been reported for perl 5.6.2
   installation on a linux 2.4 kernel system.  Perl versions 5.8
   and above are *really* recommended.
-
-
-- PDL::Graphics::TriD is in the process of being refactored.
-  This is the first CPAN developers release with support for
-  the Perl OpenGL module (POGL) rather than the PDL PP one.
-
-  See http://mailman.jach.hawaii.edu/mailman/listinfo/perldl
-  for more information.
 
 
 - Various make problems with build:
@@ -54,6 +46,7 @@ PDL:
 - The following SourceForge bugs are outstanding at time of the 2.4.4
   point release:
 
+  2844280  demo 3d fails if PDL_3D_FONT missing  
   2780046    make does not make docs 
   2630369    PDL::FFT::fftconvolve - bad scaling?  
   2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  

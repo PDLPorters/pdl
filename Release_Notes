@@ -1,3 +1,35 @@
+Release notes for PDL 2.4.4_12 ---------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+
+Summary of Changes:
+
+   Now has Perl OpenGL-0.58_005 or greater as a CPAN prerequisite
+   for testing the new TriD code using the Perl OpenGL module
+   (a.k.a. POGL) to provide the bindings to OpenGL, GLU, and GLUT.
+
+   The new code also replaces the X11+GLX interface for the GUI
+   interface by one using GLUT or FreeGLUT.  As a result, TriD
+   should now build and run on MS Windows and Mac OS X platforms.
+
+   By default, USE_POGL is set in the perldl.conf file to enable
+   the new implementation.  Setting it to zero will enable the
+   legacy implementation.  If you have to do this to get TriD
+   working on a platform that already had it working, please let
+   the developers know via the perldl mailing list!
+
+   Once the correct operation of this release is confirmed, it is
+   expected to be released as the PDL-2.4.5 official release.
+
+
+
 Release notes for PDL 2.4.4_09 ---------------------------
 
 General Notes:
