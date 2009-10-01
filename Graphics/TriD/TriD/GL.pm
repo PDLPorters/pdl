@@ -642,8 +642,15 @@ sub gdriver {
      print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n";
      $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
   } else {
-     my $lb =  $this->{_GLObject}->glpRasterFont( ($ENV{PDL_3D_FONT} or "5x8"), 0, 256 );
-     $PDL::Graphics::TriD::GL::fontbase = $lb;
+     # NOTE: glpRasterFont() will die() if the requested font cannot be found
+     #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
+     #       fonts and does not have this failure mode.
+     
+     my $lb =  eval { $this->{_GLObject}->glpRasterFont( ($ENV{PDL_3D_FONT} or "5x8"), 0, 256 ) };
+     if ( $@ ) {
+        die "glpRasterFont: unable to load font '%s', please set PDL_3D_FONT to an existing X11 font.";
+     }
+     $PDL::Graphics::TriD::GL::fontbase = $lb
   }
   #	glDisable(GL_DITHER);
   glShadeModel (GL_FLAT);
