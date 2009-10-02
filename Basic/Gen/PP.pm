@@ -1218,6 +1218,8 @@ sub typemap {
   my @res = grep /ExtUtils.*MakeMaker.pm/, keys %INC;
   if (@res >= 1) {
       $_rootdir = dirname($INC{$res[0]}) . '/';
+      $_rootdir =~ s{^/Library/Perl/(Updates/)?}{/System/Library/Perl/}
+        if $^O eq "darwin"; # Mac OS X installs updates of standard library in separate directories
       # print "_rootdir set to '$_rootdir'\n";
   } else {
       croak "couldn't find ExtUtils::MakeMaker in %INC hash while searching for typemap";
