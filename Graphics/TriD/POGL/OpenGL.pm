@@ -1,6 +1,6 @@
 package PDL::Graphics::OpenGL::Perl::OpenGL;
 
-use OpenGL 0.58_005 qw();
+use OpenGL 0.58_007 qw();
 
 BEGIN {
    eval 'OpenGL::ConfigureNotify()';

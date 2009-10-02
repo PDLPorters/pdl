@@ -10,7 +10,7 @@
 BEGIN {
    use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use OpenGL 0.58_007 qw(:all)';
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -585,7 +585,7 @@ package PDL::Graphics::TriD::Window;
 
 BEGIN {
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use OpenGL 0.58_007 qw(:all)';
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -886,7 +886,7 @@ package PDL::Graphics::TriD::EventHandler;
 
 BEGIN {
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_004 qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/';
+      eval 'use OpenGL 0.58_007 qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/';
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -981,7 +981,7 @@ use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands
 
 BEGIN {
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_004 qw(:all)';
+      eval 'use OpenGL 0.58_007 qw(:all)';
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';

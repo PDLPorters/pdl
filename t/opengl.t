@@ -21,13 +21,13 @@ BEGIN {
    if ( $PDL::Config{USE_POGL} ) {
       if ( hasDISPLAY ) {
          plan tests => 4;
-         eval 'use OpenGL 0.58_004 qw(:all)';
+         eval 'use OpenGL 0.58_007 qw(:all)';
          ok($@, ''); 
          eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
          ok($@, ''); 
       } else {  # no DISPLAY
          plan tests => 2;
-         eval 'use OpenGL 0.58_004 qw(:all)';
+         eval 'use OpenGL 0.58_007 qw(:all)';
          ok($@, ''); 
          eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
          ok($@, ''); 
