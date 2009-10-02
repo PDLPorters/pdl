@@ -306,7 +306,7 @@ sub glpXNextEvent {
       while (1) {
          # Wait for events if none on the queue
          last if scalar( @{$self->{xevents}} );
-         glutMainLoopEvent();
+         OpenGL::glutMainLoopEvent();
       }
       # Extract first event from fake event queue and return
       @{ shift @{$self->{xevents}} }; 
