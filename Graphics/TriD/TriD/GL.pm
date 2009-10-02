@@ -731,8 +731,10 @@ sub twiddle {
 	 wpic($this->read_picture(),"PDL_$PDL::Graphics::TriD::offlineindex.jpg");
 	 return;
   }
-  if($getout and $dontshow) {
-	 if(!$this->{_GLObject}->XPending()) {return}
+  if ($getout and $dontshow) {
+	 if ( !$this->{_GLObject}->XPending() ) {
+            return;
+         }
   }
   if(!defined $getout) {
 	 $getout = not $PDL::Graphics::TriD::keeptwiddling;
@@ -750,10 +752,10 @@ sub twiddle {
          #
          glutMainLoopEvent() if $this->{_GLObject}->{window_type} eq 'glut';
 
-	 if($this->{_GLObject}->XPending() or !$getout) {
-		@e = $this->{_GLObject}->glpXNextEvent();
-		$gotev=1;
-	 }
+         if ($this->{_GLObject}->XPending() or !$getout) {
+            @e = $this->{_GLObject}->glpXNextEvent();
+            $gotev=1;
+         }
    print "e= ".join(",",@e)."\n" if($PDL::Graphics::TriD::verbose);
 	
 	 if(@e){

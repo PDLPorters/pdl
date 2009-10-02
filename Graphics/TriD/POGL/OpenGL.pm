@@ -93,9 +93,10 @@ interface and build environment matures
 =cut
 
 package PDL::Graphics::OpenGL::OO;
+use PDL::Graphics::TriD::Window qw();
 use PDL::Options;
 use strict;
-my $debug;
+my $debug = 1;
 my (@fakeXEvents) = ();
 #
 # This is a list of all the fields of the opengl object and one could create a 
@@ -149,12 +150,12 @@ sub new {
 
   my $self;
   if ( $window_type =~ /x11/i ) {       # X11 windows
-     print STDERR "Creating X11 OO window\n";
+     print STDERR "Creating X11 OO window\n" if $debug;
      $self =  OpenGL::glpcOpenWindow(
         $p->{x},$p->{y},$p->{width},$p->{height},
         $p->{parent},$p->{mask}, $p->{steal}, @{$p->{attributes}});
   } else {                              # GLUT or FreeGLUT windows
-     print STDERR "Creating GLUT OO window\n";
+     print STDERR "Creating GLUT OO window\n" if $debug;
      OpenGL::glutInit() unless OpenGL::done_glutInit();        # make sure glut is initialized
      OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
      OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
@@ -168,6 +169,7 @@ sub new {
      OpenGL::glutKeyboardFunc( \&_pdl_fake_KeyPress );
      OpenGL::glutMouseFunc( \&_pdl_fake_button_event );
      OpenGL::glutMotionFunc( \&_pdl_fake_MotionNotify );
+     OpenGL::glutDisplayFunc( \&PDL::Graphics::TriD::Window::display );
 
   }
   if(ref($self) ne 'HASH'){
@@ -203,18 +205,18 @@ the X11 stuff will the deprecated and we can rewrite this more cleanly.
 =cut
 
 sub _pdl_fake_exit_handler {
-   print "_pdl_fake_exit_handler: clicked\n";
+   print "_pdl_fake_exit_handler: clicked\n" if $debug;
    # Need to clean up better and exit/transition cleanly
    OpenGL::glutDestroyWindow(OpenGL::glutGetWindow());
 }
 
 sub _pdl_fake_ConfigureNotify {
-   print "_pdl_fake_ConfigureNotify: got (@_)\n";
+   print "_pdl_fake_ConfigureNotify: got (@_)\n" if $debug;
    push @fakeXEvents, [ 22, @_ ];
 }
 
 sub _pdl_fake_KeyPress {
-   print "_pdl_fake_KeyPress: got (@_)\n";
+   print "_pdl_fake_KeyPress: got (@_)\n" if $debug;
    push @fakeXEvents, [ 2, chr($_[0]) ];
 }
 
@@ -224,7 +226,7 @@ sub _pdl_fake_KeyPress {
    my $last_fake_mouse_state;
 
    sub _pdl_fake_button_event {
-      print "_pdl_fake_button_event: got (@_)\n";
+      print "_pdl_fake_button_event: got (@_)\n" if $debug;
       $last_fake_mouse_state = $fake_mouse_state;
       if ( $_[1] == 0 ) {       # a press
          $fake_mouse_state |= $button_to_mask[$_[0]];
@@ -238,7 +240,7 @@ sub _pdl_fake_KeyPress {
    }
 
    sub _pdl_fake_MotionNotify {
-      print "_pdl_fake_MotionNotify: got (@_)\n";
+      print "_pdl_fake_MotionNotify: got (@_)\n" if $debug;
       push @fakeXEvents, [ 6, $fake_mouse_state, @_ ];
    }
 
@@ -273,7 +275,7 @@ sub XPending {
    my($self) = @_;
    if ( $self->{window_type} eq 'glut' ) {
       # monitor state of @fakeXEvents, return number on queue
-      print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n";
+      print STDERR "OO::XPending: have " .  scalar( @{$self->{xevents}} ) . " xevents\n" if $debug > 1;
       scalar( @{$self->{xevents}} );
    } else {
       OpenGL::XPending($self->{Display});
@@ -303,15 +305,14 @@ OO interface to glpXNextEvent
 sub glpXNextEvent {
    my($self) = @_;
    if ( $self->{window_type} eq 'glut' ) {
-      while (1) {
-         # Wait for events if none on the queue
-         last if scalar( @{$self->{xevents}} );
+      while ( !scalar( @{$self->{xevents}} ) ) {
+         # If no events, we keep pumping the event loop
          OpenGL::glutMainLoopEvent();
       }
       # Extract first event from fake event queue and return
-      @{ shift @{$self->{xevents}} }; 
+      return @{ shift @{$self->{xevents}} };
    } else {
-      OpenGL::glpXNextEvent($self->{Display});
+      return OpenGL::glpXNextEvent($self->{Display});
    }
 }
 
