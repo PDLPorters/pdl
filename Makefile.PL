@@ -395,7 +395,7 @@ $seen_f77conf = check_f77conf($seen_f77conf);
 # Add check for POGL if USE_POGL is enabled
 eval 'use OpenGL 0.58_007 qw();';
 if ($@) {
-   warn "DEPENDENCY ERROR: USE_POGL requires at least OpenGL-0.58_004!";
+   warn "DEPENDENCY ERROR: USE_POGL requires at least use OpenGL-0.58_007!";
    exit 0;
 }
 
