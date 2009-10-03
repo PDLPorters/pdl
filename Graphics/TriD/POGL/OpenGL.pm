@@ -22,7 +22,7 @@ BEGIN {
       sub OpenGL::Button3Mask         () { (1<<10) };
       sub OpenGL::ButtonMotionMask    () { (1<<13) };
       sub OpenGL::ExposureMask        () { (1<<15) };
-      sub OpenGL::StructureNotifyMask () { (1<<17) };
+      sub OpenGL::StructureNotifyMask    { (1<<17) };
       sub OpenGL::KeyPress            () { 2 };
       sub OpenGL::KeyRelease          () { 3 };
       sub OpenGL::ButtonPress         () { 4 };
