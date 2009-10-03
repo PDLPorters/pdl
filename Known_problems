@@ -1,5 +1,11 @@
 The following issues have been reported with this version of PDL:
 
+- Newly refactored PDL::Graphics::TriD appears to be working on
+  unix/linux systems, possibly ok on win32, and still being debugged
+  on mac os x.  By default, PDL will build with the new code
+  enabled.  Until the new implementation is stable, you will be
+  able to turn off USE_POGL to get the original, legacy implementation.
+
 
 - FFTW 3.2.2 is the current release version of the FFTW library
   but is not yet supported by PDL::FFTW.  You may install version
