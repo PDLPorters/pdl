@@ -648,6 +648,7 @@ Lib/Transform/Proj4/Proj4.pd
 Lib/Transform/Proj4/README
 Lib/Transform/Proj4/TODO
 Lib/Transform/transform.pd
+line3d.pl
 m51.fits
 Makefile.PL
 MANIFEST			This list of files

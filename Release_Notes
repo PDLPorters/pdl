@@ -21,6 +21,11 @@ Summary of Changes:
    release, you'll need to obtain it from the corresponding
    git repostory on sourceforge.
 
+     There are two demo/test programs at the top PDL/ directory:
+     3dtest.pl and line3d.pl which you can use to exercise the
+     TriD module.  If those work ok for you, please feel free to
+     try a 'perl -Mblib perldl' followed by 'demo 3d'.
+
    Now has Perl OpenGL-0.58_007 or greater as a CPAN prerequisite
    for testing the new TriD code using the Perl OpenGL module
    (a.k.a. POGL) to provide the bindings to OpenGL, GLU, and GLUT,
