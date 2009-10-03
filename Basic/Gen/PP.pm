@@ -1207,23 +1207,13 @@ sub typemap {
   my ($typemap, $mode, $junk, $current, %input_expr,
       %proto_letter, %output_expr, %type_kind);
 
-  # A slightly edited version of the search path in xsubpp with a $installprivlib/ExtUtils
-  # directory prepended. 
-  my $_rootdir;
-  # new code to find the ExtUtils directory
-  # this is hopefully portable and will work for the forseeable future
-  use File::Basename;
-  require ExtUtils::MakeMaker;
-  
-  my @res = grep /ExtUtils.*MakeMaker.pm/, keys %INC;
-  if (@res >= 1) {
-      $_rootdir = dirname($INC{$res[0]}) . '/';
-      $_rootdir =~ s{^/Library/Perl/(Updates/)?}{/System/Library/Perl/}
-        if $^O eq "darwin"; # Mac OS X installs updates of standard library in separate directories
-      # print "_rootdir set to '$_rootdir'\n";
-  } else {
-      croak "couldn't find ExtUtils::MakeMaker in %INC hash while searching for typemap";
-  }
+  # according to MM_Unix 'privlibexp' is the right directory
+  #     seems to work even on OS X (where installprivlib breaks things)
+  # if this does not work portably we should split out the typemap finding code
+  # and make it as complex as necessary + save the typemap location
+  # in the PDL::Config hash
+  my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
+#  print "_rootdir set to '$_rootdir'\n";
 
   # First the system typemaps..
   my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
@@ -1289,7 +1279,7 @@ sub typemap {
       }
     close(TYPEMAP);
   }
-  carp "PP found no typemap in $_rootdir/typemap; this will cause problems..."
+  carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
       unless $foundtm;
 
   #
