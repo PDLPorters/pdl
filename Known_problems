@@ -1,10 +1,29 @@
 The following issues have been reported with this version of PDL:
 
-- Newly refactored PDL::Graphics::TriD appears to be working on
-  unix/linux systems, possibly ok on win32, and still being debugged
-  on mac os x.  By default, PDL will build with the new code
-  enabled.  Until the new implementation is stable, you will be
-  able to turn off USE_POGL to get the original, legacy implementation.
+
+- Newly refactored PDL::Graphics::TriD now available on all
+  platforms with FreeGLUT (or GLUT on Mac OS X).  X11+GLX is
+  no longer required for 3D graphics.  By default, PDL will
+  build with the new code enabled.  However, until the new
+  implementation is completely stable, you will be able to
+  turn off USE_POGL to get the original, legacy implementation.
+
+
+- TriD graphics window contents are not refreshed when you resize
+  the window.  However, a mouse click/motion or keyboard event will
+  cause the refresh.
+
+
+* IMPORTANT: Given the increased portability and generality of
+  the new interface approach, it is expected that the legacy TriD
+  build interface will be deprecated soon (almost immediately)
+  and removed after that.  It has been unsupported for some time
+  already.
+
+
+- VRML output does not work for TriD.  If you have experience with
+  interactive 3D graphics and would like to participate, please
+  chime in on the perldl mailing list.
 
 
 - FFTW 3.2.2 is the current release version of the FFTW library
@@ -12,16 +31,6 @@ The following issues have been reported with this version of PDL:
   2.1.5 of FFTW which is supported, fall back to using the PDL's
   built-in fft routines (PDL::FFT), or submit a patch to update
   PDL::FFTW to the version 3 API. 
-
-
-- Overly verbose but not particularly helpful text output from
-  configure, built, test process.  This can be confusing for first
-  time users.
-
-
-- Lvalue subroutine errors have been reported for perl 5.6.2
-  installation on a linux 2.4 kernel system.  Perl versions 5.8
-  and above are *really* recommended.
 
 
 - Various make problems with build:
@@ -32,6 +41,16 @@ The following issues have been reported with this version of PDL:
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
       If you have this error, please contact the PDL developers via the perldl
       mailing list and help us track this one down.  Thanks!
+
+
+- Overly verbose but not particularly helpful text output from
+  configure, built, test process.  This can be confusing for first
+  time users.
+
+
+- Lvalue subroutine errors have been reported for perl 5.6.2
+  installation on a linux 2.4 kernel system.  Perl versions 5.8
+  and above are *really* recommended.
 
 
 - PDL::IO::Dumper has test failures on some systems that appear to result
@@ -49,15 +68,15 @@ The following issues have been reported with this version of PDL:
   older version of NetPBM which does not support the raw 16bit formats.
 
 
-- The following SourceForge bugs are outstanding at time of the 2.4.4
+- The following SourceForge bugs are outstanding at time of the 2.4.4_13
   point release:
 
-  2844280  demo 3d fails if PDL_3D_FONT missing  
   2780046    make does not make docs 
   2630369    PDL::FFT::fftconvolve - bad scaling?  
   2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
+  2110074    $empty_piddle->qsorti ==> seg fault
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1994442    imagrgb problems

@@ -73,14 +73,15 @@ PDL::Transform::Proj
 					detected.
 
 PDL::Graphics::TriD
-                Requires OpenGL-0.58_006 or higher for USE_POGL
+                Requires Perl OpenGL-0.58_008 module and FreeGLUT (or GLUT on Mac OS X)
 
-                Both require the OpenGL graphics libraries. For a free
-		software implementation check out Mesa at http://www.mesa3d.org/
+                Also requires the OpenGL graphics libraries be installed, although
+		the Perl OpenGL module should check for that.  For a free software
+		implementation check out Mesa at http://www.mesa3d.org/
 
-                                        OpenGL is required.  The module
-					won't build without libraries.
-					To disable edit perldl.conf (see INSTALL).
+                                        Perl OpenGL is required.  To disable
+					edit perldl.conf and unset WITH_3D
+					and USE_POGL (see INSTALL).
 
 PDL::Graphics::PGPLOT
                 PGPLOT perl module and PGPLOT fortran library,

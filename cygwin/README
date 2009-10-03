@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Fri 21 Aug 2009 03:13:45 PM
+Last saved: Sat 03 Oct 2009 12:08:54 PM
 
 =================================================================
                             Overview
@@ -34,7 +34,7 @@ external dependencies:
  PDL::FFTW
   (Builds if FFTW version 2 has been hand built and installed,
    cygwin only comes with FFTW version 3.  The PDL interface
-   is to be updated to v3 support following PDL 2.4.3 release)
+   is to be updated to v3 support following PDL 2.4.5 release)
 
  PDL::Graphics::PGPLOT
   (Builds if pgplot library has been hand built and installed)
@@ -43,9 +43,9 @@ external dependencies:
   (Builds if plplot library has been hand built and installed)
 
  PDL::Graphics::TriD
-  (Builds automatically if you have X11 and OpenGL installed)
-  There is a known problem with PDL::Graphics::TriD::Tk and
-  Tk v804.028 where the embedded OpenGL window widget fails
+  (Builds automatically if you have X11 and OpenGL + FreeGLUT
+  installed).  There is a known problem with PDL::Graphics::TriD::Tk
+  and Tk v804.028 where the embedded OpenGL window widget fails
   to be configured.  Running under the debugger makes it work.
 
  PDL::GSL::*

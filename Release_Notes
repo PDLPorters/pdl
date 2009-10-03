@@ -36,10 +36,8 @@ Summary of Changes:
    if you have failures due to this change.
 
    The code is believed to work on win32 systems, cygwin, and
-   linux with the FreeGLUT interface but testing has not yet
-   confirmed win32 fully.  Mac OS X debugging is underway to
-   resolve a GUI hang.  We're getting close but more tester
-   feedback is always helpful.
+   linux with the FreeGLUT interface and Mac OS X with the Apple
+   GLUT implementation.
 
    By default, USE_POGL is set in the perldl.conf file to enable
    the new implementation.  Setting it to zero will enable the
@@ -47,8 +45,9 @@ Summary of Changes:
    working on a platform that already had it working, please let
    the developers know via the perldl mailing list!
 
-   Once the correct operation of this release is confirmed, it is
-   expected to be released as the PDL-2.4.5 official release.
+   Once the correct operation of the new TriD code base is confirmed,
+   the PDL developers snapshot is expected to be released as the
+   PDL-2.4.5 official release.
 
 
 
