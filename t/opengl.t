@@ -14,23 +14,19 @@ sub hasDISPLAY {
   return defined $ENV{DISPLAY} && $ENV{DISPLAY} !~ /^\s*$/;
 }
 
-use Test;
+use Test::More;
 
 BEGIN { 
    use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      if ( hasDISPLAY ) {
+      if ( hasDISPLAY or exists($ENV{'PDL_INT'}) ) {
          plan tests => 4;
-         eval 'use OpenGL 0.58_007 qw(:all)';
-         ok($@, ''); 
-         eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-         ok($@, ''); 
+         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
       } else {  # no DISPLAY
          plan tests => 2;
-         eval 'use OpenGL 0.58_007 qw(:all)';
-         ok($@, ''); 
-         eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
-         ok($@, ''); 
+         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
          exit;
       }
    } else {
@@ -38,12 +34,11 @@ BEGIN {
          # only if GL modules have actually been built
          && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
          plan tests => 3; 
-         eval 'use PDL::Graphics::OpenGL';
-         ok($@, ''); 
+         use_ok('use PDL::Graphics::OpenGL');
       }else{
-         plan tests => 1; 
-         print hasDISPLAY() ? "ok 1 # Skipped: OpenGL support not compiled\n"
-         : "ok 1 # Skipped: DISPLAY environment variable not set\n";
+         plan skip_all => ( hasDISPLAY()
+		 ? "ok 1 # Skipped: OpenGL support not compiled\n"
+		 : "ok 1 # Skipped: DISPLAY environment variable not set\n" );
          exit;
       }
    }
@@ -59,10 +54,9 @@ $opt->{width} = 90;
 $opt->{height} = 90;
 
 foreach(0..$numwins-1){
-  $opt->{x} = ($numwins % 10) *100;
-  $opt->{y} = int($numwins / 10) *100;
-  my $win=new PDL::Graphics::OpenGL::OO($opt);
-  ok(ref($win), 'PDL::Graphics::OpenGL::OO');
-  push @windows, $win;
+   $opt->{x} = ($numwins % 10) *100;
+   $opt->{y} = int($numwins / 10) *100;
+   my $win=new PDL::Graphics::OpenGL::OO($opt);
+   isa_ok($win, 'PDL::Graphics::OpenGL::OO');
+   push @windows, $win;
 }
-exit;
