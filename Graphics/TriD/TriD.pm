@@ -525,13 +525,14 @@ BEGIN {
 	$dev ||= $::PDL::Graphics::TriD::device; # First, take it from this variable.
 	$dev ||= $::ENV{PDL_3D_DEVICE};
 
-	if(!defined $dev) {
-#		warn "Default PDL 3D device is GL (OpenGL):
-#Set PDL_3D_DEVICE=GL in your environment in order not to see this warning.
-#You must have OpenGL or Mesa installed and the PDL::Graphics::OpenGL extension
-#compiled. Otherwise you will get strange warnings.";
-		$dev = $^O =~ /win32/i ? "VRML" : "GL";
-	}
+        if(!defined $dev) {
+#            warn "Default PDL 3D device is GL (OpenGL):
+# Set PDL_3D_DEVICE=GL in your environment in order not to see this warning.
+# You must have OpenGL or Mesa installed and the PDL::Graphics::OpenGL extension
+# compiled. Otherwise you will get strange warnings.";
+
+           $dev = "GL";  # default GL works on all platforms now
+        }
 	my $dv;
 # The following is just a sanity check.
 	for($dev) {
