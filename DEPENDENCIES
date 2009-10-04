@@ -31,7 +31,7 @@ PDL (all)       perl >= 5.6.2           you need at least this version
                                         with recent perls (5.6.x and higher)
 
 PDL::NiceSlice  Text::Balanced          a nicer way to index piddles
-                Filter                  a must-have!!
+                Filter::Util::Call      a must-have!!
 
 Inline::Pdlpp   Inline                  version >= 0.43 required
                                         module allows to define fast PP code
