@@ -823,6 +823,9 @@ sub domotion {
 sub display {
   my($this) = @_;
 
+  return unless defined($this);
+
+  print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
 
@@ -836,7 +839,7 @@ sub display {
 
 
 	 if($vp->{Transformer}) {
-		print "Transforming viewport!\n" if($PDL::Graphics::TriD::verbose);
+		print "display: transforming viewport!\n" if ($PDL::Graphics::TriD::verbose);
 		$vp->{Transformer}->togl();
 	 }
 
@@ -851,6 +854,7 @@ sub display {
 
   if ( $PDL::Config{USE_POGL} ) {
 
+     print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
      if ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
         $this->{_GLObject}->glXSwapBuffers();
      } else {
