@@ -6,6 +6,12 @@
 *.dylib
 *.bundle
 
+# MinGW build files
+
+dll.base
+dll.exp
+*.def
+
 # Junk
 
 *.dif
