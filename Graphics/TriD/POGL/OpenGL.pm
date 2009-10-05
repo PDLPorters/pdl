@@ -171,6 +171,9 @@ sub new {
      OpenGL::glutMotionFunc( \&_pdl_fake_MotionNotify );
      OpenGL::glutDisplayFunc( \&PDL::Graphics::TriD::Window::display );
 
+     OpenGL::glutSetOption(OpenGL::GLUT_ACTION_ON_WINDOW_CLOSE, OpenGL::GLUT_ACTION_GLUTMAINLOOP_RETURNS) if $OpenGL::_have_freeglut;
+     OpenGL::glutMainLoopEvent();       # pump event loop so window appears
+
   }
   if(ref($self) ne 'HASH'){
      die "Could not create OpenGL window";
@@ -205,9 +208,9 @@ the X11 stuff will the deprecated and we can rewrite this more cleanly.
 =cut
 
 sub _pdl_fake_exit_handler {
-   print "_pdl_fake_exit_handler: clicked\n" if $debug;
+   my ($win) = shift;
+   print "_pdl_fake_exit_handler: clicked for window $win\n" if $debug;
    # Need to clean up better and exit/transition cleanly
-   OpenGL::glutDestroyWindow(OpenGL::glutGetWindow());
 }
 
 sub _pdl_fake_ConfigureNotify {
