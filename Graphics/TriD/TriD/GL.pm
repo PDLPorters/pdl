@@ -917,8 +917,7 @@ sub new {
 sub event {
   my($this,$type,@args) = @_;
 
-  # print "EH: ",ref($this)," $type (",join(",",@args),")\n" if($PDL::Graphics::TriD::verbose);
-    print "EH: ",ref($this)," $type (",join(",",@args),")\n";
+  print "EH: ",ref($this)," $type (",join(",",@args),")\n" if($PDL::Graphics::TriD::verbose);
   my $retval;
 
   if($type == MotionNotify) {
