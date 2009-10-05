@@ -855,10 +855,12 @@ sub display {
   if ( $PDL::Config{USE_POGL} ) {
 
      print "display: SwapBuffers() call on return\n" if ($PDL::Graphics::TriD::verbose);
-     if ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
+     if ( $this->{_GLObject}->{window_type} eq 'glut' ) {  # need to make method call
+        glutSwapBuffers();
+     } elsif ( $this->{_GLObject}->{window_type} eq 'x11' ) {  # need to make method call
         $this->{_GLObject}->glXSwapBuffers();
      } else {
-        OpenGL::glutSwapBuffers();
+        print "display: got object with inconsistent _GLObject info\n";
      }
 
   } else {
