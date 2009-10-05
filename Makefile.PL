@@ -394,9 +394,9 @@ $seen_f77conf = check_f77conf($seen_f77conf);
 
 # Add check for POGL if USE_POGL is enabled
 if ($PDL::Config{USE_POGL}) {
-    eval 'use OpenGL 0.58_007 qw();';
+    eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";
     if ($@) {
-	warn "DEPENDENCY ERROR: USE_POGL requires at least use OpenGL-0.58_007!";
+	warn "DEPENDENCY ERROR: USE_POGL requires at least use OpenGL $PDL::Config{POGL_VERSION}!";
 	exit 0;
     }
 }

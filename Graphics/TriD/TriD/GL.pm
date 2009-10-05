@@ -10,7 +10,7 @@
 BEGIN {
    use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_007 qw(:all)';
+      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -584,8 +584,9 @@ sub PDL::Graphics::TriD::SimpleController::togl {
 package PDL::Graphics::TriD::Window;
 
 BEGIN {
+   use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_007 qw(:all)';
+      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -893,8 +894,9 @@ sub read_picture {
 package PDL::Graphics::TriD::EventHandler;
 
 BEGIN {
+   use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_007 qw/ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask/';
+      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(ConfigureNotify MotionNotify ButtonPress ButtonRelease Button1Mask Button2Mask Button3Mask)";
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';
@@ -987,8 +989,9 @@ use fields qw/X0 Y0 W H Transformer EHandler Active ResizeCommands
               DefMaterial AspectRatio Graphs/;
 
 BEGIN {
+   use PDL::Config;
    if ( $PDL::Config{USE_POGL} ) {
-      eval 'use OpenGL 0.58_007 qw(:all)';
+      eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
       eval 'use PDL::Graphics::OpenGL::Perl::OpenGL';
    } else {
       eval 'use PDL::Graphics::OpenGL';

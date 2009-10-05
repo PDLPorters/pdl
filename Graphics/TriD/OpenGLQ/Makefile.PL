@@ -3,7 +3,7 @@ use ExtUtils::MakeMaker;
 
 BEGIN {
    if ( $PDL::Config{USE_POGL} ) {
-      use OpenGL 0.58_007 qw();
+      eval "use OpenGL $PDL::Config{POGL_VERSION} qw()";
       use OpenGL::Config;
    }
 }

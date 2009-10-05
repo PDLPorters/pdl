@@ -7,7 +7,11 @@ $PDL::Graphics::TriD::create_window_sub = sub {
 
 package PDL::Graphics::TriD::Object;
 #use PDL::Graphics::OpenGL;
-use OpenGL 0.58003 qw(:all);
+BEGIN {
+   use PDL::Config;
+   if ($PDL::Config{USE_POGL}) {
+   eval "use OpenGL $PDL::Config{POGL_VERSION} qw(:all)";
+}
 use PDL::Graphics::OpenGL::Perl::OpenGL;
 sub tooogl {
 	my($this) = @_;
