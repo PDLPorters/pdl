@@ -44,11 +44,11 @@ PDL::Graphics::OpenGL::Perl::OpenGL - PDL TriD OpenGL interface using POGL
 
 =head1 VERSION
 
-Version 0.01_07
+Version 0.01_10
 
 =cut
 
-our $VERSION = '0.01_09';
+our $VERSION = '0.01_10';
 
 
 =head1 SYNOPSIS
@@ -172,8 +172,8 @@ sub new {
      OpenGL::glutDisplayFunc( \&PDL::Graphics::TriD::Window::display );
 
      OpenGL::glutSetOption(OpenGL::GLUT_ACTION_ON_WINDOW_CLOSE, OpenGL::GLUT_ACTION_GLUTMAINLOOP_RETURNS) if $OpenGL::_have_freeglut;
-     OpenGL::glutMainLoopEvent();       # pump event loop so window appears
 
+     OpenGL::glutMainLoopEvent();       # pump event loop so window appears
   }
   if(ref($self) ne 'HASH'){
      die "Could not create OpenGL window";
