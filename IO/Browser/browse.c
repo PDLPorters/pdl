@@ -10,6 +10,11 @@
 #include <ncurses.h>
 #endif
 #include <string.h>
+
+#include "EXTERN.h"
+// #include "perl.h"
+// #include "XSUB.h"
+
 #include "pdl.h"
 
 #define CHBUF  256
@@ -17,14 +22,13 @@
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #endif
 
-/* enum pdl_datatypes { PDL_B, PDL_S, PDL_US, PDL_L, PDL_F, PDL_D }; */
 #define HLAB   4
 
 static int colwid, dcols, drows;
-char *format[] = {
-  "%3d", "%6d", "%6hd", "%11ld", "%10.4g", "%11.4lg" };
-int  width[] = {
-  4,7,7,12,11,12};
+
+/* enum pdl_datatypes { PDL_B, PDL_S, PDL_US,   PDL_L,   PDL_LL,    PDL_F,   PDL_D  }; */
+char *format[] =      { "%3d", "%6d", "%6hd", "%11ld", "%11lld", "%10.4g", "%11.4g" };
+int    width[] =      {     4,     7,      7,      12,       12,       11,      12  };
 
 char *str_value(int x, int y,
 		int type, int nx, void *data, char *str)
@@ -42,6 +46,9 @@ char *str_value(int x, int y,
   case PDL_L:
     sprintf(str,format[type],*(((int *)data)+y*nx+x));
     break;
+  case PDL_LL:
+    sprintf(str,format[type],*(((long long *)data)+y*nx+x));
+    break;
   case PDL_F:
     sprintf(str,format[type],*(((float *)data)+y*nx+x));
     break;
@@ -49,7 +56,7 @@ char *str_value(int x, int y,
     sprintf(str,format[type],*(((double *)data)+y*nx+x));
     break;
   default:
-    croak("type (val=%d) not implemented",type);
+    Perl_croak("type (val=%d) not implemented",type);
     break;
   }
   return str;
@@ -71,6 +78,9 @@ void set_value(int x, int y,
   case PDL_L:
     *(((PDL_Long *)data)+y*nx+x) = atol(str);
     break;
+  case PDL_LL:
+    *(((PDL_LongLong *)data)+y*nx+x) = atol(str);
+    break;
   case PDL_F:
     *(((PDL_Float *)data)+y*nx+x) = atof(str);
     break;
@@ -78,7 +88,7 @@ void set_value(int x, int y,
     *(((PDL_Double *)data)+y*nx+x) = atof(str);
     break;
   default:
-    croak("type (val=%d) not implemented",type);
+    Perl_croak("type (val=%d) not implemented",type);
     break;
   }
   return;
@@ -210,6 +220,7 @@ void browse(int type, int nc, int nr, void *in)
   extern int colwid, dcols, drows, width[];
 
   stdscr = initscr();  /* sets LINES, COLS (which aren't macro constants...) */
+  clear();  /* Clear the screen before we start drawing */
 
   colwid = width[type];
   ncols = (COLS-HLAB)/colwid;
@@ -238,7 +249,7 @@ void browse(int type, int nc, int nr, void *in)
   wmenu  = subwin(stdscr,1,COLS,0,0);
 
   sprintf(s,"Perldl data browser: type %d, (%d,%d), type q to quit\n",
-	  type,nr,nc);
+	  type,nc,nr);
   mvwaddstr(wmenu,0,10,s);
   wrefresh(wmenu);
 
@@ -323,7 +334,7 @@ void browse(int type, int nc, int nr, void *in)
       }
       break;
     case KEY_RIGHT:
-    case '\015':
+    case '\t':
       i = (i>nc-2)?nc-1:i+1;
       if (i-ioff == dcols) {
 	ioff++;
@@ -356,7 +367,7 @@ void browse(int type, int nc, int nr, void *in)
       }
       break;
     case KEY_DOWN:
-    case '\t':
+    case '\015':
       j = (j>nr-2)?nr-1:j+1;
       if (j-joff == drows) {
 	joff++;
@@ -375,3 +386,19 @@ void browse(int type, int nc, int nr, void *in)
   nocbreak();
   endwin();
 }
+
+#ifdef WITH_IO_BROWSER_MAIN
+main ()
+{
+    double b[27*15];
+
+    int i, j;
+
+    j = 0;
+    for (i=0; i<27*15; i++) {
+        b[i] = j++;
+    }
+
+    browse(PDL_D, 27, 15, &b);
+}
+#endif
