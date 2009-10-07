@@ -26,7 +26,6 @@ BEGIN
         '/usr/lib',
         '/usr/local/lib',
         '/lib',
-        'D:/gd/gdwin32'
     );
     @inc_locations = (
         '/usr/include',
