@@ -30,7 +30,6 @@ BEGIN
     @inc_locations = (
         '/usr/include',
         '/usr/local/include',
-        'D:/gd/gdwin32/include'
     ); 
     
     #
