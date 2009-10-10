@@ -150,7 +150,7 @@ sub new {
   }
 
   # Use GLUT windows and event handling as the TriD default
-  $window_type ||= 'glut';
+  $window_type ||= $PDL::Config{POGL_WINDOW_TYPE};
   # $window_type ||= 'x11';       # use X11 default until glut code is ready
 
   my $self;
