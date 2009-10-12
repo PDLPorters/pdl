@@ -216,7 +216,9 @@ the X11 stuff will the deprecated and we can rewrite this more cleanly.
 
 sub _pdl_display_wrapper {
    my ($win) = OpenGL::glutGetWindow();
-   $winObjects[$win]->display() if defined($win);
+   if ( defined($win) and defined($winObjects[$win]) ) {
+      $winObjects[$win]->display();
+   }
 }
 
 sub _pdl_fake_exit_handler {
