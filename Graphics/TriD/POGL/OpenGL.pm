@@ -229,6 +229,7 @@ sub _pdl_fake_exit_handler {
 
 sub _pdl_fake_ConfigureNotify {
    print "_pdl_fake_ConfigureNotify: got (@_)\n" if $debug;
+   OpenGL::glutPostRedisplay();
    push @fakeXEvents, [ 22, @_ ];
 }
 
