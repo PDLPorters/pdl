@@ -14,6 +14,12 @@ The following issues have been reported with this version of PDL:
   cause the refresh.
 
 
+- NOTE: The default TriD controls are based on having at least
+  a two button mouse.  While this is always the case for unix
+  and windows, some mac systems apparently still have only one
+  mouse button.  We need a strategy to compensate (SHIFT key?)
+
+
 * IMPORTANT: Given the increased portability and generality of
   the new interface approach, it is expected that the legacy TriD
   build interface will be deprecated soon (almost immediately)

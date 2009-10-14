@@ -633,6 +633,11 @@ sub gdriver {
 
   $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
 
+  if (exists $this->{_GLObject}->{glutwindow}) {
+     print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
+     $this->{_GLObject}->{winobjects}->[$this->{_GLObject}->{glutwindow}] = $this;      # circular ref
+  }
+
 #glpOpenWindow(%$options);
   
   print "gdriver: Calling glClearColor...\n" if($PDL::debug_trid);
