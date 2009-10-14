@@ -756,7 +756,7 @@ sub twiddle {
          # this pumps the system allowing callbacks to populate
          # the fake XEvent queue.
          #
-         glutMainLoopEvent() if $this->{_GLObject}->{window_type} eq 'glut';
+         glutMainLoopEvent() if $this->{_GLObject}->{window_type} eq 'glut' and not $this->{_GLObject}->XPending();
 
          if ($this->{_GLObject}->XPending() or !$getout) {
             @e = $this->{_GLObject}->glpXNextEvent();
