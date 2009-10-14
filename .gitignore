@@ -123,6 +123,9 @@ Graphics/TriD/OpenGLQ/OpenGLQ.xs
 Graphics/TriD/Rout/Rout.c
 Graphics/TriD/Rout/Rout.pm
 Graphics/TriD/Rout/Rout.xs
+IO/Browser/Browser.c
+IO/Browser/Browser.pm
+IO/Browser/Browser.xs
 IO/GD/GD.c
 IO/GD/GD.pm
 IO/GD/GD.xs

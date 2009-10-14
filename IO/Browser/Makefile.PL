@@ -10,9 +10,10 @@ PDL::Core::Dev->import();
 @pack = (["browser.pd",Browser,PDL::IO::Browser]);
 
 %hash = pdlpp_stdargs_int(@::pack);
+
 push @{$hash{LIBS}} , '-lcurses';
 $hash{'OBJECT'} .= ' browse$(OBJ_EXT)';
-$hash{'clean'}{FILES} .= ' browse$(OBJ_EXT) browse$(EXE_EXT)';
+$hash{'clean'}{FILES} .= ' browse$(OBJ_EXT) browse$(EXE_EXT) Browser.c Browser.pm Browser.xs Browser$(OBJ_EXT)';
 unshift @{$hash{LIBS}} , '-lncurses'; # For some systems
 
 # Find the relevant file to include
