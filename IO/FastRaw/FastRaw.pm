@@ -2,6 +2,10 @@
 
 PDL::IO::FastRaw -- A simple, fast and convenient io format for PerlDL.
 
+=head1 VERSION
+
+This documentation refers to PDL::IO::FastRaw version 0.0.2, I guess.
+
 =head1 SYNOPSIS
 
  use PDL;
@@ -34,6 +38,12 @@ The format of the ASCII header is simply
 	<ndims>
 	<dim0> <dim1> ...
 
+You should probably stick with the default header name.  You may want
+to specify your own header, however, such as when you have a large
+collection of data files with identical dimensions and data types.
+Under these circumstances, simply specify the C<Header> option in the
+options hash.
+
 The binary files are in general
 NOT interchangeable between different architectures since the binary
 file is simply dumped from the memory region of the piddle.
@@ -56,6 +66,114 @@ will not be changed when you change the piddle. Be aware though
 that mmapping a 40Mb file without C<ReadOnly> spends no virtual
 memory but with C<ReadOnly> it does reserve 40Mb.
 
+=head2 Example: Converting ASCII to raw
+
+You have a whole slew of data files in ASCII from an experiment
+that you ran in your lab.  You're still tweaking the analysis
+and plots, so you'd like if your data could load as fast as
+possible.  Eventually you'll read the data into your scripts
+using C<readfraw>, but the first thing you might do is create
+a script that converts all the data files to raw files:
+
+ #!/usr/bin/perl
+ # Assumes that the data files end with a .asc or .dat extension
+ # and saves the raw file output with a .bdat extension.
+ # call with
+ #  >./convert_to_raw.pl file1.dat file2.dat ...
+ # or
+ #  >./convert_to_raw.pl *.dat
+ 
+ use PDL;
+ use PDL::IO::FastRaw;	# for saving raw files
+ use PDL::IO::Misc;		# for reading ASCII files with rcols
+ while(shift) {			# run through the entire supplied list of file names
+	 ($newName = $_) =~ s/\.(asc|dat)/.bdat/;
+	 print "Saving contents of $_ to $newName\n";
+	 $data = rcols($_);
+	 writefraw($data, $newName);
+ }
+
+
+=head2 Example: readfraw
+
+Now that you've gotten your data into a raw file format, you can
+start working on your analysis scripts.  If you scripts used C<rcols>
+in the past, the reading portion of the script should go much,
+much faster now:
+
+ #!/usr/bin/perl
+ # My plotting script.
+ # Assume I've specified the files to plot on the command line like
+ #  >./plot_script.pl file1.bdat file2.bdat ...
+ # or
+ #  >./plot_script.pl *.bdat
+ 
+ use PDL;
+ use PDL::IO::FastRaw;
+ while(shift) {			# run through the entire supplied list of file names
+	 $data = readfraw($_);
+	 my_plot_func($data);
+ }
+
+=head2 Example: Custom headers
+
+In the first example, I allow C<writefraw> to use the standard header
+file name, which would be C<file.bdat.hdr>.  However, I often measure
+time series that have identical length, so all of those header files
+are redundant.  To fix that, I simply pass the Header option to the
+C<writefraw> command.  A modified script would look like this:
+
+ #!/usr/bin/perl
+ # Assumes that the data files end with a .asc or .dat extension
+ # and saves the raw file output with a .bdat extension.
+ # call with
+ #  >./convert_to_raw.pl [-hHeaderFile] <fileglob> [-hHeaderFile] <fileglob> ...
+ 
+ use PDL;
+ use PDL::IO::FastRaw;	# for saving raw files
+ use PDL::IO::Misc;		# for reading ASCII files with rcols
+ my $header_file = undef;
+ CL_OPTION: while($_ = shift @ARGV) {	# run through the entire list of command-line options
+ 	 if(/-h(.*)/) {
+		 $header_file = $1;
+		 next CL_OPTION;
+	 }
+	 ($newName = $_) =~ s/\.(asc|dat)/.bdat/;
+	 print "Saving contents of $_ to $newName\n";
+	 $data = rcols($_);
+	 writefraw($data, $newName, {Header => $header_file});
+ }
+
+Modifying the read script is left as an exercise for the reader.  :]
+
+
+=head2 Example: Using mapfraw
+
+Sometimes you'll want to use C<mapfraw> rather than the read/write
+functions.  In fact, the original author of the module doesn't
+use the read/write functions anymore, prefering to always use
+C<mapfraw>.  How would you go about doing this?
+
+Assuming you've already saved your data into the raw format, the
+only change you would have to make to the script in example 2 would
+be to change the call to C<readfraw> to C<mapfraw>.  That's it.
+You will probably see differences in performance, though I (David
+Mertens) couldn't tell you about them because I haven't played
+around with C<mapfraw> much myself.
+
+What if you eschew the use of C<writefraw> and prefer to only use
+C<mapfraw>?  How would you save your data to a raw format?  In that
+case, you would have to create a C<mapfraw> piddle with the correct
+dimensions first using 
+
+ $piddle_on_hd = mapfraw('fname', {Creat => 1, Dims => [dim1, dim2, ...]});
+
+Note that you must specify the dimensions and you must tell
+C<mapfraw> to create the new piddle for you by setting the
+C<Creat> option to a true value, not C<Create> (note the missing
+final 'e').
+
+
 =head1 FUNCTIONS
 
 =head2 readfraw
@@ -68,6 +186,16 @@ Read a raw format binary file
 
  $pdl2 = readfraw("fname");
  $pdl2 = PDL->readfraw("fname");
+ $pdl2 = readfraw("fname", {Header => 'headerfname'});
+
+=for options
+
+The C<readfraw> command
+supports the following option:
+
+=item Header
+
+Specify the header file name.
 
 
 =head2 writefraw
@@ -79,6 +207,16 @@ Write a raw format binary file
 =for usage
 
  writefraw($pdl,"fname");
+ writefraw($pdl,"fname", {Header => 'headerfname'});
+
+=for options
+
+The C<writefraw> command
+supports the following option:
+
+=item Header
+
+Specify the header file name.
 
 
 =head2 mapfraw
@@ -116,6 +254,10 @@ clears the file to all zeroes.
 =item ReadOnly
 
 Disallow writing to the file.
+
+=item Header
+
+Specify the header file name.
 
 =back
 
@@ -164,6 +306,8 @@ the copyright notice should be included in the file.
 
 package PDL::IO::FastRaw;
 
+use version; our $VERSION = qv('0.0.2');
+
 require Exporter;
 use PDL::Core '';
 use PDL::Exporter;
@@ -182,8 +326,8 @@ sub mapfraw  {PDL->mapfraw(@_)}
 sub maptextfraw  {PDL->maptextfraw(@_)}
 
 sub _read_frawhdr {
-	my($name) = @_;
-	my $hname = "$name.hdr";
+	my($name,$opts) = @_;
+	my $hname = $opts->{Header} // "$name.hdr";
 	my $h = new FileHandle "$hname"
 	 or barf "Couldn't open '$hname' for reading";
 	my $tid = <$h>;
@@ -201,8 +345,8 @@ sub _read_frawhdr {
 }
 
 sub _writefrawhdr {
-	my($pdl,$name) = @_;
-	my $hname = "$name.hdr";
+	my($pdl,$name,$opts) = @_;
+	my $hname = $opts->{Header} // "$name.hdr";
 	my $h = new FileHandle ">$hname"
 	 or barf "Couldn't open '$hname' for writing";
 	print $h map {"$_\n"} ($pdl->get_datatype,
@@ -211,7 +355,7 @@ sub _writefrawhdr {
 
 sub PDL::writefraw {
 	my($pdl,$name,$opts) = @_;
-	_writefrawhdr($pdl,$name);
+	_writefrawhdr($pdl,$name,$opts);
 	my $d = new FileHandle ">$name"
 	 or barf "Couldn't open '$name' for writing";
 	binmode $d;
@@ -224,7 +368,7 @@ sub PDL::readfraw {
 	my $d = new FileHandle "$name"
 	 or barf "Couldn't open '$name' for reading";
 	binmode $d;
-	my $hdr = _read_frawhdr($name);
+	my $hdr = _read_frawhdr($name,$opts);
 	my $pdl = $class->zeroes ((new PDL::Type($hdr->{Type})), @{$hdr->{Dims}});
 	my $len = length ${$pdl->get_dataref};
 # wrong.
@@ -253,7 +397,7 @@ sub PDL::mapfraw {
 		$hdr->{Dims} = $opts->{Dims};
 		$hdr->{NDims} = scalar(@{$opts->{Dims}});
 	} else {
-		$hdr = _read_frawhdr($name);
+		$hdr = _read_frawhdr($name,$opts);
 	}
 	$s = PDL::Core::howbig($hdr->{Type});
 	for(@{$hdr->{Dims}}) {
@@ -269,7 +413,7 @@ sub PDL::mapfraw {
 		($opts->{Creat} || $opts->{Trunc} ? 1:0));
 #	$pdl->dump();
 	if($opts->{Creat}) {
-		_writefrawhdr($pdl,$name);
+		_writefrawhdr($pdl,$name,$opts);
 	}
 	return $pdl;
 }
