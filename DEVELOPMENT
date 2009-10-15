@@ -50,7 +50,7 @@ The following guidelines are for any developer
 that has access to the PDL Git repository.
 
 1) Before committing a change to the repository you should update:
-    - MANIFEST (using 'make manifest')
+    - MANIFEST (if files were added, using 'make manifest')
     - MANIFEST.SKIP (if applicable)
     - TODO (if applicable)
 

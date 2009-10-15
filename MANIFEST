@@ -123,6 +123,7 @@ Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
+bitfont.c
 BUGS
 Changes
 Changes_CVS

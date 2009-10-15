@@ -1,3 +1,58 @@
+Release notes for PDL 2.4.4_136 --------------------------
+
+General Notes:
+
+     *************************************
+     *                                   *
+     *   This is a development release   *
+     *                                   *
+     *************************************
+
+  If you have OpenGL installed, PDL::Graphics::TriD should
+  build out of the box for MSWin32, Mac OS X, and traditional
+  unix platforms (linux, *bsd, solaris) using the new GLUT
+  framework for the OS window creation and manipulation.
+
+  IMPORTANT: Given the increased portability and generality of
+  the new TriD interface approach, it is expected that the legacy
+  TriD build interface (based on X11) will be deprecated soon
+  (almost immediately) and removed after that.  It has been
+  effectively unsupported for some time.
+
+Summary of Changes:
+
+  TriD now requires Perl OpenGL-0.59 or greater to build.
+
+  The new PDL::Graphics::TriD is available on all platforms
+  supporting Perl OpenGL (a.k.a. POGL).
+
+     NOTE: There are two example programs at the top PDL/
+     directory: 3dtest.pl and line3d.pl which you can use
+     to exercise the TriD module: e.g.
+
+       perl -Mblib 3dtest.pl OR perl -Mblib line3d.pl
+
+  New, more portable code for finding the system typemaps files
+  is implemented.
+
+  IO::Browser now builds on cygwin and may work for other
+  systems.  Set WITH_IO_BROWSER => 1, if you dare!
+
+  The perldl shell now changes it prompt to perl> from the
+  perldl> default if PDL was not able to be loaded.
+
+  Clean up of the IO/GD/Makefile.PL for win32 platforms.
+
+  See the Changes file or run 'git log --stat' for detailed
+  list of changes.
+
+  An example GLUT program using fonts, bitmap.c, is in the
+  PDL top level directory.  If you have problems with font
+  errors, try compiling this to see if the issue is a GLUT
+  or FreeGLUT installation problem or in the PDL/Perl bindings.
+  Contact the perldl mailing list for help.
+
+
 Release notes for PDL 2.4.4_13 --------------------------
 
 General Notes:
