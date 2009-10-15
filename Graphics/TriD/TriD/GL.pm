@@ -204,7 +204,7 @@ sub PDL::Graphics::TriD::CylindricalEquidistantAxes::togl_axis {
 sub PDL::Graphics::TriD::EuclidAxes::togl_axis {
 	my($this,$graph) = @_;
 
-        print "togl_axis: got object type " . ref($this) . "\n";
+        print "togl_axis: got object type " . ref($this) . "\n" if $PDL::debug_trid;
 #	print "TOGLAX\n";
 	my $fontbase = $PDL::Graphics::TriD::GL::fontbase;
 #	print "TOGL EUCLID\n";
@@ -629,23 +629,25 @@ sub gdriver {
 
   print "STARTING OPENGL $options->{width} $options->{height}\n" if($PDL::Graphics::TriD::verbose);
 
-  print "gdriver: Calling OpengGL::OO($options)...\n" if($PDL::debug_trid);
+  print "gdriver: Calling OpengGL::OO($options)...\n" if ($PDL::debug_trid);
 
   $this->{_GLObject}= new PDL::Graphics::OpenGL::OO($options);
 
   if (exists $this->{_GLObject}->{glutwindow}) {
-     print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
+     if ($PDL::debug_trid) {
+        print "gdriver: Got OpenGL::OO object(GLUT window ID# " . $this->{_GLObject}->{glutwindow} . ")\n";
+     }
      $this->{_GLObject}->{winobjects}->[$this->{_GLObject}->{glutwindow}] = $this;      # circular ref
   }
 
 #glpOpenWindow(%$options);
   
-  print "gdriver: Calling glClearColor...\n" if($PDL::debug_trid);
+  print "gdriver: Calling glClearColor...\n" if ($PDL::debug_trid);
   glClearColor(0,0,0,1);
 
-  print "gdriver: Calling glpRasterFont...\n" if($PDL::debug_trid);
+  print "gdriver: Calling glpRasterFont...\n" if ($PDL::debug_trid);
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
-     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n";
+     print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::debug_trid);
      $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
   } else {
      # NOTE: glpRasterFont() will die() if the requested font cannot be found

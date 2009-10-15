@@ -87,8 +87,6 @@ interface and build environment matures
 
 =cut
 
-#OpenGL::glpSetDebug(1);
-
 *glpOpenWindow = \&OpenGL::glpOpenWindow;
 
 *glpcOpenWindow = \&OpenGL::glpcOpenWindow;
@@ -102,7 +100,7 @@ package PDL::Graphics::OpenGL::OO;
 use PDL::Graphics::TriD::Window qw();
 use PDL::Options;
 use strict;
-my $debug = 1;
+my $debug = 0;
 my (@fakeXEvents) = ();
 my (@winObjects) = ();
 #

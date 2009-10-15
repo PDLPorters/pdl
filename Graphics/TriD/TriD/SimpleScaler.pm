@@ -15,7 +15,7 @@ sub new {
   my $this = $type->SUPER::new( $win);
 
   $this->{Dist} = $dist;				  
-  $win->add_resizecommand(sub {print "Resized window: ",join(",",@_),"\n";  $this->set_wh(@_); });
+  $win->add_resizecommand(sub {print "Resized window: ",join(",",@_),"\n" if $PDL::debug_trid;  $this->set_wh(@_); });
   return $this;
 }
 
