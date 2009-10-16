@@ -50,21 +50,28 @@ The following issues have been reported with this version of PDL:
   formats.
 
 
+- Documentation for the various convolution routines are unclear.
+  The implementation assumes that the kernel is flipped and then
+  the correlation is calculated.  This makes no difference for
+  symmetric kernels but can be unexpected with non-symmetric ones.
+
+
+- fftconvolve does not give the same results as the brute force
+  summation calculation, see discussion for SF bug # 2630369.
+
+
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.4_136 point release:
 
-  2780046    make does not make docs 
   2630369    PDL::FFT::fftconvolve - bad scaling?  
   2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
-  2110074    $empty_piddle->qsorti ==> seg fault
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1994442    imagrgb problems
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
-  1476324    How to force a completely clean installation
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
   1059020    Problem with FFTW version 3.0.1
