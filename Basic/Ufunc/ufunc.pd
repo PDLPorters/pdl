@@ -1048,12 +1048,14 @@ pp_def(
        Pars => 'a(n); int [o]indx(n);',
        Code => 
        'int nn = $COMP(__n_size)-1;
+        if ($SIZE(n) == 0) return;
         loop(n) %{ 
            $indx() = n; 
         %}
        ' . generic_qsort_ind(),
        BadCode =>
        'register int nn = 0, nb = $SIZE(n) - 1;
+        if ($SIZE(n) == 0) return;
         loop(n) %{ 
            if ( $ISGOOD(a()) ) { $indx(n=>nn) = n; nn++; } /* play safe since nn used more than once */ 
            else                { $indx(n=>nb) = n; nb--; }

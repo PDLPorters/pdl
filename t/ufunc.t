@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -41,3 +41,7 @@ ok( tapprox($a->pctover( 2.0), $a_sort->at($a->dim(0)-1)), "pct above 1 for 25-e
 my $x = sequence(10);
 ok( tapprox($x->pctover(0.2 ), 1.8 ), "20th percential of 10-elem piddle [SF bug 2753869]");
 ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem piddle [SF bug 2753869]");
+
+# test for sf.net bug report 2110074
+#
+ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
