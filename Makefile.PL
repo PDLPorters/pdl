@@ -107,7 +107,7 @@ sub getpdl_config {
   # Add BAD_VAL tests if CPAN testers
   #
   if ($ENV{AUTOMATED_TESTING} == 1) {
-     print "Automated testing environment: enabling WITH_BADVAL, BADVAL_PER_PDL, and USE_POGL config options\n";
+     warn "Makefile.PL: Automated testing environment: enabling WITH_BADVAL, BADVAL_PER_PDL, and USE_POGL config options\n";
      $PDL_CONFIG{WITH_BADVAL}    = 1;
      $PDL_CONFIG{BADVAL_PER_PDL} = 1;
      $PDL_CONFIG{USE_POGL} = 1;
@@ -393,12 +393,24 @@ getpdl_config($pdl_conf_file);
 $seen_f77conf = check_f77conf($seen_f77conf);
 
 # Add check for POGL if USE_POGL is enabled
-if ($PDL::Config{USE_POGL}) {
-    eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";
-    if ($@) {
-	warn "DEPENDENCY ERROR: USE_POGL requires at least use OpenGL $PDL::Config{POGL_VERSION}!";
-	exit 0;
-    }
+if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
+   eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";
+   if ($@) {
+      if (defined($PDL::Config{USE_POGL})) {
+         warn "Makefile.PL: DEPENDENCY ERROR: USE_POGL requires at least OpenGL version $PDL::Config{POGL_VERSION}!\n";
+         exit 0;
+      } else {
+         warn "Makefile.PL: acceptable OpenGL not found, setting \$PDL::Config{USE_POGL} => 0\n";
+         $PDL::Config{USE_POGL} = 0;
+      }
+   } else {
+      # Have OpenGL so set USE_POGL option if needed
+      warn "Makefile.PL: Found required OpenGL version, setting USE_POGL => 1\n" unless defined($PDL::Config{USE_POGL});
+      $PDL::Config{USE_POGL} ||= 1;
+   }
+} else {
+   warn "Makefile.PL: Have \$PDL::Config{USE_POGL} => 0 so skipping TriD build with POGL\n";
+   warn "Makefile.PL: Legacy TriD build still possible if WITH_3D is set or available...\n";
 }
 
 make_Version_pm();
