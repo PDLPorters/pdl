@@ -1,3 +1,68 @@
+Release notes for PDL 2.4.5 ------------------------------
+
+General Notes:
+
+  This is the first PDL release supporting the new build
+  strategy for the PDL::Graphics::TriD modules.  The result
+  is it now builds on more platforms than ever.  You'll
+  need to install the OpenGL module and have FreeGLUT or
+  GLUT (for Mac OS X) on your system.
+
+  If you have problems with the new TriD build (that you
+  did not have before), edit perldl.conf and set USE_POGL
+  to 0.  That should enable you to build the legacy TriD
+  code but you *will* want to submit a bug report, see the
+  next point....
+
+  IMPORTANT: Given the increased portability and generality
+  of the new TriD interface approach, it is expected that
+  the legacy TriD build interface (based on X11) will be
+  deprecated soon (almost immediately) and removed after that.
+  (N.B. It has been effectively unsupported for some time)
+
+  If you are new to PDL, we recommend joining the perldl
+  mailing list for discussion and questions.  See
+
+    http://pdl.sourceforge.net/maillists/
+
+  for how to sign up and links and searches of the list
+  archive discussions.
+
+Summary of Changes:
+
+  TriD now requires Perl OpenGL-0.60 or greater to build.
+
+  The new PDL::Graphics::TriD is available on all platforms
+  supporting Perl OpenGL (a.k.a. POGL).
+
+     NOTE: There are two example programs at the top PDL/
+     directory: 3dtest.pl and line3d.pl which you can use
+     to exercise the TriD module: e.g.
+
+       perl -Mblib 3dtest.pl OR perl -Mblib line3d.pl
+
+  New, more portable code for finding the system typemaps files
+  is implemented.
+
+  IO::Browser now builds on cygwin and may work for other
+  systems.  Set WITH_IO_BROWSER => 1, if you dare!
+
+  The perldl shell now changes it prompt to perl> from the
+  perldl> default if PDL was not able to be loaded.
+
+  Clean up of the IO/GD/Makefile.PL for win32 platforms.
+
+  Various documentation and FAQ updates.
+
+  Improved diagnostic messages.
+  
+  Fixed the qsorti() bug #2110074 on sf.net.
+
+  See the Changes file or run 'git log --stat' for detailed
+  list of changes.
+
+
+
 Release notes for PDL 2.4.4_136 --------------------------
 
 General Notes:

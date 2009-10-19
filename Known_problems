@@ -3,7 +3,9 @@ The following issues have been reported with this version of PDL:
 
 - The default TriD controls are based on having at least
   a two button mouse.  For Macs with one button, you can use
-  Ctrl+Click as a work around.
+  Ctrl+Click to generate the Right-click.  It is also possible
+  to configure the Macbook tracpad to generate a secondary
+  click---see the control panel.
 
 
 - VRML output driver does not work for PDL::Graphics::TriD
@@ -17,7 +19,9 @@ The following issues have been reported with this version of PDL:
 
 
 - Various make problems with build:
+
   - Using parallel make causes the build to fail so don't use -j # options.
+
   - Make fails with message like
 
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
@@ -42,18 +46,20 @@ The following issues have been reported with this version of PDL:
 
 - PDL configuration failures have come about because needed temp
   files can not be created.  This appears to be a result of platform
-  misconfiguration of TEMPDIR.
+  misconfiguration of TEMPDIR and not PDL per se.
 
 
 - 16bit image file IO fails in t/pic_16bit.t apparently due to
   an older version of NetPBM which does not support the raw 16bit
-  formats.
+  formats.  If this test fails, try upgrading your NetPBM library.
 
 
 - Documentation for the various convolution routines are unclear.
-  The implementation assumes that the kernel is flipped and then
-  the correlation is calculated.  This makes no difference for
-  symmetric kernels but can be unexpected with non-symmetric ones.
+  The implementation assumes that the kernel argument is flipped
+  and then calculates the correlation of that with the image.  This
+  makes no difference for symmetric kernels but can give unexpected
+  results with non-symmetric ones or if you are trying to do your
+  own correlation.
 
 
 - fftconvolve does not give the same results as the brute force
@@ -61,7 +67,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.4_136 point release:
+  PDL-2.4.5 release:
 
   2630369    PDL::FFT::fftconvolve - bad scaling?  
   2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
@@ -79,4 +85,6 @@ The following issues have been reported with this version of PDL:
 
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
-see the PDL mailing lists at http://pdl.perl.org/support.html
+see the PDL mailing lists. Links to archive list discussions
+and how to register for the mailing lists can be found at
+http://pdl.sourceforge.net/maillists/ .
