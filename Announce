@@ -1,0 +1,157 @@
+Created on: Tue 20 Oct 2009 04:13:11 PM 
+Last saved: Tue 20 Oct 2009 04:13:11 PM 
+
+    Add support for USE_POGL => undef to perldl.conf
+    Enable TriD builds when USE_POGL is enabled
+    
+    NOTE: unless WITH_3D is set to zero, it is possible that
+    TriD will still be built with the legacy build structure
+    even though it will not be using the Perl OpenGL module for
+    the needed graphics bindings.
+
+    Add POGL_VERSION option to perldl.conf
+    Use POGL_VERSION in perdl.conf to use OpenGL
+    Add $PDL::Config{POGL_VERSION} to the CPAN prereqs
+    
+      Now requires OpenGL-0.60 or greater.  If you need to
+      build with a different version, edit perldl.conf
+      appropriately.  Versions 0.59_00x should work for
+      most platforms.
+    
+    Add POGL_WINDOW_TYPE parameter to perldl.conf
+    POGL_WINDOW_TYPE now sets OpenGL window type
+      to enable the use of PDL::Graphics::TriD::Tk
+      in back compatibility mode.  Anyone using?
+
+    Add GLUT init stuff to new for cleaner exits
+    KNOWN_PROBLEMS (exit handler)
+
+    Changed glutPrintString to glutBitmapString
+    Added glutBitmapString support for GLUT-only installs
+    ** TriD needs FreeGLUT or Apple GLUT! **
+
+    Add PDL_INT check for t/opengl.t
+
+    Add 3dtest.pl and line3d.pl as simple TriD graphics check programs
+
+    Fix setting default TriD device to GL for all platforms
+      (VRML broken for now)
+
+    Fix legacy TriD build problems on cygwin
+
+    Thanks to Mac testers (Stefan Evert*, Matt,...)
+
+    Thanks to PC testing and feedback by Sisyphus
+    
+
+DOCS:
+
+    Update Known_problems file for 1button mouse
+    
+    Update cygwin README, INSTALL for 2.4.5 release
+
+    Added warning about parallel make to INSTALL file
+
+    Put Filter::Util::Call in DEPENDENCIES
+    
+    Fix Minuit fortan URL in DEPENDENCIES
+    Added Minuit lib info to DEPENDENCIES
+
+    Added friendly .perldlrc suggestion to perldl docs
+    
+    Update FAQ for CVS->Git migration
+    
+
+DIAGNOSTICS:
+
+    Clarify test skip messages for HDF/NDF
+
+    Added $! to another Basic/Core/Dev.pm die message
+    Added $! to Basic/Core/Dev.pm tempfile error
+    Added diag print for t/dumper.t small sdump()
+    
+    Added filename diags to rpnm subroutine
+    
+    Turn on diagnostics for 16bit pic tests
+
+
+
+BUGS:
+
+    This addresses the question/bug/feature request from SF bug #1476324
+      Add FAQ entry on clean installs
+
+    Fix qsorti(null()) crash bug (SF #2110074)
+      Make qsorti() return quietly when given a null() piddle input
+
+    Fix broken PP typemap finding code, thanks CS!
+    
+    Clean up some lvalue sub usage
+      Avoid lvalue sub syntax requirements
+    
+    Make Data::Dumper v 2.121 the minimum required
+    Added Data::Dumper to the prerequisites
+
+    Rework storable test to use Test::More and Storable v 1.03
+    
+    Fix t/autoload.t tilde expansiong bugs and test failures
+      tilde expansion seems to work consistently with bash now
+
+    Added PERL5OPT unset for podselect command
+    Unset PERL5OPT for podselect in Makefile.PL
+    Unset PERL5OPT for podselect in Basic/Pod
+
+    Basic/Core/Dev.pm - tweak setting of WriteMakefile() LIBS
+    
+    Add cast to $GENERIC(a) for setvaltonan()
+
+    Add arg check for empty piddle to hist function
+
+    Fix t/proj_transform.t to skip when no earth_image()
+    Fixed earth_image() test to make plan count ok
+    Fix params parsing in load_projection_information
+    
+    Added ../Basic/Core to @INC for BAD demo builds
+    
+    Fixed trylink() error message on temp file failure
+    
+
+
+NEW:
+
+    Partial fix to PDL::IO::Browser
+      Only tested with cygwin/XP.
+      Should work on system with standard ncurses (**Not Tested**)
+
+    Change prompt to perl> if no PDL loaded in perldl
+      Should be more helpful
+    
+    Fix readflex() to work with File::LinearRaid
+    
+    Make PDL require perl 5.6.2 or above.
+    
+
+
+
+
+Win32 Fixes:
+
+    Remove 'D:/gd/gdwin32/include' from @inc_locations in IO/GD/Makefile.PL
+    Remove 'D:/gd/gdwin32' from @lib_locations in IO/GD/Makefile.PL
+
+    Fix t/flexraw.t to skip compress tests on MSWin32
+    
+    Accommodate ActiveState's change to $Config{make}
+
+    Win32 - MSVC-specific fix for setvaltobad() for PDL_Float
+    Win32 - Reduce scope of MSVC-specific bugfix
+    
+    Fold in [dn]make correction to PERL5OPT fix
+
+
+
+
+
+    
+
+
