@@ -1,5 +1,24 @@
 Release notes for PDL 2.4.5 ------------------------------
 
+Highlights:
+
+  * 3D graphics modules now run on win32 and Mac OS X
+    systems without requiring X11 be installed.  The
+    only prerequisites are OpenGL and FreeGLUT/GLUT.
+
+  * Release documentation and FAQ have been updated
+    to be more useful (and more accurate).
+
+  * PDL build, test, and run time diagnostic messages
+    have been make clearer and more helpful.
+
+  * Many bugs have been fixed since PDL-2.4.4 so this
+    is the most reliable PDL ever.
+
+  * PDL now requires perl 5.6.2 or greater and has
+    updated DEPENDENCIES information and code.  This
+    should improve the buildability of PDL
+
 General Notes:
 
   This is the first PDL release supporting the new build
@@ -29,38 +48,71 @@ General Notes:
   archive discussions.
 
 Summary of Changes:
-
-  TriD now requires Perl OpenGL-0.60 or greater to build.
-
-  The new PDL::Graphics::TriD is available on all platforms
-  supporting Perl OpenGL (a.k.a. POGL).
-
-     NOTE: There are two example programs at the top PDL/
-     directory: 3dtest.pl and line3d.pl which you can use
-     to exercise the TriD module: e.g.
-
-       perl -Mblib 3dtest.pl OR perl -Mblib line3d.pl
-
-  New, more portable code for finding the system typemaps files
-  is implemented.
-
-  IO::Browser now builds on cygwin and may work for other
-  systems.  Set WITH_IO_BROWSER => 1, if you dare!
-
-  The perldl shell now changes it prompt to perl> from the
-  perldl> default if PDL was not able to be loaded.
-
-  Clean up of the IO/GD/Makefile.PL for win32 platforms.
-
-  Various documentation and FAQ updates.
-
-  Improved diagnostic messages.
   
-  Fixed the qsorti() bug #2110074 on sf.net.
+  New perldl.conf configuration parameters controlling
+  build of TriD with perl OpenGL (a.k.a. POGL) with the
+  follow default values:
 
-  See the Changes file or run 'git log --stat' for detailed
+    USE_POGL:
+          1 -- build using POGL
+          0 -- build using legacy build process
+      undef -- build with POGL if possible
+
+    POGL_VERSION:
+       0.60 -- minimum required version of OpenGL
+
+    POGL_WINDOW_TYPE:
+     'glut' -- use a GLUT GUI for window creation
+      'x11' -- use GLX and X11 for the GUI (this is a "compatibility
+               mode" to support PDL::Graphics::TriD::Tk widgets)
+
+  NOTE: Set WITH_3D => 0 in perldl.conf to disable the
+  TriD build completely.  Just setting USE_POGL => 0 is
+  not enough.
+  
+  The OpenGL tests in t/opengl.t now respects the interactive
+  setting from the PDL_INT environment variable.
+
+  Two TriD check programs, 3dtest.pl and line3d.pl, are added to the
+  main PDL build directory.  They can be run as quick checks of the
+  new functionality and are short enough run under the perl debugger
+  if needed. e.g.
+
+     perl -Mblib 3dtest.pl OR perl -Mblib line3d.pl
+
+
+  OpenGL (a.k.a. GL) is the default TriD output device on all
+  platforms.  VRML does not work at the moment.  GLpic is not
+  tested but may work.
+
+  Closed SF bug #1476324 by adding FAQ entry on clean installs
+
+  Fix qsorti(null()) crash bug from SF bug #2110074.  Make
+  qsorti() return quietly when given a null() piddle input
+
+  Fix broken PP typemap finding code, thanks to CS for the
+  final code and many testers!
+  
+  Fix t/autoload.t tilde expansion bugs and test failures.
+  tilde expansion seems to work consistently with bash now
+
+  Partial fix implemented for PDL::IO::Browser.  The code has
+  only been tested with cygwin but it should work on systems
+  with ncurses in the "right place".  This is **not tested**
+  but set WITH_IO_BROWSER => 1 if you wish to try.
+
+  If the perldl shell is unable to load PDL for some reason
+  and defaults to basic perl support, the prompt now changes
+  to perl> reflecting that fact.
+
+  readflex() now works with File::LinearRaid.
+
+  Many win32 fixes to tests and build process which make
+  things work more smoothly on win32 platforms.
+
+  See the Changes file or run 'git log --stat' for the detailed
   list of changes.
-
+  
 
 
 Release notes for PDL 2.4.4_136 --------------------------

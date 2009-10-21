@@ -11,6 +11,11 @@ The following issues have been reported with this version of PDL:
 - VRML output driver does not work for PDL::Graphics::TriD
 
 
+- When you close a TriD graphics window with the frame widget
+  the whole process exits which is annoying if you are running
+  in perldl.  Patches to the exit handler a la test.pl welcome!
+
+
 - FFTW 3.2.2 is the current release version of the FFTW library
   but is not yet supported by PDL::FFTW.  You may install version
   2.1.5 of FFTW which is supported, fall back to using the PDL's
