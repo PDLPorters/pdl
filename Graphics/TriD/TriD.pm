@@ -4,23 +4,23 @@ PDL::Graphics::TriD -- PDL 3D interface
 
 =head1 SYNOPSIS
 
-use PDL::Graphics::TriD;
+ use PDL::Graphics::TriD;
 
-# After each graph, let the user rotate is and
-# wait for him to press 'q', then make new graph
-line3d($coords);       # $coords = (3,n,...)
-line3d($coords,$colors);  # $colors = (3,n,...)
-line3d([$x,$y,$z]);
-imagrgb([$r,$g,$b]);
-lattice3d([$x,$y,$z]); # 2-d piddles
-points3d([$x,$y,$z]);
+ # After each graph, let the user rotate is and
+ # wait for him to press 'q', then make new graph
+ line3d($coords);       # $coords = (3,n,...)
+ line3d($coords,$colors);  # $colors = (3,n,...)
+ line3d([$x,$y,$z]);
+ imagrgb([$r,$g,$b]);
+ lattice3d([$x,$y,$z]); # 2-d piddles
+ points3d([$x,$y,$z]);
 
-hold3d(); # the following graphs are on top of each other and the previous
-line3d([$x,$y,$z]);
-line3d([$x,$y,$z+1]);
-$pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float piddle (0..1).
+ hold3d(); # the following graphs are on top of each other and the previous
+ line3d([$x,$y,$z]);
+ line3d([$x,$y,$z+1]);
+ $pic = grabpic3d(); # Returns the picture in a (3,$x,$y) float piddle (0..1).
 
-release3d(); # the next graph will again wipe out things.
+ release3d(); # the next graph will again wipe out things.
 
 
 =head1 WARNING
@@ -37,6 +37,7 @@ Points, lines and surfaces (among other objects) are supported.
 With OpenGL, it is easy to manipulate the resulting 3D objects
 with the mouse in real time - this helps data visualization a lot.
 
+=for comment
 With VRML, you can generate objects for everyone to see with e.g.
 Silicon Graphics' Cosmo Player. You can find out more about VRML
 at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
@@ -61,7 +62,7 @@ OpenGL
 OpenGL but off-line (pixmap) rendering and writing to
 a graphics file.
 
-=item VRML
+=item VRML (I< Not available this release >)
 
 VRML objects rendering. This writes a VRML file describing the
 scene. This VRML file can then be read with  a browser.
@@ -93,7 +94,7 @@ interpretation.
 
 The alternative syntaxes for specifying a set of coordinates (or colors) are
 
-$piddle                             # MUST have 3 as first dim.
+   $piddle                             # MUST have 3 as first dim.
   [$piddle]
   [$piddle1,$piddle2]
   [$piddle1,$piddle2,$piddle3]
@@ -113,25 +114,25 @@ The following contexts are currently supported:
 
 =item SURF2D
 
-A 2-D lattice. [$piddle] is interpreted as the Z coordinate over
+A 2-D lattice. C< [$piddle] > is interpreted as the Z coordinate over
 a lattice over the first dimension. Equivalent to
-[$piddle->xvals, $piddle->yvals, $piddle].
+C< [$piddle->xvals, $piddle->yvals, $piddle] >.
 
 =item POLAR2D
 
-A 2-D polar coordinate system. [$piddle] is interpreted as the
+A 2-D polar coordinate system. C< [$piddle] > is interpreted as the
 z coordinate over theta and r (theta = the first dimension of the piddle).
 
 =item COLOR
 
-A set of colors. [$piddle] is interpreted as grayscale color
-(equivalent to [$piddle,$piddle,$piddle]).
+A set of colors. C< [$piddle] > is interpreted as grayscale color
+(equivalent to C< [$piddle,$piddle,$piddle] >).
 
 =item LINE
 
-A line made of 1 or 2 coordinates. [$piddle] is interpreted as
-[$piddle->xvals,$piddle,0]. [$piddle1,$piddle2] is interpreted as
-[$piddle1,$piddle2,$piddle1->xvals].
+A line made of 1 or 2 coordinates. C< [$piddle] > is interpreted as
+C< [$piddle->xvals,$piddle,0] >. C< [$piddle1,$piddle2] > is interpreted as
+C< [$piddle1,$piddle2,$piddle1->xvals] >.
 
 =back
 
@@ -142,7 +143,7 @@ instead of the full surface you plotted with
 
 you don't need to start thinking about where to plot the points:
 
-	points3d([SURF2D,$zcoords]);
+  points3d([SURF2D,$zcoords]);
 
 will do exactly the same.
 
@@ -364,9 +365,9 @@ user explicitly presses 'q'.
  nokeeptwiddling3d();
  $o = imag3d($c);
  while(1) {
-	$c .= nextfunc($c);
-	$o->data_changed();
-	twiddle3d();		# animate one step, then return.
+ 	$c .= nextfunc($c);
+ 	$o->data_changed();
+ 	twiddle3d();		# animate one step, then return.
  }
 
 =head2 twiddle3d
@@ -468,7 +469,7 @@ man page.
 This is a special class: in order to obtain a new viewport, you
 need to have an earlier viewport on hand. The usage is:
 
-	$new_vp = $old_vp->new_viewport($x0,$y0,$x1,$y1);
+  $new_vp = $old_vp->new_viewport($x0,$y0,$x1,$y1);
 
 where $x0 etc are the coordinates of the upper left and lower right
 corners of the new viewport inside the previous (relative
