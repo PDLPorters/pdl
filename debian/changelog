@@ -1,9 +1,30 @@
+pdl (1:2.4.3-8) unstable; urgency=low
+
+  * add proper description to the dpatch pathes (6 lintian warnings)
+  * backport documentation 'apropos' search function from upstream cvs
+    (closes: #499758)
+  * remove empty manpage /usr/share/man/man3/PDL::PP.3pm (lintian warning)
+  * update standarts version to 3.8.0 (lintian warning)
+  * build-depend on x11proto-core-dev instead of x-dev (lintian error)
+  * remove libgl1 from Suggests; there is no 3d support presently
+  * bump readline Suggests: to Recommends:, as users are lost in
+    interactive mode without it
+  * Fix doc-base entry (Science/Mathematics instead of Apps/Math)
+  * suggest doc-base
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 22 Sep 2008 09:42:25 +0200
+
 pdl (1:2.4.3-7) unstable; urgency=low
 
-  * patch upstream IO/Makefile.PL to also install Dicom IO module 
+  * patch upstream IO/Makefile.PL to also install Dicom IO module
     (closes: #474751)
+  * disable opengl based PDL::Graphics::TriD, it is not working
+    with perl 5.10. this considerably lowers PDL's dependencies,
+    upstream does not yet have a solution for this problem
+    (closes: #495379) 
+  * apply upstream patch for the pct() problem (closes: #488092)
 
- -- Henning Glawe <glaweh@physik.fu-berlin.de>  Tue,  8 Apr 2008 11:56:17 +0200
+ -- Henning Glawe <glaweh@debian.org>  Sat, 20 Sep 2008 13:44:57 +0200
 
 pdl (1:2.4.3-6) unstable; urgency=low
 
