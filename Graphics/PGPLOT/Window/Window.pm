@@ -1222,7 +1222,7 @@ You can override the image scaling using the SCALE, PIX, or PITCH
 options just as with L<the imag() method|/imag> -- but 
 those parameters refer to the scientific coordinate system rather than 
 to the pixel coordinate system (e.g. C<PITCH=E<gt>100> means "100 scientific units 
-per inch", and C<SCALE=E<gt>1> means "1 scientific unit per device pixel".  See
+per inch", and C<SCALE=E<gt>1> means "1 scientific unit per device pixel").  See
 L<the imag() writeup|/imag> for more info on these 
 options.  
 
@@ -1233,7 +1233,7 @@ both vertically and horizontally.
 
 By default, fits_imag tries to guess which direction your axes are meant
 to go (left-to-right or right-to-left) using the CDELT keywords:
-if C<< CDELT<n> >>
+if C<< CDELT >>
 is negative, then rather than reflecting the image fits_imag will plot the
 X axis so that the highest values are on the left.  
 

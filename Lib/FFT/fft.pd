@@ -451,9 +451,6 @@ sub PDL::fftconvolve {
     ($hr,$hi);
 }
 
-
-=cut
-
 EOD
 
 # convmath does local part of the maths necessary to handle a,b which
