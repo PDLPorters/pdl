@@ -1,9 +1,0 @@
-LAGUERRE.c
-.cvsignore
-Makefile
-LAGUERRE.pm
-.cvsignore.old
-LAGUERRE.xs
-LAGUERRE.bs
-pm_to_blib
-

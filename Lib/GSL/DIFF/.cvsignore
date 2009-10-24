@@ -1,8 +1,0 @@
-.cvsignore
-DIFF.xs
-DIFF.bs
-DIFF.c
-DIFF.o
-DIFF.pm
-Makefile
-pm_to_blib

@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-ZETA.pm
-ZETA.c
-.cvsignore.old
-ZETA.xs
-ZETA.bs
-pm_to_blib
-

@@ -1457,7 +1457,8 @@ sub map {
 	$omax = $oc2->maximum;
 
 	$osize = $omax - $omin;
-	$osize->where($osize == 0) .= 1.0;
+	my $tosize;
+	($tosize = $osize->where($osize == 0)) .= 1.0;
       }
 
       my ($scale) = $osize / pdl(($out->dims)[0..$nd-1]);

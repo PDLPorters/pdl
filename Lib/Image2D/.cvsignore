@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-Image2D.pm
-.cvsignore.old
-Image2D.xs
-Image2D.bs
-Image2D.c
-pm_to_blib
-

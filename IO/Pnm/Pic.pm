@@ -83,7 +83,7 @@ the filter when trying to open the pipe. [']
 # methods must have the same syntax as wpic/rpic (e.g. wfits/rfits).
 #
 
-$PDL::IO::Pic::debug = 0;
+$PDL::IO::Pic::debug = $PDL::IO::Pic::debug || 0;
 &init_converter_table();
 
 # setup functions

@@ -9,12 +9,12 @@ Please check the following files for further information
 
 INSTALL 		detailed installation instructions
 
+BUGS			how to make a bug report and where to send it
+
 Known_problems	 	check before you report compilation problems
 
-DEPENDENCIES		Other software that PDL relies on (and where
-			to get it)
-
-BUGS			how to make a bug report and where to send it
+DEPENDENCIES		Other software that PDL relies on
+                        (and where to get it)
 
 perldl.conf		PDL configuration options
 
@@ -44,14 +44,14 @@ perldl shell. Try the help command within the shell!
 PDL -- the package
 ------------------
 
-The perlDL project aims to turn perl into an efficient numerical language for
-scientific computing. The PDL module gives standard perl the ability to
-COMPACTLY store and SPEEDILY manipulate the large N-dimensional data sets which
-are the bread and butter of scientific computing. e.g. $a=$b+$c can add two
-2048x2048 images in only a fraction of a second.
+The Perl Data Language (PerlDL) project aims to turn perl into an efficient
+numerical language for scientific computing. The PDL module gives standard
+perl the ability to COMPACTLY store and SPEEDILY manipulate the large
+N-dimensional data sets which are the bread and butter of scientific computing.
+e.g. $a=$b+$c can add two 2048x2048 images in only a fraction of a second.
 
-The aim is to provide tons of useful functionality for
-scientific and numeric analysis.
+The aim is to provide tons of useful functionality for scientific and
+numeric analysis.
 
 Check the pdl web site at http://pdl.perl.org for more information.
 
@@ -90,10 +90,15 @@ The mailing list archives can be searched/read at
 	http://mailman.jach.hawaii.edu/pipermail/perldl/
 	http://mailman.jach.hawaii.edu/pipermail/pdl-porters/
 
-If you need to post a problem report, please use the sourceforge.net
-bug tracker system following the guidance in the BUGS file:
+Questions about problems and possible bugs can be discussed
+via the perldl mailing list.  This is very useful if you are
+not sure what you have is a bug or not.
 
-	http://sourceforge.net/bugs/?group_id=612
+If you need to post a problem report, please use the
+sourceforge.net bug tracker system following the guidance
+in the BUGS file:
+
+	http://sourceforge.net/tracker/?group_id=612&atid=100612
 
 
 Notes
@@ -119,5 +124,5 @@ Compilation Reports:
 
 The CPAN Testers' result page provides a database showing the results
 of compiling PDL and many other CPAN packages on multiple platforms.
-See http://www.perl.org/cpan-testers/results.cgi	
+See http://testers.cpan.org/
 

@@ -1,9 +1,0 @@
-PSI.xs
-PSI.c
-.cvsignore
-Makefile
-PSI.bs
-.cvsignore.old
-PSI.pm
-pm_to_blib
-

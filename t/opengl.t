@@ -14,22 +14,34 @@ sub hasDISPLAY {
   return defined $ENV{DISPLAY} && $ENV{DISPLAY} !~ /^\s*$/;
 }
 
-use Test;
+use Test::More;
 
 BEGIN { 
-  use PDL::Config;
-  if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} 
-      # only if GL modules have actually been built
-      && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
-	 plan tests => 3; 
-	 eval 'use PDL::Graphics::OpenGL';
-	 ok($@, ''); 
-  }else{
-	 plan tests => 1; 
-         print hasDISPLAY() ? "ok 1 # Skipped: OpenGL support not compiled\n"
-	   : "ok 1 # Skipped: DISPLAY environment variable not set\n";
-	 exit;
-  }
+   use PDL::Config;
+   if ( $PDL::Config{USE_POGL} ) {
+      if ( hasDISPLAY or exists($ENV{'PDL_INT'}) ) {
+         plan tests => 4;
+         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
+      } else {  # no DISPLAY
+         plan tests => 2;
+         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
+         exit;
+      }
+   } else {
+      if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} 
+         # only if GL modules have actually been built
+         && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
+         plan tests => 3; 
+         use_ok('use PDL::Graphics::OpenGL');
+      }else{
+         plan skip_all => ( hasDISPLAY()
+		 ? "ok 1 # Skipped: OpenGL support not compiled\n"
+		 : "ok 1 # Skipped: DISPLAY environment variable not set\n" );
+         exit;
+      }
+   }
 }
 
 #
@@ -42,64 +54,9 @@ $opt->{width} = 90;
 $opt->{height} = 90;
 
 foreach(0..$numwins-1){
-  $opt->{x} = ($numwins % 10) *100;
-  $opt->{y} = int($numwins / 10) *100;
-  my $win=new PDL::Graphics::OpenGL::OO($opt);
-  ok(ref($win), 'PDL::Graphics::OpenGL::OO');
-  push @windows, $win;
-}
-exit;
-#
-# More test code not currently used.
-# 
-
-my $angle=0;
-my $i=0;
-while($i++<100){
-  $angle++;
-  foreach my $win (@windows){
-	 $win->glXMakeCurrent() || die "glXMakeCurrent failed\n";
-    if(PDL::Graphics::OpenGL::XPending($win->{Display})>0){
-		my @ev = PDL::Graphics::OpenGL::glpXNextEvent($win->{Display});
-    
-		if($ev[0] ==  PDL::Graphics::OpenGL::ConfigureNotify){
-		
-		  glFlush();
-		  glViewport(0, 0, $opt->{width}, $opt->{height});
-		  glMatrixMode(GL_PROJECTION);
-		  glLoadIdentity();
-		  glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
-
-		}	 
-	 }
-#	 my $out = Dumper($win);
-#	 print "$out\n";
-
-	 glShadeModel(GL_FLAT);
-
-
-    glClearColor(0., 0.5, 0., 1.0); 
-
-	 glClear(GL_COLOR_BUFFER_BIT);
-	 
-
-	 glPushMatrix();
-
-	 glRotatef($angle, 0, 0, 1);
-
-	 glBegin(GL_TRIANGLES);
-
-	 # draw pink triangle 
-
-	 glColor3f(1.0, 0.3, 0.5);
-	 glVertex2f(0, 0.8);
-	 glVertex2f(-0.8, -0.7);
-	 glVertex2f(0.7, 0.8);
-	 glEnd();
-
-    glPopMatrix();
-
-
-    $win->glXSwapBuffers();
-  }
+   $opt->{x} = ($numwins % 10) *100;
+   $opt->{y} = int($numwins / 10) *100;
+   my $win=new PDL::Graphics::OpenGL::OO($opt);
+   isa_ok($win, 'PDL::Graphics::OpenGL::OO');
+   push @windows, $win;
 }

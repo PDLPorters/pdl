@@ -1,9 +1,0 @@
-DEBYE.xs
-.cvsignore
-Makefile
-DEBYE.bs
-DEBYE.c
-.cvsignore.old
-DEBYE.pm
-pm_to_blib
-

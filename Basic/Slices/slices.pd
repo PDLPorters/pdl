@@ -1367,6 +1367,12 @@ new pdl (C<$reOrderPDL>) according to the following:
    1		  4
    0		  5
 
+You do not need to specify all dimensions, only a complete set
+starting at position 0.  (Extra dimensions are left where they are).
+This means, for example, that you can reorder() the X and Y dimensions of
+an image, and not care whether it is an RGB image with a third dimension running
+across color plane.
+
 =for example 
 
 Example:
@@ -1428,11 +1434,23 @@ sub PDL::reorder {
 	my $arrayMax = $#newDimOrder;
   
 	#Error Checking:
-	if( $pdl->getndims != scalar(@newDimOrder) ){
-		my $errString = "PDL::reoderDims: Number of elements (".scalar(@newDimOrder).") in newDimOrder array doesn't\n";
-		$errString .= "match the number of dims in the supplied PDL ($ndims)";
+	if( $pdl->getndims < scalar(@newDimOrder) ){
+		my $errString = "PDL::reorder: Number of elements (".scalar(@newDimOrder).") in newDimOrder array exceeds\n";
+		$errString .= "the number of dims in the supplied PDL (".$pdl->getndims.")";
 		barf($errString);
 	}
+	
+	# Check to make sure all the dims are within bounds
+	for my $i(0..$#newDimOrder) {
+	  my $dim = $newDimOrder[$i];
+	  if($dim < 0 || $dim > $#newDimOrder) {
+	      my $errString = "PDL::reorder: Dim index $newDimOrder[$i] out of range in position $i\n(range is 0-$#newDimOrder)";
+	      barf($errString);
+	  }
+	}
+
+	# Checking that they are all present and also not duplicated is done by thread() [I think]
+
 	# a quicker way to do the reorder
 	return $pdl->thread(@newDimOrder)->unthread(0);
 }

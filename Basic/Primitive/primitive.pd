@@ -2019,7 +2019,8 @@ sub PDL::interpND {
 
     # a & b are the weighting coefficients.
     my($a,$b);
-    $index->where( 0 * $index ) .= -10; # Change NaN to invalid
+    my($indexwhere);
+    ($indexwhere = $index->where( 0 * $index )) .= -10; # Change NaN to invalid
     {
       my $bb = PDL::Math::floor($index);
       $a = ($index - $bb)     -> dummy(1,$crnr->dim(1)); # index, clst, ith
@@ -2653,8 +2654,9 @@ sub PDL::setops {
     # We then mark/mask these in the s1 and s2 arrays to indicate which ones
     # are not equal to their neighbours.
     #
-    $s1->index($i1) .= 1 if $i1->nelem() > 0;
-    $s2->index($i2) .= 1 if $i2->nelem() > 0;
+    my $ts;
+    ($ts = $s1->index($i1)) .= 1 if $i1->nelem() > 0;
+    ($ts = $s2->index($i2)) .= 1 if $i2->nelem() > 0;
 
     my $inds=which($s1 == $s2);
 

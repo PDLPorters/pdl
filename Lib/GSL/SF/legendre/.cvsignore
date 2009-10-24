@@ -1,9 +1,0 @@
-LEGENDRE.bs
-.cvsignore
-Makefile
-LEGENDRE.c
-LEGENDRE.pm
-.cvsignore.old
-LEGENDRE.xs
-pm_to_blib
-

@@ -1,9 +1,0 @@
-EXPINT.bs
-.cvsignore
-Makefile
-EXPINT.c
-EXPINT.xs
-pm_to_blib
-.cvsignore.old
-EXPINT.pm
-

@@ -1,79 +1,64 @@
 # -*- cperl -*-
 
 #use strict;
-use Test;
+use Test::More;
 
 BEGIN { 
-  eval 'use Storable 1.0';
+  eval 'use Storable 1.03';
   unless ($@) {
-    plan tests => 6;
+    plan tests => 7;
   } else {
-    plan tests => 1;
-    print "ok 1 # Skipped: Storable >= 1.0 not installed\n";
-    exit;
+    plan skip_all => "Storable >= 1.03 not installed\n";
   }
+  use Storable qw/freeze thaw/;
 }
 
-use Storable qw/freeze thaw/;
-use PDL::LiteF;
-use PDL::IO::Storable;
-use PDL::Dbg;
+BEGIN { 
+   use PDL::LiteF;
+   use PDL::Dbg;
+   use_ok('PDL::IO::Storable');
+}
 
-# my ($a,$olda,$serialized);
 
 $a = sequence(2,2);
-#print "Old object value: $a";
+# $a->dump;
 
 $serialized = freeze $a;
-#print "Serialized by Storable: ",$serialized,"\n";
 
 $olda = thaw $serialized;
-# $olda->showsv('oldasv');
-#printf "olda: %d\n",\$$olda;
-$olda->dump;
-#printf "a: %d\n", \$$a;
-$a->dump;
+# $olda->dump;
 
-#print "restored value : $olda\n";
+ok(sum(abs($a-$olda))==0, 'PDL freeze/thaw');
 
-ok(sum(abs($a-$olda)),0);
-
-$oldb = thaw $serialized;
-$oldc = thaw $serialized;
-
-$PDL::Dbg::Infostr = "%T %D %S %A";
-PDL->px;
+# $oldb = thaw $serialized;
+# $oldc = thaw $serialized;
+# 
+# $PDL::Dbg::Infostr = "%T %D %S %A";
+# PDL->px;
+# 
+# undef $oldb;
+# print $oldc;
 
 undef $a;
 
-PDL->px;
-undef $oldb;
-print $oldc;
-
 $data = {
-	 key1 => 1,
-	 key2 => sequence(3),
-	 key3 => 'hallo',
+   key1 => 1,
+   key2 => sequence(3),
+   key3 => 'hallo',
 };
 
 $dfreeze = freeze $data;
 $dthaw = thaw $dfreeze;
 
-ok ref $dthaw eq 'HASH';
+isa_ok($dthaw, 'HASH'); # we got a HASH back
 
-print "key2 => $dthaw->{key2}\n";
-
-use Data::Dumper;
-print Dumper $data;
-print Dumper $dthaw;
-
-ok all $data->{key2} == $dthaw->{key2};
+ok(all($data->{key2} == $dthaw->{key2}), 'PDL in structure');
 
 $phash = bless {PDL => sequence 3}, 'PDL';
-$pfreeze = $phash->freeze;  # try as a method
-ok 1;
+can_ok($phash, 'freeze');
 
+$pfreeze = $phash->freeze;
 $phthaw = thaw $pfreeze;
 
-ok all $phthaw == $phash;
-ok UNIVERSAL::isa($phthaw,'HASH');
+ok(all($phthaw == $phash), 'PDL has-a works with freeze/thaw');
+ok(UNIVERSAL::isa($phthaw,'HASH'), 'PDL is a hash');

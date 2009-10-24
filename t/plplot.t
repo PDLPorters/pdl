@@ -245,7 +245,7 @@ ok (-s "test11.$dev" > 0, "Colored symbol plot with key, via low level interface
 
 ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin, $dev_xmax, $dev_ymin, $dev_ymax)) == 0, 
     "plgvpd call works correctly");
-ok (sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax)) == 0, 
+ok (abs(sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax))) < 0.000001, 
     "plgvpw call works correctly");
 
 # Test shade plotting (low level interface)

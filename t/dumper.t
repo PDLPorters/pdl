@@ -46,7 +46,7 @@ my ( $s, $a );
 eval '$s = sdump({a=>3,b=>pdl(4),c=>xvals(3,3),d=>xvals(4,4)});';
 ok(!$@, 'Call sdump()');
 $a = eval $s;
-ok(!$@, 'Can eval dumped data code');
+ok(!$@, 'Can eval dumped data code') or diag("The output string was '$s'\n");
 ok(ref $a eq 'HASH', 'HASH was restored');
 ok(($a->{a}==3), 'SCALAR value restored ok');
 ok(((ref $a->{b} eq 'PDL') && ($a->{b}==4)), '0-d PDL restored ok');

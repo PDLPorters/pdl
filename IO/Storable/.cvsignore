@@ -1,9 +1,0 @@
-.cvsignore
-Storable.xs
-Makefile
-Storable.c
-Storable.bs
-.cvsignore.old
-Storable.pm
-pm_to_blib
-

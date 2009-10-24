@@ -1,9 +1,0 @@
-GEGENBAUER.pm
-GEGENBAUER.bs
-.cvsignore
-Makefile
-pm_to_blib
-GEGENBAUER.xs
-.cvsignore.old
-GEGENBAUER.c
-

@@ -1,39 +1,112 @@
-The following issues have been reported with this version of
-PDL:
+The following issues have been reported with this version of PDL:
 
-- FFTW 3.1.3 is now out but is not supported by PDL::FFTW (yet).
-  You can use version 2.1.5 of FFTW, fall back on the built-in
-  fft routines, or (best of all) submit a patch. 
 
-- Overly verbose but not particularly helpful text output from
-  configure, built, test process.  This can be confusing for first
-  time users.
+- The default TriD controls are based on having at least
+  a two button mouse.  For Macs with one button, you can use
+  Ctrl+Click to generate the Right-click.  It is also possible
+  to configure the Macbook tracpad to generate a secondary
+  click---see the control panel.
 
-- There is a problem on some Solaris systems where the t/pic_16bit
-  test fails apparently due to a bug in that system's pnmtopng.
+
+- VRML output driver does not work for PDL::Graphics::TriD
+
+
+- When you close a TriD graphics window with the frame widget
+  the whole process exits which is annoying if you are running
+  in perldl.  Patches to the exit handler a la test.pl welcome!
+
+
+- There is an depth/overlay artifact with axis labels on at least
+  on Mac OS system where the 3D plots are fine but the text for
+  the labels appear on top of everything---as if it were in an
+  overlay mode.  We're looking for folks with the problem to help
+  with diagnosis and fix.  RSVP to the perldl mailing list.
+
+
+- The default TriD build settings for PDL are WITH_3D => undef,
+  and USE_POGL => 1 which implies an install of OpenGL. On x86
+  windows systems, an install of a 64bit FreeGLUT library is
+  required and you'll need to install that by hand since OpenGL-0.60
+  does not include the required library.  Setting USE_POGL => 0
+  or undef should allow PDL-2.4.5 to be built/installed but you
+  will probably not have TriD graphics until the FreeGLUT DLL
+  issue is resolved.  See win32/ directory READMEs for more info.
+
+
+- FFTW 3.2.2 is the current release version of the FFTW library
+  but is not yet supported by PDL::FFTW.  You may install version
+  2.1.5 of FFTW which is supported, fall back to using the PDL's
+  built-in fft routines (PDL::FFT), or submit a patch to update
+  PDL::FFTW to the version 3 API. 
+
+
+- Various make problems with build:
+
+  - Using parallel make causes the build to fail so don't use -j # options.
+
+  - Make fails with message like
+
+      "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
+
+      If you have this error, please contact the PDL developers via the perldl
+      mailing list and help us track this one down.  Thanks!
+
+
+- Extremely verbose but not particularly helpful text output
+  from configure, built, test process.
+
 
 - Lvalue subroutine errors have been reported for perl 5.6.2
   installation on a linux 2.4 kernel system.  Perl versions 5.8
   and above are *really* recommended.
 
-- PDL::Graphics::TriD is in the process of being refactored.
-  Only minor fixes have occurred since PDL-2.4.3.  Please check
-  for releases of PDL::Graphics::OpenGL::Perl for the new implementation.
 
-- The following SourceForge bugs are outstanding at time of the 2.4.4
-  point release:
+- PDL::IO::Dumper has test failures on some systems that appear
+  to result from an incorrectly detected/use flavor of uuencode
+  or uudecode.  Installing Convert::UU should resolve the problem.
 
+
+- PDL configuration failures have come about because needed temp
+  files can not be created.  This appears to be a result of platform
+  misconfiguration of TEMPDIR and not PDL per se.
+
+
+- 16bit image file IO fails in t/pic_16bit.t apparently due to
+  an older version of NetPBM which does not support the raw 16bit
+  formats.  If this test fails, try upgrading your NetPBM library.
+
+
+- Documentation for the various convolution routines are unclear.
+  The implementation assumes that the kernel argument is flipped
+  and then calculates the correlation of that with the image.  This
+  makes no difference for symmetric kernels but can give unexpected
+  results with non-symmetric ones or if you are trying to do your
+  own correlation.
+
+
+- fftconvolve does not give the same results as the brute force
+  summation calculation, see discussion for SF bug # 2630369.
+
+
+- The following SourceForge bugs are outstanding at time of the
+  PDL-2.4.5 release:
+
+  2630369    PDL::FFT::fftconvolve - bad scaling?  
+  2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
+  2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1994442    imagrgb problems
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
-  1476324    How to force a completely clean installation
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
   1059020    Problem with FFTW version 3.0.1
 
+
 For more information on these and other PDL issues, and for
 submissions of patches (bug patches are always welcome!), 
-see the PDL mailing lists at http://pdl.perl.org/support.html
+see the PDL mailing lists. Links to archive list discussions
+and how to register for the mailing lists can be found at
+http://pdl.sourceforge.net/maillists/ .

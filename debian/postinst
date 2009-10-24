@@ -19,8 +19,8 @@ set -e
 
 case "$1" in
     configure)
-      /usr/bin/perl /usr/lib/perl5/PDL/Doc/scantree.pl >/dev/null 2>&1
-      /usr/bin/perl /usr/lib/perl5/PDL/Doc/mkhtmldoc.pl >/dev/null 2>&1
+      perl /usr/lib/perl5/PDL/Doc/scantree.pl >/dev/null 2>&1
+      perl /usr/lib/perl5/PDL/Doc/mkhtmldoc.pl >/dev/null 2>&1
       mv /usr/lib/perl5/PDL/HtmlDocs/PDL /usr/share/doc/pdl/html
       rmdir /usr/lib/perl5/PDL/HtmlDocs
 

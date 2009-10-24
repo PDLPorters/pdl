@@ -1,6 +1,6 @@
 # Build the whole PDL distribtuion
 
-use 5.006;      # explicitly require 5.6.x or above
+use 5.006_002;      # explicitly require 5.6.2 or above
 
 $::PP_VERBOSE = 0; # =1 makes PP waffle a lot
 
@@ -107,9 +107,10 @@ sub getpdl_config {
   # Add BAD_VAL tests if CPAN testers
   #
   if ($ENV{AUTOMATED_TESTING} == 1) {
-     print "Automated testing environment: enabling WITH_BADVAL and BADVAL_PER_PDL config options\n";
+     warn "Makefile.PL: Automated testing environment: enabling WITH_BADVAL, BADVAL_PER_PDL, and USE_POGL config options\n";
      $PDL_CONFIG{WITH_BADVAL}    = 1;
      $PDL_CONFIG{BADVAL_PER_PDL} = 1;
+     $PDL_CONFIG{USE_POGL} = 1;
   }
 
   # Save standard values
@@ -391,6 +392,27 @@ unless ( $seen_pdlconf ) {
 getpdl_config($pdl_conf_file);
 $seen_f77conf = check_f77conf($seen_f77conf);
 
+# Add check for POGL if USE_POGL is enabled
+if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
+   eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";
+   if ($@) {
+      if (defined($PDL::Config{USE_POGL})) {
+         warn "Makefile.PL: DEPENDENCY ERROR: USE_POGL requires at least OpenGL version $PDL::Config{POGL_VERSION}!\n";
+         exit 0;
+      } else {
+         warn "Makefile.PL: acceptable OpenGL not found, setting \$PDL::Config{USE_POGL} => 0\n";
+         $PDL::Config{USE_POGL} = 0;
+      }
+   } else {
+      # Have OpenGL so set USE_POGL option if needed
+      warn "Makefile.PL: Found required OpenGL version, setting USE_POGL => 1\n" unless defined($PDL::Config{USE_POGL});
+      $PDL::Config{USE_POGL} ||= 1;
+   }
+} else {
+   warn "Makefile.PL: Have \$PDL::Config{USE_POGL} => 0 so skipping TriD build with POGL\n";
+   warn "Makefile.PL: Legacy TriD build still possible if WITH_3D is set or available...\n";
+}
+
 make_Version_pm();
 
 make_badval_dependencies();
@@ -409,10 +431,14 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 
 @prereq = (
 	   'Astro::FITS::Header' => 0,
+           'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
 	   'File::Spec'          => 0.6,
-	   'Filter::Util::Call'  => 0, # for PDL::NiceSlice
-	   'Text::Balanced'      => 0, # for PDL::NiceSlice
+	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Inline'              => 0.43,
+           # 'OpenGL'              => 0.58004,   # for PDL::Graphics::TriD
+           'OpenGL'              => $PDL::Config{POGL_VERSION},
+           'Storable'            => 1.03,      # for PDL::IO::Storable
+	   'Text::Balanced'      => 0,         # for PDL::NiceSlice
 	  );
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
@@ -531,7 +557,16 @@ doc_perl_install ::
   }
     
 
-$text .=
+$text .= $^O !~ /MSWin32/i ?
+"
+perldl.pod : perldl subdirs
+\tPERL5OPT='' podselect perldl > perldl.pod
+
+pdldoc.pod : pdldoc subdirs
+\tPERL5OPT='' podselect pdldoc > pdldoc.pod
+
+"
+:
 "
 perldl.pod : perldl subdirs
 \tpodselect perldl > perldl.pod
@@ -585,7 +620,7 @@ return $text
 sub MY::processPL {
     ### This fix seems necessary with current versions of MM - otherwise it creates circular
     ### dependencies to "pm_to_blib" for .PL files (!) -- CED 9-July-2008
-    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    if(1) { ##  || $^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
 	my($self) = shift;
 	return "" unless $self->{PL_FILES};
 	my(@m, $plfile);
@@ -594,7 +629,7 @@ sub MY::processPL {
                          ?  $self->{PL_FILES}->{$plfile}
 	                 : [$self->{PL_FILES}->{$plfile}];
 	    my $target;
-	    if($Config{make} eq 'dmake') {
+	    if($Config{make} =~ /\bdmake/i) {
 		foreach $target (@$list) {
 		    push @m, "
 all :: $target

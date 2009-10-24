@@ -1,9 +1,0 @@
-ELLINT.xs
-.cvsignore
-Makefile
-ELLINT.bs
-ELLINT.c
-.cvsignore.old
-ELLINT.pm
-pm_to_blib
-

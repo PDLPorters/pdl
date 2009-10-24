@@ -16,7 +16,7 @@ BEGIN
     eval( " use PDL::IO::HDF; " );
     if( $@ )
     {
-        plan skip_all => "PDL::IO::HDF requires the HDF module.";
+        plan skip_all => "PDL::IO::HDF module not available.";
     }  
     else
     {

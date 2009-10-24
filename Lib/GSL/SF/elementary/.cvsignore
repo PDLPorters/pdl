@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-ELEMENTARY.xs
-ELEMENTARY.c
-pm_to_blib
-ELEMENTARY.pm
-.cvsignore.old
-ELEMENTARY.bs
-

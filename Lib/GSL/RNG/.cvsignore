@@ -1,9 +1,0 @@
-RNG.c
-.cvsignore
-Makefile
-RNG.pm
-.cvsignore.old
-RNG.xs
-RNG.bs
-pm_to_blib
-

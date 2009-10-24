@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-COULOMB.xs
-COULOMB.pm
-COULOMB.bs
-pm_to_blib
-.cvsignore.old
-COULOMB.c
-

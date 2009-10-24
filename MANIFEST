@@ -1,3 +1,4 @@
+3dtest.pl
 Basic/AutoLoader.pm
 Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
@@ -124,6 +125,7 @@ Basic/Ufunc/Makefile.PL
 Basic/Ufunc/ufunc.pd
 BUGS
 Changes
+Changes_CVS
 COPYING
 cygwin/drivers.list
 cygwin/g77_gcc.conf
@@ -147,7 +149,6 @@ debian/pdl.remove
 debian/perldl.conf
 debian/postinst
 debian/postrm
-debian/preinst
 debian/prerm
 debian/README.Debian
 debian/rules
@@ -299,6 +300,12 @@ Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/README
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
+Graphics/TriD/POGL/ignore.txt
+Graphics/TriD/POGL/Makefile.PL
+Graphics/TriD/POGL/MANIFEST
+Graphics/TriD/POGL/OpenGL.pm
+Graphics/TriD/POGL/README
+Graphics/TriD/POGL/t/00-load.t
 Graphics/TriD/README
 Graphics/TriD/Rout/Makefile.PL
 Graphics/TriD/Rout/rout.pd
@@ -640,6 +647,7 @@ Lib/Transform/Proj4/Proj4.pd
 Lib/Transform/Proj4/README
 Lib/Transform/Proj4/TODO
 Lib/Transform/transform.pd
+line3d.pl
 m51.fits
 Makefile.PL
 MANIFEST			This list of files
@@ -768,9 +776,5 @@ TestTools/Mem/foobar
 TestTools/Mem/tmem.pl
 TODO
 win32/INSTALL
-win32/install.ppm
-win32/makeppm.pl
-win32/PDL.ppd
-win32/Readme
 win32/win32f77.pl
 META.yml                                 Module meta-data (added by MakeMaker)

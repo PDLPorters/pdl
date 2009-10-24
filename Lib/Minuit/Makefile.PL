@@ -82,7 +82,7 @@ if (defined($PDL::Config{MINUIT_LIB})){
 }
 else{
     # Otherwise, we need to build the Minuit library as well
-    print "Stand alone Minuit library wull be built...\n";
+    print "Stand alone Minuit library will be built...\n";
      @minuitfiles = ("futils", "minuit", "intracfalse");
  }
    

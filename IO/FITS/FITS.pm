@@ -1885,11 +1885,11 @@ sub _prep_table {
 
 	$internaltype[$i] = 'P';
 
-	my $dims = pdl($var->dims); 
-	$dims->(0) .= 1;
-	$rpt = $dims->prod;
-	
 	my $t;
+
+	my $dims = pdl($var->dims); 
+	($t = $dims->(0)) .= 1;
+	$rpt = $dims->prod;
 
 =begin WHENCOMPLEXVALUESWORK
 	

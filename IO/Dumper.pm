@@ -118,7 +118,7 @@ BEGIN{
   use PDL;
   use PDL::Exporter;
   use PDL::Config;
-  use Data::Dumper;
+  use Data::Dumper 2.121;
   use Carp;
   use IO::File;
 }

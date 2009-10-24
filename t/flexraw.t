@@ -545,36 +545,42 @@ foreach (@req) {
 }
 ok( $ok );
 
-my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
-$compress = 'gzip' if $^O eq 'cygwin';                   # fix bogus compress script prob
+SKIP: {
+   my $compress = inpath('compress') ? 'compress' : 'gzip'; # some linuxes don't have compress
+   $compress = 'gzip' if $^O eq 'cygwin';                   # fix bogus compress script prob
+
+   if ( $^O eq 'MSWin32' ) {    # fix for ASPerl + MinGW, needs to be more general
+      skip "No compress or gzip command on MSWin32", 1 unless inpath($compress) and $^O;
+   }
 
 # Try compressed data
-$ok = 1;
-system "$compress -c $data > ${data}.Z";
-unlink( $data );
-@a = readflex($data);
-$ok &&= $#a==6;
-@a = readflex("${data}.Z");
-$ok &&= $#a==6;
-system "gunzip -q ${data}.Z";
-system "gzip -q $data";
-@a = readflex($data);
-$ok &&= $#a==6;
-@a = readflex("${data}.gz");
-$ok &&= $#a==6;
-shift @a;
-unlink "${data}.gz", $hdr;
-$d = double pdl (4*atan2(1,1));
-$f = float ($d);
-$l = long (10**$f);
-$i = short ($l);
-$a = byte (32);
-@req = ($a,$i,$l,$f,$d);
-foreach (@req) {
-    my $h = shift @a;
-    $ok &&= tapprox($_,$h);
+   $ok = 1;
+   system "$compress -c $data > ${data}.Z";
+   unlink( $data );
+   @a = readflex($data);
+   $ok &&= $#a==6;
+   @a = readflex("${data}.Z");
+   $ok &&= $#a==6;
+   system "gunzip -q ${data}.Z";
+   system "gzip -q $data";
+   @a = readflex($data);
+   $ok &&= $#a==6;
+   @a = readflex("${data}.gz");
+   $ok &&= $#a==6;
+   shift @a;
+   unlink "${data}.gz", $hdr;
+   $d = double pdl (4*atan2(1,1));
+   $f = float ($d);
+   $l = long (10**$f);
+   $i = short ($l);
+   $a = byte (32);
+   @req = ($a,$i,$l,$f,$d);
+   foreach (@req) {
+      my $h = shift @a;
+      $ok &&= tapprox($_,$h);
+   }
+   ok( $ok );
 }
-ok( $ok );
 
 # Try writing data
 my $flexhdr = writeflex($data,@req);

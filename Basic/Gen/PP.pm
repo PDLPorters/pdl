@@ -1207,9 +1207,14 @@ sub typemap {
   my ($typemap, $mode, $junk, $current, %input_expr,
       %proto_letter, %output_expr, %type_kind);
 
-  # A slightly edited version of the search path in xsubpp with a $installprivlib/ExtUtils
-  # directory prepended. 
-  my $_rootdir=$Config{installprivlib}."/ExtUtils/";
+  # according to MM_Unix 'privlibexp' is the right directory
+  #     seems to work even on OS X (where installprivlib breaks things)
+  # if this does not work portably we should split out the typemap finding code
+  # and make it as complex as necessary + save the typemap location
+  # in the PDL::Config hash
+  my $_rootdir = $Config{privlibexp}.'/ExtUtils/';
+#  print "_rootdir set to '$_rootdir'\n";
+
   # First the system typemaps..
   my @tm = ($_rootdir.'../../../../lib/ExtUtils/typemap',
 	    $_rootdir.'../../../lib/ExtUtils/typemap',
@@ -1224,11 +1229,13 @@ sub typemap {
   # Note that the OUTPUT typemap is unlikely to be of use here, but I have kept
   # the source code from xsubpp for tidiness.
   push @tm, 'typemap';
+  my $foundtm = 0;
   foreach $typemap (@tm) {
     next unless -f $typemap ;
     # skip directories, binary files etc.
     warn("Warning: ignoring non-text typemap file '$typemap'\n"), next
       unless -T $typemap ;
+    $foundtm = 1;
     open(TYPEMAP, $typemap)
       or warn ("Warning: could not open typemap file '$typemap': $!\n"), next;
     $mode = 'Typemap';
@@ -1272,6 +1279,8 @@ sub typemap {
       }
     close(TYPEMAP);
   }
+  carp "**CRITICAL** PP found no typemap in $_rootdir/typemap; this will cause problems..."
+      unless $foundtm;
 
   #
   # Do checks...

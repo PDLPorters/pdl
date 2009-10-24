@@ -1,9 +1,0 @@
-.cvsignore
-.cvsignore.old
-pm_to_blib
-Makefile
-Complex.xs
-Complex.c
-Complex.bs
-Complex.pm
-

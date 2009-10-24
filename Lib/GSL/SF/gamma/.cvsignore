@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-GAMMA.xs
-GAMMA.bs
-.cvsignore.old
-GAMMA.pm
-GAMMA.c
-pm_to_blib
-

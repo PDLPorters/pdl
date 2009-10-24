@@ -6,10 +6,9 @@ Abstract: Perl Data Language is an extension to perl for numerics.
  and includes bindings to a lot of external libraries for data 
  processing and representation (plotting). This manual includes
  both introductory documents and a command reference.
-Section: Apps/Math
+Section: Science/Mathematics
 
 Format: HTML
 Index: /usr/share/doc/pdl/html/Index.html
 Files: /usr/share/doc/pdl/html/*.html
 
-  

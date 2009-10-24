@@ -24,7 +24,7 @@ $| = 1;
 
 use PDL::Config;
 if ( $PDL::Config{WITH_BADVAL} ) {
-    plan tests => 78;
+    plan tests => 79;
 } else {
     # reduced testing
     plan tests => 10;
@@ -419,6 +419,11 @@ $a = sequence(10) % 4;
 $a->inplace->setvaltobad( 1 );
 like( PDL::Core::string( $a->clump(-1) ), 
     qr{^\[-?0 BAD 2 3 -?0 BAD 2 3 -?0 BAD]$}, "inplace setvaltobad()" );
+
+# check setvaltobad for non-double piddles
+my $fa = pdl( float,  1..4) / 3;
+my $da = pdl( double, 1..4) / 3;
+ok( all($fa->setvaltobad(2/3)->isbad == $da->setvaltobad(2/3)->isbad), "setvaltobad for float piddle");
 
 # simple test for setnantobad
 # - could have a 1D FITS image containing

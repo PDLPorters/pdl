@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-FFT.bs
-.cvsignore.old
-FFT.pm
-FFT.c
-FFT.xs
-pm_to_blib
-

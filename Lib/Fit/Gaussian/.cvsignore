@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-Gaussian.xs
-Gaussian.c
-Gaussian.bs
-.cvsignore.old
-Gaussian.pm
-pm_to_blib
-

@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-ImageRGB.xs
-ImageRGB.c
-ImageRGB.pm
-pm_to_blib
-.cvsignore.old
-ImageRGB.bs
-

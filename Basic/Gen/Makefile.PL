@@ -24,12 +24,18 @@ sub MY::postamble {
 '	mv PP/Dump.pm.tmp PP/Dump.pm')."\n";
 
   if ( $] >= 5.006 ) {
-    $text .= << 'EOT';
+     $text .= $^O !~ /MSWin32/i ? "
 
 pptemplate.pod: pptemplate
-	podselect pptemplate > pptemplate.pod
+\tPERL5OPT='' podselect pptemplate > pptemplate.pod
 
-EOT
+"
+: "
+
+pptemplate.pod: pptemplate
+\tpodselect pptemplate > pptemplate.pod
+
+"
   }
   $text;
 }
@@ -37,7 +43,7 @@ EOT
 #EU::MM's processPL() is continually broken on Win32 ... hence:
 sub MY::processPL {
     ## Fix appears to be necessary on all MM platforms now, to avoid circular references :-( -- CED 9-July-2008
-    if(1) { ## if($^O =~ /MSWin32/i && ($Config{make} eq 'dmake' || $Config{make} eq 'nmake')) {
+    if(1) { ## if($^O =~ /MSWin32/i && ($Config{make} =~ /\bdmake/i || $Config{make} =~ /\bnmake/i)) {
     my($self) = shift;
     return "" unless $self->{PL_FILES};
     my(@m, $plfile);
@@ -46,7 +52,7 @@ sub MY::processPL {
                 ? $self->{PL_FILES}->{$plfile}
                 : [$self->{PL_FILES}->{$plfile}];
         my $target;
-        if($Config{make} eq 'dmake') {
+        if($Config{make} =~ /\bdmake/i) {
           foreach $target (@$list) {
           push @m, "
 all :: $target

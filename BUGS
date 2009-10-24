@@ -1,18 +1,44 @@
 REPORTING BUGS
 --------------
 
-Please submit bug reports via the sourceforge bug
-tracker interface at
+Please submit bug reports via the sourceforge
+bug tracker interface at
 
-   http://sourceforge.net/bugs/?group_id=612
+   http://sourceforge.net/tracker/?group_id=612&atid=100612
 
-You may submit bugs anonymously but if possible
-please provide a way for the developers to contact
-you about the problem.
+If you do not already have a sourceforge.net
+account, you may get one at
+
+   http://sourceforge.net/account/registration/
+
+If possible, please provide a way for the developers
+to contact you about the problem.
 
 Try to include any information you think might
 help the developer isolate, reproduce and fix
-your problem.  Things that are often helpful:
+your problem.
+
+At a *minimum*, include the following information:
+
+    * PDL version number (e.g. PDL-2.4.4)
+
+    * Perl version information
+      (output from "perl -v" or "perl -V", even better!)
+
+    * Operating System
+      (run the "uname -a" command on many unix systems)
+
+    * If you are reporting a bug with an installed PDL,
+      please include the full output of "perldl -V"
+
+      If the PDL has compiled and built but not been
+      installed, you may run "perl -Mblib perldl -V"
+      from the top level of the PDL build directory.
+
+    * The bug description and how to reproduce it.
+      Short examples using the perldl shell are excellent!
+
+Other things that are often helpful:
 
     * Details about your operating environment
       that might be related to the problem
@@ -25,38 +51,14 @@ your problem.  Things that are often helpful:
     * A patch against the latest released version
       of this distribution which fixes this bug.
 
-At a minimum, include the following information:
-
-    * PDL version number (e.g. PDL-2.4.4)
-
-    * Perl version information
-      (output from "perl -v" or "perl -V", even better!)
-
-    * Operating System
-      (run the "uname -a" command on many unix systems)
-
-If you are reporting a bug with an installed PDL,
-please include the full output of
-
-  perldl -V
-
-If the PDL has compiled and built but not installed,
-you may be able to run
-
-  perl -Mblib perldl -V
-
-from the top level of the PDL build directory.
-
-Submit your bug report to the bug database 
 
 Alternatively, send an e-mail report with the above
 information (including the output of 'perldl -V')
 to pdl-porters@jach.hawaii.edu . See
 
-   http://pdl.perl.org/maillists
+   http://pdl.sourceforge.net/maillists/
 
-for info on how to subscribe to this list
-if necessary.
+for info on how to subscribe to this list.
 
 
 
@@ -70,7 +72,7 @@ check the FAQ (http://pdl/sourceforge.net/FAQ) and
 the mailing list archives for hints. You can find
 links to the searchable archives at
 
-   http://pdl.perl.org/maillists
+   http://pdl.sourceforge.net/maillists/
 
 
 
@@ -81,15 +83,14 @@ Patches can be sent to the pdl-porters mailing list
 (see above) or can be directly submitted to the
 patch manager
 
-   http://sourceforge.net/patch/?group_id=612
+   http://sourceforge.net/tracker/?atid=300612&group_id=612
 
 Patches should be made against the latest released
-PDL or, ideally, against the current CVS sources
+PDL or, ideally, against the current git sources
 which you can browse and check out at
 
-  http://sourceforge.net/cvs/?group_id=612
+   git://pdl.git.sourceforge.net/gitroot/pdl
 
 
 Thanks,
 The pdl-porters team.
-

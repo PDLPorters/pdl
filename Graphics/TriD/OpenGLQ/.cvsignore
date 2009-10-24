@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-OpenGLQ.xs
-OpenGLQ.bs
-.cvsignore.old
-OpenGLQ.c
-OpenGLQ.pm
-pm_to_blib
-

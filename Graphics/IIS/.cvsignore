@@ -1,9 +1,0 @@
-.cvsignore
-Makefile
-IIS.xs
-IIS.c
-IIS.pm
-pm_to_blib
-.cvsignore.old
-IIS.bs
-

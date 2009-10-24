@@ -336,7 +336,7 @@ sub flushgeneric {  # Construct the generic code switch
 sub postamble {
 
   if ($^O =~ /win32/i) {
-    open FI,'>./getdev.pl' or die "couldn't open getdev.pl";
+    open FI,'>./getdev.pl' or die "couldn't open getdev.pl: $!";
     my $location = whereami_any();
     print FI << "EOD";
 
@@ -457,7 +457,7 @@ my $libsarg = $libs || $malloclib ? "$libs $malloclib " : ''; # for Win32
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
 	 'INC'          => &PDL_INCLUDE()." $inc $mallocinc",
-	 'LIBS'         => [$libsarg],
+	 'LIBS'         => $libsarg ? [$libsarg] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
@@ -473,7 +473,7 @@ sub pdlpp_stdargs {
 	 PM 	=> {"$pref.pm" => "\$(INST_LIBDIR)/$pref.pm"},
 	 MAN3PODS => {"$pref.pm" => "\$(INST_MAN3DIR)/$mod.\$(MAN3EXT)"},
 	 'INC'          => &PDL_INST_INCLUDE()." $inc",
-	 'LIBS'         => ["$libs "],
+	 'LIBS'         => $libs ? ["$libs "] : [],
 	 'clean'        => {'FILES'  => "$pref.xs $pref.pm $pref\$(OBJ_EXT) $pref.c"},
  );
 }
@@ -594,7 +594,9 @@ by MakeMaker should be performed as needed (see options and example).
 compilation flags. For example, something like C<-I/usr/local/lib>.
 Optional argument. Empty if omitted.
 
-=item OPTIONS
+=item *
+
+OPTIONS
 
 =over
 
@@ -663,7 +665,7 @@ sub trylink {
     }
 
   my ($tc,$te) = map {&$cfile($tempd,"testfile$_")} ('.c','');
-  open FILE,">$tc" or die "couldn't open testfile `$tc' for writing";
+  open FILE,">$tc" or die "trylink: couldn't open testfile `$tc' for writing, $!";
   my $prog = <<"EOF";
 $inc
 

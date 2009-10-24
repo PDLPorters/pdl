@@ -1,5 +1,5 @@
 # Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Wed 10 Sep 2008 10:49:35 PM
+# Last saved: Fri 15 May 2009 09:40:50 AM 
 #
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
@@ -18,7 +18,7 @@ BEGIN {
       plan tests => 5;
       if($^O =~ /MSWin32/i) {
          $test_pnmtopng = `pnmtopng --help 2>&1`;
-         $test_pnmtopng = $test_pnmtopng =~ /is not recognized as an internal or external command/ ? 0 : 1;
+         $test_pnmtopng = $test_pnmtopng =~ /^pnmtopng:/ ? 1 : 0;
       } elsif ( !defined( scalar( qx(pnmtopng --help 2>&1) ) ) ) {
          $test_pnmtopng = 0;
       } 
@@ -27,6 +27,8 @@ BEGIN {
    }
    use_ok('PDL::IO::Pic');
 };
+
+$PDL::IO::Pic::debug=20;
 
 # test save/restore of 8-bit image
 my $a = sequence(16, 16);

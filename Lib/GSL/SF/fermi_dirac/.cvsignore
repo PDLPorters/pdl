@@ -1,9 +1,0 @@
-FERMI_DIRAC.c
-.cvsignore
-Makefile
-FERMI_DIRAC.pm
-.cvsignore.old
-FERMI_DIRAC.xs
-FERMI_DIRAC.bs
-pm_to_blib
-
