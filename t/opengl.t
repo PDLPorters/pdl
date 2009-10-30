@@ -34,7 +34,7 @@ BEGIN {
          # only if GL modules have actually been built
          && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
          plan tests => 3; 
-         use_ok('use PDL::Graphics::OpenGL');
+         use_ok('PDL::Graphics::OpenGL');
       }else{
          plan skip_all => ( hasDISPLAY()
 		 ? "ok 1 # Skipped: OpenGL support not compiled\n"
