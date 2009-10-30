@@ -107,10 +107,8 @@ sub getpdl_config {
   # Add BAD_VAL tests if CPAN testers
   #
   if ($ENV{AUTOMATED_TESTING} == 1) {
-     warn "Makefile.PL: Automated testing environment: enabling WITH_BADVAL, BADVAL_PER_PDL, and USE_POGL config options\n";
-     $PDL_CONFIG{WITH_BADVAL}    = 1;
-     $PDL_CONFIG{BADVAL_PER_PDL} = 1;
-     $PDL_CONFIG{USE_POGL} = 1;
+     # warn "Makefile.PL: Automated testing environment: enabling USE_POGL config option\n";
+     # $PDL_CONFIG{USE_POGL} = 1;
   }
 
   # Save standard values
