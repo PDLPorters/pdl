@@ -71,7 +71,6 @@ install: build test
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Func.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Func.3pm ; rm old.3pm
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Complex.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Complex.3pm ; rm old.3pm
 	cd debian/pdl; while read f ; do rm -f "$$f" ; done < ../pdl.remove
-	install -m 644 debian/pdl.lintian-overrides $(CURDIR)/debian/pdl/usr/share/lintian/overrides/pdl
 
 
 # Build architecture-independent files here.
@@ -87,6 +86,7 @@ binary-arch: build install
 	dh_installexamples
 	dh_install
 	dh_installmenu
+	dh_lintian
 #	dh_installdebconf	
 #	dh_installlogrotate
 #	dh_installemacsen
