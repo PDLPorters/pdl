@@ -9,6 +9,6 @@ Abstract: Perl Data Language is an extension to perl for numerics.
 Section: Science/Mathematics
 
 Format: HTML
-Index: /usr/share/doc/pdl/html/Index.html
-Files: /usr/share/doc/pdl/html/*.html
+Index: /var/lib/pdl/html/Index.html
+Files: /var/lib/pdl/html/*.html
 
