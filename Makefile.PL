@@ -476,7 +476,7 @@ if($Config{archname}=~m/x86_64/) {
 		  'FILES' => $cleanup .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
 		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
-                      '_Inline/'
+                      '_Inline/ .inlinepdlpp/'
 		      },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
 	      ($] ge '5.005') ? (
