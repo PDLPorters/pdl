@@ -21,7 +21,7 @@ else
 endif
 
 configure: configure-stamp
-configure-stamp: patch
+configure-stamp: patch-stamp
 	dh_testdir
 	# Add here commands to configure the package
 	perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
