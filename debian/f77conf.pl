@@ -17,7 +17,7 @@ sub runtime {
   my $libpath = `gfortran -print-libgcc-file-name`;
   $libpath =~ s/libgcc[.]a$//;
   chomp $libpath;
-  "-L$libpath -L/usr/lib -lgcc";
+  "-L$libpath -L/usr/lib -lgcc -lgfortran";
 }
 
 sub trail_ {
