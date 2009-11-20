@@ -1,3 +1,33 @@
+Release notes for PDL 2.4.5_004 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * Make Perl OpenGL 0.61 the minimum version
+    OpenGL-0.61 has a needed fix to some FreeGLUT parameters that
+    are required for correct event loop exit handling.
+
+  * Fix bug with _have_freeglut check
+    The new() method was using $OpenGL::_have_freeglut to test
+    rather than the correct OpenGL::_have_freeglut().
+
+  * Multiple fixes supporting Debian package for PDL-2.4.5
+
+  * Fix OpenGLQ/Makefile.PL use/require problem
+    Had require but with use statement syntax.
+
+  * Fix some TriD OpenGL config and test bugs
+    This should help with CPAN automated testers.
+
+  * Removed automated testing USE_POGL=>1 setting
+    This and the hardwired 1 in the perldl.conf may have been
+    the origin of a lack of CPAN automated testers reports.
+
+  * Fix perldl.conf to set USE_POGL => undef
+
+
+
 Release notes for PDL 2.4.5 ------------------------------
 
 Highlights:
