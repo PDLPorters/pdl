@@ -25,8 +25,13 @@ the copyright notice should be included in the file.
 EOD
 
 pp_addhdr('
+#ifdef HAVE_AGL_GLUT
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
 #include <GL/gl.h>
 #include <GL/glu.h>
+#endif
 /* #include <GL/glx.h> */
 
 /* #include "../OpenGL/OpenGL.m" */
