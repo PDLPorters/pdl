@@ -73,7 +73,7 @@ PDL::Transform::Proj
 					detected.
 
 PDL::Graphics::TriD
-                Requires Perl OpenGL-0.59 module and FreeGLUT (Apple GLUT on Mac OS X)
+                Requires Perl OpenGL-0.61 module and FreeGLUT (Apple GLUT on Mac OS X)
 
                 Also requires the OpenGL graphics libraries be installed, although
 		the Perl OpenGL module should check for that.  For a free software
