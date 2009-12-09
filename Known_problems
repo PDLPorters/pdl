@@ -91,6 +91,9 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.5 release:
 
+  2901814    Arrow keys don't work in perldl on win32 console
+  2901810    Ctrl-C kills perldl in win32 console
+  2901170    many warnings w TriD and perl -w
   2630369    PDL::FFT::fftconvolve - bad scaling?  
   2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
   2339818    need lib64 searches in Graphics::TriD  
