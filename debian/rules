@@ -21,7 +21,7 @@ else
 endif
 
 configure: configure-stamp
-configure-stamp: patch
+configure-stamp: patch-stamp
 	dh_testdir
 	# Add here commands to configure the package
 	perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
@@ -41,7 +41,7 @@ build-stamp: configure-stamp
 test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
-	-$(MAKE) DISPLAY="" test
+	-$(MAKE) TEST_VERBOSE=1 DISPLAY="" test
 	touch test-stamp
 
 clean: clean-patched unpatch
@@ -62,7 +62,7 @@ clean-patched:
 install: build test
 	dh_testdir
 	dh_testroot
-	dh_clean -k 
+	dh_prep
 	dh_installdirs
 
 	# Add here commands to install the package into debian/pdl.
@@ -71,7 +71,6 @@ install: build test
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Func.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Func.3pm ; rm old.3pm
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Complex.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Complex.3pm ; rm old.3pm
 	cd debian/pdl; while read f ; do rm -f "$$f" ; done < ../pdl.remove
-	install -m 644 debian/pdl.lintian-overrides $(CURDIR)/debian/pdl/usr/share/lintian/overrides/pdl
 
 
 # Build architecture-independent files here.
@@ -87,6 +86,7 @@ binary-arch: build install
 	dh_installexamples
 	dh_install
 	dh_installmenu
+	dh_lintian
 #	dh_installdebconf	
 #	dh_installlogrotate
 #	dh_installemacsen

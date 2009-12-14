@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Sat 03 Oct 2009 12:08:54 PM
+Last saved: Mon 19 Oct 2009 10:57:14 AM 
 
 =================================================================
                             Overview
@@ -34,7 +34,7 @@ external dependencies:
  PDL::FFTW
   (Builds if FFTW version 2 has been hand built and installed,
    cygwin only comes with FFTW version 3.  The PDL interface
-   is to be updated to v3 support following PDL 2.4.5 release)
+   is to be updated to v3 support following the PDL 2.4.5 release)
 
  PDL::Graphics::PGPLOT
   (Builds if pgplot library has been hand built and installed)
@@ -62,6 +62,9 @@ external dependencies:
  PDL::Slatec
   (Builds if ExtUtils::F77 has been installed)
 
+ PDL::IO::Browser
+  (Build may pass if enabled, disabled by default for all OSes)
+
 
 
 =================================================================
@@ -74,9 +77,6 @@ for cygwin:
   
  PDL::Graphics::Karma   (Karma has not been ported to cygwin)
   
- PDL::IO::Browser       (Build will fail if enabled, disabled
-                         by default for all OSes)
-
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
  PDL::IO::NDF           (NDF has not been ported to cygwin)

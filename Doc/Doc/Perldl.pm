@@ -334,9 +334,6 @@ sub find_autodoc {
 }
 
 
-
-=cut
-
 =head2 usage
 
 =for ref

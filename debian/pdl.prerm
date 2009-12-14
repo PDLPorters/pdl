@@ -24,8 +24,8 @@ set -e
 
 case "$1" in
     remove|upgrade|deconfigure)
-	rm -rf /usr/share/doc/pdl/html
-	rm -f  /usr/lib/perl5/PDL/pdldoc.db /usr/lib/perl5/PDL/Index.pod
+	rm -rf /var/lib/pdl/html
+	rm -f  /var/lib/pdl/pdldoc.db /var/lib/pdl/Index.pod
         ;;
     failed-upgrade)
         ;;

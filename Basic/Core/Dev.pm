@@ -594,7 +594,9 @@ by MakeMaker should be performed as needed (see options and example).
 compilation flags. For example, something like C<-I/usr/local/lib>.
 Optional argument. Empty if omitted.
 
-=item OPTIONS
+=item *
+
+OPTIONS
 
 =over
 

@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.351';
+$VERSION = '1.352';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -363,6 +363,7 @@ if ($PDL_OK) {
       print "Loaded PDL v$PDL::Version::VERSION\n";
    }else{
       warn "WARNING: PDL startup not found only plain perl available\n";
+      $PERLDL::PROMPT = 'perl> ';  # so there is visual indication of no PDL
 
       eval << 'EOD'; # Fallback eval routine - proper one defined in PDL::Core
 

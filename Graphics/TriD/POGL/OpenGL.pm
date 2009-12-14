@@ -87,8 +87,6 @@ interface and build environment matures
 
 =cut
 
-#OpenGL::glpSetDebug(1);
-
 *glpOpenWindow = \&OpenGL::glpOpenWindow;
 
 *glpcOpenWindow = \&OpenGL::glpcOpenWindow;
@@ -102,7 +100,7 @@ package PDL::Graphics::OpenGL::OO;
 use PDL::Graphics::TriD::Window qw();
 use PDL::Options;
 use strict;
-my $debug = 1;
+my $debug = 0;
 my (@fakeXEvents) = ();
 my (@winObjects) = ();
 #
@@ -178,7 +176,7 @@ sub new {
       OpenGL::glutMotionFunc( \&_pdl_fake_MotionNotify );
       OpenGL::glutDisplayFunc( \&_pdl_display_wrapper );
 
-      OpenGL::glutSetOption(OpenGL::GLUT_ACTION_ON_WINDOW_CLOSE, OpenGL::GLUT_ACTION_GLUTMAINLOOP_RETURNS) if $OpenGL::_have_freeglut;
+      OpenGL::glutSetOption(OpenGL::GLUT_ACTION_ON_WINDOW_CLOSE, OpenGL::GLUT_ACTION_GLUTMAINLOOP_RETURNS) if OpenGL::_have_freeglut();
 
       OpenGL::glutMainLoopEvent();       # pump event loop so window appears
    }

@@ -1,5 +1,6 @@
+
 use PDL;
-use Test;
+use Test::More;
         
 BEGIN{
   eval " use PDL::Minuit; ";
@@ -7,8 +8,8 @@ BEGIN{
     plan tests => 5;
   }
   else {
-    plan tests => 1;
-    print "ok 1 # Skipped: PDL::Minuit not installed\n";
+    print "$@\n";
+    plan skip_all => 'PDL::Minuit not available';
     exit;
   }
 }

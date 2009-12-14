@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Sat 03 Oct 2009 12:10:44 PM
+Last saved: Mon 19 Oct 2009 10:55:20 AM 
 
 =================================================================
                  Installing with CPAN on Cygwin
@@ -256,46 +256,6 @@ PDL::Graphics::PGPLOT.
 NOTE: if problems see rebaseall below.
 
 
-=================================================================
-                             PLplot
-=================================================================
-Now download, build, and install the PLplot library. The LASi
-library is a new dependency for plplot which may be either
-installed as below or the appropriate option to disable its
-build can be used for ./configure.
-
-  $ wget http://www.unifont.org/lasi/download/lasi-1.0.5.tar.gz
-  $ tar xzf lasi-1.0.5.tar.gz 
-  $ cd lasi-1.0.5
-  $ ./configure
-  $ make
-  $ make check
-  $ make install
-
-Now LASi library is in /usr/local default locations. Now
-download and build plplot:
-
-  $ wget http://superb-east.dl.sourceforge.net/sourceforge/plplot/plplot-5.6.1.tar.gz
-  $ tar xzf plplot-5.6.1.tar.gz 
-  $ ./configure --prefix=/usr/local/plplot --disable-tcl --without-qhull --disable-cgm \
-                --disable-dyndrivers --disable-octave --disable-gcw 
-  $ make
-  $ make check
-  $ make install
-
-NOTES:
-
-  (1) be sure to add /usr/local/plplot/bin to your path!
-
-  (2) I had some font artifacts that have not been resolved
-      Your mileage may vary...
-
-
-Now you should be able to build PDL and have it pick up the
-plplot install. WARNING: If t/plplot.t fails with no messages,
-the problem may be DLL address conflicts. If so, you'll need to
-run rebaseall per the instructions below.
-
 
 =================================================================
                             REBASEALL
@@ -335,6 +295,14 @@ need to run rebaseall:
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
 or all tests (make test).
+
+
+
+=================================================================
+                             PLplot
+=================================================================
+TBD
+
 
 
 =================================================================

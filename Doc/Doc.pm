@@ -688,8 +688,9 @@ sub scantree {
   my $sub = sub { if (($File::Find::name =~ /[.]pm$/ &&
 		      $File::Find::name !~ /PP.pm/ &&
 		      $File::Find::name !~ m|Pod/Parser.pm| &&
-		      $File::Find::dir !~ m#/PP|/Gen#) or
-		       $File::Find::name =~ /[.]pod$/){
+		      $File::Find::dir !~ m#/PP|/Gen#) or (
+		       $File::Find::name =~ /[.]pod$/ && 
+                       $File::Find::name !~ /Index[.]pod$/)){
        printf "%-20s", $_.'...';
        my $n = $this->scan($File::Find::name,$verbose); # bind $this lexically
        print "\t$n functions\n";

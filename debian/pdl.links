@@ -1,0 +1,3 @@
+/var/lib/pdl/Index.pod /usr/lib/perl5/PDL/Index.pod
+/var/lib/pdl/pdldoc.db /usr/lib/perl5/PDL/pdldoc.db
+/var/lib/pdl/html /usr/share/doc/pdl/html

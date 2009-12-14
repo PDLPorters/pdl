@@ -90,8 +90,13 @@ The mailing list archives can be searched/read at
 	http://mailman.jach.hawaii.edu/pipermail/perldl/
 	http://mailman.jach.hawaii.edu/pipermail/pdl-porters/
 
-If you need to post a problem report, please use the sourceforge.net
-bug tracker system following the guidance in the BUGS file:
+Questions about problems and possible bugs can be discussed
+via the perldl mailing list.  This is very useful if you are
+not sure what you have is a bug or not.
+
+If you need to post a problem report, please use the
+sourceforge.net bug tracker system following the guidance
+in the BUGS file:
 
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
 

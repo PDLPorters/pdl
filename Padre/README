@@ -1,0 +1,7 @@
+Created on: Thu 10 Dec 2009 10:32:58 PM
+Last saved: Thu 10 Dec 2009 10:32:58 PM
+
+This directory contains various development efforts for
+getting PDL to work with Padre starting with migrating
+the existing perldl shell to use Devel::REPL which is
+the basis of Padre::Plugin::REPL.

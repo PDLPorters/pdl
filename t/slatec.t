@@ -1,25 +1,22 @@
 # -*-perl-*-
 use PDL::LiteF;
+use Test::More;
+my $ntests;
 BEGIN {
 	eval " use PDL::Slatec; ";
 	$loaded = ($@ ? 0 : 1);
+	if ($loaded) {
+		$ntests = 40;
+		$ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
+		plan tests => $ntests;
+	} else { 
+		print "$@\n";
+		plan skip_all => 'PDL::Slatec not available';
+	}
 }
 
-# Test counters [should 'use Test' but this was not a standard
-# part of perl until 5.005]
-my $ntests = 40;
-$ntests -= 3 unless ($PDL::Config{WITH_BADVAL}); # two fewer tests if no bad val support
-
-my $n = 0;
 
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
-
-sub ok {
-	$n++; # increment test counter
-	my $result = shift ;
-	print "not " unless $result ;
-	print "ok $n\n" ;
-}
 
 sub tapprox {
 	my($a,$b,$c,$d) = @_;
@@ -27,15 +24,6 @@ sub tapprox {
 	$d = max($c);
 #	print "APR: $a,$b,$c,$d;\n";
 	$d < 0.001;
-}
-
-print "1..$ntests\n";
-unless ($loaded) {
-	#print STDERR "PDL::Slatec not installed. All tests are skipped.\n";
-	for (1..$ntests) {
-                print "ok $_ # Skipped: PDL::Slatec not available.\n";
-	}
-	exit;
 }
 
 my $mat = pdl [1,0.1],[0.1,2];
@@ -283,6 +271,6 @@ my $kord = PDL->null;
 $err = PDL->null;
 echbs( $x, $f, $d, 0, $nknots, $t, $bcoef, $ndim, $kord, $err );
 ok(all($err == 0));
-
+exit(0);
 =cut
 
