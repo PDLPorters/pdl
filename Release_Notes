@@ -1,3 +1,22 @@
+Release notes for PDL 2.4.5_005 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * Fixed conv1d() bug where it was actually calculating the
+    correlation and not the convolution.  For symmetric kernels
+    they are the same.
+
+  * Fix fftconvolve to give the same results as the other
+    convolution algorithms.  The new implementation is
+    probably slower than the previous and definitely uses
+    more temporary memory.  The old routine is preserved
+    as fftconvolve_inplace() if needed.  This was listed
+    as SF bug #2630369.
+
+
+
 Release notes for PDL 2.4.5_004 --------------------------
 
 Highlights:
