@@ -584,7 +584,7 @@ sub PDL::conv1d {
 
 ',              
         Code => '
-           int i,i1,i2,poff;
+           int i,i1,i2,poff,pflip;
            double tmp;
            int reflect = $COMP(reflect); 
            int m_size = $COMP(__m_size); 
@@ -594,6 +594,7 @@ sub PDL::conv1d {
            for(i=0; i<m_size; i++) { 
               tmp = 0; 
                   for(i1=0; i1<p_size; i1++) { 
+                     pflip = p_size - 1 - i1;
                      i2 = i+i1 - poff; 
                      if (reflect && i2<0)
                      	i2 = -i2;
@@ -601,7 +602,7 @@ sub PDL::conv1d {
                      	i2 = m_size-(i2-m_size+1);
 
                      REALMOD(i2,m_size); 
-                     tmp += $a(m=>i2) * $kern(p=>i1);
+                     tmp += $a(m=>i2) * $kern(p=>pflip);
                   }
               $b(m=>i) = tmp;
            }
