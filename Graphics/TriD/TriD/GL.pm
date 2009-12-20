@@ -833,6 +833,11 @@ sub display {
 
   return unless defined($this);
 
+  # set GLUT context to current window (for multiwindow support
+  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
+     glutSetWindow($this->{_GLObject}->{glutwindow});
+  }
+
   print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
