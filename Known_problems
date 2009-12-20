@@ -77,15 +77,12 @@ The following issues have been reported with this version of PDL:
 
 
 - Documentation for the various convolution routines are unclear.
-  The implementation assumes that the kernel argument is flipped
-  and then calculates the correlation of that with the image.  This
-  makes no difference for symmetric kernels but can give unexpected
-  results with non-symmetric ones or if you are trying to do your
-  own correlation.
+  They need to be expanded with the mathematics of what is
+  actually being computed.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.5 release:
+  PDL-2.4.5_005 release:
 
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
