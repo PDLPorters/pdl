@@ -8,16 +8,24 @@ Highlights:
     correlation and not the convolution.  For symmetric kernels
     they are the same.
 
-  * Fix fftconvolve to give the same results as the other
+  * Fixed fftconvolve to give the same results as the other
     convolution algorithms.  The new implementation is
     probably slower than the previous and definitely uses
     more temporary memory.  The old routine is preserved
     as fftconvolve_inplace() if needed.  This was listed
     as SF bug #2630369.
 
-  * Fix SF bug #2524068.  Now use pp_addxs() to define the
-    binding to mnseti() to avoid bug in pp_def() where there
-    are no piddle arguments.
+  * Fixed SF bug #2524068 for PDL::Minuit.  Now use pp_addxs()
+    to define the binding to mnseti() to avoid bug in pp_def()
+    when there are no piddle arguments.
+
+  * TriD graphics windows now have their GLUT window ID in
+    the window title.  This allows for simpler identification
+    and use of multiple TriD graphics windows.
+
+  * Fixed the TriD display() routine to set the current GLUT
+    window before drawing takes place.   Now multiple TriD
+    windows can exist and be drawn to.
 
 
 
