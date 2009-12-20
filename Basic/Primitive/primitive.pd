@@ -542,9 +542,28 @@ pp_def('conv1d',
        Doc => << 'EOD',
 =for ref
 
-1d convolution along first dimension
+1D convolution along first dimension
+
+The m-th element of the discrete convolution of an input piddle
+C<$a> of size C<$M>, and a kernel piddle C<$kern> of size C<$P>, is
+calculated as
+
+                              n = ($P-1)/2
+                              ====
+                              \
+  ($a conv1d $kern)[m]   =     >      $a_ext[m - n] * $kern[n]
+                              /
+                              ====
+                              n = -($P-1)/2
+
+where C<$a_ext> is either the periodic (or reflected) extension of
+C<$a> so it is equal to C<$a> on C< 0..$M-1 > and equal to the
+corresponding periodic/reflected image of C<$a> outside that range.
+
 
 =for example
+
+  $con = conv1d sequence(10), pdl(-1,0,1);
 
   $con = conv1d sequence(10), pdl(-1,0,1), {Boundary => 'reflect'};
 
