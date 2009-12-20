@@ -15,6 +15,10 @@ Highlights:
     as fftconvolve_inplace() if needed.  This was listed
     as SF bug #2630369.
 
+  * Fix SF bug #2524068.  Now use pp_addxs() to define the
+    binding to mnseti() to avoid bug in pp_def() where there
+    are no piddle arguments.
+
 
 
 Release notes for PDL 2.4.5_004 --------------------------

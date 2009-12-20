@@ -84,15 +84,9 @@ The following issues have been reported with this version of PDL:
   own correlation.
 
 
-- fftconvolve does not give the same results as the brute force
-  summation calculation, see discussion for SF bug # 2630369.
-
-
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.5 release:
 
-  2630369    PDL::FFT::fftconvolve - bad scaling?  
-  2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
