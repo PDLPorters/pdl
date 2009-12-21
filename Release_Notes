@@ -1,3 +1,24 @@
+Release notes for PDL 2.4.5_006 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * imag2d() available for viewing images with square pixels.
+
+    REQUIRES: The Perl OpenGL TriD interface and FreeGLUT,
+              legacy X11 TriD is not supported.
+
+    It is implemented in the imag2d.pdl file for autoloading
+    via PDL::AutoLoader.  To use, copy the imag2d.pdl file
+    to somewhare in your PDLLIB path or add the location to
+    your PDLLIB environment variable.
+
+    It works with multiple, simultaneous, image windows
+    and appears to work side-by-side with TriD graphics
+    windows.
+
+
 Release notes for PDL 2.4.5_005 --------------------------
 
 Highlights:

@@ -88,7 +88,7 @@ The following issues have been reported with this version of PDL:
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
-  1994442    imagrgb problems
+  1994442    imagrgb problems  (see new imag2d routine)
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm

@@ -658,6 +658,7 @@ debian/pdl.prerm
 debian/pdl.remove
 debian/perldl.conf
 debian/rules
+imag2d.pdl
 line3d.pl
 m51.fits
 pdl.PL
