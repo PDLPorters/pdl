@@ -1,0 +1,638 @@
+#!/usr/bin/perl
+#
+# Created on: Fri 22 Aug 2008 01:48:57 PM 
+# Last saved: Mon 21 Dec 2009 12:53:15 PM
+#
+# This implements a simple 2D image display capability along
+# the lines of the one in the Gandalf image processing and
+# computer vision library.  Configured to autoload for PDL.
+
+use strict;
+
+my $debug = 0;
+
+use PDL::Lite;
+
+#------------------------------------------------------------------------
+# PDL constants used
+#------------------------------------------------------------------------
+#
+#   PDL_B
+#   PDL_D
+#   PDL_F
+#   PDL_L
+#   PDL_S
+#   PDL_US
+#
+#------------------------------------------------------------------------
+
+#------------------------------------------------------------------------
+# PDL methods used
+#------------------------------------------------------------------------
+#
+#   .=
+#   dim
+#   float
+#   get_dataref
+#   ndims
+#   sever
+#   type->symbol
+#
+#------------------------------------------------------------------------
+
+use OpenGL qw( :all );
+
+#------------------------------------------------------------------------
+# opengl/glut constants used
+#------------------------------------------------------------------------
+#
+#   GLUT_ACTION_CONTINUE_EXECUTION
+#   GLUT_ACTION_ON_WINDOW_CLOSE
+#   GLUT_DOUBLE
+#   GLUT_RGBA
+#   GLUT_WINDOW_HEIGHT
+#   GLUT_WINDOW_WIDTH
+#
+#   GL_COLOR_BUFFER_BIT
+#   GL_FLOAT
+#   GL_INT
+#   GL_LUMINANCE
+#   GL_LUMINANCE_ALPHA
+#   GL_MODELVIEW
+#   GL_PROJECTION
+#   GL_RGB
+#   GL_RGBA
+#   GL_SHORT
+#   GL_UNPACK_ALIGNMENT
+#   GL_UNSIGNED_BYTE
+#   GL_UNSIGNED_INT_8_8_8_8
+#   GL_UNSIGNED_SHORT
+#
+#------------------------------------------------------------------------
+
+
+#------------------------------------------------------------------------
+# opengl/glu/glut routines used
+#------------------------------------------------------------------------
+# 
+#   OpenGL::done_glutInit
+#
+#   glutAddMenuEntry
+#   glutAttachMenu
+#   glutCreateMenu
+#   glutCreateWindow
+#   glutDestroyWindow
+#   glutDisplayFunc
+#   glutGet
+#   glutGetWindow
+#   glutInit
+#   glutInitDisplayMode
+#   glutInitWindowPosition
+#   glutInitWindowSize
+#   glutKeyboardFunc
+#   glutLeaveMainLoop
+#   glutMouseFunc
+#   glutPostRedisplay
+#   glutReshapeFunc
+#   glutReshapeWindow
+#   glutSetOption
+#   glutSwapBuffers
+#
+#   glClear
+#   glClearColor
+#   glDrawPixels_s
+#   glFlush
+#   glLoadIdentity
+#   glMatrixMode
+#   glPixelStorei
+#   glPixelZoom
+#   glRasterPos2i
+#   glViewport
+#
+#   gluOrtho2D
+#
+#------------------------------------------------------------------------
+
+
+our $draw_overlay;
+
+my $finished_glutInit = 0;
+my $cur_fig_num = 0;
+my $imag2d_keep_twiddling;
+
+my $show_overlay = 1;
+our $is_paused = 0;
+our $go_forward = 0;
+our $go_backward = 0;
+
+our @list = ();
+
+#------------------------------------------------------------------------
+# glutMouseFunc callback
+#------------------------------------------------------------------------
+sub mouse_click {
+   my ($button, $state, $x, $y) = @_;
+
+   my $window_id = glutGetWindow();
+   my $width = glutGet(GLUT_WINDOW_WIDTH);
+   my $height = glutGet(GLUT_WINDOW_HEIGHT);
+   my $img;
+
+   # search for image corresponding to window
+   foreach my $entry ( @list ) {
+      if ( $entry->{window_id} == $window_id ) {
+         $img = $entry->{img};  # 2D piddle for now
+         last;
+      }
+   }
+
+   die "mouse_click: callback could not find image window\n" unless defined $img;
+
+   # calculate zoom/aspect ratio factors
+   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistancy
+
+   my $zoom_x = $width / $img->dim($glds+0);
+   my $zoom_y = $height / $img->dim($glds+1);
+   my $zoom = ($zoom_x < $zoom_y) ? $zoom_x : $zoom_y;
+
+   # calculate the offset to the image use for centering
+   my ($hshift, $vshift) = (0,0);
+
+   if ( $zoom == $zoom_x ) {
+      # shift down
+      $vshift = ($height - $zoom * $img->dim($glds+1)) / 2.0;
+   } else {
+      # shift right
+      $hshift = ($width - $zoom * $img->dim($glds+0)) / 2.0;
+   }
+
+   my ($im_x, $im_y);
+   $im_x = sprintf "%.1f", ($x - $hshift) / $zoom;
+   $im_y = sprintf "%.1f", ($y - $vshift) / $zoom;
+
+   if ( $state
+         and (-1 < $im_x)
+         and (-1 < $im_y)
+         and ($im_x < $img->dim($glds+0)+1)
+         and ($im_y < $img->dim($glds+1)+1) ) {
+      printf STDERR "b_%01d: pixel=(%4d,%4d), image=(%5.1f,%5.1f), winID=$window_id\n", $state, $x, $y, $im_x, $im_y;
+      #print STDERR "b_$button: pixel=($x,$y), image=($im_x,$im_y), winID=$window_id\n";
+   }
+};
+
+#------------------------------------------------------------------------
+# glutReshapeFunc callback
+#------------------------------------------------------------------------
+sub resize_window {
+   my ($width, $height) = @_;
+
+   print STDERR "resize_window: call with new dims ($width, $height)\n" if $debug;
+
+   my $window_id = glutGetWindow();
+   my $img;
+
+   return unless scalar(@list);
+
+   # search for image corresponding to window
+   foreach my $entry ( @list ) {
+      if ( $entry->{window_id} == $window_id ) {
+         $img = $entry->{img};  # 2D piddle for now
+         last;
+      }
+   }
+
+   die "resize_window: callback could not find image window\n" unless defined $img;
+
+   # calculate zoom/aspect ratio factors
+   my $glds = 0; $glds = 1 if $img->dim(0) < 5;  # hack, need verify consistancy
+
+   my $zoom_x = $width / $img->dim($glds+0);
+   my $zoom_y = $height / $img->dim($glds+1);
+   my $zoom = ($zoom_x < $zoom_y) ? $zoom_x : $zoom_y;
+
+   glViewport( 0, 0, $width, $height );
+
+   # set coordinate frame for graphics in window
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+
+   gluOrtho2D( 0, $width, $height, 0 );
+
+   glMatrixMode( GL_MODELVIEW );
+   glLoadIdentity();
+
+   # set zoom factors for image display
+   glPixelZoom( $zoom, -$zoom );
+
+   ## glutReshapeWindow($zoom*$img->dim($glds+0), $zoom*$img->dim($glds+1));
+
+   # offset the image in the window to keep centered
+   my ($hshift, $vshift) = (0,0);
+
+   if ( $zoom == $zoom_x ) {
+      # shift down
+      $vshift = ($height - $zoom * $img->dim($glds+1)) / 2.0;
+   } else {
+      # shift right
+      $hshift = ($width - $zoom * $img->dim($glds+0)) / 2.0;
+   }
+
+   glRasterPos2i( int($hshift), int($vshift) );
+
+   glutReshapeWindow($zoom*$img->dim($glds+0), $zoom*$img->dim($glds+1));
+};
+
+#------------------------------------------------------------------------
+# glutDisplayFunc callback
+#------------------------------------------------------------------------
+sub display_image {
+   my $window_id = glutGetWindow();
+   my $img;
+   my ($gldrawformat, $gldrawtype, $glds);
+
+   return unless scalar(@list);
+
+   # search for image corresponding to window
+   foreach my $entry ( @list ) {
+      if ( $entry->{window_id} == $window_id ) {
+         $img = $entry->{img};  # 2D piddle for now
+         last;
+      }
+   }
+
+   die "display_window: callback could not find image window\n" unless defined $img;
+
+   # determine display pixel format to use
+   if ($img->ndims > 2 && $img->dim(0) == 4) {
+      $gldrawformat = GL_RGBA;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 3) {
+      $gldrawformat = GL_RGB;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 2) {
+      $gldrawformat = GL_LUMINANCE_ALPHA;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 1) {
+      $gldrawformat = GL_LUMINANCE;
+      $glds = 1;
+   } else {
+      $gldrawformat = GL_LUMINANCE;
+      $glds = 0;
+   };
+
+   # convert to float if double for display
+   if ($img->type->symbol eq 'PDL_D') {         # clean up code
+      $img = $img->float;
+   }
+
+   # determine display pixel type to use
+   if ($img->type->symbol eq 'PDL_F') {
+      $gldrawtype = GL_FLOAT;
+   } elsif ($img->type->symbol eq 'PDL_B') {
+      $gldrawtype = GL_UNSIGNED_BYTE;
+   } elsif ($img->type->symbol eq 'PDL_S') {
+      $gldrawtype = GL_SHORT;
+   } elsif ($img->type->symbol eq 'PDL_US') {
+      $gldrawtype = GL_UNSIGNED_SHORT;
+   } elsif ($img->type->symbol eq 'PDL_L') {
+      $gldrawtype = ( $gldrawformat == GL_RGBA ) ? GL_UNSIGNED_INT_8_8_8_8 : GL_INT;
+   } else {
+      die "display_image: unsupported data type '", $img->type->symbol, "' for image display\n";
+   }
+
+   my ($sizeX, $sizeY) = ($img->dim($glds+0), $img->dim($glds+1));
+   # print STDERR "...  calculated image size is ($sizeX, $sizeY)\n";
+
+   # display image
+   glClear(GL_COLOR_BUFFER_BIT);
+   # glRasterPos2i( 0, 0 );
+   glDrawPixels_s( $sizeX, $sizeY, $gldrawformat, $gldrawtype, $img->get_dataref );
+
+   &{$draw_overlay}($img, $sizeX, $sizeY) if $show_overlay and defined($draw_overlay);
+
+   #draw_hough_lines($img, $sizeX, $sizeY);
+
+   glutSwapBuffers();
+   glFlush();
+}
+
+my $RELEASE=99;
+
+#------------------------------------------------------------------------
+# glutCreateMenu callback
+#------------------------------------------------------------------------
+sub ModeMenu {
+   my $entry = shift;
+   my $img;
+
+   if ($entry == $RELEASE) {
+      my ($window_id) = glutGetWindow();
+
+      # search for image corresponding to window
+      foreach my $listentry ( @list ) {
+         if ( $listentry->{window_id} == $window_id ) {
+            $img = $listentry->{img};  # 2D piddle for now
+            last;
+         }
+      }
+
+      die "ModeMenu: callback could not find image window\n" unless defined $img;
+
+      glutLeaveMainLoop();
+      # glutDestroyWindow($window_id);
+
+   } else {
+      die "ModeMenu: illegal menu entry '$entry'\n";
+   }
+}
+
+#------------------------------------------------------------------------
+# glutKeyboardFunc callback
+#------------------------------------------------------------------------
+sub key_ops {
+   my ($key, $x, $y) = @_;
+
+   # handle keypress events (defaults first)
+   # print STDERR "Got keypress for keypress=$key\n";
+
+   # stop twiddling
+   $imag2d_keep_twiddling = 0 if $key == 113 or  $key == 81;  # q or Q
+
+   # quit program
+   exit if $key ==  27;                 # ESC
+   exit if $key ==   3;                 # Ctrl-C
+
+   # toggle overlay
+   $show_overlay = (($show_overlay) ? 0 : 1) if $key == 111 or $key == 79 ;     # o or O
+
+   # pause/run with space bar
+   $is_paused = (($is_paused) ? 0 : 1) if $key == 32;     # SPACE
+
+   # change direction or step in direction
+   if ($key == 46 or $key == 62) {          # > or .
+      $go_forward = 1;
+      $go_backward = 0;
+   };
+   if ($key == 44 or $key == 60) { ;        # < or ,
+      $go_forward = 0;
+      $go_backward = 1;
+   }
+}
+
+#------------------------------------------------------------------------
+# Create a new OpenGL context window for image display
+#------------------------------------------------------------------------
+sub display_new_window {
+   my ($height, $width, $zoom, $name, $off_r, $off_c, $window_id) = @_;
+
+   my ($window_width, $window_height);
+   my ($zoom_x, $zoom_y);
+
+   if ( $width <= 0 || $height <= 0 || $zoom == 0.0 )
+   {
+      die "display_new_window: invalid arguments!\n";
+   }
+
+   $window_width  = int($zoom*$width  + 0.5);
+   $window_height = int($zoom*$height + 0.5);
+
+   # compute zoom factors to make graphics overlay the image precisely
+   $zoom_x = $window_width/$width;
+   $zoom_y = $window_height/$height;
+
+   # create display window
+   if (! $finished_glutInit ) {
+      glutInit() unless OpenGL::done_glutInit();
+      glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE);
+      glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+      $finished_glutInit = 1;
+   }
+   glutInitWindowSize( $window_width, $window_height );
+   glutInitWindowPosition( $off_r, $off_c );
+   $window_id = glutCreateWindow( $name );
+
+   # set some standard defaults
+   glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+   glClearColor( 0.0, 0.0, 0.0, 0.0 );
+   glViewport( 0, 0, $window_width, $window_height );
+
+   # set coordinate frame for graphics in window
+   glMatrixMode( GL_PROJECTION );
+   glLoadIdentity();
+
+   gluOrtho2D( 0, $width, $height, 0 );
+
+   glMatrixMode( GL_MODELVIEW );
+   glLoadIdentity();
+
+   # set zoom factors for image display
+   glPixelZoom( $zoom_x, -$zoom_y );
+
+   # set origin for drawing images as the top-left corner of the window
+   glRasterPos2i( 0, 0 );
+
+   # success
+   return $window_id;
+};
+
+#------------------------------------------------------------------------
+# Display piddle as 2-D image in window using OpenGL
+#------------------------------------------------------------------------
+
+=head2 imag2d
+
+=for ref
+
+  Display a 2-D image in an figure window
+
+imag2d() creates a plain FreeGLUT OpenGL window and displays
+the input image with 1:1 aspect ratio for pixels.  The window
+resize is constrained to the actual ratio of the image
+dimensions.
+
+This routine does not thread but multiple images may be
+viewed at the same time.  TriD graphics windows and these
+windows may be created and used independently.
+
+NOTE: If you are twiddling a TriD window, the imag2d()
+windows are active as well.  If you call twiddle()
+the sub, only the imag2d() windows will update correctly.
+
+NOTE: The current implementation is via a PDL::AutoLoader
+file C<imag2d.pdl> which you will need to place in your
+PDLLIB path to use.  See L<PDL::AutoLoader> for more.
+
+=for usage
+
+  $window_id = imag2d($image, $name, $zoom, $x_off, $y_off);
+
+    creates a new image figure window from the input piddle
+    with the given title, zoom factor, and position if possible
+
+    $window_id - may be used to refer to the figure window
+    $image - 2D image piddle with at least 2 or 3 dimensions
+    $name - the name to use for the figure window (optional)
+    $zoom - desired (float) pixel zoom factor     (optional)
+    ($x_off, $y_off) - desired init window pixpos (optional)
+
+  twiddle();
+
+    Runs the FreeGLUT event loop so window GUI operations
+    such as resize, expose, mouse click,.. work
+
+=cut
+  
+sub imag2d {
+   my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", 1, 0, 0);
+
+   # need to add error checking here
+   $img = shift;
+   $name  = shift if scalar(@_);
+   $zoom  = shift if scalar(@_);
+   $off_r = shift if scalar(@_);
+   $off_c = shift if scalar(@_);
+
+   my $window_id;
+   my ($gldrawformat, $gldrawtype, $glds);
+
+   # determine display pixel format and type to use
+   if ($img->ndims > 2 && $img->dim(0) == 4) {
+      $gldrawformat = GL_RGBA;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 3) {
+      $gldrawformat = GL_RGB;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 2) {
+      $gldrawformat = GL_LUMINANCE_ALPHA;
+      $glds = 1;
+   } elsif ($img->ndims > 2 && $img->dim(0) == 1) {
+      $gldrawformat = GL_LUMINANCE;
+      $glds = 1;
+   } else {
+      $gldrawformat = GL_LUMINANCE;
+      $glds = 0;
+   };
+
+   # convert to float if double for display
+   if ($img->type->symbol eq 'PDL_D') {         # clean up code
+      $img = $img->float;
+   }
+
+   # determine display pixel type to use
+   if ($img->type->symbol eq 'PDL_F') {
+      $gldrawtype = GL_FLOAT;
+   } elsif ($img->type->symbol eq 'PDL_B') {
+      $gldrawtype = GL_UNSIGNED_BYTE;
+   } elsif ($img->type->symbol eq 'PDL_S') {
+      $gldrawtype = GL_SHORT;
+   } elsif ($img->type->symbol eq 'PDL_US') {
+      $gldrawtype = GL_UNSIGNED_SHORT;
+   } elsif ($img->type->symbol eq 'PDL_L') {
+      $gldrawtype = ( $gldrawformat == GL_RGBA ) ? GL_UNSIGNED_INT_8_8_8_8 : GL_INT;
+   } else {
+      die "display_image: unsupported data type '", $img->type->symbol, "' for image display\n";
+   }
+
+   # create display window
+   my ($im_height, $im_width);
+   $im_height = $img->dim($glds+1);
+   $im_width  = $img->dim($glds+0);
+   if ($im_width < 100 or $im_height < 100) {
+      # adjust zoom to make initial window bigger than 100px
+      my $mindim = ($im_width < $im_height) ? $im_width : $im_height;
+      my $zoomest = int( 100 / $mindim );
+      $zoomest += 1 unless $zoomest == 100/$mindim;
+      print STDERR "imag2d: est zoom factor is $zoomest\n" if $debug;
+      $zoom = $zoomest;
+   }
+
+   print STDERR "imag2d: calling display_new_window( "
+   . $img->dim($glds+1) . ", "
+   . $img->dim($glds+0) . ", $zoom, $name, $off_r, $off_c )" if $debug;
+
+   if ( ! defined( $window_id = display_new_window( $img->dim($glds+1), $img->dim($glds+0), $zoom, $name, $off_r, $off_c ) ) ) {
+      print STDERR "imag2d: failure\n";
+      return;
+   }
+
+   $cur_fig_num++;
+
+   # set callback function for image display
+   glutDisplayFunc ( \&display_image );
+
+   # set callback function for keypress events
+   glutKeyboardFunc ( \&key_ops );
+
+   # set callback for mouse clicks 
+   glutMouseFunc( \&mouse_click );
+
+   # set callback for image window resize
+   glutReshapeFunc( \&resize_window );
+
+   glutCreateMenu( \&ModeMenu );
+   glutAddMenuEntry( "End MainLoop", $RELEASE );
+   glutAttachMenu(GLUT_RIGHT_BUTTON);
+
+   # add image and window to list
+   push @list, { window_id => $window_id, img => $img };
+
+   # success
+   glRasterPos2i( 0, 0 );
+   glDrawPixels_s( $img->dim($glds+0), $img->dim($glds+1), $gldrawformat, $gldrawtype,         $img->get_dataref );
+   glFlush();
+
+   twiddle();
+
+   return $window_id;
+}
+
+#------------------------------------------------------------------------
+# Update imag2d() window image data
+#------------------------------------------------------------------------
+sub imag2d_update {
+   my ($win_id, $image) = @_;
+   my $img;
+
+   return unless scalar(@list);
+
+   # search for image corresponding to window
+   foreach my $entry ( @list ) {
+      if ( $entry->{window_id} == $win_id ) {
+         $img = $entry->{img};  # 2D piddle for now
+         last;
+      }
+   }
+
+   die "imag2d_update: callback could not find image window\n" unless defined $img;
+
+   # update display window
+   $img .= $image->sever;
+   glutPostRedisplay();
+
+   return $win_id;
+}
+
+#------------------------------------------------------------------------
+# Close all imag2d windows
+#------------------------------------------------------------------------
+sub close_imag2d {
+
+   return unless scalar(@list);
+
+   # process all image windows
+   foreach my $entry ( @list ) {
+      glutDestroyWindow($entry->{window_id});
+   }
+
+   @list = ();
+}
+
+#------------------------------------------------------------------------
+# Simple twiddle for perldl (use [qQ] to exit)
+#------------------------------------------------------------------------
+sub twiddle {
+   $imag2d_keep_twiddling = 1;
+   while ($imag2d_keep_twiddling) {
+      glutMainLoopEvent();
+   }
+}
