@@ -64,6 +64,10 @@ The following issues have been reported with this version of PDL:
   formats.  If this test fails, try upgrading your NetPBM library.
 
 
+- PDL on Cygwin has a 300MB process memory limit which can
+  cause out of memory crashes with large data sets.
+
+
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.5_006 release:
 
