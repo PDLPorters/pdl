@@ -536,9 +536,9 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	glColor3d(1,1,1);
         if ( $PDL::Config{USE_POGL} ) {
-           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
         } else {
-           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
         }
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -891,9 +891,9 @@ sub read_picture {
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
         if ( $PDL::Config{USE_POGL} ) {
-           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
         } else {
-           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
         }
 
 	return $res;
