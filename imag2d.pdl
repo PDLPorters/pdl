@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Tue 22 Dec 2009 10:57:54 AM
+# Last saved: Tue 22 Dec 2009 01:52:16 PM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -479,6 +479,18 @@ PDLLIB path to use.  See L<PDL::AutoLoader> for more.
 
     Runs the FreeGLUT event loop so window GUI operations
     such as resize, expose, mouse click,.. work
+
+=for example
+
+  use PDL::AutoLoader;     # if needed
+  @PDLLIB=qw(.);           # imag2d.pdl is in current directory
+  $a = sequence(64,48,3);  # make test RGB image
+  $a = $a->mv(2,0);
+  $a /= $a->max;           # pixel values in [0.0,1.0]
+  $a = sin(10*$a);
+  $w1 = imag2d($a);        # parens for 1st call to autoload
+  $w2 = imag2d $a->sqrt;   # not needed here
+  $w3 = imag2d $a**2;      # or here
 
 =cut
   
