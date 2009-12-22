@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Mon 21 Dec 2009 12:53:15 PM
+# Last saved: Tue 22 Dec 2009 10:57:54 AM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -537,11 +537,11 @@ sub imag2d {
    my ($im_height, $im_width);
    $im_height = $img->dim($glds+1);
    $im_width  = $img->dim($glds+0);
-   if ($im_width < 100 or $im_height < 100) {
-      # adjust zoom to make initial window bigger than 100px
+   if ($im_width < 200 or $im_height < 200) {
+      # adjust zoom to make initial window bigger than 200px
       my $mindim = ($im_width < $im_height) ? $im_width : $im_height;
-      my $zoomest = int( 100 / $mindim );
-      $zoomest += 1 unless $zoomest == 100/$mindim;
+      my $zoomest = int( 200 / $mindim );
+      $zoomest += 1 unless $zoomest == 200/$mindim;
       print STDERR "imag2d: est zoom factor is $zoomest\n" if $debug;
       $zoom = $zoomest;
    }
@@ -555,6 +555,8 @@ sub imag2d {
       return;
    }
 
+   # add GLUT window id to title
+   glutSetWindowTitle($name . ":  WinID $window_id");
    $cur_fig_num++;
 
    # set callback function for image display
@@ -631,6 +633,7 @@ sub close_imag2d {
 # Simple twiddle for perldl (use [qQ] to exit)
 #------------------------------------------------------------------------
 sub twiddle {
+   print STDERR "Type Q or q to stop twiddling\n";
    $imag2d_keep_twiddling = 1;
    while ($imag2d_keep_twiddling) {
       glutMainLoopEvent();
