@@ -1053,7 +1053,7 @@ myeval(code)
   PROTOTYPE: $
   CODE:
    PUSHMARK(sp) ;
-   perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME);
+   perl_call_sv(code, G_EVAL|G_KEEPERR|GIMME_V);
 
 
 # make piddle belonging to 'class' and of type 'type'
