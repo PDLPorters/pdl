@@ -15,10 +15,9 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- An depth/overlay artifact with axis labels on at least one
-  Mac OS system has been reported.  The 3D plot is fine but
-  the label text appear on top of everything and not along the
-  axes.
+- An depth/overlay artifact with axis labels on one Mac OS system
+  has been reported.  The 3D plot is fine but the label text appear
+  on top of everything and not along the axes.
 
 
 - FFTW 3.2.2 is the current release version of the FFTW library
@@ -29,13 +28,9 @@ The following issues have been reported with this version of PDL:
 
 
 - Various make problems with build:
-
   - Using parallel make causes the build to fail so don't use -j # options.
-
   - Make fails with message like.
-  
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-
     The cause is unknown.  If you have this problem, please let the
     developers know via the perldl mailing list.
 
@@ -69,8 +64,10 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.5_006 release:
+  PDL-2.4.5_007 release:
 
+  2901814    Arrow keys don't work in perldl on win32 console
+  2901810    Ctrl-C kills perldl in win32 console
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads

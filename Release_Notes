@@ -1,3 +1,18 @@
+Release notes for PDL 2.4.5_007 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * Move TriD example/test progs to Example/TriD
+
+  * Add better example to imag2d() documentation
+  
+  * Add q or Q to Quit message to twiddle routine
+
+  * Minor code fixes.
+
+
 Release notes for PDL 2.4.5_006 --------------------------
 
 Highlights:
