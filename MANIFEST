@@ -1,4 +1,3 @@
-3dtest.pl
 BUGS
 Basic/AutoLoader.pm
 Basic/Bad/Makefile.PL
@@ -187,6 +186,8 @@ Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
+Example/TriD/3dtest.pl
+Example/TriD/line3d.pl
 Graphics/Graphics2D.pm
 Graphics/IIS/Makefile.PL
 Graphics/IIS/iis.pd
@@ -659,7 +660,6 @@ debian/pdl.remove
 debian/perldl.conf
 debian/rules
 imag2d.pdl
-line3d.pl
 m51.fits
 pdl.PL
 pdldoc.PL
