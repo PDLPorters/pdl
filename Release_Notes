@@ -1,3 +1,17 @@
+Release notes for PDL 2.4.5_008 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release for testing
+
+  * Effectively PDL-2.4.6 release candidate 2
+
+  * OpenGL-0.62 is now the required version for TriD
+
+  * Removed unneeded platform special cases for USE_3D
+    in perldl.conf
+
+
 Release notes for PDL 2.4.5_007 --------------------------
 
 Highlights:
