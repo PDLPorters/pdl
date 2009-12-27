@@ -1,11 +1,19 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Tue 22 Dec 2009 01:52:16 PM
+# Last saved: Sun 27 Dec 2009 12:57:53 PM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
 # computer vision library.  Configured to autoload for PDL.
+#
+# To use with PDL::AutoLoader (e.g. in the perldl shell)
+# 
+# (1) copy this file to the desired directory/folder location
+# (2) make sure PDLLIB has that folder in its directory list
+# (3) use PDL::AutoLoader
+# (4) help imag2d in perldl shell will give docs and example
+# (5) call imag2d() in your code
 
 use strict;
 
