@@ -1,3 +1,84 @@
+Release notes for PDL 2.4.5_008 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release for testing
+
+  * Effectively PDL-2.4.6 release candidate 2
+
+  * OpenGL-0.62 is now the required version for TriD
+
+  * Removed unneeded platform special cases for USE_3D
+    in perldl.conf
+
+
+Release notes for PDL 2.4.5_007 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * Move TriD example/test progs to Example/TriD
+
+  * Add better example to imag2d() documentation
+  
+  * Add q or Q to Quit message to twiddle routine
+
+  * Minor code fixes.
+
+
+Release notes for PDL 2.4.5_006 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * imag2d() available for viewing images with square pixels.
+
+    REQUIRES: The Perl OpenGL TriD interface and FreeGLUT,
+              legacy X11 TriD is not supported.
+
+    It is implemented in the imag2d.pdl file for autoloading
+    via PDL::AutoLoader.  To use, copy the imag2d.pdl file
+    to somewhare in your PDLLIB path or add the location to
+    your PDLLIB environment variable.
+
+    It works with multiple, simultaneous, image windows
+    and appears to work side-by-side with TriD graphics
+    windows.
+
+
+Release notes for PDL 2.4.5_005 --------------------------
+
+Highlights:
+
+  * This is a DEVELOPER's release
+
+  * Fixed conv1d() bug where it was actually calculating the
+    correlation and not the convolution.  For symmetric kernels
+    they are the same.
+
+  * Fixed fftconvolve to give the same results as the other
+    convolution algorithms.  The new implementation is
+    probably slower than the previous and definitely uses
+    more temporary memory.  The old routine is preserved
+    as fftconvolve_inplace() if needed.  This was listed
+    as SF bug #2630369.
+
+  * Fixed SF bug #2524068 for PDL::Minuit.  Now use pp_addxs()
+    to define the binding to mnseti() to avoid bug in pp_def()
+    when there are no piddle arguments.
+
+  * TriD graphics windows now have their GLUT window ID in
+    the window title.  This allows for simpler identification
+    and use of multiple TriD graphics windows.
+
+  * Fixed the TriD display() routine to set the current GLUT
+    window before drawing takes place.   Now multiple TriD
+    windows can exist and be drawn to.
+
+
+
 Release notes for PDL 2.4.5_004 --------------------------
 
 Highlights:

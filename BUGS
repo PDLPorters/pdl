@@ -6,8 +6,9 @@ bug tracker interface at
 
    http://sourceforge.net/tracker/?group_id=612&atid=100612
 
-If you do not already have a sourceforge.net
-account, you may get one at
+where you can review the existing bug.  Click on "Add new"
+to generate a bug report.  If you do not already have a
+sourceforge.net account, you may get one:
 
    http://sourceforge.net/account/registration/
 
@@ -20,7 +21,7 @@ your problem.
 
 At a *minimum*, include the following information:
 
-    * PDL version number (e.g. PDL-2.4.4)
+    * PDL version number (e.g. PDL-2.4.5)
 
     * Perl version information
       (output from "perl -v" or "perl -V", even better!)

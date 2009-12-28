@@ -1,6 +1,11 @@
 INSTALLATION
 ------------
 
+HINT: See the PDL SourceForge.net wiki at
+http://sourceforge.net/apps/mediawiki/pdl/index.php?title=Main_Page
+for installation guidance broken down by platform type.
+
+
 To install PDL on your machine, first check that you have a recent
 enough version of Perl, 5.8.x and above is recommended. Absolute
 minimum is 5.6.2+ but the use of perl 5.6.x is discouraged.

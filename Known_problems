@@ -1,55 +1,38 @@
 The following issues have been reported with this version of PDL:
 
 
-- The default TriD controls are based on having at least
-  a two button mouse.  For Macs with one button, you can use
-  Ctrl+Click to generate the Right-click.  It is also possible
-  to configure the Macbook tracpad to generate a secondary
-  click---see the control panel.
+- The default TriD controls are based on having 2+ button mouse.
+
+  For Macs with one button, you can use Ctrl+Click to generate
+  the needed Right-click.  It is also possible to configure the
+  Macbook tracpad to generate a secondary click via the control panel.
 
 
 - VRML output driver does not work for PDL::Graphics::TriD
 
 
 - When you close a TriD graphics window with the frame widget
-  the whole process exits which is annoying if you are running
-  in perldl.  Patches to the exit handler a la test.pl welcome!
+  the whole process exits including the perldl shell.
 
 
-- There is an depth/overlay artifact with axis labels on at least
-  on Mac OS system where the 3D plots are fine but the text for
-  the labels appear on top of everything---as if it were in an
-  overlay mode.  We're looking for folks with the problem to help
-  with diagnosis and fix.  RSVP to the perldl mailing list.
-
-
-- The default TriD build settings for PDL are WITH_3D => undef,
-  and USE_POGL => 1 which implies an install of OpenGL. On x86
-  windows systems, an install of a 64bit FreeGLUT library is
-  required and you'll need to install that by hand since OpenGL-0.60
-  does not include the required library.  Setting USE_POGL => 0
-  or undef should allow PDL-2.4.5 to be built/installed but you
-  will probably not have TriD graphics until the FreeGLUT DLL
-  issue is resolved.  See win32/ directory READMEs for more info.
+- An depth/overlay artifact with axis labels on one Mac OS system
+  has been reported.  The 3D plot is fine but the label text appear
+  on top of everything and not along the axes.
 
 
 - FFTW 3.2.2 is the current release version of the FFTW library
   but is not yet supported by PDL::FFTW.  You may install version
-  2.1.5 of FFTW which is supported, fall back to using the PDL's
-  built-in fft routines (PDL::FFT), or submit a patch to update
-  PDL::FFTW to the version 3 API. 
+  2.1.5 of FFTW which is supported, use PDL's built-in FFT
+  routines (see PDL::FFT), or submit a patch to update PDL::FFTW
+  to the version 3 API. 
 
 
 - Various make problems with build:
-
   - Using parallel make causes the build to fail so don't use -j # options.
-
-  - Make fails with message like
-
+  - Make fails with message like.
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-
-      If you have this error, please contact the PDL developers via the perldl
-      mailing list and help us track this one down.  Thanks!
+    The cause is unknown.  If you have this problem, please let the
+    developers know via the perldl mailing list.
 
 
 - Extremely verbose but not particularly helpful text output
@@ -76,20 +59,12 @@ The following issues have been reported with this version of PDL:
   formats.  If this test fails, try upgrading your NetPBM library.
 
 
-- Documentation for the various convolution routines are unclear.
-  The implementation assumes that the kernel argument is flipped
-  and then calculates the correlation of that with the image.  This
-  makes no difference for symmetric kernels but can give unexpected
-  results with non-symmetric ones or if you are trying to do your
-  own correlation.
-
-
-- fftconvolve does not give the same results as the brute force
-  summation calculation, see discussion for SF bug # 2630369.
+- PDL on Cygwin has a 300MB process memory limit which can
+  cause out of memory crashes with large data sets.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.5 release:
+  PDL-2.4.5_007 release:
 
   2901814    Arrow keys don't work in perldl on win32 console
   2901810    Ctrl-C kills perldl in win32 console
@@ -100,7 +75,7 @@ The following issues have been reported with this version of PDL:
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
-  1994442    imagrgb problems
+  1994442    imagrgb problems  (see new imag2d routine)
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
