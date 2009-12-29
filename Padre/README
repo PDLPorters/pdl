@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 29 Dec 2009 11:10:09 AM 
+Last saved: Tue 29 Dec 2009 11:23:09 AM 
 
 ** This is experimental code so use at your own risk! **
 
@@ -14,18 +14,19 @@ NiceSlice.pm
   shell (i.e. Devel::REPL::Plugin::NiceSlice).  One way to
   get a basic shell going is as follows:
 
-  # from bash prompt
-  re.pl
+
+  re.pl  # from bash prompt (just re for win32)
 
   # from repl $ prompt
   do 'NiceSlice.pm';	# make Devel::REPL::Plugin::NiceSlice available
-  $_REPL->load_plugin($_) for qw(NiceSlice CompletionDriver::Methods);
+  $_REPL->load_plugin($_) for qw(NiceSlice);
+  $_REPL->load_plugin($_) for qw(CompletionDriver::Methods);
   do 'pdlrun';          # make PDL stuff available
 
   Now you have an interactive shell with history and method
-  completion.  By default Devel::REPL always prints the result
-  which differs from the perldl default.  This will be addressed
-  in the official release but it is still usable.
+  completion (completion is not available on win32 unless you
+  also have Term::ReadLine::Gnu).  By default Devel::REPL always
+  prints the result which differs from the perldl default.
 
 
 pdlrun
