@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  0.92
+Current FAQ version:  0.93
 
 
 =head1 DESCRIPTION
 
-This is version  0.92 of the PDL FAQ, a collection of  frequently 
+This is version  0.93 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -418,16 +418,16 @@ I< very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 0.92 of 16 Oct 2009) the latest stable version
-is 2.4.4.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 0.93 of 01 Jan 2010) the latest stable version
+is 2.4.6.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL.
 
 The most current (possibly unstable) version of PDL can be obtained 
-from the Git repository, see L<Question 4.10|"Q: 4.10    How do I get PDL via Git?">
+from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
 and periodic CPAN developers releases of the Git code will be made for testing
-purposes and more general availability.  The first PDL-2.4.5 prerelease candidate
-is available via git or as a CPAN developers release: CHM/PDL-2.4.4_136.tar.gz .
+purposes and more general availability.  The second PDL-2.4.6 prerelease candidate
+is available via git or as a CPAN developers release: CHM/PDL-2.4.5_008.tar.gz .
 
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
@@ -556,7 +556,7 @@ always install C< PDL> into a non-standard location.  See FAQ 4.4 above.
 
 Information about binary distributions of PDL can be found on
 http://pdl.perl.org .  At present there are binary distributions 
-of PDL for Linux (RedHat and Debian), FreeBSD and Windows, 
+of PDL for Linux (RedHat and Debian), FreeBSD, Mac OS X and Windows, 
 though they might not be the most recent version. If someone is 
 interested in providing binary distributions for other 
 architectures, that would be very welcome. Let us know on the 
@@ -594,7 +594,7 @@ through ActiveState's ppm, though it might not always be the latest version.
 =head2 Q: 4.8    Can I get PDL via CVS?   
 
 
-No. PDL development was conducted with a CVS repository from December
+No.  PDL development was conducted with a CVS repository from December
 1999 to April 2009.  In April 2009 the project switched to the
 L<Git|http://git-scm.com> source control management system.  Note that
 some auxiliary project repositories (the project website, some books,
@@ -615,7 +615,7 @@ command line
    git clone ssh://USERNAME@pdl.git.sourceforge.net/gitroot/pdl/pdl PDL
 
 
-=head2 Q: 4.10   I had a problem with the Git version, how do I check if  someone has submitted a patch?  
+=head2 Q: 4.10   I had a problem with the Git version, how do I check if someone has submitted a patch?  
 
 The Sourceforge system contains a patch-manager which contains patches
 that have not yet been applied to the distribution. This can be
@@ -683,8 +683,7 @@ multiprocessor machines or clusters)
 PDL threading of operations on piddles (as mentioned in the
 indexing docs) is the iteration of a basic operation over
 appropriate subslices of piddles, e.g. the inner product 
-C< inner $a, $b> of a (3) pdl 
-C< $a> and a (3,5,4) pdl 
+C< inner $a, $b> of a (3) pdl C< $a> and a (3,5,4) pdl 
 C< $b> results in a (5,4) piddle where each
 value is the result of an inner product of the (3) pdl with a
 (3) subslice of the (3,5,4) piddle.  For details check
@@ -887,8 +886,13 @@ seen in PDL code:
 
 
 In Perl 5.6.7 and higher this assignment can be simplified
-using lvalue subroutines, see L<PDL::Lvalue> for more info.  
+using lvalue subroutines:
 
+            perldl> $a->slice('1:2') .= pdl([5,6])
+            perldl> p $a
+               [0 5 6 3 4]
+
+see L<PDL::Lvalue> for more info.  
 
 
 
@@ -899,8 +903,7 @@ Yes you can, but not in the way you probably tried first. It
 is not possible to use a piddle directly in a conditional
 expression since this is usually poorly defined. Instead PDL
 has two very useful functions: 
-C< any> and 
-C< all> . Use these to test if any or
+C< any> and C< all> . Use these to test if any or
 all elements in a piddle fulfils some criterion:
 
    perldl> $a=pdl ( 1, -2, 3);
@@ -1004,10 +1007,8 @@ L<PDL::Indexing|PDL::Indexing> and L<PDL::PP|PDL::PP> .
 =head2 Q: 6.14   How can I subclass (inherit from) piddles?  
 
 
-The short answer is: read 
-L<PDL::Objects|PDL::Objects> (e.g. type 
-C< help PDL::Objects> in the 
-I< perldl> shell).
+The short answer is: read L<PDL::Objects|PDL::Objects> (e.g. type 
+C< help PDL::Objects> in the I< perldl> shell).
 
 The longer answer (extracted from L<PDL::Objects|PDL::Objects> ): 
 Since a PDL object is an opaque reference to a C struct, it is not 
@@ -1022,16 +1023,14 @@ redefine the method initialize(). For example:
 
          package FOO;
 
-
-
          @FOO::ISA = qw(PDL);
          sub initialize {
-         my $class = shift;
-         my $self = {
-         creation_time => time(),  # necessary extension :-)
-         PDL => PDL->null,         # used to store PDL object
-         };
-         bless $self, $class;
+            my $class = shift;
+            my $self = {
+               creation_time => time(),  # necessary extension :-)
+               PDL => PDL->null,         # used to store PDL object
+            };
+            bless $self, $class;
          }
 
 
@@ -1114,13 +1113,15 @@ inplace, assuming your routine can work inplace):
 
 
          sub myfunc {
-         my $pdl = shift;
-         if ($pdl->is_inplace)
-         {$pdl->set_inplace(0)}
-         else  # modify a copy by default
-         {$pdl = $pdl->copy}
-         $pdl->set(0,0);
-         return $pdl;
+            my $pdl = shift;
+            if ($pdl->is_inplace) {
+	       $pdl->set_inplace(0)
+	    } else {
+	       # modify a copy by default
+               $pdl = $pdl->copy
+	    }
+            $pdl->set(0,0);
+            return $pdl;
          }
 
 
@@ -1197,8 +1198,9 @@ rpic (see L<PDL::IO::Pic|PDL::IO::Pic> ) you could say:
          @names = qw/name1.tif .... nameN.tif/;  # some file names
          $dummy = PDL->rpic($names[0]);
          $cube = PDL->zeroes($dummy->type,$dummy->dims,$#names+1); # make 3D piddle
-         for (0..$#names) 
-         {($tmp = $cube->slice(":,:,($_)")) .= PDL->rpic($names[$_])}
+         for (0..$#names) {
+	    ($tmp = $cube->slice(":,:,($_)")) .= PDL->rpic($names[$_])
+	 }
 
 or
 
@@ -1221,12 +1223,12 @@ approriate slices of the 3D piddle C< $cube> .
 This answer applies mainly to PDL::Graphics::TriD (PDL's device
 independent 3D graphics model) which is the trickiest one in this
 respect. You find some test scripts in Demos/TriD in the distribution.
-There are also C<3dtest.pl> and C<line3d.pl> in the main PDL
+There are also C<3dtest.pl> and C<line3d.pl> in the PDL/Example/TriD
 directory.  After you have built PDL you can do:
 
-         perl -Mblib 3dtest.pl
+         perl -Mblib Example/TriD/3dtest.pl
 
-	 perl -Mblib line3d.pl
+	 perl -Mblib Example/TriD/line3d.pl
 
 to try the two TriD test programs.  They only exercise one TriD function
 each but their simplicity makes it easy to debug if needed with the
@@ -1272,10 +1274,7 @@ some of them, e.g.
          perldl> help PDL::Graphics::TriD
 
 
-Note that case matters with 
-C< help> but
-not with 
-C< apropos> .
+Note that case matters with C< help> but not with C< apropos> .
 
 
 
