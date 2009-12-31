@@ -1,3 +1,122 @@
+Release notes for PDL 2.4.6     --------------------------
+
+General Notes:
+
+ * Mainly a bugfix and polishing release
+
+
+Highlights:
+
+  * Improved 3D graphics and OpenGL functionality
+
+  * imag2d() routine for multi-image (photo) display
+
+  * Many fixes for Debian package release
+
+  * Several little bugs fixed since PDL-2.4.5
+
+  * Fixed some issues with PDL convolution routines
+
+  * Improved documentation and release notes and files
+
+  * Padre and enhanced perldl shell integration begun
+
+
+Summary of Changes:
+
+  * Improved 3D graphics and OpenGL functionality
+
+    Perl OpenGL 0.62 is the minimum required version
+    for PDL::Graphics::TriD to build.
+
+    TriD now builds correctly for Mac OS X systems
+    without X11 installed.
+
+    Autoprobe for build of 3D graphics and the use
+    of the Perl OpenGL library has been implemented.
+    The default perldl.conf setting is to check.
+
+    Improved multi-window support for PDL::Graphics::TriD
+    display windows: the GLUT window ID is now part of
+    the default window title for convenience, and redraws
+    with multiple open TriD windows are handled correctly.
+    
+  * imag2d() routine for multi-image (photo) display
+
+    REQUIRES: The Perl OpenGL TriD interface and FreeGLUT.
+
+    IMPORTANT: Legacy X11 TriD is *not* supported!
+
+    It is implemented in the imag2d.pdl file for autoloading
+    via PDL::AutoLoader.  To use, copy the imag2d.pdl file
+    to somewhere in your PDLLIB path or add the location to
+    your PDLLIB environment variable.
+
+    It works with multiple, simultaneous, image windows
+    and appears to work side-by-side with TriD graphics
+    windows.
+    
+    After you have imag2d.pdl in your @PDLLIB list,
+    you can use 'help imag2d' to get usage instructions
+    and documentation.
+    
+    This implements the basic functionality planned regarding
+    an improved imagrgb() routine.
+
+  * Many fixes for Debian package release
+
+    This should allow PDL-2.4.6 to be more readily released
+    as a Debian packages.  The general clean up involved
+    improves PDL portability and robustness generally.
+
+  * Several little bugs fixed since PDL-2.4.5
+
+    The number of history lines when you use Term::ReadLine::Perl
+    with perldl are now set correctly to $PERLDL::HISTFILESIZE.
+    The default value is 500.
+
+    A number of minor internal fixes for portability and
+    implementation improvements:
+
+     - Add comment re fix for defined(%hash) usage
+     - Fix annoying PGPLOT::HANDLE warning message
+     - Replace GIMME by GIMME_V in Core.xs
+     - Update to v3.14 of ppport.h portability
+
+    Fixed MINUIT build problem where non-standard code was
+    being generated which caused problems with rigorous compiler
+    settings.  This was SF bug #2524068.
+
+  * Fixed a number of issues with PDL convolution routines
+
+    conv1d() algorithm adjusted to match conv2D() and convolutionND().
+    Documentation on the exact computation being performed in conv1d()
+    was added.
+
+    Fixes bug #2630369 with fftconvolve().  It now gives the same results
+    as conv1d(), conv2d(),.., except perhaps with respect to the boundary
+    condition handling.
+
+  * Improved documentation and release notes and files
+
+    Updated PDL::FAQ.
+
+    Lots of little changes to bring documentation in line
+    with current PDL functionality.  Volunteer editors and
+    contributors always welcome!
+
+  * Padre and enhanced perldl shell integration begun
+
+    There is a new PDL-2.4.6/Padre/ subdirectory in the PDL
+    source tree which contains work towards Padre integration
+    and a 2nd generation, enhanced perldl shell for PDL.
+
+    E.g. an *experimental* plug-in giving PDL::NiceSlice support
+    to the Devel::REPL shell is included.  See the Padre/README
+    file for instructions to get you started.
+
+
+
 Release notes for PDL 2.4.5_008 --------------------------
 
 Highlights:
@@ -10,6 +129,7 @@ Highlights:
 
   * Removed unneeded platform special cases for USE_3D
     in perldl.conf
+
 
 
 Release notes for PDL 2.4.5_007 --------------------------
@@ -25,6 +145,7 @@ Highlights:
   * Add q or Q to Quit message to twiddle routine
 
   * Minor code fixes.
+
 
 
 Release notes for PDL 2.4.5_006 --------------------------
@@ -46,6 +167,7 @@ Highlights:
     It works with multiple, simultaneous, image windows
     and appears to work side-by-side with TriD graphics
     windows.
+
 
 
 Release notes for PDL 2.4.5_005 --------------------------
@@ -135,6 +257,7 @@ Highlights:
     updated DEPENDENCIES information and code.  This
     should improve the buildability of PDL
 
+
 General Notes:
 
   This is the first PDL release supporting the new build
@@ -162,6 +285,7 @@ General Notes:
 
   for how to sign up and links and searches of the list
   archive discussions.
+
 
 Summary of Changes:
   
@@ -252,6 +376,7 @@ General Notes:
   (almost immediately) and removed after that.  It has been
   effectively unsupported for some time.
 
+
 Summary of Changes:
 
   TriD now requires Perl OpenGL-0.59 or greater to build.
@@ -284,6 +409,7 @@ Summary of Changes:
   errors, try compiling this to see if the issue is a GLUT
   or FreeGLUT installation problem or in the PDL/Perl bindings.
   Contact the perldl mailing list for help.
+
 
 
 Release notes for PDL 2.4.4_13 --------------------------
@@ -487,6 +613,7 @@ General Notes:
      user can download the full repository and run git log to see
      all the history in its glory.
 
+
 Summary of Changes:
 
    Move Changes to Changes_CVS to prep for git log
@@ -683,6 +810,7 @@ Summary of Changes:
      TBD
 
 
+
 Release notes for PDL 2.4.4_02 ---------------------------
 
 General Notes:
@@ -693,9 +821,11 @@ General Notes:
      *                                   *
      *************************************
 
+
 Summary of Changes:
 
      TBD
+
 
 
 Release notes for PDL 2.4.4_01 ---------------------------
@@ -708,6 +838,7 @@ General Notes:
      *                                   *
      *************************************
 
+
 Summary of Changes:
 
      - Several SF.net bugs have been fixed
@@ -716,6 +847,7 @@ Summary of Changes:
        results with greater consistency to MS Excel calculations
 
      - PDL should pass automated build tests on more platforms
+
 
 
 Release notes for PDL 2.4.4 ------------------------------
@@ -751,6 +883,7 @@ General Notes:
      - perl 5.6.x is explicitly required to configure and
        will go away in future versions.  5.8.x and above
        are the recommended versions
+
 
 Summary of Changes:
 
@@ -820,6 +953,7 @@ Summary of Changes:
       
      - Enabled building of GSL on Win32.
     
+
 
 Release notes for PDL 2.4.3 ------------------------------
 
@@ -912,6 +1046,7 @@ General Notes:
 
      - a little too late for Christmas; but happy new year 2005!
 
+
 Summary of Changes:
 
  - Overhaul of FITS I/O.  FITS binary tables are now supported,
@@ -955,6 +1090,7 @@ Release notes for PDL 2.4.1 -------------------------------
 General Notes:
 
      - mainly a bugfix and polishing release
+
 
 Summary of Changes:
 
