@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 21 Dec 2009 04:11:18 PM
+Last saved: Tue 29 Dec 2009 12:03:35 PM 
 
 ** This is experimental code so use at your own risk! **
 
@@ -8,3 +8,36 @@ getting PDL to work with Padre starting with migrating
 the existing perldl shell to use Devel::REPL which is
 the basis of Padre::Plugin::REPL.
 
+You will need to install the version 1.3.7 of Devel::REPL
+in addition to PDL to use this code.
+
+
+NiceSlice.pm
+
+  Implements PDL::NiceSlice preprocessing for the Devel::REPL
+  shell (i.e. Devel::REPL::Plugin::NiceSlice).  One way to
+  get a basic shell going is as follows:
+
+
+  re.pl  # from bash prompt (just re for win32)
+
+  # from repl $ prompt
+  do 'NiceSlice.pm';	# make Devel::REPL::Plugin::NiceSlice available
+  $_REPL->load_plugin($_) for qw(NiceSlice);
+  $_REPL->load_plugin($_) for qw(CompletionDriver::Methods);
+  do 'pdlrun';          # make PDL stuff available
+
+  Now you have an interactive shell with history and method
+  completion (completion is not available on win32 unless you
+  also have Term::ReadLine::Gnu).  By default Devel::REPL always
+  prints the result which differs from the perldl default.
+
+
+pdlrun
+
+  Startup stuff for PDL shell, loads modules and configuration.
+
+
+README
+
+  This file.
