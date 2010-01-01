@@ -1,6 +1,11 @@
 The following issues have been reported with this version of PDL:
 
 
+- imag2d() twiddling can hang if you close the last of the image
+  windows without returning to the perldl command line.
+  TODO: Add check for this in twiddle() for next release.
+
+
 - The default TriD controls are based on having 2+ button mouse.
 
   For Macs with one button, you can use Ctrl+Click to generate
