@@ -1,3 +1,28 @@
+pdl (1:2.4.5-2) unstable; urgency=low
+
+  * switch TriD from X11 to freeglut
+  * patch test suite to give more meaningful results
+  * repair f77config, link against libgfortran.so
+  * run testsuite in verbose mode to get more information
+  * build-depend and suggest ExtUtils::F77
+  * suggest Astro::FITS::Header
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 09 Nov 2009 12:32:34 +0100
+
+pdl (1:2.4.5-1) unstable; urgency=low
+
+  * new upstream release
+  * build-depend on sharutils to have uuencode/uudecode available for
+    test suite
+  * build-depend on libraries needed for the reworked TriD module
+  * remove maintainer script postrm, it was actually empty
+  * bump standards-version to 3.8.3
+  * bump debhelper compatibility level to 7
+  * generate html docs and doc index in /var/lib/pdl
+  * put symlink to files in /var/lib/pdl into /usr/lib/perl5/PDL
+
+ -- Henning Glawe <glaweh@debian.org>  Fri, 06 Nov 2009 21:45:44 +0000
+
 pdl (1:2.4.3-8) unstable; urgency=low
 
   * add proper description to the dpatch pathes (6 lintian warnings)

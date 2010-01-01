@@ -370,12 +370,23 @@ pp_def('mninit',
         Pars => 'int a();int b(); int c();',
         Code => 'MNINIT($P(a),$P(b),$P(c));
       ');
-pp_def('mnseti',
-	Pars => '',
-        OtherPars => "char* str",	
-        Code => 'int largo; largo = strlen($COMP(str));
-                 MNSETI($COMP(str),largo);
-       ');  
+pp_addxs('','
+void
+mnseti(str)
+	char* str;
+	CODE:
+	 int largo;
+	 largo = strlen(str);
+	 MNSETI(str,largo);
+');
+
+# pp_def('mnseti',
+# 	Pars => '',
+#        OtherPars => "char* str",	
+#        Code => 'int largo; largo = strlen($COMP(str));
+#                 MNSETI($COMP(str),largo);
+#       ');  
+
 pp_def('mn_abre',
         Pars => 'int l();',
         OtherPars => 'char* nombre; char* mode;',

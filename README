@@ -107,10 +107,13 @@ Notes
 Directory structure:
 
 Basic/	   - The stuff that PDL would be no use without
-Lib/	   - The stuff that PDL would still be useful without but
-	     which makes PDL even more useful
+Demos/     - Showcase for PDL, type demo at the perldl prompt.
+Example/   - Sample programs using PDL
 Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
+Lib/	   - The stuff that PDL would still be useful without but
+	     which makes PDL even more useful
+Padre/     - Experiments for PDL+Padre integration and perldl shell v2
 
 Comments are welcome - so are volunteers to write code and documentation!
 Please contact the developers mailing list pdl-porters@jach.hawaii.edu

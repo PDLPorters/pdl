@@ -421,10 +421,35 @@ these fft routines is for kernel sizes roughly 7x7.
 
 sub PDL::fftconvolve {
     barf "Must have image & kernel for fftconvolve" if $#_ != 1;
+    my ($a, $k) = @_;
+
+    my ($ar,$ai,$kr,$ki,$cr,$ci);
+
+    $ar = $a->copy;
+    $ai = $ar->zeros;
+    fftnd($ar, $ai);
+
+    $kr = $k->copy;
+    $ki = $kr->zeroes;
+    fftnd($kr,$ki);
+
+    $cr = $ar->zeroes;
+    $ci = $ai->zeroes;
+    cmul($ar,$ai,$kr,$ki,$cr,$ci);
+
+    ifftnd($cr,$ci);
+    $_[0] = $cr;
+    $_[1] = $ci;
+
+    ($cr,$ci);
+}
+
+sub PDL::fftconvolve_inplace {
+    barf "Must have image & kernel for fftconvolve" if $#_ != 1;
     my ($hr, $hi) = @_;
     my ($n) = $hr->getndims;
-    todecimal($hr);
-    todecimal($hi);
+    todecimal($hr);   # Convert to double unless already float or double
+    todecimal($hi);   # Convert to double unless already float or double
     # need the copy in case $r and $i point to same memory
     $hi = $hi->copy;
     $hr = $hr->copy;

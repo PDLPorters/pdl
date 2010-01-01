@@ -887,7 +887,7 @@ sub new {
 	  die "Could not create OpenGL window";
   }
 
-  $self->{3d_window_type} = 'pdl-legacy-x11';
+  $self->{window_type} = 'pdl-legacy-x11';
 
 #  psuedo-hash style see note above  
 #  no strict 'refs';

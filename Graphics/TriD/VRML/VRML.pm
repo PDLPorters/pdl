@@ -138,6 +138,7 @@ sub vrml3v {
 package PDL::Graphics::VRMLPdlNode;
 @ISA = qw/ PDL::Graphics::VRMLNode /;
 use PDL::Lite;
+use PDL::Core qw(barf);
 use PDL::Dbg;
 PDL::Graphics::VRMLNode->import(qw/tabs vrml3v postfix prefix/);
 

@@ -10,6 +10,7 @@ $opt_v = 0;
 getopts('v');
 $dir = shift @ARGV;
 $outdb  = shift @ARGV;
+$outindex  = shift @ARGV;
 
 unless (defined $dir) {
 	($dir = $INC{'PDL.pm'}) =~ s/PDL\.pm$//i;
@@ -41,8 +42,9 @@ $onldc->savedb();
 @scripts = $onldc->search('script:',['Ref'],1);
 $outdir = "$dir/PDL";
 # ($outdir = $INC{'PDL.pm'}) =~ s/\.pm$//i;
-open POD, ">$outdir/Index.pod"
-  or die "couldn't open $outdir/Index.pod";
+$outindex="$outdir/Index.pod" unless (defined $outindex);
+open POD, ">$outindex"
+  or die "couldn't open $outindex";
 print POD <<'EOPOD';
 
 =head1 NAME

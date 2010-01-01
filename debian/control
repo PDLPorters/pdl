@@ -2,14 +2,14 @@ Source: pdl
 Section: math
 Priority: optional
 Maintainer: Henning Glawe <glaweh@debian.org>
-Standards-Version: 3.8.0
-Build-Depends: gfortran, x11proto-core-dev, libncurses-dev, perl (>= 5.8.0-3), debhelper (>= 4.0.0), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev, dpatch, libxext-dev, libhdf4g-dev, proj, libgd2-xpm-dev, libastro-fits-header-perl
+Standards-Version: 3.8.3
+Build-Depends: gfortran, x11proto-core-dev, libncurses-dev, perl (>= 5.8.0-3), debhelper (>= 7.0.0), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev, dpatch, libxext-dev, libhdf4g-dev, proj, libgd2-xpm-dev, libastro-fits-header-perl, sharutils, libopengl-perl (>= 0.60-2), libxi-dev, libxmu-dev, freeglut3-dev, libextutils-f77-perl
 
 Package: pdl
 Architecture: any
-Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}
+Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}, libopengl-perl
 Recommends: libterm-readline-gnu-perl | libterm-readline-perl-perl
-Suggests: pgperl, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libplplot-dev, doc-base
+Suggests: pgperl, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libplplot-dev, doc-base, libextutils-f77-perl, libastro-fits-header-perl
 Conflicts: r-pdl
 Replaces: r-pdl
 Description: perl data language: Perl extensions for numerics
@@ -27,4 +27,3 @@ Description: perl data language: Perl extensions for numerics
  A simple interactive shell (perldl) is provided for command line use 
  together with a module (PDL) for use in perl scripts. 
  Web page: http://pdl.perl.org/
-

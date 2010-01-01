@@ -1,0 +1,8 @@
+use PDL;
+use PDL::Dbg;
+use PDL::Doc::Perldl;
+use PDL::IO::Dumper;
+use PDL::IO::FlexRaw;
+use PDL::IO::Pic;
+use PDL::Image2D;
+use PDL::AutoLoader;

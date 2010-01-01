@@ -1,9 +1,24 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Mon 19 Oct 2009 10:55:20 AM 
+Last saved: Mon 21 Dec 2009 04:18:20 PM
+
+
+=================================================================
+                        GENERAL NOTES
+=================================================================
+
+  The following directions are generally correct
+  but they have not been updated for PDL-2.4.5+
+
+  Cygwin seems to have a 300MB process memory limit
+  that we have not determined how to work around.
+  If you work with large data sets, you may wish to
+  use the native win32 PDL.
+
 
 =================================================================
                  Installing with CPAN on Cygwin
 =================================================================
+
 If you already have a full cygwin install on your PC, the
 simplest way to get a basic PDL is to use the cpan shell.
 

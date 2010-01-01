@@ -130,6 +130,7 @@ unless($^O =~ /mswin32/i) {
   }
   else{
       $hash{MYEXTLIB} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
+      $hash{clean}{FILES} .= " ./minuitlib/libminuit$Config::Config{lib_ext} ";
   }
 }
 
