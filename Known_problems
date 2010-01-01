@@ -15,7 +15,7 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- An depth/overlay artifact with axis labels on one Mac OS system
+- A depth/overlay artifact with axis labels on one Mac OS system
   has been reported.  The 3D plot is fine but the label text appear
   on top of everything and not along the axes.
 
@@ -28,15 +28,16 @@ The following issues have been reported with this version of PDL:
 
 
 - Various make problems with build:
+
   - Using parallel make causes the build to fail so don't use -j # options.
   - Make fails with message like.
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-    The cause is unknown.  If you have this problem, please let the
-    developers know via the perldl mailing list.
+    The cause is unknown.  If you have this problem, please let the developers
+    know via the perldl mailing list.
 
 
 - Extremely verbose but not particularly helpful text output
-  from configure, built, test process.
+  from the configure-build-test process.
 
 
 - Lvalue subroutine errors have been reported for perl 5.6.2
@@ -64,18 +65,16 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.5_007 release:
+  PDL-2.4.6 release:
 
   2901814    Arrow keys don't work in perldl on win32 console
   2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
-  2630369    PDL::FFT::fftconvolve - bad scaling?  
-  2524068    Build breaks for PDL-2.4.4/Lib/Minuit (code not ISO C)  
   2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
-  1994442    imagrgb problems  (see new imag2d routine)
+  1994442    imagrgb problems  (*new* see imag2d)
   1582350    badflag called in PDL::Core and PDL::Complex
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
