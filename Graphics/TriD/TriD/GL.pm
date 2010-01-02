@@ -648,7 +648,7 @@ sub gdriver {
   print "gdriver: Calling glpRasterFont...\n" if ($PDL::debug_trid);
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
      print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::debug_trid);
-     $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
+     eval '$PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13';
   } else {
      # NOTE: glpRasterFont() will die() if the requested font cannot be found
      #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
