@@ -32,10 +32,6 @@ The following issues have been reported with this version of PDL:
   to the version 3 API. 
 
 
-- White space in the PDL build directory can cause things to break
-  mysteriously.
-
-
 - Various make problems with build:
 
   - Using parallel make causes the build to fail so don't use -j # options.
@@ -76,7 +72,6 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.6 release:
 
-  2924854    build failures in directory with space
   2901814    Arrow keys don't work in perldl on win32 console
   2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
