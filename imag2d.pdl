@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Sun 27 Dec 2009 12:57:53 PM
+# Last saved: Sat 02 Jan 2010 02:51:59 PM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -133,7 +133,7 @@ our $is_paused = 0;
 our $go_forward = 0;
 our $go_backward = 0;
 
-our @list = ();
+our @imag2d_list = ();
 
 #------------------------------------------------------------------------
 # glutMouseFunc callback
@@ -147,7 +147,7 @@ sub mouse_click {
    my $img;
 
    # search for image corresponding to window
-   foreach my $entry ( @list ) {
+   foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
          $img = $entry->{img};  # 2D piddle for now
          last;
@@ -199,10 +199,10 @@ sub resize_window {
    my $window_id = glutGetWindow();
    my $img;
 
-   return unless scalar(@list);
+   return unless scalar(@imag2d_list);
 
    # search for image corresponding to window
-   foreach my $entry ( @list ) {
+   foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
          $img = $entry->{img};  # 2D piddle for now
          last;
@@ -258,10 +258,10 @@ sub display_image {
    my $img;
    my ($gldrawformat, $gldrawtype, $glds);
 
-   return unless scalar(@list);
+   return unless scalar(@imag2d_list);
 
    # search for image corresponding to window
-   foreach my $entry ( @list ) {
+   foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $window_id ) {
          $img = $entry->{img};  # 2D piddle for now
          last;
@@ -337,7 +337,7 @@ sub ModeMenu {
       my ($window_id) = glutGetWindow();
 
       # search for image corresponding to window
-      foreach my $listentry ( @list ) {
+      foreach my $listentry ( @imag2d_list ) {
          if ( $listentry->{window_id} == $window_id ) {
             $img = $listentry->{img};  # 2D piddle for now
             last;
@@ -596,7 +596,10 @@ sub imag2d {
    glutAttachMenu(GLUT_RIGHT_BUTTON);
 
    # add image and window to list
-   push @list, { window_id => $window_id, img => $img };
+   push @imag2d_list, { window_id => $window_id, img => $img };
+
+   # set callback for image window resize
+   glutCloseFunc( \&close_imag2d_window );
 
    # success
    glRasterPos2i( 0, 0 );
@@ -615,10 +618,10 @@ sub imag2d_update {
    my ($win_id, $image) = @_;
    my $img;
 
-   return unless scalar(@list);
+   return unless scalar(@imag2d_list);
 
    # search for image corresponding to window
-   foreach my $entry ( @list ) {
+   foreach my $entry ( @imag2d_list ) {
       if ( $entry->{window_id} == $win_id ) {
          $img = $entry->{img};  # 2D piddle for now
          last;
@@ -635,27 +638,57 @@ sub imag2d_update {
 }
 
 #------------------------------------------------------------------------
+# Close a specific imag2d window
+#------------------------------------------------------------------------
+sub close_imag2d_window {
+
+   my $win_id = glutGetWindow();
+
+   if ( ! scalar(@imag2d_list) ) {
+      $imag2d_keep_twiddling = 0;
+      return;
+   }
+
+   # search for image corresponding to window
+   my ($entry, $found_it);
+   foreach $entry ( @imag2d_list ) {
+      if ($entry->{window_id} == $win_id) {
+         $found_it = 1;
+         last;
+      }
+   }
+
+   if ($found_it) {
+      @imag2d_list = grep { $_->{window_id} != $win_id } @imag2d_list;
+      $imag2d_keep_twiddling = 0 unless scalar(@imag2d_list);
+   } else {
+      warn "close_imag2d_window: could not find open window\n";
+   }
+}
+
+#------------------------------------------------------------------------
 # Close all imag2d windows
 #------------------------------------------------------------------------
 sub close_imag2d {
 
-   return unless scalar(@list);
+   return unless scalar(@imag2d_list);
 
    # process all image windows
-   foreach my $entry ( @list ) {
+   foreach my $entry ( @imag2d_list ) {
       glutDestroyWindow($entry->{window_id});
    }
 
-   @list = ();
+   @imag2d_list = ();
 }
 
 #------------------------------------------------------------------------
 # Simple twiddle for perldl (use [qQ] to exit)
 #------------------------------------------------------------------------
 sub twiddle {
-   print STDERR "Type Q or q to stop twiddling\n";
-   $imag2d_keep_twiddling = 1;
-   while ($imag2d_keep_twiddling) {
+   print STDERR "Type Q or q to stop twiddling...\n";
+   $imag2d_keep_twiddling = 1 if scalar(@imag2d_list);
+   while ($imag2d_keep_twiddling && scalar(@imag2d_list)) {
       glutMainLoopEvent();
    }
+   print STDERR "Stopped twiddle-ing!\n";
 }
