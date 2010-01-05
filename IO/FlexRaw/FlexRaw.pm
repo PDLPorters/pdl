@@ -7,6 +7,10 @@ PDL::IO::FlexRaw -- A flexible binary i/o format for PerlDL.
 	use PDL;
 	use PDL::IO::FlexRaw;
 
+        # To obtain the header for reading (if multiple files use the
+        # same header, for example):
+        $hdr = PDL::IO::FlexRaw::_read_flexhdr("filename.hdr")
+
         ($x,$y,...) = readflex("filename" [, $hdr])
         ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
 
@@ -207,7 +211,18 @@ Memory map a binary file with flexible format specification
 
  ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
 
+=head2 _read_flexhdr
 
+Read a FlexRaw header file and return a header structure.
+
+=for usage
+
+ $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
+
+Note that C<_read_flexhdr> is supposed to be an internal function.  It
+was not originally documented and it is not tested.  However, there
+appeared to be no other method for obtaining a header structure from
+a file, so I figured I would write a small bit of documentation on it.
 
 =head1 AUTHOR
 
@@ -218,6 +233,7 @@ conditions. For details, see the file COPYING in the PDL
 distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
+Documentation contributions copyright (C) David Mertens, 2010.
 
 =cut
 
