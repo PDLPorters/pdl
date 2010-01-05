@@ -536,9 +536,9 @@ sub PDL::Graphics::TriD::Image::gdraw {
 	my ($p,$xd,$yd,$txd,$tyd) = $this->flatten(1); # do binary alignment
 	glColor3d(1,1,1);
         if ( $PDL::Config{USE_POGL} ) {
-           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+           glTexImage2D_s(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
         } else {
-           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, ${$p->get_dataref()});
+           glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, $txd, $tyd, 0, GL_RGB, GL_FLOAT, $p->get_dataref());
         }
 	 glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
@@ -648,7 +648,7 @@ sub gdriver {
   print "gdriver: Calling glpRasterFont...\n" if ($PDL::debug_trid);
   if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
      print STDERR "gdriver: window_type => 'glut' so not actually setting the rasterfont\n" if ($PDL::debug_trid);
-     $PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13;
+     eval '$PDL::Graphics::TriD::GL::fontbase = GLUT_BITMAP_8_BY_13';
   } else {
      # NOTE: glpRasterFont() will die() if the requested font cannot be found
      #       The new POGL+GLUT TriD implementation uses the builtin GLUT defined
@@ -833,6 +833,11 @@ sub display {
 
   return unless defined($this);
 
+  # set GLUT context to current window (for multiwindow support
+  if ( $this->{_GLObject}->{window_type} eq 'glut' ) {
+     glutSetWindow($this->{_GLObject}->{glutwindow});
+  }
+
   print "display: calling glClear()\n" if ($PDL::Graphics::TriD::verbose);
   glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
@@ -886,9 +891,9 @@ sub read_picture {
 	glPixelStorei(GL_PACK_ALIGNMENT,1);
 
         if ( $PDL::Config{USE_POGL} ) {
-           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+           glReadPixels_s(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
         } else {
-           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,${$res->get_dataref});
+           glReadPixels(0,0,$w,$h,GL_RGB,GL_UNSIGNED_BYTE,$res->get_dataref);
         }
 
 	return $res;

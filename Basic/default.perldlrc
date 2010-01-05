@@ -14,6 +14,12 @@ BEGIN{
    $PDL::verbose = $PDL::verbose = 1;
 }
 
+if ( $PERLDL::TERM->ReadLine() =~ /::Perl$/ ) {
+   if ( defined $readline::rl_MaxHistorySize ) {
+      $readline::rl_MaxHistorySize = $PERLDL::HISTFILESIZE;
+   }
+}
+
 use PDL::Doc::Perldl; # online docs module
 
 1;

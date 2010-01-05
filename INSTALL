@@ -1,6 +1,11 @@
 INSTALLATION
 ------------
 
+HINT: See the PDL SourceForge.net wiki at
+http://sourceforge.net/apps/mediawiki/pdl/index.php?title=Main_Page
+for installation guidance broken down by platform type.
+
+
 To install PDL on your machine, first check that you have a recent
 enough version of Perl, 5.8.x and above is recommended. Absolute
 minimum is 5.6.2+ but the use of perl 5.6.x is discouraged.
@@ -27,6 +32,22 @@ or if you don't have the cpan script try
 
 NOTE: if this is your first time running the cpan shell, you'll be
 propted to configure the running environment.
+
+IMPORTANT: Be sure your cpan build_dir location does not have
+white space in the name.  To check or change the setting, start
+the cpan shell as above, then to check:
+
+  cpan> o conf build_dir
+      build_dir          [/your/build dir/.cpan]
+  Type 'o conf' to view all configuration items
+
+And to change to something better:
+
+  cpan> o conf build_dir '/your/build_dir/.cpan'
+      build_dir          [/your/build_dir/.cpan]
+  Please use 'o conf commit' to make the config permanent!
+
+
 
 
 perldl.conf

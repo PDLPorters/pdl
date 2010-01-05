@@ -106,7 +106,7 @@ pgcolorpnts(n,x,y,z,sym)
 BOOT:
 
 	/* Get pointer to structure of core shared C routines */
-	ptr = perl_get_sv("PGPLOT::HANDLE",FALSE);  /* SV* value */
+	ptr = get_sv("PGPLOT::HANDLE",FALSE | GV_ADDMULTI);  /* SV* value */
 #ifndef aTHX_
 #define aTHX_
 #endif

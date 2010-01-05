@@ -167,6 +167,8 @@ sub new {
       OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
 
       my($glutwin) = OpenGL::glutCreateWindow( "GLUT TriD" );
+      OpenGL::glutSetWindowTitle("GLUT TriD #$glutwin");        # add GLUT window id to title
+
       $self = { 'glutwindow' => $glutwin, 'xevents' => \@fakeXEvents, 'winobjects' => \@winObjects };
 
       OpenGL::glutReshapeFunc( \&_pdl_fake_ConfigureNotify );
