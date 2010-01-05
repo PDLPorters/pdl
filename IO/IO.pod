@@ -249,5 +249,6 @@ details.  See also PDL::IO::Dumper for an alternative stringifier.
 
 =head1 AUTHOR
 
-David Mertens
+Copyright (C) 2010 David Mertens, dcmertens dot perl at gmail dot com.
+
 =cut
