@@ -33,6 +33,22 @@ or if you don't have the cpan script try
 NOTE: if this is your first time running the cpan shell, you'll be
 propted to configure the running environment.
 
+IMPORTANT: Be sure your cpan build_dir location does not have
+white space in the name.  To check or change the setting, start
+the cpan shell as above, then to check:
+
+  cpan> o conf build_dir
+      build_dir          [/your/build dir/.cpan]
+  Type 'o conf' to view all configuration items
+
+And to change to something better:
+
+  cpan> o conf build_dir '/your/build_dir/.cpan'
+      build_dir          [/your/build_dir/.cpan]
+  Please use 'o conf commit' to make the config permanent!
+
+
+
 
 perldl.conf
 -----------

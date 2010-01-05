@@ -3113,6 +3113,19 @@ will print:
   bar - bar
   bar - baz - bar
 
+Performing an operation in which more than one PDL has its hdrcpy flag
+causes the resulting PDL to take the header of the first PDL:
+
+  ($a,$b) = sequence(5,2)->dog;
+  $a->hdrcpy(1); $b->hdrcpy(1);
+  $a->hdr->{foo} = 'a';
+  $b->hdr->{foo} = 'b';
+  print (($a+$b)->hdr->{foo} , ($b+$a)->hdr->{foo});
+
+will print:
+
+  a b
+
 =head2 hcpy
 
 =for ref

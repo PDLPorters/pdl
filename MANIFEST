@@ -628,6 +628,7 @@ MANIFEST.SKIP
 Makefile.PL
 Padre/NiceSlice.pm
 Padre/README
+Padre/pdlrun
 README
 Release_Notes
 TODO

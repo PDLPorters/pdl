@@ -66,7 +66,7 @@ PDL::GIS::Proj
 PDL::Transform::Proj
 		A PDL interface to the PROJ4 geographic projection
 		library and the PDL::Transform interface to the same.
-		See http://www.remotesensing.org/proj
+		See http://trac.osgeo.org/proj/
 
 					Module will be built if the
 					PROJ4 library is installed and
@@ -104,9 +104,9 @@ PDL::Graphics::IIS
                 'IIS' protocol must be installed, e.g. SAOimage
                 or Ximtool, see
                 http://tdc-www.harvard.edu/software/saoimage.html
-                http://iraf.noao.edu/iraf/web/projects/x11iraf/x11iraf.html
+                http://iraf.noao.edu/iraf/web/projects/x11iraf/
 
-                                        Builds without viewers.
+                                        PDL builds without viewers.
 
 PDL::Graphics::Karma
                 Needs Karma visualisation library and tools.
@@ -145,12 +145,13 @@ PDL::IO::FITS   Needs Astro::FITS::Header for full support of all FITS
                 purposes of building with the cpan shell.
 
 PDL::IO::NDF
-                Requires the perl/NDF interface (NDFPERL).
-                (which also requires a fortran compiler and the
-                fortran NDF library). Get the STARPERL package from
-                http://www.starlink.rl.ac.uk/cgi-store/storeform2?STARPERL
-                to get NDFPERL. See http://www.starlink.rl.ac.uk/cgi-store/storeform2?NDF
-                to retrieve the NDF libraries.
+                NOTE: These refs/URLs may be incorrect or outdated.
+                Requires the perl/NDF interface, NDFPERL, which also
+		requires a fortran compiler and the fortran NDF library.
+		Get the STARPERL package from
+		http://starlink.jach.hawaii.edu/starlink where there
+		appears to be a git repository for STARPERL at
+		http://starlink.jach.hawaii.edu/git/?p=starperl.git;a=summary .
 
                                         Module builds ok without
                                         NDF module and library
@@ -158,10 +159,11 @@ PDL::IO::NDF
 PDL::IO::Pic
                 rpic/wpic: pbm+ or netpbm converters
                  http://netpbm.sourceforge.net/
-                 and ftp://ftp.uu.net/graphics/jpeg for jpeg converter
 
                 wmpeg: mpeg_encode program,
                   see http://bmrc.berkeley.edu/ftp/pub/multimedia/mpeg/encode/
+
+		NOTE: mpeg_encode may no longer be available.
 
                                         Module builds ok without
 					converters but t/pic_16bit

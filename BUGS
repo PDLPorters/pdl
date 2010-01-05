@@ -12,8 +12,8 @@ sourceforge.net account, you may get one:
 
    http://sourceforge.net/account/registration/
 
-If possible, please provide a way for the developers
-to contact you about the problem.
+If possible, please provide a way for the PDL
+developers to contact you about the problem.
 
 Try to include any information you think might
 help the developer isolate, reproduce and fix
@@ -21,7 +21,7 @@ your problem.
 
 At a *minimum*, include the following information:
 
-    * PDL version number (e.g. PDL-2.4.5)
+    * PDL version number (e.g. PDL-2.4.6)
 
     * Perl version information
       (output from "perl -v" or "perl -V", even better!)
@@ -69,7 +69,7 @@ BEFORE YOU SEND A REPORT
 BEFORE you report a bug make sure you got the latest
 release version of PDL (always available from CPAN,
 check http://search.cpan.org/search?dist=PDL). Also
-check the FAQ (http://pdl/sourceforge.net/FAQ) and
+check the FAQ (http://pdl.sourceforge.net/FAQ) and
 the mailing list archives for hints. You can find
 links to the searchable archives at
 
@@ -90,7 +90,7 @@ Patches should be made against the latest released
 PDL or, ideally, against the current git sources
 which you can browse and check out at
 
-   git://pdl.git.sourceforge.net/gitroot/pdl
+   git://pdl.git.sourceforge.net/gitroot/pdl/pdl
 
 
 Thanks,

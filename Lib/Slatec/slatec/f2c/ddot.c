@@ -1,0 +1,149 @@
+/* ddot.f -- translated by f2c (version 20060506).
+   You must link the resulting object file with libf2c:
+	on Microsoft Windows system, link with libf2c.lib;
+	on Linux or Unix systems, link with .../path/to/libf2c.a -lm
+	or, if you install libf2c.a in a standard place, with -lf2c -lm
+	-- in that order, at the end of the command line, as in
+		cc *.o -lf2c -lm
+	Source for libf2c is in /netlib/f2c/libf2c.zip, e.g.,
+
+		http://www.netlib.org/f2c/libf2c.zip
+*/
+
+#include "f2c.h"
+
+/* DECK DDOT */
+doublereal ddot_(integer *n, doublereal *dx, integer *incx, doublereal *dy, 
+	integer *incy)
+{
+    /* System generated locals */
+    integer i__1, i__2;
+    doublereal ret_val;
+
+    /* Local variables */
+    static integer i__, m, ix, iy, ns, mp1;
+
+/* ***BEGIN PROLOGUE  DDOT */
+/* ***PURPOSE  Compute the inner product of two vectors. */
+/* ***LIBRARY   SLATEC (BLAS) */
+/* ***CATEGORY  D1A4 */
+/* ***TYPE      DOUBLE PRECISION (SDOT-S, DDOT-D, CDOTU-C) */
+/* ***KEYWORDS  BLAS, INNER PRODUCT, LINEAR ALGEBRA, VECTOR */
+/* ***AUTHOR  Lawson, C. L., (JPL) */
+/*           Hanson, R. J., (SNLA) */
+/*           Kincaid, D. R., (U. of Texas) */
+/*           Krogh, F. T., (JPL) */
+/* ***DESCRIPTION */
+
+/*                B L A S  Subprogram */
+/*    Description of Parameters */
+
+/*     --Input-- */
+/*        N  number of elements in input vector(s) */
+/*       DX  double precision vector with N elements */
+/*     INCX  storage spacing between elements of DX */
+/*       DY  double precision vector with N elements */
+/*     INCY  storage spacing between elements of DY */
+
+/*     --Output-- */
+/*     DDOT  double precision dot product (zero if N .LE. 0) */
+
+/*     Returns the dot product of double precision DX and DY. */
+/*     DDOT = sum for I = 0 to N-1 of  DX(LX+I*INCX) * DY(LY+I*INCY), */
+/*     where LX = 1 if INCX .GE. 0, else LX = 1+(1-N)*INCX, and LY is */
+/*     defined in a similar way using INCY. */
+
+/* ***REFERENCES  C. L. Lawson, R. J. Hanson, D. R. Kincaid and F. T. */
+/*                 Krogh, Basic linear algebra subprograms for Fortran */
+/*                 usage, Algorithm No. 539, Transactions on Mathematical */
+/*                 Software 5, 3 (September 1979), pp. 308-323. */
+/* ***ROUTINES CALLED  (NONE) */
+/* ***REVISION HISTORY  (YYMMDD) */
+/*   791001  DATE WRITTEN */
+/*   890831  Modified array declarations.  (WRB) */
+/*   890831  REVISION DATE from Version 3.2 */
+/*   891214  Prologue converted to Version 4.0 format.  (BAB) */
+/*   920310  Corrected definition of LX in DESCRIPTION.  (WRB) */
+/*   920501  Reformatted the REFERENCES section.  (WRB) */
+/* ***END PROLOGUE  DDOT */
+/* ***FIRST EXECUTABLE STATEMENT  DDOT */
+    /* Parameter adjustments */
+    --dy;
+    --dx;
+
+    /* Function Body */
+    ret_val = 0.;
+    if (*n <= 0) {
+	return ret_val;
+    }
+    if (*incx == *incy) {
+	if ((i__1 = *incx - 1) < 0) {
+	    goto L5;
+	} else if (i__1 == 0) {
+	    goto L20;
+	} else {
+	    goto L60;
+	}
+    }
+
+/*     Code for unequal or nonpositive increments. */
+
+L5:
+    ix = 1;
+    iy = 1;
+    if (*incx < 0) {
+	ix = (-(*n) + 1) * *incx + 1;
+    }
+    if (*incy < 0) {
+	iy = (-(*n) + 1) * *incy + 1;
+    }
+    i__1 = *n;
+    for (i__ = 1; i__ <= i__1; ++i__) {
+	ret_val += dx[ix] * dy[iy];
+	ix += *incx;
+	iy += *incy;
+/* L10: */
+    }
+    return ret_val;
+
+/*     Code for both increments equal to 1. */
+
+/*     Clean-up loop so remaining vector length is a multiple of 5. */
+
+L20:
+    m = *n % 5;
+    if (m == 0) {
+	goto L40;
+    }
+    i__1 = m;
+    for (i__ = 1; i__ <= i__1; ++i__) {
+	ret_val += dx[i__] * dy[i__];
+/* L30: */
+    }
+    if (*n < 5) {
+	return ret_val;
+    }
+L40:
+    mp1 = m + 1;
+    i__1 = *n;
+    for (i__ = mp1; i__ <= i__1; i__ += 5) {
+	ret_val = ret_val + dx[i__] * dy[i__] + dx[i__ + 1] * dy[i__ + 1] + 
+		dx[i__ + 2] * dy[i__ + 2] + dx[i__ + 3] * dy[i__ + 3] + dx[
+		i__ + 4] * dy[i__ + 4];
+/* L50: */
+    }
+    return ret_val;
+
+/*     Code for equal, positive, non-unit increments. */
+
+L60:
+    ns = *n * *incx;
+    i__1 = ns;
+    i__2 = *incx;
+    for (i__ = 1; i__2 < 0 ? i__ >= i__1 : i__ <= i__1; i__ += i__2) {
+	ret_val += dx[i__] * dy[i__];
+/* L70: */
+    }
+    return ret_val;
+} /* ddot_ */
+
