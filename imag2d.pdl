@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Mon 04 Jan 2010 08:38:28 PM
+# Last saved: Tue 05 Jan 2010 08:44:36 PM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -460,7 +460,7 @@ dimensions.
 
 The image to display can have dimensions ($c,$M,$N) where for
 $c==4 the display is in GL_RGBA, for $c==3 the display is GL_RGB,
-for $c==2 the display is GL_LUMINANCE_ALPHA, and for $c==1 for
+for $c==2 the display is GL_LUMINANCE_ALPHA, and for $c==1 or for
 for dimensions ($M,$N) then the display is GL_LUMINANCE.
 
 This routine does not thread but multiple images may be
