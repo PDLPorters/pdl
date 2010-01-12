@@ -85,10 +85,11 @@ PDL::Graphics::TriD
 					and USE_POGL (see INSTALL).
 
 PDL::Graphics::PGPLOT
-                PGPLOT perl module and PGPLOT fortran library,
+                PGPLOT perl module **and** PGPLOT fortran library,
                 see http://astro.caltech.edu/~tjp/pgplot for the library
                 and CPAN at http://search.cpan.org/search%3fmodule=PGPLOT
-                for the perl module
+                for the perl module.  NOTE: These are two different things
+		that must be installed.
 
                                         Module builds ok without
                                         PGPLOT module and library
