@@ -1320,6 +1320,8 @@ sub map {
     }
   }
 
+  croak("PDL::Transform::map: Option 'p' was ambiguous and has been removed. You probably want 'pix' or 'phot'.") if exists($opt->{'p'});
+
   $tmp = [$in->dims]  unless(defined($tmp));
 
   # Generate an appropriate output piddle for values to go in
@@ -1376,7 +1378,7 @@ sub map {
 
   ##############################
   # If necessary, generate an appropriate FITS header for the output.
-  my $nofits = _opt($opt, ['nf','nofits','NoFITS','p','pix','pixel','Pixel']);
+  my $nofits = _opt($opt, ['nf','nofits','NoFITS','pix','pixel','Pixel']);
   my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
     $me :
     $me x t_fits($in,{ignore_rgb=>1});
@@ -1580,7 +1582,7 @@ sub map {
   my $blur  =  _opt($opt,['blur','Blur'],1.0);
   my $svmin =  _opt($opt,['sv','SV'],1.0);
   my $big   =  _opt($opt,['big','Big'],1.0);
-  my $flux  =  _opt($opt,['p','phot','photometry'],0);
+  my $flux  =  _opt($opt,['phot','photometry'],0);
   my @idims = $in->dims;
 
   $flux = ($flux =~ m/^[1fF]/);
