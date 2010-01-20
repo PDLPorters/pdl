@@ -117,16 +117,18 @@ sub px {
   print $title;
   print '-'x(length($title)+3)."\n";
   my ($pdl,$npdls,$key,$val,$info) = ((),0,"","","");
-  while (($key,$val) = each(%stab)) {
-    $pdl = ${"$package$key"};
-    # print info for all objects derived from this class
-    if (UNIVERSAL::isa($pdl,$classname)) {
-      $npdls++;
-      $info = $pdl->info($PDL::Dbg::Infostr);
-      printf "\$%-11s %s %s\n",$key,$info,(ref($pdl) eq $classname ? '' :
-					 ref($pdl));
-      # also print classname for derived classes
-    }
+  # while (($key,$val) = each(%stab)) {
+  foreach $key ( sort { lc($a) cmp lc($b) } keys(%stab) ) {
+     $val = $stab{$key};
+     $pdl = ${"$package$key"};
+     # print info for all objects derived from this class
+     if (UNIVERSAL::isa($pdl,$classname)) {
+        $npdls++;
+        $info = $pdl->info($PDL::Dbg::Infostr);
+        printf "\$%-11s %s %s\n",$key,$info,(ref($pdl) eq $classname ? '' :
+           ref($pdl));
+        # also print classname for derived classes
+     }
   }
   print "no $classname objects in package $package\n"
        unless $npdls;

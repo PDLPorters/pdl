@@ -1,6 +1,7 @@
 $|=1;
 use PDL;
 use PDL::Graphics::TriD;
+use Time::HiRes qw(sleep);
 # use PDL::Dbg;
 
 # PDL::Core::set_debugging(1);
@@ -46,5 +47,6 @@ for(1..60) {
 	nokeeptwiddling3d();
 	my $r = $res/max($res);
 	imagrgb [$r,1-$r,$r] if $_ % 2 == 0;
+        sleep 0.05;
 }
 

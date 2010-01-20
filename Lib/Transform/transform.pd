@@ -1111,7 +1111,7 @@ sampling or interpolating stage.  Other values are 'forbid','extend', and
 'truncate' causes the entire notional space outside the original image
 to be filled with 0.
 
-=item p, pix, Pixel, nf, nofits, NoFITS (default = 0)
+=item pix, Pixel, nf, nofits, NoFITS (default = 0)
 
 If you set this to a true value, then FITS headers and interpretation
 are ignored; the transformation is treated as being in raw pixel coordinates.
@@ -1241,7 +1241,7 @@ Wherever an output pixel would require averaging over an area that is too
 big in input space, it instead gets NaN or the equivalent (bad values are
 not yet supported).
 
-=item p, phot, photometry, Photometry
+=item phot, photometry, Photometry
 
 This lets you set the style of photometric conversion to be used in the 
 hanning or gaussian methods.  You may choose:
@@ -1320,6 +1320,8 @@ sub map {
     }
   }
 
+  croak("PDL::Transform::map: Option 'p' was ambiguous and has been removed. You probably want 'pix' or 'phot'.") if exists($opt->{'p'});
+
   $tmp = [$in->dims]  unless(defined($tmp));
 
   # Generate an appropriate output piddle for values to go in
@@ -1376,7 +1378,7 @@ sub map {
 
   ##############################
   # If necessary, generate an appropriate FITS header for the output.
-  my $nofits = _opt($opt, ['nf','nofits','NoFITS','p','pix','pixel','Pixel']);
+  my $nofits = _opt($opt, ['nf','nofits','NoFITS','pix','pixel','Pixel']);
   my $f_tr = ($nofits || !defined($in->hdr->{NAXIS})) ?
     $me :
     $me x t_fits($in,{ignore_rgb=>1});
@@ -1580,7 +1582,7 @@ sub map {
   my $blur  =  _opt($opt,['blur','Blur'],1.0);
   my $svmin =  _opt($opt,['sv','SV'],1.0);
   my $big   =  _opt($opt,['big','Big'],1.0);
-  my $flux  =  _opt($opt,['p','phot','photometry'],0);
+  my $flux  =  _opt($opt,['phot','photometry'],0);
   my @idims = $in->dims;
 
   $flux = ($flux =~ m/^[1fF]/);

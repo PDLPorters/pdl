@@ -3,6 +3,7 @@ use PDL;
 use PDL::Graphics::TriD;
 use PDL::Graphics::TriD::Graph;
 use PDL::Graphics::TriD::MathGraph;
+use PDL::Graphics::TriD::Labels;
 
 $g = PDL::Graphics::TriD::get_new_graph();
 $g->default_axes();

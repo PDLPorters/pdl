@@ -1,5 +1,9 @@
 The following issues have been reported with this version of PDL:
 
+- The demo 3d and 3d2 windows do not close (can not be closed)
+  after the demo finishes.  You need to exit the perldl shell
+  to have the window close.
+
 
 - imag2d() twiddling can hang if you close the last of the image
   windows without returning to the perldl command line.

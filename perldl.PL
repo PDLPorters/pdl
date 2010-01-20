@@ -604,7 +604,7 @@ sub process_input {
   $lines =~ s/^\s*\?\s*/help /;      # Make lone '?' = 'help'
 
   if ( $lines =~ /^\s*(help|usage|apropos|sig|badinfo|demo)\s+/) { # Allow help foo (no quotes)
-      @t = split(/\s+/,$lines);
+      my @t = split(/\s+/,$lines);
       my $a;
       foreach $a(@t) { $a=~s/^["']+//; $a=~s/['"]+$//; };
       $t[1] = "'".$t[1]."'"  if ($#t == 1 && !($t[1] =~ /^\$/));
@@ -646,7 +646,7 @@ sub process_input {
 
 # check for old usage of PERLDL::PREPROCESS
 if (defined $PERLDL::PREPROCESS) {
-  preproc_oldwarn();
+   preproc_oldwarn() unless $preproc_warned;
 }
 
 $|=1;

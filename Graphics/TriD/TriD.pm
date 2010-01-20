@@ -5,14 +5,29 @@ PDL::Graphics::TriD -- PDL 3D interface
 =head1 SYNOPSIS
 
  use PDL::Graphics::TriD;
-
- # After each graph, let the user rotate is and
+ 
+ # Generate a somewhat interesting sequence of points:
+ $t = sequence(100)/10;
+ $x = sin($t); $y = cos($t), $z = $t;
+ $coords = cat($x, $y, $z)->xchg(0,1);
+ $r = cos(2*$t); $g = sin($t); $b = $t;
+ $colors = cat($r, $g, $b)->xchg(0,1);
+ 
+ # After each graph, let the user rotate and
  # wait for him to press 'q', then make new graph
  line3d($coords);       # $coords = (3,n,...)
  line3d($coords,$colors);  # $colors = (3,n,...)
  line3d([$x,$y,$z]);
- imagrgb([$r,$g,$b]);
- lattice3d([$x,$y,$z]); # 2-d piddles
+ 
+ # Generate a somewhat interesting sequence of surfaces
+ $surf1 = (rvals(100, 100) / 50)**2 + sin(xvals(100, 100) / 10);
+ $surf2 = sqrt(rvals(zeroes(50,50))/2);
+ $x = sin($surface); $y = cos($surface), $z = $surface;
+ $coords = cat($x, $y, $z)->xchg(0,1);
+ $r = cos(2*$surface); $g = sin($surface); $b = $surface;
+ $colors = cat($r, $g, $b)->xchg(0,1);
+ imagrgb([$r,$g,$b]);     # 2-d piddles
+ lattice3d([$surf1]);
  points3d([$x,$y,$z]);
 
  hold3d(); # the following graphs are on top of each other and the previous
@@ -147,6 +162,109 @@ you don't need to start thinking about where to plot the points:
 
 will do exactly the same.
 
+=head2 Wrapping your head around 3d surface specifications
+
+Let's begin by thnking about how you might make a 2d data plot.
+If you sampled your data at regular intervals, you would have
+a time serires y(t) = (y0, y1, y2, ...).  You could plot y vs t
+by computing t0 = 0, t1 = dt, t2 = 2 * dt, and then plotting
+(t0, y0), (t1, y1), etc.
+
+Next suppose that you measured x(t) and y(t).  You can still
+plot y vs t, but you can also plot y vs x by plotting (x0, y0),
+(x1, y1), etc.  The x-values don't have to increase monotonically:
+they could back-track on each other, for example, like the
+latitude and longitude of a boat on a lake.  If you use plplot,
+you would plot this data using
+C<< $pl->xyplot($x, $y, PLOTTYPE => 'POINTS') >>.
+
+Good.  Now let's add a third coordinate, z(t).  If you actually
+sampled x and y at regular intervals, so that x and y lie on a
+grid, then you can construct a grid for z(x, y), and you would
+get a surface.  This is the situation in which you would use
+C<mesh3d([$surface])>.
+
+Of course, your data is not required to be regularly gridded.
+You could, for example, be measuring the flight path of a bat
+flying after mosquitos, which could be wheeling and arching
+all over the space.  This is what you might plot using 
+C<line3d([$x, $y, $z])>.  You could plot the trajectories of
+multiple bats, in which case C<$x>, C<$y>, and C<$z> would have
+multiple columns, but in general you wouldn't expect them to be
+coordinated.
+
+Finally, imagine that you have an air squadron flying in
+formation.  Your (x, y, z) data is not regularly gridded, but
+the (x, y, z) data for each plane should be coordinated and
+we can imagine that their flight path sweep out a surface.
+We could draw this data using C<line3d([$x, $y, $z])>, where
+each column in the variables corresponds to a different plane,
+but it would also make sense to draw this data using
+C<mesh3d([$x, $y, $z])>, since the planes' proximity to each
+other should be fairly consistent.  In other words, it makes
+sense to think of the planes as sweeping out a coordinated
+surface, which C<mesh3d> would draw for you, whereas you would
+not expect the trajectories of the various bats to describe a
+meaningful surface (unless you're into fractals, perhaps).
+
+ #!/usr/bin/perl
+
+ use PDL;
+ use PDL::Graphics::TriD;
+
+ # Draw out a trajectory in three-space
+ $t = sequence(100)/10;
+ $x = sin($t); $y = cos($t); $z = $t;
+
+ # Plot the trajectory as (x(t), y(t), z(t))
+ print "using line3d to plot a trajectory (press q when you're done twiddling)\n";
+ line3d [$x,$y,$z];
+
+ # If you give it a single piddle, it expects
+ # the data to look like
+ # ((x1, y1, z1), (x2, y2, z2), ...)
+ # which is why we have to do the exchange:
+ $coords = cat($x, $y, $z)->xchg(0,1);
+ print "again, with a different coordinate syntax (press q when you're done twiddling)\n";
+ line3d $coords;
+
+ # Draw a regularly-gridded surface:
+ $surface = sqrt(rvals(zeroes(50,50))/2);
+ print "draw a mesh of a regularly-gridded surface using mesh3d\n";
+ mesh3d [$surface];
+ print "draw a regularly-gridded surface using imag3d\n";
+ imag3d [$surface], {Lines=>0};
+
+ # Draw a mobius strip:
+ $two_pi = 8 * atan2(1,1);
+ $t = sequence(50) / 50 * $two_pi;
+ # We want two paths:
+ $mobius1_x = cos($t) + 0.5 * sin($t/2);
+ $mobius2_x = cos($t);
+ $mobius3_x = cos($t) - 0.5 * sin($t/2);
+ $mobius1_y = sin($t) + 0.5 * sin($t/2);
+ $mobius2_y = sin($t);
+ $mobius3_y = sin($t) - 0.5 * sin($t/2);
+ $mobius1_z = $t - $two_pi/2;
+ $mobius2_z = zeroes($t);
+ $mobius3_z = $two_pi/2 - $t;
+
+ $mobius_x = cat($mobius1_x, $mobius2_x, $mobius3_x);
+ $mobius_y = cat($mobius1_y, $mobius2_y, $mobius3_y);
+ $mobius_z = cat($mobius1_z, $mobius2_z, $mobius3_z);
+
+ $mobius_surface = cat($mobius_x, $mobius_y, $mobius_z)->mv(2,0);
+
+ print "A mobius strip using line3d one way\n";
+ line3d $mobius_surface;
+ print "A mobius strip using line3d the other way\n";
+ line3d $mobius_surface->xchg(1,2);
+ print "A mobius strip using mesh3d\n";
+ mesh3d $mobius_surface;
+ print "The same mobius strip using imag3d\n";
+ imag3d $mobius_surface, {Lines => 0};
+
+
 =head1 SIMPLE ROUTINES
 
 Because using the whole object-oriented interface for doing
@@ -198,7 +316,7 @@ contexts and options
 
 Example:
 
- perldl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {{Lines=>0};
+ perldl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
 
  - Rendered image of surface
 
@@ -478,6 +596,8 @@ to the previous viewport in the (0,1) range.
 Every implementation-level window object should implement the new_viewport
 method.
 
+=head1 EXAMPLE SCRIPT FOR VARIOUS 
+
 =cut
 
 #KGB: NEEDS DOCS ON COMMON OPTIONS!!!!!
@@ -550,7 +670,6 @@ BEGIN {
 	require "$mod.pm";
 	$dv->import;
         my $verbose;
-
 }
 
 

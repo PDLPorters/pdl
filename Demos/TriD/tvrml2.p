@@ -1,4 +1,12 @@
-BEGIN { $PDL::Graphics::TriD::device = "VRML"; }
+BEGIN {
+   $PDL::Graphics::TriD::device = "VRML";
+   print "====================================\n";
+   print " VRML not available...stopping demo \n";
+   print "====================================\n";
+   exit;
+}
+
+
 BEGIN{
   PDL::Graphics::VRMLNode->import();
   PDL::Graphics::VRMLProto->import();

@@ -764,6 +764,7 @@ t/pthread.t
 t/reduce.t
 t/refs.t
 t/requiredmods.t
+t/round.t
 t/scope.t
 t/segfault.t
 t/slatec.t

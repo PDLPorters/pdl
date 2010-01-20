@@ -149,7 +149,9 @@ this causes it to be returned as a hash ref directly.)
 Determines whether the L<hdrcpy|PDL::Core/hdrcpy> flag is set in the returned
 PDL.  Setting the flag will cause an explicit deep copy of the header whenever
 you use the returned PDL in an arithmetic or slicing operation.  That is useful
-in many circumstances but also causes a hit in speed.  
+in many circumstances but also causes a hit in speed.  When two or more PDLs 
+with hdrcpy set are used in an expression, the result gets the header of the 
+first PDL in the expression.  See L<hdrcpy|PDL::Core/hdrcpy> for an example.
 
 =back
 

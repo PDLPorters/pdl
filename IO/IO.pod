@@ -1,0 +1,254 @@
+=pod
+
+=head1 NAME
+
+PDL::IO - An overview of the modules in the PDL::IO namespace.
+
+=head1 SYNOPSIS
+
+ # At your system shell, type:
+ perldoc PDL::IO
+
+=head1 DESCRIPTION
+
+PDL contains many modules for displaying, loading, and saving data.
+
+=over
+
+=item * Perlish or Text-Based
+
+A few IO modules provide Perl-inspired capabilities.  These are
+PDL::IO::Dumper and PDL::IO::Storable.  PDL::IO::Misc provides
+simpler routines for dealing with delimited files, though its
+capabilities are limited to tabular or at most 3-d data sets.
+
+=item * Raw Format
+
+PDL has two modules that store their data in a raw binary format; they
+are PDL::IO::FastRaw and PDL::IO::FlexRaw.  They are fast but the files
+they produce will not be readable across different architectures.
+These two modules are so similar that they could probably be combined.
+
+=item * Data Browsing
+
+At the moment, only PDL::IO::Browser provides data browsing functionality.
+
+=item * Image Handling
+
+PDL has a handful of modules that will load images into piddles for you.
+They include PDL::IO::Dicom, PDL::IO::FITS, PDL::IO::GD, PDL::IO::Pic,
+and PDL::IO::Pnm.
+
+=item * General Data Storage Formats
+
+PDL has a number of modules that interface general data storage libraries.
+They include PDL::IO::HDF and PDL::IO::NDF.  There is a PDL::IO::IDL,
+though at the moment it is not distributed with PDL.  Also, PDL::IO::FlexRaw
+and PDL::IO::FastRaw read and write data identical to FORTRAN 77 UNFORMATTED
+files, and FlexRaw and Storable provide general data storage capabilities.
+Finally, PDL can read Grib (weather-data) files using the CPAN module
+PDL::IO::Grib.
+
+=item * Making Movies
+
+You can make an MPEG animation using PDL::IO::Pic's wmpeg function.
+
+=back
+
+Here's a brief summary of all of the modules, in alphabetical order.
+
+=head2 PDL::IO::Browser
+
+The Browser module provides a text-based data browser for 2D data sets.
+
+It uses the CURSES library to do the scrolling, so if your operating
+system does not have the cureses library, you won't be able to install
+this on your machine.  (Note that the package containing the header
+files for the CURSES library may be called C<libcurses> or possibly
+C<libncurses>.)
+
+PDL::IO::Browser is not installed by default because it gives
+trouble on Mac OS X, and not enough is known to fix the problem.
+If you want to enable it, edit the perldl configuration file
+and rebuild PDL.  To learn more about editing the configuration
+file, see the INSTALLATION section in L<the FAQ|PDL::FAQ>.  (Also,
+if you are familiar with CURSES on Mac, your help would be much
+appreciated!)
+
+To see if the module is installed on your machine (and to get more
+information about PDL::IO::Browser), follow L<this link|PDL::IO::Browser>
+or type at the system prompt:
+
+ perldoc PDL::IO::Browser
+
+If you want to get more information about PDL::IO::Browser and it's
+not installed on your system, I'm afraid you'll have to pick out the
+pod from the source file, which can be found online at 
+L<http://pdl.git.sourceforge.net/git/gitweb.cgi?p=pdl/pdl;a=blob_plain;f=IO/Browser/browser.pd;hb=HEAD>.
+
+=head2 PDL::IO::Dicom
+
+DICOM is an image format, and this module allows you to read image
+files with the DICOM file format.  To read more, check the
+L<PDL::IO::Dicom documentation|PDL::IO::Dicom>.
+
+=head2 PDL::IO::Dumper
+
+Provides functionality similar to L<Data::Dumper> for piddles.
+L<Data::Dumper> stringifies a data structure, creating a string that
+can be C<eval>ed to reproduce the original data structure.  It's also
+usually suitable for printing, to visualize the structure.
+
+To read more, check the L<PDL::IO::Dumper documentation|PDL::IO::Dumper>.
+See also PDL::IO::Storable for a more comprehensive structured
+data solution.
+
+=head2 PDL::IO::FastRaw
+
+Very simple module for quickly writing, reading, and memory-mapping
+piddles to/from disk.  It is fast to learn and fast to use, though
+you may be frustrated by its lack of options.  To quote from
+the original POD:
+
+"The binary files are in general NOT interchangeable between different
+architectures since the binary file is simply dumped from the memory
+region of the piddle.  This is what makes the approach efficient."
+
+This creates two files for every piddle saved - one that stores the
+raw data and another that stores the header file, which indicates
+the dimensions of the data stored in the raw file.  Even
+if you save 1000 different piddles with the exact same dimensions,
+you will still need to write out a header file for each one.  You
+cannot store multiple piddles in one file.
+
+For more details, see L<PDL::IO::FastRaw>.  For a more flexible
+raw IO module, see PDL::IO::FlexRaw.
+
+=head2 PDL::IO::FITS
+
+Allows basic reading and writing of FITS files.  You can read more
+about FITS formatted files at L<http://fits.gsfc.nasa.gov/fits_intro.html>
+and L<http://en.wikipedia.org/wiki/FITS>.  It is an image format
+commonly used in Astronomy.
+
+This module may or may not be installed on your machine.  To get more
+information, check online at 
+L<http://pdl.sourceforge.net/PDLdocs/IO/FITS.html>.  To see if the
+module is installed on your machine, follow L<this link|PDL::IO::FITS>
+or type at the system prompt:
+
+ perldoc PDL::IO::FITS
+
+=head2 PDL::IO::FlexRaw
+
+Somewhat smarter module (compared to FastRaw) for reading, writing,
+and memory mapping piddles to disk.  In addition to everything that
+FastRaw can do, FlexRaw can also store multiple piddles in a single
+file, take user-specified headers (so you can use one header file
+for multiple files that have identical structure), and read
+compressed data.  However, FlexRaw cannot memory-map compressed data,
+and just as with FastRaw, the format will not work across multiple
+architectures.
+
+FlexRaw and FastRaw produce identical raw files and have essentially
+identical performance.  Use whichever module seems to be more
+comfortable.  I would generally recommend using FlexRaw over
+FastRaw, but the differences are minor for most uses.
+
+For more details on FlexRaw, see L<PDL::IO::FlexRaw>.
+
+=head2 PDL::IO::GD
+
+GD is a library for reading, creating, and writing bitmapped images,
+written in C.  You can read more about the C-library here:
+L<http://www.libgd.org/>.
+
+In addition to reading and writing .png and .jpeg files, GD allows
+you to modify the bitmap by drawing rectangles, adding text, and
+probably much more.  The documentation can be
+L<found here|PDL::IO::GD>.  As such, it should probably be not
+only considered an IO module, but a Graphics module as well.
+
+This module provides PDL bindings for the GD library, which ought
+not be confused with the Perl bindings.  The perl bindings were
+developed independently and can be found at L<GD>, if you have
+Perl's GD bindings installed.
+
+=head2 PDL::IO::Grib
+
+A CPAN module last updated in 2000 that allows you to read Grib files.
+GRIB is a data format commonly used in meteorology.  In the off-chance
+that you have it installed, you should L<read PDL::IO::Grib's
+documenation|PDL::IO::Grib>.
+
+=head2 PDL::IO::HDF, PDL::IO::HDF5
+
+Provides an interface to HDF4 and HDF5 file formats, which are kinda like
+cross-platform binary XML files.  HDF stands for B<H>eierarchicl B<D>ata
+B<F>ormat.  HDF was originally developed at the NCSA.  To read more about
+HDF, see L<http://www.hdfgroup.org/>.  Note that HDF5 is not presently
+distributed with PDL, and neither HDF4 nor HDF5 will be installed unless
+you have the associated C libraries that these modules interface.  Also
+note that the HDF5 library on CPAN is rather old and somebody from HDF
+contacted the mailing list in the Fall of 2009 to develop new and better
+HDF5 bindings for Perl.
+
+You should look into the L<PDL::IO::HDF (4) documentation|PDL::IO::HDF> or
+L<PDL::IO::HDF5 documentation|PDL::IO::HDF5>, depending upon which module
+you have installed.
+
+=head2 PDL::IO::IDL
+
+Once upon a time, PDL had a module for reading IDL data files.  Unfortunately, it
+cannot be distributed because the original author, Craig DeForest,
+signed the IDL license agreement and was unable to negotiate the administrative
+hurdles to get it published.  However, it can be found in Sourceforge's CVS attic, and
+any PDL user who has not signed IDL's license agreement can fix it up and resubmit it.
+
+=head2 PDL::IO::Misc
+
+Provides mostly text-based IO routines.  Data input and output is
+restricted mostly to tabular (i.e. two-dimensional) data sets,
+though limited support is provided for 3d data sets.
+
+Alternative text-based modules support higher dimensions, such
+as PDL::IO::Dumper and PDL::IO::Storable.  Check the
+L<PDL::IO::Misc documentation|PDL::IO::Misc> for more details.
+
+=head2 PDL::IO::NDF
+
+Starlink developed a file format for N-Dimensional data Files,
+which it cleverly dubbed NDF.  If you work with these files,
+you're in luck!  Check the L<PDL::IO::NDF documentation|PDL::IO::NDF>
+for more details.
+
+=head2 PDL::IO::Pic
+
+Provides reading/writing of images to/from piddles, as well as creating
+MPEG animations!  The module uses the netpbm library, so you will
+need that on your machine in order for this to work.  To read more,
+see the L<PDL::IO::Pic documentation|PDL::IO::Pic>.  Also look into
+the next module, as well as PDL::IO::GD.
+
+=head2 PDL::IO::Pnm
+
+Provides methods for reading and writing pnm files (of which pbm is
+but one).  Check the L<PDL::IO::Pnm documentation|PDL::IO::Pnm> for
+more details.  Also check out the previous module and PDL::IO::GD.
+
+=head2 PDL::IO::Storable
+
+Implements the relevant methods to be able to store and retrieve piddles
+via Storable.  True, you can use many methods to save a single piddle.
+In contrast, this module is particularly useful if you need to save a complex Perl structure
+that contain piddles, such as an array of hashes, each of which contains
+piddles.
+
+Check the L<PDL::IO::Storable documentation|PDL::IO::Storable> for more
+details.  See also PDL::IO::Dumper for an alternative stringifier.
+
+=head1 AUTHOR
+
+Copyright (C) 2010 David Mertens, dcmertens dot perl at gmail dot com.
+
+=cut

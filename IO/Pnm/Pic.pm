@@ -661,9 +661,9 @@ Use color-table information
 
 =cut
 
-use PDL::IO::Pic;
+*wim = \&PDL::wim;
 
-sub wim {
+sub PDL::wim {
   my(@args) = @_;
 
   my($im) = $args[0];

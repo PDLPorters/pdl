@@ -67,7 +67,11 @@ sub new_viewport {
 	 use PDL::Graphics::TriD::ArcBall;
 	 use PDL::Graphics::TriD::SimpleScaler;
 	 use PDL::Graphics::TriD::Control3D;
-    use PDL::Graphics::TriD::GL;  
+         if (defined($PDL::Graphics::TriD::offline) and $PDL::Graphics::TriD::offline==1 ) {
+            eval "use PDL::Graphics::TriD::VRML";  
+         } else {
+            eval "use PDL::Graphics::TriD::GL";  
+         }
 
 	 my $ev = $options->{EHandler};
 	 $ev = new PDL::Graphics::TriD::EventHandler($vp) unless defined($ev);
