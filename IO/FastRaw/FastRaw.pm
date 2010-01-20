@@ -327,7 +327,7 @@ sub maptextfraw  {PDL->maptextfraw(@_)}
 
 sub _read_frawhdr {
 	my($name,$opts) = @_;
-	my $hname = $opts->{Header} or "$name.hdr";
+	my $hname = $opts->{Header} || "$name.hdr";
 	my $h = new FileHandle "$hname"
 	 or barf "Couldn't open '$hname' for reading";
 	my $tid = <$h>;
@@ -346,7 +346,7 @@ sub _read_frawhdr {
 
 sub _writefrawhdr {
 	my($pdl,$name,$opts) = @_;
-	my $hname = $opts->{Header} or "$name.hdr";
+	my $hname = $opts->{Header} || "$name.hdr";
 	my $h = new FileHandle ">$hname"
 	 or barf "Couldn't open '$hname' for writing";
 	print $h map {"$_\n"} ($pdl->get_datatype,
