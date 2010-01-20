@@ -646,7 +646,7 @@ sub process_input {
 
 # check for old usage of PERLDL::PREPROCESS
 if (defined $PERLDL::PREPROCESS) {
-  preproc_oldwarn();
+   preproc_oldwarn() unless $preproc_warned;
 }
 
 $|=1;
