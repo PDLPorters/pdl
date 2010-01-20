@@ -48,8 +48,22 @@ doco (qw/acos asin atan tan/,
 doco (qw/cosh sinh tanh acosh asinh atanh/,
 'The standard hyperbolic function.');
 
-doco (qw/ceil floor rint/,
+doco (qw/ceil floor/,
 'Round to integral values in floating-point format.');
+
+doco ('rint',
+q/Round to integral values in floating-point format.
+
+=for method
+
+rint uses the 'round half to even' rounding method (also known as
+banker's rounding).  Half-integers are rounded to the nearest even
+number. This avoids a slight statistical bias inherent in always
+rounding half-integers up or away from zero.
+
+If you are looking to round half-integers up (regardless of sign), try
+C<floor($x+0.5)>.  If you want to round half-integers away from zero,
+try C<< floor(abs($x)+0.5)*($x<=>0) >>./);
 
 doco( 'pow',"Synonym for `**'.");
 
