@@ -173,8 +173,8 @@ wfits: func(object,filename).
 
 bless (default 0): If set to a nonzero value, then the array ref gets
 blessed into the DiskCache class for for easier access to the "purge"
-and "sync" methods.  This means that you can say C<$a->sync> instead
-of the more complex C<(%{tied @$a})->sync>, but C<ref $a> will return
+and "sync" methods.  This means that you can say C<< $a->sync >> instead
+of the more complex C<< (%{tied @$a})->sync >>, but C<ref $a> will return
 "PDL::DiskCache" instead of "ARRAY", which could break some code.
 
 verbose (default 0): Get chatty.

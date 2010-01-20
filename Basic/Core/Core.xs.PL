@@ -505,6 +505,60 @@ $name(self)
 
 } # foreach: keys %flags 
 
+=begin windows_mmap
+
+I found this at http://mollyrocket.com/forums/viewtopic.php?p=2529&sid=973b8e0a1e639e3008d7ef05f686c6fa
+and thougt we might consider using it to make windows mmapping possible.
+
+-David Mertens
+
+/*
+This code was placed in the public domain by the author,
+Sean Barrett, in November 2007. Do with it as you will.
+(Seee the page for stb_vorbis or the mollyrocket source
+page for a longer description of the public domain non-license).
+*/
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+typedef struct
+{
+   HANDLE f;
+   HANDLE m;
+   void *p;
+} SIMPLE_UNMMAP;
+
+// map 'filename' and return a pointer to it. fill out *length and *un if not-NULL
+void *simple_mmap(const char *filename, int *length, SIMPLE_UNMMAP *un)
+{
+   HANDLE f = CreateFile(filename, GENERIC_READ, FILE_SHARE_READ,  NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+   HANDLE m;
+   void *p;
+   if (!f) return NULL;
+   m = CreateFileMapping(f, NULL, PAGE_READONLY, 0,0, NULL);
+   if (!m) { CloseHandle(f); return NULL; }
+   p = MapViewOfFile(m, FILE_MAP_READ, 0,0,0);
+   if (!p) { CloseHandle(m); CloseHandle(f); return NULL; }
+   if (n) *n = GetFileSize(f, NULL);
+   if (un) {
+      un->f = f;
+      un->m = m;
+      un->p = p;
+   }
+   return p;
+}
+
+void simple_unmmap(SIMPLE_UNMMAP *un)
+{
+   UnmapViewOfFile(un->p);
+   CloseHandle(un->m);
+   CloseHandle(un->f);
+} 
+
+=end windows_mmap
+=cut
+
 print OUT <<'!NO!SUBS!';
 
 void

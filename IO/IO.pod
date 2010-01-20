@@ -37,17 +37,28 @@ At the moment, only PDL::IO::Browser provides data browsing functionality.
 
 PDL has a handful of modules that will load images into piddles for you.
 They include PDL::IO::Dicom, PDL::IO::FITS, PDL::IO::GD, PDL::IO::Pic,
-and PDL::IO::Pnm.
+and PDL::IO::Pnm.  However, PDL::IO::FITS should also be considered something
+of a general data format.
+
+=item * Disk Caching
+
+Both PDL::IO::FastRaw and PDL::IO::FlexRaw provide for direct piddle-to-disk
+mapping, but they use PDL's underlying mmap functionality to do it, and that
+doesn't work for Windows.  However, users of all operating systems can still
+use PDL::DiskCache, which can use any desired IO read/write functionality
+(though you may have to write a small wrapper function).
 
 =item * General Data Storage Formats
 
 PDL has a number of modules that interface general data storage libraries.
 They include PDL::IO::HDF and PDL::IO::NDF.  There is a PDL::IO::IDL,
-though at the moment it is not distributed with PDL.  Also, PDL::IO::FlexRaw
-and PDL::IO::FastRaw read and write data identical to FORTRAN 77 UNFORMATTED
-files, and FlexRaw and Storable provide general data storage capabilities.
-Finally, PDL can read Grib (weather-data) files using the CPAN module
-PDL::IO::Grib.
+though at the moment it is not distributed with PDL.  PDL::IO::FITS is
+something of a general data format, since piddle data can be stored to a
+FITS file without loss.  PDL::IO::FlexRaw and PDL::IO::FastRaw read and
+write data identical C's low-level C<write> function and PDL::IO::FlexRaw
+can work with FORTRAN 77 UNFORMATTED files.  FlexRaw and Storable provide
+general data storage capabilities.  Finally, PDL can read Grib (weather-data)
+files using the CPAN module PDL::IO::Grib.
 
 =item * Making Movies
 
@@ -56,6 +67,20 @@ You can make an MPEG animation using PDL::IO::Pic's wmpeg function.
 =back
 
 Here's a brief summary of all of the modules, in alphabetical order.
+
+=head2 PDL::DiskCache
+
+The DiskCache module allows you to tie a Perl array to a collection
+of files on your disk, which will be loaded into and out of memory
+as piddles.  Although the module defaults to working with FITS files,
+it allows you to specify your own reading and writing functions.
+This allows you to vastly streamline your code by hiding the unnecessary
+details of loading and saving files.
+
+If you find yourself writing scripts to procss many data files,
+especially if that data processing is not necessarily in sequential
+order, you should consider using PDL::DiskCache.  To read more,
+check the L<PDL::DiskCache documentation|PDL::DiskCache>.
 
 =head2 PDL::IO::Browser
 
@@ -121,6 +146,9 @@ if you save 1000 different piddles with the exact same dimensions,
 you will still need to write out a header file for each one.  You
 cannot store multiple piddles in one file.
 
+Note that at the time of writing, memory-mapping is not possible
+on Windows.
+
 For more details, see L<PDL::IO::FastRaw>.  For a more flexible
 raw IO module, see PDL::IO::FlexRaw.
 
@@ -154,6 +182,9 @@ FlexRaw and FastRaw produce identical raw files and have essentially
 identical performance.  Use whichever module seems to be more
 comfortable.  I would generally recommend using FlexRaw over
 FastRaw, but the differences are minor for most uses.
+
+Note that at the time of writing, memory-mapping is not possible
+on Windows.
 
 For more details on FlexRaw, see L<PDL::IO::FlexRaw>.
 
