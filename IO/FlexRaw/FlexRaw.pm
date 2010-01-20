@@ -363,7 +363,7 @@ sub mapchunk {
 
 sub readflex {
     barf 'Usage ($x,$y,...) = readflex("filename"|FILEHANDLE [, \@hdr])'
-	if $#_ > 1;
+		if $#_ > 1;
     my ($name,$h) = @_;
     my ($hdr, $pdl, $len, @out, $chunk, $chunkread, $data);
     local ($offset) = 0;
@@ -372,35 +372,34 @@ sub readflex {
 
     # Test if $name is a file handle
     if (defined fileno($name)) {
-	$d = $name;
-	binmode($d); 
+		$d = $name;
+		binmode($d); 
     }
     else {
-    if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
-	(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
-	$data = "gzip -dcq $name |";
-	$zipt = 1;
-    } else {
-	$data = $name;
-    }
+		if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
+			(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
+			$data = "gzip -dcq $name |";
+			$zipt = 1;
+		} else {
+			$data = $name;
+		}
 
-    my ($size) = (stat $name)[7];
-	$d = new FileHandle $data
-	or barf "Couldn't open '$data' for reading";
-    binmode $d;
-    if ($#_ == 0) {
-	$h = _read_flexhdr("$name.hdr");
-    }
+		my ($size) = (stat $name)[7];
+		$d = new FileHandle $data
+		or barf "Couldn't open '$data' for reading";
+		binmode $d;
+		$h = _read_flexhdr("$name.hdr")
+			unless $h;
     }
 
 # Go through headers which reconfigure
     foreach $hdr (@$h) {
-	my ($type) = $hdr->{Type};
-	if ($type eq 'swap') {
-	    $swapbyte = 1;
-	} elsif ($type ne 'f77') {
-	    last;
-	}
+		my ($type) = $hdr->{Type};
+		if ($type eq 'swap') {
+			$swapbyte = 1;
+		} elsif ($type ne 'f77') {
+			last;
+		}
     }
 
 READ:
