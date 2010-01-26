@@ -29,18 +29,22 @@ following shows typical usage near the top of a simple PDL module:
    package PDL::MyMod;
 
    use strict;
+   
+   # For Perl 5.6:
    use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
-
+   # For more modern Perls:
+   our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+   
    require PDL::Exporter;
-
+   
    @ISA = qw(PDL::Exporter);
    @EXPORT_OK = qw(inc myfunc); # these will be exported by default
    %EXPORT_TAGS = (Func=>[@EXPORT_OK],
 		   Internal => [qw/internfunc1 internfunc2/],
 		  );
-
+   
     # ... body of your module
-
+   
    1; # end of simple module
 
 

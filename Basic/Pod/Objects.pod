@@ -4,7 +4,8 @@ PDL::Objects -- Object-Orientation, what is it and how to exploit it
 
 =head1 DESCRIPTION
 
-This still needs to be written properly.
+This still needs to be written properly.  [Also, is there a good reason
+we don't recommend storing extra object data in the header hash?]
 
 =head2 Inheritance
 
