@@ -803,7 +803,7 @@ sub import {
 }
 
 
-# query/set boungschecking
+# query/set boundschecking
 # if on the generated XS code will have optional boundschecking
 # that can be turned on/off at runtime(!) using
 #   __PACKAGE__::set_boundscheck(arg); # arg should be 0/1

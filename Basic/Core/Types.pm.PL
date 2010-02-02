@@ -550,7 +550,7 @@ taken from the actual code that defines the C<ushort> type:
 Before we start to explain the fields please take this important
 message on board:
 I<entries must be listed in order of increasing complexity>. This
-is critical to ensure that PDL"s type conversion works correctly.
+is critical to ensure that PDL's type conversion works correctly.
 Basically, a less complex type will be converted to a more complex
 type as required.
 

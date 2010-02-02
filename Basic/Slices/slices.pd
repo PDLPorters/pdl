@@ -57,37 +57,15 @@ say
 then the variables C<$b> and C<$c> point to the same object but with 
 C<-E<gt>copy> they would not.
 
-=head1 BUGS 
-
-For the moment, you can't slice the empty piddle.  This should probably
-change:  slices of the empty piddle should probably return the empty piddle.
-
-Many types of index errors are reported far from the indexing
-operation that caused them.  This is caused by the underlying architecture:
-slice() sets up a mapping between variables, but that mapping isn't 
-tested for correctness until it is used (potentially much later).
-
 =cut
 
 use PDL::Core ':Internal';
 
 EOD
 
-pp_addpm({At => 'Bot'},<< 'EOD');
-
-=head1 AUTHOR
-
-Copyright (C) 1997 Tuomas J. Lukka.  Contributions by
-Craig DeForest, deforest@boulder.swri.edu.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
-
+=head1
+FUNCTIONS
 =cut
-
-EOD
 
 # $::PP_VERBOSE=1;
 
@@ -127,6 +105,17 @@ pp_def(
        Doc => undef,    # 'internal',
 );
 
+=head2 s_identity
+=cut
+
+$doc = <<'DOC';
+=for ref
+
+Internal vaffine identity function.
+
+=cut
+DOC
+
 pp_def(
 	's_identity',
         HandleBad => 1,
@@ -138,14 +127,12 @@ pp_def(
 	Dims => '$COPYDIMS();',
 	ParentInds => '$COPYINDS();',
 	Identity => 1,
-	Doc => 
-'=for ref
+	Doc => $doc,
+);
 
-Internal vaffine identity function.
+=head2 index, index2d
 
 =cut
-',
-);
 
 $doc = <<'EOD';
 =for ref
@@ -338,6 +325,10 @@ sub PDL::range {
   $source->rangeb($index,$size,$bound);
 }
 EOD-range
+
+=head2 rangeb
+
+=cut
 
 pp_def(
 	'rangeb',
@@ -1057,6 +1048,9 @@ EOD-EquivCPOffsCode
 );
 
 
+=head2 rld
+=cut
+
 pp_def(
 	'rld',
 	Pars=>'int a(n); b(n); [o]c(m);',
@@ -1103,6 +1097,10 @@ decode to C<$c>.
 =cut
 EOD
 );
+
+=head2 rle
+=cut
+
 pp_def(
 	'rle',
 	Pars=>'c(n); int [o]a(n); [o]b(n);',
@@ -1293,6 +1291,10 @@ pp_def(
 );
 }
 
+
+=head2 xchg
+=cut
+
 pp_def(
 	'xchg',
 	OtherPars => 'int n1; int n2;',
@@ -1457,6 +1459,9 @@ sub PDL::reorder {
 
 EOD
 
+=head2 mv
+=cut
+
 pp_def(
 	'mv',
 	OtherPars => 'int n1; int n2;',
@@ -1506,8 +1511,12 @@ place 1, so:
 
 The other dimensions are moved accordingly.
 Negative dimension indices count from the end.
+=cut
 EOD
 );
+
+=head2 onceslice
+=cut
 
 pp_def(
 	'oneslice',
@@ -1525,7 +1534,7 @@ This function can be used to accomplish run-time changing of
 transformations i.e. changing the size of some piddle at run-time.
 
 However, the mechanism is not yet finalized and this is just a demonstration.
-
+=cut
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -1575,6 +1584,9 @@ EOD
 pp_addhdr << 'EOH';
 #define sign(x) ( (x) < 0 ? -1 : 1)
 EOH
+
+=head2 slice
+=cut
 
 # I think the quotes in the =item ":" lines
 # confuse the perldoc stuff
@@ -1994,6 +2006,9 @@ pp_def( 'affine',
 	Doc => undef,
 );
 
+=head2 diagonalI
+=cut
+
 pp_def(
 	'diagonalI',
 	P2Child => 1,
@@ -2069,9 +2084,12 @@ C<$b-E<gt>at(2,1,0,1)> refers
 to C<$a-E<gt>at(2,1,2,0,1,2)>.
 
 NOTE: diagonal doesn't handle threadids correctly. XXX FIX
-
+=cut
 EOD
 );
+
+=head2 lags
+=cut
 
 pp_def(
 	'lags',
@@ -2107,7 +2125,7 @@ called "lags" i.e. the nth lag is n steps behind the original.
 C<$step> and C<$nlags> must be positive. C<$nthdim> can be
 negative and will then be counted from the last dim backwards
 in the usual way (-1 = last dim).
-
+=cut
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -2149,6 +2167,9 @@ EOD
 	'
 );
 
+=head2 splitdim
+=cut
+
 pp_def(
 	'splitdim',
 	Doc => <<'EOD',
@@ -2167,7 +2188,7 @@ the expression
  $b->at(6,4,x,y,3,6) == $a->at(6,4,x+3*y)
 
 is always true (C<x> has to be less than 3).
-
+=cut
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -2207,12 +2228,15 @@ EOD
 	',
 );
 
+=head2 rotate
+=cut
+
 pp_def('rotate',
 	Doc => <<'EOD',
 =for ref
 
 Shift vector elements along with wrap. Flows data back&forth.
-
+=cut
 EOD
  	Pars=>'x(n); int shift(); [oca]y(n)',
         DefaultFlow => 1,
@@ -2246,6 +2270,9 @@ EOD
 
 # This is a bit tricky. Hope I haven't missed any cases.
 
+=head2 threadI
+=cut
+
 pp_def(
 	'threadI',
 	Doc => <<'EOD',
@@ -2259,6 +2286,7 @@ Put some dimensions to a threadid.
 
  $b = $a->threadI(0,1,5); # thread over dims 1,5 in id 1
 
+=cut
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -2343,6 +2371,9 @@ EOD
 );
 
 
+=head2 identvaff
+=cut
+
 # we don't really need this one since it can be achieved with
 # a ->threadI(-1,[])
 pp_def('identvaff',
@@ -2370,10 +2401,13 @@ pp_def('identvaff',
 A vaffine identity transformation (includes thread_id copying).
 
 Mainly for internal use.
-
+=cut
 EOD
 );
 
+
+=head2 unthread
+=cut
 
 pp_def(
 	'unthread',
@@ -2383,7 +2417,7 @@ pp_def(
 All threaded dimensions are made real again.
 
 See [TBD Doc] for details and examples.
-
+=cut
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -2626,4 +2660,29 @@ deftrans(
 );
 }
 
+pp_addpm({At => 'Bot'},<< 'EOD');
 
+=head1 BUGS 
+
+For the moment, you can't slice the empty piddle.  This should probably
+change:  slices of the empty piddle should probably return the empty piddle.
+
+Many types of index errors are reported far from the indexing
+operation that caused them.  This is caused by the underlying architecture:
+slice() sets up a mapping between variables, but that mapping isn't 
+tested for correctness until it is used (potentially much later).
+
+=head1 AUTHOR
+
+Copyright (C) 1997 Tuomas J. Lukka.  Contributions by
+Craig DeForest, deforest@boulder.swri.edu.
+Documentation contributions by David Mertens.
+All rights reserved. There is no warranty. You are allowed
+to redistribute this software / documentation under certain
+conditions. For details, see the file COPYING in the PDL
+distribution. If this file is separated from the PDL distribution,
+the copyright notice should be included in the file.
+
+=cut
+
+EOD
