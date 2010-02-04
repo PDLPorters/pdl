@@ -3,6 +3,11 @@
 # the appropriate gdriver (GL or VRML) items defined here are common
 # to both
 # 
+
+# A function declaration so indirect object method works when defining $ev
+# in new_viewport:
+sub PDL::Graphics::TriD::EventHandler::new;
+
 package PDL::Graphics::TriD::Window;
 use PDL::Graphics::TriD::ViewPort;
 use Data::Dumper;
