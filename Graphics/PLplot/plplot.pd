@@ -1955,6 +1955,7 @@ create_low_level_constants (<<'EODEF');
 # Definitions used in plParseOpts
 
 PL_PARSE_PARTIAL
+PL_PARSE_FULL
 PL_PARSE_QUIET
 PL_PARSE_NODELETE
 PL_PARSE_SHOWALL
