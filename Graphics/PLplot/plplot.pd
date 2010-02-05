@@ -440,7 +440,9 @@ or
   $pl->colorkey  ($z, 'v', VIEWPORT => [0.93, 0.96, 0.13, 0.85],
                        ZRANGE => [-90,-20]);
 
-=head1 FUNCTIONS
+=head1 METHODS
+
+These are the high-level, object oriented methods for PLplot.
 
 =head2 new
 
