@@ -195,11 +195,19 @@ documentation.
 
 The first convention says that all documentation for
 PDL functions appears in the POD section introduced
-by
+by one of the following:
 
   =head1 FUNCTIONS
+  =head1 OPERATORS
+  =head1 METHODS
+  =head1 CONSTRUCTORS
 
-Individual functions in this section are introduced by
+If you're documenting an object-oriented interface to a class
+that your module defines, you should use METHODS and CONSTRUCTORS
+as appropriate.  If you are simply adding functions to PDL,
+use FUNCTIONS and OPERATORS as appropriate.
+
+Individual functions or methods in these section are introduced by
 
   =head2 funcname
 
