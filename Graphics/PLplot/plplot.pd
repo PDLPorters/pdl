@@ -1,5 +1,7 @@
 use Config;
 use vars qw/$nomem $debug $plpoly3 $novect/;
+my $ptrsize = length($Config{'byteorder'}); # 4 or 8 bytes
+my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';
 
 $debug = 0; # show generated pp_defs and other debug info
 
@@ -19,7 +21,15 @@ $plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
 $noalpha = 0;
 $noalpha = 1 if (grep /NOALPHA!/, @opts);
 
+$v59_or_earlier = 0;
+$v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
+
 pp_addpm({At => Top}, <<'EOD');
+
+BEGIN { 
+$VERSION = '0.52'
+};
+
 =head1 NAME
 
 PDL::Graphics::PLplot - Object-oriented interface from perl/PDL to the PLPLOT plotting library
@@ -43,9 +53,9 @@ Also see the test file, F<t/plplot.pl> in this distribution for some working exa
 
 =head1 DESCRIPTION
 
-This is the PDL interface to the PLplot graphics library.  It is
-designed to be simple and light weight with a familiar 'perlish'
-Object Oriented interface.
+This is the PDL interface to the PLplot graphics library.  It provides
+a familiar 'perlish' Object Oriented interface as well as access to
+the low-level PLplot commands from the C-API.
 
 =head1 OPTIONS
 
@@ -1116,7 +1126,7 @@ sub cc2t { [map {hex} split ' ', shift] }
        my $opts = lc shift;
 
        my @opts = split '', $opts;
-       map { 'abcfghilmnst' =~ /$_/i || die "Illegal option $_.  Only abcfghilmnst permitted" } @opts;
+       map { 'abcdfghilmnst' =~ /$_/i || die "Illegal option $_.  Only abcdfghilmnst permitted" } @opts;
 
        $self->{XBOX} = $opts;
      },
@@ -1276,8 +1286,11 @@ sub _drawlabels {
 ## user-visible routines
 #
 
-# Internal record of what PLplot stream number to associate with the the next new plot object.
-my $next_plplot_stream = 0;
+# Pool of PLplot stream numbers.  One of these stream numbers is taken when 'new' is called
+# and when the corresponding 'close' is called, it is returned to the pool.  The pool is
+# just a queue:  'new' shifts stream numbers from the top of the queue, 'close' pushes them
+# back on the bottom of the queue.
+my @plplot_stream_pool = (0..99);
 
 # This routine starts out a plot.  Generally one specifies
 # DEV and FILE (device and output file name) as options.
@@ -1293,8 +1306,8 @@ sub new {
   bless $self, $type;
 
   # set stream number first
-  $self->{STREAMNUMBER} = $next_plplot_stream;
-  $next_plplot_stream++;
+  $self->{STREAMNUMBER} = shift @plplot_stream_pool;
+  die "No more PLplot streams left, too many open PLplot objects!" if (!defined($self->{STREAMNUMBER}));
   plsstrm($self->{STREAMNUMBER});
 
   # set background and frame color first
@@ -1572,6 +1585,10 @@ sub colorkey {
   # draw labels
   $self->_drawlabels;
 
+  # Allow user to set X, Y box type for color key scale.  D. Hunt 1/7/2009
+  my $xbox = exists($self->{XBOX}) ? $self->{XBOX} : 'TM';
+  my $ybox = exists($self->{YBOX}) ? $self->{YBOX} : 'TM';
+
   my @box;
 
   plcol0  (1); # set to frame color
@@ -1583,11 +1600,11 @@ sub colorkey {
     # set world coordinates based on input variable
     @box = (0, 1, $min, $max);
     plwind (@box);
-    plbox (0, 0, 0, 0, '', 'TM');  # !!! note out of order call
+    plbox (0, 0, 0, 0, '', $ybox);  # !!! note out of order call
   } elsif ($orientation eq 'h') {
     @box = ($min, $max, 0, 1);
     plwind (@box);
-    plbox (0, 0, 0, 0, 'TM', '');  # !!! note out of order call
+    plbox (0, 0, 0, 0, $xbox, '');  # !!! note out of order call
   } else {
     die "Illegal orientation value: $orientation.  Should be 'v' (vertical) or 'h' (horizontal)";
   }
@@ -1878,14 +1895,22 @@ sub cursor {
 # Explicitly close a plot and free the object
 sub close {
   my $self = shift;
- 
+
   # Set PLplot to right output stream
   plsstrm($self->{STREAMNUMBER});
- 
+
   plend1 ();
+
+  # Return this stream number to the pool.
+  push (@plplot_stream_pool, $self->{STREAMNUMBER});
+  delete $self->{STREAMNUMBER};
+
   return;
 }
 EOD
+
+# Used throughout when generating documentation.
+my $doc;
 
 # Necessary includes for .xs file
 pp_addhdr(<<'EOH');
@@ -1928,7 +1953,6 @@ create_low_level_constants (<<'EODEF');
 # Definitions used in plParseOpts
 
 PL_PARSE_PARTIAL
-PL_PARSE_FULL
 PL_PARSE_QUIET
 PL_PARSE_NODELETE
 PL_PARSE_SHOWALL
@@ -2155,6 +2179,9 @@ EOC
 
 }
 
+=head1 LOW-LEVEL INTERFACE
+=cut
+
 pp_addpm (<<'EOPM');
 
 =pod
@@ -2245,17 +2272,13 @@ void c_plflush(void);
 void c_plfont(PLINT ifont);
 void c_plfontld(PLINT fnt);
 void c_plgchr(PLFLT *p_def, PLFLT *p_ht);
-void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
-#void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
-void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
-#void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
 void c_plgcompression(PLINT *compression);
 #void c_plgdev(char *p_dev);
 void c_plgdidev(PLFLT *p_mar, PLFLT *p_aspect, PLFLT *p_jx, PLFLT *p_jy);
 void c_plgdiori(PLFLT *p_rot);
 void c_plgdiplt(PLFLT *p_xmin, PLFLT *p_ymin, PLFLT *p_xmax, PLFLT *p_ymax);
 void c_plgfam(PLINT *p_fam, PLINT *p_num, PLINT *p_bmax);
-void c_plgfnam(char *fnam);
+#void c_plgfnam(char *fnam);
 void c_plglevel(PLINT *p_level);
 void c_plgpage(PLFLT *p_xp, PLFLT *p_yp,PLINT *p_xleng, PLINT *p_yleng, PLINT *p_xoff, PLINT *p_yoff);
 void c_plgra(void);
@@ -2269,6 +2292,7 @@ void c_plgyax(PLINT *p_digmax, PLINT *p_digits);
 void c_plgzax(PLINT *p_digmax, PLINT *p_digits);
 #void c_plhist(PLINT n, PLFLT *data, PLFLT datmin, PLFLT datmax, PLINT nbin, PLINT oldwin);
 void c_plhls(PLFLT h, PLFLT l, PLFLT s);
+#void c_plhlsrgb(PLFLT h, PLFLT l, PLFLT s, PLFLT *p_r, PLFLT *p_g, PLFLT *p_b); # implemented below
 void c_plinit(void);
 void c_pljoin(PLFLT x1, PLFLT y1, PLFLT x2, PLFLT y2);
 void c_pllab(const char *xlabel, const char *ylabel, const char *tlabel);
@@ -2279,6 +2303,7 @@ void c_pllsty(PLINT lin);
 #void c_plmesh(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt); # must handle ** parms separately
 #void c_plmkstrm(PLINT *p_strm);
 void c_plmtex(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *text);
+void c_plmtex3(const char *side, PLFLT disp, PLFLT pos, PLFLT just, const char *text);
 #void c_plot3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT opt, PLINT side); # must handle ** parms separately
 #void c_plotsh3d(PLFLT *x, PLFLT *y, PLFLT **z, PLINT nx, PLINT ny, PLINT side); # must handle ** parms separately
 void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
@@ -2288,21 +2313,15 @@ void c_plpat(PLINT nlin, PLINT *inc, PLINT *del);
 void c_plprec(PLINT setp, PLINT prec);
 void c_plpsty(PLINT patt);
 void c_plptex(PLFLT x, PLFLT y, PLFLT dx, PLFLT dy, PLFLT just, const char *text);
+void c_plptex3(PLFLT x, PLFLT y, PLFLT z, PLFLT dx, PLFLT dy, PLFLT dz, PLFLT sx, PLFLT sy, PLFLT sz, PLFLT just, const char *text);
 void c_plreplot(void);
 void c_plrgb(PLFLT r, PLFLT g, PLFLT b);
 void c_plrgb1(PLINT r, PLINT g, PLINT b);
 void c_plschr(PLFLT def, PLFLT scale);
 void c_plscmap0n(PLINT ncol0);
 void c_plscmap1n(PLINT ncol1);
-void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
-#void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
-void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
-#void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
-#void c_plscmap1l(PLINT itype, PLINT npts, PLFLT *intensity, PLFLT *coord1, PLFLT *coord2, PLFLT *coord3, PLINT *rev);
 void c_plscol0(PLINT icol0, PLINT r, PLINT g, PLINT b);
-#void c_plscol0a(PLINT icol0, PLINT r, PLINT g, PLINT b, PLFLT a);
 void c_plscolbg(PLINT r, PLINT g, PLINT b);
-#void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
 void c_plscolor(PLINT color);
 void c_plscompression(PLINT compression);
 void c_plsdev(const char *devname);
@@ -2357,13 +2376,50 @@ unless ($noalpha){
 void c_pltimefmt(const char *fmt);
 void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
 void c_plscol0a(PLINT icol0, PLINT r, PLINT g, PLINT b, PLFLT a);
-void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
-void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
-void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
-void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
 EODEF
 }
+
 # C routine to draw lines with gaps.  This is useful for map continents and other things.
+=head2 plline
+=cut
+
+$doc = <<'EOD';
+=for ref
+
+Draws line segments along (x1,y1)->(x2,y2)->(x3,y3)->...
+
+=for bad
+
+If the nth value of either x or y are bad, then it will be skipped, breaking
+the line.  In this way, you can specify multiple line segments with a single
+pair of x and y piddles.
+
+The usage is straight-forward:
+
+=for usage
+
+ plline($x, $y);
+
+For example:
+
+=for example
+
+ # Draw a sine wave
+ $x = sequence(100)/10;
+ $y = sin($x);
+ 
+ # Draws the sine wave:
+ plline($x, $y);
+ 
+ # Set values above 3/4 to 'bad', effectively drawing a bunch of detached,
+ # capped waves
+ $y->setbadif($y > 3/4);
+ plline($x, $y);
+
+=cut
+
+EOD
+
 pp_def ('plline',
          Pars => 'x(n); y(n)',
          GenericTypes => [D],
@@ -2378,7 +2434,43 @@ pp_def ('plline',
                          c_pljoin ($x(n=>j), $y(n=>j), $x(n=>i), $y(n=>i));
                        }
                      }',
+         Doc => $doc,
         );
+
+=head2 plcolorpoints
+=cut
+
+$doc = <<'EOD';
+=for ref
+
+PDL-specific: Implements what amounts to a threaded version of plsym.
+
+=for bad
+
+Bad values for z are simply skipped; all other bad values are not processed.
+
+In the following usage, all of the piddles must have the same dimensions:
+
+=for usage
+
+ plcolorpoints($x, $y, $z, $symbol_index, $minz, $maxz)
+
+For example:
+
+=for example
+
+ # Generate a parabola some points
+ my $x = sequence(30) / 3;   # Regular sampling
+ my $y = $x**2;              # Parabolic y
+ my $z = 30 - $x**3;         # Cubic coloration
+ my $symbols = floor($x);    # Use different symbols for each 1/3 of the plot
+                             #  These should be integers.
+ 
+ plcolorpoints($x, $y, $z, $symbols, -5, 20);  # Thread over everything
+ plcolorpoints($x, $y, 1, 1, -1, 2);           # same color and symbol for all
+
+=cut
+EOD
 
 # C routine to draw points with a color scale
 pp_def ('plcolorpoints',
@@ -2393,7 +2485,7 @@ pp_def ('plcolorpoints',
                   zrange  = $maxz() - $minz();
 
                   for (i=0;i<ns;i++) {
-                    ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
+                    ci = (zrange == 0.0) ? 0.5 : ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
                     if (ci < 0) ci = 0; /* enforce bounds */
                     if (ci > 1) ci = 1;
                     c_plcol1 (ci); /* set current color */
@@ -2409,13 +2501,14 @@ pp_def ('plcolorpoints',
 
                   for (i=0;i<ns;i++) {
                     if ($ISBAD(z(n=>i))) continue;
-                    ci = ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
+                    ci = (zrange == 0.0) ? 0.5 : ($z(n=>i) - $minz()) / zrange;  /* get color idx in 0-1 range */
                     if (ci < 0) ci = 0; /* enforce bounds */
                     if (ci > 1) ci = 1;
                     c_plcol1 (ci); /* set current color */
                     c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
+         
                   }',
-
+         Doc => $doc,
        );
 
 
@@ -2474,7 +2567,7 @@ pp_def ('plParseOpts',
                           args[i] = SvPV (* av_fetch (arr, i, 0), len);
                   }
 
-                  $retval() = plParseOpts (&newargc, args, $COMP (mode));
+                  $retval() = c_plparseopts (&newargc, args, $COMP (mode));
 
                   for (i = 0; i < newargc; i++)
                           av_push (arr, newSVpv (args[i], 0));
@@ -2571,6 +2664,20 @@ pp_def ('plstyl',
          Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
        );
 
+# PLplot standard random number generation.  Using this
+# helps to keep the demo plots identical.
+
+if (!$v59_or_earlier) {
+  pp_def ('plseed',
+          Pars => 'int seed()',
+          Code => 'unsigned int useed = (unsigned int)$seed(); c_plseed(useed);'
+        );
+
+  pp_def ('plrandd',
+          Pars => 'double [o]rand()',
+          Code => '$rand() = c_plrandd();'
+        );
+}
 
 # Plot contours
 
@@ -2586,7 +2693,7 @@ void
 $func (x, y, grid)
   double x
   double y
-  int grid
+  long grid
 PPCODE:
   PLFLT tx, ty;
 
@@ -2626,7 +2733,7 @@ pp_def ('plAllocGrid',
           for (i = 0; i < ny; i++)
             grid->yg[i] = $yg(ny => i);
 
-          $grid() = (I32) grid;'
+          $grid() = ('.$int_ptr_type.') grid;'
         );
 
 
@@ -2635,7 +2742,7 @@ pp_def ('plAllocGrid',
 pp_addxs (<<"EOC");
 void
 plFreeGrid (pg)
-  int pg
+  long pg
 PPCODE:
   PLcGrid* grid = (PLcGrid*) pg;
   free (grid->xg);
@@ -2672,7 +2779,7 @@ pp_def ('plAlloc2dGrid',
           grid->nx = nx;
           grid->ny = ny;
 
-          $grid() = (I32) grid;'
+          $grid() = ('.$int_ptr_type.') grid;'
         );
 
 
@@ -2681,7 +2788,7 @@ pp_def ('plAlloc2dGrid',
 pp_addxs (<<"EOC");
 void
 plFree2dGrid (pg)
-  int pg
+  long pg
 PPCODE:
   PLcGrid2* grid = (PLcGrid2*) pg;
   plFree2dGrid (grid->xg, grid->nx, grid->ny);
@@ -2737,6 +2844,7 @@ pltr_callback (PLFLT x, PLFLT y, PLFLT* tx, PLFLT* ty, PLPointer pltr_data)
 static void*
 get_standard_pltrcb (SV* cb)
 {
+  if ( !SvROK(cb) ) return NULL; /* Added to prevent bug in plshades for 0 input. D. Hunt 12/18/2008 */
   IV sub = (IV) SvRV (cb);
 
   if (sub == pltr0_iv)
@@ -3179,6 +3287,52 @@ pp_def ('plimage',
            plFree2dGrid (idata, size_x, size_y);'
 	);
 
+
+# Plot image with transformation
+
+if (!$v59_or_earlier) {
+
+  pp_def ('plimagefr',
+          GenericTypes => [D],
+          #  plimagefr (idata, nx, ny, xmin, xmax, ymin, ymax, zmin, zmax, valuemin, valuemax, pltr, pltr_data);
+          #  plimagefr ($img,          0,    $width, 0,  $height, 0,    0, $img_min, $img_max, \&pltr2, $grid);
+          Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
+          . 'zmin(); zmax(); valuemin(); valuemax();', # here!!!
+          OtherPars => 'SV* pltr; SV* pltr_data;',
+          Code => '
+           int i, j, size_x, size_y;
+           PLFLT** idata;
+ 	   void (*pltrcb) ();
+           PLPointer pltrdt;
+
+           size_x = $SIZE(nx);
+           size_y = $SIZE(ny);
+
+           pltr_subroutine = $COMP(pltr);
+	   check_sub_pointer (pltr_subroutine, "plimagefr: pltr must be either 0 or a subroutine pointer");
+
+	   pltrcb = get_standard_pltrcb ($COMP(pltr));
+           if (pltrcb != pltr_callback)
+             pltrdt = (PLPointer) SvIV ($COMP(pltr_data));
+           else
+             pltrdt = $COMP(pltr_data);
+
+           plAlloc2dGrid (&idata, size_x, size_y);
+
+           for (i = 0; i < size_x; i++)
+             for (j = 0; j < size_y; j++)
+               idata[i][j] = $idata(nx => i, ny => j);
+
+           c_plimagefr (idata, size_x, size_y,
+	     $xmin(), $xmax(), $ymin(), $ymax(), $zmin(), $zmax(),
+             $valuemin(), $valuemax(), 
+             (SvTRUE ($COMP(pltr)) ? pltrcb : NULL),
+             (SvTRUE ($COMP(pltr)) ? pltrdt : NULL));
+
+           plFree2dGrid (idata, size_x, size_y);'
+	);
+}
+
 # Set xor mode:
 # mode = 1-enter, 0-leave, status = 0 if not interactive device
 
@@ -3328,6 +3482,19 @@ OUTPUT:
 EOC
 
 pp_add_exported ('plgdev');
+
+pp_addxs (<<"EOC");
+char*
+plgfnam ()
+CODE:
+  char driver[80];
+  c_plgfnam (driver);
+  RETVAL = driver;
+OUTPUT:
+  RETVAL
+EOC
+
+pp_add_exported ('plgfnam');
 
 pp_addpm (<<'EOPM');
 =head2 plmkstrm
@@ -3506,20 +3673,182 @@ unless ($novect) {
 	  GenericTypes => [D],
 	  Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
 	 );
+
+  pp_def ('plhlsrgb',
+	  GenericTypes => [D],
+	  Pars => 'double h();double l();double s();double [o]p_r();double [o]p_g();double [o]p_b()',
+	  Code => 'c_plhlsrgb($h(),$l(),$s(),$P(p_r),$P(p_g),$P(p_b));'
+	 );
+
+  # void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
+  pp_def ('plgcol0',
+	  Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b()',
+	  Code => 'c_plgcol0($icolzero(),$P(r),$P(g),$P(b));'
+	 );
+
+  # void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
+  pp_def ('plgcolbg',
+	  Pars => 'int [o]r(); int [o]g(); int [o]b()',
+	  Code => 'c_plgcolbg($P(r),$P(g),$P(b));'
+	 );
+
+  # void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
+  pp_def ('plscmap0',
+	  Pars => 'int r(n); int g(n); int b(n)',
+	  Code => 'c_plscmap0($P(r),$P(g),$P(b), $SIZE(n));'
+	 );
+
+  # void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
+  pp_def ('plscmap1',
+	  Pars => 'int r(n); int g(n); int b(n)',
+	  Code => 'c_plscmap1($P(r),$P(g),$P(b), $SIZE(n));'
+	 );
+
+  if (!$noalpha) {
+
+    # void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
+    pp_def ('plgcol0a',
+	    Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b(); double [o]a()',
+	    Code => 'c_plgcol0a($icolzero(),$P(r),$P(g),$P(b),$P(a));'
+	   );
+
+    # void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
+    pp_def ('plgcolbga',
+	    Pars => 'int [o]r(); int [o]g(); int [o]b(); double [o]a()',
+	    Code => 'c_plgcolbga($P(r),$P(g),$P(b),$P(a));'
+	   );
+
+    # void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
+    pp_def ('plscmap0a',
+	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
+	    Code => 'c_plscmap0a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
+	   );
+
+    # void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
+    pp_def ('plscmap1a',
+	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
+	    Code => 'c_plscmap1a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
+	   );
+
+    # Set color map1 colors using a piece-wise linear relationship, include alpha channel
+
+    pp_def ('plscmap1la',
+	    Pars => 'int itype(); isty(n); coord1(n); coord2(n); coord3(n); coord4(n);'
+	    . ' int rev(nrev)',
+	    GenericTypes => [D],
+	    Doc => 'FIXME: documentation here!',
+	    Code => '
+	      PLINT* rev;
+
+	      if ($SIZE(nrev) == 0)
+	        rev = NULL;
+	      else if ($SIZE(nrev) == $SIZE(n))
+   	        rev = $P(rev);
+              else
+                croak ("plscmap1la: rev must have either length == 0 or have the same length of the other input arguments");
+
+	      c_plscmap1la ($itype(), $SIZE(n), $P(isty), $P(coord1),
+	                    $P(coord2), $P(coord3), $P(coord4), rev);'
+	   );
+
+
+    #
+    ## UNICODE font manipulation
+    #
+
+    if (!$v59_or_earlier) {
+
+      # plgfont(PLINT *p_family, PLINT *p_style, PLINT *p_weight);
+      pp_def ('plgfont',
+	      Pars => 'int [o]p_family(); int [o]p_style(); int [o]p_weight();',
+	      Code => 'c_plgfont($P(p_family),$P(p_style),$P(p_weight));'
+	     );
+      
+      #  plsfont (PLINT family, PLINT style, PLINT weight);
+      pp_def ('plsfont',
+	      Pars => 'int family(); int style(); int weight();',
+	      Code => 'c_plsfont($family(),$style(),$weight());'
+	     );
+    }
+
+
+
+    #  plcalc_world (PLFLT rx, PLFLT ry, PLFLT *wx, PLFLT *wy, PLINT *window);
+    pp_def ('plcalc_world',
+	    Pars => 'double rx(); double ry(); double [o]wx(); double [o]wy(); int [o]window()',
+	    Code => 'c_plcalc_world($rx(), $ry(), $P(wx), $P(wy), $P(window));'
+	   );
+
+
+pp_addxs (<<"EOC");
+unsigned int plgfci ()
+    CODE:
+    {
+	unsigned int	RETVAL;
+        unsigned int    fci;
+	c_plgfci(&fci);
+        RETVAL = fci;
+
+	XSprePUSH; PUSHu((UV)RETVAL);
+    }
+    XSRETURN(1);
+EOC
+pp_add_exported('', 'plgfci');
+
+pp_addxs (<<'EOC');
+void 
+plsfci(fci)
+        unsigned int fci
+    CODE:
+        c_plsfci(fci);
+EOC
+pp_add_exported('', 'plsfci');
+ 
+  }
+
 }
 
 pp_addpm (<<'EOPM');
 
 =pod
 
+=head1 WARNINGS AND ERRORS
+
+PLplot gives many errors and warnings.  Some of these are given by the
+PDL interface while others are internal PLplot messages.  Below are
+some of these messages, and what you need to do to address them:
+
+=over
+
+=item *
+Box must be a ref to a four element array
+
+When specifying a box, you must pass a reference to a
+four-element array, or use an anonymous four-element array.
+
+ # Gives trouble:
+ $pl->xyplot($x, $y, BOX => (0, 0, 100, 200) );
+ # What you meant to say was:
+ $pl->xyplot($x, $y, BOX => [0, 0, 100, 200] );
+
+=item *
+Too many colors used! (max 15)
+
+
+=back
+
 =head1 AUTHORS
 
   Doug Hunt <dhunt@ucar.edu>
   Rafael Laboissiere <rlaboiss@users.sourceforge.net>
+  David Mertens <mertens2@illinois.edu>
 
 =head1 SEE ALSO
 
 perl(1), PDL(1), L<http://www.plplot.org/>
+
+The other common graphics packages include L<PDL::PGPLOT>
+and L<PDL::TriD>.
 
 =cut
 
