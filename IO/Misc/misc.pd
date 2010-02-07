@@ -136,6 +136,18 @@ sub ext1D {
    $_[0]      = $b;
 1;}
 
+# add support for piddles or array refs to wcols output
+sub _at_1d ($$) {
+    my $data = $_[0];
+    my $index = $_[1];
+    
+    if (ref $data eq 'ARRAY') {
+       return $data->[$index];
+    } else {
+       return $data->at($index);
+    }
+}
+
 # taken outside of rcols() to avoid clutter
 sub _handle_types ($$$) {
     my $ncols = shift;
@@ -626,10 +638,13 @@ sub PDL::wcols {
    }
 
    my @p = @_;
-   my $n = $p[0]->nelem;
+   my $n = (ref $p[0] eq 'ARRAY') ? $#{$p[0]}+1 : $p[0]->nelem;
    for (@p) {
-      barf "wcols: 1d args must have same number of elements\n"
-         if $_->nelem != $n or $_->getndims!=1;
+      if ( ref $_ eq 'ARRAY' ) {
+         barf "wcols: 1d args must have same number of elements\n" if scalar(@{$_}) != $n;
+      } else {
+         barf "wcols: 1d args must have same number of elements\n" if $_->nelem != $n or $_->getndims!=1;
+      }
    }
    if ( defined $header ) {
        $header .= "\n" unless $header =~ m/\n$/;
@@ -642,7 +657,7 @@ sub PDL::wcols {
            my @d;
 	   my $pdone = 0;
            for (@p) {
-               push @d,$_->at($i); $pdone++;
+               push @d,_at_1d($_,$i); $pdone++;
                if (@d == $step) {
                    printf $fh $format_string,@d;
                    printf $fh $usecolsep unless $pdone==$pcnt;
@@ -666,7 +681,7 @@ sub PDL::wcols {
 	   my $pdone = 0;
            for (@p) {
 	       $pdone++;
-               print $fh $_->at($i) . ( ($pdone==$pcnt) ? '' : $usecolsep );
+               print $fh _at_1d($_,$i) . ( ($pdone==$pcnt) ? '' : $usecolsep );
            }
        }
        print $fh "\n";
@@ -711,10 +726,13 @@ sub PDL::swcols{
   }
   
   my @p = @_;
-  my $n = $p[0]->nelem;
+  my $n = (ref $p[0] eq 'ARRAY') ? $#{$p[0]}+1 : $p[0]->nelem;
   for (@p) {
-         barf "swcols: 1d args must have same number of elements\n"
-                if $_->nelem != $n or $_->getndims!=1;
+     if ( ref $_ eq 'ARRAY' ) {
+        barf "swcols: 1d args must have same number of elements\n" if scalar(@{$_}) != $n;
+     } else {
+        barf "swcols: 1d args must have same number of elements\n" if $_->nelem != $n or $_->getndims!=1;
+     }
   }
 
   my $i;
@@ -722,7 +740,7 @@ sub PDL::swcols{
          if ($format_string) {
            my @d;
            for (@p) {
-                  push @d,$_->at($i);
+                  push @d,_at_1d($_,$i);
                   if (@d == $step) {
                          push @outlist,sprintf $format_string,@d;
                          $#d = -1;
@@ -743,7 +761,7 @@ sub PDL::swcols{
            }
          } else {
            for (@p) {
-                  push @outlist,sprintf $_->at($i),$usecolsep;
+                  push @outlist,sprintf _at_1d($_,$i),$usecolsep;
            }
          }
   }
