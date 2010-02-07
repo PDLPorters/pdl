@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Tue 05 Jan 2010 08:44:36 PM
+# Last saved: Mon 01 Feb 2010 07:44:18 AM
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -20,6 +20,7 @@ use strict;
 my $debug = 0;
 
 use PDL::Lite;
+use PDL::NiceSlice;
 
 #------------------------------------------------------------------------
 # PDL constants used
@@ -183,8 +184,8 @@ sub mouse_click {
          and (-1 < $im_y)
          and ($im_x < $img->dim($glds+0)+1)
          and ($im_y < $img->dim($glds+1)+1) ) {
-      printf STDERR "b_%01d: pixel=(%4d,%4d), image=(%5.1f,%5.1f), winID=$window_id\n", $state, $x, $y, $im_x, $im_y;
-      #print STDERR "b_$button: pixel=($x,$y), image=($im_x,$im_y), winID=$window_id\n";
+      printf STDERR "b_%01d: pixel=(%d,%d), im pt=(%.1f,%.1f),", $button, $x, $y, $im_x, $im_y;
+      printf STDERR " im val=%s, glds=$glds, winID=$window_id\n", $glds ? $img->(:,(int($im_x)),(int($im_y))) : $img->((int($im_x)),(int($im_y)));
    }
 };
 
@@ -613,7 +614,7 @@ sub imag2d {
    # add image and window to list
    push @imag2d_list, { window_id => $window_id, img => $img };
 
-   # set callback for image window resize
+   # set callback for image window close
    glutCloseFunc( \&close_imag2d_window );
 
    # success
