@@ -535,12 +535,15 @@ Will optionally only process lines matching a pattern.
 Can take file name or *HANDLE, and
 if no file/filehandle is given defaults to STDOUT.
 
-Options:
+Options (case insensitive):
 
-HEADER
-- prints this string before the data. If the string
-is not terminated by a newline, one is added
-(default B<''>).
+  HEADER - prints this string before the data. If the string
+           is not terminated by a newline, one is added
+           (default B<''>).
+
+  COLSEP - prints this string between colums of data, defaults
+           to $PDL::IO::Misc::defcolsep.
+
 
 =for usage
 
@@ -590,7 +593,7 @@ sub PDL::wcols {
    if ( ref( $_[-1] ) eq "HASH" ) {
        my $opt = pop;
        foreach my $key ( keys %$opt ) {
-           if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
+           if ( $key =~ /^H/i ) { $header = $opt->{$key}; }             # option: HEADER
 	   elsif ( $key =~ /^COLSEP/i ) { $usecolsep = $opt->{$key}; }  # option: COLSEP
            else {
                print "Warning: wcols does not understand option <$key>.\n"; 
@@ -631,14 +634,16 @@ sub PDL::wcols {
        print $fh $header;
    }
    my $i;
+   my $pcnt = scalar @p;
    for ($i=0; $i<$n; $i++) {
        if ($format_string) {
            my @d;
+	   my $pdone = 0;
            for (@p) {
-               push @d,$_->at($i);
+               push @d,$_->at($i); $pdone++;
                if (@d == $step) {
                    printf $fh $format_string,@d;
-                   printf $fh $usecolsep;
+                   printf $fh $usecolsep unless $pdone==$pcnt;
                    $#d = -1;
                }
            }
@@ -656,8 +661,10 @@ sub PDL::wcols {
                # printf $fh $usecolsep;
            }
        } else {
+	   my $pdone = 0;
            for (@p) {
-               print $fh $_->at($i) . $usecolsep;
+	       $pdone++;
+               print $fh $_->at($i) . ( ($pdone==$pcnt) ? '' : $usecolsep );
            }
        }
        print $fh "\n";
