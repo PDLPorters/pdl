@@ -247,23 +247,25 @@ Notes:
 
 1. Quotes are required on patterns.
 
-2. Columns are separated by whitespace by default,
-use C<$PDL::IO::Misc::colsep> to specify an alternate
-separator.
+2. Columns are separated by whitespace by default, use C<$PDL::IO::Misc::defcolsep>
+to specify an alternate default separator or use the COLSEP option to set on a
+per call basis.
 
-3. For PDL-2.003, the meaning of the 'c' value in the LINES option has
-changed: it now only counts matching lines rather than all lines as in
-previous versions of PDL. 
+3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
+separator is still supported but the variable is not defined by default.
+If you set the variable to a value then it will get picked up.
 
 4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
 when read in, then the whole array reversed.
 
 =cut
 
-use vars qw/ $colsep $deftype /;
+use vars qw/ $colsep $defcolsep $deftype /;
 
-$colsep = " ";      # Default column separator
-$deftype = double;  # Default type for piddles
+$defcolsep = " ";      # Default column separator
+$deftype = double;     # Default type for piddles
+
+my $usecolsep;         # This is the colsep value that is used
 
 # NOTE: XXX
 #  need to look at the line-selection code. For instance, if want
@@ -286,6 +288,9 @@ sub PDL::rcols {
    my $fh = $is_handle ? $_[0] : gensym;
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
+
+   # handle legacy colsep variable
+   $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
 
    # set up default options
    my $opt = new PDL::Options( {
@@ -398,7 +403,7 @@ sub PDL::rcols {
        $line_ctr = 0;
 
        $index++;
-       @v = $colsep eq ' ' ? split(' ') : split($colsep) ; 
+       @v = $usecolsep eq ' ' ? split(' ') : split($usecolsep) ; 
 
        # if the first line, set up the output piddles
        # using all the columns if the user doesn't specify anything
@@ -553,9 +558,14 @@ e.g.,
 
   wcols $a,$b, { HEADER => "#   a   b" };
 
-Note: columns are separated by whitespace by default,
-use $PDL::IO::Misc::colsep to specify an alternate
-separator.
+Notes:
+
+1. Columns are separated by whitespace by default, use C<$PDL::IO::Misc::defcolsep>
+to modify the default value or the COLSEP option for a given call.
+
+2. Support for the C<$PDL::IO::Misc::colsep> global value of PDL-2.4.6 and
+earlier is maintained but the initial value of the global is undef until you
+set it.  The value will be picked up and used as before.
 
 =cut
 
@@ -563,6 +573,9 @@ separator.
 
 sub PDL::wcols {
    barf 'Usage: wcols(@[$format_string], vectors,*HANDLE|"filename", [\%options])' if @_<1;
+
+   # handle legacy colsep variable
+   $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
 
    my ($format_string, $step, $fh);
    if (ref(\$_[0]) eq "SCALAR") {
@@ -622,7 +635,7 @@ sub PDL::wcols {
                push @d,$_->at($i);
                if (@d == $step) {
                    printf $fh $format_string,@d;
-                   printf $fh $colsep;
+                   printf $fh $usecolsep;
                    $#d = -1;
                }
            }
@@ -637,11 +650,11 @@ sub PDL::wcols {
                '(even repeated) -- discarding surplus';
                carp $str;
                # printf $fh $format_string,@d;
-               # printf $fh $colsep;
+               # printf $fh $usecolsep;
            }
        } else {
            for (@p) {
-               print $fh $_->at($i),$colsep;
+               print $fh $_->at($i),$usecolsep;
            }
        }
        print $fh "\n";
@@ -714,11 +727,11 @@ sub PDL::swcols{
                '(even repeated) -- discarding surplus';
                   carp $str;
                   # printf $fh $format_string,@d;
-                  # printf $fh $colsep;
+                  # printf $fh $usecolsep;
            }
          } else {
            for (@p) {
-                  push @outlist,sprintf $_->at($i),$colsep;
+                  push @outlist,sprintf $_->at($i),$usecolsep;
            }
          }
   }
