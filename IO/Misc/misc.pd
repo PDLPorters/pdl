@@ -540,40 +540,45 @@ sub PDL::rcols {
 
 =for ref
 
-Write ASCII whitespaced cols into file from piddles efficiently.
+Write ASCII columns into file from 1D piddles and listrefs efficiently.
 
-If no columns are specified all are assumed.
-Will optionally only process lines matching a pattern.
-Can take file name or *HANDLE, and
-if no file/filehandle is given defaults to STDOUT.
+If no columns are specified all possible are assumed.
+Can take file name or *HANDLE, and if no file/filehandle is given defaults to STDOUT.
 
-Options (case insensitive):
+Options (case insensitive hash keys):
 
   HEADER - prints this string before the data. If the string
-           is not terminated by a newline, one is added
-           (default B<''>).
+           is not terminated by a newline, one is added. (Default B<''>).
 
-  COLSEP - prints this string between colums of data, defaults
-           to $PDL::IO::Misc::defcolsep.
-
+  COLSEP - prints this string between colums of data. Defaults to
+           $PDL::IO::Misc::defcolsep.
 
 =for usage
 
- Usage: wcols $piddle1, $piddle2,..., *HANDLE|"outfile", [\%options];
+ Usage: wcols $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];
+
+   where the $dataN args are either 1D piddles or 1D perl array refs
+   as might be returned from rcols() using the PERL_COLS option.
 
 e.g.,
 
 =for example
 
+  $x = random(4); $y = ones(4);
   wcols $x, $y+2, 'foo.dat';
   wcols $x, $y+2, *STDERR;
   wcols $x, $y+2, '|wc';
+
+  $a = sequence(3); $b = zeros(3); $c = random(3);
   wcols $a,$b,$c; # Orthogonal version of 'print $a,$b,$c' :-)
 
   wcols "%10.3f", $a,$b; # Formatted
   wcols "%10.3f %10.5g", $a,$b; # Individual column formatting
 
+  $a = sequence(3); $b = zeros(3); $units = [ 'm/sec', 'kg', 'MPH' ];
   wcols $a,$b, { HEADER => "#   a   b" };
+  wcols $a,$b, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
+  wcols " %4.1f  %4.1f  %s",$a,$b,$units, { header => "# Day  Time  Units" };
 
 Notes:
 
@@ -616,7 +621,7 @@ sub PDL::wcols {
    }
    my $file = $_[-1];
    my $file_opened;
-   my $is_handle = !UNIVERSAL::isa($file,'PDL') && defined fileno($file) ? 1 
+   my $is_handle = !UNIVERSAL::isa($file,'PDL') && !UNIVERSAL::isa($file,'ARRAY') && defined fileno($file) ? 1 
         : 0;
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
