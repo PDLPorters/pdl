@@ -247,9 +247,9 @@ Notes:
 
 1. Quotes are required on patterns.
 
-2. Columns are separated by whitespace by default, use C<$PDL::IO::Misc::defcolsep>
-to specify an alternate default separator or use the COLSEP option to set on a
-per call basis.
+2. Columns are separated by whitespace by default, use
+C<$PDL::IO::Misc::defcolsep> to specify an alternate default
+separator or use the COLSEP option to set on a per call basis.
 
 3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
 separator is still supported but the variable is not defined by default.
@@ -565,12 +565,14 @@ e.g.,
 
 Notes:
 
-1. Columns are separated by whitespace by default, use C<$PDL::IO::Misc::defcolsep>
-to modify the default value or the COLSEP option for a given call.
+1. Columns are separated by whitespace by default, use
+C<$PDL::IO::Misc::defcolsep> to modify the default value or
+the COLSEP option for a given call.
 
-2. Support for the C<$PDL::IO::Misc::colsep> global value of PDL-2.4.6 and
-earlier is maintained but the initial value of the global is undef until you
-set it.  The value will be picked up and used as before.
+2. Support for the C<$PDL::IO::Misc::colsep> global value
+of PDL-2.4.6 and earlier is maintained but the initial value
+of the global is undef until you set it.  The value will be
+picked up and used as before.
 
 =cut
 
