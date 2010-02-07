@@ -289,9 +289,6 @@ sub PDL::rcols {
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
 
-   # handle legacy colsep variable
-   $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
-
    # set up default options
    my $opt = new PDL::Options( {
        EXCLUDE => '/^#/',
@@ -299,6 +296,7 @@ sub PDL::rcols {
        LINES => '',
        DEFTYPE => $deftype,
        TYPES   => [],
+       COLSEP => undef,
        PERLCOLS => undef
        } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
@@ -315,6 +313,10 @@ sub PDL::rcols {
 
    # a reference to a hash array
    my $options = $opt->current();   
+
+   # handle legacy colsep variable
+   $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
+   $usecolsep = $options->{COLSEP} if $options->{COLSEP};
 
    # what are the patterns?
    foreach my $pattern ( qw( INCLUDE EXCLUDE ) ) {
@@ -589,6 +591,7 @@ sub PDL::wcols {
        my $opt = pop;
        foreach my $key ( keys %$opt ) {
            if ( $key =~ /^H/i ) { $header = $opt->{$key}; }  # option: HEADER
+	   elsif ( $key =~ /^COLSEP/i ) { $usecolsep = $opt->{$key}; }  # option: COLSEP
            else {
                print "Warning: wcols does not understand option <$key>.\n"; 
            }
@@ -654,7 +657,7 @@ sub PDL::wcols {
            }
        } else {
            for (@p) {
-               print $fh $_->at($i),$usecolsep;
+               print $fh $_->at($i) . $usecolsep;
            }
        }
        print $fh "\n";
