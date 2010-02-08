@@ -52,6 +52,7 @@ use PDL::Options;
 use PDL::Bad;
 use Carp;
 use Symbol qw/ gensym /;
+use List::Util;
 use strict;
 
 !NO!SUBS!
@@ -197,7 +198,7 @@ Can take file name or *HANDLE, and if no columns are specified,
 all are assumed. For the allowed types, see
 L<PDL::Core/Datatype_conversions>.
 
-Options:
+Options (case insensitive keys):
 
 EXCLUDE or IGNORE
 - ignore lines matching this pattern (default B<'/^#/'>).
@@ -219,10 +220,14 @@ TYPES
 to be read in.
 Any missing columns use the DEFTYPE value (default B<[]>).
 
+COLSEP
+- prints this string between colums of data. Defaults to
+$PDL::IO::Misc::defcolsep.
+
 PERLCOLS
 - an array of column numbers which are to be read into perl arrays
-rather than piddles. References to these arrays are returned after
-the requested piddles (default B<undef>).
+rather than piddles. Any columns not specified in the explicit list
+will be returned after the requested piddles.(Default B<undef>).
 
 =for usage
 
@@ -238,7 +243,8 @@ e.g.,
 =for example
 
   $x      = PDL->rcols 'file1';
-  ($x,$y) = rcols *STDOUT;
+  ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # lines like: 32,24
+  ($x,$y) = rcols *STDOUT;  # lines like: 32 24
 
   # read in lines containing the string foo, where the first
   # example also ignores lines that with a # character.
@@ -252,8 +258,12 @@ e.g.,
               { LINES => '27:', TYPES => [ ushort, ushort ] };
 
   # read in the first column as a perl array and the next two as piddles
-  ($x,$y,$name) = rcols 'file4', 1, 2, { PERLCOLS => [ 0 ] };
+  ($x,$y,$name) = rcols 'file4', 1, 2   , { PERLCOLS => [ 0 ] };
   printf "Number of names read in = %d\n", 1 + $#$name;
+
+  # read in the first column as a perl array and the next two as piddles
+  # with output arguments in the same order as actual columns
+  ($name,$x,$y) = rcols 'file4', 0, 1, 2, { PERLCOLS => [ 0 ] };
 
 Notes:
 
@@ -340,8 +350,17 @@ sub PDL::rcols {
 
    # which columns are to be read into piddles and which into perl arrays?
    my @perl_cols = ();
+   my @end_perl_cols = ();
    @perl_cols = @{ $$options{PERLCOLS} } if $$options{PERLCOLS};
-   my ( @pdl_cols )  = @_;
+   # print STDERR "wcols: \@perl_cols is '@perl_cols'\n";
+   my @is_perl_col;
+   for (@perl_cols) { $is_perl_col[$_] = 1; };
+   my ( @explicit_cols )  = @_;
+   my @is_explicit_col;
+   for (@explicit_cols) { $is_explicit_col[$_] = 1; };
+   my ( @pdl_cols );
+   my ( @perl_col_locs );  # this is indicates whether an input colum is perl or piddle
+   # print STDERR "wcols: \@is_perl_col is @is_perl_col and \@is_explicit_col is @is_explicit_col\n";
 
    # work out which line numbers are required
    # - the regexp's are a bit over the top
@@ -422,7 +441,24 @@ sub PDL::rcols {
        # if the first line, set up the output piddles
        # using all the columns if the user doesn't specify anything
        if ( $index == 0 ) {
-         @pdl_cols = ( 0 .. $#v ) if $#pdl_cols < 0;
+         @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
+         @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # need to remove perl cols if duplicated
+	 my $perlcolnum = 0;
+	 for (@explicit_cols) {
+	    if ( defined($is_perl_col[$_]) ) {
+	       push @perl_col_locs, 1;
+	       $is_perl_col[$_] = 0;
+	    } else {
+	       push @perl_col_locs, 0;
+	    }
+	 };
+	 for (@perl_cols) {
+	    push @end_perl_cols, $_ if $is_perl_col[$_];
+	 };
+
+	 # print STDERR "wcols: \@is_perl_col is @is_perl_col and \@pdl_cols is @pdl_cols\n";
+	 # print STDERR "wcols: \@perl_col_locs is @perl_col_locs\n";
+	 # print STDERR "wcols: \@end_perl_cols is @end_perl_cols\n";
 
          # sort out the types of the piddles
          my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
@@ -435,14 +471,21 @@ sub PDL::rcols {
          }
          
          $k = 0;
-         for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
-         for (@perl_cols)    { $ret[$k++] = []; }
+         for (0..$#perl_col_locs) {
+	    $ret[$_] = $perl_col_locs[$_] ? [] : $class->zeroes($types[$k],1);
+	    $k++ unless $perl_col_locs[$_];
+	 }
+	 for (@end_perl_cols) { push @ret, []; }
+         # $k = 0;
+         # for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
+         # for (@perl_cols)    { $ret[$k++] = []; }
          $line_store = $class->zeroes(long,1); # only need to store integers
        }
 
        # if necessary, extend PDL in buffered manner
+       $k = 0;
        if ( $pdlsize < $index ) {
-         for (0..$#pdl_cols) { ext1D( $ret[$_], $extend ); }
+         for (@ret) { ext1D( $_, $extend ) unless ref($_) eq 'ARRAY'; }
            ext1D( $line_store, $extend );
            $pdlsize += $extend;
        }
@@ -450,8 +493,16 @@ sub PDL::rcols {
        # Set values - '1*' is split() bug workaround
        # - stick perl arrays onto end of $ret
        $k = 0;
-       for (@pdl_cols)  { set $ret[$k++], $index, 1*$v[$_]; }
-       for (@perl_cols) { push @{ $ret[$k++] }, $v[$_]; }
+       for (@explicit_cols)  {
+          if ($perl_col_locs[$k]) {
+             push @{ $ret[$k++] }, $v[$_];
+          } else {
+             set $ret[$k++], $index, 1*$v[$_];
+          }
+       }
+       for (@end_perl_cols)  {
+           push @{ $ret[$k++] }, $v[$_];
+       }
 
        # store the line number
        $line_store->set( $index, $line_num );
@@ -466,11 +517,17 @@ sub PDL::rcols {
    if ( $index == -1 ) {
        print "Warning: rcols() did not read in any data.\n" if $PDL::verbose;
        if ( wantarray ) {
-         foreach ( 0 .. $#pdl_cols ) { $ret[$_] = PDL->null; }
-         for ( ($#pdl_cols+1) .. ($#pdl_cols+1+$#perl_cols) ) { $ret[$_] = []; }
+         foreach ( 0 .. $#explicit_cols ) {
+	     if ( $perl_col_locs[$_] ) {
+	         $ret[$_] = PDL->null;
+             } else {
+	         $ret[$_] = [];
+             }
+         }
+         for ( @end_perl_cols ) { push @ret, []; }
            return ( @ret );
        } else { 
-           return PDL->null;
+          return PDL->null;
        }
    }
 
@@ -478,10 +535,13 @@ sub PDL::rcols {
    # - ie not reversed and the last line number is known -
    # then we can skip the following nastiness
    if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
-       for ( 0 .. $#pdl_cols ) { $ret[$_] = $ret[$_]->slice("0:${index}"); };
+       for (@ret) { $_ = $_->slice("0:${index}") unless ref($_) eq 'ARRAY'; };
        if ( $PDL::verbose ) {
-           if ( $#pdl_cols != -1 ) { print "Read in ", $ret[0]->nelem, " elements.\n"; }
-           else                    { print "Read in ", $#{ $ret[0] }, " elements.\n"; }
+           if ( ref($ret[0]) eq 'ARRAY' ) {
+               print "Read in ", scalar( @{ $ret[0] } ), " elements.\n";
+	   } else {
+               print "Read in ", $ret[0]->nelem, " elements.\n";
+	   }
        }
        wantarray ? return(@ret) : return $ret[0];
    }
