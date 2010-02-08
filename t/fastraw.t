@@ -97,7 +97,7 @@ ok(tapprox($a,$b), "Should be able to read given a specified header");
 SKIP: 
 {
 	# should not be run on Windows
-	skip( 'no mmap support on win32 (yet?)', 4) if ($^O =~ /win32/i);
+	skip( 'no mmap support on win32 (yet?)', 1) if ($^O =~ /win32/i);
 	
 	# **TEST 10** test custom headers for mapfraw
 	my $c = mapfraw($name,{Header => $header});
