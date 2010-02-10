@@ -1384,9 +1384,7 @@ your additional functions. To avoid getting into trouble with PP which
 also messes around with the C<@EXPORT> array you just tell PP to add
 your functions to the list of exported functions:
 
-  pp_add_exported('', 'use_myfunc gethynx');
-
-Note the initial empty string argument (reason for it?).
+  pp_add_exported('use_myfunc gethynx');
 
 =begin html
 
