@@ -6,13 +6,19 @@ Last saved: Mon 21 Dec 2009 04:18:20 PM
                         GENERAL NOTES
 =================================================================
 
-  The following directions are generally correct
-  but they have not been updated for PDL-2.4.5+
+  These notes have not been fully reviewed since PDL-2.4.5
+  or for the recent release of version 1.7.1 of cygwin however
+  they are believed to be generally correct.  Please post to
+  the perldl mailing list for help or questions.
 
   Cygwin seems to have a 300MB process memory limit
   that we have not determined how to work around.
   If you work with large data sets, you may wish to
   use the native win32 PDL.
+
+  Work is underway to improve the native win32 PDL port on
+  support for external dependencies so that it might be used
+  instead of cygwin.
 
 
 =================================================================
@@ -33,9 +39,11 @@ from the standard Setup.exe installs).
 Just start up an xterm and run cpan from the bash prompt:
 
   bash$ cpan
+  cpan> install OpenGL
   cpan> install PDL
 
-This should pull in installs of
+This installs the Perl OpenGL (a.k.a POGL) module and should
+pull in installs for the following dependencies:
 
   Astro::FITS::Header
   Data::Dumper
@@ -155,6 +163,10 @@ NOTE: if problems see rebaseall below.
 =================================================================
                              PGPLOT
 =================================================================
+
+NOTE: cygwin 1.7.1 has new include locations so the following
+      will not work without changing the various paths!!
+
 1. build the pgplot library and install.
 
   Download from http://astro.caltech.edu/~tjp/pgplot

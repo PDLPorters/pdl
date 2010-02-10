@@ -447,7 +447,6 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'File::Spec'          => 0.6,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Inline'              => 0.43,
-           # 'OpenGL'              => 0.58004,   # for PDL::Graphics::TriD
            'OpenGL'              => $PDL::Config{POGL_VERSION},
            'Storable'            => 1.03,      # for PDL::IO::Storable
 	   'Text::Balanced'      => 0,         # for PDL::NiceSlice

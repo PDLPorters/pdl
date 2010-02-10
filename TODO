@@ -1,6 +1,24 @@
 CURRENT PRIORITIES 
 - Please include dates and PDL version numbers on entries!
 
+-- PDL 2.4.6_001, 10-Feb-2010 (CHM)
+
+   ****************************************************************
+   *                                                              *
+   *  THE PDL DEVELOPMENT NEEDS AND PRIORITIES WILL BE REVISED    *
+   *                                                              *
+   *  FOLLOWING the PDL-2.4.6_001 RELEASE.  THE ITEMS BELOW ARE   *
+   *                                                              *
+   *  (MOSTLY) OUT-OF-DATE AND KEPT FOR DISCUSSION POINTS ONLY!   *
+   *                                                              *
+   ****************************************************************
+
+ * Add tests in t/misc.t for the new rcol/wcols CSV and PERLCOLS support
+
+ * Check that OpenGL is automatically built as a dependency via cpan
+   if it is not already installed.  If not, fix it.
+
+
 -- PDL 2.4.6, 31-Dec-2009 (CHM)
 
    ****************************************************************

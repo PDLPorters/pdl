@@ -33,8 +33,7 @@ external dependencies:
 
  PDL::FFTW
   (Builds if FFTW version 2 has been hand built and installed,
-   cygwin only comes with FFTW version 3.  The PDL interface
-   is to be updated to v3 support following the PDL 2.4.5 release)
+   cygwin only comes with FFTW version 3.)
 
  PDL::Graphics::PGPLOT
   (Builds if pgplot library has been hand built and installed)
@@ -75,7 +74,7 @@ for cygwin:
 
  PDL::Graphics::IIS
   
- PDL::Graphics::Karma   (Karma has not been ported to cygwin)
+ PDL::Graphics::Karma   (Karma has been deprecated)
   
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
