@@ -29,12 +29,13 @@ pp_addpm({At=>'Bot'},<<'EOD');
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook 1997 and Craig DeForest 2001, 2003.
-All rights reserved. There is no warranty. You are allowed
-to redistribute this software / documentation under certain
-conditions. For details, see the file COPYING in the PDL
-distribution. If this file is separated from the PDL distribution,
-the copyright notice should be included in the file.
+Copyright (C) Karl Glazebrook 1997, Craig DeForest 2001,
+2003, and Chris Marshall 2010. All rights reserved. There is
+no warranty. You are allowed to redistribute this software
+/ documentation under certain conditions. For details, see
+the file COPYING in the PDL distribution. If this file is
+separated from the PDL distribution, the copyright notice
+should be included in the file.
 
 =cut
 
@@ -181,61 +182,62 @@ sub _handle_types ($$$) {
 
 =for ref
 
-Read ASCII whitespaced cols from a file into piddles and perl arrays
+Read ASCII cols from a file into piddles and perl arrays
 (also see L</rgrep()>).
 
-There are two calling conventions - the old version, where
-a pattern can be specified after the filename/handle, and the new
-version where options are given as as hash reference. This 
-reference can be given as either the second or last argument.
+There are two calling conventions - the old version, where a
+pattern can be specified after the filename/handle, and the
+new version where options are given as as hash reference.
+This reference can be given as either the second or last
+argument.
 
-The default behaviour is to ignore lines beginning with a # character
-and lines that only consist of whitespace. Options exist to only read
-from lines that match, or do not match, supplied patterns, and
-to set the types of the created piddles.
+The default behaviour is to ignore lines beginning with
+a # character and lines that only consist of whitespace.
+Options exist to only read from lines that match, or do
+not match, supplied patterns, and to set the types of the
+created piddles.
 
-Can take file name or *HANDLE, and if no columns are specified, 
-all are assumed. For the allowed types, see
+Can take file name or *HANDLE, and if no columns are
+specified, all are assumed. For the allowed types, see
 L<PDL::Core/Datatype_conversions>.
 
-Options (case insensitive keys):
+Options (case insensitive):
 
-EXCLUDE or IGNORE
-- ignore lines matching this pattern (default B<'/^#/'>).
+  EXCLUDE or IGNORE
+  - ignore lines matching this pattern (default B<'/^#/'>).
+  
+  INCLUDE or KEEP
+  - only use lines which match this pattern (default B<''>).
+  
+  LINES   
+  - a string pattern specifying which line numbers to use.
+  Line numbers start at 0 and the syntax is 'a:b:c' to use
+  every c'th matching line between a and b (default B<''>).
+  
+  DEFTYPE
+  - default data type for stored data (if not specified, use the type 
+  stored in C<$PDL::IO::Misc::deftype>, which starts off as B<double>).
+  
+  TYPES
+  - reference to an array of data types, one element for each column 
+  to be read in.  Any missing columns use the DEFTYPE value (default B<[]>).
+  
+  COLSEP
+  - prints this string between colums of data. Defaults to
+  $PDL::IO::Misc::defcolsep.
+  
+  PERLCOLS
+  - an array of column numbers which are to be read into perl arrays
+  rather than piddles. Any columns not specified in the explicit list
+  of columns to read will be returned after the requested columns.
+  (default B<undef>).
 
-INCLUDE or KEEP
-- only use lines which match this pattern (default B<''>).
-
-LINES   
-- which line numbers to use. Line numbers start at 0 and the syntax 
-is 'a:b:c' to use every c'th matching line between a and b
-(default B<''>).
-
-DEFTYPE
-- default data type for stored data (if not specified, use the type 
-stored in C<$PDL::IO::Misc::deftype>, which starts off as B<double>).
-
-TYPES
-- reference to an array of data types, one element for each column 
-to be read in.
-Any missing columns use the DEFTYPE value (default B<[]>).
-
-COLSEP
-- prints this string between colums of data. Defaults to
-$PDL::IO::Misc::defcolsep.
-
-PERLCOLS
-- an array of column numbers which are to be read into perl arrays
-rather than piddles. Any columns not specified in the explicit list
-will be returned after the requested piddles.(Default B<undef>).
 
 =for usage
 
   Usage:
-    ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, 
-                         $col1, $col2, ... )
-    ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., 
-                         { EXCLUDE => '/^!/' } )
+    ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, $col1, $col2, ... )
+    ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., { EXCLUDE => '/^!/' } )
     ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
  
 e.g.,
@@ -243,42 +245,40 @@ e.g.,
 =for example
 
   $x      = PDL->rcols 'file1';
-  ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # lines like: 32,24
-  ($x,$y) = rcols *STDOUT;  # lines like: 32 24
+  ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # read CSV data file
+  ($x,$y) = rcols *STDOUT;  # default separator for lines like '32 24'
 
   # read in lines containing the string foo, where the first
-  # example also ignores lines that with a # character.
+  # note: example also ignores lines that begin with a # character.
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/' };
-  ($x,$y,$z) = rcols 'file2', 0,4,5, 
-                 { INCLUDE => '/foo/', EXCLUDE => '' };
+  ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/', EXCLUDE => '' };
 
   # ignore the first 27 lines of the file, reading in as ushort's
   ($x,$y) = rcols 'file3', { LINES => '27:-1', DEFTYPE => ushort };
-  ($x,$y) = rcols 'file3', 
-              { LINES => '27:', TYPES => [ ushort, ushort ] };
+  ($x,$y) = rcols 'file3', { LINES => '27:', TYPES => [ ushort, ushort ] };
 
   # read in the first column as a perl array and the next two as piddles
   ($x,$y,$name) = rcols 'file4', 1, 2   , { PERLCOLS => [ 0 ] };
   printf "Number of names read in = %d\n", 1 + $#$name;
 
   # read in the first column as a perl array and the next two as piddles
-  # with output arguments in the same order as actual columns
+  # with PERLCOLS changing the type of the first arg to perl list ref
   ($name,$x,$y) = rcols 'file4', 0, 1, 2, { PERLCOLS => [ 0 ] };
 
-Notes:
+  NOTES:
 
-1. Quotes are required on patterns.
-
-2. Columns are separated by whitespace by default, use
-C<$PDL::IO::Misc::defcolsep> to specify an alternate default
-separator or use the COLSEP option to set on a per call basis.
-
-3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
-separator is still supported but the variable is not defined by default.
-If you set the variable to a value then it will get picked up.
-
-4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
-when read in, then the whole array reversed.
+  1. Quotes are required on patterns.
+  
+  2. Columns are separated by whitespace by default, use
+  C<$PDL::IO::Misc::defcolsep> to specify an alternate default
+  separator or use the COLSEP option.
+  
+  3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
+  separator is still supported but the variable is not defined by default.
+  If you set the variable to a value then it will get picked up.
+  
+  4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
+  when read in, then the whole array reversed.
 
 =cut
 
@@ -287,7 +287,7 @@ use vars qw/ $colsep $defcolsep $deftype /;
 $defcolsep = " ";      # Default column separator
 $deftype = double;     # Default type for piddles
 
-my $usecolsep;         # This is the colsep value that is used
+my $usecolsep;         # This is the colsep value that is actually used
 
 # NOTE: XXX
 #  need to look at the line-selection code. For instance, if want
@@ -297,9 +297,8 @@ my $usecolsep;         # This is the colsep value that is used
 # 
 # perhaps should just simplify the LINES option - ie remove
 # support for reversed arrays?
-#
 
-sub rcols{PDL->rcols(@_)}
+sub rcols{ PDL->rcols(@_) }
 
 sub PDL::rcols {
    my $class = shift;
@@ -438,11 +437,11 @@ sub PDL::rcols {
        $index++;
        @v = $usecolsep eq ' ' ? split(' ') : split($usecolsep) ; 
 
-       # if the first line, set up the output piddles
-       # using all the columns if the user doesn't specify anything
+       # if the first line, set up the output piddles using all the columns
+       # if the user doesn't specify anything
        if ( $index == 0 ) {
          @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
-         @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # need to remove perl cols if duplicated
+         @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # remove perl cols if duplicated
 	 my $perlcolnum = 0;
 	 for (@explicit_cols) {
 	    if ( defined($is_perl_col[$_]) ) {
@@ -476,9 +475,7 @@ sub PDL::rcols {
 	    $k++ unless $perl_col_locs[$_];
 	 }
 	 for (@end_perl_cols) { push @ret, []; }
-         # $k = 0;
-         # for (0..$#pdl_cols) { $ret[$_] = $class->zeroes($types[$_],1); $k++; }
-         # for (@perl_cols)    { $ret[$k++] = []; }
+
          $line_store = $class->zeroes(long,1); # only need to store integers
        }
 
@@ -600,25 +597,24 @@ sub PDL::rcols {
 
 =for ref
 
-Write ASCII columns into file from 1D piddles and listrefs efficiently.
+  Write ASCII columns into file from 1D piddles or listrefs efficiently.
 
-If no columns are specified all possible are assumed.
 Can take file name or *HANDLE, and if no file/filehandle is given defaults to STDOUT.
 
-Options (case insensitive hash keys):
-
-  HEADER - prints this string before the data. If the string
-           is not terminated by a newline, one is added. (Default B<''>).
-
-  COLSEP - prints this string between colums of data. Defaults to
-           $PDL::IO::Misc::defcolsep.
+  Options (case insensitive):
+  
+    HEADER - prints this string before the data. If the string
+             is not terminated by a newline, one is added. (default B<''>).
+  
+    COLSEP - prints this string between colums of data. Defaults to
+             $PDL::IO::Misc::defcolsep.
 
 =for usage
 
  Usage: wcols $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];
 
    where the $dataN args are either 1D piddles or 1D perl array refs
-   as might be returned from rcols() using the PERL_COLS option.
+   as might be returned from rcols() using the PERLCOLS option.
 
 e.g.,
 
@@ -640,16 +636,16 @@ e.g.,
   wcols $a,$b, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
   wcols " %4.1f  %4.1f  %s",$a,$b,$units, { header => "# Day  Time  Units" };
 
-Notes:
-
-1. Columns are separated by whitespace by default, use
-C<$PDL::IO::Misc::defcolsep> to modify the default value or
-the COLSEP option for a given call.
-
-2. Support for the C<$PDL::IO::Misc::colsep> global value
-of PDL-2.4.6 and earlier is maintained but the initial value
-of the global is undef until you set it.  The value will be
-picked up and used as before.
+  NOTES:
+  
+  1. Columns are separated by whitespace by default, use
+     C<$PDL::IO::Misc::defcolsep> to modify the default value or
+     the COLSEP option
+  
+  2. Support for the C<$PDL::IO::Misc::colsep> global value
+     of PDL-2.4.6 and earlier is maintained but the initial value
+     of the global is undef until you set it.  The value will be
+     then be picked up and used as if defcolsep were specified.
 
 =cut
 
@@ -681,8 +677,9 @@ sub PDL::wcols {
    }
    my $file = $_[-1];
    my $file_opened;
-   my $is_handle = !UNIVERSAL::isa($file,'PDL') && !UNIVERSAL::isa($file,'ARRAY') && defined fileno($file) ? 1 
-        : 0;
+   my $is_handle = !UNIVERSAL::isa($file,'PDL') &&
+                   !UNIVERSAL::isa($file,'ARRAY') &&
+		   defined fileno($file) ? 1 : 0;
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
@@ -761,19 +758,18 @@ sub PDL::wcols {
 
 generate string list from C<sprintf> format specifier and a list of piddles
 
-C<swcols> takes an (optional) format specifier of the printf sort and a list
-of 1d piddles as input. It returns a perl array (or array reference if
-called in
-scalar context) where
-each element of the array is the string generated by printing the
-corresponding element of the piddle(s) using the format specified. If
-no format is specified it uses the default print format.
+C<swcols> takes an (optional) format specifier of the printf
+sort and a list of 1d piddles as input. It returns a perl
+array (or array reference if called in scalar context)
+where each element of the array is the string generated by
+printing the corresponding element of the piddle(s) using
+the format specified. If no format is specified it uses the
+default print format.
 
 =for usage
 
  Usage: @str = swcols format, pdl1,pdl2,pdl3,...;
-  or
-        $str = swcols format, pdl1,pdl2,pdl3,...;
+    or  $str = swcols format, pdl1,pdl2,pdl3,...;
 
 =cut
 
@@ -838,29 +834,30 @@ sub PDL::swcols{
 
 =for ref
 
-Read columns into piddles using full regexp pattern matching.
+  Read columns into piddles using full regexp pattern matching.
+  
 
-Options:
-
-UNDEFINED: This option determines what will be done for undefined 
-values. For instance when reading a comma-separated file of the type 
-C<1,2,,4> where the C<,,> indicates a missing value. 
-
-The default value is to assign C<$PDL::undefval> to undefined values,
-but if C<UNDEFINED> is set this is used instead. This would normally 
-be set to a number, but if it is set to C<Bad> and PDL is compiled
-with Badvalue support (see L<PDL::Bad/>) then undefined values are set to
-the appropriate badvalue and the column is marked as bad.
-
-DEFTYPE: Sets the default type of the columns - see the documentation for
- L</rcols()>
-
-TYPES:   A reference to a Perl array with types for each column - see 
-the documentation for L</rcols()>
-
-BUFFERSIZE: The number of lines to extend the piddle by. It might speed
-up the reading a little bit by setting this to the number of lines in the
-file, but in general L</rasc()> is a better choice
+  Options:
+  
+  UNDEFINED: This option determines what will be done for undefined 
+  values. For instance when reading a comma-separated file of the type 
+  C<1,2,,4> where the C<,,> indicates a missing value. 
+  
+  The default value is to assign C<$PDL::undefval> to undefined values,
+  but if C<UNDEFINED> is set this is used instead. This would normally 
+  be set to a number, but if it is set to C<Bad> and PDL is compiled
+  with Badvalue support (see L<PDL::Bad/>) then undefined values are set to
+  the appropriate badvalue and the column is marked as bad.
+  
+  DEFTYPE: Sets the default type of the columns - see the documentation for
+   L</rcols()>
+  
+  TYPES:   A reference to a Perl array with types for each column - see 
+  the documentation for L</rcols()>
+  
+  BUFFERSIZE: The number of lines to extend the piddle by. It might speed
+  up the reading a little bit by setting this to the number of lines in the
+  file, but in general L</rasc()> is a better choice
 
 Usage
 
@@ -970,9 +967,10 @@ of C<$1>, C<$2> etc.
 
 =for ref
 
-Read a FIGARO/NDF format file.
+  Read a FIGARO/NDF format file.
 
-Requires non-PDL DSA module. Contact Frossie (frossie@jach.hawaii.edu)
+  Requires non-PDL DSA module. Contact Frossie (frossie@jach.hawaii.edu)
+
 Usage:
 
 =for usage
@@ -1046,7 +1044,7 @@ sub PDL::rdsa {
 
 =for ref
 
-Determine endianness of machine - returns 0 or 1 accordingly
+  Determine endianness of machine - returns 0 or 1 accordingly
 
 =cut
 
@@ -1245,19 +1243,18 @@ pp_addpm(<<'EOPM');
 
 =for ref
 
-Simple function to slurp in ASCII
-numbers quite quickly, although error handling is marginal (to
-nonexistent).
+  Simple function to slurp in ASCII numbers quite quickly,
+  although error handling is marginal (to nonexistent).
 
 =for usage
 
   $pdl->rasc("filename"|FILEHANDLE [,$noElements]);
+
       Where:
-        filename is the name of the ASCII file to read or
-          open file handle
+        filename is the name of the ASCII file to read or open file handle
         $noElements is the optional number of elements in the file to read.
             (If not present, all of the file will be read to fill up $pdl).
-        $pdl can be of type float or double for more precision.
+        $pdl can be of type float or double (for more precision).
 
 =for example
 
@@ -1293,7 +1290,7 @@ sub PDL::rasc {
 
 =for ref
 
-Read list of files directly into a large data cube (for efficiency)
+ Read list of files directly into a large data cube (for efficiency)
 
 =for usage
 
