@@ -2551,10 +2551,10 @@ sub PDL::cat {
     ref ($_[$i]) =~ /PDL/ or push @badargs, $i;
   }
   if (@badargs > 1) {
-    barf("arguments " . join(', ', @badargs) . ' are not piddles but were passed to PDL::cat');
+    barf("arguments " . join(', ', @badargs[0 .. $#badargs-1]) . " and $badargs[-1] passed to function PDL::cat are not piddles");
   }
   elsif (@badargs) {
-  	barf("argument $badargs[0] is not a piddle but was passed to PDL::cat");
+  	barf("argument $badargs[0] passed to function PDL::cat is not a piddle");
   }
 
   my $res = $_[0]->initialize; $res->set_datatype($_[0]->get_datatype);

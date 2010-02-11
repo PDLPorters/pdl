@@ -140,4 +140,4 @@ eval {cat(pdl(1,2,3), 6)};
 ok ($@ =~ /argument 1/, 'cat barfs on non-piddle arguments');
 $@ = '';
 eval {cat(1, 2, 3, 4, pdl(1,2,3))};
-ok ($@ =~ /arguments 0, 1, 2, 3/, 'cat identifies all non-piddle arguments when it barfs');
+ok ($@ =~ /arguments 0, 1, 2 and 3/, 'cat identifies all non-piddle arguments when it barfs');
