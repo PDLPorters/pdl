@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 28;
+use Test::More tests => 30;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -134,3 +134,10 @@ do {
 } while(0);
     
 # end
+
+# cat problems
+eval {cat(pdl(1,2,3), 6)};
+ok ($@ =~ /argument 1/, 'cat barfs on non-piddle arguments');
+$@ = '';
+eval {cat(1, 2, 3, 4, pdl(1,2,3))};
+ok ($@ =~ /arguments 0, 1, 2, 3/, 'cat identifies all non-piddle arguments when it barfs');

@@ -2545,6 +2545,18 @@ print OUT <<'!NO!SUBS!';
 =cut
 
 sub PDL::cat {
+  # check that the incoming arguments are all piddles
+  my @badargs = ();
+  for (my $i = 0; $i < @_; $i++) {
+    ref ($_[$i]) =~ /PDL/ or push @badargs, $i;
+  }
+  if (@badargs > 1) {
+    barf("arguments " . join(', ', @badargs) . ' are not piddles but were passed to PDL::cat');
+  }
+  elsif (@badargs) {
+  	barf("argument $badargs[0] is not a piddle but was passed to PDL::cat");
+  }
+
   my $res = $_[0]->initialize; $res->set_datatype($_[0]->get_datatype);
   $res->setdims([$_[0]->dims,scalar(@_)]);
   my ($i,$t); my $s = ":,"x$_[0]->getndims;
