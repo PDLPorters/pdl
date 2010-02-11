@@ -366,7 +366,7 @@ sub usage_string{
     my $str = "";
     my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
 
-    unless (@match) { print "\n  no match\n" } 
+    unless (@match) { $str = "\n  no match\n" } 
     else {
 	$str .= "\n" . format_ref( $match[0] );
 	my ($name,$hash) = @{$match[0]};
