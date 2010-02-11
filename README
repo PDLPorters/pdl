@@ -11,10 +11,9 @@ INSTALL 		detailed installation instructions
 
 BUGS			how to make a bug report and where to send it
 
-Known_problems	 	check before you report compilation problems
+Known_problems	 	check before you report problems
 
-DEPENDENCIES		Other software that PDL relies on
-                        (and where to get it)
+DEPENDENCIES		Other software that PDL relies on (and where to get it)
 
 perldl.conf		PDL configuration options
 
@@ -92,7 +91,8 @@ The mailing list archives can be searched/read at
 
 Questions about problems and possible bugs can be discussed
 via the perldl mailing list.  This is very useful if you are
-not sure what you have is a bug or not.
+not sure what you have is a bug or not.  For example, the list
+is the place to go for install problems.
 
 If you need to post a problem report, please use the
 sourceforge.net bug tracker system following the guidance

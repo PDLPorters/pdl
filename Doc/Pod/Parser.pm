@@ -371,7 +371,7 @@ The base class implementation of this method returns the given text.
 
 =cut
 
-sub preprocess_line($text) {
+sub preprocess_line {
     my $self = shift;
     my $text = shift;
     return  $text;

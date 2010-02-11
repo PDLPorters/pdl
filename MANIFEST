@@ -355,6 +355,7 @@ IO/HDF/VS/VS.pd
 IO/HDF/buildfunc.pm
 IO/HDF/typemap
 IO/IDL/README
+IO/IO.pod
 IO/Makefile.PL
 IO/Misc/Makefile.PL
 IO/Misc/misc.pd

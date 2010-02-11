@@ -11,9 +11,10 @@ Highlights:
 
  * Improved support for user defined column separators for rcols and wcols.
    This makes it possible for rcols and wcols to be (almost) inverses of
-   eachother and allows better slurping of CSV formatted data files.
+   each other and allows better slurping of CSV formatted data files.  See
+   help PDL::IO::Misc or help rcols or help wcols for documentation.
 
-   NOTE: $PDL::IO::Misc::colsep is superceded by $PDL::IO::Misc::defcolsep
+   NOTE: $PDL::IO::Misc::colsep is superseded by $PDL::IO::Misc::defcolsep
    to set the default column separator and by the COLSEP option for setting
    on a call by call basis.  The old colsep global is still supported but
    the new usage is recommended.
@@ -21,14 +22,16 @@ Highlights:
  * imag2d() window clicks now output the pixel values along with the
    display window pixel location and the input image pixel locations.
 
- * Many little fixed and documentation improvments.  See git log for info.
+ * Many little fixed and documentation improvements.  See git log for info
+   and also the Changes file.
+
 
 
 Release notes for PDL 2.4.6     --------------------------
 
 General Notes:
 
- * Mainly a bugfix and polishing release
+ * Mainly a bug fix and polishing release
 
 
 Highlights:

@@ -1,7 +1,7 @@
 Installing on Win32
 ===================
 
-To install via ppm:
+To install via ppm for Strawberry Perl and ActiveState Perl:
 
 First up install Astro::FITS::Header by running: 
   ppm install Astro-FITS-Header
@@ -50,7 +50,7 @@ To Build using ActivePerl (x86, 32 bit)
 
 If it's a developer release that you're trying to install then you'll need to specify
 the full distribution info - eg:
-   cpan -i CHM/PDL-2.4.4_900.tar.gz
+   cpan -i CHM/PDL-2.4.6_001.tar.gz
 
 If you want, you can use a Microsoft Compiler, but you'll suffer reduced mileage
 if you're Microsoft Compiler uses a different C runtime than that used by perl
