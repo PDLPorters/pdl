@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 30;
+use Test::More tests => 39;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -136,8 +136,31 @@ do {
 # end
 
 # cat problems
-eval {cat(pdl(1,2,3), 6)};
-ok ($@ =~ /argument 1/, 'cat barfs on non-piddle arguments');
+eval {cat(1, pdl(1,2,3), {}, 6)};
+ok ($@ ne '', 'cat barfs on non-piddle arguments');
+like ($@, qr/Arguments 0, 2 and 3 are not piddles/, 'cat correctly identifies non-piddle arguments');
 $@ = '';
-eval {cat(1, 2, 3, 4, pdl(1,2,3))};
-ok ($@ =~ /arguments 0, 1, 2 and 3/, 'cat identifies all non-piddle arguments when it barfs');
+eval {cat(1, pdl(1,2,3))};
+like($@, qr/Argument 0 is not a piddle/, 'cat uses good grammar when discussing non-piddles');
+$@ = '';
+
+my $two_dim_array = cat(pdl(1,2), pdl(1,2));
+eval {cat(pdl(1,2,3,4,5), $two_dim_array, pdl(1,2,3,4,5), pdl(1,2,3))};
+ok ($@ ne '', 'cat barfs on mismatched piddles');
+like($@, qr/The dimensions of arguments 1 and 3 do not match/
+	, 'cat identifies all piddles with differing dimensions');
+like ($@, qr/\(argument 0\)/, 'cat identifies the first actual piddle in the arg list');
+$@ = '';
+eval {cat(pdl(1,2,3), pdl(1,2))};
+like($@, qr/The dimensions of argument 1 do not match/
+	, 'cat uses good grammar when discussing piddle dimension mismatches');
+$@ = '';
+eval {cat(1, pdl(1,2,3), $two_dim_array, 4, {}, pdl(4,5,6), pdl(7))};
+ok ($@ ne '', 'cat barfs combined screw-ups');
+like($@, qr/Arguments 0, 3 and 4 are not piddles/
+	, 'cat properly identifies non-piddles in combined screw-ups');
+like($@, qr/arguments 2 and 6 do not match/
+	, 'cat properly identifies piddles with mismatched dimensions in combined screw-ups');
+like($@, qr/\(argument 1\)/,
+	'cat properly identifies the first actual piddle in combined screw-ups');
+$@ = '';

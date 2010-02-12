@@ -2545,27 +2545,101 @@ print OUT <<'!NO!SUBS!';
 =cut
 
 sub PDL::cat {
-  # check that the incoming arguments are all piddles
-  my @badargs = ();
-  for (my $i = 0; $i < @_; $i++) {
-    ref ($_[$i]) =~ /PDL/ or push @badargs, $i;
-  }
-  if (@badargs > 1) {
-    barf("arguments " . join(', ', @badargs[0 .. $#badargs-1]) . " and $badargs[-1] passed to function PDL::cat are not piddles");
-  }
-  elsif (@badargs) {
-  	barf("argument $badargs[0] passed to function PDL::cat is not a piddle");
-  }
+	my $res;
+	my $old_err = $@;
+	$@ = '';
+	eval {
+		$res = $_[0]->initialize; $res->set_datatype($_[0]->get_datatype);
+		$res->setdims([$_[0]->dims,scalar(@_)]);
+		my ($i,$t); my $s = ":,"x$_[0]->getndims;
+		for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
 
-  my $res = $_[0]->initialize; $res->set_datatype($_[0]->get_datatype);
-  $res->setdims([$_[0]->dims,scalar(@_)]);
-  my ($i,$t); my $s = ":,"x$_[0]->getndims;
-  for (@_) { $t = $res->slice($s."(".$i++.")"); $t .= $_}
+		# propogate any bad flags
+		for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
+	};
+	if ($@ eq '') {
+		# Restore the old error and return
+		$@ = $old_err;
+		return $res;
+	}
 
-   # propogate any bad flags
-   for (@_) { if ( $_->badflag() ) { $res->badflag(1); last; } }
+	# If we've gotten here, then there's been an error, so check things
+	# and barf out a meaningful message.
+  
+	if  ($@ =~ /PDL::Ops::assgn/
+	  or $@ =~ /"badflag"/
+	  or $@ =~ /"initialize"/) {
+		my (@mismatched_dims, @not_a_piddle);
+		my $i = 0;
 
-  return $res;
+		# non-piddles and/or dimension mismatch.  The first argument is
+		# ok unless we have the "initialize" error:
+		if ($@ =~ /"initialize"/) {
+			while ($i < @_ and ref($_[$i]) !~ /PDL/) {
+				push (@not_a_piddle, $i);
+				$i++;
+			}
+				
+		}
+
+		# Get the dimensions of the first actual piddle in the argument
+		# list:
+		my $first_piddle_argument = $i;
+		my @dims = $_[$i]->dims if ref($_[$i]) =~ /PDL/;
+		
+		# Figure out all the ways that the caller screwed up:
+		while ($i < @_) {
+			my $arg = $_[$i];
+			# Check if not a piddle
+			if (ref($arg) !~ /PDL/) {
+				push @not_a_piddle, $i;
+			}
+			# Check if different number of dimensions
+			elsif (@dims != $arg->ndims) {
+				push @mismatched_dims, $i;
+			}
+			# Check if size of dimensions agree
+			else {
+				DIMENSION: for (my $j = 0; $j < @dims; $j++) {
+					if ($dims[$j] != $arg->dim($j)) {
+						push @mismatched_dims, $i;
+						last DIMENSION;
+					}
+				}
+			}
+			$i++;
+		}
+		
+		# Construct a message detailing the results
+		my $message = "bad arguments passed to function PDL::cat\n";
+		if (@mismatched_dims > 1) {
+			# Many dimension mismatches
+			$message .= "The dimensions of arguments "
+						. join(', ', @mismatched_dims[0 .. $#mismatched_dims-1])
+						. " and $mismatched_dims[-1] do not match the\n"
+						. "   dimensions of the first piddle argument (argument $first_piddle_argument).\n";
+		}
+		elsif (@mismatched_dims) {
+			# One dimension mismatch
+			$message .= "The dimensions of argument $mismatched_dims[0] do not match the\n"
+						. "   dimensions of the first piddle argument (argument $first_piddle_argument).\n";
+		}
+		if (@not_a_piddle > 1) {
+			# many non-piddles
+			$message .= "Arguments " . join(', ', @not_a_piddle[0 .. $#not_a_piddle-1])
+						. " and $not_a_piddle[-1] are not piddles.\n";
+		}
+		elsif (@not_a_piddle) {
+			# one non-piddle
+			$message .= "Argument $not_a_piddle[0] is not a piddle.\n";
+		}
+		
+		$message .= "(Argument counting starts from zero.)";
+		barf($message);
+	}
+	else {
+		barf("cat: unknown error from the internals:\n$@");
+	}
 }
 
 =head2 dog
