@@ -85,7 +85,7 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $eqc->slice($str);
-      ok( "$slice" eq $ref_eqc_slices[$i] );
+      ok( "$slice" eq $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
    }
 
 ###############
@@ -101,7 +101,7 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $ortho->slice($str);
-      ok( "$slice" eq $ref_ortho_slices[$i] );
+      ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho for slices[$i]" );
    }
 
    #
@@ -115,7 +115,7 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $ortho2->slice($str);
-      ok( "$slice" eq $ref_ortho_slices[$i] );
+      ok( "$slice" eq $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
    }
 
 ################
@@ -130,7 +130,7 @@ SKIP: {
    {
       my $str = $slices[$i];
       my $slice = $robin->slice($str);
-      ok( "$slice" eq $ref_robin_slices[$i] );
+      ok( "$slice" eq $ref_robin_slices[$i], "check ref_robin for slices[$i]" );
    }
 
 }
