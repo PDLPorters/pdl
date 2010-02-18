@@ -22,24 +22,24 @@ my $x = sequence(10);
 my $y = exp($x);
 my $spl = PDL::GSL::INTERP->init('cspline',$x,$y);
 
-ok(defined $spl);
+ok(defined $spl, 'create cspline');
 
 my $spl2 = PDL::GSL::INTERP->init('cspline',$x,$y,{Sort => 0});
 
-ok(defined $spl2);
+ok(defined $spl2, 'create cspline no sort');
 
-ok(abs($spl->eval(5.5)-237.641810667697) < 1e-6 );
-ok(abs($spl->deriv(5.5)-237.669424604497) < 1e-6 );
-ok(abs($spl->deriv2(5.5)-306.23332503967) < 1e-6 );
-ok(abs($spl->integ(3.2,8.5)-4925.23555581654) < 1e-6 );   
-ok(abs($spl->eval(5.5,{Extrapolate => 1})-237.641810667697) < 1e-6 );
-ok(abs($spl->deriv(5.5,{Extrapolate => 1})-237.669424604497) < 1e-6 );
-ok(abs($spl->deriv2(5.5,{Extrapolate => 1})-306.23332503967) < 1e-6 );
-ok(abs($spl->integ(3.2,8.5,{Extrapolate => 1})-4925.23555581654) < 1e-6 );   
+ok(abs($spl->eval(5.5)-237.641810667697) < 1e-6,  'eval 5.5'   );
+ok(abs($spl->deriv(5.5)-237.669424604497) < 1e-6, 'deriv 5.5'  );
+ok(abs($spl->deriv2(5.5)-306.23332503967) < 1e-6, 'deriv2 5.5' );
+ok(abs($spl->integ(3.2,8.5)-4925.23555581654) < 1e-6, 'integ 3.2 to 8.5' );   
+ok(abs($spl->eval(5.5,{Extrapolate => 1})-237.641810667697) < 1e-6, 'eval 5.5 w Extrapolate' );
+ok(abs($spl->deriv(5.5,{Extrapolate => 1})-237.669424604497) < 1e-6, 'deriv 5.5 w Extrapolate' );
+ok(abs($spl->deriv2(5.5,{Extrapolate => 1})-306.23332503967) < 1e-6, 'deriv2 5.5 w Extrapolate' );
+ok(abs($spl->integ(3.2,8.5,{Extrapolate => 1})-4925.23555581654) < 1e-6, 'integ 3.2 to 8.5 w Extrapolate' );   
 
 # Bad value test added 5/31/2005 D. Hunt
 
 SKIP: {
-    skip "Test not valid without bad value support", 1 unless $PDL::Config{WITH_BADVAL};
-    ok ($spl->eval(pdl(0)->setbadat(0))->isbad);
+    skip "Test not valid without bad value support", 1 unless $PDL::Bad::Status;
+    ok ($spl->eval(pdl(0)->setbadat(0))->isbad, 'cspline eval w badvalue');
 }
