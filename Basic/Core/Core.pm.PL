@@ -576,8 +576,11 @@ sub topdl {PDL->topdl(@_)}
 							PDL::Ops::assgn(@args);
 						};
 						if ($@) {
-							# Remove references to this code before rebarfing:
-							$@ =~ s/at .* line \d+//;
+							# Remove references to this (and deeper)
+							# code before rebarfing:
+							$@ =~ s/\s*at .* line \d+\s*\.\n*/./;
+							$@ =~ s/PDL:\s+//g;
+							$@ =~ s/\s*Caught at .* pkg .+\n+//;
 							PDL::Core::barf("Problem with assignment: $@");
 						}
 						return $args[1];
@@ -2291,7 +2294,7 @@ sub PDL::string {
 	};
 	if ($@) {
 		# Remove reference to this line:
-		$@ =~ s/at .* line \d+//;
+		$@ =~ s/\s*at .* line \d+\s*\.\n*/./;
 		PDL::Core::barf("Stringizing problem: $@");
 	}
 	return $to_return;
