@@ -572,12 +572,16 @@ sub topdl {PDL->topdl(@_)}
 		"="     =>  sub {$_[0]},          # Don't deep copy, just copy reference
 
 		".="    => sub {my @args = reverse &PDL::Core::rswap;
-# This strange undocumented behavior commented out by CED 18-Mar-2003;
-# remove it if you see it in current code after 18-Mar-2004!
-#				return $args[1]->info("%C (%A): %T %D %S %M")
-#				  if !ref $args[0] && $args[0] eq '';
-				PDL::Ops::assgn(@args);
-				return $args[1];},
+						eval {
+							PDL::Ops::assgn(@args);
+						};
+						if ($@) {
+							# Remove references to this code before rebarfing:
+							$@ =~ s/at .* line \d+//;
+							PDL::Core::barf("Problem with assignment: $@");
+						}
+						return $args[1];
+					},
 		 
 		'x'     =>  sub{my $foo = $_[0]->null();
 				  PDL::Primitive::matmult(@_[0,1],$foo); $foo;},
@@ -2257,32 +2261,40 @@ $PDL::_STRINGIZING = 0;
 
 sub PDL::string {
     my($self,$format)=@_;
-    if($PDL::_STRINGIZING) {
-    	return "ALREADY_STRINGIZING_NO_LOOPS";
-    }
-    local $PDL::_STRINGIZING = 1;
-    my $ndims = $self->getndims;
-    if($self->nelem > 10000) {
-    	return "TOO LONG TO PRINT";
-    }
-    if ($ndims==0) {
-	if ( $self->badflag() and $self->isbad() ) {
-	    return "BAD";
-	} else {
-	    my @x = $self->at();
-	    return ($format ? sprintf($format, $x[0]) : "$x[0]");
+    my $to_return = eval {
+		if($PDL::_STRINGIZING) {
+			return "ALREADY_STRINGIZING_NO_LOOPS";
+		}
+		local $PDL::_STRINGIZING = 1;
+		my $ndims = $self->getndims;
+		if($self->nelem > 10000) {
+			return "TOO LONG TO PRINT";
+		}
+		if ($ndims==0) {
+		if ( $self->badflag() and $self->isbad() ) {
+			return "BAD";
+		} else {
+			my @x = $self->at();
+			return ($format ? sprintf($format, $x[0]) : "$x[0]");
+		}
+		}
+		return "Null" if $self->isnull;
+		return "Empty" if $self->isempty; # Empty piddle
+		local $sep  = $PDL::use_commas ? "," : " ";
+		local $sep2 = $PDL::use_commas ? "," : "";
+		if ($ndims==1) {
+		   return str1D($self,$format);
+		}
+		else{
+		   return strND($self,$format,0);
+		}
+	};
+	if ($@) {
+		# Remove reference to this line:
+		$@ =~ s/at .* line \d+//;
+		PDL::Core::barf("Stringizing problem: $@");
 	}
-    }
-    return "Null" if $self->isnull;
-    return "Empty" if $self->isempty; # Empty piddle
-    local $sep  = $PDL::use_commas ? "," : " ";
-    local $sep2 = $PDL::use_commas ? "," : "";
-    if ($ndims==1) {
-       return str1D($self,$format);
-    }
-    else{
-       return strND($self,$format,0);
-    }
+	return $to_return;
 }
 
 ############## Section/subsection functions ###################
