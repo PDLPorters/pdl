@@ -1508,6 +1508,22 @@ would result in
 being generated in the output .pm file. This would result in just 'barf'
 being imported from Core.pm.
 
+=begin html
+
+=head3 pp_setversion
+
+=end html
+
+I am pretty sure that this allows you to simultaneously set the .pm and
+.xs files' versions, thus avoiding unnecessary version-skew between the
+two. To use this, simply have the following line at some point in your
+.pd file:
+
+ pp_setversion('0.0.3');
+
+However, don't use this if you use L<Module::Build::PDL>. See that
+module's documentation for details.
+
 =head1 Slice operation
 
 The slice operation section of this manual is provided using
@@ -1865,8 +1881,6 @@ was written and are as yet undocumented
 =item pp_core_importList
 
 =item pp_beginwrap
-
-=item pp_setversion
 
 =item pp_addbegin
 
