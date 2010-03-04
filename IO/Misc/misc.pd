@@ -249,7 +249,7 @@ e.g.,
   ($x,$y) = rcols *STDOUT;  # default separator for lines like '32 24'
 
   # read in lines containing the string foo, where the first
-  # note: example also ignores lines that begin with a # character.
+  # example also ignores lines that begin with a # character.
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/' };
   ($x,$y,$z) = rcols 'file2', 0,4,5, { INCLUDE => '/foo/', EXCLUDE => '' };
 
