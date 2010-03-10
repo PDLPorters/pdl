@@ -287,7 +287,7 @@ e.g.,
 
 use vars qw/ $colsep $defcolsep $deftype /;
 
-$defcolsep = " ";      # Default column separator
+$defcolsep = ' ';      # Default column separator
 $deftype = double;     # Default type for piddles
 
 my $usecolsep;         # This is the colsep value that is actually used
@@ -316,7 +316,7 @@ sub PDL::rcols {
    # set up default options
    my $opt = new PDL::Options( {
        EXCLUDE => '/^#/',
-       INCLUDE => '',
+       INCLUDE => undef,
        LINES => '',
        DEFTYPE => $deftype,
        TYPES   => [],
@@ -327,8 +327,8 @@ sub PDL::rcols {
 
    # has the user supplied any options
    if ( defined($_[0]) ) {
-       # ensure the old-style behaviour by setting the exclude pattern to ''
-       if ( $_[0] =~ m|^/.*/$| )      { $opt->options( { EXCLUDE => '', INCLUDE => shift } ); }
+       # ensure the old-style behaviour by setting the exclude pattern to undef 
+       if ( $_[0] =~ m|^/.*/$| )      { $opt->options( { EXCLUDE => undef, INCLUDE => shift } ); }
        elsif ( ref($_[0]) eq "HASH" ) { $opt->options( shift ); }
    }
 
@@ -339,14 +339,15 @@ sub PDL::rcols {
    my $options = $opt->current();   
 
    # handle legacy colsep variable
-   $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
-   $usecolsep = $options->{COLSEP} if $options->{COLSEP};
+   $usecolsep = (defined $colsep) ? qr{$colsep} : $defcolsep;
+   $usecolsep = qr{$options->{COLSEP}} if $options->{COLSEP};
 
    # what are the patterns?
    foreach my $pattern ( qw( INCLUDE EXCLUDE ) ) {
-       if ( $$options{$pattern} ne '' ) {
+       if ( $options->{$pattern} ) {
          barf "rcols() - unable to parse $pattern value.\n" if $$options{$pattern} !~ m|^/.*/$|;
-         $$options{$pattern} =~ s|^/(.*)/$|$1|;
+         $options->{$pattern} =~ s|^/(.*)/$|$1|;
+         $options->{$pattern} = qr{$options->{$pattern}};
        }
    }
 
@@ -409,7 +410,7 @@ sub PDL::rcols {
    
    my @ret;
 
-   my (@v,$k); 
+   my ($k); 
 
    my $line_num = -1;
    my $line_ctr = $line_step - 1;  # ensure first line is always included
@@ -432,13 +433,13 @@ sub PDL::rcols {
        # incase the pattern matching excludes $line_num == $line_end, say
        last if     defined($line_end)   and $line_num > $line_end;
        next if     defined($line_start) and $line_num < $line_start;
-       next if     $$options{EXCLUDE} ne '' and /$$options{EXCLUDE}/;  # re compiled every iteration? -chm
-       next unless $$options{INCLUDE} eq '' or  /$$options{INCLUDE}/;  # re compiled every iteration? -chm
+       next if     $options->{EXCLUDE} and     /$options->{EXCLUDE}/;  # re compiled every iteration!
+       next if     $options->{INCLUDE} and not /$options->{INCLUDE}/;  # re compiled every iteration!
        next unless ++$line_ctr == $line_step;
        $line_ctr = 0;
 
        $index++;
-       @v = $usecolsep eq ' ' ? split(' ') : split($usecolsep) ;       # re compiled every iteration? -chm
+       my @v = split($usecolsep, $_) ;       # $usecolsep is either a string or a qr{}
 
        # if the first line, set up the output piddles using all the columns
        # if the user doesn't specify anything
