@@ -131,7 +131,7 @@ pp_addpm(<<'!NO!SUBS!');
 # Added support for NO-OP when given a perl ARRAY ref argument -chm
 sub _ext_1D {
    my ($a,$n) = @_;
-   if (ref($_) ne 'ARRAY') {
+   if (ref($_[0]) ne 'ARRAY') {
       my $nold   = $a->getdim(0);
       my $b      = zeroes($a->type,$nold+$n);  # New pdl
       my $bb     = $b->slice("0:".($nold-1));
@@ -151,6 +151,25 @@ sub _at_1D ($$) {
     } else {
        return $data->at($index);
     }
+}
+
+# squeezes "fluffy" perl list values into column data type
+sub _burp_1D {
+   my $databox = $_[0];
+   my $index = $_[1];
+
+   my $data = shift @{$databox};
+
+   if (ref $data eq 'ARRAY') {
+      push @{$data}, @{$databox};
+   } else {
+      # print STDERR "_burp_1D: stuffing @{$databox} at index=$index\n";
+      # print STDERR "_burp_1D: piddle before is " . $data->slice("0:$index") . "\n";
+      $data->slice("$index") .= pdl(@{$databox});
+      # print STDERR "_burp_1D: piddle after is  " . $data->slice("0:$index") . "\n";
+   }
+   $_ = [ $data ];
+   1;
 }
 
 # taken outside of rcols() to avoid clutter
@@ -422,6 +441,8 @@ sub PDL::rcols {
 
    while(<$fh>) {
 
+       chomp;
+
        $line_num++;
 
        # the order of these checks is important, particularly whether we
@@ -475,20 +496,21 @@ sub PDL::rcols {
          
          $k = 0;
          for (0..$#perl_col_locs) {
-	    $ret[$_] = $perl_col_locs[$_] ? [] : $class->zeroes($types[$k],1);
+	    # Using mixed list+piddle data structure for performance tradeoff
+	    # between memory usage (perl list) and speed of IO (PDL operations)
+	    $ret[$_] = $perl_col_locs[$_] ? [ [] ] : [ $class->zeroes($types[$k],1) ];
 	    $k++ unless $perl_col_locs[$_];
 	 }
-	 for (@end_perl_cols) { push @ret, []; }
+	 for (@end_perl_cols) { push @ret, [ [] ]; }
 
-         $line_store = $class->zeroes(long,1); # only need to store integers
+         $line_store = [ $class->zeroes(long,1) ]; # only need to store integers
        }
 
        # if necessary, extend PDL in buffered manner
        $k = 0;
        if ( $pdlsize < $index ) {
-         # for (@ret) { _ext_1D( $_, $extend ) unless ref($_) eq 'ARRAY'; }
-         for (@ret) { _ext_1D( $_, $extend ); }  # not needed with new _ext_1D implementation
-           _ext_1D( $line_store, $extend );
+         for (@ret, $line_store) { _ext_1D( $_->[0], $extend ); }
+           #_ext_1D( $line_store, $extend );
            $pdlsize += $extend;
        }
 
@@ -499,7 +521,8 @@ sub PDL::rcols {
           if ($perl_col_locs[$k]) {
              push @{ $ret[$k++] }, $v[$_];
           } else {
-             set $ret[$k++], $index, 1*$v[$_];
+             #set $ret[$k++], $index, 1*$v[$_];
+             push @{ $ret[$k++] }, $v[$_];
           }
        }
        for (@end_perl_cols)  {
@@ -507,13 +530,22 @@ sub PDL::rcols {
        }
 
        # store the line number
-       $line_store->set( $index, $line_num );
+       push @{$line_store}, $line_num;
+
+       # need to burp out list if needed
+       for (@ret, $line_store) { _burp_1D($_,$index); }
 
        # Thanks to Frank Samuelson for this
        last if defined($line_end) and $line_num == $line_end;
    }
 
    close($fh) unless $is_handle;
+
+   # clean out additional ARRAY ref level for @ret
+   for (@ret,$line_store) {
+      die "rcols: forgot to burp out list data\n" unless scalar @{$_} == 1;
+      $_ = $_->[0];
+   }
 
    # have we read anything in? if not, return empty piddles
    if ( $index == -1 ) {
@@ -932,14 +964,14 @@ of C<$1>, C<$2> etc.
            my @types = _handle_types( $nret, $$options{DEFTYPE}, $$options{TYPES} );	
            for (0..$nret) {
                 # Modified 18/04/05 to use specified precision.
-	 	$ret[$_] = PDL->zeroes($types[$_], 1);
+	 	$ret[$_] = [ PDL->zeroes($types[$_], 1) ];
            }
        } else { # perhaps should only carp once...
            carp "Non-rectangular rgrep" if $nret != $#v;
        }
        if ($n<$m) {
            for (0..$nret) {
-               _ext_1D( $ret[$_], $$options{BUFFERSIZE} ); # Extend PDL in buffered manner
+               _ext_1D( $ret[$_]->[0], $$options{BUFFERSIZE} ); # Extend PDL in buffered manner
            }
            $n += $$options{BUFFERSIZE};
       }
@@ -950,20 +982,20 @@ of C<$1>, C<$2> etc.
 	if ($v[$_] eq '') {
 	   # Missing value - let us treat this specially
 	   if ($undef_is_bad) {
-	       set $ret[$_], $m, $$options{DEFTYPE}->badvalue();
+	       set $ret[$_]->[0], $m, $$options{DEFTYPE}->badvalue();
                # And set bad flag on $ref[$_]!
-               $ret[$_]->badflag(1);
+               $ret[$_]->[0]->badflag(1);
            } else {
-               set $ret[$_], $m, $$options{UNDEFINED};
+               set $ret[$_]->[0], $m, $$options{UNDEFINED};
            } 
 	} else {
-    	   set $ret[$_], $m, 1*$v[$_];
+    	   set $ret[$_]->[0], $m, 1*$v[$_];
 	}
      } 
    }
                                  
    close($fh) unless $is_handle;
-   for (@ret) { $_ = $_->slice("0:$m")->copy; }; # Truncate
+   for (@ret) { $_ = $_->[0]->slice("0:$m")->copy; }; # Truncate
    wantarray ? return(@ret) : return $ret[0];
 }
 
