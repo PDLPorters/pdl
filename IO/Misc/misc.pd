@@ -255,6 +255,18 @@ Options (case insensitive):
   of columns to read will be returned after the requested columns.
   (default B<undef>).
 
+  COLIDS
+  - if defined to an array reference, it will be assigned the column
+  ID values obtained by splitting the first line of the file in the
+  identical fashion to the column data. (Details TBD)
+
+  CHUNKSIZE
+  - the number of input data elements to batch together before appending
+  to each output data piddle (Default value is 500).  If CHUNKSIZE is
+  greater than the number of lines of data to read, the entire file is
+  slurped in, lines split, and perl lists of column data are generated.
+  At the end, effectively pdl(@column_data) produces any result piddles.
+
 
 =for usage
 
@@ -344,6 +356,7 @@ sub PDL::rcols {
        COLSEP => undef,
        PERLCOLS => undef,
        CHUNKSIZE => undef,
+       COLIDS => undef,
        } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
 
@@ -436,7 +449,7 @@ sub PDL::rcols {
    
    my @ret;
 
-   my ($k); 
+   my ($k,$fhline); 
 
    my $line_num = -1;
    my $line_ctr = $line_step - 1;  # ensure first line is always included
@@ -446,107 +459,123 @@ sub PDL::rcols {
 
    my $line_store;  # line numbers of saved data
 
-   while(<$fh>) {
+   RCOLS_IO: {
 
-       chomp;
-
-       $line_num++;
-
-       # the order of these checks is important, particularly whether we
-       # check for line_ctr before or after the pattern matching
-       # Prior to PDL 2.003 the line checks were done BEFORE the
-       # pattern matching
-       #
-       # need this first check, even with it almost repeated at end of loop,
-       # incase the pattern matching excludes $line_num == $line_end, say
-       last if     defined($line_end)   and $line_num > $line_end;
-       next if     defined($line_start) and $line_num < $line_start;
-       next if     $options->{EXCLUDE} and     /$options->{EXCLUDE}/;  # re compiled every iteration!
-       next if     $options->{INCLUDE} and not /$options->{INCLUDE}/;  # re compiled every iteration!
-       next unless ++$line_ctr == $line_step;
-       $line_ctr = 0;
-
-       $index++;
-       my @v = split($usecolsep, $_) ;       # $usecolsep is either a string or a qr{}
-
-       # if the first line, set up the output piddles using all the columns
-       # if the user doesn't specify anything
-       if ( $index == 0 ) {
-         @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
-         @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # remove perl cols if duplicated
-	 my $perlcolnum = 0;
-	 for (@explicit_cols) {
-	    if ( defined($is_perl_col[$_]) ) {
-	       push @perl_col_locs, 1;
-	       $is_perl_col[$_] = 0;
-	    } else {
-	       push @perl_col_locs, 0;
-	    }
-	 };
-	 for (@perl_cols) {
-	    push @end_perl_cols, $_ if $is_perl_col[$_];
-	 };
-
-	 # print STDERR "wcols: \@is_perl_col is @is_perl_col and \@pdl_cols is @pdl_cols\n";
-	 # print STDERR "wcols: \@perl_col_locs is @perl_col_locs\n";
-	 # print STDERR "wcols: \@end_perl_cols is @end_perl_cols\n";
-
-         # sort out the types of the piddles
-         my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
-         if ( $PDL::verbose ) { # dbg aid
-             print "Reading data into piddles of type: [ ";
-             foreach my $t ( @types ) {
-                 print $t->shortctype() . " ";
-             }
-             print "]\n";
+      if ($options->{COLIDS}) {
+         print STDERR "rcols: processing COLIDS option\n" if $PDL::verbose;
+         undef $!;
+         if (defined($fhline = <$fh>) ) {        # grab first line's fields for column IDs
+            my @v = split($usecolsep, $fhline);  # $usecolsep is either a string or a qr{}
+            @{$options->{COLIDS}} = @v;
+         } else {
+            die "rcols: reading COLIDS info, $!" if $!;
+            last RCOLS_IO;
          }
-         
+      }
+
+      while( defined($fhline = <$fh>) ) {
+
+         chomp $fhline;
+
+         $line_num++;
+
+         # the order of these checks is important, particularly whether we
+         # check for line_ctr before or after the pattern matching
+         # Prior to PDL 2.003 the line checks were done BEFORE the
+         # pattern matching
+         #
+         # need this first check, even with it almost repeated at end of loop,
+         # incase the pattern matching excludes $line_num == $line_end, say
+         last if     defined($line_end)   and $line_num > $line_end;
+         next if     defined($line_start) and $line_num < $line_start;
+         next if     $options->{EXCLUDE} and     $fhline =~ /$options->{EXCLUDE}/;
+         next if     $options->{INCLUDE} and not $fhline =~ /$options->{INCLUDE}/;
+         next unless ++$line_ctr == $line_step;
+         $line_ctr = 0;
+
+         $index++;
+         my @v = split($usecolsep, $fhline) ;       # $usecolsep is either a string or a qr{}
+
+         # if the first line, set up the output piddles using all the columns
+         # if the user doesn't specify anything
+         if ( $index == 0 ) {
+            @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
+            @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # remove perl cols if duplicated
+            my $perlcolnum = 0;
+            for (@explicit_cols) {
+               if ( defined($is_perl_col[$_]) ) {
+                  push @perl_col_locs, 1;
+                  $is_perl_col[$_] = 0;
+               } else {
+                  push @perl_col_locs, 0;
+               }
+            };
+            for (@perl_cols) {
+               push @end_perl_cols, $_ if $is_perl_col[$_];
+            };
+
+            # print STDERR "wcols: \@is_perl_col is @is_perl_col and \@pdl_cols is @pdl_cols\n";
+            # print STDERR "wcols: \@perl_col_locs is @perl_col_locs\n";
+            # print STDERR "wcols: \@end_perl_cols is @end_perl_cols\n";
+
+            # sort out the types of the piddles
+            my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
+            if ( $PDL::verbose ) { # dbg aid
+               print "Reading data into piddles of type: [ ";
+               foreach my $t ( @types ) {
+                  print $t->shortctype() . " ";
+               }
+               print "]\n";
+            }
+
+            $k = 0;
+            for (0..$#perl_col_locs) {
+               # Using mixed list+piddle data structure for performance tradeoff
+               # between memory usage (perl list) and speed of IO (PDL operations)
+               $ret[$_] = $perl_col_locs[$_] ? [ [] ] : [ $class->zeroes($types[$k],1) ];
+               $k++ unless $perl_col_locs[$_];
+            }
+            for (@end_perl_cols) { push @ret, [ [] ]; }
+
+            $line_store = [ $class->zeroes(long,1) ]; # only need to store integers
+         }
+
+         # if necessary, extend PDL in buffered manner
          $k = 0;
-         for (0..$#perl_col_locs) {
-	    # Using mixed list+piddle data structure for performance tradeoff
-	    # between memory usage (perl list) and speed of IO (PDL operations)
-	    $ret[$_] = $perl_col_locs[$_] ? [ [] ] : [ $class->zeroes($types[$k],1) ];
-	    $k++ unless $perl_col_locs[$_];
-	 }
-	 for (@end_perl_cols) { push @ret, [ [] ]; }
+         if ( $pdlsize < $index ) {
+            for (@ret, $line_store) { _ext_1D( $_->[0], $extend ); }
+            #_ext_1D( $line_store, $extend );
+            $pdlsize += $extend;
+         }
 
-         $line_store = [ $class->zeroes(long,1) ]; # only need to store integers
-       }
+         # Set values - '1*' is split() bug workaround
+         # - stick perl arrays onto end of $ret
+         $k = 0;
+         for (@explicit_cols)  {
+            if ($perl_col_locs[$k]) {
+               push @{ $ret[$k++] }, $v[$_];
+            } else {
+               #set $ret[$k++], $index, 1*$v[$_];
+               push @{ $ret[$k++] }, $v[$_];
+            }
+         }
+         for (@end_perl_cols)  {
+            push @{ $ret[$k++] }, $v[$_];
+         }
 
-       # if necessary, extend PDL in buffered manner
-       $k = 0;
-       if ( $pdlsize < $index ) {
-         for (@ret, $line_store) { _ext_1D( $_->[0], $extend ); }
-           #_ext_1D( $line_store, $extend );
-           $pdlsize += $extend;
-       }
+         # store the line number
+         push @{$line_store}, $line_num;
 
-       # Set values - '1*' is split() bug workaround
-       # - stick perl arrays onto end of $ret
-       $k = 0;
-       for (@explicit_cols)  {
-          if ($perl_col_locs[$k]) {
-             push @{ $ret[$k++] }, $v[$_];
-          } else {
-             #set $ret[$k++], $index, 1*$v[$_];
-             push @{ $ret[$k++] }, $v[$_];
-          }
-       }
-       for (@end_perl_cols)  {
-           push @{ $ret[$k++] }, $v[$_];
-       }
+         # need to burp out list if needed
+         if ( $index >= $nextburpindex ) {
+            for (@ret, $line_store) { _burp_1D($_,$index); }
+            $nextburpindex = $index + $chunksize;
+         }
 
-       # store the line number
-       push @{$line_store}, $line_num;
+         # Thanks to Frank Samuelson for this
+         last if defined($line_end) and $line_num == $line_end;
+      }
 
-       # need to burp out list if needed
-       if ( $index >= $nextburpindex ) {
-          for (@ret, $line_store) { _burp_1D($_,$index); }
-          $nextburpindex = $index + $chunksize;
-       }
-
-       # Thanks to Frank Samuelson for this
-       last if defined($line_end) and $line_num == $line_end;
    }
 
    close($fh) unless $is_handle;
