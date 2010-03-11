@@ -159,13 +159,14 @@ sub _burp_1D {
    my $index = $_[1];
 
    my $data = shift @{$databox};
+   my $start = $index - @{$databox} + 1;
 
    if (ref $data eq 'ARRAY') {
       push @{$data}, @{$databox};
    } else {
       # print STDERR "_burp_1D: stuffing @{$databox} at index=$index\n";
       # print STDERR "_burp_1D: piddle before is " . $data->slice("0:$index") . "\n";
-      $data->slice("$index") .= pdl(@{$databox});
+      $data->slice("$start:$index") .= pdl(@{$databox});
       # print STDERR "_burp_1D: piddle after is  " . $data->slice("0:$index") . "\n";
    }
    $_ = [ $data ];
@@ -306,10 +307,11 @@ e.g.,
 
 use vars qw/ $colsep $defcolsep $deftype /;
 
-$defcolsep = ' ';      # Default column separator
-$deftype = double;     # Default type for piddles
+$defcolsep = ' ';       # Default column separator
+$deftype = double;      # Default type for piddles
 
-my $usecolsep;         # This is the colsep value that is actually used
+my $defchunksize = 500; # Number of perl list items to append to piddle
+my $usecolsep;          # This is the colsep value that is actually used
 
 # NOTE: XXX
 #  need to look at the line-selection code. For instance, if want
@@ -340,7 +342,8 @@ sub PDL::rcols {
        DEFTYPE => $deftype,
        TYPES   => [],
        COLSEP => undef,
-       PERLCOLS => undef
+       PERLCOLS => undef,
+       CHUNKSIZE => undef,
        } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
 
@@ -369,6 +372,10 @@ sub PDL::rcols {
          $options->{$pattern} = qr{$options->{$pattern}};
        }
    }
+
+   # CHUNKSIZE controls memory/time tradeoff of piddle IO
+   my $chunksize = $options->{CHUNKSIZE} || $defchunksize;
+   my $nextburpindex = -1;
 
    # which columns are to be read into piddles and which into perl arrays?
    my @perl_cols = ();
@@ -533,7 +540,10 @@ sub PDL::rcols {
        push @{$line_store}, $line_num;
 
        # need to burp out list if needed
-       for (@ret, $line_store) { _burp_1D($_,$index); }
+       if ( $index >= $nextburpindex ) {
+          for (@ret, $line_store) { _burp_1D($_,$index); }
+          $nextburpindex = $index + $chunksize;
+       }
 
        # Thanks to Frank Samuelson for this
        last if defined($line_end) and $line_num == $line_end;
@@ -541,9 +551,10 @@ sub PDL::rcols {
 
    close($fh) unless $is_handle;
 
+   # burp one final time if needed and 
    # clean out additional ARRAY ref level for @ret
-   for (@ret,$line_store) {
-      die "rcols: forgot to burp out list data\n" unless scalar @{$_} == 1;
+   for (@ret, $line_store) {
+      _burp_1D($_,$index) unless scalar @{$_} == 1;
       $_ = $_->[0];
    }
 
