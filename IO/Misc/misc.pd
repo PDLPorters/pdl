@@ -166,11 +166,10 @@ sub _burp_1D {
    } else {
       # print STDERR "_burp_1D: stuffing @{$databox} at index=$index\n";
       # print STDERR "_burp_1D: piddle before is " . $data->slice("0:$index") . "\n";
-      $data->slice("$start:$index") .= pdl(@{$databox});
+      $data->slice("$start:$index") .= pdl($databox);
       # print STDERR "_burp_1D: piddle after is  " . $data->slice("0:$index") . "\n";
    }
-   $_ = [ $data ];
-   1;
+   $_[0] = [ $data ];
 }
 
 # taken outside of rcols() to avoid clutter
