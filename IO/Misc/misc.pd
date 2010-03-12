@@ -374,7 +374,7 @@ sub PDL::rcols {
    my $options = $opt->current();   
 
    # handle legacy colsep variable
-   $usecolsep = (defined $colsep) ? qr{$colsep} : $defcolsep;
+   $usecolsep = (defined $colsep) ? qr{$colsep} : undef;
    $usecolsep = qr{$options->{COLSEP}} if $options->{COLSEP};
 
    # what are the patterns?
@@ -465,7 +465,7 @@ sub PDL::rcols {
          print STDERR "rcols: processing COLIDS option\n" if $PDL::verbose;
          undef $!;
          if (defined($fhline = <$fh>) ) {        # grab first line's fields for column IDs
-            my @v = split($usecolsep, $fhline);  # $usecolsep is either a string or a qr{}
+            my @v = defined($usecolsep) ? split($usecolsep,$fhline) : split(' ',$fhline);
             @{$options->{COLIDS}} = @v;
          } else {
             die "rcols: reading COLIDS info, $!" if $!;
@@ -494,7 +494,7 @@ sub PDL::rcols {
          $line_ctr = 0;
 
          $index++;
-         my @v = split($usecolsep, $fhline) ;       # $usecolsep is either a string or a qr{}
+         my @v = defined($usecolsep) ? split($usecolsep,$fhline) : split(' ',$fhline);
 
          # if the first line, set up the output piddles using all the columns
          # if the user doesn't specify anything
