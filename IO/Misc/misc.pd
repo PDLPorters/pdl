@@ -499,7 +499,8 @@ sub PDL::rcols {
          # if the first line, set up the output piddles using all the columns
          # if the user doesn't specify anything
          if ( $index == 0 ) {
-            @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
+            # @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0 and $#perl_cols < 0;
+            @explicit_cols = ( 0 .. $#v ) if $#explicit_cols < 0;
             @pdl_cols = grep { !$is_perl_col[$_] } @explicit_cols;  # remove perl cols if duplicated
             my $perlcolnum = 0;
             for (@explicit_cols) {
