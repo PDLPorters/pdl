@@ -548,19 +548,10 @@ sub PDL::rcols {
             $pdlsize += $extend;
          }
 
-         # Set values - '1*' is split() bug workaround
          # - stick perl arrays onto end of $ret
          $k = 0;
-         for (@explicit_cols)  {
-            if ($perl_col_locs[$k]) {
+         for (@explicit_cols,@end_perl_cols)  {
                push @{ $ret[$k++] }, $v[$_];
-            } else {
-               #set $ret[$k++], $index, 1*$v[$_];
-               push @{ $ret[$k++] }, $v[$_];
-            }
-         }
-         for (@end_perl_cols)  {
-            push @{ $ret[$k++] }, $v[$_];
          }
 
          # store the line number
