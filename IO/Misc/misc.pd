@@ -128,13 +128,16 @@ pp_addpm(<<'!NO!SUBS!');
 # ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
 # - needs a proper extend function rather than this nasty recreation
 # - changed to ensure input/output piddles have the same type
-# Added support for NO-OP when given a perl ARRAY ref argument -chm
-sub _ext_1D {
+# - Added support for NO-OP when given a perl ARRAY ref argument
+# - Generalize to multidimensional piddles (extend last dim by $n)
+sub _ext_lastD {
    my ($a,$n) = @_;
    if (ref($_[0]) ne 'ARRAY') {
-      my $nold   = $a->getdim(0);
-      my $b      = zeroes($a->type,$nold+$n);  # New pdl
-      my $bb     = $b->slice("0:".($nold-1));
+      my @nold   = $a->dims;
+      my @nnew   = @nold;
+      $nnew[-1] += $n;                      # add $n to the last dimension
+      my $b      = zeroes($a->type,@nnew);  # New pdl
+      my $bb     = $b->mv(-1,0)->slice("0:".($nold[-1]-1))->mv(0,-1);
       $bb       .= $a;
       $_[0]      = $b;
    }
@@ -543,8 +546,8 @@ sub PDL::rcols {
          # if necessary, extend PDL in buffered manner
          $k = 0;
          if ( $pdlsize < $index ) {
-            for (@ret, $line_store) { _ext_1D( $_->[0], $extend ); }
-            #_ext_1D( $line_store, $extend );
+            for (@ret, $line_store) { _ext_lastD( $_->[0], $extend ); }
+            #_ext_lastD( $line_store, $extend );
             $pdlsize += $extend;
          }
 
@@ -1002,7 +1005,7 @@ of C<$1>, C<$2> etc.
        }
        if ($n<$m) {
            for (0..$nret) {
-               _ext_1D( $ret[$_]->[0], $$options{BUFFERSIZE} ); # Extend PDL in buffered manner
+               _ext_lastD( $ret[$_]->[0], $$options{BUFFERSIZE} ); # Extend PDL in buffered manner
            }
            $n += $$options{BUFFERSIZE};
       }
