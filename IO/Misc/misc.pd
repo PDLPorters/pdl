@@ -365,8 +365,9 @@ sub PDL::rcols {
    # has the user supplied any options
    if ( defined($_[0]) ) {
        # ensure the old-style behaviour by setting the exclude pattern to undef 
-       if ( $_[0] =~ m|^/.*/$| )      { $opt->options( { EXCLUDE => undef, INCLUDE => shift } ); }
-       elsif ( ref($_[0]) eq "HASH" ) { $opt->options( shift ); }
+       if ( $_[0] =~ m|^/.*/$| )        { $opt->options( { EXCLUDE => undef, INCLUDE => shift } ); }
+       elsif ( ref($_[0]) eq "Regexp" ) { $opt->options( { EXCLUDE => undef, INCLUDE => shift } ); }
+       elsif ( ref($_[0]) eq "HASH" )   { $opt->options( shift ); }
    }
 
    # maybe the last element is a hash array as well
@@ -381,11 +382,14 @@ sub PDL::rcols {
 
    # what are the patterns?
    foreach my $pattern ( qw( INCLUDE EXCLUDE ) ) {
-       if ( $options->{$pattern} ) {
-         barf "rcols() - unable to parse $pattern value.\n" if $$options{$pattern} !~ m|^/.*/$|;
-         $options->{$pattern} =~ s|^/(.*)/$|$1|;
-         $options->{$pattern} = qr{$options->{$pattern}};
-       }
+      if ( $options->{$pattern} and ref($options->{$pattern}) ne "Regexp" ) {
+         if ( $options->{$pattern} =~ m|^/.*/$| ) {
+            $options->{$pattern} =~ s|^/(.*)/$|$1|;
+            $options->{$pattern} = qr($options->{$pattern});
+         } else {
+            barf "rcols() - unable to process $pattern value.\n";
+         }
+      }
    }
 
    # CHUNKSIZE controls memory/time tradeoff of piddle IO
