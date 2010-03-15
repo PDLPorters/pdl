@@ -125,12 +125,10 @@ defpdl(
 pp_addpm(<<'!NO!SUBS!');
 
 
-# ***CROCK*** Internal routine to extend 1D PDL array by size $n - dirty hack
-# - needs a proper extend function rather than this nasty recreation
-# - changed to ensure input/output piddles have the same type
-# - Added support for NO-OP when given a perl ARRAY ref argument
-# - Generalize to multidimensional piddles (extend last dim by $n)
-sub _ext_lastD {
+# Internal routine to extend PDL array by size $n along last dimension
+# - Would be nice to have a proper extend function rather than hack
+# - Is a NO-OP when handed a perl ARRAY ref rather than a piddle arg
+sub _ext_lastD {                           # Called by rcols and rgrep
    my ($a,$n) = @_;
    if (ref($_[0]) ne 'ARRAY') {
       my @nold   = $a->dims;
@@ -144,8 +142,9 @@ sub _ext_lastD {
    1;
 }
 
-# implements PDL->at() for either 1D PDL or ARRAY arguments
-sub _at_1D ($$) {
+# Implements PDL->at() for either 1D PDL or ARRAY arguments
+# TODO: Need to add support for multidim piddles parallel to rcols
+sub _at_1D ($$) {                           # Called by wcols and swcols
     my $data = $_[0];
     my $index = $_[1];
     
@@ -158,10 +157,10 @@ sub _at_1D ($$) {
 
 # squeezes "fluffy" perl list values into column data type
 sub _burp_1D {
-   my $databox = $_[0];
+   my $data = $_[0]->[0]; 
+   my $databox = $_[0]->[1];
    my $index = $_[1];
 
-   my $data = shift @{$databox};
    my $start = $index - @{$databox} + 1;
 
    if (ref $data eq 'ARRAY') {
@@ -172,7 +171,7 @@ sub _burp_1D {
       $data->slice("$start:$index") .= pdl($databox);
       # print STDERR "_burp_1D: piddle after is  " . $data->slice("0:$index") . "\n";
    }
-   $_[0] = [ $data ];
+   $_[0] = [ $data, [] ];
 }
 
 # taken outside of rcols() to avoid clutter
@@ -539,12 +538,12 @@ sub PDL::rcols {
             for (0..$#perl_col_locs) {
                # Using mixed list+piddle data structure for performance tradeoff
                # between memory usage (perl list) and speed of IO (PDL operations)
-               $ret[$_] = $perl_col_locs[$_] ? [ [] ] : [ $class->zeroes($types[$k],1) ];
+               $ret[$_] = $perl_col_locs[$_] ? [ [], [] ] : [ $class->zeroes($types[$k],1), [] ];
                $k++ unless $perl_col_locs[$_];
             }
-            for (@end_perl_cols) { push @ret, [ [] ]; }
+            for (@end_perl_cols) { push @ret, [ [], [] ]; }
 
-            $line_store = [ $class->zeroes(long,1) ]; # only need to store integers
+            $line_store = [ $class->zeroes(long,1), [] ]; # only need to store integers
          }
 
          # if necessary, extend PDL in buffered manner
@@ -558,11 +557,11 @@ sub PDL::rcols {
          # - stick perl arrays onto end of $ret
          $k = 0;
          for (@explicit_cols,@end_perl_cols)  {
-               push @{ $ret[$k++] }, $v[$_];
+               push @{ $ret[$k++]->[1] }, $v[$_];
          }
 
          # store the line number
-         push @{$line_store}, $line_num;
+         push @{$line_store->[1]}, $line_num;
 
          # need to burp out list if needed
          if ( $index >= $nextburpindex ) {
@@ -581,7 +580,7 @@ sub PDL::rcols {
    # burp one final time if needed and 
    # clean out additional ARRAY ref level for @ret
    for (@ret, $line_store) {
-      _burp_1D($_,$index) unless scalar @{$_} == 1;
+      _burp_1D($_,$index) if scalar @{$_->[1]};
       $_ = $_->[0];
    }
 
@@ -1002,7 +1001,7 @@ of C<$1>, C<$2> etc.
            my @types = _handle_types( $nret, $$options{DEFTYPE}, $$options{TYPES} );	
            for (0..$nret) {
                 # Modified 18/04/05 to use specified precision.
-	 	$ret[$_] = [ PDL->zeroes($types[$_], 1) ];
+	 	$ret[$_] = [ PDL->zeroes($types[$_], 1), [] ];
            }
        } else { # perhaps should only carp once...
            carp "Non-rectangular rgrep" if $nret != $#v;
