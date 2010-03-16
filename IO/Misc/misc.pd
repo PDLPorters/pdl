@@ -206,8 +206,14 @@ sub _handle_types ($$$) {
 
 =for ref
 
-Read ASCII cols from a file into piddles and perl arrays
-(also see L</rgrep()>).
+Read specified ASCII cols from a file into piddles and perl
+arrays (also see L</rgrep()>).
+
+For each column number specified, a 1D output PDL will be
+generated.  Anonymous arrays of column numbers generate
+multicolumn output piddles.  An empty anonymous array as
+column specification will produce a single output data
+piddle with dim(0) equal to the number of columns available.
 
 There are two calling conventions - the old version, where a
 pattern can be specified after the filename/handle, and the
@@ -221,9 +227,9 @@ Options exist to only read from lines that match, or do
 not match, supplied patterns, and to set the types of the
 created piddles.
 
-Can take file name or *HANDLE, and if no columns are
-specified, all are assumed. For the allowed types, see
-L<PDL::Core/Datatype_conversions>.
+Can take file name or *HANDLE, and if no explicit column
+numbers are specified, all are assumed. For the allowed types,
+see L<PDL::Core/Datatype_conversions>.
 
 Options (case insensitive):
 
@@ -247,19 +253,19 @@ Options (case insensitive):
   to be read in.  Any missing columns use the DEFTYPE value (default B<[]>).
   
   COLSEP
-  - prints this string between colums of data. Defaults to
+  - splits on this string/pattern/qr{} between colums of data. Defaults to
   $PDL::IO::Misc::defcolsep.
   
   PERLCOLS
   - an array of column numbers which are to be read into perl arrays
-  rather than piddles. Any columns not specified in the explicit list
-  of columns to read will be returned after the requested columns.
+  rather than piddles.  Any columns not specified in the explicit list
+  of columns to read will be returned after the explicit columns.
   (default B<undef>).
 
   COLIDS
   - if defined to an array reference, it will be assigned the column
   ID values obtained by splitting the first line of the file in the
-  identical fashion to the column data. (Details TBD)
+  identical fashion to the column data.
 
   CHUNKSIZE
   - the number of input data elements to batch together before appending
@@ -273,6 +279,7 @@ Options (case insensitive):
 
   Usage:
     ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, $col1, $col2, ... )
+             $x = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, [] )
     ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., { EXCLUDE => '/^!/' } )
     ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
  
@@ -280,7 +287,8 @@ e.g.,
 
 =for example
 
-  $x      = PDL->rcols 'file1';
+  $x      = PDL->rcols 'file1';	        # file1 has only one column of data
+  $x      = PDL->rcols 'file2', [];	# file2 can have multiple columns, still 1 piddle output
   ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # read CSV data file
   ($x,$y) = rcols *STDOUT;  # default separator for lines like '32 24'
 
@@ -303,11 +311,11 @@ e.g.,
 
   NOTES:
 
-  1. Quotes are required on patterns.
+  1. Quotes are required on patterns or use the qr{} quote regexp syntax.
   
-  2. Columns are separated by whitespace by default, use
-  C<$PDL::IO::Misc::defcolsep> to specify an alternate default
-  separator or use the COLSEP option.
+  2. Columns are separated by whitespace by default, use the COLSEP option
+  separator to specify an alternate split pattern or string or specify an
+  alternate default separator by setting C<$PDL::IO::Misc::defcolsep> .
   
   3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
   separator is still supported but the variable is not defined by default.
@@ -323,7 +331,7 @@ use vars qw/ $colsep $defcolsep $deftype /;
 $defcolsep = ' ';       # Default column separator
 $deftype = double;      # Default type for piddles
 
-my $defchunksize = 500; # Number of perl list items to append to piddle
+my $defchunksize = 100; # Number of perl list items to append to piddle
 my $usecolsep;          # This is the colsep value that is actually used
 
 # NOTE: XXX
@@ -513,13 +521,31 @@ RCOLS_IO: {
                @explicit_cols = ( [ 0 .. $#v ] );
             }
          }
+         my $implicit_pdls = 0;
+         my $is_explicit = {};
+         foreach my $col (@explicit_cols) {
+            if (ref($col) eq "ARRAY") {
+               $implicit_pdls++ if !scalar(@$col);
+            } else {
+               $is_explicit->{$col} = 1;
+            }
+         }
+         if ($implicit_pdls > 1) {
+            die "rcols: only one implicit multicolumn piddle spec allowed, found $implicit_pdls!\n";
+         }
+         foreach my $col (@explicit_cols) {
+            if (ref($col) eq "ARRAY" and !scalar(@$col)) {
+               @$col = grep { !$is_explicit->{$_} } ( 0 .. $#v );
+            }
+         }
+            
          # remove declared perl columns from pdl data list
          $k = 0;
          my @pdl_cols = ();
          foreach my $col (@explicit_cols) {
             # strip out declared perl cols so they won't be read into piddles
             if ( ref($col) eq "ARRAY" ) {
-               $col = [ grep { !$is_perl_col[$_] } @{$col} ];
+               @$col = grep { !$is_perl_col[$_] } @{$col};
                push @pdl_cols, [ @{$col} ];
             } elsif (!$is_perl_col[$col]) {
                push @pdl_cols, $col;
