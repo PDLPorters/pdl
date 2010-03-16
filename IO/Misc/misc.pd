@@ -551,7 +551,6 @@ RCOLS_IO: {
                push @pdl_cols, $col;
             }
          }
-         @explicit_cols = @pdl_cols;
          # strip out perl cols in explicit col list for return at end
          @end_perl_cols = @perl_cols;
          foreach my $col (@explicit_cols) {
