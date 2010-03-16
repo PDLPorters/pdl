@@ -269,10 +269,13 @@ Options (case insensitive):
 
   CHUNKSIZE
   - the number of input data elements to batch together before appending
-  to each output data piddle (Default value is 500).  If CHUNKSIZE is
+  to each output data piddle (Default value is 100).  If CHUNKSIZE is
   greater than the number of lines of data to read, the entire file is
   slurped in, lines split, and perl lists of column data are generated.
   At the end, effectively pdl(@column_data) produces any result piddles.
+
+  VERBOSE
+  - be verbose about IO processing (default C<$PDL::vebose>)
 
 
 =for usage
@@ -357,15 +360,16 @@ sub PDL::rcols {
 
    # set up default options
    my $opt = new PDL::Options( {
+       CHUNKSIZE => undef,
+       COLIDS => undef,
+       COLSEP => undef,
+       DEFTYPE => $deftype,
        EXCLUDE => '/^#/',
        INCLUDE => undef,
        LINES => '',
-       DEFTYPE => $deftype,
-       TYPES   => [],
-       COLSEP => undef,
        PERLCOLS => undef,
-       CHUNKSIZE => undef,
-       COLIDS => undef,
+       TYPES   => [],
+       VERBOSE=> $PDL::verbose,
        } );
    $opt->synonyms( { IGNORE => 'EXCLUDE', KEEP => 'INCLUDE' } );
 
@@ -474,7 +478,7 @@ my $line_store;  # line numbers of saved data
 RCOLS_IO: {
 
    if ($options->{COLIDS}) {
-      print STDERR "rcols: processing COLIDS option\n" if $PDL::verbose;
+      print STDERR "rcols: processing COLIDS option\n" if $options->{VERBOSE};
       undef $!;
       if (defined($fhline = <$fh>) ) {        # grab first line's fields for column IDs
          my @v = defined($usecolsep) ? split($usecolsep,$fhline) : split(' ',$fhline);
@@ -561,7 +565,7 @@ RCOLS_IO: {
 
          # sort out the types of the piddles
          my @types = _handle_types( $#pdl_cols, $$options{DEFTYPE}, $$options{TYPES} );
-         if ( $PDL::verbose ) { # dbg aid
+         if ( $options->{VERBOSE} ) { # dbg aid
             print "Reading data into piddles of type: [ ";
             foreach my $t ( @types ) {
                print $t->shortctype() . " ";
@@ -629,7 +633,7 @@ for (@ret, $line_store) {
 
 # have we read anything in? if not, return empty piddles
 if ( $index == -1 ) {
-   print "Warning: rcols() did not read in any data.\n" if $PDL::verbose;
+   print "Warning: rcols() did not read in any data.\n" if $options->{VERBOSE};
    if ( wantarray ) {
       foreach ( 0 .. $#explicit_cols ) {
          if ( $is_perl_col[$_] ) {
@@ -652,7 +656,7 @@ if ( $line_rev == 0 and $index_start >= 0 and $index_end >= -1 ) {
    for (@ret) {
       $_ = $_->mv(-1,0)->slice("0:${index}")->mv(0,-1) unless ref($_) eq 'ARRAY';
    };
-   if ( $PDL::verbose ) {
+   if ( $options->{VERBOSE} ) {
       if ( ref($ret[0]) eq 'ARRAY' ) {
          print "Read in ", scalar( @{ $ret[0] } ), " elements.\n";
       } else {
@@ -712,7 +716,7 @@ foreach ( @explicit_cols, @end_perl_cols ) {
 }
 
 # print some diagnostics
-if ( $PDL::verbose ) {
+if ( $options->{VERBOSE} ) {
    my $done = 0;
    foreach my $col (@explicit_cols) {
       last if $done;
