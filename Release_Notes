@@ -1,3 +1,27 @@
+Release notes for PDL 2.4.6_004 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * rcols() now has support for specifying multicolumn piddles for
+   input data and performance has been significantly improved for
+   common input data options.
+
+   - Patterns for rcols() may now be specified using
+     the qr{} syntax instead of quoted strings.
+
+   - The COLIDS option allows one to return line 0 of
+     the data file containing field names/identifiers.
+     PERLCOLS may be used to return non-piddle ids from
+     the row data.
+
+
 Release notes for PDL 2.4.6_001 --------------------------
 
 General Notes:

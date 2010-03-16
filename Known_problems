@@ -1,5 +1,13 @@
 The following issues have been reported with this version of PDL:
 
+
+- demo transform is broken for some transforms involving
+  FITS header information.  The problem is believed to be from
+  a reversal of the FITS header conventions.
+  
+  ***** Check your transforms before you rely on them! *****
+  
+
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
   to have the window close.
@@ -46,11 +54,6 @@ The following issues have been reported with this version of PDL:
   from the configure-build-test process.
 
 
-- Lvalue subroutine errors have been reported for perl 5.6.2
-  installation on a linux 2.4 kernel system.  Perl versions 5.8
-  and above are *really* recommended.
-
-
 - PDL::IO::Dumper has test failures on some systems that appear
   to result from an incorrectly detected/use flavor of uuencode
   or uudecode.  Installing Convert::UU should resolve the problem.
@@ -71,8 +74,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_001 release:
+  PDL-2.4.6_004 release:
 
+  2949455    demo transform broken
   2946119    TriD garbled axis text
   2901814    Arrow keys don't work in perldl on win32 console
   2901810    Ctrl-C kills perldl in win32 console
