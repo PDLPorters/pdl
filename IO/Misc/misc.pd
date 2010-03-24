@@ -292,6 +292,8 @@ e.g.,
 
   $x      = PDL->rcols 'file1';	        # file1 has only one column of data
   $x      = PDL->rcols 'file2', [];	# file2 can have multiple columns, still 1 piddle output
+                                        # (empty array ref spec means all possible data fields)
+
   ($x,$y) = rcols 'table.csv', { COLSEP => ',' };  # read CSV data file
   ($x,$y) = rcols *STDOUT;  # default separator for lines like '32 24'
 
@@ -305,12 +307,18 @@ e.g.,
   ($x,$y) = rcols 'file3', { LINES => '27:', TYPES => [ ushort, ushort ] };
 
   # read in the first column as a perl array and the next two as piddles
+  # with the perl column returned after the piddle outputs
   ($x,$y,$name) = rcols 'file4', 1, 2   , { PERLCOLS => [ 0 ] };
   printf "Number of names read in = %d\n", 1 + $#$name;
 
   # read in the first column as a perl array and the next two as piddles
-  # with PERLCOLS changing the type of the first arg to perl list ref
+  # with PERLCOLS changing the type of the first returned value to perl list ref
   ($name,$x,$y) = rcols 'file4', 0, 1, 2, { PERLCOLS => [ 0 ] };
+
+  # read in the first column as a perl array returned first followed by the
+  # the next two data columns in the file as a single 2-column piddle 
+  ($name,$x,$y) = rcols 'file4', 0, [1, 2], { PERLCOLS => [ 0 ] };
+
 
   NOTES:
 
@@ -320,9 +328,9 @@ e.g.,
   separator to specify an alternate split pattern or string or specify an
   alternate default separator by setting C<$PDL::IO::Misc::defcolsep> .
   
-  3. Legacy support for C<$PDL::IO::Misc::colsep> to set the column
-  separator is still supported but the variable is not defined by default.
-  If you set the variable to a value then it will get picked up.
+  3. Legacy support is present to use C<$PDL::IO::Misc::colsep> to set the
+  column separator but C<$PDL::IO::Misc::colsep> is not defined by default.
+  If you set the variable to a defined value it will get picked up.
   
   4. LINES => '-1:0:3' may not work as you expect, since lines are skipped
   when read in, then the whole array reversed.
