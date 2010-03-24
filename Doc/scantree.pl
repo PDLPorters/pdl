@@ -54,7 +54,7 @@ PDL::Index - an index of PDL documentation
 =head1 DESCRIPTION
 
 A meta document listing the documented PDL modules and
-the PDL manual dcouments
+the PDL manual documents
 
 =head1 PDL manuals
 
