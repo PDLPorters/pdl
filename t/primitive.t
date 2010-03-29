@@ -120,15 +120,14 @@ ok(! any isfinite $c->average);                     #19
 # Test uniqvec...
 $a = pdl([[0,1],[2,2],[0,1]]);
 $b = $a->uniqvec;
-eval '$c = all($b==pdl([[0,1],[2,2]]))';  ok(!$@ && $c);
-                                                    #20
+eval '$c = all($b==pdl([[0,1],[2,2]]))';  ok(!$@ && $c && $b->ndims==2); #20
 
 $a = pdl([[0,1]])->uniqvec;
-eval '$c = all($a==pdl([[0,1]]))';  ok(!$@ && $c);  #21
+eval '$c = all($a==pdl([[0,1]]))';  ok(!$@ && $c && $a->ndims==2);  #21
 
 $a = pdl([[0,1,2]]); $a = $a->glue(1,$a,$a);
 $b = $a->uniqvec;
-eval '$c = all($b==pdl([0,1,2]))';  ok(!$@ && $c);  #22
+eval '$c = all($b==pdl([0,1,2]))';  ok(!$@ && $c && $b->ndims==2);  #22
 
 ##############################
 # Test bad handling in selector

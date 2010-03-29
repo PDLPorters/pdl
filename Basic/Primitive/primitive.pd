@@ -828,7 +828,7 @@ sub PDL::uniqvec {
   my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
 
   return $uniq->nelem==0 ? 
-	$srt->slice("(0),:")->mv(0,-1) :
+	$srt->slice("0,:")->mv(0,-1) :
 	$srt->dice($uniq)->mv(0,-1);
 }
 
