@@ -317,7 +317,7 @@ e.g.,
 
   # read in the first column as a perl array returned first followed by the
   # the next two data columns in the file as a single 2-column piddle 
-  ($name,$x,$y) = rcols 'file4', 0, [1, 2], { PERLCOLS => [ 0 ] };
+  ($name,$xy) = rcols 'file4', 0, [1, 2], { PERLCOLS => [ 0 ] };
 
 
   NOTES:
