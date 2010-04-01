@@ -702,7 +702,7 @@ sub SDgetattributenames
 sub SDgetattributname
 {
     my $self = shift;
-    return $self->SDgetattributename( @_ );
+    return $self->SDgetattributenames( @_ );
 } # End of SDgetattributname()...
 
 =head2 SDgetattribute
