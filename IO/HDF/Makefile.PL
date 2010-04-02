@@ -33,6 +33,7 @@ BEGIN
         '/usr/local/lib64',
         '/opt/local/lib',
         '/usr/lib',
+        '/usr/lib/hdf',
         '/opt/lib'
     );
     @HDF_inc_locations = (
@@ -40,6 +41,7 @@ BEGIN
         '/usr/local/netcdf/include',
         '/opt/local/include',
         '/usr/include',
+        '/usr/include/hdf',
         '/opt/include'
     ); 
     
