@@ -112,15 +112,8 @@ sub whereami_inst {
 # To access PDL's configuration use %PDL::Config. Makefile.PL has been set up
 # to create this variable so it is available during 'perl Makefile.PL' and
 # it can be eval-ed during 'make'
-#
-# defined(%xxx) is bad usage.
-#
-# The recommended way to check if a hash %xxx exists is
-# exists $::{xxx} && *{xxx}{HASH}
-#
-# Search for 'defined(%hash) is deprecated' for more info
-#
-unless ( defined %PDL::Config ) {  # TODO: fix defined %hash usage
+
+unless ( %PDL::Config ) {
 
     # look for the distribution and then the installed version
     # (a manual version of whereami_any)
