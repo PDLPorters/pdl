@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Mon 01 Feb 2010 07:44:18 AM
+# Last saved: Thu 08 Apr 2010 10:13:21 AM 
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -248,7 +248,22 @@ sub resize_window {
 
    glRasterPos2i( int($hshift), int($vshift) );
 
-   glutReshapeWindow($zoom*$img->dim($glds+0), $zoom*$img->dim($glds+1));
+   my ($do_reshape) = 0;
+   my ($new_width, $new_height) = ($zoom*$img->dim($glds+0),  $zoom*$img->dim($glds+1));
+
+   # handle integer rounding problems in resize
+   if (abs($new_width - $width ) <= 2) {
+      $new_width = $width;
+   } else {
+      $do_reshape++;
+   }
+   if (abs($new_height - $height ) <= 2) {
+      $new_height = $height;
+   } else {
+      $do_reshape++;
+   }
+
+   glutReshapeWindow($new_width,  $new_height) if $do_reshape;
 };
 
 #------------------------------------------------------------------------
