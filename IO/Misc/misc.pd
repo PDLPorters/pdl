@@ -499,7 +499,8 @@ RCOLS_IO: {
 
    while( defined($fhline = <$fh>) ) {
 
-      chomp $fhline;
+      # chomp $fhline;
+      $fhline =~ s/\r?\n$//;  # handle DOS on unix files better
 
       $line_num++;
 
