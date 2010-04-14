@@ -4235,7 +4235,8 @@ information on the Representation of World Coordinate Systems in FITS.
 	    # -- This broke a few things because CROTA is a pseudostandard
 	    #    in the solar physics community.  I added a fallback to 
 	    #    CROTA in case CROTA2 doesn't exist. --CED
-	    $angle  = ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
+	    # 13-Apr-2010: changed sign of CROTA2 to match update to PDL::Transform in 2.4.3 --CED
+	    $angle  = - ( (defined $hdr->{"CROTA2$id"}) ? $hdr->{"CROTA2$id"} :
 			(defined $hdr->{"CROTA"}) ? $hdr->{"CROTA"} : 0)   *
 		3.14159265358979323846264338/180;
 
