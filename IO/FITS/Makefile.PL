@@ -26,7 +26,7 @@ EOW
     } else {
 	$PDL::IO::FITS::wstr = << 'EOW';
 Hmmm. You don't appear to have the Astro::FITS::Header module installed.
-You'll be able to read and write FITS files anyway, but FITS support is
+You'll be able to read and write simple FITS files anyway, but FITS support is
 greatly improved if you install it.
 EOW
     }
