@@ -1,4 +1,3 @@
-#include "ricecomp.h"
 /**********************************************************************
  * A general purpose limited-entropy Rice compressor library
  * 
