@@ -1039,7 +1039,6 @@ sub _rfits_bintable ($$$$) {
       $heap = which(pdl(0)); # empty PDL
   }
 
-  print "Frobnicating...\n";
   ### Frobnicate the rows, one at a time.
   for my $row(0..$hdr->{NAXIS2}-1) {
     my $prelen = length($rawtable);
@@ -1064,13 +1063,13 @@ sub _rfits_bintable ($$$$) {
         $tmpcol->{data}->upd_data;
 
       } else {
-        barf("Bug detected: inconsistent types in BINTABLE reader\n");
+        die ("rfits: Bug detected: inconsistent types in BINTABLE reader\n");
       }
 
     } # End of TFIELDS loop
 
     if(length($rawtable) ne $prelen - $hdr->{NAXIS1}) {
-      barf "Something got screwed up -- expected a length of $prelen - $hdr->{NAXIS1}, got ".length($rawtable).".  Giving up.\n";
+      die "rfits BINTABLE: Something got screwed up -- expected a length of $prelen - $hdr->{NAXIS1}, got ".length($rawtable).".  Giving up.\n";
     }
   } # End of NAXIS2 loop
 
