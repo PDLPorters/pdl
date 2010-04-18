@@ -1,23 +1,9 @@
 The following issues have been reported with this version of PDL:
 
 
-- demo transform is broken for some transforms involving
-  FITS header information.  The problem is believed to be from
-  a reversal of the FITS header conventions.
-  
-  ***** Check your transforms before you rely on them! *****
-  
-
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
   to have the window close.
-
-
-- The default TriD controls are based on having 2+ button mouse.
-
-  For Macs with one button, you can use Ctrl+Click to generate
-  the needed Right-click.  It is also possible to configure the
-  Macbook tracpad to generate a secondary click via the control panel.
 
 
 - When you close a TriD graphics window with the frame widget
@@ -34,24 +20,31 @@ The following issues have been reported with this version of PDL:
   on top of everything and not along the axes.
 
 
-- FFTW 3.2.2 is the current release version of the FFTW library
-  but is not yet supported by PDL::FFTW.  You may install version
-  2.1.5 of FFTW which is supported, use PDL's built-in FFT
-  routines (see PDL::FFT), or submit a patch to update PDL::FFTW
-  to the version 3 API. 
+- The default TriD controls are based on having 2+ button mouse.
+
+  For Macs with one button, you can use Ctrl+Click to generate
+  the needed Right-click.  It is also possible to configure the
+  Macbook tracpad to generate a secondary click via the control panel.
 
 
-- Various make problems with build:
+- PDL::FFTW is based on version 2 of the FFTW API.  The current
+  release of the FFTW library is version 3.2.2.  To use PDL::FFTW
+  you will need to install FFTW version 2.1.5, use the built-in 
+  PDL::FFT routines instead, or (better yet) submit a patch to
+  update PDL::FFTW to the version 3 API. 
 
-  - Using parallel make causes the build to fail so don't use -j # options.
-  - Make fails with message like.
+
+- Various make command issues during build:
+
+  - Using parallel make causes the build to fail; so don't use -j # options.
+  - make fails with message like.
       "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-    The cause is unknown.  If you have this problem, please let the developers
+    The cause is unknown.  If you have this problem, *please* let the developers
     know via the perldl mailing list.
 
 
-- Extremely verbose but not particularly helpful text output
-  from the configure-build-test process.
+- Extremely verbose but not particularly helpful text output from
+  the configure-build-test process.
 
 
 - PDL::IO::Dumper has test failures on some systems that appear
@@ -76,7 +69,6 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.6_004 release:
 
-  2949455    demo transform broken
   2946119    TriD garbled axis text
   2901814    Arrow keys don't work in perldl on win32 console
   2901810    Ctrl-C kills perldl in win32 console
