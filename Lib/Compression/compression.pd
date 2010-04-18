@@ -144,10 +144,9 @@ sub PDL::rice_compress {
     if( $in->type != byte &&
         $in->type != short &&
 	$in->type != ushort &&
-	$in->type != long &&
-	$in->type != ulong
+	$in->type != long
 	) {
-	die("rice_compress: input needs to have type byte, short, ushort, long, or ulong, not ".($in->type)."\n");
+	die("rice_compress: input needs to have type byte, short, ushort, or long, not ".($in->type)."\n");
     }
 
     # output buffer starts the same size; truncate at the end.
