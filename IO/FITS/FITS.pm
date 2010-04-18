@@ -153,6 +153,15 @@ in many circumstances but also causes a hit in speed.  When two or more PDLs
 with hdrcpy set are used in an expression, the result gets the header of the 
 first PDL in the expression.  See L<hdrcpy|PDL::Core/hdrcpy> for an example.
 
+=item expand (default=1)
+
+Determines whether auto-expansion of tile-compressed images should happen.
+Tile-compressed images are transmitted as binary tables with particular
+fields ("ZIMAGE") set.  Leaving this alone does what you want most of the
+time, unpacking such images transparently and returning the data and header
+as if they were part of a normal IMAGE extension.  Setting "expand" to 0
+delivers the binary table, rather than unpacking it into an image.
+
 =back
 
 FITS image headers are stored in the output PDL and can be retrieved
@@ -286,7 +295,7 @@ reading in a data structure as well.
 
 =cut
 
-our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0 } );
+our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0, expand=>1 } );
 
 sub PDL::rfitshdr {
   my $class = shift;
@@ -556,6 +565,14 @@ our $type_table = {
     32=>$PDL_L,
     -32=>$PDL_F,
     -64=>$PDL_D
+};
+
+our $type_table_2 = {
+    8=>byte,
+    16=>short,
+    32=>long,
+    -32=>float,
+    -64=>double
 };
 
 sub _rfits_image($$$$) {
@@ -1195,7 +1212,7 @@ sub _rfits_bintable ($$$$) {
   } # End of postfrobnication loop over columns
 
   ### Check whether this is actually a compressed image, in which case we hand it off to the image decompressor
-  if($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE}) {
+  if($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE} && $opt->{expand}) {
       return _rfits_unpack_zimage($tbl,$opt);
   }
 
@@ -1219,9 +1236,34 @@ sub _rfits_bintable ($$$$) {
 ## the "undef"s in the table.  --CED.
 
 ## Master jump table for compressors/uncompressors.
+use PDL::Compression;
 our $tile_compressors = {
           'GZIP_1' => undef
-	, 'RICE_1' => undef
+	      , 'RICE_1' => [ sub {},
+			      sub { my ($tilesize, $tbl, $params) = @_;
+				    my $compressed = $tbl->{COMPRESSED_DATA} -> mv(-1,0);
+				    my $bytepix = $params->{BYTEPIX} || 4;
+
+				    # Put the compressed tile bitstream into a variable of appropriate type.
+				    # This works by direct copying of the PDL data, which sidesteps local 
+				    # byteswap issues in the usual case that the compressed stream is type 
+				    # byte.  
+
+				    if( PDL::howbig($compressed->get_datatype) != $bytepix ) {
+					my @dims = $compressed->dims;
+					$dims[0] *= PDL::howbig($compressed->get_datatype) / $bytepix;
+					my $c2 = zeroes( $type_table_2->{$bytepix * 8}, @dims );
+
+					my $c2dr = $c2->get_dataref;
+					my $cdr = $compressed->get_dataref;
+					$$c2dr = $$cdr;
+					$c2->upd_data;
+					$compressed = $c2;
+				    }
+
+				    return $compressed->rice_expand( $tilesize, $params->{BLOCKSIZE} || 32);
+			      }
+			      ]
 	, 'PLIO_1' => undef
 	, 'HCOMPRESS_1' => undef
 };
@@ -1254,18 +1296,18 @@ sub _rfits_unpack_zimage($$$) {
 
     #############
     # Declare the output image
-
     my $type;
     unless($type_table->{$hdr->{ZBITPIX}}) {
 	print STDERR "WARNING: rfits: unrecognized ZBITPIX value $hdr->{ZBITPIX} in compressed image. Assuming -64.\n";
-	$type = $type_table->{-64};
+	$type = $type_table_2->{-64};
     } else {
-	$type = $type_table->{$hdr->{ZBITPIX}};
+	$type = $type_table_2->{$hdr->{ZBITPIX}};
     }
     my @dims;
     for my $i(1..$hdr->{ZNAXIS}) {
 	push(@dims,$hdr->{"ZNAXIS$i"});
     }
+
     my $pdl = PDL->new_from_specification( $type, @dims );
 
     ############
@@ -1278,9 +1320,11 @@ sub _rfits_unpack_zimage($$$) {
 	    push(@tiledims, (($i==1) ? $hdr->{ZNAXIS1} : 1)  );
 	}
     }
-    my $tile = PDL->new_from_specification( $type, @tiledims ); 
+
+
+#    my $tile = PDL->new_from_specification( $type, @tiledims ); 
     my $tiledims = pdl(@tiledims);
-    
+    my $tilesize = $tiledims->prodover;
     ###########
     # Calculate tile counts and compare to the number of stored tiles
     my $ntiles = ( pdl(@dims) / pdl(@tiledims) )->ceil;
@@ -1302,30 +1346,63 @@ sub _rfits_unpack_zimage($$$) {
     my $i = 1;
     while( $hdr->{"ZNAME$i"} ) {
 	$params->{ $hdr->{"ZNAME$i"} } = $hdr->{"ZVAL$i"};
+	$i++;
     }
 
     ##########
     # Enumerate tile coordinates for looping, and the corresponding row number
     my ($step, @steps, $steps);
     $step = 1;
-    for my $i(0..$#tiledims) {
+    for my $i(0..$ntiles->nelem-1) {
 	push(@steps, $step);
-	$step *= $ntiles->(($i));
+	$step *= $ntiles->at($i);
     }
+    $step = pdl(@steps);
 
     # $tiledex is 2-D (coordinate-index, list-index) and enumerates all tiles by image
     # location; $tilerow is 1-D (list-index) and enumerates all tiles by row in the bintable
-    my $tiledex = ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->ndims)->mv(-1,0);
+    my $tiledex = PDL::ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->dim(0))->mv(-1,0);
+    $TMP::tiledex = $tiledex;
     my $tilerow = ($tiledex * $step)->sumover;
 
+=pod
     ##########
     # Loop over the tiles, restoring them as we go.  Note that it is the algorithm's responsibility
     # to deliver whatever data it wants, in whatever format it wants (typing is implicit) -- the data 
     # will be coerced into the desired format by the .= assignment.
     for $i(0..$tiledex->dim(1)-1) {
-	&{$tc->[0]}( $tile, $tbl, $tilerow->(($i)), $params );
+	my $dex = $tilerow->(($i));
+	if( $tbl->{len_COMPRESSED_DATA}->(($dex)) ) {
+	    &{$tc->[1]}( $tile, $tbl, $dex, $params );
+	} else {
+	    $tile .= $tbl->{UNCOMPRESSED_DATA}->(($dex))->reshape($tile->dims);
+	}
 	$pdl->range( $tiledims * $tiledex->(:,($i)), $tiledims, 't' ) .= $tile;
     }
+=cut
+    
+    ##########
+    # Restore all the tiles at once
+    my $tiles = &{$tc->[1]}( $tilesize, $tbl, $params ); # gets a (tilesize x ntiles) output
+    my $patchup = which($tbl->{len_COMPRESSED_DATA} <= 0);
+    if($patchup->nelem) {
+	unless(defined $tbl->{UNCOMPRESSED_DATA}) {
+	    die "rfits: need some uncompressed data for missing compressed rows, but none were found!\n";
+	}
+	if($tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize) {
+	    die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n";
+	}
+	$tiles->(:,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->($patchup,:)->xchg(0,1);
+    }
+
+    my $cutup = $pdl->range( $tiledex, [@tiledims], 't') # < ntiles, tilesize0..tilesizen >
+	->mv(0,-1)                                       # < tilesize0..tilesizen, ntiles >
+	->clump($tiledims->nelem);                       # < tilesize, ntiles >
+
+
+    print "cutup: ",join("x",dims($cutup)),"; tiles: ",join("x",dims($tiles)),"\n";
+    $cutup .= $tiles; # dump all the tiles at once into the image.
+    undef $cutup;     # sever connection to prevent expensive future dataflow.
 
     ##########
     # Perform scaling if necessary
