@@ -128,8 +128,6 @@ unsigned int psum;
 double pixelsum, dpsum;
 unsigned int *diff;
 
- printf("in rcomp - nx=%d, bsize=%d...\n",nx,bsize);
-
  // Blocksize is picked so that boundaries lie on 64-bit word edges for all data types
  if(nblock & 0x7 ) { 
    fprintf(stderr,"rcomp: nblock must be divisible by 4 (is %d)\n",nblock);
@@ -161,8 +159,6 @@ unsigned int *diff;
  
  bbits = 1<<fsbits;
  
- printf("bsize=%d; fsbits=%d; fsmax=%d\n",bsize, fsbits, fsmax);
-
  /*
   * Set up buffer pointers
   */
@@ -176,28 +172,23 @@ unsigned int *diff;
   * Treat as an array of longs so it works in all cases
   *
   */
- printf("allocating diff - size is %d\n",nblock*sizeof(unsigned int));
  diff = (unsigned int *) malloc(nblock*sizeof(unsigned int));
  if (diff == (unsigned int *) NULL) {
    fprintf(stderr,"rcomp: insufficient memory (allocating %d ints for internal buffer)",nblock);
    fflush(stderr);
    return(-1);
  }
- printf("starting output...\n");
  /*
   * Code in blocks of nblock pixels
   */
  start_outputing_bits(buffer);
 
  /* write out first sample to the first bsize bytes of the buffer */
- printf("outputting first value...\n");
  {
    int a0;
    int z;
    a0 = a[0];
-   printf("calc z\n");
    z = output_nbits(buffer, a0, bsize * 8);
-   printf("z=%d\n",z);
    if (z) {
      // no error message - buffer overruns are silent
      free(diff);
@@ -205,7 +196,6 @@ unsigned int *diff;
  }
  }
 
- printf("setting lastpix...\n");
  /* the first difference will always be zero */
  switch(bsize) {
  case 1: lastpix = *((char *)a); break;
@@ -216,9 +206,7 @@ unsigned int *diff;
 
  thisblock = nblock;
 
- printf("starting loop...\n");
  for (i=0; i<nx; i += nblock) {
-   printf("i=%d\n",i);
    /* last block may be shorter */
    if (nx-i < nblock) thisblock = nx-i;
    /*
@@ -395,7 +383,6 @@ int lbits_to_go;
     /*
      * insert bits at end of bitbuffer
      */
-printf("in output_nbits...\n");
 
     lbitbuffer = buffer->bitbuffer;
     lbits_to_go = buffer->bits_to_go;
@@ -419,7 +406,6 @@ printf("in output_nbits...\n");
 /*    lbitbuffer |= ( bits & ((1<<n)-1) ); */
     lbitbuffer |= ( bits & *(mask+n) );
     lbits_to_go -= n;
-    printf("entering while...\n");
     while (lbits_to_go <= 0) {
 	/*
 	 * bitbuffer full, put out top 8 bits
@@ -515,7 +501,8 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
     fsmax = 25;
     break;
   default:
-    ffpmsg("rdecomp: bsize must be 1, 2, or 4 bytes");
+    fprintf(stderr,"rdecomp: bsize must be 1, 2, or 4 bytes");
+    fflush(stderr);
     return 1;
   }
   
@@ -704,10 +691,6 @@ int rdecomp (unsigned char *c,		/* input buffer			    */
 	  return 1;
 	}
     }
-    //if (c < cend) {
-    //   fprintf(stderr,"rdecomp: decompression warning: unused bytes at end of compressed buffer\n");
-    //   fflush(stderr);
-    // }
     return 0;
 }
 
