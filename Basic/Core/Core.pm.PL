@@ -689,16 +689,41 @@ new piddle constructor method
 
 =for usage
 
- $x = PDL->new(SCALAR|ARRAY|ARRAY REF);
+ $x = PDL->new(SCALAR|ARRAY|ARRAY REF|STRING);
 
 =for example
 
  $x = PDL->new(42);
  $y = new PDL [1..10];
+ $z = new PDL "[1 2 3]";
 
-Constructs piddle from perl numbers and lists.	
+Constructs piddle from perl numbers and lists and
+strings with Matlab/Octave style constructor syntax.	
+
+ NOTE:
+ 
+   STRING support is in development and should be
+   considered experimental.  The hook for STRING
+   support is provided by returning the value from
+   PDL::Core::new_pdl_from_string() which is called
+   with $new, $value, $this, and $type from the
+   PDL::new constructor. For example, the following
+   just takes a standard perl array ref syntax as
+   a string:
+
+   sub PDL::Core::new_pdl_from_string {
+      my ($new,$value,$this,$type) = @_;
+      my $val = eval $value;
+      if (ref $val eq 'ARRAY') {
+         return PDL::Core::pdl_avref($val,$this,$type);
+      } else {
+         barf "PDL::Core::new_pdl_from_string: error happened!\n";
+      }
+   }
 
 =cut
+
+use Scalar::Util;       # for looks_like_number test
 
 sub PDL::new {
    # print "in PDL::new\n";
@@ -720,9 +745,20 @@ sub PDL::new {
 
 
    if (ref(\$value) eq "SCALAR") {
-       $new->setdims([]);
-       ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
-       $new->upd_data();
+      if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
+         # new was passed a string argument that doesn't look like a number
+         # so we can process as a Matlab-style, no commas data entry format.
+         if (defined &PDL::Core::new_pdl_from_string) {
+            return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
+         } else {
+            print STDERR "Warning: PDL::new: PDL::Core::new_pdl_from_string() not defined.\n";
+            barf("PDL::new cannot make piddle from string input '$value'\n");
+         }
+      } else {
+         $new->setdims([]);
+         ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
+         $new->upd_data();
+      }
    }
    elsif (blessed($value)) { # Object
        $new = $value->copy;
