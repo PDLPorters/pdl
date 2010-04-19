@@ -12,12 +12,7 @@ The following issues have been reported with this version of PDL:
 
 - Label artifacts have been reported for the TriD demos with a 64bit
   linux system.  It has not been determined if the problem is in
-  PDL or the user system OpenGL configuration.
-
-
-- A depth/overlay artifact with axis labels on one Mac OS system
-  has been reported.  The 3D plot is fine but the label text appear
-  on top of everything and not along the axes.
+  PDL or the host system OpenGL software/configuration.
 
 
 - The default TriD controls are based on having 2+ button mouse.
