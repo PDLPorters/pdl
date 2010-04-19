@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 39;
+use Test::More tests => 41;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -164,3 +164,29 @@ like($@, qr/arguments 2 and 6 do not match/
 like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
+
+# pdl STRING constructor tests
+SKIP: {
+   skip "don't have hooks for pdl(STRING) data", 2 unless defined(&PDL::Core::is_scalar_SvPOK);
+
+   SKIP: {
+      skip "PDL::Core::new_pdl_from_string already defined, test needs to be updated", 2 if defined(&PDL::Core::new_pdl_from_string);
+
+      # define string parsing routine
+      eval q(
+      sub PDL::Core::new_pdl_from_string {
+         my ($new,$value,$this,$type) = @_;
+         my $val = eval $value;
+         if (ref $val eq 'ARRAY') {
+            return PDL::Core::pdl_avref($val,$this,$type);
+         } else {
+            barf "PDL::Core::new_pdl_from_string: error happened!\n";
+         }
+      } );
+
+      # these are placeholder tests until the STRING constructor is finalized
+      isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
+      ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
+   }
+
+}
