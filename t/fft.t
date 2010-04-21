@@ -6,7 +6,7 @@ use PDL::Image2D;
 use PDL::FFT;
 
 use Test;
-BEGIN { plan tests => 15; }
+BEGIN { plan tests => 17; }
 
 sub tapprox {
         my($a,$b) = @_;
@@ -83,5 +83,15 @@ $b = $a->copy;
 realfft($b);
 realifft($b);
 ok( tapprox($a,$b) );#15
+
+# Test that errors are properly caught
+eval {fft(sequence(10))};
+ok( $@, qr/Did you forget/, 'fft offers helpful message when only one argument is supplied'); #16
+$@ = '';
+
+
+eval {ifft(sequence(10))};
+ok( $@, qr/Did you forget/, 'ifft offers helpful message when only one argument is supplied'); #17
+$@ = '';
 
 # End
