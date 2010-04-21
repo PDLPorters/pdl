@@ -1213,6 +1213,10 @@ sub _rfits_bintable ($$$$) {
 
   ### Check whether this is actually a compressed image, in which case we hand it off to the image decompressor
   if($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE} && $opt->{expand}) {
+      eval 'use PDL::Compression;';
+      if($@) {
+	  die "rfits: error while loading PDL::Compression to unpack tile-compressed image.\n\t$@\n\tUse option expand=>0 to get the binary table.\n";
+      }
       return _rfits_unpack_zimage($tbl,$opt);
   }
 
@@ -1236,10 +1240,13 @@ sub _rfits_bintable ($$$$) {
 ## the "undef"s in the table.  --CED.
 
 ## Master jump table for compressors/uncompressors.
-use PDL::Compression;
 our $tile_compressors = {
           'GZIP_1' => undef
-	      , 'RICE_1' => [ sub {},
+	      , 'RICE_1' => [ ### RICE_1 compressor
+			      sub { my ($tilesize, $tbl, $params) = @_; 
+				    die "RICE_1 - placeholder: not supported yet.\n";
+			      },
+			      ### RICE_1 expander
 			      sub { my ($tilesize, $tbl, $params) = @_;
 				    my $compressed = $tbl->{COMPRESSED_DATA} -> mv(-1,0);
 				    my $bytepix = $params->{BYTEPIX} || 4;
@@ -1364,22 +1371,6 @@ sub _rfits_unpack_zimage($$$) {
     my $tiledex = PDL::ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->dim(0))->mv(-1,0);
     $TMP::tiledex = $tiledex;
     my $tilerow = ($tiledex * $step)->sumover;
-
-=pod
-    ##########
-    # Loop over the tiles, restoring them as we go.  Note that it is the algorithm's responsibility
-    # to deliver whatever data it wants, in whatever format it wants (typing is implicit) -- the data 
-    # will be coerced into the desired format by the .= assignment.
-    for $i(0..$tiledex->dim(1)-1) {
-	my $dex = $tilerow->(($i));
-	if( $tbl->{len_COMPRESSED_DATA}->(($dex)) ) {
-	    &{$tc->[1]}( $tile, $tbl, $dex, $params );
-	} else {
-	    $tile .= $tbl->{UNCOMPRESSED_DATA}->(($dex))->reshape($tile->dims);
-	}
-	$pdl->range( $tiledims * $tiledex->(:,($i)), $tiledims, 't' ) .= $tile;
-    }
-=cut
     
     ##########
     # Restore all the tiles at once
@@ -1395,13 +1386,14 @@ sub _rfits_unpack_zimage($$$) {
 	$tiles->(:,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->($patchup,:)->xchg(0,1);
     }
 
+    ##########
+    # Slice up the output image plane into tiles, and use the threading engine
+    # to assign everything to them.
     my $cutup = $pdl->range( $tiledex, [@tiledims], 't') # < ntiles, tilesize0..tilesizen >
 	->mv(0,-1)                                       # < tilesize0..tilesizen, ntiles >
 	->clump($tiledims->nelem);                       # < tilesize, ntiles >
 
-
-    print "cutup: ",join("x",dims($cutup)),"; tiles: ",join("x",dims($tiles)),"\n";
-    $cutup .= $tiles; # dump all the tiles at once into the image.
+    $cutup .= $tiles; # dump all the tiles at once into the image - they flow back to $pdl.
     undef $cutup;     # sever connection to prevent expensive future dataflow.
 
     ##########
@@ -1451,7 +1443,7 @@ Simple PDL FITS writer
 
 =for example
 
-  wfits $pdl, 'filename.fits', [$BITPIX];
+  wfits $pdl, 'filename.fits', [$BITPIX], [$COMPRESSION_OPTIONS];
   wfits $hash, 'filename.fits', [$OPTIONS];
   $pdl->wfits('foo.fits',-32);
 
@@ -1489,6 +1481,46 @@ axis: C<CTYPEn>, C<CRPIXn>, C<CRVALn>, C<CDELTn>, and C<CROTAn>.  This
 may cause confusion if the slice is NOT out of the last dimension:
 C<wfits($a(:,(0),:),'file.fits');> and you would be best off adjusting
 the header yourself before calling C<wfits>.
+
+You can tile-compress images according to the CFITSIO extension to the 
+FITS standard, by adding an option hash to the arguments:
+
+=over 3
+
+=item compress 
+
+This can be either unity, in which case Rice compression is used,
+or a (case-insensitive) string matching the CFITSIO compression 
+type names.  Currently supported compression algorithms are:
+
+=over 3
+
+=item * RICE_1 - linear Rice compression
+
+This uses limited-symbol-length Rice compression, which works well on 
+low entropy image data (where most pixels differ from their neighbors 
+by much less than the dynamic range of the image).
+
+=back
+
+=item tilesize (default C<[-1,1]>)
+
+This specifies the dimension of the compression tiles, in pixels.  You
+can hand in a PDL, a scalar, or an array ref. If you specify fewer
+dimensions than exist in the image, the last dim is repeated - so "32"
+yields 32x32 pixel tiles in a 2-D image.  A dim of -1 in any dimension
+duplicates the image size, so the default C<[-1,1]> causes compression
+along individual rows.
+
+=item tilesize (RICE_1 only; default C<32>)
+
+For RICE_1, BLOCKSIZE indicates the number of pixel samples to use
+for each compression block within the compression algorithm.  The 
+blocksize is independent of the tile dimensions.  For RICE
+compression the pixels from each tile are arranged in normal pixel 
+order (early dims fastest) and compressed as a linear stream.
+
+=back
 
 =item * Table handling:
 
@@ -1692,12 +1724,20 @@ sub wheader ($$) {
 # Write a PDL to a FITS format file
 #
 sub PDL::wfits {
-  barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
-  
-  my ($pdl,$file,$BITPIX) = @_;
+  barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
+  my ($pdl,$file,$a,$b) = @_;
+  my ($opt, $BITPIX);
+  if(ref $a eq 'HASH') {
+      $a = $opt;
+      $BITPIX = $b;
+  } elsif(ref $b eq 'HASH') {
+      $BITPIX = $a;
+      $opt = $b;
+  }
+
   my ($k, $buff, $off, $ndims, $sz);
   
-  if ($file =~ /\.gz$/) {            # Handle compression
+  if ($file =~ /\.gz$/) {            # Handle suffix-style compression
     $file = "|gzip -9 > $file";
   }
   elsif ($file =~ /\.Z$/) {
@@ -1761,6 +1801,13 @@ sub PDL::wfits {
     }
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
   }
+
+  # Check for tile-compression format for the image, and handle it.
+  # We add the image-compression format tags and reprocess the whole
+  # shebang as a binary table.
+  if($opt->{compress}) {
+      croak "Placeholder -- tile compression not yet supported\n";
+  }
   
   
   ## Open file & prepare to write binary info
@@ -1821,7 +1868,6 @@ sub PDL::wfits {
       else               { delete $h->{BLANK}; }
     }
     
-    #
     # Use object interface to sort the lines. This is complicated by
     # the need for an arbitrary number of NAXIS<n> lines in the middle
     # of the sorting.  Keywords with a trailing '1' in the sorted-order
