@@ -241,7 +241,7 @@ Also, we store an opaque
 	void *hdrsv; 
 
 which is just for use by the user to hook up arbitrary data with this sv.
-This one is generally manipulated through L<sethdr|PDL::core/sethdr> and
+This one is generally manipulated through L<sethdr|PDL::Core/sethdr> and
 L<gethdr|PDL::Core/gethdr> calls.
 
 =back

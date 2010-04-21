@@ -272,9 +272,9 @@ Following the usual convention coordinate (0,0) is displayed
 at the bottom left when displaying an image. It appears at the
 top left when using "C<print $a>" etc.
 
-Simple sectioning uses a syntax extension to perl, L<PDL::NiceSlice>,
-that allows you to specify subranges via a null-method modifier
-to a PDL:
+Simple sectioning uses a syntax extension to perl,
+L<PDL::NiceSlice|PDL::NiceSlice>, that allows you to specify subranges
+via a null-method modifier to a PDL:
 
   $b = $a->($x1:$x2,$y1:$y2,($z1)); # Take subsection
 

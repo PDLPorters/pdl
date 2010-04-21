@@ -14,7 +14,7 @@ It also includes the function C<log10>, which should
 be a perl function so that we can overload it!
 
 Matrix multiplication (the operator C<x>) is handled
-by the module L<PDL::Primitive|/PDL::Primitive>.
+by the module L<PDL::Primitive|PDL::Primitive>.
 
 =head1 SYNOPSIS
 

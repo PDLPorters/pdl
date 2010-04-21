@@ -163,7 +163,7 @@ Feedback and bug reports are welcome.
 Copyright (c) 2001, Christian Soeller. All Rights Reserved.
 This module is free software. It may be used, redistributed
 and/or modified under the same terms as PDL itself
-(see http://pdl.perl.org).
+(see L<http://pdl.perl.org>).
 
 =cut
 

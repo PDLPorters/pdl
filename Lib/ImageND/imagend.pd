@@ -450,7 +450,7 @@ pp_add_exported('','circ_mean circ_mean_p');
 
 pp_addpm(<<'EOPM');
 
-=head2 kernctr()
+=head2 kernctr
 
 =for ref
 

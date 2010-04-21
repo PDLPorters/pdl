@@ -291,8 +291,8 @@ Returns a 'null' piddle.
  $x = PDL->nullcreate($arg)
 
 This is an routine used by many of the threading primitives
-(i.e. L<sumover|PDL::Primitive/sumover>, 
-L<minimum|PDL::Primitive/minimum>, etc.) to generate a null piddle for the
+(i.e. L<sumover|PDL::Ufunc/sumover>, 
+L<minimum|PDL::Ufunc/minimum>, etc.) to generate a null piddle for the
 function's output that will behave properly for derived (or
 subclassed) PDL objects.
 
@@ -488,7 +488,7 @@ need to call L<upd_data|upd_data> afterward, to make sure that the
 piddle points to the new location of the underlying perl variable.
 
 You shouldn't mess with the SV unless you've called
-L<make_physical|/make_physical> or something similar.  You definitely
+L<make_physical|/PDL::make_physical> or something similar.  You definitely
 don't want to do anything to the SV to truncate or deallocate the
 string, unless you correspondingly call L<reshape|/reshape> to make the
 PDL match its new data dimension.
@@ -1561,7 +1561,7 @@ sub PDL::approx {
 
 =for ref
 
-Convenience interface to L<slice|PDL::Slice/slice>, 
+Convenience interface to L<slice|PDL::Slices/slice>, 
 allowing easier inclusion of dimensions in perl code.
 
 =for usage
@@ -1594,8 +1594,8 @@ sub PDL::mslice {
 
 =for ref
 
-Internally used interface to L<slice|PDL::Slice/slice>
-and L<dice|PDL::Slice/dice> that is the runtime part of
+Internally used interface to L<slice|PDL::Slices/slice>
+and L<dice|PDL::Slices/dice> that is the runtime part of
 the L<PDL::NiceSlice|PDL::NiceSlice> implementation.
 
 =for usage
@@ -1932,7 +1932,7 @@ Various forms of usage,
  perldl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
-See also L<new_from_specification|/new_from_specification>
+See also L<new_from_specification|/PDL::new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -1973,7 +1973,7 @@ construct a one filled piddle
 
  see zeroes() and add one
 
-See also L<new_from_specification|/new_from_specification>
+See also L<new_from_specification|/PDL::new_from_specification>
 for details on using piddles in the dimensions list.
 
 =cut
@@ -3193,7 +3193,7 @@ copy gets made, which is rather processor-inefficient -- so avoid
 using header copying in tight loops!
 
 Most PDLs have the C<hdrcpy> flag cleared by default; however, some
-routines (notably L<rfits|PDL::IO::FITS/rfits>) set it by default
+routines (notably L<rfits|PDL::IO::FITS/rfits()>) set it by default
 where that makes more sense.
 
 The C<hdrcpy> flag is viral: if you set it for a PDL, then derived

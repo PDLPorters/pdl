@@ -18,7 +18,7 @@ use PDL::Exporter;
  use PDL::MyModule '';    # Import nothing (OO)
  use PDL::MyModule '...'; # Same behaviour as Exporter
 
-=head1 DESCRIPTION
+=head1 SUMMARY
 
 C<PDL::Exporter> is a drop-in replacement for the L<Exporter|Exporter>
 module. It confers the standard PDL export conventions to your module.
@@ -68,7 +68,7 @@ sub import {
 
 =head1 SEE ALSO
 
-L<Exporter>
+L<Exporter|Exporter>
 
 =head1 AUTHOR
 

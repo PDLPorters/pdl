@@ -1210,7 +1210,7 @@ E<lt>pdl-porters@jach.hawaii.eduE<gt>.
 Copyright (c) 2001, 2002 Christian Soeller. All Rights Reserved.
 This module is free software. It may be used, redistributed
 and/or modified under the same terms as PDL itself
-(see http://pdl.perl.org).
+(see L<http://pdl.perl.org>).
 
 =cut
 
