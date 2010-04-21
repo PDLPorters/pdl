@@ -1,3 +1,41 @@
+Release notes for PDL 2.4.6_005 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Added hooks for PDL::new to handle STRING data
+
+     If the sub PDL::Core::new_pdl_from_string is defined, then
+     pdl(STRING) or PDL::new(STRING) will now call that routine
+     to generate the result piddle.  See help PDL::new for usage
+     and a trivial implementation which supports the existing
+     syntax in string form.
+
+     This allows for incremental development of matlab/octave
+     style constructor input for pdl and PDL::new which is planned
+     to allow for cut-and-paste of perldl p output as pdl input
+     arguments.
+
+ * Added tiled compressed image handling to rfits in FITS.pm
+   including a new compression module in Lib/Compression.
+
+ * Fixed a  problem with window shrink creep in imag2d()
+
+ * Fix uniqvec bug from SF# 2978576
+
+ * Fix rt.cpan.org #53815 in IO/HDF/SD/SD.pd
+
+ * Fixes SF bug 2949455 ("demo transform broken"): sign error in FITS
+   header CROTA2 interpretation by PGPLOT libraries.
+
+
+
 Release notes for PDL 2.4.6_004 --------------------------
 
 General Notes:

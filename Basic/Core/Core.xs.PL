@@ -690,6 +690,15 @@ howbig_c(datatype)
 
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
+unsigned int
+is_scalar_SvPOK(arg)
+	SV* arg;
+	CODE:
+	RETVAL = SvPOK(arg);
+	OUTPUT:
+	RETVAL
+
+
 int
 set_debugging(i)
 	int i;
