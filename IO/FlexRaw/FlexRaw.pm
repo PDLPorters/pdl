@@ -193,13 +193,27 @@ Read a binary file with flexible format specification
 
 =for ref
 
-Write a binary file with flexible format specification
+  Write a binary file with flexible format specification
 
 =for usage
 
   $hdr = writeflex($file, $pdl1, $pdl2,...)
   $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
+  writeflexhdr($file, $hdr)  # you must call writeflexhdr
 
+=head2 writeflexhdr
+
+=for ref
+
+  Write the header file corresponding to a previous writeflex call
+
+=for usage
+
+  writeflexhdr($file, $hdr)
+
+  $file or "filename" is the filename used in a previous writeflex
+
+  NOTE: This would be simpler if rolled into writeflex
 
 =head2 mapflex
 
