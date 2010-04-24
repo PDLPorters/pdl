@@ -263,7 +263,7 @@ uses the TNULL<n> keyword for the column, or 0 if TNULL<n> is not
 present.  The output hash also gets an additional field, "len_<name>",
 that contains the number of elements in each table row.
 
-=head3 Tile-compressed images
+=head3 TILE-COMPRESSED IMAGES
 
 CFITSIO and several large projects (including NASA's Solar Dynamics
 Observatory) now support an unofficial extension to FITS that stores
@@ -899,10 +899,9 @@ sub _rdP {
 }
 
 sub _wrP {
-    my( $type, $pdl, $row, $rpt, $extra ) = @_;
-    $extra =~ s/\((.*)\)/$1/;
-    die "Writing variable-length array records is not yet supported in binary tables\n";
+    die "This code path should never execute - you are trying to write a variable-length array via direct handler, which is wrong.  Check the code path in PDL::wfits.\n";
 }
+
 sub _fnP {
     my( $type, $pdl, $n, $hdr, $opt ) = @_;
     my $post = PDL::Core::howbig($type);
@@ -1019,7 +1018,7 @@ sub _rfits_bintable ($$$$) {
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
     }
     
-    print "Prefrobnicated col. $i (".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if($PDL::debug);
+    print "Prefrobnicated col. $i "."(".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if($PDL::debug);
     
     
   }  ### End of prefrobnication loop...
@@ -1192,14 +1191,37 @@ sub _rfits_bintable ($$$$) {
 	}
       } # End of bscale checking...
 
-      # Copy the PDL out to the table itself.
+      # Try to grab a TDIM dimension list...
+      my @tdims = ();
       $tmpcol->{data}->hdrcpy(1);
-      if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
-	$tbl->{$tmpcol->{name}} = 
-	  ( ( $tmpcol->{data}->dim(0) == 1 ) 
-	    ? $tmpcol->{data}->slice("(0)") 
-	    : $tmpcol->{data}->xchg(0,1)
-	    );
+
+      if(exists($hdr->{"TDIM$i"})) {
+	  if($hdr->{"TDIM$i"} =~ m/\((\s*\d+(\s*\,\s*\d+)*\s*)\)/) {
+	      my $a = $1;
+	      @tdims = map { $_+0 } split(/\,/,$a);
+	      my $tdims = pdl(@tdims);
+	      my $tds = $tdims->prodover;
+	      if($tds > $tmpcol->{data}->dim(0)) {
+		  die("rfits: TDIM$i is too big in binary table.  I give up.\n");
+	      } elsif($tds < $tmpcol->{data}->dim(0)) {
+		  print STDERR "rfits: WARNING: TDIM$i is too small in binary table.  Carrying on...\n";
+	      }
+
+	      $tmpcol->{data}->hdrcpy(1);
+	      my $td = $tmpcol->{data}->xchg(0,1);
+	      $tbl->{$tmpcol->{name}} = $td->reshape($td->dim(0),@tdims);
+	  } else {
+	      print STDERR "rfits: WARNING: invalid TDIM$i field in binary table.  Ignoring.\n";
+	  }
+      } else {
+	  # Copy the PDL out to the table itself.
+	  if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
+	      $tbl->{$tmpcol->{name}} = 
+		  ( ( $tmpcol->{data}->dim(0) == 1 ) 
+		    ? $tmpcol->{data}->slice("(0)") 
+		    : $tmpcol->{data}->xchg(0,1)
+		  );
+	  }
       }
 
       # End of PDL postfrobnication case
@@ -1240,11 +1262,32 @@ sub _rfits_bintable ($$$$) {
 ## the "undef"s in the table.  --CED.
 
 ## Master jump table for compressors/uncompressors.
+## 0 element of each array ref is the compressor; 1 element is the uncompressor.
+## Uncompressed tiles are reshaped to rows of a tile table handed in (to the compressor)
+## or out (of the uncompressor); actual tile shape is fed in as $params->{tiledims}, so 
+## higher-than-1D compression algorithms can be used.
 our $tile_compressors = {
           'GZIP_1' => undef
 	      , 'RICE_1' => [ ### RICE_1 compressor
-			      sub { my ($tilesize, $tbl, $params) = @_; 
-				    die "RICE_1 - placeholder: not supported yet.\n";
+			      sub { my ($tiles, $tbl, $params) = @_; 
+				    my ($compressed,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
+				    $tbl->{ZNAME1} = "BLOCKSIZE";
+				    $tbl->{ZVAL1} = $params->{BLOCKSIZE};
+				    $tbl->{ZNAME2} = "BYTEPIX";
+				    $tbl->{ZVAL2} = PDL::howbig($tiles->get_datatype);
+				    # Convert the compressed data to a byte array...
+				    if($tbl->{ZVAL2} != 1) {
+					my @dims = $compressed->dims;
+					$dims[0] *= $tbl->{ZVAL2};
+					my $cd2 = zeroes( byte, @dims );
+					my $cdr = $compressed->get_dataref;
+					my $cd2r = $cd2->get_dataref;
+					$$cd2r = $$cdr;
+					$cd2->upd_data;
+					$compressed = $cd2;
+				    }
+				    $tbl->{COMPRESSED_DATA} = $compressed->mv(0,-1);
+				    $tbl->{len_COMPRESSED_DATA} = $len;
 			      },
 			      ### RICE_1 expander
 			      sub { my ($tilesize, $tbl, $params) = @_;
@@ -1533,23 +1576,24 @@ For numeric information, the hash values should contain PDLs.  The 0th
 dim of the PDL runs across rows, and higher dims are written as
 multi-value entries in the table (e.g. a 7x5 PDL will yield a single
 named column with 7 rows and 5 numerical entries per row, in a binary
-table).  ASCII tables only allow one entry per column in each row, so
+table).  Note that this is slightly different from the usual concept
+of threading, in which dimension 1 runs across rows.
+
+ASCII tables only allow one entry per column in each row, so
 if you plan to write an ASCII table then all of the values of C<$hash>
 should have at most one dim.
 
-All of the column dims must agree in the threading sense. That is to
+All of the columns' 0 dims must agree in the threading sense. That is to
 say, the 0th dimension of all of the values of C<$hash> should be the
 same (indicating that all columns have the same number of rows).  As
 an exception, if the 0th dim of any of the values is 1, or if that
 value is a PDL scalar (with 0 dims), then that value is "threaded"
 over -- copied into all rows.
 
-Data dimensions higher than 2 are not possible in ordinary FITS
-tables, so dims higher than 1 are clumped.  (e.g. a 7x5x3 PDL will
-yield a single named column with 7 rows and 15 numerical entries per
-row).  If C<$PDL::Verbose> is set, this condition causes a warning message
-to be printed.  [There is a multidim extension that is not yet
-implemented but should be].
+Data dimensions higher than 2 are preserved in binary tables,
+via the TDIMn field (e.g. a 7x5x3 PDL is stored internally as 
+seven rows with 15 numerical entries per row, and reconstituted
+as a 7x5x3 PDL on read).
 
 Non-PDL Perl scalars are treated as strings, even if they contain
 numerical values.  For example, a list ref containing 7 values is
@@ -1571,9 +1615,22 @@ column that is named "AU_PURITY".  Since this is not guaranteed to
 produce unique column names, subsequent columns by the same name are
 disambiguated by the addition of numbers.
 
-Two special keys, 'hdr' and 'tbl', can contain meta-information about
-the type of table you want to write.  You may override them by
-including an C<$OPTIONS> hash with a 'hdr' and/or 'tbl' key. 
+You can specify the use of variable-length rows in the output, saving
+space in the file.  To specify variable length rows for a column named
+"FOO", you can include a separate key "len_FOO" in the hash to be
+written.  The key's value should be a PDL containing the number of
+actual samples in each row.  The result is a FITS P-type variable
+length column that, upon read with C<rfits()>, will restore to a field
+named FOO and a corresponding field named "len_FOO".  Invalid data in
+the final PDL consist of a padding value (which defaults to 0 but
+which you may set by including a TNULL field in the hdr specificaion).
+Variable length arrays must be 2-D PDLs, with the variable length in
+the 1 dimension.
+
+Two further special keys, 'hdr' and 'tbl', can contain
+meta-information about the type of table you want to write.  You may
+override them by including an C<$OPTIONS> hash with a 'hdr' and/or
+'tbl' key.
 
 The 'tbl' key, if it exists, must contain either 'ASCII' or 'binary'
 (case-insensitive), indicating whether to write an ascii or binary
@@ -2148,6 +2205,8 @@ sub _prep_table {
   my $ohash;
 
   my $hdr = $hash->{hdr};
+  
+  my $heap = "";
 
   # Make a local copy of the header.
   my $h = {};
@@ -2164,7 +2223,7 @@ sub _prep_table {
 
   #####
   # Figure out how many columns are in the table
-  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and defined $hash->{$_}), 
+  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and !m/^len_/ and defined $hash->{$_}), 
 		      sort fits_field_cmp keys %$hash 
 		      );
   my $cols = @colkeys;
@@ -2225,7 +2284,7 @@ sub _prep_table {
   }
 
 
-  # The first element of colnames is ignored (since FITS starts
+  # The first element of colnames is ignored (since FITS starts the
   # count at 1)
   #
   my @colnames;  # Names by number
@@ -2355,7 +2414,7 @@ sub _prep_table {
 	  $t = $bintable_types{'double'};
 	}
 
-	($tstr, $bytes, $converters[$i]) = @$t;
+	($tstr, $bytes, $converters[$i]) = @$t;	
 
       } elsif( ref $var eq 'ARRAY' ) {
 
@@ -2378,8 +2437,100 @@ sub _prep_table {
 	($tstr, $bytes, $converters[$i])  = ('A',1,undef);
 	$rpt = length($var);
       }
+
+
+      # Now check if it's a variable-length array and, if so, insert an 
+      # extra converter
+      my $lname = "len_".$keysbyname{$colnames[$i]};
+      if(exists $hash->{$lname}) {
+	  my $lengths = $hash->{$lname};
+
+	  # Variable length array - add extra handling logic.
+
+	  # First, check we're legit
+	  if( !UNIVERSAL::isa($var, 'PDL') || 
+	      $var->ndims != 2 ||
+	      !UNIVERSAL::isa($lengths,'PDL') ||
+	      $lengths->ndims != 1 ||
+	      $lengths->dim(0) != $var->dim(0)
+	      ) {
+	      die <<'FOO';
+wfits(): you specified a 'len_$keysbyname{$colnames[$i]}' field in
+    your binary table output hash, indicating a variable-length array for
+    each row of the output table, but I'm having trouble interpreting it.
+    Either your source column isn't a 2-D PDL, or your length column isn't
+    a 1-D PDL, or the two lengths don't match. I give up.
+FOO
+	  }
+
+	  # The definition below wraps around the existing converter,
+	  # dumping the variable to the heap and returning the length
+	  # and index of the data for the current row as a PDL LONG.
+	  # This does the Right Thing below in the write loop, with
+	  # the side effect of putting the data into the heap.
+	  #
+	  # The main downside here is that the heap gets copied
+	  # multiple times as we accumulate it, since we are using
+	  # string concatenation to add onto it.  It might be better
+	  # to preallocate a large heap, but I'm too lazy to figure
+	  # out how to do that.
+	  my $csub = $converters[$i];
+	  $converters[$i] = sub {
+	      my $var = shift;
+	      my $row = shift;
+	      my $col = shift;
+	      
+	      my $len = $hash->{"len_".$keysbyname{$colnames[$i]}};
+	      my $l;
+	      if(ref $len eq 'ARRAY') {
+		  $l = $len->[$row];
+	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
+		  $l = $len->($row);
+	      } elsif( ref $len ) {
+		  die "wfits: Couldn't understand length spec 'len_".$keysbyname{$colnames[$i]}."' in bintable output (length spec must be a PDL or array ref).\n";
+	      } else {
+		  $l = $len;
+	      }
+	      
+	      # The standard says we should give a zero-offset 
+	      # pointer if the current row is zero-length; hence
+	      # the ternary operator.
+	      my $ret = pdl( $l, $l ? length($heap) : 0)->long;
+
+
+	      if($l) {
+		  # This echoes the normal-table swap and accumulation 
+		  # stuff below, except we're accumulating into the heap.
+		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
+		  $tmp = $tmp->(0:$l-1)->sever;
+		  
+		  if(!isbigendian()) {
+		      bswap2($tmp) if($tmp->get_datatype == $PDL_S);
+		      bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
+				      $tmp->get_datatype == $PDL_F);
+		      bswap8($tmp) if($tmp->get_datatype == $PDL_D);
+		  }
+		  my $t = $tmp->get_dataref;
+		  $heap .= $$t;
+	      }
+
+	      return $ret;
+	  };
+
+	  # Having defined the conversion routine, now modify tstr to make this a heap-array
+	  # reference.
+	  $tstr = sprintf("P%s(%d)",$tstr, $hash->{"len_".$keysbyname{$colnames[$i]}}->max );
+	  $rpt = 1;
+	  $bytes = 8; # two longints per row in the main table.
+      }
+
       
       $hdr->{"TFORM$i"} = "$rpt$tstr";
+
+      if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
+	  $hdr->{"TDIM$i"} = "(".join(",",$var->((0))->dims).")";
+      }
+
       $rowlen += ($field_len[$i] = $rpt * $bytes);
     }
       
@@ -2397,7 +2548,7 @@ sub _prep_table {
        
 	if($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
-	    ? &{$converters[$c]}($a->($r)->flat->sever) 
+	    ? &{$converters[$c]}($a->($r)->flat->sever, $r, $c) 
 	      : $a->($r)->flat->sever ;
 
 	  ## This would go faster if moved outside the loop but I'm too
@@ -2412,9 +2563,9 @@ sub _prep_table {
 
 	  my $t = $tmp->get_dataref;  
 	  $tmp = $$t;
-	} else {                          # Only other case is ASCII just now...
+	} else {                                  # Only other case is ASCII just now...
 	  $tmp = ( ref $a eq 'ARRAY' ) ?          # Switch on array or string
-	    ( $#$a == 0 ? $a->[0] : $a->[$r] )  # Thread arrays as needed
+	    ( $#$a == 0 ? $a->[0] : $a->[$r] )    # Thread arrays as needed
 	      : $a;
 	 
 	  $tmp .= " " x ($field_len[$c] - length($tmp));
@@ -2432,7 +2583,7 @@ sub _prep_table {
       print "Warning: Table length is ".(length $table)."; expected $table_size\n";
     }
 
-    return ($hdr,$table);
+    return ($hdr,$table, $heap);
       
   } elsif($tbl eq 'ascii') {
     barf "ASCII tables not yet supported...\n";
@@ -2488,7 +2639,8 @@ sub _wfits_table ($$$) {
   barf "FITS BINTABLES are not supported without the Astro::FITS::Header module.\nGet it from www.cpan.org.\n"
     unless($PDL::Astro_FITS_Header);
 
-  my ($hdr,$table) = _prep_table($hash,$tbl,0);
+  my ($hdr,$table, $heap) = _prep_table($hash,$tbl,0);
+  $heap="" unless defined($heap);
 
   # Copy the prepared fields into the extension header.
   tie my %newhdr,'Astro::FITS::Header',my $h = Astro::FITS::Header->new;
@@ -2499,7 +2651,8 @@ sub _wfits_table ($$$) {
   add_hdr_item $h, "NAXIS", 2, 'int';
   add_hdr_item $h, "NAXIS1", $hdr->{NAXIS1}, 'int', 'Bytes per row';
   add_hdr_item $h, "NAXIS2", $hdr->{NAXIS2}, 'int', 'Number of rows';
-  add_hdr_item $h, "PCOUNT", 0, 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
+  add_hdr_item $h, "PCOUNT", length($heap), 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
+  add_hdr_item $h, "THEAP", "0", "(No gap before heap)" if(length($heap));
   add_hdr_item $h, "GCOUNT", 1, 'int';
   add_hdr_item $h, "TFIELDS", $hdr->{TFIELDS},'int';
   add_hdr_item $h, "HDUNAME", "TABLE", 'string';
@@ -2520,7 +2673,8 @@ sub _wfits_table ($$$) {
 
   $hdr = join("",$h->cards);
   _print_to_fits( $fh, $hdr, " " );
-  _print_to_fits( $fh, $table, "\0" ); # use " " if it is an ASCII table
+  _print_to_fits( $fh, $table.$heap, "\0" ); # use " " if it is an ASCII table
+  # Add heap dump
 }
 
 sub _wfits_nullhdu ($) {
