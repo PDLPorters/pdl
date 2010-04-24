@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+#
+# Last saved: Sat 24 Apr 2010 10:40:53 AM
 
 use strict;
 use warnings;
@@ -20,17 +22,17 @@ sub PDL::Core::new_pdl_from_string {
 		$value =~ s/;/],[/g;
 	}
 
-	# Remove ending decimal points
-	$value =~ s/(\d)\.\s+/$1 /g;
+	# Append zeroes after ending decimal points
+	$value =~ s/(\d)\.\s+/$1.0 /g;
 	# Insert zeroes in front of starting decimal points
 	$value =~ s/([^\d])\./${1}0./g;
 	
 	# make unambiguous addition/subtraction (white-space on both sides
 	# of operator) by removing white-space from both sides
-	$value =~ s/(\d)\s+([+-])\s+([\d.])/$1$2$3/g;
+	$value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
 
 	# Replace white-space separators with commas:
-	$value =~ s/([.\d])\s+(?=[+-.\d])/$1,/g;
+	$value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
 	
 
 	# Let's see if the darn thing compiles as normal Perl code, in which
@@ -101,5 +103,15 @@ EOPDL
 
 $compare = pdl([[[1,2,3], [4,-5,6]],[[7,8,8+9],[10,-.11,12e3]]]);
 ok(all(approx($t8, $compare)), "Properly handles all sorts of stuff!");
+
+$compare = pdl [-2];
+my $t9 = pdl '[1  + 2 - 5]';
+ok(all(approx($t9, $compare)), "Another operator check");
+
+$compare = pdl [1, 2, -5];
+my $t10 = pdl '[1  +2 -5]';
+ok(all(approx($t10, $compare)), "Yet another operator check");
+
+
 
 done_testing();
