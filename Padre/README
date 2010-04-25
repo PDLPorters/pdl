@@ -1,43 +1,95 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 29 Dec 2009 12:03:35 PM 
+Last saved: Sun 25 Apr 2010 06:48:35 PM
 
 ** This is experimental code so use at your own risk! **
 
-This directory contains various development efforts for
-getting PDL to work with Padre starting with migrating
-the existing perldl shell to use Devel::REPL which is
-the basis of Padre::Plugin::REPL.
+This directory contains on-going development efforts for
+getting PDL to work with Padre.   We are starting with
+implementing a new, improved perldl shell (e.g. perldl2)
+using Devel::REPL as the starting point.  Since that
+same Devel::REPL is the basis of the Padre REPL module
+Padre::Plugin::REPL, it is hoped that this will simplify
+future Padre+PDL development.
 
-You will need to install the version 1.3.7 of Devel::REPL
-in addition to PDL to use this code.
-
-
-NiceSlice.pm
-
-  Implements PDL::NiceSlice preprocessing for the Devel::REPL
-  shell (i.e. Devel::REPL::Plugin::NiceSlice).  One way to
-  get a basic shell going is as follows:
+You will need to install the version 1.3.9+ of Devel::REPL
+in addition to PDL to use this code.  A description of the
+files included and how to install and use them follows.
 
 
-  re.pl  # from bash prompt (just re for win32)
 
-  # from repl $ prompt
-  do 'NiceSlice.pm';	# make Devel::REPL::Plugin::NiceSlice available
-  $_REPL->load_plugin($_) for qw(NiceSlice);
-  $_REPL->load_plugin($_) for qw(CompletionDriver::Methods);
-  do 'pdlrun';          # make PDL stuff available
+FILES:
 
-  Now you have an interactive shell with history and method
-  completion (completion is not available on win32 unless you
-  also have Term::ReadLine::Gnu).  By default Devel::REPL always
-  prints the result which differs from the perldl default.
-
-
-pdlrun
-
-  Startup stuff for PDL shell, loads modules and configuration.
+ NiceSlice.pm
+   Implements PDL::NiceSlice preprocessing for the Devel::REPL
+   shell (i.e. Devel::REPL::Plugin::NiceSlice) for perldl2.
+  
+ Perldl2.pm
+   The perldl2 profile for use with the Devel::REPL shell.
+  
+ README
+   This file.
 
 
-README
 
-  This file.
+INSTALL:
+
+ The installation is manual at this time.  Simply copy
+ NiceSlice.pm to the Devel/REPL/Plugin/ directory of your
+ Devel::REPL install and copy Perldl2.pm to the
+ Devel/REPL/Profile directory of the Devel::REPL install.
+
+
+
+USE:
+
+ To try/use the experimental perldl2 shell, just run the
+ following command from the shell prompt:
+
+   re.pl --profile Perldl2   # for unix/linux/mac os x
+   re    --profile Perldl2   # for win32 systems
+
+ Set the DEVEL_REPL_PROFILE environment variable to
+ Perldl2 and you should just be able to run re.pl or
+ re to get going.
+
+
+
+NOTES:
+
+ Supported functionality from Devel::REPL and PDL:
+  * History (redo commands with !-1 and !## syntax)
+  * LexEnv (e.g., my $a = zeros(10) works)
+  * DDS (pretty prints output using Data::Dump::Streamer)
+  * Packages (keeps track of user package)
+  * Commands (generic command creation)
+  * MultiLine::PPI (handles multiline input like perldl)
+  * NiceSlice (PDL::NiceSlice works too!)
+  * CompletionDriver::Methods (TAB completion of method names)
+  * CompletionDriver::INC (TAB completion for use module..)
+
+ Default PDL modules loaded:
+  * PDL
+  * PDL::Dbg
+  * PDL::Doc::Perldl
+  * PDL::IO::Dumper
+  * PDL::IO::FlexRaw
+  * PDL::IO::Pic
+  * PDL::Image2D
+  * PDL::AutoLoader
+ 
+ Completion doesn't work for win32 because no GNU readline.
+
+ use strict on by default
+
+ edit the Perldl2.pm file to add additional default setup
+ for the perldl2 shell.  You can $repl->eval() anything
+ you want before the shell starts.  The other thing is
+ to $repl->load_plugin() if you wish to try additional
+ Devel::REPL plugins.
+
+ help, apropos work but
+ * ? and ?? aliases don't work
+ * you need to quote the arguments
+
+ All results are printed by default so big piddle output
+ can be problematic.  Work is underway to fix this.
