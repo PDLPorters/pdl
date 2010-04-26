@@ -26,13 +26,13 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub tapprox {
-	my($a,$b,$c,$d) = @_;
-	$c = abs($a-$b);
-	$d = max($c);
-#	print "APR: $a,$b,$c,$d;\n";
-	$d < 0.001;
-}
+# sub tapprox {
+# 	my($a,$b,$c,$d) = @_;
+# 	$c = abs($a-$b);
+# 	$d = max($c);
+# #	print "APR: $a,$b,$c,$d;\n";
+# 	$d < 0.001;
+# }
 
 print "1..1\n";
 unless ($loaded) {
