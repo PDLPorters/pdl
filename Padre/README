@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 25 Apr 2010 06:48:35 PM
+Last saved: Sun 25 Apr 2010 06:57:11 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -51,6 +51,8 @@ USE:
  Set the DEVEL_REPL_PROFILE environment variable to
  Perldl2 and you should just be able to run re.pl or
  re to get going.
+
+ To exit the perldl2 shell, type Ctrl-C, Ctrl-D or exit.
 
 
 

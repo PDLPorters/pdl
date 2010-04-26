@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 25 Apr 2010 06:36:55 PM
+# Last saved: Sun 25 Apr 2010 08:29:10 PM
 #
 
 use Moose;
@@ -28,7 +28,7 @@ sub apply_profile {
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
 
-   $repl->prompt('perldl2> ');
+   $repl->prompt("\nperldl2> ");
 }
 
 1;
