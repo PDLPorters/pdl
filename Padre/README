@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 25 Apr 2010 06:57:11 PM
+Last saved: Wed 28 Apr 2010 01:41:43 PM 
 
 ** This is experimental code so use at your own risk! **
 
@@ -29,6 +29,10 @@ FILES:
  README
    This file.
 
+ readline-fix/
+   Working directory to get Term::ReadLine::Gnu v1.19 working
+   with win32 perls.  See its README if you are interested
+   in the progress.
 
 
 INSTALL:
