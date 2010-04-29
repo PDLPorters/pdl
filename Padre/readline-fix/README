@@ -1,5 +1,5 @@
 Created on: Wed 28 Apr 2010 01:43:15 PM 
-Last saved: Wed 28 Apr 2010 01:55:56 PM 
+Last saved: Wed 28 Apr 2010 10:05:33 PM
 
 README for Term::ReadLine::Gnu port to win32
 
@@ -53,3 +53,32 @@ Problem 5: There are still several tty/termcap/curses
 type routines that are not found in the link.  It looks
 like the check I commented out in the Makefile.PL may
 have been needed after all.  Very poorly documented!
+
+Installing PDCurses from http://pdcurses.sourceforge.net
+resolved the problems with the missing tputs() and
+tgetstr() calls.  I had to manually add 
+
+  C:\strawberry\c\bin\pdcurses.dll and
+  C:\strawberry\c\lib\libreadline.dll.a 
+
+to LDLOADLIBS and EXTRALIBS as before.  Apparently,
+Makefile.PL is specific to unix and does not work
+for DLLs since it is looking for .so and others.
+The two remaining missing routines:
+
+  _imp__rl_tty_unset_default_bindings
+  _imp__rl_get_termcap
+
+are not in readline-5.0 because in the win32 readline
+gotten from http://gnuwin32.sourceforge.net/packages/readline.htm
+the definitions of these two routines are ifdef'd out
+for WIN32 platforms.  I don't know if these are needed
+for proper functioning of the library as far as PDL
+ReadLine uses go.  At any rate, I commented out the refs
+to these two in Gnu.xs source.
+
+Problem 6: After these fixes, the Term::ReadLine::Gnu library
+compiled and built completely.  It does not run on the tests...
+becuase I forgot to add the needed initialize code to
+set up the str_tbl, int_tbl, and fn_tbl on startup.  With
+luck there is an obvious place to put them for startup.

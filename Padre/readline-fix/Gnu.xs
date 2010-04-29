@@ -191,7 +191,7 @@ static int rl_readline_version = RL_READLINE_VERSION;
 /* This function does not link with win32 readline...   why?
  * See XSUB defs below when fixing (termcap, is this called?)
  * */
-extern char *rl_get_termcap PARAMS((const char *));
+/* extern char *rl_get_termcap PARAMS((const char *)); */
 
 /* features introduced by GNU Readline 4.3 */
 static int rl_completion_suppress_append = 0;
@@ -213,7 +213,7 @@ static int rl_bind_keyseq_if_unbound_in_map(){ return 0; }
 /* This function does not link with win32 readline...   why?
  * See XSUB defs below when fixing (termcap, is this called?)
  * */
-static void rl_tty_unset_default_bindings(){}
+/* static void rl_tty_unset_default_bindings(){} */
 static void add_history_time(){}
 static time_t history_get_time(){ return 0; }
 #endif /* (RL_VERSION_MAJOR < 5) */
@@ -2048,12 +2048,12 @@ _rl_tty_set_default_bindings(kmap = rl_get_keymap())
     CODE:
 	rl_tty_set_default_bindings(kmap);
 
-void
-_rl_tty_unset_default_bindings(kmap = rl_get_keymap())
-	Keymap kmap
-    PROTOTYPE: ;$
-    CODE:
-	rl_tty_unset_default_bindings(kmap);
+ # void
+ # _rl_tty_unset_default_bindings(kmap = rl_get_keymap())
+ #	Keymap kmap
+ #    PROTOTYPE: ;$
+ #    CODE:
+ #	rl_tty_unset_default_bindings(kmap);
 
 int
 rl_reset_terminal(terminal_name = NULL)
@@ -2184,11 +2184,11 @@ rl_set_paren_blink_timeout(usec)
  # from 2.2.1.
 
  # Do not free the string returned.
-char *
-rl_get_termcap(cap)
-	CONST char *	cap
-    PROTOTYPE: $
-
+ # char *
+ # rl_get_termcap(cap)
+ #   CONST char *	cap
+ #   PROTOTYPE: $
+ #
  #
  #	2.4.12 Alternate Interface
  #
