@@ -1,15 +1,13 @@
 pp_addpm({At=>Top},<<'EOD');
 =head1 NAME
 
-PDL::GSLSF::DILOG - PDL interface to GSL Special Functions
+PDL::GSLSF::ELEMENTARY - PDL interface to GSL Special Functions
 
 =head1 DESCRIPTION
 
 This is an interface to the Special Function package present in the GNU Scientific Library. 
 
 =head1 SYNOPSIS
-
-=head1 Functions
 
 =cut
 EOD
