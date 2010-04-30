@@ -64,21 +64,21 @@ For even-sized input arrays, the frequencies are packed like normal
 for FFTs (where N is the size of the array and D is the physical step
 size between elements):
 
-0, 1/ND, 2/ND, ..., (N/2-1)/ND, 1/2D, -(N/2-1)/ND, ..., -1/ND.
+ 0, 1/ND, 2/ND, ..., (N/2-1)/ND, 1/2D, -(N/2-1)/ND, ..., -1/ND.
 
 which can easily be obtained (taking the Nyquist frequency to be
 positive) using
 
-$kx = $real->xlinvals(-($N/2-1)/$N/$D,1/2/$D)->rotate(-($N/2 -1));
+C<< $kx = $real->xlinvals(-($N/2-1)/$N/$D,1/2/$D)->rotate(-($N/2 -1)); >>
 
 For odd-sized input arrays the Nyquist frequency is not directly
 acessible, and the frequencies are
 
-0, 1/ND, 2/ND, ..., (N/2-0.5)/ND, -(N/2-0.5)/ND, ..., -1/ND.
+ 0, 1/ND, 2/ND, ..., (N/2-0.5)/ND, -(N/2-0.5)/ND, ..., -1/ND.
 
 which can easily be obtained using
 
-$kx = $real->xlinvals(-($N/2-0.5)/$N/$D,($N/2-0.5)/$N/$D)->rotate(-($N-1)/2);
+C<< $kx = $real->xlinvals(-($N/2-0.5)/$N/$D,($N/2-0.5)/$N/$D)->rotate(-($N-1)/2); >>
 
 
 =head1 ALTERNATIVE FFT PACKAGES

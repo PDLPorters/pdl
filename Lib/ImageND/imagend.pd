@@ -111,7 +111,7 @@ boundary conditions: each dim "wraps around" to the next higher row in
 the next dim.  
 
 This routine is kept for backwards compatibility with earlier scripts; 
-for most purposes you want L<convolveND|PDL::imageND/convolveND> instead:
+for most purposes you want L<convolveND|PDL::ImageND/convolveND> instead:
 it runs faster and handles a variety of boundary conditions.
 
 =cut
@@ -450,7 +450,7 @@ pp_add_exported('','circ_mean circ_mean_p');
 
 pp_addpm(<<'EOPM');
 
-=head2 kernctr()
+=head2 kernctr
 
 =for ref
 
@@ -530,7 +530,7 @@ The kernel's origin is taken to be at the kernel's center.  If your
 kernel has a dimension of even order then the origin's coordinates get
 rounded up to the next higher pixel (e.g. (1,2) for a 3x4 kernel).
 This mimics the behavior of the earlier L<convolve|convolve> and
-L<fftconvolve|PDL::FFT::fftconvolve> routines, so convolveND is a drop-in
+L<fftconvolve|PDL::FFT/fftconvolve()> routines, so convolveND is a drop-in
 replacement for them.
 
 

@@ -19,7 +19,7 @@ PDL::IO::Pnm -- pnm format I/O for PDL
 
 =head1 DESCRIPTION
 
-=head2 pnm I/O for PDL.
+pnm I/O for PDL.
 
 =cut
 

@@ -77,7 +77,7 @@ the purpose of using a PDL::DiskCache in the first place.
 Copyright 2001, Craig DeForest
 
 This code may be distributed under the same terms as Perl itself
-(license available at http://www.perl.org).  Copying, reverse engineering,
+(license available at L<http://www.perl.org>).  Copying, reverse engineering,
 distribution, and modification are explicitly allowed so long as this notice
 is preserved intact and modified versions are clearly marked as such.
 
@@ -101,15 +101,17 @@ use Carp;
 
 Object constructor. 
 
-=over 3
-
-=item Synopsis
+=for usage
 
   $a = diskcache(\@f,\%options);
 
-=item Options
+Options
 
-see the TIEARRAY options,below.
+=over 3
+
+=item
+
+See the TIEARRAY options,below.
 
 =back
 
@@ -144,40 +146,54 @@ sub PDL::DiskCache::new {
 
 Tied-array constructor; invoked by perl during object construction.
 
-=over 3
-
-=item Synopsis
+=for usage
 
   TIEARRAY(class,\@f,\%options)
 
-=item Options
+Options
 
-ro (default 0): If set, treat the files as read-only (modifications
+=over 3
+
+=item ro (default 0)
+
+If set, treat the files as read-only (modifications
 to the tied array will only persist until the changed elements are
 swapped out)
 
-rw (default 1): If set, allow reading and writing to the files.
+=item rw (default 1)
+
+If set, allow reading and writing to the files.
 Because there's currently no way to determine reliably whether a PDL
 has been modified, rw files are always written to disk when they're
 swapped out -- this causes a slight performance hit.
 
-mem (default 20): Number of files to be cached in memory at once.
+=item mem (default 20)
 
-read (default \&rfits): A function ref pointing to code that will read
+Number of files to be cached in memory at once.
+
+=item read (default \&rfits)
+
+A function ref pointing to code that will read
 list objects from disk.  The function must have the same syntax as
 rfits: $object = rfits(filename).
 
-write (default \&wfits): A function ref pointing to code that will
+=item write (default \&wfits)
+
+A function ref pointing to code that will
 write list objects to disk.  The function must have the same syntax as
 wfits: func(object,filename).
 
-bless (default 0): If set to a nonzero value, then the array ref gets
+=item bless (default 0)
+
+If set to a nonzero value, then the array ref gets
 blessed into the DiskCache class for for easier access to the "purge"
 and "sync" methods.  This means that you can say C<< $a->sync >> instead
 of the more complex C<< (%{tied @$a})->sync >>, but C<ref $a> will return
 "PDL::DiskCache" instead of "ARRAY", which could break some code.
 
-verbose (default 0): Get chatty.
+=item verbose (default 0)
+
+Get chatty.
 
 =back
 

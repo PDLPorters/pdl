@@ -24,7 +24,7 @@ PDL::Graphics::LUT contains a number of colour look-up tables
 (in rgb format) and intensity ramps, and provides routines to 
 access this data.
 The format of the data is suitable for use by
-L<PDL::Graphics::PGPLOT/ctab>.
+L<ctab|PDL::Graphics::PGPLOT::Window/ctab>.
 
 Unlike the initial release of the package, the data tables are
 now stored within the PDL distribution as FITS files

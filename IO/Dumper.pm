@@ -57,7 +57,7 @@ likely cases.
 Copyright 2002, Craig DeForest.
 
 This code may be distributed under the same terms as Perl itself
-(license available at http://ww.perl.org).  Copying, reverse
+(license available at L<http://ww.perl.org>).  Copying, reverse
 engineering, distribution, and modification are explicitly allowed so
 long as this notice is preserved intact and modified versions are
 clearly marked as such.

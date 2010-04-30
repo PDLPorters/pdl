@@ -75,7 +75,7 @@ Example:
 =head1 BUGS
 
 Feedback is welcome. Log bugs in the PDL bug database (the
-database is always linked from http://pdl.perl.org).
+database is always linked from L<http://pdl.perl.org>).
 
 =head1 SEE ALSO
 

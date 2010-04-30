@@ -137,7 +137,7 @@ springboarding is done via explicit ref rather than by subclassing,
 for convenience both in coding new transforms (just add the
 appropriate sub to the module) and in adding custom transforms at
 run-time. Note that, if possible, new C<func>s should support
-L<inplace|/inplace> operation to save memory when the data are flagged 
+L<inplace|PDL::Core/inplace> operation to save memory when the data are flagged 
 inplace.  But C<func> should always return its result even when 
 flagged to compute in-place.
 
@@ -1105,11 +1105,11 @@ The following options are interpreted:
 =item b, bound, boundary, Boundary (default = 'truncate')
 
 This is the boundary condition to be applied to the input image; it is
-passed verbatim to L<range|/range> or L<interpND|/interpND> in the
-sampling or interpolating stage.  Other values are 'forbid','extend', and
-'periodic'.  You can abbreviate this to a single letter.  The default 
-'truncate' causes the entire notional space outside the original image
-to be filled with 0.
+passed verbatim to L<range|PDL::Slices/range> or
+L<interpND|PDL::Primitive/interpND> in the sampling or interpolating
+stage.  Other values are 'forbid','extend', and 'periodic'.  You can
+abbreviate this to a single letter.  The default 'truncate' causes the
+entire notional space outside the original image to be filled with 0.
 
 =item pix, Pixel, nf, nofits, NoFITS (default = 0)
 
@@ -1158,7 +1158,7 @@ This parameter overrides C<irange>, if both are specified.
 This option controls the interpolation method to be used.
 Interpolation greatly affects both speed and quality of output.  For
 most cases the option is directly passed to
-L<interpND|PDL::Primitive/interpND> for interpolation.  Possible
+L<interpND|PDL::Primitive/interpnd> for interpolation.  Possible
 options, in order from fastest to slowest, are:
 
 =over 3
@@ -1613,7 +1613,7 @@ pp_addpm(<<'======EOD_unmap======');
 
 ######################################################################
 
-=head2 PDL::Transform::unmap
+=head2 unmap
 
 =for sig
 
@@ -1846,7 +1846,7 @@ pp_addpm(<<'======EOD_t_wrap======');
 Shift a transform into a different space by 'wrapping' it with a second.
 
 This is just a convenience function for two
-L<compose|/compose> calls. C<$a->wrap($b)> is the same as
+L<t_compose|/t_compose> calls. C<<$a->wrap($b)>> is the same as
 C<(!$b) x $a x $b>: the resulting transform first hits the data with
 $b, then with $a, then with the inverse of $b.  
 
@@ -1971,7 +1971,7 @@ then valid data exist between the locations (-0.5) and (N-0.5) in
 lookup pixel space, because the pixels (which are numbered from 0 to
 N-1) are centered on their locations.
 
-Lookup is done using L<interpND|/interpND>, so the boundary conditions
+Lookup is done using L<interpND|PDL::Primitive/interpnd>, so the boundary conditions
 and threading behaviour follow from that.
 
 The indexed-over dimensions come first in the table, followed by a
@@ -2012,11 +2012,11 @@ corner-centered coordinates if you want to (just feed in o=-0.25).
 
 =item b, bound, boundary, Boundary
 
-Boundary condition to be fed to L<interpND|/interpND>
+Boundary condition to be fed to L<interpND|PDL::Primitive/interpND>
 
 =item m, method, Method
 
-Interpolation method to be fed to L<interpND|/interpND>
+Interpolation method to be fed to L<interpND|PDL::Primitive/interpND>
 
 =back
 
@@ -3068,7 +3068,7 @@ Quadratic scaling -- cylindrical pincushion (n-d; with inverse)
 Quadratic scaling emulates pincushion in a cylindrical optical system:
 separate quadratic scaling is applied to each axis.  You can apply
 separate distortion along any of the principal axes.  If you want
-different axes, use L<wrap|/wrap> and L<t_linear|/t_linear> to rotate
+different axes, use L<t_wrap|/t_wrap> and L<t_linear|/t_linear> to rotate
 them to the correct angle.  The scaling options may be scalars or
 vectors; if they are scalars then the expansion is isotropic.
 
@@ -3183,8 +3183,9 @@ Spherical acts like a hypercylindrical transform in four (or higher)
 dimensions.  Also as with L<t_radial|/t_radial>, you must manually specify
 the origin if you want to use more dimensions than 3.
 
-To deal with latitude & longitude on the surface of a sphere (rather than
-full 3-D coordinates), see L<t_unitsphere|/t_unitsphere>.
+To deal with latitude & longitude on the surface of a sphere (rather
+than full 3-D coordinates), see
+L<t_unit_sphere|PDL::Transform::Cartography/t_unit_sphere>.
 
 OPTIONS:
 

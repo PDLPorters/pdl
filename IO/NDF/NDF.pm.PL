@@ -553,7 +553,7 @@ author or from Starlink (http://www.starlink.rl.ac.uk).
 If an NDF is read which contains AST World Coordinate information
 (a .WCS component) this information is currently ignored. Currently
 WCS information can only be written and stored using standard FITS headers.
-See http://rlspc5.bnsc.rl.ac.uk/star/docs/sun211.htx/sun211.html#xref_
+See L<http://rlspc5.bnsc.rl.ac.uk/star/docs/sun211.htx/sun211.html#xref_>
 for more information on AST.
 
 =head1 AUTHOR

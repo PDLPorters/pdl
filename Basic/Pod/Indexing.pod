@@ -647,7 +647,7 @@ C<$prod> should now be pretty close to the unity matrix if C<$a> is an
 orthogonal matrix. Often C<xchg> will be used in the context of threading
 but more about that later.
 
-L<mv|PDL::SLices/mv> works in a similar fashion. It moves a dimension (specified by
+L<mv|PDL::Slices/mv> works in a similar fashion. It moves a dimension (specified by
 its number in the parent) to a new position in the new child pdl:
 
  $b = $a->mv(4,0);  # make the 5th dimension of $a the first in the
@@ -1034,7 +1034,7 @@ dimensional. If C<$im> is one-dimensional it's just an ordinary product
 respective element of C<xvals(...)>), if C<$im> has more dimensions further
 threading is done by adding appropriate dummy dimensions to C<xvals(...)>
 according to R4.  
-More importantly, the two L<sumover|PDL::Primitive/sumover> operations show
+More importantly, the two L<sumover|PDL::Ufunc/sumover> operations show
 a first example of how to make use of the dimension manipulating
 commands. A quick look at sumover's signature will remind you that
 it will only "gobble up" the first dimension of a given input pdl. But
@@ -1055,9 +1055,9 @@ x-coordinates (of size t) in return.
 Another set of common operations are what one could call "projection
 operations". These operations take a N-D pdl as input and return a
 (N-1)-D "projected" pdl. These operations are often performed with
-functions like L<sumover|PDL::Primitive/sumover>, 
-L<prodover|PDL::Primitive/prodover>, L<minimum|PDL::Primitive/minimum> and
-L<maximum|PDL::Primitive/maximum>. 
+functions like L<sumover|PDL::Ufunc/sumover>, 
+L<prodover|PDL::Ufunc/prodover>, L<minimum|PDL::Ufunc/minimum> and
+L<maximum|PDL::Ufunc/maximum>. 
 Using again images as examples we might want to calculate
 the maximum pixel value for each line of an image or image stack. We
 know how to do that
@@ -1085,10 +1085,10 @@ is now almost too easy
 Finally, if you want to apply the operation to all elements (like max over
 all elements or sum over all elements) regardless of the dimensions of
 the pdl in question C<clump> comes in handy. As an example look at the
-definition of C<sum> (as defined in C<Basic.pm>):
+definition of C<sum> (as defined in C<Ufunc.pm>):
 
  sub sum {
-   PDL::Primitive::sumover($name->clump(-1),($tmp=null));
+   PDL::Ufunc::sumover($name->clump(-1),($tmp=null));
    return $tmp->at(); # return a perl number, not a 0D pdl
  }
 
@@ -1239,7 +1239,7 @@ either I<implicit> or I<explicit>; the two flavours do mix. But more
 about that later.
 
 The two most used functions with explicit threading are 
-L<thread|PDL::Core/thread>
+L<thread|PDL::Core/PDL::thread>
 and L<unthread|PDL::Slices/unthread>. 
 We start with an example that illustrates typical
 usage of the former:

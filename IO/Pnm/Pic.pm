@@ -16,7 +16,7 @@ ftp://wuarchive.wustl.edu/graphics/graphics/packages/NetPBM/
 Pbmplus (on which netpbm is based) might work as well, I haven't tried it.
 If you want to read/write JPEG images you additionally need the two
 converters cjpeg/djpeg which come with the libjpeg distribution (the
-"official" archive site for this software is ftp://ftp.uu.net/graphics/jpeg).
+"official" archive site for this software is L<ftp://ftp.uu.net/graphics/jpeg>).
 
 Image I/O for all formats is established by reading and writing only
 the PNM format directly while the netpbm standalone apps take care of

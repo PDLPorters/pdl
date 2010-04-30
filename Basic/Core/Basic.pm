@@ -387,6 +387,7 @@ sub PDL::ndcoords {
 *allaxisvals = \&PDL::ndcoords;
 *PDL::allaxisvals = \&PDL::ndcoords;
  
+
 =head2 hist
 
 =for ref
