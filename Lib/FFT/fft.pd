@@ -164,9 +164,22 @@ fft($real,$imag);
 *fft = \&PDL::fft;
 
 sub PDL::fft {
-todecimal($_[0]);
-todecimal($_[1]);
-_fft($_[0],$_[1]);
+	# Convert the first argument to decimal and check for trouble.
+	eval {	todecimal($_[0]);	};
+	if ($@) {
+		$@ =~ s/ at .*//s;
+		barf("Error in FFT with first argument: $@");
+	}
+	# Convert the second argument to decimal and check for trouble.
+	eval {	todecimal($_[1]);	};
+	if ($@) {
+		$@ =~ s/ at .*//s;
+		my $message = "Error in FFT with second argument: $@";
+		$message .= '. Did you forget to supply the second (imaginary) piddle?'
+			if ($message =~ /undefined value/);
+		barf($message);
+	}
+	_fft($_[0],$_[1]);
 }
 
 
@@ -185,9 +198,22 @@ ifft($real,$imag);
 *ifft = \&PDL::ifft;
 
 sub PDL::ifft {
-todecimal($_[0]);
-todecimal($_[1]);
-_ifft($_[0],$_[1]);
+	# Convert the first argument to decimal and check for trouble.
+	eval {	todecimal($_[0]);	};
+	if ($@) {
+		$@ =~ s/ at .*//s;
+		barf("Error in FFT with first argument: $@");
+	}
+	# Convert the second argument to decimal and check for trouble.
+	eval {	todecimal($_[1]);	};
+	if ($@) {
+		$@ =~ s/ at .*//s;
+		my $message = "Error in FFT with second argument: $@";
+		$message .= '. Did you forget to supply the second (imaginary) piddle?'
+			if ($message =~ /undefined value/);
+		barf($message);
+	}
+	_ifft($_[0],$_[1]);
 }
 
 =head2 realfft()

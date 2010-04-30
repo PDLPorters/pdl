@@ -160,7 +160,7 @@ sub splitprotected ($$) {
 
 # a pattern that finds occurences of the form
 #
-#  $avar(
+#  $var(
 #
 # and
 #
@@ -235,7 +235,7 @@ sub findslice {
     print STDERR "pass $ct: found slice expr $found at line ".line()."\n"
       if $verb;
 
-#  Do final check for "for $avar(LIST)" and "foreach $avar(LIST)" syntax. 
+#  Do final check for "for $var(LIST)" and "foreach $var(LIST)" syntax. 
 #  Process into an 'nslice' call only if it's not that.
 
     if ($prefix =~ m/for(each)?(\s+(my|our))?\s+\$\w+(\s|$RE_cmt)*$/s ||
@@ -749,9 +749,9 @@ interfering with the current subref syntax, it will be treated as an
 invocation of the code reference C<$a> with argumentlist C<(4,5)>.
 
 The $a(ARGS) syntax collides in a minor way with the perl syntax.  In
-particular, ``foreach $avar(LIST)'' appears like a PDL slicing call.  
-NiceSlice avoids translating the ``for $avar(LIST)'' and 
-``foreach $avar(LIST)'' constructs for this reason.  Since you
+particular, ``foreach $var(LIST)'' appears like a PDL slicing call.  
+NiceSlice avoids translating the ``for $var(LIST)'' and 
+``foreach $var(LIST)'' constructs for this reason.  Since you
 can't use just any old lvalue expression in the 'foreach' 'for'
 constructs -- only a real perl scalar will do -- there's no 
 functionality lost.  If later versions of perl accept 

@@ -11,12 +11,12 @@ sub ok {
         print "ok $no\n" ;
 }
 
-sub tapprox {
-        my($a,$b,$c,$d) = @_;
-        $c = abs($a-$b);
-        $d = max($c);
-        return $d < 0.01;
-}
+# sub tapprox {
+#         my($a,$b,$c,$d) = @_;
+#         $c = abs($a-$b);
+#         $d = max($c);
+#         return $d < 0.01;
+# }
 
 sub eprint {
 	print "EXPECT ERROR NEXT:\n-----\n";

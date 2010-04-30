@@ -177,7 +177,7 @@ sub new {
     $self->{targets} = $targets;
 
     if ($#_ != -1) {
-	if (ref @_[-1] eq "CODE") {
+	if (ref $_[-1] eq "CODE") {
 	    $self->{ref} = pop;
 	}
 
@@ -783,6 +783,10 @@ sub nopm { $::PDLPACK eq 'NONE' } # flag that we don't want to generate a PM
 
 sub import {
 	my ($mod,$modname, $packname, $prefix, $callpack) = @_;
+	# Allow for users to not specify the packname
+	($packname, $prefix, $callpack) = ($modname, $packname, $prefix)
+		if ($packname =~ m|/|);
+	
 	$::PDLMOD=$modname; $::PDLPACK=$packname; $::PDLPREF=$prefix;
 	$::CALLPACK = defined $callpack ? $callpack : $::PDLMOD;
 	$::PDLOBJ = "PDL"; # define pp-funcs in this package

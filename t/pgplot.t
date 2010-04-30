@@ -22,7 +22,7 @@ BEGIN{
       # functionality.
       #
       plan tests => 1;
-      print "ok 1 # skip -- DISPLAY environment variable not set\n";
+      pass("use ok for PGPLOT PDL modules # skip -- DISPLAY environment variable not set");
       exit;
    } else {
       plan tests => 12;

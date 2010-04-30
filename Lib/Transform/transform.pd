@@ -2760,7 +2760,7 @@ sub t_fits {
   for my $i(1..$hdr->{NAXIS}) {
     push(@otype,$hdr->{"CTYPE$i"});
     push(@ounit,$hdr->{"CUNIT$i"});
-    push(@itype,"Image ". ( ($i<$#names) ? $names[$i] : "${i}th dim" ));
+    push(@itype,"Image ". ( ($i-1<=$#names) ? $names[$i-1] : "${i}th dim" ));
     push(@iunit,"Pixels");
   }
 

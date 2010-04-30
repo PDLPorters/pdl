@@ -144,6 +144,9 @@ IO/Storable/Storable.c
 IO/Storable/Storable.pm
 IO/Storable/Storable.xs
 Lib/CallExt/CallExt.c
+Lib/Compression/Compression.c
+Lib/Compression/Compression.pm
+Lib/Compression/Compression.xs
 Lib/FFT/FFT.c
 Lib/FFT/FFT.pm
 Lib/FFT/FFT.xs
@@ -289,3 +292,4 @@ perldl.conf-fast
 perldl.conf-orig
 perldl.pod
 t/*.dll*
+

@@ -10,12 +10,12 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub tapprox {
-	my($a,$b) = @_;
-	$c = abs($a-$b);
-	$d = max($c);
-	$d < 0.01;
-}
+# sub tapprox {
+# 	my($a,$b) = @_;
+# 	$c = abs($a-$b);
+# 	$d = max($c);
+# 	$d < 0.01;
+# }
 
 print "1..4\n";
 

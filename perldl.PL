@@ -86,7 +86,7 @@ sub mypdlconfig {
   $txt .= "VERSION: PDL v$PDL::Version::VERSION";
   $txt .= " (supports bad values)" if $bflag;
   $txt .= "\n\n";
-  if ($hasdumper && defined %PDL::Config) {
+  if ($hasdumper && %PDL::Config) {
     $txt .= Data::Dumper->Dump([{%PDL::Config}],['%PDL::Config']);
   } else {
     $txt .= "Could not obtain \%PDL::Config\n";

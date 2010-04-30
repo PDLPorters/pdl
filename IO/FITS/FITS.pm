@@ -20,7 +20,7 @@ module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
 ASCII Table support is planned, as are the HEASARC bintable extensions that
-are recommended in the 1999 FITS standard.
+are recommended in the 1999 FITS standard.  
 
 Table support is based on hashes and named columns, rather than the
 less convenient (but slightly more congruent) technique of perl lists
@@ -37,7 +37,7 @@ documentation for details.
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2004.
+Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2010.
 There is no warranty.  You are allowed to redistribute and/or modify
 this software under certain conditions.  For details, see the file
 COPYING in the PDL distribution.  If this file is separated from the 
@@ -153,6 +153,15 @@ in many circumstances but also causes a hit in speed.  When two or more PDLs
 with hdrcpy set are used in an expression, the result gets the header of the 
 first PDL in the expression.  See L<hdrcpy|PDL::Core/hdrcpy> for an example.
 
+=item expand (default=1)
+
+Determines whether auto-expansion of tile-compressed images should happen.
+Tile-compressed images are transmitted as binary tables with particular
+fields ("ZIMAGE") set.  Leaving this alone does what you want most of the
+time, unpacking such images transparently and returning the data and header
+as if they were part of a normal IMAGE extension.  Setting "expand" to 0
+delivers the binary table, rather than unpacking it into an image.
+
 =back
 
 FITS image headers are stored in the output PDL and can be retrieved
@@ -207,7 +216,10 @@ of the columns in the table (in UPPER CASE as per the FITS standard).
 Each element of the hash contains a PDL (for numerical values) or a
 perl list (for string values).  The PDL's 0th dimension runs across
 rows; the 1st dimension runs across the repeat index within the row
-(for rows with more than one value).
+(for rows with more than one value).  (Note that this is different from
+standard threading order - but it allows Least Surprise to work when
+adding more complicated objects such as collections of numbers (via
+the repeat count) or variable length arrays.)
 
 Thus, if your table contains a column named C<FOO> with type C<5D>,
 the expression
@@ -242,6 +254,24 @@ changed to match the renamed column fields.
 Columns with no name are assigned the name "COL_<n>", where <n> starts
 at 1 and increments for each no-name column found.
 
+Variable-length arrays are supported for reading.  They are unpacked
+into PDLs that appear exactly the same as the output for fixed-length
+rows, except that each row is padded to the maximum length given
+in the extra characters -- e.g. a row with TFORM of 1PB(300) will
+yield an NAXIS2x300 output field in the final hash.   The padding 
+uses the TNULL<n> keyword for the column, or 0 if TNULL<n> is not
+present.  The output hash also gets an additional field, "len_<name>",
+that contains the number of elements in each table row.
+
+=head3 TILE-COMPRESSED IMAGES
+
+CFITSIO and several large projects (including NASA's Solar Dynamics
+Observatory) now support an unofficial extension to FITS that stores
+images as a collection of individually compressed tiles within a
+BINTABLE extension.  Such images are detected and can be read
+"successfully" as binary tables that contain the compressed tiles.
+Unpacking/uncompression code is in the works but requires either 
+linking to CFITSIO or reverse-engineering it.
 
 =for bad
 
@@ -265,7 +295,7 @@ reading in a data structure as well.
 
 =cut
 
-our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0 } );
+our $rfits_options = new PDL::Options( { bscale=>1, data=>1, hdrcpy=>0, expand=>1 } );
 
 sub PDL::rfitshdr {
   my $class = shift;
@@ -529,6 +559,21 @@ $PDL::IO::FITS::_Extension = {
 ##############################
 #
 # IMAGE extension -- this is also the default reader.
+our $type_table = {
+    8=>$PDL_B,
+    16=>$PDL_S,
+    32=>$PDL_L,
+    -32=>$PDL_F,
+    -64=>$PDL_D
+};
+
+our $type_table_2 = {
+    8=>byte,
+    16=>short,
+    32=>long,
+    -32=>float,
+    -64=>double
+};
 
 sub _rfits_image($$$$) {
   print "Reading IMAGE data...\n" if($PDL::verbose);
@@ -539,11 +584,11 @@ sub _rfits_image($$$$) {
 
   # Setup piddle structure
   
-  $pdl->set_datatype($PDL_B)    if $$foo{"BITPIX"} ==   8;
-  $pdl->set_datatype($PDL_S)    if $$foo{"BITPIX"} ==  16;
-  $pdl->set_datatype($PDL_L)    if $$foo{"BITPIX"} ==  32;
-  $pdl->set_datatype($PDL_F)    if $$foo{"BITPIX"} == -32;
-  $pdl->set_datatype($PDL_D)    if $$foo{"BITPIX"} == -64;
+  if(  defined($type_table->{0 + $foo->{"BITPIX"}})  ) {
+      $pdl->set_datatype( $type_table->{$foo->{"BITPIX"}} );
+  } else {
+      die("rfits: strange BITPIX value ".$foo->{"BITPIX"}." in header - I give up!\n");
+  }
   
   my @dims; # Store the dimenions 1..N, compute total number of pixels
   my $i = 1;
@@ -748,13 +793,30 @@ $PDL::IO::FITS_bintable_handlers = {
   ,'J' => [ long,    4,     4,     4  ] # long
   ,'E' => [ float,   4,     4,     4  ] # single-precision
   ,'D' => [ double,  8,     8,     8  ] # double-precision
-  ,'C' => [ sub { _nucomplx(float,  @_) }, sub { _rdcomplx(float,  @_) },
-	    sub { _wrcomplx(float,  @_) }, sub { _fncomplx(float,  @_) } 
+  ,'C' => [ sub { _nucomplx(float,  eval '@_') }, sub { _rdcomplx(float,  eval '@_') },
+	    sub { _wrcomplx(float,  eval '@_') }, sub { _fncomplx(float,  eval '@_') } 
       ]
-  ,'M' => [ sub { _nucomplx(double, @_) }, sub { _rdcomplx(double, @_) },
-	    sub { _wrcomplx(double, @_) }, sub { _fncomplx(double, @_) } 
+  ,'M' => [ sub { _nucomplx(double, eval '@_') }, sub { _rdcomplx(double, eval '@_') },
+	    sub { _wrcomplx(double, eval '@_') }, sub { _fncomplx(double, eval '@_') } 
       ]
-# 'P' - array descriptor -- not supported.
+  ,'PB' => [ sub { _nuP(byte, eval '@_') }, sub { _rdP(byte, eval '@_') },
+	     sub { _wrP(byte, eval '@_') }, sub { _fnP(byte, eval '@_') }
+	     ]
+  ,'PL' => [ sub { _nuP(byte, eval '@_') }, sub { _rdP(byte, eval '@_') },
+	     sub { _wrP(byte, eval '@_') }, sub { _fnP(byte, eval '@_') }
+	     ]
+  ,'PI' => [ sub { _nuP(short, eval '@_') }, sub { _rdP(short, eval '@_') },
+	     sub { _wrP(short, eval '@_') }, sub { _fnP(short, eval '@_') }
+	     ]
+  ,'PJ' => [ sub { _nuP(long, eval '@_') }, sub { _rdP(long, eval '@_') },
+	     sub { _wrP(long, eval '@_') }, sub { _fnP(long, eval '@_') }
+	     ]
+  ,'PE' => [ sub { _nuP(float, eval '@_') }, sub { _rdP(float, eval '@_') },
+	     sub { _wrP(float, eval '@_') }, sub { _fnP(float, eval '@_') }
+	     ]
+  ,'PD' => [ sub { _nuP(double, eval '@_') }, sub { _rdP(double, eval '@_') },
+	     sub { _wrP(double, eval '@_') }, sub { _fnP(double, eval '@_') }
+	     ]
 };
 
 
@@ -779,11 +841,88 @@ sub _wrcomplx { # complex-number writer
 sub _fncomplx { # complex-number finisher-upper
   my( $type, $pdl, $n, $hdr, $opt)  = shift;
   eval 'bswap'.(PDL::Core::howbig($type)).'($pdl)';
-  $pdl->reorder(2,1,0);
   print STDERR "Ignoring poorly-defined TSCAL/TZERO for complex data in col. $n (".$hdr->{"TTYPE$n"}.").\n" 
     if( length($hdr->{"TSCAL$n"}) or length($hdr->{"TZERO$n"}) );
+  return $pdl->reorder(2,1,0);
 }
 
+##############################
+# Helpers for variable-length array types (construct/read/write/finish)
+# These look just like the complex-number case, except that they use $extra to determine the 
+# size of the 0 dimension.
+sub _nuP {
+    my( $type, $rowlen, $extra, $nrows, $szptr, $hdr, $i, $tbl ) = @_;
+    $extra =~ s/\((.*)\)/$1/; # strip parens from $extra in-place
+    $$szptr += 8;
+
+    if($rowlen != 1) {
+	die("rfits: variable-length record has a repeat count that isn't unity! (got $rowlen); I give up.");
+    }
+
+    # declare the PDL.  Fill it with the blank value or (failing that) 0.
+    # Since P repeat count is required to be 0 or 1, we don't need an additional dimension for the 
+    # repeat count -- the variable-length rows take that role.
+    my $pdl = PDL->new_from_specification($type, $extra, $nrows);
+    $pdl .= ($hdr->{"TNULL$i"} || 0);
+
+    my $lenpdl = zeroes(long, $nrows);
+    $tbl->{"len_".$hdr->{"TTYPE$i"}} = $lenpdl;
+
+    return $pdl;
+}
+sub _rdP {
+    my( $type, $pdl, $row, $strptr, $rpt, $extra, $heap_ptr, $tbl, $i ) = @_; 
+    $extra =~ s/\((.*)\)/$1/; 
+    my $s = $pdl->get_dataref;
+
+    # Read current offset and length
+    my $oflen = pdl(long,0,0);
+    my $ofs = $oflen->get_dataref;
+    substr($$ofs,0,8) = substr($$strptr, 0, 8, '');
+    $oflen->upd_data;
+    bswap4($oflen);
+    
+    # Now get 'em
+    my $rlen = $extra * PDL::Core::howbig($type); # rpt should be unity, otherwise we'd have to multiply it in.
+    my $readlen = $oflen->at(0) * PDL::Core::howbig($type);
+
+    # Store the length of this row in the header field.
+    $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->($row) .= $oflen->at(0);
+
+    print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
+	if($PDL::verbose);
+
+    # Copy the data into the output PDL.
+    my $of = $oflen->at(1);
+    substr($$s, $row*$rlen, $readlen) = substr($$heap_ptr, $of, $readlen);
+    $pdl->upd_data;
+}
+
+sub _wrP {
+    die "This code path should never execute - you are trying to write a variable-length array via direct handler, which is wrong.  Check the code path in PDL::wfits.\n";
+}
+
+sub _fnP {
+    my( $type, $pdl, $n, $hdr, $opt ) = @_;
+    my $post = PDL::Core::howbig($type);
+    unless( isbigendian() ) {
+	if(    $post == 2 ) { bswap2($pdl); }
+	elsif( $post == 4 ) { bswap4($pdl); }
+	elsif( $post == 8 ) { bswap8($pdl); }
+	elsif( $post != 1 ) {
+	    print STDERR "Unknown swapsize $post!  This is a bug.  You (may) lose..\n";
+	}
+    }
+
+    my $tzero = defined($hdr->{"TZERO$n"}) ? $hdr->{"TZERO$n"} : 0.0;
+    my $tscal = defined($hdr->{"TSCAL$n"}) ? $hdr->{"TSCAL$n"} : 1.0;
+    my $valid_tzero = ($tzero != 0.0);
+    my $valid_tscal = ($tscal != 1.0);
+    if( length($hdr->{"TZERO$n"}) or length($hdr->{"TSCAL$n"})) {
+	print STDERR "Ignoring TSCAL/TZERO keywords for binary table array column - sorry, my mind is blown!\n";
+    }
+    return $pdl->mv(-1,0);
+}
 
 ##############################
 #
@@ -798,12 +937,8 @@ sub _rfits_bintable ($$$$) {
   my $opt = shift;
   ##shift;  ### (ignore $pdl argument)
 
-  $tmp::hdr = $hdr;
-  
   print STDERR "Warning: BINTABLE extension should have BITPIX=8, found ".$hdr->{BITPIX}.".  Winging it...\n" unless($hdr->{BITPIX} == 8);
-  
-  
-  
+    
   ### Allocate the main table hash
   my $tbl = {};    # Table is indexed by name
   $tbl->{hdr} = $hdr;
@@ -835,7 +970,7 @@ sub _rfits_bintable ($$$$) {
     $hdr->{"TTYPE$i"} = $name unless($hdr->{"TTYPE$i"} eq $name);
     $tmpcol->{name} = $name;
 
-    if( ($hdr->{"TFORM$i"}) =~ m/(\d*)(.)(.*)/ ) {
+    if( ($hdr->{"TFORM$i"}) =~ m/(\d*)(P?.)(.*)/ ) {
       ($tmpcol->{rpt},  $tmpcol->{type},  $tmpcol->{extra}) = ($1,$2,$3);
       # added by DJB 03.18/04 - works for my data file but is it correct?
       $tmpcol->{rpt} ||= 1;
@@ -867,18 +1002,23 @@ sub _rfits_bintable ($$$$) {
         &{$foo}( $tmpcol->{rpt}
                  , $tmpcol->{extra}
                  , $hdr->{NAXIS2}
-                 , \$rowlen );
+                 , \$rowlen
+                 , $hdr   # hdr and column number are passed in, in case extra info needs to be gleaned.
+		 , $i
+		 , $tbl
+                );
     } else {
       $tmpcol->{data} = $tbl->{$name} = 
         PDL->new_from_specification(
                                     $foo 
                                     , $tmpcol->{rpt}, 
-                                    , $hdr->{NAXIS2}||1
+                                    , $hdr->{NAXIS2} || 1
                                     );
+
       $rowlen += PDL::Core::howbig($foo) * $tmpcol->{rpt};
     }
     
-    print "Prefrobnicated col. $i (".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if($PDL::debug);
+    print "Prefrobnicated col. $i "."(".$hdr->{"TTYPE$i"}.")\ttype is ".$hdr->{"TFORM$i"}."\t length is now $rowlen\n" if($PDL::debug);
     
     
   }  ### End of prefrobnication loop...
@@ -889,12 +1029,31 @@ sub _rfits_bintable ($$$$) {
     if($rowlen != $hdr->{NAXIS1});
   
   ### Snarf up the whole extension, and pad to 2880 bytes...
-  my ($rawtable, $n);
-  $n = $hdr->{NAXIS1} * $hdr->{NAXIS2} + $hdr->{PCOUNT};
-  $n = ($n-1)+2880 - (($n-1) % 2880);
-  print "Reading $n bytes of table data....\n"
+  my ($rawtable, $heap, $n1, $n2);
+
+  # n1 gets number of bytes in table plus gap
+  $n1 = $hdr->{NAXIS1} * $hdr->{NAXIS2};
+  if($hdr->{THEAP}) {
+      if($hdr->{THEAP} < $n1) {
+	  die("Inconsistent THEAP keyword in binary table\n");
+      } else {
+	  $n1 = $hdr->{THEAP};
+      }
+  }
+
+  # n2 gets number of bytes in heap (PCOUNT - gap).
+  $n2 = $hdr->{PCOUNT} + ($hdr->{THEAP} ? ($hdr->{NAXIS1}*$hdr->{NAXIS2} - $hdr->{THEAP}) : 0);
+  $n2 = ($n1+$n2-1)+2880 - (($n1+$n2-1) % 2880) - $n1;
+
+  print "Reading $n1 bytes of table data and $n2 bytes of heap data....\n"
     if($PDL::verbose);
-  $fh->read($rawtable, $n);
+  $fh->read($rawtable, $n1);
+
+  if($n2) {
+      $fh->read($heap, $n2)
+  } else {
+      $heap = which(pdl(0)); # empty PDL
+  }
 
   ### Frobnicate the rows, one at a time.
   for my $row(0..$hdr->{NAXIS2}-1) {
@@ -908,6 +1067,9 @@ sub _rfits_bintable ($$$$) {
                     , \$rawtable
                     , $tmpcol->{rpt}
                     , $tmpcol->{extra}
+		    , \$heap
+		    , $tbl
+		    , $i
                     );
       } elsif(ref $tmpcol->{data} eq 'PDL') {
         my $rlen = $reader * $tmpcol->{rpt};
@@ -917,13 +1079,13 @@ sub _rfits_bintable ($$$$) {
         $tmpcol->{data}->upd_data;
 
       } else {
-        barf("Bug detected: inconsistent types in BINTABLE reader\n");
+        die ("rfits: Bug detected: inconsistent types in BINTABLE reader\n");
       }
 
     } # End of TFIELDS loop
 
     if(length($rawtable) ne $prelen - $hdr->{NAXIS1}) {
-      barf "Something got screwed up -- expected a length of $prelen - $hdr->{NAXIS1}, got ".length($rawtable).".  Giving up.\n";
+      die "rfits BINTABLE: Something got screwed up -- expected a length of $prelen - $hdr->{NAXIS1}, got ".length($rawtable).".  Giving up.\n";
     }
   } # End of NAXIS2 loop
 
@@ -967,8 +1129,8 @@ sub _rfits_bintable ($$$$) {
       # might be)
       
       if($opt->{bscale}) {
-	my $tzero = $hdr->{"TZERO$i"} || 0.0;
-	my $tscal = $hdr->{"TSCAL$i"} || 1.0;
+	my $tzero = defined($hdr->{"TZERO$i"}) ? $hdr->{"TZERO$i"} : 0.0;
+	my $tscal = defined($hdr->{"TSCAL$i"}) ? $hdr->{"TSCAL$i"} : 1.0;
 	
 	# The $valid_<foo> flags let us avoid unnecessary arithmetic.
 	my $valid_tzero = ($tzero != 0.0);
@@ -1029,16 +1191,39 @@ sub _rfits_bintable ($$$$) {
 	}
       } # End of bscale checking...
 
-      # Copy the PDL out to the table itself.
+      # Try to grab a TDIM dimension list...
+      my @tdims = ();
       $tmpcol->{data}->hdrcpy(1);
-      if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
-	$tbl->{$tmpcol->{name}} = 
-	  ( ( $tmpcol->{data}->dim(0) == 1 ) 
-	    ? $tmpcol->{data}->slice("(0)") 
-	    : $tmpcol->{data}->xchg(0,1)
-	    );
+
+      if(exists($hdr->{"TDIM$i"})) {
+	  if($hdr->{"TDIM$i"} =~ m/\((\s*\d+(\s*\,\s*\d+)*\s*)\)/) {
+	      my $a = $1;
+	      @tdims = map { $_+0 } split(/\,/,$a);
+	      my $tdims = pdl(@tdims);
+	      my $tds = $tdims->prodover;
+	      if($tds > $tmpcol->{data}->dim(0)) {
+		  die("rfits: TDIM$i is too big in binary table.  I give up.\n");
+	      } elsif($tds < $tmpcol->{data}->dim(0)) {
+		  print STDERR "rfits: WARNING: TDIM$i is too small in binary table.  Carrying on...\n";
+	      }
+
+	      $tmpcol->{data}->hdrcpy(1);
+	      my $td = $tmpcol->{data}->xchg(0,1);
+	      $tbl->{$tmpcol->{name}} = $td->reshape($td->dim(0),@tdims);
+	  } else {
+	      print STDERR "rfits: WARNING: invalid TDIM$i field in binary table.  Ignoring.\n";
+	  }
+      } else {
+	  # Copy the PDL out to the table itself.
+	  if($hdr->{NAXIS2} > 0 && $tmpcol->{rpt}>0) {
+	      $tbl->{$tmpcol->{name}} = 
+		  ( ( $tmpcol->{data}->dim(0) == 1 ) 
+		    ? $tmpcol->{data}->slice("(0)") 
+		    : $tmpcol->{data}->xchg(0,1)
+		  );
+	  }
       }
-      
+
       # End of PDL postfrobnication case
     } elsif(defined $post) {
       
@@ -1048,9 +1233,250 @@ sub _rfits_bintable ($$$$) {
     }
   } # End of postfrobnication loop over columns
 
+  ### Check whether this is actually a compressed image, in which case we hand it off to the image decompressor
+  if($hdr->{ZIMAGE} && $hdr->{ZCMPTYPE} && $opt->{expand}) {
+      eval 'use PDL::Compression;';
+      if($@) {
+	  die "rfits: error while loading PDL::Compression to unpack tile-compressed image.\n\t$@\n\tUse option expand=>0 to get the binary table.\n";
+      }
+      return _rfits_unpack_zimage($tbl,$opt);
+  }
+
   ### Done!
   return $tbl;
 }
+
+
+##############################
+##############################
+# 
+# _rfits_unpack_zimage - unpack a binary table that actually contains a compressed image
+#
+# This is implemented to support the partial spec by White, Greenfield, Pence, & Tody dated Oct 21, 1999, 
+# with reverse-engineered bits from the CFITSIO3240 library where the spec comes up short.
+#
+
+## keyword is a compression algorithm name; value is an array ref containing tile compressor/uncompressor.
+## The compressor/uncompressor takes (nx, ny, data) and returns the compressed/uncompressed data.
+## The four currently (2010) supported-by-CFITSIO compressors are listed.  Not all have been ported, hence
+## the "undef"s in the table.  --CED.
+
+## Master jump table for compressors/uncompressors.
+## 0 element of each array ref is the compressor; 1 element is the uncompressor.
+## Uncompressed tiles are reshaped to rows of a tile table handed in (to the compressor)
+## or out (of the uncompressor); actual tile shape is fed in as $params->{tiledims}, so 
+## higher-than-1D compression algorithms can be used.
+our $tile_compressors = {
+          'GZIP_1' => undef
+	      , 'RICE_1' => [ ### RICE_1 compressor
+			      sub { my ($tiles, $tbl, $params) = @_; 
+				    my ($compressed,$len) = $tiles->rice_compress($params->{BLOCKSIZE} || 32);
+				    $tbl->{ZNAME1} = "BLOCKSIZE";
+				    $tbl->{ZVAL1} = $params->{BLOCKSIZE};
+				    $tbl->{ZNAME2} = "BYTEPIX";
+				    $tbl->{ZVAL2} = PDL::howbig($tiles->get_datatype);
+				    # Convert the compressed data to a byte array...
+				    if($tbl->{ZVAL2} != 1) {
+					my @dims = $compressed->dims;
+					$dims[0] *= $tbl->{ZVAL2};
+					my $cd2 = zeroes( byte, @dims );
+					my $cdr = $compressed->get_dataref;
+					my $cd2r = $cd2->get_dataref;
+					$$cd2r = $$cdr;
+					$cd2->upd_data;
+					$compressed = $cd2;
+				    }
+				    $tbl->{COMPRESSED_DATA} = $compressed->mv(0,-1);
+				    $tbl->{len_COMPRESSED_DATA} = $len;
+			      },
+			      ### RICE_1 expander
+			      sub { my ($tilesize, $tbl, $params) = @_;
+				    my $compressed = $tbl->{COMPRESSED_DATA} -> mv(-1,0);
+				    my $bytepix = $params->{BYTEPIX} || 4;
+
+				    # Put the compressed tile bitstream into a variable of appropriate type.
+				    # This works by direct copying of the PDL data, which sidesteps local 
+				    # byteswap issues in the usual case that the compressed stream is type 
+				    # byte.  
+
+				    if( PDL::howbig($compressed->get_datatype) != $bytepix ) {
+					my @dims = $compressed->dims;
+					$dims[0] *= PDL::howbig($compressed->get_datatype) / $bytepix;
+					my $c2 = zeroes( $type_table_2->{$bytepix * 8}, @dims );
+
+					my $c2dr = $c2->get_dataref;
+					my $cdr = $compressed->get_dataref;
+					$$c2dr = $$cdr;
+					$c2->upd_data;
+					$compressed = $c2;
+				    }
+
+				    return $compressed->rice_expand( $tilesize, $params->{BLOCKSIZE} || 32);
+			      }
+			      ]
+	, 'PLIO_1' => undef
+	, 'HCOMPRESS_1' => undef
+};
+
+## List of the eight mandatory keywords and their ZIMAGE preservation pigeonholes, for copying after we
+## expand an image.
+our $hdrconv = {
+    "ZSIMPLE" => "SIMPLE",
+    "ZTENSION" => "XTENSION",
+    "ZEXTEND" => "EXTEND",
+    "ZBLOCKED" => "BLOCKED",
+    "ZPCOUNT" => "PCOUNT",
+    "ZGCOUNT" => "GCOUNT",
+    "ZHECKSUM" => "CHECKSUM",
+    "ZDATASUM" => "DATASUM"
+};
+
+
+sub _rfits_unpack_zimage($$$) {
+    my $tbl = shift;
+    my $opt = shift;
+
+    my $hdr = $tbl->{hdr};
+
+    my $tc = $tile_compressors->{$hdr->{ZCMPTYPE}};
+    unless(defined $tc) {
+	print STDERR "WARNING: rfits: Compressed image has unsupported comp. type ('$hdr->{ZCMPTYPE}').\n";
+	return $tbl;
+    }
+
+    #############
+    # Declare the output image
+    my $type;
+    unless($type_table->{$hdr->{ZBITPIX}}) {
+	print STDERR "WARNING: rfits: unrecognized ZBITPIX value $hdr->{ZBITPIX} in compressed image. Assuming -64.\n";
+	$type = $type_table_2->{-64};
+    } else {
+	$type = $type_table_2->{$hdr->{ZBITPIX}};
+    }
+    my @dims;
+    for my $i(1..$hdr->{ZNAXIS}) {
+	push(@dims,$hdr->{"ZNAXIS$i"});
+    }
+
+    my $pdl = PDL->new_from_specification( $type, @dims );
+
+    ############
+    # Calculate tile size and allocate a working tile.
+    my @tiledims;
+    for my $i(1..$hdr->{ZNAXIS}) {
+	if($hdr->{"ZTILE$i"}) {
+	    push(@tiledims, $hdr->{"ZTILE$i"});
+	} else {
+	    push(@tiledims, (($i==1) ? $hdr->{ZNAXIS1} : 1)  );
+	}
+    }
+
+
+#    my $tile = PDL->new_from_specification( $type, @tiledims ); 
+    my $tiledims = pdl(@tiledims);
+    my $tilesize = $tiledims->prodover;
+    ###########
+    # Calculate tile counts and compare to the number of stored tiles
+    my $ntiles = ( pdl(@dims) / pdl(@tiledims) )->ceil;
+    my $tilecount = $ntiles->prodover;
+
+    if($tilecount != $tbl->{COMPRESSED_DATA}->dim(0)) {
+	printf STDERR "WARNING: rfits: compressed data has $hdr->{NAXIS2} rows; we expected $tilecount (",join("x",list $ntiles),").  Winging it...\n";
+    }
+
+    ##########
+    # Quantization - ignore for now
+    if($hdr->{ZQUANTIZ}) {
+	printf STDERR "WARNING: rfits: ignoring quantization/dithering (ZQUANTIZ=$hdr->{ZQUANTIZ})\n";
+    }
+    
+    ##########
+    # Snarf up compression parameters
+    my $params = {};
+    my $i = 1;
+    while( $hdr->{"ZNAME$i"} ) {
+	$params->{ $hdr->{"ZNAME$i"} } = $hdr->{"ZVAL$i"};
+	$i++;
+    }
+
+    ##########
+    # Enumerate tile coordinates for looping, and the corresponding row number
+    my ($step, @steps, $steps);
+    $step = 1;
+    for my $i(0..$ntiles->nelem-1) {
+	push(@steps, $step);
+	$step *= $ntiles->at($i);
+    }
+    $step = pdl(@steps);
+
+    # $tiledex is 2-D (coordinate-index, list-index) and enumerates all tiles by image
+    # location; $tilerow is 1-D (list-index) and enumerates all tiles by row in the bintable
+    my $tiledex = PDL::ndcoords($ntiles->list)->mv(0,-1)->clump($ntiles->dim(0))->mv(-1,0);
+    $TMP::tiledex = $tiledex;
+    my $tilerow = ($tiledex * $step)->sumover;
+    
+    ##########
+    # Restore all the tiles at once
+    my $tiles = &{$tc->[1]}( $tilesize, $tbl, $params ); # gets a (tilesize x ntiles) output
+    my $patchup = which($tbl->{len_COMPRESSED_DATA} <= 0);
+    if($patchup->nelem) {
+	unless(defined $tbl->{UNCOMPRESSED_DATA}) {
+	    die "rfits: need some uncompressed data for missing compressed rows, but none were found!\n";
+	}
+	if($tbl->{UNCOMPRESSED_DATA}->dim(1) != $tilesize) {
+	    die "rfits: tile size is $tilesize, but uncompressed data rows have size ".$tbl->{UNCOMPRESSED_DATA}->dim(1)."\n";
+	}
+	$tiles->(:,$patchup) .= $tbl->{UNCOMPRESSED_DATA}->($patchup,:)->xchg(0,1);
+    }
+
+    ##########
+    # Slice up the output image plane into tiles, and use the threading engine
+    # to assign everything to them.
+    my $cutup = $pdl->range( $tiledex, [@tiledims], 't') # < ntiles, tilesize0..tilesizen >
+	->mv(0,-1)                                       # < tilesize0..tilesizen, ntiles >
+	->clump($tiledims->nelem);                       # < tilesize, ntiles >
+
+    $cutup .= $tiles; # dump all the tiles at once into the image - they flow back to $pdl.
+    undef $cutup;     # sever connection to prevent expensive future dataflow.
+
+    ##########
+    # Perform scaling if necessary
+    $pdl *= $hdr->{ZSCALE} if defined($hdr->{ZSCALE});
+    $pdl += $hdr->{ZZERO} if defined($hdr->{ZZERO});
+
+    $pdl *= $hdr->{BSCALE} if defined($hdr->{BSCALE});
+    $pdl += $hdr->{BZERO} if defined($hdr->{BZERO});
+				     
+
+    ##########
+    # Put the FITS header into the newly reconstructed image.
+    delete $hdr->{PCOUNT};
+    delete $hdr->{GCOUNT};
+
+    # Copy the mandated name-conversions
+    for my $k(keys %$hdrconv) {
+	if($hdr->{$k}) {
+	    $hdr->{$hdrconv->{$k}} = $hdr->{$k};
+	    delete $hdr->{$k};
+	}
+    }
+
+    # Clean up the ZFOO extensions and table cruft
+    for my $k(keys %{$pdl->hdr}) {
+	delete $pdl->hdr->{$k} if(
+	    $k=~ m/^Z/ ||
+	    $k eq "TFIELDS" ||
+	    $k =~ m/^TTYPE/ ||
+	    $k =~ m/^TFORM/
+	    );
+    }
+    $pdl->sethdr($hdr);
+
+    return $pdl;
+}
+
+
+    
 
 =head2 wfits()
 
@@ -1060,7 +1486,7 @@ Simple PDL FITS writer
 
 =for example
 
-  wfits $pdl, 'filename.fits', [$BITPIX];
+  wfits $pdl, 'filename.fits', [$BITPIX], [$COMPRESSION_OPTIONS];
   wfits $hash, 'filename.fits', [$OPTIONS];
   $pdl->wfits('foo.fits',-32);
 
@@ -1099,6 +1525,46 @@ may cause confusion if the slice is NOT out of the last dimension:
 C<wfits($a(:,(0),:),'file.fits');> and you would be best off adjusting
 the header yourself before calling C<wfits>.
 
+You can tile-compress images according to the CFITSIO extension to the 
+FITS standard, by adding an option hash to the arguments:
+
+=over 3
+
+=item compress 
+
+This can be either unity, in which case Rice compression is used,
+or a (case-insensitive) string matching the CFITSIO compression 
+type names.  Currently supported compression algorithms are:
+
+=over 3
+
+=item * RICE_1 - linear Rice compression
+
+This uses limited-symbol-length Rice compression, which works well on 
+low entropy image data (where most pixels differ from their neighbors 
+by much less than the dynamic range of the image).
+
+=back
+
+=item tilesize (default C<[-1,1]>)
+
+This specifies the dimension of the compression tiles, in pixels.  You
+can hand in a PDL, a scalar, or an array ref. If you specify fewer
+dimensions than exist in the image, the last dim is repeated - so "32"
+yields 32x32 pixel tiles in a 2-D image.  A dim of -1 in any dimension
+duplicates the image size, so the default C<[-1,1]> causes compression
+along individual rows.
+
+=item tilesize (RICE_1 only; default C<32>)
+
+For RICE_1, BLOCKSIZE indicates the number of pixel samples to use
+for each compression block within the compression algorithm.  The 
+blocksize is independent of the tile dimensions.  For RICE
+compression the pixels from each tile are arranged in normal pixel 
+order (early dims fastest) and compressed as a linear stream.
+
+=back
+
 =item * Table handling:
 
 If you feed in a hash ref instead of a PDL, then the hash ref is
@@ -1110,23 +1576,24 @@ For numeric information, the hash values should contain PDLs.  The 0th
 dim of the PDL runs across rows, and higher dims are written as
 multi-value entries in the table (e.g. a 7x5 PDL will yield a single
 named column with 7 rows and 5 numerical entries per row, in a binary
-table).  ASCII tables only allow one entry per column in each row, so
+table).  Note that this is slightly different from the usual concept
+of threading, in which dimension 1 runs across rows.
+
+ASCII tables only allow one entry per column in each row, so
 if you plan to write an ASCII table then all of the values of C<$hash>
 should have at most one dim.
 
-All of the column dims must agree in the threading sense. That is to
+All of the columns' 0 dims must agree in the threading sense. That is to
 say, the 0th dimension of all of the values of C<$hash> should be the
 same (indicating that all columns have the same number of rows).  As
 an exception, if the 0th dim of any of the values is 1, or if that
 value is a PDL scalar (with 0 dims), then that value is "threaded"
 over -- copied into all rows.
 
-Data dimensions higher than 2 are not possible in ordinary FITS
-tables, so dims higher than 1 are clumped.  (e.g. a 7x5x3 PDL will
-yield a single named column with 7 rows and 15 numerical entries per
-row).  If C<$PDL::Verbose> is set, this condition causes a warning message
-to be printed.  [There is a multidim extension that is not yet
-implemented but should be].
+Data dimensions higher than 2 are preserved in binary tables,
+via the TDIMn field (e.g. a 7x5x3 PDL is stored internally as 
+seven rows with 15 numerical entries per row, and reconstituted
+as a 7x5x3 PDL on read).
 
 Non-PDL Perl scalars are treated as strings, even if they contain
 numerical values.  For example, a list ref containing 7 values is
@@ -1148,9 +1615,22 @@ column that is named "AU_PURITY".  Since this is not guaranteed to
 produce unique column names, subsequent columns by the same name are
 disambiguated by the addition of numbers.
 
-Two special keys, 'hdr' and 'tbl', can contain meta-information about
-the type of table you want to write.  You may override them by
-including an C<$OPTIONS> hash with a 'hdr' and/or 'tbl' key. 
+You can specify the use of variable-length rows in the output, saving
+space in the file.  To specify variable length rows for a column named
+"FOO", you can include a separate key "len_FOO" in the hash to be
+written.  The key's value should be a PDL containing the number of
+actual samples in each row.  The result is a FITS P-type variable
+length column that, upon read with C<rfits()>, will restore to a field
+named FOO and a corresponding field named "len_FOO".  Invalid data in
+the final PDL consist of a padding value (which defaults to 0 but
+which you may set by including a TNULL field in the hdr specificaion).
+Variable length arrays must be 2-D PDLs, with the variable length in
+the 1 dimension.
+
+Two further special keys, 'hdr' and 'tbl', can contain
+meta-information about the type of table you want to write.  You may
+override them by including an C<$OPTIONS> hash with a 'hdr' and/or
+'tbl' key.
 
 The 'tbl' key, if it exists, must contain either 'ASCII' or 'binary'
 (case-insensitive), indicating whether to write an ascii or binary
@@ -1301,12 +1781,20 @@ sub wheader ($$) {
 # Write a PDL to a FITS format file
 #
 sub PDL::wfits {
-  barf 'Usage: wfits($pdl,$file,[$BITPIX])' if $#_<1 || $#_>2;
-  
-  my ($pdl,$file,$BITPIX) = @_;
+  barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
+  my ($pdl,$file,$a,$b) = @_;
+  my ($opt, $BITPIX);
+  if(ref $a eq 'HASH') {
+      $a = $opt;
+      $BITPIX = $b;
+  } elsif(ref $b eq 'HASH') {
+      $BITPIX = $a;
+      $opt = $b;
+  }
+
   my ($k, $buff, $off, $ndims, $sz);
   
-  if ($file =~ /\.gz$/) {            # Handle compression
+  if ($file =~ /\.gz$/) {            # Handle suffix-style compression
     $file = "|gzip -9 > $file";
   }
   elsif ($file =~ /\.Z$/) {
@@ -1370,6 +1858,13 @@ sub PDL::wfits {
     }
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
   }
+
+  # Check for tile-compression format for the image, and handle it.
+  # We add the image-compression format tags and reprocess the whole
+  # shebang as a binary table.
+  if($opt->{compress}) {
+      croak "Placeholder -- tile compression not yet supported\n";
+  }
   
   
   ## Open file & prepare to write binary info
@@ -1430,7 +1925,6 @@ sub PDL::wfits {
       else               { delete $h->{BLANK}; }
     }
     
-    #
     # Use object interface to sort the lines. This is complicated by
     # the need for an arbitrary number of NAXIS<n> lines in the middle
     # of the sorting.  Keywords with a trailing '1' in the sorted-order
@@ -1711,6 +2205,8 @@ sub _prep_table {
   my $ohash;
 
   my $hdr = $hash->{hdr};
+  
+  my $heap = "";
 
   # Make a local copy of the header.
   my $h = {};
@@ -1727,7 +2223,7 @@ sub _prep_table {
 
   #####
   # Figure out how many columns are in the table
-  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and defined $hash->{$_}), 
+  my @colkeys = grep( ( !m/^(hdr|tbl)$/ and !m/^len_/ and defined $hash->{$_}), 
 		      sort fits_field_cmp keys %$hash 
 		      );
   my $cols = @colkeys;
@@ -1788,7 +2284,7 @@ sub _prep_table {
   }
 
 
-  # The first element of colnames is ignored (since FITS starts
+  # The first element of colnames is ignored (since FITS starts the
   # count at 1)
   #
   my @colnames;  # Names by number
@@ -1918,7 +2414,7 @@ sub _prep_table {
 	  $t = $bintable_types{'double'};
 	}
 
-	($tstr, $bytes, $converters[$i]) = @$t;
+	($tstr, $bytes, $converters[$i]) = @$t;	
 
       } elsif( ref $var eq 'ARRAY' ) {
 
@@ -1941,8 +2437,100 @@ sub _prep_table {
 	($tstr, $bytes, $converters[$i])  = ('A',1,undef);
 	$rpt = length($var);
       }
+
+
+      # Now check if it's a variable-length array and, if so, insert an 
+      # extra converter
+      my $lname = "len_".$keysbyname{$colnames[$i]};
+      if(exists $hash->{$lname}) {
+	  my $lengths = $hash->{$lname};
+
+	  # Variable length array - add extra handling logic.
+
+	  # First, check we're legit
+	  if( !UNIVERSAL::isa($var, 'PDL') || 
+	      $var->ndims != 2 ||
+	      !UNIVERSAL::isa($lengths,'PDL') ||
+	      $lengths->ndims != 1 ||
+	      $lengths->dim(0) != $var->dim(0)
+	      ) {
+	      die <<'FOO';
+wfits(): you specified a 'len_$keysbyname{$colnames[$i]}' field in
+    your binary table output hash, indicating a variable-length array for
+    each row of the output table, but I'm having trouble interpreting it.
+    Either your source column isn't a 2-D PDL, or your length column isn't
+    a 1-D PDL, or the two lengths don't match. I give up.
+FOO
+	  }
+
+	  # The definition below wraps around the existing converter,
+	  # dumping the variable to the heap and returning the length
+	  # and index of the data for the current row as a PDL LONG.
+	  # This does the Right Thing below in the write loop, with
+	  # the side effect of putting the data into the heap.
+	  #
+	  # The main downside here is that the heap gets copied
+	  # multiple times as we accumulate it, since we are using
+	  # string concatenation to add onto it.  It might be better
+	  # to preallocate a large heap, but I'm too lazy to figure
+	  # out how to do that.
+	  my $csub = $converters[$i];
+	  $converters[$i] = sub {
+	      my $var = shift;
+	      my $row = shift;
+	      my $col = shift;
+	      
+	      my $len = $hash->{"len_".$keysbyname{$colnames[$i]}};
+	      my $l;
+	      if(ref $len eq 'ARRAY') {
+		  $l = $len->[$row];
+	      } elsif( UNIVERSAL::isa($len,'PDL') ) {
+		  $l = $len->($row);
+	      } elsif( ref $len ) {
+		  die "wfits: Couldn't understand length spec 'len_".$keysbyname{$colnames[$i]}."' in bintable output (length spec must be a PDL or array ref).\n";
+	      } else {
+		  $l = $len;
+	      }
+	      
+	      # The standard says we should give a zero-offset 
+	      # pointer if the current row is zero-length; hence
+	      # the ternary operator.
+	      my $ret = pdl( $l, $l ? length($heap) : 0)->long;
+
+
+	      if($l) {
+		  # This echoes the normal-table swap and accumulation 
+		  # stuff below, except we're accumulating into the heap.
+		  my $tmp = $csub ? &$csub($var, $row, $col) : $var;
+		  $tmp = $tmp->(0:$l-1)->sever;
+		  
+		  if(!isbigendian()) {
+		      bswap2($tmp) if($tmp->get_datatype == $PDL_S);
+		      bswap4($tmp) if($tmp->get_datatype == $PDL_L ||
+				      $tmp->get_datatype == $PDL_F);
+		      bswap8($tmp) if($tmp->get_datatype == $PDL_D);
+		  }
+		  my $t = $tmp->get_dataref;
+		  $heap .= $$t;
+	      }
+
+	      return $ret;
+	  };
+
+	  # Having defined the conversion routine, now modify tstr to make this a heap-array
+	  # reference.
+	  $tstr = sprintf("P%s(%d)",$tstr, $hash->{"len_".$keysbyname{$colnames[$i]}}->max );
+	  $rpt = 1;
+	  $bytes = 8; # two longints per row in the main table.
+      }
+
       
       $hdr->{"TFORM$i"} = "$rpt$tstr";
+
+      if(UNIVERSAL::isa($var, 'PDL') and $var->ndims > 1) {
+	  $hdr->{"TDIM$i"} = "(".join(",",$var->((0))->dims).")";
+      }
+
       $rowlen += ($field_len[$i] = $rpt * $bytes);
     }
       
@@ -1960,7 +2548,7 @@ sub _prep_table {
        
 	if($internaltype[$c] eq 'P') {  # PDL handling
 	  $tmp = $converters[$c]
-	    ? &{$converters[$c]}($a->($r)->flat->sever) 
+	    ? &{$converters[$c]}($a->($r)->flat->sever, $r, $c) 
 	      : $a->($r)->flat->sever ;
 
 	  ## This would go faster if moved outside the loop but I'm too
@@ -1975,9 +2563,9 @@ sub _prep_table {
 
 	  my $t = $tmp->get_dataref;  
 	  $tmp = $$t;
-	} else {                          # Only other case is ASCII just now...
+	} else {                                  # Only other case is ASCII just now...
 	  $tmp = ( ref $a eq 'ARRAY' ) ?          # Switch on array or string
-	    ( $#$a == 0 ? $a->[0] : $a->[$r] )  # Thread arrays as needed
+	    ( $#$a == 0 ? $a->[0] : $a->[$r] )    # Thread arrays as needed
 	      : $a;
 	 
 	  $tmp .= " " x ($field_len[$c] - length($tmp));
@@ -1995,7 +2583,7 @@ sub _prep_table {
       print "Warning: Table length is ".(length $table)."; expected $table_size\n";
     }
 
-    return ($hdr,$table);
+    return ($hdr,$table, $heap);
       
   } elsif($tbl eq 'ascii') {
     barf "ASCII tables not yet supported...\n";
@@ -2051,7 +2639,8 @@ sub _wfits_table ($$$) {
   barf "FITS BINTABLES are not supported without the Astro::FITS::Header module.\nGet it from www.cpan.org.\n"
     unless($PDL::Astro_FITS_Header);
 
-  my ($hdr,$table) = _prep_table($hash,$tbl,0);
+  my ($hdr,$table, $heap) = _prep_table($hash,$tbl,0);
+  $heap="" unless defined($heap);
 
   # Copy the prepared fields into the extension header.
   tie my %newhdr,'Astro::FITS::Header',my $h = Astro::FITS::Header->new;
@@ -2062,7 +2651,8 @@ sub _wfits_table ($$$) {
   add_hdr_item $h, "NAXIS", 2, 'int';
   add_hdr_item $h, "NAXIS1", $hdr->{NAXIS1}, 'int', 'Bytes per row';
   add_hdr_item $h, "NAXIS2", $hdr->{NAXIS2}, 'int', 'Number of rows';
-  add_hdr_item $h, "PCOUNT", 0, 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
+  add_hdr_item $h, "PCOUNT", length($heap), 'int', ($tbl eq 'ascii' ? undef : "No heap") ;
+  add_hdr_item $h, "THEAP", "0", "(No gap before heap)" if(length($heap));
   add_hdr_item $h, "GCOUNT", 1, 'int';
   add_hdr_item $h, "TFIELDS", $hdr->{TFIELDS},'int';
   add_hdr_item $h, "HDUNAME", "TABLE", 'string';
@@ -2083,7 +2673,8 @@ sub _wfits_table ($$$) {
 
   $hdr = join("",$h->cards);
   _print_to_fits( $fh, $hdr, " " );
-  _print_to_fits( $fh, $table, "\0" ); # use " " if it is an ASCII table
+  _print_to_fits( $fh, $table.$heap, "\0" ); # use " " if it is an ASCII table
+  # Add heap dump
 }
 
 sub _wfits_nullhdu ($) {

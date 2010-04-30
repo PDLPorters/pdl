@@ -92,6 +92,11 @@ should be harmless.
 
 Probably has not been tested enough!
 
+=head1 SEE ALSO
+
+For an alternative approach to managing a personal collaction of 
+module and functions, see L<local::lib>.
+
 =cut
 
 BEGIN{
