@@ -82,7 +82,7 @@ pp_def(
 	HandleBad => 0,
 	Pars => 'in(n); [o]out(m); int[o]len(); lbuf(n)',
 	OtherPars => "int blocksize", # in OtherPars to avoid autopromotion
-	GenericTypes =>['B','S','U','L'],
+	GenericTypes =>['B','S','US','L'],
 	Doc => <<'EOD',
 
 =for ref
@@ -197,7 +197,7 @@ pp_def(
 	HandleBad=>0,
 	Pars=>'in(n); [o]out(m); lbuf(n)',
 	OtherPars=>'int blocksize',
-	GenericTypes=>['B','S','L'],
+	GenericTypes=>['B','S','US','L'],
 	Doc=><<'EOD',
 
 =for ref

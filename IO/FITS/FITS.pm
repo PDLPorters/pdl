@@ -20,7 +20,7 @@ module that is available on CPAN.
 
 Basic FITS image files are supported, along with BINTABLE and IMAGE extensions.
 ASCII Table support is planned, as are the HEASARC bintable extensions that
-are recommended in the 1999 FITS standard.
+are recommended in the 1999 FITS standard.  
 
 Table support is based on hashes and named columns, rather than the
 less convenient (but slightly more congruent) technique of perl lists
@@ -37,7 +37,7 @@ documentation for details.
 
 =head1 AUTHOR
 
-Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2004.
+Copyright (C) Karl Glazebrook, Craig DeForest, and Doug Burke, 1997-2010.
 There is no warranty.  You are allowed to redistribute and/or modify
 this software under certain conditions.  For details, see the file
 COPYING in the PDL distribution.  If this file is separated from the 
