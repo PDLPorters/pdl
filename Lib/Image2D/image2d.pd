@@ -212,7 +212,7 @@ pp_def('conv2d', Doc=><<'EOD',
 2D convolution of an array with a kernel (smoothing)
 
 For large kernels, using a FFT routine,
-such as L<fftconvolve()|PDL::FFT/fftconvolve> in C<PDL::FFT>,
+such as L<fftconvolve()|PDL::FFT/fftconvolve()> in C<PDL::FFT>,
 will be quicker.
 
 =for usage

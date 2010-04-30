@@ -1,4 +1,4 @@
-#
+	#
 # Proj4.pd
 #
 # PDL::PP Definition file for the PDL::Transform::Proj4 module
@@ -470,9 +470,10 @@ ENDTEMPLATE
     my $doc_param_list = "";
     if( scalar( @{ $projection->{PARAMS}->{PROJ} } ) )
     {
-        $doc_param_list .= "\n=head3 Projection Parameters\n\n";
+        $doc_param_list .= "\nProjection Parameters\n\n=for options\n\n=over 4\n\n";
         foreach my $param ( sort @{ $projection->{PARAMS}->{PROJ} } )
-            { $doc_param_list .= "=head4 $param\n\n"; }
+            { $doc_param_list .= "=item $param\n\n"; }
+	    $doc_param_list .= "=back\n\n";
     }
     
     my $alias_template = <<'ENDTEMPLATE';

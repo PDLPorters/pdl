@@ -177,7 +177,7 @@ piddles. Therefore, the following will raise an error
  print "is ok" if $a > 3;
 
 since C<$a E<gt> 3> is a piddle with 4 elements. Rather use 
-L<all|PDL::Primitive/all> or L<any|PDL::Primitive/any>
+L<all|PDL::Ufunc/all> or L<any|PDL::Ufunc/any>
 to test if all or any of the elements fulfill the condition:
 
  print "some are > 3" if any $a>3;
@@ -209,7 +209,7 @@ e.g.:
              [ 2  2]
             ]
 
-Note: L<transpose()|PDL::Basic::transpose> 
+Note: L<transpose()|PDL::Basic/transpose> 
 does what it says and is a convenient way
 to turn row vectors into column vectors.
 

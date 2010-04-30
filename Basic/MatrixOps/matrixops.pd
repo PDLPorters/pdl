@@ -58,7 +58,7 @@ determinant finding, eigenvalue/vector finding, singular value
 decomposition, etc.  PDL::MatrixOps routines are written in a mixture
 of Perl and C, so that they are reliably present even when there is no
 FORTRAN compiler or external library available (e.g.
-L<PDL::Slatec|/PDL::Slatec> or L<PDL::GSL>).
+L<PDL::Slatec|PDL::Slatec> or any of the PDL::GSL family of modules).
 
 Matrix manipulation, particularly with large matrices, is a
 challenging field and no one algorithm is suitable in all cases.  The
@@ -812,7 +812,7 @@ then you can make an expensive copy of C<$a> by saying:
 EXAMPLE
 
 The computing literature has loads of examples of how to use SVD.
-Here\'s a trivial example (used in L<PDL::Transform::Map|PDL::Transform::map>)
+Here\'s a trivial example (used in L<PDL::Transform::map|PDL::Transform/map>)
 of how to make a matrix less, er, singular, without changing the 
 orientation of the ellipsoid of transformation:
 
@@ -874,7 +874,7 @@ be sure to get it one way or the other.
 
 LU decomposition is the answer to a lot of matrix questions, including
 inversion and determinant-finding, and lu_decomp is used by
-L<inverse|/inverse>.
+L<inv|/inv>.
 
 If you pass in $perm and $parity, they either must be predeclared PDLs
 of the correct size ($perm is an n-vector, $parity is a scalar) or
@@ -1175,8 +1175,8 @@ by convention, so a 1-D PDL corresponds to a row vector, not a column
 vector.
 
 If C<$lu> is dense and you have more than a few points to solve for,
-it is probably cheaper to find C<A^-1> with L<inverse|/inverse>, and
-just multiply C<X = A^-1 B>.)  In fact, L<inverse|/inverse> works by
+it is probably cheaper to find C<A^-1> with L<inv|/inv>, and
+just multiply C<X = A^-1 B>.)  In fact, L<inv|/inv> works by
 calling lu_backsub with the identity matrix.
 
 lu_backsub is ported from Section 2.3 of I<Numerical Recipes>.  It is 
