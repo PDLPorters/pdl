@@ -6,12 +6,12 @@ sub ok {
 	print "ok $no\n" ;
 }
 
-sub tapprox {
-	my($a,$b) = @_;
-	$c = abs($a-$b);
-	$d = max($c);
-	$d < 0.01;
-}
+# sub tapprox {
+# 	my($a,$b) = @_;
+# 	$c = abs($a-$b);
+# 	$d = max($c);
+# 	$d < 0.01;
+# }
 
 if($^O !~ /mswin32/i) {$SIG{BUS} = \&not_ok}
 $SIG{SEGV} = \&not_ok;

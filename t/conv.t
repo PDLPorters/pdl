@@ -9,12 +9,12 @@ BEGIN { plan tests => 7 }
 use PDL::LiteF;
 use PDL::Types;
 
-sub tapprox {
-        my($a,$b) = @_;
-        my $c = abs($a-$b);
-        my $d = max($c);
-        ok($d < 0.01);
-}
+# sub tapprox {
+#         my($a,$b) = @_;
+#         my $c = abs($a-$b);
+#         my $d = max($c);
+#         ok($d < 0.01);
+# }
 
 $a = pdl 42.4;
 print "A is $a\n";
