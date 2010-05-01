@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 30 Apr 2010 04:47:09 PM 
+# Last saved: Sat 01 May 2010 12:46:01 PM
 #
 
 use Moose;
@@ -10,7 +10,8 @@ use namespace::clean -except => [ 'meta' ];
 with 'Devel::REPL::Profile';
 
 sub plugins {
-   qw(History LexEnv DDS Packages Commands MultiLine::PPI NiceSlice CompletionDriver::Methods CompletionDriver::INC);
+   qw( Commands CompletionDriver::Globals CompletionDriver::INC CompletionDriver::Keywords CompletionDriver::LexEnv
+       CompletionDriver::Methods DDS History Interrupt LexEnv MultiLine::PPI NiceSlice Packages);
 }
 
 sub apply_profile {
@@ -28,6 +29,7 @@ sub apply_profile {
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
 
+   $repl->eval('no strict qw(vars)');
    $repl->prompt("perldl2> ");
 }
 

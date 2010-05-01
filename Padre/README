@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Wed 28 Apr 2010 01:41:43 PM 
+Last saved: Sat 01 May 2010 12:52:38 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -19,6 +19,12 @@ files included and how to install and use them follows.
 
 FILES:
 
+ Completion.pm
+   Replacement for Devel::REPL::Plugin::Completion to support
+   Term::ReadLine::Perl in addition to Term::ReadLine::Gnu.
+   This makes completion available for all platforms with
+   Term::ReadLine::Perl, including win32.
+
  NiceSlice.pm
    Implements PDL::NiceSlice preprocessing for the Devel::REPL
    shell (i.e. Devel::REPL::Plugin::NiceSlice) for perldl2.
@@ -32,15 +38,16 @@ FILES:
  readline-fix/
    Working directory to get Term::ReadLine::Gnu v1.19 working
    with win32 perls.  See its README if you are interested
-   in the progress.
+   in the progress.  Porting work here has stopped now that
+   Term::ReadLine::Perl support is available on win32.
 
 
 INSTALL:
 
  The installation is manual at this time.  Simply copy
- NiceSlice.pm to the Devel/REPL/Plugin/ directory of your
- Devel::REPL install and copy Perldl2.pm to the
- Devel/REPL/Profile directory of the Devel::REPL install.
+ Completion.pm and NiceSlice.pm to the Devel/REPL/Plugin/
+ directory of your Devel::REPL install and copy Perldl2.pm
+ to the Devel/REPL/Profile directory of the Devel::REPL install.
 
 
 
@@ -63,15 +70,22 @@ USE:
 NOTES:
 
  Supported functionality from Devel::REPL and PDL:
-  * History (redo commands with !-1 and !## syntax)
-  * LexEnv (e.g., my $a = zeros(10) works)
-  * DDS (pretty prints output using Data::Dump::Streamer)
-  * Packages (keeps track of user package)
   * Commands (generic command creation)
+  * DDS (pretty prints output using Data::Dump::Streamer)
+  * History (redo commands with !-1 and !## syntax)
+  * Interrupt (Ctrl-C to interrupt a command)
+  * LexEnv (e.g., my $a = zeros(10) works)
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
-  * CompletionDriver::Methods (TAB completion of method names)
-  * CompletionDriver::INC (TAB completion for use module..)
+  * Packages (keeps track of user package)
+  * CompletionDrivers
+    * Globals  (completion for globals) 
+    * INC      (completion for use module::name)
+    * Keywords (completion for perl keywords)
+    * LexEnv   (completion for lexical vars)
+    * Methods  (completion of method names)
+
+Packages
 
  Default PDL modules loaded:
   * PDL
@@ -83,10 +97,6 @@ NOTES:
   * PDL::Image2D
   * PDL::AutoLoader
  
- Completion doesn't work for win32 because no GNU readline.
-
- use strict on by default
-
  edit the Perldl2.pm file to add additional default setup
  for the perldl2 shell.  You can $repl->eval() anything
  you want before the shell starts.  The other thing is
