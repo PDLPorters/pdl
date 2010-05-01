@@ -183,6 +183,7 @@ RCS
 ^Lib/Transform/Transform\.c
 ^Lib/Transform/Transform\.pm
 ^Lib/Transform/Transform\.xs
+^Padre/readline-fix
 ^[.]Inline
 ^\.\#.*
 ^\.exists
