@@ -9,6 +9,17 @@ General Notes:
 
 Highlights:
 
+ * Experimental perldl version 2 shell available.  See the
+   README file in PDL/Padre for details on how to use.  Full
+   completion support is now available for all platforms via
+   Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
+
+ * Preliminary implementation of PDL::new string constructor
+   is in PDL/Example/Core.  If you run the new_from_string.pl
+   script there, that should enable the capability.  This
+   is planned to be merged into PDL proper once tests and docs
+   are completed.  Feedback welcome.
+
  * Added hooks for PDL::new to handle STRING data
 
      If the sub PDL::Core::new_pdl_from_string is defined, then
@@ -25,7 +36,7 @@ Highlights:
  * Added tiled compressed image handling to rfits in FITS.pm
    including a new compression module in Lib/Compression.
 
- * Fixed a  problem with window shrink creep in imag2d()
+ * Partial fix for a problem with window shrink creep in imag2d()
 
  * Fix uniqvec bug from SF# 2978576
 
