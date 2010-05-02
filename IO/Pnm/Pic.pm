@@ -48,6 +48,7 @@ use PDL::Options;
 use PDL::Config;
 use File::Basename;
 use SelfLoader;
+use File::Spec;
 
 use strict;
 use vars qw( $Dflags @ISA %converter );
@@ -79,7 +80,7 @@ the filter when trying to open the pipe. [']
 #
 #
 # The "referral" field, if present, contains a within-perl referral
-# to other methods for reading/writing the PDL as that type of file.  The 
+# to other methods for reading/writing the PDL as that type of file.  The
 # methods must have the same syntax as wpic/rpic (e.g. wfits/rfits).
 #
 
@@ -92,23 +93,24 @@ sub init_converter_table {
   # default flag to be used with any converter unless overridden with FLAGS
   $Dflags = '-quiet';
   %converter = ();
-  
+
   # Pbmplus systems have cjpeg/djpeg; netpbm systems have pnmtojpeg and
   # jpegtopnm.
 
   my $jpeg_conv='';
 
   {
-      my @path = split(/:/,$ENV{PATH});
+      my @path = File::Spec->path();
+      my $ext = $^O =~ /MSWin/i ? '.exe' : '';
       local $_;
       my $pbmplus;
-      
+
       for (@path) {
 	  $jpeg_conv="cjpeg" if(-x "$_/cjpeg");
-	  $jpeg_conv="pnmtojpeg" if(-x "$_/pnmtojpeg");
+	  $jpeg_conv="pnmtojpeg" if(-x "$_/pnmtojpeg" . $ext);
       }
   }
-      
+
   my @normal = qw/TIFF SGI RAST PCX PNG/;
   push(@normal,"JPEG") if($jpeg_conv eq 'pnmtojpeg');
 
@@ -119,11 +121,11 @@ sub init_converter_table {
   my @special = (['PNM','NONE','NONE'],
 		 ['PS','pnmtops',
 		  'gs -sDEVICE=ppmraw -sOutputFile=- -q -dNOPAUSE -dBATCH'],
-		 
+
 		 ['GIF','ppmtogif','giftopnm'],
 		 ['IFF','ppmtoilbm','ilbmtoppm']
 		 );
-  push(@special,['JPEG', 'cjpeg' ,'djpeg']) 
+  push(@special,['JPEG', 'cjpeg' ,'djpeg'])
       if($jpeg_conv eq 'cjpeg');
 
    for(@special) {
@@ -141,10 +143,10 @@ sub init_converter_table {
   my $key;
   for $key (keys %converter) {
 
-    $converter{$key}->{Rok} = inpath($converter{$key}->{'get'}) 
+    $converter{$key}->{Rok} = inpath($converter{$key}->{'get'})
       if defined($converter{$key}->{'get'});
 
-    $converter{$key}->{Wok} = inpath($converter{$key}->{'put'}) 
+    $converter{$key}->{Wok} = inpath($converter{$key}->{'put'})
       if defined($converter{$key}->{'put'});
 
     if (defined $converter{$key}->{Prefilt}) {
@@ -515,11 +517,11 @@ sub PDL::wpic {
 Read images in most formats, with improved RGB handling.
 
 You specify a filename and get back a PDL with the image data in it.
-Any PNM handled format or FITS will work. In the second form, $a is an 
-existing PDL that gets loaded with the image data.  
+Any PNM handled format or FITS will work. In the second form, $a is an
+existing PDL that gets loaded with the image data.
 
 If the image is in one of the standard RGB formats, then you get back
-data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim 
+data in (<X>,<Y>,<RGB-index>) format -- that is to say, the third dim
 contains the color information.  That allows you to do simple indexing
 into the image without knowing whether it is color or not -- if present,
 the RGB information is silently threaded over.  (Contrast L<rpic>, which
@@ -530,7 +532,7 @@ If the image is in FITS format, then you get the data back in exactly
 the same order as in the file itself.
 
 Images with a ".Z" or ".gz" extension are assumed to be compressed with
-UNIX L<"compress"|compress> or L<"gzip"|gzip>, respecetively, and are 
+UNIX L<"compress"|compress> or L<"gzip"|gzip>, respecetively, and are
 automatically uncompressed before reading.
 
 OPTIONS
@@ -544,7 +546,7 @@ The same as L<rpic>, which is used as an engine:
 If you don't specify this then formats are autodetected.  If you do specify
 it then only the specified interpreter is tried.  For example,
 
-  $a = rim("foo.gif",{FORMAT=>"JPEG"}) 
+  $a = rim("foo.gif",{FORMAT=>"JPEG"})
 
 forces JPEG interpretation.
 
@@ -552,7 +554,7 @@ forces JPEG interpretation.
 
 Contains extra command line flags for the pnm interpreter.  For example,
 
-  $a = rim("foo.jpg",{XTRAFLAGS=>"-nolut"}) 
+  $a = rim("foo.jpg",{XTRAFLAGS=>"-nolut"})
 
 prevents use of a lookup table in JPEG images.
 
@@ -571,7 +573,7 @@ sub rim {
       $args[0] = $dest->reorder(1,2,0);
     }
     return rpic(@args);
-  } 
+  }
 
   my $out = rpic(@args);
 
@@ -581,16 +583,16 @@ sub rim {
   #
   # (What a kludge -- but rpic is historical and has to be kept at this point)
   #
-  if($out->ndims == 3 && $out->dim(0) == 3 && 
+  if($out->ndims == 3 && $out->dim(0) == 3 &&
      !( defined($out->gethdr) && $out->gethdr->{SIMPLE} )
      ) {
     return $out->reorder(1,2,0);
-  } 
-  
+  }
+
   $out;
 }
-  
-  
+
+
 
 =head2 wim
 
@@ -626,7 +628,7 @@ keys are the same as for L<wpic|wpic>, which is used as an engine:
 
 =item CONVERTER
 
-Names the converter program to be used by pbmplus (e.g. "ppmtogif" to 
+Names the converter program to be used by pbmplus (e.g. "ppmtogif" to
 output a gif file)
 
 =item FLAGS
@@ -641,7 +643,7 @@ Explicitly specifies the intermediate format (e.g. PGM, PPM, or PNM).
 =item XTRAFLAGS
 
 Flags that should be passed to the converter (in addition to any default
-flag list).  
+flag list).
 
 =item FORMAT
 
@@ -670,17 +672,17 @@ sub PDL::wim {
 
   $args[0] = $im->reorder(2,0,1)
     if(    $im->ndims == 3
-       and $im->dim(2)==3 
-       and !( 
-	      ( $args[1] =~ m/\.fits$/i ) 
-	      or 
-	      ( ref $args[2] eq 'HASH' and $args[2]->{FORMAT} =~ m/fits/i ) 
+       and $im->dim(2)==3
+       and !(
+	      ( $args[1] =~ m/\.fits$/i )
+	      or
+	      ( ref $args[2] eq 'HASH' and $args[2]->{FORMAT} =~ m/fits/i )
 	    )
        );
 
   wpic(@args);
 }
-	  
+
 =head2 wmpeg
 
 =for ref
