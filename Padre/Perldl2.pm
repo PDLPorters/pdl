@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sat 01 May 2010 12:46:01 PM
+# Last saved: Mon 03 May 2010 01:35:15 PM 
 #
 
 use Moose;
@@ -18,6 +18,13 @@ sub apply_profile {
    my ($self, $repl) = @_;
 
    $repl->load_plugin($_) for $self->plugins;
+
+   # these plugins don't work on win32
+   unless ($^O =~ m/win32/i) {
+      $repl->load_plugin('Interrupt');
+      $repl->load_plugin('ReadLineHistory');
+   }
+
 
    # do perldl stuff here
    $repl->eval('use PDL');
