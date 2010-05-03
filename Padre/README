@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 01 May 2010 03:45:26 PM
+Last saved: Mon 03 May 2010 03:30:36 PM 
 
 ** This is experimental code so use at your own risk! **
 
@@ -32,6 +32,10 @@ FILES:
  Perldl2.pm
    The perldl2 profile for use with the Devel::REPL shell.
   
+ ReadLineHistory.pm
+   Replacement for Devel::REPL::Plugin::ReadLineHistory
+   that supports either TR::Perl or TR::Gnu
+
  TieHash.pm
    A replacement for Term::ReadLine::Perl::Tie to give
    a more complete TIEHASH interface.  To use, just
@@ -53,8 +57,8 @@ FILES:
 INSTALL:
 
  The installation is manual at this time.  
- (1) Copy Completion.pm and NiceSlice.pm to Devel/REPL/Plugin/
-     in your Devel::REPL install
+ (1) Copy Completion.pm, NiceSlice.pm, and ReadLineHistory
+     to Devel/REPL/Plugin/ in your Devel::REPL install
  (2) Copy Perldl2.pm to the Devel/REPL/Profile directory of
      your Devel::REPL install
  
