@@ -125,15 +125,24 @@ Here are some ways of creating a PDL variable:
 
  $a = pdl [1..10];             # 1D array
  $a = pdl (1,2,3,4);           # Ditto
+ $a = pdl '[1 2 3 4]';         # Ditto
  $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
+ $b = pdl '[1 2 3; 4 5 6]';    # Ditto
+ $b = pdl q[1,2,3; 4,5,6];     # Ditto
+ $b = pdl <<NEWPDL             # Ditto
+   [1 2 3]
+   [4 5 6]
+ NEWPDL
+ $edge1 = q[1 -2];             # 2-element piddle containing 1 and -2
+ $edge2 = q[1 - 2];            # 1-element piddle containing -1
  $b = pdl 42                   # 0-dimensional scalar
  $c = pdl $a;                  # Make a new copy
-
+ 
  $d = byte [1..10];            # See "Type conversion"
  $e = zeroes(3,2,4);           # 3x2x4 zero-filled array
-
+ 
  $c = rfits $file;             # Read FITS file
-
+ 
  @x = ( pdl(42), zeroes(3,2,4), rfits($file) ); # Is a LIST of PDL variables!
 
 The L<pdl()|PDL::Core/pdl> function is used to initialise a PDL variable from a scalar,
@@ -320,7 +329,7 @@ well as get more speed.
 
 =item PDL::IO::FlexRaw
 
-General raw data formats.
+General raw data formats. Like FastRaw, only better.
 
 =item PDL::IO::Browser
 
@@ -357,6 +366,15 @@ There is an easy interface to this in the internal module
 L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>, which
 calls routines in the separately available
 PGPLOT top-level module.
+
+=item PDL::Graphics::PLplot
+
+PLplot provides a simple library for creating graphics with multiple
+output drivers, including a direct-to-piddle driver.
+
+This module provides both high-level and low-level functionality built
+on PLplot. The low-level commands are pretty much direct bindings to
+PLplot's C interface. Read more at L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>.
 
 =item PDL::Graphics::IIS
 

@@ -182,7 +182,10 @@ PDL constructor - creates new piddle from perl scalars/arrays, piddles, and stri
  $a = pdl ([1..10]);           # 1D array
  $a = pdl (1,2,3,4);           # Ditto
  $b = pdl [[1,2,3],[4,5,6]];   # 2D 3x2 array
- $b = pdl "[[1,2,3],[4,5,6]]"; # Ditto (TBD)
+ $b = pdl "[[1,2,3],[4,5,6]]"; # Ditto (slower)
+ $b = pdl "[1 2 3; 4 5 6]";    # Ditto
+ $b = pdl q[1 2 3; 4 5 6];     # Ditto, using the q quote operator
+ $b = pdl "1 2 3; 4 5 6";      # Ditto, less obvious, but still works
  $b = pdl 42                   # 0-dimensional scalar
  $c = pdl $a;                  # Make a new copy
  $a = pdl([1,2,3],[4,5,6]);    # 2D
@@ -192,14 +195,15 @@ Note the last two are equivalent - a list is automatically
 converted to a list reference for syntactic convenience. i.e. you
 can omit the outer C<[]>
 
- ALERT: STRING argument handling is under development.  See
- notes in the PDL::new POD for how to try it out.
-
 You can mix and match arrays, array refs, and PDLs in your argument
 list, and C<pdl> will sort them out.  You get back a PDL whose last
 (slowest running) dim runs across the top level of the list you hand
 in, and whose first (fastest running) dim runs across the deepest
 level that you supply.
+
+At the moment, you cannot mix and match those arguments with string
+arguments, though we can't imagine a situation in which you would
+really want to do that.
 
 Throwing a PDL into the mix has the same effect as throwing in a list ref:
 
@@ -697,41 +701,85 @@ new piddle constructor method
 
 =for example
 
- $x = PDL->new(42);
- $y = new PDL [1..10];
- $z = new PDL "[1, 2, 3]";   # with example new_pdl_from_string
-                             # from the NOTE below
+ $x = PDL->new(42);            # new from a Perl scalar
+ $x = new PDL 42;              # ditto
+ $y = PDL->new(@list_of_vals); # new from Perl list
+ $y = new PDL @list_of_vals;   # ditto
+ $z = new PDL \@list_of_vals;  # new from Perl list reference
+ $w = new PDL "[1 2 3]";       # new from Perl string, using Octave/Matlab
+                               #     syntax
 
 Constructs piddle from perl numbers and lists and
-strings with Matlab/Octave style constructor syntax.	
+strings with Matlab/Octave style constructor syntax.
 
- NOTE:
- 
-   STRING support is in development and should be
-   considered experimental.
-   
-   The hook for STRING support is provided by returning
-   the value from PDL::Core::new_pdl_from_string() which
-   is called with arguments $new, $value, $this, and $type
-   from the PDL::new constructor (see Basic/Core/Core.pm.PL
-   for source).
-   
-   As an example, the following just takes a standard perl
-   array ref syntax as a string:
+The string input is fairly versatile though probably quite slow. The
+goal is to make it easy to copy and paste code from PDL output or
+Matlab input/output. As of May, 2010, it is a new feature, so feel free
+to report bugs or request new features. Here are more examples of how
+it works:
 
-   sub PDL::Core::new_pdl_from_string {
-      my ($new,$value,$this,$type) = @_;
-      my $val = eval $value;
-      if (ref $val eq 'ARRAY') {
-         return PDL::Core::pdl_avref($val,$this,$type);
-      } else {
-         barf "PDL::Core::new_pdl_from_string: error happened!\n";
-      }
-   }
+ $a = PDL->new('[1 2 3 4]');
 
 =cut
 
 use Scalar::Util;       # for looks_like_number test
+
+# This is the code that handles string arguments.
+sub PDL::Core::new_pdl_from_string {
+	my ($new, $value, $this, $type) = @_;
+	
+	# Wrap the string in brackets [], so that the following works:
+	# $a = new PDL q[1 2 3];
+	# We'll have to check for dimensions of size one after we've eval'd
+	# the string and built a PDL from the resulting array.
+	$value = '[' . $value . ']';
+
+	# some basic checks that can/should be run on everything.
+	# Make sure that each closing bracket followed by an opening bracket
+	# has a comma in between them:
+	$value =~ s/\]\s*\[/],[/g;
+	
+	# Semicolons indicate 'start a new row' and require special handling:
+	if ($value =~ /;/) {
+		$value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
+		$value =~ s/;/],[/g;
+	}
+
+	# Remove ending decimal points and insert zeroes in front of starting
+	# decimal points. This makes the white-space-to-comma replacement
+	# in the next few lines much simpler.
+	$value =~ s/(\d)\.\s+/$1 /g;
+	$value =~ s/([^\d])\./${1}0./g;
+	
+	# make unambiguous addition/subtraction (white-space on both sides
+	# of operator) by removing white-space from both sides
+	$value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+
+	# Replace white-space separators with commas:
+	$value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+	
+	# Let's see if the darn thing compiles as normal Perl code, in which
+	# case we just assume the result is a stringified bunch of nested
+	# arrays. 
+	my $val = eval $value;
+	if (ref $val eq 'ARRAY') {
+		my $to_return = PDL::Core::pdl_avref($val,$this,$type);
+		# remove potentially spurious first dimension
+		$to_return->inplace->clump(2) if $to_return->dim(0) == 1;
+		return $to_return;
+	}
+	else {
+		# Let's try wrapping it in brackets, to allow for really lazy
+		# syntax like qq[1 2 3];
+		$val = eval '[' . $value . ']';
+		if (ref $val eq 'ARRAY') {
+			return PDL::Core::pdl_avref($val,$this,$type);
+		}
+		else {
+			barf "PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent:\n@!";
+		}
+	}
+}
 
 sub PDL::new {
    # print "in PDL::new\n";
@@ -756,12 +804,12 @@ sub PDL::new {
       if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style, no commas data entry format.
-         if (defined &PDL::Core::new_pdl_from_string) {
+#         if (defined &PDL::Core::new_pdl_from_string) {
             return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
-         } else {
-            print STDERR "Warning: PDL::new: PDL::Core::new_pdl_from_string() not defined.\n";
-            barf("PDL::new cannot make piddle from string input '$value'\n");
-         }
+#         } else {
+#            print STDERR "Warning: PDL::new: PDL::Core::new_pdl_from_string() not defined.\n";
+#            barf("PDL::new cannot make piddle from string input '$value'\n");
+#         }
       } else {
          $new->setdims([]);
          ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );

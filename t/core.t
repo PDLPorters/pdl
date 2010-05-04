@@ -4,7 +4,7 @@
 #
 
 use strict;
-use Test::More tests => 41;
+use Test::More tests => 53;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -165,28 +165,82 @@ like($@, qr/\(argument 1\)/,
 	'cat properly identifies the first actual piddle in combined screw-ups');
 $@ = '';
 
-# pdl STRING constructor tests
-SKIP: {
-   skip "don't have hooks for pdl(STRING) data", 2 unless defined(&PDL::Core::is_scalar_SvPOK);
 
-   SKIP: {
-      skip "PDL::Core::new_pdl_from_string already defined, test needs to be updated", 2 if defined(&PDL::Core::new_pdl_from_string);
 
-      # define string parsing routine
-      eval q(
-      sub PDL::Core::new_pdl_from_string {
-         my ($new,$value,$this,$type) = @_;
-         my $val = eval $value;
-         if (ref $val eq 'ARRAY') {
-            return PDL::Core::pdl_avref($val,$this,$type);
-         } else {
-            barf "PDL::Core::new_pdl_from_string: error happened!\n";
-         }
-      } );
 
-      # these are placeholder tests until the STRING constructor is finalized
-      isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
-      ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
-   }
 
-}
+#### pdl STRING constructor tests ####
+
+isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
+ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
+
+
+my $compare = pdl([
+	[1, 0, 8],
+	[6, 3, 5],
+	[3, 0, 5],
+	[2, 4, 2]
+]);
+
+my $test_string = <<EOPDL;
+   [
+     [1, 0, 8],
+     [6, 3, 5],
+     [3, 0, 5],
+     [2, 4, 2],
+   ]
+EOPDL
+
+#diag("test string is: $test_string\n");
+
+my $t1 = pdl $test_string;
+ok(all(approx($t1, $compare)), "Properly interpret good PDL input string");
+
+# See what happens when we remove the end commas
+$test_string =~ s/\],/]/g;
+
+my $t2 = pdl $test_string;
+ok(all(approx($t2, $compare)), "Properly interpret good PDL input string sans ending commas");
+
+my $t3 = pdl '[1, 0, 8; 6, 3, 5; 3, 0, 5; 2, 4, 2]';
+ok(all(approx($t3, $compare)), "Properly handle semicolongs");
+
+my $t4 = pdl "$compare";
+ok(all(approx($t4, $compare)), "Properly interpret good PDL output string");
+
+# Now some more interesting tests
+my $t5 = pdl "[1 - 4]";
+$compare = pdl [-3];
+ok(all(approx($t5, $compare)), "Does not interfere with subtraction in statement");
+
+my $t6 = pdl "[1 -4]";
+$compare = pdl [1, -4];
+ok(all(approx($t6, $compare)), "Properly identifies negative numbers with white-space");
+
+ok(all(approx(pdl("[1 - .4]"), pdl(0.6))), "Properly handles decimals");
+
+my $t8 = pdl <<EOPDL;
+[
+	[1,2,3; 4,-5,6]
+	[7 +8, 8 + 9; 10, - .11, 12e3]
+]
+EOPDL
+
+$compare = pdl([[[1,2,3], [4,-5,6]],[[7,8,8+9],[10,-.11,12e3]]]);
+ok(all(approx($t8, $compare)), "Properly handles all sorts of stuff!");
+
+$compare = pdl [-2];
+my $t9 = pdl '[1  + 2 - 5]';
+ok(all(approx($t9, $compare)), "Another operator check");
+
+$compare = pdl [1, 2, -5];
+my $t10 = pdl '[1  +2 -5]';
+ok(all(approx($t10, $compare)), "Yet another operator check");
+
+$compare = pdl [[1], [2], [3]];
+my $t11 = pdl '[1;2;3]';
+ok(all(approx($t11, $compare)), "Column check");
+
+$compare = pdl([[1,2,3],[4,5,6]]);
+my $t12 = pdl q[1 2 3; 4 5 6];
+ok(all(approx($t12, $compare)), "Implicit bracketing");
