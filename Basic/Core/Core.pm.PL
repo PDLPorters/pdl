@@ -701,24 +701,27 @@ new piddle constructor method
 
 =for example
 
- $x = PDL->new(42);            # new from a Perl scalar
- $x = new PDL 42;              # ditto
- $y = PDL->new(@list_of_vals); # new from Perl list
- $y = new PDL @list_of_vals;   # ditto
- $z = new PDL \@list_of_vals;  # new from Perl list reference
- $w = new PDL "[1 2 3]";       # new from Perl string, using Octave/Matlab
-                               #     syntax
+ $x = PDL->new(42);             # new from a Perl scalar
+ $x = new PDL 42;               # ditto
+ $y = PDL->new(@list_of_vals);  # new from Perl list
+ $y = new PDL @list_of_vals;    # ditto
+ $z = PDL->new(\@list_of_vals); # new from Perl list reference
+ $w = PDL->new("[1 2 3]");      # new from Perl string, using
+                                # Matlab constructor syntax
 
-Constructs piddle from perl numbers and lists and
-strings with Matlab/Octave style constructor syntax.
+Constructs piddle from perl numbers and lists
+and strings with Matlab/Octave style constructor
+syntax.
 
-The string input is fairly versatile though probably quite slow. The
-goal is to make it easy to copy and paste code from PDL output or
-Matlab input/output. As of May, 2010, it is a new feature, so feel free
-to report bugs or request new features. Here are more examples of how
-it works:
+The string input is fairly versatile though not
+performance optimized. The goal is to make it
+easy to copy and paste code from PDL output and
+to offer a familiar Matlab syntax for piddle
+construction. As of May, 2010, it is a new
+feature, so feel free to report bugs or suggest
+new features.  See documentation for L<pdl> for
+more examples of usage.
 
- $a = PDL->new('[1 2 3 4]');
 
 =cut
 
