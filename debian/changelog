@@ -1,3 +1,9 @@
+pdl (1:2.4.7~git20100506-1) unstable; urgency=low
+
+  * fix paths in generated HTML docs
+
+ -- Henning Glawe <glaweh@debian.org>  Thu, 06 May 2010 19:43:50 +0200
+
 pdl (1:2.4.5-2) unstable; urgency=low
 
   * switch TriD from X11 to freeglut
