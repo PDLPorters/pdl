@@ -20,7 +20,7 @@ set -e
 case "$1" in
     configure)
       perl /usr/lib/perl5/PDL/Doc/scantree.pl /usr/lib/perl5/ /var/lib/pdl/pdldoc.db /var/lib/pdl/Index.pod >/dev/null 2>&1
-      perl /usr/lib/perl5/PDL/Doc/mkhtmldoc.pl /usr/lib/perl5/PDL /var/lib/pdl/html >/dev/null 2>&1
+      perl /usr/lib/perl5/PDL/Doc/mkhtmldoc.pl -s "PDL/" /usr/lib/perl5/PDL /var/lib/pdl/html >/dev/null 2>&1
 
     ;;
 
