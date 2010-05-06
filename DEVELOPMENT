@@ -46,16 +46,23 @@ and Git Magic at
 PDL Developer Guidelines:
 -------------------------
 
-The following guidelines are for any developer
-that has access to the PDL Git repository.
+The following guidelines are for any developer that has
+access to the PDL Git repository.
 
-1) Before committing a change to the repository you should update:
+1) Before committing a change with new files to the repository
+   you should update:
+
     - MANIFEST (if files were added, using 'make manifest')
     - MANIFEST.SKIP (if applicable)
-    - TODO (if applicable)
 
-2) Please include POD documentation for any functions you add to 
+2) Make sure you add a test case in the 't' directory for any
+   significant additional capability you add to PDL.  Please
+   use Test::More or one the of the Test modules available via
+   perl modules rather than doing-it-yourself!
+   
+3) Please include POD documentation for any functions you add to 
    the distribution. 
+
     - See Basic/Core/Core.pm for an example of including POD
       documentation in .pm files. 
     - See Basic/Core/Primitive/Primitive.pd for an example of 
@@ -63,16 +70,9 @@ that has access to the PDL Git repository.
     - read the documentation in PDL::Doc for a detailed description of
       the PDL documentation conventions.
 
-3) Make sure you add a test case in the 't' directory for any
-   significant additional capability you add to PDL.  Please
-   use Test::More or one the of the Test modules available via
-   perl modules rather than doing-it-yourself!
-   
-3) Don't commit before you successfully built and passed 'make
-   test'. But then again, don't keep your changes private for too
-   long to avoid conflicts with other developers.
+4) Don't commit before you successfully built and passed 'make test'.
  
-4) Bugs reported on the list should be entered into the bug database
+5) Bugs reported on the list should be entered into the bug database
    and bugs closed when a patch has been committed as a fix. (Primary
    responsibility for this task is the pumpking, but other devels
    should be able to help.)
@@ -83,6 +83,12 @@ PDL Developer Notes:
 
 A (small) collection of random musings to note if you feel the need to
 improve or add to PDL (please do):
+
+*) git supports file-by-file commits so it is helpful to commit
+   your changes to git a little at a time where each commit
+   corresponds to a single change.  This makes it easy in the
+   log to determine what was done and to locate any desired
+   commit in case of issues that need to be resolved.
 
 *) Need help?
 

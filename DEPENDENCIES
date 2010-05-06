@@ -196,3 +196,12 @@ PDL::Slatec     ExtUtils::F77           linear algebra routines
                                         ExtUtils::F77 (version >= 1.03)
                                         is installed and Extutils::F77
                                         supports your platform.
+
+perldl2        Devel::REPL              The new perldl shell in development
+                                        requires the Devel::REPL module be
+					installed.  The directions to install
+					and try the new perldl capability are
+					in the PDL/Padre folder of the PDL
+					distribution.  This dependency is
+					totally optional.
+				
