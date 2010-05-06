@@ -767,20 +767,20 @@ sub PDL::Core::new_pdl_from_string {
 	my $val = eval $value;
 	if (ref $val eq 'ARRAY') {
 		my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-		# remove potentially spurious first dimension
-		$to_return->inplace->clump(2) if $to_return->dim(0) == 1;
+		# remove potentially spurious last dimension
+		$to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
 		return $to_return;
 	}
 	else {
-		# Let's try wrapping it in brackets, to allow for really lazy
-		# syntax like qq[1 2 3];
-		$val = eval '[' . $value . ']';
-		if (ref $val eq 'ARRAY') {
-			return PDL::Core::pdl_avref($val,$this,$type);
-		}
-		else {
+#		# Let's try wrapping it in brackets, to allow for really lazy
+#		# syntax like qq[1 2 3];
+#		$val = eval '[' . $value . ']';
+#		if (ref $val eq 'ARRAY') {
+#			return PDL::Core::pdl_avref($val,$this,$type);
+#		}
+#		else {
 			barf "PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent:\n@!";
-		}
+#		}
 	}
 }
 
