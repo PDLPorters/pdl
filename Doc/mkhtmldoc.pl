@@ -23,9 +23,11 @@ use Cwd;
 use IO::File; # for hack_links()
 
 $opt_v = 0;
+$opt_s = '';
 
-getopts('v');
+getopts('vs:');
 my $verbose = $opt_v;
+my ($strip_path,$add_path) = split(/,/,$opt_s);
 
 ##############################################################
 ## Subroutines
@@ -101,6 +103,28 @@ sub fix_pdl_dot_html ($) {
     while ( <$ifh> ) {
 	# fix the links
 	s{\.\.\/PDL\.html}{PDL.html}g;
+	print $ofh $_;
+    }
+    $ifh->close;
+    $ofh->close;
+
+    rename $outfile, $infile
+	or die "ERROR: Unable to rename $outfile\n";
+}
+
+sub fix_html_path ($) {
+    my $infile = shift;
+    my $outfile = "${infile}.n";
+
+    my $ifh = new IO::File "<$infile" 
+	or die "ERROR: Unable to read from <$infile>\n";
+    my $ofh = new IO::File ">$outfile" 
+	or die "ERROR: Unable to write to <$outfile>\n";
+
+    # assume that links do not break across a line
+    while ( <$ifh> ) {
+	# fix the links
+	s{a href="$strip_path}{a href="$add_path}g;
 	print $ofh $_;
     }
     $ifh->close;
@@ -234,6 +258,7 @@ $sub = sub {
 	    );
     hack_html( $outfile ) if $] < 5.006;
     fix_pdl_dot_html( $outfile);
+    fix_html_path( $outfile);
 
     chdir $File::Find::dir; # don't confuse File::Find
 };
