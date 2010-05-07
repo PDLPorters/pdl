@@ -1,4 +1,4 @@
-Release notes for PDL 2.4.6_005 --------------------------
+Release notes for PDL 2.4.6_006 --------------------------
 
 General Notes:
 
@@ -9,29 +9,41 @@ General Notes:
 
 Highlights:
 
- * Experimental perldl version 2 shell available.  See the
-   README file in PDL/Padre for details on how to use.  Full
-   completion support is now available for all platforms via
-   Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
+ * Experimental perldl version 2 shell available.
+ 
+   See the README file in PDL/Padre for details on how to use.
+   Full completion support is now available for all platforms
+   via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
 
- * Preliminary implementation of PDL::new string constructor
-   is in PDL/Example/Core.  If you run the new_from_string.pl
-   script there, that should enable the capability.  This
-   is planned to be merged into PDL proper once tests and docs
-   are completed.  Feedback welcome.
+   Work continues to port existing perldl features to the new
+   Devel::REPL framework.
 
- * Added hooks for PDL::new to handle STRING data
+ * Preliminary support for MATLAB/Octave array constructor
+   notation as allowed input to the pdl() constructor,
+   a.k.a. PDL::new.  The same implementation also supports
+   cutting and pasting from PDL print output for piddles
+   as valid input for pdl in scripts.  Just use the pasted
+   input as a string.  For example:
 
-     If the sub PDL::Core::new_pdl_from_string is defined, then
-     pdl(STRING) or PDL::new(STRING) will now call that routine
-     to generate the result piddle.  See help PDL::new for usage
-     and a trivial implementation which supports the existing
-     syntax in string form.
+    a  =      [ 1 2 3 ; 4 5 6 ] # MATLAB/Octave
+    $a = pdl q[ 1 2 3 ; 4 5 6 ] # PDL/perldl
 
-     This allows for incremental development of matlab/octave
-     style constructor input for pdl and PDL::new which is planned
-     to allow for cut-and-paste of perldl p output as pdl input
-     arguments.
+    Printing $a gives:
+
+    [
+     [1 2 3]
+     [4 5 6]
+    ]
+
+    And we can cut and paste like this
+
+    $a = pdl q[
+               [1 2 3]
+               [4 5 6]
+              ];
+
+    Problem reports and feature suggestions welcome at the
+    perldl mailing list.
 
  * Added tiled compressed image handling to rfits in FITS.pm
    including a new compression module in Lib/Compression.
@@ -44,6 +56,8 @@ Highlights:
 
  * Fixes SF bug 2949455 ("demo transform broken"): sign error in FITS
    header CROTA2 interpretation by PGPLOT libraries.
+
+ See the Changes file for the full log entries.
 
 
 
