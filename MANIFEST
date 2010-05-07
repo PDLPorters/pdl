@@ -99,6 +99,7 @@ Basic/Pod/BadValues.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/Delta.pod
 Basic/Pod/FAQ.pod
+Basic/Pod/Guide.pod
 Basic/Pod/Impatient.pod
 Basic/Pod/Indexing.pod
 Basic/Pod/Internals.pod
@@ -175,6 +176,7 @@ Example/Benchmark/Bench.xs
 Example/Benchmark/Makefile.PL
 Example/Benchmark/README
 Example/Benchmark/time.pl
+Example/Core/new_from_string.pl
 Example/Fit/lmfit_example.pl
 Example/InlinePdlpp/Module/Makefile.PL
 Example/InlinePdlpp/Module/MyInlineMod.pm
@@ -373,6 +375,9 @@ Known_problems
 Lib/CallExt/CallExt.pm
 Lib/CallExt/CallExt.xs
 Lib/CallExt/Makefile.PL
+Lib/Compression/Makefile.PL
+Lib/Compression/compression.pd
+Lib/Compression/ricecomp.c
 Lib/DiskCache.pm
 Lib/FFT/Makefile.PL
 Lib/FFT/fft.pd
@@ -627,8 +632,12 @@ Lib/Transform/transform.pd
 MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
+Padre/Completion.pm
 Padre/NiceSlice.pm
+Padre/Perldl2.pm
 Padre/README
+Padre/ReadLineHistory.pm
+Padre/TieHash.pm
 Padre/pdlrun
 README
 Release_Notes
