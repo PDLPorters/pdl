@@ -219,8 +219,10 @@ sub PDL::matmult {
 EOPM
 	Code => <<'EOC',
 	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+        $GENERIC() *ad, *bd, *cd;
+        long atdi, btdi;
 	long resh, resw, rest;
-	long tsiz = 32;
+	long tsiz = 64;
 
 	// Zero the output
 	loop(w) %{
@@ -229,6 +231,14 @@ EOPM
 		%}
 	%}
 
+	// Make sure we're physical
+	PDL->make_physical($PDL(a));
+	PDL->make_physical($PDL(b));
+	PDL->make_physical($PDL(c));
+
+        // Cache the dimincs to avoid constant lookups
+	atdi = $PDL(a)->dimincs[0];
+	btdi = $PDL(b)->dimincs[1];
 	
 	// Loop over tiles
 	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
@@ -240,14 +250,26 @@ EOPM
 	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
 	         tlim = (ot + tsiz > $SIZE(t) )  ?  $SIZE(t)  :  ot + tsiz;
 
+		 
 	         for(  ih=oh; ih<hlim; ih++  ) {
 		    for(  iw=ow; iw<wlim; iw++  ) {
 		       $GENERIC() cc;
-		       
+
+		       // Cache data pointers before 't' run through tile
+		       ad = &($a(t=>ot, h=>ih));
+		       bd = &($b(w=>iw, t=>ot));
+
+		       // Cache the accumulated value for the output
 		       cc = $c(w=>iw, h=>ih);
+
+		       // Hotspot - run the 't' summation
 		       for( it=ot; it<tlim; it++  ) {
-		       	    cc += $a(t=>it, h=>ih) * $b(t=>it, w=>iw);
+		       	    cc += *ad * *bd;
+			    ad += atdi;
+			    bd += btdi;
 		       }
+		       
+		       // put the output back to be further accumulated later
 		       $c(w=>iw, h=>ih) = cc;
 		    }			    
 		 }
