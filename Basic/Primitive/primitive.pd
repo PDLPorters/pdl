@@ -193,50 +193,86 @@ INTERNALS
 The mechanics of the multiplication are carried out by the
 L<matmult|/matmult> method.
 
-
-=head2 matmult
-
-=for sig
-
- Signature: (a(i,x),b(z,i),[o]c(x,z))
-
-=for ref
-
-Matrix multiplication
-
-We peruse the inner product to define matrix multiplication
-via a threaded inner product.
-
-For usage, see L<x|/x>, a description of the overloaded 'x' operator
-
 =cut
-
-  sub PDL::matmult {
-    barf "Invalid number of arguments for matmult" if $#_ < 1;
-    my ($a,$b,$c) = @_;
-
-    $b=pdl($b) unless UNIVERSAL::isa($b,'PDL'); # Make sure 2nd arg's a PDL
-
-    while ($a->getndims < 2) {$a = $a->dummy(-1)} # promote if necessary
-    while ($b->getndims < 2) {$b = $b->dummy(-1)} 
-
-    return ($c .= $a * $b) if ( ($a->dim(0)==1 && $a->dim(1)==1) ||
-	                        ($b->dim(0)==1 && $b->dim(1)==1) ) ;
-
-    if($b->dim(1) != $a->dim(0)) {
-	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
-    }
-
-    if(!defined $c) {$c = PDL->nullcreate($a)}
-    $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
-    return $c;
-  }
-
-  *matmult = \&PDL::matmult;
 
 EOD
 
 pp_add_exported('', 'matmult');
+
+pp_def('matmult',
+	HandleBad=>0,
+	Pars => 'a(t,h); b(w,t); [o]c(w,h);',
+	PMCode => <<'EOPM',
+sub PDL::matmult {
+    my ($a,$b,$c) = @_;
+    $b = pdl($b) unless UNIVERSAL::isa($b,'PDL');
+    while($a->getndims < 2) {$a = $a->dummy(-1)}
+    while($b->getndims < 2) {$b = $b->dummy(-1)}
+    
+    return ($c .= $a * $b) if( ($a->dim(0)==1 && $a->dim(1)==1) ||
+    	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
+    if($b->dim(1) != $a->dim(0)) {
+	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: $d != $d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+    }
+    return PDL::_matmult_int($a,$b,$c);
+       }
+EOPM
+	Code => <<'EOC',
+	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
+	long resh, resw, rest;
+	long tsiz = 32;
+
+	// Zero the output
+	loop(w) %{
+		loop(h) %{
+			$c() = 0;
+		%}
+	%}
+
+	
+	// Loop over tiles
+	for(   oh=0;   oh < $SIZE(h);   oh += tsiz   ) {
+	   hlim = ( oh + tsiz > $SIZE(h) )  ?  $SIZE(h)  :  oh + tsiz;
+	   
+	   for(   ow=0;   ow < $SIZE(w);   ow += tsiz   ) {
+	      wlim = ( ow + tsiz > $SIZE(w) )  ?  $SIZE(w)  :  ow + tsiz;
+
+	      for(   ot=0;   ot < $SIZE(t);  ot += tsiz   ) {
+	         tlim = (ot + tsiz > $SIZE(t) )  ?  $SIZE(t)  :  ot + tsiz;
+
+	         for(  ih=oh; ih<hlim; ih++  ) {
+		    for(  iw=ow; iw<wlim; iw++  ) {
+		       $GENERIC() cc;
+		       
+		       cc = $c(w=>iw, h=>ih);
+		       for( it=ot; it<tlim; it++  ) {
+		       	    cc += $a(t=>it, h=>ih) * $b(t=>it, w=>iw);
+		       }
+		       $c(w=>iw, h=>ih) = cc;
+		    }			    
+		 }
+	      }
+	   }
+	}
+EOC
+	Doc => <<'EOD'
+=for ref
+
+Matrix multiplication
+
+Notionally, matrix multiplication $a x $b is equivalent to the
+threading expression
+
+    $a->dummy(1)->inner($b->xchg(0,1)->dummy(2),$c);
+
+but for large matrices that breaks CPU cache and is slow.  Instead,
+matmult calculates its result in 32x32x32 tiles, to keep the memory
+footprint within cache as long as possible on most modern CPUs.
+
+For usage, see L<x|/x>, a description of the overloaded 'x' operator
+
+EOD
+	);
 
 pp_def(
        'innerwt',
