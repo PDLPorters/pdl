@@ -112,6 +112,7 @@ ok(!$@);
 
 ### Check that it really returns eigenvectors
 $c = float(($a x $vec) / $vec); 
+print "c is $c\n";
 ok(all($c->slice(":,0") == $c->slice(":,1")));
 
 ### Check that the eigenvalues are correct for this matrix

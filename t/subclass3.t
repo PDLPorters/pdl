@@ -147,8 +147,9 @@ ok($testNo++, $main::OVERRIDEWORKED == 1 );
 
 
 ### Test over-ride of inner:
+## Update to use inner, not matrix mult - CED 8-May-2010
 $main::OVERRIDEWORKED = 0;
-my $matMultRes = $im x $im;
+my $matMultRes = $im->inner($im);
 ok($testNo++, $main::OVERRIDEWORKED == 1 );
 
 ### Test over-ride of which, one2nd
