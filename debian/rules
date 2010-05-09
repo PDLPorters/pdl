@@ -66,7 +66,7 @@ install: build test
 	dh_installdirs
 
 	# Add here commands to install the package into debian/pdl.
-	$(MAKE) install PREFIX=$(CURDIR)/debian/pdl/usr
+	$(MAKE) install DESTDIR=$(CURDIR)/debian/pdl
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Reduce.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_name.sed old.3pm > PDL\:\:Reduce.3pm ; rm old.3pm
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Func.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Func.3pm ; rm old.3pm
 	cd debian/pdl/usr/share/man/man3 ; mv PDL\:\:Complex.3pm old.3pm ; sed -f $(CURDIR)/debian/fix_man_encoding.sed old.3pm > PDL\:\:Complex.3pm ; rm old.3pm

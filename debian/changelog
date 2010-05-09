@@ -1,8 +1,20 @@
-pdl (1:2.4.7~git20100506-1) unstable; urgency=low
+pdl (1:2.4.6-1) unstable; urgency=low
 
   * fix paths in generated HTML docs
+  * add dpkg trigger for documentation index and HTML documentation updates
+  * add ${misc:Depends} to pdl's Depends (recommended by lintian due to
+    debhelper usage)
+  * use DESTDIR instead of PREFIX when installing (recommended by lintian,
+    as this works only due to a debian-specific MakeMake extension)
+  * bump (build-)dependency on libopengl-perl to 0.62
+  * update to standards-version 3.8.4
+  * build-depend on libhdf4-alt-dev (closes: #540404)
+  * modify hdf support build scripts to autodetect the 'alt'-flavour
+  * build-depend on libproj-dev (closes: #521822)
+  * move Homepage to Homepage control field and improve description 
+    (closes: #574372)
 
- -- Henning Glawe <glaweh@debian.org>  Thu, 06 May 2010 19:43:50 +0200
+ -- Henning Glawe <glaweh@debian.org>  Sat, 08 May 2010 17:10:16 +0200
 
 pdl (1:2.4.5-2) unstable; urgency=low
 
