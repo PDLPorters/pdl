@@ -13,30 +13,29 @@ PDL::AutoLoader - MatLab style AutoLoader for PDL
 
 =head1 DESCRIPTION
 
-This module implements a MatLab style AutoLoader for PDL. If a unknown
-function 'func()' is called then a file 'func.pdl' is searched for and
-if found is read in to define 'func()' which is then executed.
+This module implements a MatLab style AutoLoader for PDL. If an unknown
+function C<func()> is called, PDL looks for a file called C<func.pdl>.
+If it finds one, it compiles the file and calls the function C<func>.
 
-Files are seached for using the directories in seach path C<@PDLLIB>, which
-is initialised from the shell environment variable C<PDLLIB> which is a
-colon seperated list of directories.
+The list of directories to search in is given by the shell environment
+variable C<PDLLIB>. This is a colon-separated list of directories.
 
-e.g. in csh
+For example, in csh:
 
- setenv PDLLIB "/home/kgb/pdllib:/local/pdllib"
+  setenv PDLLIB "/home/joe/pdllib:/local/pdllib"
 
-Note this is kept seperate from C<PERL5LIB> just in case.
+B<Note>: This variable is unrelated to Perl's C<PERL5LIB>.
 
-As an added bonus, you can use a leading '+' on a directory name to
-search not just that directory but the entire directory tree under it
-(excluding symlinks).  The subdirs are determined by explicit search,
-and searches occur at startup and again each time you change the number
-of elements in @PDLLIB.  
+If you add a leading '+' on a directory name, PDL will search the
+entire directory tree below that point. Internally, PDL stores the
+dirctory list in the variable C<@PDLLIB>, which can be modified at
+run time.
 
-For example,
-  setenv PDLLIB "+~kgb/PDL"
+For example, in csh:
 
-will search /home/kgb/PDL and all its subdirectories for .pdl files.
+  setenv PDLLIB "+/home/joe/PDL"
+
+will search /home/joe/PDL and all its subdirectories for .pdl files.
 
 =head2 AUTO-SCANNING
 
