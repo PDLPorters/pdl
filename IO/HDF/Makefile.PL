@@ -60,10 +60,19 @@ BEGIN
     # Look for the libs:
     foreach my $libdir ( @HDF_lib_locations ) 
     {
+        if (-e "$libdir/libdfalt.a" && !$found_df) 
+        {
+            $found_df = 1;
+            $hdf_lib_path = $libdir;
+			$hdf_libs = '-lmfhdfalt -ldfalt';
+            print "Found libdfalt.a at $libdir/libdfalt.a\n";
+        }
+    
         if (-e "$libdir/libdf.a" && !$found_df) 
         {
             $found_df = 1;
             $hdf_lib_path = $libdir;
+			$hdf_libs = '-lmfhdf -ldf';
             print "Found libdf.a at $libdir/libdf.a\n";
         }
     
@@ -162,7 +171,7 @@ WriteMakefile(     NAME => 'PDL::IO::HDF',
         'HDF.pm' => '$(INST_LIBDIR)/HDF.pm',
     },
     INC => &PDL_INCLUDE() . " -I$hdf_include_path",
-    LIBS => [ "-L$hdf_lib_path -lmfhdf -ldf -ljpeg -lz $szip" ],
+    LIBS => [ "-L$hdf_lib_path $hdf_libs -ljpeg -lz $szip" ],
     dist => { 
         COMPRESS => 'gzip', 
         SUFFIX => 'gz', 

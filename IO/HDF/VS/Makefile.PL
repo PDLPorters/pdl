@@ -16,7 +16,7 @@ WriteMakefile(
         'VS.pm' => '$(INST_LIBDIR)/VS.pm',
     },
     INC => &PDL_INCLUDE() . " -I$hdf_include_path",
-    LIBS => [ "-L$hdf_lib_path -lmfhdf -ldf -ljpeg -lz $szip" ],
+    LIBS => [ "-L$hdf_lib_path $hdf_libs -ljpeg -lz $szip" ],
     clean => {
         FILES => 'VS.pm VS.xs VS.o VS.c',
     },
