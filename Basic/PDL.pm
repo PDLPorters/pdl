@@ -4,48 +4,84 @@ PDL - the Perl Data Language
 
 =head1 DESCRIPTION
 
-(For the exported PDL constructor, pdl(), see L<PDL::Core> or pdl[2])
+(For the exported PDL constructor, pdl(), see L<PDL::Core|PDL::Core>)
 
 PDL is the Perl Data Language, a perl extension that is designed for
 scientific and bulk numeric data processing and display.  It extends
 perl's syntax and includes fully vectorized, multidimensional array
 handling, plus several paths for device-independent graphics output.
 
+PDL is fast, comparable and often outperforming IDL and MATLAB in real
+world applications. PDL allows large N-dimensional data sets such as large
+images, spectra, etc to be stored efficiently and manipulated quickly. 
 
-For basic information on the PDL language, see L<the pdl(1)
-(lowercase) man page|pdl>.
+=head1 INTERACTIVE SHELL
 
-You can run PDL programs directly as perl scripts that include the
-PDL module (with "use PDL;"), or via an interactive shell (see
-L<the perldl(1) man page|perldl>).  
+The PDL package includes an interactive shell. You can learn about it,
+run C<perldoc perldl>, or run the shell C<perldl> and type C<help>.
 
-The PDL language extension includes about a dozen perl modules that
-form the core of the language, plus additional modules that add
-further functionality.  The perl module "PDL" loads all of the core
-modules automatically, making their functions available in the current
-perl namespace.  See also L<PDL::Lite|PDL::Lite> or
-L<PDL::LiteF|PDL::LiteF> if start-up time becomes an issue.
+=head1 LANGUAGE DOCUMENTATION
 
-=over 3
+To learn about the PDL language see:
 
-=item EXPORTS: 
+=over 5
+
+=item L<PDL::Intro|PDL::Intro>
+
+Starting place for PDL language documentation.
+
+=item L<PDL::QuickStart|PDL::QuickStart>
+
+A guide to get you quickly started with PDL.
+
+=item L<PDL::Philosophy|PDL::Philosophy>
+
+Why did we write PDL? Learn about what PDL has to offer.
+
+=item L<PDL::Index|PDL::Index>
+
+List of all available documentation.
+
+=back
+
+
+=head1 MODULES
+
+PDL includes about a dozen perl modules that form the core of the
+language, plus additional modules that add further functionality.
+The perl module "PDL" loads all of the core modules automatically,
+making their functions available in the current perl namespace.
+Some notes:
+
+=over 5
+
+=item SYNOPSIS
+
+See the SYNOPSIS section at the end of this document for a list of
+modules loaded by default.
+
+=item L<PDL::Lite|PDL::Lite> and L<PDL::LiteF|PDL::LiteF>
+
+These are lighter-weight alternatives to the standard PDL module.
+Consider using these modules if startup time becomes an issue.
+
+=item Exports
 
 C<use PDL;> exports a large number of routines into the calling
 namespace.  If you want to avoid namespace pollution, you must instead 
 C<use PDL::Lite>, and include any additional modules explicitly.
 
-=item NICESLICE: 
+=item L<PDL::NiceSlice|PDL::NiceSlice>
 
 Note that the L<PDL::NiceSlice|PDL::NiceSlice> syntax is NOT automatically
 loaded by C<use PDL;>.  If you want to use the extended slicing syntax in 
 a standalone script, you must also say C<use PDL::NiceSlice;>.
 
-=item PDL::Math:
+=item L<PDL::Math|PDL::Math>
 
-The PDL::Math module has been added to the list of modules
+The L<PDL::Math|PDL::Math> module has been added to the list of modules
 for versions later than 2.3.1. Note that PDL::Math is still
-I<not> included in the
-L<Lite|PDL::Lite> and L<LiteF|PDL::LiteF>
+I<not> included in the L<PDL::Lite|PDL::Lite> and L<PDL::LiteF|PDL::LiteF>
 start-up modules.
 
 =back
