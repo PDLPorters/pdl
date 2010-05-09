@@ -328,7 +328,7 @@ reproduced in braces ( <... ...> ) ):
         unix> perldl
         perldl> help
         <.... help output ....>
-        perldl> help PDL::Impatient
+        perldl> help PDL::QuickStart
         <.... man page ....>
         perldl> $a = pdl (1,5,7.3,1.0)
         perldl> $b = sequence float, 4, 4
@@ -757,7 +757,7 @@ work for pdls.
 
 Ok, you are right in a way. The docs say that pdls can be
 thought of arrays.  More specifically, it says (
-L<PDL::Impatient|PDL::Impatient> ):
+L<PDL::QuickStart|PDL::QuickStart> ):
 
             I find when using perlDL it is most useful to think of
             standard perl @x variables as "lists" of generic
@@ -777,7 +777,7 @@ individual elements or a range of elements. The
 functions/methods to check are 
 C< at> /
 C< set> (see
-L<the section 'Sections' in PDL::Impatient|PDL::Impatient/"Sections"> ) or the powerful 
+L<the section 'Sections' in PDL::QuickStart|PDL::QuickStart/"Sections"> ) or the powerful 
 C< slice> function and friends (see 
 L<PDL::Slices|PDL::Slices> and 
 L<PDL::Indexing|PDL::Indexing> ).
@@ -809,7 +809,7 @@ using the command C< dog> .
 
 This question is related to the 
 C< inplace> function. From the
-documentation (see L<PDL::Impatient>):
+documentation (see L<PDL::QuickStart>):
 
 
          Most functions, e.g. log(), return a result which is

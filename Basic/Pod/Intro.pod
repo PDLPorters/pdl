@@ -72,9 +72,9 @@ documents are particulary recommended:
 
 =over 4
 
-=item L<PDL::Impatient>
+=item L<PDL::QuickStart>
 
-Quick summary - PDL for the impatient
+Quick start guide to PDL
 
 =item L<PDL::FAQ>
 

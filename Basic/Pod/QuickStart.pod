@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-PDL::Impatient - PDL for the impatient (quick overview)
+PDL::QuickStart - Quick start guide to PDL
 
 =head1 SYNOPSIS
 

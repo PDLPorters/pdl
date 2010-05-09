@@ -51,7 +51,7 @@ familiarize yourself with the basic capabilities of PDL.
 
 =over
 
-=item * L<PDL::Intro|PDL::Intro>, L<PDL::Impatient|PDL::Impatient>, L<PDL::Philosophy|PDL::Philosophy>
+=item * L<PDL::Intro|PDL::Intro>, L<PDL::QuickStart|PDL::QuickStart>, L<PDL::Philosophy|PDL::Philosophy>
 
 A couple of brief introductions to PDL.  The middle one is a bit
 more hands-on.  If you are new to PDL, you should start with
