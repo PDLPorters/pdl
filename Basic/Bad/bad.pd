@@ -735,7 +735,7 @@ pp_def(
            if ( $ISBAD(a()) ) { cnt++; }
         %}
         $b() = cnt;',
-       Doc => <<'EOD';
+       Doc => <<'EOD',
 
 =for ref
 
@@ -777,7 +777,7 @@ pp_def(
            if ( $ISGOOD(a()) ) { cnt++; }
         %}
         $b() = cnt;',
-       Doc => <<'EOD';
+       Doc => <<'EOD',
 
 =for ref
 
