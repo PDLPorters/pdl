@@ -245,7 +245,7 @@ $compare = pdl([[1,2,3],[4,5,6]]);
 my $t12 = pdl q[1 2 3; 4 5 6];
 ok(all(approx($t12, $compare)), "Unstringify implicit bracketing check");
 
-my $compare = pdl([1,2,3,4]);
+$compare = pdl([1,2,3,4]);
 my $t13 = pdl q[1 2 3 4];
 my $t14 = pdl q[1,2,3,4];
 my $t15 = pdl '[1 2 3 4]';
