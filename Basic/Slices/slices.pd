@@ -114,6 +114,7 @@ $doc = <<'DOC';
 Internal vaffine identity function.
 
 =cut
+
 DOC
 
 pp_def(
@@ -169,6 +170,7 @@ columns from an array in one operation, see L<dice|/dice> or
 L<indexND|/indexND>.
 
 =cut
+
 EOD
 
 my $index_init_good = 
@@ -1095,6 +1097,7 @@ decode to C<$c>.
  rld($a,$b,$c=null);
 
 =cut
+
 EOD
 );
 
@@ -1139,6 +1142,7 @@ first instance of C<0> in C<$a> should be considered.
  rle($c,$a=null,$b=null);
 
 =cut
+
 EOD
 );
 
@@ -1333,6 +1337,7 @@ are exchanged with each other i.e.
  $b->at(5,3,2,8) == $a->at(5,3,8,2)
 
 =cut
+
 EOD
 );
 
@@ -1681,6 +1686,7 @@ often aren't reported until later.  This is either a bug or a feature,
 depending on whether you prefer error-reporting clarity or speed of execution.
 
 =cut
+
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
@@ -2287,6 +2293,7 @@ Put some dimensions to a threadid.
  $b = $a->threadI(0,1,5); # thread over dims 1,5 in id 1
 
 =cut
+
 EOD
 	P2Child => 1,
         NoPdlThread => 1,
