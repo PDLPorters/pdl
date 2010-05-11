@@ -25,8 +25,8 @@ complete Object-Oriented extension to Perl (although you don't have to know
 what an object is to use it) which allows large N-dimensional data sets, such
 as large images, spectra, time series, etc to be stored  B<efficiently> and
 manipulated B<en masse>.  For example  with the PDL module we can write the
-perl code C<$a=$b+$c>, where C<$b> and C<$c> are large datasets (e.g. 2048x2048
-images), and get the result in only a fraction of a second.
+perl code C<$a = $b + $c>, where C<$b> and C<$c> are large datasets
+(e.g. 2048x2048 images), and get the result in only a fraction of a second.
 
 PDL variables (or 'piddles' as they have come to be known)
 support a wide range of fundamental data types - arrays can be bytes,
@@ -111,11 +111,11 @@ You import everything in a standard list from the module. Sometimes
 you might want to import nothing (e.g. if you want to use OO syntax
 all the time and save the import tax). For these you say:
 
- use PDL::Graphics::TriD '';
+ use PDL::Graphics::TriD qw();
 
-And the blank quotes '' are regonised as meaning 'nothing'. You
-can also specify a list of functions to import in the normal Perl
-way.
+And the empty C<qw()>  quotes are regonised as meaning 'nothing'.
+You can also specify a list of functions to import in the normal
+Perl way.
 
 There is also an interactive shell, C<perldl>, see I<perldl>.
 
@@ -133,7 +133,7 @@ Here are some ways of creating a PDL variable:
    [1 2 3]
    [4 5 6]
  NEWPDL
- $edge1 = q[1 -2];             # 2-element piddle containing 1 and -2
+ $edge1 = q[1 -2];             # 2-element piddle containing  1 and -2
  $edge2 = q[1 - 2];            # 1-element piddle containing -1
  $b = pdl 42                   # 0-dimensional scalar
  $c = pdl $a;                  # Make a new copy
@@ -389,7 +389,7 @@ package provides allows one to display images
 in these ("IIS" is the name of an ancient item of image display
 hardware whose protocols these tools conform to.)
 
-=item Karma
+=item Karma (B<DEPRECATED>) 
 
 The L<PDL::Graphics::Karma|PDL::Graphics::Karma> 
 module provides an interface to the Karma visualisation
@@ -398,10 +398,9 @@ visualising noisy 2D and 3D data sets.
 
 =item PDL::Graphics::TriD
 
-See L<PDL::Graphics::TriD|PDL::Graphics::TriD> (the name sucks...). 
-this is a collection of 3D routines for
-OpenGL and (soon) VRML and other 3D formats which allow 3D point, line,
-and surface plots from PDL.
+See L<PDL::Graphics::TriD|PDL::Graphics::TriD>, this is a collection
+of 3D routines for OpenGL and (soon) VRML and other 3D formats which
+allow 3D point, line, and surface plots from PDL.
 
 =back
 
