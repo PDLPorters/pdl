@@ -146,7 +146,7 @@ Here are some ways of creating a PDL variable:
  @x = ( pdl(42), zeroes(3,2,4), rfits($file) ); # Is a LIST of PDL variables!
 
 The L<pdl()|PDL::Core/pdl> function is used to initialise a PDL variable from a scalar,
-list, list reference or another PDL variable.
+list, list reference, another PDL variable, or a properly formatted string.
 
 In addition all PDL functions automatically convert normal perl scalars
 to PDL variables on-the-fly.
@@ -312,8 +312,9 @@ Some other miscellany:
 =head2 Input/Output
 
 The C<PDL::IO> modules implement several useful IO format functions.
-It would be too much to give examples of each so you are referred to
-the individual manpages for details.
+It would be too much to give examples of each, but you can find a nice
+overview at L<PDL::IO|PDL::IO>. Here is a sample of some of the
+supported IO formats in PDL.
 
 =over 8
 
