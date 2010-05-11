@@ -10,7 +10,7 @@ Package: pdl
 Architecture: any
 Depends:  ${perl:Depends}, libterm-readkey-perl, ${shlibs:Depends}, libopengl-perl (>=0.62), ${misc:Depends}
 Recommends: libterm-readline-gnu-perl | libterm-readline-perl-perl
-Suggests: pgperl, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libplplot-dev, doc-base, libextutils-f77-perl, libastro-fits-header-perl
+Suggests: libpgplot-perl, netpbm | imagemagick, libastro-fits-header-perl, libinline-perl, libplplot-dev, doc-base, libextutils-f77-perl, libastro-fits-header-perl
 Conflicts: r-pdl
 Replaces: r-pdl
 Description: perl data language: Perl extensions for numerics

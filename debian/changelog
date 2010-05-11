@@ -1,3 +1,10 @@
+pdl (1:2.4.6-2) UNRELEASED; urgency=low
+
+  * pgperl is back in debian, name changed to libpgplot-perl; I changed the
+    pdl recommends to reflect that change (closes: #407463)
+
+ -- Henning Glawe <glaweh@debian.org>  Mon, 10 May 2010 10:04:28 +0200
+
 pdl (1:2.4.6-1) unstable; urgency=low
 
   * fix paths in generated HTML docs
