@@ -453,7 +453,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	  );
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
-my @exe_files = ('perldl', 'pdldoc', 'pdl');
+my @exe_files = ('perldl', 'pdldoc');
 my $cleanup = 'perldl pdldoc pdldoc.db pdldoc.pod perldl.pod ';
 
 if($^O !~ /mswin32/i) {
@@ -587,7 +587,7 @@ pdldoc.pod : pdldoc subdirs
 
 ";
 
-$text .= << 'EOT' if $^O =~ /cygwin/;
+$text .= << 'EOT' if $^O =~ /cygwin|MSWin/;
 
 pdl.exe: pdl
 
