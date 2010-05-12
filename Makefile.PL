@@ -587,7 +587,7 @@ pdldoc.pod : pdldoc subdirs
 
 ";
 
-$text .= << 'EOT' if $^O =~ /cygwin|MSWin/;
+$text .= << 'EOT' if $^O =~ /cygwin/;
 
 pdl.exe: pdl
 
