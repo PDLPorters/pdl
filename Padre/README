@@ -1,19 +1,21 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 03 May 2010 03:30:36 PM 
+Last saved: Thu 13 May 2010 10:10:09 AM 
 
 ** This is experimental code so use at your own risk! **
 
-This directory contains on-going development efforts for
-getting PDL to work with Padre.   We are starting with
-implementing a new, improved perldl shell (e.g. perldl2)
-using Devel::REPL as the starting point.  Since that
-same Devel::REPL is the basis of the Padre REPL module
-Padre::Plugin::REPL, it is hoped that this will simplify
-future Padre+PDL development.
+This directory contains on-going development
+efforts for getting PDL to work with Padre.
+We are starting with implementing a new,
+improved perldl shell (e.g. perldl2) using
+Devel::REPL as the starting point. Since that same
+Devel::REPL is the basis of the Padre REPL module
+Padre::Plugin::REPL, it is hoped that this will
+simplify future Padre+PDL development.
 
-You will need to install the version 1.3.9+ of Devel::REPL
-in addition to PDL to use this code.  A description of the
-files included and how to install and use them follows.
+You will need to install the version 1.3.9_01+ of
+Devel::REPL in addition to PDL to use this code.
+A description of the files included and how to
+install and use them follows.
 
 
 
@@ -25,16 +27,22 @@ FILES:
    This makes completion available for all platforms with
    Term::ReadLine::Perl, including win32.
 
+ Devel-REPL-1.003009_01.tar.gz
+   A CPAN developers snapshot of the latest Devel::REPL git
+   which includes fixes to Completion and ReadLineHistory
+   plugins to support Term::ReadLine::Perl in addition to
+   Term::ReadLine::Gnu.  Completion and ReadLine history now
+   work on win32!
+
  NiceSlice.pm
    Implements PDL::NiceSlice preprocessing for the Devel::REPL
    shell (i.e. Devel::REPL::Plugin::NiceSlice) for perldl2.
-  
+
  Perldl2.pm
    The perldl2 profile for use with the Devel::REPL shell.
-  
- ReadLineHistory.pm
-   Replacement for Devel::REPL::Plugin::ReadLineHistory
-   that supports either TR::Perl or TR::Gnu
+
+ README
+   This file.
 
  TieHash.pm
    A replacement for Term::ReadLine::Perl::Tie to give
@@ -43,9 +51,6 @@ FILES:
    install and add this code replacing the existing
    Term::ReadLine::Perl::Tie stuff and edit the tie
    %attibs to use TieHash instead of Tie.
-
- README
-   This file.
 
  readline-fix/
    Working directory to get Term::ReadLine::Gnu v1.19 working
@@ -57,26 +62,31 @@ FILES:
 INSTALL:
 
  The installation is manual at this time.  
- (1) Copy Completion.pm, NiceSlice.pm, and ReadLineHistory
-     to Devel/REPL/Plugin/ in your Devel::REPL install
+
+ (1) First do a manual install of Devel-REPL-1.003009_01.tar.gz
+     to update your Devel::REPL install to work with win32.
+
  (2) Copy Perldl2.pm to the Devel/REPL/Profile directory of
      your Devel::REPL install
  
 
 USE:
 
- To try/use the experimental perldl2 shell, just run the
+ To use the experimental perldl2 shell, run the
  following command from the shell prompt:
 
    re.pl --profile Perldl2   # for unix/linux/mac os x
    re    --profile Perldl2   # for win32 systems
 
  Set the DEVEL_REPL_PROFILE environment variable to
- Perldl2 and you should just be able to run re.pl or
- re to get going.
+ Perldl2 and you can omit the --profile argument and
+ should be able to run re.pl or re to start.
 
- To exit the perldl2 shell, type Ctrl-C, Ctrl-D or exit.
+ To exit the perldl2 shell, type Ctrl-D.
 
+ WARNING: typing exit will also quit the shell but
+          do so by terminating the perl interpreter.
+          Probably not what you want.
 
 
 NOTES:
@@ -85,17 +95,19 @@ NOTES:
   * Commands (generic command creation)
   * DDS (pretty prints output using Data::Dump::Streamer)
   * History (redo commands with !-1 and !## syntax)
-  * Interrupt (Ctrl-C to interrupt a command)
+  * Interrupt (interrupts with Ctrl-C; not on MSWin32)
   * LexEnv (e.g., my $a = zeros(10) works)
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
-  * Packages (keeps track of user package)
+  * Packages (keeps track of current user package)
+  * ReadLineHistory (save and restore command history)
   * CompletionDrivers
     * Globals  (completion for globals) 
     * INC      (completion for use module::name)
     * Keywords (completion for perl keywords)
     * LexEnv   (completion for lexical vars)
     * Methods  (completion of method names)
+
 
 Packages
 
@@ -108,16 +120,17 @@ Packages
   * PDL::IO::Pic
   * PDL::Image2D
   * PDL::AutoLoader
- 
- edit the Perldl2.pm file to add additional default setup
+
+ Edit the Perldl2.pm file to add additional default setup
  for the perldl2 shell.  You can $repl->eval() anything
  you want before the shell starts.  The other thing is
  to $repl->load_plugin() if you wish to try additional
  Devel::REPL plugins.
 
  help, apropos work but
- * ? and ?? aliases don't work
- * you need to quote the arguments
+ * ? and ?? aliases don't work (use help or apropos words)
+ * you need to quote the arguments (e.g.,  help 'sumover')
 
- All results are printed by default so big piddle output
- can be problematic.  Work is underway to fix this.
+ All expression results are printed by default so big
+ piddle output can be a problem.  Work is underway to
+ fix this.

@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Mon 03 May 2010 01:35:15 PM 
+# Last saved: Thu 13 May 2010 09:54:21 AM 
 #
 
 use Moose;
@@ -10,8 +10,21 @@ use namespace::clean -except => [ 'meta' ];
 with 'Devel::REPL::Profile';
 
 sub plugins {
-   qw( Commands CompletionDriver::Globals CompletionDriver::INC CompletionDriver::Keywords CompletionDriver::LexEnv
-       CompletionDriver::Methods DDS History Interrupt LexEnv MultiLine::PPI NiceSlice Packages);
+   qw(
+      Commands
+      CompletionDriver::Globals
+      CompletionDriver::INC
+      CompletionDriver::Keywords
+      CompletionDriver::LexEnv
+      CompletionDriver::Methods
+      DDS
+      History
+      LexEnv
+      MultiLine::PPI
+      NiceSlice
+      Packages
+      ReadLineHistory
+   );
 }
 
 sub apply_profile {
@@ -22,9 +35,7 @@ sub apply_profile {
    # these plugins don't work on win32
    unless ($^O =~ m/win32/i) {
       $repl->load_plugin('Interrupt');
-      $repl->load_plugin('ReadLineHistory');
    }
-
 
    # do perldl stuff here
    $repl->eval('use PDL');
@@ -37,7 +48,7 @@ sub apply_profile {
    $repl->eval('use PDL::AutoLoader');
 
    $repl->eval('no strict qw(vars)');
-   $repl->prompt("perldl2> ");
+   $repl->prompt("PDL> ");  # new prompt
 }
 
 1;
