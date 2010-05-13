@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 13 May 2010 10:10:09 AM 
+Last saved: Thu 13 May 2010 10:18:56 AM 
 
 ** This is experimental code so use at your own risk! **
 
@@ -100,7 +100,9 @@ NOTES:
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
   * Packages (keeps track of current user package)
-  * ReadLineHistory (save and restore command history)
+  * ReadLineHistory
+    * save and restore command history to file
+    * currently defaults to ~/.perlreplhist
   * CompletionDrivers
     * Globals  (completion for globals) 
     * INC      (completion for use module::name)
