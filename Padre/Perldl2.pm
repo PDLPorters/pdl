@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 14 May 2010 10:56:25 AM 
+# Last saved: Fri 14 May 2010 12:56:57 PM 
 #
 
 use Moose;
@@ -48,6 +48,12 @@ sub apply_profile {
    $repl->eval('use PDL::AutoLoader');
    $repl->eval('no strict qw(vars)');
 
+   if ($repl->can('exit_repl')) {
+      $repl->eval('sub quit { $_REPL->exit_repl(1) };');
+   } else {
+      $repl->eval('sub quit { $_REPL->print("Use Ctrl-D or exit to quit" };');
+   }
+
    $repl->prompt("PDL> ");  # new prompt
 
    if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
@@ -61,7 +67,7 @@ sub apply_profile {
       $repl->print("\n");
    }
    $repl->print("PDL shell version 2\n");
-   $repl->print(" Type Ctrl-D or exit to quit\n");
+   $repl->print(" Type Ctrl-D or quit or exit to quit\n");
    $repl->print("\n");
 }
 
