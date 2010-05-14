@@ -14,14 +14,25 @@ Other vector based languages, such as MATLAB, use a subset of threading
 techniques, but PDL shines by completely generalizing them for all sorts
 of vector-based applications.
 
+=head1 TERMINOLOGY: PIDDLE
+
+MATLAB typically refers to vectors, matrices, and arrays. Perl already
+has arrays, and the terms "vector" and "matrix" typically refer to one-
+and two-dimensional collections of data. Having no good term to describe
+their object, PDL developers coined the term "I<piddle>" to give a name to
+their data type.
+
+A I<piddle> consists of a series of numbers organized as an N-dimensional
+data set. Piddles provide efficient storage and fast computation of large
+N-dimensional matrices. They are highly optimized for numerical work.
+
 =head1 THINKING IN TERMS OF THREADING
 
 If you have used PDL for a little while already, you may have been using
-threading without realising it.
-
-Start the PDL shell (type C<perldl> on a terminal). Most examples in this
-tutorial use the PDL shell. Make sure that L<PDL::NiceSlice|PDL::NiceSlice>
-and L<PDL::AutoLoader|PDL::AutoLoader> are enabled. For example:
+threading without realising it. Start the PDL shell (type C<perldl> on a
+terminal). Most examples in this tutorial use the PDL shell. Make sure
+that L<PDL::NiceSlice|PDL::NiceSlice> and L<PDL::AutoLoader|PDL::AutoLoader>
+are enabled. For example:
 
   % perldl
   perlDL shell v1.352
@@ -35,7 +46,7 @@ and L<PDL::AutoLoader|PDL::AutoLoader> are enabled. For example:
 In this example, NiceSlice was automatically enabled, but AutoLoader was not.
 To enable it, type C<use PDL::AutoLoader>.
 
-Let's start with a two-dimensional matrix:
+Let's start with a two-dimensional I<piddle>:
 
   perldl> $a = sequence(11,9)
   perldl> p $a
@@ -51,31 +62,24 @@ Let's start with a two-dimensional matrix:
     [88 89 90 91 92 93 94 95 96 97 98]
   ]
 
-A PDL object, or a "B<piddle>", consists of a set of numbers organized as
-an n-dimensional array. A B<piddle> is a type of object provided by the PDL
-module which is highly optimized for numerical computation. There are various
-methods that operate on piddles to make numerical computation simple and fast.
+The C<info> method gives you basic information about a I<piddle>:
 
-The C<info> method gives you basic information about a piddle:
-
-  perldl> p $a->dims                                                              
-  11 9
   perldl> p $a->info
   PDL: Double D [11,9]
 
-Here we see that C<$a> is an 11x9 array of double-percision numbers. In
-keeping with Perl numbering, the first dimension is dimension 0 and the
-second dimension is dimension 1, and so on.
-
-Now, if we wanted to add 3 to all elements in an array of size
-(C<num_x, num_y>) a traditional language would use two nested for-loops:
+This tells us that C<$a> is an 11 x 9 I<piddle> composed of double
+precision numbers. If we wanted to add 3 to all elements in an C<n x m>
+piddle, a traditional language would use two nested for-loops:
 
   # Pseudo-code. Traditional way to add 3 to an array.
-  for (x=0; x < num_x; x++) {
-      for (y=0; y < num_y; y++) {
+  for (x=0; x < n; x++) {
+      for (y=0; y < m; y++) {
           a(x,y) = a(x,y) + 3
       }
   }
+
+B<Note>: Notice that indices start at 0, as in Perl, C and Java (and unlike
+MATLAB and IDL).
 
 But with PDL, we can just write:
 
@@ -93,7 +97,10 @@ But with PDL, we can just write:
     [ 91  92  93  94  95  96  97  98  99 100 101]
   ]
 
-Now suppose you want to to subtract off this line off each row in C<$a>:
+This is the simplest example of threading, and it is something that
+all numerical software tools do. The C<+ 3> operation was automatically
+applied along two dimensions. Now suppose you want to to subtract a
+line from every row in C<$a>:
 
   perldoc> $line = sequence(11)
   perldoc> p $line
@@ -117,12 +124,9 @@ C<p $a> to check. Second, PDL automatically subtracted C<$line> from each
 row in C<$a>. Why did it do that? Let's look at the dimensions of C<$a>,
 C<$line> and C<$c>:
 
-  perldl> p $a->info                                                              
-  PDL: Double D [11,9]
-  perldl> p $line->info                                                           
-  PDL: Double D [11]
-  perldl> p $c->info                                                              
-  PDL: Double D [11,9]
+  perldl> p $line->info  =>  PDL: Double D [11]
+  perldl> p $a->info     =>  PDL: Double D [11,9]
+  perldl> p $c->info     =>  PDL: Double D [11,9]
 
 So, both C<$a> and C<$line> have the same number of elements in the 0th
 dimension! What PDL then did was thread over the higher dimensions in C<$a>
@@ -152,17 +156,15 @@ learn more about specifying subsets from piddles.
 The true power of threading comes when you realise that the piddle can
 have any number of dimensions! Let's make a 4 dimensional piddle:
 
-  perldl> $array_4D = sequence(11,3,7,2)
-  perldl> $c = $array_4D - $line
+  perldl> $piddle_4D = sequence(11,3,7,2)
+  perldl> $c = $piddle_4D - $line
 
-Now C<$c> is an array of the same dimension as C<$array_4D>.
+Now C<$c> is a piddle of the same dimension as C<$piddle_4D>.
 
-  perldl> p $array_4D->info
-  PDL: Double D [11,3,7,2]
-  perldl> p $c->info
-  PDL: Double D [11,3,7,2]
+  perldl> p $piddle_4D->info  =>  PDL: Double D [11,3,7,2]
+  perldl> p $c->info          =>  PDL: Double D [11,3,7,2]
 
-So this time PDL has threaded over three higher dimensions automatically,
+This time PDL has threaded over three higher dimensions automatically,
 subtracting C<$line> all the way.
 
 But, maybe you don't want to subtract from the rows (dimension 0), but from
@@ -170,20 +172,16 @@ the columns (dimension 1). How do I subtract a column of numbers from each
 column in C<$a>?
 
   perldl> $cols = sequence(9)
-  perldl> p $a->info                                                              
-  PDL: Double D [11,9]
-  perldl> p $cols->info                                                           
-  PDL: Double D [9]
+  perldl> p $a->info      =>  PDL: Double D [11,9]
+  perldl> p $cols->info   =>  PDL: Double D [9]
 
-Naturally, we can't just type C<$a - $cols>:
+Naturally, we can't just type C<$a - $cols>. The dimensions don't match:
 
   perldl> p $a - $cols
   PDL: PDL::Ops::minus(a,b,c): Parameter 'b'
   PDL: Mismatched implicit thread dimension 0: should be 11, is 9
 
-PDL tried to subtract C<$cols> from dimension 0 and that doesn't work because
-the sizes don't match. How do we tell PDL that we want to subtract from 
-dimension 1 instead?
+How do we tell PDL that we want to subtract from  dimension 1 instead?
 
 =head1 MANIPULATING DIMENSIONS
 
@@ -203,10 +201,11 @@ The C<xchg> method "B<exchanges>" two dimensions in a piddle:
   perldl> $a = sequence(6,7,8,9)
   perldl> $a_xchg = $a->xchg(0,3)
   perldl>
-  perldl> p $a->info                                                              
-  PDL: Double D [6,7,8,9]
-  perldl> p $a_xchg->info
-  PDL: Double D [9,7,8,6]
+  perldl> p $a->info       =>  PDL: Double D [6,7,8,9]
+  perldl> p $a_xchg->info  =>  PDL: Double D [9,7,8,6]
+                                              |     |
+                                              V     V
+                                          (dim 0) (dim 3)
 
 Notice that dimentions 0 and 3 were exchanged without affecting the other
 dimensinos. Notice also that C<xchg> does not alter C<$a>. The original
@@ -217,13 +216,14 @@ variable C<$a> remains untouched.
 The C<mv> method "B<moves>" one dimension, in a piddle, shifting other
 dimensions as necessary.
 
-  perldl> $a = sequence(6,7,8,9)
-  perldl> $a_mv = $a->mv(0,3)
-  perldl>
-  perldl> p $a->info                                                              
-  PDL: Double D [6,7,8,9]
-  perldl> p $a_mv->info
-  PDL: Double D [7,8,9,6]
+  perldl> $a = sequence(6,7,8,9)         (dim 0)
+  perldl> $a_mv = $a->mv(0,3)               |
+  perldl>                                   V _____
+  perldl> p $a->info     =>  PDL: Double D [6,7,8,9]
+  perldl> p $a_mv->info  =>  PDL: Double D [7,8,9,6]
+                                            ----- |
+                                                  V
+                                               (dim 3)
 
 Notice that when dimension 0 was moved to position 3, all the other dimensions
 had to be shifted as well. Notice also that C<mv> does not alter C<$a>. The
@@ -237,17 +237,18 @@ It "B<reorders>" the dimensions in any way you specify:
   perldl> $a = sequence(6,7,8,9)
   perldl> $a_reorder = $a->reorder(3,0,2,1)
   perldl>
-  perldl> p $a->info                                                              
-  PDL: Double D [6,7,8,9]
-  perldl> p $a_reorder->info
-  PDL: Double D [9,6,8,7]
+  perldl> p $a->info          =>  PDL: Double D [6,7,8,9]
+  perldl> p $a_reorder->info  =>  PDL: Double D [9,6,8,7]
+                                                 | | | |
+                                                 V V v V
+                                    dimensions:  0 1 2 3
 
-Notice what happened. When we wrote C<$a->reorder(3,0,2,1)> we instructed PDL to:
+Notice what happened. When we wrote C<reorder(3,0,2,1)> we instructed PDL to:
 
- * Put dimension 3 first (position 0).
- * Put dimension 0 next  (position 1).
- * Put dimension 2 next  (position 2).
- * Put dimension 1 next  (position 3).
+ * Put dimension 3 first.
+ * Put dimension 0 next.
+ * Put dimension 2 next.
+ * Put dimension 1 next.
 
 When you use the C<reorder> method, all the dimensions are shuffled. Notice that
 C<reorder> does not alter C<$a>. The original variable C<$a> remains untouched.
@@ -327,10 +328,8 @@ Now we are ready to solve the problem that motivated this whole discussion:
   perldl> $a = sequence(11,9)
   perldl> $cols = sequence(9)
   perldl>
-  perldl> p $a->info
-  PDL: Double D [11,9]
-  perldl> p $cols->info
-  PDL: Double D [9]
+  perldl> p $a->info     =>  PDL: Double D [11,9]
+  perldl> p $cols->info  =>  PDL: Double D [9]
 
 How do we tell PDL to subtract C<$cols> along dimension 1 instead of dimension 0?
 The simplest way is to use the C<xchg> method and rely on PDL linking:
@@ -347,8 +346,7 @@ The simplest way is to use the C<xchg> method and rely on PDL linking:
    [77 78 79 80 81 82 83 84 85 86 87]
    [88 89 90 91 92 93 94 95 96 97 98]
   ]
-  perldl> $a_xchg = $a->xchg(1,0)
-  perldl> $a_xchg -= $cols
+  perldl> $a->xchg(1,0) -= $cols
   perldl> p $a
   [
    [ 0  1  2  3  4  5  6  7  8  9 10]
@@ -361,6 +359,15 @@ The simplest way is to use the C<xchg> method and rely on PDL linking:
    [70 71 72 73 74 75 76 77 78 79 80]
    [80 81 82 83 84 85 86 87 88 89 90]
   ]
+
+=over 5
+
+=item General Strategy:
+
+Move the dimensions you want to operate on to the start of your piddle's
+dimension list. Then let PDL thread over the higher dimensions.
+
+=back
 
 =head1 EXAMPLE: CONWAY'S GAME OF LIFE
 
@@ -932,18 +939,15 @@ changes:
   }
 
 
-=head1 CONCLUSION: GENERAL LESSON
+=head1 CONCLUSION: GENERAL STRATEGY
+
+The general stragegy is: I<Move the dimensions you want to operate on to the
+start of your piddle's dimension list. Then let PDL thread over the higher
+dimensions.>
 
 Threading is a powerful tool that helps eliminate for-loops and can make your
-code ore concise.
-
-The B<general stragegy> for threading is: Move the dimensions you want to
-operate on to the start of your piddle's dimension list. Then let PDL thread
-over the higher dimensions.
-
-In this tutorial we've gone through PDL threading. We saw an example which
-hopefully demonstrates why it is worth getting t ogrips with threading in
-PDL.
+code more concise. Hopefully this tutorial has shown why it is worth getting
+to grips with threading in PDL.
 
 
 =head1 COPYRIGHT
