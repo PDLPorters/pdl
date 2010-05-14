@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Thu 13 May 2010 09:54:21 AM 
+# Last saved: Fri 14 May 2010 10:56:25 AM 
 #
 
 use Moose;
@@ -46,9 +46,23 @@ sub apply_profile {
    $repl->eval('use PDL::IO::Pic');
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
-
    $repl->eval('no strict qw(vars)');
+
    $repl->prompt("PDL> ");  # new prompt
+
+   if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
+      $repl->print("\n");
+      $repl->print("******************************************\n");
+      $repl->print("* Warning: TERM type is dumb!            *\n");
+      $repl->print("* Limited ReadLine functionality will be *\n");
+      $repl->print("* available.  Please unset TERM or use a *\n");
+      $repl->print("* different terminal type.               *\n");
+      $repl->print("******************************************\n");
+      $repl->print("\n");
+   }
+   $repl->print("PDL shell version 2\n");
+   $repl->print(" Type Ctrl-D or exit to quit\n");
+   $repl->print("\n");
 }
 
 1;
