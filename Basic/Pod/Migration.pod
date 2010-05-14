@@ -1,0 +1,26 @@
+=head1 NAME
+
+PDL::Migration - Migration guide
+
+=head1 DESCRIPTION
+
+This is the PDL migration guide project. The goal is to make a series of
+migration guides for users coming from other numerical software packages.
+This guide is a work in progress:
+
+=over 5
+
+=item L<PDL::Migration::MATLAB|PDL::Migration::MATLAB> [COMPLETE]
+
+Migration guide for MATLAB users.
+
+=item PDL::Migration::Scilab [PLANNED]
+
+Migration guide for Scilab users.
+
+=item PDL::Migration::IDL [PLANNED]
+
+Migration guide for IDL users.
+
+=back
+
