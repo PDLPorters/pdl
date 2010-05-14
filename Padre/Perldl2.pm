@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 14 May 2010 12:56:57 PM 
+# Last saved: Fri 14 May 2010 03:01:22 PM 
 #
 
 use Moose;
@@ -38,6 +38,7 @@ sub apply_profile {
    }
 
    # do perldl stuff here
+   $repl->eval('package main');
    $repl->eval('use PDL');
    $repl->eval('use PDL::Dbg');
    $repl->eval('use PDL::Doc::Perldl');
