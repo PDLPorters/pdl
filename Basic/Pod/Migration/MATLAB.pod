@@ -1,0 +1,866 @@
+=head1 NAME
+
+PDL::Migration::MATLAB - A guide for MATLAB users.
+
+=head1 INTRODUCTION
+
+If you are a MATLAB user, this page is for you. It explains the key
+differences between MATLAB and PDL to help you get going as quickly
+as possible.
+
+B<This document is not a tutorial>. For that, go to L<PDL::QuickStart|
+PDL::QuickStart>. This document B<complements> the Quick Start guide, as
+it highlights the key differences between MATLAB and PDL.
+
+=head1 PERL
+
+The key difference between MATLAB and PDL is B<PERL>.
+
+Perl is a general purpose programming language with thousands of modules
+freely available on the web. PDL is an extension of Perl. This gives PDL
+programs access to more features than most numerical tools can dream of.
+At the same time, most syntax differences between MATLAB and PDL are a
+result of its Perl foundation.
+
+B<You do not have to learn much Perl to be effective with PDL>. But
+if you wish to learn Perl, there is excellent documentation available
+on-line (L<http://perldoc.perl.org>) or through the command C<perldoc perl>.
+There is also a beginner's portal (L<http://perl-begin.org>).
+
+Perl's module repository is called CPAN (L<http://www.cpan.org>) and it
+has a vast array of modules. Run C<perldoc cpan> for more information.
+
+=head1 TERMINOLOGY: PIDDLE
+
+MATLAB typically refers to vectors, matrices, and arrays. Perl already
+has arrays, and the terms "vector" and "matrix" typically refer to one-
+and two-dimensional collections of data. Having no good term to describe
+their object, PDL developers coined the term "I<piddle>" to give a name to
+their data type.
+
+A I<piddle> consists of a series of numbers organized as an N-dimensional
+data set. Piddles provide efficient storage and fast computation of large
+N-dimensional matrices. They are highly optimized for numerical work.
+
+For more information, see "B<Piddles vs Perl Arrays>" later in this document.
+
+=head1 COMMAND WINDOW AND IDE
+
+Unlike MATLAB, PDL does not come with a dedicated IDE. It does however
+come with an interactive shell and you can use a Perl IDE to develop
+PDL programs.
+
+=head2 PDL interactive shell
+
+To start the interactive shell, open a terminal and run C<perldl>.
+As in MATLAB, the interactive shell is the best way to learn the
+language. To exit the shell, type C<exit>, just like MATLAB.
+
+=head2 Writing PDL programs
+
+One popular IDE for Perl is caleld Padre (L<http://padre.perlide.org>).
+It is cross platform and easy to use.
+
+Whenever you write a stand-alone PDL program (i.e. outside the
+C<perldl> shell) you must start the program with C<use PDL;>.
+This command imports the PDL module into Perl. Here is a sample
+PDL program:
+
+  use PDL;             # Import main PDL module.
+  use PDL::NiceSlice;  # Import additional PDL module.
+  use PDL::AutoLoader; # Import additional PDL module.
+  
+  $b = pdl [2,3,4];              # Statements end in semicolon.
+  $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional matrix.
+  
+  print $A x transpose $b;
+
+Save this file as C<myprogram.pl> and run it with:
+
+  perl myprogram.pl
+
+=head2 New: Flexible syntax
+
+In very recent versions of PDL (version 2.4.6_006 or later) there is
+a flexible matrix syntax that can look extremely similar to MATLAB:
+
+1) Use a ';' to delimit rows:
+
+  $b = pdl q[ 2,3,4 ];
+  $A = pdl q[ 1,2,3 ; 4,5,6 ];
+
+2) Use spaces to separate elements:
+
+  $b = pdl q[ 2 3 4 ];
+  $A = pdl q[ 1 2 3 ; 4 5 6 ];
+
+
+Basically, as long as you put a C<q> in front of the opening bracket,
+PDL should "do what you mean". So you can write in a syntax that is
+more comfortable for you.
+
+
+=head1 MODULES FOR MATLAB USERS
+
+There are two modules that MATLAB users will want to use:
+
+=over 5
+
+=item L<PDL::NiceSlice|PDL::NiceSlice>
+
+Gives PDL a syntax for slices (sub-matrices) that is shorter and
+more familiar to MATLAB users.
+
+  % MATLAB
+  b(1:5)            -->  Selects the first 5 elements from b.
+  
+  # PDL without NiceSlice
+  $b->slice("0:4")  -->  Selects the first 5 elements from $b.
+  
+  # PDL with NiceSlice
+  $b(0:4)           -->  Selects the first 5 elements from $b.
+
+=item L<PDL::AutoLoader|PDL::AutoLoader>
+
+Provides a MATLAB-style autoloader for PDL. If an unknown function
+C<foo()> is called, PDL looks for a file called C<foo.pdl>. If it
+finds one, it reads it.
+
+=back
+
+
+
+=head1 BASIC FEATURES
+
+This section explains how PDL's syntax differs from MATLAB. Most
+MATLAB users will want to start here.
+
+
+=head2 General "gotchas"
+
+=over 5
+
+=item Indices
+
+In PDL, indices start at '0' (like C and Java), not 1 (like MATLAB).
+For example, if C<$b> is an array with 5 elements, the elements would be
+numbered from 0 to 4.
+
+=item Displaying an object
+
+MATLAB normally displays object contents automatically. In PDL you display
+objects explicitly with the C<print> command or the shotcut C<p>:
+
+MATLAB:
+
+ >> a = 12
+ a =  12
+ >> b = 23;       % Supress output.
+ >> 
+
+PerlDL:
+
+ perldl> $a = 12    # No output.
+ perldl> print $a   # Print object.
+ 12
+ perldl> p $a       # "p" is a shorthand for "print" in the shell.
+ 12
+ perldl>
+
+
+=back
+
+
+
+=head2 Creating Piddles
+
+=over 5
+
+=item Variables in PDL
+
+Variables always start with the '$' sign.
+
+ MATLAB:    value  = 42
+ PerlDL:    $value = 42
+
+=item Basic syntax
+
+Use the "pdl" constructor to create a new I<piddle>.
+
+ MATLAB:    v  = [1,2,3,4]
+ PerlDL:    $v = pdl [1,2,3,4]
+
+ MATLAB:    A  =      [ 1,2,3  ;  3,4,5 ]
+ PerlDL:    $A = pdl [ [1,2,3] , [3,4,5] ]
+
+=item Simple matrices
+
+                      MATLAB       PDL
+                      ------       ------
+  Matrix of ones      ones(5)      ones 5,5
+  Matrix of zeros     zeros(5)     zeros 5,5
+  Random matrix       rand(5)      random 5,5
+  Linear vector       1:5          sequence 5
+
+Notice that in PDL the parenthesis in a function call are often optional.
+It is important to keep an eye out for possible ambiguities. For example:
+
+  perldl> p zeros 2, 2 + 2
+
+Should this be interpreted as C<zeros(2,2) + 2> or as C<zeros 2, (2+2)>?
+Both are valid statements:
+
+  perldl> p zeros(2,2) + 2
+  [
+   [2 2]
+   [2 2]
+  ]
+  perldl> p zeros 2, (2+2)
+  [
+   [0 0]
+   [0 0]
+   [0 0]
+   [0 0]
+  ]
+
+Rather than trying to memorize Perl's order of precedence, it is best
+to use parentheses to make your code unambiguous.
+
+=item Linearly spaced sequences
+
+  MATLAB:   >> linspace(2,10,5)
+            ans = 2 4 6 8 10
+  
+  PerlDL:   perldl> p zeroes(5)->xlinvals(2,10)
+            [2 4 6 8 10]
+
+B<Explanation>: Start with a 1-dimensional piddle of 5 elements and give
+it equally spaced values from 2 to 10.
+
+MATLAB has a single function call for this. On the other hand, PDL's
+method is more flexible:
+
+  perldl> p zeros(5,5)->xlinvals(2,10)
+  [
+   [ 2  4  6  8 10]
+   [ 2  4  6  8 10]
+   [ 2  4  6  8 10]
+   [ 2  4  6  8 10]
+   [ 2  4  6  8 10]
+  ]
+  perldl> p zeros(5,5)->ylinvals(2,10)
+  [
+   [ 2  2  2  2  2]
+   [ 4  4  4  4  4]
+   [ 6  6  6  6  6]
+   [ 8  8  8  8  8]
+   [10 10 10 10 10]
+  ]
+  perldl> p zeros(3,3,3)->zlinvals(2,6)
+  [
+   [
+    [2 2 2]
+    [2 2 2]
+    [2 2 2]
+   ]
+   [
+    [4 4 4]
+    [4 4 4]
+    [4 4 4]
+   ]
+   [
+    [6 6 6]
+    [6 6 6]
+    [6 6 6]
+   ]
+  ]
+
+=item Slicing and indices
+
+Extracting a subset from a collection of data is known as I<slicing>.
+The PDL shell and MATLAB have a similar syntax for slicing, but there
+are two important differences:
+
+1) PDL indices start at 0, as in C and Java. MATLAB starts indices at 1.
+
+2) In MATLAB you think "rows and columns". In PDL, think "x and y".
+
+  MATLAB                         PerlDL
+  ------                         ------
+  >> A                           perldl> p $A
+  A =                            [
+       1   2   3                  [1 2 3]
+       4   5   6                  [4 5 6]
+       7   8   9                  [7 8 9]
+                                 ]
+  -------------------------------------------------------
+  (row = 2, col = 1)             (x = 0, y = 1)
+  >> A(2,1)                      perldl> p $A(0,1)
+  ans =                          [
+         4                        [4]
+                                 ]
+  -------------------------------------------------------
+  (row = 2 to 3, col = 1 to 2)   (x = 0 to 1, y = 1 to 2)
+  >> A(2:3,1:2)                  perldl> p $A(0:1,1:2)
+  ans =                          [
+         4   5                    [4 5]
+         7   8                    [7 8]
+                                 ]
+
+=over 5
+
+=item B<Warning>
+
+When you write a stand-alone PDL program you have
+to include the L<PDL::NiceSlice|PDL::NiceSlice> module. See the
+previous section "B<MODULES FOR MATLAB USERS>" for more information.
+
+  use PDL;             # Import main PDL module.
+  use PDL::NiceSlice;  # Nice syntax for slicing.
+  use PDL::AutoLoader; # MATLAB-like autoloader.
+  
+  $A = random 4,4;
+  print $A(0,1);
+
+=back
+
+=back
+
+
+
+=head2 Matrix Operations
+
+=over 10
+
+=item Matrix multiplication
+
+ MATLAB:    A * B
+ PerlDL:    $A x $B
+
+=item Element-wise multiplication
+
+ MATLAB:    A .* B
+ PerlDL:    $A * $B
+
+=item Transpose
+
+ MATLAB:    A'
+ PerlDL:    transpose $A
+
+=back
+
+
+=head2 Functions that aggregate data
+
+Some functions (like C<sum>, C<max> and C<min>) aggregate data
+for an N-dimensional data set. This is a place where MATLAB and
+PDL take a different approach:
+
+=over 10
+
+=item In MATLAB, these functions all work along one dimension.
+
+  >> A = [ 1,5,4  ;  4,2,1 ]
+  A = 1  5  4
+      4  2  1
+  >> max(A)
+  ans = 4  5  4
+  >> max(A')
+  ans = 5  4
+
+If you want the maximum for the entire data set, you can use the special
+C<A(:)> notation which basically turns the entire data set into a single
+1-dimensional vector.
+
+  >> max(A(:))
+  ans =  5
+  >> A = ones(2,2,2,2)
+  >> max(A(:))
+  ans = 1
+
+=item PDL offers two functions for each feature.
+
+  sum   vs   sumover
+  avg   vs   average
+  max   vs   maximum
+  min   vs   minimum
+
+The B<long name> works over a dimension, while the B<short name>
+works over the entire piddle.
+
+  perldl> p $A = pdl [ [1,5,4] , [4,2,1] ]
+  [
+   [1 5 4]
+   [4 2 1]
+  ]
+  perldl> p maximum $A
+  [5 4]
+  perldl> p maximum transpose $A
+  [4 5 4]
+  perldl> p max $A
+  5
+  perldl> p max ones 2,2,2
+  1
+  perldl> p max ones 2,2,2,2
+  1
+
+
+=back
+
+=over 5
+
+=item B<Note>
+
+Notice that PDL aggregates horizontally while MATLAB aggregates
+vertically. In other words:
+
+  MATLAB              PerlDL
+  max(A)       ==     maximum transpose $A
+  max(A')      ==     maximum $A
+
+B<TIP>: In MATLAB you think "rows and columns". In PDL, think "x and y".
+
+=back
+
+=head2 Higher dimensional data sets
+
+A related issue is how MATLAB and PDL understand data sets of higher
+dimension. MATLAB was designed for 1D vectors and 2D matrices. Higher
+dimensional objects ("N-D arrays") were added on top. In contrast, PDL
+was designed for N-dimensional piddles from the start. This leads to
+a few surprises in MATLAB that don't occur in PDL:
+
+=over 5
+
+=item MATLAB sees a vector as a 2D matrix.
+
+  MATLAB                       PerlDL
+  ------                       ------
+  >> vector = [1,2,3,4];       perldl> $vector = pdl [1,2,3,4]
+  >> size(vector)              perldl> p dims $vector
+  ans = 1 4                    4
+
+MATLAB sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
+as a 1D vector: A single dimension of size 4.
+
+=item But MATLAB ignores the last dimension of a 4x1x1 matrix.
+
+  MATLAB                       PerlDL
+  ------                       ------
+  >> A = ones(4,1,1);          perldl> $A = ones 4,1,1
+  >> size(A)                   perldl> p dims $A
+  ans = 4 1                    4 1 1
+
+=item And MATLAB treats a 4x1x1 matrix differently from a 1x1x4 matrix.
+
+  MATLAB                       PerlDL
+  ------                       ------
+  >> A = ones(1,1,4);          perldl> $A = ones 1,1,4
+  >> size(A)                   perldl> p dims $A
+  ans = 1 1 4                  1 1 4
+
+=item MATLAB has no syntax for N-D matrices.
+
+  perldl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
+  perldl> p dims $A
+  3 2 2
+
+=item Feature support.
+
+In MATLAB, several features such as sparse matrix support are not
+available for N-D arrays. In PDL, just about any feature supported by
+1D and 2D piddles, is equally supported by N-dimensional piddles.
+There is usually no distinction.
+
+=back
+
+
+=head2 Loop Structures
+
+Perl has many loop structures, but we will only show the one that
+is most familiar to MATLAB users:
+
+  MATLAB              PerlDL
+  ------              ------
+  for i = 1:10        for $i (1..10) {
+      disp(i)             print $i
+  endfor              }
+
+=over 5
+
+=item B<Note>
+
+Never use for-loops for numerical work. Perl's for-loops are faster
+than MATLAB's, but they both pale against a "vectorized" operation.
+PDL has many tools that facilitate writing vectorized programs.
+These are beyond the scope of this guide. To learn more, see:
+L<PDL::Indexing|PDL::Indexing>, L<PDL::Threading|PDL::Threading>,
+and L<PDL::PP|PDL::PP>.
+
+Likewise, never use C<1..10> for numerical work, even outside a for-loop.
+C<1..10> is a Perl array. Perl arrays are designed for flexibility, not
+speed. Use I<piddles> instead. To learn more, see the next section.
+
+=back
+
+=head2 Piddles vs Perl Arrays
+
+It is important to note the difference between a I<Piddle> and a Perl
+array. Perl has a general-purpose array object that can hold any
+type of element:
+
+  @perl_array = 1..10;
+  @perl_array = ( 12, "Hello" );
+  @perl_array = ( 1, 2, 3, \@another_perl_array, sequence(5) );
+
+Perl arrays allow you to create powerful data structures (see
+B<Data structures> below), B<but they are not designed for numerical work>.
+For that, use I<piddles>:
+
+  $pdl = pdl [ 1, 2, 3, 4 ];
+  $pdl = sequence 10_000_000; 
+  $pdl = ones 600, 600;
+
+For example:
+ 
+  $points =  pdl  1..10_000_000    # 4.7 seconds
+  $points = sequence 10_000_000    # milliseconds
+
+B<TIP>: You can use underscores in numbers (C<10_000_000> reads better
+than C<10000000>).
+
+=head2 Conditionals
+
+Perl has many conditionals, but we will only show the one that is
+most familiar to MATLAB users:
+
+  MATLAB                          PerlDL
+  ------                          ------
+  if value > MAX                  if ($value > $MAX) {
+      disp("Too large")               print "Too large\n";
+  elseif value < MIN              } elsif ($value < $MIN) {
+      disp("Too small")               print "Too small\n";
+  else                            } else {
+      disp("Perfect!")                print "Perfect!\n";
+  end                             }
+
+=over 5
+
+=item B<Note>
+
+Here is a "gotcha":
+
+  MATLAB:  elseif
+  PerlDL:  elsif
+
+If your conditional gives a syntax error, check that you wrote
+your C<elsif>'s correctly.
+
+=back
+
+=head2 TIMTOWDI (There Is More Than One Way To Do It)
+
+One of the most interesting differences between PDL and other tools
+is the expressiveness of the Perl language. TIMTOWDI, or "There Is
+More Than One Way To Do It", is Perl's motto.
+
+Perl was written by a linguist, and one of its defining properties
+is that statements can be formulated in different ways to give the
+language a more natural feel. For example, you are unlikely to say
+to a friend:
+
+ "While I am not finished, I will keep working."
+
+Human language is more flexible than that. Instead, you are more
+likely to say:
+
+ "I will keep working until I am finished."
+
+Owing to its linguistic roots, Perl is the only programming language
+with this sort of flexibility. For example, Perl has traditional
+while-loops and if-statements:
+
+  while ( ! finished() ) {
+      keep_working();
+  }
+  
+  if ( ! wife_angry() ) {
+      kiss_wife();
+  }
+
+But it also offers the alternative B<until> and B<unless> statements:
+
+  until ( finished() ) {
+      keep_working();
+  }
+  
+  unless ( wife_angry() ) {
+      kiss_wife();
+  }
+
+And Perl allows you to write loops and conditionals in "postfix" form:
+
+  keep_working() until finished();
+  
+  kiss_wife() unless wife_angry();
+
+
+In this way, Perl often allows you to write more natural, easy to
+understand code than is possible in more restrictive programming
+languages.
+
+
+=head2 Functions
+
+PDL's syntax for declaring functions differs significantly from MATLAB's.
+
+  MATLAB                          PerlDL
+  ------                          ------
+  function retval = foo(x,y)      sub foo {
+      retval = x.**2 + x.*y           my ($x, $y) = @_;
+  endfunction                         return $x**2 + $x*$y;
+                                  }
+
+Don't be intimidated by all the new syntax. Here is a quick run through
+a function declaration in PDL:
+
+1) "B<sub>" stands for "subroutine".
+
+2) "B<my>" declares variables to be local to the function.
+
+3) "B<@_>" is a special Perl array that holds all the function parameters.
+This might seem like a strange way to do functions, but it allows you
+to make functions that take a variable number of parameters. For example,
+the following function takes any number of parameters and adds them
+together:
+
+  sub mysum {
+      my ($i, $total) = (0, 0);
+      for $i (@_) {
+          $total += $i;
+      }
+      return $total;
+  }
+
+4) You can assign values to several variables at once using the syntax:
+
+  ($a, $b, $c) = (1, 2, 3);
+
+So, in the previous examples:
+
+  # This declares two local variales and initializes them to 0.
+  my ($i, $total) = (0, 0);
+  
+  # This takes the first two elements of @_ and puts them in $x and $y.
+  my ($x, $y) = @_;
+
+5) The "B<return>" statement gives the return value of the function, if any.
+
+=head1 ADDITIONAL FEATURES
+
+=head2 Data structures
+
+To create complex data structures, MATLAB uses "I<cell arrays>" and
+"I<structure arrays>". Per'ls arrays and hashes offer similar functionality
+but are more powerful and flexible. This section is only a quick overview
+of what Perl has to offer. To learn more about this, please go to
+L<http://perldoc.perl.org/perldata.html> or run the command C<perldoc perldata>.
+
+=over 5
+
+=item Arrays
+
+Perl arrays are similar to MATLAB's cell arrays, but more flexible. For
+example, in MATLAB, a cell array is still fundamentally a matrix. It is
+made of rows, and rows must have the same length.
+
+  MATLAB
+  ------
+  array = {1, 12, 'hello'; rand(3, 2), ones(3), 'junk'}
+  => OK
+  array = {1, 12, 'hello'; rand(3, 2), ones(3) }
+  => ERROR
+
+A Perl array is a general purpose, sequential data structure. It can contain
+any data type.
+
+  PerlDL
+  ------
+  @array = ( [1, 12, 'hello'] , [ random(3,2), ones(3,3), 'junk' ] )
+  => OK
+  @array = ( [1, 12, 'hello'] , [ random(3,2), ones(3,3) ] )
+  => OK
+  @array = ( 5 , {'name' => 'Mike'} , [1, 12, 'hello'] )
+  => OK
+
+
+Notice that Perl array's start with the "@" prefix instead of the "$" used by
+piddles.
+
+I<To learn about Perl arrays, please go to L<http://perldoc.perl.org/perldata.html>
+or run the command C<perldoc perldata>.>
+
+=item Hashes
+
+Perl hashes are similar to MATLAB's structure arrays:
+
+  MATLAB
+  ------
+  >> drink = struct('type', 'coke', 'size', 'large', 'myarray', {1,2,3})
+  >> drink.type = 'sprite'
+  >> drink.price = 12          % Add new field to structure array.
+  
+  PerlDL
+  ------
+  perldl> %drink = ( type => 'coke' , size => 'large', mypiddle => ones(3,3,3) )
+  perldl> $drink{type} = 'sprite'
+  perldl> $drink{price} = 12   # Add new field to hash.
+
+Notice that Perl hashes start with the "%" prefix instead of the "@" for
+arrays and "$" used by piddles.
+
+I<To learn about Perl hashes, please go to L<http://perldoc.perl.org/perldata.html>
+or run the command C<perldoc perldata>.>
+
+=back
+
+
+
+=head2 Performance
+
+PDL has powerful performance features, some of which are not normally
+available in numerical computation tools. The following pages will guide
+you through these features:
+
+=over 5
+
+=item L<PDL::Indexing|PDL::Indexing>
+
+B<Level>: Beginner
+
+This beginner tutorial covers the standard "vectorization" feature that
+you already know from MATLAB. Use this page to learn how to avoid for-loops
+to make your program more efficient.
+
+=item L<PDL::Threading|PDL::Threading>
+
+B<Level>: Intermediate
+
+PDL's "vectorization" feature goes beyond what most numerical software
+can do. In this tutorial you'll learn how to "thread" over higher dimensions,
+allowing you to vectorize your program further than is possible in MATLAB.
+
+
+=item Benchmarks
+
+B<Level>: Intermediate
+
+Perl comes with an easy to use benchmarks module to help you find how
+long it takes to execute different parts of your code. It is a great
+tool to help you focus your optimization efforts. You can read about it
+online (L<http://perldoc.perl.org/Benchmark.html>) or through the
+command C<perldoc Benchmark>.
+
+=item L<PDL::PP|PDL::PP>
+
+B<Level>: Advanced
+
+PDL's Pre-Processor is one of PDL's most interesting features. You write
+a simple function definition and the pre-processor generates real C code
+which is automatically compiled. With PDL:PP you get the full speed of
+native C code without having to deal with the complexities of the C language.
+
+
+
+=back
+
+
+
+=head2 Plotting
+
+PDL has powerful plotting abilities. Unlike MATLAB, PDL relies more on
+third-party libraries (pgplot and PLplot) for its 2D plotting features.
+Its 3D plotting and graphics uses OpenGL for performance and portability.
+PDL has three main plotting modules:
+
+=over 5
+
+=item L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>
+
+B<Best for>: Plotting 2D functions and data sets.
+
+This is an interface to the venerable PGPLOT library. PGPLOT has
+been widely used in the academic and scientific communities for
+many years. In part because of its age, PGPLOT has some limitations
+compared to newer packages such as PLplot (e.g. no RGB graphics).
+But it has many features that still make it popular in the scientific
+community.
+
+=item L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>
+
+B<Best for>: Plotting 2D functions as well as 2D and 3D data sets.
+
+This is an interface to the PLplot plotting library. PLplot
+is a modern, open source library for making scientific plots.
+It supports plots of both 2D and 3D data sets. PLplot is best
+supported for unix/linux/macosx platforms. It has an active
+developers community and support for win32 platforms is improving.
+
+=item L<PDL::Graphics::TriD|PDL::Graphics::TriD>
+
+B<Best for>: Plotting 3D functions.
+
+The native PDL 3D graphics library using OpenGL as a backend
+for 3D plots and data visualization. With OpenGL, it is easy
+to manipulate the resulting 3D objects with the mouse in real
+time.
+
+=back
+
+
+=head2 Writing GUIs
+
+Through Perl, PDL has access to all the major toolkits for creating
+a cross platform graphical user interface. One popular option is
+wxPerl (L<http://wxperl.sourceforge.net>). These are the Perl bindings
+for wxWidgets, a powerful GUI toolkit for writing cross-platform
+applications.
+
+wxWidgets is designed to make your application look and feel like
+a native application in every platform. For example, the Perl
+IDE B<Padre> is written with wxPerl.
+
+
+=head2 Simulink
+
+Simulink is a graphical dynamical system modeler and simulator. It
+can be purchased separately as an add-on to MATLAB.
+PDL and Perl do not have a direct equivalent to MATLAB's Simulink.
+If this feature is important to you, then take a look at B<Scilab>:
+
+L<http://www.scilab.org>
+
+Scilab is another numerical analysis software. Like PDL, it is free
+and open source. It doesn't have PDL's unique features, but it is
+very similar to MATLAB. Scilab comes with B<Xcos> (previously Scicos),
+a graphical system modeler and simulator similar to Simulink.
+
+
+=head1 COPYRIGHT
+
+Copyright 2010 Daniel Carrera <dcarrera@gmail.com>
+
+This document is free software. You can modify and distribute it under
+the terms of Perl itself.
+
+=over 5
+
+=item B<Acknowledgements>
+
+I'd like to thank David Mertens, Chris Marshall and Sigrid Carrera for
+their inmense help reviewing earlier drafts of this guide. Without their
+hours of work, this document would not be remotely as useful to MATLAB
+users as it is today.
+
+=back
+
