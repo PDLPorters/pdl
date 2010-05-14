@@ -14,7 +14,7 @@ This guide is a work in progress:
 
 Migration guide for MATLAB users.
 
-=item PDL::Migration::Scilab [PLANNED]
+=item L<PDL::Migration::Scilab|PDL::Migration::Scilab>  [COMPLETE]
 
 Migration guide for Scilab users.
 
