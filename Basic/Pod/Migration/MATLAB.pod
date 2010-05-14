@@ -459,7 +459,7 @@ as a 1D vector: A single dimension of size 4.
   >> size(A)                   perldl> p dims $A
   ans = 1 1 4                  1 1 4
 
-=item MATLAB has no syntax for N-D matrices.
+=item MATLAB has no dirext syntax for N-D arrays.
 
   perldl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
   perldl> p dims $A
