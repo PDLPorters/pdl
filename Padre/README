@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 13 May 2010 10:18:56 AM 
+Last saved: Fri 14 May 2010 12:04:39 AM
 
 ** This is experimental code so use at your own risk! **
 
@@ -136,3 +136,14 @@ Packages
  All expression results are printed by default so big
  piddle output can be a problem.  Work is underway to
  fix this.
+
+
+Missing Perldl Functionality
+
+ Startup listing of shell capabilities.
+  # Here is the way to interrogate which plugins have been loaded
+  # loop over all possible loadable plugins
+  foreach my $pl ( $_REPL->_plugin_locator->plugins ) {
+     # print names of ones that have been loaded
+     print "$pl\n" if $_REPL->does($pl);
+  }
