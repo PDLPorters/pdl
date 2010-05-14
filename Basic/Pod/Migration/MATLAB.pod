@@ -661,7 +661,7 @@ So, in the previous examples:
 =head2 Data structures
 
 To create complex data structures, MATLAB uses "I<cell arrays>" and
-"I<structure arrays>". Per'ls arrays and hashes offer similar functionality
+"I<structure arrays>". Perl's arrays and hashes offer similar functionality
 but are more powerful and flexible. This section is only a quick overview
 of what Perl has to offer. To learn more about this, please go to
 L<http://perldoc.perl.org/perldata.html> or run the command C<perldoc perldata>.
