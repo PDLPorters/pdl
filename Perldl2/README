@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Fri 14 May 2010 06:51:13 PM 
+Last saved: Sat 15 May 2010 01:36:02 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -26,7 +26,7 @@ FILES:
    This makes completion available for all platforms with
    Term::ReadLine::Perl, including win32.
 
- Devel-REPL-1.003009_01.tar.gz
+ Devel-REPL-1.003009_02.tar.gz
    A CPAN developers snapshot of the latest Devel::REPL git
    which includes fixes to Completion and ReadLineHistory
    plugins to support Term::ReadLine::Perl in addition to
@@ -67,7 +67,7 @@ INSTALL:
 
  The installation is manual at this time.  
 
- (1) First do a manual install of Devel-REPL-1.003009_01.tar.gz
+ (1) First do a manual install of Devel-REPL-1.003009_02.tar.gz
      to update your Devel::REPL install to work with win32.
 
  (2) Copy REPL.pm to the Devel/ directory of the Devel::REPL install
