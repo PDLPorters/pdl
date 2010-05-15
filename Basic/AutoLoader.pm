@@ -94,7 +94,7 @@ Probably has not been tested enough!
 =head1 SEE ALSO
 
 For an alternative approach to managing a personal collaction of 
-module and functions, see L<local::lib>.
+modules and functions, see L<local::lib>.
 
 =cut
 
@@ -122,7 +122,16 @@ sub PDL::AutoLoader::reloader {
    }
 }
 
+# Used for Beta, and should probably be used generall in this mod
+#use File::Spec;
+
 sub PDL::AutoLoader::import {
+
+	# Beta folder support
+#	foreach (@INC) {
+#		$Beta_dir = File::Spec->catfile($_, 'PDL', 'Beta');
+#		push @PDLLIB, "+$Beta_dir" if -d $Beta_dir;
+#	}
 
 my $pkg = (caller())[0];
 my $toeval = "package $pkg;\n";
