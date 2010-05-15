@@ -24,3 +24,11 @@ Migration guide for IDL users.
 
 =back
 
+
+=head1 COPYRIGHT
+
+Copyright 2010 Daniel Carrera (dcarrera@gmail.com). You can distribute and/or
+modify this document under the same terms as the current Perl license.
+
+See: http://dev.perl.org/licenses/
+

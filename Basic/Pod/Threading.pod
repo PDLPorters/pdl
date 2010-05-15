@@ -954,6 +954,8 @@ to grips with threading in PDL.
 
 Copyright 2010 Matthew Kenworthy (kenworthy@strw.leidenuniv.nl) and
 Daniel Carrera (dcarrera@gmail.com). You can distribute and/or modify this
-document under the terms of Perl itself. See: http://dev.perl.org/licenses/
+document under the same terms as the current Perl license.
+
+See: http://dev.perl.org/licenses/
 
 

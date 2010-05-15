@@ -497,3 +497,12 @@ distributions.
 
 =end questionable
 
+
+=head1 COPYRIGHT
+
+Copyright 2010 David Mertens (dcmertens.perl@gmail.com). You can
+distribute and/or modify this document under the same terms as the
+current Perl license.
+
+See: http://dev.perl.org/licenses/
+
