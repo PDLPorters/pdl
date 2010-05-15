@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 15 May 2010 01:36:02 PM
+Last saved: Sat 15 May 2010 02:51:56 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -42,11 +42,6 @@ FILES:
 
  README
    This file.
-
- REPL.pm
-   An update to Devel-REPL-1.003009_01 for REPL.pm that adds
-   a new exit_repl attribute to the REPL object to support
-   clean exits from the REPL without killing the perl.
 
  TieHash.pm
    A replacement for Term::ReadLine::Perl::Tie to give
