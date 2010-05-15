@@ -71,7 +71,7 @@ PDL program:
   $b = pdl [2,3,4];              # Statements end in semicolon.
   $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional piddle.
   
-  print $A x transpose $b;
+  print $A x $b->transpose;
 
 Save this file as C<myprogram.pl> and run it with:
 
@@ -336,7 +336,7 @@ previous section "B<MODULES FOR SCILAB USERS>" for more information.
 =item Transpose
 
  Scilab:    A'
- PerlDL:    transpose $A
+ PerlDL:    $A->transpose
 
 =back
 
@@ -384,11 +384,11 @@ works over the entire piddle.
    [1 5 4]
    [4 2 1]
   ]
-  perldl> p maximum $A
+  perldl> p $A->maximum
   [5 4]
-  perldl> p maximum transpose $A
+  perldl> p $A->transpose->maximum
   [4 5 4]
-  perldl> p max $A
+  perldl> p $A->max
   5
 
 =back
@@ -409,7 +409,7 @@ in Scilab that don't occur in PDL:
   Scilab                       PerlDL
   ------                       ------
   --> vector = [1,2,3,4];       perldl> $vector = pdl [1,2,3,4]
-  --> size(vector)              perldl> p dims $vector
+  --> size(vector)              perldl> p $vector->dims
   ans = 1 4                    4
 
 Scilab sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
@@ -420,7 +420,7 @@ as a 1D vector: A single dimension of size 4.
   Scilab                       PerlDL
   ------                       ------
   --> A = ones(4,1,1);          perldl> $A = ones 4,1,1
-  --> size(A)                   perldl> p dims $A
+  --> size(A)                   perldl> p $A->dims
   ans = 4 1                    4 1 1
 
 =item And Scilab treats a 4x1x1 matrix differently from a 1x1x4 matrix.
@@ -428,13 +428,13 @@ as a 1D vector: A single dimension of size 4.
   Scilab                       PerlDL
   ------                       ------
   --> A = ones(1,1,4);          perldl> $A = ones 1,1,4
-  --> size(A)                   perldl> p dims $A
+  --> size(A)                   perldl> p $A->dims
   ans = 1 1 4                  1 1 4
 
 =item Scilab has no direct syntax for N-D arrays.
 
   perldl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
-  perldl> p dims $A
+  perldl> p $A->dims
   3 2 2
 
 =item Feature support.

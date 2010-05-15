@@ -73,7 +73,7 @@ PDL program:
   $b = pdl [2,3,4];              # Statements end in semicolon.
   $A = pdl [ [1,2,3],[4,5,6] ];  # 2-dimensional matrix.
   
-  print $A x transpose $b;
+  print $A x $b->transpose;
 
 Save this file as C<myprogram.pl> and run it with:
 
@@ -345,7 +345,7 @@ previous section "B<MODULES FOR MATLAB USERS>" for more information.
 =item Transpose
 
  MATLAB:    A'
- PerlDL:    transpose $A
+ PerlDL:    $A->transpose
 
 =back
 
@@ -393,15 +393,15 @@ works over the entire piddle.
    [1 5 4]
    [4 2 1]
   ]
-  perldl> p maximum $A
+  perldl> p $A->maximum
   [5 4]
-  perldl> p maximum transpose $A
+  perldl> p $A->transpose->maximum
   [4 5 4]
-  perldl> p max $A
+  perldl> p $A->max
   5
-  perldl> p max ones 2,2,2
+  perldl> p ones(2,2,2)->max
   1
-  perldl> p max ones 2,2,2,2
+  perldl> p ones(2,2,2,2)->max
   1
 
 
@@ -415,8 +415,8 @@ Notice that PDL aggregates horizontally while MATLAB aggregates
 vertically. In other words:
 
   MATLAB              PerlDL
-  max(A)       ==     maximum transpose $A
-  max(A')      ==     maximum $A
+  max(A)       ==     $A->transpose->maximum
+  max(A')      ==     $A->maximum
 
 B<TIP>: In MATLAB you think "rows and columns". In PDL, think "x and y".
 
@@ -437,7 +437,7 @@ a few surprises in MATLAB that don't occur in PDL:
   MATLAB                       PerlDL
   ------                       ------
   >> vector = [1,2,3,4];       perldl> $vector = pdl [1,2,3,4]
-  >> size(vector)              perldl> p dims $vector
+  >> size(vector)              perldl> p $vector->dims
   ans = 1 4                    4
 
 MATLAB sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
@@ -448,7 +448,7 @@ as a 1D vector: A single dimension of size 4.
   MATLAB                       PerlDL
   ------                       ------
   >> A = ones(4,1,1);          perldl> $A = ones 4,1,1
-  >> size(A)                   perldl> p dims $A
+  >> size(A)                   perldl> p $A->dims
   ans = 4 1                    4 1 1
 
 =item And MATLAB treats a 4x1x1 matrix differently from a 1x1x4 matrix.
@@ -456,13 +456,13 @@ as a 1D vector: A single dimension of size 4.
   MATLAB                       PerlDL
   ------                       ------
   >> A = ones(1,1,4);          perldl> $A = ones 1,1,4
-  >> size(A)                   perldl> p dims $A
+  >> size(A)                   perldl> p $A->dims
   ans = 1 1 4                  1 1 4
 
 =item MATLAB has no direct syntax for N-D arrays.
 
   perldl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
-  perldl> p dims $A
+  perldl> p $A->dims
   3 2 2
 
 =item Feature support.
