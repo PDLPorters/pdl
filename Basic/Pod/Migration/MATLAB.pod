@@ -850,10 +850,10 @@ a graphical system modeler and simulator similar to Simulink.
 
 =head1 COPYRIGHT
 
-Copyright 2010 Daniel Carrera <dcarrera@gmail.com>
+Copyright 2010 Daniel Carrera (dcarrera@gmail.com). You can distribute and/or
+modify this document under the same terms as the current Perl license.
 
-This document is free software. You can modify and distribute it under
-the terms of Perl itself.
+See: http://dev.perl.org/licenses/
 
 =over 5
 
