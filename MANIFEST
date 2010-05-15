@@ -632,13 +632,13 @@ Lib/Transform/transform.pd
 MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
-Padre/Completion.pm
-Padre/NiceSlice.pm
-Padre/Perldl2.pm
-Padre/README
-Padre/ReadLineHistory.pm
-Padre/TieHash.pm
-Padre/pdlrun
+Perldl2/Completion.pm
+Perldl2/NiceSlice.pm
+Perldl2/Perldl2.pm
+Perldl2/README
+Perldl2/ReadLineHistory.pm
+Perldl2/TieHash.pm
+Perldl2/pdlrun
 README
 Release_Notes
 TODO
