@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 14 May 2010 03:01:22 PM 
+# Last saved: Sun 16 May 2010 02:54:55 PM
 #
 
 use Moose;
@@ -23,6 +23,7 @@ sub plugins {
       MultiLine::PPI
       NiceSlice
       Packages
+      PrintControl
       ReadLineHistory
    );
 }
@@ -48,6 +49,7 @@ sub apply_profile {
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
    $repl->eval('no strict qw(vars)');
+   $repl->eval('sub p { print @_, "\n" };');
 
    if ($repl->can('exit_repl')) {
       $repl->eval('sub quit { $_REPL->exit_repl(1) };');
@@ -67,9 +69,15 @@ sub apply_profile {
       $repl->print("******************************************\n");
       $repl->print("\n");
    }
-   $repl->print("PDL shell version 2\n");
-   $repl->print(" Type Ctrl-D or quit or exit to quit\n");
-   $repl->print("\n");
+
+   $repl->print("perlDL shell v2.000
+ PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+ 'COPYING' in the PDL distribution. This is free software and you
+ are welcome to redistribute it under certain conditions, see
+ the same file for details.");
+   $repl->print("Type 'help' for online help");
+   $repl->print("Type Ctrl-D or quit to exit");
+   $repl->print("Loaded PDL v$PDL::VERSION");
 }
 
 1;
