@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 15 May 2010 02:51:56 PM
+Last saved: Sun 16 May 2010 03:30:23 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -18,13 +18,10 @@ A description of the files included and how to
 install and use them follows.
 
 
-FILES:
+KEY FILES:
 
- Completion.pm
-   Replacement for Devel::REPL::Plugin::Completion to support
-   Term::ReadLine::Perl in addition to Term::ReadLine::Gnu.
-   This makes completion available for all platforms with
-   Term::ReadLine::Perl, including win32.
+ README
+   This file.
 
  Devel-REPL-1.003009_02.tar.gz
    A CPAN developers snapshot of the latest Devel::REPL git
@@ -33,15 +30,33 @@ FILES:
    Term::ReadLine::Gnu.  Completion and ReadLine history now
    work on win32!
 
+ Completion.pm
+   Replacement for Devel::REPL::Plugin::Completion to support
+   Term::ReadLine::Perl in addition to Term::ReadLine::Gnu.
+   This makes completion available for all platforms with
+   Term::ReadLine::Perl, including win32.
+
  NiceSlice.pm
    Implements PDL::NiceSlice preprocessing for the Devel::REPL
    shell (i.e. Devel::REPL::Plugin::NiceSlice) for perldl2.
 
+ PrintControl.pm
+   Implements perldl version 1.x style interactive output:
+   don't print output by default, I'll use print or p when
+   I want to see something...
+
+ pdl2
+ pdl2.bat
+   These are a perl script and a win32 batch script for
+   starting the Perldl2 shell.  If these files are
+   executable and in your path, it should start up
+   a new Perldl2 session. (NEW and relatively UNTESTED)
+
  Perldl2.pm
    The perldl2 profile for use with the Devel::REPL shell.
 
- README
-   This file.
+
+OTHER FILES (for reference only):
 
  TieHash.pm
    A replacement for Term::ReadLine::Perl::Tie to give
@@ -62,10 +77,15 @@ INSTALL:
 
  The installation is manual at this time.  
 
- (1) First do a manual install of Devel-REPL-1.003009_02.tar.gz
-     to update your Devel::REPL install to work with win32.
+ (1) First do a manual install from the included Devel::REPL
+     tarball, Devel-REPL-1.003009_02.tar.gz, which should
+     update your Devel::REPL to the version with PDL support.
 
- (2) Copy REPL.pm to the Devel/ directory of the Devel::REPL install
+ (2) Copy NiceSlice.pm and PrintControl.pm to the
+     Devel/REPL/Plugin directory where your Devel::REPL
+     is/was installed.
+
+     The location should be in the log from step #1 above.
 
  (3) Copy Perldl2.pm to the Devel/REPL/Profile directory of
      your Devel::REPL install
@@ -75,6 +95,12 @@ USE:
 
  To use the experimental perldl2 shell, run the
  following command from the shell prompt:
+
+   pdl2   # this is file pdl2     on unixen
+   pdl2   # this is file pdl2.bat on win32
+
+ If these do not work, you should be able to call the
+ shell directly as
 
    re.pl --profile Perldl2   # for unix/linux/mac os x
    re    --profile Perldl2   # for win32 systems
@@ -104,7 +130,7 @@ NOTES:
   * Packages (keeps track of current user package)
   * ReadLineHistory
     * save and restore command history to file
-    * currently defaults to ~/.perlreplhist
+    * NOTE: defaults to ~/.perlreplhist
   * CompletionDrivers
     * Globals  (completion for globals) 
     * INC      (completion for use module::name)
@@ -135,14 +161,25 @@ Packages
  * ? and ?? aliases don't work (use help or apropos words)
  * you need to quote the arguments (e.g.,  help 'sumover')
 
- All expression results are printed by default so big
- piddle output can be a problem.  Work is underway to
- fix this.
+ p as an alias for print is defined
+
+ NOTE: The history file is currently named $HOME/.perlreplhist
+ and the startup file used is $HOME/.re.pl/repl.rc but as full
+ back compatibility for the startup and historyfiles is not
+ complete, this is mainly for your information.
+
+ The Perldl2 shell should be able to read a history file from
+ perldl 1.x if you copy it to a file of the correct name.  Let
+ me know how that works for you.
 
 
-Missing Perldl Functionality
+Notes on Missing Perldl Functionality
 
- Add Perldl2 VERSION information (can this be in a Profile?)
+ Add support for .pdlrc, .perldrc to startup of REPL.
+
+ Add support for local.pdlrc, local.perldlrc similarly.
+
+ Add Perldl2 VERSION information
 
  Implement PDL shell startup boot messages, i.e.,
   perlDL shell v1.352
@@ -234,10 +271,6 @@ Missing Perldl Functionality
  Term::ReadLine::Gnu.  Need to figure out a clean way to
  map this into the original modules.
 
- Add support for .pdlrc, .perldrc to startup of REPL.
-
- Add support for local.pdlrc, local.perldlrc similarly.
-
  Implement support for @PERLDL::PREPROCESS filters.  No
  support for deprecated implementation with $PERLDL::PREPROCESS.
 
@@ -260,3 +293,4 @@ Missing Perldl Functionality
 
  Add documentation for the startup file for unix-en and win32
  systems.  Right now, the only doc is in the code.
+

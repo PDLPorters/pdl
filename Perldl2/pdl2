@@ -1,0 +1,5 @@
+#!/usr/bin/env perl
+
+BEGIN { $ENV{DEVEL_REPL_PROFILE} = 'Perldl2'; }
+
+use Devel::REPL::Script 'run';
