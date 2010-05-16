@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 16 May 2010 02:54:55 PM
+# Last saved: Sun 16 May 2010 06:33:38 PM
 #
 
 use Moose;
@@ -74,10 +74,10 @@ sub apply_profile {
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
  'COPYING' in the PDL distribution. This is free software and you
  are welcome to redistribute it under certain conditions, see
- the same file for details.");
-   $repl->print("Type 'help' for online help");
-   $repl->print("Type Ctrl-D or quit to exit");
-   $repl->print("Loaded PDL v$PDL::VERSION");
+ the same file for details.\n");
+   $repl->print("Type 'help' for online help\n");
+   $repl->print("Type Ctrl-D or quit to exit\n");
+   $repl->print("Loaded PDL v$PDL::VERSION\n");
 }
 
 1;
