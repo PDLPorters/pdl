@@ -409,11 +409,13 @@ L<Inline>
 This manpage is still under development.
 Feedback and corrections are welcome.
 
+
 =head1 COPYRIGHT
 
-Copyright (c) 2001, Christian Soeller. All Rights Reserved.
-This module is free software. It may be used, redistributed
-and/or modified under the same terms as PDL itself
-(see L<http://pdl.perl.org>).
+Copyright 2010 Christian Soeller (c.soeller@auckland.ac.nz).
+You can distribute and/or modify this document under the same
+terms as the current Perl license.
+
+See: http://dev.perl.org/licenses/
 
 =cut
