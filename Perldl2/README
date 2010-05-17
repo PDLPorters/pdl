@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 17 May 2010 06:25:19 AM
+Last saved: Mon 17 May 2010 08:59:40 AM 
 
 ** Experimental code so use at your own risk! **
 
@@ -300,3 +300,6 @@ Notes on Missing Perldl Functionality
  Add documentation for the startup file for unix-en and win32
  systems.  Right now, the only doc is in the code.
 
+ Make Perldl2 fail/degrade gracefully if various files and
+ configuration stuff is not available.  Lines and lines of
+ backtrace isn't a help to anyone!
