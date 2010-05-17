@@ -765,7 +765,7 @@ command C<perldoc Benchmark>.
 
 B<Level>: Advanced
 
-PDL's Pre-Processor is one of PDL's most interesting features. You
+PDL's Pre-Processor is one of PDL's most powerful features. You
 write a function definition in special markup and the pre-processor
 generates real C code which is automatically compiled. With PDL:PP
 you get the full speed of native C code without having to deal with
@@ -777,7 +777,7 @@ the full complexity of the C language.
 
 =head2 Plotting
 
-PDL has powerful plotting abilities. Unlike MATLAB, PDL relies more on
+PDL has full-featured plotting abilities. Unlike MATLAB, PDL relies more on
 third-party libraries (pgplot and PLplot) for its 2D plotting features.
 Its 3D plotting and graphics uses OpenGL for performance and portability.
 PDL has three main plotting modules:
