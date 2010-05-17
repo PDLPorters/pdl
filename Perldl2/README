@@ -1,21 +1,25 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 16 May 2010 10:45:55 PM
+Last saved: Mon 17 May 2010 06:25:19 AM
 
-** This is experimental code so use at your own risk! **
+** Experimental code so use at your own risk! **
+
+OS/Platforms supported: ALL
 
 This directory contains on-going development
 efforts for getting PDL to work with Padre.
-We are starting with implementing a new,
-improved perldl shell (e.g. perldl2) using
-Devel::REPL as the starting point. Since that same
-Devel::REPL is the basis of the Padre REPL module,
-Padre::Plugin::REPL, it is hoped that this will
-simplify future Padre+PDL development.
+
+We are starting with implementing a new, improved
+perldl shell (e.g. perldl2) using Devel::REPL as the
+starting point. Since that same Devel::REPL is the
+basis of the Padre REPL module, Padre::Plugin::REPL,
+it is hoped that this will simplify future
+Padre+PDL development.
 
 You will need to install the version 1.3.9_01+ of
 Devel::REPL in addition to PDL to use this code.
 A description of the files included and how to
 install and use them follows.
+
 
 
 KEY FILES:
@@ -56,7 +60,7 @@ KEY FILES:
    The perldl2 profile for use with the Devel::REPL shell.
 
 
-OTHER FILES (for reference only):
+OTHER FILES (for reference info only):
 
  TieHash.pm
    A replacement for Term::ReadLine::Perl::Tie to give
