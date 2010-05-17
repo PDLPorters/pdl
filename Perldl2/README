@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 16 May 2010 03:30:23 PM
+Last saved: Sun 16 May 2010 10:45:55 PM
 
 ** This is experimental code so use at your own risk! **
 
@@ -176,10 +176,9 @@ Packages
 Notes on Missing Perldl Functionality
 
  Add support for .pdlrc, .perldrc to startup of REPL.
-
  Add support for local.pdlrc, local.perldlrc similarly.
 
- Add Perldl2 VERSION information
+ Add Perldl2 VERSION variable and display information
 
  Implement PDL shell startup boot messages, i.e.,
   perlDL shell v1.352
@@ -226,6 +225,9 @@ Notes on Missing Perldl Functionality
  Support ? and ?? as aliases for help and apropos
   s/^\s*\?\?\s*/apropos/
   s/^\s*\?\s*/help/
+
+ Skip command lines that are too short and don't put quit/q/x/exit
+ in the history log.  Maybe remove dup entries.
 
  Make available $PERLDL::XX parameters.  These should, ideally,
  be instance variables so that multiple shells could have
