@@ -735,7 +735,7 @@ B<Level>: Advanced
 
 PDL's Pre-Processor is one of PDL's most powerful features. You
 write a function definition in special markup and the pre-processor
-generates real C code which is automatically compiled. With PDL:PP
+generates real C code which can be compiled. With PDL:PP
 you get the full speed of native C code without having to deal with
 the full complexity of the C language.
 
