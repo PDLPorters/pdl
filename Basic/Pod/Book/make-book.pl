@@ -116,7 +116,7 @@ sub mkChapter {
 	my $out_file= fileparse($in_file, qr/\.[^.]*/) . ".html";
 	
 	$parser = new Pod::Xhtml( StringMode => 1 );
-	$parser->parse_from_file( $chapter->{file}, $out_file );
+	$parser->parse_from_file( $chapter->{file}, "$OutDir/$out_file" );
 	
 	$xhtml = $parser->asString;
 	$xhtml =~ s|</head>|    $CssTag\n</head>|;
