@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Threading - Tutorial for PDL's Threading feature
+PDL::Book::Threading - Tutorial for PDL's Threading feature
 
 =head1 INTRODUCTION
 
