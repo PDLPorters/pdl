@@ -53,43 +53,43 @@ my $data = sequence(short, 500, 5);
 # TEST 1:
 #Put data in file as 'myData' dataset
 #with the names of dimensions ('dim1' and 'dim2')
-ok( $SDobj->SDput("myData", $data , ['dim1','dim2']) );
+ok( $SDobj->SDput("myData", $data , ['dim1','dim2']), 'SDput()' );
 
 # TEST 2:
 #Put some local attributs in 'myData'
 #Set the fill value as 0
-ok( $SDobj->SDsetfillvalue("myData", 0) );
+ok( $SDobj->SDsetfillvalue("myData", 0), 'SDsetfillvalue()' );
 
 # TEST 3:
 #Set the valid range from 0 to 2000
-ok( $SDobj->SDsetrange("myData", [0, 2000]) );
+ok( $SDobj->SDsetrange("myData", [0, 2000]), 'SDsetrange()' );
 
 # TEST 4:
 #Set the default calibration for 'myData' (scale factor = 1, other = 0)
-ok( $SDobj->SDsetcal("myData") );
+ok( $SDobj->SDsetcal("myData"), 'SDsetcal()' );
 
 # TEST 5:
 #Set a global text attribut
-ok( $SDobj->SDsettextattr('This is a global text test!!', "myGText" ) );
+ok( $SDobj->SDsettextattr('This is a global text test!!', "myGText" ), 'SDsettextattr() (global)' );
 
 # TEST 6:
 #Set a local text attribut for 'myData'
-ok( $SDobj->SDsettextattr('This is a local text testl!!', "myLText", "myData" ) );
+ok( $SDobj->SDsettextattr('This is a local text testl!!', "myLText", "myData" ), 'SDsettextattr() (local)' );
 
 # TEST 7:
 #Set a global value attribut (you can put all values you want)
-ok( $SDobj->SDsetvalueattr( PDL::short( 20 ), "myGValue") );
+ok( $SDobj->SDsetvalueattr( PDL::short( 20 ), "myGValue"), 'SDSetvalueattr() (global)' );
 
 # TEST 8:
 #Set a local value attribut (you can put all values you want)
-ok( $SDobj->SDsetvalueattr( PDL::long( [20, 15, 36] ), "myLValues", "myData" ) );
+ok( $SDobj->SDsetvalueattr( PDL::long( [20, 15, 36] ), "myLValues", "myData" ), 'SDSetvalueattr() (local)' );
 
 #Close the file
 $SDobj->close;
 
 # TEST 9:
 # Test Hishdf:
-ok( PDL::IO::HDF::SD::Hishdf( $testfile ) );
+ok( PDL::IO::HDF::SD::Hishdf( $testfile ), 'Hishdf()' );
     
 ### Reading from a HDF file
 
@@ -99,45 +99,45 @@ my $SDobj2 = PDL::IO::HDF::SD->new( $testfile );
 # TEST 10:
 #Get a list of all datasets
 my @dataset_list = $SDobj2->SDgetvariablenames();
-ok( $#dataset_list+1 );
+ok( $#dataset_list+1, 'SDgetvariablenames()' );
 
 # TEST 11:
 #Get a list of all global attributes name
 my @globattr_list = $SDobj2->SDgetattributenames();
-ok( $#globattr_list+1 );
+ok( $#globattr_list+1, 'SDgetattributenames() (global)' );
 
 # TEST 12:
 #Get a list of local attributes name for a dataset
 my @locattr_list = $SDobj2->SDgetattributenames( "myData" );
 #print "\@locattr_list = " . join(", ", @locattr_list ) . "\n";
-ok( $#locattr_list+1 );
+ok( $#locattr_list+1, 'SDgetattributenames() (local)' );
 
 # TEST 13:
 #Get the value of local attribute for a dataset
 my $value = $SDobj2->SDgetattribute( "myLText", "myData" );
-ok( defined($value) );
+ok( defined($value), 'SDgetattribute() (local)' );
 
 # TEST 14:
 #Get the all dataset 'myData'
 $data = $SDobj2->SDget("myData");
-ok( $data->nelem() > 0 );
+ok( $data->nelem() > 0, 'SDget()' );
 #print "info : ".$data->info."\n";
 
 # TEST 15:
 #Apply the scale factor of 'myData'
 my $res = $SDobj2->SDgetscalefactor("myData");
-ok( defined($res) );
+ok( defined($res), 'SDgetscalefactor()' );
 
 # TEST 16:
 #Get the fill value
 #The fill value corresponding to the BAD value in pdl
 $res = $SDobj2->SDgetfillvalue("myData");
-ok( defined($res) );
+ok( defined($res), 'SDgetfillvalue()' );
 
 # TEST 17:
 #Get the valid range of datas
 my @range = $SDobj2->SDgetrange("myData");
-ok( $#range+1 );
+ok( $#range+1, 'SDgetrange()' );
 
 #print Data::Dumper->Dump([$SDobj2],[qw(SDobj2)]);
  
@@ -155,18 +155,18 @@ my $HDFobj = PDL::IO::HDF::SD->new("-$testfile");
 $data = ones( short, 5000, 5);
 #Put data in file as 'myData' dataset
 #with the names of dimensions ('dim1' and 'dim2')
-ok( $HDFobj->SDput("myData", $data , ['dim1','dim2']) );
+ok( $HDFobj->SDput("myData", $data , ['dim1','dim2']), 'SDput()' );
 
 # TEST 19:
 # Compress the SD dataset
 # No longer necessary with chunking on by default:
 #$res = $HDFobj->SDsetcompress("myData", 5);
-ok( 1 );
+ok( 1, 'Compress SD dataset (obsolete)' );
 
 # TEST 20:
 $HDFobj->SDput("myData", $data , ['dim1','dim2']);
 $data = $HDFobj->SDget("myData");
-ok( $data->nelem() );
+ok( $data->nelem(), 'SDget()' );
 
 $HDFobj->close();
 
@@ -177,14 +177,14 @@ my $hdf = PDL::IO::HDF::SD->new( "-$testfile" );
 
 # TEST 21:
 # Make sure chunking is on by default:
-ok( $hdf->Chunking() );
+ok( $hdf->Chunking(), 'Chunking()' );
 
 # Turn off chunking:
 $hdf->Chunking(0);
 
 # TEST 22:
 # Make sure it's really off:
-ok( !$hdf->Chunking() );
+ok( !$hdf->Chunking(), 'Chunking(0)' );
 
 # Write out a normal dataset:
 my $dataset = sequence( byte, 10, 10 );
@@ -192,7 +192,7 @@ $res = $hdf->SDput( "NO_CHUNK", $dataset );
 
 # TEST 23:
 # Make sure we can write unchunked SDs:
-ok( $res );
+ok( $res, 'SDput() (unchunked)' );
 
 $hdf->close();
 undef($hdf);
@@ -203,11 +203,11 @@ $hdf = PDL::IO::HDF::SD->new( $testfile );
 
 my $dataset_test = $hdf->SDget( "NO_CHUNK" );
 my $good = ($dataset_test->nelem() > 0) ? 1 : 0;
-ok( $good );
+ok( $good, 'SDget() (unchunked)' );
 my $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset, $dataset_test ) );
+    ok( tapprox( $dataset, $dataset_test ), 'comparing datasets written out and read in (unchunked)' );
 }
 
 $hdf->close();
@@ -222,13 +222,13 @@ my $dataset2d = sequence( long, 200, 200 );
 # TEST 26:
 # Make sure the chunked write works:
 $res = $hdf->SDput( "CHUNK_2D", $dataset2d );
-ok( $res );
+ok( $res, 'SDput() (chunked, 2D)' );
 
 # TEST 27:
 # Make sure it works with more than 2 dims:
 my $dataset3d = sequence( long, 200, 200, 10 );
 $res = $hdf->SDput( "CHUNK_3D", $dataset3d );
-ok( $res );
+ok( $res, 'SDput() (chunked, 3D)');
 
 $hdf->close();
 undef($hdf);
@@ -239,21 +239,21 @@ $hdf = PDL::IO::HDF::SD->new( $testfile );
 # TEST 28 & 29:
 my $dataset2d_test = $hdf->SDget( "CHUNK_2D" );
 $good = $dataset2d_test->nelem() > 0;
-ok( $good );
+ok( $good, 'SDget() (chunked, 2D)' );
 $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset2d, $dataset2d_test ) );
+    ok( tapprox( $dataset2d, $dataset2d_test ), 'comparing datasets written out and read in (chunked, 2D)' );
 }
 
 # TEST 30 & 31:
 my $dataset3d_test = $hdf->SDget( "CHUNK_3D" );
 $good = $dataset3d_test->nelem() > 0;
-ok( $good );
+ok( $good, 'SDget() (chunked, 3D)' );
 $do_skip = $good ? '' : 'Skip if failed previous test!';
 SKIP: {
     skip( "Previous test failed!", 1 ) if $do_skip;
-    ok( tapprox( $dataset3d, $dataset3d_test ) );
+    ok( tapprox( $dataset3d, $dataset3d_test ), 'comparing datasets written out and read in (chunked, 3D)' );
 }
 
 $hdf->close();
