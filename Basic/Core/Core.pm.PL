@@ -2652,6 +2652,10 @@ The output piddle is set bad if any input piddles have their bad flag set.
 } # if: $bvalflag
 
 print OUT <<'!NO!SUBS!';
+
+Similar functions include L<append|PDL::Primitive/append> and
+L<glue|PDL::Primitive/glue>.
+
 =cut
 
 sub PDL::cat {
