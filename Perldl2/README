@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 18 May 2010 02:21:30 PM 
+Last saved: Tue 18 May 2010 10:07:27 PM
 
 
 ** New code so use at your own risk! **
@@ -39,9 +39,9 @@ FILES:
    shell (i.e. Devel::REPL::Plugin::NiceSlice) for Perldl2.
 
  PrintControl.pm
-   Implements perldl version 1.x style interactive output:
-   i.e., don't print output by default, I'll use print or p
-   when I want to see something...
+   Implements perldl style interactive output: i.e., don't
+   print output by default.  $_REPL->do_print(1) to enable
+   default printing.  $_REPL->do_print(0) to disable again.
 
  pdl2
  pdl2.bat
@@ -238,8 +238,9 @@ Notes on Missing Perldl Functionality
  Implement support for @PERLDL::PREPROCESS filters.  No
  support for deprecated implementation with $PERLDL::PREPROCESS.
 
- Add ability to toggle print output from REPL loop to support
- either PDL mode or MATLAB style "always print" flavor.
+ Add documentation to Perldl2 plugins and profiles and improve
+ the usage for PrintControl so one doesn't have to explicitly
+ type in the $_REPL->do_print($val) command.
 
  Update perldl documentation to match Perldl2 capabilities.
  Any way to transparently select the correct docs at runtime?
