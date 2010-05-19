@@ -1,16 +1,16 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 18 May 2010 10:28:41 PM
+Last saved: Wed 19 May 2010 01:30:58 PM 
 
 
 ** New code so use at your own risk! **
 
 This directory contains on-going development
 efforts for getting PDL to work with Padre starting
-with a new, improved perldl shell (e.g. Perldl2)
+with a new, improved perldl shell (i.e., Perldl2)
 using Devel::REPL as the starting point to simplify
 future PDL+Padre development.
 
-You will need to install the version 1.3.9_01+ of
+You will need to install the version 1.3.9_02+ of
 Devel::REPL in order to use Perldl2.  A description
 of the files included and how to install and use
 them follows.
@@ -93,8 +93,8 @@ NOTES:
  Supported functionality from Devel::REPL and PDL:
   * Commands (generic command creation)
   * DDS (pretty prints output using Data::Dump::Streamer)
-  * History (redo commands with !-1 and !## syntax)
-  * Interrupt (interrupts with Ctrl-C; not on MSWin32)
+  * History (redo commands with !-1 and !<num> syntax)
+  * Interrupt (interrupt with Ctrl-C; not on MSWin32)
   * LexEnv (e.g., my $a = zeros(10) works)
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
@@ -132,7 +132,7 @@ Packages
  * ? and ?? aliases don't work (use help or apropos words)
  * you need to quote the arguments (e.g.,  help 'sumover')
 
- p as an alias for print is defined
+ p is an alias for print.
 
  NOTE: The history file name is $HOME/.perlreplhist and
  the startup file used is $HOME/.re.pl/repl.rc but as full
@@ -141,21 +141,21 @@ Packages
 
  The Perldl2 shell should be able to read a history file
  from perldl 1.x if you copy it to a file of the correct name.
- Let me know how that works for you.
+ Let me know how that works for you (UNTESTED).
 
 
-Notes on Missing Perldl Functionality
+Notes on Missing Perldl Functionality TBD
 
- Use either perldl or perldl2 when starting the PDL shell
+ Use either perldl or Perldl2 when starting the PDL shell
  based on the value of WITH_DEVEL_REPL in perld.conf
 
- Add autoprobe for Devel::REPL for perl Makefile.PL config
+ Add autoprobe for Devel::REPL in perl Makefile.PL config
 
  Add support for .pdlrc, .perldrc to startup of REPL.
 
  Add support for local.pdlrc, local.perldlrc similarly.
 
- Add documentation for the startup file for unix-en and win32
+ Add documentation for the startup files for unix-en and win32
  systems.  Right now, the only doc is in the code.
 
  Support for q, x, exit to exit the REPL shell.
@@ -246,9 +246,10 @@ Notes on Missing Perldl Functionality
  possible to implement some tests of the interactive shell
  from file input.
 
- Fix the wierd differences between new line handling for
+ Fix the newline differences between new line handling for
  TR::Perl (on win32 and cygwin and unix) and TR::Gnu (on
- cygwin and unix).
+ cygwin and unix).  TR::Gnu seems to have an extra newline
+ inserted per command.
 
  Add MultiLine prompt with continuation character marking
  the open structures. (e.g. MultiLine::TextBalanced)

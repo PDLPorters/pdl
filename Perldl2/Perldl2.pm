@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Tue 18 May 2010 10:26:47 PM
+# Last saved: Wed 19 May 2010 01:32:02 PM 
 #
 
 use Moose;
@@ -39,7 +39,7 @@ sub apply_profile {
    }
 
    # do perldl stuff here
-   # $repl->eval('package main');
+   $repl->eval('package main');
    $repl->eval('use PDL');
    $repl->eval('use PDL::Dbg');
    $repl->eval('use PDL::Doc::Perldl');
@@ -48,6 +48,7 @@ sub apply_profile {
    $repl->eval('use PDL::IO::Pic');
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
+   $repl->eval('no strict qw(vars)');
    $repl->eval('sub p { local $, = " "; print @_, "\n" };');
 
    if ($repl->can('exit_repl')) {
