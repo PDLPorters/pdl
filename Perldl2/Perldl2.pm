@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Tue 18 May 2010 01:58:03 PM 
+# Last saved: Tue 18 May 2010 10:26:47 PM
 #
 
 use Moose;
@@ -74,6 +74,20 @@ sub apply_profile {
  'COPYING' in the PDL distribution. This is free software and you
  are welcome to redistribute it under certain conditions, see
  the same file for details.\n");
+
+   $repl->print("Loaded plugins:\n");
+   {
+      my @plugins = ();
+      foreach my $pl ( $repl->_plugin_locator->plugins ) {
+         # print names of ones that have been loaded
+         my $plug = $pl;
+         $plug =~ s/Devel::REPL::Plugin::/  /;
+         push @plugins, $plug if $repl->does($pl);
+      }
+      $repl->print(join "\n", sort(@plugins));
+      $repl->print("\n");
+   }
+           
    $repl->print("Type 'help' for online help\n");
    $repl->print("Type Ctrl-D or quit to exit\n");
    $repl->print("Loaded PDL v$PDL::VERSION\n");

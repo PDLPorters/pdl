@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 18 May 2010 10:07:27 PM
+Last saved: Tue 18 May 2010 10:28:41 PM
 
 
 ** New code so use at your own risk! **
@@ -172,14 +172,6 @@ Notes on Missing Perldl Functionality
   * command completion
 
  Add Perldl2 VERSION variable and display information
-
- Startup listing of shell capabilities.
-  # Here is the way to interrogate which plugins have been loaded
-  # loop over all possible loadable plugins
-  foreach my $pl ( $_REPL->_plugin_locator->plugins ) {
-     # print names of ones that have been loaded
-     print "$pl\n" if $_REPL->does($pl);
-  }
 
  Implement PDL shell startup boot messages, i.e.,
    perlDL shell v1.352
