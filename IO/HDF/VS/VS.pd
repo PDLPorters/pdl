@@ -2,7 +2,7 @@ pp_addpm({At => Top}, <<'EOD');
 
 =head1 NAME 
 
-PDL::IO::HDF - An interface librairie for HDF file.
+PDL::IO::HDF - An interface library for HDF4 files.
 
 =head1 SYNOPSIS
 
@@ -14,11 +14,14 @@ PDL::IO::HDF - An interface librairie for HDF file.
 =head1 DESCRIPTION
 
 This librairy provide functions to manipulate
-HDF files with VS and V interface (reading, writting, ...)
+HDF4 files with VS and V interface (reading, writting, ...)
 
-For more infomation on HDF, see http://hdf.ncsa.uiuc.edu/
+For more infomation on HDF4, see http://www.hdfgroup.org/products/hdf4/
+
+=head1 FUNCTIONS
 
 =cut
+
 EOD
 
 
@@ -334,6 +337,7 @@ sub _pkg_name
     my $hdf = PDL::IO::HDF::VS->new("file.hdf");
 
 =cut
+
 sub new
 {
     # general
@@ -583,6 +587,7 @@ sub Vcreate
     my $result = $hdf->close();
 
 =cut
+
 sub close 
 {
     my $self = shift;
