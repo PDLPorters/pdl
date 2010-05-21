@@ -1,7 +1,7 @@
 package Devel::REPL::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Wed 19 May 2010 01:32:02 PM 
+# Last saved: Fri 21 May 2010 05:54:11 PM 
 #
 
 use Moose;
@@ -95,3 +95,68 @@ sub apply_profile {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
+
+=head1 SYNOPSIS
+
+    system> re.pl --profile=Perldl2     # unixen shell
+    system> re --profile=Perldl2        # win32 CMD shell
+
+    perlDL shell v2.000
+    PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+    'COPYING' in the PDL distribution. This is free software and you
+    are welcome to redistribute it under certain conditions, see
+    the same file for details.
+
+    Loaded plugins:
+
+      Commands
+      Completion
+      CompletionDriver::Globals
+      CompletionDriver::INC
+      CompletionDriver::Keywords
+      CompletionDriver::LexEnv
+      CompletionDriver::Methods
+      DDS
+      FindVariable
+      History
+      Interrupt
+      LexEnv
+      MultiLine::PPI
+      NiceSlice
+      Packages
+      PrintControl
+      ReadLineHistory
+    Type 'help' for online help
+    Type Ctrl-D or quit to exit
+    Loaded PDL v2.4.6_007
+    PDL> 
+
+
+=head1 DESCRIPTION
+
+This profile is for development of the new PDL shell version 2.
+After development is complete, the C<Devel::REPL> implementation
+will be folded into a script to start the shell directly.
+
+=head1 SEE ALSO
+
+C<Devel::REPL>, C<Devel::REPL::Profile>, and C<PDL::Perldl>.
+
+=head1 AUTHOR
+
+Chris Marshall, C<< <chm at cpan dot org> >>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2010 by Christopher Marshall
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut

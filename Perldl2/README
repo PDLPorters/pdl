@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Wed 19 May 2010 01:30:58 PM 
+Last saved: Fri 21 May 2010 06:05:34 PM 
 
 
 ** New code so use at your own risk! **
@@ -266,7 +266,7 @@ Notes on Missing Perldl Functionality TBD
   trans
   notrans
 
- Implement ^D to end PPI multiline if it makes sense.
+ Implement ^C/^D to end PPI multiline if it makes sense.
 
 
 OTHER FILES (for reference info only):
@@ -285,4 +285,5 @@ OTHER FILES (for reference info only):
    in the progress.  Porting work here has stopped now that
    Term::ReadLine::Perl support is available on win32.
 
-
+ pod-plate
+   A POD and copyright template for the Perldl2 modules.
