@@ -62,8 +62,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_005 release:
+  PDL-2.4.6_007 release:
 
+  2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
   2946119    TriD garbled axis text
   2901814    Arrow keys don't work in perldl on win32 console

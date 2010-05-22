@@ -632,13 +632,13 @@ Lib/Transform/transform.pd
 MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
-Perldl2/Completion.pm
+Perldl2/Devel-REPL-1.003009_02.tar.gz
 Perldl2/NiceSlice.pm
 Perldl2/Perldl2.pm
+Perldl2/PrintControl.pm
 Perldl2/README
-Perldl2/ReadLineHistory.pm
-Perldl2/TieHash.pm
-Perldl2/pdlrun
+Perldl2/pdl2
+Perldl2/pdl2.bat
 README
 Release_Notes
 TODO
