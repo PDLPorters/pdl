@@ -1,19 +1,15 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Fri 21 May 2010 06:05:34 PM 
+Last saved: Sun 23 May 2010 12:05:23 PM
 
 
-** New code so use at your own risk! **
+This directory contains development efforts for a new,
+improved perldl shell (i.e., Perldl2) that can integrate
+with the Padre IDE.
 
-This directory contains on-going development
-efforts for getting PDL to work with Padre starting
-with a new, improved perldl shell (i.e., Perldl2)
-using Devel::REPL as the starting point to simplify
-future PDL+Padre development.
-
-You will need to install the version 1.3.9_02+ of
-Devel::REPL in order to use Perldl2.  A description
-of the files included and how to install and use
-them follows.
+You will need to install the version 1.003010 of Devel::REPL
+in order to use Perldl2. A description of the files in this
+directory and how to install and use the Perldl2 shell
+follows.
 
 
 OS/Platforms supported: ALL
@@ -23,16 +19,6 @@ FILES:
 
  README
    This file.
-
- Devel-REPL-1.003009_02.tar.gz
-   A CPAN developers snapshot of the latest Devel::REPL git
-   which includes fixes to Completion and ReadLineHistory
-   plugins to support Term::ReadLine::Perl in addition to
-   Term::ReadLine::Gnu.
-
- Completion.pm
-   Replacement for Devel::REPL::Plugin::Completion to support
-   Term::ReadLine::Perl in addition to Term::ReadLine::Gnu.
 
  NiceSlice.pm
    Implements PDL::NiceSlice preprocessing for the Devel::REPL
@@ -58,34 +44,29 @@ INSTALL:
 
  The installation is manual at this time.  
 
- (1) First do a manual install from the included Devel::REPL
-     tarball, Devel-REPL-1.003009_02.tar.gz, which should
-     update your Devel::REPL to the version with PDL support.
+ (1) Install Devel::REPL version 1.003010+ from CPAN.
 
  (2) Copy NiceSlice.pm and PrintControl.pm to the
-     Devel/REPL/Plugin directory where the Devel::REPL plugins
-     were installed.
+     Devel/REPL/Plugin directory where the Devel::REPL
+     plugins were installed in step 1.
 
-     The location should be in the log from step #1 above.
-
- (3) Copy Perldl2.pm to the Devel/REPL/Profile directory of
-     your Devel::REPL install
+ (3) Copy Perldl2.pm to the Devel/REPL/Profile
+     directory of your Devel::REPL install.
  
 
 USE:
 
- To use the experimental perldl2 shell, run the
- following command from the shell prompt:
+ To use the Perldl2 shell, run the following command
+ from the shell prompt:
 
    pdl2   # this is file pdl2     on unixen
    pdl2   # this is file pdl2.bat on win32
 
- To exit the perldl2 shell, type Ctrl-D or quit.
+ To exit the Perldl2 shell, type Ctrl-D or quit.
 
- WARNING: Typing exit will also quit the shell but
-          do so by terminating the perl interpreter.
-          Probably not what you want to do---especially
-	  if you care about losing command history.
+ WARNING: Typing exit will also quit the shell but do so by
+ terminating the perl interpreter. Probably not what you
+ want to do---especially if you want to keep command history.
 
 
 NOTES:
@@ -258,8 +239,9 @@ Notes on Missing Perldl Functionality TBD
  Term::ReadLine::Gnu.  Need to figure out a clean way to
  map this into the original modules.
 
- Skip command lines that are too short and don't put quit/q/x/exit
- in the history log.  Maybe remove dup entries.
+ Skip command lines that are too short and don't put
+ quit/q/x/exit in the history log.  Maybe remove duplicate
+ entries.
 
  Add runtime control options for NiceSlice:
   report
