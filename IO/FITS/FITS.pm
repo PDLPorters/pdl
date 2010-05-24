@@ -1297,16 +1297,30 @@ our $tile_compressors = {
 				    # Put the compressed tile bitstream into a variable of appropriate type.
 				    # This works by direct copying of the PDL data, which sidesteps local 
 				    # byteswap issues in the usual case that the compressed stream is type 
-				    # byte.  
+				    # byte.  But it does add the extra complication that we have to pad the 
+				    # compressed array out to a factor-of-n elements in certain cases.
 
 				    if( PDL::howbig($compressed->get_datatype) != $bytepix ) {
 					my @dims = $compressed->dims;
-					$dims[0] *= PDL::howbig($compressed->get_datatype) / $bytepix;
-					my $c2 = zeroes( $type_table_2->{$bytepix * 8}, @dims );
+					my $newdim0;
+					my $scaledim0;
+
+					$scaledim0 = $dims[0] * PDL::howbig($compressed->get_datatype) / $bytepix;
+					$newdim0 = pdl($scaledim0)->ceil;
+
+					if($scaledim0 != $newdim0) {
+					    my $padding = zeroes($compressed->type, 
+							      ($newdim0-$scaledim0) * $bytepix / PDL::howbig($compressed->get_datatype), 
+							      @dims[1..$#dims]
+						);
+					    $compressed = $compressed->append($padding);
+					}
+					
+					my $c2 = zeroes( $type_table_2->{$bytepix * 8}, $newdim0, @dims[1..$#dims] );
 
 					my $c2dr = $c2->get_dataref;
 					my $cdr = $compressed->get_dataref;
-					$$c2dr = $$cdr;
+					substr($$c2dr,0,length($$cdr)) = $$cdr;
 					$c2->upd_data;
 					$compressed = $c2;
 				    }
