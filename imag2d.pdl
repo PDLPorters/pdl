@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Thu 08 Apr 2010 10:13:21 AM 
+# Last saved: Tue 25 May 2010 09:01:47 AM 
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -472,7 +472,8 @@ sub display_new_window {
 imag2d() creates a plain FreeGLUT OpenGL window and displays
 the input image with 1:1 aspect ratio for pixels.  The window
 resize is constrained to the actual ratio of the image
-dimensions.
+dimensions.  The initial display size is currently a 200x200
+window to prevent things from being too small by default.
 
 The image to display can have dimensions ($c,$M,$N) where for
 $c==4 the display is in GL_RGBA, for $c==3 the display is GL_RGB,
