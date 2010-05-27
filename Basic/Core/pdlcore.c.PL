@@ -407,7 +407,7 @@ print OUT <<'!NO!SUBS!';
    
    if(ret->magicno != PDL_MAGICNO) {
    	croak("Fatal error: argument is probably not a piddle, or\
- magic no overwritten. You're in trouble, guv: %d %d %d\n",sv2,ret,ret->magicno);
+ magic no overwritten. You're in trouble, guv: %p %p %lu\n",sv2,ret,ret->magicno);
    }
 
    return ret;
@@ -627,7 +627,7 @@ pdl_barf(pat, va_alist)
     message = pdl_mess(pat, &args);
     va_end(args);
 
-    croak(message);
+    croak("%s", message);
 }
 
 /* traverse an array ref recursively following down any number of
@@ -1016,7 +1016,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
     debug_flag = (sv_undef(sv)) ? 0 : (char)SvIV(sv);
     
     if(debug_flag) {
-      fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %d time%s\\n",undefval,undef_count,undef_count==1?"":"s");
+      fprintf(stderr,"Warning: pdl_setav_$type converted undef to $PDL::undefval (%g) %ld time%s\\n",undefval,undef_count,undef_count==1?"":"s");
     }
   }
 
