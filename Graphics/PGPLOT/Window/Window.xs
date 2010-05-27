@@ -73,7 +73,7 @@ pgcolorpnts(n,x,y,z,sym)
         sprintf (msg, "This function requires PGPLOT with a structure version at least %d.\nPlease upgrade your PGPLOT package.", 
                        PGPLOT_structure_version);
 		       
-        Perl_croak(aTHX_ msg);
+        Perl_croak(aTHX_ "%s", msg);
       }
 
       myhandle->cpgqcir(&icilo, &icihi);

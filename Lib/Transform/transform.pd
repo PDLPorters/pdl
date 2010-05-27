@@ -658,19 +658,19 @@ pp_def('map',
   /**  than a few hundred clock cycles -- cheap at twice the price.         **/
   /**                                                                       **/
   /**/ if(map->ndims != out->ndims)                                        /**/
-  /**/  barf("Bug in map: index dims aren't consistent\n");                /**/
+  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");                /**/
   /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
   /**/   static char buf[100];                                             /**/
   /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
   /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
   /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
-  /**/     barf(buf);                                                      /**/
+  /**/     barf("%s", buf);                                                      /**/
   /**/   }                                                                 /**/
   /**/ }                                                                   /**/
   /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
-  /**/   barf("Bug in map - index vec - input mismatch\n");                /**/
+  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");                /**/
   /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
-  /**/   barf("Bug in map:  thread dimension error\n");                    /**/
+  /**/   barf("%s", "Bug in map:  thread dimension error\n");                    /**/
   /***************************************************************************/
 
  /* 
@@ -729,7 +729,7 @@ pp_def('map',
 	{
 	  char buf[BUFSIZ];
 	  sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
-	  barf(buf);
+	  barf("%s", buf);
 	}
 	break;
       }
@@ -757,7 +757,7 @@ pp_def('map',
 	   {
             char err[80];
             sprintf(err,"Bug in map: unknown method '%c'",*mstr);
-	    barf(err);
+	    barf("%s", err);
            }
            break;
 	}
@@ -824,7 +824,7 @@ pp_def('map',
          if(j < 0 || j >= in->dims[i]) {
            switch(bounds[i]) {
              case 0: /* no breakage allowed */
-               barf("index out-of-bounds in map");
+               barf("%s", "index out-of-bounds in map");
                break;
              case 1: /* truncation */
                bound_ok = 0;
@@ -852,7 +852,7 @@ pp_def('map',
                }
                break;
              default:
-               barf("Unknown boundary condition in map -- bug alert!");
+               barf("%s", "Unknown boundary condition in map -- bug alert!");
                break;
            }
          }
@@ -916,7 +916,7 @@ pp_def('map',
   	     {
                  char buf[80];
                   sprintf(buf,"This can't happen: method='%c'",method);
-  	        barf(buf);
+  	        barf("%s", buf);
   	     }
   	}
   
@@ -1884,7 +1884,7 @@ sub _compose_op {
 sub _pow_op {
     my($a,$b,$c) = @_;
     
-    barf("Can't raise anything to the power of a transform")
+    barf("%s", "Can't raise anything to the power of a transform")
 	if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
 
     $a = $a->inverse
