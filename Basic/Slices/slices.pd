@@ -711,14 +711,21 @@ switch(ind_pdl->datatype) {
 	break;
       default:
 	{
-	  char buf[BUFSIZ];
+//	  char buf[BUFSIZ];
 	  /* No need to check if i < blen -- this will barf out the
 	   * first time it gets hit.  I didn't use $ CROAK 'coz that
 	   * macro doesn't let you pass in a string variable -- only a 
 	   * constant.
+	   *
+	   * Original code simply called barf(buf), which makes gcc mad.
+	   * barf should be able to take more than just a char pointer
+	   * (whenever it gets re-implemented, if ever), I am changing
+	   * this to a normal stdarg call.
+	   * David Mertens, 2010-May-27
 	   */
-	  sprintf(buf,"Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
-	  barf(buf);
+//	  sprintf(buf,"Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
+//	  barf("%s", buf);
+	  barf("Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
 	}
 	break;
       }
@@ -845,9 +852,10 @@ EOD-MakeComp
   PDL_Long i;
 
   if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
-	char buf[512];
-	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
-	barf(buf);
+//	char buf[512];
+//	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
+//	barf("%s", buf);
+	barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
   }
   	
   if(stdim < 0) 
