@@ -1,5 +1,22 @@
 The following issues have been reported with this version of PDL:
 
+- The perl debugger for perls 5.10.1 through 5.12 have a new
+  "feature" leading to false fails for lvalue subroutines when
+  run under the debugger.  If you need to debug such code with
+  an affected perl version, the work around is to make an
+  explicit temp as in:
+
+    $piddle->slice('0:10') .= 100;
+
+  becomes
+
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $piddle->slice('0:10')) .= 100;
+
+  The problem is understood and it is hoped that an official
+  fix will become available soon.  NOTE: the work around is
+  100% effective---but ugly.
+
 
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
@@ -42,11 +59,6 @@ The following issues have been reported with this version of PDL:
   the configure-build-test process.
 
 
-- PDL::IO::Dumper has test failures on some systems that appear
-  to result from an incorrectly detected/use flavor of uuencode
-  or uudecode.  Installing Convert::UU should resolve the problem.
-
-
 - PDL configuration failures have come about because needed temp
   files can not be created.  This appears to be a result of platform
   misconfiguration of TEMPDIR and not PDL per se.
@@ -62,7 +74,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_007 release:
+  PDL-2.4.6_008 release:
 
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32

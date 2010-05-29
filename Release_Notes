@@ -1,3 +1,35 @@
+Release notes for PDL 2.4.6_008 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Added Convert::UU as a required dependency for PDL to improve
+   portability (it provides backup uuencode and uudecode for
+   platforms without them).
+
+ * Add work around for perl -d problem with lvalue subroutines
+   so that tests: imagend.t, lvalue.t, matrixops.t, misc.t, and
+   transform.t now run under the debuger (even for broken perls
+   versions 5.10.1 through 5.12)
+
+ * Add fixes for printf and carp format string attacks
+
+ * Experimental perldl version 2 shell available.
+ 
+   See the README file in PDL/Perldl2 for details on how to use.
+   Full completion support is now available for all platforms
+   via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
+
+   Work continues to port existing perldl features to the new
+   Devel::REPL framework.
+
+
 Release notes for PDL 2.4.6_007 --------------------------
 
 General Notes:
