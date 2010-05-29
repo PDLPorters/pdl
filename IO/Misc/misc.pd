@@ -164,12 +164,13 @@ sub _burp_1D {
 
    my $start = $index - @{$databox} + 1;
 
+   my $tmp; # work around for perl -d "feature"
    if (ref $data eq 'ARRAY') {
       push @{$data}, @{$databox};
    } elsif ( ref($databox->[0]) eq "ARRAY" ) {
-      $data->slice(":,$start:$index") .= pdl($databox);
+      ($tmp = $data->slice(":,$start:$index")) .= pdl($databox);
    } else {
-      $data->slice("$start:$index") .= pdl($databox);
+      ($tmp = $data->slice("$start:$index")) .= pdl($databox);
    }
    $_[0] = [ $data, [] ];
 }
