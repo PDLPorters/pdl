@@ -37,9 +37,10 @@ Inline::Pdlpp   Inline                  version >= 0.43 required
                                         module allows to define fast PP code
                                         inline in your scripts
 
-PDL::IO::Dumper Data::Dumper            version >=2.121 is required to avoid
-                                        a bug in earlier Data::Dumper releases
-					which breaks PDL::IO::Dumper
+PDL::IO::Dumper Data::Dumper            Data::Dumper version >=2.121 is required
+                  and                     to avoid a bug which breaks PDL::IO::Dumper
+                Convert::UU or          Works on all perl platforms!
+                uuencode/uudecode         Available on most unix-type systems
 
 PDL::IO::Storable Storable              version >=1.03 is now listed as a
                                         required dependency
