@@ -5,10 +5,6 @@ use Test::More;
 
 BEGIN {
 
-   if ($^O =~ /win32/i) {
-      plan skip_all => "On win32 use PDL::IO::Storable instead\n";
-   }
-
    sub inpath {
       my ($prog) = @_;
       my $pathsep = $^O =~ /win32/i ? ';' : ':';
