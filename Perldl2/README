@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 30 May 2010 01:51:36 PM
+Last saved: Sun 30 May 2010 04:09:02 PM
 
 
 This directory contains development efforts for a new,
@@ -21,16 +21,13 @@ FILES:
    This file.
 
  pdl2
- pdl2.bat
-   These are a perl script and a win32 batch script for
-   starting the Perldl2 shell.  If these files are
-   executable and in your path, it should start up
-   a new Perldl2 session.
+   This is a perl script for starting the Perldl2 shell.
 
 
 INSTALL:
 
   Install Devel::REPL version 1.003010 or greater.
+
   Then configure and build PDL as usual.  The presence
   of Devel::REPL should be detected and the Perldl2
   support built and installed.
@@ -43,14 +40,13 @@ USE:
 
     perl -Mblib Perldl2/pdl2
 
-  If you have installed the just built PDL and then
-  place the Perldl2/pdl2 file (for unixen) or the
-  Perldl2/pdl2.bat file (for windows) in a directory
-  in your path, you should be able to just run:
+  If you have installed the just built PDL, you should
+  be able to run:
 
     pdl2
 
- To exit the Perldl2 shell, type Ctrl-D or quit.
+ To exit the Perldl2 shell from the PDL> prompt, type Ctrl-D
+ or quit.
 
  WARNING: Typing exit will also quit the shell but do so by
  terminating the perl interpreter. Probably not what you
