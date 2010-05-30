@@ -1,7 +1,7 @@
-package Devel::REPL::Profile::Perldl2;
+package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 21 May 2010 05:54:11 PM 
+# Last saved: Sun 30 May 2010 01:21:45 PM
 #
 
 use Moose;
@@ -21,8 +21,8 @@ sub plugins {
       History
       LexEnv
       MultiLine::PPI
-      NiceSlice
       Packages
+      NiceSlice
       PrintControl
       ReadLineHistory
    ); # 
@@ -30,6 +30,9 @@ sub plugins {
 
 sub apply_profile {
    my ($self, $repl) = @_;
+
+   # add PDL::Perldl2 for plugin search
+   push @{$repl->_plugin_app_ns}, 'PDL::Perldl2';
 
    $repl->load_plugin($_) for $self->plugins;
 
@@ -82,7 +85,7 @@ sub apply_profile {
       foreach my $pl ( $repl->_plugin_locator->plugins ) {
          # print names of ones that have been loaded
          my $plug = $pl;
-         $plug =~ s/Devel::REPL::Plugin::/  /;
+         $plug =~ s/^.*Plugin::/  /;
          push @plugins, $plug if $repl->does($pl);
       }
       $repl->print(join "\n", sort(@plugins));

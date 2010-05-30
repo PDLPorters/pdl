@@ -1,4 +1,4 @@
-package Devel::REPL::Plugin::PrintControl;
+package PDL::Perldl2::Plugin::PrintControl;
 
 use Devel::REPL::Plugin;
 
@@ -24,13 +24,13 @@ __END__
 
 =head1 NAME
 
-Devel::REPL::Plugin::PrintControl - disable default print output
+PDL::Perldl2::Plugin::PrintControl - disable default print output
 
 =head1 SYNOPSIS
 
  > $a = 3;
  3
- > $_REPL->load_plugin('PrintControl');
+ > $_REPL->load_plugin('PDL::Perldl2::Plugin::PrintControl');
 
  > $a;
 

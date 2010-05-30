@@ -1,15 +1,15 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 23 May 2010 12:05:23 PM
+Last saved: Sun 30 May 2010 01:51:36 PM
 
 
 This directory contains development efforts for a new,
 improved perldl shell (i.e., Perldl2) that can integrate
 with the Padre IDE.
 
-You will need to install the version 1.003010 of Devel::REPL
-in order to use Perldl2. A description of the files in this
-directory and how to install and use the Perldl2 shell
-follows.
+You need to install the version 1.003010 of Devel::REPL
+in order to build/use the Perldl2 shell. A description
+of the files in this directory and how to install and
+use the Perldl2 shell follows.
 
 
 OS/Platforms supported: ALL
@@ -20,15 +20,6 @@ FILES:
  README
    This file.
 
- NiceSlice.pm
-   Implements PDL::NiceSlice preprocessing for the Devel::REPL
-   shell (i.e. Devel::REPL::Plugin::NiceSlice) for Perldl2.
-
- PrintControl.pm
-   Implements perldl style interactive output: i.e., don't
-   print output by default.  $_REPL->do_print(1) to enable
-   default printing.  $_REPL->do_print(0) to disable again.
-
  pdl2
  pdl2.bat
    These are a perl script and a win32 batch script for
@@ -36,31 +27,28 @@ FILES:
    executable and in your path, it should start up
    a new Perldl2 session.
 
- Perldl2.pm
-   A Perldl2 profile for use with the Devel::REPL shell.
-
 
 INSTALL:
 
- The installation is manual at this time.  
-
- (1) Install Devel::REPL version 1.003010+ from CPAN.
-
- (2) Copy NiceSlice.pm and PrintControl.pm to the
-     Devel/REPL/Plugin directory where the Devel::REPL
-     plugins were installed in step 1.
-
- (3) Copy Perldl2.pm to the Devel/REPL/Profile
-     directory of your Devel::REPL install.
+  Install Devel::REPL version 1.003010 or greater.
+  Then configure and build PDL as usual.  The presence
+  of Devel::REPL should be detected and the Perldl2
+  support built and installed.
  
 
 USE:
 
- To use the Perldl2 shell, run the following command
- from the shell prompt:
+  To use the Perldl2 shell, from the PDL build directory
+  run the following:
 
-   pdl2   # this is file pdl2     on unixen
-   pdl2   # this is file pdl2.bat on win32
+    perl -Mblib Perldl2/pdl2
+
+  If you have installed the just built PDL and then
+  place the Perldl2/pdl2 file (for unixen) or the
+  Perldl2/pdl2.bat file (for windows) in a directory
+  in your path, you should be able to just run:
+
+    pdl2
 
  To exit the Perldl2 shell, type Ctrl-D or quit.
 
@@ -129,8 +117,6 @@ Notes on Missing Perldl Functionality TBD
 
  Use either perldl or Perldl2 when starting the PDL shell
  based on the value of WITH_DEVEL_REPL in perld.conf
-
- Add autoprobe for Devel::REPL in perl Makefile.PL config
 
  Add support for .pdlrc, .perldrc to startup of REPL.
 
@@ -249,23 +235,3 @@ Notes on Missing Perldl Functionality TBD
   notrans
 
  Implement ^C/^D to end PPI multiline if it makes sense.
-
-
-OTHER FILES (for reference info only):
-
- TieHash.pm
-   A replacement for Term::ReadLine::Perl::Tie to give
-   a more complete TIEHASH interface.  To use, just
-   modify the Perl.pm in your Term::ReadLine::Perl
-   install and add this code replacing the existing
-   Term::ReadLine::Perl::Tie stuff and edit the tie
-   %attibs to use TieHash instead of Tie.
-
- readline-fix/
-   Working directory to get Term::ReadLine::Gnu v1.19 working
-   with win32 perls.  See its README if you are interested
-   in the progress.  Porting work here has stopped now that
-   Term::ReadLine::Perl support is available on win32.
-
- pod-plate
-   A POD and copyright template for the Perldl2 modules.
