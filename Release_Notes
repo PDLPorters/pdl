@@ -9,6 +9,12 @@ General Notes:
 
 Highlights:
 
+ * Experimental perldl version 2 shell available.
+ 
+   See the README file in PDL/Perldl2 for details on how to use.
+   Full completion support is now available for all platforms
+   via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
+
  * Added Convert::UU as a required dependency for PDL to improve
    portability (it provides backup uuencode and uudecode for
    platforms without them).
@@ -20,14 +26,6 @@ Highlights:
 
  * Add fixes for printf and carp format string attacks
 
- * Experimental perldl version 2 shell available.
- 
-   See the README file in PDL/Perldl2 for details on how to use.
-   Full completion support is now available for all platforms
-   via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
-
-   Work continues to port existing perldl features to the new
-   Devel::REPL framework.
 
 
 Release notes for PDL 2.4.6_007 --------------------------
