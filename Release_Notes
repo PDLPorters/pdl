@@ -11,8 +11,8 @@ Highlights:
 
  * Experimental perldl version 2 shell available.
  
-   See the README file in PDL/Perldl2 for details on how to use.
-   Full completion support is now available for all platforms
+   See the README file in PDL/Perldl2 for details.  Full
+   completion support is now available for all platforms
    via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
 
  * Added Convert::UU as a required dependency for PDL to improve
