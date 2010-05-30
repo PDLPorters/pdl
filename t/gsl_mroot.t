@@ -38,7 +38,8 @@ sub rosenbrock{
   my $a = 1;
   my $b = 10;
   my $y = zeroes($x);
-  $y->slice(0) .=  $a * (1 - $x->slice(0));
-  $y->slice(1) .=  $b * ($x->slice(1) - $x->slice(0)**2);
+  my $tmp; # work around perl -d "feature"
+  ($tmp = $y->slice(0)) .=  $a * (1 - $x->slice(0));
+  ($tmp = $y->slice(1)) .=  $b * ($x->slice(1) - $x->slice(0)**2);
   return $y;
 }
