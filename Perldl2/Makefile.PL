@@ -6,6 +6,7 @@ if (!defined $PDL::Config{WITH_DEVEL_REPL}) {
       WriteMakefile(
          'NAME' => 'PDL::Perldl2',
          'VERSION' => '2.000',
+         'EXE_FILES' => [ 'pdl2' ],
          'DIR' => [ qw(Profile Plugin) ],
       );
    } else {
