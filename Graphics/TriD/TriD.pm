@@ -29,6 +29,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  imagrgb([$r,$g,$b]);     # 2-d piddles
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
+ spheres3d([$x,$y,$z]);
 
  hold3d(); # the following graphs are on top of each other and the previous
  line3d([$x,$y,$z]);
@@ -52,7 +53,7 @@ Points, lines and surfaces (among other objects) are supported.
 With OpenGL, it is easy to manipulate the resulting 3D objects
 with the mouse in real time - this helps data visualization a lot.
 
-=for comment
+= for comment
 With VRML, you can generate objects for everyone to see with e.g.
 Silicon Graphics' Cosmo Player. You can find out more about VRML
 at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
@@ -376,6 +377,28 @@ Example:
 See module documentation for more information on
 contexts and options
 
+=head2 spheres3d
+
+=for ref
+
+3D spheres plot (preliminary implementation)
+
+=for usage
+
+ spheres3d piddle(3), {OPTIONS}
+ spheres3d [piddle,...], {OPTIONS}
+
+=for example
+
+Example:
+
+ PDL> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
+
+ - lattice of spheres at coordinates on 10x10x10 grid
+
+See module documentation for more information on
+contexts and options (TBD)
+
 =head2 imagrgb
 
 =for ref
@@ -624,7 +647,7 @@ use PDL::Core '';  # barf
 use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
 @ISA = qw/PDL::Exporter/;
 @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  describe3d imagrgb imagrgb3d hold3d release3d
+  spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d
   twiddle3d grabpic3d tridsettings/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -842,6 +865,12 @@ sub PDL::mesh3d { &checkargs;
 *points3d=\&PDL::points3d;
 sub PDL::points3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::Points(@_));
+}
+
+
+*spheres3d=\&PDL::spheres3d;
+sub PDL::spheres3d { &checkargs;
+	&graph_object(new PDL::Graphics::TriD::Spheres(@_));
 }
 
 *grabpic3d=\&PDL::grabpic3d;

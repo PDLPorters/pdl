@@ -34,6 +34,10 @@ Highlights:
 
  * Add fixes for printf and carp format string attacks
 
+ * Preliminary version of spheres3d for plotting 3D spheres
+   with TriD.  Support for varying radii and colors not yet
+   complete.
+
 
 
 Release notes for PDL 2.4.6_007 --------------------------
