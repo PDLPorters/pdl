@@ -15,6 +15,14 @@ Highlights:
    completion support is now available for all platforms
    via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
 
+   The Perldl2 shell (pdl2) now loads and saves command line
+   history from the same file as perldl, ~/.perldl_hist.
+   
+   Please Note: while all commands are saved and loaded between
+   the perldl and pdl2, the Perldl2 shell is missing some features
+   of perldl so not all commands retrieved from perldl history
+   will execute correctly in a subsequent pdl2 session.
+
  * Added Convert::UU as a required dependency for PDL to improve
    portability (it provides backup uuencode and uudecode for
    platforms without them).
