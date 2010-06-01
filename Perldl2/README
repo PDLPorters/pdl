@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 31 May 2010 05:45:53 PM
+Last saved: Mon 31 May 2010 08:06:58 PM
 
 
 +-----------------------------------------------------------+
@@ -75,7 +75,6 @@ use the Perldl2 shell follows.
   * Packages (keeps track of current user package)
   * ReadLineHistory
     * Save and restore command history to file
-    * NOTE: defaults to ~/.perlreplhist
   * CompletionDrivers
     * Globals  (completion for globals) 
     * INC      (completion for use module::name)
@@ -97,14 +96,13 @@ use the Perldl2 shell follows.
  * ? and ?? aliases don't work (use help or apropos words)
  * you need to quote the arguments (e.g.,  help 'sumover')
 
+ l <num> prints the last num lines of history, default 20.
+
  p is an alias for print.
 
  The Perldl2 shell, pdl2, now loads/saves from the same
  history file as perldl.  This is a new feature so, as
  always, feedback welcome.
- The Perldl2 shell should be able to load/save a history file
- from perldl 1.x (i.e., $HOME/.perldl_hist) if you copy it to a file of the correct name.
- Let me know how that works for you (UNTESTED).
 
  Edit the Perldl2.pm file to add additional default setup
  for the perldl2 shell.  You can $repl->eval() anything

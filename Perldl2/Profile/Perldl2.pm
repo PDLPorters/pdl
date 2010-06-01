@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 30 May 2010 01:21:45 PM
+# Last saved: Mon 31 May 2010 08:02:00 PM
 #
 
 use Moose;
@@ -53,6 +53,12 @@ sub apply_profile {
    $repl->eval('use PDL::AutoLoader');
    $repl->eval('no strict qw(vars)');
    $repl->eval('sub p { local $, = " "; print @_, "\n" };');
+   $repl->eval('sub l {
+                   my $n = $#_ > -1 ? shift : 20;
+                   my @h = $_REPL->term->GetHistory();
+                   my $min = $#h < $n-1 ? 0 : $#h-$n+1;
+                   map {print "$_: $h[$_]\n"} ($min..$#h);
+                };');
 
    if ($repl->can('exit_repl')) {
       $repl->eval('sub quit { $_REPL->exit_repl(1) };');

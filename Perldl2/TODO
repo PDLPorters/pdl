@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 31 May 2010 06:04:52 PM
+Last saved: Mon 31 May 2010 08:07:54 PM
 
 
 +-----------------------------------------------------------+
@@ -85,10 +85,6 @@ Last saved: Mon 31 May 2010 06:04:52 PM
  possible to implement some tests of the interactive shell
  from file input.
  Add @PERLDL::AUTO processing.
-
- Implement l (list) command to list history (without printing
- anything but the results.  If print output then no return
- value except errors (?).  Maybe a join and single print.
 
  Implement support for @PERLDL::PREPROCESS filters.  No
  support for deprecated implementation with $PERLDL::PREPROCESS.
