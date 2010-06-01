@@ -18,6 +18,10 @@ Highlights:
    try typing Ctrl-D.  That appears to work on non-win32
    platforms.
 
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
 
 
 Release notes for PDL 2.4.6_008 --------------------------
