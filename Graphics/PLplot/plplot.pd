@@ -51,6 +51,19 @@ For more information on PLplot, see
 
 Also see the test file, F<t/plplot.pl> in this distribution for some working examples.
 
+=head1 LONG NAMES
+
+If you are annoyed by the long constructor call, consider installing the
+L<aliased|aliased> CPAN package. Using C<aliased>, the above example
+becomes
+
+  use PDL;
+  use aliased 'PDL::Graphics::PLplot';
+
+  my $pl = PLplot->new (DEV => "png", FILE => "test.png");
+  my $x  = sequence(10);
+  # etc, as above
+
 =head1 DESCRIPTION
 
 This is the PDL interface to the PLplot graphics library.  It provides
@@ -283,6 +296,8 @@ L<pladv()|/pladv>).
 Specify which symbol to use when plotting C<< PLOTTYPE => 'POINTS' >>.
 A large variety of symbols are available, see:
 http://plplot.sourceforge.net/examples-data/demo07/x07.*.png, where * is 01 - 17.
+You are most likely to find good plotting symbols in the 800s:
+http://plplot.sourceforge.net/examples-data/demo07/x07.06.png
 
 =head3 SYMBOLSIZE
 
@@ -345,6 +360,8 @@ Takes a four element array ref specifying:
  ymin -- The coordinate of the bottom edge of the viewport. (0 to 1)
  ymax -- The coordinate of the top edge of the viewport. (0 to 1)
 
+You will need to use this to make color keys or insets.
+
 =for example
 
  # Make a small plotting window in the lower left of the page
@@ -353,6 +370,11 @@ Takes a four element array ref specifying:
  # Also useful in creating color keys:
  $pl->xyplot   ($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
  $pl->colorkey ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
+ 
+ # Plot an inset; first the primary data and then the inset. In this
+ # case, the inset contains a selection of the orignal data
+ $pl->xyplot ($x, $y);
+ $pl->xyplot (where($x, $y, $x < 1.2), VIEWPORT => [0.7, 0.9, 0.6, 0.8]);
 
 =head3 XBOX
 
@@ -491,7 +513,7 @@ Set options for a plot object.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -524,7 +546,7 @@ latitude and longitude.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -542,8 +564,12 @@ Looks like a stack of long, thin XY plots, all line up on the same X axis.
 =for usage
 
  Arguments:
- $x  -- 1D PDL with common X axis values, length = N
- $ys -- 2D PDL with M Y-axis values: N x M
+ $xs -- 1D PDL with common X axis values, length = N
+ $ys -- reference to a list of 1D PDLs with Y-axis values, length = N
+        or 2D PDL with N x M elements
+ -- OR --
+ $xs -- reference to a list of 1D PDLs with X-axis values
+ $ys -- reference to a list of 1D PDLs with Y-axis values
  %opts -- Options hash
 
  Supported options:
@@ -557,7 +583,7 @@ Looks like a stack of long, thin XY plots, all line up on the same X axis.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -570,13 +596,39 @@ Looks like a stack of long, thin XY plots, all line up on the same X axis.
   $pl->stripplots($x, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
                            YLAB     => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
                            COLOR    => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
+  # Equivalent to above:
+  $pl->stripplots($x, [$y1, $y2, $y3, $y4],
+                           PLOTTYPE => 'LINE', TITLE => 'functions',
+                           YLAB     => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
+                           COLOR    => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
+  
+  # Here's something a bit different. Notice that different xs have
+  # different lengths.
+  $x1  = sequence(20);
+  $y1  = $x1**2;
+  
+  $x2  = sequence(18);
+  $y2  = sqrt($x2);
+  
+  $x3  = sequence(24);
+  $y3  = $x3**3;
+  
+  my $x4  = sequence(27);
+  $a  = ($x4/20) * 2 * $pi;
+  my $y4  = sin($a);
+  
+  $xs  = [$x1, $x2, $x3, $x4];
+  $ys  = [$y1, $y2, $y3, $y4];
+  $pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
+                YLAB => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
+                         COLOR => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
 
-  In addition, COLOR may be specified as a reference to a list of colors.  If
-  this is done, the colors are applied separately to each plot.
+In addition, COLOR may be specified as a reference to a list of colors.  If
+this is done, the colors are applied separately to each plot.
 
-  Also, the options Y_BASE and Y_GUTTER can be specified.  Y_BASE gives the Y offset
-  of the bottom of the lowest plot (0-1, specified like a VIEWPORT, defaults to 0.1) and Y_GUTTER
-  gives the gap between the graphs (0-1, default = 0.02).
+Also, the options Y_BASE and Y_GUTTER can be specified.  Y_BASE gives the Y offset
+of the bottom of the lowest plot (0-1, specified like a VIEWPORT, defaults to 0.1) and Y_GUTTER
+gives the gap between the graphs (0-1, default = 0.02).
 
 =head2 colorkey
 
@@ -601,7 +653,7 @@ Plot a color key showing which color represents which value
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -636,7 +688,7 @@ via the L</BOX> option.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -668,7 +720,7 @@ Create a histogram of a 1-D variable.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -702,7 +754,7 @@ every third label is printed, and so on.
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -746,7 +798,7 @@ with respect to the borders or at an arbitrary location and angle
  PAGESIZE
  SUBPAGES
 
- (These must be set in call to 'new'.)
+(These must be set in call to 'new'.)
 
 =for example
 
@@ -1476,12 +1528,13 @@ sub xyplot {
 # $self -- PLplot object with existing options
 # $xs   -- Ref to list of 1D PDLs with X values
 # $ys   -- Ref to list of 1D PDLs with Y values
+#          or a 2D PDL
 # %opts -- Options values
 sub stripplots {
 
-  my $self = shift;
-  my $xs   = shift;
-  my $ys   = shift;
+  my $self    = shift;
+  my $xs      = shift;
+  my $yargs   = shift;
 
   my %opts = @_;
 
@@ -1499,6 +1552,27 @@ sub stripplots {
   my @ylabs = defined($opts{YLAB}) && (ref($opts{YLAB}) =~ /ARRAY/) ? @{$opts{YLAB}} : ();
   delete @opts{qw(TITLE XLAB YLAB)};
 
+  # Ensure we're dealing with an array reference
+  my $ys;
+  if (ref ($yargs) eq 'ARRAY') {
+    $ys = $yargs;
+  }
+  elsif (ref ($yargs) =~ /PDL/) {
+    $ys = [dog $yargs];
+  }
+  else {
+    barf("stripplots requires that its second argument be either a 2D piddle or\na reference to a list of 1D piddles, but you provided neither.");
+  }
+
+# This doesn't work because $xs can be an anonymous array, too
+#  # Let's be sure the user sent us what we expected:
+#  foreach (@$ys) {
+#    barf ("stripplots needs to have piddles for its y arguments!")
+#      unless (ref =~ /PDL/);
+#    barf("stripplots requires that the x and y dimensions agree!")
+#      unless ($_->nelem == $xs->nelem);
+#  }
+
   my $nplots = @$ys;
 
   # Use list of colors, or single color.  If COLOR not specified, default to BLACK for each graph
@@ -1514,14 +1588,20 @@ sub stripplots {
   # apply options
   $self->setparm(%opts);
 
-  my $xmin = pdl(map { $_->min } @$xs)->min;
-  my $xmax = pdl(map { $_->max } @$xs)->max;
+  my ($xmin, $xmax);
+  if (ref ($xs) =~ /PDL/) {
+    ($xmin, $xmax) = $xs->minmax;
+  }
+  else {
+    $xmin = pdl(map { $_->min } @$xs)->min;
+    $xmax = pdl(map { $_->max } @$xs)->max;
+  }
 
   SUBPAGE:
     for (my $subpage=0;$subpage<$nplots;$subpage++) {
 
       my $y = $ys->[$subpage];
-      my $x = $xs->[$subpage];
+      my $x = ref ($xs) =~ /PDL/ ? $xs : $xs->[$subpage];
       my $mask = $y->isgood;
       $y = $y->where($mask);
       $x = $x->where($mask);
@@ -2433,7 +2513,7 @@ pp_def ('plline',
                      int j;
                      for (i=1;i<$SIZE(n);i++) {
                        j = i-1;	/* PP does not like using i-1 in a PDL ref.  Use j instead. */
-                       if ($ISGOOD(x(n=>i)) && $ISGOOD(x(n=>j))) {
+                       if ($ISGOOD(x(n=>i)) && $ISGOOD(x(n=>j)) && $ISGOOD(y(n=>i)) && $ISGOOD(y(n=>j))) {
                          c_pljoin ($x(n=>j), $y(n=>j), $x(n=>i), $y(n=>i));
                        }
                      }',
