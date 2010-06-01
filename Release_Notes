@@ -1,3 +1,24 @@
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demos.  You'll need to quote the demo name and you may
+   need to type Ctrl-D for some demos if they get stuck
+   at the (press enter) prompt at the end.
+
+
+
 Release notes for PDL 2.4.6_008 --------------------------
 
 General Notes:
