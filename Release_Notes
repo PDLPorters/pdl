@@ -13,9 +13,10 @@ Highlights:
    See the README file in PDL/Perldl2 for details.
    
    The list history 'l' command now works, as does the
-   demos.  You'll need to quote the demo name and you may
-   need to type Ctrl-D for some demos if they get stuck
-   at the (press enter) prompt at the end.
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
 
 
 
