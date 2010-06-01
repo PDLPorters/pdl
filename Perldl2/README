@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 31 May 2010 09:37:11 PM
+Last saved: Tue 01 Jun 2010 02:28:18 PM 
 
 
 +-----------------------------------------------------------+
@@ -108,8 +108,17 @@ use the Perldl2 shell follows.
  history file as perldl.  This is a new feature so, as
  always, feedback welcome.
 
- Edit the Perldl2.pm file to add additional default setup
- for the perldl2 shell.  You can $repl->eval() anything
- you want before the shell starts.  The other thing is
- to $repl->load_plugin() if you wish to try additional
- Devel::REPL plugins.
+
++-----------------------------------------------------------+
+|                        ADVANCED                           |
++-----------------------------------------------------------+
+
+ Work is underway to enable the use of the $HOME/.perldlrc
+ and local.perldlrc startup files with the Perldl2 shell.
+
+ If you can't wait and wish to customize your pdl2 startup
+ further, you can edit the Perldl2.pm file following the
+ documentation for Devel::REPL::Profile.
+
+ It is probably simpler to put your customizations in a
+ file and just do the filename.
