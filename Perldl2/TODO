@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 01 Jun 2010 10:11:31 AM 
+Last saved: Tue 01 Jun 2010 02:44:37 PM 
 
 
 +-----------------------------------------------------------+
@@ -87,6 +87,7 @@ Last saved: Tue 01 Jun 2010 10:11:31 AM
  and consistently with perldl v.1.  NOTE: this should make it
  possible to implement some tests of the interactive shell
  from file input.
+
  Add @PERLDL::AUTO processing.
 
  Implement support for @PERLDL::PREPROCESS filters.  No
