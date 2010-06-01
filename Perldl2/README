@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 31 May 2010 08:06:58 PM
+Last saved: Mon 31 May 2010 09:37:11 PM
 
 
 +-----------------------------------------------------------+
@@ -99,6 +99,10 @@ use the Perldl2 shell follows.
  l <num> prints the last num lines of history, default 20.
 
  p is an alias for print.
+
+ demo works but you'll need to quote the demo name argument
+ and, at the end of the demo, you may need to type Ctrl-D
+ if it hangs after the final (press enter).
 
  The Perldl2 shell, pdl2, now loads/saves from the same
  history file as perldl.  This is a new feature so, as

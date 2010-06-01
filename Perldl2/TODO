@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 31 May 2010 08:07:54 PM
+Last saved: Mon 31 May 2010 09:38:58 PM
 
 
 +-----------------------------------------------------------+
@@ -48,9 +48,12 @@ Last saved: Mon 31 May 2010 08:07:54 PM
    Type 'demo' for online demos
    Loaded PDL v2.4.6_007 (supports bad values)
 
- Fix demos to run under the Perldl2 shell.  It looks like
- the per-page output is not clearing the screen.  Also, the
- demo 3d test hung at the end of the demo.
+ Fix demos to run under the Perldl2 for windows.  The curent
+ implementation uses the tput command to clear the screen but
+ that is not available for win32.  I think a readline clear
+ screen command should work.  Also, the demo 3d test hung at
+ the end of the demo apparently because it is waiting for
+ input (why?).
 
  Make available $PERLDL::XX parameters.  These should, ideally,
  be instance variables so that multiple shells could have

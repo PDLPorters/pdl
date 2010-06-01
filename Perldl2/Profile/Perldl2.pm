@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Mon 31 May 2010 08:02:00 PM
+# Last saved: Mon 31 May 2010 09:31:18 PM
 #
 
 use Moose;
@@ -52,7 +52,11 @@ sub apply_profile {
    $repl->eval('use PDL::Image2D');
    $repl->eval('use PDL::AutoLoader');
    $repl->eval('no strict qw(vars)');
+
+   # print alias
    $repl->eval('sub p { local $, = " "; print @_, "\n" };');
+
+   # list history command
    $repl->eval('sub l {
                    my $n = $#_ > -1 ? shift : 20;
                    my @h = $_REPL->term->GetHistory();
@@ -60,6 +64,60 @@ sub apply_profile {
                    map {print "$_: $h[$_]\n"} ($min..$#h);
                 };');
 
+   # preliminary support for PDL demos
+   $repl->eval( q{
+      sub demo {
+      local $_ = lc $_[0] ;
+      if(/^$/) {
+      print <<EOD;
+      Use:
+      demo pdl         # general demo
+
+      demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
+      demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
+      demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
+      demo Tk3d        # Requires the perl Tk module
+
+      demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
+      demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
+
+      demo transform   # Coordinate transformations (Req.: PGPLOT)
+      demo cartography # Cartographic projections (Req.: PGPLOT)
+
+      demo bad         # Bad-value demo (Req.: bad value support)
+      demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+
+EOD
+      return;
+      } # if: /^$/
+
+      my %demos = (
+      'pdl' => 'PDL::Demos::General', # have to protect pdl as it means something
+      '3d' => 'PDL::Demos::TriD1',
+      '3d2' => 'PDL::Demos::TriD2',
+      '3dgal' => 'PDL::Demos::TriDGallery',
+      'tk3d' => 'PDL::Demos::TkTriD_demo',
+      'pgplot' => 'PDL::Demos::PGPLOT_demo',
+      'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
+      'bad' => 'PDL::Demos::BAD_demo',
+      'bad2' => 'PDL::Demos::BAD2_demo',
+      'transform' => 'PDL::Demos::Transform_demo',
+      'cartography' => 'PDL::Demos::Cartography_demo'
+      );
+
+      if ( exists $demos{$_} ) {
+         require PDL::Demos::Screen; # Get the routines for screen demos.
+         my $name = $demos{$_};
+         eval "require $name;"; # see docs on require for need for eval
+         $name .= "::run";
+         no strict 'refs';
+         &{$name}();
+      } else {
+         print "No such demo!\n";
+      }
+
+   } } );
+       
    if ($repl->can('exit_repl')) {
       $repl->eval('sub quit { $_REPL->exit_repl(1) };');
    } else {
