@@ -288,7 +288,7 @@ sub make_Types_pm {
   die "Types.pm.PL not found in Basic/Core"
     unless -f 'Basic/Core/Types.pm.PL';
   my $usebvals = $PDL::Config{WITH_BADVAL} ? "BADVALS=1" : "";
-  system "$Config{perlpath} Basic/Core/Types.pm.PL $usebvals";
+  system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals);
   die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
 }
 
