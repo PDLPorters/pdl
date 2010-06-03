@@ -1,9 +1,5 @@
 use ExtUtils::MakeMaker;
-
-# We need PDL::Core::Dev's write_dummy_make, hence the next two lines.
-# Maybe bad. Not sure.
-use blib;
-use PDL::Core::Dev;
+PDL::Core::Dev->import();
 
 # Make sure we have the PDL CONFIG hash loaded, and try to load it
 # from perldl.conf if not.
