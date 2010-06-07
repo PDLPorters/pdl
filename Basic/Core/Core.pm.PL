@@ -2307,9 +2307,56 @@ see the function L<pdl()|/pdl> for more details.
 
 !NO!SUBS!
 
-# generate type conversion docs
+=begin details
+
+Once upon a time, the type conversion functions were created using
+an eval-of-a-string. In other words, the eventual Core.pm file had
+something that looked like this:
+
+ foreach $type (typesrtkeys()) {
+   eval 'sub $type {
+   	 # conversion code in here
+   }';
+ }
+
+Notice how that actual subroutine DEFINITION is in an eval of a string?
+This was bad because if you ever asked for a stack trace that involved
+a type conversion, you got line like this:
+
+ Level 4: file (eval 14), line 2, pkg PDL::Core
+
+This is supposed to be the type conversion, but it does not give you the
+correct line number of the definition. In order to find it, you must
+look at the called level (in this case Level 3), and somehow trace
+backwards by hand to find the stack trace. I figured this out after
+playing with grep for about an hour.
+
+What I implement below changes the above to something that (in my
+example) looks like this:
+
+ Level 4: file /usr/local/lib/perl/5.10.0/PDL/Core.pm, line 2253, pkg PDL::Core
+
+Although it doesn't give you the function name, this at least gives you
+the correct line number where you can find the function.
+
+I see no reason for having the subroutines themselves defined in
+evals-of-strings. I can't imagine that they need to be evaluated in
+evals at all, let alone evals-of-strings. Of course, they could perhaps
+throw some weird compiler error (though I highly, highly doubt it since
+everything in them is quite standard fare) so I'm making Core.pm.PL
+write create eval-blocks for them, but perhaps this should just be
+removed, too. I leave that to a future core hacker.
+
+David Mertens, June 7, 2010
+
+=end details
+
+=cut
+
+# generate type conversion docs and funcs
 for my $type (typesrtkeys()) {
   my $conv = typefld($type,'convertfunc');
+  my $numval = typefld($type, 'numval');
   print OUT << "!WITH!SUBS!";
 
 =head2 $conv
@@ -2320,20 +2367,17 @@ Convert to $conv datatype - see 'Datatype_conversions'
 
 =cut
 
+eval {
+	sub PDL::$conv {
+            return bless [$numval], "PDL::Type" unless \@_;
+            convert(alltopdl('PDL', (scalar(\@_)>1 ? [\@_] : shift)),$numval)
+		}
+};
+
 !WITH!SUBS!
 } # end for loop
 
-print OUT "for (
-$typearray";
-
-print OUT <<'!NO!SUBS!';
-
-) {
-	eval ('sub PDL::'.$_->[0]." { ".
-		'return bless ['.$_->[1].'], "PDL::Type" unless @_;
-                convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
-		}');
-}
+print OUT << '!NO!SUBS!';
 
 =head2 type
 
