@@ -2321,7 +2321,7 @@ something that looked like this:
 
 Notice how that actual subroutine DEFINITION is in an eval of a string?
 This was bad because if you ever asked for a stack trace that involved
-a type conversion, you got line like this:
+a type conversion, you got a line like this:
 
  Level 4: file (eval 14), line 2, pkg PDL::Core
 
@@ -2336,7 +2336,8 @@ example) looks like this:
 
  Level 4: file /usr/local/lib/perl/5.10.0/PDL/Core.pm, line 2253, pkg PDL::Core
 
-Although it doesn't give you the function name, this at least gives you
+This doesn't give you the function name (because barf's stack-trace
+doesn't give you the function name), but this at least gives you
 the correct line number where you can find the function.
 
 I see no reason for having the subroutines themselves defined in
