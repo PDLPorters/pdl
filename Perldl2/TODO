@@ -2,144 +2,193 @@ Created on: Thu 10 Dec 2009 10:32:58 PM
 Last saved: Tue 01 Jun 2010 02:44:37 PM 
 
 
-+-----------------------------------------------------------+
-|           TODO for Missing Perldl Functionality           |
-+-----------------------------------------------------------+
++-------------------------------------------------------------------+
+|               TODO for Missing Perldl Functionality               |
++-------------------------------------------------------------------+
 
- NOTE: The startup file used is $HOME/.re.pl/repl.rc until
- back compatibility to support the existing .perldlrc and
- local.perldlrc features and functions.
+  NOTE: The startup file used is $HOME/.re.pl/repl.rc until
+  back compatibility to support the existing .perldlrc and
+  local.perldlrc features and functions.
+ 
+  Use either perldl or Perldl2 when starting the PDL shell
+  based on the value of WITH_DEVEL_REPL in perld.conf
+ 
+  Add support for .pdlrc, .perldrc to startup of Perldl2.
+ 
+  Add support for local.pdlrc, local.perldlrc similarly.
+ 
+  Add documentation for the startup files for unix-en and win32
+  systems.  Right now, the only doc is in the code.
+ 
+  Support for q, x, exit to exit the REPL shell.
+ 
+  Support for autoquoted arguments for all of the doc-type
+  commands: help|usage|apropos|sig|badinfo|demo
+ 
+  Support ? and ?? as aliases for help and apropos
+   s/^\s*\?\?\s*/apropos/
+   s/^\s*\?\s*/help/
+ 
+  Implement shell escapes, perhaps with
+   * filename completion
+   * command completion
+ 
+  Add Perldl2 VERSION variable and display information
+ 
+  Implement PDL shell startup boot messages, i.e.,
+    perlDL shell v1.352
+     PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+     'COPYING' in the PDL distribution. This is free software and you
+     are welcome to redistribute it under certain conditions, see
+     the same file for details.
+    ReadLines, NiceSlice, MultiLines  enabled
+    Reading /g/chm/.perldlrc...
+    Found docs database /cygdrive/c/local/pmods/lib-w-pdl/cygwin-thread-multi-64int/PDL/pdldoc.db
+    Type 'help' for online help
+    Type 'demo' for online demos
+    Loaded PDL v2.4.6_007 (supports bad values)
+ 
+  Fix demos to run under the Perldl2 for windows.  The curent
+  implementation uses the tput command to clear the screen but
+  that is not available for win32.  I think a readline clear
+  screen command should work.  Also, the demo 3d test hung at
+  the end of the demo apparently because it is waiting for
+  input (why?).
+ 
+  Make available $PERLDL::XX parameters.  These should, ideally,
+  be instance variables so that multiple shells could have
+  different values for them.  Maybe they need to be local.
+   $PERLDL::ESCAPE = '#';          # Default shell escape
+   $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
+   $PERLDL::MULTI  = 1;            # Enable multi-lines by default
+   $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
+   $PERLDL::PAGE   = 0;
+   $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
+   $PERLDL::PAGING = 0;
+   $PERLDL::PROMPT = "PDL> ";      # string or code reference
+ 
+  Implement perldl command line options:
+   -M <module> load module <module>
+   -m <module> unload module <module>
+   -I <dir>    Add <dir> to include path.
+   -V          print PDL version info (e.g. for a bug report)
+   -f <file>   execute file <file> before starting perldl
+   -glut       try to load OpenGL module (Enables readline event-loop processing).
+   -tk         try to load Tk module (Enables readline event-loop processing).
+   -w          run with warning messages turned-on 
+   -           Following arguments are files for input.
+ 
+  Add INPUT and OUTPUT handle args for PDL shells.  This would be
+  useful to tie the shell into another application, say Padre,
+  or to add tests for the shells.  NOTE: This includes fixing
+  perldl v.1.x not to use STDIN, STDOUT...
+ 
+  Verify that input from terminal and/or files works correctly
+  and consistently with perldl v.1.  NOTE: this should make it
+  possible to implement some tests of the interactive shell
+  from file input.
+ 
+  Add @PERLDL::AUTO processing.
+ 
+  Implement support for @PERLDL::PREPROCESS filters.  No
+  support for deprecated implementation with $PERLDL::PREPROCESS.
+ 
+  Add documentation to Perldl2 plugins and profiles and improve
+  the usage for PrintControl so one doesn't have to explicitly
+  type in the $_REPL->do_print($val) command.
+ 
+  Add support for TAB completion of filenames.
+ 
+  Enhance completion strategy for Perldl2.  For example,
+  order and prioritze completions to remove long lists
+  of bad options.  Allow chained completions recognizing
+  the output of PDL methods is a piddle so completion
+  could chain as well.  If the completion is followed
+  by certain characters, then scoot back and remove the
+  extra whitespace.
+ 
+  Update perldl documentation to match Perldl2 capabilities.
+  Any way to transparently select the correct docs at runtime?
+ 
+  Make Perldl2 fail/degrade gracefully if various files and
+  configuration stuff is not available.  Lines and lines of
+  backtrace isn't a help to anyone!
+ 
+  Fix the newline differences between new line handling for
+  TR::Perl (on win32 and cygwin and unix) and TR::Gnu (on
+  cygwin and unix).  TR::Gnu seems to have an extra newline
+  inserted per command.
+ 
+  Add MultiLine prompt with continuation character marking
+  the open structures. (e.g. MultiLine::TextBalanced)
+ 
+  Add GLUT event loop support to Term::ReadLine::Perl and
+  Term::ReadLine::Gnu.  Need to figure out a clean way to
+  map this into the original modules.
+ 
+  Fix Devel::REPL::Plugin::History to work with the
+  ReadLineHistory plugin so that its idea of command
+  numbers is the same and as complete.  Need to switch
+  to use the Term::ReadLine if present.  Otherwise a
+  hack would be to init the $_REPL->history from the
+  $_REPL->term->GetHistory at the start of the Perldl2.
+ 
+  Skip command lines that are too short and don't put
+  quit/q/x/exit in the history log.  Maybe remove duplicate
+  entries as well as list history commands.
+ 
+  Add runtime control options for NiceSlice:
+   report
+   trans
+   notrans
+ 
+  Implement ^C/^D to end PPI multiline if it makes sense.
 
- Use either perldl or Perldl2 when starting the PDL shell
- based on the value of WITH_DEVEL_REPL in perld.conf
 
- Add support for .pdlrc, .perldrc to startup of Perldl2.
++-------------------------------------------------------------------+
+| Features                       perldl                 pdl2        |
++-------------------------------------------------------------------+
 
- Add support for local.pdlrc, local.perldlrc similarly.
-
- Add documentation for the startup files for unix-en and win32
- systems.  Right now, the only doc is in the code.
-
- Support for q, x, exit to exit the REPL shell.
-
- Support for autoquoted arguments for all of the doc-type
- commands: help|usage|apropos|sig|badinfo|demo
-
- Support ? and ?? as aliases for help and apropos
-  s/^\s*\?\?\s*/apropos/
-  s/^\s*\?\s*/help/
-
- Implement shell escapes, perhaps with
-  * filename completion
-  * command completion
-
- Add Perldl2 VERSION variable and display information
-
- Implement PDL shell startup boot messages, i.e.,
-   perlDL shell v1.352
-    PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-    'COPYING' in the PDL distribution. This is free software and you
-    are welcome to redistribute it under certain conditions, see
-    the same file for details.
-   ReadLines, NiceSlice, MultiLines  enabled
-   Reading /g/chm/.perldlrc...
-   Found docs database /cygdrive/c/local/pmods/lib-w-pdl/cygwin-thread-multi-64int/PDL/pdldoc.db
-   Type 'help' for online help
-   Type 'demo' for online demos
-   Loaded PDL v2.4.6_007 (supports bad values)
-
- Fix demos to run under the Perldl2 for windows.  The curent
- implementation uses the tput command to clear the screen but
- that is not available for win32.  I think a readline clear
- screen command should work.  Also, the demo 3d test hung at
- the end of the demo apparently because it is waiting for
- input (why?).
-
- Make available $PERLDL::XX parameters.  These should, ideally,
- be instance variables so that multiple shells could have
- different values for them.  Maybe they need to be local.
-  $PERLDL::ESCAPE = '#';          # Default shell escape
-  $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
-  $PERLDL::MULTI  = 1;            # Enable multi-lines by default
-  $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
-  $PERLDL::PAGE   = 0;
-  $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
-  $PERLDL::PAGING = 0;
-  $PERLDL::PROMPT = "PDL> ";      # string or code reference
-
- Implement perldl command line options:
-  -M <module> load module <module>
-  -m <module> unload module <module>
-  -I <dir>    Add <dir> to include path.
-  -V          print PDL version info (e.g. for a bug report)
-  -f <file>   execute file <file> before starting perldl
-  -glut       try to load OpenGL module (Enables readline event-loop processing).
-  -tk         try to load Tk module (Enables readline event-loop processing).
-  -w          run with warning messages turned-on 
-  -           Following arguments are files for input.
-
- Add INPUT and OUTPUT handle args for PDL shells.  This would be
- useful to tie the shell into another application, say Padre,
- or to add tests for the shells.  NOTE: This includes fixing
- perldl v.1.x not to use STDIN, STDOUT...
-
- Verify that input from terminal and/or files works correctly
- and consistently with perldl v.1.  NOTE: this should make it
- possible to implement some tests of the interactive shell
- from file input.
-
- Add @PERLDL::AUTO processing.
-
- Implement support for @PERLDL::PREPROCESS filters.  No
- support for deprecated implementation with $PERLDL::PREPROCESS.
-
- Add documentation to Perldl2 plugins and profiles and improve
- the usage for PrintControl so one doesn't have to explicitly
- type in the $_REPL->do_print($val) command.
-
- Add support for TAB completion of filenames.
-
- Enhance completion strategy for Perldl2.  For example,
- order and prioritze completions to remove long lists
- of bad options.  Allow chained completions recognizing
- the output of PDL methods is a piddle so completion
- could chain as well.  If the completion is followed
- by certain characters, then scoot back and remove the
- extra whitespace.
-
- Update perldl documentation to match Perldl2 capabilities.
- Any way to transparently select the correct docs at runtime?
-
- Make Perldl2 fail/degrade gracefully if various files and
- configuration stuff is not available.  Lines and lines of
- backtrace isn't a help to anyone!
-
- Fix the newline differences between new line handling for
- TR::Perl (on win32 and cygwin and unix) and TR::Gnu (on
- cygwin and unix).  TR::Gnu seems to have an extra newline
- inserted per command.
-
- Add MultiLine prompt with continuation character marking
- the open structures. (e.g. MultiLine::TextBalanced)
-
- Add GLUT event loop support to Term::ReadLine::Perl and
- Term::ReadLine::Gnu.  Need to figure out a clean way to
- map this into the original modules.
-
- Fix Devel::REPL::Plugin::History to work with the
- ReadLineHistory plugin so that its idea of command
- numbers is the same and as complete.  Need to switch
- to use the Term::ReadLine if present.  Otherwise a
- hack would be to init the $_REPL->history from the
- $_REPL->term->GetHistory at the start of the Perldl2.
-
- Skip command lines that are too short and don't put
- quit/q/x/exit in the history log.  Maybe remove duplicate
- entries as well as list history commands.
-
- Add runtime control options for NiceSlice:
-  report
-  trans
-  notrans
-
- Implement ^C/^D to end PPI multiline if it makes sense.
+  $_ preserved                   no                     yes
+  
+  ?,?? aliases                   yes                    TBD
+  
+  q,x aliases                    yes                    TBD
+  
+  User AUTO commands             yes                    TBD 
+  
+  Autoquoting doc commands       yes                    TBD
+  
+  User extendable                rewrite/hard           plugins/easy
+  
+  History save/recall            yes                    yes
+  
+  !-history expansion            yes/partial            yes
+  
+  Lexical variables              yes/1-command only     yes
+  
+  Multiline expression entry     yes/Text::Balanced     yes/PPI based
+  
+  NiceSlice syntax               yes                    yes
+  
+  'use package'                  no                     yes
+  
+  Readline editing               yes/partial            yes
+  
+  TAB completion: @INC           no                     yes                                      
+  
+  TAB completion: file           yes                    TBD
+  
+  TAB completion: globals        no                     yes
+  
+  TAB completion: keyword        no                     yes                                      
+  
+  TAB completion: lexicals       no                     yes                                     
+  
+  TAB completion: methods        no                     yes                                      
+  
+  preproc_add/del                yes                    TBD
+  
+  print p alias                  yes                    yes
+  
+  list history                   yes                    yes
