@@ -70,20 +70,24 @@ sub command {
   } elsif ($this->{Mode} =~ /NAME/) {
     last;
   } elsif ($cmd eq 'head2') {
+  	# A function can have multiple names (ex: zeros and zeroes),
+  	# so split at the commas
     my @funcs = split(',',$txt);
+    # Remove parentheses (so myfunc and myfunc() both work)
     my @names = map {$1 if m/\s*([^\s(]+)\s*/} @funcs;
     barf "error parsing function list '$txt'"
       unless $#funcs == $#names;
     # check for signatures
     my $sym = $this->{SYMHASH};
-    for (@funcs) { $sym->{$1}->{Module} = $this->{NAME}
-		   if m/\s*([^\s(]+)\s*/;
-		   $sym->{$1}->{Sig}=$2
-		     if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/}
+    for (@funcs) {
+      $sym->{$1}->{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
+      $sym->{$1}->{Sig} = $2  if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
+    }
     # make the first one the current function
     $sym->{$names[0]}->{Names} = join(',',@names) if $#names > 0;
     my $name = shift @names;
-    for (@names) {$sym->{$_}->{Crossref} = $name}
+    # Make the other names cross-reference the first name
+    $sym->{$_}->{Crossref} = $name for (@names);
     my $sig = $sym->{$name}->{Sig};
     # diagnostic output
     print "\nFunction '".join(',',($name,@names))."'\n" if $this->{verbose};
@@ -542,6 +546,7 @@ Searching is by default case insensitive. Other flags can be
 given by specifying the regexp in the form C<m/regex/ismx>
 where C</> can be replaced with any other non-alphanumeric
 character. $fields is an array reference for all hash fields
+(or simply a string if you only want to search one field)
 that should be matched against the regex. Valid fields are
 
   Name,    # name of the function
@@ -560,16 +565,19 @@ sub search {
   my $hash = $this->ensuredb;
   my @match = ();
 
+  # Make a single scalar $fields work
+  $fields = [$fields] if ref($fields) eq '';
+
   $pattern = $this->checkregex($pattern);
 
   while (my ($key,$val) = each %$hash) {
-    for (@$fields) {
-      if (($_ eq 'Name' && $key =~ /$pattern/i) ||
-	  (defined $val->{$_} && $val->{$_} =~ /$pattern/i)) {
-	$val = $hash->{$val->{Crossref}}
-	  if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
-	push @match, [$key,$val];
-	last;
+    FIELD: for (@$fields) {
+      if ($_ eq 'Name' and $key =~ /$pattern/i
+          or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
+        $val = $hash->{$val->{Crossref}}
+          if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
+        push @match, [$key,$val];
+        last FIELD;
       }
     }
   }
