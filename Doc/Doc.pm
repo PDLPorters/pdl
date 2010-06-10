@@ -70,8 +70,8 @@ sub command {
   } elsif ($this->{Mode} =~ /NAME/) {
     last;
   } elsif ($cmd eq 'head2') {
-  	# A function can have multiple names (ex: zeros and zeroes),
-  	# so split at the commas
+    # A function can have multiple names (ex: zeros and zeroes),
+    # so split at the commas
     my @funcs = split(',',$txt);
     # Remove parentheses (so myfunc and myfunc() both work)
     my @names = map {$1 if m/\s*([^\s(]+)\s*/} @funcs;
