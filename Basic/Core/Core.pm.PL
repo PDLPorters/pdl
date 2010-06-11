@@ -729,7 +729,8 @@ use Scalar::Util;       # for looks_like_number test
 
 # This is the code that handles string arguments.
 sub PDL::Core::new_pdl_from_string {
-	my ($new, $value, $this, $type) = @_;
+	my ($new, $original_value, $this, $type) = @_;
+	my $value = $original_value;
 	
 	# Wrap the string in brackets [], so that the following works:
 	# $a = new PDL q[1 2 3];
@@ -772,15 +773,27 @@ sub PDL::Core::new_pdl_from_string {
 		return $to_return;
 	}
 	else {
-#		# Let's try wrapping it in brackets, to allow for really lazy
-#		# syntax like qq[1 2 3];
-#		$val = eval '[' . $value . ']';
-#		if (ref $val eq 'ARRAY') {
-#			return PDL::Core::pdl_avref($val,$this,$type);
-#		}
-#		else {
-			barf "PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent:\n@!";
-#		}
+		my @message = (
+			  'PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent.'
+			, 'You originally sent this:'
+			, $original_value
+			, 'I worked on it and eventually obtained this:'
+			, $value
+			);
+		if ($@) {
+			push @message
+				, 'There was an error in the evaluation:'
+				, $@
+				;
+		}
+		else {
+			push @message
+			, 'That successfully evaluated to this:'
+			, $val
+			, 'but I was expecting an array reference to come out of it.'
+			;
+		}
+		barf join("\n    ", @message);
 	}
 }
 
@@ -806,13 +819,8 @@ sub PDL::new {
    if (ref(\$value) eq "SCALAR") {
       if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
          # new was passed a string argument that doesn't look like a number
-         # so we can process as a Matlab-style, no commas data entry format.
-#         if (defined &PDL::Core::new_pdl_from_string) {
-            return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
-#         } else {
-#            print STDERR "Warning: PDL::new: PDL::Core::new_pdl_from_string() not defined.\n";
-#            barf("PDL::new cannot make piddle from string input '$value'\n");
-#         }
+         # so we can process as a Matlab-style data entry format.
+		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
       } else {
          $new->setdims([]);
          ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );

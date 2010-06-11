@@ -146,8 +146,7 @@ PDL::IO::FITS   Needs Astro::FITS::Header for full support of all FITS
                 It is currently listed as a prerequisite module for the
                 purposes of building with the cpan shell.
 
-PDL::IO::NDF
-                NOTE: These refs/URLs may be incorrect or outdated.
+PDL::IO::NDF    NOTE: These refs/URLs may be incorrect or outdated.
                 Requires the perl/NDF interface, NDFPERL, which also
 		requires a fortran compiler and the fortran NDF library.
 		Get the STARPERL package from
@@ -158,8 +157,7 @@ PDL::IO::NDF
                                         Module builds ok without
                                         NDF module and library
 
-PDL::IO::Pic
-                rpic/wpic: pbm+ or netpbm converters
+PDL::IO::Pic    rpic/wpic: pbm+ or netpbm converters
                  http://netpbm.sourceforge.net/
 
                 wmpeg: mpeg_encode program,

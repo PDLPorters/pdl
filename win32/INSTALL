@@ -133,8 +133,8 @@ To Build using ActivePerl (x64, 64 bit)
 
     cpan -i PDL
 
- Without OpenGL installed, you'll need to set USE_POGL to 0 in perldl.conf (in the top
- level PDL source folder) and run the build process manually:
+ Without OpenGL installed, you'll need to set WITH_3D to 0 in perldl.conf
+ (in the top level PDL source folder) and run the build process manually:
 
     perl Makefile.Pl
     nmake test

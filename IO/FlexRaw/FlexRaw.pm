@@ -221,6 +221,15 @@ Read a binary file with flexible format specification
 
 Memory map a binary file with flexible format specification
 
+=for options
+
+  All of these options default to false unless set true:
+  
+  ReadOnly - Data should be readonly
+  Creat    - Create file if it doesn't exist
+  Trunc    - File should be truncated to a length that conforms
+             with the header
+
 =for usage
 
  ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
@@ -386,7 +395,7 @@ sub mapchunk {
     local ($flexmapok)=1;
     local $SIG{BUS} = \&myhandler;
     local $SIG{FPE} = \&myhandler;
-    eval '$pdl->clump(-1)->at(0)';
+    eval {$pdl->clump(-1)->at(0)};
     $offset += $len;
     $flexmapok;
 }
@@ -522,7 +531,7 @@ READ:
 
 sub mapflex {
     my ($usage)
-	= 'Usage ($x,$y,...) = mapflex("filename" [, \@hdr] [,\%opts])';
+		= 'Usage ($x,$y,...) = mapflex("filename" [, \@hdr] [,\%opts])';
     my $name = shift;
     # reference to header array
     my ($h, $size);
@@ -534,46 +543,46 @@ sub mapflex {
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
 
     foreach (@_) {
-	if (ref($_) eq "ARRAY") {
-	    $h = $_;
-	} elsif (ref($_) eq "HASH") {
-	    %opts = (%opts,%$_);
-	} else {
-	    warn $usage;
-	}
+		if (ref($_) eq "ARRAY") {
+			$h = $_;
+		} elsif (ref($_) eq "HASH") {
+			%opts = (%opts,%$_);
+		} else {
+			warn $usage;
+		}
     }
 
     if ($name =~ s/\.gz$// || $name =~ s/\.Z$// ||
 	(! -e $name && (-e $name.'.gz' || -e $name.'.Z'))) {
-	barf "Can't map compressed file";
+		barf "Can't map compressed file";
     }
 
     if (!defined $h) {
-	$h = _read_flexhdr("$name.hdr");
+		$h = _read_flexhdr("$name.hdr");
     }
 
 # Go through headers which reconfigure
     foreach $hdr (@$h) {
-	my ($type) = $hdr->{Type};
-	if ($type eq 'swap') {
-	    barf "Can't map byte swapped file";
-	} elsif ($type eq 'f77') {
-	    $f77mode = 1;
-	} else {
-	    my($si) = 1;
-	    foreach (ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims}) {
-		$si *= $_;
-	    }
-	    $size += $si * PDL::Core::howbig ($type);
-	}
+		my ($type) = $hdr->{Type};
+		if ($type eq 'swap') {
+			barf "Can't map byte swapped file";
+		} elsif ($type eq 'f77') {
+			$f77mode = 1;
+		} else {
+			my($si) = 1;
+			foreach (ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims}) {
+			$si *= $_;
+			}
+			$size += $si * PDL::Core::howbig ($type);
+		}
     }
 # $s now contains estimated size of data in header --
 # setting $f77mode means that it will be 8 x n bigger in reality
     $size += 8 if ($f77mode);
     if (!($opts{Creat})) {
-	my ($s) = $size;
-	$size = (stat $name)[7];
-	barf "File looks too small ($size cf header $s)" if $size < $s;
+		my ($s) = $size;
+		$size = (stat $name)[7];
+		barf "File looks too small ($size cf header $s)" if $size < $s;
     }
     # print "Size $size f77mode $f77mode\n";
 
@@ -587,59 +596,59 @@ sub mapflex {
 			 ($opts{Creat} || $opts{Trunc} ? 1:0));
 READ:
     foreach $hdr (@$h) {
-	my ($type) = $hdr->{Type};
-	# Case convert when we have user data
-	$type =~ tr/A-Z/a-z/ if $#_ == 1;
-	if ($newfile) {
-	    if ($type eq 'f77') {
-		$hdr = {
-		    Type => $PDL_L,
-		    Dims => [ ],
-		    NDims => 0
-		    };
-		$type = $PDL_L;
-	    } else {
-		$newfile = 0;
-	    }
-	}
-	if ($#_ == 1) {
-	    barf("Bad typename '$type' in mapflex")
-		if (!defined($flextypes{$type}));
-	    $type = $flextypes{$type};
-	}
-	$pdl = PDL->zeroes ((new PDL::Type($type)),
-			    ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
-	$len = length $ {$pdl->get_dataref};
-
-	&mapchunk($d,$pdl,$len,$name) or last READ;
-	$chunkread += $len;
-	if ($newfile && $f77mode) {
-	    if ($opts{Creat}) {
-		$pdl->set(0,$size - 8);
-	    } else {
-		$chunk = $pdl->copy;
-	    }
-	    $chunkread = 0;
-	    next READ;
-	}
-
-        push (@out,$pdl);
-
-	if ($f77mode && $chunk->at == $chunkread) {
-	    $chunkread = 0;
-	    my ($check) = $chunk->copy;
-	    &mapchunk($d,$check,4,$name) or last READ;
-	    if ($ops{Creat}) {
-		$check->set(0,$size-8);
-	    } else {
-		if ($check->at ne $chunk->at) {
-		    barf "F77 file format error for $check cf $chunk";
-		    last READ;
+		my ($type) = $hdr->{Type};
+		# Case convert when we have user data
+		$type =~ tr/A-Z/a-z/ if $#_ == 1;
+		if ($newfile) {
+			if ($type eq 'f77') {
+			$hdr = {
+				Type => $PDL_L,
+				Dims => [ ],
+				NDims => 0
+				};
+			$type = $PDL_L;
+			} else {
+			$newfile = 0;
+			}
 		}
-	    }
-	    barf "Will only map first f77 data statement" if ($offset < $size);
-	    last READ;
-	}
+		if ($#_ == 1) {
+			barf("Bad typename '$type' in mapflex")
+			if (!defined($flextypes{$type}));
+			$type = $flextypes{$type};
+		}
+		$pdl = PDL->zeroes ((new PDL::Type($type)),
+					ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
+		$len = length $ {$pdl->get_dataref};
+
+		&mapchunk($d,$pdl,$len,$name) or last READ;
+		$chunkread += $len;
+		if ($newfile && $f77mode) {
+			if ($opts{Creat}) {
+			$pdl->set(0,$size - 8);
+			} else {
+			$chunk = $pdl->copy;
+			}
+			$chunkread = 0;
+			next READ;
+		}
+
+			push (@out,$pdl);
+
+		if ($f77mode && $chunk->at == $chunkread) {
+			$chunkread = 0;
+			my ($check) = $chunk->copy;
+			&mapchunk($d,$check,4,$name) or last READ;
+			if ($ops{Creat}) {
+				$check->set(0,$size-8);
+				} else {
+				if ($check->at ne $chunk->at) {
+					barf "F77 file format error for $check cf $chunk";
+					last READ;
+				}
+			}
+			barf "Will only map first f77 data statement" if ($offset < $size);
+			last READ;
+		}
     }
     wantarray ? @out : $out[0];
 }

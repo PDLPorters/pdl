@@ -74,8 +74,11 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_008 release:
+  PDL-2.4.6_010 release:
 
+  3013751    t/proj_transform.t fails for cygwin 1.7
+  3011879    pdl() constructor crashes for mixed array ref/piddle args
+  3011659    uniq fails when pdl contains nan
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
   2946119    TriD garbled axis text

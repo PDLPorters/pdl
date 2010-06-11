@@ -113,7 +113,7 @@ Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
 Lib/	   - The stuff that PDL would still be useful without but
 	     which makes PDL even more useful
-Perldl2/     - Experiments for PDL+Padre integration and perldl shell v2
+Perldl2/   - The PDL shell version 2 development
 
 Comments are welcome - so are volunteers to write code and documentation!
 Please contact the developers mailing list pdl-porters@jach.hawaii.edu
