@@ -2,6 +2,7 @@
 
 use ExtUtils::MakeMaker;
 use Config;
+use File::Spec;
 
 #eval {
 #  require PDL::Core::Dev;  # needed for stand-alone version of package.
@@ -25,7 +26,7 @@ if (!$pdl_installed) {
 
 use vars qw /$plplotvers/; # version of plplot used
 
-# 
+#
 ## Search for plplot library and include file
 #
 print "\nChecking PDL::Graphics::PLplot...\n";
@@ -38,7 +39,7 @@ unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
 my $libname = "libplplotd." . $Config{"so"};
 my $libname_static = "libplplotd.a";
 my $incname = "plplot.h";
-
+my $devnull = File::Spec->devnull(); # Portable null device.
 
 # require bad value support.  D. Hunt 10/20/2008
 unless ($PDL::Config{WITH_BADVAL}) {
@@ -129,20 +130,21 @@ EOC
 unless ($size == 8) {
   print "          Sizeof(PLFLT) must be 8. PLplot must be compiled --with-double (IE ./configure --with-double)\n";
   $found_plplot = 0;
-} 
+}
 
 # Try linking with library.  New if blocks should be added if necessary
 my $libs;
 foreach my $l (
 	       "-L$plplot_lib_path -lplplotd -lX11",
 	       "-L$plplot_lib_path -lplplotd",
+             "-L$plplot_lib_path -lplplotd -lqsastime -lcsirocsa -lgdi32 -lcomdlg32",
 	       # New lib combinations should be added here!
 	       ) {
   if (trylink( '', '#include <plplot.h>', 'plinit();', "$l $plplot_include_path")) {
     $libs = $l;
     print "\tSucceeded linking PLplot with $libs\n";
     last;
-  } 
+  }
 }
 
 unless (defined($libs)) {
@@ -151,7 +153,7 @@ unless (defined($libs)) {
 }
 
 # Test if PLplot has plsmem, for in memory plotting
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
 #include <plplot.h>
 main () {  plsmem (0, 0, NULL); }
 EOC
@@ -166,7 +168,7 @@ if ($@) {
 }
 
 # Test if PLplot has plsvect, for in vector plotting
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
 #include <plplot.h>
 main () {  plsvect (NULL, NULL, 0, 0); }
 EOC
@@ -181,7 +183,7 @@ if ($@) {
 }
 
 # Test if PLplot has support for alpha transparency, found in versions 5.9.0 and higher
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd",0,<<'EOC');
+eval { compileAndRun ("$plplot_include_path $libs",0,<<'EOC');
 #include <plplot.h>
 main () { c_plgcol0a(0, 0, 0, 0, NULL);}
 EOC
@@ -196,7 +198,7 @@ if ($@){
 }
 
 # Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd", 0, <<'EOC'); 
+eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
 #include <plplot.h>
 main () {  plpoly3 (0, NULL, NULL, NULL, NULL); }
 EOC
@@ -211,7 +213,7 @@ if ($@) {
   open (OPT, ">>OPTIONS!");
   print OPT "PLPOLY3 = 5\n";
   close OPT;
-}  
+}
 
 $PDL::Config{WITH_PLPLOT} = 1;
 
@@ -221,7 +223,7 @@ $PDL::Config{WITH_PLPLOT} = 1;
 @pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
 
 %hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
-###%hash = pdlpp_stdargs(@::pack);          # use this for separate module          
+###%hash = pdlpp_stdargs(@::pack);          # use this for separate module
 
 $hash{'PREREQ_PM'} = { PDL => 0 };
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
@@ -229,7 +231,7 @@ $hash{'VERSION_FROM'}   = 'plplot.pd';
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
 # another plplot is installed in /usr/local/lib. D. Hunt 6/4/2004
-$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib "; 
+$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib ";
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
 			  'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'};
@@ -246,17 +248,17 @@ sub compileAndRun {
   my $flags = shift;
   my $run   = shift;
   my $code  = shift;
-  
+
   open (OUT, ">temp.c");
   print OUT $code;
   close OUT;
   unlink './temp'; # since we work out whether the compile succeeds by presence of this
   unlink './temp.exe'; # since we work out whether the compile succeeds by presence of this
-  
+
   my $cc = $Config{cc};
   my $ccflags = $Config{ccflags};
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
-  system "$cc $ccflags $flags temp.c $flags -o temp > /dev/null 2>&1";
+  system "$cc $ccflags $flags temp.c $flags -o temp > $devnull 2>&1";
   unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');
   return unless ($run);
