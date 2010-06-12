@@ -16,7 +16,7 @@ BEGIN{
 
 if ( $PERLDL::TERM->ReadLine() =~ /::Perl$/ ) {
    if ( defined $readline::rl_MaxHistorySize ) {
-      $readline::rl_MaxHistorySize = $PERLDL::HISTFILESIZE;
+      $readline::rl_MaxHistorySize = $PERLDL::HISTFILESIZE if defined $PERLDL::HISTFILESIZE;
    }
 }
 
