@@ -307,7 +307,8 @@ sub PDL::gl_spheres {
    my ($coords,$colors) = @_;   
    for (my $np=0; $np<$coords->dim(1); $np++) {
       glPushMatrix();
-      glTranslatef(($coords->slice(":,($np)"))->float->list);
+      my ($x,$y,$z) = ($coords->slice(":,($np)"))->float->list;
+      glTranslatef($x,$y,$z);
       glutSolidSphere(0.010,10,10);
       glPopMatrix();
    }

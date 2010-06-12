@@ -26,7 +26,7 @@ $v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
 
 pp_addpm({At => Top}, <<'EOD');
 
-BEGIN { 
+BEGIN {
 $VERSION = '0.52'
 };
 
@@ -370,7 +370,7 @@ You will need to use this to make color keys or insets.
  # Also useful in creating color keys:
  $pl->xyplot   ($x, $y, PALETTE => 'RAINBOW', PLOTTYPE => 'POINTS', COLORMAP => $z);
  $pl->colorkey ($z, 'v', VIEWPORT => [0.93, 0.96, 0.15, 0.85]);
- 
+
  # Plot an inset; first the primary data and then the inset. In this
  # case, the inset contains a selection of the orignal data
  $pl->xyplot ($x, $y);
@@ -601,22 +601,22 @@ Looks like a stack of long, thin XY plots, all line up on the same X axis.
                            PLOTTYPE => 'LINE', TITLE => 'functions',
                            YLAB     => ['x**2', 'sqrt(x)', 'x**3', 'sin(x/20*2pi)'],
                            COLOR    => ['GREEN', 'DEEPSKYBLUE', 'DARKORCHID1', 'DEEPPINK'], XLAB => 'X label');
-  
+
   # Here's something a bit different. Notice that different xs have
   # different lengths.
   $x1  = sequence(20);
   $y1  = $x1**2;
-  
+
   $x2  = sequence(18);
   $y2  = sqrt($x2);
-  
+
   $x3  = sequence(24);
   $y3  = $x3**3;
-  
+
   my $x4  = sequence(27);
   $a  = ($x4/20) * 2 * $pi;
   my $y4  = sin($a);
-  
+
   $xs  = [$x1, $x2, $x3, $x4];
   $ys  = [$y1, $y2, $y3, $y4];
   $pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
@@ -2490,10 +2490,10 @@ For example:
  # Draw a sine wave
  $x = sequence(100)/10;
  $y = sin($x);
- 
+
  # Draws the sine wave:
  plline($x, $y);
- 
+
  # Set values above 3/4 to 'bad', effectively drawing a bunch of detached,
  # capped waves
  $y->setbadif($y > 3/4);
@@ -2548,7 +2548,7 @@ For example:
  my $z = 30 - $x**3;         # Cubic coloration
  my $symbols = floor($x);    # Use different symbols for each 1/3 of the plot
                              #  These should be integers.
- 
+
  plcolorpoints($x, $y, $z, $symbols, -5, 20);  # Thread over everything
  plcolorpoints($x, $y, 1, 1, -1, 2);           # same color and symbol for all
 
@@ -2589,7 +2589,7 @@ pp_def ('plcolorpoints',
                     if (ci > 1) ci = 1;
                     c_plcol1 (ci); /* set current color */
                     c_plsym (1, &$x(n=>i), &$y(n=>i), $sym()); /* plot it */
-         
+
                   }',
          Doc => $doc,
        );
@@ -2804,9 +2804,12 @@ pp_def ('plAllocGrid',
           nx = $SIZE(nx);
           ny = $SIZE(ny);
 
-          grid = (PLcGrid*) malloc (sizeof (PLcGrid));
-          grid->xg = (PLFLT*) calloc (nx, sizeof (PLFLT));
-          grid->yg = (PLFLT*) calloc (ny, sizeof (PLFLT));
+          New(1, grid, 1, PLcGrid);
+          if(grid == NULL) croak("Failed to allocate memory for grid");
+          Newz(2, grid->xg, nx, PLFLT);
+          if(grid->xg == NULL) croak("Failed to allocate memory for grid->xg");
+          Newz(3, grid->yg, ny, PLFLT);
+          if(grid->yg == NULL) croak("Failed to allocate memory for grid->yg");
           grid->nx = nx;
           grid->ny = ny;
 
@@ -3132,7 +3135,7 @@ pp_def ('plshades',
              $P(clevel), nlvl, $fill_width(), $cont_color(), $cont_width(),
              plfill, $rectangular(), pltrcb, pltrdt);
 
-           free(z);',
+           plFree2dGrid(z, nx, ny);',
        );
 
 pp_def ('plcont',
@@ -3408,7 +3411,7 @@ if (!$v59_or_earlier) {
 
            c_plimagefr (idata, size_x, size_y,
 	     $xmin(), $xmax(), $ymin(), $ymax(), $zmin(), $zmax(),
-             $valuemin(), $valuemax(), 
+             $valuemin(), $valuemax(),
              (SvTRUE ($COMP(pltr)) ? pltrcb : NULL),
              (SvTRUE ($COMP(pltr)) ? pltrdt : NULL));
 
@@ -3846,7 +3849,7 @@ unless ($novect) {
 	      Pars => 'int [o]p_family(); int [o]p_style(); int [o]p_weight();',
 	      Code => 'c_plgfont($P(p_family),$P(p_style),$P(p_weight));'
 	     );
-      
+
       #  plsfont (PLINT family, PLINT style, PLINT weight);
       pp_def ('plsfont',
 	      Pars => 'int family(); int style(); int weight();',
@@ -3879,14 +3882,14 @@ EOC
 pp_add_exported('', 'plgfci');
 
 pp_addxs (<<'EOC');
-void 
+void
 plsfci(fci)
         unsigned int fci
     CODE:
         c_plsfci(fci);
 EOC
 pp_add_exported('', 'plsfci');
- 
+
   }
 
 }

@@ -1,3 +1,153 @@
+Release notes for PDL 2.4.6_010 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+
+   By default, the Perldl2 shell (i.e., pdl2) will be built
+   and installed if you have already installed Devel::REPL
+   version 1.003010 or higher.
+   
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
 Release notes for PDL 2.4.6_009 --------------------------
 
 General Notes:

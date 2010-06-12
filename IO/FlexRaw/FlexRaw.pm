@@ -395,7 +395,7 @@ sub mapchunk {
     local ($flexmapok)=1;
     local $SIG{BUS} = \&myhandler;
     local $SIG{FPE} = \&myhandler;
-    eval '$pdl->clump(-1)->at(0)';
+    eval {$pdl->clump(-1)->at(0)};
     $offset += $len;
     $flexmapok;
 }

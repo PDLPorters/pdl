@@ -39,11 +39,12 @@ from the standard Setup.exe installs).
 Just start up an xterm and run cpan from the bash prompt:
 
   bash$ cpan
+  cpan> install ExtUtils::F77
   cpan> install OpenGL
   cpan> install PDL
 
-This installs the Perl OpenGL (a.k.a POGL) module and should
-pull in installs for the following dependencies:
+This installs the Perl OpenGL (a.k.a POGL) module, ExtUtils::F77,
+and should pull in installs for the following dependencies:
 
   Astro::FITS::Header
   Data::Dumper

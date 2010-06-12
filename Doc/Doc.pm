@@ -70,20 +70,24 @@ sub command {
   } elsif ($this->{Mode} =~ /NAME/) {
     last;
   } elsif ($cmd eq 'head2') {
+    # A function can have multiple names (ex: zeros and zeroes),
+    # so split at the commas
     my @funcs = split(',',$txt);
+    # Remove parentheses (so myfunc and myfunc() both work)
     my @names = map {$1 if m/\s*([^\s(]+)\s*/} @funcs;
     barf "error parsing function list '$txt'"
       unless $#funcs == $#names;
     # check for signatures
     my $sym = $this->{SYMHASH};
-    for (@funcs) { $sym->{$1}->{Module} = $this->{NAME}
-		   if m/\s*([^\s(]+)\s*/;
-		   $sym->{$1}->{Sig}=$2
-		     if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/}
+    for (@funcs) {
+      $sym->{$1}->{Module} = $this->{NAME} if m/\s*([^\s(]+)\s*/;
+      $sym->{$1}->{Sig} = $2  if m/\s*([^\s(]+)\s*\(\s*(.+)\s*\)\s*$/;
+    }
     # make the first one the current function
     $sym->{$names[0]}->{Names} = join(',',@names) if $#names > 0;
     my $name = shift @names;
-    for (@names) {$sym->{$_}->{Crossref} = $name}
+    # Make the other names cross-reference the first name
+    $sym->{$_}->{Crossref} = $name for (@names);
     my $sig = $sym->{$name}->{Sig};
     # diagnostic output
     print "\nFunction '".join(',',($name,@names))."'\n" if $this->{verbose};
@@ -524,6 +528,36 @@ sub savedb {
 
 Return the PDL symhash (e.g. for custom search operations)
 
+The symhash is a multiply nested hash with the following structure:
+
+ $symhash = {
+     function_name => {
+             Module => 'module::name',
+             Sig    => 'signature string',
+             Bad    => 'bad documentation string',
+             ...
+         },
+     function_name => {
+             Module => 'module::name',
+             Sig    => 'signature string',
+             Bad    => 'bad documentation string',
+             ...
+         },
+     };
+
+The possible keys for each function include:
+
+ Module   - module name
+ Sig      - signature
+ Crossref - the function name for the documentation, if it has multiple
+            names (ex: the documentation for zeros is under zeroes)
+ Names    - a comma-separated string of the all the function's names
+ Example  - example text (optional)
+ Ref      - one-line reference string
+ Opt      - options
+ Usage    - short usage explanation
+ Bad      - explanation of behavior when it encounters bad values
+
 =cut
 
 sub gethash {
@@ -542,6 +576,7 @@ Searching is by default case insensitive. Other flags can be
 given by specifying the regexp in the form C<m/regex/ismx>
 where C</> can be replaced with any other non-alphanumeric
 character. $fields is an array reference for all hash fields
+(or simply a string if you only want to search one field)
 that should be matched against the regex. Valid fields are
 
   Name,    # name of the function
@@ -550,6 +585,20 @@ that should be matched against the regex. Valid fields are
   Example, # the example for this function
   Opt,     # options
   File,    # the path to the source file this docs have been extracted from
+
+If you wish to have your results sorted by function name, pass a true
+value for C<$sort>.
+
+The results will be returned as an array of pairs in the form
+
+ @results = (
+  [funcname, {SYMHASH_ENTRY}],
+  [funcname, {SYMHASH_ENTRY}],
+  ...
+ );
+
+See the example at the end of the documentation to see how you might
+use this.
 
 =cut
 
@@ -560,16 +609,19 @@ sub search {
   my $hash = $this->ensuredb;
   my @match = ();
 
+  # Make a single scalar $fields work
+  $fields = [$fields] if ref($fields) eq '';
+
   $pattern = $this->checkregex($pattern);
 
   while (my ($key,$val) = each %$hash) {
-    for (@$fields) {
-      if (($_ eq 'Name' && $key =~ /$pattern/i) ||
-	  (defined $val->{$_} && $val->{$_} =~ /$pattern/i)) {
-	$val = $hash->{$val->{Crossref}}
-	  if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
-	push @match, [$key,$val];
-	last;
+    FIELD: for (@$fields) {
+      if ($_ eq 'Name' and $key =~ /$pattern/i
+          or defined $val->{$_} and $val->{$_} =~ /$pattern/i) {
+        $val = $hash->{$val->{Crossref}}
+          if defined $val->{Crossref} && defined $hash->{$val->{Crossref}};
+        push @match, [$key,$val];
+        last FIELD;
       }
     }
   }
@@ -763,6 +815,63 @@ sub getfuncdocs {
 
 1;
 
+=head1 PDL::DOC EXAMPLE
+
+Here's an example of how you might use the PDL Doc database in your
+own code.
+
+ use PDL::Doc;
+ # Find the pdl documentation
+ my ($dir,$file,$pdldoc);
+ DIRECTORY: for $dir (@INC) {
+     $file = $dir."/PDL/pdldoc.db";
+     if (-f $file) {
+         print "Found docs database $file\n";
+         $pdldoc = new PDL::Doc ($file);
+         last DIRECTORY;
+     }
+ }
+ 
+ die ("Unable to find docs database!\n") unless $pdldoc;
+ 
+ # Print the reference line for zeroes:
+ print $pdldoc->gethash->{zeroes}->{Ref};
+ 
+ # See which examples use zeroes
+ $pdldoc->search('zeroes', 'Examples', 1);
+ 
+ # All the functions that use zeroes in their example:
+ my @entries = $pdldoc->search('zeroes', 'Example', 1);
+ print "Functions that use 'zeroes' in their examples include:\n";
+ foreach my $entry (@entries) {
+     # Unpack the entry
+     my ($func_name, $sym_hash) = @$entry;
+     print "$func_name\n";
+ }
+ 
+ print "\n";
+ 
+ # Let's look at the function 'mpdl'
+ @entries = $pdldoc->search('mpdl', 'Name');
+ # I know there's only one:
+ my $entry = $entries[0];
+ my ($func_name, $sym_hash) = @$entry;
+ print "mpdl info:\n";
+ foreach my $key (keys %$sym_hash) {
+     # Unpack the entry
+     print "---$key---\n$sym_hash->{$key}\n";
+ }
+
+=head2 Finding Modules
+
+How can you tell if you've gotten a module for one of your entries?
+The Ref entry will begin with 'Module:' if it's a module. In code:
+
+ # Prints:
+ #  Module: fundamental PDL functionality
+ my $sym_hash = $pdldoc->gethash;
+ print $pdldoc->gethash->{'PDL::Core'}->{Ref}, "\n"
+
 =head1 BUGS
 
 Quite a few shortcomings which will hopefully be fixed following
@@ -772,6 +881,10 @@ discussions on the pdl-porters mailing list.
 
 Copyright 1997 Christian Soeller E<lt>c.soeller@auckland.ac.nzE<gt> 
 and Karl Glazebrook E<lt>kgb@aaoepp.aao.gov.auE<gt>
+
+Further contributions copyright 2010 David Mertens
+E<lt>dcmertens.perl@gmail.comE<gt>
+
 All rights reserved. There is no warranty. You are allowed
 to redistribute this software / documentation under certain
 conditions. For details, see the file COPYING in the PDL

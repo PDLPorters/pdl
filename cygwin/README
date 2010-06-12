@@ -33,30 +33,28 @@ external dependencies:
 
  PDL::FFTW
   (Builds if FFTW version 2 has been hand built and installed,
-   cygwin only comes with FFTW version 3.)
+   cygwin Setup.exe only provides FFTW version 3).
 
  PDL::Graphics::PGPLOT
-  (Builds if pgplot library has been hand built and installed)
-
- PDL::Graphics::PLplot
-  (Builds if plplot library has been hand built and installed)
+  (Builds if pgplot library has been hand built and installed,
+   and if the Perl PGPLOT module has been installed)
 
  PDL::Graphics::TriD
   (Builds automatically if you have X11 and OpenGL + FreeGLUT
-  installed).  There is a known problem with PDL::Graphics::TriD::Tk
-  and Tk v804.028 where the embedded OpenGL window widget fails
-  to be configured.  Running under the debugger makes it work.
+  installed).
 
  PDL::GSL::*
  PDL::GSLSF::*
-  (Builds if GSL is installed via cygwin setup.exe)
+  (Builds if GSL is installed via cygwin Setup.exe)
 
  PDL::IO::GD
-  (Builds if the gd lib is installed via cygwin setup.exe)
+  (Builds if the gd lib is installed via cygwin Setup.exe)
 
  PDL::GIS::Proj
  PDL::Transform::Proj4
-  (Builds if PROJ has been installed via cygwin setup.exe)
+  (Builds if PROJ has been installed via cygwin Setup.exe.
+   NOTE: there appears to be an issue between the PROJ4 on
+   cygwin 1.7.x and this module.  Investigation is underway)
 
  PDL::Slatec
   (Builds if ExtUtils::F77 has been installed)
@@ -74,8 +72,14 @@ for cygwin:
 
  PDL::Graphics::IIS
   
- PDL::Graphics::Karma   (Karma has been deprecated)
+ PDL::Graphics::Karma   (Karma has been deprecated and
+                         is not supported)
   
+ PDL::Graphics::PLplot  (PLplot and the PDL module support is
+                         not working out of the box.  It is
+			 believed that it should work with care
+			 in building.  TODO: verify and fix.)
+
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
  PDL::IO::NDF           (NDF has not been ported to cygwin)

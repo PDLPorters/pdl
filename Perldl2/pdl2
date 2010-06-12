@@ -8,7 +8,8 @@ BEGIN {
          $HOME = $ENV{USERPROFILE};
          $HOME =~ s/\\/\//g;
       }
-   $ENV{PERLREPL_HISTFILE} = "$HOME/.perldl_hist"
+   $ENV{PERLREPL_HISTFILE} = "$HOME/.perldl_hist";
+   $ENV{PERLREPL_HISTLEN} = 500;
 }
 
 use Devel::REPL::Script 'run';
