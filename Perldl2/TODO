@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 01 Jun 2010 02:44:37 PM 
+Last saved: Sat 12 Jun 2010 01:07:21 PM
 
 
 +-------------------------------------------------------------------+
@@ -171,7 +171,7 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   
   NiceSlice syntax               yes                    yes
   
-  'use package'                  no                     yes
+  package NAMESPACE support      no                     yes
   
   Readline editing               yes/partial            yes
   
