@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Mon 31 May 2010 09:31:18 PM
+# Last saved: Sat 12 Jun 2010 03:32:24 PM
 #
 
 use Moose;
@@ -12,7 +12,7 @@ with 'Devel::REPL::Profile';
 sub plugins {
    qw(
       Commands
-      CompletionDriver::Globals
+      Completion
       CompletionDriver::INC
       CompletionDriver::Keywords
       CompletionDriver::LexEnv
@@ -25,7 +25,7 @@ sub plugins {
       NiceSlice
       PrintControl
       ReadLineHistory
-   ); # 
+   ); # CompletionDriver::Globals
 }
 
 sub apply_profile {

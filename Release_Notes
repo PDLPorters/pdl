@@ -15,6 +15,12 @@ Highlights:
    By default, the Perldl2 shell (i.e., pdl2) will be built
    and installed if you have already installed Devel::REPL
    version 1.003010 or higher.
+
+   TAB completion for filenames is now provided when no
+   other completions are found (usually what you want and
+   the same as perldl).  The fix was in Devel::REPL and
+   should be available for Perldl2 in their next release:
+   1.003010.
    
 
 

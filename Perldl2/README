@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 01 Jun 2010 02:28:18 PM 
+Last saved: Sat 12 Jun 2010 03:51:12 PM
 
 
 +-----------------------------------------------------------+
@@ -20,6 +20,10 @@ use the Perldl2 shell follows.
 |                          FILES                            |
 +-----------------------------------------------------------+
 
+ Completion.pm
+   A copy of the same from Devel::REPL git with the fix for
+   filename expansion until a formal release.
+
  README
    This file.
 
@@ -37,6 +41,9 @@ use the Perldl2 shell follows.
   of Devel::REPL should be detected and the Perldl2
   support built and installed.
  
+  Copy Completion.pm to the Devel/REPL/Plugin/ directory
+  in your perl @INC path where Devel::REPL was installed.
+
 
 +-----------------------------------------------------------+
 |                           USE                             |
@@ -65,7 +72,6 @@ use the Perldl2 shell follows.
 +-----------------------------------------------------------+
 
  Supported functionality from Devel::REPL and PDL:
-  * Commands (generic command creation)
   * DDS (pretty prints output using Data::Dump::Streamer)
   * History (redo commands with !-1 and !<num> syntax)
   * Interrupt (interrupt with Ctrl-C; not on MSWin32)
@@ -121,4 +127,4 @@ use the Perldl2 shell follows.
  documentation for Devel::REPL::Profile.
 
  It is probably simpler to put your customizations in a
- file and just do the filename.
+ file and just do 'filename' at the PDL> prompt.
