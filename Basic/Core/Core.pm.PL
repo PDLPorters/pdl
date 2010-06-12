@@ -4,7 +4,8 @@
 #   (note this now only changes the documentation, since we
 #    have PDL::Bad supplying dummy functions -- eg a badvalue()
 #    which always returns 0).
-#
+# - also needed since we generate the type conversion functions
+#   like byte, short, ushort, double, etc, programatically.
 
 use strict;
 
