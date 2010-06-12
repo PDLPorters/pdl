@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 12 Jun 2010 03:39:25 PM
+Last saved: Sat 12 Jun 2010 07:12:30 PM
 
 
 +-------------------------------------------------------------------+
@@ -78,6 +78,9 @@ Last saved: Sat 12 Jun 2010 03:39:25 PM
    -w          run with warning messages turned-on 
    -           Following arguments are files for input.
  
+  Add option for quiet startup for use when piping to the shell
+  or taking input from a file.
+
   Add INPUT and OUTPUT handle args for PDL shells.  This would be
   useful to tie the shell into another application, say Padre,
   or to add tests for the shells.  NOTE: This includes fixing
@@ -90,8 +93,9 @@ Last saved: Sat 12 Jun 2010 03:39:25 PM
  
   Add @PERLDL::AUTO processing.
  
-  Implement support for @PERLDL::PREPROCESS filters.  No
-  support for deprecated implementation with $PERLDL::PREPROCESS.
+  Implement support for @PERLDL::PREPROCESS filters.  No support
+  for the deprecated $PERLDL::PREPROCESS implementation will be
+  provided in pdl2 (only legacy perldl for legacy preprocess).
  
   Add documentation to Perldl2 plugins and profiles and improve
   the usage for PrintControl so one doesn't have to explicitly
@@ -127,9 +131,14 @@ Last saved: Sat 12 Jun 2010 03:39:25 PM
   Fix Devel::REPL::Plugin::History to work with the
   ReadLineHistory plugin so that its idea of command
   numbers is the same and as complete.  Need to switch
-  to use the Term::ReadLine if present.  Otherwise a
-  hack would be to init the $_REPL->history from the
-  $_REPL->term->GetHistory at the start of the Perldl2.
+  to use the Term::ReadLine if present.  It is working
+  for TR::Gnu and now need to get working with TR::Perl.
+  
+  Otherwise a hack would be to init the $_REPL->history from
+  the $_REPL->term->GetHistory at the start of the Perldl2.
+  If I get Term::ReadLine::Perl history working, this should
+  be the support for that or a fallback when no Term::ReadLine
+  is available.
  
   Skip command lines that are too short and don't put
   quit/q/x/exit in the history log.  Maybe remove duplicate
