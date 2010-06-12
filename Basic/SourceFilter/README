@@ -201,7 +201,7 @@ Use in scripts and "perldl" shell
       print $b;
 
     Source filters *must* be executed at compile time to be effective. And
-    "PDL::NiceFilter" is just a source filter (although it is not
+    "PDL::NiceSlice" is just a source filter (although it is not
     necessarily obvious for the casual user).
 
 The new slicing syntax

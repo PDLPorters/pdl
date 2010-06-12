@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sat 12 Jun 2010 03:32:24 PM
+# Last saved: Sat 12 Jun 2010 06:34:57 PM
 #
 
 use Moose;
@@ -61,7 +61,8 @@ sub apply_profile {
                    my $n = $#_ > -1 ? shift : 20;
                    my @h = $_REPL->term->GetHistory();
                    my $min = $#h < $n-1 ? 0 : $#h-$n+1;
-                   map {print "$_: $h[$_]\n"} ($min..$#h);
+                   map { printf "%d: %s\n", $_+1, $h[$_] } ($min..$#h);
+                   #map {print  "$_: $h[$_]\n"} ($min..$#h);
                 };');
 
    # preliminary support for PDL demos
