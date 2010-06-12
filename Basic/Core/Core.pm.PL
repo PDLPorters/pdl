@@ -40,10 +40,6 @@ my $convertalts  = join '|',
 my $typealiases = join "\n",
   map {"*$_ = \\&PDL::$_;"} map {PDL::Types::typefld($_,'convertfunc')}
   PDL::Types::typesrtkeys();
-my $typearray = join ",\n",
-  map {my ($conv,$val) = (PDL::Types::typefld($_,'convertfunc'),
-			  PDL::Types::typefld($_,'numval'));
-       "['$conv',$val]"} PDL::Types::typesrtkeys();
 
 open OUT,">$file" or die "Can't create $file: $!";
 chmod 0644, $file;
@@ -2310,6 +2306,7 @@ see the function L<pdl()|/pdl> for more details.
 # generate type conversion docs
 for my $type (typesrtkeys()) {
   my $conv = typefld($type,'convertfunc');
+  my $numval = PDL::Types::typefld($type,'numval');
   print OUT << "!WITH!SUBS!";
 
 =head2 $conv
@@ -2320,20 +2317,18 @@ Convert to $conv datatype - see 'Datatype_conversions'
 
 =cut
 
+sub PDL::$conv {
+	# If they call the function without any arguments, return the PDL type.
+	return bless [$numval], "PDL::Type" unless \@_;
+	# If they call the function with arguments, convert the arguments
+	# to the desired type.
+	convert(alltopdl('PDL', (scalar(\@_) > 1 ? [\@_] : shift)), $numval);
+}
+
 !WITH!SUBS!
 } # end for loop
 
-print OUT "for (
-$typearray";
-
 print OUT <<'!NO!SUBS!';
-
-) {
-	eval ('sub PDL::'.$_->[0]." { ".
-		'return bless ['.$_->[1].'], "PDL::Type" unless @_;
-                convert(alltopdl(\'PDL\', (scalar(@_)>1 ? [@_] : shift)),'.$_->[1].')
-		}');
-}
 
 =head2 type
 
