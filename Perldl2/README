@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 12 Jun 2010 03:51:12 PM
+Last saved: Sun 13 Jun 2010 06:24:59 PM
 
 
 +-----------------------------------------------------------+
@@ -21,14 +21,19 @@ use the Perldl2 shell follows.
 +-----------------------------------------------------------+
 
  Completion.pm
+ History.pm
+ ReadLineHistory.pm
    A copy of the same from Devel::REPL git with the fix for
-   filename expansion until a formal release.
+   filename completion and history expansion until the next
+   formal release of Devel::REPL.
 
  README
    This file.
 
  pdl2
    This is a perl script for starting the Perldl2 shell.
+
+
 
 
 +-----------------------------------------------------------+
@@ -41,8 +46,10 @@ use the Perldl2 shell follows.
   of Devel::REPL should be detected and the Perldl2
   support built and installed.
  
-  Copy Completion.pm to the Devel/REPL/Plugin/ directory
-  in your perl @INC path where Devel::REPL was installed.
+  Copy Completion.pm, History.pm, and ReadLineHistory.pm to
+  the Devel/REPL/Plugin/ directory in your perl @INC path
+  where Devel::REPL was installed.  Not necessary if you
+  have Devel::REPL 1.003011 or higher.
 
 
 +-----------------------------------------------------------+
