@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sat 12 Jun 2010 06:34:57 PM
+# Last saved: Sun 13 Jun 2010 02:31:34 PM
 #
 
 use Moose;
@@ -40,6 +40,9 @@ sub apply_profile {
    unless ($^O =~ m/win32/i) {
       $repl->load_plugin('Interrupt');
    }
+
+   # enable Term::ReadLine file expansion by default
+   $repl->do_readline_filename_completion(1) if $repl->can('do_readline_filename_completion');
 
    # do perldl stuff here
    $repl->eval('package main');

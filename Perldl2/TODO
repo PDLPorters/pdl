@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sat 12 Jun 2010 07:12:30 PM
+Last saved: Sun 13 Jun 2010 03:13:31 PM
 
 
 +-------------------------------------------------------------------+
@@ -127,18 +127,6 @@ Last saved: Sat 12 Jun 2010 07:12:30 PM
   Add GLUT event loop support to Term::ReadLine::Perl and
   Term::ReadLine::Gnu.  Need to figure out a clean way to
   map this into the original modules.
- 
-  Fix Devel::REPL::Plugin::History to work with the
-  ReadLineHistory plugin so that its idea of command
-  numbers is the same and as complete.  Need to switch
-  to use the Term::ReadLine if present.  It is working
-  for TR::Gnu and now need to get working with TR::Perl.
-  
-  Otherwise a hack would be to init the $_REPL->history from
-  the $_REPL->term->GetHistory at the start of the Perldl2.
-  If I get Term::ReadLine::Perl history working, this should
-  be the support for that or a fallback when no Term::ReadLine
-  is available.
  
   Skip command lines that are too short and don't put
   quit/q/x/exit in the history log.  Maybe remove duplicate
