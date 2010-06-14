@@ -842,7 +842,7 @@ The unique elements are returned in ascending order.
  [-1 0 2 4 6]
 
 Note: The returned pdl is 1D; any structure of the input
-piddle is lost.
+piddle is lost. C<NaN> values are ignored.
 
 See L<uniqind|uniqind> if you need the indices of the unique
 elements rather than the values.
@@ -894,9 +894,9 @@ pp_addpm (<< 'EOPM');
 
 =for ref
 
-return the indices of all unique elements of a piddle
+Return the indices of all unique elements of a piddle
 The order is in the order of the values to be consistent
-with uniq
+with uniq. C<NaN> values are ignored.
 
 =for example
 
@@ -936,12 +936,15 @@ sub PDL::uniqind {
   my ($arr) = @_;
   return $arr if($arr->nelem == 0); # The null list is unique (CED)
   # Different from uniq we sort and store the result in an intermediary
-  my $i_srt = $arr->clump(-1)->qsorti;
-  my $srt = $arr->index($i_srt);
+  my $aflat = $arr->flat;
+  my $good = $aflat->sequence->long->where($aflat==$aflat);
+  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;
+  my $srt = $aflat->where($arr==$arr)->index($i_srt);
+  # The following works because BAD sorts to the end of the piddle
   $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
   my $uniqind = which($srt != $srt->rotate(-1));
   # Now map back to the original space
-  $uniqind = $i_srt->index($uniqind);	
+  $uniqind = $good->index($i_srt->index($uniqind));   
   # make sure we return something if there is only one value
   return $uniqind->nelem == 0 ? 0 : $uniqind;
 }
@@ -956,6 +959,10 @@ pp_addpm (<< 'EOPM');
 =for ref
 
 return all unique vectors out of a collection
+
+  NOTE: Arguments to uniqvec must not have NaN values as support
+  for that "feature" is not complete.  Use $a = $a->where($a==$a)
+  to strip out the NaNs before calling uniqvec.
 
 The unique vectors are returned in lexicographically sorted
 ascending order.  The 0th dimension of the input PDL is treated
@@ -992,6 +999,11 @@ pp_addpm(<<'EOPM');
 sub PDL::uniqvec {
   my($pdl) = shift;
   return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 || $pdl->slice("(0)")->nelem < 2);  # slice is not cheap but uniqvec isn't either -- shouldn't cost too much.
+
+    if ( &PDL::or($pdl!=$pdl) ) {  # use PDL::or since any() is in Ufunc, not Primitive
+        # NaN handling for uniqvec not yet implemented (see uniq and uniqind for approach)
+        barf("uniqvec: ERROR, NaN values not supported!\n  Do \$a .= \$a->where(\$a==\$a) to strip them out.\n");
+    }
 
   my $srt = $pdl->mv(0,-1)->
 	clump($pdl->ndims - 1)->
