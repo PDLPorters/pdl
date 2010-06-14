@@ -137,6 +137,10 @@ Last saved: Sun 13 Jun 2010 09:53:36 PM
   Skip command lines that are too short and don't put
   quit/q/x/exit in the history log.  Maybe remove duplicate
   entries as well as list history commands.
+
+  Be sure to add a line to history if it closes out a
+  multi-line block.  This should not be an issue once we
+  have multi-line history entries supported.
  
   Add runtime control options for NiceSlice:
    report

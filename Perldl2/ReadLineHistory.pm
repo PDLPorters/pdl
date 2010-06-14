@@ -42,7 +42,10 @@ around 'run' => sub {
    }
 
    $self->term->Attribs->{do_expand}=1;  # for Term::ReadLine::Gnu
-   $self->term->MinLine(2);              # don't save one letter commands
+
+   # Keep MinLine at its default value of 1 until we correctly handle
+   # keeping entries that are within an open, multi-line construct
+   # $self->term->MinLine(2);            # don't save one letter commands
 
    # let History plugin know we have Term::ReadLine support
    $self->have_readline_history(1) if $self->can('have_readline_history');
