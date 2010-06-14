@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 13 Jun 2010 03:13:31 PM
+Last saved: Sun 13 Jun 2010 09:39:55 PM
 
 
 +-------------------------------------------------------------------+
@@ -91,8 +91,14 @@ Last saved: Sun 13 Jun 2010 03:13:31 PM
   possible to implement some tests of the interactive shell
   from file input.
  
-  Add @PERLDL::AUTO processing.
+  Add @PERLDL::AUTO processing plugin.  Should be able to just
+  run the code after the line is read but before it is eval'd
  
+  Add ability to run $PERLDL::PROMPT if it is a code reference
+  and not a string.  Just use same logic as in perldl but set
+  the prompt with the $_REPL->prompt(&$code) instead of using
+  $_REPL->prompt($string).
+
   Implement support for @PERLDL::PREPROCESS filters.  No support
   for the deprecated $PERLDL::PREPROCESS implementation will be
   provided in pdl2 (only legacy perldl for legacy preprocess).

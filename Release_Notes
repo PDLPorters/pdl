@@ -9,18 +9,18 @@ General Notes:
 
 Highlights:
 
- * Experimental perldl version 2 shell available.
-   See the README file in PDL/Perldl2 for details.
+ * Experimental perldl version 2 shell available.  See the
+   README file in PDL/Perldl2 for details.
 
    By default, the Perldl2 shell (i.e., pdl2) will be built
    and installed if you have already installed Devel::REPL
    version 1.003010 or higher.
 
-   TAB completion for filenames is now provided when no
-   other completions are found (usually what you want and
-   the same as perldl).  The fix was in Devel::REPL and
-   should be available for Perldl2 in their next release:
-   1.003010.
+   TAB completion for filenames and history expansion
+   using '!' syntax work with either Term::ReadLine::Gnu
+   or Term::ReadLine::Perl.  A manual install of updated
+   plugins for Devel::REPL will be needed until the
+   Devel::REPL 1.003011 release.
    
 
 
