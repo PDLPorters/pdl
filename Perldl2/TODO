@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 13 Jun 2010 09:39:55 PM
+Last saved: Sun 13 Jun 2010 09:53:36 PM
 
 
 +-------------------------------------------------------------------+
@@ -144,6 +144,10 @@ Last saved: Sun 13 Jun 2010 09:39:55 PM
    notrans
  
   Implement ^C/^D to end PPI multiline if it makes sense.
+
+  Add a CompletionDriver for Plugins for load_plugin() as well
+  as the ability to toggle plugins on and off (or at least
+  enable and disable them).
 
 
 +-------------------------------------------------------------------+

@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 13 Jun 2010 09:34:53 PM
+# Last saved: Sun 13 Jun 2010 09:56:55 PM
 #
 
 use Moose;
@@ -106,7 +106,7 @@ sub apply_profile {
       demo bad         # Bad-value demo (Req.: bad value support)
       demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
-      EOD
+EOD
       return;
       } # if: /^$/
 
