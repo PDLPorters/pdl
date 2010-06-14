@@ -90,21 +90,21 @@ sub apply_profile {
       if(/^$/) {
       print <<EOD;
       Use:
-      demo pdl         # general demo
+      demo 'pdl'         # general demo
 
-      demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
-      demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
-      demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
-      demo Tk3d        # Requires the perl Tk module
+      demo '3d'          # 3d demo (requires TriD with OpenGL or Mesa)
+      demo '3d2'         # 3d demo, part 2. (Somewhat memory-intensive)
+      demo '3dgal'       # the 3D gallery: make cool images with 3-line scripts
+      demo 'Tk3d'        # Requires the perl Tk module
 
-      demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
-      demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
+      demo 'pgplot'      # PGPLOT graphics output (Req.: PGPLOT)
+      demo 'OOplot'      # PGPLOT OO interface    (Req.: PGPLOT)
 
-      demo transform   # Coordinate transformations (Req.: PGPLOT)
-      demo cartography # Cartographic projections (Req.: PGPLOT)
+      demo 'transform'   # Coordinate transformations (Req.: PGPLOT)
+      demo 'cartography' # Cartographic projections (Req.: PGPLOT)
 
-      demo bad         # Bad-value demo (Req.: bad value support)
-      demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+      demo 'bad'         # Bad-value demo (Req.: bad value support)
+      demo 'bad2'        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
 EOD
       return;
@@ -194,16 +194,15 @@ Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
     system> re --profile=Perldl2        # win32 CMD shell
 
     perlDL shell v2.000
-    PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-    'COPYING' in the PDL distribution. This is free software and you
-    are welcome to redistribute it under certain conditions, see
-    the same file for details.
+             PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+             'COPYING' in the PDL distribution. This is free software and you
+             are welcome to redistribute it under certain conditions, see
+             the same file for details.
 
     Loaded plugins:
 
       Commands
       Completion
-      CompletionDriver::Globals
       CompletionDriver::INC
       CompletionDriver::Keywords
       CompletionDriver::LexEnv
@@ -218,9 +217,11 @@ Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
       Packages
       PrintControl
       ReadLineHistory
+
     Type 'help' for online help
     Type Ctrl-D or quit to exit
-    Loaded PDL v2.4.6_007
+    Loaded PDL v2.4.6_009
+
     PDL> 
 
 
