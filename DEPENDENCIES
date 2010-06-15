@@ -37,10 +37,9 @@ Inline::Pdlpp   Inline                  version >= 0.43 required
                                         module allows to define fast PP code
                                         inline in your scripts
 
-PDL::IO::Dumper Data::Dumper            Data::Dumper version >=2.121 is required
-                  and                     to avoid a bug which breaks PDL::IO::Dumper
-                Convert::UU or          Works on all perl platforms!
-                uuencode/uudecode         Available on most unix-type systems
+PDL::IO::Dumper Data::Dumper and        Data::Dumper version >=2.121 is required
+                Convert::UU and         Convert::UU is required but Works on all perl platforms!
+                uuencode/uudecode       (Optional) Better performance on unix flavor platforms!
 
 PDL::IO::Storable Storable              version >=1.03 is now listed as a
                                         required dependency
@@ -199,6 +198,5 @@ PDL::Slatec     ExtUtils::F77           linear algebra routines
 Perldl2        Devel::REPL and          The new perldl shell in development
                Term::ReadLine           requires Devel::REPL version 1.003010
 	                                or higher be installed.  Term::ReadLine
-					is also required for the new shell
-					(either Perl or Gnu is ok).
-					This is an optional dependency for PDL.
+					is also required (either Perl or Gnu).
+					PDL will build without these deps.

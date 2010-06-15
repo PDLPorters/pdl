@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 13 Jun 2010 09:53:36 PM
+Last saved: Mon 14 Jun 2010 10:43:40 PM
 
 
 +-------------------------------------------------------------------+
@@ -30,8 +30,8 @@ Last saved: Sun 13 Jun 2010 09:53:36 PM
    s/^\s*\?\s*/help/
  
   Implement shell escapes, perhaps with
-   * filename completion
-   * command completion
+  command completion (filename completion
+  should already work).
  
   Add Perldl2 VERSION variable and display information
  
@@ -55,17 +55,9 @@ Last saved: Sun 13 Jun 2010 09:53:36 PM
   the end of the demo apparently because it is waiting for
   input (why?).
  
-  Make available $PERLDL::XX parameters.  These should, ideally,
-  be instance variables so that multiple shells could have
-  different values for them.  Maybe they need to be local.
-   $PERLDL::ESCAPE = '#';          # Default shell escape
-   $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
-   $PERLDL::MULTI  = 1;            # Enable multi-lines by default
-   $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
-   $PERLDL::PAGE   = 0;
-   $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
-   $PERLDL::PAGING = 0;
-   $PERLDL::PROMPT = "PDL> ";      # string or code reference
+  Review and integrate PERLDL::XX parameters.  Some are not
+  needed or useful for Perldl2.  Others need code to tie in
+  with the new framework.
  
   Implement perldl command line options:
    -M <module> load module <module>
@@ -107,6 +99,10 @@ Last saved: Sun 13 Jun 2010 09:53:36 PM
   the usage for PrintControl so one doesn't have to explicitly
   type in the $_REPL->do_print($val) command.
  
+  It would be nice if variable completion followed by a
+  method call would collapse the extra space.  Similarly for
+  other cases:  e.g. $_REPL ->do_print (1);
+
   Enhance completion strategy for Perldl2.  For example,
   order and prioritze completions to remove long lists
   of bad options.  Allow chained completions recognizing
