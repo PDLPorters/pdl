@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 14 Jun 2010 10:43:40 PM
+Last saved: Tue 15 Jun 2010 06:41:33 AM
 
 
 +-------------------------------------------------------------------+
@@ -149,12 +149,14 @@ Last saved: Mon 14 Jun 2010 10:43:40 PM
   as the ability to toggle plugins on and off (or at least
   enable and disable them).
 
+  Make pdl2 fall back cleanly to a basic Devel::REPL or
+  even perldl if requirements to run are not installed.
 
 +-------------------------------------------------------------------+
 | Features                       perldl                 pdl2        |
 +-------------------------------------------------------------------+
-
-  $_ preserved                   no                     yes
+  
+  preproc_add/del                yes                    TBD
   
   ?,?? aliases                   yes                    TBD
   
@@ -164,6 +166,8 @@ Last saved: Mon 14 Jun 2010 10:43:40 PM
   
   Autoquoting doc commands       yes                    TBD
   
+  $_ preserved                   no                     yes
+
   User extendable                rewrite/hard           plugins/easy
   
   History save/recall            yes                    yes
@@ -191,8 +195,6 @@ Last saved: Mon 14 Jun 2010 10:43:40 PM
   TAB completion: lexicals       no                     yes                                     
   
   TAB completion: methods        no                     yes                                      
-  
-  preproc_add/del                yes                    TBD
   
   print p alias                  yes                    yes
   

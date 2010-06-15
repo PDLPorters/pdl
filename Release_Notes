@@ -14,13 +14,11 @@ Highlights:
 
    By default, the Perldl2 shell (i.e., pdl2) will be built
    and installed if you have already installed Devel::REPL
-   version 1.003010 or higher.
+   version 1.003011 or higher.
 
    TAB completion for filenames and history expansion
    using '!' syntax works with either Term::ReadLine::Gnu
-   or Term::ReadLine::Perl.  A manual install of updated
-   plugins for Devel::REPL will be needed until the
-   Devel::REPL 1.003011 release.
+   or Term::ReadLine::Perl.
    
 
 

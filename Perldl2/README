@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 13 Jun 2010 06:24:59 PM
+Last saved: Tue 15 Jun 2010 06:38:23 AM
 
 
 +-----------------------------------------------------------+
@@ -10,7 +10,7 @@ This directory contains development efforts for a new and
 improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
-You need to install the version 1.003010 of Devel::REPL
+You need to install the version 1.003011 of Devel::REPL
 in order to build/use the Perldl2 shell. A description
 of the files in this directory and how to install and
 use the Perldl2 shell follows.
@@ -19,13 +19,6 @@ use the Perldl2 shell follows.
 +-----------------------------------------------------------+
 |                          FILES                            |
 +-----------------------------------------------------------+
-
- Completion.pm
- History.pm
- ReadLineHistory.pm
-   A copy of the same from Devel::REPL git with the fix for
-   filename completion and history expansion until the next
-   formal release of Devel::REPL.
 
  README
    This file.
@@ -40,17 +33,12 @@ use the Perldl2 shell follows.
 |                      INSTALLATION                         |
 +-----------------------------------------------------------+
 
-  Install Devel::REPL version 1.003010 or greater.
+  Install Devel::REPL version 1.003011 or greater.
 
   Then configure and build PDL as usual.  The presence
   of Devel::REPL should be detected and the Perldl2
   support built and installed.
  
-  Copy Completion.pm, History.pm, and ReadLineHistory.pm to
-  the Devel/REPL/Plugin/ directory in your perl @INC path
-  where Devel::REPL was installed.  Not necessary if you
-  have Devel::REPL 1.003011 or higher.
-
 
 +-----------------------------------------------------------+
 |                           USE                             |

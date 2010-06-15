@@ -646,8 +646,6 @@ Lib/Transform/transform.pd
 MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
-Perldl2/Completion.pm
-Perldl2/History.pm
 Perldl2/Makefile.PL
 Perldl2/Plugin/Makefile.PL
 Perldl2/Plugin/NiceSlice.pm
@@ -655,7 +653,6 @@ Perldl2/Plugin/PrintControl.pm
 Perldl2/Profile/Makefile.PL
 Perldl2/Profile/Perldl2.pm
 Perldl2/README
-Perldl2/ReadLineHistory.pm
 Perldl2/TODO
 Perldl2/pdl2
 README
