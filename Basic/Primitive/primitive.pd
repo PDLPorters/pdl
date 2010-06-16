@@ -875,14 +875,20 @@ pp_addpm(<<'EOPM');
 # find as jumps in the sorted array
 # flattens in the process
 sub PDL::uniq {
-  use PDL::Core 'barf';
-  my ($arr) = @_;
-  return $arr if($arr->nelem == 0); # The null list is unique (CED)
-  my $srt = $arr->clump(-1)->qsort;
-  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
-  my $uniq = $srt->where($srt != $srt->rotate(-1));
-  # make sure we return something if there is only one value
-  return $uniq->nelem == 0 ? $srt->index(0) : $uniq;
+   use PDL::Core 'barf';
+   my ($arr) = @_;
+   return $arr if($arr->nelem == 0); # The null list is unique (CED)
+   my $srt  = $arr->clump(-1)->where($arr==$arr)->qsort;  # no NaNs or BADs for qsort
+   my $nans = $arr->clump(-1)->where($arr!=$arr);
+   my $uniq = ($srt->nelem > 0) ? $srt->where($srt != $srt->rotate(-1)) : $srt;
+   # make sure we return something if there is only one value
+   my $answ = $nans;  # NaN values always uniq
+   if ( $uniq->nelem > 0 ) {
+      $answ = $uniq->append($answ);
+   } else {
+      $answ = ( ($srt->nelem == 0) ?  $srt : pdl( [$srt->index(0)] ) )->append($answ);
+   }
+   return $answ;
 }
 
 EOPM
@@ -937,16 +943,19 @@ sub PDL::uniqind {
   return $arr if($arr->nelem == 0); # The null list is unique (CED)
   # Different from uniq we sort and store the result in an intermediary
   my $aflat = $arr->flat;
-  my $good = $aflat->sequence->long->where($aflat==$aflat);
-  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;
-  my $srt = $aflat->where($arr==$arr)->index($i_srt);
-  # The following works because BAD sorts to the end of the piddle
-  $srt=$srt->nslice([0,$srt->ngood-1]) if ($PDL::Bad::Status && $srt->badflag);
-  my $uniqind = which($srt != $srt->rotate(-1));
+  my $nanind = which($aflat!=$aflat);                        # NaN indexes
+  my $good = $aflat->sequence->long->where($aflat==$aflat);  # good indexes
+  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;         # no BAD or NaN values for qsorti
+  my $srt = $aflat->where($aflat==$aflat)->index($i_srt);
+  my $uniqind = ($srt->nelem > 0) ? which($srt != $srt->rotate(-1)) : which($srt);
   # Now map back to the original space
-  $uniqind = $good->index($i_srt->index($uniqind));   
-  # make sure we return something if there is only one value
-  return $uniqind->nelem == 0 ? 0 : $uniqind;
+  my $ansind = $nanind;
+  if ( $uniqind->nelem > 0 ) {
+     $ansind = ($good->index($i_srt->index($uniqind)))->append($ansind);   
+  } else {
+     $ansind = $uniqind->append($ansind);
+  }
+  return $ansind;
 }
 
 EOPM
@@ -960,16 +969,20 @@ pp_addpm (<< 'EOPM');
 
 return all unique vectors out of a collection
 
-  NOTE: Arguments to uniqvec must not have NaN values as support
-  for that "feature" is not complete.  Use $a = $a->where($a==$a)
-  to strip out the NaNs before calling uniqvec.
+  NOTE: If any vectors in the input piddle have NaN values
+  they are returned at the end of the non-NaN ones.  This is
+  because, by definition, NaN values never compare equal with
+  any other value.
+
+  NOTE: The current implementation does not sort the vectors
+  containing NaN values.
 
 The unique vectors are returned in lexicographically sorted
-ascending order.  The 0th dimension of the input PDL is treated
-as a dimensional index within each vector, and the 1st and any higher
-dimensions are taken to run across vectors.  The return value is always
-2D; any structure of the input PDL (beyond using the 0th dimension 
-for vector index) is lost.  
+ascending order. The 0th dimension of the input PDL is treated
+as a dimensional index within each vector, and the 1st and any
+higher dimensions are taken to run across vectors. The return
+value is always 2D; any structure of the input PDL (beyond using
+the 0th dimension for vector index) is lost.
 
 See also L<uniq|uniq> for a uniqe list of scalars; and
 L<qsortvec|PDL::Ufunc/qsortvec> for sorting a list of vectors
@@ -987,7 +1000,8 @@ pp_addpm(<<'EOPM');
 If a vector contains all bad values, it is ignored as in L<uniq|uniq>.
 If some of the values are good, it is treated as a normal vector. For
 example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
-could not.
+could not.  Vectors containing BAD values will be returned after any
+non-NaN and non-BAD containing vectors, followed by the NaN vectors.
 
 =cut
 
@@ -997,31 +1011,61 @@ EOPM
 pp_addpm(<<'EOPM');
 
 sub PDL::uniqvec {
-  my($pdl) = shift;
-  return $pdl if($pdl->nelem == 0 || $pdl->ndims <2 || $pdl->slice("(0)")->nelem < 2);  # slice is not cheap but uniqvec isn't either -- shouldn't cost too much.
 
-    if ( &PDL::or($pdl!=$pdl) ) {  # use PDL::or since any() is in Ufunc, not Primitive
-        # NaN handling for uniqvec not yet implemented (see uniq and uniqind for approach)
-        barf("uniqvec: ERROR, NaN values not supported!\n  Do \$a .= \$a->where(\$a==\$a) to strip them out.\n");
-    }
+   my($pdl) = shift;
 
-  my $srt = $pdl->mv(0,-1)->
-	clump($pdl->ndims - 1)->
-	mv(-1,0)->qsortvec->
-	mv(0,-1);
-  $srt=$srt->dice($srt->mv(0,-1)->ngoodover->which) if ($PDL::Bad::Status && $srt->badflag);
-##use dice instead of nslice since qsortvec might be packing the badvals to the front of the array instead of the end like the docs say. If that is the case and it gets fixed, it won't bust uniqvec. DAL 14-March 2006
-  my $uniq = ($srt != $srt->rotate(-1)) -> mv(0,-1) -> orover->which;
+   return $pdl if ( $pdl->nelem == 0 || $pdl->ndims < 2 );
+   return $pdl if ( $pdl->slice("(0)")->nelem < 2 );                     # slice isn't cheap but uniqvec isn't either
 
-  return $uniq->nelem==0 ? 
-	$srt->slice("0,:")->mv(0,-1) :
-	$srt->dice($uniq)->mv(0,-1);
+   my $pdl2d = null;
+   $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);              # clump all but dim(0)
+
+   my $ngood = null;
+   $ngood = $pdl2d->ones->sumover;
+   $ngood = $pdl2d->ngoodover if  ($PDL::Bad::Status && $pdl->badflag);  # number of good values each vector
+   my $ngood2 = null;
+   $ngood2 = $ngood->where($ngood);                                      # number of good values with no all-BADs
+
+   $pdl2d = $pdl2d->mv(0,-1)->dice($ngood->which)->mv(-1,0);             # remove all-BAD vectors
+
+
+   my $numnan = null;
+   $numnan = ($pdl2d!=$pdl2d)->sumover;                                  # works since no all-BADs to confuse
+
+   my $presrt = null;
+   $presrt = $pdl2d->mv(0,-1)->dice($numnan->not->which)->mv(0,-1);      # remove vectors with any NaN values
+   my $nanvec = null;
+   $nanvec = $pdl2d->mv(0,-1)->dice($numnan->which)->mv(0,-1);           # the vectors with any NaN values
+
+   # use dice instead of nslice since qsortvec might be packing
+   # the badvals to the front of the array instead of the end like
+   # the docs say. If that is the case and it gets fixed, it won't
+   # bust uniqvec. DAL 14-March 2006
+
+   my $srt = null;
+   $srt = $presrt->qsortvec->mv(0,-1);                                   # BADs are sorted by qsortvec
+   my $srtdice = $srt;
+   my $somebad = null;
+   if  ($PDL::Bad::Status && $srt->badflag) {
+      $srtdice = $srt->dice($srt->mv(0,-1)->nbadover->not->which);
+      $somebad = $srt->dice($srt->mv(0,-1)->nbadover->which);
+   }
+
+   my $uniq = null;
+   if ($srtdice->nelem > 0) {
+      $uniq = ($srtdice != $srtdice->rotate(-1))->mv(0,-1)->orover->which;
+   } else {
+      $uniq = $srtdice->orover->which;
+   }
+
+   my $ans = null;
+   if ( $uniq->nelem > 0 ) {
+      $ans = $srtdice->dice($uniq);
+   } else {
+      $ans = ($srtdice->nelem > 0) ? $srtdice->slice("0,:") : $srtdice;
+   }
+   return $ans->append($somebad)->append($nanvec->mv(0,-1))->mv(0,-1);
 }
-
-	
-  
-  
-	
 
 EOPM
 
