@@ -1,0 +1,59 @@
+=head2 uniqind
+
+=for ref
+
+Return the indices of all unique elements of a piddle
+The order is in the order of the values to be consistent
+with uniq. C<NaN> values are ignored.
+
+=for example
+
+  print pdl(2,2,2,4,0,-1,6,6)->uniqind;
+	 [5, 4, 1, 3, 6]
+
+Note: The returned pdl is 1D; any structure of the input
+piddle is lost.
+
+See L<uniq|uniq> if you want the unique values instead of the
+indices.
+
+=cut
+
+
+
+
+=for bad
+
+Bad values are not considered unique by uniqind and are ignored.
+
+=cut
+
+
+
+
+*uniqind = \&PDL::uniqind;
+# return unique elements of array
+# find as jumps in the sorted array
+# flattens in the process
+sub PDL::uniqind {
+  use PDL::Core 'barf';
+  my ($arr) = @_;
+  return $arr if($arr->nelem == 0); # The null list is unique (CED)
+  # Different from uniq we sort and store the result in an intermediary
+  my $aflat = $arr->flat;
+  my $nanind = which($aflat!=$aflat);                        # NaN indexes
+  my $good = $aflat->sequence->long->where($aflat==$aflat);  # good indexes
+  my $i_srt = $aflat->where($aflat==$aflat)->qsorti;         # no BAD or NaN values for qsorti
+  my $srt = $aflat->where($aflat==$aflat)->index($i_srt);
+  my $uniqind = ($srt->nelem > 0) ? which($srt != $srt->rotate(-1)) : which($srt);
+  # Now map back to the original space
+  my $ansind = $nanind;
+  if ( $uniqind->nelem > 0 ) {
+     $ansind = ($good->index($i_srt->index($uniqind)))->append($ansind);   
+  } else {
+     $ansind = $uniqind->append($ansind);
+  }
+  return $ansind;
+}
+
+1;

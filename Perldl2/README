@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 01 Jun 2010 02:28:18 PM 
+Last saved: Tue 15 Jun 2010 06:38:23 AM
 
 
 +-----------------------------------------------------------+
@@ -10,7 +10,7 @@ This directory contains development efforts for a new and
 improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
-You need to install the version 1.003010 of Devel::REPL
+You need to install the version 1.003011 of Devel::REPL
 in order to build/use the Perldl2 shell. A description
 of the files in this directory and how to install and
 use the Perldl2 shell follows.
@@ -27,11 +27,13 @@ use the Perldl2 shell follows.
    This is a perl script for starting the Perldl2 shell.
 
 
+
+
 +-----------------------------------------------------------+
 |                      INSTALLATION                         |
 +-----------------------------------------------------------+
 
-  Install Devel::REPL version 1.003010 or greater.
+  Install Devel::REPL version 1.003011 or greater.
 
   Then configure and build PDL as usual.  The presence
   of Devel::REPL should be detected and the Perldl2
@@ -65,7 +67,6 @@ use the Perldl2 shell follows.
 +-----------------------------------------------------------+
 
  Supported functionality from Devel::REPL and PDL:
-  * Commands (generic command creation)
   * DDS (pretty prints output using Data::Dump::Streamer)
   * History (redo commands with !-1 and !<num> syntax)
   * Interrupt (interrupt with Ctrl-C; not on MSWin32)
@@ -121,4 +122,4 @@ use the Perldl2 shell follows.
  documentation for Devel::REPL::Profile.
 
  It is probably simpler to put your customizations in a
- file and just do the filename.
+ file and just do 'filename' at the PDL> prompt.

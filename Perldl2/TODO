@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 01 Jun 2010 02:44:37 PM 
+Last saved: Tue 15 Jun 2010 06:41:33 AM
 
 
 +-------------------------------------------------------------------+
@@ -30,8 +30,8 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
    s/^\s*\?\s*/help/
  
   Implement shell escapes, perhaps with
-   * filename completion
-   * command completion
+  command completion (filename completion
+  should already work).
  
   Add Perldl2 VERSION variable and display information
  
@@ -55,17 +55,9 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   the end of the demo apparently because it is waiting for
   input (why?).
  
-  Make available $PERLDL::XX parameters.  These should, ideally,
-  be instance variables so that multiple shells could have
-  different values for them.  Maybe they need to be local.
-   $PERLDL::ESCAPE = '#';          # Default shell escape
-   $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
-   $PERLDL::MULTI  = 1;            # Enable multi-lines by default
-   $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
-   $PERLDL::PAGE   = 0;
-   $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
-   $PERLDL::PAGING = 0;
-   $PERLDL::PROMPT = "PDL> ";      # string or code reference
+  Review and integrate PERLDL::XX parameters.  Some are not
+  needed or useful for Perldl2.  Others need code to tie in
+  with the new framework.
  
   Implement perldl command line options:
    -M <module> load module <module>
@@ -78,6 +70,9 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
    -w          run with warning messages turned-on 
    -           Following arguments are files for input.
  
+  Add option for quiet startup for use when piping to the shell
+  or taking input from a file.
+
   Add INPUT and OUTPUT handle args for PDL shells.  This would be
   useful to tie the shell into another application, say Padre,
   or to add tests for the shells.  NOTE: This includes fixing
@@ -88,17 +83,26 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   possible to implement some tests of the interactive shell
   from file input.
  
-  Add @PERLDL::AUTO processing.
+  Add @PERLDL::AUTO processing plugin.  Should be able to just
+  run the code after the line is read but before it is eval'd
  
-  Implement support for @PERLDL::PREPROCESS filters.  No
-  support for deprecated implementation with $PERLDL::PREPROCESS.
+  Add ability to run $PERLDL::PROMPT if it is a code reference
+  and not a string.  Just use same logic as in perldl but set
+  the prompt with the $_REPL->prompt(&$code) instead of using
+  $_REPL->prompt($string).
+
+  Implement support for @PERLDL::PREPROCESS filters.  No support
+  for the deprecated $PERLDL::PREPROCESS implementation will be
+  provided in pdl2 (only legacy perldl for legacy preprocess).
  
   Add documentation to Perldl2 plugins and profiles and improve
   the usage for PrintControl so one doesn't have to explicitly
   type in the $_REPL->do_print($val) command.
  
-  Add support for TAB completion of filenames.
- 
+  It would be nice if variable completion followed by a
+  method call would collapse the extra space.  Similarly for
+  other cases:  e.g. $_REPL ->do_print (1);
+
   Enhance completion strategy for Perldl2.  For example,
   order and prioritze completions to remove long lists
   of bad options.  Allow chained completions recognizing
@@ -126,16 +130,13 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   Term::ReadLine::Gnu.  Need to figure out a clean way to
   map this into the original modules.
  
-  Fix Devel::REPL::Plugin::History to work with the
-  ReadLineHistory plugin so that its idea of command
-  numbers is the same and as complete.  Need to switch
-  to use the Term::ReadLine if present.  Otherwise a
-  hack would be to init the $_REPL->history from the
-  $_REPL->term->GetHistory at the start of the Perldl2.
- 
   Skip command lines that are too short and don't put
   quit/q/x/exit in the history log.  Maybe remove duplicate
   entries as well as list history commands.
+
+  Be sure to add a line to history if it closes out a
+  multi-line block.  This should not be an issue once we
+  have multi-line history entries supported.
  
   Add runtime control options for NiceSlice:
    report
@@ -144,12 +145,18 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
  
   Implement ^C/^D to end PPI multiline if it makes sense.
 
+  Add a CompletionDriver for Plugins for load_plugin() as well
+  as the ability to toggle plugins on and off (or at least
+  enable and disable them).
+
+  Make pdl2 fall back cleanly to a basic Devel::REPL or
+  even perldl if requirements to run are not installed.
 
 +-------------------------------------------------------------------+
 | Features                       perldl                 pdl2        |
 +-------------------------------------------------------------------+
-
-  $_ preserved                   no                     yes
+  
+  preproc_add/del                yes                    TBD
   
   ?,?? aliases                   yes                    TBD
   
@@ -159,6 +166,8 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   
   Autoquoting doc commands       yes                    TBD
   
+  $_ preserved                   no                     yes
+
   User extendable                rewrite/hard           plugins/easy
   
   History save/recall            yes                    yes
@@ -171,13 +180,13 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   
   NiceSlice syntax               yes                    yes
   
-  'use package'                  no                     yes
+  package NAMESPACE support      no                     yes
   
   Readline editing               yes/partial            yes
   
   TAB completion: @INC           no                     yes                                      
   
-  TAB completion: file           yes                    TBD
+  TAB completion: filename       yes                    yes
   
   TAB completion: globals        no                     yes
   
@@ -186,8 +195,6 @@ Last saved: Tue 01 Jun 2010 02:44:37 PM
   TAB completion: lexicals       no                     yes                                     
   
   TAB completion: methods        no                     yes                                      
-  
-  preproc_add/del                yes                    TBD
   
   print p alias                  yes                    yes
   
