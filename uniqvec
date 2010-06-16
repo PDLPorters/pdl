@@ -39,27 +39,31 @@ could not.
 
 sub PDL::uniqvec {
    my($pdl) = shift;
+
    return $pdl if $pdl->nelem==0;
    return $pdl->uniq->dummy(0) if ( $pdl->ndims<2 || $pdl->slice("(0)")->nelem<2 );  # slice isn't cheap but uniqvec isn't either
 
-   # basically any($pdl->isNaN)
-   # if ( &PDL::or($pdl!=$pdl) ) {  # use PDL::or since any() is in Ufunc, not Primitive
-   #    # NaN handling for uniqvec not yet implemented (see uniq and uniqind for approach)
-   #    barf("uniqvec: ERROR, NaN values not supported!\n  Do \$a .= \$a->where(\$a==\$a) to strip them out.\n");
-   # }
+   our $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);                      # clump all but dim(0)
 
-   our $pdl2d = $pdl->mv(0,-1)->clump($pdl->ndims-1)->mv(-1,0);
-   our $numnan   = ($pdl2d!=$pdl2d)->sumover;
-   our $nonanind = ($pdl2d!=$pdl2d)->not->andover->which;         # find NaNs and all-BAD vector locations
-   our $presrt = $pdl2d->mv(0,-1)->dice($nonanind)->mv(0,-1);     # remove vectors with NaN or all-BAD vals
+   our $ngood = $pdl2d->ones->sumover;
+   our $ngood = $pdl2d->ngoodover if  ($PDL::Bad::Status && $pdl->badflag);          # number of good values each vector
+   our $ngood2 = $ngood->where($ngood);                                              # number of good values with no all-BADs
+   
+   $pdl2d = $pdl2d->mv(0,-1)->dice($ngood->which)->mv(-1,0);                         # remove all-BAD vectors
+
+   our $numnan   = ($pdl2d!=$pdl2d)->sumover;                                        # works since no all-BADs to confuse
+   our $presrt = $pdl2d->mv(0,-1)->dice($numnan->not->which)->mv(0,-1);              # remove vectors with any NaN values
+
    # use dice instead of nslice since qsortvec might be packing
    # the badvals to the front of the array instead of the end like
    # the docs say. If that is the case and it gets fixed, it won't
    # bust uniqvec. DAL 14-March 2006
 
-   our $srt = $presrt->qsortvec->mv(0,-1);                        # BADs are sorted in this
+   our $srt = $presrt->qsortvec->mv(0,-1);                                           # BADs are sorted by qsortvec
    our $srtdice = $srt;
-   $srtdice = $srt->dice($srt->mv(0,-1)->ngoodover->which) if ($PDL::Bad::Status && $srt->badflag);
+   if  ($PDL::Bad::Status && $srt->badflag) {
+      $srtdice = $srt->dice($srt->mv(0,-1)->ngoodover->which);
+   }
 
    our $uniq;
    if ($srtdice->nelem > 0) {
@@ -67,6 +71,10 @@ sub PDL::uniqvec {
    } else {
       $uniq = $srtdice->orover->which;
    }
+
+   # TODO: need to append the BAD value and NaN containing vectors to
+   # the end of the result piddle.  What sort of ordering makes sense
+   # with both NaN and BAD in the same piddle?      -chm 15-June-2010
 
    return $uniq->nelem==0 ? 
    $srtdice->slice("0,:")->mv(0,-1) :
