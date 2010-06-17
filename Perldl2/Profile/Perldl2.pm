@@ -69,6 +69,7 @@ sub apply_profile {
       $PERLDL::PAGER  = ((exists $ENV{PAGER}) ? $ENV{PAGER} : 'more');
       $PERLDL::PAGING = 0;
       $PERLDL::PROMPT = "PDL> ";                          # string or code reference
+      $PERLDL::TERM = $_REPL->term;
       ] );
 
    # print alias
