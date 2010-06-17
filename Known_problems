@@ -78,11 +78,10 @@ The following issues have been reported with this version of PDL:
 
   3013751    t/proj_transform.t fails for cygwin 1.7
   3011879    pdl() constructor crashes for mixed array ref/piddle args
-  3011659    uniq fails when pdl contains nan
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
   2946119    TriD garbled axis text
-  2901814    Arrow keys don't work in perldl on win32 console
+  2901814    Arrow keys don't work in ASPerl perldl in console
   2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
   2339818    need lib64 searches in Graphics::TriD  
@@ -90,9 +89,11 @@ The following issues have been reported with this version of PDL:
   1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1582350    badflag called in PDL::Core and PDL::Complex
+  1507054    closing TriD window kills perldl shell
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
+  1176614    PDL::Complex string routine
   1059020    Problem with FFTW version 3.0.1
 
 
