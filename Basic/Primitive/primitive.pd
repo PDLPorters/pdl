@@ -838,11 +838,17 @@ The unique elements are returned in ascending order.
 
 =for example
 
-  print pdl(2,2,2,4,0,-1,6,6)->uniq;
- [-1 0 2 4 6]
+  PDL> p pdl(2,2,2,4,0,-1,6,6)->uniq
+  [-1 0 2 4 6]     # 0 is returned 2nd (sorted order) 
+
+  PDL> p pdl(2,2,2,4,nan,-1,6,6)->uniq
+  [-1 2 4 6 nan]   # NaN value is returned at end
 
 Note: The returned pdl is 1D; any structure of the input
-piddle is lost. C<NaN> values are ignored.
+piddle is lost.  C<NaN> values are never compare equal to
+any other values, even themselves.  As a result, they are
+always unique. C<uniq> returns the NaN values at the end
+of the result piddle.  This follows the Matlab usage.
 
 See L<uniqind|uniqind> if you need the indices of the unique
 elements rather than the values.
@@ -902,12 +908,18 @@ pp_addpm (<< 'EOPM');
 
 Return the indices of all unique elements of a piddle
 The order is in the order of the values to be consistent
-with uniq. C<NaN> values are ignored.
+with uniq. C<NaN> values never compare equal with any
+other value and so are always unique.  This follows the
+Matlab usage.
 
 =for example
 
-  print pdl(2,2,2,4,0,-1,6,6)->uniqind;
-	 [5, 4, 1, 3, 6]
+  PDL> p pdl(2,2,2,4,0,-1,6,6)->uniqind
+  [5 4 1 3 6]     # the 0 at index 4 is returned 2nd, but...
+
+  PDL> p pdl(2,2,2,4,nan,-1,6,6)->uniqind
+  [5 1 3 6 4]     # ...the NaN at index 4 is returned at end
+
 
 Note: The returned pdl is 1D; any structure of the input
 piddle is lost.
@@ -967,7 +979,7 @@ pp_addpm (<< 'EOPM');
 
 =for ref
 
-return all unique vectors out of a collection
+Return all unique vectors out of a collection
 
   NOTE: If any vectors in the input piddle have NaN values
   they are returned at the end of the non-NaN ones.  This is
@@ -1002,6 +1014,7 @@ If some of the values are good, it is treated as a normal vector. For
 example, [1 2 BAD] and [BAD 2 3] could be returned, but [BAD BAD BAD] 
 could not.  Vectors containing BAD values will be returned after any
 non-NaN and non-BAD containing vectors, followed by the NaN vectors.
+
 
 =cut
 
