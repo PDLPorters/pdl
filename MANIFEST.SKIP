@@ -111,7 +111,12 @@ RCS
 ^Graphics/TriD/OpenGL/OpenGL.pm
 ^Graphics/TriD/OpenGL/OpenGL.xs
 ^Graphics/TriD/OpenGL/OpenGL\.c$
+^Graphics/TriD/OpenGL/X.h.cpp
 ^Graphics/TriD/OpenGL/blib
+^Graphics/TriD/OpenGL/gl.h.cpp
+^Graphics/TriD/OpenGL/glu.h.cpp
+^Graphics/TriD/OpenGL/glx.h.cpp
+^Graphics/TriD/OpenGL/glxtokens.h.cpp
 ^Graphics/TriD/OpenGL/ppcode.out
 ^Graphics/TriD/OpenGL/typemap
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*

@@ -22,13 +22,15 @@ unshift @{$hash{LIBS}} , '-lncurses'; # For some systems
 @curses = reverse @curses if $^O eq 'freebsd';
 CURSES:
 foreach $c (@curses) {
-    foreach $d (@idirs) {
+   foreach $d (@idirs) {  # TODO: need to add search for ncurses subdir for -I
+                          #       On cygwin 1.7.5 we need /usr/include/ncurses
+                          #       Maybe use Devel::CheckLib here
       if (-e "$d/$c.h") {
-      	  my $x = uc $c;
-          $hash{DEFINE} .= " -D$x";
-          last CURSES;
+         my $x = uc $c;
+         $hash{DEFINE} .= " -D$x";
+         last CURSES;
       }
-    }
+   }
 }
 
 
