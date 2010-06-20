@@ -13,12 +13,11 @@ use Test::More;
 BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
-    my $plplot_plan = $^O =~ /mswin/i ? 33 : 35;
     if($^O =~ /mswin/i) {
-      warn "No PLPLOT_LIB env var set - this script may exit silently after the first test if the font files are not found"
+      warn "No PLPLOT_LIB env var set - this script will exit silently after the first test if the font files are not found"
         if !$ENV{PLPLOT_LIB};
     }
-    plan tests => $plplot_plan;
+    plan tests => 35;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -46,7 +45,7 @@ my $tmp = new_tmpfile IO::File || die "couldn't open tmpfile";
 my $pos = $tmp->getpos;
 local *IN;
 *IN = *$tmp;  # doesn't seem to work otherwise
-open(STDERR,">&IN") or warn "couldn't redirect stdder";
+open(STDERR,">&IN") or warn "couldn't redirect stderr";
 
 my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 
@@ -57,25 +56,25 @@ my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 #   --CED
 ###
 
-unless($^O =~ /mswin/i) { # Skip on Windows - fork() doesn't work there as intended
-my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
-my $tmpfile = $tmpdir . "/foo$$.$dev";
+unless($^O =~ /mswin/i) { # Causes problems on Windows.
+  my $tmpdir  = $PDL::Config{TEMPDIR} || "/tmp";
+  my $tmpfile = $tmpdir . "/foo$$.$dev";
 
 # comment this out for testing!!!
-#my $pid = 0; my $a = 'foo';
+  #my $pid = 0; my $a = 'foo';
 
-if($pid = fork()) {
+  if($pid = fork()) {
 	$a = waitpid($pid,0);
-} else {
+  } else {
 	sleep 1;
 	$pl = PDL::Graphics::PLplot->new(DEV=>$dev,FILE=>$tmpfile);
 	exit(0);
-}
+  }
 
-ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
-unlink $tmpfile;
+  ok( ($not_ok = $? & 0xff )==0 , "PLplot crash test"  );
+  unlink $tmpfile;
 
-if($not_ok) {
+  if($not_ok) {
 	printf SAVEERR <<"EOERR" ;
 
 Return value $not_ok; a is $a; pid is $pid
@@ -90,8 +89,13 @@ Return value $not_ok; a is $a; pid is $pid
 EOERR
 
 	open(STDERR,">&SAVEERR");
+  }
 }
-} # End of Windows skip
+else { # MS Windows only
+	my $ret = system('perl -Mblib -MPDL -MPDL::Graphics::PLplot -e "$pl = PDL::Graphics::PLplot->new(DEV=>\"xfig\",FILE=>\"foo.xfig\")"');
+	ok( $ret == 0 , "PLplot crash test"  );
+	unlink 'foo.xfig';
+}
 
 $pl = PDL::Graphics::PLplot->new (DEV => $dev,
 				  FILE => "test2.$dev",
@@ -486,16 +490,20 @@ $pl->close;
 ok (-s "test26.$dev" > 0, "Multi-color stripplots");
 
 # Test calling plParseOpts with no options
-unless($^O =~ /mswin/i) { # Skip on Windows - fork() doesn't work there as intended.
-if($pid = fork()) {
+unless($^O =~ /mswin/i) { # Causes problems on Windows
+  if($pid = fork()) {
 	$a = waitpid($pid,0);
-} else {
+  } else {
 	sleep 1;
 	plParseOpts ([], PL_PARSE_FULL);
 	exit(0);
+  }
+  ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
 }
-ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
-} # End Windows skip
+else { # MS Windows only
+	my $ret = system('perl -Mblib -MPDL -MPDL::Graphics::PLplot -e "plParseOpts ([], PL_PARSE_FULL)"');
+	ok($ret == 0, "No segfault calling plParseOpts with no options"  );
+}
 
 # comment this out for testing!!!
 unlink glob ("test*.$dev");
