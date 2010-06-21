@@ -7,6 +7,8 @@ package PDL::Perldl2::Profile::Perldl2;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.002;
+
 with 'Devel::REPL::Profile';
 
 sub plugins {
@@ -167,7 +169,7 @@ EOD
          $repl->print("\n");
       }
 
-      $repl->print("perlDL shell v2.000
+      $repl->print("Perldl2 Shell v$PDL::Perldl2::Profile::Perldl2::VERSION
          PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
          'COPYING' in the PDL distribution. This is free software and you
          are welcome to redistribute it under certain conditions, see
@@ -204,14 +206,14 @@ Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
     system> re.pl --profile=Perldl2     # unixen shell
     system> re --profile=Perldl2        # win32 CMD shell
 
-    perlDL shell v2.000
-             PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-             'COPYING' in the PDL distribution. This is free software and you
-             are welcome to redistribute it under certain conditions, see
-             the same file for details.
+    Perldl2 Shell v0.002
+         PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+         'COPYING' in the PDL distribution. This is free software and you
+         are welcome to redistribute it under certain conditions, see
+         the same file for details.
 
     Loaded plugins:
-
+    
       Commands
       Completion
       CompletionDriver::INC
@@ -228,17 +230,20 @@ Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
       Packages
       PrintControl
       ReadLineHistory
-
+    
+    
     Type 'help' for online help
+    
     Type Ctrl-D or quit to exit
-    Loaded PDL v2.4.6_009
+    
+    Loaded PDL v2.4.6_010
 
     PDL> 
 
 
 =head1 DESCRIPTION
 
-This profile is for development of the new PDL shell version 2.
+This profile is for development of the new Perldl2 shell.
 After development is complete, the C<Devel::REPL> implementation
 will be folded into a script to start the shell directly.
 
