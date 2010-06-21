@@ -17,6 +17,7 @@ if (!defined $PDL::Config{WITH_DEVEL_REPL}) {
          'VERSION' => '2.000',
          'EXE_FILES' => [ 'pdl2' ],
          'DIR' => [ qw(Profile Plugin) ],
+         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm' },
       );
    } else {
       # Devel::REPL was not found
@@ -33,6 +34,7 @@ elsif ($PDL::Config{WITH_DEVEL_REPL}) {
 	 'VERSION' => '2.000',
 	 'EXE_FILES' => [ 'pdl2' ],
 	 'DIR' => [ qw(Profile Plugin) ],
+         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm' },
   );
 }
 else {

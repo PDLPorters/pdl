@@ -12,4 +12,5 @@ BEGIN {
    $ENV{PERLREPL_HISTLEN} = 500;
 }
 
-use Devel::REPL::Script 'run';
+#use Devel::REPL::Script 'run';
+use PDL::Perldl2::Script 'run';
