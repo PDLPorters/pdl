@@ -4,7 +4,7 @@ use Devel::REPL::Plugin;
 
 use namespace::clean -except => [ 'meta' ];
 
-has 'do_print' => (
+has 'print_by_default' => (
              is  => 'rw',
              default => 0,
          );
@@ -14,9 +14,17 @@ around 'format_result' => sub {
   my ($orig, $self) = (shift, shift);
   my ($lines, @args) = @_;
 
-  return $self->do_print ? $orig->($self, @_) : ();
+  return $self->print_by_default ? $orig->($self, @_) : ();
 
 };
+
+# convenience method to set/toggle print default settings
+# sets like accessor if given a value, otherwise toggles status
+sub do_print {
+   my ($repl, $value) = @_;
+   $value = (defined $value) ? $value : ! $repl->print_by_default;
+   return $repl->print_by_default($value);
+}
 
 1;
 
@@ -34,10 +42,10 @@ PDL::Perldl2::Plugin::PrintControl - disable default print output
 
  > $a;
 
- > $_REPL->do_print(1);
+ > $_REPL->print_by_default(1);
  1
  > $a;
- 2
+ 3
 
 =head1 DESCRIPTION
 
@@ -47,17 +55,23 @@ like large data objects (e.g. a 100x100 matrix in PDL) the
 result can be hundreds of lines of output for each command.
 
 This plugin disables the default print output and adds an
-attribute with accessor method C<do_print> which can be
+attribute with accessor method C<print_by_default> which can be
 used to toggle the print default on or off.
 
 =head1 METHODS
 
+=head2 print_by_default
+
+By default, the C<PrintControl> plugin sets C<print_by_default> to
+0 (false), which disables automatic printing of results.
+Call the print_by_default accessor with a 1 (true value) to enable
+default printing.
+
 =head2 do_print
 
-By default, the C<PrintControl> plugin sets C<do_print> to
-0 (false), which disables automatic printing of results.
-Call the do_print accessor with a 1 (true value) to enable
-default printing.
+This is a convenience accessor for the print_by_default attribute.
+If you call this method without a value, it toggles the current
+setting.  Otherwise, it just sets print_by_default to the value.
 
 =head1 SEE ALSO
 
