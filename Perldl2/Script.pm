@@ -32,6 +32,15 @@ sub load_rcfile {
    print STDERR "load_rcfile: loading $startup_file\n";
    $self->apply_script($startup_file);
    print STDERR "load_rcfile: ...done\n";
+
+   foreach my $local_startup_file qw( local.pdlrc local.perldlrc ) {
+      if ( -e $local_startup_file ) {
+         print STDERR "load_rcfile: loading $local_startup_file\n";
+         $self->apply_script($local_startup_file);
+         print STDERR "load_rcfile: ...done\n";
+         last;
+      }
+   }
 }
 
 # Global and local startup
