@@ -7,7 +7,7 @@ package PDL::Perldl2::Profile::Perldl2;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.002001;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.002002;
 
 with 'Devel::REPL::Profile';
 

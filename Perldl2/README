@@ -109,17 +109,8 @@ use the Perldl2 shell follows.
  history file as perldl.  This is a new feature so, as
  always, feedback welcome.
 
-
-+-----------------------------------------------------------+
-|                        ADVANCED                           |
-+-----------------------------------------------------------+
-
- Work is underway to enable the use of the $HOME/.perldlrc
- and local.perldlrc startup files with the Perldl2 shell.
-
- If you can't wait and wish to customize your pdl2 startup
- further, you can edit the Perldl2.pm file following the
- documentation for Devel::REPL::Profile.
-
- It is probably simpler to put your customizations in a
- file and just do 'filename' at the PDL> prompt.
+ The Perldl2 shell, pdl2, now loads your .perldlrc file from
+ the same location as the perldl shell does.  It also accepts
+ .pdlrc as the name---looking forward to the new naming
+ scheme for the interactive shell.  A local.pdlrc or
+ local.perldlrc are run if present as well.

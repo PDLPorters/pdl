@@ -6,16 +6,8 @@ Last saved: Mon 21 Jun 2010 07:38:33 AM
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
 
-  NOTE: The startup file used is $HOME/.re.pl/repl.rc until
-  back compatibility to support the existing .perldlrc and
-  local.perldlrc features and functions.
- 
   Use either perldl or Perldl2 when starting the PDL shell
   based on the value of WITH_DEVEL_REPL in perld.conf
- 
-  Add support for .pdlrc, .perldrc to startup of Perldl2.
- 
-  Add support for local.pdlrc, local.perldlrc similarly.
  
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
@@ -48,8 +40,6 @@ Last saved: Mon 21 Jun 2010 07:38:33 AM
   or using Win32::Console and Win32::Console::ANSI to implement
   the missing ANSI support.
 
-  Add Perldl2 VERSION variable and display information
- 
   Implement PDL shell startup boot messages, i.e.,
     perlDL shell v1.352
      PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
