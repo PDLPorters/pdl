@@ -35,10 +35,18 @@ Last saved: Mon 21 Jun 2010 07:38:33 AM
  
   Add startup checks for the various Devel::REPL plugins
   loaded to be sure that they run before the load_plugin
-  call.
+  call. (Done for INC and Keywords completions.  The code
+  is there but need to refactor to clean up and simplify
+  for checking all plugins, not just a couple by hand)
   
   Investigate why Ctrl-L on win32 is issuing a 'clear' command.
-  Is there any reason to think that that would work?
+  ANS: readline.pm from Term::ReadLine::Perl is using `clear`
+  to determine the escape sequence to clear the screen.  This
+  doesn't work on win32 since there is no clear command and
+  the console does not support ANSI escape sequences.  Plan
+  to fix by calling the DOS cls command to clear the screen
+  or using Win32::Console and Win32::Console::ANSI to implement
+  the missing ANSI support.
 
   Add Perldl2 VERSION variable and display information
  

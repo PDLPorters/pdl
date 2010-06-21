@@ -34,7 +34,17 @@ sub apply_profile {
    # add PDL::Perldl2 for plugin search
    push @{$repl->_plugin_app_ns}, 'PDL::Perldl2';
 
-   $repl->load_plugin($_) for $self->plugins;
+   foreach my $plug ($self->plugins) {
+      if ($plug =~ 'CompletionDriver::INC') {
+         eval 'use File::Next';
+         next if $@;
+      }
+      if ($plug =~ 'CompletionDriver::Keywords') {
+         eval 'use B::Keywords';
+         next if $@;
+      }
+      $repl->load_plugin($plug);
+   }
 
    # these plugins don't work on win32
    unless ($^O =~ m/win32/i) {
