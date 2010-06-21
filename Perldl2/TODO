@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 15 Jun 2010 06:41:33 AM
+Last saved: Mon 21 Jun 2010 07:38:33 AM
 
 
 +-------------------------------------------------------------------+
@@ -33,6 +33,13 @@ Last saved: Tue 15 Jun 2010 06:41:33 AM
   command completion (filename completion
   should already work).
  
+  Add startup checks for the various Devel::REPL plugins
+  loaded to be sure that they run before the load_plugin
+  call.
+  
+  Investigate why Ctrl-L on win32 is issuing a 'clear' command.
+  Is there any reason to think that that would work?
+
   Add Perldl2 VERSION variable and display information
  
   Implement PDL shell startup boot messages, i.e.,
