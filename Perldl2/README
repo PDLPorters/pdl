@@ -44,11 +44,12 @@ use the Perldl2 shell follows.
 |                      INSTALLATION                         |
 +-----------------------------------------------------------+
 
-  Install Devel::REPL version 1.003011 or greater.
+  By default, the Perldl2 shell is always built and
+  installed.  To disable this, edit the WITH_DEVEL_REPL
+  option in the perldl.conf file.
 
-  Then configure and build PDL as usual.  The presence
-  of Devel::REPL should be detected and the Perldl2
-  support built and installed.
+  You will need to install Devel::REPL version 1.003011
+  or greater to run pdl2.
  
 
 +-----------------------------------------------------------+
@@ -81,6 +82,7 @@ use the Perldl2 shell follows.
   * MultiLine::PPI (handles multiline input like perldl)
   * NiceSlice (PDL::NiceSlice works too!)
   * Packages (keeps track of current user package)
+  * PDLCommands (perldl shell v1 convenience routines)
   * ReadLineHistory
     * Save and restore command history to file
   * CompletionDrivers
@@ -112,7 +114,8 @@ use the Perldl2 shell follows.
  p is an alias for print.
 
  demo works but at the end of the demo, you may need to type Ctrl-D
- if it hangs after the final "press enter".
+ if it hangs after the final "press enter" prompt (Ctrl-Z then Enter
+ for win32 perls).
 
  The Perldl2 shell, pdl2, now loads/saves from the same
  history file as perldl. This is a new feature so, as

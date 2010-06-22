@@ -104,21 +104,21 @@ sub apply_profile {
       if(/^$/) {
       print <<EOD;
       Use:
-      demo 'pdl'         # general demo
+      demo pdl         # general demo
 
-      demo '3d'          # 3d demo (requires TriD with OpenGL or Mesa)
-      demo '3d2'         # 3d demo, part 2. (Somewhat memory-intensive)
-      demo '3dgal'       # the 3D gallery: make cool images with 3-line scripts
-      demo 'Tk3d'        # Requires the perl Tk module
+      demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
+      demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
+      demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
+      demo Tk3d        # Requires the perl Tk module
 
-      demo 'pgplot'      # PGPLOT graphics output (Req.: PGPLOT)
-      demo 'OOplot'      # PGPLOT OO interface    (Req.: PGPLOT)
+      demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
+      demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
 
-      demo 'transform'   # Coordinate transformations (Req.: PGPLOT)
-      demo 'cartography' # Cartographic projections (Req.: PGPLOT)
+      demo transform   # Coordinate transformations (Req.: PGPLOT)
+      demo cartography # Cartographic projections (Req.: PGPLOT)
 
-      demo 'bad'         # Bad-value demo (Req.: bad value support)
-      demo 'bad2'        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
+      demo bad         # Bad-value demo (Req.: bad value support)
+      demo bad2        # Bad-values, part 2 (Req.: bad value support and PGPLOT)
 
 EOD
       return;
