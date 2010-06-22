@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 15 Jun 2010 06:38:23 AM
+Last saved: Mon 21 Jun 2010 09:39:52 PM
 
 
 +-----------------------------------------------------------+
@@ -17,14 +17,25 @@ use the Perldl2 shell follows.
 
 
 +-----------------------------------------------------------+
-|                          FILES                            |
+|                         CONTENTS                          |
 +-----------------------------------------------------------+
 
  README
-   This file.
+   This file
+
+ TODO
+   Development list for Perldl2 shell
+
+ Makefile.PL
+   Perl configuration/build script for Perldl2
+
+ Plugin/
+ Profile/
+ Script.pm
+   Perl modules and directories with modules for Perldl2
 
  pdl2
-   This is a perl script for starting the Perldl2 shell.
+   A perl script for starting the Perldl2 shell.
 
 
 
@@ -102,15 +113,16 @@ use the Perldl2 shell follows.
  p is an alias for print.
 
  demo works but you'll need to quote the demo name argument
- and, at the end of the demo, you may need to type Ctrl-D
- if it hangs after the final (press enter).
+ and, at the end of the demo, you may need to type Ctrl-D if
+ it hangs after the final (press enter).
 
  The Perldl2 shell, pdl2, now loads/saves from the same
- history file as perldl.  This is a new feature so, as
+ history file as perldl. This is a new feature so, as
  always, feedback welcome.
 
- The Perldl2 shell, pdl2, now loads your .perldlrc file from
- the same location as the perldl shell does.  It also accepts
- .pdlrc as the name---looking forward to the new naming
- scheme for the interactive shell.  A local.pdlrc or
- local.perldlrc are run if present as well.
+ The Perldl2 shell, pdl2, now loads your .perldlrc file
+ from the same location as the perldl shell does.  It also
+ accepts .pdlrc as the name---looking forward to the new
+ naming scheme for the interactive shell.  A local.pdlrc
+ or local.perldlrc are run if present as well.  As always,
+ feedback is welcome.

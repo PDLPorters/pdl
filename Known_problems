@@ -1,6 +1,6 @@
 The following issues have been reported with this version of PDL:
 
-- The perl debugger for perls 5.10.1 through 5.12 have a new
+- The perl debugger for perls 5.10.1 through 5.12 has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
   an affected perl version, the work around is to make an

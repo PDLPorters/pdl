@@ -18,7 +18,22 @@ Highlights:
 
    TAB completion for filenames and history expansion
    using '!' syntax works with either Term::ReadLine::Gnu
-   or Term::ReadLine::Perl.
+   or Term::ReadLine::Perl.  If you use the ! operator in
+   your perl code, be sure to follow it by a space so that
+   it is not interpreted for history substitution.
+
+   pdl2 now loads your ~/.pdlrc (or ~/.perldlrc) startup
+   file and also local.pdlrc (or local.perldlrc) file if
+   there is one in the current directory.  Please report
+   any problems or missing functionality to the PDL
+   mailing list.
+
+   uniq/uniqind/uniqvec now handle BAD values or NaN
+   values consistent with Matlab and between themselves.
+   This fixes sf.net bug #3011659.
+
+   Many win32/win64 portability fixes for PLplot as well
+   as various other documentation and other fixes.
    
 
 

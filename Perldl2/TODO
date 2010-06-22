@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 21 Jun 2010 07:38:33 AM
+Last saved: Mon 21 Jun 2010 09:25:32 PM
 
 
 +-------------------------------------------------------------------+
@@ -170,6 +170,10 @@ Last saved: Mon 21 Jun 2010 07:38:33 AM
   User AUTO commands             yes                    TBD 
   
   Autoquoting doc commands       yes                    TBD
+
+  Load user startup file         yes                    yes
+
+  Load local.perldlrc            yes                    yes
   
   $_ preserved                   no                     yes
 
