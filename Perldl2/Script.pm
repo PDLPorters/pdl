@@ -15,7 +15,9 @@ sub load_rcfile {
    my ($self, $rc_file) = @_;
 
    my $HOME = $ENV{HOME};
-   if ($^O =~ /win32/i and $HOME eq ""){
+   if ($^O =~ /win32/i and
+	   (! defined($HOME)) or
+	   (defined($HOME) and $HOME eq "")) {
       $HOME = $ENV{USERPROFILE};
       $HOME =~ s/\\/\//g;
    }

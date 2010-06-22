@@ -2,12 +2,16 @@
 
 BEGIN {
    $ENV{DEVEL_REPL_PROFILE} = 'PDL::Perldl2::Profile::Perldl2';
+
    # This should be based on 
    $HOME = $ENV{HOME};             # Useful in shell
-   if ($^O =~ /win32/i and $HOME eq "") {
-         $HOME = $ENV{USERPROFILE};
-         $HOME =~ s/\\/\//g;
-      }
+   if ($^O =~ /win32/i and
+      (! defined($HOME)) or
+      (defined($HOME) and $HOME eq "")) {
+      $HOME = $ENV{USERPROFILE};
+      $HOME =~ s/\\/\//g;
+   }
+
    $ENV{PERLREPL_HISTFILE} = "$HOME/.perldl_hist";
    $ENV{PERLREPL_HISTLEN} = 500;
 }
