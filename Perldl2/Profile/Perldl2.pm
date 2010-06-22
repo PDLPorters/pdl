@@ -200,7 +200,7 @@ EOD
 
 =head1 NAME
 
-Devel::REPL::Profile::Perldl2 - profile for Perldl2 shell
+PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
 
 =head1 SYNOPSIS
 
