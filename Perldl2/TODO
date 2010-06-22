@@ -12,19 +12,6 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
  
-  Support for q, x, exit to exit the REPL shell.
- 
-  Support for autoquoted arguments for all of the doc-type
-  commands: help|usage|apropos|sig|badinfo|demo
- 
-  Support ? and ?? as aliases for help and apropos
-   s/^\s*\?\?\s*/apropos/
-   s/^\s*\?\s*/help/
- 
-  Implement shell escapes, perhaps with
-  command completion (filename completion
-  should already work).
- 
   Add startup checks for the various Devel::REPL plugins
   loaded to be sure that they run before the load_plugin
   call. (Done for INC and Keywords completions.  The code
@@ -163,13 +150,13 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
   
   preproc_add/del                yes                    TBD
   
-  ?,?? aliases                   yes                    TBD
+  ?,?? aliases                   yes                    yes
   
-  q,x aliases                    yes                    TBD
+  q,x aliases                    yes                    yes
   
   User AUTO commands             yes                    TBD 
   
-  Autoquoting doc commands       yes                    TBD
+  Autoquoting doc commands       yes                    yes
 
   Load user startup file         yes                    yes
 

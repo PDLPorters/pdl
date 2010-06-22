@@ -66,11 +66,7 @@ use the Perldl2 shell follows.
     pdl2
 
  To exit the Perldl2 shell from the PDL> prompt, type Ctrl-D
- or quit.
-
- WARNING: Typing exit will also quit the shell but do so by
- terminating the perl interpreter. Probably not what you
- want to do---especially if you want to keep command history.
+ or quit, q, x, or exit.
 
 
 +-----------------------------------------------------------+
@@ -104,17 +100,19 @@ use the Perldl2 shell follows.
   * PDL::Image2D
   * PDL::AutoLoader
 
- help, apropos work but
- * ? and ?? aliases don't work (use help or apropos words)
- * you need to quote the arguments (e.g.,  help 'sumover')
+ ? and ?? aliases for help and apropos now work
+ 
+ Arguments to help|usage|apropos|sig|badinfo|demo are not autoquoted
+
+ Shell escapes starting with $PERLDL::ESCAPE as the first character
+ of a line now work.
 
  l <num> prints the last num lines of history, default 20.
 
  p is an alias for print.
 
- demo works but you'll need to quote the demo name argument
- and, at the end of the demo, you may need to type Ctrl-D if
- it hangs after the final (press enter).
+ demo works but at the end of the demo, you may need to type Ctrl-D
+ if it hangs after the final "press enter".
 
  The Perldl2 shell, pdl2, now loads/saves from the same
  history file as perldl. This is a new feature so, as

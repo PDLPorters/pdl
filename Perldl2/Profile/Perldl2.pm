@@ -7,7 +7,7 @@ package PDL::Perldl2::Profile::Perldl2;
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.002002;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.003;
 
 with 'Devel::REPL::Profile';
 
@@ -27,6 +27,7 @@ sub plugins {
       NiceSlice
       PrintControl
       ReadLineHistory
+      PDLCommands
    ); # CompletionDriver::Globals
 }
 
