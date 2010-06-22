@@ -28,11 +28,18 @@ Highlights:
    any problems or missing functionality to the PDL
    mailing list.
 
-   uniq/uniqind/uniqvec now handle BAD values or NaN
+   help|usage|apropos|sig|badinfo|demo now autoquote their args.
+
+   ? and ?? aliases for help and apropos work
+
+   Shell command escapes for lines beginning with $PERLDL::ESCAPE
+   (defaults to "#") work as well.
+
+ * uniq/uniqind/uniqvec now handle BAD values or NaN
    values consistent with Matlab and between themselves.
    This fixes sf.net bug #3011659.
 
-   Many win32/win64 portability fixes for PLplot as well
+ * Many win32/win64 portability fixes for PLplot as well
    as various other documentation and other fixes.
    
 

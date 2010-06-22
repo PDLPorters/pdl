@@ -310,14 +310,9 @@ Graphics/PLplot/README
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
 Graphics/TriD/OpenGL/examples/clip
-Graphics/TriD/OpenGL/gl.h.cpp
-Graphics/TriD/OpenGL/glu.h.cpp
-Graphics/TriD/OpenGL/glx.h.cpp
-Graphics/TriD/OpenGL/glxtokens.h.cpp
 Graphics/TriD/OpenGL/Makefile.PL
 Graphics/TriD/OpenGL/opengl.pd
 Graphics/TriD/OpenGL/README
-Graphics/TriD/OpenGL/X.h.cpp
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/POGL/ignore.txt
@@ -683,10 +678,12 @@ Perldl2/Makefile.PL
 Perldl2/pdl2
 Perldl2/Plugin/Makefile.PL
 Perldl2/Plugin/NiceSlice.pm
+Perldl2/Plugin/PDLCommands.pm
 Perldl2/Plugin/PrintControl.pm
 Perldl2/Profile/Makefile.PL
 Perldl2/Profile/Perldl2.pm
 Perldl2/README
+Perldl2/Script.pm
 Perldl2/TODO
 README
 Release_Notes
