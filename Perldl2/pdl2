@@ -18,3 +18,32 @@ BEGIN {
 
 #use Devel::REPL::Script 'run';
 use PDL::Perldl2::Script 'run';
+
+__END__
+
+=head1 NAME
+
+  pdl2 - Simple shell II for PDL
+
+=head1 SYNOPSIS
+
+  Use PDL interactively:
+
+  %> pdl2
+
+  PDL> $a = sequence(10)  # or any other perl or PDL command
+  
+  PDL> print "\$a = $a\n"; 
+  $a = [0 1 2 3 4 5 6 7 8 9]
+
+=head1 DESCRIPTION
+
+The pdl2 program, also known as the Perldl2 shell, is a next
+generation version of the original perldl interactive PDL shell.
+It attempts to be backward compatible in usage while providing
+improved more features, better support for Perl syntax, built
+on an easier to extend framework based on L<Devel::REPL>.
+
+=head1 SEE ALSO
+
+=cut
