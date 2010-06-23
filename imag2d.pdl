@@ -375,32 +375,92 @@ sub ModeMenu {
 #------------------------------------------------------------------------
 sub key_ops {
    my ($key, $x, $y) = @_;
+   my $win_id = glutGetWindow();
 
    # handle keypress events (defaults first)
    # print STDERR "Got keypress for keypress=$key\n";
 
    # stop twiddling
-   $imag2d_keep_twiddling = 0 if $key == 113 or  $key == 81;  # q or Q
+   if ($key == ord('Q') or $key == ord('q')) {
+      $imag2d_keep_twiddling = 0;
+      warn "Stop twiddling command, key '" . chr($key) . "', detected.\n";
+      return;
+   }
 
-   # quit program
-   exit if $key ==  27;                 # ESC
-   exit if $key ==   3;                 # Ctrl-C
+   # exit program
+   if ($key == 27 or $key == 3) {          # ESC or Ctrl-C
+      warn "Exit program command, key '" . (($key == 27) ? 'ESC' : 'Ctrl-C') . "', detected.\n";
+      exit;
+   }
 
    # toggle overlay
-   $show_overlay = (($show_overlay) ? 0 : 1) if $key == 111 or $key == 79 ;     # o or O
+   if ($key == ord('O') or $key == ord('o')) {
+      $show_overlay = (($show_overlay) ? 0 : 1);
+      warn "Toggle overlay command, key '" . chr($key) . "', detected.\n";
+      return;
+   }
+
+   # lock windows sizes together
+   if ($key == ord('L') or $key == ord('l')) {
+      ## $lock_sizes = (($lock_sizes) ? 0 : 1);
+      ## warn "Setting \$lock_sizes to $lock_sizes, (window=$win_id)\n";
+      warn "Lock window sizes command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+
+   # toggle image histogram equalization
+   if ($key == ord('H') or $key == ord('h')) {
+      ## $hist_equalize = (($hist_equalize) ? 0 : 1);
+      ## warn "Setting \$hist_equalize to $hist_equalize\n";
+      warn "Toggle image histogram equalization command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+
+   # resize current window (last clicked?) to 1:1
+   if ($key == ord('1')) {
+   ##    resize_window(-1,-1);     # Special (w,h) args mean set zoom to 1
+   ##    glutPostRedisplay();
+      warn "Resize current window to 1:1 scale command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+   
+   # resize other image windows to this one
+   if ($key == ord('=')) {
+   ##    warn "Resize other images to this one not yet implemented, (window=$win_id)\n";
+      warn "Resize other windows to this one command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
 
    # pause/run with space bar
-   $is_paused = (($is_paused) ? 0 : 1) if $key == 32;     # SPACE
+   if ($key == 32) {    # SPACE
+      $is_paused = (($is_paused) ? 0 : 1);
+      warn "Pause/Run command, key 'SPACE', detected\n";
+      return;
+   } 
+
+   # toggle verbose output
+   if ($key == ord('v') or $key == ord('V')) {
+   ##    $be_verbose = (($be_verbose) ? 0 : 1);
+      warn "Toggle verbose output command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
 
    # change direction or step in direction
-   if ($key == 46 or $key == 62) {          # > or .
+   if ($key == 46 or $key == 62) {          # . or >
       $go_forward = 1;
       $go_backward = 0;
+      warn "Change Direction/Step forward command, key '" . (($key == 46) ? '.' : '>') . "', detected.\n";
+      return;
    };
-   if ($key == 44 or $key == 60) { ;        # < or ,
+
+   if ($key == 44 or $key == 60) { ;        # , or <
       $go_forward = 0;
       $go_backward = 1;
+      warn "Change Direction/Step backward command, key '" . (($key == 44) ? ',' : '<') . "', detected.\n";
+      return;
    }
+
+   warn "No handler for key " . chr($key) . ", (window=$win_id)\n";
 }
 
 #------------------------------------------------------------------------
