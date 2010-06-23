@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 21 Jun 2010 09:25:32 PM
+Last saved: Tue 22 Jun 2010 10:44:38 PM
 
 
 +-------------------------------------------------------------------+
@@ -19,13 +19,13 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
   for checking all plugins, not just a couple by hand)
   
   Investigate why Ctrl-L on win32 is issuing a 'clear' command.
-  ANS: readline.pm from Term::ReadLine::Perl is using `clear`
-  to determine the escape sequence to clear the screen.  This
-  doesn't work on win32 since there is no clear command and
-  the console does not support ANSI escape sequences.  Plan
-  to fix by calling the DOS cls command to clear the screen
-  or using Win32::Console and Win32::Console::ANSI to implement
-  the missing ANSI support.
+  ANSWER: readline.pm from Term::ReadLine::Perl is using `clear`
+    to determine the escape sequence to clear the screen.  This
+    doesn't work on win32 since there is no clear command and
+    the console does not support ANSI escape sequences.  Plan
+    to fix by calling the DOS cls command to clear the screen
+    or using Win32::Console and Win32::Console::ANSI to implement
+    the missing ANSI support.
 
   Implement PDL shell startup boot messages, i.e.,
     perlDL shell v1.352
@@ -40,12 +40,9 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
     Type 'demo' for online demos
     Loaded PDL v2.4.6_007 (supports bad values)
  
-  Fix demos to run under the Perldl2 for windows.  The curent
-  implementation uses the tput command to clear the screen but
-  that is not available for win32.  I think a readline clear
-  screen command should work.  Also, the demo 3d test hung at
-  the end of the demo apparently because it is waiting for
-  input (why?).
+  Fix the hang in the <> operator from the Demos Screen.pm routines.
+  Need to track down why the readline operator is clashing with the
+  interactive IO from the Term::ReadLine stuff. 
  
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
@@ -71,12 +68,13 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
   perldl v.1.x not to use STDIN, STDOUT...
  
   Verify that input from terminal and/or files works correctly
-  and consistently with perldl v.1.  NOTE: this should make it
+  and consistently with perldl.  NOTE: this should make it
   possible to implement some tests of the interactive shell
   from file input.
  
-  Add @PERLDL::AUTO processing plugin.  Should be able to just
-  run the code after the line is read but before it is eval'd
+  Add @PERLDL::AUTO processing to the PDLCommands plugin.  Should
+  be able to just run the code after the line is read but before
+  it is eval'd.
  
   Add ability to run $PERLDL::PROMPT if it is a code reference
   and not a string.  Just use same logic as in perldl but set
@@ -92,16 +90,27 @@ Last saved: Mon 21 Jun 2010 09:25:32 PM
   type in the $_REPL->do_print($val) command.
  
   It would be nice if variable completion followed by a
-  method call would collapse the extra space.  Similarly for
-  other cases:  e.g. $_REPL ->do_print (1);
+  method call would collapse the extra space.  E.g.,
+  the first <TAB> in line#1 completes to the $_REPL varible
+  followed by a space as seen in line#2.  Then typing the
+  ->do_p<TAB> in line#3 triggers a method completion to 
+  ->do_print followed by a space shown in line#4.
+   
+    #1 PDL> $_RE<TAB>
+    #2 PDL> $_REPL _
+    #3 PDL> $_REPL ->do_p<TAB>
+    #4 PDL> $_REPL ->do_print _
+
+  What we would like is the trailing space in line#2 to be
+  collapsed once the -> is typed following the completion.
+  Similarly, we would like the space at the end of line#4
+  to be collapsed once a '(' is typed to start the arglist.
 
   Enhance completion strategy for Perldl2.  For example,
   order and prioritze completions to remove long lists
   of bad options.  Allow chained completions recognizing
   the output of PDL methods is a piddle so completion
-  could chain as well.  If the completion is followed
-  by certain characters, then scoot back and remove the
-  extra whitespace.
+  could chain as well.
  
   Update perldl documentation to match Perldl2 capabilities.
   Any way to transparently select the correct docs at runtime?
