@@ -49,10 +49,12 @@ doco (qw/cosh sinh tanh acosh asinh atanh/,
 'The standard hyperbolic function.');
 
 doco (qw/ceil floor/,
-'Round to integral values in floating-point format.');
+'Round to integer values in floating-point format.');
 
 doco ('rint',
-q/Round to integral values in floating-point format.
+q/=for ref
+
+Round to integer values in floating-point format.
 
 =for method
 
