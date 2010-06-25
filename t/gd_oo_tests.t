@@ -173,7 +173,7 @@ $im->DESTROY(); $im = undef;
 
 # TEST 21:
 # Create from a RGB PDL:
-my $pic3d = $pic->dummy(3,3);
+my $pic3d = $pic->dummy(2,3);
 $im = PDL::IO::GD->new({ pdl => $pic3d });
 ok( defined( $im ) );
 $im->DESTROY(); $im = undef;

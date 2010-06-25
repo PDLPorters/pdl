@@ -1109,7 +1109,7 @@ sub PDL::dummy($$;$) {
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
 
    my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
-   $s .= '*,' x ( $dim-$pdl->getndims-1 );
+   $s .= '*1,' x ( $dim-$pdl->getndims );
    $s .= "*$size";
 
    $pdl->slice($s);

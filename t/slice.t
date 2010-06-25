@@ -304,7 +304,7 @@ ok(eval '$d->ndims == 3 && ((pdl($d->dims) == pdl(1,2,2))->sumover == 3)' && !$@
 eval '$e = $a->dummy(6,2)';
 ok(!$@, "dummy");
 
-ok(eval '$e->ndims == 6 && ((pdl($e->dims) == pdl(5,5,1,1,1,2))->sumover==6)' && !$@);
+ok(eval '$e->ndims == 7 && ((pdl($e->dims) == pdl(5,5,1,1,1,1,2))->sumover==7)' && !$@);
 
 ##############################
 # Tests of indexND (Nowadays this is just another call to range)
