@@ -7,7 +7,33 @@ General Notes:
    correctly or have complete documentation (as in these
    Release notes).
 
+ * The main purpose for this release is the additional
+   diagnostics in the t/proj_transform.t which may lead
+   to an understanding of what the problem is there.
+
+
 Highlights:
+
+ * pdl2 (the new Perldl2 shell now supports all major
+   functions of perldl.  If you have installed the latest
+   Devel::REPL you should be able to use this shell as
+   an enhanced replacement for perldl.  Feedback welcome!
+
+ * Fix sf.net bug #3021578 re missing xtra dummy dims
+
+ * Add error diagnostics to dummy() in PDL::Core when the
+   required position argument is not present.  The new
+   message now mentions the dummy() method instead of just
+   a line number in Core.pm.
+
+ * Update bess[jy][01n] docs in math.pd
+   Fix refs for floor/ceil/rint to use integer
+
+ * Use is() instead of ok() in t/proj_transform.t
+
+   That should give more diagnostic output for failing tests
+   to help debug the recent test failures for cygwin 1.7 and
+   freebsd 8.0.
 
 
 

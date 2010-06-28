@@ -74,9 +74,12 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_010 release:
+  PDL-2.4.6_011 release:
 
-  3013751    t/proj_transform.t fails for cygwin 1.7
+  3021567    MatrixOps::lu_backsub returns too many dimensions
+  3021519    PDL::AutoLoader doesn't expand win32 paths correctly
+  3018731    NiceSlice affects code where it should not
+  3013751    t/proj_transform.t fails for cygwin 1.7 and freebsd 8.0
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
@@ -84,9 +87,7 @@ The following issues have been reported with this version of PDL:
   2901814    Arrow keys don't work in ASPerl perldl in console
   2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
-  2339818    need lib64 searches in Graphics::TriD  
   2153898    default PDL build output too long
-  1994610    TriD build problem w pthreads
   1994584    PDL Has no signed 8-bit integer datatype
   1582350    badflag called in PDL::Core and PDL::Complex
   1507054    closing TriD window kills perldl shell
