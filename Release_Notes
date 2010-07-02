@@ -1,3 +1,20 @@
+Release notes for PDL 2.4.6_012 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+* Incorrect threading in lu_backsub() and lu_decomp() has
+  been fixed.  This closes bug sf.net #3021567.
+
+
+
 Release notes for PDL 2.4.6_011 --------------------------
 
 General Notes:
