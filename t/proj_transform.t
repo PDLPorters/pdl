@@ -16,20 +16,20 @@ use Test::More;
 
 BEGIN
 {   
-    eval( " use PDL::Transform::Proj4; " );
-    if( !($@) )
-    {
-       if ( $PDL::Bad::Status ) {
-          plan tests => 22;
-       }
-       else {
-          plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
-       }
-    }
-    else
-    {
-        plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
-    }
+   eval( " use PDL::Transform::Proj4; " );
+   if( !($@) )
+   {
+      if ( $PDL::Bad::Status ) {
+         plan tests => 22;
+      }
+      else {
+         plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
+      }
+   }
+   else
+   {
+      plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
+   }
 }
 
 #
@@ -38,7 +38,7 @@ BEGIN
 
 BEGIN
 {   
-    use_ok(PDL::Transform::Cartography);                 # TEST 1
+   use_ok(PDL::Transform::Cartography);                 # TEST 1
 }
 
 ### Get the vector coastline map (and a lon/lat grid), and load the Earth
@@ -48,18 +48,22 @@ BEGIN
 ### This doesn't seem to be used.  # chm 14-May-2009
 ### my $coast = earth_coast()->glue( 1, graticule(15,1) );
 
+eval { my $map = earth_image( 'day' ) };
+
+if ($@) {
+   skip("earth_image() can not load test data", 21);
+} else {
+   pass("earth_image() loaded");                     # TEST 2
+}
+
+my $map = earth_image( 'day' );
+$map->badflag(1);
+
 SKIP: {
 
-   eval { my $map = earth_image( 'day' ) };
-
-   if ($@) {
-      skip("earth_image() can not load test data", 21);
-   } else {
-      pass("earth_image() loaded");                     # TEST 2
-   }
-
-   my $map = earth_image( 'day' );
-   $map->badflag(1);
+   my $checksum = unpack "%16C*", ${$map->get_dataref};
+   print STDERR "Got map checksum as $checksum\n";
+   skip "earth_image() map has bad checksum: $checksum", 20 unless $checksum == 56639;
 
    my $map_size = [500,500];
 
@@ -72,13 +76,13 @@ SKIP: {
    );
 
 
-##############
-# TESTS 3-7: #
-##############
-# Get EQC reference data:
+   ##############
+   # TESTS 3-7: #
+   ##############
+   # Get EQC reference data:
    my @ref_eqc_slices = get_ref_eqc_slices();
 
-# Check EQC map against reference:
+   # Check EQC map against reference:
    my $eqc_opts = "+proj=eqc +lon_0=0";
    my $eqc = $map->map( t_proj( proj_params => $eqc_opts ), $map_size );
    foreach my $i ( 0 .. $#slices )
@@ -89,13 +93,13 @@ SKIP: {
       is( "$slice", $ref_eqc_slices[$i], "check ref_eqc for slices[$i]" );
    }
 
-###############
-# TESTS 8-12: #
-###############
-# Get Ortho reference data:
+   ###############
+   # TESTS 8-12: #
+   ###############
+   # Get Ortho reference data:
    my @ref_ortho_slices = get_ref_ortho_slices();
 
-# Check Ortho map against reference:
+   # Check Ortho map against reference:
    my $ortho_opts = "+proj=ortho +ellps=WGS84 +lon_0=-90 +lat_0=40";
    my $ortho = $map->map( t_proj( proj_params => $ortho_opts ), $map_size );
    foreach my $i ( 0 .. $#slices )
@@ -107,11 +111,11 @@ SKIP: {
    }
 
    #
-# Test the auto-generated methods:
+   # Test the auto-generated methods:
    #
-################
-# TESTS 13-17: #
-################
+   ################
+   # TESTS 13-17: #
+   ################
    my $ortho2 = $map->map( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), $map_size );
    foreach my $i ( 0 .. $#slices )
    {
@@ -121,13 +125,13 @@ SKIP: {
       is( "$slice", $ref_ortho_slices[$i], "check ref_ortho2 for slices[$i]" );
    }
 
-################
-# TESTS 18-22: #
-################
-# Get Robinson reference data:
+   ################
+   # TESTS 18-22: #
+   ################
+   # Get Robinson reference data:
    my @ref_robin_slices = get_ref_robin_slices();
 
-# Check Robinson map against reference:
+   # Check Robinson map against reference:
    my $robin = $map->map( t_proj_robin( ellps => 'WGS84', over => 1 ), $map_size );
    foreach my $i ( 0 .. $#slices )
    {
@@ -138,7 +142,6 @@ SKIP: {
    }
 
 }
-
 exit(0);
 
 
