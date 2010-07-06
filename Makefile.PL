@@ -479,13 +479,17 @@ if($Config{archname}=~m/x86_64/) {
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, #so that the script docs are picked up
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
-                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
+                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'CCFLAGS' => $ccflags,
-	      'linkext'  => {LINKTYPE => ''},  # No linking required
+	      'linkext'  => { LINKTYPE => '' },  # No linking required
                                                # in this directory
-	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
+	      'dist'     => { COMPRESS => 'gzip',
+                              SUFFIX   => 'gz',
+                              PREOP    => ($^O !~ /mswin32/i) ?
+                                           q[git log --stat --since='29 Apr 2009' > $(DISTNAME)-$(VERSION)/Changes] :
+                                           '@ :' },
 	      'clean' => {
 		  'FILES' => $cleanup .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
