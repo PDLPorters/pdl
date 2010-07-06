@@ -1988,7 +1988,7 @@ zero dimension.
 
  perldl> $a=sequence(10)
  perldl> $i=which($a < -1)
- perldl> print "I found no matches!\n" if ($a->isempty);
+ perldl> print "I found no matches!\n" if ($i->isempty);
 
 Note that having zero elements is rather different from the concept
 of being a null piddle, see the L<PDL::FAQ|PDL::FAQ> and
