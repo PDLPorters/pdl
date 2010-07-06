@@ -7,7 +7,7 @@ Last saved: Tue 22 Jun 2010 10:44:38 PM
 +-------------------------------------------------------------------+
 
   Use either perldl or Perldl2 when starting the PDL shell
-  based on the value of WITH_DEVEL_REPL in perld.conf
+  based on the whether Devel::REPL has been installed.
  
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
@@ -25,7 +25,9 @@ Last saved: Tue 22 Jun 2010 10:44:38 PM
     the console does not support ANSI escape sequences.  Plan
     to fix by calling the DOS cls command to clear the screen
     or using Win32::Console and Win32::Console::ANSI to implement
-    the missing ANSI support.
+    the missing ANSI support.  Need to implement a routine
+    readline::F_ClearScreen() to override the default function
+    for win32 systems.
 
   Implement PDL shell startup boot messages, i.e.,
     perlDL shell v1.352
@@ -42,7 +44,9 @@ Last saved: Tue 22 Jun 2010 10:44:38 PM
  
   Fix the hang in the <> operator from the Demos Screen.pm routines.
   Need to track down why the readline operator is clashing with the
-  interactive IO from the Term::ReadLine stuff. 
+  interactive IO from the Term::ReadLine stuff.  Plan: modify the
+  run() call to take the Term::ReadLine term handle and use those to
+  do the IO if defined.  Otherwise, fall back to the existing code.
  
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in

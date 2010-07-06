@@ -1,3 +1,24 @@
+Release notes for PDL 2.4.6_013 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+* make dist now autogenerates the Changes file from the
+  output of git log --stat --since="29 Apr 2009" which
+  should avoid the missing Changes file error in future
+  distributions.  NOTE: This only works for non-win32
+  systems since it assumes the standard git command line
+  interface is present.
+
+
+
 Release notes for PDL 2.4.6_012 --------------------------
 
 General Notes:
