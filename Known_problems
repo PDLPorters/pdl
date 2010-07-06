@@ -27,11 +27,6 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- Label artifacts have been reported for the TriD demos with a 64bit
-  linux system.  It has not been determined if the problem is in
-  PDL or the host system OpenGL software/configuration.
-
-
 - The default TriD controls are based on having 2+ button mouse.
 
   For Macs with one button, you can use Ctrl+Click to generate
@@ -59,16 +54,6 @@ The following issues have been reported with this version of PDL:
   the configure-build-test process.
 
 
-- PDL configuration failures have come about because needed temp
-  files can not be created.  This appears to be a result of platform
-  misconfiguration of TEMPDIR and not PDL per se.
-
-
-- 16bit image file IO fails in t/pic_16bit.t apparently due to
-  an older version of NetPBM which does not support the raw 16bit
-  formats.  If this test fails, try upgrading your NetPBM library.
-
-
 - PDL on Cygwin has a 300MB process memory limit which can
   cause out of memory crashes with large data sets.
 
@@ -83,7 +68,6 @@ The following issues have been reported with this version of PDL:
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
-  2901814    Arrow keys don't work in ASPerl perldl in console
   2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
   2153898    default PDL build output too long

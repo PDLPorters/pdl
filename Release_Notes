@@ -10,6 +10,12 @@ General Notes:
 
 Highlights:
 
+* t/proj_transform.t has been fixed to skip the tests if
+  the input earth image is not correct.  t/proj_transform2.t
+  performs the same checks with a synthetic data set which
+  should be available on all platforms.  This should close
+  bug sf.net #3013751.
+
 * Incorrect threading in lu_backsub() and lu_decomp() has
   been fixed.  This closes bug sf.net #3021567.
 

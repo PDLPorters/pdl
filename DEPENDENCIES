@@ -46,7 +46,7 @@ PDL::IO::Storable Storable              version >=1.03 is now listed as a
 
 perldl (shell)  Term::ReadLine          perl provides a stub but if you
                                         compile and install a better one
-                                        (Term::ReadLine or Term::ReadLine::Gnu)
+                                        (Term::ReadLine::Perl or Term::ReadLine::Gnu)
                                         you get proper command line editing
 
 
@@ -110,13 +110,8 @@ PDL::Graphics::IIS
                                         PDL builds without viewers.
 
 PDL::Graphics::Karma
-                Needs Karma visualisation library and tools.
-                See http://www.atnf.csiro.au/karma . Binary distribs
-                for many popular platforms available
-
-                                        Module will only be built
-                                        if library is installed on
-                                        system.
+                The Karma interface is deprecated.  Please use another
+		visualization method.
 
 PDL::GSL modules
                 Needs the GSL (Gnu Scientific Library) to build.
