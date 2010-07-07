@@ -86,9 +86,10 @@ interface and build environment matures
 =head2 TBD
 
 =cut
-
+sub glpOpenWindow {};
 *glpOpenWindow = \&OpenGL::glpOpenWindow;
 
+sub glpcOpenWindow {};
 *glpcOpenWindow = \&OpenGL::glpcOpenWindow;
 
 
@@ -165,6 +166,20 @@ sub new {
       OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
       OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
       OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
+      if ($^O ne 'MSWin32') { # skip these MODE checks on win32, they don't work
+         if (not OpenGL::glutGet(OpenGL::GLUT_DISPLAY_MODE_POSSIBLE()))
+         {
+            warn "glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_ALPHA) not possible";
+            warn "...trying without GLUT_ALPHA";
+            # try without GLUT_ALPHA
+            OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );
+            if ( not OpenGL::glutGet( OpenGL::GLUT_DISPLAY_MODE_POSSIBLE() ) )
+            {
+               warn "glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH) not possible, exiting quietly";
+               exit 0;
+            }
+         }
+      }
 
       my($glutwin) = OpenGL::glutCreateWindow( "GLUT TriD" );
       OpenGL::glutSetWindowTitle("GLUT TriD #$glutwin");        # add GLUT window id to title
