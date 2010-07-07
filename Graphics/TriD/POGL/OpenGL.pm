@@ -86,10 +86,9 @@ interface and build environment matures
 =head2 TBD
 
 =cut
-sub glpOpenWindow {};
+
 *glpOpenWindow = \&OpenGL::glpOpenWindow;
 
-sub glpcOpenWindow {};
 *glpcOpenWindow = \&OpenGL::glpcOpenWindow;
 
 
