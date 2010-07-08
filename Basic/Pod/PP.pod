@@ -1178,17 +1178,19 @@ C<OtherPars> should take the form:
 
 and when you use it in the code you will write
 
-    (gsl_spline *) $COMP(spl)
+    INT2PTR(gsl_spline *, $COMP(spl))
  
-so putting this together as Andres Jordan has done (with the modification
-using C<IV> by Judd Taylor) in the C<gsl_interp.pd> in the distribution
-source you get:
+where the perl API macro C<INT2PTR> has been used to handle the pointer
+cast to avoid compiler warnings and problems for machines with mixed 32bit
+and 64bit perl configurations.  Putting this together as Andres Jordan has
+done (with the modification using C<IV> by Judd Taylor) in the
+C<gsl_interp.pd> in the distribution source you get:
  
      pp_def('init_meat',
             Pars => 'double x(n); double y(n);',
             OtherPars => 'IV spl',
             Code =>'
-         gsl_spline_init( (gsl_spline *) $COMP(spl), $P(x),$P(y),$SIZE(n));'
+	 gsl_spline_init,( INT2PTR(gsl_spline *, $COMP(spl)), $P(x),$P(y),$SIZE(n)));'
     );
 
 where I have removed a macro wrapper call, but that would obscure the
