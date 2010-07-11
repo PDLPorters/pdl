@@ -14,7 +14,7 @@ BEGIN{
   use PDL::Config;
   if($PDL::Config{WITH_PLPLOT}) {
     if($^O =~ /mswin/i) {
-      warn "No PLPLOT_LIB env var set - this script will exit silently after the first test if the font files are not found"
+      warn "No PLPLOT_LIB env var set - this script will die after the first test if the font files are not found"
         if !$ENV{PLPLOT_LIB};
     }
     plan tests => 35;
