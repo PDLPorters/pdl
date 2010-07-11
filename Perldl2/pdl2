@@ -20,7 +20,8 @@ BEGIN {
    my $minversion = "1.003011";
    eval " use Devel::REPL $minversion ";
    if ($@) {
-      warn "pdl2: exiting because Devel::REPL $minversion not found\n";
+      warn "pdl2: Devel::REPL version $minversion not found, running perldl instead...\n";
+      exec 'perldl';
       exit 0;
    }
 }
@@ -51,6 +52,11 @@ generation version of the original perldl interactive PDL shell.
 It attempts to be backward compatible in usage while providing
 improved more features, better support for Perl syntax, built
 on an easier to extend framework based on L<Devel::REPL>.
+
+If you have L<Devel::REPL> version 1.003011 or later, then pdl2
+will start with full functionality.  If L<Devel::REPL> is not
+installed or found then C<pdl2> will print a warning and run
+the legacy C<perldl> shell command instead.
 
 =head1 SEE ALSO
 

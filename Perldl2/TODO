@@ -6,9 +6,6 @@ Last saved: Tue 06 Jul 2010 10:48:49 PM
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
 
-  Use either perldl or Perldl2 when starting the PDL shell
-  based on the whether Devel::REPL has been installed.
- 
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
  
