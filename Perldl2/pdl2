@@ -16,7 +16,15 @@ BEGIN {
    $ENV{PERLREPL_HISTLEN} = 500;
 }
 
-#use Devel::REPL::Script 'run';
+BEGIN {
+   my $minversion = "1.003011";
+   eval " use Devel::REPL $minversion ";
+   if ($@) {
+      warn "pdl2: exiting because Devel::REPL $minversion not found\n";
+      exit 0;
+   }
+}
+
 use PDL::Perldl2::Script 'run';
 
 __END__
