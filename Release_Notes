@@ -1,3 +1,25 @@
+Release notes for PDL 2.4.6_014 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+ * pdl2 now runs perldl if Devel::REPL is not found so it
+   can be used instead of perldl to start the PDL shell.
+ 
+ * Fix the failure in t/opengl.t when the X display could
+   not be opened.  The tests are now skipped in that case.
+
+ * Some minor doc changes.
+
+
+
 Release notes for PDL 2.4.6_013 --------------------------
 
 General Notes:
@@ -10,22 +32,22 @@ General Notes:
 
 Highlights:
 
-* 'make dist' now autogenerates the Changes file from the
-  output of git log --stat --since="29 Apr 2009" which
-  should avoid the missing Changes file error in future
-  distributions.  NOTE: This only works for non-win32
-  systems since it assumes the standard git command line
-  interface is present.
+ * 'make dist' now autogenerates the Changes file from the
+   output of git log --stat --since="29 Apr 2009" which
+   should avoid the missing Changes file error in future
+   distributions.  NOTE: This only works for non-win32
+   systems since it assumes the standard git command line
+   interface is present.
 
-*  Put fallback code to glutInitDisplay
-     
-   There have been CPAN test failures where the Perl OpenGL
-   module built and installed ok but then the t/opengl.t
-   fails for PDL.  A look at the two tests shows the main
-   difference is that POGL checks if the GLUT_ALPHA channel will
-   work and if not, tries again without GLUT_ALPHA set.
+ *  Put fallback code to glutInitDisplay
+      
+    There have been CPAN test failures where the Perl OpenGL
+    module built and installed ok but then the t/opengl.t
+    fails for PDL.  A look at the two tests shows the main
+    difference is that POGL checks if the GLUT_ALPHA channel will
+    work and if not, tries again without GLUT_ALPHA set.
 
-* Some minor bug fixes
+ * Some minor bug fixes
 
 
 

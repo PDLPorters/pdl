@@ -59,7 +59,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_013 release:
+  PDL-2.4.6_014 release:
 
   3024219    test fail in PDL::IO::HDF
   3021519    PDL::AutoLoader doesn't expand win32 paths correctly
