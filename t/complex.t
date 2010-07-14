@@ -16,7 +16,7 @@ sub tapprox {
 }
 
 # more tests required; anybody?
-print "1..12\n";
+print "1..13\n";
 $testNo = 1;
 
 $ref = pdl([[-2,1],[-3,1]]);
@@ -57,4 +57,9 @@ $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
 ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
 
-
+# Check stringification of complex piddle
+# This is sf.net bug #1176614
+my $c =  9.1234 + 4.1234*i;
+my $c211 = $c->dummy(2,1);
+my $c211str = "$c211";
+ok($testNo++, $c211str=~/(9.123|4.123)/);
