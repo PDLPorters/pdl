@@ -595,7 +595,7 @@ PDLLIB path to use.  See L<PDL::AutoLoader> for details.
 =cut
   
 sub imag2d {
-   my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", 1, 0, 0);
+   my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", undef, 0, 0);
 
    # need to add error checking here
    $img = shift;
@@ -649,14 +649,15 @@ sub imag2d {
    my ($im_height, $im_width);
    $im_height = $img->dim($glds+1);
    $im_width  = $img->dim($glds+0);
-   if ($im_width < 200 or $im_height < 200) {
+   if ( !defined($zoom)  and ( $im_width < 200 or $im_height < 200 ) ) {
       # adjust zoom to make initial window bigger than 200px
       my $mindim = ($im_width < $im_height) ? $im_width : $im_height;
       my $zoomest = int( 200 / $mindim );
       $zoomest += 1 unless $zoomest == 200/$mindim;
-      print STDERR "imag2d: est zoom factor is $zoomest\n" if $debug;
+      print STDERR "imag2d: estimated zoom factor is $zoomest\n" if $debug;
       $zoom = $zoomest;
    }
+   $zoom = defined($zoom) ? $zoom : 1.0;
 
    print STDERR "imag2d: calling display_new_window( "
    . $img->dim($glds+1) . ", "
