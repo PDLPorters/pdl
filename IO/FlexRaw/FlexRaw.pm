@@ -98,7 +98,7 @@ Within PDL, readflex and writeflex can be used to write several pdls
 to a single file -- e.g.
 
 	use PDL;
-	use PDL::IO::FastRaw;
+	use PDL::IO::FlexRaw;
 
 	@pdls = ($pdl1, $pdl2, ...);
 	$hdr = writeflex("fname",@pdls);
