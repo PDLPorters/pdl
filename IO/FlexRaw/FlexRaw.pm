@@ -98,7 +98,7 @@ Within PDL, readflex and writeflex can be used to write several pdls
 to a single file -- e.g.
 
 	use PDL;
-	use PDL::IO::FastRaw;
+	use PDL::IO::FlexRaw;
 
 	@pdls = ($pdl1, $pdl2, ...);
 	$hdr = writeflex("fname",@pdls);
@@ -586,7 +586,7 @@ sub mapflex {
     }
     # print "Size $size f77mode $f77mode\n";
 
-    $d = byte PDL->zeroes(1);
+    $d = zeroes(byte, 1);
     # print "Mapping total size $size\n";
     # use Data::Dumper;
     # print "Options: ", Dumper(\%opts), "\n";
@@ -613,7 +613,7 @@ READ:
 		}
 		if ($#_ == 1) {
 			barf("Bad typename '$type' in mapflex")
-			if (!defined($flextypes{$type}));
+				unless defined $flextypes{$type};
 			$type = $flextypes{$type};
 		}
 		$pdl = PDL->zeroes ((new PDL::Type($type)),
