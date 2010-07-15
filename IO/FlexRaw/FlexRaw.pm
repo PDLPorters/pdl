@@ -586,7 +586,7 @@ sub mapflex {
     }
     # print "Size $size f77mode $f77mode\n";
 
-    $d = byte PDL->zeroes(1);
+    $d = zeroes(byte, 1);
     # print "Mapping total size $size\n";
     # use Data::Dumper;
     # print "Options: ", Dumper(\%opts), "\n";
@@ -613,7 +613,7 @@ READ:
 		}
 		if ($#_ == 1) {
 			barf("Bad typename '$type' in mapflex")
-			if (!defined($flextypes{$type}));
+				unless defined $flextypes{$type};
 			$type = $flextypes{$type};
 		}
 		$pdl = PDL->zeroes ((new PDL::Type($type)),
