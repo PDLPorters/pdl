@@ -50,6 +50,7 @@ SKIP:
 	
 	# **TEST 6** modifications should be saved when $c goes out of scope
 	# THIS TEST FAILS.
+	# This failure is recorded in sf.net bug 3031068.
 	# Presently, making $c go out of scope does not free the memory
 	# mapping associated with mapflex, so this modification is never
 	# saved to the file (or at least it's not saved immediately).
