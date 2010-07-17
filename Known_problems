@@ -61,6 +61,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.6_014 release:
 
+  3030998    PDL::Config does not match actual build configuration
   3024219    test fail in PDL::IO::HDF
   3021519    PDL::AutoLoader doesn't expand win32 paths correctly
   3018731    NiceSlice affects code where it should not

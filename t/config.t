@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+#
+# Verify that the Config.pm values were updated from the
+# actual build process.  Quick placeholder tests for now.
+# Eventually need to check that the configuration matches
+# the result of use_ok or some such.
+
+BEGIN {
+   use Test::More;
+}
+
+BEGIN {
+   use_ok( 'PDL::Config' );
+}
+
+# generate list of WITH_* keys from PDL::Config
+my @keys = grep { /^WITH_/ } keys %PDL::Config;
+
+foreach my $key ( @keys ) {
+   # there should be no undef values
+   ok( defined $PDL::Config{$key} , "check $key in Config.pm" );
+}
+
+done_testing();
