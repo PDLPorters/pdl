@@ -269,10 +269,15 @@ CFITSIO and several large projects (including NASA's Solar Dynamics
 Observatory) now support an unofficial extension to FITS that stores
 images as a collection of individually compressed tiles within a
 BINTABLE extension.  These images are automagically uncompressed by
-default, and delivered as if they were normal image files.  Currently,
-only Rice compression is supported.
+default, and delivered as if they were normal image files.  You can 
+override this behavior by supplying the "expand" key in the options hash.
+
+Currently, only Rice compression is supported, though there is a framework
+in place for adding other compression schemes.
 
 =for bad
+
+=head3 BAD VALUE HANDLING
 
 If a FITS file contains the C<BLANK> keyword (and has C<BITPIX E<gt> 0>), 
 the piddle will have its bad flag set, and those elements which equal the
