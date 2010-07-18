@@ -268,10 +268,9 @@ that contains the number of elements in each table row.
 CFITSIO and several large projects (including NASA's Solar Dynamics
 Observatory) now support an unofficial extension to FITS that stores
 images as a collection of individually compressed tiles within a
-BINTABLE extension.  Such images are detected and can be read
-"successfully" as binary tables that contain the compressed tiles.
-Unpacking/uncompression code is in the works but requires either 
-linking to CFITSIO or reverse-engineering it.
+BINTABLE extension.  These images are automagically uncompressed by
+default, and delivered as if they were normal image files.  Currently,
+only Rice compression is supported.
 
 =for bad
 

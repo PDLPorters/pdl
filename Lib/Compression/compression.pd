@@ -207,8 +207,8 @@ Unsquishes a PDL that has been squished by rice_expand.
 =for usage
 
      ($out, $len, $blocksize, $dim0) = $pdl->rice_compress;
-
      $copy = $out->rice_expand($dim0, $blocksize);
+     
 =cut
 EOD
 	PMCode => <<'EOD',
