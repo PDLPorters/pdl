@@ -54,6 +54,7 @@ $PERLDL::ESCAPE = '#'; 		# Default shell escape
 $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
+$PERLDL::NO_EOF = 1 if $^O =~ 'MSWin';  # ...but enable for windows 
 $PERLDL::PROMPT = "perldl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
@@ -1074,7 +1075,7 @@ supported.
 
 =item *
 
-$PERLDL::NO_EOF - default value 0
+$PERLDL::NO_EOF - default value 0 / 1 on MSWin32
 
 Protects against accidental use of "^D" from the terminal.  If this is
 set to a true value, then you can't accidentally exit perldl by typing
