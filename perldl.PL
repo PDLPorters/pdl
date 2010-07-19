@@ -444,7 +444,7 @@ EOD
 
 } # sub: demo
 
-$SIG{'INT'} = sub {die "Ctrl-C detected\n"}; # Ctrl-C handler
+$SIG{'INT'} = sub { die "Ctrl-C detected\n" }; # Ctrl-C handler
 
 
 my $preproc_warned = 0;
@@ -578,6 +578,7 @@ sub process_input {
 		 if($PERLDL::NO_EOF && -t STDIN ) {
 		     print STDERR "EOF ignored. ('q' or 'exit' to quit.  \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
 		 } else {
+		     print STDERR "EOF detected, exiting shell.\n";
 		     exit 0;
 		 }
 	     }
