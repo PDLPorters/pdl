@@ -71,7 +71,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      platform requirements, such as HDF that some folks
      might not have).
 
-     We're making progress here.  Every litte bit helps.
+     We're making progress here.  Every little bit helps.
 
    Alien modules for the external PDL dependencies
    * Alien::PLplot
@@ -130,7 +130,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      suggest that having
 
 
-   Add CPAN shell startup info to PDL wiki or web page
+   Add CPAN shell start-up info to PDL wiki or web page
 
      Required
 
@@ -197,7 +197,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      This is a placeholder in case someone gets motivated
      to help.  Not required at all for PDL-2.4.7 release.
 
-   Fix PDL config
+   Fix PDL Config
 
      Required
 
@@ -254,7 +254,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
 
      The remaining work here is cleanup of some minor
      issues, implement remaining perldl features for
-     back compatibility and a coupld of nice-to-haves
+     back compatibility and a couple of nice-to-haves
      in better Ctrl-C handling and avoiding fatal OOM
      errors when running interactively in win32.
 
@@ -273,7 +273,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
 
      Nice to have
 
-     The new pdl constructor handline of string arguments
+     The new pdl constructor handling of string arguments
      with MATLAB style array syntax is in the git PDL.
      Some additional checks need to be made for edge
      cases and to check that it does what is expected.
@@ -339,7 +339,7 @@ R+ List and obtain module owners and developers for existing PDL modules
      * Regarding portability
      * Review external dependency handling
    
-   Fix/document FORTAN code requirements
+   Fix/document FORTRAN code requirements
    * Add a USE_FORTRAN option to perldl.conf
    * Add check for ExtUtils:F77
    * Convert PDL::Slatec to use C with f2c of source
@@ -371,7 +371,7 @@ R+ Add/update platform install notes to PDL wiki
      * Windows
      * Other 
    
-R+ Add CPAN Testers startup info to PDL wiki
+R+ Add CPAN Testers start up info to PDL wiki
    * What you need to start
    * How to configure CPAN
    * Other options 
@@ -422,7 +422,7 @@ N+ Clean up build output from make process to reduce cruft
 |                            INSTALLATION                                |
 +------------------------------------------------------------------------+
    
-R+ Fix PDL config
+R+ Fix PDL Config
    * Update config with build information
    * Close sf.net ticket for this
    
@@ -496,7 +496,7 @@ N+ PDL::Constants
      * Alien::TIFF
    * Use Devel::CheckLib to directly detect headers and libraries
    * Remove dependencies on external commands (e.g. clear in Demos)
-   * Make missing functionality detectable at runtime (a la PGPLOT)
+   * Make missing functionality detectable at run time (a la PGPLOT)
    * Could use warning/error stubs if functionality not available
    
    Full GSL bindings for PDL
