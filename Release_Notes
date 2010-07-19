@@ -10,6 +10,11 @@ General Notes:
 
 Highlights:
 
+ * Problem with Ctrl-C killing perldl on win32 has been
+   resolved.  The 2nd Ctrl-C was resulting in an EOF from
+   the perl readline call which caused the shell to exit.
+   Now $PERLDL::NO_EOF=1 is the default for win32.
+
  * Set SKIP_KNOWN_PROBLEMS environment variable to skip
    tests correspond to reported sf.net bugs.  This allows
    the full test suite to pass which makes it easier to

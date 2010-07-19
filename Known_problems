@@ -69,7 +69,6 @@ The following issues have been reported with this version of PDL:
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
-  2901810    Ctrl-C kills perldl in win32 console
   2901170    many warnings w TriD and perl -w
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type

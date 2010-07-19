@@ -17,6 +17,11 @@ Last saved: Tue 06 Jul 2010 10:48:49 PM
   loaded to be sure that they can run before the load_plugin
   call to avoid nasty compile error traces.
   
+  Add SIGINT handler for pdl2 for win32.  Ideally this should
+  propagate back to the existing Interrupt plugin.  Need to
+  verify the fix and work around from the perldl work and then
+  push any changes upstream if appropriate.
+
   Investigate why Ctrl-L on win32 is issuing a 'clear' command.
   ANSWER: readline.pm from Term::ReadLine::Perl is using `clear`
     to determine the escape sequence to clear the screen.  This
