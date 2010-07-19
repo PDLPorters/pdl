@@ -60,6 +60,7 @@ ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
 SKIP: {
    if (exists $ENV{SKIP_KNOWN_PROBLEMS}) {
       print "# skipping test $testNo, sf.net bug #1176614 test\n";
+      ok($testNo++, 1);
       last SKIP;
    }
    # Check stringification of complex piddle
