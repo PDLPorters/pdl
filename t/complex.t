@@ -57,9 +57,15 @@ $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
 ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
 
-# Check stringification of complex piddle
-# This is sf.net bug #1176614
-my $c =  9.1234 + 4.1234*i;
-my $c211 = $c->dummy(2,1);
-my $c211str = "$c211";
-ok($testNo++, $c211str=~/(9.123|4.123)/);
+SKIP: {
+   if (exists $ENV{SKIP_KNOWN_PROBLEMS}) {
+      print "# skipping test $testNo, sf.net bug #1176614 test\n";
+      last SKIP;
+   }
+   # Check stringification of complex piddle
+   # This is sf.net bug #1176614
+   my $c =  9.1234 + 4.1234*i;
+   my $c211 = $c->dummy(2,1);
+   my $c211str = "$c211";
+   ok($testNo++, $c211str=~/(9.123|4.123)/);
+}

@@ -9,6 +9,10 @@ Last saved: Tue 06 Jul 2010 10:48:49 PM
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
  
+  Update FAQ entries for perldl to point to pdl2 as the
+  interactive shell for PDL.  It now calls perldl if the
+  new Devel::REPL based functionality is not available.
+
   Add startup checks for the various Devel::REPL plugins
   loaded to be sure that they can run before the load_plugin
   call to avoid nasty compile error traces.

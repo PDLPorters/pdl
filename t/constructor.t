@@ -7,16 +7,20 @@
 use PDL::LiteF;
 use Test::More tests => 1;
 
-# This is from sf.net bug #3011879
+SKIP: {
 
-$c[0][0]=pdl(0,4,2,1);
-$c[1][0]=pdl(0,0,1,1);
-$c[2][0]=pdl(0,0,0,1);
-$c[0][1]=pdl(0,0,3,1);
-$c[1][1]=pdl(0,0,2,1);
-$c[2][1]=pdl(5,1,1,1);
+   skip('Known_problems bug sf.net #3011879', 1) if exists $ENV{SKIP_KNOWN_PROBLEMS};
 
-$d = pdl(@c);
-diag("\$d is $d\n");
+   # This is from sf.net bug #3011879
+   $c[0][0]=pdl(0,4,2,1);
+   $c[1][0]=pdl(0,0,1,1);
+   $c[2][0]=pdl(0,0,0,1);
+   $c[0][1]=pdl(0,0,3,1);
+   $c[1][1]=pdl(0,0,2,1);
+   $c[2][1]=pdl(5,1,1,1);
 
-isa_ok($d, 'PDL');
+   $d = pdl(@c);
+   diag("\$d is $d\n");
+
+   isa_ok($d, 'PDL');
+}
