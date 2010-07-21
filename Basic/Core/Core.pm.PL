@@ -729,72 +729,58 @@ use Scalar::Util;       # for looks_like_number test
 
 # This is the code that handles string arguments.
 sub PDL::Core::new_pdl_from_string {
-	my ($new, $original_value, $this, $type) = @_;
-	my $value = $original_value;
-	
-	# Wrap the string in brackets [], so that the following works:
-	# $a = new PDL q[1 2 3];
-	# We'll have to check for dimensions of size one after we've eval'd
-	# the string and built a PDL from the resulting array.
-	$value = '[' . $value . ']';
+   my ($new, $original_value, $this, $type) = @_;
+   my $value = $original_value;
 
-	# some basic checks that can/should be run on everything.
-	# Make sure that each closing bracket followed by an opening bracket
-	# has a comma in between them:
-	$value =~ s/\]\s*\[/],[/g;
-	
-	# Semicolons indicate 'start a new row' and require special handling:
-	if ($value =~ /;/) {
-		$value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
-		$value =~ s/;/],[/g;
-	}
+   # Wrap the string in brackets [], so that the following works:
+   # $a = new PDL q[1 2 3];
+   # We'll have to check for dimensions of size one after we've eval'd
+   # the string and built a PDL from the resulting array.
+   $value = '[' . $value . ']';
 
-	# Remove ending decimal points and insert zeroes in front of starting
-	# decimal points. This makes the white-space-to-comma replacement
-	# in the next few lines much simpler.
-	$value =~ s/(\d)\.\s+/$1 /g;
-	$value =~ s/([^\d])\./${1}0./g;
-	
-	# make unambiguous addition/subtraction (white-space on both sides
-	# of operator) by removing white-space from both sides
-	$value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+   # some basic checks that can/should be run on everything.
+   # Make sure that each closing bracket followed by an opening bracket
+   # has a comma in between them:
+   $value =~ s/\]\s*\[/],[/g;
 
-	# Replace white-space separators with commas:
-	$value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
-	
-	# Let's see if the darn thing compiles as normal Perl code, in which
-	# case we just assume the result is a stringified bunch of nested
-	# arrays. 
-	my $val = eval $value;
-	if (ref $val eq 'ARRAY') {
-		my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-		# remove potentially spurious last dimension
-		$to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
-		return $to_return;
-	}
-	else {
-		my @message = (
-			  'PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent.'
-			, 'You originally sent this:'
-			, $original_value
-			, 'I worked on it and eventually obtained this:'
-			, $value
-			);
-		if ($@) {
-			push @message
-				, 'There was an error in the evaluation:'
-				, $@
-				;
-		}
-		else {
-			push @message
-			, 'That successfully evaluated to this:'
-			, $val
-			, 'but I was expecting an array reference to come out of it.'
-			;
-		}
-		barf join("\n    ", @message);
-	}
+   # Semicolons indicate 'start a new row' and require special handling:
+   if ($value =~ /;/) {
+      $value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
+      $value =~ s/;/],[/g;
+   }
+
+   # Remove ending decimal points and insert zeroes in front of starting
+   # decimal points. This makes the white-space-to-comma replacement
+   # in the next few lines much simpler.
+   $value =~ s/(\d)\.\s+/$1 /g;
+   $value =~ s/([^\d])\./${1}0./g;
+
+   # make unambiguous addition/subtraction (white-space on both sides
+   # of operator) by removing white-space from both sides
+   $value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+
+   # Replace white-space separators with commas:
+   $value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+
+   # Let's see if the darn thing compiles as normal Perl code, in which
+   # case we just assume the result is a stringified bunch of nested
+   # arrays. 
+   my $val = eval $value;
+   if (ref $val eq 'ARRAY') {
+      my $to_return = PDL::Core::pdl_avref($val,$this,$type);
+      # remove potentially spurious last dimension
+      $to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
+      return $to_return;
+   }
+   else {
+      my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
+      if ($@) {
+         push @message, "eval '$value ': $@";
+      } else {
+         push @message, "eval: unexpected output type ->$val<- is not ARRAY ref";
+      }
+      barf join("\n  ", @message);
+   }
 }
 
 sub PDL::new {
