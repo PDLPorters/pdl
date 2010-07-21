@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 21 Jun 2010 09:39:52 PM
+Last saved: Wed 21 Jul 2010 02:31:10 PM 
 
 
 +-----------------------------------------------------------+
@@ -11,9 +11,9 @@ improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
 You need to install the version 1.003011 of Devel::REPL
-in order to build/use the Perldl2 shell. A description
-of the files in this directory and how to install and
-use the Perldl2 shell follows.
+in order to build/use the new Perldl2 shell capabilities.
+A description of the files in this directory and how to
+install and use the Perldl2 shell follows.
 
 
 +-----------------------------------------------------------+
@@ -36,6 +36,7 @@ use the Perldl2 shell follows.
 
  pdl2
    A perl script for starting the Perldl2 shell.
+   (Calls perldl if Devel::REPL is not installed)
 
 
 
@@ -44,12 +45,12 @@ use the Perldl2 shell follows.
 |                      INSTALLATION                         |
 +-----------------------------------------------------------+
 
-  By default, the Perldl2 shell is always built and
-  installed.  To disable this, edit the WITH_DEVEL_REPL
-  option in the perldl.conf file.
+  By default, the Perldl2 shell is always built and the
+  pdl2 script installed.  To disable this, edit the
+  WITH_DEVEL_REPL option in the perldl.conf file.
 
   You will need to install Devel::REPL version 1.003011
-  or greater to run pdl2.
+  or greater to use the new pdl2 features.
  
 
 +-----------------------------------------------------------+
@@ -66,8 +67,11 @@ use the Perldl2 shell follows.
 
     pdl2
 
- To exit the Perldl2 shell from the PDL> prompt, type Ctrl-D
- or quit, q, x, or exit.
+  To exit the Perldl2 shell from the PDL> prompt, type
+  Ctrl-D or quit, (q, x, and exit shortcuts not yet
+  available, TBD).  If Devel::REPL is not installed, pdl2
+  will use perldl instead but any new functionality will
+  not be available.
 
 
 +-----------------------------------------------------------+
@@ -104,26 +108,26 @@ use the Perldl2 shell follows.
 
  ? and ?? aliases for help and apropos now work
  
- Arguments to help|usage|apropos|sig|badinfo|demo are not autoquoted
+ Arguments to help|usage|apropos|sig|badinfo|demo are now autoquoted
 
  Shell escapes starting with $PERLDL::ESCAPE as the first character
- of a line now work.
+ of a line now work ('#' by default).
 
  l <num> prints the last num lines of history, default 20.
 
  p is an alias for print.
 
- demo works but at the end of the demo, you may need to type Ctrl-D
+ demo mostly works but at the end of a demo, you may need to type Ctrl-D
  if it hangs after the final "press enter" prompt (Ctrl-Z then Enter
- for win32 perls).
+ for win32 perls).  You may need to kill the shell with Ctrl-C or the
+ kill or Task Manager so don't try this in the middle of an important
+ PDL computational session.
 
  The Perldl2 shell, pdl2, now loads/saves from the same
- history file as perldl. This is a new feature so, as
- always, feedback welcome.
+ history file as perldl.
 
- The Perldl2 shell, pdl2, now loads your .perldlrc file
+ The Perldl2 shell, pdl2, loads your .perldlrc file
  from the same location as the perldl shell does.  It also
  accepts .pdlrc as the name---looking forward to the new
  naming scheme for the interactive shell.  A local.pdlrc
- or local.perldlrc are run if present as well.  As always,
- feedback is welcome.
+ or local.perldlrc are run if present as well.
