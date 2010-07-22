@@ -279,7 +279,11 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      cases and to check that it does what is expected.
      Ideally we should be able to cut-n-paste the print
      output of a piddle into the constructor as a
-     string and get the piddle back (modulo float format)
+     string and get the piddle back (modulo float format).
+
+     NOTE: Need to handle complex numbers a la MATLAB
+     as well.  That would mean recognizing [ij] as
+     sqrt(-1).  PDL only uses i.
 
    Finish spheres3d implementation
 
@@ -463,10 +467,14 @@ N+ New pdl() constructor with matlab [] syntax for string arguments
    * Implemented in PDL git
    * Needs more testing and verification
    * Does it work for MATLAB and PDL users' purposes? 
+     * Handle complex numbers (with i,j for sqrt(-1))
+     * Handle cut and paste of printed piddles
+     * Better error checking for invalid values
    
 N+ Finish spheres3d implementation
-   * Add color
+   * Add color (RGB+A)
    * Add radius
+   * Add surface normals for smooth shading
   
   
 +------------------------------------------------------------------------+
