@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Mon 21 Dec 2009 04:18:20 PM
+Last saved: Wed 21 Jul 2010 04:27:51 PM 
 
 
 =================================================================
@@ -7,17 +7,17 @@ Last saved: Mon 21 Dec 2009 04:18:20 PM
 =================================================================
 
   These notes have not been fully reviewed since PDL-2.4.5
-  or for the recent release of version 1.7.1 of cygwin however
+  or for the recent release of version 1.7.5 of cygwin however
   they are believed to be generally correct.  Please post to
   the perldl mailing list for help or questions.
 
-  Cygwin seems to have a 300MB process memory limit
+  Cygwin seems to have a ~300MB process memory limit
   that we have not determined how to work around.
   If you work with large data sets, you may wish to
   use the native win32 PDL.
 
   Work is underway to improve the native win32 PDL port on
-  support for external dependencies so that it might be used
+  support for external dependencies so that it may be used
   instead of cygwin.
 
 
@@ -165,7 +165,7 @@ NOTE: if problems see rebaseall below.
                              PGPLOT
 =================================================================
 
-NOTE: cygwin 1.7.1 has new include locations so the following
+NOTE: cygwin 1.7.5 has new include locations so the following
       will not work without changing the various paths!!
 
 1. build the pgplot library and install.
