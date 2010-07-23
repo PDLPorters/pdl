@@ -77,7 +77,6 @@ The following issues have been reported with this version of PDL:
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
-  1176614    PDL::Complex string routine
   1059020    Problem with FFTW version 3.0.1
 
 

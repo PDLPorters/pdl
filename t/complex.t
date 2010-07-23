@@ -55,7 +55,7 @@ ok($testNo++, tapprox($cabs**2, Cabs2 $a));
 #   to a bug in PDL::Complex::initialize
 $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
-ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
+ok($testNo++, abs($bigArray->sum() +  8 - 4*i) < .0001 );
 
 SKIP: {
    if (exists $ENV{SKIP_KNOWN_PROBLEMS}) {

@@ -10,6 +10,10 @@ General Notes:
 
 Highlights:
 
+ * sf.net bug #117661, PDL::Complex string routine, has
+   been fixd.  In addition, the sum and sumover methods
+   now support PDL::Complex piddles.
+
  * Problem with Ctrl-C killing perldl on win32 has been
    resolved.  The 2nd Ctrl-C was resulting in an EOF from
    the perl readline call which caused the shell to exit.
