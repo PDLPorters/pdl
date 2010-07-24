@@ -943,7 +943,7 @@ sub get_current_window {
 }
 
 # Get the current graphbox
-sub get_current_graph {
+sub get_current_graphbox {
 	my $graph = $PDL::Graphics::TriD::curgraph;
 	if(!defined $graph) {
 		$graph = new PDL::Graphics::TriD::Graph();

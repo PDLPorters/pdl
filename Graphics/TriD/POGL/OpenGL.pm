@@ -11,33 +11,36 @@ BEGIN {
    eval 'OpenGL::ConfigureNotify()';
    if ($@) {
       # Set up some X11 and GLX constants for fake XEvent emulation
-      sub OpenGL::GLX_DOUBLEBUFFER    () { 5 };
-      sub OpenGL::GLX_RGBA            () { 4 };
-      sub OpenGL::GLX_RED_SIZE        () { 8 };
-      sub OpenGL::GLX_GREEN_SIZE      () { 9 };
-      sub OpenGL::GLX_BLUE_SIZE       () { 10 };
-      sub OpenGL::GLX_DEPTH_SIZE      () { 12 };
-      sub OpenGL::KeyPressMask        () { (1<<0 ) };
-      sub OpenGL::KeyReleaseMask      () { (1<<1 ) };
-      sub OpenGL::ButtonPressMask     () { (1<<2 ) };
-      sub OpenGL::ButtonReleaseMask   () { (1<<3 ) };
-      sub OpenGL::PointerMotionMask   () { (1<<6 ) };
-      sub OpenGL::Button1Mask         () { (1<<8 ) };
-      sub OpenGL::Button2Mask         () { (1<<9 ) };
-      sub OpenGL::Button3Mask         () { (1<<10) };
-      sub OpenGL::ButtonMotionMask    () { (1<<13) };
-      sub OpenGL::ExposureMask        () { (1<<15) };
-      sub OpenGL::StructureNotifyMask    { (1<<17) };
-      sub OpenGL::KeyPress            () { 2 };
-      sub OpenGL::KeyRelease          () { 3 };
-      sub OpenGL::ButtonPress         () { 4 };
-      sub OpenGL::ButtonRelease       () { 5 };
-      sub OpenGL::MotionNotify        () { 6 };
-      sub OpenGL::Expose              () { 12 };
-      sub OpenGL::GraphicsExpose      () { 13 };
-      sub OpenGL::NoExpose            () { 14 };
-      sub OpenGL::VisibilityNotify    () { 15 };
-      sub OpenGL::ConfigureNotify     () { 22 };
+      {
+         no warnings 'redefine';
+         eval "sub OpenGL::GLX_DOUBLEBUFFER    () { 5 }";
+         eval "sub OpenGL::GLX_RGBA            () { 4 }";
+         eval "sub OpenGL::GLX_RED_SIZE        () { 8 }";
+         eval "sub OpenGL::GLX_GREEN_SIZE      () { 9 }";
+         eval "sub OpenGL::GLX_BLUE_SIZE       () { 10 }";
+         eval "sub OpenGL::GLX_DEPTH_SIZE      () { 12 }";
+         eval "sub OpenGL::KeyPressMask        () { (1<<0 ) }";
+         eval "sub OpenGL::KeyReleaseMask      () { (1<<1 ) }";
+         eval "sub OpenGL::ButtonPressMask     () { (1<<2 ) }";
+         eval "sub OpenGL::ButtonReleaseMask   () { (1<<3 ) }";
+         eval "sub OpenGL::PointerMotionMask   () { (1<<6 ) }";
+         eval "sub OpenGL::Button1Mask         () { (1<<8 ) }";
+         eval "sub OpenGL::Button2Mask         () { (1<<9 ) }";
+         eval "sub OpenGL::Button3Mask         () { (1<<10) }";
+         eval "sub OpenGL::ButtonMotionMask    () { (1<<13) }";
+         eval "sub OpenGL::ExposureMask        () { (1<<15) }";
+         eval "sub OpenGL::StructureNotifyMask    { (1<<17) }";
+         eval "sub OpenGL::KeyPress            () { 2 }";
+         eval "sub OpenGL::KeyRelease          () { 3 }";
+         eval "sub OpenGL::ButtonPress         () { 4 }";
+         eval "sub OpenGL::ButtonRelease       () { 5 }";
+         eval "sub OpenGL::MotionNotify        () { 6 }";
+         eval "sub OpenGL::Expose              () { 12 }";
+         eval "sub OpenGL::GraphicsExpose      () { 13 }";
+         eval "sub OpenGL::NoExpose            () { 14 }";
+         eval "sub OpenGL::VisibilityNotify    () { 15 }";
+         eval "sub OpenGL::ConfigureNotify     () { 22 }";
+      }
    }
 }
 

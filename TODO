@@ -28,7 +28,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
   Each item has some task description based on the
   current status.
   
-   Need to test PDL build from scratch
+R  Need to test PDL build from scratch
    
      Required
 
@@ -41,7 +41,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      includes starting from the vanilla system and getting
      and installing PDL the way a new user would.
 
-   Verify dependency detection across all major PDL platforms
+R  Verify dependency detection across all major PDL platforms
 
      Required
 
@@ -54,7 +54,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      are issues, they should be in the Known_problems
      for platform specific information.
 
-   Add support for Known_problems to tests
+R  Add support for Known_problems to tests
 
      Required
 
@@ -63,7 +63,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      on the environment of the build.  Needed by release
      time to support user builds.
 
-   Clean up and triage for tickets prior to release.
+R  Clean up and triage for tickets prior to release.
 
      Required
 
@@ -73,7 +73,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
 
      We're making progress here.  Every little bit helps.
 
-   Alien modules for the external PDL dependencies
+R  Alien modules for the external PDL dependencies
    * Alien::PLplot
    * Alien::PROJ4
 
@@ -92,7 +92,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      Alien::SDL would be a good starting point here.
 
 
-   Define standard paths for external dependency libraries for PDL
+R  Define standard paths for external dependency libraries for PDL
 
      Required
 
@@ -101,7 +101,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      standard PDL-specific local install location
      for non-system library installs.
 
-   List and obtain module owners and developers for existing PDL modules
+R  List and obtain module owners and developers for existing PDL modules
 
      Required
 
@@ -110,19 +110,19 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      have a designated POC/maintainer for each
      PDL component.
 
-   Update PDL web site pages 
+R  Update PDL web site pages 
 
      Required
 
      This is well underway.
 
-   Review current documentation (underway)
+R  Review current documentation (underway)
 
      Required
 
      This is well underway.
 
-   Add/update platform install notes to PDL wiki
+R  Add/update platform install notes to PDL wiki
 
      Required
 
@@ -130,7 +130,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      suggest that having
 
 
-   Add CPAN shell start-up info to PDL wiki or web page
+R  Add CPAN shell start-up info to PDL wiki or web page
 
      Required
 
@@ -141,7 +141,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      to start from scratch with cpan to install
      PDL (verify on all PDL platforms).
 
-   Document how to set up a local sandbox for PDL build
+N  Document how to set up a local sandbox for PDL build
 
      Nice to have
 
@@ -151,7 +151,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      written down so everyone doesn't have to
      reinvent the same wheel.
 
-   How to install the CPAN Testers reporting packages
+N  How to install the CPAN Testers reporting packages
 
      Nice to have
 
@@ -164,7 +164,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      interface.  As such, we would get better PDL
      feedback if we have a quick-start for that.
 
-   Add docs/support for users of other non-PDL software
+N  Add docs/support for users of other non-PDL software
 
      Nice to have
 
@@ -172,7 +172,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      improvements are always possible but we're probably
      good for 2.4.7 as we stand.
 
-   Update PDL Book (in progress)
+N  Update PDL Book (in progress)
    
      Nice to have
 
@@ -181,7 +181,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      Work continues but the status re a 2.4.7
      release schedule is not known.
 
-   Improve PDL usability for first time users
+R  Improve PDL usability for first time users
 
      Required
 
@@ -190,14 +190,14 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      will be there but PDL should build with 2D and
      3D graphics support if possible.
 
-   Clean up build output from make process to reduce cruft
+N  Clean up build output from make process to reduce cruft
      
      Nice to have
 
      This is a placeholder in case someone gets motivated
      to help.  Not required at all for PDL-2.4.7 release.
 
-   Fix PDL Config
+R  Fix PDL Config
 
      Required
 
@@ -206,7 +206,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      results of the "have PDL check" options in
      the perldl.conf file.
 
-   Fix the test problems with preexisting PDL installs
+N  Fix the test problems with preexisting PDL installs
 
      Nice to have
 
@@ -216,14 +216,14 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      You would need to make sure not to pick up
      the blib version from the build process.
 
-   Check/set perldl.conf options before the PDL build?
+N  Check/set perldl.conf options before the PDL build?
 
      Nice to have
 
      I think giving users an interactive option to set
      the perldl.conf values would be nice.
 
-   Need PLplot and PDL::Graphics::PLplot to build all platforms
+R  Need PLplot and PDL::Graphics::PLplot to build all platforms
 
      Required
      
@@ -240,10 +240,10 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      be mainly wrapping up the Alien::PLplot and getting
      things to work all together.
 
-   Complete Perldl2 shell:
-   * Fix demo to work with Perldl2
-   * Fix Ctrl-C handling for win32 systems
-   * Add safe pdl allocation option to prevent OOM death
+R  Complete Perldl2 shell:
+R  * Fix demo to work with Perldl2
+R  * Fix Ctrl-C handling for win32 systems
+N  * Add safe pdl allocation option to prevent OOM death
 
      Required
 
@@ -258,9 +258,9 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      in better Ctrl-C handling and avoiding fatal OOM
      errors when running interactively in win32.
 
-   Add support for improved 2D image display using TriD
-   * Move imag2d() into a module form
-   * Enable REPL and GUI simultaneous operations and event loops
+R  Add support for improved 2D image display using TriD
+R  * Move imag2d() into a module form
+N  * Enable REPL and GUI simultaneous operations and event loops
 
      Required
 
@@ -269,7 +269,7 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      possible to get the simultaneous REPL and GUI
      operations enabled (at least for Term::ReadLine::Perl).
 
-   New pdl() constructor with matlab [] syntax for string arguments
+N  New pdl() constructor with matlab [] syntax for string arguments
 
      Nice to have
 
@@ -285,14 +285,14 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      as well.  That would mean recognizing [ij] as
      sqrt(-1).  PDL only uses i.
 
-   Finish spheres3d implementation
+N  Finish spheres3d implementation
 
      Nice to have
 
      CHM volunteers to finish color and radius support for
      this routine.
 
-   PDL::Constants
+N  PDL::Constants
 
      Nice to have
 
@@ -302,6 +302,13 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      constants and, perhaps, have a 'use constant'
      fall back version.
    
+N  Finish PDL::IO::ENVI module
+
+     Nice to have
+
+     Needs to be added as an IO module with tests.
+     A basic writeenvi routine needs to be completed.
+
 
 +------------------------------------------------------------------------+
 |                             TESTING                                    |
@@ -477,6 +484,10 @@ N+ Finish spheres3d implementation
    * Add surface normals for smooth shading
   
   
++------------------------------------------------------------------------+
+|                              DONE                                      |
++------------------------------------------------------------------------+
+   
 +------------------------------------------------------------------------+
 |                              LATER                                     |
 +------------------------------------------------------------------------+
