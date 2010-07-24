@@ -59,17 +59,15 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_014 release:
+  PDL-2.4.6_015 release:
 
   3031068    PDL::IO::FlexRaw memory mapping fails
-  3030998    PDL::Config does not match actual build configuration
   3024219    test fail in PDL::IO::HDF
   3021519    PDL::AutoLoader doesn't expand win32 paths correctly
   3018731    NiceSlice affects code where it should not
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
   2989905    PDL PROJ4 does not build on win32
-  2901170    many warnings w TriD and perl -w
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
   1582350    badflag called in PDL::Core and PDL::Complex

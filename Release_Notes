@@ -10,6 +10,10 @@ General Notes:
 
 Highlights:
 
+ * Other sf.net bugs fixed:
+     3030998    PDL::Config does not match actual build configuration
+     2901170    many warnings w TriD and perl -w
+
  * sf.net bug #117661, PDL::Complex string routine, has
    been fixd.  In addition, the sum and sumover methods
    now support PDL::Complex piddles.
