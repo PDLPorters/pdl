@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 13 Jun 2010 09:56:55 PM
+# Last saved: Fri 23 Jul 2010 09:23:19 PM
 #
 
 use Moose;
@@ -81,7 +81,7 @@ sub apply_profile {
       $PERLDL::PAGE   = 0;
       $PERLDL::PAGER  = ((exists $ENV{PAGER}) ? $ENV{PAGER} : 'more');
       $PERLDL::PAGING = 0;
-      $PERLDL::PROMPT = "PDL> ";                          # string or code reference
+      $PERLDL::PROMPT = "pdl> ";                          # string or code reference
       $PERLDL::TERM = $_REPL->term;
       ] );
 

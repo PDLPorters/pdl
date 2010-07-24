@@ -55,7 +55,7 @@ $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
 $PERLDL::NO_EOF = 1 if $^O =~ 'MSWin';  # ...but enable for windows 
-$PERLDL::PROMPT = "perldl> ";
+$PERLDL::PROMPT = "pdl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
 $PERLDL::PAGE   = 0;
