@@ -54,7 +54,7 @@ on how to join the mailing lists.
 
 
 PDL stands for 
-I< Perl Data  Language> . To say it with the words of Karl Glazebrook,
+I<Perl Data  Language> . To say it with the words of Karl Glazebrook,
 initiator of the PDL project:
 
 
@@ -245,10 +245,10 @@ functionality implemented by the package "PDL".
 Since PDL is just a Perl package you need first of all an
 installation of Perl on your machine. As of this writing PDL
 requires version 5.6.2 of Perl, version 5.8 or higher is
-I< strongly> recommended. More information on where and how 
+I<strongly> recommended. More information on where and how 
 to get a Perl installation can be found at the Perl home page 
 http://www.perl.org and at many CPAN sites (if you do
-not know what I< CPAN> is, check the answer to the next question).
+not know what I<CPAN> is, check the answer to the next question).
 
 To build PDL you also need a working C compiler, support for Xsubs,
 and the package Extutils::MakeMaker. If you don't have a compiler
@@ -268,7 +268,7 @@ you in porting PDL to a new system.
 
 
 PDL is available as source distribution in the 
-I< Comprehensive Perl Archive Network> , or
+I<Comprehensive Perl Archive Network> , or
 CPAN.  This archive contains not only the PDL distribution but
 also just about everything else that is Perl-related. CPAN is
 mirrored by dozens of sites all over the world. The main site
@@ -303,39 +303,39 @@ compile and install it and (maybe) read the manuals.
 
 The complete PDL documentation is available with the PDL distribution.
 If you have PDL installed on your machine and are on a unix like system
-then you can read the PDL manuals with the C< man> command. 
-C< man PDL> get you started, C< man PDL::FAQ> will let you read this 
+then you can read the PDL manuals with the C<man> command. 
+C<man PDL> get you started, C<man PDL::FAQ> will let you read this 
 document, etc. In any case (i.e. also on non-unixes) 
-C< perldoc PDL::Intro> should work, and if you don't want to type that
-much, C< pdldoc intro> should also work.
+C<perldoc PDL::Intro> should work, and if you don't want to type that
+much, C<pdldoc intro> should also work.
 
 The easiest way by far, however, to get familiar with PDL is to use
-the PDL on-line help facility from within the 
-C< perldl> shell. Just
+the PDL on-line help facility from within the PDL
+shell, C<pdl2>  Just
 type 
-C< perldl> at your system prompt. Once you are inside the
-C< perldl> shell type 
-C< help> .  Using the 
-C< help> and 
-C< apropos> commands inside the shell you should be able to find the way round the
+C<pdl2> at your system prompt. Once you are inside the
+C<pdl2> shell type 
+C<help> .  Using the 
+C<help> and 
+C<apropos> commands inside the shell you should be able to find the way round the
 documentation. Even better, you can immediately try your newly acquired
 knowledge about PDL by issuing PDL/perl commands directly at the command
-line. To illustrate this process, here is the record of a typical perldl
+line. To illustrate this process, here is the record of a typical pdl2
 session of a PDL beginner (lengthy output is only symbolically
 reproduced in braces ( <... ...> ) ):
 
 
-        unix> perldl
-        perldl> help
+        unix> pdl2
+        pdl> help
         <.... help output ....>
-        perldl> help PDL::QuickStart
+        pdl> help PDL::Book::QuickStart
         <.... man page ....>
-        perldl> $a = pdl (1,5,7.3,1.0)
-        perldl> $b = sequence float, 4, 4
-        perldl> help inner
+        pdl> $a = pdl (1,5,7.3,1.0)
+        pdl> $b = sequence float, 4, 4
+        pdl> help inner
         <.... help on the 'inner' function ....>
-        perldl> $c = inner $a, $b
-        perldl> p $c
+        pdl> $c = inner $a, $b
+        pdl> p $c
         [22.6 79.8 137 194.2]
 
 
@@ -410,7 +410,7 @@ http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ . More recent messages
 http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
 
 Cross-posting between these lists should be avoided unless there is a
-I< very> good reason for doing that.
+I<very> good reason for doing that.
 
 
 
@@ -499,7 +499,7 @@ Check the files INSTALL and perldl.conf for details.
 If you had to manually edit perldl.conf and are happy with the
 results you can keep the file handy for future
 reference. Place it in ~/.perldl.conf where it will be picked
-up automatically or use C< perl Makefile.PL  PDLCONF=your_file_name>
+up automatically or use C<perl Makefile.PL  PDLCONF=your_file_name>
 next time you build PDL.
 
 
@@ -523,11 +523,11 @@ on how to get these.
 =head2 Q: 4.4    How can I install PDL in a non-standard location?
 
 To install PDL in a non-standard location, use the PREFIX and LIB
-options in the C< perl Makefile.PL> configure step.  For example,
-C< perl Makefile.PL PREFIX=/myprefix LIB=/myprefix/lib/perl5> will
+options in the C<perl Makefile.PL> configure step.  For example,
+C<perl Makefile.PL PREFIX=/myprefix LIB=/myprefix/lib/perl5> will
 configure PDL to install the perl code into the /myprefix/lib/perl5
 and the system install files like binary executables in the
-directories C< /myprefix/bin, /myprefix/lib, /myprefix/include...>.
+directories C</myprefix/bin, /myprefix/lib, /myprefix/include...>.
 
 
 
@@ -537,11 +537,11 @@ directories C< /myprefix/bin, /myprefix/lib, /myprefix/include...>.
 
 To guarantee a completely clean installation of PDL, you will need
 to first delete the current installation files and folders.  These
-will be all directories named C< PDL> in the perl C< @INC> path,
-files named C< *Pdlpp*> in any C< Inline> directories, and the 
-programs C< pdl, pdldoc, perldl, and pptemplate>.  Then just build
+will be all directories named C<PDL> in the perl C<@INC> path,
+files named C<*Pdlpp*> in any C<Inline> directories, and the 
+programs C<pdl, pdldoc, pdl2, perldl, and pptemplate>.  Then just build
 and install as usual.  This is much easier to keep track of if you
-always install C< PDL> into a non-standard location.  See Q: 4.4 above.
+always install C<PDL> into a non-standard location.  See Q: 4.4 above.
 
 
 
@@ -625,7 +625,7 @@ accessed via the Tracker at PDL's Sourceforge project page
 http://sourceforge.net/projects/pdl .
 
 In addition, if you are not subscribing to the mailing list,
-check the archive of the C< pdl-porters> and C< perldl> mailing lists.
+check the archive of the C<pdl-porters> and C<perldl> mailing lists.
 Se Q: 3.2 for details.
 
 
@@ -686,8 +686,8 @@ multiprocessor machines or clusters)
 PDL threading of operations on piddles (as mentioned in the
 indexing docs) is the iteration of a basic operation over
 appropriate sub-slices of piddles, e.g. the inner product 
-C< inner $a, $b> of a (3) pdl C< $a> and a (3,5,4) pdl 
-C< $b> results in a (5,4) piddle where each
+C<inner $a, $b> of a (3) pdl C<$a> and a (3,5,4) pdl 
+C<$b> results in a (5,4) piddle where each
 value is the result of an inner product of the (3) pdl with a
 (3) sub-slice of the (3,5,4) piddle.  For details check
 L<PDL::Indexing|PDL::Indexing> 
@@ -708,9 +708,9 @@ two types of use of the term.
 
 Well, PDL scalar variables (which are instances of a particular class
 of perl objects, i.e. blessed thingies (see C<man perlobj> )) are
-in common PDL parlance often called I< piddles> (for example, check the
+in common PDL parlance often called I<piddles> (for example, check the
 mailing list archives). Err, clear? If not, simply use the term
-I< piddle> when you refer to a PDL variable (an instance of a PDL
+I<piddle> when you refer to a PDL variable (an instance of a PDL
 object as you might remember) regardless of what actual data the PDL
 variable contains.
 
@@ -719,14 +719,14 @@ variable contains.
 
 =head1 TECHNICAL QUESTIONS
 
-=head2 Q: 6.1    What is perldl?  
+=head2 Q: 6.1    What is perldl?   What is pdl2?
 
 
-Sometimes perldl is used as a synonym for PDL. Strictly
-speaking, however, the name perldl is reserved for the
+Sometimes perldl (pdl2) is used as a synonym for PDL. Strictly
+speaking, however, the name perldl (pdl2) is reserved for the
 little shell that comes with the PDL distribution and is
 supposed to be used for the interactive prototyping of PDL
-scripts. For details check L<perldl>.
+scripts. For details check L<perldl> or L<pdl2>.
 
 
 
@@ -734,10 +734,10 @@ scripts. For details check L<perldl>.
 =head2 Q: 6.2    How do I get on-line help for PDL?  
 
 
-Just type C< help> (shortcut = "?") at the C< perldl> 
+Just type C<help> (shortcut = "?") at the C<pdl2> shell 
 prompt and proceed from there. Another useful command 
-is the C< apropos> (shortcut = "??") command.
-Also try the C< demo> command in the perldl
+is the C<apropos> (shortcut = "??") command.
+Also try the C<demo> command in the perldl or pdl2
 shell if you are new to PDL.
 
 
@@ -777,18 +777,18 @@ stuff in memory) and therefore need special functions (or
 'methods' if you are using the OO version) to access
 individual elements or a range of elements. The
 functions/methods to check are 
-C< at> /
-C< set> (see
+C<at> /
+C<set> (see
 L<the section 'Sections' in PDL::QuickStart|PDL::QuickStart/"Sections"> ) or the powerful 
-C< slice> function and friends (see 
+C<slice> function and friends (see 
 L<PDL::Slices|PDL::Slices> and 
 L<PDL::Indexing|PDL::Indexing> and especially
 L<PDL::NiceSlice|PDL::NiceSlice> ).
 
 Finally, to confuse you completely, you can have perl arrays
-of piddles, e.g. C< $spec[3]> can refer to a pdl representing ,e.g,
-a spectrum, where C< $spec[3]> is the fourth element of the perl
-list (or array ;) C< @spec> .  This may be confusing but is 
+of piddles, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
+a spectrum, where C<$spec[3]> is the fourth element of the perl
+list (or array ;) C<@spec> .  This may be confusing but is 
 very useful !
 
 
@@ -799,10 +799,10 @@ very useful !
 
 Most people will try to form new piddles from old piddles
 using some variation over the theme: 
-C< $a =  pdl([$b, 0, 2])> , but this does not work. The way to
+C<$a =  pdl([$b, 0, 2])> , but this does not work. The way to
 concatenate piddles is to use the function 
-C< cat> (see also C< append> and C< glue>). Similarly you can split piddles
-using the command C< dog> .
+C<cat> (see also C<append> and C<glue>). Similarly you can split piddles
+using the command C<dog> .
 
 
 
@@ -811,7 +811,7 @@ using the command C< dog> .
 
 
 This question is related to the 
-C< inplace> function. From the
+C<inplace> function. From the
 documentation (see L<PDL::QuickStart>):
 
 
@@ -835,12 +835,12 @@ And also from the doc !!:
 
 
 Check the list of PDL functions at the end of PDL.pod which points out
-C< inplace> -safe functions.
+C<inplace> -safe functions.
 
 
 
 
-=head2 Q: 6.7    What is this strange usage of the string concatenation operator  C< .=>  in PDL scripts?  
+=head2 Q: 6.7    What is this strange usage of the string concatenation operator  C<.=>  in PDL scripts?  
 
 
 See next question on assignment in PDL.
@@ -852,11 +852,11 @@ See next question on assignment in PDL.
 
 
 This is caused by the fact that currently the assignment
-operator C< => allows only restricted
+operator C<=> allows only restricted
 overloading. For some purposes of PDL it turned out to be
 necessary to have more control over the overloading of an
 assignment operator. Therefore, PDL peruses the operator 
-C< .=> for certain types of assignments.
+C<.=> for certain types of assignments.
 
 
 
@@ -867,35 +867,35 @@ C< .=> for certain types of assignments.
 With versions of Perl prior to 5.6.7 this has to be done using
 a temporary variable. 
 
-            perldl> $a = sequence(5); p $a
-               [0 1 2 3 4]
-            perldl> $tmp = $a->slice('1:2'); p $tmp;
-               [1 2]
-               perldl> $tmp .= pdl([5, 6]);    # Note .= !!
-            perldl> p $a
-               [0 5 6 3 4]
+            pdl> $a = sequence(5); p $a
+            [0 1 2 3 4]
+            pdl> $tmp = $a->slice('1:2'); p $tmp;
+            [1 2]
+            pdl> $tmp .= pdl([5, 6]);    # Note .= !!
+            pdl> p $a
+            [0 5 6 3 4]
 
 
 This can also be made into one expression, which is often
 seen in PDL code:
 
-            perldl> ($tmp = $a->slice('1:2')) .= pdl([5,6])
-            perldl> p $a
-               [0 5 6 3 4]
+            pdl> ($tmp = $a->slice('1:2')) .= pdl([5,6])
+            pdl> p $a
+            [0 5 6 3 4]
 
 
 In Perl 5.6.7 and higher this assignment can be simplified
 using lvalue subroutines:
 
-            perldl> $a->slice('1:2') .= pdl([5,6])
-            perldl> p $a
-               [0 5 6 3 4]
+            pdl> $a->slice('1:2') .= pdl([5,6])
+            pdl> p $a
+            [0 5 6 3 4]
 
 see L<PDL::Lvalue> for more info.  PDL now supports a more
 matrix-like slice syntax via the PDL::NiceSlice module:
 
-            perldl> $a(1:2) .= pdl([5,6])
-            perldl> p $a
+            pdl> $a(1:2) .= pdl([5,6])
+            pdl> p $a
                [0 5 6 3 4]
 
 
@@ -908,14 +908,14 @@ Yes you can, but not in the way you probably tried first. It
 is not possible to use a piddle directly in a conditional
 expression since this is usually poorly defined. Instead PDL
 has two very useful functions: 
-C< any> and C< all> . Use these to test if any or
+C<any> and C<all> . Use these to test if any or
 all elements in a piddle fulfills some criterion:
 
-   perldl> $a=pdl ( 1, -2, 3);
-   perldl> print '$a has at least one element < 0' if (any $a < 0);
+   pdl> $a=pdl ( 1, -2, 3);
+   pdl> print '$a has at least one element < 0' if (any $a < 0);
    $a has at least one element < 0
 
-   perldl> print '$a is not positive definite' unless (all $a > 0);
+   pdl> print '$a is not positive definite' unless (all $a > 0);
    $a is not positive definite
 
 
@@ -954,16 +954,16 @@ which works correctly.
 =head2 Q: 6.12   What is a null pdl ?  
 
 
-C< null> is a special token for 'empty piddle'. A null pdl 
+C<null> is a special token for 'empty piddle'. A null pdl 
 can be used to flag to a PDL function that it should create 
-an appropriately sized and typed piddle. I< Null> piddles 
+an appropriately sized and typed piddle. I<Null> piddles 
 can be used in places where a PDL function expects an 
-I< output> or I< temporary> argument. I< Output> and 
-I< temporary> arguments are flagged in the
-I< signature> of a PDL function with the C< [o]> and 
-C< [t]> qualifiers (see next question if you don't know what 
-the I< signature> of a PDL function is).  For example, you 
-can invoke the C< sumover> function as follows:
+I<output> or I<temporary> argument. I<Output> and 
+I<temporary> arguments are flagged in the
+I<signature> of a PDL function with the C<[o]> and 
+C<[t]> qualifiers (see next question if you don't know what 
+the I<signature> of a PDL function is).  For example, you 
+can invoke the C<sumover> function as follows:
 
 
          sumover $a, $b=null;
@@ -978,8 +978,8 @@ which is equivalent to
 If this seems still a bit murky check 
 L<PDL::Indexing|PDL::Indexing> and 
 L<PDL::PP|PDL::PP> for details about calling
-conventions, the I< signature> and 
-I< threading> (see also below).
+conventions, the I<signature> and 
+I<threading> (see also below).
 
 
 
@@ -987,21 +987,21 @@ I< threading> (see also below).
 =head2 Q: 6.13   What is the signature of a PDL function ?  
 
 
-The I< signature> of a function is an important concept in PDL.
-Many (but not all) PDL function have a I< signature> which 
+The I<signature> of a function is an important concept in PDL.
+Many (but not all) PDL function have a I<signature> which 
 specifies the arguments and their (minimal) dimensionality. As 
-an example, look at the signature of the C< maximum> function:
+an example, look at the signature of the C<maximum> function:
 
 
          'a(n); [o] b;'
 
 
-this says that C< maximum> takes two arguments, the first of which is
+this says that C<maximum> takes two arguments, the first of which is
 (at least) one-dimensional while the second one is zero-dimensional and
-an I< output> argument (flagged by the C< [o]> qualifier). If the function
+an I<output> argument (flagged by the C<[o]> qualifier). If the function
 is called with piddles of higher dimension the function will be repeatedly
 called with slices of these piddles of appropriate dimension(this is called 
-I< threading> in PDL).
+I<threading> in PDL).
 
 For details and further explanations consult 
 L<PDL::Indexing|PDL::Indexing> and L<PDL::PP|PDL::PP> .
@@ -1013,16 +1013,16 @@ L<PDL::Indexing|PDL::Indexing> and L<PDL::PP|PDL::PP> .
 
 
 The short answer is: read L<PDL::Objects|PDL::Objects> (e.g. type 
-C< help PDL::Objects> in the I< perldl> shell).
+C<help PDL::Objects> in the I<perldl> or I<pdl2> shell).
 
 The longer answer (extracted from L<PDL::Objects|PDL::Objects> ): 
 Since a PDL object is an opaque reference to a C struct, it is not 
 possible to extend the PDL class by e.g. extra data via sub-classing 
 (as you could do with a hash based perl object).  To circumvent this 
 problem PDL has built-in support to extent the PDL class via the 
-I< has-a> relation for blessed hashes. You can get the I< HAS-A> behave 
-like I< IS-A> simply in that you assign the PDL
-object to the attribute named C< PDL> and
+I<has-a> relation for blessed hashes. You can get the I<HAS-A> behave 
+like I<IS-A> simply in that you assign the PDL
+object to the attribute named C<PDL> and
 redefine the method initialize(). For example:
 
 
@@ -1108,12 +1108,12 @@ piddles can share physically the same data).
 
 It is important to keep the "reference nature" of piddles in mind
 when passing piddles into subroutines. If you modify the input
-piddles you modify the original argument, I< not> a copy of it. This
+piddles you modify the original argument, I<not> a copy of it. This
 is different from some other array processing languages but makes
 for very efficient passing of piddles between subroutines. If you
 do not want to modify the original argument but rather a copy
 of it just create a copy explicitly (this example also demonstrates
-how to properly check for an I< explicit> request to process
+how to properly check for an I<explicit> request to process
 inplace, assuming your routine can work inplace):
 
 
@@ -1171,7 +1171,7 @@ FITS I/O is implemented by the wfits/rfits functions in PDL::IO::Misc.
 =item *
 
 ASCII file I/O in various formats can be achieved by using the 
-C< rcols> and C< rgrep> functions, also in PDL::IO::Misc.
+C<rcols> and C<rgrep> functions, also in PDL::IO::Misc.
 
 =item *
 
@@ -1216,8 +1216,8 @@ assignments.
 
 
 The for loop reads the actual images into a temporary 2D piddle whose
-values are then assigned (using the overloaded C< .=> operator) to the
-appropriate slices of the 3D piddle C< $cube> .
+values are then assigned (using the overloaded C<.=> operator) to the
+appropriate slices of the 3D piddle C<$cube> .
 
 
 
@@ -1240,12 +1240,12 @@ each but their simplicity makes it easy to debug if needed with the
 perl debugger, see L<perldbug>.
 
 The programs in the Demo directory can be run most easily from the
-C<perldl> interactive shell:
+C<perldl> or C<pdl2> interactive shell:
 
-    perl -Mblib perldl
+    perl -Mblib perldl  or  perl -Mblib Perldl2/pdl2
 
-followed by C< demo 3d> or C< demo 3d2> at the prompt.
-C< demo> by itself will give you a list of the available PDL demos.
+followed by C<demo 3d> or C<demo 3d2> at the prompt.
+C<demo> by itself will give you a list of the available PDL demos.
 
 You can run the test scripts in the Demos/TriD directory manually
 by changing to that directory and running
@@ -1253,7 +1253,7 @@ by changing to that directory and running
     perl -Mblib <testfile>
 
 
-where C< < testfile >> ; should match the pattern C< test[3-9].p>
+where C<< testfile >> ; should match the pattern C<test[3-9].p>
 and watch the results. Some of the tests should bring up a window
 where you can control (twiddle) the 3D objects with the mouse. Try using
 MB1 for turning the objects in 3D space, MB3 to zoom in and out, and
@@ -1268,18 +1268,18 @@ Questions like this should be a thing of the past with the PDL
 on-line help system in place. Just try (after installation):
 
 
-    un*x> perldl
-    perldl> apropos trid
+    un*x> pdl2
+    pdl> apropos trid
 
 
 Check the output for promising hits and then try to look up
 some of them, e.g.
 
 
-    perldl> help PDL::Graphics::TriD
+    pdl> help PDL::Graphics::TriD
 
 
-Note that case matters with C< help> but not with C< apropos> .
+Note that case matters with C<help> but not with C<apropos> .
 
 
 
@@ -1326,11 +1326,12 @@ install;> sequence. Now you can write png files from PDL!
 =head2 Q: 7.1    I am looking for a package to do XXX in PDL. Where shall I look for it?  
 
 
-The first stop is again C< perldl> or the PDL documentation. There is 
-already a lot of functionality in PDL which you might be aware of. 
-The easiest way to look for functionality is to use the C< apropos> command:
+The first stop is again C<perldl>  or C<pdl2> and the on-line help
+or the PDL documentation. There is already a lot of functionality in
+PDL which you might be aware of.  The easiest way to look for
+functionality is to use the C<apropos> command:
 
-    perldl> apropos 'integral'
+    pdl> apropos 'integral'
     ceil            Round to integral values in floating-point format
     floor           Round to integral values in floating-point format
     intover         Project via integral to N-1 dimensions
@@ -1360,10 +1361,10 @@ applications. What you want is the PDL pre-processor PP
 simple interface to your C routine. 
 
 The two functions you need to learn (at least first) are 
-C< pp_def> which defines the calling interface to the function, 
+C<pp_def> which defines the calling interface to the function, 
 specifying input and output parameters, and contains the code 
 that links to the external library. The other command is 
-C< pp_end> which finishes the PP definitions.  For details see
+C<pp_end> which finishes the PP definitions.  For details see
 the L<PDL::PP|PDL::PP> man-page, but we also have a worked 
 example here. 
 
@@ -1394,9 +1395,9 @@ function.
 
 We will postpone the writing of the Makefile till
 later. First we will construct the 
-C< .pd> file. This is the file
+C<.pd> file. This is the file
 containing PDL::PP code. We call this 
-C< eight.pd> .
+C<eight.pd> .
 
 
     # 
@@ -1433,16 +1434,16 @@ C< eight.pd> .
 
 A peculiarity with our example is that we have included
 the entire code with 
-C< pp_addhdr> instead of linking it in. This is only for the purposes of
+C<pp_addhdr> instead of linking it in. This is only for the purposes of
 example, in a typical application you will use 
-C< pp_addhdr> to include header
+C<pp_addhdr> to include header
 files. Note that the argument to 
-C< pp_addhdr> is enclosed in quotes. 
+C<pp_addhdr> is enclosed in quotes. 
 
 What is most important in this example is however the
-C< pp_def> command. The first
+C<pp_def> command. The first
 argument to this is the name of the new function 
-I< eight > , then comes a hash which
+I<eight > , then comes a hash which
 the real meat:
 
 =over 4
@@ -1451,11 +1452,11 @@ the real meat:
 
 This gives the input parameters
 (here 
-C< a> ) and the output
+C<a> ) and the output
 parameters (here 
-C< b> ).  The
+C<b> ).  The
 latter are indicated by the 
-C< [o]> specifier. Both arguments
+C<[o]> specifier. Both arguments
 can have a type specification as shown here. 
 
 Many variations and further flexibility in the
@@ -1484,7 +1485,7 @@ details.
 
 
 Finally note the call to  
-C< pp_done()> at the end of the
+C<pp_done()> at the end of the
 file. This is necessary in all PP files. 
 
 OK. So now we have a file with code that we dearly would
@@ -1508,11 +1509,11 @@ Makefile.
 The code above should go in a file called Makefile.PL,
 which should subsequently be called in  the standard
 Perl way: 
-C< perl Makefile.PL> .
+C<perl Makefile.PL> .
 This should give you a Makefile and running 
-C< make> should compile the module for
+C<make> should compile the module for
 you and 
-C< make install> will
+C<make install> will
 install it for you. 
 
 
@@ -1540,7 +1541,7 @@ The L<PDL::PP|PDL::PP> man page is the main
 source of information for writing PDL::PP extensions, but it
 is very useful to look for files in the distribution of PDL as
 many of the core functions are written in PDL::PP. Look for
-files that end in C< .pd> which is the generally accepted 
+files that end in C<.pd> which is the generally accepted 
 suffix for PDL::PP files. But we also have a simple example here.
 
 The following example will show you how to write a simple
@@ -1552,11 +1553,11 @@ interface.
 We will write a simple function that calculates the minimum,
 maximum and average of a piddle. On my machine the resulting
 function is 8 times faster than the built-in function 
-C< stats> (of course the latter also
+C<stats> (of course the latter also
 calculates the median). 
 
 Let's jump straight in. Here is the code (from a file called
-C< quickstats.pd> )
+C<quickstats.pd> )
 
 
     #
@@ -1585,19 +1586,19 @@ powerful language. Let us take it line by line.
 
 The first line declares that we are starting the
 definition of a PDL:PP function called
-C< quickstats> .
+C<quickstats> .
 
 The second line is very important as it specifies the
 input and output parameters of the function.  
-C< a(n)> tells us that there is one input
+C<a(n)> tells us that there is one input
 parameter that we will refer to as 
-C< a> which is expected to be a vector of
+C<a> which is expected to be a vector of
 length n (likewise matrices, both square and rectangular
 would be written as 
-C< a(n,n)> and
-C< a(n,m)> respectively). To
+C<a(n,n)> and
+C<a(n,m)> respectively). To
 indicate that something is an output parameter we put
-C< [o]> in front of their names, so
+C<[o]> in front of their names, so
 referring back to the code we see that avg, max and min
 are three output parameters, all of which are scalar
 (since they have no dimensional size indicated.
@@ -1605,13 +1606,13 @@ are three output parameters, all of which are scalar
 The third line starts the code definition which is
 essentially pure C but with a couple of convenient
 functions. 
-C< $GENERIC> is a
+C<$GENERIC> is a
 function that returns the C type of its argument - here
 the input parameter a. Thus the first two lines of the
 code section are variable declarations.
 
 The 
-C< loop(n)> construct is a
+C<loop(n)> construct is a
 convenience function that loops over the dimension
 called n in the parameter section. Inside this loop we
 calculate the cumulative sum of the input vector and
@@ -1620,7 +1621,7 @@ we assign the resulting values to the output
 parameters. 
 
 Finally we finish our function declaration with 
-C< pp_done()> .
+C<pp_done()> .
 
 To compile our new function we need to create a Makefile,
 which we will just list since its creation is discussed in
@@ -1643,7 +1644,7 @@ An example Makefile.PL
 
 Our new statistic function should now compile using the
 tried and tested perl way: 
-C< perl  Makefile.PL; make> .
+C<perl  Makefile.PL; make> .
 
 You should experiment with this function, changing the
 calculations and input and output parameters. In conjunction
