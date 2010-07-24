@@ -125,15 +125,18 @@ BEGIN
       $msg =~ s/\n//g;
       write_dummy_make( $msg );
       $donot = 1;
+      $PDL::Config{$config_flag}=0;
    }
    else
    {
       if (trylink('check for projUV', '#include <proj_api.h>', 'projUV puv = { 5.0, 10.0 };', "-L$gis_proj_lib_path -lproj -lm", "-I$include_path")) {
          print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
+         $PDL::Config{$config_flag}=1;
          $donot = 0;
       }
       else {
          warn " Include+Library configuration for PROJ4 does not support the projUV type\n";
+         $PDL::Config{$config_flag}=0;
          $donot = 1;
       }
 

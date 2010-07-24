@@ -139,8 +139,10 @@ skip:
 	    $msg =~ s/\n//g;
 	    write_dummy_make( $msg );
 	    $donot = 1;
+	    $PDL::Config{WITH_FFTW}=0;
 	} else {
-		print "\n   Building PDL::FFTW. Turn off WITH_FFTW if there are any problems\n\n";
+	    $PDL::Config{WITH_FFTW}=1;
+            print "\n   Building PDL::FFTW. Turn off WITH_FFTW if there are any problems\n\n";
 	}
 
 	# Sub to find libs

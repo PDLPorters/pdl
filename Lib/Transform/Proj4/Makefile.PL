@@ -125,10 +125,12 @@ skip:
         $msg =~ s/\n//g;
         write_dummy_make( $msg );
         $donot = 1;
+        $PDL::Config{$config_flag}=0;
     }
     else
     {
         print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
+        $PDL::Config{$config_flag}=1;
         $donot = 0;
     }
 

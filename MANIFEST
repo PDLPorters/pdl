@@ -803,3 +803,6 @@ t/vaffine.t
 t/xvals.t
 win32/INSTALL
 win32/win32f77.pl
+t/config.t
+t/constructor.t
+t/flexraw_fortran.t
