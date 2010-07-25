@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Wed 21 Jul 2010 02:34:51 PM 
+Last saved: Sun 25 Jul 2010 09:19:27 AM
 
 
 +-------------------------------------------------------------------+
@@ -146,6 +146,10 @@ Last saved: Wed 21 Jul 2010 02:34:51 PM
  
   Add MultiLine prompt with continuation character marking
   the open structures. (e.g. MultiLine::TextBalanced).
+
+  Fix problem where q[ and qq[ type constructions can
+  not span lines (even with the supposed multiline support
+  in Devel::REPL.
  
   Implement ^C/^D to end PPI multiline if it makes sense.
   E.g., make sure that Ctrl-C can exit an incomplete block.
