@@ -42,7 +42,7 @@ ok(all(approx($a,$b)), "A piddle and it's saved copy should be about equal");
 SKIP:
 {
    # skip these tests is SKIP_KNOWN_PROBLEMS is set
-   skip( 'Known_problems sf.net bug #3031068', 5) if exists $ENV{SKIP_KNOWN_PROBLEMS};
+   skip( 'Known_problems sf.net bug #3031068', 5) if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
    # should not be run on Windows
    skip( 'no mmap support on win32 (yet?)', 5) if ($^O =~ /win32/i);
 

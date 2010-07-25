@@ -20,7 +20,7 @@ SKIP: {
    # generate list of WITH_* keys from PDL::Config
    my @keys = grep { /^WITH_/ } keys %PDL::Config;
 
-   if (exists $ENV{SKIP_KNOWN_PROBLEMS}) {
+   if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} ) {
       skip('Known_problem sf.net bug #3030998', scalar(@keys))
    }
 
