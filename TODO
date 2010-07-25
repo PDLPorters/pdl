@@ -12,6 +12,7 @@ builds on *all* PDL OS platforms: win32, macosx, linux/unix
 and that supports 2D (PLplot) and 3D (TriD)  graphics on
 *all* platforms.
 
+
 +------------------------------------------------------------------------+
 |                     PDL-2.4.7 CRITICAL PATH                            |
 +------------------------------------------------------------------------+
@@ -24,9 +25,11 @@ and that supports 2D (PLplot) and 3D (TriD)  graphics on
      R -- required for release to occur
      N -- nice to have but not mandatory
      no mark means same as super bullet or FYI
+     D -- done
 
   Each item has some task description based on the
   current status.
+
   
 R  Need to test PDL build from scratch
    
@@ -41,6 +44,7 @@ R  Need to test PDL build from scratch
      includes starting from the vanilla system and getting
      and installing PDL the way a new user would.
 
+
 R  Verify dependency detection across all major PDL platforms
 
      Required
@@ -54,14 +58,6 @@ R  Verify dependency detection across all major PDL platforms
      are issues, they should be in the Known_problems
      for platform specific information.
 
-R  Add support for Known_problems to tests
-
-     Required
-
-     This is basically adding a SKIP section to tests
-     that correspond to open sf.net bugs and conditionalize
-     on the environment of the build.  Needed by release
-     time to support user builds.
 
 R  Clean up and triage for tickets prior to release.
 
@@ -72,6 +68,7 @@ R  Clean up and triage for tickets prior to release.
      might not have).
 
      We're making progress here.  Every little bit helps.
+
 
 R  Alien modules for the external PDL dependencies
    * Alien::PLplot
@@ -101,6 +98,7 @@ R  Define standard paths for external dependency libraries for PDL
      standard PDL-specific local install location
      for non-system library installs.
 
+
 R  List and obtain module owners and developers for existing PDL modules
 
      Required
@@ -110,17 +108,20 @@ R  List and obtain module owners and developers for existing PDL modules
      have a designated POC/maintainer for each
      PDL component.
 
+
 R  Update PDL web site pages 
 
      Required
 
      This is well underway.
 
+
 R  Review current documentation (underway)
 
      Required
 
      This is well underway.
+
 
 R  Add/update platform install notes to PDL wiki
 
@@ -141,6 +142,7 @@ R  Add CPAN shell start-up info to PDL wiki or web page
      to start from scratch with cpan to install
      PDL (verify on all PDL platforms).
 
+
 N  Document how to set up a local sandbox for PDL build
 
      Nice to have
@@ -150,6 +152,7 @@ N  Document how to set up a local sandbox for PDL build
      It would be nice if clear directions were
      written down so everyone doesn't have to
      reinvent the same wheel.
+
 
 N  How to install the CPAN Testers reporting packages
 
@@ -164,6 +167,7 @@ N  How to install the CPAN Testers reporting packages
      interface.  As such, we would get better PDL
      feedback if we have a quick-start for that.
 
+
 N  Add docs/support for users of other non-PDL software
 
      Nice to have
@@ -171,6 +175,7 @@ N  Add docs/support for users of other non-PDL software
      This has already been address.  Of course, further
      improvements are always possible but we're probably
      good for 2.4.7 as we stand.
+
 
 N  Update PDL Book (in progress)
    
@@ -181,6 +186,7 @@ N  Update PDL Book (in progress)
      Work continues but the status re a 2.4.7
      release schedule is not known.
 
+
 R  Improve PDL usability for first time users
 
      Required
@@ -190,6 +196,7 @@ R  Improve PDL usability for first time users
      will be there but PDL should build with 2D and
      3D graphics support if possible.
 
+
 N  Clean up build output from make process to reduce cruft
      
      Nice to have
@@ -197,14 +204,6 @@ N  Clean up build output from make process to reduce cruft
      This is a placeholder in case someone gets motivated
      to help.  Not required at all for PDL-2.4.7 release.
 
-R  Fix PDL Config
-
-     Required
-
-     This is a reported bug at sf.net where the
-     %PDL::Config hash is not updated from the
-     results of the "have PDL check" options in
-     the perldl.conf file.
 
 N  Fix the test problems with preexisting PDL installs
 
@@ -216,12 +215,14 @@ N  Fix the test problems with preexisting PDL installs
      You would need to make sure not to pick up
      the blib version from the build process.
 
+
 N  Check/set perldl.conf options before the PDL build?
 
      Nice to have
 
      I think giving users an interactive option to set
      the perldl.conf values would be nice.
+
 
 R  Need PLplot and PDL::Graphics::PLplot to build all platforms
 
@@ -239,6 +240,7 @@ R  Need PLplot and PDL::Graphics::PLplot to build all platforms
      porting has been done.  The remaining work seems to
      be mainly wrapping up the Alien::PLplot and getting
      things to work all together.
+
 
 R  Complete Perldl2 shell:
 R  * Fix demo to work with Perldl2
@@ -258,6 +260,7 @@ N  * Add safe pdl allocation option to prevent OOM death
      in better Ctrl-C handling and avoiding fatal OOM
      errors when running interactively in win32.
 
+
 R  Add support for improved 2D image display using TriD
 R  * Move imag2d() into a module form
 N  * Enable REPL and GUI simultaneous operations and event loops
@@ -268,6 +271,7 @@ N  * Enable REPL and GUI simultaneous operations and event loops
      PDL-2.4.7 release.  If time permits, it might be
      possible to get the simultaneous REPL and GUI
      operations enabled (at least for Term::ReadLine::Perl).
+
 
 N  New pdl() constructor with matlab [] syntax for string arguments
 
@@ -285,12 +289,14 @@ N  New pdl() constructor with matlab [] syntax for string arguments
      as well.  That would mean recognizing [ij] as
      sqrt(-1).  PDL only uses i.
 
+
 N  Finish spheres3d implementation
 
      Nice to have
 
      CHM volunteers to finish color and radius support for
      this routine.
+
 
 N  PDL::Constants
 
@@ -302,6 +308,7 @@ N  PDL::Constants
      constants and, perhaps, have a 'use constant'
      fall back version.
    
+
 N  Finish PDL::IO::ENVI module
 
      Nice to have
@@ -309,6 +316,40 @@ N  Finish PDL::IO::ENVI module
      Needs to be added as an IO module with tests.
      A basic writeenvi routine needs to be completed.
 
+
+
++------------------------------------------------------------------------+
+|                              DONE                                      |
++------------------------------------------------------------------------+
+   
+D  Add support for Known_problems to tests
+
+     Required
+
+     This is basically adding a SKIP section to tests
+     that correspond to open sf.net bugs and conditionalize
+     on the environment of the build.  Needed by release
+     time to support user builds.
+
+
+D  Fix PDL Config
+
+     Required
+
+     This is a reported bug at sf.net where the
+     %PDL::Config hash is not updated from the
+     results of the "have PDL check" options in
+     the perldl.conf file.
+
+
+
++------------------------------------------------------------------------+
+|                                                                        |
+|                  PDL-2.4.7 BULLET TASK LISTING                         |
+|                         ( BY CATEGORY )                                |
+|                                                                        |
++------------------------------------------------------------------------+
+   
 
 +------------------------------------------------------------------------+
 |                             TESTING                                    |
@@ -484,10 +525,6 @@ N+ Finish spheres3d implementation
    * Add surface normals for smooth shading
   
   
-+------------------------------------------------------------------------+
-|                              DONE                                      |
-+------------------------------------------------------------------------+
-   
 +------------------------------------------------------------------------+
 |                              LATER                                     |
 +------------------------------------------------------------------------+
