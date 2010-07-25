@@ -27,7 +27,7 @@ around 'read' => sub {
    return $lines unless defined $lines;
 
    # print STDERR "PDLCommands: got '$lines'\n";
-   if ( lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'exit' ) { return; };
+   if ( lc $lines eq 'q' || lc $lines eq 'x' || lc $lines eq 'exit' ) { return "quit"; };
 
    $lines =~ s/^\s*\?\?\s*/apropos /; # Make '??' = 'apropos'
    $lines =~ s/^\s*\?\s*/help /;      # Make lone '?' = 'help'

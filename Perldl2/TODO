@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 25 Jul 2010 09:19:27 AM
+Last saved: Sun 25 Jul 2010 05:31:27 PM
 
 
 +-------------------------------------------------------------------+
@@ -18,10 +18,6 @@ Last saved: Sun 25 Jul 2010 09:19:27 AM
   Add documentation for the startup files for unix-en and win32
   systems.  Right now, the only doc is in the code.
  
-  Update FAQ entries for perldl to point to pdl2 as the
-  interactive shell for PDL.  It now calls perldl if the
-  new Devel::REPL based functionality is not available.
-
   Add startup checks for the various Devel::REPL plugins
   loaded to be sure that they can run before the load_plugin
   call to avoid nasty compile error traces.
@@ -63,6 +59,11 @@ Last saved: Sun 25 Jul 2010 09:19:27 AM
   interactive IO from the Term::ReadLine stuff.  Plan: modify the
   run() call to take the Term::ReadLine term handle and use those to
   do the IO if defined.  Otherwise, fall back to the existing code.
+
+  Fix 'demo 3d' so that it shifts focus to the display window
+  at the start and returns focus to the CMD or shell window
+  at then end.  It would be nice not to have to click, click,
+  click to keep things going.
  
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
@@ -199,7 +200,7 @@ Last saved: Sun 25 Jul 2010 09:19:27 AM
   
   ?,?? aliases                   yes                    yes
   
-  q,x aliases                    yes                    no
+  q,x,exit aliases               yes                    yes
   
   User AUTO commands             yes                    TBD 
   
