@@ -70,7 +70,6 @@ The following issues have been reported with this version of PDL:
   2989905    PDL PROJ4 does not build on win32
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
-  1582350    badflag called in PDL::Core and PDL::Complex
   1507054    closing TriD window kills perldl shell
   1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm

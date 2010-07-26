@@ -191,7 +191,7 @@ PDL::Slatec     ExtUtils::F77           linear algebra routines
                                         supports your platform.
 
 Perldl2        Devel::REPL and          The new perldl shell in development
-               Term::ReadLine           requires Devel::REPL version 1.003010
+               Term::ReadLine           requires Devel::REPL version 1.003011
 	                                or higher be installed.  Term::ReadLine
 					is also required (either Perl or Gnu).
 					PDL will build without these deps.
