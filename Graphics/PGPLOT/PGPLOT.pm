@@ -8,13 +8,13 @@
 
 =head1 SYNOPSIS
 
- perldl> $a = pdl [1..100]
- perldl> $b = sqrt($a)
- perldl> line $b
- perldl> hold
+ pdl> $a = pdl [1..100]
+ pdl> $b = sqrt($a)
+ pdl> line $b
+ pdl> hold
  Graphics on HOLD
- perldl> $c = sin($a/10)*2 + 4
- perldl> line $c
+ pdl> $c = sin($a/10)*2 + 4
+ pdl> line $c
 
 =head1 DESCRIPTION
 

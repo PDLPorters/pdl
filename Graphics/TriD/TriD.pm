@@ -289,11 +289,11 @@ routines are supported:
 
 Example:
 
- perldl> line3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> line3d [sqrt(rvals(zeroes(50,50))/2)]
  - Lines on surface
- perldl> line3d [$x,$y,$z]
+ pdl> line3d [$x,$y,$z]
  - Lines over X, Y, Z
- perldl> line3d $coords
+ pdl> line3d $coords
  - Lines over the 3D coordinates in $coords.
 
 Note: line plots differ from mesh plots in that lines
@@ -317,7 +317,7 @@ contexts and options
 
 Example:
 
- perldl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
+ pdl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
 
  - Rendered image of surface
 
@@ -339,7 +339,7 @@ contexts and options
 
 Example:
 
- perldl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
 
  - mesh of surface
 
@@ -371,7 +371,7 @@ alias for mesh3d
 
 Example:
 
- perldl> points3d [sqrt(rvals(zeroes(50,50))/2)];
+ pdl> points3d [sqrt(rvals(zeroes(50,50))/2)];
  - points on surface
 
 See module documentation for more information on
@@ -419,8 +419,8 @@ ways one might want to do this.
 
 e.g.
 
- perldl> $a=sqrt(rvals(zeroes(50,50))/2)
- perldl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
+ pdl> $a=sqrt(rvals(zeroes(50,50))/2)
+ pdl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
 
 =head2 imagrgb3d
 
@@ -442,7 +442,7 @@ The default is [[0,0,0],[1,0,0],[1,1,0],[0,1,0]].
 
 e.g.
 
- perldl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
+ pdl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
  - plot on XZ plane instead of XY.
 
 =head2 grabpic3d

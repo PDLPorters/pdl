@@ -14,16 +14,16 @@ Solaris unless tuned) so ought to be very fast.
 
 You can say
 
-  perldl> kim $a, {App=>'xray'}
+  pdl> kim $a, {App=>'xray'}
 
 to send to a specific viewer and/or
 
-  perldl> kim $a, {BB=>[0,50,-100,100]}
+  pdl> kim $a, {BB=>[0,50,-100,100]}
 
 to specify the bounding box in world coordinates (here for a 2D image)
 or just
 
-  perldl> kim $a
+  pdl> kim $a
 
 to reuse the last viewer.
 
@@ -295,8 +295,8 @@ $app([OPTIONS])
 
 =for example
 
- perldl> kview (-num_col => 42)
- perldl> xray
+ pdl> kview (-num_col => 42)
+ pdl> xray
 
 =cut
 

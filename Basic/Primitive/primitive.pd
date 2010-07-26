@@ -162,40 +162,40 @@ EXAMPLES
 
 Here are some simple ways to define vectors and matrices:
 
- perldl> $r = pdl(1,2);                # A row vector 
- perldl> $c = pdl([[3],[4]]);          # A column vector 
- perldl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
- perldl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
+ pdl> $r = pdl(1,2);                # A row vector 
+ pdl> $c = pdl([[3],[4]]);          # A column vector 
+ pdl> $c = pdl(3,4)->(*1);          # A column vector, using NiceSlice
+ pdl> $m = pdl([[1,2],[3,4]]);      # A 2x2 matrix
 
 Now that we have a few objects prepared, here is how to
 matrix-multiply them:
 
- perldl> print $r x $m                 # row x matrix = row
+ pdl> print $r x $m                 # row x matrix = row
  [
   [ 7 10]
  ]
 
- perldl> print $m x $r                 # matrix x row = ERROR
+ pdl> print $m x $r                 # matrix x row = ERROR
  PDL: Dim mismatch in matmult of [2x2] x [2x1]: 2 != 1
 
- perldl> print $m x $c                 # matrix x column = column
+ pdl> print $m x $c                 # matrix x column = column
  [
   [ 5]
   [11]
  ]
 
- perldl> print $m x 2                  # Trivial case: scalar mult.
+ pdl> print $m x 2                  # Trivial case: scalar mult.
  [
   [2 4]
   [6 8]
  ]
 
- perldl> print $r x $c                 # row x column = scalar
+ pdl> print $r x $c                 # row x column = scalar
  [
   [11]
  ]
 
- perldl> print $c x $r                 # column x row = matrix
+ pdl> print $c x $r                 # column x row = matrix
  [
   [3 6]
   [4 8]
@@ -1534,7 +1534,7 @@ For a higher-level interface, see L<hist|PDL::Basic/hist>.
 
 =for example
 
- perldl> p histogram(pdl(1,1,2),1,0,3)
+ pdl> p histogram(pdl(1,1,2),1,0,3)
  [0 2 1]
 
 =cut
@@ -1572,7 +1572,7 @@ you want.
 
 =for example
 
- perldl> p whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)
+ pdl> p whistogram(pdl(1,1,2), pdl(0.1,0.1,0.5), 1, 0, 4)
  [0 0.2 0.5 0]
 
 =cut
@@ -1669,7 +1669,7 @@ upper limit is put in the last bin.
 
 =for example
 
- perldl> p histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
+ pdl> p histogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),1,0,3,1,0,3)
  [
   [0 0 0]
   [0 2 2]
@@ -1712,7 +1712,7 @@ upper limit is put in the last bin.
 
 =for example
 
- perldl> p whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
+ pdl> p whistogram2d(pdl(1,1,1,2,2),pdl(2,1,1,1,1),pdl(0.1,0.2,0.3,0.4,0.5),1,0,3,1,0,3)
  [
   [  0   0   0]
   [  0 0.5 0.9]
@@ -2589,12 +2589,12 @@ but is useful on its own occasionally.
 
 =for example
 
- perldl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
- perldl> $maxind=maximum_ind($c); p $maxind;
+ pdl> $a=pdl [[[1,2],[-1,1]], [[0,-3],[3,2]]]; $c=$a->clump(-1)
+ pdl> $maxind=maximum_ind($c); p $maxind;
  6
- perldl> print one2nd($a, maximum_ind($c))
+ pdl> print one2nd($a, maximum_ind($c))
  0 1 1
- perldl> p $a->at(0,1,1)
+ pdl> p $a->at(0,1,1)
  3
 
 =cut
@@ -2657,9 +2657,9 @@ L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 
 =for example
 
- perldl> $x = sequence(10); p $x
+ pdl> $x = sequence(10); p $x
  [0 1 2 3 4 5 6 7 8 9]
- perldl> $indx = which($x>6); p $indx
+ pdl> $indx = which($x>6); p $indx
  [7 8 9]
 
 =cut
@@ -2687,9 +2687,9 @@ C<$c_i>.
 
 =for example
 
- perldl> $x = sequence(10); p $x
+ pdl> $x = sequence(10); p $x
  [0 1 2 3 4 5 6 7 8 9]
- perldl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
+ pdl> ($small, $big) = which_both ($x >= 5); p "$small\n $big"
  [5 6 7 8 9]
  [0 1 2 3 4]
 
@@ -2904,10 +2904,10 @@ with nonzero values in a mask PDL.
 
 =for example
 
- perldl> $a=sequence(10,10,3,4)
- perldl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
+ pdl> $a=sequence(10,10,3,4)
+ pdl> ($x, $y, $z, $w)=whichND($a == 203); p $x, $y, $z, $w
  [3] [0] [2] [0]
- perldl> print $a->at(list(cat($x,$y,$z,$w)))
+ pdl> print $a->at(list(cat($x,$y,$z,$w)))
  203
 
 =cut
@@ -3015,41 +3015,41 @@ we will find all squares that are also cubes below 10000.
 
 Create a sequence vector:
 
-  perldl> $x = sequence(10000)
+  pdl> $x = sequence(10000)
 
 Find all odd and even elements:
 
-  perldl> ($even, $odd) = which_both( ($x % 2) == 0)
+  pdl> ($even, $odd) = which_both( ($x % 2) == 0)
 
 Find all squares
 
-  perldl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
+  pdl> $squares= which(ceil(sqrt($x)) == floor(sqrt($x)))
 
 Find all cubes (being careful with roundoff error!)
 
-  perldl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
+  pdl> $cubes= which(ceil($x**(1.0/3.0)) == floor($x**(1.0/3.0)+1e-6))
 
 Then find all squares that are cubes:
 
-  perldl> $both = setops($squares, 'AND', $cubes)
+  pdl> $both = setops($squares, 'AND', $cubes)
 
 And print these (assumes that C<PDL::NiceSlice> is loaded!)
 
-  perldl> p $x($both)
+  pdl> p $x($both)
    [0 1 64 729 4096]
 
 Then find all numbers that are either cubes or squares, but not both:
 
-  perldl> $cube_xor_square = setops($squares, 'XOR', $cubes)
+  pdl> $cube_xor_square = setops($squares, 'XOR', $cubes)
 
-  perldl> p $cube_xor_square->nelem()
+  pdl> p $cube_xor_square->nelem()
    112
 
 So there are a total of 112 of these!
 
 Finally find all odd squares:
 
-  perldl> $odd_squares = setops($squares, 'AND', $odd)
+  pdl> $odd_squares = setops($squares, 'AND', $odd)
 
 
 Another common occurance is to want to get all objects that are
@@ -3063,15 +3063,15 @@ If this is impossible the best approach is to make a temporary:
 This creates an index vector the size of the universe of the sets and
 set all elements in C<$b> to 0
 
-  perldl> $tmp = ones($n_universe); $tmp($b)=0;
+  pdl> $tmp = ones($n_universe); $tmp($b)=0;
 
 This then finds the complement of C<$b>
 
-  perldl> $C_b = which($tmp == 1);
+  pdl> $C_b = which($tmp == 1);
 
 and this does the final selection:
 
-  perldl> $set = setops($a, 'AND', $C_b)
+  pdl> $set = setops($a, 'AND', $C_b)
 
 =cut
 
@@ -3165,17 +3165,12 @@ that for more information
 
 Find all numbers less that 100 that are of the form 2*y and 3*x
 
- perldl> $x=sequence(100)
- 
- perldl> $factor2 = which( ($x % 2) == 0)
- 
- perldl> $factor3 = which( ($x % 3) == 0)
- 
- perldl> $ii=intersect($factor2, $factor3)
- 
- perldl> p $x($ii)
- 
-   [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
+ pdl> $x=sequence(100)
+ pdl> $factor2 = which( ($x % 2) == 0)
+ pdl> $factor3 = which( ($x % 3) == 0)
+ pdl> $ii=intersect($factor2, $factor3)
+ pdl> p $x($ii)
+ [0 6 12 18 24 30 36 42 48 54 60 66 72 78 84 90 96]
 
 =cut
 

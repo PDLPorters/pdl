@@ -42,16 +42,16 @@ data to be easily played with and visualised.
 =head2 Help
 
 PDL contains extensive documentation, available both within the
-I<perldl> shell and from the command line, using the C<pdldoc> program.
+I<perldl> or I<pdl2> shells and from the command line, using the C<pdldoc> program.
 For further information try either of:
 
- perldl> help help
+ pdl> help help
  $ pdldoc
 
 HTML copies of the documentation should also be available. 
 To find their location, try the following:
 
- perldl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+ pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
 
 =head2 Perl Datatypes and how PDL extends them
 
@@ -117,7 +117,8 @@ And the empty C<qw()>  quotes are regonised as meaning 'nothing'.
 You can also specify a list of functions to import in the normal
 Perl way.
 
-There is also an interactive shell, C<perldl>, see I<perldl>.
+There is also an interactive shell, C<perldl> or C<pdl2>, see I<perldl>
+or L<pdl2|PDL::Perldl2> for details.
 
 =head2 To create a new PDL variable
 
@@ -413,8 +414,8 @@ One can also write PDL extensions as normal Perl modules.
 
 =head2 perldl shell
 
-The perl script C<perldl> provides a simple command line - if the latest
-Readlines/ReadKey modules have beeen installed C<perldl> detects this
+The perl script C<pdl2> (or C<perldl>) provides a simple command line - if the latest
+Readlines/ReadKey modules have beeen installed C<pdl2> detects this
 and enables command line recall and editing. See the manpage for details.
 
 e.g.:
@@ -431,12 +432,12 @@ e.g.:
  Type 'help' for online help
  Type 'demo' for online demos
  Loaded PDL v2.005                                                               
- perldl> $x = rfits 'm51.fits'
+ pdl> $x = rfits 'm51.fits'
  BITPIX =  16  size = 65536 pixels
  Reading  131072 bytes
  BSCALE = 1.0000000000E0 &&  BZERO = 0.0000000000E0
 
- perldl> imag $x
+ pdl> imag $x
  Loaded PGPLOT
  Displaying 256 x 256 image from 24 to 500 ...
 
@@ -451,7 +452,7 @@ Miscellaneous shell features:
 
 The shell aliases C<p> to be a convenient short form of C<print>, e.g.
 
-   perldl> p ones 5,3
+   pdl> p ones 5,3
    [
     [1 1 1 1 1]
     [1 1 1 1 1]

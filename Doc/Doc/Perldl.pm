@@ -6,8 +6,8 @@ PDL::Doc::Perldl - commands for accessing PDL doc database from 'perldl' shell
 
 This module provides a simple set of functions to
 access the PDL documentation of database, for use
-from the I<perldl> shell and the I<pdldoc> command-line
-program.
+from the I<perldl> or I<pdl2> shells as well as the
+I<pdldoc> command-line program.
 
 Autoload files are also matched, via a search of the PDLLIB autoloader
 tree.  That behavior can be switched off with the variable 
@@ -136,7 +136,7 @@ Regex search PDL documentation database
 
 =for example
 
- perldl> apropos 'pic'
+ pdl> apropos 'pic'
  rpic            Read images in many formats with automatic format detection.
  rpiccan         Test which image formats can be read/written
  wmpeg           Write an image sequence ((x,y,n) piddle) as an MPEG animation.
@@ -346,7 +346,7 @@ Prints usage information for a PDL function
 
 =for example
 
-   perldl> usage 'inner'
+   pdl> usage 'inner'
 
    inner           inner prodcuct over one dimension
                    (Module PDL::Primitive)
@@ -399,7 +399,7 @@ doesn't break -- it causes threading.  See L<PDL::PP|PDL::PP> for details.
 
 =for example
 
-  perldl> sig 'outer'
+  pdl> sig 'outer'
     Signature: outer(a(n); b(m); [o]c(n,m); )
 
 
@@ -555,9 +555,9 @@ and the remaining commands listed, along with the names of their modules.
 
 =for example
 
- perldl> help 'PDL::Slices'   # show the docs in the PDL::Slices module
- perldl> help 'PDL::Intro'    # show the PDL::Intro manual
- perldl> help 'slice'         # show docs on the 'slice' function
+ pdl> help 'PDL::Slices'   # show the docs in the PDL::Slices module
+ pdl> help 'PDL::Intro'    # show the PDL::Intro manual
+ pdl> help 'slice'         # show docs on the 'slice' function
 
 =cut
 

@@ -70,7 +70,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
-  perldl> print xvals zeroes(5,10)
+  pdl> print xvals zeroes(5,10)
   [
    [0 1 2 3 4]
    [0 1 2 3 4]
@@ -99,7 +99,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
- perldl> print yvals zeroes(5,10)
+ pdl> print yvals zeroes(5,10)
  [
   [0 0 0 0 0]
   [1 1 1 1 1]
@@ -128,7 +128,7 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
- perldl> print zvals zeroes(3,4,2)
+ pdl> print zvals zeroes(3,4,2)
  [
   [
    [0 0 0]
@@ -325,11 +325,10 @@ dimension index and whose 1st through Nth dimensions are the
 dimensions given in the input.  If you feed in a piddle instead of a
 perl list, then the dimension list is used, as in L<xvals|xvals> etc.
 
-As with L<xvals|xvals> etc., if you supply a piddle input, you get 
-out a piddle of the same type.  This could yield surprising results
-if you feed in (e.g.) a byte array with a dimension of size greater
-than 256.  To force a type, you should always fall back on the 
-($type,@dimlist) form; see the example below.
+Unlike L<xvals|xvals> etc., if you supply a piddle input, you get 
+out a piddle of the default piddle type: double.   This causes less
+surprises than the previous default of keeping the data type of
+the input piddle since that rarely made sense in most usages.
 
 =for usage
 
@@ -339,25 +338,29 @@ $indices = ndcoords($type,@dimlist);
 
 =for example
 
-  perldl> print ndcoords(2,3)
+  pdl> print ndcoords(2,3)
+
   [
    [
     [0 0]
-    [1 0] 
-    [2 0]
+    [1 0]
    ]
    [
     [0 1]
     [1 1]
-    [2 1]
+   ]
+   [
+    [0 2]
+    [1 2]
    ]
   ]
-  perldl> $a = zeroes(byte,2,3);        # $a is a 2x3 byte piddle
-  perldl> $b = ndcoords($a);            # $b inherits $a's type
-  perldl> $c = ndcoords(long,$a->dims); # $c is a long piddle, same dims as $b
-  perldl> help $b;
+
+  pdl> $a = zeroes(byte,2,3);        # $a is a 2x3 byte piddle
+  pdl> $b = ndcoords($a);            # $b inherits $a's type
+  pdl> $c = ndcoords(long,$a->dims); # $c is a long piddle, same dims as $b
+  pdl> help $b;
   This variable is   Byte D [2,2,3]              P            0.01Kb
-  perldl> help $c;
+  pdl> help $c;
   This variable is   Long D [2,2,3]              P            0.05Kb
 
 
@@ -408,10 +411,10 @@ L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
 
 =for example
 
- perldl> p $y
+ pdl> p $y
  [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
- perldl> $h = hist $y,0,20,1; # hist with step 1, min 0 and 20 bins
- perldl> p $h
+ pdl> $h = hist $y,0,20,1; # hist with step 1, min 0 and 20 bins
+ pdl> p $h
  [0 0 0 0 0 0 2 3 1 3 5 4 4 4 0 0 0 0 0 0]
 
 =cut
@@ -451,11 +454,11 @@ L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
 
 =for example
 
- perldl> p $y
+ pdl> p $y
  [13 10 13 10 9 13 9 12 11 10 10 13 7 6 8 10 11 7 12 9 11 11 12 6 12 7]
- perldl> $wt = grandom($y->nelem)
- perldl> $h = whist $y, $wt, 0, 20, 1 # hist with step 1, min 0 and 20 bins
- perldl> p $h                        
+ pdl> $wt = grandom($y->nelem)
+ pdl> $h = whist $y, $wt, 0, 20, 1 # hist with step 1, min 0 and 20 bins
+ pdl> p $h                        
  [0 0 0 0 0 0 -0.49552342  1.7987439 0.39450696  4.0073722 -2.6255299 -2.5084501  2.6458365  4.1671676 0 0 0 0 0 0]
 
 
@@ -511,9 +514,9 @@ etc. see L<zeroes|PDL::Core/zeroes>.
 
 =for example
 
- perldl> p sequence(10)
+ pdl> p sequence(10)
  [0 1 2 3 4 5 6 7 8 9]
- perldl> p sequence(3,4)
+ pdl> p sequence(3,4)
  [
   [ 0  1  2]
   [ 3  4  5]
@@ -554,7 +557,7 @@ Fills a piddle with radial distance values from some centre.
 
 =for example
 
- perldl> print rvals long,7,7,{Centre=>[2,2]}
+ pdl> print rvals long,7,7,{Centre=>[2,2]}
  [
   [2 2 2 2 2 3 4]
   [2 1 1 1 2 3 4]
@@ -717,13 +720,13 @@ transpose rows and columns.
 
 =for example
 
- perldl> $a = sequence(3,2)
- perldl> p $a
+ pdl> $a = sequence(3,2)
+ pdl> p $a
  [
   [0 1 2]
   [3 4 5]
  ]                                                                               
- perldl> p transpose( $a )
+ pdl> p transpose( $a )
  [
   [0 3]
   [1 4]

@@ -267,7 +267,7 @@ storing a result in an existing piddle).
 
 =for example
 
- perldl> sumover sequence(10,10), $ans=null;p $ans
+ pdl> sumover sequence(10,10), $ans=null;p $ans
  [45 145 245 345 445 545 645 745 845 945]
 
 =cut
@@ -349,7 +349,7 @@ Return piddle dimensions as a perl list
 
 =for example
 
- perldl> p @tmp = dims zeroes 10,3,22
+ pdl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
 =head2 ndims
@@ -371,7 +371,7 @@ Returns the number of dimensions in a piddle
 
 =for example
 
- perldl> p zeroes(10,3,22)->getndims
+ pdl> p zeroes(10,3,22)->getndims
  3
 
 =head2 dim
@@ -393,7 +393,7 @@ Returns the size of the given dimension.
 
 =for example
 
- perldl> p zeroes(10,3,22)->getdim(1)
+ pdl> p zeroes(10,3,22)->getdim(1)
  3
 
 Negative indices count from the end of the dims array.
@@ -478,7 +478,7 @@ NOTE: NOT a method! This is because get_datatype returns
 
 =for example
 
- perldl> p howbig(ushort([1..10])->get_datatype)
+ pdl> p howbig(ushort([1..10])->get_datatype)
  2
 
 
@@ -1063,14 +1063,14 @@ positive indices.
 
 =for example
 
- perldl> p sequence(3)->dummy(0,3)
+ pdl> p sequence(3)->dummy(0,3)
  [
   [0 0 0]
   [1 1 1]
   [2 2 2]
  ]
 
- perldl> p sequence(3)->dummy(3,2)
+ pdl> p sequence(3)->dummy(3,2)
  [
   [
    [0 1 2]
@@ -1080,8 +1080,8 @@ positive indices.
   ]
  ]
 
- perldl> p sequence(3)->dummy(-3,2)
- For safety, <pos> < -(dims+1) is not allowed in dummy, allowed min=-2.
+ pdl> p sequence(3)->dummy(-3,2)
+ Runtime error: PDL: For safety, <pos> < -(dims+1) forbidden in dummy.  min=-2, pos=-3
 
 =cut
 
@@ -1312,9 +1312,9 @@ Returns the multidimensional diagonal over the specified dimensions.
 
 =for example
 
- perldl> $a = zeroes(3,3,3);
- perldl> ($b = $a->diagonal(0,1))++;
- perldl> p $a
+ pdl> $a = zeroes(3,3,3);
+ pdl> ($b = $a->diagonal(0,1))++;
+ pdl> p $a
  [
   [
    [1 0 0]
@@ -1801,11 +1801,10 @@ operate array element by array element like C<log10>).
 
 =for example
 
- perldl> $x = xvals zeroes 10;
- perldl> log10(inplace $x)
- perldl> p $x
- [      -Inf 0    0.30103 0.47712125 0.60205999    0.69897
- 0.77815125 0.84509804 0.90308999 0.95424251]
+ pdl> $x = xvals zeroes 10;
+ pdl> log10(inplace $x)
+ pdl> p $x
+ [-inf 0    0.30103 0.47712125 0.60205999    0.69897 0.77815125 0.84509804 0.90308999 0.95424251] 
 
 =cut
 
@@ -1972,9 +1971,10 @@ useful in particular when using the indexing function which. In the
 case of no match to a specified criterion, the returned piddle has
 zero dimension.
 
- perldl> $a=sequence(10)
- perldl> $i=which($a < -1)
- perldl> print "I found no matches!\n" if ($i->isempty);
+ pdl> $a=sequence(10)
+ pdl> $i=which($a < -1)
+ pdl> print "I found no matches!\n" if ($i->isempty);
+ I found no matches!
 
 Note that having zero elements is rather different from the concept
 of being a null piddle, see the L<PDL::FAQ|PDL::FAQ> and
@@ -2012,14 +2012,14 @@ Various forms of usage,
 
 =for example
 
- perldl> $z = zeroes 4,3
- perldl> p $z
+ pdl> $z = zeroes 4,3
+ pdl> p $z
  [
   [0 0 0 0]
   [0 0 0 0]
   [0 0 0 0]
  ]
- perldl> $z = zeroes ushort, 3,2 # Create ushort array
+ pdl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
 See also L<new_from_specification|/PDL::new_from_specification>
@@ -2127,15 +2127,15 @@ Important: Physical piddles are changed inplace!
 
 =for example
 
- perldl> $x = sequence(10)
- perldl> reshape $x,3,4; p $x
+ pdl> $x = sequence(10)
+ pdl> reshape $x,3,4; p $x
  [
   [0 1 2]
   [3 4 5]
   [6 7 8]
   [9 0 0]
  ]
- perldl> reshape $x,5; p $x
+ pdl> reshape $x,5; p $x
  [0 1 2 3 4]
 
 =cut
@@ -2285,9 +2285,9 @@ see the function L<pdl()|/pdl> for more details.
 
 =for example
 
- perldl> p $x=sqrt float [1..10]
+ pdl> p $x=sqrt float [1..10]
  [1 1.41421 1.73205 2 2.23607 2.44949 2.64575 2.82843 3 3.16228]
- perldl> p byte $x
+ pdl> p byte $x
  [1 1 1 2 2 2 2 2 3 3]
 
 =cut
@@ -2485,9 +2485,9 @@ by use of L<slice|PDL::Slices/slice> and assigment operator C<.=>.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> set $x, 2,1,99
- perldl> p $x
+ pdl> $x = sequence 3,4
+ pdl> set $x, 2,1,99
+ pdl> p $x
  [
   [ 0  1  2]
   [ 3  4 99]
@@ -2520,8 +2520,8 @@ in a general context, quite useful too inside PDL internals.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> p $x->at(1,2)
+ pdl> $x = sequence 3,4
+ pdl> p $x->at(1,2)
  7
 
 !NO!SUBS!
@@ -2617,7 +2617,7 @@ returns a single piddle of dimension N+1
 
 =for example
 
- perldl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
+ pdl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
  [
   [
    [1 1 1]
@@ -2764,9 +2764,9 @@ e.g.:
 
 =for example
 
- perldl> $p = ones 3,3,3
- perldl> ($a,$b,$c) = dog $p
- perldl> $b++; p $p
+ pdl> $p = ones 3,3,3
+ pdl> ($a,$b,$c) = dog $p
+ pdl> $b++; p $p
  [
   [
    [1 1 1]

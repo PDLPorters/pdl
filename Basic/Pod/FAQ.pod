@@ -1326,7 +1326,7 @@ install;> sequence. Now you can write png files from PDL!
 =head2 Q: 7.1    I am looking for a package to do XXX in PDL. Where shall I look for it?  
 
 
-The first stop is again C<perldl>  or C<pdl2> and the on-line help
+The first stop is again C<perldl> or C<pdl2> and the on-line help
 or the PDL documentation. There is already a lot of functionality in
 PDL which you might be aware of.  The easiest way to look for
 functionality is to use the C<apropos> command:
