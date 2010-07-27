@@ -49,7 +49,7 @@ unnormalised units.
   $yfit = fitpoly1d $data,2; # Least-squares line fit
   ($yfit, $coeffs) = fitpoly1d $x, $y, 4; # Fit a cubic
   
-  $fitimage = fitpoly1d $image,2  # Fit a quadratic to each row of an image
+  $fitimage = fitpoly1d $image,3  # Fit a quadratic to each row of an image
   
   $myfit = fitpoly1d $line, 2, {Weights => $w}; # Weighted fit
 

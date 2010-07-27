@@ -1,6 +1,6 @@
 # Build the whole PDL distribtuion
 
-use 5.006_002;      # explicitly require 5.6.2 or above
+use 5.008_000;      # explicitly require 5.8.x or above
 
 use ExtUtils::MakeMaker;
 

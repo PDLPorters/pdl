@@ -7,8 +7,18 @@ General Notes:
    correctly or have complete documentation (as in these
    Release notes).
 
+ * Perl 5.6.x is no longer supported.
+ 
+   Perl 5.8.x or higher is now required.  NOTE: PDL
+   should still build for 5.6.2 and higher if you edit
+   the line in the top level Makefile.PL from 5.008_000
+   back to 5.006_002.
 
 Highlights:
+
+ * PDL::Fit::Polynomial has been modified to remove the
+   Slatec library dependency requesting in sf.net feature
+   request ticket #2891276.
 
  * Other sf.net bugs fixed:
      3030998    PDL::Config does not match actual build configuration
