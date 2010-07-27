@@ -72,7 +72,8 @@ use PDL::Exporter;
 @ISA    = qw( PDL::Exporter );
 
 use PDL::Options ':Func';
-use PDL::Slatec; # For matinv()
+# use PDL::Slatec;  # For matinv()
+use PDL::MatrixOps; # for inv(), using this instead of call to Slatec routine
 
  
 sub PDL::fitpoly1d {
@@ -106,7 +107,8 @@ sub PDL::fitpoly1d {
 
    # Fitted coefficients vector
 
-   $a = matinv($C) x $Y;
+   # $a = matinv($C) x $Y;
+   $a = inv($C) x $Y;  # use inv() instead of matinv() to avoid Slatec dependency
    
    # Fitted data
 
