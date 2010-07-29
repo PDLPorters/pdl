@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Sun 25 Jul 2010 05:31:27 PM
+Last saved: Thu 29 Jul 2010 08:58:37 AM 
 
 
 +-------------------------------------------------------------------+
@@ -150,7 +150,9 @@ Last saved: Sun 25 Jul 2010 05:31:27 PM
 
   Fix problem where q[ and qq[ type constructions can
   not span lines (even with the supposed multiline support
-  in Devel::REPL.
+  in Devel::REPL.  Maybe just add check for unterminated
+  string to the multiline PPI.  Does the Text::Balanced
+  implementation work better?
  
   Implement ^C/^D to end PPI multiline if it makes sense.
   E.g., make sure that Ctrl-C can exit an incomplete block.

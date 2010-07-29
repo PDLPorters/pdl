@@ -16,6 +16,15 @@ General Notes:
 
 Highlights:
 
+ * wmpeg in PDL::IO::Pic now uses ffmpeg to generate the
+   movie file instead of the outdated mpeg_encode.  This
+   is pretty much a straight translation of the original.
+   
+   NOTE: Example/IO has a program you can run to create
+   a quick check movie.  As there is no formal test for
+   this function, feedback on whether this works on your
+   platform is most welcome.  Thanks!
+
  * PDL::Fit::Polynomial has been modified to remove the
    Slatec library dependency requesting in sf.net feature
    request ticket #2891276.
