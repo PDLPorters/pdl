@@ -25,6 +25,8 @@ Highlights:
    this function, feedback on whether this works on your
    platform is most welcome.  Thanks!
 
+   NOTE: For cygwin, ffmpeg requires version 1.7.x to build.
+
  * PDL::Fit::Polynomial has been modified to remove the
    Slatec library dependency requesting in sf.net feature
    request ticket #2891276.
