@@ -103,7 +103,7 @@ int VSfdefine(int vata_id, const char *fieldname, int data_type, int order)+1;
 int VSsetfields(int vata_id, const char *fieldname_list)+1;
 int VSwrite(int vdata_id, const PDLvoid *databuf, int n_records, int interlace_mode);
 int VSread(int vdata_id, PDLvoid *databuf, int n_records, int interlace_mode);
-int VSlone(int file_id, int *ref_array, int max_ref);
+#int VSlone(int file_id, int *ref_array, int max_ref);
 
 int VSfnattrs(int vdata_id, int field_index);
 int VSgetattr(int vdata_id, int field_index, int attr_index, PDLlong *values);
@@ -268,6 +268,27 @@ _VSgetfields(vdata_id, fields);
         OUTPUT:
                 RETVAL
                 fields
+
+AV *
+_VSlone(file_id);
+		int file_id;
+	CODE:
+		AV  *ref_vdata_list;
+		int *ref_array;
+		SV  *ref_vdata;
+		int32 nlone;
+		ref_vdata_list=newAV();
+		ref_array=(int *)malloc(MAX_FIELD_SIZE*sizeof(int));
+		nlone = VSlone(file_id, ref_array, MAX_FIELD_SIZE);
+		int32 i;
+		for(i=0;i<nlone;i++){
+			ref_vdata=newSViv((IV)ref_array[i]);
+			av_push(ref_vdata_list, ref_vdata);
+		}
+		RETVAL=ref_vdata_list;
+	OUTPUT:
+		RETVAL
+
         
 int
 _VSinquire(vdata_id, n_records, interlace, fields, vdata_size, vdata_name);
@@ -447,8 +468,11 @@ sub new
         my $vdata_id=-1;
         my $vdata = {};
 
+	# get lone vdata (not member of a vgroup)
+	my $lone=PDL::IO::HDF::VS::_VSlone($self->{HID});
+
         my $MAX_REF = 0;
-        while ( ( $vdata_ref = PDL::IO::HDF::VS::_VSgetid( $self->{HID}, $vdata_ref ) ) != PDL::IO::HDF->FAIL )
+	while ( $vdata_ref = shift @$lone )
         {
             my $mode="r";
             if ( $self->{ACCESS_MODE} != PDL::IO::HDF->DFACC_READ ) 
@@ -466,7 +490,6 @@ sub new
                             $vdata_id, $n_records, $interlace, $fields, $vdata_size, $vdata_name );
             die "PDL::IO::HDF::VS::_VSinquire (vdata_id=$vdata_id)"
                 unless $status;
-            
             $vdata->{$vdata_name}->{REF} = $vdata_ref;
             $vdata->{$vdata_name}->{NREC} = $n_records;
             $vdata->{$vdata_name}->{INTERLACE} = $interlace;
@@ -621,7 +644,7 @@ sub VSgetfieldnames
     
     die "$sub: vdata name $name doesn't exist!\n" 
         unless defined( $self->{VDATA}->{$name} );
-    
+
     return keys %{$self->{VDATA}->{$name}->{FIELDS}};
 } # End of VSgetfieldnames()...
 # Now defunct:
@@ -630,6 +653,7 @@ sub VSgetfieldsnames
     my $self = shift;
     return $self->VSgetfieldnames( @_ );
 } # End of VSgetfieldsnames()...
+
 
 sub VSread 
 {
