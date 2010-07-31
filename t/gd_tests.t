@@ -9,6 +9,7 @@
 
 use strict;
 use PDL;
+use PDL::Config;
 use Test::More;
 
 BEGIN

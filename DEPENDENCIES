@@ -24,11 +24,10 @@ or if you don't have the cpan script try
 
 MODULE          DEPENDS ON                  COMMENT
 
-PDL (all)       perl >= 5.6.2           you need at least this version
-                (5.8.x recommended)     of perl to succeed.
+PDL (all)       perl >= 5.8.x           you need at least this version
+                                        of perl to succeed.
 
                 File::Spec              version >= 0.6 required, included
-                                        with recent perls (5.6.x and higher)
 
 PDL::NiceSlice  Text::Balanced          a nicer way to index piddles
                 Filter::Util::Call      a must-have!!
@@ -38,14 +37,14 @@ Inline::Pdlpp   Inline                  version >= 0.43 required
                                         inline in your scripts
 
 PDL::IO::Dumper Data::Dumper and        Data::Dumper version >=2.121 is required
-                Convert::UU and         Convert::UU is required but Works on all perl platforms!
+                Convert::UU and/or      Convert::UU is required but Works on all perl platforms!
                 uuencode/uudecode       (Optional) Better performance on unix flavor platforms!
 
 PDL::IO::Storable Storable              version >=1.03 is now listed as a
                                         required dependency
 
-perldl (shell)  Term::ReadLine          perl provides a stub but if you
-                                        compile and install a better one
+perldl (shell)  Term::ReadLine::Perl    Perl provides a stub but if you
+                or Term::ReadLine::Gnu  compile and install a better one
                                         (Term::ReadLine::Perl or Term::ReadLine::Gnu)
                                         you get proper command line editing
 
@@ -129,9 +128,9 @@ PDL::IO::GD
 					already installed.
 
 PDL::IO::Browser
-                Requires a 'curses'-compatible library
-                not built by default (edit perldl.conf to enable).  Build
-                appears to be broken for many platforms.
+                Requires a 'curses'-compatible library  Not built by
+		default (edit perldl.conf to enable).  Build appears
+		to be broken for many platforms.
 
 PDL::IO::FITS   Needs Astro::FITS::Header for full support of all FITS
                 header features.  Will build ok, and run, without it but
@@ -154,10 +153,7 @@ PDL::IO::NDF    NOTE: These refs/URLs may be incorrect or outdated.
 PDL::IO::Pic    rpic/wpic: pbm+ or netpbm converters
                  http://netpbm.sourceforge.net/
 
-                wmpeg: mpeg_encode program,
-                  see http://bmrc.berkeley.edu/ftp/pub/multimedia/mpeg/encode/
-
-		NOTE: mpeg_encode may no longer be available.
+                wmpeg: ffmpeg program, see http://ffmpeg.org/
 
                                         Module builds ok without
 					converters but t/pic_16bit
@@ -194,4 +190,6 @@ Perldl2        Devel::REPL and          The new perldl shell in development
                Term::ReadLine           requires Devel::REPL version 1.003011
 	                                or higher be installed.  Term::ReadLine
 					is also required (either Perl or Gnu).
-					PDL will build without these deps.
+					PDL will build without these deps but
+					you will not get the new pdl2 functionality
+					unless you have installed Devel::REPL..

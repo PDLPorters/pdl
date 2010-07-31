@@ -183,6 +183,7 @@ Example/Benchmark/README
 Example/Benchmark/time.pl
 Example/Core/new_from_string.pl
 Example/Fit/lmfit_example.pl
+Example/IO/wmpeg.pl
 Example/InlinePdlpp/Module/Makefile.PL
 Example/InlinePdlpp/Module/MyInlineMod.pm
 Example/InlinePdlpp/Module/t/myinlinemod.t
@@ -697,6 +698,8 @@ t/callext.c
 t/callext.t
 t/clump.t
 t/complex.t
+t/config.t
+t/constructor.t
 t/conv.t
 t/core.t
 t/croak.t
@@ -710,6 +713,7 @@ t/fft.t
 t/fftw.t
 t/fits.t
 t/flexraw.t
+t/flexraw_fortran.t
 t/flow.t
 t/foo.t
 t/func.pdl
@@ -763,6 +767,7 @@ t/nsdatahandle.t
 t/ones.t
 t/opengl.t
 t/ops.t
+t/pdl_from_string.t
 t/pdlchar.t
 t/pgplot.t
 t/physical.t
@@ -803,6 +808,3 @@ t/vaffine.t
 t/xvals.t
 win32/INSTALL
 win32/win32f77.pl
-t/config.t
-t/constructor.t
-t/flexraw_fortran.t

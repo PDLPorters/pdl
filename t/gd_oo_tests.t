@@ -27,6 +27,7 @@ BEGIN
 use ExtUtils::testlib;
 
 use PDL::IO::GD;
+use PDL::Config;
 
 
 sub tapprox

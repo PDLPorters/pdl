@@ -1,5 +1,6 @@
 use PDL::LiteF;
 use PDL::Complex;
+use PDL::Config;
 
 sub ok {
         my $no = shift ;
