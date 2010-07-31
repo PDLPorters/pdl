@@ -344,7 +344,8 @@ sub reinstator_regexp{
     return qr/$reinstr/o; # allow trailing comments
 }
 
-# save eval of findslice that should be used within perldl as a preprocessor
+# save eval of findslice that should be used within perldl or pdl2
+# as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
 
@@ -529,7 +530,7 @@ cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
 L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
-NiceSlice is loaded automatically in the perldl shell, but (to avoid
+NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
 your standalone scripts, you can use the L<slice|PDL::Slices/slice>

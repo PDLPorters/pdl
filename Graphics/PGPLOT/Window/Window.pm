@@ -613,7 +613,7 @@ Recording is off by default. To turn it on when you create a new
 device you can set the C<Recording> option to true, or you can set
 the C<$PDL::Graphics::PGPLOT::RECORDING> variable to 1. I recommend doing the
 latter in your C<.perldlrc> file at least since you will often have use
-for recording in the perldl script.
+for recording in the perldl or pdl2 script.
 
 =head2 Use of recording
 

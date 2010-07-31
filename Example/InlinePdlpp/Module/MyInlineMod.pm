@@ -50,8 +50,8 @@ use Inline Pdlpp => DATA => # inlined PP code is below in DATA section
 
 # quirk 2 follows
 Inline->init;               # you need this if you want to 'use' your module
-                            # from within perldl and your Pdlpp code resides
-                            # in the DATA section (as in this example)
+                            # from within perldl or pdl2 and your Pdlpp code
+                            # resides in the DATA section (as in this example)
 
 # following required to make exported functions work!
 # PDL::PP used to make these automatically but now we have
