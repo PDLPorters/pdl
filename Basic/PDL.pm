@@ -140,6 +140,10 @@ use PDL::IO::Misc;          # Misc IO (Ascii)
 use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
 
+# Load this so config/install info is available
+
+use PDL::Config;
+
 EOD
 
 die $@ if $@;
