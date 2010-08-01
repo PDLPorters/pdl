@@ -648,7 +648,7 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 {
   int i, len, oldlen, newdepth, depth = 0;
   int hasref = 0, hasnonref=0;
-  SV *el;
+  SV *el, **elp;
   pdl *pdl;           /* Stores PDL argument */
   int num_nulls = 0;  /* keeps track of null PDLs (if any) */
 
@@ -659,10 +659,12 @@ int av_ndcheck(AV* av, AV* dims, int level, int *datalevel)
 
   len = av_len(av);                         /* Loop over elements of the AV */
   for (i=0; i<= len; i++) {
-    newdepth = 0;                           /* Each element - find depth */
-    el = *(av_fetch(av,i,0));               /* Get the ith element */
 
-    if (SvROK(el)) {                        /* It is a reference */
+    newdepth = 0;                           /* Each element - find depth */
+    elp = av_fetch(av,i,0);
+    el = elp ? *elp : 0;                    /* Get the ith element */
+
+    if (el && SvROK(el)) {                        /* It is a reference */
       if (SvTYPE(SvRV(el)) == SVt_PVAV) {   /* It is an array reference */
          hasref = 1;                
 
@@ -755,6 +757,7 @@ pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p)
     SV *sv = get_sv("PDL::undefval",0);
     undefval = ((!sv) || (sv==&PL_sv_undef)) ? 0 : (double)SvNV(sv);
   }
+
   switch (type) {
   case PDL_D:
     pdl_setav_Double(p->data,av,pdims,ndims,level, undefval);
@@ -843,7 +846,7 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
 
     for(i=0;i<pdl->dims[pdl->ndims-1-plevel];i++) {
 
-      //      printf("kc, plev %d: i=%d  ",plevel,i);
+      //           printf("kc, plev %d: i=%d  ",plevel,i);
 
       pdl_kludge_copy_$type(pdata + stride*i,
                             pdims,
@@ -857,15 +860,19 @@ void pdl_kludge_copy_$type(PDL_$type* pdata,
                            );
     }
     /* pad tree to zero if there are not enough elements... */
-      if(i < pdims[pdl->ndims - 1 - level]) {
-	//		printf("i=%d, pdims[%d - 1 - %d]=%d....\\n",i,pdl->ndims,level,pdims[pdl->ndims - 1 - level]);
-	int j = (pdims[pdl->ndims - 1 - level] - i)*stride;
-	PDL_$type *target = pdata + pdims[pdl->ndims - 1 - level]*stride;
-	PDL_$type *cursor = pdata + i * stride;
+      if(i < pdims[pdl->ndims - 0 - level]) {
+	int j;
+	PDL_$type *target, *cursor;
+
+	//	printf("i=%d, pdims[%d - 0 - %d]=%d....\\n",i,pdl->ndims,level,pdims[pdl->ndims - 0 - level]);
+
+	target = pdata + pdims[pdl->ndims - 0 - level]*stride;
+	cursor = pdata + i * stride;
 	
+	//	printf("cursor is %d; target is %d; diff is %d", cursor, target, target-cursor);
 	for(j=0; cursor < target; cursor++,j++) {
 	  *cursor = undefval;
-	  //  	  printf("*** kludge Assigning to %d (pad)\\n",cursor);
+	  //	   	  printf("*** kludge Assigning to %d (pad)\\n",cursor);
 	}
       }
 
@@ -882,7 +889,7 @@ foreach my $switch_type (keys %PDL::Types::typehash) {
 
 print OUT <<"!WITH!SUBS!";
        case ${switch_type}:
-       //              printf("*** kludge Assigning to %d (num - %g)\\n",pdata, (double)( *((${ctype} *)pptr) ));
+       //                     printf("*** kludge Assigning to %d (num - %g)\\n",pdata, (double)( *((${ctype} *)pptr) ));
           *pdata = (PDL_$type) (*((${ctype} *)pptr));
           break;
 !WITH!SUBS!
@@ -900,7 +907,7 @@ print OUT <<"!WITH!SUBS!";
 	*pdata++;
 	for(; pdata<target; pdata++) {
 	  *pdata = undefval;
-	  //	  	  printf("*** kludge: assigning to %d (final pad)\\n",pdata);
+	  //		  	  printf("*** kludge: assigning to %d (final pad)\\n",pdata);
 	}
       }
   }
@@ -941,19 +948,28 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
   int len = av_len(av);
   int i,stride=1;
 
-  SV* el;
+  SV *el, **elp;
   long undef_count = 0;
 
-  for (i=0;i<ndims-1-level;i++)
+  fflush(stdout);
+
+  for (i=0;i<ndims-1-level;i++) {
     stride *= pdims[i];
+  }
 
   for (i=0;i<=len;i++,pdata += stride) {
+      
+    int foo;
 
-    el = *(av_fetch(av,i,0));
-    if (SVavref(el)) {
+    elp = av_fetch(av,i,0);
+    el = (elp ? *elp : 0);
+    foo = el ? SVavref(el) : 0;
+    
+    if (foo) {
+
       undef_count += pdl_setav_$type(pdata, (AV *) SvRV(el), pdims, ndims, level+1, undefval);
 
-    } else if( SvROK(el) ) {
+    } else if( el && SvROK(el) ) {
       pdl *pdl;
       if( pdl = SvPDLV(el) ) {
 	
@@ -961,17 +977,15 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	
 	if(pdl->nvals==0) { /* Ignore null PDLs */
 	  pdata -= stride; 
-	    
+	  
 	} else {                     /* PDLs must be recursively copied/padded */   
 	  pdl_kludge_copy_$type(pdata,pdims,ndims,level,stride,pdl,0,pdl->data,undefval);
-	  
         }
       } else {
 	croak("Non-array, non-PDL element in list");
       }
     } else { /* SvROK(el)==0; scalar element */
       if( sv_undef(el) ) {
-	//		printf("*** setav Assigning to %d (pad)\\n",pdata);
 	*pdata = (PDL_$type) undefval; /* undef case */
 	undef_count++;
 
@@ -980,10 +994,13 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	*pdata = (PDL_$type) SvNV(el);
 
       }
-      /* Pad dim if we're not deep enough */
+      /* Pad dim if we are not deep enough */
       if(level < ndims-1) {
 	PDL_$type *cursor = pdata;
 	PDL_$type *target = pdata + stride;
+
+	//	printf("level=%d; ndims-1=%d: multidim padding.  pdata is %d, stride is %d, target is %d\\n",level,ndims-1,pdata,stride);
+
 	for( cursor++;  cursor < target; cursor++ ) {
 	  //	  	  printf("*** setav assigning to %d (long pad)\\n",cursor);
 	  *cursor = (PDL_$type)undefval;
