@@ -3,11 +3,11 @@ Installing on Win32
 
 To install via ppm for Strawberry Perl and ActiveState Perl:
 
-First up install Astro::FITS::Header by running: 
+First up install Astro::FITS::Header by running:
   ppm install Astro-FITS-Header
 
 Then install the OpenGL, PGPLOT and PDL modules from the uwinnipeg rep by running:
-For perl 5.8: 
+For perl 5.8:
   ppm install http://theoryx5.uwinnipeg.ca/ppms/OpenGL.ppd
   ppm install http://theoryx5.uwinnipeg.ca/ppms/PGPLOT.ppd
   ppm install http://theoryx5.uwinnipeg.ca/ppms/PDL.ppd
@@ -15,66 +15,46 @@ Or for perl 5.10:
   ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/OpenGL.ppd
   ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PGPLOT.ppd
   ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PDL.ppd
+Or for perl 5.12:
+  ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/OpenGL.ppd
+  ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/PGPLOT.ppd
+  ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/PDL.ppd
 
 (Note that the ActiveState ppm for PDL currently lacks some of the functionality that
-is available in the above PDL ppm packages from uwinnipeg.
+is available in the above PDL ppm packages from uwinnipeg.)
 
-If you would like, instead, to build PDL from source, that's also dead easy !!
+If you would like, instead, to build PDL from source, that's also easy !!
 
 Certain parts of PDL (eg PDL::Slatec and PDL::Minuit) can't be built without a fortran
 compiler. In the docs that follow I call these parts (somewhat loosely) "the fortran
 stuff".
 
-Where I refer to "MinGW", I'm referring to one of the 3.4.x versions. The 4.x.x builds
-of MinGW are untested.
-
-To Build using ActivePerl (x86, 32 bit)
----------------------------------------
+To Build from Source
+--------------------
 
 1) You'll need a make utility and a compiler - dmake/MinGW provides best mileage.
-   To install them (if you don't already have them) simply:
+   To install them onto ActivePerl (if you don't already have them) simply:
    ppm install MinGW
 
 2) Then run:
    cpan -i ExtUtils::F77    # Optional - this is for "the fortran stuff".
+                            # This will fail if using a Microsoft Compiler (see "Other Options" below).
+                            # This will also fail on Strawberry Perl - no fortran compiler.
 
    cpan -i PGPLOT           # Optional - for PGPLOT graphics support. This will
-                            # fail if pgplot can't be found - simpler to install
-                            # using ppm instead. (See above.)
+                            # fail if pgplot can't be found. It will also fail if
+                            # no Fortran compiler is found - simpler to install
+                            # using ppm (see above).
 
-   cpan -i OpenGL           # Optional - this is for PDL's TriD support. Should
-                            # build straight out of the box. Also available via
-                            # ppm (see above) if there's any problem building.
+   cpan -i OpenGL           # Optional - this is for PDL's TriD support.
+                            # Also available via ppm (see above) if there's
+                            # any problem building.
 
    cpan -i PDL              # Will first install any missing pre-requisites.
 
 If it's a developer release that you're trying to install then you'll need to specify
 the full distribution info - eg:
-   cpan -i CHM/PDL-2.4.6_001.tar.gz
-
-If you want, you can use a Microsoft Compiler, but you'll suffer reduced mileage
-if you're Microsoft Compiler uses a different C runtime than that used by perl
-itself (which is msvcrt.dll in the case of ActivePerl).
-You'll also be missing out on "the fortran stuff" unless you:
- i) use f2c (see "Other Options") below;
-  or:
- ii) use MinGW's g77 fortran compiler for "the fortran stuff".
-
-
-To Build using Strawberry Perl (x86, 32 bit)
---------------------------------------------
-
-Strawberry Perl comes with dmake and MinGW.
-However, last time I checked, Strawberry Perl's MinGW didn't include the g77 fortran
-compiler .... and if that's still the case then "the fortran stuff" won't get built,
-unless you first install g77 by grabbing the g77 binary package from:
-   http://sourceforge.net/projects/mingw/files/
-
-Without MinGW's g77 fortran compiler, ExtUtils::F77, PDL::Slatec, PDL::Minuit, and
-PGPLOT won't build (though installing PGPLOT via ppm is still an option).
-
-
-Aside from that, it's just a matter of doing as in step 2) for ActivePerl (above).
+   cpan -i CHM/PDL-2.4.6_015.tar.gz
 
 
 Other Options
@@ -101,43 +81,13 @@ Other Options
     dmake test
     dmake install
 
- This enables building of such things as PDL::IO::GD (also needs the gd C library) and
- the PDL::GSL::* modules (also needs the gsl C library). These modules are already built
- into the PDL ppm packages from the uwinnipeg reps (above).
+ This enables building of such things as:
+ a) PDL::IO::GD (needs the gd C library);
+ b) PDL::GSL::* modules (needs the gsl C library);
+ c) PDL::Graphics::PLplot (needs the plplot C library);
+ d) PDL::GIS::Proj & PDL::Transform::Proj4 (needs the proj4 C library);
+ e) PDL::FFTW (needs the fftw2 C library)
 
-To Build using ActivePerl (x64, 64 bit)
----------------------------------------
-
- Best to use the "Microsoft Platform SDK for Windows Server 2003 R2" compiler, which is
- freely available from Microsoft. (It's the compiler that was used to build this perl.)
- OpenGL won't yet build straight out of the box as the freeglut library that ships with
- the source is 32 bit.
- To build OpenGL:
-  1) Replace the 32 bit library in the FreeGLUT folder with a 64
-     bit freeglut library - acquirable either by building the library yourself from
-     freeglut source, or by emailing a request to sisyphus at cpan dot org
-  2) In utils/makefile.mak, change '/machine:I386' to '/machine:AMD64' (or whatever is
-     appropriate for your 64 bit machine)
-  3) In utils/makefile.mak, assuming you're using the compiler recommended above, change:
-	$(LINK) $(LDFLAGS) /defaultlib:$(GLUT_LIB).lib /out:"glversion.exe" glversion.obj
-      to:
-	$(LINK) $(LDFLAGS) /defaultlib:$(GLUT_LIB).lib /out:"glversion.exe" glversion.obj bufferoverflowU.lib
-
-  Then OpenGL will build and install manually with:
-
-    perl Makefile.Pl VERBOSE=1
-    nmake test
-    nmake install
-
- Once OpenGL has been installed, you can install PDL with:
-
-    cpan -i PDL
-
- Without OpenGL installed, you'll need to set WITH_3D to 0 in perldl.conf
- (in the top level PDL source folder) and run the build process manually:
-
-    perl Makefile.Pl
-    nmake test
-    nmake install
-
- As there's no fortran compiler, none of "the fortran stuff" will be built in.
+As of the release of PDL-2.4.7, all of this functionality will be provided by the above
+mentioned ppm packages. The PDL-2.4.6 packages do not provide the plplot and proj4
+functionality.
