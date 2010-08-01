@@ -318,7 +318,7 @@ open( PROTOS, "> SlatecProtos.h" );
 # $funcref gets placed within a '=for ref' pod statement at the
 # start of the documentation - ie it is placed before the
 # text within $docstring. This string gets printed out
-# in the perldl shell after a '?? string' command
+# in the perldl or pdl2 shell after a '?? string' command
 #
 sub defslatec {
 

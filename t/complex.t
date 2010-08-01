@@ -1,5 +1,6 @@
 use PDL::LiteF;
 use PDL::Complex;
+use PDL::Config;
 
 sub ok {
         my $no = shift ;
@@ -16,7 +17,7 @@ sub tapprox {
 }
 
 # more tests required; anybody?
-print "1..12\n";
+print "1..13\n";
 $testNo = 1;
 
 $ref = pdl([[-2,1],[-3,1]]);
@@ -55,6 +56,18 @@ ok($testNo++, tapprox($cabs**2, Cabs2 $a));
 #   to a bug in PDL::Complex::initialize
 $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
-ok($testNo++, abs($bigArray->sum() +  4) < .0001 );
+ok($testNo++, abs($bigArray->sum() +  8 - 4*i) < .0001 );
 
-
+SKIP: {
+   if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} ) {
+      print "# skipping test $testNo, sf.net bug #1176614 test\n";
+      ok($testNo++, 1);
+      last SKIP;
+   }
+   # Check stringification of complex piddle
+   # This is sf.net bug #1176614
+   my $c =  9.1234 + 4.1234*i;
+   my $c211 = $c->dummy(2,1);
+   my $c211str = "$c211";
+   ok($testNo++, $c211str=~/(9.123|4.123)/);
+}

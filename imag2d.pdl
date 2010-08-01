@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Fri 22 Aug 2008 01:48:57 PM 
-# Last saved: Thu 08 Apr 2010 10:13:21 AM 
+# Last saved: Tue 25 May 2010 09:01:47 AM 
 #
 # This implements a simple 2D image display capability along
 # the lines of the one in the Gandalf image processing and
@@ -375,32 +375,92 @@ sub ModeMenu {
 #------------------------------------------------------------------------
 sub key_ops {
    my ($key, $x, $y) = @_;
+   my $win_id = glutGetWindow();
 
    # handle keypress events (defaults first)
    # print STDERR "Got keypress for keypress=$key\n";
 
    # stop twiddling
-   $imag2d_keep_twiddling = 0 if $key == 113 or  $key == 81;  # q or Q
+   if ($key == ord('Q') or $key == ord('q')) {
+      $imag2d_keep_twiddling = 0;
+      warn "Stop twiddling command, key '" . chr($key) . "', detected.\n";
+      return;
+   }
 
-   # quit program
-   exit if $key ==  27;                 # ESC
-   exit if $key ==   3;                 # Ctrl-C
+   # exit program
+   if ($key == 27 or $key == 3) {          # ESC or Ctrl-C
+      warn "Exit program command, key '" . (($key == 27) ? 'ESC' : 'Ctrl-C') . "', detected.\n";
+      exit;
+   }
 
    # toggle overlay
-   $show_overlay = (($show_overlay) ? 0 : 1) if $key == 111 or $key == 79 ;     # o or O
+   if ($key == ord('O') or $key == ord('o')) {
+      $show_overlay = (($show_overlay) ? 0 : 1);
+      warn "Toggle overlay command, key '" . chr($key) . "', detected.\n";
+      return;
+   }
+
+   # lock windows sizes together
+   if ($key == ord('L') or $key == ord('l')) {
+      ## $lock_sizes = (($lock_sizes) ? 0 : 1);
+      ## warn "Setting \$lock_sizes to $lock_sizes, (window=$win_id)\n";
+      warn "Lock window sizes command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+
+   # toggle image histogram equalization
+   if ($key == ord('H') or $key == ord('h')) {
+      ## $hist_equalize = (($hist_equalize) ? 0 : 1);
+      ## warn "Setting \$hist_equalize to $hist_equalize\n";
+      warn "Toggle image histogram equalization command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+
+   # resize current window (last clicked?) to 1:1
+   if ($key == ord('1')) {
+   ##    resize_window(-1,-1);     # Special (w,h) args mean set zoom to 1
+   ##    glutPostRedisplay();
+      warn "Resize current window to 1:1 scale command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
+   
+   # resize other image windows to this one
+   if ($key == ord('=')) {
+   ##    warn "Resize other images to this one not yet implemented, (window=$win_id)\n";
+      warn "Resize other windows to this one command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
 
    # pause/run with space bar
-   $is_paused = (($is_paused) ? 0 : 1) if $key == 32;     # SPACE
+   if ($key == 32) {    # SPACE
+      $is_paused = (($is_paused) ? 0 : 1);
+      warn "Pause/Run command, key 'SPACE', detected\n";
+      return;
+   } 
+
+   # toggle verbose output
+   if ($key == ord('v') or $key == ord('V')) {
+   ##    $be_verbose = (($be_verbose) ? 0 : 1);
+      warn "Toggle verbose output command, key '" . chr($key) . "', not implemented.\n";
+      return;
+   }
 
    # change direction or step in direction
-   if ($key == 46 or $key == 62) {          # > or .
+   if ($key == 46 or $key == 62) {          # . or >
       $go_forward = 1;
       $go_backward = 0;
+      warn "Change Direction/Step forward command, key '" . (($key == 46) ? '.' : '>') . "', detected.\n";
+      return;
    };
-   if ($key == 44 or $key == 60) { ;        # < or ,
+
+   if ($key == 44 or $key == 60) { ;        # , or <
       $go_forward = 0;
       $go_backward = 1;
+      warn "Change Direction/Step backward command, key '" . (($key == 44) ? ',' : '<') . "', detected.\n";
+      return;
    }
+
+   warn "No handler for key " . chr($key) . ", (window=$win_id)\n";
 }
 
 #------------------------------------------------------------------------
@@ -472,7 +532,8 @@ sub display_new_window {
 imag2d() creates a plain FreeGLUT OpenGL window and displays
 the input image with 1:1 aspect ratio for pixels.  The window
 resize is constrained to the actual ratio of the image
-dimensions.
+dimensions.  The initial display size is currently a 200x200
+window to prevent things from being too small by default.
 
 The image to display can have dimensions ($c,$M,$N) where for
 $c==4 the display is in GL_RGBA, for $c==3 the display is GL_RGB,
@@ -534,7 +595,7 @@ PDLLIB path to use.  See L<PDL::AutoLoader> for details.
 =cut
   
 sub imag2d {
-   my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", 1, 0, 0);
+   my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", undef, 0, 0);
 
    # need to add error checking here
    $img = shift;
@@ -588,14 +649,15 @@ sub imag2d {
    my ($im_height, $im_width);
    $im_height = $img->dim($glds+1);
    $im_width  = $img->dim($glds+0);
-   if ($im_width < 200 or $im_height < 200) {
+   if ( !defined($zoom)  and ( $im_width < 200 or $im_height < 200 ) ) {
       # adjust zoom to make initial window bigger than 200px
       my $mindim = ($im_width < $im_height) ? $im_width : $im_height;
       my $zoomest = int( 200 / $mindim );
       $zoomest += 1 unless $zoomest == 200/$mindim;
-      print STDERR "imag2d: est zoom factor is $zoomest\n" if $debug;
+      print STDERR "imag2d: estimated zoom factor is $zoomest\n" if $debug;
       $zoom = $zoomest;
    }
+   $zoom = defined($zoom) ? $zoom : 1.0;
 
    print STDERR "imag2d: calling display_new_window( "
    . $img->dim($glds+1) . ", "

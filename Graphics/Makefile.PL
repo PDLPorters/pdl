@@ -9,6 +9,7 @@ if ( defined($t) and $t == 0 ) {
    print "\n   WITH_3D: Not building TriD or OpenGL. Turn on WITH_3D if this is incorrect.\n\n";
 } elsif ( $PDL::Config{USE_POGL} ) {
    print "\n   USE_POGL is set, will build TriD using OpenGL.\n\n";
+   $PDL::Config{WITH_3D} = 1;
    unshift @subdirs,"TriD";
 } else {
 # Do we have the xdpyinfo command in PATH?
@@ -91,6 +92,8 @@ if ( defined($t) and $t == 0 ) {
                if ($^O eq "freebsd" and not defined $PDL::Config{OPENGL_INC}) {
                   $PDL::Config{OPENGL_INC} = "-I/usr/X11R6/include";
                }
+
+               $PDL::Config{WITH_3D}=1;
 
                print "\n   WITH_3D: Success using $PDL::Config{OPENGL_LIBS} $PDL::Config{OPENGL_DEFINE}\n".
                "\n   WITH_3D: Set WITH_3D => 1 and build OpenGL and TriD\n\n";

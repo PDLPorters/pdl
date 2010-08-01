@@ -64,9 +64,11 @@ BEGIN {
        warn $msg . "\n";
        $msg =~ s/\n//g;
        write_dummy_make( $msg );
+      $PDL::Config{WITH_MINUIT} = 0;
        $donot = 1;
    } else {
-   print "\n   Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n\n";
+      print "\n   Building PDL::Minuit. Turn off WITH_MINUIT if there are any problems\n\n";
+      $PDL::Config{WITH_MINUIT} = 1;
    }
 }
 

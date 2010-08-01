@@ -47,16 +47,25 @@ BEGIN {
 #
 # Try opening 2 GL windows
 #
-my $numwins = 2;
-my @windows;
-my $opt;
-$opt->{width} = 90;
-$opt->{height} = 90;
 
-foreach(0..$numwins-1){
-   $opt->{x} = ($numwins % 10) *100;
-   $opt->{y} = int($numwins / 10) *100;
-   my $win=new PDL::Graphics::OpenGL::OO($opt);
-   isa_ok($win, 'PDL::Graphics::OpenGL::OO');
-   push @windows, $win;
+SKIP: {
+
+   if ( hasDISPLAY and OpenGL::_have_glx ) {
+      eval  { OpenGL::glpDisplay($ENV{DISPLAY}) };
+      skip "can't open X display", 2 if $@;
+   }
+
+   my $numwins = 2;
+   my @windows;
+   my $opt;
+   $opt->{width} = 90;
+   $opt->{height} = 90;
+
+   foreach(0..$numwins-1){
+      $opt->{x} = ($numwins % 10) *100;
+      $opt->{y} = int($numwins / 10) *100;
+      my $win=new PDL::Graphics::OpenGL::OO($opt);
+      isa_ok($win, 'PDL::Graphics::OpenGL::OO');
+      push @windows, $win;
+   }
 }

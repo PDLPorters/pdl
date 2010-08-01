@@ -111,7 +111,12 @@ RCS
 ^Graphics/TriD/OpenGL/OpenGL.pm
 ^Graphics/TriD/OpenGL/OpenGL.xs
 ^Graphics/TriD/OpenGL/OpenGL\.c$
+^Graphics/TriD/OpenGL/X.h.cpp
 ^Graphics/TriD/OpenGL/blib
+^Graphics/TriD/OpenGL/gl.h.cpp
+^Graphics/TriD/OpenGL/glu.h.cpp
+^Graphics/TriD/OpenGL/glx.h.cpp
+^Graphics/TriD/OpenGL/glxtokens.h.cpp
 ^Graphics/TriD/OpenGL/ppcode.out
 ^Graphics/TriD/OpenGL/typemap
 ^Graphics/TriD/OpenGLQ/OpenGLQ\.*
@@ -140,6 +145,10 @@ RCS
 ^Image2D/Image2D\..*
 ^LOG$
 ^Lib/CallExt/CallExt\.c$
+^Lib/Compression/Compression.c
+^Lib/Compression/Compression.pm
+^Lib/Compression/Compression.xs
+^Perldl2/work
 ^Lib/FFT/FFT\.*
 ^Lib/FFTW/FFTW\.c
 ^Lib/FFTW/FFTW\.pm
@@ -177,6 +186,8 @@ RCS
 ^Lib/Slatec/SlatecProtos.h$
 ^Lib/Slatec/f77_underscore$
 ^Lib/Slatec/slatec/.*\.c$
+^Lib/Transform/Cartography/earth_day.ppm
+^Lib/Transform/Cartography/earth_night.ppm
 ^Lib/Transform/Proj4/Proj4\.c
 ^Lib/Transform/Proj4/Proj4\.pm
 ^Lib/Transform/Proj4/Proj4\.xs
@@ -222,8 +233,6 @@ pure_all
 so_locations
 subdirs
 ~$
-^Lib/Transform/Cartography/earth_day.ppm
-^Lib/Transform/Cartography/earth_night.ppm
+^gsl.pl
 ^perldl.conf-fast
 ^perldl.conf-orig
-^gsl.pl

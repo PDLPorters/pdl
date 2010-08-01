@@ -49,7 +49,7 @@ unnormalised units.
   $yfit = fitpoly1d $data,2; # Least-squares line fit
   ($yfit, $coeffs) = fitpoly1d $x, $y, 4; # Fit a cubic
   
-  $fitimage = fitpoly1d $image,2  # Fit a quadratic to each row of an image
+  $fitimage = fitpoly1d $image,3  # Fit a quadratic to each row of an image
   
   $myfit = fitpoly1d $line, 2, {Weights => $w}; # Weighted fit
 
@@ -72,7 +72,8 @@ use PDL::Exporter;
 @ISA    = qw( PDL::Exporter );
 
 use PDL::Options ':Func';
-use PDL::Slatec; # For matinv()
+# use PDL::Slatec;  # For matinv()
+use PDL::MatrixOps; # for inv(), using this instead of call to Slatec routine
 
  
 sub PDL::fitpoly1d {
@@ -106,7 +107,8 @@ sub PDL::fitpoly1d {
 
    # Fitted coefficients vector
 
-   $a = matinv($C) x $Y;
+   # $a = matinv($C) x $Y;
+   $a = inv($C) x $Y;  # use inv() instead of matinv() to avoid Slatec dependency
    
    # Fitted data
 

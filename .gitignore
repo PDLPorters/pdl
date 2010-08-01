@@ -133,6 +133,12 @@ IO/Browser/Browser.xs
 IO/GD/GD.c
 IO/GD/GD.pm
 IO/GD/GD.xs
+IO/HDF/SD/SD.c
+IO/HDF/SD/SD.pm
+IO/HDF/SD/SD.xs
+IO/HDF/VS/VS.c
+IO/HDF/VS/VS.pm
+IO/HDF/VS/VS.xs
 IO/Misc/Misc.c
 IO/Misc/Misc.pm
 IO/Misc/Misc.xs
@@ -150,6 +156,10 @@ Lib/Compression/Compression.xs
 Lib/FFT/FFT.c
 Lib/FFT/FFT.pm
 Lib/FFT/FFT.xs
+Lib/FFTW/FFTW.c
+Lib/FFTW/FFTW.pm
+Lib/FFTW/FFTW.xs
+Lib/FFTW/typespec
 Lib/Fit/Gaussian/Gaussian.c
 Lib/Fit/Gaussian/Gaussian.pm
 Lib/Fit/Gaussian/Gaussian.xs

@@ -303,6 +303,23 @@ sub PDL::Graphics::TriD::Points::gdraw {
 	glEnable(GL_LIGHTING);
 }
 
+sub PDL::gl_spheres { 
+   my ($coords,$colors) = @_;   
+   for (my $np=0; $np<$coords->dim(1); $np++) {
+      glPushMatrix();
+      my ($x,$y,$z) = ($coords->slice(":,($np)"))->float->list;
+      glTranslatef($x,$y,$z);
+      glutSolidSphere(0.010,10,10);
+      glPopMatrix();
+   }
+}
+
+sub PDL::Graphics::TriD::Spheres::gdraw {
+   my($this,$points) = @_;
+   $this->glOptions();
+   PDL::gl_spheres($points,$this->{Colors});
+}
+
 sub PDL::Graphics::TriD::Lattice::gdraw {
 	my($this,$points) = @_;
 

@@ -18,7 +18,8 @@ images, spectra, etc to be stored efficiently and manipulated quickly.
 =head1 INTERACTIVE SHELL
 
 The PDL package includes an interactive shell. You can learn about it,
-run C<perldoc perldl>, or run the shell C<perldl> and type C<help>.
+run C<perldoc perldl>, or run the shell C<perldl> or C<pdl2> and type
+C<help>.
 
 =head1 LANGUAGE DOCUMENTATION
 
@@ -109,7 +110,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.6_008'; # Go to sub numbering per git push
+$PDL::VERSION = '2.4.6_016'; # Go to sub numbering per git push
 
 # Main loader of standard PDL package
 

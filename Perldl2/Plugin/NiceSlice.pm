@@ -1,4 +1,4 @@
-package Devel::REPL::Plugin::NiceSlice;
+package PDL::Perldl2::Plugin::NiceSlice;
 
 use Devel::REPL::Plugin;
 
@@ -30,7 +30,7 @@ __END__
 
 =head1 NAME
 
-Devel::REPL::Plugin::NiceSlice - enable PDL NiceSlice syntax
+PDL::Perldl2::Plugin::NiceSlice - enable PDL NiceSlice syntax
 
 =head1 DESCRIPTION
 

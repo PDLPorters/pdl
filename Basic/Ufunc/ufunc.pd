@@ -974,9 +974,9 @@ The two values are returned as Perl scalars similar to min/max.
 
 =for example
 
- perldl> $x = pdl [1,-2,3,5,0]
- perldl> ($min, $max) = minmax($x);
- perldl> p "$min $max\n";
+ pdl> $x = pdl [1,-2,3,5,0]
+ pdl> ($min, $max) = minmax($x);
+ pdl> p "$min $max\n";
  -2 5
 
 =cut
@@ -1029,9 +1029,9 @@ Quicksort a vector into ascending order.
 '
 Bad values are moved to the end of the array:
 
- perldl> p $b
+ pdl> p $b
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p qsort($b)
+ pdl> p qsort($b)
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
     ); # pp_def qsort
@@ -1066,9 +1066,9 @@ pp_def(
        BadDoc => 
 'Bad elements are moved to the end of the array:
 
- perldl> p $b
+ pdl> p $b
  [42 47 98 BAD 22 96 74 41 79 76 96 BAD 32 76 25 59 BAD 96 32 BAD]
- perldl> p $b->index( qsorti($b) )
+ pdl> p $b->index( qsorti($b) )
  [22 25 32 32 41 42 47 59 74 76 76 79 96 96 96 98 BAD BAD BAD BAD]
 ',
        Doc => '
@@ -1333,9 +1333,9 @@ Find minimum and maximum and their indices for a given piddle;
 
 =for usage
 
- perldl> $a=pdl [[-2,3,4],[1,0,3]]
- perldl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
- perldl> p $min, $max, $min_ind, $max_ind
+ pdl> $a=pdl [[-2,3,4],[1,0,3]]
+ pdl> ($min, $max, $min_ind, $max_ind)=minmaximum($a)
+ pdl> p $min, $max, $min_ind, $max_ind
  [-2 0] [4 3] [0 1] [2 2]
 
 See also L<minmax|/minmax>, which clumps the piddle together.

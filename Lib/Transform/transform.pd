@@ -658,19 +658,19 @@ pp_def('map',
   /**  than a few hundred clock cycles -- cheap at twice the price.         **/
   /**                                                                       **/
   /**/ if(map->ndims != out->ndims)                                        /**/
-  /**/  barf("Bug in map: index dims aren't consistent\n");                /**/
+  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");                /**/
   /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
   /**/   static char buf[100];                                             /**/
   /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
   /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
   /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
-  /**/     barf(buf);                                                      /**/
+  /**/     barf("%s", buf);                                                      /**/
   /**/   }                                                                 /**/
   /**/ }                                                                   /**/
   /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
-  /**/   barf("Bug in map - index vec - input mismatch\n");                /**/
+  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");                /**/
   /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
-  /**/   barf("Bug in map:  thread dimension error\n");                    /**/
+  /**/   barf("%s", "Bug in map:  thread dimension error\n");                    /**/
   /***************************************************************************/
 
  /* 
@@ -729,7 +729,7 @@ pp_def('map',
 	{
 	  char buf[BUFSIZ];
 	  sprintf(buf,"Error in map: Unknown boundary condition '%c'",bstr[i]);
-	  barf(buf);
+	  barf("%s", buf);
 	}
 	break;
       }
@@ -757,7 +757,7 @@ pp_def('map',
 	   {
             char err[80];
             sprintf(err,"Bug in map: unknown method '%c'",*mstr);
-	    barf(err);
+	    barf("%s", err);
            }
            break;
 	}
@@ -824,7 +824,7 @@ pp_def('map',
          if(j < 0 || j >= in->dims[i]) {
            switch(bounds[i]) {
              case 0: /* no breakage allowed */
-               barf("index out-of-bounds in map");
+               barf("%s", "index out-of-bounds in map");
                break;
              case 1: /* truncation */
                bound_ok = 0;
@@ -852,7 +852,7 @@ pp_def('map',
                }
                break;
              default:
-               barf("Unknown boundary condition in map -- bug alert!");
+               barf("%s", "Unknown boundary condition in map -- bug alert!");
                break;
            }
          }
@@ -916,7 +916,7 @@ pp_def('map',
   	     {
                  char buf[80];
                   sprintf(buf,"This can't happen: method='%c'",method);
-  	        barf(buf);
+  	        barf("%s", buf);
   	     }
   	}
   
@@ -1467,7 +1467,8 @@ sub map {
 
       my $justify = _opt($opt,['j','J','just','justify','Justify'],0);
       if($justify) {
-	$scale->(0) *= $justify;
+        my $tmp; # work around perl -d "feature"
+	($tmp = $scale->(0)) *= $justify;
 	$scale .= $scale->max;
 	$scale->(0) /= $justify;
       }
@@ -1527,7 +1528,8 @@ sub map {
   ##  ( Kind of an anticlimax after all that, eh? )
   if(!$integrate) {
     my $a = $in->interpND($idx,{method=>$method, bound=>$bound});
-    $out->(:) .= $a; # trivial slice prevents header overwrite...
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $out->(:)) .= $a; # trivial slice prevents header overwrite...
     return $out;
   }
 
@@ -1599,7 +1601,10 @@ sub map {
 	$bound, $method, $big, $blur, $svmin, $flux );
 
   my @rdims = (@iddims[1..$#iddims], @idims[$#iddims..$#idims]);
-  $out->(:) .= $o2->reshape(@rdims);
+  {
+     my $tmp; # work around perl -d "feature"
+     ($tmp = $out->(:)) .= $o2->reshape(@rdims);
+  }
  
 }  
 
@@ -1884,7 +1889,7 @@ sub _compose_op {
 sub _pow_op {
     my($a,$b,$c) = @_;
     
-    barf("Can't raise anything to the power of a transform")
+    barf("%s", "Can't raise anything to the power of a transform")
 	if($c || UNIVERSAL::isa($b,'PDL::Transform')) ;
 
     $a = $a->inverse
@@ -2142,8 +2147,11 @@ sub t_lookup {
 	$oloop = ndcoords($itable->mv(-1,0)->((0)))->
 	                mv(0,-1)->
 			clump($itable->ndims-1);  # oloop: (pixel, index)
-	$oloop->mv(-1,0) -= $offset;
-	$oloop->mv(-1,0) /= $scale;
+        {
+            my $tmp; # work around perl -d "feature"
+	    ($tmp = $oloop->mv(-1,0)) -= $offset;
+	    ($tmp = $oloop->mv(-1,0)) /= $scale;
+        }
 
 	# The Right Thing to do here is to take the outer product of $itable and $otable, then collapse 
 	# to find minimum distance.  But memory demands for that would be HUGE.  Instead we do an 
@@ -2172,13 +2180,18 @@ sub t_lookup {
 	    my $coord = $c + $dc;
 	    # At last, we've found the best-fit to an enl_scale'th of an input-table pixel.
 	    # Back it out to input-science coordinates, and stuff it in the inverse table.
-	    $itable_flattened->(($i)) .= $coord;
+            my $tmp; # work around perl -d "feature"
+	    ($tmp = $itable_flattened->(($i))) .= $coord;
 	    
 	    print " $i..." if( ($i%1000==0) && ( $PDL::verbose || $PDL::debug || $PDL::Transform::debug));
         }
-	$itable->clump($itable->ndims-1) .= $itable_flattened;
-	$itable->mv(-1,0) -= $p->{offset};
-	$itable->mv(-1,0) /= $p->{scale};
+
+        {
+            my $tmp; # work around perl -d "feature"
+	    ($tmp = $itable->clump($itable->ndims-1)) .= $itable_flattened;
+	    ($tmp = $itable->mv(-1,0)) -= $p->{offset};
+	    ($tmp = $itable->mv(-1,0)) /= $p->{scale};
+        }
 
 	$p->{itable} = $itable;
       }
@@ -2379,7 +2392,8 @@ sub PDL::Transform::Linear::new {
     }
 
     $me->{params}->{matrix} = PDL->zeroes($me->{idim},$me->{odim});
-    $me->{params}->{matrix}->diagonal(0,1) .= 1;
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $me->{params}->{matrix}->diagonal(0,1)) .= 1;
 
   }
 
@@ -2428,7 +2442,8 @@ sub PDL::Transform::Linear::new {
   # Apply scaling
   #
   $me->{params}->{matrix} = $me->{params}->{matrix}->(:,:);
-  $me->{params}->{matrix}->diagonal(0,1) *= $scale
+  my $tmp; # work around perl -d "feature"
+  ($tmp = $me->{params}->{matrix}->diagonal(0,1)) *= $scale
     if defined($scale);
   
   #
@@ -2458,7 +2473,8 @@ sub PDL::Transform::Linear::new {
     my($a) = $in->(0:$d)->copy + $opt->{pre};
     my($out) = $in->is_inplace ? $in : $in->copy;
 
-    $out->(0:$d) .= $a x $opt->{matrix} + $opt->{post};
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $out->(0:$d)) .= $a x $opt->{matrix} + $opt->{post};
 
     return $out;
   };
@@ -2474,7 +2490,8 @@ sub PDL::Transform::Linear::new {
     my($a) = $in->(0:$d)->copy - $opt->{post};
     my($out) = $in->is_inplace ? $in : $in->copy;
 
-    $out->(0:$d) .= $a x $opt->{inverse} - $opt->{pre};
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $out->(0:$d)) .= $a x $opt->{inverse} - $opt->{pre};
 
     $out;
   } : undef;
@@ -2683,7 +2700,8 @@ sub t_fits {
     #
     for my $h(@hgrab) {
       $h =~ m/CD(\d{1,3})_(\d{1,3})/;  # Should always match
-      $matrix->(($1-1),($2-1)) .= $hdr->{h};
+      my $tmp; # work around perl -d "feature"
+      ($tmp = $matrix->(($1-1),($2-1))) .= $hdr->{h};
     }
     print "PDL::Transform::FITS: Detected CDi_j matrix: \n",$matrix,"\n"
       if($PDL::Transform::debug);
@@ -2700,7 +2718,8 @@ sub t_fits {
     my($cd) = $cdm->diagonal(0,1);
 
     my($cpm) = PDL->zeroes($n,$n);
-    $cpm->diagonal(0,1) .= 1;     # CP: diagonal defaults to unity
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $cpm->diagonal(0,1)) .= 1;     # CP: diagonal defaults to unity
     $cd .= 1;
 
 
@@ -2708,7 +2727,8 @@ sub t_fits {
 
       for my $h(@hgrab) {
 	$h =~ m/CP(\d{1,3})_(\d{1,3})/;  # Should always match
-	$cpm->(($1-1),($2-1)) .= $hdr->{h};
+        my $tmp; # work around perl -d "feature"
+	($tmp = $cpm->(($1-1),($2-1))) .= $hdr->{h};
       }
       print "PDL::Transform::FITS: Detected CPi_j matrix: \n",$cpm,"\n"
 	if($PDL::Transform::debug && @hgrab);
@@ -2730,7 +2750,8 @@ sub t_fits {
     }
       
     for my $i(1..$n) {
-      $cd->(($i-1)) .= $hdr->{"CDELT$i"};
+      my $tmp; # work around perl -d "feature"
+      ($tmp = $cd->(($i-1))) .= $hdr->{"CDELT$i"};
     }
 #If there are no CDELTs, then we assume they are all 1.0,
 #as in PDL::Graphics::PGPLOT::Window::_FITS_tr.
@@ -2741,8 +2762,9 @@ sub t_fits {
 
   my($i1) = 0;
   for my $i(1..$n) {
-    $pre->(($i1)) .= 1 - $hdr->{"CRPIX$i"};
-    $post->(($i1)).= $hdr->{"CRVAL$i"};
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $pre->(($i1)))  .= 1 - $hdr->{"CRPIX$i"};
+    ($tmp = $post->(($i1))) .= $hdr->{"CRVAL$i"};
     $i1++;
   }
 
@@ -3012,15 +3034,16 @@ sub t_radial {
       my($out) = ($data->new_or_inplace);
 
       my($d) = $data->copy;
-      $d->(0:1) -= $o->{origin};
+      my $tmp; # work around perl -d "feature"
+      ($tmp = $d->(0:1)) -= $o->{origin};
 
       my($d0) = $d->((0));
       my($d1) = $d->((1));
 
       # (mod operator on atan2 puts everything in the interval [0,2*PI).)
-      $out->((0)) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
+      ($tmp = $out->((0))) .= (atan2(-$d1,$d0) % (2*$PI)) * $me->{params}->{angunit};
 
-      $out->((1)) .= (defined $o->{r0}) ?
+      ($tmp = $out->((1))) .= (defined $o->{r0}) ?
 	      0.5 * log( ($d1*$d1 + $d0 * $d0) / ($o->{r0} * $o->{r0}) ) :
 	      sqrt($d1*$d1 + $d0*$d0);
 
@@ -3247,12 +3270,13 @@ sub t_spherical {
 
 	my($d0,$d1,$d2) = ($d->((0)),$d->((1)),$d->((2)));
 	my($out) =   ($d->is_inplace) ? $data : $data->copy;
+ 
+        my $tmp; # work around perl -d "feature"
+	($tmp = $out->((0))) .= atan2($d1, $d0);
+	($tmp = $out->((2))) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
+	($tmp = $out->((1))) .= asin($d2 / $out->((2)));
 
-	$out->((0)) .= atan2($d1, $d0);
-	$out->((2)) .= sqrt($d0*$d0 + $d1*$d1 + $d2*$d2);
-	$out->((1)) .= asin($d2 / $out->((2)));
-
-	$out->(0:1) /= $o->{angunit}
+	($tmp = $out->(0:1)) /= $o->{angunit}
 	  if(defined $o->{angunit});
 	
 	$out;
@@ -3417,7 +3441,8 @@ sub t_projective {
 
     my $h = ($M->inv x $p(:,(1),:)->flat->(*1))->((0));
     my $matrix = ones(3,3);
-    $matrix->flat->(0:7) .= $h;
+    my $tmp; # work around perl -d "feature"
+    ($tmp = $matrix->flat->(0:7)) .= $h;
     $me->{params}->{matrix} = $matrix;
 
     $me->{params}->{matinv} = $matrix->inv;

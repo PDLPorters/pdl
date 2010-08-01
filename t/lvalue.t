@@ -1,11 +1,13 @@
 use strict;
+use English;
+
 use Test;
 
 use PDL::LiteF;
 use PDL::Lvalue;
 
 BEGIN { 
-    if ( PDL::Lvalue->subs ) {
+    if ( PDL::Lvalue->subs and !$PERLDB) {
 	plan tests => 3;
     } else {
 	plan tests => 1;

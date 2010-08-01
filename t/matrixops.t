@@ -37,10 +37,13 @@ ok(all($perm == pdl(2,1,0)));            # permutation is right
 $l = $lu->copy; 
 my $ldiag;
 ($ldiag = $l->diagonal(0,1)) .= 1; 
-$l->slice("1:2,0") .= $l->slice("2,1") .= 0;
+my $tmp;
+($tmp = $l->slice("2,1"))   .= 0;
+($tmp = $l->slice("1:2,0")) .= 0;
 
 $u = $lu->copy; 
-$u->slice("0,1:2") .= $u->slice("1,2") .= 0;
+($tmp = $u->slice("1,2"))   .= 0;
+($tmp = $u->slice("0,1:2")) .= 0;
 
 ok(near($a,matmult($l,$u)->slice(":,-1:0"),$tol)); # LU = A (after depermutation)
 
@@ -55,7 +58,7 @@ ok($lu->flat->abs->at(-1) < $tol);
 ### Check inversion -- this also checks lu_backsub
 
 $a1 = inv($a,$opt={s=>1,lu=>\@a});
-$identity = zeroes(3,3); $identity->diagonal(0,1)++;
+$identity = zeroes(3,3); ($tmp = $identity->diagonal(0,1))++;
 
 ok(defined $a1);
 ok(ref ($opt->{lu}->[0]) eq 'PDL');

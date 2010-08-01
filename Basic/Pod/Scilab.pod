@@ -51,7 +51,7 @@ interactive shell and you can use a Perl IDE to develop PDL programs.
 
 =head2 PDL interactive shell
 
-To start the interactive shell, open a terminal and run C<perldl>.
+To start the interactive shell, open a terminal and run C<perldl> or C<pdl2>.
 As in Scilab, the interactive shell is the best way to learn the
 language. To exit the shell, type C<exit>, just like Scilab.
 
@@ -61,7 +61,7 @@ One popular IDE for Perl is caleld Padre (L<http://padre.perlide.org>).
 It is cross platform and easy to use.
 
 Whenever you write a stand-alone PDL program (i.e. outside the
-C<perldl> shell) you must start the program with C<use PDL;>.
+C<perldl> or C<pdl2> shells) you must start the program with C<use PDL;>.
 This command imports the PDL module into Perl. Here is a sample
 PDL program:
 
@@ -152,13 +152,11 @@ Scilab:
 
 PerlDL:
 
- perldl> $a = 12    # No output.
- perldl> print $a   # Print object.
+ pdl> $a = 12    # No output.
+ pdl> print $a   # Print object.
  12
- perldl> p $a       # "p" is a shorthand for "print" in the shell.
+ pdl> p $a       # "p" is a shorthand for "print" in the shell.
  12
- perldl>
-
 
 =back
 
@@ -197,17 +195,17 @@ Use the "pdl" constructor to create a new I<piddle>.
 Notice that in PDL the parenthesis in a function call are often optional.
 It is important to keep an eye out for possible ambiguities. For example:
 
-  perldl> p zeros 2, 2 + 2
+  pdl> p zeros 2, 2 + 2
 
 Should this be interpreted as C<zeros(2,2) + 2> or as C<zeros 2, (2+2)>?
 Both are valid statements:
 
-  perldl> p zeros(2,2) + 2
+  pdl> p zeros(2,2) + 2
   [
    [2 2]
    [2 2]
   ]
-  perldl> p zeros 2, (2+2)
+  pdl> p zeros 2, (2+2)
   [
    [0 0]
    [0 0]
@@ -223,7 +221,7 @@ to use parentheses to make your code unambiguous.
   Scilab:   --> linspace(2,10,5)
             ans = 2.  4.  6.  8.  10.
   
-  PerlDL:   perldl> p zeroes(5)->xlinvals(2,10)
+  PerlDL:   pdl> p zeroes(5)->xlinvals(2,10)
             [2 4 6 8 10]
 
 B<Explanation>: Start with a 1-dimensional piddle of 5 elements and give
@@ -232,7 +230,7 @@ it equally spaced values from 2 to 10.
 Scilab has a single function call for this. On the other hand, PDL's
 method is more flexible:
 
-  perldl> p zeros(5,5)->xlinvals(2,10)
+  pdl> p zeros(5,5)->xlinvals(2,10)
   [
    [ 2  4  6  8 10]
    [ 2  4  6  8 10]
@@ -240,7 +238,7 @@ method is more flexible:
    [ 2  4  6  8 10]
    [ 2  4  6  8 10]
   ]
-  perldl> p zeros(5,5)->ylinvals(2,10)
+  pdl> p zeros(5,5)->ylinvals(2,10)
   [
    [ 2  2  2  2  2]
    [ 4  4  4  4  4]
@@ -248,7 +246,7 @@ method is more flexible:
    [ 8  8  8  8  8]
    [10 10 10 10 10]
   ]
-  perldl> p zeros(3,3,3)->zlinvals(2,6)
+  pdl> p zeros(3,3,3)->zlinvals(2,6)
   [
    [
     [2 2 2]
@@ -279,7 +277,7 @@ are two important differences:
 
   Scilab                         PerlDL
   ------                         ------
-  --> A                           perldl> p $A
+  --> A                           pdl> p $A
   A =                            [
        1.  2.  3.                 [1 2 3]
        4.  5.  6.                 [4 5 6]
@@ -287,13 +285,13 @@ are two important differences:
                                  ]
   -------------------------------------------------------
   (row = 2, col = 1)             (x = 0, y = 1)
-  --> A(2,1)                      perldl> p $A(0,1)
+  --> A(2,1)                      pdl> p $A(0,1)
   ans =                          [
          4.                       [4]
                                  ]
   -------------------------------------------------------
   (row = 2 to 3, col = 1 to 2)   (x = 0 to 1, y = 1 to 2)
-  --> A(2:3,1:2)                  perldl> p $A(0:1,1:2)
+  --> A(2:3,1:2)                  pdl> p $A(0:1,1:2)
   ans =                          [
          4.  5.                   [4 5]
          7.  8.                   [7 8]
@@ -379,16 +377,16 @@ PDL offers two functions for each feature.
 The B<long name> works over a dimension, while the B<short name>
 works over the entire piddle.
 
-  perldl> p $A = pdl [ [1,5,4] , [4,2,1] ]
+  pdl> p $A = pdl [ [1,5,4] , [4,2,1] ]
   [
    [1 5 4]
    [4 2 1]
   ]
-  perldl> p $A->maximum
+  pdl> p $A->maximum
   [5 4]
-  perldl> p $A->transpose->maximum
+  pdl> p $A->transpose->maximum
   [4 5 4]
-  perldl> p $A->max
+  pdl> p $A->max
   5
 
 =back
@@ -408,8 +406,8 @@ in Scilab that don't occur in PDL:
 
   Scilab                       PerlDL
   ------                       ------
-  --> vector = [1,2,3,4];       perldl> $vector = pdl [1,2,3,4]
-  --> size(vector)              perldl> p $vector->dims
+  --> vector = [1,2,3,4];       pdl> $vector = pdl [1,2,3,4]
+  --> size(vector)              pdl> p $vector->dims
   ans = 1 4                    4
 
 Scilab sees C<[1,2,3,4]> as a 2D matrix (1x4 matrix). PDL sees it
@@ -419,22 +417,22 @@ as a 1D vector: A single dimension of size 4.
 
   Scilab                       PerlDL
   ------                       ------
-  --> A = ones(4,1,1);          perldl> $A = ones 4,1,1
-  --> size(A)                   perldl> p $A->dims
+  --> A = ones(4,1,1);          pdl> $A = ones 4,1,1
+  --> size(A)                   pdl> p $A->dims
   ans = 4 1                    4 1 1
 
 =item And Scilab treats a 4x1x1 matrix differently from a 1x1x4 matrix.
 
   Scilab                       PerlDL
   ------                       ------
-  --> A = ones(1,1,4);          perldl> $A = ones 1,1,4
-  --> size(A)                   perldl> p $A->dims
+  --> A = ones(1,1,4);          pdl> $A = ones 1,1,4
+  --> size(A)                   pdl> p $A->dims
   ans = 1 1 4                  1 1 4
 
 =item Scilab has no direct syntax for N-D arrays.
 
-  perldl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
-  perldl> p $A->dims
+  pdl> $A = pdl [ [[1,2,3],[4,5,6]], [[2,3,4],[5,6,7]] ]
+  pdl> p $A->dims
   3 2 2
 
 =item Feature support.
@@ -445,8 +443,8 @@ supported by N-dimensional piddles. There is usually no distinction:
 
   Scilab                       PerlDL
   ------                       ------
-  --> A = ones(3,3,3);         perldl> $A = ones(3,3,3);
-  --> A'                       perldl> transpose $A
+  --> A = ones(3,3,3);         pdl> $A = ones(3,3,3);
+  --> A'                       pdl> transpose $A
       => ERROR                         => OK
 
 =back
@@ -680,9 +678,9 @@ Perl hashes are similar to Scilab's structure arrays:
   
   PerlDL
   ------
-  perldl> %drink = ( type => 'coke' , size => 'large', mypiddle => ones(3,3,3) )
-  perldl> $drink{type} = 'sprite'
-  perldl> $drink{price} = 12   # Add new field to hash.
+  pdl> %drink = ( type => 'coke' , size => 'large', mypiddle => ones(3,3,3) )
+  pdl> $drink{type} = 'sprite'
+  pdl> $drink{price} = 12   # Add new field to hash.
 
 Notice that Perl hashes start with the "%" prefix instead of the "@" for
 arrays and "$" used by piddles.

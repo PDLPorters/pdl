@@ -1,5 +1,6 @@
 # -*-perl-*-
 use PDL::LiteF;
+use PDL::Config;
 use Test::More;
 my $ntests;
 BEGIN {

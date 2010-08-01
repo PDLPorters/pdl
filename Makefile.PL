@@ -1,6 +1,6 @@
 # Build the whole PDL distribtuion
 
-use 5.006_002;      # explicitly require 5.6.2 or above
+use 5.008_000;      # explicitly require 5.8.x or above
 
 use ExtUtils::MakeMaker;
 
@@ -288,7 +288,7 @@ sub make_Types_pm {
   die "Types.pm.PL not found in Basic/Core"
     unless -f 'Basic/Core/Types.pm.PL';
   my $usebvals = $PDL::Config{WITH_BADVAL} ? "BADVALS=1" : "";
-  system "$Config{perlpath} Basic/Core/Types.pm.PL $usebvals";
+  system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals);
   die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
 }
 
@@ -404,6 +404,11 @@ unless ( $seen_pdlconf ) {
 getpdl_config($pdl_conf_file);
 $seen_f77conf = check_f77conf($seen_f77conf);
 
+# Check environment for SKIP_KNOWN_PROBLEMS
+if (!defined($PDL::Config{SKIP_KNOWN_PROBLEMS}) and defined($ENV{SKIP_KNOWN_PROBLEMS})) {
+   $PDL::Config{SKIP_KNOWN_PROBLEMS} = $ENV{SKIP_KNOWN_PROBLEMS};
+   warn "Makefile.PL: setting SKIP_KNOWN_PROBLEMS Config from environment value: $ENV{SKIP_KNOWN_PROBLEMS}";
+}
 # Add check for POGL if USE_POGL is enabled
 if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
    eval "use OpenGL $PDL::Config{POGL_VERSION} qw();";
@@ -443,6 +448,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 
 @prereq = (
 	   'Astro::FITS::Header' => 0,
+           'Convert::UU'         => 0,         # for PDL::IO::Dumper
            'Data::Dumper'        => 2.121,     # for PDL::IO::Dumper
 	   'File::Spec'          => 0.6,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
@@ -478,13 +484,17 @@ if($Config{archname}=~m/x86_64/) {
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, #so that the script docs are picked up
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
-                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)'},
+                              'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
 	      'CCFLAGS' => $ccflags,
-	      'linkext'  => {LINKTYPE => ''},  # No linking required
+	      'linkext'  => { LINKTYPE => '' },  # No linking required
                                                # in this directory
-	      'dist'     => { COMPRESS => 'gzip', SUFFIX => 'gz'},
+	      'dist'     => { COMPRESS => 'gzip',
+                              SUFFIX   => 'gz',
+                              PREOP    => ($^O !~ /mswin32/i) ?
+                                           q[git log --stat --since='29 Apr 2009' > $(DISTNAME)-$(VERSION)/Changes] :
+                                           '@ :' },
 	      'clean' => {
 		  'FILES' => $cleanup .
 		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .

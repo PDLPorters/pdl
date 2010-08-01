@@ -212,14 +212,14 @@ void update_col(WINDOW *win, int x, int ioff, int joff,
 
 void browse(int type, int nc, int nr, void *in)
 {
-  WINDOW *stdscr, *wmenu, *wscroll, *warray, *whlab, *wvlab, *wtmp;
+  WINDOW *pdlscr, *wmenu, *wscroll, *warray, *whlab, *wvlab, *wtmp;
   char s[CHBUF],echobuf[CHBUF],line[CHBUF];
   chtype ch;
   int i,j,eps,ioff,joff,iecho;
   int ncols, nrows, mycols;
   extern int colwid, dcols, drows, width[];
 
-  stdscr = initscr();  /* sets LINES, COLS (which aren't macro constants...) */
+  pdlscr = initscr();  /* sets LINES, COLS (which aren't macro constants...) */
   clear();  /* Clear the screen before we start drawing */
 
   colwid = width[type];
@@ -233,20 +233,20 @@ void browse(int type, int nc, int nr, void *in)
   cbreak();
   noecho();
   nonl();
-  intrflush(stdscr,FALSE);
-  keypad(stdscr,TRUE);
+  intrflush(pdlscr,FALSE);
+  keypad(pdlscr,TRUE);
   /* Menu bar */
-  wmenu  = subwin(stdscr,1,COLS,0,0);
-  wvlab  = subwin(stdscr,1,mycols,1,HLAB);
-  wscroll= subwin(stdscr,drows,mycols+HLAB,2,0);
+  wmenu  = subwin(pdlscr,1,COLS,0,0);
+  wvlab  = subwin(pdlscr,1,mycols,1,HLAB);
+  wscroll= subwin(pdlscr,drows,mycols+HLAB,2,0);
   warray = subwin(wscroll,drows,mycols,2,HLAB);
   whlab  = subwin(wscroll,drows,HLAB,2,0);
 
   keypad(warray,TRUE);
-  scrollok(stdscr,TRUE);
+  scrollok(pdlscr,TRUE);
   scrollok(wscroll,TRUE);
 
-  wmenu  = subwin(stdscr,1,COLS,0,0);
+  wmenu  = subwin(pdlscr,1,COLS,0,0);
 
   sprintf(s,"Perldl data browser: type %d, (%d,%d), type q to quit\n",
 	  type,nc,nr);

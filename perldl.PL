@@ -54,7 +54,8 @@ $PERLDL::ESCAPE = '#'; 		# Default shell escape
 $PERLDL::HISTFILESIZE = 500;    # Number of lines to keep in history
 $PERLDL::MULTI = 1;             # Enable multi-lines by default
 $PERLDL::NO_EOF = 0;            # Disable EOF protection by default
-$PERLDL::PROMPT = "perldl> ";
+$PERLDL::NO_EOF = 1 if $^O =~ 'MSWin';  # ...but enable for windows 
+$PERLDL::PROMPT = "pdl> ";
 $PERLDL::PAGER  = (exists $ENV{PAGER} ? $ENV{PAGER} : 'more');
 				# Default output paging program
 $PERLDL::PAGE   = 0;
@@ -444,7 +445,7 @@ EOD
 
 } # sub: demo
 
-$SIG{'INT'} = sub {die "Ctrl-C detected\n"}; # Ctrl-C handler
+$SIG{'INT'} = sub { die "Ctrl-C detected\n" }; # Ctrl-C handler
 
 
 my $preproc_warned = 0;
@@ -578,6 +579,7 @@ sub process_input {
 		 if($PERLDL::NO_EOF && -t STDIN ) {
 		     print STDERR "EOF ignored. ('q' or 'exit' to quit.  \$PERLDL::NO_EOF = $PERLDL::NO_EOF)\n";
 		 } else {
+		     print STDERR "EOF detected, exiting shell.\n";
 		     exit 0;
 		 }
 	     }
@@ -1073,7 +1075,7 @@ supported.
 
 =item *
 
-$PERLDL::NO_EOF - default value 0
+$PERLDL::NO_EOF - default value 0 / 1 on MSWin32
 
 Protects against accidental use of "^D" from the terminal.  If this is
 set to a true value, then you can't accidentally exit perldl by typing

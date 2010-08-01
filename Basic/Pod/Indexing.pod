@@ -21,8 +21,8 @@ The values of a piddle are stored compactly as typed values in a single block of
 not (as in a normal Perl list-of-lists) as individual Perl scalars.
 
 In the sections that follow many "methods" are called out -- these are Perl operators
-that apply to PDLs.  From the L<perldl|perldl> shell, you can find out more about each
-method by typing "?" followed by the method name.
+that apply to PDLs.  From the L<perldl|perldl> (or L<pdl2|PDL::Perldl2>) shell, you
+can find out more about each method by typing "?" followed by the method name.
 
 =head2 Dimension lists 
 
@@ -206,8 +206,8 @@ specific. Suppose we are working with a 2D pdl representing a 5x5
 image (its unusually small so that we can print it without filling
 several screens full of digits ;).
 
- perldl> $im = sequence(5,5)
- perldl> p $im
+ pdl> $im = sequence(5,5)
+ pdl> p $im
 
  [
   [ 0  1  2  3  4]
@@ -217,7 +217,7 @@ several screens full of digits ;).
   [20 21 22 23 24]
  ]                                                                                
 
- perldl> help vars
+ pdl> help vars
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem
@@ -227,7 +227,7 @@ several screens full of digits ;).
 [ here it might be appropriate to quickly talk about the 
 C<help vars> command
 that provides information about pdls in the interactive
-C<perldl> shell that comes with pdl.
+C<perldl> or C<pdl2> shell that comes with PDL.
 ]
 
 Now suppose we want to create a 1-D pdl that just references
@@ -239,10 +239,10 @@ create a pdl that represents a rectangular region of the image with
 top and bottom reversed. All these effects (and many more) can be
 easily achieved with the powerful slice function:
 
- perldl> $line = $im->slice(':,(2)')
- perldl> $even = $im->slice(':,1:-1:2')
- perldl> $area = $im->slice('3:4,3:1')
- perldl> help vars  # or just PDL->vars
+ pdl> $line = $im->slice(':,(2)')
+ pdl> $even = $im->slice(':,1:-1:2')
+ pdl> $area = $im->slice('3:4,3:1')
+ pdl> help vars  # or just PDL->vars
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem
@@ -257,25 +257,25 @@ equivalent) interpretation pointers to data of C<$im>.  Operations on
 those virtual pdls access only those portions of the data as specified
 by the argument to slice. So we can just print line 2:
 
- perldl> p $line
+ pdl> p $line
  [10 11 12 13 14]
 
 Also note the difference in the "Flow State" of C<$area> above
 and below:
 
- perldl> p $area
- perldl> help $area
+ pdl> p $area
+ pdl> help $area
  This variable is Double D [2,3]                VC           0.00Kb              
 
 The following demonstrates that C<$im> and C<$line> really behave as you
 would exspect from a pointer-like object (or in the dataflow picture:
 the changes in C<$line>'s data are propagated back to C<$im>):
 
- perldl> $im++
- perldl> p $line
+ pdl> $im++
+ pdl> p $line
  [11 12 13 14 15]
- perldl> $line += 2
- perldl> p $im
+ pdl> $line += 2
+ pdl> p $im
 
  [
   [ 1  2  3  4  5]
@@ -322,9 +322,9 @@ Use only index C<n>. The dimension of this index in the
 resulting virtual pdl is 1. An example involving those first two index
 formats:
 
- perldl> $column = $im->slice('2,:')
- perldl> $row = $im->slice(':,0')
- perldl> p $column
+ pdl> $column = $im->slice('2,:')
+ pdl> $row = $im->slice(':,0')
+ pdl> p $column
 
  [
   [ 3]
@@ -334,16 +334,16 @@ formats:
   [23]
  ]                                                                               
 
- perldl> p $row
+ pdl> p $row
 
  [
   [1 2 3 4 5]
  ]                                                                               
 
- perldl> help $column
+ pdl> help $column
  This variable is Double D [1,5]                VC           0.00Kb
 
- perldl> help $row
+ pdl> help $row
  This variable is Double D [5,1]                VC           0.00Kb              
 
 =item '(n)'
@@ -354,11 +354,11 @@ removed). The distinction between this case and the previous one
 becomes important in assignments where left and right hand side have to
 have appropriate dimensions.
 
- perldl> $line = $im->slice(':,(0)')
- perldl> help $line
+ pdl> $line = $im->slice(':,(0)')
+ pdl> help $line
  This variable is Double D [5]                  -C           0.00Kb
 
- perldl> p $line
+ pdl> p $line
  [1 2 3 4 5]          
 
 Spot the difference to the previous example?
@@ -370,7 +370,7 @@ take the range of indices from C<n1> to C<n2> with step
 C<n3>. An example for the use of this format is the previous
 definition of the subimage composed of even lines.
 
- perldl> $even = $im->slice(':,1:-1:2')
+ pdl> $even = $im->slice(':,1:-1:2')
 
 This example also demonstrates that negative indices work like they do
 for normal perl style arrays by counting backwards from the end of the
@@ -458,10 +458,10 @@ dataflow, where C<.=> breaks the connection to the parent? ].
 
 E.g.
 
- perldl> $line = $im->slice(':,(2)')
- perldl> $line = zeroes(5);
- perldl> $line++;
- perldl> p $im
+ pdl> $line = $im->slice(':,(2)')
+ pdl> $line = zeroes(5);
+ pdl> $line++;
+ pdl> p $im
 
  [
   [ 1  2  3  4  5]
@@ -471,15 +471,15 @@ E.g.
   [21 22 23 24 25]
  ]
 
- perldl> p $line
+ pdl> p $line
  [1 1 1 1 1]
 
 But using C<.=>
 
- perldl> $line = $im->slice(':,(2)')
- perldl> $line .= zeroes(5)
- perldl> $line++
- perldl> p $im
+ pdl> $line = $im->slice(':,(2)')
+ pdl> $line .= zeroes(5)
+ pdl> $line++
+ pdl> p $im
 
  [
   [ 1  2  3  4  5]
@@ -489,12 +489,12 @@ But using C<.=>
   [21 22 23 24 25]
  ]                                                                               
 
- perldl> print $line
+ pdl> print $line
  [1 1 1 1 1]
 
 Also, you can substitute
 
- perldl> $line .= 0;
+ pdl> $line .= 0;
 
 for the assignment above (the zero is converted to a scalar piddle,
 with no dimensions so it can be assigned to any piddle).
@@ -503,11 +503,11 @@ Related to the assignment feature is a little trap for the unwary:
 since perl currently does not allow subroutines to return lvalues the
 following shortcut of the above is flagged as a compile time error:
 
- perldl> $im->slice(':,(2)') .= zeroes(5)->xvals->float
+ pdl> $im->slice(':,(2)') .= zeroes(5)->xvals->float
 
 instead you have to say something like
 
- perldl> ($pdl = $im->slice(':,(2)')) .= zeroes(5)->xvals->float
+ pdl> ($pdl = $im->slice(':,(2)')) .= zeroes(5)->xvals->float
 
 We hope that future versions of perl will allow the simpler
 syntax (i.e. allow subroutines to return lvalues).
@@ -669,8 +669,8 @@ series and has only been arranged that way because it was digitized
 with a frame grabber. So to have it again as an array of time
 sequences you say
 
- perldl> $seqs = $stack->clump(2)
- perldl> help vars
+ pdl> $seqs = $stack->clump(2)
+ pdl> help vars
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem
@@ -1096,11 +1096,11 @@ We have already mentioned that all basic operations support threading
 and assignment is no exception. So here are a couple of threaded
 assignments
 
- perldl> $im = zeroes(byte, 10,20)
- perldl> $line = exp(-rvals(10)**2/9)
+ pdl> $im = zeroes(byte, 10,20)
+ pdl> $line = exp(-rvals(10)**2/9)
  # threaded assignment
- perldl> $im .= $line      # set every line of $im to $line
- perldl> $im2 .= 5         # set every element of $im2 to 5
+ pdl> $im .= $line      # set every line of $im to $line
+ pdl> $im2 .= 5         # set every element of $im2 to 5
 
 By now you probably see how it works and what it does, don't you?
 
@@ -1119,7 +1119,7 @@ So here is the example:
  # from a palette image (represented by a lookup table $palette and
  # an color-index image $im)
  # you can say just dummy(0) since the rules of threading make it fit
- perldl> index($palette->xchg(0,1),
+ pdl> index($palette->xchg(0,1),
                $im->long->dummy(0,($palette->dim)[0]),
                ($res=null));
 
@@ -1156,7 +1156,7 @@ practice this is actually why rule R3 has been introduced (the part
 that makes dimensions of size 1 fit to the thread loop dim size). So
 we can just say
 
- perldl> index($palette->xchg(0,1),$im->long->dummy(0),($res=null));
+ pdl> index($palette->xchg(0,1),$im->long->dummy(0),($res=null));
 
 Again, you can convince yourself that this routine will create the
 right output if called with a pixel (C<$im> is 0D), a line (C<$im> is 1D),
@@ -1248,9 +1248,9 @@ usage of the former:
  #  but can be used to show that $mat += $line is different from
  #                               $mat->thread(0) += $line
  # explicit threading to add a vector to each column of a matrix
- perldl> $mat  = zeroes(4,3)
- perldl> $line = pdl (3.1416,2,-2)
- perldl> ($tmp = $mat->thread(0)) += $line
+ pdl> $mat  = zeroes(4,3)
+ pdl> $line = pdl (3.1416,2,-2)
+ pdl> ($tmp = $mat->thread(0)) += $line
 
 In this example, C<$mat-E<gt>thread(0)> tells PDL that you want the second
 dimension of this pdl to be threaded over first leading to a thread
@@ -1444,11 +1444,9 @@ Example 4:
  # calculate a couple of bounding boxes
  # $bb will hold BB as [xmin,xmax],[ymin,ymax],[zmin,zmax]
  # we use again thread and unthread to shuffle dimensions around
- perldl> $bb = zeroes(double, 2,3 );
- perldl> minimum($vertices->thread(0)->clump->unthread(1),
-                 $bb->slice('(0),:'));
- perldl> maximum($vertices->thread(0)->clump->unthread(1),
-                 $bb->slice('(1),:'));
+ pdl> $bb = zeroes(double, 2,3 );
+ pdl> minimum($vertices->thread(0)->clump->unthread(1), $bb->slice('(0),:'));
+ pdl> maximum($vertices->thread(0)->clump->unthread(1), $bb->slice('(1),:'));
 
 
 Example 5:

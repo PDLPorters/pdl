@@ -330,9 +330,9 @@ but still useful as an example!).
 
 Consider the following situation:
 
- perldl> $a = rvals(7,7,Centre=>[3,4]);
- perldl> $b = $a->slice('2:4,3:5');
- perldl> ? vars
+ pdl> $a = rvals(7,7,Centre=>[3,4]);
+ pdl> $b = $a->slice('2:4,3:5');
+ pdl> ? vars
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem
@@ -343,13 +343,13 @@ Consider the following situation:
 Now, if I suddenly decide that C<$a> should be flagged as possibly
 containing bad values, using
 
- perldl> $a->baddata(1)
+ pdl> $a->baddata(1)
 
 then I want the state of C<$b> - it's I<child> - to be changed as
 well (since it will either share or inherit some of C<$a>'s data and
 so be also I<bad>), so that I get a 'B' in the I<State> field:
 
- perldl> ? vars                    
+ pdl> ? vars                    
  PDL variables in package main::
 
  Name         Type   Dimension       Flow  State          Mem

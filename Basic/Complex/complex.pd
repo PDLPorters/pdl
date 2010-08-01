@@ -11,9 +11,11 @@ pp_beginwrap; # required for overload to work
 pp_bless('PDL::Complex');
 
 pp_addpm {At => Top}, <<'EOD';
-	 use PDL::Slices;
-	 use PDL::Types;
-	 use PDL::Bad;
+   use PDL::Slices;
+   use PDL::Types;
+   use PDL::Bad;
+
+   use vars qw($sep $sep2);
 EOD
 
 
@@ -80,63 +82,42 @@ come across!
 
 The complex constant five is equal to C<pdl(1,0)>:
 
-   perldl> p $x = r2C 5
-   [5 0]
+   pdl> p $x = r2C 5
+   5 +0i 
 
 Now calculate the three roots of of five:
 
-   perldl> p $r = Croots $x, 3 
-
-   [
-    [  1.7099759           0]
-    [-0.85498797   1.4808826]
-    [-0.85498797  -1.4808826]
-   ]
+   pdl> p $r = Croots $x, 3 
+   [1.70998 +0i  -0.854988 +1.48088i  -0.854988 -1.48088i] 
 
 Check that these really are the roots of unity:
 
-   perldl> p $r ** 3
-
-   [
-    [             5              0]
-    [             5 -3.4450524e-15]
-    [             5 -9.8776239e-15]
-   ]
+   pdl> p $r ** 3
+   [5 +0i  5 -1.22465e-15i  5 -7.65714e-15i] 
 
 Duh! Could be better. Now try by multiplying C<$r> three times with itself:
 
-   perldl> p $r*$r*$r
-
-   [
-    [             5              0]
-    [             5 -2.8052647e-15]
-    [             5 -7.5369398e-15]
-   ]
+   pdl> p $r*$r*$r
+   [5 +0i  5 -4.72647e-15i  5 -7.53694e-15i] 
 
 Well... maybe C<Cpow> (which is used by the C<**> operator) isn't as
 bad as I thought. Now multiply by C<i> and negate, which is just a very
 expensive way of swapping real and imaginary parts.
 
-   perldl> p -($r*i)
-
-   [
-    [         -0   1.7099759]
-    [  1.4808826 -0.85498797]
-    [ -1.4808826 -0.85498797]
-   ]
+   pdl> p -($r*i)
+   [0 -1.70998i  1.48088 +0.854988i  -1.48088 +0.854988i] 
 
 Now plot the magnitude of (part of) the complex sine. First generate the
 coefficients:
 
-   perldl> $sin = i * zeroes(50)->xlinvals(2,4)
-                    + zeroes(50)->xlinvals(0,7)
+   pdl> $sin = i * zeroes(50)->xlinvals(2,4) + zeroes(50)->xlinvals(0,7)
 
 Now plot the imaginary part, the real part and the magnitude of the sine
 into the same diagram:
 
-   perldl> line im sin $sin; hold
-   perldl> line re sin $sin
-   perldl> line abs sin $sin
+   pdl> line im sin $sin; hold
+   pdl> line re sin $sin
+   pdl> line abs sin $sin
 
 Sorry, but I didn't yet try to reproduce the diagram in this
 text. Just run the commands yourself, making sure that you have loaded
@@ -254,22 +235,22 @@ to the real parent works. Use C<sever> on the result if you don't want this.
 
 use Carp;
 sub cplx($) {
-  return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
-  croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
+   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+   croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
    bless $_[0]->slice('');
 }
 
 sub complex($) {
-  return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
-  croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
-  bless $_[0];
+   return $_[0] if UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP if just piddle
+   croak "first dimsize must be 2" unless $_[0]->dims > 0 && $_[0]->dim(0) == 2;
+   bless $_[0];
 }
 
 *PDL::cplx = \&cplx;
 *PDL::complex = \&complex;
 
 sub real($) {
-  return $_[0] unless UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP unless complex
+   return $_[0] unless UNIVERSAL::isa($_[0],'PDL::Complex'); # NOOP unless complex
    bless $_[0]->slice(''), 'PDL';
 }
 
@@ -954,254 +935,274 @@ sub cd(;@) {
 };
 
 
-$PDL::Complex::_STRINGIZING = 0;
+{
 
-sub PDL::Complex::string {
-    my($self,$format1,$format2)=@_;
-    my @dims = $self->dims;
-    return PDL::string($self) if ($dims[0] != 2);
+   our $floatformat  = "%4.4g";    # Default print format for long numbers
+   our $doubleformat = "%6.6g";
 
-    if($PDL::Complex::_STRINGIZING) {
-    	return "ALREADY_STRINGIZING_NO_LOOPS";
-    }
-    local $PDL::Complex::_STRINGIZING = 1;
-    my $ndims = $self->getndims;
-    if($self->nelem > 10000) {
-    	return "TOO LONG TO PRINT";
-    }
-    if ($ndims==0){
-    	PDL::Core::string($self,$format1);
-    }
-    return "Null" if $self->isnull;
-    return "Empty" if $self->isempty; # Empty piddle
-    local $sep  = $PDL::use_commas ? ", " : "  ";
-    local $sep2 = $PDL::use_commas ? ", " : "";
-    if ($ndims < 3) {
-       return str1D($self,$format1,$format2);
-    }
-    else{
-       return strND($self,$format1,$format2,0);
-    }
-}
+   $PDL::Complex::_STRINGIZING = 0;
 
+   sub PDL::Complex::string {
+      my($self,$format1,$format2)=@_;
+      my @dims = $self->dims;
+      return PDL::string($self) if ($dims[0] != 2);
 
-sub strND {
-    my($self,$format1,$format2,$level)=@_;
-    my @dims = $self->dims;
-
-    if ($#dims==2) {
-       return str2D($self,$format1,$format2,$level);
-    }
-    else {
-       my $secbas = join '',map {":,"} @dims[0..$#dims-1];
-       my $ret="\n"." "x$level ."["; my $j;
-       for ($j=0; $j<$dims[$#dims]; $j++) {
-       	   my $sec = $secbas . "($j)";
-
-           $ret .= strND($self->slice($sec),$format1,$format2, $level+1);
-	   chop $ret; $ret .= $sep2;
-       }
-       chop $ret if $PDL::use_commas;
-       $ret .= "\n" ." "x$level ."]\n";
-       return $ret;
-    }
-}
-
-sub str1D {
-    my($self,$format1,$format2)=@_;
-    barf "Not 1D" if $self->getndims() > 2;
-    my $x = PDL::Core::listref_c($self);
-    my ($ret,$dformat,$t, $i);
-
-    my $dtype = $self->get_datatype();
-    $dformat = $PDL::Complex::floatformat  if $dtype == $PDL_F;
-    $dformat = $PDL::Complex::doubleformat if $dtype == $PDL_D;
-
-    $ret = "[" if $self->getndims() > 1;
-    my $badflag = $self->badflag();
-    for($i=0; $i<=$#$x; $i++){
-	$t = $$x[$i];
-	if ( $badflag and $t eq "BAD" ) {
-	    # do nothing
-        } elsif ($format1) {
-	  $t =  sprintf $format1,$t;
-	} else{ # Default
-	    if ($dformat && length($t)>7) { # Try smaller
-		$t = sprintf $dformat,$t;
-	    }
-	}
-       $ret .= $i % 2 ? 
-		$i<$#$x ? $t."i$sep" : $t."i"
-       			: substr($$x[$i+1],0,1) eq "-" ?  "$t " : $t." +";
-    }
-    $ret.="]" if $self->getndims() > 1;
-    return $ret;
-}
+      if($PDL::Complex::_STRINGIZING) {
+         return "ALREADY_STRINGIZING_NO_LOOPS";
+      }
+      local $PDL::Complex::_STRINGIZING = 1;
+      my $ndims = $self->getndims;
+      if($self->nelem > 10000) {
+         return "TOO LONG TO PRINT";
+      }
+      if ($ndims==0){
+         PDL::Core::string($self,$format1);
+      }
+      return "Null" if $self->isnull;
+      return "Empty" if $self->isempty; # Empty piddle
+      local $sep  = $PDL::use_commas ? ", " : "  ";
+      local $sep2 = $PDL::use_commas ? ", " : "";
+      if ($ndims < 3) {
+         return str1D($self,$format1,$format2);
+      }
+      else{
+         return strND($self,$format1,$format2,0);
+      }
+   }
 
 
-
-
-sub str2D{
-    my($self,$format1,$format2,$level)=@_;
-    my @dims = $self->dims();
-    barf "Not 2D" if scalar(@dims)!=3;
-    my $x = PDL::Core::listref_c($self);
-    my ($i, $f, $t, $len1, $len2, $ret);
-
-    my $dtype = $self->get_datatype();
-    my $badflag = $self->badflag();
-
-    my $findmax = 0;
-
-    if (!defined $format1 || !defined $format2 || 
-    		$format1 eq '' || $format2 eq '') { 
-	$len1= $len2 = 0;
-
-	if ( $badflag ) {
-	    for($i=0; $i<=$#$x; $i++){
-		if ( $$x[$i] eq "BAD" ){ 
-			$f = 3;
-		} 
-		else{
-			$f = length($$x[$i]);
-		}
-		if ($i % 2){
-			$len2 = $f if $f > $len2;
-		}
-		else{
-			$len1 = $f if $f > $len1;
-		}
-	    } 
-	} else {
-		for ($i=0; $i<=$#$x; $i++) {
-	    		$f = length($$x[$i]); 
-			if ($i % 2){
-				$len2 = $f if $f > $len2;
-			}
-			else{
-				$len1 = $f if $f > $len1;
-			}
-		}
-	}
-
-	$format1 = '%'.$len1.'s';
-	$format2 = '%'.$len2.'s';
-	
-	if ($len1 > 5){
-	    if ($dtype == $PDL_F) {
-		$format1 = $PDL::Complex::floatformat;
-		$findmax = 1;
-	    } elsif ($dtype == $PDL_D) {
-		$format1 = $PDL::Complex::doubleformat;
-		$findmax = 1;
-	    } else {
-		$findmax = 0;
-	    }
-	}
-	if($len2 > 5){
-	    if ($dtype == $PDL_F) {
-		$format2 = $PDL::Complex::floatformat;
-		$findmax = 1;
-	    } elsif ($dtype == $PDL_D) {
-		$format2 = $PDL::Complex::doubleformat;
-		$findmax = 1;
-	    } else {
-		$findmax = 0 unless $findmax;
-	    }
-	}
+    sub sum {
+       my($x) = @_;
+       my $tmp = $x->mv(0,1)->clump(0,2)->mv(1,0)->sumover;
+       return $tmp->squeeze;
     }
 
-    if($findmax) {
-	$len1 = $len2=0;
-	
-	if ( $badflag ) {
-	    for($i=0; $i<=$#$x; $i++){
-		$findmax = $i % 2;
-		if ( $$x[$i] eq 'BAD' ){ 
-			$f = 3;
-		} 
-		else{
-			$f = $findmax ? length(sprintf $format2,$$x[$i]) :
-					length(sprintf $format1,$$x[$i]);
-		}
-		if ($findmax){
-			$len2 = $f if $f > $len2;
-		}
-		else{
-			$len1 = $f if $f > $len1;
-		}
-	    } 
-	} else {
-		for ($i=0; $i<=$#$x; $i++) {
-			if ($i % 2){
-		    		$f = length(sprintf $format2,$$x[$i]); 
-				$len2 = $f if $f > $len2;
-			}
-			else{
-		    		$f = length(sprintf $format1,$$x[$i]); 
-				$len1 = $f if $f > $len1;
-			}
-		}
-	}
+   sub sumover{
+      my $m = shift;
+      PDL::Ufunc::sumover($m->xchg(0,1));
+   }
 
 
-    } # if: $findmax
+   sub strND {
+      my($self,$format1,$format2,$level)=@_;
+      my @dims = $self->dims;
 
-    $ret = "\n" . ' 'x$level . "[\n";
-    { 
-	my $level = $level+1;
-	$ret .= ' 'x$level .'[';
-	$len2 += 2;
+      if ($#dims==2) {
+         return str2D($self,$format1,$format2,$level);
+      }
+      else {
+         my $secbas = join '',map {":,"} @dims[0..$#dims-1];
+         my $ret="\n"." "x$level ."["; my $j;
+         for ($j=0; $j<$dims[$#dims]; $j++) {
+            my $sec = $secbas . "($j)";
 
-	for ($i=0; $i<=$#$x; $i++) {
-	    	$findmax = $i % 2;
-		if ($findmax){
-		    if ( $badflag and  $$x[$i] eq 'BAD' ){
-	    		#|| 
-	    		#($findmax && $$x[$i - 1 ] eq 'BAD') ||
-	    		#(!$findmax && $$x[$i +1 ] eq 'BAD')){
-				$f = "BAD";
-		    	}
-		    	else{
-				$f = sprintf $format2, $$x[$i];
-				if (substr($$x[$i],0,1) eq '-'){
-					$f.='i';
-				}
-				else{
-					$f =~ s/(\s*)(.*)/+$2i/;
-				}
-      			}
-			$t = $len2-length($f);
-		}
-		else{
-		    	if ( $badflag and  $$x[$i] eq 'BAD' ){
-				$f = "BAD";
-		    	}
-		    	else{
-				$f = sprintf $format1, $$x[$i];
-		       		$t =  $len1-length($f);
-			}
-		}
+            $ret .= strND($self->slice($sec),$format1,$format2, $level+1);
+            chop $ret; $ret .= $sep2;
+         }
+         chop $ret if $PDL::use_commas;
+         $ret .= "\n" ." "x$level ."]\n";
+         return $ret;
+      }
+   }
 
-	    $f = ' 'x$t.$f if $t>0;
 
-	    $ret .= $f;
-	    if (($i+1)%($dims[1]*2)) {
-		$ret.=$sep if $findmax;
-	    }
-	    else{ # End of output line
-		$ret.=']';
-		if ($i==$#$x) { # very last number
-		    $ret.="\n";
-		}
-		else{
-		    $ret.= $sep2."\n" . ' 'x$level .'[';
-		}
-	    }
-	}
-    }
-    $ret .= ' 'x$level."]\n";
-    return $ret;
+   # String 1D array in nice format
+   #
+   sub str1D {
+      my($self,$format1,$format2)=@_;
+      barf "Not 1D" if $self->getndims() > 2;
+      my $x = PDL::Core::listref_c($self);
+      my ($ret,$dformat,$t, $i);
+
+      my $dtype = $self->get_datatype();
+      $dformat = $PDL::Complex::floatformat  if $dtype == $PDL_F;
+      $dformat = $PDL::Complex::doubleformat if $dtype == $PDL_D;
+
+      $ret = "[" if $self->getndims() > 1;
+      my $badflag = $self->badflag();
+      for($i=0; $i<=$#$x; $i++){
+         $t = $$x[$i];
+         if ( $badflag and $t eq "BAD" ) {
+            # do nothing
+         } elsif ($format1) {
+            $t =  sprintf $format1,$t;
+         } else{ # Default
+            if ($dformat && length($t)>7) { # Try smaller
+               $t = sprintf $dformat,$t;
+            }
+         }
+         $ret .= $i % 2 ? 
+         $i<$#$x ? $t."i$sep" : $t."i"
+         : substr($$x[$i+1],0,1) eq "-" ?  "$t " : $t." +";
+      }
+      $ret.="]" if $self->getndims() > 1;
+      return $ret;
+   }
+
+
+   sub str2D {
+      my($self,$format1,$format2,$level)=@_;
+      my @dims = $self->dims();
+      barf "Not 2D" if scalar(@dims)!=3;
+      my $x = PDL::Core::listref_c($self);
+      my ($i, $f, $t, $len1, $len2, $ret);
+
+      my $dtype = $self->get_datatype();
+      my $badflag = $self->badflag();
+
+      my $findmax = 0;
+
+      if (!defined $format1 || !defined $format2 || 
+         $format1 eq '' || $format2 eq '') { 
+         $len1= $len2 = 0;
+
+         if ( $badflag ) {
+            for ($i=0; $i<=$#$x; $i++) {
+               if ( $$x[$i] eq "BAD" ) { 
+                  $f = 3;
+               } 
+               else {
+                  $f = length($$x[$i]);
+               }
+               if ($i % 2) {
+                  $len2 = $f if $f > $len2;
+               }
+               else {
+                  $len1 = $f if $f > $len1;
+               }
+            } 
+         } else {
+            for ($i=0; $i<=$#$x; $i++) {
+               $f = length($$x[$i]); 
+               if ($i % 2){
+                  $len2 = $f if $f > $len2;
+               }
+               else{
+                  $len1 = $f if $f > $len1;
+               }
+            }
+         }
+
+         $format1 = '%'.$len1.'s';
+         $format2 = '%'.$len2.'s';
+
+         if ($len1 > 5){
+            if ($dtype == $PDL_F) {
+               $format1 = $PDL::Complex::floatformat;
+               $findmax = 1;
+            } elsif ($dtype == $PDL_D) {
+               $format1 = $PDL::Complex::doubleformat;
+               $findmax = 1;
+            } else {
+               $findmax = 0;
+            }
+         }
+         if($len2 > 5){
+            if ($dtype == $PDL_F) {
+               $format2 = $PDL::Complex::floatformat;
+               $findmax = 1;
+            } elsif ($dtype == $PDL_D) {
+               $format2 = $PDL::Complex::doubleformat;
+               $findmax = 1;
+            } else {
+               $findmax = 0 unless $findmax;
+            }
+         }
+      }
+
+      if($findmax) {
+         $len1 = $len2=0;
+
+         if ( $badflag ) {
+            for($i=0; $i<=$#$x; $i++){
+               $findmax = $i % 2;
+               if ( $$x[$i] eq 'BAD' ){ 
+                  $f = 3;
+               } 
+               else{
+                  $f = $findmax ? length(sprintf $format2,$$x[$i]) :
+                  length(sprintf $format1,$$x[$i]);
+               }
+               if ($findmax){
+                  $len2 = $f if $f > $len2;
+               }
+               else{
+                  $len1 = $f if $f > $len1;
+               }
+            } 
+         } else {
+            for ($i=0; $i<=$#$x; $i++) {
+               if ($i % 2){
+                  $f = length(sprintf $format2,$$x[$i]); 
+                  $len2 = $f if $f > $len2;
+               }
+               else{
+                  $f = length(sprintf $format1,$$x[$i]); 
+                  $len1 = $f if $f > $len1;
+               }
+            }
+         }
+
+
+      } # if: $findmax
+
+      $ret = "\n" . ' 'x$level . "[\n";
+      { 
+         my $level = $level+1;
+         $ret .= ' 'x$level .'[';
+         $len2 += 2;
+
+         for ($i=0; $i<=$#$x; $i++) {
+            $findmax = $i % 2;
+            if ($findmax){
+               if ( $badflag and  $$x[$i] eq 'BAD' ){
+                  #|| 
+                  #($findmax && $$x[$i - 1 ] eq 'BAD') ||
+                  #(!$findmax && $$x[$i +1 ] eq 'BAD')){
+                  $f = "BAD";
+               }
+               else{
+                  $f = sprintf $format2, $$x[$i];
+                  if (substr($$x[$i],0,1) eq '-'){
+                     $f.='i';
+                  }
+                  else{
+                     $f =~ s/(\s*)(.*)/+$2i/;
+                  }
+               }
+               $t = $len2-length($f);
+            }
+            else{
+               if ( $badflag and  $$x[$i] eq 'BAD' ){
+                  $f = "BAD";
+               }
+               else{
+                  $f = sprintf $format1, $$x[$i];
+                  $t =  $len1-length($f);
+               }
+            }
+
+            $f = ' 'x$t.$f if $t>0;
+
+            $ret .= $f;
+            if (($i+1)%($dims[1]*2)) {
+               $ret.=$sep if $findmax;
+            }
+            else{ # End of output line
+               $ret.=']';
+               if ($i==$#$x) { # very last number
+                  $ret.="\n";
+               }
+               else{
+                  $ret.= $sep2."\n" . ' 'x$level .'[';
+               }
+            }
+         }
+      }
+      $ret .= ' 'x$level."]\n";
+      return $ret;
+   }
+
 }
 
 =head1 AUTHOR

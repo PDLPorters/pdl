@@ -15,46 +15,48 @@ use PDL;
 $SIG{__DIE__} = sub {die Carp::longmess(@_);};
 
 sub home() {
-	if(-e '/usr/bin/tput') {
-		system 'tput clear';
-	}
+   if (-e '/usr/bin/tput') {
+      system 'tput clear';
+   } elsif ( $^O eq 'MSWin32' ) {
+      system 'cls';
+   }
 }
 
 sub comment($) {
-	home();
-	print "----\n";
-	print $_[0];
-	print "---- (press enter)";
-	<>
+   home();
+   print "----\n";
+   print $_[0];
+   print "---- (press enter)";
+   <>
 }
 
 sub act($) {
-	home();
-	my $script = $_[0];
-	$script =~ s/^(\s*)output/$1print/mg;
-	print "---- Code:";
-	print $script;
-	print "---- Output:\n";
-	my $pack = (caller)[0];
+   home();
+   my $script = $_[0];
+   $script =~ s/^(\s*)output/$1print/mg;
+   print "---- Code:";
+   print $script;
+   print "---- Output:\n";
+   my $pack = (caller)[0];
 #	eval "package $pack; use PDL; $_[0]";
-	eval "package $pack; use PDL; $_[0]";
-	print "---- (press enter)";
-	print "----\nOOPS!!! Something went wrong, please make a bug report!: $@\n----\n" if $@;
-	<>
+   eval "package $pack; use PDL; $_[0]";
+   print "---- (press enter)";
+   print "----\nOOPS!!! Something went wrong, please make a bug report!: $@\n----\n" if $@;
+   <>
 }
 
 sub actnw($) {
-	home();
-	my $script = $_[0];
-	$script =~ s/^(\s*)output/$1print/mg;
-	print "---- Code:";
-	print $script;
-	print "---- Output:\n";
-	my $pack = (caller)[0];
+   home();
+   my $script = $_[0];
+   $script =~ s/^(\s*)output/$1print/mg;
+   print "---- Code:";
+   print $script;
+   print "---- Output:\n";
+   my $pack = (caller)[0];
 #	eval "package $pack; use PDL; $_[0]";
-	eval "package $pack; use PDL; $_[0]";
-	print "----\n";
-	print "----\nOOPS!!! Something went wrong, please make a bug report!: $@\n----\n" if $@;
+   eval "package $pack; use PDL; $_[0]";
+   print "----\n";
+   print "----\nOOPS!!! Something went wrong, please make a bug report!: $@\n----\n" if $@;
 }
 
 sub output {print @_}

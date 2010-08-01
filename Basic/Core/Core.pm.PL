@@ -267,7 +267,7 @@ storing a result in an existing piddle).
 
 =for example
 
- perldl> sumover sequence(10,10), $ans=null;p $ans
+ pdl> sumover sequence(10,10), $ans=null;p $ans
  [45 145 245 345 445 545 645 745 845 945]
 
 =cut
@@ -349,7 +349,7 @@ Return piddle dimensions as a perl list
 
 =for example
 
- perldl> p @tmp = dims zeroes 10,3,22
+ pdl> p @tmp = dims zeroes 10,3,22
  10 3 22
 
 =head2 ndims
@@ -371,7 +371,7 @@ Returns the number of dimensions in a piddle
 
 =for example
 
- perldl> p zeroes(10,3,22)->getndims
+ pdl> p zeroes(10,3,22)->getndims
  3
 
 =head2 dim
@@ -393,7 +393,7 @@ Returns the size of the given dimension.
 
 =for example
 
- perldl> p zeroes(10,3,22)->getdim(1)
+ pdl> p zeroes(10,3,22)->getdim(1)
  3
 
 Negative indices count from the end of the dims array.
@@ -478,7 +478,7 @@ NOTE: NOT a method! This is because get_datatype returns
 
 =for example
 
- perldl> p howbig(ushort([1..10])->get_datatype)
+ pdl> p howbig(ushort([1..10])->get_datatype)
  2
 
 
@@ -729,59 +729,58 @@ use Scalar::Util;       # for looks_like_number test
 
 # This is the code that handles string arguments.
 sub PDL::Core::new_pdl_from_string {
-	my ($new, $value, $this, $type) = @_;
-	
-	# Wrap the string in brackets [], so that the following works:
-	# $a = new PDL q[1 2 3];
-	# We'll have to check for dimensions of size one after we've eval'd
-	# the string and built a PDL from the resulting array.
-	$value = '[' . $value . ']';
+   my ($new, $original_value, $this, $type) = @_;
+   my $value = $original_value;
 
-	# some basic checks that can/should be run on everything.
-	# Make sure that each closing bracket followed by an opening bracket
-	# has a comma in between them:
-	$value =~ s/\]\s*\[/],[/g;
-	
-	# Semicolons indicate 'start a new row' and require special handling:
-	if ($value =~ /;/) {
-		$value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
-		$value =~ s/;/],[/g;
-	}
+   # Wrap the string in brackets [], so that the following works:
+   # $a = new PDL q[1 2 3];
+   # We'll have to check for dimensions of size one after we've eval'd
+   # the string and built a PDL from the resulting array.
+   $value = '[' . $value . ']';
 
-	# Remove ending decimal points and insert zeroes in front of starting
-	# decimal points. This makes the white-space-to-comma replacement
-	# in the next few lines much simpler.
-	$value =~ s/(\d)\.\s+/$1 /g;
-	$value =~ s/([^\d])\./${1}0./g;
-	
-	# make unambiguous addition/subtraction (white-space on both sides
-	# of operator) by removing white-space from both sides
-	$value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+   # some basic checks that can/should be run on everything.
+   # Make sure that each closing bracket followed by an opening bracket
+   # has a comma in between them:
+   $value =~ s/\]\s*\[/],[/g;
 
-	# Replace white-space separators with commas:
-	$value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
-	
-	# Let's see if the darn thing compiles as normal Perl code, in which
-	# case we just assume the result is a stringified bunch of nested
-	# arrays. 
-	my $val = eval $value;
-	if (ref $val eq 'ARRAY') {
-		my $to_return = PDL::Core::pdl_avref($val,$this,$type);
-		# remove potentially spurious last dimension
-		$to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
-		return $to_return;
-	}
-	else {
-#		# Let's try wrapping it in brackets, to allow for really lazy
-#		# syntax like qq[1 2 3];
-#		$val = eval '[' . $value . ']';
-#		if (ref $val eq 'ARRAY') {
-#			return PDL::Core::pdl_avref($val,$this,$type);
-#		}
-#		else {
-			barf "PDL::Core::new_pdl_from_string: I had trouble interpreting what you sent:\n@!";
-#		}
-	}
+   # Semicolons indicate 'start a new row' and require special handling:
+   if ($value =~ /;/) {
+      $value =~ s/(\[[^\]]+;[^\]]+\])/[$1]/g;
+      $value =~ s/;/],[/g;
+   }
+
+   # Remove ending decimal points and insert zeroes in front of starting
+   # decimal points. This makes the white-space-to-comma replacement
+   # in the next few lines much simpler.
+   $value =~ s/(\d)\.\s+/$1 /g;
+   $value =~ s/([^\d])\./${1}0./g;
+
+   # make unambiguous addition/subtraction (white-space on both sides
+   # of operator) by removing white-space from both sides
+   $value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+
+   # Replace white-space separators with commas:
+   $value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+
+   # Let's see if the darn thing compiles as normal Perl code, in which
+   # case we just assume the result is a stringified bunch of nested
+   # arrays. 
+   my $val = eval $value;
+   if (ref $val eq 'ARRAY') {
+      my $to_return = PDL::Core::pdl_avref($val,$this,$type);
+      # remove potentially spurious last dimension
+      $to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
+      return $to_return;
+   }
+   else {
+      my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
+      if ($@) {
+         push @message, "eval '$value ': $@";
+      } else {
+         push @message, "eval: unexpected output type ->$val<- is not ARRAY ref";
+      }
+      barf join("\n  ", @message);
+   }
 }
 
 sub PDL::new {
@@ -806,13 +805,8 @@ sub PDL::new {
    if (ref(\$value) eq "SCALAR") {
       if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
          # new was passed a string argument that doesn't look like a number
-         # so we can process as a Matlab-style, no commas data entry format.
-#         if (defined &PDL::Core::new_pdl_from_string) {
-            return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
-#         } else {
-#            print STDERR "Warning: PDL::new: PDL::Core::new_pdl_from_string() not defined.\n";
-#            barf("PDL::new cannot make piddle from string input '$value'\n");
-#         }
+         # so we can process as a Matlab-style data entry format.
+		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
       } else {
          $new->setdims([]);
          ${$new->get_dataref}     = pack( $pack[$new->get_datatype], $value );
@@ -1069,14 +1063,14 @@ positive indices.
 
 =for example
 
- perldl> p sequence(3)->dummy(0,3)
+ pdl> p sequence(3)->dummy(0,3)
  [
   [0 0 0]
   [1 1 1]
   [2 2 2]
  ]
 
- perldl> p sequence(3)->dummy(3,2)
+ pdl> p sequence(3)->dummy(3,2)
  [
   [
    [0 1 2]
@@ -1086,13 +1080,14 @@ positive indices.
   ]
  ]
 
- perldl> p sequence(3)->dummy(-3,2)
- For safety, <pos> < -(dims+1) is not allowed in dummy, allowed min=-2.
+ pdl> p sequence(3)->dummy(-3,2)
+ Runtime error: PDL: For safety, <pos> < -(dims+1) forbidden in dummy.  min=-2, pos=-3
 
 =cut
 
 sub PDL::dummy($$;$) {
    my ($pdl,$dim,$size) = @_;
+   barf("Missing position argument to dummy()") unless defined $dim;  # required argument
    $dim = $pdl->getndims+1+$dim if $dim < 0;
    $size = 1 unless defined($size);
 
@@ -1100,7 +1095,7 @@ sub PDL::dummy($$;$) {
 	 . -($pdl->getndims+1).", pos=". ($dim-1-$pdl->getndims) ) if($dim<0);
 
    my($s) = ',' x ( ($dim > $pdl->getndims) ? ($pdl->getndims) : ($dim) );
-   $s .= '*,' x ( $dim-$pdl->getndims-1 );
+   $s .= '*1,' x ( $dim-$pdl->getndims );
    $s .= "*$size";
 
    $pdl->slice($s);
@@ -1317,9 +1312,9 @@ Returns the multidimensional diagonal over the specified dimensions.
 
 =for example
 
- perldl> $a = zeroes(3,3,3);
- perldl> ($b = $a->diagonal(0,1))++;
- perldl> p $a
+ pdl> $a = zeroes(3,3,3);
+ pdl> ($b = $a->diagonal(0,1))++;
+ pdl> p $a
  [
   [
    [1 0 0]
@@ -1806,11 +1801,10 @@ operate array element by array element like C<log10>).
 
 =for example
 
- perldl> $x = xvals zeroes 10;
- perldl> log10(inplace $x)
- perldl> p $x
- [      -Inf 0    0.30103 0.47712125 0.60205999    0.69897
- 0.77815125 0.84509804 0.90308999 0.95424251]
+ pdl> $x = xvals zeroes 10;
+ pdl> log10(inplace $x)
+ pdl> p $x
+ [-inf 0    0.30103 0.47712125 0.60205999    0.69897 0.77815125 0.84509804 0.90308999 0.95424251] 
 
 =cut
 
@@ -1977,9 +1971,10 @@ useful in particular when using the indexing function which. In the
 case of no match to a specified criterion, the returned piddle has
 zero dimension.
 
- perldl> $a=sequence(10)
- perldl> $i=which($a < -1)
- perldl> print "I found no matches!\n" if ($a->isempty);
+ pdl> $a=sequence(10)
+ pdl> $i=which($a < -1)
+ pdl> print "I found no matches!\n" if ($i->isempty);
+ I found no matches!
 
 Note that having zero elements is rather different from the concept
 of being a null piddle, see the L<PDL::FAQ|PDL::FAQ> and
@@ -2017,14 +2012,14 @@ Various forms of usage,
 
 =for example
 
- perldl> $z = zeroes 4,3
- perldl> p $z
+ pdl> $z = zeroes 4,3
+ pdl> p $z
  [
   [0 0 0 0]
   [0 0 0 0]
   [0 0 0 0]
  ]
- perldl> $z = zeroes ushort, 3,2 # Create ushort array
+ pdl> $z = zeroes ushort, 3,2 # Create ushort array
  [ushort() etc. with no arg returns a PDL::Types token]
 
 See also L<new_from_specification|/PDL::new_from_specification>
@@ -2132,15 +2127,15 @@ Important: Physical piddles are changed inplace!
 
 =for example
 
- perldl> $x = sequence(10)
- perldl> reshape $x,3,4; p $x
+ pdl> $x = sequence(10)
+ pdl> reshape $x,3,4; p $x
  [
   [0 1 2]
   [3 4 5]
   [6 7 8]
   [9 0 0]
  ]
- perldl> reshape $x,5; p $x
+ pdl> reshape $x,5; p $x
  [0 1 2 3 4]
 
 =cut
@@ -2290,9 +2285,9 @@ see the function L<pdl()|/pdl> for more details.
 
 =for example
 
- perldl> p $x=sqrt float [1..10]
+ pdl> p $x=sqrt float [1..10]
  [1 1.41421 1.73205 2 2.23607 2.44949 2.64575 2.82843 3 3.16228]
- perldl> p byte $x
+ pdl> p byte $x
  [1 1 1 2 2 2 2 2 3 3]
 
 =cut
@@ -2490,9 +2485,9 @@ by use of L<slice|PDL::Slices/slice> and assigment operator C<.=>.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> set $x, 2,1,99
- perldl> p $x
+ pdl> $x = sequence 3,4
+ pdl> set $x, 2,1,99
+ pdl> p $x
  [
   [ 0  1  2]
   [ 3  4 99]
@@ -2525,8 +2520,8 @@ in a general context, quite useful too inside PDL internals.
 
 =for example
 
- perldl> $x = sequence 3,4
- perldl> p $x->at(1,2)
+ pdl> $x = sequence 3,4
+ pdl> p $x->at(1,2)
  7
 
 !NO!SUBS!
@@ -2622,7 +2617,7 @@ returns a single piddle of dimension N+1
 
 =for example
 
- perldl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
+ pdl> $x = cat ones(3,3),zeroes(3,3),rvals(3,3); p $x
  [
   [
    [1 1 1]
@@ -2769,9 +2764,9 @@ e.g.:
 
 =for example
 
- perldl> $p = ones 3,3,3
- perldl> ($a,$b,$c) = dog $p
- perldl> $b++; p $p
+ pdl> $p = ones 3,3,3
+ pdl> ($a,$b,$c) = dog $p
+ pdl> $b++; p $p
  [
   [
    [1 1 1]

@@ -1,3 +1,433 @@
+Release notes for PDL 2.4.6_016 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * TBD
+
+
+
+Release notes for PDL 2.4.6_015 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+ * Perl 5.6.x is no longer supported.
+ 
+   Perl 5.8.x or higher is now required.  NOTE: PDL
+   should still build for 5.6.2 and higher if you edit
+   the line in the top level Makefile.PL from 5.008_000
+   back to 5.006_002.
+
+Highlights:
+
+ * wmpeg in PDL::IO::Pic now uses ffmpeg to generate the
+   movie file instead of the outdated mpeg_encode.  This
+   is pretty much a straight translation of the original.
+   
+   NOTE: Example/IO has a program you can run to create
+   a quick check movie.  As there is no formal test for
+   this function, feedback on whether this works on your
+   platform is most welcome.  Thanks!
+
+   NOTE: For cygwin, ffmpeg requires version 1.7.x to build.
+
+ * PDL::Fit::Polynomial has been modified to remove the
+   Slatec library dependency requesting in sf.net feature
+   request ticket #2891276.
+
+ * Other sf.net bugs fixed:
+     3030998    PDL::Config does not match actual build configuration
+     2901170    many warnings w TriD and perl -w
+
+ * sf.net bug #117661, PDL::Complex string routine, has
+   been fixed.  In addition, the sum and sumover methods
+   now support PDL::Complex piddles.
+
+ * Problem with Ctrl-C killing perldl on win32 has been
+   resolved.  The 2nd Ctrl-C was resulting in an EOF from
+   the perl readline call which caused the shell to exit.
+   Now $PERLDL::NO_EOF=1 is the default for win32.
+
+ * Set SKIP_KNOWN_PROBLEMS environment variable to skip
+   tests correspond to reported sf.net bugs.  This allows
+   the full test suite to pass which makes it easier to
+   check if a new bug has been introduced.  For releases,
+   there is a SKIP_KNOWN_PROBLEMS option in perldl.conf.
+ 
+ * Some minor doc changes.
+
+
+
+Release notes for PDL 2.4.6_014 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+ * pdl2 now runs perldl if Devel::REPL is not found so it
+   can be used instead of perldl to start the PDL shell.
+ 
+ * Fix the failure in t/opengl.t when the X display could
+   not be opened.  The tests are now skipped in that case.
+
+ * Some minor doc changes.
+
+
+
+Release notes for PDL 2.4.6_013 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+ * 'make dist' now autogenerates the Changes file from the
+   output of git log --stat --since="29 Apr 2009" which
+   should avoid the missing Changes file error in future
+   distributions.  NOTE: This only works for non-win32
+   systems since it assumes the standard git command line
+   interface is present.
+
+ *  Put fallback code to glutInitDisplay
+      
+    There have been CPAN test failures where the Perl OpenGL
+    module built and installed ok but then the t/opengl.t
+    fails for PDL.  A look at the two tests shows the main
+    difference is that POGL checks if the GLUT_ALPHA channel will
+    work and if not, tries again without GLUT_ALPHA set.
+
+ * Some minor bug fixes
+
+
+
+Release notes for PDL 2.4.6_012 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+
+Highlights:
+
+* t/proj_transform.t has been fixed to skip the tests if
+  the input earth image is not correct.  t/proj_transform2.t
+  performs the same checks with a synthetic data set which
+  should be available on all platforms.  This should close
+  bug sf.net #3013751.
+
+* Incorrect threading in lu_backsub() and lu_decomp() has
+  been fixed.  This closes bug sf.net #3021567.
+
+
+
+Release notes for PDL 2.4.6_011 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+ * The main purpose for this release is the additional
+   diagnostics in the t/proj_transform.t which may lead
+   to an understanding of what the problem is there.
+
+
+Highlights:
+
+ * pdl2 (the new Perldl2 shell now supports all major
+   functions of perldl.  If you have installed the latest
+   Devel::REPL you should be able to use this shell as
+   an enhanced replacement for perldl.  Feedback welcome!
+
+ * Fix sf.net bug #3021578 re missing xtra dummy dims
+
+ * Add error diagnostics to dummy() in PDL::Core when the
+   required position argument is not present.  The new
+   message now mentions the dummy() method instead of just
+   a line number in Core.pm.
+
+ * Update bess[jy][01n] docs in math.pd
+   Fix refs for floor/ceil/rint to use integer
+
+ * Use is() instead of ok() in t/proj_transform.t
+
+   That should give more diagnostic output for failing tests
+   to help debug the recent test failures for cygwin 1.7 and
+   freebsd 8.0.
+
+
+
+Release notes for PDL 2.4.6_010 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.  See the
+   README file in PDL/Perldl2 for details.
+
+   By default, the Perldl2 shell (i.e., pdl2) will be built
+   and installed if you have already installed Devel::REPL
+   version 1.003011 or higher.
+
+   TAB completion for filenames and history expansion
+   using '!' syntax works with either Term::ReadLine::Gnu
+   or Term::ReadLine::Perl.  If you use the ! operator in
+   your perl code, be sure to follow it by a space so that
+   it is not interpreted for history substitution.
+
+   pdl2 now loads your ~/.pdlrc (or ~/.perldlrc) startup
+   file and also local.pdlrc (or local.perldlrc) file if
+   there is one in the current directory.  Please report
+   any problems or missing functionality to the PDL
+   mailing list.
+
+   help|usage|apropos|sig|badinfo|demo now autoquote their args.
+
+   ? and ?? aliases for help and apropos work
+
+   Shell command escapes for lines beginning with $PERLDL::ESCAPE
+   (defaults to "#") work as well.
+
+ * uniq/uniqind/uniqvec now handle BAD values or NaN
+   values consistent with Matlab and between themselves.
+   This fixes sf.net bug #3011659.
+
+ * Many win32/win64 portability fixes for PLplot as well
+   as various other documentation and other fixes.
+   
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+   See the README file in PDL/Perldl2 for details.
+   
+   The list history 'l' command now works, as does the
+   demo command (partially).  You'll need to quote the
+   demo name.  If you get a hang at the end of the demo,
+   try typing Ctrl-D.  That appears to work on non-win32
+   platforms.
+
+   NOTE: History expansion via ! works but it is not
+   yet merged into the saved history.  !-Num will work
+   if the command was in the current Perldl2 session.
+
+
+
+Release notes for PDL 2.4.6_008 --------------------------
+
+General Notes:
+
+ * This is a developers release!  It is a snapshot of the current git
+   development tree and everything may not work correctly.  However,
+   it is the easiest way to get the latest and greatest from PDL
+   developers without going to the git repository at sourceforge.net.
+
+Highlights:
+
+ * Experimental perldl version 2 shell available.
+ 
+   See the README file in PDL/Perldl2 for details.  Full
+   completion support is now available for all platforms
+   via Term::ReadLine::Perl as well as Term::ReadLine::Gnu.
+
+   The Perldl2 shell (pdl2) now loads and saves command line
+   history from the same file as perldl, ~/.perldl_hist.
+   
+   Please Note: while all commands are saved and loaded between
+   the perldl and pdl2, the Perldl2 shell is missing some features
+   of perldl so not all commands retrieved from perldl history
+   will execute correctly in a subsequent pdl2 session.
+
+ * Added Convert::UU as a required dependency for PDL to improve
+   portability (it provides backup uuencode and uudecode for
+   platforms without them).
+
+ * Add work around for perl -d problem with lvalue subroutines
+   so that tests: imagend.t, lvalue.t, matrixops.t, misc.t, and
+   transform.t now run under the debuger (even for broken perls
+   versions 5.10.1 through 5.12)
+
+ * Add fixes for printf and carp format string attacks
+
+ * Preliminary version of spheres3d for plotting 3D spheres
+   with TriD.  Support for varying radii and colors not yet
+   complete.
+
+
+
 Release notes for PDL 2.4.6_007 --------------------------
 
 General Notes:

@@ -95,7 +95,8 @@ act q&
 
 act q&
 ### There are a large number of map projections -- to list them all, 
-### say "??cartography" in the perldl shell.  Here are four of them:
+### say "??cartography" in the perldl or pdl2 shell.  Here are four
+### of them:
 
 undef $w;   # Close old window
 $w = pgwin( Dev=>"/xw", size=>[8,6], nx=>2, ny=>2 ) ;

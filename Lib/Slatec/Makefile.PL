@@ -62,9 +62,11 @@ BEGIN {
        warn $msg . "\n";
        $msg =~ s/\n//g;
        write_dummy_make( $msg );
+       $PDL::Config{WITH_SLATEC} = 0;
        $donot = 1;
    } else {
-   print "\n   Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n\n";
+      print "\n   Building PDL::Slatec. Turn off WITH_SLATEC if there are any problems\n\n";
+      $PDL::Config{WITH_SLATEC} = 1;
    }
 }
 

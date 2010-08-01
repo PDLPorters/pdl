@@ -29,6 +29,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  imagrgb([$r,$g,$b]);     # 2-d piddles
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
+ spheres3d([$x,$y,$z]);
 
  hold3d(); # the following graphs are on top of each other and the previous
  line3d([$x,$y,$z]);
@@ -52,7 +53,7 @@ Points, lines and surfaces (among other objects) are supported.
 With OpenGL, it is easy to manipulate the resulting 3D objects
 with the mouse in real time - this helps data visualization a lot.
 
-=for comment
+= for comment
 With VRML, you can generate objects for everyone to see with e.g.
 Silicon Graphics' Cosmo Player. You can find out more about VRML
 at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
@@ -288,11 +289,11 @@ routines are supported:
 
 Example:
 
- perldl> line3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> line3d [sqrt(rvals(zeroes(50,50))/2)]
  - Lines on surface
- perldl> line3d [$x,$y,$z]
+ pdl> line3d [$x,$y,$z]
  - Lines over X, Y, Z
- perldl> line3d $coords
+ pdl> line3d $coords
  - Lines over the 3D coordinates in $coords.
 
 Note: line plots differ from mesh plots in that lines
@@ -316,7 +317,7 @@ contexts and options
 
 Example:
 
- perldl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
+ pdl> imag3d [sqrt(rvals(zeroes(50,50))/2)], {Lines=>0};
 
  - Rendered image of surface
 
@@ -338,7 +339,7 @@ contexts and options
 
 Example:
 
- perldl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
+ pdl> mesh3d [sqrt(rvals(zeroes(50,50))/2)]
 
  - mesh of surface
 
@@ -370,11 +371,33 @@ alias for mesh3d
 
 Example:
 
- perldl> points3d [sqrt(rvals(zeroes(50,50))/2)];
+ pdl> points3d [sqrt(rvals(zeroes(50,50))/2)];
  - points on surface
 
 See module documentation for more information on
 contexts and options
+
+=head2 spheres3d
+
+=for ref
+
+3D spheres plot (preliminary implementation)
+
+=for usage
+
+ spheres3d piddle(3), {OPTIONS}
+ spheres3d [piddle,...], {OPTIONS}
+
+=for example
+
+Example:
+
+ PDL> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
+
+ - lattice of spheres at coordinates on 10x10x10 grid
+
+See module documentation for more information on
+contexts and options (TBD)
 
 =head2 imagrgb
 
@@ -396,8 +419,8 @@ ways one might want to do this.
 
 e.g.
 
- perldl> $a=sqrt(rvals(zeroes(50,50))/2)
- perldl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
+ pdl> $a=sqrt(rvals(zeroes(50,50))/2)
+ pdl> imagrgb [0.5*sin(8*$a)+0.5,0.5*cos(8*$a)+0.5,0.5*cos(4*$a)+0.5]
 
 =head2 imagrgb3d
 
@@ -419,7 +442,7 @@ The default is [[0,0,0],[1,0,0],[1,1,0],[0,1,0]].
 
 e.g.
 
- perldl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
+ pdl> imagrgb3d $colors, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]};
  - plot on XZ plane instead of XY.
 
 =head2 grabpic3d
@@ -624,7 +647,7 @@ use PDL::Core '';  # barf
 use vars qw/@ISA @EXPORT_OK %EXPORT_TAGS/;
 @ISA = qw/PDL::Exporter/;
 @EXPORT_OK = qw/imag3d_ns imag3d line3d mesh3d lattice3d points3d
-  describe3d imagrgb imagrgb3d hold3d release3d
+  spheres3d describe3d imagrgb imagrgb3d hold3d release3d
   keeptwiddling3d nokeeptwiddling3d
   twiddle3d grabpic3d tridsettings/;
 %EXPORT_TAGS = (Func=>[@EXPORT_OK]);
@@ -844,6 +867,12 @@ sub PDL::points3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::Points(@_));
 }
 
+
+*spheres3d=\&PDL::spheres3d;
+sub PDL::spheres3d { &checkargs;
+	&graph_object(new PDL::Graphics::TriD::Spheres(@_));
+}
+
 *grabpic3d=\&PDL::grabpic3d;
 sub PDL::grabpic3d {
 	my $win = PDL::Graphics::TriD::get_current_window();
@@ -914,7 +943,7 @@ sub get_current_window {
 }
 
 # Get the current graphbox
-sub get_current_graph {
+sub get_current_graphbox {
 	my $graph = $PDL::Graphics::TriD::curgraph;
 	if(!defined $graph) {
 		$graph = new PDL::Graphics::TriD::Graph();

@@ -75,34 +75,34 @@ routines (ie everything else in the PDL distribution) had been changed.
 
 =head2 A quick overview
 
- perldl> p $PDL::Bad::Status
+ pdl> p $PDL::Bad::Status
  1
- perldl> $a = sequence(4,3);
- perldl> p $a
+ pdl> $a = sequence(4,3);
+ pdl> p $a
  [
   [ 0  1  2  3]
   [ 4  5  6  7]
   [ 8  9 10 11]
  ]
- perldl> $a = $a->setbadif( $a % 3 == 2 )
- perldl> p $a
+ pdl> $a = $a->setbadif( $a % 3 == 2 )
+ pdl> p $a
  [
   [  0   1 BAD   3]
   [  4 BAD   6   7]
   [BAD   9  10 BAD]
  ]
- perldl> $a *= 3
- perldl> p $a
+ pdl> $a *= 3
+ pdl> p $a
  [
   [  0   3 BAD   9]
   [ 12 BAD  18  21]
   [BAD  27  30 BAD]
  ]
- perldl> p $a->sum
+ pdl> p $a->sum
  120
 
 C<demo bad> and C<demo bad2>
-within L<perldl|PDL::perldl> gives a demonstration of some of the things
+within L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> gives a demonstration of some of the things
 possible with bad values.  These are also available on PDL's web-site,
 at F<http://pdl.perl.org/demos/>.  See L<PDL::Bad> for useful routines for working 
 with bad values and F<t/bad.t> to see them in action.
@@ -135,9 +135,9 @@ of either C<$PDL::Config{WITH_BADVAL}> or C<$PDL::Bad::Status> - if true then
 it has been.
 
 To find out if a routine supports bad values, use the C<badinfo> command in
-L<perldl|PDL::perldl> or the C<-b> option to L<pdldoc|PDL::pdldoc>. 
-This facility is currently a 'proof of concept' (or, more realistically, 
-a quick hack) so expect it to be rough around the edges.
+L<perldl|PDL::perldl> or L<pdl2|PDL::Perldl2> or the C<-b> option to
+L<pdldoc|PDL::pdldoc>.  This facility is currently a 'proof of concept'
+(or, more realistically, a quick hack) so expect it to be rough around the edges.
 
 Each piddle contains a flag - accessible via C<$pdl-E<gt>badflag> - to say 
 whether there's any bad data present: 
@@ -173,21 +173,21 @@ I<NOTE>: propogation of the badflag
 If you change the badflag of a piddle, this change is propogated to all
 the I<children> of a piddle, so
 
-   perldl> $a = zeroes(20,30);
-   perldl> $b = $a->slice('0:10,0:10');
-   perldl> $c = $b->slice(',(2)');
-   perldl> print ">>c: ", $c->badflag, "\n";
+   pdl> $a = zeroes(20,30);
+   pdl> $b = $a->slice('0:10,0:10');
+   pdl> $c = $b->slice(',(2)');
+   pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 0
-   perldl> $a->badflag(1);
-   perldl> print ">>c: ", $c->badflag, "\n";
+   pdl> $a->badflag(1);
+   pdl> print ">>c: ", $c->badflag, "\n";
    >>c: 1
 
 I<No> change is made to the parents of a piddle, so
 
-   perldl> print ">>a: ", $a->badflag, "\n";
+   pdl> print ">>a: ", $a->badflag, "\n";
    >>a: 1
-   perldl> $c->badflag(0);
-   perldl> print ">>a: ", $a->badflag, "\n";
+   pdl> $c->badflag(0);
+   pdl> print ">>a: ", $a->badflag, "\n";
    >>a: 1
 
 Thoughts:
@@ -274,14 +274,14 @@ Currently, there is one bad value for each datatype. The code is written so
 that we could have a separate bad value for each piddle (stored in the 
 pdl structure) - this would then remove the current problem of:
 
- perldl> $a = byte( 1, 2, byte->badvalue, 4, 5 );
- perldl> p $a;
+ pdl> $a = byte( 1, 2, byte->badvalue, 4, 5 );
+ pdl> p $a;
  [1 2 255 4 5]
- perldl> $a->badflag(1)
- perldl> p $a;
+ pdl> $a->badflag(1)
+ pdl> p $a;
  [1 2 BAD 4 5]
- perldl> byte->badvalue(0);
- perldl> p $a;
+ pdl> byte->badvalue(0);
+ pdl> p $a;
  [1 2 255 4 5]
 
 ie the bad value in C<$a> has lost its I<bad> status using the current 
@@ -596,7 +596,7 @@ not sufficient, there's the C<BadDoc> option. For code written at
 the perl level - ie in a .pm file - use the C<=for bad> pod directive.
 
 This information will be available via man/pod2man/html documenation. It's also
-accessible from the C<perldl> shell - using the C<badinfo> command - and the C<pdldoc>
+accessible from the C<perldl> or C<pdl2> shells - using the C<badinfo> command - and the C<pdldoc>
 shell command - using the C<-b> option.
 
 This support is at a very early stage - ie not much thought has gone into it:
@@ -616,7 +616,7 @@ mentioned elsewhere in this document, but this is just to make sure they don't g
 Should we add exceptions to the functions in C<PDL::Ops> to
 set the output bad for out-of-range input values? 
 
- perldl> p log10(pdl(10,100,-1))
+ pdl> p log10(pdl(10,100,-1))
 
 I would like the above to produce "[1 2 BAD]", but this would
 slow down operations on I<all> piddles.  

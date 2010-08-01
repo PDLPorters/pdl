@@ -15,13 +15,13 @@ Perl Data Language v2.0.
 
 =head2 Help
 
-Use C<help help> within I<perldl> or the C<pdldoc> program from the
-command line for access to the PerlDL documentation.
+Use C<help help> within I<perldl> or I<pdl2> or use the C<pdldoc>
+program from the command line for access to the PerlDL documentation.
 HTML versions of the pages should also be present, in the
 F<HtmlDocs/PDL> directory of the PDL distribution. To find this 
 directory, try the following
 
- perldl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
+ pdl> foreach ( map{"$_/PDL/HtmlDocs"}@INC ) { p "$_\n" if -d $_ }  
 
 =head2 Indexing idioms
 

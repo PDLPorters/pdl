@@ -11,7 +11,7 @@ exit; } if ($PDL::Config{POGL_WINDOW_TYPE} eq 'glut');
 
 print "This Tk interface has been replaced, the new Tk demo is in
 Demos/TkTriD_demo.pm which can be run from the perldl prompt:
-perldl> demo Tk3D\n";
+pdl> demo Tk3D\n";
 
 print "\nHit <Enter> now to go to the Demo, any other key to exit ";
 my $key = <STDIN>;

@@ -344,7 +344,8 @@ sub reinstator_regexp{
     return qr/$reinstr/o; # allow trailing comments
 }
 
-# save eval of findslice that should be used within perldl as a preprocessor
+# save eval of findslice that should be used within perldl or pdl2
+# as a preprocessor
 sub perldlpp {
  my ($class, $txt) = @_;
 
@@ -521,12 +522,6 @@ PDL::NiceSlice - toward a nicer slicing syntax for PDL
   $b = $n(0,0;-|);          # squeeze *and* sever
   $c = $a(0,3,0;-);         # more compact way of saying $a((0),(3),(0))
 
-  # Use with perldl versions < v1.31 (or include these lines in .perldlrc)
-  perldl> use PDL::NiceSlice;
-  # next one is required, see below
-  perldl> $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
-  perldl> $a(4:5) .= xvals(2);
-
 =head1 DESCRIPTION
 
 Slicing is a basic, extremely common operation, and PDL's
@@ -535,22 +530,17 @@ cases.  C<PDL::NiceSlice> rectifies that by incorporating new slicing
 syntax directly into the language via a perl I<source filter> (see
 L<the perlfilter man page|perlfilter>).  NiceSlice adds no new functionality, only convenient syntax.
 
-NiceSlice is loaded automatically in the perldl shell, but (to avoid
+NiceSlice is loaded automatically in the perldl or pdl2 shell, but (to avoid
 conflicts with other modules) must be loaded automatically in standalone
 perl/PDL scripts (see below).  If you prefer not to use a prefilter on
 your standalone scripts, you can use the L<slice|PDL::Slices/slice>
 method in those scripts,
 rather than the more compact NiceSlice constructs.
 
-=head1 Use in scripts and C<perldl> shell
+=head1 Use in scripts and C<perldl> or C<pdl2> shell
 
 The new slicing syntax can be switched on and off in scripts
 and perl modules by using or unloading C<PDL::NiceSlice>.
-
-Note: this will I<not> work in the L<perldl|perldl> shell E<lt> v1.31.
-Because the perldl shell uses evals, and NiceSlice is a perl source filter,
-you have to set a special variable to use it within perldl. See below
-how to enable the new slicing syntax within older L<perldl|perldl>.
 
 But now back to scripts and modules.
 Everything after C<use PDL::NiceSlice> will be translated
@@ -634,38 +624,6 @@ C<PDL::NiceSlice> is a somewhat I<funny> module in
 that respect. It is a consequence of the way source
 filtering works in Perl (see also the IMPLEMENTATION
 section below).
-
-=head2 Usage with perldl
-
-I<NOTE>: This information only applies to versions of
-L<perldl|perldl> earlier than 1.31 . From v1.31 onwards
-niceslicing is enabled by default, i.e.
-I<it should just work>. See L<perldl> for details.
-
-For pre v1.31 C<perldl>s you need to
-add the following two lines to your F<.perldlrc> file:
-
-   use PDL::NiceSlice;
-   $PERLDL::PREPROCESS = \&PDL::NiceSlice::perldlpp;
-
-A more complete tool box of commands for experimentation is
-in the file F<local.perldlrc> in the C<PDL::NiceSlice> source
-directory. Just include the code in that file in your usual
-F<~/.perldlrc> and you can switch source filtering with
-PDL::NiceSlice on and off by typing C<trans> and C<notrans>,
-respectively. To see what and how your commands are translated
-switch reporting on:
-
-  perldl> report 1;
-
-Similarly, switch reporting off as needed
-
-  perldl> report 0;
-
-Note that these commands will only work if you included
-the contents of F<local.perldlrc> in your perldl startup file.
-In C<perldl> v1.31 and later these commands are available by
-default.
 
 =head2 evals and C<PDL::NiceSlice>
 
@@ -1124,8 +1082,8 @@ compiler. C<PDL::NiceSlice> searches through your Perl source code and when
 it finds the new slicing syntax it rewrites the argument list
 appropriately and splices a call to the C<nslice> method using the
 modified arg list into your perl code. You can see how this works in
-the L<perldl|perldl> shell by switching on reporting (see above how to do
-that).
+the L<perldl|perldl> or L<pdl2|PDL::Perldl2> shells by switching on
+reporting (see above how to do that).
 
 The C<nslice> method is an extended version of L<mslice|PDL::Core/mslice> that
 knows how to deal with index piddles (and therefore combines
