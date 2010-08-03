@@ -1,17 +1,18 @@
-PDL Module Dependencies
-=======================
++---------------------------+
+|  PDL Module Dependencies  | 
++---------------------------+
 
-This file lists dependencies of PDL modules on external
-programs/libraries. Some of the modules will build ok
-without the external software but in general are not very
-useful without it. Others require certain libraries/include
-files to be installed. See INSTALL on hints how to
-enable/disable building of some modules in the distrib if
-required.
+This file lists dependencies of PDL modules on external programs
+or libraries.  Some of the modules will build ok without the
+external software but in general are not very useful without it.
+Others require certain libraries/include files to be installed.
 
-The easiest way to resolve dependencies on other Perl
-modules is to use the CPAN module to install PDL.
-Installation should be as simple as
+See INSTALL on hints how to enable/disable building of some modules
+in the distribution if required.
+
+The easiest way to resolve dependencies on other Perl modules is
+to use the CPAN module to install PDL. Installation should be as
+simple as
 
   cpan install PDL   # if the cpan script is in your path
 
@@ -22,174 +23,218 @@ or if you don't have the cpan script try
 
 
 
-MODULE          DEPENDS ON                  COMMENT
++----------------+---------------------+-------------------------------------+
+|    MODULE      |     DEPENDS ON      |             COMMENT                 |
++----------------+---------------------+-------------------------------------+
 
-PDL (all)       perl >= 5.8.x           you need at least this version
-                                        of perl to succeed.
+PDL (all)         perl >= 5.8.x           PDL requires at least this version
+                                          of perl to build and run.
 
-                File::Spec              version >= 0.6 required, included
-
-PDL::NiceSlice  Text::Balanced          a nicer way to index piddles
-                Filter::Util::Call      a must-have!!
-
-Inline::Pdlpp   Inline                  version >= 0.43 required
-                                        module allows to define fast PP code
-                                        inline in your scripts
-
-PDL::IO::Dumper Data::Dumper and        Data::Dumper version >=2.121 is required
-                Convert::UU and/or      Convert::UU is required but Works on all perl platforms!
-                uuencode/uudecode       (Optional) Better performance on unix flavor platforms!
-
-PDL::IO::Storable Storable              version >=1.03 is now listed as a
-                                        required dependency
-
-perldl (shell)  Term::ReadLine::Perl    Perl provides a stub but if you
-                or Term::ReadLine::Gnu  compile and install a better one
-                                        (Term::ReadLine::Perl or Term::ReadLine::Gnu)
-                                        you get proper command line editing
+                  File::Spec              Version >= 0.6 required, included
+                                          with perl.
 
 
+PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
+                  Filter::Util::Call
 
-PDL::FFTW
-                Needs the FFTW version 2 installed.  FFTW is a free C
-		FFT library including multi-dimensional, real, and
-		parallel transforms.  NOTE: the released version of
-		FFTW is currently FFTW3.  You'll need to explicitly
-		install the FFTW v2 library to build PDL::FFTW!
-		See http://www.fftw.org/
 
-                                        Will not be built unless
-                                        FFTW version 2 is installed.
+Inline::Pdlpp     Inline                  Version >= 0.43 required.  This
+                                          module allows to define fast PP
+                                          code inline in your scripts.
+
+
+PDL::IO::Dumper   Data::Dumper            Version >=2.121 is required.
+                  Convert::UU             Convert::UU is required.
+
+                  uuencode/uudecode       (Optional) Better performance on
+                                          unix flavor platforms!  They will
+                                          be used instead of Convert::UU
+                                          if detected.
+
+
+PDL::IO::Storable Storable                Version >=1.03 is required.
+
+
+pdl2   (shell)    Devel::REPL             Version >= 1.003011
+                  Term::ReadLine::Perl    
+                  or Term::ReadLine::Gnu 
+
+perldl (shell)    Term::ReadLine::Perl    
+                  or Term::ReadLine::Gnu 
+
+                                          pdl2 and perldl will be installed
+                                          by default.  If Devel::REPL is not
+                                          installed, pdl2 uses perldl.
+
+
+PDL::FFTW         Needs the FFTW library version 2 installed.
+                  FFTW is a free C FFT library including multi-
+                  dimensional, real, and parallel transforms.
+                  See http://www.fftw.org/ 
+
+                  NOTE: The latest version of FFTW is FFTW3.
+
+                                          Will *not* be built unless
+                                          FFTW version 2 is detected.
+
 
 PDL::GIS::Proj
 PDL::Transform::Proj
-		A PDL interface to the PROJ4 geographic projection
-		library and the PDL::Transform interface to the same.
-		See http://trac.osgeo.org/proj/
+                  A PDL interface to the PROJ4 geographic projection
+                  library and the PDL::Transform interface to PROJ4.
+                  See http://trac.osgeo.org/proj/
 
-					Module will be built if the
-					PROJ4 library is installed and
-					detected.
+                                          Module will be built if the PROJ4
+                                          library is installed and detected.
+
 
 PDL::Graphics::TriD
-                Requires Perl OpenGL module and FreeGLUT (Apple GLUT on Mac OS X)
-                See perldl.conf file for the required Perl OpenGL version.
+                  Requires the perl OpenGL module be installed.
+                  Perl OpenGL requires you have the OpenGL graphics
+                  library and FreeGLUT (Apple GLUT on Mac OS X)
+                  installed.  See perldl.conf file for the minimum
+                  required version of Perl OpenGL.
 
-                Also requires the OpenGL graphics libraries be installed, although
-		the Perl OpenGL module should check for that.  For a free software
-		implementation check out Mesa at http://www.mesa3d.org/
+                                          PDL::Graphics::TriD will be
+                                          built if Perl OpenGL is detected.
+                                          To disable the build, edit
+                                          perldl.conf and set WITH_3D => 0.
 
-                                        Perl OpenGL is required.  To disable
-					edit perldl.conf and unset WITH_3D
-					and USE_POGL (see INSTALL).
 
 PDL::Graphics::PGPLOT
-                PGPLOT perl module **and** PGPLOT fortran library,
-                see http://astro.caltech.edu/~tjp/pgplot for the library
-                and CPAN at http://search.cpan.org/search%3fmodule=PGPLOT
-                for the perl module.  NOTE: These are two different things
-		that must be installed.
+                  Requires both the PGPLOT perl module **and**
+                  the PGPLOT fortran library.  See
+                  http://astro.caltech.edu/~tjp/pgplot for the
+                  library and
+                  http://search.cpan.org/search%3fmodule=PGPLOT
+                  for the perl module (on CPAN).
+                
+                  NOTE: These are two separate items to be installed.
+  
+                                          PDL::Graphics::PGPLOT Module
+                                          builds ok without PGPLOT module
+                                          and library.
 
-                                        Module builds ok without
-                                        PGPLOT module and library
 
 PDL::Graphics::PLplot
-                The PLplot graphics library. See http://plplot.sourceforge.net 
+                  The PLplot graphics library.
+                  See http://plplot.sourceforge.net 
 
-                                        Module builds ok without
-                                        PLplot module and library
+                                          Module will be built if the
+                                          PLplot library is detected.
+
 
 PDL::Graphics::IIS
-                To be useful an application that supports the
-                'IIS' protocol must be installed, e.g. SAOimage
-                or Ximtool, see
-                http://tdc-www.harvard.edu/software/saoimage.html
-                http://iraf.noao.edu/iraf/web/projects/x11iraf/
+                  To be useful an application that supports
+                  the 'IIS' protocol must be installed, e.g.
+                  SAOimage or Ximtool, see
+                  http://tdc-www.harvard.edu/software/saoimage.html
+                  http://iraf.noao.edu/iraf/web/projects/x11iraf/
 
-                                        PDL builds without viewers.
+                                          PDL::Graphics::IIS  builds
+                                          without viewers.
+
 
 PDL::Graphics::Karma
-                The Karma interface is deprecated.  Please use another
-		visualization method.
+                  The Karma interface is *deprecated* and no
+                  longer supported.  Please use another
+                  visualization method.
+
+                                          PDL::Graphics::Karma will
+                                          *not* be built or installed
+                                          by default.
+
 
 PDL::GSL modules
-                Needs the GSL (Gnu Scientific Library) to build.
-                Version >= 1.0 is required
-                See http://www.gnu.org/software/gsl/
+                  Needs the GSL (Gnu Scientific Library) to
+                  build.  Version >= 1.0 is required
+                  See http://www.gnu.org/software/gsl/
 
-                                        Will not be built unless
-                                        GSL is installed.
+                                          Will not be built unless
+                                          an appropriate GSL version
+                                          is installed and detected.
 
-PDL::IO::GD
-		PDL interface to the GD image library.
-		See http://www.libgd.org
-					
-					Will not be built unless libgd is
-					already installed.
+
+
 
 PDL::IO::Browser
-                Requires a 'curses'-compatible library  Not built by
-		default (edit perldl.conf to enable).  Build appears
-		to be broken for many platforms.
+                  Requires a 'curses'-compatible library.
+                  Build appears to be broken.
 
-PDL::IO::FITS   Needs Astro::FITS::Header for full support of all FITS
-                header features.  Will build ok, and run, without it but
-                for given that Astro::FITS::Header is a Perl only module,
-                you should install it unless you specifically need not.
-                It is currently listed as a prerequisite module for the
-                purposes of building with the cpan shell.
-
-PDL::IO::NDF    NOTE: These refs/URLs may be incorrect or outdated.
-                Requires the perl/NDF interface, NDFPERL, which also
-		requires a fortran compiler and the fortran NDF library.
-		Get the STARPERL package from
-		http://starlink.jach.hawaii.edu/starlink where there
-		appears to be a git repository for STARPERL at
-		http://starlink.jach.hawaii.edu/git/?p=starperl.git;a=summary .
-
-                                        Module builds ok without
-                                        NDF module and library
-
-PDL::IO::Pic    rpic/wpic: pbm+ or netpbm converters
-                 http://netpbm.sourceforge.net/
-
-                wmpeg: ffmpeg program, see http://ffmpeg.org/
-
-                                        Module builds ok without
-					converters but t/pic_16bit
-					will fail without a recent
-					version of netpbm.
+                                          Not built by default.
 
 
-PDL::Minuit     ExtUtils::F77           PDL interface to Minuit minimization
-                                        routines in CERN library, see the link at
-                                        http://wwwasdoc.web.cern.ch/wwwasdoc/minuit/minmain.html
+PDL::IO::FITS     Needs Astro::FITS::Header for full support
+                  of all FITS header features.  Will build ok,
+                  and run, without it but for given that
+                  Astro::FITS::Header is a Perl only module, you
+                  should install it unless you specifically need not.
 
-	        The Minuit library code is included but requires a
-		fortran compiler and the ExtUtils::F77 (version >= 1.03)
-		to be built.
+                  NOTE: It is currently listed as an official
+                  prerequisite module for the purposes of building
+                  with the cpan shell.
 
-                                        Will not be built unless
-                                        ExtUtils::F77 (version >= 1.03)
-                                        is installed and Extutils::F77
-                                        supports your platform.
 
-PDL::Slatec     ExtUtils::F77           linear algebra routines
-                                        several other modules use PDL::Slatec
+PDL::IO::GD       PDL interface to the GD image library.
+                  See http://www.libgd.org
+                                        
+                                          Will not be built unless
+                                          libgd is already installed
+                                          and detected.
 
-                Slatec fortran lib is included but requires a
-                fortran compiler and the perl module ExtUtils::F77
-                (version >= 1.03) to be installed.
 
-                                        Will not be built unless
-                                        ExtUtils::F77 (version >= 1.03)
-                                        is installed and Extutils::F77
-                                        supports your platform.
+PDL::IO::HDF      PDL interface to HDF4 library.  See
+                  PDL::IO::HDF5 on CPAN for HDF5 bindings.
+                  Not all HDF4 types are supported.
+                  See http://www.hdfgroup.org/products/hdf4/
 
-Perldl2        Devel::REPL and          The new perldl shell in development
-               Term::ReadLine           requires Devel::REPL version 1.003011
-	                                or higher be installed.  Term::ReadLine
-					is also required (either Perl or Gnu).
-					PDL will build without these deps but
-					you will not get the new pdl2 functionality
-					unless you have installed Devel::REPL..
+                                          Will not be built unless the
+                                          HDF4 libraries are detected.
+
+
+PDL::IO::NDF      NOTE: These refs/URLs may be incorrect or outdated.
+
+                  Requires the perl/NDF interface, NDFPERL, which
+                  also requires a fortran compiler and the fortran
+                  NDF library.  Get the STARPERL package from
+                  http://starlink.jach.hawaii.edu/starlink where
+                  there appears to be a git repository for STARPERL at
+                  http://starlink.jach.hawaii.edu/git/?p=starperl.git;a=summary .
+
+                                          Module builds ok without
+                                          NDF module and library
+
+
+PDL::IO::Pic      rpic/wpic: PBM+ or NetPBM converters
+                  See http://netpbm.sourceforge.net/
+
+                  wmpeg: requires the ffmpeg program
+                  See http://ffmpeg.org/
+
+                                          Module builds ok without
+                                          converters but t/pic_16bit
+                                          will fail without a recent
+                                          enough version of NetPBM.
+
+
+PDL::Minuit       PDL interface to Minuit minimization routines in
+                  the CERN library,
+                  http://wwwasdoc.web.cern.ch/wwwasdoc/minuit/minmain.html
+                  The Minuit library code is included.  A fortran compiler
+                  is required and ExtUtils:F77 (version >= 1.03).
+
+                                          Will not be built unless
+                                          ExtUtils::F77 is installed *and*
+                                          supports your platform.
+
+
+PDL::Slatec       Linear algebra routines.
+                  Several other PDL modules use PDL::Slatec
+
+                  Slatec fortran lib is included but
+                  requires a fortran compiler and
+                  ExtUtils::F77 (version >= 1.03).
+
+                                          Will not be built unless
+                                          ExtUtils::F77 is installed *and*
+                                          supports your platform.
