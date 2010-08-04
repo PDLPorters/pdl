@@ -1,34 +1,22 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 29 Jul 2010 08:58:37 AM 
+Last saved: Wed 04 Aug 2010 05:37:55 PM 
 
 
 +-------------------------------------------------------------------+
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
 
+  Add filter to remove leading qr(^\s*pdl>\s?) from input
+  lines to allow for easy cut and paste from book examples
+  and other code (need to be able toggle and set regexp).
+
   Fix PDL::AutoLoader expansion to work for PDLLIB environment
   variable using win32 syntax and make sure TAB expansion for
   paths work for win32 paths as well (it doesn't appear so)
 
-  Fix glob pattern completion display for shell escapes in
-  pdl2 (e.g., file*<TAB><TAB> will list out tab.a tab.b and
-  tab.c if those are the valid expansions.  It should act
-  just like bash directly from the command line---ideally).
-
-  Add documentation for the startup files for unix-en and win32
-  systems.  Right now, the only doc is in the code.
- 
-  Add startup checks for the various Devel::REPL plugins
-  loaded to be sure that they can run before the load_plugin
-  call to avoid nasty compile error traces.
-  
   Add SIGINT handler for pdl2 for win32.  Also need to add
   feature to ignore EOF to the read routine (around read modifier
   should work here---need to decide where to put it)
-
-  Is there a way to fix the GNU readline where it doesn't
-  process the Ctrl-C interrupt until after <Enter> has been
-  typed?  The Perl readline routine doesn't have this problem.
 
   Investigate why Ctrl-L on win32 is issuing a 'clear' command.
   ANSWER: readline.pm from Term::ReadLine::Perl is using `clear`
@@ -53,6 +41,10 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
     Type 'help' for online help
     Type 'demo' for online demos
     Loaded PDL v2.4.6_007 (supports bad values)
+
+  Add runtime PDL module load list so you know what has been
+  loaded with use/require.  Maybe as simple as a configuration
+  variable in PDL::Config that is set on compile from each.
  
   Fix the hang in the <> operator from the Demos Screen.pm routines.
   Need to track down why the readline operator is clashing with the
@@ -60,11 +52,6 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
   run() call to take the Term::ReadLine term handle and use those to
   do the IO if defined.  Otherwise, fall back to the existing code.
 
-  Fix 'demo 3d' so that it shifts focus to the display window
-  at the start and returns focus to the CMD or shell window
-  at then end.  It would be nice not to have to click, click,
-  click to keep things going.
- 
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
   with the new framework.
@@ -80,19 +67,6 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
    -w          run with warning messages turned-on 
    -           Following arguments are files for input.
  
-  Add option for quiet startup for use when piping to the shell
-  or taking input from a file.
-
-  Add INPUT and OUTPUT handle args for PDL shells.  This would be
-  useful to tie the shell into another application, say Padre,
-  or to add tests for the shells.  NOTE: This includes fixing
-  perldl v.1.x not to use STDIN, STDOUT...
- 
-  Verify that input from terminal and/or files works correctly
-  and consistently with perldl.  NOTE: this should make it
-  possible to implement some tests of the interactive shell
-  from file input.
- 
   Add @PERLDL::AUTO processing to the PDLCommands plugin.  Should
   be able to just run the code after the line is read but before
   it is eval'd.
@@ -106,48 +80,14 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
   for the deprecated $PERLDL::PREPROCESS implementation will be
   provided in pdl2 (only legacy perldl for legacy preprocess).
  
-  Add documentation to Perldl2 plugins and profiles and improve
-  the usage for PrintControl so one doesn't have to explicitly
-  type in the $_REPL->do_print($val) command.
- 
-  It would be nice if variable completion followed by a
-  method call would collapse the extra space.  E.g.,
-  the first <TAB> in line#1 completes to the $_REPL varible
-  followed by a space as seen in line#2.  Then typing the
-  ->do_p<TAB> in line#3 triggers a method completion to 
-  ->do_print followed by a space shown in line#4.
-   
-    #1 PDL> $_RE<TAB>
-    #2 PDL> $_REPL _
-    #3 PDL> $_REPL ->do_p<TAB>
-    #4 PDL> $_REPL ->do_print _
-
-  What we would like is the trailing space in line#2 to be
-  collapsed once the -> is typed following the completion.
-  Similarly, we would like the space at the end of line#4
-  to be collapsed once a '(' is typed to start the arglist.
-
-  Enhance completion strategy for Perldl2.  For example,
-  order and prioritze completions to remove long lists
-  of bad options.  Allow chained completions recognizing
-  the output of PDL methods is a piddle so completion
-  could chain as well.
- 
   Update perldl documentation to match Perldl2 capabilities.
   Any way to transparently select the correct docs at runtime?
- 
-  Make Perldl2 fail/degrade gracefully if various files and
-  configuration stuff is not available.  Lines and lines of
-  backtrace isn't a help to anyone!
  
   Fix the newline differences between new line handling for
   TR::Perl (on win32 and cygwin and unix) and TR::Gnu (on
   cygwin and unix).  TR::Gnu seems to have an extra newline
   inserted per command.
  
-  Add MultiLine prompt with continuation character marking
-  the open structures. (e.g. MultiLine::TextBalanced).
-
   Fix problem where q[ and qq[ type constructions can
   not span lines (even with the supposed multiline support
   in Devel::REPL.  Maybe just add check for unterminated
@@ -186,6 +126,11 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
    trans
    notrans
  
+
++-------------------------------------------------------------------+
+|            Nice to Have Features: Post-PDL-2.4.7 TODO             |
++-------------------------------------------------------------------+
+
   Add a CompletionDriver for Plugins for load_plugin() as well
   as the ability to toggle plugins on and off (or at least
   enable and disable them).
@@ -193,6 +138,88 @@ Last saved: Thu 29 Jul 2010 08:58:37 AM
   Make pdl2 fall back cleanly to a basic Devel::REPL or
   even perldl if requirements to run are not installed.
   (falls back to perldl right now)
+
+  Add perldl -2 switch or some such to indicate to perldl
+  that it is in fallback mode from pdl2.  This would allow
+  for a nice suggestion that they might wish to try installing
+  Devel::REPL for the new features...
+
+  Fix glob pattern completion display for shell escapes in
+  pdl2 (e.g., file*<TAB><TAB> will list out tab.a tab.b and
+  tab.c if those are the valid expansions.  It should act
+  just like bash directly from the command line---ideally).
+
+  Add documentation for the startup files for unix-en and win32
+  systems.  Right now, the only doc is in the code.
+ 
+  Add startup checks for the various Devel::REPL plugins
+  loaded to be sure that they can run before the load_plugin
+  call to avoid nasty compile error traces.
+  
+  Fix 'demo 3d' so that it shifts focus to the display window
+  at the start and returns focus to the CMD or shell window
+  at then end.  It would be nice not to have to click, click,
+  click to keep things going.
+ 
+  Is there a way to fix the GNU readline where it doesn't
+  process the Ctrl-C interrupt until after <Enter> has been
+  typed?  The Perl readline routine doesn't have this problem.
+
+  Add option for quiet startup for use when piping to the shell
+  or taking input from a file.
+
+  Add INPUT and OUTPUT handle args for PDL shells.  This would be
+  useful to tie the shell into another application, say Padre,
+  or to add tests for the shells.  NOTE: This includes fixing
+  perldl v.1.x not to use STDIN, STDOUT...
+ 
+  Verify that input from terminal and/or files works correctly
+  and consistently with perldl.  NOTE: this should make it
+  possible to implement some tests of the interactive shell
+  from file input.
+
+  Add documentation to Perldl2 plugins and profiles and improve
+  the usage for PrintControl so one doesn't have to explicitly
+  type in the $_REPL->do_print($val) command.
+ 
+  It would be nice if variable completion followed by a
+  method call would collapse the extra space.  E.g.,
+  the first <TAB> in line#1 completes to the $_REPL varible
+  followed by a space as seen in line#2.  Then typing the
+  ->do_p<TAB> in line#3 triggers a method completion to 
+  ->do_print followed by a space shown in line#4.
+   
+    #1 PDL> $_RE<TAB>
+    #2 PDL> $_REPL _
+    #3 PDL> $_REPL ->do_p<TAB>
+    #4 PDL> $_REPL ->do_print _
+
+  What we would like is the trailing space in line#2 to be
+  collapsed once the -> is typed following the completion.
+  Similarly, we would like the space at the end of line#4
+  to be collapsed once a '(' is typed to start the arglist.
+
+  Enhance completion strategy for Perldl2.  For example,
+  order and prioritze completions to remove long lists
+  of bad options.  Allow chained completions recognizing
+  the output of PDL methods is a piddle so completion
+  could chain as well.
+ 
+  Make Perldl2 fail/degrade gracefully if various files and
+  configuration stuff is not available.  Lines and lines of
+  backtrace isn't a help to anyone!
+ 
+  Improve the error returns from evaluations in pdl2 as they
+  seem to cut off the root error line for failures which makes
+  it very difficult to debug things, e.g. I was getting errors
+  from Core.pm instead of in my routine that had the failure.
+  When I looked at the entire call stack in the debugger, I
+  got the actual line with the bad code---of course I had to
+  give up the nice pdl2 environment.
+
+  Add MultiLine prompt with continuation character marking
+  the open structures. (e.g. MultiLine::TextBalanced).
+
 
 +-------------------------------------------------------------------+
 | Features                       perldl                 pdl2        |
