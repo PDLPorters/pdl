@@ -18,7 +18,8 @@ function C<func()> is called, PDL looks for a file called C<func.pdl>.
 If it finds one, it compiles the file and calls the function C<func>.
 
 The list of directories to search in is given by the shell environment
-variable C<PDLLIB>. This is a colon-separated list of directories.
+variable C<PDLLIB>. This is a colon-separated list of directories. On
+MSWindows systems, is it a I<semicolon> -separated list of directories.
 
 For example, in csh:
 
@@ -99,7 +100,15 @@ modules and functions, see L<local::lib>.
 =cut
 
 BEGIN{
-  @PDLLIB = (".",split(':',$ENV{"PDLLIB"})) if defined $ENV{"PDLLIB"};
+   if (defined $ENV{"PDLLIB"}) {
+      if ( $^O eq 'MSWin32' ) { # win32 flavors
+         @PDLLIB = (".",split(';',$ENV{"PDLLIB"}));
+         s/"//g for @PDLLIB;
+      } else {                  # unixen systems
+         @PDLLIB = (".",split(':',$ENV{"PDLLIB"}));
+      }
+      @PDLLIB = grep length, @PDLLIB;
+   }
   $PDL::AutoLoader::Rescan=0;
   %PDL::AutoLoader::FileInfo = ();
 }
@@ -279,10 +288,11 @@ sub PDL::AutoLoader::expand_path {
 		$_= $1 . ($ENV{'PWD'} || '.');
 	    } elsif(!$2) {
 		# No name mentioned -- use current user.
-		$_ = $1 . ( $ENV{'HOME'} ||((getpwnam($2 || getlogin || getpwuid($<)))[7])  )  . $_;
+                #   Ideally would use File::HomeDir->my_home() here
+		$_ = $1 . ( $ENV{'HOME'} || (( getpwnam( getlogin || getpwuid($<) ))[7]) )  . $_;
 	    } else {
 		# Name mentioned - try to get that user's home directory.
-		$_ = $1 . (getpwnam(getpwuid($<)))[7];
+		$_ = $1 . ( (getpwnam($2))[7] ) . $_;
 	    }
 	}
 	
