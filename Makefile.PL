@@ -362,6 +362,19 @@ BEGIN{
      die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
   }
 
+  # Check for pre-existing PDL module in @INC
+  eval { require PDL::Lite; PDL::Lite->import(); };
+  unless($@)
+  {
+     # uh-oh! we have a pre-existing PDL in path
+     warn( "\n  ****** WARNING ******\n"
+        . "  PDL version $PDL::Version::VERSION was detected in your \@INC\n"
+        . "  PDL may not build/test correctly with another PDL in \@INC!\n" );
+
+     my $go_on = prompt("\nDo you still wish to continue?", 'y');
+     die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
+  }
+
   # test for critical modules
   @hasnt = ();
   my @test = (['Filter::Util::Call','Filter'],

@@ -41,6 +41,13 @@ The following issues have been reported with this version of PDL:
   update PDL::FFTW to the version 3 API. 
 
 
+- If you have a pre-existing PDL install in your perl @INC path,
+  mysterious failures have been observed in some tests due to
+  unintentionally pulling in the wrong version of PDL.  The
+  'perl Makefile.PL' stage now checks for this and prompts to
+  continue so you'll know the potential problem exists.
+
+
 - Various make command issues during build:
 
   - Using parallel make causes the build to fail; so don't use -j # options.
@@ -59,11 +66,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_015 release:
+  PDL-2.4.6_016 release:
 
   3031068    PDL::IO::FlexRaw memory mapping fails
-  3024219    test fail in PDL::IO::HDF
-  3021519    PDL::AutoLoader doesn't expand win32 paths correctly
   3018731    NiceSlice affects code where it should not
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
@@ -71,7 +76,6 @@ The following issues have been reported with this version of PDL:
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
   1507054    closing TriD window kills perldl shell
-  1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
   1059020    Problem with FFTW version 3.0.1

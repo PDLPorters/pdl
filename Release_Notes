@@ -9,7 +9,14 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * PDL now checks for another pre-existing PDL in your
+   perl @INC path and asks you if you wish to continue
+   since mysterious failures have been observed during
+   tests in that case.
+
+ * PDL::Config is now loaded by default with use PDL.
+
+ * Various documentation updates.
 
 
 
