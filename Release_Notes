@@ -9,14 +9,24 @@ General Notes:
 
 Highlights:
 
+ * Add smooth shading for spheres3d()
+
+ * Fix Perl OpenGL detection to remove the OpenGL
+   PREREQ_PM if an acceptable version of OpenGL is
+   not found.
+
  * PDL now checks for another pre-existing PDL in your
    perl @INC path and asks you if you wish to continue
    since mysterious failures have been observed during
    tests in that case.
+ 
+ * PDL::AutoLoader now can handle win32 path separators
+  (semicolons) in addition to the usual colons.
 
  * PDL::Config is now loaded by default with use PDL.
 
- * Various documentation updates.
+ * Various documentation updates of TODO, Perldl2/TODO,
+   DEPENDENCIES, Release_Notes and more.
 
 
 
