@@ -309,7 +309,7 @@ sub PDL::gl_spheres {
       glPushMatrix();
       my ($x,$y,$z) = ($coords->slice(":,($np)"))->float->list;
       glTranslatef($x,$y,$z);
-      glutSolidSphere(0.010,10,10);
+      glutSolidSphere(0.1,15,15);
       glPopMatrix();
    }
 }
@@ -317,6 +317,7 @@ sub PDL::gl_spheres {
 sub PDL::Graphics::TriD::Spheres::gdraw {
    my($this,$points) = @_;
    $this->glOptions();
+   glShadeModel(GL_SMOOTH);
    PDL::gl_spheres($points,$this->{Colors});
 }
 
