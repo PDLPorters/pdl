@@ -186,17 +186,6 @@ N  Update PDL Book (in progress)
      release schedule is not known.
 
 
-N  Fix the test problems with preexisting PDL installs
-
-     Nice to have
-
-     This would involve writing a routine to probe
-     @INC for PDL (or maybe an arbitrary module) and
-     reporting whether it was already installed.
-     You would need to make sure not to pick up
-     the blib version from the build process.
-
-
 N  Finish spheres3d implementation
 
      Nice to have (CHM has volunteered for this task)
@@ -293,6 +282,17 @@ N  Check/set perldl.conf options before the PDL build?
 |                                DONE                                    |
 +------------------------------------------------------------------------+
    
+D  Fix the test problems with preexisting PDL installs
+
+     Nice to have
+
+     This would involve writing a routine to probe
+     @INC for PDL (or maybe an arbitrary module) and
+     reporting whether it was already installed.
+     You would need to make sure not to pick up
+     the blib version from the build process.
+
+
 D  Add support for Known_problems to tests
 
      Required
