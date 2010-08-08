@@ -1,4 +1,4 @@
-Release notes for PDL 2.4.6_017 --------------------------
+Release notes for PDL 2.4.6_018 --------------------------
 
 General Notes:
 
@@ -10,6 +10,23 @@ General Notes:
 Highlights:
 
  * TBD
+
+
+
+Release notes for PDL 2.4.6_017 --------------------------
+
+General Notes:
+
+ * This is a developers release! It is a snapshot of the
+   current git development tree and everything may not work
+   correctly or have complete documentation (as in these
+   Release notes).
+
+Highlights:
+
+ * Candidate fix for the mysterious t/dumper.t failures
+   for some systems.  If you still see failures, please
+   let us know.  Thanks.
 
 
 
