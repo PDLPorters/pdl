@@ -151,7 +151,7 @@ sub PDL::IO::Dumper::sdump {
   my($s) = Data::Dumper->Dump([@_]);
   my(%pdls);
 # Find the bless(...,'PDL') lines
-  while($s =~ s/bless\( do\{\\\(my \$o \= (\d+)\)\}\, \'PDL\' \)/\$PDL_$1/) {
+  while($s =~ s/bless\( do\{\\\(my \$o \= (\d+)\)\}\, \'PDL\' \)/sprintf('$PDL_%u',$1)/e) {
     $pdls{$1}++;
   }
 
@@ -602,7 +602,7 @@ sub PDL::IO::Dumper::find_PDLs {
       # just a straight PDL (and not a hash with PDL field), you end up here.
       #
 
-      my($pdlid) = "PDL_".$$_;
+      my($pdlid) = sprintf('PDL_%u',$$_);
       my(@strings) = &PDL::IO::Dumper::dump_PDL($_,$pdlid);
       
       $out .= $strings[0];
