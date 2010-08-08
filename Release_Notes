@@ -9,7 +9,9 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Candidate fix for the mysterious t/dumper.t failures
+   for some systems, take 2.  If you still see failures,
+   please let us know.  Thanks.
 
 
 
