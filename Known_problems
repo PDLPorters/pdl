@@ -65,6 +65,13 @@ The following issues have been reported with this version of PDL:
   cause out of memory crashes with large data sets.
 
 
+- PDL::IO::Dumper sdump() fails for some system configurations.
+  Problems have been reported for various BSD platforms.  Please
+  use PDL::IO::Storable if you have this problem *and* let the
+  PDL developer know (Bonus points if you can work with us to
+  debug this problem---which has only languished because we don't
+  have the ability to create the bug to fix it...).  Thanks.
+
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.6_019 release:
 
