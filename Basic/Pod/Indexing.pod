@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Indexing - how to index piddles.
+PDL::Indexing - how to index piddles.
 
 =head1 OVERVIEW
 

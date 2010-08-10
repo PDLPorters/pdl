@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-PDL::Book::QuickStart - Quick start guide to PDL
+PDL::QuickStart - Quick introduction to PDL features.
 
 =head1 SYNOPSIS
 

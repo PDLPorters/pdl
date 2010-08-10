@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Tips - Small tidbits of useful arcana. Programming tidbits and such.
+PDL::Tips - Small tidbits of useful arcana. Programming tidbits and such.
 
 =head1 SYNOPSIS
 

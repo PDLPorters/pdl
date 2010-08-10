@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Philosophy -- what's behind PDL?
+PDL::Philosophy -- Why did we write PDL?
 
 =head1 DESCRIPTION
 

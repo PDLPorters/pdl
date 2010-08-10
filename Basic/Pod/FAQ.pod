@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-PDL::Book::FAQ - Frequently asked questions about PDL
+PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
@@ -328,7 +328,7 @@ reproduced in braces ( <... ...> ) ):
         unix> pdl2
         pdl> help
         <.... help output ....>
-        pdl> help PDL::Book::QuickStart
+        pdl> help PDL::QuickStart
         <.... man page ....>
         pdl> $a = pdl (1,5,7.3,1.0)
         pdl> $b = sequence float, 4, 4

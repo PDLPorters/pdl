@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::MATLAB - A guide for MATLAB users.
+PDL::MATLAB - A guide for MATLAB users.
 
 =head1 INTRODUCTION
 

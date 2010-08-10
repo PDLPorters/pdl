@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Scilab - A guide for Scilab users.
+PDL::Scilab - A guide for Scilab users.
 
 =head1 INTRODUCTION
 
