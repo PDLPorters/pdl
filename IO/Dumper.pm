@@ -106,14 +106,14 @@ BEGIN{
   eval "use Convert::UU;";
   $PDL::IO::Dumper::convert_ok = !$@;
 
-  my $a = sub {
-      my($prog) = 'uudecode';
+  my $checkprog = sub {
+      my($prog) = $_[0];
       my $pathsep = $^O =~ /win32/i ? ';' : ':';
       my $exe = $^O =~ /win32/i ? '.exe' : '';
       for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
       return 0;
   };
-  $PDL::IO::Dumper::uudecode_ok = &$a('uudecode');
+  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode');
 
   use PDL;
   use PDL::Exporter;
