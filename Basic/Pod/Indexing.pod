@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Indexing - how to index piddles.
+PDL::Indexing - Introduction to indexing and slicing piddles.
 
 =head1 OVERVIEW
 
