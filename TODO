@@ -57,11 +57,7 @@ R  Clean up and triage for tickets prior to release.
 
      Required
 
-     Needs volunteers (especially for bugs with special
-     platform requirements, such as HDF that some folks
-     might not have).
-
-     We're making progress here.  Every little bit helps.
+     Only one critical bug left...done soon.
 
 
 R  Update PDL web site pages 
@@ -104,7 +100,7 @@ R  Need PLplot and PDL::Graphics::PLplot to build all platforms
 
 R  Complete Perldl2 shell:
 R  * Fix demo to work with Perldl2
-R  * Fix Ctrl-C handling for win32 systems
+N  * Fix Ctrl-C handling for win32 systems
 N  * Add safe pdl allocation option to prevent OOM death
 
      Required (CHM has volunteered for this task)
@@ -194,17 +190,6 @@ N  Finish spheres3d implementation
      parameters for the spheres and some minor cleanup.
 
 
-N  PDL::Constants
-
-     Nice to have
-
-     We've had mailing list discussions on this topic.
-     All that needs to be done is the implementation.
-     The idea is to use Readonly as the basis for the
-     constants and, perhaps, have a 'use constant'
-     fall back version.
-   
-
 N  Finish PDL::IO::ENVI module
 
      Nice to have
@@ -217,6 +202,17 @@ N  Finish PDL::IO::ENVI module
 +------------------------------------------------------------------------+
 |                         Deferred to PDL-2.4.8                          |
 +------------------------------------------------------------------------+
+
+N  PDL::Constants
+
+     Nice to have
+
+     We've had mailing list discussions on this topic.
+     All that needs to be done is the implementation.
+     The idea is to use Readonly as the basis for the
+     constants and, perhaps, have a 'use constant'
+     fall back version.
+   
 
 N  Verify dependency detection across all major PDL platforms
 
