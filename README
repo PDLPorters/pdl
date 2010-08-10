@@ -43,11 +43,12 @@ perldl shell. Try the help command within the shell!
 PDL -- the package
 ------------------
 
-The Perl Data Language (PerlDL) project aims to turn perl into an efficient
-numerical language for scientific computing. The PDL module gives standard
-perl the ability to COMPACTLY store and SPEEDILY manipulate the large
-N-dimensional data sets which are the bread and butter of scientific computing.
-e.g. $a=$b+$c can add two 2048x2048 images in only a fraction of a second.
+The Perl Data Language (a.k.a. PerlDL or PDL) project aims to turn perl
+into an efficient numerical language for scientific computing. The PDL
+module gives standard perl the ability to COMPACTLY store and SPEEDILY
+manipulate the large N-dimensional data sets which are the bread and
+butter of scientific computing.  e.g. $a=$b+$c can add two 2048x2048
+images in only a fraction of a second.
 
 The aim is to provide tons of useful functionality for scientific and
 numeric analysis.
@@ -64,11 +65,11 @@ to configure and install PDL.
 Once you have built PDL and either installed it or done
 'make doctest', try either
 
-	perl -Mblib perldl
+	perl -Mblib Perldl2/pdl2
 
 from within the root of the PDL tree or just
 
-	perldl
+	pdl2
 	
 if you have installed PDL already ('make install') to get the
 interactive PDL shell. In this shell, 'help' gives you
@@ -112,8 +113,8 @@ Example/   - Sample programs using PDL
 Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
 Lib/	   - The stuff that PDL would still be useful without but
-	     which makes PDL even more useful
-Perldl2/   - The PDL shell version 2 development
+	       which makes PDL even more useful
+Perldl2/   - The PDL shell version 2 source and development
 
 Comments are welcome - so are volunteers to write code and documentation!
 Please contact the developers mailing list pdl-porters@jach.hawaii.edu
