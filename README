@@ -19,29 +19,27 @@ perldl.conf		PDL configuration options
 Basic/Pod/FAQ.pod 	The FAQ in pod format
 			Try 'perldoc PDL::FAQ' after installation
 
-Basic/Pod/Impatient.pod
+Basic/Pod/QuickStart.pod
 			A quick overview of PDL
-			try 'perldoc PDL::Impatient' after installation
+			Try 'perldoc PDL::Book::QuickStart' after installation
 
 Basic/Pod/BadValues.pod
-                        a discussion of the bad value support in PDL
+                        A discussion of the bad value support in PDL
 
-PDL::Index		a guide to PDL documentation
-			!only available *after* successful installation!
-			try 'perldoc PDL::Index'
+DEVELOPMENT		How to participate in the development of PDL
 
-DEVELOPMENT		how to participate in the development of PDL
+Release_Notes		A list of features or issues with regard to the
+                        current version, always worth checking!
 
-Release_Notes		a list of issues with regard to the current version
-			always worth checking!
 
-*Note* that most PDL documentation is available online within the
-PDL shell, pdl2. Try the help command within the shell!
+
+*NOTE*  Most PDL documentation is available online within the PDL shell,
+        pdl2 (or perldl).  Try the help command within the shell.
+
 
 
 PDL -- the package
 ------------------
-
 The Perl Data Language (a.k.a. PerlDL or PDL) project aims to turn perl
 into an efficient numerical language for scientific computing. The PDL
 module gives standard perl the ability to COMPACTLY store and SPEEDILY
@@ -55,11 +53,11 @@ numeric analysis.
 Check the pdl web site at http://pdl.perl.org for more information.
 
 
+
 Installation
 ------------
-
-Please read the file INSTALL for detailed information on how
-to configure and install PDL.
+Please read the file INSTALL for information on how to configure
+and install PDL.
 
 Once you have built PDL and either installed it or done
 'make doctest', try either
@@ -71,15 +69,15 @@ from within the root of the PDL tree or just
 	pdl2
 	
 if you have installed PDL already ('make install') to get the
-interactive PDL shell. In this shell, 'help' gives you
-access to PDL documentation for each function separately ('help
-help' for more about this) and 'demo' gives you some basic
-examples of what you can do.
+interactive PDL shell.  In this shell, 'help' gives you
+access to PDL documentation for each function separately
+('help help' for more about this) and 'demo' gives you some
+basic examples of what you can do.
+
 
 
 Bug Reports
 -----------
-
 You can check the existing PDL bugs on sourceforge at
 
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
@@ -101,9 +99,9 @@ in the BUGS file:
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
 
 
+
 Notes
 -----
-
 Directory structure:
 
 Basic/	   - The stuff that PDL would be no use without
@@ -115,6 +113,7 @@ Lib/	   - The stuff that PDL would still be useful without but
 	       which makes PDL even more useful
 Perldl2/   - The PDL shell version 2 source and development
 
+
 Comments are welcome - so are volunteers to write code and documentation!
 Please contact the developers mailing list pdl-porters@jach.hawaii.edu
 (subscription address: pdl-porters-request@jach.hawaii.edu) with ideas
@@ -122,10 +121,10 @@ and suggestions.
 
   The pdl-porters team.
 
+
+
 Compilation Reports:
 --------------------
-
 The CPAN Testers' result page provides a database showing the results
 of compiling PDL and many other CPAN packages on multiple platforms.
 See http://testers.cpan.org/
-
