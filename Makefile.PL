@@ -509,7 +509,7 @@ if($Config{archname}=~m/x86_64/) {
 	      'dist'     => { COMPRESS => 'gzip',
                               SUFFIX   => 'gz',
                               PREOP    => ($^O !~ /mswin32/i) ?
-                                           q[git log --stat --since='29 Apr 2009' > $(DISTNAME)-$(VERSION)/Changes] :
+                                           q[git log --stat --since='29 Apr 2009' > Changes] :
                                            '@ :' },
 	      'clean' => {
 		  'FILES' => $cleanup .
