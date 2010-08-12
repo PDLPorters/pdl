@@ -112,6 +112,10 @@ IO/	   - The stuff that PDL needs to write and read strange files
 Lib/	   - The stuff that PDL would still be useful without but
 	       which makes PDL even more useful
 Perldl2/   - The PDL shell version 2 source and development
+cygwin/    - Platform specific information
+debian/    - Platform specific information
+macosx/    - Platform specific information
+win32/     - Platform specific information
 
 
 Comments are welcome - so are volunteers to write code and documentation!
