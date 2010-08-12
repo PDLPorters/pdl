@@ -2,26 +2,25 @@
 ++ package. See the file COPYING for details.                 ++
 
 Important reading
------------------
 
 Please check the following files for further information
 *BEFORE* sending us your questions:
 
-INSTALL 		detailed installation instructions
+INSTALL 		Basic installation instructions
 
-BUGS			how to make a bug report and where to send it
+BUGS			How to make a bug report
 
-Known_problems	 	check before you report problems
+Known_problems	 	Check before you report problems
 
 DEPENDENCIES		Other software that PDL relies on (and where to get it)
 
 perldl.conf		PDL configuration options
 
-Basic/Pod/FAQ.pod 	the FAQ in pod format
-			try 'perldoc PDL::FAQ' after installation
+Basic/Pod/FAQ.pod 	The FAQ in pod format
+			Try 'perldoc PDL::FAQ' after installation
 
 Basic/Pod/Impatient.pod
-			a quick overview of PDL
+			A quick overview of PDL
 			try 'perldoc PDL::Impatient' after installation
 
 Basic/Pod/BadValues.pod
