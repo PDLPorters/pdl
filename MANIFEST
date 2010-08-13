@@ -102,7 +102,6 @@ Basic/Pod/FAQ.pod
 Basic/Pod/Guide.pod
 Basic/Pod/Indexing.pod
 Basic/Pod/Internals.pod
-Basic/Pod/Intro.pod
 Basic/Pod/MATLAB.pod
 Basic/Pod/Makefile.PL
 Basic/Pod/Objects.pod
@@ -112,6 +111,7 @@ Basic/Pod/QuickStart.pod
 Basic/Pod/Scilab.pod
 Basic/Pod/Threading.pod
 Basic/Pod/Tips.pod
+Basic/Pod/Tutorials.pod
 Basic/Pod/make-book.pl
 Basic/Pod/pdl-book.css
 Basic/Primitive/Makefile.PL

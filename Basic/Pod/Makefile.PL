@@ -18,7 +18,6 @@ if (!$@ && $] >= 5.005 ) {
 
 
 my @man1 = map { $_.".pod", '$(INST_MAN1DIR)/PDL::' . $_ . '.$(MAN1EXT)' } @pods;
-push @man1,  'Intro.pod', '$(INST_MAN1DIR)/pdl'.'.$(MAN1EXT)';
 
 my @pms  = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} @pods;
 

@@ -306,8 +306,7 @@ If you have PDL installed on your machine and are on a unix like system
 then you can read the PDL manuals with the C<man> command. 
 C<man PDL> get you started, C<man PDL::FAQ> will let you read this 
 document, etc. In any case (i.e. also on non-unixes) 
-C<perldoc PDL::Intro> should work, and if you don't want to type that
-much, C<pdldoc intro> should also work.
+C<perldoc PDL> should work.
 
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
