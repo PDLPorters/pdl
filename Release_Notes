@@ -8,7 +8,214 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * General
+
+   OpenGL-0.63 is required for PDL::Graphics::TriD.
+
+   Convert::UU is required for PDL.
+
+   Karma is deprecated.  Set USE_KARMA => 1 in
+   perldl.conf to force a build.
+   
+   
+ * New 2D Image Display Feature
+
+   Moved imag2d() into PDL::Graphics2D
+
+   Add image pixel value display on mouse
+   click in imag2d window
+   
+   Add keyboard command shortcuts for imag2d
+   (with placeholders)
+
+   Fix a number of imag2d() usabiilty bugs
+   
+   
+ * pdl() Constructor Can Take String Input
+
+   Allows use of MATLAB-style [ ; ] syntax
+
+   Allows cut-n-paste of printed pdl values
+   as input args for pdl()
+   
+   
+ * rcols/wcols Improvements
+
+   Much faster read times
+
+   Multiple columns can read into a single
+   pdl varible
+
+   Symmetric handling of perl and pdl
+   column data
+
+   Improved format support for CSV file input
+   
+   
+ * Enhanced PDL Shell (Version 2)
+
+   Based on Devel::REPL which must be installed
+   to use the pdl2 features.
+
+   Supports Term::ReadLine::Perl and Term::ReadLine::Gn
+
+   Upward compatable with the original PDL shell, perldl.
+
+   Adds completion and command line editing support
+   across all PDL platforms.
+
+   Adds support for current package and lexical variables.
+
+   Toggle default print output via the do_print attribute.
+
+   Default prompt for perldl and pdl2 is now 'pdl> '
+
+   help vars now shows results alphabetically
+
+   pdl2 now runs (falls back to) perldl if Devel::REPL
+   is not installed
+   
+   
+ * Other Features
+
+   Fix wmpeg() to use ffmpeg to generate the
+   video (sf.net feature request #3010984).
+
+   Added tiled compressed image handling to rfits
+
+   Faster matrix multiply
+
+   Preliminary support for ENVI file format data
+   in PDL::IO::ENVI
+   
+   
+ * Build Improvements:
+
+   PDL build process now detects multiple PDL installs
+   and warns of possible conflicts.
+
+   'use PDL' now loads PDL::Config by default.
+
+   PDL "as built" configuration is now saved to %PDL::Config
+
+   Changes file is automatically updated each release
+
+   Add SKIP_KNOWN_PROBLEMS support for build
+
+   Add checks to prevent warnings from access to $HOME
+   when it is not defined.
+   
+   
+ * Portability Fixes
+
+   Multiple build improvements for debian platforms
+
+   Improved portability across perl and compiler versions
+
+   Reduced number of fortran dependencies
+
+   Improved support for win32 platforms
+   - PDL::GIS::Proj builds for win32
+   - PDL::Transform::Proj4 builds for win32
+   - PDL::Graphics::PLplot builds for win32
+   - PDL::IO::Dumper builds for win32
+   
+   
+ * 3-D Graphics
+
+   Improved PDL::Graphics::TriD demos and examples
+
+   Fixed problems with VRML support for many platforms.
+
+   Better dependency searches for OpenGL during PDL build
+
+   Removed warnings "noise" when used with perl -w
+
+   New spheres3d routine added to PDL::Graphics::TriD
+   
+   
+ * Bugs Fixed
+
+   Fix PDL::AutoLoader to handle win32 PDLLIB path
+   syntax with ; as separator. 
+
+   Fix PDL::Complex::string and sum and sumover
+   (sf.net bug #1176614)
+
+   Fix PDL::Config does not match actual build
+   configuration (sf.net bug #3030998).
+
+   Fix dimension numbering in PDL::Transform::t_fits
+
+   Fix jpegtopnm problem in proj_transform.t
+
+   Fix rt.cpan.org bug #53815 in IO/HDF/SD/SD.pd
+
+   Fix rt.cpan.org bug #59126 in isempty pod
+
+   Fix sf.net bug #2901170 re overly verbose warnings when
+   running TriD with perl -w
+
+   Fix sf.net bug #3011143 re whitespace in perl path
+
+   Fix sf.net bug #3021578 re missing xtra dummy dims
+
+   Fix threading with lu_decomp and lu_backsub
+   (sf.net bug #3021567)
+
+   Fix uniq and uniqind NaN and BAD value handling
+   (sf.net bug #3011659)
+
+   Fix uniqvec bug where it did not return a 2-D result
+   (sf.net bug #2978576)
+
+   Fix uuencode/uudecode detection logic in PDL::IO::Dumper
+   to include Convert::UU check
+
+   Make PDL prompt/warn if space in build path
+   (sf.net bug #2924854).
+
+   Fix up code to not crash on non-lazy linking systems.
+
+   Work arounds for perl -d lvalue temp bug introduced
+   in recent perls.
+
+   t/lvalue.t is skipped if run under the debugger. 
+
+   Fix format string attack errors in GSL, PGPLOT,
+   and Transform.
+   
+   
+ * Documentation Improvements
+
+   Completely reworked PDL web site
+   - Clearer and more helpful to new PDL users.
+   - See http://pdl.perl.org for the latest!
+
+   New Migration Guides to PDL
+   - For MATLAB users
+   - For Scilab users
+
+   POD cleanup across many PDL modules and functions
+
+   Major reorganization of documentation to better
+   help new users
+
+   Update to copyright statements throughout PDL
+   to clarify licenses.
+
+   Improved on-line help and apropos features in
+   the PDL shell
+
+   Updated FAQ
+
+   Improved POD to HTML translation
+
+   DEPENDENCIES for PDL updated and checked
+   for applicability.
+
+   INSTALL guides improved in the distribution
+   and on the web site.
 
 
 
