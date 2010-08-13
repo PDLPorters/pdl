@@ -18,6 +18,14 @@ The following issues have been reported with this version of PDL:
   100% effective---but ugly.
 
 
+- PDL::IO::Dumper sdump() fails for some system configurations.
+  Problems have been reported for various BSD platforms.  Please
+  use PDL::IO::Storable if you have this problem *and* let the
+  PDL developer know (Bonus points if you can work with us to
+  debug this problem---which has only languished because we don't
+  have the ability to create the bug to fix it...).  Thanks.
+
+
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
   to have the window close.
@@ -58,16 +66,8 @@ The following issues have been reported with this version of PDL:
   cause out of memory crashes with large data sets.
 
 
-- PDL::IO::Dumper sdump() fails for some system configurations.
-  Problems have been reported for various BSD platforms.  Please
-  use PDL::IO::Storable if you have this problem *and* let the
-  PDL developer know (Bonus points if you can work with us to
-  debug this problem---which has only languished because we don't
-  have the ability to create the bug to fix it...).  Thanks.
-
-
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_019 release:
+  PDL-2.4.6_991 release:
 
   3042201    t/dumper.t fails mysteriously
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
