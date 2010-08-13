@@ -277,7 +277,7 @@ Flexible storage format.
 
 Misc IO routines.
 
-=item L<PDL::IO::Sortable|PDL::O::Sortable>
+=item L<PDL::IO::Sortable|PDL::IO::Sortable>
 
 Support for Perl's 'Storable' module.
 
