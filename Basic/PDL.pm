@@ -21,6 +21,21 @@ The PDL package includes an interactive shell. You can learn about it,
 run C<perldoc perldl>, or run the shell C<perldl> or C<pdl2> and type
 C<help>.
 
+=head1 LOOKING FOR A FUNCTION?
+
+If you want to search for a function name, you should use the PDL
+shell along with the "help" or "apropos" command (to do a fuzzy search).
+For example:
+
+ pdl> apropos xval
+ xlinvals        X axis values between endpoints (see xvals).
+ xlogvals        X axis values logarithmicly spaced...
+ xvals           Fills a piddle with X index values...
+ yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
+ zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
+
+To learn more about the PDL shell, see L<perldl|perldl> or L<pdl2|pdl2>.
+
 =head1 LANGUAGE DOCUMENTATION
 
 Most PDL documentation describes the language features. The number of
@@ -40,6 +55,12 @@ categories.
 
 A guide to PDL's tutorial-style documentation. With topics from beginner
 to advanced, these pages teach you various aspects of PDL step by step.
+
+=item L<PDL::Modules|PDL::Modules>
+
+A guide to PDL's module reference. Modules are organized by level
+(foundation to advanced) and by category (graphics, numerical methods,
+etc) to help you find the module you need as quickly as possible.
 
 =item L<PDL::Course|PDL::Course>
 
