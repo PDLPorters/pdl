@@ -42,7 +42,7 @@ or PDL.
 =item L<PDL::Indexing|PDL::Indexing>
 
 After you have read the QuickStart guide, you should follow up with
-this docuent. This guide goes more deeply into the concepts of
+this document. This guide goes more deeply into the concepts of
 "indexing" and "slicing" and how they form the core of numerical
 analysis with PDL.
 
@@ -81,7 +81,7 @@ these tips might be of help when you write your programs.
 =item L<PDL::PP|PDL::PP>
 
 PDL's Pre-Processor is one of PDL's most powerful features. You
-write a function definition in special markup and the pre-processor
+write a function definition in special markup and the preprocessor
 generates real C code which can be compiled. With PDL:PP you get the
 full speed of native C code without having to deal with the full
 complexity of the C language.

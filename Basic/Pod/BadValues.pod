@@ -31,7 +31,7 @@ is if you have limited disk or memory space, since the size of the code
 is increased (see below).
 
 You may also ask 'well, my computer supports IEEE NaN, so I already have this'.
-Well, yes and no - many routines, such as C<y=sin(x)>, will propogate NaN's 
+Well, yes and no - many routines, such as C<y=sin(x)>, will propagate NaN's 
 without the user having to code differently, but routines such as C<qsort>, or
 finding the median of an array, need to be re-coded to handle bad values.
 For floating-point datatypes, C<NaN> and C<Inf> are used to flag bad values
@@ -39,7 +39,7 @@ I<IF> the option C<BADVAL_USENAN> is set to 1 in your config file.  Otherwise
 special values are used (L<Default bad values|/Default bad values>).  I
 do not have any benchmarks to see which option is faster.
 
-There is an experimental feadture C<BADVAL_PER_PDL> which, if set,
+There is an experimental feature C<BADVAL_PER_PDL> which, if set,
 allows you to have different bad values for separate piddles of the
 same type. This currently does not work with the C<BADVAL_USENAN> option;
 if both are set then PDL will ignore the C<BADVAL_USENAN> value.
@@ -48,7 +48,7 @@ if both are set then PDL will ignore the C<BADVAL_USENAN> value.
 
 The following comparison is out of date!
 
-On an i386 machine running linux and perl 5.005_03, I measured the 
+On an i386 machine running Linux and Perl 5.005_03, I measured the 
 following sizes (the Slatec code was compiled in, but none of the other 
 options: eg Karma, FFTW, GSL, and 3d were):
 
@@ -71,7 +71,7 @@ the wonders that bad values provides ;)
 
 The source code used for this test had the vast majority of the core routines 
 (eg those in Basic/) converted to use bad values, whilst very few of the 'external' 
-routines (ie everything else in the PDL distribution) had been changed.
+routines (i.e. everything else in the PDL distribution) had been changed.
 
 =head2 A quick overview
 
@@ -170,7 +170,7 @@ To check that a piddle really contains bad data, use the C<check_badflag> method
 
 I<NOTE>: propogation of the badflag
 
-If you change the badflag of a piddle, this change is propogated to all
+If you change the badflag of a piddle, this change is propagated to all
 the I<children> of a piddle, so
 
    pdl> $a = zeroes(20,30);
@@ -197,13 +197,13 @@ Thoughts:
 =item *
 
 the badflag can ONLY be cleared IF a piddle has NO parents,
-and that this change will propogate to all the children of that
+and that this change will propagate to all the children of that
 piddle. I am not so keen on this anymore (too awkward to code, for
 one).
 
 =item *
 
-C<$a-E<gt>badflag(1)> should propogate the badflag to BOTH parents and
+C<$a-E<gt>badflag(1)> should propagate the badflag to BOTH parents and
 children.
 
 =back
@@ -211,8 +211,8 @@ children.
 This shouldn't be hard to implement (although an initial attempt failed!). 
 Does it make sense though? There's also
 the issue of what happens if you change the badvalue of a piddle - should
-these propogate to children/parents (yes) or whether you should only be
-able to change the badvalue at the 'top' level - ie those piddles which do
+these propagate to children/parents (yes) or whether you should only be
+able to change the badvalue at the 'top' level - i.e. those piddles which do
 not have parents.
 
 The C<orig_badvalue()> method returns the compile-time value for a given 
@@ -230,10 +230,10 @@ To change the current bad value, supply the new number to badvalue - eg
   $pdl->badvalue(2.3), byte->badvalue(2), badvalue(5,-3e34). 
 
 I<Note>: the value is silently converted to the correct C type, and
-returned - ie C<byte-E<gt>badvalue(-26)> returns 230 on my linux machine.
+returned - i.e. C<byte-E<gt>badvalue(-26)> returns 230 on my Linux machine.
 It is also a C<nop> for floating-point types when C<BADVAL_USENAN> is true.
 
-Note that changes to the bad value are I<NOT> propogated to previously-created
+Note that changes to the bad value are I<NOT> propagated to previously-created
 piddles - they will still have the bad value set, but suddenly the elements
 that were bad will become 'good', but containing the old bad value.
 See discussion below.  It's not a problem for floating-point types
@@ -246,7 +246,7 @@ on a bad value returns the bad value.  Whilst this means that
 
  $mask = $img > $thresh;
 
-correctly propogates bad values, it I<will> cause problems
+correctly propagates bad values, it I<will> cause problems
 for checks such as
 
  do_something() if any( $img > $thresh );
@@ -304,8 +304,8 @@ they should be checked for. Thanks to Christian, C<badflag()> - which
 sets/clears this flag (see F<Basic/Bad/bad.pd>) - will update I<ALL> the 
 children/grandchildren/etc of a piddle if its state changes (see 
 C<badflag> in F<Basic/Bad/bad.pd> and
-C<propogate_badflag> in F<Basic/Core/Core.xs.PL>). 
-It's not clear what to do with parents: I can see the reason for propogating a 
+C<propagate_badflag> in F<Basic/Core/Core.xs.PL>). 
+It's not clear what to do with parents: I can see the reason for propagating a 
 'set badflag' request to parents, but I think a child should NOT be able to clear 
 the badflag of a parent. 
 There's also the issue of what happens when you change the bad value for a piddle.
@@ -316,7 +316,7 @@ or not. This value is set if any of the input piddles have their C<PDL_BADVAL>
 flag set (although this code can be replaced by setting C<FindBadStateCode> in 
 pp_def).  The logic of the check is going to get a tad more complicated
 if I allow routines to fall back to using the C<Code> section for 
-floating-point types (ie those routines with C<NoBadifNaN =E<gt> 1>
+floating-point types (i.e. those routines with C<NoBadifNaN =E<gt> 1>
 when C<BADVAL_USENAN> is true).
 
 The bad values for the integer types
@@ -369,7 +369,7 @@ hopefully many more places soon!).
 Some of the logic might appear a bit unclear - that's probably because it
 is! Comments appreciated.
 
-All routines should automatically propogate the bad status flag to output
+All routines should automatically propagate the bad status flag to output
 piddles, unless you declare otherwise.
 
 If a routine explicitly deals with bad values, you must provide this option
@@ -422,12 +422,12 @@ code.
 
 =back
 
-If you have a routine that you want to be able to use as inplace, look
+If you have a routine that you want to be able to use as in-place, look
 at the routines in F<bad.pd> (or F<ops.pd>)
-which use the C<Inplace> option to see how the
-bad flag is propogated to children using the C<xxxBadStatusCode> options.
+which use the C<in-place> option to see how the
+bad flag is propagated to children using the C<xxxBadStatusCode> options.
 I decided not to automate this as rules would be a
-little complex, since not every inplace op will need to propogate the 
+little complex, since not every in-place op will need to propagate the 
 badflag (eg unary functions).
 
 If the option
@@ -540,7 +540,7 @@ which is done.  To select, set C<BADVAL_USENAN> to 1 in perldl.conf;
 a value of 0 falls back to treating the floating-point types the
 same as the integers.  I need to do some benchmarks to see which is faster,
 and whether it's dependent on machines (Linux seems to slow down much
-more than my sparc machine in some very simple tests I did).
+more than my Sparc machine in some very simple tests I did).
 
 =item Ignoring BadCode sections
 
@@ -549,9 +549,9 @@ which is I<not>.
 =back
 
 For I<simple> routines processing floating-point numbers, we should let
-the computer process the bad values (ie C<NaN> and C<Inf> values) instead
+the computer process the bad values (i.e. C<NaN> and C<Inf> values) instead
 of using the code in the C<BadCode> section.  Many such routines have
-been labelled using C<NoBadifNaN =E<gt> 1>; however this is currently 
+been labeled using C<NoBadifNaN =E<gt> 1>; however this is currently 
 I<ignored> by PDL::PP.
 
 For these routines, we want to use the C<Code> section if
@@ -589,21 +589,21 @@ routine C<PDL::Core::Dev::isbigendian()>.
 =head1 WHAT ABOUT DOCUMENTATION?
 
 One of the strengths of PDL is it's on-line documentation. The aim is to use
-this system to provide informtion on how/if a routine supports bad values:
+this system to provide information on how/if a routine supports bad values:
 in many cases C<pp_def()> contains all the information anyway, so the 
 function-writer doesn't need to do anything at all! For the cases when this is
 not sufficient, there's the C<BadDoc> option. For code written at
-the perl level - ie in a .pm file - use the C<=for bad> pod directive.
+the Perl level - i.e. in a .pm file - use the C<=for bad> pod directive.
 
-This information will be available via man/pod2man/html documenation. It's also
+This information will be available via man/pod2man/html documentation. It's also
 accessible from the C<perldl> or C<pdl2> shells - using the C<badinfo> command - and the C<pdldoc>
 shell command - using the C<-b> option.
 
-This support is at a very early stage - ie not much thought has gone into it:
+This support is at a very early stage - i.e. not much thought has gone into it:
 comments are welcome; improvements to the code preferred ;) One awkward problem
 is for F<*.pm> code: you have to write a F<*.pm.PL> file which only inserts the 
 C<=for bad> directive (+ text) if bad value support is compiled in. In fact, this
-is a pain when handling bad values at the perl, rather than PDL::PP, level: perhaps
+is a pain when handling bad values at the Perl, rather than PDL::PP, level: perhaps
 I should just scrap the C<WITH_BADVAL> option...
 
 =head1 CURRENT ISSUES
@@ -626,7 +626,7 @@ but I doubt that would be any faster.
 =head2 Integration with NaN
 
 When C<BADVAL_USENAN> is true, the routines in C<PDL::Ops> should
-just fall through to the C<Code> section - ie don't use C<BadCode> -
+just fall through to the C<Code> section - i.e. don't use C<BadCode> -
 for C<float> and C<double> data types.
 
 =head2 Global versus per-piddle bad values
@@ -634,7 +634,7 @@ for C<float> and C<double> data types.
 I think all that's needed is to change the routines in
 C<Basic/Core/pdlconv.c.PL>, although there's bound to be complications.
 It would also mean that the pdl structure would need to have a
-variable to store its bad value, which would mean binary incompatability
+variable to store its bad value, which would mean binary incompatibility
 with previous versions of PDL with bad value support.
 
 As of 17 March 2006, PDL contains the B<experimental> C<BADVAL_PER_PDL>
@@ -642,7 +642,7 @@ configuration option which, if selected, adds per-piddle bad values.
 
 =head2 Dataflow of the badflag
 
-Currently changes to the bad flag are propogated to the children of a piddle,
+Currently changes to the bad flag are propagated to the children of a piddle,
 but perhaps they should also be passed on to the parents as well. With the
 advent of per-piddle bad values we need to consider how to handle changes
 to the value used to represent bad items too.
@@ -660,7 +660,7 @@ now created during the build:
 
 Several new files have been added:
 
-  Basic/Pod/Badvalues.pod (ie this file)
+  Basic/Pod/BadValues.pod (i.e. this file)
 
   t/bad.t
 
@@ -679,7 +679,7 @@ etc
 =item *
 
 Look at using per-piddle bad values.  Would mean a change to the pdl structure
-(ie binary incompatability) and the routines in C<Basic/Core/pdlconv.c.PL>
+(i.e. binary incompatibility) and the routines in C<Basic/Core/pdlconv.c.PL>
 would need changing to handle this.  Most other routines I<should not>
 need to be changed ...
 
@@ -717,7 +717,7 @@ a child of another piddle, whereas if you set the flag then all
 children AND parents should be set as well?
 
 Similarly, if you change the bad value in a piddle, should this
-be propogated to parent & children? Or should you only be able to do
+be propagated to parent & children? Or should you only be able to do
 this on the 'top-level' piddle? Nasty...
 
 =item *

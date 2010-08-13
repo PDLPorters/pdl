@@ -29,7 +29,7 @@ so that
 	$b->set(3,3,10);
 
 also changes the corresponding element in $a. $b has become effectively
-a window to some subelements of $a. You can also define your own routines
+a window to some sub-elements of $a. You can also define your own routines
 that do different types of subsets. If you don't want $b to be a window
 to $a, you must do
 
@@ -68,7 +68,7 @@ Therefore, you need to explicitly turn on dataflow, so
 	> $b = $a * 2;
 	...
 
-produces the (un)expected result. The rest of this documents
+produces the unexpected result. The rest of this documents
 explains various features and details of the dataflow implementation.
 
 =head1 Lazy evaluation
@@ -219,12 +219,12 @@ An easy way to interface this to Perl event loop mechanisms
 There are many kinds of uses for this feature: self-updating graphs,
 for instance.
 
-Bla bla bla XXX more explanation
+Blah blah blah XXX more explanation
 
 =head1 Limitations
 
 Dataflow as such is a fairly limited addition on top of Perl.
-To get a more refined addition, the internals of perl need to be
+To get a more refined addition, the internals of Perl need to be
 hacked a little. A true implementation would enable flow of everything,
 including
 

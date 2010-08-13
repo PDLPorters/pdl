@@ -26,7 +26,7 @@ which returns a reference to an anonymous hash. Also,
 subclassing works if you store a piddle in the hash member ``PDL''.
 
 There are also many core enhancements to support Dataflow and
-Slicing tricks, but these do not introduce any incompatbilities.
+Slicing tricks, but these do not introduce any incompatibilities.
 
 =head2 Incompatible Changes vs 1.11
 
@@ -56,7 +56,7 @@ The F<README> file for general stuff.
 
 =head1 HISTORY
 
-pdldelta was inspired by I<perldelta>  man page in the perl
+pdldelta was inspired by I<perldelta>  man page in the Perl
 5.004 distribution.
 
 
