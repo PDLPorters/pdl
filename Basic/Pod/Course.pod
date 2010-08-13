@@ -1,36 +1,27 @@
 =head1 NAME
 
-PDL::Guide - A journey through PDL's documentation, from beginner to advanced.
+PDL::Course - A journey through PDL's documentation, from beginner to advanced.
 
 =head1 AUTHOR, DATE
 
-This is written by David Mertens and was begun in January, 2010.  The
-last update was made on April 29, 2010.
+This is written by David Mertens with edits by Daniel Carrera.
 
 =head1 Preface
 
-PDL is a huge project.  Some of its files address deep core
-magic while others address IO and visualization and still
-others address major numerical needs.  How are all of these
-related?  Where should you begin? Hopefully this document will
-give you a good starting place for learning more about PDL. My
-hope is that somebody new to PDL could read the PDL documentation
-in the order recommended in this document and get a firm grasp of
-the library's capabilities without getting too terribly lost.
+PDL's documentation is extenive. Some sections cover deep core magic
+while others cover more usual topics like IO and numerical computation.
+How are these related? Where should you begin?
 
-I've broken down everything by level of expertise, and within
-expertise I've covered documentation, library, and workflow modules.
-The documentation modules are useful for what they tell you;
-the library modules are useful for the functions that they
-define for you; the workflow modules are useful for the way
-that they allow you to get your work done in new and different
-ways.
+This document is an attempt to pull all the key PDL documentation
+together in a coherent study course, starting from the beginner level,
+up to the expert.
 
-An alternative to this document is L<PDL::Index|PDL::Index>, which is automatically
-generated from the PDL documentation index. As its name indicates, it
-is not a guide. It is a catalog of all of the PDL modules on your
-machine. If you are just trying to get your head around how to use PDL,
-start here.
+I've broken down everything by level of expertise, and within expertise
+I've covered documentation, library, and workflow modules. The
+documentation modules are useful for what they tell you; the library
+modules are useful for the functions that they define for you; the
+workflow modules are useful for the way that they allow you to get your
+work done in new and different ways.
 
 =head1 Introductory
 
@@ -50,11 +41,10 @@ familiarize yourself with the basic capabilities of PDL.
 
 =over
 
-=item * L<PDL::Intro|PDL::Intro>, L<PDL::QuickStart|PDL::QuickStart>, L<PDL::Philosophy|PDL::Philosophy>
+=item * L<PDL::Philosophy|PDL::Philosophy>, L<PDL::QuickStart|PDL::QuickStart>
 
-A couple of brief introductions to PDL.  The middle one is a bit
-more hands-on.  If you are new to PDL, you should start with
-these.
+A couple of brief introductions to PDL. The second one is a bit more
+hands-on. If you are new to PDL, you should start with these.
 
 =item * L<PDL::Basic|PDL::Basic>
 
@@ -115,8 +105,8 @@ Shell, with instant feedback!
 
 =item * L<PDL|PDL>
 
-The main workhorse module.  You'll include this in nearly
-every PDL-enabled Perl script that you write.
+The main workhorse module. You'll include this in nearly every PDL
+program you write.
 
 =back
 
@@ -157,11 +147,6 @@ in this summary module.
 =item * L<PDL::Tips|PDL::Tips>
 
 A collection of some of Tuomas's ideas for making good use of PDL.
-
-=item * L<PDL::FAQ|PDL::FAQ>
-
-This rather haphazard document contains many gems; you should read
-it at some point.
 
 =item * L<PDL::BadValues|PDL::BadValues>
 
@@ -422,7 +407,7 @@ module if you C<use PDL>.
 
 =back
 
-=head1 Guru Usage
+=head1 Expert Usage
 
 =over
 

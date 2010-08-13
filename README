@@ -21,7 +21,7 @@ Basic/Pod/FAQ.pod 	The FAQ in pod format
 
 Basic/Pod/QuickStart.pod
 			A quick overview of PDL
-			Try 'perldoc PDL::Book::QuickStart' after installation
+			Try 'perldoc PDL::QuickStart' after installation
 
 Basic/Pod/BadValues.pod
                         A discussion of the bad value support in PDL

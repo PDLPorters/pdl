@@ -555,9 +555,9 @@ and the remaining commands listed, along with the names of their modules.
 
 =for example
 
- pdl> help 'PDL::Slices'   # show the docs in the PDL::Slices module
- pdl> help 'PDL::Intro'    # show the PDL::Intro manual
- pdl> help 'slice'         # show docs on the 'slice' function
+ pdl> help 'PDL::Tutorials' # show the guide to PDL tutorials
+ pdl> help 'PDL::Slices'    # show the docs in the PDL::Slices module
+ pdl> help 'slice'          # show docs on the 'slice' function
 
 =cut
 

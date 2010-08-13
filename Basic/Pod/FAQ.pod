@@ -302,12 +302,7 @@ compile and install it and (maybe) read the manuals.
 
 
 The complete PDL documentation is available with the PDL distribution.
-If you have PDL installed on your machine and are on a unix like system
-then you can read the PDL manuals with the C<man> command. 
-C<man PDL> get you started, C<man PDL::FAQ> will let you read this 
-document, etc. In any case (i.e. also on non-unixes) 
-C<perldoc PDL::Intro> should work, and if you don't want to type that
-much, C<pdldoc intro> should also work.
+Use the command C<perldoc PDL> to start learning about PDL.
 
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
@@ -329,7 +324,7 @@ reproduced in braces ( <... ...> ) ):
         pdl> help
         <.... help output ....>
         pdl> help PDL::QuickStart
-        <.... man page ....>
+        <.... perldoc page ....>
         pdl> $a = pdl (1,5,7.3,1.0)
         pdl> $b = sequence float, 4, 4
         pdl> help inner
@@ -707,7 +702,7 @@ two types of use of the term.
 
 
 Well, PDL scalar variables (which are instances of a particular class
-of perl objects, i.e. blessed thingies (see C<man perlobj> )) are
+of perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
 in common PDL parlance often called I<piddles> (for example, check the
 mailing list archives). Err, clear? If not, simply use the term
 I<piddle> when you refer to a PDL variable (an instance of a PDL
@@ -1450,18 +1445,12 @@ the real meat:
 
 =item *
 
-This gives the input parameters
-(here 
-C<a> ) and the output
-parameters (here 
-C<b> ).  The
-latter are indicated by the 
-C<[o]> specifier. Both arguments
-can have a type specification as shown here. 
+This gives the input parameters (here  C<a>) and the output parameters
+(here  C<b>). The latter are indicated by the  C<[o]> specifier. Both
+arguments can have a type specification as shown here. 
 
-Many variations and further flexibility in the
-interface can be specified. See the man page for
-details. 
+Many variations and further flexibility in the interface can be
+specified. See C<perldoc PDL::PP> for details. 
 
 
 =item *
@@ -1527,7 +1516,7 @@ we said there, the
 L<PDL::PP|PDL::PP> pre-processor is the standard
 way of interfacing external packages with PDL. The most usual
 way to use PDL::PP is to write a short interface routine, see
-the L<PDL::PP|PDL::PP> man page and
+the L<PDL::PP|PDL::PP> perldoc page and
 the answer to the previous question for
 examples. 
 
@@ -1537,7 +1526,7 @@ convenient in certain situations, in particular if you have a
 routine that expects a function as input and you would like to
 pass the function a Perl function for convenience. 
 
-The L<PDL::PP|PDL::PP> man page is the main
+The L<PDL::PP|PDL::PP> perldoc page is the main
 source of information for writing PDL::PP extensions, but it
 is very useful to look for files in the distribution of PDL as
 many of the core functions are written in PDL::PP. Look for
@@ -1648,7 +1637,7 @@ C<perl  Makefile.PL; make> .
 
 You should experiment with this function, changing the
 calculations and input and output parameters. In conjunction
-with the PDL::PP man page this should allow you to quickly
+with the L<PDL::PP|PDL::PP> perldoc page this should allow you to quickly
 write more advanced routines directly in PDL::PP.
 
 
