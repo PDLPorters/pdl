@@ -26,8 +26,8 @@ sub comment($) {
    home();
    print "----\n";
    print $_[0];
-   print "---- (press enter)";
-   <>
+   my $prompt = "---- (press enter)";
+   defined($PERLDL::TERM) ? $PERLDL::TERM->readline($prompt) : ( print $prompt, <> );
 }
 
 sub act($) {
@@ -40,9 +40,9 @@ sub act($) {
    my $pack = (caller)[0];
 #	eval "package $pack; use PDL; $_[0]";
    eval "package $pack; use PDL; $_[0]";
-   print "---- (press enter)";
    print "----\nOOPS!!! Something went wrong, please make a bug report!: $@\n----\n" if $@;
-   <>
+   my $prompt = "---- (press enter)";
+   defined($PERLDL::TERM) ? $PERLDL::TERM->readline($prompt) : ( print $prompt, <> );
 }
 
 sub actnw($) {
