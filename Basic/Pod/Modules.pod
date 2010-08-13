@@ -233,7 +233,7 @@ PDL interface to the Slatec library.
 
 
 
-=head1 COORDINATE TRANSFORMATIONS AND PROJECTIONS
+=head1 COORDINATE TRANSFORMATIONS
 
 =over 5
 
