@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Wed 04 Aug 2010 05:37:55 PM 
+Last saved: Fri 13 Aug 2010 06:19:20 PM
 
 
 +-------------------------------------------------------------------+
@@ -46,12 +46,6 @@ Last saved: Wed 04 Aug 2010 05:37:55 PM
   loaded with use/require.  Maybe as simple as a configuration
   variable in PDL::Config that is set on compile from each.
  
-  Fix the hang in the <> operator from the Demos Screen.pm routines.
-  Need to track down why the readline operator is clashing with the
-  interactive IO from the Term::ReadLine stuff.  Plan: modify the
-  run() call to take the Term::ReadLine term handle and use those to
-  do the IO if defined.  Otherwise, fall back to the existing code.
-
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
   with the new framework.
@@ -126,11 +120,6 @@ Last saved: Wed 04 Aug 2010 05:37:55 PM
    trans
    notrans
  
-
-+-------------------------------------------------------------------+
-|            Nice to Have Features: Post-PDL-2.4.7 TODO             |
-+-------------------------------------------------------------------+
-
   Add a CompletionDriver for Plugins for load_plugin() as well
   as the ability to toggle plugins on and off (or at least
   enable and disable them).

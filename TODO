@@ -92,9 +92,9 @@ R  Need PLplot and PDL::Graphics::PLplot to build all platforms
 
 
 R  Complete Perldl2 shell:
-R  * Fix demo to work with Perldl2
+D  * Fix demo to work with Perldl2
 N  * Fix Ctrl-C handling for win32 systems
-N  * Add safe pdl allocation option to prevent OOM death
+L  * Add safe pdl allocation option to prevent OOM death
 
      Required (CHM has volunteered for this task)
      
@@ -109,15 +109,28 @@ N  * Add safe pdl allocation option to prevent OOM death
      errors when running interactively in win32....
 
 
-R  Add support for improved 2D image display using TriD
+R  Add support for improved 2D image display using OpenGL
 R  * Move imag2d() into a module form
-N  * Enable REPL and GUI simultaneous operations and event loops
+L  * Enable REPL and GUI simultaneous operations and event loops
 
      Required (CHM has volunteered for this task)
 
      CHM plans to move imag2d into a module form for the
      PDL-2.4.7 release.
 
+
+N  Finish PDL::IO::ENVI module
+
+     Nice to have
+
+     Needs to be added as an IO module with tests.
+     A basic writeenvi routine needs to be completed.
+
+
+
++------------------------------------------------------------------------+
+|                         Deferred to PDL-2.4.8                          |
++------------------------------------------------------------------------+
 
 N  New pdl() constructor with matlab [] syntax for string arguments
 
@@ -144,6 +157,14 @@ N  Document how to set up a local sandbox for PDL build
      reinvent the same wheel.
 
 
+N  Finish spheres3d implementation
+
+     Nice to have (CHM has volunteered for this task)
+
+     This involves completing support for color and radius
+     parameters for the spheres and some minor cleanup.
+
+
 N  How to install the CPAN Testers reporting packages
 
      Nice to have
@@ -165,27 +186,6 @@ N  Update PDL Book (in progress)
      Work continues but the status re a 2.4.7
      release schedule is not known.
 
-
-N  Finish spheres3d implementation
-
-     Nice to have (CHM has volunteered for this task)
-
-     This involves completing support for color and radius
-     parameters for the spheres and some minor cleanup.
-
-
-N  Finish PDL::IO::ENVI module
-
-     Nice to have
-
-     Needs to be added as an IO module with tests.
-     A basic writeenvi routine needs to be completed.
-
-
-
-+------------------------------------------------------------------------+
-|                         Deferred to PDL-2.4.8                          |
-+------------------------------------------------------------------------+
 
 N  PDL::Constants
 

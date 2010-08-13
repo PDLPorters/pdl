@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Wed 21 Jul 2010 02:31:10 PM 
+Last saved: Fri 13 Aug 2010 06:17:01 PM
 
 
 +-----------------------------------------------------------+
@@ -11,8 +11,8 @@ improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
 You need to install the version 1.003011 of Devel::REPL
-in order to build/use the new Perldl2 shell capabilities.
-A description of the files in this directory and how to
+in order to use the new Perldl2 shell capabilities.  A
+description of the files in this directory and how to
 install and use the Perldl2 shell follows.
 
 
@@ -50,7 +50,7 @@ install and use the Perldl2 shell follows.
   WITH_DEVEL_REPL option in the perldl.conf file.
 
   You will need to install Devel::REPL version 1.003011
-  or greater to use the new pdl2 features.
+  or greater to access the new pdl2 capabilities.
  
 
 +-----------------------------------------------------------+
@@ -67,10 +67,10 @@ install and use the Perldl2 shell follows.
 
     pdl2
 
-  To exit the Perldl2 shell from the PDL> prompt, type
-  Ctrl-D or quit, (q, x, and exit shortcuts not yet
-  available, TBD).  If Devel::REPL is not installed, pdl2
-  will use perldl instead but any new functionality will
+  To exit the Perldl2 shell from the 'pdl> ' prompt, type
+  Ctrl-D or quit, (q, x, and exit shortcuts are also
+  available).  If Devel::REPL is not installed, pdl2
+  will use perldl instead but the new functionality will
   not be available.
 
 
@@ -117,14 +117,11 @@ install and use the Perldl2 shell follows.
 
  p is an alias for print.
 
- demo mostly works but at the end of a demo, you may need to type Ctrl-D
- if it hangs after the final "press enter" prompt (Ctrl-Z then Enter
- for win32 perls).  You may need to kill the shell with Ctrl-C or the
- kill or Task Manager so don't try this in the middle of an important
- PDL computational session.
+ demo as a command by itself lists the possible demos available.
+ Otherwise it runs the specified demo.
 
- The Perldl2 shell, pdl2, now loads/saves from the same
- history file as perldl.
+ The Perldl2 shell, pdl2, loads/saves from the same history
+ file as perldl.
 
  The Perldl2 shell, pdl2, loads your .perldlrc file
  from the same location as the perldl shell does.  It also
