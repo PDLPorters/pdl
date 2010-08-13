@@ -41,6 +41,11 @@ categories.
 A guide to PDL's tutorial-style documentation. With topics from beginner
 to advanced, these pages teach you various aspects of PDL step by step.
 
+=item L<PDL::Course|PDL::Course>
+
+This page compiles PDL's tutorial and reference pages into a comprehensive
+course that takes you from a complete beginner level to expert.
+
 =item L<PDL::Index|PDL::Index>
 
 List of all available documentation, sorted alphabetically. If you

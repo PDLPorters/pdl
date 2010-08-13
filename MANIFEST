@@ -96,10 +96,10 @@ Basic/Options.pm
 Basic/PDL.pm
 Basic/Pod/API.pod
 Basic/Pod/BadValues.pod
+Basic/Pod/Course.pod
 Basic/Pod/Dataflow.pod
 Basic/Pod/Delta.pod
 Basic/Pod/FAQ.pod
-Basic/Pod/Guide.pod
 Basic/Pod/Indexing.pod
 Basic/Pod/Internals.pod
 Basic/Pod/MATLAB.pod
