@@ -104,6 +104,7 @@ Basic/Pod/Indexing.pod
 Basic/Pod/Internals.pod
 Basic/Pod/MATLAB.pod
 Basic/Pod/Makefile.PL
+Basic/Pod/Modules.pod
 Basic/Pod/Objects.pod
 Basic/Pod/PP.pod
 Basic/Pod/Philosophy.pod
