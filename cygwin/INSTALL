@@ -1,11 +1,11 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Wed 21 Jul 2010 04:27:51 PM 
+Last saved: Thu 12 Aug 2010 12:15:34 PM 
+
 
 
 =================================================================
                         GENERAL NOTES
 =================================================================
-
   These notes have not been fully reviewed since PDL-2.4.5
   or for the recent release of version 1.7.5 of cygwin however
   they are believed to be generally correct.  Please post to
@@ -14,17 +14,18 @@ Last saved: Wed 21 Jul 2010 04:27:51 PM
   Cygwin seems to have a ~300MB process memory limit
   that we have not determined how to work around.
   If you work with large data sets, you may wish to
-  use the native win32 PDL.
+  use the native win32 PDL with either ActiveState Perl
+  or Strawberry Perl.
 
   Work is underway to improve the native win32 PDL port on
-  support for external dependencies so that it may be used
-  instead of cygwin.
+  support for external dependencies so that it may be used,
+  feature for feature, instead of the cygwin port.
+
 
 
 =================================================================
                  Installing with CPAN on Cygwin
 =================================================================
-
 If you already have a full cygwin install on your PC, the
 simplest way to get a basic PDL is to use the cpan shell.
 
@@ -47,6 +48,7 @@ This installs the Perl OpenGL (a.k.a POGL) module, ExtUtils::F77,
 and should pull in installs for the following dependencies:
 
   Astro::FITS::Header
+  Convert::UU
   Data::Dumper
   File::Spec
   Filter::Util::Call
@@ -133,6 +135,7 @@ The manual configure/build/install process is:
    make install
 
 
+
 =================================================================
                               FFTW
 =================================================================
@@ -161,10 +164,10 @@ and /usr/local/info). A clean build of PDL should pick it up.
 NOTE: if problems see rebaseall below.
  
 
+
 =================================================================
                              PGPLOT
 =================================================================
-
 NOTE: cygwin 1.7.5 has new include locations so the following
       will not work without changing the various paths!!
 

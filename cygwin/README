@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Wed 21 Jul 2010 04:29:51 PM 
+Last saved: Thu 12 Aug 2010 12:16:54 PM 
 
 =================================================================
                             Overview
@@ -21,6 +21,7 @@ dependencies.
 
 See the PDL/win32 subdirectory for instructions on building a
 native windows PDL.
+
 
 
 =================================================================
@@ -69,13 +70,10 @@ for cygwin:
 
  PDL::Graphics::IIS
   
- PDL::Graphics::Karma   (Karma has been deprecated and
-                         is not supported)
-  
- PDL::Graphics::PLplot  (PLplot and the PDL module support is
-                         not working out of the box.  It is
-			 believed that it should work with care
-			 in building.  TODO: verify and fix.)
+ PDL::Graphics::PLplot  (PLplot and the PDL module support
+                         is not working out of the box.  It
+			 is believed that it should work with
+			 care in building.)
 
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
