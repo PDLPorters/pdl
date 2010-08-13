@@ -1,27 +1,33 @@
+HINT
+----
+For the latest install and per-platform guidance on
+how to get and install PDL, see the Install PDL page at:
+http://pdl.perl.org/?page=install
+
+
+
 INSTALLATION
 ------------
-
-HINT: See the PDL SourceForge.net wiki at
-http://sourceforge.net/apps/mediawiki/pdl/index.php?title=Main_Page
-for installation guidance broken down by platform type.
-
-
 To install PDL on your machine, first check that you
-have a recent enough version of Perl, 5.8.x and above
+have a recent enough version of Perl.  5.8.x and above
 is required.
 
-See win32/INSTALL for details on installing PDL on windows platforms.
+See win32/INSTALL for details on installing PDL on
+windows platforms.
 
-See cygwin/INSTALL for details on installing PDL on cygwin platforms.
+See cygwin/INSTALL for details on installing PDL on
+cygwin platforms.
 
-The file DEPENDENCIES summarizes the dependencies of various
-PDL modules on libraries/other packages. The location of
-some of these files needs to be specified in the file perldl.conf.
+The file DEPENDENCIES summarizes the dependencies of
+various PDL modules on libraries/other packages.  The
+location of some of these files needs to be specified
+in the file perldl.conf.
 
-PDL depends on a number of other Perl modules for feature complete
-operation. These modules are generally available at the CPAN. The
-easiest way to resolve these dependencies is to use the CPAN module to
-install PDL. Installation should be as simple as
+PDL depends on a number of other Perl modules for
+feature complete operation.  These modules are generally
+available at the CPAN. The easiest way to resolve these
+dependencies is to use the CPAN module to install PDL.
+Installation should be as simple as
 
   cpan install PDL   # if the cpan script is in your path
 
@@ -30,8 +36,8 @@ or if you don't have the cpan script try
   perl -MCPAN -e shell
   cpan> install PDL
 
-NOTE: if this is your first time running the cpan shell, you'll be
-propted to configure the running environment.
+NOTE: if this is your first time running the cpan shell,
+you'll be propted to configure the running environment.
 
 IMPORTANT: Be sure your cpan build_dir location does not have
 white space in the name.  To check or change the setting, start
@@ -49,22 +55,23 @@ And to change to something better:
 
 
 
-
 perldl.conf
 -----------
+Edit the file perldl.conf in the PDL source directory
+to specify configuration options for building PDL.  The
+comments in this file specify what the options are and
+give examples.
 
-Edit the file perldl.conf in the current directory to specify
-configuration options for building PDL. This file is
-self-documenting.
-
-Note: If you are happy with your perldl.conf you can keep the file
-handy for future reference. Place it in ~/.perldl.conf where
-it will be picked up automatically or use 
+NOTE: If you are happy with your perldl.conf you can
+keep the file handy for future reference.  Place it in
+~/.perldl.conf where it will be picked up automatically
+or use this command
 
     perl Makefile.PL PDLCONF=your_conf_file
 
-next time. However, check if new config flags were introduced
-when installing a new version of PDL by consulting its perldl.conf .
+the next time you configure PDL.  (You should check if
+new config flags were introduced when installing a new
+version of PDL by consulting its perldl.conf.)
 
 After editing the configuration options just say
 
@@ -73,23 +80,26 @@ After editing the configuration options just say
 in the directory this file is in. (See 'perldoc ExtUtils::MakeMaker'
 for info on how to configure the installation location, etc.)
 and if that seems ok, try:
+
 	make
 
-If there are any strange error messages, please contact the developers
-with a full bug report; response is often rapid (we would like to have
-PDL work right out of the box on as many platforms as possible).
+If there are any strange error messages, please contact
+the developers with a full bug report; response is
+often rapid (We would like to have PDL work right out
+of the box on as many platforms as possible).
 
 NOTE: Build failures have been reported with parallel
       make options such as -j # and their ilk.
 
-If make completed correctly, try doing
+If make completed correctly, try:
 
 	make test
 
-to run the regression tests. Again, if there are errors, please contact
-the developers (via the pdl-porters mailing list, see Basic/Pod/FAQ.pod).
+to run the regression tests. Again, if there are
+terrors, please contact he developers (via the
+pdl-porters mailing list, see Basic/Pod/FAQ.pod).
 
-If everything works and you wish to install PDL type
+If everything works and you wish to install PDL, type
 
    make install
 
@@ -97,38 +107,50 @@ There is also another make item:
 
    make doctest
 
-creates the documentation database for use in the perldl shell.
+which creates the documentation database for use
+in the PDL shell (pdl2 or perldl).  It will be run
+automatically on PDL install, but you may wish to
+run it by hand to have access to PDL on-line docs
+when running from the build directory before/without
+install.
 
 
-f77 configuration
+
+F77 Configuration
 -----------------
+F77 configuration information is normally picked up
+from ExtUtils::F77 to build modules like PDL::Slatec
+that rely on a working fortran compiler.
 
-f77 configuration information is normally picked up from ExtUtils::F77
-to build modules like PDL::Slatec that rely on a working fortran compiler.
-In cases where you don't want to rely on ExtUtils::F77 for one reason
-or another (win32 build) there is now the config variable F77CONF.
-It is supposed to point to a perl file that implements a minimal F77Conf
-class (see debian/f77conf.pl for an example). The use of F77CONF is
-similar to the PDLCONF variable, e.g.
+In cases where you don't want to rely on ExtUtils::F77
+for one reason or another (e.g., a win32 build or other
+platform without ExtUtils::F77 support) there is now
+the config variable F77CONF.  It is supposed to point
+to a perl file that implements a minimal F77Conf class
+(see debian/f77conf.pl for an example).  The use of
+F77CONF is similar to the PDLCONF variable, e.g.
 
    perl Makefile.PL F77CONF=debian/f77conf.pl
 
-Note that almost always it is better to use ExtUtils::F77. Only use the
-F77CONF mechanism if you have a good reason to. Win32 is special. See
-win32/INSTALL.
+Note that almost always it is better to use ExtUtils::F77.
+Only use the F77CONF mechanism if you have a good reason to.
+Win32 is special. See win32/INSTALL.
+
 
 
 COMMON PROBLEMS
 ---------------
-
-The build process has been significantly cleaned up since
-PDL-2.4.3.  If you have any problems, please submit a bug
-report (see the BUGS file for directions).
-
-You may also contact the PDL users and developers via the
-PDL mailing lists.  See
+If you have problems building or installing PDL, we
+suggest contacting the PDL users and developers via
+the PDL mailing lists.  See
 
    http://pdl.sourceforge.net/?page=mailing-lists
 
 to get started.  Links to searchable archives of the lists
 are available on the same page.
+
+The build process has been significantly cleaned up
+since PDL-2.4.3.  If you are unable to install PDL,
+even after consulting the list archives or other users
+and developers on the PDL lists, please do submit
+a bug report (see the BUGS file for directions).

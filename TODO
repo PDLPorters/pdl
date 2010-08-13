@@ -53,13 +53,6 @@ R  Need to test PDL build/install from scratch
      notes will be used to update release docs.
 
 
-R  Clean up and triage for tickets prior to release.
-
-     Required
-
-     Only one critical bug left...done soon.
-
-
 R  Update PDL web site pages 
 
      Required
@@ -126,7 +119,7 @@ N  * Enable REPL and GUI simultaneous operations and event loops
      PDL-2.4.7 release.
 
 
-R  New pdl() constructor with matlab [] syntax for string arguments
+N  New pdl() constructor with matlab [] syntax for string arguments
 
      Required
 
@@ -161,15 +154,6 @@ N  How to install the CPAN Testers reporting packages
      is is much easier to configure than the old
      interface.  As such, we would get better PDL
      feedback if we have a quick-start for that.
-
-
-N  Add docs/support for users of other non-PDL software
-
-     Nice to have
-
-     This has already been addressed.  Further
-     improvements are always possible but we're
-     probably good for 2.4.7 as we stand.
 
 
 N  Update PDL Book (in progress)
@@ -278,6 +262,22 @@ N  Check/set perldl.conf options before the PDL build?
 |                                DONE                                    |
 +------------------------------------------------------------------------+
    
+D  Add docs/support for users of other non-PDL software
+
+     Nice to have
+
+     This has already been addressed.  Further
+     improvements are always possible but we're
+     probably good for 2.4.7 as we stand.
+
+
+D  Clean up and triage for tickets prior to release.
+
+     Required
+
+     Only one critical bug left...done soon.
+
+
 D  Fix the test problems with preexisting PDL installs
 
      Nice to have

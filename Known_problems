@@ -27,13 +27,6 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- The default TriD controls are based on having 2+ button mouse.
-
-  For Macs with one button, you can use Ctrl+Click to generate
-  the needed Right-click.  It is also possible to configure the
-  Macbook tracpad to generate a secondary click via the control panel.
-
-
 - PDL::FFTW is based on version 2 of the FFTW API.  The current
   release of the FFTW library is version 3.2.2.  To use PDL::FFTW
   you will need to install FFTW version 2.1.5, use the built-in 
@@ -63,6 +56,14 @@ The following issues have been reported with this version of PDL:
 
 - PDL on Cygwin has a 300MB process memory limit which can
   cause out of memory crashes with large data sets.
+
+
+- PDL::IO::Dumper sdump() fails for some system configurations.
+  Problems have been reported for various BSD platforms.  Please
+  use PDL::IO::Storable if you have this problem *and* let the
+  PDL developer know (Bonus points if you can work with us to
+  debug this problem---which has only languished because we don't
+  have the ability to create the bug to fix it...).  Thanks.
 
 
 - The following SourceForge bugs are outstanding at time of the
