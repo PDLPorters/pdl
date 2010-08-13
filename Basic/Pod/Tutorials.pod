@@ -9,7 +9,7 @@ of numerical analysis software.
 
 =over 5
 
-=item L<PDL::MATLAB|PDL::MABLAB>
+=item L<PDL::MATLAB|PDL::MATLAB>
 
 Migration guide for MATLAB users. This page explains the key differences
 between MATLAB and PDL from the point of view of a MATLAB user.
