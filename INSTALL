@@ -37,7 +37,7 @@ or if you don't have the cpan script try
   cpan> install PDL
 
 NOTE: if this is your first time running the cpan shell,
-you'll be propted to configure the running environment.
+you'll be prompted to configure the running environment.
 
 IMPORTANT: Be sure your cpan build_dir location does not have
 white space in the name.  To check or change the setting, start
@@ -96,7 +96,7 @@ If make completed correctly, try:
 	make test
 
 to run the regression tests. Again, if there are
-terrors, please contact he developers (via the
+errors, please contact the developers (via the
 pdl-porters mailing list, see Basic/Pod/FAQ.pod).
 
 If everything works and you wish to install PDL, type
@@ -144,7 +144,7 @@ If you have problems building or installing PDL, we
 suggest contacting the PDL users and developers via
 the PDL mailing lists.  See
 
-   http://pdl.sourceforge.net/?page=mailing-lists
+   http://pdl.perl.org/?page=mailing-lists
 
 to get started.  Links to searchable archives of the lists
 are available on the same page.
