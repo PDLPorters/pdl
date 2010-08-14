@@ -207,8 +207,8 @@ The C<xchg> method "B<exchanges>" two dimensions in a piddle:
                                               V     V
                                           (dim 0) (dim 3)
 
-Notice that dimentions 0 and 3 were exchanged without affecting the other
-dimensinos. Notice also that C<xchg> does not alter C<$a>. The original
+Notice that dimensions 0 and 3 were exchanged without affecting the other
+dimensions. Notice also that C<xchg> does not alter C<$a>. The original
 variable C<$a> remains untouched.
 
 =head2 Method: C<mv>
@@ -941,7 +941,7 @@ changes:
 
 =head1 CONCLUSION: GENERAL STRATEGY
 
-The general stragegy is: I<Move the dimensions you want to operate on to the
+The general strategy is: I<Move the dimensions you want to operate on to the
 start of your piddle's dimension list. Then let PDL thread over the higher
 dimensions.>
 

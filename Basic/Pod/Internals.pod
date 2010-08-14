@@ -86,7 +86,7 @@ of the file F<pdlcore.h>. So what does the structure look like:
 
 	   pdl_children children;
 
-	   short living_for; /* perl side not referenced; delete me when */
+	   short living_for; /* Perl side not referenced; delete me when */
 
 	   PDL_Long   def_dims[PDL_NDIMS];   /* Preallocated space for efficiency */
 	   PDL_Long   def_dimincs[PDL_NDIMS];   /* Preallocated space for efficiency */
@@ -282,8 +282,8 @@ those that are piddles). In PDL functions that support
 data flow between input and output args (e.g. C<slice>,
 C<index>) this transformation links I<parent> (input) and
 I<child> (output) piddles permanently until either the link is
-explicitly broken by user request (C<sever> at the perl level)
-or all parents and childen have been destroyed. In those
+explicitly broken by user request (C<sever> at the Perl level)
+or all parents and children have been destroyed. In those
 cases the transformation is lazy-evaluated, e.g. only executed
 when piddle values are actually accessed.
 
@@ -297,13 +297,13 @@ It should be noted that the close link between input and output args
 of a flowing function (like L<slice|PDL::Slices/slice>) requires
 that piddle objects that are linked in
 such a way be kept alive beyond the point where they have gone
-out of scope from the point of view of perl:
+out of scope from the point of view of Perl:
 
   $a = zeroes(20);
   $b = $a->slice('2:4');
   undef $a;    # last reference to $a is now destroyed
 
-Although $a should now be destroyed according to perl's rules
+Although $a should now be destroyed according to Perl's rules
 the underlying C<pdl> structure must actually only be freed when C<$b>
 also goes out of scope (since it still references
 internally some of C<$a>'s data). This example demonstrates that such
@@ -325,7 +325,7 @@ and children, respectively.
 
 An example of processing the children of a piddle is provided
 by the C<baddata> method of PDL::Bad (only available if you
-have comiled PDL with the C<WITH_BADVAL> option set to 1,
+have compiled PDL with the C<WITH_BADVAL> option set to 1,
 but still useful as an example!). 
 
 Consider the following situation:
@@ -504,19 +504,19 @@ functions (e.g., C<slice>, C<xchg>) belong to this class.
 
 The basic trick is that parent and child of such a transformation work
 on the same (shared) block of data which they just choose
-to interpret differently (by dusing different C<dims>, C<dimincs> and
+to interpret differently (by using different C<dims>, C<dimincs> and
 C<offs> on the same data, compare the C<pdl> structure above).
 Each operation on a piddle sharing
 data with another one in this way is therefore automatically flown
 from child to parent and back -- after all they are reading and writing
-the same block of memory. This is currently not perl thread safe --
+the same block of memory. This is currently not Perl thread safe --
 no big loss since the whole PDL core is not reentrant
-(perl threading C<!=> PDL threading!).
+(Perl threading C<!=> PDL threading!).
 
 =head2 Signatures: threading over elementary operations
 
 Most of that functionality of PDL threading (automatic iteration
-of elemntary operations over multidim piddles) is implemented in the
+of elementary operations over multi-dim piddles) is implemented in the
 file F<pdlthread.c>.
 
 The L<PDL::PP|PDL::PP> generated functions (in particular the
@@ -580,7 +580,7 @@ C<PDL_CORE_VERSION> C macro used to populate the Version field
 
 =item *
 
-add documentation (eg to L<PDL::API|PDL::API>) if it's a
+add documentation (e.g. to L<PDL::API|PDL::API>) if it's a
 "useful" function for external module writers (as well as
 ensuring the code is as well documented as the rest of PDL
 ;)

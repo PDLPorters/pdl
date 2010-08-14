@@ -232,8 +232,8 @@ to your favorite C routines, more of that further below.
 
 PDL is a Perl5 extension package. As such it needs an existing Perl5
 installation (see below) to run. Furthermore, much of PDL is written in
-perl (+ some core functionality that is written in C). PDL programs
-are (syntactically) just perl scripts that happen to use some of the
+Perl (+ some core functionality that is written in C). PDL programs
+are (syntactically) just Perl scripts that happen to use some of the
 functionality implemented by the package "PDL".
 
 
@@ -314,7 +314,7 @@ C<help> .  Using the
 C<help> and 
 C<apropos> commands inside the shell you should be able to find the way round the
 documentation. Even better, you can immediately try your newly acquired
-knowledge about PDL by issuing PDL/perl commands directly at the command
+knowledge about PDL by issuing PDL/Perl commands directly at the command
 line. To illustrate this process, here is the record of a typical pdl2
 session of a PDL beginner (lengthy output is only symbolically
 reproduced in braces ( <... ...> ) ):
@@ -520,7 +520,7 @@ on how to get these.
 To install PDL in a non-standard location, use the PREFIX and LIB
 options in the C<perl Makefile.PL> configure step.  For example,
 C<perl Makefile.PL PREFIX=/myprefix LIB=/myprefix/lib/perl5> will
-configure PDL to install the perl code into the /myprefix/lib/perl5
+configure PDL to install the Perl code into the /myprefix/lib/perl5
 and the system install files like binary executables in the
 directories C</myprefix/bin, /myprefix/lib, /myprefix/include...>.
 
@@ -532,7 +532,7 @@ directories C</myprefix/bin, /myprefix/lib, /myprefix/include...>.
 
 To guarantee a completely clean installation of PDL, you will need
 to first delete the current installation files and folders.  These
-will be all directories named C<PDL> in the perl C<@INC> path,
+will be all directories named C<PDL> in the Perl C<@INC> path,
 files named C<*Pdlpp*> in any C<Inline> directories, and the 
 programs C<pdl, pdldoc, pdl2, perldl, and pptemplate>.  Then just build
 and install as usual.  This is much easier to keep track of if you
@@ -702,7 +702,7 @@ two types of use of the term.
 
 
 Well, PDL scalar variables (which are instances of a particular class
-of perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
+of Perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
 in common PDL parlance often called I<piddles> (for example, check the
 mailing list archives). Err, clear? If not, simply use the term
 I<piddle> when you refer to a PDL variable (an instance of a PDL
@@ -744,13 +744,13 @@ shell if you are new to PDL.
 =head2 Q: 6.3    I want to access the third element of a pdl but $a[2] doesn't work ?!  
 
 
-See answer to the next question why the normal perl array syntax doesn't
+See answer to the next question why the normal Perl array syntax doesn't
 work for piddles.
 
 
 
 
-=head2 Q: 6.4    The docs say piddles are some kind of array. But why doesn't the perl array syntax work with piddles then ?  
+=head2 Q: 6.4    The docs say piddles are some kind of array. But why doesn't the Perl array syntax work with piddles then ?  
 
 
 OK, you are right in a way. The docs say that piddles can be
@@ -758,15 +758,15 @@ thought of arrays.  More specifically, it says (
 L<PDL::QuickStart|PDL::QuickStart> ):
 
     I find when using the Perl Data Language it is most useful
-    to think of standard perl @x variables as "lists" of generic
+    to think of standard Perl @x variables as "lists" of generic
     "things" and PDL variables like $x as "arrays" which can be
     contained in lists or hashes.
 
 
 So, while piddles can be thought of as some kind of
 multi-dimensional array they are 
-B< not> arrays in the perl sense. Rather,
-from the point of view of perl they are some special class
+B< not> arrays in the Perl sense. Rather,
+from the point of view of Perl they are some special class
 (which is currently implemented as an opaque pointer to some
 stuff in memory) and therefore need special functions (or
 'methods' if you are using the OO version) to access
@@ -780,9 +780,9 @@ L<PDL::Slices|PDL::Slices> and
 L<PDL::Indexing|PDL::Indexing> and especially
 L<PDL::NiceSlice|PDL::NiceSlice> ).
 
-Finally, to confuse you completely, you can have perl arrays
+Finally, to confuse you completely, you can have Perl arrays
 of piddles, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
-a spectrum, where C<$spec[3]> is the fourth element of the perl
+a spectrum, where C<$spec[3]> is the fourth element of the Perl
 list (or array ;) C<@spec> .  This may be confusing but is 
 very useful !
 
@@ -1013,7 +1013,7 @@ C<help PDL::Objects> in the I<perldl> or I<pdl2> shell).
 The longer answer (extracted from L<PDL::Objects|PDL::Objects> ): 
 Since a PDL object is an opaque reference to a C struct, it is not 
 possible to extend the PDL class by e.g. extra data via sub-classing 
-(as you could do with a hash based perl object).  To circumvent this 
+(as you could do with a hash based Perl object).  To circumvent this 
 problem PDL has built-in support to extent the PDL class via the 
 I<has-a> relation for blessed hashes. You can get the I<HAS-A> behave 
 like I<IS-A> simply in that you assign the PDL
@@ -1075,7 +1075,7 @@ section below on L<Extensions of PDL|"EXTENSIONS OF PDL">.
 =head2 Q: 6.17   What happens when I have several references to the same PDL object in different variables (cloning, etc?) ?  
 
 
-Piddles behave like perl references in many respects. So when you say
+Piddles behave like Perl references in many respects. So when you say
 
 
          $a = pdl [0,1,2,3];
@@ -1232,7 +1232,7 @@ directory.  After you have built PDL you can do:
 
 to try the two TriD test programs.  They only exercise one TriD function
 each but their simplicity makes it easy to debug if needed with the
-perl debugger, see L<perldbug>.
+Perl debugger, see L<perldbug>.
 
 The programs in the Demo directory can be run most easily from the
 C<perldl> or C<pdl2> interactive shell:
@@ -1301,9 +1301,9 @@ like:
 
 C<undefined symbol: png_create_write_struct>
 
-This is because the PGPLOT perl module does not automatically link
+This is because the PGPLOT Perl module does not automatically link
 against the png and z libraries. So when you are installing the PGPLOT
-perl module (version 2.19) from CPAN, don't do C<install PGPLOT>, but
+Perl module (version 2.19) from CPAN, don't do C<install PGPLOT>, but
 just do C<get PGPLOT>. Then exit from CPAN and manually install
 PGPLOT, calling the makefile thusly:
 
@@ -1632,8 +1632,8 @@ an earlier question.
 An example Makefile.PL
 
 Our new statistic function should now compile using the
-tried and tested perl way: 
-C<perl  Makefile.PL; make> .
+tried and tested Perl way: 
+C<perl Makefile.PL; make> .
 
 You should experiment with this function, changing the
 calculations and input and output parameters. In conjunction
@@ -1720,7 +1720,7 @@ questions regarding TriD
 
 =item *
 
-use of perl 5.6.2 (a.k.a. perl 5.006002) is now required    
+use of Perl 5.6.2 (a.k.a. Perl 5.006002) is now required    
 
 =item *
 
@@ -1728,7 +1728,7 @@ PDL I/O formats
 
 =item *
 
-piddles behave like perl references 
+piddles behave like Perl references 
 
 =item *
 
@@ -1750,7 +1750,7 @@ signature
 
 =item *
 
-questions about piddles and perl array syntax 
+questions about piddles and Perl array syntax 
 
 =item *
 

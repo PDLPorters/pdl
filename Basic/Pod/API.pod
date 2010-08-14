@@ -245,7 +245,7 @@ the C<Core> struct. It looks something like this:
 
  #include <pdlcore.h>
  static Core* PDL; /* Structure holds core C functions */
- static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
+ static SV* CoreSV;       /* Gets pointer to Perl var holding core structure */
 
 The code returned by C<PDL_BOOT> retrieves the C<$PDL::SHARE> variable
 and initializes the pointer to the C<Core> struct. For those who know
@@ -291,7 +291,7 @@ and the C<PDL_BOOT> routines:
 
 Make sure you use the same identifier with C<PDL_AUTO_INCLUDE>
 and C<PDL_BOOT> and use that same identifier in your own code.
-E.g., continuning from the example above:
+E.g., continuing from the example above:
 
   pdl *p = PDL_Corep->pdlnew();
 
