@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Wed 21 Jul 2010 06:03:59 PM 
+# Last saved: Sat 14 Aug 2010 09:18:52 AM
 #
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
@@ -225,7 +225,7 @@ sub _read_envihdr {
    return $hdr;
 }
 
-=head1 readenvi
+=head2 readenvi
 
 =for ref
 

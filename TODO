@@ -91,6 +91,11 @@ R  Need PLplot and PDL::Graphics::PLplot to build all platforms
      support works as well.
 
 
+
++------------------------------------------------------------------------+
+|                         Deferred to PDL-2.4.8                          |
++------------------------------------------------------------------------+
+
 R  Complete Perldl2 shell:
 D  * Fix demo to work with Perldl2
 D  + Add prompt stripping for cut-and-paste support
@@ -111,7 +116,7 @@ L  * Add safe pdl allocation option to prevent OOM death
 
 
 R  Add support for improved 2D image display using OpenGL
-R  * Move imag2d() into a module form
+D  * Move imag2d() into a module form
 L  * Enable REPL and GUI simultaneous operations and event loops
 
      Required (CHM has volunteered for this task)
@@ -119,12 +124,6 @@ L  * Enable REPL and GUI simultaneous operations and event loops
      CHM plans to move imag2d into a module form for the
      PDL-2.4.7 release.
 
-
-
-
-+------------------------------------------------------------------------+
-|                         Deferred to PDL-2.4.8                          |
-+------------------------------------------------------------------------+
 
 N  Finish PDL::IO::ENVI module
 
