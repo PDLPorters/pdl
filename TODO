@@ -91,8 +91,14 @@ R  Need PLplot and PDL::Graphics::PLplot to build all platforms
      support works as well.
 
 
+
++------------------------------------------------------------------------+
+|                         Deferred to PDL-2.4.8                          |
++------------------------------------------------------------------------+
+
 R  Complete Perldl2 shell:
 D  * Fix demo to work with Perldl2
+D  + Add prompt stripping for cut-and-paste support
 N  * Fix Ctrl-C handling for win32 systems
 L  * Add safe pdl allocation option to prevent OOM death
 
@@ -110,7 +116,7 @@ L  * Add safe pdl allocation option to prevent OOM death
 
 
 R  Add support for improved 2D image display using OpenGL
-R  * Move imag2d() into a module form
+D  * Move imag2d() into a module form
 L  * Enable REPL and GUI simultaneous operations and event loops
 
      Required (CHM has volunteered for this task)
@@ -126,11 +132,6 @@ N  Finish PDL::IO::ENVI module
      Needs to be added as an IO module with tests.
      A basic writeenvi routine needs to be completed.
 
-
-
-+------------------------------------------------------------------------+
-|                         Deferred to PDL-2.4.8                          |
-+------------------------------------------------------------------------+
 
 N  New pdl() constructor with matlab [] syntax for string arguments
 

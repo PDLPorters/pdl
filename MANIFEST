@@ -113,8 +113,6 @@ Basic/Pod/Scilab.pod
 Basic/Pod/Threading.pod
 Basic/Pod/Tips.pod
 Basic/Pod/Tutorials.pod
-Basic/Pod/make-book.pl
-Basic/Pod/pdl-book.css
 Basic/Primitive/Makefile.PL
 Basic/Primitive/primitive.pd
 Basic/Reduce.pm
@@ -681,8 +679,8 @@ debian/pdl.remove
 debian/pdl.triggers
 debian/perldl.conf
 debian/rules
-imag2d.pdl
 m51.fits
+macosx/README
 pdl.PL
 pdldoc.PL
 perldl.PL
