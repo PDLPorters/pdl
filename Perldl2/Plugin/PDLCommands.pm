@@ -24,6 +24,10 @@ around 'read' => sub {
    ##     warn $mess if $mess;
    ## }
 
+   # filter out default PDL shell prompt for easier
+   # cut-and-paste of demo code
+   $lines =~ s/\s*(?:pdl|perldl)>\s*//i;
+
    return $lines unless defined $lines;
 
    # print STDERR "PDLCommands: got '$lines'\n";
