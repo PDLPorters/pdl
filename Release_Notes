@@ -191,15 +191,22 @@ Highlights:
    Completely reworked PDL web site
    - Clearer and more helpful to new PDL users.
    - See http://pdl.perl.org for the latest!
-
-   New Migration Guides to PDL
-   - For MATLAB users
-   - For Scilab users
-
-   POD cleanup across many PDL modules and functions
+      
+   New documentation:
+   - Migration guide for MATLAB users.
+   - Migration guide for Scilab users.
+   - Threading tutorial.
 
    Major reorganization of documentation to better
    help new users
+   - A guide to PDL's tutorial documentation.
+   - A guide to PDL's module reference documentation.
+   - A study course through all of PDL's documentation.
+   - Removed PDL::Intro
+
+
+   POD cleanup across many PDL modules and functions.
+   
 
    Update to copyright statements throughout PDL
    to clarify licenses.
