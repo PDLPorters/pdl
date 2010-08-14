@@ -29,7 +29,7 @@ PDL::Graphics::TriD -- PDL 3D interface
  imagrgb([$r,$g,$b]);     # 2-d piddles
  lattice3d([$surf1]);
  points3d([$x,$y,$z]);
- spheres3d([$x,$y,$z]);
+ spheres3d([$x,$y,$z]);  # preliminary implementation
 
  hold3d(); # the following graphs are on top of each other and the previous
  line3d([$x,$y,$z]);
@@ -392,12 +392,13 @@ contexts and options
 
 Example:
 
- PDL> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
-
+ pdl> spheres3d ndcoords(10,10,10)->clump(1,2,3)  
+ 
  - lattice of spheres at coordinates on 10x10x10 grid
 
-See module documentation for more information on
-contexts and options (TBD)
+This is a preliminary implementation as a proof of
+concept.  It has fixed radii for the spheres being
+drawn and no control of color or transparency.
 
 =head2 imagrgb
 
