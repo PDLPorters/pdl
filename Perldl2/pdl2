@@ -32,7 +32,7 @@ __END__
 
 =head1 NAME
 
-  pdl2 - Simple shell II for PDL
+  pdl2 - Simple shell (version 2) for PDL
 
 =head1 SYNOPSIS
 
@@ -47,7 +47,7 @@ __END__
 
 =head1 DESCRIPTION
 
-The pdl2 program, also known as the Perldl2 shell, is a next
+The pdl2 program, also known as the Perldl2 shell, is a second
 generation version of the original perldl interactive PDL shell.
 It attempts to be backward compatible in usage while providing
 improved more features, better support for Perl syntax, built
@@ -58,6 +58,14 @@ will start with full functionality.  If L<Devel::REPL> is not
 installed or found then C<pdl2> will print a warning and run
 the legacy C<perldl> shell command instead.
 
+By default, command lines beginning with the default prompt
+of either pdl2 or perldl (one of 'pdl> ', 'PDL> ', or 'perldl> ')
+will have the prefix string and surrounding whitespace stripped.
+This allows for easy cut-and-paste from example PDL shell
+sessions or examples into another shell session.
+
 =head1 SEE ALSO
+
+L<perldl>
 
 =cut
