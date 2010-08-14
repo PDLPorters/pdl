@@ -403,7 +403,7 @@ addressing individual cells.
   # Make a board for the game of life.
   my $nx = 20;
   my $ny = 20;
-
+  
   # Current generation.
   my $a = zeroes($nx, $ny);
   
@@ -414,31 +414,31 @@ addressing individual cells.
   $a(1:3,1:3) .= pdl ( [1,1,1],
                        [0,0,1],
                        [0,1,0] );
-
+  
   for (my $i = 0; $i < 100; $i++) {
     $n = zeroes($nx, $ny);
     $new_a = $a->copy;
     for ($x = 0; $x < $nx; $x++) {
         for ($y = 0; $y < $ny; $y++) {
-
+  
             # For each cell, look at the surrounding neighbours.
             for ($dx = -1; $dx <= 1; $dx++) {
                 for ($dy = -1; $dy <= 1; $dy++) {
                      $px = $x + $dx;
                      $py = $y + $dy;
-
+  
                      # Wrap around at the edges.
                      if ($px < 0) {$px = $nx-1};
                      if ($py < 0) {$py = $ny-1};
                      if ($px >= $nx) {$px = 0};
                      if ($py >= $ny) {$py = 0};
-
+  
                     $n($x,$y)  .= $n($x,$y) + $a($px,$py);
                 }
             }
             # Do not count the central cell itself.
             $n($x,$y) -= $a($x,$y);
-
+  
             # Work out if cell lives or dies:
             #   Dead cell lives if n = 3
             #   Live cell dies if n is not 2 or 3
@@ -450,9 +450,9 @@ addressing individual cells.
             }
         }
     }
-
+  
     print $a;
-
+  
     $a = $new_a;
   }
 
@@ -474,7 +474,7 @@ one of those is printing out the latest generation!
   $a(1:3,1:3) .= pdl ( [1,1,1],
                        [0,0,1],
                        [0,1,0] );
-
+  
   my $n;
   for (my $i = 0; $i < 100; $i++) {
     # Calculate the number of neighbours per cell.
@@ -884,7 +884,7 @@ make a graphical version of the program by just changing three lines:
   $a(1:3,1:3) .= pdl ( [1,1,1],
                        [0,0,1],
                        [0,1,0] );
-
+  
   my $n;
   for (my $i = 0; $i < 100; $i++) {
       # Calculate the number of neighbours per cell.
@@ -920,7 +920,7 @@ changes:
   
   my $a = random(100,100);
   $a = ($a < 0.5);
-
+  
   my $n;
   while (1) {
       # Calculate the number of neighbours per cell.
