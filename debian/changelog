@@ -1,4 +1,4 @@
-pdl (1:2.4.7~pre1+dfsg-1) UNRELEASED; urgency=low
+pdl (1:2.4.7~pre1-1) UNRELEASED; urgency=low
 
   * new upstream version
   * build-depend on netpbm (improves testsuite runs)
