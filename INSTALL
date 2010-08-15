@@ -154,3 +154,40 @@ since PDL-2.4.3.  If you are unable to install PDL,
 even after consulting the list archives or other users
 and developers on the PDL lists, please do submit
 a bug report (see the BUGS file for directions).
+
+1) PROJ.4 TEST FAILS
+
+ERROR:
+
+	Test Summary Report
+	-------------------
+	t/gis_proj.t              (Wstat: 256 Tests: 4 Failed: 0)
+	  Non-zero exit status: 1
+	  Parse errors: Bad plan.  You planned 15 tests but ran 4.
+	t/proj_transform2.t       (Wstat: 256 Tests: 0 Failed: 0)
+	  Non-zero exit status: 1
+	  Parse errors: Bad plan.  You planned 20 tests but ran 0.
+	Files=115, Tests=928, 62 wallclock secs ( 0.69 usr  2.32 sys + 18.41 cusr 29.62 csys = 51.04 CPU)
+	Result: FAIL
+	Failed 2/115 test programs. 0/928 subtests failed.
+	make: *** [test_dynamic] Error 255
+
+
+SOLUTION:
+	
+	Make sure that the PROJ.4 data files are installed. There
+	should be a directory like /usr/share/proj with some data
+	files like:
+		 FL		 GL27		 IGNF
+		 MD		 TN		 WI
+		 WO		 alaska		 conus
+		 epsg		 esri		 esri.extra
+		 hawaii		 nad.lst	 nad27
+		 nad83		 ntf_r93.gsb	 ntv1_can.dat
+		 null		 other.extra	 proj_def.dat
+		 prvi		 stgeorge	 stlrnc
+
+	Platform-specific suggestions:
+
+	- Ubuntu:  These are included in the libproj-dev.
+	- Fedora:  You have to install the proj-nad package.
