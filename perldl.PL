@@ -357,6 +357,7 @@ if ($PDL_OK) {
 }else{
    warn "WARNING: Error loading PDL: '$@' - trying blib. \n";
    eval "use blib";
+   delete $INC{$startup_file};  # so require will try again!
    eval 'require "'.$startup_file.'"';
    $PDL_OK = ($@ eq "");
    if ($PDL_OK) {
