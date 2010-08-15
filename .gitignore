@@ -12,6 +12,14 @@ dll.base
 dll.exp
 *.def
 
+# Debian package build files
+build-stamp
+configure-stamp
+patch-stamp
+test-stamp
+debian/pdl.debhelper.log
+debian/pdl/
+
 # Junk
 
 *.dif
