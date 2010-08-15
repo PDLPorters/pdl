@@ -1,13 +1,13 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 23 Jul 2010 09:23:19 PM
+# Last saved: Sun 15 Aug 2010 10:36:54 AM
 #
 
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.003;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.004;
 
 with 'Devel::REPL::Profile';
 
@@ -33,6 +33,15 @@ sub plugins {
 
 sub apply_profile {
    my ($self, $repl) = @_;
+
+   # check for Term::ReadLine::Stub
+   if ($repl->term->ReadLine =~ /Stub/) {
+      $repl->print("WARNING:\n Term::ReadLine::Stub does not support pdl2 features.\n");
+      $repl->print(" Please install either Term::ReadLine::Perl or Term::ReadLine::Gnu.\n");
+      $repl->print(" Falling back to perldl in the meantime...\n");
+      $repl->print("------------------------------------------\n\n");
+      exec 'perldl';
+   }
 
    # add PDL::Perldl2 for plugin search
    push @{$repl->_plugin_app_ns}, 'PDL::Perldl2';
@@ -151,52 +160,52 @@ EOD
 
    } } );
 
-      if ($repl->can('exit_repl')) {
-         $repl->eval('sub quit { $_REPL->exit_repl(1) };');
-      } else {
-         $repl->eval('sub quit { $_REPL->print("Use Ctrl-D or exit to quit" };');
-      }
-
-      $repl->prompt($PERLDL::PROMPT);  # new prompt
-
-      if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
-         $repl->print("\n");
-         $repl->print("******************************************\n");
-         $repl->print("* Warning: TERM type is dumb!            *\n");
-         $repl->print("* Limited ReadLine functionality will be *\n");
-         $repl->print("* available.  Please unset TERM or use a *\n");
-         $repl->print("* different terminal type.               *\n");
-         $repl->print("******************************************\n");
-         $repl->print("\n");
-      }
-
-      $repl->print("Perldl2 Shell v$PDL::Perldl2::Profile::Perldl2::VERSION
-         PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-         'COPYING' in the PDL distribution. This is free software and you
-         are welcome to redistribute it under certain conditions, see
-         the same file for details.\n");
-
-      $repl->print("Loaded plugins:\n");
-      {
-         my @plugins = ();
-         foreach my $pl ( $repl->_plugin_locator->plugins ) {
-            # print names of ones that have been loaded
-            my $plug = $pl;
-            $plug =~ s/^.*Plugin::/  /;
-            push @plugins, $plug if $repl->does($pl);
-         }
-         $repl->print(join "\n", sort(@plugins));
-         $repl->print("\n");
-      }
-
-      $repl->print("Type 'help' for online help\n");
-      $repl->print("Type Ctrl-D or quit to exit\n");
-      $repl->print("Loaded PDL v$PDL::VERSION\n");
+   if ($repl->can('exit_repl')) {
+      $repl->eval('sub quit { $_REPL->exit_repl(1) };');
+   } else {
+      $repl->eval('sub quit { $_REPL->print("Use Ctrl-D or exit to quit" };');
    }
 
-   1;
+   $repl->prompt($PERLDL::PROMPT);  # new prompt
 
-   __END__
+   if ( defined $ENV{TERM} and $ENV{TERM} eq 'dumb' ) {
+      $repl->print("\n");
+      $repl->print("******************************************\n");
+      $repl->print("* Warning: TERM type is dumb!            *\n");
+      $repl->print("* Limited ReadLine functionality will be *\n");
+      $repl->print("* available.  Please unset TERM or use a *\n");
+      $repl->print("* different terminal type.               *\n");
+      $repl->print("******************************************\n");
+      $repl->print("\n");
+   }
+
+   $repl->print("Perldl2 Shell v$PDL::Perldl2::Profile::Perldl2::VERSION
+      PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+      'COPYING' in the PDL distribution. This is free software and you
+      are welcome to redistribute it under certain conditions, see
+      the same file for details.\n");
+
+   $repl->print("Loaded plugins:\n");
+   {
+      my @plugins = ();
+      foreach my $pl ( $repl->_plugin_locator->plugins ) {
+         # print names of ones that have been loaded
+         my $plug = $pl;
+         $plug =~ s/^.*Plugin::/  /;
+         push @plugins, $plug if $repl->does($pl);
+      }
+      $repl->print(join "\n", sort(@plugins));
+      $repl->print("\n");
+   }
+
+   $repl->print("Type 'help' for online help\n");
+   $repl->print("Type Ctrl-D or quit to exit\n");
+   $repl->print("Loaded PDL v$PDL::VERSION\n");
+}
+
+1;
+
+__END__
 
 =head1 NAME
 
@@ -204,15 +213,15 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
 
 =head1 SYNOPSIS
 
-    system> re.pl --profile=Perldl2     # unixen shell
-    system> re --profile=Perldl2        # win32 CMD shell
+    system> re.pl --profile=PDL::Perldl2::Profile::Perldl2  # unix-ish shell
+    system> re    --profile=PDL::Perldl2::Profile::Perldl2  # win32 CMD shell
 
-    Perldl2 Shell v0.002
-         PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-         'COPYING' in the PDL distribution. This is free software and you
-         are welcome to redistribute it under certain conditions, see
-         the same file for details.
-
+    Perldl2 Shell v0.004
+          PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
+          'COPYING' in the PDL distribution. This is free software and you
+          are welcome to redistribute it under certain conditions, see
+          the same file for details.
+    
     Loaded plugins:
     
       Commands
@@ -228,6 +237,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
       LexEnv
       MultiLine::PPI
       NiceSlice
+      PDLCommands
       Packages
       PrintControl
       ReadLineHistory
@@ -237,16 +247,17 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
     
     Type Ctrl-D or quit to exit
     
-    Loaded PDL v2.4.6_010
+    Loaded PDL v2.4.7
 
-    PDL> 
+    pdl> 
 
 
 =head1 DESCRIPTION
 
-This profile is for development of the new Perldl2 shell.
-After development is complete, the C<Devel::REPL> implementation
-will be folded into a script to start the shell directly.
+This profile is for development of the new PDL shell (version 2).
+The preferred method to start the new shell is via the C<pdl2>
+command.  This documentation is provided for C<Devel::REPL> code
+that may wish to use this profile directly.
 
 =head1 SEE ALSO
 
