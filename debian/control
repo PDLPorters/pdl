@@ -2,7 +2,7 @@ Source: pdl
 Section: math
 Priority: optional
 Maintainer: Henning Glawe <glaweh@debian.org>
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Build-Depends: gfortran, x11proto-core-dev, libncurses-dev, perl (>= 5.8.0-3), debhelper (>= 7.0.0), libplplot-dev, libinline-perl (>= 0.43), libgsl0-dev, fftw-dev, dpatch, libxext-dev, libhdf4-alt-dev | libhdf4g-dev, libproj-dev | proj, proj-bin | proj, libgd2-xpm-dev, libastro-fits-header-perl, sharutils, libopengl-perl (>= 0.62), libxi-dev, libxmu-dev, freeglut3-dev, libextutils-f77-perl, netpbm, libdevel-repl-perl (>=1.003011)
 Homepage: http://pdl.perl.org/
 
