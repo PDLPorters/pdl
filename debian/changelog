@@ -1,11 +1,13 @@
 pdl (1:2.4.7~pre1-1) UNRELEASED; urgency=low
 
   * new upstream version
+    - much improved documentation (closes: #132900)
   * build-depend on netpbm (improves testsuite runs)
   * build-depend on proj-bin (alternatively with proj) to have 'proj'
     command available
+  * build-depend and suggest libdevel-repl-perl (for new pdl2 shell)
 
- -- Henning Glawe <glaweh@debian.org>  Sun, 15 Aug 2010 12:29:01 +0200
+ -- Henning Glawe <glaweh@debian.org>  Sun, 15 Aug 2010 21:47:02 +0200
 
 pdl (1:2.4.6-2) unstable; urgency=low
 
