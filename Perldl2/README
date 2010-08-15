@@ -11,9 +11,9 @@ improved perldl shell (Perldl2) that can integrate with
 the Padre IDE to support PDL development.
 
 You need to install the version 1.003011 of Devel::REPL
-in order to use the new Perldl2 shell capabilities.  A
-description of the files in this directory and how to
-install and use the Perldl2 shell follows.
+and have installed either Term::ReadLine::Perl or
+Term::ReadLine::Gnu in order to use the new Perldl2 shell
+capabilities.
 
 
 +-----------------------------------------------------------+
@@ -36,9 +36,9 @@ install and use the Perldl2 shell follows.
 
  pdl2
    A perl script for starting the Perldl2 shell.
-   (Calls perldl if Devel::REPL is not installed)
-
-
+   (Falls back to perldl if any of Devel::REPL or
+    Term::ReadLine::Gnu or Term::ReadLine::Perl are
+    not installed)
 
 
 +-----------------------------------------------------------+
@@ -50,8 +50,9 @@ install and use the Perldl2 shell follows.
   WITH_DEVEL_REPL option in the perldl.conf file.
 
   You will need to install Devel::REPL version 1.003011
-  or greater to access the new pdl2 capabilities.
- 
+  or greater and either of Term::ReadLine::Gnu or
+  Term::ReadLine::Perl to access the new pdl2 capabilities.
+
 
 +-----------------------------------------------------------+
 |                           USE                             |
@@ -69,9 +70,9 @@ install and use the Perldl2 shell follows.
 
   To exit the Perldl2 shell from the 'pdl> ' prompt, type
   Ctrl-D or quit, (q, x, and exit shortcuts are also
-  available).  If Devel::REPL is not installed, pdl2
-  will use perldl instead but the new functionality will
-  not be available.
+  available).  If Devel::REPL is not installed (or you
+  don't have either TR::Gnu or TR::Perl), pdl2 will use
+  perldl instead but any new features will not be available.
 
 
 +-----------------------------------------------------------+

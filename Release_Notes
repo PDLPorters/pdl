@@ -1,8 +1,8 @@
-Release notes for PDL 2.4.6_991 --------------------------
+Release notes for PDL 2.4.6_992 --------------------------
 
 General Notes:
 
- * This is PDL-2.4.7 pre-release 1
+ * This is PDL-2.4.7 pre-release 2
 
  * TBD
 
@@ -14,13 +14,13 @@ Highlights:
 
    Convert::UU is required for PDL.
 
-   Karma is deprecated.  Set USE_KARMA => 1 in
-   perldl.conf to force a build.
+   Karma is deprecated and not supported.  Set
+   USE_KARMA=>1 in perldl.conf to force a build.
    
    
- * New 2D Image Display Feature
+ * New 2D Image Display Feature: imag2d()
 
-   Moved imag2d() into PDL::Graphics2D
+   See PDL::Graphics2D for documentation.
 
    Add image pixel value display on mouse
    click in imag2d window
@@ -57,7 +57,7 @@ Highlights:
    Based on Devel::REPL which must be installed
    to use the pdl2 features.
 
-   Supports Term::ReadLine::Perl and Term::ReadLine::Gn
+   Supports Term::ReadLine::Perl and Term::ReadLine::Gnu
 
    Upward compatable with the original PDL shell, perldl.
 
@@ -73,7 +73,8 @@ Highlights:
    help vars now shows results alphabetically
 
    pdl2 now runs (falls back to) perldl if Devel::REPL
-   is not installed
+   is not installed or if Term::ReadLine::(Perl|Gnu) is
+   not installed.
    
    
  * Other Features
@@ -223,6 +224,20 @@ Highlights:
 
    INSTALL guides improved in the distribution
    and on the web site.
+
+
+
+Release notes for PDL 2.4.6_991 --------------------------
+
+General Notes:
+
+ * This is PDL-2.4.7 pre-release 1
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.7 pre-release 2
 
 
 

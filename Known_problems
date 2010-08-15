@@ -67,7 +67,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_991 release:
+  PDL-2.4.6_992 release:
 
   3042201    t/dumper.t fails mysteriously
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails

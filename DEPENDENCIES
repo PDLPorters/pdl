@@ -64,7 +64,9 @@ perldl (shell)    Term::ReadLine::Perl
 
                                           pdl2 and perldl will be installed
                                           by default.  If Devel::REPL is not
-                                          installed, pdl2 uses perldl.
+                                          installed, pdl2 uses perldl.  Same
+					  if Term::ReadLine::Perl or ::Gnu
+					  is not installed.
 
 
 PDL::FFTW         Needs the FFTW library version 2 installed.
@@ -136,13 +138,11 @@ PDL::Graphics::IIS
 
 
 PDL::Graphics::Karma
-                  The Karma interface is *deprecated* and no
-                  longer supported.  Please use another
-                  visualization method.
+                  The Karma interface is *deprecated* and not
+                  supported.  Please use another visualization tool.
 
                                           PDL::Graphics::Karma will
-                                          *not* be built or installed
-                                          by default.
+                                          *NOT* be built or installed.
 
 
 PDL::GSL modules

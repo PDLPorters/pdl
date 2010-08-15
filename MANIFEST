@@ -332,6 +332,7 @@ IO/Browser/hints/dec_osf.pl
 IO/Dicom/Dicom.pm
 IO/Dicom/Makefile.PL
 IO/Dumper.pm
+IO/ENVI/readenvi.pdl
 IO/FITS/FITS.pm
 IO/FITS/Makefile.PL
 IO/FastRaw/FastRaw.pm
