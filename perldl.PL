@@ -40,7 +40,7 @@ print OUT <<'!NO!SUBS!';
 
 use vars qw($VERSION $HOME $Modules);
 
-$VERSION = '1.352';
+$VERSION = '1.354';
 
 print "perlDL shell v$VERSION
  PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
@@ -719,25 +719,25 @@ __END__
 
 =head1 NAME
 
-perldl - Simple shell for PDL
+  perldl - Simple shell for PDL (also see pdl2)
 
 
 =head1 SYNOPSIS
 
-	Use PDL interactively:
+Use PDL interactively:
 
-		%> perldl
-		perldl> $a=sequence(10) # or any other perl or PDL command
+  bash$ perldl
+  pdl> $a = sequence(10) # or any other perl or PDL command
+  
+  bash$ pdl
+  pdl> print "Hello, world!\n"; 
 
-		%> pdl
-		perldl> print "Hello, world!\n"; 
+Run a script:
 
-	Run a script:
-
-	        %> cat > pdlscript
-	        #!/usr/bin/pdl
-                print "Hello, world!\n";
-                ...
+  bash$ cat > pdlscript
+  #!/usr/bin/pdl
+  print "Hello, world!\n";
+  ...
 
 
 =head1 DESCRIPTION
@@ -795,14 +795,14 @@ typed where C<number> defaults to 20.
 
 e.g.:
 
-   % perldl
+   bash$ perldl
    ReadLines enabled
-   perldl> $a = rfits "foo.fits"
+   pdl> $a = rfits "foo.fits"
    BITPIX =  -32  size = 88504 pixels
    Reading  354016 bytes
    BSCALE =  &&  BZERO =
 
-   perldl> imag log($a+400)
+   pdl> imag log($a+400)
    Displaying 299 x 296 image from 4.6939525604248 to 9.67116928100586 ...
 
 =head2 Command execution
@@ -888,11 +888,11 @@ to the process on your terminal). Provided your PDL code does not
 ignore C<sigint>s this should throw you back at the C<perldl>
 command prompt:
 
-  perldl> $result = start_lengthy_computation()
+  pdl> $result = start_lengthy_computation()
    <Ctrl-C>
  Ctrl-C detected
 
-  perldl>
+  pdl>
 
 =head2 Shortcuts and aliases
 
@@ -902,7 +902,7 @@ command prompt:
 
 The shell aliases C<p> to be a convenient short form of C<print>, e.g.
 
-   perldl> p ones 5,3
+   pdl> p ones 5,3
 
    [
     [1 1 1 1 1]
@@ -918,21 +918,21 @@ C<q> and C<x> are short-hand for C<quit>.
 
 C<l> lists the history buffer
 
-  perldl> l # list last 20 commands
+  pdl> l # list last 20 commands
 
-  perldl> l 40 # list last 40 commands
+  pdl> l 40 # list last 40 commands
 
 =item *
 
 C<?> is an alias for L<help|PDL::Doc::Perldl/help>
 
-  perldl> ? wpic
+  pdl> ? pdl2    # get help for new pdl2 shell
 
 =item *
 
 C<??> is an alias for L<apropos|PDL::Doc::Perldl/apropos>
 
-  perldl> ?? PDL::Doc
+  pdl> ?? PDL::Doc
 
 =item *
 
@@ -941,11 +941,11 @@ L<usage|PDL::Doc::Perldl/usage> and L<sig|PDL::Doc::Perldl/sig>:
 all words after these commands are used verbatim and not evaluated
 by perl. So you can write, e.g.,
 
-    help help
+  pdl> help help
 
 instead of
 
-    help 'help'
+  pdl> help 'help'
 
 =back
 
@@ -1107,9 +1107,10 @@ command is interactive.
 A useful idiom for developing perldl scripts or editing functions
 on-line is
 
-      perldl> # emacs script &
-		      -- add perldl code to script and save the file
-      perldl> do 'script'
+  pdl> # emacs script &
+    -- add perldl code to script and save the file
+  
+  pdl> do 'script'
 
 -- substitute your favourite window-based editor for 'emacs' (you may
 also need to change the '&' on non-Unix systems).
@@ -1157,7 +1158,7 @@ C<preproc_del> with the filter to be removed as argument.  To find out
 if a filter is currently installed in the preprocessing pipeline use
 C<preproc_registered>:
 
-  perldl> preproc_add $myfilter unless preproc_registered $myfilter;
+  pdl> preproc_add $myfilter unless preproc_registered $myfilter;
 
 Previous versions of C<perldl> used the variable C<$PERLDL::PREPROCESS>.
 This will still work but should be avoided. Please change your scripts
@@ -1166,25 +1167,25 @@ to use the C<preproc_add> etc functions.
 The following code would check for a call to function 'mysub'
 and bracket arguments with qw.
 
- $filter = preproc_add sub {
-   my $str = shift;
-   $str =~ s/^\s+//;  # Strip leading space
-   if ($str =~ /^mysub/) {
-     my ($command, $arguments) = split(/\s+/,$str, 2);
-     $str = "$command qw( $arguments )" 
-       if (defined $arguments && $arguments !~ /^qw/);
+  $filter = preproc_add sub {
+     my $str = shift;
+     $str =~ s/^\s+//;  # Strip leading space
+     if ($str =~ /^mysub/) {
+        my ($command, $arguments) = split(/\s+/,$str, 2);
+        $str = "$command qw( $arguments )" 
+        if (defined $arguments && $arguments !~ /^qw/);
+     };
+     # Return the input string, modified as required
+     return $str;
    };
-   # Return the input string, modified as required
-   return $str;
- };
 
 This would convert:
 
-  perldl> mysub arg1 arg2
+  pdl> mysub arg1 arg2
 
 to
 
-  perldl> mysub qw( arg1 arg2 )
+  pdl> mysub qw( arg1 arg2 )
 
 which Perl will understand as a list.  Obviously, a little more effort
 is required to check for cases where the caller has supplied a normal
@@ -1195,7 +1196,7 @@ You can remove this preprocessor using the C<preproc_del> function
 which takes one argument (the filter to be removed, it must be the
 same coderef that was returned from a previous C<preproc_add> call):
 
-  perldl> preproc_del $filter;
+  pdl> preproc_del $filter;
 
 An example of actual usage can be found in the C<perldl> script. Look
 at the function C<trans> to see how the niceslicing preprocessor is
@@ -1225,8 +1226,8 @@ info to this end, something like this:
 When you get such a message that indicates C<NiceSlice> is enabled
 you can use the enhanced slicing syntax:
 
-  perldl> $a = sequence 10;
-  perldl> p $a(3:8:2)
+  pdl> $a = sequence 10;
+  pdl> p $a(3:8:2)
 
 For details consult L<PDL::NiceSlice>.
 
@@ -1239,27 +1240,27 @@ the substitutions that the NiceSlice filter makes.
 You can switch the L<PDL::NiceSlice|PDL::NiceSlice> filter on and off
 by typing
 
-  perldl> trans # switch niceslicing on
+  pdl> trans # switch niceslicing on
 
 and
 
-  perldl> notrans # switch niceslicing off
+  pdl> notrans # switch niceslicing off
 
 respectively. The filter is on by default.
 
 To see how your commands are translated
 switch reporting on:
 
-  perldl> report 1;
-  perldl> p $a(3:8:2)
- processed p $a->nslice([3,8,2])
- [3 5 7]
+  pdl> report 1;
+  pdl> p $a(3:8:2)
+  processed p $a->nslice([3,8,2])
+  [3 5 7]
 
 Similarly, switch reporting off as needed
 
-  perldl> report 0;
-  perldl>  p $a(3:8:2)
- [3 5 7]
+  pdl> report 0;
+  pdl>  p $a(3:8:2)
+  [3 5 7]
 
 Reporting is off by default.
 
@@ -1271,26 +1272,26 @@ executed automatically every time the user enters a new line.
 
 A simple example would be to print the time of each command:
 
- perldl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
-
- perldl> print zeroes(3,3)
- Sun May  3 04:49:05 1998
-
- [
-  [0 0 0]
-  [0 0 0]
-  [0 0 0]
- ]
-
- perldl> print "Boo"
- Sun May  3 04:49:18 1998
- Boo
- perldl>
+  pdl> push @PERLDL::AUTO,'print scalar(gmtime),"\n"'
+  
+  pdl> print zeroes(3,3)
+  Sun May  3 04:49:05 1998
+  
+  [
+   [0 0 0]
+   [0 0 0]
+   [0 0 0]
+  ]
+  
+  pdl> print "Boo"
+  Sun May  3 04:49:18 1998
+  Boo
+  pdl>
 
 Or to make sure any changes in the file 'local.perldlrc' are
 always picked up :-
 
- perldl> push @PERLDL::AUTO,"do 'local.perldlrc'"
+  pdl> push @PERLDL::AUTO,"do 'local.perldlrc'"
 
 This code can of course be put *in* 'local.perldlrc', but
 be careful :-) [Hint: add C<unless ($started++)> to above

@@ -66,9 +66,9 @@ PDL::Perldl2::Plugin::PDLCommands - implement perldl aliases/escapes
 =head1 DESCRIPTION
 
 
-This plugin implements the various convenience features of the perldl
-shell which correspond, roughly, to aliases and some structured
-pre-processing of the command line entered:
+This plugin implements the various convenience features of the
+perldl shell which correspond, roughly, to aliases and some
+structured pre-processing of the command line entered:
 
 =over 4
 

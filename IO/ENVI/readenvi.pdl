@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Sat 14 Aug 2010 09:18:52 AM
+# Last saved: Mon 16 Aug 2010 03:44:10 PM 
 #
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
@@ -235,12 +235,12 @@ sub _read_envihdr {
 
           $im = readenvi( filename );  # read image data
   ($im, $hdr) = readenvi( filename );  # read image data and hdr data hashref
-
+  
   readenvi will look for an ENVI header file named filename.hdr
-
+  
   If that file is not found, it will try with the windows
   convention of replacing the suffix of the filename by .hdr
-
+  
   If valid header data is found, the image will be read and
   returned, with a ref to a hash of the hdr data in list
   context.

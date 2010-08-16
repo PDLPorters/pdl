@@ -36,16 +36,16 @@ PDL::Perldl2::Plugin::PrintControl - disable default print output
 
 =head1 SYNOPSIS
 
- > $a = 3;
- 3
- > $_REPL->load_plugin('PDL::Perldl2::Plugin::PrintControl');
+  > $a = 3;
+  3
+  > $_REPL->load_plugin('PDL::Perldl2::Plugin::PrintControl');
 
- > $a;
+  > $a;
 
- > $_REPL->print_by_default(1);
- 1
- > $a;
- 3
+  > $_REPL->print_by_default(1);
+  1
+  > $a;
+  3
 
 =head1 DESCRIPTION
 

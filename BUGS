@@ -21,7 +21,7 @@ isolate, reproduce, and fix your problem.
 
 At a *minimum*, include the following information:
 
-    * PDL version number (e.g. PDL-2.4.6)
+    * PDL version number (e.g. PDL-2.4.7)
 
     * Perl version information
       (output from "perl -v" or "perl -V", even better!)

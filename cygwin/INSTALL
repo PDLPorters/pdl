@@ -1,15 +1,13 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Thu 12 Aug 2010 12:15:34 PM 
+Last saved: Mon 16 Aug 2010 03:28:40 PM 
 
 
 
 =================================================================
                         GENERAL NOTES
 =================================================================
-  These notes have not been fully reviewed since PDL-2.4.5
-  or for the recent release of version 1.7.5 of cygwin however
-  they are believed to be generally correct.  Please post to
-  the perldl mailing list for help or questions.
+  Please post to the perldl mailing list for help or
+  questions regarding a cygwin install.
 
   Cygwin seems to have a ~300MB process memory limit
   that we have not determined how to work around.
@@ -17,9 +15,9 @@ Last saved: Thu 12 Aug 2010 12:15:34 PM
   use the native win32 PDL with either ActiveState Perl
   or Strawberry Perl.
 
-  Work is underway to improve the native win32 PDL port on
-  support for external dependencies so that it may be used,
-  feature for feature, instead of the cygwin port.
+  Work is underway to improve the native win32 perl PDL 
+  support for external dependencies so that it may be
+  used, feature for feature, instead of the cygwin port.
 
 
 
@@ -93,13 +91,13 @@ The manual configure/build/install process is:
 
  From the bash$ prompt in the top level PDL/ directory:
 
-   perl Makefile.PL	# configures all the Makefile
-
-   make		        # builds/compiles everything
-
-   make test            # run test suite
-
-   make doctest         # builds online documentation
+  perl Makefile.PL	# configures all the Makefile
+  
+  make		        # builds/compiles everything
+  
+  make test            # run test suite
+  
+  make doctest         # builds online documentation
                         # and html docs
 
 
@@ -127,12 +125,12 @@ The manual configure/build/install process is:
  PDL shell before actually installing PDL by running from the
  PDL/ top level directory:
 
-   perl -Mblib perldl   # quit to exit the PDL shell
+  perl -Mblib Perldl2/pdl2   # type quit to exit the PDL shell
 
 
  To finally install the PDL into your system run:
 
-   make install
+  make install
 
 
 
@@ -242,7 +240,7 @@ NOTE: cygwin 1.7.5 has new include locations so the following
   perl. Download from www.cpan.org if needed.
 
 2. Now install the PGPLOT perl module. This is used by
-PDL::Graphics::PGPLOT.
+   PDL::Graphics::PGPLOT.
 
   $ tar xzf PGPLOT-2.19.tar.gz
   $ cd PGPLOT-2.19
@@ -301,13 +299,13 @@ by hand (for example):
 
   perl -Mblib t/plplot.t
 
-You'll see no error but only 1 test run or even a message saying
+You may see no error but only 1 test run or even a message saying
 that the test failed before generating any output.  If so, you'll
 need to run rebaseall:
 
   0. Generate a list of additional DLLs to check:
 
-     find /usr/lib/perl5 /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
+     find /usr/lib/perl5 /usr/bin /usr/local /pdl_build_dir/blib -iname '*.dll' > /bin/fixit.list
 
   1. Exit all cygwin processes, windows, shells, X server,...
 

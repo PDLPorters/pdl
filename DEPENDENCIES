@@ -55,18 +55,18 @@ PDL::IO::Dumper   Data::Dumper            Version >=2.121 is required.
 PDL::IO::Storable Storable                Version >=1.03 is required.
 
 
-pdl2   (shell)    Devel::REPL             Version >= 1.003011
+pdl2   (shell)    Devel::REPL and         Version >= 1.003011
                   Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
 
 perldl (shell)    Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
 
-                                          pdl2 and perldl will be installed
+                                          pdl2 (and perldl) will be installed
                                           by default.  If Devel::REPL is not
-                                          installed, pdl2 uses perldl.  Same
-					  if Term::ReadLine::Perl or ::Gnu
-					  is not installed.
+                                          installed, pdl2 uses perldl.  The
+					  same thing if a Term::ReadLine::Perl
+					  or Term::ReadLine::Gnu is not installed.
 
 
 PDL::FFTW         Needs the FFTW library version 2 installed.
@@ -138,7 +138,7 @@ PDL::Graphics::IIS
 
 
 PDL::Graphics::Karma
-                  The Karma interface is *deprecated* and not
+                  The Karma interface is *DEPRECATED* and not
                   supported.  Please use another visualization tool.
 
                                           PDL::Graphics::Karma will
@@ -153,8 +153,6 @@ PDL::GSL modules
                                           Will not be built unless
                                           an appropriate GSL version
                                           is installed and detected.
-
-
 
 
 PDL::IO::Browser

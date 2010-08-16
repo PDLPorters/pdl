@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Sun 15 Aug 2010 10:36:54 AM
+# Last saved: Mon 16 Aug 2010 03:42:07 PM 
 #
 
 use Moose;
@@ -248,7 +248,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
     Type Ctrl-D or quit to exit
     
     Loaded PDL v2.4.7
-
+    
     pdl> 
 
 
@@ -256,8 +256,8 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
 
 This profile is for development of the new PDL shell (version 2).
 The preferred method to start the new shell is via the C<pdl2>
-command.  This documentation is provided for C<Devel::REPL> code
-that may wish to use this profile directly.
+command.  This documentation is provided for C<Devel::REPL> coders
+that may wish to use this profile directly for their development.
 
 =head1 SEE ALSO
 

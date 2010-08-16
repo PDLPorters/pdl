@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Fri 13 Aug 2010 06:19:20 PM
+Last saved: Mon 16 Aug 2010 03:36:22 PM 
 
 
 +-------------------------------------------------------------------+
@@ -9,10 +9,12 @@ Last saved: Fri 13 Aug 2010 06:19:20 PM
   Add filter to remove leading qr(^\s*pdl>\s?) from input
   lines to allow for easy cut and paste from book examples
   and other code (need to be able toggle and set regexp).
+  (Partially complete)
 
   Fix PDL::AutoLoader expansion to work for PDLLIB environment
   variable using win32 syntax and make sure TAB expansion for
-  paths work for win32 paths as well (it doesn't appear so)
+  paths work for win32 paths as well (Status: The PDLLIB expansion
+  is fixed but not the TAB expansion of the paths in the shell).
 
   Add SIGINT handler for pdl2 for win32.  Also need to add
   feature to ignore EOF to the read routine (around read modifier
@@ -30,7 +32,7 @@ Last saved: Fri 13 Aug 2010 06:19:20 PM
     for win32 systems.
 
   Implement PDL shell startup boot messages, i.e.,
-    perlDL shell v1.352
+    perlDL shell v1.354
      PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
      'COPYING' in the PDL distribution. This is free software and you
      are welcome to redistribute it under certain conditions, see
@@ -40,7 +42,7 @@ Last saved: Fri 13 Aug 2010 06:19:20 PM
     Found docs database /cygdrive/c/local/pmods/lib-w-pdl/cygwin-thread-multi-64int/PDL/pdldoc.db
     Type 'help' for online help
     Type 'demo' for online demos
-    Loaded PDL v2.4.6_007 (supports bad values)
+    Loaded PDL v2.4.6_993 (supports bad values)
 
   Add runtime PDL module load list so you know what has been
   loaded with use/require.  Maybe as simple as a configuration

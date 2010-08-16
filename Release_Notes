@@ -1,8 +1,8 @@
-Release notes for PDL 2.4.6_992 --------------------------
+Release notes for PDL 2.4.6_993 --------------------------
 
 General Notes:
 
- * This is PDL-2.4.7 pre-release 2
+ * This is the PDL-2.4.7 pre-release 3 (final)
 
  * TBD
 
@@ -14,7 +14,7 @@ Highlights:
 
    Convert::UU is required for PDL.
 
-   Karma is deprecated and not supported.  Set
+   Karma is DEPRECATED and NOT SUPPORTED.  Set
    USE_KARMA=>1 in perldl.conf to force a build.
    
    
@@ -35,7 +35,7 @@ Highlights:
 
    Allows use of MATLAB-style [ ; ] syntax
 
-   Allows cut-n-paste of printed pdl values
+   Allows cut-and-paste of printed pdl values
    as input args for pdl()
    
    
@@ -55,9 +55,10 @@ Highlights:
  * Enhanced PDL Shell (Version 2)
 
    Based on Devel::REPL which must be installed
-   to use the pdl2 features.
+   along with either Term::ReadLine::Perl or
+   Term::ReadLine::Gnu to use the pdl2 features.
 
-   Supports Term::ReadLine::Perl and Term::ReadLine::Gnu
+   Supports Term::ReadLine::Perl and Term::ReadLine::Gnu.
 
    Upward compatable with the original PDL shell, perldl.
 
@@ -87,7 +88,7 @@ Highlights:
    Faster matrix multiply
 
    Preliminary support for ENVI file format data
-   in PDL::IO::ENVI
+   in PDL/IO/ENVI/readenvi.pdl
    
    
  * Build Improvements:
@@ -178,7 +179,7 @@ Highlights:
 
    Fix up code to not crash on non-lazy linking systems.
 
-   Work arounds for perl -d lvalue temp bug introduced
+   Work arounds for perl-d lvalue temp bug introduced
    in recent perls.
 
    t/lvalue.t is skipped if run under the debugger. 
@@ -187,7 +188,7 @@ Highlights:
    and Transform.
    
    
- * Documentation Improvements
+ * Many Documentation Improvements
 
    Completely reworked PDL web site
    - Clearer and more helpful to new PDL users.
@@ -205,9 +206,7 @@ Highlights:
    - A study course through all of PDL's documentation.
    - Removed PDL::Intro
 
-
    POD cleanup across many PDL modules and functions.
-   
 
    Update to copyright statements throughout PDL
    to clarify licenses.
@@ -227,6 +226,21 @@ Highlights:
 
 
 
+Release notes for PDL 2.4.6_992 --------------------------
+
+General Notes:
+
+ * This is PDL-2.4.7 pre-release 2
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.6_993 release notes above
+
+
+
+
 Release notes for PDL 2.4.6_991 --------------------------
 
 General Notes:
@@ -237,7 +251,7 @@ General Notes:
 
 Highlights:
 
- * See PDL-2.4.7 pre-release 2
+ * See PDL-2.4.6_992 release notes above
 
 
 
