@@ -596,34 +596,33 @@ PDLLIB path to use.  See L<PDL::AutoLoader> for details.
 =for usage
 
   $window_id = imag2d($image, $name, $zoom, $x_off, $y_off);
-
+    
     creates a new image figure window from the input piddle
     with the given title, zoom factor, and position if possible
-
+    
     $window_id - may be used to refer to the figure window
-
+    
     $image - 2D image piddle with at least 2 or 3 dimensions
              e.g. [M,N], [1,M,N], [2,M,N], [3,M,N], [4,M,N]
-
+    
     $name - the name to use for the figure window (optional)
-
+    
     $zoom - desired (float) pixel zoom factor     (optional)
-
+    
     ($x_off, $y_off) - desired window pixel position (optional)
                        with (0,0) as the top left pixel of the
                        display
-
+    
   twiddle();
-
+    
     Runs the FreeGLUT event loop so window GUI operations
     such as resize, expose, mouse click,.. work
-
+    
 =for example
-
 
   use PDL::AutoLoader;     # if needed
   @PDLLIB=qw(.);           # assumes imag2d.pdl is in this directory
-
+  
   $a = sequence(64,48,3);  # make test RGB image
   $a = $a->mv(2,0);        # color must be dim(0) with size [0..4]
   $a /= $a->max;           # pixel values in [0.0,1.0]
