@@ -752,10 +752,10 @@ EOP
     print <<"DEPRECATED-EOM"
 ******************************
 * 
-* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.2, 
-* perl version 5.8 or greater is recommended.  Most stuff will
-* probably still work, but perl versions earlier than 5.8 are
-* deprecated and may stop working in future.
+* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.7, 
+* perl version 5.8 or greater is required.  Most stuff will probably
+* still work, but perl versions earlier than 5.8 are deprecated and
+* no longer supported or tested against.
 * 
 ******************************
 DEPRECATED-EOM
