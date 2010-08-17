@@ -25,34 +25,6 @@ PLplot) and 3D (via OpenGL/TriD) graphics.
   current status.
 
   
-R  Improve PDL usability for first time users
-
-     Required
-
-     A simple cpan or platform package install should
-     work out of the box.  Maybe not all dependencies
-     will be there but PDL should build with 2D and
-     3D graphics support if possible.
-
-
-R  Need to test PDL build/install from scratch
-   
-     Required
-
-     Needs multiple testers capable of building PDL
-     and willing to configure their system for a
-     clean room run of the install process(es).
-
-     We need to confirm that PDL-2.4.7 builds or
-     installs completely from scratch on all PDL
-     platforms by testing.  This includes starting
-     from the vanilla system (OS platform) and
-     getting and installing PDL the way a new user
-     would.  CPAN/source builds as well as binary
-     installs should be tested as possible.  Install
-     notes will be used to update release docs.
-
-
 R  Update PDL web site pages 
 
      Required
@@ -80,21 +52,20 @@ R  Add CPAN shell start-up info to PDL wiki or web page
      PDL (verify on all PDL platforms).
 
 
-R  Need PLplot and PDL::Graphics::PLplot to build all platforms
+
++------------------------------------------------------------------------+
+|                         Planned for PDL-2.4.8                          |
++------------------------------------------------------------------------+
+
+R  Improve PDL usability for first time users
 
      Required
-     
-     Progress has been made by David and Rob on building
-     PLplot and/or PDL::Graphics::PLplot for a number of
-     platforms.  It appears that PLplot is build and
-     buildable (manually) for all platforms and the PDL
-     support works as well.
 
+     A simple cpan or platform package install should
+     work out of the box.  Maybe not all dependencies
+     will be there but PDL should build with 2D and
+     3D graphics support if possible.
 
-
-+------------------------------------------------------------------------+
-|                         Deferred to PDL-2.4.8                          |
-+------------------------------------------------------------------------+
 
 R  Complete Perldl2 shell:
 D  * Fix demo to work with Perldl2
@@ -263,6 +234,35 @@ N  Check/set perldl.conf options before the PDL build?
 |                                DONE                                    |
 +------------------------------------------------------------------------+
    
+D  Need to test PDL build/install from scratch
+   
+     Required
+
+     Needs multiple testers capable of building PDL
+     and willing to configure their system for a
+     clean room run of the install process(es).
+
+     We need to confirm that PDL-2.4.7 builds or
+     installs completely from scratch on all PDL
+     platforms by testing.  This includes starting
+     from the vanilla system (OS platform) and
+     getting and installing PDL the way a new user
+     would.  CPAN/source builds as well as binary
+     installs should be tested as possible.  Install
+     notes will be used to update release docs.
+
+
+D  Need PLplot and PDL::Graphics::PLplot to build all platforms
+
+     Required
+     
+     Progress has been made by David and Rob on building
+     PLplot and/or PDL::Graphics::PLplot for a number of
+     platforms.  It appears that PLplot is build and
+     buildable (manually) for all platforms and the PDL
+     support works as well.
+
+
 D  Add docs/support for users of other non-PDL software
 
      Nice to have

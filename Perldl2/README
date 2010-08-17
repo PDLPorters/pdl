@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Fri 13 Aug 2010 06:17:01 PM
+Last saved: Tue 17 Aug 2010 10:28:52 AM 
 
 
 +-----------------------------------------------------------+
@@ -120,6 +120,12 @@ capabilities.
 
  demo as a command by itself lists the possible demos available.
  Otherwise it runs the specified demo.
+
+ By default, leading patterns matching the pdl2 shell
+ prompt ('pdl> ' with possible surrounding white space)
+ are stripped from the input.  That allows for easy
+ cut-and-paste of pdl2 sessions from examples, demos,
+ or docs.
 
  The Perldl2 shell, pdl2, loads/saves from the same history
  file as perldl.

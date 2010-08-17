@@ -404,7 +404,7 @@ drawn and no control of color or transparency.
 
 =for ref
 
-2D TrueColor Image plot
+2D RGB image plot (see also imag2d)
 
 =for usage
 
@@ -427,7 +427,7 @@ e.g.
 
 =for ref
 
-2D TrueColor Image plot as an object inside a 3D space
+2D RGB image plot as an object inside a 3D space
 
 =for usage
 

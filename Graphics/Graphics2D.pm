@@ -1,5 +1,7 @@
 package PDL::Graphics2D;
 
+use Exporter 'import'; # gives you Exporter's import() method directly
+@EXPORT = qw(imag2d twiddle);  # symbols to export on request
 
 =head1 NAME
 
@@ -61,7 +63,7 @@ use PDL::Lite;
 use PDL::NiceSlice;
 
 #------------------------------------------------------------------------
-# PDL constants used
+# PDL constants used by imag2d
 #------------------------------------------------------------------------
 #
 #   PDL_B
@@ -74,7 +76,7 @@ use PDL::NiceSlice;
 #------------------------------------------------------------------------
 
 #------------------------------------------------------------------------
-# PDL methods used
+# PDL methods used by imag2d
 #------------------------------------------------------------------------
 #
 #   .=
@@ -90,7 +92,7 @@ use PDL::NiceSlice;
 use OpenGL qw( :all );
 
 #------------------------------------------------------------------------
-# opengl/glut constants used
+# opengl/glut constants used by imag2d
 #------------------------------------------------------------------------
 #
 #   GLUT_ACTION_CONTINUE_EXECUTION
@@ -119,7 +121,7 @@ use OpenGL qw( :all );
 
 
 #------------------------------------------------------------------------
-# opengl/glu/glut routines used
+# opengl/glu/glut routines used by imag2d
 #------------------------------------------------------------------------
 # 
 #   OpenGL::done_glutInit
@@ -580,7 +582,7 @@ $c==4 the display is in GL_RGBA, for $c==3 the display is GL_RGB,
 for $c==2 the display is GL_LUMINANCE_ALPHA, and for $c==1 or for
 for dimensions ($M,$N) then the display is GL_LUMINANCE.
 
-This routine does not thread but multiple images may be
+This routine does not yet thread but multiple images may be
 viewed at the same time in separate windows by multiple
 calls to imag2d().  TriD graphics visualization windows and the
 imag2d() windows may be created and used independently.
@@ -589,16 +591,12 @@ NOTE: If you are twiddling a TriD window, the imag2d()
 windows are active as well.  If you call twiddle()
 the sub, only the imag2d() windows will update correctly.
 
-NOTE: The current implementation is via a L<PDL::AutoLoader>
-file imag2d.pdl which you will need to place in your
-PDLLIB path to use.  See L<PDL::AutoLoader> for details.
-
 =for usage
 
   $window_id = imag2d($image, $name, $zoom, $x_off, $y_off);
     
     creates a new image figure window from the input piddle
-    with the given title, zoom factor, and position if possible
+    with the given title, zoom factor, and position (if possible)
     
     $window_id - may be used to refer to the figure window
     
@@ -612,25 +610,33 @@ PDLLIB path to use.  See L<PDL::AutoLoader> for details.
     ($x_off, $y_off) - desired window pixel position (optional)
                        with (0,0) as the top left pixel of the
                        display
-    
+
+=for example
+
+  use PDL::Graphics2d;     # imports imag2d() and twiddle()
+
+  $a = sequence(64,48,3);  # make test RGB image
+  $a = $a->mv(2,0);        # color must be dim(0) with size [0..4]
+  $a /= $a->max;           # pixel values in [0.0,1.0]
+  $a = sin(10*$a);
+  $w1 = imag2d($a);        # with parens...
+  $w2 = imag2d $a->sqrt;   # or without
+  $w3 = imag2d $a**2;
+
+
+=head2 twiddle
+
+=for ref
+
+  Enable GUI interaction with a FreeGLUT display window.
+
+=for usage
+
   twiddle();
     
     Runs the FreeGLUT event loop so window GUI operations
     such as resize, expose, mouse click,.. work
     
-=for example
-
-  use PDL::AutoLoader;     # if needed
-  @PDLLIB=qw(.);           # assumes imag2d.pdl is in this directory
-  
-  $a = sequence(64,48,3);  # make test RGB image
-  $a = $a->mv(2,0);        # color must be dim(0) with size [0..4]
-  $a /= $a->max;           # pixel values in [0.0,1.0]
-  $a = sin(10*$a);
-  $w1 = imag2d($a);        # parens for 1st call to autoload
-  $w2 = imag2d $a->sqrt;   # not needed here for 2nd call
-  $w3 = imag2d $a**2;      # or here for 3rd call...
-
 =cut
   
 sub imag2d {

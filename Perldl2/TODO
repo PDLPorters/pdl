@@ -1,15 +1,15 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 16 Aug 2010 03:36:22 PM 
+Last saved: Tue 17 Aug 2010 10:24:22 AM 
 
 
 +-------------------------------------------------------------------+
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
 
-  Add filter to remove leading qr(^\s*pdl>\s?) from input
-  lines to allow for easy cut and paste from book examples
-  and other code (need to be able toggle and set regexp).
-  (Partially complete)
+  Add enhanced filter support to removed leading prompt
+  strings (or other text) from input lines.  Need to be
+  able to toggle feature on/off and set regexp used.
+  Check that the stripped line is entering history...
 
   Fix PDL::AutoLoader expansion to work for PDLLIB environment
   variable using win32 syntax and make sure TAB expansion for
@@ -42,7 +42,7 @@ Last saved: Mon 16 Aug 2010 03:36:22 PM
     Found docs database /cygdrive/c/local/pmods/lib-w-pdl/cygwin-thread-multi-64int/PDL/pdldoc.db
     Type 'help' for online help
     Type 'demo' for online demos
-    Loaded PDL v2.4.6_993 (supports bad values)
+    Loaded PDL v2.4.7 (supports bad values)
 
   Add runtime PDL module load list so you know what has been
   loaded with use/require.  Maybe as simple as a configuration
