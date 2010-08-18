@@ -1,4 +1,4 @@
-pdl (1:2.4.7~pre2-1) UNRELEASED; urgency=low
+pdl (1:2.4.7~pre3-1) UNRELEASED; urgency=low
 
   * new upstream version
     - much improved documentation (closes: #132900)
@@ -8,7 +8,7 @@ pdl (1:2.4.7~pre2-1) UNRELEASED; urgency=low
   * build-depend and suggest libdevel-repl-perl (for new pdl2 shell)
   * update debian standards-version to 3.9.1 (no further changes needed)
 
- -- Henning Glawe <glaweh@debian.org>  Sun, 15 Aug 2010 23:31:18 +0200
+ -- Henning Glawe <glaweh@debian.org>  Wed, 18 Aug 2010 10:49:45 +0200
 
 pdl (1:2.4.6-2) unstable; urgency=low
 
