@@ -24,7 +24,7 @@ configure: configure-stamp
 configure-stamp: patch-stamp
 	dh_testdir
 	# Add here commands to configure the package
-	perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
 
 	touch configure-stamp
 
