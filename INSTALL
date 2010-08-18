@@ -180,3 +180,16 @@ a bug report (see the BUGS file for directions).
 
     - Ubuntu:  These are included in the libproj-dev.
     - Fedora:  You have to install the proj-nad package.
+
+* make failures for PDL with error messages like:
+
+      make: Warning: File `Makefile.PL' has modification
+      time 3.1e+05 s in the future
+      Makefile out-of-date with respect to Makefile.PL
+
+  This problem has been seen on some Linux Virtual Machines
+  where there was a problem with the synchronization of the
+  VM time with the host OS system time.  A quick work-
+  around for the problem is to 'touch Makefile.PL' which
+  updates the file time for Makefile.PL to "now" so make
+  runs correctly.
