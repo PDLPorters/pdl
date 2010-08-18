@@ -113,7 +113,9 @@ BEGIN{
       for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
       return 0;
   };
-  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode');
+  # make sure not to use uuencode/uudecode
+  # on MSWin32 systems (it doesn't work)
+  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
 
   use PDL;
   use PDL::Exporter;
