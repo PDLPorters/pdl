@@ -10,14 +10,14 @@ pdl (1:2.4.7~pre3-1) UNRELEASED; urgency=low
 
  -- Henning Glawe <glaweh@debian.org>  Wed, 18 Aug 2010 10:49:45 +0200
 
-pdl (1:2.4.6-2) unstable; urgency=low
+pdl (1:2.4.6+dfsg-2) unstable; urgency=low
 
   * pgperl is back in debian, name changed to libpgplot-perl; changed the
     pdl recommends to reflect that (closes: #407463)
 
  -- Henning Glawe <glaweh@debian.org>  Tue, 11 May 2010 07:56:50 +0200
 
-pdl (1:2.4.6-1) unstable; urgency=low
+pdl (1:2.4.6+dfsg-1) unstable; urgency=low
 
   * fix paths in generated HTML docs
   * add dpkg trigger for documentation index and HTML documentation updates
@@ -35,7 +35,7 @@ pdl (1:2.4.6-1) unstable; urgency=low
 
  -- Henning Glawe <glaweh@debian.org>  Sat, 08 May 2010 17:10:16 +0200
 
-pdl (1:2.4.5-2) unstable; urgency=low
+pdl (1:2.4.5+dfsg-2) unstable; urgency=low
 
   * switch TriD from X11 to freeglut
   * patch test suite to give more meaningful results
@@ -46,9 +46,10 @@ pdl (1:2.4.5-2) unstable; urgency=low
 
  -- Henning Glawe <glaweh@debian.org>  Mon, 09 Nov 2009 12:32:34 +0100
 
-pdl (1:2.4.5-1) unstable; urgency=low
+pdl (1:2.4.5+dfsg-1) unstable; urgency=low
 
   * new upstream release
+  * repacked upstream source without debian dir
   * build-depend on sharutils to have uuencode/uudecode available for
     test suite
   * build-depend on libraries needed for the reworked TriD module
