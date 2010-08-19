@@ -6,18 +6,21 @@ Last saved: Mon 16 Aug 2010 03:28:40 PM
 =================================================================
                         GENERAL NOTES
 =================================================================
-  Please post to the perldl mailing list for help or
-  questions regarding a cygwin install.
+ NOTE: These install notes have been partially reviewed
+ for the PDL-2.4.7 release.  It is recommended that you
+ build and install PDL based on a full cygwin 1.7.5 or
+ later install.  Please post to the perldl mailing list
+ for help or questions regarding a cygwin install.
 
-  Cygwin seems to have a ~300MB process memory limit
-  that we have not determined how to work around.
-  If you work with large data sets, you may wish to
-  use the native win32 PDL with either ActiveState Perl
-  or Strawberry Perl.
+ Cygwin seems to have a ~300MB process memory limit
+ that we have not determined how to work around.
+ If you work with large data sets, you may wish to
+ use the native win32 PDL with either ActiveState Perl
+ or Strawberry Perl.
 
-  Work is underway to improve the native win32 perl PDL 
-  support for external dependencies so that it may be
-  used, feature for feature, instead of the cygwin port.
+ Work is underway to improve the native win32 perl PDL 
+ support for external dependencies so that it may be
+ used, feature for feature, instead of the cygwin port.
 
 
 

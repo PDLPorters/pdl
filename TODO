@@ -6,10 +6,9 @@ PDL working on *all* PDL OS platforms: win32, macosx,
 and linux/unix/bsd systems with support for 2D (via
 PLplot) and 3D (via OpenGL/TriD) graphics.
 
-
-+------------------------------------------------------------------------+
-|                     PDL-2.4.7 CRITICAL PATH                            |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                 Planned for PDL-2.4.8                 |
++-------------------------------------------------------+
 
    This section documents the top level tasks from
    the more detailed list below.  The first column
@@ -25,20 +24,6 @@ PLplot) and 3D (via OpenGL/TriD) graphics.
   current status.
 
   
-R  Update PDL web site pages 
-
-     Required
-
-     This is well underway.
-
-
-R  Review current documentation (underway)
-
-     Required
-
-     This is well underway.
-
-
 R  Add/update platform install notes to PDL wiki
 R  Add CPAN shell start-up info to PDL wiki or web page
 
@@ -51,11 +36,6 @@ R  Add CPAN shell start-up info to PDL wiki or web page
      to start from scratch with cpan to install
      PDL (verify on all PDL platforms).
 
-
-
-+------------------------------------------------------------------------+
-|                         Planned for PDL-2.4.8                          |
-+------------------------------------------------------------------------+
 
 R  Improve PDL usability for first time users
 
@@ -230,10 +210,20 @@ N  Check/set perldl.conf options before the PDL build?
 
 
 
-+------------------------------------------------------------------------+
-|                                DONE                                    |
-+------------------------------------------------------------------------+
-   
++-------------------------------------------------------+
+|                         DONE                          |
++-------------------------------------------------------+
+
+D  Review current documentation (underway)
+
+     Required
+
+
+D  Update PDL web site pages 
+
+     Required
+
+
 D  Need to test PDL build/install from scratch
    
      Required
@@ -311,18 +301,18 @@ D  Fix PDL Config
 
 
 
-+------------------------------------------------------------------------+
-|                                                                        |
-|                     PDL-2.4.x BULLET TASK LISTING                      |
-|                            ( BY CATEGORY )                             |
-|                                                                        |
-+------------------------------------------------------------------------+
-   
++-------------------------------------------------------+
+|                                                       |
+|             PDL-2.4.x BULLET TASK LISTING             |
+|                   ( BY CATEGORY )                     |
+|                                                       |
++-------------------------------------------------------+
 
-+------------------------------------------------------------------------+
-|                                 TESTING                                |
-+------------------------------------------------------------------------+
-   
+
++-------------------------------------------------------+
+|                       TESTING                         |
++-------------------------------------------------------+
+
 R+ Need to test PDL build from scratch
    * All major platforms (unix/linux, mac os x, windows)
    
@@ -341,9 +331,13 @@ R+ Clean up and triage for tickets prior to release.
    * Feature requests
    * Other?
    
-+------------------------------------------------------------------------+
-|                              DEPENDENCIES                              |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                       TESTING                         |
++-------------------------------------------------------+
+
++-------------------------------------------------------+
+|                    DEPENDENCIES                       |
++-------------------------------------------------------+
    
 N+ Alien modules for the external PDL dependencies
 N+ * Alien::PLplot (must be rock solid!)
@@ -366,9 +360,9 @@ N+ List and obtain module owners and developers for existing PDL modules
    * Convert PDL::Minuit to use C with f2c of source 
    
 
-+------------------------------------------------------------------------+
-|                              DOCUMENTATION                             |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                    DOCUMENTATION                      |
++-------------------------------------------------------+
    
 R+ Update PDL web site pages 
    
@@ -416,9 +410,9 @@ N+ Update PDL Book (in progress)
    * Is there a way to fetch all the functions/keywords the PDL help system supports? 
    
    
-+------------------------------------------------------------------------+
-|                                USABILITY                               |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                      USABILITY                        |
++-------------------------------------------------------+
    
 N+ Improve PDL usability for first time users
    * Work out of the box via cpan shell
@@ -438,9 +432,9 @@ N+ Clean up build output from make process to reduce cruft
      their shell, just check the pdl-build.log
    
    
-+------------------------------------------------------------------------+
-|                              INSTALLATION                              |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                    INSTALLATION                       |
++-------------------------------------------------------+
    
 R+ Fix PDL Config
    * Update config with build information
@@ -453,9 +447,9 @@ N+ Check/set perldl.conf options before the PDL build?
    * Use prompt() routine in Makefile.PL
 
    
-+------------------------------------------------------------------------+
-|                              NEW FEATURES                              |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                    NEW FEATURES                       |
++-------------------------------------------------------+
    
 R+ Need PLplot and PDL::Graphics::PLplot to build all platforms
    * MS Windows
@@ -493,9 +487,9 @@ N+ Finish spheres3d implementation
    * Add surface normals for smooth shading
   
   
-+------------------------------------------------------------------------+
-|                                  LATER                                 |
-+------------------------------------------------------------------------+
++-------------------------------------------------------+
+|                        LATER                          |
++-------------------------------------------------------+
    
 N+ PDL::Constants
    * Use Readonly if available

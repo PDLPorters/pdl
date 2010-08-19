@@ -1,10 +1,37 @@
-Release notes for PDL 2.4.6_993 --------------------------
+Release notes for PDL 2.4.7 --------------------------
 
 General Notes:
 
- * This is the PDL-2.4.7 pre-release 3 (final)
+ * New requirements:
+   - perl version 5.8.x and higher
+   - OpenGL-0.63
+   - Convert::UU
+ 
+ * New 2-D image display routine: imag2d()
 
- * TBD
+ * pdl() constructor, a.k.a. PDL->new(), now
+   takes string arguments with either MATLAB type
+   concatenation syntax or PDL print output (for
+   easier cut-and-paste from PDL shell sessions).
+
+ * Improved text and comma separated value file
+   input via rcols(): faster and more flexible.
+ 
+ * A new PDL shell based on Devel::REPL (i.e.,
+   Moose technology).  The new shell supports
+   more perl syntax (lexical variables and
+   packages), is more extensible (via a system
+   of plugins), and supports many forms of file
+   and variable completion.
+   
+   Install Devel::REPL and give it a try!
+   User feedback welcome.
+
+ * More portability (builds on more platforms
+   with more features than ever).
+
+ * Many bugs fixed...
+
 
 Highlights:
 
@@ -223,6 +250,21 @@ Highlights:
 
    INSTALL guides improved in the distribution
    and on the web site.
+
+
+
+Release notes for PDL 2.4.6_993 --------------------------
+
+General Notes:
+
+ * This is the PDL-2.4.7 pre-release 3 (final)
+
+ * TBD
+
+Highlights:
+
+ * See PDL-2.4.7 release notes above
+ 
 
 
 
