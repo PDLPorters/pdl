@@ -43,10 +43,10 @@ test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
 	@echo "BEGIN test normal"
-	-$(MAKE) TEST_VERBOSE=0 test | perl debian/filter-test.pl
+	-$(MAKE) TEST_VERBOSE=0 LC_ALL=C test | perl debian/filter-test.pl
 	@echo "END test normal"
 	@echo "BEGIN test verbose"
-	-$(MAKE) TEST_VERBOSE=1 test | perl debian/filter-test.pl
+	-$(MAKE) TEST_VERBOSE=1 LC_ALL=C test | perl debian/filter-test.pl
 	@echo "END test verbose"
 	touch test-stamp
 
