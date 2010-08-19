@@ -11,6 +11,7 @@
 #export DH_VERBOSE=1
 
 include /usr/share/dpatch/dpatch.make
+unexport DISPLAY
 
 CFLAGS = -Wall -g
 
@@ -41,7 +42,7 @@ build-stamp: configure-stamp
 test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
-	-$(MAKE) TEST_VERBOSE=1 DISPLAY="" test
+	-$(MAKE) TEST_VERBOSE=1 test
 	touch test-stamp
 
 clean: clean-patched unpatch
