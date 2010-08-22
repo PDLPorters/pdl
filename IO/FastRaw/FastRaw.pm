@@ -193,10 +193,13 @@ Read a raw format binary file
 The C<readfraw> command
 supports the following option:
 
+=over 8
+
 =item Header
 
 Specify the header file name.
 
+=back
 
 =head2 writefraw
 
@@ -214,10 +217,13 @@ Write a raw format binary file
 The C<writefraw> command
 supports the following option:
 
+=over 8
+
 =item Header
 
 Specify the header file name.
 
+=back
 
 =head2 mapfraw
 
