@@ -26,6 +26,15 @@ The following issues have been reported with this version of PDL:
   have the ability to create the bug to fix it...).  Thanks.
 
 
+- On Strawberry Perl and ActiveState Perl the pdl2 fallback to
+  perldl when Devel::REPL and Term::ReadLine::Perl are not
+  installed is broken due to win32 issues.  If you get stuck,
+  just type quit<Enter>quit<Enter> which issues the quit command
+  to both the pdl2-now-perldl shell and the CMD shell.  You'll
+  need to call perldl explicitly for now (or install Devel::REPL
+  and Term::ReadLine::Perl to use the new pdl2 goodness...).
+
+
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
   to have the window close.
@@ -67,8 +76,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7 release:
+  PDL-2.4.7_001 release:
 
+  3056142    pdl2 fallback to perldl broken on win32
   3042201    t/dumper.t fails mysteriously
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
   3018731    NiceSlice affects code where it should not
