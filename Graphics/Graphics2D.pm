@@ -636,9 +636,10 @@ the sub, only the imag2d() windows will update correctly.
     
     Runs the FreeGLUT event loop so window GUI operations
     such as resize, expose, mouse click,.. work
-    
+
 =cut
-  
+
+
 sub imag2d {
    my ($img, $name, $zoom, $off_r, $off_c) = (undef,"Figure $cur_fig_num", undef, 0, 0);
 
