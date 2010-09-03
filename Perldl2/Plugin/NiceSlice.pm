@@ -38,17 +38,17 @@ This plugin enables one to use the PDL::NiceSlice syntax in an
 instance of C<Devel::REPL> such as the new Perldl2 shell, C<pdl2>.
 Without the plugin, array slicing looks like this:
     
-  PDL> use PDL;
+  pdl> use PDL;
   
-  PDL> $a = sequence(10);
+  pdl> $a = sequence(10);
   $PDL1 = [0 1 2 3 4 5 6 7 8 9];
   
-  PDL> $a->slice("2:9:2");
+  pdl> $a->slice("2:9:2");
   $PDL1 = [2 4 6 8];
 
 After the NiceSlice plugin has been loaded, you can use this:
 
-  PDL> $a(2:9:2)
+  pdl> $a(2:9:2)
   $PDL1 = [2 4 6 8];
 
 =head1 CAVEATS
