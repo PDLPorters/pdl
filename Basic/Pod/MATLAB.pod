@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::MATLAB - A guide for MATLAB users.
+PDL::MATLAB - A guide for MATLAB users.
 
 =head1 INTRODUCTION
 
@@ -58,7 +58,7 @@ language. To exit the shell, type C<exit>, just like MATLAB.
 
 =head2 Writing PDL programs
 
-One popular IDE for Perl is caleld Padre (L<http://padre.perlide.org>).
+One popular IDE for Perl is called Padre (L<http://padre.perlide.org>).
 It is cross platform and easy to use.
 
 Whenever you write a stand-alone PDL program (i.e. outside the
@@ -149,13 +149,13 @@ numbered from 0 to 4.
 =item Displaying an object
 
 MATLAB normally displays object contents automatically. In PDL you display
-objects explicitly with the C<print> command or the shotcut C<p>:
+objects explicitly with the C<print> command or the shortcut C<p>:
 
 MATLAB:
 
  >> a = 12
  a =  12
- >> b = 23;       % Supress output.
+ >> b = 23;       % Suppress output.
  >> 
 
 PerlDL:
@@ -648,7 +648,7 @@ together:
 
 So, in the previous examples:
 
-  # This declares two local variales and initializes them to 0.
+  # This declares two local variables and initializes them to 0.
   my ($i, $total) = (0, 0);
   
   # This takes the first two elements of @_ and puts them in $x and $y.
@@ -857,7 +857,7 @@ See: http://dev.perl.org/licenses/
 =item B<Acknowledgements>
 
 I'd like to thank David Mertens, Chris Marshall and Sigrid Carrera for
-their inmense help reviewing earlier drafts of this guide. Without their
+their immense help reviewing earlier drafts of this guide. Without their
 hours of work, this document would not be remotely as useful to MATLAB
 users as it is today.
 

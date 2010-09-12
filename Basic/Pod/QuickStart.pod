@@ -1,7 +1,7 @@
 
 =head1 NAME
 
-PDL::Book::QuickStart - Quick start guide to PDL
+PDL::QuickStart - Quick introduction to PDL features.
 
 =head1 SYNOPSIS
 
@@ -25,7 +25,7 @@ complete Object-Oriented extension to Perl (although you don't have to know
 what an object is to use it) which allows large N-dimensional data sets, such
 as large images, spectra, time series, etc to be stored  B<efficiently> and
 manipulated B<en masse>.  For example  with the PDL module we can write the
-perl code C<$a = $b + $c>, where C<$b> and C<$c> are large datasets
+Perl code C<$a = $b + $c>, where C<$b> and C<$c> are large datasets
 (e.g. 2048x2048 images), and get the result in only a fraction of a second.
 
 PDL variables (or 'piddles' as they have come to be known)
@@ -34,8 +34,8 @@ short integers (signed or unsigned), long integers, floats or
 double precision floats. And because of the Object-Oriented nature
 of PDL new customised datatypes can be derived from them.
 
-As well as the PDL modules, that can be used by normal perl programs, PerlDL
-comes with a command line perl shell, called 'perldl', which supports command
+As well as the PDL modules, that can be used by normal Perl programs, PerlDL
+comes with a command line Perl shell, called 'perldl', which supports command
 line editing. In combination with the various PDL graphics modules this allows
 data to be easily played with and visualised.
 
@@ -55,11 +55,11 @@ To find their location, try the following:
 
 =head2 Perl Datatypes and how PDL extends them
 
-The fundamental perl data structures are scalar variables, e.g. C<$x>,
+The fundamental Perl data structures are scalar variables, e.g. C<$x>,
 which can hold numbers or strings, lists or arrays of scalars, e.g. C<@x>,
 and associative arrays/hashes of scalars, e.g. C<%x>.
 
-perl v5 introduces to perl data structures and objects. A simple
+Perl v5 introduces to Perl data structures and objects. A simple
 scalar variable C<$x> now be a user-defined data type or full blown
 object (it actually holds a reference (a smart "pointer") to this
 but that is not relevant for ordinary use of perlDL)
@@ -70,20 +70,20 @@ N-dimensional data sets. These can be manipulated all at once, e.g.
 C<$a = $b + 2> does a vector operation on each value in the
 spectrum/image/etc.
 
-You may well ask: "Why not just store a spectrum as a simple perl C<@x>
+You may well ask: "Why not just store a spectrum as a simple Perl C<@x>
 style list with each pixel being a list item?"  The two key answers to
 this are I<memory> and I<speed>.  Because we know our spectrum consists of
 pure numbers we can compactly store them in a single block of memory
 corresponding to a C style numeric array. This takes up a LOT less
-memory than the equivalent perl list. It is then easy to pass this
+memory than the equivalent Perl list. It is then easy to pass this
 block of memory to a fast addition routine, or to any other C function
 which deals with arrays.  As a result perlDL is very fast --- for example
-one can mulitiply a 2048*2048 image in exactly the same time as it
+one can multiply a 2048*2048 image in exactly the same time as it
 would take in C or FORTRAN (0.1 sec on my SPARC). A further advantage
 of this is that for simple operations (e.g. C<$x += 2>) one can manipulate
 the whole array without caring about its dimensionality.
 
-I find when using perlDL it is most useful to think of standard perl
+I find when using perlDL it is most useful to think of standard Perl
 C<@x> variables as "lists" of generic "things" and PDL variables like
 C<$x> as "arrays" which can be contained in lists or hashes. Quite
 often in my perlDL scripts I have C<@x> contain a list of spectra, or a
@@ -96,9 +96,9 @@ double precision floats.
 
 =head2 Usage
 
-PerlDL is loaded into your perl script using this command:
+PerlDL is loaded into your Perl script using this command:
 
- use PDL;  # in perl scripts: use the standard perlDL modules
+ use PDL;  # in Perl scripts: use the standard perlDL modules
 
 There are also a lot of extension modules, e.g. 
 L<PDL::Graphics::TriD|PDL::Graphics::TriD>. 
@@ -113,7 +113,7 @@ all the time and save the import tax). For these you say:
 
  use PDL::Graphics::TriD qw();
 
-And the empty C<qw()>  quotes are regonised as meaning 'nothing'.
+And the empty C<qw()>  quotes are recognised as meaning 'nothing'.
 You can also specify a list of functions to import in the normal
 Perl way.
 
@@ -149,7 +149,7 @@ Here are some ways of creating a PDL variable:
 The L<pdl()|PDL::Core/pdl> function is used to initialise a PDL variable from a scalar,
 list, list reference, another PDL variable, or a properly formatted string.
 
-In addition all PDL functions automatically convert normal perl scalars
+In addition all PDL functions automatically convert normal Perl scalars
 to PDL variables on-the-fly.
 
 (also see "Type Conversion" and "Input/Output" sections below)
@@ -173,7 +173,7 @@ to PDL variables on-the-fly.
 
  print $a; # $a in string context prints it in a N-dimensional format
 
-(and other perl operators/functions)
+(and other Perl operators/functions)
 
 When using piddles in conditional expressions (i.e. C<if>, C<unless> and
 C<while> constructs) only piddles with exactly one element are allowed, e.g.
@@ -181,7 +181,7 @@ C<while> constructs) only piddles with exactly one element are allowed, e.g.
  $a = pdl (1,0,0,1);
  print "is set" if $a->index(2);
 
-Note that the boolean operators return in general multielement
+Note that the boolean operators return in general multi-element
 piddles. Therefore, the following will raise an error
 
  print "is ok" if $a > 3;
@@ -194,7 +194,7 @@ to test if all or any of the elements fulfill the condition:
  print "can't take logarithm" unless all $a>0;
 
 There are also many predefined functions, which are described on other
-manpages. Check L<PDL::Index>.
+man pages. Check L<PDL::Index>.
 
 =head2 Matrix functions
 
@@ -248,7 +248,7 @@ Default for pdl() is double. Conversions are:
 
 Also double(), short(), ushort().
 
-These routines also automatically convert perl lists to
+These routines also automatically convert Perl lists to
 allow the convenient shorthand:
 
  $a = byte [[1..10],[1..10]];  # Create 2D byte array
@@ -270,19 +270,19 @@ Automatically expands array in N-dimensional format:
 
 PDL has very powerful multidimensional slicing and sectioning
 operators; see L<the PDL::Slices(3) man page|PDL::Slices> for details;
-we'll describe the most imporant one here.
+we'll describe the most important one here.
 
-PDL shows its perl/C heritage in that arrays are zero-offset.  Thus a
+PDL shows its Perl/C heritage in that arrays are zero-offset.  Thus a
 100x100 image has indices C<0..99,0..99>.  (The convention is that the
 I<center> of pixel (0,0) is at coordinate (0.0,0.0). All PDL graphics
-functions conform to this definition and hide away the unit-offsetness
+functions conform to this definition and hide away the unit offsets
 of, for example, the PGPLOT FORTRAN library.
 
 Following the usual convention coordinate (0,0) is displayed
 at the bottom left when displaying an image. It appears at the
 top left when using "C<print $a>" etc.
 
-Simple sectioning uses a syntax extension to perl,
+Simple sectioning uses a syntax extension to Perl,
 L<PDL::NiceSlice|PDL::NiceSlice>, that allows you to specify subranges
 via a null-method modifier to a PDL:
 
@@ -293,7 +293,7 @@ cutout that is defined by the limits $x1, $x2, $y1, $y2, at the location
 $z1.  The parenthesis around C<$z1> cause the trivial index to be omitted --
 otherwise C<$b> would be three-dimensional with a third dimension of order 1.
 
-You can put PDL slices on either side of the elementwise-assignment 
+You can put PDL slices on either side of the element-wise assignment 
 operator C<.=>, like so:
 
   # Set part of $bigimage to values from $smallimage
@@ -303,7 +303,7 @@ Some other miscellany:
 
  $c  = nelem($a); # Number of pixels
 
- $val = at($object, $x,$y,$z...)    # Pixel value at position, as a perl scalar
+ $val = at($object, $x,$y,$z...)    # Pixel value at position, as a Perl scalar
  $val = $object->at($x,$y,$z...)    # equivalent (method syntax OK)
 
  $b = xvals($a); # Fill array with X-coord values (also yvals(), zvals(),
@@ -362,7 +362,7 @@ latest PDL modules provide interfaces to OpenGL and VRML graphics!
 
 =item PDL::Graphics::PGPLOT
 
-PGPLOT provdes a simple library for line graphics and image display.
+PGPLOT provides a simple library for line graphics and image display.
 
 There is an easy interface to this in the internal module
 L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>, which
@@ -414,9 +414,9 @@ One can also write PDL extensions as normal Perl modules.
 
 =head2 perldl shell
 
-The perl script C<pdl2> (or C<perldl>) provides a simple command line - if the latest
-Readlines/ReadKey modules have beeen installed C<pdl2> detects this
-and enables command line recall and editing. See the manpage for details.
+The Perl script C<pdl2> (or C<perldl>) provides a simple command line - if the latest
+Readlines/ReadKey modules have been installed C<pdl2> detects this
+and enables command line recall and editing. See the man page for details.
 
 e.g.:
 
@@ -441,7 +441,7 @@ e.g.:
  Loaded PGPLOT
  Displaying 256 x 256 image from 24 to 500 ...
 
-You can also run it from the perl debugger (C<perl -MPDL -d -e 1>)
+You can also run it from the Perl debugger (C<perl -MPDL -d -e 1>)
 if you want.
 
 Miscellaneous shell features:
@@ -473,14 +473,14 @@ on any function.
 =item Escape
 
 Any line starting with the C<#> character is treated as a shell
-escape. This character is configurable by setting the perl variable
+escape. This character is configurable by setting the Perl variable
 C<$PERLDL_ESCAPE>. This could, for example, be set in C<~/.perldlrc>.
 
 =back
 
 =head2 Overload operators
 
-The following builtin perl operators and functions have been overloaded
+The following builtin Perl operators and functions have been overloaded
 to work on PDL variables:
 
  + - * / > < >= <= << >> & | ^ == != <=> ** % ! ~
@@ -508,9 +508,9 @@ perlDL provides many facilities to let you perform operations on big
 arrays without generating extra copies though this does require a bit
 more thought and care from the programmer.
 
-NOTE: On some most systems it is better to configure perl (during the
-build options) to use the system C<malloc()> function rather than perl's
-built-in one. This is because perl's one is optimised for speed rather
+NOTE: On some most systems it is better to configure Perl (during the
+build options) to use the system C<malloc()> function rather than Perl's
+built-in one. This is because Perl's one is optimised for speed rather
 than consumption of virtual memory - this can result in a factor of
 two improvement in the amount of memory storage you can use.
 The Perl malloc in 5.004 and later does have a number of compile-time

@@ -24,6 +24,10 @@ around 'read' => sub {
    ##     warn $mess if $mess;
    ## }
 
+   # filter out default PDL shell prompt for easier
+   # cut-and-paste of demo code
+   $lines =~ s/\s*(?:pdl|perldl)>\s*//i;
+
    return $lines unless defined $lines;
 
    # print STDERR "PDLCommands: got '$lines'\n";
@@ -62,9 +66,9 @@ PDL::Perldl2::Plugin::PDLCommands - implement perldl aliases/escapes
 =head1 DESCRIPTION
 
 
-This plugin implements the various convenience features of the perldl
-shell which correspond, roughly, to aliases and some structured
-pre-processing of the command line entered:
+This plugin implements the various convenience features of the
+perldl shell which correspond, roughly, to aliases and some
+structured pre-processing of the command line entered:
 
 =over 4
 

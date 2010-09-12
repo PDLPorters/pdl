@@ -50,9 +50,9 @@ named PDL and redefine the method initialize().
     }
 
 All PDL constructors will call initialize() to make sure that your
-extentions are added by I<all> PDL constructors automaticly.   The
+extensions are added by I<all> PDL constructors automatically.   The
 C<PDL> attribute is used by perlDL to store the PDL object and
-all PDL methods use this attribute automaticly if they are called
+all PDL methods use this attribute automatically if they are called
 with a blessed hash reference instead of a PDL object (a blessed scalar).
 
 Do remember that if you subclass a class that is subclassed from a piddle,
@@ -70,7 +70,7 @@ test-case files. Look in C<t/subclass2.t>, C<t/subclass3.t>, etc.
 
 For PDL Functions where the output is created and returned, PDL will either
 call the subclassed object's C<initialize> or C<copy> method to create the
-output object. (See L<PDL::Indexing|PDL::Indexing/"Output autocreation and PP-function calling conventions"> 
+output object. (See L<PDL::Indexing|PDL::Indexing/"Output auto-creation and PP-function calling conventions"> 
 for a discussion on Output Auto-Creation.) This behavior is summarized as follows:
 
 =over 1
@@ -83,7 +83,7 @@ For I<Simple> functions, defined as having a signature of
 
 PDL will call $a->copy to create the output object. 
 
-In the spirit of the perl philosophy of making I<Easy Things Easy>,
+In the spirit of the Perl philosophy of making I<Easy Things Easy>,
 This behavior enables PDL-subclassed objects to be written without having to
 overload the many simple PDL functions in this category.
 
@@ -95,7 +95,7 @@ See that file for an example.
 For other functions, PDL will call $class->initialize to create the output object.
 Where $class is the class name of the first argument supplied to the function.
 
-For these more complex cases, it is difficult to second-guess the subclassed-object's 
+For these more complex cases, it is difficult to second-guess the subclassed object's 
 designer to know if a C<copy> or a C<initialize> is appropriate. So for these cases,
 $class->initialize is called by default. If this is not appropriate for you,
 overload the function in your subclass and do whatever is appropriate is the overloaded

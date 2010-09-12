@@ -106,14 +106,16 @@ BEGIN{
   eval "use Convert::UU;";
   $PDL::IO::Dumper::convert_ok = !$@;
 
-  my $a = sub {
-      my($prog) = 'uudecode';
+  my $checkprog = sub {
+      my($prog) = $_[0];
       my $pathsep = $^O =~ /win32/i ? ';' : ':';
       my $exe = $^O =~ /win32/i ? '.exe' : '';
       for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
       return 0;
   };
-  $PDL::IO::Dumper::uudecode_ok = &$a('uudecode');
+  # make sure not to use uuencode/uudecode
+  # on MSWin32 systems (it doesn't work)
+  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
 
   use PDL;
   use PDL::Exporter;
@@ -151,7 +153,7 @@ sub PDL::IO::Dumper::sdump {
   my($s) = Data::Dumper->Dump([@_]);
   my(%pdls);
 # Find the bless(...,'PDL') lines
-  while($s =~ s/bless\( do\{\\\(my \$o \= (\d+)\)\}\, \'PDL\' \)/\$PDL_$1/) {
+  while($s =~ s/bless\( do\{\\\(my \$o \= (-?\d+)\)\}\, \'PDL\' \)/sprintf('$PDL_%u',$1)/e) {
     $pdls{$1}++;
   }
 
@@ -602,7 +604,7 @@ sub PDL::IO::Dumper::find_PDLs {
       # just a straight PDL (and not a hash with PDL field), you end up here.
       #
 
-      my($pdlid) = "PDL_".$$_;
+      my($pdlid) = sprintf('PDL_%u',$$_);
       my(@strings) = &PDL::IO::Dumper::dump_PDL($_,$pdlid);
       
       $out .= $strings[0];

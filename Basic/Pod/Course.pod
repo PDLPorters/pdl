@@ -1,36 +1,27 @@
 =head1 NAME
 
-PDL::Guide - A journey through PDL's documentation, from beginner to advanced.
+PDL::Course - A journey through PDL's documentation, from beginner to advanced.
 
 =head1 AUTHOR, DATE
 
-This is written by David Mertens and was begun in January, 2010.  The
-last update was made on April 29, 2010.
+This is written by David Mertens with edits by Daniel Carrera.
 
 =head1 Preface
 
-PDL is a huge project.  Some of its files address deep core
-magic while others address IO and visualization and still
-others address major numerical needs.  How are all of these
-related?  Where should you begin? Hopefully this document will
-give you a good starting place for learning more about PDL. My
-hope is that somebody new to PDL could read the PDL documentation
-in the order recommended in this document and get a firm grasp of
-the library's capabilities without getting too terribly lost.
+PDL's documentation is extensive. Some sections cover deep core magic
+while others cover more usual topics like IO and numerical computation.
+How are these related? Where should you begin?
 
-I've broken down everything by level of expertise, and within
-expertise I've covered documentation, library, and workflow modules.
-The documentation modules are useful for what they tell you;
-the library modules are useful for the functions that they
-define for you; the workflow modules are useful for the way
-that they allow you to get your work done in new and different
-ways.
+This document is an attempt to pull all the key PDL documentation
+together in a coherent study course, starting from the beginner level,
+up to the expert.
 
-An alternative to this document is L<PDL::Index|PDL::Index>, which is automatically
-generated from the PDL documentation index. As its name indicates, it
-is not a guide. It is a catalog of all of the PDL modules on your
-machine. If you are just trying to get your head around how to use PDL,
-start here.
+I've broken down everything by level of expertise, and within expertise
+I've covered documentation, library, and workflow modules. The
+documentation modules are useful for what they tell you; the library
+modules are useful for the functions that they define for you; the
+workflow modules are useful for the way that they allow you to get your
+work done in new and different ways.
 
 =head1 Introductory
 
@@ -50,11 +41,10 @@ familiarize yourself with the basic capabilities of PDL.
 
 =over
 
-=item * L<PDL::Intro|PDL::Intro>, L<PDL::QuickStart|PDL::QuickStart>, L<PDL::Philosophy|PDL::Philosophy>
+=item * L<PDL::Philosophy|PDL::Philosophy>, L<PDL::QuickStart|PDL::QuickStart>
 
-A couple of brief introductions to PDL.  The middle one is a bit
-more hands-on.  If you are new to PDL, you should start with
-these.
+A couple of brief introductions to PDL. The second one is a bit more
+hands-on. If you are new to PDL, you should start with these.
 
 =item * L<PDL::Basic|PDL::Basic>
 
@@ -69,7 +59,7 @@ N-dimension piddle, will create a piddle with N-1 dimensions.
 
 =item * L<PDL::NiceSlice|PDL::NiceSlice>
 
-PDL came of age right around the turn of the Milleneum and
+PDL came of age right around the turn of the millennium and
 NiceSlice came on the scene slightly after that.  Some of
 the docs still haven't caught up.  NiceSlice is the 'modern'
 way to slice and dice your piddles.  Read the Synopsis, then
@@ -115,8 +105,8 @@ Shell, with instant feedback!
 
 =item * L<PDL|PDL>
 
-The main workhorse module.  You'll include this in nearly
-every PDL-enabled Perl script that you write.
+The main workhorse module. You'll include this in nearly every PDL
+program you write.
 
 =back
 
@@ -158,18 +148,13 @@ in this summary module.
 
 A collection of some of Tuomas's ideas for making good use of PDL.
 
-=item * L<PDL::FAQ|PDL::FAQ>
-
-This rather haphazard document contains many gems; you should read
-it at some point.
-
 =item * L<PDL::BadValues|PDL::BadValues>
 
 Explains what bad values are and how and why they are implemented.
 
 =item * Selections from L<Inline::Pdlpp|Inline::Pdlpp>
 
-Although writing PDL::PP code is considred an Advanced topic, and is
+Although writing PDL::PP code is considered an Advanced topic, and is
 covered in the next section, you should be aware that it is possible 
 (and surprisingly simple) to write PDL-aware code.  You needn't read
 the whole thing at this point, but to get some feel for how it works,
@@ -227,7 +212,7 @@ xyplot to make a gap in a line plot.
 
 A cool module that allows you to tie a Perl array to a collection of
 files on your disk, which will be loaded into and out of memory as
-piddles. If you find yourself writing scripts to procss many data files,
+piddles. If you find yourself writing scripts to process many data files,
 especially if that data processing is not necessarily in sequential
 order, you should consider using PDL::DiskCache.
 
@@ -351,7 +336,7 @@ problems.
 =item * L<PDL::Lite|PDL::Lite>, L<PDL::LiteF|PDL::LiteF>
 
 Lite-weight replacements for C<use PDL>, from the standpoint of
-namespace polution and load time.
+namespace pollution and load time.
 
 =item * L<Inline::Pdlpp|Inline::Pdlpp>
 
@@ -363,7 +348,7 @@ makefiles (but see L<PDL::pptemplate|PDL::pptemplate> for help on that).
 
 =item * L<PDL::PP|PDL::PP>
 
-The PDL PreProcessor, which vastly simplifies making you
+The PDL Pre-Processor, which vastly simplifies making you
 C or Fortran code play with Perl and piddles.  Most of PDL's
 basic functionality is written using PDL::PP, so if you're
 thinking about how you might integrate some numerical
@@ -380,7 +365,7 @@ Allows you to call functions using external shared
 libraries.  This is an alternative to using L<PDL::PP|PDL::PP>.
 The major difference between PDL::PP and PDL::CallExt is
 that the former will handle threading over implicit thread
-dimensions for you, whereas PDL::CallExt simply calles an
+dimensions for you, whereas PDL::CallExt simply calls an
 external function.  PDL::PP is generally the recommended
 way to interface your code with PDL, but it wouldn't be Perl
 if there wasn't another way to do it.
@@ -422,7 +407,7 @@ module if you C<use PDL>.
 
 =back
 
-=head1 Guru Usage
+=head1 Expert Usage
 
 =over
 
@@ -483,7 +468,7 @@ suite, but hasn't been...
 =item * L<PDL::Ops|PDL::Ops>
 
 Defines the standard Perl-overloadable operators, like + and .=, for
-example.  Since prety much all of these operators and functions are
+example.  Since pretty much all of these operators and functions are
 discussed elsewhere, there's usually no need to read this documentation
 or use this module.
 

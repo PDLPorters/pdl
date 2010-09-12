@@ -78,7 +78,7 @@ output.  The C<$a()> PP construct is used to access elements of the array
 a(n) for you - PP fills in all the required C code.
 
 [Aside: since PP used C<$var()> for its parsing you must single-quote
-all Code=> arguments since you don't want perl to interpolate C<$var()> into
+all Code=> arguments since you don't want Perl to interpolate C<$var()> into
 another string - i.e. don't use "" unless you know what
 you are doing! Tjl: it's usually easiest to use single quotes and
 'something'.$interpolatable.'somethingelse']
@@ -103,7 +103,7 @@ and write the loop explicitly using conventional C:
             	$b() = tmp;
    ');
 
-which does the same as before, except more long-windedly.
+which does the same as before, but is more long-winded.
 You can see to get element C<i> of a() we say C<$a(n=E<gt>i)> - we are
 specifying the dimension by name C<n>. In 2D we might say:
 
@@ -133,7 +133,7 @@ of arrays 'in-place'. It will thread automatically - e.g. if
 a 2D array is given it will be called repeatedly for each
 1D row (again check L<PDL::Indexing> for the details of threading).
 And then b() will be a 1D array of sums of each row.
-We could call it with $a->xchg(0,1) to sum the colums instead.
+We could call it with $a->xchg(0,1) to sum the columns instead.
 And Dataflow tracing etc. will be available.
 
 You can see PP saves the programmer from writing a lot of
@@ -151,7 +151,7 @@ changed.
 
 Also, because you are generating the code in an actual Perl script,
 there are many fun things that you can do. Let's say that you need
-to write both sumit (as above) and multit. With a little bit of inventivity,
+to write both sumit (as above) and multit. With a little bit of creativity,
 we can do
 
    for({Name => 'sumit', Init => '0', Op => '+='},
@@ -176,7 +176,7 @@ but it's still less bothersome and definitely more difficult to
 forget just one place and have strange bugs creep in.
 Also, adding 'orit' (bitwise or) later is a one-liner.
 
-And remember, you really have perl's full abilities with you -
+And remember, you really have Perl's full abilities with you -
 you can very easily read any input file and make routines from
 the information in that file. For simple cases like the above,
 the author (Tjl) currently favors the hash syntax like the above -
@@ -201,7 +201,7 @@ interface PDL to some external library
 
 =item *
 
-write some algorithm that would be slow if coded in perl
+write some algorithm that would be slow if coded in Perl
 (this is not as often as you think; take a look at threading
 and dataflow first).
 
@@ -246,7 +246,7 @@ The 'data operation' is used to take some data, mangle it and
 output some other data; this includes for example the '+' operation,
 matrix inverse, sumover etc and all the examples we have talked about
 in this document so far. Implicit and explicit threading and the creation
-of the result are taken care of automatically in those opeartions. You
+of the result are taken care of automatically in those operations. You
 can even do dataflow with C<sumit>, C<sumover>, etc
 (don't be dismayed if you don't understand the concept of dataflow
 in PDL very well yet; it is still very much experimental).
@@ -258,7 +258,7 @@ the index manipulation/slicing function definitions in the file F<slices.pd>
 that is part of the PDL distribution; but beware, this is not introductory
 level stuff).
 
-If PDL was compiled with support for bad values (ie C<WITH_BADVAL =E<gt> 1>),
+If PDL was compiled with support for bad values (i.e. C<WITH_BADVAL =E<gt> 1>),
 then additional keys are required for C<pp_def>, as explained below.
 
 If you are just interested in communicating with some external
@@ -283,7 +283,7 @@ The second line simply declares our parameters and the parentheses
 mean that they are scalars. We call the string that defines our parameters
 and their dimensionality the I<signature> of that function. For its
 relevance with regard to threading and index manipulations check the
-L<PDL::Indexing> manpage.
+L<PDL::Indexing> man page.
 
 The third line is the actual operation. You need to use the
 dollar signs and parentheses to refer to your parameters
@@ -291,7 +291,7 @@ dollar signs and parentheses to refer to your parameters
 a good syntax is found).
 
 These lines are all that is necessary to actually define the function
-for PDL (well, actually it isn't; you aditionally need to write a
+for PDL (well, actually it isn't; you additionally need to write a
 Makefile.PL (see below) and build the module (something like 'perl
 Makefile.PL; make'); but let's ignore that for the moment). So now you
 can do
@@ -344,7 +344,7 @@ and return
 the result. If you want to learn more
 about the reasons why PDL::PP supports this style where output arguments
 are given as last arguments check the
-L<PDL::Indexing> manpage.
+L<PDL::Indexing> man page.
 
 C<[o]> is not the only qualifier a pdl argument can have in the signature.
 Another important qualifier is the C<[t]> option which flags a pdl as
@@ -359,7 +359,7 @@ that specified in the signature. With C<[o]> flagged pdls will be created
 so that they have the additional dimensions as required by the number
 of implicit thread dimensions. When creating a temporary pdl, however,
 it will always only be made big enough so that it can hold the result
-for one iteration in a threadloop, i.e. as large as required by the signature.
+for one iteration in a thread loop, i.e. as large as required by the signature.
 So less memory is wasted when you flag a pdl as temporary. Secondly, you
 can use output auto creation with temporary pdls even when you are using
 explicit threading which is forbidden for normal output pdls flagged with
@@ -511,7 +511,7 @@ comes in handy:
 This gets us around the type conversion and overflow problems. Again,
 analogous to the C<int> qualifier C<double> results in C<b> always being of
 type double regardless of the type of C<a> without leading to a
-typeconversion of C<a> as a side effect.
+type conversion of C<a> as a side effect.
 
 Finally, there are the C<type+> qualifiers where type is one of C<int>
 or C<float>. What shall that mean. Let's illustrate the C<int+>
@@ -558,13 +558,13 @@ later refer to in the C<Code> section are defined by name.
 
 It is important that you understand the meaning of the signature since
 in the latest PDL versions you can use it to define threaded functions
-from within perl, i.e. what we call I<perl level threading>. Please check
+from within Perl, i.e. what we call I<Perl level threading>. Please check
 L<PDL::Indexing> for details.
 
 =head2 The Code section
 
 The C<Code> section contains the actual XS code that will be in the
-innermost part of a threadloop (if you don't know what a thread loop is then
+innermost part of a thread loop (if you don't know what a thread loop is then
 you still haven't read L<PDL::Indexing>; do it now ;) after any PP macros
 (like C<$GENERIC>) and PP functions have been expanded (like the
 C<loop> function we are going to explain next).
@@ -589,7 +589,7 @@ they automatically know they're being looped over.
 
 This feature comes in very handy in many places and makes for
 much shorter code. Of course, there are times when you want to
-circumvent this; here is a function which symmetrizes a matrix
+circumvent this; here is a function which make a matrix symmetric
 and serves as an example of how to code explicit looping:
 
 	pp_def('symm',
@@ -725,7 +725,7 @@ something like:
  }
 
 This approach means that there is virtually no overhead when 
-bad values are not present (ie the L<badflag|PDL::Bad/badflag> routine
+bad values are not present (i.e. the L<badflag|PDL::Bad/badflag> routine
 returns 0).
 
 The BadCode section can use the same macros and looping constructs
@@ -782,7 +782,7 @@ Using these macros, the above code could be specified as:
        $c() = $a() + $b();
     }',
 
-Since this is perl, TMTOWTDI, so you could also write:
+Since this is Perl, TMTOWTDI, so you could also write:
 
  BadCode => '
     if ( $ISGOOD(a()) && $ISGOOD(b()) ) {
@@ -873,11 +873,11 @@ one changes will get optimised away by PP!
 If you interface a large library you can automate the interfacing even
 further. Perl can help you again(!) in doing this. In many libraries
 you have certain calling conventions. This can be exploited. In short,
-you can write a little parser (which is really not difficult in perl) that
+you can write a little parser (which is really not difficult in Perl) that
 then generates the calls to C<pp_def> from parsed descriptions of the
 functions in that library. For an example, please check the I<Slatec>
 interface in the C<Lib> tree of the PDL distribution. If you want to check
-(during debugging) which calls to PP functions your perl code generated
+(during debugging) which calls to PP functions your Perl code generated
 a little helper package comes in handy which replaces the PP functions
 by identically named ones that dump their arguments to stdout.
 
@@ -1038,16 +1038,16 @@ dimensions of all the pdl arguments involved in a I<primitive> operation.
 However, you often call the functions that you defined with PP with pdls
 that have more dimensions than those specified in the signature. In this
 case the primitive operation is performed on all subslices of appropriate
-dimensionality in what is called a I<threadloop> (see also overview above
+dimensionality in what is called a I<thread loop> (see also overview above
 and L<PDL::Indexing>). Assuming you have some notion of this concept you
 will probably appreciate that the operation specified in the code section
-should be optimised since this is the tightest loop inside a threadloop.
+should be optimised since this is the tightest loop inside a thread loop.
 However, if you revisit the example where we define the C<pnmout> function,
 you will quickly realise that looking up the C<IO> file descriptor
-in the inner threadloop is not very efficient when writing a pdl with
+in the inner thread loop is not very efficient when writing a pdl with
 many rows. A better approach would be to look up the C<IO> descriptor
-once outside the threadloop and use its value then inside the tightest
-threadloop. This is exactly where the C<threadloop> function comes in
+once outside the thread loop and use its value then inside the tightest
+thread loop. This is exactly where the C<threadloop> function comes in
 handy. Here is an improved definition of C<pnmout> which uses this
 function:
 
@@ -1072,13 +1072,13 @@ function:
   ');
 
 This works as follows. Normally the C code you write inside the
-C<Code> section is placed inside a threadloop (i.e., PP generates the
+C<Code> section is placed inside a thread loop (i.e. PP generates the
 appropriate wrapping XS code around it). However, when you explicitly
 use the C<threadloop> function, PDL::PP recognises this and doesn't
-wrap your code with an additional threadloop. This has the effect that
-code you write outside the threadloop is only executed once per
+wrap your code with an additional thread loop. This has the effect that
+code you write outside the thread loop is only executed once per
 transformation and just the code with in the surrounding C<%{ ... %}>
-pair is placed within the tightest threadloop. This also comes in
+pair is placed within the tightest thread loop. This also comes in
 handy when you want to perform a decision (or any other code,
 especially CPU intensive code) only once per thread, i.e.
 
@@ -1180,9 +1180,9 @@ and when you use it in the code you will write
 
     INT2PTR(gsl_spline *, $COMP(spl))
  
-where the perl API macro C<INT2PTR> has been used to handle the pointer
+where the Perl API macro C<INT2PTR> has been used to handle the pointer
 cast to avoid compiler warnings and problems for machines with mixed 32bit
-and 64bit perl configurations.  Putting this together as Andres Jordan has
+and 64bit Perl configurations.  Putting this together as Andres Jordan has
 done (with the modification using C<IV> by Judd Taylor) in the
 C<gsl_interp.pd> in the distribution source you get:
  
@@ -1247,7 +1247,7 @@ completeness.
 =back
 
 If bad values are being used, care must be taken to ensure the
-propogation of the badflag when inplace is being used;
+propagation of the badflag when inplace is being used;
 consider this excerpt from F<Basic/Bad/bad.pd>:
 
   pp_def('replacebad',HandleBad => 1,
@@ -1299,7 +1299,7 @@ of the XS functions (which are mostly functions defined by C<pp_def>).
 By including these functions here you make sure that PDL::PP inserts your
 code before the point where the actual XS module section begins and will
 therefore be left untouched by xsubpp (cf. I<perlxs> and I<perlxstut>
-manpages).
+man pages).
 
 A typical call would be
 
@@ -1334,14 +1334,14 @@ C<pp_def>s, e.g.:
 
 In many cases the actual PP code (meaning the arguments to C<pp_def>
 calls) is only part of the package you are currently
-implementing. Often there is additional perl code and XS code
+implementing. Often there is additional Perl code and XS code
 you would normally have written into the pm and XS files which are now
 automatically generated by PP. So how to get this stuff into those
 dynamically generated files? Fortunately, there are a couple of
 functions, generally called C<pp_addXXX> that assist you in doing
 this.
 
-Let's assume you have additional perl code that should go into the
+Let's assume you have additional Perl code that should go into the
 generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
 
    pp_addpm(<<'EOD');
@@ -1407,7 +1407,7 @@ The arguments to C<pp_add_isa> are added the @ISA list, e.g.
 
 Sometimes you want to add extra XS code of your own
 (that is generally not involved with any threading/indexing issues
-but supplies some other functionality you want to access from the perl
+but supplies some other functionality you want to access from the Perl
 side) to the generated XS file, for example
 
   pp_addxs('','
@@ -1555,7 +1555,7 @@ Along with C<BadCode>, there are also the C<BadBackCode> and
 C<BadRedoDimsCode> keys for C<pp_def>. However, any
 C<EquivCPOffsCode> should I<not> need changing, since 
 any changes are absorbed into the definition of the
-C<$EQUIVCPOFFS()> macro (ie it is handled automatically
+C<$EQUIVCPOFFS()> macro (i.e. it is handled automatically
 by PDL::PP>.
 
 =head2 A few notes on writing a slicing routine...
@@ -1597,7 +1597,7 @@ If you are going to generate a package from your PP file (typical file
 extensions are C<.pd> or C<.pp> for the files containing PP code) it
 is easiest and safest to leave generation of the appropriate commands
 to the Makefile. In the following we will outline the typical format
-of a perl Makefile to automatically build and install your package
+of a Perl Makefile to automatically build and install your package
 from a description in a PP file. Most of the rules to build the xs, pm
 and other required files from the PP file are already predefined in
 the PDL::Core::Dev package. We just have to tell MakeMaker to use
@@ -1673,7 +1673,7 @@ as follows:
 
 Here, C<$src> is the name of the source file with PP code, C<$pref> the
 prefix for the generated .pm and .xs files and C<$mod> the name of the
-exntension module to generate.
+extension module to generate.
 
 =head1 INTERNALS
 
@@ -1738,7 +1738,7 @@ Mark a function as being able to work inplace.
  Inplace => ['a','b']  if  Pars => 'a(); b(); [o]c(); [o]d();'
 
 If bad values are being used, care must be taken to ensure the
-propogation of the badflag when inplace is being used;
+propagation of the badflag when inplace is being used;
 for instance see the code for C<replacebad> in F<Basic/Bad/bad.pd>. 
 
 =item Doc
@@ -1752,8 +1752,8 @@ If the Doc field is omitted PP will generate default documentation
 (after all it knows about the Signature).
 
 If you really want the function NOT to be documented in any way at this point
-(e.g. for an internal routine, or because youu are doing it elsewhere in the
-code) explictly specify C<Doc=E<gt>undef>.
+(e.g. for an internal routine, or because you are doing it elsewhere in the
+code) explicitly specify C<Doc=E<gt>undef>.
 
 =item BadDoc (bad)
 
@@ -1769,7 +1769,7 @@ rather stilted; it may be much better to do it yourself!
 
 =head2 Macros
 
-Macros labelled by (bad) are only used if bad-value support is compiled into
+Macros labeled by (bad) are only used if bad-value support is compiled into
 PDL.
 
 =over 7
@@ -1839,7 +1839,7 @@ loop over named dimensions; limits are generated automatically by PP
 
 =item C<threadloop %{ ... %}>
 
-enclose following code in a threadloop
+enclose following code in a thread loop
 
 =item C<types(TYPES) %{ ... %}>
 
@@ -1866,7 +1866,7 @@ RedoDimsCode, $RESIZE()
 =head1 BUGS
 
 PDL::PP is still, even in its rewritten form, too complicated.
-It needs to be rethought a little as well as deconvoluted and
+It needs to be rethought a little as well as simplified and
 modularized some more (e.g. all the NS things).
 
 After the rewrite, this can happen a little by little, though.

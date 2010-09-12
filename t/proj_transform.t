@@ -15,20 +15,29 @@ use PDL;
 use Test::More;
 
 BEGIN
-{   
+{
    eval( " use PDL::Transform::Proj4; " );
-   if( !($@) )
-   {
-      if ( $PDL::Bad::Status ) {
-         plan tests => 22;
-      }
-      else {
-         plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
-      }
+   if( !($@) ) {
+     $test_jpegtopnm = 1;
+     if($^O =~ /MSWin32/i) {
+       $test_jpegtopnm = `jpegtopnm --help 2>&1`;
+       $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
+     }
+     elsif ( !defined( scalar( qx(jpegtopnm --help 2>&1) ) ) ) {
+       $test_jpegtopnm = 0;
+     }
+     if( $PDL::Bad::Status ) {
+       if( $test_jpegtopnm ) { plan tests => 22 }
+       else {
+         plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found";
+       }
+     }
+     else {
+       plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
+     }
    }
-   else
-   {
-      plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
+   else {
+     plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
    }
 }
 
@@ -37,7 +46,7 @@ BEGIN
 #
 
 BEGIN
-{   
+{
    use_ok(PDL::Transform::Cartography);                 # TEST 1
 }
 
@@ -69,12 +78,12 @@ SKIP: {
 
    my $map_size = [500,500];
 
-   my @slices = ( 
+   my @slices = (
       "245:254,68:77,(0)",
       "128:137,272:281,(0)",
       "245:254,262:271,(0)",
       "390:399,245:254,(0)",
-      "271:280,464:473,(0)" 
+      "271:280,464:473,(0)"
    );
 
 

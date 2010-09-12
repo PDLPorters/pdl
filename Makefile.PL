@@ -362,6 +362,19 @@ BEGIN{
      die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
   }
 
+  # Check for pre-existing PDL module in @INC
+  eval { require PDL::Lite; PDL::Lite->import(); };
+  unless($@)
+  {
+     # uh-oh! we have a pre-existing PDL in path
+     warn( "\n  ****** WARNING ******\n"
+        . "  PDL version $PDL::Version::VERSION was detected in your \@INC\n"
+        . "  PDL may not build/test correctly with another PDL in \@INC!\n" );
+
+     my $go_on = prompt("\nDo you still wish to continue?", 'y');
+     die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
+  }
+
   # test for critical modules
   @hasnt = ();
   my @test = (['Filter::Util::Call','Filter'],
@@ -453,10 +466,13 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'File::Spec'          => 0.6,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Inline'              => 0.43,
-           'OpenGL'              => $PDL::Config{POGL_VERSION},
            'Storable'            => 1.03,      # for PDL::IO::Storable
 	   'Text::Balanced'      => 0,         # for PDL::NiceSlice
 	  );
+
+# add OpenGL version dependency for CPAN to follow
+push @prereq, ('OpenGL' => $PDL::Config{POGL_VERSION}) if $PDL::Config{USE_POGL};
+
 # push @prereq, ('ExtUtils::F77' => 1.10) unless $seen_f77conf;
 
 my @exe_files = ('perldl', 'pdldoc');
@@ -493,7 +509,7 @@ if($Config{archname}=~m/x86_64/) {
 	      'dist'     => { COMPRESS => 'gzip',
                               SUFFIX   => 'gz',
                               PREOP    => ($^O !~ /mswin32/i) ?
-                                           q[git log --stat --since='29 Apr 2009' > $(DISTNAME)-$(VERSION)/Changes] :
+                                           q[git log --stat --since='29 Apr 2009' > Changes] :
                                            '@ :' },
 	      'clean' => {
 		  'FILES' => $cleanup .
@@ -736,10 +752,10 @@ EOP
     print <<"DEPRECATED-EOM"
 ******************************
 * 
-* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.2, 
-* perl version 5.8 or greater is recommended.  Most stuff will
-* probably still work, but perl versions earlier than 5.8 are
-* deprecated and may stop working in future.
+* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.7, 
+* perl version 5.8 or greater is required.  Most stuff will probably
+* still work, but perl versions earlier than 5.8 are deprecated and
+* no longer supported or tested against.
 * 
 ******************************
 DEPRECATED-EOM

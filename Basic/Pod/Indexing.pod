@@ -1,10 +1,10 @@
 =head1 NAME
 
-PDL::Book::Indexing - how to index piddles.
+PDL::Indexing - Introduction to indexing and slicing piddles.
 
 =head1 OVERVIEW
 
-This manpage should serve as a first tutorial on the indexing and
+This man page should serve as a first tutorial on the indexing and
 threading features of I<PDL>.
 
 Like all vectorized languages, PDL automates looping over arrays using
@@ -13,7 +13,7 @@ a variant of mathematical vector notation.  The automatic looping is called
 to speed up the loops.
 
 A lot of the flexibility and power of PDL relies on the indexing and threading
-features of the perl extension.  Indexing allows access to the data of a piddle
+features of the Perl extension.  Indexing allows access to the data of a piddle
 in a very flexible way.  Threading provides efficient vectorization of simple
 operations.  
 
@@ -30,7 +30,7 @@ A piddle (PDL variable), in general, is an N-dimensional array where N can be
 0 (for a scalar), 1 (e.g. for a sound sample), or higher values for images 
 and more complex structures.  Each dimension of the piddle has a positive 
 integer size.  The C<perl> interpreter treats each piddle as a special type of 
-Perl scalar (a blessed perl object, actually -- but you don't have to know that
+Perl scalar (a blessed Perl object, actually -- but you don't have to know that
 to use them) that can be used anywhere you can put a normal scalar.  
 
 You can access the dimensions of a piddle as a Perl list and otherwise determine
@@ -107,7 +107,7 @@ way that PDL accesses the data.  The main dimension ordering functions are:
 
 =item *
 
-document perl level threading
+document Perl level threading
 
 =item *
 
@@ -130,14 +130,14 @@ reworking of paragraph on explicit threading
 =head1 Indexing and threading with PDL
 
 A lot of the flexibility and power of PDL relies on the indexing and
-looping features of the perl extension. Indexing allows access to the
+looping features of the Perl extension. Indexing allows access to the
 data of a pdl object in a very flexible way. Threading provides
 efficient implicit looping functionality (since the loops are
 implemented as optimized C code).
 
-Pdl objects (later often called "pdls") are perl objects that
+Pdl objects (later often called "pdls") are Perl objects that
 represent multidimensional arrays and operations on those. In contrast
-to simple perl C<@x> style lists the array data is compactly stored in
+to simple Perl C<@x> style lists the array data is compactly stored in
 a single block of memory thus taking up a lot less memory and enabling
 use of fast C code to implement operations (e.g. addition,
 etc) on pdls.
@@ -156,7 +156,7 @@ terminology already towards the new dataflow features. The kind of
 dataflow that is used by the indexing commands (about which you will
 learn in a minute) is always in operation, not only when you have
 explicitly switched on dataflow in your pdl by saying C<$a-E<gt>doflow>. For
-further information about data flow check the dataflow manpage.)
+further information about data flow check the dataflow man page.)
 
 Another way to interpret the pdls created by our indexing commands is
 to view them as a kind of intelligent pointer that points back to some
@@ -268,7 +268,7 @@ and below:
  This variable is Double D [2,3]                VC           0.00Kb              
 
 The following demonstrates that C<$im> and C<$line> really behave as you
-would exspect from a pointer-like object (or in the dataflow picture:
+would expect from a pointer-like object (or in the dataflow picture:
 the changes in C<$line>'s data are propagated back to C<$im>):
 
  pdl> $im++
@@ -290,7 +290,7 @@ parent physical pdl and vice versa (however, the basic "=" assignment
 doesn't, use ".=" to obtain that effect. See below for the reasons).
 The virtual child pdls are
 something like "live links" to the "original" parent pdl. As
-previously said, they can be thought of to work similiar to a
+previously said, they can be thought of to work similar to a
 C-pointer. But in contrast to a C-pointer they carry a lot more
 information. Firstly, they specify the structure of the data they
 represent (the dimensionality of the new pdl) and secondly, specify
@@ -368,12 +368,12 @@ Spot the difference to the previous example?
 Take the range of indices from C<n1> to C<n2> or (second form)
 take the range of indices from C<n1> to C<n2> with step
 C<n3>. An example for the use of this format is the previous
-definition of the subimage composed of even lines.
+definition of the sub-image composed of even lines.
 
  pdl> $even = $im->slice(':,1:-1:2')
 
 This example also demonstrates that negative indices work like they do
-for normal perl style arrays by counting backwards from the end of the
+for normal Perl style arrays by counting backwards from the end of the
 dimension. If C<n2> is smaller than C<n1> (in the example -1 is
 equivalent to index 4) the elements in the virtual pdl are effectively
 reverted with respect to its parent.
@@ -500,7 +500,7 @@ for the assignment above (the zero is converted to a scalar piddle,
 with no dimensions so it can be assigned to any piddle).
 
 Related to the assignment feature is a little trap for the unwary:
-since perl currently does not allow subroutines to return lvalues the
+since Perl currently does not allow subroutines to return lvalues the
 following shortcut of the above is flagged as a compile time error:
 
  pdl> $im->slice(':,(2)') .= zeroes(5)->xvals->float
@@ -509,9 +509,9 @@ instead you have to say something like
 
  pdl> ($pdl = $im->slice(':,(2)')) .= zeroes(5)->xvals->float
 
-We hope that future versions of perl will allow the simpler
+We hope that future versions of Perl will allow the simpler
 syntax (i.e. allow subroutines to return lvalues).
-[Note: perl v5.6.0 does allow this, but
+[Note: Perl v5.6.0 does allow this, but
 it is an experimental feature. However, early reports suggest it works
 in simple situations]
 
@@ -561,7 +561,7 @@ dimension was inserted.)
 This example calculates the x coordinate of the centroid of an
 image (later we will learn that we didn't actually need the dummy
 dimension thanks to the magic of implicit threading; but using dummy
-dimensions the code would also work in a threadless world; though once
+dimensions the code would also work in a thread-less world; though once
 you have worked with PDL threads you wouldn't want to live without
 them again).
 
@@ -574,23 +574,23 @@ product:
 
  $xvs = xvals(zeroes($xd));
  print $xvs->dummy(1,$yd);      # repeat the line $yd times
- $prod = $im*xvs->dummy(1,$yd); # form the pixelwise product with
+ $prod = $im*xvs->dummy(1,$yd); # form the pixel-wise product with
                                 # the repeated line of x-values
 
-The rest is then summing the results of the pixelwise product together
-and normalising with the sum of all pixel values in the original image
+The rest is then summing the results of the pixel-wise product together
+and normalizing with the sum of all pixel values in the original image
 thereby calculating the x-coordinate of the "center of mass" of the
 image (interpreting pixel values as local mass) which is known as the
 centroid of an image.
 
 Next is a (from the point of view of memory consumption) very
-cheap conversion from greyscale to RGB, i.e. every pixel holds now a
+cheap conversion from grey-scale to RGB, i.e. every pixel holds now a
 triple of values instead of a scalar. The three values in the triple
 are, fortunately, all the same for a grey image, so that our trick
 works well in that it maps all the three members of the triple to the
 same source element:
 
- # a cheap greyscale to RGB conversion
+ # a cheap grey-scale to RGB conversion
  $rgb = $grey->dummy(0,3)
 
 Unfortunately this trick cannot be used to convert your old B/W
@@ -770,17 +770,17 @@ There are two slightly different variants of threading. We start
 with what we call "implicit threading". Let's pick a practical example
 that involves looping of a function over many elements of a
 pdl. Suppose we have an RGB image that we want to convert to
-greyscale. The RGB image is represented by a 3-dim pdl C<im(3,x,y)> where
+grey-scale. The RGB image is represented by a 3-dim pdl C<im(3,x,y)> where
 the first dimension contains the three color components of each pixel and C<x>
 and C<y> are width and height of the image, respectively. Next we need to
 specify how to convert a color-triple at a given pixel into a
-greyvalue (to be a realistic example it should represent the relative
+grey-value (to be a realistic example it should represent the relative
 intensity with which our color insensitive eye cells would detect that
 color to achieve what we would call a natural conversion from color to
-greyscale). An approximation that works quite well is to compute the
+grey-scale). An approximation that works quite well is to compute the
 grey intensity from each RGB triplet (r,g,b) as a weighted sum
 
- greyvalue = 77/256*r + 150/256*g + 29/256*b =
+ grey-value = 77/256*r + 150/256*g + 29/256*b =
      inner([77,150,29]/256, [r,g,b])
 
 where the last form indicates that we can write this as an inner
@@ -797,7 +797,7 @@ following to process the whole image:
     for ($i=0;$i<dims[1];$i++) {
         # compute the pixel value
         $tmp = inner($w,$im->slice(':,(i),(j)'));
-	set($grey,$i,$j,$tmp); # and set it in the greyscale image
+	set($grey,$i,$j,$tmp); # and set it in the grey-scale image
     }
  }
 
@@ -850,10 +850,10 @@ dimension (of size C<y>). The output pdl is automatically created (as
 requested by setting C<$grey> to "null" prior to invocation). The output
 dimensions are obtained by appending the I<loop dimensions> (here
 C<(x,y)>) to the core output dimensions (here 0D) to yield the final
-dimensions of the autocreated pdl (here C<0D+2D=2D> to yield a 2D
+dimensions of the auto-created pdl (here C<0D+2D=2D> to yield a 2D
 output of size C<(x,y)>).
 
-So the above command calls the core functioniality that computes the inner
+So the above command calls the core functionality that computes the inner
 product of two 1D vectors C<x*y> times with C<$w> and all 1D slices of the
 form C<(':,(i),(j)')> of C<$im> and sets the respective elements of the
 output pdl C<$grey(i,j)> to the result of each computation. We could
@@ -868,19 +868,19 @@ write that symbolically as
  $grey(x-1,y-1) = f($w,$im(:,(x-1),(y-1)))
 
 But this is done automatically by PDL without writing any explicit
-perl loops.  We see that the command really creates an output pdl with
+Perl loops.  We see that the command really creates an output pdl with
 the right dimensions and sets the elements indeed to the result of the
 computation for each pixel of the input image.
 
 When even more pdls and extra dimensions are involved things get a bit
 more complicated. We will first give the general rules how the thread
 dimensions depend on the dimensions of input pdls enabling you to
-figure out the dimensionality of an autocreated output pdl (for any
+figure out the dimensionality of an auto-created output pdl (for any
 given set of input pdls and core dimensions of the PP-function in
 question). The general rules will most likely appear a bit confusing
 on first sight so that we'll set out to illustrate the usage with a set
 of further examples (which will hopefully also demonstrate that there
-are indeed many practical situations where threading comes in extremly
+are indeed many practical situations where threading comes in extremely
 handy).
 
 =head2 A call for coding discipline
@@ -959,7 +959,7 @@ size of that loop dimension.
 
 =item R5
 
-If output autocreation is used (by setting the relevant pdl to
+If output auto-creation is used (by setting the relevant pdl to
 C<PDL-E<gt>null> before invocation) the number of dimensions of the created
 pdl is equal to the sum of the number of core output dimensions +
 number of loop dimensions. The size of the core output dimensions is
@@ -997,13 +997,13 @@ pseudo-code as
  $d(:,:,i,j,k) .= func($a(:,:,i,j),$b(:,:,:,i,0,k),$c(:,0,j,k))
     with 0<=i<10, 0<=j<=11, 0<=k<12
 
-If we analyze the color to greyscale conversion again with these rules
+If we analyze the color to grey-scale conversion again with these rules
 in mind we note another great advantage of implicit threading.
 We can call the conversion with a pdl representing a pixel (C<im(3)>),
 a line of rgb pixels (C<im(3,x)>), a proper color image (C<im(3,x,y)>) or a
 whole stack of RGB images (C<im(3,x,y,z)>). As long as C<$im> is of the form
 C<(3,...)> the automatically created output pdl will contain the right
-number of dimensions and contain the intensity data as we exspect it
+number of dimensions and contain the intensity data as we expect it
 since the loops have been implicitly performed thanks to I<implicit
 threading>. You can easily convince yourself that calling with a color
 pixel C<$grey> is 0D, with a line it turns out 1D C<grey(x)>, with an image
@@ -1024,7 +1024,7 @@ with threading in mind.
  $xc = sumover(($im*xvals(($im->dims)[0]))->clump(2)) /
        sumover($im->clump(2));
 
-Let's analyse what's going on step by step. First the product:
+Let's analyze what's going on step by step. First the product:
 
  $prod = $im*xvals(zeroes(($im->dims)[0]))
 
@@ -1079,7 +1079,7 @@ dimension using the C<mv> command.
 and calculating all the sums of sub-slices over the third dimension
 is now almost too easy
 
- # sums of pixles in time (assuming time is the third dim)
+ # sums of pixels in time (assuming time is the third dim)
  sumover($stack->mv(0,2),($ret=null));
 
 Finally, if you want to apply the operation to all elements (like max over
@@ -1089,7 +1089,7 @@ definition of C<sum> (as defined in C<Ufunc.pm>):
 
  sub sum {
    PDL::Ufunc::sumover($name->clump(-1),($tmp=null));
-   return $tmp->at(); # return a perl number, not a 0D pdl
+   return $tmp->at(); # return a Perl number, not a 0D pdl
  }
 
 We have already mentioned that all basic operations support threading
@@ -1147,7 +1147,7 @@ threading code works; just go ahead and experiment a bit to get a
 better feeling for it).
 
 If you have read the threading rules carefully, then you might have
-noticed that we didn't have to explicitely state the size of the dummy
+noticed that we didn't have to explicitly state the size of the dummy
 dimension that we created for C<$im>; when we create it with size 1 (the
 default) the rules of threading make it automatically fit to the
 desired size (by rule R3, in our example the size would be 3 assuming
@@ -1173,7 +1173,7 @@ I<virtual> pdl(s) so that from the point of view of the I<parent>
 pdl(s) you get what you want (always having the signature of the
 function in question and R1-R5 in mind!). Easy, isn't it ?
 
-=head2 Output autocreation and PP-function calling conventions
+=head2 Output auto-creation and PP-function calling conventions
 
 At this point we have to divert to some technical detail that has to
 do with the general calling conventions of PP-functions and the
@@ -1206,7 +1206,7 @@ or
 
 which are B<exactly> equivalent.
 
-Be warned that you can I<not> use output autocreation when using
+Be warned that you can I<not> use output auto-creation when using
 explicit threading (for reasons explained in the following section on
 B<explicit threading>, the second variant of threading).
 
@@ -1283,7 +1283,7 @@ only implicit threading was used is the fact that the core dimensions
 are matched against the I<remaining dimensions> which are not
 necessarily the first dimensions of the pdl. We will now specify how
 the presence of thread dimensions changes the rules R1-R5 for
-threadloops (which apply to the special case where none of the pdl
+thread loops (which apply to the special case where none of the pdl
 arguments has any thread dimensions).
 
 =over 4
@@ -1344,7 +1344,7 @@ thread dimensions.
 
 =item T5
 
-Output autocreation cannot be used if any of the pdl arguments has any
+Output auto-creation cannot be used if any of the pdl arguments has any
 I<thread dimensions>. Otherwise R5 applies.
 
 =back
@@ -1387,7 +1387,7 @@ the input pdls in a way that can be expressed in pdl pseudo-code as
     for (i=0;i<3;i++)                         |
        d(i,j,:,k,l) = func(a(:,i,:,j),b(i,:,k,0,l),c(k))
 
-Uhhmpf, this example was really not easy in terms of bookeeping. It
+Ugh, this example was really not easy in terms of bookkeeping. It
 serves mostly as an example how to figure out what's going on when you
 encounter a complicated looking expression. But now it is really time
 to show that threading is useful by giving some more of our so called
@@ -1406,7 +1406,7 @@ Example 1:
  ** then  A^T * $tmp by threaded inner product
  # index handling so that matrices print correct under pdl
  $inv .= $evecs*0;  # just copy to get appropriately sized output
- $tmp .= $evecs;    # initialise, no backpropagation
+ $tmp .= $evecs;    # initialise, no back-propagation
  ($tmp2 = $tmp->thread(0)) /= $evals;    #  threaded division
  # and now a matrix multiplication in disguise
  PDL::Primitive::inner($evecs->xchg(0,1)->thread(-1,1),
@@ -1425,7 +1425,7 @@ Example 2:
  # when using explicit threading
  $res=zeroes(($a->dims)[0],($b->dims)[0]);
  my_biop1($a->thread(0,-1),$b->thread(-1,0),$res->(0,1),"*");
- # similiar thing by implicit threading with autocreated pdl
+ # similar thing by implicit threading with auto-created pdl
  $res = $a->dummy(1) * $b->dummy(0);
 
 
@@ -1451,16 +1451,16 @@ Example 4:
 
 Example 5:
 
- # calculate a self-ratioed (i.e. self normalized) sequence of images
+ # calculate a self-rationed (i.e. self normalized) sequence of images
  # uses explicit threading and an implicitly threaded division
  $stack = read_image_stack();
  # calculate the average (per pixel average) of the first $n+1 images
  $aver = zeroes([stack->dims]->[0,1]);  # make the output pdl
  sumover($stack->slice(":,:,0:$n")->thread(0,1),$aver);
  $aver /= ($n+1);
- $stack /= $aver;  # normalize the stack by doing a threaded divison
+ $stack /= $aver;  # normalize the stack by doing a threaded division
  # implicit versus explicit
- # alternatively calculate $aver with implicit threading and autocreation
+ # alternatively calculate $aver with implicit threading and auto-creation
  sumover($stack->slice(":,:,0:$n")->mv(2,0),($aver=null));
  $aver /= ($n+1);
  #
@@ -1468,10 +1468,10 @@ Example 5:
 =head2 Implicit versus explicit threading
 
 In this paragraph we are going to illustrate when explicit threading
-is preferrable over implicit threading and vice versa. But then again,
+is preferable over implicit threading and vice versa. But then again,
 this is probably not the best way of putting the case since you already
 know: the two flavours do mix. So, it's more about how to get the best
-of both worlds and, anyway, in the best of perl traditions: TIMTOWTDI !
+of both worlds and, anyway, in the best of Perl traditions: TIMTOWTDI !
 
 [ Sorry, this still has to be filled in in a later release; either
 refer to above examples or choose some new ones ]
@@ -1480,7 +1480,7 @@ Finally, this may be a good place to justify all the technical detail
 we have been going on about for a couple of pages: why threading ?
 
 Well, code that uses threading should be (considerably) faster than
-code that uses explicit for-loops (or similar perl constructs) to achieve
+code that uses explicit for-loops (or similar Perl constructs) to achieve
 the same functionality. Especially on supercomputers (with vector
 computing facilities/parallel processing) PDL threading will be
 implemented in a way that takes advantage of the additional facilities
@@ -1491,7 +1491,7 @@ the admonition for documentation in mind). Once you
 are comfortable with the I<threading> way of thinking (and coding) it
 shouldn't be too difficult to understand code that somebody else
 has written than (provided he gave
-you an idea what exspected input dimensions are, etc.). As a general tip to
+you an idea what expected input dimensions are, etc.). As a general tip to
 increase the performance of your code: if you have to introduce a loop
 into your code try to reformulate the problem so that you can use
 threading to perform the loop (as with anything there are exceptions
@@ -1507,7 +1507,7 @@ functions that are aware of indexing and threading rules from very
 concise descriptions. It can be useful for you if you want to write
 your own functions or if you want to interface functions from an
 external library so  that they support indexing and threading (and
-mabe dataflow as well, see L<PDL::Dataflow>). For further details
+maybe dataflow as well, see L<PDL::Dataflow>). For further details
 check L<PDL::PP>.
 
 =head1 Appendix A
@@ -1516,7 +1516,7 @@ check L<PDL::PP>.
 
 [ This is also something to be added in future releases. Do we already
 have the general make_affine routine in PDL ? It is possible that we
-will reference another appropriate manpage from here ]
+will reference another appropriate man page from here ]
 
 =head1 Appendix B
 

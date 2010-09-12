@@ -2,52 +2,50 @@
 ++ package. See the file COPYING for details.                 ++
 
 Important reading
------------------
 
 Please check the following files for further information
 *BEFORE* sending us your questions:
 
-INSTALL 		detailed installation instructions
+INSTALL 		Basic installation instructions
 
-BUGS			how to make a bug report and where to send it
+BUGS			How to make a bug report
 
-Known_problems	 	check before you report problems
+Known_problems	 	Check before you report problems
 
 DEPENDENCIES		Other software that PDL relies on (and where to get it)
 
 perldl.conf		PDL configuration options
 
-Basic/Pod/FAQ.pod 	the FAQ in pod format
-			try 'perldoc PDL::FAQ' after installation
+Basic/Pod/FAQ.pod 	The FAQ in pod format
+			Try 'perldoc PDL::FAQ' after installation
 
-Basic/Pod/Impatient.pod
-			a quick overview of PDL
-			try 'perldoc PDL::Impatient' after installation
+Basic/Pod/QuickStart.pod
+			A quick overview of PDL
+			Try 'perldoc PDL::QuickStart' after installation
 
 Basic/Pod/BadValues.pod
-                        a discussion of the bad value support in PDL
+                        A discussion of the bad value support in PDL
 
-PDL::Index		a guide to PDL documentation
-			!only available *after* successful installation!
-			try 'perldoc PDL::Index'
+DEVELOPMENT		How to participate in the development of PDL
 
-DEVELOPMENT		how to participate in the development of PDL
+Release_Notes		A list of features or issues with regard to the
+                        current version, always worth checking!
 
-Release_Notes		a list of issues with regard to the current version
-			always worth checking!
 
-*Note* that most PDL documentation is available online within the
-perldl shell. Try the help command within the shell!
+
+*NOTE*  Most PDL documentation is available online within the PDL shell,
+        pdl2 (or perldl).  Try the help command within the shell.
+
 
 
 PDL -- the package
 ------------------
-
-The Perl Data Language (PerlDL) project aims to turn perl into an efficient
-numerical language for scientific computing. The PDL module gives standard
-perl the ability to COMPACTLY store and SPEEDILY manipulate the large
-N-dimensional data sets which are the bread and butter of scientific computing.
-e.g. $a=$b+$c can add two 2048x2048 images in only a fraction of a second.
+The Perl Data Language (a.k.a. PerlDL or PDL) project aims to turn perl
+into an efficient numerical language for scientific computing. The PDL
+module gives standard perl the ability to COMPACTLY store and SPEEDILY
+manipulate the large N-dimensional data sets which are the bread and
+butter of scientific computing.  e.g. $a=$b+$c can add two 2048x2048
+images in only a fraction of a second.
 
 The aim is to provide tons of useful functionality for scientific and
 numeric analysis.
@@ -55,31 +53,31 @@ numeric analysis.
 Check the pdl web site at http://pdl.perl.org for more information.
 
 
+
 Installation
 ------------
-
-Please read the file INSTALL for detailed information on how
-to configure and install PDL.
+Please read the file INSTALL for information on how to configure
+and install PDL.
 
 Once you have built PDL and either installed it or done
 'make doctest', try either
 
-	perl -Mblib perldl
+	perl -Mblib Perldl2/pdl2
 
 from within the root of the PDL tree or just
 
-	perldl
+	pdl2
 	
 if you have installed PDL already ('make install') to get the
-interactive PDL shell. In this shell, 'help' gives you
-access to PDL documentation for each function separately ('help
-help' for more about this) and 'demo' gives you some basic
-examples of what you can do.
+interactive PDL shell.  In this shell, 'help' gives you
+access to PDL documentation for each function separately
+('help help' for more about this) and 'demo' gives you some
+basic examples of what you can do.
+
 
 
 Bug Reports
 -----------
-
 You can check the existing PDL bugs on sourceforge at
 
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
@@ -101,9 +99,9 @@ in the BUGS file:
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
 
 
+
 Notes
 -----
-
 Directory structure:
 
 Basic/	   - The stuff that PDL would be no use without
@@ -112,8 +110,13 @@ Example/   - Sample programs using PDL
 Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
 Lib/	   - The stuff that PDL would still be useful without but
-	     which makes PDL even more useful
-Perldl2/   - The PDL shell version 2 development
+	       which makes PDL even more useful
+Perldl2/   - The PDL shell version 2 source and development
+cygwin/    - Platform specific information
+debian/    - Platform specific information
+macosx/    - Platform specific information
+win32/     - Platform specific information
+
 
 Comments are welcome - so are volunteers to write code and documentation!
 Please contact the developers mailing list pdl-porters@jach.hawaii.edu
@@ -122,10 +125,10 @@ and suggestions.
 
   The pdl-porters team.
 
+
+
 Compilation Reports:
 --------------------
-
 The CPAN Testers' result page provides a database showing the results
 of compiling PDL and many other CPAN packages on multiple platforms.
 See http://testers.cpan.org/
-

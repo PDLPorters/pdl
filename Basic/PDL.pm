@@ -21,27 +21,56 @@ The PDL package includes an interactive shell. You can learn about it,
 run C<perldoc perldl>, or run the shell C<perldl> or C<pdl2> and type
 C<help>.
 
+=head1 LOOKING FOR A FUNCTION?
+
+If you want to search for a function name, you should use the PDL
+shell along with the "help" or "apropos" command (to do a fuzzy search).
+For example:
+
+ pdl> apropos xval
+ xlinvals        X axis values between endpoints (see xvals).
+ xlogvals        X axis values logarithmicly spaced...
+ xvals           Fills a piddle with X index values...
+ yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
+ zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
+
+To learn more about the PDL shell, see L<perldl|perldl> or L<pdl2|pdl2>.
+
 =head1 LANGUAGE DOCUMENTATION
 
-To learn about the PDL language see:
+Most PDL documentation describes the language features. The number of
+PDL pages is too great to list here. The following pages offer some
+guidance to help you find the documentation you need.
+
 
 =over 5
 
-=item L<PDL::Intro|PDL::Intro>
+=item L<PDL::FAQ|PDL::FAQ>
 
-Starting place for PDL language documentation.
+Frequently asked questions about PDL. This page covers a lot of
+questions that do not fall neatly into any of the documentation
+categories.
 
-=item L<PDL::QuickStart|PDL::QuickStart>
+=item L<PDL::Tutorials|PDL::Tutorials>
 
-A guide to get you quickly started with PDL.
+A guide to PDL's tutorial-style documentation. With topics from beginner
+to advanced, these pages teach you various aspects of PDL step by step.
 
-=item L<PDL::Philosophy|PDL::Philosophy>
+=item L<PDL::Modules|PDL::Modules>
 
-Why did we write PDL? Learn about what PDL has to offer.
+A guide to PDL's module reference. Modules are organized by level
+(foundation to advanced) and by category (graphics, numerical methods,
+etc) to help you find the module you need as quickly as possible.
+
+=item L<PDL::Course|PDL::Course>
+
+This page compiles PDL's tutorial and reference pages into a comprehensive
+course that takes you from a complete beginner level to expert.
 
 =item L<PDL::Index|PDL::Index>
 
-List of all available documentation.
+List of all available documentation, sorted alphabetically. If you
+cannot find what you are looking for, try here.
 
 =back
 
@@ -110,7 +139,7 @@ start-up modules.
 
 
 # set the version:
-$PDL::VERSION = '2.4.6_016'; # Go to sub numbering per git push
+$PDL::VERSION = '2.4.7_001'; # Go to sub numbering per git push
 
 # Main loader of standard PDL package
 
@@ -139,6 +168,10 @@ use PDL::Lvalue;
 use PDL::IO::Misc;          # Misc IO (Ascii)
 use PDL::IO::FITS;          # FITS IO (rfits/wfits; used by rpic/wpic too)
 use PDL::IO::Pic;           # rpic/wpic
+
+# Load this so config/install info is available
+
+use PDL::Config;
 
 EOD
 

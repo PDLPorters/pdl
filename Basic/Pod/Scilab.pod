@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Scilab - A guide for Scilab users.
+PDL::Scilab - A guide for Scilab users.
 
 =head1 INTRODUCTION
 
@@ -57,7 +57,7 @@ language. To exit the shell, type C<exit>, just like Scilab.
 
 =head2 Writing PDL programs
 
-One popular IDE for Perl is caleld Padre (L<http://padre.perlide.org>).
+One popular IDE for Perl is called Padre (L<http://padre.perlide.org>).
 It is cross platform and easy to use.
 
 Whenever you write a stand-alone PDL program (i.e. outside the
@@ -141,13 +141,13 @@ numbered from 0 to 4.
 =item Displaying an object
 
 Scilab normally displays object contents automatically. In PDL you display
-objects explicitly with the C<print> command or the shotcut C<p>:
+objects explicitly with the C<print> command or the shortcut C<p>:
 
 Scilab:
 
  --> a = 12
  a =  12.
- --> b = 23;       // Supress output.
+ --> b = 23;       // Suppress output.
  --> 
 
 PerlDL:
@@ -626,7 +626,7 @@ together:
 
 So, in the previous examples:
 
-  # This declares two local variales and initializes them to 0.
+  # This declares two local variables and initializes them to 0.
   my ($i, $total) = (0, 0);
   
   # This takes the first two elements of @_ and puts them in $x and $y.

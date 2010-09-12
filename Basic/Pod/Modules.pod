@@ -1,0 +1,482 @@
+=head1 NAME
+
+PDL::Modules - A guide to PDL's module reference.
+
+
+=head1 DESCRIPTION
+
+This page serves as a table of contents for PDL's module documentation.
+This page does not list every single PDL module. It only shows the ones
+intended for PDL users, while ommitting those which are deemed "for
+internal use only". If you wish to see a comprehensive list of all
+documentation, please see the L<PDL::Index|PDL::Index> page.
+
+=head1 LOOKING FOR A FUNCTION?
+
+If you want to search for a function name, you should use the PDL
+shell along with the "help" or "apropos" command (to do a fuzzy search).
+For example:
+
+ pdl> apropos xval
+ xlinvals        X axis values between endpoints (see xvals).
+ xlogvals        X axis values logarithmicly spaced...
+ xvals           Fills a piddle with X index values...
+ yvals           Fills a piddle with Y index values. See the CAVEAT for xvals.
+ zvals           Fills a piddle with Z index values. See the CAVEAT for xvals.
+
+To learn more about the PDL shell, see L<perldl|perldl> or L<pdl2|pdl2>.
+
+=head1 FOUNDATION
+
+=over 5
+
+=item L<perldl|perldl> or L<pdl2|pdl2>
+
+Learn about the PDL shell.
+
+=back
+
+=head2 Functions
+
+=over 5
+
+=item L<PDL::Core|PDL::Core>
+
+Core module (e.g. creating piddles).
+
+=item L<PDL::Basic|PDL::Basic>
+
+Simplified interface to the more general PDL::Primitive.
+
+=item L<PDL::Ops|PDL::Ops>
+
+Basic operators (e.g. arithmetic, comparisons, etc.).
+
+=item L<PDL::Ufunc|PDL::Ufunc>
+
+Functions that accumulate along a dimension (e.g. sum, max).
+
+=back
+
+=head2 Other Features
+
+=over 5
+
+=item L<PDL::AutoLoader|PDL::AutoLoader>
+
+MATLAB-style function autoloader.
+
+=item L<PDL::Slices|PDL::Slices>
+
+Indexing and slices. How to access a subset of a piddle.
+
+=item L<PDL::NiceSlice|PDL::NiceSlice>
+
+Nicer syntax for slices.
+
+=back
+
+
+
+=head1 MISCELLANEOUS
+
+=over 5
+
+=item L<PDL::Primitive|PDL::Primitive>
+
+Fundamental operations on piddles.
+
+=item L<PDL::Complex|PDL::Complex>
+
+Complex numbers.
+
+=item L<PDL::Bad|PDL::Bad>
+
+Bad value support.
+
+=item L<PDL::Reduce|PDL::Reduce>
+
+A 'reduce' function for PDL.
+
+=item L<PDL::Lite|PDL::Lite>
+
+Minimum PDL module OO loader.
+
+=item L<PDL::LiteF|PDL::LiteF>
+
+Minimum PDL module function loader.
+
+=item L<PDL::Extended|PDL::Extended>
+
+Extended Mathematical Operators.
+
+=item L<PDL::Func|PDL::Func>
+
+Interpolation-related functions.
+
+=back
+
+
+
+=head1 GRAPHICS
+
+=over 5
+
+=item L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>
+
+PGPLOT library.
+
+=item L<PDL::Graphics::PLplot|PDL::Graphics::PLplot>
+
+PLplot library.
+
+=back
+
+
+=head2 3D Graphics
+
+=over 5
+
+=item L<PDL::Graphics::TriD|PDL::Graphics::TriD>
+
+3D graphics core module.
+
+=item L<PDL::Graphics::TriD::Rout|PDL::Graphics::TriD::Rout>
+
+Helper routines for 3D graphics.
+
+=item L<PDL::Graphics::TriD::Contours|PDL::Graphics::TriD::Contours>
+
+3D surface contours.
+
+=back
+
+
+
+=head2 Helper Modules
+
+=over 5
+
+=item L<PDL::Graphics::LUT|PDL::Graphics::LUT>
+
+Look-up tables.
+
+=item L<PDL::Graphics::IIS|PDL::Graphics::IIS>
+
+Display images on IIS devices.
+
+=item L<PDL::Graphics::Limits|PDL::Graphics::Limits>
+
+Derive data limits for display purposes.
+
+=back
+
+
+
+=head1 IMAGE PROCESSING
+
+=over 5
+
+=item L<PDL::Compression|PDL::Compression>
+
+Compression utilities.
+
+=item L<PDL::Image2D|PDL::Image2D>
+
+2-dimmensional image processing.
+
+=item L<PDL::ImageND|PDL::ImageND>
+
+N-dimmensional image processing.
+
+=item L<PDL::mageRGB|PDL::mageRGB>
+
+RGB image data handling.
+
+=back
+
+
+
+=head1 NUMERICAL METHODS
+
+=over 5
+
+=item L<PDL::FFT|PDL::FFT>
+
+Fast Fourier Transform (native implementation).
+
+=item L<PDL::FFTW|PDL::FFTW>
+
+PDL interface to the FFTW library.
+
+=item L<PDL::Filter::LinPred|PDL::Filter::LinPred>
+
+Linear predictive filtering.
+
+=item L<PDL::Filter::Linear|PDL::Filter::Linear>
+
+Linear filtering.
+
+=item L<PDL::Opt::Simplex|PDL::Opt::Simplex>
+
+Simplex optimization routines.
+
+=item L<PDL::Minuit|PDL::Minuit>
+
+PDL interface to the Minuit library.
+
+=item L<PDL::Slatec|PDL::Slatec>
+
+PDL interface to the Slatec library.
+
+=back
+
+
+
+=head1 COORDINATE TRANSFORMATIONS
+
+=over 5
+
+=item L<PDL::Transform|PDL::Transform>
+
+Coordinate transforms, image warping, and N-D functions.
+
+=item L<PDL::Transform::Cartography|PDL::Transform::Cartography>
+
+Cartographic projections.
+
+=item L<PDL::Transform::Proj4|PDL::Transform::Proj4>
+
+PDL interface to the Proj4 projection library.
+
+=back
+
+
+
+=head1 IO FUNCTIONS
+
+=over 5
+
+=item L<PDL::IO|PDL::IO>
+
+Overview of IO functions.
+
+=item L<PDL::IO::Dumper|PDL::IO::Dumper>
+
+Data dumper.
+
+=item L<PDL::IO::FastRaw|PDL::IO::FastRaw>
+
+Fast storage format (outdated).
+
+=item L<PDL::IO::FlexRaw|PDL::IO::FlexRaw>
+
+Flexible storage format.
+
+=item L<PDL::IO::Rout|PDL::IO::Rout>
+
+Misc IO routines.
+
+=item L<PDL::IO::Sortable|PDL::IO::Sortable>
+
+Support for Perl's 'Storable' module.
+
+=back
+
+
+=head2 Image Formats
+
+=over 5
+
+=item L<PDL::IO::FITS|PDL::IO::FITS>
+
+PDL support for FITS images.
+
+=item L<PDL::IO::PNM|PDL::IO::PNM>
+
+PDL support for PNM images.
+
+=item L<PDL::IO::GD|PDL::IO::GD>
+
+PDL interface to the GD image library.
+
+=item L<PDL::IO::HDF|PDL::IO::HDF>
+
+PDL interface to the HDH4 image library.
+
+=item L<PDL::IO::NetPBM|PDL::IO::NetPBM>
+
+PDL interface to the NetPBM image library.
+
+=item L<PDL::IO::NDF|PDL::IO::NDF>
+
+PDL interface to the Starlink image library.
+
+=back
+
+
+
+=head1 2D MATRICES
+
+=over 5
+
+=item L<PDL::Matrix|PDL::Matrix>
+
+Convenience class for 2D matrix work.
+
+=item L<PDL::MatrixOps|PDL::MatrixOps>
+
+Additional matrix operators.
+
+=back
+
+
+
+=head1 GNU SCIENTIFIC LIBRARY
+
+=over 5
+
+=item L<PDL::GSL::DIFF|PDL::GSL::DIFF>
+
+Numerical differentiation.
+
+=item L<PDL::GSL::INTEG|PDL::GSL::INTEG>
+
+Numerical integration.
+
+=item L<PDL::GSL::INTERP|PDL::GSL::INTERP>
+
+Interpolation.
+
+=item L<PDL::GSL::MROOT|PDL::GSL::MROOT>
+
+Multidimensional root-finding.
+
+=item L<PDL::GSL::RNG|PDL::GSL::RNG>
+
+RNG and randist.
+
+=back
+
+
+
+=head2 Special Functions
+
+=over 5
+
+=item L<PDL::GSL::AIRY|PDL::GSL::AIRY>
+
+=item L<PDL::GSL::BESSEL|PDL::GSL::BESSEL>
+
+=item L<PDL::GSL::CLAUSEN|PDL::GSL::CLAUSEN>
+
+=item L<PDL::GSL::COULOMB|PDL::GSL::COULOMB>
+
+=item L<PDL::GSL::COUPLING|PDL::GSL::COUPLING>
+
+=item L<PDL::GSL::DAWSON|PDL::GSL::DAWSON>
+
+=item L<PDL::GSL::DEBYE|PDL::GSL::DEBYE>
+
+=item L<PDL::GSL::DILOG|PDL::GSL::DILOG>
+
+=item L<PDL::GSL::ELEMENTARY|PDL::GSL::ELEMENTARY>
+
+=item L<PDL::GSL::ELLINT|PDL::GSL::ELLINT>
+
+=item L<PDL::GSL::ELLJAC|PDL::GSL::ELLJAC>
+
+=item L<PDL::GSL::ERF|PDL::GSL::ERF>
+
+=item L<PDL::GSL::EXP|PDL::GSL::EXP>
+
+=item L<PDL::GSL::EXPINT|PDL::GSL::EXPINT>
+
+=item L<PDL::GSL::FERMI_DIRAC|PDL::GSL::FERMI_DIRAC>
+
+=item L<PDL::GSL::GAMMA|PDL::GSL::GAMMA>
+
+=item L<PDL::GSL::GEGENBAUER|PDL::GSL::GEGENBAUER>
+
+=item L<PDL::GSL::HYPERG|PDL::GSL::HYPERG>
+
+=item L<PDL::GSL::LAGUERRE|PDL::GSL::LAGUERRE>
+
+=item L<PDL::GSL::LEGENDRE|PDL::GSL::LEGENDRE>
+
+=item L<PDL::GSL::LOG|PDL::GSL::LOG>
+
+=item L<PDL::GSL::POLY|PDL::GSL::POLY>
+
+=item L<PDL::GSL::POW_INT|PDL::GSL::POW_INT>
+
+=item L<PDL::GSL::PSI|PDL::GSL::PSI>
+
+=item L<PDL::GSL::SYNCHROTRON|PDL::GSL::SYNCHROTRON>
+
+=item L<PDL::GSL::TRANSPORT|PDL::GSL::TRANSPORT>
+
+=item L<PDL::GSL::TRIG|PDL::GSL::TRIG>
+
+=item L<PDL::GSL::ZETA|PDL::GSL::ZETA>
+
+=back
+
+
+
+=head1 FITTING FUNCTIONS
+
+=over 5
+
+=item L<PDL::Fit::Gaussian|PDL::Fit::Gaussian>
+
+Fit gaussian curves.
+
+=item L<PDL::Fit::Polynomial|PDL::Fit::Polynomial>
+
+Fit polynomials.
+
+=item L<PDL::Fit::Linfit|PDL::Fit::Linfit>
+
+Fit linear combinations of functions.
+
+=item L<PDL::Fit::LM|PDL::Fit::LM>
+
+Fit functions using the Levenberg-Marquardt algorithm.
+
+=back
+
+
+
+=head1 ADVANCED
+
+=over 5
+
+=item L<PDL::Dbg|PDL::Dbg>
+
+PDL debugger.
+
+=item L<PDL::DiskCache|PDL::DiskCache>
+
+Manage many piddles through a disk cache.
+
+=item L<PDL::CallExt|PDL::CallExt>
+
+Call external functions.
+
+=item L<PDL::Objects|PDL::Objects>
+
+If you want to sub-class from PDL (note: incomplete).
+
+=back
+
+
+
+
+=head1 COPYRIGHT
+
+Copyright 2010 Daniel Carrera (dcarrera@gmail.com). You can distribute
+and/or modify this document under the same terms as the current Perl
+license.
+
+See: http://dev.perl.org/licenses/

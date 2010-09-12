@@ -385,7 +385,9 @@ sub PDL::Graphics::TriD::SimpleController::tovrml {
 }
 
 
-package Win32;
+package #split this line so the
+        # CPAN indexer doesn't complain
+        Win32;
 
 sub Win32::fn_win32_format {
   my ($file) = @_;

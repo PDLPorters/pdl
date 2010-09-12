@@ -1,6 +1,6 @@
 =head1 NAME
 
-PDL::Book::Tips - Small tidbits of useful arcana. Programming tidbits and such.
+PDL::Tips - Small tidbits of useful arcana. Programming tidbits and such.
 
 =head1 SYNOPSIS
 
@@ -38,14 +38,15 @@ try the command
 	PDL::Core::set_debugging(1);
 
 somewhere. This spews out a huge amount of debug info for PDL
-into STDOUT. It is planned to eventually make this redirectable
-and the messages selectable more accurately.
+into STDOUT. Plans for the future include making it possible to
+redirect the output, and also making it possible to select mesages
+with more precision.
 
 Many of the messages come from C<Basic/Core/pdlapi.c> and you
 can look at the source to see what is going on.
 
 If you have any extra time to work on these mechanisms,
-infrom the pdl-porters mailing list.
+inform the pdl-porters mailing list.
 
 =head2 Memory savings
 
@@ -112,7 +113,7 @@ which completely inhibits vectorization. Instead, do
 	%}
 
 This is not a restriction caused by PP but by ANSI C semantics.
-Of course, we could copy the struct into local varibles and back but that
+Of course, we could copy the struct into local variables and back but that
 could cause very strange things sometimes.
 
 There are many other issues on organizing loops.

@@ -11,6 +11,7 @@
 #export DH_VERBOSE=1
 
 include /usr/share/dpatch/dpatch.make
+unexport DISPLAY
 
 CFLAGS = -Wall -g
 
@@ -24,7 +25,7 @@ configure: configure-stamp
 configure-stamp: patch-stamp
 	dh_testdir
 	# Add here commands to configure the package
-	perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
+	PERL_MM_USE_DEFAULT=1 perl Makefile.PL F77CONF=debian/f77conf.pl INSTALLDIRS=vendor PDLCONF=debian/perldl.conf
 
 	touch configure-stamp
 
@@ -41,7 +42,12 @@ build-stamp: configure-stamp
 test: test-stamp
 test-stamp: build-stamp
 	dh_testdir
-	-$(MAKE) TEST_VERBOSE=1 DISPLAY="" test
+	@echo "BEGIN test normal"
+	-$(MAKE) TEST_VERBOSE=0 LC_ALL=C test | perl debian/filter-test.pl
+	@echo "END test normal"
+	@echo "BEGIN test verbose"
+	-$(MAKE) TEST_VERBOSE=1 LC_ALL=C test | perl debian/filter-test.pl
+	@echo "END test verbose"
 	touch test-stamp
 
 clean: clean-patched unpatch
@@ -81,7 +87,7 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_installchangelogs Changes
+	[ -f Changes ] && dh_installchangelogs Changes || dh_installchangelogs
 	dh_installdocs
 	dh_installexamples
 	dh_install

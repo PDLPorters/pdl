@@ -18,6 +18,23 @@ The following issues have been reported with this version of PDL:
   100% effective---but ugly.
 
 
+- PDL::IO::Dumper sdump() fails for some system configurations.
+  Problems have been reported for various BSD platforms.  Please
+  use PDL::IO::Storable if you have this problem *and* let the
+  PDL developer know (Bonus points if you can work with us to
+  debug this problem---which has only languished because we don't
+  have the ability to create the bug to fix it...).  Thanks.
+
+
+- On Strawberry Perl and ActiveState Perl the pdl2 fallback to
+  perldl when Devel::REPL and Term::ReadLine::Perl are not
+  installed is broken due to win32 issues.  If you get stuck,
+  just type quit<Enter>quit<Enter> which issues the quit command
+  to both the pdl2-now-perldl shell and the CMD shell.  You'll
+  need to call perldl explicitly for now (or install Devel::REPL
+  and Term::ReadLine::Perl to use the new pdl2 goodness...).
+
+
 - The demo 3d and 3d2 windows do not close (can not be closed)
   after the demo finishes.  You need to exit the perldl shell
   to have the window close.
@@ -27,18 +44,18 @@ The following issues have been reported with this version of PDL:
   the whole process exits including the perldl shell.
 
 
-- The default TriD controls are based on having 2+ button mouse.
-
-  For Macs with one button, you can use Ctrl+Click to generate
-  the needed Right-click.  It is also possible to configure the
-  Macbook tracpad to generate a secondary click via the control panel.
-
-
 - PDL::FFTW is based on version 2 of the FFTW API.  The current
   release of the FFTW library is version 3.2.2.  To use PDL::FFTW
   you will need to install FFTW version 2.1.5, use the built-in 
   PDL::FFT routines instead, or (better yet) submit a patch to
   update PDL::FFTW to the version 3 API. 
+
+
+- If you have a pre-existing PDL install in your perl @INC path,
+  mysterious failures have been observed in some tests due to
+  unintentionally pulling in the wrong version of PDL.  The
+  'perl Makefile.PL' stage now checks for this and prompts to
+  continue so you'll know the potential problem exists.
 
 
 - Various make command issues during build:
@@ -59,19 +76,17 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.6_015 release:
+  PDL-2.4.7_001 release:
 
-  3031068    PDL::IO::FlexRaw memory mapping fails
-  3024219    test fail in PDL::IO::HDF
-  3021519    PDL::AutoLoader doesn't expand win32 paths correctly
+  3056142    pdl2 fallback to perldl broken on win32
+  3042201    t/dumper.t fails mysteriously
+  3031068    PDL::IO::FlexRaw mapflex memory mapping fails
   3018731    NiceSlice affects code where it should not
   3011879    pdl() constructor crashes for mixed array ref/piddle args
   2995500    perl -d chokes on lvalue functions
-  2989905    PDL PROJ4 does not build on win32
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
   1507054    closing TriD window kills perldl shell
-  1505171    failure in MatrixOps::eigens in CVS
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
   1059020    Problem with FFTW version 3.0.1

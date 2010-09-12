@@ -6,7 +6,7 @@
 # the result of use_ok or some such.
 
 BEGIN {
-   use Test::More;
+   use Test::More tests => 15;
 }
 
 BEGIN {
@@ -30,4 +30,4 @@ SKIP: {
    }
 }
 
-done_testing();
+# done_testing();
