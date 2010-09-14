@@ -15,7 +15,7 @@ use PDL;
 use PDL::Config;
 my $tmpdir = $PDL::Config{TEMPDIR};
 my $name = $tmpdir . "/tmp0";
-my $header = $tmpdir . "/headerfile";
+my $header = $tmpdir . "/headerfile" . $$;
 unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
 
 # A function that tells us if two piddles are approximately the same
