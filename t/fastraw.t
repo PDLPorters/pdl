@@ -103,3 +103,6 @@ SKIP:
 	my $c = mapfraw($name,{Header => $header});
 	ok(tapprox($a,$c), "mapfraw should be able to work with a specified header");
 }
+
+# Clean things up for exit
+unlink $name, $header;
