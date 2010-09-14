@@ -1,11 +1,12 @@
 #!/usr/bin/perl
 #
 # Created on: Tue 20 Jul 2010 08:50:58 AM 
-# Last saved: Tue 20 Jul 2010 03:26:17 PM 
+# Last saved: Mon 13 Sep 2010 03:47:39 PM 
 #
 # This is a test script to generate the 3D PDL sphere
 # logo using TriD.  I think it would be very cool to
-# have a logo3d routine to generate the image
+# have a logo3d routine to generate the image as an
+# animated splash screen for example....
 
 use PDL;
 use PDL::NiceSlice;
@@ -87,6 +88,11 @@ $logomask(:,:,(0)) .= $L(:,-1:0);
 # and all together we get:
 #
 $logoxyz = $logomask->ndcoords->where($logomask(*3))->splitdim(0,3);
+
+# Need to have the ability to hide/toggle the axes so they
+# don't interfere with the image view *and* would like to
+# control the viewing direction rather than enabling user
+# twiddling of the display axes.
 
 spheres3d $logoxyz;
 
