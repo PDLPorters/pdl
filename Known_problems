@@ -71,6 +71,12 @@ The following issues have been reported with this version of PDL:
   the configure-build-test process.
 
 
+- Directory completion in the interactive PDL shells (perldl and pdl2)
+  using Term::ReadLine::Perl adds a space after each directory expansion.
+  To continue to complete, one must delete the space before typing <TAB>
+  again.  The problem has been reported to the Term::ReadLine::Perl
+  bug tracker.
+
 - PDL on Cygwin has a 300MB process memory limit which can
   cause out of memory crashes with large data sets.
 
