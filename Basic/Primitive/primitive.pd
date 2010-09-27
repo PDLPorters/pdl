@@ -959,7 +959,13 @@ sub PDL::uniqind {
   my $good = $aflat->sequence->long->where($aflat==$aflat);  # good indexes
   my $i_srt = $aflat->where($aflat==$aflat)->qsorti;         # no BAD or NaN values for qsorti
   my $srt = $aflat->where($aflat==$aflat)->index($i_srt);
-  my $uniqind = ($srt->nelem > 0) ? which($srt != $srt->rotate(-1)) : which($srt);
+  my $uniqind;
+  if ($srt->nelem > 0) {
+     $uniqind = which($srt != $srt->rotate(-1));
+     $uniqind = $i_srt->slice('0') if $uniqind->isempty;
+  } else {
+     $uniqind = which($srt);
+  }
   # Now map back to the original space
   my $ansind = $nanind;
   if ( $uniqind->nelem > 0 ) {
