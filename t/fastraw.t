@@ -15,7 +15,7 @@ use PDL;
 use PDL::Config;
 my $tmpdir = $PDL::Config{TEMPDIR};
 my $name = $tmpdir . "/tmp0";
-my $header = $tmpdir . "/headerfile";
+my $header = $tmpdir . "/headerfile" . $$;
 unlink $name, $name . '.hdr', $header;	# just to be absolutely sure
 
 # A function that tells us if two piddles are approximately the same
@@ -103,3 +103,6 @@ SKIP:
 	my $c = mapfraw($name,{Header => $header});
 	ok(tapprox($a,$c), "mapfraw should be able to work with a specified header");
 }
+
+# Clean things up for exit
+unlink $name, $header;

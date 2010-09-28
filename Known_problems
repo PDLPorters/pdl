@@ -71,6 +71,12 @@ The following issues have been reported with this version of PDL:
   the configure-build-test process.
 
 
+- Directory completion in the interactive PDL shells (perldl and pdl2)
+  using Term::ReadLine::Perl adds a space after each directory expansion.
+  To continue to complete, one must delete the space before typing <TAB>
+  again.  The problem has been reported to the Term::ReadLine::Perl
+  bug tracker.
+
 - PDL on Cygwin has a 300MB process memory limit which can
   cause out of memory crashes with large data sets.
 
@@ -78,6 +84,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.7_001 release:
 
+  3059083    Problems with FITS header handling
+  3057542    wmpeg doesn't error on missing ffmpeg
   3056142    pdl2 fallback to perldl broken on win32
   3042201    t/dumper.t fails mysteriously
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
@@ -89,7 +97,6 @@ The following issues have been reported with this version of PDL:
   1507054    closing TriD window kills perldl shell
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
-  1059020    Problem with FFTW version 3.0.1
 
 
 For more information on these and other PDL issues, and for

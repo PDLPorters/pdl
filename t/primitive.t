@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => $PDL::Bad::Status ? 28 : 25 ;
+plan tests => $PDL::Bad::Status ? 31 : 28 ;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -152,3 +152,14 @@ $c = setops($a,'OR',$b);
 ok(tapprox($c, pdl([0,2,3,4,6,8,9])));              #27
 $c = setops($a,'XOR',$b);
 ok(tapprox($c, pdl([2,3,4,8,9])));                  #28
+
+
+##############################
+# Test uniqind...
+$a = pdl([0,1,2,2,0,1]);
+$b = $a->uniqind;
+eval '$c = all($b==pdl([0,1,3]))';  ok(!$@ && $c && $b->ndims==1); #29
+
+$b = pdl(1,1,1,1,1)->uniqind;       # SF.net bug 3076570 
+ok(! $b->isempty);                                                 #30
+eval '$c = all($b==pdl([0]))';  ok(!$@ && $c && $b->ndims==1);     #31

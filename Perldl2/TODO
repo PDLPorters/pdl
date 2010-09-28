@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 17 Aug 2010 10:24:22 AM 
+Last saved: Tue 21 Sep 2010 10:12:22 AM 
 
 
 +-------------------------------------------------------------------+
@@ -9,7 +9,9 @@ Last saved: Tue 17 Aug 2010 10:24:22 AM
   Add enhanced filter support to removed leading prompt
   strings (or other text) from input lines.  Need to be
   able to toggle feature on/off and set regexp used.
-  Check that the stripped line is entering history...
+
+  Fix history so that only the prefix-stripped line is
+  entered rather than the original raw text as pasted.
 
   Fix PDL::AutoLoader expansion to work for PDLLIB environment
   variable using win32 syntax and make sure TAB expansion for
