@@ -597,8 +597,6 @@ sub _rfits_image($$$$) {
   my @dims; # Store the dimenions 1..N, compute total number of pixels
   my $i = 1;
   my $size = 1; 
-  my $bscale;
-  my $bzero;
 
 ##second part of the conditional guards against a poorly-written hdr.
   while(defined( $$foo{"NAXIS$i"} ) && $i <= $$foo{"NAXIS"}) {
@@ -631,7 +629,24 @@ sub _rfits_image($$$$) {
     bswap8($pdl) if $pdl->get_datatype == $PDL_D;
   }
   
-  if($opt->{bscale}) {
+  if(exists $opt->{bscale}) {
+      $pdl = treat_bscale($pdl, $foo);
+  }
+  
+  # Header
+  
+  $pdl->sethdr($foo);
+
+  $pdl->hdrcpy($opt->{hdrcpy});
+
+  return $pdl;
+} 
+
+sub treat_bscale($$){
+    my $pdl = shift;
+    my $foo = shift;
+
+
     if ( $PDL::Bad::Status ) {
       # do we have bad values? - needs to be done before BSCALE/BZERO
       # (at least for integers)
@@ -656,6 +671,7 @@ sub _rfits_image($$$$) {
 	if $pdl->badflag() and $PDL::verbose;
     } # if: PDL::Bad::Status
     
+    my ($bscale, $bzero);
     $bscale = $$foo{"BSCALE"}; $bzero = $$foo{"BZERO"};
     print "BSCALE = $bscale &&  BZERO = $bzero\n" if $PDL::verbose;
     $bscale = 1 if (!defined($bscale) || $bscale eq "");
@@ -693,16 +709,9 @@ sub _rfits_image($$$$) {
     $pdl += $bzero  if $bzero  != 0;
     
     delete $$foo{"BSCALE"}; delete $$foo{"BZERO"};
-  }
-  
-  # Header
-  
-  $pdl->sethdr($foo);
+    return $pdl;
+}
 
-  $pdl->hdrcpy($opt->{hdrcpy});
-
-  return $pdl;
-} 
 
 ##########
 # 
@@ -1487,6 +1496,10 @@ sub _rfits_unpack_zimage($$$) {
 	    $k =~ m/^TTYPE/ ||
 	    $k =~ m/^TFORM/
 	    );
+    }
+
+    if(exists $hdr->{bscale}) {
+	$pdl = treat_bscale($pdl, $hdr);
     }
     $pdl->sethdr($hdr);
 
