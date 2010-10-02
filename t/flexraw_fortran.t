@@ -270,7 +270,8 @@ c Program to test i/o of F77 unformatted files
         a(i) = $val
       enddo
      
-      open(8,file='$data'
+      open(8,file=
+     \$'$data'
      \$,status='new',form='unformatted')
       i = $ndata
       write (8) i
