@@ -10,7 +10,7 @@ use PDL::Config;
 
 TODO: {
 
-   local $TODO = 'Known_problems bug sf.net #3011879';
+   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # This is from sf.net bug #3011879
    $c[0][0]=pdl(0,4,2,1);

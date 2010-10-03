@@ -26,7 +26,11 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Replace SKIP_KNOWN_PROBLEMS by Test::More's TODO
+   blocks.  To avoid FAILs for the Known_Problems
+   tests, just set the environment variable
+   SKIP_KNOWN_PROBLEMS or edit perldl.conf and
+   set the SKIP_KNOWN_PROBLEMS to a true value.
 
 
 

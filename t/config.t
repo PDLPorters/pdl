@@ -16,7 +16,7 @@ BEGIN {
 TODO: {
    # This is Known_problems bug sf.net #3030998
    # PDL::Config does not match actual build configuration
-   local $TODO = 'Known_problem sf.net bug #3030998';
+   local $TODO = 'Known_problem sf.net bug #3030998' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} );
    
    # generate list of WITH_* keys from PDL::Config
    my @keys = grep { /^WITH_/ } keys %PDL::Config;

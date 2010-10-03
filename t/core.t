@@ -113,7 +113,7 @@ $a = pdl(pdl(5));
 ok all( $a== pdl(5)), "pdl() can piddlify a piddle";
 
 TODO: {
-   local $TODO = 'Known_problems bug sf.net #3011879';
+   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # pdl of mixed-dim pdls: pad within a dimension
    $a = pdl( zeroes(5), ones(3) );
@@ -127,7 +127,7 @@ ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mi
 print "a=$a\n";
 
 TODO: {
-   local $TODO = 'Known_problems bug sf.net #3011879';
+   local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # pdl of mixed-dim pdls: a hairier case
    $c = pdl [1], pdl[2,3,4], pdl[5];

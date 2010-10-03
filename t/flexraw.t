@@ -45,7 +45,7 @@ SKIP: {
    skip( 'no mmap support on win32 (yet?)', 5) if ($^O =~ /win32/i);
 
    TODO: {
-      local $TODO = 'Known_problems sf.net bug #3031068';
+      local $TODO = 'Known_problems sf.net bug #3031068' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
       # **TEST 5** compare mapfraw piddle with original piddle	
       my $c = mapflex($name);
