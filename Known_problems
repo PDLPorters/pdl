@@ -89,7 +89,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_001 release:
+  PDL-2.4.7_002 release:
 
   3079844    t/flexraw_fortran.t fails with long temp directory name
   3059083    Problems with FITS header handling
