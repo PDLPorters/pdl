@@ -58,12 +58,9 @@ $b = $a->copy + 1;
 my $bigArray = $a->cat($b);
 ok($testNo++, abs($bigArray->sum() +  8 - 4*i) < .0001 );
 
-SKIP: {
-   if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS} ) {
-      print "# skipping test $testNo, sf.net bug #1176614 test\n";
-      ok($testNo++, 1);
-      last SKIP;
-   }
+TODO: {
+   local $TODO = "Known_problems sf.net bug #1176614";
+
    # Check stringification of complex piddle
    # This is sf.net bug #1176614
    my $c =  9.1234 + 4.1234*i;

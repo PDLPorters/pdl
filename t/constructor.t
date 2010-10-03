@@ -8,9 +8,9 @@ use Test::More tests => 1;
 use PDL::LiteF;
 use PDL::Config;
 
-SKIP: {
+TODO: {
 
-   skip('Known_problems bug sf.net #3011879', 1) if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
+   local $TODO = 'Known_problems bug sf.net #3011879';
 
    # This is from sf.net bug #3011879
    $c[0][0]=pdl(0,4,2,1);
@@ -21,7 +21,7 @@ SKIP: {
    $c[2][1]=pdl(5,1,1,1);
    $d = pdl(@c);
 
-   diag("\$d is $d\n");
+   # diag("\$d is $d\n");
 
    isa_ok($d, 'PDL');
 };
