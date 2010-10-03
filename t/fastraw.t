@@ -78,7 +78,7 @@ SKIP:
 }
 
 # Clean things up a bit
-unlink $name, $name . '.hdr';
+unlink $name, $name . '.hdr', $header;
 undef $a;
 undef $b;
 
