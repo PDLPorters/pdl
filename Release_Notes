@@ -17,20 +17,22 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.4.7_001.tar.gz
-       cpan> make CHM/PDL-2.4.7_001.tar.gz
-       cpan> test CHM/PDL-2.4.7_001.tar.gz
-       cpan> look CHM/PDL-2.4.7_001.tar.gz
+       cpan> get  CHM/PDL-2.4.7_002.tar.gz
+       cpan> make CHM/PDL-2.4.7_002.tar.gz
+       cpan> test CHM/PDL-2.4.7_002.tar.gz
+       cpan> look CHM/PDL-2.4.7_002.tar.gz
 
 
 
 Highlights:
 
  * Replace SKIP_KNOWN_PROBLEMS by Test::More's TODO
-   blocks.  To avoid FAILs for the Known_Problems
+   blocks.
+   
+   NOTE: To avoid FAILs for the Known_Problems
    tests, just set the environment variable
-   SKIP_KNOWN_PROBLEMS or edit perldl.conf and
-   set the SKIP_KNOWN_PROBLEMS to a true value.
+   SKIP_KNOWN_PROBLEMS or edit the perldl.conf file
+   and set the SKIP_KNOWN_PROBLEMS to 1.
 
 
 
