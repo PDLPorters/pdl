@@ -806,5 +806,6 @@ t/trig.t
 t/ufunc.t
 t/vaffine.t
 t/xvals.t
+utils/perldlpp.pl
 win32/INSTALL
 win32/win32f77.pl

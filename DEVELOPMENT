@@ -112,6 +112,8 @@ had to use %PDL_CONFIG within Makefile.PL and PDL::Config from
   has specified that a module should be built but you find out this
   is not possible).
 
+- use PDL; now loads PDL::Config by default
+
 - Otherwise you can say 'use PDL::Config;' or - perhaps something like
     eval 'require "' . whereami_any() . '/Core/Config.pm";';
   where whereami_any() is from PDL::Core::Dev;

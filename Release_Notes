@@ -2,15 +2,62 @@ Release notes for PDL 2.4.7_001 --------------------------
 
 General Notes:
 
- * This is a developers release! It is a snapshot of the
-   current git development tree and everything may not work
-   correctly or have complete documentation (as in these
-   Release notes).
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_001.tar.gz
+       cpan> make CHM/PDL-2.4.7_001.tar.gz
+       cpan> test CHM/PDL-2.4.7_001.tar.gz
+       cpan> look CHM/PDL-2.4.7_001.tar.gz
+
 
 
 Highlights:
 
- * TBD
+ * Updated TODO, Perldl2/TODO, Known_problems and other
+     README type files.
+ 
+ * Fixed pdldoc to use PERLDOC_PAGER if set.
+ 
+ * Various minor fixed to POD documentation
+ 
+ * Fixes to t/fastraw.t to clean up working files on exit
+     and to removed intermediate files at each stage.
+     Some tests were failing because of pre-existing files
+     left from other runs.
+ 
+ * Partial fix to #3079844 where very long tmpdir pathnames
+     created invalid fortran test code.  The final fix will
+     be to skip this test for such pathalogical pathname
+     lengths and add another test with modern fortran file
+     syntax rather than f77-era 80 character lines.
+ 
+ * Updated FITS.pm to handle BSCALE/BZERO correctly for
+     tile-compressed images
+ 
+ * Add win32 workaround for pdl2->perldl exec bug #3056142.
+     Now win32 just exits pdl2 with a warning to run perldl
+     rather than trying the broken exec.
+ 
+ * Fixed uniqind bug #3076570
+ 
+ * Fixed Demos/Cartography_demo.pm and Demos/Transform_demo.pm
+     to use the /GW driver on MSWin32 systems only.
+ 
+ * Various fixes for the PDL-2.4.7 debian package.
+
 
 
 

@@ -8,11 +8,14 @@ Please check the following files for further information
 
 INSTALL 		Basic installation instructions
 
-BUGS			How to make a bug report
+DEPENDENCIES		Other software that PDL relies on (and where to get it)
+
+Release_Notes		A list of features or issues with regard to the
+                        current version, always worth checking!
 
 Known_problems	 	Check before you report problems
 
-DEPENDENCIES		Other software that PDL relies on (and where to get it)
+BUGS			How to make a bug report
 
 perldl.conf		PDL configuration options
 
@@ -27,9 +30,6 @@ Basic/Pod/BadValues.pod
                         A discussion of the bad value support in PDL
 
 DEVELOPMENT		How to participate in the development of PDL
-
-Release_Notes		A list of features or issues with regard to the
-                        current version, always worth checking!
 
 
 
@@ -56,8 +56,9 @@ Check the pdl web site at http://pdl.perl.org for more information.
 
 Installation
 ------------
-Please read the file INSTALL for information on how to configure
-and install PDL.
+Please read the file INSTALL for information on how to
+configure and install PDL.  The Release_Notes and Known_problems
+files contain important version specific information.
 
 Once you have built PDL and either installed it or done
 'make doctest', try either
@@ -106,16 +107,21 @@ Directory structure:
 
 Basic/	   - The stuff that PDL would be no use without
 Demos/     - Showcase for PDL, type demo at the perldl prompt.
+Doc/       - Modules for building/using the PDL documentation database
 Example/   - Sample programs using PDL
 Graphics/  - The stuff that PDL needs to make pictures
 IO/	   - The stuff that PDL needs to write and read strange files
 Lib/	   - The stuff that PDL would still be useful without but
 	       which makes PDL even more useful
 Perldl2/   - The PDL shell version 2 source and development
+TestTools/ - Tools for testing PDL
 cygwin/    - Platform specific information
 debian/    - Platform specific information
 macosx/    - Platform specific information
+t/         - PDL tests directory
+utils/     - Utilities relating to PDL
 win32/     - Platform specific information
+
 
 
 Comments are welcome - so are volunteers to write code and documentation!
