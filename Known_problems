@@ -97,6 +97,10 @@ The following issues have been reported with this version of PDL:
   3057542    wmpeg doesn't error on missing ffmpeg
   3056142    pdl2 fallback to perldl broken on win32
   3042201    t/dumper.t fails mysteriously
+
+               NOTE: NetBSD and Dragonfly BSD systems
+	       report this failure.
+
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
   3018731    NiceSlice affects code where it should not
   3011879    pdl() constructor crashes for mixed array ref/piddle args
