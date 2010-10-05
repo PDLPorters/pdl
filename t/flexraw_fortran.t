@@ -21,13 +21,23 @@ my $null = $^O =~ /win32/i ? ' 2>nul' : ' 2>/dev/null';
 BEGIN{
 
     my $ntests = 29;
+    my $datalen;
+    $datalen = length($PDL::Config{TEMPDIR}) + length("/tmpraw") + length("data");
 
     unless ( $PDL::Config{WITH_SLATEC} ) {
-        plan skip_all => "Skipped tests as F77 compiler not found";
+       plan skip_all => "Skipped tests as F77 compiler not found";
     } elsif ($Config{archname} =~ /(x86_64|ia64)/) {
-        plan skip_all => "Skipped tests for 64 bit architecture: $1";
+       plan skip_all => "Skipped tests for 64 bit architecture: $1";
+    } elsif ($datalen > 70) {
+       plan skip_all => "TEMPDIR path too long for f77 ($datalen chars), skipping all tests";
     } else {
-       plan tests => $ntests;
+       eval " use ExtUtils::F77; ";
+       if ( $@ ) {
+          plan skip_all => "Skip all tests as ExtUtils::F77 not found"; 
+          exit 0;
+       } else {
+          plan tests => $ntests;
+       }
     }
 
     # Configuration
@@ -39,12 +49,6 @@ BEGIN{
 	unshift @INC, 'Lib/Slatec/' if -e 'Changes';
     } else {
 	print "I'm not in PDL now, right? Still trying\n";
-    }
-
-    eval " use ExtUtils::F77; ";
-    if ( $@ ) {
-	for ( 1..$ntests ) { skip( "Skip tests as ExtUtils::F77 not found" ); }
-	exit 0;
     }
 
 }
