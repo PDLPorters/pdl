@@ -351,7 +351,8 @@ c Program to test i/o of F77 unformatted files
       do i = 1, $ndata
         a(i) = $val
       enddo
-      open(8,file='$data'
+      open(8,file=
+     \$'$data'
      \$,status='new',form='unformatted')
       i = $ndata
       write (8) i,a
@@ -400,7 +401,8 @@ c Program to test i/o of F77 unformatted files
       do i = 1, $ndata
         a(i) = $val
       enddo
-      open(8,file='$data'
+      open(8,file=
+     \$'$data'
      \$,status='new',form='unformatted')
       i = $ndata
       write (8) i,a
@@ -455,7 +457,8 @@ c Program to test i/o of F77 unformatted files
           a(i,j) = $val
         enddo
       enddo
-      open(8,file='$data'
+      open(8,file=
+     \$'$data'
      \$,status='new',form='unformatted')
       i = $ndata
       write (8) i,a
@@ -505,7 +508,8 @@ c Program to test i/o of F77 unformatted files
       l = 10**d
       i = l
       a = ' '
-      open(8,file='$data'
+      open(8,file=
+     \$'$data'
      \$,status='new',form='unformatted')
 c Choose bad boundaries...
       write (8) a,i,l,f,d
