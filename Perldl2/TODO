@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 05 Oct 2010 09:05:10 AM 
+Last saved: Tue 05 Oct 2010 12:38:53 PM 
 
 
 +-------------------------------------------------------------------+
@@ -20,6 +20,9 @@ Last saved: Tue 05 Oct 2010 09:05:10 AM
   the appropriate path separator character.  It appears to
   use / which is fine inside perl but not for system command
   escapes.  Need to recognize the two cases.
+
+    Does Term::ReadLine::Perl completion support auto-
+    quoting and closing delimiters as does TR::Gnu?
 
   Fix Term::ReadLine::Perl completion not to append identifier
   characters on filenames inserted:  e.g. it is ok to list
