@@ -117,27 +117,25 @@ TODO: {
 
    # pdl of mixed-dim pdls: pad within a dimension
    $a = pdl( zeroes(5), ones(3) );
-   print "a=$a\n";
-   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifing two piddles catenates them and pads to length";
+   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifing two piddles catenates them and pads to length" or diag("a=$a\n");
 }
    
 # pdl of mixed-dim pdls: pad a whole dimension
 $a = pdl( [[9,9],[8,8]], xvals(3)+1 );
-ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles";
-print "a=$a\n";
+ok all($a == pdl([[[9,9],[8,8],[0,0]] , [[1,0],[2,0],[3,0]] ])),"can catenate mixed-dim piddles" or diag("a=$a\n");
 
 TODO: {
    local $TODO = 'Known_problems bug sf.net #3011879' if ($PDL::Config{SKIP_KNOWN_PROBLEMS} or exists $ENV{SKIP_KNOWN_PROBLEMS});
 
    # pdl of mixed-dim pdls: a hairier case
    $c = pdl [1], pdl[2,3,4], pdl[5];
-   ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case";
+   ok all($c == pdl([[[1,0,0],[0,0,0]],[[2,3,4],[5,0,0]]])),"Can catenate mixed-dim piddles: hairy case" or diag("c=$c\n");;
 
    # same thing, with undefval set differently
    do {
       local($PDL::undefval) = 99;
       $c = pdl [1], pdl[2,3,4], pdl[5];
-      ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding";
+      ok all($c == pdl([[[1,99,99],[99,99,99]],[[2,3,4],[5,99,99]]])), "undefval works for padding" or diag("c=$c\n");;
    } while(0);
 }
     
