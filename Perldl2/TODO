@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 05 Oct 2010 12:38:53 PM 
+Last saved: Thu 07 Oct 2010 12:43:29 PM 
 
 
 +-------------------------------------------------------------------+
@@ -16,10 +16,23 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
   Allow Ctrl-C to interrupt a line but keep the entry in
   history for edit...
 
+  Implement ^C/^D to end PPI multiline if it makes sense.
+  E.g., make sure that Ctrl-C can exit an incomplete block.
+  Right now it does nothing until you close the construct.
+  Need to see about implementing the Ctrl-D option to close
+  all blocks as well.  It would be nice to have the prompt
+  display the matching delims as in perldl.
+
+  It would be nice to have blink to matching paren or
+  maybe even color highlight matching delimiters so you
+  can more easily parse multi-level brace/paren/bracket
+  constructs.
+
   Fix Term::ReadLine::Perl completion in win32 to use
   the appropriate path separator character.  It appears to
   use / which is fine inside perl but not for system command
-  escapes.  Need to recognize the two cases.
+  escapes.  Need to recognize the two cases.  Maybe we can
+  autoquote the paths when using backslashes.
 
     Does Term::ReadLine::Perl completion support auto-
     quoting and closing delimiters as does TR::Gnu?
@@ -47,7 +60,8 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
     or using Win32::Console and Win32::Console::ANSI to implement
     the missing ANSI support.  Need to implement a routine
     readline::F_ClearScreen() to override the default function
-    for win32 systems.
+    for win32 systems.  This could also work with Win32::Console::ANSI
+    support.
 
   Implement PDL shell startup boot messages, i.e.,
     perlDL shell v1.354
@@ -65,6 +79,8 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
   Add runtime PDL module load list so you know what has been
   loaded with use/require.  Maybe as simple as a configuration
   variable in PDL::Config that is set on compile from each.
+  What about pop-up info window using curses or an actual
+  window if in a graphical environment?
  
   Review and integrate PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
@@ -105,13 +121,11 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
   Fix problem where q[ and qq[ type constructions can
   not span lines (even with the supposed multiline support
   in Devel::REPL.  Maybe just add check for unterminated
-  string to the multiline PPI.  Does the Text::Balanced
-  implementation work better?
+  string to the multiline PPI.  The Text::Balanced
+  implementation of perldl works better.
  
-  Implement ^C/^D to end PPI multiline if it makes sense.
-  E.g., make sure that Ctrl-C can exit an incomplete block.
-  Need to see about implementing the Ctrl-D option to close
-  all blocks as well.
+  Add MultiLine prompt with continuation character marking
+  the open structures. (e.g. MultiLine::TextBalanced).
 
   Add GLUT event loop support to Term::ReadLine::Perl and
   Term::ReadLine::Gnu.  Need to figure out a clean way to
@@ -142,7 +156,8 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
  
   Add a CompletionDriver for Plugins for load_plugin() as well
   as the ability to toggle plugins on and off (or at least
-  enable and disable them).
+  enable and disable them).  Would it simplify PDL::NiceSlice
+  if the implementation were migrated to Filter::Simple?
 
   Make pdl2 fall back cleanly to a basic Devel::REPL or
   even perldl if requirements to run are not installed.
@@ -226,9 +241,7 @@ Last saved: Tue 05 Oct 2010 12:38:53 PM
   got the actual line with the bad code---of course I had to
   give up the nice pdl2 environment.
 
-  Add MultiLine prompt with continuation character marking
-  the open structures. (e.g. MultiLine::TextBalanced).
-
+  
 
 +-------------------------------------------------------------------+
 | Features                       perldl                 pdl2        |
