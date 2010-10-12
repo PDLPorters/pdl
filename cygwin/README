@@ -59,6 +59,12 @@ external dependencies:
 
  PDL::IO::Browser
   (Build may pass if enabled, disabled by default for all OSes)
+ 
+ pdl2
+  (Installed by default.  To use the new features, you
+   will need to install Devel::REPL and Term::ReadLine::Perl
+   or Term::ReadLine::Gnu.  The Gnu flavor is currently
+   recommended for cygwin.)
 
 
 

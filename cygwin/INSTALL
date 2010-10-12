@@ -43,10 +43,14 @@ Just start up an xterm and run cpan from the bash prompt:
   bash$ cpan
   cpan> install ExtUtils::F77
   cpan> install OpenGL
+  cpan> force install Inline
   cpan> install PDL
 
 This installs the Perl OpenGL (a.k.a POGL) module, ExtUtils::F77,
-and should pull in installs for the following dependencies:
+and Inline (the force here is necessary to work around a taint
+bug in the current release---should be no problem unless you
+need to run Inline programs with taint enabled), and should pull
+in installs for the following dependencies:
 
   Astro::FITS::Header
   Convert::UU
@@ -54,7 +58,6 @@ and should pull in installs for the following dependencies:
   File::Spec
   Filter::Util::Call
   Text::Balanced
-  Inline
 
 if they are not already installed or of a recent enough version.
 
