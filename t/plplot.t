@@ -92,7 +92,7 @@ EOERR
   }
 }
 else { # MS Windows only
-	my $ret = system('perl -Mblib -MPDL -MPDL::Graphics::PLplot -e "$pl = PDL::Graphics::PLplot->new(DEV=>\"xfig\",FILE=>\"foo.xfig\")"');
+	my $ret = system("$^X", '-Mblib -MPDL -MPDL::Graphics::PLplot -e "$pl = PDL::Graphics::PLplot->new(DEV=>\"xfig\",FILE=>\"foo.xfig\")"');
 	ok( $ret == 0 , "PLplot crash test"  );
 	unlink 'foo.xfig';
 }
@@ -501,7 +501,7 @@ unless($^O =~ /mswin/i) { # Causes problems on Windows
   ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
 }
 else { # MS Windows only
-	my $ret = system('perl -Mblib -MPDL -MPDL::Graphics::PLplot -e "plParseOpts ([], PL_PARSE_FULL)"');
+	my $ret = system("$^X", '-Mblib -MPDL -MPDL::Graphics::PLplot -e "plParseOpts ([], PL_PARSE_FULL)"');
 	ok($ret == 0, "No segfault calling plParseOpts with no options"  );
 }
 
