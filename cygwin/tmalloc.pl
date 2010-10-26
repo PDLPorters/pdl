@@ -8,5 +8,6 @@ for ( $MB=0; $MB<5000; $MB+=$chunk) {
    print "Allocating \$data[$MB]..";
    push @data, zeros($chunk,125,1000);
    print ".. done\n";
+   sleep $ARGV[1] if scalar(@ARGV) == 2;
 }
 print "Got total of $MB!\n";
