@@ -1,10 +1,15 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 07 Oct 2010 12:43:29 PM 
+Last saved: Tue 26 Oct 2010 05:36:48 PM 
 
 
 +-------------------------------------------------------------------+
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
+
+  NOTE: Colors plugin will only work with the default
+  do_print() routine and not the default PDL one.  It
+  would be nice to add support for that to the PDL
+  formatted display output.
 
   Add enhanced filter support to removed leading prompt
   strings (or other text) from input lines.  Need to be
@@ -46,6 +51,25 @@ Last saved: Thu 07 Oct 2010 12:43:29 PM
   variable using win32 syntax and make sure TAB expansion for
   paths work for win32 paths as well (Status: The PDLLIB expansion
   is fixed but not the TAB expansion of the paths in the shell).
+
+  Add <TAB> expansion to the pdl2 help/? command.
+
+  Track pdl2 session variables for PDL, including: vars (global
+  and lexical), subs that were defined, modules loaded, and
+  plugins for the REPL.  It should be possible to <TAB>
+  complete for these (the current default is perl keyword
+  expansion---good in general but not as helpful as possible
+  for PDL users).
+
+  Add tracking and expansion for PGPLOT or PLplot windows for
+  reference.  (In PGPLOT there is a Window Name property and
+  a corresponding $w->name to print it out but you cannot set
+  it).  It would be nice to have a list/table of currently
+  active figures.  (What about PLplot window names/IDs?)
+
+  IDEA: Associate metadata with image or figure windows.
+        This could include the commands that generated
+	the figure, etc.
 
   Add SIGINT handler for pdl2 for win32.  Also need to add
   feature to ignore EOF to the read routine (around read modifier
@@ -117,6 +141,10 @@ Last saved: Thu 07 Oct 2010 12:43:29 PM
   TR::Perl (on win32 and cygwin and unix) and TR::Gnu (on
   cygwin and unix).  TR::Gnu seems to have an extra newline
   inserted per command.
+
+  Is it possible to add support for Term::ReadLine::Zoid?
+  It would be nice if the most possible could be done using
+  the Term::ReadLine::Stub.
  
   Fix problem where q[ and qq[ type constructions can
   not span lines (even with the supposed multiline support
