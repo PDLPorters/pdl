@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 28 Jul 2010 03:41:45 PM 
-# Last saved: Thu 29 Jul 2010 09:11:53 AM 
+# Last saved: Wed 03 Nov 2010 01:11:31 PM 
 
 use PDL;
 use PDL::IO::Pic;
@@ -14,7 +14,7 @@ use PDL::NiceSlice;
 
 # a simple parabolic trajectory ("bouncing ball")
 # for 30 128x80 image frames
-our $coords = pdl q[
+our $coords = pdl( q[
                     [  0   1   0]
                     [  4   9   1]
                     [  8  17   2]
@@ -45,10 +45,10 @@ our $coords = pdl q[
                     [108  19  27]
                     [112  11  28]
                     [116   3  29]
-                   ];
+                   ] );
 
 our $frames = zeros byte, 128, 80, 30;
-our $val = 250;  # start with white
+our $val = pdl(byte,250);  # start with white
 
 # make the square ball bounce
 $frames->range($coords,[10,10,1]) .= $val;
