@@ -363,7 +363,7 @@ sub PDL::IO::Dumper::stringify_PDL{
     $dmp_elt = eval "sub { sprintf '$PDL::IO::Dumper::stringify_formats{$t}',shift }";
   } else {
     if(!$PDL::IO::Dumper::stringify_warned) {
-      cluck("PDL::IO::Dumper:  Warning, stringifying a '$t' PDL using default method\n\t(Will be silent after this)\n");
+      print STDERR "PDL::IO::Dumper:  Warning, stringifying a '$t' PDL using default method\n\t(Will be silent after this)\n";
       $PDL::IO::Dumper::stringify_warned = 1;
     }
     $dmp_elt = sub { my($a) = shift; "$a"; };
