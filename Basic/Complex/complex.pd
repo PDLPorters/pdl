@@ -36,8 +36,8 @@ numbers. These are usually represented as a pair C<[ real imag ]> or
 C<[ angle phase ]>. If not explicitly mentioned, the functions can work
 inplace (not yet implemented!!!) and require rectangular form.
 
-While there is a procedural interface available (C<$a/$b*$c <=> Cmul
-(Cdiv $a, $b), $c)>), you can also opt to cast your pdl's into the
+While there is a procedural interface available (C<< $a/$b*$c <=> Cmul
+(Cdiv $a, $b), $c) >>), you can also opt to cast your pdl's into the
 C<PDL::Complex> datatype, which works just like your normal piddles, but
 with all the normal perl operators overloaded.
 
@@ -66,7 +66,7 @@ the fifths roots of 1+1*i (due to threading).
 
 =item *
 
-use C<cplx(real-valued-piddle)> to cast from normal piddles intot he
+use C<cplx(real-valued-piddle)> to cast from normal piddles into the
 complex datatype. Use C<real(complex-valued-piddle)> to cast back. This
 requires a copy, though.
 
