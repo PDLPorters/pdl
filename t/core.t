@@ -117,7 +117,7 @@ TODO: {
 
    # pdl of mixed-dim pdls: pad within a dimension
    $a = pdl( zeroes(5), ones(3) );
-   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifing two piddles catenates them and pads to length" or diag("a=$a\n");
+   ok all($a == pdl([0,0,0,0,0],[1,1,1,0,0])),"Piddlifying two piddles catenates them and pads to length" or diag("a=$a\n");
 }
    
 # pdl of mixed-dim pdls: pad a whole dimension

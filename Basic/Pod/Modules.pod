@@ -189,7 +189,7 @@ Compression utilities.
 
 N-dimmensional image processing.
 
-=item L<PDL::mageRGB|PDL::mageRGB>
+=item L<PDL::ImageRGB|PDL::ImageRGB>
 
 RGB image data handling.
 
