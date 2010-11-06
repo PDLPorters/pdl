@@ -573,6 +573,9 @@ sub mapflex {
 			foreach (ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims}) {
 			$si *= $_;
 			}
+			barf("Bad typename '$type' in mapflex")
+				unless defined $flextypes{$type};
+			$type = $flextypes{$type};
 			$size += $si * PDL::Core::howbig ($type);
 		}
     }
