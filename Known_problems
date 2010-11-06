@@ -26,11 +26,11 @@ The following issues have been reported with this version of PDL:
   have the ability to create the bug to fix it...).  Thanks.
 
 
-- On Strawberry Perl and ActiveState Perl the pdl2 fallback to
-  perldl when Devel::REPL and Term::ReadLine::Perl are not
-  installed is broken due to win32 issues.
+- On Strawberry Perl and ActiveState Perl: the pdl2 fallback to
+  perldl is broken due to win32 issues.  If you don't have
+  Devel::REPL you'll need to run perldl directly.
   
-  If you get stuck in the pdl2 shell, just type
+  NOTE: If you do get stuck in the pdl2 shell, just type
   quit<Enter>quit<Enter> which issues the quit command to both
   the pdl2-now-perldl shell and the CMD shell.  You'll need to
   call perldl explicitly for now (or install Devel::REPL
@@ -81,18 +81,16 @@ The following issues have been reported with this version of PDL:
 - Directory completion in the interactive PDL shells (perldl and pdl2)
   using Term::ReadLine::Perl adds a space after each directory expansion.
   To continue to complete, one must delete the space before typing <TAB>
-  again.  The problem has been reported to the Term::ReadLine::Perl
-  bug tracker.
+  again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
-- PDL on Cygwin has a 300MB process memory limit which can cause out
-  of memory crashes with large data sets.
+- PDL on Cygwin has (by default) a 300MB process memory limit which can
+  cause out of memory crashes with large data sets.
 
 
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.7_003 release:
 
   3080505    PLplot segfaults on plshades call on OS X
-  3079844    t/flexraw_fortran.t fails with long temp directory name
   3059083    Problems with FITS header handling
   3057542    wmpeg doesn't error on missing ffmpeg
   3056142    pdl2 fallback to perldl broken on win32
@@ -103,13 +101,6 @@ The following issues have been reported with this version of PDL:
 
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
   3018731    NiceSlice affects code where it should not
-  3011879    pdl() constructor crashes for mixed array ref/piddle args
-
-               NOTE: A partial fix is in PDL-2.4.7_001.
-	       The constructor no longer crashes perl
-	       however 3 constructor tests fail.  Work
-	       is underway to resolve these.
-
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type

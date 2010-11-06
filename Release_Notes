@@ -8,7 +8,8 @@ General Notes:
      and everything may not work correctly or have complete
      documentation.
 
-   - These Release Notes may not be fully complete.
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
 
    - All tests may not pass, especially ones corresponding
      to issues in Known_problems.
@@ -26,8 +27,24 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Sf.net bug #3011879, pdl() constructor crashes perl
+   for mixed ref/piddle args has been fixed and is
+   available for general use and testing this release.
 
+ * utils/perldlpp.pl is a new PDL utility for off-line
+   source filtering to pre-filter perl source files for
+   NiceSlice constructs.  This allows the functionality
+   to be used in environments not supporting direct
+   use of source filters.
+ 
+ * Various fixes to transform.pd.
+
+ * Various clean-ups of docs, POD, and tests.
+
+ * Set the default GSL error handler for GSL/INTERP
+   to support perl exception handling rather than
+   having the interpreter exit.
+ 
 
 
 
