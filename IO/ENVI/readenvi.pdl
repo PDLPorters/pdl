@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Mon 16 Aug 2010 03:44:10 PM 
+# Last saved: Mon 08 Nov 2010 10:36:52 AM 
 #
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
@@ -175,49 +175,49 @@ sub _read_envihdr {
          } else {
             # look for next keyword = line
             ($keyword,$val) = $line =~ /^\s*([^=]+)=\s*(.*)$/;
-         }
+            if (defined $keyword) {
+               # warning exit in case underscores are used in keywords
+               if ($keyword =~ /_/) {
+                  barf "_read_envihdr: WARNING keyword '$keyword' contains underscore!"
+               }
+               # normalize to lc and single underscore for whitespace
+               $keyword =~ s/\s+$//;
+               $keyword =~ s/\s+/_/g;
+               $keyword = lc $keyword;
 
-         if (defined $keyword) {
-            # warning exit in case underscores are used in keywords
-            if ($keyword =~ /_/) {
-               barf "_read_envihdr: WARNING keyword '$keyword' contains underscore!"
+               $val =~ s/^\s+//;
+               $val =~ s/\s+$//;
+
+               $in_list++ if $val =~ /^{/ and not $in_list;
+               $in_list-- if $val =~ /}$/ and $in_list;
+
+               next LINE if $in_list>0;
+
+               # parse ENVI hdr lists and convert to perl array ref
+               if ($val =~ /^{/) {
+                  # strip off braces
+                  $val =~ s/^{\s*//;
+                  $val =~ s/\s*}$//;
+                  my @listval = split ',\s*', $val;
+                  print STDERR "_read_envihdr: expanded $keyword list value to (@listval)\n" if $verbose;
+                  $val = [@listval];
+               }
+
+               my $reqoropt = $envi_keywords->{$keyword} ? 'required' : 'optional';
+               print STDERR "  got $reqoropt $keyword = $val\n" if $verbose;
+
+               # replace ignore_value by data_ignore_value
+               $keyword =~ s/^ignore_value$/data_ignore_value/;
+               $hdr->{$keyword} = $val;
+
+            } else {
+
+               print STDERR "  NOT a 'keyword =' line: '$line'\n" if $verbose;
+
             }
-            # normalize to lc and single underscore for whitespace
-            $keyword =~ s/\s+$//;
-            $keyword =~ s/\s+/_/g;
-            $keyword = lc $keyword;
-
-            $val =~ s/^\s+//;
-            $val =~ s/\s+$//;
-
-            $in_list++ if $val =~ /^{/ and not $in_list;
-            $in_list-- if $val =~ /}$/ and $in_list;
-
-            next LINE if $in_list>0;
-
-            # parse ENVI hdr lists and convert to perl array ref
-            if ($val =~ /^{/) {
-               # strip off braces
-               $val =~ s/^{\s*//;
-               $val =~ s/\s*}$//;
-               my @listval = split ',\s*', $val;
-               print STDERR "_read_envihdr: expanded $keyword list value to (@listval)\n" if $verbose;
-               $val = [@listval];
-            }
-
-            my $reqoropt = $envi_keywords->{$keyword} ? 'required' : 'optional';
-            print STDERR "  got $reqoropt $keyword = $val\n" if $verbose;
-
-            # replace ignore_value by data_ignore_value
-            $keyword =~ s/^ignore_value$/data_ignore_value/;
-            $hdr->{$keyword} = $val;
-
-         } else {
-
-            print STDERR "  NOT a 'keyword =' line: '$line'\n" if $verbose;
-
          }
       }
+
    }
    # close hdr file
    close $hdrfile;
@@ -253,8 +253,9 @@ sub readenvi {
    barf 'Usage ($x [,$hdr]) = readenvi("filename")' if $#_ > 0;
    my $enviname = $_[0];
 
-   my $envi;  # image data to return
-   my $envihdr;   # image hdr  to return
+   my $envi;     # image data to return
+   my $filehdr;  # image file header (before ENVI image data)
+   my $envihdr;  # image hdr  to return
    my $flexhdr = [];
 
    # an easy progress message
@@ -273,8 +274,10 @@ sub readenvi {
 
    $envihdr = _read_envihdr($envihdrname);
 
-   # can't seek to header offset w readflex() so only handle 0 offset
-   barf "Nonzero header offset found, $envihdr->{header_offset}, not yet implemented!\n" if $envihdr->{header_offset};
+   # add read of imbedded_header data if have header_offset non-zero
+   if ($envihdr->{header_offset}) {
+      push @$flexhdr, { Type => 'byte', NDims => 1, Dims=>$envihdr->{header_offset} }
+   }
 
    # see if we need to swap
    my $byteorder = ($Config{byteorder} =~ /4321$/) ? 1 : 0;
@@ -302,7 +305,13 @@ sub readenvi {
    push @$flexhdr, $imagespec;
 
    # read file using readflex
-   $envi = readflex( $enviname, $flexhdr );
+   my (@envidata) = readflex( $enviname, $flexhdr );
+   if (2==@envidata) {
+      ($filehdr,$envi) = @envidata;
+      $envihdr->{imbedded_header} = $filehdr;
+   } else {
+      ($envi) = @envidata;
+   }
 
    # attach ENVI hdr to piddle
    $envi->sethdr($envihdr);
