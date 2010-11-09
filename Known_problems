@@ -83,12 +83,13 @@ The following issues have been reported with this version of PDL:
   To continue to complete, one must delete the space before typing <TAB>
   again.  The problem has been reported as a Term::ReadLine::Perl bug.
 
+
 - PDL on Cygwin has (by default) a 300MB process memory limit which can
   cause out of memory crashes with large data sets.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_003 release:
+  PDL-2.4.7_004 release:
 
   3080505    PLplot segfaults on plshades call on OS X
   3059083    Problems with FITS header handling

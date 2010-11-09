@@ -27,7 +27,23 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Modify the XS_PDL_address routine in Core.xs to convert
+   the pdl pointer to an IV rather than an int.  Adjusted
+   PDL::address in Core.pm to format the resulting value
+   correctly.
+
+ * Fix missing stdlib.h include for Lib/Image2D/resample.h
+
+ * Fix bug in readenvi header list value processing and
+   add support for non-zero imbedded file header size.
+ 
+ * Refactored t/complex.t to use Test::More
+
+ * Fix bug in FlexRaw.pm support for headers with
+   Type passed as string.  There was a case where
+   'double' was being pased to the PDL::howbig which
+   generated an error on some platforms.  It is not
+   clear why this did not fail on all platforms.
  
 
 
