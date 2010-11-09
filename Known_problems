@@ -89,7 +89,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_004 release:
+  PDL-2.4.7_005 release:
 
   3080505    PLplot segfaults on plshades call on OS X
   3059083    Problems with FITS header handling
