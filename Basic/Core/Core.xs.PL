@@ -569,11 +569,11 @@ set_inplace(self,val)
   CODE:
     setflag(self->state,PDL_INPLACE,val);
 
-int
+IV
 address(self)
   pdl *self;
   CODE:
-    RETVAL = (int) self;
+    RETVAL = PTR2IV(self);
   OUTPUT:
     RETVAL
 

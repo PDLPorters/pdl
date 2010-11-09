@@ -1458,7 +1458,10 @@ my %info = (
 		 },
 	    A => {
 		  Name => 'Address',
-		  Sub => sub { sprintf "%d", $_[0]->address }
+		  Sub => sub { use Config;
+                               my $ivdformat = $Config{ivdformat};
+                               $ivdformat =~ s/"//g;
+                               sprintf "%$ivdformat", $_[0]->address }
 		 },
 	   );
 
