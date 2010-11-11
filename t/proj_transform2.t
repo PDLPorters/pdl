@@ -70,14 +70,18 @@ SKIP: {
 
 
    ##############
-   # TESTS 3-7: #
+   # TESTS 1-5: #
    ##############
    # Get EQC reference data:
    my @ref_eqc_slices = get_ref_eqc_slices();
 
    # Check EQC map against reference:
    my $eqc_opts = "+proj=eqc +lon_0=0";
-   my $eqc = $map->map( t_proj( proj_params => $eqc_opts ), $map_size );
+   my $eqc = eval '$map->map( t_proj( proj_params => $eqc_opts ), $map_size )';
+   if (! defined($eqc)) {
+      diag("PROJ4 error: $@\n");
+      skip "Possible bad PROJ4 install",20 if $@ =~ m/Projection initialization failed/;
+   }
    foreach my $i ( 0 .. $#slices )
    {
       my $str = $slices[$i];
@@ -87,7 +91,7 @@ SKIP: {
    }
 
    ###############
-   # TESTS 8-12: #
+   # TESTS 6-10: #
    ###############
    # Get Ortho reference data:
    my @ref_ortho_slices = get_ref_ortho_slices();
@@ -107,7 +111,7 @@ SKIP: {
    # Test the auto-generated methods:
    #
    ################
-   # TESTS 13-17: #
+   # TESTS 11-15: #
    ################
    my $ortho2 = $map->map( t_proj_ortho( ellps => 'WGS84', lon_0 => -90, lat_0 => 40 ), $map_size );
    foreach my $i ( 0 .. $#slices )
@@ -119,7 +123,7 @@ SKIP: {
    }
 
    ################
-   # TESTS 18-22: #
+   # TESTS 16-20: #
    ################
    # Get Robinson reference data:
    my @ref_robin_slices = get_ref_robin_slices();
