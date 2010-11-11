@@ -26,7 +26,16 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed SF bug #3031068: PDL::IO::FlexRaw mapflex memory mapping fails
+
+ * Fixed SF bug #3042201: t/dumper.t fails mysteriously
+
+ * Added detection and skips for bad PROJ4 installs to t/proj_transform.t
+   and t/proj_transform2.t
+
+ * Added new global setting to control maximum PDL print size,
+   $PDL::toobigtoprint, and added POD to Core.pm.PL covering
+   these important PDL package variables.
  
 
 

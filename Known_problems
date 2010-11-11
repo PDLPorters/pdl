@@ -95,17 +95,6 @@ The following issues have been reported with this version of PDL:
   3059083    Problems with FITS header handling
   3057542    wmpeg doesn't error on missing ffmpeg
   3056142    pdl2 fallback to perldl broken on win32
-  3042201    t/dumper.t fails mysteriously
-
-               Possibly fixed...
-
-               NOTE: NetBSD and Dragonfly BSD systems
-	       report this failure.
-
-  3031068    PDL::IO::FlexRaw mapflex memory mapping fails
-
-               Possibly fixed...
-
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
