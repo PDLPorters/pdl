@@ -73,6 +73,59 @@ type conversion, threading etc.
  use PDL::Core;             # Normal routines
  use PDL::Core ':Internal'; # Hairy routines
 
+=head1 VARIABLES
+
+These are important variables of B<global> scope and are placed
+in the PDL namespace.
+
+=head3 C<$PDL::debug>
+
+=over 4
+
+When true, PDL debugging information is printed.
+
+=back
+
+=head3 C<$PDL::verbose>
+
+=over 4
+
+When true, PDL functions provide chatty information.
+
+=back
+
+=head3 C<$PDL::use_commas>
+
+=over 4
+
+Whether to insert commas when printing pdls
+
+=back
+
+=head3 C<$PDL::floatformat>, C<$PDL::doubleformat>
+
+=over 4
+
+The default print format for floats and doubles, repectively
+
+=back
+
+=head3 C<$PDL::undefval>
+
+=over 4
+
+The value to use instead of C<undef> when creating pdls.
+
+=back
+
+=head3 C<$PDL::toolongtoprint>
+
+=over 4
+
+The maximal size pdls to print (defaults to 10000 elements)
+
+=back
+
 =head1 FUNCTIONS
 
 =cut
@@ -132,8 +185,8 @@ $PDL::verbose      = 0;
 $PDL::use_commas   = 0;        # Whether to insert commas when printing arrays
 $PDL::floatformat  = "%7g";    # Default print format for long numbers
 $PDL::doubleformat = "%10.8g";
-$PDL::undefval     = 0;        # Value to use instead of undef when creating
-                               # PDLs
+$PDL::undefval     = 0;        # Value to use instead of undef when creating PDLs
+$PDL::toolongtoprint = 10000;  # maximum pdl size to stringify for printing
 
 ################ Exportable functions of the Core ######################
 
@@ -2363,7 +2416,7 @@ sub PDL::string {
 		}
 		local $PDL::_STRINGIZING = 1;
 		my $ndims = $self->getndims;
-		if($self->nelem > 10000) {
+		if($self->nelem > $PDL::toolongtoprint) {
 			return "TOO LONG TO PRINT";
 		}
 		if ($ndims==0) {

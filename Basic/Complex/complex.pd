@@ -952,7 +952,7 @@ sub cd(;@) {
       }
       local $PDL::Complex::_STRINGIZING = 1;
       my $ndims = $self->getndims;
-      if($self->nelem > 10000) {
+      if($self->nelem > $PDL::toolongtoprint) {
          return "TOO LONG TO PRINT";
       }
       if ($ndims==0){
