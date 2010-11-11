@@ -536,7 +536,7 @@ sub mapflex {
     # reference to header array
     my ($h, $size);
     # reference to options array, with defaults
-    my (%opts) = ( 'ReadOnly' => 1, 'Creat' => 0, 'Trunc' => 0 );
+    my (%opts) = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
 
     my ($hdr, $pdl, $len, @out, $chunk, $chunkread);
     local ($offset) = 0;
