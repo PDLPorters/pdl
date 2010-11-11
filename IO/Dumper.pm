@@ -153,7 +153,7 @@ sub PDL::IO::Dumper::sdump {
   my($s) = Data::Dumper->Dump([@_]);
   my(%pdls);
 # Find the bless(...,'PDL') lines
-  while($s =~ s/bless\( do\{\\\(my \$o \= (-?\d+)\)\}\, \'PDL\' \)/sprintf('$PDL_%u',$1)/e) {
+  while($s =~ s/bless\( do\{\\\(my \$o \= '?(-?\d+)'?\)\}\, \'PDL\' \)/sprintf('$PDL_%u',$1)/e) {
     $pdls{$1}++;
   }
 
