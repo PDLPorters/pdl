@@ -70,11 +70,13 @@ SKIP: {
 
       # **TEST 7** test creating a pdl via mapfraw
       # First create and modify the piddle
-      $header = [{Dims => [3,2], Type => 'double'}];
+      $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
       # Fix this specification.
       $a = mapflex($name, $header, {Creat => 1});
+      writeflexhdr($name, $header);
       ok(defined($a), 'mapflex create piddle');
-      skip('no mapflex piddle to check', 2);
+
+      skip('no mapflex piddle to check', 2) unless defined $a;
       $a += xvals $a;
       $a += 0.1 * yvals $a;
       # save the contents

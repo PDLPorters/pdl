@@ -647,6 +647,8 @@ set_data_by_offset(it,orig,offset)
       CODE:
               pdl_freedata(it);
               it->data = ((char *) orig->data) + offset;
+	      it->datasv = orig->sv;
+              SvREFCNT_inc(it->datasv);
               it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
               RETVAL = 1;
       OUTPUT:

@@ -538,7 +538,7 @@ sub mapflex {
     # reference to options array, with defaults
     my (%opts) = ( 'ReadOnly' => 0, 'Creat' => 0, 'Trunc' => 0 );
 
-    my ($hdr, $pdl, $len, @out, $chunk, $chunkread);
+    my ($hdr, $d, $pdl, $len, @out, $chunk, $chunkread);
     local ($offset) = 0;
     my ($newfile, $swapbyte, $f77mode, $zipt) = (1,0,0,0);
 
@@ -619,7 +619,7 @@ READ:
 				unless defined $flextypes{$type};
 			$type = $flextypes{$type};
 		}
-		$pdl = PDL->zeroes ((new PDL::Type($type)),
+		my $pdl = PDL->zeroes ((new PDL::Type($type)),
 					ref $hdr->{Dims} ? @{$hdr->{Dims}} : $hdr->{Dims});
 		$len = length $ {$pdl->get_dataref};
 
