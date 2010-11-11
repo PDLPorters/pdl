@@ -44,51 +44,52 @@ SKIP: {
    # should not be run on Windows
    skip( 'no mmap support on win32 (yet?)', 5) if ($^O =~ /win32/i);
 
+   # **TEST 5** compare mapfraw piddle with original piddle	
+   my $c = mapflex($name);
+   ok(all(approx($a,$c)), "A piddle and it's mapflex representation should be about equal");
+
+   # **TEST 6** modifications should be saved when $c goes out of scope
+   # THIS TEST FAILS.
+   # This failure is recorded in sf.net bug 3031068.
+   # Presently, making $c go out of scope does not free the memory
+   # mapping associated with mapflex, so this modification is never
+   # saved to the file (or at least it's not saved immediately).
+   $c += 1;
+   undef $c;
+   $b = readflex($name);
+   ok(all(approx($a+1,$b)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
+
+   # We're starting a new test, so we'll remove the files we've created so far
+   # and clean up the memory, just to be super-safe
+   unlink $name, $name . '.hdr';
+   undef $a;
+   undef $b;
+
+   # **TEST 7** test creating a pdl via mapfraw
+   # First create and modify the piddle
+   $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
+   # Fix this specification.
+   $a = mapflex($name, $header, {Creat => 1});
+   writeflexhdr($name, $header);
+   ok(defined($a), 'mapflex create piddle');
+
+   skip('no mapflex piddle to check', 2) unless defined $a;
+   $a += xvals $a;
+   $a += 0.1 * yvals $a;
+   # save the contents
+   undef $a;
+   # Load it back up and see if the values are what we expect
+   $b = readflex($name);
+   # **TEST 8**
+   ok(all(approx($b, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
+      "mapfraw should be able to create new piddles");
+
+   # **TEST 9** test the created type
+   ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
+
    TODO: {
       local $TODO = 'Known_problems sf.net bug #3031068';  # Don't fail; ticket not assigned
 
-      # **TEST 5** compare mapfraw piddle with original piddle	
-      my $c = mapflex($name);
-      ok(all(approx($a,$c)), "A piddle and it's mapflex representation should be about equal");
-
-      # **TEST 6** modifications should be saved when $c goes out of scope
-      # THIS TEST FAILS.
-      # This failure is recorded in sf.net bug 3031068.
-      # Presently, making $c go out of scope does not free the memory
-      # mapping associated with mapflex, so this modification is never
-      # saved to the file (or at least it's not saved immediately).
-      $c += 1;
-      undef $c;
-      $b = readflex($name);
-      ok(all(approx($a+1,$b)), "Modifications to mapfraw should be saved to disk no later than when the piddle ceases to exist");
-
-      # We're starting a new test, so we'll remove the files we've created so far
-      # and clean up the memory, just to be super-safe
-      unlink $name, $name . '.hdr';
-      undef $a;
-      undef $b;
-
-      # **TEST 7** test creating a pdl via mapfraw
-      # First create and modify the piddle
-      $header = [{NDims => 2, Dims => [3,2], Type => 'float'}];
-      # Fix this specification.
-      $a = mapflex($name, $header, {Creat => 1});
-      writeflexhdr($name, $header);
-      ok(defined($a), 'mapflex create piddle');
-
-      skip('no mapflex piddle to check', 2) unless defined $a;
-      $a += xvals $a;
-      $a += 0.1 * yvals $a;
-      # save the contents
-      undef $a;
-      # Load it back up and see if the values are what we expect
-      $b = readflex($name);
-      # **TEST 8**
-      ok(all(approx($b, PDL->pdl([[0,1,2],[0.1,1.1,2.1]]))),
-         "mapfraw should be able to create new piddles");
-
-      # **TEST 9** test the created type
-      ok($b->type->[0] == (&float)->[0], 'type should be of the type we specified (float)');
    }
 }
 
