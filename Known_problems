@@ -89,7 +89,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_005 release:
+  PDL-2.4.7_006 release:
 
   3080505    PLplot segfaults on plshades call on OS X
   3059083    Problems with FITS header handling
@@ -97,10 +97,15 @@ The following issues have been reported with this version of PDL:
   3056142    pdl2 fallback to perldl broken on win32
   3042201    t/dumper.t fails mysteriously
 
+               Possibly fixed...
+
                NOTE: NetBSD and Dragonfly BSD systems
 	       report this failure.
 
   3031068    PDL::IO::FlexRaw mapflex memory mapping fails
+
+               Possibly fixed...
+
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
