@@ -95,7 +95,11 @@ SKIP: {
 
    # Check EQC map against reference:
    my $eqc_opts = "+proj=eqc +lon_0=0";
-   my $eqc = $map->map( t_proj( proj_params => $eqc_opts ), $map_size );
+   my $eqc = eval '$map->map( t_proj( proj_params => $eqc_opts ), $map_size )';
+   if (! defined($eqc)) {
+      diag("PROJ4 error: $@\n");
+      skip "Possible bad PROJ4 install",20 if $@ =~ m/Projection initialization failed/;
+   }
    foreach my $i ( 0 .. $#slices )
    {
       my $str = $slices[$i];
