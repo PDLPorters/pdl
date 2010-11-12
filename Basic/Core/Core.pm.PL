@@ -1499,9 +1499,9 @@ my %info = (
 		  Name => 'Mem',
 		  Sub => sub { my ($size,$unit) = ($_[0]->allocated ?
 						   $_[0]->nelem*
-                      PDL::howbig($_[0]->get_datatype)/1024 : 0, 'Kb');
+                      PDL::howbig($_[0]->get_datatype)/1024 : 0, 'KB');
 			       if ($size > 0.01*1024) { $size /= 1024;
-							$unit = 'Mb' };
+							$unit = 'MB' };
 			       return sprintf "%6.2f%s",$size,$unit;
 			     },
 		 },
