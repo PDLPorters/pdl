@@ -47,8 +47,8 @@ SKIP: {
    my ( $s, $a );
 
    eval '$s = sdump({a=>3,b=>pdl(4),c=>xvals(3,3),d=>xvals(4,4)});';
-   ok(!$@, 'Call sdump()');
-   diag("Call sdump() output string:\n$s\n");
+   ok(!$@, 'Call sdump()')
+      or diag("Call sdump() output string:\n$s\n");
    $a = eval $s;
    ok(!$@, 'Can eval dumped data code') or diag("The output string was '$s'\n");
    ok(ref $a eq 'HASH', 'HASH was restored');
