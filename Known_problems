@@ -18,23 +18,10 @@ The following issues have been reported with this version of PDL:
   100% effective---but ugly.
 
 
-- PDL::IO::Dumper sdump() fails for some system configurations.
-  Problems have been reported for various BSD platforms.  Please
-  use PDL::IO::Storable if you have this problem *and* let the
-  PDL developer know (Bonus points if you can work with us to
-  debug this problem---which has only languished because we don't
-  have the ability to create the bug to fix it...).  Thanks.
-
-
 - On Strawberry Perl and ActiveState Perl: the pdl2 fallback to
   perldl is broken due to win32 issues.  If you don't have
-  Devel::REPL you'll need to run perldl directly.
-  
-  NOTE: If you do get stuck in the pdl2 shell, just type
-  quit<Enter>quit<Enter> which issues the quit command to both
-  the pdl2-now-perldl shell and the CMD shell.  You'll need to
-  call perldl explicitly for now (or install Devel::REPL
-  and Term::ReadLine::Perl to use the new pdl2 goodness...).
+  Devel::REPL you'll need to run perldl directly.  pdl2 will
+  warn you if you try to run it with those perls.
 
 
 - The demo 3d and 3d2 windows do not close (can not be closed)
@@ -59,7 +46,7 @@ The following issues have been reported with this version of PDL:
   'perl Makefile.PL' stage now checks for this and asks if you
   wish to continue.
   
-  Usually, continuing with another PDL in the path will work
+  *Usually* continuing with another PDL in the path will work
   BUT if you get mysterious test failures, try removing the
   previous PDL install files and build again.
 

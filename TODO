@@ -1,19 +1,20 @@
 What follows is that task list and description of
-the work planned for the upcoming PDL-2.4.7 release.
+the work planned for the future  PDL-2.4.x releases.
 
-The main goal for this release is to have a baseline
-PDL working on *all* PDL OS platforms: win32, macosx,
-and linux/unix/bsd systems with support for 2D (via
-PLplot) and 3D (via OpenGL/TriD) graphics.
+The main goal we are working towards is to have a
+baseline PDL working on *all* PDL OS platforms:
+win32, macosx, and linux/unix/bsd systems with
+support for 2D graphics (via PLplot) and 3D graphics
+(via OpenGL/TriD).
 
 +-------------------------------------------------------+
-|            Candidates for PDL-2.4.8                   |
+|      Candidate Tasks for PDL-2.4.x Development        |
 +-------------------------------------------------------+
 
    This section documents the top level tasks from
    the more detailed list below.  The first column
    of the line indicates the priority of that item
-   (and those below it) for the PDL-2.4.7 release:
+   (and those below it) for the PDL-2.4.x release:
 
      T -- TBD
      R -- required for release to occur
