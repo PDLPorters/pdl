@@ -36,6 +36,10 @@ Highlights:
  * Added new global setting to control maximum PDL print size,
    $PDL::toobigtoprint, and added POD to Core.pm.PL covering
    these important PDL package variables.
+
+ * Fixed SF bug #3057542: wmpeg doesn't error on missing ffmpeg.
+   Now wmpeg returns 1 on success and undef on error.  If ffmpeg
+   is not in PATH, just fail immediately....
  
 
 
