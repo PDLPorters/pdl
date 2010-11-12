@@ -728,6 +728,13 @@ sub PDL::wmpeg {
    'or $pdl->wmpeg($filename)' if $#_ != 1;
 
    my ($pdl,$file) = @_;
+
+   # return undef if no ffmpeg in path
+   if (! inpath('ffmpeg')) {
+      warn("wmpeg: ffmpeg not found in PATH");
+      return;
+   }
+
    my @Dims = $pdl->dims;
    # too strict in general but alright for the moment
    # especially restriction to byte will have to be relaxed
@@ -767,6 +774,7 @@ sub PDL::wmpeg {
    close MPEG;
 
    # rm tmpdir and files if needed
+   return 1;
 }
 
 
