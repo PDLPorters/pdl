@@ -9,6 +9,7 @@ PDL::IO::FlexRaw -- A flexible binary i/o format for PerlDL.
 
         # To obtain the header for reading (if multiple files use the
         # same header, for example):
+        #
         $hdr = PDL::IO::FlexRaw::_read_flexhdr("filename.hdr")
 
         ($x,$y,...) = readflex("filename" [, $hdr])
@@ -16,6 +17,12 @@ PDL::IO::FlexRaw -- A flexible binary i/o format for PerlDL.
 
         $hdr = writeflex($file, $pdl1, $pdl2,...)
         writeflexhdr($file, $hdr)
+
+        # if $PDL::FlexRaw::writeflexhdr is true and
+        #    $file is a filename, writeflexhdr() is called automatically
+        #
+        $hdr = writeflex($file, $pdl1, $pdl2,...)  # or
+        writeflex($file, $pdl1, $pdl2,...)
 
 =head1 DESCRIPTION
 
@@ -104,12 +111,15 @@ to a single file -- e.g.
 	$hdr = writeflex("fname",@pdls);
 	@pdl2 = readflex("fname",$hdr);
 
-	writeflexhdr("fname",$hdr);
+	writeflexhdr("fname",$hdr);  # not needed if $PDL::FlexRaw::writeflexhdr is set
 	@pdl3 = readflex("fname");
 
 -- writeflex produces the data file and returns the file header as an
 anonymous hash, which can be written to a .hdr file using
-writeflexhdr.
+writeflexhdr.  If the package variable C<$PDL::FlexRaw::writeflexhdr>
+is true, and the C<writeflex> call was with a I<filename> and not
+a handle, C<writeflexhdr> will be called automatically (as done by
+C<writefraw>.
 
 The reading of compressed data is switched on automatically if the
 filename requested ends in .gz or .Z, or if the originally specified
@@ -199,7 +209,11 @@ Read a binary file with flexible format specification
 
   $hdr = writeflex($file, $pdl1, $pdl2,...)
   $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
-  writeflexhdr($file, $hdr)  # you must call writeflexhdr
+  writeflexhdr($file, $hdr)         # you *must* call writeflexhdr
+
+  $PDL::FlexRaw::writeflexhdr = 1;  # so don't have to call writeflexhdr
+  $hdr = writeflex($file, $pdl1, $pdl2,...)  # $file must be filename
+  writeflex($file, $pdl1, $pdl2,...)         # $file must be filename
 
 =head2 writeflexhdr
 
@@ -305,6 +319,7 @@ use PDL::IO::Misc qw(bswap2 bswap4 bswap8);
 # );
 
 $PDL::FlexRaw::verbose = 0;
+$PDL::FlexRaw::writeflexhdr = defined($PDL::FlexRaw::writeflexhdr) ? $PDL::FlexRaw::writeflexhdr : 0;
 
 sub _read_flexhdr {
     my ($hname) = @_;
@@ -641,7 +656,7 @@ READ:
 			$chunkread = 0;
 			my ($check) = $chunk->copy;
 			&mapchunk($d,$check,4,$name) or last READ;
-			if ($ops{Creat}) {
+			if ($opts{Creat}) {
 				$check->set(0,$size-8);
 				} else {
 				if ($check->at ne $chunk->at) {
@@ -657,33 +672,44 @@ READ:
 }
 
 sub writeflex {
-    my $usage = 'Usage writeflex("filename"|FILEHANDLE,$pdl,...)';
-    barf $usage if $#_<0;
-    my($name) = shift; my (@ret);
-    my $d;
+   my $usage = 'Usage $hdr = writeflex("filename"|FILEHANDLE,$pdl,...)';
+   barf $usage if $#_<0;
+   my($name) = shift;
+   my $isname = 0;
+   my $hdr;
+   my $d;
 
-    # Test if $name is a file handle
-    if (defined fileno($name)) {
-	$d = $name;
-	binmode $d;
-    }
-    else {
-	barf $usage if ref $name;
-	$d = new FileHandle ">$name"
-	or barf "Couldn't open '$name' for writing";
-    binmode $d;
-    }
-    foreach $pdl (@_) {
-	barf $usage if ! ref $pdl;
-	# print join(' ',$pdl->getndims,$pdl->dims),"\n";
-	push @ret, {
-	    Type => $flexnames{$pdl->get_datatype},
-	    Dims => [ $pdl->dims ],
-	    NDims => $pdl->getndims
-	    };
-	print $d $ {$pdl->get_dataref};
-    }
-    return \@ret;
+   # Test if $name is a file handle
+   if (defined fileno($name)) {
+      $d = $name;
+      binmode $d;
+   }
+   else {
+      barf $usage if ref $name;
+      $isname = 1;
+      $d = new FileHandle ">$name"
+         or barf "Couldn't open '$name' for writing";
+      binmode $d;
+   }
+   foreach $pdl (@_) {
+      barf $usage if ! ref $pdl;
+      # print join(' ',$pdl->getndims,$pdl->dims),"\n";
+      push @{$hdr}, {
+         Type => $flexnames{$pdl->get_datatype},
+         Dims => [ $pdl->dims ],
+         NDims => $pdl->getndims
+      };
+      print $d $ {$pdl->get_dataref};
+   }
+   if (defined wantarray) {
+      # list or scalar context
+      writeflexhdr($name, $hdr) if $isname and $PDL::FlexRaw::writeflexhdr;
+      return $hdr;
+   } else {
+      # void context so write header file
+      writeflexhdr($name, $hdr) if $isname;
+      return;
+   }
 }
 
 sub writeflexhdr {
