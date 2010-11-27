@@ -20,13 +20,10 @@ BEGIN {
    my $minversion = "1.003011";
    eval " use Devel::REPL $minversion ";
    if ($@) {
-      if ($^O eq 'MSWin32') {
-         warn "pdl2: Devel::REPL version $minversion not found, please run perldl instead.\n";
-      } else {
-         warn "pdl2: Devel::REPL version $minversion not found, running perldl instead...\n";
-         exec 'perldl';
-      }
-      exit 0;
+      my ($perldl) = $0;
+      $perldl =~ s/pdl2$/perldl/;
+      warn "pdl2: Devel::REPL version $minversion not found, running perldl instead...\n";
+      do $perldl;
    }
 }
 
