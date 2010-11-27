@@ -399,10 +399,15 @@ Create histogram of a piddle
 
 =for usage
 
- $hist = hist($data,[$min,$max,$step]);
+ $hist = hist($data);
+ ($xvals,$hist) = hist($data);
+ 
+or
+
+ $hist = hist($data,$min,$max,$step);
  ($xvals,$hist) = hist($data,[$min,$max,$step]);
 
-If requested, C<$xvals> gives the computed bin centres
+If C<hist> is run in list context, C<$xvals> gives the computed bin centres
 
 A nice idiom (with 
 L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
@@ -420,7 +425,13 @@ L<PDL::Graphics::PGPLOT|PDL::Graphics::PGPLOT>) is
 =cut
 
 sub PDL::hist {
-    barf('Usage: ([$xvals],$hist) = hist($data,[$min,$max,$step])') if $#_<0;
+
+    my $usage = "\n" . '  Usage:          $hist  = hist($data)' . "\n" .
+                       '                  $hist  = hist($data,$min,$max,$step)' . "\n" .
+                       '          ($xvals,$hist) = hist($data)' . "\n" .
+                       '          ($xvals,$hist) = hist($data,$min,$max,$step)' . "\n" ;
+    barf($usage) if $#_<0;
+
     my($pdl,$min,$max,$step)=@_;
     my $xvals;
 
