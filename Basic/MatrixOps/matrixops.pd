@@ -234,10 +234,7 @@ in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
 
 C<inv> uses lu_decomp by default; that is a numerically stable
-(pivoting) LU decomposition method.  If you ask it to thread then a
-numerically unstable (non-pivoting) method is used instead, so avoid
-threading over collections of large (say, more than 4x4) or
-near-singular matrices unless precision is not important.
+(pivoting) LU decomposition method.
 
 
 OPTIONS:
@@ -248,9 +245,7 @@ OPTIONS:
 
 Boolean value indicating whether to complain if the matrix is singular.  If
 this is false, singular matrices cause inverse to barf.  If it is true, then 
-singular matrices cause inverse to return undef.  In the threading case, no 
-checking for singularity is performed, if any of the matrices in your threaded 
-collection are singular, they receive NaN entries.
+singular matrices cause inverse to return undef.
 
 =item * lu (I/O)
 
@@ -341,16 +336,6 @@ is zero!).  The LU decomposition is cacheable, in case you want to
 re-use it.  This method of determinant finding is more rapid than
 recursive-descent on large matrices, and if you reuse the LU
 decomposition it's essentially free.
-
-If you ask det to thread (by giving it a 3-D or higher dim piddle)
-then L<lu_decomp|lu_decomp> drops you through to
-L<lu_decomp2|lu_decomp2>, which is numerically unstable (and hence not
-useful for very large matrices) but quite fast.
-
-If you want to use threading on a matrix that's less than, say, 10x10,
-and might be near singular, then you might want to use
-L<determinant|determinant>, which is a more robust (but slower)
-determinant finder, instead.
 
 OPTIONS:
 
@@ -857,14 +842,6 @@ from I<Numerical Recipes>. The partial pivoting keeps it
 numerically stable but means a little more overhead from
 threading.
 
-If you have a few matrices to decompose accurately, you
-should use lu_decomp, but if you have a million matrices
-to decompose and don't mind a higher error budget and/or
-numerical failure of the calculation, you may wish to try
-L<lu_decomp2|lu_decomp2>, which doesn't do any pivoting
-(and hence gives wrong answers for near-singular or large
-matrices), but does thread faster.
-
 lu_decomp decomposes the input matrix into matrices L and
 U such that LU = A, L is a subdiagonal matrix, and U is a
 superdiagonal matrix. By convention, the diagonal of L is
@@ -896,10 +873,14 @@ can't be inverted).
 
 lu_decomp uses pivoting, which rearranges the values in the
 matrix for more numerical stability. This makes it really
-good for large and even near-singular matrices. Again, if
-you have a LOT of small matrices to invert (like, say, a
-3x3x1000000 PDL) you should use L<lu_decomp2>, which doesn't
-pivot and is therefore faster (and, of course, works in-place).
+good for large and even near-singular matrices. There is
+a non-pivoting version L<lu_decomp2> available which is
+from 5 to 60 percent faster for typical problems at
+the expense of failing to compute a result in some cases.
+
+Now that the L<lu_decomp> is threaded, it is the
+recommended method although L<lu_decomp2> remains
+for back compatibility.
 
 lu_decomp is ported from _Numerical_Recipes to PDL. It
 should probably be implemented in C.
@@ -1046,7 +1027,7 @@ LU decompose a matrix, with no row permutation (threadable!)
 
 =for description
 
-C<lu_decomp2> works just like L<lu_decomp|lu_decomp>, but it does no
+C<lu_decomp2> works just like L<lu_decomp|lu_decomp>, but it does B<no>
 pivoting at all and hence can be usefully threaded.  For compatibility
 with L<lu_decomp|lu_decomp>, it will give you a permutation list and a parity
 scalar if you ask for them -- but they are always trivial.
@@ -1056,8 +1037,10 @@ that means it is less precise than L<lu_decomp>, particularly for
 large or near-singular matrices.  There are also specific types of 
 non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
 which is a 90 degree rotation matrix but which confuses lu_decomp2).
+
 On the other hand, if you want to invert rapidly a few hundred thousand
 small matrices and don't mind missing one or two, it's just the ticket.
+It can be up to 2X faster at the expense of a decomposition failure.
 
 The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
