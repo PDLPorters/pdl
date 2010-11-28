@@ -230,10 +230,6 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   possible to implement some tests of the interactive shell
   from file input.
 
-  Add documentation to Perldl2 plugins and profiles and improve
-  the usage for PrintControl so one doesn't have to explicitly
-  type in the $_REPL->do_print($val) command.
- 
   It would be nice if variable completion followed by a
   method call would collapse the extra space.  E.g.,
   the first <TAB> in line#1 completes to the $_REPL varible

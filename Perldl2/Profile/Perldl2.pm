@@ -160,6 +160,10 @@ EOD
 
    } } );
 
+   if ($repl->can('do_print')) {
+      $repl->eval('sub do_print { $_REPL->do_print(@_) };');
+   }
+
    if ($repl->can('exit_repl')) {
       $repl->eval('sub quit { $_REPL->exit_repl(1) };');
    } else {

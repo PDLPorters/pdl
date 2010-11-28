@@ -73,6 +73,9 @@ This is a convenience accessor for the print_by_default attribute.
 If you call this method without a value, it toggles the current
 setting.  Otherwise, it just sets print_by_default to the value.
 
+It is also available in the C<pdl2> shell as the do_print sub
+with the same operation but with an implicit use of C<$_REPL>.
+
 =head1 SEE ALSO
 
 C<Devel::REPL>
