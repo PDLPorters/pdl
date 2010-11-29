@@ -26,8 +26,32 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added do_print command to pdl2 shell which toggles the
+   input mode between printing and not printing the value
+   of each command.
+
+ * Cleaned up documentation on when to use lu_decomp and
+   lu_decomp2.  Now that lu_decomp is threaded, it is the
+   preferred implementation.
  
+ * pdldoc and the pdl2/perldl help commands now print
+   all matches by default when multiple matches are
+   found.  It is easier to use the pager than to re-enter
+   the help command with a [$n] on it.
+ 
+ * Fixed SF bug #3056142: pdl2 fallback to perldl broken on win32
+
+ * Fixed documentation for the PDL::hist routine where
+   use of the unix man convention of []'s around optional
+   arguements was confusing in PDL since [] are valid
+   perl delimiters/constructs.
+ 
+ * writeflex now supports automatically calling the
+   writeflexhdr routine if you have set the variable
+   $PDL::FlexRaw::writeflexhdr to a true value.
+ 
+ * Use standard abbreviations for piddle info output
+   for sizes (KB and MB rather than Kb and Mb).
 
 
 
