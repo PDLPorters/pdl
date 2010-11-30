@@ -1,3 +1,14 @@
+use lib qw(inc);
+use Devel::CheckLib;
+
+# Prompt the user here for any paths and other configuration
+
+check_lib_or_exit(
+    # fill in what you prompted the user for here
+    lib => [qw()]
+);
+
+
 # Build the whole PDL distribtuion
 
 use 5.008_000;      # explicitly require 5.8.x or above

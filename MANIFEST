@@ -1,3 +1,4 @@
+inc/Devel/CheckLib.pm
 BUGS
 Basic/AutoLoader.pm
 Basic/Bad/Makefile.PL
