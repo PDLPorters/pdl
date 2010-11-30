@@ -1,65 +1,61 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 26 Oct 2010 05:36:48 PM 
+Last saved: Tue 30 Nov 2010 10:38:31 AM 
 
 
 +-------------------------------------------------------------------+
 |               TODO for Missing Perldl Functionality               |
 +-------------------------------------------------------------------+
 
-  NOTE: Colors plugin will only work with the default
-  do_print() routine and not the default PDL one.  It
-  would be nice to add support for that to the PDL
-  formatted display output.
+  Set readline_name to 'PDL Shell' instead of the
+  default 'Perl REPL' but need to figure how to do
+  so first.
 
-  Add enhanced filter support to removed leading prompt
+  Add Colors plugin support to the pdl2 p command.
+
+  Add enhanced filter support to remove leading prompt
   strings (or other text) from input lines.  Need to be
-  able to toggle feature on/off and set regexp used.
+  able to toggle on/off and set the regexp used.
 
-  Fix history so that only the prefix-stripped line is
-  entered rather than the original raw text as pasted.
+  Fix history line saves so that only the prefix-stripped
+  text is entered rather than the original pasted text.
 
-  Allow Ctrl-C to interrupt a line but keep the entry in
-  history for edit...
+  Allow Ctrl-C to interrupt a line but keep the entry
+  in history for edit...
 
   Implement ^C/^D to end PPI multiline if it makes sense.
-  E.g., make sure that Ctrl-C can exit an incomplete block.
-  Right now it does nothing until you close the construct.
-  Need to see about implementing the Ctrl-D option to close
-  all blocks as well.  It would be nice to have the prompt
-  display the matching delims as in perldl.
+  E.g., make sure that Ctrl-C can exit an incomplete
+  block.  Right now ^C does not interrupt a multiline
+  entry.  Need to see about implementing the Ctrl-D option
+  to close all blocks as well.  It would be nice to have
+  the prompt display the matching delims as in perldl.
 
-  It would be nice to have blink to matching paren or
-  maybe even color highlight matching delimiters so you
-  can more easily parse multi-level brace/paren/bracket
-  constructs.
+  Add "blink to matching delimiter" for input or even
+  color highlight matching delimiters
 
   Fix Term::ReadLine::Perl completion in win32 to use
-  the appropriate path separator character.  It appears to
-  use / which is fine inside perl but not for system command
-  escapes.  Need to recognize the two cases.  Maybe we can
-  autoquote the paths when using backslashes.
+  the appropriate path separator character.  It appears
+  to use / which is fine inside perl but not for system
+  command escapes.  Need to detect the two cases.  Maybe
+  we could autoquote the paths when using backslashes.
 
-    Does Term::ReadLine::Perl completion support auto-
-    quoting and closing delimiters as does TR::Gnu?
+  Add auto-quoting/close quotes to Term::ReadLine::Perl
+  expansion as does Term::ReadLine::Gnu.
 
-  Fix Term::ReadLine::Perl completion not to append identifier
-  characters on filenames inserted:  e.g. it is ok to list
-  file.exe* in the list completions part but the insert part
-  should just insert file.exe...
+  Fix Term::ReadLine::Perl completion to not append
+  identifier characters on the inserted filenames:
+  e.g. it is ok to list file.exe* in the possible
+  completions part but the result should only insert
+  file.exe (the actual file name).
 
-  Fix PDL::AutoLoader expansion to work for PDLLIB environment
-  variable using win32 syntax and make sure TAB expansion for
-  paths work for win32 paths as well (Status: The PDLLIB expansion
-  is fixed but not the TAB expansion of the paths in the shell).
+  Fix Term::ReadLine::Perl TAB expansion for paths to work
+  with win32 paths (i.e. backslashes).
 
   Add <TAB> expansion to the pdl2 help/? command.
 
-  Track pdl2 session variables for PDL, including: vars (global
-  and lexical), subs that were defined, modules loaded, and
-  plugins for the REPL.  It should be possible to <TAB>
-  complete for these (the current default is perl keyword
-  expansion---good in general but not as helpful as possible
-  for PDL users).
+  Track pdl2 session variables for PDL, including: vars
+  (global and lexical), subs that were defined, modules
+  loaded, and plugins for the REPL.  It should be possible
+  to <TAB> complete for these.
 
   Add tracking and expansion for PGPLOT or PLplot windows for
   reference.  (In PGPLOT there is a Window Name property and
@@ -67,46 +63,34 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   it).  It would be nice to have a list/table of currently
   active figures.  (What about PLplot window names/IDs?)
 
-  IDEA: Associate metadata with image or figure windows.
-        This could include the commands that generated
-	the figure, etc.
+  IDEA: Associate metadata with image or figure windows
+  (e.g., the commands that generated the figure).
 
   Add SIGINT handler for pdl2 for win32.  Also need to add
-  feature to ignore EOF to the read routine (around read modifier
-  should work here---need to decide where to put it)
+  feature to ignore EOF to the read routine (around read
+  modifier should work here---need to decide where to put it)
 
   Investigate why Ctrl-L on win32 is issuing a 'clear' command.
-  ANSWER: readline.pm from Term::ReadLine::Perl is using `clear`
-    to determine the escape sequence to clear the screen.  This
-    doesn't work on win32 since there is no clear command and
-    the console does not support ANSI escape sequences.  Plan
-    to fix by calling the DOS cls command to clear the screen
-    or using Win32::Console and Win32::Console::ANSI to implement
-    the missing ANSI support.  Need to implement a routine
-    readline::F_ClearScreen() to override the default function
-    for win32 systems.  This could also work with Win32::Console::ANSI
-    support.
 
-  Implement PDL shell startup boot messages, i.e.,
-    perlDL shell v1.354
-     PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
-     'COPYING' in the PDL distribution. This is free software and you
-     are welcome to redistribute it under certain conditions, see
-     the same file for details.
-    ReadLines, NiceSlice, MultiLines  enabled
-    Reading /g/chm/.perldlrc...
-    Found docs database /cygdrive/c/local/pmods/lib-w-pdl/cygwin-thread-multi-64int/PDL/pdldoc.db
-    Type 'help' for online help
-    Type 'demo' for online demos
-    Loaded PDL v2.4.7 (supports bad values)
+    ANSWER: readline.pm from Term::ReadLine::Perl is doing a
+    qx{clear) to determine the escape sequence to clear the
+    screen.  This doesn't work on win32 since there is no clear
+    command and the console does not support ANSI escape
+    sequences.
+    
+    Plan to fix by calling the DOS cls command to clear the
+    screen or by using Win32::Console and Win32::Console::ANSI
+    to implement the missing ANSI support.  Need to implement
+    a routine readline::F_ClearScreen() to override the default
+    function for win32 systems.
 
   Add runtime PDL module load list so you know what has been
-  loaded with use/require.  Maybe as simple as a configuration
-  variable in PDL::Config that is set on compile from each.
-  What about pop-up info window using curses or an actual
-  window if in a graphical environment?
+  loaded with use/require.  Maybe a pop-up info window would
+  work here (curses based or GUI based).  Maybe there could
+  be a runtime list/variable in PDL::Config that is updated
+  as each module is loaded.
  
-  Review and integrate PERLDL::XX parameters.  Some are not
+  Review and integrate $PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
   with the new framework.
  
@@ -121,18 +105,16 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
    -w          run with warning messages turned-on 
    -           Following arguments are files for input.
  
-  Add @PERLDL::AUTO processing to the PDLCommands plugin.  Should
-  be able to just run the code after the line is read but before
-  it is eval'd.
+  Add @PERLDL::AUTO processing to the PDLCommands plugin.
+  Should be able to just run the code after the line is read
+  but before it is eval'd.
  
   Add ability to run $PERLDL::PROMPT if it is a code reference
-  and not a string.  Just use same logic as in perldl but set
+  and not a string.  Use the same logic as in perldl but set
   the prompt with the $_REPL->prompt(&$code) instead of using
   $_REPL->prompt($string).
 
-  Implement support for @PERLDL::PREPROCESS filters.  No support
-  for the deprecated $PERLDL::PREPROCESS implementation will be
-  provided in pdl2 (only legacy perldl for legacy preprocess).
+  Implement support for @PERLDL::PREPROCESS filters.
  
   Update perldl documentation to match Perldl2 capabilities.
   Any way to transparently select the correct docs at runtime?
@@ -150,7 +132,7 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   not span lines (even with the supposed multiline support
   in Devel::REPL.  Maybe just add check for unterminated
   string to the multiline PPI.  The Text::Balanced
-  implementation of perldl works better.
+  implementation in perldl appears to work better.
  
   Add MultiLine prompt with continuation character marking
   the open structures. (e.g. MultiLine::TextBalanced).
@@ -174,27 +156,21 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   should only be good for completion?
  
   Add !<command>:p support to print history commands and
-  fix the problem where the !<num> command is different then
-  the one actually inserted by History...
+  fix the problem where the !<num> command is different
+  then the one actually inserted by History...
 
-  Add runtime control options for NiceSlice:
-   report
-   trans
-   notrans
+  Add runtime control options for NiceSlice: i.e., report,
+  trans, and notrans
  
-  Add a CompletionDriver for Plugins for load_plugin() as well
-  as the ability to toggle plugins on and off (or at least
-  enable and disable them).  Would it simplify PDL::NiceSlice
-  if the implementation were migrated to Filter::Simple?
+  Add a CompletionDriver for Plugins for load_plugin() as
+  well as the ability to toggle plugins on and off (or at
+  least enable and disable them).  Would it simplify
+  PDL::NiceSlice if the implementation were migrated to
+  Filter::Simple?
 
   Make pdl2 fall back cleanly to a basic Devel::REPL or
   even perldl if requirements to run are not installed.
   (falls back to perldl right now)
-
-  Add perldl -2 switch or some such to indicate to perldl
-  that it is in fallback mode from pdl2.  This would allow
-  for a nice suggestion that they might wish to try installing
-  Devel::REPL for the new features...
 
   Fix glob pattern completion display for shell escapes in
   pdl2 (e.g., file*<TAB><TAB> will list out tab.a tab.b and
@@ -210,25 +186,25 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   
   Fix 'demo 3d' so that it shifts focus to the display window
   at the start and returns focus to the CMD or shell window
-  at then end.  It would be nice not to have to click, click,
-  click to keep things going.
+  at then end.  This shouldn't be needed with GLUT event loop
+  support in readline.
  
   Is there a way to fix the GNU readline where it doesn't
   process the Ctrl-C interrupt until after <Enter> has been
-  typed?  The Perl readline routine doesn't have this problem.
+  typed?  There are some hooks in GNU readline for handling
+  signals that may help here.
 
-  Add option for quiet startup for use when piping to the shell
-  or taking input from a file.
+  Add option for quiet startup for use when piping to the
+  shell or taking input from a file.
 
-  Add INPUT and OUTPUT handle args for PDL shells.  This would be
-  useful to tie the shell into another application, say Padre,
-  or to add tests for the shells.  NOTE: This includes fixing
-  perldl v.1.x not to use STDIN, STDOUT...
+  Add INPUT and OUTPUT handle args for PDL shells.  How do
+  we add this to the default term from Devel::REPL?
+  NOTE: Also need to fix perldl v.1.x not to use STDIN/STDOUT.
  
-  Verify that input from terminal and/or files works correctly
-  and consistently with perldl.  NOTE: this should make it
-  possible to implement some tests of the interactive shell
-  from file input.
+  Verify that input from terminal and/or files works
+  correctly and consistently with perldl.  NOTE: This should
+  make it possible to implement some tests of the interactive
+  shell from file input.
 
   It would be nice if variable completion followed by a
   method call would collapse the extra space.  E.g.,
@@ -247,11 +223,11 @@ Last saved: Tue 26 Oct 2010 05:36:48 PM
   Similarly, we would like the space at the end of line#4
   to be collapsed once a '(' is typed to start the arglist.
 
-  Enhance completion strategy for Perldl2.  For example,
-  order and prioritze completions to remove long lists
-  of bad options.  Allow chained completions recognizing
-  the output of PDL methods is a piddle so completion
-  could chain as well.
+  Enhance completion strategy for Perldl2: (1) sort and
+  prioritze completions to remove long lists of useless
+  options [see completion paper], (2) allow chained PDL method
+  completions by recognizing the output of many (all?) PDL
+  methods is a pdl so we could do method completion again...
  
   Make Perldl2 fail/degrade gracefully if various files and
   configuration stuff is not available.  Lines and lines of
