@@ -117,6 +117,7 @@ Perldl2/   - The PDL shell version 2 source and development
 TestTools/ - Tools for testing PDL
 cygwin/    - Platform specific information
 debian/    - Platform specific information
+inc/       - Local module directory for PDL build process development
 macosx/    - Platform specific information
 t/         - PDL tests directory
 utils/     - Utilities relating to PDL
