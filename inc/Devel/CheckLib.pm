@@ -331,8 +331,9 @@ sub _cleanup_exe {
 }
     
 sub _findcc {
-    my @flags = grep { length } map { quotewords('\s+', 0, $_ || ()) }
-        @Config{qw(ccflags ldflags)};
+    # Need to use $keep=1 to work with MSWin32 backslashes and quotes
+    my @Config_ccflags_ldflags =  @Config{qw(ccflags ldflags)};  # use copy so ASPerl will compile
+    my @flags = grep { length } map { quotewords('\s+', 1, $_ || ()) } @Config_ccflags_ldflags;
     my @paths = split(/$Config{path_sep}/, $ENV{PATH});
     my @cc = split(/\s+/, $Config{cc});
     return (@cc, @flags) if -x $cc[0];
