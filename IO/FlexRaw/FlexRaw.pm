@@ -687,7 +687,8 @@ sub writeflex {
    else {
       barf $usage if ref $name;
       $isname = 1;
-      $d = new FileHandle ">$name"
+      my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
+      $d = new FileHandle $modename
          or barf "Couldn't open '$name' for writing";
       binmode $d;
    }
