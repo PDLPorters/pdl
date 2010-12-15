@@ -26,8 +26,8 @@ $v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
 
 pp_addpm({At => Top}, <<'EOD');
 
-BEGIN {
-$VERSION = '0.52'
+BEGIN { 
+$VERSION = '0.54'
 };
 
 =head1 NAME
@@ -349,6 +349,16 @@ Add a title on top of a plot.
 
  # Plot text on top of plot
  $pl->xyplot ($x, $y, TITLE => 'X vs. Y');
+
+=head3 UNFILLED_BARS
+
+For 'bargraph', if set to true then plot the bars as outlines
+in the current color and not as filled boxes
+
+=for example
+
+ # Plot text on top of plot
+ $pl->bargraph($labels, $values, UNFILLED_BARS => 1);
 
 =head3 VIEWPORT
 
@@ -736,6 +746,9 @@ specifies the maximum number of labels to allow on the X axis.
 The default is 20.  If this value is exceeded, then every other
 label is plotted.  If twice MAXBARLABELS is exceeded, then only
 every third label is printed, and so on.
+
+if UNFILLED_BARS is set to true, then plot the bars as outlines
+and not as filled rectangles.
 
 =for usage
 
@@ -1162,6 +1175,13 @@ sub cc2t { [map {hex} split ' ', shift] }
      my $self = shift;
      my $text = shift;
      $self->{TITLE} = $text;
+   },
+
+   # Specify outline bars for bargraph
+   UNFILLED_BARS => sub {
+     my $self = shift;
+     my $val  = shift;
+     $self->{UNFILLED_BARS} = $val;
    },
 
    # set the location of the plotting window on the page
@@ -1907,7 +1927,11 @@ sub bargraph {
   plwid  ($self->{LINEWIDTH});
 
   # draw bars
-  plfbox (PDL->sequence($xmax)+0.5, $values);
+  if ($self->{UNFILLED_BARS}) {
+    plunfbox (PDL->sequence($xmax)+0.5, $values);
+  } else {
+    plfbox (PDL->sequence($xmax)+0.5, $values);
+  }
 
   # set line width back
   plwid  (0);
@@ -2619,6 +2643,24 @@ pp_def ('plfbox',
                   x[3] = $xo() + 0.5;
                   y[3] = 0.;
                   plfill(4, x, y);',
+        );
+
+#
+## Similar box drawing primitive, but without fill (just draw outline of box)
+#
+pp_def ('plunfbox',
+         Pars => 'xo(); yo()',
+         GenericTypes => [D],
+         Code => 'PLFLT x[4], y[4];
+                  x[0] = $xo() - 0.5;
+                  y[0] = 0.;
+                  x[1] = $xo() - 0.5;
+                  y[1] = $yo();
+                  x[2] = $xo() + 0.5;
+                  y[2] = $yo();
+                  x[3] = $xo() + 0.5;
+                  y[3] = 0.;
+                  plline(4, x, y);',
         );
 
 #

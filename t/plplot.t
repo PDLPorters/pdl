@@ -17,7 +17,7 @@ BEGIN{
       warn "No PLPLOT_LIB env var set - this script will die after the first test if the font files are not found"
         if !$ENV{PLPLOT_LIB};
     }
-    plan tests => 35;
+    plan tests => 36;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -254,9 +254,9 @@ plend1();
 
 ok (-s "test11.$dev" > 0, "Colored symbol plot with key, via low level interface");
 
-ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin, $dev_xmax, $dev_ymin, $dev_ymax)) == 0,
+ok (sum(pdl(0.1, 0.85, 0.1, 0.9) - pdl($dev_xmin->sclr, $dev_xmax->sclr, $dev_ymin->sclr, $dev_ymax->sclr)) == 0,
     "plgvpd call works correctly");
-ok (abs(sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin, $wld_xmax, $wld_ymin, $wld_ymax))) < 0.000001,
+ok (abs(sum(pdl(-0.0001, 10.0001, -0.001, 100.001) - pdl($wld_xmin->sclr, $wld_xmax->sclr, $wld_ymin->sclr, $wld_ymax->sclr))) < 0.000001,
     "plgvpw call works correctly");
 
 # Test shade plotting (low level interface)
@@ -441,6 +441,12 @@ $pl->bargraph(\@labels, 100*random(scalar(@labels)), COLOR => 'GREEN', TEXTPOSIT
 $pl->close;
 ok (-s "test23b.$dev" > 0, "Bar graph part 4");
 
+$pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test23c.$dev");
+@labels = ((map { sprintf ("2001.%03d", $_) } (240..365)), (map { sprintf ("2002.%03d", $_) } (1..100)));
+$pl->bargraph(\@labels, 100*random(scalar(@labels)), UNFILLED_BARS => 1, COLOR => 'GREEN', TEXTPOSITION => ['tv', 0.5, 0.0, 0.0]);
+$pl->close;
+ok (-s "test23c.$dev" > 0, "Bar graph part 5, unfilled boxes");
+
 $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => "test24.$dev");
 $x  = sequence(10);
 $y  = $x**2;
@@ -489,24 +495,20 @@ $pl->stripplots($xs, $ys, PLOTTYPE => 'LINE', TITLE => 'functions',
 $pl->close;
 ok (-s "test26.$dev" > 0, "Multi-color stripplots");
 
-# Test calling plParseOpts with no options
-unless($^O =~ /mswin/i) { # Causes problems on Windows
-  if($pid = fork()) {
-	$a = waitpid($pid,0);
-  } else {
-	sleep 1;
-	plParseOpts ([], PL_PARSE_FULL);
-	exit(0);
-  }
-  ok( ($not_ok = $? & 0xff )==0 , "No segfault calling plParseOpts with no options"  );
+# test opening/closing of more than 100 streams (100 is the max number of plplot streams, close should
+# reuse plplot stream numbers).
+my $count = 0;
+for my $i (1 .. 120) {
+  my $pltfile = "test27.$dev";
+  my $win = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile, PAGESIZE => [300, 300]);
+  $win->xyplot(pdl(0,1), pdl(0,1));
+  # print "Stream = ", plgstrm(), " Stream in object = ", $win->{STREAMNUMBER}, "\n";
+  $win->close();
+  if (-s $pltfile > 0) { $count++; unlink $pltfile }
 }
-else { # MS Windows only
-	my $ret = system("$^X", '-Mblib -MPDL -MPDL::Graphics::PLplot -e "plParseOpts ([], PL_PARSE_FULL)"');
-	ok($ret == 0, "No segfault calling plParseOpts with no options"  );
-}
+ok ($count == 120, "Opening/closing of > 100 streams");
 
 # comment this out for testing!!!
-unlink glob ("test*.$dev");
 
 # stop STDERR redirection and examine output
 

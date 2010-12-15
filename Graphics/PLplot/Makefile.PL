@@ -129,7 +129,8 @@ EOC
 
 unless ($size == 8) {
   print "          Sizeof(PLFLT) must be 8. PLplot must be compiled --with-double (IE ./configure --with-double)\n";
-  $found_plplot = 0;
+  buildDummy ("Cannot find good set of libraries for linking PLplot, try fiddling perldl.conf\n");
+  return if (caller); exit;
 }
 
 # Try linking with library.  New if blocks should be added if necessary
@@ -213,6 +214,21 @@ if ($@) {
   open (OPT, ">>OPTIONS!");
   print OPT "PLPOLY3 = 5\n";
   close OPT;
+}  
+
+# Test if PLplot has the routine plseed, found only in plplot 5.9 svn and later
+eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd",0,<<'EOC');
+#include <plplot.h>
+main () { c_plseed(0);}
+EOC
+};
+if ($@){
+    print "\tc_plseed function not found, plplot versionn 5.9 or earlier!\n";
+    open (OPT,">>OPTIONS!");
+    print OPT "NOPLSEED!\n";
+    close OPT;
+} else {
+    print "\tc_plseed function found, version 5.9 SVN or later!\n";
 }
 
 $PDL::Config{WITH_PLPLOT} = 1;
