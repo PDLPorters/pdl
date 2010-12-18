@@ -528,7 +528,7 @@ sub display_new_window {
    if (! $finished_glutInit ) {
       glutInit() unless OpenGL::done_glutInit();
       glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE);
-      glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+      glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION) if OpenGL::_have_freeglut();
       $finished_glutInit = 1;
    }
    glutInitWindowSize( $window_width, $window_height );
