@@ -26,7 +26,31 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Merged PDL version of Graphics/PLplot with the stand-alone
+   package from CPAN, version 0.53.
+
+ * Fixed segfault in plplot.t by avoiding the problem:  pdl($pdl->sclr).
+   Calls to pdl() with arguments that are themselves PDLs still fails.
+
+ * Fixed sf.net bug #3139697: The imag2d() routine was using
+   FreeGLUT-specific macros: GLUT_ACTION_ON_WINDOW_CLOSE and
+   GLUT_ACTION_CONTINUE_EXECUTION which was a problem on OS X
+   GLUT which does not support them.  Added check for FreeGLUT
+   to conditionalize their use.
+ 
+ * Update PDL::IO::FlexRaw POD for writeflex
+
+ * Add open MODE support to writeflex "filename"
+     
+     writeflex is documented to take as argument either a "filename"
+     or a FILEHANDLE however if passed something like ">filename" as
+     the file argument, it would quietly (and unexpectedly) open the
+     file ">$name" which would then be ">>filename" and the data would
+     be appended to the file rather than overwriting it.
+
+     This modifies the "filename" option to be used explicitly if
+     passed a perl open type MODE+filename expression which might
+     avoid someone's utter confusion in the future...
 
 
 
