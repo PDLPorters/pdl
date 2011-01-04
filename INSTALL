@@ -193,3 +193,8 @@ a bug report (see the BUGS file for directions).
   around for the problem is to 'touch Makefile.PL' which
   updates the file time for Makefile.PL to "now" so make
   runs correctly.
+
+* If you wish to avoid interactive prompts during the PDL
+  configure process (e.g., the perl Makefile.PL stage),
+  you can set the environment variable PERL_MM_USE_DEFAULT
+  to 1 so the default values are taken automatically.

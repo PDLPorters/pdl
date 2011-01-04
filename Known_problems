@@ -1,5 +1,28 @@
 The following issues have been reported with this version of PDL:
 
+
+- If you have a pre-existing PDL install in your perl @INC path,
+  mysterious failures have been observed in some tests due to
+  unintentionally pulling in a previous version of PDL.  The
+  'perl Makefile.PL' stage now checks for this and asks if you
+  wish to continue [default is yes].
+  
+  *Usually* continuing with another PDL in the path will work
+  BUT if you get mysterious test failures, try removing the
+  previous PDL install files and test/build again.
+
+
+- The PDL build process also checks for white space in the build
+  directory as that is known to cause problems for some modules
+  and prompts if you wish to continue [default is yes].
+
+  You can avoid the interactive prompts by setting the
+  environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
+  That will force the default options to be taken.  The
+  warnings will still be printed to remind you in case the
+  PDL build fails at a later stage.
+
+
 - The Perl debugger for perls 5.10.1 through 5.12 has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
@@ -32,17 +55,6 @@ The following issues have been reported with this version of PDL:
   you will need to install FFTW version 2.1.5, use the built-in 
   PDL::FFT routines instead, or (better yet) submit a patch to
   update PDL::FFTW to the version 3 API. 
-
-
-- If you have a pre-existing PDL install in your perl @INC path,
-  mysterious failures have been observed in some tests due to
-  unintentionally pulling in a previous version of PDL.  The
-  'perl Makefile.PL' stage now checks for this and asks if you
-  wish to continue.
-  
-  *Usually* continuing with another PDL in the path will work
-  BUT if you get mysterious test failures, try removing the
-  previous PDL install files and test/build again.
 
 
 - Various make command issues during build:
