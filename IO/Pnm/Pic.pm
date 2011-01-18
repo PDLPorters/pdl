@@ -684,17 +684,27 @@ sub PDL::wim {
 
 =for ref
 
-Write an image sequence ((3,x,y,n) piddle) as an MPEG animation.
+Write an image sequence ((3,x,y,n) byte piddle) as an MPEG animation.
+
+Writes a stack of rgb images as a movie. While the
+format generated is nominally MPEG, the file extension
+is used to determine the video encoder type.  Use .mpg
+for MPEG-1 encoding and .mp4 for MPEG-4 encoding.
+
+C<wmpeg> requires a 4-D pdl of type B<byte> as
+input.  The first dim B<has> to be size 3 since
+it will be interpreted as RGB pixel data.
+C<wmpeg> returns 1 on success and undef on failure.
+
+For example:
 
 =for example
 
   $anim->wmpeg("GreatAnimation.mpg")
-      or die "can't create mpeg output";
+      or die "can't create mpeg1 output";
 
-Writes a stack of rgb images as an mpeg movie. Expects
-a 4-D pdl of type byte as input. First dim has to be
-3 since it is interpreted as interlaced RGB. It returns
-1 on success and undef on failure.
+  $anim->wmpeg("GreatAnimation.mp4")
+      or die "can't create mpeg4 output";
 
 Some of the input data restrictions will have to be
 relaxed in the future but routine serves as a proof of
