@@ -12,11 +12,11 @@ Last saved: Mon 16 Aug 2010 03:28:40 PM
  later install.  Please post to the perldl mailing list
  for help or questions regarding a cygwin install.
 
- Cygwin seems to have a ~300MB process memory limit
- that we have not determined how to work around.
+ By default, Cygwin has an ~300MB process memory limit.
  If you work with large data sets, you may wish to
  use the native win32 PDL with either ActiveState Perl
- or Strawberry Perl.
+ or Strawberry Perl.  Otherwise, you'll want to set the
+ value of heap_chunk_in_mb to allow for bigger data.
 
  Work is underway to improve the native win32 perl PDL 
  support for external dependencies so that it may be
@@ -330,6 +330,30 @@ need to run rebaseall:
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
 or all tests (make test).
+
+
+
+=================================================================
+                             FFMPEG
+=================================================================
+ffmpeg later than 0.6.1 (i.e, gotten by git clone of
+the ffmpeg.git repository) builds out-of-the-box with
+the standard directions on cygwin 1.7.7+. You'll need
+the latest version because of a namespace conflict with
+the bswap_16, bswap_32, and bswap_64 macros.  See
+this page for the git clone information:
+
+  http://ffmpeg.org/download.html
+
+
+NOTE: wmpeg('file.gif') can be used to generate
+an uncompressed GIF animation (BIG!). You can
+build/install gifsicle on cygwin with the default
+instructions to use to optimize the memory usage of
+the GIF animations.  See the gifsicle site for the
+source and build instructions:
+
+  http://www.lcdf.org/gifsicle/
 
 
 
