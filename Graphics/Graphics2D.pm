@@ -2,6 +2,7 @@ package PDL::Graphics2D;
 
 use Exporter 'import'; # gives you Exporter's import() method directly
 @EXPORT = qw(imag2d twiddle);  # symbols to export on request
+@EXPORT_OK = qw(imag2d imag2d_update twiddle);  # symbols to export on request
 
 =head1 NAME
 
@@ -772,6 +773,8 @@ sub imag2d_update {
    # update display window
    $img .= $image->sever;
    glutPostRedisplay();
+
+   twiddle();
 
    return $win_id;
 }
