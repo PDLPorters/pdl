@@ -1,28 +1,14 @@
 use Config;
-use vars qw/$nomem $debug $plpoly3 $novect/;
+use vars qw/ $debug /;
 my $ptrsize = length($Config{'byteorder'}); # 4 or 8 bytes
 my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';
 
 $debug = 0; # show generated pp_defs and other debug info
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
-open (OPT, 'OPTIONS!');
-my @opts = <OPT>;
-close OPT;
-$nomem = 0;
-$nomem = 1 if (grep /NOMEM!/, @opts);
-
-$novect = 0;
-$novect = 1 if (grep /NOVECT!/, @opts);
-
-$plpoly3 = 5;
-$plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
-
-$noalpha = 0;
-$noalpha = 1 if (grep /NOALPHA!/, @opts);
-
-$v59_or_earlier = 0;
-$v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
+my %opt;
+do 'OPTIONS!'
+  or die( "error reading options file\n" );
 
 pp_addpm({At => Top}, <<'EOD');
 
@@ -2197,7 +2183,7 @@ sub create_low_level {
     }
 
     # skip bad version of plpoly3
-    next if (($pfunc_name eq 'plpoly3') and (@vars != $plpoly3));
+    next if (($pfunc_name eq 'plpoly3') and (@vars != $opt{plpoly3}));
 
     # Now we have enough info to write out the dd_def.  All variables names are in
     # @vars.  Matching types are in @types.  The name of the function is in
@@ -2478,7 +2464,7 @@ EODEF
 # alpha-specific, but it's an adequate canary. Eliminate this chunk
 # and uncomment the lines above when we require at least PLplot 5.9.0.
 # -------------------------------------------------------------------------
-unless ($noalpha){
+if ($opt{have_alpha} ){
   create_low_level (<<'EODEF');
 void c_pltimefmt(const char *fmt);
 void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
@@ -2624,7 +2610,7 @@ pp_def ('plsmem',
 	     GenericTypes => [B],
              Pars => 'int maxx();int maxy();image(3,x,y)',
              Code => 'c_plsmem($maxx(),$maxy(),$P(image));'
-            ) unless ($nomem);
+            ) if $opt{plsmem};
 
 #
 ## Box drawing primitive, taken from PLPLOT bar graph example
@@ -2792,7 +2778,7 @@ pp_def ('plstyl',
 # PLplot standard random number generation.  Using this
 # helps to keep the demo plots identical.
 
-if (!$v59_or_earlier) {
+if ($opt{have_random}) {
   pp_def ('plseed',
           Pars => 'int seed()',
           Code => 'unsigned int useed = (unsigned int)$seed(); c_plseed(useed);'
@@ -3418,7 +3404,7 @@ pp_def ('plimage',
 
 # Plot image with transformation
 
-if (!$v59_or_earlier) {
+if ( $opt{c_plimagefr} ) {
 
   pp_def ('plimagefr',
           GenericTypes => [D],
@@ -3752,7 +3738,7 @@ pp_def ('plgriddata',
 
 
 
-unless ($novect) {
+if ($opt{have_vect} ) {
 
 # Vector field plots
 
@@ -3832,7 +3818,7 @@ unless ($novect) {
 	  Code => 'c_plscmap1($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
 
-  if (!$noalpha) {
+  if ( $opt{have_alpha} ) {
 
     # void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcol0a',
@@ -3884,7 +3870,7 @@ unless ($novect) {
     ## UNICODE font manipulation
     #
 
-    if (!$v59_or_earlier) {
+    if ($opt{have_font}) {
 
       # plgfont(PLINT *p_family, PLINT *p_style, PLINT *p_weight);
       pp_def ('plgfont',
