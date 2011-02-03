@@ -433,7 +433,13 @@ sub key_ops {
    # exit program
    if ($key == 27 or $key == 3) {          # ESC or Ctrl-C
       warn "Exit program command, key '" . (($key == 27) ? 'ESC' : 'Ctrl-C') . "', detected.\n";
-      exit;
+      if (defined $PERLDL::TERM) {         # don't exit if in the perldl or pdl2 shell
+         $imag2d_keep_twiddling = 0;
+         warn "PDL shell in use, stop twiddling instead of exit...\n";
+         return;
+      } else {
+         exit; 
+      }
    }
 
    # toggle overlay
