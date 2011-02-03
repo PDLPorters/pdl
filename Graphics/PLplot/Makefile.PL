@@ -153,50 +153,16 @@ unless (defined($libs)) {
   return if (caller); exit;
 }
 
-# Test if PLplot has plsmem, for in memory plotting
-eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
-#include <plplot.h>
-main () {  plsmem (0, 0, NULL); }
-EOC
-};
-if ($@) {
-  print "\tplsmem function not available, no in-memory plotting available!\n";
-  open (OPT, ">>OPTIONS!");
-  print OPT "NOMEM!\n";
-  close OPT;
-} else {
-  print "\tplsmem function found, in-memory plotting available!\n";
-}
+# Keep compatibility with older versions of PLplot by adding
+# interfaces for these functions only if they exist
+test_func_exists( 'plsmem',      'in-memory plotting', 'plsmem( 0, 0, NULL);' );
+test_func_exists( 'plsvect',     'vector plotting',    'plsvect (NULL, NULL, 0, 0);', 'have_vect' );
+test_func_exists( 'c_plgcoloa',  'alpha transparency', 'c_plgcol0a(0, 0, 0, 0, NULL);', 'have_alpha' );
+test_func_exists( 'c_plgcoloa',  'alpha transparency', 'c_plgcol0a(0, 0, 0, 0, NULL);' );
+test_func_exists( 'c_plsfont',   'set font',           'c_plsfont (0, 0, 0);', 'have_font' );
+test_func_exists( 'c_plseed',    'random numbers',     'c_plseed (0 );', 'have_random' );
+test_func_exists( 'c_plimagefr', '2d matrix',          'c_plimagefr (NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL);' );
 
-# Test if PLplot has plsvect, for in vector plotting
-eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
-#include <plplot.h>
-main () {  plsvect (NULL, NULL, 0, 0); }
-EOC
-};
-if ($@) {
-  print "\tplsvect function not found, no vector plotting available!\n";
-  open (OPT, ">>OPTIONS!");
-  print OPT "NOVECT!\n";
-  close OPT;
-} else {
-  print "\tplsvect function found, vector plotting available!\n";
-}
-
-# Test if PLplot has support for alpha transparency, found in versions 5.9.0 and higher
-eval { compileAndRun ("$plplot_include_path $libs",0,<<'EOC');
-#include <plplot.h>
-main () { c_plgcol0a(0, 0, 0, 0, NULL);}
-EOC
-};
-if ($@){
-    print "\tc_plgcol0a function not found, no alpha transparency available (need PLplot 5.9.0 or higher)!\n";
-    open (OPT,">>OPTIONS!");
-    print OPT "NOALPHA!\n";
-    close OPT;
-} else {
-    print "\tc_plgcol0a function found, alpha transparency available!\n";
-}
 
 # Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)
 eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
@@ -207,28 +173,13 @@ EOC
 if ($@) {
   print "\tplpoly3 needs 6 arguments => version 5.2.0 or later!\n";
   open (OPT, ">>OPTIONS!");
-  print OPT "PLPOLY3 = 6\n";
+  print OPT "\$opt{plpoly3} = 6;\n";
   close OPT;
 } else {
   print "\tplpoly3 needs 5 arguments => version 5.1.1 or earlier!\n";
   open (OPT, ">>OPTIONS!");
-  print OPT "PLPOLY3 = 5\n";
+  print OPT "\$opt{plpoly3} = 5;\n";
   close OPT;
-}  
-
-# Test if PLplot has the routine plseed, found only in plplot 5.9 svn and later
-eval { compileAndRun ("$plplot_include_path -L$plplot_lib_path -lplplotd",0,<<'EOC');
-#include <plplot.h>
-main () { c_plseed(0);}
-EOC
-};
-if ($@){
-    print "\tc_plseed function not found, plplot versionn 5.9 or earlier!\n";
-    open (OPT,">>OPTIONS!");
-    print OPT "NOPLSEED!\n";
-    close OPT;
-} else {
-    print "\tc_plseed function found, version 5.9 SVN or later!\n";
 }
 
 $PDL::Config{WITH_PLPLOT} = 1;
@@ -259,6 +210,36 @@ WriteMakefile(%hash);
 
 # Add genpp rule
 sub MY::postamble { $postamble };
+
+sub test_func_exists {
+
+    my ( $func, $comment, $eval, $option ) = @_;
+
+    $option = $func unless defined $option;
+
+    # Test if PLplot has plsmem, for in memory plotting
+    eval { compileAndRun ("$plplot_include_path $libs", 0, <<"EOC");
+#include <plplot.h>
+main () {  $eval }
+EOC
+       };
+
+    my $have_func;
+    if ($@)
+    {
+	print "\t$func function not found, no $comment available\n";
+	$have_func = 0;
+    }
+    else
+    {
+	print "\t$func function found, $comment available!\n";
+	$have_func = 1;
+    }
+
+    open (OPT, ">>OPTIONS!");
+    print OPT "\$opt{'$func'} = $have_func;\n";
+    close OPT;
+}
 
 sub compileAndRun {
   my $flags = shift;
