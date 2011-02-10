@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 28 Jul 2010 03:41:45 PM 
-# Last saved: Tue 18 Jan 2011 03:29:58 PM 
+# Last saved: Thu 10 Feb 2011 05:10:44 PM 
 
 use PDL;
 use PDL::IO::Pic;
@@ -58,4 +58,5 @@ $frames = $frames->(*3)->copy;
 # the encoding type is from the suffix
 # .mp4 seems to work better than .mpg on
 # Windows Media Player
-$frames->wmpeg('bounce.mp4');
+$frames->wmpeg('bounce.mp4');  # use bounce.gif for animated GIF
+                               # output (uncompressed => big)
