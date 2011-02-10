@@ -1219,7 +1219,7 @@ sub lu_backsub {
    my $permdims = pdl($perm->dims);
    my $bdims = pdl($b->dims);
 
-   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n";
+   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n" if $PDL::debug;
 
    my $m = $ludims((0));  # this is the sig dimension
    unless ( ($ludims(0) == $m) and ($ludims(1) == $m) and
