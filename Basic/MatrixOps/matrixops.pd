@@ -1182,6 +1182,7 @@ written in pdl but should probably be implemented in c.
 
 sub lu_backsub {
    my ($lu, $perm, $b, $par);
+   print STDERR "lu_backsub: entering debug version...\n" if $PDL::debug;
    if(@_==3) {
       ($lu, $perm, $b) = @_;
    } elsif(@_==4) {
@@ -1199,28 +1200,84 @@ sub lu_backsub {
    my $n = $b->dim(0);
    my $n1 = $n; $n1--;
 
+   # Make sure threading dimensions are compatible.
+   # There are two possible sources of thread dims:
+   #
+   # (1) over multiple LU (i.e., $lu,$perm) instances
+   # (2) over multiple  B (i.e., $b) column instances
+   #
+   # The full dimensions of the function call looks like
+   #
+   #   lu_backsub( lu(m,m,X), perm(m,X), b(m,Y) )
+   #
+   # where X is the list of extra LU dims and Y is
+   # the list of extra B dims.  We have several possible
+   # cases:
+   #
+   # (1) Check that m dims are compatible
+   my $ludims = pdl($lu->dims);
+   my $permdims = pdl($perm->dims);
+   my $bdims = pdl($b->dims);
+
+   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n";
+
+   my $m = $ludims((0));  # this is the sig dimension
+   unless ( ($ludims(0) == $m) and ($ludims(1) == $m) and
+      ($permdims(0) == $m) and ($bdims(0) == $m)) {
+      barf "lu_backsub: mismatched sig dimensions";
+   }
+
+   my $lunumthr = $ludims->dim(0)-2;
+   my $permnumthr = $permdims->dim(0)-1;
+   my $bnumthr = $bdims->dim(0)-1;
+   unless ( ($lunumthr == $permnumthr) and ($ludims(1:-1) == $permdims)->all )  {
+      barf "lu_backsub: \$lu and \$perm thread dims not equal! \n";
+   }
+
+   # (2) If X == Y then default threading is ok
+   if ( ($bnumthr==$permnumthr) and ($bdims==$permdims)->all) {
+      print STDERR "lu_backsub: have explicit thread dims, goto THREAD_OK\n";
+      goto THREAD_OK;
+   }
+
+   # (3) If X == (x,Y) then add x dummy to lu,perm
+
+   # (4) If ndims(X) > ndims(Y) then must have #3
+
+   # (5) If ndims(X) < ndims(Y) then foreach
+   #     non-trivial leading dim in X (x0,x1,..)
+   #     insert dummy (x0,x1) into lu and perm
+
+   # This means that threading occurs over all
+   # leading non-trivial (not length 1) dims of
+   # B unless all the thread dims are explicitly
+   # matched to the LU dims.
+
+THREAD_OK:
 
    # Permute the vector and make a copy if necessary.
    my $out;
-   # my $nontrivial = !(($perm==(PDL->xvals($perm->dims)))->all);
+   # my $nontrivial = ! (($perm==(PDL->xvals($perm->dims)))->all);
    my $nontrivial = ! (($perm==$perm->xvals)->clump(-1)->andover);
 
    if($nontrivial) {
       if($b->is_inplace) {
-         $b .= $b->dummy(1,$b->dim(0))->index($perm)->sever;
+         $b .= $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
          $out = $b;
       } else {
-         $out = $b->dummy(1,$b->dim(0))->index($perm)->sever;
+         $out = $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
       }
    } else {
       # should check for more matrix dims to thread over
       # but ignore the issue for now
       $out = ($b->is_inplace ? $b : $b->copy);
    }
+   print STDERR "lu_backsub: starting with \$out" . pdl($out->dims) . "\n" if $PDL::debug;
 
    # Make sure threading over lu happens OK...
 
    if($out->ndims < $lu->ndims-1) {
+      print STDERR "lu_backsub: adjusting dims for \$out" . pdl($out->dims) . "\n" if $PDL::debug;
       do {
          $out = $out->dummy(-1,$lu->dim($out->ndims+1));
       } while($out->ndims < $lu->ndims-1);
@@ -1242,16 +1299,16 @@ sub lu_backsub {
    my $ludiag = $lu->diagonal(0,1);
    {
       my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($n1)) /= $ludiag->index($n1);
+      ($tmp = $out->index($n1)) /= $ludiag->index($n1)->dummy(0,1);        # TODO: check threading
    }
 
    for ($row=$n1; $row>0; $row--) {
       $r1 = $row-1;
       my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($r1)) -= ($lu->($row:$n1,($r1)) * 
+      ($tmp = $out->index($r1)) -= ($lu->($row:$n1,$r1) *                  # TODO: check thread dims
          $out->($row:$n1)
       )->sumover;
-      ($tmp = $out->index($r1)) /= $ludiag->index($r1);
+      ($tmp = $out->index($r1)) /= $ludiag->index($r1)->dummy(0,1);        # TODO: check thread dims
    }
 
    $out;
