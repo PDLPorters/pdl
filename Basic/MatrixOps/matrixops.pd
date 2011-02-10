@@ -1236,7 +1236,7 @@ sub lu_backsub {
 
    # (2) If X == Y then default threading is ok
    if ( ($bnumthr==$permnumthr) and ($bdims==$permdims)->all) {
-      print STDERR "lu_backsub: have explicit thread dims, goto THREAD_OK\n";
+      print STDERR "lu_backsub: have explicit thread dims, goto THREAD_OK\n" if $PDL::debug;
       goto THREAD_OK;
    }
 
