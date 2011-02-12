@@ -1,10 +1,5 @@
 The following issues have been reported with this version of PDL:
 
-- The PDL::MatrixOps inv routine no longer threads because
-  of threading dimension problems in lu_backsub, which it
-  calls.  Use PDL::Slatec::matinv instead.
-
-
 - If you have a pre-existing PDL install in your perl @INC path,
   mysterious failures have been observed in some tests due to
   unintentionally pulling in a previous version of PDL.  The
@@ -88,7 +83,6 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.7_009 release:
 
-  3172882    Threadable version of PDL::MatrixOps::inv
   3171702    missing podselect command breaks PDL build
   3161459    online docs don't link to functions in other PDL modules 
   3139088    PDL constructor segfaults with arrayrefs from RRDs::fetch

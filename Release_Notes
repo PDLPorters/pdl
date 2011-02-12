@@ -28,6 +28,10 @@ Highlights:
 
  * TBD
 
+ * Fixed upstream bug in Devel::REPL for MultiLine continuation
+   so now incomplete q[] and qq[] constructs continue reading
+   until properly closed.
+
 
 
 Release notes for PDL 2.4.7_008 --------------------------
