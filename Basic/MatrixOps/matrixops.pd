@@ -820,7 +820,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
-  Signature: (a(m,m); [o]b(m); [o]c; [o]lu(m,m))
+  Signature: (a(m,m); [o]lu(m,m); [o]perm(m); [o]parity)
 
 =for ref
 
@@ -1011,43 +1011,45 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(m,m); [0]lu(n)
+ Signature: (a(m,m); [o]lu(m,m))
 
 =for ref
 
-LU decompose a matrix, with no row permutation (threadable!)
+LU decompose a matrix, with no row permutation
 
 =for usage
 
   ($lu, $perm, $parity) = lu_decomp2($a);
 
-  $lu = lu_decomp2($a,[$perm,$par]); 
+  $lu = lu_decomp2($a,$perm,$parity);   # or
+  $lu = lu_decomp2($a);                 # $perm and $parity are optional
 
-  lu_decomp($a->inplace,[$perm,$par]);
+  lu_decomp($a->inplace,$perm,$parity); # or
+  lu_decomp($a->inplace);               # $perm and $parity are optional
 
 =for description
 
 C<lu_decomp2> works just like L<lu_decomp|lu_decomp>, but it does B<no>
-pivoting at all and hence can be usefully threaded.  For compatibility
-with L<lu_decomp|lu_decomp>, it will give you a permutation list and a parity
-scalar if you ask for them -- but they are always trivial.
+pivoting at all.  For compatibility with L<lu_decomp|lu_decomp>, it
+will give you a permutation list and a parity scalar if you ask
+for them -- but they are always trivial.
 
-Because C<lu_decomp2> does not pivot, it is numerically unstable --
+Because C<lu_decomp2> does not pivot, it is numerically B<unstable> --
 that means it is less precise than L<lu_decomp>, particularly for
 large or near-singular matrices.  There are also specific types of 
 non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
 which is a 90 degree rotation matrix but which confuses lu_decomp2).
 
 On the other hand, if you want to invert rapidly a few hundred thousand
-small matrices and don't mind missing one or two, it's just the ticket.
-It can be up to 2X faster at the expense of a decomposition failure.
+small matrices and don't mind missing one or two, it could be the ticket.
+It can be up to 60% faster at the expense of possible failure of the
+decomposition for some of the input matrices.
 
 The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
 L<lu_decomp> for more information about LU decomposition. 
 
-lu_decomp2 is ported from _Numerical_Recipes_ into PDL.  If lu_decomp
-were implemented in C, then lu_decomp2 might become unnecessary.
+lu_decomp2 is ported from _Numerical_Recipes_ into PDL.
 
 =cut
 
@@ -1142,39 +1144,41 @@ solve a x = b for matrix a, by back substitution into a's lu decomposition.
 
 =for usage
 
-  ($lu,$perm) = lu_decomp($a);
-  $x = lu_backsub($lu,$perm,$par,$b);
+  ($lu,$perm,$par) = lu_decomp($a);
+  
+  $x = lu_backsub($lu,$perm,$par,$b);  # or
+  $x = lu_backsub($lu,$perm,$b);       # $par is not required for lu_backsub
   
   lu_backsub($lu,$perm,$b->inplace); # modify $b in-place
-
+  
   $x = lu_backsub(lu_decomp($a),$b); # (ignores parity value from lu_decomp)
 
 =for description
 
-given the lu decomposition of a square matrix (from
-l<lu_decomp|lu_decomp>), lu_backsub does back substitution
-into the matrix to solve c<a x = b> for given vector c<b>.
-it is separated from the lu_decomp method so that you can
-call the cheap lu_backsub multiple times and not have to do
-the expensive lu decomposition more than once.
+Given the lu decomposition of a square matrix (from L<lu_decomp|lu_decomp>),
+C<lu_backsub> does back substitution into the matrix to solve
+C<a x = b> for given vector C<b>.  It is separated from the
+C<lu_decomp> method so that you can call the cheap C<lu_backsub>
+multiple times and not have to do the expensive lu decomposition
+more than once.
 
-lu_backsub acts on single vectors and threads in the usual
-way, which means that it treats c<$b> as the i<transpose>
-of the input. if you want to process a matrix, you must
-hand in the i<transpose> of the matrix, and then transpose
+C<lu_backsub> acts on single vectors and threads in the usual
+way, which means that it treats C<$b> as the I<transpose>
+of the input.  If you want to process a matrix, you must
+hand in the I<transpose> of the matrix, and then transpose
 the output when you get it back. that is because pdls are
 indexed by (col,row), and matrices are (row,column) by
 convention, so a 1-d pdl corresponds to a row vector, not a
 column vector.
 
-if c<$lu> is dense and you have more than a few points to
-solve for, it is probably cheaper to find c<a^-1> with
-l<inv|/inv>, and just multiply c<x = a^-1 b>.) in fact,
-l<inv|/inv> works by calling lu_backsub with the identity
+If C<$lu> is dense and you have more than a few points to
+solve for, it is probably cheaper to find C<a^-1> with
+L<inv|/inv>, and just multiply C<x = a^-1 b>.) in fact,
+L<inv|/inv> works by calling C<lu_backsub> with the identity
 matrix.
 
-lu_backsub is ported from section 2.3 of i<numerical recipes>.  it is 
-written in pdl but should probably be implemented in c.
+C<lu_backsub> is ported from section 2.3 of i<numerical recipes>.
+It is written in pdl but should probably be implemented in C.
 
 =cut
 
