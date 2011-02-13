@@ -96,7 +96,7 @@ operator (which is, of course, threadable):
 
 Because of the (column,row) addressing order, 1-D PDLs are treated as
 _row_ vectors; if you want a _column_ vector you must add a dummy dimension:
-      
+
       $rowvec  = pdl(1,2);            # row vector
       $colvec  = $rowvec->(*1);	      # 1x2 column vector
       $matrix  = pdl([[3,4],[6,2]]);  # 2x2 matrix
@@ -186,7 +186,7 @@ pp_addpm(<<'EOD');
 =head2 stretcher
 
 =for sig
-  
+
   Signature: (a(n); [o]b(n,n))
 
 =for usage
@@ -351,6 +351,7 @@ the matrix will not be decomposed again.
 =back
 
 =cut
+
 *PDL::det = \&det;
 sub det {
   my($a) = shift;
@@ -379,7 +380,7 @@ pp_addpm(<<'EOD');
 =head2 determinant
 
 =for sig
- 
+
  Signature: (a(m,m))
 
 =for usage
@@ -538,8 +539,10 @@ runs across their components.
 
 =for usage
 
- ($ev, $e) = eigens_sym($a); # e\'vects & e\'vals
+ ($ev, $e) = eigens_sym($a); # e-vects & e-values
  $e = eigens_sym($a);        # just eigenvalues
+
+=cut 
 
 ',);
 
@@ -739,6 +742,9 @@ numbers.  It might be useful to be able to return complex eigenvalues.
  ($ev, $e) = eigens($a); # e\'vects & e\'vals
  $e = eigens($a);        # just eigenvalues
 
+=cut
+
+
 ',);
 
 ######################################################################
@@ -808,6 +814,9 @@ orientation of the ellipsoid of transformation:
    $r2 *= $s;        # implicit threading for cheap mult.
    $a .= $r2 x $r1;  # a gets r2 x ess x r1
  }
+
+=cut
+
 
 ',);
 
@@ -882,7 +891,7 @@ Now that the L<lu_decomp> is threaded, it is the
 recommended method although L<lu_decomp2> remains
 for back compatibility.
 
-lu_decomp is ported from _Numerical_Recipes to PDL. It
+lu_decomp is ported from I<Numerical Recipes> to PDL. It
 should probably be implemented in C.
 
 =cut
@@ -1049,7 +1058,7 @@ The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
 L<lu_decomp> for more information about LU decomposition. 
 
-lu_decomp2 is ported from _Numerical_Recipes_ into PDL.
+lu_decomp2 is ported from I<Numerical Recipes> into PDL.
 
 =cut
 
@@ -1177,7 +1186,7 @@ L<inv|/inv>, and just multiply C<x = a^-1 b>.) in fact,
 L<inv|/inv> works by calling C<lu_backsub> with the identity
 matrix.
 
-C<lu_backsub> is ported from section 2.3 of i<numerical recipes>.
+C<lu_backsub> is ported from section 2.3 of I<Numerical Recipes>.
 It is written in pdl but should probably be implemented in C.
 
 =cut
@@ -1361,6 +1370,9 @@ required).
 See also L<lu_backsub|lu_backsub>, which does the same thing with a slightly
 less opaque interface.
 
+=cut
+
+
 ');
 
 ######################################################################
@@ -1393,6 +1405,9 @@ pp_def("squaretotri",
 =for ref
 
 Convert a symmetric square matrix to triangular vector storage.
+
+=cut
+
 
 ',
 );
