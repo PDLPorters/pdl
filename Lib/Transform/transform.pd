@@ -1,5 +1,5 @@
 
-pp_addpm({At=>'Top'},<<'======EOD======');
+pp_addpm({At=>'Top'},<<'+======EOD======');
 
 =head1 NAME
 
@@ -235,10 +235,10 @@ are both Transform methods and PDL methods.
 
 =cut
 
-======EOD======
++======EOD======
 
 
-pp_addpm({At=>'Bot'},<<'======EOD======');
+pp_addpm({At=>'Bot'},<<'+======EOD======');
 
 =head1 AUTHOR
 
@@ -306,10 +306,10 @@ sub stringify {
   $out .= "inv ". ((defined ($me->{inv})) ? "ok" : "missing").".\n";
 }
 
-======EOD======
++======EOD======
 
 pp_add_exported('apply');
-pp_addpm(<<'======EOD_apply======');
+pp_addpm(<<'+======EOD_apply======');
 
 =head2 apply
 
@@ -357,10 +357,10 @@ sub apply {
 
 }
 
-======EOD_apply======
++======EOD_apply======
 
 pp_add_exported('invert');
-pp_addpm(<<'======EOD_invert======');
+pp_addpm(<<'+======EOD_invert======');
 
 =head2 invert
 
@@ -404,9 +404,9 @@ sub invert {
   }
 }
 
-======EOD_invert======
++======EOD_invert======
 
-pp_addhdr(<<'==EOD_map_auxiliary==');
+pp_addhdr(<<'+==EOD_map_auxiliary==');
 
 
 /* 
@@ -603,14 +603,14 @@ PDL_Double PDL_xform_aux ( pdl *map, PDL_Long *coords, PDL_Double *tmp, PDL_Doub
   return max_sv;
 }
 
-==EOD_map_auxiliary==
++==EOD_map_auxiliary==
 
 pp_add_exported('map');
 pp_def('map',
 	Pars=>'k0()',  # Dummy to set type (should match the type of "in").
 	OtherPars=>'SV *in; SV *out; SV *map; SV *boundary; SV *method;
 	            SV *big; SV *blur; SV *sv_min; SV *flux',
-	Code=><<'==EOD_map_c_code==',
+	Code=><<'+==EOD_map_c_code==',
 /*
  * Pixel interpolation & averaging code
  * 
@@ -993,9 +993,9 @@ pp_def('map',
   } while(i<ndims);
 
 
-==EOD_map_c_code==
++==EOD_map_c_code==
 
-	Doc=><<'==EOD_map_doc==',
+	Doc=><<'+==EOD_map_doc==',
 
 =head2 PDL::match
 
@@ -1285,8 +1285,8 @@ Maybe that someone is you.
 
 =cut
 
-==EOD_map_doc==
-	PMCode => <<'==EOD_map_perlcode=='
++==EOD_map_doc==
+	PMCode => <<'+==EOD_map_perlcode=='
 
 use PDL::NiceSlice;
 
@@ -1608,13 +1608,13 @@ sub map {
  
 }  
 
-==EOD_map_perlcode==
++==EOD_map_perlcode==
 
 );
 
 
 pp_add_exported('unmap');  
-pp_addpm(<<'======EOD_unmap======');
+pp_addpm(<<'+======EOD_unmap======');
 
 ######################################################################
 
@@ -1654,10 +1654,10 @@ sub unmap {
   return $me->inverse->map($data,@params);
 }
 
-======EOD_unmap======
++======EOD_unmap======
 
 pp_add_exported('t_inverse');
-pp_addpm(<<'======EOD_t_inverse======');
+pp_addpm(<<'+======EOD_t_inverse======');
 
 =head2 t_inverse 
 
@@ -1718,10 +1718,10 @@ sub inverse {
   return $out;
 }
 
-======EOD_t_inverse======
++======EOD_t_inverse======
 
 pp_add_exported('t_compose');
-pp_addpm(<<'======EOD_t_compose======');
+pp_addpm(<<'+======EOD_t_compose======');
 
 =head2 t_compose 
 
@@ -1833,11 +1833,11 @@ sub compose {
   return bless($me,'PDL::Transform::Composition');
 }
 
-======EOD_t_compose======
++======EOD_t_compose======
 
 
 pp_add_exported('t_wrap');
-pp_addpm(<<'======EOD_t_wrap======');
+pp_addpm(<<'+======EOD_t_wrap======');
 
 =head2 t_wrap
 
@@ -1906,11 +1906,11 @@ sub _pow_op {
     t_compose(@l);
 }
 
-======EOD_t_wrap======
++======EOD_t_wrap======
 
 
 pp_add_exported('t_identity');
-pp_addpm(<<'======EOD_t_identity======');
+pp_addpm(<<'+======EOD_t_identity======');
 
 =head2 t_identity
 
@@ -1944,11 +1944,11 @@ sub new {
   return bless $me,$class;
 }
 
-======EOD_t_identity======
++======EOD_t_identity======
 
   
 pp_add_exported('t_lookup');
-pp_addpm(<<'======EOD_t_lookup======');
+pp_addpm(<<'+======EOD_t_lookup======');
 
 =head2 t_lookup
 
@@ -2204,10 +2204,10 @@ sub t_lookup {
   return $me;
 }
 
-======EOD_t_lookup======
++======EOD_t_lookup======
 
 pp_add_exported('t_linear');
-pp_addpm(<<'======EOD_t_linear======');
+pp_addpm(<<'+======EOD_t_linear======');
 
 =head2 t_linear
 
@@ -2534,11 +2534,11 @@ sub PDL::Transform::Linear::stringify {
   $out;
 }
 
-======EOD_t_linear======
++======EOD_t_linear======
 
 
 pp_add_exported('t_scale');
-pp_addpm(<<'======EOD_t_scale======');
+pp_addpm(<<'+======EOD_t_scale======');
 
 =head2 t_scale
 
@@ -2563,10 +2563,10 @@ sub t_scale {
     t_linear(Scale=>$scale,$b,@_);
 }
 
-======EOD_t_scale======
++======EOD_t_scale======
 
 pp_add_exported('t_offset ');
-pp_addpm(<<'======EOD_t_offset ======');
+pp_addpm(<<'+======EOD_t_offset ======');
 
 =head2 t_offset 
 
@@ -2592,10 +2592,10 @@ sub t_offset {
     t_linear(pre=>$pre,$b,@_);
 }
 
-======EOD_t_offset ======
++======EOD_t_offset ======
 
 pp_add_exported('t_rot');
-pp_addpm(<<'======EOD_t_rot======');
+pp_addpm(<<'+======EOD_t_rot======');
 
 =head2 t_rot
 
@@ -2622,12 +2622,12 @@ sub t_rotate    {
     t_linear(rot=>$rot,$b,@_);
 }
 
-======EOD_t_rot======
++======EOD_t_rot======
 
 
 
 pp_add_exported('t_fits');
-pp_addpm(<<'======EOD_t_fits======');
+pp_addpm(<<'+======EOD_t_fits======');
 
 =head2 t_fits
 
@@ -2801,14 +2801,14 @@ sub t_fits {
 
 }
 
-======EOD_t_fits======
++======EOD_t_fits======
 
 
   
 
 
 pp_add_exported('t_code ');
-pp_addpm(<<'======EOD_t_code ======');
+pp_addpm(<<'+======EOD_t_code ======');
 
 =head2 t_code 
 
@@ -2901,13 +2901,13 @@ sub t_code {
   $me;
 }
 
-======EOD_t_code ======
++======EOD_t_code ======
 
 
 
 pp_add_exported('t_cylindrical');
 pp_add_exported('t_radial');
-pp_addpm(<<'======EOD_t_cylindrical======');
+pp_addpm(<<'+======EOD_t_cylindrical======');
 
 =head2 t_cylindrical
 
@@ -3080,10 +3080,10 @@ sub t_radial {
   $me;
 }
 
-======EOD_t_cylindrical======
++======EOD_t_cylindrical======
 
 pp_add_exported('t_quadratic');
-pp_addpm(<<'======EOD_t_quadratic======');
+pp_addpm(<<'+======EOD_t_quadratic======');
 
 =head2 t_quadratic
 
@@ -3199,10 +3199,10 @@ sub t_quadratic {
     $me;
 }
 
-======EOD_t_quadratic======
++======EOD_t_quadratic======
 
 pp_add_exported('t_cubic');
-pp_addpm(<<'======EOD_t_cubic=======');
+pp_addpm(<<'+======EOD_t_cubic=======');
 
 =head2 t_cubic
 
@@ -3343,11 +3343,11 @@ sub t_cubic {
     $me;
 }
 
-======EOD_t_cubic=======
++======EOD_t_cubic=======
 
 
 pp_add_exported('t_spherical');
-pp_addpm(<<'======EOD_t_spherical======');
+pp_addpm(<<'+======EOD_t_spherical======');
 
 =head2 t_spherical
 
@@ -3482,10 +3482,10 @@ sub t_spherical {
     $me;
   }
 
-======EOD_t_spherical======
++======EOD_t_spherical======
 
 pp_add_exported('t_projective');
-pp_addpm(<<'======EOD_t_projective======');
+pp_addpm(<<'+======EOD_t_projective======');
 
 =head2 t_projective
 
@@ -3639,6 +3639,6 @@ sub t_projective {
   $me;
 }
 
-======EOD_t_projective======
++======EOD_t_projective======
 
 pp_done();

@@ -60,6 +60,7 @@ piddle variables. It's deceptively useful, however.
 
 =cut
 
+
 ENDPM
 
 
@@ -322,6 +323,8 @@ pp_addpm(<<'ENDPM');
 Like write_png(), but it assumes the best PNG compression (9).
 
 =cut
+
+
 sub write_png_best
 {
     my $img = shift;
@@ -335,6 +338,8 @@ sub write_png_best
 Like write_true_png(), but it assumes the best PNG compression (9).
 
 =cut
+
+
 sub write_true_png_best
 {
     my $img = shift;
@@ -355,6 +360,8 @@ pp_addpm( '', <<'ENDPM' );
 Recompresses the given PNG file using the best compression (9).
 
 =cut
+
+
 ENDPM
 pp_addxs( '', <<'ENDXS' );
 
@@ -382,6 +389,8 @@ pp_addpm(<<'EOPM');
 Loads a color look up table from an ASCII file. returns a piddle
 
 =cut
+
+
 sub load_lut
 {
     return xchg(byte(cat(rcols(shift))), 0, 1);
@@ -392,6 +401,8 @@ sub load_lut
 Reads a (palette) PNG image into a (new) PDL variable.
 
 =cut
+
+
 sub read_png
 {
     my $filename = shift;
@@ -411,6 +422,8 @@ sub read_png
 Reads a true color PNG image into a (new) PDL variable.
 
 =cut
+
+
 sub read_true_png
 {
     my $filename = shift;
@@ -715,6 +728,8 @@ pp_addpm(<<'EOPM');
 Reads a color LUT from an already-existing palette PNG file.
 
 =cut
+
+
 sub read_png_lut
 {
     my $filename = shift;
@@ -1135,6 +1150,8 @@ sub new
 When you're done playing with your GDImage and want a piddle back, use this function to return one.
 
 =cut
+
+
 sub to_pdl
 {
     my $self = shift;
@@ -1163,6 +1180,8 @@ Does a $im->ColorAllocate() for and entire LUT piddle at once.
 The LUT piddle format is the same as for the general interface above.
 
 =cut
+
+
 sub apply_lut
 {
     my $self = shift;
@@ -1384,6 +1403,8 @@ $image->StringTTF( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
 Alias for gdImageStringTTF.
 
 =cut
+
+
 sub StringTTF
 {
     return gdImageStringTTF ( @_ );
@@ -1395,6 +1416,8 @@ sub StringTTF
 $image->gdImageStringTTF( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
 
 =cut
+
+
 sub gdImageStringTTF
 {
     my $self = shift;
@@ -1433,6 +1456,8 @@ $image->StringFT( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
 Alias for gdImageStringFT.
 
 =cut
+
+
 sub StringFT
 {
     return gdImageStringFT ( @_ );
@@ -1444,6 +1469,8 @@ sub StringFT
 $image->gdImageStringFT( $brect, $fg, $fontlist, $ptsize, $angle, $x, $y, $string )
 
 =cut
+
+
 sub gdImageStringFT
 {
     my $self = shift;
@@ -1613,6 +1640,8 @@ ENDXS
 $image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
 
 =cut
+
+
 sub INSERT_NAME_HERE
 {
     my $self = shift;
@@ -1691,6 +1720,8 @@ INSERT_SHORT_CODE_HERE
 $image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
 
 =cut
+
+
 sub INSERT_NAME_HERE
 {
     my $self = shift;
@@ -1706,6 +1737,8 @@ $image->INSERT_SHORT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
 Alias for INSERT_NAME_HERE.
 
 =cut
+
+
 sub INSERT_SHORT_NAME_HERE
 {
     return INSERT_NAME_HERE ( @_ );
@@ -1799,6 +1832,8 @@ INSERT_SHORT_CODE_HERE
 $image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
 
 =cut
+
+
 sub INSERT_NAME_HERE
 {
     my $self = shift;
@@ -1814,6 +1849,8 @@ $image->INSERT_SHORT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
 Alias for INSERT_NAME_HERE.
 
 =cut
+
+
 sub INSERT_SHORT_NAME_HERE
 {
     return INSERT_NAME_HERE ( @_ );
@@ -1852,6 +1889,8 @@ sub generate_class_functions
 =head1 CLASS FUNCTIONS
 
 =cut
+
+
 ENDPM
     
     foreach my $func ( @funcs )
@@ -1897,6 +1936,8 @@ ENDPM
 INSERT_NAME_HERE ( INSERT_DOC_ARG_LIST_HERE )
 
 =cut
+
+
 sub INSERT_NAME_HERE
 {
 INSERT_ARG_SHIFT_HERE

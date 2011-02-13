@@ -860,6 +860,7 @@ monotonicity (data still valid).
 -3 if C<$x> is not strictly increasing.
 
 =back
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -996,6 +997,7 @@ for monotonicity.
 -7 if C<nwk E<lt> 2*(n-1)>.
 
 =back
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic Hermite interpolation.'
 );	  
@@ -1101,6 +1103,7 @@ Error status returned by C<$ierr>:
 for the interior derivative values.
 
 =back
+
 ',
 'Calculate the derivatives of (x,f(x)) using cubic spline interpolation.'
 );	  
@@ -1156,6 +1159,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 which should never happen.
 
 =back
+
 ',
 'Interpolate function and derivative values.'
 );	  
@@ -1205,6 +1209,7 @@ E<gt>0 if extrapolation was performed at C<ierr> points
 -4 if C<nelem($xe) E<lt> 1>.
 
 =back
+
 ',
 'Interpolate function values.'
 );	  
@@ -1267,6 +1272,7 @@ Error status returned by C<$ierr>:
 which should never happen.
 
 =back
+
 ',
 'Integrate (x,f(x)) over arbitrary limits.'
 );
@@ -1316,6 +1322,7 @@ Error status returned by C<$ierr>:
 -4 if C<$ia> or C<$ib> is out of range.
 
 =back
+
 ',
 'Integrate (x,f(x)) between data points.'
 );
@@ -1392,11 +1399,14 @@ Error status returned by C<$ierr>:
 -3 if C<$x> is not strictly increasing.
 
 =back
+
 ',
 'Check the given piecewise cubic Hermite function for monotonicity.'
 );	  
 
-=pod ignore function for now although code is in slatec/ directory
+=pod
+
+ignore function for now although code is in slatec/ directory
 
 # XXX tsize = 2*n+4
 #     bsize = 2*n
@@ -1433,6 +1443,8 @@ C<knotyp> is a flag which controls the knot sequence.
 The knot sequence C<t> is normally computed from C<$x> 
 by putting a double knot at each C<x> and setting the end knot pairs
 according to the value of C<knotyp> (where C<m = ndim = 2*n>):
+
+=over
 
 =item *
 
@@ -1487,6 +1499,7 @@ Error status returned by C<$ierr>:
 -5 if C<knotyp E<lt> 0> and C<nknots != 2*n + 4>.
 
 =back
+
 ',
 'Piecewise Cubic Hermite function to B-Spline converter.'
 );	  
@@ -1559,6 +1572,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

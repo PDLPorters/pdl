@@ -46,6 +46,8 @@ Note that complex numbers are represented as piddles with leading
 dimension size 2 (real/imaginary pairs).
 
 =cut
+
+
 EOD
 
 pp_addpm(<<'EOD');
@@ -159,6 +161,7 @@ ONLY an even first dimension size! (complex input, real output)
   $pdl_real = infftw $pdl_cplx;
 
 =cut
+
 
 EOD
 
@@ -502,6 +505,7 @@ ND convolution using real ffts from the FFTW library
 
 =cut
 
+
 *PDL::rfftwconv = \&rfftwconv;
 sub rfftwconv {
   my ($a,$b) = @_;
@@ -526,6 +530,7 @@ Assumes real input!
   $conv = fftwconv $im, kernctr $im, $k; # kernctr is from PDL::FFT
 
 =cut
+
 
 *PDL::fftwconv = \&fftconv;
 sub fftwconv {
@@ -1041,6 +1046,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

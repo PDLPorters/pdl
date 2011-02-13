@@ -346,6 +346,8 @@ the copyright notice should be included in the file.
 
 
 =cut
+
+
 ############################## END PM CODE ################################
 EOD
 
@@ -401,6 +403,8 @@ the appropriate type conversion (maybe we want a byte+ here so that
 C<im> follows I<strictly> the type of C<type>).
 
 =cut
+
+
 '
 
 );
@@ -528,6 +532,8 @@ pp_def( 'pnminascii',
 Read in an ascii pnm file.
 
 =cut
+
+
 '
 );
 
@@ -590,6 +596,8 @@ This function is implemented this way so that threading works
 naturally.
 
 =cut
+
+
 ');
 
 pp_done();

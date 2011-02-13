@@ -10,6 +10,8 @@ This is an interface to the Special Function package present in the GNU Scientif
 =head1 SYNOPSIS
 
 =cut
+
+
 EOD
 
 # PP interface to GSL
@@ -212,6 +214,8 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL SF modules were written by G. Jungman.
 
 =cut
+
+
 EOD
 
 pp_done();

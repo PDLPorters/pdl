@@ -13,49 +13,27 @@ is the QUADPACK naming convention. The available functions are:
 
 =over 3
 
-=item
+=item gslinteg_qng: Non-adaptive Gauss-Kronrod integration
 
-gslinteg_qng: Non-adaptive Gauss-Kronrod integration
+=item gslinteg_qag: Adaptive integration
 
-=item 
+=item gslinteg_qags: Adaptive integration with singularities
 
-gslinteg_qag: Adaptive integration
+=item gslinteg_qagp: Adaptive integration with known singular points
 
-=item 
+=item gslinteg_qagi: Adaptive integration on infinite interval of the form (-\infty,\infty)
 
-gslinteg_qags: Adaptive integration with singularities
+=item gslinteg_qagiu: Adaptive integration on infinite interval of the form (a,\infty)
 
-=item   
+=item gslinteg_qagil: Adaptive integration on infinite interval of the form (-\infty,b)
 
-gslinteg_qagp: Adaptive integration with known singular points
+=item gslinteg_qawc: Adaptive integration for Cauchy principal values
 
-=item
+=item gslinteg_qaws: Adaptive integration for singular functions
 
-gslinteg_qagi: Adaptive integration on infinite interval of the form (-\infty,\infty)
+=item gslinteg_qawo: Adaptive integration for oscillatory functions
 
-=item
-
-gslinteg_qagiu: Adaptive integration on infinite interval of the form (a,\infty)
-
-=item
-
-gslinteg_qagil: Adaptive integration on infinite interval of the form (-\infty,b)
-
-=item
-
-gslinteg_qawc: Adaptive integration for Cauchy principal values
-
-=item
-
-gslinteg_qaws: Adaptive integration for singular functions
-
-=item
-
-gslinteg_qawo: Adaptive integration for oscillatory functions
-
-=item
-
-gslinteg_qawf: Adaptive integration for Fourier integrals
+=item gslinteg_qawf: Adaptive integration for Fourier integrals
 
 =back
 

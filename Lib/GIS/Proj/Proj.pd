@@ -77,6 +77,8 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 =head1 SUBROUTINES
 
 =cut
+
+
 EODOC
 
 #
@@ -103,6 +105,8 @@ BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elemen
 of $x and $y to BAD
 
 =cut
+
+
 sub fwd_transform
 {
     my ($lon, $lat, $params) = @_;
@@ -128,6 +132,8 @@ BadDoc: Ignores bad elements of $lat and $lon, and sets the corresponding elemen
 of $x and $y to BAD
 
 =cut
+
+
 sub inv_transform
 {
     my ($x, $y, $params) = @_;
@@ -148,6 +154,8 @@ the same as running 'proj -v'. It uses the proj command line, so
 it might not work with all shells. I've tested it with bash.
 
 =cut
+
+
 sub get_proj_info
 {
     my $params = shift;

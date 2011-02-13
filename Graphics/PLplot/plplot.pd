@@ -2563,6 +2563,8 @@ For example:
  plcolorpoints($x, $y, 1, 1, -1, 2);           # same color and symbol for all
 
 =cut
+
+
 EOD
 
 # C routine to draw points with a color scale
@@ -3462,6 +3464,8 @@ pp_addpm (<<'EOPM');
 See the PLplot manual for reference.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3505,6 +3509,8 @@ coordinates and returns a hash with the following keys:
 Returns an empty hash if no translation to world coordinates is possible.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3555,6 +3561,8 @@ pp_addpm (<<'EOPM');
 Returns the number of the current output stream.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3582,6 +3590,8 @@ pp_addpm (<<'EOPM');
 Returns the current driver name.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3623,6 +3633,8 @@ Creates a new stream and makes it the default.  Returns the number of
 the created stream.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3652,6 +3664,8 @@ pp_addpm (<<'EOPM');
 See the PLplot manual for reference.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");

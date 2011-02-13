@@ -24,6 +24,7 @@ loaded.
  
 =cut
 
+
 EOD
 
 pp_addpm({At=>'Bot'},<<'EOD');
@@ -38,6 +39,7 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
 
 EOD
 
@@ -115,6 +117,8 @@ for most purposes you want L<convolveND|PDL::ImageND/convolveND> instead:
 it runs faster and handles a variety of boundary conditions.
 
 =cut
+
+
 EOD
         Pars => 'a(m); b(n); int adims(p); int bdims(q); [o]c(m);',
         PMCode => '
@@ -251,6 +255,7 @@ which runs somewhat slower.
 
 =cut
 
+
 *ninterpol = \&PDL::ninterpol;
 
 sub PDL::ninterpol {
@@ -293,6 +298,8 @@ If you want different behavior, use L<PDL::Transform::map|PDL::Transform/map>
 instead.  PDL::Transform::map runs slower but is more flexible.
 
 =cut
+
+
 EOD
         Pars => 'a(m); [o]b(n);',
         OtherPars => 'int ns => n',
@@ -422,6 +429,7 @@ Optionally takes the center to be used.
 
 =cut
 
+
 sub circ_mean {
  my ($a,$opt) = @_;
  my ($rad,$sum,$norm,$a1);
@@ -465,6 +473,7 @@ kernctr centres a small kernel to emulate the behaviour of the direct
 convolution routines.
 
 =cut
+
 
 *kernctr = \&PDL::kernctr;
 
@@ -595,6 +604,7 @@ The direct copying code uses PP primarily for the generic typing: it includes
 its own threadloops.
 
 =cut
+
 
 EOD
        PMCode => <<'EOD',
