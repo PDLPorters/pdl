@@ -81,7 +81,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_009 release:
+  PDL-2.4.7_010 release:
 
   3171702    missing podselect command breaks PDL build
   3161459    online docs don't link to functions in other PDL modules 
