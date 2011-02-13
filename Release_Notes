@@ -26,11 +26,39 @@ General Notes:
 
 Highlights:
 
- * TBD
-
+ * Update Known_problems, Perldl2/TODO, Release_Notes
+    
  * Fixed upstream bug in Devel::REPL for MultiLine continuation
    so now incomplete q[] and qq[] constructs continue reading
-   until properly closed.
+   until properly closed.  This was a problem for pdl2 and its
+   multiline support.
+
+ *  Fix sf.net bug #3172882 re broken threading in inv
+    - inv() and lu_backsub() now handle threading
+    - documentation updates for lu_decomp, lu_deomp2, lu_backsub
+
+ * Fix imag2d not to exit on ESC in pdl2/perldl
+   Clean up PAUSE/STEP key controls for imag2d()
+   Add imag2d_update to EXPORT_OK and fix bug
+    
+     There are preliminary key bindings for the default
+     imag2d() windows to support SPACE to toggle pause,
+     [ . or > ] to step/move forward, and [ , or < ] to
+     move backward through frame data.
+
+ * clean up tests for PLplot functions
+   - common code in tests for PLplot functions has been abstracted
+   - plsfont & plgfont interfaces are now conditional on their existence
+   - OPTIONS! file is now Perl code.
+   - all conditional code API code is now based on
+      presence of a feature rather than version
+
+ * readenvi doc/code cleanup, ignore case in hdr keys
+    
+ * wmpeg() with the ffmpeg converter supports generation
+   of many different output video file formats including
+   MPEG, MP4, and animated GIF.  Documentation on these
+   uses were added.
 
 
 

@@ -16,7 +16,7 @@ sub near {
 	return ($dist <= $tol)->all;
 }
 
-BEGIN { plan tests => 28,
+BEGIN { plan tests => 30,
 }
 
 my $tol = 1e-14;
