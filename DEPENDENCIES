@@ -30,20 +30,20 @@ or if you don't have the cpan script try
 PDL (all)         perl >= 5.8.x           PDL requires at least this version
                                           of perl to build and run.
 
-                  File::Spec              Version >= 0.6 required, included
-                                          with perl.
+                  File::Spec  >= 0.6      perl5 core module.
+                  Pod::Parser >= 0        perl5 core module.
+                  Pod::Select >= 0        perl5 core module.
 
 
 PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
                   Filter::Util::Call
 
 
-Inline::Pdlpp     Inline                  Version >= 0.43 required.  This
-                                          module allows to define fast PP
-                                          code inline in your scripts.
+Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
+                                          PP code inline in your scripts.
 
 
-PDL::IO::Dumper   Data::Dumper            Version >=2.121 is required.
+PDL::IO::Dumper   Data::Dumper >= 2.121
                   Convert::UU             Convert::UU is required.
 
                   uuencode/uudecode       (Optional) Better performance on
@@ -52,11 +52,11 @@ PDL::IO::Dumper   Data::Dumper            Version >=2.121 is required.
                                           if detected.
 
 
-PDL::IO::Storable Storable                Version >=1.03 is required.
+PDL::IO::Storable Storable >=1.03
 
 
-pdl2   (shell)    Devel::REPL and         Version >= 1.003011
-                  Term::ReadLine::Perl    
+pdl2   (shell)    Devel::REPL >= 1.003011
+                  and Term::ReadLine::Perl    
                   or Term::ReadLine::Gnu 
 
 perldl (shell)    Term::ReadLine::Perl    

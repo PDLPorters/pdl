@@ -60,11 +60,6 @@ The following issues have been reported with this version of PDL:
 
   - Using parallel make causes the build to fail; so don't use -j # options.
 
-  - make fails with message like.
-      "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-    The cause is unknown.  If you have this problem, *please* let the developers
-    know via the perldl mailing list.
-
 
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
@@ -83,7 +78,6 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.7_011 release:
 
-  3171702    missing podselect command breaks PDL build
   3161459    online docs don't link to functions in other PDL modules 
   3139088    PDL constructor segfaults with arrayrefs from RRDs::fetch
   3080505    PLplot segfaults on plshades call on OS X
