@@ -233,7 +233,7 @@ exists).  The code is inplace-aware, so you can get back the inverse
 in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
 
-C<inv> uses lu_decomp by default; that is a numerically stable
+C<inv> uses C<lu_decomp> by default; that is a numerically stable
 (pivoting) LU decomposition method.
 
 
@@ -251,8 +251,8 @@ singular matrices cause inverse to return undef.
 
 This value contains a list ref with the LU decomposition, permutation,
 and parity values for $a.  If you do not mention the key, or if the
-value is undef, then inverse calls lu_decomp.  If the key exists with
-an undef value, then the output of lu_decomp is stashed here (unless
+value is undef, then inverse calls C<lu_decomp>.  If the key exists with
+an undef value, then the output of C<lu_decomp> is stashed here (unless
 the matrix is singular).  If the value exists, then it is assumed to
 hold the lu decomposition.
 
@@ -845,13 +845,13 @@ LU decompose a matrix, with row permutation
 
 =for description
 
-lu_decomp returns an LU decomposition of a square matrix,
+C<lu_decomp> returns an LU decomposition of a square matrix,
 using Crout's method with partial pivoting. It's ported
 from I<Numerical Recipes>. The partial pivoting keeps it
 numerically stable but means a little more overhead from
 threading.
 
-lu_decomp decomposes the input matrix into matrices L and
+C<lu_decomp> decomposes the input matrix into matrices L and
 U such that LU = A, L is a subdiagonal matrix, and U is a
 superdiagonal matrix. By convention, the diagonal of L is
 all 1's.
@@ -867,7 +867,7 @@ the permutation for the output to make any sense, so be sure
 to get it one way or the other.
 
 LU decomposition is the answer to a lot of matrix questions,
-including inversion and determinant-finding, and lu_decomp
+including inversion and determinant-finding, and C<lu_decomp>
 is used by L<inv|/inv>.
 
 If you pass in $perm and $parity, they either must be
@@ -875,29 +875,28 @@ predeclared PDLs of the correct size ($perm is an n-vector,
 $parity is a scalar) or scalars.
 
 If the matrix is singular, then the LU decomposition might
-not be defined; in those cases, lu_decomp silently returns
+not be defined; in those cases, C<lu_decomp> silently returns
 undef. Some singular matrices LU-decompose just fine, and
 those are handled OK but give a zero determinant (and hence
 can't be inverted).
 
-lu_decomp uses pivoting, which rearranges the values in the
+C<lu_decomp> uses pivoting, which rearranges the values in the
 matrix for more numerical stability. This makes it really
 good for large and even near-singular matrices. There is
-a non-pivoting version L<lu_decomp2> available which is
+a non-pivoting version C<lu_decomp2> available which is
 from 5 to 60 percent faster for typical problems at
 the expense of failing to compute a result in some cases.
 
-Now that the L<lu_decomp> is threaded, it is the
-recommended method although L<lu_decomp2> remains
-for back compatibility.
+Now that the C<lu_decomp> is threaded, it is the recommended
+LU decomposition routine.  It no longer falls back to C<lu_decomp2>
+in the threaded case.
 
-lu_decomp is ported from I<Numerical Recipes> to PDL. It
+C<lu_decomp> is ported from I<Numerical Recipes> to PDL. It
 should probably be implemented in C.
 
 =cut
 
 *PDL::lu_decomp = \&lu_decomp;
-my $_have_warned_lu_decomp = 0;
 
 sub lu_decomp {
    my($in) = shift;
@@ -911,11 +910,6 @@ sub lu_decomp {
    if(!UNIVERSAL::isa($in,'PDL') || 
       $in->ndims < 2 || 
       $in->dim(0) != $in->dim(1));
-
-   if(($in->ndims > 2) && !( (pdl($in->dims)->(2:-1) < 2)->all )  ) {
-      warn('lu_decomp: no longer calling lu_decomp2') unless $_have_warned_lu_decomp;
-      $_have_warned_lu_decomp ||= 1;
-   }
 
    my($n) = $in->dim(0);
    my($n1) = $n; $n1--;
@@ -1047,7 +1041,7 @@ Because C<lu_decomp2> does not pivot, it is numerically B<unstable> --
 that means it is less precise than L<lu_decomp>, particularly for
 large or near-singular matrices.  There are also specific types of 
 non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
-which is a 90 degree rotation matrix but which confuses lu_decomp2).
+which is a 90 degree rotation matrix but which confuses C<lu_decomp2>).
 
 On the other hand, if you want to invert rapidly a few hundred thousand
 small matrices and don't mind missing one or two, it could be the ticket.
@@ -1058,7 +1052,7 @@ The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
 L<lu_decomp> for more information about LU decomposition. 
 
-lu_decomp2 is ported from I<Numerical Recipes> into PDL.
+C<lu_decomp2> is ported from I<Numerical Recipes> into PDL.
 
 =cut
 
