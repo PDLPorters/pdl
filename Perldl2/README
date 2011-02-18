@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 17 Aug 2010 10:28:52 AM 
+Last saved: Fri 18 Feb 2011 10:20:46 AM 
 
 
 +-----------------------------------------------------------+
@@ -107,14 +107,14 @@ capabilities.
   * PDL::Image2D
   * PDL::AutoLoader
 
- ? and ?? aliases for help and apropos now work
+ ? and ?? are aliases for help and apropos
  
- Arguments to help|usage|apropos|sig|badinfo|demo are now autoquoted
+ Arguments to help|usage|apropos|sig|badinfo|demo are autoquoted
 
- Shell escapes starting with $PERLDL::ESCAPE as the first character
- of a line now work ('#' by default).
+ Shell escapes start with $PERLDL::ESCAPE as the first character
+ of a line ('#' by default).
 
- l <num> prints the last num lines of history, default 20.
+ l <num> prints the last <num> lines of history, default 20.
 
  p is an alias for print.
 
