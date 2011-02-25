@@ -920,19 +920,19 @@ sub _img_ptr_from_file
     return _gdImageCreateFromJpeg( $filename )
         if( $type eq 'jpg' );
         
-    return gdImageCreateFromWBMP( $filename )
+    return _gdImageCreateFromWBMP( $filename )
         if( $type eq 'wbmp' );
         
-    return gdImageCreateFromGd( $filename )
+    return _gdImageCreateFromGd( $filename )
         if( $type eq 'gd' );
     
-    return gdImageCreateFromGd2( $filename )
+    return _gdImageCreateFromGd2( $filename )
         if( $type eq 'gd2' );
     
-    return gdImageCreateFromGif( $filename )
+    return _gdImageCreateFromGif( $filename )
         if( $type eq 'gif' );
             
-    return gdImageCreateFromXbm( $filename )
+    return _gdImageCreateFromXbm( $filename )
         if( $type eq 'xbm' );
     
     return undef;
@@ -1055,6 +1055,7 @@ sub new
     if( defined( $options->{pdl} ) )
     {   # Create it from a PDL variable:
         my $pdl = $options->{pdl};
+        $pdl->make_physical();
         my $num_dims = scalar( $pdl->dims() );
         if( $num_dims == 2 )
         {
@@ -1065,6 +1066,8 @@ sub new
                 _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
                 $self->{IMG_PTR} = $ptr->at(0);
                 $ptr = null;
+                die "$sub: _pdl_to_gd_image_lut() failed!\n"
+                    if( $self->{IMG_PTR} == 0 );
             }
             else
             {
@@ -1073,6 +1076,8 @@ sub new
                 _pdl_to_gd_image_lut( $pdl, $lut, $ptr );
                 $self->{IMG_PTR} = $ptr->at(0);
                 $ptr = null;
+                die "$sub: _pdl_to_gd_image_lut() failed!\n"
+                    if( $self->{IMG_PTR} == 0 );
             }
         }
         elsif( $num_dims == 3 )
@@ -1081,6 +1086,8 @@ sub new
             _pdl_to_gd_image_true( $pdl, $ptr );
             $self->{IMG_PTR} = $ptr->at(0);
             $ptr = null;
+            die "$sub: _pdl_to_gd_image_true() failed!\n"
+                if( $self->{IMG_PTR} == 0 );
         }
         else
         {
@@ -1106,12 +1113,16 @@ sub new
             if( $options->{true_color} )
             {   # Create an empty true color image:
                 $self->{IMG_PTR} = _gdImageCreateTrueColor( $options->{x}, $options->{y} );
+                die "$sub: _gdImageCreateTrueColor() failed!\n"
+                    if( $self->{IMG_PTR} == 0 );
                 $done = 1;
             }
         }
         unless( $done )
         {   # Create an empty palette image:
             $self->{IMG_PTR} = _gdImageCreatePalette( $options->{x}, $options->{y} );
+            die "$sub: _gdImageCreatePalette() failed!\n"
+                if( $self->{IMG_PTR} == 0 );
         }
     }
     elsif( defined( $options->{data} ) )
@@ -1243,6 +1254,17 @@ void gdImageGd2 (gdImagePtr im, FILE * out, int cs, int fmt);
 void gdImageGif (gdImagePtr im, FILE * out);
 ENDWRITE
 
+
+generate_data_ptr_functions( <<'ENDDATAPTR' );
+void *gdImagePngPtr (gdImagePtr im, int *size);
+void *gdImagePngPtrEx (gdImagePtr im, int *size, int level);
+void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
+void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
+void *gdImageGdPtr (gdImagePtr im, int *size);
+void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
+ENDDATAPTR
+
+
 generate_member_functions( <<'ENDMEMBERS' );
 void gdImageDestroy (gdImagePtr im);
 void gdImageSetPixel (gdImagePtr im, int x, int y, int color);
@@ -1350,18 +1372,12 @@ my $unused_funcs = <<'ENDUNUSED';
 void gdFreeFontCache ();
 void gdImageEllipse (gdImagePtr im, int cx, int cy, int w, int h, int color);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromGifPtr (int size, void *data);
-void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
-void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
-void *gdImagePngPtr (gdImagePtr im, int *size);
-void *gdImageGdPtr (gdImagePtr im, int *size);
-void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
 BGD_DECLARE(gdImagePtr) gdImageCreateFromGifCtx (gdIOCtxPtr in);
 void gdImagePngCtx (gdImagePtr im, gdIOCtx * out);
 void gdImagePngCtxEx (gdImagePtr im, gdIOCtx * out, int level);
 void gdImageWBMPCtx (gdImagePtr image, int fg, gdIOCtx * out);
 void gdImageJpegCtx (gdImagePtr im, gdIOCtx * out, int quality);
 void gdImagePngToSink (gdImagePtr im, gdSinkPtr out);
-void *gdImagePngPtrEx (gdImagePtr im, int *size, int level);
 gdIOCtx *gdNewFileCtx (FILE *);
 gdIOCtx *gdNewDynamicCtx (int, void *);
 gdIOCtx *gdNewSSCtx (gdSourcePtr in, gdSinkPtr out);
@@ -1678,6 +1694,121 @@ ENDPM
         pp_addpm( { At => 'Bot' }, $pmcode );
     }
 }  # End of generate_write_functions()...
+
+#
+# The functions allow you to get a pointer to a formatted region of memory
+#   that contains image data in the specified format. This is useful, among
+#   other things, because PerlQt has almost no other way to import any image
+#   data from PDL!
+#
+#void *gdImageWBMPPtr (gdImagePtr im, int *size, int fg);
+#void *gdImageJpegPtr (gdImagePtr im, int *size, int quality);
+#void *gdImagePngPtr (gdImagePtr im, int *size);
+#void *gdImageGdPtr (gdImagePtr im, int *size);
+#void *gdImageGd2Ptr (gdImagePtr im, int cs, int fmt, int *size);
+#void *gdImagePngPtrEx (gdImagePtr im, int *size, int level);
+#
+sub generate_data_ptr_functions
+{
+    my @funcs = split( /\n/, shift );
+    my $sub = "generate_data_ptr_functions()";
+    
+    foreach my $func ( @funcs )
+    {
+        #print "$sub: Generating data_ptr function for $func...\n";
+        my $info = parse_prototype( $func )
+            or die "$sub: Couldn't parse prototype!\n";
+        
+        #use Data::Dumper;
+        #print Data::Dumper->Dump([$info], ['info']);
+            
+        my $function_name = $info->{NAME};
+        my $return_type = $info->{RETURN_TYPE};
+        
+        my @arg_names = ();
+        my @call_args = ();
+        my $arg_decl_string = "";
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        {
+            my $type = $info->{ARGS}->{$num}->{TYPE};
+            my $name = $info->{ARGS}->{$num}->{NAME};
+            
+            if( $name =~ /size/ )
+            {
+                push( @call_args, "\&$name" );
+                next;
+            }
+            
+            push(@arg_names, $name );
+            push(@call_args, $name );
+            $arg_decl_string .= "\t\t$type\t\t$name\n";
+        }
+        my $arg_list = join(", ", @arg_names);
+        my $call_arg_list = join(", ", @call_args);
+        
+        # Add the low level functions we'll need:
+        #
+        pp_addxs(<<"ENDXS");
+SV *
+_$function_name( $arg_list )
+$arg_decl_string
+    CODE:
+        char* imdata;
+        int size;
+        imdata = (char *)$function_name( $call_arg_list );
+        RETVAL = newSVpv( imdata, size );
+        gdFree( imdata );
+    OUTPUT:
+        RETVAL
+ENDXS
+
+        # Add the object code for this function:
+        #
+        # Use template method here to avoid escaping everything:
+        my $pmcode = <<'ENDPM';
+=head2 INSERT_NAME_HERE
+
+$image->INSERT_NAME_HERE( INSERT_DOC_ARG_LIST_HERE )
+
+=cut
+
+
+sub INSERT_NAME_HERE
+{
+    my $self = shift;
+    return INSERT_XS_FUNC_HERE ( $self->{IMG_PTR}, @_ );
+} # End of INSERT_NAME_HERE()...
+ENDPM
+
+        my $format = $function_name;
+        $format =~ s/gdImage//;
+        $format =~ s/Ptr//;
+        my $name = "get_$format" . "_data";
+        
+        $pmcode =~ s/INSERT_NAME_HERE/$name/sg;
+        $pmcode =~ s/INSERT_XS_FUNC_HERE/_$function_name/sg;
+        
+        my @arg_names2;
+        my @doc_args;
+        foreach my $num ( sort {$a <=> $b} keys %{ $info->{ARGS} } )
+        { 
+            next if ( $info->{ARGS}->{$num}->{TYPE} eq 'gdImagePtr' );
+            next if ( $info->{ARGS}->{$num}->{NAME} eq 'size' );
+            push(@arg_names2, $info->{ARGS}->{$num}->{NAME}); 
+            push(@doc_args, "\$" . $info->{ARGS}->{$num}->{NAME} );
+        }
+        my $arg_list2 = join( ", ", @arg_names2 );
+        $pmcode =~ s/INSERT_ARG_LIST_HERE/$arg_list2/sg;
+        
+        my $doc_arg_list = join( ", ", @doc_args );
+        $pmcode =~ s/INSERT_DOC_ARG_LIST_HERE/$doc_arg_list/sg;
+        
+        pp_addpm( { At => 'Bot' }, $pmcode );
+    } # foreach func...
+
+} # End of generate_data_ptr_functions()...
+
+
 
 #
 # Here, we also need to add PM code for the OO side:

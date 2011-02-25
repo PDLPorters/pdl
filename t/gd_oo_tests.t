@@ -20,7 +20,7 @@ BEGIN
     }  
     else
     {
-        plan tests => 27;
+        plan tests => 28;
     }
 }
 
@@ -213,8 +213,13 @@ my $blob3d = <TF3>;
 close( TF3 );
 $im = PDL::IO::GD->new({ data => $blob3d });
 ok( defined( $im ) );
-$im->DESTROY(); $im = undef;
 
+
+# TESTS 28:
+# Get a PNG/Gd data glob from a created 
+my $png_blob = $im->get_Png_data();
+ok( $blob3d eq $png_blob );
+$im->DESTROY(); $im = undef;
 
 # Remove our test files:
 #
