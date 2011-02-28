@@ -16,19 +16,29 @@ use Test::More;
 
 BEGIN
 {   
-    eval( " use PDL::Transform::Proj4; " );
-    if( !($@) )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_PROJ} ) 
     {
-       if ( $PDL::Bad::Status ) {
-          plan tests => 20;
-       }
-       else {
-          plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
-       }
+        eval( " use PDL::Transform::Proj4; " );
+        if( !($@) )
+        {
+            if ( $PDL::Bad::Status ) 
+            {
+                plan tests => 20;
+            }
+            else 
+            {
+                plan skip_all => "PDL::Transform::Proj4 module requires the PDL::Bad module!";
+            }
+        }
+        else
+        {
+            plan skip_all => "PDL::Transform::Proj4 module compiled, but not available.";
+        }
     }
     else
     {
-        plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
+        plan skip_all => "PDL::Transform::Proj4 module not compiled.";
     }
 }
 

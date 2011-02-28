@@ -5,8 +5,7 @@
 #
 # Test program for the PDL::GIS::Proj library
 #
-# Judd Taylor, USF IMaRS
-#
+# Judd Taylor, Orbital Systems, Ltd.
 # 18 March 2003
 #
 
@@ -16,14 +15,22 @@ use Test::More;
 
 BEGIN
 {
-    eval( " use PDL::GIS::Proj; " );
-    if( $@ )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_PROJ} ) 
     {
-        plan skip_all => "PDL::GIS::Proj requires the Proj module.";
-    }  
+        eval( " use PDL::GIS::Proj; " );
+        if( $@ )
+        {
+            plan skip_all => "PDL::GIS::Proj compiled, but not available.";
+        }  
+        else
+        {
+            plan tests => 15;
+        }
+    }
     else
     {
-        plan tests => 15;
+        plan skip_all => "PDL::GIS::Proj module not compiled.";
     }
 }
 
