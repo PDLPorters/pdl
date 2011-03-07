@@ -26,7 +26,20 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixes to GD, HDF, and PROJ4 tests to not run if they
+   weren't built.
+ 
+ * New binary blob support in PDL::IO::GD::OO
+
+ * Changed interactive prompt when duplicate PDL is
+   found at PDL config time.  Now just warn.
+ 
+ * Fixed sf.net bug #3185864 (bad adev in statsover)
+
+ * Minor POD cleanup for lu_XXX routines in PDL::MatrixOps
+
+ * Spot fixes to usual README, docs,..
+
 
 
     
