@@ -31,6 +31,8 @@ Combine x, y and z to a single piddle the first dimension
 of which is 3. This routine does dataflow automatically.
 
 =cut
+
+
 EOT
 
 );
@@ -138,6 +140,8 @@ objects. For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::T
 For definition of the potential, see the actual function.
 
 =cut
+
+
 '
 );
 
@@ -189,6 +193,8 @@ For use by the module L<PDL::Graphics::TriD::MathGraph|PDL::Graphics::TriD::Math
 For definition of the potential, see the actual function.
 
 =cut
+
+
 '
 );
 
@@ -475,6 +481,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

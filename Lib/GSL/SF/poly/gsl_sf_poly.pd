@@ -13,6 +13,8 @@ changing the directory structure at this time.  These fixes should allow things 
 =head1 SYNOPSIS
 
 =cut
+
+
 EOD
 
 # PP interface to GSL
@@ -47,6 +49,8 @@ PDL distribution, the copyright notice should be included in the file.
 The GSL SF modules were written by G. Jungman.
 
 =cut
+
+
 EOD
 
 pp_done();

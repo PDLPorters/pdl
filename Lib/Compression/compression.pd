@@ -28,6 +28,7 @@ RICE_1 algorithm used in internal FITS-file compression (see PDL::IO::FITS).
 
 =cut
 
+
 EOD
 
 pp_addpm({At=>'Bot'},<<'EOD');
@@ -67,6 +68,7 @@ terms than PDL itself; that notice is present in the file "ricecomp.c".
 
 =cut
 
+
 EOD
 
 pp_addpm(<<'EOD');
@@ -74,6 +76,7 @@ pp_addpm(<<'EOD');
 =head1 METHODS
 
 =cut
+
 
 EOD
 
@@ -133,6 +136,7 @@ Working on astronomical or solar image data, typical compression ratios of
   $new = $out->rice_expand;
 
 =cut
+
 
 EOD
 	PMCode => <<'EOD',
@@ -210,6 +214,8 @@ Unsquishes a PDL that has been squished by rice_expand.
      $copy = $out->rice_expand($dim0, $blocksize);
      
 =cut
+
+
 EOD
 	PMCode => <<'EOD',
 sub PDL::rice_expand {

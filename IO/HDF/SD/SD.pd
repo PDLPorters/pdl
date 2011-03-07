@@ -97,6 +97,8 @@ In the documentation, the terms dataset and SDS (Scientific Data Set) are used
 interchangably.
 
 =cut
+
+
 EOD
 
 
@@ -398,6 +400,8 @@ sub Byte2Char
     my $hdf = PDL::IO::HDF::SD->new("file.hdf");
 
 =cut
+
+
 sub new
 {
     # General:
@@ -620,6 +624,8 @@ sub new
     my $newvar = $hdf->Chunking( 1 );
 
 =cut
+
+
 # See the changelog for more docs on this feature:
 sub Chunking
 {
@@ -648,6 +654,8 @@ sub Chunking
     my @DataList = $hdfobj->SDgetvariablenames();
 
 =cut
+
+
 sub SDgetvariablenames
 {
     my($self) = @_;
@@ -684,6 +692,8 @@ sub SDgetvariablename
     my @attrList = $hdf->SDgetattributenames("dataset_name");
 
 =cut 
+
+
 sub SDgetattributenames
 {
     my($self, $name) = @_;
@@ -729,6 +739,8 @@ sub SDgetattributname
     my $attr = $hdf->SDgetattribute("attr_name", "dataset_name");
 
 =cut
+
+
 sub SDgetattribute
 {
     my($self, $name, $dataset) = @_;
@@ -770,6 +782,8 @@ sub SDgetattribut
     my $fillvalue = $hdf->SDgetfillvalue("dataset_name");
 
 =cut
+
+
 sub SDgetfillvalue
 {
     my($self, $name) = @_;
@@ -796,6 +810,8 @@ sub SDgetfillvalue
     my @range = $hdf->SDgetrange("dataset_name");
 
 =cut
+
+
 sub SDgetrange
 {
     my($self, $name) = @_;
@@ -822,6 +838,8 @@ sub SDgetrange
     my $scale = $hdf->SDgetscalefactor("dataset_name");
 
 =cut
+
+
 sub SDgetscalefactor
 {
     my($self, $name) = @_;
@@ -849,6 +867,8 @@ sub SDgetscalefactor
     my @dim = $hdf->SDgetdimsize("dataset_name");
         
 =cut
+
+
 sub SDgetdimsize
 {
     my ($self, $name) = @_;
@@ -885,6 +905,8 @@ sub SDgetdimsize
     my @dims = $hdf->SDgetunlimiteddimsize("dataset_name");
 
 =cut
+
+
 sub SDgetunlimiteddimsize
 {
     my ($self, $name) = @_;
@@ -933,6 +955,8 @@ sub SDgetdimsizeunlimit
     my @dim_names = $hdf->SDgetdimnames("dataset_name");
 
 =cut
+
+
 sub SDgetdimnames
 {
     my ($self, $name) = @_;
@@ -971,6 +995,8 @@ sub SDgetdimname
     my ($cal, $cal_err, $off, $off_err, $d_type) = $hdf->SDgetcal("dataset_name");
 
 =cut 
+
+
 sub SDgetcal
 {
     my ($self, $name ) = @_;
@@ -1025,6 +1051,8 @@ sub SDgetcal
     my $pdldata = $hdf->SDget( "dataset_name", $start, $edge, $stride );
 
 =cut
+
+
 sub SDget
 {
     my($self, $name, $start, $end, $stride) = @_;
@@ -1085,6 +1113,8 @@ sub SDget
     my $res = $hdf->SDsetfillvalue("dataset_name",$fillvalue);
 
 =cut
+
+
 sub SDsetfillvalue
 {
     my ($self, $name, $value) = @_;
@@ -1117,6 +1147,8 @@ sub SDsetfillvalue
     my $res = $hdf->SDsetrange("dataset_name", [$min, $max]);
 
 =cut
+
+
 sub SDsetrange
 {
     my ($self, $name, $range) = @_;
@@ -1169,6 +1201,8 @@ sub SDsetrange
     $res = $hdf->SDsetcal("dataset_name", $scalefactor, $scale_err, $offset, $off_err);
 
 =cut
+
+
 sub SDsetcal
 {
     my $self = shift;
@@ -1219,6 +1253,8 @@ sub SDsetcal
     my $res = $hdf->SDsetfillvalue("dataset_name",$deflate_value);
 
 =cut
+
+
 sub SDsetcompress
 {
     my ($self, $name) = @_;
@@ -1260,6 +1296,8 @@ sub SDsetcompress
     $res = $hdf->SDsettextattr("my_text", "attribut_name", "dataset_name");
 
 =cut
+
+
 sub SDsettextattr
 {
     my ($self, $text, $name, $dataset) = @_;
@@ -1304,6 +1342,8 @@ sub SDsettextattr
     $res = $hdf->SDsetvalueattr($attribute, "attribute_name", "dataset_name");
 
 =cut
+
+
 sub SDsetvalueattr
 {
     my ($self, $values, $name, $dataset) = @_;
@@ -1349,6 +1389,8 @@ sub SDsetvalueattr
     $res = $hdf->SDsetdimname("dataset_name", ['dim1', undef ,'dim3']);
 
 =cut
+
+
 # FIXME: There are several problems with this:
 #    - The return code is an aggregate, and not necessarily accurate
 #    - It bails on the first error without trying the rest. If that is still
@@ -1409,6 +1451,8 @@ sub SDsetdimname
     $res = $hdf->SDput("dataset_name", $data->slice("..."), undef, $start);
 
 =cut
+
+
 sub SDput
 {
     my($self, $name, $data, $dimname_p, $from) = @_;
@@ -1531,6 +1575,8 @@ sub SDput
     my $result = $hdf->close();
 
 =cut
+
+
 # NOTE: This may not be enough, since there may be opened datasets as well! SDendaccess()!
 sub close 
 {
@@ -1568,6 +1614,8 @@ contribs of Olivier Archer olivier.archer@ifremer.fr
 perl(1), PDL(1), PDL::IO::HDF(1).
 
 =cut
+
+
 EOD
 
 pp_done();

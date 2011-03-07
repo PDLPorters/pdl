@@ -1,21 +1,31 @@
 The following issues have been reported with this version of PDL:
 
+- If you have a pre-existing PDL install in your perl @INC path,
+  mysterious failures have been observed in some tests due to
+  unintentionally pulling in a previous version of PDL.  The
+  'perl Makefile.PL' stage now checks for this and warns you.
+
+
+- The PDL build process also checks for white space in the build
+  directory as that is known to cause problems for some modules
+  and asks you if you wish to continue [default is yes].
+
+  NOTE: You can avoid the interactive prompts by setting the
+  environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
+
+
 - The Perl debugger for perls 5.10.1 through 5.12 has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
-  an affected perl version, the work around is to make an
-  explicit temp as in:
+  an affected perl version, the work around is to use an
+  intermediate temporary variable assignment as in:
 
-    $piddle->slice('0:10') .= 100;
-
-  becomes
-
-    my $tmp; # work around perl -d "feature"
-    ($tmp = $piddle->slice('0:10')) .= 100;
+    $piddle->slice('0:10') .= 100;           # original slice code
+    ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
   The problem is understood and it is hoped that an official
-  fix will become available soon.  NOTE: the work around is
-  100% effective---but ugly.
+  fix will become available.  NOTE: the work around is 100%
+  effective---but ugly.
 
 
 - The demo 3d and 3d2 windows do not close (can not be closed)
@@ -34,27 +44,6 @@ The following issues have been reported with this version of PDL:
   update PDL::FFTW to the version 3 API. 
 
 
-- If you have a pre-existing PDL install in your perl @INC path,
-  mysterious failures have been observed in some tests due to
-  unintentionally pulling in a previous version of PDL.  The
-  'perl Makefile.PL' stage now checks for this and asks if you
-  wish to continue.
-  
-  *Usually* continuing with another PDL in the path will work
-  BUT if you get mysterious test failures, try removing the
-  previous PDL install files and test/build again.
-
-
-- Various make command issues during build:
-
-  - Using parallel make causes the build to fail; so don't use -j # options.
-
-  - make fails with message like.
-      "*** No rule to make target `pptemplate', needed by `pptemplate.pod'.  Stop."
-    The cause is unknown.  If you have this problem, *please* let the developers
-    know via the perldl mailing list.
-
-
 - Extremely verbose but not particularly helpful text output from
   the configure-build-test process.
 
@@ -70,8 +59,11 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_008 release:
+  PDL-2.4.7_012 release:
 
+  3190227    PDL build fails with parallel GNU make -j3 -j3
+  3161459    online docs don't link to functions in other PDL modules 
+  3139088    PDL constructor segfaults with arrayrefs from RRDs::fetch
   3080505    PLplot segfaults on plshades call on OS X
   3059083    Problems with FITS header handling
   3018731    NiceSlice affects code where it should not

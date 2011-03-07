@@ -1302,7 +1302,7 @@ pp_def('statsover',
          %}
 	 $rms()  = sqrt ( tmp/norm );
 	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
-         $adev() = tmp1/norm;
+         $adev() = sqrt( tmp1/norm );
 ',
 	BadCode => 
 	'$GENERIC(avg) tmp = 0;

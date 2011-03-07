@@ -945,6 +945,7 @@ sub get_current_window {
 
 # Get the current graphbox
 sub get_current_graphbox {
+        die "get_current_graphbox: ERROR graphbox is not implemented! \n";
 	my $graph = $PDL::Graphics::TriD::curgraph;
 	if(!defined $graph) {
 		$graph = new PDL::Graphics::TriD::Graph();

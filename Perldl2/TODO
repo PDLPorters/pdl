@@ -128,12 +128,6 @@ Last saved: Tue 30 Nov 2010 10:38:31 AM
   It would be nice if the most possible could be done using
   the Term::ReadLine::Stub.
  
-  Fix problem where q[ and qq[ type constructions can
-  not span lines (even with the supposed multiline support
-  in Devel::REPL.  Maybe just add check for unterminated
-  string to the multiline PPI.  The Text::Balanced
-  implementation in perldl appears to work better.
- 
   Add MultiLine prompt with continuation character marking
   the open structures. (e.g. MultiLine::TextBalanced).
 
@@ -251,7 +245,7 @@ Last saved: Tue 30 Nov 2010 10:38:31 AM
   
   ?,?? aliases                   yes                    yes
   
-  q,x,exit aliases               yes                    yes
+  quit,x,exit aliases            yes                    yes
   
   User AUTO commands             yes                    TBD 
   

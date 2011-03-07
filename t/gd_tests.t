@@ -14,14 +14,22 @@ use Test::More;
 
 BEGIN
 {
-    eval( " use PDL::IO::GD; " );
-    if( $@ )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_GD} ) 
     {
-        plan skip_all => "Skipped: PDL::IO::GD requires the gd image library: $!";
-    }  
+        eval( " use PDL::IO::GD; " );
+        if( $@ )
+        {
+            plan skip_all => "PDL::IO::GD requires the gd image library.";
+        }  
+        else
+        {
+            plan tests => 13;
+        }
+    }
     else
     {
-        plan tests => 13;
+        plan skip_all => "PDL::IO::GD not compiled.";
     }
 }
 

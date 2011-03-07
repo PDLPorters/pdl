@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Mon 08 Nov 2010 10:36:52 AM 
+# Last saved: Fri 14 Jan 2011 06:57:24 PM 
 #
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
@@ -16,9 +16,10 @@
 #   (2) parse map_info for pixel geolocation
 #       - handle keyword=value inside list
 #   (3) check that all sensor keywords are parsed
-#   (4) implement writeenvi (wenvi?)
-#   (5) LATER: add support for complex data input, e.g. [2,S,L,B]
-#   (6) LATER: support unsigned long long
+#   (4) add support for offset/stride/count/reshape
+#   (5) implement writeenvi/wenvi routine
+#   (6) LATER: add support for complex data input, e.g. [2,S,L,B]
+#   (7) LATER: support unsigned long long
 
 use strict;
 
@@ -45,6 +46,7 @@ my $run_envi_main = 0;  # set to 1 for testing
 #   (7) canonical case for normalized keywords is lowercase
 #   (8) required key-value pairs are always on a single line
 #   (9) brace starting lists must be on same line as keyword =
+#  (10) comment lines begin with ; in the first column
 #
 # Initially, we will parse all keyword = values but only fully
 # process for the required and optional entries needed for the
@@ -85,11 +87,11 @@ my $envi_keywords = {
    'projection_info' => 0,                # optional, (tbd)
    'reflectance_scale_factor' => 0,       # optional, (tbd)
    'rpc_info' => 0,                       # optional, (tbd)
-   'samples' => 1,                        # required, num samples/pixels per image line each band
-   'sensor_type' => 0,                    # optional, str Unknown orexact match with sensor.txt entry
+   'samples' => 1,                        # required, num samples per image line each band
+   'sensor_type' => 0,                    # optional, str Unknown or exact match in sensor.txt
    'spectra_names' => 0,                  # optional, (tbd)
    'wavelength' => 0,                     # optional, CSV of band center value in image
-   'wavelength_units' => 0,               # optional, str indicating units for wavelength and fwhm
+   'wavelength_units' => 0,               # optional, str with units for wavelength and fwhm
    'x_start' => 0,                        # optional, (tbd)
    'y_start' => 0,                        # optional, (tbd)
    'z_plot_average' => 0,                 # optional, (tbd)
@@ -131,7 +133,8 @@ sub _read_envihdr {
    # an easy progress message
    if ($verbose>1) {
       print STDERR "_read_envihdr: reading ENVI hdr data from '@_'\n";
-      print STDERR "_read_envihdr: required ENVI keywords are:\n  @{ [sort @$envi_required_keywords] }\n";
+      print STDERR "_read_envihdr: required ENVI keywords are:\n";
+      print STDERR "  @{ [sort @$envi_required_keywords] }\n";
    }
 
    # open hdr file
@@ -139,13 +142,17 @@ sub _read_envihdr {
       or barf "_read_envihdr: couldn't open '$hdrname' for reading";
    binmode $hdrfile;
 
-   barf "_read_envihdr: WARNING '$hdrname' is empty, invalid ENVI format" if eof($hdrfile);
+   if eof($hdrfile) {
+      barf "_read_envihdr: WARNING '$hdrname' is empty, invalid ENVI format"
+   }
 
    ITEM:
    while (!eof($hdrfile)) {
-      # check for ENVI hdr start word
+      # check for ENVI hdr start word on first line
       my $line = <$hdrfile>;
-      barf "_read_envihdr: '$hdrname' is not in ENVI hdr format" unless $line =~ /^ENVI\r?$/;
+      if ($line !~ /^ENVI\r?$/) {
+         barf "_read_envihdr: '$hdrname' is not in ENVI hdr format"
+      }
       $hdr->{ENVI} = 1;  # this marks this header as ENVI
 
       # collect key=values into a hash
@@ -154,7 +161,7 @@ sub _read_envihdr {
       LINE:
       while (defined($line = <$hdrfile>)) {
 
-         next LINE if $line =~ /^;/;
+         next LINE if $line =~ /^;/;   # skip comment line (maybe print?)
 
          $line =~ s/\s+$//;
          $line =~ s/^\s+//;
@@ -165,7 +172,9 @@ sub _read_envihdr {
          if ($in_list>0) {
             # append to value string
             $val  .= " $line";  # need to keep whitespace for separation
-            barf "_read_envihdr: warning, found nested braces for line '$line'\n" if $line =~ /{/;
+            if ($line =~ /{/) {
+               barf "_read_envihdr: warning, found nested braces for line '$line'\n";
+            }
             if ( $val =~ /}$/ ) { # got to end of list
                # parse $val list
                print STDERR "_read_envihdr: got list value = $val\n" if $verbose>1;
@@ -174,6 +183,7 @@ sub _read_envihdr {
             }
          } else {
             # look for next keyword = line
+            ($keyword,$val) = (undef, undef);
             ($keyword,$val) = $line =~ /^\s*([^=]+)=\s*(.*)$/;
             if (defined $keyword) {
                # warning exit in case underscores are used in keywords
@@ -296,7 +306,7 @@ sub readenvi {
  
    # construct Dims for readflex
    my @imagedims = ();
-   @imagedims = @{$interleave->{$envihdr->{interleave}}};
+   @imagedims = @{$interleave->{lc($envihdr->{interleave})}};
    print STDERR "readenvi: Need Dims => @imagedims\n" if $verbose;
    my $imagedims = [ map { $envihdr->{$_} } @imagedims ];
    print STDERR "readenvi: computed Dims => [", join( ', ', @{$imagedims} ), "]\n" if $verbose; 

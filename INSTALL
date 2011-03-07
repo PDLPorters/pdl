@@ -88,10 +88,11 @@ the developers with a full bug report; response is
 often rapid (We would like to have PDL work right out
 of the box on as many platforms as possible).
 
-NOTE: Build failures have been reported with parallel
-      make options such as -j # and their ilk.
+IMPORTANT: Don't use parallel make options to compile
+PDL as there is a known problem reported for GNU make
+with -j # .
 
-If make completed correctly, try:
+If the make command completed successfully, try:
 
 	make test
 
@@ -193,3 +194,8 @@ a bug report (see the BUGS file for directions).
   around for the problem is to 'touch Makefile.PL' which
   updates the file time for Makefile.PL to "now" so make
   runs correctly.
+
+* If you wish to avoid interactive prompts during the PDL
+  configure process (e.g., the perl Makefile.PL stage),
+  you can set the environment variable PERL_MM_USE_DEFAULT
+  to 1 so the default values are taken automatically.

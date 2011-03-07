@@ -16,7 +16,7 @@ sub near {
 	return ($dist <= $tol)->all;
 }
 
-BEGIN { plan tests => 28,
+BEGIN { plan tests => 30,
 }
 
 my $tol = 1e-14;
@@ -65,7 +65,26 @@ ok(ref ($opt->{lu}->[0]) eq 'PDL');
 ok(near(matmult($a1,$a),$identity,$tol));
 
 
+### Check inv() for matrices with added thread dims (bug #3172882 on sf.net)
+$a94 = pdl( [  1,  0,  4, -1, -1, -3,  0,  1,  0 ],
+            [  4, -4, -5,  1, -5, -3, -1, -2,  0 ],
+            [ -2,  2, -5, -1,  1, -3, -4,  3, -4 ],
+            [ -1,  4, -4,  2,  1,  3, -3, -4, -3 ],
+         );
+$a334 = $a94->reshape(3,3,4);
+eval '$a334inv = $a334->inv';
+
+ok(!$@);                                                    # ran OK
+ok(near(matmult($a334,$a334inv),$identity->dummy(2,4)));     # right answer
+
+undef $a94;       # clean up variables
+undef $a334;      # clean up variables
+undef $a334inv;   # clean up variables
+
+
+
 ### Check LU backsubstitution (bug #2023711 on sf.net)
+
 
 $a = pdl([[2,1],[1,2]]);
 eval '($lu,$perm,$par) = lu_decomp($a)';

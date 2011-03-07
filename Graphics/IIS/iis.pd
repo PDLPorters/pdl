@@ -70,6 +70,8 @@ using the module this will guarantee correct file names!
 =head1 FUNCTIONS
 
 =cut
+
+
 EOD
 
 use Config;
@@ -645,6 +647,8 @@ distribution. If this file is separated from the PDL distribution,
 the copyright notice should be included in the file.
 
 =cut
+
+
 EOD
 
 pp_done();

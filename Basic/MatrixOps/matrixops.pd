@@ -96,7 +96,7 @@ operator (which is, of course, threadable):
 
 Because of the (column,row) addressing order, 1-D PDLs are treated as
 _row_ vectors; if you want a _column_ vector you must add a dummy dimension:
-      
+
       $rowvec  = pdl(1,2);            # row vector
       $colvec  = $rowvec->(*1);	      # 1x2 column vector
       $matrix  = pdl([[3,4],[6,2]]);  # 2x2 matrix
@@ -186,7 +186,7 @@ pp_addpm(<<'EOD');
 =head2 stretcher
 
 =for sig
-  
+
   Signature: (a(n); [o]b(n,n))
 
 =for usage
@@ -233,7 +233,7 @@ exists).  The code is inplace-aware, so you can get back the inverse
 in $a itself if you want -- though temporary storage is used either
 way.  You can cache the LU decomposition in an output option variable.
 
-C<inv> uses lu_decomp by default; that is a numerically stable
+C<inv> uses C<lu_decomp> by default; that is a numerically stable
 (pivoting) LU decomposition method.
 
 
@@ -251,8 +251,8 @@ singular matrices cause inverse to return undef.
 
 This value contains a list ref with the LU decomposition, permutation,
 and parity values for $a.  If you do not mention the key, or if the
-value is undef, then inverse calls lu_decomp.  If the key exists with
-an undef value, then the output of lu_decomp is stashed here (unless
+value is undef, then inverse calls C<lu_decomp>.  If the key exists with
+an undef value, then the output of C<lu_decomp> is stashed here (unless
 the matrix is singular).  If the value exists, then it is assumed to
 hold the lu decomposition.
 
@@ -351,6 +351,7 @@ the matrix will not be decomposed again.
 =back
 
 =cut
+
 *PDL::det = \&det;
 sub det {
   my($a) = shift;
@@ -379,7 +380,7 @@ pp_addpm(<<'EOD');
 =head2 determinant
 
 =for sig
- 
+
  Signature: (a(m,m))
 
 =for usage
@@ -538,8 +539,10 @@ runs across their components.
 
 =for usage
 
- ($ev, $e) = eigens_sym($a); # e\'vects & e\'vals
+ ($ev, $e) = eigens_sym($a); # e-vects & e-values
  $e = eigens_sym($a);        # just eigenvalues
+
+=cut 
 
 ',);
 
@@ -739,6 +742,9 @@ numbers.  It might be useful to be able to return complex eigenvalues.
  ($ev, $e) = eigens($a); # e\'vects & e\'vals
  $e = eigens($a);        # just eigenvalues
 
+=cut
+
+
 ',);
 
 ######################################################################
@@ -809,6 +815,9 @@ orientation of the ellipsoid of transformation:
    $a .= $r2 x $r1;  # a gets r2 x ess x r1
  }
 
+=cut
+
+
 ',);
 
 
@@ -820,7 +829,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
-  Signature: (a(m,m); [o]b(m); [o]c; [o]lu(m,m))
+  Signature: (a(m,m); [o]lu(m,m); [o]perm(m); [o]parity)
 
 =for ref
 
@@ -836,13 +845,13 @@ LU decompose a matrix, with row permutation
 
 =for description
 
-lu_decomp returns an LU decomposition of a square matrix,
+C<lu_decomp> returns an LU decomposition of a square matrix,
 using Crout's method with partial pivoting. It's ported
 from I<Numerical Recipes>. The partial pivoting keeps it
 numerically stable but means a little more overhead from
 threading.
 
-lu_decomp decomposes the input matrix into matrices L and
+C<lu_decomp> decomposes the input matrix into matrices L and
 U such that LU = A, L is a subdiagonal matrix, and U is a
 superdiagonal matrix. By convention, the diagonal of L is
 all 1's.
@@ -858,7 +867,7 @@ the permutation for the output to make any sense, so be sure
 to get it one way or the other.
 
 LU decomposition is the answer to a lot of matrix questions,
-including inversion and determinant-finding, and lu_decomp
+including inversion and determinant-finding, and C<lu_decomp>
 is used by L<inv|/inv>.
 
 If you pass in $perm and $parity, they either must be
@@ -866,29 +875,28 @@ predeclared PDLs of the correct size ($perm is an n-vector,
 $parity is a scalar) or scalars.
 
 If the matrix is singular, then the LU decomposition might
-not be defined; in those cases, lu_decomp silently returns
+not be defined; in those cases, C<lu_decomp> silently returns
 undef. Some singular matrices LU-decompose just fine, and
 those are handled OK but give a zero determinant (and hence
 can't be inverted).
 
-lu_decomp uses pivoting, which rearranges the values in the
+C<lu_decomp> uses pivoting, which rearranges the values in the
 matrix for more numerical stability. This makes it really
 good for large and even near-singular matrices. There is
-a non-pivoting version L<lu_decomp2> available which is
+a non-pivoting version C<lu_decomp2> available which is
 from 5 to 60 percent faster for typical problems at
 the expense of failing to compute a result in some cases.
 
-Now that the L<lu_decomp> is threaded, it is the
-recommended method although L<lu_decomp2> remains
-for back compatibility.
+Now that the C<lu_decomp> is threaded, it is the recommended
+LU decomposition routine.  It no longer falls back to C<lu_decomp2>
+in the threaded case.
 
-lu_decomp is ported from _Numerical_Recipes to PDL. It
+C<lu_decomp> is ported from I<Numerical Recipes> to PDL. It
 should probably be implemented in C.
 
 =cut
 
 *PDL::lu_decomp = \&lu_decomp;
-my $_have_warned_lu_decomp = 0;
 
 sub lu_decomp {
    my($in) = shift;
@@ -902,11 +910,6 @@ sub lu_decomp {
    if(!UNIVERSAL::isa($in,'PDL') || 
       $in->ndims < 2 || 
       $in->dim(0) != $in->dim(1));
-
-   if(($in->ndims > 2) && !( (pdl($in->dims)->(2:-1) < 2)->all )  ) {
-      warn('lu_decomp: no longer calling lu_decomp2') unless $_have_warned_lu_decomp;
-      $_have_warned_lu_decomp ||= 1;
-   }
 
    my($n) = $in->dim(0);
    my($n1) = $n; $n1--;
@@ -1011,43 +1014,45 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(m,m); [0]lu(n)
+ Signature: (a(m,m); [o]lu(m,m))
 
 =for ref
 
-LU decompose a matrix, with no row permutation (threadable!)
+LU decompose a matrix, with no row permutation
 
 =for usage
 
   ($lu, $perm, $parity) = lu_decomp2($a);
 
-  $lu = lu_decomp2($a,[$perm,$par]); 
+  $lu = lu_decomp2($a,$perm,$parity);   # or
+  $lu = lu_decomp2($a);                 # $perm and $parity are optional
 
-  lu_decomp($a->inplace,[$perm,$par]);
+  lu_decomp($a->inplace,$perm,$parity); # or
+  lu_decomp($a->inplace);               # $perm and $parity are optional
 
 =for description
 
 C<lu_decomp2> works just like L<lu_decomp|lu_decomp>, but it does B<no>
-pivoting at all and hence can be usefully threaded.  For compatibility
-with L<lu_decomp|lu_decomp>, it will give you a permutation list and a parity
-scalar if you ask for them -- but they are always trivial.
+pivoting at all.  For compatibility with L<lu_decomp|lu_decomp>, it
+will give you a permutation list and a parity scalar if you ask
+for them -- but they are always trivial.
 
-Because C<lu_decomp2> does not pivot, it is numerically unstable --
+Because C<lu_decomp2> does not pivot, it is numerically B<unstable> --
 that means it is less precise than L<lu_decomp>, particularly for
 large or near-singular matrices.  There are also specific types of 
 non-singular matrices that confuse it (e.g. ([0,-1,0],[1,0,0],[0,0,1]),
-which is a 90 degree rotation matrix but which confuses lu_decomp2).
+which is a 90 degree rotation matrix but which confuses C<lu_decomp2>).
 
 On the other hand, if you want to invert rapidly a few hundred thousand
-small matrices and don't mind missing one or two, it's just the ticket.
-It can be up to 2X faster at the expense of a decomposition failure.
+small matrices and don't mind missing one or two, it could be the ticket.
+It can be up to 60% faster at the expense of possible failure of the
+decomposition for some of the input matrices.
 
 The output is a single matrix that contains the LU decomposition of $a;
 you can even do it in-place, thereby destroying $a, if you want.  See
 L<lu_decomp> for more information about LU decomposition. 
 
-lu_decomp2 is ported from _Numerical_Recipes_ into PDL.  If lu_decomp
-were implemented in C, then lu_decomp2 might become unnecessary.
+C<lu_decomp2> is ported from I<Numerical Recipes> into PDL.
 
 =cut
 
@@ -1142,39 +1147,41 @@ solve a x = b for matrix a, by back substitution into a's lu decomposition.
 
 =for usage
 
-  ($lu,$perm) = lu_decomp($a);
-  $x = lu_backsub($lu,$perm,$par,$b);
+  ($lu,$perm,$par) = lu_decomp($a);
+  
+  $x = lu_backsub($lu,$perm,$par,$b);  # or
+  $x = lu_backsub($lu,$perm,$b);       # $par is not required for lu_backsub
   
   lu_backsub($lu,$perm,$b->inplace); # modify $b in-place
-
+  
   $x = lu_backsub(lu_decomp($a),$b); # (ignores parity value from lu_decomp)
 
 =for description
 
-given the lu decomposition of a square matrix (from
-l<lu_decomp|lu_decomp>), lu_backsub does back substitution
-into the matrix to solve c<a x = b> for given vector c<b>.
-it is separated from the lu_decomp method so that you can
-call the cheap lu_backsub multiple times and not have to do
-the expensive lu decomposition more than once.
+Given the lu decomposition of a square matrix (from L<lu_decomp|lu_decomp>),
+C<lu_backsub> does back substitution into the matrix to solve
+C<a x = b> for given vector C<b>.  It is separated from the
+C<lu_decomp> method so that you can call the cheap C<lu_backsub>
+multiple times and not have to do the expensive lu decomposition
+more than once.
 
-lu_backsub acts on single vectors and threads in the usual
-way, which means that it treats c<$b> as the i<transpose>
-of the input. if you want to process a matrix, you must
-hand in the i<transpose> of the matrix, and then transpose
+C<lu_backsub> acts on single vectors and threads in the usual
+way, which means that it treats C<$b> as the I<transpose>
+of the input.  If you want to process a matrix, you must
+hand in the I<transpose> of the matrix, and then transpose
 the output when you get it back. that is because pdls are
 indexed by (col,row), and matrices are (row,column) by
 convention, so a 1-d pdl corresponds to a row vector, not a
 column vector.
 
-if c<$lu> is dense and you have more than a few points to
-solve for, it is probably cheaper to find c<a^-1> with
-l<inv|/inv>, and just multiply c<x = a^-1 b>.) in fact,
-l<inv|/inv> works by calling lu_backsub with the identity
+If C<$lu> is dense and you have more than a few points to
+solve for, it is probably cheaper to find C<a^-1> with
+L<inv|/inv>, and just multiply C<x = a^-1 b>.) in fact,
+L<inv|/inv> works by calling C<lu_backsub> with the identity
 matrix.
 
-lu_backsub is ported from section 2.3 of i<numerical recipes>.  it is 
-written in pdl but should probably be implemented in c.
+C<lu_backsub> is ported from section 2.3 of I<Numerical Recipes>.
+It is written in pdl but should probably be implemented in C.
 
 =cut
 
@@ -1182,6 +1189,7 @@ written in pdl but should probably be implemented in c.
 
 sub lu_backsub {
    my ($lu, $perm, $b, $par);
+   print STDERR "lu_backsub: entering debug version...\n" if $PDL::debug;
    if(@_==3) {
       ($lu, $perm, $b) = @_;
    } elsif(@_==4) {
@@ -1199,28 +1207,84 @@ sub lu_backsub {
    my $n = $b->dim(0);
    my $n1 = $n; $n1--;
 
+   # Make sure threading dimensions are compatible.
+   # There are two possible sources of thread dims:
+   #
+   # (1) over multiple LU (i.e., $lu,$perm) instances
+   # (2) over multiple  B (i.e., $b) column instances
+   #
+   # The full dimensions of the function call looks like
+   #
+   #   lu_backsub( lu(m,m,X), perm(m,X), b(m,Y) )
+   #
+   # where X is the list of extra LU dims and Y is
+   # the list of extra B dims.  We have several possible
+   # cases:
+   #
+   # (1) Check that m dims are compatible
+   my $ludims = pdl($lu->dims);
+   my $permdims = pdl($perm->dims);
+   my $bdims = pdl($b->dims);
+
+   print STDERR "lu_backsub: called with args:  \$lu$ludims, \$perm$permdims, \$b$bdims\n" if $PDL::debug;
+
+   my $m = $ludims((0));  # this is the sig dimension
+   unless ( ($ludims(0) == $m) and ($ludims(1) == $m) and
+      ($permdims(0) == $m) and ($bdims(0) == $m)) {
+      barf "lu_backsub: mismatched sig dimensions";
+   }
+
+   my $lunumthr = $ludims->dim(0)-2;
+   my $permnumthr = $permdims->dim(0)-1;
+   my $bnumthr = $bdims->dim(0)-1;
+   unless ( ($lunumthr == $permnumthr) and ($ludims(1:-1) == $permdims)->all )  {
+      barf "lu_backsub: \$lu and \$perm thread dims not equal! \n";
+   }
+
+   # (2) If X == Y then default threading is ok
+   if ( ($bnumthr==$permnumthr) and ($bdims==$permdims)->all) {
+      print STDERR "lu_backsub: have explicit thread dims, goto THREAD_OK\n" if $PDL::debug;
+      goto THREAD_OK;
+   }
+
+   # (3) If X == (x,Y) then add x dummy to lu,perm
+
+   # (4) If ndims(X) > ndims(Y) then must have #3
+
+   # (5) If ndims(X) < ndims(Y) then foreach
+   #     non-trivial leading dim in X (x0,x1,..)
+   #     insert dummy (x0,x1) into lu and perm
+
+   # This means that threading occurs over all
+   # leading non-trivial (not length 1) dims of
+   # B unless all the thread dims are explicitly
+   # matched to the LU dims.
+
+THREAD_OK:
 
    # Permute the vector and make a copy if necessary.
    my $out;
-   # my $nontrivial = !(($perm==(PDL->xvals($perm->dims)))->all);
+   # my $nontrivial = ! (($perm==(PDL->xvals($perm->dims)))->all);
    my $nontrivial = ! (($perm==$perm->xvals)->clump(-1)->andover);
 
    if($nontrivial) {
       if($b->is_inplace) {
-         $b .= $b->dummy(1,$b->dim(0))->index($perm)->sever;
+         $b .= $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;   # TODO: check threading
          $out = $b;
       } else {
-         $out = $b->dummy(1,$b->dim(0))->index($perm)->sever;
+         $out = $b->dummy(1,$b->dim(0))->index($perm->dummy(1,1))->sever;  # TODO: check threading
       }
    } else {
       # should check for more matrix dims to thread over
       # but ignore the issue for now
       $out = ($b->is_inplace ? $b : $b->copy);
    }
+   print STDERR "lu_backsub: starting with \$out" . pdl($out->dims) . "\n" if $PDL::debug;
 
    # Make sure threading over lu happens OK...
 
    if($out->ndims < $lu->ndims-1) {
+      print STDERR "lu_backsub: adjusting dims for \$out" . pdl($out->dims) . "\n" if $PDL::debug;
       do {
          $out = $out->dummy(-1,$lu->dim($out->ndims+1));
       } while($out->ndims < $lu->ndims-1);
@@ -1242,16 +1306,16 @@ sub lu_backsub {
    my $ludiag = $lu->diagonal(0,1);
    {
       my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($n1)) /= $ludiag->index($n1);
+      ($tmp = $out->index($n1)) /= $ludiag->index($n1)->dummy(0,1);        # TODO: check threading
    }
 
    for ($row=$n1; $row>0; $row--) {
       $r1 = $row-1;
       my $tmp; # work around for perl -d "feature"
-      ($tmp = $out->index($r1)) -= ($lu->($row:$n1,($r1)) * 
+      ($tmp = $out->index($r1)) -= ($lu->($row:$n1,$r1) *                  # TODO: check thread dims
          $out->($row:$n1)
       )->sumover;
-      ($tmp = $out->index($r1)) /= $ludiag->index($r1);
+      ($tmp = $out->index($r1)) /= $ludiag->index($r1)->dummy(0,1);        # TODO: check thread dims
    }
 
    $out;
@@ -1300,6 +1364,9 @@ required).
 See also L<lu_backsub|lu_backsub>, which does the same thing with a slightly
 less opaque interface.
 
+=cut
+
+
 ');
 
 ######################################################################
@@ -1332,6 +1399,9 @@ pp_def("squaretotri",
 =for ref
 
 Convert a symmetric square matrix to triangular vector storage.
+
+=cut
+
 
 ',
 );

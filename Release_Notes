@@ -1,3 +1,177 @@
+release notes for pdl 2.4.7_012 --------------------------
+
+general notes:
+
+ * this is a developers release!
+ 
+   - it is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - these release notes may not be fully complete.  please
+     see changes (from the git log) for full details.
+
+   - all tests may not pass, especially ones corresponding
+     to issues in known_problems.
+   
+   - manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.7_012.tar.gz
+       cpan> make chm/pdl-2.4.7_012.tar.gz
+       cpan> test chm/pdl-2.4.7_012.tar.gz
+       cpan> look chm/pdl-2.4.7_012.tar.gz
+
+
+highlights:
+
+ * TBD
+
+
+    
+release notes for pdl 2.4.7_011 --------------------------
+
+general notes:
+
+ * this is a developers release!
+ 
+   - it is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - these release notes may not be fully complete.  please
+     see changes (from the git log) for full details.
+
+   - all tests may not pass, especially ones corresponding
+     to issues in known_problems.
+   
+   - manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.7_011.tar.gz
+       cpan> make chm/pdl-2.4.7_011.tar.gz
+       cpan> test chm/pdl-2.4.7_011.tar.gz
+       cpan> look chm/pdl-2.4.7_011.tar.gz
+
+
+highlights:
+
+ * fixes to gd, hdf, and proj4 tests to not run if they
+   weren't built.
+ 
+ * new binary blob support in pdl::io::gd::oo
+
+ * changed interactive prompt when duplicate pdl is
+   found at pdl config time.  now just warn.
+ 
+ * fixed sf.net bug #3185864 (bad adev in statsover)
+
+ * minor pod cleanup for lu_xxx routines in pdl::matrixops
+
+ * spot fixes to usual readme, docs,..
+
+
+
+    
+Release notes for PDL 2.4.7_010 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_010.tar.gz
+       cpan> make CHM/PDL-2.4.7_010.tar.gz
+       cpan> test CHM/PDL-2.4.7_010.tar.gz
+       cpan> look CHM/PDL-2.4.7_010.tar.gz
+
+
+Highlights:
+
+ * Test release to verify the fix for sf.net bug #3171702
+   "missing podselect command breaks PDL build"
+
+
+    
+Release notes for PDL 2.4.7_009 --------------------------
+
+General Notes:
+
+ * This is a developers release!
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These Release Notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.7_009.tar.gz
+       cpan> make CHM/PDL-2.4.7_009.tar.gz
+       cpan> test CHM/PDL-2.4.7_009.tar.gz
+       cpan> look CHM/PDL-2.4.7_009.tar.gz
+
+
+Highlights:
+
+ * Update Known_problems, Perldl2/TODO, Release_Notes
+    
+ * Fixed upstream bug in Devel::REPL for MultiLine continuation
+   so now incomplete q[] and qq[] constructs continue reading
+   until properly closed.  This was a problem for pdl2 and its
+   multiline support.
+
+ *  Fix sf.net bug #3172882 re broken threading in inv
+    - inv() and lu_backsub() now handle threading
+    - documentation updates for lu_decomp, lu_deomp2, lu_backsub
+
+ * Fix imag2d not to exit on ESC in pdl2/perldl
+   Clean up PAUSE/STEP key controls for imag2d()
+   Add imag2d_update to EXPORT_OK and fix bug
+    
+     There are preliminary key bindings for the default
+     imag2d() windows to support SPACE to toggle pause,
+     [ . or > ] to step/move forward, and [ , or < ] to
+     move backward through frame data.
+
+ * clean up tests for PLplot functions
+   - common code in tests for PLplot functions has been abstracted
+   - plsfont & plgfont interfaces are now conditional on their existence
+   - OPTIONS! file is now Perl code.
+   - all conditional code API code is now based on
+      presence of a feature rather than version
+
+ * readenvi doc/code cleanup, ignore case in hdr keys
+    
+ * wmpeg() with the ffmpeg converter supports generation
+   of many different output video file formats including
+   MPEG, MP4, and animated GIF.  Documentation on these
+   uses were added.
+
+
+
 Release notes for PDL 2.4.7_008 --------------------------
 
 General Notes:
@@ -26,7 +200,31 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Merged PDL version of Graphics/PLplot with the stand-alone
+   package from CPAN, version 0.53.
+
+ * Fixed segfault in plplot.t by avoiding the problem:  pdl($pdl->sclr).
+   Calls to pdl() with arguments that are themselves PDLs still fails.
+
+ * Fixed sf.net bug #3139697: The imag2d() routine was using
+   FreeGLUT-specific macros: GLUT_ACTION_ON_WINDOW_CLOSE and
+   GLUT_ACTION_CONTINUE_EXECUTION which was a problem on OS X
+   GLUT which does not support them.  Added check for FreeGLUT
+   to conditionalize their use.
+ 
+ * Update PDL::IO::FlexRaw POD for writeflex
+
+ * Add open MODE support to writeflex "filename"
+     
+     writeflex is documented to take as argument either a "filename"
+     or a FILEHANDLE however if passed something like ">filename" as
+     the file argument, it would quietly (and unexpectedly) open the
+     file ">$name" which would then be ">>filename" and the data would
+     be appended to the file rather than overwriting it.
+
+     This modifies the "filename" option to be used explicitly if
+     passed a perl open type MODE+filename expression which might
+     avoid someone's utter confusion in the future...
 
 
 

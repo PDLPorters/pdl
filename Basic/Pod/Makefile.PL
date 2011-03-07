@@ -35,18 +35,13 @@ sub MY::postamble {
   my $text = '';
   eval 'require Pod::Select';
   if (!$@ && $] >= 5.005 ) {
-     $text .= $^O !~ /MSWin32/i ? "
+     $text .= << "EOPS" ;
 
 PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-\tPERL5OPT='' podselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
+\t\$(PERLRUN) -MPod::Select -e "podselect('../Gen/Inline/Pdlpp.pm');" > PP-Inline.pod
 
-"
-: "
+EOPS
 
-PP-Inline.pod: ../Gen/Inline/Pdlpp.pm
-\tpodselect ../Gen/Inline/Pdlpp.pm > PP-Inline.pod
-
-"
   }
   $text;
 }

@@ -1,33 +1,19 @@
 use Config;
-use vars qw/$nomem $debug $plpoly3 $novect/;
+use vars qw/ $debug /;
 my $ptrsize = length($Config{'byteorder'}); # 4 or 8 bytes
 my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';
 
 $debug = 0; # show generated pp_defs and other debug info
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
-open (OPT, 'OPTIONS!');
-my @opts = <OPT>;
-close OPT;
-$nomem = 0;
-$nomem = 1 if (grep /NOMEM!/, @opts);
-
-$novect = 0;
-$novect = 1 if (grep /NOVECT!/, @opts);
-
-$plpoly3 = 5;
-$plpoly3 = 6 if (grep /PLPOLY3 = 6/, @opts);
-
-$noalpha = 0;
-$noalpha = 1 if (grep /NOALPHA!/, @opts);
-
-$v59_or_earlier = 0;
-$v59_or_earlier = 1 if (grep /NOPLSEED!/, @opts);
+my %opt;
+do 'OPTIONS!'
+  or die( "error reading options file\n" );
 
 pp_addpm({At => Top}, <<'EOD');
 
-BEGIN {
-$VERSION = '0.52'
+BEGIN { 
+$VERSION = '0.54'
 };
 
 =head1 NAME
@@ -349,6 +335,16 @@ Add a title on top of a plot.
 
  # Plot text on top of plot
  $pl->xyplot ($x, $y, TITLE => 'X vs. Y');
+
+=head3 UNFILLED_BARS
+
+For 'bargraph', if set to true then plot the bars as outlines
+in the current color and not as filled boxes
+
+=for example
+
+ # Plot text on top of plot
+ $pl->bargraph($labels, $values, UNFILLED_BARS => 1);
 
 =head3 VIEWPORT
 
@@ -736,6 +732,9 @@ specifies the maximum number of labels to allow on the X axis.
 The default is 20.  If this value is exceeded, then every other
 label is plotted.  If twice MAXBARLABELS is exceeded, then only
 every third label is printed, and so on.
+
+if UNFILLED_BARS is set to true, then plot the bars as outlines
+and not as filled rectangles.
 
 =for usage
 
@@ -1162,6 +1161,13 @@ sub cc2t { [map {hex} split ' ', shift] }
      my $self = shift;
      my $text = shift;
      $self->{TITLE} = $text;
+   },
+
+   # Specify outline bars for bargraph
+   UNFILLED_BARS => sub {
+     my $self = shift;
+     my $val  = shift;
+     $self->{UNFILLED_BARS} = $val;
    },
 
    # set the location of the plotting window on the page
@@ -1907,7 +1913,11 @@ sub bargraph {
   plwid  ($self->{LINEWIDTH});
 
   # draw bars
-  plfbox (PDL->sequence($xmax)+0.5, $values);
+  if ($self->{UNFILLED_BARS}) {
+    plunfbox (PDL->sequence($xmax)+0.5, $values);
+  } else {
+    plfbox (PDL->sequence($xmax)+0.5, $values);
+  }
 
   # set line width back
   plwid  (0);
@@ -2173,7 +2183,7 @@ sub create_low_level {
     }
 
     # skip bad version of plpoly3
-    next if (($pfunc_name eq 'plpoly3') and (@vars != $plpoly3));
+    next if (($pfunc_name eq 'plpoly3') and (@vars != $opt{plpoly3}));
 
     # Now we have enough info to write out the dd_def.  All variables names are in
     # @vars.  Matching types are in @types.  The name of the function is in
@@ -2454,7 +2464,7 @@ EODEF
 # alpha-specific, but it's an adequate canary. Eliminate this chunk
 # and uncomment the lines above when we require at least PLplot 5.9.0.
 # -------------------------------------------------------------------------
-unless ($noalpha){
+if ($opt{have_alpha} ){
   create_low_level (<<'EODEF');
 void c_pltimefmt(const char *fmt);
 void c_plscolbga(PLINT r, PLINT g, PLINT b, PLFLT a);
@@ -2553,6 +2563,8 @@ For example:
  plcolorpoints($x, $y, 1, 1, -1, 2);           # same color and symbol for all
 
 =cut
+
+
 EOD
 
 # C routine to draw points with a color scale
@@ -2600,7 +2612,7 @@ pp_def ('plsmem',
 	     GenericTypes => [B],
              Pars => 'int maxx();int maxy();image(3,x,y)',
              Code => 'c_plsmem($maxx(),$maxy(),$P(image));'
-            ) unless ($nomem);
+            ) if $opt{plsmem};
 
 #
 ## Box drawing primitive, taken from PLPLOT bar graph example
@@ -2619,6 +2631,24 @@ pp_def ('plfbox',
                   x[3] = $xo() + 0.5;
                   y[3] = 0.;
                   plfill(4, x, y);',
+        );
+
+#
+## Similar box drawing primitive, but without fill (just draw outline of box)
+#
+pp_def ('plunfbox',
+         Pars => 'xo(); yo()',
+         GenericTypes => [D],
+         Code => 'PLFLT x[4], y[4];
+                  x[0] = $xo() - 0.5;
+                  y[0] = 0.;
+                  x[1] = $xo() - 0.5;
+                  y[1] = $yo();
+                  x[2] = $xo() + 0.5;
+                  y[2] = $yo();
+                  x[3] = $xo() + 0.5;
+                  y[3] = 0.;
+                  plline(4, x, y);',
         );
 
 #
@@ -2750,7 +2780,7 @@ pp_def ('plstyl',
 # PLplot standard random number generation.  Using this
 # helps to keep the demo plots identical.
 
-if (!$v59_or_earlier) {
+if ($opt{have_random}) {
   pp_def ('plseed',
           Pars => 'int seed()',
           Code => 'unsigned int useed = (unsigned int)$seed(); c_plseed(useed);'
@@ -3376,7 +3406,7 @@ pp_def ('plimage',
 
 # Plot image with transformation
 
-if (!$v59_or_earlier) {
+if ( $opt{c_plimagefr} ) {
 
   pp_def ('plimagefr',
           GenericTypes => [D],
@@ -3434,6 +3464,8 @@ pp_addpm (<<'EOPM');
 See the PLplot manual for reference.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3477,6 +3509,8 @@ coordinates and returns a hash with the following keys:
 Returns an empty hash if no translation to world coordinates is possible.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3527,6 +3561,8 @@ pp_addpm (<<'EOPM');
 Returns the number of the current output stream.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3554,6 +3590,8 @@ pp_addpm (<<'EOPM');
 Returns the current driver name.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3595,6 +3633,8 @@ Creates a new stream and makes it the default.  Returns the number of
 the created stream.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3624,6 +3664,8 @@ pp_addpm (<<'EOPM');
 See the PLplot manual for reference.
 
 =cut
+
+
 EOPM
 
 pp_addxs (<<"EOC");
@@ -3710,7 +3752,7 @@ pp_def ('plgriddata',
 
 
 
-unless ($novect) {
+if ($opt{have_vect} ) {
 
 # Vector field plots
 
@@ -3790,7 +3832,7 @@ unless ($novect) {
 	  Code => 'c_plscmap1($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
 
-  if (!$noalpha) {
+  if ( $opt{have_alpha} ) {
 
     # void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcol0a',
@@ -3842,7 +3884,7 @@ unless ($novect) {
     ## UNICODE font manipulation
     #
 
-    if (!$v59_or_earlier) {
+    if ($opt{have_font}) {
 
       # plgfont(PLINT *p_family, PLINT *p_style, PLINT *p_weight);
       pp_def ('plgfont',

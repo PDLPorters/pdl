@@ -2,6 +2,7 @@ package PDL::Graphics2D;
 
 use Exporter 'import'; # gives you Exporter's import() method directly
 @EXPORT = qw(imag2d twiddle);  # symbols to export on request
+@EXPORT_OK = qw(imag2d imag2d_update twiddle);  # symbols to export on request
 
 =head1 NAME
 
@@ -171,7 +172,9 @@ my $imag2d_keep_twiddling;
 
 my $show_overlay = 1;
 our $is_paused = 0;
-our $go_forward = 0;
+our $do_step = 0;
+our $step_count = 1;
+our $go_forward = 1;
 our $go_backward = 0;
 
 our @imag2d_list = ();
@@ -430,7 +433,13 @@ sub key_ops {
    # exit program
    if ($key == 27 or $key == 3) {          # ESC or Ctrl-C
       warn "Exit program command, key '" . (($key == 27) ? 'ESC' : 'Ctrl-C') . "', detected.\n";
-      exit;
+      if (defined $PERLDL::TERM) {         # don't exit if in the perldl or pdl2 shell
+         $imag2d_keep_twiddling = 0;
+         warn "PDL shell in use, stop twiddling instead of exit...\n";
+         return;
+      } else {
+         exit; 
+      }
    }
 
    # toggle overlay
@@ -473,14 +482,20 @@ sub key_ops {
 
    # pause/run with space bar
    if ($key == 32) {    # SPACE
-      $is_paused = (($is_paused) ? 0 : 1);
-      warn "Pause/Run command, key 'SPACE', detected\n";
+      if ($is_paused) {
+         $is_paused = 0;
+      } else {
+         $is_paused = 1;
+         $step_count = 1;
+         $do_step = 1;
+      }
+      # warn "Pause/Run command, key 'SPACE', detected\n";
       return;
    } 
 
    # toggle verbose output
    if ($key == ord('v') or $key == ord('V')) {
-   ##    $be_verbose = (($be_verbose) ? 0 : 1);
+      ##    $be_verbose = (($be_verbose) ? 0 : 1);
       warn "Toggle verbose output command, key '" . chr($key) . "', not implemented.\n";
       return;
    }
@@ -489,14 +504,29 @@ sub key_ops {
    if ($key == 46 or $key == 62) {          # . or >
       $go_forward = 1;
       $go_backward = 0;
-      warn "Change Direction/Step forward command, key '" . (($key == 46) ? '.' : '>') . "', detected.\n";
+      if ($is_paused) {
+         $do_step = 1;
+         $step_count = 1;
+      } else {
+         $step_count++;
+         $step_count = 1 if $step_count == 0;
+      }
+      # warn "Change Direction/Step forward command, key '" . (($key == 46) ? '.' : '>') . "', detected.\n";
       return;
    };
 
    if ($key == 44 or $key == 60) { ;        # , or <
       $go_forward = 0;
       $go_backward = 1;
-      warn "Change Direction/Step backward command, key '" . (($key == 44) ? ',' : '<') . "', detected.\n";
+      if ($is_paused) {
+         $do_step = 1;
+         $step_count = -1;
+      } else {
+         $step_count--;
+         $step_count = -1 if $step_count == 0;
+      }
+
+      # warn "Change Direction/Step backward command, key '" . (($key == 44) ? ',' : '<') . "', detected.\n";
       return;
    }
 
@@ -528,7 +558,7 @@ sub display_new_window {
    if (! $finished_glutInit ) {
       glutInit() unless OpenGL::done_glutInit();
       glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE);
-      glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION);
+      glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,GLUT_ACTION_CONTINUE_EXECUTION) if OpenGL::_have_freeglut();
       $finished_glutInit = 1;
    }
    glutInitWindowSize( $window_width, $window_height );
@@ -772,6 +802,9 @@ sub imag2d_update {
    # update display window
    $img .= $image->sever;
    glutPostRedisplay();
+
+   # update display but don't force twiddle()
+   glutMainLoopEvent();
 
    return $win_id;
 }

@@ -659,7 +659,9 @@ pp_def('pctover',
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
         Doc => '
 
-Project via percentile to N-1 dimensions
+=for ref
+
+  Project via percentile to N-1 dimensions
 
 This function reduces the dimensionality of a piddle by one by finding
 the specified percentile (p) along the 1st dimension.  The specified
@@ -667,7 +669,7 @@ percentile must be between 0.0 and 1.0.  When the specified percentile
 falls between data points, the result is interpolated.  Values outside
 the allowed range are clipped to 0.0 or 1.0 respectively.  The algorithm
 implemented here is based on the interpolation variant described at
-L< http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
+L<http://en.wikipedia.org/wiki/Percentile> as used by Microsoft Excel
 and recommended by NIST.
 
 By using L<xchg|PDL::Slices/xchg> etc. it is possible to use
@@ -682,6 +684,8 @@ $a = pctover($b, $p);
 $spectrum = pctover $image->xchg(0,1) $p
 
 =cut
+
+
 ',
         Code => '
            int nn, nn1, nn2;
@@ -750,6 +754,8 @@ I<any> dimension.
  $spectrum = oddpctover $image->xchg(0,1) $p
 
 =cut
+
+
 ',
         Code => '
            int nn, np;

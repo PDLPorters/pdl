@@ -47,7 +47,7 @@ T  Improve PDL usability for first time users
 
 T  Complete Perldl2 shell:
 T  * Fix Ctrl-C handling for win32 systems
-T  * Add safe pdl allocation option to prevent OOM death
+N  * Add safe pdl allocation option to prevent OOM death
 
      The essential pdl2 shell is working and will run
      with the new features if Devel::REPL is installed.
@@ -183,97 +183,6 @@ T  Check/set perldl.conf options before the PDL build?
 
 
 +-------------------------------------------------------+
-|                         DONE                          |
-+-------------------------------------------------------+
-
-D  Review current documentation (underway)
-
-     Required
-
-
-D  Update PDL web site pages 
-
-     Required
-
-
-D  Need to test PDL build/install from scratch
-   
-     Required
-
-     Needs multiple testers capable of building PDL
-     and willing to configure their system for a
-     clean room run of the install process(es).
-
-     We need to confirm that PDL-2.4.7 builds or
-     installs completely from scratch on all PDL
-     platforms by testing.  This includes starting
-     from the vanilla system (OS platform) and
-     getting and installing PDL the way a new user
-     would.  CPAN/source builds as well as binary
-     installs should be tested as possible.  Install
-     notes will be used to update release docs.
-
-
-D  Need PLplot and PDL::Graphics::PLplot to build all platforms
-
-     Required
-     
-     Progress has been made by David and Rob on building
-     PLplot and/or PDL::Graphics::PLplot for a number of
-     platforms.  It appears that PLplot is build and
-     buildable (manually) for all platforms and the PDL
-     support works as well.
-
-
-D  Add docs/support for users of other non-PDL software
-
-     Nice to have
-
-     This has already been addressed.  Further
-     improvements are always possible but we're
-     probably good for 2.4.7 as we stand.
-
-
-D  Clean up and triage for tickets prior to release.
-
-     Required
-
-     Only one critical bug left...done soon.
-
-
-D  Fix the test problems with preexisting PDL installs
-
-     Nice to have
-
-     This would involve writing a routine to probe
-     @INC for PDL (or maybe an arbitrary module) and
-     reporting whether it was already installed.
-     You would need to make sure not to pick up
-     the blib version from the build process.
-
-
-D  Add support for Known_problems to tests
-
-     Required
-
-     This is basically adding a SKIP section to tests
-     that correspond to open sf.net bugs and conditionalize
-     on the environment of the build.  Needed by release
-     time to support user builds.
-
-
-D  Fix PDL Config
-
-     Required
-
-     This is a reported bug at sf.net where the
-     %PDL::Config hash is not updated from the
-     results of the "have PDL check" options in
-     the perldl.conf file.
-
-
-
-+-------------------------------------------------------+
 |                                                       |
 |             PDL-2.4.x BULLET TASK LISTING             |
 |                   ( BY CATEGORY )                     |
@@ -303,10 +212,6 @@ R+ Clean up and triage for tickets prior to release.
    * Feature requests
    * Other?
    
-+-------------------------------------------------------+
-|                       TESTING                         |
-+-------------------------------------------------------+
-
 +-------------------------------------------------------+
 |                    DEPENDENCIES                       |
 +-------------------------------------------------------+
@@ -408,10 +313,6 @@ N+ Clean up build output from make process to reduce cruft
 |                    INSTALLATION                       |
 +-------------------------------------------------------+
    
-R+ Fix PDL Config
-   * Update config with build information
-   * Close sf.net ticket for this
-   
 N+ Fix the test problems with preexisting PDL installs
    * Maybe a function in PDL::Core::Devel to check @INC
    
@@ -433,7 +334,6 @@ R+ Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2
    * Update documentation
    * Update perldl so fallback from pdl2 works cleanly
-R+ * Fix demo to work with Perldl2
 N+ * Fix Ctrl-C handling for win32 systems
 N+ * Add safe pdl allocation option to prevent OOM death
    
@@ -446,7 +346,6 @@ N+ * Enable REPL and GUI simultaneous operations and event loops
      * Maybe for wxWidgets for Padre support
    
 N+ New pdl() constructor with matlab [] syntax for string arguments
-   * Implemented in PDL git
    * Needs more testing and verification
    * Does it work for MATLAB and PDL users' purposes? 
      * Handle complex numbers (with i,j for sqrt(-1))

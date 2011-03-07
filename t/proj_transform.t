@@ -16,29 +16,47 @@ use Test::More;
 
 BEGIN
 {
-   eval( " use PDL::Transform::Proj4; " );
-   if( !($@) ) {
-     $test_jpegtopnm = 1;
-     if($^O =~ /MSWin32/i) {
-       $test_jpegtopnm = `jpegtopnm --help 2>&1`;
-       $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
-     }
-     elsif ( !defined( scalar( qx(jpegtopnm --help 2>&1) ) ) ) {
-       $test_jpegtopnm = 0;
-     }
-     if( $PDL::Bad::Status ) {
-       if( $test_jpegtopnm ) { plan tests => 22 }
-       else {
-         plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found";
-       }
-     }
-     else {
-       plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module!";
-     }
-   }
-   else {
-     plan skip_all => "PDL::Transform::Proj4 requires the PDL::Transform::Proj4 module!";
-   }
+    use PDL::Config;
+    if ( $PDL::Config{WITH_PROJ} ) 
+    {
+        eval( " use PDL::Transform::Proj4; " );
+        if( !($@) ) 
+        {
+            $test_jpegtopnm = 1;
+            if($^O =~ /MSWin32/i) 
+            {
+                $test_jpegtopnm = `jpegtopnm --help 2>&1`;
+                $test_jpegtopnm = $test_jpegtopnm =~ /^jpegtopnm:/ ? 1 : 0;
+            }
+            elsif ( !defined( scalar( qx(jpegtopnm --help 2>&1) ) ) ) 
+            {
+                $test_jpegtopnm = 0;
+            }
+            if( $PDL::Bad::Status ) 
+            {
+                if( $test_jpegtopnm ) 
+                {
+                    plan tests => 22 
+                }
+                else 
+                {
+                    plan skip_all => "The jpegtopnm utility (needed for proj_transform.t tests) not found.";
+                }
+            }
+            else 
+            {
+                plan skip_all => "PDL::Transform::Proj4 requires the PDL::Bad module.";
+            }
+        }
+        else 
+        {
+            plan skip_all => "PDL::Transform::Proj4 module compiled, but not available.";
+        }
+    }
+    else
+    {
+        plan skip_all => "PDL::Transform::Proj4 module not compiled.";
+    }
 }
 
 #

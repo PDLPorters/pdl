@@ -365,12 +365,14 @@ BEGIN{
   # Check for white space in build directory
   my $pdl_build_dir = getcwd;
   if ( $pdl_build_dir =~ /\s+/ ) {
-     warn( "\n  ****** WARNING ******\n"
-           . "  Space detected in path '$pdl_build_dir'\n"
-           . "  PDL may not build correctly!\n" );
+    warn( "\n+------- WARNING ------------------------------------------------\n"
+          . "| Space detected in path '$pdl_build_dir'\n"
+          . "| PDL may not build correctly!           \n"
+          . "+----------------------------------------------------------------\n"
+       );
 
-     my $go_on = prompt("\nDo you wish to continue?", 'y');
-     die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
+    my $go_on = prompt("\n  Do you wish to continue?", 'y');
+    die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
   }
 
   # Check for pre-existing PDL module in @INC
@@ -378,19 +380,17 @@ BEGIN{
   unless($@)
   {
      # uh-oh! we have a pre-existing PDL in path
-     warn( "\n  ****** WARNING ******\n"
-        . "  PDL version $PDL::Version::VERSION was detected in your \@INC\n"
-        . "  PDL may not build/test correctly with another PDL in \@INC!\n" );
-
-     my $go_on = prompt("\nDo you still wish to continue?", 'y');
-     die "OK, stopping build\n" unless $go_on =~ /^[yY]/;
+     warn( "\n+------- WARNING ------------------------------------------------\n"
+         .   "| PDL version $PDL::Version::VERSION was detected in your \@INC\n"
+         .   "| PDL may not build/test correctly with another PDL in \@INC!  \n"
+         .   "+----------------------------------------------------------------\n\n"
+      );
   }
 
   # test for critical modules
   @hasnt = ();
-  my @test = (['Filter::Util::Call','Filter'],
-	      ['Text::Balanced','Text::Balanced'],
-	     );
+  my @test = ( ['Filter::Util::Call','Filter'],
+	       ['Text::Balanced','Text::Balanced'], );
   for my $mod (@test) {
     eval "use $mod->[0]";
     push @hasnt, $mod->[1] if $@;
@@ -477,6 +477,8 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'File::Spec'          => 0.6,
 	   'Filter::Util::Call'  => 0,         # for PDL::NiceSlice
 	   'Inline'              => 0.43,
+	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
+	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Storable'            => 1.03,      # for PDL::IO::Storable
 	   'Text::Balanced'      => 0,         # for PDL::NiceSlice
 	  );
@@ -605,24 +607,15 @@ doc_perl_install ::
   }
     
 
-$text .= $^O !~ /MSWin32/i ?
-"
+$text .= << "EOPS" ;
+
 perldl.pod : perldl subdirs
-\tPERL5OPT='' podselect perldl > perldl.pod
+\t\$(PERLRUN) -MPod::Select -e "podselect('perldl');" > perldl.pod
 
 pdldoc.pod : pdldoc subdirs
-\tPERL5OPT='' podselect pdldoc > pdldoc.pod
+\t\$(PERLRUN) -MPod::Select -e "podselect('pdldoc');" > pdldoc.pod
 
-"
-:
-"
-perldl.pod : perldl subdirs
-\tpodselect perldl > perldl.pod
-
-pdldoc.pod : pdldoc subdirs
-\tpodselect pdldoc > pdldoc.pod
-
-";
+EOPS
 
 $text .= << 'EOT' if $^O =~ /cygwin/;
 

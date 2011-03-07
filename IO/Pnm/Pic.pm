@@ -684,42 +684,60 @@ sub PDL::wim {
 
 =for ref
 
-Write an image sequence ((3,x,y,n) piddle) as an MPEG animation.
+Write an image sequence (a (3,x,y,n) byte pdl) as an animation.
+
+Writes a stack of RGB images as a movie.  While the
+format generated is nominally MPEG, the file extension
+is used to determine the video encoder type.
+
+  E.g.:
+    .mpg for MPEG-1 encoding
+    .mp4 for MPEG-4 encoding
+   
+  And even:
+    .gif for GIF animation (uncompressed)
+
+C<wmpeg> requires a 4-D pdl of type B<byte> as
+input.  The first dim B<has> to be of size 3 since
+it will be interpreted as RGB pixel data.
+C<wmpeg> returns 1 on success and undef on failure.
 
 =for example
 
   $anim->wmpeg("GreatAnimation.mpg")
-      or die "can't create mpeg output";
+      or die "can't create mpeg1 output";
 
-Writes a stack of rgb images as an mpeg movie. Expects
-a 4-D pdl of type byte as input. First dim has to be
-3 since it is interpreted as interlaced RGB. It returns
-1 on success and undef on failure.
+  $anim->wmpeg("GreatAnimation.mp4")
+      or die "can't create mpeg4 output";
 
-Some of the input data restrictions will have to be
-relaxed in the future but routine serves as a proof of
-principle at the moment.  It uses the program ffmpeg
-to encode the frames into video.  The arguments and
-parameters used for ffmpeg have not been tuned.  This is
-a first implementation replacing mpeg_encode by ffmpeg.
-Currently, wmpeg doesn't allow modification of the
-parameters written through its calling interface.  This
-will change in the future as needed.
+Some of the input data restrictions will have to
+be relaxed in the future but routine serves as
+a proof of principle at the moment. It uses the
+program ffmpeg to encode the frames into video.
+The arguments and parameters used for ffmpeg have
+not been tuned. This is a first implementation
+replacing mpeg_encode by ffmpeg. Currently, wmpeg
+doesn't allow modification of the parameters
+written through its calling interface. This will
+change in the future as needed.
 
 In the future it might be much nicer to implement
 a movie perl object that supplies methods for
 manipulating the image stack (insert, cut, append
-commands) and a final movie->make() call would invoke
-ffmpeg on the picture stack (which will only be held on
-disk).  This should get around the problem of having to
-hold a huge amount of data in memory to be passed into
-wmpeg (when you are, e.g.  writing a large animation
-from PDL3D rendered fly-throughs).  Having said that,
-the actual storage requirements might not be so big
-in the future any more if you could pass 'virtual'
-transform pdls into wmpeg that will only be actually
-calculated when accessed by the wpic routines, you know
-what I mean...
+commands) and a final movie->make() call would
+invoke ffmpeg on the picture stack (which will
+only be held on disk). This should get around the
+problem of having to hold a huge amount of data
+in memory to be passed into wmpeg (when you are,
+e.g. writing a large animation from PDL3D rendered
+fly-throughs).
+
+Having said that, the actual storage requirements
+might not be so big in the future any more if
+you could pass 'virtual' transform pdls into
+wmpeg that will only be actually calculated when
+accessed by the wpic routines, you know what I
+mean...
 
 
 =cut

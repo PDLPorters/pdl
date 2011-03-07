@@ -13,14 +13,22 @@ use Test::More;
 
 BEGIN
 {
-    eval( " use PDL::IO::HDF; " );
-    if( $@ )
+    use PDL::Config;
+    if ( $PDL::Config{WITH_HDF} ) 
     {
-        plan skip_all => "PDL::IO::HDF module not available.";
-    }  
+        eval( " use PDL::IO::HDF; " );
+        if( $@ )
+        {
+            plan skip_all => "PDL::IO::HDF module compiled, but not available.";
+        }  
+        else
+        {
+            plan tests => 10;
+        }
+    }
     else
     {
-        plan tests => 10;
+        plan skip_all => "PDL::IO::HDF module not compiled.";
     }
 }
 

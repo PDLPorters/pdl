@@ -13,6 +13,8 @@ cursor terminal browser for piddles.
  use PDL::IO::Browser;
 
 =cut
+
+
 EOD
 
 use PDL::Types;
@@ -41,6 +43,8 @@ around a PDL array using the cursor keys.
 
 
 =cut
+
+
 EOD
 pp_addpm({At=>Bot},<<'EOD');
 
@@ -55,6 +59,8 @@ the copyright notice should be included in the file.
 
 
 =cut
+
+
 EOD
 
 pp_done();

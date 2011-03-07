@@ -21,8 +21,8 @@ PDL::IO::FlexRaw -- A flexible binary i/o format for PerlDL.
         # if $PDL::IO::FlexRaw::writeflexhdr is true and
         #    $file is a filename, writeflexhdr() is called automatically
         #
-        $hdr = writeflex($file, $pdl1, $pdl2,...)  # or
-        writeflex($file, $pdl1, $pdl2,...)
+        $hdr = writeflex($file, $pdl1, $pdl2,...)  # need $hdr for something
+        writeflex($file, $pdl1, $pdl2,...)         # ..if $hdr not needed
 
 =head1 DESCRIPTION
 
@@ -207,13 +207,17 @@ Read a binary file with flexible format specification
 
 =for usage
 
-  $hdr = writeflex($file, $pdl1, $pdl2,...)
+  $hdr = writeflex($file, $pdl1, $pdl2,...) # or
   $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
-  writeflexhdr($file, $hdr)         # you *must* call writeflexhdr
+  # now you must save call writeflexhdr()
+  writeflexhdr($file, $hdr)
 
-  $PDL::IO::FlexRaw::writeflexhdr = 1;  # so don't have to call writeflexhdr
-  $hdr = writeflex($file, $pdl1, $pdl2,...)  # $file must be filename
-  writeflex($file, $pdl1, $pdl2,...)         # $file must be filename
+  or
+
+  $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
+
+  $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
+  writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
 
 =head2 writeflexhdr
 
@@ -226,14 +230,16 @@ Read a binary file with flexible format specification
   writeflexhdr($file, $hdr)
 
   $file or "filename" is the filename used in a previous writeflex
-
-  NOTE: This would be simpler if rolled into writeflex
+  If $file is actually a "filename" then writeflexhdr() will be
+  called automatically.  If writeflex() was to a FILEHANDLE, you
+  will need to call writeflexhdr() yourself since the filename
+  cannot be determined (at least easily).
 
 =head2 mapflex
 
 =for ref
 
-Memory map a binary file with flexible format specification
+  Memory map a binary file with flexible format specification
 
 =for options
 
@@ -250,7 +256,7 @@ Memory map a binary file with flexible format specification
 
 =head2 _read_flexhdr
 
-Read a FlexRaw header file and return a header structure.
+  Read a FlexRaw header file and return a header structure.
 
 =for usage
 
@@ -687,7 +693,8 @@ sub writeflex {
    else {
       barf $usage if ref $name;
       $isname = 1;
-      $d = new FileHandle ">$name"
+      my $modename = ($name =~ /^[+]?[><|]/) ? $name : ">$name";
+      $d = new FileHandle $modename
          or barf "Couldn't open '$name' for writing";
       binmode $d;
    }

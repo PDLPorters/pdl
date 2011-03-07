@@ -93,9 +93,9 @@ via the perldl mailing list.  This is very useful if you are
 not sure what you have is a bug or not.  For example, the list
 is the place to go for install problems.
 
-If you need to post a problem report, please use the
-sourceforge.net bug tracker system following the guidance
-in the BUGS file:
+If you need to post a problem report, and after checking with
+the perldl list that it *is* a bug, please use the sourceforge.net
+tracker system following the guidance in the BUGS file:
 
 	http://sourceforge.net/tracker/?group_id=612&atid=100612
 
