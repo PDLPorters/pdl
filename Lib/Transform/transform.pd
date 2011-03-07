@@ -658,19 +658,19 @@ pp_def('map',
   /**  than a few hundred clock cycles -- cheap at twice the price.         **/
   /**                                                                       **/
   /**/ if(map->ndims != out->ndims)                                        /**/
-  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");                /**/
+  /**/  barf("%s", "Bug in map: index dims aren't consistent\n");          /**/
   /**/ for(i=0;i<out->ndims-1;i++) {                                       /**/
   /**/   static char buf[100];                                             /**/
   /**/   if(map->dims[i+1] != out->dims[i]) {                              /**/
   /**/     sprintf(buf,"Bug in map: dim %d is %d; expected %d\n",          /**/
   /**/                 i,map->dims[i+1],out->dims[i]);                     /**/
-  /**/     barf("%s", buf);                                                      /**/
+  /**/     barf("%s", buf);                                                /**/
   /**/   }                                                                 /**/
   /**/ }                                                                   /**/
   /**/ if(map->dims[0] != in->ndims - 1)                                   /**/
-  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");                /**/
+  /**/   barf("%s", "Bug in map - index vec - input mismatch\n");          /**/
   /**/ if(out->dims[out->ndims-1] != in->dims[in->ndims-1])                /**/
-  /**/   barf("%s", "Bug in map:  thread dimension error\n");                    /**/
+  /**/   barf("%s", "Bug in map:  thread dimension error\n");              /**/
   /***************************************************************************/
 
  /* 
@@ -2134,7 +2134,7 @@ sub t_lookup {
 	# Scale so that the range runs from 0 through the top pixel in the table
 	my $scale = (  pdl(  $itable->dims  )->(0:-2)-1  ) / 
 	   	    (($maxvals - $minvals)+ (($maxvals-$minvals) == 0));
-        my $offset = - ($minvals/$scale);
+        my $offset = - ($minvals * $scale);
 
 	$p->{iscale} = $scale;
 	$p->{ioffset} = $offset;
@@ -2145,8 +2145,9 @@ sub t_lookup {
 	# $oloop runs over (point, index) for all points in the output table, in 
 	# $p->{table} output space
 	$oloop = ndcoords($itable->mv(-1,0)->((0)))->
-	                mv(0,-1)->
-			clump($itable->ndims-1);  # oloop: (pixel, index)
+	    double->
+	    mv(0,-1)->
+	    clump($itable->ndims-1);  # oloop: (pixel, index)
         {
             my $tmp; # work around perl -d "feature"
 	    ($tmp = $oloop->mv(-1,0)) -= $offset;
@@ -3346,6 +3347,129 @@ sub t_cubic {
 ======EOD_t_cubic=======
 
 
+pp_add_exported('t_quadratic');
+pp_addpm(<<'======EOD_t_quadratic======');
+
+=head2 t_quartic
+
+=for usage
+
+  $t = t_quartic(<options>);
+
+=for ref
+
+Quartic scaling -- cylindrical pincushion (n-d; with inverse)
+
+Quartic scaling is a generalization of t_quadratic to a quartic
+expansion.  Only even powers of the input coordinates are retained,
+and (as with t_quadratic) sign is preserved, making it an odd function
+although a true quartic transformation would be an even function.
+
+You can apply separate distortion along any of the principal axes.  If
+you want different axes, use L<t_wrap|/t_wrap> and
+L<t_linear|/t_linear> to rotate them to the correct angle.  The
+scaling options may be scalars or vectors; if they are scalars then
+the expansion is isotropic.
+
+The formula for the expansion is: 
+
+    f(a) = ( <a> + <strength> * a^2/<L_0> ) / (abs(<strength>) + 1)
+
+where <strength> is a scaling coefficient and <L_0> is a fundamental
+length scale.   Negative values of <strength> result in a pincushion 
+contraction.
+
+Note that, because quadratic scaling does not have a strict inverse for
+coordinate systems that cross the origin, we cheat slightly and use 
+$x * abs($x)  rather than $x**2.  This does the Right thing for pincushion
+and barrel distortion, but means that t_quadratic does not behave exactly
+like t_cubic with a null cubic strength coefficient.
+
+OPTIONS
+
+=over 3
+
+=item o,origin,Origin
+
+The origin of the pincushion. (default is the, er, origin).
+
+=item l,l0,length,Length,r0
+
+The fundamental scale of the transformation -- the radius that remains
+unchanged.  (default=1)
+
+=item s,str,strength,Strength
+
+The relative strength of the pincushion. (default = 0.1)
+
+=item honest (default=0)
+
+Sets whether this is a true quadratic coordinate transform.  The more
+common form is pincushion or cylindrical distortion, which switches
+branches of the square root at the origin (for symmetric expansion).
+Setting honest to a non-false value forces true quadratic behavior,
+which is not mirror-symmetric about the origin.
+
+=item d, dim, dims, Dims
+
+The number of dimensions to quadratically scale (default is the 
+dimensionality of your input vectors)
+
+
+=back
+
+=cut
+
+sub t_quartic { 
+    my($class) = 'PDL::Transform';
+    my($o) = $_[0];
+    if(ref $o ne 'HASH') {
+	$o = {@_};
+    }
+    my($me) = PDL::Transform::new($class);
+    
+    $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
+    $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
+    $me->{params}->{str} = _opt($o,['s','str','strength','Strength'],pdl(0.1));
+    $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims']);
+    $me->{name} = "quadratic";
+    
+    $me->{func} = sub {
+	my($data,$o) = @_;
+	my($dd) = $data->copy - $o->{origin};
+	my($d) =  (defined $o->{dim}) ? $dd->(0:($o->{dim}-1)) : $dd;
+	$d += $o->{str} * ($d * abs($d)) / $o->{l0};
+	$d /= (abs($o->{str}) + 1);
+	$d += $o->{origin};
+	if($data->is_inplace) {
+	    $data .= $dd;
+	    return $data;
+	}
+	$dd;
+    };
+    
+    $me->{inv} = sub {
+	my($data,$opt) = @_;
+	my($dd) = $data->copy ;
+	my($d) = (defined $opt->{dim}) ? $dd->(0:($opt->{dim}-1)) : $dd;
+	my($o) = $opt->{origin};
+	my($s) = $opt->{str};
+	my($l) = $opt->{l0};
+
+	$d .= ((-1 + sqrt(1 + 4 * $s/$l * abs($d-$o) * (1+abs($s))))
+	    / 2 / $s * $l) * (1 - 2*($d < $o));
+	$d += $o;
+	if($data->is_inplace) {
+	    $data .= $dd;
+	    return $data;
+	}
+	$dd;
+    };
+    $me;
+}
+
+======EOD_t_quadratic======
+
 pp_add_exported('t_spherical');
 pp_addpm(<<'======EOD_t_spherical======');
 
@@ -3594,18 +3718,19 @@ sub t_projective {
     # Solve the system of N equations to find the projective transform
     my ($p0,$p1,$p2,$p3) = ( $p(:,(0),(0)), $p(:,(0),(1)), $p(:,(0),(2)), $p(:,(0),(3)) );
     my ($P0,$P1,$P2,$P3) = ( $p(:,(1),(0)), $p(:,(1),(1)), $p(:,(1),(2)), $p(:,(1),(3)) );
-    
-    my $M = pdl( [ [$p0((0)), $p0((1)), 1,        0,        0, 0,  -$P0((0))*$p0((0)), -$P0((0))*$p0((1))],
-		   [       0,        0, 0, $p0((0)), $p0((1)), 1,  -$P0((1))*$p0((0)), -$P0((1))*$p0((1))],
-		   [$p1((0)), $p1((1)), 1,        0,        0, 0,  -$P1((0))*$p1((0)), -$P1((0))*$p1((1))],
-		   [       0,        0, 0, $p1((0)), $p1((1)), 1,  -$P1((1))*$p1((0)), -$P1((1))*$p1((1))],
-		   [$p2((0)), $p2((1)), 1,        0,        0, 0,  -$P2((0))*$p2((0)), -$P2((0))*$p2((1))],
-		   [       0,        0, 0, $p2((0)), $p2((1)), 1,  -$P2((1))*$p2((0)), -$P2((1))*$p2((1))],
-		   [$p3((0)), $p3((1)), 1,        0,        0, 0,  -$P3((0))*$p3((0)), -$P3((0))*$p3((1))],
-		   [       0,        0, 0, $p3((0)), $p3((1)), 1,  -$P3((1))*$p3((0)), -$P3((1))*$p3((1))]
+#print "declaring PDL...\n"    ;
+    my $M = pdl( [ [$p0->at(0), $p0->at(1), 1,        0,        0, 0,  -$P0->at(0)*$p0->at(0), -$P0->at(0)*$p0->at(1)],
+		   [       0,        0, 0, $p0->at(0), $p0->at(1), 1,  -$P0->at(1)*$p0->at(0), -$P0->at(1)*$p0->at(1)],
+		   [$p1->at(0), $p1->at(1), 1,        0,        0, 0,  -$P1->at(0)*$p1->at(0), -$P1->at(0)*$p1->at(1)],
+		   [       0,        0, 0, $p1->at(0), $p1->at(1), 1,  -$P1->at(1)*$p1->at(0), -$P1->at(1)*$p1->at(1)],
+		   [$p2->at(0), $p2->at(1), 1,        0,        0, 0,  -$P2->at(0)*$p2->at(0), -$P2->at(0)*$p2->at(1)],
+		   [       0,        0, 0, $p2->at(0), $p2->at(1), 1,  -$P2->at(1)*$p2->at(0), -$P2->at(1)*$p2->at(1)],
+		   [$p3->at(0), $p3->at(1), 1,        0,        0, 0,  -$P3->at(0)*$p3->at(0), -$P3->at(0)*$p3->at(1)],
+		   [       0,        0, 0, $p3->at(0), $p3->at(1), 1,  -$P3->at(1)*$p3->at(0), -$P3->at(1)*$p3->at(1)]
 		   ] );
-
+#print "ok.  Finding inverse...\n";
     my $h = ($M->inv x $p(:,(1),:)->flat->(*1))->((0));
+#    print "ok\n";
     my $matrix = ones(3,3);
     my $tmp; # work around perl -d "feature"
     ($tmp = $matrix->flat->(0:7)) .= $h;
