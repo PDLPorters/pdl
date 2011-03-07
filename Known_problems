@@ -59,7 +59,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_011 release:
+  PDL-2.4.7_012 release:
 
   3190227    PDL build fails with parallel GNU make -j3 -j3
   3161459    online docs don't link to functions in other PDL modules 

@@ -1,44 +1,76 @@
-Release notes for PDL 2.4.7_011 --------------------------
+release notes for pdl 2.4.7_012 --------------------------
 
-General Notes:
+general notes:
 
- * This is a developers release!
+ * this is a developers release!
  
-   - It is a snapshot of the current git development tree
+   - it is a snapshot of the current git development tree
      and everything may not work correctly or have complete
      documentation.
 
-   - These Release Notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
+   - these release notes may not be fully complete.  please
+     see changes (from the git log) for full details.
 
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
+   - all tests may not pass, especially ones corresponding
+     to issues in known_problems.
    
-   - Manual build/install is recommended although the
+   - manual build/install is recommended although the
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.4.7_011.tar.gz
-       cpan> make CHM/PDL-2.4.7_011.tar.gz
-       cpan> test CHM/PDL-2.4.7_011.tar.gz
-       cpan> look CHM/PDL-2.4.7_011.tar.gz
+       cpan> get  chm/pdl-2.4.7_012.tar.gz
+       cpan> make chm/pdl-2.4.7_012.tar.gz
+       cpan> test chm/pdl-2.4.7_012.tar.gz
+       cpan> look chm/pdl-2.4.7_012.tar.gz
 
 
-Highlights:
+highlights:
 
- * Fixes to GD, HDF, and PROJ4 tests to not run if they
+ * TBD
+
+
+    
+release notes for pdl 2.4.7_011 --------------------------
+
+general notes:
+
+ * this is a developers release!
+ 
+   - it is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - these release notes may not be fully complete.  please
+     see changes (from the git log) for full details.
+
+   - all tests may not pass, especially ones corresponding
+     to issues in known_problems.
+   
+   - manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.7_011.tar.gz
+       cpan> make chm/pdl-2.4.7_011.tar.gz
+       cpan> test chm/pdl-2.4.7_011.tar.gz
+       cpan> look chm/pdl-2.4.7_011.tar.gz
+
+
+highlights:
+
+ * fixes to gd, hdf, and proj4 tests to not run if they
    weren't built.
  
- * New binary blob support in PDL::IO::GD::OO
+ * new binary blob support in pdl::io::gd::oo
 
- * Changed interactive prompt when duplicate PDL is
-   found at PDL config time.  Now just warn.
+ * changed interactive prompt when duplicate pdl is
+   found at pdl config time.  now just warn.
  
- * Fixed sf.net bug #3185864 (bad adev in statsover)
+ * fixed sf.net bug #3185864 (bad adev in statsover)
 
- * Minor POD cleanup for lu_XXX routines in PDL::MatrixOps
+ * minor pod cleanup for lu_xxx routines in pdl::matrixops
 
- * Spot fixes to usual README, docs,..
+ * spot fixes to usual readme, docs,..
 
 
 
