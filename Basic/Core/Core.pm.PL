@@ -276,7 +276,6 @@ gives you the same answer as
   $a = pdl([[1,2,3],[2,undef,undef]]);
 
 
-
 C<pdl()> is a functional synonym for the 'new' constructor,
 e.g.:
 
@@ -296,6 +295,12 @@ For example:
  ]
 
 C<$PDL::undefval> defaults to zero.
+
+As a final note, if you include an Empty PDL in the list of objects to 
+construct into a PDL, it is kept as a placeholder pane -- so if you feed
+in (say) 7 objects, you get a size of 7 in the 0th dim of the output PDL.
+The placeholder panes are completely padded out.  But if you feed in only 
+a single Empty PDL, you get back the Empty PDL (no padding).
 
 =cut
 
