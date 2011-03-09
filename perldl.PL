@@ -953,7 +953,7 @@ instead of
 =head2 Command-line options
 
 B<perldl> and B<pdl> support several command-line options to adjust the behavior of the
-session.  Most of them are equivalent to commands that can be entered at the B<perldlE<gt>>
+session.  Most of them are equivalent to commands that can be entered at the B<pdlE<gt>>
 prompt.  They are:
 
 =over 4

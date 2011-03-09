@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  0.96
+Current FAQ version:  0.97
 
 
 =head1 DESCRIPTION
 
-This is version  0.96 of the PDL FAQ, a collection of  frequently 
+This is version  0.97 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -19,7 +19,7 @@ asked questions about PDL - the Perl Data Language.
 
 
 You can find the latest version of this document at 
-http://pdl.perl.org/?docs=FAQ&title=Frequently%20Asked%20Questions .
+L<http://pdl.perl.org/?docs=FAQ&title=Frequently%20Asked%20Questions> .
 
 
 =head2 Q: 1.2    How to contribute to this document  
@@ -245,11 +245,11 @@ functionality implemented by the package "PDL".
 Since PDL is just a Perl package you need first of all an
 installation of Perl on your machine. As of this writing PDL
 requires version 5.8 of perl, or higher.  PDL may build with
-perl 5.6.2 if the Makefile.PL is edited to change the
+perl 5.6.2 if the F<Makefile.PL> is edited to change the
 C<use 5.8.0> to C<use 5.6.2> in the eval check.  However,
 pre-5.8 perls are not supported.  More information on where
 and how to get a Perl installation can be found at the Perl
-home page http://www.perl.org and at many CPAN sites
+home page L<http://www.perl.org> and at many CPAN sites
 (if you do not know what I<CPAN> is, check the answer to
 the next question).
 
@@ -275,10 +275,10 @@ I<Comprehensive Perl Archive Network> , or
 CPAN.  This archive contains not only the PDL distribution but
 also just about everything else that is Perl-related. CPAN is
 mirrored by dozens of sites all over the world. The main site
-is http://www.cpan.org , and local CPAN sites (mirrors) can be
+is L<http://www.cpan.org> , and local CPAN sites (mirrors) can be
 found there. Within CPAN you find the latest released version of
 PDL in the directory /modules/by-module/PDL/. PDL's homepage is at
-http://pdl.perl.org and the latest version can also be downloaded
+L<http://pdl.perl.org> and the latest version can also be downloaded
 from there.
 
 
@@ -348,10 +348,10 @@ Internet see next question.
 
 First of all, for all purely Perl-related questions there are
 tons of sources on the net. Good points to start are 
-http://www.perl.com and http://www.perl.org .
+L<http://www.perl.com> and L<http://www.perl.org> .
 
 The PDL home site can be accessed by pointing your web browser to 
-http://pdl.perl.org . It has tons of goodies for anyone interested in PDL:
+L<http://pdl.perl.org> . It has tons of goodies for anyone interested in PDL:
 
 
 =over 4
@@ -388,24 +388,24 @@ If you are interested in PDL in general you can join the PDL mailing
 list perldl@jach.hawaii.edu. This is a forum to discuss programming
 issues in PDL, report bugs, seek assistance with PDL related problems,
 etc. To subscribe, fill out the form at
-http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
+L<http://mailman.jach.hawaii.edu/mailman/listinfo/perldl> .
 
 A searchable archive and a hypertext version of the traffic on this
 list (1997-2004) can be found at
-http://www.xray.mpe.mpg.de/mailing-lists/perldl/ . More recent
+L<http://www.xray.mpe.mpg.de/mailing-lists/perldl/> . More recent
 messages (since June 2005) can be found at
-http://mailman.jach.hawaii.edu/mailman/listinfo/perldl .
+L<http://mailman.jach.hawaii.edu/mailman/listinfo/perldl> .
 
 If you are interested in all the technical details of the ongoing PDL
 development you can join the PDL developers mailing list
 pdl-porters@jach.hawaii.edu . To subscribe, fill out the form at
-http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
+L<http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters> .
 
 A searchable archive and a hypertext version
 of the traffic on this list (1997-2004) can be found at 
-http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/ . More recent messages 
+L<http://www.xray.mpe.mpg.de/mailing-lists/pdl-porters/> . More recent messages 
 (since June 2005) can be found at 
-http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters .
+L<http://mailman.jach.hawaii.edu/mailman/listinfo/pdl-porters> .
 
 Cross-posting between these lists should be avoided unless there is a
 I<very> good reason for doing that.
@@ -416,16 +416,16 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 0.96 of 19 July 2010) the latest stable version
-is 2.4.6.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 0.97 of 07 March 2011) the latest stable version
+is 2.4.7.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL.
 
 The most current (possibly unstable) version of PDL can be obtained 
 from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
 and periodic CPAN developers releases of the Git code will be made for testing
-purposes and more general availability.  The current post-PDL-2.4.6 developers
-release of PDL is available as CHM/PDL-2.4.6_015.tar.gz .
+purposes and more general availability.  The current post-PDL-2.4.7 developers
+release of PDL is available as F<CHM/PDL-2.4.7_011.tar.gz> .
 
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
@@ -447,7 +447,7 @@ dealt with somewhere else in this FAQ.  Secondly, you can check the
 searchable archive of the PDL mailing lists to find whether
 this bug has already been discussed.  If you still haven't found
 any explanations you can post a bug report to perldl@jach.hawaii.edu ,
-or through the Bugs link on http://pdl.perl.org .  See the BUGS
+or through the Bugs link on L<http://pdl.perl.org> .  See the F<BUGS>
 file in the PDL distribution for what information to include.  If
 you are unsure, discussions via the perldl mailing list can be
 most helpful.
@@ -458,19 +458,19 @@ most helpful.
 =head2 Q: 4.1    I have problems installing PDL. What shall I do?  
 
 
-First make sure you have read the file INSTALL in the distribution.
+First make sure you have read the file F<INSTALL> in the distribution.
 This contains a list of common problems which are unnecessary to repeat
 here.
 
-Next, check the file perldl.conf to see if by editing the
+Next, check the file F<perldl.conf> to see if by editing the
 configuration options in that file you will be able to successfully
 build PDL. Some of the modules need additional software installed,
-please refer to the file DEPENDENCIES for further details. Make sure
+please refer to the file F<DEPENDENCIES> for further details. Make sure
 to edit the location of these packages in perldl.conf if you have them
 in non-standard locations.
 
 N.B. Unix shell specific: If you would like to save an edited perldl.conf
-for future builds just copy it as ~/.perldl.conf into your home directory
+for future builds just copy it as F<~/.perldl.conf> into your home directory
 where it will be picked up automatically during the PDL build process.
 
 Also, check for another, pre-existing version of PDL on the build
@@ -492,11 +492,11 @@ Most users should not have to edit any configuration files manually.
 However, in some cases you might have to supply some information
 about awkwardly placed include files/libraries or you might want
 to explicitly disable building some of the optional PDL modules.
-Check the files INSTALL and perldl.conf for details.
+Check the files F<INSTALL> and F<perldl.conf> for details.
 
-If you had to manually edit perldl.conf and are happy with the
+If you had to manually edit F<perldl.conf> and are happy with the
 results you can keep the file handy for future
-reference. Place it in ~/.perldl.conf where it will be picked
+reference. Place it in F<~/.perldl.conf> where it will be picked
 up automatically or use C<perl Makefile.PL  PDLCONF=your_file_name>
 next time you build PDL.
 
@@ -511,7 +511,7 @@ additional software.  However, some of the optional PDL
 modules included in the distribution (notably most graphics
 and some I/O modules) require certain other
 libraries/programs to be installed. Check the file
-DEPENDENCIES in the distribution for details and directions
+F<DEPENDENCIES> in the distribution for details and directions
 on how to get these.
 
 
@@ -553,7 +553,7 @@ always install C<PDL> into a non-standard location.  See Q: 4.4 above.
 
 
 Information about binary distributions of PDL can be found on
-http://pdl.perl.org .  At present there are binary distributions 
+L<http://pdl.perl.orgL> .  At present there are binary distributions 
 of PDL for Linux (RedHat and Debian), FreeBSD, Mac OS X and Windows, 
 though they might not be the most recent version. If someone is 
 interested in providing binary distributions for other 
@@ -567,7 +567,7 @@ for win32 versions are also available.
 
 
 Yes, PDL does run on Linux and indeed much of the development
-has been done under Linux. On http://pdl.perl.org you can find 
+has been done under Linux. On L<http://pdl.perl.org> you can find 
 links to packages for some of the major distributions. Also 
 check your distribution's package manager (yum, apt, urpmi, ...)
 as PDL is now found by many of these.
@@ -579,10 +579,10 @@ as PDL is now found by many of these.
 
 
 PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
-the win32/INSTALL file in the PDL source distribution for details.
+the F<win32/INSTALL> file in the PDL source distribution for details.
 Other compilers have not been tested--input is welcome.  There is
 also a distribution of PDL through ActiveState's ppm, though it
-might not always be the latest version.  PDL-2.4.6 builds out of
+might not always be the latest version.  PDL-2.4.7 builds out of
 the box on Strawberry Perl for Windows.
 
 
@@ -596,7 +596,7 @@ the box on Strawberry Perl for Windows.
 
 No.  PDL development was conducted with a CVS repository from December
 1999 to April 2009.  In April 2009 the project switched to the
-L<Git|http://git-scm.com> source control management system.  Note that
+Git version control system (see L<http://git-scm.com>).  Note that
 some auxiliary project repositories (the project website, some books,
 etc.) are still available via CVS.
 
@@ -620,11 +620,11 @@ type at the command line
 The Sourceforge system contains a patch-manager which contains patches
 that have not yet been applied to the distribution. This can be
 accessed via the Tracker at PDL's Sourceforge project page
-http://sourceforge.net/projects/pdl .
+L<http://sourceforge.net/projects/pdl> .
 
 In addition, if you are not subscribing to the mailing list,
 check the archive of the C<pdl-porters> and C<perldl> mailing lists.
-Se Q: 3.2 for details.
+See Q: 3.2 for details.
 
 
 
@@ -633,7 +633,7 @@ Se Q: 3.2 for details.
 
 The first thing you should do is to read the Git documentation and
 learn the basics about Git. There are links to this information from
-PDL's SF Git page http://sourceforge.net/scm/?type=git&group_id=612
+PDL's SF Git page L<http://sourceforge.net/scm/?type=git&group_id=612>
 . But here are the basics:
 
 Before you upload your changes, commit them to YOUR repository
@@ -655,7 +655,7 @@ and they won't be happy to have their recent PDL fail to build!
 NOTE: git makes it very easy to maintain a separate branch of
 development.  [ TBD, provide information on how ].
 
-Then update the shared repository (at SF) with your changes
+Then update the shared repository (at SF.net) with your changes
 
    git push origin master
 
@@ -674,7 +674,7 @@ different (but related) meanings:
 
 =item *
 
-When mentioned in the INSTALL directions and possibly
+When mentioned in the F<INSTALL> directions and possibly
 during the build process we have the usual computer science
 meaning of multi-threading in mind (useful mainly on
 multiprocessor machines or clusters)
@@ -707,7 +707,7 @@ two types of use of the term.
 Well, PDL scalar variables (which are instances of a particular class
 of Perl objects, i.e. blessed thingies (see C<perldoc perlobj> )) are
 in common PDL parlance often called I<piddles> (for example, check the
-mailing list archives). Err, clear? If not, simply use the term
+mailing list archives).  Err, clear?  If not, simply use the term
 I<piddle> when you refer to a PDL variable (an instance of a PDL
 object as you might remember) regardless of what actual data the PDL
 variable contains.
@@ -720,8 +720,8 @@ variable contains.
 =head2 Q: 6.1    What is perldl?   What is pdl2?
 
 
-Sometimes perldl (pdl2) is used as a synonym for PDL. Strictly
-speaking, however, the name perldl (pdl2) is reserved for the
+Sometimes C<perldl> (C<pdl2>) is used as a synonym for PDL. Strictly
+speaking, however, the name C<perldl> (C<pdl2>) is reserved for the
 little shell that comes with the PDL distribution and is
 supposed to be used for the interactive prototyping of PDL
 scripts. For details check L<perldl> or L<pdl2>.
@@ -833,7 +833,7 @@ And also from the doc !!:
 
 
 Check the list of PDL functions at the end of PDL.pod which points out
-C<inplace> -safe functions.
+C<inplace>-safe functions.
 
 
 
@@ -1038,7 +1038,7 @@ redefine the method initialize(). For example:
 
 
 For another example check the script 
-t/subclass.t in the PDL distribution.
+F<t/subclass.t> in the PDL distribution.
 
 
 
@@ -1138,8 +1138,8 @@ inplace, assuming your routine can work inplace):
 
 
 The current versions of PDL already support quite a number of different
-I/O formats. However, it is not always obvious which module implements
-which formats. To help you find the right module for the format you
+I/O formats.  However, it is not always obvious which module implements
+which formats.  To help you find the right module for the format you
 require, here is a short list of the current list of I/O formats and
 a hint in which module to find the implementation:
 
@@ -1149,14 +1149,14 @@ a hint in which module to find the implementation:
 =item *
 
 A home brew fast raw (binary) I/O format for PDL is implemented by the
-FastRaw module
+L<FastRaw|PDL::IO::FastRaw> module
 
 =item *
 
-The FlexRaw module implements generic methods for the input and output of
-`raw' data arrays.  In particular, it is designed to read output from
-FORTRAN 77 UNFORMATTED files and the low-level C write function, even if
-the files are compressed or gzipped.
+The L<FlexRaw|PDL::IO::FlexRaw> module implements generic methods for
+the input and output of `raw' data arrays.  In particular, it is
+designed to read output from FORTRAN 77 UNFORMATTED files and the
+low-level C C<write> function, even if the files are compressed or gzipped.
 
 It is possible that the FastRaw functionality will be included in the
 FlexRaw module at some time in the future.
@@ -1164,23 +1164,24 @@ FlexRaw module at some time in the future.
 
 =item *
 
-FITS I/O is implemented by the wfits/rfits functions in PDL::IO::Misc.
+FITS I/O is implemented by the C<wfits>/C<rfits> functions in L<PDL::IO::Misc> .
 
 =item *
 
 ASCII file I/O in various formats can be achieved by using the 
-C<rcols> and C<rgrep> functions, also in PDL::IO::Misc.
+C<rcols> and C<rgrep> functions, also in L<PDL::IO::Misc> .
 
 =item *
 
-PDL::IO::Pic implements an interface to the NetPBM/PBM+ filters to
+L<PDL::IO::Pic> implements an interface to the NetPBM/PBM+ filters to
 read/write several popular image formats; also supported is output
-of image sequences as MPEG movies.
+of image sequences as MPEG movies, animated GIFs and a wide variety
+of other video formats.
 
 =item *
 
-On CPAN you can find the PDL-NetCDF module that works with the current
-released version of PDL 2.4.3 [ What about 2.4.6? ].
+On CPAN you can find the PDL::NetCDF module that works with the current
+released version of PDL 2.4.7 [DH, please confirm].
 
 
 
@@ -1195,7 +1196,7 @@ For further details consult the documentation in the individual modules.
 
 
 Assuming all arrays are of the same size and in some format recognized by
-rpic (see L<PDL::IO::Pic|PDL::IO::Pic> ) you could say:
+C<rpic> (see L<PDL::IO::Pic|PDL::IO::Pic> ) you could say:
 
     use PDL::IO::Pic;
     @names = qw/name1.tif .... nameN.tif/;  # some file names
@@ -1209,7 +1210,7 @@ or
 
     $cube(:,:,($_)) .= PDL->rpic($names[$_])
 
-for the slice assignment using the new PDL::NiceSlice syntax and Lvalue
+for the slice assignment using the new L<PDL::NiceSlice> syntax and Lvalue
 assignments.
 
 
@@ -1226,7 +1227,7 @@ appropriate slices of the 3D piddle C<$cube> .
 This answer applies mainly to PDL::Graphics::TriD (PDL's device
 independent 3D graphics model) which is the trickiest one in this
 respect. You find some test scripts in Demos/TriD in the distribution.
-There are also C<3dtest.pl> and C<line3d.pl> in the PDL/Example/TriD
+There are also F<3dtest.pl> and F<line3d.pl> in the PDL/Example/TriD
 directory.  After you have built PDL you can do:
 
     perl -Mblib Example/TriD/3dtest.pl
@@ -1287,10 +1288,10 @@ Note that case matters with C<help> but not with C<apropos> .
 
 There are a few sources of trouble with PGPLOT and PNG files. First,
 when compiling the pgplot libraries, make sure you uncomment the PNG
-entries in the drivers.list file. Then when running 'make' you
+entries in the F<drivers.list> file. Then when running 'make' you
 probably got an error like
 
-C<make: *** No rule to make target `png.h', needed by `pndriv.o'.  Stop.>
+  C<make: *** No rule to make target `png.h', needed by `pndriv.o'.  Stop.>
 
 To fix this, find the line in the 'makefile' that starts with
 'pndriv.o:' (it's near the bottom). Change, for example, ./png.h to
@@ -1302,7 +1303,7 @@ Second, if you already have the PGPLOT Perl module and PDL installed,
 you probably tried to write out a PNG file and got fatal error message
 like:
 
-C<undefined symbol: png_create_write_struct>
+  C<undefined symbol: png_create_write_struct>
 
 This is because the PGPLOT Perl module does not automatically link
 against the png and z libraries. So when you are installing the PGPLOT
@@ -1310,7 +1311,7 @@ Perl module (version 2.19) from CPAN, don't do C<install PGPLOT>, but
 just do C<get PGPLOT>. Then exit from CPAN and manually install
 PGPLOT, calling the makefile thusly:
 
-C<perl Makefile.PL EXLIB=png,z EXDIR=/usr/lib>
+  C<perl Makefile.PL EXLIB=png,z EXDIR=/usr/lib>
 
 assuming that there exist files such as /usr/lib/libpng.so.*,
 /usr/lib/libz.so.*. Then do the standard C<make;make test;make
@@ -1326,7 +1327,7 @@ install;> sequence. Now you can write png files from PDL!
 
 The first stop is again C<perldl> or C<pdl2> and the on-line help
 or the PDL documentation. There is already a lot of functionality in
-PDL which you might be aware of.  The easiest way to look for
+PDL which you might not be aware of.  The easiest way to look for
 functionality is to use the C<apropos> command:
 
     pdl> apropos 'integral'
@@ -1336,12 +1337,13 @@ functionality is to use the C<apropos> command:
     rint            Round to integral values in floating-point format
 
 
-Since the apropos command is no sophisticated search engine make sure that 
-you search on a couple of related topics and use short phrases. 
+Since the apropos command is no sophisticated search engine make
+sure that you search on a couple of related topics and use short
+phrases. 
 
 However there is a good chance that what you need is not part
 of the PDL distribution. You are then well advised to check
-out http://pdl.perl.org where there is a list of packages
+out L<http://pdl.perl.org> where there is a list of packages
 using PDL. If that does not solve your problem, ask on the
 mailing-list, if nothing else you might get assistance which
 will let you interface your package with PDL yourself, see
