@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Tue 30 Nov 2010 10:38:31 AM 
+Last saved: Thu 10 Mar 2011 02:09:54 PM 
 
 
 +-------------------------------------------------------------------+
@@ -9,6 +9,15 @@ Last saved: Tue 30 Nov 2010 10:38:31 AM
   Set readline_name to 'PDL Shell' instead of the
   default 'Perl REPL' but need to figure how to do
   so first.
+
+  Add syntax highlighting to help ensure correct
+  entries (e.g., in matlab keywords are blue, strings
+  are purple, unterminated strings are maroon...)
+  We could also specifically color piddles and objects
+  from the current session space.
+
+  Add "blink to matching delimiter" for input or even
+  color highlight matching delimiters
 
   Add Colors plugin support to the pdl2 p command.
 
@@ -28,9 +37,6 @@ Last saved: Tue 30 Nov 2010 10:38:31 AM
   entry.  Need to see about implementing the Ctrl-D option
   to close all blocks as well.  It would be nice to have
   the prompt display the matching delims as in perldl.
-
-  Add "blink to matching delimiter" for input or even
-  color highlight matching delimiters
 
   Fix Term::ReadLine::Perl completion in win32 to use
   the appropriate path separator character.  It appears
@@ -88,7 +94,7 @@ Last saved: Tue 30 Nov 2010 10:38:31 AM
   loaded with use/require.  Maybe a pop-up info window would
   work here (curses based or GUI based).  Maybe there could
   be a runtime list/variable in PDL::Config that is updated
-  as each module is loaded.
+  as each module is loaded.  Override '*CORE::GLOBAL::use'?
  
   Review and integrate $PERLDL::XX parameters.  Some are not
   needed or useful for Perldl2.  Others need code to tie in
