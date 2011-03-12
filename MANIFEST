@@ -348,6 +348,7 @@ Graphics/TriD/VRML/VRML.pm
 Graphics/TriD/VRML/VRML/Protos.pm
 inc/Devel/CheckLib.pm
 INSTALL
+INTERNATIONALIZATION
 IO/Browser/browse.c
 IO/Browser/browser.pd
 IO/Browser/hints/dec_osf.pl
