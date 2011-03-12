@@ -1,7 +1,7 @@
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import(); # for trylink
 
-@subdirs = ("PGPLOT", "LUT", "IIS", "Karma", "PLplot", "Limits");
+@subdirs = qw(PGPLOT LUT IIS PLplot Limits);
 
 # we try and build unless WITH_3D == 0
 $t = $PDL::Config{WITH_3D};

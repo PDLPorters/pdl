@@ -138,11 +138,8 @@ PDL::Graphics::IIS
 
 
 PDL::Graphics::Karma
-                  The Karma interface is *DEPRECATED* and not
-                  supported.  Please use another visualization tool.
-
-                                          PDL::Graphics::Karma will
-                                          *NOT* be built or installed.
+                  The Karma interface has been removed.  Please
+		  use another visualization option.
 
 
 PDL::GSL modules
