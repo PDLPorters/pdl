@@ -451,7 +451,6 @@ if (!defined($PDL::Config{USE_POGL}) or +$PDL::Config{USE_POGL}) {
    }
 } else {
    warn "Makefile.PL: Have \$PDL::Config{USE_POGL} => 0 so skipping TriD build with POGL\n";
-   warn "Makefile.PL: Legacy TriD build still possible if WITH_3D is set or available...\n";
 }
 
 make_Version_pm();

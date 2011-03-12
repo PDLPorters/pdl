@@ -18,29 +18,23 @@ use Test::More;
 
 BEGIN { 
    use PDL::Config;
-   if ( $PDL::Config{USE_POGL} ) {
-      if ( hasDISPLAY or exists($ENV{'PDL_INT'}) ) {
-         plan tests => 4;
-         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
-         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
-      } else {  # no DISPLAY
-         plan tests => 2;
-         use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
-         use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
-         exit;
+   if ( $PDL::Config{WITH_3D} ) {  # check if compiled
+      if ( $PDL::Config{USE_POGL} ) {  # check if using Perl OpenGL
+         if ( hasDISPLAY or exists($ENV{'PDL_INT'}) ) {
+            plan tests => 4;
+            use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+            use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
+         } else {  # no DISPLAY
+            plan tests => 2;
+            use_ok("OpenGL $PDL::Config{POGL_VERSION}", qw(:all));
+            use_ok('PDL::Graphics::OpenGL::Perl::OpenGL');
+            exit;
+         }
+      } else {
+         plan skip_all => 'Non-POGL TriD graphics not supported';
       }
    } else {
-      if( $PDL::Config{OPENGL_LIBS} && $PDL::Config{WITH_3D} 
-         # only if GL modules have actually been built
-         && $PDL::Config{GL_BUILD} && hasDISPLAY()) {
-         plan tests => 3; 
-         use_ok('PDL::Graphics::OpenGL');
-      }else{
-         plan skip_all => ( hasDISPLAY()
-		 ? "ok 1 # Skipped: OpenGL support not compiled\n"
-		 : "ok 1 # Skipped: DISPLAY environment variable not set\n" );
-         exit;
-      }
+      plan skip_all => 'TriD graphics not compiled';
    }
 }
 
