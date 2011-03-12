@@ -53,13 +53,16 @@ if ($version =~ /^\s*$/) {
   }
 }
 if (! $new_enough) {
-  warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
-  write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
-  $PDL::Config{WITH_GSL} = 0;
+   warn "\n   Not building GSL modules: GSL version $version found, need at least $MINVERSION\n\n";
+   write_dummy_make("Not building GSL modules: GSL version $version found, but need at least $MINVERSION");
+   $PDL::Config{WITH_GSL} = 0;
+} elsif ( defined($PDL::Config{WITH_GSL}) and ! $PDL::Config{WITH_GSL} ) {
+   warn "\n   Not building GSL modules: WITH_GSL=> 0\n\n";
+   write_dummy_make("Not building GSL modules: WITH_GSL=> 0");
 } else {
-  $PDL::Config{WITH_GSL} = 1;
-  WriteMakefile(
-		'NAME'	=> 'PDL::GSL',
-	       );
+   $PDL::Config{WITH_GSL} = 1;
+   WriteMakefile(
+      'NAME'	=> 'PDL::GSL',
+   );
 }
 sub MY::postamble {}

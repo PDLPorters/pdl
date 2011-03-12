@@ -9,13 +9,19 @@ use PDL;
 use PDL::Config;
 use Test::More;
 	
-BEGIN{
-  eval " use PDL::GSL::INTERP; ";
-  if ($@) {
-    plan skip_all => "PDL::GSL::INTERP not installed";
-  } else {
-    plan tests => 12;
-  }
+BEGIN
+{
+   use PDL::Config;
+   if ( $PDL::Config{WITH_GSL} ) {
+      eval " use PDL::GSL::INTERP; ";
+      unless ($@) {
+         plan tests => 12;
+      } else {
+         plan skip_all => "PDL::GSL::INTERP not installed";
+      }
+   } else {
+      plan skip_all => "PDL::GSL::INTERP not compiled.";
+   }
 }
 
 my $x = sequence(10);

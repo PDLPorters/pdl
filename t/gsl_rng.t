@@ -10,8 +10,9 @@
 use PDL;
 
 BEGIN {
-        eval " use PDL::GSL::RNG; ";
-        $loaded = ($@ ? 0 : 1);
+   use PDL::Config;
+   eval " use PDL::GSL::RNG; ";
+   $loaded = ($@ ? 0 : $PDL::Config{WITH_GSL});
 }
 
 print "1..18\n";
