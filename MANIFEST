@@ -220,6 +220,7 @@ Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
 Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
+Example/TriD/clip.pl
 Example/TriD/3dtest.pl
 Example/TriD/line3d.pl
 Graphics/Graphics2D.pm
@@ -302,10 +303,6 @@ Graphics/PLplot/plplot.pd
 Graphics/PLplot/README
 Graphics/State.pm
 Graphics/TriD/Makefile.PL
-Graphics/TriD/OpenGL/examples/clip
-Graphics/TriD/OpenGL/Makefile.PL
-Graphics/TriD/OpenGL/opengl.pd
-Graphics/TriD/OpenGL/README
 Graphics/TriD/OpenGLQ/Makefile.PL
 Graphics/TriD/OpenGLQ/openglq.pd
 Graphics/TriD/POGL/ignore.txt
