@@ -263,7 +263,7 @@ Throwing a PDL into the mix has the same effect as throwing in a list ref:
   pdl(pdl(1,2),[3,4])
 
 is the same as 
-  
+
   pdl([1,2],[3,4]).
 
 All of the dimensions in the list are "padded-out" with undefval to
@@ -272,7 +272,7 @@ meet the widest dim in the list, so (e.g.)
   $a = pdl([[1,2,3],[2]])
 
 gives you the same answer as 
-  
+
   $a = pdl([[1,2,3],[2,undef,undef]]);
 
 
@@ -1904,7 +1904,7 @@ inplace flag while testing:
 Set the in-place flag on a piddle
 
 =for usage
-  
+
   $out = ($in->is_inplace) ? $in : zeroes($in);
   $in->set_inplace(0);
 
@@ -2477,7 +2477,7 @@ occasionally useful and is provied for backwards compatibility.
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    print OUT<<'!NO!SUBS!';
+    print OUT <<'!NO!SUBS!';
 =for bad
 
 list converts any bad values into the string 'BAD'.
@@ -2485,7 +2485,7 @@ list converts any bad values into the string 'BAD'.
 !NO!SUBS!
 }
 
-print OUT<<'!NO!SUBS!';
+print OUT <<'!NO!SUBS!';
 =cut
 
 # No threading, just the ordinary dims.
@@ -2588,7 +2588,7 @@ in a general context, quite useful too inside PDL internals.
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    print OUT<<'!NO!SUBS!';
+    print OUT <<'!NO!SUBS!';
 =for bad
 
 at converts any bad values into the string 'BAD'.
@@ -2596,7 +2596,7 @@ at converts any bad values into the string 'BAD'.
 !NO!SUBS!
 }
 
-print OUT<<'!NO!SUBS!';
+print OUT <<'!NO!SUBS!';
 =cut
 
 sub PDL::at {     # Return value at ($x,$y,$z...)
@@ -3308,9 +3308,9 @@ can use one of the following:
   $pdl->sethdr( deep_copy($h) );
 
 (which is slow but general), or 
- 
+
   $pdl->sethdr( PDL::_hdr_copy($h) )
- 
+
 (which uses the built-in sleazy deep copier), or (if you know that all
 the elements happen to be scalars):
 
@@ -3389,7 +3389,7 @@ will print:
 Switch on/off automatic header copying, with PDL pass-through
 
 =for example
-  
+
   $a = rfits('foo.fits')->hcpy(0);
   $a = rfits('foo.fits')->hcpy(1);
 
