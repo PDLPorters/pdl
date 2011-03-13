@@ -8,6 +8,8 @@ Please check the following files for further information
 
 INSTALL 		Basic installation instructions
 
+INTERNATIONALIZATION    Notes re PDL i18n issue and status
+
 DEPENDENCIES		Other software that PDL relies on (and where to get it)
 
 Release_Notes		A list of features or issues with regard to the
@@ -20,11 +22,11 @@ BUGS			How to make a bug report
 perldl.conf		PDL configuration options
 
 Basic/Pod/FAQ.pod 	The FAQ in pod format
-			Try 'perldoc PDL::FAQ' after installation
+			Try 'perldoc PDL::FAQ' after installation.
 
 Basic/Pod/QuickStart.pod
 			A quick overview of PDL
-			Try 'perldoc PDL::QuickStart' after installation
+			Try 'perldoc PDL::QuickStart' after installation.
 
 Basic/Pod/BadValues.pod
                         A discussion of the bad value support in PDL

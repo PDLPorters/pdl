@@ -26,7 +26,45 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed pdl constructor bugs
+
+   - Include a larger and more-complete set of tests.
+
+   - Fixes SF.net bugs: #3011879, #3080505, and #3139088.
+
+   - Please test and verify.
+
+ * Legacy (deprecated) X11+PP build of TriD OpenGL bindings
+   has been removed
+
+     You must use the new Perl OpenGL based build which has
+     proven to be more portable and reliable.  This prepares
+     TriD graphics development for the next stage of refactoring
+     for support and functionality.
+
+ * More tests have been updated to not run unless the feature
+   they test was actually built.  This addresses the possible
+   mysterious test failures caused by previous PDL installs
+   in the perl path at build time.
+
+   - t/opengl.t will not run if TriD graphics have not been built
+
+   - t/gsl*.t tests will not run if WITH_GSL => 0
+
+ * Remove Karma support code from PDL distribution
+    
+     The last stable CPAN distribution with Karma code
+     in it (though deprecated) will be PDL-2.4.7.
+
+ * Added INTERNATIONALIZATION file with i18n notes
+
+     PDL does not have internationalization support beyond
+     that provided by perl itself.  In fact, some of the
+     code may be specific to English and ASCII for file names
+     and strings.  This file is a place holder and reminder
+     to address these issues.
+
+ * Some documentation and FAQ updates.
 
 
     
