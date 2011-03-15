@@ -856,6 +856,18 @@ sub PDL::imag3d { &checkargs;
 	&graph_object(new PDL::Graphics::TriD::SLattice_S(@_));
 }
 
+####################################################################
+################ JNK 15mar11 added section start ###################
+*STrigrid_S_imag3d=\&PDL::STrigrid_S_imag3d;
+sub PDL::STrigrid_S_imag3d { &checkargs;
+  &graph_object(new PDL::Graphics::TriD::STrigrid_S(@_)); }
+        
+*STrigrid_imag3d=\&PDL::STrigrid_imag3d;
+sub PDL::STrigrid_imag3d { &checkargs;
+  &graph_object(new PDL::Graphics::TriD::STrigrid(@_)); }
+################ JNK 15mar11 added section finis ###################
+####################################################################
+
 *mesh3d=\&PDL::mesh3d;
 *lattice3d=\&PDL::mesh3d;
 *PDL::lattice3d=\&PDL::mesh3d;

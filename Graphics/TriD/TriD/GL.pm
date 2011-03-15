@@ -524,6 +524,55 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 	glPopAttrib();
 }
 
+#################################################################### 
+################### JNK 15mar11 added section start ################
+sub PDL::Graphics::TriD::STrigrid_S::gdraw {
+  my($this,$points) = @_;
+  glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
+  # For some reason, we need to set this here as well.
+  glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+  # By-vertex doesn't make sense otherwise.
+  glShadeModel (&GL_SMOOTH);   
+  my @sls = (":,(0)",":,(1)",":,(2)");
+  my $idx = [0,1,2,0]; # for lines, below
+  if ($this->{Options}{Smooth}) {
+    $this->{Normals}=$this->smoothn($this->{Points})
+      unless defined($this->{Normals}); 
+    my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_wn
+                                      :\&PDL::gl_triangles_wn_mat);
+    my $tmpn=$this->{Normals}->dice_axis(1,$this->{Faceidx}->clump(-1))
+                    ->splitdim(1,($this->{Faceidx}->dims)[0]);
+    my @args=((map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
+              (map {$tmpn->slice($_)} @sls),
+              (map {$this->{Colors}->slice($_)} @sls) );&$f(@args); }
+  else {
+    my $f=(!$this->{Options}{Material}?\&PDL::gl_triangles_n
+                                      :\&PDL::gl_triangles_n_mat);
+    &$f( (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
+         (map {$this->{Colors}->slice($_)} @sls) ); } 
+  glDisable(&GL_LIGHTING);
+  if ($this->{Options}{Lines}) {
+    my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
+    PDL::gl_lines($this->{Faces}->dice_axis(1,$idx),$black); } glPopAttrib(); }
+
+sub PDL::Graphics::TriD::STrigrid::gdraw {
+  my($this,$points) = @_;
+  glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
+  glDisable(&GL_LIGHTING);
+# By-vertex doesn't make sense otherwise.
+  glShadeModel (&GL_SMOOTH);
+  my @sls = (":,(0)",":,(1)",":,(2)");
+  my $idx = [0,1,2,0];
+  PDL::gl_triangles(
+    (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
+    (map {$this->{Colors}->slice($_)} @sls));
+  if ($this->{Options}{Lines}) {
+    my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
+    PDL::gl_lines($this->{Faces}->dice_axis(1,$idx),$black); }
+  glPopAttrib(); }
+################### JNK 15mar11 added section finis ################
+####################################################################
+
 ##################################
 # PDL::Graphics::TriD::Image
 #
