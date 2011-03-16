@@ -24,9 +24,10 @@ if ( $PDL::Config{USE_POGL} ) {
      $hash{LDFROM} =~ s/\-lfreeglut//g;
    }
 } else {
-   push @{$hash{LIBS}}, $PDL::Config{OPENGL_LIBS};
-   $hash{DEFINE} .= ' '.$PDL::Config{OPENGL_DEFINE};
-   $hash{INC} .= ' '.$PDL::Config{OPENGL_INC};
+   warn "Graphics/TriD/OpenGLQ/Makefile.PL: will not compile bindings without Perl OpenGL\n\n";
+   ## push @{$hash{LIBS}}, $PDL::Config{OPENGL_LIBS};
+   ## $hash{DEFINE} .= ' '.$PDL::Config{OPENGL_DEFINE};
+   ## $hash{INC} .= ' '.$PDL::Config{OPENGL_INC};
 }
 
 ${$hash{LIBS}}[0] .= ' -lm';
