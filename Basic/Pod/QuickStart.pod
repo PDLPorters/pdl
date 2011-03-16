@@ -390,12 +390,10 @@ package provides allows one to display images
 in these ("IIS" is the name of an ancient item of image display
 hardware whose protocols these tools conform to.)
 
-=item Karma (B<DEPRECATED>) 
+=item Karma (B<REMOVED>) 
 
-The L<PDL::Graphics::Karma|PDL::Graphics::Karma> 
-module provides an interface to the Karma visualisation
-suite. This is a set of GUI applications which are specially designed for
-visualising noisy 2D and 3D data sets.
+The L<PDL::Graphics::Karma|PDL::Graphics::Karma> module has
+been removed from the PDL distribution as of version 2.4.8.
 
 =item PDL::Graphics::TriD
 

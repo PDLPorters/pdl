@@ -14,8 +14,6 @@ they do a reasonably robust job and are quite useful.
 Gaussian fitting is something I do a lot of, so I figured
 it was worth putting in my special code.
 
-Note this code is also used in the Karma package.
-
 Note it is not clear to me that this code is fully debugged. The reason
 I say that is because I tried using the internal linear eqn solving 
 C routines called elsewhere and they were giving erroneous results. 

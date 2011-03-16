@@ -138,8 +138,8 @@ PDL::Graphics::IIS
 
 
 PDL::Graphics::Karma
-                  The Karma interface has been removed.  Please
-		  use another visualization option.
+                  The Karma interface has been removed as of PDL version
+		  2.4.8.  Please use another visualization option.
 
 
 PDL::GSL modules
