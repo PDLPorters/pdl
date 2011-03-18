@@ -51,7 +51,7 @@ BEGIN
         $forcebuild=1;
     }
     
-    # Look for Proj4 includes/libs
+    # Look for GD includes/libs
 
     # get locations from perldl.conf, if specified there:
     @lib_locations = @{$PDL::Config{$config_libs}} 
