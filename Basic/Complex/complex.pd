@@ -287,7 +287,8 @@ pp_def 'i2C',
 
 pp_def 'Cr2p',
        Pars => 'r(m=2); float+ [o]p(m=2)',
-       Doc => 'convert complex numbers in rectangular form to polar (mod,arg) form',
+       Inplace => 1,
+       Doc => 'convert complex numbers in rectangular form to polar (mod,arg) form. Works inplace',
        Code => q!
           $GENERIC() x = $r(m=>0);
           $GENERIC() y = $r(m=>1);
@@ -298,8 +299,9 @@ pp_def 'Cr2p',
 
 pp_def 'Cp2r',
        Pars => 'r(m=2); [o]p(m=2)',
+       Inplace => 1,
        GenericTypes => [F,D],
-       Doc => 'convert complex numbers in polar (mod,arg) form to rectangular form',
+       Doc => 'convert complex numbers in polar (mod,arg) form to rectangular form. Works inplace',
        Code => q!
           $GENERIC() m = $r(m=>0);
           $GENERIC() a = $r(m=>1);
@@ -348,7 +350,7 @@ pp_def 'Cprodover',
 	Pars => 'a(m=2,n); [o]c(m=2)',
         Doc => 'Project via product to N-1 dimension',
         Code => q^
-	    int iter;
+	    PDL_Long iter;
 	    $GENERIC() br, bi, cr, ci,tmp;
 	    cr = $a(m=>0,n=>0);
 	    ci = $a(m=>1,n=>0);
@@ -421,7 +423,8 @@ pp_def 'Ccmp',
 
 pp_def 'Cconj',
 	Pars => 'a(m=2); [o]c(m=2)',
-        Doc => 'complex conjugation',
+	Inplace => 1,
+        Doc => 'complex conjugation. Works inplace',
         Code => q^
            $c(m=>0) =  $a(m=>0);
            $c(m=>1) = -$a(m=>1);
@@ -476,8 +479,9 @@ pp_def 'Carg',
 
 pp_def 'Csin',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '  sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i))',
+        Doc => '  sin (a) = 1/(2*i) * (exp (a*i) - exp (-a*i)). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -490,8 +494,9 @@ pp_def 'Csin',
 
 pp_def 'Ccos',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '  cos (a) = 1/2 * (exp (a*i) + exp (-a*i))',
+        Doc => '  cos (a) = 1/2 * (exp (a*i) + exp (-a*i)). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -517,8 +522,9 @@ EOD
 
 pp_def 'Cexp',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => 'exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a)))',
+        Doc => 'exp (a) = exp (real (a)) * (cos (imag (a)) + i * sin (imag (a))). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() ex = exp (ar);
@@ -532,8 +538,9 @@ pp_def 'Cexp',
 
 pp_def 'Clog',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => 'log (a) = log (cabs (a)) + i * carg (a)',
+        Doc => 'log (a) = log (cabs (a)) + i * carg (a). Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -543,6 +550,7 @@ pp_def 'Clog',
 
 pp_def 'Cpow',
 	Pars => 'a(m=2); b(m=2); [o]c(m=2)',
+	Inplace => ['a'],
         GenericTypes => [F,D],
         Doc => 'complex C<pow()> (C<**>-operator)',
         Code => q^
@@ -564,8 +572,9 @@ pp_def 'Cpow',
 
 pp_def 'Csqrt',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -575,8 +584,9 @@ pp_def 'Csqrt',
 
 pp_def 'Casin',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -598,8 +608,9 @@ pp_def 'Casin',
 
 pp_def 'Cacos',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -636,8 +647,9 @@ EOD
 
 pp_def 'Csinh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '  sinh (a) = (exp (a) - exp (-a)) / 2',
+        Doc => '  sinh (a) = (exp (a) - exp (-a)) / 2. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -650,8 +662,9 @@ pp_def 'Csinh',
 
 pp_def 'Ccosh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '  cosh (a) = (exp (a) + exp (-a)) / 2',
+        Doc => '  cosh (a) = (exp (a) + exp (-a)) / 2. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double s, c;
@@ -664,8 +677,9 @@ pp_def 'Ccosh',
 
 pp_def 'Ctanh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            double den;
@@ -681,8 +695,9 @@ pp_def 'Ctanh',
 
 pp_def 'Casinh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
            $GENERIC() yr = (ar-ai) * (ar+ai) + 1;
@@ -699,6 +714,7 @@ pp_def 'Casinh',
 
 pp_def 'Cacosh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
         Doc => '',
         Code => q^
@@ -718,8 +734,9 @@ pp_def 'Cacosh',
 
 pp_def 'Catanh',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => '',
+        Doc => 'Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
@@ -734,8 +751,9 @@ pp_def 'Catanh',
 
 pp_def 'Cproj',
 	Pars => 'a(m=2); [o]c(m=2)',
+	Inplace => 1,
         GenericTypes => [F,D],
-        Doc => 'compute the projection of a complex number to the riemann sphere',
+        Doc => 'compute the projection of a complex number to the riemann sphere. Works inplace',
         Code => q^
            $GENERIC() ar = $a(m=>0), ai = $a(m=>1);
 
