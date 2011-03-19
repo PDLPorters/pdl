@@ -14,7 +14,7 @@ if ($^O =~ /win32/i) {
 # # the contents of the Makefile that is written.
 
 my @pm_names = qw ( PDL.pm Lite.pm LiteF.pm AutoLoader.pm Options.pm
-		    Matrix.pm Reduce.pm Lvalue.pm);
+		    Matrix.pm Reduce.pm Lvalue.pm Constants.pm);
 
 my %pm = map { $h = '$(INST_LIBDIR)/'; 
 	       $h .= 'PDL/' if $_ !~ /PDL.pm$/;
