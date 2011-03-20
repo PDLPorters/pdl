@@ -3,6 +3,7 @@ Basic/Bad/bad.pd
 Basic/Bad/Makefile.PL
 Basic/Complex/complex.pd
 Basic/Complex/Makefile.PL
+Basic/Constants.pm
 Basic/Core/Basic.pm
 Basic/Core/Char.pm
 Basic/Core/Core.pm.PL
@@ -168,13 +169,11 @@ Demos/Makefile.PL
 Demos/PGPLOT_demo.pm
 Demos/PGPLOT_OO_demo.pm
 Demos/Screen.pm
-Demos/TkTriD_demo.pm
 Demos/Transform_demo.pm
 Demos/TriD/mandel.pl
 Demos/TriD/test3.p
 Demos/TriD/test4.p
 Demos/TriD/test5.p
-Demos/TriD/test6.p
 Demos/TriD/test7.p
 Demos/TriD/test8.p
 Demos/TriD/test9.p
@@ -218,10 +217,11 @@ Example/InlinePdlpp/Module/t/myinlinemod.t
 Example/IO/wmpeg.pl
 Example/PGPLOT/pgplot.pl
 Example/PGPLOT/std_pgplot.pl
+Example/PLplot/refresh.pdl
 Example/Simplex/tsimp.pl
 Example/Simplex/tsimp2.pl
-Example/TriD/clip.pl
 Example/TriD/3dtest.pl
+Example/TriD/clip.pl
 Example/TriD/line3d.pl
 Graphics/Graphics2D.pm
 Graphics/IIS/iis.pd
@@ -336,7 +336,6 @@ Graphics/TriD/TriD/Quaternion.pm
 Graphics/TriD/TriD/SimpleScaler.pm
 Graphics/TriD/TriD/Surface.pm
 Graphics/TriD/TriD/TextObjects.pm
-Graphics/TriD/TriD/Tk.pm
 Graphics/TriD/TriD/ViewPort.pm
 Graphics/TriD/TriD/VRML.pm
 Graphics/TriD/TriD/Window.pm
@@ -689,6 +688,7 @@ t/callext.t
 t/clump.t
 t/complex.t
 t/config.t
+t/constants.t
 t/constructor.t
 t/conv.t
 t/core.t

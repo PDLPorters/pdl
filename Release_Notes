@@ -2,6 +2,8 @@ Release Notes for PDL 2.4.7_013 --------------------------
 
 General Notes:
 
+ * Last developers release before the 2.4.8 pre-release
+
  * This is a developers release!
  
    - It is a snapshot of the current git development tree
@@ -26,7 +28,22 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * New PDL::Constants module providing PI and E
+
+ * New refresh.pdl in Example/PLplot.  This provides
+   some of the same functionality as in the PDL
+   PGPLOT graphics.
+
+ * Inplace support added for PDL::Complex operations
+
+ * OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE
+   no longer used in perldl.conf as the Perl
+   OpenGL binding is now required for TriD graphics.
+ 
+ * Additional code clean up now that PDL::Karma
+   graphics are no longer provided.
+ 
+ * Various bug and documentation fixes.
 
 
     
