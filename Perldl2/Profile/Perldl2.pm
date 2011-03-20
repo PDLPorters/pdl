@@ -118,7 +118,6 @@ sub apply_profile {
       demo 3d          # 3d demo (requires TriD with OpenGL or Mesa)
       demo 3d2         # 3d demo, part 2. (Somewhat memory-intensive)
       demo 3dgal       # the 3D gallery: make cool images with 3-line scripts
-      demo Tk3d        # Requires the perl Tk module
 
       demo pgplot      # PGPLOT graphics output (Req.: PGPLOT)
       demo OOplot      # PGPLOT OO interface    (Req.: PGPLOT)
@@ -138,7 +137,6 @@ EOD
          '3d' => 'PDL::Demos::TriD1',
          '3d2' => 'PDL::Demos::TriD2',
          '3dgal' => 'PDL::Demos::TriDGallery',
-         'tk3d' => 'PDL::Demos::TkTriD_demo',
          'pgplot' => 'PDL::Demos::PGPLOT_demo',
          'ooplot' => 'PDL::Demos::PGPLOT_OO_demo', # note: lowercase
          'bad' => 'PDL::Demos::BAD_demo',

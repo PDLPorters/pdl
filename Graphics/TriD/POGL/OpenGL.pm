@@ -107,8 +107,7 @@ my $debug = 0;
 my (@fakeXEvents) = ();
 my (@winObjects) = ();
 #
-# This is a list of all the fields of the opengl object and one could create a 
-# psuedo hash style object but I want to use multiple inheritence with Tk...
+# This is a list of all the fields of the opengl object
 #
 #use fields qw/Display Window Context Options GL_Vendor GL_Version GL_Renderer/;
 
@@ -129,10 +128,8 @@ Allowed 3d window types, case insensitive, are:
 
 =for ref
 
-  pdl-legacy-x11 - use deprecated PDL::PP OpenGL interface
-  x11  - use Perl OpenGL (POGL) bindings and X11 windows
-         (supports PDL::Graphics::TriD::Tk use)
   glut - use Perl OpenGL bindings and GLUT windows (no Tk)
+  x11  - use Perl OpenGL (POGL) bindings with X11 (disabled)
 
 =cut
 
