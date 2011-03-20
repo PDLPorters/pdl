@@ -8,10 +8,22 @@ use PDL;
 use PDL::Dbg;  # Enable useful commands
 #use PDL::Lite; # Alternative to above for hard-core freaks
 
+# These are some PDL::Core parameters that you may wish
+# to set in an interactive PDL session:
+#
+#   $PDL::debug          When true, PDL debugging information is printed.
+#   $PDL::verbose        When true, PDL functions provide chatty information.
+#   $PDL::use_commas     Whether to insert commas when printing pdls
+#   $PDL::floatformat    The default print format for floats
+#   $PDL::doubleformat   The default print format for doubles
+#   $PDL::undefval       The value to use instead of "undef" when creating pdls.
+#   $PDL::toolongtoprint The maximal size pdls to print (defaults to 10000 elements)
+
 # PDL waffle options (and pacify -w)
 BEGIN{
    $PDL::debug = $PDL::debug = 0;
    $PDL::verbose = $PDL::verbose = 1;
+   $PDL::toolongtoprint = $PDL::toolongtoprint = 10000;
 }
 
 if ( $PERLDL::TERM->ReadLine() =~ /::Perl$/ ) {
