@@ -337,7 +337,7 @@ sub _read_flexhdr {
     my (@ret);
  ITEM:
     while (!eof($hfile)) {
-	my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
+	my (@dims) = (); my ($ndims) = -1, ($mode) = -2; my ($have_badvalue) = undef, ($badvalue) = undef;
       LINE:
 	while (<$hfile>) {
 	    next LINE if /^#/;
@@ -373,10 +373,17 @@ TOKEN:
 		    barf("Not number for dimension in readflex")
 			if !/^\d*$/;
 		    push(@dims,$_);
-		    if (++$mode == $ndims) {
-			last LINE;
-		    }
-		}
+		    $mode++;
+                 } elsif ($mode == $ndims and ! $have_badvalue) {
+                    if (/^badvalue$/ ) {
+                       $have_badvalue = 1;
+                    } else {
+                       last LINE;
+                    }
+                 } elsif ($mode == $ndims and $have_badvalue) {
+                    $badvalue = $_;
+                    last LINE;
+                 }
 	    }
 	}
 	last ITEM if $mode == -2;
@@ -385,7 +392,9 @@ TOKEN:
 	push @ret, {
 	    Type => $tid,
 	    Dims => \@dims,
-	    NDims => $ndims
+	    NDims => $ndims,
+            BadFlag => (($have_badvalue) ? 1 : 0),
+            BadValue => $badvalue,
 	    };
     }
     return \@ret;
@@ -528,6 +537,10 @@ READ:
 	    }
 	}
 
+        if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
+           $pdl->badflag($hdr->{BadFlag});
+           $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
+        }
         push (@out,$pdl);
 
 	if ($f77mode && $chunk->at == $chunkread) {
@@ -656,6 +669,10 @@ READ:
 			next READ;
 		}
 
+                if ($hdr->{BadFlag}) {  # set badflag and badvalue if needed
+                   $pdl->badflag($hdr->{BadFlag});
+                   $pdl->badvalue($hdr->{BadValue}) if defined $hdr->{BadValue};
+                }
 			push (@out,$pdl);
 
 		if ($f77mode && $chunk->at == $chunkread) {
@@ -704,7 +721,9 @@ sub writeflex {
       push @{$hdr}, {
          Type => $flexnames{$pdl->get_datatype},
          Dims => [ $pdl->dims ],
-         NDims => $pdl->getndims
+         NDims => $pdl->getndims,
+         BadFlag => $pdl->badflag,
+         BadValue => (($pdl->badvalue == $pdl->orig_badvalue) ? undef : $pdl->badvalue),
       };
       print $d $ {$pdl->get_dataref};
    }
@@ -735,7 +754,7 @@ sub writeflexhdr {
 	}
 	print $h join("\n",$_->{Type},
 		      $_->{NDims},
-		      (join ' ',ref $_->{Dims} ? @{$_->{Dims}} : $_->{Dims})),
+		      (join ' ',ref $_->{Dims} ? @{$_->{Dims}} : $_->{Dims}) . (($_->{BadFlag}) ? " badvalue $_->{BadValue}" : '')),
 	"\n\n";
     }
 }
