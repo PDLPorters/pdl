@@ -38,8 +38,8 @@ used already.
 
 {
   my %lookup=(
-	      'PGPLOT' => 'PDL::Graphics::PGPLOT::Window'
-	     );
+              'PGPLOT' => 'PDL::Graphics::PGPLOT::Window'
+             );
   sub new {
 
     my $type=shift;
@@ -863,6 +863,94 @@ sub twiddle {
       glutMainLoopEvent();
    }
    print STDERR "Stopped twiddle-ing!\n";
+}
+
+#------------------------------------------------------------------------
+# Threaded image display as tiles (code from PDL::Graphics::TriD::Image)
+#------------------------------------------------------------------------
+
+# N-D piddle -> 2-D
+sub flatten {
+   my ($this,$bin_align) = @_;
+
+   my @dims = $this->dims;
+   my $imdim0 = shift @dims; # get rid of the '3'
+
+   my $xd = $dims[0]; my $yd = $dims[1];
+   my $xdr = $xd; my $ydr = $yd;
+
+   # Calculate the whole width of the image.
+   my $ind = 0;
+   my $xm = 0; my $ym = 0;
+   for (@dims[2..$#dims]) {
+      if ($ind % 2 == 0) {
+         $xd ++; # = $dims[$ind-2];
+         $xd *= $_;
+         $xdr ++;
+         $xdr *= $_;
+         $xm++;
+      } else {
+         $yd ++; # = $dims[$ind-2];
+         $yd *= $_;
+         $ydr ++;
+         $ydr *= $_;
+         $ym++;
+      }
+      $ind++;
+   }
+   $xd -= $xm; $yd -= $ym;
+
+   # R because the final texture must be 2**x-aligned ;(
+   my ($txd ,$tyd, $xxd, $yyd);
+   if ($bin_align) {
+      for ($txd = 0; $txd < 12 and 2**$txd < $xdr; $txd++) {};
+      for ($tyd = 0; $tyd < 12 and 2**$tyd < $ydr; $tyd++) {};
+      $txd = 2**$txd; $tyd = 2**$tyd;
+      $xxd = ($xdr > $txd ? $xdr : $txd);
+      $yyd = ($ydr > $tyd ? $ydr : $tyd);
+   } else {
+      $xxd=$txd=$xdr; $yyd=$tyd=$ydr;
+   }
+
+   my $p = PDL->zeroes(PDL::float(),$imdim0,$xxd,$yyd);
+
+   # # object is PDL not PDL::Graphics::TriD::Image
+   # if(defined $this->{Opts}{Bg}) {
+   #     $p .= $this->{Opts}{Bg};
+   # }
+
+   # print "MKFOOP\n";
+   my $foop = $p->slice(":,0:".($xdr-1).",0:".($ydr-1));
+
+   $ind = $#dims;
+   my $firstx = 1;
+   my $firsty = 1;
+   my $spi;
+   for (@dims[reverse(2..$#dims)]) {
+      $foop->make_physdims();
+      # print "FOOP: \n"; $foop->dump;
+      if ($ind % 2 == 0) {
+         $spi = $foop->getdim(1)/$_;
+         $foop = $foop->splitdim(1,$spi)->slice(":,0:-2")->mv(2,3);
+      } else {
+         $spi = $foop->getdim(2)/$_;
+         $foop = $foop->splitdim(2,$spi)->slice(":,:,0:-2");
+      }
+      # print "IND+\n";
+      $ind++; # Just to keep even/odd correct
+   }
+   # $foop->dump;
+   print "ASSGNFOOP!\n" if $PDL::debug;
+
+   $foop .= $this->{Im};
+   # print "P: $p\n";
+   return wantarray() ? ($p,$xd,$yd,$txd,$tyd) : $p;
+}
+
+sub toimage {
+   # initially very simple implementation
+   my ($this) = @_;
+   return $this->flatten(0);
 }
 
 1;
