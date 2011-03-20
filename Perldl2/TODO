@@ -31,6 +31,12 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   Allow Ctrl-C to interrupt a line but keep the entry
   in history for edit...
 
+  Fix q alias for quit which broke as a side effect of
+  a fix to the MultiLine::PPI handling.  Perhaps using
+  around continue_reading_if_necessary would do the
+  trick.  Need to sort out the Moose/Plugin/Roles issues
+  and document.
+
   Implement ^C/^D to end PPI multiline if it makes sense.
   E.g., make sure that Ctrl-C can exit an incomplete
   block.  Right now ^C does not interrupt a multiline
