@@ -16,7 +16,9 @@ Last saved: Mon 16 Aug 2010 03:28:40 PM
  If you work with large data sets, you may wish to
  use the native win32 PDL with either ActiveState Perl
  or Strawberry Perl.  Otherwise, you'll want to set the
- value of heap_chunk_in_mb to allow for bigger data.
+ value of heap_chunk_in_mb to allow for bigger data as
+ described in the Cygwin Users Guide:
+ http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html
 
  Work is underway to improve the native win32 perl PDL 
  support for external dependencies so that it may be

@@ -67,7 +67,9 @@ The following issues have been reported with this version of PDL:
 
 
 - PDL on Cygwin has (by default) a 300MB process memory limit which can
-  cause out of memory crashes with large data sets.
+  cause out of memory crashes with large data sets.  See the cygwin users
+  guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
+  to fix.
 
 
 - The following SourceForge bugs are outstanding at time of the
