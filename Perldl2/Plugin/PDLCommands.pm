@@ -26,7 +26,7 @@ around 'read' => sub {
 
    # filter out default PDL shell prompt for easier
    # cut-and-paste of demo code
-   $lines =~ s/\s*(?:pdl|perldl)>\s*//i;
+   $lines =~ s/\s*(?:pdl|perldl)>\s*//i if defined $lines;
 
    return $lines unless defined $lines;
 
