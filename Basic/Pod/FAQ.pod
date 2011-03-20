@@ -430,12 +430,20 @@ release of PDL is available as F<CHM/PDL-2.4.7_011.tar.gz> .
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
 
+Two ways that you could help almost immediately are (1) participate
+in CPAN Testers for PDL and related modules, and (2) proofreading and
+clarifying the PDL documentation so that it is most useable for PDL
+users, especially new users.
+
+To participate in CPAN Testers and contribute test reports, the page
+L<http://wiki.cpantesters.org/wiki/QuickStart> has instructions for
+starting for either C<CPAN> or C<CPANPLUS> users.
 
 If you have a certain project in mind you should check if somebody
 else is already working on it or if you could benefit from existing
 modules. Do so by posting your planned project to the PDL developers
-mailing list at pdl-porters@jach.hawaii.edu . See the subscription instructions in 
-L<Question 3.2|"Q: 3.2    Are there other PDL information sources on the Internet?">.
+mailing list at pdl-porters@jach.hawaii.edu . See the subscription
+instructions in L<Question 3.2|"Q: 3.2 Are there other PDL information sources on the Internet?">.
 We are always looking for people to write code and/or documentation ;).
 
 
