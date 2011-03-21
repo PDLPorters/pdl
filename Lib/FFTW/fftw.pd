@@ -807,7 +807,7 @@ EOD
 pp_addxs('','
 MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
-int
+void *
 PDL_rfftwnd_create_plan(dims, dir, flag)
   pdl* dims
   int dir
@@ -841,7 +841,7 @@ CODE:
   }
  
   RETVAL = 
-  (int) rfftwnd_create_plan( dims->dims[0], 
+      (void *) rfftwnd_create_plan( dims->dims[0], 
 			    ( int *) dims->data,
 			    fdir,
 			    fflag);
@@ -857,7 +857,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_rfftwnd_one_real_to_complex(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -871,7 +871,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_rfftwnd_one_complex_to_real(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -889,7 +889,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_rfftwnd_one_real_to_complex(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
@@ -907,7 +907,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
@@ -926,7 +926,7 @@ PDL_inplace_rfftwnd_one_complex_to_real(plan, in)
 pp_addxs('','
 MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
-int
+void *
 PDL_fftwnd_create_plan(dims, dir, flag)
   pdl* dims
   int dir
@@ -960,7 +960,7 @@ CODE:
   }
  
   RETVAL = 
-  (int) fftwnd_create_plan( dims->dims[0], 
+  (void *) fftwnd_create_plan( dims->dims[0], 
 			    ( int *) dims->data,
 			    fdir,
 			    fflag);
@@ -976,7 +976,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_fftwnd_one(plan, in, out)
-  int plan
+  void * plan
   pdl* in
   pdl* out
  CODE:
@@ -990,7 +990,7 @@ MODULE = PDL::FFTW PACKAGE = PDL::FFTW
 
 void
 PDL_inplace_fftwnd_one(plan, in)
-  int plan
+  void * plan
   pdl* in
  CODE:
   if (in->data==NULL) {barf("Need a physical pdl!");}
