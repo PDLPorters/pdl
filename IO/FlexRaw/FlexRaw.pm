@@ -337,51 +337,66 @@ sub _read_flexhdr {
     my (@ret);
  ITEM:
     while (!eof($hfile)) {
-	my (@dims) = (); my ($ndims) = -1, ($mode) = -2; my ($have_badvalue) = undef, ($badvalue) = undef;
+	my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
+        my ($have_badvalue) = undef;
+        my ($badvalue) = undef;
       LINE:
 	while (<$hfile>) {
+           ### print STDERR "processing line '$_'\n";
 	    next LINE if /^#/;
 	    chop;
 	    tr/A-Z/a-z/;
 	    @str = split;
 TOKEN:
-	    foreach (@str) {
-		next LINE if /^#/;
+            ### print STDERR "Got tokens: " . join(',',@str) . "\n";
+            my $numtokens = scalar @str;
+	    foreach my $token (@str) {
+		next LINE if $token =~ /^#/;
 		if ($mode == -2) { # type
+                   ### print STDERR "  \$mode == -2: #tokens = $numtokens, '$token'\n";
 		    if ($newfile) {
-			if ($_ eq 'f77' || $_ eq 'swap') {
+			if ($token eq 'f77' || $token eq 'swap') {
 			    push @ret, {
-				Type => $_
+				Type => $token
 				};
+                            $numtokens--;
 			    next ITEM;
 			}
 		    }
-		    barf("Bad typename '$_' in readflex")
-			if (!exists($flextypes{$_}));
-		    $tid = $flextypes{$_};
+		    barf("Bad typename '$token' in readflex")
+			if (!exists($flextypes{$token}));
+		    $tid = $flextypes{$token};
+                    $numtokens--;
 		    $newfile = 0;
 		    $mode++;
 		} elsif ($mode == -1) { #ndims
+                   ### print STDERR "  \$mode == -1: #tokens = $numtokens, '$token'\n";
 		    barf("Not number for ndims in readflex")
-			if !/^\d*$/;
+			if $token !~ /^\d*$/;
 		    barf("Bad ndims in readflex")
-			if (($ndims = $_) < 0);
-		    if (++$mode == $ndims) {
+			if (($ndims = $token) < 0);
+                    $numtokens--;
+		    if (++$mode == $ndims and $numtokens == 0) {
 			last LINE;
 		    }
 		} elsif ($mode < $ndims) { # get dims
+                   ### print STDERR "  # get dims: #tokens = $numtokens, '$token'\n";
 		    barf("Not number for dimension in readflex")
-			if !/^\d*$/;
-		    push(@dims,$_);
-		    $mode++;
+			if $token !~ /^\d*$/;
+		    push(@dims,$token);
+		    if (++$mode == $ndims and --$numtokens == 0) {
+			last LINE;
+		    }
                  } elsif ($mode == $ndims and ! $have_badvalue) {
-                    if (/^badvalue$/ ) {
+                    ### print STDERR "  # ! \$have_badvalue: #tokens = $numtokens, '$token'\n";
+                    if ($token =~ /^badvalue$/ ) {
                        $have_badvalue = 1;
                     } else {
                        last LINE;
                     }
-                 } elsif ($mode == $ndims and $have_badvalue) {
-                    $badvalue = $_;
+                 } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
+                    ### print STDERR "  #   \$have_badvalue: #tokens = $numtokens, '$token'\n";
+                    $badvalue = $token;
                     last LINE;
                  }
 	    }
