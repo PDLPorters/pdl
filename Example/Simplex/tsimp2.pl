@@ -9,6 +9,8 @@ $minsize = 1.e-6;
 # max number of iterations ?
 $maxiter = 100;
 #
+# number of evaluation
+$count = 0;
 print " \n
         1: least squares gaussian fit to data + noise \n
 	   32 *exp (-((x-10)/6)^2) + noise
@@ -33,12 +35,13 @@ if ($choice == 1) {
   $initsize = 2;
 #
 #
-  ($optimum,$ssize) = simplex($init,$initsize,$minsize,$maxiter,  
+  ($optimum,$ssize,$optval) = simplex($init,$initsize,$minsize,$maxiter,  
 # this sub returns the function to be minimised.          
                             sub {my ($xv) =@_;
 			        my $a = $xv->slice("(0)"); 
 			        my $b = $xv->slice("(1)");                  
 			        my $c = $xv->slice("(2)");   
+				$count += $a->dim(0);
 				my $sum = $a * 0.0;
 				foreach $j (0..19) {
 				    $sum += ($data[$j] -
@@ -50,16 +53,19 @@ if ($choice == 1) {
 } else {
   $init = pdl [ 2 , 2 ];
   $initsize = 2;
-  ($optimum,$ssize) = simplex($init,$initsize,$minsize,$maxiter,           
+  ($optimum,$ssize,$optval) = simplex($init,$initsize,$minsize,$maxiter,           
                             sub {my ($xv) =@_;
 			        my $x = $xv->slice("(0)"); 
 			        my $y = $xv->slice("(1)"); 
-			        return ($x-3)**2 + 2.*($x-3)*($y-2.5) 
-				          + 3.*($y-2.5)**2; 
+				$count += $x->dim(0);
+			        return ($x-3)**2 + 2.*($x-3)*($y-2.5)
+                                         + 3.*($y-2.5)**2;
 			    });
 			     
 
 }
+print "N_EVAL  = $count\n";
 print "OPTIMUM = $optimum \n";
 print "SSIZE   = $ssize\n";
+print "OPTVAL  = $optval\n";
 
