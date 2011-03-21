@@ -28,6 +28,18 @@ General Notes:
 
 Highlights:
 
+ * readflex/writeflex/mapflex now support reading and writing
+   piddles with bad value support enabled.  This was sf.net
+   feature request #3028127, "add badvalue support to FlexRaw".
+   
+   On writeflex, a piddle with badflag==1 will have a keyword
+   badvalue added to the header file and an additional value
+   if badvalue is != orig_badvalue for that type.
+   
+   On readflex, a piddle with the badvalue header will
+   automatically have its badflag set and its badvalue as well
+   if it is not the default.
+
  * New PDL::Constants module providing PI and E
 
  * New refresh.pdl in Example/PLplot.  This provides
