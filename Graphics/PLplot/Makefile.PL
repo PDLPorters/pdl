@@ -55,6 +55,8 @@ unless ($found_plplot) {
   buildDummy ("User requested no PLplot interface!");
   return if (caller); exit;
 }
+
+my ($plplot_lib_path, $plplot_include_path);
 foreach my $libdir (
 		    '/usr/local/plplot/lib64',
                     '/usr/local/plplot/lib',
@@ -108,7 +110,7 @@ foreach my $incdir (
   if (-e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
-      $inc2 = $incdir;
+      my $inc2 = $incdir;
       $inc2 =~ s|/plplot$||;
       $plplot_include_path .= " -I$inc2";
     }
@@ -198,7 +200,7 @@ $hash{'VERSION_FROM'}   = 'plplot.pd';
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
 # another plplot is installed in /usr/local/lib. D. Hunt 6/4/2004
-$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib ";
+$hash{'LDDLFLAGS'} = $^O eq 'darwin' ? " -bundle -undefined dynamic_lookup -L$plplot_lib_path " : " -shared -L$plplot_lib_path -L/usr/local/lib ";
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
 			  'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'};
