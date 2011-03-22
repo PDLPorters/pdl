@@ -72,30 +72,25 @@ The following issues have been reported with this version of PDL:
   to fix.
 
 
+- minimum/maximum/min/max inconsistently handle NaN values.
+  NaN's for the first element of a pdl will propagate to the
+  result while if the first element is a number, then the
+  result will be a number.  The answer for max/min should not
+  depend on the order of the input values.
+
+
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.7_014 release:
 
-  3203480    t/fftw.t fails on 64-bit systems
+  3234141    max() fails on nan
   3190227    PDL build fails with parallel GNU make -j3 -j3
   3161459    online docs don't link to functions in other PDL modules 
-  3139088    PDL constructor segfaults with arrayrefs from RRDs::fetch
-
-               Need to confirm no regressions for this ticket.
-
   3080505    PLplot segfaults on plshades call on OS X
              
-	       There is a workaround in place.  Need to confirm
-	       that the original problem no longer exists before
-	       closing this ticket.
+	       The crash still appears on OS X.
 
   3059083    Problems with FITS header handling
   3018731    NiceSlice affects code where it should not
-  3011879    pdl() constructor crashes perl for mixed ref/piddle args
-
-               This bug appears to be fixed.  If any indications
-	       otherwise, please report to perldl mailing list or
-	       update bug ticket #3011879.
-
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type

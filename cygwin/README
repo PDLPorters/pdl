@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Thu 12 Aug 2010 12:16:54 PM 
+Last saved: Tue 22 Mar 2011 03:35:25 PM 
 
 =================================================================
                             Overview
@@ -38,11 +38,12 @@ external dependencies:
 
  PDL::Graphics::PGPLOT
   (Builds if the FORTRAN pgplot library has been hand built
-   and installed, and if the *Perl* PGPLOT module is installed)
+   and installed, and if the *Perl* PGPLOT module is installed
+   and FORTRAN)
 
  PDL::Graphics::TriD
   (Builds automatically if you have X11 and OpenGL + FreeGLUT
-  installed).
+   installed).
 
  PDL::GSL::*
  PDL::GSLSF::*
@@ -53,18 +54,23 @@ external dependencies:
 
  PDL::GIS::Proj
  PDL::Transform::Proj4
+  (Builds if the PROJ4 lib is installed via cygwin Setup.exe)
+
+ PDL::Minuit
+  (Builds if ExtUtils::F77 has been installed and FORTRAN)
 
  PDL::Slatec
-  (Builds if ExtUtils::F77 has been installed)
+  (Builds if ExtUtils::F77 has been installed.
+   Needs a FORTRAN compiler.)
 
  PDL::IO::Browser
   (Build may pass if enabled, disabled by default for all OSes)
  
  pdl2
   (Installed by default.  To use the new features, you
-   will need to install Devel::REPL and Term::ReadLine::Perl
-   or Term::ReadLine::Gnu.  The Gnu flavor is currently
-   recommended for cygwin.)
+   will need to install Devel::REPL and one of either
+   Term::ReadLine::Perl or Term::ReadLine::Gnu.  The Gnu
+   flavor is currently recommended for cygwin.)
 
 
 
@@ -84,4 +90,3 @@ for cygwin:
  PDL::IO::HDF           (HDF has not been ported to cygwin)
   
  PDL::IO::NDF           (NDF has not been ported to cygwin)
-

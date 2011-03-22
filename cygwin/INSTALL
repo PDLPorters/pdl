@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Mon 16 Aug 2010 03:28:40 PM 
+Last saved: Tue 22 Mar 2011 03:49:18 PM 
 
 
 
@@ -7,7 +7,7 @@ Last saved: Mon 16 Aug 2010 03:28:40 PM
                         GENERAL NOTES
 =================================================================
  NOTE: These install notes have been partially reviewed
- for the PDL-2.4.7 release.  It is recommended that you
+ for the PDL-2.4.8 release.  It is recommended that you
  build and install PDL based on a full cygwin 1.7.5 or
  later install.  Please post to the perldl mailing list
  for help or questions regarding a cygwin install.
@@ -59,11 +59,14 @@ in installs for the following dependencies:
   Data::Dumper
   File::Spec
   Filter::Util::Call
+  Pod::Parser
+  Pod::Select
+  Storable
   Text::Balanced
 
 if they are not already installed or of a recent enough version.
 
-This should finish with a PDL with the following functionality:
+You should finish with a PDL having the following functionality:
 
   - base PDL modules
 
@@ -71,6 +74,7 @@ This should finish with a PDL with the following functionality:
   - PDL::GIS::Proj
   - PDL::Graphics::TriD
   - PDL::GSL::*
+  - PDL::Minuit
   - PDL::Slatec
   - PDL::Transform::Proj4
 
@@ -181,7 +185,7 @@ NOTE: cygwin 1.7.5 has new include locations so the following
 
   Download from http://astro.caltech.edu/~tjp/pgplot
 
-  # Extract the archive file into a source location, I used ~
+  # Extract the archive file into a source location, I used ~/
   $ tar xzf pgplot5.2.tar.gz 
   $ cd ~/pgplot
 
