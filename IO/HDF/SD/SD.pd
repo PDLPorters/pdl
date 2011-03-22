@@ -422,7 +422,7 @@ sub new
     if (substr($filename, 0, 1) eq '-')
     {   # Create new file
         $filename = substr ($filename, 1);      # chop off -
-        print "$sub: Creating HDF File $self->{FILE_NAME}\n"
+        print "$sub: Creating HDF File $filename\n"
             if $debug;
         $self->{ACCESS_MODE} = PDL::IO::HDF->DFACC_CREATE;
         $self->{SDID} = PDL::IO::HDF::SD::_SDstart( $filename, $self->{ACCESS_MODE} );
@@ -530,16 +530,16 @@ sub new
             print "$sub: \$dimname = \'$dimname\'\n"
                 if $debug;
             
-            $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{NUMBER} = $j;
-            $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{SIZE} = $size;
-            $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{DIMID} = $dim_id;
-            
+            $self->{DATASET}->{$name}->{DIMS}->{$j}->{DIMID} = $dim_id;
+	    $self->{DATASET}->{$name}->{DIMS}->{$j}->{SIZE} = $size;
+	    $self->{DATASET}->{$name}->{DIMS}->{$j}->{NAME} = $dimname;
+
             # The size comes back as 0 if it has the HDF unlimited dimension thing going on:
             # So, lets figure out what the size is currently at:
             unless ( $size )
             {
-                $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{REAL_SIZE} = _SDgetunlimiteddim( $sds_id, $j);
-            }
+		   $self->{DATASET}->{$name}->{DIMS}->{$j}->{REAL_SIZE} = _SDgetunlimiteddim( $sds_id, $j);
+	    }
         }
         
         # Load up info on the SDS's attributes:
@@ -874,16 +874,12 @@ sub SDgetdimsize
     my ($self, $name) = @_;
     return( undef )
         unless defined( $self->{DATASET}->{$name} );
-    
-    # FIXME: This is a great candidate for overhaul! The data structure should be self serving,
-    #    and the code style in this portion is no good (unclear).
-    # NOTE: This should be done in new, and simply stored in an array and returned here.
     my @dims;
-    foreach( keys %{ $self->{DATASET}->{$name}->{DIMS} } )
-    {
-        $dims[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] 
-            = $self->{DATASET}->{$name}->{DIMS}->{$_}->{SIZE};
+    foreach( sort keys %{ $self->{DATASET}->{$name}->{DIMS} } )
+    { 
+        push @dims, $self->{DATASET}->{$name}->{DIMS}->{$_}->{SIZE};
     }
+
     return( @dims );
 } # End of SDgetdimsize()...
 
@@ -915,16 +911,16 @@ sub SDgetunlimiteddimsize
         unless defined( $self->{DATASET}->{$name} );
     
     my @dim;
-    foreach( keys %{$self->{DATASET}{$name}{DIMS}} )
+    foreach( sort keys %{$self->{DATASET}{$name}{DIMS}} )
     {
         if( $self->{DATASET}->{$name}->{DIMS}->{$_}->{SIZE} == 0 )
         {
-            $dim[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] = 
+            $dim[ $_ ] = 
                 $self->{DATASET}->{$name}->{DIMS}->{$_}->{REAL_SIZE};
         }
         else
         {
-            $dim[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] = 
+            $dim[ $_ ] = 
                 $self->{DATASET}->{$name}->{DIMS}->{$_}->{SIZE};
         }
     }
@@ -964,12 +960,12 @@ sub SDgetdimnames
     return( undef )
         unless defined( $self->{DATASET}->{$name} );
         
-    my @dim;
-    foreach( keys %{ $self->{DATASET}->{$name}->{DIMS} } )
+    my @dims=();
+    foreach( sort keys %{ $self->{DATASET}->{$name}->{DIMS} } )
     {
-        $dim[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] = $_;
+	push @dims,$self->{DATASET}->{$name}->{DIMS}->{$_}->{NAME};
     }
-    return(@dim);
+    return(@dims);
 } # End of SDgetdimnames()...
 sub SDgetdimname
 {
@@ -1064,14 +1060,15 @@ sub SDget
     unless( defined( $end ) )
     {   # \@end was not passed in, so we need to set everything else to defaults:
         ($start, $end) = [];
-        foreach my $dim ( keys %{ $self->{DATASET}->{$name}->{DIMS} } )
+        my @dimnames=$self->SDgetdimnames($name);
+	for my $dim (0 .. $#dimnames) 
         {
             my $use_size = $self->{DATASET}->{$name}->{DIMS}->{$dim}->{SIZE} 
                 || $self->{DATASET}->{$name}->{DIMS}->{$dim}->{REAL_SIZE};
-
-            $$end[ $self->{DATASET}->{$name}->{DIMS}->{$dim}->{NUMBER} ] = $use_size;            
-            $$start[ $self->{DATASET}->{$name}->{DIMS}->{$dim}->{NUMBER} ] = 0;
-            $$stride[ $self->{DATASET}->{$name}->{DIMS}->{$dim}->{NUMBER} ] = 1;
+                
+            $$end[ $dim ] = $use_size;            
+            $$start[ $dim ] = 0;
+            $$stride[ $dim ] = 1;
         }
     }
 
@@ -1404,14 +1401,14 @@ sub SDsetdimname
         unless defined( $self->{DATASET}->{$name} );
     
     my $res = 0;
-    foreach( keys %{$self->{DATASET}->{$name}->{DIMS}} )
+    foreach( sort keys %{$self->{DATASET}->{$name}->{DIMS}} )
     {
         return( undef )
-            unless defined( $$dimname[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] );
+            unless defined( $$dimname[ $_ ] );
         
         $res = _SDsetdimname( 
             $self->{DATASET}->{$name}->{DIMS}->{$_}->{DIMID}, 
-            $$dimname[ $self->{DATASET}->{$name}->{DIMS}->{$_}->{NUMBER} ] ) + 1;
+            $$dimname[ $_ ] ) + 1;
     }
     return( $res );
 } # End of SDsetdimname()...
@@ -1553,9 +1550,9 @@ sub SDput
         
         return( undef )
             if ($res == PDL::IO::HDF->FAIL);
-        $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{NUMBER} = $j;
-        $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{SIZE} = $size;
-        $self->{DATASET}->{$name}->{DIMS}->{$dimname}->{DIMID} = $dim_id;
+        $self->{DATASET}->{$name}->{DIMS}->{$j}->{NAME} = $dimname;
+        $self->{DATASET}->{$name}->{DIMS}->{$j}->{SIZE} = $size;
+        $self->{DATASET}->{$name}->{DIMS}->{$j}->{DIMID} = $dim_id;
     }
     return( 1 );
 } # End of SDput()...

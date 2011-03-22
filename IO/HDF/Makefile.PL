@@ -31,6 +31,7 @@ BEGIN
         '/usr/local/netcdf/lib',
         '/usr/local/lib',
         '/usr/local/lib64',
+	'/usr/lib64/hdf',
         '/opt/local/lib',
         '/usr/lib',
         '/usr/lib/hdf',
