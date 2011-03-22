@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test;
 
-plan tests => $PDL::Bad::Status ? 31 : 28 ;
+plan tests => $PDL::Bad::Status ? 34 : 31 ;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -81,6 +81,16 @@ my $r = xvals(10,10)+10*yvals(10,10);
 $a = whichND( $r % 12 == 0 );
 
 ok(eval 'sum($a != pdl([0,0],[2,1],[4,2],[6,3],[8,4],[0,6],[2,7],[4,8],[6,9]))==0'); 
+
+$a = whichND(pdl(5));
+ok($a->nelem==1 && $a==0);
+
+$a = whichND(pdl(0));
+ok($a->nelem==0);
+
+$a = whichND( which(pdl(0)) );
+ok($a->nelem==0);
+
                                                     #12
 
 ##############################

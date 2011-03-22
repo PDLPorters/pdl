@@ -2924,16 +2924,25 @@ sub PDL::whichND {
 
   # List context: generate a perl list by dimension
   if(wantarray) {
+  	  unless(1 && $PDL::whichND_no_warning) { # masked out for the moment
+	    printf STDERR "WARNING - deprecated list context for whichND (may switch to scalar case soon)\n";
+	  }
 	  my $ind=($mask->clump(-1))->which;
 	  return $mask->one2nd($ind);
   } 
 
   # Scalar context: generate an N-D index piddle
 
-
-  return null() unless ($mask->getndims);
-
+  unless($mask->nelem) {
+    return PDL::which(PDL::pdl('PDL',0));
+  }
+  
+  unless($mask->getndims) {
+    return $mask ? pdl(0) : PDL::which(PDL::pdl('PDL',0));
+  }
+  
   $ind = $mask->flat->which->dummy(0,$mask->getndims)->long->make_physical;
+  return PDL::which(PDL::pdl('PDL',0)) if($ind->nelem==0); # explicitly return Empty for empty case
 
   my $mult = ones($mask->getndims)->long;
   my @mdims = $mask->dims;
