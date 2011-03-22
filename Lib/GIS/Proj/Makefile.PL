@@ -6,7 +6,11 @@
 #
 
 use ExtUtils::MakeMaker;
-PDL::Core::Dev->import();
+use PDL::Core::Dev;
+# PDL::Core::Dev->import();
+
+use lib '../../../inc';
+use Devel::CheckLib;
 
 BEGIN
 {
@@ -129,22 +133,45 @@ BEGIN
    }
    else
    {
-      if (trylink('check for projUV', '#include <proj_api.h>', 'projUV puv = { 5.0, 10.0 };', "-L$gis_proj_lib_path -lproj -lm", "-I$include_path")) {
-         print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
-         $PDL::Config{$config_flag}=1;
-         $donot = 0;
+      my $infomsg = 'check for projUV';
+      my $header = 'proj_api.h';
+      my $include = "#include <$header>";
+      my $progbody = 'projUV puv = { 5.0, 10.0 };';
+      my $libs = "-L$gis_proj_lib_path -lproj -lm";
+      my $cflags = "-I$include_path";
+
+      if (trylink($infomsg,$include,$progbody,$libs,$cflags)) {
+         # now see if pj_init works
+         print STDERR "header=>$header, LIBS=>$libs, INC=>$cflags, function=>'projPJ mypj = pj_init_plus(\"+proj=eqc +lon_0=0\"); if (! mypj) return 1; else return 0;'\n";
+
+         if (
+            check_lib(
+               function=>'projPJ mypj = pj_init_plus("+proj=eqc +lon_0=0"); if (! mypj) return 1; else return 0;',
+               header=>$header,
+               incpath=>$include_path,
+               lib=>'proj',
+               libpath=>$gis_proj_lib_path,
+            )) {
+            print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
+            $PDL::Config{$config_flag}=1;
+            $donot = 0;
+         }
+         else {
+            warn " PROJ4 library found but cannot initialize projection, won't build\n";
+            $PDL::Config{$config_flag}=0;
+            $donot = 1;
+         }
       }
       else {
          warn " Include+Library configuration for PROJ4 does not support the projUV type\n";
          $PDL::Config{$config_flag}=0;
          $donot = 1;
       }
-
    }
 
 } # BEGIN...
 
-return if $donot;
+exit if $donot;
 
 $ppfile = "Proj.pd";
 $package = [$ppfile, Proj, $package_name];
