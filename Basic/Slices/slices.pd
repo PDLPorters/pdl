@@ -560,6 +560,11 @@ sure that you know what you're doing.  That catches a common error with
 range usage: confusing the initial dim (which is usually small) with another
 index dim (perhaps of size 1000).
 
+If the index variable is Empty, then range() always returns the Empty PDL.
+If the index variable is not Empty, indexing it always yields a boundary
+violation.  All non-barfing conditions are treated as truncation, since
+there are no actual data to return.
+
 B<EFFICIENCY>: Because C<range> isn't an affine transformation (it
 involves lookup into a list of N-D indices), it is somewhat
 memory-inefficient for long lists of ranges, and keeping dataflow open
@@ -686,7 +691,7 @@ switch(ind_pdl->datatype) {
   bstr = SvPV(boundary,blen);
   
   if(blen == 0) {
-    /* If no boundary is specified then every dim gets truncated */
+    /* If no boundary is specified then every dim gets forbidden */
     int i;
     for (i=0;i<$COMP(rdim);i++) 
       $COMP(boundary[i]) = 0;
@@ -711,24 +716,15 @@ switch(ind_pdl->datatype) {
 	break;
       default:
 	{
-//	  char buf[BUFSIZ];
 	  /* No need to check if i < blen -- this will barf out the
 	   * first time it gets hit.  I didn't use $ CROAK 'coz that
 	   * macro doesn't let you pass in a string variable -- only a 
 	   * constant.
-	   *
-	   * Original code simply called barf(buf), which makes gcc mad.
-	   * barf should be able to take more than just a char pointer
-	   * (whenever it gets re-implemented, if ever), I am changing
-	   * this to a normal stdarg call.
-	   * David Mertens, 2010-May-27
 	   */
-//	  sprintf(buf,"Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
-//	  barf("%s", buf);
 	  barf("Error in rangeb: Unknown boundary condition '%c' in range",bstr[i]);
 	}
 	break;
-      }
+      } // end of switch
     }
   }
 }  
@@ -748,16 +744,26 @@ switch(ind_pdl->datatype) {
 {
   PDL_Long i,ntsize;
 
-  if( (size == NULL) || (size == &PL_sv_undef) ) 
+  if( (size == NULL) || (size == &PL_sv_undef) ) {
+    // NO size was passed in (not normally executed even if you passed in no size to range(), 
+    // as range() generates a size array...
     for(i=0;i<$COMP(rdim);i++)
 	  $COMP(sizes[i]) = 0;
-  else {
+
+  } else {
+    /* Normal case with sizes present in a PDL */
+    
     if(!(size_pdl = PDL->SvPDLV(size))) /* assignment */
       $CROAK("Unable to convert size to a PDL in range");
-    if(size_pdl->nvals == 0)
+
+    if(size_pdl->nvals == 0) {
+      // no values in the size_pdl - Empty or Null.  Just copy 0s to all the range dims
       for(i=0;i<$COMP(rdim);i++)
 	$COMP(sizes[i]) = 0;
-    else {
+
+    } else {
+      
+      // Convert size PDL to long
       switch(size_pdl->datatype) {
       default:                              /* Most types: */
 	size_pdl = PDL->hard_copy(size_pdl);  /*   copy and fall through */
@@ -772,11 +778,14 @@ switch(ind_pdl->datatype) {
 
       /* Copy the sizes, or die if they're the wrong shape */
       if(size_pdl->nvals == 1) {
-	for(i=0;i<$COMP(rdim);i++) 
+	for(i=0;i<$COMP(rdim);i++) {
 	  $COMP(sizes[i]) = *((PDL_Long *)(size_pdl->data));
+	}
 	
-	if($COMP(sizes[0]) < 0) {
-	$CROAK("  Negative range size is not allowed in range\n");
+	/* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
+	/* we don't barf on the Empty PDL (as an index). */
+	if( $COMP(sizes[0]) < 0 && $COMP(rdim) > 0 ) {
+	  $CROAK("  Negative range size is not allowed in range\n");
         }
       }
       else if( size_pdl->nvals <= $COMP(rdim) && size_pdl->ndims == 1) {
@@ -793,7 +802,6 @@ switch(ind_pdl->datatype) {
 	$CROAK(" Size must match index's 0th dim in range\n");
       }
 	
-
     } /* end of nonempty size-piddle code */
   } /* end of defined-size-piddle code */
 
@@ -851,42 +859,64 @@ EOD-MakeComp
   PDL_Long dim,inc;
   PDL_Long i;
 
-  if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
-//	char buf[512];
-//	sprintf(buf,"Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
-//	barf("%s", buf);
-	barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
-  }
-  	
-  if(stdim < 0) 
-	stdim = 0;
+  if( $COMP(rdim)==0 ) {
+  // Handle Empty case explicitly.  If the Index variable was Empty, then rdim is 0
+  // and we need to mock up an Empty PDL (1 dimension of size 0).
+    $CHILD(ndims) = 1;
+    $SETNDIMS(1);
+    $CHILD(dimincs[0]) = 0;
+    $CHILD(dims[0]) = 0;
 
-  /* Set dimensionality of child */
-  $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
-  $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
+  } else {
 
-  /* Copy index thread dimensions to child */
-  inc = 1;
-  for(dim=0; dim<$COMP(itdim); dim++) {
-    $CHILD(dimincs[dim]) = inc;
-    inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
+    /* Normal case in all its crazy glory. */
 
-  }
-  
-  /* Copy size dimensions to child, crunching as we go. */
-  for(i=0;i<$COMP(rdim);i++) {
-    if($COMP(sizes[i])) {
-      $CHILD(dimincs[dim]) = inc;
-      inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
+    // Speed bump for ludicrous cases
+    if( $COMP(rdim) > $PARENT(ndims)+5 && $COMP(nsizes) != $COMP(rdim)) {
+      barf("Ludicrous number of extra dims in range index; leaving child null.\n    (%d implicit dims is > 5; index has %d dims; source has %d dim%s.)\n    This often means that your index PDL is incorrect.  To avoid this message,\n    allocate dummy dims in the source or use %d dims in range's size field.\n",$COMP(rdim)-$PARENT(ndims),$COMP(rdim),$PARENT(ndims),($PARENT(ndims))>1?"s":"",$COMP(rdim));
     }
-  }
+    
+    if(stdim < 0) 
+      stdim = 0;
+    
+    /* Set dimensionality of child */
+    $CHILD(ndims) = $COMP(itdim) + $COMP(ntsize) + stdim;
+    $SETNDIMS($COMP(itdim)+$COMP(ntsize)+stdim);
+    
+    /* Copy index thread dimensions to child */
+    inc = 1;
+    for(dim=0; dim<$COMP(itdim); dim++) {
+      $CHILD(dimincs[dim]) = inc;
+      inc *= ($CHILD(dims[dim]) = $COMP(itdims[dim])); /* assignment */
+      
+    }
+    
+    /* Copy size dimensions to child, crunching as we go. */
+    for(i=0;i<$COMP(rdim);i++) {
+      if($COMP(sizes[i])) {
+	$CHILD(dimincs[dim]) = inc;
+	inc *= ($CHILD(dims[dim++]) = $COMP(sizes[i])); /* assignment */
+      }
+    }
+    
+    /* Copy source thread dimensions to child */
+    for(i=0;i<stdim;i++) {
+      $CHILD(dimincs[dim]) = inc;
+      inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
+    }
 
-  /* Copy source thread dimensions to child */
-  for(i=0;i<stdim;i++) {
-    $CHILD(dimincs[dim]) = inc;
-    inc *= ($CHILD(dims[dim++]) = $PARENT(dims[i+$COMP(rdim)])); /* assignment */
-  }
+    /* Cover bizarre case where the source PDL is empty - in that case, change */
+    /* all non-barfing boundary conditions to truncation, since we have no data */
+    /* to reflect, extend, or mirror. */
+    if($PARENT(dims[0])==0) {
+      for(dim=0; dim<$COMP(rdim); dim++) {
+	if($COMP(boundary[dim])) 
+	  $COMP(boundary[dim]) = 1; // force truncation
+      }
+    }
 
+
+  }
 
   $CHILD(datatype) = $PARENT(datatype);
   $SETDIMS();
