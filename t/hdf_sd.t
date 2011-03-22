@@ -140,7 +140,7 @@ ok( $data->nelem() > 0, 'SDget()' );
 # TEST 16:
 #Get dimension name of dataset 'myData'
 my @dim = $SDobj2->SDgetdimnames("myData");
-ok( ($dim[0] eq "dim1") and ($dim[1] eq "dim2") , 'SDgetdimnames()' );
+ok( ($dim[0] eq "dim1") && ($dim[1] eq "dim2") , 'SDgetdimnames()' );
 
 # TEST 17:
 #Get dimension size of dataset 'myData'
