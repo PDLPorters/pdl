@@ -2,7 +2,7 @@ Release Notes for PDL 2.4.7_014 --------------------------
 
 General Notes:
 
- * This is a developers release!
+ * Last developers release before the PDL-2.4.8 pre-release
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -26,7 +26,17 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added feature to check for a mis-installed PROJ4
+   library.  If such is detected, PDL will not build
+   the PROJ4 modules.  This sf.net feature #3045456.
+
+ * Applied sf.net patch #3209075 IO::HDF square sds
+ 
+ * Applied Christian Soeller's patch for FFTW on 64-bit
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
+ 
+ * Various clean up to tests and build process.
 
 
     

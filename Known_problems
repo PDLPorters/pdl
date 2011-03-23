@@ -69,7 +69,7 @@ The following issues have been reported with this version of PDL:
 - PDL on Cygwin has (by default) a 300MB process memory limit which can
   cause out of memory crashes with large data sets.  See the cygwin users
   guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
-  to fix.
+  to increase the memory limit.
 
 
 - minimum/maximum/min/max inconsistently handle NaN values.
@@ -86,9 +86,6 @@ The following issues have been reported with this version of PDL:
   3190227    PDL build fails with parallel GNU make -j3 -j3
   3161459    online docs don't link to functions in other PDL modules 
   3080505    PLplot segfaults on plshades call on OS X
-             
-	       The crash still appears on OS X.
-
   3059083    Problems with FITS header handling
   3018731    NiceSlice affects code where it should not
   2995500    perl -d chokes on lvalue functions
