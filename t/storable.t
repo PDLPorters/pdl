@@ -6,7 +6,7 @@ use Test::More;
 BEGIN { 
   eval 'use Storable 1.03';
   unless ($@) {
-    plan tests => 7;
+    plan tests => 9;
   } else {
     plan skip_all => "Storable >= 1.03 not installed\n";
   }
@@ -62,3 +62,19 @@ $phthaw = thaw $pfreeze;
 
 ok(all($phthaw == $phash), 'PDL has-a works with freeze/thaw');
 ok(UNIVERSAL::isa($phthaw,'HASH'), 'PDL is a hash');
+
+# Test that freeze + thaw results in new object
+$seq1 = sequence(3);
+$seq1_tf = thaw(freeze($seq1));
+$seq1->slice('1') .= 9;
+ok(! all($seq1 == $seq1_tf), 'Initialization from seraialized object') or
+    diag($seq1, $seq1_tf);
+
+# Test that dclone results in a new object
+# i.e. that dclone(.) == thaw(freeze(.))
+$seq2 = sequence(4);
+$seq2_dc = Storable::dclone($seq2);
+$seq2->slice('2') .= 8;
+ok(! all($seq2 == $seq2_dc), 'Initialization from dclone object') or
+    diag($seq2, $seq2_dc);
+

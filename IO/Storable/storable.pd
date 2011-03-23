@@ -110,7 +110,7 @@ sub pdlunpack {
 
 sub STORABLE_freeze {
   my ($self, $cloning) = @_;
-  return if $cloning;         # Regular default serialization
+#  return if $cloning;         # Regular default serialization
   return UNIVERSAL::isa($self, "HASH") ? ("",{%$self}) # hash ref -> Storable
     : (pdlpack $self); # pack the piddle into a long string
 }
@@ -118,7 +118,7 @@ sub STORABLE_freeze {
 sub STORABLE_thaw {
   my ($pdl,$cloning,$serial,$hashref) = @_;
   # print "in STORABLE_thaw\n";
-  return if $cloning;
+#  return if $cloning;
   my $class = ref $pdl;
   if (defined $hashref) {
     croak "serial data with hashref!" unless !defined $serial ||
