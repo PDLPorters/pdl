@@ -368,7 +368,7 @@ eval 'our $mt = which(pdl(0))';
 ok("$mt" eq 'Empty');
 
 our $dex = pdl(5,4,3);
-our $z = $dex->range($mt);
+$z = $dex->range($mt);
 ok("$z" eq 'Empty');
 
 $z = $mt->range($dex,undef,'e');
