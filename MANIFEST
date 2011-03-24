@@ -783,6 +783,7 @@ t/requiredmods.t
 t/round.t
 t/scope.t
 t/segfault.t
+t/simplex.t
 t/slatec.t
 t/slice.t
 t/storable.t
