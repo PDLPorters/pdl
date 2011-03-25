@@ -752,7 +752,7 @@ sub objplotcommand {
 }
 
 sub checkargs {
-	if(ref $_[$#_] eq "HASH") {
+	if(ref $_[$#_] eq "HASH" and $PDL::Graphics::TriD::verbose) {
 
 	  print "enter checkargs \n";
 		for([KeepTwiddling,\&keeptwiddling3d]) {

@@ -20,7 +20,7 @@ comment q|
 	Welcome to a short tour of the more esoteric capabilities of
 	PDL::Graphics::TriD.
 
-	As in '3d1', press 'q' in the graphics window for the next
+	As in '3d', press 'q' in the graphics window for the next
 	screen.  Rotate the image by pressing mouse button one and
 	dragging in the graphics window.
 
@@ -42,11 +42,13 @@ actnw q|
 	$g = (yvals zeroes $size+1,$size+1) / $size;
 	$b = ((sin($r*6.3) * sin($g*6.3)) ** 3)/2 + 0.5;   # Bumps
 	imagrgb [$r,$g,$b];	# Draw an image
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
 	# How about this?
 	imagrgb3d([$r,$g,$b]);	# Draw an image on the lower plane
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
@@ -57,6 +59,7 @@ actnw q|
 	# of the image is visible.
 	# Don't make your window too big or you might run out of memory
 	# at the next step.
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
@@ -77,6 +80,7 @@ actnw q|
 	# Because we have the data in $pic, we could just as easily
 	# save it in a jpeg using the PDL::Io::Pic module - or read
 	# it from one.
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
@@ -89,6 +93,7 @@ actnw q|
 	# And plot it in the picture ;) ;)
 	hold3d(); 	# You remember, we leave the previous one in...
 	$o1 = imagrgb3d($pic1, {Points => [[0,0,0],[1,0,0],[1,0,1],[0,0,1]]});
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
@@ -101,12 +106,14 @@ actnw q|
 		$o0->data_changed(); $o1->data_changed();
 		last if twiddle3d(); # exit from loop when 'q' pressed
 	}
+        # [press 'q' in the graphics window when done]
 |;
 
 actnw q|
       # Finally, leave 3d in a sane state
       keeptwiddling3d(); # Don't wait for user while drawing
         release3d();
+        # [press 'q' in the graphics window when done]
 |;
 
 }
