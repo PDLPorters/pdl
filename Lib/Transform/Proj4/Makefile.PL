@@ -142,7 +142,7 @@ BEGIN
 
       if (trylink($infomsg,$include,$progbody,$libs,$cflags)) {
          # now see if pj_init works
-         print STDERR "header=>$header, LIBS=>$libs, INC=>$cflags, function=>'projPJ mypj = pj_init_plus(\"+proj=eqc +lon_0=0\"); if (! mypj) return 1; else return 0;'\n";
+         ## print STDERR "header=>$header, LIBS=>$libs, INC=>$cflags, function=>'projPJ mypj = pj_init_plus(\"+proj=eqc +lon_0=0\"); if (! mypj) return 1; else return 0;'\n";
 
          if (
             check_lib(
@@ -171,7 +171,7 @@ BEGIN
 
 } # BEGIN...
 
-exit if $donot;
+return if $donot;  # yes, this must be return (exit will kill Makefile.PL process)
 
 $ppfile = "Proj4.pd";
 $package = [$ppfile, Proj4, $package_name];
