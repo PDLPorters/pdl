@@ -94,6 +94,19 @@ C<do_print> routine allows you to toggle between the default
 
   pdl> $a = pdl(3,2)
 
+=head1 VARIABLES
+
+=over 4
+
+=item $PDL::toolongtoprint
+
+The maximal size pdls to print (defaults to 10000 elements).
+This is not just a C<perldl> or C<pdl2> variable but it is
+something that is usually needed in an interactive debugging
+session.
+
+=back
+
 =head1 SEE ALSO
 
 L<perldl>, L<Devel::REPL>

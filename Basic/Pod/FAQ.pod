@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  0.97
+Current FAQ version:  0.98
 
 
 =head1 DESCRIPTION
 
-This is version  0.97 of the PDL FAQ, a collection of  frequently 
+This is version  0.98 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -309,12 +309,8 @@ Use the command C<perldoc PDL> to start learning about PDL.
 
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
-shell, C<pdl2>  Just
-type 
-C<pdl2> at your system prompt. Once you are inside the
-C<pdl2> shell type 
-C<help> .  Using the 
-C<help> and 
+shell, C<pdl2>  Just type C<pdl2> at your system prompt. Once you are inside the
+C<pdl2> shell type C<help> .  Using the C<help> and 
 C<apropos> commands inside the shell you should be able to find the way round the
 documentation. Even better, you can immediately try your newly acquired
 knowledge about PDL by issuing PDL/Perl commands directly at the command
@@ -416,8 +412,8 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 0.97 of 07 March 2011) the latest stable version
-is 2.4.7.  The latest stable version should always be available from a CPAN
+As of this writing (FAQ version 0.98 of 31 March 2011) the latest stable version
+is 2.4.8.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL.
 
@@ -590,7 +586,7 @@ PDL builds fine on Win32 using MinGW or Microsoft compilers.  See
 the F<win32/INSTALL> file in the PDL source distribution for details.
 Other compilers have not been tested--input is welcome.  There is
 also a distribution of PDL through ActiveState's ppm, though it
-might not always be the latest version.  PDL-2.4.7 builds out of
+might not always be the latest version.  PDL-2.4.8 builds out of
 the box on Strawberry Perl for Windows.
 
 
@@ -743,7 +739,7 @@ scripts. For details check L<perldl> or L<pdl2>.
 Just type C<help> (shortcut = "?") at the C<pdl2> shell 
 prompt and proceed from there. Another useful command 
 is the C<apropos> (shortcut = "??") command.
-Also try the C<demo> command in the perldl or pdl2
+Also try the C<demo> command in the C<perldl> or C<pdl2>
 shell if you are new to PDL.
 
 
@@ -783,13 +779,10 @@ stuff in memory) and therefore need special functions (or
 'methods' if you are using the OO version) to access
 individual elements or a range of elements. The
 functions/methods to check are 
-C<at> /
-C<set> (see
+C<at> / C<set> (see
 L<the section 'Sections' in PDL::QuickStart|PDL::QuickStart/"Sections"> ) or the powerful 
-C<slice> function and friends (see 
-L<PDL::Slices|PDL::Slices> and 
-L<PDL::Indexing|PDL::Indexing> and especially
-L<PDL::NiceSlice|PDL::NiceSlice> ).
+C<slice> function and friends (see L<PDL::Slices|PDL::Slices> and 
+L<PDL::Indexing|PDL::Indexing> and especially L<PDL::NiceSlice|PDL::NiceSlice> ).
 
 Finally, to confuse you completely, you can have Perl arrays
 of piddles, e.g. C<$spec[3]> can refer to a pdl representing ,e.g,
@@ -1195,7 +1188,8 @@ released version of PDL 2.4.7 [DH, please confirm].
 
 =back
 
-For further details consult the documentation in the individual modules.
+For further details consult the more detailed list in the L<PDL::IO>
+documentation or the documentation for the individual modules.
 
 
 

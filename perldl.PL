@@ -1097,6 +1097,15 @@ This is the Term::ReadLine object associated with the perldl
 shell. It can be used by routines called from perldl if your
 command is interactive.
 
+=item *
+
+$PDL::toolongtoprint
+
+The maximal size pdls to print (defaults to 10000 elements).
+This is not just a C<perldl> or C<pdl2> variable but it is
+something that is usually needed in an interactive debugging
+session.
+
 =back
 
 =head2 Executing scripts from the C<perldl> prompt
