@@ -1,28 +1,28 @@
 =head1 NAME
 
-PDL::IO::FlexRaw -- A flexible binary i/o format for PerlDL.
+PDL::IO::FlexRaw -- A flexible binary I/O format for PerlDL
 
 =head1 SYNOPSIS
 
-	use PDL;
-	use PDL::IO::FlexRaw;
-
-        # To obtain the header for reading (if multiple files use the
-        # same header, for example):
-        #
-        $hdr = PDL::IO::FlexRaw::_read_flexhdr("filename.hdr")
-
-        ($x,$y,...) = readflex("filename" [, $hdr])
-        ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
-
-        $hdr = writeflex($file, $pdl1, $pdl2,...)
-        writeflexhdr($file, $hdr)
-
-        # if $PDL::IO::FlexRaw::writeflexhdr is true and
-        #    $file is a filename, writeflexhdr() is called automatically
-        #
-        $hdr = writeflex($file, $pdl1, $pdl2,...)  # need $hdr for something
-        writeflex($file, $pdl1, $pdl2,...)         # ..if $hdr not needed
+    use PDL;
+    use PDL::IO::FlexRaw;
+    
+    # To obtain the header for reading (if multiple files use the
+    # same header, for example):
+    #
+    $hdr = PDL::IO::FlexRaw::_read_flexhdr("filename.hdr")
+    
+    ($x,$y,...) = readflex("filename" [, $hdr])
+    ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
+    
+    $hdr = writeflex($file, $pdl1, $pdl2,...)
+    writeflexhdr($file, $hdr)
+    
+    # if $PDL::IO::FlexRaw::writeflexhdr is true and
+    #    $file is a filename, writeflexhdr() is called automatically
+    #
+    $hdr = writeflex($file, $pdl1, $pdl2,...)  # need $hdr for something
+    writeflex($file, $pdl1, $pdl2,...)         # ..if $hdr not needed
 
 =head1 DESCRIPTION
 
@@ -37,24 +37,24 @@ several data objects within a single input file.
 
 For example, to read the output of a FORTRAN program
 
-	real*4 a(4,600,600)
-	open (8,file='banana',status='new',form='unformatted')
-	write (8) a
-	close (8)
+    real*4 a(4,600,600)
+    open (8,file='banana',status='new',form='unformatted')
+    write (8) a
+    close (8)
 
 the header file (`banana.hdr') could look like
 
-	# FlexRaw file header
-	# Header word for F77 form=unformatted
-	Byte 1 4
-	# Data
-	Float 3            # this is ignored
-	         4 600 600
-	Byte 1 4           As is this, as we've got all dims
+    # FlexRaw file header
+    # Header word for F77 form=unformatted
+    Byte 1 4
+    # Data
+    Float 3            # this is ignored
+             4 600 600
+    Byte 1 4           As is this, as we've got all dims
 
 The data can then be input using
 
-	$a = (readflex('banana'))[1];
+    $a = (readflex('banana'))[1];
 
 The format of the hdr file is an extension of that used by FastRaw.
 Comment lines (starting with #) are allowed, as are descriptive names
@@ -64,8 +64,11 @@ integer specifies the number of dimensions of the data `chunk', and
 subsequent integers the size of each dimension.  So the specifier
 above (`Float 3 4 600 600') describes our FORTRAN array.  A scalar can
 be described as `float 0' (or `float 1 1', or `float 2 1 1', etc.).
+
 When all the dimensions are read -- or a # appears after whitespace --
-the rest of the current input line is ignored.
+the rest of the current input line is ignored, I<unless> badvalues
+are being read or written.  In that case, the next token will be the
+string C<badvalue> followed by the bad value used, if needed.
 
 What about the extra 4 bytes at the head and tail, which we just threw
 away?  These are added by FORTRAN (at least on Suns, Alphas and
@@ -75,11 +78,11 @@ You I<may> need to know all this in some cases.  In general, FlexRaw
 tries to handle it itself, if you simply add a line saying `f77' to
 the header file, I<before> any data specifiers:
 
-	# FlexRaw file header for F77 form=unformatted
-	F77
-	# Data
-	Float 3
-	4 600 600
+    # FlexRaw file header for F77 form=unformatted
+    F77
+    # Data
+    Float 3
+    4 600 600
 
 -- the redundancy in FORTRAN data files even allows FlexRaw to
 automatically deal with files written on other machines which use
@@ -92,11 +95,11 @@ swapped.
 The optional C<$hdr> argument allows the use of an anonymous array to
 give header information, rather than using a .hdr file.  For example,
 
-	$header = [
-	    {Type => 'f77'},
-	    {Type => 'float', NDims => 3, Dims => [ 4,600,600 ] }
-	];
-	@a = readflex('banana',$header);
+    $header = [
+        {Type => 'f77'},
+        {Type => 'float', NDims => 3, Dims => [ 4,600,600 ] }
+    ];
+    @a = readflex('banana',$header);
 
 reads our example file again.  As a special case, when NDims is 1, Dims
 may be given as a scalar.
@@ -104,19 +107,21 @@ may be given as a scalar.
 Within PDL, readflex and writeflex can be used to write several pdls
 to a single file -- e.g.
 
-	use PDL;
-	use PDL::IO::FlexRaw;
+    use PDL;
+    use PDL::IO::FlexRaw;
+    
+    @pdls = ($pdl1, $pdl2, ...);
+    $hdr = writeflex("fname",@pdls);
+    @pdl2 = readflex("fname",$hdr);
+    
+    writeflexhdr("fname",$hdr);  # not needed if $PDL::IO::FlexRaw::writeflexhdr is set
+    @pdl3 = readflex("fname");
 
-	@pdls = ($pdl1, $pdl2, ...);
-	$hdr = writeflex("fname",@pdls);
-	@pdl2 = readflex("fname",$hdr);
-
-	writeflexhdr("fname",$hdr);  # not if $PDL::IO::FlexRaw::writeflexhdr is set
-	@pdl3 = readflex("fname");
-
--- writeflex produces the data file and returns the file header as an
+-- C<writeflex> produces the data file and returns the file header as an
 anonymous hash, which can be written to a .hdr file using
-writeflexhdr.  If the package variable C<$PDL::IO::FlexRaw::writeflexhdr>
+C<writeflexhdr>.
+
+If the package variable C<$PDL::IO::FlexRaw::writeflexhdr>
 is true, and the C<writeflex> call was with a I<filename> and not
 a handle, C<writeflexhdr> will be called automatically (as done by
 C<writefraw>.
@@ -125,49 +130,51 @@ The reading of compressed data is switched on automatically if the
 filename requested ends in .gz or .Z, or if the originally specified
 filename does not exist, but one of these compressed forms does.
 
-If writeflex and readflex are given a reference to a file handle as a
-first parameter instead of a filename, then the data is read or
-written to the open filehandle. This gives an easy way to read an
-arbitrary slice in a big data volume, as in the following example:
+If C<writeflex> and C<readflex> are given a reference to a
+file handle as a first parameter instead of a filename, then
+the data is read or written to the open filehandle.  This
+gives an easy way to read an arbitrary slice in a big data
+volume, as in the following example:
 
-	use PDL;
-	use PDL::IO::FastRaw;
+    use PDL;
+    use PDL::IO::FastRaw;
+    
+    open(DATA, "raw3d.dat");
+    binmode(DATA);
+    
+    # assume we know the data size from an external source
+    ($width, $height, $data_size) = (256,256, 4);
+    
+    my $slice_num = 64;   # slice to look at
+    # Seek to slice
+    seek(DATA, $width*$height*$data_size * $slice_num, 0);
+    $pdl = readflex \*DATA, [{Dims=>[$width, $height], Type=>'long'}];
 
-        open(DATA, "raw3d.dat");
-        binmode(DATA);
+WARNING: In later versions of perl (5.8 and up) you must
+be sure that your file is in "raw" mode (see the perlfunc
+man page entry for "binmode", for details).  Both readflex
+and writeflex automagically switch the file to raw mode for
+you -- but in code like the snipped above, you could end up
+seeking the wrong byte if you forget to make the binmode() call.
 
-        # assume we know the data size from an external source
-        ($width, $height, $data_size) = (256,256, 4);
-
-        my $slice_num = 64;   # slice to look at
-        # Seek to slice
-        seek(DATA, $width*$height*$data_size * $slice_num, 0);
-        $pdl = readflex \*DATA, [{Dims=>[$width, $height], Type=>'long'}];
-
-WARNING: In later versions of perl (5.8 and up) you must be sure that your file
-is in "raw" mode (see the perlfunc man page entry for "binmode", for
-details).  Both readflex and writeflex automagically switch the file
-to raw mode for you -- but in code like the snipped above, you could
-end up seeking the wrong byte if you forget to make the binmode() call.
-
-Mapflex memory maps, rather than reads, the data files.  Its interface
-is similar to `readflex'.  Extra options specify if the data is to be
+C<mapflex> memory maps, rather than reads, the data files.  Its interface
+is similar to C<readflex>.  Extra options specify if the data is to be
 loaded `ReadOnly', if the data file is to be `Creat'-ed anew on the
 basis of the header information or `Trunc'-ated to the length of the
 data read.  The extra speed of access brings with it some limitations:
-mapflex won't read compressed data, auto-detect f77 files or read f77
+C<mapflex> won't read compressed data, auto-detect f77 files, or read f77
 files written by more than a single unformatted write statement.  More
-seriously, data alignment constraints mean that mapflex cannot read
+seriously, data alignment constraints mean that C<mapflex> cannot read
 some files, depending on the requirements of the host OS (it may also
 vary depending on the setting of the `uac' flag on any given machine).
 You may have run into similar problems with common blocks in FORTRAN.
 
 For instance, floating point numbers may have to align on 4 byte
 boundaries -- if the data file consists of 3 bytes then a float, it
-cannot be read.  Mapflex will warn about this problem when it occurs,
+cannot be read.  C<mapflex> will warn about this problem when it occurs,
 and return the PDLs mapped before the problem arose.  This can be
 dealt with either by reorganizing the data file (large types first
-helps, as a rule-of-thumb), or more simply by using `readflex'.
+helps, as a rule-of-thumb), or more simply by using C<readflex>.
 
 =head1 BUGS
 
@@ -195,77 +202,112 @@ Read a binary file with flexible format specification
 
 =for usage
 
- ($x,$y,...) = readflex("filename" [, $hdr])
- ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
+    ($x,$y,...) = readflex("filename" [, $hdr])
+    ($x,$y,...) = readflex(FILEHANDLE [, $hdr])
 
 
 =head2 writeflex
 
 =for ref
 
-  Write a binary file with flexible format specification
+Write a binary file with flexible format specification
 
 =for usage
 
-  $hdr = writeflex($file, $pdl1, $pdl2,...) # or
-  $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
-  # now you must save call writeflexhdr()
-  writeflexhdr($file, $hdr)
+    $hdr = writeflex($file, $pdl1, $pdl2,...) # or
+    $hdr = writeflex(FILEHANDLE, $pdl1, $pdl2,...)
+    # now you must save call writeflexhdr()
+    writeflexhdr($file, $hdr)
 
-  or
+or
 
-  $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
-
-  $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
-  writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
+    $PDL::IO::FlexRaw::writeflexhdr = 1;  # set so we don't have to call writeflexhdr
+    
+    $hdr = writeflex($file, $pdl1, $pdl2,...)  # remember, $file must be filename
+    writeflex($file, $pdl1, $pdl2,...)         # remember, $file must be filename
 
 =head2 writeflexhdr
 
 =for ref
 
-  Write the header file corresponding to a previous writeflex call
+Write the header file corresponding to a previous writeflex call
 
 =for usage
 
-  writeflexhdr($file, $hdr)
+    writeflexhdr($file, $hdr)
 
-  $file or "filename" is the filename used in a previous writeflex
-  If $file is actually a "filename" then writeflexhdr() will be
-  called automatically.  If writeflex() was to a FILEHANDLE, you
-  will need to call writeflexhdr() yourself since the filename
-  cannot be determined (at least easily).
+    $file or "filename" is the filename used in a previous writeflex
+    If $file is actually a "filename" then writeflexhdr() will be
+    called automatically.  If writeflex() was to a FILEHANDLE, you
+    will need to call writeflexhdr() yourself since the filename
+    cannot be determined (at least easily).
 
 =head2 mapflex
 
 =for ref
 
-  Memory map a binary file with flexible format specification
+Memory map a binary file with flexible format specification
 
 =for options
 
-  All of these options default to false unless set true:
+    All of these options default to false unless set true:
   
-  ReadOnly - Data should be readonly
-  Creat    - Create file if it doesn't exist
-  Trunc    - File should be truncated to a length that conforms
-             with the header
+    ReadOnly - Data should be readonly
+    Creat    - Create file if it doesn't exist
+    Trunc    - File should be truncated to a length that conforms
+               with the header
 
 =for usage
 
- ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
+   ($x,$y,...) = mapflex("filename" [, $hdr] [, $opts])
 
 =head2 _read_flexhdr
 
-  Read a FlexRaw header file and return a header structure.
+Read a FlexRaw header file and return a header structure.
 
 =for usage
 
- $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
+   $hdr = PDL::IO::FlexRaw::_read_flexhdr($file)
 
 Note that C<_read_flexhdr> is supposed to be an internal function.  It
 was not originally documented and it is not tested.  However, there
 appeared to be no other method for obtaining a header structure from
 a file, so I figured I would write a small bit of documentation on it.
+
+=head2 Bad Value Support
+
+As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
+pdls with L<bad|PDL::Bad> values in them.
+
+On C<writeflex>, a piddle
+argument with C<<$pdl->badflag == 1>> will have the keyword/token "badvalue"
+added to the header file after the dimension list and an additional token
+with the bad value for that pdl if C<<$pdl->badvalue != $pdl->orig_badvalue>>.
+
+On C<readflex>, a pdl with the "badvalue" token in the header will
+automatically have its L<badflag|PDL::Bad/#badflag> set and its
+L<badvalue|PDL::Bad/#badvalue> as well if it is not the standard default for that type.
+
+=for example
+
+The new badvalue support required some additions to the header
+structure.  However, the interface is still being finalized.  For
+reference the current C<$hdr> looks like this:
+
+    $hdr = {
+             Type => 'byte',    # data type
+             NDims => 2,        # number of dimensions
+             Dims => [640,480], # dims
+             BadFlag => 1,      # is set/set badflag
+             BadValue => undef, # undef==default
+           };
+    
+    $badpdl = readflex('badpdl', [$hdr]);
+
+If you use bad values and try the new L<PDL::IO::FlexRaw> bad value
+support, please let us know via the perldl mailing list.
+Suggestions and feedback are also welcome.
+
 
 =head1 AUTHOR
 

@@ -26,13 +26,13 @@ END
   perldlpp.pl file-w-niceslice.pm > file-no-niceslice.pm       ( unix systems)
   perl perldlpp.pl file-w-niceslice.pm > file-no-niceslice.pm  (win32 systems)
 
-C<perldlpp.pl> is a simple preprocessor script for perl module files
-to filter and translate the PDL::NiceSlice constructs.  The files to
-be filtered are given as arguments to the command and the result of
-the source filtering is output to STDOUT.
+C<perldlpp.pl> is a preprocessor script for perl module files
+to filter and translate the PDL::NiceSlice constructs.  The name of
+the file(s) to be filtered is given as argument to the command and the
+result of the source filtering is output to STDOUT.
 
-One use for this script would be to preprocess the PDL installed .pm
-files to remove the requirement for PDL::NiceSlice filtering for the
+One use for this script is to preprocess the .pm files installed for
+PDL to remove the requirement for PDL::NiceSlice filtering in the
 core PDL modules.  This allows PDL to be used with environments such
 as C<perlapp> that are not compatible with source code filters.
 
