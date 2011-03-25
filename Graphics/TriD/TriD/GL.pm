@@ -528,11 +528,11 @@ sub PDL::Graphics::TriD::SLattice_S::gdraw {
 ################### JNK 15mar11 added section start ################
 sub PDL::Graphics::TriD::STrigrid_S::gdraw {
   my($this,$points) = @_;
-  glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
   # For some reason, we need to set this here as well.
-  glLightModeli(&GL_LIGHT_MODEL_TWO_SIDE, &GL_TRUE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
   # By-vertex doesn't make sense otherwise.
-  glShadeModel (&GL_SMOOTH);   
+  glShadeModel (GL_SMOOTH);   
   my @sls = (":,(0)",":,(1)",":,(2)");
   my $idx = [0,1,2,0]; # for lines, below
   if ($this->{Options}{Smooth}) {
@@ -550,17 +550,17 @@ sub PDL::Graphics::TriD::STrigrid_S::gdraw {
                                       :\&PDL::gl_triangles_n_mat);
     &$f( (map {$this->{Faces}->slice($_)} @sls),   # faces is a slice of points
          (map {$this->{Colors}->slice($_)} @sls) ); } 
-  glDisable(&GL_LIGHTING);
+  glDisable(GL_LIGHTING);
   if ($this->{Options}{Lines}) {
     my $black = PDL->pdl(0,0,0)->dummy(1)->dummy(1);
     PDL::gl_lines($this->{Faces}->dice_axis(1,$idx),$black); } glPopAttrib(); }
 
 sub PDL::Graphics::TriD::STrigrid::gdraw {
   my($this,$points) = @_;
-  glPushAttrib(&GL_LIGHTING_BIT | &GL_ENABLE_BIT);
-  glDisable(&GL_LIGHTING);
+  glPushAttrib(GL_LIGHTING_BIT | GL_ENABLE_BIT);
+  glDisable(GL_LIGHTING);
 # By-vertex doesn't make sense otherwise.
-  glShadeModel (&GL_SMOOTH);
+  glShadeModel (GL_SMOOTH);
   my @sls = (":,(0)",":,(1)",":,(2)");
   my $idx = [0,1,2,0];
   PDL::gl_triangles(
