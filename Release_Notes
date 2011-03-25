@@ -1,8 +1,8 @@
-Release Notes for PDL 2.4.7_991 --------------------------
+Release Notes for PDL 2.4.7_015 --------------------------
 
 General Notes:
 
- * AKA the PDL-2.4.8 pre-release 1
+ * Another quick CPAN developers release
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -18,15 +18,16 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_991.tar.gz
-       cpan> make chm/pdl-2.4.7_991.tar.gz
-       cpan> test chm/pdl-2.4.7_991.tar.gz
-       cpan> look chm/pdl-2.4.7_991.tar.gz
+       cpan> get  chm/pdl-2.4.7_015.tar.gz
+       cpan> make chm/pdl-2.4.7_015.tar.gz
+       cpan> test chm/pdl-2.4.7_015.tar.gz
+       cpan> look chm/pdl-2.4.7_015.tar.gz
 
 
 Highlights:
 
- * TBD
+ * Fix another problem with the Lib/GIS/Proj and Lib/Transform/Proj4
+   Makefile.PL files.
 
 
     

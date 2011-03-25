@@ -6,8 +6,7 @@
 #
 
 use ExtUtils::MakeMaker;
-use PDL::Core::Dev;
-# PDL::Core::Dev->import();
+PDL::Core::Dev->import();
 
 use lib '../../../inc';
 use Devel::CheckLib;
