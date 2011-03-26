@@ -15,7 +15,7 @@ Then install the OpenGL, PGPLOT and PDL modules from the sisyphusion repo by run
     ppm install http://www.sisyphusion.tk/ppm/PGPLOT.ppd
     ppm install http://www.sisyphusion.tk/ppm/PDL.ppd
 
-  For 64-bit builds of perl, only perl versions 5.10 and later are supported.
+  For 64-bit builds of perl, ppm packages are provided only for perl versions 5.10 and later.
   Also, there are no PGPLOT packages for these builds - so just run:
 
     ppm install http://www.sisyphusion.tk/ppm/OpenGL.ppd
@@ -29,6 +29,29 @@ either install *both* from the ActiveState repo, or install *both* from the
 sisyphusion repo. (The difference being that ActiveState's OpenGL and PDL packages
 are built against a dynamic freeglut library, whereas the sisyphusion ppm packages
 are built against a static freeglut library.)
+
+Having installed the relevant ppm package, PLPLOT and PROJ4 support is enabled by
+setting the PLPLOT_LIB and PROJ_LIB environment variables to the location of the
+plplot_supp and proj_supp folders (respectively). The ppm post-install script will
+terminate with a message that tells you the settings these environment variables
+should take on. (If you missed the message, the two folders will be in your
+perl/site/lib directory - eg, for most builds of ActivePerl the PLPLOT_LIB
+environment variable would be set to C:\perl\site\lib\PDL\plplot_supp, and PROJ_LIB
+would be set to C:\perl\site\lib\PDL\proj_supp.)
+
+Installing ffmpeg will enable the creation of mp4 and animated gif files, whereby
+one can turn a piddle of images into a movie.
+For a demo of this feature, create an mp4 file (bounce.mp4) by running the
+Example/IO/wmpeg.pl that ships with the PDL source.
+The requisite ffmpeg binaries are available from a number of places, including
+(at time of writing):
+ http://ffmpeg.arrozcru.org/autobuilds/
+ http://www.videohelp.com/tools/ffmpeg
+but googling for 'ffmpeg download' should turn up useful hits if those 2 links
+become dead in the future.
+
+########################################################################
+########################################################################
 
 If you would like, instead, to build PDL from source, that's also easy!!
 
