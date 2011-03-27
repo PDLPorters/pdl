@@ -280,9 +280,9 @@ As of PDL-2.4.8, L<PDL::IO::FlexRaw> has support for reading and writing
 pdls with L<bad|PDL::Bad> values in them.
 
 On C<writeflex>, a piddle
-argument with C<<$pdl->badflag == 1>> will have the keyword/token "badvalue"
+argument with C<< $pdl->badflag == 1 >> will have the keyword/token "badvalue"
 added to the header file after the dimension list and an additional token
-with the bad value for that pdl if C<<$pdl->badvalue != $pdl->orig_badvalue>>.
+with the bad value for that pdl if C<< $pdl->badvalue != $pdl->orig_badvalue >>.
 
 On C<readflex>, a pdl with the "badvalue" token in the header will
 automatically have its L<badflag|PDL::Bad/#badflag> set and its
