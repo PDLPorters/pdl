@@ -28,7 +28,7 @@ General Notes:
    to the default.perldlrc to make it easier to discover
    by users.
 
- * wmpeg() in PDL::IO::Misc using the new ffmpeg back end
+ * wmpeg() in PDL::IO::Pic using the new ffmpeg back end
    can create many additional file formats than just MPEG,
    including MP4 and animate GIF.  See the documentation.
  
