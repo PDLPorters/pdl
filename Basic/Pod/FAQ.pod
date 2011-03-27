@@ -557,7 +557,7 @@ always install C<PDL> into a non-standard location.  See Q: 4.4 above.
 
 
 Information about binary distributions of PDL can be found on
-L<http://pdl.perl.orgL> .  At present there are binary distributions 
+L<http://pdl.perl.org> .  At present there are binary distributions 
 of PDL for Linux (RedHat and Debian), FreeBSD, Mac OS X and Windows, 
 though they might not be the most recent version. If someone is 
 interested in providing binary distributions for other 
