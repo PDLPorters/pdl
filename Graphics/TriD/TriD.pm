@@ -53,7 +53,7 @@ Points, lines and surfaces (among other objects) are supported.
 With OpenGL, it is easy to manipulate the resulting 3D objects
 with the mouse in real time - this helps data visualization a lot.
 
-= for comment
+=for comment
 With VRML, you can generate objects for everyone to see with e.g.
 Silicon Graphics' Cosmo Player. You can find out more about VRML
 at C<http://vrml.sgi.com/> or C<http://www.vrml.org/>
