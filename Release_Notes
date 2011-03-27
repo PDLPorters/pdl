@@ -1,27 +1,6 @@
-Release Notes for PDL 2.4.7_991 --------------------------
+Release Notes for PDL 2.4.8 --------------------------
 
 General Notes:
-
- * A.k.a. PDL-2.4.8 pre-release 1
- 
-   - It is a snapshot of the current git development tree
-     and everything may not work correctly or have complete
-     documentation.
-
-   - These release notes may not be fully complete.  Please
-     see Changes (from the git log) for full details.
-
-   - All tests may not pass, especially ones corresponding
-     to issues in Known_problems.
-   
-   - Manual build/install is recommended although the
-     cpan shell may be used by specifying the distribution
-     path rather than just the module name, e.g.:
-
-       cpan> get  chm/pdl-2.4.7_991.tar.gz
-       cpan> make chm/pdl-2.4.7_991.tar.gz
-       cpan> test chm/pdl-2.4.7_991.tar.gz
-       cpan> look chm/pdl-2.4.7_991.tar.gz
 
  * The deprecated Karma imaging library support code
    has been removed from the PDL distribution.
@@ -201,6 +180,18 @@ Highlights:
    continuation.  Now incomplete q[] and qq[] constructs
    continue reading until properly closed.  See the
    Known_problems file for details.
+
+
+    
+Release Notes for PDL 2.4.7_991 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.8pre1 release
+
+Highlights:
+
+ * See PDL-2.4.8 release notes above.
 
 
     

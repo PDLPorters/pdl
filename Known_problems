@@ -80,7 +80,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_991 release:
+  PDL-2.4.8 release:
 
   3234141    max() fails on nan
   3190227    PDL build fails with parallel GNU make -j3 -j3
