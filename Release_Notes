@@ -23,7 +23,7 @@ General Notes:
 
  * PDL::Complex now supports in-place operations.
 
- * Added $PDL::toobigtoprint to set the maximum piddle
+ * Added $PDL::toolongtoprint to set the maximum piddle
    size allowed to print as a string.  This was added
    to the default.perldlrc to make it easier to discover
    by users.
@@ -692,7 +692,7 @@ Highlights:
    and t/proj_transform2.t
 
  * Added new global setting to control maximum PDL print size,
-   $PDL::toobigtoprint, and added POD to Core.pm.PL covering
+   $PDL::longbigtoprint, and added POD to Core.pm.PL covering
    these important PDL package variables.
 
  * Fixed SF bug #3057542: wmpeg doesn't error on missing ffmpeg.
