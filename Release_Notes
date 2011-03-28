@@ -12,12 +12,14 @@ General Notes:
    stage of re-factoring for support and functionality.
  
  * Many improvements to the PDL configuration, build
-   and test process make the the most robust PDL yet.
+   and test process make this the most robust PDL yet.
  
  * PDL::IO::FlexRaw now supports automatic header file
    creation when writeflex() is given a filename argument
-   to write to.  readflex/writeflex/mapflex now support
-   reading and writing piddles with bad values in them.
+   for writing.  Set $PDL::IO::FlexRaw::writeflexhdr to
+   enable this feature.  readflex/writeflex/mapflex now
+   support reading and writing piddles with bad values
+   in them.
  
  * New PDL::Constants module provides PI and E.
 
@@ -28,30 +30,30 @@ General Notes:
    to the default.perldlrc to make it easier to discover
    by users.
 
- * wmpeg() in PDL::IO::Pic using the new ffmpeg back end
+ * wmpeg() in PDL::IO::Pic using the new ffmpeg back-end
    can create many additional file formats than just MPEG,
    including MP4 and animate GIF.  See the documentation.
  
  * Lots of improvements to the documentation, usability
-   and many more bugs fixed!
+   and more bugs fixed!
 
 Highlights:
 
  Build and Test Enhancements:
 
- * Karma support code has been removed from the PDL
+ * Karma support code has been *removed* from the PDL
    distribution The last stable PDL distribution with
    Karma code was be PDL-2.4.7.
    
  * You must use the Perl OpenGL module to build the
    PDL 3-D graphics module, PDL::Graphics::TriD.
-   Consequently, OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE
-   are no longer used by perldl.conf in the configuration
+   OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE are no
+   longer used by perldl.conf for the configuration
    process.
    
- * Added a check for a mis-installed PROJ4 library.  If
-   the library will not initialize (even if present) then
-   PDL will not build the PROJ4 modules.  This sf.net
+ * Added a check for mis-installed PROJ4 libraries.  If
+   the library does not initialize (even if seen) then
+   PDL will not build the PROJ4 modules.  This is sf.net
    feature #3045456.
    
  * GD, HDF, PROJ4, OpenGL, and GSL tests will not be run
@@ -65,18 +67,19 @@ Highlights:
    SKIP_KNOWN_PROBLEMS option and should better enable
    test first development and debugging.
    
- * utils/perldlpp.pl is a new utility script for off-line
-   source filtering to pre-filter PDL source files for
-   NiceSlice constructs.  This allows PDL to use NiceSlice
-   constructs in the core functionality while still allowing
-   environment where source filters are not supported to use
-   PDL.  See the docs for more information.
+ * utils/perldlpp.pl is a new script for off-line source
+   filtering to pre-filter PDL source files for NiceSlice
+   constructs.  This allows PDL to use NiceSlice constructs
+   in the core functionality while still allowing PDL to
+   work in environments where source filters are not supported.
+   See the docs for more information.
    
- * The duplicate PDL installation response has changed.  If
-   a pre-existing PDL install is detected, the user is warned
-   but configuration will proceed nonetheless.
+ * The 'perl Makefile.PL' response to detecting another PDL
+   in the build path has changed.  If such a pre-existing PDL
+   install is detected, the user is warned *but* configuration
+   will proceed nonetheless.
    
- * Clean up and fixes to demos and tests for reliability and
+ * Clean-up and fixes to demos and tests for reliability and
    portability.
 
  Documentation:
@@ -85,7 +88,7 @@ Highlights:
    does yet not have internationalization support beyond
    that provided  by perl itself.
    
- * Cleaned up documentation on when to use lu_decomp and
+ * Cleared up documentation on when to use lu_decomp and
    lu_decomp2. Now that lu_decomp is threaded, it is the
    preferred implementation.
    
@@ -98,17 +101,18 @@ Highlights:
    provide for PLplot, some of the same functionality
    as in PDL::Graphics::PGPLOT.
    
- * Many documentation updates for clarity and correctness.
+ * Other documentation updates for clarity and correctness.
 
  New Features or Functionality:
 
- * New PDL::Constants module providing PI and E
+ * New PDL::Constants module providing PI and E (so far)
    
  * Inplace support added for PDL::Complex operations
    
  * pdldoc and the pdl2/perldl help commands now print all
    matches by default when multiple matches are found.
-   A do_print command was added to the pdl2 shell which
+
+ * A do_print command was added to the pdl2 shell which
    toggles the input mode between printing and not
    printing the return value of each command.
    
