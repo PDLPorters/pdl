@@ -19,7 +19,7 @@ END
 
 =for ref
 
-  Script to filter PDL::NiceSlice constructs from argument file to STDOUT
+Script to filter PDL::NiceSlice constructs from argument file to STDOUT
 
 =for usage
 

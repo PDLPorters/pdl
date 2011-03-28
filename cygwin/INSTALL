@@ -299,6 +299,60 @@ NOTE: if problems see rebaseall below.
 
 
 =================================================================
+                             FFMPEG
+=================================================================
+ffmpeg later than 0.6.1 (i.e, gotten by git clone of
+the ffmpeg.git repository) builds out-of-the-box with
+the standard directions on cygwin 1.7.7+. You'll need
+the latest version because of a namespace conflict with
+the bswap_16, bswap_32, and bswap_64 macros.  See
+this page for the git clone information:
+
+  http://ffmpeg.org/download.html
+
+An alternative is to download the latest GIT snapshot
+following these directions.  You'll need to have the
+various dependencies for ffmpeg install to build
+successfully.  A full cygwin install should work.
+
+(1) Download the git snapshot of the ffmpeg tree from:
+      http://git.videolan.org/?p=ffmpeg.git;a=snapshot;h=HEAD;sf=tgz
+
+(2) The file will be named something like ffmpeg-HEAD-xxxxxxx.tar.gz
+    where the xxxxxxx is a hexadecimal number related to the commit.
+    Extract the tar file and change to that directory:
+    
+      bash$ tar xzf ffmpeg-HEAD-xxxxxxx.tar.gz
+      bash$ cd ffmpeg-HEAD-xxxxxxx/
+
+(3) Configure, build, and install ffmpeg:
+
+      bash$ ./configure --enable-static --disable-shared
+      bash$ make                         # build
+      bash$ make check                   # test
+      bash$ make install                 # install
+
+      bash$ type ffmpeg                  # check install
+      ffmpeg is /usr/local/bin/ffmpeg
+
+(4) Now you should be able to run the wmpeg.pl demo
+    in Example/IO of the PDL source distribution
+    directory.  If the check install does not work,
+    check that /usr/local/bin (or wherever the ffmpeg
+    installed) is in the PATH.
+
+NOTE: wmpeg('file.gif') can be used to generate
+an uncompressed GIF animation (BIG!). You can
+build/install gifsicle on cygwin with the default
+instructions to use to optimize the memory usage of
+the GIF animations.  See the gifsicle site for the
+source and build instructions:
+
+  http://www.lcdf.org/gifsicle/
+
+
+
+=================================================================
                             REBASEALL
 =================================================================
 There is a known issue on cygwin where DLLs have to have their
@@ -336,30 +390,6 @@ need to run rebaseall:
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
 or all tests (make test).
-
-
-
-=================================================================
-                             FFMPEG
-=================================================================
-ffmpeg later than 0.6.1 (i.e, gotten by git clone of
-the ffmpeg.git repository) builds out-of-the-box with
-the standard directions on cygwin 1.7.7+. You'll need
-the latest version because of a namespace conflict with
-the bswap_16, bswap_32, and bswap_64 macros.  See
-this page for the git clone information:
-
-  http://ffmpeg.org/download.html
-
-
-NOTE: wmpeg('file.gif') can be used to generate
-an uncompressed GIF animation (BIG!). You can
-build/install gifsicle on cygwin with the default
-instructions to use to optimize the memory usage of
-the GIF animations.  See the gifsicle site for the
-source and build instructions:
-
-  http://www.lcdf.org/gifsicle/
 
 
 

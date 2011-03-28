@@ -31,7 +31,7 @@ used already.
 
 =for ref
 
-  Create a 2-D graphics object with the requested interface type
+Create a 2-D graphics object with the requested interface type
 
 =cut
 
@@ -599,7 +599,7 @@ sub display_new_window {
 
 =for ref
 
-  Display a 2-D image in a figure window
+Display a 2-D image in a figure window
 
 imag2d() creates a plain FreeGLUT OpenGL window and displays
 the input image with 1:1 aspect ratio for pixels.  The window
@@ -658,7 +658,7 @@ the sub, only the imag2d() windows will update correctly.
 
 =for ref
 
-  Enable GUI interaction with a FreeGLUT display window.
+Enable GUI interaction with a FreeGLUT display window.
 
 =for usage
 
