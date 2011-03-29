@@ -1,13 +1,13 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Mon 16 Aug 2010 03:42:07 PM 
+# Last saved: Tue 29 Mar 2011 12:50:05 PM 
 #
 
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.004;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.005;
 
 with 'Devel::REPL::Profile';
 

@@ -96,7 +96,7 @@ BEGIN{
 
   package PDL::IO::Dumper;
 
-  $PDL::IO::Dumper::VERSION = '1.3.1';
+  $PDL::IO::Dumper::VERSION = '1.3.2';
   
   @PDL::IO::Dumper::ISA = ( Exporter ) ;
   @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
