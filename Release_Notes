@@ -7,19 +7,17 @@ General Notes:
  
  * Perl OpenGL (POGL) is now the only build option for
    3-D graphics support in PDL.  The POGL build has
-   proven to be much more portable and reliable.  This
-   prepares the TriD graphics development for the next
-   stage of re-factoring for support and functionality.
+   proven to be portable and reliable.  This prepares
+   TriD graphics development for the next stage of
+   re-factoring for support and new features.
  
  * Many improvements to the PDL configuration, build
    and test process make this the most robust PDL yet.
  
  * PDL::IO::FlexRaw now supports automatic header file
    creation when writeflex() is given a filename argument
-   for writing.  Set $PDL::IO::FlexRaw::writeflexhdr to
-   enable this feature.  readflex/writeflex/mapflex now
-   support reading and writing piddles with bad values
-   in them.
+   for writing.  readflex/writeflex/mapflex now support
+   reading and writing piddles with bad values in them.
  
  * New PDL::Constants module provides PI and E.
 
@@ -30,12 +28,13 @@ General Notes:
    to the default.perldlrc to make it easier to discover
    by users.
 
- * wmpeg() in PDL::IO::Pic using the new ffmpeg back-end
-   can create many additional file formats than just MPEG,
-   including MP4 and animate GIF.  See the documentation.
+ * wmpeg() from PDL::IO::Pic uses the new ffmpeg back-end
+   and can create many additional file formats beyond MPEG
+   alone, including MP4 and animated GIF.  See the
+   documentation for details.
  
- * Lots of improvements to the documentation, usability
-   and more bugs fixed!
+ * Lots of improvements to the documentation, overall
+   usability and many bugs fixed!
 
 Highlights:
 
@@ -52,32 +51,32 @@ Highlights:
    process.
    
  * Added a check for mis-installed PROJ4 libraries.  If
-   the library does not initialize (even if seen) then
+   the library does not initialize (even if present) then
    PDL will not build the PROJ4 modules.  This is sf.net
    feature #3045456.
    
  * GD, HDF, PROJ4, OpenGL, and GSL tests will not be run
-   unless they were configured to be built.  This addresses
-   the possible mysterious test failures caused by previous
-   PDL installs in the perl path at build time.
+   unless the corresponding module was configured to be
+   built.  This addresses the possibly mysterious test
+   failures caused by previous PDL installations in the
+   perl path at build time.
    
- * Use of the Test::More TODO {} blocks allows tests of
-   known bugs to be added to the test suite while not
+ * Use of the Test::More TODO {} blocks allows tests for
+   known bugs to be added to the test suite without 
    causing the suite to fail.  This replaces the previous
    SKIP_KNOWN_PROBLEMS option and should better enable
    test first development and debugging.
    
  * utils/perldlpp.pl is a new script for off-line source
-   filtering to pre-filter PDL source files for NiceSlice
+   filtering to pre-filter PDL source files with NiceSlice
    constructs.  This allows PDL to use NiceSlice constructs
    in the core functionality while still allowing PDL to
    work in environments where source filters are not supported.
-   See the docs for more information.
    
  * The 'perl Makefile.PL' response to detecting another PDL
    in the build path has changed.  If such a pre-existing PDL
-   install is detected, the user is warned *but* configuration
-   will proceed nonetheless.
+   installation is detected, the user is warned *but*
+   configuration and build will proceed nonetheless.
    
  * Clean-up and fixes to demos and tests for reliability and
    portability.
@@ -88,13 +87,13 @@ Highlights:
    does yet not have internationalization support beyond
    that provided  by perl itself.
    
- * Cleared up documentation on when to use lu_decomp and
-   lu_decomp2. Now that lu_decomp is threaded, it is the
-   preferred implementation.
+ * Cleared up the documentation on when to use lu_decomp
+   and versus lu_decomp2.  Now that lu_decomp is threaded,
+   it is the preferred implementation.
    
  * wmpeg() with the ffmpeg converter supports generation of
    many different output video file formats including MPEG,
-   MP4, and animated GIF. Documentation on these uses were
+   MP4, and animated GIF.  Documentation on these uses were
    added.
 
  * New example code refresh.pdl in Example/PLplot to
@@ -135,12 +134,12 @@ Highlights:
  Bugs Fixed:
 
  * Applied Christian Soeller's patch for FFTW on 64-bit
-   systems. This resolves bug #3203480 "t/fftw.t fails on
-   64-bit systems".
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
    
- * Fixed sf.net bug #3172882 re broken threading in inv - inv() 
-   and lu_backsub() now handle threading - documentation
-   updates for lu_decomp, lu_deomp2, lu_backsub
+ * Fixed sf.net bug #3172882 re broken threading in inv().
+   inv() and lu_backsub() now handle threading.  Updated
+   documentation for lu_decomp, lu_deomp2, and lu_backsub.
    
  * Fixed sf.net bug #3171702 "missing podselect command
    breaks PDL build"
@@ -153,8 +152,9 @@ Highlights:
  * Fixed uniqind bug #3076570
    
  * Fixed SF bug #3057542: wmpeg doesn't error on missing
-   ffmpeg. Now wmpeg returns 1 on success and undef on error.  
-   If ffmpeg is not in PATH, just fail immediately....
+   ffmpeg program.  Now wmpeg returns 1 on success and
+   undef on error.  If ffmpeg is not in PATH, it just fails
+   immediately....
    
  * Fixed SF bug #3056142: pdl2 fallback to perldl broken
    on win32
@@ -166,9 +166,9 @@ Highlights:
    
  * Fixed SF bug #3011879, "pdl() constructor crashes perl for
    mixed ref/piddle args" and #3080505, and #3139088.  This
-   includes a larger and more complete set of tests.
+   fix also includes a larger and more complete set of tests.
    
- * Fixed segfault in plplot.t with work-around.
+ * Fixed segfault in plplot.t with a work-around.
    
  * Fixed bug in readenvi.pdl header list value processing
    and added support for embedded file headers.
