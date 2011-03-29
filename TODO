@@ -3,9 +3,10 @@ the work planned for the future  PDL-2.4.x releases.
 
 The main goal we are working towards is to have a
 baseline PDL working on *all* PDL OS platforms:
-win32, macosx, and linux/unix/bsd systems with
-support for 2D graphics (via PLplot) and 3D graphics
+win32/cygwin, macosx, and linux/unix/bsd systems with
+support for 2-D graphics (via PLplot) and 3-D graphics
 (via OpenGL/TriD).
+
 
 +-------------------------------------------------------+
 |      Candidate Tasks for PDL-2.4.x Development        |
@@ -25,9 +26,120 @@ support for 2D graphics (via PLplot) and 3D graphics
   Each item has some task description based on the
   current status.
 
+T  Update task list after PDL-2.4.8 release.
+
   
-T  Add/update platform install notes to PDL wiki
-T  Add CPAN shell start-up info to PDL wiki or web page
+
++-------------------------------------------------------+
+|                                                       |
+|             PDL-2.4.x BULLET TASK LISTING             |
+|                   ( BY CATEGORY )                     |
+|                                                       |
++-------------------------------------------------------+
+
+
+
++-------------------------------------------------------+
+|                       TESTING                         |
++-------------------------------------------------------+
+
+   Need to test PDL build from scratch
+   * Unix/Linux/BSD
+   * Windows/cygwin
+   * Mac OS X
+   
+
+   Verify dependency detection across all major PDL platforms
+   * Unix/Linux/BSD, Windows/Cygwin, Mac OS X
+   * Check completely clean build each platform
+   * Confirm that dependencies for each platform
+       are correctly detected and reported.
+   * Add any issues to Known_problems
+
+
+   Add support for Known_problems to tests
+   * Implemented via the Test::More TODO {} block feature
+   * Ignores FAIL for tests flagged as TODO
+   * All bug reports should have a test in PDL/t
+
+
+   Clean up and triage for tickets prior to release.
+   * Bugs
+   * Feature requests
+   * Patches
+
+
+
++-------------------------------------------------------+
+|                    DEPENDENCIES                       |
++-------------------------------------------------------+
+   
+   Alien modules for the external PDL dependencies
+   * Alien::PLplot
+   * Alien::PROJ4
+
+     This is the first step to get PDL::Graphics::PLplot
+     working cross-platform: be able to have the PLplot
+     lib checked for or even installed as a dependency.
+     Work based on the approach in Alien::SDL might be a
+     good starting point.
+
+
+   Define standard paths for external dependency libraries for PDL
+   * Local to PDL (not system-wide)
+   * Can skip install if system-wide is available
+   * Relocatable with package-config or Alien info
+   * Document any PDL-specific install locations
+
+   
+   List and obtain module owners and developers for existing PDL modules
+   * Revisit each module's status by platform
+     * Regarding portability
+     * Review external dependency handling
+     * Update plan for development
+
+
+   Fix/document FORTRAN code requirements
+   * Add a USE_FORTRAN option to perldl.conf
+   * Add check for ExtUtils:F77
+   * Convert PDL::Slatec to use C with f2c of source
+   * Convert PDL::Minuit to use C with f2c of source 
+   
+
+
++-------------------------------------------------------+
+|                    DOCUMENTATION                      |
++-------------------------------------------------------+
+   
+   Update PDL web site pages 
+   
+
+   Review current documentation (underway)
+   * Verify correctness and consistency with PDL-2.4.8+
+   * Update documentation where needed.
+   * Add web searchable versions of the docs.
+   * Maybe a wiki format could be used to improve docs 
+
+
+   Add/update platform install notes to PDL wiki
+   * Complete build-from-scratch installs
+   * Soup to nuts via the cpan shell
+   * Build issues and their fixes
+   * How to get needed dependencies
+   * Other platform details
+     * Mac OS X
+     * Linux (by distribution and version)
+     * BSD
+     * Solaris
+     * Windows
+     * Cygwin
+     * Other 
+
+
+   Add CPAN shell start-up info to PDL wiki or web page
+   * Basic cpan
+   * CPANminus
+   * Others
 
      Recent list queries and new user discussions
      suggest that we need to revisit the beginner
@@ -37,74 +149,10 @@ T  Add CPAN shell start-up info to PDL wiki or web page
      PDL (verify on all PDL platforms).
 
 
-T  Improve PDL usability for first time users
-
-     A simple cpan or platform package install should
-     work out of the box.  Maybe not all dependencies
-     will be there but PDL should build with 2D and
-     3D graphics support if possible.
-
-
-T  Complete Perldl2 shell:
-T  * Fix Ctrl-C handling for win32 systems
-N  * Add safe pdl allocation option to prevent OOM death
-
-     The essential pdl2 shell is working and will run
-     with the new features if Devel::REPL is installed.
-     Otherwise it falls back to the perldl shell.
-
-     The remaining work here is cleanup of some minor
-     issues, implement remaining perldl features for
-     back compatibility and a couple of nice-to-haves
-     in better Ctrl-C handling and avoiding fatal OOM
-     errors when running interactively in win32....
-
-     See Perldl2/TODO for the pdl2-specific list.
-
-
-T  Add support for improved 2D image display using OpenGL
-T  * Enable REPL and GUI simultaneous operations and event loops
-
-     Need to add threaded display support to imag2d from
-     the imagrgb implementation.  Also need to further
-     deprecate the use of the legacy TriD build in favor
-     of the new Perl OpenGL version.
-
-
-T  Finish PDL::IO::ENVI module
-
-     Needs to be added as an IO module with tests.
-     A basic writeenvi routine needs to be completed.
-
-
-T  New pdl() constructor with matlab [] syntax for string arguments
-
-     The new pdl constructor handling of string arguments
-     with MATLAB style array syntax is in the git PDL.
-     The remaining work is cleaning up the test suite
-     and fixing a couple of edge cases for the release.
-
-     Ideally we should be able to cut-n-paste the print
-     output of a piddle into the constructor as a
-     string and get the piddle back (modulo float format).
-
-
-T  Document how to set up a local sandbox for PDL build
-
-     A number of PDL users are configuring their
-     own local library, perl, and PDL installations.
-     It would be nice if clear directions were
-     written down so everyone doesn't have to
-     reinvent the same wheel.
-
-
-T  Finish spheres3d implementation
-
-     This involves completing support for color and radius
-     parameters for the spheres and some minor cleanup.
-
-
-T  How to install the CPAN Testers reporting packages
+   Add CPAN Testers start up info to PDL wiki
+   * Test::Reporter
+   * CPAN Testers version 2
+   * Easy/basic install and usage
 
      The new CPAN Testers version 2.0 has been
      released.  It uses a web-based interface to
@@ -116,260 +164,161 @@ T  How to install the CPAN Testers reporting packages
      Add info for PERL_CPAN_REPORTER_DIR variable.
 
 
-T  Update PDL Book (in progress)
+   Document how to set up a local sandbox for PDL build
+   * PREFIX and LIB for ExtUtils::MakeMaker
+   * Build with CPAN shell 
+   * Check out brewperl
+
+     A number of PDL users are configuring their
+     own local library, perl, and PDL installations.
+     It would be nice if clear directions were
+     written down so everyone doesn't have to
+     reinvent the same wheel.
+
+
+   Add docs/support for users of other software
+   * IDL, Matlab, NumPy
+   * Add help for equivalent PDL constructs
+   
+
+   Update PDL Book (in progress)
+   * Needs updating to match PDL-2.4.8 from PDL-2.4.3
+   * make a web version available on-line if possible
    
      Matt Kenworthy has been working on web-izing
      the previous manuscript based on Tex/LaTeX.
 
 
-T  PDL::Constants
-
-     We've had mailing list discussions on this topic.
-     All that needs to be done is the implementation.
-     The idea is to use Readonly as the basis for the
-     constants and, perhaps, have a 'use constant'
-     fall back version.
+   Better document the PDL help system
+   * Requirements and usage
+   * Quick start
+   * Add custom/user key word search support
+   * Is there a way to fetch all the functions/keywords
+       the PDL help system supports? 
    
 
-T  Verify dependency detection across all major PDL platforms
-
-     Needs multiple testers willing to check a clean
-     build of each dependency on their platform and
-     report what happens with and without dependency.
-
-     Confirm that all dependencies for each platform
-     are correctly detected and reported.  If there
-     are issues, they should be in the Known_problems
-     for platform specific information.
-
-
-T  Alien modules for the external PDL dependencies
-   * Alien::PLplot
-   * Alien::PROJ4
-
-     This is the first stage of getting PDL::Graphics::PLplot
-     working cross-platform: be able to have the PLplot lib
-     checked for or even installed as a dependency.  Work based
-     on the approach in Alien::SDL might be a good starting point.
-
-
-T  Define standard paths for external dependency libraries for PDL
-
-     This is basically bookkeeping so that as the
-     dependency issues are sorted out, we have a
-     standard PDL-specific local install location
-     for non-system library installs.
-
-
-T  List and obtain module owners and developers for existing PDL modules
-
-     Again, this is basically bookkeeping so that
-     as the dependency issues are sorted out, we
-     have a designated POC/maintainer for each
-     PDL component.
-
-
-T  Clean up build output from make process to reduce cruft
-     
-     Maybe we can add an output filter to the text collected
-     from the CPAN build process.  Look into Text::Filter and
-     others.
-
-T  Check/set perldl.conf options before the PDL build?
-
-     I think giving users an interactive option to set
-     the perldl.conf values would be nice.
-
-
-
-+-------------------------------------------------------+
-|                                                       |
-|             PDL-2.4.x BULLET TASK LISTING             |
-|                   ( BY CATEGORY )                     |
-|                                                       |
-+-------------------------------------------------------+
-
-
-+-------------------------------------------------------+
-|                       TESTING                         |
-+-------------------------------------------------------+
-
-R+ Need to test PDL build from scratch
-   * All major platforms (unix/linux, mac os x, windows)
-   
-N+ Verify dependency detection across all major PDL platforms
-   * Unix/Linux
-   * Windows
-   * Mac OS X 
-   
-R+ Add support for Known_problems to tests
-   * Get from environment or flag or perldl.conf
-   * Skips tests flagged as Known_problems for releases
-   * All bug reports should have a test in PDL/t if possible
-   
-R+ Clean up and triage for tickets prior to release.
-   * Bugs
-   * Feature requests
-   * Other?
-   
-+-------------------------------------------------------+
-|                    DEPENDENCIES                       |
-+-------------------------------------------------------+
-   
-N+ Alien modules for the external PDL dependencies
-N+ * Alien::PLplot (must be rock solid!)
-N+ * Alien::PROJ4 
-   
-N+ Define standard paths for external dependency libraries for PDL
-   * Local to PDL not system wide
-   * Can skip if system wide is available
-   * Relocatable with package-config or Alien dependencies information 
-   
-N+ List and obtain module owners and developers for existing PDL modules
-   * Revisit their module's status by platform:
-     * Regarding portability
-     * Review external dependency handling
-   
-   Fix/document FORTRAN code requirements
-   * Add a USE_FORTRAN option to perldl.conf
-   * Add check for ExtUtils:F77
-   * Convert PDL::Slatec to use C with f2c of source
-   * Convert PDL::Minuit to use C with f2c of source 
-   
-
-+-------------------------------------------------------+
-|                    DOCUMENTATION                      |
-+-------------------------------------------------------+
-   
-R+ Update PDL web site pages 
-   
-R+ Review current documentation (underway)
-   * Verify correctness and consistency with PDL-2.4.6_014+
-   * Update documentation where needed.
-   * Add web searchable versions of the docs.
-   * Maybe a wiki format could be used to improve docs 
-   
-R+ Add/update platform install notes to PDL wiki
-   * Complete build-from-scratch installs
-   * Soup to nuts via the cpan shell
-   * Build issues and their fixes
-   * How to get needed dependencies
-   * Other platform details
-     * Mac OS X
-     * Linux (by distribution and version)
-     * BSD
-     * Solaris
-     * Windows
-     * Other 
-   
-N+ Add CPAN Testers start up info to PDL wiki
-   * What you need to start
-   * How to configure CPAN
-   * Other options 
-   
-N+ Document how to set up a local sandbox for PDL build
-   * PREFIX and LIB for ExtUtils::MakeMaker
-   * Build with CPAN shell 
-
-N+ How to install the reporting packages
-   * Test::Reporter and others
-   * How use CPAN Testers version 2
-
-N+ Add docs/support for users of other software
-   * IDL, Matlab, NumPy
-   * Add help for equivalent PDL constructs
-   
-N+ Update PDL Book (in progress)
-   * Needs updating to match PDL-2.4.6_xxx from PDL-2.4.3
-   * make a web version available on-line if possible
-   
-   Need better documentation of the PDL help system
-   * Is there a way to fetch all the functions/keywords the PDL help system supports? 
-   
    
 +-------------------------------------------------------+
 |                      USABILITY                        |
 +-------------------------------------------------------+
    
-N+ Improve PDL usability for first time users
+   Improve PDL usability for first time users
    * Work out of the box via cpan shell
      * Fully automatic
      * Semi-manual
    * Easy install via 1-click or package managers 
    * PAR for distribution
-   
+
+     A simple cpan or platform package install should
+     work out of the box.  Maybe not all dependencies
+     will build but PDL should build with 2D and 3D
+     graphics support for most/all platforms.
+
+
    Implement "1-click" installs by platform and document in wiki
    * Mac OS X: SciKarl, verify support by OS versions
-   * Windows: Strawberry Perl Professional (TBD)
+   * Windows: Strawberry Perl Professional, ActivePerl
    * Unix OSes: Various package managers
    
-N+ Clean up build output from make process to reduce cruft
-   * Maybe collect build output into build log file by
-     default so folks wouldn't have to cook it up with
-     their shell, just check the pdl-build.log
-   
+T  Clean up build output from make process to reduce cruft
+   * Collect build output into build log file by default
+   * Add an output filter to the text collected from the
+       CPAN build process.  (e.g. Text::Filter et al)
+
+
    
 +-------------------------------------------------------+
 |                    INSTALLATION                       |
 +-------------------------------------------------------+
    
-N+ Fix the test problems with preexisting PDL installs
-   * Maybe a function in PDL::Core::Devel to check @INC
+   Fix the test problems with preexisting PDL installs
+   * Develop test methodology
+   * Add PDL::Core::Dev utility to perform check
+   * Automate detection/test skip if not build logic
+
    
-N+ Check/set perldl.conf options before the PDL build?
-   * Use prompt() routine in Makefile.PL
+   Check/set perldl.conf options before the build
+   * Interactive option view prompt() in Makefile.PL
+   * GUI version
+
 
    
 +-------------------------------------------------------+
 |                    NEW FEATURES                       |
 +-------------------------------------------------------+
    
-R+ Need PLplot and PDL::Graphics::PLplot to build all platforms
+   Finish PDL::IO::ENVI module
+   * Implement basic writeenvi() routine
+   * Add tests and reimplement as a module
+   * Add to PDL distribution
+
+
+   Need PLplot and PDL::Graphics::PLplot to build all platforms
    * MS Windows
    * Cygwin/XP
    * Linux/unix
    * Mac OS X 
    
-R+ Complete Perldl2 shell:
+   Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2
+   * Fix Ctrl-C handling for win32 systems
+   * Add safe pdl allocation option to prevent OOM death
    * Update documentation
-   * Update perldl so fallback from pdl2 works cleanly
-N+ * Fix Ctrl-C handling for win32 systems
-N+ * Add safe pdl allocation option to prevent OOM death
+   * See Perldl2/TODO for the pdl2-specific list.
+
    
-R+ Add support for improved 2D image display using TriD
-   * imag2d() works ok
-   * Next step: move into PDL distribution as a module w tests... 
-N+ * Enable REPL and GUI simultaneous operations and event loops
+   Add support for improved 2-D image display using OpenGL
+   * Add threaded 2-D image tile display to imag2d
+   * Enable REPL and GUI simultaneous operations and event loops
      * perldl via ReadLine and FreeGLUT
      * REPL via ReadLine and FreeGLUT 
      * Maybe for wxWidgets for Padre support
+   * Implement some tests
+
    
-N+ New pdl() constructor with matlab [] syntax for string arguments
+   New pdl() constructor with matlab [] syntax for string arguments
    * Needs more testing and verification
    * Does it work for MATLAB and PDL users' purposes? 
      * Handle complex numbers (with i,j for sqrt(-1))
      * Handle cut and paste of printed piddles
      * Better error checking for invalid values
    
-N+ Finish spheres3d implementation
-   * Add color (RGB+A)
-   * Add radius
+     Ideally we should be able to cut-n-paste the print
+     output of a piddle into the constructor as a
+     string and get the piddle back (within float eps).
+
+
+   Finish spheres3d implementation
+   * Add color (RGB+A) support
+   * Add per-sphere radius (support threading)
    * Add surface normals for smooth shading
+   * Extend to arbitrary objects with constructors
   
   
+
 +-------------------------------------------------------+
 |                        LATER                          |
 +-------------------------------------------------------+
    
-N+ PDL::Constants
-   * Use Readonly if available
-   * Fall back to use constant
+   PDL::Constants
+   * Implementation based on 'use constant' pragma
+   * Transition into 'use PDL;'
+   * Add other constants of interest
+     * Units
+     * Complex i,j
+     * To import or not to import
    
+
    PDL::Matlab helper module
-   * Implement the main basic Matlab routines
+   * Implement key set of basic Matlab functions
+   * Document PDL equivalents
+
    
    Fix external dependency processing
+   * Use Devel::CheckLib to directly detect headers and libraries
+   * Remove dependencies on external commands (e.g. clear in Demos)
+   * Make missing functionality detectable at run time (a la PGPLOT)
+   * Could use warning/error stubs if functionality not available
    * Alien modules for the external PDL dependencies
      * Alien::FFTW2
      * Alien::FFTW3
@@ -383,11 +332,8 @@ N+ PDL::Constants
      * Alien::PGPLOT
      * Alien::PNG
      * Alien::TIFF
-   * Use Devel::CheckLib to directly detect headers and libraries
-   * Remove dependencies on external commands (e.g. clear in Demos)
-   * Make missing functionality detectable at run time (a la PGPLOT)
-   * Could use warning/error stubs if functionality not available
    
+
    Full GSL bindings for PDL
    * Alien::GSL to install and something else to check
    * Prioritize GSL functionality to add
@@ -397,6 +343,7 @@ N+ PDL::Constants
      * What about an PDL::PP version using GSL configure info for thread support? 
    * Slatec compatibility wrappers 
    
+
    Clean and unify the FFT and FFTW in PDL
    * FFT is the default implementation
      * Add FFTW acceleration for the default FFT
