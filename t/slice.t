@@ -362,17 +362,21 @@ ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,0],[80,90,0],[81,91,0]])));
 eval '$z = $source->range($index,3,["e","p"]);';
 ok(zcheck($z->slice("(1),(1)") != pdl([[89,99,99],[80,90,90],[81,91,91]])));
 
-## Indexing a PDL with the Empty PDL returns Empty
-our $mt;
-eval 'our $mt = which(pdl(0))';
-ok("$mt" eq 'Empty');
+TODO: {
+   ## Indexing a PDL with the Empty PDL returns Empty
+   local $TODO = 'Empty PDL indexing returns Empty';
 
-our $dex = pdl(5,4,3);
-$z = $dex->range($mt);
-ok("$z" eq 'Empty');
+   our $mt;
+   eval 'our $mt = which(pdl(0))';
+   ok("$mt" eq 'Empty');
 
-$z = $mt->range($dex,undef,'e');
-ok(all($z==0));
+   our $dex = pdl(5,4,3);
+   $z = $dex->range($mt);
+   ok("$z" eq 'Empty');
 
-$z = $mt->range($mt);
-ok("$z" eq 'Empty');
+   $z = $mt->range($dex,undef,'e');
+   ok(all($z==0));
+
+   $z = $mt->range($mt);
+   ok("$z" eq 'Empty');
+};
