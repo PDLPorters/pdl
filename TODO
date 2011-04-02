@@ -43,6 +43,38 @@ T  Update task list after PDL-2.4.8 release.
 |                       TESTING                         |
 +-------------------------------------------------------+
 
+   Convert remaining PDL tests to use Test::More:
+   * basic.t
+   * bess.t
+   * callext.t
+   * conv.t
+   * diskcache.t
+   * erf.t
+   * erfi.t
+   * fft.t
+   * foo.t
+   * func.t
+   * hist.t
+   * image2d.t
+   * iotypes.t
+   * lut.t
+   * lvalue.t
+   * matrix.t
+   * matrixops.t
+   * misc.t
+   * niceslice.t
+   * nsdatahandle.t
+   * pptest.t
+   * primitive.t
+   * requiredmods.t
+   * round.t
+   * scope.t
+   * simplex.t
+   * transform.t
+   * trig.t
+   * xvals.t
+
+
    Need to test PDL build from scratch
    * Unix/Linux/BSD
    * Windows/cygwin
