@@ -3,6 +3,7 @@ use PDL::Types ':All';
 
 use PDL::IO::FlexRaw;
 use PDL::Config;
+use POSIX qw(tmpnam);
 
 use Test;
 use strict;
@@ -19,7 +20,9 @@ BEGIN {
 our @types = map { print "making type $_\n";
 		   new PDL::Type typefld($_,'numval') } typesrtkeys();
 
-my $data = $PDL::Config{TEMPDIR} . "/tmprawdata";
+##my $data = $PDL::Config{TEMPDIR} . "/tmprawdata";
+my $data = POSIX::tmpnam();
+print "Tempfile name is '$data'\n";
 
 for my $type (@types) {
   print "checking type $type...\n";
