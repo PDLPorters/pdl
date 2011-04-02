@@ -26,10 +26,10 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fixed sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
 
 
-    
+
 Release Notes for PDL 2.4.8 --------------------------
 
 General Notes:
