@@ -22,7 +22,6 @@ our @types = map { print "making type $_\n";
 
 ##my $data = $PDL::Config{TEMPDIR} . "/tmprawdata";
 my $data = POSIX::tmpnam();
-print "Tempfile name is '$data'\n";
 
 for my $type (@types) {
   print "checking type $type...\n";
