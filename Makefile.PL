@@ -75,11 +75,11 @@ That seems to include the directory '.' before the last entry in the
 path.  Configurations like that might be broken, because they may
 prevent strict division of hierarchy in the module name space.
 In particular, adding a module Foo::Bar::Baz can cause trouble
-if Baz exists in the top level elsewhere, and if you run from the 
-Foo/Bar directory.  
+if Baz exists in the top level elsewhere, and if you run from the
+Foo/Bar directory.
 
 This happens with the PDL::Config and some other modules.  You may
-not be able to build PDL with this \@INC setup.  
+not be able to build PDL with this \@INC setup.
 
 If you strike trouble, you may need to fix your \@INC.
 **********************************************************************
@@ -88,7 +88,7 @@ If you strike trouble, you may need to fix your \@INC.
 EOM
 unless $ENV{PDL_INC_OK};
 }
-	
+
 }
 
 # The user specifies configuration options using the PDL_CONFIG
@@ -171,7 +171,7 @@ EOD
   #
 
   require File::Spec;
-  
+
   $PDL_CONFIG{TEMPDIR} = $^O =~ /MSWin32/i ? 'File::Spec->tmpdir()' : File::Spec->tmpdir()
     unless exists $PDL_CONFIG{TEMPDIR} and defined $PDL_CONFIG{TEMPDIR};
 
@@ -242,7 +242,7 @@ sub make_Version_pm {
   require 'Basic/PDL.pm';
 
   my $versionFile = 'Basic/Core/Version.pm';
-  my $fh = IO::File->new( ">$versionFile" ) or 
+  my $fh = IO::File->new( ">$versionFile" ) or
     die("Can't Open '$versionFile' for Writing!\n");
   print $fh <<"EOVF";
 
@@ -349,7 +349,7 @@ use File::Spec;
 ##############################
 ##############################
 #
-# START: 
+# START:
 # the actual script begins here
 #
 ##############################
@@ -361,7 +361,7 @@ BEGIN{
 
   eval "use 5.6.2";
   die "\nPDL requires Perl v5.6.2 or later\n\n" if $@ ne "";
-  
+
   # Check for white space in build directory
   my $pdl_build_dir = getcwd;
   if ( $pdl_build_dir =~ /\s+/ ) {
@@ -466,7 +466,7 @@ make_Types_pm();
 my %notestsifmodulesmissing = @hasnt ? # are any required modules missing ?
   (test => {TESTS => 't/requiredmods.t'}) : ();
 
-my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"} 
+my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
   qw/perldl pdldoc/;
 
 @prereq = (
@@ -496,9 +496,9 @@ if($^O !~ /mswin32/i) {
 
 
 ##############################
-# Hack to include fPIC on x86_64 systems - 
+# Hack to include fPIC on x86_64 systems -
 # use similar mods to affect CCFLAGS on other systems as needed...
-# 
+#
 
 my $ccflags =  $Config{ccflags};
 if($Config{archname}=~m/x86_64/) {
@@ -511,7 +511,7 @@ if($Config{archname}=~m/x86_64/) {
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, #so that the script docs are picked up
-              'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)', 
+              'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
 	      'OPTIMIZE'  => $PDL::Config{OPTIMIZE} || $Config{optimize},
@@ -525,9 +525,10 @@ if($Config{archname}=~m/x86_64/) {
                                            '@ :' },
 	      'clean' => {
 		  'FILES' => $cleanup .
-		      'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
-		      'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
-                      '_Inline/ .inlinepdlpp/'
+      		'tbyte.tif tmp0 tmp0.hdr tushort.tif ' .
+      		'MANIFEST.bak tmp1* tmpraw* t/tmpraw* t/tmp1* ' .
+      		'_Inline/ .inlinepdlpp/ ' .
+      		'*.xfig '
 		      },
 	      'realclean' => {'FILES' => 'Basic/Core/Config.pm'},
 	      ($] ge '5.005') ? (
@@ -575,15 +576,15 @@ make_PDL_Config_pm(); # write out config to PDL::Config
 
 # Extra build target to build the doc database
 sub MY::postamble {
-  my  $text =               
+  my  $text =
 '
 doctest ::
 	@echo "doctest: Building PDL documentation database in blib ..."
 	@$(PERL) -I$(INST_ARCHLIB) -I$(INST_LIB) \
-		Doc/scantree.pl 
+		Doc/scantree.pl
 %HTML%	@echo "doctest: Building PDL documentation web pages in blib ..."
 %HTML%	@$(PERL)  -I$(INST_ARCHLIB) -I$(INST_LIB) \
-%HTML%		Doc/mkhtmldoc.pl 
+%HTML%		Doc/mkhtmldoc.pl
 
 doc_site_install ::
 	@echo "doc_site_install: Building PDL documentation database ..."
@@ -598,13 +599,13 @@ doc_perl_install ::
 %HTML%	@$(PERL) Doc/mkhtmldoc.pl $(INSTALLARCHLIB)/PDL
 
 ';
-  
+
   if(defined $PDL::Config{HTML_DOCS} && !$PDL::Config{HTML_DOCS}){
     $text=~ s/\%HTML\%[^\n]*\n//og; # Remove %HTML% lines
   } else {
     $text=~ s/\%HTML\%//og; # Remove just %HTML% markers
   }
-    
+
 
 $text .= << "EOPS" ;
 
@@ -652,8 +653,8 @@ return $text
 ##############################
 # processPL: generate Makefile lines for top-level components that are created by just perling a .PL file.
 # This currently (28-October) includes pdl, pdldoc, and perldl.
-# 
-# Nomininally MakeMaker is supposed to just handle this, but seems to create circular dependencies when 
+#
+# Nomininally MakeMaker is supposed to just handle this, but seems to create circular dependencies when
 # left to its own devices. (CED 28-Oct-2008)
 
 #EU::MM's processPL() is continually broken on Win32 ... hence:
@@ -690,7 +691,7 @@ $target ::
 	\$(PERLRUNINST) $plfile $target
 ";
 		} # close foreach
-	    }  
+	    }
 	}
 	return join "", @m;
     }
@@ -754,12 +755,12 @@ EOP
       $vstring = sprintf("%vd",$^V);
     print <<"DEPRECATED-EOM"
 ******************************
-* 
-* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.7, 
+*
+* You are using a deprecated version of perl (v$vstring); as of PDL 2.4.7,
 * perl version 5.8 or greater is required.  Most stuff will probably
 * still work, but perl versions earlier than 5.8 are deprecated and
 * no longer supported or tested against.
-* 
+*
 ******************************
 DEPRECATED-EOM
    } # end of deprecation case
