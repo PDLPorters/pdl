@@ -64,7 +64,7 @@ SKIP: {
    eval '$s = sdump({e=>xvals(25,25)});';
    ok(!$@, 'sdump() of 25x25 PDL to test uuencode dumps');
 
-   #print $s,"\n";
+   #diag $s,"\n";
 
    $a = eval $s;
    ok(!$@, 'Can eval dumped 25x25 PDL');
@@ -73,12 +73,12 @@ SKIP: {
    # output
    #
    if ( $@ ) {
-      print "--- ERROR ---\n";
-      print "--Error message start:\n";
-      print $@;
-      print "\n--Error message end:\n";
-      print "String was:\n$s\n";
-      print "--- ERROR (end) ---\n";
+      diag "--- ERROR ---\n";
+      diag "--Error message start:\n";
+      diag $@;
+      diag "\n--Error message end:\n";
+      diag "String was:\n$s\n";
+      diag "--- ERROR (end) ---\n";
    }
 
    ok((ref $a eq 'HASH'), 'HASH structure for uuencoded 25x25 PDL restored');
