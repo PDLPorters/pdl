@@ -26,7 +26,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fix temporary file generation problems with IO/Dumper.pm,
+   t/iotypes.t, and add temp file cleanup code to Makefile.PL
+ 
+ * Add additional dependencies in the Makefile generation
+   for Basic/Core/Makefile.PL to address the parallel make
+   failures.
 
 
 
