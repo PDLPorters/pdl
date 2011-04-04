@@ -26,7 +26,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   Each item has some task description based on the
   current status.
 
-T  Update task list after PDL-2.4.8 release.
+   Update task list after PDL-2.4.8 release.
 
   
 
@@ -43,7 +43,7 @@ T  Update task list after PDL-2.4.8 release.
 |                       TESTING                         |
 +-------------------------------------------------------+
 
-   Convert remaining PDL tests to use Test::More:
+   Convert these PDL tests to use Test::More:
    * basic.t
    * bess.t
    * callext.t
@@ -77,7 +77,10 @@ T  Update task list after PDL-2.4.8 release.
 
    Need to test PDL build from scratch
    * Unix/Linux/BSD
-   * Windows/cygwin
+   * Windows
+     - cygwin
+     - activestate perl
+     - strawberry perl
    * Mac OS X
    
 
@@ -93,6 +96,7 @@ T  Update task list after PDL-2.4.8 release.
    * Implemented via the Test::More TODO {} block feature
    * Ignores FAIL for tests flagged as TODO
    * All bug reports should have a test in PDL/t
+   * Convert t/dumper.t to use TODO block
 
 
    Clean up and triage for tickets prior to release.
@@ -137,6 +141,9 @@ T  Update task list after PDL-2.4.8 release.
    * Convert PDL::Slatec to use C with f2c of source
    * Convert PDL::Minuit to use C with f2c of source 
    
+
+   Fix IO/Browser build to properly check for the curses
+   library and build if available.
 
 
 +-------------------------------------------------------+
@@ -263,6 +270,11 @@ T  Clean up build output from make process to reduce cruft
 |                    INSTALLATION                       |
 +-------------------------------------------------------+
    
+   Switch from ExtUtils::MakeMaker to Module::Build
+   * Removes portability problems from shell and make
+   * Easier to extend
+
+
    Fix the test problems with preexisting PDL installs
    * Develop test methodology
    * Add PDL::Core::Dev utility to perform check
@@ -294,11 +306,15 @@ T  Clean up build output from make process to reduce cruft
    Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2
    * Fix Ctrl-C handling for win32 systems
-   * Add safe pdl allocation option to prevent OOM death
    * Update documentation
    * See Perldl2/TODO for the pdl2-specific list.
 
+
+   Add support for 64bit data:
+   * Add safe pdl allocation option to prevent OOM death
+   * Update allocation and types to support 64bit data
    
+
    Add support for improved 2-D image display using OpenGL
    * Add threaded 2-D image tile display to imag2d
    * Enable REPL and GUI simultaneous operations and event loops
@@ -387,6 +403,7 @@ T  Clean up build output from make process to reduce cruft
      * The computational algorithms
      * The input/output locations 
    
+
    Update HDF docs
    * HDF5 and HDF4 are entirely different beasts (and totally incompatible)
    * The PDL::IO::HDF library uses HDF4.
