@@ -90,7 +90,7 @@ This package comes with NO WARRANTY.
 # use PDL::NiceSlice;
 
 package PDL::IO::Dumper;
-use POSIX qw(tmpnam);
+use File::Temp;
 
 
 BEGIN{
@@ -408,7 +408,7 @@ are supported).
 #
 sub _make_tmpname () {
     # should we use File::Spec routines to create the file name?
-    return POSIX::tmpnam() . "-tmp-$$.fits";
+    return File::Temp::tmpnam() . ".fits";
 }
 
 # For uudecode_PDL:
