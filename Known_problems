@@ -36,7 +36,7 @@ The following issues have been reported with this version of PDL:
 - Multiline q'' constructs in the pdl2 shell now work correctly
   but you'll need to avoid using the q abbreviation for quit
   in pdl2 (at least until the multiline plugin in Devel::REPL
-  can be updated appropriately.  If you do get "stuck" in a q
+  can be updated appropriately).  If you do get "stuck" in a q
   quit attempt, just type Ctrl-D to exit the shell.
 
 
@@ -83,10 +83,6 @@ The following issues have been reported with this version of PDL:
   PDL-2.4.8_003 release:
 
   3234141    max() fails on nan
-  3190227    PDL build fails with parallel GNU make -j3 -j3
-
-               May be fixed with this release
-
   3161459    online docs don't link to functions in other PDL modules 
   3080505    PLplot segfaults on plshades call on OS X
   3059083    Problems with FITS header handling

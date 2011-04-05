@@ -2,7 +2,9 @@ Release Notes for PDL 2.4.8_003 --------------------------
 
 General Notes:
 
- * Another quick CPAN developers release
+ * This CPAN developers release is planned to be the
+   prerelease for a very quick PDL-2.4.9 stable release.
+   Please test.
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -26,7 +28,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Fix sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
+ 
+ * Fix sf.net bug #3190227 "PDL build fails with parallel GNU make -j3 -j3"
+
+ * Fixed various tempfile name generation problems by switching
+   to File::Temp instead of hand rolled solutions.  This is the
+   recommended approach going forward.
 
 
 
