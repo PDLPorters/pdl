@@ -117,7 +117,10 @@ BEGIN{
   };
   # make sure not to use uuencode/uudecode
   # on MSWin32 systems (it doesn't work)
-  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
+  # Force Convert::UU for BSD systems to see if that fixes uudecode problem
+  if ($^O !~ /(MSWin32|bsd)$/) {
+     $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
+  }
 
   use PDL;
   use PDL::Exporter;

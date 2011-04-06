@@ -1,3 +1,39 @@
+Release Notes for PDL 2.4.8_004 --------------------------
+
+General Notes:
+
+ * This CPAN developers release is planned to be the
+   prerelease 2 for a very quick PDL-2.4.9 stable release.
+   Please test.
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.8_004.tar.gz
+       cpan> make chm/pdl-2.4.8_004.tar.gz
+       cpan> test chm/pdl-2.4.8_004.tar.gz
+       cpan> look chm/pdl-2.4.8_004.tar.gz
+
+
+Highlights:
+
+ * Force Convert::UU usage for BSD to see if that resolves
+   the t/dumper.t failure for MirBSD.  Maybe the -s option
+   will work here.
+
+
+
 Release Notes for PDL 2.4.8_003 --------------------------
 
 General Notes:
