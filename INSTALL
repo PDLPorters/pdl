@@ -88,10 +88,6 @@ the developers with a full bug report; response is
 often rapid (We would like to have PDL work right out
 of the box on as many platforms as possible).
 
-IMPORTANT: Don't use parallel make options to compile
-PDL as there is a known problem reported for GNU make
-with -j # .
-
 If the make command completed successfully, try:
 
 	make test
