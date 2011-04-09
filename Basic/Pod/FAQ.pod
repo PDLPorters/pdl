@@ -10,7 +10,7 @@ Current FAQ version:  0.99
 
 =head1 DESCRIPTION
 
-This is version  0.98 of the PDL FAQ, a collection of  frequently 
+This is version  0.99 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
