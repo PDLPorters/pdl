@@ -26,7 +26,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   Each item has some task description based on the
   current status.
 
-   Update task list after PDL-2.4.8 release.
+   Update task list after PDL-2.4.x release.
 
   
 
@@ -154,7 +154,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Review current documentation (underway)
-   * Verify correctness and consistency with PDL-2.4.8+
+   * Verify correctness and consistency with PDL-2.4.9+
    * Update documentation where needed.
    * Add web searchable versions of the docs.
    * Maybe a wiki format could be used to improve docs 
@@ -221,7 +221,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Update PDL Book (in progress)
-   * Needs updating to match PDL-2.4.8 from PDL-2.4.3
+   * Needs updating to match PDL-2.4.9 from PDL-2.4.3
    * make a web version available on-line if possible
    
      Matt Kenworthy has been working on web-izing
@@ -259,6 +259,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Windows: Strawberry Perl Professional, ActivePerl
    * Unix OSes: Various package managers
    
+
 T  Clean up build output from make process to reduce cruft
    * Collect build output into build log file by default
    * Add an output filter to the text collected from the
@@ -278,7 +279,7 @@ T  Clean up build output from make process to reduce cruft
    Fix the test problems with preexisting PDL installs
    * Develop test methodology
    * Add PDL::Core::Dev utility to perform check
-   * Automate detection/test skip if not build logic
+   * Automate detection/test skip if not built logic
 
    
    Check/set perldl.conf options before the build

@@ -1,17 +1,7 @@
 The following issues have been reported with this version of PDL:
 
-- If you have a pre-existing PDL install in your perl @INC path,
-  mysterious failures have been observed in some tests due to
-  unintentionally pulling in a previous version of PDL.  The
-  'perl Makefile.PL' stage now checks for this and warns you.
 
-  NOTE: many tests for modules with external dependencies now
-  check if the module was actually built before running the
-  tests.  The warning is left in as a reminder until all module
-  test files have been so updated.
-
-
-- The PDL build process also checks for white space in the build
+- The PDL build process checks for white space in the build
   directory as that is known to cause problems for some modules
   and asks you if you wish to continue [default is yes].
 
@@ -19,7 +9,7 @@ The following issues have been reported with this version of PDL:
   environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
 
 
-- The Perl debugger for perls 5.10.1 through 5.12 has a new
+- The Perl debugger for perls 5.10.1 through 5.12+ has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
   an affected perl version, the work around is to use an
@@ -80,7 +70,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9 release:
+  PDL-2.4.9_001 release:
 
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules 
