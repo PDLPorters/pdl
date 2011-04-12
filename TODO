@@ -92,6 +92,42 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Add any issues to Known_problems
 
 
+   These modules aren't tested by CPAN Testers because of dependencies:
+   * PDL::FFTW
+     - FFTW2 is out-of-date and not typically installed
+     - need to migrate to FFTW3
+     - Alien::FFTW
+   * PDL::Slatec
+   * PDL::Minuit
+     - need Fortran compilter and ExtUtils::F77
+     - f2c conversion of code
+   * PDL::IO::GD
+     - needs libgd
+     - Alien::GD
+   * PDL::IO::HDF
+     - based on HDF4
+     - need to migrate to allow HDF5
+     - Alien::HDF5
+     - add binding to libhdf5
+   * PDL::GSL::XXX
+     - need more complete libgsl bindings
+     - Alien::GSL
+   * PDL::GIS::Proj
+   * PDL::Transform::Proj4
+     - Alien::Proj4
+   * PDL::Graphics::TriD
+     - Alien::OpenGL, GLU, GLEW, GLUT, GLUI...
+     - test with pixel buffer context(?)
+   * PDL::Graphics::PGPLOT
+     - needs portable driver (OpenGL)
+     - Alien::PGPLOT
+     - apply/update RGB color patches to current
+   * PDL::Graphics::PLplot
+     - need portable driver (OpenGL)
+     - Alien::PLplot
+     - need low-level PLplot interface
+
+
    Add support for Known_problems to tests
    * Implemented via the Test::More TODO {} block feature
    * Ignores FAIL for tests flagged as TODO
