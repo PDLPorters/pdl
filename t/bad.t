@@ -13,7 +13,8 @@ use Test::More;
 #
 use constant ABSTOL => 1.0e-4;
 
-my $fname = 'delme.fits';
+use File::Temp qw( tempfile );
+my (undef, $fname) = tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
 
 END {
     unlink $fname if -e $fname;

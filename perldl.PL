@@ -717,8 +717,7 @@ __END__
 
 =head1 NAME
 
-  perldl - Simple shell for PDL (also see pdl2)
-
+perldl - Simple shell for PDL (see also L<pdl2>)
 
 =head1 SYNOPSIS
 
@@ -773,7 +772,7 @@ discussed near the end of this document.
 The PDL reference manual and online help are available from within 
 B<perldl>, using the B<help> and B<apropos> commands (which may also
 be abbreviated B<?> and B<??>.)   The B<help> command alone prints a summary of
-help syntax, and B<help  E<lt>module-nameE<gt>> will print POD documentation
+help syntax, and B<<help <module-name> >> will print POD documentation
 from the module you mention (POD is the Perl format for embedding 
 documentation in your perl code; see L<perlpod> for details).
 
@@ -785,7 +784,7 @@ and be able to format and display it on demand.
 
 If you have the perl modules ReadLines and ReadKeys installed, then
 B<perldl> supports a history and line-editing mechanism using editing
-keys similar to L<emacs(1)>. The last 50 commands are always stored in
+keys similar to L<emacs>. The last 50 commands are always stored in
 the file F<.perldl_hist> in your home directory between sessions.
 Set C<$PERLDL::HISTFILESIZE> to change the number of lines saved.
 The command C<l [number]> shows you the last C<number> commands you
@@ -1097,6 +1096,15 @@ $PERLDL::TERM
 This is the Term::ReadLine object associated with the perldl
 shell. It can be used by routines called from perldl if your
 command is interactive.
+
+=item *
+
+$PDL::toolongtoprint
+
+The maximal size pdls to print (defaults to 10000 elements).
+This is not just a C<perldl> or C<pdl2> variable but it is
+something that is usually needed in an interactive debugging
+session.
 
 =back
 

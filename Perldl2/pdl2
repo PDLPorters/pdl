@@ -33,11 +33,11 @@ __END__
 
 =head1 NAME
 
-  pdl2 - Simple shell (version 2) for PDL
+pdl2 - Simple shell (version 2) for PDL
 
 =head1 SYNOPSIS
 
-  Use PDL interactively:
+Use PDL interactively:
 
   %> pdl2
 
@@ -48,25 +48,67 @@ __END__
 
 =head1 DESCRIPTION
 
-The pdl2 program, also known as the Perldl2 shell, is a second
-generation version of the original perldl interactive PDL shell.
+The C<pdl2> program, also known as the Perldl2 shell, is a second
+generation version of the original C<perldl> interactive PDL shell.
 It attempts to be backward compatible in usage while providing
-improved more features, better support for Perl syntax, built
-on an easier to extend framework based on L<Devel::REPL>.
+improved features, better support for Perl syntax, and an more
+easily extended framework based on the L<Devel::REPL> shell.
 
-If you have L<Devel::REPL> version 1.003011 or later, then pdl2
+If you have L<Devel::REPL> version 1.003011 or later, then C<pdl2>
 will start with full functionality.  If L<Devel::REPL> is not
 installed or found then C<pdl2> will print a warning and run
 the legacy C<perldl> shell command instead.
 
 By default, command lines beginning with the default prompt
-of either pdl2 or perldl (one of 'pdl> ', 'PDL> ', or 'perldl> ')
-will have the prefix string and surrounding whitespace stripped.
-This allows for easy cut-and-paste from example PDL shell
-sessions or examples into another shell session.
+of either C<pdl2> or C<perldl> (one of 'pdl> ', 'PDL> ', or
+'perldl> ') will have the prefix string and surrounding
+whitespace stripped.  This allows for easy cut-and-paste
+from sample PDL shell sessions or other examples into another
+PDL shell session.
+
+=head1 FUNCTIONS
+
+=head2 do_print
+
+=for ref
+
+Toggle print-by-default on and off (default value: off)
+
+By default, C<pdl2> does not print the results of operations
+since the results can be very large (e.g., a small 640x480
+RGBA image is still more than 1_000_000 elements).  However,
+for experimenting and debugging more complex structures,
+it helps to see the results of I<every> operation.  The
+C<do_print> routine allows you to toggle between the default
+"quiet" operation and a full Read, Evaluate, Loop style.
+
+=for example
+
+  pdl> $a = pdl(3,2)
+
+  pdl> do_print
+  1
+  pdl> $a = pdl(3,2)
+  $PDL1 = [3 2];
+  pdl> do_print
+
+  pdl> $a = pdl(3,2)
+
+=head1 VARIABLES
+
+=over 4
+
+=item $PDL::toolongtoprint
+
+The maximal size pdls to print (defaults to 10000 elements).
+This is not just a C<perldl> or C<pdl2> variable but it is
+something that is usually needed in an interactive debugging
+session.
+
+=back
 
 =head1 SEE ALSO
 
-L<perldl>
+L<perldl>, L<Devel::REPL>
 
 =cut

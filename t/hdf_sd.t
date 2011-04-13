@@ -23,7 +23,7 @@ BEGIN
         }  
         else
         {
-            plan tests => 32;
+            plan tests => 36;
         }
     }
     else
@@ -57,6 +57,7 @@ my $SDobj = PDL::IO::HDF::SD->new( "-$testfile" );
         
 #Define some data
 my $data = sequence(short, 500, 5);
+my $square_data = sequence(short, 50, 50);
 
 # TEST 1:
 #Put data in file as 'myData' dataset
@@ -92,10 +93,15 @@ ok( $SDobj->SDsetvalueattr( PDL::short( 20 ), "myGValue"), 'SDSetvalueattr() (gl
 #Set a local value attribut (you can put all values you want)
 ok( $SDobj->SDsetvalueattr( PDL::long( [20, 15, 36] ), "myLValues", "myData" ), 'SDSetvalueattr() (local)' );
 
+# TEST 9:
+#Put square_data in file as 'mySquareData' dataset
+#with the names of dimensions ('square_dim' and 'square_dim')
+ok( $SDobj->SDput("mySquareData", $square_data , ['square_dim','square_dim']), 'SDput()' );
+
 #Close the file
 $SDobj->close;
 
-# TEST 9:
+# TEST 10:
 # Test Hishdf:
 ok( PDL::IO::HDF::SD::Hishdf( $testfile ), 'Hishdf()' );
     
@@ -104,45 +110,72 @@ ok( PDL::IO::HDF::SD::Hishdf( $testfile ), 'Hishdf()' );
 #Open an HDF file in read only mode
 my $SDobj2 = PDL::IO::HDF::SD->new( $testfile );
 
-# TEST 10:
+# TEST 11:
 #Get a list of all datasets
 my @dataset_list = $SDobj2->SDgetvariablenames();
 ok( $#dataset_list+1, 'SDgetvariablenames()' );
 
-# TEST 11:
+# TEST 12:
 #Get a list of all global attributes name
 my @globattr_list = $SDobj2->SDgetattributenames();
 ok( $#globattr_list+1, 'SDgetattributenames() (global)' );
 
-# TEST 12:
+# TEST 13:
 #Get a list of local attributes name for a dataset
 my @locattr_list = $SDobj2->SDgetattributenames( "myData" );
 #print "\@locattr_list = " . join(", ", @locattr_list ) . "\n";
 ok( $#locattr_list+1, 'SDgetattributenames() (local)' );
 
-# TEST 13:
+# TEST 14:
 #Get the value of local attribute for a dataset
 my $value = $SDobj2->SDgetattribute( "myLText", "myData" );
 ok( defined($value), 'SDgetattribute() (local)' );
 
-# TEST 14:
+# TEST 15:
 #Get the all dataset 'myData'
 $data = $SDobj2->SDget("myData");
 ok( $data->nelem() > 0, 'SDget()' );
 #print "info : ".$data->info."\n";
 
-# TEST 15:
+# TEST 16:
+#Get dimension name of dataset 'myData'
+my @dim = $SDobj2->SDgetdimnames("myData");
+ok( ($dim[0] eq "dim1") && ($dim[1] eq "dim2") , 'SDgetdimnames()' );
+
+# TEST 17:
+#Get dimension size of dataset 'myData'
+my @dim_square = $SDobj2->SDgetdimsize("myData");
+ok( ($dim_square[0] == 5) && ($dim_square[1] == 500), 'SDgetdimsize()' );
+
+# TEST 18:
+#Get dimension name of dataset 'mySquareData'
+@dim_square = $SDobj2->SDgetdimnames("mySquareData");
+ok( ($dim_square[0] eq "square_dim") && ($dim_square[1] eq "square_dim"), 'SDgetdimnames()' );
+
+# TEST 19:
+# Get dimension size of dataset 'mySquareData'
+@dim_square = $SDobj2->SDgetdimsize("mySquareData");
+ok( ($dim_square[0] == 50) && ($dim_square[1] == 50), 'SDgetdimsize()' );
+
+# TEST 20:
+#Get the all dataset 'mySquareData'
+my $square_data_get = $SDobj2->SDget("mySquareData");
+ok( $square_data_get->nelem() > 0, 'SDget()' );
+#print "info : ".$data->info."\n";
+
+
+# TEST 21:
 #Apply the scale factor of 'myData'
 my $res = $SDobj2->SDgetscalefactor("myData");
 ok( defined($res), 'SDgetscalefactor()' );
 
-# TEST 16:
+# TEST 22:
 #Get the fill value
 #The fill value corresponding to the BAD value in pdl
 $res = $SDobj2->SDgetfillvalue("myData");
 ok( defined($res), 'SDgetfillvalue()' );
 
-# TEST 17:
+# TEST 23:
 #Get the valid range of datas
 my @range = $SDobj2->SDgetrange("myData");
 ok( $#range+1, 'SDgetrange()' );
@@ -158,20 +191,14 @@ $SDobj2->close;
 undef($data);
 my $HDFobj = PDL::IO::HDF::SD->new("-$testfile");
 
-# TEST 18:
+# TEST 24:
 #Define some data
 $data = ones( short, 5000, 5);
 #Put data in file as 'myData' dataset
 #with the names of dimensions ('dim1' and 'dim2')
 ok( $HDFobj->SDput("myData", $data , ['dim1','dim2']), 'SDput()' );
 
-# TEST 19:
-# Compress the SD dataset
-# No longer necessary with chunking on by default:
-#$res = $HDFobj->SDsetcompress("myData", 5);
-ok( 1, 'Compress SD dataset (obsolete)' );
-
-# TEST 20:
+# TEST 25:
 $HDFobj->SDput("myData", $data , ['dim1','dim2']);
 $data = $HDFobj->SDget("myData");
 ok( $data->nelem(), 'SDget()' );
@@ -183,14 +210,14 @@ $HDFobj->close();
 #
 my $hdf = PDL::IO::HDF::SD->new( "-$testfile" );
 
-# TEST 21:
+# TEST 26:
 # Make sure chunking is on by default:
 ok( $hdf->Chunking(), 'Chunking()' );
 
 # Turn off chunking:
 $hdf->Chunking(0);
 
-# TEST 22:
+# TEST 27:
 # Make sure it's really off:
 ok( !$hdf->Chunking(), 'Chunking(0)' );
 
@@ -198,14 +225,14 @@ ok( !$hdf->Chunking(), 'Chunking(0)' );
 my $dataset = sequence( byte, 10, 10 );
 $res = $hdf->SDput( "NO_CHUNK", $dataset );
 
-# TEST 23:
+# TEST 28:
 # Make sure we can write unchunked SDs:
 ok( $res, 'SDput() (unchunked)' );
 
 $hdf->close();
 undef($hdf);
 
-# TEST 24 & 25:
+# TEST 29 & 30:
 # Make sure we can read it properly:
 $hdf = PDL::IO::HDF::SD->new( $testfile );
 
@@ -227,12 +254,12 @@ $hdf = PDL::IO::HDF::SD->new( "-$testfile" );
 
 my $dataset2d = sequence( long, 200, 200 );
 
-# TEST 26:
+# TEST 31:
 # Make sure the chunked write works:
 $res = $hdf->SDput( "CHUNK_2D", $dataset2d );
 ok( $res, 'SDput() (chunked, 2D)' );
 
-# TEST 27:
+# TEST 32:
 # Make sure it works with more than 2 dims:
 my $dataset3d = sequence( long, 200, 200, 10 );
 $res = $hdf->SDput( "CHUNK_3D", $dataset3d );
@@ -244,7 +271,7 @@ undef($hdf);
 # Verify the datasets we just wrote:
 $hdf = PDL::IO::HDF::SD->new( $testfile );
 
-# TEST 28 & 29:
+# TEST 33 & 34:
 my $dataset2d_test = $hdf->SDget( "CHUNK_2D" );
 $good = $dataset2d_test->nelem() > 0;
 ok( $good, 'SDget() (chunked, 2D)' );
@@ -254,7 +281,7 @@ SKIP: {
     ok( tapprox( $dataset2d, $dataset2d_test ), 'comparing datasets written out and read in (chunked, 2D)' );
 }
 
-# TEST 30 & 31:
+# TEST 35 & 36:
 my $dataset3d_test = $hdf->SDget( "CHUNK_3D" );
 $good = $dataset3d_test->nelem() > 0;
 ok( $good, 'SDget() (chunked, 3D)' );
@@ -321,10 +348,7 @@ foreach my $Vname ( $$H{VS}->VSgetnames() )
     }
 }
 
-# TEST 32:
 $H->close();
-ok( 1 );
-
 
 # Remove the testfile:
 unlink( $testfile );

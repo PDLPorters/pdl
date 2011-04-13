@@ -1,32 +1,57 @@
 Installing on Win32
 ===================
-To install via ppm for Strawberry Perl and ActiveState Perl:
+To install via ppm for Strawberry Perl (for 32-bit builds only, as their 64-bit builds
+don't provide a ppm utility) and ActiveState Perl (both 32-bit and 64-bit builds):
 
-First up install Astro::FITS::Header by running:
+First up install Astro::FITS::Header and Convert::UU by running:
 
   ppm install Astro-FITS-Header
+  ppm install Convert-UU
 
+Then install the OpenGL, PGPLOT and PDL modules from the sisyphusion repo by running:
 
-Then install the OpenGL, PGPLOT and PDL modules from the uwinnipeg rep by running:
+  For 32-bit builds of perl (versions 5.8 and later):
+    ppm install http://www.sisyphusion.tk/ppm/OpenGL.ppd
+    ppm install http://www.sisyphusion.tk/ppm/PGPLOT.ppd
+    ppm install http://www.sisyphusion.tk/ppm/PDL.ppd
 
-  For perl 5.8:
-    ppm install http://theoryx5.uwinnipeg.ca/ppms/OpenGL.ppd
-    ppm install http://theoryx5.uwinnipeg.ca/ppms/PGPLOT.ppd
-    ppm install http://theoryx5.uwinnipeg.ca/ppms/PDL.ppd
-  
-  Or for perl 5.10:
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/OpenGL.ppd
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PGPLOT.ppd
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/10xx/PDL.ppd
-  
-  Or for perl 5.12:
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/OpenGL.ppd
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/PGPLOT.ppd
-    ppm install http://cpan.uwinnipeg.ca/PPMPackages/12xx/PDL.ppd
-  
-(Note that the ActiveState ppm for PDL currently lacks some of
+  For 64-bit builds of perl, ppm packages are provided only for perl versions 5.10 and later.
+  Also, there are no PGPLOT packages for these builds - so just run:
+
+    ppm install http://www.sisyphusion.tk/ppm/OpenGL.ppd
+    ppm install http://www.sisyphusion.tk/ppm/PDL.ppd
+
+Note that the ActiveState ppm for PDL currently lacks some of
 the functionality that is available in the above PDL ppm packages
-from uwinnipeg.)
+from sisyphusion.
+Note also that it's best to install both OpenGL and PDL from the *same* repo - ie
+either install *both* from the ActiveState repo, or install *both* from the
+sisyphusion repo. (The difference being that ActiveState's OpenGL and PDL packages
+are built against a dynamic freeglut library, whereas the sisyphusion ppm packages
+are built against a static freeglut library.)
+
+Having installed the relevant ppm package, PLPLOT and PROJ4 support is enabled by
+setting the PLPLOT_LIB and PROJ_LIB environment variables to the location of the
+plplot_supp and proj_supp folders (respectively). The ppm post-install script will
+terminate with a message that tells you the settings these environment variables
+should take on. (If you missed the message, the two folders will be in your
+perl/site/lib directory - eg, for most builds of ActivePerl the PLPLOT_LIB
+environment variable would be set to C:\perl\site\lib\PDL\plplot_supp, and PROJ_LIB
+would be set to C:\perl\site\lib\PDL\proj_supp.)
+
+Installing ffmpeg will enable the creation of mp4 and animated gif files, whereby
+one can turn a piddle of images into a movie.
+For a demo of this feature, create an mp4 file (bounce.mp4) by running the
+Example/IO/wmpeg.pl that ships with the PDL source.
+The requisite ffmpeg binaries are available from a number of places, including
+(at time of writing):
+ http://ffmpeg.arrozcru.org/autobuilds/
+ http://www.videohelp.com/tools/ffmpeg
+but googling for 'ffmpeg download' should turn up useful hits if those 2 links
+become dead in the future.
+
+########################################################################
+########################################################################
 
 If you would like, instead, to build PDL from source, that's also easy!!
 
@@ -41,22 +66,23 @@ To Build from Source
 1) You'll need a make utility and a compiler - dmake/MinGW provides
    best mileage.  To install them onto ActivePerl (if you don't
    already have them) simply:
-   
+
    ppm install MinGW
 
 2) Then run:
 
    cpan -i ExtUtils::F77    # Optional - this is for "the fortran stuff".
                             # This will fail if using a Microsoft Compiler
-			    # (see "Other Options" below).
+			          # (see "Other Options" below).
                             # This will also fail on Strawberry Perl
-			    # (no fortran compiler)
+			          # (no fortran compiler)
 
    cpan -i PGPLOT           # Optional - for PGPLOT graphics support.
-                            # This will # fail if pgplot can't be found.
-			    # It will also fail if no Fortran compiler is
-			    # found---simpler to install using ppm
-			    # (see above).
+                            # This will fail if the pgplot C library can't
+                            # be found.
+			          # It will also fail if no Fortran compiler is
+			          # found---simpler to install using ppm
+			          # (see above).
 
    cpan -i OpenGL           # Optional - this is for PDL's TriD support.
                             # Also available via ppm (see above) if there
@@ -67,7 +93,7 @@ To Build from Source
 If it's a developer release that you're trying to install then you'll
 need to specify the full distribution path info, e.g.:
 
-   cpan -i CHM/PDL-2.4.6_015.tar.gz
+   cpan -i CHM/PDL-2.4.7_001.tar.gz
 
 
 
@@ -104,6 +130,7 @@ Other Options
  d) PDL::GIS::Proj & PDL::Transform::Proj4 (needs the proj4 C library);
  e) PDL::FFTW (needs the fftw2 C library)
 
-As of the release of PDL-2.4.7, all of this functionality will be provided
-by the above mentioned ppm packages. The PDL-2.4.6 packages do not provide
-the plplot and proj4 functionality.
+As of the release of PDL-2.4.7 (and later), all of this functionality is
+provided by the above mentioned ppm packages.
+
+

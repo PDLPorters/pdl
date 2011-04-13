@@ -206,7 +206,8 @@ int fsolver (double *xfree, int  nelem, double epsabs, int method)
     }
   while (status == GSL_CONTINUE && iter < 1000);
   
-  printf ("Final status = %s\n", gsl_strerror (status));
+  if (status) 
+      warn ("Final status = %s\n", gsl_strerror (status));
 
   for (iloop=0;iloop<nelem; iloop++) {
     xfree[iloop] = gsl_vector_get (s->x, iloop);

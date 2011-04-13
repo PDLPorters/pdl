@@ -1,8 +1,394 @@
+Release Notes for PDL 2.4.9_001 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.9_001.tar.gz
+       cpan> make chm/pdl-2.4.9_001.tar.gz
+       cpan> test chm/pdl-2.4.9_001.tar.gz
+       cpan> look chm/pdl-2.4.9_001.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.9 --------------------------
+
+General Notes:
+
+ * Fixes a couple of surprise bugs that were discovered
+   immediately with the PDL-2.4.8 release.
+
+ * See Also: the Release Notes for PDL-2.4.8 below
+
+
+Highlights:
+
+ * Fix sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
+ 
+ * Fix sf.net bug #3190227 "PDL build fails with parallel GNU make -j3 -j3"
+
+ * Fixed various tempfile name generation problems by switching
+   to File::Temp instead of hand rolled solutions.  This is the
+   recommended approach going forward.
+
+ * Force Convert::UU usage for BSD to work around a t/dumper.t
+   failure on MirBSD.
+
+
+
+Release Notes for PDL 2.4.8_004 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.9 pre-release 2.
+
+
+Highlights:
+
+ * See the PDL-2.4.9 release notes above.
+
+
+
+Release Notes for PDL 2.4.8_003 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.9 pre-release 1.
+
+
+Highlights:
+
+ * See the PDL-2.4.9 release notes above.
+
+
+
+Release Notes for PDL 2.4.8_002 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.8_002.tar.gz
+       cpan> make chm/pdl-2.4.8_002.tar.gz
+       cpan> test chm/pdl-2.4.8_002.tar.gz
+       cpan> look chm/pdl-2.4.8_002.tar.gz
+
+
+Highlights:
+
+ * Fix temporary file generation problems with IO/Dumper.pm,
+   t/iotypes.t, and add temp file cleanup code to Makefile.PL
+ 
+ * Add additional dependencies in the Makefile generation
+   for Basic/Core/Makefile.PL to address the parallel make
+   failures.
+
+
+
+Release Notes for PDL 2.4.8_001 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.8_001.tar.gz
+       cpan> make chm/pdl-2.4.8_001.tar.gz
+       cpan> test chm/pdl-2.4.8_001.tar.gz
+       cpan> look chm/pdl-2.4.8_001.tar.gz
+
+
+Highlights:
+
+ * Fixed sf.net bug #3267408 "t/slice.t crashes in tests 68-70 for BSD"
+
+
+
+Release Notes for PDL 2.4.8 --------------------------
+
+General Notes:
+
+ * The deprecated Karma imaging library support code
+   has been removed from the PDL distribution.
+ 
+ * Perl OpenGL (POGL) is now the only build option for
+   3-D graphics support in PDL.  The POGL build has
+   proven to be portable and reliable.  This prepares
+   TriD graphics development for the next stage of
+   re-factoring for support and new features.
+ 
+ * Many improvements to the PDL configuration, build
+   and test process make this the most robust PDL yet.
+ 
+ * PDL::IO::FlexRaw now supports automatic header file
+   creation when writeflex() is given a filename argument
+   for writing.  readflex/writeflex/mapflex now support
+   reading and writing piddles with bad values in them.
+ 
+ * New PDL::Constants module provides PI and E.
+
+ * PDL::Complex now supports in-place operations.
+
+ * Added $PDL::toolongtoprint to set the maximum piddle
+   size allowed to print as a string.  This was added
+   to the default.perldlrc to make it easier to discover
+   by users.
+
+ * wmpeg() from PDL::IO::Pic uses the new ffmpeg back-end
+   and can create many additional file formats beyond MPEG
+   alone, including MP4 and animated GIF.  See the
+   documentation for details.
+ 
+ * Lots of improvements to the documentation, overall
+   usability and many bugs fixed!
+
+Highlights:
+
+ Build and Test Enhancements:
+
+ * Karma support code has been *removed* from the PDL
+   distribution The last stable PDL distribution with
+   Karma code was be PDL-2.4.7.
+   
+ * You must use the Perl OpenGL module to build the
+   PDL 3-D graphics module, PDL::Graphics::TriD.
+   OPENGL_LIBS, OPENGL_INC and OPENGL_DEFINE are no
+   longer used by perldl.conf for the configuration
+   process.
+   
+ * Added a check for mis-installed PROJ4 libraries.  If
+   the library does not initialize (even if present) then
+   PDL will not build the PROJ4 modules.  This is sf.net
+   feature #3045456.
+   
+ * GD, HDF, PROJ4, OpenGL, and GSL tests will not be run
+   unless the corresponding module was configured to be
+   built.  This addresses the possibly mysterious test
+   failures caused by previous PDL installations in the
+   perl path at build time.
+   
+ * Use of the Test::More TODO {} blocks allows tests for
+   known bugs to be added to the test suite without 
+   causing the suite to fail.  This replaces the previous
+   SKIP_KNOWN_PROBLEMS option and should better enable
+   test first development and debugging.
+   
+ * utils/perldlpp.pl is a new script for off-line source
+   filtering to pre-filter PDL source files with NiceSlice
+   constructs.  This allows PDL to use NiceSlice constructs
+   in the core functionality while still allowing PDL to
+   work in environments where source filters are not supported.
+   
+ * The 'perl Makefile.PL' response to detecting another PDL
+   in the build path has changed.  If such a pre-existing PDL
+   installation is detected, the user is warned *but*
+   configuration and build will proceed nonetheless.
+   
+ * Clean-up and fixes to demos and tests for reliability and
+   portability.
+
+ Documentation:
+
+ * Added INTERNATIONALIZATION file with i18n notes.  PDL
+   does yet not have internationalization support beyond
+   that provided  by perl itself.
+   
+ * Cleared up the documentation on when to use lu_decomp
+   and versus lu_decomp2.  Now that lu_decomp is threaded,
+   it is the preferred implementation.
+   
+ * wmpeg() with the ffmpeg converter supports generation of
+   many different output video file formats including MPEG,
+   MP4, and animated GIF.  Documentation on these uses were
+   added.
+
+ * New example code refresh.pdl in Example/PLplot to
+   provide for PLplot, some of the same functionality
+   as in PDL::Graphics::PGPLOT.
+   
+ * Other documentation updates for clarity and correctness.
+
+ New Features or Functionality:
+
+ * New PDL::Constants module providing PI and E (so far)
+   
+ * Inplace support added for PDL::Complex operations
+   
+ * pdldoc and the pdl2/perldl help commands now print all
+   matches by default when multiple matches are found.
+
+ * A do_print command was added to the pdl2 shell which
+   toggles the input mode between printing and not
+   printing the return value of each command.
+   
+ * readflex/writeflex/mapflex now support reading and writing  
+   piddles with bad values in them. This was sf.net feature
+   request #3028127, "add badvalue support to FlexRaw".
+   
+ * writeflex now supports automatically calling the
+   writeflexhdr() routine if you have set the variable
+   $PDL::FlexRaw::writeflexhdr to a true value and are
+   writing to a file given by filename as argument.
+   
+ * Updated the error handling for GSL::INTERP to match other
+   GSL module usages.
+   
+ * Applied sf.net patch #3209075 IO::HDF square sds
+   
+ * New binary blob support in PDL::IO::GD::OO
+
+ Bugs Fixed:
+
+ * Applied Christian Soeller's patch for FFTW on 64-bit
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
+   
+ * Fixed sf.net bug #3172882 re broken threading in inv().
+   inv() and lu_backsub() now handle threading.  Updated
+   documentation for lu_decomp, lu_deomp2, and lu_backsub.
+   
+ * Fixed sf.net bug #3171702 "missing podselect command
+   breaks PDL build"
+   
+ * Fixed sf.net bug #3185864 (bad adev in statsover)
+   
+ * Fixed sf.net bug #3139697: fixed imag2d() to work better
+   with Mac OS X GLUT and not just FreeGLUT.
+   
+ * Fixed uniqind bug #3076570
+   
+ * Fixed SF bug #3057542: wmpeg doesn't error on missing
+   ffmpeg program.  Now wmpeg returns 1 on success and
+   undef on error.  If ffmpeg is not in PATH, it just fails
+   immediately....
+   
+ * Fixed SF bug #3056142: pdl2 fallback to perldl broken
+   on win32
+   
+ * Fixed SF bug #3042201: t/dumper.t fails mysteriously
+   
+ * Fixed SF bug #3031068: PDL::IO::FlexRaw mapflex memory
+   mapping fails
+   
+ * Fixed SF bug #3011879, "pdl() constructor crashes perl for
+   mixed ref/piddle args" and #3080505, and #3139088.  This
+   fix also includes a larger and more complete set of tests.
+   
+ * Fixed segfault in plplot.t with a work-around.
+   
+ * Fixed bug in readenvi.pdl header list value processing
+   and added support for embedded file headers.
+   
+ * Fixed bug in FlexRaw.pm support for headers with Type
+   passed  as string.
+   
+ * Fixed imag2d() in PDL::Graphics2D.  It no longer calls
+   exit on ESC if run within the pdl2/perldl shell.  Also
+   did some clean up of key controls and module mechanics.
+   
+ * Fixed upstream bug in Devel::REPL for MultiLine
+   continuation.  Now incomplete q[] and qq[] constructs
+   continue reading until properly closed.  See the
+   Known_problems file for details.
+
+
+    
+Release Notes for PDL 2.4.7_991 --------------------------
+
+General Notes:
+
+ * A.k.a. PDL-2.4.8pre1 release
+
+Highlights:
+
+ * See PDL-2.4.8 release notes above.
+
+
+    
+Release Notes for PDL 2.4.7_015 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  chm/pdl-2.4.7_015.tar.gz
+       cpan> make chm/pdl-2.4.7_015.tar.gz
+       cpan> test chm/pdl-2.4.7_015.tar.gz
+       cpan> look chm/pdl-2.4.7_015.tar.gz
+
+
+Highlights:
+
+ * Fix another problem with the Lib/GIS/Proj and Lib/Transform/Proj4
+   Makefile.PL files.
+
+
+    
 Release Notes for PDL 2.4.7_014 --------------------------
 
 General Notes:
 
- * This is a developers release!
+ * Last developers release before the PDL-2.4.8 pre-release
  
    - It is a snapshot of the current git development tree
      and everything may not work correctly or have complete
@@ -26,7 +412,17 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Added feature to check for a mis-installed PROJ4
+   library.  If such is detected, PDL will not build
+   the PROJ4 modules.  This sf.net feature #3045456.
+
+ * Applied sf.net patch #3209075 IO::HDF square sds
+ 
+ * Applied Christian Soeller's patch for FFTW on 64-bit
+   systems.  This resolves bug #3203480 "t/fftw.t fails
+   on 64-bit systems".
+ 
+ * Various clean up to tests and build process.
 
 
     
@@ -452,7 +848,7 @@ Highlights:
    and t/proj_transform2.t
 
  * Added new global setting to control maximum PDL print size,
-   $PDL::toobigtoprint, and added POD to Core.pm.PL covering
+   $PDL::longbigtoprint, and added POD to Core.pm.PL covering
    these important PDL package variables.
 
  * Fixed SF bug #3057542: wmpeg doesn't error on missing ffmpeg.

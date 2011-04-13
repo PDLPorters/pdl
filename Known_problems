@@ -1,17 +1,7 @@
 The following issues have been reported with this version of PDL:
 
-- If you have a pre-existing PDL install in your perl @INC path,
-  mysterious failures have been observed in some tests due to
-  unintentionally pulling in a previous version of PDL.  The
-  'perl Makefile.PL' stage now checks for this and warns you.
 
-  NOTE: many tests for modules with external dependencies now
-  check if the module was actually built before running the
-  tests.  The warning is left in as a reminder until all module
-  test files have been so updated.
-
-
-- The PDL build process also checks for white space in the build
+- The PDL build process checks for white space in the build
   directory as that is known to cause problems for some modules
   and asks you if you wish to continue [default is yes].
 
@@ -19,7 +9,7 @@ The following issues have been reported with this version of PDL:
   environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
 
 
-- The Perl debugger for perls 5.10.1 through 5.12 has a new
+- The Perl debugger for perls 5.10.1 through 5.12+ has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
   an affected perl version, the work around is to use an
@@ -36,7 +26,7 @@ The following issues have been reported with this version of PDL:
 - Multiline q'' constructs in the pdl2 shell now work correctly
   but you'll need to avoid using the q abbreviation for quit
   in pdl2 (at least until the multiline plugin in Devel::REPL
-  can be updated appropriately.  If you do get "stuck" in a q
+  can be updated appropriately).  If you do get "stuck" in a q
   quit attempt, just type Ctrl-D to exit the shell.
 
 
@@ -69,33 +59,24 @@ The following issues have been reported with this version of PDL:
 - PDL on Cygwin has (by default) a 300MB process memory limit which can
   cause out of memory crashes with large data sets.  See the cygwin users
   guide: http://www.cygwin.com/cygwin-ug-net/setup-maxmem.html for how
-  to fix.
+  to increase the memory limit.
+
+
+- minimum/maximum/min/max inconsistently handle NaN values.
+  NaN's for the first element of a pdl will propagate to the
+  result while if the first element is a number, then the
+  result will be a number.  The answer for max/min should not
+  depend on the order of the input values.
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.7_014 release:
+  PDL-2.4.9_001 release:
 
-  3203480    t/fftw.t fails on 64-bit systems
-  3190227    PDL build fails with parallel GNU make -j3 -j3
+  3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules 
-  3139088    PDL constructor segfaults with arrayrefs from RRDs::fetch
-
-               Need to confirm no regressions for this ticket.
-
   3080505    PLplot segfaults on plshades call on OS X
-             
-	       There is a workaround in place.  Need to confirm
-	       that the original problem no longer exists before
-	       closing this ticket.
-
   3059083    Problems with FITS header handling
   3018731    NiceSlice affects code where it should not
-  3011879    pdl() constructor crashes perl for mixed ref/piddle args
-
-               This bug appears to be fixed.  If any indications
-	       otherwise, please report to perldl mailing list or
-	       update bug ticket #3011879.
-
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type

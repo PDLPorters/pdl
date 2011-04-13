@@ -1,6 +1,6 @@
-+---------------------------+
-|  PDL Module Dependencies  | 
-+---------------------------+
++----------------------------------------------------------------------------+
+|                        PPDL Module Dependencies                            | 
++----------------------------------------------------------------------------+
 
 This file lists dependencies of PDL modules on external programs
 or libraries.  Some of the modules will build ok without the
@@ -135,11 +135,6 @@ PDL::Graphics::IIS
 
                                           PDL::Graphics::IIS  builds
                                           without viewers.
-
-
-PDL::Graphics::Karma
-                  The Karma interface has been removed as of PDL version
-		  2.4.8.  Please use another visualization option.
 
 
 PDL::GSL modules

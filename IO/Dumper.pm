@@ -90,13 +90,15 @@ This package comes with NO WARRANTY.
 # use PDL::NiceSlice;
 
 package PDL::IO::Dumper;
+use File::Temp;
+
 
 BEGIN{
   use Exporter ();
 
   package PDL::IO::Dumper;
 
-  $PDL::IO::Dumper::VERSION = '1.3.1';
+  $PDL::IO::Dumper::VERSION = '1.3.2';
   
   @PDL::IO::Dumper::ISA = ( Exporter ) ;
   @PDL::IO::Dumper::EXPORT_OK = qw( fdump sdump frestore deep_copy);
@@ -115,7 +117,10 @@ BEGIN{
   };
   # make sure not to use uuencode/uudecode
   # on MSWin32 systems (it doesn't work)
-  $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
+  # Force Convert::UU for BSD systems to see if that fixes uudecode problem
+  if ($^O !~ /(MSWin32|bsd)$/) {
+     $PDL::IO::Dumper::uudecode_ok = &$checkprog('uudecode') and &$checkprog('uuencode') and ($^O !~ /MSWin32/);
+  }
 
   use PDL;
   use PDL::Exporter;
@@ -406,7 +411,7 @@ are supported).
 #
 sub _make_tmpname () {
     # should we use File::Spec routines to create the file name?
-    return $PDL::Config{TEMPDIR} . "/tmp-$$.fits";
+    return File::Temp::tmpnam() . ".fits";
 }
 
 # For uudecode_PDL:

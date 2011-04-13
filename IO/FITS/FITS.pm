@@ -53,7 +53,7 @@ BEGIN {
 
   package PDL::IO::FITS;
 
-  $PDL::IO::FITS::VERSION = 0.9; # Will be 1.0 when ascii table read/write works.
+  $PDL::IO::FITS::VERSION = 0.91; # Will be 1.0 when ascii table read/write works.
 
   our @EXPORT_OK = qw( rfits rfitshdr wfits );
   our %EXPORT_TAGS = (Func=>[@EXPORT_OK]);

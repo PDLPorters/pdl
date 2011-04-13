@@ -784,7 +784,7 @@ switch(ind_pdl->datatype) {
 	
 	/* Check for nonnegativity of sizes.  The rdim>0 mask ensures that */
 	/* we don't barf on the Empty PDL (as an index). */
-	if( $COMP(sizes[0]) < 0 && $COMP(rdim) > 0 ) {
+	if( $COMP(rdim) > 0 && $COMP(sizes[0]) < 0 ) {
 	  $CROAK("  Negative range size is not allowed in range\n");
         }
       }
