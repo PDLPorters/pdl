@@ -646,6 +646,7 @@ sub treat_bscale($$){
     my $pdl = shift;
     my $foo = shift;
 
+    print "treating bscale...\n" if($PDL::DEBUG);
 
     if ( $PDL::Bad::Status ) {
       # do we have bad values? - needs to be done before BSCALE/BZERO
@@ -1467,13 +1468,11 @@ sub _rfits_unpack_zimage($$$) {
     undef $cutup;     # sever connection to prevent expensive future dataflow.
 
     ##########
-    # Perform scaling if necessary
+    # Perform scaling if necessary ( Just the ZIMAGE quantization step )
+    # bscaling is handled farther down with treat_bscale.
+
     $pdl *= $hdr->{ZSCALE} if defined($hdr->{ZSCALE});
     $pdl += $hdr->{ZZERO} if defined($hdr->{ZZERO});
-
-    $pdl *= $hdr->{BSCALE} if defined($hdr->{BSCALE});
-    $pdl += $hdr->{BZERO} if defined($hdr->{BZERO});
-				     
 
     ##########
     # Put the FITS header into the newly reconstructed image.
@@ -1498,7 +1497,7 @@ sub _rfits_unpack_zimage($$$) {
 	    );
     }
 
-    if(exists $hdr->{bscale}) {
+    if(exists $hdr->{BSCALE}) {
 	$pdl = treat_bscale($pdl, $hdr);
     }
     $pdl->sethdr($hdr);
