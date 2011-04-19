@@ -512,6 +512,19 @@ if($Config{archname}=~m/x86_64/) {
 	      'VERSION_FROM' => 'Basic/Core/Version.pm',
 	      'EXE_FILES' => \@exe_files,
 	      'PM' => { @podpms }, #so that the script docs are picked up
+              'META_MERGE' => {
+                 resources => {
+                    homepage => 'http://pdl.perl.org/',
+                    bugtracker  => {
+                       web    => 'http://sourceforge.net/tracker/?func=browse&group_id=612&atid=100612',
+                    },
+                    repository  => {
+                       url  => 'git://pdl.git.sourceforge.net/gitroot/pdl/pdl',
+                       web  => 'http://pdl.git.sourceforge.net/git/gitweb.cgi?p=pdl/pdl',
+                       type => 'git',
+                    },
+                 },
+              },
               'MAN1PODS' => { 'perldl' => '$(INST_MAN1DIR)/perldl.$(MAN1EXT)',
                               'pdldoc' => '$(INST_MAN1DIR)/pdldoc.$(MAN1EXT)' },
 	      'MAN3PODS' => {}, # don't pick up the script pods again
