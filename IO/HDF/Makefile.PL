@@ -35,7 +35,8 @@ BEGIN
         '/opt/local/lib',
         '/usr/lib',
         '/usr/lib/hdf',
-        '/opt/lib'
+        '/opt/lib',
+	split(/ /, $Config{libpth}),
     );
     @HDF_inc_locations = (
         '/usr/local/include',
@@ -43,7 +44,8 @@ BEGIN
         '/opt/local/include',
         '/usr/include',
         '/usr/include/hdf',
-        '/opt/include'
+        '/opt/include',
+	$Config{usrinc},
     ); 
     
     # get locations from perldl.conf, if specified there:

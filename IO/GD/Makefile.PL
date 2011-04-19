@@ -6,6 +6,7 @@
 #
 
 use ExtUtils::MakeMaker;
+use Config;
 PDL::Core::Dev->import();
 
 BEGIN
@@ -26,10 +27,12 @@ BEGIN
         '/usr/lib',
         '/usr/local/lib',
         '/lib',
+        split(/ /, $Config{libpth}),
     );
     @inc_locations = (
         '/usr/include',
         '/usr/local/include',
+        $Config{usrinc},
     ); 
     
     #
