@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Tue 22 Mar 2011 03:49:18 PM 
+Last saved: Tue 26 Apr 2011 01:27:39 PM 
 
 
 
@@ -390,6 +390,18 @@ need to run rebaseall:
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
 or all tests (make test).
+
+NOTE: From the cygwin-xfree mailing list:
+
+> Also, I've found that using a different base address with rebaseall
+> seems to help with some X problems:
+>
+> dash -c "rebaseall -b 0x77000000"
+>
+> http://cygwin.com/ml/cygwin/2011-04/msg00306.html
+>
+> cgf
+
 
 
 
