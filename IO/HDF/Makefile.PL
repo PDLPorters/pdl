@@ -81,14 +81,10 @@ BEGIN
     
         # Look for the szip library, which HDF >= 4.2r0 needs, but older versions don't!
 
-	my $suffix = $^O eq 'darwin' ? 'dylib' : 
-	    ($^O =~ /mswin/i ? 'dll' : 
-	     ($^O eq 'linux' ? 'so' : 'so')); #insert other OS's here. We assume that if it's not OS X or Windows, that '.so' will work.
-
-        if (-e "$libdir/libsz.$suffix" && !$found_sz) 
+        if (-e "$libdir/libsz.$Config{so}" && !$found_sz) 
         {
             $found_sz = 1;
-            print "Found libsz.$suffix at $libdir/libsz.$suffix\n";
+            print "Found libsz.$Config{so} at $libdir/libsz.$Config{so}\n";
         }
     } # foreach $libdir...
 
