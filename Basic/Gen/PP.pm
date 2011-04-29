@@ -2025,7 +2025,7 @@ sub findbadstatus {
     if ( defined($badflag) and $badflag == 0 ) {
 	$str .= 
 "  if ( $get_bad ) {
-      printf(\"WARNING: routine does not handle bad values.\\n\");
+      printf(\"WARNING: $name does not handle bad values.\\n\");
       $clear_bad
   }\n";
 	print "\nNOTE: $name does not handle bad values.\n\n" if $::PP_VERBOSE;
