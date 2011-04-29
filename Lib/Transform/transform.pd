@@ -1851,7 +1851,7 @@ pp_addpm(<<'+======EOD_t_wrap======');
 Shift a transform into a different space by 'wrapping' it with a second.
 
 This is just a convenience function for two
-L<t_compose|/t_compose> calls. C<<$a->wrap($b)>> is the same as
+L<t_compose|/t_compose> calls. C<< $a->wrap($b) >> is the same as
 C<(!$b) x $a x $b>: the resulting transform first hits the data with
 $b, then with $a, then with the inverse of $b.  
 
