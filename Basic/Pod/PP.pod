@@ -1383,11 +1383,7 @@ So far, we have described the C<pp_def> and C<pp_done> functions. PDL::PP
 exports a few other functions to aid you in writing concise PDL extension
 package definitions.
 
-=begin html
-
 =head3 pp_addhdr
-
-=end html
 
 Often when you interface library functions as in the above example
 you have to include additional C include files. Since the XS file is
@@ -1426,11 +1422,7 @@ C<pp_def>s, e.g.:
                  ',
   );
 
-=begin html
-
 =head3 pp_addpm
-
-=end html
 
 In many cases the actual PP code (meaning the arguments to C<pp_def>
 calls) is only part of the package you are currently
@@ -1475,11 +1467,7 @@ generated B<pm>-file. This is easily achieved with the C<pp_addpm> command:
 
    EOD
 
-=begin html
-
 =head3 pp_add_exported
-
-=end html
 
 You have probably got the idea. In some cases you also want to export
 your additional functions. To avoid getting into trouble with PP which
@@ -1488,23 +1476,14 @@ your functions to the list of exported functions:
 
   pp_add_exported('use_myfunc gethynx');
 
-=begin html
-
 =head3 pp_add_isa
-
-=end html
 
 The C<pp_add_isa> command works like the the C<pp_add_exported> function. 
 The arguments to C<pp_add_isa> are added the @ISA list, e.g.
 
   pp_add_isa(' Some::Other::Class ');
 
-=begin html
-
 =head3 pp_bless
-
-=end html
-
 
 If your pp_def routines are to be used as object methods use
 C<pp_bless> to specify the package (i.e. class) to which
@@ -1512,11 +1491,7 @@ your I<pp_def>ed methods will be added. For example,
 C<pp_bless('PDL::MyClass')>. The default is C<PDL> if this is
 omitted.
 
-=begin html
-
 =head3 pp_addxs
-
-=end html
 
 Sometimes you want to add extra XS code of your own
 (that is generally not involved with any threading/indexing issues
@@ -1552,11 +1527,7 @@ export tag ``:Func''). If you use C<pp_addxs> you shouldn't try to do anything
 that involves threading or indexing directly. PP is much better at generating
 the appropriate code from your definitions.
 
-=begin html
-
 =head3 pp_add_boot
-
-=end html
 
 Finally, you may want to add some code to the BOOT section of the XS file
 (if you don't know what that is check I<perlxs>). This is easily done
@@ -1572,11 +1543,7 @@ with the C<pp_add_boot> command:
 	GlobalStruc->maxfiles = 200;
   EOB
 
-=begin html
-
 =head3 pp_export_nothing
-
-=end html
 
 By default, PP.pm puts all subs defined using the pp_def function into the output .pm
 file's EXPORT list. This can create problems if you are creating a subclassed
@@ -1590,11 +1557,7 @@ the end of the .pd file):
   pp_export_nothing();
   pp_done();
 
-=begin html
-
 =head3 pp_core_importList
-
-=end html
 
 By default, PP.pm puts the 'use Core;' line into the output .pm file. This imports Core's
 exported names into the current namespace, which can create 
@@ -1623,11 +1586,7 @@ would result in
 being generated in the output .pm file. This would result in just 'barf'
 being imported from Core.pm.
 
-=begin html
-
 =head3 pp_setversion
-
-=end html
 
 I am pretty sure that this allows you to simultaneously set the .pm and
 .xs files' versions, thus avoiding unnecessary version-skew between the
