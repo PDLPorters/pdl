@@ -401,6 +401,21 @@ want to set the size of a named dimension explicitly through an integer
 parameter. See below in the description of the C<OtherPars> section how
 that works.
 
+=head2 Constant argument dimensions in the signature
+
+Suppose you want an output piddle to be created
+automatically and you know that on every call its dimension
+will have the same size (say 9) regardless of the dimensions
+of the input piddles. In this case you use the following
+syntax in the Pars section to specify the size of the dimension: 
+
+    ' [o] y(n=9); '
+
+As expected, extra dimensions required by threading will be
+created if necessary. If you need to assign a named dimension according
+to a more complicated formula (than a constant) you must use the 
+C<RedoDimsCode> key described below.
+
 =head2 Type conversions and the signature
 
 The signature also determines the type conversions that will be performed
@@ -1126,6 +1141,91 @@ argument to C<type>, e.g.
 
 =back
 
+=head2 The RedoDimsCode Section
+
+The C<RedoDimsCode> key is an optional key that is used to
+compute dimensions of piddles at runtime in case the
+standard rules for computing dimensions from the signature
+are not sufficient. The contents of the C<RedoDimsCode> entry
+is interpreted in the same way that the Code section is
+interpreted-- I<i.e.>, PP macros are expanded and the result
+is interpreted as C code. The purpose of the code is to set
+the size of some dimensions that appear in the
+signature. Storage allocation and threadloops and so forth
+will be set up as if the computed dimension had appeared in
+the signature. In your code, you first compute the desired
+size of a named dimension in the signature according to
+your needs and then assign that value to it via the $SIZE()
+macro.
+
+As an example, consider the following situation. You are
+interfacing an external library routine that requires an
+temporary array for workspace to be passed as an
+argument. Two input data arrays that are passed are C<p(m)>
+and C<x(n)>. The output data array is C<y(n)>. The routine
+requires a workspace array with a length of n+m*m, and you'd
+like the storage created automatically just like it would be
+for any piddle flagged with [t] or [o].  What you'd like is to
+say something like
+
+ pp_def( "myexternalfunc",
+  Pars => " p(m);  x(n);  [o] y; [t] work(n+m*m); ", ...
+
+but that won't work, because PP can't interpret expressions with arithmetic
+in the signature. Instead you write
+
+ pp_def( "myexternalfunc",
+  Pars => " p(m);  x(n);  [o] y; [t] work(wn); ",
+    RedoDimsCode => "
+    int im = $PDL(p)->dims[0];
+    int in = $PDL(x)->dims[0];
+    int min = in + im * im;
+    int inw = $PDL(work)->dims[0];
+    $SIZE(wn) = inw >= min ? inw : min; ",
+    Code => "
+     externalfunc($P(p),$P(x),$SIZE(m),$SIZE(n),$P(work));
+       ";)
+
+This code works as follows: The macro $PDL(p) expands to a
+pointer to the pdl struct for the piddle p.  You don't want
+a pointer to the data ( ie $P ) in this case, because you
+want to access the methods for the piddle on the C
+level. You get the first dimension of each of the piddles
+and store them in integers. Then you compute the minimum
+length the work array can be. If the user sent a piddle
+C<work> with sufficient storage, then leave it alone. If the
+user sent, say a null pdl, or no pdl at all, then the size
+of wn will be zero and you reset it to the minimum
+value. Before the code in the Code section is executed PP
+will create the proper storage for C<work> if it does not
+exist. Note that you only took the first dimension of C<p>
+and C<x> because the user may have sent piddles with extra
+threading dimensions. Of course, the temporary piddle C<work> (note the
+[t] flag) should not be given any thread dimensions anyway.
+
+You can also use C<RedoDimsCode> to set the dimension of a
+piddle flagged with [o]. In this case you set the dimensions
+for the named dimension in the signature using $SIZE() as in
+the preceeding example.  However, because the piddle is
+flagged with [o] instead of [t], threading dimensions will
+be added if required just as if the size of the dimension
+were computed from the signature according to the usual
+rules. Here is an example from PDL::Math
+
+ pp_def("polyroots",
+      Pars => 'cr(n); ci(n); [o]rr(m); [o]ri(m);',
+      RedoDimsCode => 'int sn = $PDL(cr)->dims[0]; $SIZE(m) = sn-1;',
+
+The input piddles are the real and imaginary parts of
+complex coefficients of a polynomial. The output piddles are
+real and imaginary parts of the roots. There are C<n> roots
+to an C<n>th order polynomial and such a polynomial has
+C<n+1> coefficients (the zeoreth through the C<n>th). In
+this example, threading will work correctly. That is, the
+first dimension of the output piddle with have its dimension
+adjusted, but other threading dimensions will be assigned
+just as if there were no C<RedoDimsCode>.
+
 =head2 Typemap handling in the C<OtherPars> section
 
 The C<OtherPars> section discussed above is very often absolutely
@@ -1179,13 +1279,13 @@ C<OtherPars> should take the form:
 and when you use it in the code you will write
 
     INT2PTR(gsl_spline *, $COMP(spl))
- 
+
 where the Perl API macro C<INT2PTR> has been used to handle the pointer
 cast to avoid compiler warnings and problems for machines with mixed 32bit
 and 64bit Perl configurations.  Putting this together as Andres Jordan has
 done (with the modification using C<IV> by Judd Taylor) in the
 C<gsl_interp.pd> in the distribution source you get:
- 
+
      pp_def('init_meat',
             Pars => 'double x(n); double y(n);',
             OtherPars => 'IV spl',
@@ -1401,6 +1501,19 @@ The arguments to C<pp_add_isa> are added the @ISA list, e.g.
 
 =begin html
 
+=head3 pp_bless
+
+=end html
+
+
+If your pp_def routines are to be used as object methods use
+C<pp_bless> to specify the package (i.e. class) to which
+your I<pp_def>ed methods will be added. For example,
+C<pp_bless('PDL::MyClass')>. The default is C<PDL> if this is
+omitted.
+
+=begin html
+
 =head3 pp_addxs
 
 =end html
@@ -1472,7 +1585,7 @@ be called using the $object->method syntax).
 
 For these cases you can call pp_export_nothing() to clear out the export list. Example (At 
 the end of the .pd file):
-	
+
 
   pp_export_nothing();
   pp_done();
@@ -1493,7 +1606,7 @@ For these cases the pp_core_importList can be used to change what is imported fr
 For example: 
 
   pp_core_importList('()') 
-      
+
 This would result in 
 
   use Core();
@@ -1502,11 +1615,11 @@ being generated in the output .pm file. This would result in no names being impo
 from Core.pm. Similarly, calling 
 
   pp_core_importList(' qw/ barf /')
-       
+
 would result in
- 
+
   use Core qw/ barf/;
-        
+
 being generated in the output .pm file. This would result in just 'barf'
 being imported from Core.pm.
 
@@ -1861,7 +1974,7 @@ I<perlxs>, I<perlxstut>
 
 =head1 CURRENTLY UNDOCUMENTED
 
-RedoDimsCode, $RESIZE()
+$RESIZE()
 
 =head1 BUGS
 
