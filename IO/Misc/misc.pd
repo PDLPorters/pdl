@@ -203,6 +203,17 @@ sub _handle_types ($$$) {
     return @cols;
 } # sub: _handle_types
 
+
+# Whether an object is an IO handle
+use Scalar::Util;
+sub _is_io_handle {
+    my $h = shift;
+    # reftype catches almost every handle, except: *MYHANDLE
+    # fileno catches *MYHANDLE, but doesn't catch handles that aren't files
+    return defined(fileno($h)) || Scalar::Util::reftype($h) eq 'GLOB';
+}
+
+
 =head2 rcols()
 
 =for ref
@@ -362,7 +373,7 @@ sub PDL::rcols {
    barf 'Usage ($x,$y,...) = rcols( *HANDLE|"filename", ["/pattern/" or \%options], $col1, $col2, ..., [ \%options] )' 
    if $#_<0;
 
-   my $is_handle = defined fileno $_[0] ? 1 : 0;
+   my $is_handle = _is_io_handle $_[0];
    my $fh = $is_handle ? $_[0] : gensym;
    open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
    shift;
@@ -831,7 +842,7 @@ sub PDL::wcols {
    my $file_opened;
    my $is_handle = !UNIVERSAL::isa($file,'PDL') &&
                    !UNIVERSAL::isa($file,'ARRAY') &&
-		   defined fileno($file) ? 1 : 0;
+                   _is_io_handle $_[0];
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
@@ -1035,7 +1046,7 @@ of C<$1>, C<$2> etc.
      my (@ret,@v,$nret); my ($m,$n)=(-1,0); # Count/PDL size
      my $pattern = shift;
 
-     my $is_handle = defined fileno $_[0] ? 1 : 0;
+     my $is_handle = _is_io_handle $_[0];
      my $fh = $is_handle ? $_[0] : gensym;
      open $fh, $_[0] or die "File $_[0] not found\n" unless $is_handle;
 

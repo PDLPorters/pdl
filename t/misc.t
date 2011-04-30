@@ -12,7 +12,7 @@ use PDL::Config;
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 use Test;
-BEGIN { plan tests => 16; }
+BEGIN { plan tests => 17; }
 
 sub tapprox {
         my($a,$b) = @_;
@@ -137,6 +137,10 @@ close(OUT);
 ok( $a->nelem==4 && sum($a)==6 && sum($b)==20, 1,
     "rcols: default" );
 
+($a,$b) = rcols \*DATA,0,1;
+ok( $a->nelem==4 && sum($a)==6 && sum($b)==20, 1,
+    "rcols: pipe" );
+
 ($a,$b) = rcols $file,0,1, { INCLUDE => '/^-/' };
 ok( $a->nelem==1 && $a->at(0)==-5 && $b->at(0)==6, 1,
     "rcols: include pattern" );
@@ -169,3 +173,10 @@ eval { wcols $a, $b };
 ok(!$@,1, "wcols" );
 
 1;
+
+__DATA__
+1 2
+# comment line
+3 4
+-5 6
+7 8
