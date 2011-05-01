@@ -543,74 +543,10 @@ void* pdl_malloc ( int nbytes ) {
 
 /*********** Stuff for barfing *************/
 
-/* Version of perl's mess_alloc - we need this copy
-here because it's defined static in util.c! */
-
-static SV *
-pdl_mess_alloc()
-{
-    SV *sv;
-    XPVMG *any;
-
-    /* Create as PVMG now, to avoid any upgrading later */
-    New(905, sv, 1, SV);
-    Newz(905, any, 1, XPVMG);
-    SvFLAGS(sv) = SVt_PVMG;
-    SvANY(sv) = (void*)any;
-    SvREFCNT(sv) = 1 << 30; /* practically infinite */
-    return sv;
-}
-
-/* Version of perl's mess() constructor which doesn't
-do the automatic appending of stuff when "\n" not
-seen at the end of the string - for use by pdl_barf() */
-
-/* work araound an omission in the CAPI */
-#ifdef PERL_CAPI
-#undef PL_mess_sv
-static SV *PDL_mess_sv = NULL;
-#define PL_mess_sv PDL_mess_sv
-#endif
-
-char *
-pdl_mess(pat, args)
-    const char *pat;
-    va_list *args;
-{
-    SV *sv;
-
-    if (!PL_mess_sv)
-	PL_mess_sv = pdl_mess_alloc();
-    sv = PL_mess_sv;
-    sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
-    {
-	/* call the PDL message enhancing routine */
-	ENTER;
-	LEAVE;
-        {
-	    dSP;
-	    SV *msg;
-
-	    ENTER;
-
-	    PUSHMARK(sp);
-	    XPUSHs(sv);
-	    PUTBACK;
-	    perl_call_pv("PDL::Core::barf_msg", G_SCALAR);
-            sv = POPs;
-	    LEAVE;
-	}
-    }
-    return SvPVX(sv);
-}
-
-
 /*
    pdl_barf - barfing routine to be called when PDL routines
-   croak
-
-   Now just a stupid croak wrapper, with checks to see if we are pthread processing
-
+   croak. This simply calls the perl-level barf() subroutine,
+   with checks to see if we are pthread processing
 */
 
 #ifdef I_STDARG
@@ -625,22 +561,34 @@ pdl_barf(pat, va_alist)
 #endif
 {
     va_list args;
-    char *message;
 #ifdef I_STDARG
     va_start(args, pat);
 #else
     va_start(args);
 #endif
     
-    /* Take care of any deferred barf calls that may have happened while we are pthreading */
+    // If we're in a secondary thread, we queue the barf for later, and exit the thread...
     pdl_pthread_barf(pat, &args);
 
-    message = pdl_mess(pat, &args);
+    // ... otherwise we fall through and barf by calling the perl-level PDL::barf()
+
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+
+    SV* sv = sv_2mortal(newSV(0));
+    sv_vsetpvfn(sv, pat, strlen(pat), &args, Null(SV**), 0, Null(bool*));
     va_end(args);
 
-    croak("%s", message);
-}
+    XPUSHs(sv);
 
+    PUTBACK;
+
+    call_pv("barf", G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
 
 /*
    pdl_warn - warning routine to be called when PDL routines

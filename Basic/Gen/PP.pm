@@ -929,11 +929,6 @@ static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
 static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
 
-/* we need to handle croak ourserlves */
-/* #undef croak
-   #define croak barf
- */
-
 #if ! $PP::boundscheck
 # define PP_INDTERM(max, at) at
 #else

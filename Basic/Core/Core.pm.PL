@@ -2893,17 +2893,7 @@ C<barf()> is the routine PDL modules should call to report errors. This
 is because C<barf()> will report the error as coming from the correct
 line in the module user's script rather than in the PDL module.
 
-It does this magic by unwinding the stack frames until it reaches
-a package NOT beginning with C<"PDL::">. If you DO want it to report
-errors in some module PDL::Foo (e.g. when debugging PDL::Foo) then
-set the variable C<$PDL::Foo::Debugging=1>.
-
-Additionally if you set the variable C<$PDL::Debugging=1> you will
-get a COMPLETE stack trace back up to the top level package.
-
-Finally C<barf()> will try and report usage information from the
-PDL documentation database if the error message is of the
-form 'Usage: func'.
+For now, barf just calls Carp::confess()
 
 Remember C<barf()> is your friend. *Use* it!
 
@@ -2922,40 +2912,11 @@ by PDL::Core
 
 =cut
 
- sub barf { die barf_msg(@_) };
 use Carp;
-#sub barf { croak barf_msg(@_) };
 
-# This sub is called by Perl barf() and pdl_barf in pdlcore.c
-
-sub barf_msg {
-  my ($err) = @_;
-  my $i = 0;
-  my($pack,$file,$line);
-  my $msg="";
-  $msg .= "PDL: $err\nStack trace:\n" if $PDL::Debugging;
-  while(1) { # Unwind the stack
-    ($pack,$file,$line) = caller($i);
-    last unless $pack;
-    $msg .= " Level $i: file $file, line $line, pkg $pack\n" if $PDL::Debugging;
-    last if !$PDL::Debugging and ($pack !~ /^PDL::|^PDL$/ or eval '$'.$pack."::Debugging");
-    $i++;
-  }
-
-  if ($err =~ /^Usage:\s+(PDL.*::)_(\w+)_int/ or $err =~ /^Usage:\s+(PDL.*::)?\s*(\w+)/) {
-     local $match = $2;
-     eval << "EOD";
-     \$msg .= "PDL: incorrect usage of function '$match()'\nFile $file, line $line, pkg $pack\n" if \$pack;
-     \$msg .= "Usage information from PDL docs database:\n";
-     use PDL::Doc::Perldl;
-     \$msg .= PDL::Doc::Perldl::usage_string ('$match');
-EOD
-  }
-  else{
-     $msg .= "PDL: $err\nCaught at file $file, line $line, pkg $pack\n" if $pack;
-  }
-  $msg .= "\n" if substr($msg,-1,1) ne "\n";
-  return $msg;
+sub barf
+{
+  Carp::confess(@_);
 }
 
 ###################### Misc internal routines ####################
