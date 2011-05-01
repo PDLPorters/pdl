@@ -1,6 +1,11 @@
 The following issues have been reported with this version of PDL:
 
 
+- SciPDL-2.4.9 for Mac OS X has not yet been released.
+  Mac OS X users will need to build the new PDL by hand
+  or use the SciPDL-2.4.7 release in the interim.
+
+
 - The PDL build process checks for white space in the build
   directory as that is known to cause problems for some modules
   and asks you if you wish to continue [default is yes].

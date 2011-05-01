@@ -26,7 +26,19 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Add support to PDL::IO::Misc for handles that are not files.
+
+ * Update PDL::PP docs and other doc fixes.
+
+ * Improved detection logic for a number of external
+   dependencies
+ 
+ * Fix double-bscale bug for rice-compressed images
+
+ * Adapt t/bad.t to use File::Temp::tempfile() instead
+   of a hand-rolled version.  Eventually we would like
+   to standardize on File::Temp for our temp file work.
+
 
 
 
