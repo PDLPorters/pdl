@@ -72,6 +72,8 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_001 release:
 
+  3295544    NiceSlice parsing bug
+  3294808    sever on empty piddle causes segfault
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules 
   3080505    PLplot segfaults on plshades call on OS X
