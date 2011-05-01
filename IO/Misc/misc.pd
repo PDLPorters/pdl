@@ -210,7 +210,8 @@ sub _is_io_handle {
     my $h = shift;
     # reftype catches almost every handle, except: *MYHANDLE
     # fileno catches *MYHANDLE, but doesn't catch handles that aren't files
-    return defined(fileno($h)) || Scalar::Util::reftype($h) eq 'GLOB';
+    my $reftype = Scalar::Util::reftype($h);
+    return defined(fileno($h)) || (defined($reftype) && $reftype eq 'GLOB');
 }
 
 
