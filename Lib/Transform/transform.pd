@@ -2724,10 +2724,10 @@ sub t_fits {
     $cd .= 1;
 
 
-    if( @hgrab = grep(m/^PC\d{1,3}_\d{1,3}/,keys %$hdr) ) {  # assignment
+    if( @hgrab = grep(m/^PC\d{1,3}_\d{1,3}$/,keys %$hdr) ) {  # assignment
 
       for my $h(@hgrab) {
-	$h =~ m/PC(\d{1,3})_(\d{1,3})/;  # Should always match
+	$h =~ m/PC(\d{1,3})_(\d{1,3})$/ || die "t_fits - match failed! This should never happen!";
         my $tmp; # work around perl -d "feature"
 	($tmp = $cpm->(($1-1),($2-1))) .= $hdr->{$h};
       }
