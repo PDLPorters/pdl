@@ -201,7 +201,7 @@ int pdl_iterthreadloop(pdl_thread *thread,int which);
 void pdl_freethreadloop(pdl_thread *thread);
 void pdl_thread_create_parameter(pdl_thread *thread,int j,int *dims,
 				 int temp);
-void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...);
+void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...);
 
 void pdl_setdims_careful(pdl *pdl);
 void pdl_put_offs(pdl *pdl,PDL_Long offs, double val);
