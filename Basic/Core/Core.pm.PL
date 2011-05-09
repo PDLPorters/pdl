@@ -2654,7 +2654,6 @@ When called as a class method the resulting check mode is returned
 =cut
 
 my $chkmode = 0; # default mode no checks
-use Carp;
 use PDL::Options;
 sub PDL::sclr {
   my $this = shift;
