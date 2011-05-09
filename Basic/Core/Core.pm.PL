@@ -218,7 +218,46 @@ print OUT <<'!NO!SUBS!';
 *mslice       = \&PDL::mslice;
 *isempty      = \&PDL::isempty;
 *string       = \&PDL::string;
-sub barf;
+
+
+=head2 barf
+
+=for ref
+
+Standard error reporting routine for PDL.
+
+C<barf()> is the routine PDL modules should call to report errors. This
+is because C<barf()> will report the error as coming from the correct
+line in the module user's script rather than in the PDL module.
+
+For now, barf just calls Carp::confess()
+
+Remember C<barf()> is your friend. *Use* it!
+
+=for example
+
+At the perl level:
+
+ barf("User has too low an IQ!");
+
+In C or XS code:
+
+ barf("You have made %d errors", count);
+
+Note: this is one of the few functions ALWAYS exported
+by PDL::Core
+
+=cut
+
+use Carp;
+
+sub barf
+{
+  Carp::confess(@_);
+}
+
+# export barf to the PDL namespace. This function is available everywhere
+*PDL::barf = \&barf;
 
 ########## Set Auto-PThread Based On Environment Vars ############
 PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if( defined ( $ENV{PDL_AUTOPTHREAD_TARG} ) );
@@ -2878,44 +2917,6 @@ sub PDL::dog {
      $i++;
   }
   return @res;
-}
-
-# New error handling routine
-
-=head2 barf
-
-=for ref
-
-Standard error reporting routine for PDL.
-
-C<barf()> is the routine PDL modules should call to report errors. This
-is because C<barf()> will report the error as coming from the correct
-line in the module user's script rather than in the PDL module.
-
-For now, barf just calls Carp::confess()
-
-Remember C<barf()> is your friend. *Use* it!
-
-=for example
-
-At the perl level:
-
- barf("User has too low an IQ!");
-
-In C or XS code:
-
- barf("You have made %d errors", count);
-
-Note: this is one of the few functions ALWAYS exported
-by PDL::Core
-
-=cut
-
-use Carp;
-
-sub barf
-{
-  Carp::confess(@_);
 }
 
 ###################### Misc internal routines ####################
