@@ -265,11 +265,10 @@ threaded version of Levenberg-Marquardt fitting routine mfit
  tlmfit $x, $y, float(1)->dummy(0), $na, float(200), float(1e-4),
        $ym=null, $afit=null, \&expdec;
 
-Signature:
 
 =for sig
 
- tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m);
+  Signature: tlmfit(x(n);y(n);sig(n);a(m);iter();eps();[o] ym(n);[o] ao(m);
            OtherPar => subref)
 
 a threaded version of C<lmfit> by using perl threading. Direct
