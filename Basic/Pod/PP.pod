@@ -1635,7 +1635,18 @@ by PDL::PP>.
 The following few paragraphs describe writing of a new slicing routine
 ('range'); any errors are CED's. (--CED 26-Aug-2002)
 
+=head1 Handling of C<warn> and C<barf> in PP Code
 
+For printing warning messages or aborting/dieing, you can call C<warn> or C<barf> from PP code.
+However, you should be aware that these calls have been redefined using C preprocessor
+macros to C<< PDL->barf >> and C<< PDL->warn >>. These redefinitions are in place to keep
+you from inadvertently calling perl's C<warn> or C<barf> directly, which can cause segfaults during
+pthreading (i.e. processor multi-threading).
+
+PDL's own versions of C<barf> and C<warn> will queue-up warning or barf messages until after pthreading
+is completed, and then call the perl versions of these routines.
+
+See L<PDL::ParallelCPU> for more information on pthreading.
 
 =head1 USEFUL ROUTINES
 
@@ -1834,6 +1845,14 @@ the C<-b> switch to the C<pdldoc> shell script. In many cases, you will
 not need to specify this, since the information can be automatically
 created by PDL::PP. However, as befits computer-generated text, it's
 rather stilted; it may be much better to do it yourself!
+
+=item NoPthread
+
+Optional flag to indicate the PDL function should B<not> use processor threads (i.e.
+pthreads or POSIX threads) to split up work across mutliple CPU cores. This option
+is typically set to 1 if the underlying PDL function is not threadsafe. If this option
+isn't present, then the function is assumed to be threadsafe. This option only
+applies if PDL has been compiled with POSIX threads enabled. 
 
 =back
 

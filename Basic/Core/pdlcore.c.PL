@@ -606,10 +606,10 @@ pdl_mess(pat, args)
 
 
 /*
-   pdl_barf - warning routine to be called when PDL routines
+   pdl_barf - barfing routine to be called when PDL routines
    croak
 
-   Now just a stupid croak wrapper
+   Now just a stupid croak wrapper, with checks to see if we are pthread processing
 
 */
 
@@ -631,10 +631,55 @@ pdl_barf(pat, va_alist)
 #else
     va_start(args);
 #endif
+    
+    /* Take care of any deferred barf calls that may have happened while we are pthreading */
+    pdl_pthread_barf(pat, &args);
+
     message = pdl_mess(pat, &args);
     va_end(args);
 
     croak("%s", message);
+}
+
+
+/*
+   pdl_warn - warning routine to be called when PDL routines
+
+   This just has some special handling when called during pthread processing.
+   Otherwise just calls the perl warn function.
+
+*/
+
+#ifdef I_STDARG
+void
+pdl_warn(const char* pat, ...)
+#else
+/*VARARGS0*/
+void
+pdl_warn(pat, va_alist)
+    char *pat;
+    va_dcl
+#endif
+{
+    va_list args;
+    SV *message; /* Using an SV for the message so we can call sv_vsetpvf
+                  *  perl api function so we don't have to worry about the size of
+	          *  the output string, like you do with sprintf */ 
+#ifdef I_STDARG
+    va_start(args, pat);
+#else
+    va_start(args);
+#endif
+    
+    /* Take care of any deferred warn calls that may have happened while we are pthreading */
+    if( pdl_pthread_warn(pat, &args) ) return;
+
+    message = newSVpv("", 0);
+    sv_vsetpvf( message, pat, &args);
+    va_end(args);
+
+
+    Perl_warn_nocontext( SvPV_nolen(message) ); /* Directly call perl's warn */
 }
 
 

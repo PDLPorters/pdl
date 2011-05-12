@@ -54,6 +54,19 @@ extern int pdl_debugging;
 #define PDLDEBUG_f(a)
 #endif
 
+/* Auto-PThreading (i.e. multi-threading) settings for PDL functions */
+/*  Target number of pthreads: Actual will be this number or less. 
+    A 0 here means no pthreading */
+extern int pdl_autopthread_targ;
+/*  Actual number of pthreads: This is the number of pthreads created for the last
+    operation where pthreading was used 
+    A 0 here means no pthreading */
+extern int pdl_autopthread_actual;
+/* Minimum size of the larget PDL involved in pdl function to attempt pthreading (in MBytes )
+    For small PDLs, it probably isn't worth starting multiple pthreads, so this variable
+    is used to define that threshold (in M-elements, or 2^20 elements ) */
+extern int pdl_autopthread_size;
+
 typedef struct pdl pdl;
 
 $PDL_DATATYPES

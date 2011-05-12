@@ -26,7 +26,7 @@ sub get_pdls {my($this) = @_; return ($this->{ParNames},$this->{ParObjs});}
 sub new { 
     my($type,$code,$badcode,$parnames,$parobjs,$indobjs,$generictypes,
        $extrageneric,$havethreading,$name,
-       $dont_add_thrloop, $nogeneric_loop) = @_;
+       $dont_add_thrloop, $nogeneric_loop, $backcode ) = @_;
 
     die "Error: missing name argument to PDL::PP::Code->new call!\n"
       unless defined $name;
@@ -35,11 +35,15 @@ sub new {
     $badcode = undef unless $bvalflag;
     my $handlebad = defined($badcode);
 
-    # last two arguments may not be supplied
+    # last three arguments may not be supplied
     # (in fact, the nogeneric_loop argument may never be supplied now?)
     #
+    # "backcode" is a flag to the PDL::PP::Threadloop class indicating thre threadloop
+    #   is for writeback code (typically used for writeback of data from child to parent PDL
+    
     $dont_add_thrloop = 0 unless defined $dont_add_thrloop;
     $nogeneric_loop = 0 unless defined $nogeneric_loop;
+    
 
     # C++ style comments
     #
@@ -84,7 +88,12 @@ sub new {
     if(!$threadloops && !$dont_add_thrloop && $havethreading) {
 	print "Adding threadloop...\n" if $::PP_VERBOSE;
 	my $nc = $coderef;
-	$coderef = PDL::PP::ThreadLoop->new();
+	if( !$backcode ){ # Normal readbackdata threadloop
+		$coderef = PDL::PP::ThreadLoop->new();
+	}
+	else{  # writebackcode threadloop
+		$coderef = PDL::PP::BackCodeThreadLoop->new();
+	}
 	push @{$coderef},$nc;
     }
 
@@ -102,7 +111,12 @@ sub new {
 	if(!$bad_threadloops && !$dont_add_thrloop && $havethreading) {
 	    print "Adding 'bad' threadloop...\n" if $::PP_VERBOSE;
 	    my $nc = $bad_coderef;
-	    $bad_coderef = PDL::PP::ThreadLoop->new();
+	    if( !$backcode ){ # Normal readbackdata threadloop
+		    $bad_coderef = PDL::PP::ThreadLoop->new();
+	    }
+	    else{  # writebackcode threadloop
+		    $bad_coderef = PDL::PP::BackCodeThreadLoop->new();
+	    }
 	    push @{$bad_coderef},$nc;
 	}
 
@@ -421,15 +435,26 @@ use Carp;
 @PDL::PP::ComplexThreadLoop::ISA = "PDL::PP::Block";
 
 
-sub new { my($type) = @_; bless [],$type; }
+sub new { 
+	my $type   = shift;
+	bless [],$type;
+}
 sub myoffs { return 0; }
 sub myprelude {
-    my($this,$parent,$context) = @_;
+    my($this,$parent,$context, $backcode) = @_;
+
+    #  Set appropriate function from the vtable to supply to threadthreadloop.
+    #    Function name from the vtable is readdata for normal code
+    #    function name for backcode is writebackdata
+    my $funcName = "readdata";
+    $funcName = "writebackdata" if( $backcode );
+    
+    
     my $no; my $no2=-1; my $no3=-1;
     my ($ord,$pdls) = $parent->get_pdls();
 
 '	/* THREADLOOPBEGIN */
- if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->readdata,
+ if(PDL->startthreadloop(&($PRIV(__pdlthread)),$PRIV(vtable)->'.$funcName.',
  	__tr)) return;
    do { register int __tind1=0,__tind2=0;
         register int __tnpdls = $PRIV(__pdlthread).npdls;
@@ -466,11 +491,29 @@ sub mypostlude {my($this,$parent,$context) = @_;
      (join '',map {"${_}_datap -= __tinc1_".(0+$no3++)." *
      				  __tdims1;"}
  		@$ord).'
- '.(join '',map {"${_}_datap -= \$PRIV(__pdlthread).offs[".(0+$no++)."];\n"}
+ '.(join '',map {"${_}_datap -= __offsp[".(0+$no++)."];\n"}
  		@$ord).'
       } while(PDL->iterthreadloop(&$PRIV(__pdlthread),2));
  '
 }
+
+# Simple subclass of ComplexThreadLoop to implement writeback code
+#
+#
+package PDL::PP::BackCodeThreadLoop;
+use Carp;
+@PDL::PP::BackCodeThreadLoop::ISA = "PDL::PP::ComplexThreadLoop";
+
+sub myprelude {
+    my($this,$parent,$context, $backcode) = @_;
+    
+    # Set backcode flag if not defined. This will make the parent
+    #   myprelude emit proper writeback code
+    $backcode = 1 unless defined($backcode);
+    
+    $this->SUPER::myprelude($parent, $context, $backcode);
+}
+
 
 ###########################
 #

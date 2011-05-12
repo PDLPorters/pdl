@@ -2103,6 +2103,7 @@ pp_def(
 	PMFunc => '',
 	Code =>
 	'$a() = Drand01();',
+	'NoPthread' => 1, # random isn't threadsafe
 	Doc=>undef,
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
@@ -2117,6 +2118,7 @@ EOD
 
 pp_def(
 	'randsym',
+	'NoPthread' => 1, # random isn't threadsafe
 	Pars=>'a();',
 	PMFunc => '',
 	Code =>

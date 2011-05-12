@@ -2620,8 +2620,11 @@ HdRCHECK2
 } # sub: hdrcheck()
 
 sub make_redodims_thread {
-    my($pnames,$pobjs,$dobjs,$dpars,$pcode) = @_;
+    #my($pnames,$pobjs,$dobjs,$dpars,$pcode ) = @_;
+    my($pnames,$pobjs,$dobjs,$dpars,$pcode, $noPthreadFlag) = @_;
     my $str; my $npdls = @$pnames;
+    
+    $noPthreadFlag = 0 unless( defined $noPthreadFlag ); # assume we can pthread, unless indicated otherwise
     
     my $nn = $#$pnames;
     my @privname = map { "\$PRIV(pdls[$_])" } ( 0 .. $nn );
@@ -2661,7 +2664,8 @@ sub make_redodims_thread {
 		 PDL->initthreadstruct(2,\$PRIV(pdls),
 			__realdims,__creating,$npdls,
                       &__einfo,&(\$PRIV(__pdlthread)),
-                        \$PRIV(vtable->per_pdl_flags));
+                        \$PRIV(vtable->per_pdl_flags), 
+			$noPthreadFlag );
 		}\n";
     $str .= join '',map {$pobjs->{$_}->get_xsnormdimchecks()} @$pnames;
     $str .= hdrcheck($pnames,$pobjs);
@@ -2688,6 +2692,9 @@ $PDL::PP::deftbl =
    #
    PDL::PP::Rule->new("BadFlag", ["_HandleBad"],
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
+
+
+
 
    PDL::PP::Rule::Returns->new("CopyName", "__copy"),
 
@@ -2966,7 +2973,7 @@ $PDL::PP::deftbl =
    PDL::PP::Rule->new("ParsedBackCode",
 		      ["BackCode","_BadBackCode","ParNames","ParObjs","DimObjs","GenericTypes",
 		       "ExtraGenericLoops","HaveThreading","Name"],
-		      sub { return PDL::PP::Code->new(@_); }),
+		      sub { return PDL::PP::Code->new(@_, undef, undef, 'BackCode2'); }),
 
 # Compiled representations i.e. what the xsub function leaves
 # in the trans structure. By default, copies of the parameters
@@ -3026,7 +3033,7 @@ $PDL::PP::deftbl =
 			    if $_[0] =~ m|^/[*] none [*]/$|;
 			  PDL::PP::Code->new(@_,1); }),
    PDL::PP::Rule->new("RedoDims",
-		      ["ParNames","ParObjs","DimObjs","DimmedPars","RedoDimsParsedCode"],
+		      ["ParNames","ParObjs","DimObjs","DimmedPars","RedoDimsParsedCode", '_NoPthread'],
 		      'makes the redodims function from the various bits and pieces',
 		      \&make_redodims_thread),
 

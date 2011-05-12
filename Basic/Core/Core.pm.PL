@@ -149,7 +149,9 @@ print OUT <<"!WITH!SUBS!";
    $convertfuncs
    convert inplace zeroes zeros ones list listindices
    set at flows thread_define over reshape dog cat barf type diagonal
-   dummy mslice approx flat sclr squeeze
+   dummy mslice approx flat sclr squeeze 
+   get_autopthread_targ set_autopthread_targ get_autopthread_actual  
+   get_autopthread_size set_autopthread_size    
    );
 
 \%EXPORT_TAGS = (
@@ -158,6 +160,8 @@ print OUT <<"!WITH!SUBS!";
     convert inplace zeroes zeros ones list listindices
     set at flows thread_define over reshape pdl piddle null dog cat barf type
     diagonal dummy mslice approx flat sclr
+    get_autopthread_targ set_autopthread_targ get_autopthread_actual  
+    get_autopthread_size set_autopthread_size    
     /],
    Internal=>[qw/howbig threadids topdl/]
 );
@@ -216,7 +220,9 @@ print OUT <<'!NO!SUBS!';
 *string       = \&PDL::string;
 sub barf;
 
-##################################################################
+########## Set Auto-PThread Based On Environment Vars ############
+PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if( defined ( $ENV{PDL_AUTOPTHREAD_TARG} ) );
+PDL::set_autopthread_size( $ENV{PDL_AUTOPTHREAD_SIZE} ) if( defined ( $ENV{PDL_AUTOPTHREAD_SIZE} ) );
 ##################################################################
 
 =head2 pdl
@@ -3395,6 +3401,133 @@ Switch on/off automatic header copying, with PDL pass-through
 
 C<hcpy> sets or clears the hdrcpy flag of a PDL, and returns the PDL
 itself.  That makes it convenient for inline use in expressions.
+
+=head2 set_autopthread_targ
+
+=for ref
+
+Set the target number of processor threads (pthreads) for multi-threaded processing.
+
+=for usage
+
+ set_autopthread_targ($num_pthreads);
+
+C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+=for example
+
+  # Example turning on auto-pthreading for a target of 2 pthreads and for functions involving
+  #   PDLs with greater than 1M elements
+  set_autopthread_targ(2);
+  set_autopthread_size(1);
+  
+  # Execute a pdl function, processing will split into two pthreads as long as
+  #  one of the pdl-threaded dimensions is divisible by 2.
+  $a = minimum($b);
+  
+  # Get the actual number of pthreads that were run.
+  $actual_pthread = get_autopthread_actual();
+  
+=cut
+
+*set_autopthread_targ       = \&PDL::set_autopthread_targ;	  
+
+
+=head2 get_autopthread_targ
+
+=for ref
+
+Get the current target number of processor threads (pthreads) for multi-threaded processing.
+
+=for usage
+
+ $num_pthreads = get_autopthread_targ();
+
+C<$num_pthreads> is the target number of pthreads the auto-pthread process will try to achieve.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+  
+=cut
+
+*get_autopthread_targ       = \&PDL::get_autopthread_targ;	  
+
+=head2 get_autopthread_actual
+
+=for ref
+
+Get the actual number of pthreads executed for the last pdl processing function.
+
+=for usage
+
+ $autopthread_actual = get_autopthread_actual();
+
+C<$autopthread_actual> is the actual number of pthreads executed for the last pdl processing function.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+  
+=cut
+
+*get_autopthread_actual      = \&PDL::get_autopthread_actual;	  
+
+
+=head2 set_autopthread_size
+
+=for ref
+
+Set the minimum size (in M-elements or 2^20 elements) of the largest PDL involved in a function where auto-pthreading will
+be performed. For small PDLs, it probably isn't worth starting multiple pthreads, so this function
+is used to define a minimum threshold where auto-pthreading won't be attempted.
+
+
+=for usage
+
+ set_autopthread_size($size);
+
+C<$size> is the mimumum size, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function.
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+=for example
+
+  # Example turning on auto-pthreading for a target of 2 pthreads and for functions involving
+  #   PDLs with greater than 1M elements
+  set_autopthread_targ(2);
+  set_autopthread_size(1);
+  
+  # Execute a pdl function, processing will split into two pthreads as long as
+  #  one of the pdl-threaded dimensions is divisible by 2.
+  $a = minimum($b);
+  
+  # Get the actual number of pthreads that were run.
+  $actual_pthread = get_autopthread_actual();
+  
+=cut
+
+*set_autopthread_size       = \&PDL::set_autopthread_size;	  
+
+
+=head2 get_autopthread_size
+
+=for ref
+
+Get the current autopthread_size setting.
+
+=for usage
+
+ $autopthread_size = get_autopthread_size();
+
+C<$autopthread_size> is the mimumum size limit for auto_pthreading to occur, in M-elements or 2^20 elements (approx 1e6 elements) for the largest PDL involved in a function
+
+See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
+
+  
+=cut
+
+*get_autopthread_size       = \&PDL::get_autopthread_size;	  
 
 
 =head1 AUTHOR
