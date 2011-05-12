@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Tue 22 Mar 2011 03:35:25 PM 
+Last saved: Thu 12 May 2011 10:19:53 AM 
 
 =================================================================
                             Overview
@@ -87,6 +87,10 @@ for cygwin:
 			 is believed that it should work with
 			 care in building.)
 
- PDL::IO::HDF           (HDF has not been ported to cygwin)
+ PDL::IO::HDF           (HDF4 has not been ported to cygwin
+                         but HDF5 is available via the cygwin
+			 setup program.  PDL::IO::HDF5 fails
+			 to build due to unix/linux specific
+			 library detection for libhdf5)
   
  PDL::IO::NDF           (NDF has not been ported to cygwin)
