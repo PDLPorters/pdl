@@ -250,14 +250,12 @@ by PDL::Core
 =cut
 
 use Carp;
-
 sub barf
-{
-  Carp::confess(@_);
-}
-
-# export barf to the PDL namespace. This function is available everywhere
-*PDL::barf = \&barf;
+{ Carp::confess(@_); }
+sub cluck
+{ Carp::cluck  (@_); }
+*PDL::barf  = \&barf;
+*PDL::cluck = \&cluck;
 
 ########## Set Auto-PThread Based On Environment Vars ############
 PDL::set_autopthread_targ( $ENV{PDL_AUTOPTHREAD_TARG} ) if( defined ( $ENV{PDL_AUTOPTHREAD_TARG} ) );
