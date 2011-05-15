@@ -297,17 +297,17 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	pdl_magic_pthread *ptr; pthread_t *tp; ptarg *tparg;
 	int i;
 	int clearMagic = 0; /* Flag = 1 if we are temporarily creating pthreading magic in the
-	                       supplied pdl.  */
-	SV * barf_msg;    /* Deferred barf message. Using a perl SV here so it's memory can be freeed by perl
-	                     after it is sent to croak */
-	SV * warn_msg;    /* Similar deferred warn message. */
+						   supplied pdl.  */
+	SV * barf_msg;	  /* Deferred barf message. Using a perl SV here so it's memory can be freeed by perl
+						 after it is sent to croak */
+	SV * warn_msg;	  /* Similar deferred warn message. */
 					  
 	ptr = (pdl_magic_pthread *)pdl__find_magic(it,
 					PDL_MAGIC_THREADING);
 	if(!ptr) {
 		/* Magic doesn't exist, create it
-		    Probably was deleted before the transformation performed, due to
-		    pdl lazy evaluation.
+			Probably was deleted before the transformation performed, due to
+			pdl lazy evaluation.
 		*/
 		
 		pdl_add_threading_magic(it, thread->mag_nth, thread->mag_nthr);
@@ -328,8 +328,8 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 		ptr->key);
 		
 	/* Get the pthread ID of this main thread we are in. 
-	 *  Any barf, warn, etc calls in the spawned pthreads can use this
-	 *  to tell if its a spawned pthread
+	 *	Any barf, warn, etc calls in the spawned pthreads can use this
+	 *	to tell if its a spawned pthread
 	 */
 	pdl_main_pthreadID = pthread_self();
 	
@@ -359,25 +359,25 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	free(tp);
 	free(tparg);
 
-    // handle any errors that may have occured in the worker threads I reset the
-    // length before actually barfing/warning because barf() may not come back.
-    // In that case, I'll have len==0, but an unfreed pointer. This memory will
-    // be reclaimed the next time we barf/warn something (since I'm using
-    // realloc). If we never barf/warn again, we'll hold onto this memory until
-    // the interpreter exits. This is a one-time penalty, though so it's fine
-#define handle_deferred_errors(type)                            \
-    do{                                                         \
-        if(pdl_pthread_##type##_msgs_len != 0)                  \
-        {                                                       \
-            pdl_pthread_##type##_msgs_len = 0;                  \
-            pdl_##type ("%s", pdl_pthread_##type##_msgs);       \
-            free(pdl_pthread_##type##_msgs);                    \
-            pdl_pthread_##type##_msgs     = NULL;               \
-        }                                                       \
-    } while(0)
+	// handle any errors that may have occured in the worker threads I reset the
+	// length before actually barfing/warning because barf() may not come back.
+	// In that case, I'll have len==0, but an unfreed pointer. This memory will
+	// be reclaimed the next time we barf/warn something (since I'm using
+	// realloc). If we never barf/warn again, we'll hold onto this memory until
+	// the interpreter exits. This is a one-time penalty, though so it's fine
+#define handle_deferred_errors(type)							\
+	do{															\
+		if(pdl_pthread_##type##_msgs_len != 0)					\
+		{														\
+			pdl_pthread_##type##_msgs_len = 0;					\
+			pdl_##type ("%s", pdl_pthread_##type##_msgs);		\
+			free(pdl_pthread_##type##_msgs);					\
+			pdl_pthread_##type##_msgs	  = NULL;				\
+		}														\
+	} while(0)
 
-    handle_deferred_errors(warn);
-    handle_deferred_errors(barf);
+	handle_deferred_errors(warn);
+	handle_deferred_errors(barf);
 }
 
 /* Function to remove threading magic (added by pdl_add_threading_magic) */
@@ -429,49 +429,49 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 	if( !pdl_main_pthreadID || pthread_equal( pdl_main_pthreadID, pthread_self() ) )
 		return 0;
 
-    char** msgs;
-    int*   len;
-    if(iswarn)
-    {
-        msgs = &pdl_pthread_warn_msgs;
-        len  = &pdl_pthread_warn_msgs_len;
-    }
-    else
-    {
-        msgs = &pdl_pthread_barf_msgs;
-        len  = &pdl_pthread_barf_msgs_len;
-    }
+	char** msgs;
+	int*   len;
+	if(iswarn)
+	{
+		msgs = &pdl_pthread_warn_msgs;
+		len	 = &pdl_pthread_warn_msgs_len;
+	}
+	else
+	{
+		msgs = &pdl_pthread_barf_msgs;
+		len	 = &pdl_pthread_barf_msgs_len;
+	}
 
-    // add the new complaint to the list
-    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	// add the new complaint to the list
+	static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 	pthread_mutex_lock( &mutex );	
-    {
-        // In the chunk I'm adding I need to store the actual data and a trailing
-        // newline.
-        int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
+	{
+		// In the chunk I'm adding I need to store the actual data and a trailing
+		// newline.
+		int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
 
-        // 1 more for the trailing '\0'
-        *msgs = realloc(*msgs, *len + extralen + 1);
-        vsnprintf( *msgs + *len, extralen + 1, pat, *args);
+		// 1 more for the trailing '\0'
+		*msgs = realloc(*msgs, *len + extralen + 1);
+		vsnprintf( *msgs + *len, extralen + 1, pat, *args);
 
-        // update the length-so-far. This does NOT include the trailing '\0'
-        *len += extralen;
+		// update the length-so-far. This does NOT include the trailing '\0'
+		*len += extralen;
 
-        // add the newline to the end
-        (*msgs)[*len-1] = '\n';
-        (*msgs)[*len  ] = '\0';
-    }
+		// add the newline to the end
+		(*msgs)[*len-1] = '\n';
+		(*msgs)[*len  ] = '\0';
+	}
 	pthread_mutex_unlock( &mutex );
 	
-    if(iswarn)
-    {
-        /* Return 1, indicating we have handled the warn messages */
-        return(1);
-    }
+	if(iswarn)
+	{
+		/* Return 1, indicating we have handled the warn messages */
+		return(1);
+	}
 
-    /* Exit the current pthread. Since this was a barf call, and we should be halting execution */
-    pthread_exit(NULL);
-    return 0;
+	/* Exit the current pthread. Since this was a barf call, and we should be halting execution */
+	pthread_exit(NULL);
+	return 0;
 }	
 	
 
