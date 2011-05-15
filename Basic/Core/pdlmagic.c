@@ -19,20 +19,14 @@
 #ifdef PDL_PTHREAD
 static pthread_t pdl_main_pthreadID = 0;
 
-/* Pthread barf variables: 
- *  These are setup so any barf messags that happen when pthreading are saved/deferred
- *  until the pthread joins the main thread.
+/* deferred error messages are stored here. We can only barf/warn from the main
+ *  thread, so worker threads complain here and the complaints are printed out
+ *  altogether later
  */
-pthread_mutex_t pthread_barf_mutex = PTHREAD_MUTEX_INITIALIZER; /* ensure safe access */
-char ** pdl_pthread_barf_msgs = NULL;  /* Array of deferred barf messages  */
-int pdl_pthread_barf_nmsg = 0;         /* Number of deferred barf messages */
-
-
-
-pthread_mutex_t pthread_warn_mutex = PTHREAD_MUTEX_INITIALIZER;
-char ** pdl_pthread_warn_msgs = NULL;  /* Array of deferred warn messages  */
-int pdl_pthread_warn_nmsg = 0;         /* Number of deferred warn messages */
-
+static char* pdl_pthread_barf_msgs     = NULL;
+static int   pdl_pthread_barf_msgs_len = 0;
+static char* pdl_pthread_warn_msgs     = NULL;
+static int   pdl_pthread_warn_msgs_len = 0;
 
 #endif
 
@@ -364,81 +358,26 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	/* Clean up memory allocated */
 	free(tp);
 	free(tparg);
-	
-	/* Check for deferred barf calls */
-	/*   We don't need to use the mutexes to access the global variables, because we
-	     are in the main pthread here */
-	if( pdl_pthread_barf_nmsg ){
-		int msgSize = 0;
-		int i;
-		
-		barf_msg = newSVpv("", 0);
-		
-		/* Join messages together */
-		for( i = 0; i < pdl_pthread_barf_nmsg; i++){
-			sv_catpv( barf_msg,  pdl_pthread_barf_msgs[i] );
-			
-			/* Separate messages by newline, if not one there already and message length > 0 */
-			if( ( i < (pdl_pthread_barf_nmsg -1 ) ) &&
-			      strlen( pdl_pthread_barf_msgs[i] ) > 0 ){ 
-				char * lastChar;
-				lastChar = SvEND(barf_msg) - 1;
-				if( ! ( *lastChar == '\n') ) {
-					sv_catpv( barf_msg,  "\n" );
-				}
-			}
-				
-		}
-		
-		/* Cleanup the pthread variables */
-		for( i = 0; i < pdl_pthread_barf_nmsg; i++){
-			free( pdl_pthread_barf_msgs[i] );
-		}
-		free(pdl_pthread_barf_msgs);
-		pdl_pthread_barf_msgs = NULL;
-		pdl_pthread_barf_nmsg = 0;
-		
-		/* Now barf with the deferred messages */
-		pdl_barf(SvPVX(barf_msg));
-	}
 
-	/* Check for deferred warn calls */
-	/*   We don't need to use the mutexes to access the global variables, because we
-	     are in the main pthread here */
-	if( pdl_pthread_warn_nmsg ){
-		int msgSize = 0;
-		int i;
-		
-		warn_msg = newSVpv("", 0);
-		
-		/* Join messages together */
-		for( i = 0; i < pdl_pthread_warn_nmsg; i++){
-			//printf("Joining message '%s'\n", pdl_pthread_warn_msgs[i]);
-			sv_catpv( warn_msg,  pdl_pthread_warn_msgs[i] );
+    // handle any errors that may have occured in the worker threads I reset the
+    // length before actually barfing/warning because barf() may not come back.
+    // In that case, I'll have len==0, but an unfreed pointer. This memory will
+    // be reclaimed the next time we barf/warn something (since I'm using
+    // realloc). If we never barf/warn again, we'll hold onto this memory until
+    // the interpreter exits. This is a one-time penalty, though so it's fine
+#define handle_deferred_errors(type)                            \
+    do{                                                         \
+        if(pdl_pthread_##type##_msgs_len != 0)                  \
+        {                                                       \
+            pdl_pthread_##type##_msgs_len = 0;                  \
+            pdl_##type ("%s", pdl_pthread_##type##_msgs);       \
+            free(pdl_pthread_##type##_msgs);                    \
+            pdl_pthread_##type##_msgs     = NULL;               \
+        }                                                       \
+    } while(0)
 
-			/* Separate messages by newline, if not one there already and message length > 0 */
-			if( ( i < (pdl_pthread_warn_nmsg -1 ) ) &&
-			      strlen( pdl_pthread_warn_msgs[i] ) > 0 ){ 
-				char * lastChar;
-				lastChar = SvEND(warn_msg) - 1;
-				if( ! ( *lastChar == '\n') ) {
-					sv_catpv( warn_msg,  "\n" );
-				}
-			}
-		}
-		
-		/* Cleanup the pthread variables */
-		for( i = 0; i < pdl_pthread_warn_nmsg; i++){
-			free( pdl_pthread_warn_msgs[i] );
-		}
-		free(pdl_pthread_warn_msgs);
-		pdl_pthread_warn_msgs = NULL;
-		pdl_pthread_warn_nmsg = 0;
-		
-		/* Now barf with the deferred messages */
-		pdl_warn(SvPVX(warn_msg));
-	}
-		
+    handle_deferred_errors(warn);
+    handle_deferred_errors(barf);
 }
 
 /* Function to remove threading magic (added by pdl_add_threading_magic) */
@@ -486,57 +425,53 @@ void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads)
 // reporting later
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 {
-        pthread_mutex_t* mutex;
-        char**           msgs;
-        int              nmsg;
-        if(iswarn)
-        {
-                mutex = &pthread_warn_mutex;
-                msgs  = pdl_pthread_warn_msgs;
-                nmsg  = pdl_pthread_warn_nmsg;
-        }
-        else
-        {
-                mutex = &pthread_barf_mutex;
-                msgs  = pdl_pthread_barf_msgs;
-                nmsg  = pdl_pthread_barf_nmsg;
-        }
-
-	/* Temporary place to put messages */
-	static char tempMsg[MAX_PDL_PTHREAD_MSG_SIZE + 1]; 
-	int msgLen;
-	
 	/* Don't do anything if we are in the main pthread */
 	if( !pdl_main_pthreadID || pthread_equal( pdl_main_pthreadID, pthread_self() ) )
 		return 0;
-	
-	/* Get message */
-	vsnprintf( tempMsg, MAX_PDL_PTHREAD_MSG_SIZE, pat, *args);
-	
-	msgLen = strnlen( tempMsg, MAX_PDL_PTHREAD_MSG_SIZE);
-	
-	/* Store the new message on the pthread-global arrays (using mutexes) */
-	pthread_mutex_lock( mutex );	
-	
-	nmsg++;
-	msgs = (char **) realloc( msgs, nmsg * sizeof( char *) );
-	msgs[nmsg - 1] = (char *) malloc( (msgLen + 1) * sizeof( char ) );
-	
-	strncpy( msgs[nmsg - 1], tempMsg, msgLen + 1 );
-	
 
-	/* Release the mutex */
-	pthread_mutex_unlock( mutex );
-	
-        if(iswarn)
-        {
-          /* Return 1, indicating we have handled the warn messages */
-          return(1);
-        }
+    char** msgs;
+    int*   len;
+    if(iswarn)
+    {
+        msgs = &pdl_pthread_warn_msgs;
+        len  = &pdl_pthread_warn_msgs_len;
+    }
+    else
+    {
+        msgs = &pdl_pthread_barf_msgs;
+        len  = &pdl_pthread_barf_msgs_len;
+    }
 
-        /* Exit the current pthread. Since this was a barf call, and we should be halting execution */
-        pthread_exit(NULL);
-        return 0;
+    // add the new complaint to the list
+    static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutex_lock( &mutex );	
+    {
+        // In the chunk I'm adding I need to store the actual data and a trailing
+        // newline.
+        int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
+
+        // 1 more for the trailing '\0'
+        *msgs = realloc(*msgs, *len + extralen + 1);
+        vsnprintf( *msgs + *len, extralen + 1, pat, *args);
+
+        // update the length-so-far. This does NOT include the trailing '\0'
+        *len += extralen;
+
+        // add the newline to the end
+        (*msgs)[*len-1] = '\n';
+        (*msgs)[*len  ] = '\0';
+    }
+	pthread_mutex_unlock( &mutex );
+	
+    if(iswarn)
+    {
+        /* Return 1, indicating we have handled the warn messages */
+        return(1);
+    }
+
+    /* Exit the current pthread. Since this was a barf call, and we should be halting execution */
+    pthread_exit(NULL);
+    return 0;
 }	
 	
 

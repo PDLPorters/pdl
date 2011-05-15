@@ -115,9 +115,6 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 /* Deferred barfing and warning when pthreading  */
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args);
 
-/* Maximum size of a barf message that can be deferred in pthreading */
-#define MAX_PDL_PTHREAD_MSG_SIZE 500
-
 void pdl_add_threading_magic(pdl *,int nthdim,int nthreads);
 
 int pdl_magic_thread_nthreads(pdl *,int *nthdim);

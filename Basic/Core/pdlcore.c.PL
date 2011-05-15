@@ -548,7 +548,7 @@ void* pdl_malloc ( int nbytes ) {
    message to barf/warn in the main thread later
 */
 
-static void pdl_barf_or_warn(const char* pat, int iswarn, const va_list* args)
+static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 {
     // If we're in a worker thread, we queue the barf/warn for later,
     // and exit the thread ...
