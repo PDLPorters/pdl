@@ -178,7 +178,7 @@ my $prefixpat = qr/.*?  # arbitrary leading stuff
 # mslice format
 sub onearg ($) {
   my ($arg) = @_;
-  print STDERR "processing arg $arg\n" if $PDL::NiceSlice::debug;
+  print STDERR "processing arg '$arg'\n" if $PDL::NiceSlice::debug;
   return q|'X'| if $arg =~ /^\s*:??\s*$/;     # empty arg or just colon
   # recursively process args for slice syntax
   $arg = findslice($arg,$PDL::debug) if $arg =~ $prefixpat;
@@ -200,7 +200,7 @@ sub onearg ($) {
 
   # If the arg starts with '*' it's a dummy call -- force stringification
   # and prepend a '*' for handling by slice.
-  return "(q(*).($arg))" if($arg =~ s/^\*//);
+  return "(q(*).($arg))" if($arg =~ s/^\s*\*//);
 
   # this must be a simple position, leave as is
   return "$arg";
@@ -209,7 +209,7 @@ sub onearg ($) {
 # process the arg list
 sub procargs {
   my ($txt) = @_;
-  print STDERR "procargs: got $txt\n" if $PDL::NiceSlice::debug;
+  print STDERR "procargs: got '$txt'\n" if $PDL::NiceSlice::debug;
   # $txt =~ s/^\s*\((.*)\)\s*$/$1/s; # this is now done by findslice
   # push @callstack, $txt; # for later error reporting
   my $args = $txt =~ /^\s*$/s ? '' :
