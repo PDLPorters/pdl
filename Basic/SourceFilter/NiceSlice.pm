@@ -255,13 +255,13 @@ sub findslice {
       # to fix modifier parsing and allow >1 modifier
       # this code still needs polishing
       savearg $found; # error reporting
-      print STDERR "findslice: found $found\n" if $PDL::NiceSlice::debug;
+      print STDERR "findslice: found '$found'\n" if $PDL::NiceSlice::debug;
       $found =~ s/^\s*\((.*)\)\s*$/$1/s;
       my ($slicearg,@mods) = splitprotected ';', $found;
       filterdie "more than 1 modifier group: @mods" if @mods > 1;
       # filterdie "invalid modifier $1"
       #	if $found =~ /(;\s*[[:graph:]]{2,}?\s*)\)$/;
-      print STDERR "MODS: @mods\n" if $PDL::NiceSlice::debug;
+      print STDERR "MODS: " . join(',',@mods) . "\n" if $PDL::NiceSlice::debug;
       my @post = (); # collects all post nslice operations
       my @pre = ();
       if (@mods) {
@@ -276,7 +276,7 @@ sub findslice {
 	    if ($mod1 eq '?') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
 	      $call = 'where';
-	      $arg = "($slicearg)";
+	      $arg = "(" . findslice($slicearg) . ")";
 	      # $post = ''; # no post action required
 	    } elsif ($mod1 eq '_') {
 	      $seen{$mod1}++ && filterdie "modifier $mod1 used twice or more";
