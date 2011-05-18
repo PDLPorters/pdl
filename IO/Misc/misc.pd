@@ -843,7 +843,7 @@ sub PDL::wcols {
    my $file_opened;
    my $is_handle = !UNIVERSAL::isa($file,'PDL') &&
                    !UNIVERSAL::isa($file,'ARRAY') &&
-                   _is_io_handle $_[0];
+                   _is_io_handle $file;
    if ($is_handle) {  # file handle passed directly
        $fh = $file; pop;
    }
