@@ -26,7 +26,16 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * New multi-processor support for PDL computations using
+   pthreads.  This can improve performance up to 2X-4X for
+   some problems.  See pdldoc ParallelCPU for information.
+
+ * Fix PDL::NiceSlice bugs sf.net #3295544 and 3300467
+
+ * Fix wcols() regression where file handle arguments
+   were not being handled correctly.
+ 
+ * Various documentation and distributions fixes.
 
 
 
