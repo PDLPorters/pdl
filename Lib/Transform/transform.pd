@@ -3262,6 +3262,7 @@ sub t_cubic {
     }
     my($me) = PDL::Transform::new($class);
 
+    $me->{params}->{dim} = _opt($o,['d','dim','dims','Dims'],undef);
     $me->{params}->{origin} = _opt($o,['o','origin','Origin'],pdl(0));
     $me->{params}->{l0} = _opt($o,['r0','l','l0','length','Length'],pdl(1));
     $me->{params}->{st} = _opt($o,['s','st','str'],pdl(0));
@@ -3288,7 +3289,7 @@ sub t_cubic {
 	#     C = 1
 	#     D = -f(x)
 	$d += $o->{st} * $d * $dl0 * $dl0; 
-	$d /= ($o->{st} + 1);
+	$d /= ($o->{st}**2 + 1);
 
 	$d += $o->{origin};
 
