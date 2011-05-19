@@ -2749,7 +2749,7 @@ sub t_perspective {
 
       my($out) = $d->is_inplace ? $d : $d->copy;
       $out->(0:1) *= $o->{conv};
-      
+
       # If we're outside the sphere, do hemisphere filtering
       my $idx;
       if(abs($o->{r0}) < 1 ) {
@@ -2835,7 +2835,7 @@ sub t_perspective {
 	if($o->{mag} != 1.0) {
 	  my $r = ($oyz * $oyz)->sumover->sqrt;
 	  my $scale = tan( atan( $r ) / $o->{mag} ) / $r;
-	  $out->(0:1) *= $scale;
+	  $out->(0:1) *= $scale->dummy(0,1);
 	}
 	
 	## Solve for the X coordinate of the surface.  
