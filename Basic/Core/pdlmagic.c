@@ -568,10 +568,10 @@ int pdl_pthread_warn(const char* pat, va_list *args){
 /* Dummy versions */
 void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads) {}
 int pdl_magic_get_thread(pdl *it) {return 0;}
-void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t) {}
+void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread) {}
 int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {return 0;}
 int pdl_pthreads_enabled() {return 0;}
-int pdl_pthread_barf(const char* pat, va_list *args){ return 0;};
+void pdl_pthread_barf(const char* pat, va_list *args){ return 0;};
 int pdl_pthread_warn(const char* pat, va_list *args){ return 0;};
 #endif
 
