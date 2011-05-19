@@ -541,6 +541,7 @@ Read in an ascii pnm file.
 # write a line of data supporting threading !
 pp_def(	'pnmout',
 	Pars => 'a(m);',
+	'NoPthread' => 1, # Pthreading doesn't make sense for an IO function
 	OtherPars => "int israw; int isbin; char *fd",
 	GenericTypes => [B,U,S,L],
 	Code => 'PerlIO *fp;

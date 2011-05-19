@@ -24,9 +24,9 @@ Fit 1D polynomials to data using min chi^2 (least squares)
 
  Usage: ($yfit, [$coeffs]) = fitpoly1d [$xdata], $data, $order, [Options...]
 
-=for signature
+=for sig
 
-Signature: (x(n); y(n); [o]yfit(n); [o]coeffs(order))
+  Signature: (x(n); y(n); [o]yfit(n); [o]coeffs(order))
 
 Uses a standard matrix inversion method to do a least
 squares/min chi^2 polynomial fit to data. Order=2 is a linear

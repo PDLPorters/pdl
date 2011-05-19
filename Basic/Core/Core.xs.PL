@@ -89,6 +89,9 @@ Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 #endif
 
 int pdl_debugging=0;
+int pdl_autopthread_targ   = 0; /* No auto-pthreading unless set using the set_autopthread_targ */
+int pdl_autopthread_actual = 0; 
+int pdl_autopthread_size   = 1;
 
 #define CHECKP(p)    if ((p) == NULL) croak("Out of memory")
 
@@ -691,6 +694,52 @@ howbig_c(datatype)
    OUTPUT:
      RETVAL
 
+
+int
+set_autopthread_targ(i)
+	int i;
+	CODE:
+	RETVAL = i;
+	pdl_autopthread_targ = i;
+	OUTPUT:
+	RETVAL
+
+int
+get_autopthread_targ()
+	CODE:
+	RETVAL = pdl_autopthread_targ;
+	OUTPUT:
+	RETVAL
+
+
+int
+set_autopthread_size(i)
+	int i;
+	CODE:
+	RETVAL = i;
+	pdl_autopthread_size = i;
+	OUTPUT:
+	RETVAL
+
+int
+get_autopthread_size()
+	CODE:
+	RETVAL = pdl_autopthread_size;
+	OUTPUT:
+	RETVAL
+
+int
+get_autopthread_actual()
+	CODE:
+	RETVAL = pdl_autopthread_actual;
+	OUTPUT:
+	RETVAL
+
+
+
+
+
+
 MODULE = PDL::Core     PACKAGE = PDL::Core
 
 unsigned int
@@ -710,6 +759,7 @@ set_debugging(i)
 	pdl_debugging = i;
 	OUTPUT:
 	RETVAL
+
 
 
 SV *
@@ -1058,6 +1108,7 @@ BOOT:
    PDL.make_physdims = pdl_make_physdims;
    PDL.make_physvaffine = pdl_make_physvaffine;
    PDL.pdl_barf      = pdl_barf;
+   PDL.pdl_warn      = pdl_warn;
    PDL.allocdata     = pdl_allocdata;
    PDL.safe_indterm  = pdl_safe_indterm;
    PDL.children_changesoon = pdl_children_changesoon;
@@ -1493,7 +1544,7 @@ threadover_n(...)
 		realdims[i] = 0;
 	    }
 	    PDL_THR_CLRMAGIC(&pdl_thr);
-	    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL);
+	    pdl_initthreadstruct(0,pdls,realdims,realdims,npdls,NULL,&pdl_thr,NULL, 1);
 	    pdl_startthreadloop(&pdl_thr,NULL,NULL);
 	    sd = pdl_thr.ndims;
 	    do {
@@ -1570,7 +1621,7 @@ threadover(...)
 #endif
 	    PDL_THR_CLRMAGIC(&pdl_thr);
 	    pdl_initthreadstruct(0,pdls,realdims,creating,npdls,
-				NULL,&pdl_thr,NULL);
+				NULL,&pdl_thr,NULL, 1);
 	    for(i=0, nc=npdls; i<npdls; i++)  /* create as necessary */
               if (creating[i]) {
 		int *cp = creating+nc;

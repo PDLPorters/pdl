@@ -1182,7 +1182,7 @@ of other video formats.
 =item *
 
 On CPAN you can find the PDL::NetCDF module that works with the current
-released version of PDL 2.4.7 [DH, please confirm].
+released version of PDL 2.4.9.
 
 
 

@@ -112,12 +112,19 @@ pdl_trans *pdl_find_mutatedtrans(pdl *it);
 
 /* Threading magic */
 
+/* Deferred barfing and warning when pthreading  */
+void pdl_pthread_barf(const char* pat, va_list *args);
+int pdl_pthread_warn(const char* pat, va_list *args);
+
+/* Maximum size of a barf message that can be deferred in pthreading */
+#define MAX_PDL_PTHREAD_MSG_SIZE 500
+
 void pdl_add_threading_magic(pdl *,int nthdim,int nthreads);
 
 int pdl_magic_thread_nthreads(pdl *,int *nthdim);
 int pdl_magic_get_thread(pdl *); /* XXX -> only one thread can handle pdl at once */
 
-void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t);
+void pdl_magic_thread_cast(pdl *,void (*func)(pdl_trans *),pdl_trans *t, pdl_thread *thread);
 int pdl_pthreads_enabled(void);
 
 /* Delete data magic */

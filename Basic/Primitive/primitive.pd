@@ -53,6 +53,8 @@ EOD
 
 =head2 inner
 
+=for sig
+
   Signature: (a(n); b(n); [o]c())
 
 =cut
@@ -100,6 +102,8 @@ as it will not contain any bad values.
 
 =head2 outer
 
+=for sig
+
   Signature: (a(n); b(m); [o]c(n,m))
 
 =cut
@@ -138,6 +142,8 @@ operator but this function is provided for convenience.
 pp_addpm(<<'EOD');
 
 =head2 x
+
+=for sig
 
  Signature: (a(i,x), b(z,i),[o]c(x,z))
 
@@ -321,6 +327,8 @@ EOD
 
 =head2 innerwt
 
+=for sig
+
   Signature: (a(n); b(n); c(n); [o]d())
 
 =cut
@@ -361,6 +369,8 @@ Weighted (i.e. triple) inner product
        );
 
 =head2 inner2
+
+=for sig
 
   Signature: (a(n); b(n,m); c(m); [o]d())
 
@@ -405,6 +415,8 @@ very wasteful. Instead, you should use a temporary for C<b*c>.
 
 =head2 inner2d
 
+=for sig
+
   Signature: (a(n,m); b(n,m); [o]c())
 
 =cut
@@ -446,6 +458,8 @@ Equivalent to
        );
 
 =head2 inner2t
+
+=for sig
 
   Signature: (a(j,n); b(n,m); c(m,k); [t]tmp(n,k); [o]d(j,k)))
 
@@ -527,6 +541,8 @@ sub crassgn {
 
 =head2 crossp
 
+=for sig
+
   Signature: (a(tri=3); b(tri); [o] c(tri))
 
 =cut
@@ -558,6 +574,8 @@ EOD
        );
 
 =head2 norm
+
+=for sig
 
   Signature: (vec(n); [o] norm(n))
 
@@ -615,6 +633,8 @@ pp_def('norm',
 # see PDL::ImageND for info about the circ_mean function
 
 =head2 indadd
+
+=for sig
 
   Signature: (a(); int ind(); [o] sum(m))
 
@@ -681,6 +701,8 @@ Threaded Example:
 ');
 
 =head2 conv1d
+
+=for sig
 
   Signature: (a(m); kern(p); [o]b(m); int reflect)
 
@@ -786,6 +808,8 @@ sub PDL::conv1d {
 
 
 =head2 in
+
+=for sig
 
   Signature: (a(); b(n); [o] c())
 
@@ -1096,11 +1120,15 @@ EOPM
 
 =head2 hclip
 
+=for sig
+
   Signature: (a(); b(); [o] c())
 
 clip (threshold) C<$a> by C<$b> (C<$b> is upper bound)
 
 =head2 lclip
+
+=for sig
 
   Signature: (a(); b(); [o] c())
 
@@ -1200,6 +1228,8 @@ EOD
 ############################################################
 
 =head2 wtstat
+
+=for sig
 
   Signature: (a(n); wt(n); avg(); [o]b(); int deg)
 
@@ -1549,6 +1579,8 @@ EOD
 
 =head2 whistogram
 
+=for sig
+
   Signature: (in(n); float+ wt(n);float+[o] hist(m); double step; double min; int msize => m)
 
 =cut
@@ -1645,6 +1677,8 @@ pp_def($_->{Name},
 
 =head2 histogram2d
 
+=for sig
+
   Signature: (ina(n); inb(n); int+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;)
 
@@ -1687,6 +1721,8 @@ upper limit is put in the last bin.
 EOD
 
 =head2 whistogram2d
+
+=for sig
 
   Signature: (ina(n); inb(n); float+ wt(n);float+[o] hist(ma,mb); double stepa; double mina; int masize => ma;
 	             double stepb; double minb; int mbsize => mb;)
@@ -1811,6 +1847,8 @@ pp_def($_->{Name},
 
 =head2 fibonacci
 
+=for sig
+
   Signature: ([o]x(n))
 
 Constructor - a vector with Fibonacci's sequence
@@ -1846,6 +1884,8 @@ EOD
 ');
 
 =head2 append
+
+=for sig
 
   Signature: (a(n); b(m); [o] c(mn))
 
@@ -1975,6 +2015,8 @@ EOD
 
 =head2 axisvalues
 
+=for sig
+
   Signature: ([o,nc]a(n))
 
 =cut
@@ -2061,6 +2103,7 @@ pp_def(
 	PMFunc => '',
 	Code =>
 	'$a() = Drand01();',
+	'NoPthread' => 1, # random isn't threadsafe
 	Doc=>undef,
 	PMCode=><<'EOD',
 sub random { ref($_[0]) && ref($_[0]) ne 'PDL::Type' ? $_[0]->random : PDL->random(@_) }
@@ -2075,6 +2118,7 @@ EOD
 
 pp_def(
 	'randsym',
+	'NoPthread' => 1, # random isn't threadsafe
 	Pars=>'a();',
 	PMFunc => '',
 	Code =>
@@ -2137,6 +2181,8 @@ pp_add_exported('','grandom');
 ###############################################################
 
 =head2 vsearch
+
+=for sig
 
   Signature: (i(); x(n); int [o]ip())
 
@@ -2205,6 +2251,8 @@ function to obtain cumulative probabilities from absolute probabilities.
 EOD
 
 =head2 interpolate
+
+=for sig
 
   Signature: (xi(); x(n); y(n); [o] yi(); int [o] err())
 
@@ -2623,6 +2671,8 @@ EOD
 
 =head2 which
 
+=for sig
+
   Signature: (mask(n); int [o] inds(m))
 
 =cut
@@ -2673,6 +2723,8 @@ L<whichND|/whichND> returns N-D indices into a multidimensional PDL.
 EOD
 
 =head2 which_both
+
+=for sig
 
   Signature: (mask(n); int [o] inds(m); int [o]notinds(q))
 

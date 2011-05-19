@@ -112,6 +112,7 @@ fft_free()
 ');
 pp_def('_fft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
+	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
 	($SIZE(n), NULL , $P(real),$P(imag), 1, 1.);',
@@ -120,6 +121,7 @@ pp_def('_fft',
 
 pp_def('_ifft',
 	Pars => '[o,nc]real(n); [o,nc]imag(n);',
+	'NoPthread' => 1, # underlying fft code (fftn.c) isn't threadsafe
 	GenericTypes => [F,D],
 	Code => '$TFD(fftnf,fftn)
 	($SIZE(n), NULL , $P(real),$P(imag), -1, -1.);',

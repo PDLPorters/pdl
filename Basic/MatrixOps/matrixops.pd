@@ -1139,7 +1139,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
-  signature: (lu(m,m); perm(m); b(m))
+  Signature: (lu(m,m); perm(m); b(m))
 
 =for ref
 

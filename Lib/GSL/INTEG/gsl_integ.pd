@@ -526,6 +526,10 @@ pp_addhdr('
 #include <gsl/gsl_math.h>
 #include <gsl/gsl_integration.h>
 #include <gsl/gsl_errno.h>
+/* GSL Glue code contains it\'s own "warn" variable and doesn\'t call perl\'s warn function  */
+/*    (which can cause problems when perl\'s warn is called in a separate pthread),          */
+/*    so we undefine the warn redefinition                                                   */
+#undef warn
 
 #include "FUNC.c"
 

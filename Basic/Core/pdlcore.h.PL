@@ -19,8 +19,11 @@ use vars qw( %PDL_DATATYPES );
 # version 6 is introduced after 2.4.2, due to the experimental
 #   per-piddle bad values code (the BADVAL_PER_PDL option)
 #
+# version 7 introduced for some changes to function prototypes
+#   for pthreading (i.e. multi-threading) capabilities
+#
 use vars qw( $pdl_core_version );
-$pdl_core_version = 6;
+$pdl_core_version = 7;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -106,12 +109,20 @@ static const union {unsigned char c[4]; float f;}
 static const union {unsigned char c[8]; double d;}
    union_nan_double = {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}};
 
-/* for the moment we go back to the original croak
- * since there seem to be quite a few problems with maintaining
- * our own barf version
+/* Use our own barf (which is a wrapper for croak),
+ *  so that we defer barf handling until after multi-threaded (i.e pthreading)
+ *  processing is finished. 
+ *  This is needed because segfaults happen when perl's croak is called
+ *  during one of the spawned pthreads for PDL processing.
  */
 
-#define barf croak
+#define barf PDL->pdl_barf
+
+/* Similarly for warn, we use our own pdl_warn to defer warning messages while
+   pthreading */
+#undef warn
+#define warn PDL->pdl_warn
+
 
 typedef int Logical;
 
@@ -132,6 +143,7 @@ void*   pdl_malloc ( int nbytes );           /* malloc memory - auto free()*/
 void pdl_makescratchhash(pdl *ret,double data, int datatype);
 PDL_Long pdl_safe_indterm(PDL_Long dsz, PDL_Long at, char *file, int lineno);
 void pdl_barf(const char* pat,...); /* General croaking utility */
+void pdl_warn(const char* pat,...); /* General warn utility */
 int av_ndcheck(AV* av, AV* dims, int level, int *datalevel);
 pdl* pdl_from_array(AV* av, AV* dims, int type, pdl* p);
 
@@ -187,7 +199,7 @@ int *pdl_get_threadoffsp(pdl_thread *thread); /* For pthreading */
 void pdl_thread_copy(pdl_thread *from,pdl_thread *to);
 void pdl_clearthreadstruct(pdl_thread *it);
 void pdl_initthreadstruct(int nobl,pdl **pdls,int *realdims,int *creating,int npdls,
-	pdl_errorinfo *info,pdl_thread *thread,char *flags);
+	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int pdl_startthreadloop(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
 int pdl_iterthreadloop(pdl_thread *thread,int which);
 void pdl_freethreadloop(pdl_thread *thread);
@@ -293,7 +305,7 @@ struct Core {
 void (*thread_copy)(pdl_thread *from,pdl_thread *to);
 void (*clearthreadstruct)(pdl_thread *it);
 void (*initthreadstruct)(int nobl,pdl **pdls,int *realdims,int *creating,int npdls,
-	pdl_errorinfo *info,pdl_thread *thread,char *flags);
+	pdl_errorinfo *info,pdl_thread *thread,char *flags, int noPthreadFlag );
 int (*startthreadloop)(pdl_thread *thread,void (*func)(pdl_trans *),pdl_trans *);
 int *(*get_threadoffsp)(pdl_thread *thread); /* For pthreading */
 int (*iterthreadloop)(pdl_thread *thread,int which);
@@ -330,6 +342,8 @@ void (*make_physical)(pdl *it);
 void (*make_physdims)(pdl *it);
 void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
                                   is a macro - KGB */
+void (*pdl_warn) (const char* pat,...);
+
 void (*make_physvaffine)(pdl *it);
 void (*allocdata) (pdl *it);
 PDL_Long (*safe_indterm)(PDL_Long dsz, PDL_Long at, char *file, int lineno);

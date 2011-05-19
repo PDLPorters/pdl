@@ -194,7 +194,7 @@ void pdl__free(pdl *it) {
 	    SvREFCNT_dec(it->datasv);
 	    it->data=0;
     } else if(it->data) {
-    	    warn("Warning: special data without datasv is not freed currently!!");
+    	    pdl_warn("Warning: special data without datasv is not freed currently!!");
     }
     if(it->hdrsv) {
     	SvREFCNT_dec(it->hdrsv);
@@ -743,7 +743,7 @@ void pdl__removechildtrans(pdl *it,pdl_trans *trans,int nth,int all)
 	/* this might be due to a croak when performing the trans; so
 	   warn only for now, otherwise we leave trans undestructed ! */
 	if(!flag)
-		warn("Child not found for pdl %d, %d\n",it, trans);
+		pdl_warn("Child not found for pdl %d, %d\n",it, trans);
 }
 
 void pdl__removeparenttrans(pdl *it, pdl_trans *trans, int nth)

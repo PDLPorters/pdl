@@ -1,3 +1,44 @@
+Release Notes for PDL 2.4.9_002 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_002.tar.gz
+       cpan> make CHM/PDL-2.4.9_002.tar.gz
+       cpan> test CHM/PDL-2.4.9_002.tar.gz
+       cpan> look CHM/PDL-2.4.9_002.tar.gz
+
+
+Highlights:
+
+ * New multi-processor support for PDL computations using
+   pthreads.  This can improve performance up to 2X-4X for
+   some problems.  See pdldoc ParallelCPU for information.
+
+ * Fix PDL::NiceSlice bugs sf.net #3295544 and 3300467
+
+ * Fix wcols() regression where file handle arguments
+   were not being handled correctly.
+ 
+ * Various documentation and distributions fixes.
+
+
+
 Release Notes for PDL 2.4.9_001 --------------------------
 
 General Notes:
@@ -18,15 +59,26 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.9_001.tar.gz
-       cpan> make chm/pdl-2.4.9_001.tar.gz
-       cpan> test chm/pdl-2.4.9_001.tar.gz
-       cpan> look chm/pdl-2.4.9_001.tar.gz
+       cpan> get  CHM/PDL-2.4.9_001.tar.gz
+       cpan> make CHM/PDL-2.4.9_001.tar.gz
+       cpan> test CHM/PDL-2.4.9_001.tar.gz
+       cpan> look CHM/PDL-2.4.9_001.tar.gz
 
 
 Highlights:
 
- * TBD
+ * Add support to PDL::IO::Misc for handles that are not files.
+
+ * Update PDL::PP docs and other doc fixes.
+
+ * Improved detection logic for a number of external
+   dependencies
+ 
+ * Fix double-bscale bug for rice-compressed images
+
+ * Adapt t/bad.t to use File::Temp::tempfile() instead
+   of a hand-rolled version.  Eventually we would like
+   to standardize on File::Temp for our temp file work.
 
 
 
@@ -101,10 +153,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.8_002.tar.gz
-       cpan> make chm/pdl-2.4.8_002.tar.gz
-       cpan> test chm/pdl-2.4.8_002.tar.gz
-       cpan> look chm/pdl-2.4.8_002.tar.gz
+       cpan> get  CHM/PDL-2.4.8_002.tar.gz
+       cpan> make CHM/PDL-2.4.8_002.tar.gz
+       cpan> test CHM/PDL-2.4.8_002.tar.gz
+       cpan> look CHM/PDL-2.4.8_002.tar.gz
 
 
 Highlights:
@@ -138,10 +190,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.8_001.tar.gz
-       cpan> make chm/pdl-2.4.8_001.tar.gz
-       cpan> test chm/pdl-2.4.8_001.tar.gz
-       cpan> look chm/pdl-2.4.8_001.tar.gz
+       cpan> get  CHM/PDL-2.4.8_001.tar.gz
+       cpan> make CHM/PDL-2.4.8_001.tar.gz
+       cpan> test CHM/PDL-2.4.8_001.tar.gz
+       cpan> look CHM/PDL-2.4.8_001.tar.gz
 
 
 Highlights:
@@ -371,10 +423,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_015.tar.gz
-       cpan> make chm/pdl-2.4.7_015.tar.gz
-       cpan> test chm/pdl-2.4.7_015.tar.gz
-       cpan> look chm/pdl-2.4.7_015.tar.gz
+       cpan> get  CHM/PDL-2.4.7_015.tar.gz
+       cpan> make CHM/PDL-2.4.7_015.tar.gz
+       cpan> test CHM/PDL-2.4.7_015.tar.gz
+       cpan> look CHM/PDL-2.4.7_015.tar.gz
 
 
 Highlights:
@@ -404,10 +456,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_014.tar.gz
-       cpan> make chm/pdl-2.4.7_014.tar.gz
-       cpan> test chm/pdl-2.4.7_014.tar.gz
-       cpan> look chm/pdl-2.4.7_014.tar.gz
+       cpan> get  CHM/PDL-2.4.7_014.tar.gz
+       cpan> make CHM/PDL-2.4.7_014.tar.gz
+       cpan> test CHM/PDL-2.4.7_014.tar.gz
+       cpan> look CHM/PDL-2.4.7_014.tar.gz
 
 
 Highlights:
@@ -448,10 +500,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_013.tar.gz
-       cpan> make chm/pdl-2.4.7_013.tar.gz
-       cpan> test chm/pdl-2.4.7_013.tar.gz
-       cpan> look chm/pdl-2.4.7_013.tar.gz
+       cpan> get  CHM/PDL-2.4.7_013.tar.gz
+       cpan> make CHM/PDL-2.4.7_013.tar.gz
+       cpan> test CHM/PDL-2.4.7_013.tar.gz
+       cpan> look CHM/PDL-2.4.7_013.tar.gz
 
 
 Highlights:
@@ -507,10 +559,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_012.tar.gz
-       cpan> make chm/pdl-2.4.7_012.tar.gz
-       cpan> test chm/pdl-2.4.7_012.tar.gz
-       cpan> look chm/pdl-2.4.7_012.tar.gz
+       cpan> get  CHM/PDL-2.4.7_012.tar.gz
+       cpan> make CHM/PDL-2.4.7_012.tar.gz
+       cpan> test CHM/PDL-2.4.7_012.tar.gz
+       cpan> look CHM/PDL-2.4.7_012.tar.gz
 
 
 Highlights:
@@ -577,10 +629,10 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  chm/pdl-2.4.7_011.tar.gz
-       cpan> make chm/pdl-2.4.7_011.tar.gz
-       cpan> test chm/pdl-2.4.7_011.tar.gz
-       cpan> look chm/pdl-2.4.7_011.tar.gz
+       cpan> get  CHM/PDL-2.4.7_011.tar.gz
+       cpan> make CHM/PDL-2.4.7_011.tar.gz
+       cpan> test CHM/PDL-2.4.7_011.tar.gz
+       cpan> look CHM/PDL-2.4.7_011.tar.gz
 
 
 Highlights:
