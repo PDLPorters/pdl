@@ -1493,6 +1493,16 @@ sub map {
 
       $out->hdr->{"SIMPLE"} = 'T';
       $out->hdr->{"HISTORY"} .= "Header written by PDL::Transform::Cartography::map";
+
+      ### Eliminate fancy newfangled output header pointing tags if they exist
+      ### These are the CROTA<n>, PCi_j, and CDi_j.
+      for $k(keys %{$out->hdr})	 {
+	  if( $k=~m/(^CROTA\d*$)|(^(CD|PC)\d+_\d+$)/ ){
+	      delete $out->hdr->{$k} 
+	  }
+      }
+      
+      
     }
   
   $out->hdrcpy(1);
@@ -2694,7 +2704,7 @@ sub t_fits {
 
   my(@hgrab);
 
-  if(@hgrab = grep(m/^CD\d{1,3}_\d{1,3}/,keys %$hdr)) {   # assignment
+  if(@hgrab = grep(m/^CD\d{1,3}_\d{1,3}$/,keys %$hdr)) {   # assignment
 
     #
     # CDi_j formalism
