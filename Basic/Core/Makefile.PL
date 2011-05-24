@@ -7,7 +7,7 @@ PDL::Core::Dev->import();
 use Config;
 use IO::File;
 
-my $pthread_include = '/usr/include/pthread.h';
+my $pthread_include = "$Config::Config{usrinc}/pthread.h";
 my $pthread_library = '-lpthread';
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
