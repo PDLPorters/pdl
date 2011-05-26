@@ -1,5 +1,11 @@
 The following issues have been reported with this version of PDL:
 
+- The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
+  don't work the same with the perl's new "safe signals".  A
+  workaround to the problem is to set the PERL_SIGNALS environment
+  variable to "unsafe".  See sf.net feature request #3308168
+  for details and any future status.
+
 
 - The PDL build process checks for white space in the build
   directory as that is known to cause problems for some modules
