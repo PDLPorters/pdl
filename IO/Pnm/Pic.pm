@@ -779,6 +779,7 @@ sub PDL::wmpeg {
          map(int(($MDims[$_]-$Dims[$_])/2).':'.
             int(($MDims[$_]+$Dims[$_])/2-1),0..2)));
    my $range = sprintf "[%d-%d]",0,$nims-1;
+   local $SIG{PIPE} = 'IGNORE';
    open MPEG, "| ffmpeg -f image2pipe -vcodec ppm -i -  $file"
       or barf "spawning ffmpeg failed: $?";
    binmode MPEG;
