@@ -84,7 +84,7 @@ $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_li
 
 # isbigendian() is in PDL::Dev
 print "\nTrying to figure out endian-ness of machine...";
-print " It is " . (isbigendian() ? "big" : "little") . " endian\n";
+print " It is " . (PDL::Core::Dev::isbigendian() ? "big" : "little") . " endian\n";
 
 # badsupport.p is made by the top-level Makefile, but placed
 # into Basic/Core, so we clean it up here
