@@ -783,6 +783,7 @@ sub funcdocs {
 sub funcdocs_fromfile {
   my ($func,$file) = @_;
   barf "can't find file '$file'" unless -f $file;
+  local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
   my $in = new IO::File $file;
   my $out = ($#_ > 1 && defined($_[2])) ? $_[2] :
     new IO::File "| pod2text | $PDL::Doc::pager";

@@ -431,6 +431,7 @@ sub PDL::IO::Dumper::uudecode_PDL {
     my $out;
     my $fname = _make_tmpname();
     if($PDL::IO::Dumper::uudecode_ok) {
+        local $SIG{PIPE}= sub {}; # Prevent crashing if uudecode exits
 	my $fh = IO::File->new( $uudecode_string );
 	$lines =~ s/^[^\n]*\n/begin 664 $fname\n/o;
 	$fh->print( $lines );
