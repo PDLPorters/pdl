@@ -78,6 +78,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_003 release:
 
+  3307613    indexND of null pdls can segfault
   3303673    PLplot trouble with new PThreads
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug
