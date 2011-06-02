@@ -107,6 +107,7 @@ Basic/Pod/Makefile.PL
 Basic/Pod/MATLAB.pod
 Basic/Pod/Modules.pod
 Basic/Pod/Objects.pod
+Basic/Pod/ParallelCPU.pod
 Basic/Pod/Philosophy.pod
 Basic/Pod/PP.pod
 Basic/Pod/QuickStart.pod
@@ -776,6 +777,8 @@ t/primitive2.t
 t/proj_transform.t
 t/proj_transform2.t
 t/pthread.t
+t/pthread_auto.t
+t/pthreadBarf.t
 t/README
 t/reduce.t
 t/refs.t

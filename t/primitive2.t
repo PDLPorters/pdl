@@ -82,7 +82,9 @@ ok($testNo++, tapprox($statsRes[6],4.462));
 # which ND test
 my $a= PDL->sequence(10,10,3,4);  
 
-($x, $y, $z, $w)=whichND($a == 203);
+# $PDL::whichND_no_warning = 1;
+# ($x, $y, $z, $w)=whichND($a == 203);
+($x, $y, $z, $w) = whichND($a == 203)->mv(0,-1)->dog;  # quiet deprecation warning
 
 ok($testNo++,$a->at($x->list,$y->list,$z->list,$w->list) == 203 );
  

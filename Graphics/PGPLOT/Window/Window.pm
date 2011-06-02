@@ -3885,7 +3885,7 @@ sub initenv{
     # Pixel aspect ratio is always overridden by the pix option
     $pix = $o->{'Justify'} if $o->{'Justify'};     # Only override if nonzero!
     $pix = $o->{'Pix'}     if defined $o->{'Pix'}; # Override if set.
-    
+
     ###
     # Figure out the stretched pitch, if it isn't set.
     #
@@ -6043,7 +6043,7 @@ sub rgbi {
 	# 'alternative' WCS mappings (DJB)
 	#
 	$opt2{Pix}=1.0 
-	    if( (!defined($opt2{Justify}) || !$opt{Justify}) &&
+	    if( (!defined($opt2{Justify}) || !$opt2{Justify}) &&
 		(!defined($opt2{Pix})) && 
 		( $hdr->{"CUNIT1$wcs"} ?
 		  ($hdr->{"CUNIT1$wcs"} eq $hdr->{"CUNIT2$wcs"}) :

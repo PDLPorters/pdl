@@ -14,7 +14,11 @@ use Test::More;
 use constant ABSTOL => 1.0e-4;
 
 use File::Temp qw( tempfile );
-my (undef, $fname) = tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+my $fname;
+{
+   local $^W = 0;
+   (undef, $fname) = tempfile( 'delmeXXXXX', SUFFIX => '.fits', OPEN => 0 );
+}
 
 END {
     unlink $fname if -e $fname;

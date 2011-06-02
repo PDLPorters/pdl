@@ -23,8 +23,9 @@ if (PDL::Core::pthreads_enabled) {
 	my $x = float( [1, 2, 3, 4, 5, 8, 9, 10], [1, 2, 3, 4, 5, 8, 8, 8] );
 	my $y = ($x * 3) * ($x - 2);
 
-	# Setup to catch warning messages
-	local $SIG{__WARN__} = sub { die $_[0] }; 
+	# Setup to silence warning messages
+	local $SIG{__WARN__} = sub {  }; 
+	# Catch barf messages by running in eval:
 	eval{
 	
 		my ( $ans, $err ) = interpolate(8.5, $x, $y );

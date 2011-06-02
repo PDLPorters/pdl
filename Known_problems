@@ -1,5 +1,11 @@
 The following issues have been reported with this version of PDL:
 
+- The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
+  don't work the same with the perl's new "safe signals".  A
+  workaround to the problem is to set the PERL_SIGNALS environment
+  variable to "unsafe".  See sf.net feature request #3308168
+  for details and any future status.
+
 
 - The PDL build process checks for white space in the build
   directory as that is known to cause problems for some modules
@@ -70,8 +76,9 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_002 release:
+  PDL-2.4.9_003 release:
 
+  3307613    indexND of null pdls can segfault
   3303673    PLplot trouble with new PThreads
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug

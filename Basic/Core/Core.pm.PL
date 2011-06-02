@@ -1779,6 +1779,10 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
   my($pdl) = shift;
+
+  # This is a placeholder error for the planned sub ref handling refactoring
+  barf('PDL::NiceSlice tried to process a sub ref') if Scalar::Util::reftype($pdl) eq 'CODE';
+
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
   my @args = @_;
   my ($i,$noslice) = (0,0);
