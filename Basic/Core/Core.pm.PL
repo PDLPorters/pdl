@@ -1781,7 +1781,12 @@ sub PDL::nslice {
   my($pdl) = shift;
 
   # This is a placeholder error for the planned sub ref handling refactoring
-  barf('PDL::NiceSlice tried to process a sub ref') if Scalar::Util::reftype($pdl) eq 'CODE';
+  # We'll need to define a UNIVERSAL::nslice() method to perform the runtime
+  # checks (the same as here).  If a non-pdl self is received then we'll use
+  # the stashed original # string to generate the original method call to eval.
+  #
+  barf('PDL::NiceSlice tried to process a sub ref, please use &$subref() syntax')
+     if Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL');
 
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
   my @args = @_;
