@@ -1768,8 +1768,10 @@ sub PDL::nslice_if_pdl {
 
    # warn "PDL::nslice_if_pdl called with (@_) args, originally ($orig_args)\n";
 
-   if (Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL')) {
-      barf('PDL::nslice_if_pdl tried to process a sub ref, please use &$subref() syntax')
+   if (ref($pdl) eq 'CODE') {
+      # barf('PDL::nslice_if_pdl tried to process a sub ref, please use &$subref() syntax')
+      @_ = eval $orig_args;
+      goto &$pdl;
    }
 
    unshift @_, $pdl;
