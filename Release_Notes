@@ -26,6 +26,11 @@ General Notes:
 
 Highlights:
 
+ * PDL now requires Text::Balanced version 1.89 or higher.
+
+   NOTE: All perls with versions 5.8.0+ have at least this
+   version of Text::Balanced in the Core module set.
+
  * TBD
 
 
