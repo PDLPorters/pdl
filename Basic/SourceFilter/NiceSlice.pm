@@ -15,82 +15,15 @@ package PDL::NiceSlice;
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.1';
+$PDL::NiceSlice::VERSION = '1.0.2';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
 
 require PDL::Version; # get PDL version number
-if ("$PDL::Version::VERSION" !~ /cvs$/ and
-    "$PDL::Version::VERSION" lt '2.2.2') { # make sure we got uptodate version
-                                           # of nslice
-
-eval << 'EOF' unless PDL->can('flat');
-    sub PDL::flat { # fall through if < 2D
-      return $_[0]->dims == 1 ? $_[0] : $_[0]->clump(-1);
-    }
-EOF
-
-##
-## As near as I can tell the code in this next eval is now vestigial -- 
-## it gets overwritten by the PDL::nslice definition in Core.pm. 
-##         -- CED 08-April-2004
-##
-
-eval << 'EOH';
-  {
-    package PDL;
-    sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
-		    $_[0]->nelem == 1 ? $_[0]->flat->at(0) :
-		      die "multielement piddle where only one allowed" :
-			die "non piddle ref '".ref $_[0]."'"
-			: ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
-    sub PDL::nslice {
-      my($pdl) = shift;
-      my @args = @_;
-      my ($i,$noslice) = (0,0);
-
-      for (@args) {
-	if (UNIVERSAL::isa($_,'PDL')) {
-	  if ($_->nelem > 1) {
-	    if ($_->getndims > 1) {
-	      ## allow one multi-D arg which will imply flat addressing
-	      PDL::Core::barf 'piddle must be <= 1D' if @args > 1;
-	      $pdl = $pdl->flat->index($_);
-	      $noslice = 1;
-	    } else {
-	      ## dice this axis
-	      $pdl = $pdl->dice_axis($i,$_);
-	      ## and keep resulting dim fully in slice
-	      $_ = 'X'; 
-	    }
-	  } else { $_ = $_->flat->at(0) } ## reduce this one-element piddle
-					## to a scalar for 'slice'
-	}
-	$i++;
-      }
-
-      return $pdl if $noslice;
-      ## print STDERR 'processed arglist: ',join(',',@args);
-      my $slstr = join ',',(map {
-	!ref $_ && $_ eq "X" ? ":" :
-	  ref $_ eq "ARRAY" ? $#$_ > 1 && _intpar @$_[2] == 0 ? 
-	    "("._intpar(@$_[0]).")" : join ':', map {_intpar $_} @$_ :
-	      _intpar $_
-	    } @args);
-      print STDERR "slicestr: $slstr\n";
-      print "slicestr: '$slstr'!\n";
-      return $pdl->slice($slstr);
-    }
-  }
-EOH
-
-# mark as lvalue sub if 5.6.x and above
- eval {
-  no strict;
-  eval 'sub PDL::nslice : lvalue;' if ($^V and $^V > 5.006000);
- }
-}
+# 
+# remove code for PDL versions earlier than 2.3
+# 
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
 
@@ -304,9 +237,14 @@ sub findslice {
 	  # $post = '';
 	}
       } else { # no modifier block
-	$call = 'nslice';
+        $call = 'nslice';
 	$arg = procargs($slicearg);
 	# $post = '';
+        # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
+        # $arg =~ s/\)$/,q{$found})/;  # add original argument string
+                                       # in case $self is not a piddle
+                                       # and the original call must be
+                                       # generated
       }
       $pre = join '', @pre;
       # assumption here: sever should be last

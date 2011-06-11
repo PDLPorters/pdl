@@ -1747,6 +1747,35 @@ sub PDL::mslice {
                 } @_));
 }
 
+=head2 nslice_if_pdl
+
+=for ref
+
+If C<$self> is a PDL, then calls C<nslice> with all
+but the last argument, otherwise $self->($_[-1]) is
+called where $_[-1} is the original argument string
+found during PDL::NiceSlice filtering.
+
+=for usage
+
+ $a = $x->nslice_if_pdl(...,'(args)');
+
+=cut
+
+sub PDL::nslice_if_pdl {
+   my ($pdl) = shift;
+   my ($orig_args) = pop;
+
+   # warn "PDL::nslice_if_pdl called with (@_) args, originally ($orig_args)\n";
+
+   if (Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL')) {
+      barf('PDL::nslice_if_pdl tried to process a sub ref, please use &$subref() syntax')
+   }
+
+   unshift @_, $pdl;
+   goto &PDL::nslice;
+}
+
 =head2 nslice
 
 =for ref
