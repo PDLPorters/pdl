@@ -1,3 +1,12 @@
+BEGIN {
+   if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
+      warn "PDL::NiceSlice using engine '$ENV{PDL_NICESLICE_ENGINE}'\n";
+      eval "require $ENV{PDL_NICESLICE_ENGINE}";
+      1;
+      return;
+   }
+}
+
 package PDL::NiceSlice;
 
 # replace all occurences of the form
@@ -1109,5 +1118,7 @@ and/or modified under the same terms as PDL itself
 (see L<http://pdl.perl.org>).
 
 =cut
+
+LOADED_ENGINE:
 
 1;
