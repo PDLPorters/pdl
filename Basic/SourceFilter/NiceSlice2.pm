@@ -16,7 +16,7 @@ package # this is so we don't index
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.1';
+$PDL::NiceSlice::VERSION = '1.0.2';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
@@ -27,6 +27,33 @@ require PDL::Version; # get PDL version number
 # 
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
+
+# try overriding the current extract_quotelike() routine before Filter::Simple
+#
+
+BEGIN {
+
+   no warnings;  # quiet warnings for this
+
+   sub Text::Balanced::extract_quotelike (;$$)
+   {
+      my $textref = $_[0] ? \$_[0] : \$_;
+      my $wantarray = wantarray;
+      my $pre  = defined $_[1] ? $_[1] : '\s*';
+   
+      my @match = Text::Balanced::_match_quotelike($textref,$pre,0,0);        # do not match // alone as m//
+      return Text::Balanced::_fail($wantarray, $textref) unless @match;
+      return Text::Balanced::_succeed($wantarray, $textref,
+                      $match[2], $match[18]-$match[2],        # MATCH
+                      @match[18,19],                          # REMAINDER
+                      @match[0,1],                            # PREFIX
+                      @match[2..17],                          # THE BITS
+                      @match[20,21],                          # ANY FILLET?
+                     );
+   };
+
+};
+
 
 # a call stack for error processing
 my @callstack = ('stackbottom');
@@ -238,9 +265,14 @@ sub findslice {
 	  # $post = '';
 	}
       } else { # no modifier block
-	$call = 'nslice';
-	$arg = procargs($slicearg);
-	# $post = '';
+         $call = 'nslice';
+         $arg = procargs($slicearg);
+         # $post = '';
+         # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
+         # $arg =~ s/\)$/,q{$found})/;  # add original argument string
+                                        # in case $self is not a piddle
+                                        # and the original call must be
+                                       # generated
       }
       $pre = join '', @pre;
       # assumption here: sever should be last
@@ -380,15 +412,15 @@ sub perldlpp {
 use Filter::Simple;
 
 FILTER_ONLY
- code_no_comments =>
-# all =>
-  sub {
-     my ($text1,$text2) = ($_,'');
-     ## print STDERR "**************** Input: \n$text1\n";
-     $text2 = perldlpp('PDL::NiceSlice', $text1);
-     ## print STDERR "**************** Output: $text2\n";
-     $_ = $text2;
-  };
+   code_no_comments =>
+   # all =>
+      sub {
+      my ($text1,$text2) = ($_,'');
+      ## print STDERR "**************** Input: \n$text1\n";
+      $text2 = perldlpp('PDL::NiceSlice', $text1);
+      ## print STDERR "**************** Output: $text2\n";
+      $_ = $text2;
+   };
   
 
 =head1 NAME
