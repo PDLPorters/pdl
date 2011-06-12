@@ -237,7 +237,7 @@ sub findslice {
 	  # $post = '';
 	}
       } else { # no modifier block
-        $call = 'nslice';
+         $call = 'nslice';
 	$arg = procargs($slicearg);
 	# $post = '';
         # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
