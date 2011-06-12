@@ -2423,6 +2423,8 @@ sub _prep_table {
 	($t = $dims->(0)) .= 1;
 	$rpt = $dims->prod;
 
+=pod
+
 =begin WHENCOMPLEXVALUESWORK
 	
 	if( UNIVERSAL::isa($var,'PDL::Complex') ) {
