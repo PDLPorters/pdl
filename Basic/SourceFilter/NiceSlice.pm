@@ -7,6 +7,8 @@ BEGIN {
    }
 }
 
+no warnings;
+
 package PDL::NiceSlice;
 
 # replace all occurences of the form
