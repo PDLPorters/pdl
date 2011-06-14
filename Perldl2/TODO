@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 10 Mar 2011 02:09:54 PM 
+Last saved: Tue 14 Jun 2011 10:05:37 AM 
 
 
 +-------------------------------------------------------------------+
@@ -232,7 +232,7 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   Enhance completion strategy for Perldl2: (1) sort and
   prioritze completions to remove long lists of useless
   options [see completion paper], (2) allow chained PDL method
-  completions by recognizing the output of many (all?) PDL
+  completions by recognizing that the output of many (all?) PDL
   methods is a pdl so we could do method completion again...
  
   Make Perldl2 fail/degrade gracefully if various files and
@@ -300,3 +300,7 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   print p alias                  yes                    yes
   
   list history                   yes                    yes
+
+  help vars (package)            yes                    yes
+
+  help vars (lexical)            no                     TBD

@@ -419,14 +419,15 @@ T  Clean up build output from make process to reduce cruft
 
   
   NiceSlice cleanup
-  * refactor to use Module::Compile
+  * refactor to use Module::Compile / Filter::Simple
   * document nslice
   * implement a niceslice method
   * enhance nslice() to handle CODE refs
-    * use Scalar::Util::reftype
-    * check for CODE
-    * add original string to args
-    * maybe defer source filtering
+    * Done but it doesn't buy much since it only
+      works if the CODE ref is a blessed object
+      so that a UNIVERSAL::nslice method can be
+      called on it.
+    * maybe defer/lazy source filtering
     * check if valid subref args good for slicing
     * can use string eval with notrans
 
@@ -448,6 +449,7 @@ T  Clean up build output from make process to reduce cruft
    PDL::Matlab helper module
    * Implement key set of basic Matlab functions
    * Document PDL equivalents
+   * Add who/whos refs or links to pdl2 'help vars'
 
    
    Fix external dependency processing
