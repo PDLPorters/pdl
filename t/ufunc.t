@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 9;
+use Test::More tests => 13;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -45,3 +45,27 @@ ok( tapprox($x->pctover(0.23), 2.07), "23rd percential of 10-elem piddle [SF bug
 # test for sf.net bug report 2110074
 #
 ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
+
+# test bad value handling with pctover
+#
+SKIP: {
+   skip "Bad value support not compiled", 4 unless $PDL::Bad::Status;
+
+   TODO: {
+      local $TODO = "odd/pctover does not handle bad values";
+
+      my $abad = $a;
+      $abad->badflag(1);
+      $abad->inplace->setvaltobad(7);
+      my $agood = $abad->where($abad->isgood);
+      my $allbad = $abad->where($abad->isbad);
+
+      ok( $abad->pctover(0.1) == $agood->pctover(0.1), "pctover(0.1) badvals" );
+      ok( $abad->pctover(0.9) == $agood->pctover(0.9), "pctover(0.9) badvals" );
+      ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
+      ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
+   };
+};
+
+
+
