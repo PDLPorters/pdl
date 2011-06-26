@@ -646,67 +646,60 @@ calc_offs:
 	return stopdim+1;
 }
 
-/* prototype, defined in pdlcore.c */
-char *pdl_mess(const char *pat, va_list *args);
-void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...)
+void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...)
 {
-	va_list args;
-	char *message; char *name;
-	static char mesgbuf[200];
-      static char argsbuf[256], *argb;
-      int i, k, l;
+  // I barf a string such as "PDL: function(a,b,c): Parameter 'b' errormessage"
 
-	va_start(args,pat);
-	/* was Perl_mess before; Perl_mess has changed between 5.00X and 5.6 */
-	message = pdl_mess(pat,&args);  /* barf dependence !!!! */
-	/* Now, croak() overwrites this string. make a copy */
-	strcpy(mesgbuf,message); message = mesgbuf;
-	va_end(args);
-	if(!info) {croak("PDL_CROAK_PARAM: Unknown: parameter %d: %s\n",
-		j,message);
-	} else {
-		if(j >= info->nparamnames)
-			name = "ERROR: UNKNOWN PARAMETER";
-		else	name = info->paramnames[j];
-              for (i=0,argb=argsbuf,l=255;i<info->nparamnames && l;i++) {
-                /* Could improve method, but 256 chars should be
-                     enough anyway! */
-                k = strlen(info->paramnames[i]);
-                if (k < l-4) {
-                  memcpy(argb,info->paramnames[i],k);
-                  argb += k;
-                  *argb = ',';
-                  argb++;
-                  l -= k+1;
-                } else {
-                  *argb++ = '.';
-                  *argb++ = '.';
-                  *argb++ = '.';
-                  argb++;
-                  l = 0;
-                }
-              }
-              *--argb = '\0';
-/* this needs to be sorted: barf stuff ?? */
-#ifdef croak
-#define tcroak croak
-#define croak Perl_croak
-#ifdef aTHX_
-#define _extra aTHX_
-#else
-#define _extra
-#endif
-#else
-#define _extra
-#endif
-              croak(_extra "PDL: %s(%s): Parameter '%s'\n%s\n",
-                    info->funcname,argsbuf,name,message);
-#ifdef tcroak
-#undef croak
-#define croak tcroak
-#undef tcroak
-#endif
-	}
+  char message  [4096] = {'\0'};
+
+#define msgptr_advance()                        \
+do {                                            \
+  int N      = strlen(msgptr);                  \
+  msgptr    += N;                               \
+  remaining -= N;                               \
+} while(0)
+
+
+  char* msgptr    = message;
+  int   remaining = sizeof(message);
+
+  if(info)
+  {
+    if(paramIndex < 0 || paramIndex >= info->nparamnames)
+    {
+      strcat(msgptr, "ERROR: UNKNOWN PARAMETER");
+      msgptr_advance();
+    }
+    else
+    {
+      snprintf(msgptr, remaining, "PDL: %s(", info->funcname);
+      msgptr_advance();
+
+      int i;
+      for(i=0; i<info->nparamnames; i++)
+      {
+        snprintf(msgptr, remaining, "%s", info->paramnames[i]);        
+        msgptr_advance();
+
+        if(i < info->nparamnames-1)
+        {
+          snprintf(msgptr, remaining, ",");
+          msgptr_advance();
+        }
+      }
+
+      snprintf(msgptr, remaining, "): Parameter '%s':\n",
+               info->paramnames[paramIndex]);
+      msgptr_advance();
+    }
+  }
+
+  va_list args;
+  va_start(args,pat);
+
+  vsnprintf(msgptr, remaining, pat, args);
+
+  va_end(args);
+
+  pdl_barf(message);
 }
-
-

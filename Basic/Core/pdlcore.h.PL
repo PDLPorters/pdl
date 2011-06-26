@@ -109,17 +109,13 @@ static const union {unsigned char c[4]; float f;}
 static const union {unsigned char c[8]; double d;}
    union_nan_double = {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}};
 
-/* Use our own barf (which is a wrapper for croak),
- *  so that we defer barf handling until after multi-threaded (i.e pthreading)
- *  processing is finished. 
+/*  Use our own barf and our own warn.
+ *  We defer barf (and warn) handling until after multi-threaded (i.e pthreading)
+ *  processing is finished.
  *  This is needed because segfaults happen when perl's croak is called
  *  during one of the spawned pthreads for PDL processing.
  */
-
 #define barf PDL->pdl_barf
-
-/* Similarly for warn, we use our own pdl_warn to defer warning messages while
-   pthreading */
 #undef warn
 #define warn PDL->pdl_warn
 
@@ -205,7 +201,7 @@ int pdl_iterthreadloop(pdl_thread *thread,int which);
 void pdl_freethreadloop(pdl_thread *thread);
 void pdl_thread_create_parameter(pdl_thread *thread,int j,int *dims,
 				 int temp);
-void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...);
+void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...);
 
 void pdl_setdims_careful(pdl *pdl);
 void pdl_put_offs(pdl *pdl,PDL_Long offs, double val);
@@ -340,8 +336,7 @@ void (*trans_mallocfreeproc)(struct pdl_trans *tr);
 
 void (*make_physical)(pdl *it);
 void (*make_physdims)(pdl *it);
-void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
-                                  is a macro - KGB */
+void (*pdl_barf) (const char* pat,...);
 void (*pdl_warn) (const char* pat,...);
 
 void (*make_physvaffine)(pdl *it);

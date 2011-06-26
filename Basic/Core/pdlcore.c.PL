@@ -542,145 +542,67 @@ void* pdl_malloc ( int nbytes ) {
 }
 
 /*********** Stuff for barfing *************/
+/*
+   This routine barfs/warns in a thread-safe manner. If we're in the main thread,
+   this calls the perl-level barf/warn. If in a worker thread, we save the
+   message to barf/warn in the main thread later
+*/
 
-/* Version of perl's mess_alloc - we need this copy
-here because it's defined static in util.c! */
-
-static SV *
-pdl_mess_alloc()
+static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 {
-    SV *sv;
-    XPVMG *any;
+    // If we're in a worker thread, we queue the barf/warn for later,
+    // and exit the thread ...
+    if( pdl_pthread_barf_or_warn(pat, iswarn, args) )
+        return;
 
-    /* Create as PVMG now, to avoid any upgrading later */
-    New(905, sv, 1, SV);
-    Newz(905, any, 1, XPVMG);
-    SvFLAGS(sv) = SVt_PVMG;
-    SvANY(sv) = (void*)any;
-    SvREFCNT(sv) = 1 << 30; /* practically infinite */
-    return sv;
-}
+    // ... otherwise we fall through and barf by calling the perl-level
+    // PDL::barf() or PDL::cluck()
 
-/* Version of perl's mess() constructor which doesn't
-do the automatic appending of stuff when "\n" not
-seen at the end of the string - for use by pdl_barf() */
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
 
-/* work araound an omission in the CAPI */
-#ifdef PERL_CAPI
-#undef PL_mess_sv
-static SV *PDL_mess_sv = NULL;
-#define PL_mess_sv PDL_mess_sv
-#endif
-
-char *
-pdl_mess(pat, args)
-    const char *pat;
-    va_list *args;
-{
-    SV *sv;
-
-    if (!PL_mess_sv)
-	PL_mess_sv = pdl_mess_alloc();
-    sv = PL_mess_sv;
+    SV* sv = sv_2mortal(newSV(0));
     sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
-    {
-	/* call the PDL message enhancing routine */
-	ENTER;
-	LEAVE;
-        {
-	    dSP;
-	    SV *msg;
+    va_end(*args);
 
-	    ENTER;
+    XPUSHs(sv);
 
-	    PUSHMARK(sp);
-	    XPUSHs(sv);
-	    PUTBACK;
-	    perl_call_pv("PDL::Core::barf_msg", G_SCALAR);
-            sv = POPs;
-	    LEAVE;
-	}
+    PUTBACK;
+
+    if(iswarn) call_pv("PDL::cluck", G_DISCARD);
+    else       call_pv("PDL::barf",  G_DISCARD);
+
+    FREETMPS;
+    LEAVE;
+}
+
+#define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
+    void pdl_##type(const char* pat, ...)               \
+    {                                                   \
+        va_list args;                                   \
+        va_start(args, pat);                            \
+        pdl_barf_or_warn(pat, iswarn, &args);           \
     }
-    return SvPVX(sv);
-}
 
-
-/*
-   pdl_barf - barfing routine to be called when PDL routines
-   croak
-
-   Now just a stupid croak wrapper, with checks to see if we are pthread processing
-
-*/
-
-#ifdef I_STDARG
-void
-pdl_barf(const char* pat, ...)
-#else
-/*VARARGS0*/
-void
-pdl_barf(pat, va_alist)
-    char *pat;
-    va_dcl
-#endif
-{
-    va_list args;
-    char *message;
-#ifdef I_STDARG
-    va_start(args, pat);
-#else
-    va_start(args);
-#endif
-    
-    /* Take care of any deferred barf calls that may have happened while we are pthreading */
-    pdl_pthread_barf(pat, &args);
-
-    message = pdl_mess(pat, &args);
-    va_end(args);
-
-    croak("%s", message);
-}
-
-
-/*
-   pdl_warn - warning routine to be called when PDL routines
-
-   This just has some special handling when called during pthread processing.
-   Otherwise just calls the perl warn function.
-
-*/
+#define GEN_PDL_BARF_OR_WARN_LEGACY(type, iswarn)       \
+    void pdl_##type(pat, va_alist)                      \
+        char *pat;                                      \
+        va_dcl                                          \
+    {                                                   \
+        va_list args;                                   \
+        va_start(args);                                 \
+        pdl_barf_or_warn(pat, iswarn, &args);           \
+    }
 
 #ifdef I_STDARG
-void
-pdl_warn(const char* pat, ...)
+GEN_PDL_BARF_OR_WARN_I_STDARG(barf, 0)
+GEN_PDL_BARF_OR_WARN_I_STDARG(warn, 1)
 #else
-/*VARARGS0*/
-void
-pdl_warn(pat, va_alist)
-    char *pat;
-    va_dcl
+GEN_PDL_BARF_OR_WARN_LEGACY(barf, 0)
+GEN_PDL_BARF_OR_WARN_LEGACY(warn, 1)
 #endif
-{
-    va_list args;
-    SV *message; /* Using an SV for the message so we can call sv_vsetpvf
-                  *  perl api function so we don't have to worry about the size of
-	          *  the output string, like you do with sprintf */ 
-#ifdef I_STDARG
-    va_start(args, pat);
-#else
-    va_start(args);
-#endif
-    
-    /* Take care of any deferred warn calls that may have happened while we are pthreading */
-    if( pdl_pthread_warn(pat, &args) ) return;
-
-    message = newSVpv("", 0);
-    sv_vsetpvf( message, pat, &args);
-    va_end(args);
-
-
-    Perl_warn_nocontext( SvPV_nolen(message) ); /* Directly call perl's warn */
-}
 
 
 /**********************************************************************
