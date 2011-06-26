@@ -1747,6 +1747,37 @@ sub PDL::mslice {
                 } @_));
 }
 
+=head2 nslice_if_pdl
+
+=for ref
+
+If C<$self> is a PDL, then calls C<nslice> with all
+but the last argument, otherwise $self->($_[-1]) is
+called where $_[-1} is the original argument string
+found during PDL::NiceSlice filtering.
+
+=for usage
+
+ $a = $x->nslice_if_pdl(...,'(args)');
+
+=cut
+
+sub PDL::nslice_if_pdl {
+   my ($pdl) = shift;
+   my ($orig_args) = pop;
+
+   # warn "PDL::nslice_if_pdl called with (@_) args, originally ($orig_args)\n";
+
+   if (ref($pdl) eq 'CODE') {
+      # barf('PDL::nslice_if_pdl tried to process a sub ref, please use &$subref() syntax')
+      @_ = eval $orig_args;
+      goto &$pdl;
+   }
+
+   unshift @_, $pdl;
+   goto &PDL::nslice;
+}
+
 =head2 nslice
 
 =for ref
@@ -1779,6 +1810,15 @@ sub _intpar ($) { ref $_[0] ? UNIVERSAL::isa($_[0],'PDL') ?
 		      : ($_[0] =~ s/^\*// ? "*".((int $_[0])||1) : int $_[0]); }
 sub PDL::nslice {
   my($pdl) = shift;
+
+  # This is a placeholder error for the planned sub ref handling refactoring
+  # We'll need to define a UNIVERSAL::nslice() method to perform the runtime
+  # checks (the same as here).  If a non-pdl self is received then we'll use
+  # the stashed original # string to generate the original method call to eval.
+  #
+  barf('PDL::NiceSlice tried to process a sub ref, please use &$subref() syntax')
+     if Scalar::Util::reftype($pdl) eq 'CODE' and not $pdl->isa('PDL');
+
   my $h = $pdl->hdrcpy() ? PDL::_hdr_copy($pdl->hdr) : undef;
   my @args = @_;
   my ($i,$noslice) = (0,0);

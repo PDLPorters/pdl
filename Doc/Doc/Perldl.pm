@@ -679,6 +679,8 @@ sub badinfo {
 
     die "no online doc database" unless defined $PDL::onlinedoc;
 
+    local $SIG{PIPE}= sub {}; # Prevent crashing if user exits the pager
+
     my @match = search_docs("m/^(PDL::)?$func\$/",['Name']);
     if ( @match ) {
 	my ($name,$hash) = @{$match[0]};

@@ -1824,10 +1824,14 @@ sub PDL::wfits {
 
   my ($k, $buff, $off, $ndims, $sz);
   
+  local $SIG{PIPE};
+
   if ($file =~ /\.gz$/) {            # Handle suffix-style compression
+    $SIG{PIPE}= sub {}; # Prevent crashing if gzip dies
     $file = "|gzip -9 > $file";
   }
   elsif ($file =~ /\.Z$/) {
+    $SIG{PIPE}= sub {}; # Prevent crashing if compress dies
     $file = "|compress > $file";
   }
   else{
@@ -2418,6 +2422,8 @@ sub _prep_table {
 	my $dims = pdl($var->dims); 
 	($t = $dims->(0)) .= 1;
 	$rpt = $dims->prod;
+
+=pod
 
 =begin WHENCOMPLEXVALUESWORK
 	

@@ -43,7 +43,31 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 |                       TESTING                         |
 +-------------------------------------------------------+
 
-   Convert these PDL tests to use Test::More:
+
+   Refactor these PDL tests to use Test::More:
+   * aaa_load.t
+   * argtest.t
+   * bool.t
+   * clump.t
+   * croak.t
+   * familyfree.t
+   * flow.t
+   * foo.t
+   * gauss.t
+   * hdrs.t
+   * howbig.t
+   * ica.t
+   * imagend.t
+   * imagergb.t
+   * interp.t
+   * interp_slatec.t
+   * interpol.t
+   * limits_normalize_dsets.t
+   * linfit.t
+   * magic.t
+   * matmult.t
+
+   Convert these PDL tests from Test to Test::More:
    * basic.t
    * bess.t
    * callext.t
@@ -52,7 +76,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * erf.t
    * erfi.t
    * fft.t
-   * foo.t
    * func.t
    * hist.t
    * image2d.t
@@ -68,7 +91,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * primitive.t
    * requiredmods.t
    * round.t
-   * scope.t
    * simplex.t
    * transform.t
    * trig.t
@@ -126,6 +148,10 @@ support for 2-D graphics (via PLplot) and 3-D graphics
      - need portable driver (OpenGL)
      - Alien::PLplot
      - need low-level PLplot interface
+   * PDL::IO::Browser
+     - need curses/ncurses
+     - Alien::Curses
+     - maybe OpenGL terminal or widget
 
 
    Add support for Known_problems to tests
@@ -162,6 +188,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * Can skip install if system-wide is available
    * Relocatable with package-config or Alien info
    * Document any PDL-specific install locations
+   * This should allow for a devel-PDL install for win32
 
    
    List and obtain module owners and developers for existing PDL modules
@@ -240,7 +267,8 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Document how to set up a local sandbox for PDL build
-   * PREFIX and LIB for ExtUtils::MakeMaker
+   * no more PREFIX and LIB for ExtUtils::MakeMaker
+   * INSTALL_BASE for EU::MM > 6.31 and --install_base for M:B 
    * Build with CPAN shell 
    * Check out brewperl
 
@@ -298,6 +326,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 T  Clean up build output from make process to reduce cruft
    * Collect build output into build log file by default
+   * Add -s to $MAKE if gnu make is running
    * Add an output filter to the text collected from the
        CPAN build process.  (e.g. Text::Filter et al)
 
@@ -319,6 +348,8 @@ T  Clean up build output from make process to reduce cruft
 
    
    Check/set perldl.conf options before the build
+   * Add WITH_CORE_ONLY to perldl.conf
+   * Add WITH_FORTRAN to perldl.conf
    * Interactive option view prompt() in Makefile.PL
    * GUI version
 
@@ -379,7 +410,28 @@ T  Clean up build output from make process to reduce cruft
    * Add surface normals for smooth shading
    * Extend to arbitrary objects with constructors
   
+
+  Refactor TriD/PDL for better animation
+  * interoperate better with OpenGL display
+  * implement pipeline stream to wmpeg
+  * stream PDL slice (with no make-physical)
+  * add dataflow callback to support display updates
+
   
+  NiceSlice cleanup
+  * refactor to use Module::Compile / Filter::Simple
+  * document nslice
+  * implement a niceslice method
+  * enhance nslice() to handle CODE refs
+    * Done but it doesn't buy much since it only
+      works if the CODE ref is a blessed object
+      so that a UNIVERSAL::nslice method can be
+      called on it.
+    * maybe defer/lazy source filtering
+    * check if valid subref args good for slicing
+    * can use string eval with notrans
+
+
 
 +-------------------------------------------------------+
 |                        LATER                          |
@@ -397,6 +449,7 @@ T  Clean up build output from make process to reduce cruft
    PDL::Matlab helper module
    * Implement key set of basic Matlab functions
    * Document PDL equivalents
+   * Add who/whos refs or links to pdl2 'help vars'
 
    
    Fix external dependency processing
@@ -405,6 +458,7 @@ T  Clean up build output from make process to reduce cruft
    * Make missing functionality detectable at run time (a la PGPLOT)
    * Could use warning/error stubs if functionality not available
    * Alien modules for the external PDL dependencies
+     * Alien::Curses
      * Alien::FFTW2
      * Alien::FFTW3
      * Alien::GSL

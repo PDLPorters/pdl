@@ -656,6 +656,7 @@ some circumstances.
 ); # pp_def: oddmedover
 
 pp_def('pctover',
+        HandleBad => 0,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
         Doc => '
 
@@ -730,6 +731,7 @@ $spectrum = pctover $image->xchg(0,1) $p
 
 
 pp_def('oddpctover',
+        HandleBad => 0,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
 	Doc => '
 
