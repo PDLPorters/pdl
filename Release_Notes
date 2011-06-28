@@ -31,6 +31,12 @@ Highlights:
    NOTE: All perls with versions 5.8.0+ have at least this
    version of Text::Balanced in the Core module set.
 
+ * Fix wmpeg crash when ffmpeg generates an error with a
+   $SIG{PIPE}, sf.net #3307121.  Added $SIG{PIPE} fixes
+   for other PDL modules using pipes.
+ 
+ * PDL::NiceSlice being refactored to use Filter::Simple.
+ 
  * TBD
 
 
@@ -1188,8 +1194,9 @@ General Notes:
 
  * New requirements:
    - perl version 5.8.x and higher
-   - OpenGL-0.63
    - Convert::UU
+ 
+ * PDL::Graphics::TriD now requires OpenGL-0.63
  
  * New 2-D image display routine: imag2d()
 
