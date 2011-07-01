@@ -655,8 +655,42 @@ some circumstances.
 
 ); # pp_def: oddmedover
 
+my $find_pct_interpolate = '
+           np = nn * $p();
+           nn1 = np;
+           nn2 = nn1+1;
+           
+           nn1 = (nn1 < 0) ? 0 : nn1;
+           nn2 = (nn2 < 0) ? 0 : nn2;
+           
+           nn1 = (nn1 > nn) ? nn : nn1;
+           nn2 = (nn2 > nn) ? nn : nn2;
+           
+	   if (nn == 0) {
+	      pp1 = 0;
+	      pp2 = 0;
+	   } else {
+	      pp1 = (double)nn1/(double)(nn);
+	      pp2 = (double)nn2/(double)(nn);
+	   }
+           
+           if ( np <= 0.0 ) {
+              $b() = $tmp(n => 0);
+           } else if ( np >= nn ) {
+              $b() = $tmp(n => nn);
+           } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
+              $b() = $tmp(n => nn1);
+           } else if ($p() == pp1) {
+              $b() = $tmp(n => nn1);
+           } else if ($p() == pp2) {
+              $b() = $tmp(n => nn2);
+           } else {
+              $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
+           }
+';
+
 pp_def('pctover',
-        HandleBad => 0,
+        HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
         Doc => '
 
@@ -689,49 +723,22 @@ $spectrum = pctover $image->xchg(0,1) $p
 
 ',
         Code => '
-           int nn, nn1, nn2;
            double np, pp1, pp2;
-           loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size);
-           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
-           
-           np = (nn - 1) * $p();
-           nn1 = np;
-           nn2 = nn1+1;
-           
-           nn1 = (nn1 < 0) ? 0 : nn1;
-           nn2 = (nn2 < 0) ? 0 : nn2;
-           
-           nn1 = (nn1 > nn-1) ? nn-1 : nn1;
-           nn2 = (nn2 > nn-1) ? nn-1 : nn2;
-           
-	   if (nn == 1) {
-	      pp1 = 0;
-	      pp2 = 0;
-	   } else {
-	      pp1 = (double)nn1/(double)(nn-1);
-	      pp2 = (double)nn2/(double)(nn-1);
-	   }
-           
-           if ( np <= 0.0 ) {
-              $b() = $tmp(n => 0);
-           } else if ( np >= nn-1 ) {
-              $b() = $tmp(n => nn-1);
-           } else if ($tmp(n => nn2) == $tmp(n => nn1)) {
-              $b() = $tmp(n => nn1);
-           } else if ($p() == pp1) {
-              $b() = $tmp(n => nn1);
-           } else if ($p() == pp2) {
-              $b() = $tmp(n => nn2);
-           } else {
-              $b() = (np - nn1)*($tmp(n => nn2) - $tmp(n => nn1)) + $tmp(n => nn1);
-           }
-'); 
+           int nn2;
+	   ' . $copy_to_temp_good .
+           $find_pct_interpolate,
+       BadCode =>
+       $copy_to_temp_bad .  '
+           int nn1, nn2;
+           double np, pp1, pp2;
+           nn -= 1; ' .  generic_qsort('tmp') .
+           $find_pct_interpolate . '}',
+
+); 
 
 
 pp_def('oddpctover',
-        HandleBad => 0,
+        HandleBad => 1,
         Pars => 'a(n); p(); [o]b(); [t]tmp(n);',
 	Doc => '
 
@@ -760,17 +767,23 @@ I<any> dimension.
 
 ',
         Code => '
-           int nn, np;
-	   loop(n) %{ $tmp() = $a(); %}
-           nn = $COMP(__n_size);
-           $TBSULQFD(pdl_qsort_B,pdl_qsort_S,pdl_qsort_U,
-             pdl_qsort_L,pdl_qsort_Q,pdl_qsort_F,pdl_qsort_D) ($P(tmp), 0, nn-1);
-
-           np = nn*$p();
-           if (np > nn-1) np = nn-1;
+           int np;
+	   ' . $copy_to_temp_good . '
+           np = (nn+1)*$p();
+           if (np > nn) np = nn;
            if (np < 0) np = 0;
 	   $b() = $tmp(n => np);
-');
+',
+       BadCode => 'int np;
+       ' . $copy_to_temp_bad . '
+           nn -= 1;
+           ' .  generic_qsort('tmp') . '
+           np = (nn+1)*$p();
+           if (np > nn) np = nn;
+           if (np < 0) np = 0;
+	   $b() = $tmp(n => np);
+        }',
+);
 
 pp_add_exported('', 'pct');
 pp_addpm(<<"EOD");
