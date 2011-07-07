@@ -4,6 +4,7 @@ BEGIN {
    use PDL::Config;
    if ($PDL::Config{USE_POGL}) {
       eval "use OpenGL $PDL::Config{POGL_VERSION} qw()";
+      use OpenGL::Config;
    }
 }
 
@@ -165,7 +166,7 @@ sub new {
       OpenGL::glutInitWindowPosition( $p->{x}, $p->{y} );
       OpenGL::glutInitWindowSize( $p->{width}, $p->{height} );      
       OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );        # hardwire for now
-      if ($^O ne 'MSWin32') { # skip these MODE checks on win32, they don't work
+      if ($^O ne 'MSWin32' and not $OpenGL::Config->{DEFINE} =~ /-DHAVE_W32API/) { # skip these MODE checks on win32, they don't work
          if (not OpenGL::glutGet(OpenGL::GLUT_DISPLAY_MODE_POSSIBLE()))
          {
             warn "glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_ALPHA) not possible";
