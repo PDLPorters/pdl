@@ -107,8 +107,8 @@ is(join(',',$c->dims), "5,3,1");
 
 eval { my $d = $c->slice(":,:,2"); print $d; };
 
-print "ERROR WAS: '$@'\n";
-like($@, qr/Slice cannot start or end/);
+diag "ERROR WAS: '$@'\n" if $@;
+like($@, qr/Slice cannot start or end/, 'check slice bounds error handling');
 
 $a = zeroes 3,3;
 print $a;
