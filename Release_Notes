@@ -37,6 +37,13 @@ Highlights:
  
  * PDL::NiceSlice being refactored to use Filter::Simple.
  
+ * pctover, oddpctover, pct, and oddpct now support badvalues
+   per sf.net feature request #3328001.
+
+ * Fixed t/opengl.t problem to enable support for TriD to
+   work with POGL compiled under cygwin for the w32api
+   OpenGL graphics.
+
  * TBD
 
 
