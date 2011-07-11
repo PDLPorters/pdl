@@ -44,7 +44,7 @@ Highlights:
    work with POGL compiled under cygwin for the w32api
    OpenGL graphics.
 
- * TBD
+ * Improved diagnostic output on failure ("better barf").
 
 
 
