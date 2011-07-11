@@ -76,7 +76,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_003 release:
+  PDL-2.4.9_004 release:
 
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
