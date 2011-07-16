@@ -389,9 +389,6 @@ IO/Misc/Makefile.PL
 IO/Misc/misc.pd
 IO/NDF/Makefile.PL
 IO/NDF/NDF.pm.PL
-IO/Pnm/converters/pnmtotiff.c
-IO/Pnm/converters/README
-IO/Pnm/converters/tifftopnm.c
 IO/Pnm/Makefile.PL
 IO/Pnm/Pic.pm
 IO/Pnm/pnm.pd
