@@ -175,8 +175,7 @@ sub new {
             OpenGL::glutInitDisplayMode( OpenGL::GLUT_RGBA() | OpenGL::GLUT_DOUBLE() | OpenGL::GLUT_DEPTH() );
             if ( not OpenGL::glutGet( OpenGL::GLUT_DISPLAY_MODE_POSSIBLE() ) )
             {
-               warn "glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH) not possible, exiting quietly";
-               exit 0;
+               die "display mode not possible";
             }
          }
       }
