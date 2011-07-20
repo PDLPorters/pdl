@@ -1078,13 +1078,13 @@ that has the second dimension of the "parent pdl" as its first
 dimension using the C<mv> command.
 
  # maxima of columns (as function of column number and time)
- maximum($stack->mv(0,1),($ret=null));
+ maximum($stack->mv(1,0),($ret=null));
 
 and calculating all the sums of sub-slices over the third dimension
 is now almost too easy
 
  # sums of pixels in time (assuming time is the third dim)
- sumover($stack->mv(0,2),($ret=null));
+ sumover($stack->mv(2,0),($ret=null));
 
 Finally, if you want to apply the operation to all elements (like max over
 all elements or sum over all elements) regardless of the dimensions of
