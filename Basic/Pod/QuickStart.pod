@@ -134,8 +134,8 @@ Here are some ways of creating a PDL variable:
    [1 2 3]
    [4 5 6]
  NEWPDL
- $edge1 = q[1 -2];             # 2-element piddle containing  1 and -2
- $edge2 = q[1 - 2];            # 1-element piddle containing -1
+ $edge1 = pdl q[1 -2];             # 2-element piddle containing  1 and -2
+ $edge2 = pdl q[1 - 2];            # 1-element piddle containing -1
  $b = pdl 42                   # 0-dimensional scalar
  $c = pdl $a;                  # Make a new copy
  
@@ -255,8 +255,6 @@ allow the convenient shorthand:
  $a = float [1..1000];         # Create 1D float array
 
 etc.
-
-=head2 Piddles and boolean expressions
 
 =head2 Printing
 
@@ -410,34 +408,36 @@ on demand, in a way perhaps familiar to users of MatLab.
 
 One can also write PDL extensions as normal Perl modules.
 
-=head2 perldl shell
+=head2 PDL shell
 
-The Perl script C<pdl2> (or C<perldl>) provides a simple command line - if the latest
-Readlines/ReadKey modules have been installed C<pdl2> detects this
-and enables command line recall and editing. See the man page for details.
+The Perl script C<pdl2> (or C<perldl>) provides a simple command line interface
+to PDL.  If the latest Readlines/ReadKey modules have been installed C<pdl2>
+detects this and enables command line recall and editing.
+See the man page for details.
 
 e.g.:
 
- jhereg% perldl
- perlDL shell v1.30
+ % perldl
+ perlDL shell v1.354
   PDL comes with ABSOLUTELY NO WARRANTY. For details, see the file
   'COPYING' in the PDL distribution. This is free software and you
   are welcome to redistribute it under certain conditions, see
   the same file for details.
- ReadLines enabled                                                               
+ ReadLines, NiceSlice, MultiLines  enabled
  Reading PDL/default.perldlrc...
- Found docs database /home/kgb/soft/dev/lib/perl5/site_perl/PDL/pdldoc.db
+ Found docs database /home/pdl/dev/lib/perl5/site_perl/PDL/pdldoc.db
  Type 'help' for online help
  Type 'demo' for online demos
- Loaded PDL v2.005                                                               
+ Loaded PDL v2.4.9_003 (supports bad values)
  pdl> $x = rfits 'm51.fits'
- BITPIX =  16  size = 65536 pixels
- Reading  131072 bytes
- BSCALE = 1.0000000000E0 &&  BZERO = 0.0000000000E0
+ Reading IMAGE data...
+ BITPIX =  32  size = 147456 pixels 
+ Reading  589824  bytes
+ BSCALE =  &&  BZERO = 
 
+ pdl> use PDL::Graphics::PGPLOT;
  pdl> imag $x
- Loaded PGPLOT
- Displaying 256 x 256 image from 24 to 500 ...
+ Displaying 384 x 384 image from 40 to 761, using 84 colors (16-99)...
 
 You can also run it from the Perl debugger (C<perl -MPDL -d -e 1>)
 if you want.
