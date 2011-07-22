@@ -238,9 +238,10 @@ Write the header file corresponding to a previous writeflex call
 
     $file or "filename" is the filename used in a previous writeflex
     If $file is actually a "filename" then writeflexhdr() will be
-    called automatically.  If writeflex() was to a FILEHANDLE, you
-    will need to call writeflexhdr() yourself since the filename
-    cannot be determined (at least easily).
+    called automatically if $PDL::IO::FlexRaw::writeflexhdr is true.
+    If writeflex() was to a FILEHANDLE, you will need to call
+    writeflexhdr() yourself since the filename cannot be determined
+    (at least easily).
 
 =head2 mapflex
 

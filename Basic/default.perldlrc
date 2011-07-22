@@ -24,6 +24,7 @@ BEGIN{
    $PDL::debug = $PDL::debug = 0;
    $PDL::verbose = $PDL::verbose = 1;
    $PDL::toolongtoprint = $PDL::toolongtoprint = 10000;
+   $PDL::IO::FlexRaw::writeflexhdr = 1;
 }
 
 if ( $PERLDL::TERM->ReadLine() =~ /::Perl$/ ) {
