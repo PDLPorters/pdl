@@ -26,6 +26,12 @@ General Notes:
 
 Highlights:
 
+ * Add 'use PDL::Constants' to default.perldl in preparation
+   for eventual inclusion for 'use PDL'.  The PDL::Constants
+   module only defines PI and E at the moment.  I would like
+   to see a few more standard ones added such as I or J for
+   the imaginary unit value.
+
  * TBD
 
 
