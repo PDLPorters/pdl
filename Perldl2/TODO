@@ -247,6 +247,21 @@ Last saved: Tue 14 Jun 2011 10:05:37 AM
   got the actual line with the bad code---of course I had to
   give up the nice pdl2 environment.
 
+  Filter out error tracebacks from pdl2/perldl.  It looks like
+  these are internal to Devel::REPL and not the code being
+  executed and could be filtered out:
+
+   + eval {...}                # both pdl2 and perldl
+   + main::__ANON__            # both pdl2 and perldl
+
+   | main::process_input       # perldl
+   | main::eval_and_report     # perldl
+
+   - main::BEGIN               # pdl2
+   - Lexical::Persistence::    # pdl2
+   - Devel::REPL::             # pdl2
+   - Class::MOP::              # pdl2
+
   
 
 +-------------------------------------------------------------------+
