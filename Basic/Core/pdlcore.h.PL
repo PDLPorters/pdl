@@ -134,7 +134,7 @@ SV*     pdl_copy( pdl* a, char* option );     /* call copy method */
 PDL_Long *    pdl_packdims ( SV* sv, int*ndims ); /* Pack dims[] into SV aref */
 void    pdl_unpackdims ( SV* sv, PDL_Long *dims,  /* Unpack */
                          int ndims );
-void*   pdl_malloc ( int nbytes );           /* malloc memory - auto free()*/
+void*   pdl_malloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
 void pdl_makescratchhash(pdl *ret,double data, int datatype);
 PDL_Long pdl_safe_indterm(PDL_Long dsz, PDL_Long at, char *file, int lineno);

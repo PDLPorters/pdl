@@ -530,7 +530,7 @@ PDL_Long pdl_safe_indterm( PDL_Long dsz, PDL_Long at, char *file, int lineno)
 */
 
 
-void* pdl_malloc ( int nbytes ) {
+void* pdl_malloc ( STRLEN nbytes ) {
     STRLEN n_a;
    SV* work;
 

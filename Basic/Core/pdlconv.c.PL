@@ -140,7 +140,7 @@ void pdl_converttype( pdl** aa, int targtype, Logical changePerl ) {
     void* b;     /* Scratch data ptr */
     SV*   bar;
     HV*   hash;
-    int   nbytes;
+    STRLEN   nbytes;
     int   diffsize;
     int   i;
 #if (PERL_VERSION >= 5) && (PERL_SUBVERSION >= 57)

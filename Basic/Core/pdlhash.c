@@ -30,8 +30,8 @@ void pdl_grow (pdl* a, int newsize) {
 
    SV* foo;
    HV* hash;
-   int nbytes;
-   int ncurr;
+   STRLEN nbytes;
+   STRLEN ncurr;
    STRLEN len;
 
    if(a->state & PDL_DONTTOUCHDATA) {
@@ -43,7 +43,7 @@ void pdl_grow (pdl* a, int newsize) {
 
    foo = a->datasv;
 
-   nbytes = newsize * pdl_howbig(a->datatype);
+   nbytes = ((STRLEN) newsize) * pdl_howbig(a->datatype);
    ncurr  = SvCUR( foo );
    if (ncurr == nbytes)
       return;    /* Nothing to be done */
