@@ -32,6 +32,11 @@ Highlights:
    to see a few more standard ones added such as I or J for
    the imaginary unit value.
 
+ * Preliminary support for pdls larger than 2GiB (but still
+   with less than 2**31 *elements*) is in the PDL core.
+   It is believed that this modification should be
+   transparent.  Please test.
+ 
  * TBD
 
 

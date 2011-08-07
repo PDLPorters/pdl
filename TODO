@@ -381,6 +381,8 @@ T  Clean up build output from make process to reduce cruft
    Add support for 64bit data:
    * Add safe pdl allocation option to prevent OOM death
    * Update allocation and types to support 64bit data
+   * Add info in PDL::Config for level of 64bit support
+     (e.g. STRLEN size vs ptrsize...)
    
 
    Add support for improved 2-D image display using OpenGL
