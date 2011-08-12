@@ -36,6 +36,10 @@ Highlights:
    with less than 2**31 *elements*) is in the PDL core.
    It is believed that this modification should be
    transparent.  Please test.
+
+ * New whereND() routine added to PDL::Primitive.  Like
+   where but it properly threads the mask over higher
+   data dimensions.
  
  * TBD
 

@@ -88,7 +88,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * niceslice.t
    * nsdatahandle.t
    * pptest.t
-   * primitive.t
    * requiredmods.t
    * round.t
    * simplex.t
@@ -155,8 +154,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Add support for Known_problems to tests
-   * Implemented via the Test::More TODO {} block feature
-   * Ignores FAIL for tests flagged as TODO
    * All bug reports should have a test in PDL/t
    * Convert t/dumper.t to use TODO block
 
@@ -440,7 +437,6 @@ T  Clean up build output from make process to reduce cruft
 +-------------------------------------------------------+
    
    PDL::Constants
-   * Implementation based on 'use constant' pragma
    * Transition into 'use PDL;'
    * Add other constants of interest
      * Units
