@@ -16,14 +16,15 @@ plan tests => 39;
 
 sub tapprox {
     my($a,$b) = @_;
-    diag "APPROX: $a $b\n";
     if((join ',',$a->dims) ne (join ',',$b->dims)) {
-        diag "UNEQDIM\n";
-        return 0;
+       diag "APPROX: $a $b\n";
+       diag "UNEQDIM\n";
+       return 0;
     }
     my $d = max( abs($a-$b) );
     if($d >= 0.01) {
-        diag "# APPROXFAIL: $a $b\n";
+       diag "APPROX: $a $b\n";
+       diag "# APPROXFAIL: $a $b\n";
     }
     $d < 0.01;
 }

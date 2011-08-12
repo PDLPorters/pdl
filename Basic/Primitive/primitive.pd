@@ -2867,10 +2867,9 @@ into a single operation.
 
 BUGS:
 
-There is no C<whereND>, and probably should be.  While C<where> works
-OK for most N-dimensional cases, it does not thread properly over (for
-example) the (N+1)th dimension in data that is compared to an
-N-dimensional mask.
+While C<where> works OK for most N-dimensional cases, it does not
+thread properly over (for example) the (N+1)th dimension in data
+that is compared to an N-dimensional mask.  Use C<whereND> for that.
 
 =for usage
 
@@ -2918,6 +2917,83 @@ EOD
 );
 
 pp_add_exported("", 'where');
+
+pp_addpm(<<'EOD'
+
+=head2 whereND
+
+=for ref
+
+  where with support for ND masks and threading
+
+C<whereND> accepts one or more data piddles and a
+mask piddle.  It returns a list of output piddles,
+corresponding to the input data piddles.  The values
+are drawn from locations where the mask is nonzero.
+
+C<whereND> differs from C<where> in that the mask
+dimensionality is preserved which allows for
+proper threading of the selection operation over
+higher dimensions.
+
+
+=for usage
+
+  $sdata = whereND $data, $mask
+  @sdata = whereND $data1, $data2, ..., $mask
+
+  where
+
+    $data is M dimensional
+    $mask is N < M dimensional
+    dims($data) 1..N == dims($maks) 1..N
+    with threading over N+1 to M dimensions
+
+=for example
+
+  $data   = sequence(4,3,2);   # example data array
+  $mask4  = (random(4)>0.5);   # example 1-D mask array, has $n4 true values
+  $mask43 = (random(4,3)>0.5); # example 2-D mask array, has $n43 true values
+  $sdat4  = whereND $data, $mask4;   # $sdat4 is a [$n4,3,2] pdl
+  $sdat43 = whereND $data, $mask43;  # $sdat43 is a [$n43,2] pdl
+
+=cut
+
+sub PDL::whereND {
+   barf "Usage: whereND( \$pdl1, ..., \$pdlN, \$mask )\n" if $#_ == 0;
+
+   my $mask = pop @_;  # $mask has 0==false, 1==true
+   my @to_return;
+
+   foreach my $arr (@_) {
+
+      my $n = PDL::sum($mask);
+      my $sub_i = $mask * ones($arr);
+      my $where_sub_i = PDL::where($arr, $sub_i);
+
+      # count the number of dims in $mask and $arr
+      # $mask = a b c d e f.....
+      my @idims = dims($arr);
+
+      # ...and pop off the number of dims in $mask
+      foreach ( dims($mask) ) { shift(@idims) };
+
+      my $ndim = 0;
+      foreach my $id ($n, @idims[0..($#idims-1)]) {
+         $where_sub_i = $where_sub_i->splitdim($ndim++,$id);
+      }
+
+      push @to_return, $where_sub_i;
+   }
+
+   return (@to_return == 1) ? $to_return[0] : @to_return;
+}
+*whereND = \&PDL::whereND;
+
+EOD
+);
+
+pp_add_exported("", 'whereND');
 
 pp_addpm(<<'EOD'
 
