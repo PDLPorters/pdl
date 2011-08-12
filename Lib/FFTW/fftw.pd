@@ -593,7 +593,7 @@ Complex by real multiplation.
 
 =for usage
 
-  Cscale($a_pdl_cplx,$b_pdl_real);
+  $out_pdl_cplx = Cscale($a_pdl_cplx,$b_pdl_real);
 
 =cut
 
@@ -780,7 +780,7 @@ Complex inplace exponentation.
 
 =for usage
 
-   $out_pdl_cplx = Cexp($a_pdl_cplx);
+   $out_pdl_cplx = Cbexp($a_pdl_cplx);
 
 =cut
 
