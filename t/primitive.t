@@ -12,18 +12,18 @@ use PDL::Types;
 use strict;
 use Test::More;
 
-plan tests => $PDL::Bad::Status ? 34 : 31 ;
+plan tests => 39;
 
 sub tapprox {
     my($a,$b) = @_;
-    print "APPROX: $a $b\n";
+    diag "APPROX: $a $b\n";
     if((join ',',$a->dims) ne (join ',',$b->dims)) {
-	print "UNEQDIM\n";
-	return 0;
+        diag "UNEQDIM\n";
+        return 0;
     }
     my $d = max( abs($a-$b) );
     if($d >= 0.01) {
-	print "# APPROXFAIL: $a $b\n";
+        diag "# APPROXFAIL: $a $b\n";
     }
     $d < 0.01;
 }
@@ -35,21 +35,22 @@ ok(tapprox($a->sumover(), PDL->pdl([12, 6.5])), "sumover");    # 2
 ok(tapprox($a->prodover(), PDL->pdl([60, 9])), "prodover");    # 3
 
 my $b = PDL->pdl(4,3,1,0,0,0,0,5,2,0,3,6);
-diag "B: $b\n";
+# diag "B: $b\n";
 my $c = ($b->xvals) + 10;
-# print "C: $c\n";
+# diag "C: $c\n";
 
-# print "BW: ", $b->where, "\n";
+# diag "BW: ", $b->where, "\n";
 ok(tapprox($b->where($b>4), PDL->pdl(5,6)), "where with >");   # 4
 ok(tapprox($b->which, PDL->pdl(0,1,2,7,8,10,11)), "which");    # 5
 
-# print "B, ",$b->which();
-# print "C: $c\n";
-# print "\nCI, ", $c->index($b->which());
-# print "D\n";
+# diag "B, ",$b->which();
+# diag "C: $c\n";
+# diag "\nCI, ", $c->index($b->which());
+# diag "D\n";
 
 ok(tapprox($c->where($b), PDL->pdl(10,11,12,17,18,20,21)), "where with mask");  # 6
 
+##############################
 # originally in pptest
 $a = ones(byte,3000);
 dsumover($a,($b=null));
@@ -61,6 +62,7 @@ my $q = zeroes 5;
 minimum_n_ind $p, $q;
 ok(tapprox($q, pdl(0, 6, 7, 1, 9)), "minimum_n_ind");          # 9
 
+##############################
 # check that our random functions work with Perl's srand
 srand 5;
 my $r1 = random 10;
@@ -75,7 +77,7 @@ $r2 = grandom 10;
 ok(tapprox($r1, $r2), "grandom and srand");                    #11
 
 ##############################
-# Test that whichND works OK...
+# Test that whichND works OK
 my $r = xvals(10,10)+10*yvals(10,10);
 $a = whichND( $r % 12 == 0 );
 
@@ -91,7 +93,7 @@ $a = whichND( which(pdl(0)) );
 ok($a->nelem==0, "whichND of Empty mask");                     #15
 
 ##############################
-# Simple test case for interpND...
+# Simple test case for interpND
 my $index;
 my $z;
 $a = xvals(10,10)+yvals(10,10)*10;
@@ -102,7 +104,7 @@ ok(!$@);                                                       #16
 ok(sum($b != $z) == 0, "interpND");                            #17
 
 ##############################
-# Test glue...
+# Test glue
 $a = xvals(2,2,2);
 $b = yvals(2,2,2);
 $c = zvals(2,2,2);
@@ -114,6 +116,7 @@ ok(zcheck($d - pdl([[0,1],[0,1],[0,0],[1,1],[0,0],[0,0]],
 
 
 
+##############################
 # test new empty piddle handling
 $a = which ones(4) > 2;
 $b = $a->long;
@@ -124,7 +127,7 @@ ok($b->avg == 0, "avg of Empty");                              #21
 ok(! any isfinite $c->average, "isfinite of Empty");           #22
 
 ##############################
-# Test uniqvec...
+# Test uniqvec
 $a = pdl([[0,1],[2,2],[0,1]]);
 $b = $a->uniqvec;
 eval '$c = all($b==pdl([[0,1],[2,2]]))';
@@ -141,14 +144,16 @@ ok(!$@ && $c && $b->ndims==2, "uniqvec");                      #25
 
 ##############################
 # Test bad handling in selector
-if($PDL::Bad::Status) {
-  $b = xvals(3);
-  ok(tapprox($b->which,PDL->pdl(1,2)), "which");               #26 BAD
-  setbadat $b, 1;
-  ok(tapprox($b->which,PDL->pdl([2])), "which w BAD");         #27 BAD
-  setbadat $b, 0;
-  setbadat $b, 2;
-  is($b->which->nelem,0, "which nelem");                       #28 BAD
+SKIP: {
+   skip "Bad handling not available", 3 unless $PDL::Bad::Status;
+
+   $b = xvals(3);
+   ok(tapprox($b->which,PDL->pdl(1,2)), "which");              #26
+   setbadat $b, 1;
+   ok(tapprox($b->which,PDL->pdl([2])), "which w BAD");        #27
+   setbadat $b, 0;
+   setbadat $b, 2;
+   is($b->which->nelem,0, "which nelem w BAD");                #28
 }
 
 ############################
@@ -165,7 +170,7 @@ ok(tapprox($c, pdl([2,3,4,8,9])), "setops XOR");               #31
 
 
 ##############################
-# Test uniqind...
+# Test uniqind
 $a = pdl([0,1,2,2,0,1]);
 $b = $a->uniqind;
 eval '$c = all($b==pdl([0,1,3]))';
@@ -175,3 +180,28 @@ $b = pdl(1,1,1,1,1)->uniqind;         # SF bug 3076570
 ok(! $b->isempty);                                             #33
 eval '$c = all($b==pdl([0]))';
 ok(!$@ && $c && $b->ndims==1, "uniqind, SF bug 3076570");      #34
+
+##############################
+# Test whereND
+SKIP: {
+   do 'whereND.pdl' if -e 'whereND.pdl';  # for development
+   skip "have no whereND", 5 unless defined(&whereND);
+
+   $a = sequence(4,3,2);
+   $b = pdl(0,1,1,0);
+   $c = whereND($a,$b);
+   ok(all(pdl($c->dims)==pdl(2,3,2))) and                      #35
+   ok(all($c==pdl q[ [ [ 1  2] [ 5  6] [ 9 10] ]
+                     [ [13 14] [17 18] [21 22] ] ]),
+                                     "whereND [4]");           #36
+
+   $b = pdl q[ 0 0 1 1 ; 0 1 0 0 ; 1 0 0 0 ];
+   $c = whereND($a,$b);
+   ok(all(pdl($c->dims)==pdl(4,2))) and                        #37
+   ok(all($c==pdl q[ 2  3  5  8 ; 14 15 17 20 ]),
+                                "whereND [4,3]");              #38
+
+   $b = (random($a)<0.3);
+   $c = whereND($a,$b);
+   ok(all($c==where($a,$b)), "whereND vs where");              #39
+}
