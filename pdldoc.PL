@@ -53,13 +53,20 @@ print $fh <<'!NO!SUBS!';
 use strict;
 $|++;
 
+use PDL::Config;
+
+BEGIN {
+   if ( not defined $PDL::Config{PDLDOC_IGNORE_AUTOLOADER} ) {
+      require PDL::AutoLoader;
+   }
+}
+
 use PDL::Doc::Perldl;
 use File::Basename;
 
 use vars qw( $VERSION );
 $VERSION = '0.2';
 
-use PDL::Config;
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
 my %options = 
