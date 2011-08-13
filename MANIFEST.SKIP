@@ -16,6 +16,7 @@ Lib/PCA/PCA*
 MANIFEST\.bak$
 MANIFEST\.old
 META\.yml
+META\.json
 Makefile$
 Makefile\.aperl
 Makefile\.old

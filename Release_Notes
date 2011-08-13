@@ -32,6 +32,14 @@ Highlights:
    to see a few more standard ones added such as I or J for
    the imaginary unit value.
 
+ * Set $PDL::IO::FlexRaw::writeflexhdr=1 in PDL shell.  This
+   enables writeflex() to call writeflexhdr() automatically
+   when a filename is given as the output destination.  This
+   matches the behavior of writefraw() but is different than
+   the previous behavior so only enable the new default in
+   the interactive shells (for now).
+
+
  * Preliminary support for pdls larger than 2GiB (but still
    with less than 2**31 *elements*) is in the PDL core.
    It is believed that this modification should be
@@ -39,10 +47,20 @@ Highlights:
 
  * New whereND() routine added to PDL::Primitive.  Like
    where but it properly threads the mask over higher
-   data dimensions.
+   data dimensions.  This was sf.net feature #3390043.
  
- * TBD
+ * pdldoc now searches for *.pdl files in your @PDLLIB
+   path for docs on PDL::AutoLoader routines.  To disable
+   the new behavior, just set the new perldl.conf option
+   PDLDOC_IGNORE_AUTOLOADER to true.  This was sf.net
+   feature #3390042.
 
+ * Documentation fixes
+
+ * SF.net bugs fixed:
+   - 3388862  tiny bug in PDL-2.4.3. May apply to 2.4.9
+   - 3375837  _read_flexhdr state machine fails
+   - 3368883  t/opengl.t fails if display type not available
 
 
 Release Notes for PDL 2.4.9_003 --------------------------
