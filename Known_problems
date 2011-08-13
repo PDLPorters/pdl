@@ -84,7 +84,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_004 release:
+  PDL-2.4.9_005 release:
 
   3377113    failure to find PDL typemap
   3363406    PDL::Minuit build can't make libminuit.a
