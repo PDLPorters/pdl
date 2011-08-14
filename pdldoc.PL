@@ -65,7 +65,7 @@ use PDL::Doc::Perldl;
 use File::Basename;
 
 use vars qw( $VERSION );
-$VERSION = '0.2';
+$VERSION = '0.3';
 
 my $bvalflag = $PDL::Config{WITH_BADVAL} || 0;
 
@@ -149,7 +149,8 @@ as the C<apropos>, C<help>, C<sig>,
     print $fh "C<badinfo>, \n" if $bvalflag;
 
 print $fh <<'!NO!SUBS!';
-and C<usage> commands available in the L<perldl|PDL::perldl> shell.
+and C<usage> commands available in the L<perldl|PDL::perldl>
+and L<pdl2|pdl2> shells.
 
 Think of it as the PDL equivalent of C<perldoc -f>.
 
@@ -184,15 +185,22 @@ prints signature of PDL function.
 
 Prints usage information for a PDL function.
 
+=item C<$PDL::Config{PDLDOC_IGNORE_AUTOLOADER}>
+
+This PDL configuration variable may be set in the perldl.conf
+file to disable runtime search for documentation in
+L<PDL::AutoLoader|PDL::AutoLoader> files.
+
 =back
 
 =head1 VERSION
 
-This is pdldoc v0.2.
+This is pdldoc version 0.3.
 
 =head1 AUTHOR
 
-Doug Burke <burke@ifa.hawaii.edu>.
+Doug Burke <burke at ifa dot hawaii dot edu>.
+Chris Marshall <chm at cpan dot org>.
 
 =cut
 
