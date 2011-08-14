@@ -3,7 +3,7 @@
 # Test some Basic/Ufunc routines
 
 use strict;
-use Test::More tests => 13;
+use Test::More tests => 15;
 
 BEGIN {
     # if we've got this far in the tests then 
@@ -51,21 +51,29 @@ ok( ( eval { pdl([])->qsorti }, $@ eq '' ), "qsorti coredump,[SF bug 2110074]");
 SKIP: {
    skip "Bad value support not compiled", 4 unless $PDL::Bad::Status;
 
-   TODO: {
-      local $TODO = "odd/pctover does not handle bad values";
+   my $abad = $a;
+   $abad->badflag(1);
+   $abad->inplace->setvaltobad(7);
+   my $agood = $abad->where($abad->isgood);
+   my $allbad = $abad->where($abad->isbad);
 
-      my $abad = $a;
-      $abad->badflag(1);
-      $abad->inplace->setvaltobad(7);
-      my $agood = $abad->where($abad->isgood);
-      my $allbad = $abad->where($abad->isbad);
-
-      ok( $abad->pctover(0.1) == $agood->pctover(0.1), "pctover(0.1) badvals" );
-      ok( $abad->pctover(0.9) == $agood->pctover(0.9), "pctover(0.9) badvals" );
-      ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
-      ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
-   };
+   ok( $abad->pctover(0.1) == $agood->pctover(0.1), "pctover(0.1) badvals" );
+   ok( $abad->pctover(0.9) == $agood->pctover(0.9), "pctover(0.9) badvals" );
+   ok( $allbad->pctover(0.1)->isbad, "pctover(0.1) all badvals" );
+   ok( $allbad->pctover(0.9)->isbad, "pctover(0.9) all badvals" );
 };
 
+# test for sf.net but report 3234141 "max() fails on nan"
+#   NaN values are handled inconsistently by min, minimum, max, maximum...
+#
+TODO: {
+   local $TODO = "fixing max/min NaN handling";
 
+   my $inf = exp(~0>>1);
+   my $nan = $inf/$inf;
+   my $a = pdl($nan, 0, 1, 2);
+   my $b = pdl(0, 1, 2, $nan);
 
+   ok($a->min == $b->min, "min with NaNs");
+   ok($a->max == $b->max, "max with NaNs");
+}
