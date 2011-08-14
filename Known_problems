@@ -86,6 +86,7 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_005 release:
 
+  3391507    pdl2 docs not found by pdldoc
   3377113    failure to find PDL typemap
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
@@ -103,7 +104,6 @@ The following issues have been reported with this version of PDL:
   2995500    perl -d chokes on lvalue functions
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
-  1850913    wpic/rpic don't support 16bit png
   1507054    closing TriD window kills perldl shell
   1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
