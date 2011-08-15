@@ -2924,7 +2924,7 @@ pp_addpm(<<'EOD'
 
 =for ref
 
-  where with support for ND masks and threading
+C<where> with support for ND masks and threading
 
 C<whereND> accepts one or more data piddles and a
 mask piddle.  It returns a list of output piddles,
@@ -2936,17 +2936,19 @@ dimensionality is preserved which allows for
 proper threading of the selection operation over
 higher dimensions.
 
+As with C<where> the output PDLs are still connected
+to the original data PDLs, for the purpose of dataflow.
 
 =for usage
 
   $sdata = whereND $data, $mask
-  @sdata = whereND $data1, $data2, ..., $mask
+  ($s1, $s2, ..., $sn) = whereND $d1, $d2, ..., $dn, $mask
 
   where
 
     $data is M dimensional
     $mask is N < M dimensional
-    dims($data) 1..N == dims($maks) 1..N
+    dims($data) 1..N == dims($mask) 1..N
     with threading over N+1 to M dimensions
 
 =for example
