@@ -24,9 +24,9 @@ The following issues have been reported with this version of PDL:
     $piddle->slice('0:10') .= 100;           # original slice code
     ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
-  The problem is understood and it is hoped that an official
-  fix will become available.  NOTE: the work around is 100%
-  effective---but ugly.
+  The problem is understood and it appears that the error has
+  been replaced by a warning for perl-5.15.1.  NOTE: the work-
+  around is 100% effective---but ugly.
 
 
 - Multiline q'' constructs in the pdl2 shell now work correctly
@@ -84,9 +84,12 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_005 release:
+  PDL-2.4.9_006 release:
 
+  3392972    t/pthreadBarf.t test fails
+  3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
+  3377113    failure to find PDL typemap
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
