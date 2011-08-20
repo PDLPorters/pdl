@@ -1,7 +1,6 @@
 TYPEMAP
 pdl*	T_PDL
 pdl *	T_PDL
-PDL_Long * T_PTR
 pdl_trans * T_PDLTRANS
 pdl_trans* T_PDLTRANS
 Logical	T_IV
