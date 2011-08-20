@@ -24,10 +24,10 @@ my $file;
 $file =~ s/\.pl$//
         if ($Config{'osname'} eq 'VMS' or
             $Config{'osname'} eq 'OS2');  # "case-forgiving"
- 
+
 if ( $bvalflag ) {
     print "Extracting $file (WITH bad value support)\n";
-} else {		     
+} else {
     print "Extracting $file (NO bad value support)\n";
 }
 open OUT,">$file" or die "Can't create $file: $!";
@@ -90,7 +90,7 @@ Core *pdl__Core_get_Core() /* INTERNAL TO CORE! DON'T CALL FROM OUTSIDE */
 
 int pdl_debugging=0;
 int pdl_autopthread_targ   = 0; /* No auto-pthreading unless set using the set_autopthread_targ */
-int pdl_autopthread_actual = 0; 
+int pdl_autopthread_actual = 0;
 int pdl_autopthread_size   = 1;
 
 #define CHECKP(p)    if ((p) == NULL) croak("Out of memory")
@@ -164,7 +164,7 @@ static void pdl_freedata (pdl *a) {
  * print "a,b == ", $a->badflag, ",", $b->badflag, "\n";
  * print "$a $b\n";
  * ok( $b->badflag, 1 );
- * 
+ *
  */
 
 /* used by propogate_badflag() */
@@ -177,9 +177,9 @@ void propogate_badflag_children( pdl *it, int newval ) {
 	int i;
 
 	for( i = trans->vtable->nparents;
-	     i < trans->vtable->npdls; 
+	     i < trans->vtable->npdls;
 	     i++ ) {
-	    
+
 	    pdl *child = trans->pdls[i];
 
 	    if ( newval ) child->state |=  PDL_BADVAL;
@@ -203,9 +203,9 @@ void propogate_badflag_parents( pdl *it ) {
 	int i;
 
 	for( i = 0;
-	     i < trans->vtable->nparents; 
+	     i < trans->vtable->nparents;
 	     i++ ) {
-	    
+
 	    pdl *parent = trans->pdls[i];
 
 	    /* only sets allowed here */
@@ -225,7 +225,7 @@ void propogate_badflag_parents( pdl *it ) {
  * If newval == 1, then we also loop through the
  * parents, setting their bad flag
  *
- * thanks to Christian Soeller for this 
+ * thanks to Christian Soeller for this
  */
 
 void propogate_badflag( pdl *it, int newval ) {
@@ -258,7 +258,7 @@ void propogate_badflag( pdl *it, int newval ) {
 
 	for( i = trans->vtable->nparents;
 	     i < trans->vtable->npdls; i++ ) {
-	    
+
 	    pdl *child = trans->pdls[i];
 
 	    if ( newval ) child->state |=  PDL_BADVAL;
@@ -283,7 +283,7 @@ void propogate_badvalue( pdl *it ) {
 
 	for( i = trans->vtable->nparents;
 	     i < trans->vtable->npdls; i++ ) {
-	    
+
 	    pdl *child = trans->pdls[i];
 
             child->has_badvalue = 1;
@@ -370,8 +370,9 @@ MODULE = PDL::Core     PACKAGE = PDL
 void
 DESTROY(sv)
   SV *	sv;
-  CODE:
+  PREINIT:
     pdl *self;
+  CODE:
     if (SvROK(sv) && SvTYPE(SvRV(sv)) == SVt_PVHV)
        1; /* Do nothing */
     else {
@@ -443,8 +444,8 @@ iscontig(x)
 # to piddle's state
 #
 
-my %flags = 
-    ( 
+my %flags =
+    (
       hdrcpy => { set => 1 },
       fflows => { FLAG => "DATAFLOW_F" },
       bflows => { FLAG => "DATAFLOW_B" },
@@ -468,7 +469,7 @@ $name(x,mode=0)
 	pdl *x
 	int mode
 	CODE:
-	if (items>1) 
+	if (items>1)
 	   { setflag(x->state,$flag,mode); }
 	RETVAL = ((x->state & $flag) > 0);
 	OUTPUT:
@@ -485,7 +486,7 @@ $name(x,mode=0)
 	int mode
 	CODE:
 	RETVAL = ((x->state & $flag) > 0);
-	if (items>1) 
+	if (items>1)
 	   { setflag(x->state,$flag,mode); }
 	OUTPUT:
 	RETVAL
@@ -504,9 +505,9 @@ $name(self)
 
 !WITH!SUBS!
 
-} 
+}
 
-} # foreach: keys %flags 
+} # foreach: keys %flags
 
 =begin windows_mmap
 
@@ -521,17 +522,17 @@ and thougt we might consider using it to make windows mmapping possible.
  (Seee the page for stb_vorbis or the mollyrocket source
  page for a longer description of the public domain non-license).
  */
- 
+
  #define WIN32_LEAN_AND_MEAN
  #include <windows.h>
- 
+
  typedef struct
  {
     HANDLE f;
     HANDLE m;
     void *p;
  } SIMPLE_UNMMAP;
- 
+
  // map 'filename' and return a pointer to it. fill out *length and *un if not-NULL
  void *simple_mmap(const char *filename, int *length, SIMPLE_UNMMAP *un)
  {
@@ -551,14 +552,14 @@ and thougt we might consider using it to make windows mmapping possible.
     }
     return p;
  }
- 
+
  void simple_unmmap(SIMPLE_UNMMAP *un)
  {
     UnmapViewOfFile(un->p);
     CloseHandle(un->m);
     CloseHandle(un->f);
- } 
- 
+ }
+
 =end windows_mmap
 
 =cut
@@ -765,12 +766,12 @@ set_debugging(i)
 SV *
 sclr_c(it)
    pdl* it
-   CODE:
+   PREINIT:
 	PDL_Long nullp = 0;
 	PDL_Long dummyd = 1;
 	PDL_Long dummyi = 1;
 	double result;
-
+   CODE:
         /* get the first element of a piddle and return as
          * Perl double scalar (NV)
          */
@@ -790,15 +791,17 @@ sclr_c(it)
 SV *
 at_c(x,position)
    pdl*	x
-   PDL_Long *	pos = NO_INIT
-   CODE:
-    int npos, ipos;
+   SV*	position
+   PREINIT:
+    PDL_Long * pos;
+    int npos;
+    int ipos;
     double result;
+   CODE:
+    pdl_make_physvaffine( x );
 
-      pdl_make_physvaffine( x );
+    pos = pdl_packdims( position, &npos);
 
-    pos = pdl_packdims( ST(1), &npos);
-    
     if (pos == NULL || npos < x->ndims)
        croak("Invalid position");
 
@@ -823,15 +826,18 @@ at_c(x,position)
 SV *
 at_bad_c(x,position)
    pdl*	x
-   PDL_Long *	pos = NO_INIT
-   CODE:
-    int npos, ipos, badflag;
+   SV *	position
+   PREINIT:
+    PDL_Long * pos;
+    int npos;
+    int ipos;
+    int badflag;
     double result;
+   CODE:
+    pdl_make_physvaffine( x );
 
-      pdl_make_physvaffine( x );
+    pos = pdl_packdims( position, &npos);
 
-    pos = pdl_packdims( ST(1), &npos);
-    
     if (pos == NULL || npos < x->ndims)
        croak("Invalid position");
 
@@ -850,14 +856,14 @@ at_bad_c(x,position)
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    print OUT 
+    print OUT
 '
    badflag = (x->state & PDL_BADVAL) > 0;
 
 ';
 
     # do we have to bother about NaN's?
-    if ( $usenan ) { 
+    if ( $usenan ) {
        print OUT
 '
    if ( badflag &&
@@ -871,7 +877,7 @@ if ( $bvalflag ) {
    } else {
        print OUT
 '
-   if ( badflag && 
+   if ( badflag &&
         ( pdl_get_badvalue( x->datatype ) == result )
       ) {
 	 RETVAL = newSVpvn( "BAD", 3 );
@@ -891,12 +897,15 @@ print OUT <<'!NO!SUBS!';
 void
 list_c(x)
 	pdl *x
-	PPCODE:
-	PDL_Long *inds,*incs,offs;
+      PREINIT:
+	PDL_Long *inds;
+      PDL_Long *incs;
+      PDL_Long offs;
 	void *data;
 	int ind;
 	int stop = 0;
-        pdl_make_physvaffine( x );
+	PPCODE:
+      pdl_make_physvaffine( x );
 	inds = pdl_malloc(sizeof(PDL_Long) * x->ndims); /* GCC -> on stack :( */
 
 	data = PDL_REPRP(x);
@@ -921,21 +930,25 @@ list_c(x)
 SV *
 listref_c(x)
    pdl *x
-  CODE:
-   PDL_Long *inds,*incs,offs;
+  PREINIT:
+   PDL_Long * inds;
+   PDL_Long * incs;
+   PDL_Long * offs;
    void *data;
-   int ind, lind;
+   int ind;
+   int lind;
    int stop = 0;
    AV *av;
+  CODE:
 
 !NO!SUBS!
 
 if ( $bvalflag ) {
-    # note: 
+    # note:
     #  the badvalue is stored in a double, but that's what pdl_at()
     #  returns
 
-    print OUT 
+    print OUT
 '
    SV *sv;
    double pdl_val, pdl_badval;
@@ -944,18 +957,18 @@ if ( $bvalflag ) {
 ';
 
     # do we have to bother about NaN's?
-    if ( $usenan ) { 
+    if ( $usenan ) {
        print OUT
 '
    if ( badflag && x->datatype < 4 ) {
-      pdl_badval = pdl_get_pdl_badvalue( x ); 
+      pdl_badval = pdl_get_pdl_badvalue( x );
    }
 ';
    } else {
        print OUT
 '
    if ( badflag ) {
-      pdl_badval = pdl_get_pdl_badvalue( x ); 
+      pdl_badval = pdl_get_pdl_badvalue( x );
    }
 ';
 
@@ -1027,14 +1040,16 @@ print OUT <<'!NO!SUBS!';
 void
 set_c(x,position,value)
     pdl*	x
-    PDL_Long *	pos = NO_INIT
+    SV*	position
     double	value
+   PREINIT:
+    PDL_Long * pos;
+    int npos;
+    int ipos;
    CODE:
-    int npos,ipos;
-
     pdl_make_physvaffine( x );
 
-    pos = pdl_packdims( ST(1), &npos);
+    pos = pdl_packdims( position, &npos);
     if (pos == NULL || npos < x->ndims)
        croak("Invalid position");
 
@@ -1182,14 +1197,14 @@ pdl_avref(array_ref, class, type)
      SV* array_ref
      char* class
      int type
-  CODE:
-     /* make a piddle from a Perl array ref */
+  PREINIT:
      AV *dims, *av;
      int i, depth;
      int datalevel = -1;
      SV* psv;
      pdl* p;
-
+  CODE:
+     /* make a piddle from a Perl array ref */
      if (!SvROK(array_ref))
        croak("pdl_avref: not a reference");
      if (SvTYPE(SvRV(array_ref)) != SVt_PVAV)
@@ -1202,7 +1217,7 @@ pdl_avref(array_ref, class, type)
      depth = 1 + av_ndcheck(av,dims,0,&datalevel);
 
      /* printf("will make type %s\n",class); */
-     /* 
+     /*
 	at this stage start making a piddle and populate it with
 	values from the array (which has already been checked in av_check)
      */
@@ -1293,15 +1308,14 @@ pdl_remove_threading_magic(it)
 	CODE:
 		pdl_add_threading_magic(it,-1,-1);
 
-MODULE = PDL::Core	PACKAGE = PDL	
+MODULE = PDL::Core	PACKAGE = PDL
 
 SV *
 initialize(class)
 	SV *class
-
-        PPCODE:
+        PREINIT:
 	HV *bless_stash;
-
+        PPCODE:
         if (SvROK(class)) { /* a reference to a class */
 	  bless_stash = SvSTASH(SvRV(class));
         } else {            /* a class name */
@@ -1335,8 +1349,9 @@ get_datatype(self)
 int
 upd_data(self)
 	pdl *self
-	CODE:
+      PREINIT:
        STRLEN n_a;
+	CODE:
 	if(self->state & PDL_DONTTOUCHDATA) {
 		croak("Trying to touch dataref of magical (mmaped?) pdl");
 	}
@@ -1410,14 +1425,17 @@ getthreadid(x,y)
 		RETVAL
 
 void
-setdims(x,dims)
+setdims(x,dims_arg)
 	pdl *x
-	PDL_Long *dims = NO_INIT
+      SV * dims_arg
+      PREINIT:
+	 PDL_Long * dims;
+	 int ndims;
+       int i;
 	CODE:
 	{
-		int ndims; int i;
 		pdl_children_changesoon(x,PDL_PARENTDIMSCHANGED|PDL_PARENTDATACHANGED);
-		dims = pdl_packdims(ST(1),&ndims);
+		dims = pdl_packdims(dims_arg,&ndims);
 		pdl_reallocdims(x,ndims);
 		for(i=0; i<ndims; i++) x->dims[i] = dims[i];
 		pdl_resize_defaultincs(x);
@@ -1454,17 +1472,18 @@ void
 sethdr(p,h)
 	pdl *p
 	SV *h
-	CODE:
+      PREINIT:
 	HV* hash;
-		if(p->hdrsv == NULL) {             
+	CODE:
+		if(p->hdrsv == NULL) {
 		      p->hdrsv =  &PL_sv_undef; /*(void*) newSViv(0);*/
-		} 
+		}
 
 		/* Throw an error if we're not either undef or hash */
-                if ( (h != &PL_sv_undef && h != NULL) && 
+                if ( (h != &PL_sv_undef && h != NULL) &&
 		     ( !SvROK(h) || SvTYPE(SvRV(h)) != SVt_PVHV )
-		   ) 
-		      croak("Not a HASH reference");		
+		   )
+		      croak("Not a HASH reference");
 
 		/* Clear the old header */
 		SvREFCNT_dec(p->hdrsv);
@@ -1472,7 +1491,7 @@ sethdr(p,h)
 		/* Put the new header (or undef) in place */
 		if(h == &PL_sv_undef || h == NULL)
 		   p->hdrsv = NULL;
-		else  
+		else
 		   p->hdrsv = (void*) newRV( (SV*) SvRV(h) );
 
 SV *
@@ -1493,8 +1512,8 @@ hdr(p)
 	OUTPUT:
 	 RETVAL
 
-# fhdr(p) is implemented in perl; see Core.pm.PL if you're looking for it 
-#   --CED 9-Feb-2003  
+# fhdr(p) is implemented in perl; see Core.pm.PL if you're looking for it
+#   --CED 9-Feb-2003
 #
 
 SV *
@@ -1526,9 +1545,11 @@ set_datatype(a,datatype)
 
 void
 threadover_n(...)
+   PREINIT:
+   int npdls;
    CODE:
    {
-    int npdls = items - 1;
+    npdls = items - 1;
     if(npdls <= 0)
     	croak("Usage: threadover_n(pdl[,pdl...],sub)");
     {
@@ -1567,10 +1588,13 @@ threadover_n(...)
 
 void
 threadover(...)
+   PREINIT:
+    int npdls;
+    int targs;
+    int nothers = -1;
    CODE:
    {
-    int npdls, nothers = -1;
-    int targs = items - 4;
+        targs = items - 4;
     if (items > 0) nothers = SvIV(ST(0));
     if(targs <= 0 || nothers < 0 || nothers >= targs)
     	croak("Usage: threadover(nothers,pdl[,pdl...][,otherpars..],realdims,creating,sub)");
