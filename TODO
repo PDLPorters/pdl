@@ -96,7 +96,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * xvals.t
 
 
-   Need to test PDL build from scratch
+   Need to test PDL build from scratch both WITH_BADVAL and without
    * Unix/Linux/BSD
    * Windows
      - cygwin
@@ -367,6 +367,7 @@ T  Clean up build output from make process to reduce cruft
    * Cygwin/XP
    * Linux/unix
    * Mac OS X 
+
    
    Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2

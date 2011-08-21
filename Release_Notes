@@ -26,7 +26,21 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Candidate fix for sf.net bug # 3394327  (thanks to
+   kxtor).  It would be great if we had a small test
+   to add to t/fits.t showing the problem with the
+   original code.
+
+ * Candidate fix for sf.net bug # 3392972 (thanks to
+   John Cerney).  It appears that some of the cleanup
+   from the PDL_Long typemap problem had a side-effect
+   with the previous barf code.
+
+ * Candidate fix for sf.net bug # 3377113 (thanks to
+   Rob/sisyphus for following up with this).  The latest
+   spin seems to fix the problem.
+ 
+ * Ported t/pthreadBarf.t to use Test::More.
 
 
 

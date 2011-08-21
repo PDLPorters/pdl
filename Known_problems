@@ -87,7 +87,15 @@ The following issues have been reported with this version of PDL:
   PDL-2.4.9_007 release:
 
   3394327    PDL::IO::FITS::wfits corrupting FITS image
+
+             This CPAN Developers release is testing
+	     the candidate fix for this bug.
+
   3392972    t/pthreadBarf.t test fails
+
+             This CPAN Developers release is testing
+	     the candidate fix for this bug.
+
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
   3377113    failure to find PDL typemap
