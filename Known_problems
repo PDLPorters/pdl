@@ -84,7 +84,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_006 release:
+  PDL-2.4.9_007 release:
 
   3394327    PDL::IO::FITS::wfits corrupting FITS image
   3392972    t/pthreadBarf.t test fails

@@ -1,4 +1,4 @@
-Release Notes for PDL 2.4.9_006 --------------------------
+Release Notes for PDL 2.4.9_007 --------------------------
 
 General Notes:
 
@@ -18,25 +18,15 @@ General Notes:
      cpan shell may be used by specifying the distribution
      path rather than just the module name, e.g.:
 
-       cpan> get  CHM/PDL-2.4.9_006.tar.gz
-       cpan> make CHM/PDL-2.4.9_006.tar.gz
-       cpan> test CHM/PDL-2.4.9_006.tar.gz
-       cpan> look CHM/PDL-2.4.9_006.tar.gz
+       cpan> get  CHM/PDL-2.4.9_007.tar.gz
+       cpan> make CHM/PDL-2.4.9_007.tar.gz
+       cpan> test CHM/PDL-2.4.9_007.tar.gz
+       cpan> look CHM/PDL-2.4.9_007.tar.gz
 
 
 Highlights:
 
- * Outstanding segfault for t/pthreadBarf.t test.
-
- * Fix for sf.net bug #3377113 "failure to find PDL typemap"
-
- * Fix C declaration issue for MSVC 6.0 builds
-
- * New addition to 'demo 3dgal' by Mark Baker
-
- * pdldoc now checks $PDLLIB autoloader path for docs
-
- * Documentation fixes...
+ * TBD
 
 
 
