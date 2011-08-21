@@ -84,25 +84,13 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_007 release:
+  PDL-2.4.9_008 release:
 
   3394327    PDL::IO::FITS::wfits corrupting FITS image
-
-             This CPAN Developers release is testing
-	     the candidate fix for this bug.
-
   3392972    t/pthreadBarf.t test fails
-
-             This CPAN Developers release is testing
-	     the candidate fix for this bug.
-
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
   3377113    failure to find PDL typemap
-
-             This CPAN Developers release is testing
-	     the candidate fix for this bug.
-
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
