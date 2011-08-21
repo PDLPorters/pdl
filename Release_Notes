@@ -26,7 +26,17 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Outstanding segfault for t/pthreadBarf.t test.
+
+ * Fix for sf.net bug #3377113 "failure to find PDL typemap"
+
+ * Fix C declaration issue for MSVC 6.0 builds
+
+ * New addition to 'demo 3dgal' by Mark Baker
+
+ * pdldoc now checks $PDLLIB autoloader path for docs
+
+ * Documentation fixes...
 
 
 
