@@ -1199,6 +1199,7 @@ Vectors with bad components should be moved to the end of the array:
 # I have kept in the check for when Bad value support is not being compiled
 #
 my $nan_check = $bvalflag ? '' : '|| IsNaN(cur)';
+# my $nan_check = 0 ? '' : '|| IsNaN(cur)';   # This seems to work, not tested
 
 for my $which (
 	       ['minimum','<'],
