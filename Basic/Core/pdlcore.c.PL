@@ -550,7 +550,6 @@ void* pdl_malloc ( STRLEN nbytes ) {
 
 static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 {
-    dSP;
     SV * sv;
 
     // If we're in a worker thread, we queue the barf/warn for later,
@@ -561,6 +560,7 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
     // ... otherwise we fall through and barf by calling the perl-level
     // PDL::barf() or PDL::cluck()
 
+    dSP;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
