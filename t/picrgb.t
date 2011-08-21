@@ -23,7 +23,7 @@ sub rpic_unlink {
 }
 
 sub depends_on {
-  print "ushort is ok with $_[0]\n"
+  print "# ushort is ok with $_[0]\n"
 	if $PDL::IO::Pic::converter{$_[0]}->{ushortok};
   return 1 if $PDL::IO::Pic::converter{$_[0]}->{ushortok};
   return 256;
@@ -73,8 +73,10 @@ $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
 # only test PNM format
 # netpbm has too many bugs on various platforms
 @allowed = ();
-for ('PNM') { push @allowed, $_
-	if PDL->rpiccan($_) && defined $formats{$_} }
+## for ('PNM') { push @allowed, $_
+for (keys %formats) {
+   push @allowed, $_ if PDL->rpiccan($_) && defined $formats{$_};
+}
 
 $ntests = 2 * (@allowed);
 if ($ntests < 1) {
@@ -84,7 +86,7 @@ if ($ntests < 1) {
 
 print("1..$ntests\n");
 
-print "Testable formats on this platform:\n  ".join(',',@allowed)."\n";
+print "# Testable formats on this platform:\n#  ".join(',',@allowed)."\n";
 
 
 $im1 = ushort pdl [[[0,0,0],[256,65535,256],[0,0,0]],
@@ -100,7 +102,7 @@ if ($PDL::debug){
 $n = 1;
 $usherr = 0;
 foreach $form (sort @allowed) {
-    print " ** testing $form format **\n";
+    print "# ** testing $form format **\n";
 
     $arr = $formats{$form};
     eval '$im1->wpic("tushort.$arr->[0]",{IFORM => $iform});';
@@ -111,7 +113,7 @@ foreach $form (sort @allowed) {
     $in2 = rpic_unlink("tbyte.$arr->[0]");
 
     $comp = $im1 / PDL::ushort(mmax(depends_on($form),$arr->[1]));
-    print "Comparison arr: $comp" if $PDL::debug;
+    print "# Comparison arr: $comp" if $PDL::debug;
     ok($n++,$usherr || tapprox($comp,$in1,$arr->[3]) || tifftest($form));
     ok($n++,tapprox($im2,$in2) || tifftest($form));
 
