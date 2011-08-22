@@ -26,7 +26,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   Each item has some task description based on the
   current status.
 
-   Update task list after PDL-2.4.x release.
+  Update task list after PDL-2.4.x release.
 
   
 
@@ -154,6 +154,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Add support for Known_problems to tests
+   * Use skip for tests with segfault fails
    * All bug reports should have a test in PDL/t
    * Convert t/dumper.t to use TODO block
 
@@ -303,11 +304,12 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
    
    Improve PDL usability for first time users
-   * Work out of the box via cpan shell
+   * Work out-of-the-box via cpan shell
      * Fully automatic
      * Semi-manual
    * Easy install via 1-click or package managers 
    * PAR for distribution
+   * Should be able to upgrade PDL ppd install on win32
 
      A simple cpan or platform package install should
      work out of the box.  Maybe not all dependencies
@@ -442,11 +444,13 @@ T  Clean up build output from make process to reduce cruft
    * Add other constants of interest
      * Units
      * Complex i,j
+     * Inf
      * To import or not to import
    
 
    PDL::Matlab helper module
    * Implement key set of basic Matlab functions
+   * MATLAB "expand" to PDL syntax?
    * Document PDL equivalents
    * Add who/whos refs or links to pdl2 'help vars'
 

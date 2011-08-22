@@ -87,10 +87,8 @@ The following issues have been reported with this version of PDL:
   PDL-2.4.9_008 release:
 
   3394327    PDL::IO::FITS::wfits corrupting FITS image
-  3392972    t/pthreadBarf.t test fails
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
-  3377113    failure to find PDL typemap
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl

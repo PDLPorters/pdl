@@ -26,6 +26,11 @@ General Notes:
 
 Highlights:
 
+ * Enabled more pnmtoxxx converters for t/pnm.t and t/picrgb.t.
+   The idea is to revisit any issues with the NetPBM installs
+   as the previous problems might be better handled by better
+   configuration and tests.
+
  * TBD
 
 
