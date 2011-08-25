@@ -37,7 +37,10 @@ $PDL::debug = 1 if defined($ARGV[0]) && $ARGV[0] =~ /-v/;
 	     ['GIF', 'gif',256, 0, 0.01],
 	     ['TIFF','tif',  1, 0, 0.01],);
 
-$ntests = 2 * 3 * @formats ;
+## GIF doesn't handle 16-bit so it has 2 * 2 tests
+## while the other formats have 2 * 3 tests each
+## $ntests = 2 * 3 * @formats ;
+$ntests = 16;
 print("1..$ntests\n");
 
 $im1 = pdl([[0,65535,0], [256,256,256], [65535,256,65535]])->ushort;
