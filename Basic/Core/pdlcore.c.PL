@@ -550,35 +550,38 @@ void* pdl_malloc ( STRLEN nbytes ) {
 
 static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 {
-    SV * sv;
-
-    // If we're in a worker thread, we queue the barf/warn for later,
-    // and exit the thread ...
+    /* If we're in a worker thread, we queue the
+     * barf/warn for later, and exit the thread ...
+     */
     if( pdl_pthread_barf_or_warn(pat, iswarn, args) )
         return;
 
-    // ... otherwise we fall through and barf by calling the perl-level
-    // PDL::barf() or PDL::cluck()
+    /* ... otherwise we fall through and barf by calling
+     * the perl-level PDL::barf() or PDL::cluck()
+     */
 
     { /* scope block for C89 compatibility */
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
 
-    sv = sv_2mortal(newSV(0));
-    sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
-    va_end(*args);
+        SV * sv;
 
-    XPUSHs(sv);
+        dSP;
+        ENTER;
+        SAVETMPS;
+        PUSHMARK(SP);
 
-    PUTBACK;
+        sv = sv_2mortal(newSV(0));
+        sv_vsetpvfn(sv, pat, strlen(pat), args, Null(SV**), 0, Null(bool*));
+        va_end(*args);
 
-    if(iswarn) call_pv("PDL::cluck", G_DISCARD);
-    else       call_pv("PDL::barf",  G_DISCARD);
+        XPUSHs(sv);
 
-    FREETMPS;
-    LEAVE;
+        PUTBACK;
+
+        if(iswarn) call_pv("PDL::cluck", G_DISCARD);
+        else       call_pv("PDL::barf",  G_DISCARD);
+
+        FREETMPS;
+        LEAVE;
     } /* end C89 compatibility scope block */
 }
 
@@ -924,15 +927,16 @@ long pdl_kludge_copy_$type(long poff,
     int pdlsiz;
     int oob = (ndims-1-level < 0);
 
-    // Do bounds checking on the source dimension -- if we wander off the end, we
-    // are doing permissive-slicing kind of stuff; if we wander off the beginning, we
-    // are doing dimensional padding.  In either case, we just iterate once.
+    /* Do bounds checking on the source dimension -- if we wander off the end, we
+     * are doing permissive-slicing kind of stuff; if we wander off the beginning, we
+     * are doing dimensional padding.  In either case, we just iterate once.
+     */
     if(pdldim < 0 || pdldim >= pdl->ndims) {
       pdldim = (pdldim < 0) ? (0) : (pdl->ndims - 1);
       pdlsiz = 1;
     } else {
       pdlsiz = pdl->dims[pdldim];
-      if(pdlsiz==0 && (pptr != 0)) {  // size of zero but a non-null data pointer -- probably an error.
+      if(pdlsiz==0 && (pptr != 0)) {  /* size of zero but a non-null data pointer -- probably an error. */
 	int ii;
 	fprintf(stderr,"pdl_kludge_copy level=%d; ndims=%d; dims=(");
 	for(ii=0;ii<pdl->ndims;ii++)
@@ -967,17 +971,18 @@ long pdl_kludge_copy_$type(long poff,
 	printf("*** kludge Skipping assignment (null pointer in source)\\n");
       }
 #endif
-	   // copy data (unless the source pointer is null)
+	   /* copy data (unless the source pointer is null) */
       i=0;
       if(pptr && pdlsiz) {
 	for(; i<pdlsiz; i++)
 	  pdata[i] = (PDL_$type) ((${ctype} *)pptr)[i];
       } else {
-	// special case for NULL input piddles -- set the current value to the padding
-	// value.
+	/* special case for NULL input piddles
+         * set the current value to the padding value.
+         */
 	pdata[i] = undefval;
       }
-	// pad out, in the innermost dimension
+	/* pad out, in the innermost dimension */
 #ifdef DEBUG_KLUDGE_COPY
       printf("padding; ndims-1-level=%d; ndims=%d, level=%d; plevel=%d; pdl->ndims=%d; poff=%d; oob=%d\\n", ndims-1-level,ndims, level, plevel, pdl->ndims, poff, oob);
 #endif
@@ -1008,7 +1013,7 @@ long pdl_kludge_copy_$type(long poff,
     return undef_count;
   }
 
-  // If we're here we're not at the bottom level yet...
+  /* If we're here we're not at the bottom level yet... */
 #ifdef DEBUG_KLUDGE_COPY
   printf("Entering PKC recursion loop.  imax is %d (plevel=%d; pdl->dims[%d-1-%d] = %d)\\n",
 	 (   (plevel >= 0)   ?   (pdl->dims[ pdl->ndims - 1 - level ])   :   1    ),
@@ -1052,7 +1057,7 @@ long pdl_kludge_copy_$type(long poff,
 #ifdef DEBUG_KLUDGE_COPY
     printf("(level=%d, back from recursion)\\n",level);
 #endif
-  } // end of kludge_copy recursion loop
+  } /* end of kludge_copy recursion loop */
 
   /* pad tree to zero if there are not enough elements... */
 #ifdef DEBUG_KLUDGE_COPY
@@ -1086,7 +1091,7 @@ long pdl_kludge_copy_$type(long poff,
 	  pdata[cursor] = undefval;
       }
 
-  } // end of padding IF statement
+  } /* end of padding IF statement */
 
   return undef_count;
 }
@@ -1151,7 +1156,7 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
   }
 #endif
 
-  for (i=0;i<=len;i++,pdata += stride) { // note len is actually the highest index in the array
+  for (i=0;i<=len;i++,pdata += stride) { /* note len is actually the highest index in the array */
 
     int foo;
 
@@ -1195,15 +1200,17 @@ long pdl_setav_$type(PDL_$type* pdata, AV* av,
 	printf("source pdl has %d vals...\\n",pdl->nvals);
 #endif
 
-	//	if(pdl->nvals==0) { /* Ignore null PDLs */
-	//
-	//#ifdef DEBUG_SETAV_TYPE
-	//	  printf("Found a null PDL - ignoring\\n");
-	//#endif
-	//
-	//	  pdata -= stride;
-	//
-	//	} else
+#if 0
+           // if(pdl->nvals==0) { /* Ignore null PDLs */
+           //
+           //#ifdef DEBUG_SETAV_TYPE
+           //	  printf("Found a null PDL - ignoring\\n");
+           //#endif
+           //
+           //	  pdata -= stride;
+           //
+           //	} else
+#endif
 	  {                     /* PDLs must be recursively copied/padded */
 
 #ifdef DEBUG_SETAV_TYPE
