@@ -550,9 +550,6 @@ void* pdl_malloc ( STRLEN nbytes ) {
 
 static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 {
-#ifdef _MSC_VER
-    dSP;
-#endif
     SV * sv;
 
     // If we're in a worker thread, we queue the barf/warn for later,
@@ -563,9 +560,8 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
     // ... otherwise we fall through and barf by calling the perl-level
     // PDL::barf() or PDL::cluck()
 
-#ifndef _MSC_VER
+    { /* scope block for C89 compatibility */
     dSP;
-#endif
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
@@ -583,6 +579,7 @@ static void pdl_barf_or_warn(const char* pat, int iswarn, va_list* args)
 
     FREETMPS;
     LEAVE;
+    } /* end C89 compatibility scope block */
 }
 
 #define GEN_PDL_BARF_OR_WARN_I_STDARG(type, iswarn)     \
