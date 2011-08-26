@@ -2118,6 +2118,8 @@ EODEF
 #	  Pars => 'xmin(); xmax(); ymin(); ymax(); int just(); int axis();',
 #	  GenericTypes => [D],
 #	  Code => 'c_plenv($xmin(),$xmax(),$ymin(),$ymax(),$just(),$axis());',
+#	  NoPthread => 1,
+#	  
 #
 # In 'get' routines, (prefix = plg) all parameters have [o] added before, ie:
 #
@@ -2128,6 +2130,7 @@ EODEF
 #	  Pars => 'int [o]p_level;',
 #	  GenericTypes => [D],
 #	  Code => 'c_plglevel($P(p_level));',
+#	  NoPthread => 1,
 #
 sub create_low_level {
 
@@ -2257,6 +2260,7 @@ EOC
              Pars => \'$pars\',
              OtherPars => \'$otherpars\',
              Code => \'$code\'
+             NoPthread => 1,
             );
 
             " if ($debug);
@@ -2265,7 +2269,9 @@ EOC
  	      GenericTypes => [D],
               Pars => $pars,
               OtherPars => $otherpars,
-              Code => $code);
+              Code => $code
+              NoPthread => 1,
+              );
     }
 
   }
@@ -2517,6 +2523,7 @@ pp_def ('plline',
          Pars => 'x(n); y(n)',
          GenericTypes => [D],
          HandleBad => 1,
+         NoPthread => 1,
          NoBadifNaN => 1,
          Code => 'c_plline($SIZE(n),$P(x),$P(y));',
          BadCode => 'int i;
@@ -2572,6 +2579,7 @@ pp_def ('plcolorpoints',
          Pars => 'x(n); y(n); z(n); int sym(); minz(); maxz()',
          GenericTypes => [D],
          HandleBad => 1,
+         NoPthread => 1,
          Code => 'int i;
                   int j;
                   int ns = $SIZE(n);
@@ -2612,6 +2620,7 @@ pp_def ('plsmem',
 	     GenericTypes => [B],
              Pars => 'int maxx();int maxy();image(3,x,y)',
              Code => 'c_plsmem($maxx(),$maxy(),$P(image));'
+             NoPthread => 1,
             ) if $opt{plsmem};
 
 #
@@ -2621,6 +2630,7 @@ pp_def ('plsmem',
 pp_def ('plfbox',
          Pars => 'xo(); yo()',
          GenericTypes => [D],
+         NoPthread => 1,
          Code => 'PLFLT x[4], y[4];
                   x[0] = $xo() - 0.5;
                   y[0] = 0.;
@@ -2639,6 +2649,7 @@ pp_def ('plfbox',
 pp_def ('plunfbox',
          Pars => 'xo(); yo()',
          GenericTypes => [D],
+         NoPthread => 1,
          Code => 'PLFLT x[4], y[4];
                   x[0] = $xo() - 0.5;
                   y[0] = 0.;
@@ -2659,6 +2670,7 @@ pp_def ('plParseOpts',
         GenericTypes => [D],
         Pars => 'int [o] retval()',
         OtherPars => 'SV* argv; int mode',
+        NoPthread => 1,
         Doc => 'FIXME: documentation here!',
         Code => '
                 SV* sv = $COMP (argv);
@@ -2697,6 +2709,7 @@ pp_def ('plParseOpts',
 
 pp_def ('plpoin',
          Pars => 'x(n); y(n); int code()',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plpoin($SIZE(n),$P(x),$P(y),$code());'
         );
@@ -2705,6 +2718,7 @@ pp_def ('plpoin',
 
 pp_def ('plpoin3',
          Pars => 'x(n); y(n); z(n); int code()',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plpoin3($SIZE(n),$P(x),$P(y),$P(z),$code());'
         );
@@ -2713,6 +2727,7 @@ pp_def ('plpoin3',
 
 pp_def ('plline3',
          Pars => 'x(n); y(n); z(n)',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plline3($SIZE(n),$P(x),$P(y),$P(z));'
         );
@@ -2721,6 +2736,7 @@ pp_def ('plline3',
 
 pp_def ('plpoly3',
          Pars => 'x(n); y(n); z(n); int draw(m); int ifcc()',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plpoly3($SIZE(n),$P(x),$P(y),$P(z),$P(draw),$ifcc());'
         );
@@ -2729,6 +2745,7 @@ pp_def ('plpoly3',
 
 pp_def ('plhist',
          Pars => 'data(n); datmin(); datmax(); int nbin(); int oldwin()',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plhist($SIZE(n),$P(data),$datmin(),$datmax(),$nbin(),$oldwin());'
         );
@@ -2737,6 +2754,7 @@ pp_def ('plhist',
 
 pp_def ('plfill',
          Pars => 'x(n); y(n)',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plfill($SIZE(n),$P(x),$P(y));'
         );
@@ -2745,6 +2763,7 @@ pp_def ('plfill',
 
 pp_def ('plsym',
          Pars => 'x(n); y(n); int code()',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plsym($SIZE(n),$P(x),$P(y),$code());'
         );
@@ -2754,6 +2773,7 @@ pp_def ('plsym',
 pp_def ('plsurf3d',
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel);',
          GenericTypes => [D],
+         NoPthread => 1,
          Code => '
            int i, j, size_x, size_y;
            PLFLT** zz;
@@ -2773,6 +2793,7 @@ pp_def ('plsurf3d',
 
 pp_def ('plstyl',
          Pars => 'int mark(nms); int space(nms)',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => 'c_plstyl ($SIZE(nms), $P(mark), $P(space));'
        );
@@ -2783,11 +2804,13 @@ pp_def ('plstyl',
 if ($opt{have_random}) {
   pp_def ('plseed',
           Pars => 'int seed()',
+         NoPthread => 1,
           Code => 'unsigned int useed = (unsigned int)$seed(); c_plseed(useed);'
         );
 
   pp_def ('plrandd',
           Pars => 'double [o]rand()',
+         NoPthread => 1,
           Code => '$rand() = c_plrandd();'
         );
 }
@@ -2826,6 +2849,7 @@ EOC
 pp_def ('plAllocGrid',
         Pars => 'double xg(nx); double yg(ny); int [o] grid()',
         GenericTypes => [D],
+         NoPthread => 1,
         Doc => 'FIXME: documentation here!',
         Code => '
           PLcGrid *grid;
@@ -2874,6 +2898,7 @@ pp_add_exported (plFreeGrid);
 pp_def ('plAlloc2dGrid',
         Pars => 'double xg(nx,ny); double yg(nx,ny); int [o] grid()',
         GenericTypes => [D],
+         NoPthread => 1,
         Doc => 'FIXME: documentation here!',
         Code => '
           PLcGrid2 *grid;
@@ -3081,6 +3106,7 @@ EOH
 pp_def ('init_pltr',
          GenericTypes => [D],
          Pars => '',
+         NoPthread => 1,
          OtherPars => 'SV* p0; SV* p1; SV* p2;',
          Doc => 'FIXME: documentation here!',
          Code => '
@@ -3097,6 +3123,7 @@ EOPM
 pp_def ('plmap',
         Pars => 'minlong(); maxlong(); minlat(); maxlat();',
 	OtherPars => 'SV* mapform; char* type;',
+         NoPthread => 1,
         GenericTypes => [D],
         Code => '
            mapform_subroutine = $COMP(mapform);
@@ -3112,6 +3139,7 @@ pp_def ('plmap',
 pp_def ('plmeridians',
         Pars => 'dlong(); dlat(); minlong(); maxlong(); minlat(); maxlat();',
 	OtherPars => 'SV* mapform;',
+         NoPthread => 1,
         GenericTypes => [D],
         Code => '
            mapform_subroutine = $COMP(mapform);
@@ -3129,6 +3157,7 @@ pp_def ('plshades',
                   clevel(l); int fill_width(); int cont_color();
                   int cont_width(); int rectangular()',
          OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
+         NoPthread => 1,
          GenericTypes => [D],
          Code => '
            int nx    = $SIZE(x);
@@ -3173,6 +3202,7 @@ pp_def ('plcont',
          Pars => 'f(nx,ny); int kx(); int lx(); int ky(); int ly(); '
                  . 'clevel(nlevel)',
          OtherPars => 'SV* pltr; SV* pltr_data;',
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3212,6 +3242,7 @@ pp_def ('plcont',
 pp_def ('plmesh',
          Pars => 'x(nx); y(ny); z(nx,ny); int opt()',
          GenericTypes => [D],
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3236,6 +3267,7 @@ pp_def ('plmesh',
 pp_def ('plmeshc',
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
          GenericTypes => [D],
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3261,6 +3293,7 @@ pp_def ('plmeshc',
 pp_def ('plot3d',
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); int side()',
          GenericTypes => [D],
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3286,6 +3319,7 @@ pp_def ('plot3d',
 pp_def ('plot3dc',
          Pars => 'x(nx); y(ny); z(nx,ny); int opt(); clevel(nlevel)',
          GenericTypes => [D],
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            int i, j, size_x, size_y;
@@ -3313,6 +3347,7 @@ pp_def ('plscmap1l',
          Pars => 'int itype(); isty(n); coord1(n); coord2(n); coord3(n);'
 	         . ' int rev(nrev)',
          GenericTypes => [D],
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
 	   PLINT* rev;
@@ -3336,6 +3371,7 @@ pp_def ('plshade1',
                  . 'shade_max(); sh_cmap(); sh_color(); sh_width();'
                  . 'min_color(); min_width(); max_color(); max_width();'
                  . 'rectangular()',
+         NoPthread => 1,
          OtherPars => 'SV* defined; SV* pltr; SV* pltr_data;',
          Doc => 'FIXME: documentation here!',
          Code => '
@@ -3383,6 +3419,7 @@ pp_def ('plimage',
          GenericTypes => [D],
          Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
 	         . 'zmin(); zmax(); Dxmin(); Dxmax(); Dymin(); Dymax();',
+         NoPthread => 1,
          Code => '
            int i, j, size_x, size_y;
            PLFLT** idata;
@@ -3415,6 +3452,7 @@ if ( $opt{c_plimagefr} ) {
           Pars => 'idata(nx,ny); xmin(); xmax(); ymin(); ymax();'
           . 'zmin(); zmax(); valuemin(); valuemax();', # here!!!
           OtherPars => 'SV* pltr; SV* pltr_data;',
+         NoPthread => 1,
           Code => '
            int i, j, size_x, size_y;
            PLFLT** idata;
@@ -3689,6 +3727,7 @@ pp_def ('plstripc',
                  . 'int colline(n); int styline(n);  int [o] id()',
          OtherPars => 'char* xspec; char* yspec; SV* legline;'
                       . 'char* labx; char* laby; char* labtop',
+         NoPthread => 1,
          Doc => 'FIXME: documentation here!',
          Code => '
            I32 i;
@@ -3729,6 +3768,7 @@ pp_def ('plgriddata',
          Pars => 'x(npts); y(npts); z(npts); xg(nptsx); yg(nptsy);'
 	         . 'int type(); data(); [o] zg(nptsx,nptsy)',
          Doc => 'FIXME: documentation here!',
+         NoPthread => 1,
          Code => '
            int i, j, size_x, size_y;
            PLFLT** zg;
@@ -3760,6 +3800,7 @@ if ($opt{have_vect} ) {
 	  GenericTypes => [D],
 	  Pars => 'u(nx,ny); v(nx,ny); scale();',
 	  OtherPars => 'SV* pltr; SV* pltr_data;',
+         NoPthread => 1,
 	  Doc => 'FIXME: documentation here!',
 	  Code => '
            int i, j, size_x, size_y;
@@ -3799,36 +3840,42 @@ if ($opt{have_vect} ) {
   pp_def ('plsvect',
 	  Pars => 'arrowx(npts); arrowy(npts); int fill()',
 	  GenericTypes => [D],
+      NoPthread => 1,
 	  Code => 'c_plsvect ($P(arrowx), $P(arrowy), $SIZE(npts), $fill());'
 	 );
 
   pp_def ('plhlsrgb',
 	  GenericTypes => [D],
 	  Pars => 'double h();double l();double s();double [o]p_r();double [o]p_g();double [o]p_b()',
+      NoPthread => 1,
 	  Code => 'c_plhlsrgb($h(),$l(),$s(),$P(p_r),$P(p_g),$P(p_b));'
 	 );
 
   # void c_plgcol0(PLINT icol0, PLINT *r, PLINT *g, PLINT *b);
   pp_def ('plgcol0',
 	  Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b()',
+      NoPthread => 1,
 	  Code => 'c_plgcol0($icolzero(),$P(r),$P(g),$P(b));'
 	 );
 
   # void c_plgcolbg(PLINT *r, PLINT *g, PLINT *b);
   pp_def ('plgcolbg',
 	  Pars => 'int [o]r(); int [o]g(); int [o]b()',
+      NoPthread => 1,
 	  Code => 'c_plgcolbg($P(r),$P(g),$P(b));'
 	 );
 
   # void c_plscmap0(PLINT *r, PLINT *g, PLINT *b, PLINT ncol0);
   pp_def ('plscmap0',
 	  Pars => 'int r(n); int g(n); int b(n)',
+      NoPthread => 1,
 	  Code => 'c_plscmap0($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
 
   # void c_plscmap1(PLINT *r, PLINT *g, PLINT *b, PLINT ncol1);
   pp_def ('plscmap1',
 	  Pars => 'int r(n); int g(n); int b(n)',
+      NoPthread => 1,
 	  Code => 'c_plscmap1($P(r),$P(g),$P(b), $SIZE(n));'
 	 );
 
@@ -3837,24 +3884,28 @@ if ($opt{have_vect} ) {
     # void c_plgcol0a(PLINT icol0, PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcol0a',
 	    Pars => 'int icolzero(); int [o]r(); int [o]g(); int [o]b(); double [o]a()',
+        NoPthread => 1,
 	    Code => 'c_plgcol0a($icolzero(),$P(r),$P(g),$P(b),$P(a));'
 	   );
 
     # void c_plgcolbga(PLINT *r, PLINT *g, PLINT *b, PLFLT *a);
     pp_def ('plgcolbga',
 	    Pars => 'int [o]r(); int [o]g(); int [o]b(); double [o]a()',
+        NoPthread => 1,
 	    Code => 'c_plgcolbga($P(r),$P(g),$P(b),$P(a));'
 	   );
 
     # void c_plscmap0a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol0);
     pp_def ('plscmap0a',
 	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
+        NoPthread => 1,
 	    Code => 'c_plscmap0a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
 	   );
 
     # void c_plscmap1a(PLINT *r, PLINT *g, PLINT *b, PLFLT *a, PLINT ncol1);
     pp_def ('plscmap1a',
 	    Pars => 'int r(n); int g(n); int b(n); double a(n)',
+        NoPthread => 1,
 	    Code => 'c_plscmap1a($P(r),$P(g),$P(b),$P(a),$SIZE(n));'
 	   );
 
@@ -3865,6 +3916,7 @@ if ($opt{have_vect} ) {
 	    . ' int rev(nrev)',
 	    GenericTypes => [D],
 	    Doc => 'FIXME: documentation here!',
+        NoPthread => 1,
 	    Code => '
 	      PLINT* rev;
 
@@ -3888,12 +3940,14 @@ if ($opt{have_vect} ) {
 
       # plgfont(PLINT *p_family, PLINT *p_style, PLINT *p_weight);
       pp_def ('plgfont',
+          NoPthread => 1,
 	      Pars => 'int [o]p_family(); int [o]p_style(); int [o]p_weight();',
 	      Code => 'c_plgfont($P(p_family),$P(p_style),$P(p_weight));'
 	     );
 
       #  plsfont (PLINT family, PLINT style, PLINT weight);
       pp_def ('plsfont',
+          NoPthread => 1,
 	      Pars => 'int family(); int style(); int weight();',
 	      Code => 'c_plsfont($family(),$style(),$weight());'
 	     );
@@ -3904,6 +3958,7 @@ if ($opt{have_vect} ) {
     #  plcalc_world (PLFLT rx, PLFLT ry, PLFLT *wx, PLFLT *wy, PLINT *window);
     pp_def ('plcalc_world',
 	    Pars => 'double rx(); double ry(); double [o]wx(); double [o]wy(); int [o]window()',
+        NoPthread => 1,
 	    Code => 'c_plcalc_world($rx(), $ry(), $P(wx), $P(wy), $P(window));'
 	   );
 
