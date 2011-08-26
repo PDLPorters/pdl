@@ -1815,7 +1815,7 @@ sub PDL::wfits {
   my ($pdl,$file,$a,$b) = @_;
   my ($opt, $BITPIX);
 
-  local $/ = undef;  # fix sf.net bug #3394327 
+  local $\ = undef;  # fix sf.net bug #3394327 
 
   if(ref $a eq 'HASH') {
       $a = $opt;
