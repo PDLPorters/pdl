@@ -87,6 +87,13 @@ The following issues have been reported with this version of PDL:
   PDL-2.4.9_008 release:
 
   3394327    PDL::IO::FITS::wfits corrupting FITS image
+
+               Should be fixed.  Please verify.
+
+  3392972    t/pthreadBarf.t test fails
+
+               Should be fixed.  Please verify.
+
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
   3363406    PDL::Minuit build can't make libminuit.a
@@ -94,6 +101,9 @@ The following issues have been reported with this version of PDL:
   3314708    PDL install does not install scantree.pl
   3307613    indexND of null pdls can segfault (duplicates #3294808)
   3303673    PLplot trouble with new PThreads
+
+               Should be fixed.  Please verify.
+
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug
   3294808    sever on empty piddle causes segfault

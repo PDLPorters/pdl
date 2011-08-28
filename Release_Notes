@@ -31,7 +31,12 @@ Highlights:
    as the previous problems might be better handled by better
    configuration and tests.
 
- * TBD
+ * Multiple sf.net bugs fixed:
+
+   - 3394327    PDL::IO::FITS::wfits corrupting FITS image
+   - 3392972    t/pthreadBarf.t test fails
+   - 3377113    failure to find PDL typemap
+   - 3303673    PLplot trouble with new PThreads
 
 
 
