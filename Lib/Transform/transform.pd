@@ -676,11 +676,11 @@ pp_def('map',
  /* 
   * Allocate all our dynamic workspaces at once...
  /* */
- ovec = (PDL_Long *)(PDL->smalloc(
-	          	        sizeof(PDL_Long)   * 3 * ndims
+ ovec = (PDL_Long *)(PDL->smalloc( (STRLEN)
+	          	      ( sizeof(PDL_Long)   * 3 * ndims
                               + sizeof(PDL_Double) * (3*ndims*ndims + 3*ndims)
                               + sizeof(PDL_Double) * in->dims[ndims] 
-                              + sizeof(char) * ndims
+                              + sizeof(char) * ndims )
 		             )
 		);
  ivec =            &(ovec[ndims]); 

@@ -286,7 +286,7 @@ struct Core {
     pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
-    void*  (*smalloc)      ( int );
+    void*  (*smalloc)      ( STRLEN );
     int    (*howbig)      ( int );
     PDL_Long*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Long* dims, int ndims );

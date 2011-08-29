@@ -52,7 +52,7 @@ make_null(sv)
          */
         pdl *it = PDL->pdlnew();
 	it->datatype = PDL_B;
-	it->data = PDL->smalloc(PDL->howbig(it->datatype));
+	it->data = PDL->smalloc((STRLEN) (PDL->howbig(it->datatype)));
         dat = newSVpv(it->data,PDL->howbig(it->datatype));
         it->data = SvPV(dat,n_a);
         it->datasv = dat;

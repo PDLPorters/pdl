@@ -933,7 +933,7 @@ listref_c(x)
   PREINIT:
    PDL_Long * inds;
    PDL_Long * incs;
-   PDL_Long * offs;
+   PDL_Long offs;
    void *data;
    int ind;
    int lind;

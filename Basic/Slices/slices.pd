@@ -819,7 +819,7 @@ switch(ind_pdl->datatype) {
 {
   PDL_Long i,j,k,ioff;
   PDL_Long *cptr;
-  PDL_Long *iter = (PDL_Long *)(PDL->smalloc(sizeof(PDL_Long) * ($COMP(itdim))));
+  PDL_Long *iter = (PDL_Long *)(PDL->smalloc((STRLEN) (sizeof(PDL_Long) * ($COMP(itdim)))));
   
   /* initialize iterator to loop over index threads */
   cptr = iter;
@@ -940,7 +940,7 @@ EOD-RedoDims
   /* Allocate iterator and larger size vector -- do it all in one foop 
    * to avoid extra calls to smalloc.
    */
-    if(!(iter = (PDL_Long *)(PDL->smalloc(sizeof(PDL_Long) * ($PARENT_P(ndims) * 2 + rdim))))) {
+    if(!(iter = (PDL_Long *)(PDL->smalloc((STRLEN) (sizeof(PDL_Long) * ($PARENT_P(ndims) * 2 + rdim)))))) {
     barf("couldn't get memory for range iterator");
   }
   sizes  = iter + $PARENT_P(ndims);

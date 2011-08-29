@@ -777,14 +777,14 @@ Code => <<'EOD'
 	koffs = skoffs;
 	kvals = skvals;
   } else {	
-	koffs = (PDL_Long *)  (PDL->smalloc(k->nvals * sizeof(PDL_Long)));
-	kvals = ($GENERIC() *)(PDL->smalloc(k->nvals * sizeof($GENERIC())));
+	koffs = (PDL_Long *)  (PDL->smalloc((STRLEN) (k->nvals * sizeof(PDL_Long))));
+	kvals = ($GENERIC() *)(PDL->smalloc((STRLEN) (k->nvals * sizeof($GENERIC()))));
   }
 
   if(ndims < 16) {
 	ivec = sivec;
   } else {
-	ivec = (PDL_Long *) (PDL->smalloc(ndims * sizeof(PDL_Long)));
+	ivec = (PDL_Long *) (PDL->smalloc((STRLEN) (ndims * sizeof(PDL_Long))));
   }
 
   if(!ivec || !koffs || !kvals) 
