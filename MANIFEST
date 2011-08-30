@@ -125,6 +125,7 @@ Basic/SourceFilter/example
 Basic/SourceFilter/local.perldlrc
 Basic/SourceFilter/Makefile.PL
 Basic/SourceFilter/NiceSlice.pm
+Basic/SourceFilter/NiceSlice2.pm
 Basic/Test/Makefile.PL
 Basic/Test/tests.pd
 Basic/Ufunc/Makefile.PL

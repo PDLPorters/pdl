@@ -17,7 +17,7 @@ BEGIN{
       warn "No PLPLOT_LIB env var set - this script will die after the first test if the font files are not found"
         if !$ENV{PLPLOT_LIB};
     }
-    plan tests => 36;
+    plan tests => 37;
     use_ok( "PDL::Graphics::PLplot" );
   }
   else {
@@ -31,21 +31,8 @@ BEGIN{
 # (correspondingly "not ok 13") depending on the success of chunk 13
 # of the test code):
 
-# Use xfig driver because it should always be installed.
-#my $dev = 'png';
-my $dev = 'xfig';
-
-# redirect STDERR to purge silly 'opened *.xfig' messages
-
-require IO::File;
-local *SAVEERR;
-*SAVEERR = *SAVEERR;  # stupid fix to shut up -w (AKA pain-in-the-...-flag)
-open(SAVEERR, ">&STDERR");
-my $tmp = new_tmpfile IO::File || die "couldn't open tmpfile";
-my $pos = $tmp->getpos;
-local *IN;
-*IN = *$tmp;  # doesn't seem to work otherwise
-open(STDERR,">&IN") or warn "couldn't redirect stderr";
+# Use svg driver because it should always be installed.
+my $dev = 'svg';
 
 my ($pl, $x, $y, $min, $max, $oldwin, $nbins);
 
@@ -75,7 +62,7 @@ unless($^O =~ /mswin/i) { # Causes problems on Windows.
   unlink $tmpfile;
 
   if($not_ok) {
-	printf SAVEERR <<"EOERR" ;
+	printf <<"EOERR" ;
 
 Return value $not_ok; a is $a; pid is $pid
 
@@ -88,7 +75,6 @@ Return value $not_ok; a is $a; pid is $pid
 
 EOERR
 
-	open(STDERR,">&SAVEERR");
   }
 }
 else { # MS Windows only
@@ -508,18 +494,43 @@ for my $i (1 .. 120) {
 }
 ok ($count == 120, "Opening/closing of > 100 streams");
 
-# comment this out for testing!!!
+SKIP: {
+  skip 'Not compiled with POSIX threads', 1 unless ($PDL::Config{WITH_POSIX_THREADS} == 1);
 
-# stop STDERR redirection and examine output
+  my $pltfile = "test28.$dev";
+  if($pid = fork()) {
+    $a = waitpid($pid,0);
+  } else {
 
-open(STDERR, ">&SAVEERR");
-$tmp->setpos($pos);  # rewind
-my $txt = join '',<IN>;
-close IN; undef $tmp;
+    # Breakage seems to be a function of the grid size. For me, 34 did the trick.
+    # You may need to fiddle with it to reproduce trouble, so it's read from the
+    # command-line.
+    my $grid_size = 34;
 
-print "\ncaptured STDERR: ('Opened ...' messages are harmless)\n$txt\n";
-$txt =~ s/Opened test\d*\.$dev\n//sg;
-warn $txt unless $txt =~ /\s*/;
+    # PThreads settings, uncomment to break:
+    set_autopthread_targ($grid_size); # large number to increase likelihood of trouble
+    set_autopthread_size(0);  # zero ensures we get threading
+
+    # Add DEV unless you want it to prompt you:
+    my $pl = PDL::Graphics::PLplot->new(DEV => $dev, FILE => $pltfile);
+
+    # Some simple sequential data
+    my $xs = sequence($grid_size);
+    my $ys = sequence($grid_size)->transpose;
+
+    # Plot data so that increasing y-values have different colors:
+    $pl->xyplot($xs, $ys, PLOTTYPE => 'POINTS', COLORMAP => $ys);
+
+    $pl->close;
+    exit(0);
+  }
+
+  # If pthreads are working wrongly, the .svg file is messed up and much larger than usual
+  ok( (-s $pltfile <= 600_000) && (($? & 0xff ) == 0), "Fails to crash with POSIX threads");
+
+};
+
+unlink glob "test*.$dev"; # comment out for debug...
 
 # Local Variables:
 # mode: cperl
