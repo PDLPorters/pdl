@@ -98,7 +98,7 @@ Revision history for Perl extension PDL::Graphics::PLPLOT
 0.56 5/06/2011   Added test suite from plplot, plus comparison results from the C tests.
                  Also added META_MERGE in Makefile.PL to try to get PAUSE/CPAN indexing working.
 
-0.57 8/30/2011   Cleaned up OPTIONS! processing from Makefile.PL to plplot.pd--now based on the approach
-                 David Mertens.  Also merged in David's 'NoPthread => 1' option to allow for
+0.57 8/30/2011   Cleaned up OPTIONS! processing for communication from Makefile.PL to plplot.pd--now based on the approach
+                 by Sisyphus.  Also merged in David Merten's 'NoPthread => 1' option to allow for
                  use of PLplot in a pthreads environment.
 
