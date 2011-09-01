@@ -17,7 +17,8 @@
  * This is only used when compiled with pthreads.
  */
 #ifdef PDL_PTHREAD
-static pthread_t pdl_main_pthreadID = 0;
+static pthread_t pdl_main_pthreadID;
+static pthread_t done_pdl_main_pthreadID_init = 0;
 
 /* deferred error messages are stored here. We can only barf/warn from the main
  *  thread, so worker threads complain here and the complaints are printed out
@@ -331,16 +332,18 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
 	 *	to tell if its a spawned pthread
 	 */
-	pdl_main_pthreadID = pthread_self();
+	pdl_main_pthreadID = pthread_self();   /* should do inside pthread_once() */
+    done_pdl_main_pthreadID_init = 1;
 	
-	
-	for(i=0; i<thread->mag_nthr; i++) {
-		tparg[i].mag = ptr;
-		tparg[i].func = func;
-		tparg[i].t = t;
-		tparg[i].no = i;
-		pthread_create(tp+i, NULL, pthread_perform, tparg+i);
-	}
+    for(i=0; i<thread->mag_nthr; i++) {
+        tparg[i].mag = ptr;
+        tparg[i].func = func;
+        tparg[i].t = t;
+        tparg[i].no = i;
+        if (pthread_create(tp+i, NULL, pthread_perform, tparg+i)) {
+            die("Unable to create pthreads!");
+        }
+    }
 	if(TVERB) printf("JOINING THREADS, ME: %d, key: %d\n",pthread_self(),
 		ptr->key);
 	for(i=0; i<thread->mag_nthr; i++) {
@@ -426,7 +429,7 @@ void pdl_add_threading_magic(pdl *it,int nthdim,int nthreads)
 int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 {
 	/* Don't do anything if we are in the main pthread */
-	if( !pdl_main_pthreadID || pthread_equal( pdl_main_pthreadID, pthread_self() ) )
+	if( !done_pdl_main_pthreadID_init || pthread_equal( pdl_main_pthreadID, pthread_self() ) )
 		return 0;
 
 	char** msgs;
