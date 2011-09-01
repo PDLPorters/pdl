@@ -192,7 +192,7 @@ $hash{'LIBS'}      = [$libs];
 $hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib ";
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
-			  'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'};
+                        'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *svg.* *.xfig temp* OPTIONS! Makefile.old'};
 
 #my $postamble = pdlpp_postamble(@::pack); # use for external module
 my $postamble = pdlpp_postamble_int(@::pack); # use for install inside PDL distro

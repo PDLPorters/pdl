@@ -3279,7 +3279,8 @@ pp_def ('plParseOpts',
                 arr = (AV*) SvRV (sv);
                 newargc = argc = av_len (arr) + 1;
                 if (argc > 0) {
-                  args = calloc (argc , sizeof (char*));
+                  New(1, args, argc, char *);
+                  if(args == NULL) croak("Failed to allocate memory in plParseOpts");
 
                   for (i = 0; i < argc; i++) {
                           STRLEN len;
@@ -3294,7 +3295,7 @@ pp_def ('plParseOpts',
                   for (i = 0; i < argc; i++)
                           dummy = av_shift (arr); /* assign to dummy to suppress compile warning */
 
-                  free (args);
+                  Safefree (args);
                 }
         ',
 );
@@ -4087,7 +4088,8 @@ pp_def ('plshade1_pp',
            size_x = $SIZE(nx);
            size_y = $SIZE(ny);
 
-           a = (PLFLT *) calloc (size_x * size_y, sizeof(PLFLT));
+           New(3, a, size_x * size_y, PLFLT);
+           if(a == NULL) croak("Failed to allocate memory in plshade1_pp");
 
            for (i = 0; i < size_x; i++)
              for (j = 0; j < size_y; j++)
@@ -4114,7 +4116,7 @@ pp_def ('plshade1_pp',
              $min_color(), $min_width(), $max_color(), $max_width(),
              plfill, $rectangular(), pltrcb, pltrdt);
 
-           free ((void *) a);'
+           Safefree (a);'
         );
 
 # Plot gray-level image
