@@ -244,7 +244,10 @@ sub compileAndRun {
   my $cc = $Config{cc};
   my $ccflags = $Config{ccflags};
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
-  system "$cc $ccflags $flags temp.c -o temp > $devnull 2>&1";
+
+  # The duplication of $flags seems to be necessary, as some systems
+  # need $flags before temp.c and some after.  D. Hunt 2/9/2011
+  system "$cc $ccflags $flags temp.c $flags -o temp > $devnull 2>&1";
   unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');
   return unless ($run);
