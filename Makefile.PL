@@ -300,7 +300,10 @@ sub make_Types_pm {
     unless -f 'Basic/Core/Types.pm.PL';
   my $usebvals = $PDL::Config{WITH_BADVAL} ? "BADVALS=1" : "";
   system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals);
-  die "error creating Basic/Core/Types.pm" unless -f 'Basic/Core/Types.pm';
+  unless ( -f 'Basic/Core/Types.pm' ) {
+     warn "system( $Config{perlpath}, 'Basic/Core/Types.pm.PL', $usebvals) was run...\n";
+     die "error creating Basic/Core/Types.pm";
+  }
 }
 
 # very simple formatter, assumes structures are *not* nested
@@ -480,7 +483,7 @@ my @podpms = map { $_.".pod", '$(INST_LIBDIR)/PDL/' . $_ .".pod"}
 	   'Pod::Parser'         => 0,         # version TBD for PDL::Doc
 	   'Pod::Select'         => 0,         # version TBD for PDL::Doc
            'Storable'            => 1.03,      # for PDL::IO::Storable
-	   'Text::Balanced'      => 0,         # for PDL::NiceSlice
+	   'Text::Balanced'      => 1.89,      # for PDL::NiceSlice
 	  );
 
 # add OpenGL version dependency for CPAN to follow

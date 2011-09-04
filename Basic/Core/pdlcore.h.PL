@@ -18,12 +18,12 @@ use vars qw( %PDL_DATATYPES );
 # version 4 has pdl_hard_copy included in the Core structure.
 # version 6 is introduced after 2.4.2, due to the experimental
 #   per-piddle bad values code (the BADVAL_PER_PDL option)
-#
 # version 7 introduced for some changes to function prototypes
 #   for pthreading (i.e. multi-threading) capabilities
+# version 8 for beginning support for >2GiB piddles
 #
 use vars qw( $pdl_core_version );
-$pdl_core_version = 7;
+$pdl_core_version = 8;
 
 # List explicitly here the variables you want Configure to
 # generate.  Metaconfig only looks for shell variables, so you
@@ -109,17 +109,13 @@ static const union {unsigned char c[4]; float f;}
 static const union {unsigned char c[8]; double d;}
    union_nan_double = {{0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f}};
 
-/* Use our own barf (which is a wrapper for croak),
- *  so that we defer barf handling until after multi-threaded (i.e pthreading)
- *  processing is finished. 
+/*  Use our own barf and our own warn.
+ *  We defer barf (and warn) handling until after multi-threaded (i.e pthreading)
+ *  processing is finished.
  *  This is needed because segfaults happen when perl's croak is called
  *  during one of the spawned pthreads for PDL processing.
  */
-
 #define barf PDL->pdl_barf
-
-/* Similarly for warn, we use our own pdl_warn to defer warning messages while
-   pthreading */
 #undef warn
 #define warn PDL->pdl_warn
 
@@ -138,7 +134,7 @@ SV*     pdl_copy( pdl* a, char* option );     /* call copy method */
 PDL_Long *    pdl_packdims ( SV* sv, int*ndims ); /* Pack dims[] into SV aref */
 void    pdl_unpackdims ( SV* sv, PDL_Long *dims,  /* Unpack */
                          int ndims );
-void*   pdl_malloc ( int nbytes );           /* malloc memory - auto free()*/
+void*   pdl_malloc ( STRLEN nbytes );           /* malloc memory - auto free()*/
 
 void pdl_makescratchhash(pdl *ret,double data, int datatype);
 PDL_Long pdl_safe_indterm(PDL_Long dsz, PDL_Long at, char *file, int lineno);
@@ -205,7 +201,7 @@ int pdl_iterthreadloop(pdl_thread *thread,int which);
 void pdl_freethreadloop(pdl_thread *thread);
 void pdl_thread_create_parameter(pdl_thread *thread,int j,int *dims,
 				 int temp);
-void pdl_croak_param(pdl_errorinfo *info,int j, char *pat, ...);
+void pdl_croak_param(pdl_errorinfo *info,int paramIndex, char *pat, ...);
 
 void pdl_setdims_careful(pdl *pdl);
 void pdl_put_offs(pdl *pdl,PDL_Long offs, double val);
@@ -290,7 +286,7 @@ struct Core {
     pdl*   (*hard_copy)   ( pdl* );
     void   (*converttype) ( pdl**, int, Logical );
     void** (*twod)        ( pdl* );
-    void*  (*smalloc)      ( int );
+    void*  (*smalloc)      ( STRLEN );
     int    (*howbig)      ( int );
     PDL_Long*   (*packdims)    ( SV* sv, int *ndims ); /* Pack dims[] into SV aref */
     void   (*setdims)     ( pdl* it, PDL_Long* dims, int ndims );
@@ -340,8 +336,7 @@ void (*trans_mallocfreeproc)(struct pdl_trans *tr);
 
 void (*make_physical)(pdl *it);
 void (*make_physdims)(pdl *it);
-void (*pdl_barf) (const char* pat,...); /* Not plain 'barf' as this
-                                  is a macro - KGB */
+void (*pdl_barf) (const char* pat,...);
 void (*pdl_warn) (const char* pat,...);
 
 void (*make_physvaffine)(pdl *it);

@@ -538,7 +538,7 @@ sub dosubst_private {
 		((ref $src) ? %{$src->[1]} : ()),
 		PRIV => sub {return "".$symtab->get_symname('_PDL_ThisTrans').
 			       "->$_[0]"},
-		CROAK => sub {return "barf(\"Error in $name:\" $_[0])"},
+		CROAK => sub {return "PDL->pdl_barf(\"Error in $name:\" $_[0])"},
 		NAME => sub {return $name},
 		MODULE => sub {return $::PDLMOD},
 
@@ -928,11 +928,6 @@ static Core* PDL; /* Structure hold core C functions */
 static int __pdl_debugging = 0;
 static int __pdl_boundscheck = 0;
 static SV* CoreSV;       /* Gets pointer to perl var holding core structure */
-
-/* we need to handle croak ourserlves */
-/* #undef croak
-   #define croak barf
- */
 
 #if ! $PP::boundscheck
 # define PP_INDTERM(max, at) at

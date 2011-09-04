@@ -3,7 +3,9 @@
 use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
+use Data::Dumper;
 
+# comment this block out for PDL internal version
 #eval {
 #  require PDL::Core::Dev;  # needed for stand-alone version of package.
 #                           # Need to comment out
@@ -12,8 +14,10 @@ use File::Spec;
 #  PDL::Core::Dev->import;
 #};
 #my $pdl_installed = ($@) ? 0 : 1; # make always == 1 for install from PDL distro.
-my $pdl_installed = 1;
-#print "PDL ", ($pdl_installed ? '' : 'not'), " installed\n";
+#print "PDL ", ($pdl_installed ? 'is' : 'is not'), " installed\n";
+# end comment this block out for PDL internal version
+
+my $pdl_installed = 1; # uncomment for PDL-internal version
 
 if (!$pdl_installed) {
   # write dummy makefile if PDL not installed
@@ -24,14 +28,12 @@ if (!$pdl_installed) {
   exit;
 }
 
-use vars qw /$plplotvers/; # version of plplot used
-
 #
 ## Search for plplot library and include file
 #
 print "\nChecking PDL::Graphics::PLplot...\n";
 
-unlink ("OPTIONS!"); # remove file uses to communicate with plplot.pd
+unlink ("OPTIONS!"); # remove file used to communicate with plplot.pd
 
 # on OS-X the library is called libplplotd.dylib, so we
 # use $Config{"so"} to get the extension name
@@ -47,18 +49,10 @@ unless ($PDL::Config{WITH_BADVAL}) {
   return if (caller); exit;
 }
 
-my $found_plplot =
-    (defined($PDL::Config{WITH_PLPLOT}) && (!$PDL::Config{WITH_PLPLOT}))
-    ? 0 : 1;
-print "found_plplot is $found_plplot\n";
-unless ($found_plplot) {
-  buildDummy ("User requested no PLplot interface!");
-  return if (caller); exit;
-}
 
-my ($plplot_lib_path, $plplot_include_path);
 foreach my $libdir (
-		    $PDL::Config{WHERE_PLPLOT_LIBS}, #user pref overrides all
+		    $ENV{PLPLOT_LIBDIR},
+		    $PDL::Config{WHERE_PLPLOT_LIBS},
 		    '/usr/local/plplot/lib64',
                     '/usr/local/plplot/lib',
 		    '/usr/local/lib64',
@@ -70,7 +64,6 @@ foreach my $libdir (
 		    '/opt/lib',
 		    '/ops/tools/lib',
                     '/sw/lib/',    # default FINK installation
-		    split(/ /, $Config{libpth}),
 		                  # Add new library paths here!!
 		    ) {
 
@@ -93,7 +86,8 @@ unless (defined ($plplot_lib_path)) {
 }
 
 foreach my $incdir (
-		    $PDL::Config{WHERE_PLPLOT_INCLUDE}, #user pref overrides all
+		    $ENV{PLPLOT_INCDIR},
+		    $PDL::Config{WHERE_PLPLOT_INCLUDE},
                     '/usr/local/plplot/include',
                     '/usr/local/plplot/include/plplot',
 		    '/usr/local/include/plplot',
@@ -105,14 +99,13 @@ foreach my $incdir (
 		    '/ops/tools/include/plplot',
 		    '/ops/tools/include',
                     '/sw/include/plplot/',    # default FINK installation
-		    $Config{usrinc}.'/plplot',
 		                  # Add new header paths here!!
 		    ) {
 
   if (-e "$incdir/$incname") {
     $plplot_include_path = "-I$incdir";
     if ($incdir =~ m|/plplot$|) {
-      my $inc2 = $incdir;
+      $inc2 = $incdir;
       $inc2 =~ s|/plplot$||;
       $plplot_include_path .= " -I$inc2";
     }
@@ -157,55 +150,49 @@ unless (defined($libs)) {
   return if (caller); exit;
 }
 
-# Keep compatibility with older versions of PLplot by adding
-# interfaces for these functions only if they exist
-test_func_exists( 'plsmem',      'in-memory plotting', 'plsmem( 0, 0, NULL);' );
-test_func_exists( 'plsvect',     'vector plotting',    'plsvect (NULL, NULL, 0, 0);', 'have_vect' );
-test_func_exists( 'c_plgcoloa',  'alpha transparency', 'c_plgcol0a(0, 0, 0, 0, NULL);', 'have_alpha' );
-test_func_exists( 'c_plgcoloa',  'alpha transparency', 'c_plgcol0a(0, 0, 0, 0, NULL);' );
-test_func_exists( 'c_plsfont',   'set font',           'c_plsfont (0, 0, 0);', 'have_font' );
-test_func_exists( 'c_plseed',    'random numbers',     'c_plseed (0 );', 'have_random' );
-test_func_exists( 'c_plimagefr', '2d matrix',          'c_plimagefr (NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL);' );
-
-
-# Test if PLplot has 5 argument plpoly3 (5.1.1 and earlier) or 6 argument (5.2.0 and later)
-eval { compileAndRun ("$plplot_include_path $libs", 0, <<'EOC');
-#include <plplot.h>
-main () {  plpoly3 (0, NULL, NULL, NULL, NULL); }
-EOC
-};
-if ($@) {
-  print "\tplpoly3 needs 6 arguments => version 5.2.0 or later!\n";
-  open (OPT, ">>OPTIONS!");
-  print OPT "\$opt{plpoly3} = 6;\n";
-  close OPT;
-} else {
-  print "\tplpoly3 needs 5 arguments => version 5.1.1 or earlier!\n";
-  open (OPT, ">>OPTIONS!");
-  print OPT "\$opt{plpoly3} = 5;\n";
-  close OPT;
-}
+#
+## Tests for various PLplot features, present in different versions of PLplot
+#
+my %plversion = (); # Information on which PLplot functions/features available.
+$plversion{'plsmem'}      = test_func_exists('plsmem', 'in-memory plotting', 'plsmem( 0, 0, NULL);');
+$plversion{'plsvect'}     = test_func_exists('plsvect', 'vector plotting',   'plsvect (NULL, NULL, 0, 0);');
+$plversion{'c_plgcoloa'}  = test_func_exists('c_plgcoloa', 'alpha transparency', 'c_plgcol0a(0, 0, 0, 0, NULL);');
+$plversion{'c_plseed'}    = test_func_exists('c_plseed',   'random numbers',     'c_plseed (0 );');
+$plversion{'c_plsfont'}   = test_func_exists('c_plsfont',  'set font',           'c_plsfont (0, 0, 0);');
+$plversion{'c_plimagefr'} = test_func_exists('c_plimagefr','2d matrix',
+                                             'c_plimagefr (NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL);' );
+$plversion{'c_pllegend'}  = test_func_exists('c_pllegend', 'Plot legends',
+                                             'c_pllegend(NULL,NULL,0,   0,   0.0, 0.0, 0.0, 0,   0,   0,
+                                                         0,   0,   0,   NULL,0.0, 0.0, 0.0, 0.0, NULL,NULL,
+                                                         NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);');
+# Write these options to a file--used by plplot.pd during the 'make' step
+open my $fh, '>', 'OPTIONS!' or die "Cannot write to OPTIONS! file";
+print  {$fh} Dumper(\%plversion);
+close   $fh;
 
 $PDL::Config{WITH_PLPLOT} = 1;
+
 
 #
 ## new way to get writemakefile args...
 #
 @pack = (["plplot.pd",PLplot,PDL::Graphics::PLplot]);
 
-%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
-###%hash = pdlpp_stdargs(@::pack);          # use this for separate module
+#%hash = pdlpp_stdargs_int(@::pack);  # use this for module inside PDL source
+%hash = pdlpp_stdargs(@::pack);          # use this for separate module          
 
-$hash{'PREREQ_PM'} = { PDL => 0 };
+# $hash{'PREREQ_PM'} = { PDL => 0 };
 $hash{'OPTIMIZE'}  = '-g'; # If you want to debug, uncomment this.
 $hash{'VERSION_FROM'}   = 'plplot.pd';
+$hash{'META_MERGE'}   = {provides => {PDL::Graphics::PLplot => {file => 'plplot.pd', version => 0.57}}};
+
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
 # another plplot is installed in /usr/local/lib. D. Hunt 6/4/2004
-$hash{'LDDLFLAGS'} = $^O eq 'darwin' ? " -bundle -undefined dynamic_lookup -L$plplot_lib_path " : " -shared -L$plplot_lib_path -L/usr/local/lib ";
+$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib ";
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
-			  'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *.xfig temp* OPTIONS! Makefile.old'};
+                        'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *svg.* *.xfig temp* OPTIONS! Makefile.old'};
 
 #my $postamble = pdlpp_postamble(@::pack); # use for external module
 my $postamble = pdlpp_postamble_int(@::pack); # use for install inside PDL distro
@@ -240,9 +227,7 @@ EOC
 	$have_func = 1;
     }
 
-    open (OPT, ">>OPTIONS!");
-    print OPT "\$opt{'$func'} = $have_func;\n";
-    close OPT;
+    return $have_func;
 }
 
 sub compileAndRun {
@@ -259,6 +244,9 @@ sub compileAndRun {
   my $cc = $Config{cc};
   my $ccflags = $Config{ccflags};
   # print "Trying: $cc $ccflags $flags temp.c -o temp\n";
+
+  # The duplication of $flags seems to be necessary, as some systems
+  # need $flags before temp.c and some after.  D. Hunt 2/9/2011
   system "$cc $ccflags $flags temp.c $flags -o temp > $devnull 2>&1";
   unlink('./temp.c');
   die "Cannot compile test program: $code" unless (-e 'temp' or -e 'temp.exe');

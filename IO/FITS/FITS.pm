@@ -1814,6 +1814,9 @@ sub PDL::wfits {
   barf 'Usage: wfits($pdl,$file,[$BITPIX],[{options}])' if $#_<1 || $#_>3;
   my ($pdl,$file,$a,$b) = @_;
   my ($opt, $BITPIX);
+
+  local $\ = undef;  # fix sf.net bug #3394327 
+
   if(ref $a eq 'HASH') {
       $a = $opt;
       $BITPIX = $b;
@@ -2422,6 +2425,8 @@ sub _prep_table {
 	my $dims = pdl($var->dims); 
 	($t = $dims->(0)) .= 1;
 	$rpt = $dims->prod;
+
+=pod
 
 =begin WHENCOMPLEXVALUESWORK
 	

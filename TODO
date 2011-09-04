@@ -26,7 +26,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
   Each item has some task description based on the
   current status.
 
-   Update task list after PDL-2.4.x release.
+  Update task list after PDL-2.4.x release.
 
   
 
@@ -88,7 +88,6 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * niceslice.t
    * nsdatahandle.t
    * pptest.t
-   * primitive.t
    * requiredmods.t
    * round.t
    * simplex.t
@@ -97,7 +96,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    * xvals.t
 
 
-   Need to test PDL build from scratch
+   Need to test PDL build from scratch both WITH_BADVAL and without
    * Unix/Linux/BSD
    * Windows
      - cygwin
@@ -155,8 +154,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Add support for Known_problems to tests
-   * Implemented via the Test::More TODO {} block feature
-   * Ignores FAIL for tests flagged as TODO
+   * Use skip for tests with segfault fails
    * All bug reports should have a test in PDL/t
    * Convert t/dumper.t to use TODO block
 
@@ -306,11 +304,12 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 +-------------------------------------------------------+
    
    Improve PDL usability for first time users
-   * Work out of the box via cpan shell
+   * Work out-of-the-box via cpan shell
      * Fully automatic
      * Semi-manual
    * Easy install via 1-click or package managers 
    * PAR for distribution
+   * Should be able to upgrade PDL ppd install on win32
 
      A simple cpan or platform package install should
      work out of the box.  Maybe not all dependencies
@@ -370,6 +369,7 @@ T  Clean up build output from make process to reduce cruft
    * Cygwin/XP
    * Linux/unix
    * Mac OS X 
+
    
    Complete Perldl2 shell:
    * Implement remaining perldl features for pdl2
@@ -381,6 +381,8 @@ T  Clean up build output from make process to reduce cruft
    Add support for 64bit data:
    * Add safe pdl allocation option to prevent OOM death
    * Update allocation and types to support 64bit data
+   * Add info in PDL::Config for level of 64bit support
+     (e.g. STRLEN size vs ptrsize...)
    
 
    Add support for improved 2-D image display using OpenGL
@@ -419,14 +421,15 @@ T  Clean up build output from make process to reduce cruft
 
   
   NiceSlice cleanup
-  * refactor to use Module::Compile
+  * refactor to use Module::Compile / Filter::Simple
   * document nslice
   * implement a niceslice method
   * enhance nslice() to handle CODE refs
-    * use Scalar::Util::reftype
-    * check for CODE
-    * add original string to args
-    * maybe defer source filtering
+    * Done but it doesn't buy much since it only
+      works if the CODE ref is a blessed object
+      so that a UNIVERSAL::nslice method can be
+      called on it.
+    * maybe defer/lazy source filtering
     * check if valid subref args good for slicing
     * can use string eval with notrans
 
@@ -437,17 +440,19 @@ T  Clean up build output from make process to reduce cruft
 +-------------------------------------------------------+
    
    PDL::Constants
-   * Implementation based on 'use constant' pragma
    * Transition into 'use PDL;'
    * Add other constants of interest
      * Units
      * Complex i,j
+     * Inf
      * To import or not to import
    
 
    PDL::Matlab helper module
    * Implement key set of basic Matlab functions
+   * MATLAB "expand" to PDL syntax?
    * Document PDL equivalents
+   * Add who/whos refs or links to pdl2 'help vars'
 
    
    Fix external dependency processing

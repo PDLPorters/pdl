@@ -315,34 +315,6 @@ void LUsubst(const int n, double **a, int *p, double *b) {
 
 
 /*
- * Tridiag solves a tridiagonal linear system of equations. A row in the 
- * matrix is (a_i, d_i, c_i), [2, pp. 154-155]. The vector b is the 
- * constant vector, and it will contain the solution at termination.
- *
- */
-
-void Tridiag(const int n, double *a, double *d, double *c, double *b) {
-
-  int        i;            /* counter */
-  double    *x;            /* solution */
-
-  x=VectorAlloc(n);
-
-  for(i=1; i<n; i++) {
-    d[i]-=(a[i-1]/d[i-1])*c[i-1];
-    b[i]-=(a[i-1]/d[i-1])*b[i-1];
-  } /* for i */
-  x[n-1]=b[n-1]/d[n-1];
-  for(i=(n-2); i>=0; i--) 
-    x[i]=(b[i]-c[i]*b[i+1])/d[i];
-
-  for(i=0; i<n; i++)
-    b[i]=x[i];
-  VectorFree(n, x);
-} /* Tridiag */
-
-
-/*
  * GaussSeidel is an implementation of the Gauss-Seidel method, which is an
  * iterative method, [2, pp. 189-191]. The norm applied is the L1-norm.
  *

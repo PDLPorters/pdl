@@ -46,6 +46,8 @@ pm_to_blib
 blib
 *.bs
 Makefile
+MYMETA.yml
+MYMETA.json
 
 # Editor temp files
 

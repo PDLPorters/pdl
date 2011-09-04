@@ -499,21 +499,25 @@ Also, you can substitute
 for the assignment above (the zero is converted to a scalar piddle,
 with no dimensions so it can be assigned to any piddle).
 
-Related to the assignment feature is a little trap for the unwary:
-since Perl currently does not allow subroutines to return lvalues the
-following shortcut of the above is flagged as a compile time error:
+A nice feature in recent perl versions is lvalue subroutines
+(i.e., versions 5.6.x and higher including all perls currently
+supported by PDL).  That allows one to use the slicing syntax
+on both sides of the assignment:
 
  pdl> $im->slice(':,(2)') .= zeroes(5)->xvals->float
 
-instead you have to say something like
+Related to the lvalue sub assignment feature is a little trap
+for the unwary: recent perls introduced a "feature" which breaks
+PDL's use of lvalue subs for slice assignments when running under
+the perl debugger, C<perl -d>.  Under the debugger, the above
+usage gives an error like:
+C< Can't return a temporary from lvalue subroutine... >
+So you must use syntax like this:
 
  pdl> ($pdl = $im->slice(':,(2)')) .= zeroes(5)->xvals->float
 
-We hope that future versions of Perl will allow the simpler
-syntax (i.e. allow subroutines to return lvalues).
-[Note: Perl v5.6.0 does allow this, but
-it is an experimental feature. However, early reports suggest it works
-in simple situations]
+which works both with and without the debugger but is arguably
+clumsy and awkward to read.
 
 Note that there can be a problem with assignments like this when
 lvalue and rvalue pdls refer to overlapping portions of data in the
@@ -1074,13 +1078,13 @@ that has the second dimension of the "parent pdl" as its first
 dimension using the C<mv> command.
 
  # maxima of columns (as function of column number and time)
- maximum($stack->mv(0,1),($ret=null));
+ maximum($stack->mv(1,0),($ret=null));
 
 and calculating all the sums of sub-slices over the third dimension
 is now almost too easy
 
  # sums of pixels in time (assuming time is the third dim)
- sumover($stack->mv(0,2),($ret=null));
+ sumover($stack->mv(2,0),($ret=null));
 
 Finally, if you want to apply the operation to all elements (like max over
 all elements or sum over all elements) regardless of the dimensions of

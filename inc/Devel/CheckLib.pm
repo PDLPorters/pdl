@@ -6,7 +6,7 @@ Devel::CheckLib;
 use 5.00405; #postfix foreach
 use strict;
 use vars qw($VERSION @ISA @EXPORT);
-$VERSION = '0.92';
+$VERSION = '0.93';
 use Config qw(%Config);
 use Text::ParseWords 'quotewords';
 
@@ -256,7 +256,7 @@ sub assert_lib {
         }
         warn "# @sys_cmd\n" if $args{debug};
         my $rv = $args{debug} ? system(@sys_cmd) : _quiet_system(@sys_cmd);
-        push @missing, $header if $rv != 0 || ! -x $exefile; 
+        push @missing, $header if $rv != 0 || ! -x $exefile;
         _cleanup_exe($exefile);
         unlink $cfile;
     } 
@@ -309,7 +309,9 @@ sub assert_lib {
         warn "# @sys_cmd\n" if $args{debug};
         my $rv = $args{debug} ? system(@sys_cmd) : _quiet_system(@sys_cmd);
         push @missing, $lib if $rv != 0 || ! -x $exefile;
-        push @wrongresult, $lib if $rv == 0 && -x $exefile && system(File::Spec->rel2abs($exefile)) != 0; 
+        my $absexefile = File::Spec->rel2abs($exefile);
+        $absexefile = '"'.$absexefile.'"' if $absexefile =~ m/\s/;
+        push @wrongresult, $lib if $rv == 0 && -x $exefile && system($absexefile) != 0;
         _cleanup_exe($exefile);
     } 
     unlink $cfile;

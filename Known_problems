@@ -24,9 +24,9 @@ The following issues have been reported with this version of PDL:
     $piddle->slice('0:10') .= 100;           # original slice code
     ($tmp = $piddle->slice('0:10')) .= 100;  # work around perl -d "feature"
 
-  The problem is understood and it is hoped that an official
-  fix will become available.  NOTE: the work around is 100%
-  effective---but ugly.
+  The problem is understood and it appears that the error has
+  been replaced by a warning for perl-5.15.1.  NOTE: the work-
+  around is 100% effective---but ugly.
 
 
 - Multiline q'' constructs in the pdl2 shell now work correctly
@@ -75,11 +75,35 @@ The following issues have been reported with this version of PDL:
   depend on the order of the input values.
 
 
-- The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_003 release:
+- 16-bit image IO via rpic/wpic and rim/wim do not correctly
+  handle byte order issues.  The intermediate PNM data piped
+  through the converter programs is not adjusted to network
+  byte order per the NetPBM convention/standard.  This is not
+  an issue for big-endian systems or for 8-bit/chanel image
+  data.
 
-  3307613    indexND of null pdls can segfault
+
+- The following SourceForge bugs are outstanding at time of the
+  PDL-2.4.9_009 release:
+
+  3394327    PDL::IO::FITS::wfits corrupting FITS image
+
+               Should be fixed.  Please verify.
+
+  3392972    t/pthreadBarf.t test fails
+
+               Should be fixed.  Please verify.
+
+  3391645    bad printf formats in pdlapi.c and others
+  3391507    pdl2 docs not found by pdldoc
+  3363406    PDL::Minuit build can't make libminuit.a
+  3316394    'help funname' fails to show multiple function names
+  3314708    PDL install does not install scantree.pl
+  3307613    indexND of null pdls can segfault (duplicates #3294808)
   3303673    PLplot trouble with new PThreads
+
+               Should be fixed.  Please verify.
+
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug
   3294808    sever on empty piddle causes segfault

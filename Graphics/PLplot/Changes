@@ -88,3 +88,17 @@ Revision history for Perl extension PDL::Graphics::PLPLOT
 0.53  7/27/2010  Added UNFILLED_BARS option to allow the bargraph routine to plot bars that are not filled.
 
 0.54 12/15/2010  Unified PDL distro version of CPAN stand-alone PDL::Graphics::PLplot version 0.53.
+
+0.55 4/23/2011   Upgraded prior to plplot 5.9.8 release.  
+                 Added support for many functions: plgradient, plstring, plstring3, plarc, plstransform, 
+                                                   plslabelfunc, pllegend, plspal0, plspal1, plbtime, 
+                                                   plconfigtime, plctime, pltimefmt, plsesc
+                 Removed deprecated functions: plarrows, c_plhls, c_plrgb, c_plrgb1
+                 Fixed compiler warnings, did general clean-up.
+0.56 5/06/2011   Added test suite from plplot, plus comparison results from the C tests.
+                 Also added META_MERGE in Makefile.PL to try to get PAUSE/CPAN indexing working.
+
+0.57 8/30/2011   Cleaned up OPTIONS! processing for communication from Makefile.PL to plplot.pd--now based on the approach
+                 by Sisyphus.  Also merged in David Merten's 'NoPthread => 1' option to allow for
+                 use of PLplot in a pthreads environment.
+

@@ -58,8 +58,12 @@ SKIP: {
    foreach(0..$numwins-1){
       $opt->{x} = ($numwins % 10) *100;
       $opt->{y} = int($numwins / 10) *100;
-      my $win=new PDL::Graphics::OpenGL::OO($opt);
-      isa_ok($win, 'PDL::Graphics::OpenGL::OO');
+      my $win=eval 'PDL::Graphics::OpenGL::OO->new($opt)';
+      if (! defined($win) ) {
+         skip "$@", 2 if $@ =~ /display mode not possible/;
+      } else {
+         isa_ok($win, 'PDL::Graphics::OpenGL::OO');
+      }
       push @windows, $win;
    }
 }

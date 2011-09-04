@@ -149,3 +149,9 @@ CPUs crunching away on data, you will have (for most common machine architecture
 your bottleneck. For simple calculations (e.g simple additions) you can run into a performance limit at about
  4 pthreads. For more complex calculations the limit will be higher.
 
+=head1 COPYRIGHT
+
+Copyright 2011 John Cerney. You can distribute and/or
+modify this document under the same terms as the current Perl license.
+
+See: http://dev.perl.org/licenses/

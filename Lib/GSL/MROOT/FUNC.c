@@ -40,7 +40,7 @@ void DFF(int* n, double* xval, double* vector){
   SAVETMPS;
 
   ndims = 1;
-  pdims = (PDL_Long *)  PDL->smalloc( (ndims) * sizeof(*pdims) );
+  pdims = (PDL_Long *)  PDL->smalloc((STRLEN) ((ndims) * sizeof(*pdims)) );
   
   pdims[0] = (PDL_Long) ene;
 

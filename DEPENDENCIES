@@ -43,6 +43,11 @@ Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
                                           PP code inline in your scripts.
 
 
+PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
+                                          if libpthreads is detected and
+					  built against.
+
+
 PDL::IO::Dumper   Data::Dumper >= 2.121
                   Convert::UU             Convert::UU is required.
 

@@ -238,9 +238,10 @@ Write the header file corresponding to a previous writeflex call
 
     $file or "filename" is the filename used in a previous writeflex
     If $file is actually a "filename" then writeflexhdr() will be
-    called automatically.  If writeflex() was to a FILEHANDLE, you
-    will need to call writeflexhdr() yourself since the filename
-    cannot be determined (at least easily).
+    called automatically if $PDL::IO::FlexRaw::writeflexhdr is true.
+    If writeflex() was to a FILEHANDLE, you will need to call
+    writeflexhdr() yourself since the filename cannot be determined
+    (at least easily).
 
 =head2 mapflex
 
@@ -378,81 +379,83 @@ sub _read_flexhdr {
     my ($tid, @str);
     my (@ret);
  ITEM:
-    while (!eof($hfile)) {
-	my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
-        my ($have_badvalue) = undef;
-        my ($badvalue) = undef;
-      LINE:
-	while (<$hfile>) {
-           ### print STDERR "processing line '$_'\n";
-	    next LINE if /^#/;
-	    chop;
-	    tr/A-Z/a-z/;
-	    @str = split;
-TOKEN:
-            ### print STDERR "Got tokens: " . join(',',@str) . "\n";
-            my $numtokens = scalar @str;
-	    foreach my $token (@str) {
-		next LINE if $token =~ /^#/;
-		if ($mode == -2) { # type
-                   ### print STDERR "  \$mode == -2: #tokens = $numtokens, '$token'\n";
-		    if ($newfile) {
-			if ($token eq 'f77' || $token eq 'swap') {
-			    push @ret, {
-				Type => $token
-				};
-                            $numtokens--;
-			    next ITEM;
-			}
-		    }
-		    barf("Bad typename '$token' in readflex")
-			if (!exists($flextypes{$token}));
-		    $tid = $flextypes{$token};
-                    $numtokens--;
-		    $newfile = 0;
-		    $mode++;
-		} elsif ($mode == -1) { #ndims
-                   ### print STDERR "  \$mode == -1: #tokens = $numtokens, '$token'\n";
-		    barf("Not number for ndims in readflex")
-			if $token !~ /^\d*$/;
-		    barf("Bad ndims in readflex")
-			if (($ndims = $token) < 0);
-                    $numtokens--;
-		    if (++$mode == $ndims and $numtokens == 0) {
-			last LINE;
-		    }
-		} elsif ($mode < $ndims) { # get dims
-                   ### print STDERR "  # get dims: #tokens = $numtokens, '$token'\n";
-		    barf("Not number for dimension in readflex")
-			if $token !~ /^\d*$/;
-		    push(@dims,$token);
-		    if (++$mode == $ndims and --$numtokens == 0) {
-			last LINE;
-		    }
-                 } elsif ($mode == $ndims and ! $have_badvalue) {
-                    ### print STDERR "  # ! \$have_badvalue: #tokens = $numtokens, '$token'\n";
-                    if ($token =~ /^badvalue$/ ) {
-                       $have_badvalue = 1;
-                    } else {
-                       last LINE;
-                    }
-                 } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
-                    ### print STDERR "  #   \$have_badvalue: #tokens = $numtokens, '$token'\n";
-                    $badvalue = $token;
-                    last LINE;
-                 }
-	    }
-	}
-	last ITEM if $mode == -2;
-	barf("Bad format in readflex header file ($ndims, $mode)")
-	    if ($ndims < 0 || $mode != $ndims);
-	push @ret, {
-	    Type => $tid,
-	    Dims => \@dims,
-	    NDims => $ndims,
-            BadFlag => (($have_badvalue) ? 1 : 0),
-            BadValue => $badvalue,
-	    };
+ while (!eof($hfile)) {
+    my (@dims) = (); my ($ndims) = -1, ($mode) = -2;
+    my ($have_badvalue) = undef;
+    my ($badvalue) = undef;
+    LINE:
+    while (<$hfile>) {
+       ### print STDERR "processing line '$_'\n";
+       next LINE if /^#/ or /^\s*$/;
+       chop;
+       tr/A-Z/a-z/;
+       @str = split;
+       TOKEN:
+       ### print STDERR "Got tokens: " . join(',',@str) . "\n";
+       my $numtokens = scalar @str;
+       foreach my $token (@str) {
+          next LINE if $token =~ /^#/;
+          if ($mode == -2) { # type
+             ### print STDERR "  \$mode == -2: #tokens = $numtokens, '$token'\n";
+             if ($newfile) {
+                if ($token eq 'f77' || $token eq 'swap') {
+                   push @ret, {
+                      Type => $token
+                   };
+                   $numtokens--;
+                   next ITEM;
+                }
+             }
+             barf("Bad typename '$token' in readflex")
+             if (!exists($flextypes{$token}));
+             $tid = $flextypes{$token};
+             $numtokens--;
+             $newfile = 0;
+             $mode++;
+          } elsif ($mode == -1) { #ndims
+             ### print STDERR "  \$mode == -1: #tokens = $numtokens, '$token'\n";
+             barf("Not number for ndims in readflex") if $token !~ /^\d*$/;
+             $ndims = $token;
+             barf("Bad ndims in readflex") if ($ndims < 0);
+             $numtokens--;
+             $mode++;
+             if ($mode == $ndims and $numtokens == 0) {
+                last LINE;
+             }
+          } elsif ($mode < $ndims) { # get dims
+             ### print STDERR "  # get dims: #tokens = $numtokens, '$token'\n";
+             barf("Not number for dimension in readflex")
+             if $token !~ /^\d*$/;
+             push(@dims,$token);
+             $numtokens--;
+             $mode++;
+             if ($mode == $ndims and $numtokens == 0) {
+                last LINE;
+             }
+          } elsif ($mode == $ndims and ! $have_badvalue) {
+             ### print STDERR "  # ! \$have_badvalue: #tokens = $numtokens, '$token'\n";
+             if ($token =~ /^badvalue$/ ) {
+                $have_badvalue = 1;
+             } else {
+                last LINE;
+             }
+          } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
+             ### print STDERR "  #   \$have_badvalue: #tokens = $numtokens, '$token'\n";
+             $badvalue = $token;
+             last LINE;
+          }
+       }
+    }
+    last ITEM if $mode == -2;
+    barf("Bad format in readflex header file ($ndims, $mode)")
+    if ($ndims < 0 || $mode != $ndims);
+    push @ret, {
+       Type => $tid,
+       Dims => \@dims,
+    NDims => $ndims,
+    BadFlag => (($have_badvalue) ? 1 : 0),
+    BadValue => $badvalue,
+ };
     }
     return \@ret;
 }

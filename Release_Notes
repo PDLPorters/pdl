@@ -1,3 +1,260 @@
+Release Notes for PDL 2.4.9_009 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_009.tar.gz
+       cpan> make CHM/PDL-2.4.9_009.tar.gz
+       cpan> test CHM/PDL-2.4.9_009.tar.gz
+       cpan> look CHM/PDL-2.4.9_009.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
+Release Notes for PDL 2.4.9_008 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_008.tar.gz
+       cpan> make CHM/PDL-2.4.9_008.tar.gz
+       cpan> test CHM/PDL-2.4.9_008.tar.gz
+       cpan> look CHM/PDL-2.4.9_008.tar.gz
+
+
+Highlights:
+
+ * Enabled more pnmtoxxx converters for t/pnm.t and t/picrgb.t.
+   The idea is to revisit any issues with the NetPBM installs
+   as the previous problems might be better handled by better
+   configuration and tests.
+
+ * Multiple sf.net bugs fixed:
+
+   - 3394327    PDL::IO::FITS::wfits corrupting FITS image
+   - 3392972    t/pthreadBarf.t test fails
+   - 3377113    failure to find PDL typemap
+   - 3303673    PLplot trouble with new PThreads
+
+
+
+Release Notes for PDL 2.4.9_007 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_007.tar.gz
+       cpan> make CHM/PDL-2.4.9_007.tar.gz
+       cpan> test CHM/PDL-2.4.9_007.tar.gz
+       cpan> look CHM/PDL-2.4.9_007.tar.gz
+
+
+Highlights:
+
+ * Candidate fix for sf.net bug # 3394327  (thanks to
+   kxtor).  It would be great if we had a small test
+   to add to t/fits.t showing the problem with the
+   original code.
+
+ * Candidate fix for sf.net bug # 3392972 (thanks to
+   John Cerney).  It appears that some of the cleanup
+   from the PDL_Long typemap problem had a side-effect
+   with the previous barf code.
+
+ * Candidate fix for sf.net bug # 3377113 (thanks to
+   Rob/sisyphus for following up with this).  The latest
+   spin seems to fix the problem.
+ 
+ * Ported t/pthreadBarf.t to use Test::More.
+
+
+
+Release Notes for PDL 2.4.9_006 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_006.tar.gz
+       cpan> make CHM/PDL-2.4.9_006.tar.gz
+       cpan> test CHM/PDL-2.4.9_006.tar.gz
+       cpan> look CHM/PDL-2.4.9_006.tar.gz
+
+Highlights:
+
+ * Outstanding segfault for t/pthreadBarf.t test.
+ 
+ * Fix for sf.net bug #3377113 "failure to find PDL typemap"
+ 
+ * Fix C declaration issue for MSVC 6.0 builds
+ 
+ * New addition to 'demo 3dgal' by Mark Baker
+ 
+ * pdldoc now checks $PDLLIB autoloader path for docs
+ 
+ * Documentation fixes...
+
+
+Release Notes for PDL 2.4.9_005 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_005.tar.gz
+       cpan> make CHM/PDL-2.4.9_005.tar.gz
+       cpan> test CHM/PDL-2.4.9_005.tar.gz
+       cpan> look CHM/PDL-2.4.9_005.tar.gz
+
+
+Highlights:
+
+ * Fix for missing PDL_Long * typemap in Core.xs bug
+
+
+
+Release Notes for PDL 2.4.9_004 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_004.tar.gz
+       cpan> make CHM/PDL-2.4.9_004.tar.gz
+       cpan> test CHM/PDL-2.4.9_004.tar.gz
+       cpan> look CHM/PDL-2.4.9_004.tar.gz
+
+
+Highlights:
+
+ * Add 'use PDL::Constants' to default.perldl in preparation
+   for eventual inclusion for 'use PDL'.  The PDL::Constants
+   module only defines PI and E at the moment.  I would like
+   to see a few more standard ones added such as I or J for
+   the imaginary unit value.
+
+ * Set $PDL::IO::FlexRaw::writeflexhdr=1 in PDL shell.  This
+   enables writeflex() to call writeflexhdr() automatically
+   when a filename is given as the output destination.  This
+   matches the behavior of writefraw() but is different than
+   the previous behavior so only enable the new default in
+   the interactive shells (for now).
+
+
+ * Preliminary support for pdls larger than 2GiB (but still
+   with less than 2**31 *elements*) is in the PDL core.
+   It is believed that this modification should be
+   transparent.  Please test.
+
+ * New whereND() routine added to PDL::Primitive.  Like
+   where but it properly threads the mask over higher
+   data dimensions.  This was sf.net feature #3390043.
+ 
+ * pdldoc now searches for *.pdl files in your @PDLLIB
+   path for docs on PDL::AutoLoader routines.  To disable
+   the new behavior, just set the new perldl.conf option
+   PDLDOC_IGNORE_AUTOLOADER to true.  This was sf.net
+   feature #3390042.
+
+ * Documentation fixes
+
+ * SF.net bugs fixed:
+   - 3388862  tiny bug in PDL-2.4.3. May apply to 2.4.9
+   - 3375837  _read_flexhdr state machine fails
+   - 3368883  t/opengl.t fails if display type not available
+
+
 Release Notes for PDL 2.4.9_003 --------------------------
 
 General Notes:
@@ -26,7 +283,25 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * PDL now requires Text::Balanced version 1.89 or higher.
+
+   NOTE: All perls with versions 5.8.0+ have at least this
+   version of Text::Balanced in the Core module set.
+
+ * Fix wmpeg crash when ffmpeg generates an error with a
+   $SIG{PIPE}, sf.net #3307121.  Added $SIG{PIPE} fixes
+   for other PDL modules using pipes.
+ 
+ * PDL::NiceSlice being refactored to use Filter::Simple.
+ 
+ * pctover, oddpctover, pct, and oddpct now support badvalues
+   per sf.net feature request #3328001.
+
+ * Fixed t/opengl.t problem to enable support for TriD to
+   work with POGL compiled under cygwin for the w32api
+   OpenGL graphics.
+
+ * Improved diagnostic output on failure ("better barf").
 
 
 
@@ -1183,8 +1458,9 @@ General Notes:
 
  * New requirements:
    - perl version 5.8.x and higher
-   - OpenGL-0.63
    - Convert::UU
+ 
+ * PDL::Graphics::TriD now requires OpenGL-0.63
  
  * New 2-D image display routine: imag2d()
 

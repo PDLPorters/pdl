@@ -39,11 +39,8 @@ extern void      SSL_ComplexMatrixFree(const int, SSL_Complex **);
 extern void      SSL_ComplexVectorFree(const int, SSL_Complex *);
 extern void      LUfact(const int, double **, int *);
 extern void      LUsubst(const int, double **, int *, double *);
-extern void      Tridiag(const int, double *, double *, double *, double *);
-extern void      GaussSeidel(const int, double **, double *, double *, 
-			     double, int); 
-extern void      Jacobi(const int, double **, double *, double *, double, 
-			int); 
+extern void      GaussSeidel(const int, double **, double *, double *, double, int); 
+extern void      Jacobi(const int, double **, double *, double *, double, int); 
 extern double    DotProd(const int, double *, double *);
 extern void      MatrixVecProd(const int, double **, double *, double *);
 extern void      MatrixCopy(const int, double **, double **);

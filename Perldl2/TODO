@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Thu 10 Mar 2011 02:09:54 PM 
+Last saved: Mon 22 Aug 2011 09:15:00 AM 
 
 
 +-------------------------------------------------------------------+
@@ -232,7 +232,7 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   Enhance completion strategy for Perldl2: (1) sort and
   prioritze completions to remove long lists of useless
   options [see completion paper], (2) allow chained PDL method
-  completions by recognizing the output of many (all?) PDL
+  completions by recognizing that the output of many (all?) PDL
   methods is a pdl so we could do method completion again...
  
   Make Perldl2 fail/degrade gracefully if various files and
@@ -246,6 +246,21 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   When I looked at the entire call stack in the debugger, I
   got the actual line with the bad code---of course I had to
   give up the nice pdl2 environment.
+
+  Filter out error tracebacks from pdl2/perldl.  It looks like
+  these are internal to Devel::REPL and not the code being
+  executed and could be filtered out:
+
+   + eval {...}                # both pdl2 and perldl
+   + main::__ANON__            # both pdl2 and perldl
+
+   | main::process_input       # perldl
+   | main::eval_and_report     # perldl
+
+   - main::BEGIN               # pdl2
+   - Lexical::Persistence::    # pdl2
+   - Devel::REPL::             # pdl2
+   - Class::MOP::              # pdl2
 
   
 
@@ -300,3 +315,7 @@ Last saved: Thu 10 Mar 2011 02:09:54 PM
   print p alias                  yes                    yes
   
   list history                   yes                    yes
+
+  help vars (package)            yes                    yes
+
+  help vars (lexical)            no                     TBD
