@@ -1,5 +1,10 @@
 The following issues have been reported with this version of PDL:
 
+- PDL build tests sometimes hang at the t/pgplot.t with the
+  output window open.  Exiting the /xs driver server window
+  (named PGPLOT Server) allows the tests to complete.
+
+
 - The current Ctrl-C logic in the PDL shells (pdl2 and perldl)
   don't work the same with the perl's new "safe signals".  A
   workaround to the problem is to set the PERL_SIGNALS environment

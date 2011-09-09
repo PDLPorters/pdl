@@ -60,7 +60,8 @@ Installation
 ------------
 Please read the file INSTALL for information on how to
 configure and install PDL.  The Release_Notes and Known_problems
-files contain important version specific information.
+files contain important version specific information.  Be *sure*
+to read Known_problems if you have any INSTALL issues.
 
 Once you have built PDL and either installed it or done
 'make doctest', try either

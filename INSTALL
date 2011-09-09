@@ -92,7 +92,9 @@ If the make command completed successfully, try:
 
 	make test
 
-to run the regression tests. Again, if there are
+to run the regression tests.  If you have issues,
+please read Known_problems to see if they have been
+seen before.  Again, if there are
 errors, please contact the developers (via the
 pdl-porters mailing list, see Basic/Pod/FAQ.pod).
 
