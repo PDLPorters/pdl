@@ -266,16 +266,17 @@ int pdl_pthreads_enabled(void) {return 1;}
 
 static void *pthread_perform(void *vp) {
 	struct ptarg *p = (ptarg *)vp;
-	if(TVERB) printf("STARTING THREAD %d (%d)\n",p->no, pthread_self());
+	/* if(TVERB) printf("STARTING THREAD %d (%d)\n",p->no, pthread_self()); */
+	if(TVERB) printf("STARTING THREAD number %d\n",p->no);
 	pthread_setspecific(p->mag->key,(void *)&(p->no));
 	(p->func)(p->t);
-	if(TVERB) printf("ENDING THREAD %d (%d)\n",p->no, pthread_self());
+	/* if(TVERB) printf("ENDING THREAD %d (%d)\n",p->no, pthread_self());   */
+	if(TVERB) printf("ENDING THREAD number %d\n",p->no);
 	return NULL;
 }
 
 int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {
-	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it,
-					PDL_MAGIC_THREADING);
+	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) return 0;
 	*nthdim = ptr->nthdim;
 	return ptr->nthreads;
@@ -284,8 +285,7 @@ int pdl_magic_thread_nthreads(pdl *it,int *nthdim) {
 int pdl_magic_get_thread(pdl *it) { /* XXX -> only one thread can handle pdl at once */
 	pdl_magic_pthread *ptr;
 	int *p;
-	ptr = (pdl_magic_pthread *)pdl__find_magic(it,
-					PDL_MAGIC_THREADING);
+	ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) {die("Invalid pdl_magic_get_thread!");}
 	p = (int*)pthread_getspecific(ptr->key);
 	if(!p) {
@@ -303,8 +303,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 						 after it is sent to croak */
 	SV * warn_msg;	  /* Similar deferred warn message. */
 					  
-	ptr = (pdl_magic_pthread *)pdl__find_magic(it,
-					PDL_MAGIC_THREADING);
+	ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 	if(!ptr) {
 		/* Magic doesn't exist, create it
 			Probably was deleted before the transformation performed, due to
@@ -315,8 +314,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 		clearMagic = 1; /* Set flag to delete magic later */
 		
 		/* Try to get magic again */
-		ptr = (pdl_magic_pthread *)pdl__find_magic(it,
-						PDL_MAGIC_THREADING);
+		ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 						
 		if(!ptr) {die("Invalid pdl_magic_thread_cast!");}
 				
@@ -325,8 +323,8 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 	tp = malloc(sizeof(pthread_t) * thread->mag_nthr);
 	tparg = malloc(sizeof(*tparg) * thread->mag_nthr);
 	pthread_key_create(&(ptr->key),NULL);
-	if(TVERB) printf("CREATING THREADS, ME: %d, key: %d\n",pthread_self(),
-		ptr->key);
+	/* if(TVERB) printf("CREATING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
+	if(TVERB) printf("CREATING THREADS, ME: TBD, key: %d\n", ptr->key);
 		
 	/* Get the pthread ID of this main thread we are in. 
 	 *	Any barf, warn, etc calls in the spawned pthreads can use this
@@ -344,13 +342,13 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
             die("Unable to create pthreads!");
         }
     }
-	if(TVERB) printf("JOINING THREADS, ME: %d, key: %d\n",pthread_self(),
-		ptr->key);
+	/* if(TVERB) printf("JOINING THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
+	if(TVERB) printf("JOINING THREADS, ME: TBD, key: %d\n", ptr->key);
 	for(i=0; i<thread->mag_nthr; i++) {
 		pthread_join(tp[i], NULL);
 	}
-	if(TVERB) printf("FINISHED THREADS, ME: %d, key: %d\n",pthread_self(),
-		ptr->key);
+	/* if(TVERB) printf("FINISHED THREADS, ME: %d, key: %d\n",pthread_self(), ptr->key); */
+	if(TVERB) printf("FINISHED THREADS, ME: TBD, key: %d\n", ptr->key);
 	pthread_key_delete((ptr->key));
 	
 	/* Remove pthread magic if we created in this function */
@@ -386,8 +384,7 @@ void pdl_magic_thread_cast(pdl *it,void (*func)(pdl_trans *),pdl_trans *t, pdl_t
 /* Function to remove threading magic (added by pdl_add_threading_magic) */
 void pdl_rm_threading_magic(pdl *it)
 {
-	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it,
-					PDL_MAGIC_THREADING);
+	pdl_magic_pthread *ptr = (pdl_magic_pthread *)pdl__find_magic(it, PDL_MAGIC_THREADING);
 					
 	/* Don't do anything if threading magic not found */
 	if( !ptr) return;
