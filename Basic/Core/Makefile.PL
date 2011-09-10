@@ -9,7 +9,7 @@ use IO::File;
 
 # $DB::single = 1;  # uncomment to have debugger stop here
 
-my $pthread_include = $Config::Config{usrinc} . '/' . 'pthread.h';  # not good for win32
+my $pthread_include = $Config::Config{usrinc};  # not good for win32
 my $pthread_library = '-lpthread';                                  # not good for MSVC
 my $pthread_define  = ' -DPDL_PTHREAD ';
 
@@ -32,11 +32,10 @@ print "Trying to figure out POSIX threads support ...\n";
 
 if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THREADS_INC} ) {
     $pthread_include = $PDL::Config{POSIX_THREADS_INC};
-    print "..setting \$pthread_include to $pthread_include\n";
-}
-
-if ( -e $pthread_include) {
+    print "\t..setting \$pthread_include to $pthread_include\n";
+} elsif (-d $pthread_include) {
     print "\tSaw pthread.h. Fine.\n";
+    $pthread_include = "-I$pthread_include"
 } else {
     print "\tEhh. Didn't see include file 'pthread.h'.\n";
     $pthread_include = '';
@@ -127,7 +126,7 @@ WriteMakefile(
 		   'Types.pm Version.pm Core.pm Core.c Core.xs ' .
 		   'mymalloc.p badsupport.p'
 		   },
- 'INC'          => "$mallocinc",
+ 'INC'          => "$pthread_include $mallocinc",
 );
 
 # Extra targets to build
