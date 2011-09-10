@@ -18,7 +18,7 @@
  */
 #ifdef PDL_PTHREAD
 static pthread_t pdl_main_pthreadID;
-static pthread_t done_pdl_main_pthreadID_init = 0;
+static int done_pdl_main_pthreadID_init = 0;
 
 /* deferred error messages are stored here. We can only barf/warn from the main
  *  thread, so worker threads complain here and the complaints are printed out
