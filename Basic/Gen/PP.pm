@@ -272,27 +272,16 @@ sub extract_args {
     my $conditions = $self->{conditions};
 
     my @args;
-    foreach my $label (@$conditions) {
-	# copy $label so that any changes to it are not
-	# also made to the original array!
-	#
-	my $condition = $label;
-	$condition = substr($condition, 1) if substr($condition,0,1) eq "_";
-
-	# The original version of the code just pushed on
-	# $pars->{$condition} whether it existed or not. I think
-	# this would mean that the condition would be created in $pars
-	# then (and set to undef), which is probably not really
-	# wanted, although some code could rely on this. Try the
-	# following explicit approach for now. Thinking about this
-	# a bit more suggests that it is an unnescessary code
-	# change, but keep in for now.
-	#
-	if (exists $pars->{$condition}) {
-	    push @args, $pars->{$condition};
-	} else {
-	    push @args, undef;
-	}
+    foreach (@$conditions) {
+		# make a copy of each condition so that any changes to it are not
+		# also made to the original array!
+		my $condition = $_;
+		# Remove any possible underscores (which indicate optional conditions):
+		$condition =~ s/^_//;
+		
+		# Note: This will *not* create $pars->{$condition} if it did not already
+		# exist:
+		push @args, $pars->{$condition};
     }
 
     return @args;
