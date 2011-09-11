@@ -2682,14 +2682,10 @@ $PDL::PP::deftbl =
 
    PDL::PP::Rule::Returns->new("CopyName", "__copy"),
 
-   PDL::PP::Rule::Returns::Zero->new("DefaultFlow"),
-
-   # Why bother with $_[0] in the comment as it will be null/0?
-   #
-   PDL::PP::Rule->new("DefaultFlowCodeNS", "DefaultFlow",
+   PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
 		      sub { $_[0] ? 
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
-				: "/* No flow: $_[0] */"}),
+				: "/* No flow */"}),
 
 # no docs by default
 #
