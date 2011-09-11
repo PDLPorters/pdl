@@ -2674,7 +2674,7 @@ $PDL::PP::deftbl =
    # 0     - no, maybe issue a warning
    # undef - we're not compiling with bad value support
    #
-   PDL::PP::Rule->new("BadFlag", ["_HandleBad"],
+   PDL::PP::Rule->new("BadFlag", "_HandleBad",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
 
