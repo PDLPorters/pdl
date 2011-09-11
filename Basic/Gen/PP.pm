@@ -177,19 +177,19 @@ sub new {
     $self->{targets} = $targets;
 
     if ($#_ != -1) {
-	if (ref $_[-1] eq "CODE") {
-	    $self->{ref} = pop;
-	}
+        if (ref $_[-1] eq "CODE") {
+            $self->{ref} = pop;
+        }
 
-	my ($conditions,$doc) = @_;
+        my ($conditions,$doc) = @_;
 
-	if (defined $conditions) {
-	    $conditions = [$conditions] unless ref $conditions eq "ARRAY";
-	} else {
-	    $conditions = [];
-	}
-	$self->{conditions} = $conditions;
-	$self->{doc} = $doc if defined $doc;
+        if (defined $conditions) {
+            $conditions = [$conditions] unless ref $conditions eq "ARRAY";
+        } else {
+            $conditions = [];
+        }
+        $self->{conditions} = $conditions;
+        $self->{doc} = $doc if defined $doc;
     }
 
     return $self;
