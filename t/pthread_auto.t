@@ -47,7 +47,7 @@ if (PDL::Core::pthreads_enabled) {
   ok( 1, get_autopthread_actual() == 10); # should have split into 10 threads
   
   # Set target to 0 for comparison to unthreaded
-  set_autopthread_targ(10);
+  set_autopthread_targ(0);
   timethese(50,{unthreaded => '$b+= 1'});
   
   print $a->slice('0:20'),"\n";
