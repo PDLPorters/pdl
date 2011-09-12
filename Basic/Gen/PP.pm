@@ -1554,33 +1554,33 @@ sub CopyOtherPars {
 }
 
 sub mkxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr CODE:\n { $xscode XSRETURN(0);\n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 sub mkVarArgsxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr \n { $xscode \n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 
