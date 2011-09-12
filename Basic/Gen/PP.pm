@@ -2670,27 +2670,32 @@ $PDL::PP::deftbl =
    # undef - we're not compiling with bad value support
    #
    PDL::PP::Rule->new("BadFlag", "_HandleBad",
+		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
 
 
 
-   PDL::PP::Rule::Returns->new("CopyName", "__copy"),
+   PDL::PP::Rule::Returns->new("CopyName", [],
+       'Sets the CopyName key to the default: __copy', "__copy"),
 
    PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
+       'Sets the code to handle dataflow flags, if applicable',
 		      sub { $_[0] ? 
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
 				: "/* No flow */"}),
 
 # no docs by default
 #
-   PDL::PP::Rule::Returns->new("Doc", "\n=for ref\n\ninfo not available\n"),
+   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
+    "\n=for ref\n\ninfo not available\n"),
 
 # try and automate the docs
 # could be really clever and include the sig to see about
 # input/output params, for instance
 #
    PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+              'Sets the default documentation for handling of bad values',
 		      sub {
 			  return undef unless $bvalflag;
 			  my ( $bf, $name, $code ) = @_;
@@ -2727,9 +2732,13 @@ $PDL::PP::deftbl =
 # Question: where is ppdefs defined?
 # Answer: Core/Types.pm
 #
-   PDL::PP::Rule->new("GenericTypes", sub {[ppdefs]}),
+   PDL::PP::Rule->new("GenericTypes", [], 
+       'Sets GenericTypes flag to all types known to PDL::Types',
+       sub {[ppdefs]}),
 
-   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", sub {return $_[0]}),
+   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", 
+       'Sets ExtraGenericLoops to whatever was specified in FTypes',
+       sub {return $_[0]}),
    PDL::PP::Rule::Returns->new("ExtraGenericLoops", {}),
 
    PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
@@ -3214,6 +3223,7 @@ $PDL::PP::deftbl =
 		       "ParNames","ParObjs","Affine_Ok","FoofName"],
 		      \&def_vtable),
    
+   # Maybe accomplish this with an InsertName rule?
    PDL::PP::Rule->new('PMFunc', 'Name',
            'Sets PMFunc to default symbol table manipulations',
            sub {
