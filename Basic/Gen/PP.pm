@@ -1044,12 +1044,7 @@ sub pp_def {
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode});
-	if(defined($obj{PMFunc})) {
-		pp_addpm($obj{PMFunc}."\n");
-	}else{
-                pp_addpm($::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
-                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]);
-	}
+	PDL::PP::pp_addpm($obj{PMFunc}."\n");
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
@@ -2730,6 +2725,7 @@ $PDL::PP::deftbl =
 # some defaults
 #
 # Question: where is ppdefs defined?
+# Answer: Core/Types.pm
 #
    PDL::PP::Rule->new("GenericTypes", sub {[ppdefs]}),
 
@@ -3217,6 +3213,16 @@ $PDL::PP::deftbl =
 		       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
 		       "ParNames","ParObjs","Affine_Ok","FoofName"],
 		      \&def_vtable),
+   
+   PDL::PP::Rule->new('PMFunc', 'Name',
+           'Sets PMFunc to default symbol table manipulations',
+           sub {
+               my ($name) = @_;
+               $::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
+                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]
+           }
+    ),
+
 ];
 
 sub printtrans {
