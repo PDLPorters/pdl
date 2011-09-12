@@ -3,7 +3,7 @@
 #  interface, instead of specificaly setting pthread magic on individual PDLs
 
 use PDL::LiteF;
-use Benchmark;
+use Benchmark ':hireswallclock';
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
