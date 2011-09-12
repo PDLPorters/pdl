@@ -1481,7 +1481,8 @@ sub wrap_vfn {
 
 #	print "$rout\_$name: $p2child\n";
     my $p2decl = '';
-    if ( $p2child == 1 ) {
+    # Put p2child in simple boolean context rather than strict numerical equality
+    if ( $p2child ) {
 	$p2decl = 
 	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
@@ -1688,9 +1689,10 @@ EOD
 #
 # The use of 'DO NOT SET!!' looks ugly.
 #
+# Removing useless use of hasp2child in this function. DCM Sept 12, 2011
 sub VarArgsXSHdr {
-  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,
-     $hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
+  my($name,$xsargs,$parobjs,$optypes,#$hasp2child,
+     $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
@@ -2720,8 +2722,15 @@ $PDL::PP::deftbl =
 # P2Child implicitly means "no data type changes".
 # No p2child by default.
 #
-   PDL::PP::Rule->new("HASP2Child", "P2Child", sub {return $_[0] != 0}),
-   PDL::PP::Rule::Returns::Zero->new("HASP2Child"),
+#   PDL::PP::Rule->new("HASP2Child", "_P2Child", 
+#      'Sets HASP2Child to a defined boolean value, even if P2Child is not defined',
+#      sub {
+#         my ($p2child) = @_;
+#         if (defined $p2child) {
+#            return $p2child != 0;
+#         }
+#         return 0;
+#      }),
 
 # Default: no otherpars
 #
@@ -2827,7 +2836,7 @@ $PDL::PP::deftbl =
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "HASP2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "_P2Child"],
 		      sub {
 			  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
 			  return 0 if $hasp2c;
@@ -2871,9 +2880,8 @@ $PDL::PP::deftbl =
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- #
    PDL::PP::Rule->new("VarArgsXSHdr",
-		      ["Name","NewXSArgs","USParObjs","OtherParTypes","HASP2Child",
+		      ["Name","NewXSArgs","USParObjs","OtherParTypes",
 		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
@@ -2936,14 +2944,14 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
 		      \&find_datatype),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","_P2Child"],
 		      \&coerce_types),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
@@ -3185,13 +3193,13 @@ $PDL::PP::deftbl =
 		      }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
    PDL::PP::Rule->new("RedoDimsFunc",
-		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
+		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"redodims")}),
 
    PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
-		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","HASP2Child"],
+		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
@@ -3201,18 +3209,18 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
    PDL::PP::Rule->new("WriteBackDataFunc",
-		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","HASP2Child"],
+		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"writebackdata")}),,
 
    PDL::PP::Rule->new("CopyFunc",
-		      ["CopyCode","FHdrInfo","CopyFuncName","HASP2Child"],
+		      ["CopyCode","FHdrInfo","CopyFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"copy")}),
    PDL::PP::Rule->new("FreeFunc",
-		      ["FreeCode","FHdrInfo","FreeFuncName","HASP2Child"],
+		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule::Returns->new("FoofName", "FooCodeSub", "foomethod"),
-   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","HASP2Child"],
+   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","_P2Child"],
 		      sub {wrap_vfn(@_,"foo")}),
 
    PDL::PP::Rule::Returns::NULL->new("FoofName"),
