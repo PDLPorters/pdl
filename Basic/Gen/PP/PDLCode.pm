@@ -1194,8 +1194,8 @@ sub separate_code {
 	# of them
 
 	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
-                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
 ###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
                 |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
@@ -1229,11 +1229,11 @@ sub separate_code {
 				push @{$stack[-1]},$ob;
 				push @stack,$ob;
 				$threadloops ++;
-			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
+			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
 				push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
 			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
 				push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
-			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
 				push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
 	#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
 	#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
