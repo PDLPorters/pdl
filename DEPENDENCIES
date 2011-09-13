@@ -42,10 +42,18 @@ PDL::NiceSlice    Text::Balanced          A nicer way to index piddles.
 Inline::Pdlpp     Inline >= 0.43          This module allows to define fast
                                           PP code inline in your scripts.
 
+                                          NOTE: Inline is listed as as PDL
+                                          prerequisite for CPAN, you can
+                                          build PDL manually without it.
+
 
 PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
                                           if libpthreads is detected and
-					  built against.
+                                          built against.
+
+                                          NOTE: Currently works for posix
+                                          OSes.  Work is underway to add
+                                          support for MS Windows platforms.
 
 
 PDL::IO::Dumper   Data::Dumper >= 2.121
@@ -70,8 +78,8 @@ perldl (shell)    Term::ReadLine::Perl
                                           pdl2 (and perldl) will be installed
                                           by default.  If Devel::REPL is not
                                           installed, pdl2 uses perldl.  The
-					  same thing if a Term::ReadLine::Perl
-					  or Term::ReadLine::Gnu is not installed.
+                                          same thing if a Term::ReadLine::Perl
+                                          or Term::ReadLine::Gnu is not installed.
 
 
 PDL::FFTW         Needs the FFTW library version 2 installed.
