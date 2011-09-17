@@ -10,7 +10,7 @@
 use strict;
 use Test::More;
 
-plan tests => 70;
+plan tests => 73;
 
 use PDL::LiteF;
 
@@ -374,3 +374,11 @@ ok(all($z==0));
 
 $z = $mt->range($mt);
 ok("$z" eq 'Empty');
+
+$a = pdl(5,5,5,5);
+$z = $a->range($mt);
+ok("$z" eq 'Empty');
+
+$z .= 2;
+ok(1);            # should *not* segfault!
+ok(all($a==5));   # should *not* change $a!
