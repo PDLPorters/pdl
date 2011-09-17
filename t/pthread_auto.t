@@ -42,13 +42,13 @@ if (PDL::Core::pthreads_enabled) {
   set_autopthread_targ(10);
   set_autopthread_size(0);
     
-  timethese(50,{threaded => '$a += 1'});
+  timethese(50,{threaded => '$a **= 1.3'});
   
   ok( 1, get_autopthread_actual() == 10); # should have split into 10 threads
   
   # Set target to 0 for comparison to unthreaded
   set_autopthread_targ(0);
-  timethese(50,{unthreaded => '$b+= 1'});
+  timethese(50,{unthreaded => '$b **= 1.3'});
   
   print $a->slice('0:20'),"\n";
   ok(2,tapprox($a,$b));
