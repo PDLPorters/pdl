@@ -26,7 +26,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Work underway to enable POSIX theads support for
+   win32 systems (native windows perls and cygwin).
+
+ * PDL segfault on Empty pdl bugs fixed:
+
+   - 3307613   indexND of Empty pdls can segfault
+   - 3294808   sever on Empty piddle causes segfault
 
 
 

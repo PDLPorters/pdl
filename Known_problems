@@ -91,27 +91,19 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_009 release:
 
-  3394327    PDL::IO::FITS::wfits corrupting FITS image
-
-               Should be fixed.  Please verify.
-
-  3392972    t/pthreadBarf.t test fails
-
-               Should be fixed.  Please verify.
-
+  3410905    t/pgplot.t hangs test harness for PDL
+  3408529    pthread support fails to build for win32
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
-  3307613    indexND of null pdls can segfault (duplicates #3294808)
   3303673    PLplot trouble with new PThreads
 
                Should be fixed.  Please verify.
 
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug
-  3294808    sever on empty piddle causes segfault
   3234141    max() fails on nan
   3161459    online docs don't link to functions in other PDL modules 
   3080505    PLplot segfaults on plshades call on OS X
