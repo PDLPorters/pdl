@@ -2,7 +2,7 @@
 # XXX SOME TESTS DISABLED
 
 use PDL::LiteF;
-use Benchmark ':hireswallclock';
+use Benchmark;  # not using ':hireswallclock'
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
