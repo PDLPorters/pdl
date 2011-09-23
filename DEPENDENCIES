@@ -53,7 +53,7 @@ PDL::ParallelCPU  pthreads library        Multi-CPU support will be enabled
 
                                           NOTE: Currently works for posix
                                           OSes.  Work is underway to add
-                                          support for MS Windows platforms.
+                                          support for MS Windows perls.
 
 
 PDL::IO::Dumper   Data::Dumper >= 2.121

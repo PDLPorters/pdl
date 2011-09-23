@@ -98,10 +98,6 @@ The following issues have been reported with this version of PDL:
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
-  3303673    PLplot trouble with new PThreads
-
-               Should be fixed.  Please verify.
-
   3299615    PLplot still unusable with X
   3299611    FITS I/O obscure bug
   3234141    max() fails on nan
@@ -113,7 +109,6 @@ The following issues have been reported with this version of PDL:
   2153898    default PDL build output too long
   1994584    PDL Has no signed 8-bit integer data type
   1507054    closing TriD window kills perldl shell
-  1435189    Installation with cpan2rpm
   1205359    PGPLOT Window does not store full state info
 
 
