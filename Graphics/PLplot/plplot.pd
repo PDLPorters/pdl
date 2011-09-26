@@ -10,12 +10,11 @@ $PDL::Graphics::PLplot::standard_order = 0;
 
 # Read in options determined by Makefile.PL and written to the OPTIONS! file
 my $plversion = do 'OPTIONS!';
-
 pp_addpm({At => Top}, <<'EOD');
 
 our $VERSION;
 BEGIN {
-$VERSION = '0.57'
+$VERSION = '0.61'
 };
 
 =head1 NAME
@@ -4845,6 +4844,8 @@ PPCODE:
 EOC
 pp_add_exported ('plspal1');
 
+} # if $plversion->{'c_pllegend'}
+
 #-----------------------------------------------------------------------------------------
 
 pp_addpm (<<'EOPM');
@@ -5007,8 +5008,6 @@ PPCODE:
 
 EOC
 pp_add_exported ('plsesc');
-
-} # if $plversion->{'c_pllegend'}
 
 if ($plversion->{'plsvect'}) {
 
