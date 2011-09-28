@@ -465,6 +465,12 @@ sub new {
     my $self  = $class->SUPER::new(@args);
     bless $self, $class;
     $self->{"insertname.value"} = $value;
+    
+    # Generate a defaul doc string
+    unless (exists $self->{doc}) {
+        $self->{doc} = 'Sets ' . $self->{targets}->[0]
+            . ' to "' . $value . '"';
+    }
 
     my $targets = $self->{targets};
     croak "There can only be 1 target for a $self, not " . (1+$#$targets) . "!"
@@ -2746,9 +2752,10 @@ $PDL::PP::deftbl =
        sub {[ppdefs]}),
 
    PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", 
-       'Sets ExtraGenericLoops to whatever was specified in FTypes',
+       'Makes ExtraGenericLoops identical to FTypes if the latter exists and the former does not',
        sub {return $_[0]}),
-   PDL::PP::Rule::Returns->new("ExtraGenericLoops", {}),
+   PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
+		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
    PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
