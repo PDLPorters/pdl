@@ -837,7 +837,7 @@ The correct way of defining the PDL function is
 
 	pp_def('myfunc',
 		Pars => 'a(n); [o]b(n);',
-		GenericTypes => [D],
+		GenericTypes => ['D'],
 		Code => 'myfunc($SIZE(n),$P(a),$P(b));'
 	);
 
@@ -872,7 +872,7 @@ a more general example, e.g.:
 
 	pp_def('myfunc',
 		Pars => 'float a(n); long [o]b(n);',
-		GenericTypes => [F],
+		GenericTypes => ['F'],
 		Code => 'myfunc($SIZE(n),$P(a),$P(b));'
 	);
 
@@ -938,7 +938,7 @@ on the type of the transformation):
   pp_def('foofunc',
 	Pars => ' a(n); [o] b();',
 	Code => ' $TFD(float_func,double_func) ($P(a),$P(b));'
-	GenericTypes => [F,D],
+	GenericTypes => [qw(F D)],
   );
 
 Please note that you can't say
@@ -979,7 +979,7 @@ another example that illustrates typical usage of both new features:
   pp_def('pnmout',
 	Pars => 'a(m)',
 	OtherPars => "char* fd",
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => 'PerlIO *fp;
 		 IO *io;
 
@@ -1069,7 +1069,7 @@ function:
   pp_def('pnmout',
 	Pars => 'a(m)',
 	OtherPars => "char* fd",
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => 'PerlIO *fp;
 		 IO *io;
 		 int len;
@@ -1416,7 +1416,7 @@ C<pp_def>s, e.g.:
 
   pp_def('barfoo',
 	 Pars => ' a(n); [o] b(n)',
-	 GenericTypes => '[B]',
+	 GenericTypes => ['B'],
 	 Code => ' int ns = $SIZE(n);
 		   do_the_real_work($P(a),$P(b),ns);
                  ',
@@ -1806,11 +1806,20 @@ Only used if C<HandleBad =E<gt> 1>.
 
 =item GenericTypes
 
-An array reference. The array may contain any subset of the strings
-`B', `S', `U', `L', `F' and `D', which specify which types
-your operation will accept.
+An array reference. The array may contain any subset of the one-character
+strings `B', `S', `U', `L', `Q', `F' and `D', which specify which types
+your operation will accept. The meaning of each type is:
+
+ B - signed byte (i.e. signed char)
+ S - signed short (two-byte integer)
+ U - unsigned short
+ L - signed long (four-byte integer, int on 32 bit systems)
+ Q - signed long long (eight byte integer)
+ F - float
+ D - double
+
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L F D/]
+Default: [qw/B S U L Q F D/]
 
 =item Inplace
 

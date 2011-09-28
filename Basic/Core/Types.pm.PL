@@ -409,36 +409,77 @@ The actual C type used to store this type.
 
 The value returned by C<ctype> without the 'PDL_' prefix.
 
-!NO!SUBS!
-
-my $d1 = $bvalflag ?
-  "Returns the value used to indicate a missing (or bad) element for the given data type. " .
-  "See the L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details."
-:
-  "Since PDL was compiled without support for 'bad' values, this routine returns undef.";
-
-my $d2 = $bvalflag ?
-  "Returns the original value used to represent bad values for a given type. " .
-  "See the L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details."
-:
-  "Since PDL was compiled without support for 'bad' values, this routine returns undef.";
-
-print OUT qq{
 =item badvalue
 
-$d1
+The special numerical value used to represent bad values for this type.
+See L<badvalue routine in PDL::Bad|PDL::Bad/badvalue> for more details.
+
+=cut
+
+!NO!SUBS!
+
+=pod
+
+You happen to be reading this on CPAN, but if you were reading this on your
+own machine and your PDL did not have support for bad values, you would see
+a small paragraph saying:
+
+=cut
+
+unless ($bvalflag) {
+  print OUT << '!NO!SUBS!';
+
+=pod
+
+You do not have bad value support enabled, so this returns undef.
+
+=cut
+
+!NO!SUBS!
+
+}
+
+
+print OUT <<'!NO!SUBS!';
 
 =item orig_badvalue
 
-$d2
+The default special numerical value used to represent bad values for this
+type. (You can change the value that represents bad values for each type
+during runtime.) See the
+L<orig_badvalue routine in PDL::Bad|PDL::Bad/orig_badvalue> for more details.
+
+=cut
+
+!NO!SUBS!
+
+=pod
+
+You happen to be reading this on CPAN, but if you were reading this on your
+own machine and your PDL did not have support for bad values, you would see
+a small paragraph saying:
+
+=cut
+
+unless ($bvalflag) {
+  print OUT << '!NO!SUBS!';
+
+=pod
+
+You do not have bad value support enabled, so this returns undef.
+
+=cut
+
+!NO!SUBS!
+  
+}
+
+print OUT <<'!NO!SUBS!';
 
 =back
 
 =cut
 
-};
-
-print OUT <<'!NO!SUBS!';
 {
     package PDL::Type;
     sub new {
