@@ -2967,9 +2967,10 @@ sub PDL::whereND {
    my $mask = pop @_;  # $mask has 0==false, 1==true
    my @to_return;
 
+   my $n = PDL::sum($mask);
+
    foreach my $arr (@_) {
 
-      my $n = PDL::sum($mask);
       my $sub_i = $mask * ones($arr);
       my $where_sub_i = PDL::where($arr, $sub_i);
 

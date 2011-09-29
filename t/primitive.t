@@ -12,7 +12,7 @@ use PDL::Types;
 use strict;
 use Test::More;
 
-plan tests => 39;
+plan tests => 40;
 
 sub tapprox {
     my($a,$b) = @_;
@@ -186,7 +186,7 @@ ok(!$@ && $c && $b->ndims==1, "uniqind, SF bug 3076570");      #34
 # Test whereND
 SKIP: {
    do 'whereND.pdl' if -e 'whereND.pdl';  # for development
-   skip "have no whereND", 5 unless defined(&whereND);
+   skip "have no whereND", 6 unless defined(&whereND);
 
    $a = sequence(4,3,2);
    $b = pdl(0,1,1,0);
@@ -205,4 +205,9 @@ SKIP: {
    $b = (random($a)<0.3);
    $c = whereND($a,$b);
    ok(all($c==where($a,$b)), "whereND vs where");              #39
+
+   # sf.net bug #3415115, whereND fails to handle all zero mask case
+   $b = zeros(4);
+   $c = whereND($a,$b);
+   ok($c->isempty, 'whereND of all-zeros mask');               #40
 }
