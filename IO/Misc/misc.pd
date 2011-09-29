@@ -646,13 +646,6 @@ RCOLS_IO: {
 
 close($fh) unless $is_handle;
 
-# burp one final time if needed and 
-# clean out additional ARRAY ref level for @ret
-for (@ret, $line_store) {
-   _burp_1D($_,$index) if scalar @{$_->[1]};
-   $_ = $_->[0];
-}
-
 # have we read anything in? if not, return empty piddles
 if ( $index == -1 ) {
    print "Warning: rcols() did not read in any data.\n" if $options->{VERBOSE};
@@ -669,6 +662,13 @@ if ( $index == -1 ) {
    } else { 
       return PDL->null;
    }
+}
+
+# burp one final time if needed and 
+# clean out additional ARRAY ref level for @ret
+for (@ret, $line_store) {
+   _burp_1D($_,$index) if scalar @{$_->[1]};
+   $_ = $_->[0];
 }
 
 # if the user has asked for lines => 0:-1 or 0:10 or 1:10 or 1:-1,
