@@ -761,7 +761,7 @@ wantarray ? return(@ret) : return $ret[0];
 
 =for ref
 
-  Write ASCII columns into file from 1D piddles or listrefs efficiently.
+  Write ASCII columns into file from 1D or 2D piddles and/or 1D listrefs efficiently.
 
 Can take file name or *HANDLE, and if no file/filehandle is given defaults to STDOUT.
 
@@ -800,6 +800,10 @@ e.g.,
   wcols $a,$b, { Header => "#   a   b", Colsep => ', ' };  # case insensitive option names!
   wcols " %4.1f  %4.1f  %s",$a,$b,$units, { header => "# Day  Time  Units" };
 
+  $a52 = sequence(5,2); $b = ones(5); $c = [ 1, 2, 4 ];
+  wcols $a52;   # now can write out 2D pdls
+  wcols $b, $a52, $c  # ... and mix and match with 1D listrefs as well
+
   NOTES:
   
   1. Columns are separated by whitespace by default, use
@@ -811,6 +815,8 @@ e.g.,
      of the global is undef until you set it.  The value will be
      then be picked up and used as if defcolsep were specified.
 
+  3. 2D piddle support is still preliminary in that rcols and wcols
+     are not inverse operations.
 =cut
 
 *wcols = \&PDL::wcols;
@@ -864,12 +870,19 @@ sub PDL::wcols {
    }
 
    my @p = @_;
-   my $n = (ref $p[0] eq 'ARRAY') ? $#{$p[0]}+1 : $p[0]->nelem;
+   my $n = (ref $p[0] eq 'ARRAY') ? $#{$p[0]}+1 : $p[0]->dim(0);
+   my @dogp = ();  # need to break 2D pdls into a their 1D pdl components
    for (@p) {
       if ( ref $_ eq 'ARRAY' ) {
          barf "wcols: 1D args must have same number of elements\n" if scalar(@{$_}) != $n;
+         push @dogp, $_;
       } else {
-         barf "wcols: 1D args must have same number of elements\n" if $_->nelem != $n or $_->getndims!=1;
+         barf "wcols: 1D args must have same number of elements\n" if $_->dim(0) != $n or $_->getndims > 2;
+         if ( $_->getndims == 2 ) {
+            push @dogp, $_->dog;
+         } else {
+            push @dogp, $_;
+         }
       }
    }
    if ( defined $header ) {
@@ -877,12 +890,12 @@ sub PDL::wcols {
        print $fh $header;
    }
    my $i;
-   my $pcnt = scalar @p;
+   my $pcnt = scalar @dogp;
    for ($i=0; $i<$n; $i++) {
        if ($format_string) {
            my @d;
 	   my $pdone = 0;
-           for (@p) {
+           for (@dogp) {
                push @d,_at_1D($_,$i); $pdone++;
                if (@d == $step) {
                    printf $fh $format_string,@d;
@@ -892,8 +905,8 @@ sub PDL::wcols {
            }
            if (@d && !$i) {
                my $str;
-               if ($#p>0) {
-                   $str = ($#p+1).' columns don\'t';
+               if ($#dogp>0) {
+                   $str = ($#dogp+1).' columns don\'t';
                } else {
                    $str = '1 column doesn\'t';
                }
@@ -905,7 +918,7 @@ sub PDL::wcols {
            }
        } else {
 	   my $pdone = 0;
-           for (@p) {
+           for (@dogp) {
 	       $pdone++;
                print $fh _at_1D($_,$i) . ( ($pdone==$pcnt) ? '' : $usecolsep );
            }
