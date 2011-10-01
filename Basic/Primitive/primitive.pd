@@ -2983,7 +2983,7 @@ sub PDL::whereND {
 
       my $ndim = 0;
       foreach my $id ($n, @idims[0..($#idims-1)]) {
-         $where_sub_i = $where_sub_i->splitdim($ndim++,$id);
+         $where_sub_i = $where_sub_i->splitdim($ndim++,$id) if $n>0;
       }
 
       push @to_return, $where_sub_i;
