@@ -1,6 +1,8 @@
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
+my @podpms = map { $_.".pod", '$(INST_SCRIPT)/' . $_ .".pod"} qw/pdl2/;
+
 # Make sure we have the PDL CONFIG hash loaded, and try to load it
 # from perldl.conf if not.
 use File::Spec;
@@ -17,7 +19,7 @@ if (!defined $PDL::Config{WITH_DEVEL_REPL}) {
          'VERSION' => '2.000',
          'EXE_FILES' => [ 'pdl2' ],
          'DIR' => [ qw(Profile Plugin) ],
-         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm' },
+         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm', @podpms },
       );
    } else {
       # Devel::REPL was not found
@@ -34,10 +36,24 @@ elsif ($PDL::Config{WITH_DEVEL_REPL}) {
 	 'VERSION' => '2.000',
 	 'EXE_FILES' => [ 'pdl2' ],
 	 'DIR' => [ qw(Profile Plugin) ],
-         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm' },
+         'PM' => { 'Script.pm' => '$(INST_LIBDIR)/Perldl2/Script.pm', @podpms },
   );
 }
 else {
 	# they don't want it, so generate a dummy
 	write_dummy_make('Not making or installing Perldl2 shell, per configuration');
+}
+# Extra build target to build the doc database
+sub MY::postamble {
+   my  $text = '';
+
+   $text .= << "EOPS" ;
+
+pdl2.pod : pdl2 subdirs
+\t\$(PERLRUN) -MPod::Select -e "podselect('pdl2');" > pdl2.pod
+
+EOPS
+
+   return $text;
+
 }
