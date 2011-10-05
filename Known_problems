@@ -91,7 +91,6 @@ The following issues have been reported with this version of PDL:
 - The following SourceForge bugs are outstanding at time of the
   PDL-2.4.9_009 release:
 
-  3415115    whereND fails to handle all-zeros mask case
   3410905    t/pgplot.t hangs test harness for PDL
   3408529    pthread support fails to build for win32
   3391645    bad printf formats in pdlapi.c and others

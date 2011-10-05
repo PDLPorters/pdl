@@ -34,6 +34,24 @@ Highlights:
    - 3307613   indexND of Empty pdls can segfault
    - 3294808   sever on Empty piddle causes segfault
 
+ * Other bugs fixed:
+
+   - 3415115   whereND fails to handle all zero mask case
+   - NA        rcols dies when you reading past the EOF
+
+ * wcols can now write out 2D pdls directly with the
+   column data going to dim0 and dim1 corresponding
+   to the number of colums written to the file for
+   that pdl.  rcols now uses the same convention for
+   2D pdls which makes dim0 the data dimension for
+   both 1D and 2D pdls *and* make rcols and wcols
+   the reverse operations from eachother.
+
+ * Documentation and diagnostic improvements for PDL::PP
+   from investigation and study by David Mertens.
+
+ * Various clean-up and tidying of PDL as a release.
+
 
 
 Release Notes for PDL 2.4.9_008 --------------------------
