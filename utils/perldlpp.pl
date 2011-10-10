@@ -13,7 +13,7 @@ my ($postfile) = &PDL::NiceSlice::perldlpp("PDL::NiceSlice", $prefile);
 
 print $postfile;
 
-END
+__END__
 
 =head2 perldlpp.pl
 
