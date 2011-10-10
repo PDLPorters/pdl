@@ -52,6 +52,23 @@ Highlights:
 
  * Various clean-up and tidying of PDL as a release.
 
+ * New engine for PDL::NiceSlice offers improved
+   selectivity as a source filter regarding sf.net
+   bug #3018731 'NiceSlice affects code where it should not'.
+   The main improvement from the new code is it should
+   not filter in perl comments or quotelike constructs.
+   
+   To try the new sourcefilter "engine", set the environment
+   variable PDL_NICESLICE_ENGINE to either of:
+
+    Filter::Util::Call (for the original filter version)
+    Filter::Simple     (for the new and improved engine)
+   
+   NOTE: the current default is Filter::Util::Call although
+   that may change for some CPAN developers release testing.
+   Also, if you enter an invalid option, PDL::NiceSlice will
+   die.
+  
 
 
 Release Notes for PDL 2.4.9_008 --------------------------

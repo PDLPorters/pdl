@@ -1,9 +1,21 @@
 BEGIN {
+   my %engine_ok = (
+      'Filter::Util::Call' => 'PDL/NiceSlice/FilterUtilCall.pm',
+      'Filter::Simple'     => 'PDL/NiceSlice/FilterSimple.pm',
+   );  # to validate names
+
+   $PDL::NiceSlice::engine = $engine_ok{'Filter::Util::Call'};  # default engine type
+
    if ( exists $ENV{PDL_NICESLICE_ENGINE} ) {
-      warn "PDL::NiceSlice using engine '$ENV{PDL_NICESLICE_ENGINE}'\n";
-      eval "require $ENV{PDL_NICESLICE_ENGINE}";
-      1;
-      return;
+      my $engine = $ENV{PDL_NICESLICE_ENGINE};
+      if ( exists $engine_ok{$engine} and $engine_ok{$engine} ) {
+         $PDL::NiceSlice::engine = $engine_ok{$engine};
+         warn "PDL::NiceSlice using engine '$engine'\n" if $PDL::verbose;
+      } elsif ( exists $engine_ok{$engine} and not $engine_ok{$engine} ) {
+         warn "PDL::NiceSlice using default engine\n" if $PDL::verbose;
+      } else {
+         die "PDL::NiceSlice: PDL_NICESLICE_ENGINE set to invalid engine '$engine'\n";
+      }
    }
 }
 
@@ -26,7 +38,7 @@ package PDL::NiceSlice;
 #
 # Modified 5-Nov-2007: stop processing if we encounter m/^no\s+PDL\;:\;:NiceSlice\;\s*$/.
 
-$PDL::NiceSlice::VERSION = '1.0.2';
+$PDL::NiceSlice::VERSION = '1.0.3';
 $PDL::NiceSlice::debug = 0;
 # the next one is largely stolen from Regexp::Common
 my $RE_cmt = qr'(?:(?:\#)(?:[^\n]*)(?:\n))';
@@ -37,6 +49,35 @@ require PDL::Version; # get PDL version number
 # 
 
 use Text::Balanced; # used to find parenthesis-delimited blocks 
+
+# Try overriding the current extract_quotelike() routine
+# needed before using Filter::Simple to work around a bug
+# between Text::Balanced and Filter::Simple for our purpose.
+#
+
+BEGIN {
+
+   no warnings;  # quiet warnings for this
+
+   sub Text::Balanced::extract_quotelike (;$$)
+   {
+      my $textref = $_[0] ? \$_[0] : \$_;
+      my $wantarray = wantarray;
+      my $pre  = defined $_[1] ? $_[1] : '\s*';
+   
+      my @match = Text::Balanced::_match_quotelike($textref,$pre,0,0);        # do not match // alone as m//
+      return Text::Balanced::_fail($wantarray, $textref) unless @match;
+      return Text::Balanced::_succeed($wantarray, $textref,
+                      $match[2], $match[18]-$match[2],        # MATCH
+                      @match[18,19],                          # REMAINDER
+                      @match[0,1],                            # PREFIX
+                      @match[2..17],                          # THE BITS
+                      @match[20,21],                          # ANY FILLET?
+                     );
+   };
+
+};
+
 
 # a call stack for error processing
 my @callstack = ('stackbottom');
@@ -249,13 +290,13 @@ sub findslice {
 	}
       } else { # no modifier block
          $call = 'nslice';
-	$arg = procargs($slicearg);
-	# $post = '';
-        # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
-        # $arg =~ s/\)$/,q{$found})/;  # add original argument string
-                                       # in case $self is not a piddle
-                                       # and the original call must be
-                                       # generated
+         $arg = procargs($slicearg);
+         # $post = '';
+         # $call = 'nslice_if_pdl';     # handle runtime checks for $self type
+         # $arg =~ s/\)$/,q{$found})/;  # add original argument string
+                                        # in case $self is not a piddle
+                                        # and the original call must be
+                                        # generated
       }
       $pre = join '', @pre;
       # assumption here: sever should be last
@@ -392,54 +433,8 @@ sub perldlpp {
  return $new;
 }
 
-use Filter::Util::Call;
-
-
-##############################
-# If you mess with the import filter, please also change the pdlpp importer 
-# just above this comment!  They both do similar things, but one to an eval string
-# and one to an import file.
-#   --CED 5-Nov-2007
-#
-sub import {
-    my ($class) = @_;
-    ($file,$offset) = (caller)[1,2];  # for error reporting
-    $offset++;
-    
-    ## Parse class name into a regexp suitable for filtration
-    my $terminator = terminator_regexp($class);
-
-    filter_add(
-		sub {
-		    my ($status, $off, $end);
-		    my $count = 0;
-		    my $data = "";
-			while ($status = filter_read()) {
-				return $status if $status < 0;
-		
-				if (defined($terminator) && m/$terminator/) {
-					$off=1;
-					last;
-				}
-				if (m/^\s*(__END__|__DATA__)\s*$/) {
-				  $end=$1; $off = 1;
-				  last;
-				}
-				$data .= $_;
-				$count++;
-				$_ = "";
-			}
-			$_ = $data;
-			$_ = findslice $_ unless $status < 0; # the actual filter
-			$_ .= "no $class;\n" if $off;
-			$_ .= "$end\n" if $end;
-			return $count;
-		}
-	);
-}
-
-sub unimport {
-  filter_del();
+BEGIN {
+   require "$PDL::NiceSlice::engine";
 }
 
 =head1 NAME
@@ -1120,7 +1115,5 @@ and/or modified under the same terms as PDL itself
 (see L<http://pdl.perl.org>).
 
 =cut
-
-LOADED_ENGINE:
 
 1;
