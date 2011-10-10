@@ -68,6 +68,11 @@ Highlights:
    that may change for some CPAN developers release testing.
    Also, if you enter an invalid option, PDL::NiceSlice will
    die.
+
+   NOTE: Work is underway to finish the implementation
+   for the interactive PDL shells: perldl and pdl2.  You
+   get the Filter::Util::Call behavior for the shells
+   regardless of the choice of filter engine.
   
 
 
