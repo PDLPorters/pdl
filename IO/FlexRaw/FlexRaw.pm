@@ -396,7 +396,7 @@ sub _read_flexhdr {
        foreach my $token (@str) {
           next LINE if $token =~ /^#/;
           if ($mode == -2) { # type
-             ### print STDERR "  \$mode == -2: #tokens = $numtokens, '$token'\n";
+             ### print STDERR "  \$mode == -2:  #tokens=$numtokens, '$token'\n";
              if ($newfile) {
                 if ($token eq 'f77' || $token eq 'swap') {
                    push @ret, {
@@ -413,7 +413,7 @@ sub _read_flexhdr {
              $newfile = 0;
              $mode++;
           } elsif ($mode == -1) { #ndims
-             ### print STDERR "  \$mode == -1: #tokens = $numtokens, '$token'\n";
+             ### print STDERR "  \$mode == -1:  #tokens=$numtokens, '$token'\n";
              barf("Not number for ndims in readflex") if $token !~ /^\d*$/;
              $ndims = $token;
              barf("Bad ndims in readflex") if ($ndims < 0);
@@ -423,7 +423,7 @@ sub _read_flexhdr {
                 last LINE;
              }
           } elsif ($mode < $ndims) { # get dims
-             ### print STDERR "  # get dims: #tokens = $numtokens, '$token'\n";
+             ### print STDERR "  # get dims:  #tokens=$numtokens, '$token'\n";
              barf("Not number for dimension in readflex")
              if $token !~ /^\d*$/;
              push(@dims,$token);
@@ -432,23 +432,24 @@ sub _read_flexhdr {
              if ($mode == $ndims and $numtokens == 0) {
                 last LINE;
              }
-          } elsif ($mode == $ndims and ! $have_badvalue) {
-             ### print STDERR "  # ! \$have_badvalue: #tokens = $numtokens, '$token'\n";
+          } elsif ($mode == $ndims and ! $have_badvalue) {  # check for badvalue info
+             ### print STDERR "  # ! \$have_badvalue:  #tokens=$numtokens, '$token'\n";
              if ($token =~ /^badvalue$/ ) {
                 $have_badvalue = 1;
+                $numtokens--;
+                last LINE if $numtokens==0;  # using default bad value
              } else {
                 last LINE;
              }
           } elsif ($mode == $ndims and $have_badvalue and $numtokens > 0) {
-             ### print STDERR "  #   \$have_badvalue: #tokens = $numtokens, '$token'\n";
+             ### print STDERR "  #   \$have_badvalue:  #tokens = $numtokens, '$token'\n";
              $badvalue = $token;
              last LINE;
           }
        }
     }
     last ITEM if $mode == -2;
-    barf("Bad format in readflex header file ($ndims, $mode)")
-    if ($ndims < 0 || $mode != $ndims);
+    barf("Bad format in readflex header file ($ndims, $mode)") if ($ndims < 0 || $mode != $ndims);
     push @ret, {
        Type => $tid,
        Dims => \@dims,
