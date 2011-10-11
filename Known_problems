@@ -93,6 +93,11 @@ The following issues have been reported with this version of PDL:
 
   3410905    t/pgplot.t hangs test harness for PDL
   3408529    pthread support fails to build for win32
+             
+	       We have partial support for cygwin/win32
+	       with manual perldl.conf configuration and
+	       build
+
   3391645    bad printf formats in pdlapi.c and others
   3391507    pdl2 docs not found by pdldoc
   3363406    PDL::Minuit build can't make libminuit.a

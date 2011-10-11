@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Thu 12 May 2011 10:19:53 AM 
+Last saved: Tue 11 Oct 2011 12:51:57 PM 
 
 =================================================================
                             Overview
@@ -71,6 +71,20 @@ external dependencies:
    will need to install Devel::REPL and one of either
    Term::ReadLine::Perl or Term::ReadLine::Gnu.  The Gnu
    flavor is currently recommended for cygwin.)
+
+and also
+
+ PDL::ParallelCPU
+  (Parallel pthread support will build and install correctly
+   provided you edit perldl.conf and set the following POSIX
+   related parameters before 'perl Makefile.PL':
+
+     WITH_POSIX_THREADS => 1,    
+     POSIX_THREADS_INC  => '-I/usr/include',
+     POSIX_THREADS_LIBS => '-lpthread',
+
+   Improved automated detection of the pthread dependency
+   is underway.)
 
 
 

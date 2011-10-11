@@ -1,5 +1,5 @@
 Created on: Thu 27 Jul 2006 09:43:26 PM
-Last saved: Tue 26 Apr 2011 01:27:39 PM 
+Last saved: Tue 11 Oct 2011 12:53:55 PM 
 
 
 
@@ -99,6 +99,13 @@ libraries yourself (see the HOW-TO notes below).
 The manual configure/build/install process is:
 
  Edit the PDL/perldl.conf file as desired
+
+   (e.g., edit POSIX related options for pthread support:
+
+      WITH_POSIX_THREADS => 1,    
+      POSIX_THREADS_INC  => '-I/usr/include',
+      POSIX_THREADS_LIBS => '-lpthread',
+
 
 
  From the bash$ prompt in the top level PDL/ directory:
