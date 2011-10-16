@@ -222,6 +222,14 @@ sub _is_io_handle {
 Read specified ASCII cols from a file into piddles and perl
 arrays (also see L</rgrep()>).
 
+=for usage
+
+  Usage:
+    ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, $col1, $col2, ... )
+             $x = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, [] )
+    ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., { EXCLUDE => '/^!/' } )
+    ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
+
 For each column number specified, a 1D output PDL will be
 generated.  Anonymous arrays of column numbers generate
 2D output piddles with dim0 for the column data and dim1
@@ -293,18 +301,9 @@ Options (case insensitive):
   VERBOSE
   - be verbose about IO processing (default C<$PDL::vebose>)
 
-
-=for usage
-
-  Usage:
-    ($x,$y,...) = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, $col1, $col2, ... )
-             $x = rcols( *HANDLE|"filename", { EXCLUDE => '/^!/' }, [] )
-    ($x,$y,...) = rcols( *HANDLE|"filename", $col1, $col2, ..., { EXCLUDE => '/^!/' } )
-    ($x,$y,...) = rcols( *HANDLE|"filename", "/foo/", $col1, $col2, ... )
- 
-e.g.,
-
 =for example
+
+For example:
 
   $x      = PDL->rcols 'file1';	        # file1 has only one column of data
   $x      = PDL->rcols 'file2', [];	# file2 can have multiple columns, still 1 piddle output
@@ -787,14 +786,19 @@ Can take file name or *HANDLE, and if no file/filehandle is given defaults to ST
     COLSEP - prints this string between colums of data. Defaults to
              $PDL::IO::Misc::defcolsep.
 
+    FORMAT - A printf-style format string that is cycled through
+             column output for user controlled formatting.
+
 =for usage
 
- Usage: wcols $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];
+ Usage: wcols $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];  # or
+        wcols $format_string, $data1, $data2, $data3,..., *HANDLE|"outfile", [\%options];
 
    where the $dataN args are either 1D piddles, 1D perl array refs,
-   or 2D piddles as might be returned from rcols() with the [] column
-   syntax and/or using the PERLCOLS option.  dim(0) of all piddles
-   written must be the same size.
+   or 2D piddles (as might be returned from rcols() with the [] column
+   syntax and/or using the PERLCOLS option).  dim(0) of all piddles
+   written must be the same size.  The printf-style $format_string,
+   if given, overrides a any FORMAT key settings in the option hash 
 
 e.g.,
 
@@ -831,36 +835,38 @@ e.g.,
      of the global is undef until you set it.  The value will be
      then be picked up and used as if defcolsep were specified.
 
-  3. Dim 0 corresponds to the data dimension for both rcols and
-     wcols.  This makes wcols the reverse operation to rcols.
+  3. Dim 0 corresponds to the column data dimension for both
+     rcols and wcols.  This makes wcols the reverse operation
+     of rcols.
 
 =cut
 
 *wcols = \&PDL::wcols;
 
 sub PDL::wcols {
-   barf 'Usage: wcols(@[$format_string], vectors,*HANDLE|"filename", [\%options])' if @_<1;
+   barf 'Usage: wcols($optional_format_string, 1_or_2D_pdls, *HANDLE|"filename", [\%options])' if @_<1;
 
    # handle legacy colsep variable
    $usecolsep = (defined $colsep) ? $colsep : $defcolsep;
 
-   my ($format_string, $step, $fh);
-   if (ref(\$_[0]) eq "SCALAR") {
-       $step = $format_string = shift; # 1st arg not piddle
-       $step =~ s/(%%|[^%])//g;  # use step to count number of format items
-       $step = length ($step);
-   }
    # if last argument is a reference to a hash, parse the options
+   my ($format_string, $step, $fh);
    my $header;
    if ( ref( $_[-1] ) eq "HASH" ) {
        my $opt = pop;
        foreach my $key ( keys %$opt ) {
            if ( $key =~ /^H/i ) { $header = $opt->{$key}; }             # option: HEADER
 	   elsif ( $key =~ /^COLSEP/i ) { $usecolsep = $opt->{$key}; }  # option: COLSEP
+	   elsif ( $key =~ /^FORMAT/i ) { $format_string = $opt->{$key}; }  # option: FORMAT
            else {
                print "Warning: wcols does not understand option <$key>.\n"; 
            }
        }
+   }
+   if (ref(\$_[0]) eq "SCALAR") {
+       $step = $format_string = shift; # 1st arg not piddle, explicit overrides option hash
+       $step =~ s/(%%|[^%])//g;  # use step to count number of format items
+       $step = length ($step);
    }
    my $file = $_[-1];
    my $file_opened;
