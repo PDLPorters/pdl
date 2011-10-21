@@ -832,6 +832,20 @@ use Scalar::Util;       # for looks_like_number test
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
+   
+   # Do some defensive programming to make this a little bit more secure:
+   barf("You are not allowed to have the string 'qx' when creating a PDL from a string\n"
+         . "You gave me this string: $value\n")
+      if $value =~ /qx/;
+   barf("You are not allowed to use double-colons (::) when creating a PDL from a string\n"
+         . "You gave me this string: $value\n")
+      if $value =~ /::/;
+   barf("You are not allowed to use backticks (`) when creating a PDL from a string\n"
+         . "You gave me this string: $value\n")
+      if $value =~ /`/;
+   barf("You are not allowed to reference un-interpolated variables when creating a PDL from a string\n"
+         . "You gave me this string: $value\n")
+      if $value =~ /[\$\%\@\&]/;
 
    # Wrap the string in brackets [], so that the following works:
    # $a = new PDL q[1 2 3];
@@ -840,7 +854,7 @@ sub PDL::Core::new_pdl_from_string {
    $value = '[' . $value . ']';
 
    # some basic checks that can/should be run on everything.
-   # Make sure that each closing bracket followed by an opening bracket
+   # Make sure that each closing bracket followed by an openng bracket
    # has a comma in between them:
    $value =~ s/\]\s*\[/],[/g;
 
@@ -856,21 +870,41 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/(\d)\.\s+/$1 /g;
    $value =~ s/([^\d])\./${1}0./g;
 
+   # Check for bad values. If found, we'll handle them in the eval.
+   my $has_bad = 0;
+   if ($value =~ /bad/i) {
+      $has_bad = 1;
+      $value =~ s/bad/\$BAD/gi;
+   }
+   
    # make unambiguous addition/subtraction (white-space on both sides
    # of operator) by removing white-space from both sides
-   $value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+   $value =~ s/([\dD])\s+([+\-\*\/])\s+(?=[\$\d])/$1$2/g;
 
    # Replace white-space separators with commas:
-   $value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+   $value =~ s/([.\dD])\s+(?=[+\-\$\d])/$1,/g;
 
+   # Croak on operations with bad values
+   barf("Operations with bad values are not supported")
+      if($value =~ /BAD[+\-\*\/]/ or $value =~ /[+\-\*\/]\$BAD/);
+   
    # Let's see if the darn thing compiles as normal Perl code, in which
    # case we just assume the result is a stringified bunch of nested
-   # arrays. 
-   my $val = eval $value;
+   # arrays. Notice that I declare and set $BAD in this block so that any
+   # BAD strings are numerically set to the bad value. We'll flag the piddle
+   # in a little bit.
+   my $val = eval {
+      # Get the bad value in a round-about way:
+      my @types = PDL::Types::types;
+      my $BAD = $types[$type]->badvalue;
+      eval $value;
+   };
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       # remove potentially spurious last dimension
       $to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
+      # Mark bad if appropriate
+      $to_return->badflag($has_bad);
       return $to_return;
    }
    else {
