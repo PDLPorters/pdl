@@ -334,10 +334,29 @@ sub typefld {
   return $typehash{$type}->{$fld};
 }
 
-=head2 mapfld
+=head2 mapfld (in_value, in_key, out_key)
 
-map a given source field to the corresponding target field by
-querying the type hash
+Map a given source field to the corresponding target field by
+querying the type hash. This gives you a way to say, "Find the type
+whose C<$in_key> is equal to C<$value>, and return that type's value
+for C<$out_key>. For example:
+
+ # Does byte type use nan?
+ $uses_nan = PDL::Types::mapfld(byte => 'ppforcetype', 'usenan');
+ # Equivalent:
+ $uses_nan = byte->usenan;
+ 
+ # What is the actual C type for the value that we call 'long'?
+ $type_name = PDL::Types::mapfld(long => 'convertfunc', 'realctype');
+ # Equivalent:
+ $type_name = long->realctype;
+
+As you can see, the equivalent examples are much shorter and legible, so you
+should only use mapfld if you were given the type index (in which case the
+actual type is not immediately obvious):
+
+ $type_index = 4;
+ $type_name = PDL::Types::mapfld($type_index => numval, 'realctype');
 
 =cut
 
