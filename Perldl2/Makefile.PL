@@ -1,7 +1,7 @@
 use ExtUtils::MakeMaker;
 PDL::Core::Dev->import();
 
-my @podpms = map { $_.".pod", '$(INST_SCRIPT)/' . $_ .".pod"} qw/pdl2/;
+my @podpms = map { $_.".pod", '$(INST_LIBDIR)/' . $_ .".pod"} qw/pdl2/;
 
 # Make sure we have the PDL CONFIG hash loaded, and try to load it
 # from perldl.conf if not.
