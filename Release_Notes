@@ -29,10 +29,16 @@ Highlights:
  * Experimental PDL::NiceSlice support for perl debugger.
    Just put the PDLdb.pl file in your perl @INC path and
    do an
+
      export PERL5DB='BEGIN { require "PDLdb.pl" }'
      setenv PERL5DB 'BEGIN { require "PDLdb.pl" }'
+
    You should be able to use niceslice syntax to view
    or modify pdl values.  Feedback welcome!
+
+ * Fixed sf.net bug:
+
+   - 3391507 "pdl2 docs not found by pdldoc"
 
 
 

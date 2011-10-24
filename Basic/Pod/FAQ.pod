@@ -5,12 +5,12 @@ PDL::FAQ - Frequently asked questions about PDL
 
 =head1 VERSION
 
-Current FAQ version:  1.001
+Current FAQ version:  1.002
 
 
 =head1 DESCRIPTION
 
-This is version 1.001 of the PDL FAQ, a collection of  frequently 
+This is version 1.002 of the PDL FAQ, a collection of  frequently 
 asked questions about PDL - the Perl Data Language.  
 
 =head1 ABOUT THIS DOCUMENT
@@ -271,11 +271,12 @@ you in porting PDL to a new system.
 
 
 PDL is available as source distribution in the 
-I<Comprehensive Perl Archive Network> , or
-CPAN.  This archive contains not only the PDL distribution but
-also just about everything else that is Perl-related. CPAN is
-mirrored by dozens of sites all over the world. The main site
-is L<http://www.cpan.org> , and local CPAN sites (mirrors) can be
+I<Comprehensive Perl Archive Network> (or CPAN) and from the
+sourceforge.net project page at L<https://sourceforge.net/projects/pdl/files/>.
+The CPAN archives contains not only the PDL distribution but
+also just about everything else that is Perl-related.  CPAN is
+mirrored by dozens of sites all over the world.  The main site
+is L<http://www.cpan.org>, and local CPAN sites (mirrors) can be
 found there. Within CPAN you find the latest released version of
 PDL in the directory /modules/by-module/PDL/. PDL's homepage is at
 L<http://pdl.perl.org> and the latest version can also be downloaded
@@ -310,12 +311,12 @@ Use the command C<perldoc PDL> to start learning about PDL.
 The easiest way by far, however, to get familiar with PDL is to use
 the PDL on-line help facility from within the PDL
 shell, C<pdl2>  Just type C<pdl2> at your system prompt. Once you are inside the
-C<pdl2> shell type C<help> .  Using the C<help> and 
-C<apropos> commands inside the shell you should be able to find the way round the
+C<pdl2> shell type C<help> .  Using the C<help> and C<apropos> commands
+inside the shell you should be able to find the way round the
 documentation. Even better, you can immediately try your newly acquired
 knowledge about PDL by issuing PDL/Perl commands directly at the command
-line. To illustrate this process, here is the record of a typical pdl2
-session of a PDL beginner (lengthy output is only symbolically
+line. To illustrate this process, here is the record of a typical
+C<pdl2> session of a PDL beginner (lengthy output is only symbolically
 reproduced in braces ( <... ...> ) ):
 
 
@@ -412,7 +413,7 @@ I<very> good reason for doing that.
 =head2 Q: 3.3    What is the current version of PDL ?  
 
 
-As of this writing (FAQ version 1.001 of 19 June 2011) the latest stable version
+As of this writing (FAQ version 1.002 of 24 Oct 2011) the latest stable version
 is 2.4.9.  The latest stable version should always be available from a CPAN
 mirror site near you (see L<Question 2.7|"Q: 2.7    Where do I get it?"> for
 info on where to get PDL.
@@ -421,7 +422,7 @@ The most current (possibly unstable) version of PDL can be obtained
 from the Git repository, see L<Question 4.10|"Q: 4.9    How do I get PDL via Git?">
 and periodic CPAN developers releases of the Git code will be made for testing
 purposes and more general availability.  The current post-PDL-2.4.9 developers
-release of PDL is available as F<CHM/PDL-2.4.9_002.tar.gz> .
+release of PDL is available as F<CHM/PDL-2.4.9_009.tar.gz> .
 
 
 =head2 Q: 3.4    I want to contribute to the further development of PDL. How can I help?  
@@ -809,8 +810,7 @@ using the command C<dog> .
 =head2 Q: 6.6    Sometimes I am getting these strange results when using inplace  operations?   
 
 
-This question is related to the 
-C<inplace> function. From the
+This question is related to the C<inplace> function. From the
 documentation (see L<PDL::QuickStart>):
 
 
@@ -930,7 +930,7 @@ It is a common problem that you try to make a mask array or something
 similar using a construct such as 
 
 
-    $mask = which($piddle > 1 && $piddle < 2);
+    $mask = which($piddle > 1 && $piddle < 2);   # incorrect
 
 
 This B< does not> work! What you are looking for is the B< bitwise> 
@@ -1675,9 +1675,9 @@ Many people have contributed or given feedback on the current
 version of the FAQ, here is an incomplete list of individuals
 whose contributions or posts to the mailing-list have improved
 this FAQ at some point in time alphabetically listed by first
-name: Christian Soeller, Doug Burke, Doug Hunt, Frank Schmauder,
-Jarle Brinchmann, John Cerney, Karl Glazebrook, Kurt Starsinic,
-Thomas Yengst, Tuomas J. Lukka.
+name: Christian Soeller, Chris Marshall, Doug Burke, Doug Hunt,
+Frank Schmauder, Jarle Brinchmann, John Cerney, Karl Glazebrook,
+Kurt Starsinic, Thomas Yengst, Tuomas J. Lukka.
 
 
 =head1 AUTHOR AND COPYRIGHT
