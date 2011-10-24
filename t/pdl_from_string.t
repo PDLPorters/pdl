@@ -7,7 +7,13 @@
 # for scripts and programs
 #
 
-use Test::More tests => 23;
+use Test::More tests => 30;
+use strict;
+use warnings;
+
+#############################
+# Loading and ISA tests - 2 #
+#############################
 
 BEGIN {
    # if we've got this far in the tests then 
@@ -15,11 +21,14 @@ BEGIN {
    #
    use_ok( "PDL::LiteF" );
 }
-$| = 1;
 
 isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
-ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
 
+###################
+# Basic Tests - 5 #
+###################
+
+ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
 
 my $compare = pdl([
 	[1, 0, 8],
@@ -37,33 +46,35 @@ my $test_string = <<EOPDL;
    ]
 EOPDL
 
-#diag("test string is: $test_string\n");
-
 my $t1 = pdl $test_string;
-ok(all(approx($t1, $compare)), "Unstringify properly interprets good PDL input string");
+ok(all(approx($t1, $compare)), "properly interprets good PDL input string");
 
 # See what happens when we remove the end commas
 $test_string =~ s/\],/]/g;
 
 my $t2 = pdl $test_string;
-ok(all(approx($t2, $compare)), "Unstringify properly interprets good PDL input string sans ending commas");
+ok(all(approx($t2, $compare)), "properly interprets good PDL input string sans ending commas");
 
 my $t3 = pdl '[1, 0, 8; 6, 3, 5; 3, 0, 5; 2, 4, 2]';
-ok(all(approx($t3, $compare)), "Unstringify properly handles semicolongs");
+ok(all(approx($t3, $compare)), "properly handles semicolons");
 
 my $t4 = pdl "$compare";
-ok(all(approx($t4, $compare)), "Unstringify properly interprets good PDL output string");
+ok(all(approx($t4, $compare)), "properly interprets good PDL output string");
+
+###########################
+# Signs and operators - 6 #
+###########################
 
 # Now some more interesting tests
 my $t5 = pdl "[1 - 4]";
 $compare = pdl [-3];
-ok(all(approx($t5, $compare)), "Unstringify does not interfere with subtraction in statement");
+ok(all(approx($t5, $compare)), "does not interfere with subtraction in statement");
 
 my $t6 = pdl "[1 -4]";
 $compare = pdl [1, -4];
-ok(all(approx($t6, $compare)), "Unstringify properly identifies negative numbers with white-space");
+ok(all(approx($t6, $compare)), "properly identifies negative numbers with white-space");
 
-ok(all(approx(pdl("[1 - .4]"), pdl(0.6))), "Unstringify properly handles decimals");
+ok(all(approx(pdl("[1 - .4]"), pdl(0.6))), "properly handles decimals");
 
 my $t8 = pdl <<EOPDL;
 [
@@ -73,23 +84,31 @@ my $t8 = pdl <<EOPDL;
 EOPDL
 
 $compare = pdl([[[1,2,3], [4,-5,6]],[[7,8,8+9],[10,-.11,12e3]]]);
-ok(all(approx($t8, $compare)), "Unstringify properly handles all sorts of stuff!");
+ok(all(approx($t8, $compare)), "properly handles all sorts of stuff!");
 
 $compare = pdl [-2];
 my $t9 = pdl '[1  + 2 - 5]';
-ok(all(approx($t9, $compare)), "Another operator check for unstringify");
+ok(all(approx($t9, $compare)), "Another operator check for pdl_from_string");
 
 $compare = pdl [1, 2, -5];
 my $t10 = pdl '[1  +2 -5]';
-ok(all(approx($t10, $compare)), "Yet another operator check for unstringify");
+ok(all(approx($t10, $compare)), "Yet another operator check for pdl_from_string");
+
+#######################################
+# Semicolons as column seperators - 2 #
+#######################################
 
 $compare = pdl [[1], [2], [3]];
 my $t11 = pdl '[1;2;3]';
-ok(all(approx($t11, $compare)), "Unstringify column check");
+ok(all(approx($t11, $compare)), "column check");
 
 $compare = pdl([[1,2,3],[4,5,6]]);
 my $t12 = pdl q[1 2 3; 4 5 6];
-ok(all(approx($t12, $compare)), "Unstringify implicit bracketing check");
+ok(all(approx($t12, $compare)), "implicit bracketing check");
+
+##################################
+# Implicit bracketing checks - 8 #
+##################################
 
 $compare = pdl([1,2,3,4]);
 my $t13 = pdl q[1 2 3 4];
@@ -103,10 +122,38 @@ ok(all(approx($t15, $compare)), "Double-check implicit bracketing - brackets");
 ok(all(approx($t16, $compare)), "Double-check implicit bracketing - brackets and commas");
 
 # check dimensions of tests
-ok($t13->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets");
-ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets and commas");
-ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets");
+ok($t13->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets, no commas");
+ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets, commas");
+ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets, no commas");
 ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");
+
+############################
+# Bad, inf, nan checks - 7 #
+############################
+
+# First term should be -inf
+my $bad_values = pdl q[nan inf -inf bad];
+# nan test: nan is never considered equal to itself
+ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
+	or diag("Zeroeth bad value should be nan but it describes itself as " . $bad_values->at(0));
+# inf test: inf + 1 == inf
+ok($bad_values->at(1) + 1 == $bad_values->at(1), 'properly handles inf')
+	or diag("First bad value should be inf but it describes itself as " . $bad_values->at(1));
+# inf test: -inf + 1 == -inf
+ok($bad_values->at(2) + 1 == $bad_values->at(2), 'properly handles -inf')
+	or diag("Second bad value should be -inf but it describes itself as " . $bad_values->at(2));
+# bad test
+ok($bad_values->isbad->at(3), 'properly handles bad values')
+	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
+
+my $infty = pdl 'inf';
+my $nan = pdl 'nan';
+my $bad = pdl 'bad';
+ok($infty + 1 == $infty, "pdl 'inf' works by itself");
+ok($nan != $nan, "pdl 'nan' works by itself");
+ok($bad->isbad, "pdl 'bad' works by itself");
+
+
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];
 # pdl> p $a = pdl q[ 1 2 3 ; 4 5 6 ]

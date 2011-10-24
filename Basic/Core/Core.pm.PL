@@ -295,11 +295,25 @@ You can mix and match arrays, array refs, and PDLs in your argument
 list, and C<pdl> will sort them out.  You get back a PDL whose last
 (slowest running) dim runs across the top level of the list you hand
 in, and whose first (fastest running) dim runs across the deepest
-level that you supply.
-
+level that you supply. 
 At the moment, you cannot mix and match those arguments with string
 arguments, though we can't imagine a situation in which you would
 really want to do that.
+
+The string version of pdl also allows you to use the strings C<bad>, C<inf>,
+and C<nan>, and it will insert the values that you mean (and set the bad flag
+if you use C<bad>). You can mix and match case, though you shouldn't. Here are
+some examples:
+
+ $bad = pdl q[1 2 3 bad 5 6];  # Set fourth element to the bad value
+ $bad = pdl q[1 2 3 BAD 5 6];  # ditto
+ $bad = pdl q[1 2 inf bad 5];  # now third element is IEEE infinite value
+ $bad = pdl q[nan 2 inf -inf]; # first value is IEEE nan value
+
+The default constructor uses IEEE double-precision floating point numbers. You
+can use other types, but you will get a warning if you try to use C<nan> with
+integer types (it will be replaced with the C<bad> value) and you will get a
+fatal error if you try to use C<inf>.
 
 Throwing a PDL into the mix has the same effect as throwing in a list ref:
 
@@ -827,33 +841,48 @@ more examples of usage.
 =cut
 
 use Scalar::Util;       # for looks_like_number test
+use Carp 'carp';        # for carping (warnings in caller's context)
 
 # This is the code that handles string arguments.
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
    
-   # Do some defensive programming to make this a little bit more secure:
-   barf("You are not allowed to have the string 'qx' when creating a PDL from a string\n"
-         . "You gave me this string: $value\n")
-      if $value =~ /qx/;
-   barf("You are not allowed to use double-colons (::) when creating a PDL from a string\n"
-         . "You gave me this string: $value\n")
-      if $value =~ /::/;
-   barf("You are not allowed to use backticks (`) when creating a PDL from a string\n"
-         . "You gave me this string: $value\n")
-      if $value =~ /`/;
-   barf("You are not allowed to reference un-interpolated variables when creating a PDL from a string\n"
-         . "You gave me this string: $value\n")
-      if $value =~ /[\$\%\@\&]/;
-
+   # Only a few characters are allowed in the expression, but we want to allow
+   # expressions like 'inf' and 'bad'. As such, convert those values internally
+   # before checking for not-allowed characters.
+   # Here, I represent
+   #  bad => EE
+   #  nan => ee
+   #  inf => Ee
+   my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
+   my ($has_nan) = ($value =~ s/\bnan\b/ee/gi);
+   my ($has_inf) = ($value =~ s/\binf\b/Ee/gi);
+   
+   # Some sanity checks: nan/inf warnings and croaks
+   my @types = PDL::Types::types;
+   if ($has_nan and not $types[$type]->usenan) {
+      carp("PDL::Core::new_pdl_from_string: no nan for type $types[$type]; converting to bad value");
+      $value =~ s/ee/EE/g;
+      $has_bad += $has_nan;
+      $has_nan = 0;
+   }
+   barf("PDL::Core::new_pdl_from_string: type $types[$type] does not support inf")
+      if ($has_inf and not $types[$type]->usenan);
+   
+   # tr doesn't use \s, so use a s// to replace generic whitespace with a space
+   $value =~ s/\s+/ /g;
+   
+   # See if any not-allowed characters are present:
+   barf("PDL::Core::new_pdl_from_string: disallowed character")
+      if ($value =~ tr/[]+\-0-9 ;.,eE//c);
+   
    # Wrap the string in brackets [], so that the following works:
    # $a = new PDL q[1 2 3];
    # We'll have to check for dimensions of size one after we've eval'd
    # the string and built a PDL from the resulting array.
    $value = '[' . $value . ']';
 
-   # some basic checks that can/should be run on everything.
    # Make sure that each closing bracket followed by an openng bracket
    # has a comma in between them:
    $value =~ s/\]\s*\[/],[/g;
@@ -870,41 +899,41 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/(\d)\.\s+/$1 /g;
    $value =~ s/([^\d])\./${1}0./g;
 
-   # Check for bad values. If found, we'll handle them in the eval.
-   my $has_bad = 0;
-   if ($value =~ /bad/i) {
-      $has_bad = 1;
-      $value =~ s/bad/\$BAD/gi;
-   }
-   
    # make unambiguous addition/subtraction (white-space on both sides
    # of operator) by removing white-space from both sides
-   $value =~ s/([\dD])\s+([+\-\*\/])\s+(?=[\$\d])/$1$2/g;
+   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
 
    # Replace white-space separators with commas:
-   $value =~ s/([.\dD])\s+(?=[+\-\$\d])/$1,/g;
+   $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
 
    # Croak on operations with bad values
    barf("Operations with bad values are not supported")
-      if($value =~ /BAD[+\-\*\/]/ or $value =~ /[+\-\*\/]\$BAD/);
+      if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
+   
+   # Replace the place-holder strings
+   $value =~ s/\bEE\b/\$BAD/g;
+   $value =~ s/\bee\b/\$NAN/g;
+   $value =~ s/\bEe\b/\$INF/g;
    
    # Let's see if the darn thing compiles as normal Perl code, in which
    # case we just assume the result is a stringified bunch of nested
-   # arrays. Notice that I declare and set $BAD in this block so that any
-   # BAD strings are numerically set to the bad value. We'll flag the piddle
-   # in a little bit.
+   # arrays. Notice that I declare and set the three bad values in this block
+   # so that any various strings are numerically set to the exact proper values.
+   # We'll flag the piddle in a little bit if a bad value was found.
    my $val = eval {
       # Get the bad value in a round-about way:
-      my @types = PDL::Types::types;
       my $BAD = $types[$type]->badvalue;
+      my $INF = -pdl(0)->log;
+      my $NAN = $INF - $INF;
       eval $value;
    };
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       # remove potentially spurious last dimension
-      $to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
+      $to_return = $to_return->mv(-1,1)->clump(2)
+         if $to_return->dims > 1 and $to_return->dim(-1) == 1;
       # Mark bad if appropriate
-      $to_return->badflag($has_bad);
+      $to_return->badflag($has_bad > 0);
       return $to_return;
    }
    else {
@@ -2430,24 +2459,25 @@ print OUT <<'!NO!SUBS!';
 =for usage
 
  $y = double $x; $y = ushort [1..10];
- # all of byte|short|ushort|long|float|double behave similarly
+ # all of byte|short|ushort|long|longlong|float|double behave similarly
 
 When called with a piddle argument, they convert to the specific
 datatype.
 
-When called with a numeric or list / listref argument they construct
-a new piddle. This is a convenience to avoid having to be
+When called with a numeric, list, listref, or string argument they
+construct a new piddle. This is a convenience to avoid having to be
 long-winded and say C<$x = long(pdl(42))>
 
 Thus one can say:
 
  $a = float(1,2,3,4);           # 1D
+ $a = float q[1 2 3; 4 5 6];    # 2D
  $a = float([1,2,3],[4,5,6]);   # 2D
  $a = float([[1,2,3],[4,5,6]]); # 2D
 
-Note the last two are equivalent - a list is automatically
-converted to a list reference for syntactic convenience. i.e. you
-can omit the outer C<[]>
+Note the last three give identical results, and the last two are exactly
+equivalent - a list is automatically converted to a list reference for
+syntactic convenience. i.e. you can omit the outer C<[]>
 
 When called with no arguments return a special type token.
 This allows syntactical sugar like:
