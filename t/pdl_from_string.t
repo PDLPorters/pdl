@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 34;
+use Test::More tests => 51;
 use strict;
 use warnings;
 
@@ -157,14 +157,107 @@ ok($nan != $nan, "pdl 'nan' works by itself");
 ok($nan2 != $nan2, "pdl '-nan' works by itself");
 ok($bad->isbad, "pdl 'bad' works by itself");
 
-####################
-# Croak checks - 2 #
-####################
+#######################
+# Pi and e checks - 10 #
+#######################
 
+my $expected = pdl(1)->exp;
+my $got = pdl q[e];
+is($got, $expected, 'q[e] returns exp(1)')
+	or diag("Got $got");
+$got = pdl q[E];
+is($got, $expected, 'q[E] returns exp(1)')
+	or diag("Got $got");
+$expected = pdl(1, exp(1));
+$got = pdl q[1 e];
+ok(all($got == $expected), 'q[1 e] returns [1 exp(1)]')
+	or diag("Got $got");
+$got = pdl q[1 E];
+ok(all($got == $expected), 'q[1 E] returns [1 exp(1)]')
+	or diag("Got $got");
+$expected = pdl(exp(1), 1);
+$got = pdl q[e 1];
+ok(all($got == $expected), 'q[e 1] returns [exp(1) 1]')
+	or diag("Got $got");
+$got = pdl q[E 1];
+ok(all($got == $expected), 'q[E 1] returns [exp(1) 1]')
+	or diag("Got $got");
+$expected = pdl(1, exp(1), 2);
+$got = pdl q[1 e 2];
+ok(all($got == $expected), 'q[1 e 2] returns [1 exp(1) 2]')
+	or diag("Got $got");
+$got = pdl q[1 E 2];
+ok(all($got == $expected), 'q[1 E 2] returns [1 exp(1) 2]')
+	or diag("Got $got");
+
+# Already checked all the permutations of e, so just make sure that it
+# properly substitutes pi
+$expected = pdl(1, 4 * atan2(1,1));
+$got = pdl q[1 pi];
+ok(all($got == $expected), 'q[1 pi] returns [1 4*atan2(1,1)]')
+	or diag("Got $got");
+$got = pdl q[1 PI];
+ok(all($got == $expected), 'q[1 PI] returns [1 4*atan2(1,1)]')
+	or diag("Got $got");
+
+########################
+# Security checks - 9 #
+########################
+
+# Check croaking on arbitrary bare-words:
 eval {pdl q[1 foobar 2]};
 isnt($@, '', 'croaks on arbitrary string input');
 eval {pdl q[$a $b $c]};
 isnt($@, '', 'croaks with non-interpolated strings');
+
+# Install a function that knows if it's been executed.
+{
+	no warnings 'redefine';
+	my $e_was_run = 0;
+	sub PDL::Core::e { $e_was_run++ }
+
+	my $to_check = q[1 e 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1 +e 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1 e+ 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1e 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1e+ 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1+e 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+
+	$to_check = q[1+e+ 2];
+	sub PDL::Core::e { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
+	$e_was_run = 0;
+}
 
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];

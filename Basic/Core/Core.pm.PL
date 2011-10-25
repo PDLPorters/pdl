@@ -840,26 +840,53 @@ more examples of usage.
 
 =cut
 
+# These are *NOT* to be exported and should only be called by new_pdl_from_string.
+# If the user wants these, they should use PDL::Constants.
+sub PDL::Core::e {
+   return exp(1);
+}
+sub PDL::Core::E {
+   return exp(1);
+};
+
 use Scalar::Util;       # for looks_like_number test
 use Carp 'carp';        # for carping (warnings in caller's context)
 
-# This is the code that handles string arguments.
+# This is the code that handles string arguments. It has now gotten quite large,
+# so here's the basic explanation. I want to allow expressions like 2, 1e3, 1+4,
+# bad, nan, and inf. However, I also need to protect from executing arbitrary
+# code when I run the eval. So, I croak when I find:
+# 1) strings of e or E that are longer than 1 character long (like eeee)
+# 2) non-supported characters
+# 3) the characer e that evaluates as a function (as in '1 2 3 e 5')
+# 4) expressions that are syntactically erroneous, like '1 2 3 ]', which has an
+#    extra bracket
+
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
    
+   # I check for invalid characters later, but arbitrary strings of e will
+   # pass that check, so I'll check for that here, first.
+   barf("PDL::Core::new_pdl_from_string: you can only use e to specify powers of ten,\n"
+      . "  such as 1000 == 1e3, but I found multiple consecutive copies of e in your string")
+      if ($value =~ /ee/i);
+   
    # Only a few characters are allowed in the expression, but we want to allow
-   # expressions like 'inf' and 'bad'. As such, convert those values internally
-   # before checking for not-allowed characters.
-   # Here, I represent
+   # expressions like 'inf' and 'bad'. As such, convert those values to internal
+   # representations that will pass the invalid-character check. We'll replace
+   # them with Perl-evalute-able strings in a little bit. Here, I represent
    #  bad => EE
    #  nan => ee
    #  inf => Ee
+   #  pi  => eE
    my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
    my ($has_nan) = ($value =~ s/\bnan\b/ee/gi);
    my ($has_inf) = ($value =~ s/\binf\b/Ee/gi);
+   $value =~ s/\bpi\b/eE/gi;
    
-   # Some sanity checks: nan/inf warnings and croaks
+   # Some data types do not support nan and inf, so check for and warn or croak,
+   # as appropriate:
    my @types = PDL::Types::types;
    if ($has_nan and not $types[$type]->usenan) {
       carp("PDL::Core::new_pdl_from_string: no nan for type $types[$type]; converting to bad value");
@@ -870,10 +897,9 @@ sub PDL::Core::new_pdl_from_string {
    barf("PDL::Core::new_pdl_from_string: type $types[$type] does not support inf")
       if ($has_inf and not $types[$type]->usenan);
    
-   # tr doesn't use \s, so use a s// to replace generic whitespace with a space
+   # Make the white-space uniform and see if any not-allowed characters are
+   # present:
    $value =~ s/\s+/ /g;
-   
-   # See if any not-allowed characters are present:
    barf("PDL::Core::new_pdl_from_string: disallowed character")
       if ($value =~ tr/[]+\-0-9 ;.,eE//c);
    
@@ -883,7 +909,7 @@ sub PDL::Core::new_pdl_from_string {
    # the string and built a PDL from the resulting array.
    $value = '[' . $value . ']';
 
-   # Make sure that each closing bracket followed by an openng bracket
+   # Make sure that each closing bracket followed by an opening bracket
    # has a comma in between them:
    $value =~ s/\]\s*\[/],[/g;
 
@@ -906,27 +932,36 @@ sub PDL::Core::new_pdl_from_string {
    # Replace white-space separators with commas:
    $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
 
-   # Croak on operations with bad values
-   barf("Operations with bad values are not supported")
+   # Croak on operations with bad values. It might be nice to simply replace
+   # these with bad values, but that is more difficult that I like, so I'm just
+   # going to disallow that here:
+   barf("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
       if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
    
-   # Replace the place-holder strings
+   # Replace the place-holder strings with strings that will evaluate to their
+   # correct numerical values when we run the eval:
    $value =~ s/\bEE\b/\$BAD/g;
+   my $BAD = $types[$type]->badvalue;
    $value =~ s/\bee\b/\$NAN/g;
+   my $INF = -pdl(0)->log;
    $value =~ s/\bEe\b/\$INF/g;
+   my $NAN = $INF - $INF;
+   $value =~ s/\beE\b/\$PI/g;
+   my $PI = 4 * atan2(1, 1);
+      
+   # Install functions for PDL::Core::E and PDL::Core::e that croak so that
+   # other copies of these functions do not cause trouble or confusion:
+   {
+      no warnings 'redefine';
+      *PDL::Core::e = sub { exp(1) };
+      *PDL::Core::E = sub { exp(1) };
+   }
    
    # Let's see if the darn thing compiles as normal Perl code, in which
    # case we just assume the result is a stringified bunch of nested
-   # arrays. Notice that I declare and set the three bad values in this block
-   # so that any various strings are numerically set to the exact proper values.
-   # We'll flag the piddle in a little bit if a bad value was found.
-   my $val = eval {
-      # Get the bad value in a round-about way:
-      my $BAD = $types[$type]->badvalue;
-      my $INF = -pdl(0)->log;
-      my $NAN = $INF - $INF;
-      eval $value;
-   };
+   # arrays.
+   my $val = eval $value;
+      
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       # remove potentially spurious last dimension
