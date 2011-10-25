@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 55;
+use Test::More tests => 61;
 use strict;
 use warnings;
 
@@ -25,7 +25,7 @@ BEGIN {
 isa_ok( pdl("[1,2]"), "PDL", qq{pdl("[1,2]") returns a piddle} );
 
 ###################
-# Basic Tests - 5 #
+# Basic Tests - 8 #
 ###################
 
 ok( all(pdl([1,2])==pdl("[1,2]")), qq{pdl(ARRAY REF) equals pdl("ARRAY REF")});
@@ -60,6 +60,19 @@ ok(all(approx($t3, $compare)), "properly handles semicolons");
 
 my $t4 = pdl "$compare";
 ok(all(approx($t4, $compare)), "properly interprets good PDL output string");
+
+my $expected = pdl(1.2e3);
+my $got = pdl q[1.2e3];
+is($got, $expected, "Correctly interprets [1.2e3]");
+
+my $exptected = pdl(1.2e3, 4, 5.6e-7);
+my $got = pdl q[1.2e3 4 5.6e-7];
+ok(all($got == $exptected), "Correclty interprets [1.2e3 4 5.6e-7]");
+
+my $exptected = pdl(1.2e3, 4, 5.e-7);
+my $got = pdl q[1.2e3 4 5.e-7];
+ok(all($got == $exptected), "Correclty interprets [1.2e3 4 5.e-7]");
+
 
 ###########################
 # Signs and operators - 6 #
@@ -106,9 +119,9 @@ $compare = pdl([[1,2,3],[4,5,6]]);
 my $t12 = pdl q[1 2 3; 4 5 6];
 ok(all(approx($t12, $compare)), "implicit bracketing check");
 
-##################################
-# Implicit bracketing checks - 8 #
-##################################
+###################################
+# Implicit bracketing checks - 10 #
+###################################
 
 $compare = pdl([1,2,3,4]);
 my $t13 = pdl q[1 2 3 4];
@@ -126,6 +139,13 @@ ok($t13->ndims == 1, "Implicit bracketing gets proper number of dimensions - no 
 ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no brackets, commas");
 ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets, no commas");
 ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");
+
+$exptected = pdl [];
+$got = pdl q[];
+ok(all($got == $exptected), 'Blank strings are interpreted as empty arrays');
+$exptected = pdl [[]];
+$got = pdl q[[]];
+ok(all($got == $exptected), 'Empty bracket is correctly interpreted');
 
 ############################
 # Bad, inf, nan checks - 9 #
@@ -161,8 +181,8 @@ ok($bad->isbad, "pdl 'bad' works by itself");
 # Pi and e checks - 10 #
 ########################
 
-my $expected = pdl(1)->exp;
-my $got = pdl q[e];
+$expected = pdl(1)->exp;
+$got = pdl q[e];
 is($got, $expected, 'q[e] returns exp(1)')
 	or diag("Got $got");
 $got = pdl q[E];
@@ -201,7 +221,7 @@ ok(all($got == $expected), 'q[1 PI] returns [1 4*atan2(1,1)]')
 	or diag("Got $got");
 
 ########################
-# Security checks - 9 #
+# Security checks - 10 #
 ########################
 
 # Check croaking on arbitrary bare-words:
@@ -257,6 +277,13 @@ isnt($@, '', 'croaks with non-interpolated strings');
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
+	
+	$to_check = q[1 e123 2];
+	sub PDL::Core::e123 { $e_was_run++ }
+	eval {pdl $to_check};
+	is($e_was_run, 0, "Does not execute local function e123 in [$to_check]");
+	$e_was_run = 0;
+	
 }
 
 ##############################

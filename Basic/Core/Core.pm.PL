@@ -923,8 +923,8 @@ sub PDL::Core::new_pdl_from_string {
    # Remove ending decimal points and insert zeroes in front of starting
    # decimal points. This makes the white-space-to-comma replacement
    # in the next few lines much simpler.
-   $value =~ s/(\d)\.\s+/$1 /g;
-   $value =~ s/([^\d])\./${1}0./g;
+   $value =~ s/(\d\.)(z|[^\d])/${1}0$2/g;
+   $value =~ s/(\A|[^\d])\./${1}0./g;
 
    # make unambiguous addition/subtraction (white-space on both sides
    # of operator) by removing white-space from both sides
@@ -938,6 +938,12 @@ sub PDL::Core::new_pdl_from_string {
    # going to disallow that here:
    barf("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
       if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
+   
+   # Check for things that will evaluate as functions and barf if found
+   if (my ($disallowed) = ($value =~ /((\D+|\A)[eE]\d+)/)) {
+      barf("PDL::Core::new_pdl_from_string: syntax error, looks like an improper exponentiation: $disallowed\n"
+         . "You originally gave me $original_value\n");
+   }
    
    # Replace the place-holder strings with strings that will evaluate to their
    # correct numerical values when we run the eval:
