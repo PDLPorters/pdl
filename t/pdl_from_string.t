@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 51;
+use Test::More tests => 55;
 use strict;
 use warnings;
 
@@ -157,9 +157,9 @@ ok($nan != $nan, "pdl 'nan' works by itself");
 ok($nan2 != $nan2, "pdl '-nan' works by itself");
 ok($bad->isbad, "pdl 'bad' works by itself");
 
-#######################
+########################
 # Pi and e checks - 10 #
-#######################
+########################
 
 my $expected = pdl(1)->exp;
 my $got = pdl q[e];
@@ -258,6 +258,18 @@ isnt($@, '', 'croaks with non-interpolated strings');
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
 }
+
+##############################
+# Useful croaking output - 4 #
+##############################
+
+eval{ pdl q[1 l 3] };
+isnt($@, '', 'Croaks when invalid character is specified');
+like($@, qr/found disallowed character\(s\) 'l'/, 'Gives meaningful explanation of problem');
+eval{ pdl q[1 po 3] };
+isnt($@, '', 'Croaks when invalid characters are specified');
+like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation of problem');
+
 
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];

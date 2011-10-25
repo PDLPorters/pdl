@@ -168,8 +168,8 @@ print OUT <<"!WITH!SUBS!";
 
 !WITH!SUBS!
 
-print OUT <<'!NO!SUBS!';
-
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 use PDL::Exporter;
 use DynaLoader;
 
@@ -868,8 +868,8 @@ sub PDL::Core::new_pdl_from_string {
    
    # I check for invalid characters later, but arbitrary strings of e will
    # pass that check, so I'll check for that here, first.
-   barf("PDL::Core::new_pdl_from_string: you can only use e to specify powers of ten,\n"
-      . "  such as 1000 == 1e3, but I found multiple consecutive copies of e in your string")
+   barf("PDL::Core::new_pdl_from_string: I found consecutive copies of e but\n"
+      . "  I'm not sure what you mean. You gave me $original_value")
       if ($value =~ /ee/i);
    
    # Only a few characters are allowed in the expression, but we want to allow
@@ -900,8 +900,9 @@ sub PDL::Core::new_pdl_from_string {
    # Make the white-space uniform and see if any not-allowed characters are
    # present:
    $value =~ s/\s+/ /g;
-   barf("PDL::Core::new_pdl_from_string: disallowed character")
-      if ($value =~ tr/[]+\-0-9 ;.,eE//c);
+   if (my ($disallowed) = ($value =~ /([^\[\]\+\-0-9;,.eE ]+)/)) {
+      barf("PDL::Core::new_pdl_from_string: found disallowed character(s) '$disallowed' in $original_value");
+   }
    
    # Wrap the string in brackets [], so that the following works:
    # $a = new PDL q[1 2 3];
