@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 30;
+use Test::More tests => 34;
 use strict;
 use warnings;
 
@@ -128,7 +128,7 @@ ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - bra
 ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");
 
 ############################
-# Bad, inf, nan checks - 7 #
+# Bad, inf, nan checks - 9 #
 ############################
 
 # First term should be -inf
@@ -147,12 +147,24 @@ ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
 
 my $infty = pdl 'inf';
+my $min_inf = pdl '-inf';
 my $nan = pdl 'nan';
+my $nan2 = pdl '-nan';
 my $bad = pdl 'bad';
 ok($infty + 1 == $infty, "pdl 'inf' works by itself");
+ok($infty == -$min_inf, "pdl '-inf' works and has opposite sign and same value as pdl 'inf'");
 ok($nan != $nan, "pdl 'nan' works by itself");
+ok($nan2 != $nan2, "pdl '-nan' works by itself");
 ok($bad->isbad, "pdl 'bad' works by itself");
 
+####################
+# Croak checks - 2 #
+####################
+
+eval {pdl q[1 foobar 2]};
+isnt($@, '', 'croaks on arbitrary string input');
+eval {pdl q[$a $b $c]};
+isnt($@, '', 'croaks with non-interpolated strings');
 
 # Basic 2D array
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];
