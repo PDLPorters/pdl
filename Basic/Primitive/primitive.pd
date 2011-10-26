@@ -226,8 +226,8 @@ pp_def('matmult',
 sub PDL::matmult {
     my ($a,$b,$c) = @_;
 
-    $b = pdl($b) unless(UNIVERSAL::isa($b,'PDL'));
-    $c = PDL->null unless(UNIVERSAL::isa($c,'PDL'));
+    $b = pdl($b) unless eval { $b->isa('PDL') };
+    $c = PDL->null unless eval { $c->isa('PDL') };
 
     while($a->getndims < 2) {$a = $a->dummy(-1)}
     while($b->getndims < 2) {$b = $b->dummy(-1)}
@@ -235,11 +235,11 @@ sub PDL::matmult {
     return ($c .= $a * $b) if( ($a->dim(0)==1 && $a->dim(1)==1) ||
     	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
     if($b->dim(1) != $a->dim(0)) {
-	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
     }
     PDL::_matmult_int($a,$b,$c);
     $c;
-    }
+}
 EOPM
 	Code => <<'EOC',
 	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
