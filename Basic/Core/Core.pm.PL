@@ -886,12 +886,13 @@ sub PDL::Core::new_pdl_from_string {
    my ($has_nan) = 0;
    $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
    # Strawberry Perl compatibility:
-   $has_nan++ if ($value =~ s/-1\.#IND/ee/gi;
+   $has_nan++ if ($value =~ s/-1\.\#IND/ee/gi);
    # --( inf )--
    my ($has_inf) = 0;
-   $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
    # Strawberry Perl compatibility:
-   $has_inf++ if ($value =~ s/1\.#INF/Ee/gi);
+   $has_inf++ if ($value =~ s/1\.\#INF/Ee/gi);
+   # Other platforms:
+   $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
    # --( pi )--
    $value =~ s/\bpi\b/eE/gi;
    

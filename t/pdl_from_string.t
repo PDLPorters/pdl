@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 61;
+use Test::More tests => 63;
 use strict;
 use warnings;
 
@@ -65,13 +65,13 @@ my $expected = pdl(1.2e3);
 my $got = pdl q[1.2e3];
 is($got, $expected, "Correctly interprets [1.2e3]");
 
-my $exptected = pdl(1.2e3, 4, 5.6e-7);
-my $got = pdl q[1.2e3 4 5.6e-7];
-ok(all($got == $exptected), "Correclty interprets [1.2e3 4 5.6e-7]");
+$expected = pdl(1.2e3, 4, 5.6e-7);
+$got = pdl q[1.2e3 4 5.6e-7];
+ok(all($got == $expected), "Correclty interprets [1.2e3 4 5.6e-7]");
 
-my $exptected = pdl(1.2e3, 4, 5.e-7);
-my $got = pdl q[1.2e3 4 5.e-7];
-ok(all($got == $exptected), "Correclty interprets [1.2e3 4 5.e-7]");
+$expected = pdl(1.2e3, 4, 5.e-7);
+$got = pdl q[1.2e3 4 5.e-7];
+ok(all($got == $expected), "Correclty interprets [1.2e3 4 5.e-7]");
 
 
 ###########################
@@ -140,16 +140,16 @@ ok($t14->ndims == 1, "Implicit bracketing gets proper number of dimensions - no 
 ok($t15->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets, no commas");
 ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - brackets and commas");
 
-$exptected = pdl [];
+$expected = pdl [];
 $got = pdl q[];
-ok(all($got == $exptected), 'Blank strings are interpreted as empty arrays');
-$exptected = pdl [[]];
+ok(all($got == $expected), 'Blank strings are interpreted as empty arrays');
+$expected = pdl [[]];
 $got = pdl q[[]];
-ok(all($got == $exptected), 'Empty bracket is correctly interpreted');
+ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 
-############################
-# Bad, inf, nan checks - 9 #
-############################
+#############################
+# Bad, inf, nan checks - 11 #
+#############################
 
 # First term should be -inf
 my $bad_values = pdl q[nan inf -inf bad];
@@ -176,6 +176,12 @@ ok($infty == -$min_inf, "pdl '-inf' works and has opposite sign and same value a
 ok($nan != $nan, "pdl 'nan' works by itself");
 ok($nan2 != $nan2, "pdl '-nan' works by itself");
 ok($bad->isbad, "pdl 'bad' works by itself");
+
+# Checks for windows strings:
+$infty = pdl q[1.#INF];
+$nan = pdl q[-1.#IND];
+ok($infty * 0 != 0, "pdl '1.#INF' works");
+ok($nan != $nan, "pdl '-1.#IND' works");
 
 ########################
 # Pi and e checks - 10 #
