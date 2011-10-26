@@ -145,7 +145,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(i,x), b(z,i),[o]c(x,z))
+ Signature: (a(i,z), b(x,i),[o]c(x,z))
 
 =for ref
 
