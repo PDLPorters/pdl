@@ -880,9 +880,19 @@ sub PDL::Core::new_pdl_from_string {
    #  nan => ee
    #  inf => Ee
    #  pi  => eE
+   # --( Bad )--
    my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
-   my ($has_nan) = ($value =~ s/\bnan\b/ee/gi);
-   my ($has_inf) = ($value =~ s/\binf\b/Ee/gi);
+   # --( nan )--
+   my ($has_nan) = 0;
+   $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
+   # Strawberry Perl compatibility:
+   $has_nan++ if ($value =~ s/-1\.#IND/ee/gi;
+   # --( inf )--
+   my ($has_inf) = 0;
+   $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
+   # Strawberry Perl compatibility:
+   $has_inf++ if ($value =~ s/1\.#INF/Ee/gi);
+   # --( pi )--
    $value =~ s/\bpi\b/eE/gi;
    
    # Some data types do not support nan and inf, so check for and warn or croak,
