@@ -993,7 +993,7 @@ sub PDL::Core::new_pdl_from_string {
    # case we just assume the result is a stringified bunch of nested
    # arrays.
    local $_ = $value;
-   my $val = PDL::Core::parse_basic_string ($inf, $nan, $bad);
+   my $val = eval { PDL::Core::parse_basic_string ($inf, $nan, $bad) };
    
    # Restore the old warning handler:
    if ($old_warn_handler) {
@@ -1015,9 +1015,9 @@ sub PDL::Core::new_pdl_from_string {
    else {
       my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
       if ($@) {
-         push @message, "eval '$value ': $@";
+         push @message, $@;
       } else {
-         push @message, "eval: unexpected output type ->$val<- is not ARRAY ref";
+         push @message, "Internal error: unexpected output type ->$val<- is not ARRAY ref";
       }
       barf join("\n  ", @message);
    }
@@ -1026,6 +1026,8 @@ sub PDL::Core::new_pdl_from_string {
 sub PDL::Core::parse_basic_string {
 	# Assumes $_ holds the string of interest, and modifies that value
 	# in-place.
+	
+	use warnings;
 	
 	# Takes a string with proper bracketing, etc, and returns an array-of-arrays
 	# filled with numbers, suitable for use with pdl_avref. It uses recursive
