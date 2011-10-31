@@ -937,12 +937,18 @@ sub PDL::Core::new_pdl_from_string {
    $value =~ s/(\d\.)(z|[^\d])/${1}0$2/g;
    $value =~ s/(\A|[^\d])\./${1}0./g;
 
-   # make unambiguous addition/subtraction (white-space on both sides
-   # of operator) by removing white-space from both sides
-   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
+   # Remove whitspace between signs and the numbers that follow them:
+   $value =~ s/([+\-])\s+/$1/g;
+   
+#   # make unambiguous addition/subtraction (white-space on both sides
+#   # of operator) by removing white-space from both sides
+#   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
 
    # Replace white-space separators with commas:
    $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
+   
+   # Remove all other white space:
+   $value =~ s/\s+//g;
 
    # Croak on operations with bad values. It might be nice to simply replace
    # these with bad values, but that is more difficult that I like, so I'm just
@@ -956,29 +962,46 @@ sub PDL::Core::new_pdl_from_string {
          . "You originally gave me $original_value\n");
    }
    
+   # Install the warnings handler:
+   my $old_warn_handler = $SIG{__WARN__};
+	
+   $SIG{__WARN__} = sub {
+      if ($_[0] =~ /(Argument ".*" isn't numeric)/) {
+         # Restore the old warning handler and croak:
+         $SIG{__WARN__} = $old_warn_handler;
+         die "Incorrectly formatted input: $1\n";
+      }
+      elsif ($old_warn_handler) {
+         $old_warn_handler->(@_);
+      }
+      else {
+         warn @_;
+      }
+   };
+
    # Replace the place-holder strings with strings that will evaluate to their
    # correct numerical values when we run the eval:
-   $value =~ s/\bEE\b/\$BAD/g;
-   my $BAD = $types[$type]->badvalue;
-   $value =~ s/\bee\b/\$NAN/g;
-   my $INF = -pdl(0)->log;
-   $value =~ s/\bEe\b/\$INF/g;
-   my $NAN = $INF - $INF;
-   $value =~ s/\beE\b/\$PI/g;
-   my $PI = 4 * atan2(1, 1);
-      
-   # Install functions for PDL::Core::E and PDL::Core::e that croak so that
-   # other copies of these functions do not cause trouble or confusion:
-   {
-      no warnings 'redefine';
-      *PDL::Core::e = sub { exp(1) };
-      *PDL::Core::E = sub { exp(1) };
-   }
+   $value =~ s/\bEE\b/bad/g;
+   my $bad = $types[$type]->badvalue;
+   $value =~ s/\bee\b/nan/g;
+   my $inf = -pdl(0)->log;
+   $value =~ s/\bEe\b/inf/g;
+   my $nan = $inf - $inf;
+   $value =~ s/\beE\b/pi/g;
    
    # Let's see if the darn thing compiles as normal Perl code, in which
    # case we just assume the result is a stringified bunch of nested
    # arrays.
-   my $val = eval $value;
+   local $_ = $value;
+   my $val = PDL::Core::parse_basic_string ($inf, $nan, $bad);
+   
+   # Restore the old warning handler:
+   if ($old_warn_handler) {
+	   $SIG{__WARN__} = $old_warn_handler;
+   }
+   else {
+	   delete $SIG{__WARN__};
+   }
       
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
@@ -998,6 +1021,79 @@ sub PDL::Core::new_pdl_from_string {
       }
       barf join("\n  ", @message);
    }
+}
+
+sub PDL::Core::parse_basic_string {
+	# Assumes $_ holds the string of interest, and modifies that value
+	# in-place.
+	
+	# Takes a string with proper bracketing, etc, and returns an array-of-arrays
+	# filled with numbers, suitable for use with pdl_avref. It uses recursive
+	# descent to handle the nested nature of the data. The string should have
+	# no whitespace and should be something that would evaluate into a Perl
+	# array-of-arrays (except that strings like 'inf', etc, are allowed).
+	
+	# Consider overrideing $SIG{__WARN__} to catch not-look-like-number warnings
+	
+	my ($inf, $nan, $bad) = @_;
+	
+	# First character should be a bracket:
+	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
+		unless s/^\[//;
+	
+	my @to_return;
+	# Loop until we run into our closing bracket:
+	my $sign = 1;
+	my $expects_number = 0;
+	SYMBOL: until (s/^\]//) {
+		# If we have a bracket, then go recursive:
+		if (/^\[/) {
+			die "Expected a number but found a bracket at ... ", substr ($_, 0, 10), "...\n"
+				if $expects_number;
+			push @to_return, PDL::Core::parse_basic_string(@_);
+			next SYMBOL;
+		}
+		elsif (s/^\+//) {
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^\-//) {
+			$sign = -1;
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^bad//i) {
+			push @to_return, $bad;
+		}
+		elsif (s/^inf//i or s/1\.\#INF//i) {
+			push @to_return, $sign * $inf;
+		}
+		elsif (s/^nan//i or s/^1\.\#IND//i) {
+			push @to_return, $nan;
+		}
+		elsif (s/^pi//i) {
+			push @to_return, $sign * 4 * atan2(1, 1);
+		}
+		elsif (s/^e//i) {
+			push @to_return, $sign * exp(1);
+		}
+		elsif (s/^([\d+\-e.]+)//i) {
+			# Note that improper numbers are handled by the warning signal
+			# handler
+			push @to_return, $sign * $1;
+		}
+		else {
+			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
+		}
+	}
+	# Strip off any commas
+	continue {
+		$sign = 1;
+		$expects_number = 0;
+		s/^,//;
+	}
+	
+	return \@to_return;
 }
 
 sub PDL::new {
