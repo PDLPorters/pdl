@@ -1109,7 +1109,7 @@ sub PDL::new {
 
 
    if (ref(\$value) eq "SCALAR") {
-      if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
+      if (PDL::Core::is_scalar_SvPOK($value)) {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
