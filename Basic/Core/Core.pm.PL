@@ -840,15 +840,6 @@ more examples of usage.
 
 =cut
 
-# These are *NOT* to be exported and should only be called by new_pdl_from_string.
-# If the user wants these, they should use PDL::Constants.
-sub PDL::Core::e {
-   return exp(1);
-}
-sub PDL::Core::E {
-   return exp(1);
-};
-
 use Scalar::Util;       # for looks_like_number test
 use Carp 'carp';        # for carping (warnings in caller's context)
 
