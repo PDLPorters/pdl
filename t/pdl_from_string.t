@@ -123,9 +123,9 @@ $compare = pdl([[1,2,3],[4,5,6]]);
 my $t12 = pdl q[1 2 3; 4 5 6];
 ok(all(approx($t12, $compare)), "implicit bracketing check");
 
-###################################
-# Implicit bracketing checks - 10 #
-###################################
+##################################
+# Implicit bracketing checks - 9 #
+##################################
 
 $compare = pdl([1,2,3,4]);
 my $t13 = pdl q[1 2 3 4];
@@ -147,7 +147,8 @@ ok($t16->ndims == 1, "Implicit bracketing gets proper number of dimensions - bra
 $expected = pdl [];
 $got = pdl q[];
 ok(all($got == $expected), 'Blank strings are interpreted as empty arrays');
-$expected = pdl [[]];
+# This generates an annoying warning, and the piddle should be Empty anyway
+#$expected = pdl [];
 $got = pdl q[[]];
 ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 

@@ -866,6 +866,11 @@ sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
    
+   # Check for input that would generate empty piddles as output:
+   my @types = PDL::Types::types;
+   return zeroes($types[$type], 1)->where(zeroes(1) < 0)
+      if ($value eq '' or $value eq '[]');
+   
    # I check for invalid characters later, but arbitrary strings of e will
    # pass that check, so I'll check for that here, first.
    barf("PDL::Core::new_pdl_from_string: I found consecutive copies of e but\n"
@@ -898,7 +903,6 @@ sub PDL::Core::new_pdl_from_string {
    
    # Some data types do not support nan and inf, so check for and warn or croak,
    # as appropriate:
-   my @types = PDL::Types::types;
    if ($has_nan and not $types[$type]->usenan) {
       carp("PDL::Core::new_pdl_from_string: no nan for type $types[$type]; converting to bad value");
       $value =~ s/ee/EE/g;
@@ -989,9 +993,7 @@ sub PDL::Core::new_pdl_from_string {
    my $nan = $inf - $inf;
    $value =~ s/\beE\b/pi/g;
    
-   # Let's see if the darn thing compiles as normal Perl code, in which
-   # case we just assume the result is a stringified bunch of nested
-   # arrays.
+   # Let's see if we can parse it as an array-of-arrays:
    local $_ = $value;
    my $val = eval { PDL::Core::parse_basic_string ($inf, $nan, $bad) };
    
@@ -1002,7 +1004,7 @@ sub PDL::Core::new_pdl_from_string {
    else {
 	   delete $SIG{__WARN__};
    }
-      
+   
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       # remove potentially spurious last dimension
@@ -1034,8 +1036,6 @@ sub PDL::Core::parse_basic_string {
 	# descent to handle the nested nature of the data. The string should have
 	# no whitespace and should be something that would evaluate into a Perl
 	# array-of-arrays (except that strings like 'inf', etc, are allowed).
-	
-	# Consider overrideing $SIG{__WARN__} to catch not-look-like-number warnings
 	
 	my ($inf, $nan, $bad) = @_;
 	
