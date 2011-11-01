@@ -7,7 +7,7 @@
 # for scripts and programs
 #
 
-use Test::More tests => 63;
+use Test::More tests => 65;
 use strict;
 use warnings;
 
@@ -153,7 +153,7 @@ $got = pdl q[[]];
 ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 
 #############################
-# Bad, inf, nan checks - 11 #
+# Bad, inf, nan checks - 13 #
 #############################
 
 # First term should be -inf
@@ -161,12 +161,15 @@ my $bad_values = pdl q[nan inf -inf bad];
 # nan test: nan is never considered equal to itself
 ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
 	or diag("Zeroeth bad value should be nan but it describes itself as " . $bad_values->at(0));
-# inf test: inf + 1 == inf
-ok($bad_values->at(1) + 1 == $bad_values->at(1), 'properly handles inf')
+# inf test: inf == inf but inf * 0 != 0
+ok(($bad_values->at(1) == $bad_values->at(1)
+		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
 	or diag("First bad value should be inf but it describes itself as " . $bad_values->at(1));
-# inf test: -inf + 1 == -inf
-ok($bad_values->at(2) + 1 == $bad_values->at(2), 'properly handles -inf')
+# inf test: -inf == -1 * inf
+ok(($bad_values->at(2) == $bad_values->at(2)
+		and $bad_values->at(2) * 0.0 != 0.0), 'properly handles -inf')
 	or diag("Second bad value should be -inf but it describes itself as " . $bad_values->at(2));
+ok($bad_values->at(2) == -$bad_values->at(1), "negative inf is numerically equal to -inf");
 # bad test
 ok($bad_values->isbad->at(3), 'properly handles bad values')
 	or diag("Third bad value should be BAD but it describes itself as " . $bad_values->slice(3));
@@ -176,11 +179,17 @@ my $min_inf = pdl '-inf';
 my $nan = pdl 'nan';
 my $nan2 = pdl '-nan';
 my $bad = pdl 'bad';
-ok($infty + 1 == $infty, "pdl 'inf' works by itself");
-ok($infty == -$min_inf, "pdl '-inf' works and has opposite sign and same value as pdl 'inf'");
-ok($nan != $nan, "pdl 'nan' works by itself");
-ok($nan2 != $nan2, "pdl '-nan' works by itself");
-ok($bad->isbad, "pdl 'bad' works by itself");
+ok(($infty == $infty and $infty * 0.0 != 0.0), "pdl 'inf' works by itself")
+	or diag("pdl 'inf' gave me $infty");
+ok(($min_inf == $min_inf and $min_inf * 0.0 != 0.0), "pdl '-inf' works by itself")
+	or diag("pdl '-inf' gave me $min_inf");
+ok($min_inf == -$infty, "pdl '-inf' == -pdl 'inf'");
+ok($nan != $nan, "pdl 'nan' works by itself")
+	or diag("pdl 'nan' gave me $nan");
+ok($nan2 != $nan2, "pdl '-nan' works by itself")
+	or diag("pdl '-nan' gave me $nan2");
+ok($bad->isbad, "pdl 'bad' works by itself")
+	or diag("pdl 'bad' gave me $bad");
 
 # Checks for windows strings:
 $infty = pdl q[1.#INF];
