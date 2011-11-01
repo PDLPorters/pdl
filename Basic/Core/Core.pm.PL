@@ -1109,7 +1109,17 @@ sub PDL::new {
 
 
    if (ref(\$value) eq "SCALAR") {
-      if (PDL::Core::is_scalar_SvPOK($value)) {
+      # The string processing is extremely slow. Benchmarks indicated that it
+      # takes 10x longer to process a scalar number compared with normal Perl
+      # conversion of a string to a number. So, only use the string processing
+      # if the input looks like a real string, i.e. it doesn't look like a plain
+      # number. Note that for our purposes, looks_like_number incorrectly
+      # handles the strings 'inf' and 'nan' on Windows machines. We want to send
+      # those to the string processing, so this checks for them in a way that
+      # short-circuits the looks_like_number check.
+      if (PDL::Core::is_scalar_SvPOK($value)
+            and ($value =~ /inf/i or $value =~ /nan/i
+               or !Scalar::Util::looks_like_number($value))) {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
