@@ -194,7 +194,7 @@ ok($bad->isbad, "pdl 'bad' works by itself")
 # Checks for windows strings:
 $infty = pdl q[1.#INF];
 $nan = pdl q[-1.#IND];
-ok($infty * 0 != 0, "pdl '1.#INF' works");
+ok(($infty == $infty and $infty * 0 != 0), "pdl '1.#INF' works");
 ok($nan != $nan, "pdl '-1.#IND' works");
 
 ########################
