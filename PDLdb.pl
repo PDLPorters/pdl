@@ -511,9 +511,9 @@ package DB;
 BEGIN {eval 'use IO::Handle'};	# Needed for flush only? breaks under miniperl
 
 # Debugger for Perl 5.00x; perl5db.pl patch level:
-$VERSION = 1.32;
+$VERSION = 0.01;
 
-$header = "perl5db.pl version $VERSION";
+$header = "PDLdb.pl version $VERSION";
 
 =head1 DEBUGGER ROUTINES
 
