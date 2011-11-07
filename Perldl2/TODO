@@ -1,5 +1,5 @@
 Created on: Thu 10 Dec 2009 10:32:58 PM
-Last saved: Mon 22 Aug 2011 09:15:00 AM 
+Last saved: Mon 07 Nov 2011 03:33:22 PM 
 
 
 +-------------------------------------------------------------------+
@@ -282,7 +282,7 @@ Last saved: Mon 22 Aug 2011 09:15:00 AM
 
   Load local.perldlrc            yes                    yes
   
-  $_ preserved                   no                     yes
+  $_ preserved                   by line/block          by session
 
   User extendable                rewrite/hard           plugins/easy
   
