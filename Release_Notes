@@ -36,6 +36,18 @@ Highlights:
    You should be able to use niceslice syntax to view
    or modify pdl values.  Feedback welcome!
 
+ * New pdl from string functionality in pdl constructors
+   new and pdl now supports BAD, NAN, and INF values as
+   entries in the piddle being constructed.  E.g., this
+   now works:
+
+     pdl> p $a = pdl q[ inf bad 0 0 ];
+     [inf BAD 0 0]
+
+   In addition, the implementation has been reworked
+   to be more robust and secure by replacing eval with
+   a parser.
+
  * Fixed sf.net bug:
 
    - 3391507 "pdl2 docs not found by pdldoc"
