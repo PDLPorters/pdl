@@ -106,7 +106,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Verify dependency detection across all major PDL platforms
-   * Unix/Linux/BSD, Windows/Cygwin, Mac OS X
+   * Unix/Linux/BSD, Windows(ASPerl/Strawberry)/Cygwin, Mac OS X
    * Check completely clean build each platform
    * Confirm that dependencies for each platform
        are correctly detected and reported.
@@ -237,7 +237,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
 
 
    Add CPAN shell start-up info to PDL wiki or web page
-   * Basic cpan
+   * Basic CPAN
    * CPANminus
    * Others
 
@@ -283,7 +283,7 @@ support for 2-D graphics (via PLplot) and 3-D graphics
    
 
    Update PDL Book (in progress)
-   * Needs updating to match PDL-2.4.9 from PDL-2.4.3
+   * Needs updating to match PDL-2.4.10 from PDL-2.4.3
    * make a web version available on-line if possible
    
      Matt Kenworthy has been working on web-izing
@@ -386,7 +386,7 @@ T  Clean up build output from make process to reduce cruft
    
 
    Add support for improved 2-D image display using OpenGL
-   * Add threaded 2-D image tile display to imag2d
+   * Add threaded 2-D image tiled display to imag2d
    * Enable REPL and GUI simultaneous operations and event loops
      * perldl via ReadLine and FreeGLUT
      * REPL via ReadLine and FreeGLUT 
@@ -422,6 +422,7 @@ T  Clean up build output from make process to reduce cruft
   
   NiceSlice cleanup
   * refactor to use Module::Compile / Filter::Simple
+  * implement string processing version for REPL use
   * document nslice
   * implement a niceslice method
   * enhance nslice() to handle CODE refs
