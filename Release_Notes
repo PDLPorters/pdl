@@ -52,7 +52,17 @@ Highlights:
 
    - 3391507 "pdl2 docs not found by pdldoc"
 
-
+ * Fixed security vulnerability in and added functionality
+   to PDL::Core::new_pdl_from_string.
+   
+   - replaced an eval with a Perl-level parse of the string
+   - added support for the strings 'inf', 'nan', and 'bad',
+     as well as the Windows printouts of those values
+   
+   In the past, using new_pdl_from_string with a stringified
+   piddle worked as long as the piddle didn't have infinity,
+   not-a-number, or BAD values. Now, that works. This is also
+   useful for generating data to test edge cases.
 
 
 Release Notes for PDL 2.4.9_009 --------------------------
