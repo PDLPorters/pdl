@@ -44,18 +44,11 @@ Highlights:
      pdl> p $a = pdl q[ inf bad 0 0 ];
      [inf BAD 0 0]
 
-   In addition, the implementation has been reworked
-   to be more robust and secure by replacing eval with
-   a parser.
-
- * Fixed sf.net bug:
-
-   - 3391507 "pdl2 docs not found by pdldoc"
-
  * Fixed security vulnerability in and added functionality
    to PDL::Core::new_pdl_from_string.
    
    - replaced an eval with a Perl-level parse of the string
+
    - added support for the strings 'inf', 'nan', and 'bad',
      as well as the Windows printouts of those values
    
@@ -63,6 +56,12 @@ Highlights:
    piddle worked as long as the piddle didn't have infinity,
    not-a-number, or BAD values. Now, that works. This is also
    useful for generating data to test edge cases.
+
+
+ * Fixed sf.net bugs:
+
+   - 3434842 "Error in definition of gsl_sf_laguerre_n function"
+   - 3391507 "pdl2 docs not found by pdldoc"
 
 
 Release Notes for PDL 2.4.9_009 --------------------------
