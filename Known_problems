@@ -20,7 +20,7 @@ The following issues have been reported with this version of PDL:
   environment variable PERL_MM_USE_DEFAULT to true (e.g., 1).
 
 
-- The Perl debugger for perls 5.10.1 through 5.12+ has a new
+- The Perl debugger for perls 5.10.1 through 5.14.x has a new
   "feature" leading to false fails for lvalue subroutines when
   run under the debugger.  If you need to debug such code with
   an affected perl version, the work around is to use an
@@ -99,7 +99,6 @@ The following issues have been reported with this version of PDL:
 	       with manual perldl.conf configuration and
 	       build
 
-  3391645    bad printf formats in pdlapi.c and others
   3363406    PDL::Minuit build can't make libminuit.a
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl

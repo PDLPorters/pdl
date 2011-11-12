@@ -60,11 +60,16 @@ Highlights:
 
  * Fixed sf.net bugs:
 
-   - 3434842 "Error in definition of gsl_sf_laguerre_n function"
-   - 3391507 "pdl2 docs not found by pdldoc"
+   - 3434842  Error in definition of gsl_sf_laguerre_n function
+   - 3391507  pdl2 docs not found by pdldoc
+   - 3391645  bad printf formats in pdlapi.c and others
 
- * Mostly fixed sf.net bugs:
-   - 3391645 "bad printf formats in pdlapi.c and others"
+ * Resolved sf.net feature requests with clarified documentation
+   and more diagnostic error messages:
+
+   - 3396738  PDL::Core::convert default return type
+   - 3396761  fix rvals arithmetic wrap-around for byte types
+
 
 
 Release Notes for PDL 2.4.9_009 --------------------------
