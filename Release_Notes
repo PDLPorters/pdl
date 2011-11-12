@@ -63,6 +63,9 @@ Highlights:
    - 3434842 "Error in definition of gsl_sf_laguerre_n function"
    - 3391507 "pdl2 docs not found by pdldoc"
 
+ * Mostly fixed sf.net bugs:
+   - 3391645 "bad printf formats in pdlapi.c and others"
+
 
 Release Notes for PDL 2.4.9_009 --------------------------
 
