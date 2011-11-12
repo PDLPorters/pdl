@@ -2571,14 +2571,14 @@ Generic datatype conversion function
 
 =for usage
 
- $y = convert($x, $newtype);
+ $y = convert($x, $newtypenum);
 
 =for example
 
  $y = convert $x, long
  $y = convert $x, ushort
 
-C<$newtype> is a type number, for convenience they are
+C<$newtype> is a type B<number>, for convenience they are
 returned by C<long()> etc when called without arguments.
 
 =cut
@@ -2588,10 +2588,11 @@ returned by C<long()> etc when called without arguments.
 sub PDL::convert {
   # we don't allow inplace conversion at the moment
   # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   # make_physical-call: temporary stopgap to work around core bug
   my $conv = $pdl->flowconvert($type)->make_physical->sever;
@@ -3644,7 +3645,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
   
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();
-  
+
 =cut
 
 *set_autopthread_targ       = \&PDL::set_autopthread_targ;	  
@@ -3664,7 +3665,7 @@ C<$num_pthreads> is the target number of pthreads the auto-pthread process will 
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_targ       = \&PDL::get_autopthread_targ;	  
@@ -3683,7 +3684,7 @@ C<$autopthread_actual> is the actual number of pthreads executed for the last pd
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_actual      = \&PDL::get_autopthread_actual;	  
@@ -3719,7 +3720,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
   
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();
-  
+
 =cut
 
 *set_autopthread_size       = \&PDL::set_autopthread_size;	  
@@ -3739,7 +3740,7 @@ C<$autopthread_size> is the mimumum size limit for auto_pthreading to occur, in 
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_size       = \&PDL::get_autopthread_size;	  
