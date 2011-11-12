@@ -42,7 +42,7 @@ static void print_iarr(int *iarr, int n) {
 void dump_thread(pdl_thread *thread) {
   int i;
   char spaces[] = "    ";
-  printf("DUMPTHREAD 0x%x \n",thread);
+  printf("DUMPTHREAD %p \n",(void*)thread);
   if (0&& thread->einfo) {
     psp; printf("Funcname: %s\n",thread->einfo->funcname);
     psp; printf("Paramaters: ");
@@ -60,7 +60,7 @@ void dump_thread(pdl_thread *thread) {
   psp; printf("Realdims: "); print_iarr(thread->realdims,thread->npdls); printf("\n");
   psp; printf("Pdls: (");
   for (i=0;i<thread->npdls;i++)
-    printf("%s0x%x",(i?" ":""),thread->pdls[i]);
+    printf("%s%p",(i?" ":""),(void*)(thread->pdls[i]));
   printf(")\n");
   psp; printf("Per pdl flags: (");
   for (i=0;i<thread->npdls;i++)
@@ -129,10 +129,10 @@ void pdl_thread_copy(pdl_thread *from,pdl_thread *to) {
 }
 
 void pdl_freethreadloop(pdl_thread *thread) {
-	PDLDEBUG_f(printf("Freethreadloop(0x%x, 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x)\n",
-		thread,
-		thread->inds, thread->dims, thread->offs, thread->incs,
-		thread->flags, thread->pdls);)
+	PDLDEBUG_f(printf("Freethreadloop(%p, %p %p %p %p %p %p)\n",
+		(void*)thread,
+		(void*)(thread->inds), (void*)(thread->dims), (void*)(thread->offs),
+		(void*)(thread->incs), (void*)(thread->flags), (void*)(thread->pdls));)
 	if(!thread->inds) {return;}
 	Safefree(thread->inds);
 	Safefree(thread->dims);
@@ -144,7 +144,7 @@ void pdl_freethreadloop(pdl_thread *thread) {
 }
 
 void pdl_clearthreadstruct(pdl_thread *it) {
-	PDLDEBUG_f(printf("Clearthreadloop(0x%x)\n", it);)
+	PDLDEBUG_f(printf("Clearthreadloop(%p)\n", (void*)it);)
 	it->einfo = 0;it->inds = 0;it->dims = 0;
 	it->ndims = it->nimpl = it->npdls = 0; it->offs = 0;
 	it->pdls = 0;it->incs = 0; it->realdims=0; it->flags=0;
@@ -342,7 +342,7 @@ void pdl_initthreadstruct(int nobl,
 	int *nthreadids;
 	int nthr = 0; int nthrd;
 
-	PDLDEBUG_f(printf("Initthreadloop(0x%x)\n", thread);)
+	PDLDEBUG_f(printf("Initthreadloop(%p)\n", (void*)thread);)
 #ifdef PDL_THREAD_DEBUG
 	  /* the following is a fix for a problem in the current core logic
            * see comments in pdl_make_physical in pdlapi.c

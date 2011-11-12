@@ -124,7 +124,7 @@ pdl_magic *pdl__print_magic(pdl *it)
 {
 	pdl_magic **foo = &(it->magic);
 	while(*foo) {
-	  printf("Magic %d\ttype: ",*foo);
+	  printf("Magic %p\ttype: ",(void*)(*foo));
 		if((*foo)->what & PDL_MAGIC_MARKCHANGED)
 		  printf("PDL_MAGIC_MARKCHANGED");
 		else if ((*foo)->what & PDL_MAGIC_MUTATEDPARENT)
