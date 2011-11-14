@@ -629,6 +629,7 @@ Lib/Transform/transform.pd
 MANIFEST			This list of files
 MANIFEST.SKIP
 Makefile.PL
+PDLdb.pl
 Perldl2/Makefile.PL
 Perldl2/Plugin/Makefile.PL
 Perldl2/Plugin/NiceSlice.pm
