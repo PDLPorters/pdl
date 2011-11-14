@@ -30,6 +30,7 @@ $fh->close;
 
 print "Trying to figure out POSIX threads support ...\n";
 
+# TODO: replace directory and file checks for pthread.h by Devel::CheckLib test
 if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THREADS_INC} ) {
     $pthread_include = $PDL::Config{POSIX_THREADS_INC};
     print "\t..setting \$pthread_include to $pthread_include\n";
@@ -44,10 +45,11 @@ if ( exists $PDL::Config{POSIX_THREADS_INC} and  defined $PDL::Config{POSIX_THRE
 # For SGI, I had to link a new perl - cannot dlopen libpthread...
 require Config;
 
+# TODO: need to clean up per-platform logic herer
 if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THREADS_LIBS} ) {
     $pthread_library = $PDL::Config{POSIX_THREADS_LIBS};
     print "\tUsing POSIX_THREADS_LIBS from perldl.conf\n";
-} elsif ($Config::Config{libs} =~ /-lpthread/) {
+} elsif ($Config::Config{libs} =~ /-lpthread/) {   # wrong
     print "\tFine, your perl was linked against pthread library.\n";
 } elsif ($^O eq 'dec_osf') {
     if ($Config::Config{usemymalloc} eq 'n') {
@@ -66,13 +68,14 @@ if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THRE
     }
 } else {
     print "\tNope, your perl was not linked against pthread library\n";
-    print "\tYou need to include -lpthread in your perl libs configuration\n";
-    $pthread_library = '';
+    print "\tWe'll try the default -lpthread anyway\n";
+    # $pthread_library = '';
 }
 
 $pthread_include = $pthread_library = '' unless $pthread_include and $pthread_library;
 
 {
+    # TODO: use a Devel::CheckLib build/run test to verify working build params
     my $conf = $PDL::Config{WITH_POSIX_THREADS};
 
     if ((!defined($conf) or $conf)
