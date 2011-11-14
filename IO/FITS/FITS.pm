@@ -646,7 +646,7 @@ sub treat_bscale($$){
     my $pdl = shift;
     my $foo = shift;
 
-    print "treating bscale...\n" if($PDL::DEBUG);
+    print "treating bscale...\n" if($PDL::debug);
 
     if ( $PDL::Bad::Status ) {
       # do we have bad values? - needs to be done before BSCALE/BZERO
@@ -904,7 +904,7 @@ sub _rdP {
     $tbl->{"len_".$tbl->{hdr}->{"TTYPE$i"}}->($row) .= $oflen->at(0);
 
     print "_rdP: pdl is ",join("x",$pdl->dims),"; reading row $row - readlen is $readlen\n"
-	if($PDL::verbose);
+	if($PDL::debug);
 
     # Copy the data into the output PDL.
     my $of = $oflen->at(1);
@@ -1501,6 +1501,7 @@ sub _rfits_unpack_zimage($$$) {
 	$pdl = treat_bscale($pdl, $hdr);
     }
     $pdl->sethdr($hdr);
+    $pdl->hdrcpy($opt->{hdrcpy});
 
     return $pdl;
 }
