@@ -873,7 +873,7 @@ using lvalue subroutines:
     [0 5 6 3 4]
 
 see L<PDL::Lvalue> for more info.  PDL also supports a more
-matrix-like slice syntax via the L<PDL::NiceSlice> module:
+matrix-like slice syntax via the L<PDL::NiceSlice|PDL::NiceSlice> module:
 
     pdl> $a(1:2) .= pdl([5,6])
     pdl> p $a
@@ -1168,30 +1168,30 @@ FlexRaw module at some time in the future.
 
 =item *
 
-FITS I/O is implemented by the C<wfits>/C<rfits> functions in L<PDL::IO::Misc> .
+FITS I/O is implemented by the C<wfits>/C<rfits> functions in L<PDL::IO::FITS|PDL::IO::FITS> .
 
 =item *
 
 ASCII file I/O in various formats can be achieved by using the 
-C<rcols> and C<rgrep> functions, also in L<PDL::IO::Misc> .
+C<rcols> and C<rgrep> functions, also in L<PDL::IO::Misc|PDL::IO::Misc> .
 
 =item *
 
-L<PDL::IO::Pic> implements an interface to the NetPBM/PBM+ filters to
-read/write several popular image formats; also supported is output
-of image sequences as MPEG movies, animated GIFs and a wide variety
-of other video formats.
+L<PDL::IO::Pic|PDL::IO::Pic> implements an interface to the
+NetPBM/PBM+ filters to read/write several popular image formats; also
+supported is output of image sequences as MPEG movies, animated GIFs
+and a wide variety of other video formats.
 
 =item *
 
-On CPAN you can find the PDL::NetCDF module that works with the current
+On CPAN you can find the L<PDL::NetCDF|PDL::NetCDF> module that works with the current
 released version of PDL 2.4.9.
 
 
 
 =back
 
-For further details consult the more detailed list in the L<PDL::IO>
+For further details consult the more detailed list in the L<PDL::IO|PDL::IO>
 documentation or the documentation for the individual modules.
 
 
@@ -1216,7 +1216,7 @@ or
 
     $cube(:,:,($_)) .= PDL->rpic($names[$_]);
 
-for the slice assignment using the new L<PDL::NiceSlice> syntax and Lvalue
+for the slice assignment using the new L<PDL::NiceSlice|PDL::NiceSlice> syntax and Lvalue
 assignments.
 
 
