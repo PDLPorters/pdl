@@ -26,7 +26,13 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * SF.net bugs fixed:
+
+   - 3410905  t/pgplot.t hangs test harness for PDL
+              Now use the PGPLOT /NULL device if running
+              under Test::Harness.
+
+ * Various documentation and updates.
 
 
 
