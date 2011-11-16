@@ -89,6 +89,8 @@ my $interactive_ctr = 0;
 
 my $dev = $ENV{'PGPLOT_DEV'} ? $ENV{'PGPLOT_DEV'} : "/xw";
 
+$dev = '/null' if exists $ENV{HARNESS_ACTIVE};
+
 my $w = PDL::Graphics::PGPLOT::Window->new(
 					   Dev => $dev,
 					   Size=> [6,4],
