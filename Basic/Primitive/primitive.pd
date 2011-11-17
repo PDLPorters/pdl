@@ -1332,7 +1332,7 @@ pp_def('statsover',
          %}
 	 $rms()  = sqrt ( tmp/norm );
 	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
-         $adev() = sqrt( tmp1/norm );
+         $adev() = tmp1/norm ;
 ',
 	BadCode => 
 	'$GENERIC(avg) tmp = 0;
@@ -1374,7 +1374,7 @@ pp_def('statsover',
 	   	   $prms() =  sqrt( tmp/(norm-1) );
 	   else
 	           $SETBAD(prms());
-           $adev() = sqrt ( tmp1 / norm );
+           $adev() = tmp1 / norm ;
          } else       { 
            $SETBAD(avg()); 
            $SETBAD(rms());
@@ -1425,12 +1425,12 @@ quantities of a piddle. These are:
 
 with C<N> being the number of elements in x
 
-=item * RMS deviation from the mean:
+=item * the population RMS deviation from the mean:
 
-  RMS = sqrt(sum( (x-mean(x))^2 )/N)
+  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
 
-(also known as the root-mean-square deviation, or the square root of the
-variance)
+The population deviation is the best-estimate of the deviation 
+of the population from which a sample is drawn.
 
 =item * the median
 
@@ -1441,18 +1441,16 @@ L<medover|PDL::Ufunc/medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATIO
 
 =item * the maximum
 
-=item * the absolute deviation:
+=item * the average absolute deviation:
 
-  ADEV = sqrt(sum( abs(x-mean(x)) )/N)
+  AADEV = sum( abs(x-mean(x)) )/N
 
-(This is also called the standard deviation)
+=item * RMS deviation from the mean:
 
-=item * the population RMS deviation from the mean:
+  RMS = sqrt(sum( (x-mean(x))^2 )/N)
 
-  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
-
-The population deviation is the best-estimate of the deviation 
-of the population from which a sample is drawn.
+(also known as the root-mean-square deviation, or the square root of the
+variance)
 
 =back
 
