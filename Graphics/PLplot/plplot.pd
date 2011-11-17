@@ -1,7 +1,8 @@
 use Config;
 
 my $ptrsize = length($Config{'byteorder'}); # 4 or 8 bytes
-my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';
+my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'long';     # pointer type in C code
+my $pp_ptr_type  = ($ptrsize == 4) ? 'int' : 'longlong'; # pointer type in pp_def Pars sections
 
 # User can set this global variable to 1 if he wants
 # to use the normal plplot order of arguments, not the PP-required
@@ -3447,7 +3448,7 @@ EOC
 
 pp_def ('plAllocGrid',
         NoPthread => 1,
-        Pars => 'double xg(nx); double yg(ny); int [o] grid()',
+        Pars => "double xg(nx); double yg(ny); $pp_ptr_type [o] grid()",
         GenericTypes => [D],
         Doc => 'FIXME: documentation here!',
         Code => '
@@ -3496,7 +3497,7 @@ pp_add_exported (plFreeGrid);
 
 pp_def ('plAlloc2dGrid',
         NoPthread => 1,
-        Pars => 'double xg(nx,ny); double yg(nx,ny); int [o] grid()',
+        Pars => "double xg(nx,ny); double yg(nx,ny); $pp_ptr_type [o] grid()",
         GenericTypes => [D],
         Doc => 'FIXME: documentation here!',
         Code => '
