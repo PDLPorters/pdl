@@ -1647,8 +1647,8 @@ Plot vector as histogram (e.g. C<bin(hist($data))>)
 
 Options recognised:
 
- CENTRE - if true, the x values denote the centre of the bin 
-          otherwise they give the lower-edge (in x) of the bin
+ CENTRE - (default=1) if true, the x values denote the centre of the
+          bin otherwise they give the lower-edge (in x) of the bin
  CENTER - as CENTRE
 
 The following standard options influence this command:
