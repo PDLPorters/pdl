@@ -3767,7 +3767,7 @@ void labelfunc_callback (PLINT axis, PLFLT value, char *label_text, PLINT length
     croak ("labelfunc: must return one perl scalar");
 
   // Copy label into output string
-  snprintf( label_text, length, (char *)SvPV_nolen(ST(0)) );
+  snprintf( label_text, length, "%s", (char *)SvPV_nolen(ST(0)) );
 
   PUTBACK;
   FREETMPS;
