@@ -1,8 +1,8 @@
 use Config;
 
 my $ptrsize = $Config{'ptrsize'};
-my $int_ptr_type = ($ptrsize == 4) ? 'I32' : 'I64';                       # pointer type in C code
-my $pp_ptr_type  = ($ptrsize == 4) ? $Config{i32type} : $Config{i64type}; # pointer type in pp_def Pars sections
+my $int_ptr_type = ($ptrsize == 4) ? $Config{i32type} : $Config{i64type}; # pointer type in C code
+my $pp_ptr_type  = ($ptrsize == 4) ? 'int' : 'longlong';    # pointer type in pp_def Pars sections
 
 # User can set this global variable to 1 if he wants
 # to use the normal plplot order of arguments, not the PP-required
