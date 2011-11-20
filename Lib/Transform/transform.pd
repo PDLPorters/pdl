@@ -1419,8 +1419,6 @@ sub map {
 
 	my $coords = ndcoords(($samps + 1)->list); 
 
-	$coords -= 0.5;
-	
 	my $t;
 	my $irange = _opt($opt, ['ir','irange','input_range','Input_Range'],
 			  undef);
@@ -1436,9 +1434,11 @@ sub map {
 
 	  $coords *= ($irange->((1)) - $irange->((0))) / $samps;
 	  $coords += $irange->((0));
+	  $coords -= 0.5; # offset to pixel corners...
 	  $t = $me;
 	} else {
 	  $coords *= pdl(($in->dims)[0..$nd-1]) / $samps;
+  	  $coords -= 0.5; # offset to pixel corners...
 	  $t = $f_tr;
 	}
 
