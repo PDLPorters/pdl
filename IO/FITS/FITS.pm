@@ -2134,7 +2134,7 @@ sub PDL::wfits {
   
   # Write FITS data
   
-  my $p1d = $pdl->clump(-1); # Data as 1D stream
+  my $p1d = $pdl->copy->reshape($pdl->nelem); # Data as 1D stream;
   
   $off = 0;
   $sz  = PDL::Core::howbig(&$convert($p1d->slice('0:0'))->get_datatype);
