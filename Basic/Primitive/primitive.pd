@@ -145,7 +145,7 @@ pp_addpm(<<'EOD');
 
 =for sig
 
- Signature: (a(i,x), b(z,i),[o]c(x,z))
+ Signature: (a(i,z), b(x,i),[o]c(x,z))
 
 =for ref
 
@@ -226,8 +226,8 @@ pp_def('matmult',
 sub PDL::matmult {
     my ($a,$b,$c) = @_;
 
-    $b = pdl($b) unless(UNIVERSAL::isa($b,'PDL'));
-    $c = PDL->null unless(UNIVERSAL::isa($c,'PDL'));
+    $b = pdl($b) unless eval { $b->isa('PDL') };
+    $c = PDL->null unless eval { $c->isa('PDL') };
 
     while($a->getndims < 2) {$a = $a->dummy(-1)}
     while($b->getndims < 2) {$b = $b->dummy(-1)}
@@ -235,11 +235,11 @@ sub PDL::matmult {
     return ($c .= $a * $b) if( ($a->dim(0)==1 && $a->dim(1)==1) ||
     	       	       	       ($b->dim(0)==1 && $b->dim(1)==1) );
     if($b->dim(1) != $a->dim(0)) {
-	barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
+        barf(sprintf("Dim mismatch in matmult of [%dx%d] x [%dx%d]: %d != %d",$a->dim(0),$a->dim(1),$b->dim(0),$b->dim(1),$a->dim(0),$b->dim(1)));
     }
     PDL::_matmult_int($a,$b,$c);
     $c;
-    }
+}
 EOPM
 	Code => <<'EOC',
 	long ih, iw, it, ow, oh, ot, wlim, hlim, tlim;
@@ -1332,7 +1332,7 @@ pp_def('statsover',
          %}
 	 $rms()  = sqrt ( tmp/norm );
 	 $prms() = (norm>1) ? sqrt( tmp/(norm-1) ) : 0;
-         $adev() = sqrt( tmp1/norm );
+         $adev() = tmp1/norm ;
 ',
 	BadCode => 
 	'$GENERIC(avg) tmp = 0;
@@ -1374,7 +1374,7 @@ pp_def('statsover',
 	   	   $prms() =  sqrt( tmp/(norm-1) );
 	   else
 	           $SETBAD(prms());
-           $adev() = sqrt ( tmp1 / norm );
+           $adev() = tmp1 / norm ;
          } else       { 
            $SETBAD(avg()); 
            $SETBAD(rms());
@@ -1425,12 +1425,12 @@ quantities of a piddle. These are:
 
 with C<N> being the number of elements in x
 
-=item * RMS deviation from the mean:
+=item * the population RMS deviation from the mean:
 
-  RMS = sqrt(sum( (x-mean(x))^2 )/N)
+  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
 
-(also known as the root-mean-square deviation, or the square root of the
-variance)
+The population deviation is the best-estimate of the deviation 
+of the population from which a sample is drawn.
 
 =item * the median
 
@@ -1441,18 +1441,16 @@ L<medover|PDL::Ufunc/medover>, so WEIGHTING IS IGNORED FOR THE MEDIAN CALCULATIO
 
 =item * the maximum
 
-=item * the absolute deviation:
+=item * the average absolute deviation:
 
-  ADEV = sqrt(sum( abs(x-mean(x)) )/N)
+  AADEV = sum( abs(x-mean(x)) )/N
 
-(This is also called the standard deviation)
+=item * RMS deviation from the mean:
 
-=item * the population RMS deviation from the mean:
+  RMS = sqrt(sum( (x-mean(x))^2 )/N)
 
-  PRMS = sqrt( sum( (x-mean(x))^2 )/(N-1)
-
-The population deviation is the best-estimate of the deviation 
-of the population from which a sample is drawn.
+(also known as the root-mean-square deviation, or the square root of the
+variance)
 
 =back
 
@@ -2967,9 +2965,10 @@ sub PDL::whereND {
    my $mask = pop @_;  # $mask has 0==false, 1==true
    my @to_return;
 
+   my $n = PDL::sum($mask);
+
    foreach my $arr (@_) {
 
-      my $n = PDL::sum($mask);
       my $sub_i = $mask * ones($arr);
       my $where_sub_i = PDL::where($arr, $sub_i);
 
@@ -2982,7 +2981,7 @@ sub PDL::whereND {
 
       my $ndim = 0;
       foreach my $id ($n, @idims[0..($#idims-1)]) {
-         $where_sub_i = $where_sub_i->splitdim($ndim++,$id);
+         $where_sub_i = $where_sub_i->splitdim($ndim++,$id) if $n>0;
       }
 
       push @to_return, $where_sub_i;

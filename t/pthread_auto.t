@@ -3,7 +3,16 @@
 #  interface, instead of specificaly setting pthread magic on individual PDLs
 
 use PDL::LiteF;
-use Benchmark;
+
+BEGIN {
+   if ( $] < 5.008_008 ) {
+      require Benchmark; Benchmark->import();
+      warn "# Benchmark wallclock timings reported to the second.  You\n";
+      warn "#  may not measure a speedup with multiple CPU threads.\n";
+   } else {
+      require Benchmark; Benchmark->import(':hireswallclock');
+   }
+}
 
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
@@ -42,13 +51,13 @@ if (PDL::Core::pthreads_enabled) {
   set_autopthread_targ(10);
   set_autopthread_size(0);
     
-  timethese(50,{threaded => '$a += 1'});
+  timethese(20,{threaded => '$a **= 1.3'});
   
   ok( 1, get_autopthread_actual() == 10); # should have split into 10 threads
   
   # Set target to 0 for comparison to unthreaded
-  set_autopthread_targ(10);
-  timethese(50,{unthreaded => '$b+= 1'});
+  set_autopthread_targ(0);
+  timethese(20,{unthreaded => '$b **= 1.3'});
   
   print $a->slice('0:20'),"\n";
   ok(2,tapprox($a,$b));

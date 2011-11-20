@@ -66,6 +66,16 @@ typedef struct pdl_magic_deletedata {
 /* Defined by MakeMaker */
 #ifdef PDL_PTHREAD
 
+/* This is a workaround to a perl CORE "feature" where they define a
+ * macro PTHREAD_CREATE_JOINABLE with the same name as POSIX threads
+ * which works as long as the implementation of POSIX threads also
+ * uses macros.  As is, the use of the same name space breaks for
+ * win32 pthreads where the identifiers are enums and not #defines
+ */
+#ifdef PTHREAD_CREATE_JOINABLE
+#undef  PTHREAD_CREATE_JOINABLE
+#endif
+
 #include <pthread.h>
 
 typedef struct pdl_magic_pthread {

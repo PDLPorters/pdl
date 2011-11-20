@@ -27,7 +27,7 @@ pp_def('gsl_sf_laguerre_n',
        Pars=>'double x(); double [o]y(); double [o]e()',
        Code =>'
 gsl_sf_result r;
-GSLERR(gsl_sf_gegenpoly_n_e,($COMP(n),$COMP(a), $x(),&r))
+GSLERR(gsl_sf_laguerre_n_e,($COMP(n),$COMP(a), $x(),&r))
 $y() = r.val;
 $e() = r.err; 
 ',

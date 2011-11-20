@@ -52,10 +52,10 @@ The C<pdl2> program, also known as the Perldl2 shell, is a second
 generation version of the original C<perldl> interactive PDL shell.
 It attempts to be backward compatible in usage while providing
 improved features, better support for Perl syntax, and an more
-easily extended framework based on the L<Devel::REPL> shell.
+easily extended framework based on the L<Devel::REPL|Devel::REPL> shell.
 
-If you have L<Devel::REPL> version 1.003011 or later, then C<pdl2>
-will start with full functionality.  If L<Devel::REPL> is not
+If you have L<Devel::REPL|Devel::REPL> version 1.003011 or later, then C<pdl2>
+will start with full functionality.  If L<Devel::REPL|Devel::REPL> is not
 installed or found then C<pdl2> will print a warning and run
 the legacy C<perldl> shell command instead.
 

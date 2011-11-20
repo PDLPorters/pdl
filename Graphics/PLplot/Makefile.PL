@@ -49,6 +49,14 @@ unless ($PDL::Config{WITH_BADVAL}) {
   return if (caller); exit;
 }
 
+my $found_plplot =
+    (defined($PDL::Config{WITH_PLPLOT}) && (!$PDL::Config{WITH_PLPLOT}))
+    ? 0 : 1;
+print "found_plplot is $found_plplot\n";
+unless ($found_plplot) {
+  buildDummy ("User requested no PLplot interface!");
+  return if (caller); exit;
+}
 
 foreach my $libdir (
 		    $ENV{PLPLOT_LIBDIR},
@@ -189,7 +197,8 @@ $hash{'META_MERGE'}   = {provides => {PDL::Graphics::PLplot => {file => 'plplot.
 $hash{'LIBS'}      = [$libs];
 # add this to allow one to use the /ops/tools/lib plplot libs even when
 # another plplot is installed in /usr/local/lib. D. Hunt 6/4/2004
-$hash{'LDDLFLAGS'} = " -shared -L$plplot_lib_path -L/usr/local/lib ";
+$hash{'LDDLFLAGS'} = $^O eq 'darwin' ? " -bundle -undefined dynamic_lookup -L$plplot_lib_path " : " -shared -L$plplot_lib_path -L/usr/local/lib ";
+
 $hash{'INC'}      .= " $plplot_include_path";
 $hash{'clean'}     = {'FILES'  =>
                         'PLplot.pm PLplot.xs PLplot.o PLplot.c PLplot.bs *svg.* *.xfig temp* OPTIONS! Makefile.old'};

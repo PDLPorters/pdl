@@ -717,14 +717,14 @@ sub scan {
      if (/^(PDL) (-) (.*)/ or /\s*(PDL::[\w:]*)\s*(-*)?\s*(.*)\s*$/) {
        $name = $1; $does = $3;
      }
-     if (/^\s*([a-z]+) (-+) (.*)/) { # lowercase shell script name
+     if (/^\s*([a-z][a-z0-9]*) (-+) (.*)/) { # lowercase shell script name
        $name = $1; $does = $3;
        ($name,$does) = (undef,undef) unless $does =~ /shell|script/i;
      }
    }
    $does = 'Hmmm ????' if $does =~ /^\s*$/;
    my $type = ($file =~ /\.pod$/ ? 
-	       ($does =~ /shell|script/i && $name =~ /^[a-z]+$/) ? 'Script:' 
+	       ($does =~ /shell|script/i && $name =~ /^[a-z][a-z0-9]*$/) ? 'Script:' 
 	       : 'Manual:'
 	       : 'Module:');
    $hash->{$name} = {Ref=>"$type $does",File=>$file2} if $name !~ /^\s*$/;

@@ -1194,8 +1194,8 @@ sub separate_code {
 	# of them
 
 	s/^(.*?) # First, some noise is allowed. This may be bad.
-	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]+\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
-                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]+\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
+	    ( \$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?[a-zA-Z_]\w*\s*\([^)]*\)\s*\)   # $ISBAD($a(..)), ditto for ISGOOD and SETBAD
+                |\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*[a-zA-Z_]\w*\s*,\s*[^)]*\s*\)   # $PPISBAD(CHILD,[1]) etc
 ###                |\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)      # $STATEISBAD(a) etc
                 |\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*[^)]*\s*\)   # $PDLSTATEISBAD(a) etc
 	        |\$[a-zA-Z_]\w*\s*\([^)]*\)  # $a(...): access
@@ -1205,50 +1205,50 @@ sub separate_code {
 		|%}                        # %}
 		|$)//xs
 		    or confess("Invalid program $_");
-	my $control = $2;
-	# Store the user code.
-	# Some day we shall parse everything.
-	push @{$stack[-1]},$1;
+		my $control = $2;
+		# Store the user code.
+		# Some day we shall parse everything.
+		push @{$stack[-1]},$1;
 
-if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
+		if ( $control =~ /^\$STATE/ ) { print "\nDBG: - got [$control]\n\n"; }
 
-	# Then, our control.
-	if($control) {
-	    if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
-		my $ob = new PDL::PP::Loop([split ',',$1],
-					   $sizeprivs,$this);
-		print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-	    } elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
-		my $ob = new PDL::PP::Types($1,$this);
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-	    } elsif($control =~ /^threadloop\s*%{/) {
-		my $ob = new PDL::PP::ThreadLoop();
-		push @{$stack[-1]},$ob;
-		push @stack,$ob;
-		$threadloops ++;
-	    } elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]+)\s*,\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]+)\s*\(([^)]*)\)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
-#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
-		push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
-	    } elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
-		push @{$stack[-1]},new PDL::PP::Access($control,$this);
-	    } elsif($control =~ /^%}/) {
-	        pop @stack;
-	    } else {
-		confess("Invalid control: $control\n");
-	    }
-	} else {
-	    print("No \$2!\n") if $::PP_VERBOSE;
-	}
+		# Then, our control.
+		if($control) {
+			if($control =~ /^loop\s*\(([^)]+)\)\s*%{/) {
+				my $ob = new PDL::PP::Loop([split ',',$1],
+						   $sizeprivs,$this);
+				print "SIZEPRIVSXX: $sizeprivs,",(join ',',%$sizeprivs),"\n" if $::PP_VERBOSE;
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^types\s*\(([^)]+)\)\s*%{/) {
+				my $ob = new PDL::PP::Types($1,$this);
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+			} elsif($control =~ /^threadloop\s*%{/) {
+				my $ob = new PDL::PP::ThreadLoop();
+				push @{$stack[-1]},$ob;
+				push @stack,$ob;
+				$threadloops ++;
+			} elsif($control =~ /^\$PP(ISBAD|ISGOOD|SETBAD)\s*\(\s*([a-zA-Z_]\w*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::PPBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)VAR\s*\(\s*([^)]*)\s*,\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::BadVarAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$(ISBAD|ISGOOD|SETBAD)\s*\(\s*\$?([a-zA-Z_]\w*)\s*\(([^)]*)\)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::BadAccess($1,$2,$3,$this);
+	#	    } elsif($control =~ /^\$STATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+	#		push @{$stack[-1]},new PDL::PP::StateBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$PDLSTATE(IS|SET)(BAD|GOOD)\s*\(\s*([^)]*)\s*\)/) {
+				push @{$stack[-1]},new PDL::PP::PDLStateBadAccess($1,$2,$3,$this);
+			} elsif($control =~ /^\$[a-zA-Z_]\w*\s*\([^)]*\)/) {
+				push @{$stack[-1]},new PDL::PP::Access($control,$this);
+			} elsif($control =~ /^%}/) {
+			    pop @stack;
+			} else {
+				confess("Invalid control: $control\n");
+			}
+		} else {
+			print("No \$2!\n") if $::PP_VERBOSE;
+		}
     } # while: $_
 
     return ( $threadloops, $coderef, $sizeprivs );

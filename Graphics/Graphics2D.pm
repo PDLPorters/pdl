@@ -775,7 +775,8 @@ sub imag2d {
    glDrawPixels_s( $img->dim($glds+0), $img->dim($glds+1), $gldrawformat, $gldrawtype,         $img->get_dataref );
    glFlush();
 
-   twiddle();
+   # we don't twiddle if in PDL shell and glutRunning is on
+   twiddle() unless defined $PERLDL::TERM and $PERLDL::TERM->glutRunning;
 
    return $window_id;
 }

@@ -837,7 +837,7 @@ The correct way of defining the PDL function is
 
 	pp_def('myfunc',
 		Pars => 'a(n); [o]b(n);',
-		GenericTypes => [D],
+		GenericTypes => ['D'],
 		Code => 'myfunc($SIZE(n),$P(a),$P(b));'
 	);
 
@@ -872,7 +872,7 @@ a more general example, e.g.:
 
 	pp_def('myfunc',
 		Pars => 'float a(n); long [o]b(n);',
-		GenericTypes => [F],
+		GenericTypes => ['F'],
 		Code => 'myfunc($SIZE(n),$P(a),$P(b));'
 	);
 
@@ -938,7 +938,7 @@ on the type of the transformation):
   pp_def('foofunc',
 	Pars => ' a(n); [o] b();',
 	Code => ' $TFD(float_func,double_func) ($P(a),$P(b));'
-	GenericTypes => [F,D],
+	GenericTypes => [qw(F D)],
   );
 
 Please note that you can't say
@@ -979,7 +979,7 @@ another example that illustrates typical usage of both new features:
   pp_def('pnmout',
 	Pars => 'a(m)',
 	OtherPars => "char* fd",
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => 'PerlIO *fp;
 		 IO *io;
 
@@ -1069,7 +1069,7 @@ function:
   pp_def('pnmout',
 	Pars => 'a(m)',
 	OtherPars => "char* fd",
-	GenericTypes => [B,U,S,L],
+	GenericTypes => [qw(B U S L)],
 	Code => 'PerlIO *fp;
 		 IO *io;
 		 int len;
@@ -1416,7 +1416,7 @@ C<pp_def>s, e.g.:
 
   pp_def('barfoo',
 	 Pars => ' a(n); [o] b(n)',
-	 GenericTypes => '[B]',
+	 GenericTypes => ['B'],
 	 Code => ' int ns = $SIZE(n);
 		   do_the_real_work($P(a),$P(b),ns);
                  ',
@@ -1806,11 +1806,20 @@ Only used if C<HandleBad =E<gt> 1>.
 
 =item GenericTypes
 
-An array reference. The array may contain any subset of the strings
-`B', `S', `U', `L', `F' and `D', which specify which types
-your operation will accept.
+An array reference. The array may contain any subset of the one-character
+strings `B', `S', `U', `L', `Q', `F' and `D', which specify which types
+your operation will accept. The meaning of each type is:
+
+ B - signed byte (i.e. signed char)
+ S - signed short (two-byte integer)
+ U - unsigned short
+ L - signed long (four-byte integer, int on 32 bit systems)
+ Q - signed long long (eight byte integer)
+ F - float
+ D - double
+
 This is very useful (and important!) when interfacing an external library.
-Default: [qw/B S U L F D/]
+Default: [qw/B S U L Q F D/]
 
 =item Inplace
 
@@ -1853,6 +1862,62 @@ pthreads or POSIX threads) to split up work across mutliple CPU cores. This opti
 is typically set to 1 if the underlying PDL function is not threadsafe. If this option
 isn't present, then the function is assumed to be threadsafe. This option only
 applies if PDL has been compiled with POSIX threads enabled. 
+
+=cut
+
+# FTypes is specified only in the two internal slice functions
+# converttypei and flowconvert. converttypei is never used anywhere in the
+# core. The related function, converttypei_new, does not appear to ever be
+# defined, but it is named used in converttypei as the GlobalNew, which I
+# presume we'll get to later. At any rate, converttypei appears to be
+# defunct. flowconvert, on the other hand, claims that it 'converts vaffine
+# piddles without physicalizing them'. However, its only use, in Core.pm,
+# is followed immediately by a "->make_physical->sever", so I don't see the
+# advantage of not making things physical. At any rate, FTypes needs to be
+# documented.
+
+=item PMCode
+
+PDL functions allow you to pass in a piddle into which you want the output
+saved. This is handy because you can allocate an output piddle once and
+reuse it many times; the alternative would be for PDL to create a new piddle
+each time, which may waste compute cycles or, more likely, RAM. This added
+flexibility comes at the cost of more complexity: PDL::PP has to write
+functions that are smart enough to count the arguments passed to it and
+create new piddles on the fly, but only if you want them.
+
+PDL::PP is smart enough to do that, but there are restrictions on argument
+order and the like. If you want a more flexible function, you can write your
+own Perl-side wrapper and specify it in the PMCode key. The string that you
+supply must (should) define a Perl function with a name that matches what you
+gave to pp_def in the first place. When you wish to eventually invoke the
+PP-generated function, you will need to supply all piddles in the exact
+order specified in the signature: output piddles are not optional, and the
+PP-generated function will not return anything. The obfuscated name that you
+will call is _<funcname>_int.
+
+I believe this documentation needs further clarification, but this will have
+to do. :-(
+
+=item PMFunc
+
+When pp_def generates functions, it typically defines them in the PDL
+package. Then, in the .pm file that it generates for your module, it
+typically adds a line that essentially copies that function into your current
+package's symbol table with code that looks like this:
+
+ *func_name = \&PDL::func_name;
+
+It's a little bit smarter than that (it knows when to wrap that sort of
+thing in a BEGIN block, for example, and if you specified something different
+for pp_bless), but that's the gist of it. If you don't care to import the
+function into your current package's symbol table, you can specify
+
+ PMFunc => '',
+
+PMFunc has no other side-effects, so you could use it to insert arbitrary
+Perl code into your module if you like. However, you should use pp_addpm
+if you want to add Perl code to your module.
 
 =back
 
@@ -1938,6 +2003,198 @@ execute following code if type of operation is any of C<TYPES>
 
 =back
 
+=head1 Appendix C: Functions imported by PDL::PP
+
+A number of functions are imported when you C<use PDL::PP>. These include
+functions that control the generated C or XS code, functions that control
+the generated Perl code, and functions that manipulate the packages and
+symbol tables into which the code is created.
+
+=head2 Generating C and XS Code
+
+PDL::PP's main purpose is to make it easy for you to wrap the threading
+engine around your own C code, but you can do some other things, too.
+
+=over
+
+=item pp_def
+
+Used to wrap the threading engine around your C code. Virtually all of this
+document discusses the use of pp_def.
+
+=item pp_done
+
+Indicates you are done with PDL::PP and that it should generate its .xs
+and .pm files based upon the other pp_* functions that you have called.
+This function takes no arguments.
+
+=item pp_addxs
+
+This lets you add XS code to your .xs file. This is useful if you want to
+create Perl-accessible functions that invoke C code but cannot or should not
+invoke the threading engine. XS is the standard means by which you wrap
+Perl-accessible C code. You can learn more at L<perlxs>.
+
+=item pp_add_boot
+
+This function adds whatever string you pass to the XS BOOT section. The BOOT
+section is C code that gets called by Perl when your module is loaded and is
+useful for automatic initialization. You can learn more about XS and the BOOT
+section at L<perlxs>.
+
+=item pp_addhdr
+
+Adds pure-C code to your XS file. XS files are structured such that pure C
+code must come before XS specifications. This allows you to specify such
+C code.
+
+=item pp_boundscheck
+
+PDL normally checks the bounds of your accesses before making them. You can
+turn that on or off at runtime by setting MyPackage::set_boundscheck. This
+function allows you to remove that runtime flexibility and B<never> do bounds
+checking. It also returns the current boundschecking status if called
+without any argumens.
+
+NOTE: I have not found anything about bounds checking in other documentation.
+That needs to be addressed.
+
+=back
+
+=head2 Generating Perl Code
+
+Many functions imported when you use PDL::PP allow you to modify the
+contents of the generated .pm file. In addition to pp_def and pp_done,
+the role of these functions is primarily to add code to various parts of
+your generated .pm file.
+
+=over
+
+=item pp_addpm
+
+Adds Perl code to the generated .pm file. PDL::PP actually keeps track of
+three different sections of generated code: the Top, the Middle, and the
+Bottom. You can add Perl code to the Middle section using the one-argument
+form, where the argument is the Perl code you want to supply. In the
+two-argument form, the first argument is an anonymous hash with only
+one key that specifies where to put the second argument, which is the string
+that you want to add to the .pm file. The hash is one of these three:
+
+ {At => 'Top'}
+ {At => 'Middle'}
+ {At => 'Bot'}
+
+For example:
+
+ pp_addpm({At => 'Bot'}, <<POD);
+ 
+ =head1 Some documentation
+ 
+ I know I'm typing this in the middle of my file, but it'll go at
+ the bottom.
+ 
+ =cut
+ 
+ POD
+
+Warning: If, in the middle of your .pd file, you put documentation meant for
+the bottom of your pod, you will thoroughly confuse CPAN. On the other hand,
+if in the middle of your .pd fil, you add some Perl code destined for the
+bottom or top of your .pm file, you only have yourself to confuse. :-)
+
+=item pp_beginwrap
+
+Adds BEGIN-block wrapping. Certain declarations can be wrapped in BEGIN
+blocks, though the default behavior is to have no such wrapping.
+
+=item pp_addbegin
+
+Sets code to be added to the top of your .pm file, even above code that you
+specify with C<< pp_addpm({At => 'Top'}, ...) >>. Unlike pp_addpm, calling
+this overwrites whatever was there before. Generally, you probably shouldn't
+use it.
+
+=back
+
+=head2 Modifying the Symbol Table and Export Behavior
+
+PDL::PP usually exports all functions generated using pp_def, and usually
+installs them into the PDL symbol table. However, you can modify this
+behavior with these functions.
+
+=over
+
+=item pp_bless
+
+Sets the package (symbol table) to which the XS code is added. The default
+is PDL, which is generally what you want. If you use the default blessing
+and you create a function myfunc, then you can do the following:
+
+ $piddle->myfunc(<args>);
+ PDL::myfunc($piddle, <args>);
+
+On the other hand, if you bless your functions into another package, you
+cannot invoke them as PDL methods, and must invoke them as:
+
+ MyPackage::myfunc($piddle, <args>);
+
+Of course, you could always use the PMFunc key to add your function to the
+PDL symbol table, but why do that?
+
+=item pp_add_isa
+
+Adds to the list of modules from which your B<module> inherits. The default
+list is
+
+ qw(PDL::Exporter DynaLoader)
+
+=item pp_core_importlist
+
+At the top of your generated .pm file is a line that looks like this:
+
+ use PDL::Core;
+
+You can modify that by specifying a string to pp_core_importlist. For
+example,
+
+ pp_core_importlist('::Blarg');
+
+will result in
+
+ use PDL::Core::Blarg;
+
+You can use this, for example, to add a list of symbols to import from
+PDL::Core. For example:
+
+ pp_core_importlist(" ':Internal'");
+
+will lead to the following use statement:
+
+ use PDL::Core ':Internal';
+
+=item pp_setversion
+
+Sets your module's version. The version must be consistent between the .xs
+and the .pm file, and is used to ensure that your Perl's libraries do not
+suffer from version skew.
+
+=item pp_add_exported
+
+Adds to the export list whatever names you give it.  Functions created using
+pp_def are automatically added to the list. This function is useful if you
+define any Perl functions using pp_addpm or pp_addxs that you want exported
+as well.
+
+=item pp_export_nothing
+
+This resets the list of exported symbols to nothing. This is probably better
+called C<pp_export_clear>, since you can add exported symbols after calling
+C<pp_export_nothing>. When called just before calling pp_done, this ensures
+that your module does not export anything, for example, if you only want
+programmers to use your functions as methods.
+
+=back
+
 =head1 SEE ALSO
 
 I<PDL>
@@ -1956,38 +2213,15 @@ $RESIZE()
 
 =head1 BUGS
 
-PDL::PP is still, even in its rewritten form, too complicated.
-It needs to be rethought a little as well as simplified and
-modularized some more (e.g. all the NS things).
-
-After the rewrite, this can happen a little by little, though.
-
-=head2 Undocumented functions
-
-The following functions have been added since this manual
-was written and are as yet undocumented
-
-=over 5
-
-=item pp_export_nothing
-
-=item pp_core_importList
-
-=item pp_beginwrap
-
-=item pp_addbegin
-
-=back
+Although PDL::PP is quite flexible and thoroughly used, there are surely
+bugs. First amonth them: this documentation needs a thorough revision.
 
 =head1 AUTHOR
 
 Copyright(C) 1997 Tuomas J. Lukka (lukka@fas.harvard.edu), Karl
 Glaazebrook (kgb@aaocbn1.aao.GOV.AU) and Christian Soeller
-(c.soeller@auckland.ac.nz). All rights reserved. Although destined for
-release as a man page with the standard PDL distribution, it is not
-public domain. Permission is granted to freely distribute verbatim
-copies of this document provided that no modifications outside of
-formatting be made, and that this notice remain intact.  You are
-permitted and encouraged to use its code and derivatives thereof in
-your own source code for fun or for profit as you see fit.
+(c.soeller@auckland.ac.nz). All rights reserved.
+Documentation updates Copyright(C) 2011 David Mertens
+(dcmertens.perl@gmail.com). This documentation is licensed under the same
+terms as Perl itself.
 

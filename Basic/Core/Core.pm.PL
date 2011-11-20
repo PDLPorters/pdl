@@ -168,8 +168,8 @@ print OUT <<"!WITH!SUBS!";
 
 !WITH!SUBS!
 
-print OUT <<'!NO!SUBS!';
-
+print OUT '# line ' . (__LINE__ + 2) . <<'!NO!SUBS!';
+ "Basic/Core/Core.pm.PL (i.e. PDL::Core.pm)"
 use PDL::Exporter;
 use DynaLoader;
 
@@ -295,11 +295,25 @@ You can mix and match arrays, array refs, and PDLs in your argument
 list, and C<pdl> will sort them out.  You get back a PDL whose last
 (slowest running) dim runs across the top level of the list you hand
 in, and whose first (fastest running) dim runs across the deepest
-level that you supply.
-
+level that you supply. 
 At the moment, you cannot mix and match those arguments with string
 arguments, though we can't imagine a situation in which you would
 really want to do that.
+
+The string version of pdl also allows you to use the strings C<bad>, C<inf>,
+and C<nan>, and it will insert the values that you mean (and set the bad flag
+if you use C<bad>). You can mix and match case, though you shouldn't. Here are
+some examples:
+
+ $bad = pdl q[1 2 3 bad 5 6];  # Set fourth element to the bad value
+ $bad = pdl q[1 2 3 BAD 5 6];  # ditto
+ $bad = pdl q[1 2 inf bad 5];  # now third element is IEEE infinite value
+ $bad = pdl q[nan 2 inf -inf]; # first value is IEEE nan value
+
+The default constructor uses IEEE double-precision floating point numbers. You
+can use other types, but you will get a warning if you try to use C<nan> with
+integer types (it will be replaced with the C<bad> value) and you will get a
+fatal error if you try to use C<inf>.
 
 Throwing a PDL into the mix has the same effect as throwing in a list ref:
 
@@ -827,19 +841,81 @@ more examples of usage.
 =cut
 
 use Scalar::Util;       # for looks_like_number test
+use Carp 'carp';        # for carping (warnings in caller's context)
 
-# This is the code that handles string arguments.
+# This is the code that handles string arguments. It has now gotten quite large,
+# so here's the basic explanation. I want to allow expressions like 2, 1e3, 1+4,
+# bad, nan, and inf. However, I also need to protect from executing arbitrary
+# code when I run the eval. So, I croak when I find:
+# 1) strings of e or E that are longer than 1 character long (like eeee)
+# 2) non-supported characters
+# 3) the characer e that evaluates as a function (as in '1 2 3 e 5')
+# 4) expressions that are syntactically erroneous, like '1 2 3 ]', which has an
+#    extra bracket
+
 sub PDL::Core::new_pdl_from_string {
    my ($new, $original_value, $this, $type) = @_;
    my $value = $original_value;
-
+   
+   # Check for input that would generate empty piddles as output:
+   my @types = PDL::Types::types;
+   return zeroes($types[$type], 1)->where(zeroes(1) < 0)
+      if ($value eq '' or $value eq '[]');
+   
+   # I check for invalid characters later, but arbitrary strings of e will
+   # pass that check, so I'll check for that here, first.
+   barf("PDL::Core::new_pdl_from_string: I found consecutive copies of e but\n"
+      . "  I'm not sure what you mean. You gave me $original_value")
+      if ($value =~ /ee/i);
+   
+   # Only a few characters are allowed in the expression, but we want to allow
+   # expressions like 'inf' and 'bad'. As such, convert those values to internal
+   # representations that will pass the invalid-character check. We'll replace
+   # them with Perl-evalute-able strings in a little bit. Here, I represent
+   #  bad => EE
+   #  nan => ee
+   #  inf => Ee
+   #  pi  => eE
+   # --( Bad )--
+   my ($has_bad) = ($value =~ s/\bbad\b/EE/gi);
+   # --( nan )--
+   my ($has_nan) = 0;
+   $has_nan++ if ($value =~ s/\bnan\b/ee/gi);
+   # Strawberry Perl compatibility:
+   $has_nan++ if ($value =~ s/-1\.\#IND/ee/gi);
+   # --( inf )--
+   my ($has_inf) = 0;
+   # Strawberry Perl compatibility:
+   $has_inf++ if ($value =~ s/1\.\#INF/Ee/gi);
+   # Other platforms:
+   $has_inf++ if ($value =~ s/\binf\b/Ee/gi);
+   # --( pi )--
+   $value =~ s/\bpi\b/eE/gi;
+   
+   # Some data types do not support nan and inf, so check for and warn or croak,
+   # as appropriate:
+   if ($has_nan and not $types[$type]->usenan) {
+      carp("PDL::Core::new_pdl_from_string: no nan for type $types[$type]; converting to bad value");
+      $value =~ s/ee/EE/g;
+      $has_bad += $has_nan;
+      $has_nan = 0;
+   }
+   barf("PDL::Core::new_pdl_from_string: type $types[$type] does not support inf")
+      if ($has_inf and not $types[$type]->usenan);
+   
+   # Make the white-space uniform and see if any not-allowed characters are
+   # present:
+   $value =~ s/\s+/ /g;
+   if (my ($disallowed) = ($value =~ /([^\[\]\+\-0-9;,.eE ]+)/)) {
+      barf("PDL::Core::new_pdl_from_string: found disallowed character(s) '$disallowed' in $original_value");
+   }
+   
    # Wrap the string in brackets [], so that the following works:
    # $a = new PDL q[1 2 3];
    # We'll have to check for dimensions of size one after we've eval'd
    # the string and built a PDL from the resulting array.
    $value = '[' . $value . ']';
 
-   # some basic checks that can/should be run on everything.
    # Make sure that each closing bracket followed by an opening bracket
    # has a comma in between them:
    $value =~ s/\]\s*\[/],[/g;
@@ -853,35 +929,164 @@ sub PDL::Core::new_pdl_from_string {
    # Remove ending decimal points and insert zeroes in front of starting
    # decimal points. This makes the white-space-to-comma replacement
    # in the next few lines much simpler.
-   $value =~ s/(\d)\.\s+/$1 /g;
-   $value =~ s/([^\d])\./${1}0./g;
+   $value =~ s/(\d\.)(z|[^\d])/${1}0$2/g;
+   $value =~ s/(\A|[^\d])\./${1}0./g;
 
-   # make unambiguous addition/subtraction (white-space on both sides
-   # of operator) by removing white-space from both sides
-   $value =~ s/(\d)\s+([+-])\s+(?=[\d])/$1$2/g;
+   # Remove whitspace between signs and the numbers that follow them:
+   $value =~ s/([+\-])\s+/$1/g;
+   
+#   # make unambiguous addition/subtraction (white-space on both sides
+#   # of operator) by removing white-space from both sides
+#   $value =~ s/([\dEe])\s+([+\-])\s+(?=[Ee\d])/$1$2/g;
 
    # Replace white-space separators with commas:
-   $value =~ s/([.\d])\s+(?=[+\-\d])/$1,/g;
+   $value =~ s/([.\deE])\s+(?=[+\-eE\d])/$1,/g;
+   
+   # Remove all other white space:
+   $value =~ s/\s+//g;
 
-   # Let's see if the darn thing compiles as normal Perl code, in which
-   # case we just assume the result is a stringified bunch of nested
-   # arrays. 
-   my $val = eval $value;
+   # Croak on operations with bad values. It might be nice to simply replace
+   # these with bad values, but that is more difficult that I like, so I'm just
+   # going to disallow that here:
+   barf("PDL::Core::new_pdl_from_string: Operations with bad values are not supported")
+      if($value =~ /EE[+\-]/ or $value =~ /[+\-]EE/);
+   
+   # Check for things that will evaluate as functions and barf if found
+   if (my ($disallowed) = ($value =~ /((\D+|\A)[eE]\d+)/)) {
+      barf("PDL::Core::new_pdl_from_string: syntax error, looks like an improper exponentiation: $disallowed\n"
+         . "You originally gave me $original_value\n");
+   }
+   
+   # Install the warnings handler:
+   my $old_warn_handler = $SIG{__WARN__};
+	
+   $SIG{__WARN__} = sub {
+      if ($_[0] =~ /(Argument ".*" isn't numeric)/) {
+         # Restore the old warning handler and croak:
+         $SIG{__WARN__} = $old_warn_handler;
+         die "Incorrectly formatted input: $1\n";
+      }
+      elsif ($old_warn_handler) {
+         $old_warn_handler->(@_);
+      }
+      else {
+         warn @_;
+      }
+   };
+
+   # Replace the place-holder strings with strings that will evaluate to their
+   # correct numerical values when we run the eval:
+   $value =~ s/\bEE\b/bad/g;
+   my $bad = $types[$type]->badvalue;
+   $value =~ s/\bee\b/nan/g;
+   my $inf = -pdl(0)->log;
+   $value =~ s/\bEe\b/inf/g;
+   my $nan = $inf - $inf;
+   $value =~ s/\beE\b/pi/g;
+   
+   # Let's see if we can parse it as an array-of-arrays:
+   local $_ = $value;
+   my $val = eval { PDL::Core::parse_basic_string ($inf, $nan, $bad) };
+   
+   # Restore the old warning handler:
+   if ($old_warn_handler) {
+	   $SIG{__WARN__} = $old_warn_handler;
+   }
+   else {
+	   delete $SIG{__WARN__};
+   }
+   
    if (ref $val eq 'ARRAY') {
       my $to_return = PDL::Core::pdl_avref($val,$this,$type);
       # remove potentially spurious last dimension
-      $to_return = $to_return->mv(-1,1)->clump(2) if $to_return->dim(-1) == 1;
+      $to_return = $to_return->mv(-1,1)->clump(2)
+         if $to_return->dims > 1 and $to_return->dim(-1) == 1;
+      # Mark bad if appropriate
+      $to_return->badflag($has_bad > 0);
       return $to_return;
    }
    else {
       my @message = ("PDL::Core::new_pdl_from_string: string input='$original_value', string output='$value'" );
       if ($@) {
-         push @message, "eval '$value ': $@";
+         push @message, $@;
       } else {
-         push @message, "eval: unexpected output type ->$val<- is not ARRAY ref";
+         push @message, "Internal error: unexpected output type ->$val<- is not ARRAY ref";
       }
       barf join("\n  ", @message);
    }
+}
+
+sub PDL::Core::parse_basic_string {
+	# Assumes $_ holds the string of interest, and modifies that value
+	# in-place.
+	
+	use warnings;
+	
+	# Takes a string with proper bracketing, etc, and returns an array-of-arrays
+	# filled with numbers, suitable for use with pdl_avref. It uses recursive
+	# descent to handle the nested nature of the data. The string should have
+	# no whitespace and should be something that would evaluate into a Perl
+	# array-of-arrays (except that strings like 'inf', etc, are allowed).
+	
+	my ($inf, $nan, $bad) = @_;
+	
+	# First character should be a bracket:
+	die "Internal error: input string -->$_<-- did not start with an opening bracket\n"
+		unless s/^\[//;
+	
+	my @to_return;
+	# Loop until we run into our closing bracket:
+	my $sign = 1;
+	my $expects_number = 0;
+	SYMBOL: until (s/^\]//) {
+		# If we have a bracket, then go recursive:
+		if (/^\[/) {
+			die "Expected a number but found a bracket at ... ", substr ($_, 0, 10), "...\n"
+				if $expects_number;
+			push @to_return, PDL::Core::parse_basic_string(@_);
+			next SYMBOL;
+		}
+		elsif (s/^\+//) {
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^\-//) {
+			$sign = -1;
+			$expects_number = 1;
+			redo SYMBOL;
+		}
+		elsif (s/^bad//i) {
+			push @to_return, $bad;
+		}
+		elsif (s/^inf//i or s/1\.\#INF//i) {
+			push @to_return, $sign * $inf;
+		}
+		elsif (s/^nan//i or s/^1\.\#IND//i) {
+			push @to_return, $nan;
+		}
+		elsif (s/^pi//i) {
+			push @to_return, $sign * 4 * atan2(1, 1);
+		}
+		elsif (s/^e//i) {
+			push @to_return, $sign * exp(1);
+		}
+		elsif (s/^([\d+\-e.]+)//i) {
+			# Note that improper numbers are handled by the warning signal
+			# handler
+			push @to_return, $sign * $1;
+		}
+		else {
+			die "Incorrectly formatted input at:\n  ", substr ($_, 0, 10), "...\n";
+		}
+	}
+	# Strip off any commas
+	continue {
+		$sign = 1;
+		$expects_number = 0;
+		s/^,//;
+	}
+	
+	return \@to_return;
 }
 
 sub PDL::new {
@@ -904,7 +1109,17 @@ sub PDL::new {
 
 
    if (ref(\$value) eq "SCALAR") {
-      if (PDL::Core::is_scalar_SvPOK($value) and !Scalar::Util::looks_like_number($value)) {
+      # The string processing is extremely slow. Benchmarks indicated that it
+      # takes 10x longer to process a scalar number compared with normal Perl
+      # conversion of a string to a number. So, only use the string processing
+      # if the input looks like a real string, i.e. it doesn't look like a plain
+      # number. Note that for our purposes, looks_like_number incorrectly
+      # handles the strings 'inf' and 'nan' on Windows machines. We want to send
+      # those to the string processing, so this checks for them in a way that
+      # short-circuits the looks_like_number check.
+      if (PDL::Core::is_scalar_SvPOK($value)
+            and ($value =~ /inf/i or $value =~ /nan/i
+               or !Scalar::Util::looks_like_number($value))) {
          # new was passed a string argument that doesn't look like a number
          # so we can process as a Matlab-style data entry format.
 		return PDL::Core::new_pdl_from_string($new,$value,$this,$type);
@@ -2356,14 +2571,14 @@ Generic datatype conversion function
 
 =for usage
 
- $y = convert($x, $newtype);
+ $y = convert($x, $newtypenum);
 
 =for example
 
  $y = convert $x, long
  $y = convert $x, ushort
 
-C<$newtype> is a type number, for convenience they are
+C<$newtype> is a type B<number>, for convenience they are
 returned by C<long()> etc when called without arguments.
 
 =cut
@@ -2373,10 +2588,11 @@ returned by C<long()> etc when called without arguments.
 sub PDL::convert {
   # we don't allow inplace conversion at the moment
   # (not sure what needs to be changed)
-  barf 'Usage: $y = convert($x, $newtype)'."\n" if $#_!=1;
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" if $#_!=1;
   my ($pdl,$type)= @_;
   $pdl = pdl($pdl) unless ref $pdl; # Allow normal numbers
   $type = $type->enum if ref($type) eq 'PDL::Type';
+  barf 'Usage: $y = convert($x, $newtypenum)'."\n" unless Scalar::Util::looks_like_number($type);
   return $pdl if $pdl->get_datatype == $type;
   # make_physical-call: temporary stopgap to work around core bug
   my $conv = $pdl->flowconvert($type)->make_physical->sever;
@@ -2396,24 +2612,25 @@ print OUT <<'!NO!SUBS!';
 =for usage
 
  $y = double $x; $y = ushort [1..10];
- # all of byte|short|ushort|long|float|double behave similarly
+ # all of byte|short|ushort|long|longlong|float|double behave similarly
 
 When called with a piddle argument, they convert to the specific
 datatype.
 
-When called with a numeric or list / listref argument they construct
-a new piddle. This is a convenience to avoid having to be
+When called with a numeric, list, listref, or string argument they
+construct a new piddle. This is a convenience to avoid having to be
 long-winded and say C<$x = long(pdl(42))>
 
 Thus one can say:
 
  $a = float(1,2,3,4);           # 1D
+ $a = float q[1 2 3; 4 5 6];    # 2D
  $a = float([1,2,3],[4,5,6]);   # 2D
  $a = float([[1,2,3],[4,5,6]]); # 2D
 
-Note the last two are equivalent - a list is automatically
-converted to a list reference for syntactic convenience. i.e. you
-can omit the outer C<[]>
+Note the last three give identical results, and the last two are exactly
+equivalent - a list is automatically converted to a list reference for
+syntactic convenience. i.e. you can omit the outer C<[]>
 
 When called with no arguments return a special type token.
 This allows syntactical sugar like:
@@ -3428,7 +3645,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
   
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();
-  
+
 =cut
 
 *set_autopthread_targ       = \&PDL::set_autopthread_targ;	  
@@ -3448,7 +3665,7 @@ C<$num_pthreads> is the target number of pthreads the auto-pthread process will 
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_targ       = \&PDL::get_autopthread_targ;	  
@@ -3467,7 +3684,7 @@ C<$autopthread_actual> is the actual number of pthreads executed for the last pd
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_actual      = \&PDL::get_autopthread_actual;	  
@@ -3503,7 +3720,7 @@ See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
   
   # Get the actual number of pthreads that were run.
   $actual_pthread = get_autopthread_actual();
-  
+
 =cut
 
 *set_autopthread_size       = \&PDL::set_autopthread_size;	  
@@ -3523,7 +3740,7 @@ C<$autopthread_size> is the mimumum size limit for auto_pthreading to occur, in 
 
 See L<PDL::ParallelCPU> for an overview of the auto-pthread process.
 
-  
+
 =cut
 
 *get_autopthread_size       = \&PDL::get_autopthread_size;	  

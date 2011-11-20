@@ -12,7 +12,7 @@ use PDL::Config;
 kill 'INT',$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.
 
 use Test;
-BEGIN { plan tests => 17; }
+BEGIN { plan tests => 18; }
 
 sub tapprox {
         my($a,$b) = @_;
@@ -52,6 +52,17 @@ $a = long($a);
 $b=long($b);
 
 ok( (sum($a)==6 && max($b)==33 && $b->getdim(0)==2), 1, "rcols with filename + pattern" );
+
+############# Test rcols with file handle with nothing left #############
+
+open my $fh, '<', $file;
+# Pull in everything:
+my @slurp = <$fh>;
+# Now apply rcols:
+$@ = '';
+$a = eval { rcols $fh };
+ok($@, '', 'rcols does not die on a used file handle');
+close $fh;
 
 ############### Test rgrep with FILEHANDLE #####################
 

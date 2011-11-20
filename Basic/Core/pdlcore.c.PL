@@ -938,7 +938,7 @@ long pdl_kludge_copy_$type(long poff,
       pdlsiz = pdl->dims[pdldim];
       if(pdlsiz==0 && (pptr != 0)) {  /* size of zero but a non-null data pointer -- probably an error. */
 	int ii;
-	fprintf(stderr,"pdl_kludge_copy level=%d; ndims=%d; dims=(");
+	fprintf(stderr,"pdl_kludge_copy level=%d; ndims=%d; dims=(",level,pdl->ndims);
 	for(ii=0;ii<pdl->ndims;ii++)
 	  fprintf(stderr,"%s%d", (ii?", ":""), pdl->dims[ii]);
         fprintf(stderr,") - dim %d has size 0.  This is probably an error.  Continuing anyway (treating as an Empty).\\n",pdldim);

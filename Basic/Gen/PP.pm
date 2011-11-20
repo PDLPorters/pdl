@@ -177,19 +177,19 @@ sub new {
     $self->{targets} = $targets;
 
     if ($#_ != -1) {
-	if (ref $_[-1] eq "CODE") {
-	    $self->{ref} = pop;
-	}
+        if (ref $_[-1] eq "CODE") {
+            $self->{ref} = pop;
+        }
 
-	my ($conditions,$doc) = @_;
+        my ($conditions,$doc) = @_;
 
-	if (defined $conditions) {
-	    $conditions = [$conditions] unless ref $conditions eq "ARRAY";
-	} else {
-	    $conditions = [];
-	}
-	$self->{conditions} = $conditions;
-	$self->{doc} = $doc if defined $doc;
+        if (defined $conditions) {
+            $conditions = [$conditions] unless ref $conditions eq "ARRAY";
+        } else {
+            $conditions = [];
+        }
+        $self->{conditions} = $conditions;
+        $self->{doc} = $doc if defined $doc;
     }
 
     return $self;
@@ -272,27 +272,16 @@ sub extract_args {
     my $conditions = $self->{conditions};
 
     my @args;
-    foreach my $label (@$conditions) {
-	# copy $label so that any changes to it are not
-	# also made to the original array!
-	#
-	my $condition = $label;
-	$condition = substr($condition, 1) if substr($condition,0,1) eq "_";
-
-	# The original version of the code just pushed on
-	# $pars->{$condition} whether it existed or not. I think
-	# this would mean that the condition would be created in $pars
-	# then (and set to undef), which is probably not really
-	# wanted, although some code could rely on this. Try the
-	# following explicit approach for now. Thinking about this
-	# a bit more suggests that it is an unnescessary code
-	# change, but keep in for now.
-	#
-	if (exists $pars->{$condition}) {
-	    push @args, $pars->{$condition};
-	} else {
-	    push @args, undef;
-	}
+    foreach (@$conditions) {
+		# make a copy of each condition so that any changes to it are not
+		# also made to the original array!
+		my $condition = $_;
+		# Remove any possible underscores (which indicate optional conditions):
+		$condition =~ s/^_//;
+		
+		# Note: This will *not* create $pars->{$condition} if it did not already
+		# exist:
+		push @args, $pars->{$condition};
     }
 
     return @args;
@@ -476,6 +465,12 @@ sub new {
     my $self  = $class->SUPER::new(@args);
     bless $self, $class;
     $self->{"insertname.value"} = $value;
+    
+    # Generate a defaul doc string
+    unless (exists $self->{doc}) {
+        $self->{doc} = 'Sets ' . $self->{targets}->[0]
+            . ' to "' . $value . '"';
+    }
 
     my $targets = $self->{targets};
     croak "There can only be 1 target for a $self, not " . (1+$#$targets) . "!"
@@ -1055,12 +1050,7 @@ sub pp_def {
 	PDL::PP->pp_add_exported($name);
 	PDL::PP::pp_addpm("\n".$obj{PdlDoc}."\n") if $obj{PdlDoc};
 	PDL::PP::pp_addpm($obj{PMCode});
-	if(defined($obj{PMFunc})) {
-		pp_addpm($obj{PMFunc}."\n");
-	}else{
-                pp_addpm($::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
-                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]);
-	}
+	PDL::PP::pp_addpm($obj{PMFunc}."\n");
 
 	print "*** Leaving pp_def for $name\n" if $::PP_VERBOSE;
 }
@@ -1497,7 +1487,8 @@ sub wrap_vfn {
 
 #	print "$rout\_$name: $p2child\n";
     my $p2decl = '';
-    if ( $p2child == 1 ) {
+    # Put p2child in simple boolean context rather than strict numerical equality
+    if ( $p2child ) {
 	$p2decl = 
 	    "pdl *__it = __tr->pdls[1]; pdl *__parent = __tr->pdls[0];";
 	if ( $name eq "redodims" ) {
@@ -1565,33 +1556,33 @@ sub CopyOtherPars {
 }
 
 sub mkxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr CODE:\n { $xscode XSRETURN(0);\n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 sub mkVarArgsxscat {
-	my($glb,$chdrs,$hdr,@bits) = @_;
-	my($xscode,$boot,$prel,$str);
+	my($glb,$xs_c_headers,$hdr,@bits) = @_;
+	my($boot,$prelude,$str);
 	if($glb) {
-		$prel = $chdrs->[0] . "@bits" . $chdrs->[1];
-		$boot = $chdrs->[3];
+		$prelude = join '' => ($xs_c_headers->[0], @bits, $xs_c_headers->[1]);
+		$boot = $xs_c_headers->[3];
 		$str = "$hdr\n";
 	} else {
-		$xscode = join '',@bits;
+		my $xscode = join '' => @bits;
 		$str = "$hdr \n { $xscode \n}\n\n";
 	}
 	$str =~ s/(\s*\n)+/\n/g;
-	($str,$boot,$prel)
+	($str,$boot,$prelude)
 }
 
 
@@ -1704,9 +1695,10 @@ EOD
 #
 # The use of 'DO NOT SET!!' looks ugly.
 #
+# Removing useless use of hasp2child in this function. DCM Sept 12, 2011
 sub VarArgsXSHdr {
-  my($name,$xsargs,$parobjs,$optypes,$hasp2child,$pmcode,
-     $hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
+  my($name,$xsargs,$parobjs,$optypes,#$hasp2child,
+     $pmcode,$hdrcode,$inplacecode,$globalnew,$callcopy) = @_;
 
   # Don't do var args processing if the user has pre-defined pmcode
   return 'DO NOT SET!!' if ($pmcode);
@@ -2685,32 +2677,33 @@ $PDL::PP::deftbl =
    # 0     - no, maybe issue a warning
    # undef - we're not compiling with bad value support
    #
-   PDL::PP::Rule->new("BadFlag", ["_HandleBad"],
+   PDL::PP::Rule->new("BadFlag", "_HandleBad",
+		      "Sets BadFlag based upon HandleBad key and PDL's ability to handle bad values",
 		      sub { return (defined $_[0]) ? ($bvalflag and $_[0]) : undef; }),
 
 
 
 
-   PDL::PP::Rule::Returns->new("CopyName", "__copy"),
+   PDL::PP::Rule::Returns->new("CopyName", [],
+       'Sets the CopyName key to the default: __copy', "__copy"),
 
-   PDL::PP::Rule::Returns::Zero->new("DefaultFlow"),
-
-   # Why bother with $_[0] in the comment as it will be null/0?
-   #
-   PDL::PP::Rule->new("DefaultFlowCodeNS", "DefaultFlow",
+   PDL::PP::Rule->new("DefaultFlowCodeNS", "_DefaultFlow",
+       'Sets the code to handle dataflow flags, if applicable',
 		      sub { $_[0] ? 
 			      '$PRIV(flags) |= PDL_ITRANS_DO_DATAFLOW_F | PDL_ITRANS_DO_DATAFLOW_B;'
-				: "/* No flow: $_[0] */"}),
+				: "/* No flow */"}),
 
 # no docs by default
 #
-   PDL::PP::Rule::Returns->new("Doc", "\n=for ref\n\ninfo not available\n"),
+   PDL::PP::Rule::Returns->new("Doc", [], 'Sets the default doc string',
+    "\n=for ref\n\ninfo not available\n"),
 
 # try and automate the docs
 # could be really clever and include the sig to see about
 # input/output params, for instance
 #
    PDL::PP::Rule->new("BadDoc", ["BadFlag","Name","_CopyBadStatusCode"],
+              'Sets the default documentation for handling of bad values',
 		      sub {
 			  return undef unless $bvalflag;
 			  my ( $bf, $name, $code ) = @_;
@@ -2735,8 +2728,15 @@ $PDL::PP::deftbl =
 # P2Child implicitly means "no data type changes".
 # No p2child by default.
 #
-   PDL::PP::Rule->new("HASP2Child", "P2Child", sub {return $_[0] != 0}),
-   PDL::PP::Rule::Returns::Zero->new("HASP2Child"),
+#   PDL::PP::Rule->new("HASP2Child", "_P2Child", 
+#      'Sets HASP2Child to a defined boolean value, even if P2Child is not defined',
+#      sub {
+#         my ($p2child) = @_;
+#         if (defined $p2child) {
+#            return $p2child != 0;
+#         }
+#         return 0;
+#      }),
 
 # Default: no otherpars
 #
@@ -2745,11 +2745,17 @@ $PDL::PP::deftbl =
 # some defaults
 #
 # Question: where is ppdefs defined?
+# Answer: Core/Types.pm
 #
-   PDL::PP::Rule->new("GenericTypes", sub {[ppdefs]}),
+   PDL::PP::Rule->new("GenericTypes", [], 
+       'Sets GenericTypes flag to all types known to PDL::Types',
+       sub {[ppdefs]}),
 
-   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", sub {return $_[0]}),
-   PDL::PP::Rule::Returns->new("ExtraGenericLoops", {}),
+   PDL::PP::Rule->new("ExtraGenericLoops", "FTypes", 
+       'Makes ExtraGenericLoops identical to FTypes if the latter exists and the former does not',
+       sub {return $_[0]}),
+   PDL::PP::Rule::Returns->new("ExtraGenericLoops", [],
+		'Sets ExtraGenericLoops to an empty hash if it does not already exist', {}),
 
    PDL::PP::Rule::InsertName->new("StructName", 'pdl_${name}_struct'),
    PDL::PP::Rule::InsertName->new("VTableName", 'pdl_${name}_vtable'),
@@ -2837,7 +2843,7 @@ $PDL::PP::deftbl =
  #   This will copy the $object->copy method, instead of initialize
  #   for PDL-subclassed objects
  #
-   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "HASP2Child"],
+   PDL::PP::Rule->new("CallCopy", ["DimObjs", "USParNames", "USParObjs", "Name", "_P2Child"],
 		      sub {
 			  my ($dimObj, $USParNames, $USParObjs, $Name, $hasp2c) = @_;
 			  return 0 if $hasp2c;
@@ -2881,9 +2887,8 @@ $PDL::PP::deftbl =
  # Create header for variable argument list.  Used if no 'other pars' specified.
  # D. Hunt 4/11/00
  # make sure it is not used when the GlobalNew flag is set ; CS 4/15/00
- #
    PDL::PP::Rule->new("VarArgsXSHdr",
-		      ["Name","NewXSArgs","USParObjs","OtherParTypes","HASP2Child",
+		      ["Name","NewXSArgs","USParObjs","OtherParTypes",
 		       "PMCode","HdrCode","InplaceCode","_GlobalNew","_CallCopy"],
 		      'XS code to process arguments on stack based on supplied Pars argument to pp_def; GlobalNew has implications how/if this is done',
 		      \&VarArgsXSHdr),
@@ -2946,14 +2951,14 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Substitute::Usual->new("DefaultFlowCode", "DefaultFlowCodeNS"),
 
    PDL::PP::Rule->new("NewXSFindDatatypeNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","GenericTypes","_P2Child"],
 		      \&find_datatype),
    PDL::PP::Rule::Substitute::Usual->new("NewXSFindDatatype", "NewXSFindDatatypeNS"),
 
    PDL::PP::Rule::Returns::EmptyString->new("NewXSTypeCoerce", "NoConversion"),
 
    PDL::PP::Rule->new("NewXSTypeCoerceNS",
-		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","HASP2Child"],
+		      ["ParNames","ParObjs","IgnoreTypesOf","NewXSSymTab","_P2Child"],
 		      \&coerce_types),
    PDL::PP::Rule::Substitute::Usual->new("NewXSTypeCoerce", "NewXSTypeCoerceNS"),
 
@@ -3195,13 +3200,13 @@ $PDL::PP::deftbl =
 		      }),
    PDL::PP::Rule::Substitute->new("RedoDimsSubd", "RedoDimsSub"),
    PDL::PP::Rule->new("RedoDimsFunc",
-		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","HASP2Child"],
+		      ["RedoDimsSubd","FHdrInfo","RedoDimsFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"redodims")}),
 
    PDL::PP::Rule::MakeComp->new("ReadDataSub", "ParsedCode", "FOO"),
    PDL::PP::Rule::Substitute->new("ReadDataSubd", "ReadDataSub"),
    PDL::PP::Rule->new("ReadDataFunc",
-		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","HASP2Child"],
+		      ["ReadDataSubd","FHdrInfo","ReadDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"readdata")}),
 
    PDL::PP::Rule::MakeComp->new("WriteBackDataSub", "ParsedBackCode", "FOO"),
@@ -3211,18 +3216,18 @@ $PDL::PP::deftbl =
    PDL::PP::Rule::Returns::NULL->new("WriteBackDataFuncName", "Code"),
 
    PDL::PP::Rule->new("WriteBackDataFunc",
-		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","HASP2Child"],
+		      ["WriteBackDataSubd","FHdrInfo","WriteBackDataFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"writebackdata")}),,
 
    PDL::PP::Rule->new("CopyFunc",
-		      ["CopyCode","FHdrInfo","CopyFuncName","HASP2Child"],
+		      ["CopyCode","FHdrInfo","CopyFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"copy")}),
    PDL::PP::Rule->new("FreeFunc",
-		      ["FreeCode","FHdrInfo","FreeFuncName","HASP2Child"],
+		      ["FreeCode","FHdrInfo","FreeFuncName","_P2Child"],
 		      sub {wrap_vfn(@_,"free")}),
 
    PDL::PP::Rule::Returns->new("FoofName", "FooCodeSub", "foomethod"),
-   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","HASP2Child"],
+   PDL::PP::Rule->new("FooFunc", ["FooCodeSub","FHdrInfo","FoofName","_P2Child"],
 		      sub {wrap_vfn(@_,"foo")}),
 
    PDL::PP::Rule::Returns::NULL->new("FoofName"),
@@ -3232,6 +3237,17 @@ $PDL::PP::deftbl =
 		       "WriteBackDataFuncName","CopyFuncName","FreeFuncName",
 		       "ParNames","ParObjs","Affine_Ok","FoofName"],
 		      \&def_vtable),
+   
+   # Maybe accomplish this with an InsertName rule?
+   PDL::PP::Rule->new('PMFunc', 'Name',
+           'Sets PMFunc to default symbol table manipulations',
+           sub {
+               my ($name) = @_;
+               $::PDL_IFBEGINWRAP[0].'*'.$name.' = \&'.$::PDLOBJ.
+                         '::'.$name.";\n".$::PDL_IFBEGINWRAP[1]
+           }
+    ),
+
 ];
 
 sub printtrans {

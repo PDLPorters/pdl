@@ -401,7 +401,7 @@ Create histogram of a piddle
 
  $hist = hist($data);
  ($xvals,$hist) = hist($data);
- 
+
 or
 
  $hist = hist($data,$min,$max,$step);
@@ -578,6 +578,18 @@ Fills a piddle with radial distance values from some centre.
   [3 3 3 3 3 4 5]
   [4 4 4 4 4 5 5]
  ]
+
+If C<Center> is not specified, the midpoint for a given dimension of
+size C<N> is given by C< int(N/2) > so that the midpoint always falls
+on an exact pixel point in the data.  For dimensions of even size,
+that means the midpoint is shifted by 1/2 pixel from the true center
+of that dimension.
+
+Also note that the calculation for C<rvals> for integer values
+does not promote the datatype so you will have wraparound when
+the value calculated for C< r**2 > is greater than the datatype
+can hold.  If you need exact values, be sure to use large integer
+or floating point datatypes.
 
 For a more general metric, one can define, e.g.,
 

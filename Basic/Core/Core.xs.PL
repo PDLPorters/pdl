@@ -377,7 +377,7 @@ DESTROY(sv)
        1; /* Do nothing */
     else {
        self = SvPDLV(sv);
-       PDLDEBUG_f(printf("DESTROYING %d\n",self);)
+       PDLDEBUG_f(printf("DESTROYING %p\n",(void*)self);)
        if (self != NULL)
           pdl_destroy(self);
     }
@@ -617,8 +617,21 @@ set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
                croak("Error opening file");
        }
        if(trunc) {
-               ftruncate(fd,0);   /* Clear all previous data */
-               ftruncate(fd,len); /* And make it long enough */
+               int error = ftruncate(fd,0);   /* Clear all previous data */
+               
+               if(error)
+               {
+					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,len,error);
+					croak("set_data_by_mmap: first ftruncate failed");
+               }
+               
+               error = ftruncate(fd,len); /* And make it long enough */
+               
+               if(error)
+               {
+					fprintf(stderr,"Failed to set length of '%s' to %d. errno=%d",fname,len,error);
+					croak("set_data_by_mmap: second ftruncate failed");
+               }
        }
        if(len) {
 		it->data = mmap(0,len,PROT_READ | (writable ?
@@ -631,7 +644,7 @@ set_data_by_mmap(it,fname,len,writable,shared,creat,mode,trunc)
                /* Special case: zero-length file */
                it->data = NULL;
        }
-       PDLDEBUG_f(printf("PDL::MMap: mapped to %d\n",it->data);)
+       PDLDEBUG_f(printf("PDL::MMap: mapped to %p\n",it->data);)
        it->state |= PDL_DONTTOUCHDATA | PDL_ALLOCATED;
        pdl_add_deletedata_magic(it, pdl_delete_mmapped_data, len);
        close(fd);
