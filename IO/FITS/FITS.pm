@@ -1744,10 +1744,11 @@ sub wheader ($$) {
     my $fh = shift;
     my $k = shift;
   
-    if ($k =~ m/HISTORY/) {
+    if ($k =~ m/(HISTORY|COMMENT)/) {
+	my $hc = $1;
 	return unless ref($hdr{$k}) eq 'ARRAY';
 	foreach my $line (@{$hdr{$k}}) {
-	    $fh->printf( "HISTORY %-72s", substr($line,0,72) );
+	    $fh->printf( "$hc %-72s", substr($line,0,72) );
 	    $nbytes += 80;
 	}
 	delete $hdr{$k};
@@ -1914,6 +1915,40 @@ sub PDL::wfits {
   ## Check header and prepare to write it out
   
   my($h) = $pdl->gethdr();
+
+  # Extra logic: if we got handed a vanilla hash that that is *not* an Astro::FITS::Header, but 
+  # looks like it's a FITS header encoded in a hash, then attempt to process it with 
+  # Astro::FITS::Header before writing it out -- this helps with cleanup of tags.
+  if($PDL::Astro_FITS_Header and 
+     defined($h) and
+     ref($h) eq 'HASH' and
+     !defined( tied %$h )
+      ) {
+
+      my $all_valid_fits = 1;
+      for my $k(keys %$h) {
+	  if(length($k) > 8 or
+	     $k !~ m/^[A-Z_][A-Z\d\_]*$/i
+	      ) {
+	      $all_valid_fits = 0;
+	      last;
+	  }
+      }
+
+      if($all_valid_fits) {
+	  # All the keys look like valid FITS header keywords -- so 
+	  # create a tied FITS header object and use that instead.
+	  my $afh = new Astro::FITS::Header( );
+	  my %hh;
+	  tie %hh, "Astro::FITS::Header", $afh;
+	  for (keys %$h) {
+	      $hh{$_} = $h->{$_};
+	  }
+	  $h = \%hh;
+      }
+  }
+
+  # Now decide whether to emit a hash or an AFH object
   if(defined($h) && 
      ( (defined (tied %$h)) && 
        (UNIVERSAL::isa(tied %$h,"Astro::FITS::Header")))
@@ -2042,7 +2077,7 @@ sub PDL::wfits {
     if (defined($h)) {
       for (keys %$h) { $hdr{uc $_} = $$h{$_} } # Copy (ensuring keynames are uppercase)
     }
-    
+
     delete $hdr{SIMPLE}; delete $hdr{'END'};
     
     $hdr{BITPIX} =  $BITPIX;
