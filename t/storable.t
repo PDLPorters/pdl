@@ -1,6 +1,6 @@
 # -*- cperl -*-
 
-#use strict;
+use strict;
 use Test::More;
 
 BEGIN { 
@@ -19,6 +19,7 @@ BEGIN {
    use_ok('PDL::IO::Storable');
 }
 
+my ($data,$dfreeze,$dthaw,$olda,$pfreeze,$phash,$phthaw,$seq1,$seq1_tf,$seq2,$seq2_dc,$serialized);
 
 $a = sequence(2,2);
 # $a->dump;
