@@ -767,9 +767,7 @@ t/pdlchar.t
 t/pgplot.t
 t/physical.t
 t/pic_16bit.t
-t/picnorgb.pl
 t/picnorgb.t
-t/picrgb.pl
 t/picrgb.t
 t/plplot.t
 t/pnm.t
