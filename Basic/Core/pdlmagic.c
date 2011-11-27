@@ -453,7 +453,13 @@ int pdl_pthread_barf_or_warn(const char* pat, int iswarn, va_list *args)
 			// newline.
 			int extralen = vsnprintf(NULL, 0, pat, *args) + 1;
 
-			// 1 more for the trailing '\0'
+			// 1 more for the trailing '\0'. (For windows, we first #undef realloc
+			// so that the system realloc function is used instead of the PerlMem_realloc
+			// macro. This currently works fine, though could conceivably require some
+			// tweaking in the future if it's found to cause any problem.)
+#ifdef WIN32
+#undef realloc
+#endif
 			*msgs = realloc(*msgs, *len + extralen + 1);
 			vsnprintf( *msgs + *len, extralen + 1, pat, *args);
 
