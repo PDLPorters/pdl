@@ -142,7 +142,7 @@ BEGIN
       my $libs = "-L$gis_proj_lib_path -lproj -lm";
       my $cflags = "-I$include_path";
 
-      if (trylink($infomsg,$include,$progbody,$libs,$cflags)) {
+      if (trylink($infomsg,$include,$progbody,$libs,$cflags) or $forcebuild) {
          # now see if pj_init works
          ## print STDERR "header=>$header, LIBS=>$libs, INC=>$cflags, function=>'projPJ mypj = pj_init_plus(\"+proj=eqc +lon_0=0\"); if (! mypj) return 1; else return 0;'\n";
 
@@ -153,7 +153,7 @@ BEGIN
                incpath=>$include_path,
                lib=>'proj',
                libpath=>$gis_proj_lib_path,
-            )) {
+            ) or $forcebuild) {
             print " Building $package_name. Turn off $config_flag if there are any problems\n\n";
             $PDL::Config{$config_flag}=1;
             $donot = 0;
