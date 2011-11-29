@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 #
 # Created on: Wed 31 Mar 2010 02:30:20 PM 
-# Last saved: Fri 14 Jan 2011 06:57:24 PM 
+# Last saved: Mon 28 Nov 2011 01:35:30 PM 
 #
 # This file is the first step of an ENVI file IO module
 # to be named PDL::IO::ENVI.  We read the header file
@@ -142,7 +142,7 @@ sub _read_envihdr {
       or barf "_read_envihdr: couldn't open '$hdrname' for reading";
    binmode $hdrfile;
 
-   if eof($hdrfile) {
+   if ( eof($hdrfile) ) {
       barf "_read_envihdr: WARNING '$hdrname' is empty, invalid ENVI format"
    }
 
