@@ -32,6 +32,24 @@ Highlights:
               Now use the PGPLOT /NULL device if running
               under Test::Harness.
 
+   - 3428356  PDL::Transform::map output FITS header is slightly wrong 	
+
+   - 3080505  PLplot segfaults on plshades call on OS X
+
+   - 3059083  Problems with FITS header handling
+
+ * The perl crash in t/pthreadBarf.t for win32 has been fixed.
+   The problem was that Perl's realloc was being used instead
+   of the system malloc/realloc.
+
+ * Fix build for PROJ4 submodules so that setting WITH_PROJ to
+   1 with force a build whether or not the configure type checks
+   can verify the build options.  This allows the end user to
+   work around auto-detection issues when needed.
+   
+   NOTE: Even with the override, the check are still done---just
+   ignored in the decision process.
+
  * Various documentation and updates.
 
 
