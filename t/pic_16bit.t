@@ -1,5 +1,5 @@
 # Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Mon 21 Nov 2011 09:06:15 AM 
+# Last saved: Fri 02 Dec 2011 12:55:49 PM 
 #
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
@@ -7,6 +7,7 @@
 
 # Our new default testing framework
 use strict;
+no warnings qw(misc);
 use Test::More;
 
 use PDL;

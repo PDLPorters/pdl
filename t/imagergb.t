@@ -1,3 +1,4 @@
+no warnings qw(misc);
 sub ok {
 	my $no = shift ;
 	my $result = shift ;

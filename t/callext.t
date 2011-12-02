@@ -1,4 +1,5 @@
 #!/usr/local/bin/perl
+no warnings qw(misc);
 
 # Example of how to use callext() - also see callext.c
 

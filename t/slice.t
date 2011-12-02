@@ -1,4 +1,5 @@
 # -*-perl-*-
+no warnings qw(misc);
 #
 # Test ->slice(). This is not yet good enough: we need
 # nasty test cases

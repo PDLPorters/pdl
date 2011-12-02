@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 #
 # This tests the new PDL constructor with a string argument.
 # There are two goals from the new functionality: (1) allow

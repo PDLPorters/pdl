@@ -1,4 +1,5 @@
 # -*-perl-*-
+no warnings qw(misc);
 
 use strict;
 use Test;

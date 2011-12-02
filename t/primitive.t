@@ -1,6 +1,7 @@
 # -*-perl-*-
 # Test ->slice(). This is not yet good enough: we need
 # nasty test cases,
+no warnings qw(misc);
 
 use PDL::LiteF;
 use PDL::Types;

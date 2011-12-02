@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 #
 # Simple tests for PDL::Constants
 #

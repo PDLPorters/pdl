@@ -1,4 +1,5 @@
 
+no warnings qw(misc);
 use PDL::LiteF;
 # PDL::Core::set_debugging(1);
 kill INT,$$  if $ENV{UNDER_DEBUGGER}; # Useful for debugging.

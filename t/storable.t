@@ -1,4 +1,5 @@
 # -*- cperl -*-
+no warnings qw(misc);
 
 use strict;
 use Test::More;

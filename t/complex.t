@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use PDL::LiteF;
 use PDL::Complex;
 use PDL::Config;

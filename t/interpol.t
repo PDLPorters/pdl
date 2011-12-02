@@ -1,3 +1,4 @@
+no warnings qw(misc);
 
 # Simple test of the interpol routine
 

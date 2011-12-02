@@ -1,4 +1,5 @@
 #!/bin/perl -w
+no warnings qw(misc);
 
 #
 ## Test of PDL::Char subclass -- treating byte PDLs as matrices of fixed strings

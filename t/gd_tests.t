@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 
 #
 # t/gd_tests.t - tests functions in the PDL::IO::GD module

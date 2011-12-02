@@ -1,5 +1,6 @@
 # Test conversions. This is not yet good enough: we need
 # nasty test cases,
+no warnings qw(misc);
 
 # 1.9901 - converted to new type semantics + extra test
 

@@ -1,4 +1,5 @@
 use strict;
+no warnings qw(misc);
 
 use PDL;
 use PDL::FFT;

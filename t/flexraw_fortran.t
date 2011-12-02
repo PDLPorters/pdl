@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use PDL::LiteF;
 use PDL::IO::FlexRaw;
 use PDL::Config;
