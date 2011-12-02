@@ -1741,7 +1741,7 @@ sub VarArgsXSHdr {
   # Generate declarations for SV * variables corresponding to pdl * output variables.
   # These are used in creating output and temp variables.  One variable (ex: SV * outvar1_SV;)
   # is needed for each output and output create always argument
-  my $svdecls = join ("\n", map { "$ci\SV *$_\_SV;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
+  my $svdecls = join ("\n", map { "${ci}SV *${_}_SV;" } grep { $out{$_} || $outca{$_} || $tmp{$_} } @args);
 
   my @create = ();  # The names of variables which need to be created by calling 
                     # the 'initialize' perl routine from the correct package.
@@ -1886,7 +1886,7 @@ sub VarArgsXSReturn {
 
     my $clause1 = '';
     foreach my $i ( 0 .. $#outs ) {
-	$clause1 .= "$ci\ST($i) = $outs[$i]\_SV;\n";
+	$clause1 .= "${ci}ST($i) = $outs[$i]_SV;\n";
     }
 
 return <<"END"
