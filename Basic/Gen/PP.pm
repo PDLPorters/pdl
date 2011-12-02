@@ -756,7 +756,7 @@ our @ISA = qw(Exporter);
 @PDL::PP::EXPORT = qw/pp_addhdr pp_addpm pp_bless pp_def pp_done pp_add_boot
                       pp_add_exported pp_addxs pp_add_isa pp_export_nothing
 		      pp_core_importList pp_beginwrap pp_setversion
-                      pp_addbegin pp_boundscheck /;
+                      pp_addbegin pp_boundscheck pp_line_numbers/;
 
 $PP::boundscheck = 1;
 $::PP_VERBOSE    = 0;
@@ -896,6 +896,18 @@ sub pp_addxs {
 	PDL::PP->printxs("\nMODULE = $::PDLMOD PACKAGE = $::CALLPACK\n\n",
                          @_,
                          "\nMODULE = $::PDLMOD PACKAGE = $::PDLOBJ\n\n");
+}
+
+# inserts #line directives into source text. Use like this:
+#   ...
+#   FirstKey => ...,
+#   Code => pp_line_numbers (__LINE__, $a . $b . $c),
+#   OtherKey => ...
+
+sub pp_line_numbers ($$) {
+	my ($line, $string) = @_;
+	my (undef, $filename) = caller;
+	return "# line $line \"$filename\"$string";
 }
 
 sub printxsc {
