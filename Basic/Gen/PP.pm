@@ -131,6 +131,7 @@ package PDL::PP::Rule;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 use overload ("\"\"" => \&PDL::PP::Rule::stringify);
 sub stringify {
@@ -341,6 +342,7 @@ package PDL::PP::Rule::Returns;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -451,6 +453,7 @@ package PDL::PP::Rule::InsertName;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -522,6 +525,7 @@ package PDL::PP::Rule::Substitute;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -598,6 +602,7 @@ package PDL::PP::Rule::Substitute::Usual;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule::Substitute);
@@ -658,6 +663,7 @@ package PDL::PP::Rule::MakeComp;
 use strict;
 
 use Carp;
+our @CARP_NOT;
 
 ##use PDL::PP::Rule;
 our @ISA = qw (PDL::PP::Rule);
@@ -769,6 +775,7 @@ END {
 }
 
 use Carp;
+our @CARP_NOT;
 
 # check for bad value support
 use PDL::Config;
