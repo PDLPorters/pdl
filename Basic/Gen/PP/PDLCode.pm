@@ -6,6 +6,7 @@
 
 package PDL::PP::Code;
 use Carp;
+our @CARP_NOT;
 
 use strict;
 
@@ -400,6 +401,7 @@ sub new {
 package PDL::PP::SimpleThreadLoop;
 use Carp;
 @PDL::PP::SimpleThreadLoop::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 sub new { my($type) = @_; bless [],$type; }
 sub myoffs { return 0; }
@@ -433,6 +435,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 package PDL::PP::ComplexThreadLoop;
 use Carp;
 @PDL::PP::ComplexThreadLoop::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 
 sub new { 
@@ -503,6 +506,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 package PDL::PP::BackCodeThreadLoop;
 use Carp;
 @PDL::PP::BackCodeThreadLoop::ISA = "PDL::PP::ComplexThreadLoop";
+our @CARP_NOT;
 
 sub myprelude {
     my($this,$parent,$context, $backcode) = @_;
@@ -527,6 +531,7 @@ package PDL::PP::Types;
 use Carp;
 use PDL::Types ':All';
 @PDL::PP::Types::ISA = "PDL::PP::Block";
+our @CARP_NOT;
 
 sub new { 
     my($type,$ts,$parent) = @_;
@@ -551,6 +556,7 @@ sub mypostlude {my($this,$parent,$context) = @_;
 
 package PDL::PP::Access;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$str,$parent) = @_;
 	$str =~ /^\$([a-zA-Z_]\w*)\s*\(([^)]*)\)/ or
@@ -715,6 +721,7 @@ sub convert ($$$$$) {
 
 package PDL::PP::BadAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
@@ -776,6 +783,7 @@ sub get_str {
 
 package PDL::PP::BadVarAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $var_name, $pdl_name, $parent ) = @_;
@@ -839,6 +847,7 @@ sub get_str {
 
 package PDL::PP::PPBadAccess; 
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $opcode, $pdl_name, $inds, $parent ) = @_;
@@ -892,6 +901,7 @@ sub get_str {
 
 package PDL::PP::PDLStateBadAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { 
     my ( $type, $op, $val, $pdl_name, $parent ) = @_;
@@ -951,6 +961,7 @@ sub get_str {
 
 package PDL::PP::PointerAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -969,6 +980,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::PhysPointerAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -983,6 +995,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::PdlAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1000,6 +1013,7 @@ package PDL::PP::MacroAccess;
 use Carp;
 use PDL::Types ':All';
 my $types = join '',ppdefs;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds,$gentypes,$name) = @_; 
 	  $pdl =~ /^\s*T([A-Z]+)\s*$/ or confess("Macroaccess wrong: $pdl\n");
@@ -1040,6 +1054,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::SizeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1055,6 +1070,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::ReSizeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1091,6 +1107,7 @@ sub get_str {my($this,$parent,$context) = @_;
 
 package PDL::PP::GentypeAccess;
 use Carp;
+our @CARP_NOT;
 
 sub new { my($type,$pdl,$inds) = @_; bless [$inds],$type; }
 
@@ -1171,12 +1188,20 @@ package PDL::PP::Code;
 # hence moved to end of file
 # (rather ugly...)
 #
+# XXX The above statement is almost certainly false. This module is parsed
+#     before separate_code is ever called, so all of the class definitions
+#     should exist. -- David Mertens, Dec 2 2011
+#
 # separates the code into an array of C fragments (strings),
 # variable references (strings starting with $) and
 # loops (array references, 1. item = variable.
 #
 sub separate_code {
+	$DB::single=1;
     my ( $this, $code ) = @_;
+    
+    # First check for standard code errors:
+    catch_code_errors($code);
 
     my $coderef = new PDL::PP::Block;
  
@@ -1184,7 +1209,7 @@ sub separate_code {
     my $threadloops = 0;
     my $sizeprivs = {};
 
-    $_ = $code;
+    local $_ = $code;
 ##    print "Code to parse = [$_]\n" if $::PP_VERBOSE; 
     while($_) {
 	# Parse next statement
@@ -1255,6 +1280,43 @@ sub separate_code {
 
 } # sub: separate_code()
 
+# This is essentially a collection of regexes that look for standard code
+# errors and croaks with an explanation if they are found.
+sub catch_code_errors {
+	my $code_string = shift;
+	
+	# Look for constructs like
+	#   loop %{
+	# which is invalid - you need to specify the dimension over which it
+	# should loop
+	report_error('Expected dimension name after "loop" and before "%{"', $1)
+		if $code_string =~ /(.*\bloop\s*%{)/s;
+	
+}
+
+# Report an error as precisely as possible. If they have #line directives
+# in the code string, use that in the reporting; otherwise, use standard
+# Carp mechanisms
+my $line_re = qr/#\s*line\s+(\d+)\s+"([^"]*)"/;
+sub report_error {
+	my ($message, $code) = @_;
+
+	# Just croak if they didn't supply a #line directive:
+	croak($message) if $code !~ $line_re;
+
+	# Find the line at which the error occurred:
+	my $line = 0;
+	my $filename;
+	LINE: foreach (split /\n/, $code) {
+		$line++;
+		if (/$line_re/) {
+			$line = $1;
+			$filename = $2;
+		}
+	}
+	
+	die "$message at $filename line $line\n";
+}
 
 # return true
 1;
