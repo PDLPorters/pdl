@@ -26,7 +26,12 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Quick re-release to include Basic/Core/Makefile.PL fixes
+   from git
+ 
+ * Fixed new t/proj_transform2.t test failure that was a
+   side effect off the newly more correct FITS coordinate
+   handling.
 
 
 
