@@ -1,3 +1,35 @@
+Release Notes for PDL 2.4.9_012 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_012.tar.gz
+       cpan> make CHM/PDL-2.4.9_012.tar.gz
+       cpan> test CHM/PDL-2.4.9_012.tar.gz
+       cpan> look CHM/PDL-2.4.9_012.tar.gz
+
+
+Highlights:
+
+ * TBD
+
+
+
 Release Notes for PDL 2.4.9_011 --------------------------
 
 General Notes:

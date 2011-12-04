@@ -84,7 +84,7 @@ The following issues have been reported with this version of PDL:
 
 
 - The following SourceForge bugs are outstanding at time of the
-  PDL-2.4.9_011 release:
+  PDL-2.4.9_012 release:
 
   3408529    pthread support fails to build for win32
              
