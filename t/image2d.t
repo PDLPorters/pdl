@@ -4,7 +4,7 @@ no warnings qw(misc);
 
 use Test;
 BEGIN {
-    plan tests => 16;
+    plan tests => 20;
 }
 
 use PDL;
@@ -134,3 +134,12 @@ my $boxav = $box->box2d(3,3,0);
 
 # all 2D averages should be the same
 tapprox($bav->sum,$boxav->clump(2)->sumover);
+
+# cc8compt & cc4compt
+$a = pdl([0,1,1,0,1],[1,0,1,0,0],[0,0,0,1,0],[1,0,0,0,0],[0,1,0,1,1]);
+ok(cc8compt($a)->max == 4);
+ok(cc4compt($a)->max == 7);
+eval 'ccNcompt($a,5)';
+ok($@ ne '');
+eval 'ccNcompt($a,8)';
+ok($@ eq '');
