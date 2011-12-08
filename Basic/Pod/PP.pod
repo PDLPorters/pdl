@@ -1784,7 +1784,7 @@ define the signature of your function
 
 =item OtherPars
 
-arguments which are not pdls. Default: nothing.
+arguments which are not pdls. Default: nothing. This is a semi-colon separated list of arguments, e.g., C<< OtherPars=>'int k; double value; char* fd' >>. See C<$COMP(x)> and also the same entry in L<Appendix B|Appendix B: PP macros and functions>.
 
 =item Code
 
@@ -1937,7 +1937,7 @@ access a pdl (by its name) that was specified in the signature
 =item $COMP(x)
 
 access a value in the private data structure of this transformation (mainly
-used to use an argument that is specified in the C<OtherPar> section)
+used to use an argument that is specified in the C<OtherPars> section)
 
 =item $SIZE(n)
 
