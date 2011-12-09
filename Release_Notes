@@ -26,7 +26,18 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Update t/proj_transform.t and t/proj_transform2.t test
+   data to be consistent with the new FITS coordinate
+   handling fix.
+
+ * Add a new cc4compt routine in PDL::Image2D which provides
+   4-component labeling to go with the existing cc8compt which
+   provides 8-component labeling.
+
+ * Added test time diagnostics to PDL::IO::Pic test that
+   print the converter hash values if any tests fail.
+ 
+ * Documentation additions.
 
 
 
