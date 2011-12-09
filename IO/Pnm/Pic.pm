@@ -103,8 +103,8 @@ sub init_converter_table {
       my $pbmplus;
 
       for (@path) {
-	  $jpeg_conv="cjpeg" if(-x "$_/cjpeg");
-	  $jpeg_conv="pnmtojpeg" if(-x "$_/pnmtojpeg" . $ext);
+	  $jpeg_conv="cjpeg" if ( -x "$_/cjpeg" . $ext );
+	  $jpeg_conv="pnmtojpeg" if (  -x "$_/pnmtojpeg" . $ext );
       }
   }
 

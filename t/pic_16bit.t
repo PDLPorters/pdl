@@ -1,5 +1,5 @@
 # Created on: Fri 14 Dec 2007 07:22:09 PM 
-# Last saved: Fri 02 Dec 2011 12:55:49 PM 
+# Last saved: Fri 09 Dec 2011 01:57:56 PM 
 #
 # This tests the 16-bit image capabilities of the rpic() and wpic()
 # commands.  The new code works with PNM output files and PNG format
@@ -45,8 +45,8 @@ SKIP: {
   skip ": pnmtopng not found, is NetPBM installed?", 1 unless $test_pnmtopng; 
   $a->wpic('tbyte_a.png');
   my $a_png;
-  unless($^O =~ /MSWin32/i) {$a_png = rpic('tbyte_a.png')}
-  else {$a_png = rpic('tbyte_a.png', {FORMAT => 'PNG'})}
+  unless ($^O =~ /MSWin32/i) { $a_png = rpic('tbyte_a.png') }
+  else { $a_png = rpic('tbyte_a.png', {FORMAT => 'PNG'}) }
   ok(sum(abs($a-$a_png)) == 0, 'png byte image save+restore'); #test 3
   unlink 'tbyte_a.png';
 };

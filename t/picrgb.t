@@ -1,11 +1,14 @@
 # we need tests with index shuffling once vaffines are fixed
 no warnings qw(misc);
+my $numbad = 0;
 
 sub ok {
 	my $no = shift ;
 	my $result = shift ;
 	print "not " unless $result ;
 	print "ok $no\n" ;
+        $numbad++ unless $result;
+        $result;
 }
 
 sub tapprox {
@@ -76,7 +79,9 @@ $iform = 'PNMRAW'; # change to PNMASCII to use ASCII PNM intermediate
 @allowed = ();
 ## for ('PNM') { push @allowed, $_
 for (keys %formats) {
-   push @allowed, $_ if PDL->rpiccan($_) && defined $formats{$_};
+   if (PDL->rpiccan($_) && PDL->wpiccan($_) && defined $formats{$_}) {
+      push @allowed, $_;
+   }
 }
 
 $ntests = 2 * (@allowed);
@@ -123,3 +128,11 @@ foreach $form (sort @allowed) {
       print $in2->px;
     }
 }
+
+use Data::Dumper;
+if ($numbad > 0) {
+   local $Data::Dumper::Pad = '#';
+   print "# Dumping diagnostic PDL::IO::Pic converter data...\n";
+   print Dumper(\%PDL::IO::Pic::converter);
+}
+
