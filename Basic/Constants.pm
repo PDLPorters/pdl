@@ -12,7 +12,7 @@ E seem to be fundamental.
 
 =head1 SYNOPSIS
 
- use PDL::Constants;
+ use PDL::Constants qw(PI E);
  print 'PI is ' . PI . "\n";
  print 'E  is ' .  E . "\n";
 
@@ -21,10 +21,42 @@ E seem to be fundamental.
 package PDL::Constants;
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT = qw(PI E);  # symbols to export
+@EXPORT_OK = qw(PI E I J);  # symbols to export
+
+use PDL::Lite;
+use PDL::Complex qw(i);
                            
+=head2 PI
+
+The ratio of a circle's circumference to its diameter
+
+=cut
+
 use constant PI    => 4 * atan2(1, 1);
+
+=head2 E
+
+The base of the natural logarithms or Euler's number
+
+=cut
+
 use constant E     => exp(1);
+
+=head2 I
+
+The imaginary unit, C< I*I == -1 >
+
+=cut
+
+use constant I     => i;
+
+=head2 J
+
+The imaginary unit for engineers, C< J*J == -1 >
+
+=cut
+
+use constant J     => i;
 
 =head1 COPYRIGHT & LICENSE
 

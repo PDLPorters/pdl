@@ -26,7 +26,9 @@ General Notes:
 
 Highlights:
 
- * TBD
+ * Add imaginary unit (either I and/or J) to PDL::Constants
+   and make all constants EXPORT_OK() rather than EXPORT().
+   Some documentation updates.
 
 
 
