@@ -66,6 +66,13 @@ if ( exists $PDL::Config{POSIX_THREADS_LIBS} and defined $PDL::Config{POSIX_THRE
         print "On FreeBSD try building perl with libc_r instead of libc\n";
         $pthread_library = '';
     }
+} elsif ($^O =~ /bsd$/i){
+    if ($Config::Config{usemymalloc} eq 'y') {
+        print "\tGood, usemymalloc=y, will build with pthread support\n";
+    }else{
+        print "\tGot usemymalloc=$Config::Config{usemymalloc} so not building with pthreads\n";
+        $pthread_library = '';
+    }
  } else {
     print "\tNope, your perl was not linked against pthread library\n";
     if ($^O =~ /mswin/i) {

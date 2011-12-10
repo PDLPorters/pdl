@@ -26,6 +26,10 @@ General Notes:
 
 Highlights:
 
+ * Add workaround for pthread detection on *BSD systems to
+   avoid CPAN Testers failures due to miss-detection and
+   auto-configuration.
+
  * Update t/proj_transform.t and t/proj_transform2.t test
    data to be consistent with the new FITS coordinate
    handling fix.

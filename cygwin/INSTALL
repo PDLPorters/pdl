@@ -7,8 +7,8 @@ Last saved: Tue 11 Oct 2011 12:53:55 PM
                         GENERAL NOTES
 =================================================================
  NOTE: These install notes have been partially reviewed
- for the PDL-2.4.8 release.  It is recommended that you
- build and install PDL based on a full cygwin 1.7.5 or
+ for the PDL-2.4.9 release.  It is recommended that you
+ build and install PDL based on a full cygwin 1.7.9 or
  later install.  Please post to the perldl mailing list
  for help or questions regarding a cygwin install.
 
@@ -100,14 +100,6 @@ The manual configure/build/install process is:
 
  Edit the PDL/perldl.conf file as desired
 
-   (e.g., edit POSIX related options for pthread support:
-
-      WITH_POSIX_THREADS => 1,    
-      POSIX_THREADS_INC  => '-I/usr/include',
-      POSIX_THREADS_LIBS => '-lpthread',
-
-
-
  From the bash$ prompt in the top level PDL/ directory:
 
   perl Makefile.PL	# configures all the Makefile
@@ -135,9 +127,9 @@ The manual configure/build/install process is:
 
    These test failures with the number of planned tests not
    equal to the number of tests run (1) or if a test died
-   before it could output anything indicate a problem with
-   the DLL base addresses.  See the instructions for REBASEALL
-   below.
+   before it could output anything usually indicates a problem
+   with the DLL base addresses.  See the instructions for
+   REBASEALL below.
 
 
  If PDL built ok and passed tests, you can test the interactive
@@ -178,14 +170,14 @@ The FFTW library built without a hitch and installed in
 /usr/local as the default (/usr/local/lib, /usr/local/include,
 and /usr/local/info). A clean build of PDL should pick it up.
 
-NOTE: if problems see rebaseall below.
+NOTE: if problems see REBASEALL below.
  
 
 
 =================================================================
                              PGPLOT
 =================================================================
-NOTE: cygwin 1.7.5 has new include locations so the following
+NOTE: cygwin 1.7.9 has new include locations so the following
       will not work without changing the various paths!!
 
 1. build the pgplot library and install.
@@ -301,7 +293,7 @@ NOTE: cygwin 1.7.5 has new include locations so the following
    If your pgplot installation worked, it should be picked up
    automatically.
 
-NOTE: if problems see rebaseall below.
+NOTE: if problems see REBASEALL below.
 
 
 
@@ -393,6 +385,10 @@ need to run rebaseall:
        Note that we created the fixit.list file in the c:\cygwin\bin
        folder to begin with.  If you put it elsewhere, you'll need
        to use the appropriate pathnames.
+
+  6. Run peflagsall (./peflagsall -T fixit.list)
+
+  7. Restart cygwin
 
 After the rebaseall command has completed, you should be able to
 start up X windows and rerun the failed tests (perl -Mblib t/testname.t)
