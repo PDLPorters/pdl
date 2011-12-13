@@ -1,3 +1,4 @@
+no warnings qw(misc);
 
 # XXX SOME TESTS DISABLED
 

@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use PDL;
 
 print "1..21\n";

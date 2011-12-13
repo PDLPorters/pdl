@@ -2,6 +2,7 @@
 #
 # test some PDL core routines
 #
+no warnings qw(misc);
 
 use strict;
 use Test::More tests => 39;

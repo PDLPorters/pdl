@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use PDL::LiteF;
 
 my $ctr = 1;

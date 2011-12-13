@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use Test;
 BEGIN { plan tests => 4; }
 use PDL::LiteF;

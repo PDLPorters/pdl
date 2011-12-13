@@ -1,3 +1,4 @@
+no warnings qw(misc);
 use PDL::LiteF;
 BEGIN {
         eval " use PDL::Fit::Linfit; ";

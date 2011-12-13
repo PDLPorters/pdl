@@ -1,4 +1,5 @@
 
+no warnings qw(misc);
 use PDL;
 use PDL::Config;
 use Test::More;

@@ -1,3 +1,122 @@
+Release Notes for PDL 2.4.9_014 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_014.tar.gz
+       cpan> make CHM/PDL-2.4.9_014.tar.gz
+       cpan> test CHM/PDL-2.4.9_014.tar.gz
+       cpan> look CHM/PDL-2.4.9_014.tar.gz
+
+
+Highlights:
+
+ * Add imaginary unit (either I and/or J) to PDL::Constants
+   and make all constants EXPORT_OK() rather than EXPORT().
+   Some documentation updates.
+
+ * Minor cleanups to PDL::PP and related modules to get rid
+   of warnings under new Perls during testing.
+
+Release Notes for PDL 2.4.9_013 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_013.tar.gz
+       cpan> make CHM/PDL-2.4.9_013.tar.gz
+       cpan> test CHM/PDL-2.4.9_013.tar.gz
+       cpan> look CHM/PDL-2.4.9_013.tar.gz
+
+
+Highlights:
+
+ * Add workaround for pthread detection on *BSD systems to
+   avoid CPAN Testers failures due to miss-detection and
+   auto-configuration.
+
+ * Update t/proj_transform.t and t/proj_transform2.t test
+   data to be consistent with the new FITS coordinate
+   handling fix.
+
+ * Add a new cc4compt routine in PDL::Image2D which provides
+   4-component labeling to go with the existing cc8compt which
+   provides 8-component labeling.
+
+ * Added test time diagnostics to PDL::IO::Pic test that
+   print the converter hash values if any tests fail.
+ 
+ * Documentation additions.
+
+
+
+Release Notes for PDL 2.4.9_012 --------------------------
+
+General Notes:
+
+ * Another quick CPAN developers release
+ 
+   - It is a snapshot of the current git development tree
+     and everything may not work correctly or have complete
+     documentation.
+
+   - These release notes may not be fully complete.  Please
+     see Changes (from the git log) for full details.
+
+   - All tests may not pass, especially ones corresponding
+     to issues in Known_problems.
+   
+   - Manual build/install is recommended although the
+     cpan shell may be used by specifying the distribution
+     path rather than just the module name, e.g.:
+
+       cpan> get  CHM/PDL-2.4.9_012.tar.gz
+       cpan> make CHM/PDL-2.4.9_012.tar.gz
+       cpan> test CHM/PDL-2.4.9_012.tar.gz
+       cpan> look CHM/PDL-2.4.9_012.tar.gz
+
+
+Highlights:
+
+ * Quick re-release to include Basic/Core/Makefile.PL fixes
+   from git
+ 
+ * Fixed new t/proj_transform2.t test failure that was a
+   side effect off the newly more correct FITS coordinate
+   handling.
+
+
+
 Release Notes for PDL 2.4.9_011 --------------------------
 
 General Notes:

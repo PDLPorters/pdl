@@ -1,5 +1,6 @@
 # Test the dataflow magic & binding stuff
 # XXX DISABLED!
+no warnings qw(misc);
 
 use PDL::LiteF;
 

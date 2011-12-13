@@ -1,5 +1,6 @@
 # Test if we can still do scopes ok - multiple uses etc..
 # Also see that PDL loaders get the correct symbols.
+no warnings qw(misc);
 
 
 print "1..10\n";

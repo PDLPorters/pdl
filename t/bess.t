@@ -1,5 +1,6 @@
 # -*-perl-*-
 
+no warnings qw(misc);
 use Test;
 
 BEGIN { plan tests => 6; }

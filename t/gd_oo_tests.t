@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 
 #
 # Tests for the OO interface of PDL::IO::GD.

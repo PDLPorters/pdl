@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 #
 # This tests the new PDL constructor with a string argument.
 # There are two goals from the new functionality: (1) allow
@@ -16,7 +17,7 @@ use warnings;
 #############################
 
 BEGIN {
-   # if we've got this far in the tests then 
+   # if we've got this far in the tests then
    # we can probably assume PDL::LiteF works!
    #
    use_ok( "PDL::LiteF" );
@@ -158,9 +159,17 @@ ok(all($got == $expected), 'Empty bracket is correctly interpreted');
 
 # First term should be -inf
 my $bad_values = pdl q[nan inf -inf bad];
-# nan test: nan is never considered equal to itself
+my $skip = 0;
+# nan test: nan is never considered equal to itself ... unless perl itself is buggy.
+if($bad_values->at(0) == $bad_values->at(0) && pdl($bad_values->at(0)) != pdl($bad_values->at(0))) {
+  warn "Looks like your perl asserts (incorrectly) that NaN == NaN\n";
+  $skip = 1;
+}
+SKIP: {
+skip "because perl's handling of NaN seems buggy", 1 if $skip;
 ok($bad_values->at(0) != $bad_values->at(0), 'properly handles nan')
 	or diag("Zeroeth bad value should be nan but it describes itself as " . $bad_values->at(0));
+}
 # inf test: inf == inf but inf * 0 != 0
 ok(($bad_values->at(1) == $bad_values->at(1)
 		and $bad_values->at(1) * 0.0 != 0.0), 'properly handles inf')
@@ -297,13 +306,13 @@ isnt($@, '', 'croaks with non-interpolated strings');
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e in [$to_check]");
 	$e_was_run = 0;
-	
+
 	$to_check = q[1 e123 2];
 	sub PDL::Core::e123 { $e_was_run++ }
 	eval {pdl $to_check};
 	is($e_was_run, 0, "Does not execute local function e123 in [$to_check]");
 	$e_was_run = 0;
-	
+
 }
 
 ##############################
@@ -322,7 +331,7 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 # pdl> p $a = pdl q[ [ 1, 2, 3 ], [ 4, 5, 6 ] ];
 # pdl> p $a = pdl q[ 1 2 3 ; 4 5 6 ]
 # pdl> p $a = pdl '[ [ 1, 2, 3 ], [ 4, 5, 6 ] ]';
-# 
+#
 # [
 #  [1 2 3]
 #  [4 5 6]
@@ -332,13 +341,13 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 # pdl> p $b = pdl [ 1, 2, 3, 4, 5, 6 ]
 # pdl> p $b = pdl q[ 1 2 3 4 5 6 ]
 # pdl> p $b = pdl q[1,2,3,4,5,6]
-# [1 2 3 4 5 6] 
+# [1 2 3 4 5 6]
 
 # 1D array with signs
 # pdl> p $c = pdl [ 7, -2, +5 ]
 # pdl> p $c = pdl q[ 7 -2 +5 ]
 # pdl> p $c = pdl q[ 7, -2, +5 ]
-# [7 -2 5] 
+# [7 -2 5]
 
 # 1D array with mixed ops and signs
 # pdl> p $d = pdl [ 7 - 2, +5 ]
@@ -360,7 +369,7 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 #                   [ [2, 0], [4, 0], [4, 1] ],
 #                   [ [0, 1], [3, 2], [1, 4] ],
 #                   [ [1, 2], [2, 2], [2, 1] ] ];
-# 
+#
 # [
 #  [
 #   [0 1]
@@ -383,7 +392,7 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 #   [2 1]
 #  ]
 # ]
-# 
+#
 # ...the same, just different formatting...
 #
 # [
@@ -395,7 +404,7 @@ like($@, qr/found disallowed character\(s\) 'po'/, 'Gives meaningful explanation
 
 # A 3x3 2D array
 # pdl> p pdl [ [1, 2, 3], [2, 1, 0], [2, 2, 1] ];
-# pdl> p $e = pdl q[ [ 1 2 3 ] ; [ 2 1 0 ] ; [ 2 2 1 ] ]; 
+# pdl> p $e = pdl q[ [ 1 2 3 ] ; [ 2 1 0 ] ; [ 2 2 1 ] ];
 # pdl> p pdl q[  1 2 3 ; 2 1 0 ; 2 2 1 ]  # this should be the same
 #
 # [

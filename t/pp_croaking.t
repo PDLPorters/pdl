@@ -1,3 +1,4 @@
+no warnings qw(misc);
 # Test the error reporting for malformed PDL::PP code.
 use Test::More tests => 3;
 

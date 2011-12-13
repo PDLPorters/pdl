@@ -1,4 +1,5 @@
 # Script to test some of the primitive operations for returning the correct values.
+no warnings qw(misc);
 #
 #  
 #  Testing utility functions:

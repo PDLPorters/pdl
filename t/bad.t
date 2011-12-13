@@ -5,6 +5,7 @@
 #   skip unless $PDL::Config{WITH_BADVAL}
 #
 
+no warnings qw(misc);
 use strict;
 use Test::More;
 

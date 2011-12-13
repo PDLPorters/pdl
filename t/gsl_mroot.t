@@ -1,3 +1,4 @@
+no warnings qw(misc);
 
 # Test Script for the PDL interface to the GSL library
 #  This tests mainly that the interface is working, i.e. that the

@@ -1,4 +1,5 @@
 
+no warnings qw(misc);
 use strict;
 
 use PDL;

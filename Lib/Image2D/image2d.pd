@@ -889,7 +889,7 @@ EOD
 
 pp_addhdr('
 
-/* Add an equivalence to a list - used by pdl_cc8compt */
+/* Add an equivalence to a list - used by pdl_ccNcompt */
 
 void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j) {
 
@@ -912,22 +912,75 @@ void AddEquiv ( PDL_Long* equiv, PDL_Long i, PDL_Long j) {
 
 ');
 
+pp_add_exported('', 'cc8compt','cc4compt');
+pp_addpm(<<'EOPM');
 
-pp_def('cc8compt',Doc=>'
+=head2 cc8compt
+
 =for ref
 
 Connected 8-component labeling of a binary image.
 
-Connected 8-component labeling of 0,1 image - i.e. find seperate
-segmented objects and fill object pixels with object number
+Connected 8-component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+8-component labeling includes all neighboring pixels.
+This is just a front-end to ccNcompt.  See also L<cc4compt>.
 
 =for example
 
  $segmented = cc8compt( $image > $threshold );
 
+=head2 cc4compt
+
+=for ref
+
+Connected 4-component labeling of a binary image.
+
+Connected 4-component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+4-component labling does not include the diagonal neighbors.
+This is just a front-end to ccNcompt.  See also L<cc8compt>.
+
+=for example
+
+ $segmented = cc4compt( $image > $threshold );
+
+=cut
+
+sub PDL::cc8compt{
+return ccNcompt(shift,8);
+}
+*cc8compt = \&PDL::cc8compt;
+
+sub PDL::cc4compt{
+return ccNcompt(shift,4);
+}
+*cc4compt = \&PDL::cc4compt;
+
+EOPM
+
+pp_def('ccNcompt',Doc=>'
+=for ref
+
+Connected component labeling of a binary image.
+
+Connected component labeling of 0,1 image - i.e. find separate
+segmented objects and fill object pixels with object number.
+See also L<cc4compt> and L<cc8compt>.
+
+The connectivity parameter must be 4 or 8.
+
+=for example
+
+ $segmented = ccNcompt( $image > $threshold, 4);
+
+ $segmented2 = ccNcompt( $image > $threshold, 8);
+
+where the second parameter specifies the connectivity (4 or 8) of the labeling.
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]b(m,n);',
+        OtherPars => 'int con',
         Code => '
 
       PDL_Long i,j,k;
@@ -940,6 +993,8 @@ segmented objects and fill object pixels with object number
       PDL_Long nx = $SIZE(m);
       PDL_Long ny = $SIZE(n);
 
+      if ($COMP(con)!=4 && $COMP(con)!=8)
+         barf("In ccNcompt, connectivity must be 4 or 8, you gave %d",$COMP(con));
       loop(n) %{ loop(m) %{ /* Copy */
          $b() = $a();
       %} %}
@@ -962,17 +1017,17 @@ segmented objects and fill object pixels with object number
 
             nfound = 0; /* Number of neighbour >0 */
 
-            i1 = i-1; j1 = j-1; i2 = i+1;
+            i1 = i-1; j1 = j-1; i2 = i+1; /*West x, North y, East x*/
 
             if ($b(m=>i, n=>j) > 0) { /* Check 4 neighbour already seen */
 
-               if (i>0 && $b(m=>i1, n=>j)>0)
+               if (i>0 && $b(m=>i1, n=>j)>0) /*West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j); /* Store label of it */
-               if (j>0 && $b(m=>i, n=>j1)>0)
+               if (j>0 && $b(m=>i, n=>j1)>0) /*North*/
                    neighbour[nfound++] = $b(m=>i, n=>j1);
-               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0)
+               if (j>0 && i>0  && $b(m=>i1, n=>j1)>0 && $COMP(con)==8) /*North-West*/
                    neighbour[nfound++] = $b(m=>i1, n=>j1);
-               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0)
+               if (j>0 && i<(nx-1) && $b(m=>i2, n=>j1)>0 && $COMP(con)==8) /*North-East*/
                    neighbour[nfound++] = $b(m=>i2, n=>j1);
 
                if (nfound==0)  { /* Assign new label */

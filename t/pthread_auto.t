@@ -1,3 +1,4 @@
+no warnings qw(misc);
 
 # This test case is very similar to pthread.t, but it uses the auto pthread
 #  interface, instead of specificaly setting pthread magic on individual PDLs

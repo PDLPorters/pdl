@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+no warnings qw(misc);
 
 #
 # t/gis_proj.t

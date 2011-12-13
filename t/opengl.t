@@ -1,4 +1,5 @@
 # -*-perl-*-
+no warnings qw(misc);
 BEGIN{
 	  # Set perl to not try to resolve all symbols at startup
 	  #   The default behavior causes some problems because 
