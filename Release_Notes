@@ -32,6 +32,10 @@ Highlights:
 
  * Minor cleanups to PDL::PP and related modules to get rid
    of warnings under new Perls during testing.
+ 
+ * Add pnpoly implementation and fixes to PDL::Image2D
+
+
 
 Release Notes for PDL 2.4.9_013 --------------------------
 
