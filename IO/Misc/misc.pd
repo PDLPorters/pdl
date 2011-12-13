@@ -215,7 +215,7 @@ sub _is_io_handle {
 }
 
 
-=head2 rcols()
+=head2 rcols
 
 =for ref
 
@@ -770,7 +770,7 @@ wantarray ? return(@ret) : return $ret[0];
 }
 
 
-=head2 wcols()
+=head2 wcols
 
 =for ref
 
@@ -952,7 +952,7 @@ sub PDL::wcols {
    return 1;
 }
 
-=head2 swcols()
+=head2 swcols
 
 =for ref
 
@@ -1030,7 +1030,7 @@ sub PDL::swcols{
 }
 
 
-=head2 rgrep()
+=head2 rgrep
 
 =for ref
 
@@ -1163,7 +1163,7 @@ of C<$1>, C<$2> etc.
 }
 
 
-=head2 rdsa()
+=head2 rdsa
 
 =for ref
 
@@ -1240,7 +1240,7 @@ sub PDL::rdsa {
     return ($xpdl,$pdl);
 }
 
-=head2 isbigendian()
+=head2 isbigendian
 
 =for ref
 
@@ -1439,7 +1439,7 @@ pp_add_exported('', 'rasc rcube');
 pp_addpm(<<'EOPM');
 
 
-=head2 rasc()
+=head2 rasc
 
 =for ref
 
