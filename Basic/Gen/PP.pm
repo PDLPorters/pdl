@@ -913,8 +913,24 @@ sub pp_addxs {
 
 sub pp_line_numbers ($$) {
 	my ($line, $string) = @_;
+	# The line needs to be incremented by one for the bookkeeping to work
+	$line++;
+	# Get the source filename using caller()
 	my (undef, $filename) = caller;
-	return "# line $line \"$filename\"$string";
+	my @to_return = "# line $line \"$filename\"";
+	
+	# Look for threadloops and loops and add # line directives
+	foreach (split (/(\n)/, $string)) {
+		# Always add the current line.
+		push @to_return, $_;
+		
+		# If we need to add a # line directive, do so before incrementing
+		push (@to_return, "# line $line \"$filename\"\n") if (/%{/ or /%}/);
+		
+		$line++ if /\n/;
+	}
+	
+	return join('', @to_return);
 }
 
 sub printxsc {

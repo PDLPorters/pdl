@@ -30,7 +30,7 @@ unlink 'foobar.pm';
 
 # Analyze the output of pp_line_numbers by checking the line numbering in
 # foobar.xs:
-my ($line, $file) = (0, 'foobar.xs');
+my ($line, $file) = (1, 'foobar.xs');
 open my $fh, '<', 'foobar.xs';
 LINE: while(<$fh>) {
   # Take note of explicit line directives
@@ -39,14 +39,14 @@ LINE: while(<$fh>) {
     next LINE;
   }
   
-  $line++;
   # look for items to check:
   if (m|/\* line (\d+), (.*?) \*/|) {
     my ($actual_line, $description) = ($1, $2);
     is($line, $actual_line, $description);
   }
+  $line++;
 }
 
-unlink 'foobar.xs';
+#unlink 'foobar.xs';
 
 };
