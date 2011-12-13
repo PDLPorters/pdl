@@ -30,7 +30,8 @@ Highlights:
    and make all constants EXPORT_OK() rather than EXPORT().
    Some documentation updates.
 
-
+ * Minor cleanups to PDL::PP and related modules to get rid
+   of warnings under new Perls during testing.
 
 Release Notes for PDL 2.4.9_013 --------------------------
 
