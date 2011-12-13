@@ -313,25 +313,28 @@ sub apply {
     #
     my @args = $self->extract_args($pars);
 
-    my @retval = &{$ref}(@args);
-    confess "Internal error: rule '$self' returned " . (1+$#retval) .
-      " items and expected " . (1+$#$targets)
-	unless $#retval == $#$targets;
+    # Run this rule's subroutine:
+    my @retval = $self->{ref}(@args);
+    
+    # Check for any inconsistencies:
+    confess "Internal error: rule '$self' returned " . (1+$#retval)
+      . " items and expected " . (1+$#$targets)
+		unless $#retval == $#$targets;
 
     $self->report("--setting:");
     foreach my $target (@$targets) {
 		$self->report(" $target");
 		confess "Cannot have multiple meanings for target $target!"
 		  if exists $pars->{$target};
-		my $res = shift @retval;
+		my $result = shift @retval;
 
 		# The following test suggests that things could/should be
 		# improved in the code generation.
 		#
-		if ($res eq 'DO NOT SET!!') {
+		if (defined $result and $result eq 'DO NOT SET!!') {
 			$self->report (" is 'DO NOT SET!!'");
 		} else {
-			$pars->{$target} = $res;
+			$pars->{$target} = $result;
 		}
 	}
 	$self->report("\n");
