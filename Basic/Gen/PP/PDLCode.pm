@@ -735,7 +735,7 @@ sub new {
     return bless [$opcode, $pdl_name, $inds], $type;
 }
 
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -797,7 +797,7 @@ sub new {
     bless [$opcode, $var_name, $pdl_name], $type;
 }
 
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -857,7 +857,7 @@ sub new {
 }
 
 # PP is stripped in new()
-my %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
+our %ops = ( ISBAD => '==', ISGOOD => '!=', SETBAD => '=' );
 
 sub get_str {
     my($this,$parent,$context) = @_;
@@ -918,7 +918,7 @@ sub new {
     bless [$op, $val, $pdl_name], $type;
 }
 
-my %ops  = ( 
+our %ops  = ( 
 	     IS  => { GOOD => '== 0', BAD => '> 0' },
 	     SET => { GOOD => '&= ~', BAD => '|= ' },
 	     );
