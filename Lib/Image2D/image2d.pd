@@ -1147,6 +1147,70 @@ void polyfill(PDL_Long *image, int wx, int wy, float *ps, int n,
 
 ');
 
+pp_add_exported('', 'pnpoly');
+pp_addpm(<<'EOPM');
+
+=head2 pnpoly
+
+=for ref
+
+'points in a polygon' selection from a 2-D piddle
+
+=for usage
+
+  $mask = pnpoly($x, $y, $px, $py);
+
+For a closed polygon determined by the sequence of points in {$py,$py}
+the output of pnpoly is a mask corresponding to whether or not each
+coordinate (x,y) in the set of test points, {$x,$y}, is in the interior
+of the polygon.  This is the 'points in a polygon' algorithm from
+L<http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html>
+and vectorized for PDL by Karl Glazebrook.
+
+=for example
+
+  # define a 3-sided polygon (a triangle)
+  $px = pdl( 3, 20, 34 );
+  $py = pdl( 3, 20,  3 );
+  
+  $img = zeros(40, 40);  # create test image
+  $x = $img->xvals;      # get x pixel coords
+  $y = $img->yvals;      # get y pixel coords
+  
+  # $tri is 0 everywhere except for points in polygon interior
+  $tri = pnpoly($x,$y,$px,$py);
+                                
+=cut
+
+# From: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+#
+# Fixes needed to pnpoly code:
+# 
+# Use topdl() to ensure piddle args
+# 
+# Add POD docs for usage
+# 
+# Calculate first term in & expression to use to fix divide-by-zero when
+#   the test point is in line with a vertical edge of the polygon.
+#   By adding the value of $mask we prevent a divide-by-zero since the &
+#   operator does not "short circuit".
+
+sub PDL::pnpoly {
+   my ($tx, $ty, $vertx, $verty) = @_;
+   my $testx = PDL::Core::topdl($tx)->dummy(0);
+   my $testy = PDL::Core::topdl($ty)->dummy(0);
+   my $vertxj = PDL::Core::topdl($vertx)->rotate(1);
+   my $vertyj = PDL::Core::topdl($verty)->rotate(1);
+   my $mask = ( ($verty>$testy) == ($vertyj>$testy) );
+   my $c = sumover( ! $mask & ( $testx < ($vertxj-$vertx) * ($testy-$verty)
+                                / ($vertyj-$verty+$mask) + $vertx) ) % 2;
+   return $c;
+}
+
+*pnpoly = \&PDL::pnpoly;
+
+EOPM
+
 pp_def('polyfill',
        HandleBad => 0, # a marker
 	Pars => 'int [o,nc] im(m,n); float ps(two=2,np); int col()',

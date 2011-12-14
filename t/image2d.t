@@ -4,7 +4,7 @@ no warnings qw(misc);
 
 use Test;
 BEGIN {
-    plan tests => 20;
+    plan tests => 22;
 }
 
 use PDL;
@@ -143,3 +143,14 @@ eval 'ccNcompt($a,5)';
 ok($@ ne '');
 eval 'ccNcompt($a,8)';
 ok($@ eq '');
+
+# pnpoly
+my $px = pdl(0,3,1);
+my $py = pdl(0,1,4);
+my $im = zeros(5,5);
+my $x = $im->xvals;
+my $y = $im->yvals;
+my $mask = pnpoly($x,$y,$px,$py);
+ok(sum($mask) == 5);
+my $inpixels = pdl q[ 1 1 ; 1 2 ; 1 3 ; 2 1 ; 2 2 ];
+ok(sum($inpixels - qsortvec(scalar whichND($mask))) == 0);
