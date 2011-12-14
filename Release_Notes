@@ -39,6 +39,8 @@ Highlights:
  
  * Add pnpoly implementation and fixes to PDL::Image2D
 
+ * Candidate fix to PDL::Minuit Makefile.PL
+
 
 
 Release Notes for PDL 2.4.9_013 --------------------------
