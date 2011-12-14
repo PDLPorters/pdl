@@ -33,6 +33,10 @@ Highlights:
  * Minor cleanups to PDL::PP and related modules to get rid
    of warnings under new Perls during testing.
  
+ * Added pp_line_numbers to PDL::PP to improve line number
+   reporting when the compiler runs into an error with
+   PDL::PP code.
+ 
  * Add pnpoly implementation and fixes to PDL::Image2D
 
 
