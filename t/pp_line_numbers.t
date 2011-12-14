@@ -1,26 +1,22 @@
-# Four tests for each of nine types:
-use Test::More tests => 35;
+# DO NOT MODIFY - IT IS VERY FINICKY; see notes below.
 
-#$::PP_VERBOSE = 1;
+# Five tests for each of seven types:
+use Test::More tests => 35;
 use PDL::PP qw(foo::bar foo::bar foobar);
 
 # Add some tests for pp_line_numbers:
-TODO: {
-  
-  local $TODO = 'Just starting work on this, so most of it will not work';
-#$DB::single = 1;
 pp_def(test1 =>
   Pars => 'a(n)',
   Code => pp_line_numbers (__LINE__, q{
-    /* line 15, First line */
+    /* line 11, First line */
     threadloop %{
-      /* line 17, Line after threadloop */
+      /* line 13, Line after threadloop */
       loop (n) %{
-        /* line 19, Line after loop */
+        /* line 15, Line after loop */
       %}
-      /* line 21, Line after close of loop */
+      /* line 17, Line after close of loop */
     %}
-    /* line 23, Line after clos of threadloop */
+    /* line 19, Line after close of threadloop */
   })
 );
 
@@ -29,12 +25,13 @@ pp_done;
 unlink 'foobar.pm';
 
 # Analyze the output of pp_line_numbers by checking the line numbering in
-# foobar.xs:
+# foobar.xs. Note that the line *after* the #line directive is assigned the
+# number of the #line directive. See http://gcc.gnu.org/onlinedocs/cpp/Line-Control.html
 my ($line, $file) = (1, 'foobar.xs');
 open my $fh, '<', 'foobar.xs';
 LINE: while(<$fh>) {
   # Take note of explicit line directives
-  if (/# line (\d+) ".*"/) {
+  if (/#line (\d+) ".*"/) {
     ($line, $file) = ($1, $2);
     next LINE;
   }
@@ -47,6 +44,15 @@ LINE: while(<$fh>) {
   $line++;
 }
 
-#unlink 'foobar.xs';
+unlink 'foobar.xs';
 
-};
+__END__
+
+This test is very finicky because it uses __LINE__, but it also explicitly
+indicates the line numbers in the /* comments */. As such, if you add a line
+of text (comment or code) before or within the pp_def, all of the line
+numbers in the /* comments */ will be off. It's a minor headache to adjust
+them, so please just don't mess with this test, unless of course you wish to
+fix it. :-)
+
+--DCM, December 13, 2011

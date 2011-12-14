@@ -9,16 +9,29 @@ e.g.
 	pp_def(
 		'sumover',
 		Pars => 'a(n); [o]b();',
-		Code => 'double tmp=0;
-			loop(n) %{ tmp += $a(); %}
+		Code => q{
+			double tmp=0;
+			loop(n) %{
+				tmp += $a();
+			%}
 			$b() = tmp;
-			'
+		},
 	);
 
 	pp_done();
 
+=head1 Overview
 
-=head1 DESCRIPTION
+Why do we need PP? Several reasons: firstly, we want to be able to
+generate subroutine code for each of the PDL datatypes (PDL_Byte,
+PDL_Short,. etc).  AUTOMATICALLY.  Secondly, when referring to slices
+of PDL arrays in Perl (e.g. C<< $a->slice('0:10:2,:') >> or other things such
+as transposes) it is nice to be able to do this transparently and to
+be able to do this 'in-place' - i.e, not to have to make a memory copy
+of the section. PP handles all the necessary element and offset
+arithmetic for you. There are also the notions of threading (repeated
+calling of the same routine for multiple slices, see L<PDL::Indexing>)
+and dataflow (see L<PDL::Dataflow>) which use of PP allows.
 
 In much of what follows we will assume familiarity of the reader with
 the concepts of implicit and explicit threading and index manipulations
@@ -26,22 +39,8 @@ within PDL. If you have not yet heard of these concepts or are not very
 comfortable with them it is time to check L<PDL::Indexing>.
 
 As you may appreciate from its name PDL::PP is a Pre-Processor, i.e.
-it expands code via substitutions to make real C-code (well, actually
-it outputs XS code (See I<perlxs>) but that is very close to
-C).
-
-=head1 Overview
-
-Why do we need PP? Several reasons: firstly, we want to be able to
-generate subroutine code for each of the PDL datatypes (PDL_Byte,
-PDL_Short,. etc).  AUTOMATICALLY.  Secondly, when referring to slices
-of PDL arrays in Perl (e.g. C<$a-E<gt>slice('0:10:2,:')> or other things such
-as transposes) it is nice to be able to do this transparently and to
-be able to do this 'in-place' - i.e, not to have to make a memory copy
-of the section. PP handles all the necessary element and offset
-arithmetic for you. There are also the notions of threading (repeated
-calling of the same routine for multiple slices, see L<PDL::Indexing>)
-and dataflow (see L<PDL::Dataflow>) which use of PP allows.
+it expands code via substitutions to make real C-code. Technically, the
+output is XS code (see I<perlxs>) but that is very close to C.
 
 So how do you use PP? Well for the most part you just write ordinary C
 code except for special PP constructs which take the form:
@@ -59,17 +58,18 @@ simple PP function to sum the elements of a 1D vector (in fact this is
 very similar to the actual code used by 'sumover'):
 
    pp_def('sumit',
-           Pars => 'a(n);  [o]b();',
-           Code => '
-           	double tmp;
-           	tmp = 0;
-           	loop(n) %{
-            	  tmp += $a();
-            	%}
-            	$b() = tmp;
-   ');
+       Pars => 'a(n);  [o]b();',
+       Code => q{
+           double tmp;
+           tmp = 0;
+           loop(n) %{
+               tmp += $a();
+           %}
+           $b() = tmp;
+       }
+   );
 
-What's going on? The C<Pars =E<gt>> line is very important for PP - it
+What's going on? The C<< Pars => >> line is very important for PP - it
 specifies all the arguments and their dimensionality. We call
 this the I<signature> of the PP function (compare also the explanations in
 L<PDL::Indexing>).  In this case the
@@ -77,11 +77,18 @@ routine takes a 1-D function as input and returns a 0-D scalar as
 output.  The C<$a()> PP construct is used to access elements of the array
 a(n) for you - PP fills in all the required C code.
 
-[Aside: since PP used C<$var()> for its parsing you must single-quote
-all Code=> arguments since you don't want Perl to interpolate C<$var()> into
-another string - i.e. don't use "" unless you know what
-you are doing! Tjl: it's usually easiest to use single quotes and
-'something'.$interpolatable.'somethingelse']
+You will notice that we are using the C<q{}> single-quote operator. This is
+not an accident. You generally want to use single quotes to denote your
+PP Code sections. PDL::PP uses C<$var()> for its parsing and if you don't
+use single quotes, Perl will try to interpolate C<$var()>. Also, using the
+single quote C<q> operator with curly braces makes it look like you are
+creating a code block, which is What You Mean. (Perl is smart enough to look
+for nested curly braces and not close the quote until it finds the matching
+curly brace, so it's safe to have nested blocks.) Under other circumstances,
+such as when you're stitching together a Code block using string
+concatenations, it's often easiest to use real single quotes as 
+
+ Code => 'something'.$interpolatable.'somethingelse;'
 
 In the simple case here where all elements are accessed the PP construct
 C<loop(n) %{ ... %}> is used to loop over all elements in dimension C<n>.
@@ -91,20 +98,21 @@ This is made clearer if we avoid the PP loop() construct
 and write the loop explicitly using conventional C:
 
    pp_def('sumit',
-           Pars => 'a(n);  [o]b();',
-           Code => '
-           	int i,n_size;
-           	double tmp;
-           	n_size = $SIZE(n);
-           	tmp = 0;
-           	for(i=0; i<n_size; i++) {
-            	  tmp += $a(n=>i);
-            	}
-            	$b() = tmp;
-   ');
+       Pars => 'a(n);  [o]b();',
+       Code => q{
+           int i,n_size;
+           double tmp;
+           n_size = $SIZE(n);
+           tmp = 0;
+           for(i=0; i<n_size; i++) {
+               tmp += $a(n=>i);
+           }
+           $b() = tmp;
+       },
+   );
 
 which does the same as before, but is more long-winded.
-You can see to get element C<i> of a() we say C<$a(n=E<gt>i)> - we are
+You can see to get element C<i> of a() we say C<< $a(n=>i) >> - we are
 specifying the dimension by name C<n>. In 2D we might say:
 
 
@@ -113,13 +121,12 @@ specifying the dimension by name C<n>. In 2D we might say:
       tmp += $a(m=>i,n=>j);
       ...
 
-The syntax 'm=E<gt>i' borrows from Perl hashes (which are in fact
-used in the implementation of PP). One could also say
-C<$a(n=E<gt>j,m=E<gt>i)> as order is not important.
+The syntax C<< m=>i >> borrows from Perl hashes, which are in fact
+used in the implementation of PP. One could also say
+C<< $a(n=>j,m=>i) >> as order is not important.
 
 You can also see in the above example the use of another PP
-construct - C<$SIZE(n)> to get the length of the dimension
-C<n>.
+construct - C<$SIZE(n)> to get the length of the dimension C<n>.
 
 It should, however, be noted that you shouldn't write an explicit C-loop
 when you could have used the PP C<loop> construct since PDL::PP checks
@@ -188,6 +195,37 @@ beginning of the data in memory - a prerequisite for interfacing
 PDL to some libraries. This is handled with the C<$P(var)> directive,
 see below.
 
+When starting work on a new pp_def'ined function, if you make a mistake, you
+will usually find a pile of compiler errors indicating line numbers in the
+generated XS file. If you know how to read XS files (or if you want to learn
+the hard way), you could open the generated XS file and search for the line
+number with the error. However, a recent addition to PDL::PP helps report
+the correct line number of your errors: C<pp_line_numbers>. Working with the
+original summit example, if you had a mis-spelling of tmp in your code, you
+could change the (erroneos) code to something like this and the compiler
+would give you much more useful information:
+
+   pp_def('sumit',
+       Pars => 'a(n);  [o]b();',
+       Code => pp_line_numbers(__LINE__, q{
+           double tmp;
+           tmp = 0;
+           loop(n) %{
+               tmp += $a();
+           %}
+           $b() = rmp;
+       })
+   );
+
+For the above situation, my compiler tells me:
+
+ ...
+ test.pd:15: error: ‘rmp’ undeclared (first use in this function)
+ ...
+
+In my example script (called test.pd), line 15 is exactly the line at which
+I made my typo: C<rmp> instead of C<tmp>.
+
 So, after this quick overview of the general flavour of programming
 PDL routines using PDL::PP let's summarise in which circumstances you
 should actually use this preprocessor/precompiler. You should use PDL::PP
@@ -213,17 +251,16 @@ be a PDL developer (and even then it's not obligatory)
 
 =head1 WARNING
 
-Because of its architecture, PDL::PP can be both flexible and
-easy to use (yet exuberantly complicated) at the same time. Currently, part
-of the problem is that error messages are not very informative and if
-something goes wrong, you'd better know what you are
-doing and be able to hack your way through the internals (or be able to
-figure out by trial and error what is wrong with your args to C<pp_def>).
+Because of its architecture, PDL::PP can be both flexible and easy to use
+on the one hand, yet exuberantly complicated at the same time. Currently,
+part of the problem is that error messages are not very informative and if
+something goes wrong, you'd better know what you are doing and be able to
+hack your way through the internals (or be able to figure out by trial and
+error what is wrong with your args to C<pp_def>). Although work is being
+done to produce better warnings, do not be afraid to send your questions to
+the mailing list if you run into trouble.
 
-An alternative, of course, is to ask someone about it (e.g., through the
-mailing lists).
-
-=head1 ABANDON ALL HOPE, YE WHO ENTER HERE (DESCRIPTION)
+=head1 DESCRIPTION
 
 Now that you have some idea how to use C<pp_def> to define new PDL functions
 it is time to explain the general syntax of C<pp_def>.
@@ -2113,6 +2150,24 @@ Sets code to be added to the top of your .pm file, even above code that you
 specify with C<< pp_addpm({At => 'Top'}, ...) >>. Unlike pp_addpm, calling
 this overwrites whatever was there before. Generally, you probably shouldn't
 use it.
+
+=back
+
+=head2 Tracking Line Numbers
+
+When you get compile errors, either from your C-like code or your Perl
+code, it can help to make those errors back to the line numbers in the source
+file at which the error occurred.
+
+=over
+
+=item pp_line_numbers
+
+Takes a line number and a (usually long) string of code. The line number
+should indicate the line at which the quote begins. This is usually Perl's
+C<__LINE__> literal, unless you are using heredocs, in which case it is
+C<__LINE__ + 1>. The returned string has #line directives interspersed to
+help the compiler report errors on the proper line.
 
 =back
 

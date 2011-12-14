@@ -920,7 +920,7 @@ sub pp_line_numbers ($$) {
 	$line++;
 	# Get the source filename using caller()
 	my (undef, $filename) = caller;
-	my @to_return = "# line $line \"$filename\"";
+	my @to_return = "#line $line \"$filename\"";
 	
 	# Look for threadloops and loops and add # line directives
 	foreach (split (/(\n)/, $string)) {
@@ -928,7 +928,7 @@ sub pp_line_numbers ($$) {
 		push @to_return, $_;
 		
 		# If we need to add a # line directive, do so before incrementing
-		push (@to_return, "# line $line \"$filename\"\n") if (/%{/ or /%}/);
+		push (@to_return, "\n#line $line \"$filename\"") if (/%{/ or /%}/);
 		
 		$line++ if /\n/;
 	}
