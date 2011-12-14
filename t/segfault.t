@@ -1,6 +1,5 @@
 # Tests for a segfault bug in PDL through 2.4.2
 # (Thanks, Alexey!)
-no warnings qw(misc);
 
 print "1..1\n";
 

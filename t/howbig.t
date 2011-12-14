@@ -1,5 +1,4 @@
 # Test datatype sizes in bytes are correct
-no warnings qw(misc);
 
 use PDL::LiteF;
 use PDL::Core ':Internal'; # For howbig()

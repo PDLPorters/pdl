@@ -5,7 +5,6 @@
 ###           If $pdlderived is a PDL::derived object (subclassed from PDL),
 ###              then $pdlderived->sumover should return a PDL::derived object.
 ###      
-no warnings qw(misc);
 use PDL::LiteF;
 
 

@@ -1,4 +1,3 @@
-no warnings qw(misc);
 use Test;
 
 plan tests => 2;

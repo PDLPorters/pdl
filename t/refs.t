@@ -1,4 +1,3 @@
-no warnings qw(misc);
 
 # This test case points out a problem in the freeing
 # of used memory in 1.90_01

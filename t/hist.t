@@ -1,5 +1,4 @@
 
-no warnings qw(misc);
 # Test hist() and related functions
 
 use Test;

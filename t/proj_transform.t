@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-no warnings qw(misc);
 
 #
 # t/proj_transform.t

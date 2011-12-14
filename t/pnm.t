@@ -1,5 +1,4 @@
 # we need tests with index shuffling once vaffines are fixed
-no warnings qw(misc);
 
 sub ok {
 	my $no = shift ;

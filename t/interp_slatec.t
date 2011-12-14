@@ -1,4 +1,3 @@
-no warnings qw(misc);
 # NOTE: 
 #  currently not in use anymore
 #  - see PDL::Func (in Lib/) and t/func.t

@@ -1,6 +1,5 @@
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
-no warnings qw(misc);
 
 ######################### We start with some black magic to print on failure.
 

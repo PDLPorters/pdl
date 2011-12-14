@@ -1,4 +1,3 @@
-no warnings qw(misc);
 
 # Test vaffine optimisation
 

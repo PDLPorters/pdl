@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-no warnings qw(misc);
 #
 # Verify that the Config.pm values were updated from the
 # actual build process.  Quick placeholder tests for now.

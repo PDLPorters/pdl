@@ -1,5 +1,4 @@
 # Test other such primitives also
-no warnings qw(misc);
 
 use PDL::LiteF;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.

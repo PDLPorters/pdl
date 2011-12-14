@@ -1,7 +1,6 @@
 # flexraw's read/write tests, copied from fastraw's tests.
 # There are still many tests to write; see the notes at the bottom
 # of this document.
-no warnings qw(misc);
 
 use PDL::LiteF;
 # PDL::Core::set_debugging(1);

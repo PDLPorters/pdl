@@ -7,7 +7,6 @@
 
 # Our new default testing framework
 use strict;
-no warnings qw(misc);
 use Test::More;
 
 use PDL;

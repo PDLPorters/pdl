@@ -1,6 +1,5 @@
 # tests for error checking of input args to PP compiled function
 #
-no warnings qw(misc);
 use PDL::LiteF;
 use vars qw/$a $b/;
 kill INT,$$ if $ENV{UNDER_DEBUGGER}; # Useful for debugging.

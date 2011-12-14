@@ -1,4 +1,3 @@
-no warnings qw(misc);
 use strict;
 use Test::More;
 use blib;  # otherwise possible error on virgin systems not finding PDL::Core

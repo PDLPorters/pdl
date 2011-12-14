@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-no warnings qw(misc);
 #
 # Test for bug in the pdl constructor for mixed arguments.
 # Separate from core.t because the problem crashes perl

@@ -1,5 +1,4 @@
 # Test routine for PDL::Fit::Gaussian module
-no warnings qw(misc);
 
 use PDL;
 use PDL::Fit::Gaussian;

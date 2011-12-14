@@ -71,8 +71,9 @@ sub subs {
 # print "defining lvalue subs:\n$prots\n";
 
 eval << "EOV" if ($^V and $^V >= 5.006007);
-{package PDL;
-$prots
+{ package PDL;
+  no warnings qw(misc);
+  $prots
 }
 EOV
 

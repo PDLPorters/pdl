@@ -1,5 +1,4 @@
 # XXX SOME TESTS DISABLED
-no warnings qw(misc);
 
 use PDL::LiteF;
 

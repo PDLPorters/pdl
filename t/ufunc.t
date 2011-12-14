@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #
 # Test some Basic/Ufunc routines
-no warnings qw(misc);
 
 use strict;
 use Test::More tests => 15;

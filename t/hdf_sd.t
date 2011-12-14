@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-no warnings qw(misc);
 #
 # t/hdf_sd.t
 #

@@ -1,4 +1,3 @@
-no warnings qw(misc);
 use Test::More tests => 23;
 
 use PDL::LiteF;

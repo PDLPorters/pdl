@@ -1,4 +1,3 @@
-no warnings qw(misc);
 use PDL;
 use PDL::ImageND;
 use PDL::NiceSlice;

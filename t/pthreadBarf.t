@@ -1,4 +1,3 @@
-no warnings qw(misc);
 
 # These tests check for proper deferred handling of barf and warn messages when pthreading.
 #   

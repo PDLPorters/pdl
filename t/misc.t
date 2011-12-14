@@ -1,4 +1,3 @@
-no warnings qw(misc);
 
 # Test routine for PDL::IO::Misc module
 

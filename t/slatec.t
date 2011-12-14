@@ -1,5 +1,4 @@
 # -*-perl-*-
-no warnings qw(misc);
 use PDL::LiteF;
 use PDL::Config;
 use Test::More;

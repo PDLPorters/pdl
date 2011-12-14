@@ -1,6 +1,5 @@
 
 use strict;
-no warnings qw(misc);
 
 use Test::More;
 
