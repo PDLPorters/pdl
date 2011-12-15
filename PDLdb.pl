@@ -1,7 +1,7 @@
 
 =head1 NAME 
 
-perl5db.pl - the perl debugger
+PDLdb.pl - the perl debugger with PDL support
 
 =head1 SYNOPSIS
 
@@ -506,7 +506,8 @@ where it has to go.
 
 =cut
 
-package DB;
+package # this is the PDLdb
+        DB;
 
 BEGIN {eval 'use IO::Handle'};	# Needed for flush only? breaks under miniperl
 

@@ -93,6 +93,9 @@ The following issues have been reported with this version of PDL:
 	       build and now all tests pass for win32.
 
   3363406    PDL::Minuit build can't make libminuit.a
+
+               Candidate fix in this release.
+
   3316394    'help funname' fails to show multiple function names
   3314708    PDL install does not install scantree.pl
   3299615    PLplot still unusable with X
