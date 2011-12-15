@@ -326,6 +326,8 @@ sub myformat {
 sub make_PDL_Config_pm {
   print STDERR "Writing Basic/Core/Config.pm\n";
 
+  $PDL::Config{PDL_BUILD_VERSION} = "$PDL::VERSION";
+
   my $fh = IO::File->new( ">Basic/Core/Config.pm" )
     or die "Couldn't open Config.pm for writing";
   print $fh "
