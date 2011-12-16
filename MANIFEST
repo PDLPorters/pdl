@@ -632,6 +632,7 @@ Makefile.PL
 PDLdb.pl
 Perldl2/Makefile.PL
 Perldl2/Plugin/Makefile.PL
+Perldl2/Plugin/CleanErrors.pm
 Perldl2/Plugin/NiceSlice.pm
 Perldl2/Plugin/PDLCommands.pm
 Perldl2/Plugin/PrintControl.pm

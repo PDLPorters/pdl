@@ -1,7 +1,7 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Tue 29 Mar 2011 12:50:05 PM 
+# Last saved: Fri 16 Dec 2011 03:14:58 PM 
 #
 
 use Moose;
@@ -13,6 +13,7 @@ with 'Devel::REPL::Profile';
 
 sub plugins {
    qw(
+      CleanErrors
       Commands
       Completion
       CompletionDriver::INC
