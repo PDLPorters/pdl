@@ -203,9 +203,9 @@ The C<xchg> method "B<exchanges>" two dimensions in a piddle:
   
   pdl> p $a->info       =>  PDL: Double D [6,7,8,9]
   pdl> p $a_xchg->info  =>  PDL: Double D [9,7,8,6]
-                                              |     |
-                                              V     V
-                                          (dim 0) (dim 3)
+                                           |     |
+                                           V     V
+                                       (dim 0) (dim 3)
 
 Notice that dimensions 0 and 3 were exchanged without affecting the other
 dimensions. Notice also that C<xchg> does not alter C<$a>. The original
@@ -221,9 +221,9 @@ dimensions as necessary.
   pdl>                                   V _____
   pdl> p $a->info     =>  PDL: Double D [6,7,8,9]
   pdl> p $a_mv->info  =>  PDL: Double D [7,8,9,6]
-                                            ----- |
-                                                  V
-                                               (dim 3)
+                                          ----- |
+                                                V
+                                              (dim 3)
 
 Notice that when dimension 0 was moved to position 3, all the other dimensions
 had to be shifted as well. Notice also that C<mv> does not alter C<$a>. The
@@ -239,9 +239,9 @@ It "B<reorders>" the dimensions in any way you specify:
   pdl>
   pdl> p $a->info          =>  PDL: Double D [6,7,8,9]
   pdl> p $a_reorder->info  =>  PDL: Double D [9,6,8,7]
-                                                 | | | |
-                                                 V V v V
-                                    dimensions:  0 1 2 3
+                                              | | | |
+                                              V V v V
+                                 dimensions:  0 1 2 3
 
 Notice what happened. When we wrote C<reorder(3,0,2,1)> we instructed PDL to:
 
@@ -254,7 +254,7 @@ When you use the C<reorder> method, all the dimensions are shuffled. Notice that
 C<reorder> does not alter C<$a>. The original variable C<$a> remains untouched.
 
 
-=head1 GOTCHA: LIKING VS ASSIGNMENT
+=head1 GOTCHA: LINKING VS ASSIGNMENT
 
 =head2 Linking
 
@@ -496,7 +496,7 @@ The threaded PDL version is much faster:
 
 How does the threaded version work?
 
-There are many PDL functions designed to help you carry out PDL treading.
+There are many PDL functions designed to help you carry out PDL threading.
 In this example, the key functions are:
 
 =head3 Method: C<range>
