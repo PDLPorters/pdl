@@ -3,9 +3,18 @@ use PDL::IO::FlexRaw;
 use PDL::Config;
 use Config;
 
-use Test::More;
-
 use strict;
+
+use Test::More;
+use File::Temp qw(tempfile);
+
+my ($data,$head,$hdr);
+
+BEGIN {
+   (undef, $data) = tempfile("rawXXXX", SUFFIX=>'_data', TMPDIR=>1);
+   $hdr = $data . '.hdr';
+   ($head = $data) =~ s/_data$//;
+}
 
 $|=1;
 
@@ -22,7 +31,7 @@ BEGIN{
 
     my $ntests = 29;
     my $datalen;
-    $datalen = length($PDL::Config{TEMPDIR}) + length("/tmpraw") + length("data");
+    $datalen = length($data);
 
     unless ( $PDL::Config{WITH_SLATEC} ) {
        plan skip_all => "Skipped tests as F77 compiler not found";
@@ -167,7 +176,7 @@ sub inpath {
   my ($prog) = @_;
   my $pathsep = $^O =~ /win32/i ? ';' : ':';
   my $exe = $^O =~ /win32/i ? '.exe' : '';
-  for(split $pathsep,$ENV{PATH}){return 1 if -x "$_/$prog$exe"}
+  for (split $pathsep, $ENV{PATH}) { return 1 if -x "$_/$prog$exe" }
   return 0;
 }
 
@@ -201,9 +210,8 @@ sub createData {
             unless $head =~ /^(\/|\.\/)/;
       }
 
-    my $file = "${head}.f";
+    my $file = ${head} . '.f';
     my $prog = $head;
-    my $data = "${head}data";
 
     my $fh = IO::File->new( "> $file" )
       or die "ERROR: Unable to write F77 code to $file\n";
@@ -242,15 +250,6 @@ my $expr2p = '(outer(sin(0.01*$i),cos(0.01*$j),$c=null),$c*100.)';
 my $j = sequence($ndata)+1;
 my $i = $j;
 my $c;
-
-my $tmpdir = $PDL::Config{TEMPDIR};
-$tmpdir =~ s/\\/\\\\/g;
-my $head;
-if($^O =~ /mswin32/i) {$head   = $tmpdir . "\\\\tmpraw"}
-else {$head   = $tmpdir . "/tmpraw"}
-my $data   = $head . "data";
-my $hdr    = $data . ".hdr";
-
 # 1 dimensional --
 
 #
