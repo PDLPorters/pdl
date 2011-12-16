@@ -1,13 +1,13 @@
 package PDL::Perldl2::Profile::Perldl2;
 #
 # Created on: Sun 25 Apr 2010 03:09:34 PM
-# Last saved: Fri 16 Dec 2011 03:14:58 PM 
+# Last saved: Fri 16 Dec 2011 03:19:27 PM 
 #
 
 use Moose;
 use namespace::clean -except => [ 'meta' ];
 
-$PDL::Perldl2::Profile::Perldl2::VERSION = 0.005;
+$PDL::Perldl2::Profile::Perldl2::VERSION = 0.006;
 
 with 'Devel::REPL::Profile';
 
@@ -226,7 +226,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
           the same file for details.
     
     Loaded plugins:
-    
+      CleanErrors
       Commands
       Completion
       CompletionDriver::INC
@@ -250,7 +250,7 @@ PDL::Perldl2::Profile::Perldl2 - profile for Perldl2 shell
     
     Type Ctrl-D or quit to exit
     
-    Loaded PDL v2.4.7
+    Loaded PDL v2.4.9
     
     pdl> 
 
