@@ -207,6 +207,7 @@ sub init_vars {
 } # sub: init_vars()
 
 pp_def('conv2d', Doc=><<'EOD',
+
 =for ref
 
 2D convolution of an array with a kernel (smoothing)
@@ -231,6 +232,8 @@ will be quicker.
                           (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
        BadDoc =>
@@ -313,6 +316,7 @@ sub PDL::conv2d {
 ); # pp_def: conv2d
 
 pp_def('med2d', Doc=> <<'EOD',
+
 =for ref
 
 2D median-convolution of an array with a kernel (smoothing)
@@ -336,6 +340,8 @@ is rather pointless)
  	    => Default  - periodic boundary conditions (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
        BadDoc => 
@@ -443,6 +449,7 @@ sub PDL::med2d {
 ); # pp_def: med2d
 
 pp_def('med2df', Doc=> <<'EOD',
+
 =for ref
 
 2D median-convolution of an array in a pxq window (smoothing)
@@ -466,6 +473,8 @@ Note: this routine does the median over all points in a rectangular
  	    => Default  - periodic boundary conditions (i.e. wrap around axis)
  	    => Reflect  - reflect at boundary
  	    => Truncate - truncate at boundary
+
+=cut
 
 EOD
         Pars => 'a(m,n); [o]b(m,n);',
@@ -583,6 +592,7 @@ pp_def('box2d',
 		  }
 		%}',
        Doc => << 'EOD',
+
 =for ref
 
 fast 2D boxcar average
@@ -601,11 +611,19 @@ Boxcar averaging is a pretty crude way of filtering. For serious stuff
 better filters are around (e.g., use L<conv2d|conv2d> with the appropriate
 kernel). On the other hand it is fast and computational cost grows only
 approximately linearly with window size.
+
+=cut
+
 EOD
 ); # pp_def box2d
 
+=head2 patch2d
+
+=cut
+
 pp_def('patch2d', 
        Doc=><<'EOD',
+
 =for ref
 
 patch bad pixels out of 2D images using a mask
@@ -618,6 +636,8 @@ C<$bad> is a 2D mask array where 1=bad pixel 0=good pixel.
 Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the original data value is
 copied across.
+
+=cut
 
 EOD
        BadDoc => 
@@ -671,6 +691,7 @@ EOD
 
 pp_def('patchbad2d', 
        Doc=><<'EOD',
+
 =for ref
 
 patch bad pixels out of 2D images containing bad values
@@ -683,6 +704,8 @@ Pixels are replaced by the average of their non-bad neighbours;
 if all neighbours are bad, the output is set bad.
 If the input piddle contains I<no> bad values, then a straight copy
 is performed (see L<patch2d|/patch2d>).
+
+=cut
 
 EOD
        BadDoc => 
@@ -752,11 +775,14 @@ bad values, depending on the pattern of bad values in the input piddle.',
 
 pp_def('max2d_ind',
       Doc=><<'EOD',
+
 =for ref
 
 Return value/position of maximum value in 2D image
 
 Contributed by Tim Jeness
+
+=cut
 
 EOD
 
@@ -809,12 +835,15 @@ EOD
 pp_def('centroid2d',
 
         Doc=><<'EOD',
+
 =for ref
 
 Refine a list of object positions in 2D image by centroiding in a box
 
 C<$box> is the full-width of the box, i.e. the window
 is C<+/- $box/2>.
+
+=cut
 
 EOD
 
@@ -960,6 +989,7 @@ return ccNcompt(shift,4);
 EOPM
 
 pp_def('ccNcompt',Doc=>'
+
 =for ref
 
 Connected component labeling of a binary image.
@@ -977,6 +1007,9 @@ The connectivity parameter must be 4 or 8.
  $segmented2 = ccNcompt( $image > $threshold, 8);
 
 where the second parameter specifies the connectivity (4 or 8) of the labeling.
+
+=cut
+
 ',
        HandleBad => 0, # a marker
         Pars => 'a(m,n); [o]b(m,n);',
@@ -1179,7 +1212,7 @@ and vectorized for PDL by Karl Glazebrook.
   
   # $tri is 0 everywhere except for points in polygon interior
   $tri = pnpoly($x,$y,$px,$py);
-                                
+
 =cut
 
 # From: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
@@ -1222,11 +1255,14 @@ pp_def('polyfill',
 		 if (ierr) warn("errors during polygonfilling");
 		 ',
 	Doc => << 'EOD',
+
 =for ref
 
 fill the area inside the given polygon with a given colour
 
 This function works inplace, i.e. modifies C<im>.
+
+=cut
 
 EOD
 );
@@ -1304,6 +1340,7 @@ pp_def('rot2d',
 			$SIZE(q) = nrows;',
 	GenericTypes => ['B'],
 	Doc => << 'EOD',
+
 =for ref
 
 rotate an image by given C<angle>
@@ -1330,6 +1367,8 @@ L<PDL::Transform|PDL::Transform> offers a more general interface to
 distortions, including rotation, with various types of sampling; but 
 rot2d is faster.
 
+=cut
+
 EOD
 );
 
@@ -1337,11 +1376,14 @@ pp_def('bilin2d',
        HandleBad => 0,
     Pars => 'I(n,m); O(q,p)',
     Doc=><<'EOD',
+
 =for ref
 
 Bilinearly maps the first piddle in the second. The
 interpolated values are actually added to the second
 piddle which is supposed to be larger than the first one.
+
+=cut
 
 EOD
 ,
@@ -1381,6 +1423,7 @@ pp_def('rescale2d',
        HandleBad => 0,
     Pars => 'I(m,n); O(p,q)',
     Doc=><<'EOD',
+
 =for ref
 
 The first piddle is rescaled to the dimensions of the second
@@ -1391,6 +1434,8 @@ If you want photometric accuracy or automatic FITS header metadata
 tracking, consider using L<PDL::Transform::map|PDL::Transform/map>
 instead: it does these things, at some speed penalty compared to 
 rescale2d.
+
+=cut
 
 EOD
 ,
