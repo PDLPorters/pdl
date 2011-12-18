@@ -19,6 +19,8 @@ E seem to be fundamental.
 =cut
 
 package PDL::Constants;
+our $VERSION = 0.02;
+
 require Exporter;
 @ISA = qw(Exporter);
 @EXPORT_OK = qw(PI E I J);  # symbols to export
